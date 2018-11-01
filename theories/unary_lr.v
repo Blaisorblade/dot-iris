@@ -1,4 +1,4 @@
-Require Import dotsyn.
+Require Import Dot.dotsyn.
 
 From iris Require Import base_logic.lib.saved_prop.
 (* From iris Require Import base_logic.base_logic. *)

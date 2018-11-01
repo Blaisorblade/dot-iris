@@ -1,5 +1,5 @@
 -Q theories Dot
-
+-arg -w -arg -notation-overridden,-redundant-canonical-projection,-several-object-files
 theories/Autosubst2.v
 theories/axioms.v
 theories/dotsyn.v
