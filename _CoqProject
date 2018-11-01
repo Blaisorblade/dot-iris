@@ -1,1 +1,6 @@
--R "." Top
+-Q theories Dot
+
+theories/Autosubst2.v
+theories/axioms.v
+theories/dotsyn.v
+theories/unary_lr.v

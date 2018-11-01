@@ -1,4 +1,4 @@
-From mathcomp Require Import ssreflect.
+From Coq Require Import ssreflect.
 
 (** ** Propositional extensionality *)
 
@@ -50,7 +50,7 @@ Ltac fext := nointr repeat (
 
 (** ** Typeclass instance for Funext *)
 
-Require Import Autosubst2.
+Require Import Dot.Autosubst2.
 
 Instance: Funext.
 Proof. move=> A B f g h. fext. exact: h. Qed.

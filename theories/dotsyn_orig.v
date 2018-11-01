@@ -14,8 +14,8 @@ The following variable constructors were generated:
 var_vl : Type
 
 Autosubst 2 uses vectors of substitutions. The types of the generated substiutions are listed below:
-subst_of subst_of_label :=
-subst_of subst_of_gname :=
+subst_of subst_of_label := 
+subst_of subst_of_gname := 
 subst_of subst_of_tm := index -> vl
 subst_of subst_of_vl := index -> vl
 subst_of subst_of_dms := index -> vl
@@ -49,22 +49,22 @@ If Autosubst 2 does not behave as expected, we are grateful for a short mail to 
 Thank you!
 *)
 
-Require Export Autosubst2.
+Require Export Dot.Autosubst2.
 Set Implicit Arguments.
 Require Import Lists.List.
 Import ListNotations.
 Set Typeclasses Filtered Unification.
 
-Definition label := nat.
+Inductive label  : Type :=
+  .
 
 
 
 Definition subst_of_label  : list Type :=
   [].
 
-From iris Require Import base_logic.lib.saved_prop.
-
-
+Inductive gname  : Type :=
+  .
 
 
 
@@ -72,7 +72,7 @@ Definition subst_of_gname  : list Type :=
   [].
 
 Inductive tm  : Type :=
-
+  
   | tv : vl -> tm
   | tapp : tm -> tm -> tm
   | tproj : tm -> label -> tm
@@ -81,16 +81,16 @@ Inductive tm  : Type :=
   | vabs : tm -> vl
   | vobj : dms -> vl
  with dms  : Type :=
-
+  
   | dnil :  dms
   | dcons : dm -> dms -> dms
  with dm  : Type :=
-
+  
   | dtysyn : ty -> dm
   | dtysem : gname -> dm
   | dvl : vl -> dm
  with ty  : Type :=
-
+  
   | TTop :  ty
   | TBot :  ty
   | TAnd : ty -> ty -> ty
@@ -220,8 +220,6 @@ Definition castren_dm_ty (xi: ren_of subst_of_dm) : ren_of subst_of_ty :=
 Definition castren_dm_vl (xi: ren_of subst_of_dm) : ren_of subst_of_vl :=
   let xi_vl := xi in xi_vl.
 
-Definition castren_dms_vl (xi: ren_of subst_of_dms) : ren_of subst_of_vl :=
-  let xi_vl := xi in xi_vl.
 
 
 Definition castren_ty_vl (xi: ren_of subst_of_ty) : ren_of subst_of_vl :=
@@ -244,7 +242,7 @@ Definition upren_ty_vl (xi: ren_of subst_of_ty) : ren_of subst_of_ty :=
 
 Fixpoint ren_tm (xi: ren_of subst_of_tm) (s: tm) : tm :=
   match s with
-
+  
   | tv s0 => tv ((ren_vl (castren_tm_vl xi) s0))
   | tapp s0 s1 => tapp ((ren_tm xi s0)) ((ren_tm xi s1))
   | tproj s0 s1 => tproj ((ren_tm xi s0)) (s1)
@@ -257,22 +255,22 @@ Fixpoint ren_tm (xi: ren_of subst_of_tm) (s: tm) : tm :=
   end
  with ren_dms (xi: ren_of subst_of_dms) (s: dms) : dms :=
   match s with
-
-  | dnil  => dnil
+  
+  | dnil  => dnil 
   | dcons s0 s1 => dcons ((ren_dm (castren_dms_dm xi) s0)) ((ren_dms xi s1))
   end
  with ren_dm (xi: ren_of subst_of_dm) (s: dm) : dm :=
   match s with
-
+  
   | dtysyn s0 => dtysyn ((ren_ty (castren_dm_ty xi) s0))
   | dtysem s0 => dtysem (s0)
   | dvl s0 => dvl ((ren_vl (castren_dm_vl xi) s0))
   end
  with ren_ty (xi: ren_of subst_of_ty) (s: ty) : ty :=
   match s with
-
-  | TTop  => TTop
-  | TBot  => TBot
+  
+  | TTop  => TTop 
+  | TBot  => TBot 
   | TAnd s0 s1 => TAnd ((ren_ty xi s0)) ((ren_ty xi s1))
   | TOr s0 s1 => TOr ((ren_ty xi s0)) ((ren_ty xi s1))
   | TLater s0 => TLater ((ren_ty xi s0))
@@ -385,8 +383,6 @@ Definition cast_dm_vl (sigma: subst_of subst_of_dm) : subst_of subst_of_vl :=
   let sigma_vl := sigma in sigma_vl.
 
 
-Definition cast_dms_vl (sigma: subst_of subst_of_dms) : subst_of subst_of_vl :=
-  let sigma_vl := sigma in sigma_vl.
 
 Definition cast_ty_vl (sigma: subst_of subst_of_ty) : subst_of subst_of_vl :=
   let sigma_vl := sigma in sigma_vl.
@@ -434,7 +430,7 @@ Defined.
 
 Fixpoint subst_tm (sigma: subst_of subst_of_tm) (s: tm) : tm :=
   match s with
-
+  
   | tv s0 => tv ((subst_vl (cast_tm_vl sigma) s0))
   | tapp s0 s1 => tapp ((subst_tm sigma s0)) ((subst_tm sigma s1))
   | tproj s0 s1 => tproj ((subst_tm sigma s0)) (s1)
@@ -447,8 +443,8 @@ Fixpoint subst_tm (sigma: subst_of subst_of_tm) (s: tm) : tm :=
   end
  with subst_dms (sigma: subst_of subst_of_dms) (s: dms) : dms :=
   match s with
-
-  | dnil  => dnil
+  
+  | dnil  => dnil 
   | dcons s0 s1 => dcons ((subst_dm (cast_dms_dm sigma) s0)) ((subst_dms sigma s1))
   end
  with subst_dm (sigma: subst_of subst_of_dm) (s: dm) : dm :=
@@ -460,9 +456,9 @@ Fixpoint subst_tm (sigma: subst_of subst_of_tm) (s: tm) : tm :=
   end
  with subst_ty (sigma: subst_of subst_of_ty) (s: ty) : ty :=
   match s with
-
-  | TTop  => TTop
-  | TBot  => TBot
+  
+  | TTop  => TTop 
+  | TBot  => TBot 
   | TAnd s0 s1 => TAnd ((subst_ty sigma s0)) ((subst_ty sigma s1))
   | TOr s0 s1 => TOr ((subst_ty sigma s0)) ((subst_ty sigma s1))
   | TLater s0 => TLater ((subst_ty sigma s0))
@@ -571,7 +567,7 @@ Definition upId_ty_vl (sigma_vl: index -> vl) (E_vl: sigma_vl == var_vl) : @eq_o
 
 Fixpoint id_tm (sigma_vl: index -> vl) (E_vl: sigma_vl == var_vl) (s: tm) : subst_tm sigma_vl s = s :=
   match s with
-
+  
   | tv s0 => ap tv (id_vl _ E_vl s0)
   | tapp s0 s1 => apc (ap tapp (id_tm _ E_vl s0)) ((id_tm _ E_vl s1))
   | tproj s0 s1 => apc (ap tproj (id_tm _ E_vl s0)) ((eq_refl))
@@ -588,7 +584,7 @@ Fixpoint id_tm (sigma_vl: index -> vl) (E_vl: sigma_vl == var_vl) (s: tm) : subs
   end
  with id_dms (sigma_vl: index -> vl) (E_vl: sigma_vl == var_vl) (s: dms) : subst_dms sigma_vl s = s :=
   match s with
-
+  
   | dnil  => eq_refl
   | dcons s0 s1 => apc (ap dcons (id_dm _ E_vl s0)) ((id_dms _ E_vl s1))
   end
@@ -601,7 +597,7 @@ Fixpoint id_tm (sigma_vl: index -> vl) (E_vl: sigma_vl == var_vl) (s: tm) : subs
   end
  with id_ty (sigma_vl: index -> vl) (E_vl: sigma_vl == var_vl) (s: ty) : subst_ty sigma_vl s = s :=
   match s with
-
+  
   | TTop  => eq_refl
   | TBot  => eq_refl
   | TAnd s0 s1 => apc (ap TAnd (id_ty _ E_vl s0)) ((id_ty _ E_vl s1))
@@ -647,7 +643,7 @@ Definition toSubst_ty (xi: ren_of subst_of_ty) : subst_of subst_of_ty :=
 Fixpoint compTrans_ren_ren_tm (xi_vl zeta_vl theta_vl: ren) (E_vl: funcomp (xi_vl) (zeta_vl) == theta_vl) (s: tm)
            : ren_tm zeta_vl (ren_tm xi_vl s) = ren_tm theta_vl s :=
   match s with
-
+  
   | tv s0 => ap tv (compTrans_ren_ren_vl xi_vl zeta_vl theta_vl E_vl s0)
   | tapp s0 s1 =>
       apc (ap tapp (compTrans_ren_ren_tm xi_vl zeta_vl theta_vl E_vl s0)) ((compTrans_ren_ren_tm xi_vl zeta_vl theta_vl E_vl s1))
@@ -663,7 +659,7 @@ Fixpoint compTrans_ren_ren_tm (xi_vl zeta_vl theta_vl: ren) (E_vl: funcomp (xi_v
  with compTrans_ren_ren_dms (xi_vl zeta_vl theta_vl: ren) (E_vl: funcomp (xi_vl) (zeta_vl) == theta_vl) (s: dms)
         : ren_dms zeta_vl (ren_dms xi_vl s) = ren_dms theta_vl s :=
   match s with
-
+  
   | dnil  => eq_refl
   | dcons s0 s1 =>
       apc (ap dcons (compTrans_ren_ren_dm xi_vl zeta_vl theta_vl E_vl s0)) ((compTrans_ren_ren_dms xi_vl zeta_vl theta_vl E_vl s1))
@@ -679,7 +675,7 @@ Fixpoint compTrans_ren_ren_tm (xi_vl zeta_vl theta_vl: ren) (E_vl: funcomp (xi_v
  with compTrans_ren_ren_ty (xi_vl zeta_vl theta_vl: ren) (E_vl: funcomp (xi_vl) (zeta_vl) == theta_vl) (s: ty)
         : ren_ty zeta_vl (ren_ty xi_vl s) = ren_ty theta_vl s :=
   match s with
-
+  
   | TTop  => eq_refl
   | TBot  => eq_refl
   | TAnd s0 s1 =>
@@ -761,7 +757,7 @@ Definition up_ren_subst_ty_vl (xi_vl: ren) (theta_vl tau_vl: index -> vl) (E_vl:
 Fixpoint compTrans_ren_subst_tm (xi_vl: ren) (tau_vl theta_vl: index -> vl) (E_vl: (fun x =>  tau_vl (xi_vl x)) == theta_vl) (s: tm)
            : subst_tm tau_vl (ren_tm xi_vl s) = subst_tm theta_vl s :=
   match s with
-
+  
   | tv s0 => ap tv (compTrans_ren_subst_vl xi_vl _ _ E_vl s0)
   | tapp s0 s1 => apc (ap tapp (compTrans_ren_subst_tm xi_vl _ _ E_vl s0)) ((compTrans_ren_subst_tm xi_vl _ _ E_vl s1))
   | tproj s0 s1 => apc (ap tproj (compTrans_ren_subst_tm xi_vl _ _ E_vl s0)) ((eq_refl))
@@ -780,7 +776,7 @@ Fixpoint compTrans_ren_subst_tm (xi_vl: ren) (tau_vl theta_vl: index -> vl) (E_v
  with compTrans_ren_subst_dms (xi_vl: ren) (tau_vl theta_vl: index -> vl) (E_vl: (fun x =>  tau_vl (xi_vl x)) == theta_vl) (s: dms)
         : subst_dms tau_vl (ren_dms xi_vl s) = subst_dms theta_vl s :=
   match s with
-
+  
   | dnil  => eq_refl
   | dcons s0 s1 => apc (ap dcons (compTrans_ren_subst_dm xi_vl _ _ E_vl s0)) ((compTrans_ren_subst_dms xi_vl _ _ E_vl s1))
   end
@@ -795,7 +791,7 @@ Fixpoint compTrans_ren_subst_tm (xi_vl: ren) (tau_vl theta_vl: index -> vl) (E_v
  with compTrans_ren_subst_ty (xi_vl: ren) (tau_vl theta_vl: index -> vl) (E_vl: (fun x =>  tau_vl (xi_vl x)) == theta_vl) (s: ty)
         : subst_ty tau_vl (ren_ty xi_vl s) = subst_ty theta_vl s :=
   match s with
-
+  
   | TTop  => eq_refl
   | TBot  => eq_refl
   | TAnd s0 s1 => apc (ap TAnd (compTrans_ren_subst_ty xi_vl _ _ E_vl s0)) ((compTrans_ren_subst_ty xi_vl _ _ E_vl s1))
@@ -906,7 +902,7 @@ Fixpoint compTrans_subst_ren_tm (sigma_vl: index -> vl)
            (E_vl: (fun x =>  ren_vl zeta_vl (sigma_vl x)) == theta_vl)
            (s: tm) : ren_tm zeta_vl (subst_tm sigma_vl s) = subst_tm theta_vl s :=
   match s with
-
+  
   | tv s0 => ap tv (compTrans_subst_ren_vl _ zeta_vl _ E_vl s0)
   | tapp s0 s1 => apc (ap tapp (compTrans_subst_ren_tm _ zeta_vl _ E_vl s0)) ((compTrans_subst_ren_tm _ zeta_vl _ E_vl s1))
   | tproj s0 s1 => apc (ap tproj (compTrans_subst_ren_tm _ zeta_vl _ E_vl s0)) ((eq_refl))
@@ -931,7 +927,7 @@ Fixpoint compTrans_subst_ren_tm (sigma_vl: index -> vl)
         (E_vl: (fun x =>  ren_vl zeta_vl (sigma_vl x)) == theta_vl)
         (s: dms) : ren_dms zeta_vl (subst_dms sigma_vl s) = subst_dms theta_vl s :=
   match s with
-
+  
   | dnil  => eq_refl
   | dcons s0 s1 => apc (ap dcons (compTrans_subst_ren_dm _ zeta_vl _ E_vl s0)) ((compTrans_subst_ren_dms _ zeta_vl _ E_vl s1))
   end
@@ -952,7 +948,7 @@ Fixpoint compTrans_subst_ren_tm (sigma_vl: index -> vl)
         (E_vl: (fun x =>  ren_vl zeta_vl (sigma_vl x)) == theta_vl)
         (s: ty) : ren_ty zeta_vl (subst_ty sigma_vl s) = subst_ty theta_vl s :=
   match s with
-
+  
   | TTop  => eq_refl
   | TBot  => eq_refl
   | TAnd s0 s1 => apc (ap TAnd (compTrans_subst_ren_ty _ zeta_vl _ E_vl s0)) ((compTrans_subst_ren_ty _ zeta_vl _ E_vl s1))
@@ -1046,7 +1042,7 @@ Fixpoint compTrans_subst_subst_tm (sigma_vl tau_vl theta_vl: index -> vl)
            (E_vl: (fun x =>  subst_vl tau_vl (sigma_vl x)) == theta_vl)
            (s: tm) : subst_tm tau_vl (subst_tm sigma_vl s) = subst_tm theta_vl s :=
   match s with
-
+  
   | tv s0 => ap tv (compTrans_subst_subst_vl _ _ _ E_vl s0)
   | tapp s0 s1 => apc (ap tapp (compTrans_subst_subst_tm _ _ _ E_vl s0)) ((compTrans_subst_subst_tm _ _ _ E_vl s1))
   | tproj s0 s1 => apc (ap tproj (compTrans_subst_subst_tm _ _ _ E_vl s0)) ((eq_refl))
@@ -1066,7 +1062,7 @@ Fixpoint compTrans_subst_subst_tm (sigma_vl tau_vl theta_vl: index -> vl)
         (E_vl: (fun x =>  subst_vl tau_vl (sigma_vl x)) == theta_vl)
         (s: dms) : subst_dms tau_vl (subst_dms sigma_vl s) = subst_dms theta_vl s :=
   match s with
-
+  
   | dnil  => eq_refl
   | dcons s0 s1 => apc (ap dcons (compTrans_subst_subst_dm _ _ _ E_vl s0)) ((compTrans_subst_subst_dms _ _ _ E_vl s1))
   end
@@ -1081,7 +1077,7 @@ Fixpoint compTrans_subst_subst_tm (sigma_vl tau_vl theta_vl: index -> vl)
  with compTrans_subst_subst_ty (sigma_vl tau_vl theta_vl: index -> vl) (E_vl: (fun x =>  subst_vl tau_vl (sigma_vl x)) == theta_vl) (s: ty)
         : subst_ty tau_vl (subst_ty sigma_vl s) = subst_ty theta_vl s :=
   match s with
-
+  
   | TTop  => eq_refl
   | TBot  => eq_refl
   | TAnd s0 s1 => apc (ap TAnd (compTrans_subst_subst_ty _ _ _ E_vl s0)) ((compTrans_subst_subst_ty _ _ _ E_vl s1))
@@ -1152,7 +1148,7 @@ Defined.
 
 Fixpoint subst_eq_tm {sigma tau: subst_of subst_of_tm} (E: eq_of_subst sigma tau) (s: tm) : subst_tm sigma s = subst_tm tau s :=
   match s with
-
+  
   | tv s0 => congr_tv (subst_eq_vl (eq_cast_tm_vl E) s0)
   | tapp s0 s1 => congr_tapp (subst_eq_tm E s0) (subst_eq_tm E s1)
   | tproj s0 s1 => congr_tproj (subst_eq_tm E s0) (eq_refl)
@@ -1165,8 +1161,8 @@ Fixpoint subst_eq_tm {sigma tau: subst_of subst_of_tm} (E: eq_of_subst sigma tau
   end
  with subst_eq_dms {sigma tau: subst_of subst_of_dms} (E: eq_of_subst sigma tau) (s: dms) : subst_dms sigma s = subst_dms tau s :=
   match s with
-
-  | dnil  => congr_dnil
+  
+  | dnil  => congr_dnil 
   | dcons s0 s1 => congr_dcons (subst_eq_dm (eq_cast_dms_dm E) s0) (subst_eq_dms E s1)
   end
  with subst_eq_dm {sigma tau: subst_of subst_of_dm} (E: eq_of_subst sigma tau) (s: dm) : subst_dm sigma s = subst_dm tau s :=
@@ -1178,9 +1174,9 @@ Fixpoint subst_eq_tm {sigma tau: subst_of subst_of_tm} (E: eq_of_subst sigma tau
   end
  with subst_eq_ty {sigma tau: subst_of subst_of_ty} (E: eq_of_subst sigma tau) (s: ty) : subst_ty sigma s = subst_ty tau s :=
   match s with
-
-  | TTop  => congr_TTop
-  | TBot  => congr_TBot
+  
+  | TTop  => congr_TTop 
+  | TBot  => congr_TBot 
   | TAnd s0 s1 => congr_TAnd (subst_eq_ty E s0) (subst_eq_ty E s1)
   | TOr s0 s1 => congr_TOr (subst_eq_ty E s0) (subst_eq_ty E s1)
   | TLater s0 => congr_TLater (subst_eq_ty E s0)
@@ -1257,18 +1253,6 @@ Class AsimplComp_ty (sigma tau theta: subst_of subst_of_ty) := asimplCompEqn_ty 
 end .
 Hint Mode AsimplComp_ty + + - : typeclass_instance.
 
-(* Class AsimplSubst_label (sigma tau: subst_of subst_of_label) := asimplSubstEqn_label : match sigma, tau with *)
-(* | sigma_vl, tau_vl => sigma_vl = tau_vl *)
-(* end . *)
-(* Hint Mode AsimplSubst_label + - : typeclass_instance. *)
-
-
-(* Class AsimplSubst_gname (sigma tau: subst_of subst_of_gname) := asimplSubstEqn_gname : match sigma, tau with *)
-(* | sigma_vl, tau_vl => sigma_vl = tau_vl *)
-(* end . *)
-(* Hint Mode AsimplSubst_gname + - : typeclass_instance. *)
-
-
 Instance AsimplCast_tm_vl (sigma_vl: index -> vl)
 (tau: subst_of subst_of_vl)
 (E: AsimplSubst_vl sigma_vl tau) : AsimplSubst_vl ((cast_tm_vl sigma_vl)) tau.
@@ -1301,36 +1285,11 @@ Instance asimplInst_tapp (s0 s1 s0' s1': _)
 (E_0: AsimplInst_tm s0 theta_0 s0')
 (E_1: AsimplInst_tm s1 theta_1 s1') : AsimplInst_tm (tapp s0 s1) sigma (tapp s0' s1').
 Admitted.
-
-Fixpoint subst_label (sigma: subst_of subst_of_label) (s: label) : label := s.
-Fixpoint subst_gname (sigma: subst_of subst_of_gname) (s: gname) : gname := s.
-
-Class AsimplInst_label (s: label) (sigma: subst_of subst_of_label) (t: label) := asimplInstEqn_label : (subst_label sigma) s = t .
-Hint Mode AsimplInst_label + + - : typeclass_instance.
-
-Class AsimplInst_gname (s: gname) (sigma: subst_of subst_of_gname) (t: gname) := asimplInstEqn_gname : (subst_gname sigma) s = t .
-Hint Mode AsimplInst_gname + + - : typeclass_instance.
-
-(* Definition comp_label (sigma tau: subst_of subst_of_label) : subst_of subst_of_label :=  *)
-(*   match sigma with *)
-(*   | sigma_vl => subst_vl (cast_tm_vl tau) sigma_vl *)
-(*   end. *)
-
-
-(* Definition comp_tm (sigma tau: subst_of subst_of_tm) : subst_of subst_of_tm := *)
-(*   match sigma with *)
-(*   | sigma_vl => fun x => subst_vl (cast_tm_vl tau) (sigma_vl x) *)
-(*   end. *)
-(* Class AsimplComp_gname (sigma tau theta: subst_of subst_of_gname) := asimplCompEqn_gname : match comp_gname sigma tau, theta with *)
-(* | sigma_tau_vl, theta_vl => (forall x, sigma_tau_vl x = theta_vl x) *)
-(* end . *)
-(* Hint Mode AsimplComp_gname + + - : typeclass_instance. *)
-
 Instance asimplInst_tproj (s0 s1 s0' s1': _)
 (sigma theta_0: subst_of subst_of_tm)
 (theta_1: subst_of subst_of_label)
 (E_0': AsimplSubst_tm (sigma) theta_0)
-(* (E_1': AsimplSubst_label sigma theta_1) *)
+(E_1': AsimplSubst_label sigma theta_1)
 (E_0: AsimplInst_tm s0 theta_0 s0')
 (E_1: AsimplInst_label s1 theta_1 s1') : AsimplInst_tm (tproj s0 s1) sigma (tproj s0' s1').
 Admitted.
@@ -1629,7 +1588,7 @@ Admitted.
 Instance asimplInst_dtysem (s0 s0': _)
 (sigma: subst_of subst_of_dm)
 (theta_0: subst_of subst_of_gname)
-(* (E_0': AsimplSubst_gname sigma theta_0) *)
+(E_0': AsimplSubst_gname sigma theta_0)
 (E_0: AsimplInst_gname s0 theta_0 s0') : AsimplInst_dm (dtysem s0) sigma (dtysem s0').
 Admitted.
 Instance asimplInst_dvl (s0 s0': _)
@@ -1763,7 +1722,7 @@ Instance asimplInst_TVMem (s0 s1 s0' s1': _)
 (sigma: subst_of subst_of_ty)
 (theta_0: subst_of subst_of_label)
 (theta_1: subst_of subst_of_ty)
-(* (E_0': AsimplSubst_label sigma theta_0) *)
+(E_0': AsimplSubst_label sigma theta_0)
 (E_1': AsimplSubst_ty (sigma) theta_1)
 (E_0: AsimplInst_label s0 theta_0 s0')
 (E_1: AsimplInst_ty s1 theta_1 s1') : AsimplInst_ty (TVMem s0 s1) sigma (TVMem s0' s1').
@@ -1772,7 +1731,7 @@ Instance asimplInst_TTMem (s0 s1 s2 s0' s1' s2': _)
 (sigma: subst_of subst_of_ty)
 (theta_0: subst_of subst_of_label)
 (theta_1 theta_2: subst_of subst_of_ty)
-(* (E_0': AsimplSubst_label sigma theta_0) *)
+(E_0': AsimplSubst_label sigma theta_0)
 (E_1': AsimplSubst_ty (sigma) theta_1)
 (E_2': AsimplSubst_ty (sigma) theta_2)
 (E_0: AsimplInst_label s0 theta_0 s0')
@@ -1864,7 +1823,7 @@ Admitted.
 
 
 Inductive path  : Type :=
-
+  
   | pv : vl -> path
   | pself : path -> label -> path.
 
@@ -1890,7 +1849,7 @@ Definition upren_path_vl (xi: ren_of subst_of_path) : ren_of subst_of_path :=
 
 Fixpoint ren_path (xi: ren_of subst_of_path) (s: path) : path :=
   match s with
-
+  
   | pv s0 => pv ((ren_vl (castren_path_vl xi) s0))
   | pself s0 s1 => pself ((ren_path xi s0)) (s1)
   end.
@@ -1925,7 +1884,7 @@ Defined.
 
 Fixpoint subst_path (sigma: subst_of subst_of_path) (s: path) : path :=
   match s with
-
+  
   | pv s0 => pv ((subst_vl (cast_path_vl sigma) s0))
   | pself s0 s1 => pself ((subst_path sigma s0)) (s1)
   end.
@@ -1951,7 +1910,7 @@ Definition upId_path_vl (sigma_vl: index -> vl) (E_vl: sigma_vl == var_vl) : @eq
 
 Fixpoint id_path (sigma_vl: index -> vl) (E_vl: sigma_vl == var_vl) (s: path) : subst_path sigma_vl s = s :=
   match s with
-
+  
   | pv s0 => ap pv (id_vl _ E_vl s0)
   | pself s0 s1 => apc (ap pself (id_path _ E_vl s0)) ((eq_refl))
   end.
@@ -1964,7 +1923,7 @@ Definition toSubst_path (xi: ren_of subst_of_path) : subst_of subst_of_path :=
 Fixpoint compTrans_ren_ren_path (xi_vl zeta_vl theta_vl: ren) (E_vl: funcomp (xi_vl) (zeta_vl) == theta_vl) (s: path)
            : ren_path zeta_vl (ren_path xi_vl s) = ren_path theta_vl s :=
   match s with
-
+  
   | pv s0 => ap pv (compTrans_ren_ren_vl xi_vl zeta_vl theta_vl E_vl s0)
   | pself s0 s1 => apc (ap pself (compTrans_ren_ren_path xi_vl zeta_vl theta_vl E_vl s0)) ((eq_refl))
   end.
@@ -1984,7 +1943,7 @@ Definition up_ren_subst_path_vl (xi_vl: ren) (theta_vl tau_vl: index -> vl) (E_v
 Fixpoint compTrans_ren_subst_path (xi_vl: ren) (tau_vl theta_vl: index -> vl) (E_vl: (fun x =>  tau_vl (xi_vl x)) == theta_vl) (s: path)
            : subst_path tau_vl (ren_path xi_vl s) = subst_path theta_vl s :=
   match s with
-
+  
   | pv s0 => ap pv (compTrans_ren_subst_vl xi_vl _ _ E_vl s0)
   | pself s0 s1 => apc (ap pself (compTrans_ren_subst_path xi_vl _ _ E_vl s0)) ((eq_refl))
   end.
@@ -2012,7 +1971,7 @@ Fixpoint compTrans_subst_ren_path (sigma_vl: index -> vl)
            (E_vl: (fun x =>  ren_vl zeta_vl (sigma_vl x)) == theta_vl)
            (s: path) : ren_path zeta_vl (subst_path sigma_vl s) = subst_path theta_vl s :=
   match s with
-
+  
   | pv s0 => ap pv (compTrans_subst_ren_vl _ zeta_vl _ E_vl s0)
   | pself s0 s1 => apc (ap pself (compTrans_subst_ren_path _ zeta_vl _ E_vl s0)) ((eq_refl))
   end.
@@ -2035,7 +1994,7 @@ Fixpoint compTrans_subst_subst_path (sigma_vl tau_vl theta_vl: index -> vl)
            (E_vl: (fun x =>  subst_vl tau_vl (sigma_vl x)) == theta_vl)
            (s: path) : subst_path tau_vl (subst_path sigma_vl s) = subst_path theta_vl s :=
   match s with
-
+  
   | pv s0 => ap pv (compTrans_subst_subst_vl _ _ _ E_vl s0)
   | pself s0 s1 => apc (ap pself (compTrans_subst_subst_path _ _ _ E_vl s0)) ((eq_refl))
   end.
@@ -2052,7 +2011,7 @@ Defined.
 
 Fixpoint subst_eq_path {sigma tau: subst_of subst_of_path} (E: eq_of_subst sigma tau) (s: path) : subst_path sigma s = subst_path tau s :=
   match s with
-
+  
   | pv s0 => congr_pv (subst_eq_vl (eq_cast_path_vl E) s0)
   | pself s0 s1 => congr_pself (subst_eq_path E s0) (eq_refl)
   end.
@@ -2099,7 +2058,7 @@ Instance asimplInst_pself (s0 s1 s0' s1': _)
 (sigma theta_0: subst_of subst_of_path)
 (theta_1: subst_of subst_of_label)
 (E_0': AsimplSubst_path (sigma) theta_0)
-(* (E_1': AsimplSubst_label sigma theta_1) *)
+(E_1': AsimplSubst_label sigma theta_1)
 (E_0: AsimplInst_path s0 theta_0 s0')
 (E_1: AsimplInst_label s1 theta_1 s1') : AsimplInst_path (pself s0 s1) sigma (pself s0' s1').
 Admitted.
@@ -2167,3 +2126,6 @@ Proof. intros x. rewrite <- E''. simpl. rewrite E. now apply subst_eq_path . Qed
 Instance AsimplSubstUp_path_vl (sigma_vl tau_vl: index -> vl)
 (E_vl: AsimplGen (var_vl 0 .: sigma_vl >>> (subst_vl ((cast_path_vl (S >>> var_vl))))) tau_vl) : AsimplSubst_path (up_path_vl sigma_vl) tau_vl.
 Admitted.
+
+
+
