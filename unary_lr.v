@@ -53,6 +53,19 @@ Section Sec.
   Notation D := (vlC -n> iProp Σ).
   Implicit Types τi : D.
 
+  (* Print list. *)
+  (* SearchAbout (list ?X -> nat -> option ?X). *)
+  (* Check lookup. *)
+
+  Fixpoint dms_to_list (ds: dms) : list dm :=
+    match ds with
+    | dnil => []
+    | dcons d ds => d :: dms_to_list ds
+    end.
+
+  Definition index_dms (i: label) (ds: dms): option dm :=
+    dms_to_list ds !! i.
+
   Program Definition expr_sem (A: D) (e: tm) : iProp Σ :=
     (False % I).
   Fixpoint interp (T: ty) : D := λne v,
@@ -71,8 +84,8 @@ Section Sec.
   (* Definition interp_mem1 *)
   (*     (interp : ty -> D) (τi : D) l L U : D := λne w, *)
   (*                                       (∃ ds, w ≡ (tv (vobj ds)) ∧ *)
-  (*                                             ∃ TX g, indexL l (dms_to_list (subst_dms ds ds)) ≡ Some (dty TX g) /\ False)%I. *)
-    (* (□ (∃ v, ⌜w = FoldV v⌝ ∧ ▷ interp (τi :: Δ) v))%I. *)
+  (*                                             ∃ TX g, index_dms l (subst_dms ds ds) ≡ Some (dtysem g) /\ False)%I. *)
+  (*   (□ (∃ v, ⌜w = FoldV v⌝ ∧ ▷ interp (τi :: Δ) v))%I. *)
 
   (* Global Instance interp_rec1_contractive *)
   (*   (interp : listC D -n> D) (Δ : listC D) : Contractive (interp_rec1 interp Δ). *)
