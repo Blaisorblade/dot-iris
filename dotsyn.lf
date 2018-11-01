@@ -1,0 +1,38 @@
+tm: Type
+vl: Type
+dms: Type
+dm: Type
+label: Type
+gname: Type
+
+vabs: (vl -> tm) -> vl
+vobj : (vl -> dms) -> vl
+
+tv: vl -> tm
+tapp: tm -> tm -> tm
+tproj : tm -> label -> tm
+
+dtysyn: ty -> dm
+dtysem: gname -> dm
+dvl: vl -> dm
+
+dnil: dms
+dcons: dm -> dms -> dms
+
+path: Type
+ty: Type
+
+pv: vl -> path
+pself: path -> label -> path
+
+TTop: ty
+TBot: ty
+TAnd: ty -> ty -> ty
+TOr: ty -> ty -> ty
+TLater: ty -> ty
+TAll: ty -> (vl -> ty) -> ty
+TBind : (vl -> ty) -> ty
+TVMem: label -> ty -> ty
+TTMem: label -> ty -> ty -> ty
+TSel: vl -> ty
+TSelA: vl -> ty -> ty -> ty
