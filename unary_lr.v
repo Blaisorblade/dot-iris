@@ -1,5 +1,3 @@
-Require Import tactics.
-
 Require Import dotsyn.
 
 From iris Require Import base_logic.lib.saved_prop.
@@ -70,10 +68,10 @@ Section Sec.
   (* Set Implicit Arguments. *)
   (* Definition indexL {X: Type} := @dot_storeless_tidy.index X. *)
   (* Check indexL. *)
-  Definition interp_mem1
-      (interp : ty -> D) (τi : D) l L U : D := λne w,
-                                        (∃ ds, w ≡ (tv (vobj ds)) ∧
-                                              ∃ TX g, indexL l (dms_to_list (subst_dms ds ds)) ≡ Some (dty TX g) /\ False)%I.
+  (* Definition interp_mem1 *)
+  (*     (interp : ty -> D) (τi : D) l L U : D := λne w, *)
+  (*                                       (∃ ds, w ≡ (tv (vobj ds)) ∧ *)
+  (*                                             ∃ TX g, indexL l (dms_to_list (subst_dms ds ds)) ≡ Some (dty TX g) /\ False)%I. *)
     (* (□ (∃ v, ⌜w = FoldV v⌝ ∧ ▷ interp (τi :: Δ) v))%I. *)
 
   (* Global Instance interp_rec1_contractive *)
@@ -89,4 +87,4 @@ Section Sec.
   (* Next Obligation. *)
   (*   intros interp n Δ1 Δ2 HΔ; apply fixpoint_ne => τi w. solve_proper. *)
   (* Qed. *)
-  
+End Sec.
