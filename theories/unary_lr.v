@@ -46,8 +46,6 @@ Section Sec.
   Solve Obligations with solve_proper.
 
   Notation inclusion P Q := (∀ v, P v -∗ Q v)%I.
-  (* Definition inclusion1 (P : D) (Q : vl -> iProp Σ) : iProp Σ := (∀ v, P v -∗ Q v)%I. *)
-  (* Definition inclusion1 (Q : vl -> iProp Σ) : iProp Σ := (∀ v, P v -∗ Q v)%I. *)
 
   Program Definition interp_mem (l: label) (interp1 interp2 : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
     (∃ γ ϕ ds, ⌜ v = vobj ds ∧ index_dms l ds = Some(dtysem γ) ⌝ ∧ (SP γ ϕ) ∗ (inclusion (interp1 ρ) ϕ) ∗ inclusion ϕ (interp2 ρ) ) % I.
