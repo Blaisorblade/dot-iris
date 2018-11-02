@@ -49,7 +49,7 @@ If Autosubst 2 does not behave as expected, we are grateful for a short mail to 
 Thank you!
 *)
 
-Require Export Dot.Autosubst2.
+Require Export Autosubst2.
 Set Implicit Arguments.
 Require Import Lists.List.
 Import ListNotations.
