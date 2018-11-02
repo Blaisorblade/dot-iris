@@ -12,8 +12,19 @@ From iris.base_logic Require Import invariants.
 
 Definition logN : namespace := nroot .@ "logN".
 
+Class dotG Σ := DotG {
+  dotG_invG : invG Σ;
+  dotG_savior :> savedPredG Σ vl
+}.
+
+Instance dotG_irisG `{dotG Σ} : irisG dot_lang Σ := {
+  iris_invG := dotG_invG;
+  state_interp σ κs _ := True%I;
+  fork_post _ := True%I;
+}.
+
 Section Sec.
-  Context `{savedPredG Σ vl}.
+  Context `{dotG Σ}.
   (* Check savedPredG0. *)
   (* Print savedPredG. *)
   (* Print savedAnythingG. *)
@@ -35,8 +46,10 @@ Section Sec.
   Notation D := (vlC -n> iProp Σ).
   Implicit Types τi : D.
 
-  Program Definition interp_expr (A: D) (e: tm) : iProp Σ :=
-    (False % I).
+  SearchAbout Wp.
+
+  Program Definition interp_expr (φ: D) (e: tm) : iProp Σ :=
+    (WP e {{ v, φ v }} % I).
 
   Program Definition interp_and (interp1 interp2 : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
     (interp1 ρ v  ∧  interp2 ρ v) % I.
@@ -60,6 +73,7 @@ Section Sec.
   Program Definition interp_forall (interp1 interp2 : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
     (▷ ∀ v', interp1 ρ v' -∗ interp_expr (interp2 (v :: ρ)) (tapp (tv v) (tv v'))) % I.
   Solve Obligations with solve_proper.
+  Next Obligation. admit. Admitted.
 
   Program Definition interp_val_mem l (interp : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
     (∃ vmem, v;;l ↘ vmem ∧ ▷ interp ρ vmem) % I.
