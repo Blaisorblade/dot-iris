@@ -44,7 +44,7 @@ Section Sec.
   Notation D := (vlC -n> iProp Σ).
   Implicit Types τi : D.
 
-  Program Definition expr_sem (A: D) (e: tm) : iProp Σ :=
+  Program Definition interp_expr (A: D) (e: tm) : iProp Σ :=
     (False % I).
 
   Program Definition interp_and (interp1 interp2 : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
@@ -67,7 +67,7 @@ Section Sec.
   Solve Obligations with solve_proper.
 
   Program Definition interp_forall (interp1 interp2 : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
-    (▷ ∀ v', interp1 ρ v' -∗ expr_sem (interp2 (v :: ρ)) (tapp (tv v) (tv v'))) % I.
+    (▷ ∀ v', interp1 ρ v' -∗ interp_expr (interp2 (v :: ρ)) (tapp (tv v) (tv v'))) % I.
   Solve Obligations with solve_proper.
 
   Program Definition interp_val_mem l (interp : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
@@ -109,5 +109,4 @@ Section Sec.
                )%I
     end.
   Notation "⟦ Γ ⟧*" := (interp_env Γ).
-
 End Sec.
