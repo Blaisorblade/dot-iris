@@ -17,7 +17,7 @@ Section Sec.
   (* Print savedAnythingG. *)
 
   Definition SP γ ϕ := saved_pred_own γ ϕ.
-  Notation "γ ⤇ ϕ" := (SP γ ϕ) (at level 200).
+  Notation "g ⤇ p" := (SP g p) (at level 20).
 
   Canonical Structure vlC := leibnizC vl.
   Canonical Structure tmC := leibnizC tm.
@@ -48,7 +48,7 @@ Section Sec.
   Notation inclusion P Q := (∀ v, P v -∗ Q v)%I.
 
   Program Definition interp_mem (l: label) (interp1 interp2 : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
-    (∃ γ ϕ ds, ⌜ v = vobj ds ∧ index_dms l ds = Some(dtysem γ) ⌝ ∧ (SP γ ϕ) ∗ (inclusion (interp1 ρ) ϕ) ∗ inclusion ϕ (interp2 ρ) ) % I.
+                                                                                                    (∃ γ ϕ ds, ⌜ v = vobj ds ∧ index_dms l ds = Some(dtysem γ) ⌝ ∗ γ ⤇ ϕ ∗ (inclusion (interp1 ρ) ϕ) ∗ inclusion ϕ (interp2 ρ) )%I.
   Solve Obligations with solve_proper.
 
   Program Definition interp_later (interp : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
