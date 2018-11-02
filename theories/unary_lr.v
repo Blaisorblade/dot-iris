@@ -109,4 +109,39 @@ Section Sec.
                )%I
     end.
   Notation "⟦ Γ ⟧*" := (interp_env Γ).
+
+  (* Some subtyping lemmas, directly in terms of interp. *)
+  Lemma stp_later T ρ v (H: interp T ρ v): interp (TLater T) ρ v.
+  Proof. simpl; iNext. iApply H. Qed.
+
+  Lemma stp_and1 T1 T2 ρ v: interp (TAnd T1 T2) ρ v -> interp T1 ρ v.
+  Proof.
+    simpl in *. intros Hv.
+    iDestruct Hv as "[H1 H2]".
+    iAssumption.
+  Qed.
+
+  Lemma stp_and2 T1 T2 ρ v: interp (TAnd T1 T2) ρ v -> interp T2 ρ v.
+  Proof.
+    simpl in *. intros Hv.
+    iDestruct Hv as "[H1 H2]".
+    iAssumption.
+  Qed.
+
+  Lemma stp_and_w T1 T2 ρ v:
+    interp T1 ρ v ->
+    interp T2 ρ v ->
+    interp (TAnd T1 T2) ρ v.
+  Proof.
+    simpl in *. intros.
+    iSplit.
+    iApply H.
+    iApply H0.
+  Qed.
+
+  Lemma stp_and T1 T2 ρ v:
+    interp T1 ρ v -∗
+    interp T2 ρ v -∗
+    interp (TAnd T1 T2) ρ v.
+  Proof. iIntros; by iSplit. Qed.
 End Sec.
