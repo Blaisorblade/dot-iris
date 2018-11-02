@@ -94,6 +94,19 @@ Section Sec.
     | TVMem l T' => interp_val_mem l (interp T')
   end % I.
 
+  Notation "⟦ T ⟧" := (interp T).
+
+  (* use foldr? *)
+  Fixpoint interp_env (Γ : list ty): list vl -> iProp Σ :=
+    match Γ with
+    | nil => (fun l => (⌜ l = nil ⌝) % I)
+    | T::Γ' => (fun l => match l with
+                         | nil => False
+                         | v::ρ => (interp_env Γ') ρ ∗ ⟦ T ⟧ ρ v
+                         end
+               )%I
+    end.
+  Notation "⟦ Γ ⟧*" := (interp_env Γ).
 
   (* V􏰃p.A􏰄ρ= 􏰋v 􏰍 ∃φ.ρ(p).A↘φ∧▷(v∈φ)􏰌 *)
   
