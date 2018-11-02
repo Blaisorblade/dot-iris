@@ -128,6 +128,15 @@ Section Sec.
     iAssumption.
   Qed.
 
+  Lemma stp_and1_fails T1 T2 ρ v: interp (TAnd T1 T2) ρ v -∗ interp T2 ρ v.
+  Proof.
+    simpl in *. iIntros "Hv".
+    (* This would turn P ∧ Q into P, Q in the Iris context (that is, P * Q), but
+    this is illegal unless P and Q are persistent. *)
+    Fail iDestruct "Hv" as "[H1 H2]".
+    Fail iAssumption.
+   Abort.
+
   Lemma stp_and_w T1 T2 ρ v:
     interp T1 ρ v ->
     interp T2 ρ v ->
