@@ -78,3 +78,5 @@ Qed.
 Canonical Structure dot_ectxi_lang := EctxiLanguage lang.dot_lang_mixin.
 Canonical Structure dot_ectx_lang := EctxLanguageOfEctxi dot_ectxi_lang.
 Canonical Structure dot_lang := LanguageOfEctx dot_ectx_lang.
+
+End lang.
