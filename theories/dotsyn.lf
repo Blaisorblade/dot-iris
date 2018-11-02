@@ -31,8 +31,8 @@ TAnd: ty -> ty -> ty
 TOr: ty -> ty -> ty
 TLater: ty -> ty
 TAll: ty -> (vl -> ty) -> ty
-TBind : (vl -> ty) -> ty
+TMu : (vl -> ty) -> ty
 TVMem: label -> ty -> ty
 TTMem: label -> ty -> ty -> ty
-TSel: vl -> ty
-TSelA: vl -> ty -> ty -> ty
+TSel: path -> label -> ty
+TSelA: path -> label -> ty -> ty -> ty
