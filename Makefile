@@ -12,7 +12,7 @@ endif
 
 .PHONY: coq clean
 
-COQSRC = $(filter-out %_orig.v,$(wildcard *.v))
+COQSRC = $(filter-out %_orig.v,$(wildcard theories/*.v))
 coq: Makefile.coq
 	$(E) "  MAKE Makefile.coq"
 	$(Q)$(MAKE) $(MFLAGS) -f Makefile.coq
