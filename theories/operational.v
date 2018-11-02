@@ -25,11 +25,36 @@ Definition fill_item (Ki : ectx_item) (e : tm) : tm :=
   | ProjCtx l => tproj e l
   end.
 
-Definition state : Type := ().
+Definition state := unit.
 Definition observation := unit.
 
+Fixpoint dms_to_list (ds: dms) : list dm :=
+  match ds with
+  | dnil => []
+  | dcons d ds => d :: dms_to_list ds
+  end.
+
+Definition index_dms (i: label) (ds: dms): option dm :=
+  dms_to_list ds !! i.
+
+(** Single-variable substitution, based on the Autosubst1 notation. Priorities copied from s .[ sigma ]. *)
+Notation "s .[ v /]" := (s .[ v .: var_vl ])
+  (at level 2, v at level 200, left associativity,
+   format "s .[ v /]" ) : subst_scope.
+
+(** Substitute object inside itself (to give semantics to the "self"
+    variable). To use when descending under the [vobj] binder. *)
+Definition selfSubst (ds: dms): dms := ds.[vobj ds/].
+
+Definition dms_proj_val ds l v: Prop :=
+  index_dms l (selfSubst ds) = Some (dvl v).
+
 Inductive head_step : tm -> state -> list observation -> tm -> state -> list tm -> Prop :=
-  
+| st_beta : forall t1 v2,
+    head_step (tapp (tv (vabs t1)) (tv v2)) tt [] (t1.[v2/]) tt []
+| st_proj : forall ds l v,
+    dms_proj_val ds l v ->
+    head_step (tproj (tv (vobj ds)) l) tt [] (tv v) tt []
 .
 
 Lemma to_of_val v : to_val (of_val v) = Some v.

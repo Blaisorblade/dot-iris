@@ -1,4 +1,6 @@
 Require Import Dot.dotsyn.
+Require Import Dot.operational.
+Import lang.
 
 From iris Require Import base_logic.lib.saved_prop.
 (* From iris Require Import base_logic.base_logic. *)
@@ -10,15 +12,6 @@ From iris.base_logic Require Import invariants.
 
 Definition logN : namespace := nroot .@ "logN".
 
-Fixpoint dms_to_list (ds: dms) : list dm :=
-  match ds with
-  | dnil => []
-  | dcons d ds => d :: dms_to_list ds
-  end.
-
-Definition index_dms (i: label) (ds: dms): option dm :=
-  dms_to_list ds !! i.
-
 Section Sec.
   Context `{savedPredG Σ vl}.
   (* Check savedPredG0. *)
@@ -28,15 +21,11 @@ Section Sec.
   Definition SP γ ϕ := saved_pred_own γ ϕ.
   Notation "g ⤇ p" := (SP g p) (at level 20).
 
-  (** Substitute object inside itself (to give semantics to the "self"
-      variable). To use when descending under the [vobj] binder. *)
-  Definition selfSubst (ds: dms): dms := ds.[vobj ds .: var_vl].
-
   Definition object_proj_semtype v l φ : iProp Σ :=
     (∃ γ ds, ⌜ v = vobj ds ∧ index_dms l (selfSubst ds) = Some(dtysem γ) ⌝ ∗ γ ⤇ φ)%I.
 
   Definition object_proj_val v l w : iProp Σ :=
-    (∃ ds, ⌜ v = vobj ds ∧ index_dms l (selfSubst ds) = Some(dvl w) ⌝)%I.
+    (∃ ds, ⌜ v = vobj ds ∧ dms_proj_val ds l w ⌝)%I.
 
   Notation "v ; l ↘ φ" := (object_proj_semtype v l φ)%I (at level 20).
   Notation "v ;; l ↘ w" := (object_proj_val v l w)%I (at level 20).
