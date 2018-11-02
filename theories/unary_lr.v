@@ -28,9 +28,11 @@ Section Sec.
   Definition SP γ ϕ := saved_pred_own γ ϕ.
   Notation "g ⤇ p" := (SP g p) (at level 20).
 
+  (* TODO: must substitute object into itself when going down a vobj. *)
   Definition object_proj_semtype v l φ : iProp Σ :=
     (∃ γ ds, ⌜ v = vobj ds ∧ index_dms l ds = Some(dtysem γ) ⌝ ∗ γ ⤇ φ)%I.
 
+  (* TODO: must substitute object into itself when going down a vobj. *)
   Definition object_proj_val v l w : iProp Σ :=
     (∃ ds, ⌜ v = vobj ds ∧ index_dms l ds = Some(dvl w) ⌝)%I.
 
