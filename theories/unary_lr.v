@@ -102,7 +102,7 @@ Section Sec.
     | nil => (fun l => (⌜ l = nil ⌝) % I)
     | T::Γ' => (fun l => match l with
                          | nil => False
-                         | v::ρ => (interp_env Γ') ρ ∗ ⟦ T ⟧ ρ v
+                         | v::ρ => (interp_env Γ') ρ ∗ ⟦ T ⟧ (v::ρ) v
                          end
                )%I
     end.
