@@ -10,6 +10,15 @@ From iris.base_logic Require Import invariants.
 
 Definition logN : namespace := nroot .@ "logN".
 
+Fixpoint dms_to_list (ds: dms) : list dm :=
+  match ds with
+  | dnil => []
+  | dcons d ds => d :: dms_to_list ds
+  end.
+
+Definition index_dms (i: label) (ds: dms): option dm :=
+  dms_to_list ds !! i.
+
 Section Sec.
   Context `{savedPredG Σ vl}.
   (* Check savedPredG0. *)
@@ -19,19 +28,19 @@ Section Sec.
   Definition SP γ ϕ := saved_pred_own γ ϕ.
   Notation "g ⤇ p" := (SP g p) (at level 20).
 
+  Definition object_proj_semtype v l φ : iProp Σ :=
+    (∃ γ ds, ⌜ v = vobj ds ∧ index_dms l ds = Some(dtysem γ) ⌝ ∗ γ ⤇ φ)%I.
+
+  Definition object_proj_val v l w : iProp Σ :=
+    (∃ ds, ⌜ v = vobj ds ∧ index_dms l ds = Some(dvl w) ⌝)%I.
+
+  Notation "v ; l ↘ φ" := (object_proj_semtype v l φ)%I (at level 20).
+  Notation "v ;; l ↘ w" := (object_proj_val v l w)%I (at level 20).
+
   Canonical Structure vlC := leibnizC vl.
   Canonical Structure tmC := leibnizC tm.
   Notation D := (vlC -n> iProp Σ).
   Implicit Types τi : D.
-
-  Fixpoint dms_to_list (ds: dms) : list dm :=
-    match ds with
-    | dnil => []
-    | dcons d ds => d :: dms_to_list ds
-    end.
-
-  Definition index_dms (i: label) (ds: dms): option dm :=
-    dms_to_list ds !! i.
 
   Program Definition expr_sem (A: D) (e: tm) : iProp Σ :=
     (False % I).
@@ -48,7 +57,7 @@ Section Sec.
   Notation inclusion P Q := (∀ v, P v -∗ Q v)%I.
 
   Program Definition interp_mem (l: label) (interp1 interp2 : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
-                                                                                                    (∃ γ ϕ ds, ⌜ v = vobj ds ∧ index_dms l ds = Some(dtysem γ) ⌝ ∗ γ ⤇ ϕ ∗ (inclusion (interp1 ρ) ϕ) ∗ inclusion ϕ (interp2 ρ) )%I.
+    (∃ φ, (v;l ↘ φ) ∗ (inclusion (interp1 ρ) φ) ∗ inclusion φ (interp2 ρ) )%I.
   Solve Obligations with solve_proper.
 
   Program Definition interp_later (interp : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
@@ -60,7 +69,7 @@ Section Sec.
   Solve Obligations with solve_proper.
 
   Program Definition interp_val_mem l (interp : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
-    (∃ ds vmem, ⌜ v = vobj ds ∧ index_dms l ds = Some(dvl vmem) ⌝ ∧ ▷ interp ρ vmem) % I.
+    (∃ vmem, v;;l ↘ vmem ∧ ▷ interp ρ vmem) % I.
   Solve Obligations with solve_proper.
 
   Program Definition interp_bind (interp : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
