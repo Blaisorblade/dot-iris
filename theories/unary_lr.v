@@ -74,7 +74,7 @@ Section Sec.
     (∃ vmem, v;;l ↘ vmem ∧ ▷ interp ρ vmem) % I.
   Solve Obligations with solve_proper.
 
-  Program Definition interp_bind (interp : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
+  Program Definition interp_mu (interp : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
     (interp (v::ρ) v) % I.
   Solve Obligations with solve_proper.
   
@@ -90,9 +90,9 @@ Section Sec.
     | TTop => interp_true
     | TBot => interp_false
     | TAll T1 T2 => interp_forall (interp T1) (interp T2)
-    | TBind T => interp_bind (interp T)
-    | TSel value (* l *) => interp_true (* ∃ γ ϕ ds, ⌜ v = vobj ds ∧ index_dms l ds = Some(dtysem γ) ⌝ ∧ (SP γ ϕ) *)
-    | TSelA _ _ _ => interp_false
+    | TMu T => interp_mu (interp T)
+    | TSel p l => interp_true (* ∃ γ ϕ ds, ⌜ v = vobj ds ∧ index_dms l ds = Some(dtysem γ) ⌝ ∧ (SP γ ϕ) *)
+    | TSelA p l L U => interp_false
     | TVMem l T' => interp_val_mem l (interp T')
   end % I.
 
