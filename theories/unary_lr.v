@@ -28,13 +28,15 @@ Section Sec.
   Definition SP γ ϕ := saved_pred_own γ ϕ.
   Notation "g ⤇ p" := (SP g p) (at level 20).
 
-  (* TODO: must substitute object into itself when going down a vobj. *)
-  Definition object_proj_semtype v l φ : iProp Σ :=
-    (∃ γ ds, ⌜ v = vobj ds ∧ index_dms l ds = Some(dtysem γ) ⌝ ∗ γ ⤇ φ)%I.
+  (** Substitute object inside itself (to give semantics to the "self"
+      variable). To use when descending under the [vobj] binder. *)
+  Definition selfSubst (ds: dms): dms := ds.[vobj ds .: var_vl].
 
-  (* TODO: must substitute object into itself when going down a vobj. *)
+  Definition object_proj_semtype v l φ : iProp Σ :=
+    (∃ γ ds, ⌜ v = vobj ds ∧ index_dms l (selfSubst ds) = Some(dtysem γ) ⌝ ∗ γ ⤇ φ)%I.
+
   Definition object_proj_val v l w : iProp Σ :=
-    (∃ ds, ⌜ v = vobj ds ∧ index_dms l ds = Some(dvl w) ⌝)%I.
+    (∃ ds, ⌜ v = vobj ds ∧ index_dms l (selfSubst ds) = Some(dvl w) ⌝)%I.
 
   Notation "v ; l ↘ φ" := (object_proj_semtype v l φ)%I (at level 20).
   Notation "v ;; l ↘ w" := (object_proj_val v l w)%I (at level 20).
