@@ -108,28 +108,4 @@ Section Sec.
     end.
   Notation "⟦ Γ ⟧*" := (interp_env Γ).
 
-  (* V􏰃p.A􏰄ρ= 􏰋v 􏰍 ∃φ.ρ(p).A↘φ∧▷(v∈φ)􏰌 *)
-  
-  (* Set Implicit Arguments. *)
-  (* Definition indexL {X: Type} := @dot_storeless_tidy.index X. *)
-  (* Check indexL. *)
-  (* Definition interp_mem1 *)
-  (*     (interp : ty -> D) (τi : D) l L U : D := λne w, *)
-  (*                                       (∃ ds, w ≡ (tv (vobj ds)) ∧ *)
-  (*                                             ∃ TX g, index_dms l (subst_dms ds ds) ≡ Some (dtysem g) /\ False)%I. *)
-  (*   (□ (∃ v, ⌜w = FoldV v⌝ ∧ ▷ interp (τi :: Δ) v))%I. *)
-
-  (* Global Instance interp_rec1_contractive *)
-  (*   (interp : listC vlC -n> D) (Δ : listC vlC) : Contractive (interp_rec1 interp Δ). *)
-  (* Proof. by solve_contractive. Qed. *)
-
-  (* Lemma fixpoint_interp_rec1_eq (interp : listC vlC -n> D) Δ x : *)
-  (*   fixpoint (interp_rec1 interp Δ) x ≡ interp_rec1 interp Δ (fixpoint (interp_rec1 interp Δ)) x. *)
-  (* Proof. exact: (fixpoint_unfold (interp_rec1 interp Δ) x). Qed. *)
-
-  (* Program Definition interp_rec (interp : listC vlC -n> D) : listC vlC -n> D := λne Δ, *)
-  (*   fixpoint (interp_rec1 interp Δ). *)
-  (* Next Obligation. *)
-  (*   intros interp n Δ1 Δ2 HΔ; apply fixpoint_ne => τi w. solve_proper. *)
-  (* Qed. *)
 End Sec.
