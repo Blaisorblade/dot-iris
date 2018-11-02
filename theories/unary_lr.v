@@ -25,9 +25,6 @@ Instance dotG_irisG `{dotG Σ} : irisG dot_lang Σ := {
 
 Section Sec.
   Context `{dotG Σ}.
-  (* Check savedPredG0. *)
-  (* Print savedPredG. *)
-  (* Print savedAnythingG. *)
 
   Definition SP γ ϕ := saved_pred_own γ ϕ.
   Notation "g ⤇ p" := (SP g p) (at level 20).
@@ -63,7 +60,7 @@ Section Sec.
   Notation inclusion P Q := (∀ v, P v -∗ Q v)%I.
 
   Program Definition interp_mem (l: label) (interp1 interp2 : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
-    (∃ φ, (v;l ↘ φ) ∗ (inclusion (interp1 ρ) φ) ∗ inclusion φ (interp2 ρ) )%I.
+  (□ ∃ φ, (v;l ↘ φ) ∗ (inclusion (interp1 ρ) φ) ∗ inclusion φ (interp2 ρ) )%I.
   Solve Obligations with solve_proper.
 
   Program Definition interp_later (interp : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
@@ -71,9 +68,9 @@ Section Sec.
   Solve Obligations with solve_proper.
 
   Program Definition interp_forall (interp1 interp2 : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
-    (▷ ∀ v', interp1 ρ v' -∗ interp_expr (interp2 (v :: ρ)) (tapp (tv v) (tv v'))) % I.
+    (□ ▷ ∀ v', interp1 ρ v' -∗ interp_expr (interp2 (v :: ρ)) (tapp (tv v) (tv v'))) % I.
   Solve Obligations with solve_proper.
-  Next Obligation. admit. Admitted.
+  Next Obligation. unfold interp_expr; solve_proper. Qed.
 
   Program Definition interp_val_mem l (interp : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
     (∃ vmem, v;;l ↘ vmem ∧ ▷ interp ρ vmem) % I.
@@ -115,6 +112,17 @@ Section Sec.
     end.
   Notation "⟦ Γ ⟧*" := (interp_env Γ).
 
-  (* Some subtyping lemmas, directly in terms of interp. *)
+  Global Instance interp_persistent T ρ v :
+    Persistent (⟦ T ⟧ ρ v).
+  Proof.
+    revert v ρ; induction T; try move => v Δ HΔ; simpl; try apply _.
+  Qed.
 
+  Global Instance interp_env_persistent Γ ρ :
+    Persistent (⟦ Γ ⟧* ρ) := _.
+  Proof.
+    revert ρ. induction Γ.
+    - rewrite /Persistent /interp_env. eauto.
+    - simpl. destruct ρ; rewrite /Persistent; eauto.
+  Qed.
 End Sec.
