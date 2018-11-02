@@ -43,8 +43,6 @@ Section Sec.
   Notation D := (vlC -n> iProp Σ).
   Implicit Types τi : D.
 
-  SearchAbout Wp.
-
   Program Definition interp_expr (φ: D) (e: tm) : iProp Σ :=
     (WP e {{ v, φ v }} % I).
 
@@ -80,10 +78,13 @@ Section Sec.
     (interp (v::ρ) v) % I.
   Solve Obligations with solve_proper.
   
+  Program Definition interp_sel (p: path) (l: label) : listC vlC -n> D := λne ρ v, False%I.
+    (* ∃ γ ϕ ds, ⌜ v = vobj ds ∧ index_dms l ds = Some(dtysem γ) ⌝ ∧ (SP γ ϕ) *)
+
   Program Definition interp_true : listC vlC -n> D := λne ρ v, True % I.
   Program Definition interp_false : listC vlC -n> D := λne ρ v, False % I.
 
-  Fixpoint interp (T: ty) : listC vlC -n> D := 
+  Fixpoint interp (T: ty) : listC vlC -n> D :=
     match T with
     | TAnd T1 T2 => interp_and (interp T1) (interp T2)
     | TOr T1 T2 => interp_or (interp T1) (interp T2)
@@ -93,7 +94,8 @@ Section Sec.
     | TBot => interp_false
     | TAll T1 T2 => interp_forall (interp T1) (interp T2)
     | TMu T => interp_mu (interp T)
-    | TSel p l => interp_true (* ∃ γ ϕ ds, ⌜ v = vobj ds ∧ index_dms l ds = Some(dtysem γ) ⌝ ∧ (SP γ ϕ) *)
+    | TSel p l =>
+      interp_sel p l
     | TSelA p l L U => interp_false
     | TVMem l T' => interp_val_mem l (interp T')
   end % I.

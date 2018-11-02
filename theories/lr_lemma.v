@@ -40,18 +40,17 @@ Section Sec.
     Fail iAssumption.
    Abort.
 
-  Lemma stp_and_w T1 T2 ρ v:
+  Lemma stp_and T1 T2 ρ v:
     interp T1 ρ v ->
     interp T2 ρ v ->
     interp (TAnd T1 T2) ρ v.
   Proof.
-    simpl in *. intros.
-    iSplit.
-    iApply H.
-    iApply H0.
+    simpl; intros H1 H2; iSplit.
+    iApply H1
+    iApply H2.
   Qed.
 
-  Lemma stp_and T1 T2 ρ v:
+  Lemma stp_and_wand T1 T2 ρ v:
     interp T1 ρ v -∗
     interp T2 ρ v -∗
     interp (TAnd T1 T2) ρ v.
