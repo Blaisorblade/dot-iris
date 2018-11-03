@@ -121,9 +121,9 @@ Section Sec.
 
   Canonical Structure dmC := leibnizC dm.
 
-  Program Definition interp_sel_final (l: label): optionC vlC -n> D :=
+  Program Definition interp_selA_final (l: label) (L U: D): optionC vlC -n> D :=
     λne optVa v,
-    (∃ γ ϕ ds, optVa ≡ Some (vobj ds) ∧ index_dms l (selfSubst ds) ≡ Some(dtysem γ) ∧ (SP γ ϕ) ∧ ϕ v)%I.
+    (∃ γ ϕ ds, optVa ≡ Some (vobj ds) ∧ index_dms l (selfSubst ds) ≡ Some(dtysem γ) ∧ (SP γ ϕ) ∧ U v ∧ (L v ∨ ϕ v))%I.
   Solve Obligations with solve_proper.
 
   Program Fixpoint interp_sel_rec (ls: list label) (interp_k: optionC vlC -n> D): optionC vlC -n> D :=
@@ -133,20 +133,22 @@ Section Sec.
       (∃ ds vb, optVa ≡ Some (vobj ds) ∧ index_dms l (selfSubst ds) ≡ Some (dvl vb) ∧ interp_k (Some vb) v)%I
     | [] => interp_k optVa v
     end.
-  Next Obligation. induction ls; solve_proper. Qed.
-  Next Obligation. induction ls; solve_proper. Qed.
+  Solve Obligations with induction ls; solve_proper.
 
-  Program Definition interp_sel (p: path) (l: label) : listC vlC -n> D :=
+  Program Definition interp_selA (p: path) (l: label) (L U : listC vlC -n> D): listC vlC -n> D :=
     (λne ρ v,
      let (optVa, ls) := eval_split_path p ρ in
-     □ interp_sel_rec ls (interp_sel_final l) optVa v
+     □ interp_sel_rec ls (interp_selA_final l (L ρ) (U ρ)) optVa v
     )%I.
   Solve Obligations with solve_proper.
   (* No clue why this is hard. *)
-  Admit Obligations of interp_sel.
+  Admit Obligations of interp_selA.
 
   Program Definition interp_true : listC vlC -n> D := λne ρ v, True % I.
   Program Definition interp_false : listC vlC -n> D := λne ρ v, False % I.
+
+  Definition interp_sel (p: path) (l: label) : listC vlC -n> D :=
+    interp_selA p l interp_false interp_true.
 
   (* XXX since the environment is made of discrete values (tho it's not clear it's discrete), can this be a plain Coq function of the environment? *)
   Fixpoint interp (T: ty) : listC vlC -n> D :=
@@ -161,7 +163,8 @@ Section Sec.
     | TMu T => interp_mu (interp T)
     | TSel p l =>
       interp_sel p l
-    | TSelA p l L U => interp_false
+    | TSelA p l L U =>
+      interp_selA p l (interp L) (interp U)
     | TVMem l T' => interp_val_mem l (interp T')
   end % I.
 
