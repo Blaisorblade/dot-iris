@@ -13,9 +13,12 @@ endif
 .PHONY: coq clean
 
 COQSRC = $(filter-out %_orig.v,$(wildcard theories/*.v))
-coq: Makefile.coq
-	$(E) "  MAKE Makefile.coq"
-	$(Q)$(MAKE) $(MFLAGS) -f Makefile.coq
+
+all:
+
+%: Makefile.coq phony
+	$(E) "  MAKE -f Makefile.coq $@"
+	$(Q)$(MAKE) $(MFLAGS) -f Makefile.coq $@
 
 Makefile.coq: Makefile $(VS)
 	$(E) "  COQ_MAKEFILE Makefile.coq"
@@ -25,5 +28,17 @@ clean: Makefile.coq
 	$(Q)$(MAKE) $(MFLAGS) -f Makefile.coq clean
 	$(Q)rm -f *.bak *.d *.glob *~
 
-distclean: clean
+distclean: clean cleancoq
+
+# Phony wildcard targets
+
+phony: ;
+.PHONY: phony
+
+# Some files that do *not* need to be forwarded to Makefile.coq
+Makefile: ;
+
+cleancoq: ;
+	$(E) "  RM Makefile.coq"
 	$(Q)rm -f Makefile.coq Makefile.coq.conf
+recoq: cleancoq Makefile.coq ;
