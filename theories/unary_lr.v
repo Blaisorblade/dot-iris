@@ -94,7 +94,7 @@ Section Sec.
   Definition optVl := option vl.
   Canonical Structure optVlc := leibnizC optVl.
 
-  Program Definition close_vl (va: vl): listC vlC -n> optVlc :=
+  Program Definition close_vl (va: vl): listC vlC -n> optionC vlC :=
     λne ρ,
     match va with
     | var_vl n => ρ !! n
@@ -102,7 +102,6 @@ Section Sec.
     | vobj ds => Some (vobj ds)
     end.
   Solve Obligations with intros; destruct va; solve_proper.
-  Admit Obligations of close_vl.
 
   Fixpoint split_path (p: path): vl * list label :=
     match p with
@@ -111,7 +110,7 @@ Section Sec.
       let '(v, ls) := split_path p in (v, ls ++ [l])
     end.
 
-  Program Definition eval_split_path (p: path): listC vlC -n> prodC (optVlc) (listC labelC) :=
+  Program Definition eval_split_path (p: path): listC vlC -n> prodC (optionC vlC) (listC labelC) :=
     λne ρ,
     let '(v, ls) := split_path p in
     (close_vl v ρ, ls).
@@ -120,29 +119,36 @@ Section Sec.
       solve_proper.
   Qed.
 
-  Program Definition interp_sel_final (l: label): optVlc -n> D :=
-    λne optVa v,
-    (∃ γ ϕ ds, ⌜ optVa = Some (vobj ds) ∧ index_dms l (selfSubst ds) = Some(dtysem γ) ⌝ ∧ (SP γ ϕ) ∧ ϕ v)%I.
+  Canonical Structure dmC := leibnizC dm.
 
-  Program Fixpoint interp_sel_rec (ls: list label) (interp_k: optVlc -n> D): optVlc -n> D :=
+  Program Definition interp_sel_final (l: label): optionC vlC -n> D :=
+    λne optVa v,
+    (∃ γ ϕ ds, optVa ≡ Some (vobj ds) ∧ index_dms l (selfSubst ds) ≡ Some(dtysem γ) ∧ (SP γ ϕ) ∧ ϕ v)%I.
+  Solve Obligations with solve_proper.
+
+  Program Fixpoint interp_sel_rec (ls: list label) (interp_k: optionC vlC -n> D): optionC vlC -n> D :=
     λne optVa v,
     match ls with
     | l :: ls =>
-      (∃ ds vb, ⌜ optVa = Some (vobj ds) ∧ index_dms l (selfSubst ds) = Some (dvl vb) ⌝ ∧ interp_k (Some vb) v)%I
+      (∃ ds vb, optVa ≡ Some (vobj ds) ∧ index_dms l (selfSubst ds) ≡ Some (dvl vb) ∧ interp_k (Some vb) v)%I
     | [] => interp_k optVa v
     end.
+  Next Obligation. induction ls; solve_proper. Qed.
+  Next Obligation. induction ls; solve_proper. Qed.
 
   Program Definition interp_sel (p: path) (l: label) : listC vlC -n> D :=
     (λne ρ v,
-    □ let (optVa, ls) := eval_split_path p ρ in
-      interp_sel_rec ls (interp_sel_final l) optVa v
+     let (optVa, ls) := eval_split_path p ρ in
+     □ interp_sel_rec ls (interp_sel_final l) optVa v
     )%I.
   Solve Obligations with solve_proper.
+  (* No clue why this is hard. *)
   Admit Obligations of interp_sel.
 
   Program Definition interp_true : listC vlC -n> D := λne ρ v, True % I.
   Program Definition interp_false : listC vlC -n> D := λne ρ v, False % I.
 
+  (* XXX since the environment is made of discrete values (tho it's not clear it's discrete), can this be a plain Coq function of the environment? *)
   Fixpoint interp (T: ty) : listC vlC -n> D :=
     match T with
     | TAnd T1 T2 => interp_and (interp T1) (interp T2)
@@ -162,6 +168,7 @@ Section Sec.
   Notation "⟦ T ⟧" := (interp T).
 
   (* use foldr? *)
+  (* PG: Or use a judgment that we can invert? *)
   Fixpoint interp_env (Γ : list ty): list vl -> iProp Σ :=
     match Γ with
     | nil => (fun l => (⌜ l = nil ⌝) % I)
