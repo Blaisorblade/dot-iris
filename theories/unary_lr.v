@@ -3,8 +3,6 @@ Require Import Dot.operational.
 Import lang.
 
 From iris Require Import base_logic.lib.saved_prop.
-(* From iris Require Import base_logic.base_logic. *)
-
 From iris.proofmode Require Import tactics.
 From iris.program_logic Require Export weakestpre.
 From iris.algebra Require Import list.
@@ -41,67 +39,42 @@ Section Sec.
   Canonical Structure vlC := leibnizC vl.
   Canonical Structure tmC := leibnizC tm.
   Notation D := (vlC -n> iProp Σ).
+  Notation envD := (list vl -> D).
   Implicit Types τi : D.
 
-  Program Definition interp_expr (φ: D) (e: tm) : iProp Σ :=
+  Definition interp_expr (φ: D) (e: tm) : iProp Σ :=
     (WP e {{ v, φ v }} % I).
 
-  Program Definition interp_and (interp1 interp2 : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
-    (interp1 ρ v  ∧  interp2 ρ v) % I.
-  Solve Obligations with solve_proper.
+  Definition interp_and (interp1 interp2 : envD): envD := λ ρ, λne v,
+    (interp1 ρ v ∧ interp2 ρ v) % I.
 
-
-  Program Definition interp_or (interp1 interp2 : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
-    (interp1 ρ v  ∨  interp2 ρ v) % I.
-  Solve Obligations with solve_proper.
+  Definition interp_or (interp1 interp2 : envD) : envD := λ ρ, λne v,
+    (interp1 ρ v ∨ interp2 ρ v) % I.
 
   Notation inclusion P Q := (∀ v, P v -∗ Q v)%I.
 
-  Program Definition interp_mem (l: label) (interp1 interp2 : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
+  Definition interp_mem (l: label) (interp1 interp2 : envD) : envD := λ ρ, λne  v,
   (□ ∃ φ, (v;l ↘ φ) ∗ (inclusion (interp1 ρ) φ) ∗ inclusion φ (interp2 ρ) )%I.
-  Solve Obligations with solve_proper.
 
-  Program Definition interp_later (interp : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
+  Definition interp_later (interp : envD) : envD := λ ρ, λne v,
          (▷ (interp ρ v)) % I.
-  Solve Obligations with solve_proper.
 
-  Program Definition interp_forall (interp1 interp2 : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
+  Definition interp_forall (interp1 interp2 : envD) : envD := λ ρ, λne v,
     (□ ▷ ∀ v', interp1 ρ v' -∗ interp_expr (interp2 (v :: ρ)) (tapp (tv v) (tv v'))) % I.
-  Solve Obligations with solve_proper.
-  Next Obligation. unfold interp_expr; solve_proper. Qed.
 
-  Program Definition interp_val_mem l (interp : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
+  Definition interp_val_mem l (interp : envD) : envD := λ ρ, λne v,
     (∃ vmem, v;;l ↘ vmem ∧ ▷ interp ρ vmem) % I.
-  Solve Obligations with solve_proper.
 
-  Program Definition interp_mu (interp : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
+  Definition interp_mu (interp : envD) : envD := λ ρ, λne v,
     (interp (v::ρ) v) % I.
-  Solve Obligations with solve_proper.
 
-  Canonical Structure labelC := leibnizC label.
-
-  (** Why is this semantics a non-expansive function of the value environment,
-      rather than a normal function, if values are discrete? The examples are
-      non-expansive in the *type environment* which is not discrete at all!
-
-      Here some obligations are either false or hard to prove. That's because
-      optionC vlC is not obviously discrete, so plain equality is not
-      contractive. And the reason to use optionC vlC is questionable. Using
-      optVlc avoids this problem, but other problems appear elsewhere. Maybe I
-      should just use indexed equality, unless I can avoid the
-      non-expansiveness.
-   *)
-  Definition optVl := option vl.
-  Canonical Structure optVlc := leibnizC optVl.
-
-  Program Definition close_vl (va: vl): listC vlC -n> optionC vlC :=
-    λne ρ,
+  Definition close_vl (va: vl): list vl -> option vl :=
+    λ ρ,
     match va with
     | var_vl n => ρ !! n
     | vabs t => Some (vabs t)
     | vobj ds => Some (vobj ds)
     end.
-  Solve Obligations with intros; destruct va; solve_proper.
 
   Fixpoint split_path (p: path): vl * list label :=
     match p with
@@ -110,48 +83,40 @@ Section Sec.
       let '(v, ls) := split_path p in (v, ls ++ [l])
     end.
 
-  Program Definition eval_split_path (p: path): listC vlC -n> prodC (optionC vlC) (listC labelC) :=
-    λne ρ,
+  Definition eval_split_path (p: path): list vl -> (option vl) * (list label) :=
+    λ ρ,
     let '(v, ls) := split_path p in
     (close_vl v ρ, ls).
-  Next Obligation.
-    intros; cbn -[close_vl]; destruct (split_path p); destruct (close_vl v).
-      solve_proper.
-  Qed.
+  Arguments eval_split_path /.
 
   Canonical Structure dmC := leibnizC dm.
 
-  Program Definition interp_selA_final (l: label) (L U: D): optionC vlC -n> D :=
-    λne optVa v,
+  Program Definition interp_selA_final (l: label) (L U: D): option vl -> D :=
+    λne optVa, λne v,
     (∃ γ ϕ ds, optVa ≡ Some (vobj ds) ∧ index_dms l (selfSubst ds) ≡ Some(dtysem γ) ∧ (SP γ ϕ) ∧ U v ∧ (L v ∨ ϕ v))%I.
   Solve Obligations with solve_proper.
 
-  Program Fixpoint interp_sel_rec (ls: list label) (interp_k: optionC vlC -n> D): optionC vlC -n> D :=
-    λne optVa v,
+  Fixpoint interp_sel_rec (ls: list label) (interp_k: option vl -> D): option vl -> D :=
+    λ optVa, λne v,
     match ls with
     | l :: ls =>
       (∃ ds vb, optVa ≡ Some (vobj ds) ∧ index_dms l (selfSubst ds) ≡ Some (dvl vb) ∧ interp_k (Some vb) v)%I
     | [] => interp_k optVa v
     end.
-  Solve Obligations with induction ls; solve_proper.
 
-  Program Definition interp_selA (p: path) (l: label) (L U : listC vlC -n> D): listC vlC -n> D :=
-    (λne ρ v,
+  Definition interp_selA (p: path) (l: label) (L U : envD): envD :=
+    (λ ρ, λne v,
      let (optVa, ls) := eval_split_path p ρ in
      □ interp_sel_rec ls (interp_selA_final l (L ρ) (U ρ)) optVa v
     )%I.
-  Solve Obligations with solve_proper.
-  (* No clue why this is hard. *)
-  Admit Obligations of interp_selA.
 
-  Program Definition interp_true : listC vlC -n> D := λne ρ v, True % I.
-  Program Definition interp_false : listC vlC -n> D := λne ρ v, False % I.
+  Definition interp_true : envD := λ ρ, λne v, True % I.
+  Definition interp_false : envD := λ ρ, λne v, False % I.
 
-  Definition interp_sel (p: path) (l: label) : listC vlC -n> D :=
+  Definition interp_sel (p: path) (l: label) : envD :=
     interp_selA p l interp_false interp_true.
 
-  (* XXX since the environment is made of discrete values (tho it's not clear it's discrete), can this be a plain Coq function of the environment? *)
-  Fixpoint interp (T: ty) : listC vlC -n> D :=
+  Fixpoint interp (T: ty) : envD :=
     match T with
     | TAnd T1 T2 => interp_and (interp T1) (interp T2)
     | TOr T1 T2 => interp_or (interp T1) (interp T2)
@@ -188,7 +153,7 @@ Section Sec.
   Proof.
     revert v ρ; induction T; try move => v Δ HΔ; simpl;
                                           try destruct (split_path p);
-                                          apply _.
+                                          try apply _.
   Qed.
 
   Global Instance interp_env_persistent Γ ρ :
