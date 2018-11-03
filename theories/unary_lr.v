@@ -78,7 +78,23 @@ Section Sec.
     (interp (v::ρ) v) % I.
   Solve Obligations with solve_proper.
 
-  Program Definition close_vl (va: vl): listC vlC -n> optionC vlC :=
+  Canonical Structure labelC := leibnizC label.
+
+  (** Why is this semantics a non-expansive function of the value environment,
+      rather than a normal function, if values are discrete? The examples are
+      non-expansive in the *type environment* which is not discrete at all!
+
+      Here some obligations are either false or hard to prove. That's because
+      optionC vlC is not obviously discrete, so plain equality is not
+      contractive. And the reason to use optionC vlC is questionable. Using
+      optVlc avoids this problem, but other problems appear elsewhere. Maybe I
+      should just use indexed equality, unless I can avoid the
+      non-expansiveness.
+   *)
+  Definition optVl := option vl.
+  Canonical Structure optVlc := leibnizC optVl.
+
+  Program Definition close_vl (va: vl): listC vlC -n> optVlc :=
     λne ρ,
     match va with
     | var_vl n => ρ !! n
@@ -86,6 +102,7 @@ Section Sec.
     | vobj ds => Some (vobj ds)
     end.
   Solve Obligations with intros; destruct va; solve_proper.
+  Admit Obligations of close_vl.
 
   Fixpoint split_path (p: path): vl * list label :=
     match p with
@@ -93,36 +110,27 @@ Section Sec.
     | pself p l =>
       let '(v, ls) := split_path p in (v, ls ++ [l])
     end.
-  Canonical Structure labelC := leibnizC label.
 
-  Program Definition eval_split_path (p: path): listC vlC -n> prodC (optionC vlC) (listC labelC) :=
+  Program Definition eval_split_path (p: path): listC vlC -n> prodC (optVlc) (listC labelC) :=
     λne ρ,
     let '(v, ls) := split_path p in
     (close_vl v ρ, ls).
   Next Obligation.
-    intros; cbn -[close_vl]; destruct (split_path p); destruct (close_vl v);
+    intros; cbn -[close_vl]; destruct (split_path p); destruct (close_vl v).
       solve_proper.
   Qed.
 
-  Program Definition interp_sel_final (l: label): optionC vlC -n> D :=
+  Program Definition interp_sel_final (l: label): optVlc -n> D :=
     λne optVa v,
     (∃ γ ϕ ds, ⌜ optVa = Some (vobj ds) ∧ index_dms l (selfSubst ds) = Some(dtysem γ) ⌝ ∧ (SP γ ϕ) ∧ ϕ v)%I.
-  Solve Obligations with solve_proper.
-  Admit Obligations of interp_sel_final.
 
-  Program Fixpoint interp_sel_rec (ls: list label) (interp_k: optionC vlC -n> D): optionC vlC -n> D :=
+  Program Fixpoint interp_sel_rec (ls: list label) (interp_k: optVlc -n> D): optVlc -n> D :=
     λne optVa v,
     match ls with
     | l :: ls =>
       (∃ ds vb, ⌜ optVa = Some (vobj ds) ∧ index_dms l (selfSubst ds) = Some (dvl vb) ⌝ ∧ interp_k (Some vb) v)%I
     | [] => interp_k optVa v
     end.
-
-  Next Obligation. induction ls; solve_proper. Qed.
-
-  (* Next Obligation. induction ls; try solve_proper. cbv zeta in *; intros. *)
-  (* Admitted. *)
-  Admit Obligations of interp_sel_rec.
 
   Program Definition interp_sel (p: path) (l: label) : listC vlC -n> D :=
     (λne ρ v,
