@@ -13,47 +13,62 @@ From iris.base_logic Require Import invariants.
 
 Section Sec.
   Context `{HdotG: dotG Σ}.
+  Definition vstp Γ T1 T2 := ∀ v ρ, interp_env Γ ρ -> interp T1 ρ v -> interp T2 ρ v.
+  Definition ivstp Γ T1 T2: iProp Σ := (□∀ v ρ, interp_env Γ ρ -∗ interp T1 ρ v -∗ interp T2 ρ v)%I.
+  Arguments vstp /.
+  Arguments ivstp /.
+  Context (Γ: list ty).
 
-  Lemma stp_later T ρ v : interp T ρ v -> interp (TLater T) ρ v.
-  Proof. intro h. simpl; iNext. iApply h. Qed.
+  (* Lemma stp_later T ρ v: interp T ρ v -∗ interp (TLater T) ρ v. *)
+  (* Proof. iIntros; by iNext. Qed. *)
+  Lemma ivstp_later T: ivstp Γ T (TLater T).
+  Proof. simpl; iIntros "!> **"; by iNext. Qed.
 
-  Lemma stp_and1 T1 T2 ρ v: interp (TAnd T1 T2) ρ v -> interp T1 ρ v.
-  Proof.
-    simpl in *. intros Hv.
-    iDestruct Hv as "[H1 H2]".
-    iAssumption.
-  Qed.
+  Lemma ivstp_ande1 T1 T2: ivstp Γ (TAnd T1 T2) T1.
+  Proof. simpl; by iIntros "!> * ? [? ?]". Qed.
+  Lemma ivstp_ande2 T1 T2: ivstp Γ (TAnd T1 T2) T2.
+  Proof. simpl; by iIntros "!> * ? [? ?]". Qed.
 
-  Lemma stp_and2 T1 T2 ρ v: interp (TAnd T1 T2) ρ v -> interp T2 ρ v.
-  Proof.
-    simpl in *. intros Hv.
-    iDestruct Hv as "[H1 H2]".
-    iAssumption.
-  Qed.
-
-  Lemma stp_and1_fails T1 T2 ρ v: interp (TAnd T1 T2) ρ v -∗ interp T2 ρ v.
-  Proof.
-    simpl in *. iIntros "Hv".
-    (* This would turn P ∧ Q into P, Q in the Iris context (that is, P * Q), but
-    this is illegal unless P and Q are persistent. *)
-    Fail iDestruct "Hv" as "[H1 H2]".
-    Fail iAssumption.
-   Abort.
-
-  Lemma stp_and T1 T2 ρ v:
-    interp T1 ρ v ->
-    interp T2 ρ v ->
-    interp (TAnd T1 T2) ρ v.
-  Proof.
-    simpl; intros H1 H2; iSplit.
-    iApply H1
-    iApply H2.
-  Qed.
-
-  Lemma stp_and_wand T1 T2 ρ v:
+  Lemma stp_andi T1 T2 ρ v:
     interp T1 ρ v -∗
     interp T2 ρ v -∗
     interp (TAnd T1 T2) ρ v.
   Proof. iIntros; by iSplit. Qed.
 
+  Lemma vstp_andi S T1 T2:
+    vstp Γ S T1 ->
+    vstp Γ S T2 ->
+    vstp Γ S (TAnd T1 T2).
+  Proof.
+    simpl; intros * H1 H2 **.
+    by iSplit; [iApply H1 | iApply H2].
+  Qed.
+
+  Lemma ivstp_andi S T1 T2:
+    ivstp Γ S T1 -∗
+    ivstp Γ S T2 -∗
+    ivstp Γ S (TAnd T1 T2).
+  Proof.
+    iIntros "/= #H1 #H2 !> * #Hg #HS".
+    iApply stp_andi; [iApply "H1" | iApply "H2"]; done.
+  Qed.
+
+  Lemma stp_ori1 T1 T2 ρ v: interp T1 ρ v -∗ interp (TOr T1 T2) ρ v.
+  Proof. simpl; iIntros; by iLeft. Qed.
+  Lemma stp_ori2 T1 T2 ρ v: interp T2 ρ v -∗ interp (TOr T1 T2) ρ v.
+  Proof. simpl; iIntros; by iRight. Qed.
+
+  Lemma ivstp_ore S T1 T2:
+    ivstp Γ T1 S -∗
+    ivstp Γ T2 S -∗
+    ivstp Γ (TOr T1 T2) S.
+  Proof.
+    iIntros "/= #H1 #H2 !> * #Hg #HT".
+    iDestruct "HT" as "[HT1 | HT2]"; [iApply "H1" | iApply "H2"]; done.
+  Qed.
+
+  Lemma ivstp_ori1 T1 T2: ivstp Γ T1 (TOr T1 T2).
+  Proof. iIntros "!> ** /="; by iLeft. Qed.
+  Lemma ivstp_ori2 T1 T2: ivstp Γ T2 (TOr T1 T2).
+  Proof. iIntros "!> ** /="; by iRight. Qed.
 End Sec.
