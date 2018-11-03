@@ -77,9 +77,160 @@ Section Sec.
   Program Definition interp_mu (interp : listC vlC -n> D) : listC vlC -n> D := λne ρ v,
     (interp (v::ρ) v) % I.
   Solve Obligations with solve_proper.
-  
-  Program Definition interp_sel (p: path) (l: label) : listC vlC -n> D := λne ρ v, False%I.
-    (* ∃ γ ϕ ds, ⌜ v = vobj ds ∧ index_dms l ds = Some(dtysem γ) ⌝ ∧ (SP γ ϕ) *)
+
+  (* Definition close_vl (va: vlC) (ρ: listC vlC): option vlC := *)
+  (*   match va with *)
+  (*   | var_vl n => ρ !! n *)
+  (*   | _ => Some va *)
+  (*   end. *)
+
+  Program Definition close_vl (va: vl): listC vlC -n> optionC vlC :=
+    λne ρ,
+    match va with
+    | var_vl n => ρ !! n
+    | vabs t => Some (vabs t)
+    | vobj ds => Some (vobj ds)
+    end.
+    (* match va with *)
+    (* | var_vl n => ρ !! n *)
+    (* | _ => Some va *)
+    (* end. *)
+  (* Solve Obligations with discriminate. *)
+  Solve Obligations with intros; destruct va; solve_proper.
+
+  Fixpoint split_path (p: path): vl * list label :=
+    match p with
+    | pv va => (va, [])
+    | pself p l =>
+      let '(v, ls) := split_path p in (v, ls ++ [l])
+    end.
+  Canonical Structure labelC := leibnizC label.
+
+  Program Definition eval_split_path (p: path): listC vlC -n> prodC (optionC vlC) (listC labelC) :=
+    λne ρ,
+    let '(v, ls) := split_path p in
+    (close_vl v ρ, ls).
+  Next Obligation.
+    intros; cbn -[close_vl]; destruct (split_path p); destruct (close_vl v);
+      solve_proper.
+  Qed.
+  (* Program Definition fst {A B}: prodC A B -n> A := λne p, _. *)
+  (* Print fst. *)
+
+  (* Program Fixpoint eval_close_path (p: path): listC vlC -n> optionC vlC := *)
+  (*   match p with *)
+  (*   | pv va => *)
+  (*     λne ρ, *)
+  (*     eval_close_vl va ρ *)
+  (*   | pself p l => *)
+  (*     λne ρ, *)
+  (*     eval_close_path p ρ ≫= (λ va, *)
+  (*     match va with *)
+  (*     | vobj ds => *)
+  (*       index_dms l (selfSubst ds) ≫= (λ dm, *)
+  (*       match dm with  *)
+  (*       | dvl v => Some v *)
+  (*       | dtysyn _ => None *)
+  (*       | dtysem _ => None *)
+  (*       end) *)
+  (*     | vabs _ => None *)
+  (*     | var_vl _ => None *)
+  (*     end) *)
+  (*     (* interp_path p (λne va ρ v, ∃ vmem, va;;l ↘ vmem ∧ interp va ρ v) ρ v *) *)
+  (*   end%I. *)
+
+  (* Solve Obligations with solve_proper. *)
+  (* Next Obligation. *)
+  (*   intros. *)
+  (*   destruct (eval_close_vl va). *)
+  (*   solve_proper. *)
+  (* Qed. *)
+  (* Next Obligation. *)
+  (*   intros. *)
+  (*   simpl. *)
+  (*   destruct (eval_close_path p). *)
+  (*   (* f_equiv. *) *)
+  (*   (* f_equiv. *) *)
+  (*   solve_proper_prepare. *)
+  (*   solve_proper_prepare. *)
+  (*   repeat case_match; subst; trivial. *)
+  (*   repeat (case_match; trivial). *)
+  (*   f_equiv. *)
+  (*   solve_proper. *)
+  (* Qed. *)
+
+  (* Program Fixpoint interp_path (p: path) (interp : vlC -n> listC vlC -n> D): listC vlC -n> D := *)
+  (*   λne ρ v, *)
+  (*   match p with *)
+  (*   | pv va0 => *)
+  (*     match eval_close_vl va0 ρ with *)
+  (*     | None => False *)
+  (*     | Some va0 => False *)
+  (*     end *)
+  (*   | pself p l => *)
+  (*     interp_path p (λne va ρ v, ∃ vmem, va;;l ↘ vmem ∧ interp va ρ v) ρ v *)
+  (*   end%I. *)
+
+  (* Solve Obligations with unfold close_vl; simpl; solve_proper. *)
+  (* Solve Obligations with solve_proper. *)
+  (* Next Obligation. induction p; solve_proper. Defined. *)
+  (* Next Obligation. intros. induction p; try solve_proper. cbn zeta. Defined. *)
+
+
+  (* Require Import Program. *)
+
+  (* Program Definition interp_sel (l: label) : vlC -n> listC vlC -n> D := *)
+  (*   λne va0 ρ v, *)
+  (*   match (close_vl va0 ρ) with *)
+  (*   | None => False *)
+  (*   | Some va => *)
+  (*     (∃ γ ϕ ds, ⌜ v = vobj ds ∧ index_dms l ds = Some(dtysem γ) ⌝ ∧ (SP γ ϕ)) *)
+  (*   end%I. *)
+
+  (* Solve Obligations with unfold close_vl; program_simpl; solve_proper. *)
+  (* Next Obligation. *)
+  (*   Require Import Program. *)
+  (*   intros. *)
+  (*   simpl. *)
+  (*   program_simpl. *)
+  (* Admitted. *)
+  (* Next Obligation. *)
+  (*   intros. *)
+  (*   simpl. *)
+  (*   solve_proper. *)
+
+  (* (* Program Fixpoint interp_sel l : listC vlC -n> D. Admitted. *) *)
+  (* (*   λne ρ v, *) *)
+  (* (*   match p with *) *)
+  (* (*   | pv v => *) *)
+
+  Program Definition interp_sel_final (l: label): optionC vlC -n> D :=
+    λne optVa v,
+    (∃ γ ϕ ds, ⌜ optVa = Some (vobj ds) ∧ index_dms l (selfSubst ds) = Some(dtysem γ) ⌝ ∧ (SP γ ϕ) ∧ ϕ v)%I.
+  Solve Obligations with solve_proper.
+  Admit Obligations of interp_sel_final.
+
+  Program Fixpoint interp_sel_rec (ls: list label) (interp_k: optionC vlC -n> D): optionC vlC -n> D :=
+    λne optVa v,
+    match ls with
+    | l :: ls =>
+      (∃ ds vb, ⌜ optVa = Some (vobj ds) ∧ index_dms l (selfSubst ds) = Some (dvl vb) ⌝ ∧ interp_k (Some vb) v)%I
+    | [] => interp_k optVa v
+    end.
+
+  Next Obligation. induction ls; solve_proper. Qed.
+
+  (* Next Obligation. induction ls; try solve_proper. cbv zeta in *; intros. *)
+  (* Admitted. *)
+  Admit Obligations of interp_sel_rec.
+
+  Program Definition interp_sel (p: path) (l: label) : listC vlC -n> D :=
+    (λne ρ v,
+    □ let (optVa, ls) := eval_split_path p ρ in
+      interp_sel_rec ls (interp_sel_final l) optVa v
+    )%I.
+  Solve Obligations with solve_proper.
+  Admit Obligations of interp_sel.
 
   Program Definition interp_true : listC vlC -n> D := λne ρ v, True % I.
   Program Definition interp_false : listC vlC -n> D := λne ρ v, False % I.
@@ -117,7 +268,9 @@ Section Sec.
   Global Instance interp_persistent T ρ v :
     Persistent (⟦ T ⟧ ρ v).
   Proof.
-    revert v ρ; induction T; try move => v Δ HΔ; simpl; try apply _.
+    revert v ρ; induction T; try move => v Δ HΔ; simpl;
+                                          try destruct (split_path p);
+                                          apply _.
   Qed.
 
   Global Instance interp_env_persistent Γ ρ :
