@@ -55,6 +55,8 @@ Section Sec.
 
   Notation inclusion P Q := (∀ v, P v -∗ Q v)%I.
 
+  (* XXX on paper we need to check inclusion later, I expect we'll need this in
+     one of the lemmas. *)
   Definition interp_mem (l: label) (interp1 interp2 : envD) : envD := λ ρ, λne  v,
   (□ ∃ φ, (v;l ↘ φ) ∗ (inclusion (interp1 ρ) φ) ∗ inclusion φ (interp2 ρ) )%I.
 
@@ -95,7 +97,7 @@ Section Sec.
 
   Program Definition interp_selA_final (l: label) (L U: D): option vl -> D :=
     λ optVa, λne v,
-    (∃ γ ϕ ds, ⌜ optVa = Some (vobj ds) ∧ index_dms l (selfSubst ds) = Some(dtysem γ) ⌝ ∧ (SP γ ϕ) ∧ U v ∧ (L v ∨ ϕ v))%I.
+    (∃ γ ϕ ds, ⌜ optVa = Some (vobj ds) ∧ index_dms l (selfSubst ds) = Some(dtysem γ) ⌝ ∧ (SP γ ϕ) ∧ U v ∧ (L v ∨ ▷ ϕ v))%I.
 
   Fixpoint interp_sel_rec (ls: list label) (interp_k: option vl -> D): option vl -> D :=
     λ optVa, λne v,

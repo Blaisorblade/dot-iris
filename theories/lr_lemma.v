@@ -86,21 +86,16 @@ Section Sec.
       iRight; iApply "HLϕ"; iApply "HvL".
   Qed.
 
-  (* XXX this is weaker than we want: we should be able to prove that even (TLater L). *)
-  (* Very weird: we can use a saved predicate *now*, not later, because we do
-     not need to prove that ϕ agrees with anything else.
-     So either we get an issue elsewhere (and must readd the missing later from the definition),
-     or somehow this model is more powerful than expected. *)
   Lemma mem_stp_sel_sub L U va l:
     ivtp Γ (TTMem l L U) va -∗
-    ivstp Γ L (TSel (pv va) l).
+    ivstp Γ (TLater L) (TSel (pv va) l).
   Proof.
     iIntros "/= #Hva !>" (v ρ) "#Hg #HvL !>".
     iPoseProof ("Hva" $! ρ with "Hg") as (ϕ) "#[Hlookup [HLϕ HϕU]]"; iClear "Hva".
     iDestruct "Hlookup" as (γ ds) "[[-> %] HSP] /=".
     iExists γ, ϕ, ds.
-    repeat iSplit; try done.
-    iRight; iApply "HLϕ"; iApply "HvL".
+    repeat iSplit; try trivial.
+    iRight; iApply "HLϕ". iApply "HvL".
   Qed.
 
   Lemma mem_stp_sub_sel L U va l:
