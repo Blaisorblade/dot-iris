@@ -22,12 +22,12 @@ Section Sec.
   (* Lemma stp_later T ρ v: interp T ρ v -∗ interp (TLater T) ρ v. *)
   (* Proof. iIntros; by iNext. Qed. *)
   Lemma ivstp_later T: ivstp Γ T (TLater T).
-  Proof. simpl; iIntros "!> **"; by iNext. Qed.
+  Proof. iIntros "!> ** /="; by iNext. Qed.
 
   Lemma ivstp_ande1 T1 T2: ivstp Γ (TAnd T1 T2) T1.
-  Proof. simpl; by iIntros "!> * ? [? ?]". Qed.
+  Proof. by iIntros "/= !> * ? [? ?]". Qed.
   Lemma ivstp_ande2 T1 T2: ivstp Γ (TAnd T1 T2) T2.
-  Proof. simpl; by iIntros "!> * ? [? ?]". Qed.
+  Proof. by iIntros "/= !> * ? [? ?]". Qed.
 
   Lemma stp_andi T1 T2 ρ v:
     interp T1 ρ v -∗
@@ -39,10 +39,7 @@ Section Sec.
     vstp Γ S T1 ->
     vstp Γ S T2 ->
     vstp Γ S (TAnd T1 T2).
-  Proof.
-    simpl; intros * H1 H2 **.
-    by iSplit; [iApply H1 | iApply H2].
-  Qed.
+  Proof. move => /= H1 H2 v ρ Hg HS; by iSplit; [iApply H1 | iApply H2]. Qed.
 
   Lemma ivstp_andi S T1 T2:
     ivstp Γ S T1 -∗
@@ -54,21 +51,71 @@ Section Sec.
   Qed.
 
   Lemma stp_ori1 T1 T2 ρ v: interp T1 ρ v -∗ interp (TOr T1 T2) ρ v.
-  Proof. simpl; iIntros; by iLeft. Qed.
+  Proof. iIntros "? /="; by iLeft. Qed.
   Lemma stp_ori2 T1 T2 ρ v: interp T2 ρ v -∗ interp (TOr T1 T2) ρ v.
-  Proof. simpl; iIntros; by iRight. Qed.
+  Proof. iIntros "? /="; by iRight. Qed.
 
   Lemma ivstp_ore S T1 T2:
     ivstp Γ T1 S -∗
     ivstp Γ T2 S -∗
     ivstp Γ (TOr T1 T2) S.
-  Proof.
-    iIntros "/= #H1 #H2 !> * #Hg #HT".
-    iDestruct "HT" as "[HT1 | HT2]"; [iApply "H1" | iApply "H2"]; done.
-  Qed.
+  Proof. iIntros "/= #H1 #H2 !> * #Hg #[HT1 | HT2]"; [iApply "H1" | iApply "H2"]; done. Qed.
 
   Lemma ivstp_ori1 T1 T2: ivstp Γ T1 (TOr T1 T2).
   Proof. iIntros "!> ** /="; by iLeft. Qed.
   Lemma ivstp_ori2 T1 T2: ivstp Γ T2 (TOr T1 T2).
   Proof. iIntros "!> ** /="; by iRight. Qed.
+
+  Definition ivtp Γ T v: iProp Σ := (□∀ ρ, interp_env Γ ρ -∗ interp T ρ v)%I.
+  Arguments ivtp /.
+
+  Lemma mem_stp_sela_sub L U va l:
+    ivtp Γ (TTMem l L U) va -∗
+    ivstp Γ L (TSelA (pv va) l L U).
+  Proof.
+    iIntros "/= #Hva !>" (v ρ) "#Hg #HvL !>".
+    iPoseProof ("Hva" $! ρ with "Hg") as (ϕ) "#[Hlookup [HLϕ HϕU]]"; iClear "Hva".
+    iDestruct "Hlookup" as (γ ds) "[[-> %] HSP] /=".
+    iExists γ, ϕ, ds.
+    repeat iSplit; try done.
+    - iApply "HϕU". iApply "HLϕ". iApply "HvL".
+    -
+      (* Either *)
+      (* by iLeft. *)
+      (* Or *)
+      iRight; iApply "HLϕ"; iApply "HvL".
+  Qed.
+
+  (* XXX this is weaker than we want: we should be able to prove that even (TLater L). *)
+  (* Very weird: we can use a saved predicate *now*, not later, because we do
+     not need to prove that ϕ agrees with anything else.
+     So either we get an issue elsewhere (and must readd the missing later from the definition),
+     or somehow this model is more powerful than expected. *)
+  Lemma mem_stp_sel_sub L U va l:
+    ivtp Γ (TTMem l L U) va -∗
+    ivstp Γ L (TSel (pv va) l).
+  Proof.
+    iIntros "/= #Hva !>" (v ρ) "#Hg #HvL !>".
+    iPoseProof ("Hva" $! ρ with "Hg") as (ϕ) "#[Hlookup [HLϕ HϕU]]"; iClear "Hva".
+    iDestruct "Hlookup" as (γ ds) "[[-> %] HSP] /=".
+    iExists γ, ϕ, ds.
+    repeat iSplit; try done.
+    iRight; iApply "HLϕ"; iApply "HvL".
+  Qed.
+
+  Lemma mem_stp_sub_sel L U va l:
+    ivtp Γ (TTMem l L U) va -∗
+    ivstp Γ (TSel (pv va) l) (TLater U).
+  Proof.
+    iIntros "/= #Hva !>" (v ρ) "#Hg #Hϕ".
+    iPoseProof ("Hva" $! ρ with "Hg") as (ϕ) "#[Hlookup [HLϕ HϕU]]"; iClear "Hva".
+    iDestruct "Hlookup" as (γ ds) "[[-> %] HSPϕ] /=". move:H=>Hγ.
+    iApply "HϕU".
+    iDestruct "Hϕ" as (γ1 ϕ1 ds1) "[[% %] [HSPϕ1 [_ [[] | Hϕ1v]]]] /=".
+    move:H H0=>[<-] Hγ1; rewrite Hγ in Hγ1. move :Hγ1 =>[<-].
+    iAssert (▷ (ϕ v ≡ ϕ1 v))%I as "#Hag".
+    { by iApply saved_pred_agree. }
+    iNext; by iRewrite "Hag".
+  Qed.
+
 End Sec.

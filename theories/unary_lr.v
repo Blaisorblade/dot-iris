@@ -29,9 +29,11 @@ Section Sec.
 
   Definition object_proj_semtype v l φ : iProp Σ :=
     (∃ γ ds, ⌜ v = vobj ds ∧ index_dms l (selfSubst ds) = Some(dtysem γ) ⌝ ∗ γ ⤇ φ)%I.
+  Global Arguments object_proj_semtype /.
 
   Definition object_proj_val v l w : iProp Σ :=
     (∃ ds, ⌜ v = vobj ds ∧ dms_proj_val ds l w ⌝)%I.
+  Global Arguments object_proj_val /.
 
   Notation "v ; l ↘ φ" := (object_proj_semtype v l φ)%I (at level 20).
   Notation "v ;; l ↘ w" := (object_proj_val v l w)%I (at level 20).
@@ -92,15 +94,14 @@ Section Sec.
   Canonical Structure dmC := leibnizC dm.
 
   Program Definition interp_selA_final (l: label) (L U: D): option vl -> D :=
-    λne optVa, λne v,
-    (∃ γ ϕ ds, optVa ≡ Some (vobj ds) ∧ index_dms l (selfSubst ds) ≡ Some(dtysem γ) ∧ (SP γ ϕ) ∧ U v ∧ (L v ∨ ϕ v))%I.
-  Solve Obligations with solve_proper.
+    λ optVa, λne v,
+    (∃ γ ϕ ds, ⌜ optVa = Some (vobj ds) ∧ index_dms l (selfSubst ds) = Some(dtysem γ) ⌝ ∧ (SP γ ϕ) ∧ U v ∧ (L v ∨ ϕ v))%I.
 
   Fixpoint interp_sel_rec (ls: list label) (interp_k: option vl -> D): option vl -> D :=
     λ optVa, λne v,
     match ls with
     | l :: ls =>
-      (∃ ds vb, optVa ≡ Some (vobj ds) ∧ index_dms l (selfSubst ds) ≡ Some (dvl vb) ∧ interp_k (Some vb) v)%I
+      (∃ ds vb, ⌜ optVa = Some (vobj ds) ∧ index_dms l (selfSubst ds) = Some (dvl vb) ⌝ ∧ interp_k (Some vb) v)%I
     | [] => interp_k optVa v
     end.
 
