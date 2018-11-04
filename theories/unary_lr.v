@@ -148,6 +148,18 @@ Section Sec.
       interp_selA p l (interp L) (interp U)
   end % I.
 
+  Definition defs_interp_and (interp1 interp2 : envMD): envMD := λ ρ, λne ds,
+    (interp1 ρ ds ∧ interp2 ρ ds) % I.
+  Definition defs_interp_false : envMD := λ ρ, λne ds, False % I.
+
+  Fixpoint defs_interp (T: ty) : envMD :=
+    match T with
+    | TTMem l L U => defs_interp_tmem l (interp L) (interp U)
+    | TVMem l T' => defs_interp_vmem l (interp T')
+    | TAnd T1 T2 => defs_interp_and (defs_interp T1) (defs_interp T2)
+    | _ => defs_interp_false
+    end % I.
+
 
   Notation "⟦ T ⟧" := (interp T).
 
@@ -172,6 +184,11 @@ Section Sec.
                                        try destruct (split_path p);
                                        try apply _.
   Qed.
+
+  Global Instance defs_interp_persistent T ρ v :
+    Persistent (defs_interp T ρ v).
+  Proof.
+    revert v ρ; induction T; simpl; try apply _.
   Qed.
 
   Global Instance interp_env_persistent Γ ρ :
