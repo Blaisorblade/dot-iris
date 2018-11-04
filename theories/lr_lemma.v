@@ -1,3 +1,4 @@
+Require Import Dot.tactics.
 Require Import Dot.dotsyn.
 Require Import Dot.operational.
 Require Import Dot.unary_lr.
@@ -13,6 +14,8 @@ From iris.base_logic Require Import invariants.
 
 Section Sec.
   Context `{HdotG: dotG Σ}.
+  Implicit Types T: ty.
+
   Definition vstp Γ T1 T2 := ∀ v ρ, ⟦Γ⟧* ρ -> ⟦T1⟧ ρ v -> ⟦T2⟧ ρ v.
   Definition ivstp Γ T1 T2: iProp Σ := (□∀ v ρ, ⟦Γ⟧* ρ -∗ ⟦T1⟧ ρ v -∗ ⟦T2⟧ ρ v)%I.
   Arguments vstp /.
@@ -70,7 +73,6 @@ Section Sec.
   Proof. iIntros "!> ** /="; by iRight. Qed.
 
   Definition ivtp Γ T v : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ -∗ ⟦T⟧ ρ v)%I.
-
   Arguments ivtp /.
 
   Lemma mem_stp_sela_sub L U va l:
@@ -78,16 +80,17 @@ Section Sec.
     Γ ⊨ L <: TSelA (pv va) l L U.
   Proof.
     iIntros "/= #Hva !>" (v ρ) "#Hg #HvL !>".
-    iPoseProof ("Hva" $! ρ with "Hg") as (ϕ) "#[Hlookup [HLϕ HϕU]]"; iClear "Hva".
-    iDestruct "Hlookup" as (γ ds) "[[-> %] HSP] /=".
-    iExists γ, ϕ, ds.
-    repeat iSplit; try done.
-    - iApply "HϕU". iApply "HLϕ". iApply "HvL".
+    iDestruct ("Hva" $! ρ with "Hg") as (ds) "#[% #H]"; iClear "Hva".
+    simplOpen ds'.
+    iDestruct "H" as (φ) "#[Hl [HLφ HφU]] /=".
+    iExists (vobj ds'), φ, ds.
+    repeat iSplit; trivial.
+    - iApply "HφU"; iApply "HLφ"; iApply "HvL".
     -
       (* Either *)
       (* by iLeft. *)
       (* Or *)
-      iRight; iApply "HLϕ"; iApply "HvL".
+      iRight; iApply "HLφ"; iApply "HvL".
   Qed.
 
   Lemma mem_stp_sel_sub L U va l:
@@ -95,24 +98,31 @@ Section Sec.
     ivstp Γ (TLater L) (TSel (pv va) l).
   Proof.
     iIntros "/= #Hva !>" (v ρ) "#Hg #HvL !>".
-    iPoseProof ("Hva" $! ρ with "Hg") as (ϕ) "#[Hlookup [HLϕ HϕU]]"; iClear "Hva".
-    iDestruct "Hlookup" as (γ ds) "[[-> %] HSP] /=".
-    iExists γ, ϕ, ds.
-    repeat iSplit; try trivial.
-    iRight; iApply "HLϕ". iApply "HvL".
+    iDestruct ("Hva" $! ρ with "Hg") as (ds) "#[% #H]"; iClear "Hva".
+    simplOpen ds'.
+    iDestruct "H" as (φ) "#[Hl [HLφ HφU]] /=".
+    iExists (vobj ds'), φ, ds.
+    repeat iSplit; trivial.
+    iRight; iApply "HLφ". iApply "HvL".
   Qed.
 
   Lemma mem_stp_sub_sel L U va l:
     ivtp Γ (TTMem l L U) va -∗
     ivstp Γ (TSel (pv va) l) (TLater U).
   Proof.
-    iIntros "/= #Hva !>" (v ρ) "#Hg #Hϕ".
-    iPoseProof ("Hva" $! ρ with "Hg") as (ϕ) "#[Hlookup [HLϕ HϕU]]"; iClear "Hva".
-    iDestruct "Hlookup" as (γ ds) "[[-> %] HSPϕ] /=". move:H=>Hγ.
-    iApply "HϕU".
-    iDestruct "Hϕ" as (γ1 ϕ1 ds1) "[[% %] [HSPϕ1 [_ [[] | Hϕ1v]]]] /=".
-    move:H H0=>[<-] Hγ1; rewrite Hγ in Hγ1. move :Hγ1 =>[<-].
-    iAssert (▷ (ϕ v ≡ ϕ1 v))%I as "#Hag".
+    iIntros "/= #Hva !>" (v ρ) "#Hg #Hφ".
+    iDestruct ("Hva" $! ρ with "Hg") as (ds) "#[% #H]"; iClear "Hva".
+    simplOpen ds'.
+    iDestruct "H" as (φ) "#[Hlφ [HLφ HφU]] /=".
+    iDestruct "Hlφ" as (γ) "[% Hγφ]".
+
+    iApply "HφU".
+    iDestruct "Hφ" as (va1 φ1 ds1) "[% [% [Hlφ1 [_ [[] | Hφ1v]]]]] /=".
+    iDestruct "Hlφ1" as (γ1) "[% Hγφ1]".
+
+    injectHyps; openDet; optFuncs_det.
+
+    iAssert (▷ (φ v ≡ φ1 v))%I as "#Hag".
     { by iApply saved_pred_agree. }
     iNext; by iRewrite "Hag".
   Qed.
@@ -129,8 +139,6 @@ Section Sec.
     iIntros "/= #Hstp !>" (v ρ) "#Hg #HT1".
     iApply "Hstp"; by try iSplit.
   Qed.
-
-  Implicit Types T: ty.
 
   (*
      Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂

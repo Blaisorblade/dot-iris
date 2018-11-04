@@ -2,6 +2,7 @@ From iris.program_logic Require Export ectx_language ectxi_language.
 From iris.algebra Require Export ofe.
 
 Require Export Dot.dotsyn.
+Require Import Dot.tactics.
 
 Module lang.
 
@@ -46,14 +47,38 @@ Notation "s .[ v /]" := (s .[ v .: var_vl ])
     variable). To use when descending under the [vobj] binder. *)
 Definition selfSubst (ds: dms): dms := ds.[vobj ds/].
 
+Definition obj_opens_to v ds: Prop :=
+  ∃ ds', v = vobj ds' ∧ selfSubst ds' = ds.
+Notation "v ↗ ds" := (obj_opens_to v ds) (at level 20).
+
+(* Instead of letting obj_opens_to autounfold, provide tactics to show it's deterministic and *)
+
+(** Rewrite v ↗ ds to vobj ds' ↗ ds. *)
+Ltac simplOpen ds' :=
+  lazymatch goal with
+  | H: ?v ↗ ?ds |-_=>
+    inversion H as (ds' & -> & _)
+  end.
+
+(** Determinacy of obj_opens_to. *)
+Lemma openDet v ds1 ds2: v ↗ ds1 -> v ↗ ds2 -> ds1 = ds2.
+Proof.
+  rewrite /obj_opens_to; intros; ev; by optFuncs_det.
+Qed.
+Ltac openDet :=
+  lazymatch goal with
+  | H1: ?v ↗ ?ds1, H2: ?v ↗ ?ds2 |- _=>
+    assert (ds1 = ds2) as <- by (eapply openDet; eassumption)
+  end.
+
 Definition dms_proj_val ds l v: Prop :=
-  index_dms l (selfSubst ds) = Some (dvl v).
+  index_dms l ds = Some (dvl v).
 
 Inductive head_step : tm -> state -> list observation -> tm -> state -> list tm -> Prop :=
 | st_beta : forall t1 v2,
     head_step (tapp (tv (vabs t1)) (tv v2)) tt [] (t1.[v2/]) tt []
 | st_proj : forall ds l v,
-    dms_proj_val ds l v ->
+    dms_proj_val (selfSubst ds) l v ->
     head_step (tproj (tv (vobj ds)) l) tt [] (tv v) tt []
 .
 

@@ -29,33 +29,42 @@ Section Sec.
 
   Canonical Structure vlC := leibnizC vl.
   Canonical Structure tmC := leibnizC tm.
+  Canonical Structure dmsC := leibnizC dms.
 
+  (* Semantic types *)
   Notation D := (vlC -n> iProp Σ).
   Notation envD := (list vl -> D).
-
   Implicit Types τi : D.
+
+  (* Definition semantic types *)
+  Notation MD := (dmsC -n> iProp Σ).
+  Notation envMD := (list vl -> MD).
 
   Notation inclusion P Q := (∀ v, P v -∗ Q v)%I.
 
-  Definition object_proj_semtype v l φ : iProp Σ :=
-    (∃ γ ds, ⌜ v = vobj ds ∧ index_dms l (selfSubst ds) = Some(dtysem γ) ⌝ ∗ γ ⤇ φ)%I.
-  Global Arguments object_proj_semtype /.
+  Definition idms_proj_semtype ds l φ : iProp Σ :=
+    (∃ γ, ⌜ index_dms l ds = Some(dtysem γ) ⌝ ∗ γ ⤇ φ)%I.
+  Global Arguments idms_proj_semtype /.
+  Notation "ds ; l ↘ φ" := (idms_proj_semtype ds l φ )(at level 20).
 
-  Definition object_proj_val v l w : iProp Σ :=
-    (∃ ds, ⌜ v = vobj ds ∧ dms_proj_val ds l w ⌝)%I.
-  Global Arguments object_proj_val /.
+  Definition idms_proj_val ds l w : iProp Σ :=
+    (⌜ dms_proj_val ds l w ⌝)%I.
+  (* Global Arguments idms_proj_semtype /. *)
+  Notation "ds ;; l ↘ w" := (idms_proj_val ds l w) (at level 20).
 
-  Notation "v ; l ↘ φ" := (object_proj_semtype v l φ)%I (at level 20).
-  Notation "v ;; l ↘ w" := (object_proj_val v l w)%I (at level 20).
+  Definition defs_interp_vmem l (interp : envD): envMD := λ ρ, λne ds,
+    (□ ∃ vmem, ⌜ ds ;; l ↘ vmem ⌝ ∧ ▷ interp ρ vmem)%I.
+
+  Definition interp_vmem l (interp : envD) : envD := λ ρ, λne v,
+    (□ ∃ ds, ⌜ v ↗ ds ⌝ ∧ defs_interp_vmem l interp ρ ds)%I.
 
   (* XXX on paper we need to check inclusion later, I expect we'll need this in
      one of the lemmas. *)
-  Definition interp_tmem (l: label) (interp1 interp2 : envD) : envD := λ ρ, λne v,
-    (□ ∃ φ, (v;l ↘ φ) ∗ (inclusion (interp1 ρ) φ) ∗ inclusion φ (interp2 ρ) )%I.
+  Definition defs_interp_tmem l (interp1 interp2: envD): envMD := λ ρ, λne ds,
+    (□ ∃ φ, (ds;l ↘ φ) ∗ (inclusion (interp1 ρ) φ) ∗ inclusion φ (interp2 ρ) )%I.
 
-  Definition interp_vmem l (interp : envD) : envD := λ ρ, λne v,
-    (∃ vmem, v;;l ↘ vmem ∧ ▷ interp ρ vmem) % I.
-
+  Definition interp_tmem l (interp1 interp2 : envD) : envD := λ ρ, λne v,
+    (□ ∃ ds, ⌜ v ↗ ds ⌝ ∧ defs_interp_tmem l interp1 interp2 ρ ds)%I.
 
   Definition interp_and (interp1 interp2 : envD): envD := λ ρ, λne v,
     (interp1 ρ v ∧ interp2 ρ v) % I.
@@ -100,13 +109,13 @@ Section Sec.
 
   Program Definition interp_selA_final (l: label) (L U: D): option vl -> D :=
     λ optVa, λne v,
-    (∃ γ ϕ ds, ⌜ optVa = Some (vobj ds) ∧ index_dms l (selfSubst ds) = Some(dtysem γ) ⌝ ∧ (SP γ ϕ) ∧ U v ∧ (L v ∨ ▷ ϕ v))%I.
+    (∃ va ϕ ds, ⌜ optVa = Some va ⌝ ∧ ⌜ va ↗ ds ⌝ ∧ ds;l ↘ ϕ ∧ U v ∧ (L v ∨ ▷ ϕ v))%I.
 
   Fixpoint interp_sel_rec (ls: list label) (interp_k: option vl -> D): option vl -> D :=
     λ optVa, λne v,
     match ls with
     | l :: ls =>
-      (∃ ds vb, ⌜ optVa = Some (vobj ds) ∧ index_dms l (selfSubst ds) = Some (dvl vb) ⌝ ∧ interp_k (Some vb) v)%I
+      (∃ va ds vb, ⌜ optVa = Some va ⌝ ∧ ⌜ va ↗ ds ⌝ ∧ ds;;l ↘ vb ∧ interp_k (Some vb) v)%I
     | [] => interp_k optVa v
     end.
 
