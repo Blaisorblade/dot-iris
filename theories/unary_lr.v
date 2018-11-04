@@ -27,6 +27,16 @@ Section Sec.
   Definition SP γ ϕ := saved_pred_own γ ϕ.
   Notation "g ⤇ p" := (SP g p) (at level 20).
 
+  Canonical Structure vlC := leibnizC vl.
+  Canonical Structure tmC := leibnizC tm.
+
+  Notation D := (vlC -n> iProp Σ).
+  Notation envD := (list vl -> D).
+
+  Implicit Types τi : D.
+
+  Notation inclusion P Q := (∀ v, P v -∗ Q v)%I.
+
   Definition object_proj_semtype v l φ : iProp Σ :=
     (∃ γ ds, ⌜ v = vobj ds ∧ index_dms l (selfSubst ds) = Some(dtysem γ) ⌝ ∗ γ ⤇ φ)%I.
   Global Arguments object_proj_semtype /.
@@ -38,14 +48,14 @@ Section Sec.
   Notation "v ; l ↘ φ" := (object_proj_semtype v l φ)%I (at level 20).
   Notation "v ;; l ↘ w" := (object_proj_val v l w)%I (at level 20).
 
-  Canonical Structure vlC := leibnizC vl.
-  Canonical Structure tmC := leibnizC tm.
-  Notation D := (vlC -n> iProp Σ).
-  Notation envD := (list vl -> D).
-  Implicit Types τi : D.
+  (* XXX on paper we need to check inclusion later, I expect we'll need this in
+     one of the lemmas. *)
+  Definition interp_tmem (l: label) (interp1 interp2 : envD) : envD := λ ρ, λne v,
+    (□ ∃ φ, (v;l ↘ φ) ∗ (inclusion (interp1 ρ) φ) ∗ inclusion φ (interp2 ρ) )%I.
 
-  Definition expr_of_pred (φ: D) (e: tm) : iProp Σ :=
-    (WP e {{ v, φ v }} % I).
+  Definition interp_vmem l (interp : envD) : envD := λ ρ, λne v,
+    (∃ vmem, v;;l ↘ vmem ∧ ▷ interp ρ vmem) % I.
+
 
   Definition interp_and (interp1 interp2 : envD): envD := λ ρ, λne v,
     (interp1 ρ v ∧ interp2 ρ v) % I.
@@ -53,21 +63,14 @@ Section Sec.
   Definition interp_or (interp1 interp2 : envD) : envD := λ ρ, λne v,
     (interp1 ρ v ∨ interp2 ρ v) % I.
 
-  Notation inclusion P Q := (∀ v, P v -∗ Q v)%I.
-
-  (* XXX on paper we need to check inclusion later, I expect we'll need this in
-     one of the lemmas. *)
-  Definition interp_tmem (l: label) (interp1 interp2 : envD) : envD := λ ρ, λne  v,
-  (□ ∃ φ, (v;l ↘ φ) ∗ (inclusion (interp1 ρ) φ) ∗ inclusion φ (interp2 ρ) )%I.
-
   Definition interp_later (interp : envD) : envD := λ ρ, λne v,
          (▷ (interp ρ v)) % I.
 
+  Definition expr_of_pred (φ: D) (e: tm) : iProp Σ :=
+    (WP e {{ v, φ v }} % I).
+
   Definition interp_forall (interp1 interp2 : envD) : envD := λ ρ, λne v,
     (□ ▷ ∀ v', interp1 ρ v' -∗ expr_of_pred (interp2 (v :: ρ)) (tapp (tv v) (tv v'))) % I.
-
-  Definition interp_vmem l (interp : envD) : envD := λ ρ, λne v,
-    (∃ vmem, v;;l ↘ vmem ∧ ▷ interp ρ vmem) % I.
 
   Definition interp_mu (interp : envD) : envD := λ ρ, λne v,
     (interp (v::ρ) v) % I.
@@ -121,10 +124,10 @@ Section Sec.
 
   Fixpoint interp (T: ty) : envD :=
     match T with
-    | TOr T1 T2 => interp_or (interp T1) (interp T2)
-    | TAnd T1 T2 => interp_and (interp T1) (interp T2)
     | TTMem l L U => interp_tmem l (interp L) (interp U)
     | TVMem l T' => interp_vmem l (interp T')
+    | TAnd T1 T2 => interp_and (interp T1) (interp T2)
+    | TOr T1 T2 => interp_or (interp T1) (interp T2)
     | TLater T => interp_later (interp T)
     | TTop => interp_true
     | TBot => interp_false
