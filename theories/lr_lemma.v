@@ -81,8 +81,8 @@ Section Sec.
   Proof.
     iIntros "/= #Hva !>" (v ρ) "#Hg #HvL !>".
     iDestruct ("Hva" $! ρ with "Hg") as (ds) "#[% #H]"; iClear "Hva".
-    simplOpen ds'.
-    iDestruct "H" as (φ) "#[Hl [HLφ HφU]] /=".
+    iDestruct "H" as (φ) "#[Hl [HLφ HφU]]".
+    simplOpen ds'; simpl.
     iExists (vobj ds'), φ, ds.
     repeat iSplit; trivial.
     - iApply "HφU"; iApply "HLφ"; iApply "HvL".
@@ -99,8 +99,8 @@ Section Sec.
   Proof.
     iIntros "/= #Hva !>" (v ρ) "#Hg #HvL !>".
     iDestruct ("Hva" $! ρ with "Hg") as (ds) "#[% #H]"; iClear "Hva".
-    simplOpen ds'.
-    iDestruct "H" as (φ) "#[Hl [HLφ HφU]] /=".
+    iDestruct "H" as (φ) "#[Hl [HLφ HφU]]".
+    simplOpen ds'; simpl.
     iExists (vobj ds'), φ, ds.
     repeat iSplit; trivial.
     iRight; iApply "HLφ". iApply "HvL".
@@ -112,11 +112,11 @@ Section Sec.
   Proof.
     iIntros "/= #Hva !>" (v ρ) "#Hg #Hφ".
     iDestruct ("Hva" $! ρ with "Hg") as (ds) "#[% #H]"; iClear "Hva".
-    simplOpen ds'.
-    iDestruct "H" as (φ) "#[Hlφ [HLφ HφU]] /=".
+    iDestruct "H" as (φ) "#[Hlφ [HLφ HφU]]".
     iDestruct "Hlφ" as (γ) "[% Hγφ]".
 
     iApply "HφU".
+    simplOpen ds'; simpl.
     iDestruct "Hφ" as (va1 φ1 ds1) "[% [% [Hlφ1 [_ [[] | Hφ1v]]]]] /=".
     iDestruct "Hlφ1" as (γ1) "[% Hγφ1]".
 
