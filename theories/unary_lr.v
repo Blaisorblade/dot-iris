@@ -44,7 +44,7 @@ Section Sec.
   Notation envD := (list vl -> D).
   Implicit Types τi : D.
 
-  Definition interp_expr (φ: D) (e: tm) : iProp Σ :=
+  Definition expr_of_pred (φ: D) (e: tm) : iProp Σ :=
     (WP e {{ v, φ v }} % I).
 
   Definition interp_and (interp1 interp2 : envD): envD := λ ρ, λne v,
@@ -64,7 +64,7 @@ Section Sec.
          (▷ (interp ρ v)) % I.
 
   Definition interp_forall (interp1 interp2 : envD) : envD := λ ρ, λne v,
-    (□ ▷ ∀ v', interp1 ρ v' -∗ interp_expr (interp2 (v :: ρ)) (tapp (tv v) (tv v'))) % I.
+    (□ ▷ ∀ v', interp1 ρ v' -∗ expr_of_pred (interp2 (v :: ρ)) (tapp (tv v) (tv v'))) % I.
 
   Definition interp_val_mem l (interp : envD) : envD := λ ρ, λne v,
     (∃ vmem, v;;l ↘ vmem ∧ ▷ interp ρ vmem) % I.
@@ -172,3 +172,4 @@ End Sec.
 
 Notation "⟦ T ⟧" := (interp T).
 Notation "⟦ Γ ⟧*" := (interp_env Γ).
+Notation "⟦ T ⟧ₑ" := (expr_of_pred ⟦T⟧).
