@@ -57,7 +57,7 @@ Section Sec.
 
   (* XXX on paper we need to check inclusion later, I expect we'll need this in
      one of the lemmas. *)
-  Definition interp_mem (l: label) (interp1 interp2 : envD) : envD := λ ρ, λne  v,
+  Definition interp_tmem (l: label) (interp1 interp2 : envD) : envD := λ ρ, λne  v,
   (□ ∃ φ, (v;l ↘ φ) ∗ (inclusion (interp1 ρ) φ) ∗ inclusion φ (interp2 ρ) )%I.
 
   Definition interp_later (interp : envD) : envD := λ ρ, λne v,
@@ -66,7 +66,7 @@ Section Sec.
   Definition interp_forall (interp1 interp2 : envD) : envD := λ ρ, λne v,
     (□ ▷ ∀ v', interp1 ρ v' -∗ expr_of_pred (interp2 (v :: ρ)) (tapp (tv v) (tv v'))) % I.
 
-  Definition interp_val_mem l (interp : envD) : envD := λ ρ, λne v,
+  Definition interp_vmem l (interp : envD) : envD := λ ρ, λne v,
     (∃ vmem, v;;l ↘ vmem ∧ ▷ interp ρ vmem) % I.
 
   Definition interp_mu (interp : envD) : envD := λ ρ, λne v,
@@ -121,9 +121,10 @@ Section Sec.
 
   Fixpoint interp (T: ty) : envD :=
     match T with
-    | TAnd T1 T2 => interp_and (interp T1) (interp T2)
     | TOr T1 T2 => interp_or (interp T1) (interp T2)
-    | TTMem l L U => interp_mem l (interp L) (interp U)
+    | TAnd T1 T2 => interp_and (interp T1) (interp T2)
+    | TTMem l L U => interp_tmem l (interp L) (interp U)
+    | TVMem l T' => interp_vmem l (interp T')
     | TLater T => interp_later (interp T)
     | TTop => interp_true
     | TBot => interp_false
@@ -133,7 +134,6 @@ Section Sec.
       interp_sel p l
     | TSelA p l L U =>
       interp_selA p l (interp L) (interp U)
-    | TVMem l T' => interp_val_mem l (interp T')
   end % I.
 
 
