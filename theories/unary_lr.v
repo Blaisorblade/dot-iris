@@ -136,6 +136,7 @@ Section Sec.
     | TVMem l T' => interp_val_mem l (interp T')
   end % I.
 
+
   Notation "⟦ T ⟧" := (interp T).
 
   (* use foldr? *)
@@ -149,6 +150,7 @@ Section Sec.
                          end
                )%I
     end.
+
   Notation "⟦ Γ ⟧*" := (interp_env Γ).
 
   Global Instance interp_persistent T ρ v :
@@ -167,3 +169,6 @@ Section Sec.
     - simpl. destruct ρ; rewrite /Persistent; eauto.
   Qed.
 End Sec.
+
+Notation "⟦ T ⟧" := (interp T).
+Notation "⟦ Γ ⟧*" := (interp_env Γ).
