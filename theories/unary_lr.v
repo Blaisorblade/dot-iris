@@ -168,9 +168,10 @@ Section Sec.
   Global Instance interp_persistent T ρ v :
     Persistent (⟦ T ⟧ ρ v).
   Proof.
-    revert v ρ; induction T; try move => v Δ HΔ; simpl;
-                                          try destruct (split_path p);
-                                          try apply _.
+    revert v ρ; induction T; simpl;
+                                       try destruct (split_path p);
+                                       try apply _.
+  Qed.
   Qed.
 
   Global Instance interp_env_persistent Γ ρ :
