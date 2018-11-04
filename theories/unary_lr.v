@@ -40,12 +40,12 @@ Section Sec.
   Notation MD := (dmsC -n> iProp Σ).
   Notation envMD := (list vl -> MD).
 
-  Notation inclusion P Q := (∀ v, P v -∗ Q v)%I.
+  Notation inclusion P Q := (□∀ v, P v -∗ Q v)%I.
 
   Definition idms_proj_semtype ds l φ : iProp Σ :=
-    (∃ γ, ⌜ index_dms l ds = Some(dtysem γ) ⌝ ∗ γ ⤇ φ)%I.
+    (∃ γ, ⌜ index_dms l ds = Some(dtysem γ) ⌝ ∗ □ γ ⤇ φ)%I.
   Global Arguments idms_proj_semtype /.
-  Notation "ds ; l ↘ φ" := (idms_proj_semtype ds l φ )(at level 20).
+  Notation "ds ; l ↘ φ" := (idms_proj_semtype ds l φ) (at level 20).
 
   Definition idms_proj_val ds l w : iProp Σ :=
     (⌜ dms_proj_val ds l w ⌝)%I.
@@ -53,18 +53,18 @@ Section Sec.
   Notation "ds ;; l ↘ w" := (idms_proj_val ds l w) (at level 20).
 
   Definition defs_interp_vmem l (interp : envD): envMD := λ ρ, λne ds,
-    (□ ∃ vmem, ⌜ ds ;; l ↘ vmem ⌝ ∧ ▷ interp ρ vmem)%I.
+    (∃ vmem, ⌜ ds ;; l ↘ vmem ⌝ ∧ ▷ interp ρ vmem)%I.
 
   Definition interp_vmem l (interp : envD) : envD := λ ρ, λne v,
-    (□ ∃ ds, ⌜ v ↗ ds ⌝ ∧ defs_interp_vmem l interp ρ ds)%I.
+    (∃ ds, ⌜ v ↗ ds ⌝ ∧ defs_interp_vmem l interp ρ ds)%I.
 
   (* XXX on paper we need to check inclusion later, I expect we'll need this in
      one of the lemmas. *)
   Definition defs_interp_tmem l (interp1 interp2: envD): envMD := λ ρ, λne ds,
-    (□ ∃ φ, (ds;l ↘ φ) ∗ (inclusion (interp1 ρ) φ) ∗ inclusion φ (interp2 ρ) )%I.
+    (∃ φ, (ds;l ↘ φ) ∗ (inclusion (interp1 ρ) φ) ∗ inclusion φ (interp2 ρ) )%I.
 
   Definition interp_tmem l (interp1 interp2 : envD) : envD := λ ρ, λne v,
-    (□ ∃ ds, ⌜ v ↗ ds ⌝ ∧ defs_interp_tmem l interp1 interp2 ρ ds)%I.
+    (∃ ds, ⌜ v ↗ ds ⌝ ∧ defs_interp_tmem l interp1 interp2 ρ ds)%I.
 
   Definition interp_and (interp1 interp2 : envD): envD := λ ρ, λne v,
     (interp1 ρ v ∧ interp2 ρ v) % I.
