@@ -151,12 +151,15 @@ Section Sec.
   Definition defs_interp_and (interp1 interp2 : envMD): envMD := λ ρ, λne ds,
     (interp1 ρ ds ∧ interp2 ρ ds) % I.
   Definition defs_interp_false : envMD := λ ρ, λne ds, False % I.
+  (* Taken from code for OOPSLA16 DOT paper. *)
+  Definition defs_interp_top : envMD := λ ρ, λne ds, ⌜ ds = dnil ⌝ % I.
 
   Fixpoint defs_interp (T: ty) : envMD :=
     match T with
     | TTMem l L U => defs_interp_tmem l (interp L) (interp U)
     | TVMem l T' => defs_interp_vmem l (interp T')
     | TAnd T1 T2 => defs_interp_and (defs_interp T1) (defs_interp T2)
+    | TTop => defs_interp_top
     | _ => defs_interp_false
     end % I.
 
