@@ -1,12 +1,11 @@
-Require Import Dot.dotsyn.
-Require Import Dot.operational.
-Import lang.
+Require Export Dot.operational.
+Export lang.
 
-From iris Require Import base_logic.lib.saved_prop.
-From iris.proofmode Require Import tactics.
+From iris Require Export base_logic.lib.saved_prop.
+From iris.proofmode Require Export tactics.
 From iris.program_logic Require Export weakestpre.
-From iris.algebra Require Import list.
-From iris.base_logic Require Import invariants.
+From iris.algebra Require Export list.
+From iris.base_logic Require Export invariants.
 
 Definition logN : namespace := nroot .@ "logN".
 
@@ -25,7 +24,11 @@ Section Sec.
   Context `{dotG Σ}.
 
   Definition SP γ ϕ := saved_pred_own γ ϕ.
-  Notation "g ⤇ p" := (SP g p) (at level 20).
+End Sec.
+Notation "g ⤇ p" := (SP g p) (at level 20).
+
+Section Sec2.
+  Context `{dotG Σ}.
 
   Canonical Structure vlC := leibnizC vl.
   Canonical Structure tmC := leibnizC tm.
@@ -201,8 +204,25 @@ Section Sec.
     - rewrite /Persistent /interp_env. eauto.
     - simpl. destruct ρ; rewrite /Persistent; eauto.
   Qed.
-End Sec.
+
+  Implicit Types T: ty.
+
+  (* Definitions for semantic (definition) (sub)typing *)
+  Definition vstp Γ T1 T2 := ∀ v ρ, ⟦Γ⟧* ρ -> ⟦T1⟧ ρ v -> ⟦T2⟧ ρ v.
+  Definition ivstp Γ T1 T2: iProp Σ := (□∀ v ρ, ⟦Γ⟧* ρ -∗ ⟦T1⟧ ρ v -∗ ⟦T2⟧ ρ v)%I.
+  Global Arguments vstp /.
+  Global Arguments ivstp /.
+
+  Definition ivtp Γ T v : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ -∗ ⟦T⟧ ρ v)%I.
+  Global Arguments ivtp /.
+
+  Definition idtp Γ T ds : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ -∗ defs_interp T ρ ds)%I.
+  Global Arguments idtp /.
+
+End Sec2.
 
 Notation "⟦ T ⟧" := (interp T).
 Notation "⟦ Γ ⟧*" := (interp_env Γ).
 Notation "⟦ T ⟧ₑ" := (expr_of_pred ⟦T⟧).
+
+Notation "Γ ⊨ T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).

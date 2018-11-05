@@ -1,32 +1,12 @@
 Require Import Dot.tactics.
-Require Import Dot.dotsyn.
-Require Import Dot.operational.
 Require Import Dot.unary_lr.
-Import lang.
-
-From iris Require Import base_logic.lib.saved_prop.
-(* From iris Require Import base_logic.base_logic. *)
-
-From iris.proofmode Require Import tactics.
-From iris.program_logic Require Export weakestpre.
-From iris.algebra Require Import list.
-From iris.base_logic Require Import invariants.
 
 Section Sec.
   Context `{HdotG: dotG Σ}.
-  Implicit Types T: ty.
-
-  Definition vstp Γ T1 T2 := ∀ v ρ, ⟦Γ⟧* ρ -> ⟦T1⟧ ρ v -> ⟦T2⟧ ρ v.
-  Definition ivstp Γ T1 T2: iProp Σ := (□∀ v ρ, ⟦Γ⟧* ρ -∗ ⟦T1⟧ ρ v -∗ ⟦T2⟧ ρ v)%I.
-  Arguments vstp /.
-  Arguments ivstp /.
-  Notation "Γ ⊨ T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).
 
   Context (Γ: list ty).
+  Implicit Types T: ty.
 
-
-  (* Lemma stp_later T ρ v: interp T ρ v -∗ interp (TLater T) ρ v. *)
-  (* Proof. iIntros; by iNext. Qed. *)
   Lemma ivstp_later G T: G ⊨ T <: TLater T.
   Proof. iIntros "!> ** /="; by iNext. Qed.
 
@@ -71,61 +51,6 @@ Section Sec.
   Proof. iIntros "!> ** /="; by iLeft. Qed.
   Lemma ivstp_ori2 T1 T2: Γ ⊨ T2 <: TOr T1 T2.
   Proof. iIntros "!> ** /="; by iRight. Qed.
-
-  Definition ivtp Γ T v : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ -∗ ⟦T⟧ ρ v)%I.
-  Arguments ivtp /.
-
-  Lemma mem_stp_sela_sub L U va l:
-    ivtp Γ (TTMem l L U) va -∗
-    Γ ⊨ L <: TSelA (pv va) l L U.
-  Proof.
-    iIntros "/= #Hva !>" (v ρ) "#Hg #HvL !>".
-    iDestruct ("Hva" $! ρ with "Hg") as (ds) "#[% #H]"; iClear "Hva".
-    iDestruct "H" as (φ) "#[Hl [HLφ HφU]]".
-    simplOpen ds'; simpl.
-    iExists (vobj ds'), φ, ds.
-    repeat iSplit; trivial.
-    - iApply "HφU"; iApply "HLφ"; iApply "HvL".
-    -
-      (* Either *)
-      (* by iLeft. *)
-      (* Or *)
-      iRight; iApply "HLφ"; iApply "HvL".
-  Qed.
-
-  Lemma mem_stp_sel_sub L U va l:
-    ivtp Γ (TTMem l L U) va -∗
-    ivstp Γ (TLater L) (TSel (pv va) l).
-  Proof.
-    iIntros "/= #Hva !>" (v ρ) "#Hg #HvL !>".
-    iDestruct ("Hva" $! ρ with "Hg") as (ds) "#[% #H]"; iClear "Hva".
-    iDestruct "H" as (φ) "#[Hl [HLφ HφU]]".
-    simplOpen ds'; simpl.
-    iExists (vobj ds'), φ, ds.
-    repeat iSplit; trivial.
-    iRight; iApply "HLφ". iApply "HvL".
-  Qed.
-
-  Lemma mem_stp_sub_sel L U va l:
-    ivtp Γ (TTMem l L U) va -∗
-    ivstp Γ (TSel (pv va) l) (TLater U).
-  Proof.
-    iIntros "/= #Hva !>" (v ρ) "#Hg #Hφ".
-    iDestruct ("Hva" $! ρ with "Hg") as (ds) "#[% #H]"; iClear "Hva".
-    iDestruct "H" as (φ) "#[Hlφ [HLφ HφU]]".
-    iDestruct "Hlφ" as (γ) "[% Hγφ]".
-
-    iApply "HφU".
-    simplOpen ds'; simpl.
-    iDestruct "Hφ" as (va1 φ1 ds1) "[% [% [Hlφ1 [_ [[] | Hφ1v]]]]] /=".
-    iDestruct "Hlφ1" as (γ1) "[% Hγφ1]".
-
-    injectHyps; openDet; optFuncs_det.
-
-    iAssert (▷ (φ v ≡ φ1 v))%I as "#Hag".
-    { by iApply saved_pred_agree. }
-    iNext; by iRewrite "Hag".
-  Qed.
 
   (*
      Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂ᶻ
@@ -209,94 +134,4 @@ Section Sec.
     ivtp Γ (TMu T) v -∗
     ivtp Γ T.[v/] v.
   Proof. by iDestruct ivstp_rec_eq as "[? ?]". Qed.
-
-  (**
-     Lemmas about definition typing.
-     TODO: generalize them for definitions at arbitrary positions.
-
-     Yak to shave for that TODO: it's probably better to make labels index
-     definitions from the end, as done by existing formalizations. This way,
-     [dcons d ds] keeps the existing labels for [ds] and uses a new one ([length
-     ds]) for [d]. That's a bit like de Bruijn levels.
-   *)
-  Definition idtp Γ T ds : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ -∗ defs_interp T ρ ds)%I.
-  Arguments idtp /.
-
-  Bind Scope dms_scope with dms.
-  Open Scope dms_scope.
-  Notation " [@ ] " := dnil (format "[@ ]") : dms_scope.
-  Notation " [@ x ] " := (dcons x dnil) : dms_scope.
-  Notation " [@ x ; y ; .. ; z ] " := (dcons x (dcons y .. (dcons z dnil) ..))
-                                      : dms_scope.
-  Lemma idtp_vmem_i T v:
-    ▷ ivtp Γ T v -∗
-      idtp Γ (TVMem 0 T) [@ dvl v].
-  Proof.
-    iIntros "#Hv !> * #Hg /=".
-    iExists v; iSplit.
-    - repeat iPureIntro; done.
-    - by iApply "Hv".
-  Qed.
-
-  (*
-    What I'd want, if we store envD instead, is closer to:
-
-    Lemma idtp_tmem_i T γ:
-      SP γ ⟦T⟧ -∗
-      idtp Γ (TTMem 0 T T) [@ dtysem γ].
-    Tho we need something about syntactic definitions as well.
-  *)
-  Lemma dtp_tmem_i T γ ρ:
-    SP γ (⟦T⟧ ρ) -∗ ⟦Γ⟧* ρ -∗
-    defs_interp (TTMem 0 T T) ρ [@ dtysem γ].
-  Proof.
-    iIntros "#Hv * #Hg /=".
-    iExists (⟦T⟧ ρ); iSplit.
-    iExists γ; by iSplit.
-    iSplit; by iIntros "!> **".
-  Qed.
-
-  (* We can't write idtp_tmem_i as above, but for now we can write: *)
-  (* Lemma idtp_tmem_i T γ ρ: *)
-  (*   SP γ (⟦T⟧ ρ) -∗ *)
-  (*      idtp Γ (TTMem 0 T T) [@ dtysem γ]. *)
-  (* Proof. *)
-  (*   iIntros "#Hv !> * #Hg /=". *)
-  (*   iExists (⟦T⟧ ρ); iSplit. *)
-  (*   iExists γ; by iSplit. *)
-  (*   iSplit; iIntros "!> **". *)
-  (* Aborted. *)
-
-
-  Lemma dtp_tmem_abs_i T L U γ ρ:
-    SP γ (⟦T⟧ ρ) -∗ ⟦Γ⟧* ρ -∗
-    (* I'd want to require these two hypotheses to hold later. *)
-    Γ ⊨ T <: U -∗
-    Γ ⊨ L <: T -∗
-    defs_interp (TTMem 0 L U) ρ [@ dtysem γ].
-  Proof.
-    iIntros "#Hv * #Hg #HTU #HLT /=".
-    iExists (⟦T⟧ ρ); iSplit.
-    iExists γ; by iSplit.
-    iSplit; iIntros "!> **"; [iApply "HLT" | iApply "HTU"]; done.
-  Qed.
-
-  Lemma alloc_sp T ρ:
-    (|==> ∃ γ, SP γ (⟦T⟧ ρ))%I.
-  Proof. by apply saved_pred_alloc. Qed.
-
-  Lemma alloc_dtp_tmem_i T ρ:
-    ⟦Γ⟧* ρ -∗
-    (|==> ∃ γ, defs_interp (TTMem 0 T T) ρ [@ dtysem γ])%I.
-  Proof.
-    iIntros "#Hg /=".
-    iDestruct (alloc_sp T ρ) as "HupdSp".
-    iMod "HupdSp" as (γ) "#Hsp".
-    iModIntro.
-    iExists γ, (⟦T⟧ρ).
-    iSplit.
-    - iExists γ; by iSplit.
-    - iSplit; by iIntros "!> **".
-  Qed.
-
 End Sec.

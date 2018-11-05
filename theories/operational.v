@@ -6,6 +6,13 @@ Require Import Dot.tactics.
 
 Module lang.
 
+Bind Scope dms_scope with dms.
+Open Scope dms_scope.
+Notation " [@ ] " := dnil (format "[@ ]") : dms_scope.
+Notation " [@ x ] " := (dcons x dnil) : dms_scope.
+Notation " [@ x ; y ; .. ; z ] " := (dcons x (dcons y .. (dcons z dnil) ..))
+                                    : dms_scope.
+
 Definition to_val (t: tm) : option vl :=
   match t with
   | tv v => Some v
