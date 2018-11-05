@@ -1,8 +1,13 @@
 From iris.program_logic Require Export ectx_language ectxi_language.
 From iris.algebra Require Export ofe.
 
-Require Export Dot.dotsyn.
+From iris Require Import base_logic.lib.saved_prop.
 Require Import Dot.tactics.
+Require Export Dot.dotsyn.
+
+Module gnameB. Definition gname := gname. End gnameB.
+Module SynG := Syn gnameB.
+Export SynG.
 
 Module lang.
 

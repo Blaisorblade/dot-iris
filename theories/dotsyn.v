@@ -62,12 +62,14 @@ Definition label := nat.
 Definition subst_of_label  : list Type :=
   [].
 
+Module Type type. Parameter gname: Type.
+End type.
 (* For gname. *)
-From iris Require Import base_logic.lib.saved_prop.
+From stdpp Require Import tactics.
 
+Module Syn (gnameMod: type).
 
-
-
+Import gnameMod.
 
 Definition subst_of_gname  : list Type :=
   [].
@@ -2534,3 +2536,5 @@ Proof.
   destruct x; simpl; trivial.
   unfold compren_ty; erewrite ren_inst_vl_vl; reflexivity.
 Qed.
+
+End Syn.
