@@ -43,7 +43,7 @@ Section Sec.
   Notation inclusion P Q := (□∀ v, P v -∗ Q v)%I.
 
   Definition idms_proj_semtype ds l φ : iProp Σ :=
-    (∃ γ, ⌜ index_dms l ds = Some(dtysem γ) ⌝ ∗ □ γ ⤇ φ)%I.
+    (∃ γ, ⌜ index_dms l ds = Some(dtysem γ) ⌝ ∗ γ ⤇ φ)%I.
   Global Arguments idms_proj_semtype /.
   Notation "ds ; l ↘ φ" := (idms_proj_semtype ds l φ) (at level 20).
 
@@ -53,7 +53,7 @@ Section Sec.
   Notation "ds ;; l ↘ w" := (idms_proj_val ds l w) (at level 20).
 
   Definition defs_interp_vmem l (interp : envD): envMD := λ ρ, λne ds,
-    (∃ vmem, ⌜ ds ;; l ↘ vmem ⌝ ∧ ▷ interp ρ vmem)%I.
+    (∃ vmem, ds ;; l ↘ vmem ∧ ▷ interp ρ vmem)%I.
 
   Definition interp_vmem l (interp : envD) : envD := λ ρ, λne v,
     (∃ ds, ⌜ v ↗ ds ⌝ ∧ defs_interp_vmem l interp ρ ds)%I.
