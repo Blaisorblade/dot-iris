@@ -47,8 +47,32 @@ Fixpoint dms_to_list (ds: dms) : list dm :=
   | dcons d ds => d :: dms_to_list ds
   end.
 
+(** Reverse lookup. *)
+Fixpoint indexr {X} (i: nat) (xs: list X) : option X :=
+  match xs with
+  | [] => None
+  | x :: xs =>
+    if decide (i = length xs) then Some x else indexr i xs
+  end.
+
+Lemma indexr_max {X} (T: X) i vs:
+                       indexr i vs = Some T ->
+                       i < length vs.
+Proof.
+  induction vs; first done; rewrite /lt in IHvs |- *; move => /= H.
+  case_decide; subst; [ lia | eauto ].
+Qed.
+Hint Resolve indexr_max.
+
+Lemma indexr_extend {X} vs n x (T: X):
+                       indexr n vs = Some T ->
+                       indexr n (x::vs) = Some T.
+Proof.
+  move => H /=; assert (n < length vs) by naive_solver; by case_decide; first lia.
+Qed.
+
 Definition index_dms (i: label) (ds: dms): option dm :=
-  dms_to_list ds !! i.
+  indexr i (dms_to_list ds).
 
 (** Single-variable substitution, based on the Autosubst1 notation. Priorities copied from s .[ sigma ]. *)
 Notation "s .[ v /]" := (s .[ v .: var_vl ])

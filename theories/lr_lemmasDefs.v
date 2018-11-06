@@ -11,10 +11,10 @@ Section Sec.
      Lemmas about definition typing.
      TODO: generalize them for definitions at arbitrary positions.
 
-     Yak to shave for that TODO: it's probably better to make labels index
-     definitions from the end, as done by existing formalizations. This way,
-     [dcons d ds] keeps the existing labels for [ds] and uses a new one ([length
-     ds]) for [d]. That's a bit like de Bruijn levels.
+     This should be easier now, since we made labels index
+     definitions from the end, as done by existing formalizations.
+     This way, [dcons d ds] keeps the existing labels for [ds] and uses a new
+     one ([length ds]) for [d]. That's a bit like de Bruijn levels.
    *)
   Lemma idtp_vmem_i T v:
     ▷ ivtp Γ T v -∗
