@@ -28,14 +28,15 @@ clean: Makefile.coq
 	$(Q)$(MAKE) $(MFLAGS) -f Makefile.coq clean
 	$(Q)rm -f *.bak *.d *.glob *~
 
-distclean: clean cleancoq
-
 # Phony wildcard targets
 
 phony: ;
 .PHONY: phony
 
 # Some files that do *not* need to be forwarded to Makefile.coq
+# The final semicolon prevents the forwarding.
+distclean: clean cleancoq ;
+
 Makefile: ;
 
 cleancoq: ;
