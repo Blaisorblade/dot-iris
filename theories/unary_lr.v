@@ -155,7 +155,7 @@ Section Sec2.
     (interp1 ρ ds ∧ interp2 ρ ds) % I.
   Definition defs_interp_false : envMD := λ ρ, λne ds, False % I.
   (* Taken from code for OOPSLA16 DOT paper. *)
-  Definition defs_interp_top : envMD := λ ρ, λne ds, ⌜ ds = dnil ⌝ % I.
+  Definition defs_interp_top : envMD := λ ρ, λne ds, True % I.
 
   Fixpoint defs_interp (T: ty) : envMD :=
     match T with

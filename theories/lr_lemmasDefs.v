@@ -7,12 +7,6 @@ Section Sec.
   Context (Γ: list ty).
   Implicit Types T: ty.
 
-  Definition dms_length ds := length (dms_to_list ds).
-
-  Lemma index_dcons d ds: index_dms (dms_length ds) (dcons d ds) = Some d.
-  Proof. rewrite /index_dms /dms_length /=; by case_decide. Qed.
-  Hint Resolve index_dcons.
-
   (**
      Lemmas about definition typing.
      TODO: generalize them for definitions at arbitrary positions.
@@ -73,6 +67,33 @@ Section Sec.
     iExists (⟦T⟧ ρ); iSplit.
     iExists γ; by iSplit.
     iSplit; iIntros "!> **"; [iApply "HLT" | iApply "HTU"]; done.
+  Qed.
+
+  Lemma dtp_add_defs T ρ d ds:
+    defs_interp T ρ ds -∗
+    defs_interp T ρ (dcons d ds).
+  Proof.
+    iInduction T as [] "IH".
+    all: iIntros "#HT /="; try done.
+    - iDestruct "HT" as "[? ?]". iSplit.
+      + by iApply "IH".
+      + by iApply "IH1".
+    - iDestruct "HT" as (vmem) "[% ?]".
+      iExists vmem; iSplit; try done.
+      by erewrite index_dms_extend.
+    - iDestruct "HT" as (φ) "[Hγ ?]".
+      iDestruct "Hγ" as (γ) "[% HSP]".
+      erewrite index_dms_extend; eauto.
+  Qed.
+
+  Lemma dtp_tand_i T U ρ d ds:
+    defs_interp T ρ ds -∗
+    defs_interp U ρ (dcons d ds) -∗
+    defs_interp (TAnd T U) ρ (dcons d ds).
+  Proof.
+    iIntros "#HT #HU /=".
+    iSplit; last done.
+    by iApply dtp_add_defs.
   Qed.
 
 End Sec.

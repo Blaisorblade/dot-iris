@@ -74,6 +74,17 @@ Qed.
 Definition index_dms (i: label) (ds: dms): option dm :=
   indexr i (dms_to_list ds).
 
+Lemma index_dms_extend l d ds dr:
+  index_dms l ds = Some dr ->
+  index_dms l (dcons d ds) = Some dr.
+Proof. rewrite /index_dms; cbn -[indexr]. by apply indexr_extend. Qed.
+
+Definition dms_length ds := length (dms_to_list ds).
+
+Lemma index_dcons d ds: index_dms (dms_length ds) (dcons d ds) = Some d.
+Proof. rewrite /index_dms /dms_length /=; by case_decide. Qed.
+Hint Resolve index_dcons.
+
 (** Single-variable substitution, based on the Autosubst1 notation. Priorities copied from s .[ sigma ]. *)
 Notation "s .[ v /]" := (s .[ v .: var_vl ])
   (at level 2, v at level 200, left associativity,
