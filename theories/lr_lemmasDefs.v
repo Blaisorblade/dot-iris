@@ -7,6 +7,12 @@ Section Sec.
   Context (Γ: list ty).
   Implicit Types T: ty.
 
+  Definition dms_length ds := length (dms_to_list ds).
+
+  Lemma index_dcons d ds: index_dms (dms_length ds) (dcons d ds) = Some d.
+  Proof. rewrite /index_dms /dms_length /=; by case_decide. Qed.
+  Hint Resolve index_dcons.
+
   (**
      Lemmas about definition typing.
      TODO: generalize them for definitions at arbitrary positions.
@@ -16,13 +22,13 @@ Section Sec.
      This way, [dcons d ds] keeps the existing labels for [ds] and uses a new
      one ([length ds]) for [d]. That's a bit like de Bruijn levels.
    *)
-  Lemma idtp_vmem_i T v:
+  Lemma idtp_vmem_i T v ds:
     ▷ ivtp Γ T v -∗
-      idtp Γ (TVMem 0 T) [@ dvl v].
+      idtp Γ (TVMem (dms_length ds) T) (dcons (dvl v) ds).
   Proof.
     iIntros "#Hv !> * #Hg /=".
     iExists v; iSplit.
-    - repeat iPureIntro; done.
+    - by [].
     - by iApply "Hv".
   Qed.
 
@@ -34,9 +40,9 @@ Section Sec.
       idtp Γ (TTMem 0 T T) [@ dtysem γ].
     Tho we need something about syntactic definitions as well.
   *)
-  Lemma dtp_tmem_i T γ ρ:
+  Lemma dtp_tmem_i T γ ρ ds:
     SP γ (⟦T⟧ ρ) -∗ ⟦Γ⟧* ρ -∗
-    defs_interp (TTMem 0 T T) ρ [@ dtysem γ].
+    defs_interp (TTMem (dms_length ds) T T) ρ (dcons (dtysem γ) ds).
   Proof.
     iIntros "#Hv * #Hg /=".
     iExists (⟦T⟧ ρ); iSplit.
@@ -56,12 +62,12 @@ Section Sec.
   (* Aborted. *)
 
 
-  Lemma dtp_tmem_abs_i T L U γ ρ:
+  Lemma dtp_tmem_abs_i T L U γ ρ ds:
     SP γ (⟦T⟧ ρ) -∗ ⟦Γ⟧* ρ -∗
     (* I'd want to require these two hypotheses to hold later. *)
     Γ ⊨ T <: U -∗
     Γ ⊨ L <: T -∗
-    defs_interp (TTMem 0 L U) ρ [@ dtysem γ].
+    defs_interp (TTMem (dms_length ds) L U) ρ (dcons (dtysem γ) ds).
   Proof.
     iIntros "#Hv * #Hg #HTU #HLT /=".
     iExists (⟦T⟧ ρ); iSplit.

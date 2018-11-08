@@ -109,6 +109,7 @@ Ltac openDet :=
 
 Definition dms_proj_val ds l v: Prop :=
   index_dms l ds = Some (dvl v).
+Arguments dms_proj_val /.
 
 Inductive head_step : tm -> state -> list observation -> tm -> state -> list tm -> Prop :=
 | st_beta : forall t1 v2,

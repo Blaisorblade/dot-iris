@@ -52,7 +52,7 @@ Section Sec2.
 
   Definition idms_proj_val ds l w : iProp Σ :=
     (⌜ dms_proj_val ds l w ⌝)%I.
-  (* Global Arguments idms_proj_semtype /. *)
+  Global Arguments idms_proj_val /.
   Notation "ds ;; l ↘ w" := (idms_proj_val ds l w) (at level 20).
 
   Definition defs_interp_vmem l (interp : envD): envMD := λ ρ, λne ds,
