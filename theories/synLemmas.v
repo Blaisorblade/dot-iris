@@ -68,4 +68,88 @@ Ltac openDet :=
 
 Arguments dms_proj_val /.
 
+Fixpoint idsσ1 i (ρ: list vl): vls :=
+  match ρ with
+  | [] => vnil
+  | _ :: ρ1 => vcons (var_vl i) (idsσ1 (S i) ρ1)
+  end.
+(* Goal idsσ1 ρ !! i. *)
+
+Definition idv := vabs (tv (var_vl 0)).
+Definition fst := vabs (tv (vabs (tv (var_vl 1)))).
+Definition snd := vabs (tv (vabs (tv (var_vl 0)))).
+Eval compute in idsσ [fst; idv].
+
+Definition testProp ρ := ρ = vls_to_list (idsσ ρ).[to_subst ρ].
+
+Goal testProp [idv]. reflexivity. Qed.
+Goal testProp [idv; idv]. reflexivity. Qed.
+Goal testProp [idv; fst]. reflexivity. Qed.
+Goal testProp [fst; idv]. reflexivity. Qed.
+Goal testProp [fst; snd; idv]. reflexivity. Qed.
+Goal testProp [fst; snd; fst; snd; idv; snd; idv; fst; idv]. reflexivity. Qed.
+
+(* Arguments to_subst /. *)
+Lemma idsσ_is_id ρ: ρ = vls_to_list (idsσ ρ).[to_subst ρ].
+Proof.
+  induction ρ.
+  by simpl.
+  simpl.
+  asimpl.
+  f_equal.
+  rewrite IHρ.
+  f_equal.
+  rewrite <- IHρ.
+Admitted.
+
+  (* We're left with:
+     (idsσ ρ).[to_subst ρ] = (idsσ ρ).[(+1) >>> to_subst (a :: ρ)]
+     Using f_equal and enough simplifications shows us that the two substitutions agree only for the first [length ρ] elements.
+     But that's enough for the theorem to be true!
+   *)
+(*   (* clear IHρ. *) *)
+
+(*   unfold lift. *)
+(*   unfold funcomp. *)
+(*   simpl. *)
+(*   unfold to_subst. *)
+(*   simpl. *)
+(*   (* (* This turns the goal into something false?! *) *) *)
+(*   (* f_equal. *) *)
+(*   unfold lift. *)
+(*   unfold funcomp. *)
+(*   simpl. *)
+(*   unfold to_subst. *)
+(*   simpl. *)
+(*   Require Import Dot.axioms. *)
+(*   fext; intros. *)
+(* fold (to_subst ρ). *)
+
+(*   (* Lemma aux a ρ: (idsσ ρ).[to_subst ρ] = (ren_vls S (idsσ (vls_to_list (idsσ ρ).[to_subst ρ]))).[to_subst (a :: vls_to_list (idsσ ρ).[to_subst ρ])]. *) *)
+(*   Lemma aux a ρ: (idsσ ρ).[to_subst ρ] = (idsσ (vls_to_list (idsσ ρ).[to_subst ρ])).[(+1) >>> to_subst (a :: vls_to_list (idsσ ρ).[to_subst ρ])] *)
+(*   Proof. *)
+(*     asimpl. *)
+
+
+(*   asimpl. *)
+(*   simpl. *)
+(*   f_equal. *)
+(*   fold idsσ. *)
+(*   unfold to_subst. *)
+(*   fold (to_subst ρ). *)
+(*   unfold lookup. *)
+(*   unfold list_lookup. *)
+(*   simpl. *)
+(*   Locate "!!". *)
+
+  (* cbn. *)
+  (* asimpl. *)
+  (* simpl. *)
+  (* f_equal. *)
+  (* f_equal. *)
+  (* cbn. *)
+  (* asimpl. *)
+  (* cbn. *)
+  (* unfold *)
+
 (* End SynLemmas. *)

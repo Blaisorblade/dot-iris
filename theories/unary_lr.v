@@ -11,7 +11,7 @@ Definition logN : namespace := nroot .@ "logN".
 
 Class dotG Σ := DotG {
   dotG_invG : invG Σ;
-  dotG_savior :> savedPredG Σ vl
+  dotG_savior :> savedPredG Σ (list vl * vl)
 }.
 
 Instance dotG_irisG `{dotG Σ} : irisG dot_lang Σ := {
@@ -79,14 +79,10 @@ Section Sec2.
   Definition interp_vmem l (interp : envD) : envD := uncurryD (λne ρ, λne v,
     (∃ ds, ⌜ v ↗ ds ⌝ ∧ curryD (defs_interp_vmem l interp) ρ ds))%I.
 
-  Definition to_subst (ρ: list vl) i: vl :=
-    match ρ !! i with
-      | Some v => v
-      | None => var_vl i
-    end.
+  Definition subst_phi (σ: vls) (ρ: list vl) (φ: list vl * vl -> iProp Σ): D := λne v, φ  (vls_to_list (σ.[to_subst ρ]), v).
 
   Definition defs_interp_tmem l (interp1 interp2: envD): envMD := uncurryD (λne ρ, λne ds,
-    (∃ φ σ, (ds;l ↘ σ , φ) ∗ ▷ inclusion (curryD interp1 ρ) φ ∗ ▷ inclusion φ (curryD interp2 ρ) ∗ inclusion (curryD interp1 ρ) (curryD interp2 ρ) ))%I.
+    (∃ φ σ, (ds;l ↘ σ , φ) ∗ ▷ inclusion (curryD interp1 ρ) (subst_phi σ ρ φ) ∗ ▷ inclusion (subst_phi σ ρ φ) (curryD interp2 ρ) ∗ inclusion (curryD interp1 ρ) (curryD interp2 ρ) ))%I.
     (* (∃ φ σ, (ds;l ↘ σ , φ) ∗ (inclusion (interp1 ρ) (φ (σ.[to_subst ρ]))) ∗ inclusion φ (interp2 ρ) )%I. *)
 
   Definition interp_tmem l (interp1 interp2 : envD) : envD := uncurryD (λne ρ, λne v,
@@ -134,9 +130,15 @@ Section Sec2.
 
   Canonical Structure dmC := leibnizC dm.
 
-  Program Definition interp_selA_final (l: label) (L U: D): option vl -> D :=
-    λ optVa, λne v,
-    (∃ va σ ϕ ds, ⌜ optVa = Some va ⌝ ∧ ⌜ va ↗ ds ⌝ ∧ ds;l ↘ σ , ϕ ∧ U v ∧ (L v ∨ ▷ ϕ v))%I.
+  Definition subst_phi0 (σ: vls) (φ: list vl * vl -> iProp Σ): D := λne v, φ  (vls_to_list σ, v).
+  Lemma subst_phi0_subst_phi σ φ: subst_phi0 σ φ ≡ subst_phi σ [] φ.
+  Proof. move => ? /=; by asimpl. Qed.
+
+  Program Definition interp_selA_final (l: label) (L U: D): list vl -> option vl -> D :=
+    λ ρ optVa, λne v,
+    (∃ va σ ϕ ds, ⌜ optVa = Some va ⌝ ∧ ⌜ va ↗ ds ⌝ ∧ ds;l ↘ σ , ϕ ∧ U v ∧ (L v ∨ ▷  subst_phi σ ρ ϕ v))%I.
+  (* I first assumed that va and hence ϕ is closed, but it's not obvious I can. In fact, if va comes from within the type, it can probably be open. *)
+    (* (∃ va σ ϕ ds, ⌜ optVa = Some va ⌝ ∧ ⌜ va ↗ ds ⌝ ∧ ds;l ↘ σ , ϕ ∧ U v ∧ (L v ∨ ▷  subst_phi0 σ ϕ v))%I. *)
 
   Fixpoint interp_sel_rec (ls: list label) (interp_k: option vl -> D): option vl -> D :=
     λ optVa, λne v,
@@ -149,7 +151,7 @@ Section Sec2.
   Program Definition interp_selA (p: path) (l: label) (L U : envD): envD :=
     uncurryD (λne ρ, λne v,
      let (optVa, ls) := eval_split_path p ρ in
-     □ interp_sel_rec ls (interp_selA_final l (curryD L ρ) (curryD U ρ)) optVa v
+     □ interp_sel_rec ls (interp_selA_final l (curryD L ρ) (curryD U ρ) ρ) optVa v
     )%I.
 
   Definition interp_true : envD := λne ρv, True % I.

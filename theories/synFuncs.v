@@ -17,6 +17,12 @@ Fixpoint dms_to_list (ds: dms) : list dm :=
   | dcons d ds => d :: dms_to_list ds
   end.
 
+Fixpoint vls_to_list (vs: vls) : list vl :=
+  match vs with
+  | vnil => []
+  | vcons v vs => v :: vls_to_list vs
+  end.
+
 (** Reverse lookup. *)
 Fixpoint indexr {X} (i: nat) (xs: list X) : option X :=
   match xs with
@@ -47,5 +53,17 @@ Notation "v ↗ ds" := (obj_opens_to v ds) (at level 20).
 
 Definition dms_proj_val ds l v: Prop :=
   index_dms l ds = Some (dvl v).
+
+Definition to_subst (ρ: list vl) i: vl :=
+  match ρ !! i with
+  | Some v => v
+  | None => var_vl i
+  end.
+
+Fixpoint idsσ (ρ: list vl): vls :=
+  match ρ with
+  | [] => vnil
+  | _ :: ρ1 => vcons (var_vl 0) ((idsσ ρ1).[(+1) >>> var_vl])
+  end.
 
 End SynFuncs.

@@ -33,15 +33,18 @@ Section Sec.
     Lemma idtp_tmem_i T γ:
       SP γ ⟦T⟧ -∗
       idtp Γ (TTMem 0 T T) [@ dtysem γ].
-    Tho we need something about syntactic definitions as well.
+    Tho we need something about syntactic definitions as well (or not??)
+
+    TODO: prove what I actually want, now that we store envD.
   *)
-  Lemma dtp_tmem_i T γ ρ ds σ:
-    SP γ (⟦T⟧ ρ) -∗ ⟦Γ⟧* ρ -∗
-    defs_interp (TTMem (dms_length ds) T T) ρ (dcons (dtysem σ γ) ds).
+  Lemma dtp_tmem_i T γ ρ ds:
+    γ ⤇  uinterp T -∗ ⟦Γ⟧* ρ -∗
+    defs_interp (TTMem (dms_length ds) T T) ρ (dcons (dtysem (idsσ ρ) γ) ds).
   Proof.
     iIntros "#Hv * #Hg /=".
-    iExists (⟦T⟧ ρ), σ. iSplit.
-    iExists γ; by iSplit.
+    (* iExists _, _. iSplit. _auto. *)
+    iExists (uinterp T), _. iSplit; first auto.
+    rewrite <- idsσ_is_id.
     repeat iSplit; repeat iModIntro; by iIntros "**".
   Qed.
 
@@ -57,17 +60,17 @@ Section Sec.
   (* Aborted. *)
 
 
-  Lemma dtp_tmem_abs_i T L U γ ρ ds σ:
-    SP γ (⟦T⟧ ρ) -∗ ⟦Γ⟧* ρ -∗
+  Lemma dtp_tmem_abs_i T L U γ ρ ds:
+    SP γ (uinterp T) -∗ ⟦Γ⟧* ρ -∗
     (* I'd want to require these two hypotheses to hold later. *)
     Γ ⊨ L <: U -∗
     ▷ (Γ ⊨ T <: U) -∗
     ▷ (Γ ⊨ L <: T) -∗
-    defs_interp (TTMem (dms_length ds) L U) ρ (dcons (dtysem σ γ) ds).
+    defs_interp (TTMem (dms_length ds) L U) ρ (dcons (dtysem (idsσ ρ) γ) ds).
   Proof.
     iIntros "#Hv * #Hg #HLU #HTU #HLT /=".
-    iExists (⟦T⟧ ρ), σ; iSplit.
-    iExists γ; by iSplit.
+    iExists (uinterp T), _. iSplit; first auto.
+    rewrite <- idsσ_is_id.
     repeat iSplit; repeat iModIntro; iIntros "**";
       [iApply "HLT" | iApply "HTU" | iApply "HLU"]; done.
   Qed.
@@ -84,7 +87,7 @@ Section Sec.
     - iDestruct "HT" as (vmem) "[% ?]".
       iExists vmem; iSplit; try done.
       by erewrite index_dms_extend.
-    - iDestruct "HT" as (φ  σ) "[Hγ ?]".
+    - iDestruct "HT" as (φ σ) "[Hγ ?]".
       iDestruct "Hγ" as (γ) "[% HSP]".
       erewrite index_dms_extend; eauto 6.
   Qed.

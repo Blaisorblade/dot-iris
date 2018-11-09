@@ -55,7 +55,7 @@ Section Sec.
 
     injectHyps; openDet; optFuncs_det.
 
-    iAssert (▷ (φ v ≡ φ1 v))%I as "#Hag".
+    iAssert (▷ (subst_phi σ ρ φ v ≡ subst_phi σ ρ φ1 v))%I as "#Hag"; simpl.
     { by iApply saved_pred_agree. }
     iNext; by iRewrite "Hag".
   Qed.

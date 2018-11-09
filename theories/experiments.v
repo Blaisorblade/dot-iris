@@ -20,8 +20,8 @@ Section Sec.
 
   (* Program Definition wtovdm (dw: dm): (|==> ∃(dv: gname), True)%I := *)
 
-  Lemma alloc_sp T ρ:
-    (|==> ∃ γ, SP γ (⟦T⟧ ρ))%I.
+  Lemma alloc_sp T:
+    (|==> ∃ γ, SP γ (uinterp T))%I.
   Proof. by apply saved_pred_alloc. Qed.
 
   Program Fixpoint wtovdm (dw: dm):
@@ -38,7 +38,7 @@ Section Sec.
     end.
   Next Obligation.
     iIntros "** !>".
-    iDestruct (alloc_sp T []) as ">Hγ".
+    iDestruct (alloc_sp T) as ">Hγ".
     iDestruct "Hγ" as (γ) "Hsp".
     by iExists (dtysem _ γ).
     Grab Existential Variables.
@@ -57,16 +57,16 @@ Section Sec.
   (*   match w with *)
   (*     |  *)
 
-  Lemma alloc_dtp_tmem_i T ρ σ:
+  Lemma alloc_dtp_tmem_i T ρ:
     ⟦Γ⟧* ρ -∗
-    (|==> ∃ γ, defs_interp (TTMem 0 T T) ρ [@ dtysem σ γ])%I.
+    (|==> ∃ γ, defs_interp (TTMem 0 T T) ρ [@ dtysem (idsσ ρ) γ])%I.
   Proof.
     iIntros "#Hg /=".
-    iDestruct (alloc_sp T ρ) as "HupdSp".
+    iDestruct (alloc_sp T) as "HupdSp".
     iMod "HupdSp" as (γ) "#Hsp".
-    iModIntro; iExists γ, (⟦T⟧ρ), σ; iSplit.
-    - iExists γ; by iSplit.
-    - repeat iSplit; repeat iModIntro; by iIntros "**".
+    iModIntro; iExists γ, _, _; iSplit; first auto.
+    rewrite <- idsσ_is_id.
+    repeat iSplit; repeat iModIntro; by iIntros "**".
   Qed.
   (* Print saved_pred_own. *)
   (* Print Next. *)
