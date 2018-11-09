@@ -66,7 +66,7 @@ Section Sec.
     iMod "HupdSp" as (γ) "#Hsp".
     iModIntro; iExists γ, (⟦T⟧ρ), σ; iSplit.
     - iExists γ; by iSplit.
-    - iSplit; by iIntros "!> **".
+    - repeat iSplit; repeat iModIntro; by iIntros "**".
   Qed.
   (* Print saved_pred_own. *)
   (* Print Next. *)

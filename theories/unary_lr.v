@@ -33,6 +33,7 @@ Section Sec2.
   Canonical Structure vlC := leibnizC vl.
   Canonical Structure tmC := leibnizC tm.
   Canonical Structure dmsC := leibnizC dms.
+  Canonical Structure listVlC := leibnizC (list vl).
 
   (* Semantic types *)
   Notation D := (vlC -n> iProp Σ).
@@ -66,10 +67,10 @@ Section Sec2.
       | Some v => v
       | None => var_vl i
     end.
-  (* XXX on paper we need to check inclusion later, I expect we'll need this in
-     one of the lemmas. *)
+
   Definition defs_interp_tmem l (interp1 interp2: envD): envMD := λ ρ, λne ds,
-    (∃ φ σ, (ds;l ↘ σ , φ) ∗ (inclusion (interp1 ρ) φ) ∗ inclusion φ (interp2 ρ) )%I.
+    (∃ φ σ, (ds;l ↘ σ , φ) ∗ ▷ inclusion (interp1 ρ) φ ∗ ▷ inclusion φ (interp2 ρ) ∗ inclusion (interp1 ρ) (interp2 ρ) )%I.
+    (* (∃ φ σ, (ds;l ↘ σ , φ) ∗ (inclusion (interp1 ρ) (φ (σ.[to_subst ρ]))) ∗ inclusion φ (interp2 ρ) )%I. *)
 
   Definition interp_tmem l (interp1 interp2 : envD) : envD := λ ρ, λne v,
     (∃ ds, ⌜ v ↗ ds ⌝ ∧ defs_interp_tmem l interp1 interp2 ρ ds)%I.

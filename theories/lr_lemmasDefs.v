@@ -42,7 +42,7 @@ Section Sec.
     iIntros "#Hv * #Hg /=".
     iExists (⟦T⟧ ρ), σ. iSplit.
     iExists γ; by iSplit.
-    iSplit; by iIntros "!> **".
+    repeat iSplit; repeat iModIntro; by iIntros "**".
   Qed.
 
   (* We can't write idtp_tmem_i as above, but for now we can write: *)
@@ -60,14 +60,16 @@ Section Sec.
   Lemma dtp_tmem_abs_i T L U γ ρ ds σ:
     SP γ (⟦T⟧ ρ) -∗ ⟦Γ⟧* ρ -∗
     (* I'd want to require these two hypotheses to hold later. *)
-    Γ ⊨ T <: U -∗
-    Γ ⊨ L <: T -∗
+    Γ ⊨ L <: U -∗
+    ▷ (Γ ⊨ T <: U) -∗
+    ▷ (Γ ⊨ L <: T) -∗
     defs_interp (TTMem (dms_length ds) L U) ρ (dcons (dtysem σ γ) ds).
   Proof.
-    iIntros "#Hv * #Hg #HTU #HLT /=".
+    iIntros "#Hv * #Hg #HLU #HTU #HLT /=".
     iExists (⟦T⟧ ρ), σ; iSplit.
     iExists γ; by iSplit.
-    iSplit; iIntros "!> **"; [iApply "HLT" | iApply "HTU"]; done.
+    repeat iSplit; repeat iModIntro; iIntros "**";
+      [iApply "HLT" | iApply "HTU" | iApply "HLU"]; done.
   Qed.
 
   Lemma dtp_add_defs T ρ d ds:
