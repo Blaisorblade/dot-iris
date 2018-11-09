@@ -78,7 +78,7 @@ Fixpoint idsσ1 i (ρ: list vl): vls :=
 Definition idv := vabs (tv (var_vl 0)).
 Definition fst := vabs (tv (vabs (tv (var_vl 1)))).
 Definition snd := vabs (tv (vabs (tv (var_vl 0)))).
-Eval compute in idsσ [fst; idv].
+(* Eval compute in idsσ [fst; idv]. *)
 
 Definition testProp ρ := ρ = vls_to_list (idsσ ρ).[to_subst ρ].
 
