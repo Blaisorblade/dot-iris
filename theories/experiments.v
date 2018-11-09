@@ -1,5 +1,6 @@
 Require Import Dot.tactics.
 Require Import Dot.unary_lr.
+Require Import Dot.synLemmas.
 (* Workflow: Use this file for new experiments, and move experiments here in appropriate files once they're done. *)
 
 Section Sec.

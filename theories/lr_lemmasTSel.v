@@ -1,5 +1,6 @@
 Require Import Dot.tactics.
 Require Import Dot.unary_lr.
+Require Import Dot.synLemmas.
 
 Section Sec.
   Context `{HdotG: dotG Σ}.

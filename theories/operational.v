@@ -1,22 +1,14 @@
 From iris.program_logic Require Export ectx_language ectxi_language.
 From iris.algebra Require Export ofe.
+From iris Require Import base_logic.lib.iprop. (* For gname. *)
 
-From iris Require Import base_logic.lib.saved_prop.
-Require Import Dot.tactics.
-Require Export Dot.dotsyn.
-
+Require Export Dot.synFuncs.
 Module gnameB. Definition gname := gname. End gnameB.
-Module SynG := Syn gnameB.
-Export SynG.
+
+Module SynFuncsG := SynFuncs gnameB.
+Export SynFuncsG.
 
 Module lang.
-
-Bind Scope dms_scope with dms.
-Open Scope dms_scope.
-Notation " [@ ] " := dnil (format "[@ ]") : dms_scope.
-Notation " [@ x ] " := (dcons x dnil) : dms_scope.
-Notation " [@ x ; y ; .. ; z ] " := (dcons x (dcons y .. (dcons z dnil) ..))
-                                    : dms_scope.
 
 Definition to_val (t: tm) : option vl :=
   match t with
@@ -40,87 +32,6 @@ Definition fill_item (Ki : ectx_item) (e : tm) : tm :=
 
 Definition state := unit.
 Definition observation := unit.
-
-Fixpoint dms_to_list (ds: dms) : list dm :=
-  match ds with
-  | dnil => []
-  | dcons d ds => d :: dms_to_list ds
-  end.
-
-(** Reverse lookup. *)
-Fixpoint indexr {X} (i: nat) (xs: list X) : option X :=
-  match xs with
-  | [] => None
-  | x :: xs =>
-    if decide (i = length xs) then Some x else indexr i xs
-  end.
-
-Lemma indexr_max {X} (T: X) i vs:
-                       indexr i vs = Some T ->
-                       i < length vs.
-Proof.
-  induction vs; first done; rewrite /lt in IHvs |- *; move => /= H.
-  case_decide; subst; [ lia | eauto ].
-Qed.
-Hint Resolve indexr_max.
-
-Lemma indexr_extend {X} vs n x (T: X):
-                       indexr n vs = Some T ->
-                       indexr n (x::vs) = Some T.
-Proof.
-  move => H /=; assert (n < length vs) by naive_solver; by case_decide; first lia.
-Qed.
-
-Definition index_dms (i: label) (ds: dms): option dm :=
-  indexr i (dms_to_list ds).
-
-Lemma index_dms_extend l d ds dr:
-  index_dms l ds = Some dr ->
-  index_dms l (dcons d ds) = Some dr.
-Proof. rewrite /index_dms; cbn -[indexr]. by apply indexr_extend. Qed.
-
-Definition dms_length ds := length (dms_to_list ds).
-
-Lemma index_dcons d ds: index_dms (dms_length ds) (dcons d ds) = Some d.
-Proof. rewrite /index_dms /dms_length /=; by case_decide. Qed.
-Hint Resolve index_dcons.
-
-(** Single-variable substitution, based on the Autosubst1 notation. Priorities copied from s .[ sigma ]. *)
-Notation "s .[ v /]" := (s .[ v .: var_vl ])
-  (at level 2, v at level 200, left associativity,
-   format "s .[ v /]" ) : subst_scope.
-
-(** Substitute object inside itself (to give semantics to the "self"
-    variable). To use when descending under the [vobj] binder. *)
-Definition selfSubst (ds: dms): dms := ds.[vobj ds/].
-
-Definition obj_opens_to v ds: Prop :=
-  ∃ ds', v = vobj ds' ∧ selfSubst ds' = ds.
-Notation "v ↗ ds" := (obj_opens_to v ds) (at level 20).
-
-(* Instead of letting obj_opens_to autounfold, provide tactics to show it's deterministic and *)
-
-(** Rewrite v ↗ ds to vobj ds' ↗ ds. *)
-Ltac simplOpen ds' :=
-  lazymatch goal with
-  | H: ?v ↗ ?ds |-_=>
-    inversion H as (ds' & -> & _)
-  end.
-
-(** Determinacy of obj_opens_to. *)
-Lemma openDet v ds1 ds2: v ↗ ds1 -> v ↗ ds2 -> ds1 = ds2.
-Proof.
-  rewrite /obj_opens_to; intros; ev; by optFuncs_det.
-Qed.
-Ltac openDet :=
-  lazymatch goal with
-  | H1: ?v ↗ ?ds1, H2: ?v ↗ ?ds2 |- _=>
-    assert (ds1 = ds2) as <- by (eapply openDet; eassumption)
-  end.
-
-Definition dms_proj_val ds l v: Prop :=
-  index_dms l ds = Some (dvl v).
-Arguments dms_proj_val /.
 
 Inductive head_step : tm -> state -> list observation -> tm -> state -> list tm -> Prop :=
 | st_beta : forall t1 v2,
