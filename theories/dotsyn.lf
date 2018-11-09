@@ -17,8 +17,8 @@ dtysyn: ty -> dm
 dtysem: vls -> gname -> dm
 dvl: vl -> dm
 
-vnil: vls
-vcons: vl -> vls -> vls
+vlnil: vls
+vlcons: vl -> vls -> vls
 
 dnil: dms
 dcons: dm -> dms -> dms

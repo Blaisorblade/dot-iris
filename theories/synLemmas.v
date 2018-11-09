@@ -70,8 +70,8 @@ Arguments dms_proj_val /.
 
 Fixpoint idsσ1 i (ρ: list vl): vls :=
   match ρ with
-  | [] => vnil
-  | _ :: ρ1 => vcons (var_vl i) (idsσ1 (S i) ρ1)
+  | [] => vlnil
+  | _ :: ρ1 => vlcons (var_vl i) (idsσ1 (S i) ρ1)
   end.
 (* Goal idsσ1 ρ !! i. *)
 

@@ -86,8 +86,8 @@ Inductive tm  : Type :=
   | vobj : dms -> vl
  with vls  : Type :=
 
-  | vnil :  vls
-  | vcons : vl -> vls -> vls
+  | vlnil :  vls
+  | vlcons : vl -> vls -> vls
  with dms  : Type :=
 
   | dnil :  dms
@@ -130,11 +130,11 @@ Definition congr_vabs {s0 t0: tm} (E0: s0 = t0) : vabs s0 = vabs t0 :=
 Definition congr_vobj {s0 t0: dms} (E0: s0 = t0) : vobj s0 = vobj t0 :=
   ap vobj E0.
 
-Definition congr_vnil  : vnil  = vnil  :=
+Definition congr_vlnil  : vlnil  = vlnil  :=
   eq_refl.
 
-Definition congr_vcons {s0: vl} {s1: vls} {t0: vl} {t1: vls} (E0: s0 = t0) (E1: s1 = t1) : vcons s0 s1 = vcons t0 t1 :=
-  apc (ap vcons E0) (E1).
+Definition congr_vlcons {s0: vl} {s1: vls} {t0: vl} {t1: vls} (E0: s0 = t0) (E1: s1 = t1) : vlcons s0 s1 = vlcons t0 t1 :=
+  apc (ap vlcons E0) (E1).
 
 Definition congr_dnil  : dnil  = dnil  :=
   eq_refl.
@@ -317,8 +317,8 @@ Fixpoint ren_tm (xi: ren_of subst_of_tm) (s: tm) : tm :=
  with ren_vls (xi: ren_of subst_of_vls) (s: vls) : vls :=
   match s with
 
-  | vnil  => vnil
-  | vcons s0 s1 => vcons ((ren_vl (castren_vls_vl xi) s0)) ((ren_vls xi s1))
+  | vlnil  => vlnil
+  | vlcons s0 s1 => vlcons ((ren_vl (castren_vls_vl xi) s0)) ((ren_vls xi s1))
   end
  with ren_dms (xi: ren_of subst_of_dms) (s: dms) : dms :=
   match s with
@@ -577,8 +577,8 @@ Fixpoint subst_tm (sigma: subst_of subst_of_tm) (s: tm) : tm :=
  with subst_vls (sigma: subst_of subst_of_vls) (s: vls) : vls :=
   match s with
 
-  | vnil  => vnil
-  | vcons s0 s1 => vcons ((subst_vl (cast_vls_vl sigma) s0)) ((subst_vls sigma s1))
+  | vlnil  => vlnil
+  | vlcons s0 s1 => vlcons ((subst_vl (cast_vls_vl sigma) s0)) ((subst_vls sigma s1))
   end
  with subst_dms (sigma: subst_of subst_of_dms) (s: dms) : dms :=
   match s with
@@ -768,8 +768,8 @@ Fixpoint id_tm (sigma_vl: index -> vl) (E_vl: sigma_vl == var_vl) (s: tm) : subs
  with id_vls (sigma_vl: index -> vl) (E_vl: sigma_vl == var_vl) (s: vls) : subst_vls sigma_vl s = s :=
   match s with
 
-  | vnil  => eq_refl
-  | vcons s0 s1 => apc (ap vcons (id_vl _ E_vl s0)) ((id_vls _ E_vl s1))
+  | vlnil  => eq_refl
+  | vlcons s0 s1 => apc (ap vlcons (id_vl _ E_vl s0)) ((id_vls _ E_vl s1))
   end
  with id_dms (sigma_vl: index -> vl) (E_vl: sigma_vl == var_vl) (s: dms) : subst_dms sigma_vl s = s :=
   match s with
@@ -865,9 +865,9 @@ Fixpoint compTrans_ren_ren_tm (xi_vl zeta_vl theta_vl: ren) (E_vl: funcomp (xi_v
         : ren_vls zeta_vl (ren_vls xi_vl s) = ren_vls theta_vl s :=
   match s with
 
-  | vnil  => eq_refl
-  | vcons s0 s1 =>
-      apc (ap vcons (compTrans_ren_ren_vl xi_vl zeta_vl theta_vl E_vl s0)) ((compTrans_ren_ren_vls xi_vl zeta_vl theta_vl E_vl s1))
+  | vlnil  => eq_refl
+  | vlcons s0 s1 =>
+      apc (ap vlcons (compTrans_ren_ren_vl xi_vl zeta_vl theta_vl E_vl s0)) ((compTrans_ren_ren_vls xi_vl zeta_vl theta_vl E_vl s1))
   end
  with compTrans_ren_ren_dms (xi_vl zeta_vl theta_vl: ren) (E_vl: funcomp (xi_vl) (zeta_vl) == theta_vl) (s: dms)
         : ren_dms zeta_vl (ren_dms xi_vl s) = ren_dms theta_vl s :=
@@ -1020,8 +1020,8 @@ Fixpoint compTrans_ren_subst_tm (xi_vl: ren) (tau_vl theta_vl: index -> vl) (E_v
         : subst_vls tau_vl (ren_vls xi_vl s) = subst_vls theta_vl s :=
   match s with
 
-  | vnil  => eq_refl
-  | vcons s0 s1 => apc (ap vcons (compTrans_ren_subst_vl xi_vl _ _ E_vl s0)) ((compTrans_ren_subst_vls xi_vl _ _ E_vl s1))
+  | vlnil  => eq_refl
+  | vlcons s0 s1 => apc (ap vlcons (compTrans_ren_subst_vl xi_vl _ _ E_vl s0)) ((compTrans_ren_subst_vls xi_vl _ _ E_vl s1))
   end
  with compTrans_ren_subst_dms (xi_vl: ren) (tau_vl theta_vl: index -> vl) (E_vl: (fun x =>  tau_vl (xi_vl x)) == theta_vl) (s: dms)
         : subst_dms tau_vl (ren_dms xi_vl s) = subst_dms theta_vl s :=
@@ -1219,8 +1219,8 @@ Fixpoint compTrans_subst_ren_tm (sigma_vl: index -> vl)
         (s: vls) : ren_vls zeta_vl (subst_vls sigma_vl s) = subst_vls theta_vl s :=
   match s with
 
-  | vnil  => eq_refl
-  | vcons s0 s1 => apc (ap vcons (compTrans_subst_ren_vl _ zeta_vl _ E_vl s0)) ((compTrans_subst_ren_vls _ zeta_vl _ E_vl s1))
+  | vlnil  => eq_refl
+  | vlcons s0 s1 => apc (ap vlcons (compTrans_subst_ren_vl _ zeta_vl _ E_vl s0)) ((compTrans_subst_ren_vls _ zeta_vl _ E_vl s1))
   end
  with compTrans_subst_ren_dms (sigma_vl: index -> vl)
         (zeta_vl: ren)
@@ -1402,8 +1402,8 @@ Fixpoint compTrans_subst_subst_tm (sigma_vl tau_vl theta_vl: index -> vl)
         (s: vls) : subst_vls tau_vl (subst_vls sigma_vl s) = subst_vls theta_vl s :=
   match s with
 
-  | vnil  => eq_refl
-  | vcons s0 s1 => apc (ap vcons (compTrans_subst_subst_vl _ _ _ E_vl s0)) ((compTrans_subst_subst_vls _ _ _ E_vl s1))
+  | vlnil  => eq_refl
+  | vlcons s0 s1 => apc (ap vlcons (compTrans_subst_subst_vl _ _ _ E_vl s0)) ((compTrans_subst_subst_vls _ _ _ E_vl s1))
   end
  with compTrans_subst_subst_dms (sigma_vl tau_vl theta_vl: index -> vl)
         (E_vl: (fun x =>  subst_vl tau_vl (sigma_vl x)) == theta_vl)
@@ -1537,8 +1537,8 @@ Fixpoint subst_eq_tm {sigma tau: subst_of subst_of_tm} (E: eq_of_subst sigma tau
  with subst_eq_vls {sigma tau: subst_of subst_of_vls} (E: eq_of_subst sigma tau) (s: vls) : subst_vls sigma s = subst_vls tau s :=
   match s with
 
-  | vnil  => congr_vnil
-  | vcons s0 s1 => congr_vcons (subst_eq_vl (eq_cast_vls_vl E) s0) (subst_eq_vls E s1)
+  | vlnil  => congr_vlnil
+  | vlcons s0 s1 => congr_vlcons (subst_eq_vl (eq_cast_vls_vl E) s0) (subst_eq_vls E s1)
   end
  with subst_eq_dms {sigma tau: subst_of subst_of_dms} (E: eq_of_subst sigma tau) (s: dms) : subst_dms sigma s = subst_dms tau s :=
   match s with
@@ -1895,16 +1895,16 @@ Proof. reflexivity. Qed.
 
 
 
-Instance asimplInst_vnil (sigma: subst_of subst_of_vls) : AsimplInst_vls (vnil ) sigma (vnil ).
+Instance asimplInst_vlnil (sigma: subst_of subst_of_vls) : AsimplInst_vls (vlnil ) sigma (vlnil ).
 Admitted.
-Instance asimplInst_vcons (s0 s1 s0' s1': _)
+Instance asimplInst_vlcons (s0 s1 s0' s1': _)
 (sigma: subst_of subst_of_vls)
 (theta_0: subst_of subst_of_vl)
 (theta_1: subst_of subst_of_vls)
 (E_0': AsimplSubst_vl (((cast_vls_vl sigma))) theta_0)
 (E_1': AsimplSubst_vls (sigma) theta_1)
 (E_0: AsimplInst_vl s0 theta_0 s0')
-(E_1: AsimplInst_vls s1 theta_1 s1') : AsimplInst_vls (vcons s0 s1) sigma (vcons s0' s1').
+(E_1: AsimplInst_vls s1 theta_1 s1') : AsimplInst_vls (vlcons s0 s1) sigma (vlcons s0' s1').
 Admitted.
 
 Instance AsimplId_vls (s: vls) : AsimplInst_vls s var_vl s.

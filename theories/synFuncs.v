@@ -19,8 +19,8 @@ Fixpoint dms_to_list (ds: dms) : list dm :=
 
 Fixpoint vls_to_list (vs: vls) : list vl :=
   match vs with
-  | vnil => []
-  | vcons v vs => v :: vls_to_list vs
+  | vlnil => []
+  | vlcons v vs => v :: vls_to_list vs
   end.
 
 (** Reverse lookup. *)
@@ -62,8 +62,8 @@ Definition to_subst (ρ: list vl) i: vl :=
 
 Fixpoint idsσ (ρ: list vl): vls :=
   match ρ with
-  | [] => vnil
-  | _ :: ρ1 => vcons (var_vl 0) ((idsσ ρ1).[(+1) >>> var_vl])
+  | [] => vlnil
+  | _ :: ρ1 => vlcons (var_vl 0) ((idsσ ρ1).[(+1) >>> var_vl])
   end.
 
 End SynFuncs.
