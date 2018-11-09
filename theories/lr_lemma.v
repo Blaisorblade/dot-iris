@@ -78,6 +78,7 @@ Section Sec.
     (* Hopefully from a renaming/weakening lemma. *)
     iAssert (interp T2 ρ v ≡ interp T2.[up_ty_vl var_vl] (v :: ρ) v)%I as "#Hren".
     { admit. }
+    simpl.
     iRewrite "Hren".
     iApply "Hstp"; by try iSplit.
   Admitted.
@@ -95,6 +96,7 @@ Section Sec.
     (* Hopefully from a renaming/weakening lemma. *)
     iAssert (interp T1 ρ v ≡ interp T1.[up_ty_vl var_vl] (v :: ρ) v)%I as "#Hren".
     { admit. }
+    simpl.
     iRewrite "Hren" in "HT1".
     iApply "Hstp"; by try iSplit.
   Admitted.

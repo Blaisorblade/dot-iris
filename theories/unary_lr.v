@@ -34,15 +34,32 @@ Section Sec2.
   Canonical Structure tmC := leibnizC tm.
   Canonical Structure dmsC := leibnizC dms.
   Canonical Structure listVlC := leibnizC (list vl).
+  Canonical Structure listVlVlC := leibnizC (list vl * vl).
 
   (* Semantic types *)
   Notation D := (vlC -n> iProp Σ).
-  Notation envD := (listVlC -n> D).
+  Notation envD := (listVlVlC -n> iProp Σ).
+
+  Program Definition curryD {A B cC}: (leibnizC (A * B) -n> cC) -n> leibnizC A -n> (leibnizC B -n> cC) := λne φ ρ v, φ (ρ, v).
+  Solve Obligations with solve_proper.
+
+  Program Definition uncurryD {A B cC}: (leibnizC A -n> leibnizC B -n> cC) -n> (leibnizC (A * B) -n> cC) := λne φ ρv, let '(ρ, v) := ρv in φ ρ v.
+  Next Obligation. intros; by move => [? ?] [? ?] [-> ->] /=. Qed.
+  Next Obligation. intros; move => ? ? ? [? ?] /=. by solve_proper. Qed.
+  Lemma curryDuncurryD {A B cC} (f: leibnizC A -n> leibnizC B -n> cC): curryD (uncurryD f) ≡ f.
+  Proof. by intros ? ?. Qed.
+  Lemma uncurryDcurryD {A B cC} (f: leibnizC (A * B) -n> cC): uncurryD (curryD f) ≡ f.
+  Proof. by intros [? ?]. Qed.
+
+  Definition curryD1: envD -n> listVlC -n> D := curryD.
+  Definition uncurryD1: (listVlC -n> D) -n> envD := uncurryD.
+
   Implicit Types τi : D.
 
+  Canonical Structure listVlDmsC := leibnizC (list vl * dms).
   (* Definition semantic types *)
   Notation MD := (dmsC -n> iProp Σ).
-  Notation envMD := (listVlC -n> MD).
+  Notation envMD := (listVlDmsC -n> iProp Σ).
 
   Notation inclusion P Q := (□∀ v, P v -∗ Q v)%I.
 
@@ -56,11 +73,11 @@ Section Sec2.
   Global Arguments idms_proj_val /.
   Notation "ds ;; l ↘ w" := (idms_proj_val ds l w) (at level 20).
 
-  Definition defs_interp_vmem l (interp : envD): envMD := λne ρ, λne ds,
-    (∃ vmem, ds ;; l ↘ vmem ∧ ▷ interp ρ vmem)%I.
+  Definition defs_interp_vmem l (interp : envD): envMD := uncurryD (λne ρ, λne ds,
+    (∃ vmem, ds ;; l ↘ vmem ∧ ▷ curryD interp ρ vmem))%I.
 
-  Definition interp_vmem l (interp : envD) : envD := λne ρ, λne v,
-    (∃ ds, ⌜ v ↗ ds ⌝ ∧ defs_interp_vmem l interp ρ ds)%I.
+  Definition interp_vmem l (interp : envD) : envD := uncurryD (λne ρ, λne v,
+    (∃ ds, ⌜ v ↗ ds ⌝ ∧ curryD (defs_interp_vmem l interp) ρ ds))%I.
 
   Definition to_subst (ρ: list vl) i: vl :=
     match ρ !! i with
@@ -68,30 +85,30 @@ Section Sec2.
       | None => var_vl i
     end.
 
-  Definition defs_interp_tmem l (interp1 interp2: envD): envMD := λne ρ, λne ds,
-    (∃ φ σ, (ds;l ↘ σ , φ) ∗ ▷ inclusion (interp1 ρ) φ ∗ ▷ inclusion φ (interp2 ρ) ∗ inclusion (interp1 ρ) (interp2 ρ) )%I.
+  Definition defs_interp_tmem l (interp1 interp2: envD): envMD := uncurryD (λne ρ, λne ds,
+    (∃ φ σ, (ds;l ↘ σ , φ) ∗ ▷ inclusion (curryD interp1 ρ) φ ∗ ▷ inclusion φ (curryD interp2 ρ) ∗ inclusion (curryD interp1 ρ) (curryD interp2 ρ) ))%I.
     (* (∃ φ σ, (ds;l ↘ σ , φ) ∗ (inclusion (interp1 ρ) (φ (σ.[to_subst ρ]))) ∗ inclusion φ (interp2 ρ) )%I. *)
 
-  Definition interp_tmem l (interp1 interp2 : envD) : envD := λne ρ, λne v,
-    (∃ ds, ⌜ v ↗ ds ⌝ ∧ defs_interp_tmem l interp1 interp2 ρ ds)%I.
+  Definition interp_tmem l (interp1 interp2 : envD) : envD := uncurryD (λne ρ, λne v,
+    (∃ ds, ⌜ v ↗ ds ⌝ ∧ curryD (defs_interp_tmem l interp1 interp2) ρ ds))%I.
 
-  Definition interp_and (interp1 interp2 : envD): envD := λne ρ, λne v,
-    (interp1 ρ v ∧ interp2 ρ v) % I.
+  Definition interp_and (interp1 interp2 : envD): envD := λne ρv,
+    (interp1 ρv ∧ interp2 ρv) % I.
 
-  Definition interp_or (interp1 interp2 : envD) : envD := λne ρ, λne v,
-    (interp1 ρ v ∨ interp2 ρ v) % I.
+  Definition interp_or (interp1 interp2 : envD) : envD := λne ρv,
+    (interp1 ρv ∨ interp2 ρv) % I.
 
-  Definition interp_later (interp : envD) : envD := λne ρ, λne v,
-         (▷ (interp ρ v)) % I.
+  Definition interp_later (interp : envD) : envD := λne ρv,
+         (▷ (interp ρv)) % I.
 
   Definition expr_of_pred (φ: D) (e: tm) : iProp Σ :=
     (WP e {{ v, φ v }} % I).
 
-  Definition interp_forall (interp1 interp2 : envD) : envD := λne ρ, λne v,
-    (□ ▷ ∀ v', interp1 ρ v' -∗ expr_of_pred (interp2 (v :: ρ)) (tapp (tv v) (tv v'))) % I.
+  Definition interp_forall (interp1 interp2 : envD) : envD := uncurryD (λne ρ, λne v,
+    (□ ▷ ∀ v', curryD interp1 ρ v' -∗ expr_of_pred (curryD interp2 (v :: ρ)) (tapp (tv v) (tv v')))) % I.
 
-  Program Definition interp_mu (interp : envD) : envD := λne ρ, λne v,
-    (interp (v::ρ) v) % I.
+  Program Definition interp_mu (interp : envD) : envD := uncurryD (λne ρ, λne v,
+    (curryD interp (v::ρ) v)) % I.
 
   Canonical Structure optionVlC := leibnizC (option vl).
   Definition close_vl (va: vl): list vl -> option vl :=
@@ -130,49 +147,64 @@ Section Sec2.
     end.
 
   Program Definition interp_selA (p: path) (l: label) (L U : envD): envD :=
-    (λne ρ, λne v,
+    uncurryD (λne ρ, λne v,
      let (optVa, ls) := eval_split_path p ρ in
-     □ interp_sel_rec ls (interp_selA_final l (L ρ) (U ρ)) optVa v
+     □ interp_sel_rec ls (interp_selA_final l (curryD L ρ) (curryD U ρ)) optVa v
     )%I.
 
-  Definition interp_true : envD := λne ρ, λne v, True % I.
-  Definition interp_false : envD := λne ρ, λne v, False % I.
+  Definition interp_true : envD := λne ρv, True % I.
+  Definition interp_false : envD := λne ρv, False % I.
 
   Definition interp_sel (p: path) (l: label) : envD :=
     interp_selA p l interp_false interp_true.
 
-  Fixpoint interp (T: ty) : envD :=
+  (** Uncurried interpretation. *)
+  Fixpoint uinterp (T: ty) : envD :=
     match T with
-    | TTMem l L U => interp_tmem l (interp L) (interp U)
-    | TVMem l T' => interp_vmem l (interp T')
-    | TAnd T1 T2 => interp_and (interp T1) (interp T2)
-    | TOr T1 T2 => interp_or (interp T1) (interp T2)
-    | TLater T => interp_later (interp T)
+    | TTMem l L U => interp_tmem l (uinterp L) (uinterp U)
+    | TVMem l T' => interp_vmem l (uinterp T')
+    | TAnd T1 T2 => interp_and (uinterp T1) (uinterp T2)
+    | TOr T1 T2 => interp_or (uinterp T1) (uinterp T2)
+    | TLater T => interp_later (uinterp T)
     | TTop => interp_true
     | TBot => interp_false
-    | TAll T1 T2 => interp_forall (interp T1) (interp T2)
-    | TMu T => interp_mu (interp T)
+    | TAll T1 T2 => interp_forall (uinterp T1) (uinterp T2)
+    | TMu T => interp_mu (uinterp T)
     | TSel p l =>
       interp_sel p l
     | TSelA p l L U =>
-      interp_selA p l (interp L) (interp U)
+      interp_selA p l (uinterp L) (uinterp U)
   end % I.
 
-  Definition defs_interp_and (interp1 interp2 : envMD): envMD := λne ρ, λne ds,
-    (interp1 ρ ds ∧ interp2 ρ ds) % I.
-  Definition defs_interp_false : envMD := λne ρ, λne ds, False % I.
-  (* Taken from code for OOPSLA16 DOT paper. *)
-  Definition defs_interp_top : envMD := λne ρ, λne ds, True % I.
+  (* It's important that this is a plain function: in proofs we want v and rho
+     to be a plain vl, not a vlC, so that (ρ, v) is a plain pair and *then* it
+     can be wrapped in a listVlVlC. Otherwise, I ended up with (list vl * vlC)
+     in a rewrite lemma and (list vl * vl) in what I needed to rewrite, and
+     rewrite was not happy.
+     This requires eta-expansion to convert A -n> B to A -> B. *)
+  Definition interp (T: ty): list vl -> vl -> iProp Σ :=
+    λ ρ, curryD (uinterp T) ρ.
+  (* Restore reduction behavior that interp had as a fixpoint. *)
+  Global Arguments interp T /.
 
-  Fixpoint defs_interp (T: ty) : envMD :=
+  Definition defs_interp_and (interp1 interp2 : envMD): envMD := λne ρds,
+    (interp1 ρds ∧ interp2 ρds) % I.
+  Definition defs_interp_false : envMD := λne ρds, False % I.
+  (* Taken from code for OOPSLA16 DOT paper. *)
+  Definition defs_interp_top : envMD := λne ρds, True % I.
+
+  Fixpoint defs_uinterp (T: ty) : envMD :=
     match T with
-    | TTMem l L U => defs_interp_tmem l (interp L) (interp U)
-    | TVMem l T' => defs_interp_vmem l (interp T')
-    | TAnd T1 T2 => defs_interp_and (defs_interp T1) (defs_interp T2)
+    | TTMem l L U => defs_interp_tmem l (uinterp L) (uinterp U)
+    | TVMem l T' => defs_interp_vmem l (uinterp T')
+    | TAnd T1 T2 => defs_interp_and (defs_uinterp T1) (defs_uinterp T2)
     | TTop => defs_interp_top
     | _ => defs_interp_false
     end % I.
 
+  Definition defs_interp (T: ty): list vl -> dms -> iProp Σ :=
+    λ ρ, curryD (defs_uinterp T) ρ.
+  Global Arguments defs_interp T /.
 
   Notation "⟦ T ⟧" := (interp T).
 
