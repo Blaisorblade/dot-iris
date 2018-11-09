@@ -37,12 +37,12 @@ Section Sec2.
 
   (* Semantic types *)
   Notation D := (vlC -n> iProp Σ).
-  Notation envD := (list vl -> D).
+  Notation envD := (listVlC -n> D).
   Implicit Types τi : D.
 
   (* Definition semantic types *)
   Notation MD := (dmsC -n> iProp Σ).
-  Notation envMD := (list vl -> MD).
+  Notation envMD := (listVlC -n> MD).
 
   Notation inclusion P Q := (□∀ v, P v -∗ Q v)%I.
 
@@ -56,10 +56,10 @@ Section Sec2.
   Global Arguments idms_proj_val /.
   Notation "ds ;; l ↘ w" := (idms_proj_val ds l w) (at level 20).
 
-  Definition defs_interp_vmem l (interp : envD): envMD := λ ρ, λne ds,
+  Definition defs_interp_vmem l (interp : envD): envMD := λne ρ, λne ds,
     (∃ vmem, ds ;; l ↘ vmem ∧ ▷ interp ρ vmem)%I.
 
-  Definition interp_vmem l (interp : envD) : envD := λ ρ, λne v,
+  Definition interp_vmem l (interp : envD) : envD := λne ρ, λne v,
     (∃ ds, ⌜ v ↗ ds ⌝ ∧ defs_interp_vmem l interp ρ ds)%I.
 
   Definition to_subst (ρ: list vl) i: vl :=
@@ -68,31 +68,32 @@ Section Sec2.
       | None => var_vl i
     end.
 
-  Definition defs_interp_tmem l (interp1 interp2: envD): envMD := λ ρ, λne ds,
+  Definition defs_interp_tmem l (interp1 interp2: envD): envMD := λne ρ, λne ds,
     (∃ φ σ, (ds;l ↘ σ , φ) ∗ ▷ inclusion (interp1 ρ) φ ∗ ▷ inclusion φ (interp2 ρ) ∗ inclusion (interp1 ρ) (interp2 ρ) )%I.
     (* (∃ φ σ, (ds;l ↘ σ , φ) ∗ (inclusion (interp1 ρ) (φ (σ.[to_subst ρ]))) ∗ inclusion φ (interp2 ρ) )%I. *)
 
-  Definition interp_tmem l (interp1 interp2 : envD) : envD := λ ρ, λne v,
+  Definition interp_tmem l (interp1 interp2 : envD) : envD := λne ρ, λne v,
     (∃ ds, ⌜ v ↗ ds ⌝ ∧ defs_interp_tmem l interp1 interp2 ρ ds)%I.
 
-  Definition interp_and (interp1 interp2 : envD): envD := λ ρ, λne v,
+  Definition interp_and (interp1 interp2 : envD): envD := λne ρ, λne v,
     (interp1 ρ v ∧ interp2 ρ v) % I.
 
-  Definition interp_or (interp1 interp2 : envD) : envD := λ ρ, λne v,
+  Definition interp_or (interp1 interp2 : envD) : envD := λne ρ, λne v,
     (interp1 ρ v ∨ interp2 ρ v) % I.
 
-  Definition interp_later (interp : envD) : envD := λ ρ, λne v,
+  Definition interp_later (interp : envD) : envD := λne ρ, λne v,
          (▷ (interp ρ v)) % I.
 
   Definition expr_of_pred (φ: D) (e: tm) : iProp Σ :=
     (WP e {{ v, φ v }} % I).
 
-  Definition interp_forall (interp1 interp2 : envD) : envD := λ ρ, λne v,
+  Definition interp_forall (interp1 interp2 : envD) : envD := λne ρ, λne v,
     (□ ▷ ∀ v', interp1 ρ v' -∗ expr_of_pred (interp2 (v :: ρ)) (tapp (tv v) (tv v'))) % I.
 
-  Definition interp_mu (interp : envD) : envD := λ ρ, λne v,
+  Program Definition interp_mu (interp : envD) : envD := λne ρ, λne v,
     (interp (v::ρ) v) % I.
 
+  Canonical Structure optionVlC := leibnizC (option vl).
   Definition close_vl (va: vl): list vl -> option vl :=
     λ ρ,
     match va with
@@ -128,14 +129,14 @@ Section Sec2.
     | [] => interp_k optVa v
     end.
 
-  Definition interp_selA (p: path) (l: label) (L U : envD): envD :=
-    (λ ρ, λne v,
+  Program Definition interp_selA (p: path) (l: label) (L U : envD): envD :=
+    (λne ρ, λne v,
      let (optVa, ls) := eval_split_path p ρ in
      □ interp_sel_rec ls (interp_selA_final l (L ρ) (U ρ)) optVa v
     )%I.
 
-  Definition interp_true : envD := λ ρ, λne v, True % I.
-  Definition interp_false : envD := λ ρ, λne v, False % I.
+  Definition interp_true : envD := λne ρ, λne v, True % I.
+  Definition interp_false : envD := λne ρ, λne v, False % I.
 
   Definition interp_sel (p: path) (l: label) : envD :=
     interp_selA p l interp_false interp_true.
@@ -157,11 +158,11 @@ Section Sec2.
       interp_selA p l (interp L) (interp U)
   end % I.
 
-  Definition defs_interp_and (interp1 interp2 : envMD): envMD := λ ρ, λne ds,
+  Definition defs_interp_and (interp1 interp2 : envMD): envMD := λne ρ, λne ds,
     (interp1 ρ ds ∧ interp2 ρ ds) % I.
-  Definition defs_interp_false : envMD := λ ρ, λne ds, False % I.
+  Definition defs_interp_false : envMD := λne ρ, λne ds, False % I.
   (* Taken from code for OOPSLA16 DOT paper. *)
-  Definition defs_interp_top : envMD := λ ρ, λne ds, True % I.
+  Definition defs_interp_top : envMD := λne ρ, λne ds, True % I.
 
   Fixpoint defs_interp (T: ty) : envMD :=
     match T with
