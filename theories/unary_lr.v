@@ -190,7 +190,6 @@ Section Sec2.
   Definition defs_interp_and (interp1 interp2 : envMD): envMD := λne ρds,
     (interp1 ρds ∧ interp2 ρds) % I.
   Definition defs_interp_false : envMD := λne ρds, False % I.
-  (* Taken from code for OOPSLA16 DOT paper. *)
   Definition defs_interp_top : envMD := λne ρds, True % I.
 
   Fixpoint defs_uinterp (T: ty) : envMD :=
