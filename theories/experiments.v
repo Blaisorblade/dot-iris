@@ -79,15 +79,15 @@ Section Sec.
   Notation savedEnvDG := (savedAnythingG Σ (listVlC -c> vlC -c> ▶ ∙)%CF).
   Notation savedEnvDΣ := (savedAnythingΣ (listVlC -c> vlC -c> ▶ ∙)).
 
-  (* Notation savedEnvDG := (savedAnythingG Σ (listVlC -c> vlC -c> ▶ ∙)). *)
-  (* Notation savedEnvDΣ := (savedAnythingΣ (listVlC -c> vlC -c> ▶ ∙)). *)
-  (* Print saved_anything_own. *)
-  (* Print savedAnythingG. *)
-  (* Print cFunctor. *)
-  Print savedPredG.
-  Print saved_pred_own.
+  (* (* Notation savedEnvDG := (savedAnythingG Σ (listVlC -c> vlC -c> ▶ ∙)). *) *)
+  (* (* Notation savedEnvDΣ := (savedAnythingΣ (listVlC -c> vlC -c> ▶ ∙)). *) *)
+  (* (* Print saved_anything_own. *) *)
+  (* (* Print savedAnythingG. *) *)
+  (* (* Print cFunctor. *) *)
+  (* Print savedPredG. *)
+  (* Print saved_pred_own. *)
 
-  Print saved_anything_own.
+  (* Print saved_anything_own. *)
   Context `{savedEnvDG}.
   Program Definition saved_envDG_own (γ : gname) (Φ : listVlC -n> vlC -n> iProp Σ): iProp Σ :=
     saved_anything_own (F := listVlC -c> vlC -c> ▶ ∙) γ (λ ρ, λne v, Next (Φ ρ v)).
@@ -125,12 +125,12 @@ Section Sec.
     unfold saved_envDG_own. iIntros "#HΦ #HΨ".
     Import uPred.
     iApply later_equivI.
-    Check @saved_anything_agree.
-    Eval hnf in (listVlC -c> vlC -c> ▶ iProp Σ)%CF.
+    (* Check @saved_anything_agree. *)
+    (* Eval hnf in (listVlC -c> vlC -c> ▶ iProp Σ)%CF. *)
     iDestruct (saved_anything_agree (F := listVlC -c> vlC -c> ▶ ∙) with "HΦ HΨ") as "Heq".
     simpl.
 
-    Check @ofe_fun_equivI.
+    (* Check @ofe_fun_equivI. *)
     iDestruct (@ofe_fun_equivI _ (listVlC) (λ _, vlC -n> laterC (iProp Σ)) (λ ρ, λne v, Next (Φ ρ v)) (λ ρ, λne v, Next (Ψ ρ v))) as "[Heq1 _]".
     Fail iSpecialize ("Heq1" with "Heq").
     Abort.
