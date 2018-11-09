@@ -45,10 +45,10 @@ Section Sec2.
 
   Notation inclusion P Q := (□∀ v, P v -∗ Q v)%I.
 
-  Definition idms_proj_semtype ds l φ : iProp Σ :=
-    (∃ γ, ⌜ index_dms l ds = Some(dtysem γ) ⌝ ∗ γ ⤇ φ)%I.
+  Definition idms_proj_semtype ds l σ' φ : iProp Σ :=
+    (∃ γ, ⌜ index_dms l ds = Some(dtysem σ' γ) ⌝ ∗ γ ⤇ φ)%I.
   Global Arguments idms_proj_semtype /.
-  Notation "ds ; l ↘ φ" := (idms_proj_semtype ds l φ) (at level 20).
+  Notation "ds ; l ↘ σ , φ" := (idms_proj_semtype ds l σ φ) (at level 20).
 
   Definition idms_proj_val ds l w : iProp Σ :=
     (⌜ dms_proj_val ds l w ⌝)%I.
@@ -61,10 +61,15 @@ Section Sec2.
   Definition interp_vmem l (interp : envD) : envD := λ ρ, λne v,
     (∃ ds, ⌜ v ↗ ds ⌝ ∧ defs_interp_vmem l interp ρ ds)%I.
 
+  Definition to_subst (ρ: list vl) i: vl :=
+    match ρ !! i with
+      | Some v => v
+      | None => var_vl i
+    end.
   (* XXX on paper we need to check inclusion later, I expect we'll need this in
      one of the lemmas. *)
   Definition defs_interp_tmem l (interp1 interp2: envD): envMD := λ ρ, λne ds,
-    (∃ φ, (ds;l ↘ φ) ∗ (inclusion (interp1 ρ) φ) ∗ inclusion φ (interp2 ρ) )%I.
+    (∃ φ σ, (ds;l ↘ σ , φ) ∗ (inclusion (interp1 ρ) φ) ∗ inclusion φ (interp2 ρ) )%I.
 
   Definition interp_tmem l (interp1 interp2 : envD) : envD := λ ρ, λne v,
     (∃ ds, ⌜ v ↗ ds ⌝ ∧ defs_interp_tmem l interp1 interp2 ρ ds)%I.
@@ -112,7 +117,7 @@ Section Sec2.
 
   Program Definition interp_selA_final (l: label) (L U: D): option vl -> D :=
     λ optVa, λne v,
-    (∃ va ϕ ds, ⌜ optVa = Some va ⌝ ∧ ⌜ va ↗ ds ⌝ ∧ ds;l ↘ ϕ ∧ U v ∧ (L v ∨ ▷ ϕ v))%I.
+    (∃ va σ ϕ ds, ⌜ optVa = Some va ⌝ ∧ ⌜ va ↗ ds ⌝ ∧ ds;l ↘ σ , ϕ ∧ U v ∧ (L v ∨ ▷ ϕ v))%I.
 
   Fixpoint interp_sel_rec (ls: list label) (interp_k: option vl -> D): option vl -> D :=
     λ optVa, λne v,

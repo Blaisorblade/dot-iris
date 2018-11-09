@@ -32,15 +32,17 @@ Section Sec.
       | dvl w =>
         _
         (* dvl w (* XXX *) *)
-      | dtysem γ =>
+      | dtysem γ σ =>
         _
         (* dtysem γ *)
     end.
   Next Obligation.
     iIntros "** !>".
     iDestruct (alloc_sp T []) as ">Hγ".
-    iDestruct "Hγ" as(γ) "Hsp".
-    by iExists (dtysem γ).
+    iDestruct "Hγ" as (γ) "Hsp".
+    by iExists (dtysem _ γ).
+    Grab Existential Variables.
+    constructor.
   Defined.
   Next Obligation.
     iIntros "** !>".
@@ -55,14 +57,14 @@ Section Sec.
   (*   match w with *)
   (*     |  *)
 
-  Lemma alloc_dtp_tmem_i T ρ:
+  Lemma alloc_dtp_tmem_i T ρ σ:
     ⟦Γ⟧* ρ -∗
-    (|==> ∃ γ, defs_interp (TTMem 0 T T) ρ [@ dtysem γ])%I.
+    (|==> ∃ γ, defs_interp (TTMem 0 T T) ρ [@ dtysem σ γ])%I.
   Proof.
     iIntros "#Hg /=".
     iDestruct (alloc_sp T ρ) as "HupdSp".
     iMod "HupdSp" as (γ) "#Hsp".
-    iModIntro; iExists γ, (⟦T⟧ρ); iSplit.
+    iModIntro; iExists γ, (⟦T⟧ρ), σ; iSplit.
     - iExists γ; by iSplit.
     - iSplit; by iIntros "!> **".
   Qed.

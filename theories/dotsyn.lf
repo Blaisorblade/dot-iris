@@ -1,5 +1,6 @@
 tm: Type
 vl: Type
+vls: Type
 dms: Type
 dm: Type
 label: Type
@@ -13,8 +14,11 @@ tapp: tm -> tm -> tm
 tproj : tm -> label -> tm
 
 dtysyn: ty -> dm
-dtysem: gname -> dm
+dtysem: vls -> gname -> dm
 dvl: vl -> dm
+
+vnil: vls
+vcons: vl -> vls -> vls
 
 dnil: dms
 dcons: dm -> dms -> dms

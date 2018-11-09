@@ -35,12 +35,12 @@ Section Sec.
       idtp Γ (TTMem 0 T T) [@ dtysem γ].
     Tho we need something about syntactic definitions as well.
   *)
-  Lemma dtp_tmem_i T γ ρ ds:
+  Lemma dtp_tmem_i T γ ρ ds σ:
     SP γ (⟦T⟧ ρ) -∗ ⟦Γ⟧* ρ -∗
-    defs_interp (TTMem (dms_length ds) T T) ρ (dcons (dtysem γ) ds).
+    defs_interp (TTMem (dms_length ds) T T) ρ (dcons (dtysem σ γ) ds).
   Proof.
     iIntros "#Hv * #Hg /=".
-    iExists (⟦T⟧ ρ); iSplit.
+    iExists (⟦T⟧ ρ), σ. iSplit.
     iExists γ; by iSplit.
     iSplit; by iIntros "!> **".
   Qed.
@@ -57,15 +57,15 @@ Section Sec.
   (* Aborted. *)
 
 
-  Lemma dtp_tmem_abs_i T L U γ ρ ds:
+  Lemma dtp_tmem_abs_i T L U γ ρ ds σ:
     SP γ (⟦T⟧ ρ) -∗ ⟦Γ⟧* ρ -∗
     (* I'd want to require these two hypotheses to hold later. *)
     Γ ⊨ T <: U -∗
     Γ ⊨ L <: T -∗
-    defs_interp (TTMem (dms_length ds) L U) ρ (dcons (dtysem γ) ds).
+    defs_interp (TTMem (dms_length ds) L U) ρ (dcons (dtysem σ γ) ds).
   Proof.
     iIntros "#Hv * #Hg #HTU #HLT /=".
-    iExists (⟦T⟧ ρ); iSplit.
+    iExists (⟦T⟧ ρ), σ; iSplit.
     iExists γ; by iSplit.
     iSplit; iIntros "!> **"; [iApply "HLT" | iApply "HTU"]; done.
   Qed.
@@ -82,9 +82,9 @@ Section Sec.
     - iDestruct "HT" as (vmem) "[% ?]".
       iExists vmem; iSplit; try done.
       by erewrite index_dms_extend.
-    - iDestruct "HT" as (φ) "[Hγ ?]".
+    - iDestruct "HT" as (φ  σ) "[Hγ ?]".
       iDestruct "Hγ" as (γ) "[% HSP]".
-      erewrite index_dms_extend; eauto.
+      erewrite index_dms_extend; eauto 6.
   Qed.
 
   Lemma dtp_tand_i T U ρ d ds:
