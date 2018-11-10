@@ -91,5 +91,146 @@ Section Sec.
       t_vl σ d1 d2 ∧ t_vls σ ds1 ds2
     | _ => False
     end%I.
+  Lemma alloc_sp T:
+    (|==> ∃ γ, SP γ (uinterp T))%I.
+  Proof. by apply saved_pred_alloc. Qed.
 
+  Lemma t_ty_persistent t1 t2 σ: Persistent (t_ty σ t1 t2)
+  with  t_path_persistent t1 t2 σ: Persistent (t_path σ t1 t2)
+  with  t_vl_persistent t1 t2 σ: Persistent (t_vl σ t1 t2)
+  with  t_tm_persistent t1 t2 σ: Persistent (t_tm σ t1 t2)
+  with  t_dm_persistent t1 t2 σ: Persistent (t_dm σ t1 t2)
+  with  t_dms_persistent t1 t2 σ: Persistent (t_dms σ t1 t2).
+  Proof.
+    all: revert t1 t2 σ; induction t1; destruct t2; simpl;
+      try apply _.
+  Qed.
+  Existing Instance t_ty_persistent.
+  Existing Instance t_path_persistent.
+  Existing Instance t_vl_persistent.
+  Existing Instance t_tm_persistent.
+  Existing Instance t_dm_persistent.
+  Existing Instance t_dms_persistent.
+
+  Lemma ex_t_dty T1 T2 σ:
+    t_ty σ T1 T2 -∗
+    (|==> ∃(d: dm), t_dm σ (dtysyn T1) d)%I.
+  Proof.
+    iMod (alloc_sp T2) as (γ) "#Hγ".
+    iIntros "#HT !> /=".
+    rewrite /t_dty_syn2sem.
+    by iExists (dtysem σ γ), (uinterp T2), T2; repeat iSplit.
+  Qed.
+
+  Fixpoint is_syn_tm (n: nat) (t: tm): Prop :=
+    match t with
+    | tv v =>
+      is_syn_vl n v
+    | tapp t1 t2 =>
+      is_syn_tm n t1 ∧ is_syn_tm n t2
+    | tproj t l =>
+      is_syn_tm n t
+    end
+  with
+  is_syn_vl (n: nat) (v1: vl): Prop :=
+    match v1 with
+    | var_vl i => i < n
+    | vabs t => is_syn_tm (S n) t
+    | vobj ds => is_syn_dms (S n) ds
+    end
+  with
+  is_syn_dms (n: nat) (ds: dms): Prop :=
+    match ds with
+    | dnil => True
+    | dcons d ds =>
+      is_syn_dm n d ∧ is_syn_dms n ds
+    end
+  with
+  is_syn_dm (n: nat) (d: dm): Prop :=
+    match d with
+    (* Only nontrivial case *)
+    | dtysyn T =>
+      is_syn_ty n T
+    | dtysem _ _ => False
+    | dvl v1 => is_syn_vl n v1
+    end
+  with
+  is_syn_path (n: nat) (p1: path): Prop :=
+    match p1 with
+    | pv v => is_syn_vl n v
+    | pself p l => is_syn_path n p
+    end
+  with
+  is_syn_ty (n: nat) (T1: ty): Prop :=
+    match T1 with
+    | TTop => True
+    | TBot => True
+    | TAnd T1 T2 =>
+      is_syn_ty n T1 ∧ is_syn_ty n T2
+    | TOr T1 T2 =>
+      is_syn_ty n T1 ∧ is_syn_ty n T2
+    | TLater T1 =>
+      is_syn_ty n T1
+    | TAll T1 T2 =>
+      is_syn_ty n T1 ∧ is_syn_ty (S n) T2
+    | TMu T =>
+      is_syn_ty (S n) T
+    | TVMem l T => is_syn_ty n T
+    | TTMem l T1 T2 => is_syn_ty n T1 ∧ is_syn_ty n T2
+    | TSel p l => is_syn_path n p
+    | TSelA p l T1 T2 => is_syn_path n p ∧ is_syn_ty n T1 ∧ is_syn_ty n T2
+    end.
+
+  Ltac iModSpec' H xt :=
+    iMod H as (xt) "#?"; try intuition eassumption.
+  Ltac iModSpec H xt := simpl; iModSpec' H xt.
+
+  Ltac pickSigmaInHp :=
+    simpl; repeat match goal with
+                  | H : context [?p _ ?t1 ] |- context [?p ?σ ?t1 _] =>
+                    let x := fresh "TEMP" in
+                    evar (x:nat);
+                    let t' := constr:(x) in
+                    let t'' := (eval unfold x in t') in
+                    specialize (H σ t'');
+                    let xt := fresh "t" in
+                    iModSpec' H xt
+                  end.
+
+  Tactic Notation "finish" uconstr(p) := iIntros "!>"; iExists p; simpl; repeat iSplit; auto.
+  Tactic Notation "recursiveTransf" uconstr(p) := pickSigmaInHp; finish p.
+  Ltac fill :=
+    lazymatch goal with
+    | |- context [(∃ t2, ?p ?σ (?c ?t11 ?t12) t2)%I] =>
+      recursiveTransf (c _ _)
+    | |- context [(∃ t2, ?p ?σ (?c ?t11) t2)%I] =>
+      recursiveTransf (c _)
+    | |- context [(∃ t2, ?p ?σ ?c t2)%I] =>
+      recursiveTransf c
+    end.
+  Ltac skeleton σ n t1 := revert σ n; induction t1; intros * Hsyn; simpl in Hsyn; try solve [contradiction|fill].
+
+  Lemma ex_t_ty σ n t1: is_syn_ty n t1 -> (|==> ∃t2, t_ty σ t1 t2)%I
+  with  ex_t_path σ n t1: is_syn_path n t1 -> (|==> ∃t2, t_path σ t1 t2)%I
+  with  ex_t_vl σ n t1: is_syn_vl n t1 -> (|==> ∃t2, t_vl σ t1 t2)%I
+  with  ex_t_tm σ n t1: is_syn_tm n t1 -> (|==> ∃t2, t_tm σ t1 t2)%I
+  with  ex_t_dm σ n t1: is_syn_dm n t1 -> (|==> ∃t2, t_dm σ t1 t2)%I
+  with  ex_t_dms σ n t1: is_syn_dms n t1 -> (|==> ∃t2, t_dms σ t1 t2)%I.
+  Proof.
+    - skeleton σ n t1.
+      + iModSpec (ex_t_path σ n p) p2. finish (TSel _ _).
+      + iModSpec (ex_t_path σ n p) p2. recursiveTransf (TSelA _ _ _ _).
+    - skeleton σ n t1.
+      + iModSpec (ex_t_vl σ n v) v2. finish (pv _).
+    - skeleton σ n t1.
+      + iModSpec (ex_t_tm (push_var σ) (S n) t) t2. finish (vabs _).
+      + iModSpec (ex_t_dms (push_var σ) (S n) d) d2. finish (vobj _).
+    - skeleton σ n t1.
+      + iModSpec (ex_t_vl σ n v) v2. finish (tv _).
+    - skeleton σ n t1.
+      + iModSpec (ex_t_ty σ n t) t2. by iApply ex_t_dty.
+      + iModSpec (ex_t_vl σ n v) v2. finish (dvl _).
+    - skeleton σ n t1.
+      + iModSpec (ex_t_dm σ n d) d2. recursiveTransf (dcons _ _).
+  Qed.
 End Sec.
