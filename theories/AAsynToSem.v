@@ -190,9 +190,7 @@ Section Sec.
                   | H : context [?p _ ?t1 ] |- context [?p ?σ ?t1 _] =>
                     let x := fresh "TEMP" in
                     evar (x:nat);
-                    let t' := constr:(x) in
-                    let t'' := (eval unfold x in t') in
-                    specialize (H σ t'');
+                    specialize (H σ x); subst x;
                     let xt := fresh "t" in
                     iModSpec' H xt
                   end.
