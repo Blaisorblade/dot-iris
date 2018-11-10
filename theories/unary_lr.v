@@ -1,40 +1,11 @@
-Require Export Dot.operational.
-Export lang.
-
-From iris Require Export base_logic.lib.saved_prop.
 From iris.proofmode Require Export tactics.
-From iris.program_logic Require Export weakestpre.
-From iris.algebra Require Export list.
-From iris.base_logic Require Export invariants.
+From Dot Require Export operational.
+Export lang.
 
 Definition logN : namespace := nroot .@ "logN".
 
-Class dotG Σ := DotG {
-  dotG_invG : invG Σ;
-  dotG_savior :> savedPredG Σ (list vl * vl)
-}.
-
-Instance dotG_irisG `{dotG Σ} : irisG dot_lang Σ := {
-  iris_invG := dotG_invG;
-  state_interp σ κs _ := True%I;
-  fork_post _ := True%I;
-}.
-
 Section Sec.
   Context `{dotG Σ}.
-
-  Definition SP γ ϕ := saved_pred_own γ ϕ.
-End Sec.
-Notation "g ⤇ p" := (SP g p) (at level 20).
-
-Section Sec2.
-  Context `{dotG Σ}.
-
-  Canonical Structure vlC := leibnizC vl.
-  Canonical Structure tmC := leibnizC tm.
-  Canonical Structure dmsC := leibnizC dms.
-  Canonical Structure listVlC := leibnizC (list vl).
-  Canonical Structure listVlVlC := leibnizC (list vl * vl).
 
   (* Semantic types *)
   Notation D := (vlC -n> iProp Σ).
@@ -259,7 +230,7 @@ Section Sec2.
   Definition idtp Γ T ds : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ -∗ defs_interp T ρ ds)%I.
   Global Arguments idtp /.
 
-End Sec2.
+End Sec.
 
 Notation "⟦ T ⟧" := (interp T).
 Notation "⟦ Γ ⟧*" := (interp_env Γ).

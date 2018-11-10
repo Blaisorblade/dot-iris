@@ -1,9 +1,9 @@
-Require Import Dot.tactics.
-Require Import Dot.unary_lr.
-Require Import Dot.synLemmas.
+From Dot Require Import tactics synFuncs operational.
+From iris.proofmode Require Import tactics.
 
 Section Sec.
   Context `{HdotG: dotG Σ}.
+  Context `{dotUInterpG Σ}.
 
   Definition subst_sigma (σ: vls) (ρ: list vl) := vls_to_list (σ.[to_subst ρ]).
   Definition push_var (σ: vls): vls := vlcons (var_vl 0) σ.[(+1) >>> var_vl].
@@ -15,7 +15,7 @@ Section Sec.
     (∃ φ T2, γ2 ⤇ φ ∧ t_ty σ T1 T2 ∧
              ∀ ρ v,
                (* We should demand that ρ is closed, and we should check that FV (T) ⊂ dom σ *)
-               uinterp T2 (subst_sigma σ ρ, v) ≡ φ (subst_sigma σ2 ρ, v))%I.
+               dot_uinterp T2 (subst_sigma σ ρ, v) ≡ φ (subst_sigma σ2 ρ, v))%I.
 
   (** Lift [t_dty_syn2sem] throughout the syntax of terms and types, checking tht otherwise the terms are equal.
    *)
@@ -92,7 +92,7 @@ Section Sec.
     | _ => False
     end%I.
   Lemma alloc_sp T:
-    (|==> ∃ γ, SP γ (uinterp T))%I.
+    (|==> ∃ γ, SP γ (dot_uinterp T))%I.
   Proof. by apply saved_pred_alloc. Qed.
 
   Lemma t_ty_persistent t1 t2 σ: Persistent (t_ty σ t1 t2)
@@ -119,7 +119,7 @@ Section Sec.
     iMod (alloc_sp T2) as (γ) "#Hγ".
     iIntros "#HT !> /=".
     rewrite /t_dty_syn2sem.
-    by iExists (dtysem σ γ), (uinterp T2), T2; repeat iSplit.
+    by iExists (dtysem σ γ), (dot_uinterp T2), T2; repeat iSplit.
   Qed.
 
   Fixpoint is_syn_tm (n: nat) (t: tm): Prop :=

@@ -1,12 +1,18 @@
 From iris.program_logic Require Export ectx_language ectxi_language.
-From iris.algebra Require Export ofe.
-From iris Require Import base_logic.lib.iprop. (* For gname. *)
+From iris.algebra Require Export list ofe.
+From iris.base_logic Require Export lib.iprop (* For gname *) lib.saved_prop invariants.
+From iris.program_logic Require Export weakestpre.
 
 Require Export Dot.synFuncs.
 Module gnameB. Definition gname := gname. End gnameB.
 
 Module SynFuncsG := SynFuncs gnameB.
 Export SynFuncsG.
+
+Class dotG Σ := DotG {
+  dotG_invG : invG Σ;
+  dotG_savior :> savedPredG Σ (list vl * vl)
+}.
 
 Module lang.
 
@@ -88,4 +94,34 @@ Canonical Structure dot_ectxi_lang := EctxiLanguage lang.dot_lang_mixin.
 Canonical Structure dot_ectx_lang := EctxLanguageOfEctxi dot_ectxi_lang.
 Canonical Structure dot_lang := LanguageOfEctx dot_ectx_lang.
 
+Instance dotG_irisG `{dotG Σ} : irisG dot_lang Σ := {
+  iris_invG := dotG_invG;
+  state_interp σ κs _ := True%I;
+  fork_post _ := True%I;
+}.
+
 End lang.
+
+(* This class is used to prevent synToSem from depending on unary_lr. That's to
+ * reduce build time. And they live here, rather than a separate file, because
+ * loading Iris is so slow.
+ *)
+
+Section Sec.
+  Context `{dotG Σ}.
+
+  Definition SP γ ϕ := saved_pred_own γ ϕ.
+
+  Canonical Structure vlC := leibnizC vl.
+  Canonical Structure tmC := leibnizC tm.
+  Canonical Structure dmsC := leibnizC dms.
+  Canonical Structure listVlC := leibnizC (list vl).
+  Canonical Structure listVlVlC := leibnizC (list vl * vl).
+End Sec.
+
+Notation envD Σ := (listVlVlC -n> iProp Σ).
+Notation "g ⤇ p" := (SP g p) (at level 20).
+
+Class dotUInterpG Σ := DotInterpG {
+  dot_uinterp: ty -> envD Σ
+}.
