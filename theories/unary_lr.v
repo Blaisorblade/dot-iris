@@ -224,10 +224,10 @@ Section Sec.
   Global Arguments vstp /.
   Global Arguments ivstp /.
 
-  Definition ivtp Γ T v : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ -∗ ⟦T⟧ ρ v)%I.
+  Definition ivtp Γ T v : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ ρ v)%I.
   Global Arguments ivtp /.
 
-  Definition idtp Γ T ds : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ -∗ defs_interp T ρ ds)%I.
+  Definition idtp Γ T ds : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → defs_interp T ρ ds)%I.
   Global Arguments idtp /.
 
 End Sec.
