@@ -21,12 +21,6 @@ Section Sec.
     ⟦TAnd T1 T2⟧ ρ v.
   Proof. iIntros; by iSplit. Qed.
 
-  Lemma vstp_andi S T1 T2:
-    vstp Γ S T1 ->
-    vstp Γ S T2 ->
-    vstp Γ S (TAnd T1 T2).
-  Proof. move => /= H1 H2 v ρ Hg HS; by iSplit; [iApply H1 | iApply H2]. Qed.
-
   Lemma ivstp_andi S T1 T2:
     Γ ⊨ S <: T1 -∗
     Γ ⊨ S <: T2 -∗
