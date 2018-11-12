@@ -102,4 +102,58 @@ Section Sec.
     by iApply dtp_add_defs.
   Qed.
 
+  (* Check that Löb induction works as expected for proving introduction of
+   * objects. That part is trivial, but the scoping in the statement is all wrong.
+   * What I should prove instead is the following, and the correct statement involves closing substitutions!
+   *
+   * Γ, x: ▷ T ⊨ ds : T
+   * ---------------------
+   * Γ ⊨ nu x. ds : μ x. T
+   *
+   * It also seems this would be easier to prove if TMu *weakened* the value;
+   * the current definition is OK for closed v, but we never make that explicit
+   * and Autosubst doesn't seem to happy to talk about closed terms.
+   *
+    Program Definition interp_mu (interp : envD) : envD := uncurryD (λne ρ, λne v,
+      (curryD interp (v::ρ) v.[up (ren var_vl)])) % I.
+   *)
+  (* XXX Seems needed for idtp_new_i as stated, but the scoping seems all wrong.
+   * Instead, we need to use closing substitutions in both sides of the lemma;
+   * Still missing: use of closing substitutions in the term. TODO: follow examples.
+   *)
+  Lemma wip_hard T ds ρ:
+    defs_uinterp T (vobj ds :: ρ, ds) ⊢
+    uinterp T (vobj ds :: ρ, vobj ds).
+  Admitted.
+  Lemma dtp_new_i T ds ρ:
+    defs_interp T (vobj ds :: ρ) ds
+    ⊢
+    interp (TMu T) ρ (vobj ds).
+  Proof. by iApply wip_hard. Qed.
+
+  Lemma idtp_new_i T ds:
+    idtp (TLater T :: Γ) T ds ⊢
+    ivtp Γ (TMu T) (vobj ds).
+  Proof.
+    iIntros "/= #Hds !> * #Hρ".
+    iLöb as "IH".
+    iApply wip_hard. by iApply "Hds"; auto.
+  Qed.
+
+    (*
+  "Hds" : ⟦ Γ ⟧* ρ ∗ ▷ (uinterp T) (vobj ds :: ρ, vobj ds) -∗ (defs_uinterp T) (vobj ds :: ρ, ds)
+  "Hρ" : ⟦ Γ ⟧* ρ
+  --------------------------------------□
+  (uinterp T) (vobj ds :: ρ, vobj ds)
+
+    *)
+
+  Lemma idtp_tmem_i T γ ds ρ1:
+    γ ⤇ (uinterp T) -∗
+    idtp Γ (TTMem (dms_length ds) T T) (dcons (dtysem (idsσ ρ1) γ) ds).
+  Proof.
+    unfold idtp.
+    iIntros "/= #Hγ !> **".
+  Abort.
+
 End Sec.
