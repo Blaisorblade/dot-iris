@@ -220,7 +220,8 @@ Section Sec.
 
   (* Definitions for semantic (definition) (sub)typing *)
   Definition vstp Γ T1 T2 := ∀ v ρ, ⟦Γ⟧* ρ -> ⟦T1⟧ ρ v -> ⟦T2⟧ ρ v.
-  Definition ivstp Γ T1 T2: iProp Σ := (□∀ v ρ, ⟦Γ⟧* ρ -∗ ⟦T1⟧ ρ v -∗ ⟦T2⟧ ρ v)%I.
+
+  Definition ivstp Γ T1 T2: iProp Σ := (□∀ v ρ, ⟦Γ⟧* ρ → ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
   Global Arguments vstp /.
   Global Arguments ivstp /.
 

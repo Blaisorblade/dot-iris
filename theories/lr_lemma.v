@@ -62,7 +62,7 @@ Section Sec.
     ivstp Γ (TMu T1) (TMu T2).
   Proof.
     iIntros "/= #Hstp !>" (v ρ) "#Hg #HT1".
-    iApply "Hstp"; by try iSplit.
+    iApply ("Hstp" $! v (v :: ρ)); by try iSplit.
   Qed.
 
   (*
@@ -80,7 +80,7 @@ Section Sec.
     { admit. }
     simpl.
     iRewrite "Hren".
-    iApply "Hstp"; by try iSplit.
+    iApply ("Hstp" $! v (v :: ρ)); by try iSplit.
   Admitted.
 
   (*
@@ -98,7 +98,7 @@ Section Sec.
     { admit. }
     simpl.
     iRewrite "Hren" in "HT1".
-    iApply "Hstp"; by try iSplit.
+    iApply ("Hstp" $! v (v :: ρ)); by try iSplit.
   Admitted.
 
   (* BEWARE NONSENSE IN NOTES:
