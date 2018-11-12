@@ -68,11 +68,11 @@ Section Sec.
   Definition interp_later (interp : envD) : envD := λne ρv,
          (▷ (interp ρv)) % I.
 
-  Definition expr_of_pred (φ: D) (e: tm) : iProp Σ :=
-    (WP e {{ v, φ v }} % I).
+  Definition interp_expr (φ: envD): listVlC -n> tmC -n> iProp Σ := λne ρ e,
+    WP e {{ curryD φ ρ }} % I.
 
   Definition interp_forall (interp1 interp2 : envD) : envD := uncurryD (λne ρ, λne v,
-    (□ ▷ ∀ v', curryD interp1 ρ v' -∗ expr_of_pred (curryD interp2 (v :: ρ)) (tapp (tv v) (tv v')))) % I.
+    (□ ▷ ∀ v', curryD interp1 ρ v' -∗ interp_expr interp2 (v :: ρ) (tapp (tv v) (tv v')))) % I.
 
   Program Definition interp_mu (interp : envD) : envD := uncurryD (λne ρ, λne v,
     (curryD interp (v::ρ) v)) % I.
@@ -234,6 +234,6 @@ End Sec.
 
 Notation "⟦ T ⟧" := (interp T).
 Notation "⟦ Γ ⟧*" := (interp_env Γ).
-Notation "⟦ T ⟧ₑ" := (expr_of_pred ⟦T⟧).
+Notation "⟦ T ⟧ₑ" := (interp_expr (uinterp T)).
 
 Notation "Γ ⊨ T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).
