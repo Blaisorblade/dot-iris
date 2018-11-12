@@ -50,7 +50,7 @@ Section Sec.
   Definition interp_vmem l (interp : envD) : envD := uncurryD (λne ρ, λne v,
     (∃ ds, ⌜ v ↗ ds ⌝ ∧ curryD (defs_interp_vmem l interp) ρ ds))%I.
 
-  Definition subst_phi (σ: vls) (ρ: list vl) (φ: list vl * vl -> iProp Σ): D := λne v, φ  (vls_to_list (σ.[to_subst ρ]), v).
+  Definition subst_phi (σ: vls) (ρ: list vl) (φ: list vl * vl -> iProp Σ): D := λne v, φ (vls_to_list (σ.[to_subst ρ]), v).
 
   Definition defs_interp_tmem l (interp1 interp2: envD): envMD := uncurryD (λne ρ, λne ds,
     (∃ φ σ, (ds;l ↘ σ , φ) ∗ ▷ inclusion (curryD interp1 ρ) (subst_phi σ ρ φ) ∗ ▷ inclusion (subst_phi σ ρ φ) (curryD interp2 ρ) ∗ inclusion (curryD interp1 ρ) (curryD interp2 ρ) ))%I.
@@ -101,13 +101,13 @@ Section Sec.
 
   Canonical Structure dmC := leibnizC dm.
 
-  Definition subst_phi0 (σ: vls) (φ: list vl * vl -> iProp Σ): D := λne v, φ  (vls_to_list σ, v).
+  Definition subst_phi0 (σ: vls) (φ: list vl * vl -> iProp Σ): D := λne v, φ (vls_to_list σ, v).
   Lemma subst_phi0_subst_phi σ φ: subst_phi0 σ φ ≡ subst_phi σ [] φ.
   Proof. move => ? /=; by asimpl. Qed.
 
   Program Definition interp_selA_final (l: label) (L U: D): list vl -> option vl -> D :=
     λ ρ optVa, λne v,
-    (∃ va σ ϕ ds, ⌜ optVa = Some va ⌝ ∧ ⌜ va ↗ ds ⌝ ∧ ds;l ↘ σ , ϕ ∧ U v ∧ (L v ∨ ▷  subst_phi σ ρ ϕ v))%I.
+    (∃ va σ ϕ ds, ⌜ optVa = Some va ⌝ ∧ ⌜ va ↗ ds ⌝ ∧ ds;l ↘ σ , ϕ ∧ U v ∧ (L v ∨ ▷ subst_phi σ ρ ϕ v))%I.
   (* I first assumed that va and hence ϕ is closed, but it's not obvious I can. In fact, if va comes from within the type, it can probably be open. *)
     (* (∃ va σ ϕ ds, ⌜ optVa = Some va ⌝ ∧ ⌜ va ↗ ds ⌝ ∧ ds;l ↘ σ , ϕ ∧ U v ∧ (L v ∨ ▷  subst_phi0 σ ϕ v))%I. *)
 
@@ -163,14 +163,14 @@ Section Sec.
   Definition defs_interp_and (interp1 interp2 : envMD): envMD := λne ρds,
     (interp1 ρds ∧ interp2 ρds) % I.
   Definition defs_interp_false : envMD := λne ρds, False % I.
-  Definition defs_interp_top : envMD := λne ρds, True % I.
+  Definition defs_interp_true : envMD := λne ρds, True % I.
 
   Fixpoint defs_uinterp (T: ty) : envMD :=
     match T with
     | TTMem l L U => defs_interp_tmem l (uinterp L) (uinterp U)
     | TVMem l T' => defs_interp_vmem l (uinterp T')
     | TAnd T1 T2 => defs_interp_and (defs_uinterp T1) (defs_uinterp T2)
-    | TTop => defs_interp_top
+    | TTop => defs_interp_true
     | _ => defs_interp_false
     end % I.
 
