@@ -7,6 +7,37 @@ Section Sec.
   Context (Γ: list ty).
   Implicit Types T: ty.
 
+  (** If we can prove that vstp and stp are equivalent, we can use them interchangeably; and in my previous proofs, proving vstp was much easier. *)
+
+  Lemma iVstpStp T1 T2: (Γ ⊨ T1 <: T2 → Γ ⊨e T1 <: T2)%I.
+  Proof.
+    iIntros "/= #Hsub !> * #Hg HT1".
+    iApply (wp_wand with " [-]"). iApply "HT1". by iIntros; iApply "Hsub".
+  Qed.
+
+  (* Does the converse direction hold? Do we need it? *)
+  (* Lemma iStpVstp Γ T1 T2: (istp Γ T1 T2 -∗ ivstp Γ T1 T2)%I. *)
+  (* This direction is useful when we have istp as an hypothesis. *)
+  (* What I can easily prove: *)
+  Lemma iStpVstp T1 T2: (istp Γ T1 T2 -∗ ∀ ρ v, ⟦Γ⟧*ρ -∗ (|={⊤}=> ⟦T1⟧ ρ v) ={⊤}=∗ ⟦T2⟧ ρ v)%I.
+  Proof.
+    (* Inspired by the proof of wp_value_inv'! *)
+
+    (* More manual.*)
+    (* iIntros "/= #Hsub * #Hg *". *)
+    (* iSpecialize ("Hsub" $! (of_val v) with "Hg"). *)
+    (* rewrite !wp_unfold /wp_pre /=. by iApply "Hsub". *)
+    (* Restart. *)
+    iIntros "/= #Hsub * #Hg *".
+    setoid_rewrite wp_unfold.
+    by iApply ("Hsub" $! (of_val v)).
+  Qed.
+
+  (* Maybe the update is OK; after all, it's part of the definition of weakest
+     preconditions, and it pairs with the later. But it confuses me honestly.
+
+     In any case, once we add pointers typing will clearly depend on resources (such as the heap), so we can just as well deal with it now. *)
+
   Lemma ivstp_later G T: G ⊨ T <: TLater T.
   Proof. iIntros "!> ** /="; by iNext. Qed.
 

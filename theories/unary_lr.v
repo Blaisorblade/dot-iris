@@ -228,6 +228,12 @@ Section Sec.
   Definition idtp Γ T ds : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → defs_interp T ρ ds)%I.
   Global Arguments idtp /.
 
+  Notation "⟦ T ⟧ₑ" := (interp_expr (uinterp T)).
+  Definition istp Γ T1 T2 : iProp Σ := (□∀ e ρ, ⟦Γ⟧* ρ → ⟦T1⟧ₑ ρ e -∗ ⟦T2⟧ₑ ρ e)%I.
+  Global Arguments istp /.
+
+  Implicit Types e: tm.
+  Definition ietp Γ T e : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ₑ ρ (e.[to_subst ρ]))%I.
 End Sec.
 
 Notation "⟦ T ⟧" := (interp T).
@@ -235,3 +241,5 @@ Notation "⟦ Γ ⟧*" := (interp_env Γ).
 Notation "⟦ T ⟧ₑ" := (interp_expr (uinterp T)).
 
 Notation "Γ ⊨ T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).
+Notation "Γ ⊨e T1 <: T2" := (istp Γ T1 T2) (at level 74, T1, T2 at next level).
+Notation "Γ ⊨ e : T" := (ietp Γ e T) (at level 74, e, T at next level).
