@@ -4,11 +4,39 @@ Require Import Dot.unary_lr.
 Section Sec.
   Context `{HdotG: dotG Σ}.
 
-  Context (Γ: list ty).
   Implicit Types T: ty.
 
-  (** If we can prove that vstp and stp are equivalent, we can use them interchangeably; and in my previous proofs, proving vstp was much easier. *)
+  (* XXX can we use instead |={⊤}=> ⟦T1⟧ ρ v -∗ ⟦T2⟧ ρ v? What I have below arose from iStpUvstp,
+     but a single modality seems more natural. However, using a single modality
+     is stronger, and for the current definition of WP and subtyping, *too* strong. *)
+  Definition uvstp1 Γ T1 T2: iProp Σ :=
+    (□∀ ρ v, ⟦Γ⟧*ρ -∗ (|={⊤}=> ⟦T1⟧ ρ v) ={⊤}=∗ ⟦T2⟧ ρ v)%I.
+  Global Arguments uvstp1 /.
 
+  Definition uvstp2 Γ T1 T2: iProp Σ :=
+    (□∀ ρ v, ⟦Γ⟧*ρ ={⊤}=∗ (⟦T1⟧ ρ v) → ⟦T2⟧ ρ v)%I.
+  Global Arguments uvstp2 /.
+  Print uvstp2.
+  Lemma uvstp21 Γ T1 T2: (uvstp2 Γ T1 T2 → uvstp1 Γ T1 T2)%I.
+  Proof.
+    iIntros "/= #Hstp !> * #Hg".
+    iDestruct ("Hstp" $! _ v with "Hg") as ">H".
+    iIntros ">HT1 !>". by iApply "H".
+  Qed.
+  Notation "Γ ⊨> T1 <: T2" := (uvstp1 Γ T1 T2) (at level 74, T1, T2 at next level).
+
+  (* False. *)
+  Lemma uvstp12 Γ T1 T2: (uvstp1 Γ T1 T2 -∗ uvstp2 Γ T1 T2)%I.
+  Proof.
+    iIntros "/= #Hstp !> * #Hg".
+    iSpecialize ("Hstp" $! ρ v with "Hg").
+    Fail iMod "Hstp".
+    Fail iApply "Hstp".
+    iIntros "!>".
+  Abort.
+
+  Context (Γ: list ty).
+  (** If we can prove that vstp and stp are equivalent, we can use them interchangeably; and in my previous proofs, proving vstp was much easier. *)
   Lemma iVstpStp T1 T2: (Γ ⊨ T1 <: T2 → Γ ⊨e T1 <: T2)%I.
   Proof.
     iIntros "/= #Hsub !> * #Hg HT1".
@@ -19,27 +47,65 @@ Section Sec.
   (* Lemma iStpVstp Γ T1 T2: (istp Γ T1 T2 -∗ ivstp Γ T1 T2)%I. *)
   (* This direction is useful when we have istp as an hypothesis. *)
   (* What I can easily prove: *)
-  Lemma iStpVstp T1 T2: (istp Γ T1 T2 -∗ ∀ ρ v, ⟦Γ⟧*ρ -∗ (|={⊤}=> ⟦T1⟧ ρ v) ={⊤}=∗ ⟦T2⟧ ρ v)%I.
+  Lemma iStpUvstp T1 T2: (Γ ⊨e T1 <: T2 -∗ Γ ⊨> T1 <: T2)%I.
   Proof.
     (* Inspired by the proof of wp_value_inv'! *)
 
     (* More manual.*)
-    (* iIntros "/= #Hsub * #Hg *". *)
+    (* iIntros "/= #Hsub !> * #Hg *". *)
     (* iSpecialize ("Hsub" $! (of_val v) with "Hg"). *)
     (* rewrite !wp_unfold /wp_pre /=. by iApply "Hsub". *)
     (* Restart. *)
-    iIntros "/= #Hsub * #Hg *".
+    iIntros "/= #Hsub !> * #Hg *".
     setoid_rewrite wp_unfold.
     by iApply ("Hsub" $! (of_val v)).
+  Qed.
+  Implicit Types e: tm.
+  (* To be able to use uvstp2, maybe we can use the following. Since it uses a single WP, it's clear
+   * that we're talking about a single execution of e! That's weaker for non-deterministic
+   * languages, but makes more sense: subtyping is about the same result after all.
+   *)
+  Definition istp2 Γ T1 T2 : iProp Σ := (□∀ e ρ, ⟦Γ⟧* ρ →
+                                                 WP e {{v, ⟦T1⟧ ρ v → ⟦T2⟧ ρ v}})%I.
+  Lemma iStpUvstp2 T1 T2: (istp2 Γ T1 T2 -∗ uvstp2 Γ T1 T2)%I.
+  Proof.
+    iIntros "/= #Hsub !> * #Hg *".
+    iSpecialize ("Hsub" $! (of_val v) with "Hg").
+    rewrite !wp_unfold /wp_pre /=. by iApply "Hsub".
   Qed.
 
   (* Maybe the update is OK; after all, it's part of the definition of weakest
      preconditions, and it pairs with the later. But it confuses me honestly.
 
      In any case, once we add pointers typing will clearly depend on resources (such as the heap), so we can just as well deal with it now. *)
+  (* Also, subtyping now implies subtyping after update: *)
+  Lemma vstpToUvstp T1 T2 : (Γ ⊨ T1 <: T2 → Γ ⊨> T1 <: T2)%I.
+    iIntros "#Hstp !> * #Hg > HT1 !>".
+    by iApply "Hstp".
+  Qed.
+  (* But not viceversa, because |==> P talks about the *existence* of a future resource world
+   where P holds, even though P might be false now. *)
+  Lemma uvstpToVstp T1 T2 : (Γ ⊨> T1 <: T2 → Γ ⊨ T1 <: T2)%I.
+    iIntros "/= #Hstp !> * #Hg #Ht1".
+    Fail iApply "Hstp".
+  Abort.
+
+  (* And subtyping later is enough to imply expression subtyping: *)
+  Lemma iVstpUpdatedStp T1 T2: (Γ ⊨> T1 <: T2 → Γ ⊨e T1 <: T2)%I.
+  Proof.
+    iIntros "/= #Hstp !> * #Hg HeT1".
+    by iApply (wp_strong_mono with "HeT1");
+      last (iIntros "* HT1"; iApply "Hstp").
+  Qed.
 
   Lemma ivstp_later G T: G ⊨ T <: TLater T.
   Proof. iIntros "!> ** /="; by iNext. Qed.
+
+  (* So, value subtyping [ivstp] implies updated value subtyping [uvstp] but not
+  viceversa. We can use the implication when proving value subtyping, but not
+  when consuming its hypotheses. *)
+  Lemma iuvstp_later T: Γ ⊨> T <: TLater T.
+  Proof. iApply vstpToUvstp. iIntros "!> ** /="; by iNext. Qed.
 
   Lemma ivstp_ande1 T1 T2: Γ ⊨ TAnd T1 T2 <: T1.
   Proof. by iIntros "/= !> * ? [? ?]". Qed.
