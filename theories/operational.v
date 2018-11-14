@@ -40,11 +40,11 @@ Definition state := unit.
 Definition observation := unit.
 
 Inductive head_step : tm -> state -> list observation -> tm -> state -> list tm -> Prop :=
-| st_beta : forall t1 v2,
-    head_step (tapp (tv (vabs t1)) (tv v2)) tt [] (t1.[v2/]) tt []
-| st_proj : forall ds l v,
-    dms_proj_val (selfSubst ds) l v ->
-    head_step (tproj (tv (vobj ds)) l) tt [] (tv v) tt []
+| st_beta : forall t1 v2 σ,
+    head_step (tapp (tv (vabs t1)) (tv v2)) σ [] (t1.[v2/]) σ []
+| st_proj : forall ds l σ v,
+    index_dms l (selfSubst ds) = Some (dvl v) ->
+    head_step (tproj (tv (vobj ds)) l) σ [] (tv v) σ []
 .
 
 Lemma to_of_val v : to_val (of_val v) = Some v.
