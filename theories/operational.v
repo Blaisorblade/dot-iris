@@ -102,7 +102,7 @@ Instance dotG_irisG `{dotG Σ} : irisG dot_lang Σ := {
 
 End lang.
 
-(* This class is used to prevent synToSem from depending on unary_lr. That's to
+(* This class is used to prevent AAsynToSem.v from depending on unary_lr. That's to
  * reduce build time. And they live here, rather than a separate file, because
  * loading Iris is so slow.
  *)

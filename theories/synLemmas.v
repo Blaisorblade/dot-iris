@@ -1,4 +1,4 @@
-(*
+(**
 Lemmas on SynFuncs.v needed for proofs on the operational semantics.
 To reduce compile times, unary_lr should not depend on this file.
 This file should load as little Iris code as possible, to reduce compile times. But we must import operational.

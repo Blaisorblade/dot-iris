@@ -54,16 +54,26 @@ Notation "v ↗ ds" := (obj_opens_to v ds) (at level 20).
 Definition dms_proj_val ds l v: Prop :=
   index_dms l ds = Some (dvl v).
 
+(** Convert environment to substitution. *)
 Definition to_subst (ρ: list vl) i: vl :=
   match ρ !! i with
   | Some v => v
   | None => var_vl i
   end.
 
+Definition subst_sigma (σ: vls) (ρ: list vl) := vls_to_list (σ.[to_subst ρ]).
+
+Definition push_var (σ: vls): vls := vlcons (var_vl 0) σ.[(+1) >>> var_vl].
+
+(** Create an identity environment vls.
+ * The definition gives the right results but is not ideal to reason about. It
+   is hard to prove it does what it should, and it's likely theorems using it
+   should be rephrased in terms of the translation.
+ *)
 Fixpoint idsσ (ρ: list vl): vls :=
   match ρ with
   | [] => vlnil
-  | _ :: ρ1 => vlcons (var_vl 0) ((idsσ ρ1).[(+1) >>> var_vl])
+  | _ :: ρ1 => push_var (idsσ ρ1)
   end.
 
 End SynFuncs.

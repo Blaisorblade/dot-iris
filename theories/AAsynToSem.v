@@ -1,3 +1,4 @@
+(** Define translation from syntactic terms/values to semantic ones, following Sec. 3.2 of the PDF. *)
 From Dot Require Import tactics synFuncs operational.
 From iris.proofmode Require Import tactics.
 
@@ -5,19 +6,26 @@ Section Sec.
   Context `{HdotG: dotG Σ}.
   Context `{dotUInterpG Σ}.
 
-  Definition subst_sigma (σ: vls) (ρ: list vl) := vls_to_list (σ.[to_subst ρ]).
-  Definition push_var (σ: vls): vls := vlcons (var_vl 0) σ.[(+1) >>> var_vl].
+  (** We define the translation relation T between syntactic and semantic
+      values, terms, types, and so on.
+      XXX: we need to distinguish the result of this translation on types from
+      the results of the interpretation of types. Right now, we'd use semantic
+      types for both.
 
-  (** Translation between syntactic and semantic values, defined as a relation.
-   * First, we have the interesting case, the one for type members.
+      Maybe we should talk about source syntax vs translated syntax; we'd hence
+      have source types, translated types and semantic types.
    *)
+
+  (** Translation between syntactic and semantic *type member definitions*.
+    This is the interesting case of the translation. *)
   Definition t_dty_syn2sem (t_ty: vls -> ty -> ty -> iProp Σ) (T1: ty) (σ σ2: vls) γ2: iProp Σ :=
     (∃ φ T2, γ2 ⤇ φ ∧ t_ty σ T1 T2 ∧
              ∀ ρ v,
                (* We should demand that ρ is closed, and we should check that FV (T) ⊂ dom σ *)
                dot_uinterp T2 (subst_sigma σ ρ, v) ≡ φ (subst_sigma σ2 ρ, v))%I.
 
-  (** Lift [t_dty_syn2sem] throughout the syntax of terms and types, checking tht otherwise the terms are equal.
+  (** Lift translation between syntactic and semantic entities throughout the whole language.
+      Lift [t_dty_syn2sem] throughout the syntax of terms and types, checking that otherwise the terms are equal.
    *)
   Fixpoint t_tm (σ: vls) (t1 t2: tm): iProp Σ :=
     match (t1, t2) with
@@ -83,7 +91,7 @@ Section Sec.
     end%I
   .
 
-  (* Probably unused. *)
+  (** Translation for value sequences [vls]. Probably unused. *)
   Fixpoint t_vls (σ: vls) (vs1 vs2: vls): iProp Σ :=
     match (vs1, vs2) with
     | (vlnil, vlnil) => True
@@ -91,10 +99,16 @@ Section Sec.
       t_vl σ d1 d2 ∧ t_vls σ ds1 ds2
     | _ => False
     end%I.
+
+  (** For each type T, we can save its interpretation in the ghost state.
+      Caveat: you only want to use this on translated (semantic) types. Not to
+      be confused with the results of the interpretation (ARGH).
+   *)
   Lemma alloc_sp T:
     (|==> ∃ γ, SP γ (dot_uinterp T))%I.
   Proof. by apply saved_pred_alloc. Qed.
 
+  (** The translation relation is persistent. *)
   Lemma t_ty_persistent t1 t2 σ: Persistent (t_ty σ t1 t2)
   with  t_path_persistent t1 t2 σ: Persistent (t_path σ t1 t2)
   with  t_vl_persistent t1 t2 σ: Persistent (t_vl σ t1 t2)
@@ -112,6 +126,11 @@ Section Sec.
   Existing Instance t_dm_persistent.
   Existing Instance t_dms_persistent.
 
+  (** We now prove the lemmas on *existence of translations*, in stages.
+      FIXME: unlike on paper, we do not yet check free variables.
+   *)
+
+  (** Existence of translations for type member definitions. *)
   Lemma ex_t_dty T1 T2 σ:
     t_ty σ T1 T2 -∗
     (|==> ∃(d: dm), t_dm σ (dtysyn T1) d)%I.
@@ -122,6 +141,9 @@ Section Sec.
     by iExists (dtysem σ γ), (dot_uinterp T2), T2; repeat iSplit.
   Qed.
 
+  (** is_syn_* are predicates to distinguish syntactic entities/source syntax.
+      They also check for free variables at the same time, but that's probably a bad idea.
+   *)
   Fixpoint is_syn_tm (n: nat) (t: tm): Prop :=
     match t with
     | tv v =>

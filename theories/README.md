@@ -1,3 +1,29 @@
+# Type Soundness for DOT via logical relations
+
+## File Layout
+
+Code is not perfectly modularized, but here is a rough layout of the various files.
+
+* Syntax:
+  - dotsyn_orig.v: Autosubst2-generated DOT SYNtax
+  - dotsyn.v: DOT SYNtax, based on dotsyn_orig.v
+  - Autosubst2.v: Autosubst2 library
+  - axioms.v: axioms for propositional and functional extensionality, as used for Autosubst2.
+* Operational semantics
+  - synFuncs.v (SYNtactic Functions): utility functions to manipulate syntax (field lookup)
+  - operational.v: instantiate Iris with DOT operational semantics
+  - synLemmas.v: (SYNtactic Lemmas): lemmas about synFuncs.v
+* Translation from syntactic values/terms/... to semantic ones:
+  - AAsynToSem.v
+* Unary logical relation:
+  - unary_lr.v
+* (Sub)typing lemmas about unary logical relation:
+  - lr_lemmasDefs.v: lemmas about DEFinition typing
+  - lr_lemmasTSel.v: lemmas about TSel (type selection)
+  - lr_lemma.v: other misc typing lemmas
+  - experiments.v: experiments on typing lemmas that don't make sense
+* Support
+  - tactics.v: misc homegrown Ltac automation
 
 ### Whence dotsyn.v
 
