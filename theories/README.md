@@ -13,6 +13,7 @@ Code is not perfectly modularized, but here is a rough layout of the various fil
   - synFuncs.v (SYNtactic Functions): utility functions to manipulate syntax (field lookup)
   - operational.v: instantiate Iris with DOT operational semantics
   - synLemmas.v: (SYNtactic Lemmas): lemmas about synFuncs.v
+  - rules.v: lemmas about WP and this language's semantics.
 * Translation from syntactic values/terms/... to semantic ones:
   - AAsynToSem.v
 * Unary logical relation:
