@@ -119,12 +119,12 @@ Section Sec.
     all: revert t1 t2 σ; induction t1; destruct t2; simpl;
       try apply _.
   Qed.
-  Existing Instance t_ty_persistent.
-  Existing Instance t_path_persistent.
-  Existing Instance t_vl_persistent.
-  Existing Instance t_tm_persistent.
-  Existing Instance t_dm_persistent.
-  Existing Instance t_dms_persistent.
+  Global Existing Instance t_ty_persistent.
+  Global Existing Instance t_path_persistent.
+  Global Existing Instance t_vl_persistent.
+  Global Existing Instance t_tm_persistent.
+  Global Existing Instance t_dm_persistent.
+  Global Existing Instance t_dms_persistent.
 
   (** We now prove the lemmas on *existence of translations*, in stages.
       FIXME: unlike on paper, we do not yet check free variables.
