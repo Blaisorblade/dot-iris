@@ -203,18 +203,17 @@ Section Sec.
     | TSelA p l T1 T2 => is_syn_path n p ∧ is_syn_ty n T1 ∧ is_syn_ty n T2
     end.
 
-  Ltac iModSpec' H xt :=
+  Ltac iModSpec H xt :=
     iMod H as (xt) "#?"; try intuition eassumption.
-  Ltac iModSpec H xt := simpl; iModSpec' H xt.
 
   Ltac pickSigmaInHp :=
-    simpl; repeat match goal with
+    cbn; repeat match goal with
                   | H : context [?p _ ?t1 ] |- context [?p ?σ ?t1 _] =>
                     let x := fresh "TEMP" in
                     evar (x:nat);
                     specialize (H σ x); subst x;
                     let xt := fresh "t" in
-                    iModSpec' H xt
+                    iModSpec H xt
                   end.
 
   Tactic Notation "finish" uconstr(p) := iIntros "!>"; iExists p; simpl; repeat iSplit; auto.
