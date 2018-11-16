@@ -1,6 +1,8 @@
 (** Define translation from syntactic terms/values to semantic ones, following Sec. 3.2 of the PDF. *)
 From Dot Require Import tactics synFuncs operational.
 From iris.proofmode Require Import tactics.
+From iris.program_logic Require Import ectx_lifting.
+Import operational.lang.
 
 Section Sec.
   Context `{HdotG: dotG Σ}.
@@ -33,13 +35,13 @@ Section Sec.
     | (tapp t11 t12, tapp t21 t22) =>
       t_tm σ t11 t21 ∧ t_tm σ t12 t22
     | (tproj t1 l1, tproj t2 l2) =>
-      t_tm σ t1 t2 ∧ l1 ≡ l2
+      t_tm σ t1 t2 ∧ ⌜l1 = l2⌝
     | _ => False
     end%I
   with
   t_vl (σ: vls) (v1 v2: vl): iProp Σ :=
     match (v1, v2) with
-    | (var_vl i1, var_vl i2) => i1 ≡ i2
+    | (var_vl i1, var_vl i2) => ⌜i1 = i2⌝
     | (vabs t1, vabs t2) => t_tm (push_var σ) t1 t2
     | (vobj ds1, vobj ds2) => t_dms (push_var σ) ds1 ds2
     | _ => False
@@ -65,7 +67,7 @@ Section Sec.
   t_path (σ: vls) (p1 p2: path): iProp Σ :=
     match (p1, p2) with
     | (pv v1, pv v2) => t_vl σ v1 v2
-    | (pself p1 l1, pself p2 l2) => t_path σ p1 p2 ∧ l1 ≡ l2
+    | (pself p1 l1, pself p2 l2) => t_path σ p1 p2 ∧ ⌜l1 = l2⌝
     | _ => False
     end%I
   with
@@ -83,10 +85,10 @@ Section Sec.
       t_ty σ T11 T21 ∧ t_ty (push_var σ) T12 T22
     | (TMu T1, TMu T2) =>
       t_ty (push_var σ) T1 T2
-    | (TVMem l1 T1, TVMem l2 T2) => l1 ≡ l2 ∧ t_ty σ T1 T2
-    | (TTMem l1 T11 T12, TTMem l2 T21 T22) => l1 ≡ l2 ∧ t_ty σ T11 T21 ∧ t_ty σ T12 T22
-    | (TSel p1 l1, TSel p2 l2) => t_path σ p1 p2 ∧ l1 ≡ l2
-    | (TSelA p1 l1 T11 T12, TSelA p2 l2 T21 T22) => t_path σ p1 p2 ∧ l1 ≡ l2 ∧ t_ty σ T11 T21 ∧ t_ty σ T12 T22
+    | (TVMem l1 T1, TVMem l2 T2) => ⌜l1 = l2⌝ ∧ t_ty σ T1 T2
+    | (TTMem l1 T11 T12, TTMem l2 T21 T22) => ⌜l1 = l2⌝ ∧ t_ty σ T11 T21 ∧ t_ty σ T12 T22
+    | (TSel p1 l1, TSel p2 l2) => t_path σ p1 p2 ∧ ⌜l1 = l2⌝
+    | (TSelA p1 l1 T11 T12, TSelA p2 l2 T21 T22) => t_path σ p1 p2 ∧ ⌜l1 = l2⌝ ∧ t_ty σ T11 T21 ∧ t_ty σ T12 T22
     | _ => False
     end%I
   .
@@ -251,5 +253,161 @@ Section Sec.
       + iModSpec (ex_t_vl σ n v) v2. finish (dvl _).
     - skeleton σ n t1.
       + iModSpec (ex_t_dm σ n d) d2. recursiveTransf (dcons _ _).
+  Qed.
+
+
+  Fixpoint same_skel_tm (t1 t2: tm): Prop :=
+    match (t1, t2) with
+    | (tv v1, tv v2) => same_skel_vl v1 v2
+    | (tapp t11 t12, tapp t21 t22) =>
+      same_skel_tm t11 t21 ∧ same_skel_tm t12 t22
+    | (tproj t1 l1, tproj t2 l2) =>
+      same_skel_tm t1 t2 ∧ l1 = l2
+    | _ => False
+    end
+  with
+  same_skel_vl (v1 v2: vl): Prop :=
+    match (v1, v2) with
+    | (var_vl i1, var_vl i2) => i1 = i2
+    | (vabs t1, vabs t2) => same_skel_tm t1 t2
+    | (vobj ds1, vobj ds2) => same_skel_dms ds1 ds2
+    | _ => False
+    end
+  with
+  same_skel_dms (ds1 ds2: dms): Prop :=
+    match (ds1, ds2) with
+    | (dnil, dnil) => True
+    | (dcons d1 ds1, dcons d2 ds2) =>
+      same_skel_dm d1 d2 ∧ same_skel_dms ds1 ds2
+    | _ => False
+    end
+  with
+  same_skel_dm (d1 d2: dm): Prop :=
+    match (d1, d2) with
+    | (dtysyn T1, dtysem σ2 γ2) =>
+      (* Only nontrivial case *)
+      True
+    | (dvl v1, dvl v2) => same_skel_vl v1 v2
+    | _ => False
+    end
+  with
+  same_skel_path (p1 p2: path): Prop :=
+    match (p1, p2) with
+    | (pv v1, pv v2) => same_skel_vl v1 v2
+    | (pself p1 l1, pself p2 l2) => same_skel_path p1 p2 ∧ l1 = l2
+    | _ => False
+    end
+  with
+  same_skel_ty (T1 T2: ty): Prop :=
+    match (T1, T2) with
+    | (TTop, TTop) => True
+    | (TBot, TBot) => True
+    | (TAnd T11 T12, TAnd T21 T22) =>
+      same_skel_ty T11 T21 ∧ same_skel_ty T12 T22
+    | (TOr T11 T12, TOr T21 T22) =>
+      same_skel_ty T11 T21 ∧ same_skel_ty T12 T22
+    | (TLater T1, TLater T2) =>
+      same_skel_ty T1 T2
+    | (TAll T11 T12, TAll T21 T22) =>
+      same_skel_ty T11 T21 ∧ same_skel_ty T12 T22
+    | (TMu T1, TMu T2) =>
+      same_skel_ty T1 T2
+    | (TVMem l1 T1, TVMem l2 T2) => l1 = l2 ∧ same_skel_ty T1 T2
+    | (TTMem l1 T11 T12, TTMem l2 T21 T22) => l1 = l2 ∧ same_skel_ty T11 T21 ∧ same_skel_ty T12 T22
+    | (TSel p1 l1, TSel p2 l2) => same_skel_path p1 p2 ∧ l1 = l2
+    | (TSelA p1 l1 T11 T12, TSelA p2 l2 T21 T22) => same_skel_path p1 p2 ∧ l1 = l2 ∧ same_skel_ty T11 T21 ∧ same_skel_ty T12 T22
+    | _ => False
+    end.
+
+  Lemma translation_same_skel σ t t':
+    ( t_tm σ t t' → ⌜same_skel_tm t t'⌝)%I
+  with translation_same_ty σ t t':
+    ( t_ty σ t t' → ⌜same_skel_ty t t'⌝)%I
+  with translation_same_path σ t t':
+    ( t_path σ t t' → ⌜same_skel_path t t'⌝)%I
+  with translation_same_dm σ t t':
+    ( t_dm σ t t' → ⌜same_skel_dm t t'⌝)%I
+  with translation_same_skel_dms σ t t':
+    ( t_dms σ t t' → ⌜same_skel_dms t t'⌝)%I
+  with translation_same_skel_vl σ t t':
+    ( t_vl σ t t' → ⌜same_skel_vl t t'⌝)%I.
+  Proof.
+    all: iIntros "Hyp";
+      destruct t; destruct t'; simpl; eauto;
+      (* by iApply translation_same_skel_vl. *)
+      repeat progress (try iSplit);
+      try (iDestruct "Hyp" as "[Hyp1 Hyp2]");
+      try (iDestruct "Hyp1" as "[Hyp11 Hyp12]");
+      try (iDestruct "Hyp2" as "[Hyp21 Hyp22]");
+      try (iDestruct "Hyp22" as "[Hyp221 Hyp222]");
+      match goal with
+      | [ HH: context[?P _ _ _] |- context[?P _ _ _] ] => iApply HH; try done
+      | _ => try done
+      end.
+  Qed.
+
+  Fixpoint same_skel_ectx K K' :=
+    match K, K' with
+    | AppLCtx e2, AppLCtx e2' => same_skel_tm e2 e2'
+    | AppRCtx v1, AppRCtx v1' => same_skel_vl v1 v1'
+    | ProjCtx l, ProjCtx l' => l = l'
+    | _, _ => False
+    end.
+
+  Definition same_skel_list_ectx Ks Ks' :=
+    List.Forall2 same_skel_ectx Ks Ks'.
+
+  Lemma same_skel_fill Ks e t':
+    same_skel_tm (fill Ks e) t' →
+    exists Ks' e',  t' = fill Ks' e' ∧ same_skel_tm e e' ∧ same_skel_list_ectx Ks Ks'.
+  Proof. Admitted.
+
+  Lemma same_skel_fill_item Ks Ks' e e':
+    same_skel_list_ectx Ks Ks' →
+    same_skel_tm e e' →
+    same_skel_tm (fill Ks e) (fill Ks' e').
+  Admitted.
+
+
+  Lemma same_skel_subst e e' v v':
+    same_skel_tm e e' → same_skel_vl v v' →
+    same_skel_tm (e.[v/]) (e'.[v'/]).
+  Proof.
+  Admitted.
+
+  Lemma same_skel_dms_index ds ds' v l:
+    same_skel_dms ds ds' →
+    index_dms l (selfSubst ds) = Some (dvl v) →
+    exists v', index_dms l (selfSubst ds') = Some (dvl v') ∧ same_skel_vl v v'.
+  Proof.
+  Admitted.
+
+  Ltac destruct_matches :=
+    repeat progress match goal with
+                    | H: match ?t with | _ => _ end |- _ => destruct t; try done
+                    | H: ?A ∧ ?B |- _ => destruct H
+                    end.
+
+   Lemma simulation_skeleton_head t1' t1 t2 σ σ' ts:
+    same_skel_tm t1 t1' →
+    head_step t1 σ [] t2 σ' ts →
+    exists t2', head_step t1' σ [] t2' σ' ts ∧ same_skel_tm t2 t2'.
+  Proof.
+    move=> Hsk Hhs. inversion Hhs; subst; simpl in *.
+    - destruct_matches. eexists. split; first by econstructor. by eapply same_skel_subst.
+    - destruct_matches. subst. destruct (same_skel_dms_index ds d v l0 H1 H0) as [? [? ?]]. eexists.
+      split; [by econstructor | done].
+  Qed.
+
+  Theorem simulation_skeleton t1 t1' t2 σ σ' ts:
+    same_skel_tm t1 t1' →
+    prim_step t1 σ [] t2 σ' ts →
+    exists t2', prim_step t1' σ [] t2' σ' ts ∧ same_skel_tm t2 t2'.
+  Proof.
+    move=> Hsk Hstep. rewrite /prim_step in Hstep. simpl in *.
+    inversion Hstep; subst; simpl in *.
+    apply same_skel_fill in Hsk as [Ks' [e' [Hfill [Hskel Hsklsit]]]].  simpl in *.
+    eapply simulation_skeleton_head in H2 as [e'' [Hhs Hskk]]; last by eauto.
+    exists (fill Ks' e''). subst. split; [econstructor; eauto | by apply same_skel_fill_item].
   Qed.
 End Sec.
