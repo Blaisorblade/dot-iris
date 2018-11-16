@@ -368,12 +368,26 @@ Section Sec.
     same_skel_tm (fill Ks e) (fill Ks' e').
   Admitted.
 
+  (* Generalize over all the syntax, and same_skeleton environments. I proved
+     same_skel_tm_subst just as a minimal sanity check. *)
+  Lemma same_skel_vl_subst e e' v v':
+    same_skel_vl e e' → same_skel_vl v v' →
+    same_skel_vl (e.[v/]) (e'.[v'/]).
+  Proof.
+    move: e'; induction e; destruct e';
+    move => Hske Hskv;
+      cbn in Hske |- *; try inversion Hske; ev; asimpl; auto.
+  Admitted.
 
-  Lemma same_skel_subst e e' v v':
+  (* Just a test proof. *)
+  Lemma same_skel_tm_subst e e' v v':
     same_skel_tm e e' → same_skel_vl v v' →
     same_skel_tm (e.[v/]) (e'.[v'/]).
   Proof.
-  Admitted.
+    move: e'; induction e; destruct e';
+    move => Hske Hskv;
+      cbn in Hske |- *; try inversion Hske; ev; asimpl; auto using same_skel_vl_subst.
+   Qed.
 
   Lemma same_skel_dms_index ds ds' v l:
     same_skel_dms ds ds' →
@@ -394,7 +408,7 @@ Section Sec.
     exists t2', head_step t1' σ [] t2' σ' ts ∧ same_skel_tm t2 t2'.
   Proof.
     move=> Hsk Hhs. inversion Hhs; subst; simpl in *.
-    - destruct_matches. eexists. split; first by econstructor. by eapply same_skel_subst.
+    - destruct_matches. eexists. split; first by econstructor. by eapply same_skel_tm_subst.
     - destruct_matches. subst. destruct (same_skel_dms_index ds d v l0 H1 H0) as [? [? ?]]. eexists.
       split; [by econstructor | done].
   Qed.
