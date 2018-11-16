@@ -62,17 +62,37 @@ Section Sec.
 
   Lemma dtp_tmem_abs_i T L U γ ρ ds:
     SP γ (uinterp T) -∗ ⟦Γ⟧* ρ -∗
-    (* I'd want to require these two hypotheses to hold later. *)
     Γ ⊨ L <: U -∗
-    ▷ (Γ ⊨ T <: U) -∗
-    ▷ (Γ ⊨ L <: T) -∗
+    (* We want the next two hypotheses to hold in a later world, but for this Γ,
+       both because that's what we need to introduce, and because it allows
+       using Γ *now* to establish the assumption.
+
+       How do we represent subtyping in a later world? We have two distinct
+       choices, because in Iris ▷(P ⇒ Q) ⊢ ▷ P ⇒ ▷ Q but not viceversa
+       (unlike with raw step-indexing).
+       In turn, that's because to show ▷ P ⇒ ▷ Q we can assume resources are
+       valid one step earlier, unlike for ▷(P ⇒ Q).
+
+       It seems easier, in subtyping judgment, to just delay individual types
+       via (Γ ⊨ TLater T <: TLater U), that is
+
+       (□∀ v ρ, ⟦Γ⟧* ρ → ▷ ⟦T1⟧ ρ v → ▷ ⟦T2⟧ ρ v),
+
+       instead of instead of introducing some notation to write
+
+       (□∀ v ρ, ⟦Γ⟧* ρ → ▷ (⟦T1⟧ ρ v → ⟦T2⟧ ρ v)).
+
+       And that forces using the same implication in the logical relation
+       (unlike I did originally). *)
+    (Γ ⊨ TLater T <: TLater U) -∗
+    (Γ ⊨ TLater L <: TLater T) →
     defs_interp (TTMem (dms_length ds) L U) ρ (dcons (dtysem (idsσ ρ) γ) ds).
   Proof.
     iIntros "#Hv * #Hg #HLU #HTU #HLT /=".
     iExists (uinterp T), _. iSplit; first auto.
     rewrite <- idsσ_is_id.
-    repeat iSplit; repeat iModIntro; iIntros "**";
-      [iApply "HLT" | iApply "HTU" | iApply "HLU"]; done.
+    repeat iSplit;
+      iIntros "!> **"; [iApply "HLT" | iApply "HTU" | iApply "HLU"]; done.
   Qed.
 
   Lemma dtp_add_defs T ρ d ds:

@@ -34,6 +34,10 @@ Section Sec.
 
   Notation inclusion P Q := (□∀ v, P v -∗ Q v)%I.
 
+  (* Recall that ▷(P ⇒ Q) ⊢ ▷ P ⇒ ▷ Q but not viceversa. Use the weaker choice to enable
+     proving the definition typing lemma dtp_tmem_abs_i. *)
+  Notation inclusionLater P Q := (□∀ v, ▷ P v -∗ ▷ Q v)%I.
+
   Definition idms_proj_semtype ds l σ' φ : iProp Σ :=
     (∃ γ, ⌜ index_dms l ds = Some(dtysem σ' γ) ⌝ ∗ γ ⤇ φ)%I.
   Global Arguments idms_proj_semtype /.
@@ -53,7 +57,7 @@ Section Sec.
   Definition subst_phi (σ: vls) (ρ: list vl) (φ: list vl * vl -> iProp Σ): D := λne v, φ (vls_to_list (σ.[to_subst ρ]), v).
 
   Definition defs_interp_tmem l (interp1 interp2: envD): envMD := uncurryD (λne ρ, λne ds,
-    (∃ φ σ, (ds;l ↘ σ , φ) ∗ ▷ inclusion (curryD interp1 ρ) (subst_phi σ ρ φ) ∗ ▷ inclusion (subst_phi σ ρ φ) (curryD interp2 ρ) ∗ inclusion (curryD interp1 ρ) (curryD interp2 ρ) ))%I.
+    (∃ φ σ, (ds;l ↘ σ , φ) ∗ inclusionLater (curryD interp1 ρ) (subst_phi σ ρ φ) ∗ inclusionLater (subst_phi σ ρ φ) (curryD interp2 ρ) ∗ inclusion (curryD interp1 ρ) (curryD interp2 ρ) ))%I.
     (* (∃ φ σ, (ds;l ↘ σ , φ) ∗ (inclusion (interp1 ρ) (φ (σ.[to_subst ρ]))) ∗ inclusion φ (interp2 ρ) )%I. *)
 
   Definition interp_tmem l (interp1 interp2 : envD) : envD := uncurryD (λne ρ, λne v,
