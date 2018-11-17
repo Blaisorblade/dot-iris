@@ -1,30 +1,42 @@
 Require Import Dot.tactics.
 Require Import Dot.unary_lr.
 Require Import Dot.operational.
-Import operational.lang.
 From iris.program_logic Require Import adequacy.
+Import operational.lang.
 
+Class dotPreG Σ := DotPreG {
+  dot_preG_invG : invPreG Σ;
+  dot_preG_savior :> savedPredG Σ (list vl * vl)
+}.
 
-Section Sec.
-  Context `{HdotG: dotG Σ}.
+Theorem adequacy Σ `{HdotG: dotPreG Σ} e e' thp σ σ' T ρ:
+  (forall `{dotG Σ}, True ⊢ ⟦ T ⟧ₑ ρ e) →
+  rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
+  is_Some (to_val e') ∨ reducible e' σ'.
+Proof.
+  intros Hlog ??. cut (adequate NotStuck e σ (λ _ _, True)); first (intros [_ ?]; eauto).
+  eapply (wp_adequacy Σ); eauto. apply HdotG.
+  iIntros (Hinv ?). iModIntro. iExists (λ _ _, True%I). iSplit=> //.
+  (* rewrite -(empty_env_subst e). *)
+  set (DotΣ := DotG Σ Hinv _).
+  iApply (wp_wand with "[]"); by [iApply Hlog | auto].
+Qed.
+From iris.base_logic Require Export lib.saved_prop.
 
-  Theorem adequacy e e' thp σ σ' T ρ:
-    (True ⊢ ⟦ T ⟧ₑ ρ e ) →
-    rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
-    is_Some (to_val e') ∨ reducible e' σ'.
-  Proof.
-    intros Hlog ??. cut (adequate NotStuck e σ (λ _ _, True)); first (intros [_ ?]; eauto).
-    eapply (wp_adequacy Σ); eauto. admit.
-    iIntros (Hinv ?). iModIntro. iExists (λ _ _, True%I). iSplit=> //.
-    (* rewrite -(empty_env_subst e). *)
-    set (HΣ := IrisG _ _ Hinv (λ _ _ _, True)%I (λ _, True)%I).
-    iApply (wp_wand with "[]").
-    unfold interp_expr in *. simpl in *.
-    iAssert (WP e {{ v, (uinterp T) (ρ, v) }})%I as "H".
-    iPoseProof Hlog as "HH". simpl. 
-    admit.
-    iAssumption. iIntros "**". done.
-  Admitted.
-
-End Sec.
-
+(* Instead of still assuming semantic typing, here we should assume syntactic
+   typing and use the fundamental lemma. But otherwise this follows the general
+   instantiation pattern, from e.g.
+   https://gitlab.mpi-sws.org/iris/examples/blob/a89dc12821b63eeb9b831d21629ac55ebd601f38/theories/logrel/F_mu_ref/soundness.v#L29-39. *)
+Corollary almost_type_soundness e e' thp σ σ' T:
+  (forall `{dotG Σ}, True ⊢ ⟦ T ⟧ₑ [] e) →
+  rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
+  is_Some (to_val e') ∨ reducible e' σ'.
+Proof.
+  intros ??. set (Σ := #[invΣ ; invΣ; savedPredΣ (list vl * vl)]).
+  set (HG := DotPreG Σ _ (subG_savedAnythingΣ _)).
+  eapply (adequacy Σ ).
+  - intros ?.
+    apply H.
+      (* by apply fundamental. *)
+  - eauto.
+Qed.
