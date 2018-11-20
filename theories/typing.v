@@ -3,88 +3,196 @@ Require Import Dot.operational.
 Import operational.lang.
 
 (* Print Grammar constr. *)
-Reserved Notation "Γ ⊢ₜ e : τ" (at level 74, e, τ at next level).
-Reserved Notation "Γ ⊢ { l = d } : τ" (at level 64, l, d, τ at next level).
-Reserved Notation "Γ ⊢ds ds : τ" (at level 74, ds, τ at next level).
-Reserved Notation "Γ ⊢ₜ τ1 , i1 <: τ2 , i2" (at level 74, τ1, τ2, i1, i2 at next level).
+Reserved Notation "Γ ⊢ₜ e : T" (at level 74, e, T at next level).
+Reserved Notation "Γ ⊢ₚ p : T , i" (at level 74, p, T, i at next level).
+Reserved Notation "Γ ⊢ { l = d } : T" (at level 64, l, d, T at next level).
+Reserved Notation "Γ ⊢ds ds : T" (at level 74, ds, T at next level).
+Reserved Notation "Γ ⊢ₜ T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
 
-Implicit Type τ L T U: ty.
+Implicit Type L T U: ty.
 Implicit Type v: vl.
 Implicit Type e: tm.
 Implicit Type d: dm.
 Implicit Type ds: dms.
-(* XXX: finish. *)
+Implicit Type Γ : list ty.
+
+Print ren.
+Print up_ty_vl.
+Definition wkT := toSubst_ty (+1).
+Definition wkV := toSubst_vl (+1).
 (**
-TODO. Here we follow Amin's judgment for definition typing: it is Γ ⊢ { l = d } : T, meaning:
-this definition, with label l, has type T. This works, but requires
-reformulating again a bit semantic definition typing.
+Judgments for typing, subtyping, path and definition typing.
+TODO: index the typing judgment as well.
+Here we follow Amin's judgment for definition typing: it is Γ ⊢ { l = d } : T,
+meaning: this definition, with label l, has type T.
+This works, but requires reformulating again a bit semantic definition typing for proofs.
 *)
-Inductive typed (Γ : list ty) : tm → ty → Prop :=
+Inductive typed Γ: tm → ty → Prop :=
 (** First, elimination forms *)
 (** Dependent application; only allowed if the argument is a value . *)
-| Appv_typed e1 v2 τ1 τ2 :
-    Γ ⊢ₜ e1: TAll τ1 τ2 →                        Γ ⊢ₜ tv v2 : τ1 →
-    (*────────────────────────────────────────────────────────────────────────────────*)
-    Γ ⊢ₜ tapp e1 (tv v2) : τ2.[v2/]
+| Appv_typed e1 v2 T1 T2 :
+    Γ ⊢ₜ e1: TAll T1 T2 →                        Γ ⊢ₜ tv v2 : T1 →
+    (*────────────────────────────────────────────────────────────*)
+    Γ ⊢ₜ tapp e1 (tv v2) : T2.[v2/]
 (** Non-dependent application; allowed for any argument. *)
-| App_typed e1 e2 τ1 τ2 :
-    Γ ⊢ₜ e1: TAll τ1 τ2.[toSubst_ty (+1)] →      Γ ⊢ₜ e2 : τ1 →
-    (*────────────────────────────────────────────────────────────────────────────────*)
-    Γ ⊢ₜ tapp e1 e2 : τ2
-| Proj_typed e τ l:
-    Γ ⊢ₜ e : TVMem l τ → Γ ⊢ₜ tproj e l : τ
-(** Introduction forms *)
-| Lam_typed e τ1 τ2 :
-    τ1 :: Γ ⊢ₜ e : τ2 →
+| App_typed e1 e2 T1 T2 :
+    Γ ⊢ₜ e1: TAll T1 T2.[wkT] →      Γ ⊢ₜ e2 : T1 →
+    (*────────────────────────────────────────────────────────────*)
+    Γ ⊢ₜ tapp e1 e2 : T2
+| Proj_typed e T l:
+    Γ ⊢ₜ e : TVMem l T →
     (*─────────────────────────*)
-    Γ ⊢ₜ tv (vabs e) : TAll τ1 τ2
+    Γ ⊢ₜ tproj e l : T
+| TMuE_typed v T:
+    Γ ⊢ₜ tv v: TMu T →
+    (*──────────────────────*)
+    Γ ⊢ₜ tv v: T.[v/]
+(** Introduction forms *)
+| Lam_typed e T1 T2 :
+    (* T1 :: Γ ⊢ₜ e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
+    T1.[wkT] :: Γ ⊢ₜ e : T2 →
+    (*─────────────────────────*)
+    Γ ⊢ₜ tv (vabs e) : TAll T1 T2
 | VObj_typed ds T:
     TLater T :: Γ ⊢ds ds: T →
     (*──────────────────────*)
     Γ ⊢ₜ tv (vobj ds): TMu T
-(** "General" rules *)
-| Var_typed x τ :
-    Γ !! x = Some τ →
+| TMuI_typed v T:
+    Γ ⊢ₜ tv v: T.[v/] →
     (*──────────────────────*)
-    Γ ⊢ₜ tv (var_vl x) : τ
-| Subs_typed e τ1 τ2 :
-    Γ ⊢ₜ τ1 , 0 <: τ2 , 0 → Γ ⊢ₜ  e : τ1 →
-    (*──────────────────────*)
-    Γ ⊢ₜ e : τ2
-(* Must be generalized to something like the following, but skip instructions are needed. *)
-(* | Subs_typed e i1 i2 τ1 τ2 : *)
-(*     Γ ⊢ₜ τ1 , i1 <: τ2 , i2 → Γ ⊢ₜ  e : τ1 → *)
-(*     (*──────────────────────*) *)
-(*     Γ ⊢ₜ e : τ2 *)
+    Γ ⊢ₜ tv v: TMu T
 
-with dms_typed (Γ : list ty) : dms → ty → Prop :=
+(** "General" rules *)
+| Var_typed x T :
+    Γ !! x = Some T →
+    (*──────────────────────*)
+    Γ ⊢ₜ tv (var_vl x) : T
+| Subs_typed e T1 T2 :
+    Γ ⊢ₜ T1, 0 <: T2, 0 → Γ ⊢ₜ e : T1 →
+    (*───────────────────────────────*)
+    Γ ⊢ₜ e : T2
+(* XXX Must be generalized to something like the following, but that needs either
+   skip instructions, or an indexed typing judgment. *)
+(* | Subs_typed e i1 i2 T1 T2 : *)
+(*     Γ ⊢ₜ T1, i1 <: T2, i2 → Γ ⊢ₜ  e : T1 → *)
+(*     (*──────────────────────*) *)
+(*     Γ ⊢ₜ e : T2 *)
+(* A bit surprising this is needed, but appears in the DOT papers, and this is
+   only admissible if t has a type U that is a proper subtype of TAnd T1 T2. *)
+| TAndI_typed T1 T2 t:
+    Γ ⊢ₜ t : T1 → 
+    Γ ⊢ₜ t : T2 → 
+    Γ ⊢ₜ t : TAnd T1 T2
+with dms_typed Γ: dms → ty → Prop :=
 | dnil_typed : Γ ⊢ds dnil : TTop
-| dcons_typed l d ds τ1 τ2 :
-    Γ ⊢ { l = d } : τ1 →
+| dcons_typed l d ds T1 T2 :
+    Γ ⊢ { l = d } : T1 →
     l = dms_length ds →
-    Γ ⊢ds ds : τ2 →
+    Γ ⊢ds ds : T2 →
     (*──────────────────────*)
     Γ ⊢ds dcons d ds : TTop
 
-with dm_typed (Γ : list ty) : label → dm → ty → Prop :=
+with dm_typed Γ : label → dm → ty → Prop :=
 | dty_typed l L T U:
     Γ ⊢ₜ L, 1 <: T, 1 →
     Γ ⊢ₜ T, 1 <: U, 1 →
     Γ ⊢ { l = dtysyn T } : TTMem l L U
-| dvl_typed l v τ:
-    Γ ⊢ₜ tv v : τ →
-    Γ ⊢ { l = dvl v } : TVMem l τ
+| dvl_typed l v T:
+    Γ ⊢ₜ tv v : T →
+    Γ ⊢ { l = dvl v } : TVMem l T
+with path_typed Γ: path → ty → nat → Prop :=
+| pv_typed v T :
+    Γ ⊢ₜ tv v : T →
+    Γ ⊢ₚ pv v : T, 0
+(* Mnemonic: Path from SELecting a Field *)
+| pself_typed p T i l:
+    Γ ⊢ₚ p : T, i →
+    Γ ⊢ₚ pself p l : T, i
 
-(* Γ ⊢ₜ τ1 , i1 <: τ2 , i2 means that TLater^i1 τ1 <: TLater^i2 τ2. *)
-with subtype (Γ : list ty) : ty → nat → ty → nat → Prop :=
-| Refl_stp i τ : Γ ⊢ₜ τ , i <: τ , i
-| Trans_stp i1 i2 i3 τ1 τ2 τ3:
-    Γ ⊢ₜ τ1 , i1 <: τ2 , i2 → Γ ⊢ₜ τ2 , i2 <: τ3 , i3 → Γ ⊢ₜ τ1 , i1 <: τ3 , i3
-| Top_stp i τ : Γ ⊢ₜ τ , i <: TTop , i
-| Bot_stp i τ : Γ ⊢ₜ TBot , i <: τ , i
+(* Γ ⊢ₜ T1, i1 <: T2, i2 means that TLater^i1 T1 <: TLater^i2 T2. *)
+with subtype Γ : ty → nat → ty → nat → Prop :=
+| Refl_stp i T : Γ ⊢ₜ T, i <: T, i
+| Trans_stp i1 i2 i3 T1 T2 T3:
+    Γ ⊢ₜ T1, i1 <: T2, i2 → Γ ⊢ₜ T2, i2 <: T3, i3 → Γ ⊢ₜ T1, i1 <: T3, i3
 
-where "Γ ⊢ₜ e : τ" := (typed Γ e τ)
-and "Γ ⊢ds ds : τ" := (dms_typed Γ ds τ)
-and "Γ ⊢ { l = d } : τ" := (dm_typed Γ l d τ)
-and "Γ ⊢ₜ τ1 , i1 <: τ2 , i2" := (subtype Γ τ1 i1 τ2 i2).
+(* "Structural" rules about indexes *)
+| TSucc_stp T i:
+    Γ ⊢ₜ T, i <: T, S i
+| TMono_stp T1 T2 i:
+    Γ ⊢ₜ T1, i <: T2, i →
+    Γ ⊢ₜ T1, S i <: T2, S i
 
+(* "Logical" connectives *)
+| Top_stp i T : Γ ⊢ₜ T, i <: TTop, i
+| Bot_stp i T : Γ ⊢ₜ TBot, i <: T, i
+| TAnd1_stp T1 T2 i:
+    Γ ⊢ₜ TAnd T1 T2, i <: T1, i
+| TAnd2_stp T1 T2 i:
+    Γ ⊢ₜ TAnd T1 T2, i <: T2, i
+| TAnd_stp T1 T2 U i:
+    Γ ⊢ₜ U, i <: T1, i →
+    Γ ⊢ₜ U, i <: T2, i →
+    Γ ⊢ₜ U, i <: TAnd T1 T2, i
+| TOr1_stp T1 T2 i:
+    Γ ⊢ₜ T1, i <: TOr T1 T2, i
+| TOr2_stp T1 T2 i:
+    Γ ⊢ₜ T2, i <: TOr T1 T2, i
+| TOr_stp T1 T2 U i:
+    Γ ⊢ₜ T1, i <: U, i →
+    Γ ⊢ₜ T2, i <: U, i →
+    Γ ⊢ₜ TOr T1 T2, i <: U, i
+
+(* Type selections *)
+| SelU_stp l L U p i j:
+    Γ ⊢ₚ p : TTMem l L U, i →
+    Γ ⊢ₜ TSel p l, j <: U, S (i + j)
+| LSel_stp l L U p i j:
+    Γ ⊢ₚ p : TTMem l L U, i →
+    Γ ⊢ₜ L, S (i + j) <: TSel p l, j
+| SelAU_stp l L U p i j:
+    Γ ⊢ₚ p : TTMem l L U, i →
+    Γ ⊢ₜ TSelA p l L U, j <: U, i + j
+| LSelA_stp l L U p i j:
+    Γ ⊢ₚ p : TTMem l L U, i →
+    Γ ⊢ₜ L, i + j <: TSelA p l L U, j
+
+(* Subtyping for recursive types. Congruence, and opening in both directions. *)
+| mu_x_stp T1 T2 i:
+    (T1 :: Γ) ⊢ₜ T1, i <: T2, i →
+    Γ ⊢ₜ TMu T1, i <: TMu T2, i
+| mu_1_stp T1 T2 i:
+    (T1 :: Γ) ⊢ₜ T1, i <: T2.[wkT], i →
+    Γ ⊢ₜ TMu T1, i <: T2, i
+| mu_2_stp T1 T2 i:
+    (T1 :: Γ) ⊢ₜ T1.[wkT], i <: T2, i →
+    Γ ⊢ₜ T1, i <: TMu T2, i
+
+(* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types.
+ "Cov" stands for covariance, "Con" for contravariance. *)
+(* Needed? Maybe drop later instead? *)
+| TLaterCov_stp T1 T2 i:
+    Γ ⊢ₜ T1, S i <: T2, S i →
+    Γ ⊢ₜ TLater T1, i <: TLater T2, i
+| TAllConCov_stp T1 T2 U1 U2 i:
+    (* "Tight" premises. To avoid TLater, we'd probably need to index the
+    context. But let's not; indexing the conclusion of typing and having an
+    elimination form for TLater (which increases the index) would be enough. *)
+    (* Γ ⊢ₜ T2, S i <: T1, S i → *)
+    (* TLater T2 :: Γ ⊢ₜ U1, S i <: U2, S i → *)
+    (* Non-tight premises. *)
+    Γ ⊢ₜ T2, i <: T1, i →
+    T2 :: Γ ⊢ₜ U1, i <: U2, i →
+    Γ ⊢ₜ TAll T1 U1, i <: TAll T2 U2, i
+| TVMemCov_stp T1 T2 i l:
+    Γ ⊢ₜ T1, S i <: T2, S i →
+    Γ ⊢ₜ TVMem l T1, i <: TVMem l T2, i
+| TTMemConCov_stp L1 L2 U1 U2 i l:
+    Γ ⊢ₜ L2, S i <: L1, S i →
+    Γ ⊢ₜ U1, S i <: U2, S i →
+    Γ ⊢ₜ TTMem l L1 U1, i <: TTMem l L2 U2, i
+
+where "Γ ⊢ₜ e : T" := (typed Γ e T)
+and "Γ ⊢ₚ p : T , i" := (path_typed Γ p T i)
+and "Γ ⊢ds ds : T" := (dms_typed Γ ds T)
+and "Γ ⊢ { l = d } : T" := (dm_typed Γ l d T)
+and "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
