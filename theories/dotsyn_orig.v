@@ -80,6 +80,7 @@ Inductive tm  : Type :=
   | tv : vl -> tm
   | tapp : tm -> tm -> tm
   | tproj : tm -> label -> tm
+  | tskip : tm -> tm
  with vl  : Type :=
   | var_vl : index -> vl
   | vabs : tm -> vl
@@ -123,6 +124,9 @@ Definition congr_tapp {s0 s1 t0 t1: tm} (E0: s0 = t0) (E1: s1 = t1) : tapp s0 s1
 
 Definition congr_tproj {s0: tm} {s1: label} {t0: tm} {t1: label} (E0: s0 = t0) (E1: s1 = t1) : tproj s0 s1 = tproj t0 t1 :=
   apc (ap tproj E0) (E1).
+
+Definition congr_tskip {s0 t0: tm} (E0: s0 = t0) : tskip s0 = tskip t0 :=
+  ap tskip E0.
 
 Definition congr_vabs {s0 t0: tm} (E0: s0 = t0) : vabs s0 = vabs t0 :=
   ap vabs E0.
@@ -307,6 +311,7 @@ Fixpoint ren_tm (xi: ren_of subst_of_tm) (s: tm) : tm :=
   | tv s0 => tv ((ren_vl (castren_tm_vl xi) s0))
   | tapp s0 s1 => tapp ((ren_tm xi s0)) ((ren_tm xi s1))
   | tproj s0 s1 => tproj ((ren_tm xi s0)) (s1)
+  | tskip s0 => tskip ((ren_tm xi s0))
   end
  with ren_vl (xi: ren_of subst_of_vl) (s: vl) : vl :=
   match s with
@@ -567,6 +572,7 @@ Fixpoint subst_tm (sigma: subst_of subst_of_tm) (s: tm) : tm :=
   | tv s0 => tv ((subst_vl (cast_tm_vl sigma) s0))
   | tapp s0 s1 => tapp ((subst_tm sigma s0)) ((subst_tm sigma s1))
   | tproj s0 s1 => tproj ((subst_tm sigma s0)) (s1)
+  | tskip s0 => tskip ((subst_tm sigma s0))
   end
  with subst_vl (sigma: subst_of subst_of_vl) (s: vl) : vl :=
   match s with
@@ -754,6 +760,7 @@ Fixpoint id_tm (sigma_vl: index -> vl) (E_vl: sigma_vl == var_vl) (s: tm) : subs
   | tv s0 => ap tv (id_vl _ E_vl s0)
   | tapp s0 s1 => apc (ap tapp (id_tm _ E_vl s0)) ((id_tm _ E_vl s1))
   | tproj s0 s1 => apc (ap tproj (id_tm _ E_vl s0)) ((eq_refl))
+  | tskip s0 => ap tskip (id_tm _ E_vl s0)
   end
  with id_vl (sigma_vl: index -> vl) (E_vl: sigma_vl == var_vl) (s: vl) : subst_vl sigma_vl s = s :=
   match s with
@@ -853,6 +860,7 @@ Fixpoint compTrans_ren_ren_tm (xi_vl zeta_vl theta_vl: ren) (E_vl: funcomp (xi_v
   | tapp s0 s1 =>
       apc (ap tapp (compTrans_ren_ren_tm xi_vl zeta_vl theta_vl E_vl s0)) ((compTrans_ren_ren_tm xi_vl zeta_vl theta_vl E_vl s1))
   | tproj s0 s1 => apc (ap tproj (compTrans_ren_ren_tm xi_vl zeta_vl theta_vl E_vl s0)) ((eq_refl))
+  | tskip s0 => ap tskip (compTrans_ren_ren_tm xi_vl zeta_vl theta_vl E_vl s0)
   end
  with compTrans_ren_ren_vl (xi_vl zeta_vl theta_vl: ren) (E_vl: funcomp (xi_vl) (zeta_vl) == theta_vl) (s: vl)
         : ren_vl zeta_vl (ren_vl xi_vl s) = ren_vl theta_vl s :=
@@ -1004,6 +1012,7 @@ Fixpoint compTrans_ren_subst_tm (xi_vl: ren) (tau_vl theta_vl: index -> vl) (E_v
   | tv s0 => ap tv (compTrans_ren_subst_vl xi_vl _ _ E_vl s0)
   | tapp s0 s1 => apc (ap tapp (compTrans_ren_subst_tm xi_vl _ _ E_vl s0)) ((compTrans_ren_subst_tm xi_vl _ _ E_vl s1))
   | tproj s0 s1 => apc (ap tproj (compTrans_ren_subst_tm xi_vl _ _ E_vl s0)) ((eq_refl))
+  | tskip s0 => ap tskip (compTrans_ren_subst_tm xi_vl _ _ E_vl s0)
   end
  with compTrans_ren_subst_vl (xi_vl: ren) (tau_vl theta_vl: index -> vl) (E_vl: (fun x =>  tau_vl (xi_vl x)) == theta_vl) (s: vl)
         : subst_vl tau_vl (ren_vl xi_vl s) = subst_vl theta_vl s :=
@@ -1197,6 +1206,7 @@ Fixpoint compTrans_subst_ren_tm (sigma_vl: index -> vl)
   | tv s0 => ap tv (compTrans_subst_ren_vl _ zeta_vl _ E_vl s0)
   | tapp s0 s1 => apc (ap tapp (compTrans_subst_ren_tm _ zeta_vl _ E_vl s0)) ((compTrans_subst_ren_tm _ zeta_vl _ E_vl s1))
   | tproj s0 s1 => apc (ap tproj (compTrans_subst_ren_tm _ zeta_vl _ E_vl s0)) ((eq_refl))
+  | tskip s0 => ap tskip (compTrans_subst_ren_tm _ zeta_vl _ E_vl s0)
   end
  with compTrans_subst_ren_vl (sigma_vl: index -> vl)
         (zeta_vl: ren)
@@ -1385,6 +1395,7 @@ Fixpoint compTrans_subst_subst_tm (sigma_vl tau_vl theta_vl: index -> vl)
   | tv s0 => ap tv (compTrans_subst_subst_vl _ _ _ E_vl s0)
   | tapp s0 s1 => apc (ap tapp (compTrans_subst_subst_tm _ _ _ E_vl s0)) ((compTrans_subst_subst_tm _ _ _ E_vl s1))
   | tproj s0 s1 => apc (ap tproj (compTrans_subst_subst_tm _ _ _ E_vl s0)) ((eq_refl))
+  | tskip s0 => ap tskip (compTrans_subst_subst_tm _ _ _ E_vl s0)
   end
  with compTrans_subst_subst_vl (sigma_vl tau_vl theta_vl: index -> vl) (E_vl: (fun x =>  subst_vl tau_vl (sigma_vl x)) == theta_vl) (s: vl)
         : subst_vl tau_vl (subst_vl sigma_vl s) = subst_vl theta_vl s :=
@@ -1527,6 +1538,7 @@ Fixpoint subst_eq_tm {sigma tau: subst_of subst_of_tm} (E: eq_of_subst sigma tau
   | tv s0 => congr_tv (subst_eq_vl (eq_cast_tm_vl E) s0)
   | tapp s0 s1 => congr_tapp (subst_eq_tm E s0) (subst_eq_tm E s1)
   | tproj s0 s1 => congr_tproj (subst_eq_tm E s0) (eq_refl)
+  | tskip s0 => congr_tskip (subst_eq_tm E s0)
   end
  with subst_eq_vl {sigma tau: subst_of subst_of_vl} (E: eq_of_subst sigma tau) (s: vl) : subst_vl sigma s = subst_vl tau s :=
   match s with
@@ -1705,6 +1717,11 @@ Instance asimplInst_tproj (s0 s1 s0' s1': _)
 (E_1': AsimplSubst_label sigma theta_1)
 (E_0: AsimplInst_tm s0 theta_0 s0')
 (E_1: AsimplInst_label s1 theta_1 s1') : AsimplInst_tm (tproj s0 s1) sigma (tproj s0' s1').
+Admitted.
+Instance asimplInst_tskip (s0 s0': _)
+(sigma theta_0: subst_of subst_of_tm)
+(E_0': AsimplSubst_tm (sigma) theta_0)
+(E_0: AsimplInst_tm s0 theta_0 s0') : AsimplInst_tm (tskip s0) sigma (tskip s0').
 Admitted.
 
 Instance AsimplId_tm (s: tm) : AsimplInst_tm s var_vl s.

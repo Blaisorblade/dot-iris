@@ -12,6 +12,7 @@ vobj : (vl -> dms) -> vl
 tv: vl -> tm
 tapp: tm -> tm -> tm
 tproj : tm -> label -> tm
+tskip: tm -> tm
 
 dtysyn: ty -> dm
 dtysem: vls -> gname -> dm

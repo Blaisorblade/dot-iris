@@ -36,6 +36,8 @@ Section Sec.
       t_tm σ t11 t21 ∧ t_tm σ t12 t22
     | (tproj t1 l1, tproj t2 l2) =>
       t_tm σ t1 t2 ∧ ⌜l1 = l2⌝
+    | (tskip t1, tskip t2) =>
+      t_tm σ t1 t2
     | _ => False
     end%I
   with
@@ -154,6 +156,8 @@ Section Sec.
       is_syn_tm n t1 ∧ is_syn_tm n t2
     | tproj t l =>
       is_syn_tm n t
+    | tskip t =>
+      is_syn_tm n t
     end
   with
   is_syn_vl (n: nat) (v1: vl): Prop :=
@@ -263,6 +267,8 @@ Section Sec.
       same_skel_tm t11 t21 ∧ same_skel_tm t12 t22
     | (tproj t1 l1, tproj t2 l2) =>
       same_skel_tm t1 t2 ∧ l1 = l2
+    | (tskip t1, tskip t2) =>
+      same_skel_tm t1 t2
     | _ => False
     end
   with
