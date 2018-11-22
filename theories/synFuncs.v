@@ -11,6 +11,8 @@ Import gnameMod.
 Module SynG := Syn gnameMod.
 Export SynG.
 
+Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
+
 Fixpoint dms_to_list (ds: dms) : list dm :=
   match ds with
   | dnil => []

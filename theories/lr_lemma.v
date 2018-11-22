@@ -1,8 +1,7 @@
 Require Import Dot.tactics.
 Require Import Dot.unary_lr.
 
-Implicit Types T: ty.
-Implicit Types e: tm.
+Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
 Section Sec.
   Context `{HdotG: dotG Σ}.

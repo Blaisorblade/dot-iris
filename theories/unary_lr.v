@@ -4,7 +4,10 @@ Export lang.
 
 Definition logN : namespace := nroot .@ "logN".
 
-Implicit Types (e: tm).
+(** Deduce types from variable names, like on paper, for readability and to help
+    type inference for some overloaded operations (e.g. substitution). *)
+Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
+
 Section Sec.
   Context `{dotG Σ}.
 
@@ -21,10 +24,10 @@ Section Sec.
   (* Semantic types for expressions. *)
   Notation ED := (tmC -n> iProp Σ).
 
-  Program Definition curryD {A B cC}: (leibnizC (A * B) -n> cC) -n> leibnizC A -n> (leibnizC B -n> cC) := λne φ ρ v, φ (ρ, v).
+  Program Definition curryD {A B cC}: (leibnizC (A * B) -n> cC) -n> leibnizC A -n> (leibnizC B -n> cC) := λne φ a b, φ (a, b).
   Solve Obligations with solve_proper.
 
-  Program Definition uncurryD {A B cC}: (leibnizC A -n> leibnizC B -n> cC) -n> (leibnizC (A * B) -n> cC) := λne φ ρv, let '(ρ, v) := ρv in φ ρ v.
+  Program Definition uncurryD {A B cC}: (leibnizC A -n> leibnizC B -n> cC) -n> (leibnizC (A * B) -n> cC) := λne φ ab, let '(a, b) := ab in φ a b.
   Next Obligation. intros; by move => [? ?] [? ?] [-> ->] /=. Qed.
   Next Obligation. intros; move => ? ? ? [? ?] /=. by solve_proper. Qed.
   Lemma curryDuncurryD {A B cC} (f: leibnizC A -n> leibnizC B -n> cC): curryD (uncurryD f) ≡ f.
@@ -218,10 +221,10 @@ Section Sec.
                                        try apply _.
   Qed.
 
-  Global Instance defs_interp_persistent T ρ v :
-    Persistent (defs_interp T ρ v).
+  Global Instance defs_interp_persistent T ρ ds :
+    Persistent (defs_interp T ρ ds).
   Proof.
-    revert v ρ; induction T; simpl; try apply _.
+    revert ds ρ; induction T; simpl; try apply _.
   Qed.
 
   Global Instance interp_env_persistent Γ ρ :

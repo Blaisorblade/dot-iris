@@ -6,7 +6,7 @@ Section Sec.
   Context `{HdotG: dotG Σ}.
 
   Context (Γ: list ty).
-  Implicit Types T: ty.
+  Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
   (**
      Lemmas about definition typing.
@@ -38,7 +38,7 @@ Section Sec.
     TODO: prove what I actually want, now that we store envD.
   *)
   Lemma dtp_tmem_i T γ ρ ds:
-    γ ⤇  uinterp T -∗ ⟦Γ⟧* ρ -∗
+    γ ⤇ uinterp T -∗ ⟦Γ⟧* ρ -∗
     defs_interp (TTMem (dms_length ds) T T) ρ (dcons (dtysem (idsσ ρ) γ) ds).
   Proof.
     iIntros "#Hv * #Hg /=".
@@ -169,7 +169,7 @@ Section Sec.
     *)
 
   Lemma idtp_tmem_i T γ ds ρ1:
-    γ ⤇ (uinterp T) -∗
+    γ ⤇ uinterp T -∗
     idtp Γ (TTMem (dms_length ds) T T) (dcons (dtysem (idsσ ρ1) γ) ds).
   Proof.
     unfold idtp.

@@ -2,11 +2,12 @@ Require Import Dot.tactics.
 Require Import Dot.unary_lr.
 Require Import Dot.synLemmas.
 
+Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
+
 Section Sec.
   Context `{HdotG: dotG Σ}.
 
   Context (Γ: list ty).
-  Implicit Types T: ty.
 
   Lemma mem_stp_sela_sub L U va l:
     ivtp Γ (TTMem l L U) va -∗

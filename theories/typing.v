@@ -8,12 +8,8 @@ Reserved Notation "Γ ⊢ { l = d } : T" (at level 64, l, d, T at next level).
 Reserved Notation "Γ ⊢ds ds : T" (at level 74, ds, T at next level).
 Reserved Notation "Γ ⊢ₜ T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
 
-Implicit Type L T U: ty.
-Implicit Type v: vl.
-Implicit Type e: tm.
-Implicit Type d: dm.
-Implicit Type ds: dms.
-Implicit Type Γ : list ty.
+Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
+
 (**
 Judgments for typing, subtyping, path and definition typing.
 TODO: index the typing judgment as well.

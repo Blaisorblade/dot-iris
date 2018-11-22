@@ -3,7 +3,6 @@ Require Import Dot.unary_lr.
 Require Import Dot.synLemmas.
 (* Workflow: Use this file for new experiments, and move experiments here in appropriate files once they're done. *)
 
-Implicit Types T: ty.
 Section Sec.
   Context `{HdotG: dotG Σ}.
 
