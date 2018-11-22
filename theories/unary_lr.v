@@ -127,12 +127,13 @@ Section Sec.
 
   Canonical Structure dmC := leibnizC dm.
 
-  Program Definition interp_selA_final (l: label) (L U: D): list vl -> option vl -> D :=
+  Program Definition interp_selA_final (l: label) (interpL interpU: D): list vl -> option vl -> D :=
     λ ρ optVa, λne v,
-    (∃ va σ ϕ ds, ⌜ optVa = Some va ⌝ ∧ ⌜ va ↗ ds ⌝ ∧ ds;l ↘ σ , ϕ ∧ U v ∧ (L v ∨ ▷ subst_phi σ ρ ϕ v))%I.
+    (∃ va σ ϕ ds, ⌜ optVa = Some va ⌝ ∧ ⌜ va ↗ ds ⌝ ∧ ds;l ↘ σ , ϕ ∧ interpU v ∧ (interpL v ∨ ▷ subst_phi σ ρ ϕ v))%I.
   (* I first assumed that va and hence ϕ is closed, but it's not obvious I can. In fact, if va comes from within the type, it can probably be open. *)
     (* (∃ va σ ϕ ds, ⌜ optVa = Some va ⌝ ∧ ⌜ va ↗ ds ⌝ ∧ ds;l ↘ σ , ϕ ∧ U v ∧ (L v ∨ ▷  subst_phi0 σ ϕ v))%I. *)
 
+  (** XXX Pretty confusing that we only go a step down at the end. *)
   Fixpoint interp_sel_rec (ls: list label) (interp_k: option vl -> D): option vl -> D :=
     λ optVa, λne v,
     match ls with
