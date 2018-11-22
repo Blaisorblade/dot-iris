@@ -98,6 +98,10 @@ with path_typed Γ: path → ty → nat → Prop :=
 | pself_typed p T i l:
     Γ ⊢ₚ p : T, i →
     Γ ⊢ₚ pself p l : T, i
+| p_subs_typed p T1 T2 i j :
+    Γ ⊢ₜ T1, i <: T2, j → Γ ⊢ₚ p : T1, i →
+    (*───────────────────────────────*)
+    Γ ⊢ₚ p : T2, j
 
 (* Γ ⊢ₜ T1, i1 <: T2, i2 means that TLater^i1 T1 <: TLater^i2 T2. *)
 with subtype Γ : ty → nat → ty → nat → Prop :=
