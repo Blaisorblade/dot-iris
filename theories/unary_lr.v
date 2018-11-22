@@ -4,12 +4,22 @@ Export lang.
 
 Definition logN : namespace := nroot .@ "logN".
 
+Implicit Types (e: tm).
 Section Sec.
   Context `{dotG Σ}.
 
   (* Semantic types *)
   Notation D := (vlC -n> iProp Σ).
   Notation envD := (listVlVlC -n> iProp Σ).
+  Implicit Types τi : D.
+
+  Canonical Structure listVlDmsC := leibnizC (list vl * dms).
+  (* Definition semantic types *)
+  Notation MD := (dmsC -n> iProp Σ).
+  Notation envMD := (listVlDmsC -n> iProp Σ).
+
+  (* Semantic types for expressions. *)
+  Notation ED := (tmC -n> iProp Σ).
 
   Program Definition curryD {A B cC}: (leibnizC (A * B) -n> cC) -n> leibnizC A -n> (leibnizC B -n> cC) := λne φ ρ v, φ (ρ, v).
   Solve Obligations with solve_proper.
@@ -21,22 +31,6 @@ Section Sec.
   Proof. by intros ? ?. Qed.
   Lemma uncurryDcurryD {A B cC} (f: leibnizC (A * B) -n> cC): uncurryD (curryD f) ≡ f.
   Proof. by intros [? ?]. Qed.
-
-  Definition curryD1: envD -n> listVlC -n> D := curryD.
-  Definition uncurryD1: (listVlC -n> D) -n> envD := uncurryD.
-
-  Implicit Types τi : D.
-
-  Canonical Structure listVlDmsC := leibnizC (list vl * dms).
-  (* Definition semantic types *)
-  Notation MD := (dmsC -n> iProp Σ).
-  Notation envMD := (listVlDmsC -n> iProp Σ).
-
-  Notation inclusion P Q := (□∀ v, P v -∗ Q v)%I.
-
-  (* Recall that ▷(P ⇒ Q) ⊢ ▷ P ⇒ ▷ Q but not viceversa. Use the weaker choice to enable
-     proving the definition typing lemma dtp_tmem_abs_i. *)
-  Notation inclusionLater P Q := (□∀ v, ▷ P v -∗ ▷ Q v)%I.
 
   Definition idms_proj_semtype ds l σ' φ : iProp Σ :=
     (∃ γ, ⌜ index_dms l ds = Some(dtysem σ' γ) ⌝ ∗ γ ⤇ φ)%I.
@@ -54,10 +48,31 @@ Section Sec.
   Definition interp_vmem l (interp : envD) : envD := uncurryD (λne ρ, λne v,
     (∃ ds, ⌜ v ↗ ds ⌝ ∧ curryD (defs_interp_vmem l interp) ρ ds))%I.
 
+  (** Pointwise lifting of later to predicates. *)
+  Program Definition delayPred `(P: A -n> iProp Σ): A -n> iProp Σ := λne a, (▷ P a)%I.
+  Solve Obligations with solve_proper.
+  Global Arguments delayPred /.
+
+  (** Expression closure from [D] to [ED]. *)
+  Definition expr_of_pred (φ: D): ED := λne e, WP e {{ φ }} % I.
+  Global Arguments expr_of_pred /.
+  Definition interp_expr (φ: envD): listVlC -n> ED := λne ρ, expr_of_pred (curryD φ ρ).
+
+  Notation inclusion P Q := (□∀ x, P x → Q x)%I.
+  Definition D_stp (P Q: D) : iProp Σ := inclusion (expr_of_pred P) (expr_of_pred Q).
+  Global Arguments D_stp /.
+  (* Recall that ▷(P ⇒ Q) ⊢ ▷ P ⇒ ▷ Q but not viceversa. Use the weaker choice to enable
+     proving the definition typing lemma dtp_tmem_abs_i. *)
+  Definition D_stp_later P Q := D_stp (delayPred P) (delayPred Q).
+  Global Arguments D_stp_later /.
+
   Definition subst_phi (σ: vls) (ρ: list vl) (φ: list vl * vl -> iProp Σ): D := λne v, φ (vls_to_list (σ.[to_subst ρ]), v).
 
   Definition defs_interp_tmem l (interp1 interp2: envD): envMD := uncurryD (λne ρ, λne ds,
-    (∃ φ σ, (ds;l ↘ σ , φ) ∗ inclusionLater (curryD interp1 ρ) (subst_phi σ ρ φ) ∗ inclusionLater (subst_phi σ ρ φ) (curryD interp2 ρ) ∗ inclusion (curryD interp1 ρ) (curryD interp2 ρ) ))%I.
+    (∃ φ σ, (ds;l ↘ σ , φ) ∗
+                           D_stp_later (curryD interp1 ρ) (subst_phi σ ρ φ) ∗
+                           D_stp_later (subst_phi σ ρ φ) (curryD interp2 ρ) ∗
+                           D_stp (curryD interp1 ρ) (curryD interp2 ρ)))%I.
     (* (∃ φ σ, (ds;l ↘ σ , φ) ∗ (inclusion (interp1 ρ) (φ (σ.[to_subst ρ]))) ∗ inclusion φ (interp2 ρ) )%I. *)
 
   Definition interp_tmem l (interp1 interp2 : envD) : envD := uncurryD (λne ρ, λne v,
@@ -71,9 +86,6 @@ Section Sec.
 
   Definition interp_later (interp : envD) : envD := λne ρv,
          (▷ (interp ρv)) % I.
-
-  Definition interp_expr (φ: envD): listVlC -n> tmC -n> iProp Σ := λne ρ e,
-    WP e {{ curryD φ ρ }} % I.
 
   Definition interp_forall (interp1 interp2 : envD) : envD := uncurryD (λne ρ, λne v,
     (□ ▷ ∀ v', curryD interp1 ρ v' -∗ interp_expr interp2 (v :: ρ) (tapp (tv v) (tv v')))) % I.
@@ -220,30 +232,74 @@ Section Sec.
     - simpl. destruct ρ; rewrite /Persistent; eauto.
   Qed.
 
-  Implicit Types T: ty.
-
   (* Definitions for semantic (definition) (sub)typing *)
-  Definition ivstp Γ T1 T2: iProp Σ := (□∀ v ρ, ⟦Γ⟧* ρ → ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
-  Global Arguments ivstp /.
-
-  Definition ivtp Γ T v : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ ρ v)%I.
-  Global Arguments ivtp /.
-
   Definition idtp Γ T ds : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → defs_interp T ρ ds)%I.
   Global Arguments idtp /.
 
   Notation "⟦ T ⟧ₑ" := (interp_expr (uinterp T)).
-  Definition istp Γ T1 T2 : iProp Σ := (□∀ e ρ, ⟦Γ⟧* ρ → ⟦T1⟧ₑ ρ e -∗ ⟦T2⟧ₑ ρ e)%I.
+  Definition istp Γ T1 T2 : iProp Σ := (□∀ e ρ, ⟦Γ⟧* ρ → ⟦T1⟧ₑ ρ e → ⟦T2⟧ₑ ρ e)%I.
   Global Arguments istp /.
 
-  Implicit Types e: tm.
+  Definition ivtp Γ T v : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ ρ v)%I.
+  Global Arguments ivtp /.
+
   Definition ietp Γ T e : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ₑ ρ (e.[to_subst ρ]))%I.
+  Global Arguments ietp /.
+
+  (* Pretty clearly, this isn't quite what we want. *)
+  Definition ivstp Γ T1 T2: iProp Σ := (□∀ v ρ, ⟦Γ⟧* ρ → ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
+  Global Arguments ivstp /.
+
+  (* Value subtyping, defined to be equivalent to (expression) subtyping. *)
+  Definition uvstp Γ T1 T2: iProp Σ :=
+    (□∀ v ρ, ⟦Γ⟧*ρ -∗ ((*|={⊤}=>*) ⟦T1⟧ ρ v) → |={⊤}=> ⟦T2⟧ ρ v)%I.
+  Global Arguments uvstp /.
 End Sec.
 
 Notation "⟦ T ⟧" := (interp T).
 Notation "⟦ Γ ⟧*" := (interp_env Γ).
 Notation "⟦ T ⟧ₑ" := (interp_expr (uinterp T)).
 
-Notation "Γ ⊨ T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).
-Notation "Γ ⊨e T1 <: T2" := (istp Γ T1 T2) (at level 74, T1, T2 at next level).
+Notation "Γ ⊨ T1 <: T2" := (istp Γ T1 T2) (at level 74, T1, T2 at next level).
 Notation "Γ ⊨ e : T" := (ietp Γ e T) (at level 74, e, T at next level).
+
+Notation "Γ ⊨v T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).
+Notation "Γ ⊨> T1 <: T2" := (uvstp Γ T1 T2) (at level 74, T1, T2 at next level).
+
+Section SubTypingEquiv.
+  Context `{HdotG: dotG Σ} (Γ: list ty).
+
+  (** We prove that vstp and stp are equivalent, so that we can use them
+      interchangeably; and in my previous proofs, proving uvstp was easier. *)
+
+  Lemma iStpUvstp T1 T2: (Γ ⊨ T1 <: T2 → Γ ⊨> T1 <: T2)%I.
+  Proof.
+    (* Inspired by the proof of wp_value_inv'! *)
+
+    (* More manual.*)
+    (* iIntros "/= #Hsub !> * #Hg *". *)
+    (* iSpecialize ("Hsub" $! (of_val v) with "Hg"). *)
+    (* rewrite !wp_unfold /wp_pre /=. iIntros. by iApply "Hsub". *)
+    (* Restart. *)
+    iIntros "/= #Hsub !> * #Hg *".
+    setoid_rewrite wp_unfold.
+    iIntros.
+    by iApply ("Hsub" $! (of_val v)).
+  Qed.
+
+  (* And subtyping later is enough to imply expression subtyping: *)
+  Lemma iVstpUpdatedStp T1 T2: (Γ ⊨> T1 <: T2 → Γ ⊨ T1 <: T2)%I.
+  Proof.
+    iIntros "/= #Hstp !> * #Hg HeT1".
+    (* Low level: *)
+    (* by iApply (wp_strong_mono with "HeT1"); *)
+    (*   last (iIntros "* HT1"; iApply "Hstp"). *)
+    (* Just with proof rules documented in the appendix. *)
+    iApply wp_fupd.
+    iApply (wp_wand with " [-]"); try iApply "HeT1".
+    iIntros "* HT1". by iApply "Hstp".
+  Qed.
+
+  Lemma istpEqIvstp T1 T2: ((Γ ⊨ T1 <: T2) ∗-∗ (Γ ⊨> T1 <: T2))%I.
+  Proof. iSplit; iIntros; by [iApply iStpUvstp| iApply iVstpUpdatedStp]. Qed.
+End SubTypingEquiv.

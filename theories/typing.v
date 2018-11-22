@@ -2,7 +2,6 @@ Require Import Dot.tactics.
 Require Import Dot.operational.
 Import operational.lang.
 
-(* Print Grammar constr. *)
 Reserved Notation "Γ ⊢ₜ e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ ⊢ₚ p : T , i" (at level 74, p, T, i at next level).
 Reserved Notation "Γ ⊢ { l = d } : T" (at level 64, l, d, T at next level).
@@ -15,11 +14,6 @@ Implicit Type e: tm.
 Implicit Type d: dm.
 Implicit Type ds: dms.
 Implicit Type Γ : list ty.
-
-Print ren.
-Print up_ty_vl.
-Definition wkT := toSubst_ty (+1).
-Definition wkV := toSubst_vl (+1).
 (**
 Judgments for typing, subtyping, path and definition typing.
 TODO: index the typing judgment as well.

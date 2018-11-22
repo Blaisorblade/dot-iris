@@ -76,4 +76,7 @@ Fixpoint idsσ (ρ: list vl): vls :=
   | _ :: ρ1 => push_var (idsσ ρ1)
   end.
 
+Definition wkT := toSubst_ty (+1).
+Definition wkV := toSubst_vl (+1).
+
 End SynFuncs.
