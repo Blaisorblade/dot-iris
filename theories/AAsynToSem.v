@@ -295,16 +295,14 @@ Section Sec.
       True
     | (dvl v1, dvl v2) => same_skel_vl v1 v2
     | _ => False
-    end
-  with
-  same_skel_path (p1 p2: path): Prop :=
+    end.
+  Fixpoint same_skel_path (p1 p2: path): Prop :=
     match (p1, p2) with
     | (pv v1, pv v2) => same_skel_vl v1 v2
     | (pself p1 l1, pself p2 l2) => same_skel_path p1 p2 ∧ l1 = l2
     | _ => False
-    end
-  with
-  same_skel_ty (T1 T2: ty): Prop :=
+    end.
+  Fixpoint same_skel_ty (T1 T2: ty): Prop :=
     match (T1, T2) with
     | (TTop, TTop) => True
     | (TBot, TBot) => True
