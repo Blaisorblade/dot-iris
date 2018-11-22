@@ -45,7 +45,7 @@ Section Sec.
     (* iExists _, _. iSplit. _auto. *)
     iExists (uinterp T), _. iSplit; first auto.
     rewrite <- idsσ_is_id.
-    repeat iSplit; repeat iModIntro; by iIntros "**".
+    repeat iSplit; repeat iModIntro; iIntros "**"; naive_solver.
   Qed.
 
   (* We can't write idtp_tmem_i as above, but for now we can write: *)
@@ -62,7 +62,7 @@ Section Sec.
 
   Lemma dtp_tmem_abs_i T L U γ ρ ds:
     SP γ (uinterp T) -∗ ⟦Γ⟧* ρ -∗
-    Γ ⊨ L <: U -∗
+    Γ ⊨> L <: U -∗
     (* We want the next two hypotheses to hold in a later world, but for this Γ,
        both because that's what we need to introduce, and because it allows
        using Γ *now* to establish the assumption.
@@ -84,16 +84,44 @@ Section Sec.
 
        And that forces using the same implication in the logical relation
        (unlike I did originally). *)
-    (Γ ⊨ TLater T <: TLater U) -∗
-    (Γ ⊨ TLater L <: TLater T) →
+    (Γ ⊨> TLater T <: TLater U) -∗
+    (Γ ⊨> TLater L <: TLater T) →
     defs_interp (TTMem (dms_length ds) L U) ρ (dcons (dtysem (idsσ ρ) γ) ds).
   Proof.
     iIntros "#Hv * #Hg #HLU #HTU #HLT /=".
     iExists (uinterp T), _. iSplit; first auto.
     rewrite <- idsσ_is_id.
-    repeat iSplit;
-      iIntros "!> **"; [iApply "HLT" | iApply "HTU" | iApply "HLU"]; done.
+
+    repeat iSplit; iIntros "!> *".
+    - iIntros "#HL".
+      iSpecialize ("HLT" with "Hg").
+      iDestruct ("HLT" with "HL") as ">#HLT1". by repeat iModIntro.
+    - iIntros "#HT". by iApply "HTU"; last naive_solver.
+    - iIntros "#HL". by iApply "HLU"; last naive_solver.
   Qed.
+
+  (*     iSpecialize ("HTU" with "Hg"). *)
+  (*     iApply "HTU". *)
+  (*     iNext. *)
+  (*     info_eauto using later_persistently_1. *)
+      
+  (*     iDestruct (later_persistently_1 with "HT") as "#HT'". *)
+  (*     (* Require Import iris.base_logic.upred. *) *)
+  (*     (* (* Import uPred_primitive. *) *) *)
+  (*     (* rewrite bi.later_persistently. in "HT". *) *)
+  (*     (* iRewrite bi.later_persistently. in "HT". *) *)
+  (*     (* iPoseProof (bi.later_persistently with "HT") as "?". *) *)
+  (*     (* Search (▷ (□ _) ⊢ □ (▷ _))%I. *) *)
+  (*     (* iMod "HT". *) *)
+
+  (*     done. *)
+  (*     iDestruct ("HTU" with "HT'") as "HTU1". by repeat iModIntro. *)
+  (*   iApply "HLT". *)
+  (*   Check persistent. *)
+  (*   Check (persistent (interp_persistent _ _ _)). *)
+  (*   iApply "HLT". *)
+  (*   naive_solver. [iApply "HLT" | iApply "HTU" | iApply "HLU"]; done. *)
+  (* Qed. *)
 
   Lemma dtp_add_defs T ρ d ds:
     defs_interp T ρ ds -∗

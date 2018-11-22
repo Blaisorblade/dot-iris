@@ -64,8 +64,8 @@ Section Sec.
     ivstp (T1 :: Γ) T1 T2 -∗
     ivstp Γ (TMu T1) (TMu T2).
   Proof.
-    iIntros "/= #Hstp !>" (v ρ) "#Hg #HT1".
-    iApply ("Hstp" $! v (v :: ρ)); naive_solver.
+    iIntros "/= #Hstp !> * #Hg #HT1".
+    iApply ("Hstp" $! (v :: ρ) _); naive_solver.
   Qed.
 
   (*
@@ -84,7 +84,7 @@ Section Sec.
     { admit. }
     simpl.
     iRewrite "Hren".
-    iApply ("Hstp" $! v (v :: ρ)); naive_solver.
+    iApply ("Hstp" $! (v :: ρ) _); naive_solver.
   Admitted.
 
   (*
@@ -96,13 +96,13 @@ Section Sec.
     uvstp (T1.[wkT] :: Γ) (T1.[wkT]) T2 -∗
     uvstp Γ T1 (TMu T2).
   Proof.
-    iIntros "/= #Hstp !>" (v ρ) "#Hg #HT1".
+    iIntros "/= #Hstp !> * #Hg #HT1".
     (* Hopefully from a renaming/weakening lemma. *)
     iAssert (interp T1 ρ v ≡ interp T1.[wkT] (v :: ρ) v)%I as "#Hren".
     { admit. }
     simpl.
     iRewrite "Hren" in "HT1".
-    iApply ("Hstp" $! v (v :: ρ)); by try iSplit.
+    iApply ("Hstp" $! (v :: ρ) _); by try iSplit.
   Admitted.
 
   (* BEWARE NONSENSE IN NOTES:
@@ -123,7 +123,7 @@ Section Sec.
   Proof.
     iAssert (□ ∀ ρ, interp_env Γ ρ -∗ interp T.[v/] ρ v ≡ interp T (v :: ρ) v)%I as "#Hren".
     { admit. }
-    iSplit; iIntros "/= #Htp !>" (ρ) "#Hg";
+    iSplit; iIntros "/= #Htp !> * #Hg";
       iSpecialize ("Htp" $! ρ); iSpecialize ("Hren" $! ρ with "Hg").
     - iRewrite "Hren".
       by iApply "Htp".

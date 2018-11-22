@@ -6,6 +6,10 @@ Require Import Dot.synLemmas.
 Section Sec.
   Context `{HdotG: dotG Σ}.
 
+  (* Can't find how to use it. *)
+  Lemma later_persistently_1 (P: iProp Σ): (▷ □ P → ▷ P)%I.
+  Proof. iIntros; naive_solver. Qed.
+
   Definition uvstp2 Γ T1 T2: iProp Σ :=
     (□∀ ρ v, ⟦Γ⟧*ρ → |={⊤}=> (⟦T1⟧ ρ v) → ⟦T2⟧ ρ v)%I.
   Global Arguments uvstp2 /.
@@ -70,7 +74,7 @@ Section Sec.
   Lemma uvstp12 T1 T2: (uvstp Γ T1 T2 -∗ uvstp2 Γ T1 T2)%I.
   Proof.
     iIntros "/= #Hstp !> * #Hg".
-    iSpecialize ("Hstp" $! v ρ with "Hg").
+    iSpecialize ("Hstp" $! _ _ with "Hg").
     Fail iMod "Hstp".
     Fail iApply "Hstp".
     iIntros "!>".
@@ -109,7 +113,7 @@ Section Sec.
     iMod "HupdSp" as (γ) "#Hsp".
     iModIntro; iExists γ, _, _; iSplit; first auto.
     rewrite <- idsσ_is_id.
-    repeat iSplit; repeat iModIntro; by iIntros "**".
+    repeat iSplit; repeat iModIntro; iIntros "**"; naive_solver.
   Qed.
 
   (* (* Print saved_pred_own. *) *)

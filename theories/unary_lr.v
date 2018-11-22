@@ -61,22 +61,29 @@ Section Sec.
   Global Arguments expr_of_pred /.
   Definition interp_expr (φ: envD): listVlC -n> ED := λne ρ, expr_of_pred (curryD φ ρ).
 
-  Notation inclusion P Q := (□∀ x, P x → Q x)%I.
-  Definition D_stp (P Q: D) : iProp Σ := inclusion (expr_of_pred P) (expr_of_pred Q).
+  Definition D_stp (P Q: D) : iProp Σ := (□ ∀ v, P v → |={⊤}=> Q v)%I.
   Global Arguments D_stp /.
   (* Recall that ▷(P ⇒ Q) ⊢ ▷ P ⇒ ▷ Q but not viceversa. Use the weaker choice to enable
      proving the definition typing lemma dtp_tmem_abs_i. *)
   Definition D_stp_later P Q := D_stp (delayPred P) (delayPred Q).
   Global Arguments D_stp_later /.
 
-  Definition subst_phi (σ: vls) (ρ: list vl) (φ: list vl * vl -> iProp Σ): D := λne v, φ (vls_to_list (σ.[to_subst ρ]), v).
+  (** Substitute into saved predicate [φ] to obtain a value predicate in [D].
+      XXX instead of using persistence on ϕ, we might want to require that [ϕ]
+      is persistent, here or elsewhere.
+   *)
+  Definition subst_phi (σ: vls) (ρ: list vl) (φ: list vl * vl -> iProp Σ): D := λne v, (□ φ (vls_to_list (σ.[to_subst ρ]), v))%I.
+  Definition subst_phi0 (σ: vls) (φ: list vl * vl -> iProp Σ): D :=
+    λne v, (□φ (vls_to_list σ, v))%I.
+  Lemma subst_phi0_subst_phi σ φ: subst_phi0 σ φ ≡ subst_phi σ [] φ.
+  Proof. move => ? /=; by asimpl. Qed.
+
 
   Definition defs_interp_tmem l (interp1 interp2: envD): envMD := uncurryD (λne ρ, λne ds,
     (∃ φ σ, (ds;l ↘ σ , φ) ∗
                            D_stp_later (curryD interp1 ρ) (subst_phi σ ρ φ) ∗
                            D_stp_later (subst_phi σ ρ φ) (curryD interp2 ρ) ∗
                            D_stp (curryD interp1 ρ) (curryD interp2 ρ)))%I.
-    (* (∃ φ σ, (ds;l ↘ σ , φ) ∗ (inclusion (interp1 ρ) (φ (σ.[to_subst ρ]))) ∗ inclusion φ (interp2 ρ) )%I. *)
 
   Definition interp_tmem l (interp1 interp2 : envD) : envD := uncurryD (λne ρ, λne v,
     (∃ ds, ⌜ v ↗ ds ⌝ ∧ curryD (defs_interp_tmem l interp1 interp2) ρ ds))%I.
@@ -119,10 +126,6 @@ Section Sec.
   Arguments eval_split_path /.
 
   Canonical Structure dmC := leibnizC dm.
-
-  Definition subst_phi0 (σ: vls) (φ: list vl * vl -> iProp Σ): D := λne v, φ (vls_to_list σ, v).
-  Lemma subst_phi0_subst_phi σ φ: subst_phi0 σ φ ≡ subst_phi σ [] φ.
-  Proof. move => ? /=; by asimpl. Qed.
 
   Program Definition interp_selA_final (l: label) (L U: D): list vl -> option vl -> D :=
     λ ρ optVa, λne v,
@@ -240,7 +243,7 @@ Section Sec.
   Global Arguments idtp /.
 
   Notation "⟦ T ⟧ₑ" := (interp_expr (uinterp T)).
-  Definition istp Γ T1 T2 : iProp Σ := (□∀ e ρ, ⟦Γ⟧* ρ → ⟦T1⟧ₑ ρ e → ⟦T2⟧ₑ ρ e)%I.
+  Definition istp Γ T1 T2 : iProp Σ := (□∀ ρ e, ⟦Γ⟧* ρ → ⟦T1⟧ₑ ρ e → ⟦T2⟧ₑ ρ e)%I.
   Global Arguments istp /.
 
   Definition ivtp Γ T v : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ ρ v)%I.
@@ -250,12 +253,12 @@ Section Sec.
   Global Arguments ietp /.
 
   (* Pretty clearly, this isn't quite what we want. *)
-  Definition ivstp Γ T1 T2: iProp Σ := (□∀ v ρ, ⟦Γ⟧* ρ → ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
+  Definition ivstp Γ T1 T2: iProp Σ := (□∀ ρ v, ⟦Γ⟧* ρ → ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
   Global Arguments ivstp /.
 
   (* Value subtyping, defined to be equivalent to (expression) subtyping. *)
   Definition uvstp Γ T1 T2: iProp Σ :=
-    (□∀ v ρ, ⟦Γ⟧*ρ -∗ ((*|={⊤}=>*) ⟦T1⟧ ρ v) → |={⊤}=> ⟦T2⟧ ρ v)%I.
+    (□∀ ρ v, ⟦Γ⟧*ρ -∗ ((*|={⊤}=>*) ⟦T1⟧ ρ v) → |={⊤}=> ⟦T2⟧ ρ v)%I.
   Global Arguments uvstp /.
 End Sec.
 
@@ -287,7 +290,7 @@ Section SubTypingEquiv.
     iIntros "/= #Hsub !> * #Hg *".
     setoid_rewrite wp_unfold.
     iIntros.
-    by iApply ("Hsub" $! (of_val v)).
+    by iApply ("Hsub" $! _ (of_val v)).
   Qed.
 
   (* And subtyping later is enough to imply expression subtyping: *)
@@ -303,6 +306,6 @@ Section SubTypingEquiv.
     iIntros "* HT1". by iApply "Hstp".
   Qed.
 
-  Lemma istpEqIvstp T1 T2: ((Γ ⊨ T1 <: T2) ∗-∗ (Γ ⊨> T1 <: T2))%I.
+  Lemma istpEqIvstp T1 T2: (Γ ⊨ T1 <: T2) ≡ (Γ ⊨> T1 <: T2).
   Proof. iSplit; iIntros; by [iApply iStpUvstp| iApply iVstpUpdatedStp]. Qed.
 End SubTypingEquiv.
