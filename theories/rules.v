@@ -1,7 +1,6 @@
 From iris.program_logic Require Export weakestpre.
 From iris.program_logic Require Import ectx_lifting.
 From Dot Require Export operational.
-From stdpp Require Import fin_maps.
 
 Import operational.lang.
 
@@ -37,5 +36,9 @@ Section lang_rules.
 
   Global Instance pure_tlam ds l v :
     PureExec (dms_proj_val (selfSubst ds) l v) 1 (tproj (tv (vobj ds)) l) (tv v).
+  Proof. solve_pure_exec. Qed.
+
+  Global Instance pure_tskip t:
+    PureExec True 1 (tskip t) t.
   Proof. solve_pure_exec. Qed.
 End lang_rules.

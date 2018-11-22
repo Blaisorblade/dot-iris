@@ -415,6 +415,7 @@ Section Sec.
     - destruct_matches. eexists. split; first by econstructor. by eapply same_skel_tm_subst.
     - destruct_matches. subst. destruct (same_skel_dms_index ds d v l0 H1 H0) as [? [? ?]]. eexists.
       split; [by econstructor | done].
+    - destruct_matches. eexists. split; by [econstructor|idtac].
   Qed.
 
   Theorem simulation_skeleton t1 t1' t2 σ σ' ts:
