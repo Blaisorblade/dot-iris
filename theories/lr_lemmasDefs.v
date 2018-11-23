@@ -131,8 +131,10 @@ Section Sec.
   Proof. naive_solver. Qed.
 
   (* Check that Löb induction works as expected for proving introduction of
-   * objects. That part is trivial, but the scoping in the statement is all wrong.
-   * What I should prove instead is the following, and the correct statement involves closing substitutions!
+   * objects. Using Löb induction works easily, but the scoping in the statement should be
+   * checked (but might be okay now).
+   * What I should prove is the following, and the correct statement
+   * involves closing substitutions!
    *
    * Γ, x: ▷ T ⊨ ds : T
    * ---------------------
@@ -145,28 +147,41 @@ Section Sec.
     Program Definition interp_mu (interp : envD) : envD := uncurryD (λne ρ, λne v,
       (curryD interp (v::ρ) v.[up (ren var_vl)])) % I.
    *)
+  Lemma wip_hard T ds ρ:
+    let v0 := (vobj ds).[to_subst ρ] in
+    defs_uinterp T (v0 :: ρ, ds.[to_subst (v0 :: ρ)]) ⊢
+    uinterp T (v0 :: ρ, v0).
+  Admitted.
+
+  (* Copied from F_mu *)
+  Hint Extern 5 (IntoVal _ _) => eapply of_to_val; fast_done : typeclass_instances.
+  Hint Extern 10 (IntoVal _ _) =>
+    rewrite /IntoVal; eapply of_to_val; rewrite /= !to_of_val /=; solve [ eauto ] : typeclass_instances.
+
   (* XXX Seems needed for idtp_new_i as stated, but the scoping seems all wrong.
    * Instead, we need to use closing substitutions in both sides of the lemma;
    * Still missing: use of closing substitutions in the term. TODO: follow examples.
    *)
-  Lemma wip_hard T ds ρ:
-    defs_uinterp T (vobj ds :: ρ, ds) ⊢
-    uinterp T (vobj ds :: ρ, vobj ds).
-  Admitted.
-  Lemma dtp_new_i T ds ρ:
-    defs_interp T (vobj ds :: ρ) ds
-    ⊢
-    interp (TMu T) ρ (vobj ds).
-  Proof. by iApply wip_hard. Qed.
-
   Lemma idstp_new_i T ds:
     idstp (TLater T :: Γ) T ds ⊢
-    ivtp Γ (TMu T) (vobj ds).
+    ietp Γ (TMu T) (tv (vobj ds)).
   Proof.
     iIntros "/= #Hds !> * #Hρ".
+    change ((tv (vobj ds)).[to_subst ρ]) with (tv (vobj ds).[to_subst ρ]).
+    iApply wp_value.
     iLöb as "IH".
-    iApply wip_hard. by iApply "Hds"; auto.
+    (* set (v0 := (vobj ds).[to_subst ρ]). *)
+    iApply wip_hard.
+    iApply "Hds".
+    naive_solver.
   Qed.
+
+  (* Lemma dtp_new_i T ds ρ: *)
+  (*   defs_interp T (vobj ds :: ρ) ds *)
+  (*   ⊢ *)
+  (*   interp (TMu T) ρ (vobj ds). *)
+  (* Proof. iIntros. simpl. iApply wip_hard. Qed. *)
+
 
     (*
   "Hds" : ⟦ Γ ⟧* ρ ∗ ▷ (uinterp T) (vobj ds :: ρ, vobj ds) -∗ (defs_uinterp T) (vobj ds :: ρ, ds)
@@ -185,6 +200,8 @@ Section Sec.
     iIntros "/= #Hγ !> **".
     iSplit; try done.
     iExists (uinterp T), _. iSplit; first naive_solver.
+    Fail rewrite <- idsσ_is_id.
+    repeat iSplit; iIntros "".
   Abort.
 
 End Sec.

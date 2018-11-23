@@ -261,7 +261,7 @@ Section Sec.
   Definition idtp Γ T l d : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → def_interp T l ρ d)%I.
   Global Arguments idtp /.
 
-  Definition idstp Γ T ds : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → defs_interp T ρ ds)%I.
+  Definition idstp Γ T ds : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → defs_interp T ρ ds.[to_subst ρ])%I.
   Global Arguments idstp /.
 
   Notation "⟦ T ⟧ₑ" := (interp_expr (uinterp T)).
