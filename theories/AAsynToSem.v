@@ -46,6 +46,7 @@ Section Sec.
     | (var_vl i1, var_vl i2) => ⌜i1 = i2⌝
     | (vabs t1, vabs t2) => t_tm (push_var σ) t1 t2
     | (vobj ds1, vobj ds2) => t_dms (push_var σ) ds1 ds2
+    | (vnat n1, vnat n2) => ⌜ n1 = n2 ⌝
     | _ => False
     end%I
   with
@@ -91,6 +92,7 @@ Section Sec.
     | (TTMem l1 T11 T12, TTMem l2 T21 T22) => ⌜l1 = l2⌝ ∧ t_ty σ T11 T21 ∧ t_ty σ T12 T22
     | (TSel p1 l1, TSel p2 l2) => t_path σ p1 p2 ∧ ⌜l1 = l2⌝
     | (TSelA p1 l1 T11 T12, TSelA p2 l2 T21 T22) => t_path σ p1 p2 ∧ ⌜l1 = l2⌝ ∧ t_ty σ T11 T21 ∧ t_ty σ T12 T22
+                                                                                                       | (TNat, TNat) => True
     | _ => False
     end%I
   .
@@ -165,6 +167,7 @@ Section Sec.
     | var_vl i => i < n
     | vabs t => is_syn_tm (S n) t
     | vobj ds => is_syn_dms (S n) ds
+    | vnat n => True
     end
   with
   is_syn_dms (n: nat) (ds: dms): Prop :=
@@ -207,6 +210,7 @@ Section Sec.
     | TTMem l T1 T2 => is_syn_ty n T1 ∧ is_syn_ty n T2
     | TSel p l => is_syn_path n p
     | TSelA p l T1 T2 => is_syn_path n p ∧ is_syn_ty n T1 ∧ is_syn_ty n T2
+    | TNat => True
     end.
 
   Ltac iModSpec H xt :=
@@ -277,6 +281,7 @@ Section Sec.
     | (var_vl i1, var_vl i2) => i1 = i2
     | (vabs t1, vabs t2) => same_skel_tm t1 t2
     | (vobj ds1, vobj ds2) => same_skel_dms ds1 ds2
+    | (vnat n1, vnat n2) => n1 = n2
     | _ => False
     end
   with
@@ -320,6 +325,7 @@ Section Sec.
     | (TTMem l1 T11 T12, TTMem l2 T21 T22) => l1 = l2 ∧ same_skel_ty T11 T21 ∧ same_skel_ty T12 T22
     | (TSel p1 l1, TSel p2 l2) => same_skel_path p1 p2 ∧ l1 = l2
     | (TSelA p1 l1 T11 T12, TSelA p2 l2 T21 T22) => same_skel_path p1 p2 ∧ l1 = l2 ∧ same_skel_ty T11 T21 ∧ same_skel_ty T12 T22
+    | (TNat, TNat) => True
     | _ => False
     end.
 

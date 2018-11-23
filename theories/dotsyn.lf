@@ -5,7 +5,9 @@ dms: Type
 dm: Type
 label: Type
 gname: Type
+nat: Type
 
+vnat: nat -> vl
 vabs: (vl -> tm) -> vl
 vobj : (vl -> dms) -> vl
 
@@ -41,3 +43,4 @@ TVMem: label -> ty -> ty
 TTMem: label -> ty -> ty -> ty
 TSel: path -> label -> ty
 TSelA: path -> label -> ty -> ty -> ty
+TNat: ty

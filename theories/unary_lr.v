@@ -105,6 +105,7 @@ Section Sec.
     | var_vl n => ρ !! n
     | vabs t => Some (vabs t)
     | vobj ds => Some (vobj ds)
+    | vnat n => Some (vnat n)
     end.
 
   Fixpoint split_path (p: path): vl * list label :=
@@ -149,6 +150,13 @@ Section Sec.
   Definition interp_sel (p: path) (l: label) : envD :=
     interp_selA p l interp_false interp_true.
 
+  Definition interp_nat : envD :=
+    uncurryD (λne ρ v,
+              match v with
+              | vnat _ => True
+              | _ => False
+              end)%I.
+
   (** Uncurried interpretation. *)
   Fixpoint uinterp (T: ty) : envD :=
     match T with
@@ -157,6 +165,7 @@ Section Sec.
     | TAnd T1 T2 => interp_and (uinterp T1) (uinterp T2)
     | TOr T1 T2 => interp_or (uinterp T1) (uinterp T2)
     | TLater T => interp_later (uinterp T)
+    | TNat => interp_nat
     | TTop => interp_true
     | TBot => interp_false
     | TAll T1 T2 => interp_forall (uinterp T1) (uinterp T2)
