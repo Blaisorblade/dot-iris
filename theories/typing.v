@@ -76,11 +76,11 @@ Inductive typed Γ: tm → ty → Prop :=
 with dms_typed Γ: dms → ty → Prop :=
 | dnil_typed : Γ ⊢ds dnil : TTop
 | dcons_typed l d ds T1 T2 :
-    Γ ⊢ { l = d } : T1 →
+    Γ ⊢ds ds : T1 →
     l = dms_length ds →
-    Γ ⊢ds ds : T2 →
+    Γ ⊢ { l = d } : T2 →
     (*──────────────────────*)
-    Γ ⊢ds dcons d ds : TTop
+    Γ ⊢ds dcons d ds : TAnd T1 T2
 
 with dm_typed Γ : label → dm → ty → Prop :=
 | dty_typed l L T U:
