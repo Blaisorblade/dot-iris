@@ -84,11 +84,12 @@ with dms_typed Γ: dms → ty → Prop :=
 
 with dm_typed Γ : label → dm → ty → Prop :=
 | dty_typed l L T U:
+    Γ ⊢ₜ L, 0 <: U, 0 →
     Γ ⊢ₜ L, 1 <: T, 1 →
     Γ ⊢ₜ T, 1 <: U, 1 →
     Γ ⊢ { l = dtysyn T } : TTMem l L U
 | dvl_typed l v T:
-    Γ ⊢ₜ tv v : T →
+    Γ ⊢ₜ tv v : TLater T →
     Γ ⊢ { l = dvl v } : TVMem l T
 with path_typed Γ: path → ty → nat → Prop :=
 | pv_typed v T :
