@@ -16,13 +16,12 @@ Section Sec.
   Notation envD := (listVlVlC -n> iProp Σ).
   Implicit Types τi : D.
 
-  Canonical Structure listVlDmsC := leibnizC (list vl * dms).
   (* Definition semantic types *)
-  Notation MD := (dmsC -n> iProp Σ).
-  Notation envMD := (listVlDmsC -n> iProp Σ).
+  Notation DsD := (dmsC -n> iProp Σ).
+  Notation envDsD := (listVlDmsC -n> iProp Σ).
 
-  (* Semantic types for expressions. *)
-  Notation ED := (tmC -n> iProp Σ).
+  (* Semantic types for terms. *)
+  Notation TD := (tmC -n> iProp Σ).
 
   Program Definition curryD {A B cC}: (leibnizC (A * B) -n> cC) -n> leibnizC A -n> (leibnizC B -n> cC) := λne φ a b, φ (a, b).
   Solve Obligations with solve_proper.
@@ -45,7 +44,7 @@ Section Sec.
   Global Arguments idms_proj_val /.
   Notation "ds ;; l ↘ w" := (idms_proj_val ds l w) (at level 20).
 
-  Definition defs_interp_vmem l (interp : envD): envMD := uncurryD (λne ρ, λne ds,
+  Definition defs_interp_vmem l (interp : envD): envDsD := uncurryD (λne ρ, λne ds,
     (∃ vmem, ds ;; l ↘ vmem ∧ ▷ curryD interp ρ vmem))%I.
 
   Definition interp_vmem l (interp : envD) : envD := uncurryD (λne ρ, λne v,
@@ -56,10 +55,10 @@ Section Sec.
   Solve Obligations with solve_proper.
   Global Arguments delayPred /.
 
-  (** Expression closure from [D] to [ED]. *)
-  Definition expr_of_pred (φ: D): ED := λne e, WP e {{ φ }} % I.
+  (** Expression closure from [D] to [TD]. *)
+  Definition expr_of_pred (φ: D): TD := λne e, WP e {{ φ }} % I.
   Global Arguments expr_of_pred /.
-  Definition interp_expr (φ: envD): listVlC -n> ED := λne ρ, expr_of_pred (curryD φ ρ).
+  Definition interp_expr (φ: envD): listVlC -n> TD := λne ρ, expr_of_pred (curryD φ ρ).
 
   Definition D_stp (P Q: D) : iProp Σ := (□ ∀ v, P v → |={⊤}=> Q v)%I.
   Global Arguments D_stp /.
@@ -79,7 +78,7 @@ Section Sec.
   Proof. move => ? /=; by asimpl. Qed.
 
 
-  Definition defs_interp_tmem l (interp1 interp2: envD): envMD := uncurryD (λne ρ, λne ds,
+  Definition defs_interp_tmem l (interp1 interp2: envD): envDsD := uncurryD (λne ρ, λne ds,
     (∃ φ σ, (ds;l ↘ σ , φ) ∗
                            D_stp_later (curryD interp1 ρ) (subst_phi σ ρ φ) ∗
                            D_stp_later (subst_phi σ ρ φ) (curryD interp2 ρ) ∗
@@ -183,12 +182,12 @@ Section Sec.
   (* Restore reduction behavior that interp had as a fixpoint. *)
   Global Arguments interp T /.
 
-  Definition defs_interp_and (interp1 interp2 : envMD): envMD := λne ρds,
+  Definition defs_interp_and (interp1 interp2 : envDsD): envDsD := λne ρds,
     (interp1 ρds ∧ interp2 ρds) % I.
-  Definition defs_interp_false : envMD := λne ρds, False % I.
-  Definition defs_interp_true : envMD := λne ρds, True % I.
+  Definition defs_interp_false : envDsD := λne ρds, False % I.
+  Definition defs_interp_true : envDsD := λne ρds, True % I.
 
-  Fixpoint defs_uinterp (T: ty) : envMD :=
+  Fixpoint defs_uinterp (T: ty) : envDsD :=
     match T with
     | TTMem l L U => defs_interp_tmem l (uinterp L) (uinterp U)
     | TVMem l T' => defs_interp_vmem l (uinterp T')

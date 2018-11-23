@@ -116,9 +116,15 @@ Section Sec.
 
   Canonical Structure vlC := leibnizC vl.
   Canonical Structure tmC := leibnizC tm.
+  Canonical Structure dmC := leibnizC dm.
   Canonical Structure dmsC := leibnizC dms.
+  Canonical Structure pathC := leibnizC path.
+
   Canonical Structure listVlC := leibnizC (list vl).
+
   Canonical Structure listVlVlC := leibnizC (list vl * vl).
+  Canonical Structure listVlDmC := leibnizC (list vl * dm).
+  Canonical Structure listVlDmsC := leibnizC (list vl * dms).
 End Sec.
 
 Notation envD Σ := (listVlVlC -n> iProp Σ).
