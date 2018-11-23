@@ -1775,8 +1775,14 @@ Definition subst_gname (sigma: subst_of subst_of_gname) (s: gname) : gname := s.
 Class AsimplInst_label (s: label) (sigma: subst_of subst_of_label) (t: label) := asimplInstEqn_label : (subst_label sigma) s = t .
 Hint Mode AsimplInst_label + + - : typeclass_instance.
 
+Instance AsimplInstRefl_label (s: label) (sigma: subst_of subst_of_label) : AsimplInst_label s sigma s |100.
+Proof. reflexivity. Qed.
+
 Class AsimplInst_gname (s: gname) (sigma: subst_of subst_of_gname) (t: gname) := asimplInstEqn_gname : (subst_gname sigma) s = t .
 Hint Mode AsimplInst_gname + + - : typeclass_instance.
+
+Instance AsimplInstRefl_gname (s: gname) (sigma: subst_of subst_of_gname) : AsimplInst_gname s sigma s |100.
+Proof. reflexivity. Qed.
 
 (* Definition comp_label (sigma tau: subst_of subst_of_label) : subst_of subst_of_label :=  *)
 (*   match sigma with *)
