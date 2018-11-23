@@ -51,6 +51,8 @@ Inductive typed Γ: tm → ty → Prop :=
     Γ ⊢ₜ tv v: T.[v/] →
     (*──────────────────────*)
     Γ ⊢ₜ tv v: TMu T
+| Nat_typed n:
+    Γ ⊢ₜ tv (vnat n) : TNat
 
 (** "General" rules *)
 | Var_typed x T :
