@@ -17,14 +17,13 @@ Section Sec.
      This way, [dcons d ds] keeps the existing labels for [ds] and uses a new
      one ([length ds]) for [d]. That's a bit like de Bruijn levels.
    *)
-  Lemma idtp_vmem_i T v ds:
+  Lemma idtp_vmem_i T v l:
     ▷ ivtp Γ T v -∗
-      idtp Γ (TVMem (dms_length ds) T) (dcons (dvl v) ds).
+      idtp Γ (TVMem l T) l (dvl v).
   Proof.
     iIntros "#Hv !> * #Hg /=".
-    iExists v; iSplit.
-    - by [].
-    - by iApply "Hv".
+    iSplit; try done.
+    iExists v; iSplit; try done. by iApply "Hv".
   Qed.
 
   (*
@@ -37,15 +36,16 @@ Section Sec.
 
     TODO: prove what I actually want, now that we store envD.
   *)
-  Lemma dtp_tmem_i T γ ρ ds:
+  Lemma dtp_tmem_i T γ ρ l :
     γ ⤇ uinterp T -∗ ⟦Γ⟧* ρ -∗
-    defs_interp (TTMem (dms_length ds) T T) ρ (dcons (dtysem (idsσ ρ) γ) ds).
+    def_interp (TTMem l T T) l ρ (dtysem (idsσ ρ) γ).
   Proof.
     iIntros "#Hv * #Hg /=".
     (* iExists _, _. iSplit. _auto. *)
-    iExists (uinterp T), _. iSplit; first auto.
+    iSplit; try done.
+    iExists (uinterp T), _. iSplit; first naive_solver.
     rewrite <- idsσ_is_id.
-    repeat iSplit; repeat iModIntro; iIntros "**"; naive_solver.
+    auto 8.
   Qed.
 
   (* We can't write idtp_tmem_i as above, but for now we can write: *)
@@ -60,7 +60,7 @@ Section Sec.
   (* Aborted. *)
 
 
-  Lemma dtp_tmem_abs_i T L U γ ρ ds:
+  Lemma dtp_tmem_abs_i T L U γ ρ l :
     SP γ (uinterp T) -∗ ⟦Γ⟧* ρ -∗
     Γ ⊨> L <: U -∗
     (* We want the next two hypotheses to hold in a later world, but for this Γ,
@@ -86,9 +86,10 @@ Section Sec.
        (unlike I did originally). *)
     (Γ ⊨> TLater T <: TLater U) -∗
     (Γ ⊨> TLater L <: TLater T) →
-    defs_interp (TTMem (dms_length ds) L U) ρ (dcons (dtysem (idsσ ρ) γ) ds).
+    def_interp (TTMem l L U) l ρ (dtysem (idsσ ρ) γ).
   Proof.
     iIntros "#Hv * #Hg #HLU #HTU #HLT /=".
+    iSplit; try done.
     iExists (uinterp T), _. iSplit; first auto.
     rewrite <- idsσ_is_id.
 
@@ -123,32 +124,11 @@ Section Sec.
   (*   naive_solver. [iApply "HLT" | iApply "HTU" | iApply "HLU"]; done. *)
   (* Qed. *)
 
-  Lemma dtp_add_defs T ρ d ds:
-    defs_interp T ρ ds -∗
-    defs_interp T ρ (dcons d ds).
-  Proof.
-    iInduction T as [] "IH".
-    all: iIntros "#HT /="; try done.
-    - iDestruct "HT" as "[? ?]". iSplit.
-      + by iApply "IH".
-      + by iApply "IH1".
-    - iDestruct "HT" as (vmem) "[% ?]".
-      iExists vmem; iSplit; try done.
-      by erewrite index_dms_extend.
-    - iDestruct "HT" as (φ σ) "[Hγ ?]".
-      iDestruct "Hγ" as (γ) "[% HSP]".
-      erewrite index_dms_extend; eauto 6.
-  Qed.
-
   Lemma dtp_tand_i T U ρ d ds:
     defs_interp T ρ ds -∗
-    defs_interp U ρ (dcons d ds) -∗
+    def_interp U (dms_length ds) ρ d -∗
     defs_interp (TAnd T U) ρ (dcons d ds).
-  Proof.
-    iIntros "#HT #HU /=".
-    iSplit; last done.
-    by iApply dtp_add_defs.
-  Qed.
+  Proof. naive_solver. Qed.
 
   (* Check that Löb induction works as expected for proving introduction of
    * objects. That part is trivial, but the scoping in the statement is all wrong.
@@ -179,8 +159,8 @@ Section Sec.
     interp (TMu T) ρ (vobj ds).
   Proof. by iApply wip_hard. Qed.
 
-  Lemma idtp_new_i T ds:
-    idtp (TLater T :: Γ) T ds ⊢
+  Lemma idstp_new_i T ds:
+    idstp (TLater T :: Γ) T ds ⊢
     ivtp Γ (TMu T) (vobj ds).
   Proof.
     iIntros "/= #Hds !> * #Hρ".
@@ -196,12 +176,15 @@ Section Sec.
 
     *)
 
-  Lemma idtp_tmem_i T γ ds ρ1:
+  (* Still wrong. The correct statement will arise from the translation. *)
+  Lemma idtp_tmem_i T γ l ρ1:
     γ ⤇ uinterp T -∗
-    idtp Γ (TTMem (dms_length ds) T T) (dcons (dtysem (idsσ ρ1) γ) ds).
+    idtp Γ (TTMem l T T) l (dtysem (idsσ ρ1) γ).
   Proof.
     unfold idtp.
     iIntros "/= #Hγ !> **".
+    iSplit; try done.
+    iExists (uinterp T), _. iSplit; first naive_solver.
   Abort.
 
 End Sec.

@@ -17,8 +17,8 @@ Section Sec.
   Implicit Types τi : D.
 
   (* Definition semantic types *)
-  Notation DsD := (dmsC -n> iProp Σ).
   Notation envDsD := (listVlDmsC -n> iProp Σ).
+  Notation envDD := (listVlDmC -n> iProp Σ).
 
   (* Semantic types for terms. *)
   Notation TD := (tmC -n> iProp Σ).
@@ -34,21 +34,11 @@ Section Sec.
   Lemma uncurryDcurryD {A B cC} (f: leibnizC (A * B) -n> cC): uncurryD (curryD f) ≡ f.
   Proof. by intros [? ?]. Qed.
 
-  Definition idms_proj_semtype ds l σ' φ : iProp Σ :=
-    (∃ γ, ⌜ index_dms l ds = Some(dtysem σ' γ) ⌝ ∗ γ ⤇ φ)%I.
-  Global Arguments idms_proj_semtype /.
-  Notation "ds ; l ↘ σ , φ" := (idms_proj_semtype ds l σ φ) (at level 20).
-
-  Definition idms_proj_val ds l w : iProp Σ :=
-    (⌜ dms_proj_val ds l w ⌝)%I.
-  Global Arguments idms_proj_val /.
-  Notation "ds ;; l ↘ w" := (idms_proj_val ds l w) (at level 20).
-
-  Definition defs_interp_vmem l (interp : envD): envDsD := uncurryD (λne ρ, λne ds,
-    (∃ vmem, ds ;; l ↘ vmem ∧ ▷ curryD interp ρ vmem))%I.
+  Definition def_interp_vmem (interp : envD): envDD := uncurryD (λne ρ, λne d,
+    (∃ vmem, ⌜ d = dvl vmem ⌝ ∧ ▷ curryD interp ρ vmem))%I.
 
   Definition interp_vmem l (interp : envD) : envD := uncurryD (λne ρ, λne v,
-    (∃ ds, ⌜ v ↗ ds ⌝ ∧ curryD (defs_interp_vmem l interp) ρ ds))%I.
+    (∃ d, ⌜ v @ l ↘ d ⌝ ∧ curryD (def_interp_vmem interp) ρ d))%I.
 
   (** Pointwise lifting of later to predicates. *)
   Program Definition delayPred `(P: A -n> iProp Σ): A -n> iProp Σ := λne a, (▷ P a)%I.
@@ -77,15 +67,19 @@ Section Sec.
   Lemma subst_phi0_subst_phi σ φ: subst_phi0 σ φ ≡ subst_phi σ [] φ.
   Proof. move => ? /=; by asimpl. Qed.
 
+  Definition idm_proj_semtype d σ' φ : iProp Σ :=
+    (∃ γ, ⌜ d = dtysem σ' γ ⌝ ∗ γ ⤇ φ)%I.
+  Global Arguments idm_proj_semtype /.
+  Notation "d ↗ σ , φ" := (idm_proj_semtype d σ φ) (at level 20).
 
-  Definition defs_interp_tmem l (interp1 interp2: envD): envDsD := uncurryD (λne ρ, λne ds,
-    (∃ φ σ, (ds;l ↘ σ , φ) ∗
+  Definition def_interp_tmem (interp1 interp2: envD): envDD := uncurryD (λne ρ, λne d,
+    (∃ φ σ, (d ↗ σ , φ) ∗
                            D_stp_later (curryD interp1 ρ) (subst_phi σ ρ φ) ∗
                            D_stp_later (subst_phi σ ρ φ) (curryD interp2 ρ) ∗
                            D_stp (curryD interp1 ρ) (curryD interp2 ρ)))%I.
 
   Definition interp_tmem l (interp1 interp2 : envD) : envD := uncurryD (λne ρ, λne v,
-    (∃ ds, ⌜ v ↗ ds ⌝ ∧ curryD (defs_interp_tmem l interp1 interp2) ρ ds))%I.
+    (∃ d, ⌜ v @ l ↘ d ⌝ ∧ curryD (def_interp_tmem interp1 interp2) ρ d))%I.
 
   Definition interp_and (interp1 interp2 : envD): envD := λne ρv,
     (interp1 ρv ∧ interp2 ρv) % I.
@@ -128,7 +122,7 @@ Section Sec.
 
   Program Definition interp_selA_final (l: label) (interpL interpU: D): list vl -> option vl -> D :=
     λ ρ optVa, λne v,
-    (∃ va σ ϕ ds, ⌜ optVa = Some va ⌝ ∧ ⌜ va ↗ ds ⌝ ∧ ds;l ↘ σ , ϕ ∧ interpU v ∧ (interpL v ∨ ▷ subst_phi σ ρ ϕ v))%I.
+    (∃ va σ ϕ d, ⌜ optVa = Some va ⌝ ∧ ⌜ va @ l ↘ d ⌝ ∧ d ↗ σ , ϕ ∧ interpU v ∧ (interpL v ∨ ▷ subst_phi σ ρ ϕ v))%I.
   (* I first assumed that va and hence ϕ is closed, but it's not obvious I can. In fact, if va comes from within the type, it can probably be open. *)
     (* (∃ va σ ϕ ds, ⌜ optVa = Some va ⌝ ∧ ⌜ va ↗ ds ⌝ ∧ ds;l ↘ σ , ϕ ∧ U v ∧ (L v ∨ ▷  subst_phi0 σ ϕ v))%I. *)
 
@@ -137,7 +131,7 @@ Section Sec.
     λ optVa, λne v,
     match ls with
     | l :: ls =>
-      (∃ va ds vb, ⌜ optVa = Some va ⌝ ∧ ⌜ va ↗ ds ⌝ ∧ ds;;l ↘ vb ∧ interp_k (Some vb) v)%I
+      (∃ va ds vb, ⌜ optVa = Some va ⌝ ∧ ⌜ va @ l ↘ dvl vb ⌝ ∧ interp_k (Some vb) v)%I
     | [] => interp_k optVa v
     end.
 
@@ -182,18 +176,37 @@ Section Sec.
   (* Restore reduction behavior that interp had as a fixpoint. *)
   Global Arguments interp T /.
 
-  Definition defs_interp_and (interp1 interp2 : envDsD): envDsD := λne ρds,
-    (interp1 ρds ∧ interp2 ρds) % I.
-  Definition defs_interp_false : envDsD := λne ρds, False % I.
-  Definition defs_interp_true : envDsD := λne ρds, True % I.
+  (** Semantics for typing of one definition and of a definition list.
+      Overall, typing of a definition check that the definition with a certain
+      label has the declared type; typing for definition lists traverses type
+      and definition in parallel.
+   *)
+
+  Definition defs_interp_and (interp1 : envDsD) (interp2: label -> envDD) : envDsD :=
+    uncurryD (λne ρ ds,
+              match ds with
+                | dnil => False
+                | dcons d ds =>
+                  curryD interp1 ρ ds ∧
+                  curryD (interp2 (dms_length ds)) ρ d
+             end) % I.
+
+  Fixpoint def_uinterp (T: ty) (l : label): envDD :=
+    match T with
+    | TTMem l' L U => λne ρd, ⌜ l = l' ⌝ ∧ def_interp_tmem (uinterp L) (uinterp U) ρd
+    | TVMem l' T' => λne ρd, ⌜ l = l' ⌝ ∧ def_interp_vmem (uinterp T') ρd
+    | _ => λne ρd, False
+    end % I.
+
+  Definition def_interp (T: ty) (l : label): list vl -> dm -> iProp Σ :=
+    λ ρ, curryD (def_uinterp T l) ρ.
+  Global Arguments def_interp T /.
 
   Fixpoint defs_uinterp (T: ty) : envDsD :=
     match T with
-    | TTMem l L U => defs_interp_tmem l (uinterp L) (uinterp U)
-    | TVMem l T' => defs_interp_vmem l (uinterp T')
-    | TAnd T1 T2 => defs_interp_and (defs_uinterp T1) (defs_uinterp T2)
-    | TTop => defs_interp_true
-    | _ => defs_interp_false
+    | TAnd T1 T2 => defs_interp_and (defs_uinterp T1) (def_uinterp T2)
+    | TTop => λne ρds, True
+    | _ => λne ρds, False
     end % I.
 
   Definition defs_interp (T: ty): list vl -> dms -> iProp Σ :=
@@ -224,10 +237,16 @@ Section Sec.
                                        try apply _.
   Qed.
 
+  Global Instance def_interp_persistent T l ρ d :
+    Persistent (def_interp T l ρ d).
+  Proof.
+    revert ρ d; induction T; simpl; try apply _.
+  Qed.
+
   Global Instance defs_interp_persistent T ρ ds :
     Persistent (defs_interp T ρ ds).
   Proof.
-    revert ds ρ; induction T; simpl; try apply _.
+    revert ds ρ; induction T; simpl; try destruct ds; try apply _.
   Qed.
 
   Global Instance interp_env_persistent Γ ρ :
@@ -239,8 +258,11 @@ Section Sec.
   Qed.
 
   (* Definitions for semantic (definition) (sub)typing *)
-  Definition idtp Γ T ds : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → defs_interp T ρ ds)%I.
+  Definition idtp Γ T l d : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → def_interp T l ρ d)%I.
   Global Arguments idtp /.
+
+  Definition idstp Γ T ds : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → defs_interp T ρ ds)%I.
+  Global Arguments idstp /.
 
   Notation "⟦ T ⟧ₑ" := (interp_expr (uinterp T)).
   Definition istp Γ T1 T2 : iProp Σ := (□∀ ρ e, ⟦Γ⟧* ρ → ⟦T1⟧ₑ ρ e → ⟦T2⟧ₑ ρ e)%I.

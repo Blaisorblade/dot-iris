@@ -35,7 +35,7 @@ Section lang_rules.
   Proof. solve_pure_exec. Qed.
 
   Global Instance pure_tlam ds l v :
-    PureExec (dms_proj_val (selfSubst ds) l v) 1 (tproj (tv (vobj ds)) l) (tv v).
+    PureExec (index_dms l (selfSubst ds) = Some (dvl v)) 1 (tproj (tv (vobj ds)) l) (tv v).
   Proof. solve_pure_exec. Qed.
 
   Global Instance pure_tskip t:

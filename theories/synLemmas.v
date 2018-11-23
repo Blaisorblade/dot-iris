@@ -51,22 +51,20 @@ Hint Resolve index_dcons.
 (** Rewrite v ↗ ds to vobj ds' ↗ ds. *)
 Ltac simplOpen ds' :=
   lazymatch goal with
-  | H: ?v ↗ ?ds |-_=>
-    inversion H as (ds' & -> & _)
+  | H: ?v @ ?l ↘ ?d |-_=>
+    inversion H as (ds & -> & _)
   end.
 
 (** Determinacy of obj_opens_to. *)
-Lemma openDet v ds1 ds2: v ↗ ds1 -> v ↗ ds2 -> ds1 = ds2.
+Lemma objLookupDet v l d1 d2: v @ l ↘ d1 -> v @ l ↘ d2 -> d1 = d2.
 Proof.
-  rewrite /obj_opens_to; intros; ev; by optFuncs_det.
+  rewrite /objLookup; intros; ev; by subst; injectHyps; optFuncs_det.
 Qed.
-Ltac openDet :=
+Ltac objLookupDet :=
   lazymatch goal with
-  | H1: ?v ↗ ?ds1, H2: ?v ↗ ?ds2 |- _=>
-    assert (ds1 = ds2) as <- by (eapply openDet; eassumption)
+  | H1: ?v @ ?l ↘ ?d1, H2: ?v @ ?l ↘ ?d2 |- _=>
+    assert (d2 = d1) as ? by (eapply objLookupDet; eassumption); injectHyps
   end.
-
-Arguments dms_proj_val /.
 
 Fixpoint idsσ1 i (ρ: list vl): vls :=
   match ρ with
@@ -74,6 +72,8 @@ Fixpoint idsσ1 i (ρ: list vl): vls :=
   | _ :: ρ1 => vlcons (var_vl i) (idsσ1 (S i) ρ1)
   end.
 (* Goal idsσ1 ρ !! i. *)
+
+Module testIds.
 
 Definition idv := vabs (tv (var_vl 0)).
 Definition fst := vabs (tv (vabs (tv (var_vl 1)))).
@@ -88,6 +88,8 @@ Goal testProp [idv; fst]. reflexivity. Qed.
 Goal testProp [fst; idv]. reflexivity. Qed.
 Goal testProp [fst; snd; idv]. reflexivity. Qed.
 Goal testProp [fst; snd; fst; snd; idv; snd; idv; fst; idv]. reflexivity. Qed.
+
+End testIds.
 
 (* Arguments to_subst /. *)
 Lemma idsσ_is_id ρ: ρ = vls_to_list (idsσ ρ).[to_subst ρ].

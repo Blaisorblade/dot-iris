@@ -47,14 +47,11 @@ Notation "s .[ v /]" := (s .[ v .: var_vl ])
     variable). To use when descending under the [vobj] binder. *)
 Definition selfSubst (ds: dms): dms := ds.[vobj ds/].
 
-Definition obj_opens_to v ds: Prop :=
-  ∃ ds', v = vobj ds' ∧ selfSubst ds' = ds.
-Notation "v ↗ ds" := (obj_opens_to v ds) (at level 20).
+Definition objLookup v l d: Prop :=
+  ∃ ds, v = vobj ds ∧ index_dms l (selfSubst ds) = Some d.
+Notation "v @ l ↘ d" := (objLookup v l d) (at level 20).
 
-(* Instead of letting obj_opens_to autounfold, provide tactics to show it's deterministic and so on. *)
-
-Definition dms_proj_val ds l v: Prop :=
-  index_dms l ds = Some (dvl v).
+(** Instead of letting obj_opens_to autounfold, provide tactics to show it's deterministic and so on. *)
 
 (** Convert environment to substitution. *)
 Definition to_subst (ρ: list vl) i: vl :=

@@ -32,10 +32,10 @@ Section Sec.
     rewrite istpEqIvstp.
 
     iIntros "/= !> * Hg #HvL".
-    iDestruct ("Hva" $! ρ with "Hg") as (ds) "#[% #H]"; iClear "Hva".
+    iDestruct ("Hva" $! ρ with "Hg") as (d) "#[% #H]"; iClear "Hva".
     iDestruct "H" as (φ σ) "#[Hl [#HLφ [#HφU #HLU]]]".
     simplOpen ds'; simpl.
-    iExists (vobj ds'), σ, φ, ds.
+    iExists (vobj ds), σ, φ, d.
 
     iDestruct ("HLφ" with "HvL") as ">#HLφ'".
     iDestruct ("HLU" with "HvL") as "> #HLU'".
@@ -48,10 +48,10 @@ Section Sec.
     uvstp Γ (TLater L) (TSel (pv va) l).
   Proof.
     iIntros "/= #Hva !> * #Hg #HvL".
-    iDestruct ("Hva" $! ρ with "Hg") as (ds) "#[% #H]"; iClear "Hva".
+    iDestruct ("Hva" $! ρ with "Hg") as (d) "#[% #H]"; iClear "Hva".
     iDestruct "H" as (φ σ) "#[Hl [#HLφ [#HφU #HLU]]]".
     simplOpen ds'; simpl.
-    iExists (vobj ds'), σ , φ, ds.
+    iExists (vobj ds), σ , φ, d.
     iDestruct ("HLφ" with "HvL") as ">#HLφ'".
     repeat iModIntro; repeat iSplit; trivial. by iRight.
   Qed.
@@ -61,16 +61,16 @@ Section Sec.
     uvstp Γ (TSel (pv va) l) (TLater U).
   Proof.
     iIntros "/= #Hva !> * #Hg #Hφ".
-    iDestruct ("Hva" $! ρ with "Hg") as (ds) "#[% #H]"; iClear "Hva".
+    iDestruct ("Hva" $! ρ with "Hg") as (d) "#[% #H]"; iClear "Hva".
     iDestruct "H" as (φ σ) "#[Hlφ [HLφ [HφU #HLU]]]".
     iDestruct "Hlφ" as (γ) "[% Hγφ]".
 
     iApply "HφU".
     simplOpen ds'; simpl.
-    iDestruct "Hφ" as (va1 σ1 φ1 ds1) "[% [% [Hlφ1 [_ [[] | #Hφ1v]]]]] /=".
+    iDestruct "Hφ" as (va1 σ1 φ1 d1) "[% [% [Hlφ1 [_ [[] | #Hφ1v]]]]] /=".
     iDestruct "Hlφ1" as (γ1) "[% Hγφ1]".
 
-    injectHyps; openDet; optFuncs_det.
+    injectHyps; objLookupDet.
 
     iAssert (∀ ρ v, ▷ (φ (ρ, v) ≡ φ1 (ρ, v)))%I as "#Hag".
       by iIntros; iApply saved_pred_agree.

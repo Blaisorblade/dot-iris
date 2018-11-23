@@ -104,16 +104,16 @@ Section Sec.
     (|==> ∃ γ, SP γ (uinterp T))%I.
   Proof. by apply saved_pred_alloc. Qed.
 
-  Lemma alloc_dtp_tmem_i T ρ:
+  Lemma alloc_dtp_tmem_i T ρ l:
     ⟦Γ⟧* ρ -∗
-    (|==> ∃ γ, defs_interp (TTMem 0 T T) ρ [@ dtysem (idsσ ρ) γ])%I.
+    (|==> ∃ γ, def_interp (TTMem l T T) l ρ (dtysem (idsσ ρ) γ))%I.
   Proof.
     iIntros "#Hg /=".
     iDestruct (alloc_sp T) as "HupdSp".
     iMod "HupdSp" as (γ) "#Hsp".
-    iModIntro; iExists γ, _, _; iSplit; first auto.
+    iModIntro; iExists γ; iSplit; try done; iExists _, _; iSplit; first auto.
     rewrite <- idsσ_is_id.
-    repeat iSplit; repeat iModIntro; iIntros "**"; naive_solver.
+    repeat iSplit; naive_solver.
   Qed.
 
   (* (* Print saved_pred_own. *) *)
