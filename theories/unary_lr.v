@@ -90,6 +90,8 @@ Section Sec.
   Definition interp_later (interp : envD) : envD := λne ρv,
          (▷ (interp ρv)) % I.
 
+  (* XXX I think this is known to be wrong; to prove the lemmas when using ▷
+     (which I think we want for other reasons), we must actually do the beta-reduction here. *)
   Definition interp_forall (interp1 interp2 : envD) : envD := uncurryD (λne ρ, λne v,
     (□ ▷ ∀ v', curryD interp1 ρ v' -∗ interp_expr interp2 (v :: ρ) (tapp (tv v) (tv v')))) % I.
 
@@ -232,9 +234,9 @@ Section Sec.
   Global Instance interp_persistent T ρ v :
     Persistent (⟦ T ⟧ ρ v).
   Proof.
-    revert v ρ; induction T; simpl;
-                                       try destruct (split_path p);
-                                       try apply _.
+    revert v ρ; induction T; simpl; intros;
+      try case_match;
+      try apply _.
   Qed.
 
   Global Instance def_interp_persistent T l ρ d :
@@ -246,7 +248,7 @@ Section Sec.
   Global Instance defs_interp_persistent T ρ ds :
     Persistent (defs_interp T ρ ds).
   Proof.
-    revert ds ρ; induction T; simpl; try destruct ds; try apply _.
+    revert ds ρ; induction T; simpl; intros; try case_match; try apply _.
   Qed.
 
   Global Instance interp_env_persistent Γ ρ :
