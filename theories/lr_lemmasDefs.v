@@ -62,7 +62,7 @@ Section Sec.
 
   Lemma dtp_tmem_abs_i T L U γ ρ l :
     SP γ (uinterp T) -∗ ⟦Γ⟧* ρ -∗
-    Γ ⊨> L <: U -∗
+    Γ ⊨v L <: U -∗
     (* We want the next two hypotheses to hold in a later world, but for this Γ,
        both because that's what we need to introduce, and because it allows
        using Γ *now* to establish the assumption.
@@ -82,10 +82,26 @@ Section Sec.
 
        (□∀ v ρ, ⟦Γ⟧* ρ → ▷ (⟦T1⟧ ρ v → ⟦T2⟧ ρ v)).
 
+
+  (* And subtyping later is enough to imply expression subtyping: *)
+  (* Lemma iVstpUpdatedStp T1 T2: (Γ ⊨> T1 <: T2 → Γ ⊨ T1 <: T2)%I. *)
+  (* Proof. *)
+  (*   iIntros "/= #Hstp". " !> * #Hg HeT1". *)
+  (*   (* Low level: *) *)
+  (*   (* by iApply (wp_strong_mono with "HeT1"); *) *)
+  (*   (*   last (iIntros "* HT1"; iApply "Hstp"). *) *)
+  (*   (* Just with proof rules documented in the appendix. *) *)
+  (*   iApply wp_fupd. *)
+  (*   iApply (wp_wand with " [-]"); try iApply "HeT1". *)
+  (*   iIntros "* HT1". by iApply "Hstp". *)
+  (* Qed. *)
+
+  (* Lemma istpEqIvstp T1 T2: (Γ ⊨ T1 <: T2) ≡ (Γ ⊨> T1 <: T2). *)
+  (* Proof. iSplit; iIntros; by [iApply iStpUvstp| iApply iVstpUpdatedStp]. Qed. *)
        And that forces using the same implication in the logical relation
        (unlike I did originally). *)
-    (Γ ⊨> TLater T <: TLater U) -∗
-    (Γ ⊨> TLater L <: TLater T) →
+    (Γ ⊨v TLater T <: TLater U) -∗
+    (Γ ⊨v TLater L <: TLater T) →
     def_interp (TTMem l L U) l ρ (dtysem (idsσ ρ) γ).
   Proof.
     iIntros "#Hv * #Hg #HLU #HTU #HLT /=".
@@ -96,7 +112,7 @@ Section Sec.
     repeat iSplit; iIntros "!> *".
     - iIntros "#HL".
       iSpecialize ("HLT" with "Hg").
-      iDestruct ("HLT" with "HL") as ">#HLT1". by repeat iModIntro.
+      iDestruct ("HLT" with "HL") as "#HLT1". by repeat iModIntro.
     - iIntros "#HT". by iApply "HTU"; last naive_solver.
     - iIntros "#HL". by iApply "HLU"; last naive_solver.
   Qed.

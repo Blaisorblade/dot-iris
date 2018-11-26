@@ -37,8 +37,8 @@ Section Sec.
     simplOpen ds'; simpl.
     iExists (vobj ds), σ, φ, d.
 
-    iDestruct ("HLφ" with "HvL") as ">#HLφ'".
-    iDestruct ("HLU" with "HvL") as "> #HLU'".
+    iDestruct ("HLφ" with "HvL") as "#HLφ'".
+    iDestruct ("HLU" with "HvL") as "#HLU'".
     (* iDestruct ("HφU" with "HLφ'") as "> #HφU1". *)
     repeat iModIntro; repeat iSplit; trivial. by iRight.
   Qed.
@@ -52,7 +52,7 @@ Section Sec.
     iDestruct "H" as (φ σ) "#[Hl [#HLφ [#HφU #HLU]]]".
     simplOpen ds'; simpl.
     iExists (vobj ds), σ , φ, d.
-    iDestruct ("HLφ" with "HvL") as ">#HLφ'".
+    iDestruct ("HLφ" with "HvL") as "#HLφ'".
     repeat iModIntro; repeat iSplit; trivial. by iRight.
   Qed.
 
@@ -68,34 +68,8 @@ Section Sec.
   Instance Inhϕ: Inhabited (list vl * vl → iProp Σ).
   Proof. constructor. exact (λ _, False)%I. Qed.
 
-  (* Lemma mem_stp_sel_sub_path1 L U va l1 l2: *)
-  (*   (ivtp Γ (TVMem l1 (TTMem l2 L U)) va -∗ *)
-  (*   ivstp Γ (TLater L) (TLater (TSel (pself (pv va) l1) l2)))%I. *)
-  (* Proof. *)
-  (*   iIntros "/= # Hva !> * #Hg #HvL". *)
-  (*   iDestruct ("Hva" $! ρ with "Hg") as (d) "#[% #Hvb]"; iClear "Hva". *)
-  (*   iDestruct "Hvb" as (vmem) "[-> H1]". *)
-  (*   iDestruct "H1" as (d) "[? H]". *)
-  (*   iDestruct "H" as (φ σ) "#[Hl [#HLφ [#HφU #HLU]]]". *)
-  (*   simplOpen ds'; simpl. *)
-  (*   iExists (vobj ds), vmem. *)
-  (*   iDestruct ("HLφ" with "HvL") as "HLφ'". *)
-  (*   repeat iModIntro; repeat iSplit; try done. *)
-  (*   iExists vmem, σ , φ, d. *)
-  (*   repeat iModIntro; repeat iSplit; try done. *)
-  (*   iRight; naive_solver. *)
-  (*   iExists vmem. *)
-  (*   iSplit. *)
-  (*   (* σ , φ, d. *) *)
-  (*   (* iExists (vobj ds), σ , φ, d. *) *)
-  (*   iDestruct ("HLφ" with "HvL") as ">#HLφ'". *)
-  (*   repeat iModIntro; repeat iSplit; trivial. by iRight. *)
-  (* Qed. *)
-
-  (* Definition uvtp Γ T v : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → |={⊤}=> ⟦T⟧ ρ v)%I. *)
-  (* Global Arguments uvtp /. *)
-
-  Lemma mem_stp_sel_sub_path1_xxx L U va l1 l2:
+  (* Next step: proper lemma on arbitrary-length paths. *)
+  Lemma mem_stp_sel_sub_path1 L U va l1 l2:
     (ivtp Γ (TVMem l1 (TTMem l2 L U)) va -∗
     uvstp Γ (TLater L) ((TSel (pself (pv va) l1) l2)))%I.
   Proof.
@@ -107,38 +81,13 @@ Section Sec.
     iDestruct "H1" as (d) "[Hl2 H]".
     iDestruct "H" as (φ σ) "#[Hl [#HLφ [#HφU #HLU]]]".
     simplOpen ds'; simpl.
-    iAssert (▷ (uinterp L) (ρ, v))%I as "#HvL'". done.
-    (* iDestruct ("HLφ" with "HvL") as "HLφ'". *)
-    iDestruct ("HLφ" with "HvL'") as "HLφ'".
-
-    (* Lemma foo (P: iProp Σ): ((□ ▷ □ |={⊤}=> □ P) -∗ |={⊤}=> ▷ P)%I. *)
-    (*   iIntros "#H". *)
-    (*   repeat iModIntro. *)
-    (*   naive_solver. *)
-    (*   iNext. *)
-    (*   iDestruct "H" as "# H". *)
-    (* Qed. *)
-
+    iDestruct ("HLφ" with "HvL") as "HLφ'".
     iExists (vobj ds), vmem.
-    iAssert (⌜ Some (vobj ds) = Some (vobj ds)⌝ )%I as "#H1"; first done.
-    iAssert (⌜vobj ds @ l1 ↘ dvl vmem⌝)%I as "#H2"; first done.
-    (* iFrame "#". *)
-    iFrame "H1 H2".
-    iExists vmem, σ , φ, d.
-    iAssert (⌜ Some vmem = Some vmem⌝ )%I as "#H3"; first done.
-    iAssert True%I as "#H4"; first done.
-    (* iFrame "#". *)
-    iFrame "H3 Hl2 Hl H4".
-    iRight.
-    (*Proof now fails, as we can't swap update and later. *)
-    Fail iMod "HLφ'".
     repeat iModIntro; repeat iSplit; try done.
-    (* (* iExists (vobj ds), σ , φ, d. *) *)
-    (* iDestruct ("HLφ" with "HvL") as ">#HLφ'". *)
-    (* repeat iModIntro; repeat iSplit; trivial. by iRight. *)
-  (* Qed. *)
-  Abort.
-
+    iExists vmem, σ , φ, d.
+    repeat iModIntro; repeat iSplit; try done.
+    by iRight.
+  Qed.
 
   Lemma mem_stp_sub_sel L U va l:
     ivtp Γ (TTMem l L U) va -∗

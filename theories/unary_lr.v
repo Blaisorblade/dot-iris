@@ -50,7 +50,7 @@ Section Sec.
   Global Arguments expr_of_pred /.
   Definition interp_expr (φ: envD): listVlC -n> TD := λne ρ, expr_of_pred (curryD φ ρ).
 
-  Definition D_stp (P Q: D) : iProp Σ := (□ ∀ v, P v → |={⊤}=> Q v)%I.
+  Definition D_stp (P Q: D) : iProp Σ := (□ ∀ v, P v → Q v)%I.
   Global Arguments D_stp /.
   (* Recall that ▷(P ⇒ Q) ⊢ ▷ P ⇒ ▷ Q but not viceversa. Use the weaker choice to enable
      proving the definition typing lemma dtp_tmem_abs_i. *)
@@ -276,8 +276,6 @@ Section Sec.
   Global Arguments idstp /.
 
   Notation "⟦ T ⟧ₑ" := (interp_expr (uinterp T)).
-  Definition istp Γ T1 T2 : iProp Σ := (□∀ ρ e, ⟦Γ⟧* ρ → ⟦T1⟧ₑ ρ e → ⟦T2⟧ₑ ρ e)%I.
-  Global Arguments istp /.
 
   Definition ivtp Γ T v : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ ρ v)%I.
   Global Arguments ivtp /.
@@ -285,11 +283,14 @@ Section Sec.
   Definition ietp Γ T e : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ₑ ρ (e.[to_subst ρ]))%I.
   Global Arguments ietp /.
 
-  (* Pretty clearly, this isn't quite what we want. *)
+  (* Value subtyping. *)
   Definition ivstp Γ T1 T2: iProp Σ := (□∀ ρ v, ⟦Γ⟧* ρ → ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
   Global Arguments ivstp /.
 
-  (* Value subtyping, defined to be equivalent to (expression) subtyping. *)
+  (* (Expression) subtyping, strengthened to be equivalent to valye subtyping. *)
+  Definition istp Γ T1 T2 : iProp Σ := (ivstp Γ T1 T2 ∧ □∀ ρ e, ⟦Γ⟧* ρ → ⟦T1⟧ₑ ρ e → ⟦T2⟧ₑ ρ e)%I.
+  Global Arguments istp /.
+
   Definition uvstp Γ T1 T2: iProp Σ :=
     (□∀ ρ v, ⟦Γ⟧*ρ -∗ ((*|={⊤}=>*) ⟦T1⟧ ρ v) → |={⊤}=> ⟦T2⟧ ρ v)%I.
   Global Arguments uvstp /.
@@ -311,6 +312,21 @@ Section SubTypingEquiv.
   (** We prove that vstp and stp are equivalent, so that we can use them
       interchangeably; and in my previous proofs, proving uvstp was easier. *)
 
+  Lemma istp2ivstp T1 T2: (Γ ⊨ T1 <: T2 → Γ ⊨v T1 <: T2)%I.
+  Proof. by iIntros "/= [#? _]". Qed.
+
+  Lemma ivstp2istp T1 T2: (Γ ⊨v T1 <: T2 → Γ ⊨ T1 <: T2)%I.
+  Proof.
+    iIntros "/= #Hstp". iFrame "Hstp".
+    iIntros " !> * #Hg HeT1".
+    iApply wp_fupd.
+    iApply (wp_wand with " [-]"); try iApply "HeT1".
+    iIntros "* HT1". by iApply "Hstp".
+  Qed.
+
+  Lemma istpEqIvstp T1 T2: (Γ ⊨ T1 <: T2) ≡ (Γ ⊨v T1 <: T2).
+  Proof. iSplit; iIntros; by [iApply istp2ivstp| iApply ivstp2istp]. Qed.
+
   Lemma iStpUvstp T1 T2: (Γ ⊨ T1 <: T2 → Γ ⊨> T1 <: T2)%I.
   Proof.
     (* Inspired by the proof of wp_value_inv'! *)
@@ -320,25 +336,10 @@ Section SubTypingEquiv.
     (* iSpecialize ("Hsub" $! (of_val v) with "Hg"). *)
     (* rewrite !wp_unfold /wp_pre /=. iIntros. by iApply "Hsub". *)
     (* Restart. *)
-    iIntros "/= #Hsub !> * #Hg *".
-    setoid_rewrite wp_unfold.
-    iIntros.
-    by iApply ("Hsub" $! _ (of_val v)).
+    iIntros "/= [#Hsub1 #Hsub2] !> * #Hg * #?".
+    by iApply "Hsub1".
+    (* Or *)
+    (* setoid_rewrite wp_unfold. *)
+    (* by iApply ("Hsub2" $! _ (of_val v)). *)
   Qed.
-
-  (* And subtyping later is enough to imply expression subtyping: *)
-  Lemma iVstpUpdatedStp T1 T2: (Γ ⊨> T1 <: T2 → Γ ⊨ T1 <: T2)%I.
-  Proof.
-    iIntros "/= #Hstp !> * #Hg HeT1".
-    (* Low level: *)
-    (* by iApply (wp_strong_mono with "HeT1"); *)
-    (*   last (iIntros "* HT1"; iApply "Hstp"). *)
-    (* Just with proof rules documented in the appendix. *)
-    iApply wp_fupd.
-    iApply (wp_wand with " [-]"); try iApply "HeT1".
-    iIntros "* HT1". by iApply "Hstp".
-  Qed.
-
-  Lemma istpEqIvstp T1 T2: (Γ ⊨ T1 <: T2) ≡ (Γ ⊨> T1 <: T2).
-  Proof. iSplit; iIntros; by [iApply iStpUvstp| iApply iVstpUpdatedStp]. Qed.
 End SubTypingEquiv.

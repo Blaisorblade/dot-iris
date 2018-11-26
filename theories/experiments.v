@@ -44,12 +44,12 @@ Section Sec.
   Qed.
 
   Lemma iVstpStp T1 T2: (Γ ⊨v T1 <: T2 → Γ ⊨ T1 <: T2)%I.
-  Proof.
+  Proof. iApply ivstp2istp. Qed.
   (*   by iIntros "#Hsub"; iApply istpEqIvstp; iApply vstpToUvstp. *)
   (* Qed. *)
-    iIntros "#Hsub !> * #Hg HT1".
-    iApply (wp_wand with " [-]"). iApply "HT1". by iIntros; iApply "Hsub".
-  Qed.
+  (*   iIntros "#Hsub !> * #Hg HT1". *)
+  (*   iApply (wp_wand with " [-]"). iApply "HT1". by iIntros; iApply "Hsub". *)
+  (* Qed. *)
 
   (* Maybe the update is OK; after all, it's part of the definition of weakest
      preconditions, and it pairs with the later. But it confuses me honestly.
