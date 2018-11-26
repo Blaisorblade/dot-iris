@@ -134,7 +134,7 @@ Section Sec.
     λ optVa, λne v,
     match ls with
     | l :: ls =>
-      (∃ va ds vb, ⌜ optVa = Some va ⌝ ∧ ⌜ va @ l ↘ dvl vb ⌝ ∧ interp_k (Some vb) v)%I
+      (∃ va vb, ⌜ optVa = Some va ⌝ ∧ ⌜ va @ l ↘ dvl vb ⌝ ∧ ▷ interp_k (Some vb) v)%I
     | [] => interp_k optVa v
     end.
 
