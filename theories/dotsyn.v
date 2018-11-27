@@ -58,7 +58,7 @@ Inductive tm  : Type :=
    | var_vl x => var_vl (sb x)
    | vnat n => vnat n
    | vabs t => vabs (rename (upren sb) t)
-   | vobj d => vobj (map (dm_rename sb) d)
+   | vobj d => vobj (map (dm_rename (upren sb)) d)
    end
  with
  dm_rename (sb : var → var) (d : dm) : dm :=
@@ -112,7 +112,7 @@ Inductive tm  : Type :=
    | var_vl x => sb x
    | vnat n => vnat n
    | vabs t => vabs (hsubst (up sb) t)
-   | vobj d => vobj (map (dm_subst sb) d)
+   | vobj d => vobj (map (dm_subst (up sb)) d)
    end
  with
  dm_subst (sb : var → vl) (d : dm) : dm :=
@@ -185,7 +185,7 @@ Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
    - destruct v; simpl; auto.
      + by rewrite tm_rename_Lemma up_upren_internal.
      + f_equal; induction l; simpl; first trivial.
-       by rewrite IHl dm_rename_Lemma.
+       by rewrite IHl dm_rename_Lemma up_upren_internal.
    - destruct t; simpl; auto;
        try (by rewrite ?vl_rename_Lemma ?tm_rename_Lemma).
    - destruct d; simpl.
@@ -211,7 +211,7 @@ Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
    - destruct v; simpl; auto.
      + by rewrite up_id_internal // tm_ids_Lemma.
      + f_equal; induction l; simpl; first trivial.
-       by rewrite IHl dm_ids_Lemma.
+       by rewrite IHl up_id_internal // dm_ids_Lemma.
    - destruct t; simpl; auto; by rewrite ?vl_ids_Lemma ?tm_ids_Lemma.
    - destruct d; simpl.
      + by rewrite ty_ids_Lemma.
@@ -241,7 +241,7 @@ Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
    - destruct v; simpl; auto.
      + by rewrite tm_comp_rename_Lemma up_comp_ren_subst.
      + f_equal; induction l; simpl; first trivial.
-       by rewrite IHl dm_comp_rename_Lemma.
+       by rewrite IHl dm_comp_rename_Lemma up_comp_ren_subst.
    - destruct t; simpl; auto;
        by rewrite ?vl_comp_rename_Lemma ?tm_comp_rename_Lemma.
    - destruct d; simpl.
@@ -275,7 +275,9 @@ Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
      + by rewrite tm_rename_comp_Lemma up_comp_subst_ren_internal;
          auto using vl_rename_Lemma, vl_comp_rename_Lemma.
      + f_equal; induction l; simpl; first trivial.
-       by rewrite IHl dm_rename_comp_Lemma.
+       by rewrite IHl dm_rename_comp_Lemma
+                  up_comp_subst_ren_internal;
+         auto using vl_rename_Lemma, vl_comp_rename_Lemma.
    - destruct t; simpl; auto;
        by rewrite ?vl_rename_comp_Lemma ?tm_rename_comp_Lemma.
    - destruct d; simpl.
@@ -310,7 +312,8 @@ Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
      + by rewrite tm_comp_Lemma up_comp_internal;
          auto using vl_rename_comp_Lemma, vl_comp_rename_Lemma.
      + f_equal; induction l; simpl; first trivial.
-       by rewrite IHl dm_comp_Lemma.
+       by rewrite IHl dm_comp_Lemma up_comp_internal;
+         auto using vl_rename_comp_Lemma, vl_comp_rename_Lemma.
    - destruct t; simpl; auto;
        by rewrite ?vl_comp_Lemma ?tm_comp_Lemma.
    - destruct d; simpl.
