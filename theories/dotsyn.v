@@ -37,6 +37,9 @@ Inductive tm  : Type :=
   | TNat :  ty.
 
  Instance Ids_tm : Ids tm := λ _, tv (vnat 0).
+ Instance Ids_dm : Ids dm := λ _, dvl (vnat 0).
+ Instance Ids_pth : Ids path := λ _, pv (vnat 0).
+ Instance Ids_ty : Ids ty := λ _, TNat.
 
  Instance Ids_vl : Ids vl.
  Proof. by constructor. Defined.
@@ -54,46 +57,54 @@ Inductive tm  : Type :=
  vl_rename (sb : var → var) (v : vl) : vl :=
    let a := tm_rename : Rename tm in
    let b := vl_rename : Rename vl in
+   let c := dm_rename : Rename dm in
    match v with
    | var_vl x => var_vl (sb x)
    | vnat n => vnat n
    | vabs t => vabs (rename (upren sb) t)
-   | vobj d => vobj (map (dm_rename (upren sb)) d)
+   | vobj d => vobj (map (rename (upren sb)) d)
    end
  with
  dm_rename (sb : var → var) (d : dm) : dm :=
    let a := vl_rename : Rename vl in
+   let b := ty_rename : Rename ty in
    match d with
-   | dtysyn ty => dtysyn (ty_rename sb ty)
+   | dtysyn ty => dtysyn (rename sb ty)
    | dtysem lv γ => dtysem (map (rename sb) lv) γ
    | dvl v => dvl (rename sb v)
    end
  with
  ty_rename (sb : var → var) (T : ty) : ty :=
+   let a := ty_rename : Rename ty in
+   let b := pth_rename : Rename path in
    match T with
    | TTop => TTop
    | TBot => TBot
-   | TAnd T1 T2 => TAnd (ty_rename sb T1) (ty_rename sb T2)
-   | TOr T1 T2 => TOr (ty_rename sb T1) (ty_rename sb T2)
-   | TLater T => TLater (ty_rename sb T)
-   | TAll T1 T2 => TAll (ty_rename sb T1) (ty_rename (upren sb) T2)
-   | TMu T => TMu (ty_rename (upren sb) T)
-   | TVMem l T => TVMem l (ty_rename sb T)
-   | TTMem l T1 T2 => TTMem l (ty_rename sb T1) (ty_rename sb T2)
-   | TSel pth l => TSel (pth_rename sb pth) l
-   | TSelA pth l T1 T2 => TSelA (pth_rename sb pth) l (ty_rename sb T1) (ty_rename sb T2)
+   | TAnd T1 T2 => TAnd (rename sb T1) (rename sb T2)
+   | TOr T1 T2 => TOr (rename sb T1) (rename sb T2)
+   | TLater T => TLater (rename sb T)
+   | TAll T1 T2 => TAll (rename sb T1) (rename (upren sb) T2)
+   | TMu T => TMu (rename (upren sb) T)
+   | TVMem l T => TVMem l (rename sb T)
+   | TTMem l T1 T2 => TTMem l (rename sb T1) (rename sb T2)
+   | TSel pth l => TSel (rename sb pth) l
+   | TSelA pth l T1 T2 => TSelA (rename sb pth) l (rename sb T1) (rename sb T2)
    | TNat => TNat
    end
  with
  pth_rename (sb : var → var) (pth : path) : path :=
    let a := vl_rename : Rename vl in
+   let b := pth_rename : Rename path in
    match pth with
    | pv v => pv (rename sb v)
-   | pself pth l => pself (pth_rename sb pth) l
+   | pself pth l => pself (rename sb pth) l
    end.
 
  Instance Rename_tm : Rename tm := tm_rename.
  Instance Rename_vl : Rename vl := vl_rename.
+ Instance Rename_ty : Rename ty := ty_rename.
+ Instance Rename_dm : Rename dm := dm_rename.
+ Instance Rename_pth : Rename path := pth_rename.
 
  Fixpoint tm_hsubst (sb : var → vl) (e : tm) : tm :=
    let a := tm_hsubst : HSubst vl tm in
@@ -107,47 +118,54 @@ Inductive tm  : Type :=
  with
  vl_subst (sb : var → vl) (v : vl) : vl :=
    let a := tm_hsubst : HSubst vl tm in
-   let a := tm_rename : Rename tm in
+   let b := dm_hsubst : HSubst vl dm in
    match v with
    | var_vl x => sb x
    | vnat n => vnat n
    | vabs t => vabs (hsubst (up sb) t)
-   | vobj d => vobj (map (dm_subst (up sb)) d)
+   | vobj d => vobj (map (hsubst (up sb)) d)
    end
  with
- dm_subst (sb : var → vl) (d : dm) : dm :=
-   let b := vl_subst : Subst vl in
+ dm_hsubst (sb : var → vl) (d : dm) : dm :=
+   let a := vl_subst : Subst vl in
+   let b := ty_hsubst : HSubst vl ty in
    match d with
-   | dtysyn ty => dtysyn (ty_subst sb ty)
+   | dtysyn ty => dtysyn (hsubst sb ty)
    | dtysem lv γ => dtysem (map (subst sb) lv) γ
    | dvl v => dvl (subst sb v)
    end
  with
- ty_subst (sb : var → vl) (T : ty) : ty :=
+ ty_hsubst (sb : var → vl) (T : ty) : ty :=
+  let a := ty_hsubst : HSubst vl ty in
+  let b := pth_hsubst : HSubst vl path in
    match T with
    | TTop => TTop
    | TBot => TBot
-   | TAnd T1 T2 => TAnd (ty_subst sb T1) (ty_subst sb T2)
-   | TOr T1 T2 => TOr (ty_subst sb T1) (ty_subst sb T2)
-   | TLater T => TLater (ty_subst sb T)
-   | TAll T1 T2 => TAll (ty_subst sb T1) (ty_subst (up sb) T2)
-   | TMu T => TMu (ty_subst (up sb) T)
-   | TVMem l T => TVMem l (ty_subst sb T)
-   | TTMem l T1 T2 => TTMem l (ty_subst sb T1) (ty_subst sb T2)
-   | TSel pth l => TSel (pth_subst sb pth) l
-   | TSelA pth l T1 T2 => TSelA (pth_subst sb pth) l (ty_subst sb T1) (ty_subst sb T2)
+   | TAnd T1 T2 => TAnd (hsubst sb T1) (hsubst sb T2)
+   | TOr T1 T2 => TOr (hsubst sb T1) (hsubst sb T2)
+   | TLater T => TLater (hsubst sb T)
+   | TAll T1 T2 => TAll (hsubst sb T1) (hsubst (up sb) T2)
+   | TMu T => TMu (hsubst (up sb) T)
+   | TVMem l T => TVMem l (hsubst sb T)
+   | TTMem l T1 T2 => TTMem l (hsubst sb T1) (hsubst sb T2)
+   | TSel pth l => TSel (hsubst sb pth) l
+   | TSelA pth l T1 T2 => TSelA (hsubst sb pth) l (hsubst sb T1) (hsubst sb T2)
    | TNat => TNat
    end
  with
- pth_subst (sb : var → vl) (pth : path) : path :=
+ pth_hsubst (sb : var → vl) (pth : path) : path :=
    let b := vl_subst : Subst vl in
+ let b := pth_hsubst : HSubst vl path in
    match pth with
    | pv v => pv (subst sb v)
-   | pself pth l => pself (pth_subst sb pth) l
+   | pself pth l => pself (hsubst sb pth) l
    end.
 
  Instance HSubst_tm : HSubst vl tm := tm_hsubst.
  Instance Subst_vl : Subst vl := vl_subst.
+ Instance HSubst_ty : HSubst vl ty := ty_hsubst.
+ Instance HSubst_dm : HSubst vl dm := dm_hsubst.
+ Instance HSubst_pth : HSubst vl path := pth_hsubst.
 
 Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
  with
@@ -175,12 +193,12 @@ Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
  with
  tm_rename_Lemma (ξ : var → var) (t : tm) : rename ξ t = t.|[ren ξ]
  with
- dm_rename_Lemma (ξ : var → var) (d : dm) : dm_rename ξ d = dm_subst (ren ξ) d
+ dm_rename_Lemma (ξ : var → var) (d : dm) : rename ξ d = d.|[ren ξ]
  with
- ty_rename_Lemma (ξ : var → var) (T : ty) : ty_rename ξ T = ty_subst (ren ξ) T
+ ty_rename_Lemma (ξ : var → var) (T : ty) : rename ξ T = T.|[ren ξ]
  with
  pth_rename_Lemma (ξ : var → var) (pth : path) :
-   pth_rename ξ pth = pth_subst (ren ξ) pth.
+   rename ξ pth = pth.|[ren ξ].
  Proof.
    - destruct v; simpl; auto.
      + by rewrite tm_rename_Lemma up_upren_internal.
@@ -202,11 +220,11 @@ Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
  with
  tm_ids_Lemma (t : tm) : t.|[ids] = t
  with
- dm_ids_Lemma (d : dm) : dm_subst ids d = d
+ dm_ids_Lemma (d : dm) : d.|[ids] = d
  with
- ty_ids_Lemma (T : ty) : ty_subst (ids) T = T
+ ty_ids_Lemma (T : ty) : T.|[ids] = T
  with
- pth_ids_Lemma (pth : path) : pth_subst ids pth = pth.
+ pth_ids_Lemma (pth : path) : pth.|[ids] = pth.
  Proof.
    - destruct v; simpl; auto.
      + by rewrite up_id_internal // tm_ids_Lemma.
@@ -230,13 +248,13 @@ Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
    (rename ξ t).|[σ] = t.|[ξ >>> σ]
  with
  dm_comp_rename_Lemma (ξ : var → var) (σ : var → vl) (d : dm) :
-   dm_subst σ (dm_rename ξ d) = dm_subst (ξ >>> σ) d
+   (rename ξ d).|[σ] = d.|[ξ >>> σ]
  with
  ty_comp_rename_Lemma (ξ : var → var) (σ : var → vl) (T : ty) :
-   ty_subst σ (ty_rename ξ T) = ty_subst (ξ >>> σ) T
+   (rename ξ T).|[σ] = T.|[ξ >>> σ]
  with
  pth_comp_rename_Lemma (ξ : var → var) (σ : var → vl) (pth : path) :
-   pth_subst σ (pth_rename ξ pth) = pth_subst (ξ >>> σ) pth.
+   (rename ξ pth).|[σ] = pth.|[ξ >>> σ].
  Proof.
    - destruct v; simpl; auto.
      + by rewrite tm_comp_rename_Lemma up_comp_ren_subst.
@@ -263,13 +281,13 @@ Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
    rename ξ t.|[σ] = t.|[σ >>> rename ξ]
  with
  dm_rename_comp_Lemma (σ : var → vl) (ξ : var → var) (d : dm) :
-   dm_rename ξ (dm_subst σ d) = dm_subst (σ >>> rename ξ) d
+   rename ξ d.|[σ] = d.|[σ >>> rename ξ]
  with
  ty_rename_comp_Lemma (σ : var → vl) (ξ : var → var) (T : ty) :
-  ty_rename ξ (ty_subst σ T) = ty_subst (σ >>> rename ξ) T
+  rename ξ T.|[σ] = T.|[σ >>> rename ξ]
  with
  pth_rename_comp_Lemma (σ : var → vl) (ξ : var → var) (pth : path) :
-   pth_rename ξ (pth_subst σ pth) = pth_subst (σ >>> rename ξ) pth.
+   rename ξ pth.|[σ] = pth.|[σ >>> rename ξ].
  Proof.
    - destruct v; simpl; auto.
      + by rewrite tm_rename_comp_Lemma up_comp_subst_ren_internal;
@@ -293,20 +311,15 @@ Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
        by rewrite ?vl_rename_comp_Lemma ?pth_rename_comp_Lemma.
  Qed.
 
- Lemma vl_comp_Lemma (σ τ : var → vl) (v : vl) :
-   v.[σ].[τ] = v.[σ >> τ]
+ Lemma vl_comp_Lemma (σ τ : var → vl) (v : vl) : v.[σ].[τ] = v.[σ >> τ]
  with
- tm_comp_Lemma (σ τ : var → vl) (t : tm) :
-   t.|[σ].|[τ] = t.|[σ >> τ]
+ tm_comp_Lemma (σ τ : var → vl) (t : tm) : t.|[σ].|[τ] = t.|[σ >> τ]
  with
- dm_comp_Lemma (σ τ : var → vl) (d : dm) :
-   dm_subst τ (dm_subst σ d) = dm_subst (σ >> τ) d
+ dm_comp_Lemma (σ τ : var → vl) (d : dm) : d.|[σ].|[τ] = d.|[σ >> τ]
  with
- ty_comp_Lemma (σ τ : var → vl) (T : ty) :
-   ty_subst τ (ty_subst σ T) = ty_subst (σ >> τ) T
+ ty_comp_Lemma (σ τ : var → vl) (T : ty) : T.|[σ].|[τ] = T.|[σ >> τ]
  with
- pth_comp_Lemma (σ τ : var → vl) (pth : path) :
-   pth_subst τ (pth_subst σ pth) = pth_subst (σ >> τ) pth.
+ pth_comp_Lemma (σ τ : var → vl) (pth : path) : pth.|[σ].|[τ] = pth.|[σ >> τ].
  Proof.
    - destruct v; simpl; auto.
      + by rewrite tm_comp_Lemma up_comp_internal;
@@ -329,7 +342,7 @@ Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
        by rewrite ?vl_comp_Lemma ?pth_comp_Lemma.
  Qed.
 
- Instance SubstLemmas_tm : SubstLemmas vl.
+ Instance SubstLemmas_vl : SubstLemmas vl.
  Proof.
    split; auto using vl_rename_Lemma, vl_ids_Lemma, vl_comp_Lemma.
  Qed.
@@ -337,4 +350,19 @@ Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
  Instance HSubstLemmas_tm : HSubstLemmas vl tm.
  Proof.
    split; auto using tm_ids_Lemma, tm_comp_Lemma.
+ Qed.
+
+ Instance HSubstLemmas_ty : HSubstLemmas vl ty.
+ Proof.
+   split; auto using ty_ids_Lemma, ty_comp_Lemma.
+ Qed.
+
+ Instance HSubstLemmas_dm : HSubstLemmas vl dm.
+ Proof.
+   split; auto using dm_ids_Lemma, dm_comp_Lemma.
+ Qed.
+
+ Instance HSubstLemmas_pth : HSubstLemmas vl path.
+ Proof.
+   split; auto using pth_ids_Lemma, pth_comp_Lemma.
  Qed.
