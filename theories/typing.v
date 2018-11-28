@@ -23,10 +23,10 @@ Inductive typed Γ: tm → ty → Prop :=
 | Appv_typed e1 v2 T1 T2 :
     Γ ⊢ₜ e1: TAll T1 T2 →                        Γ ⊢ₜ tv v2 : T1 →
     (*────────────────────────────────────────────────────────────*)
-    Γ ⊢ₜ tapp e1 (tv v2) : T2.[v2/]
+    Γ ⊢ₜ tapp e1 (tv v2) : T2.|[v2/]
 (** Non-dependent application; allowed for any argument. *)
 | App_typed e1 e2 T1 T2 :
-    Γ ⊢ₜ e1: TAll T1 T2.[wkT] →      Γ ⊢ₜ e2 : T1 →
+    Γ ⊢ₜ e1: TAll T1 T2.|[ren (+1)] →      Γ ⊢ₜ e2 : T1 →
     (*────────────────────────────────────────────────────────────*)
     Γ ⊢ₜ tapp e1 e2 : T2
 | Proj_typed e T l:
@@ -36,11 +36,11 @@ Inductive typed Γ: tm → ty → Prop :=
 | TMuE_typed v T:
     Γ ⊢ₜ tv v: TMu T →
     (*──────────────────────*)
-    Γ ⊢ₜ tv v: T.[v/]
+    Γ ⊢ₜ tv v: T.|[v/]
 (** Introduction forms *)
 | Lam_typed e T1 T2 :
     (* T1 :: Γ ⊢ₜ e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
-    T1.[wkT] :: Γ ⊢ₜ e : T2 →
+    T1.|[ren (+1)] :: Γ ⊢ₜ e : T2 →
     (*─────────────────────────*)
     Γ ⊢ₜ tv (vabs e) : TAll T1 T2
 | VObj_typed ds T:
@@ -48,7 +48,7 @@ Inductive typed Γ: tm → ty → Prop :=
     (*──────────────────────*)
     Γ ⊢ₜ tv (vobj ds): TMu T
 | TMuI_typed v T:
-    Γ ⊢ₜ tv v: T.[v/] →
+    Γ ⊢ₜ tv v: T.|[v/] →
     (*──────────────────────*)
     Γ ⊢ₜ tv v: TMu T
 | Nat_typed n:
@@ -76,13 +76,13 @@ Inductive typed Γ: tm → ty → Prop :=
     Γ ⊢ₜ t : T2 → 
     Γ ⊢ₜ t : TAnd T1 T2
 with dms_typed Γ: dms → ty → Prop :=
-| dnil_typed : Γ ⊢ds dnil : TTop
+| dnil_typed : Γ ⊢ds [] : TTop
 | dcons_typed l d ds T1 T2 :
     Γ ⊢ds ds : T1 →
-    l = dms_length ds →
+    l = length ds →
     Γ ⊢ { l = d } : T2 →
     (*──────────────────────*)
-    Γ ⊢ds dcons d ds : TAnd T1 T2
+    Γ ⊢ds d :: ds : TAnd T1 T2
 
 with dm_typed Γ : label → dm → ty → Prop :=
 | dty_typed l L T U:
@@ -158,10 +158,10 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     (T1 :: Γ) ⊢ₜ T1, i <: T2, i →
     Γ ⊢ₜ TMu T1, i <: TMu T2, i
 | mu_1_stp T1 T2 i:
-    (T1 :: Γ) ⊢ₜ T1, i <: T2.[wkT], i →
+    (T1 :: Γ) ⊢ₜ T1, i <: T2.|[ren (+1)], i →
     Γ ⊢ₜ TMu T1, i <: T2, i
 | mu_2_stp T1 T2 i:
-    (T1 :: Γ) ⊢ₜ T1.[wkT], i <: T2, i →
+    (T1 :: Γ) ⊢ₜ T1.|[ren (+1)], i <: T2, i →
     Γ ⊢ₜ T1, i <: TMu T2, i
 
 (* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types.

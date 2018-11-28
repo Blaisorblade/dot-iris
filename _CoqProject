@@ -7,3 +7,4 @@ theories/dotsyn.v
 theories/synFuncs.v
 theories/operational.v
 theories/unary_lr.v
+theories/typing.v
