@@ -38,6 +38,7 @@ Inductive tm  : Type :=
 
 Definition vls := list vl.
 Definition dms := list dm.
+Definition ctx := list ty.
 
 Instance Ids_tm : Ids tm := λ _, tv (vnat 0).
 Instance Ids_dm : Ids dm := λ _, dvl (vnat 0).
@@ -45,15 +46,16 @@ Instance Ids_pth : Ids path := λ _, pv (vnat 0).
 Instance Ids_ty : Ids ty := λ _, TNat.
 Instance Ids_vls : Ids vls := λ _, [].
 Instance Ids_dms : Ids dms := λ _, [].
+Instance Ids_ctx : Ids ctx := λ _, [].
 
 Instance Ids_vl : Ids vl.
 Proof. by constructor. Defined.
 
-Definition vls_rename `{Rename vl} (sb : var → var) (vs : vls) : vls :=
-  map (rename sb) vs.
+Instance vls_rename `{Rename vl} : Rename vls :=
+λ (sb : var → var) (vs : vls), map (rename sb) vs.
 
-Definition dms_rename `{Rename dm} (sb : var → var) (ds : dms) : dms :=
-  map (rename sb) ds.
+Instance dms_rename `{Rename dm} : Rename dms :=
+    λ (sb : var → var) (ds : dms), map (rename sb) ds.
 
 Fixpoint tm_rename (sb : var → var) (e : tm) {struct e} : tm :=
   let a := tm_rename : Rename tm in
@@ -69,7 +71,6 @@ vl_rename (sb : var → var) (v : vl) {struct v} : vl :=
   let a := tm_rename : Rename tm in
   let b := vl_rename : Rename vl in
   let c := dm_rename : Rename dm in
-  let d := dms_rename : Rename dms in
   match v with
   | var_vl x => var_vl (sb x)
   | vnat n => vnat n
@@ -80,7 +81,6 @@ with
 dm_rename (sb : var → var) (d : dm) {struct d} : dm :=
   let a := vl_rename : Rename vl in
   let b := ty_rename : Rename ty in
-  let c := vls_rename : Rename vls in
   match d with
   | dtysyn ty => dtysyn (rename sb ty)
   | dtysem lv γ => dtysem (rename sb lv) γ
@@ -121,11 +121,27 @@ Instance Rename_pth : Rename path := path_rename.
 Instance Rename_vls : Rename vls := vls_rename.
 Instance Rename_dms : Rename dms := dms_rename.
 
-Definition vls_hsubst `{Subst vl} (sb : var → vl) (vs : vls) : vls :=
-  map (subst sb) vs.
+Definition ctx_rename (sb : var → var) (Γ : ctx) := map (rename sb) Γ.
+Instance Rename_ctx : Rename ctx := ctx_rename.
 
-Definition dms_hsubst `{HSubst vl dm} (sb : var → vl) (ds : dms) : dms :=
-  map (hsubst sb) ds.
+Lemma vls_rename_fold (sb : var → var) (vs : vls) :
+  map (rename sb) vs = rename sb vs.
+Proof. trivial. Qed.
+Global Hint Rewrite vls_rename_fold : autosubst.
+
+Lemma dms_rename_fold sb (ds : dms) : map (rename sb) ds = rename sb ds.
+Proof. trivial. Qed.
+Global Hint Rewrite dms_rename_fold : autosubst.
+
+Lemma ctx_rename_fold sb (Γ : ctx) : map (rename sb) Γ = rename sb Γ.
+Proof. trivial. Qed.
+Global Hint Rewrite ctx_rename_fold : autosubst.
+
+Instance vls_hsubst `{Subst vl} : HSubst vl vls :=
+  λ (sb : var → vl) (vs : vls), map (subst sb) vs.
+
+Instance dms_hsubst `{HSubst vl dm} : HSubst vl dms :=
+  λ (sb : var → vl) (ds : dms), map (hsubst sb) ds.
 
 Fixpoint tm_hsubst (sb : var → vl) (e : tm) : tm :=
   let a := tm_hsubst : HSubst vl tm in
@@ -140,7 +156,6 @@ with
 vl_subst (sb : var → vl) (v : vl) : vl :=
   let a := tm_hsubst : HSubst vl tm in
   let b := dm_hsubst : HSubst vl dm in
-  let d := dms_hsubst : HSubst vl dms in
   match v with
   | var_vl x => sb x
   | vnat n => vnat n
@@ -151,7 +166,6 @@ with
 dm_hsubst (sb : var → vl) (d : dm) : dm :=
   let a := vl_subst : Subst vl in
   let b := ty_hsubst : HSubst vl ty in
-  let c := vls_hsubst : HSubst vl vls in
   match d with
   | dtysyn ty => dtysyn (hsubst sb ty)
   | dtysem lv γ => dtysem (hsubst sb lv) γ
@@ -189,8 +203,22 @@ Instance Subst_vl : Subst vl := vl_subst.
 Instance HSubst_ty : HSubst vl ty := ty_hsubst.
 Instance HSubst_dm : HSubst vl dm := dm_hsubst.
 Instance HSubst_pth : HSubst vl path := path_hsubst.
-Instance HSubst_vls : HSubst vl vls := vls_hsubst.
-Instance HSubst_dms : HSubst vl dms := dms_hsubst.
+
+Definition ctx_hsubst (sb : var → vl) (Γ : ctx) := map (hsubst sb) Γ.
+Instance HSubst_ctx : HSubst vl ctx := ctx_hsubst.
+
+Lemma vls_hsubst_fold (sb : var → vl) (vs : vls) :
+  map (subst sb) vs = hsubst sb vs.
+Proof. trivial. Qed.
+Global Hint Rewrite vls_hsubst_fold : autosubst.
+
+Lemma dms_hsubst_fold sb (ds : dms) : map (hsubst sb) ds = hsubst sb ds.
+Proof. trivial. Qed.
+Global Hint Rewrite dms_hsubst_fold : autosubst.
+
+Lemma ctx_hsubst_fold sb (Γ : ctx) : map (hsubst sb) Γ = hsubst sb Γ.
+Proof. trivial. Qed.
+Global Hint Rewrite ctx_hsubst_fold : autosubst.
 
 Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
 with
@@ -420,10 +448,10 @@ Qed.
 Instance HSubstLemmas_vls : HSubstLemmas vl vls.
 Proof.
   split; trivial.
-  - intros vs. rewrite /hsubst /HSubst_vls /vls_hsubst.
+  - intros vs. rewrite /hsubst /vls_hsubst.
     induction vs; simpl; first trivial.
     by rewrite IHvs vl_ids_Lemma.
-  - intros θ η vs. rewrite /hsubst /HSubst_vls /vls_hsubst.
+  - intros θ η vs. rewrite /hsubst /vls_hsubst.
     induction vs; simpl; first trivial.
     by rewrite IHvs vl_comp_Lemma.
 Qed.
@@ -431,10 +459,21 @@ Qed.
 Instance HSubstLemmas_dms : HSubstLemmas vl dms.
 Proof.
   split; trivial.
-  - intros ds. rewrite /hsubst /HSubst_dms /dms_hsubst.
+  - intros ds. rewrite /hsubst /dms_hsubst.
     induction ds; simpl; first trivial.
     by rewrite IHds dm_ids_Lemma.
-  - intros θ η ds. rewrite /hsubst /HSubst_dms /dms_hsubst.
+  - intros θ η ds. rewrite /hsubst /dms_hsubst.
     induction ds; simpl; first trivial.
     by rewrite IHds dm_comp_Lemma.
+Qed.
+
+Instance HSubstLemmas_ctx : HSubstLemmas vl ctx.
+Proof.
+  split; trivial.
+  - intros Γ. rewrite /hsubst /HSubst_ctx /ctx_hsubst.
+    induction Γ; simpl; first trivial.
+    by rewrite IHΓ ty_ids_Lemma.
+  - intros θ η Γ. rewrite /hsubst /HSubst_ctx /ctx_hsubst.
+    induction Γ; simpl; first trivial.
+    by rewrite IHΓ ty_comp_Lemma.
 Qed.

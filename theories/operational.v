@@ -9,15 +9,15 @@ Require Export Dot.synFuncs.
 
 Class dotG Σ := DotG {
   dotG_invG : invG Σ;
-  dotG_savior :> savedAnythingG Σ (list vl -c> vl -c> ▶ ∙)
+  dotG_savior :> savedAnythingG Σ (vls -c> vl -c> ▶ ∙)
 }.
 
 Class dotPreG Σ := DotPreG {
   dotPreG_invG : invPreG Σ;
-  dotPreG_savior :> savedAnythingG Σ (list vl -c> vl -c> ▶ ∙)
+  dotPreG_savior :> savedAnythingG Σ (vls -c> vl -c> ▶ ∙)
 }.
 
-Definition dotΣ := #[invΣ; savedAnythingΣ (list vl -c> vl -c> ▶ ∙)].
+Definition dotΣ := #[invΣ; savedAnythingΣ (vls -c> vl -c> ▶ ∙)].
 
 Instance subG_dotΣ {Σ} : subG dotΣ Σ → dotPreG Σ.
 Proof. solve_inG. Qed.
@@ -27,12 +27,12 @@ Proof. solve_inG. Qed.
 Section saved_interp.
   Context `{!dotG Σ}.
 
-  Definition saved_interp_own (γ : gname) (Φ : list vl → vl → iProp Σ) :=
+  Definition saved_interp_own (γ : gname) (Φ : vls → vl → iProp Σ) :=
     saved_anything_own
-      (F := list vl -c> vl -c> ▶ ∙) γ (λ vs v, CofeMor Next (Φ vs v)).
+      (F := vls -c> vl -c> ▶ ∙) γ (λ vs v, CofeMor Next (Φ vs v)).
 
 Instance saved_interp_own_contractive γ :
-  Contractive (saved_interp_own γ : (list vl -c> vl -c> iProp Σ) → iProp Σ).
+  Contractive (saved_interp_own γ : (vls -c> vl -c> iProp Σ) → iProp Σ).
 Proof.
   intros n X Y HXY.
   rewrite /saved_interp_own /saved_anything_own /=.
@@ -43,11 +43,11 @@ Proof.
   apply HXY.
 Qed.
 
-Lemma saved_interp_alloc_strong (G : gset gname) (Φ : list vl → vl → iProp Σ) :
+Lemma saved_interp_alloc_strong (G : gset gname) (Φ : vls → vl → iProp Σ) :
   (|==> ∃ γ, ⌜γ ∉ G⌝ ∧ saved_interp_own γ Φ)%I.
 Proof. iApply saved_anything_alloc_strong. Qed.
 
-Lemma saved_interp_alloc (Φ : list vl → vl → iProp Σ) :
+Lemma saved_interp_alloc (Φ : vls → vl → iProp Σ) :
   (|==> ∃ γ, saved_interp_own γ Φ)%I.
 Proof. iApply saved_anything_alloc. Qed.
 
@@ -174,7 +174,6 @@ Section Sec.
   Canonical Structure listVlC := leibnizC (list vl).
 End Sec.
 
-Notation envD Σ := (listVlC -n> vlC -n> iProp Σ).
 Notation "g ⤇ p" := (saved_interp_own g p) (at level 20).
 
 (* Class dotUInterpG Σ := DotInterpG { *)

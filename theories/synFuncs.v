@@ -2,6 +2,7 @@
 Functions for manipulating the syntax needed for the operational semantics.
 This file should not load Iris code to reduce compile times.
  *)
+Require Import Coq.Logic.FunctionalExtensionality.
 Require Import Dot.tactics.
 Require Export Dot.dotsyn.
 Require Import stdpp.list.
@@ -51,11 +52,19 @@ Notation "v @ l ↘ d" := (objLookup v l d) (at level 20).
     provide tactics to show it's deterministic and so on. *)
 
 (** Convert environment to substitution. *)
-Definition to_subst (ρ: list vl) i: vl :=
+Definition to_subst (ρ: list vl) i : vl :=
   match ρ !! i with
   | Some v => v
   | None => var_vl (i - length ρ)
   end.
+
+Lemma to_subst_nil : to_subst [] = ids.
+Proof.
+  extensionality x.
+  rewrite /to_subst /=.
+  replace (x - 0) with x by omega.
+  trivial.
+Qed.
 
 Definition subst_sigma (σ: vls) (ρ: list vl) := σ.|[to_subst ρ].
 
