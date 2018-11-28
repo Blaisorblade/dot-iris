@@ -210,6 +210,80 @@ Section logrel.
 
   Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
 
+  Lemma interp_weaken Δ1 Π Δ2 τ :
+    ⟦ τ.|[upn (length Δ1) (ren (+ length Π))] ⟧ (Δ1 ++ Π ++ Δ2)
+    ≡ ⟦ τ ⟧ (Δ1 ++ Δ2).
+  Proof.
+    revert Δ1 Π Δ2. induction τ=> Δ1 Π Δ2; simpl; trivial.
+    all: try solve [intros w; simpl; properness; trivial; apply IHτ || apply IHτ1 || apply IHτ2].
+    - intros w; simpl.
+      (* Properness does not work on boxes, because it refers to boxes from uPred but those aren't the ones we have here. *)
+      f_equiv.
+      properness.
+      (* Import uPred. apply forall_proper => v. *)
+      (* properness. *)
+      apply IHτ1.
+      apply (IHτ2 (_ :: _)).
+    - intros w; simpl; properness. apply (IHτ (_ :: _)).
+      (* rewrite fold_up_upn. *)
+      (* change (S (length Δ1)) with (length (w :: Δ1)). *)
+      (* change (w :: Δ1 ++ Π ++ Δ2) with ((w :: Δ1) ++ Π ++ Δ2). *)
+      (* apply IHτ. *)
+    - intros w; simpl.
+      Import uPred.
+      apply exist_proper => d.
+      apply and_proper; trivial.
+      properness; trivial.
+      f_equiv.
+      properness.
+      all: try apply IHτ1.
+      all: try apply IHτ2.
+      (* Now we're stuck; instead, we need to show the two existentials are
+         equivalent with *different* witnesses, but then most of their bodies don't use those and are still trivially equivalent.
+         Not sure on which witnesses to use; I think we want the same φ and two σ of the same length, but the left one is weakened by |[upn (length Δ1) (ren (+ length Π))]. The same should work below.
+       *)
+      admit.
+      admit.
+      (* *)
+
+      (* At the exists ϕ, σ, maybe use: *)
+      (* apply iff_equiv; try apply _. *)
+      (* iSplit. iIntros. *)
+    -
+      (* TODO: show that split_path commutes with renamings *)
+      (* induction p; simpl. *)
+      (* rewrite /split_path. /interp_sel_rec. *)
+      (* properness. *)
+      (* Different existential witnesses are involved here too. *)
+      admit.
+    - (* almost same proof as above. *)
+      admit.
+  Admitted.
+
+  Lemma interp_subst_up Δ1 Δ2 τ v:
+    ⟦ τ ⟧ (Δ1 ++ v :: Δ2)
+    ≡ ⟦ τ.|[upn (length Δ1) (v .: ids)] ⟧ (Δ1 ++ Δ2).
+  Proof.
+    revert Δ1 Δ2; induction τ=> Δ1 Δ2; simpl; auto.
+    all: try solve [intros w; simpl; properness; trivial; apply IHτ || apply IHτ1 || apply IHτ2].
+    - intros w; simpl.
+      (* Properness does not work on boxes, because it refers to boxes from uPred but those aren't the ones we have here. *)
+      f_equiv.
+      properness.
+      apply IHτ1.
+      apply (IHτ2 (_ :: _)).
+    - intros w; simpl; properness. apply (IHτ (_ :: _)).
+    - intros w; simpl; properness; trivial.
+      f_equiv.
+      properness.
+      all: try apply IHτ1.
+      all: try apply IHτ2.
+      admit.
+      admit.
+    - admit.
+    - admit.
+  Admitted.
+
   Definition ivtp Γ T v : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ ρ v.[to_subst ρ])%I.
   Global Arguments ivtp /.
 
