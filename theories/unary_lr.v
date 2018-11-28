@@ -89,7 +89,6 @@ Section logrel.
     (∃ σ ϕ d,  ⌜w @ l ↘ d⌝ ∧ d ↗ σ , ϕ ∧
       interpU ρ v ∧ (interpL ρ v ∨ ▷ subst_phi σ ρ ϕ v))%I.
 
-  (** XXX Pretty confusing that we only go a step down at the end. *)
   Fixpoint interp_sel_rec (ls: list label) (interp_k: vlC -n> D): vlC -n> D :=
     λne Va v,
     match ls with
