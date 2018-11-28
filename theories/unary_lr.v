@@ -135,7 +135,7 @@ Section logrel.
     : listVlC -n> dmsC -n> iProp Σ :=
     λne ρ ds,
     match ds with
-    | [] => True
+    | [] => False
     | d :: ds => interp1 ρ ds ∧ (interp2 (length ds)) ρ d
     end%I.
 
