@@ -64,6 +64,18 @@ Section logrel.
 
   Definition interp_bot : listVlC -n> D := λne ρ v, False%I.
 
+  (* XXX Paolo: This definition is correct but non-expansive; I suspect we might
+     need to readd later here, but also to do the beta-reduction in place, to
+     make it contractive (similarly to what's useful for equi-recursive types).
+     However, I am not totally sure and might be wrong; it'd be good to
+     write an example where this makes a difference.
+     I think that would be something like
+     nu x. { T = TNat; U = x.T -> x.T }:
+     mu (x: {T <: TNat; U <: x.T -> TNat}).
+     If the function type constructor is not contractive but only non-expansive,
+     typechecking this example needs to establish x.T <: TNat having in context
+     only x: {T <: TNat; U <: x.T -> TNat}.
+   *)
   Definition interp_forall (interp1 interp2 : listVlC -n> D) : listVlC -n> D :=
     λne ρ v,
     (□ ∀ w, interp1 ρ w -∗ interp_expr interp2 (w :: ρ) (tapp (tv v) (tv w)))%I.
@@ -136,7 +148,7 @@ Section logrel.
     λne ρ ds,
     match ds with
     | [] => False
-    | d :: ds => interp1 ρ ds ∧ (interp2 (length ds)) ρ d
+    | d :: ds => interp1 ρ ds ∧ interp2 (length ds) ρ d
     end%I.
 
   Fixpoint defs_interp (T: ty) : listVlC -n> dmsC -n> iProp Σ :=
@@ -164,10 +176,7 @@ Section logrel.
     Persistent (⟦ T ⟧ ρ v).
   Proof.
     revert v ρ; induction T => v ρ; simpl; try apply _.
-    - destruct (split_path p) as [w ls].
-      induction ls; simpl; apply _.
-    - destruct (split_path p) as [w ls].
-      induction ls; simpl; apply _.
+    all: destruct (split_path p) as [? []]; simpl; apply _.
   Qed.
 
   Global Instance def_interp_persistent T l ρ d :
