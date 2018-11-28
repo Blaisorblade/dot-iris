@@ -38,8 +38,8 @@ Section logrel.
     listVlC -n> dmC -n> iProp Σ :=
     λne ρ d,
     (∃ φ σ, (d ↗ σ , φ) ∗
-       □ ((∀ v, ▷ interp1 ρ v → ▷ subst_phi σ ρ φ v) ∗
-          (∀ v, ▷ subst_phi σ ρ φ v → ▷ interp2 ρ v) ∗
+       □ ((∀ v, ▷ interp1 ρ v → ▷ □ φ σ v) ∗
+          (∀ v, ▷ φ σ v → ▷ interp2 ρ v) ∗
           (∀ v, interp1 ρ v → interp2 ρ v)))%I.
 
   Definition interp_tmem l (interp1 interp2 : listVlC -n> D) : listVlC -n> D :=
@@ -210,6 +210,20 @@ Section logrel.
 
   Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
 
+  (* XXX Might be false as given.
+     - Either we can show that all inhabitants of types are closed terms, and in
+       particular any σ they contain is in fact closed.
+       That's what I intended to be true.
+       This suggests that in def_interp_tmem, I should *not*
+       substitute ρ in σ, since σ is supposed to be closed there;
+       OTOH, subst_phi is still needed for interp_sel*.
+       Yet OTOH, I should now recheck what happens with the fundamental lemma
+       case for definition typing, tho it will still have to work out.
+
+     - Otherwise, since types and terms share the same variables,
+     it seems weakening a type requires weakening its inhabitants!
+     In the TTMem case, that seems required to get suitably different sigmas.
+   *)
   Lemma interp_weaken Δ1 Π Δ2 τ :
     ⟦ τ.|[upn (length Δ1) (ren (+ length Π))] ⟧ (Δ1 ++ Π ++ Δ2)
     ≡ ⟦ τ ⟧ (Δ1 ++ Δ2).
@@ -235,26 +249,25 @@ Section logrel.
       apply and_proper; trivial.
       properness; trivial.
       f_equiv.
-      properness.
+      properness; trivial.
       all: try apply IHτ1.
       all: try apply IHτ2.
-      (* Now we're stuck; instead, we need to show the two existentials are
-         equivalent with *different* witnesses, but then most of their bodies don't use those and are still trivially equivalent.
-         Not sure on which witnesses to use; I think we want the same φ and two σ of the same length, but the left one is weakened by |[upn (length Δ1) (ren (+ length Π))]. The same should work below.
-       *)
-      admit.
-      admit.
-      (* *)
-
-      (* At the exists ϕ, σ, maybe use: *)
-      (* apply iff_equiv; try apply _. *)
-      (* iSplit. iIntros. *)
     -
-      (* TODO: show that split_path commutes with renamings *)
-      (* induction p; simpl. *)
-      (* rewrite /split_path. /interp_sel_rec. *)
-      (* properness. *)
-      (* Different existential witnesses are involved here too. *)
+      intros w; simpl.
+      (* TODO: show that renamings commute with split_path, interp_sel_rec,
+         object lookup, etc.;
+         hence, the two different ∃ σ describing object lookup will have to have
+         different witnesses. On the right we have the original σ, on the left
+         we have its weakening σ.|[upn (length Δ1) (ren (+length Π))]
+ (with one resulting from weakening the other, the original σ).
+         In the end, we should reduce to the following base lemmas: *)
+      assert (upn (length Δ1) (ren (+length Π)) >> to_subst (Δ1 ++ Π ++ Δ2) = to_subst (Δ1 ++ Δ2)) as Hto_subst. admit.
+      assert (forall σ: vls,
+                 σ.|[upn (length Δ1) (ren (+length Π))].|[to_subst (Δ1 ++ Π ++ Δ2)] =
+                 σ.|[to_subst (Δ1 ++ Δ2)]). {
+        intros. asimpl.
+        f_equal. apply Hto_subst.
+      }
       admit.
     - (* almost same proof as above. *)
       admit.
@@ -275,11 +288,9 @@ Section logrel.
     - intros w; simpl; properness. apply (IHτ (_ :: _)).
     - intros w; simpl; properness; trivial.
       f_equiv.
-      properness.
+      properness; trivial.
       all: try apply IHτ1.
       all: try apply IHτ2.
-      admit.
-      admit.
     - admit.
     - admit.
   Admitted.
