@@ -200,7 +200,8 @@ Section logrel.
   Qed.
 
   (* Definitions for semantic (definition) (sub)typing *)
-  Definition idtp Γ T l d : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → def_interp T l ρ d)%I.
+  Definition idtp Γ T l d : iProp Σ :=
+    (□∀ ρ, ⟦Γ⟧* ρ → def_interp T l ρ d.|[to_subst ρ])%I.
   Global Arguments idtp /.
 
   Definition idstp Γ T ds : iProp Σ :=
