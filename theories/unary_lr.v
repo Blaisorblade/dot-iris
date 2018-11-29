@@ -226,6 +226,38 @@ Section logrel.
       move => v l IHρ [|i]; rewrite //= -IHρ /to_subst //.
   Qed.
 
+  Lemma to_subst_weaken ρ1 ρ2 ρ3:
+    upn (length ρ1) (ren (+length ρ2)) >> to_subst (ρ1 ++ ρ2 ++ ρ3) =
+    to_subst (ρ1 ++ ρ3).
+  Proof.
+    apply functional_extensionality; intro i.
+    rewrite !to_subst_equiv /to_subst_alt.
+    revert ρ1 ρ3.
+    (* elim ρ1 => [|v ρ1' IHρ1 ρ2 ρ3] //=. *)
+    (* - by elim => ρ2. *)
+    (* - asimpl. rewrite -fold_up_upn. *)
+    (*   asimpl in IHρ1. *)
+    (* asimpl. *)
+
+    (* simpl. *)
+    (* unfold sappend. *)
+    induction ρ2.
+    - by intros; rewrite up_id_n.
+    - asimpl in *.
+    (* Print to_subst. *)
+    (* Print scons. *)
+    (* SearchPattern (var -> _). *)
+    (* Print scons. *)
+    (* unfold to_subst. *)
+    (* SearchAbout (upn _ ids). *)
+    (* Print up. *)
+    (* induction ρ1; asimpl. done. *)
+    (* simpl in *. *)
+    (* asimpl. *)
+    (* rewrite -fold_up_upn. *)
+    (* cbn. *)
+  Admitted.
+
   (* XXX Might be false as given.
      - Either we can show that all inhabitants of types are closed terms, and in
        particular any σ they contain is in fact closed.
@@ -255,21 +287,14 @@ Section logrel.
       apply IHτ1.
       apply (IHτ2 (_ :: _)).
     - intros w; simpl; properness. apply (IHτ (_ :: _)).
-      (* rewrite fold_up_upn. *)
-      (* change (S (length Δ1)) with (length (w :: Δ1)). *)
-      (* change (w :: Δ1 ++ Π ++ Δ2) with ((w :: Δ1) ++ Π ++ Δ2). *)
-      (* apply IHτ. *)
-    - intros w; simpl.
-      Import uPred.
-      apply exist_proper => d.
-      apply and_proper; trivial.
-      properness; trivial.
+    - intros w; simpl; properness; trivial.
       f_equiv.
       properness; trivial.
       all: try apply IHτ1.
       all: try apply IHτ2.
     -
       intros w; simpl.
+      (* Import uPred. *)
       (* TODO: show that renamings commute with split_path, interp_sel_rec,
          object lookup, etc.;
          hence, the two different ∃ σ describing object lookup will have to have
@@ -277,12 +302,11 @@ Section logrel.
          we have its weakening σ.|[upn (length Δ1) (ren (+length Π))]
  (with one resulting from weakening the other, the original σ).
          In the end, we should reduce to the following base lemmas: *)
-      assert (upn (length Δ1) (ren (+length Π)) >> to_subst (Δ1 ++ Π ++ Δ2) = to_subst (Δ1 ++ Δ2)) as Hto_subst. admit.
       assert (forall σ: vls,
                  σ.|[upn (length Δ1) (ren (+length Π))].|[to_subst (Δ1 ++ Π ++ Δ2)] =
                  σ.|[to_subst (Δ1 ++ Δ2)]). {
         intros. asimpl.
-        f_equal. apply Hto_subst.
+        f_equal. apply to_subst_weaken.
       }
       admit.
     - (* almost same proof as above. *)
