@@ -15,13 +15,6 @@ Section logrel.
   Notation D := (vlC -n> iProp Σ).
   Implicit Types τi : D.
 
-  Definition subst_phi (σ: vls) (ρ: vls) (φ : listVlC -n> D) : D :=
-    λne v, (□ φ σ.|[to_subst ρ] v)%I.
-
-  Lemma subst_phi0_subst_phi (φ : listVlC -n> D) σ v :
-    subst_phi σ [] φ v ≡ (□ φ σ v)%I.
-  Proof. by intros; rewrite /= to_subst_nil; asimpl. Qed.
-
   Definition def_interp_vmem (interp : listVlC -n> D) :
     listVlC -n> dmC -n> iProp Σ :=
     λne ρ d, (∃ vmem, ⌜d = dvl vmem⌝ ∧ ▷ interp ρ vmem)%I.
@@ -90,16 +83,12 @@ Section logrel.
       let '(v, ls) := split_path p in (v, ls ++ [l])
     end.
 
-  Definition eval_split_path (p: path): list vl -> vl * (list label) :=
-    λ ρ, let '(v, ls) := split_path p in (v.[to_subst ρ], ls).
-  Arguments eval_split_path /.
-
   Program Definition interp_selA_final
           (l: label) (interpL interpU: listVlC -n> D) :
     listVlC -n> vlC -n> vlC -n> iProp Σ :=
     λne ρ w v,
     (∃ σ ϕ d,  ⌜w @ l ↘ d⌝ ∧ d ↗ σ , ϕ ∧
-      interpU ρ v ∧ (interpL ρ v ∨ ▷ subst_phi σ ρ ϕ v))%I.
+      interpU ρ v ∧ (interpL ρ v ∨ ▷ □ ϕ σ v))%I.
 
   Fixpoint interp_sel_rec (ls: list label) (interp_k: vlC -n> D): vlC -n> D :=
     λne Va v,
@@ -111,7 +100,7 @@ Section logrel.
   Definition interp_selA (p: path) (l: label) (L U : listVlC -n> D) :
     listVlC -n> D :=
     λne ρ v,
-    let (Va, ls) := eval_split_path p ρ in
+    let (Va, ls) := split_path (p.|[to_subst ρ]) in
     interp_sel_rec ls (interp_selA_final l L U ρ) Va v.
 
   Definition interp_sel (p: path) (l: label) : listVlC -n> D :=
@@ -176,7 +165,7 @@ Section logrel.
     Persistent (⟦ T ⟧ ρ v).
   Proof.
     revert v ρ; induction T => v ρ; simpl; try apply _.
-    all: destruct (split_path p) as [? []]; simpl; apply _.
+    all: destruct (split_path p.|[to_subst ρ]) as [? []]; simpl; apply _.
   Qed.
 
   Global Instance def_interp_persistent T l ρ d :
@@ -226,6 +215,7 @@ Section logrel.
       move => v l IHρ [|i]; rewrite //= -IHρ /to_subst //.
   Qed.
 
+  (* XXX prove these, they're critical to prove the renaming lemmas for the logical relation! *)
   Lemma to_subst_weaken ρ1 ρ2 ρ3:
     upn (length ρ1) (ren (+length ρ2)) >> to_subst (ρ1 ++ ρ2 ++ ρ3) =
     to_subst (ρ1 ++ ρ3).
@@ -258,20 +248,11 @@ Section logrel.
     (* cbn. *)
   Admitted.
 
-  (* XXX Might be false as given.
-     - Either we can show that all inhabitants of types are closed terms, and in
-       particular any σ they contain is in fact closed.
-       That's what I intended to be true.
-       This suggests that in def_interp_tmem, I should *not*
-       substitute ρ in σ, since σ is supposed to be closed there;
-       OTOH, subst_phi is still needed for interp_sel*.
-       Yet OTOH, I should now recheck what happens with the fundamental lemma
-       case for definition typing, tho it will still have to work out.
+  Lemma to_subst_up ρ1 ρ2 v:
+    upn (length ρ1) (v .: ids) >> to_subst (ρ1 ++ ρ2) =
+    to_subst (ρ1 ++ v :: ρ2).
+  Admitted.
 
-     - Otherwise, since types and terms share the same variables,
-     it seems weakening a type requires weakening its inhabitants!
-     In the TTMem case, that seems required to get suitably different sigmas.
-   *)
   Lemma interp_weaken Δ1 Π Δ2 τ :
     ⟦ τ.|[upn (length Δ1) (ren (+ length Π))] ⟧ (Δ1 ++ Π ++ Δ2)
     ≡ ⟦ τ ⟧ (Δ1 ++ Δ2).
@@ -281,59 +262,38 @@ Section logrel.
     - intros w; simpl.
       (* Properness does not work on boxes, because it refers to boxes from uPred but those aren't the ones we have here. *)
       f_equiv.
-      properness.
-      (* Import uPred. apply forall_proper => v. *)
-      (* properness. *)
-      apply IHτ1.
-      apply (IHτ2 (_ :: _)).
-    - intros w; simpl; properness. apply (IHτ (_ :: _)).
+      properness; apply IHτ1 || apply (IHτ2 (_ :: _)).
+    - intros w; simpl; properness; apply (IHτ (_ :: _)).
     - intros w; simpl; properness; trivial.
       f_equiv.
-      properness; trivial.
-      all: try apply IHτ1.
-      all: try apply IHτ2.
-    -
-      intros w; simpl.
-      (* Import uPred. *)
-      (* TODO: show that renamings commute with split_path, interp_sel_rec,
-         object lookup, etc.;
-         hence, the two different ∃ σ describing object lookup will have to have
-         different witnesses. On the right we have the original σ, on the left
-         we have its weakening σ.|[upn (length Δ1) (ren (+length Π))]
- (with one resulting from weakening the other, the original σ).
-         In the end, we should reduce to the following base lemmas: *)
-      assert (forall σ: vls,
-                 σ.|[upn (length Δ1) (ren (+length Π))].|[to_subst (Δ1 ++ Π ++ Δ2)] =
-                 σ.|[to_subst (Δ1 ++ Δ2)]). {
-        intros. asimpl.
-        f_equal. apply to_subst_weaken.
-      }
-      admit.
-    - (* almost same proof as above. *)
-      admit.
-  Admitted.
+      properness; trivial; apply IHτ1 || apply IHτ2.
+    - intros w; simpl; asimpl.
+      by rewrite to_subst_weaken.
+    - intros w; simpl; asimpl.
+      rewrite to_subst_weaken.
+      destruct (split_path p.|[to_subst (Δ1 ++ Δ2)]) as [Va ls].
+      elim ls => /=; intros; properness; trivial; apply IHτ1 || apply IHτ2.
+  Qed.
 
   Lemma interp_subst_up Δ1 Δ2 τ v:
-    ⟦ τ ⟧ (Δ1 ++ v :: Δ2)
-    ≡ ⟦ τ.|[upn (length Δ1) (v .: ids)] ⟧ (Δ1 ++ Δ2).
+    ⟦ τ.|[upn (length Δ1) (v .: ids)] ⟧ (Δ1 ++ Δ2)
+    ≡ ⟦ τ ⟧ (Δ1 ++ v :: Δ2).
   Proof.
     revert Δ1 Δ2; induction τ=> Δ1 Δ2; simpl; auto.
     all: try solve [intros w; simpl; properness; trivial; apply IHτ || apply IHτ1 || apply IHτ2].
     - intros w; simpl.
-      (* Properness does not work on boxes, because it refers to boxes from uPred but those aren't the ones we have here. *)
       f_equiv.
-      properness.
-      apply IHτ1.
-      apply (IHτ2 (_ :: _)).
-    - intros w; simpl; properness. apply (IHτ (_ :: _)).
+      properness; apply IHτ1 || apply (IHτ2 (_ :: _)).
+    - intros w; simpl; properness; apply (IHτ (_ :: _)).
     - intros w; simpl; properness; trivial.
       f_equiv.
-      properness; trivial.
-      all: try apply IHτ1.
-      all: try apply IHτ2.
-    - admit.
-    - admit.
-  Admitted.
+      properness; trivial; apply IHτ1 || apply IHτ2.
+    - intros w; simpl; asimpl. by rewrite to_subst_up.
+    - intros w; simpl; asimpl.
+      rewrite to_subst_up.
+      destruct (split_path p.|[to_subst (Δ1 ++ v :: Δ2)]) as [Va ls].
+      elim ls => /=; intros; properness; trivial; apply IHτ1 || apply IHτ2.
+  Qed.
 
   Definition ivtp Γ T v : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ ρ v.[to_subst ρ])%I.
   Global Arguments ivtp /.
