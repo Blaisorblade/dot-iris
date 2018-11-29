@@ -210,6 +210,22 @@ Section logrel.
 
   Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
 
+  Fixpoint sappend (ρ: vls) (sb: var -> vl) :=
+    match ρ with
+    | [] => sb
+    | v :: ρ => v .: sappend ρ sb
+    end.
+  Definition to_subst_alt ρ := sappend ρ ids.
+  Require Import FunctionalExtensionality.
+  Lemma to_subst_equiv ρ: to_subst ρ = to_subst_alt ρ.
+  Proof.
+    apply functional_extensionality.
+    elim ρ => [i|]//; asimpl.
+    - by replace (i - 0) with i by omega.
+    - rewrite /to_subst_alt.
+      move => v l IHρ [|i]; rewrite //= -IHρ /to_subst //.
+  Qed.
+
   (* XXX Might be false as given.
      - Either we can show that all inhabitants of types are closed terms, and in
        particular any σ they contain is in fact closed.
