@@ -295,6 +295,9 @@ Section logrel.
       elim ls => /=; intros; properness; trivial; apply IHτ1 || apply IHτ2.
   Qed.
 
+  Lemma interp_subst Δ2 τ v1 v2 : ⟦ τ.|[v1/] ⟧ Δ2 v2 ≡ ⟦ τ ⟧ (v1 :: Δ2) v2.
+  Proof. apply (interp_subst_up []). Qed.
+
   Definition ivtp Γ T v : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ ρ v.[to_subst ρ])%I.
   Global Arguments ivtp /.
 
