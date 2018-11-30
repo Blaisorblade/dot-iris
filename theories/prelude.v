@@ -30,16 +30,16 @@ End Autosubst_Lemmas.
 
 Ltac properness :=
   repeat match goal with
-  | |- (∃ _: _, _)%I ≡ (∃ _: _, _)%I => apply exist_proper =>?
-  | |- (∀ _: _, _)%I ≡ (∀ _: _, _)%I => apply forall_proper =>?
-  | |- (_ ∧ _)%I ≡ (_ ∧ _)%I => apply and_proper
-  | |- (_ ∨ _)%I ≡ (_ ∨ _)%I => apply or_proper
-  | |- (_ → _)%I ≡ (_ → _)%I => apply impl_proper
-  | |- (_ -∗ _)%I ≡ (_ -∗ _)%I => apply wand_proper
+  | |- (∃ _: _, _)%I ≡ (∃ _: _, _)%I => apply bi.exist_proper =>?
+  | |- (∀ _: _, _)%I ≡ (∀ _: _, _)%I => apply bi.forall_proper =>?
+  | |- (_ ∧ _)%I ≡ (_ ∧ _)%I => apply bi.and_proper
+  | |- (_ ∨ _)%I ≡ (_ ∨ _)%I => apply bi.or_proper
+  | |- (_ → _)%I ≡ (_ → _)%I => apply bi.impl_proper
+  | |- (_ -∗ _)%I ≡ (_ -∗ _)%I => apply bi.wand_proper
   | |- (WP _ {{ _ }})%I ≡ (WP _ {{ _ }})%I => apply wp_proper =>?
-  | |- (▷ _)%I ≡ (▷ _)%I => apply later_proper
-  | |- (□ _)%I ≡ (□ _)%I => apply persistently_proper
-  | |- (_ ∗ _)%I ≡ (_ ∗ _)%I => apply sep_proper
+  | |- (▷ _)%I ≡ (▷ _)%I => apply bi.later_proper
+  | |- (□ _)%I ≡ (□ _)%I => apply bi.intuitionistically_proper
+  | |- (_ ∗ _)%I ≡ (_ ∗ _)%I => apply bi.sep_proper
   | |- (inv _ _)%I ≡ (inv _ _)%I => apply (contractive_proper _)
   end.
 

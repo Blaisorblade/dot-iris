@@ -199,60 +199,6 @@ Section logrel.
 
   Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
 
-  Fixpoint sappend (ρ: vls) (sb: var -> vl) :=
-    match ρ with
-    | [] => sb
-    | v :: ρ => v .: sappend ρ sb
-    end.
-  Definition to_subst_alt ρ := sappend ρ ids.
-  Require Import FunctionalExtensionality.
-  Lemma to_subst_equiv ρ: to_subst ρ = to_subst_alt ρ.
-  Proof.
-    apply functional_extensionality.
-    elim ρ => [i|]//; asimpl.
-    - by replace (i - 0) with i by omega.
-    - rewrite /to_subst_alt.
-      move => v l IHρ [|i]; rewrite //= -IHρ /to_subst //.
-  Qed.
-
-  (* XXX prove these, they're critical to prove the renaming lemmas for the logical relation! *)
-  Lemma to_subst_weaken ρ1 ρ2 ρ3:
-    upn (length ρ1) (ren (+length ρ2)) >> to_subst (ρ1 ++ ρ2 ++ ρ3) =
-    to_subst (ρ1 ++ ρ3).
-  Proof.
-    apply functional_extensionality; intro i.
-    rewrite !to_subst_equiv /to_subst_alt.
-    revert ρ1 ρ3.
-    (* elim ρ1 => [|v ρ1' IHρ1 ρ2 ρ3] //=. *)
-    (* - by elim => ρ2. *)
-    (* - asimpl. rewrite -fold_up_upn. *)
-    (*   asimpl in IHρ1. *)
-    (* asimpl. *)
-
-    (* simpl. *)
-    (* unfold sappend. *)
-    induction ρ2.
-    - by intros; rewrite up_id_n.
-    - asimpl in *.
-    (* Print to_subst. *)
-    (* Print scons. *)
-    (* SearchPattern (var -> _). *)
-    (* Print scons. *)
-    (* unfold to_subst. *)
-    (* SearchAbout (upn _ ids). *)
-    (* Print up. *)
-    (* induction ρ1; asimpl. done. *)
-    (* simpl in *. *)
-    (* asimpl. *)
-    (* rewrite -fold_up_upn. *)
-    (* cbn. *)
-  Admitted.
-
-  Lemma to_subst_up ρ1 ρ2 v:
-    upn (length ρ1) (v .: ids) >> to_subst (ρ1 ++ ρ2) =
-    to_subst (ρ1 ++ v :: ρ2).
-  Admitted.
-
   Lemma interp_weaken Δ1 Π Δ2 τ :
     ⟦ τ.|[upn (length Δ1) (ren (+ length Π))] ⟧ (Δ1 ++ Π ++ Δ2)
     ≡ ⟦ τ ⟧ (Δ1 ++ Δ2).
@@ -260,15 +206,12 @@ Section logrel.
     revert Δ1 Π Δ2. induction τ=> Δ1 Π Δ2; simpl; trivial.
     all: try solve [intros w; simpl; properness; trivial; apply IHτ || apply IHτ1 || apply IHτ2].
     - intros w; simpl.
-      (* Properness does not work on boxes, because it refers to boxes from uPred but those aren't the ones we have here. *)
-      f_equiv.
       properness; apply IHτ1 || apply (IHτ2 (_ :: _)).
     - intros w; simpl; properness; apply (IHτ (_ :: _)).
-    - intros w; simpl; properness; trivial.
-      f_equiv.
-      properness; trivial; apply IHτ1 || apply IHτ2.
     - intros w; simpl; asimpl.
-      by rewrite to_subst_weaken.
+      rewrite to_subst_weaken.
+      destruct (split_path p.|[to_subst (Δ1 ++ Δ2)]) as [Va ls].
+      elim ls => /=; intros; properness; trivial; apply IHτ1 || apply IHτ2.
     - intros w; simpl; asimpl.
       rewrite to_subst_weaken.
       destruct (split_path p.|[to_subst (Δ1 ++ Δ2)]) as [Va ls].
@@ -276,26 +219,25 @@ Section logrel.
   Qed.
 
   Lemma interp_subst_up Δ1 Δ2 τ v:
-    ⟦ τ.|[upn (length Δ1) (v .: ids)] ⟧ (Δ1 ++ Δ2)
+    ⟦ τ.|[upn (length Δ1) (v.[ren (+length Δ2)] .: ids)] ⟧ (Δ1 ++ Δ2)
     ≡ ⟦ τ ⟧ (Δ1 ++ v :: Δ2).
   Proof.
     revert Δ1 Δ2; induction τ=> Δ1 Δ2; simpl; auto.
     all: try solve [intros w; simpl; properness; trivial; apply IHτ || apply IHτ1 || apply IHτ2].
     - intros w; simpl.
-      f_equiv.
       properness; apply IHτ1 || apply (IHτ2 (_ :: _)).
     - intros w; simpl; properness; apply (IHτ (_ :: _)).
-    - intros w; simpl; properness; trivial.
-      f_equiv.
-      properness; trivial; apply IHτ1 || apply IHτ2.
-    - intros w; simpl; asimpl. by rewrite to_subst_up.
+    - intros w; simpl; asimpl.
+      rewrite to_subst_up.
+      destruct (split_path p.|[to_subst (Δ1 ++ v :: Δ2)]) as [Va ls].
+      elim ls => /=; intros; properness; trivial; apply IHτ1 || apply IHτ2.
     - intros w; simpl; asimpl.
       rewrite to_subst_up.
       destruct (split_path p.|[to_subst (Δ1 ++ v :: Δ2)]) as [Va ls].
       elim ls => /=; intros; properness; trivial; apply IHτ1 || apply IHτ2.
   Qed.
 
-  Lemma interp_subst Δ2 τ v1 v2 : ⟦ τ.|[v1/] ⟧ Δ2 v2 ≡ ⟦ τ ⟧ (v1 :: Δ2) v2.
+  Lemma interp_subst Δ2 τ v1 v2 : ⟦ τ.|[v1.[ren (+length Δ2)]/] ⟧ Δ2 v2 ≡ ⟦ τ ⟧ (v1 :: Δ2) v2.
   Proof. apply (interp_subst_up []). Qed.
 
   Definition ivtp Γ T v : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ ρ v.[to_subst ρ])%I.

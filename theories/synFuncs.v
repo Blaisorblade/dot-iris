@@ -51,19 +51,28 @@ Notation "v @ l ↘ d" := (objLookup v l d) (at level 20).
 (** Instead of letting obj_opens_to autounfold,
     provide tactics to show it's deterministic and so on. *)
 
-(** Convert environment to substitution. *)
-Definition to_subst (ρ: list vl) i : vl :=
-  match ρ !! i with
-  | Some v => v
-  | None => var_vl (i - length ρ)
-  end.
+Definition to_subst (ρ: list vl) : var → vl := foldr (λ v s, v .: s) ids ρ.
 
-Lemma to_subst_nil : to_subst [] = ids.
+Lemma to_subst_weaken ρ1 ρ2 ρ3:
+  upn (length ρ1) (ren (+length ρ2)) >> to_subst (ρ1 ++ ρ2 ++ ρ3) =
+  to_subst (ρ1 ++ ρ3).
 Proof.
-  extensionality x.
-  rewrite /to_subst /=.
-  replace (x - 0) with x by omega.
-  trivial.
+  induction ρ1.
+  - asimpl.
+    induction ρ2; first by asimpl.
+    asimpl; by rewrite IHρ2.
+  - asimpl; by f_equal.
+Qed.
+
+Lemma undo_to_subst ρ : (+length ρ) >>> to_subst ρ = ids.
+Proof. induction ρ; asimpl; auto. Qed.
+
+Lemma to_subst_up ρ1 ρ2 v:
+  upn (length ρ1) (v.[ren (+length ρ2)] .: ids) >> to_subst (ρ1 ++ ρ2) = to_subst (ρ1 ++ v :: ρ2).
+Proof.
+  induction ρ1.
+  - by asimpl; rewrite undo_to_subst; asimpl.
+  - asimpl. f_equal; by rewrite IHρ1.
 Qed.
 
 Definition subst_sigma (σ: vls) (ρ: list vl) := σ.|[to_subst ρ].
