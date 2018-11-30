@@ -3,8 +3,51 @@ Require Import Dot.unary_lr.
 Require Import Dot.synLemmas.
 (* Workflow: Use this file for new experiments, and move experiments here in appropriate files once they're done. *)
 
+Implicit Types
+         (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
+         (Γ : ctx) (ρ : listVlC).
+
 Section Sec.
   Context `{HdotG: dotG Σ}.
+
+  Fixpoint split_path (p: path): vl * list label :=
+    match p with
+    | pv va => (va, [])
+    | pself p l =>
+      let '(v, ls) := split_path p in (v, ls ++ [l])
+    end.
+
+  Notation D := (vlC -n> iProp Σ).
+
+  Fixpoint interp_sel_rec (ls: list label) (interp_k: vlC -n> D): vlC -n> D :=
+    λne Va v,
+    match ls with
+    | l :: ls => (∃ vb, ⌜Va @ l ↘ dvl vb⌝ ∧ ▷ interp_sel_rec ls interp_k vb v)%I
+    | [] => interp_k Va v
+    end.
+
+  Definition interp_selA_v9 (p: path) (l: label) (interpL interpU : listVlC -n> D) :
+    listVlC -n> D :=
+    λne ρ v,
+    let (Va, ls) := split_path (p.|[to_subst ρ]) in
+    (interpU ρ v ∧ (interpL ρ v ∨ interp_sel_rec ls (interp_selA_final l) Va v))%I.
+
+  (* Alternative implementation of interp_selA. Not equivalent because if we
+     satisfy bounds we don't even check that the path does have an element. *)
+  Fixpoint eval_path n p : D :=
+    λne v,
+    match (n, p) with
+    | (S n, pself p l) => ∃ va, eval_path n p va ∧ ⌜va @ l ↘ dvl v⌝
+    | (0, pv Va) => ⌜ Va = v ⌝
+    | _ => False
+    end%I.
+
+  Definition interp_selA_v1 (p: path) (l: label) (interpL interpU : listVlC -n> D) :
+    listVlC -n> D :=
+    λne ρ v,
+    (interpU ρ v ∧ (interpL ρ v ∨
+                    ∃ n Va, eval_path n p.|[to_subst ρ] Va ∧ ▷^ n interp_selA_final l Va v))%I.
+
 
   (* Can't find how to use it. *)
   Lemma later_persistently_1 (P: iProp Σ): (▷ □ P → ▷ P)%I.
@@ -87,18 +130,30 @@ Section Sec.
     rewrite !wp_unfold /wp_pre /=. by iApply "Hsub".
   Qed.
 
+  Lemma alloc_sp T:
+    (|==> ∃ γ, γ ⤇ (λ ρ v, interp T ρ v))%I.
+  Proof. by apply saved_interp_alloc. Qed.
 
+  (* [idsσ] was needed for the lemma below, but no more as [def_interp] now expects
+   *closed* definitions. *)
 
+  (* (** Create an identity environment vls. *) *)
+  (* (*  * The definition gives the right results but is not ideal to reason about. It *) *)
+  (* (*    is hard to prove it does what it should, and it's likely theorems using it *) *)
+  (* (*    should be rephrased in terms of the translation. *) *)
+  (* (*  *) *)
+  (* Definition idsσ: vls -> vls := foldr (λ _, push_var) []. *)
+  (* Lemma idsσ_is_id ρ: ρ = (idsσ ρ).|[to_subst ρ]. *)
+  (* Admitted. *)
 
   Lemma alloc_dtp_tmem_i T ρ l:
     ⟦Γ⟧* ρ -∗
-    (|==> ∃ γ, def_interp (TTMem l T T) l ρ (dtysem (idsσ ρ) γ))%I.
+    (|==> ∃ γ, def_interp (TTMem l T T) l ρ (dtysem ρ γ))%I.
   Proof.
     iIntros "#Hg /=".
     iDestruct (alloc_sp T) as "HupdSp".
     iMod "HupdSp" as (γ) "#Hsp".
     iModIntro; iExists γ; iSplit; try done; iExists _, _; iSplit; first auto.
-    rewrite <- idsσ_is_id.
-    repeat iSplit; naive_solver.
+    repeat iSplitL; naive_solver.
   Qed.
 End Sec.

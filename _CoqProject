@@ -8,3 +8,5 @@ theories/synFuncs.v
 theories/operational.v
 theories/unary_lr.v
 theories/typing.v
+theories/synLemmas.v
+theories/experiments.v
