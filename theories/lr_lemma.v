@@ -75,17 +75,14 @@ Section Sec.
   *)
 
   Lemma ivstp_mu_1 T1 T2:
-    uvstp (T1 :: Γ) T1 (T2.[wkT]) -∗
-    uvstp Γ (TMu T1) T2.
+    ivstp (T1 :: Γ) T1 (T2.|[ren (+1)]) -∗
+    ivstp Γ (TMu T1) T2.
   Proof.
     iIntros "/= #Hstp !> * #Hg #HT1".
-    (* Hopefully from a renaming/weakening lemma. *)
-    iAssert (interp T2 ρ v ≡ interp T2.[wkT] (v :: ρ) v)%I as "#Hren".
-    { admit. }
-    simpl.
-    iRewrite "Hren".
-    iApply ("Hstp" $! (v :: ρ) _); naive_solver.
-  Admitted.
+    iApply (interp_weaken [] [v]).
+    asimpl.
+    iApply ("Hstp" $! (v :: ρ)); naive_solver.
+  Qed.
 
   (*
      Γ, z: T₁ᶻ ⊨ T₁ <: T₂ᶻ
@@ -93,17 +90,14 @@ Section Sec.
      Γ ⊨ T₁ <: μ(x: T₂ˣ)
   *)
   Lemma ivstp_mu_2 T1 T2:
-    uvstp (T1.[wkT] :: Γ) (T1.[wkT]) T2 -∗
-    uvstp Γ T1 (TMu T2).
+    ivstp (T1.|[ren (+1)] :: Γ) (T1.|[ren (+1)]) T2 -∗
+    ivstp Γ T1 (TMu T2).
   Proof.
     iIntros "/= #Hstp !> * #Hg #HT1".
-    (* Hopefully from a renaming/weakening lemma. *)
-    iAssert (interp T1 ρ v ≡ interp T1.[wkT] (v :: ρ) v)%I as "#Hren".
-    { admit. }
-    simpl.
-    iRewrite "Hren" in "HT1".
+    iAssert (⟦ T1.|[ren (+1)] ⟧ (v :: ρ) v)%I as "#HT1'".
+    iApply (interp_weaken [] [v]); by iSimpl.
     iApply ("Hstp" $! (v :: ρ) _); by try iSplit.
-  Admitted.
+  Qed.
 
   (* BEWARE NONSENSE IN NOTES:
      Γ ⊨ x: Tˣ
@@ -118,26 +112,73 @@ Section Sec.
      Γ ⊨ z: mu(x: Tˣ)
    *)
   Lemma ivstp_rec_eq T v:
-    ivtp Γ (TMu T) v ≡
-    ivtp Γ T.[v/] v.
+    ((∀ ρ1 ρ2, (∀ x, x < length Γ → ρ1 x = ρ2 x) → v.[ρ1] = v.[ρ2]) ->
+    ivtp Γ (TMu T) v ∗-∗
+    ivtp Γ T.|[v/] v)%I.
   Proof.
-    iAssert (□ ∀ ρ, interp_env Γ ρ -∗ interp T.[v/] ρ v ≡ interp T (v :: ρ) v)%I as "#Hren".
-    { admit. }
+    intros Hcl.
+    assert (∀ ρ x, x < length Γ
+             → to_subst ρ x = (to_subst ρ >> ren (+strings.length ρ)) x) as H.
+    {
+      (* Needed below: length Γ = length ρ *)
+      asimpl.
+      unfold to_subst.
+      asimpl.
+      admit.
+    }
+    iAssert (□(∀ ρ,
+                 ⟦ T.|[v.[to_subst ρ]/] ⟧ ρ v.[to_subst ρ] ∗-∗ ⟦ T.|[v/] ⟧ ρ v.[to_subst ρ]))%I as "#Hren". admit.
     iSplit; iIntros "/= #Htp !> * #Hg";
-      iSpecialize ("Htp" $! ρ); iSpecialize ("Hren" $! ρ with "Hg").
-    - iRewrite "Hren".
-      by iApply "Htp".
-    - iRewrite "Hren" in "Htp".
-      by iApply "Htp".
+      iSpecialize ("Htp" $! ρ with "Hg"); iSpecialize ("Hren" $! ρ);
+      iPoseProof (interp_subst ρ T (v.[to_subst ρ]) (v.[to_subst ρ])) as "#Hren1"; asimpl; rewrite - (Hcl (to_subst ρ) ); try naive_solver.
+    - iApply "Hren".
+      iApply "Hren1".
+      iApply "Htp".
+    -
+      iApply "Hren1".
+      iApply "Hren".
+      iApply "Htp".
   Admitted.
 
+  (*   (* iIntros "#Hclosed". *) *)
+  (*   iAssert (□ ∀ ρ, interp_env Γ ρ -∗ interp T.|[v/] ρ v.[to_subst ρ] ∗-∗ interp T (v.[to_subst ρ] :: ρ) v.[to_subst ρ])%I as "#Hren". *)
+  (*   (* iAssert (□ ∀ ρ, interp_env Γ ρ -∗ interp T.|[v/] ρ v.[to_subst ρ] ≡ interp T (v :: ρ) v)%I as "#Hren". *) *)
+  (*   { *)
+  (*     iIntros "!> /= * #Hg". *)
+  (*     iPoseProof (interp_subst ρ T (v.[to_subst ρ]) (v.[to_subst ρ])) as "#H". *)
+  (*     iSplit; iIntros "#H2". *)
+  (*     iApply "H". *)
+  (*     asimpl. *)
+  (*     rewrite - (Hcl (to_subst ρ) ). *)
+  (*     rewrite - (Hcl ids). *)
+  (*     rewrite - (Hcl ids (to_subst ρ) ). *)
+  (*     asimpl. *)
+  (*     iApply "H". *)
+  (*   } *)
+
+  (*     (* ("Hclosed" $! (to_subst ρ) ids) as "#H2". *) *)
+  (*     (* iRewrite "#H2". *) *)
+
+  (*     (* iPoseProof ("Hclosed" $! (to_subst ρ) ids) as "#H2". *) *)
+  (*     (* iRewrite "#H2". *) *)
+  (*   iSplit; iIntros "/= #Htp !> * #Hg"; *)
+  (*     iSpecialize ("Htp" $! ρ); iSpecialize ("Hren" $! ρ with "Hg"). *)
+  (*   -  *)
+  (*     iApply "Hren". *)
+  (*     by iApply "Htp". *)
+  (*   - iApply "Hren". *)
+  (*     by iApply "Htp". *)
+  (* Qed. *)
+
   Lemma ivstp_rec_i T v:
-    ivtp Γ T.[v/] v -∗
-    ivtp Γ (TMu T) v.
-  Proof. by iDestruct ivstp_rec_eq as "[? ?]". Qed.
+    ((∀ ρ1 ρ2, (∀ x, x < length Γ → ρ1 x = ρ2 x) → v.[ρ1] = v.[ρ2]) ->
+    ivtp Γ T.|[v/] v -∗
+    ivtp Γ (TMu T) v).
+  Proof. by intros; iDestruct ivstp_rec_eq as "[? ?]". Qed.
 
   Lemma ivstp_rec_e T v:
+    ((∀ ρ1 ρ2, (∀ x, x < length Γ → ρ1 x = ρ2 x) → v.[ρ1] = v.[ρ2]) ->
     ivtp Γ (TMu T) v -∗
-    ivtp Γ T.[v/] v.
-  Proof. by iDestruct ivstp_rec_eq as "[? ?]". Qed.
+    ivtp Γ T.|[v/] v).
+  Proof. by intros; iDestruct ivstp_rec_eq as "[? ?]". Qed.
 End Sec.
