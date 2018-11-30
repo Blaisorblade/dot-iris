@@ -9,6 +9,18 @@ Implicit Types
          (Γ : ctx) (ρ : leibnizC vls).
 
 
+(** The logical relation core is the [interp], interprets *open* types into
+    predicates over *closed* values. Hence, [interp T ρ v] uses its argument [ρ]
+    to interpret anything contained in T, but not things contained in v.
+
+    Semantic judgements must apply instead to open terms/value/paths; therefore,
+    they are defined using closing substitution on arguments of [interp].
+
+    Similar comments apply to [def_interp].
+
+    Additionally, both apply to *translated* arguments, hence they only expect
+    [dtysem] and not [dtysyn] for type member definitions.
+ *)
 Section logrel.
   Context `{dotG Σ}.
 
@@ -76,32 +88,25 @@ Section logrel.
   Program Definition interp_mu (interp : listVlC -n> D) : listVlC -n> D :=
     λne ρ v, interp (v::ρ) v.
 
-  Fixpoint split_path (p: path): vl * list label :=
+  Definition interp_selA_final (l: label) : vlC -n> vlC -n> iProp Σ :=
+    λne w v,
+    (∃ σ ϕ d, ⌜w @ l ↘ d⌝ ∧ d ↗ σ , ϕ ∧ ▷ □ ϕ σ v)%I.
+
+  (* Alternative v2, almost equivalent to v1 and closest to WP and nicely structural to
+     support recursive proofs. Not equivalent to v1 because here lookups happen
+     later, but that's more correct. *)
+  Fixpoint path_wp p (interp_k: vlC -n> D): D :=
+    λne v,
     match p with
-    | pv va => (va, [])
-    | pself p l =>
-      let '(v, ls) := split_path p in (v, ls ++ [l])
-    end.
+    | pself p l => path_wp p (λne va v, ∃ vb, ⌜ va @ l ↘ dvl vb ⌝ ∧ ▷ interp_k vb v) v
+    | pv Va => interp_k Va v
+    end%I.
 
-  Program Definition interp_selA_final
-          (l: label) (interpL interpU: listVlC -n> D) :
-    listVlC -n> vlC -n> vlC -n> iProp Σ :=
-    λne ρ w v,
-    (∃ σ ϕ d,  ⌜w @ l ↘ d⌝ ∧ d ↗ σ , ϕ ∧
-      interpU ρ v ∧ (interpL ρ v ∨ ▷ □ ϕ σ v))%I.
-
-  Fixpoint interp_sel_rec (ls: list label) (interp_k: vlC -n> D): vlC -n> D :=
-    λne Va v,
-    match ls with
-    | l :: ls => (∃ vb, ⌜Va @ l ↘ dvl vb⌝ ∧ ▷ interp_k vb v)%I
-    | [] => interp_k Va v
-    end.
-
-  Definition interp_selA (p: path) (l: label) (L U : listVlC -n> D) :
+  Definition interp_selA (p: path) (l: label) (interpL interpU : listVlC -n> D) :
     listVlC -n> D :=
     λne ρ v,
-    let (Va, ls) := split_path (p.|[to_subst ρ]) in
-    interp_sel_rec ls (interp_selA_final l L U ρ) Va v.
+    (interpU ρ v ∧ (interpL ρ v ∨
+                    path_wp p.|[to_subst ρ] (interp_selA_final l) v))%I.
 
   Definition interp_sel (p: path) (l: label) : listVlC -n> D :=
     interp_selA p l interp_bot interp_top.
@@ -161,11 +166,15 @@ Section logrel.
 
   Notation "⟦ Γ ⟧*" := (interp_env Γ).
 
+  Global Instance path_wp_persistent (pred: vlC -n> D) (v: vl):
+    (forall (va v: vl), Persistent (pred va v)) →
+    Persistent (path_wp p pred v).
+  Proof. intros p; revert pred v; induction p; simpl; apply _. Qed.
+
   Global Instance interp_persistent T ρ v :
     Persistent (⟦ T ⟧ ρ v).
   Proof.
     revert v ρ; induction T => v ρ; simpl; try apply _.
-    all: destruct (split_path p.|[to_subst ρ]) as [? []]; simpl; apply _.
   Qed.
 
   Global Instance def_interp_persistent T l ρ d :
@@ -203,39 +212,23 @@ Section logrel.
     ⟦ τ.|[upn (length Δ1) (ren (+ length Π))] ⟧ (Δ1 ++ Π ++ Δ2)
     ≡ ⟦ τ ⟧ (Δ1 ++ Δ2).
   Proof.
-    revert Δ1 Π Δ2. induction τ=> Δ1 Π Δ2; simpl; trivial.
-    all: try solve [intros w; simpl; properness; trivial; apply IHτ || apply IHτ1 || apply IHτ2].
-    - intros w; simpl.
-      properness; apply IHτ1 || apply (IHτ2 (_ :: _)).
-    - intros w; simpl; properness; apply (IHτ (_ :: _)).
-    - intros w; simpl; asimpl.
-      rewrite to_subst_weaken.
-      destruct (split_path p.|[to_subst (Δ1 ++ Δ2)]) as [Va ls].
-      elim ls => /=; intros; properness; trivial; apply IHτ1 || apply IHτ2.
-    - intros w; simpl; asimpl.
-      rewrite to_subst_weaken.
-      destruct (split_path p.|[to_subst (Δ1 ++ Δ2)]) as [Va ls].
-      elim ls => /=; intros; properness; trivial; apply IHτ1 || apply IHτ2.
+    revert Δ1 Π Δ2; induction τ=> Δ1 Π Δ2 w; simpl; trivial; asimpl;
+                                    rewrite ?to_subst_weaken.
+    all: try solve [properness; trivial;
+                    apply IHτ || apply IHτ1 || apply IHτ2 ||
+                          apply (IHτ2 (_ :: _)) || apply (IHτ (_ :: _))].
   Qed.
 
   Lemma interp_subst_up Δ1 Δ2 τ v:
     ⟦ τ.|[upn (length Δ1) (v.[ren (+length Δ2)] .: ids)] ⟧ (Δ1 ++ Δ2)
     ≡ ⟦ τ ⟧ (Δ1 ++ v :: Δ2).
   Proof.
-    revert Δ1 Δ2; induction τ=> Δ1 Δ2; simpl; auto.
-    all: try solve [intros w; simpl; properness; trivial; apply IHτ || apply IHτ1 || apply IHτ2].
-    - intros w; simpl.
-      properness; apply IHτ1 || apply (IHτ2 (_ :: _)).
-    - intros w; simpl; properness; apply (IHτ (_ :: _)).
-    - intros w; simpl; asimpl.
-      rewrite to_subst_up.
-      destruct (split_path p.|[to_subst (Δ1 ++ v :: Δ2)]) as [Va ls].
-      elim ls => /=; intros; properness; trivial; apply IHτ1 || apply IHτ2.
-    - intros w; simpl; asimpl.
-      rewrite to_subst_up.
-      destruct (split_path p.|[to_subst (Δ1 ++ v :: Δ2)]) as [Va ls].
-      elim ls => /=; intros; properness; trivial; apply IHτ1 || apply IHτ2.
-  Qed.
+    revert Δ1 Δ2; induction τ=> Δ1 Δ2 w; simpl; trivial; asimpl;
+                                    rewrite ?to_subst_up.
+    all: try solve [properness; trivial;
+                    apply IHτ || apply IHτ1 || apply IHτ2 ||
+                          apply (IHτ2 (_ :: _)) || apply (IHτ (_ :: _))].
+    Qed.
 
   Lemma interp_subst Δ2 τ v1 v2 : ⟦ τ.|[v1.[ren (+length Δ2)]/] ⟧ Δ2 v2 ≡ ⟦ τ ⟧ (v1 :: Δ2) v2.
   Proof. apply (interp_subst_up []). Qed.
