@@ -75,17 +75,13 @@ Section Sec.
   *)
 
   Lemma ivstp_mu_1 T1 T2:
-    uvstp (T1 :: Γ) T1 (T2.[wkT]) -∗
+    uvstp (T1 :: Γ) T1 (T2.|[ren (+1)]) -∗
     uvstp Γ (TMu T1) T2.
   Proof.
     iIntros "/= #Hstp !> * #Hg #HT1".
-    (* Hopefully from a renaming/weakening lemma. *)
-    iAssert (interp T2 ρ v ≡ interp T2.[wkT] (v :: ρ) v)%I as "#Hren".
-    { admit. }
-    simpl.
-    iRewrite "Hren".
+    rewrite -(interp_weaken nil [v] ρ T2 v). asimpl.
     iApply ("Hstp" $! (v :: ρ) _); naive_solver.
-  Admitted.
+  Qed.
 
   (*
      Γ, z: T₁ᶻ ⊨ T₁ <: T₂ᶻ
@@ -93,17 +89,14 @@ Section Sec.
      Γ ⊨ T₁ <: μ(x: T₂ˣ)
   *)
   Lemma ivstp_mu_2 T1 T2:
-    uvstp (T1.[wkT] :: Γ) (T1.[wkT]) T2 -∗
+    uvstp (T1.|[ren (+1)] :: Γ) (T1.|[ren (+1)]) T2 -∗
     uvstp Γ T1 (TMu T2).
   Proof.
     iIntros "/= #Hstp !> * #Hg #HT1".
     (* Hopefully from a renaming/weakening lemma. *)
-    iAssert (interp T1 ρ v ≡ interp T1.[wkT] (v :: ρ) v)%I as "#Hren".
-    { admit. }
-    simpl.
-    iRewrite "Hren" in "HT1".
+    rewrite -(interp_weaken nil [v] ρ T1 v). asimpl.
     iApply ("Hstp" $! (v :: ρ) _); by try iSplit.
-  Admitted.
+  Qed.
 
   (* BEWARE NONSENSE IN NOTES:
      Γ ⊨ x: Tˣ
@@ -119,25 +112,26 @@ Section Sec.
    *)
   Lemma ivstp_rec_eq T v:
     ivtp Γ (TMu T) v ≡
-    ivtp Γ T.[v/] v.
+    ivtp Γ T.|[v/] v.
   Proof.
-    iAssert (□ ∀ ρ, interp_env Γ ρ -∗ interp T.[v/] ρ v ≡ interp T (v :: ρ) v)%I as "#Hren".
-    { admit. }
     iSplit; iIntros "/= #Htp !> * #Hg";
-      iSpecialize ("Htp" $! ρ); iSpecialize ("Hren" $! ρ with "Hg").
-    - iRewrite "Hren".
-      by iApply "Htp".
-    - iRewrite "Hren" in "Htp".
-      by iApply "Htp".
+      iSpecialize ("Htp" $! ρ).
+    - iSpecialize ("Htp" with "Hg").
+      rewrite -(interp_subst). asimpl.
+      admit.
+    (*   iRewrite "Hren". *)
+    (*   by iApply "Htp". *)
+    (* - iRewrite "Hren" in "Htp". *)
+    (*   by iApply "Htp". *)
   Admitted.
 
   Lemma ivstp_rec_i T v:
-    ivtp Γ T.[v/] v -∗
+    ivtp Γ T.|[v/] v -∗
     ivtp Γ (TMu T) v.
   Proof. by iDestruct ivstp_rec_eq as "[? ?]". Qed.
 
   Lemma ivstp_rec_e T v:
     ivtp Γ (TMu T) v -∗
-    ivtp Γ T.[v/] v.
+    ivtp Γ T.|[v/] v.
   Proof. by iDestruct ivstp_rec_eq as "[? ?]". Qed.
 End Sec.
