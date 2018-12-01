@@ -60,6 +60,16 @@ Proof.
   by rewrite bi.ofe_fun_equivI; iSpecialize ("Heq" $! v); simpl.
 Qed.
 
+Lemma saved_interp_agree_eta γ Φ Ψ vs v :
+  saved_interp_own γ (λ (vs : vls) (v : vl), (Φ vs) v) -∗
+  saved_interp_own γ (λ (vs : vls) (v : vl), (Ψ vs) v) -∗
+  ▷ (Φ vs v ≡ Ψ vs v).
+Proof.
+  iIntros "#H1 #H2".  
+  repeat change (fun x => ?h x) with h.
+  by iApply saved_interp_agree.
+Qed.
+
 Lemma saved_interp_impl γ Φ Ψ vs v :
   saved_interp_own γ Φ -∗ saved_interp_own γ Ψ -∗ □ (▷ Φ vs v -∗ ▷ Ψ vs v).
 Proof.

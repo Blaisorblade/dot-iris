@@ -1,6 +1,6 @@
 Require Import Dot.tactics.
 Require Import Dot.unary_lr.
-Require Import Dot.synLemmas.
+(* Require Import Dot.synLemmas. *)
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
@@ -34,12 +34,9 @@ Section Sec.
     iIntros "/= !> * Hg #HvL".
     iDestruct ("Hva" $! ρ with "Hg") as (d) "#[% #H]"; iClear "Hva".
     iDestruct "H" as (φ σ) "#[Hl [#HLφ [#HφU #HLU]]]".
-    simplOpen ds'; simpl.
-    iExists (vobj ds), σ, φ, d.
-
+    iExists σ, φ, d.
     iDestruct ("HLφ" with "HvL") as "#HLφ'".
     iDestruct ("HLU" with "HvL") as "#HLU'".
-    (* iDestruct ("HφU" with "HLφ'") as "> #HφU1". *)
     repeat iModIntro; repeat iSplit; trivial. by iRight.
   Qed.
 
@@ -50,8 +47,7 @@ Section Sec.
     iIntros "/= #Hva !> * #Hg #HvL".
     iDestruct ("Hva" $! ρ with "Hg") as (d) "#[% #H]"; iClear "Hva".
     iDestruct "H" as (φ σ) "#[Hl [#HLφ [#HφU #HLU]]]".
-    simplOpen ds'; simpl.
-    iExists (vobj ds), σ , φ, d.
+    iExists σ , φ, d.
     iDestruct ("HLφ" with "HvL") as "#HLφ'".
     repeat iModIntro; repeat iSplit; trivial. by iRight.
   Qed.
@@ -76,18 +72,28 @@ Section Sec.
     iIntros "/= #Hva !> * #Hg #HvL".
 
     iDestruct ("Hva" $! ρ with "Hg") as (d) "#[% #Hvb]"; iClear "Hva".
-    (* iIntros "/= # Hva !> * #Hg #HvL". *)
     iDestruct "Hvb" as (vmem) "[-> H1]".
     iDestruct "H1" as (d) "[Hl2 H]".
     iDestruct "H" as (φ σ) "#[Hl [#HLφ [#HφU #HLU]]]".
-    simplOpen ds'; simpl.
     iDestruct ("HLφ" with "HvL") as "HLφ'".
-    iExists (vobj ds), vmem.
+    iExists vmem.
     repeat iModIntro; repeat iSplit; try done.
-    iExists vmem, σ , φ, d.
+    iExists σ , φ, d.
     repeat iModIntro; repeat iSplit; try done.
     by iRight.
   Qed.
+
+
+  (** Determinacy of obj_opens_to. *)
+  Lemma objLookupDet v l d1 d2: v @ l ↘ d1 -> v @ l ↘ d2 -> d1 = d2.
+  Proof.
+    rewrite /objLookup; intros; ev; by subst; injectHyps; optFuncs_det.
+  Qed.
+  Ltac objLookupDet :=
+    lazymatch goal with
+    | H1: ?v @ ?l ↘ ?d1, H2: ?v @ ?l ↘ ?d2 |- _=>
+      assert (d2 = d1) as ? by (eapply objLookupDet; eassumption); injectHyps
+    end.
 
   Lemma mem_stp_sub_sel L U va l:
     ivtp Γ (TTMem l L U) va -∗
@@ -99,22 +105,22 @@ Section Sec.
     iDestruct "Hlφ" as (γ) "[% Hγφ]".
 
     iApply "HφU".
-    simplOpen ds'; simpl.
-    iDestruct "Hφ" as (va1 σ1 φ1 d1) "[% [% [Hlφ1 [_ [[] | #Hφ1v]]]]] /=".
-    iDestruct "Hlφ1" as (γ1) "[% Hγφ1]".
+    iDestruct "Hφ" as (σ1 φ1 d1 Hva) "[Hγ [_ [False | #HΦ1v]]]"; try done.
+    iDestruct "Hγ" as (γ' Hd1) "HγΦ1".
 
-    injectHyps; objLookupDet.
+    injectHyps; objLookupDet; subst.
 
-    iAssert (∀ ρ v, ▷ (φ (ρ, v) ≡ φ1 (ρ, v)))%I as "#Hag".
-      by iIntros; iApply saved_pred_agree.
+    iAssert (∀ ρ v, ▷ (φ ρ v ≡ φ1 ρ v))%I as "#Hag".
+    { iIntros.
+      (* fails T_T : iApply (saved_interp_agree_eta γ φ φ1 ρ0 v0). *)
+      admit.
+    }
+
     (* iAssert (▷ (subst_phi σ ρ φ v ≡ subst_phi σ ρ φ1 v))%I as "#Hag"; simpl. *)
     (*  ▷ (subst_phi σ ρ φ v ≡ subst_phi σ ρ φ1 v))%I as "#Hag". simpl. *)
     (* { qy iApply saved_pred_agree. } *)
     repeat iModIntro.
-    by iRewrite ("Hag" $! (vls_to_list σ.[to_subst ρ]) v).
-  Qed.
-
-    (* iDestruct ("HLφ" with "HvL") as ">#HLφ'". *)
-    (* iDestruct ("HLU" with "HvL") as "> #HLU'". *)
-    (* iDestruct ("HφU" with "HLφ'") as "> #HφU1". *)
+    inversion H1; subst.
+    by iRewrite ("Hag" $! σ v).
+  Admitted.
 End Sec.
