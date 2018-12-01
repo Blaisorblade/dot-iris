@@ -1,6 +1,6 @@
 Require Import Dot.tactics.
 Require Import Dot.unary_lr.
-(* Require Import Dot.synLemmas. *)
+Require Import Dot.synLemmas.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
@@ -87,18 +87,6 @@ Section Sec.
     iExists σ , φ, d.
     repeat iModIntro; by repeat iSplit.
   Qed.
-
-
-  (** Determinacy of obj_opens_to. *)
-  Lemma objLookupDet v l d1 d2: v @ l ↘ d1 -> v @ l ↘ d2 -> d1 = d2.
-  Proof.
-    rewrite /objLookup; intros; ev; by subst; injectHyps; optFuncs_det.
-  Qed.
-  Ltac objLookupDet :=
-    lazymatch goal with
-    | H1: ?v @ ?l ↘ ?d1, H2: ?v @ ?l ↘ ?d2 |- _=>
-      assert (d2 = d1) as ? by (eapply objLookupDet; eassumption); injectHyps
-    end.
 
   Lemma mem_stp_sub_sel L U va l:
     ivtp Γ (TTMem l L U) va -∗
