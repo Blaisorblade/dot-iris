@@ -292,8 +292,18 @@ Section Sec.
   Global Arguments istp /.
 
   Definition uvstp Γ T1 T2: iProp Σ :=
-    (□∀ ρ v, ⟦Γ⟧*ρ -∗ ((*|={⊤}=>*) ⟦T1⟧ ρ v) → |={⊤}=> ⟦T2⟧ ρ v)%I.
+    (□∀ ρ v, ⟦Γ⟧*ρ -∗ (⟦T1⟧ ρ v) → |={⊤}=> ⟦T2⟧ ρ v)%I.
   Global Arguments uvstp /.
+
+  Notation "▷^ i" := (Nat.iter i (fun P => ▷ P)%I) (at level 333).
+
+  Definition step_indexed_uvstp Γ T1 T2 i j: iProp Σ :=
+    (□∀ ρ v, ⟦Γ⟧*ρ -∗  (▷^i ⟦T1⟧ ρ v) → |={⊤}=> ▷^j ⟦T2⟧ ρ v)%I.
+  Global Arguments step_indexed_uvstp /.
+
+  Definition step_indexed_ietp Γ T e i: iProp Σ :=
+    (□∀ ρ, ⟦Γ⟧* ρ → ▷^i ⟦T⟧ₑ ρ (e.[to_subst ρ]))%I.
+  Global Arguments step_indexed_ietp /.
 End Sec.
 
 Notation "⟦ T ⟧" := (interp T).
@@ -301,10 +311,13 @@ Notation "⟦ Γ ⟧*" := (interp_env Γ).
 Notation "⟦ T ⟧ₑ" := (interp_expr (uinterp T)).
 
 Notation "Γ ⊨ T1 <: T2" := (istp Γ T1 T2) (at level 74, T1, T2 at next level).
-Notation "Γ ⊨ e : T" := (ietp Γ e T) (at level 74, e, T at next level).
+Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 
 Notation "Γ ⊨v T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).
 Notation "Γ ⊨> T1 <: T2" := (uvstp Γ T1 T2) (at level 74, T1, T2 at next level).
+
+Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
+Notation "Γ '⊨' '[' T1 ',' i ']' '<:' '[' T2 ',' j ']'" := (step_indexed_uvstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
 
 Section SubTypingEquiv.
   Context `{HdotG: dotG Σ} (Γ: list ty).
@@ -342,4 +355,13 @@ Section SubTypingEquiv.
     (* setoid_rewrite wp_unfold. *)
     (* by iApply ("Hsub2" $! _ (of_val v)). *)
   Qed.
+
+  Lemma semantic_typing_uniform_step_index T e i:
+    (Γ ⊨ e : T → Γ ⊨ e : T,i)%I.
+  Proof.
+    induction i; iIntros "#H"; iModIntro; iIntros (ρ) "#HΓ".
+    - by iApply "H".
+    - iModIntro. by iApply IHi.
+  Qed.
+
 End SubTypingEquiv.
