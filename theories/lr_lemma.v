@@ -94,8 +94,7 @@ Section Sec.
     ivstp Γ T1 (TMu T2).
   Proof.
     iIntros "/= #Hstp !> * #Hg #HT1".
-    iAssert (⟦ T1.|[ren (+1)] ⟧ (v :: ρ) v)%I as "#HT1'".
-    iApply (interp_weaken [] [v]); by iSimpl.
+    rewrite -(interp_weaken nil [v] ρ T1 v). asimpl.
     iApply ("Hstp" $! (v :: ρ) _); by try iSplit.
   Qed.
 
@@ -138,6 +137,23 @@ Section Sec.
       iApply "Hren1".
       iApply "Hren".
       iApply "Htp".
+  Admitted.
+
+  (* Paolo: This is probably false if we don't assume that v is closed; that
+     must either follow from the logical relation or be a separate hypothesis. *)
+  Lemma ivstp_rec_eq_alt T v:
+    ivtp Γ (TMu T) v ≡
+    ivtp Γ T.|[v/] v.
+  Proof.
+    iSplit; iIntros "/= #Htp !> * #Hg";
+      iSpecialize ("Htp" $! ρ).
+    - iSpecialize ("Htp" with "Hg").
+      rewrite -(interp_subst). asimpl.
+      admit.
+    (*   iRewrite "Hren". *)
+    (*   by iApply "Htp". *)
+    (* - iRewrite "Hren" in "Htp". *)
+    (*   by iApply "Htp". *)
   Admitted.
 
   (*   (* iIntros "#Hclosed". *) *)

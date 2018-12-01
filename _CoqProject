@@ -10,3 +10,4 @@ theories/unary_lr.v
 theories/typing.v
 theories/synLemmas.v
 theories/experiments.v
+theories/lr_lemma.v
