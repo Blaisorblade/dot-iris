@@ -79,9 +79,9 @@ The names are taken from the PDF.
 
 - [ ] <:-Or2
 
-- [] Or-<:
+- [ ] Or-<:
 
-- [] <:-T
+- [ ] <:-T
 
 - [ ] Bot-<:
 
