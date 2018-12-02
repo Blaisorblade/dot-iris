@@ -186,6 +186,7 @@ End Sec.
 
 Notation "g ⤇ p" := (saved_interp_own g p) (at level 20).
 
-(* Class dotUInterpG Σ := DotInterpG { *)
-(*   dot_uinterp: ty -> envD Σ *)
-(* }. *)
+(* For abstracting AAsynToSem. *)
+Class dotInterpG Σ := DotInterpG {
+  dot_interp: ty -> vls -> vl -> iProp Σ
+}.

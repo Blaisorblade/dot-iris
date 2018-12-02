@@ -6,6 +6,7 @@ theories/prelude.v
 theories/dotsyn.v
 theories/synFuncs.v
 theories/operational.v
+theories/AAsynToSem.v
 theories/unary_lr.v
 theories/typing.v
 theories/synLemmas.v

@@ -126,6 +126,7 @@ Section logrel.
     | TSel p l => interp_sel p l
     | TSelA p l L U => interp_selA p l (interp L) (interp U)
   end % I.
+  Global Instance dotInterpΣ : dotInterpG Σ := DotInterpG _ (λ T ρ, interp T ρ).
 
   Fixpoint def_interp (T: ty) (l : label): listVlC -n> dmC -n> iProp Σ :=
     λne ρ d,
