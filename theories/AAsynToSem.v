@@ -271,17 +271,24 @@ Section Sec.
       + iModSpec (ex_t_vl σ n v) v2. finish (pv _).
     - skeleton σ n t1.
       + iModSpec (ex_t_tm (push_var σ) (S n) t) t2. finish (vabs _).
-      + admit.
-        (* skipAdmit. *)
-      (* iModSpec (ex_t_dms (push_var σ) (S n) d) d2. finish (vobj _). *)
+      +
+        (* iModSpec (ex_t_dms (push_var σ) (S n) d) d2. finish (vobj _). *)
+        iInduction l as [|d ds] "IHl".
+        * by iExists (vobj []).
+        * ev.
+          iMod (ex_t_dm (push_var σ) (S n) d H0) as (d2) "#Hd".
+          iMod ("IHl" $! H1) as (v2) "#Hds". iClear "IHl".
+          destruct v2 as [ | | | ds2]; try done.
+          iExists (vobj (d2 :: ds2)).
+          iModIntro; by iSplit.
     - skeleton σ n t1.
       + iModSpec (ex_t_vl σ n v) v2. finish (tv _).
     - skeleton σ n t1.
       + iModSpec (ex_t_ty σ n t) t2. by iApply ex_t_dty.
       + iModSpec (ex_t_vl σ n v) v2. finish (dvl _).
     (* - skeleton σ n t1. *)
-    (*   + iModSpec (ex_t_dm σ n d) d2. recursiveTransf (dcons _ _). *)
-  Admitted.
+    (*   + iModSpec (ex_t_dm σ n a) d2. recursiveTransf (cons _ _). *)
+  Qed.
 
   Fixpoint same_skel_tm (t1 t2: tm): Prop :=
     match (t1, t2) with
