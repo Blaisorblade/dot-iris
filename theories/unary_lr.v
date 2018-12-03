@@ -234,70 +234,22 @@ Section logrel.
   Lemma interp_subst Δ2 τ v1 v2 : ⟦ τ.|[v1.[ren (+length Δ2)]/] ⟧ Δ2 v2 ≡ ⟦ τ ⟧ (v1 :: Δ2) v2.
   Proof. apply (interp_subst_up []). Qed.
 
+  (* Really needed? Try to stop using it. *)
   Definition ivtp Γ T v : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ ρ v.[to_subst ρ])%I.
   Global Arguments ivtp /.
 
   Definition ietp Γ T e : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ₑ ρ (e.|[to_subst ρ]))%I.
   Global Arguments ietp /.
 
-  (* Value subtyping. *)
+  (* Subtyping. Defined on (values). *)
   Definition ivstp Γ T1 T2: iProp Σ := (□∀ ρ v, ⟦Γ⟧* ρ → ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
   Global Arguments ivstp /.
-
-  (* (Expression) subtyping, strengthened to be equivalent to valye subtyping. *)
-  Definition istp Γ T1 T2 : iProp Σ :=
-    (ivstp Γ T1 T2 ∧ □∀ ρ e, ⟦Γ⟧* ρ → ⟦T1⟧ₑ ρ e → ⟦T2⟧ₑ ρ e)%I.
-  Global Arguments istp /.
-
-  Definition uvstp Γ T1 T2: iProp Σ :=
-    (□∀ ρ v, ⟦Γ⟧*ρ -∗ ((*|={⊤}=>*) ⟦T1⟧ ρ v) → |={⊤}=> ⟦T2⟧ ρ v)%I.
-  Global Arguments uvstp /.
 End logrel.
 
 Notation "⟦ T ⟧" := (interp T).
 Notation "⟦ Γ ⟧*" := (interp_env Γ).
 Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
 
-Notation "Γ ⊨ T1 <: T2" := (istp Γ T1 T2) (at level 74, T1, T2 at next level).
-Notation "Γ ⊨ e : T" := (ietp Γ e T) (at level 74, e, T at next level).
+Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 
-Notation "Γ ⊨v T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).
-Notation "Γ ⊨> T1 <: T2" := (uvstp Γ T1 T2) (at level 74, T1, T2 at next level).
-
-Section SubTypingEquiv.
-  Context `{HdotG: dotG Σ} (Γ: list ty).
-
-  (** We prove that vstp and stp are equivalent, so that we can use them
-      interchangeably; and in my previous proofs, proving uvstp was easier. *)
-
-  Lemma istp2ivstp T1 T2: (Γ ⊨ T1 <: T2 → Γ ⊨v T1 <: T2)%I.
-  Proof. by iIntros "/= [#? _]". Qed.
-
-  Lemma ivstp2istp T1 T2: (Γ ⊨v T1 <: T2 → Γ ⊨ T1 <: T2)%I.
-  Proof.
-    iIntros "/= #Hstp". iFrame "Hstp".
-    iIntros " !> * #Hg HeT1".
-    iApply wp_fupd.
-    iApply (wp_wand with " [-]"); try iApply "HeT1".
-    iIntros "* HT1". by iApply "Hstp".
-  Qed.
-
-  Lemma istpEqIvstp T1 T2: (Γ ⊨ T1 <: T2) ≡ (Γ ⊨v T1 <: T2).
-  Proof. iSplit; iIntros; by [iApply istp2ivstp| iApply ivstp2istp]. Qed.
-
-  Lemma iStpUvstp T1 T2: (Γ ⊨ T1 <: T2 → Γ ⊨> T1 <: T2)%I.
-  Proof.
-    (* Inspired by the proof of wp_value_inv'! *)
-
-    (* More manual.*)
-    (* iIntros "/= #Hsub !> * #Hg *". *)
-    (* iSpecialize ("Hsub" $! (of_val v) with "Hg"). *)
-    (* rewrite !wp_unfold /wp_pre /=. iIntros. by iApply "Hsub". *)
-    (* Restart. *)
-    iIntros "/= [#Hsub1 #Hsub2] !> * #Hg * #?".
-    by iApply "Hsub1".
-    (* Or *)
-    (* setoid_rewrite wp_unfold. *)
-    (* by iApply ("Hsub2" $! _ (of_val v)). *)
-  Qed.
-End SubTypingEquiv.
+Notation "Γ ⊨ T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).

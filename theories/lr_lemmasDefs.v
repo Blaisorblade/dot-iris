@@ -61,7 +61,7 @@ Section Sec.
 
   Lemma dtp_tmem_abs_i T L U γ ρ l :
     γ ⤇ dot_interp T -∗ ⟦Γ⟧* ρ -∗
-    Γ ⊨v L <: U -∗
+    Γ ⊨ L <: U -∗
     (* We want the next two hypotheses to hold in a later world, but for this Γ,
        both because that's what we need to introduce, and because it allows
        using Γ *now* to establish the assumption.
@@ -83,8 +83,8 @@ Section Sec.
 
        And that forces using the same implication in the logical relation
        (unlike I did originally). *)
-    (Γ ⊨v TLater T <: TLater U) -∗
-    (Γ ⊨v TLater L <: TLater T) →
+    (Γ ⊨ TLater T <: TLater U) -∗
+    (Γ ⊨ TLater L <: TLater T) →
     def_interp (TTMem l L U) l ρ (dtysem ρ γ).
   Proof.
     iIntros "#Hv * #Hg #HLU #HTU #HLT /=".

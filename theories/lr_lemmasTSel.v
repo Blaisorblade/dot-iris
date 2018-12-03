@@ -29,7 +29,6 @@ Section Sec.
     Γ ⊨ L <: TSelA (pv va) l L U.
   Proof.
     iIntros "#Hva".
-    rewrite istpEqIvstp.
 
     iIntros "/= !> * Hg #HvL".
     iDestruct ("Hva" $! ρ with "Hg") as (d) "#[% #H]"; iClear "Hva".

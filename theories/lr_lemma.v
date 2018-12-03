@@ -8,18 +8,12 @@ Section Sec.
 
   Context (Γ: list ty).
 
-  Lemma ivstp_later G T: G ⊨v T <: TLater T.
+  Lemma ivstp_later G T: G ⊨ T <: TLater T.
   Proof. by iIntros "!> ** /=". Qed.
 
-  (* So, value subtyping [ivstp] implies updated value subtyping [uvstp] but not
-  viceversa. We can use the implication when proving value subtyping, but not
-  when consuming its hypotheses. *)
-  Lemma iuvstp_later T: Γ ⊨> T <: TLater T.
-  Proof. by iIntros "!> ** /=". Qed.
-
-  Lemma ivstp_ande1 T1 T2: Γ ⊨> TAnd T1 T2 <: T1.
+  Lemma ivstp_ande1 T1 T2: Γ ⊨ TAnd T1 T2 <: T1.
   Proof. by iIntros "/= !> * ? [? ?]". Qed.
-  Lemma ivstp_ande2 T1 T2: Γ ⊨> TAnd T1 T2 <: T2.
+  Lemma ivstp_ande2 T1 T2: Γ ⊨ TAnd T1 T2 <: T2.
   Proof. by iIntros "/= !> * ? [? ?]". Qed.
 
   (* Lemma stp_andi T1 T2 ρ v: *)
@@ -29,13 +23,13 @@ Section Sec.
   (* Proof. iIntros; by iSplit. Qed. *)
 
   Lemma ivstp_andi S T1 T2:
-    Γ ⊨> S <: T1 -∗
-    Γ ⊨> S <: T2 -∗
-    Γ ⊨> S <: TAnd T1 T2.
+    Γ ⊨ S <: T1 -∗
+    Γ ⊨ S <: T2 -∗
+    Γ ⊨ S <: TAnd T1 T2.
   Proof.
     iIntros "/= #H1 #H2 !> * #Hg #HS".
-    iSpecialize ("H1" with "Hg"); iMod ("H1" with "HS") as "#H1'".
-    iSpecialize ("H2" with "Hg"); iMod ("H2" with "HS") as "#H2'".
+    iSpecialize ("H1" with "Hg"); iSpecialize ("H1" with "HS").
+    iSpecialize ("H2" with "Hg"); iSpecialize ("H2" with "HS").
     naive_solver.
   Qed.
 
@@ -45,14 +39,14 @@ Section Sec.
   Proof. iIntros "? /="; naive_solver. Qed.
 
   Lemma ivstp_ore S T1 T2:
-    Γ ⊨> T1 <: S -∗
-    Γ ⊨> T2 <: S -∗
-    Γ ⊨> TOr T1 T2 <: S.
+    Γ ⊨ T1 <: S -∗
+    Γ ⊨ T2 <: S -∗
+    Γ ⊨ TOr T1 T2 <: S.
   Proof. iIntros "/= #H1 #H2 !> * #Hg #[HT1 | HT2]"; [iApply "H1" | iApply "H2"]; done. Qed.
 
-  Lemma ivstp_ori1 T1 T2: Γ ⊨> T1 <: TOr T1 T2.
+  Lemma ivstp_ori1 T1 T2: Γ ⊨ T1 <: TOr T1 T2.
   Proof. iIntros "!> ** /="; naive_solver. Qed.
-  Lemma ivstp_ori2 T1 T2: Γ ⊨> T2 <: TOr T1 T2.
+  Lemma ivstp_ori2 T1 T2: Γ ⊨ T2 <: TOr T1 T2.
   Proof. iIntros "!> ** /="; naive_solver. Qed.
 
   (*
