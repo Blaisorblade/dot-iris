@@ -31,11 +31,11 @@ Section lang_rules.
       constructor; [solve_exec_safe | solve_exec_puredet].
 
   Global Instance pure_lam e1 v2 :
-    PureExec True 1 (tapp (tv (vabs e1)) (tv v2)) e1.[v2 /].
+    PureExec True 1 (tapp (tv (vabs e1)) (tv v2)) e1.|[v2 /].
   Proof. solve_pure_exec. Qed.
 
   Global Instance pure_tlam ds l v :
-    PureExec (index_dms l (selfSubst ds) = Some (dvl v)) 1 (tproj (tv (vobj ds)) l) (tv v).
+    PureExec (reverse (selfSubst ds) !! l = Some (dvl v)) 1 (tproj (tv (vobj ds)) l) (tv v).
   Proof. solve_pure_exec. Qed.
 
   Global Instance pure_tskip t:

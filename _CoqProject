@@ -13,3 +13,6 @@ theories/synLemmas.v
 theories/experiments.v
 theories/lr_lemma.v
 theories/lr_lemmasTSel.v
+theories/lr_lemmasDefs.v
+theories/rules.v
+theories/adequacy.v

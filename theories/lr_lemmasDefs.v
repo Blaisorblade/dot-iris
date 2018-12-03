@@ -23,7 +23,7 @@ Section Sec.
   Proof.
     iIntros "#Hv !> * #Hg /=".
     iSplit; try done.
-    iExists v; iSplit; try done. by iApply "Hv".
+    iExists _; iSplit; try done. by iApply "Hv".
   Qed.
 
   (*
@@ -37,15 +37,14 @@ Section Sec.
     TODO: prove what I actually want, now that we store envD.
   *)
   Lemma dtp_tmem_i T γ ρ l :
-    γ ⤇ uinterp T -∗ ⟦Γ⟧* ρ -∗
-    def_interp (TTMem l T T) l ρ (dtysem (idsσ ρ) γ).
+    γ ⤇ dot_interp T -∗ ⟦Γ⟧* ρ -∗
+    def_interp (TTMem l T T) l ρ (dtysem ρ γ).
   Proof.
     iIntros "#Hv * #Hg /=".
     (* iExists _, _. iSplit. _auto. *)
     iSplit; try done.
-    iExists (uinterp T), _. iSplit; first naive_solver.
-    rewrite <- idsσ_is_id.
-    auto 8.
+    iExists (interp T), _. iSplit; first naive_solver.
+    iModIntro; repeat iSplitL; auto.
   Qed.
 
   (* We can't write idtp_tmem_i as above, but for now we can write: *)
@@ -61,7 +60,7 @@ Section Sec.
 
 
   Lemma dtp_tmem_abs_i T L U γ ρ l :
-    SP γ (uinterp T) -∗ ⟦Γ⟧* ρ -∗
+    γ ⤇ dot_interp T -∗ ⟦Γ⟧* ρ -∗
     Γ ⊨v L <: U -∗
     (* We want the next two hypotheses to hold in a later world, but for this Γ,
        both because that's what we need to introduce, and because it allows
@@ -82,68 +81,28 @@ Section Sec.
 
        (□∀ v ρ, ⟦Γ⟧* ρ → ▷ (⟦T1⟧ ρ v → ⟦T2⟧ ρ v)).
 
-
-  (* And subtyping later is enough to imply expression subtyping: *)
-  (* Lemma iVstpUpdatedStp T1 T2: (Γ ⊨> T1 <: T2 → Γ ⊨ T1 <: T2)%I. *)
-  (* Proof. *)
-  (*   iIntros "/= #Hstp". " !> * #Hg HeT1". *)
-  (*   (* Low level: *) *)
-  (*   (* by iApply (wp_strong_mono with "HeT1"); *) *)
-  (*   (*   last (iIntros "* HT1"; iApply "Hstp"). *) *)
-  (*   (* Just with proof rules documented in the appendix. *) *)
-  (*   iApply wp_fupd. *)
-  (*   iApply (wp_wand with " [-]"); try iApply "HeT1". *)
-  (*   iIntros "* HT1". by iApply "Hstp". *)
-  (* Qed. *)
-
-  (* Lemma istpEqIvstp T1 T2: (Γ ⊨ T1 <: T2) ≡ (Γ ⊨> T1 <: T2). *)
-  (* Proof. iSplit; iIntros; by [iApply iStpUvstp| iApply iVstpUpdatedStp]. Qed. *)
        And that forces using the same implication in the logical relation
        (unlike I did originally). *)
     (Γ ⊨v TLater T <: TLater U) -∗
     (Γ ⊨v TLater L <: TLater T) →
-    def_interp (TTMem l L U) l ρ (dtysem (idsσ ρ) γ).
+    def_interp (TTMem l L U) l ρ (dtysem ρ γ).
   Proof.
     iIntros "#Hv * #Hg #HLU #HTU #HLT /=".
     iSplit; try done.
-    iExists (uinterp T), _. iSplit; first auto.
-    rewrite <- idsσ_is_id.
+    iExists (interp T), _. iSplit; first auto.
 
-    repeat iSplit; iIntros "!> *".
+    iModIntro; repeat iSplitL; iIntros "*";
+      try (iIntros "**"; by [iApply "HTU" | iApply "HLU"]).
+    (* iIntros "**". iApply ("HLT" with "Hg").  | iApply "HTU" | iApply "HLU"]. *)
     - iIntros "#HL".
       iSpecialize ("HLT" with "Hg").
-      iDestruct ("HLT" with "HL") as "#HLT1". by repeat iModIntro.
-    - iIntros "#HT". by iApply "HTU"; last naive_solver.
-    - iIntros "#HL". by iApply "HLU"; last naive_solver.
+      iDestruct ("HLT" with "HL") as "#HLT1"; auto.
   Qed.
-
-  (*     iSpecialize ("HTU" with "Hg"). *)
-  (*     iApply "HTU". *)
-  (*     iNext. *)
-  (*     info_eauto using later_persistently_1. *)
-      
-  (*     iDestruct (later_persistently_1 with "HT") as "#HT'". *)
-  (*     (* Require Import iris.base_logic.upred. *) *)
-  (*     (* (* Import uPred_primitive. *) *) *)
-  (*     (* rewrite bi.later_persistently. in "HT". *) *)
-  (*     (* iRewrite bi.later_persistently. in "HT". *) *)
-  (*     (* iPoseProof (bi.later_persistently with "HT") as "?". *) *)
-  (*     (* Search (▷ (□ _) ⊢ □ (▷ _))%I. *) *)
-  (*     (* iMod "HT". *) *)
-
-  (*     done. *)
-  (*     iDestruct ("HTU" with "HT'") as "HTU1". by repeat iModIntro. *)
-  (*   iApply "HLT". *)
-  (*   Check persistent. *)
-  (*   Check (persistent (interp_persistent _ _ _)). *)
-  (*   iApply "HLT". *)
-  (*   naive_solver. [iApply "HLT" | iApply "HTU" | iApply "HLU"]; done. *)
-  (* Qed. *)
 
   Lemma dtp_tand_i T U ρ d ds:
     defs_interp T ρ ds -∗
-    def_interp U (dms_length ds) ρ d -∗
-    defs_interp (TAnd T U) ρ (dcons d ds).
+    def_interp U (length ds) ρ d -∗
+    defs_interp (TAnd T U) ρ (cons d ds).
   Proof. naive_solver. Qed.
 
   (* Check that Löb induction works as expected for proving introduction of
@@ -165,8 +124,8 @@ Section Sec.
    *)
   Lemma wip_hard T ds ρ:
     let v0 := (vobj ds).[to_subst ρ] in
-    defs_uinterp T (v0 :: ρ, ds.[to_subst (v0 :: ρ)]) ⊢
-    uinterp T (v0 :: ρ, v0).
+    defs_interp T (v0 :: ρ) (ds.|[to_subst (v0 :: ρ)]) ⊢
+    interp T (v0 :: ρ) v0.
   Admitted.
 
   (* Copied from F_mu *)
@@ -183,13 +142,13 @@ Section Sec.
     ietp Γ (TMu T) (tv (vobj ds)).
   Proof.
     iIntros "/= #Hds !> * #Hρ".
-    change ((tv (vobj ds)).[to_subst ρ]) with (tv (vobj ds).[to_subst ρ]).
+    change ((tv (vobj ds)).|[to_subst ρ]) with (tv (vobj ds).[to_subst ρ]).
     iApply wp_value.
     iLöb as "IH".
     (* set (v0 := (vobj ds).[to_subst ρ]). *)
     iApply wip_hard.
     iApply "Hds".
-    naive_solver.
+    auto.
   Qed.
 
   (* Lemma dtp_new_i T ds ρ: *)
@@ -209,15 +168,14 @@ Section Sec.
 
   (* Still wrong. The correct statement will arise from the translation. *)
   Lemma idtp_tmem_i T γ l ρ1:
-    γ ⤇ uinterp T -∗
-    idtp Γ (TTMem l T T) l (dtysem (idsσ ρ1) γ).
+    γ ⤇ dot_interp T -∗
+    idtp Γ (TTMem l T T) l (dtysem ρ1 γ).
   Proof.
     unfold idtp.
     iIntros "/= #Hγ !> **".
     iSplit; try done.
-    iExists (uinterp T), _. iSplit; first naive_solver.
-    Fail rewrite <- idsσ_is_id.
-    repeat iSplit; iIntros "".
+    iExists (interp T), _. iSplit; first auto.
+    iModIntro; repeat iSplitL; iIntros "**".
   Abort.
 
 End Sec.
