@@ -1,3 +1,5 @@
+From iris.base_logic Require Import base_logic.
+From iris.proofmode Require Import tactics.
 Require Import Dot.tactics.
 Require Import Dot.unary_lr.
 
@@ -114,8 +116,6 @@ Section Sec.
              → to_subst ρ x = (to_subst ρ >> ren (+strings.length ρ)) x) as H.
     {
       (* Needed below: length Γ = length ρ *)
-      asimpl.
-      unfold to_subst.
       asimpl.
       admit.
     }

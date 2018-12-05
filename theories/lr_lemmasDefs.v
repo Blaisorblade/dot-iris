@@ -1,3 +1,5 @@
+From iris.program_logic Require Import weakestpre.
+From iris.proofmode Require Import tactics.
 Require Import Dot.tactics.
 Require Import Dot.unary_lr.
 Require Import Dot.synLemmas.

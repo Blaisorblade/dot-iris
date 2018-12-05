@@ -1,6 +1,5 @@
-From iris.proofmode Require Export tactics.
+From iris.program_logic Require Import weakestpre.
 From Dot Require Export operational.
-Export lang.
 
 (** Deduce types from variable names, like on paper, for readability and to help
     type inference for some overloaded operations (e.g. substitution). *)
@@ -27,11 +26,11 @@ Section logrel.
   Notation D := (vlC -n> iProp Σ).
   Implicit Types τi : D.
 
-  Definition def_interp_vmem (interp : listVlC -n> D) :
+  Program Definition def_interp_vmem (interp : listVlC -n> D) :
     listVlC -n> dmC -n> iProp Σ :=
     λne ρ d, (∃ vmem, ⌜d = dvl vmem⌝ ∧ ▷ interp ρ vmem)%I.
 
-  Definition interp_vmem l (interp : listVlC -n> D) : listVlC -n> D :=
+  Program Definition interp_vmem l (interp : listVlC -n> D) : listVlC -n> D :=
     λne ρ v, (∃ d, ⌜v @ l ↘ d⌝ ∧ def_interp_vmem interp ρ d)%I.
 
   Definition idm_proj_semtype d σ' (φ : listVlC -n> D) : iProp Σ :=
@@ -39,7 +38,7 @@ Section logrel.
   Global Arguments idm_proj_semtype /.
   Notation "d ↗ σ , φ" := (idm_proj_semtype d σ φ) (at level 20).
 
-  Definition def_interp_tmem (interp1 interp2 : listVlC -n> D) :
+  Program Definition def_interp_tmem (interp1 interp2 : listVlC -n> D) :
     listVlC -n> dmC -n> iProp Σ :=
     λne ρ d,
     (∃ φ σ, (d ↗ σ , φ) ∗
@@ -47,27 +46,27 @@ Section logrel.
           (∀ v, ▷ φ σ v → ▷ interp2 ρ v) ∗
           (∀ v, interp1 ρ v → interp2 ρ v)))%I.
 
-  Definition interp_tmem l (interp1 interp2 : listVlC -n> D) : listVlC -n> D :=
+  Program Definition interp_tmem l (interp1 interp2 : listVlC -n> D) : listVlC -n> D :=
     λne ρ v,
     (∃ d, ⌜ v @ l ↘ d ⌝ ∧ def_interp_tmem interp1 interp2 ρ d)%I.
 
-  Definition interp_expr (φ : listVlC -n> D) : listVlC -n> tmC -n> iProp Σ :=
+  Program Definition interp_expr (φ : listVlC -n> D) : listVlC -n> tmC -n> iProp Σ :=
     λne ρ t, WP t {{ φ ρ }} %I.
 
-  Definition interp_and (interp1 interp2 : listVlC -n> D): listVlC -n> D :=
+  Program Definition interp_and (interp1 interp2 : listVlC -n> D): listVlC -n> D :=
     λne ρ v, (interp1 ρ v ∧ interp2 ρ v) %I.
 
-  Definition interp_or (interp1 interp2 : listVlC -n> D) : listVlC -n> D :=
+  Program Definition interp_or (interp1 interp2 : listVlC -n> D) : listVlC -n> D :=
     λne ρ v, (interp1 ρ v ∨ interp2 ρ v) %I.
 
-  Definition interp_later (interp : listVlC -n> D) : listVlC -n> D :=
+  Program Definition interp_later (interp : listVlC -n> D) : listVlC -n> D :=
     λne ρ v, (▷ (interp ρ v)) % I.
 
-  Definition interp_nat : listVlC -n> D := λne ρ v, (∃ n, ⌜v = vnat n⌝) %I.
+  Program Definition interp_nat : listVlC -n> D := λne ρ v, (∃ n, ⌜v = vnat n⌝) %I.
 
-  Definition interp_top : listVlC -n> D := λne ρ v, True%I.
+  Program Definition interp_top : listVlC -n> D := λne ρ v, True%I.
 
-  Definition interp_bot : listVlC -n> D := λne ρ v, False%I.
+  Program Definition interp_bot : listVlC -n> D := λne ρ v, False%I.
 
   (* XXX Paolo: This definition is correct but non-expansive; I suspect we might
      need to readd later here, but also to do the beta-reduction in place, to
@@ -81,7 +80,7 @@ Section logrel.
      typechecking this example needs to establish x.T <: TNat having in context
      only x: {T <: TNat; U <: x.T -> TNat}.
    *)
-  Definition interp_forall (interp1 interp2 : listVlC -n> D) : listVlC -n> D :=
+  Program Definition interp_forall (interp1 interp2 : listVlC -n> D) : listVlC -n> D :=
     λne ρ v,
     (□ ∀ w, interp1 ρ w -∗ interp_expr interp2 (w :: ρ) (tapp (tv v) (tv w)))%I.
 
@@ -102,7 +101,7 @@ Section logrel.
     | pv Va => interp_k Va v
     end%I.
 
-  Definition interp_selA (p: path) (l: label) (interpL interpU : listVlC -n> D) :
+  Program Definition interp_selA (p: path) (l: label) (interpL interpU : listVlC -n> D) :
     listVlC -n> D :=
     λne ρ v,
     (interpU ρ v ∧ (interpL ρ v ∨
@@ -128,26 +127,27 @@ Section logrel.
   end % I.
   Global Instance dotInterpΣ : dotInterpG Σ := DotInterpG _ (λ T ρ, interp T ρ).
 
-  Fixpoint def_interp (T: ty) (l : label): listVlC -n> dmC -n> iProp Σ :=
+  Program Fixpoint def_interp (T: ty) (l : label) :
+    listVlC -n> dmC -n> iProp Σ :=
     λne ρ d,
-    match T with
+    match T return iProp Σ with
     | TTMem l' L U => ⌜ l = l' ⌝ ∧ def_interp_tmem (interp L) (interp U) ρ d
     | TVMem l' T' => ⌜ l = l' ⌝ ∧ def_interp_vmem (interp T') ρ d
     | _ => False
     end%I.
 
-  Definition defs_interp_and
+  Program Definition defs_interp_and
              (interp1 : listVlC -n> dmsC -n> iProp Σ)
              (interp2: label -> listVlC -n> dmC -n> iProp Σ)
     : listVlC -n> dmsC -n> iProp Σ :=
     λne ρ ds,
-    match ds with
+    match ds return iProp Σ with
     | [] => False
     | d :: ds => interp1 ρ ds ∧ interp2 (length ds) ρ d
     end%I.
 
-  Fixpoint defs_interp (T: ty) : listVlC -n> dmsC -n> iProp Σ :=
-    match T with
+  Program Fixpoint defs_interp (T: ty) : listVlC -n> dmsC -n> iProp Σ :=
+    match T return listVlC -n> dmsC -n> iProp Σ with
     | TAnd T1 T2 => defs_interp_and (defs_interp T1) (def_interp T2)
     | TTop => λne ρ ds, True
     | _ => λne ρ ds, False
@@ -251,5 +251,4 @@ Notation "⟦ Γ ⟧*" := (interp_env Γ).
 Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
 
 Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
-
 Notation "Γ ⊨ T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).

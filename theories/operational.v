@@ -1,9 +1,9 @@
-From iris.program_logic Require Export ectx_language ectxi_language.
-From iris.algebra Require Export list ofe agree.
-From iris.proofmode Require Export tactics.
-From iris.base_logic Require Export lib.iprop (* For gname *)
+From iris.program_logic Require Import ectx_language ectxi_language.
+From iris.algebra Require Import ofe agree.
+From iris.proofmode Require Import tactics.
+From iris.base_logic Require Import lib.iprop (* For gname *)
      lib.saved_prop invariants.
-From iris.program_logic Require Export weakestpre.
+From iris.program_logic Require Import weakestpre.
 
 Require Export Dot.synFuncs.
 
@@ -171,6 +171,8 @@ Instance dotG_irisG `{dotG Σ} : irisG dot_lang Σ := {
   state_interp σ κs _ := True%I;
   fork_post _ := True%I;
 }.
+
+Export lang.
 
 Section Sec.
   Context `{dotG Σ}.

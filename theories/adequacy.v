@@ -1,6 +1,7 @@
 Require Import Dot.tactics.
 Require Import Dot.unary_lr.
 From iris.program_logic Require Import adequacy.
+From iris.proofmode Require Import tactics.
 
 Theorem adequacy Σ `{HdotG: dotPreG Σ} e e' thp σ σ' T ρ:
   (forall `{dotG Σ}, True ⊢ ⟦ T ⟧ₑ ρ e) →
