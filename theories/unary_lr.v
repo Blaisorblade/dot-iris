@@ -1,4 +1,5 @@
 From iris.program_logic Require Import weakestpre.
+From iris.proofmode Require Import tactics.
 From Dot Require Export operational.
 
 (** Deduce types from variable names, like on paper, for readability and to help
@@ -265,7 +266,6 @@ Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T a
 Notation "Γ ⊨ T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).
 Notation "Γ '⊨' '[' T1 ',' i ']' '<:' '[' T2 ',' j ']'" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
 
-From iris.proofmode Require Import tactics.
 Section SubTypingEquiv.
   Context `{HdotG: dotG Σ} (Γ: list ty).
 
