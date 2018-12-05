@@ -241,14 +241,40 @@ Section logrel.
   Definition ietp Γ T e : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ₑ ρ (e.|[to_subst ρ]))%I.
   Global Arguments ietp /.
 
+  Notation "▷^ i" := (Nat.iter i (fun P => ▷ P)%I) (at level 333).
+
+  Definition step_indexed_ietp Γ T e i: iProp Σ :=
+    (□∀ ρ, ⟦Γ⟧* ρ → ▷^i ⟦T⟧ₑ ρ (e.|[to_subst ρ]))%I.
+  Global Arguments step_indexed_ietp /.
+
   (* Subtyping. Defined on (values). *)
   Definition ivstp Γ T1 T2: iProp Σ := (□∀ ρ v, ⟦Γ⟧* ρ → ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
   Global Arguments ivstp /.
+
+  Definition step_indexed_ivstp Γ T1 T2 i j: iProp Σ :=
+    (□∀ ρ v, ⟦Γ⟧*ρ -∗ (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
+  Global Arguments step_indexed_ivstp /.
 End logrel.
 
 Notation "⟦ T ⟧" := (interp T).
 Notation "⟦ Γ ⟧*" := (interp_env Γ).
 Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
-
 Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
+Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
+
 Notation "Γ ⊨ T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).
+Notation "Γ '⊨' '[' T1 ',' i ']' '<:' '[' T2 ',' j ']'" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
+
+From iris.proofmode Require Import tactics.
+Section SubTypingEquiv.
+  Context `{HdotG: dotG Σ} (Γ: list ty).
+
+  Lemma semantic_typing_uniform_step_index T e i:
+    (Γ ⊨ e : T → Γ ⊨ e : T,i)%I.
+  Proof.
+    induction i; iIntros "#H"; iModIntro; iIntros (ρ) "#HΓ".
+    - by iApply "H".
+    - iModIntro. by iApply IHi.
+  Qed.
+
+End SubTypingEquiv.
