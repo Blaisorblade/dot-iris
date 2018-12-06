@@ -106,6 +106,11 @@ Section logrel.
     | pv Va => interp_k Va v
     end%I.
 
+  Global Instance path_wp_persistent (pred: vlC -n> D) v p:
+    (forall (va v: vl), Persistent (pred va v)) →
+    Persistent (path_wp p pred v).
+  Proof. revert pred v; induction p; simpl; apply _. Qed.
+
   Program Definition interp_selA (p: path) (l: label) (interpL interpU : listVlC -n> D) :
     listVlC -n> D :=
     λne ρ v,
@@ -130,7 +135,13 @@ Section logrel.
     | TSel p l => interp_sel p l
     | TSelA p l L U => interp_selA p l (interp L) (interp U)
   end % I.
+
   Global Instance dotInterpΣ : dotInterpG Σ := DotInterpG _ (λ T ρ, interp T ρ).
+  Notation "⟦ T ⟧" := (interp T).
+
+  Global Instance interp_persistent T ρ v :
+    Persistent (⟦ T ⟧ ρ v).
+  Proof. revert v ρ; induction T => v ρ; simpl; try apply _. Qed.
 
   Program Fixpoint def_interp (T: ty) (l : label) :
     listVlC -n> dmC -n> iProp Σ :=
@@ -140,6 +151,10 @@ Section logrel.
     | TVMem l' T' => ⌜ l = l' ⌝ ∧ def_interp_vmem (interp T') ρ d
     | _ => False
     end%I.
+
+  Global Instance def_interp_persistent T l ρ d :
+    Persistent (def_interp T l ρ d).
+  Proof. revert ρ d; induction T; simpl; try apply _. Qed.
 
   Program Definition defs_interp_and
              (interp1 : listVlC -n> dmsC -n> iProp Σ)
@@ -158,7 +173,11 @@ Section logrel.
     | _ => λne ρ ds, False
     end % I.
 
-  Notation "⟦ T ⟧" := (interp T).
+  Global Instance defs_interp_persistent T ρ ds :
+    Persistent (defs_interp T ρ ds).
+  Proof.
+    revert ds ρ; induction T; simpl; intros; try case_match; try apply _.
+  Qed.
 
   Fixpoint interp_env (Γ : ctx) (vs : vls) : iProp Σ :=
     match Γ with
@@ -171,29 +190,6 @@ Section logrel.
     end%I.
 
   Notation "⟦ Γ ⟧*" := (interp_env Γ).
-
-  Global Instance path_wp_persistent (pred: vlC -n> D) (v: vl):
-    (forall (va v: vl), Persistent (pred va v)) →
-    Persistent (path_wp p pred v).
-  Proof. intros p; revert pred v; induction p; simpl; apply _. Qed.
-
-  Global Instance interp_persistent T ρ v :
-    Persistent (⟦ T ⟧ ρ v).
-  Proof.
-    revert v ρ; induction T => v ρ; simpl; try apply _.
-  Qed.
-
-  Global Instance def_interp_persistent T l ρ d :
-    Persistent (def_interp T l ρ d).
-  Proof.
-    revert ρ d; induction T; simpl; try apply _.
-  Qed.
-
-  Global Instance defs_interp_persistent T ρ ds :
-    Persistent (defs_interp T ρ ds).
-  Proof.
-    revert ds ρ; induction T; simpl; intros; try case_match; try apply _.
-  Qed.
 
   Global Instance interp_env_persistent Γ ρ :
     Persistent (⟦ Γ ⟧* ρ) := _.
@@ -213,6 +209,47 @@ Section logrel.
   Global Arguments idstp /.
 
   Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
+
+  (* Really needed? Try to stop using it. *)
+  Definition ivtp Γ T v : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ ρ v.[to_subst ρ])%I.
+  Global Arguments ivtp /.
+
+  Definition ietp Γ T e : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ₑ ρ (e.|[to_subst ρ]))%I.
+  Global Arguments ietp /.
+
+  Definition step_indexed_ietp Γ T e i: iProp Σ :=
+    (□∀ ρ, ⟦Γ⟧* ρ → ▷^i ⟦T⟧ₑ ρ (e.|[to_subst ρ]))%I.
+  Global Arguments step_indexed_ietp /.
+
+  (* Subtyping. Defined on (values). *)
+  Definition ivstp Γ T1 T2: iProp Σ := (□∀ ρ v, ⟦Γ⟧* ρ → ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
+  Global Arguments ivstp /.
+
+  Definition step_indexed_ivstp Γ T1 T2 i j: iProp Σ :=
+    (□∀ ρ v, ⟦Γ⟧*ρ -∗ (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
+  Global Arguments step_indexed_ivstp /.
+End logrel.
+
+Notation "⟦ T ⟧" := (interp T).
+Notation "⟦ Γ ⟧*" := (interp_env Γ).
+Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
+Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
+Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
+
+Notation "Γ ⊨ T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).
+Notation "Γ '⊨' '[' T1 ',' i ']' '<:' '[' T2 ',' j ']'" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
+
+(* Lemmas about the logical relation itself. *)
+Section logrel_lemmas.
+  Context `{HdotG: dotG Σ} (Γ: list ty).
+
+  Lemma semantic_typing_uniform_step_index T e i:
+    (Γ ⊨ e : T → Γ ⊨ e : T,i)%I.
+  Proof.
+    induction i; iIntros "#H"; iModIntro; iIntros (ρ) "#HΓ".
+    - by iApply "H".
+    - iModIntro. by iApply IHi.
+  Qed.
 
   Lemma interp_weaken Δ1 Π Δ2 τ :
     ⟦ τ.|[upn (length Δ1) (ren (+ length Π))] ⟧ (Δ1 ++ Π ++ Δ2)
@@ -238,47 +275,5 @@ Section logrel.
 
   Lemma interp_subst Δ2 τ v1 v2 : ⟦ τ.|[v1.[ren (+length Δ2)]/] ⟧ Δ2 v2 ≡ ⟦ τ ⟧ (v1 :: Δ2) v2.
   Proof. apply (interp_subst_up []). Qed.
-
-  (* Really needed? Try to stop using it. *)
-  Definition ivtp Γ T v : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ ρ v.[to_subst ρ])%I.
-  Global Arguments ivtp /.
-
-  Definition ietp Γ T e : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ₑ ρ (e.|[to_subst ρ]))%I.
-  Global Arguments ietp /.
-
-  Notation "▷^ i" := (Nat.iter i (fun P => ▷ P)%I) (at level 333).
-
-  Definition step_indexed_ietp Γ T e i: iProp Σ :=
-    (□∀ ρ, ⟦Γ⟧* ρ → ▷^i ⟦T⟧ₑ ρ (e.|[to_subst ρ]))%I.
-  Global Arguments step_indexed_ietp /.
-
-  (* Subtyping. Defined on (values). *)
-  Definition ivstp Γ T1 T2: iProp Σ := (□∀ ρ v, ⟦Γ⟧* ρ → ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
-  Global Arguments ivstp /.
-
-  Definition step_indexed_ivstp Γ T1 T2 i j: iProp Σ :=
-    (□∀ ρ v, ⟦Γ⟧*ρ -∗ (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
-  Global Arguments step_indexed_ivstp /.
-End logrel.
-
-Notation "⟦ T ⟧" := (interp T).
-Notation "⟦ Γ ⟧*" := (interp_env Γ).
-Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
-Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
-Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
-
-Notation "Γ ⊨ T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).
-Notation "Γ '⊨' '[' T1 ',' i ']' '<:' '[' T2 ',' j ']'" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
-
-Section SubTypingEquiv.
-  Context `{HdotG: dotG Σ} (Γ: list ty).
-
-  Lemma semantic_typing_uniform_step_index T e i:
-    (Γ ⊨ e : T → Γ ⊨ e : T,i)%I.
-  Proof.
-    induction i; iIntros "#H"; iModIntro; iIntros (ρ) "#HΓ".
-    - by iApply "H".
-    - iModIntro. by iApply IHi.
-  Qed.
 
 End SubTypingEquiv.
