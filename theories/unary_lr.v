@@ -276,4 +276,4 @@ Section logrel_lemmas.
   Lemma interp_subst Δ2 τ v1 v2 : ⟦ τ.|[v1.[ren (+length Δ2)]/] ⟧ Δ2 v2 ≡ ⟦ τ ⟧ (v1 :: Δ2) v2.
   Proof. apply (interp_subst_up []). Qed.
 
-End SubTypingEquiv.
+End logrel_lemmas.
