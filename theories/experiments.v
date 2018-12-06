@@ -1,14 +1,71 @@
+From iris.program_logic Require Import weakestpre.
+From iris.proofmode Require Import tactics.
 Require Import Dot.tactics.
 Require Import Dot.unary_lr.
 Require Import Dot.synLemmas.
 (* Workflow: Use this file for new experiments, and move experiments here in appropriate files once they're done. *)
 
+Implicit Types
+         (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
+         (Γ : ctx) (ρ : listVlC).
+
 Section Sec.
   Context `{HdotG: dotG Σ}.
+
+  Fixpoint split_path (p: path): vl * list label :=
+    match p with
+    | pv va => (va, [])
+    | pself p l =>
+      let '(v, ls) := split_path p in (v, ls ++ [l])
+    end.
+
+  Notation D := (vlC -n> iProp Σ).
+
+  Fixpoint interp_sel_rec (ls: list label) (interp_k: vlC -n> D): vlC -n> D :=
+    λne Va v,
+    match ls with
+    | l :: ls => (∃ vb, ⌜Va @ l ↘ dvl vb⌝ ∧ ▷ interp_sel_rec ls interp_k vb v)%I
+    | [] => interp_k Va v
+    end.
+
+  Definition interp_selA_v9 (p: path) (l: label) (interpL interpU : listVlC -n> D) :
+    listVlC -n> D :=
+    λne ρ v,
+    let (Va, ls) := split_path (p.|[to_subst ρ]) in
+    (interpU ρ v ∧ (interpL ρ v ∨ interp_sel_rec ls (interp_selA_final l) Va v))%I.
+
+  (* Alternative implementation of interp_selA. Not equivalent because if we
+     satisfy bounds we don't even check that the path does have an element. *)
+  Fixpoint eval_path n p : D :=
+    λne v,
+    match (n, p) with
+    | (S n, pself p l) => ∃ va, eval_path n p va ∧ ⌜va @ l ↘ dvl v⌝
+    | (0, pv Va) => ⌜ Va = v ⌝
+    | _ => False
+    end%I.
+
+  Definition interp_selA_v1 (p: path) (l: label) (interpL interpU : listVlC -n> D) :
+    listVlC -n> D :=
+    λne ρ v,
+    (interpU ρ v ∧ (interpL ρ v ∨
+                    ∃ n Va, eval_path n p.|[to_subst ρ] Va ∧ ▷^ n interp_selA_final l Va v))%I.
+
 
   (* Can't find how to use it. *)
   Lemma later_persistently_1 (P: iProp Σ): (▷ □ P → ▷ P)%I.
   Proof. iIntros; naive_solver. Qed.
+
+  (* (Expression) subtyping, strengthened to be equivalent to valye subtyping. *)
+  Definition istp Γ T1 T2 : iProp Σ :=
+    (ivstp Γ T1 T2 ∧ □∀ ρ e, ⟦Γ⟧* ρ → ⟦T1⟧ₑ ρ e → ⟦T2⟧ₑ ρ e)%I.
+  Global Arguments istp /.
+
+  Definition uvstp Γ T1 T2: iProp Σ :=
+    (□∀ ρ v, ⟦Γ⟧*ρ -∗ ((*|={⊤}=>*) ⟦T1⟧ ρ v) → |={⊤}=> ⟦T2⟧ ρ v)%I.
+  Global Arguments uvstp /.
+
+  Notation "Γ ⊨e T1 <: T2" := (istp Γ T1 T2) (at level 74, T1, T2 at next level).
+  Notation "Γ ⊨> T1 <: T2" := (uvstp Γ T1 T2) (at level 74, T1, T2 at next level).
 
   Definition uvstp2 Γ T1 T2: iProp Σ :=
     (□∀ ρ v, ⟦Γ⟧*ρ → |={⊤}=> (⟦T1⟧ ρ v) → ⟦T2⟧ ρ v)%I.
@@ -33,17 +90,56 @@ Section Sec.
 
   Context (Γ: list ty).
 
+  (* Lemma iuvstp_later T: Γ ⊨> T <: TLater T. *)
+  (* Proof. by iIntros "!> ** /=". Qed. *)
+
+  Lemma istp2ivstp T1 T2: (Γ ⊨e T1 <: T2 → Γ ⊨ T1 <: T2)%I.
+  Proof. by iIntros "/= [#? _]". Qed.
+
+  Lemma ivstp2istp T1 T2: (Γ ⊨ T1 <: T2 → Γ ⊨e T1 <: T2)%I.
+  Proof.
+    iIntros "/= #Hstp". iFrame "Hstp".
+    iIntros " !> * #Hg HeT1".
+    iApply wp_fupd.
+    iApply (wp_wand with " [-]"); try iApply "HeT1".
+    iIntros "* HT1". by iApply "Hstp".
+  Qed.
+
+
+  (** We prove that vstp and stp are equivalent, so that we can use them
+      interchangeably; and in my previous proofs, proving uvstp was easier. *)
+  Lemma istpEqIvstp T1 T2: (Γ ⊨e T1 <: T2) ≡ (Γ ⊨ T1 <: T2).
+  Proof. iSplit; iIntros; by [iApply istp2ivstp| iApply ivstp2istp]. Qed.
+
+  Lemma iStpUvstp T1 T2: (Γ ⊨e T1 <: T2 → Γ ⊨> T1 <: T2)%I.
+  Proof.
+    (* Inspired by the proof of wp_value_inv'! *)
+
+    (* More manual.*)
+    (* iIntros "/= #Hsub !> * #Hg *". *)
+    (* iSpecialize ("Hsub" $! (of_val v) with "Hg"). *)
+    (* rewrite !wp_unfold /wp_pre /=. iIntros. by iApply "Hsub". *)
+    (* Restart. *)
+    iIntros "/= [#Hsub1 #Hsub2] !> * #Hg * #?".
+    by iApply "Hsub1".
+    (* Or *)
+    (* setoid_rewrite wp_unfold. *)
+    (* by iApply ("Hsub2" $! _ (of_val v)). *)
+  Qed.
+
+
+
   (* Does the converse direction hold? Do we need it? *)
   (* Lemma iStpVstp Γ T1 T2: (istp Γ T1 T2 -∗ ivstp Γ T1 T2)%I. *)
   (* This direction is useful when we have istp as an hypothesis. *)
   (* What I can easily prove: *)
 
-  Lemma vstpToUvstp T1 T2 : (Γ ⊨v T1 <: T2 → Γ ⊨> T1 <: T2)%I.
+  Lemma vstpToUvstp T1 T2 : (Γ ⊨ T1 <: T2 → Γ ⊨> T1 <: T2)%I.
     iIntros "#Hstp !> * #Hg #HT1 !>".
     by iApply ("Hstp").
   Qed.
 
-  Lemma iVstpStp T1 T2: (Γ ⊨v T1 <: T2 → Γ ⊨ T1 <: T2)%I.
+  Lemma iVstpStp T1 T2: (Γ ⊨ T1 <: T2 → Γ ⊨e T1 <: T2)%I.
   Proof. iApply ivstp2istp. Qed.
   (*   by iIntros "#Hsub"; iApply istpEqIvstp; iApply vstpToUvstp. *)
   (* Qed. *)
@@ -58,7 +154,7 @@ Section Sec.
   (* Also, subtyping now implies subtyping after update: *)
   (* But not viceversa, because |==> P talks about the *existence* of a future resource world
    where P holds, even though P might be false now. *)
-  Lemma uvstpToVstp T1 T2 : (Γ ⊨> T1 <: T2 → Γ ⊨v T1 <: T2)%I.
+  Lemma uvstpToVstp T1 T2 : (Γ ⊨> T1 <: T2 → Γ ⊨ T1 <: T2)%I.
     iIntros "/= #Hstp !> * #Hg #Ht1".
     Fail iApply "Hstp".
   Abort.
@@ -87,132 +183,30 @@ Section Sec.
     rewrite !wp_unfold /wp_pre /=. by iApply "Hsub".
   Qed.
 
-
-
-  (* Locate "|==>". *)
-  (* Check @bupd. *)
-  (* Print BUpd. *)
-  (* SearchAbout BUpd. *)
-  (* SearchAbout BiBUpd. *)
-
-  (* Print SP. *)
-  (* Check ⊤%I. *)
-
-  (* Program Definition wtovdm (dw: dm): (|==> ∃(dv: gname), True)%I := *)
-
   Lemma alloc_sp T:
-    (|==> ∃ γ, SP γ (uinterp T))%I.
-  Proof. by apply saved_pred_alloc. Qed.
+    (|==> ∃ γ, γ ⤇ (λ ρ v, interp T ρ v))%I.
+  Proof. by apply saved_interp_alloc. Qed.
+
+  (* [idsσ] was needed for the lemma below, but no more as [def_interp] now expects
+   *closed* definitions. *)
+
+  (* (** Create an identity environment vls. *) *)
+  (* (*  * The definition gives the right results but is not ideal to reason about. It *) *)
+  (* (*    is hard to prove it does what it should, and it's likely theorems using it *) *)
+  (* (*    should be rephrased in terms of the translation. *) *)
+  (* (*  *) *)
+  (* Definition idsσ: vls -> vls := foldr (λ _, push_var) []. *)
+  (* Lemma idsσ_is_id ρ: ρ = (idsσ ρ).|[to_subst ρ]. *)
+  (* Admitted. *)
 
   Lemma alloc_dtp_tmem_i T ρ l:
     ⟦Γ⟧* ρ -∗
-    (|==> ∃ γ, def_interp (TTMem l T T) l ρ (dtysem (idsσ ρ) γ))%I.
+    (|==> ∃ γ, def_interp (TTMem l T T) l ρ (dtysem ρ γ))%I.
   Proof.
     iIntros "#Hg /=".
     iDestruct (alloc_sp T) as "HupdSp".
     iMod "HupdSp" as (γ) "#Hsp".
     iModIntro; iExists γ; iSplit; try done; iExists _, _; iSplit; first auto.
-    rewrite <- idsσ_is_id.
-    repeat iSplit; naive_solver.
+    repeat iSplitL; naive_solver.
   Qed.
-
-  (* (* Print saved_pred_own. *) *)
-  (* (* Print Next. *) *)
-  (* (* Print savedPredG. *) *)
-  (* (* Eval cbn in (∀ A, savedAnythingG Σ (A -c> ▶ ∙)). *) *)
-  (* (* Check savedAnythingG. *) *)
-  (* (* From iris Require Import algebra.ofe. *) *)
-  (* (* Check savedEnvD. *) *)
-  (* (* Alternative to savedPredG *) *)
-  (* Notation savedEnvDG := (savedAnythingG Σ (listVlC -c> vlC -c> ▶ ∙)%CF). *)
-  (* Notation savedEnvDΣ := (savedAnythingΣ (listVlC -c> vlC -c> ▶ ∙)). *)
-
-  (* (* (* Notation savedEnvDG := (savedAnythingG Σ (listVlC -c> vlC -c> ▶ ∙)). *) *) *)
-  (* (* (* Notation savedEnvDΣ := (savedAnythingΣ (listVlC -c> vlC -c> ▶ ∙)). *) *) *)
-  (* (* (* Print saved_anything_own. *) *) *)
-  (* (* (* Print savedAnythingG. *) *) *)
-  (* (* (* Print cFunctor. *) *) *)
-  (* (* Print savedPredG. *) *)
-  (* (* Print saved_pred_own. *) *)
-
-  (* (* Print saved_anything_own. *) *)
-  (* Context `{savedEnvDG}. *)
-  (* Program Definition saved_envDG_own (γ : gname) (Φ : listVlC -n> vlC -n> iProp Σ): iProp Σ := *)
-  (*   saved_anything_own (F := listVlC -c> vlC -c> ▶ ∙) γ (λ ρ, λne v, Next (Φ ρ v)). *)
-
-  (* Instance saved_envDG_own_contractive γ: *)
-  (*   Contractive *)
-  (*               (saved_envDG_own γ: (listVlC -n> vlC -n> iProp Σ) → iProp Σ). *)
-  (* Proof. *)
-  (*   solve_proper_core ltac:(fun _ => *)
-  (*                   first [ intros ? ?; progress simpl | by auto | f_contractive | f_equiv ]). *)
-
-  (*   (* solve_proper_prepare. *) *)
-
-  (*   (* repeat first [eassumption | first [ intros ? ?; progress simpl | by auto | f_contractive | f_equiv ]]. *) *)
-  (*   (* cbn in H0. *) *)
-  (*   (* solve [apply H0]. *) *)
-  (*   (* Restart. *) *)
-  (*   (* (* Summarizes to: *) *) *)
-  (*   (* solve_proper_core ltac:(fun _ => *) *)
-  (*   (*                 first [ intros ? ?; progress simpl | by auto | f_contractive | f_equiv | apply H0 ]). *) *)
-  (*   (* (* But that is really fragile.*) *) *)
-  (* Qed. *)
-
-  (* Lemma saved_envDG_alloc_strong (G : gset gname) (Φ : listVlC -n> vlC -n> iProp Σ) : *)
-  (*   (|==> ∃ γ, ⌜γ ∉ G⌝ ∧ saved_envDG_own γ Φ)%I. *)
-  (* Proof. iApply saved_anything_alloc_strong. Qed. *)
-
-  (* Lemma saved_envDG_alloc (Φ : listVlC -n> vlC -n> iProp Σ) : *)
-  (*   (|==> ∃ γ, saved_envDG_own γ Φ)%I. *)
-  (* Proof. iApply saved_anything_alloc. Qed. *)
-
-  (* (* We put the `x` on the outside to make this lemma easier to apply. *) *)
-  (* Lemma saved_envDG_agree1 `{savedPredG Σ A} γ Φ Ψ x : *)
-  (*   saved_envDG_own γ Φ -∗ saved_envDG_own γ Ψ -∗ ▷ (Φ x ≡ Ψ x). *)
-  (*   unfold saved_envDG_own. iIntros "#HΦ #HΨ". *)
-  (*   Import uPred. *)
-  (*   iApply later_equivI. *)
-  (*   (* Check @saved_anything_agree. *) *)
-  (*   (* Eval hnf in (listVlC -c> vlC -c> ▶ iProp Σ)%CF. *) *)
-  (*   iDestruct (saved_anything_agree (F := listVlC -c> vlC -c> ▶ ∙) with "HΦ HΨ") as "Heq". *)
-  (*   simpl. *)
-
-  (*   (* Check @ofe_fun_equivI. *) *)
-  (*   iDestruct (@ofe_fun_equivI _ (listVlC) (λ _, vlC -n> laterC (iProp Σ)) (λ ρ, λne v, Next (Φ ρ v)) (λ ρ, λne v, Next (Ψ ρ v))) as "[Heq1 _]". *)
-  (*   Fail iSpecialize ("Heq1" with "Heq"). *)
-  (*   Abort. *)
-  (* (* (*   by iDestruct ("Heq1" with "Heq") as "?". *) *) *)
-
-  (* (* (*   simpl. *) *) *)
-  (* (* (*   Unset Printing Notations. *) *) *)
-  (* (* (*   Set Printing Implicit. *) *) *)
-  (* (* (*   simpl in *. *) *) *)
-  (* (* (*   iDestruct ("Heq1" with "Heq") as "?". *) *) *)
-  (* (* (*   iApply "Heq1". *) *) *)
-
-  (* (* (*  "Heq" : (λ (ρ : listVlC) (v : vlC), Next (Φ ρ v)) *) *) *)
-  (* (* (*         ≡ (λ (ρ : listVlC) (v : vlC), Next (Ψ ρ v)) *) *) *)
-  (* (* (*   iDestruct (ofe_fun_equivI with "Heq"). as "?". *) *) *)
-  (* (* (*   by iDestruct (ofe_fun_equivI with "Heq") as "?". *) *) *)
-  (* (* (* Qed. *) *) *)
-
-  (* (* Lemma saved_envDG_agree `{savedPredG Σ A} γ Φ Ψ x y : *) *)
-  (* (*   saved_envDG_own γ Φ -∗ saved_envDG_own γ Ψ -∗ ▷ (Φ x y ≡ Ψ x y). *) *)
-  (* (* Proof. *) *)
-  (* (*   unfold saved_envDG_own. iIntros "#HΦ #HΨ /=". *) *)
-  (* (*   Import uPred. *) *)
-  (* (*   iApply later_equivI. *) *)
-  (* (*   Check @saved_anything_agree. *) *)
-  (* (*   Eval hnf in (listVlC -c> vlC -c> ▶ iProp Σ)%CF. *) *)
-  (* (*   iDestruct (saved_anything_agree (F := listVlC -c> vlC -c> ▶ ∙) with "HΦ HΨ") as "Heq". *) *)
-  (* (*   Check @ofe_fun_equivI. *) *)
-  (* (*   epose proof (@ofe_fun_equivI _ (listVlC) (λ _, vlC -n> laterC (iProp Σ)) (λne ρ, λne v, CofeMor Next (Φ ρ v)) (λ ρ, λne v, Next (Ψ ρ v))). *) *)
-  (* (*   iDestruct (H0 with "Heq") as "?". *) *)
-
-  (* (*  "Heq" : (λ (ρ : listVlC) (v : vlC), Next (Φ ρ v)) *) *)
-  (* (*         ≡ (λ (ρ : listVlC) (v : vlC), Next (Ψ ρ v)) *) *)
-  (* (*   iDestruct (ofe_fun_equivI with "Heq"). as "?". *) *)
-  (* (*   by iDestruct (ofe_fun_equivI with "Heq") as "?". *) *)
-  (* (* Qed. *) *)
 End Sec.

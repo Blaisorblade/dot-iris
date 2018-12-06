@@ -1,13 +1,7 @@
 Require Import Dot.tactics.
 Require Import Dot.unary_lr.
-Require Import Dot.operational.
 From iris.program_logic Require Import adequacy.
-Import operational.lang.
-
-Class dotPreG Σ := DotPreG {
-  dot_preG_invG : invPreG Σ;
-  dot_preG_savior :> savedPredG Σ (list vl * vl)
-}.
+From iris.proofmode Require Import tactics.
 
 Theorem adequacy Σ `{HdotG: dotPreG Σ} e e' thp σ σ' T ρ:
   (forall `{dotG Σ}, True ⊢ ⟦ T ⟧ₑ ρ e) →
@@ -32,9 +26,10 @@ Corollary almost_type_soundness e e' thp σ σ' T:
   rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
   is_Some (to_val e') ∨ reducible e' σ'.
 Proof.
-  intros ??. set (Σ := #[invΣ ; invΣ; savedPredΣ (list vl * vl)]).
-  set (HG := DotPreG Σ _ (subG_savedAnythingΣ _)).
-  eapply (adequacy Σ ).
+  intros ??. set (Σ := dotΣ).
+  (* set (HG := DotPreG Σ _ (subG_savedAnythingΣ _)). *)
+  set (HG := _: dotPreG Σ).
+  eapply (adequacy Σ).
   - intros ?.
     apply H.
       (* by apply fundamental. *)

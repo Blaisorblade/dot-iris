@@ -1,2 +1,18 @@
 -Q theories Dot
 -arg -w -arg -notation-overridden,-redundant-canonical-projection,-several-object-files
+
+theories/tactics.v
+theories/prelude.v
+theories/dotsyn.v
+theories/synFuncs.v
+theories/operational.v
+theories/AAsynToSem.v
+theories/unary_lr.v
+theories/typing.v
+theories/synLemmas.v
+theories/experiments.v
+theories/lr_lemma.v
+theories/lr_lemmasTSel.v
+theories/lr_lemmasDefs.v
+theories/rules.v
+theories/adequacy.v

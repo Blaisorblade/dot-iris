@@ -1,3 +1,6 @@
+From iris.program_logic Require Import weakestpre.
+From iris.proofmode Require Import tactics.
+From Dot Require Import operational.
 Require Import Dot.tactics.
 Require Import Dot.unary_lr.
 Require Import Dot.synLemmas.
@@ -14,7 +17,8 @@ Section Sec.
       equivalent value and expression subtyping, both for a fixed environment and
       for environments matching a [Γ].
    *)
-  Lemma inclusion_equiv_wp_upd {P Q}: ((□∀ e, WP e {{P}} → WP e {{Q}})%I ≡ (□∀ v, P v → |={⊤}=> Q v)%I).
+  Lemma inclusion_equiv_wp_upd {P Q}:
+    ((□∀ e, WP e {{P}} → WP e {{Q}})%I ≡ (□∀ v, P v → |={⊤}=> Q v)%I).
   Proof.
     iSplit; iIntros "#Himpl !> * HP".
     - setoid_rewrite wp_unfold.
@@ -29,31 +33,30 @@ Section Sec.
     Γ ⊨ L <: TSelA (pv va) l L U.
   Proof.
     iIntros "#Hva".
-    rewrite istpEqIvstp.
 
     iIntros "/= !> * Hg #HvL".
     iDestruct ("Hva" $! ρ with "Hg") as (d) "#[% #H]"; iClear "Hva".
     iDestruct "H" as (φ σ) "#[Hl [#HLφ [#HφU #HLU]]]".
-    simplOpen ds'; simpl.
-    iExists (vobj ds), σ, φ, d.
-
+    repeat iSplit; first by iApply "HLU".
+    iRight.
+    iExists σ, φ, d.
     iDestruct ("HLφ" with "HvL") as "#HLφ'".
     iDestruct ("HLU" with "HvL") as "#HLU'".
-    (* iDestruct ("HφU" with "HLφ'") as "> #HφU1". *)
-    repeat iModIntro; repeat iSplit; trivial. by iRight.
+    repeat iModIntro; by repeat iSplit.
   Qed.
 
   Lemma mem_stp_sel_sub L U va l:
     ivtp Γ (TTMem l L U) va -∗
-    uvstp Γ (TLater L) (TSel (pv va) l).
+    ivstp Γ (TLater L) (TSel (pv va) l).
   Proof.
     iIntros "/= #Hva !> * #Hg #HvL".
     iDestruct ("Hva" $! ρ with "Hg") as (d) "#[% #H]"; iClear "Hva".
     iDestruct "H" as (φ σ) "#[Hl [#HLφ [#HφU #HLU]]]".
-    simplOpen ds'; simpl.
-    iExists (vobj ds), σ , φ, d.
+    repeat iSplit; first done.
+    iRight.
+    iExists σ , φ, d.
     iDestruct ("HLφ" with "HvL") as "#HLφ'".
-    repeat iModIntro; repeat iSplit; trivial. by iRight.
+    repeat iModIntro; by repeat iSplit.
   Qed.
 
   Instance Inh_vl: Inhabited vl.
@@ -71,50 +74,49 @@ Section Sec.
   (* Next step: proper lemma on arbitrary-length paths. *)
   Lemma mem_stp_sel_sub_path1 L U va l1 l2:
     (ivtp Γ (TVMem l1 (TTMem l2 L U)) va -∗
-    uvstp Γ (TLater L) ((TSel (pself (pv va) l1) l2)))%I.
+    ivstp Γ (TLater L) ((TSel (pself (pv va) l1) l2)))%I.
   Proof.
     iIntros "/= #Hva !> * #Hg #HvL".
 
     iDestruct ("Hva" $! ρ with "Hg") as (d) "#[% #Hvb]"; iClear "Hva".
-    (* iIntros "/= # Hva !> * #Hg #HvL". *)
     iDestruct "Hvb" as (vmem) "[-> H1]".
     iDestruct "H1" as (d) "[Hl2 H]".
     iDestruct "H" as (φ σ) "#[Hl [#HLφ [#HφU #HLU]]]".
-    simplOpen ds'; simpl.
     iDestruct ("HLφ" with "HvL") as "HLφ'".
-    iExists (vobj ds), vmem.
-    repeat iModIntro; repeat iSplit; try done.
-    iExists vmem, σ , φ, d.
-    repeat iModIntro; repeat iSplit; try done.
-    by iRight.
+    repeat iSplit; first done.
+    iRight.
+    iExists vmem.
+    repeat iSplit; try done.
+    iExists σ , φ, d.
+    repeat iModIntro; by repeat iSplit.
   Qed.
 
   Lemma mem_stp_sub_sel L U va l:
     ivtp Γ (TTMem l L U) va -∗
-    uvstp Γ (TSel (pv va) l) (TLater U).
+    ivstp Γ (TSel (pv va) l) (TLater U).
   Proof.
-    iIntros "/= #Hva !> * #Hg #Hφ".
+    iIntros "/= #Hva !> * #Hg #[_ [[] | Hφ]]".
     iDestruct ("Hva" $! ρ with "Hg") as (d) "#[% #H]"; iClear "Hva".
     iDestruct "H" as (φ σ) "#[Hlφ [HLφ [HφU #HLU]]]".
     iDestruct "Hlφ" as (γ) "[% Hγφ]".
 
     iApply "HφU".
-    simplOpen ds'; simpl.
-    iDestruct "Hφ" as (va1 σ1 φ1 d1) "[% [% [Hlφ1 [_ [[] | #Hφ1v]]]]] /=".
-    iDestruct "Hlφ1" as (γ1) "[% Hγφ1]".
+    iDestruct "Hφ" as (σ1 φ1 d1 Hva) "[Hγ #HΦ1v]".
+    (* " [_ [False | #HΦ1v]]]"; try done. *)
+    iDestruct "Hγ" as (γ' Hd1) "HγΦ1".
 
-    injectHyps; objLookupDet.
+    injectHyps; subst; objLookupDet.
 
-    iAssert (∀ ρ v, ▷ (φ (ρ, v) ≡ φ1 (ρ, v)))%I as "#Hag".
-      by iIntros; iApply saved_pred_agree.
+    iAssert (∀ ρ v, ▷ (φ ρ v ≡ φ1 ρ v))%I as "#Hag".
+    { iIntros.
+      (* Paolo: This manual eta-expansion is needed to get coercions to apply. *)
+      by iApply (saved_interp_agree_eta γ (λ a, φ a) (λ a, φ1 a) ρ0 v0).
+    }
+
     (* iAssert (▷ (subst_phi σ ρ φ v ≡ subst_phi σ ρ φ1 v))%I as "#Hag"; simpl. *)
     (*  ▷ (subst_phi σ ρ φ v ≡ subst_phi σ ρ φ1 v))%I as "#Hag". simpl. *)
     (* { qy iApply saved_pred_agree. } *)
     repeat iModIntro.
-    by iRewrite ("Hag" $! (vls_to_list σ.[to_subst ρ]) v).
+    by iRewrite ("Hag" $! σ v).
   Qed.
-
-    (* iDestruct ("HLφ" with "HvL") as ">#HLφ'". *)
-    (* iDestruct ("HLU" with "HvL") as "> #HLU'". *)
-    (* iDestruct ("HφU" with "HLφ'") as "> #HφU1". *)
 End Sec.

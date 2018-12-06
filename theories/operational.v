@@ -1,19 +1,89 @@
-From iris.program_logic Require Export ectx_language ectxi_language.
-From iris.algebra Require Export list ofe.
-From iris.base_logic Require Export lib.iprop (* For gname *) lib.saved_prop invariants.
-From iris.program_logic Require Export weakestpre.
+From iris.program_logic Require Import ectx_language ectxi_language.
+From iris.algebra Require Import ofe agree.
+From iris.proofmode Require Import tactics.
+From iris.base_logic Require Import lib.iprop (* For gname *)
+     lib.saved_prop invariants.
+From iris.program_logic Require Import weakestpre.
 
 Require Export Dot.synFuncs.
-Module gnameB. Definition gname := gname. End gnameB.
-
-Module SynFuncsG := SynFuncs gnameB.
-Export SynFuncsG.
 
 Class dotG Σ := DotG {
   dotG_invG : invG Σ;
-  dotG_savior :> savedPredG Σ (list vl * vl)
+  dotG_savior :> savedAnythingG Σ (vls -c> vl -c> ▶ ∙)
 }.
 
+Class dotPreG Σ := DotPreG {
+  dotPreG_invG : invPreG Σ;
+  dotPreG_savior :> savedAnythingG Σ (vls -c> vl -c> ▶ ∙)
+}.
+
+Definition dotΣ := #[invΣ; savedAnythingΣ (vls -c> vl -c> ▶ ∙)].
+
+Instance subG_dotΣ {Σ} : subG dotΣ Σ → dotPreG Σ.
+Proof. solve_inG. Qed.
+
+(** saved interpretations *)
+
+Section saved_interp.
+  Context `{!dotG Σ}.
+
+  Definition saved_interp_own (γ : gname) (Φ : vls → vl → iProp Σ) :=
+    saved_anything_own
+      (F := vls -c> vl -c> ▶ ∙) γ (λ vs v, CofeMor Next (Φ vs v)).
+
+Instance saved_interp_own_contractive γ :
+  Contractive (saved_interp_own γ : (vls -c> vl -c> iProp Σ) → iProp Σ).
+Proof.
+  intros n X Y HXY.
+  rewrite /saved_interp_own /saved_anything_own /=.
+  f_equiv. apply to_agree_ne; f_equiv.
+  intros x y.
+  apply Next_contractive.
+  destruct n; simpl in *; auto.
+  apply HXY.
+Qed.
+
+Lemma saved_interp_alloc_strong (G : gset gname) (Φ : vls → vl → iProp Σ) :
+  (|==> ∃ γ, ⌜γ ∉ G⌝ ∧ saved_interp_own γ Φ)%I.
+Proof. iApply saved_anything_alloc_strong. Qed.
+
+Lemma saved_interp_alloc (Φ : vls → vl → iProp Σ) :
+  (|==> ∃ γ, saved_interp_own γ Φ)%I.
+Proof. iApply saved_anything_alloc. Qed.
+
+Lemma saved_interp_agree γ Φ Ψ vs v :
+  saved_interp_own γ Φ -∗ saved_interp_own γ Ψ -∗ ▷ (Φ vs v ≡ Ψ vs v).
+Proof.
+  unfold saved_pred_own. iIntros "#HΦ #HΨ /=". iApply bi.later_equivI.
+  iDestruct (saved_anything_agree with "HΦ HΨ") as "Heq".
+  rewrite bi.ofe_fun_equivI; iSpecialize ("Heq" $! vs).
+  by rewrite bi.ofe_fun_equivI; iSpecialize ("Heq" $! v); simpl.
+Qed.
+
+Lemma saved_interp_agree_eta γ Φ Ψ vs v :
+  saved_interp_own γ (λ (vs : vls) (v : vl), (Φ vs) v) -∗
+  saved_interp_own γ (λ (vs : vls) (v : vl), (Ψ vs) v) -∗
+  ▷ (Φ vs v ≡ Ψ vs v).
+Proof.
+  iIntros "#H1 #H2".  
+  repeat change (fun x => ?h x) with h.
+  by iApply saved_interp_agree.
+Qed.
+
+Lemma saved_interp_impl γ Φ Ψ vs v :
+  saved_interp_own γ Φ -∗ saved_interp_own γ Ψ -∗ □ (▷ Φ vs v -∗ ▷ Ψ vs v).
+Proof.
+  unfold saved_pred_own. iIntros "#HΦ #HΨ /= !# H1".
+  iDestruct (saved_anything_agree with "HΦ HΨ") as "Heq".
+  rewrite bi.ofe_fun_equivI; iSpecialize ("Heq" $! vs).
+  rewrite bi.ofe_fun_equivI; iSpecialize ("Heq" $! v); simpl.
+  rewrite bi.later_equivI.
+  by iNext; iRewrite -"Heq".
+Qed.
+
+End saved_interp.
+
+(** Instantiating iris with  *)
 Module lang.
 
 Definition to_val (t: tm) : option vl :=
@@ -41,19 +111,18 @@ Definition observation := unit.
 
 Inductive head_step : tm -> state -> list observation -> tm -> state -> list tm -> Prop :=
 | st_beta t1 v2 σ:
-    head_step (tapp (tv (vabs t1)) (tv v2)) σ [] (t1.[v2/]) σ []
+    head_step (tapp (tv (vabs t1)) (tv v2)) σ [] (t1.|[v2/]) σ []
 | st_proj ds l σ v:
-    index_dms l (selfSubst ds) = Some (dvl v) ->
+    reverse (selfSubst ds) !! l = Some (dvl v) ->
     head_step (tproj (tv (vobj ds)) l) σ [] (tv v) σ []
 | st_skip t σ:
-    head_step (tskip t) σ [] t σ []
-.
+    head_step (tskip t) σ [] t σ [].
 
 Lemma to_of_val v : to_val (of_val v) = Some v.
 Proof. done. Qed.
-  
+
 Lemma of_to_val e v : to_val e = Some v → of_val v = e.
-Proof. 
+Proof.
   revert v; induction e; intros; simplify_option_eq; auto with f_equal.
 Qed.
 
@@ -91,6 +160,7 @@ split; apply _ || eauto using to_of_val, of_to_val, val_stuck,
     fill_item_val, fill_item_no_val_inj, head_ctx_step_val.
 Qed.
 
+End lang.
 
 Canonical Structure dot_ectxi_lang := EctxiLanguage lang.dot_lang_mixin.
 Canonical Structure dot_ectx_lang := EctxLanguageOfEctxi dot_ectxi_lang.
@@ -102,17 +172,10 @@ Instance dotG_irisG `{dotG Σ} : irisG dot_lang Σ := {
   fork_post _ := True%I;
 }.
 
-End lang.
-
-(* This class is used to prevent AAsynToSem.v from depending on unary_lr. That's to
- * reduce build time. And they live here, rather than a separate file, because
- * loading Iris is so slow.
- *)
+Export lang.
 
 Section Sec.
   Context `{dotG Σ}.
-
-  Definition SP γ ϕ := saved_pred_own γ ϕ.
 
   Canonical Structure vlC := leibnizC vl.
   Canonical Structure tmC := leibnizC tm.
@@ -121,15 +184,11 @@ Section Sec.
   Canonical Structure pathC := leibnizC path.
 
   Canonical Structure listVlC := leibnizC (list vl).
-
-  Canonical Structure listVlVlC := leibnizC (list vl * vl).
-  Canonical Structure listVlDmC := leibnizC (list vl * dm).
-  Canonical Structure listVlDmsC := leibnizC (list vl * dms).
 End Sec.
 
-Notation envD Σ := (listVlVlC -n> iProp Σ).
-Notation "g ⤇ p" := (SP g p) (at level 20).
+Notation "g ⤇ p" := (saved_interp_own g p) (at level 20).
 
-Class dotUInterpG Σ := DotInterpG {
-  dot_uinterp: ty -> envD Σ
+(* For abstracting AAsynToSem. *)
+Class dotInterpG Σ := DotInterpG {
+  dot_interp: ty -> vls -> vl -> iProp Σ
 }.

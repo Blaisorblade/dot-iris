@@ -1,251 +1,182 @@
-From iris.proofmode Require Export tactics.
+From iris.program_logic Require Import weakestpre.
+From iris.proofmode Require Import tactics.
 From Dot Require Export operational.
-Export lang.
-
-Definition logN : namespace := nroot .@ "logN".
 
 (** Deduce types from variable names, like on paper, for readability and to help
     type inference for some overloaded operations (e.g. substitution). *)
-Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
+Implicit Types
+         (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
+         (Γ : ctx) (ρ : leibnizC vls).
 
-Section Sec.
+
+(** The logical relation core is the [interp], interprets *open* types into
+    predicates over *closed* values. Hence, [interp T ρ v] uses its argument [ρ]
+    to interpret anything contained in T, but not things contained in v.
+
+    Semantic judgements must apply instead to open terms/value/paths; therefore,
+    they are defined using closing substitution on arguments of [interp].
+
+    Similar comments apply to [def_interp].
+
+    Additionally, both apply to *translated* arguments, hence they only expect
+    [dtysem] and not [dtysyn] for type member definitions.
+ *)
+Section logrel.
   Context `{dotG Σ}.
 
-  (* Semantic types *)
   Notation D := (vlC -n> iProp Σ).
-  Notation envD := (listVlVlC -n> iProp Σ).
   Implicit Types τi : D.
 
-  (* Definition semantic types *)
-  Notation envDsD := (listVlDmsC -n> iProp Σ).
-  Notation envDD := (listVlDmC -n> iProp Σ).
+  Program Definition def_interp_vmem (interp : listVlC -n> D) :
+    listVlC -n> dmC -n> iProp Σ :=
+    λne ρ d, (∃ vmem, ⌜d = dvl vmem⌝ ∧ ▷ interp ρ vmem)%I.
 
-  (* Semantic types for terms. *)
-  Notation TD := (tmC -n> iProp Σ).
+  Program Definition interp_vmem l (interp : listVlC -n> D) : listVlC -n> D :=
+    λne ρ v, (∃ d, ⌜v @ l ↘ d⌝ ∧ def_interp_vmem interp ρ d)%I.
 
-  Program Definition curryD {A B cC}: (leibnizC (A * B) -n> cC) -n> leibnizC A -n> (leibnizC B -n> cC) := λne φ a b, φ (a, b).
-  Solve Obligations with solve_proper.
-
-  Program Definition uncurryD {A B cC}: (leibnizC A -n> leibnizC B -n> cC) -n> (leibnizC (A * B) -n> cC) := λne φ ab, let '(a, b) := ab in φ a b.
-  Next Obligation. intros; by move => [? ?] [? ?] [-> ->] /=. Qed.
-  Next Obligation. intros; move => ? ? ? [? ?] /=. by solve_proper. Qed.
-  Lemma curryDuncurryD {A B cC} (f: leibnizC A -n> leibnizC B -n> cC): curryD (uncurryD f) ≡ f.
-  Proof. by intros ? ?. Qed.
-  Lemma uncurryDcurryD {A B cC} (f: leibnizC (A * B) -n> cC): uncurryD (curryD f) ≡ f.
-  Proof. by intros [? ?]. Qed.
-
-  Definition def_interp_vmem (interp : envD): envDD := uncurryD (λne ρ, λne d,
-    (∃ vmem, ⌜ d = dvl vmem ⌝ ∧ ▷ curryD interp ρ vmem))%I.
-
-  Definition interp_vmem l (interp : envD) : envD := uncurryD (λne ρ, λne v,
-    (∃ d, ⌜ v @ l ↘ d ⌝ ∧ curryD (def_interp_vmem interp) ρ d))%I.
-
-  (** Pointwise lifting of later to predicates. *)
-  Program Definition delayPred `(P: A -n> iProp Σ): A -n> iProp Σ := λne a, (▷ P a)%I.
-  Solve Obligations with solve_proper.
-  Global Arguments delayPred /.
-
-  (** Expression closure from [D] to [TD]. *)
-  Definition expr_of_pred (φ: D): TD := λne e, WP e {{ φ }} % I.
-  Global Arguments expr_of_pred /.
-  Definition interp_expr (φ: envD): listVlC -n> TD := λne ρ, expr_of_pred (curryD φ ρ).
-
-  Definition D_stp (P Q: D) : iProp Σ := (□ ∀ v, P v → Q v)%I.
-  Global Arguments D_stp /.
-  (* Recall that ▷(P ⇒ Q) ⊢ ▷ P ⇒ ▷ Q but not viceversa. Use the weaker choice to enable
-     proving the definition typing lemma dtp_tmem_abs_i. *)
-  Definition D_stp_later P Q := D_stp (delayPred P) (delayPred Q).
-  Global Arguments D_stp_later /.
-
-  (** Substitute into saved predicate [φ] to obtain a value predicate in [D].
-      XXX instead of using persistence on ϕ, we might want to require that [ϕ]
-      is persistent, here or elsewhere.
-   *)
-  Definition subst_phi (σ: vls) (ρ: list vl) (φ: list vl * vl -> iProp Σ): D := λne v, (□ φ (vls_to_list (σ.[to_subst ρ]), v))%I.
-  Definition subst_phi0 (σ: vls) (φ: list vl * vl -> iProp Σ): D :=
-    λne v, (□φ (vls_to_list σ, v))%I.
-  Lemma subst_phi0_subst_phi σ φ: subst_phi0 σ φ ≡ subst_phi σ [] φ.
-  Proof. move => ? /=; by asimpl. Qed.
-
-  Definition idm_proj_semtype d σ' φ : iProp Σ :=
-    (∃ γ, ⌜ d = dtysem σ' γ ⌝ ∗ γ ⤇ φ)%I.
+  Definition idm_proj_semtype d σ' (φ : listVlC -n> D) : iProp Σ :=
+    (∃ γ, ⌜ d = dtysem σ' γ ⌝ ∗ γ ⤇ (λ vs w, φ vs w))%I.
   Global Arguments idm_proj_semtype /.
   Notation "d ↗ σ , φ" := (idm_proj_semtype d σ φ) (at level 20).
 
-  Definition def_interp_tmem (interp1 interp2: envD): envDD := uncurryD (λne ρ, λne d,
+  Program Definition def_interp_tmem (interp1 interp2 : listVlC -n> D) :
+    listVlC -n> dmC -n> iProp Σ :=
+    λne ρ d,
     (∃ φ σ, (d ↗ σ , φ) ∗
-                           D_stp_later (curryD interp1 ρ) (subst_phi σ ρ φ) ∗
-                           D_stp_later (subst_phi σ ρ φ) (curryD interp2 ρ) ∗
-                           D_stp (curryD interp1 ρ) (curryD interp2 ρ)))%I.
+       □ ((∀ v, ▷ interp1 ρ v → ▷ □ φ σ v) ∗
+          (∀ v, ▷ φ σ v → ▷ interp2 ρ v) ∗
+          (∀ v, interp1 ρ v → interp2 ρ v)))%I.
 
-  Definition interp_tmem l (interp1 interp2 : envD) : envD := uncurryD (λne ρ, λne v,
-    (∃ d, ⌜ v @ l ↘ d ⌝ ∧ curryD (def_interp_tmem interp1 interp2) ρ d))%I.
+  Program Definition interp_tmem l (interp1 interp2 : listVlC -n> D) : listVlC -n> D :=
+    λne ρ v,
+    (∃ d, ⌜ v @ l ↘ d ⌝ ∧ def_interp_tmem interp1 interp2 ρ d)%I.
 
-  Definition interp_and (interp1 interp2 : envD): envD := λne ρv,
-    (interp1 ρv ∧ interp2 ρv) % I.
+  Program Definition interp_expr (φ : listVlC -n> D) : listVlC -n> tmC -n> iProp Σ :=
+    λne ρ t, WP t {{ φ ρ }} %I.
 
-  Definition interp_or (interp1 interp2 : envD) : envD := λne ρv,
-    (interp1 ρv ∨ interp2 ρv) % I.
+  Program Definition interp_and (interp1 interp2 : listVlC -n> D): listVlC -n> D :=
+    λne ρ v, (interp1 ρ v ∧ interp2 ρ v) %I.
 
-  Definition interp_later (interp : envD) : envD := λne ρv,
-         (▷ (interp ρv)) % I.
+  Program Definition interp_or (interp1 interp2 : listVlC -n> D) : listVlC -n> D :=
+    λne ρ v, (interp1 ρ v ∨ interp2 ρ v) %I.
 
-  (* XXX I think this is known to be wrong; to prove the lemmas when using ▷
-     (which I think we want for other reasons), we must actually do the beta-reduction here. *)
-  Definition interp_forall (interp1 interp2 : envD) : envD := uncurryD (λne ρ, λne v,
-    (□ ▷ ∀ v', curryD interp1 ρ v' -∗ interp_expr interp2 (v :: ρ) (tapp (tv v) (tv v')))) % I.
+  Program Definition interp_later (interp : listVlC -n> D) : listVlC -n> D :=
+    λne ρ v, (▷ (interp ρ v)) % I.
 
-  Program Definition interp_mu (interp : envD) : envD := uncurryD (λne ρ, λne v,
-    (curryD interp (v::ρ) v)) % I.
+  Program Definition interp_nat : listVlC -n> D := λne ρ v, (∃ n, ⌜v = vnat n⌝) %I.
 
-  Canonical Structure optionVlC := leibnizC (option vl).
-  Definition close_vl (va: vl): list vl -> option vl :=
-    λ ρ,
-    match va with
-    | var_vl n => ρ !! n
-    | vabs t => Some (vabs t)
-    | vobj ds => Some (vobj ds)
-    | vnat n => Some (vnat n)
-    end.
+  Program Definition interp_top : listVlC -n> D := λne ρ v, True%I.
 
-  Fixpoint split_path (p: path): vl * list label :=
-    match p with
-    | pv va => (va, [])
-    | pself p l =>
-      let '(v, ls) := split_path p in (v, ls ++ [l])
-    end.
+  Program Definition interp_bot : listVlC -n> D := λne ρ v, False%I.
 
-  Definition eval_split_path (p: path): list vl -> (option vl) * (list label) :=
-    λ ρ,
-    let '(v, ls) := split_path p in
-    (close_vl v ρ, ls).
-  Arguments eval_split_path /.
-
-  Canonical Structure dmC := leibnizC dm.
-
-  Program Definition interp_selA_final (l: label) (interpL interpU: D): list vl -> option vl -> D :=
-    λ ρ optVa, λne v,
-    (∃ va σ ϕ d, ⌜ optVa = Some va ⌝ ∧ ⌜ va @ l ↘ d ⌝ ∧ d ↗ σ , ϕ ∧ interpU v ∧ (interpL v ∨ ▷ subst_phi σ ρ ϕ v))%I.
-  (* I first assumed that va and hence ϕ is closed, but it's not obvious I can. In fact, if va comes from within the type, it can probably be open. *)
-    (* (∃ va σ ϕ ds, ⌜ optVa = Some va ⌝ ∧ ⌜ va ↗ ds ⌝ ∧ ds;l ↘ σ , ϕ ∧ U v ∧ (L v ∨ ▷  subst_phi0 σ ϕ v))%I. *)
-
-  (** XXX Pretty confusing that we only go a step down at the end. *)
-  Fixpoint interp_sel_rec (ls: list label) (interp_k: option vl -> D): option vl -> D :=
-    λ optVa, λne v,
-    match ls with
-    | l :: ls =>
-      (∃ va vb, ⌜ optVa = Some va ⌝ ∧ ⌜ va @ l ↘ dvl vb ⌝ ∧ ▷ interp_k (Some vb) v)%I
-    | [] => interp_k optVa v
-    end.
-
-  Program Definition interp_selA (p: path) (l: label) (L U : envD): envD :=
-    uncurryD (λne ρ, λne v,
-     let (optVa, ls) := eval_split_path p ρ in
-     □ interp_sel_rec ls (interp_selA_final l (curryD L ρ) (curryD U ρ) ρ) optVa v
-    )%I.
-
-  Definition interp_true : envD := λne ρv, True % I.
-  Definition interp_false : envD := λne ρv, False % I.
-
-  Definition interp_sel (p: path) (l: label) : envD :=
-    interp_selA p l interp_false interp_true.
-
-  Definition interp_nat : envD :=
-    uncurryD (λne ρ v,
-              match v with
-              | vnat _ => True
-              | _ => False
-              end)%I.
-
-  (** Uncurried interpretation. *)
-  Fixpoint uinterp (T: ty) : envD :=
-    match T with
-    | TTMem l L U => interp_tmem l (uinterp L) (uinterp U)
-    | TVMem l T' => interp_vmem l (uinterp T')
-    | TAnd T1 T2 => interp_and (uinterp T1) (uinterp T2)
-    | TOr T1 T2 => interp_or (uinterp T1) (uinterp T2)
-    | TLater T => interp_later (uinterp T)
-    | TNat => interp_nat
-    | TTop => interp_true
-    | TBot => interp_false
-    | TAll T1 T2 => interp_forall (uinterp T1) (uinterp T2)
-    | TMu T => interp_mu (uinterp T)
-    | TSel p l =>
-      interp_sel p l
-    | TSelA p l L U =>
-      interp_selA p l (uinterp L) (uinterp U)
-  end % I.
-
-  (* It's important that this is a plain function: in proofs we want v and rho
-     to be a plain vl, not a vlC, so that (ρ, v) is a plain pair and *then* it
-     can be wrapped in a listVlVlC. Otherwise, I ended up with (list vl * vlC)
-     in a rewrite lemma and (list vl * vl) in what I needed to rewrite, and
-     rewrite was not happy.
-     This requires eta-expansion to convert A -n> B to A -> B. *)
-  Definition interp (T: ty): list vl -> vl -> iProp Σ :=
-    λ ρ, curryD (uinterp T) ρ.
-  (* Restore reduction behavior that interp had as a fixpoint. *)
-  Global Arguments interp T /.
-
-  (** Semantics for typing of one definition and of a definition list.
-      Overall, typing of a definition check that the definition with a certain
-      label has the declared type; typing for definition lists traverses type
-      and definition in parallel.
+  (* XXX Paolo: This definition is correct but non-expansive; I suspect we might
+     need to readd later here, but also to do the beta-reduction in place, to
+     make it contractive (similarly to what's useful for equi-recursive types).
+     However, I am not totally sure and might be wrong; it'd be good to
+     write an example where this makes a difference.
+     I think that would be something like
+     nu x. { T = TNat; U = x.T -> x.T }:
+     mu (x: {T <: TNat; U <: x.T -> TNat}).
+     If the function type constructor is not contractive but only non-expansive,
+     typechecking this example needs to establish x.T <: TNat having in context
+     only x: {T <: TNat; U <: x.T -> TNat}.
    *)
+  Program Definition interp_forall (interp1 interp2 : listVlC -n> D) : listVlC -n> D :=
+    λne ρ v,
+    (□ ∀ w, interp1 ρ w -∗ interp_expr interp2 (w :: ρ) (tapp (tv v) (tv w)))%I.
 
-  Definition defs_interp_and (interp1 : envDsD) (interp2: label -> envDD) : envDsD :=
-    uncurryD (λne ρ ds,
-              match ds with
-                | dnil => False
-                | dcons d ds =>
-                  curryD interp1 ρ ds ∧
-                  curryD (interp2 (dms_length ds)) ρ d
-             end) % I.
+  Program Definition interp_mu (interp : listVlC -n> D) : listVlC -n> D :=
+    λne ρ v, interp (v::ρ) v.
 
-  Fixpoint def_uinterp (T: ty) (l : label): envDD :=
+  Definition interp_selA_final (l: label) : vlC -n> vlC -n> iProp Σ :=
+    λne w v,
+    (∃ σ ϕ d, ⌜w @ l ↘ d⌝ ∧ d ↗ σ , ϕ ∧ ▷ □ ϕ σ v)%I.
+
+  (* Alternative v2, almost equivalent to v1 and closest to WP and nicely structural to
+     support recursive proofs. Not equivalent to v1 because here lookups happen
+     later, but that's more correct. *)
+  Fixpoint path_wp p (interp_k: vlC -n> D): D :=
+    λne v,
+    match p with
+    | pself p l => path_wp p (λne va v, ∃ vb, ⌜ va @ l ↘ dvl vb ⌝ ∧ ▷ interp_k vb v) v
+    | pv Va => interp_k Va v
+    end%I.
+
+  Program Definition interp_selA (p: path) (l: label) (interpL interpU : listVlC -n> D) :
+    listVlC -n> D :=
+    λne ρ v,
+    (interpU ρ v ∧ (interpL ρ v ∨
+                    path_wp p.|[to_subst ρ] (interp_selA_final l) v))%I.
+
+  Definition interp_sel (p: path) (l: label) : listVlC -n> D :=
+    interp_selA p l interp_bot interp_top.
+
+  Fixpoint interp (T: ty) : listVlC -n> D :=
     match T with
-    | TTMem l' L U => λne ρd, ⌜ l = l' ⌝ ∧ def_interp_tmem (uinterp L) (uinterp U) ρd
-    | TVMem l' T' => λne ρd, ⌜ l = l' ⌝ ∧ def_interp_vmem (uinterp T') ρd
-    | _ => λne ρd, False
+    | TTMem l L U => interp_tmem l (interp L) (interp U)
+    | TVMem l T' => interp_vmem l (interp T')
+    | TAnd T1 T2 => interp_and (interp T1) (interp T2)
+    | TOr T1 T2 => interp_or (interp T1) (interp T2)
+    | TLater T => interp_later (interp T)
+    | TNat => interp_nat
+    | TTop => interp_top
+    | TBot => interp_bot
+    | TAll T1 T2 => interp_forall (interp T1) (interp T2)
+    | TMu T => interp_mu (interp T)
+    | TSel p l => interp_sel p l
+    | TSelA p l L U => interp_selA p l (interp L) (interp U)
+  end % I.
+  Global Instance dotInterpΣ : dotInterpG Σ := DotInterpG _ (λ T ρ, interp T ρ).
+
+  Program Fixpoint def_interp (T: ty) (l : label) :
+    listVlC -n> dmC -n> iProp Σ :=
+    λne ρ d,
+    match T return iProp Σ with
+    | TTMem l' L U => ⌜ l = l' ⌝ ∧ def_interp_tmem (interp L) (interp U) ρ d
+    | TVMem l' T' => ⌜ l = l' ⌝ ∧ def_interp_vmem (interp T') ρ d
+    | _ => False
+    end%I.
+
+  Program Definition defs_interp_and
+             (interp1 : listVlC -n> dmsC -n> iProp Σ)
+             (interp2: label -> listVlC -n> dmC -n> iProp Σ)
+    : listVlC -n> dmsC -n> iProp Σ :=
+    λne ρ ds,
+    match ds return iProp Σ with
+    | [] => False
+    | d :: ds => interp1 ρ ds ∧ interp2 (length ds) ρ d
+    end%I.
+
+  Program Fixpoint defs_interp (T: ty) : listVlC -n> dmsC -n> iProp Σ :=
+    match T return listVlC -n> dmsC -n> iProp Σ with
+    | TAnd T1 T2 => defs_interp_and (defs_interp T1) (def_interp T2)
+    | TTop => λne ρ ds, True
+    | _ => λne ρ ds, False
     end % I.
-
-  Definition def_interp (T: ty) (l : label): list vl -> dm -> iProp Σ :=
-    λ ρ, curryD (def_uinterp T l) ρ.
-  Global Arguments def_interp T /.
-
-  Fixpoint defs_uinterp (T: ty) : envDsD :=
-    match T with
-    | TAnd T1 T2 => defs_interp_and (defs_uinterp T1) (def_uinterp T2)
-    | TTop => λne ρds, True
-    | _ => λne ρds, False
-    end % I.
-
-  Definition defs_interp (T: ty): list vl -> dms -> iProp Σ :=
-    λ ρ, curryD (defs_uinterp T) ρ.
-  Global Arguments defs_interp T /.
 
   Notation "⟦ T ⟧" := (interp T).
 
-  (* use foldr? *)
-  (* PG: Or use a judgment that we can invert? *)
-  Fixpoint interp_env (Γ : list ty): list vl -> iProp Σ :=
+  Fixpoint interp_env (Γ : ctx) (vs : vls) : iProp Σ :=
     match Γ with
-    | nil => (fun l => (⌜ l = nil ⌝) % I)
-    | T::Γ' => (fun l => match l with
-                         | nil => False
-                         | v::ρ => (interp_env Γ') ρ ∗ ⟦ T ⟧ (v::ρ) v
-                         end
-               )%I
-    end.
+    | nil => ⌜vs = nil⌝
+    | T :: Γ' =>
+      match vs with
+      | nil => False
+      | v :: ρ => interp_env Γ' ρ ∗ ⟦ T ⟧ (v::ρ) v
+      end
+    end%I.
 
   Notation "⟦ Γ ⟧*" := (interp_env Γ).
+
+  Global Instance path_wp_persistent (pred: vlC -n> D) (v: vl):
+    (forall (va v: vl), Persistent (pred va v)) →
+    Persistent (path_wp p pred v).
+  Proof. intros p; revert pred v; induction p; simpl; apply _. Qed.
 
   Global Instance interp_persistent T ρ v :
     Persistent (⟦ T ⟧ ρ v).
   Proof.
-    revert v ρ; induction T; simpl; intros;
-      try case_match;
-      try apply _.
+    revert v ρ; induction T => v ρ; simpl; try apply _.
   Qed.
 
   Global Instance def_interp_persistent T l ρ d :
@@ -269,92 +200,74 @@ Section Sec.
   Qed.
 
   (* Definitions for semantic (definition) (sub)typing *)
-  Definition idtp Γ T l d : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → def_interp T l ρ d)%I.
+  Definition idtp Γ T l d : iProp Σ :=
+    (□∀ ρ, ⟦Γ⟧* ρ → def_interp T l ρ d.|[to_subst ρ])%I.
   Global Arguments idtp /.
 
-  Definition idstp Γ T ds : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → defs_interp T ρ ds.[to_subst ρ])%I.
+  Definition idstp Γ T ds : iProp Σ :=
+    (□∀ ρ, ⟦Γ⟧* ρ → defs_interp T ρ ds.|[to_subst ρ])%I.
   Global Arguments idstp /.
 
-  Notation "⟦ T ⟧ₑ" := (interp_expr (uinterp T)).
+  Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
 
-  Definition ivtp Γ T v : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ ρ v)%I.
+  Lemma interp_weaken Δ1 Π Δ2 τ :
+    ⟦ τ.|[upn (length Δ1) (ren (+ length Π))] ⟧ (Δ1 ++ Π ++ Δ2)
+    ≡ ⟦ τ ⟧ (Δ1 ++ Δ2).
+  Proof.
+    revert Δ1 Π Δ2; induction τ=> Δ1 Π Δ2 w; simpl; trivial; asimpl;
+                                    rewrite ?to_subst_weaken.
+    all: try solve [properness; trivial;
+                    apply IHτ || apply IHτ1 || apply IHτ2 ||
+                          apply (IHτ2 (_ :: _)) || apply (IHτ (_ :: _))].
+  Qed.
+
+  Lemma interp_subst_up Δ1 Δ2 τ v:
+    ⟦ τ.|[upn (length Δ1) (v.[ren (+length Δ2)] .: ids)] ⟧ (Δ1 ++ Δ2)
+    ≡ ⟦ τ ⟧ (Δ1 ++ v :: Δ2).
+  Proof.
+    revert Δ1 Δ2; induction τ=> Δ1 Δ2 w; simpl; trivial; asimpl;
+                                    rewrite ?to_subst_up.
+    all: try solve [properness; trivial;
+                    apply IHτ || apply IHτ1 || apply IHτ2 ||
+                          apply (IHτ2 (_ :: _)) || apply (IHτ (_ :: _))].
+    Qed.
+
+  Lemma interp_subst Δ2 τ v1 v2 : ⟦ τ.|[v1.[ren (+length Δ2)]/] ⟧ Δ2 v2 ≡ ⟦ τ ⟧ (v1 :: Δ2) v2.
+  Proof. apply (interp_subst_up []). Qed.
+
+  (* Really needed? Try to stop using it. *)
+  Definition ivtp Γ T v : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ ρ v.[to_subst ρ])%I.
   Global Arguments ivtp /.
 
-  Definition ietp Γ T e : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ₑ ρ (e.[to_subst ρ]))%I.
+  Definition ietp Γ T e : iProp Σ := (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ₑ ρ (e.|[to_subst ρ]))%I.
   Global Arguments ietp /.
-
-  (* Value subtyping. *)
-  Definition ivstp Γ T1 T2: iProp Σ := (□∀ ρ v, ⟦Γ⟧* ρ → ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
-  Global Arguments ivstp /.
-
-  (* (Expression) subtyping, strengthened to be equivalent to valye subtyping. *)
-  Definition istp Γ T1 T2 : iProp Σ := (ivstp Γ T1 T2 ∧ □∀ ρ e, ⟦Γ⟧* ρ → ⟦T1⟧ₑ ρ e → ⟦T2⟧ₑ ρ e)%I.
-  Global Arguments istp /.
-
-  Definition uvstp Γ T1 T2: iProp Σ :=
-    (□∀ ρ v, ⟦Γ⟧*ρ -∗ (⟦T1⟧ ρ v) → |={⊤}=> ⟦T2⟧ ρ v)%I.
-  Global Arguments uvstp /.
 
   Notation "▷^ i" := (Nat.iter i (fun P => ▷ P)%I) (at level 333).
 
-  Definition step_indexed_uvstp Γ T1 T2 i j: iProp Σ :=
-    (□∀ ρ v, ⟦Γ⟧*ρ -∗  (▷^i ⟦T1⟧ ρ v) → |={⊤}=> ▷^j ⟦T2⟧ ρ v)%I.
-  Global Arguments step_indexed_uvstp /.
-
   Definition step_indexed_ietp Γ T e i: iProp Σ :=
-    (□∀ ρ, ⟦Γ⟧* ρ → ▷^i ⟦T⟧ₑ ρ (e.[to_subst ρ]))%I.
+    (□∀ ρ, ⟦Γ⟧* ρ → ▷^i ⟦T⟧ₑ ρ (e.|[to_subst ρ]))%I.
   Global Arguments step_indexed_ietp /.
-End Sec.
+
+  (* Subtyping. Defined on (values). *)
+  Definition ivstp Γ T1 T2: iProp Σ := (□∀ ρ v, ⟦Γ⟧* ρ → ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
+  Global Arguments ivstp /.
+
+  Definition step_indexed_ivstp Γ T1 T2 i j: iProp Σ :=
+    (□∀ ρ v, ⟦Γ⟧*ρ -∗ (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
+  Global Arguments step_indexed_ivstp /.
+End logrel.
 
 Notation "⟦ T ⟧" := (interp T).
 Notation "⟦ Γ ⟧*" := (interp_env Γ).
-Notation "⟦ T ⟧ₑ" := (interp_expr (uinterp T)).
-
-Notation "Γ ⊨ T1 <: T2" := (istp Γ T1 T2) (at level 74, T1, T2 at next level).
+Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
 Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
-
-Notation "Γ ⊨v T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).
-Notation "Γ ⊨> T1 <: T2" := (uvstp Γ T1 T2) (at level 74, T1, T2 at next level).
-
 Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
-Notation "Γ '⊨' '[' T1 ',' i ']' '<:' '[' T2 ',' j ']'" := (step_indexed_uvstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
+
+Notation "Γ ⊨ T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).
+Notation "Γ '⊨' '[' T1 ',' i ']' '<:' '[' T2 ',' j ']'" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
 
 Section SubTypingEquiv.
   Context `{HdotG: dotG Σ} (Γ: list ty).
-
-  (** We prove that vstp and stp are equivalent, so that we can use them
-      interchangeably; and in my previous proofs, proving uvstp was easier. *)
-
-  Lemma istp2ivstp T1 T2: (Γ ⊨ T1 <: T2 → Γ ⊨v T1 <: T2)%I.
-  Proof. by iIntros "/= [#? _]". Qed.
-
-  Lemma ivstp2istp T1 T2: (Γ ⊨v T1 <: T2 → Γ ⊨ T1 <: T2)%I.
-  Proof.
-    iIntros "/= #Hstp". iFrame "Hstp".
-    iIntros " !> * #Hg HeT1".
-    iApply wp_fupd.
-    iApply (wp_wand with " [-]"); try iApply "HeT1".
-    iIntros "* HT1". by iApply "Hstp".
-  Qed.
-
-  Lemma istpEqIvstp T1 T2: (Γ ⊨ T1 <: T2) ≡ (Γ ⊨v T1 <: T2).
-  Proof. iSplit; iIntros; by [iApply istp2ivstp| iApply ivstp2istp]. Qed.
-
-  Lemma iStpUvstp T1 T2: (Γ ⊨ T1 <: T2 → Γ ⊨> T1 <: T2)%I.
-  Proof.
-    (* Inspired by the proof of wp_value_inv'! *)
-
-    (* More manual.*)
-    (* iIntros "/= #Hsub !> * #Hg *". *)
-    (* iSpecialize ("Hsub" $! (of_val v) with "Hg"). *)
-    (* rewrite !wp_unfold /wp_pre /=. iIntros. by iApply "Hsub". *)
-    (* Restart. *)
-    iIntros "/= [#Hsub1 #Hsub2] !> * #Hg * #?".
-    by iApply "Hsub1".
-    (* Or *)
-    (* setoid_rewrite wp_unfold. *)
-    (* by iApply ("Hsub2" $! _ (of_val v)). *)
-  Qed.
 
   Lemma semantic_typing_uniform_step_index T e i:
     (Γ ⊨ e : T → Γ ⊨ e : T,i)%I.

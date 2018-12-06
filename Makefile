@@ -1,45 +1,23 @@
-# Call `make V=1` to be more verbose
+EXTRA_DIR:=extra
+COQDOCFLAGS:= \
+  --toc --toc-depth 2 --html --interpolate \
+  --index indexpage --no-lib-name --parse-comments \
+  --with-header $(EXTRA_DIR)/header.html --with-footer $(EXTRA_DIR)/footer.html
+export COQDOCFLAGS
 
-ifeq ($(V),1)
-E=@true
-Q=
-MFLAGS=
-else
-E=@echo
-Q=@
-MFLAGS=-s
-endif
-
-.PHONY: coq clean
-
-COQSRC = $(filter-out %_orig.v,$(wildcard theories/*.v))
-
-all:
-
-%: Makefile.coq phony
-	$(E) "  MAKE -f Makefile.coq $@"
-	$(Q)$(MAKE) $(MFLAGS) -f Makefile.coq $@
-
-Makefile.coq: Makefile $(VS)
-	$(E) "  COQ_MAKEFILE Makefile.coq"
-	$(Q)coq_makefile -f _CoqProject $(COQSRC)  -o Makefile.coq
+all: Makefile.coq
+	+make -f Makefile.coq all
 
 clean: Makefile.coq
-	$(Q)$(MAKE) $(MFLAGS) -f Makefile.coq clean
-	$(Q)rm -f *.bak *.d *.glob *~
+	+make -f Makefile.coq clean
+	rm -f Makefile.coq
 
-# Phony wildcard targets
+html: Makefile.coq
+	rm -fr html
+	+make -f Makefile.coq $@
+	cp $(EXTRA_DIR)/resources/* html
 
-phony: ;
-.PHONY: phony
+Makefile.coq: _CoqProject
+	coq_makefile -f _CoqProject -o Makefile.coq
 
-# Some files that do *not* need to be forwarded to Makefile.coq
-# The final semicolon prevents the forwarding.
-distclean: clean cleancoq ;
-
-Makefile: ;
-
-cleancoq: ;
-	$(E) "  RM Makefile.coq"
-	$(Q)rm -f Makefile.coq Makefile.coq.conf
-recoq: cleancoq Makefile.coq ;
+.PHONY: clean all
