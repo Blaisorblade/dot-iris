@@ -24,6 +24,10 @@ Implicit Types
 Section logrel.
   Context `{dotG Σ}.
 
+  (* Use Program without its extended pattern-matching compiler; we only need
+     its handling of coercions. *)
+  Unset Program Cases.
+
   Notation D := (vlC -n> iProp Σ).
   Implicit Types τi : D.
 
@@ -131,7 +135,7 @@ Section logrel.
   Program Fixpoint def_interp (T: ty) (l : label) :
     listVlC -n> dmC -n> iProp Σ :=
     λne ρ d,
-    match T return iProp Σ with
+    match T with
     | TTMem l' L U => ⌜ l = l' ⌝ ∧ def_interp_tmem (interp L) (interp U) ρ d
     | TVMem l' T' => ⌜ l = l' ⌝ ∧ def_interp_vmem (interp T') ρ d
     | _ => False
@@ -142,13 +146,13 @@ Section logrel.
              (interp2: label -> listVlC -n> dmC -n> iProp Σ)
     : listVlC -n> dmsC -n> iProp Σ :=
     λne ρ ds,
-    match ds return iProp Σ with
+    match ds with
     | [] => False
     | d :: ds => interp1 ρ ds ∧ interp2 (length ds) ρ d
     end%I.
 
   Program Fixpoint defs_interp (T: ty) : listVlC -n> dmsC -n> iProp Σ :=
-    match T return listVlC -n> dmsC -n> iProp Σ with
+    match T with
     | TAnd T1 T2 => defs_interp_and (defs_interp T1) (def_interp T2)
     | TTop => λne ρ ds, True
     | _ => λne ρ ds, False
