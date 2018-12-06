@@ -1,3 +1,5 @@
+From iris.program_logic Require Import weakestpre.
+From iris.proofmode Require Import tactics.
 Require Import Dot.unary_lr.
 Require Import Dot.typing.
 Require Import Dot.AAsynToSem.
@@ -31,7 +33,7 @@ Section fundamental.
     is_syn_ctx Γ.
   Admitted.
 
-  Theorem not_yet_fundamental Γ e T:
+  Fixpoint not_yet_fundamental Γ e T:
     Γ ⊢ₜ e : T →
     (|==> ∃ Γ' e' T',
           (* Using [] as σ is wrong. *)
@@ -43,12 +45,50 @@ Section fundamental.
     pose proof (typed_tm_is_syn Γ e T HT) as HeSyn.
     pose proof (typed_ty_is_syn Γ e T HT) as HTSyn.
     pose proof (typed_ctx_is_syn Γ e T HT) as HΓSyn.
+    (* XXX using the translation here means we end up using it again later, and
+       we'd even have to prove it's deterministic (which it isn't?) or smth. such!
+       Let's avoid that. *)
     iMod (ex_t_tm [] (length Γ) e) as (e') "#HeTr"; first done.
     iMod (ex_t_ty [] (length Γ) T) as (T') "#HTTr"; first done.
     iExists Γ, e', T'. repeat iSplitL; try done.
-    iInduction HT as []  "IHT" forall "HeTr HTTr".
-                                      destruct e'; iDestruct "HeTr" as "HeTr'".
-                                      simpl.
+    (* Induction keeps the same expression e' in the conclusion of *all* induction hypotheses. *)
+    (* iInduction HT as []  "IHT" forall "HeTr HTTr". *)
+    (* So use destruct and a recursive proof; we'll need this anyway since the
+       proof is by mutual induction on typing, subtyping etc.*)
+    destruct HT.
+    (* iDestruct HT as ([]) "". "IHT" forall "HeTr HTTr". *)
+    -
+      (* Arguments t_tm _ _ _ /. *)
+      (* Arguments t_vl _ _ _ /. *)
+
+      (* destruct e'; cbn [t_tm]; try done. *)
+      (* fold (t_tm [] e1 e'1). *)
+      (* fold (t_tm [] (tv v2) e'2). *)
+      (* iDestruct "HeTr" as "[HeTr' HeTr'']". *)
+      set (e2 := tv v2).
+      iEval (cbn [t_tm]) in "HeTr". progress (case_match; try done); subst;
+      repeat iMatchHyp (fun H P => match P with
+                            | (_ ∧ _)%I =>
+                              iDestruct H as "[#HA #HB]"
+                            end).
+      (* fold (t_tm [] e1 t1). *)
+      (* fold (t_tm [] (tv v2) t2). *)
+      iMod (not_yet_fundamental Γ e1 _ HT1) as (Γ' e1' T0') "#(H1 & H2 & H3)".
+      iMod (not_yet_fundamental Γ e2 _ HT2) as (Γ'' e1'' T0'') "#(H4 & H5 & H6)".
+      assert (e1'' = t2) as -> by admit.
+      (* iEval (cbn) in "HB". progress (case_match; try done); subst. *)
+      (* progress fold (t_vl [] v2 v). *)
+      iClear "H4".
+      iEval (cbn) in "H2". progress (case_match; try done); subst.
+      iDestruct "H2" as "[H7 H8]".
+      assert (e1' = t1) as -> by admit.
+      assert (T0'' = t3) as -> by admit.
+      assert (Γ'' = Γ') as -> by admit.
+      (* progress fold (t_vl [] v2 v0). *)
+      (* progress fold (t_tm [] e1 t1). *)
+      iModIntro.
+      (* iEval (simpl) in "HA". *)
+      (* iSimpl in "HA". *)
   Admitted.
 
-End fundamental
+End fundamental.

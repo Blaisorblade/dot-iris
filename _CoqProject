@@ -16,3 +16,4 @@ theories/lr_lemmasTSel.v
 theories/lr_lemmasDefs.v
 theories/rules.v
 theories/adequacy.v
+theories/fundamental.v
