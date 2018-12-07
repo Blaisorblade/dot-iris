@@ -3,8 +3,16 @@ From iris.proofmode Require Import tactics.
 Require Import Dot.unary_lr.
 Require Import Dot.typing.
 Require Import Dot.AAsynToSem.
+Require Import Dot.tactics.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
+
+(* Should use fresh names. *)
+Ltac iDestrConjs :=
+  iMatchHyp (fun H P => match P with
+                        | (_ ∧ _)%I =>
+                          iDestruct H as "[#HA #HB]"
+                        end).
 
 Section fundamental.
   Context `{dotG Σ}.
@@ -33,18 +41,29 @@ Section fundamental.
     is_syn_ctx Γ.
   Admitted.
 
-  Fixpoint not_yet_fundamental Γ e T:
-    Γ ⊢ₜ e : T →
-    (|==> ∃ Γ' e' T',
+  Fixpoint not_yet_fundamental Γ e T e' T' (HT: Γ ⊢ₜ e : T) {struct HT}:
+    (t_tm [] e e' → t_ty [] T T' → |==> ∃ Γ',
           (* Using [] as σ is wrong. *)
-        t_tm [] e e' ∗
-        t_ty [] T T' ∗
         Γ' ⊨ e' : T')%I.
   Proof.
-    intro HT.
-    pose proof (typed_tm_is_syn Γ e T HT) as HeSyn.
-    pose proof (typed_ty_is_syn Γ e T HT) as HTSyn.
-    pose proof (typed_ctx_is_syn Γ e T HT) as HΓSyn.
+    iIntros "#HtrE #HtrT". destruct HT.
+    -
+      set (e2 := tv v2).
+      cbn [t_tm] in * |- *; case_match; try done.
+      iDestruct "HtrE" as "[Htr1 Htr2]".
+      (* iDestrConjs. *)
+      unfold e2.
+      cbn [t_tm] in * |- *; case_match; try done; fold (t_vl [] v2 v).
+      iAssert (t_tm [] (tv v2) (tv v)) as "#Ht2"; first done.
+      iMod (ex_t_ty [] (length Γ) T1) as (T1') "#HTTr".
+      eauto using typed_ty_is_syn.
+      iPoseProof (not_yet_fundamental Γ e1 _ _ _ HT1 with "Htr1") as "HsT1".
+      iMod (not_yet_fundamental Γ (tv v2) _ _ _ HT2 with "Ht2 HTTr") as (Γ') "#HsT2".
+
+    (* pose proof (typed_tm_is_syn Γ e T HT) as HeSyn. *)
+    (* pose proof (typed_ty_is_syn Γ e T HT) as HTSyn. *)
+    (* pose proof (typed_ctx_is_syn Γ e T HT) as HΓSyn. *)
+
     (* (* XXX using the translation here means we end up using it again later, and *)
     (*    we'd even have to prove it's deterministic (which it isn't?) or smth. such! *)
     (*    Let's avoid that. *) *)
@@ -55,55 +74,53 @@ Section fundamental.
     (* iInduction HT as []  "IHT" forall "HeTr HTTr". *)
     (* So use destruct and a recursive proof; we'll need this anyway since the
        proof is by mutual induction on typing, subtyping etc.*)
-    destruct HT.
     (* iDestruct HT as ([]) "". "IHT" forall "HeTr HTTr". *)
-    -
-      (* Arguments t_tm _ _ _ /. *)
-      (* Arguments t_vl _ _ _ /. *)
+    (* - *)
+    (*   (* Arguments t_tm _ _ _ /. *) *)
+    (*   (* Arguments t_vl _ _ _ /. *) *)
 
-      (* destruct e'; cbn [t_tm]; try done. *)
-      (* fold (t_tm [] e1 e'1). *)
-      (* fold (t_tm [] (tv v2) e'2). *)
-      (* iDestruct "HeTr" as "[HeTr' HeTr'']". *)
-Require Import Dot.tactics.
-      cbn [is_syn_tm is_syn_ty] in * |- ; ev.
-      iMod (ex_t_tm [] (length Γ) e1) as (e1') "#He1Tr"; first done.
-      iMod (ex_t_vl [] (length Γ) v2) as (v2') "#Hv2Tr"; first done.
-      assert (is_syn_ty (S (length Γ)) T2) by admit.
-      iMod (ex_t_ty [] (S (length Γ)) T2) as (T2') "#HTTr"; first done.
-      (* Here we seem to need a substitution lemma for the translation of types! *)
-      assert (t_ty [] T2.|[v2/] T2'.|[v2'/]) by admit.
-      iExists Γ, (tapp e1' (tv v2')), T2'.|[v2'/].
-      repeat iSplitL; try done.
-      + iApply H3.
-      +
-        (* XXX: Here, recursive calls to the lemma still produce a fresh translation,
-           not the one we have; since translation isn't deterministic, that's bad.
-           We should take translations as hypotheses. *)
-      iMod (not_yet_fundamental Γ e1 _ HT1) as (Γ' e1'' T0') "#(H1 & H2 & H3)".
-      iMod (not_yet_fundamental Γ (tv v2) _ HT2) as (Γ'' e2'' T0'') "#(H4 & H5 & H6)".
+    (*   (* destruct e'; cbn [t_tm]; try done. *) *)
+    (*   (* fold (t_tm [] e1 e'1). *) *)
+    (*   (* fold (t_tm [] (tv v2) e'2). *) *)
+    (*   (* iDestruct "HeTr" as "[HeTr' HeTr'']". *) *)
+    (*   cbn [t_tm] in * |- *; case_match; iStartProof. *)
+    (*   iMod (ex_t_tm [] (length Γ) e1) as (e1') "#He1Tr"; first done. *)
+    (*   iMod (ex_t_vl [] (length Γ) v2) as (v2') "#Hv2Tr"; first done. *)
+    (*   assert (is_syn_ty (S (length Γ)) T2) by admit. *)
+    (*   iMod (ex_t_ty [] (S (length Γ)) T2) as (T2') "#HTTr"; first done. *)
+    (*   (* Here we seem to need a substitution lemma for the translation of types! *) *)
+    (*   assert (t_ty [] T2.|[v2/] T2'.|[v2'/]) by admit. *)
+    (*   iExists Γ. (tapp e1' (tv v2')), T2'.|[v2'/]. *)
+    (*   repeat iSplitL; try done. *)
+    (*   + iApply H3. *)
+    (*   + *)
+    (*     (* XXX: Here, recursive calls to the lemma still produce a fresh translation, *)
+    (*        not the one we have; since translation isn't deterministic, that's bad. *)
+    (*        We should take translations as hypotheses. *) *)
+    (*   iMod (not_yet_fundamental Γ e1 _ HT1) as (Γ' e1'' T0') "#(H1 & H2 & H3)". *)
+    (*   iMod (not_yet_fundamental Γ (tv v2) _ HT2) as (Γ'' e2'' T0'') "#(H4 & H5 & H6)". *)
 
-      (* iEval (cbn [t_tm]) in "HeTr". progress (case_match; try done); subst; *)
-      (* repeat iMatchHyp (fun H P => match P with *)
-      (*                       | (_ ∧ _)%I => *)
-      (*                         iDestruct H as "[#HA #HB]" *)
-      (*                       end). *)
-      (* fold (t_tm [] e1 t1). *)
-      (* fold (t_tm [] (tv v2) t2). *)
-      (* assert (e1'' = t2) as -> by admit. *)
-      (* (* iEval (cbn) in "HB". progress (case_match; try done); subst. *) *)
-      (* (* progress fold (t_vl [] v2 v). *) *)
-      (* iClear "H4". *)
-      (* iEval (cbn) in "H2". progress (case_match; try done); subst. *)
-      (* iDestruct "H2" as "[H7 H8]". *)
-      (* assert (e1' = t1) as -> by admit. *)
-      (* assert (T0'' = t3) as -> by admit. *)
-      (* assert (Γ'' = Γ') as -> by admit. *)
-      (* (* progress fold (t_vl [] v2 v0). *) *)
-      (* (* progress fold (t_tm [] e1 t1). *) *)
-      (* iModIntro. *)
-      (* (* iEval (simpl) in "HA". *) *)
-      (* (* iSimpl in "HA". *) *)
+    (*   (* iEval (cbn [t_tm]) in "HeTr". progress (case_match; try done); subst; *) *)
+    (*   (* repeat iMatchHyp (fun H P => match P with *) *)
+    (*   (*                       | (_ ∧ _)%I => *) *)
+    (*   (*                         iDestruct H as "[#HA #HB]" *) *)
+    (*   (*                       end). *) *)
+    (*   (* fold (t_tm [] e1 t1). *) *)
+    (*   (* fold (t_tm [] (tv v2) t2). *) *)
+    (*   (* assert (e1'' = t2) as -> by admit. *) *)
+    (*   (* (* iEval (cbn) in "HB". progress (case_match; try done); subst. *) *) *)
+    (*   (* (* progress fold (t_vl [] v2 v). *) *) *)
+    (*   (* iClear "H4". *) *)
+    (*   (* iEval (cbn) in "H2". progress (case_match; try done); subst. *) *)
+    (*   (* iDestruct "H2" as "[H7 H8]". *) *)
+    (*   (* assert (e1' = t1) as -> by admit. *) *)
+    (*   (* assert (T0'' = t3) as -> by admit. *) *)
+    (*   (* assert (Γ'' = Γ') as -> by admit. *) *)
+    (*   (* (* progress fold (t_vl [] v2 v0). *) *) *)
+    (*   (* (* progress fold (t_tm [] e1 t1). *) *) *)
+    (*   (* iModIntro. *) *)
+    (*   (* (* iEval (simpl) in "HA". *) *) *)
+    (*   (* (* iSimpl in "HA". *) *) *)
   Admitted.
 
 End fundamental.
