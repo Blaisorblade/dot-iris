@@ -85,11 +85,11 @@ with dms_typed Γ: dms → ty → Prop :=
     Γ ⊢ds d :: ds : TAnd T1 T2
 
 with dm_typed Γ : label → dm → ty → Prop :=
-| dty_typed l L T U:
+| dty_typed l L T U σ optγ :
     Γ ⊢ₜ L, 0 <: U, 0 →
     Γ ⊢ₜ L, 1 <: T, 1 →
     Γ ⊢ₜ T, 1 <: U, 1 →
-    Γ ⊢ { l = dtysyn T } : TTMem l L U
+    Γ ⊢ { l = dty T σ optγ } : TTMem l L U
 | dvl_typed l v T:
     Γ ⊢ₜ tv v : TLater T →
     Γ ⊢ { l = dvl v } : TVMem l T

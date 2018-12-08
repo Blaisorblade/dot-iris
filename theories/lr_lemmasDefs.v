@@ -40,7 +40,7 @@ Section Sec.
   *)
   Lemma dtp_tmem_i T γ ρ l :
     γ ⤇ dot_interp T -∗ ⟦Γ⟧* ρ -∗
-    def_interp (TTMem l T T) l ρ (dtysem ρ γ).
+    def_interp (TTMem l T T) l ρ (dty T ρ (Some γ)).
   Proof.
     iIntros "#Hv * #Hg /=".
     (* iExists _, _. iSplit. _auto. *)
@@ -87,7 +87,7 @@ Section Sec.
        (unlike I did originally). *)
     (Γ ⊨ TLater T <: TLater U) -∗
     (Γ ⊨ TLater L <: TLater T) →
-    def_interp (TTMem l L U) l ρ (dtysem ρ γ).
+    def_interp (TTMem l L U) l ρ (dty T ρ (Some γ)).
   Proof.
     iIntros "#Hv * #Hg #HLU #HTU #HLT /=".
     iSplit; try done.
@@ -171,7 +171,7 @@ Section Sec.
   (* Still wrong. The correct statement will arise from the translation. *)
   Lemma idtp_tmem_i T γ l ρ1:
     γ ⤇ dot_interp T -∗
-    idtp Γ (TTMem l T T) l (dtysem ρ1 γ).
+    idtp Γ (TTMem l T T) l (dty T ρ1 (Some γ)).
   Proof.
     unfold idtp.
     iIntros "/= #Hγ !> **".

@@ -201,7 +201,7 @@ Section Sec.
 
   Lemma alloc_dtp_tmem_i T ρ l:
     ⟦Γ⟧* ρ -∗
-    (|==> ∃ γ, def_interp (TTMem l T T) l ρ (dtysem ρ γ))%I.
+    (|==> ∃ γ, def_interp (TTMem l T T) l ρ (dty T ρ (Some γ)))%I.
   Proof.
     iIntros "#Hg /=".
     iDestruct (alloc_sp T) as "HupdSp".

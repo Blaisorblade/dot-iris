@@ -23,42 +23,45 @@ Section fundamental.
       (and probably add hypotheses to that effect). *)
   (* XXX lift translation and is_syn to contexts. Show that syntactic typing
      implies is_syn and closure. Stop talking about free variables inside is_syn? *)
-  Lemma typed_tm_is_syn Γ e T:
-    Γ ⊢ₜ e : T →
-    is_syn_tm (length Γ) e.
-  Admitted.
+  (* Lemma typed_tm_is_syn Γ e T: *)
+  (*   Γ ⊢ₜ e : T → *)
+  (*   is_syn_tm (length Γ) e. *)
+  (* Admitted. *)
 
-  Lemma typed_ty_is_syn Γ e T:
-    Γ ⊢ₜ e : T →
-    is_syn_ty (length Γ) T.
-  Admitted.
+  (* Lemma typed_ty_is_syn Γ e T: *)
+  (*   Γ ⊢ₜ e : T → *)
+  (*   is_syn_ty (length Γ) T. *)
+  (* Admitted. *)
 
-  (* Check all types are syntactic. The number of free varibles changes. Probably drop free variable count from is_syn_*. *)
-  Definition is_syn_ctx Γ := True.
+  (* (* Check all types are syntactic. The number of free varibles changes. Probably drop free variable count from is_syn_*. *) *)
+  (* Definition is_syn_ctx Γ := True. *)
 
-  Lemma typed_ctx_is_syn Γ e T:
-    Γ ⊢ₜ e : T →
-    is_syn_ctx Γ.
-  Admitted.
+  (* Lemma typed_ctx_is_syn Γ e T: *)
+  (*   Γ ⊢ₜ e : T → *)
+  (*   is_syn_ctx Γ. *)
+  (* Admitted. *)
 
-  Fixpoint not_yet_fundamental Γ e T e' T' (HT: Γ ⊢ₜ e : T) {struct HT}:
-    (t_tm [] e e' → t_ty [] T T' → |==> ∃ Γ',
-          (* Using [] as σ is wrong. *)
-        Γ' ⊨ e' : T')%I.
+  (* XXX have typing collect all triples. And show they are stamped?
+   * Or show that we can semantically type a term with the same skeleton.
+   *)
+
+  Lemma not_yet_fundamental Γ e T (HT: Γ ⊢ₜ e : T) :
+    (is_stamped_tm e → is_stamped_ty T → Γ ⊨ e : T)%I.
   Proof.
-    iIntros "#HtrE #HtrT". destruct HT.
+    iIntros "#HtrE #HtrT".
+    (* iInduction HT as []"IHT". *)
+    iInduction HT as [] "IHT" forall "HtrE HtrT".
     -
       set (e2 := tv v2).
-      cbn [t_tm] in * |- *; case_match; try done.
+      cbn [is_stamped_tm] in * |- *.
       iDestruct "HtrE" as "[Htr1 Htr2]".
       (* iDestrConjs. *)
       unfold e2.
-      cbn [t_tm] in * |- *; case_match; try done; fold (t_vl [] v2 v).
-      iAssert (t_tm [] (tv v2) (tv v)) as "#Ht2"; first done.
-      iMod (ex_t_ty [] (length Γ) T1) as (T1') "#HTTr".
-      eauto using typed_ty_is_syn.
-      iPoseProof (not_yet_fundamental Γ e1 _ _ _ HT1 with "Htr1") as "HsT1".
-      iMod (not_yet_fundamental Γ (tv v2) _ _ _ HT2 with "Ht2 HTTr") as (Γ') "#HsT2".
+      iSpecialize ("IHT" with "Htr1").
+      iSpecialize ("IHT1" with "Htr2").
+      (* Abort. *)
+      (* iMod (ex_t_ty [] (length Γ) T1) as (T1') "#HTTr". *)
+      (* eauto using typed_ty_is_syn. *)
 
     (* pose proof (typed_tm_is_syn Γ e T HT) as HeSyn. *)
     (* pose proof (typed_ty_is_syn Γ e T HT) as HTSyn. *)

@@ -18,8 +18,8 @@ Implicit Types
 
     Similar comments apply to [def_interp].
 
-    Additionally, both apply to *translated* arguments, hence they only expect
-    [dtysem] and not [dtysyn] for type member definitions.
+    Additionally, both apply to *translated* arguments, hence they expect
+    type member definitions [dty] to contain a gname.
  *)
 Section logrel.
   Context `{dotG Σ}.
@@ -39,7 +39,7 @@ Section logrel.
     λne ρ v, (∃ d, ⌜v @ l ↘ d⌝ ∧ def_interp_vmem interp ρ d)%I.
 
   Definition idm_proj_semtype d σ' (φ : listVlC -n> D) : iProp Σ :=
-    (∃ γ, ⌜ d = dtysem σ' γ ⌝ ∗ γ ⤇ (λ vs w, φ vs w))%I.
+    (∃ γ T, ⌜ d = dty T σ' (Some γ) ⌝ ∗ γ ⤇ (λ vs w, φ vs w))%I.
   Global Arguments idm_proj_semtype /.
   Notation "d ↗ σ , φ" := (idm_proj_semtype d σ φ) (at level 20).
 

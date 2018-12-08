@@ -98,12 +98,12 @@ Section Sec.
     iIntros "/= #Hva !> * #Hg #[_ [[] | Hφ]]".
     iDestruct ("Hva" $! ρ with "Hg") as (d) "#[% #H]"; iClear "Hva".
     iDestruct "H" as (φ σ) "#[Hlφ [HLφ [HφU #HLU]]]".
-    iDestruct "Hlφ" as (γ) "[% Hγφ]".
+    iDestruct "Hlφ" as (γ T) "[% Hγφ]".
 
     iApply "HφU".
     iDestruct "Hφ" as (σ1 φ1 d1 Hva) "[Hγ #HΦ1v]".
     (* " [_ [False | #HΦ1v]]]"; try done. *)
-    iDestruct "Hγ" as (γ' Hd1) "HγΦ1".
+    iDestruct "Hγ" as (γ' T' Hd1) "HγΦ1".
 
     injectHyps; subst; objLookupDet.
 

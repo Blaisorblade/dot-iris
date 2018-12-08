@@ -16,8 +16,7 @@ Inductive tm  : Type :=
   | vabs : tm -> vl
   | vobj : (list dm) -> vl
  with dm  : Type :=
-  | dtysyn : ty -> dm
-  | dtysem : (list vl) -> gname -> dm
+  | dty : ty -> (list vl) -> option gname -> dm
   | dvl : vl -> dm
  with path  : Type :=
   | pv : vl -> path
@@ -90,8 +89,7 @@ dm_rename (sb : var → var) (d : dm) {struct d} : dm :=
   let a := vl_rename : Rename vl in
   let b := ty_rename : Rename ty in
   match d with
-  | dtysyn ty => dtysyn (rename sb ty)
-  | dtysem lv γ => dtysem (rename sb lv) γ
+  | dty ty lv optγ => dty (rename sb ty) (rename sb lv) optγ
   | dvl v => dvl (rename sb v)
   end
 with
@@ -175,8 +173,7 @@ dm_hsubst (sb : var → vl) (d : dm) : dm :=
   let a := vl_subst : Subst vl in
   let b := ty_hsubst : HSubst vl ty in
   match d with
-  | dtysyn ty => dtysyn (hsubst sb ty)
-  | dtysem lv γ => dtysem (hsubst sb lv) γ
+  | dty ty lv optγ => dty (hsubst sb ty) (hsubst sb lv) optγ
   | dvl v => dvl (subst sb v)
   end
 with
@@ -241,7 +238,8 @@ Proof.
    all: rewrite /Decision; decide equality;
        try (apply vl_eq_dec || apply tm_eq_dec || apply ty_eq_dec || apply path_eq_dec ||
             apply @list_eq_dec ||
-            apply nat_eq_dec || apply positive_eq_dec); auto.
+            apply nat_eq_dec ||
+            (apply @option_eq_dec; apply positive_eq_dec)); auto.
 Qed.
 
 Instance vl_eq_dec' : EqDecision vl := vl_eq_dec.
