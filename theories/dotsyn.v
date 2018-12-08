@@ -40,22 +40,30 @@ Definition vls := list vl.
 Definition dms := list dm.
 Definition ctx := list ty.
 
-Instance Ids_tm : Ids tm := λ _, tv (vnat 0).
-Instance Ids_dm : Ids dm := λ _, dvl (vnat 0).
-Instance Ids_pth : Ids path := λ _, pv (vnat 0).
-Instance Ids_ty : Ids ty := λ _, TNat.
-Instance Ids_vls : Ids vls := λ _, [].
-Instance Ids_dms : Ids dms := λ _, [].
-Instance Ids_ctx : Ids ctx := λ _, [].
+Instance Inh_ty : Inhabited ty := populate TNat.
+Instance Inh_vl : Inhabited vl := populate (vnat 0).
+Instance Inh_dm : Inhabited dm := populate (dvl inhabitant).
+Instance Inh_pth : Inhabited path := populate (pv inhabitant).
+Instance Inh_tm : Inhabited tm := populate (tv inhabitant).
+Instance Inh_vls : Inhabited vls := populate [].
+Instance Inh_dms : Inhabited dms := populate [].
 
 Instance Ids_vl : Ids vl.
 Proof. by constructor. Defined.
 
+Instance Ids_tm : Ids tm := λ _, inhabitant.
+Instance Ids_dm : Ids dm := λ _, inhabitant.
+Instance Ids_pth : Ids path := λ _, inhabitant.
+Instance Ids_ty : Ids ty := λ _, inhabitant.
+Instance Ids_vls : Ids vls := λ _, inhabitant.
+Instance Ids_dms : Ids dms := λ _, inhabitant.
+Instance Ids_ctx : Ids ctx := λ _, inhabitant.
+
 Instance vls_rename `{Rename vl} : Rename vls :=
-λ (sb : var → var) (vs : vls), map (rename sb) vs.
+  λ (sb : var → var) (vs : vls), map (rename sb) vs.
 
 Instance dms_rename `{Rename dm} : Rename dms :=
-    λ (sb : var → var) (ds : dms), map (rename sb) ds.
+  λ (sb : var → var) (ds : dms), map (rename sb) ds.
 
 Fixpoint tm_rename (sb : var → var) (e : tm) {struct e} : tm :=
   let a := tm_rename : Rename tm in
@@ -127,15 +135,15 @@ Instance Rename_ctx : Rename ctx := ctx_rename.
 Lemma vls_rename_fold (sb : var → var) (vs : vls) :
   map (rename sb) vs = rename sb vs.
 Proof. trivial. Qed.
-Global Hint Rewrite vls_rename_fold : autosubst.
+Hint Rewrite vls_rename_fold : autosubst.
 
 Lemma dms_rename_fold sb (ds : dms) : map (rename sb) ds = rename sb ds.
 Proof. trivial. Qed.
-Global Hint Rewrite dms_rename_fold : autosubst.
+Hint Rewrite dms_rename_fold : autosubst.
 
 Lemma ctx_rename_fold sb (Γ : ctx) : map (rename sb) Γ = rename sb Γ.
 Proof. trivial. Qed.
-Global Hint Rewrite ctx_rename_fold : autosubst.
+Hint Rewrite ctx_rename_fold : autosubst.
 
 Instance vls_hsubst `{Subst vl} : HSubst vl vls :=
   λ (sb : var → vl) (vs : vls), map (subst sb) vs.
@@ -210,15 +218,15 @@ Instance HSubst_ctx : HSubst vl ctx := ctx_hsubst.
 Lemma vls_hsubst_fold (sb : var → vl) (vs : vls) :
   map (subst sb) vs = hsubst sb vs.
 Proof. trivial. Qed.
-Global Hint Rewrite vls_hsubst_fold : autosubst.
+Hint Rewrite vls_hsubst_fold : autosubst.
 
 Lemma dms_hsubst_fold sb (ds : dms) : map (hsubst sb) ds = hsubst sb ds.
 Proof. trivial. Qed.
-Global Hint Rewrite dms_hsubst_fold : autosubst.
+Hint Rewrite dms_hsubst_fold : autosubst.
 
 Lemma ctx_hsubst_fold sb (Γ : ctx) : map (hsubst sb) Γ = hsubst sb Γ.
 Proof. trivial. Qed.
-Global Hint Rewrite ctx_hsubst_fold : autosubst.
+Hint Rewrite ctx_hsubst_fold : autosubst.
 
 Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
 with
@@ -230,32 +238,19 @@ ty_eq_dec (ty1 ty2 : ty) : Decision (ty1 = ty2)
 with
 path_eq_dec (pth1 pth2 : path) : Decision (pth1 = pth2).
 Proof.
-  - rewrite /Decision; decide equality;
-      try (apply tm_eq_dec || apply nat_eq_dec || apply @list_eq_dec); auto.
-  - rewrite /Decision; decide equality; try (apply vl_eq_dec || apply nat_eq_dec).
-  - rewrite /Decision; decide equality;
-      try (apply ty_eq_dec || apply vl_eq_dec || apply @list_eq_dec ||
-           apply positive_eq_dec); auto.
-  - rewrite /Decision; decide equality;
-      try (apply path_eq_dec || apply nat_eq_dec); auto.
-  -  rewrite /Decision; decide equality;
-       try (apply vl_eq_dec || apply nat_eq_dec); auto.
+   all: rewrite /Decision; decide equality;
+       try (apply vl_eq_dec || apply tm_eq_dec || apply ty_eq_dec || apply path_eq_dec ||
+            apply @list_eq_dec ||
+            apply nat_eq_dec || apply positive_eq_dec); auto.
 Qed.
 
-Global Instance vl_eq_dec' : EqDecision vl.
-Proof. by intros ? ?; apply vl_eq_dec. Qed.
-Global Instance tm_eq_dec' : EqDecision tm.
-Proof. by intros ? ?; apply tm_eq_dec. Qed.
-Global Instance dm_eq_dec' : EqDecision dm.
-Proof. by intros ? ?; apply dm_eq_dec. Qed.
-Global Instance ty_eq_dec' : EqDecision ty.
-Proof. by intros ? ?; apply ty_eq_dec. Qed.
-Global Instance path_eq_dec' : EqDecision path.
-Proof. by intros ? ?; apply path_eq_dec. Qed.
-Global Instance vls_eq_dec' : EqDecision vls.
-Proof. by intros ? ?; apply list_eq_dec. Qed.
-Global Instance dms_eq_dec' : EqDecision dms.
-Proof. by intros ? ?; apply list_eq_dec. Qed.
+Instance vl_eq_dec' : EqDecision vl := vl_eq_dec.
+Instance tm_eq_dec' : EqDecision tm := tm_eq_dec.
+Instance dm_eq_dec' : EqDecision dm := dm_eq_dec.
+Instance ty_eq_dec' : EqDecision ty := ty_eq_dec.
+Instance path_eq_dec' : EqDecision path := path_eq_dec.
+Instance vls_eq_dec' : EqDecision vls := list_eq_dec.
+Instance dms_eq_dec' : EqDecision dms := list_eq_dec.
 
 Lemma vl_rename_Lemma (ξ : var → var) (v : vl) : rename ξ v = v.[ren ξ]
 with
@@ -268,22 +263,10 @@ with
 path_rename_Lemma (ξ : var → var) (pth : path) :
   rename ξ pth = pth.|[ren ξ].
 Proof.
-  - destruct v; simpl; auto.
-    + by rewrite tm_rename_Lemma up_upren_internal.
-    + rewrite /rename /dms_rename.
-      f_equal; induction l; simpl; first trivial.
-        by rewrite IHl dm_rename_Lemma up_upren_internal.
-  - destruct t; simpl; auto;
-      try (by rewrite ?vl_rename_Lemma ?tm_rename_Lemma).
-  - destruct d; simpl.
-    + by rewrite ty_rename_Lemma.
-    + rewrite /rename /vls_rename.
-      f_equal. induction l; simpl; first trivial.
-        by rewrite IHl vl_rename_Lemma.
-    + by rewrite vl_rename_Lemma.
-  - destruct T; simpl; auto;
-      by rewrite ?ty_rename_Lemma ?path_rename_Lemma ?up_upren_internal.
-  - induction pth; simpl; auto; by rewrite ?vl_rename_Lemma ?path_rename_Lemma.
+  all: (destruct v || destruct t || destruct d || destruct T || destruct pth);
+    simpl;
+      rewrite ?up_upren_internal; f_equal; trivial;
+        elim l => * /=; f_equal; trivial.
 Qed.
 
 Lemma vl_ids_Lemma (v : vl) : v.[ids] = v
@@ -296,21 +279,10 @@ ty_ids_Lemma (T : ty) : T.|[ids] = T
 with
 path_ids_Lemma (pth : path) : pth.|[ids] = pth.
 Proof.
-  - destruct v; simpl; auto.
-    + by rewrite up_id_internal // tm_ids_Lemma.
-    + rewrite /hsubst /dms_hsubst.
-      f_equal; induction l; simpl; first trivial.
-        by rewrite IHl up_id_internal // dm_ids_Lemma.
-  - destruct t; simpl; auto; by rewrite ?vl_ids_Lemma ?tm_ids_Lemma.
-  - destruct d; simpl.
-    + by rewrite ty_ids_Lemma.
-    + rewrite /hsubst /vls_hsubst.
-      f_equal. induction l; simpl; first trivial.
-        by rewrite IHl vl_ids_Lemma.
-    + by rewrite vl_ids_Lemma.
-  - destruct T; simpl; auto;
-      by rewrite ?ty_ids_Lemma ?up_id_internal // ?ty_ids_Lemma ?path_ids_Lemma.
-  - induction pth; simpl; auto; by rewrite ?vl_ids_Lemma ?path_ids_Lemma.
+  all: (destruct v || destruct t || destruct d || destruct T || destruct pth);
+    simpl; f_equal; trivial;
+      rewrite ?up_id_internal; trivial;
+        elim l => * /=; f_equal; trivial.
 Qed.
 
 Lemma vl_comp_rename_Lemma (ξ : var → var) (σ : var → vl) (v : vl) :
@@ -328,24 +300,10 @@ with
 path_comp_rename_Lemma (ξ : var → var) (σ : var → vl) (pth : path) :
   (rename ξ pth).|[σ] = pth.|[ξ >>> σ].
 Proof.
-  - destruct v; simpl; auto.
-    + by rewrite tm_comp_rename_Lemma up_comp_ren_subst.
-    + rewrite /hsubst /dms_hsubst.
-      f_equal; induction l; simpl; first trivial.
-        by rewrite IHl dm_comp_rename_Lemma up_comp_ren_subst.
-  - destruct t; simpl; auto;
-      by rewrite ?vl_comp_rename_Lemma ?tm_comp_rename_Lemma.
-  - destruct d; simpl.
-    + by rewrite ty_comp_rename_Lemma.
-    + rewrite /hsubst /vls_hsubst.
-      f_equal. induction l; simpl; first trivial.
-        by rewrite IHl vl_comp_rename_Lemma.
-    + by rewrite vl_comp_rename_Lemma.
-  - destruct T; simpl; auto;
-      rewrite ?ty_comp_rename_Lemma ?path_comp_rename_Lemma;
-        by try rewrite up_comp_ren_subst.
-  - induction pth; simpl; auto;
-      by rewrite ?vl_comp_rename_Lemma ?path_comp_rename_Lemma.
+  all: (destruct v || destruct t || destruct d || destruct T || destruct pth);
+    simpl; f_equal; trivial;
+      rewrite 1? up_comp_ren_subst; trivial;
+        elim l => * /=; by f_equal.
 Qed.
 
 Lemma vl_rename_comp_Lemma (σ : var → vl) (ξ : var → var) (v : vl) :
@@ -363,28 +321,11 @@ with
 path_rename_comp_Lemma (σ : var → vl) (ξ : var → var) (pth : path) :
   rename ξ pth.|[σ] = pth.|[σ >>> rename ξ].
 Proof.
-  - destruct v; simpl; auto.
-    + by rewrite tm_rename_comp_Lemma up_comp_subst_ren_internal;
-        auto using vl_rename_Lemma, vl_comp_rename_Lemma.
-    + rewrite /hsubst /dms_hsubst /rename /dms_rename.
-      f_equal; induction l; simpl; first trivial.
-        by rewrite IHl dm_rename_comp_Lemma
-                   up_comp_subst_ren_internal;
-          auto using vl_rename_Lemma, vl_comp_rename_Lemma.
-  - destruct t; simpl; auto;
-      by rewrite ?vl_rename_comp_Lemma ?tm_rename_comp_Lemma.
-  - destruct d; simpl.
-    + by rewrite ty_rename_comp_Lemma.
-    + rewrite /hsubst /vls_hsubst /rename /vls_rename.
-      f_equal. induction l; simpl; first trivial.
-        by rewrite IHl vl_rename_comp_Lemma.
-    + by rewrite vl_rename_comp_Lemma.
-  - destruct T; simpl; auto;
-      rewrite ?ty_rename_comp_Lemma ?path_rename_comp_Lemma
-              ?up_comp_subst_ren_internal;
-      auto using vl_rename_Lemma, vl_comp_rename_Lemma.
-  - induction pth; simpl; auto;
-      by rewrite ?vl_rename_comp_Lemma ?path_rename_comp_Lemma.
+  all: (destruct v || destruct t || destruct d || destruct T || destruct pth);
+    simpl; f_equal; trivial;
+      rewrite 1? up_comp_subst_ren_internal;
+      auto using vl_rename_Lemma, vl_comp_rename_Lemma;
+      elim l => * /=; by f_equal.
 Qed.
 
 Lemma vl_comp_Lemma (σ τ : var → vl) (v : vl) : v.[σ].[τ] = v.[σ >> τ]
@@ -397,27 +338,11 @@ ty_comp_Lemma (σ τ : var → vl) (T : ty) : T.|[σ].|[τ] = T.|[σ >> τ]
 with
 path_comp_Lemma (σ τ : var → vl) (pth : path) : pth.|[σ].|[τ] = pth.|[σ >> τ].
 Proof.
-  - destruct v; simpl; auto.
-    + by rewrite tm_comp_Lemma up_comp_internal;
-        auto using vl_rename_comp_Lemma, vl_comp_rename_Lemma.
-    + rewrite /hsubst /dms_hsubst.
-      f_equal; induction l; simpl; first trivial.
-        by rewrite IHl dm_comp_Lemma up_comp_internal;
-          auto using vl_rename_comp_Lemma, vl_comp_rename_Lemma.
-  - destruct t; simpl; auto;
-      by rewrite ?vl_comp_Lemma ?tm_comp_Lemma.
-  - destruct d; simpl.
-    + by rewrite ty_comp_Lemma.
-    + rewrite /hsubst /vls_hsubst.
-      f_equal. induction l; simpl; first trivial.
-        by rewrite IHl vl_comp_Lemma.
-    + by rewrite vl_comp_Lemma.
-  - destruct T; simpl; auto;
-      rewrite ?ty_comp_Lemma ?path_comp_Lemma
-              ?up_comp_internal;
-      auto using vl_rename_comp_Lemma, vl_comp_rename_Lemma.
-  - induction pth; simpl; auto;
-      by rewrite ?vl_comp_Lemma ?path_comp_Lemma.
+  all: (destruct v || destruct t || destruct d || destruct T || destruct pth);
+    simpl; f_equal; trivial;
+      rewrite 1? up_comp_internal; auto using vl_rename_comp_Lemma, vl_comp_rename_Lemma;
+        auto using vl_rename_comp_Lemma, vl_comp_rename_Lemma;
+        elim l => * /=; by f_equal.
 Qed.
 
 Instance SubstLemmas_vl : SubstLemmas vl.
@@ -447,33 +372,18 @@ Qed.
 
 Instance HSubstLemmas_vls : HSubstLemmas vl vls.
 Proof.
-  split; trivial.
-  - intros vs. rewrite /hsubst /vls_hsubst.
-    induction vs; simpl; first trivial.
-    by rewrite IHvs vl_ids_Lemma.
-  - intros θ η vs. rewrite /hsubst /vls_hsubst.
-    induction vs; simpl; first trivial.
-    by rewrite IHvs vl_comp_Lemma.
+  split; trivial; intros; rewrite /hsubst /vls_hsubst;
+    elim s => * //=; asimpl; by f_equal.
 Qed.
 
 Instance HSubstLemmas_dms : HSubstLemmas vl dms.
 Proof.
-  split; trivial.
-  - intros ds. rewrite /hsubst /dms_hsubst.
-    induction ds; simpl; first trivial.
-    by rewrite IHds dm_ids_Lemma.
-  - intros θ η ds. rewrite /hsubst /dms_hsubst.
-    induction ds; simpl; first trivial.
-    by rewrite IHds dm_comp_Lemma.
+  split; trivial; intros; rewrite /hsubst /dms_hsubst;
+    elim s => * //=; asimpl; by f_equal.
 Qed.
 
 Instance HSubstLemmas_ctx : HSubstLemmas vl ctx.
 Proof.
-  split; trivial.
-  - intros Γ. rewrite /hsubst /HSubst_ctx /ctx_hsubst.
-    induction Γ; simpl; first trivial.
-    by rewrite IHΓ ty_ids_Lemma.
-  - intros θ η Γ. rewrite /hsubst /HSubst_ctx /ctx_hsubst.
-    induction Γ; simpl; first trivial.
-    by rewrite IHΓ ty_comp_Lemma.
+  split; trivial; intros; rewrite /hsubst /ctx_hsubst;
+    induction s; asimpl in *; by f_equal.
 Qed.
