@@ -1,8 +1,18 @@
 From iris.base_logic Require Import base_logic.
 From iris.proofmode Require Import tactics.
-From iris.program_logic Require Import weakestpre lifting.
-From Dot Require Import tactics unary_lr rules.
+From iris.program_logic Require Import weakestpre lifting ectxi_language.
 
+Section wp.
+  Context `{irisG Λ Σ}.
+
+  Lemma wp_mono' e E s Φ Ψ : (□(∀ v, Φ v → Ψ v) → WP e @ s; E {{ Φ }} → WP e @ s; E {{ Ψ }})%I.
+  Proof.
+    iIntros "#HΦ H". iApply (wp_strong_mono with "H"); auto.
+    iIntros (v) "?". by iApply "HΦ".
+  Qed.
+End wp.
+
+From Dot Require Import tactics unary_lr rules.
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
 Section Sec.
@@ -175,6 +185,85 @@ Section Sec.
     iIntros "/= #Hstp !> * #Hg #HT1".
     rewrite -(interp_weaken nil [v] ρ T1 v). asimpl.
     iApply ("Hstp" $! (v :: ρ) _); rewrite ?iterate_TLater_later //; by iSplit.
+  Qed.
+
+  Local Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
+    iApply (wp_bind (fill[ctx]));
+    iApply (wp_wand with "[-]"); [iApply Hp; trivial|]; cbn;
+    iIntros (v) Hv.
+
+  Lemma T_Forall_E e1 e2 T1 T2:
+    (Γ ⊨ e1: TAll T1 T2.|[ren (+1)] →
+     Γ ⊨ e2 : T1 →
+    (*────────────────────────────────────────────────────────────*)
+     Γ ⊨ tapp e1 e2 : T2)%I.
+  Proof.
+    iIntros "/= #He1 #Hv2 !> * #HG".
+    smart_wp_bind (AppLCtx (e2.|[to_subst ρ])) v "#Hv" "He1".
+    smart_wp_bind (AppRCtx v) w "#Hw" "Hv2".
+    iApply wp_mono; [|iApply "Hv"]; auto.
+    iIntros (v0) "#H".
+    iPoseProof (interp_weaken [] [w] ρ T2 v0) as "[Heq _ ]"; asimpl.
+    by iApply "Heq".
+  Qed.
+
+  Lemma interp_env_len_agree ρ:
+    (⟦ Γ ⟧* ρ → ⌜ length ρ = length Γ ⌝)%I.
+  Proof.
+    iIntros "#HG".
+    iInduction Γ as [|τ Γ'] "IHΓ" forall (ρ); destruct ρ; simpl; trivial.
+    - iDestruct "HG" as "%". discriminate.
+    - iDestruct "HG" as "[HG' Hv]".
+      by iDestruct ("IHΓ" $! ρ with "HG'") as "->".
+  Qed.
+
+  Lemma interp_subst_closed T v w ρ:
+    fv_n_vl v (length ρ) →
+    (⟦ Γ ⟧* ρ → ⟦ T.|[v/] ⟧ ρ w ∗-∗ ⟦ T ⟧ (v.[to_subst ρ] :: ρ) w)%I.
+  Proof.
+    intro Hcl.
+    assert ((⟦ T.|[v/] ⟧ ρ w = ⟦ T.|[v.[to_subst ρ]/] ⟧ ρ w)) as Hren. admit.
+    iIntros "#HG".
+    iPoseProof (interp_subst ρ T (v.[to_subst ρ]) w) as "Heq"; asimpl.
+    rewrite (Hcl (to_subst ρ >> ren (+length ρ)) (to_subst ρ)).
+    + by rewrite Hren.
+    + intros. asimpl.
+      (* Here we must deduce that entries in ρ are closed. Which isn't true yet. *)
+      admit.
+  Admitted.
+  Lemma tp_closed T e: (Γ ⊨ e : T → ⌜ fv_n e (length Γ) ⌝)%I.
+  Admitted.
+
+  Lemma tp_closed_vl T v: (Γ ⊨ tv v : T → ⌜ fv_n_vl v (length Γ) ⌝)%I.
+  Proof.
+    iIntros "H". iPoseProof (tp_closed with "H") as "%". iPureIntro.
+    move :H.
+    rewrite /fv_n_vl /fv_n /= => Hcl s1 s2 HsEq.
+    specialize (Hcl s1 s2 HsEq). by injectHyps.
+  Qed.
+
+  Lemma T_Forall_Ex e1 v2 T1 T2:
+    (Γ ⊨ e1: TAll T1 T2 →
+     Γ ⊨ tv v2 : T1 →
+    (*────────────────────────────────────────────────────────────*)
+     Γ ⊨ tapp e1 (tv v2) : T2.|[v2/])%I.
+  Proof.
+    simpl.
+    iIntros "/= #He1 #Hv2 !> * #HG".
+    iAssert (⌜ fv_n_vl v2 (length Γ) ⌝)%I as "%". by iApply tp_closed_vl.
+    rename H into Hcl.
+    smart_wp_bind (AppLCtx (tv v2.[to_subst ρ])) v "#Hv" "He1".
+    (* rewrite /lang.of_val. *)
+    iApply fupd_wp.
+    iAssert (⌜ length ρ = length Γ ⌝)%I as "%". by iApply interp_env_len_agree.
+    rename H into Hlen.
+    assert (fv_n_vl v2 (length ρ)). by rewrite Hlen.
+    iApply wp_mono'; [|iApply "Hv"]; auto.
+    - iIntros "!>" (v0) "#H".
+      by iApply (interp_subst_closed T2 v2 v0 with "HG").
+    -
+      (* iSpecialize ("Hv2" $! ρ with "HG"). *)
+      iApply wp_value_inv'; by iApply "Hv2".
   Qed.
 
   (* BEWARE NONSENSE IN NOTES:

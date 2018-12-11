@@ -35,9 +35,9 @@ The names are taken from the PDF. In parens, you'll find the names of lemmas.
 
 - [ ] T-Forall-I
 
-- [ ] T-Forall-Ex
+- [x] T-Forall-Ex
 
-- [ ] T-Forall-E
+- [x] T-Forall-E
 
 - [ ] P-Start
 
