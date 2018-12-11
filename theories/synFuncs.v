@@ -87,16 +87,17 @@ Definition subst_sigma (σ: vls) (ρ: list vl) := σ.|[to_subst ρ].
 
 Definition push_var (σ: vls) : vls := (var_vl 0) :: σ.|[ren (+1)].
 
-(* (** Create an identity environment vls. *)
-(*  * The definition gives the right results but is not ideal to reason about. It *)
-(*    is hard to prove it does what it should, and it's likely theorems using it *)
-(*    should be rephrased in terms of the translation. *)
-(*  *) *)
-(* Fixpoint idsσ (ρ: list vl): vls := *)
-(*   match ρ with *)
-(*   | [] => vlnil *)
-(*   | _ :: ρ1 => push_var (idsσ ρ1) *)
-(*   end. *)
+(** Create an identity environment of the given length. *)
+Fixpoint idsσ n: vls :=
+  match n with
+  | 0 => []
+  | S n => push_var (idsσ n)
+  end.
 
-(* Definition wkT := toSubst_ty (+1). *)
-(* Definition wkV := toSubst_vl (+1). *)
+(** Define when some AST's free variables are at most n. *)
+(* Definition of fv_n for values must use subst not hsubst. *)
+Definition fv_n_vl (v: vl) n :=
+  ∀ s1 s2, (∀ x, x < n → s1 x = s2 x) → v.[s1] = v.[s2].
+
+Definition fv_n `{HSubst vl X} (t: X) n :=
+  ∀ s1 s2, (∀ x, x < n → s1 x = s2 x) → t.|[s1] = t.|[s2].
