@@ -126,33 +126,41 @@ Section Sec.
     Γ ⊨ [TBot, i] <: [T, i].
   Proof. by iIntros "/= !> ** !>". Qed.
 
+  Lemma iterate_TLater_later i T ρ v:
+    (⟦ iterate TLater i T ⟧ ρ v = ▷^i ⟦ T ⟧ ρ v)%I.
+  Proof.
+    elim: i => [|i IHi] //. by rewrite iterate_S /= IHi.
+  Qed.
+
   (*
      Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂ᶻ
      ----------------------------------------------- (<:-μ-X)
      Γ ⊨ μ (x: T₁ˣ) <: μ(x: T₂ˣ)
   *)
-  Lemma ivstp_mu_x T1 T2:
-    ivstp (T1 :: Γ) T1 T2 -∗
-    ivstp Γ (TMu T1) (TMu T2).
+  (* Notation "◁ n T ▷" := (iterate TLater n T). *)
+  Lemma Sub_Mu_X T1 T2 i j:
+    (iterate TLater i T1 :: Γ ⊨ [T1, i] <: [T2, j] →
+     Γ ⊨ [TMu T1, i] <: [TMu T2, j])%I.
   Proof.
     iIntros "/= #Hstp !> * #Hg #HT1".
-    iApply ("Hstp" $! (v :: ρ) _); naive_solver.
+    iApply ("Hstp" $! (v :: ρ) _);
+      rewrite ?iterate_TLater_later //; by iSplit.
   Qed.
 
   (*
      Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂
-     ----------------------------------------------- (<:-Bind-1)
+     ----------------------------------------------- (<:-Mu-1)
      Γ ⊨ μ (x: T₁ˣ) <: T₂
   *)
 
-  Lemma ivstp_mu_1 T1 T2:
-    ivstp (T1 :: Γ) T1 (T2.|[ren (+1)]) -∗
-    ivstp Γ (TMu T1) T2.
+  Lemma Sub_Mu_1 T1 T2 i j:
+    (iterate TLater i T1 :: Γ ⊨ [T1, i] <: [T2.|[ren (+1)], j] →
+     Γ ⊨ [TMu T1, i] <: [T2, j])%I.
   Proof.
     iIntros "/= #Hstp !> * #Hg #HT1".
     iApply (interp_weaken [] [v]).
     asimpl.
-    iApply ("Hstp" $! (v :: ρ)); naive_solver.
+    iApply ("Hstp" $! (v :: ρ)); rewrite ?iterate_TLater_later //; by iSplit.
   Qed.
 
   (*
@@ -160,13 +168,13 @@ Section Sec.
      ----------------------------------------------- (<:-Bind-2)
      Γ ⊨ T₁ <: μ(x: T₂ˣ)
   *)
-  Lemma ivstp_mu_2 T1 T2:
-    ivstp (T1.|[ren (+1)] :: Γ) (T1.|[ren (+1)]) T2 -∗
-    ivstp Γ T1 (TMu T2).
+  Lemma Sub_Mu_2 T1 T2 i j:
+    (iterate TLater i T1.|[ren (+1)] :: Γ ⊨ [T1.|[ren (+1)], i] <: [T2, j] →
+    Γ ⊨ [T1, i] <: [TMu T2, j])%I.
   Proof.
     iIntros "/= #Hstp !> * #Hg #HT1".
     rewrite -(interp_weaken nil [v] ρ T1 v). asimpl.
-    iApply ("Hstp" $! (v :: ρ) _); by try iSplit.
+    iApply ("Hstp" $! (v :: ρ) _); rewrite ?iterate_TLater_later //; by iSplit.
   Qed.
 
   (* BEWARE NONSENSE IN NOTES:

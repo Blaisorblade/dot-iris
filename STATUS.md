@@ -55,13 +55,13 @@ The names are taken from the PDF. In parens, you'll find the names of lemmas.
 
 - [ ] <:-Sel-::
 
-- [ ] <:-mu-X
+- [x] <:-mu-X (Sub_Mu_X)
 
 ## Other semantic typing lemmas
 
-- [ ] <:-mu-1
+- [x] <:-mu-1 (Sub_Mu_1)
 
-- [ ] <:-mu-2
+- [x] <:-mu-2 (Sub_Mu_2)
 
 - [ ] T-mu-I
 
