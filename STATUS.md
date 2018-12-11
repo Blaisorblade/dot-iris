@@ -1,7 +1,7 @@
 
 # List of the semantic typing lemmas, and their status in Coq.
 
-The names are taken from the PDF.
+The names are taken from the PDF. In parens, you'll find the names of lemmas.
 
 ## Structural typing lemmas
 
@@ -9,13 +9,15 @@ The names are taken from the PDF.
 
 - [ ] <:-Weak
 
-- [ ] T-Sub
+- [x] T-Sub (T_Sub)
 
-- [ ] T-Var
+- [x] T-Var (T_Var)
 
-- [ ] <:-Refl
+- [x] <:-Refl (Sub_Refl)
 
-- [ ] <:-Mono
+- [x] <:-Trans (Sub_Trans)
+
+- [ ] <:-Mono
 
 - [ ] T-Later-E
 
@@ -36,8 +38,6 @@ The names are taken from the PDF.
 - [ ] T-Forall-Ex
 
 - [ ] T-Forall-E
-
-- [ ] <:-Trans
 
 - [ ] P-Start
 

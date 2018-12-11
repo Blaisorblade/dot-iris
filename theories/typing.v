@@ -56,9 +56,10 @@ Inductive typed Γ: tm → ty → Prop :=
 
 (** "General" rules *)
 | Var_typed x T :
+    (* After looking up in Γ, we must weaken T for the variables on top of x. *)
     Γ !! x = Some T →
     (*──────────────────────*)
-    Γ ⊢ₜ tv (var_vl x) : T
+    Γ ⊢ₜ tv (var_vl x) : T.|[ren (+x)]
 | Subs_typed e T1 T2 :
     Γ ⊢ₜ T1, 0 <: T2, 0 → Γ ⊢ₜ e : T1 →
     (*───────────────────────────────*)

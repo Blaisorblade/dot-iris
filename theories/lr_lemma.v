@@ -1,5 +1,6 @@
 From iris.base_logic Require Import base_logic.
 From iris.proofmode Require Import tactics.
+From iris.program_logic Require Import weakestpre.
 Require Import Dot.tactics.
 Require Import Dot.unary_lr.
 
@@ -9,6 +10,55 @@ Section Sec.
   Context `{HdotG: dotG Σ}.
 
   Context (Γ: list ty).
+
+  Lemma T_Sub e T1 T2 :
+    (Γ ⊨ e : T1 →
+    Γ ⊨ [T1, 0] <: [T2, 0] →
+    (*───────────────────────────────*)
+    Γ ⊨ e : T2)%I.
+  Proof.
+    iIntros "/= * #HeT1 #Hsub !> * #Hg".
+    iApply wp_wand. by iApply "HeT1".
+    iIntros; by iApply "Hsub".
+  Qed.
+
+  Lemma interp_env_lookup ρ T x:
+    Γ !! x = Some T →
+    (⟦ Γ ⟧* ρ → ⟦ T.|[ren (+x)] ⟧ ρ (to_subst ρ x))%I.
+  Proof.
+    intros Hx.
+    iIntros "* #Hg".
+    iInduction Γ as [|T' Γ'] "IHL" forall (x ρ Hx); simpl; try solve [inversion Hx].
+    destruct ρ; try by iExFalso.
+    iDestruct "Hg" as "[̋Hg Ht]".
+    case : x Hx.
+    - move => [ -> ] /=. iSpecialize ("IHL" $! 0). by asimpl.
+    - move => /= x Hx.
+      rewrite to_subst_cons /=.
+      iAssert (⟦ T.|[ren (+x)] ⟧ ρ (to_subst ρ x)) as "#Hv". by iApply "IHL".
+      iPoseProof (interp_weaken [] [v] ρ with "Hv") as "H". by asimpl.
+  Qed.
+
+  Lemma T_Var x T:
+    Γ !! x = Some T →
+    (*──────────────────────*)
+    Γ ⊨ tv (var_vl x) : T.|[ren (+x)].
+  Proof.
+    move => Hx /=. iIntros "!> * #Hg".
+    iApply wp_value'.
+    by iApply interp_env_lookup.
+  Qed.
+
+  Lemma Sub_Refl T i : Γ ⊨ [T, i] <: [T, i].
+  Proof. by iIntros "/= !> * _ HT". Qed.
+
+  Lemma Sub_Trans T1 T2 T3 i1 i2 i3 : (Γ ⊨ [T1, i1] <: [T2, i2] →
+                                       Γ ⊨ [T2, i2] <: [T3, i3] →
+                                       Γ ⊨ [T1, i1] <: [T3, i3])%I.
+  Proof.
+    iIntros "#Hsub1 #Hsub2 /= !> * #Hg #HT".
+    iApply "Hsub2"; first done. by iApply "Hsub1".
+  Qed.
 
   Lemma ivstp_later G T: G ⊨ T <: TLater T.
   Proof. by iIntros "!> ** /=". Qed.
