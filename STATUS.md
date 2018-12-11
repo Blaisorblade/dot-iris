@@ -17,15 +17,15 @@ The names are taken from the PDF. In parens, you'll find the names of lemmas.
 
 - [x] <:-Trans (Sub_Trans)
 
-- [ ] <:-Mono
+- [x] <:-Mono (Sub_Mono)
 
-- [ ] T-Later-E
+- [x] Later-<: (Later_Sub)
 
-- [ ] T-Later-I
+- [x] <:-Later (Sub_Later)
 
-- [ ] T-Skip
+- [x] T-Skip
 
-- [ ] T-Index-Incr
+- [x] <:-Index-Incr (Sub_Index_Incr)
 
 ## Canonical typing lemmas
 
@@ -69,21 +69,21 @@ The names are taken from the PDF. In parens, you'll find the names of lemmas.
 
 ## Canonical semantic typing lemmas for set-theoretic connectives
 
-- [ ] And1-<:
+- [x] And1-<: (And1_Sub)
 
-- [ ] And2-<:
+- [x] And2-<: (And2_Sub)
 
-- [ ] <:-And
+- [x] <:-And
 
-- [ ] <:-Or1
+- [x] <:-Or1
 
-- [ ] <:-Or2
+- [x] <:-Or2
 
-- [ ] Or-<:
+- [x] Or-<:
 
-- [ ] <:-T
+- [x] <:-Top
 
-- [ ] Bot-<:
+- [x] Bot-<:
 
 ## Congruence lemmas for subtyping
 
