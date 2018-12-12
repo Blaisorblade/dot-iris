@@ -1,18 +1,8 @@
 From iris.base_logic Require Import base_logic.
 From iris.proofmode Require Import tactics.
 From iris.program_logic Require Import weakestpre lifting ectxi_language.
-
-Section wp.
-  Context `{irisG Λ Σ}.
-
-  Lemma wp_mono' e E s Φ Ψ : (□(∀ v, Φ v → Ψ v) → WP e @ s; E {{ Φ }} → WP e @ s; E {{ Ψ }})%I.
-  Proof.
-    iIntros "#HΦ H". iApply (wp_strong_mono with "H"); auto.
-    iIntros (v) "?". by iApply "HΦ".
-  Qed.
-End wp.
-
 From Dot Require Import tactics unary_lr rules.
+
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
 Section Sec.
@@ -248,22 +238,16 @@ Section Sec.
     (*────────────────────────────────────────────────────────────*)
      Γ ⊨ tapp e1 (tv v2) : T2.|[v2/])%I.
   Proof.
-    simpl.
-    iIntros "/= #He1 #Hv2 !> * #HG".
-    iAssert (⌜ fv_n_vl v2 (length Γ) ⌝)%I as "%". by iApply tp_closed_vl.
-    rename H into Hcl.
-    smart_wp_bind (AppLCtx (tv v2.[to_subst ρ])) v "#Hv" "He1".
-    (* rewrite /lang.of_val. *)
-    iApply fupd_wp.
-    iAssert (⌜ length ρ = length Γ ⌝)%I as "%". by iApply interp_env_len_agree.
-    rename H into Hlen.
+    iIntros "/= #He1 #Hv2Arg !> * #HG".
+    iAssert (⌜ fv_n_vl v2 (length Γ) ⌝)%I as "%". by iApply tp_closed_vl. rename H into Hcl.
+    iAssert (⌜ length ρ = length Γ ⌝)%I as "%". by iApply interp_env_len_agree. rename H into Hlen.
     assert (fv_n_vl v2 (length ρ)). by rewrite Hlen.
-    iApply wp_mono'; [|iApply "Hv"]; auto.
-    - iIntros "!>" (v0) "#H".
-      by iApply (interp_subst_closed T2 v2 v0 with "HG").
-    -
-      (* iSpecialize ("Hv2" $! ρ with "HG"). *)
-      iApply wp_value_inv'; by iApply "Hv2".
+    smart_wp_bind (AppLCtx (tv v2.[to_subst ρ])) v "#HvFun" "He1".
+    iApply wp_wand.
+    - iApply fupd_wp.
+      iApply "HvFun".
+      iApply wp_value_inv'; by iApply "Hv2Arg".
+    - iIntros (v0) "#H". by iApply (interp_subst_closed T2 v2 v0).
   Qed.
 
   (* BEWARE NONSENSE IN NOTES:
