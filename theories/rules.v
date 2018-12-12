@@ -42,3 +42,8 @@ Section lang_rules.
     PureExec True 1 (tskip t) t.
   Proof. solve_pure_exec. Qed.
 End lang_rules.
+
+(* Copied from F_mu *)
+Hint Extern 5 (IntoVal _ _) => eapply of_to_val; fast_done : typeclass_instances.
+Hint Extern 10 (IntoVal _ _) =>
+  rewrite /IntoVal; eapply of_to_val; rewrite /= !to_of_val /=; solve [ eauto ] : typeclass_instances.

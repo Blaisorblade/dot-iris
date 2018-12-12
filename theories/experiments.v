@@ -183,6 +183,17 @@ Section Sec.
     rewrite !wp_unfold /wp_pre /=. by iApply "Hsub".
   Qed.
 
+  Lemma inclusion_equiv_wp_upd {P Q}:
+    ((□∀ e, WP e {{P}} → WP e {{Q}})%I ≡ (□∀ v, P v → |={⊤}=> Q v)%I).
+  Proof.
+    iSplit; iIntros "#Himpl !> * HP".
+    - setoid_rewrite wp_unfold.
+        by iApply ("Himpl" $! (of_val v)).
+    - iApply wp_fupd.
+      iApply (wp_wand with " [-]"); first iApply "HP".
+      iIntros "* HP". by iApply "Himpl".
+  Qed.
+
   Lemma alloc_sp T:
     (|==> ∃ γ, γ ⤇ (λ ρ v, interp T ρ v))%I.
   Proof. by apply saved_interp_alloc. Qed.

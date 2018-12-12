@@ -1,8 +1,6 @@
 From iris.program_logic Require Import weakestpre.
 From iris.proofmode Require Import tactics.
-Require Import Dot.tactics.
-Require Import Dot.unary_lr.
-Require Import Dot.synLemmas.
+From Dot Require Import tactics unary_lr synLemmas rules.
 
 Section Sec.
   Context `{HdotG: dotG Σ}.
@@ -129,11 +127,6 @@ Section Sec.
     defs_interp T (v0 :: ρ) (ds.|[to_subst (v0 :: ρ)]) ⊢
     interp T (v0 :: ρ) v0.
   Admitted.
-
-  (* Copied from F_mu *)
-  Hint Extern 5 (IntoVal _ _) => eapply of_to_val; fast_done : typeclass_instances.
-  Hint Extern 10 (IntoVal _ _) =>
-    rewrite /IntoVal; eapply of_to_val; rewrite /= !to_of_val /=; solve [ eauto ] : typeclass_instances.
 
   (* XXX Seems needed for idtp_new_i as stated, but the scoping seems all wrong.
    * Instead, we need to use closing substitutions in both sides of the lemma;

@@ -1,9 +1,6 @@
 From iris.program_logic Require Import weakestpre.
 From iris.proofmode Require Import tactics.
-From Dot Require Import operational.
-Require Import Dot.tactics.
-Require Import Dot.unary_lr.
-Require Import Dot.synLemmas.
+From Dot Require Import operational tactics unary_lr synLemmas.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
@@ -17,17 +14,6 @@ Section Sec.
       equivalent value and expression subtyping, both for a fixed environment and
       for environments matching a [Γ].
    *)
-  Lemma inclusion_equiv_wp_upd {P Q}:
-    ((□∀ e, WP e {{P}} → WP e {{Q}})%I ≡ (□∀ v, P v → |={⊤}=> Q v)%I).
-  Proof.
-    iSplit; iIntros "#Himpl !> * HP".
-    - setoid_rewrite wp_unfold.
-        by iApply ("Himpl" $! (of_val v)).
-    - iApply wp_fupd.
-      iApply (wp_wand with " [-]"); first iApply "HP".
-      iIntros "* HP". by iApply "Himpl".
-  Qed.
-
   Lemma mem_stp_sela_sub L U va l:
     ivtp Γ (TTMem l L U) va -∗
     Γ ⊨ L <: TSelA (pv va) l L U.
