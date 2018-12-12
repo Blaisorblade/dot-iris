@@ -241,14 +241,12 @@ Notation "Γ '⊨' '[' T1 ',' i ']' '<:' '[' T2 ',' j ']'" := (step_indexed_ivst
 
 (* Lemmas about the logical relation itself. *)
 Section logrel_lemmas.
-  Context `{HdotG: dotG Σ} (Γ: list ty).
+  Context `{HdotG: dotG Σ}.
 
-  Lemma semantic_typing_uniform_step_index T e i:
-    (Γ ⊨ e : T → Γ ⊨ e : T,i)%I.
+  Lemma iterate_TLater_later i T ρ v:
+    (⟦ iterate TLater i T ⟧ ρ v = ▷^i ⟦ T ⟧ ρ v)%I.
   Proof.
-    induction i; iIntros "#H"; iModIntro; iIntros (ρ) "#HΓ".
-    - by iApply "H".
-    - iModIntro. by iApply IHi.
+    elim: i => [|i IHi] //. by rewrite iterate_S /= IHi.
   Qed.
 
   Lemma interp_weaken Δ1 Π Δ2 τ :
@@ -263,7 +261,7 @@ Section logrel_lemmas.
   Qed.
 
   Lemma interp_weaken_one v τ ρ:
-     ⟦ τ.|[ren (+1)] ⟧ ([v] ++ ρ) ≡ ⟦ τ ⟧ ρ.
+     ⟦ τ.|[ren (+1)] ⟧ (v :: ρ) ≡ ⟦ τ ⟧ ρ.
   Proof. apply (interp_weaken [] [v]). Qed.
 
   Lemma interp_subst_up Δ1 Δ2 τ v:
@@ -279,5 +277,68 @@ Section logrel_lemmas.
 
   Lemma interp_subst Δ2 τ v1 v2 : ⟦ τ.|[v1.[ren (+length Δ2)]/] ⟧ Δ2 v2 ≡ ⟦ τ ⟧ (v1 :: Δ2) v2.
   Proof. apply (interp_subst_up []). Qed.
+
+  Context Γ.
+
+  Lemma semantic_typing_uniform_step_index T e i:
+    (Γ ⊨ e : T → Γ ⊨ e : T,i)%I.
+  Proof.
+    induction i; iIntros "#H"; iModIntro; iIntros (ρ) "#HΓ".
+    - by iApply "H".
+    - iModIntro. by iApply IHi.
+  Qed.
+
+  Lemma interp_env_lookup ρ T x:
+    Γ !! x = Some T →
+    (⟦ Γ ⟧* ρ → ⟦ T.|[ren (+x)] ⟧ ρ (to_subst ρ x))%I.
+  Proof.
+    intros Hx.
+    iIntros "* #Hg".
+    iInduction Γ as [|T' Γ'] "IHL" forall (x ρ Hx); simpl; try solve [inversion Hx].
+    destruct ρ; try by iExFalso.
+    iDestruct "Hg" as "[̋Hg Ht]".
+    case : x Hx.
+    - move => [ -> ] /=. iSpecialize ("IHL" $! 0). by asimpl.
+    - move => /= x Hx.
+      rewrite to_subst_cons /=.
+      iAssert (⟦ T.|[ren (+x)] ⟧ ρ (to_subst ρ x)) as "#Hv". by iApply "IHL".
+      iPoseProof (interp_weaken [] [v] ρ with "Hv") as "H". by asimpl.
+  Qed.
+
+  Lemma interp_env_len_agree ρ:
+    (⟦ Γ ⟧* ρ → ⌜ length ρ = length Γ ⌝)%I.
+  Proof.
+    iIntros "#HG".
+    iInduction Γ as [|τ Γ'] "IHΓ" forall (ρ); destruct ρ; simpl; trivial.
+    - iDestruct "HG" as "%". discriminate.
+    - iDestruct "HG" as "[HG' Hv]".
+      by iDestruct ("IHΓ" $! ρ with "HG'") as "->".
+  Qed.
+
+  Lemma interp_subst_closed T v w ρ:
+    fv_n_vl v (length ρ) →
+    (⟦ Γ ⟧* ρ → ⟦ T.|[v/] ⟧ ρ w ∗-∗ ⟦ T ⟧ (v.[to_subst ρ] :: ρ) w)%I.
+  Proof.
+    intro Hcl.
+    assert ((⟦ T.|[v/] ⟧ ρ w = ⟦ T.|[v.[to_subst ρ]/] ⟧ ρ w)) as Hren. admit.
+    iIntros "#HG".
+    iPoseProof (interp_subst ρ T (v.[to_subst ρ]) w) as "Heq"; asimpl.
+    rewrite (Hcl (to_subst ρ >> ren (+length ρ)) (to_subst ρ)).
+    + by rewrite Hren.
+    + intros. asimpl.
+      (* Here we must deduce that entries in ρ are closed. Which isn't true yet. *)
+      admit.
+  Admitted.
+
+  Lemma tp_closed T e: (Γ ⊨ e : T → ⌜ fv_n e (length Γ) ⌝)%I.
+  Admitted.
+
+  Lemma tp_closed_vl T v: (Γ ⊨ tv v : T → ⌜ fv_n_vl v (length Γ) ⌝)%I.
+  Proof.
+    iIntros "H". iPoseProof (tp_closed with "H") as "%". iPureIntro.
+    move :H.
+    rewrite /fv_n_vl /fv_n /= => Hcl s1 s2 HsEq.
+    specialize (Hcl s1 s2 HsEq). by injectHyps.
+  Qed.
 
 End logrel_lemmas.

@@ -3,12 +3,10 @@ From iris.proofmode Require Import tactics.
 From iris.program_logic Require Import weakestpre lifting ectxi_language.
 From Dot Require Import tactics unary_lr rules synLemmas.
 
-Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
+Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 
 Section Sec.
-  Context `{HdotG: dotG Σ}.
-
-  Context (Γ: list ty).
+  Context `{HdotG: dotG Σ} Γ.
 
   Lemma T_Sub e T1 T2 :
     (Γ ⊨ e : T1 →
@@ -19,23 +17,6 @@ Section Sec.
     iIntros "/= * #HeT1 #Hsub !> * #Hg".
     iApply wp_wand. by iApply "HeT1".
     iIntros; by iApply "Hsub".
-  Qed.
-
-  Lemma interp_env_lookup ρ T x:
-    Γ !! x = Some T →
-    (⟦ Γ ⟧* ρ → ⟦ T.|[ren (+x)] ⟧ ρ (to_subst ρ x))%I.
-  Proof.
-    intros Hx.
-    iIntros "* #Hg".
-    iInduction Γ as [|T' Γ'] "IHL" forall (x ρ Hx); simpl; try solve [inversion Hx].
-    destruct ρ; try by iExFalso.
-    iDestruct "Hg" as "[̋Hg Ht]".
-    case : x Hx.
-    - move => [ -> ] /=. iSpecialize ("IHL" $! 0). by asimpl.
-    - move => /= x Hx.
-      rewrite to_subst_cons /=.
-      iAssert (⟦ T.|[ren (+x)] ⟧ ρ (to_subst ρ x)) as "#Hv". by iApply "IHL".
-      iPoseProof (interp_weaken [] [v] ρ with "Hv") as "H". by asimpl.
   Qed.
 
   Lemma T_Var x T:
@@ -126,12 +107,6 @@ Section Sec.
     Γ ⊨ [TBot, i] <: [T, i].
   Proof. by iIntros "/= !> ** !>". Qed.
 
-  Lemma iterate_TLater_later i T ρ v:
-    (⟦ iterate TLater i T ⟧ ρ v = ▷^i ⟦ T ⟧ ρ v)%I.
-  Proof.
-    elim: i => [|i IHi] //. by rewrite iterate_S /= IHi.
-  Qed.
-
   (*
      Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂ᶻ
      ----------------------------------------------- (<:-μ-X)
@@ -158,8 +133,7 @@ Section Sec.
      Γ ⊨ [TMu T1, i] <: [T2, j])%I.
   Proof.
     iIntros "/= #Hstp !> * #Hg #HT1".
-    iApply (interp_weaken [] [v]).
-    asimpl.
+    iApply (interp_weaken_one v).
     iApply ("Hstp" $! (v :: ρ)); rewrite ?iterate_TLater_later //; by iSplit.
   Qed.
 
@@ -173,50 +147,9 @@ Section Sec.
     Γ ⊨ [T1, i] <: [TMu T2, j])%I.
   Proof.
     iIntros "/= #Hstp !> * #Hg #HT1".
-    rewrite -(interp_weaken nil [v] ρ T1 v). asimpl.
-    iApply ("Hstp" $! (v :: ρ) _); rewrite ?iterate_TLater_later //; by iSplit.
+    rewrite -(interp_weaken_one v T1 ρ v).
+    iApply ("Hstp" $! (_ :: _) _); rewrite ?iterate_TLater_later //; by iSplit.
   Qed.
-
-  Lemma interp_env_len_agree ρ:
-    (⟦ Γ ⟧* ρ → ⌜ length ρ = length Γ ⌝)%I.
-  Proof.
-    iIntros "#HG".
-    iInduction Γ as [|τ Γ'] "IHΓ" forall (ρ); destruct ρ; simpl; trivial.
-    - iDestruct "HG" as "%". discriminate.
-    - iDestruct "HG" as "[HG' Hv]".
-      by iDestruct ("IHΓ" $! ρ with "HG'") as "->".
-  Qed.
-
-  Lemma interp_subst_closed T v w ρ:
-    fv_n_vl v (length ρ) →
-    (⟦ Γ ⟧* ρ → ⟦ T.|[v/] ⟧ ρ w ∗-∗ ⟦ T ⟧ (v.[to_subst ρ] :: ρ) w)%I.
-  Proof.
-    intro Hcl.
-    assert ((⟦ T.|[v/] ⟧ ρ w = ⟦ T.|[v.[to_subst ρ]/] ⟧ ρ w)) as Hren. admit.
-    iIntros "#HG".
-    iPoseProof (interp_subst ρ T (v.[to_subst ρ]) w) as "Heq"; asimpl.
-    rewrite (Hcl (to_subst ρ >> ren (+length ρ)) (to_subst ρ)).
-    + by rewrite Hren.
-    + intros. asimpl.
-      (* Here we must deduce that entries in ρ are closed. Which isn't true yet. *)
-      admit.
-  Admitted.
-
-  Lemma tp_closed T e: (Γ ⊨ e : T → ⌜ fv_n e (length Γ) ⌝)%I.
-  Admitted.
-
-  Lemma tp_closed_vl T v: (Γ ⊨ tv v : T → ⌜ fv_n_vl v (length Γ) ⌝)%I.
-  Proof.
-    iIntros "H". iPoseProof (tp_closed with "H") as "%". iPureIntro.
-    move :H.
-    rewrite /fv_n_vl /fv_n /= => Hcl s1 s2 HsEq.
-    specialize (Hcl s1 s2 HsEq). by injectHyps.
-  Qed.
-
-  Local Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
-    iApply (wp_bind (fill[ctx]));
-    iApply (wp_wand with "[-]"); [iApply Hp; trivial|]; cbn;
-    iIntros (v) Hv.
 
   Lemma T_Forall_E e1 e2 T1 T2:
     (Γ ⊨ e1: TAll T1 T2.|[ren (+1)] →
@@ -229,8 +162,7 @@ Section Sec.
     smart_wp_bind (AppRCtx v) w "#Hw" "Hv2".
     iApply wp_mono; [|iApply "Hv"]; auto.
     iIntros (v0) "#H".
-    iPoseProof (interp_weaken [] [w] ρ T2 v0) as "[Heq _ ]"; asimpl.
-    by iApply "Heq".
+    by iApply (interp_weaken_one w).
   Qed.
 
   Lemma T_Forall_Ex e1 v2 T1 T2:
@@ -248,7 +180,7 @@ Section Sec.
     - iApply fupd_wp.
       iApply "HvFun".
       iApply wp_value_inv'; by iApply "Hv2Arg".
-    - iIntros (v0) "#H". by iApply (interp_subst_closed T2 v2 v0).
+    - iIntros (v0) "#H". by iApply (interp_subst_closed _ T2 v2 v0).
   Qed.
 
   Lemma T_Forall_I T1 T2 e:
@@ -264,8 +196,7 @@ Section Sec.
     asimpl.
     iApply "HeT".
     iFrame "HG".
-    iNext.
-    iPoseProof (interp_weaken [] [v] ρ with "Hv") as "H". by asimpl.
+    iNext. by iApply (interp_weaken_one v).
   Qed.
 
   Lemma T_Mem_E e T l:

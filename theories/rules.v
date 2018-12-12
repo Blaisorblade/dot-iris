@@ -47,3 +47,9 @@ End lang_rules.
 Hint Extern 5 (IntoVal _ _) => eapply of_to_val; fast_done : typeclass_instances.
 Hint Extern 10 (IntoVal _ _) =>
   rewrite /IntoVal; eapply of_to_val; rewrite /= !to_of_val /=; solve [ eauto ] : typeclass_instances.
+
+From iris.proofmode Require Import tactics.
+Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
+  iApply (wp_bind (fill[ctx]));
+  iApply (wp_wand with "[-]"); [iApply Hp; trivial|]; cbn;
+  iIntros (v) Hv.
