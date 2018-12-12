@@ -42,18 +42,21 @@ Section fundamental.
   Admitted.
 
   Fixpoint not_yet_fundamental Γ e T e' T' (HT: Γ ⊢ₜ e : T) {struct HT}:
+  (* Lemma not_yet_fundamental Γ e T e' T' (HT: Γ ⊢ₜ e : T): *)
     (t_tm [] e e' → t_ty [] T T' → |==> ∃ Γ',
           (* Using [] as σ is wrong. *)
         Γ' ⊨ e' : T')%I.
   Proof.
-    iIntros "#HtrE #HtrT". destruct HT.
+    iIntros "#HtrE #HtrT".
+    (* destruct HT. *)
+     iInduction HT as [] "IHT" forall (e' T') "HtrE HtrT".
     -
+      (* I'm careful with simplification to avoid unfolding too much. *)
       set (e2 := tv v2).
       cbn [t_tm] in * |- *; case_match; try done.
       iDestruct "HtrE" as "[Htr1 Htr2]".
-      (* iDestrConjs. *)
       unfold e2.
-      cbn [t_tm] in * |- *; case_match; try done; fold (t_vl [] v2 v).
+      iEval (cbn [t_tm]) in "Htr2"; case_match; try done; fold (t_vl [] v2 v).
       iAssert (t_tm [] (tv v2) (tv v)) as "#Ht2"; first done.
       iMod (ex_t_ty [] (length Γ) T1) as (T1') "#HTTr".
       eauto using typed_ty_is_syn.
