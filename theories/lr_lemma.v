@@ -177,26 +177,6 @@ Section Sec.
     iApply ("Hstp" $! (v :: ρ) _); rewrite ?iterate_TLater_later //; by iSplit.
   Qed.
 
-  Local Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
-    iApply (wp_bind (fill[ctx]));
-    iApply (wp_wand with "[-]"); [iApply Hp; trivial|]; cbn;
-    iIntros (v) Hv.
-
-  Lemma T_Forall_E e1 e2 T1 T2:
-    (Γ ⊨ e1: TAll T1 T2.|[ren (+1)] →
-     Γ ⊨ e2 : T1 →
-    (*────────────────────────────────────────────────────────────*)
-     Γ ⊨ tapp e1 e2 : T2)%I.
-  Proof.
-    iIntros "/= #He1 #Hv2 !> * #HG".
-    smart_wp_bind (AppLCtx (e2.|[to_subst ρ])) v "#Hv" "He1".
-    smart_wp_bind (AppRCtx v) w "#Hw" "Hv2".
-    iApply wp_mono; [|iApply "Hv"]; auto.
-    iIntros (v0) "#H".
-    iPoseProof (interp_weaken [] [w] ρ T2 v0) as "[Heq _ ]"; asimpl.
-    by iApply "Heq".
-  Qed.
-
   Lemma interp_env_len_agree ρ:
     (⟦ Γ ⟧* ρ → ⌜ length ρ = length Γ ⌝)%I.
   Proof.
@@ -221,6 +201,7 @@ Section Sec.
       (* Here we must deduce that entries in ρ are closed. Which isn't true yet. *)
       admit.
   Admitted.
+
   Lemma tp_closed T e: (Γ ⊨ e : T → ⌜ fv_n e (length Γ) ⌝)%I.
   Admitted.
 
@@ -230,6 +211,26 @@ Section Sec.
     move :H.
     rewrite /fv_n_vl /fv_n /= => Hcl s1 s2 HsEq.
     specialize (Hcl s1 s2 HsEq). by injectHyps.
+  Qed.
+
+  Local Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
+    iApply (wp_bind (fill[ctx]));
+    iApply (wp_wand with "[-]"); [iApply Hp; trivial|]; cbn;
+    iIntros (v) Hv.
+
+  Lemma T_Forall_E e1 e2 T1 T2:
+    (Γ ⊨ e1: TAll T1 T2.|[ren (+1)] →
+     Γ ⊨ e2 : T1 →
+    (*────────────────────────────────────────────────────────────*)
+     Γ ⊨ tapp e1 e2 : T2)%I.
+  Proof.
+    iIntros "/= #He1 #Hv2 !> * #HG".
+    smart_wp_bind (AppLCtx (e2.|[to_subst ρ])) v "#Hv" "He1".
+    smart_wp_bind (AppRCtx v) w "#Hw" "Hv2".
+    iApply wp_mono; [|iApply "Hv"]; auto.
+    iIntros (v0) "#H".
+    iPoseProof (interp_weaken [] [w] ρ T2 v0) as "[Heq _ ]"; asimpl.
+    by iApply "Heq".
   Qed.
 
   Lemma T_Forall_Ex e1 v2 T1 T2:
