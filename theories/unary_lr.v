@@ -1,6 +1,6 @@
 From iris.program_logic Require Import weakestpre.
 From iris.proofmode Require Import tactics.
-From Dot Require Export operational.
+From Dot Require Export operational tactics.
 
 (** Deduce types from variable names, like on paper, for readability and to help
     type inference for some overloaded operations (e.g. substitution). *)
@@ -262,6 +262,10 @@ Section logrel_lemmas.
                           apply (IHτ2 (_ :: _)) || apply (IHτ (_ :: _))].
   Qed.
 
+  Lemma interp_weaken_one v τ ρ:
+     ⟦ τ.|[ren (+1)] ⟧ ([v] ++ ρ) ≡ ⟦ τ ⟧ ρ.
+  Proof. apply (interp_weaken [] [v]). Qed.
+
   Lemma interp_subst_up Δ1 Δ2 τ v:
     ⟦ τ.|[upn (length Δ1) (v.[ren (+length Δ2)] .: ids)] ⟧ (Δ1 ++ Δ2)
     ≡ ⟦ τ ⟧ (Δ1 ++ v :: Δ2).
@@ -271,7 +275,7 @@ Section logrel_lemmas.
     all: try solve [properness; trivial;
                     apply IHτ || apply IHτ1 || apply IHτ2 ||
                           apply (IHτ2 (_ :: _)) || apply (IHτ (_ :: _))].
-    Qed.
+  Qed.
 
   Lemma interp_subst Δ2 τ v1 v2 : ⟦ τ.|[v1.[ren (+length Δ2)]/] ⟧ Δ2 v2 ≡ ⟦ τ ⟧ (v1 :: Δ2) v2.
   Proof. apply (interp_subst_up []). Qed.
