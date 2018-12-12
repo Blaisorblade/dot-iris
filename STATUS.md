@@ -31,9 +31,9 @@ The names are taken from the PDF. In parens, you'll find the names of lemmas.
 
 - [ ] T-Nat-I
 
-- [ ] T-{}-E
+- [x] T-{}-E (T_Mem_E)
 
-- [ ] T-Forall-I
+- [x] T-Forall-I
 
 - [x] T-Forall-Ex
 

@@ -1,7 +1,7 @@
 From iris.base_logic Require Import base_logic.
 From iris.proofmode Require Import tactics.
 From iris.program_logic Require Import weakestpre lifting ectxi_language.
-From Dot Require Import tactics unary_lr rules.
+From Dot Require Import tactics unary_lr rules synLemmas.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
@@ -249,6 +249,38 @@ Section Sec.
       iApply "HvFun".
       iApply wp_value_inv'; by iApply "Hv2Arg".
     - iIntros (v0) "#H". by iApply (interp_subst_closed T2 v2 v0).
+  Qed.
+
+  Lemma T_Forall_I T1 T2 e:
+    (T1.|[ren (+1)] :: Γ ⊨ e : T2 →
+    (*─────────────────────────*)
+    Γ ⊨ tv (vabs e) : TAll T1 T2)%I.
+  Proof.
+    iIntros "/= #HeT !> * #HG".
+    iApply wp_value'.
+    iIntros "!>" (v) "#Hv".
+    iSpecialize ("HeT" $! (v :: ρ)).
+    iApply wp_pure_step_later; trivial.
+    asimpl.
+    iApply "HeT".
+    iFrame "HG".
+    iNext.
+    iPoseProof (interp_weaken [] [v] ρ with "Hv") as "H". by asimpl.
+  Qed.
+
+  Lemma T_Mem_E e T l:
+    (Γ ⊨ e : TVMem l T →
+    (*─────────────────────────*)
+    Γ ⊨ tproj e l : T)%I.
+  Proof.
+    iIntros "#HE /= !>" (ρ) "#HG".
+    smart_wp_bind (ProjCtx l) v "#Hv" "HE".
+    iDestruct "Hv" as (d) "[% Hv]".
+    iDestruct "Hv" as (vmem) "[% Hv]".
+    simplOpen ds; subst.
+    inversion H; ev; injectHyps.
+    iApply wp_pure_step_later; eauto.
+    by iApply wp_value'.
   Qed.
 
   (* BEWARE NONSENSE IN NOTES:
