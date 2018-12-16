@@ -92,30 +92,32 @@ Section logrel.
   Program Definition interp_mu (interp : listVlC -n> D) : listVlC -n> D :=
     λne ρ v, interp (v::ρ) v.
 
-  Definition interp_selA_final (l: label) : vlC -n> vlC -n> iProp Σ :=
-    λne w v,
-    (∃ σ ϕ d, ⌜w @ l ↘ d⌝ ∧ d ↗ σ , ϕ ∧ ▷ □ ϕ σ v)%I.
+  (** A simplified variant of weakest preconditions for path evaluation.
+      The difference is that path evaluation is completely pure, and
+      postconditions must hold now, not after updating resources.
+      vp ("Value from Path") and vq range over results of evaluating paths.
 
-  (* Alternative v2, almost equivalent to v1 and closest to WP and nicely structural to
-     support recursive proofs. Not equivalent to v1 because here lookups happen
-     later, but that's more correct. *)
-  Fixpoint path_wp p (interp_k: vlC -n> D): D :=
-    λne v,
+      Path evaluation was initially more complex; now that we got to this
+      version, I wonder whether we can just use the standard Iris WP, but I am
+      not sure if that would work.
+      *)
+  Fixpoint path_wp p (interp_k: D): iProp Σ :=
     match p with
-    | pself p l => path_wp p (λne va v, ∃ vb, ⌜ va @ l ↘ dvl vb ⌝ ∧ ▷ interp_k vb v) v
-    | pv Va => interp_k Va v
+    | pself p l => path_wp p (λne vp, ∃ vq, ⌜ vp @ l ↘ dvl vq ⌝ ∧ ▷ interp_k vq)
+    | pv vp => interp_k vp
     end%I.
 
-  Global Instance path_wp_persistent (pred: vlC -n> D) v p:
-    (forall (va v: vl), Persistent (pred va v)) →
-    Persistent (path_wp p pred v).
-  Proof. revert pred v; induction p; simpl; apply _. Qed.
+  Global Instance path_wp_persistent (pred: D) p:
+    (forall (vp: vl), Persistent (pred vp)) →
+    Persistent (path_wp p pred).
+  Proof. elim: p pred => *; apply _. Qed.
 
   Program Definition interp_selA (p: path) (l: label) (interpL interpU : listVlC -n> D) :
     listVlC -n> D :=
     λne ρ v,
     (interpU ρ v ∧ (interpL ρ v ∨
-                    path_wp p.|[to_subst ρ] (interp_selA_final l) v))%I.
+                    path_wp p.|[to_subst ρ]
+                            (λne vp, ∃ σ ϕ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ σ , ϕ ∧ ▷ □ ϕ σ v)))%I.
 
   Definition interp_sel (p: path) (l: label) : listVlC -n> D :=
     interp_selA p l interp_bot interp_top.

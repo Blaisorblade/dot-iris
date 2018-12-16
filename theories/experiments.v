@@ -12,45 +12,6 @@ Implicit Types
 Section Sec.
   Context `{HdotG: dotG Σ}.
 
-  Fixpoint split_path (p: path): vl * list label :=
-    match p with
-    | pv va => (va, [])
-    | pself p l =>
-      let '(v, ls) := split_path p in (v, ls ++ [l])
-    end.
-
-  Notation D := (vlC -n> iProp Σ).
-
-  Fixpoint interp_sel_rec (ls: list label) (interp_k: vlC -n> D): vlC -n> D :=
-    λne Va v,
-    match ls with
-    | l :: ls => (∃ vb, ⌜Va @ l ↘ dvl vb⌝ ∧ ▷ interp_sel_rec ls interp_k vb v)%I
-    | [] => interp_k Va v
-    end.
-
-  Definition interp_selA_v9 (p: path) (l: label) (interpL interpU : listVlC -n> D) :
-    listVlC -n> D :=
-    λne ρ v,
-    let (Va, ls) := split_path (p.|[to_subst ρ]) in
-    (interpU ρ v ∧ (interpL ρ v ∨ interp_sel_rec ls (interp_selA_final l) Va v))%I.
-
-  (* Alternative implementation of interp_selA. Not equivalent because if we
-     satisfy bounds we don't even check that the path does have an element. *)
-  Fixpoint eval_path n p : D :=
-    λne v,
-    match (n, p) with
-    | (S n, pself p l) => ∃ va, eval_path n p va ∧ ⌜va @ l ↘ dvl v⌝
-    | (0, pv Va) => ⌜ Va = v ⌝
-    | _ => False
-    end%I.
-
-  Definition interp_selA_v1 (p: path) (l: label) (interpL interpU : listVlC -n> D) :
-    listVlC -n> D :=
-    λne ρ v,
-    (interpU ρ v ∧ (interpL ρ v ∨
-                    ∃ n Va, eval_path n p.|[to_subst ρ] Va ∧ ▷^ n interp_selA_final l Va v))%I.
-
-
   (* Can't find how to use it. *)
   Lemma later_persistently_1 (P: iProp Σ): (▷ □ P → ▷ P)%I.
   Proof. iIntros; naive_solver. Qed.
