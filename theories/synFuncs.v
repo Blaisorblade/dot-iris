@@ -63,6 +63,13 @@ Global Hint Rewrite to_subst_nil to_subst_cons : autosubst.
 Global Typeclasses Opaque to_subst.
 Global Opaque to_subst.
 
+Lemma to_subst_app_is_lookup ρ x: x < length ρ → ρ !! x = Some (to_subst ρ x).
+Proof.
+  elim :ρ x => [|v ρ IHρ] [|x] //= Hl; try lia.
+  rewrite to_subst_cons /=.
+  apply IHρ; lia.
+Qed.
+
 Lemma rename_to_subst ρ1 ρ2 : (+length ρ1) >>> to_subst (ρ1 ++ ρ2) = to_subst ρ2.
 Proof. induction ρ1; by asimpl. Qed.
 
