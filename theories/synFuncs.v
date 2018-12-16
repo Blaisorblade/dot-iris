@@ -53,34 +53,40 @@ Notation "v @ l ↘ d" := (objLookup v l d) (at level 20).
 
 Definition to_subst (ρ: list vl) : var → vl := foldr (λ v s, v .: s) ids ρ.
 
+Lemma to_subst_nil: to_subst [] = ids.
+Proof. by []. Qed.
+
 Lemma to_subst_cons v ρ : to_subst (v :: ρ) = v .: to_subst ρ.
 Proof. trivial. Qed.
-Global Hint Rewrite to_subst_cons : autosubst.
+Global Hint Rewrite to_subst_nil to_subst_cons : autosubst.
 
 Global Typeclasses Opaque to_subst.
 Global Opaque to_subst.
+
+Lemma rename_to_subst ρ1 ρ2 : (+length ρ1) >>> to_subst (ρ1 ++ ρ2) = to_subst ρ2.
+Proof. induction ρ1; by asimpl. Qed.
+
+Lemma undo_to_subst ρ : (+length ρ) >>> to_subst ρ = ids.
+Proof.
+  pose proof (rename_to_subst ρ []) as H. rewrite app_nil_r in H; asimpl in H. exact H.
+Qed.
 
 Lemma to_subst_weaken ρ1 ρ2 ρ3:
   upn (length ρ1) (ren (+length ρ2)) >> to_subst (ρ1 ++ ρ2 ++ ρ3) =
   to_subst (ρ1 ++ ρ3).
 Proof.
-  induction ρ1.
-  - asimpl.
-    induction ρ2; first by asimpl.
-    asimpl; by rewrite IHρ2.
-  - asimpl; by f_equal.
+  induction ρ1; asimpl.
+  - by rewrite rename_to_subst.
+  - by f_equal.
 Qed.
-
-Lemma undo_to_subst ρ : (+length ρ) >>> to_subst ρ = ids.
-Proof. induction ρ; asimpl; auto. Qed.
 
 Lemma to_subst_up ρ1 ρ2 v:
   upn (length ρ1) (v.[ren (+length ρ2)] .: ids) >> to_subst (ρ1 ++ ρ2) =
   to_subst (ρ1 ++ v :: ρ2).
 Proof.
-  induction ρ1.
-  - by asimpl; rewrite undo_to_subst; asimpl.
-  - asimpl. f_equal; by rewrite IHρ1.
+  induction ρ1; asimpl.
+  - rewrite undo_to_subst. by asimpl.
+  - by f_equal.
 Qed.
 
 Definition subst_sigma (σ: vls) (ρ: list vl) := σ.|[to_subst ρ].
