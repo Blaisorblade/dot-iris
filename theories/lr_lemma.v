@@ -14,7 +14,7 @@ Section Sec.
     (*───────────────────────────────*)
     Γ ⊨ e : T2)%I.
   Proof.
-    iIntros "/= * #HeT1 #Hsub !> * #Hg".
+    iIntros "/= * #[% #HeT1] #Hsub". iSplit; trivial. iIntros " !> * #Hg".
     iApply wp_wand. by iApply "HeT1".
     iIntros; by iApply "Hsub".
   Qed.
@@ -24,8 +24,8 @@ Section Sec.
     (*──────────────────────*)
     Γ ⊨ tv (var_vl x) : T.|[ren (+x)].
   Proof.
-    move => Hx /=. iIntros "!> * #Hg".
-    iApply wp_value'.
+    move => Hx /=; iSplit; first eauto using lookup_fv.
+    iIntros "!> * #Hg". iApply wp_value'.
     by iApply interp_env_lookup.
   Qed.
 
@@ -61,9 +61,11 @@ Section Sec.
     (Γ ⊨ e : T, S i →
      Γ ⊨ tskip e : T, i)%I.
   Proof.
-    iIntros "/= #HT !> * #HG".
-    iApply wp_pure_step_later; auto.
-    iSpecialize ("HT" $! ρ with "HG"). by iModIntro.
+    iIntros "/= #[% #HT]"; iSplit.
+    - iPureIntro; by apply fv_tskip.
+    - iIntros " !> * #HG".
+      iApply wp_pure_step_later; auto.
+      iSpecialize ("HT" $! ρ with "HG"). by iModIntro.
   Qed.
 
   Lemma And1_Sub T1 T2 i: Γ ⊨ [TAnd T1 T2, i] <: [T1, i].
@@ -119,8 +121,21 @@ Section Sec.
   Proof.
     iIntros "/= #Hstp !> * #Hg #HT1".
     iApply ("Hstp" $! (v :: ρ) _);
-      rewrite ?iterate_TLater_later //; by iSplit.
-  Qed.
+      rewrite ?iterate_TLater_later //; repeat iSplit; try done.
+    (** Paolo to Amin: we can't finish this proof without changing definitions.
+        Here we must show that *all values* in TMu T1 are in TMu T2 using
+        "Hstp", but "Hstp" only holds for closed values.
+
+        To fix this, we can modify the definition of [Γ ⊨ [T1, i] <: [T2, j]] to
+        apply only to closed values, as in next commit. That requires changing
+        further definitions in a similar way.
+
+        Alternatively, we could modify [interp] to ensure
+        [interp T ρ v → fv_n_vl v 0] and
+        [interp T ρ v → fv_n T (length ρ)]
+        I think that is a more principled solution, and the one I have used in the past.
+     *)
+  Admitted.
 
   (*
      Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂
@@ -134,8 +149,8 @@ Section Sec.
   Proof.
     iIntros "/= #Hstp !> * #Hg #HT1".
     iApply (interp_weaken_one v).
-    iApply ("Hstp" $! (v :: ρ)); rewrite ?iterate_TLater_later //; by iSplit.
-  Qed.
+    iApply ("Hstp" $! (v :: ρ)); rewrite ?iterate_TLater_later //; repeat iSplit; try done.
+  Admitted.
 
   (*
      Γ, z: T₁ᶻ ⊨ T₁ <: T₂ᶻ
@@ -148,8 +163,8 @@ Section Sec.
   Proof.
     iIntros "/= #Hstp !> * #Hg #HT1".
     rewrite -(interp_weaken_one v T1 ρ v).
-    iApply ("Hstp" $! (_ :: _) _); rewrite ?iterate_TLater_later //; by iSplit.
-  Qed.
+    iApply ("Hstp" $! (_ :: _) _); rewrite ?iterate_TLater_later //; repeat iSplit; try done.
+  Admitted.
 
   Lemma T_Forall_E e1 e2 T1 T2:
     (Γ ⊨ e1: TAll T1 T2.|[ren (+1)] →
@@ -157,7 +172,7 @@ Section Sec.
     (*────────────────────────────────────────────────────────────*)
      Γ ⊨ tapp e1 e2 : T2)%I.
   Proof.
-    iIntros "/= #He1 #Hv2 !> * #HG".
+    iIntros "/= #[% #He1] #[% #Hv2]". iSplit; eauto using fv_tapp. iIntros " !> * #HG".
     smart_wp_bind (AppLCtx (e2.|[to_subst ρ])) v "#Hv" "He1".
     smart_wp_bind (AppRCtx v) w "#Hw" "Hv2".
     iApply wp_mono; [|iApply "Hv"]; auto.
@@ -171,8 +186,9 @@ Section Sec.
     (*────────────────────────────────────────────────────────────*)
      Γ ⊨ tapp e1 (tv v2) : T2.|[v2/])%I.
   Proof.
-    iIntros "/= #He1 #Hv2Arg !> * #HG".
-    iAssert (⌜ fv_n_vl v2 (length Γ) ⌝)%I as "%". by iApply tp_closed_vl. rename H into Hcl.
+    iIntros "/= #[% #He1] #[% #Hv2Arg]". iSplit; eauto using fv_tapp. iIntros " !> * #HG".
+    (* iIntros "/= #He1 #Hv2Arg !> * #HG". *)
+    iAssert (⌜ fv_n_vl v2 (length Γ) ⌝)%I as "%". by iPureIntro; apply fv_tv_inv. rename H into Hcl.
     iAssert (⌜ length ρ = length Γ ⌝)%I as "%". by iApply interp_env_len_agree. rename H into Hlen.
     assert (fv_n_vl v2 (length ρ)). by rewrite Hlen.
     smart_wp_bind (AppLCtx (tv v2.[to_subst ρ])) v "#HvFun" "He1".
@@ -188,7 +204,8 @@ Section Sec.
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2)%I.
   Proof.
-    iIntros "/= #HeT !> * #HG".
+    iIntros "/= #[% #HeT]". iSplit. iPureIntro. by apply fv_tv, fv_vabs.
+    iIntros " !> * #HG".
     iApply wp_value'.
     iIntros "!>" (v) "#Hv".
     iSpecialize ("HeT" $! (v :: ρ)).
@@ -196,15 +213,18 @@ Section Sec.
     asimpl.
     iApply "HeT".
     iFrame "HG".
-    iNext. by iApply (interp_weaken_one v).
-  Qed.
+    iNext. iSplit; first by iApply (interp_weaken_one v).
+    (** XXX require argument to be closed in function interpretation. *)
+  Admitted.
 
   Lemma T_Mem_E e T l:
     (Γ ⊨ e : TVMem l T →
     (*─────────────────────────*)
     Γ ⊨ tproj e l : T)%I.
   Proof.
-    iIntros "#HE /= !>" (ρ) "#HG".
+    iIntros "#[% HE] /=". move: H => Hcl.
+    iSplit. by iPureIntro; apply fv_tproj.
+    iIntros " !>" (ρ) "#HG".
     smart_wp_bind (ProjCtx l) v "#Hv" "HE".
     iDestruct "Hv" as (d) "[% Hv]".
     iDestruct "Hv" as (vmem) "[% Hv]".
@@ -227,48 +247,50 @@ Section Sec.
      Γ ⊨ z: mu(x: Tˣ)
    *)
   Lemma ivstp_rec_eq T v:
-    ((∀ ρ1 ρ2, (∀ x, x < length Γ → ρ1 x = ρ2 x) → v.[ρ1] = v.[ρ2]) ->
-    ivtp Γ (TMu T) v ∗-∗
+    (ivtp Γ (TMu T) v ∗-∗
     ivtp Γ T.|[v/] v)%I.
   Proof.
-    intros Hcl.
-    assert (∀ ρ x, x < length Γ
-             → to_subst ρ x = (to_subst ρ >> ren (+strings.length ρ)) x) as H.
+    (* XXX This is probably a more generally useful combination of closed_subst_vl_id and closed_to_subst. *)
+    assert (∀ ρ x, length Γ = length ρ → x < length Γ → cl_ρ ρ →
+             to_subst ρ x = (to_subst ρ >> ren (+strings.length ρ)) x) as HtoSubstCl.
     {
-      (* Needed below: length Γ = length ρ *)
+      move => ρ x Hleq. rewrite Hleq. move => Hl Hclρ.
       asimpl.
-      admit.
+      by rewrite closed_subst_vl_id; [|apply closed_to_subst].
     }
-    iAssert (□(∀ ρ,
-                 ⟦ T.|[v.[to_subst ρ]/] ⟧ ρ v.[to_subst ρ] ∗-∗ ⟦ T.|[v/] ⟧ ρ v.[to_subst ρ]))%I as "#Hren". admit.
-    iSplit; iIntros "/= #Htp !> * #Hg";
-      iSpecialize ("Htp" $! ρ with "Hg"); iSpecialize ("Hren" $! ρ);
-      iPoseProof (interp_subst ρ T (v.[to_subst ρ]) (v.[to_subst ρ])) as "#Hren1"; asimpl; rewrite - (Hcl (to_subst ρ) ); try naive_solver.
-    - iApply "Hren".
-      iApply "Hren1".
-      iApply "Htp".
-    -
-      iApply "Hren1".
-      iApply "Hren".
-      iApply "Htp".
-  Admitted.
+    (* iAssert (□(∀ ρ, ⌜ fv_n_vl v (length ρ) ⌝ → ⌜ cl_ρ ρ ⌝ → *)
+    (*              ⟦ T.|[v.[to_subst ρ]/] ⟧ ρ v.[to_subst ρ] ≡ ⟦ T.|[v/] ⟧ ρ v.[to_subst ρ]))%I as "#Hren". *)
+    (* { *)
+    (*   iIntros "!>" (ρ Hcl Hclρ). *)
+    (*   by rewrite -to_subst_interp. *)
+    (* } *)
+    iSplit; iIntros "/= #[% Htp]"; move: H => Hcl; iSplit; trivial; iIntros " !> * #Hg";
+      iSpecialize ("Htp" $! ρ with "Hg");
+      (* iSpecialize ("Hren" $! ρ); *)
+      iPoseProof (interp_subst ρ T (v.[to_subst ρ]) (v.[to_subst ρ])) as "#Hren1"; asimpl;
+      iPoseProof (interp_env_len_agree Γ ρ with "Hg") as "%"; move: H => HlenEq;
+      iPoseProof (interp_env_closed Γ ρ with "Hg") as "%"; move: H => Hclρ;
+      rewrite - (Hcl (to_subst ρ) ); try naive_solver;
+      rewrite -to_subst_interp ?HlenEq; trivial;
+      iApply "Hren1"; iApply "Htp".
+  Qed.
 
-  (* Paolo: This is probably false if we don't assume that v is closed; that
-     must either follow from the logical relation or be a separate hypothesis. *)
-  Lemma ivstp_rec_eq_alt T v:
-    ivtp Γ (TMu T) v ≡
-    ivtp Γ T.|[v/] v.
-  Proof.
-    iSplit; iIntros "/= #Htp !> * #Hg";
-      iSpecialize ("Htp" $! ρ).
-    - iSpecialize ("Htp" with "Hg").
-      rewrite -(interp_subst). asimpl.
-      admit.
-    (*   iRewrite "Hren". *)
-    (*   by iApply "Htp". *)
-    (* - iRewrite "Hren" in "Htp". *)
-    (*   by iApply "Htp". *)
-  Admitted.
+  (* (* Paolo: This is probably false if we don't assume that v is closed; that *)
+  (*    must either follow from the logical relation or be a separate hypothesis. *) *)
+  (* Lemma ivstp_rec_eq_alt T v: *)
+  (*   ivtp Γ (TMu T) v ≡ *)
+  (*   ivtp Γ T.|[v/] v. *)
+  (* Proof. *)
+  (*   iSplit; iIntros "/= #[% #Htp]"; move: H => Hclv; iSplit; trivial; iIntros " !> * #Hg"; *)
+  (*     iSpecialize ("Htp" $! ρ). *)
+  (*   - iSpecialize ("Htp" with "Hg"). *)
+  (*     rewrite -(interp_subst). asimpl. *)
+  (*     admit. *)
+  (*   (*   iRewrite "Hren". *) *)
+  (*   (*   by iApply "Htp". *) *)
+  (*   (* - iRewrite "Hren" in "Htp". *) *)
+  (*   (*   by iApply "Htp". *) *)
+  (* Admitted. *)
 
   (*   (* iIntros "#Hclosed". *) *)
   (*   iAssert (□ ∀ ρ, interp_env Γ ρ -∗ interp T.|[v/] ρ v.[to_subst ρ] ∗-∗ interp T (v.[to_subst ρ] :: ρ) v.[to_subst ρ])%I as "#Hren". *)
