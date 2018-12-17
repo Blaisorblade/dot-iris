@@ -201,6 +201,7 @@ Section Sec.
     iApply "HeT".
     iFrame "HG".
     iNext. iSplit; first by iApply (interp_weaken_one v).
+    (** XXX require argument to be closed in function interpretation. *)
   Admitted.
 
   Lemma T_Mem_E e T l:
