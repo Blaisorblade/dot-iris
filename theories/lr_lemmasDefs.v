@@ -18,12 +18,12 @@ Section Sec.
      one ([length ds]) for [d]. That's a bit like de Bruijn levels.
    *)
   Lemma idtp_vmem_i T v l:
-    ▷ ivtp Γ T v -∗
-      idtp Γ (TVMem l T) l (dvl v).
-  Proof.
-    iIntros "#Hv !> * #Hg /=".
-    iSplit; try done.
-    iExists _; iSplit; try done. by iApply "Hv".
+    ivtp Γ (TLater T) v -∗
+    idtp Γ (TVMem l T) l (dvl v).
+  Proof with (try done).
+    iIntros "/= [% #Hv]". iSplit; auto 3.
+    iIntros "!> * #Hg /=".
+    iSplit... iExists _; iSplit... by iApply "Hv".
   Qed.
 
   (*
@@ -92,12 +92,13 @@ Section Sec.
     iExists (interp T), _. iSplit; first auto.
 
     iModIntro; repeat iSplitL; iIntros "*";
+      assert (fv_n_vl v 0) as Hcl by admit;
       try (iIntros "**"; by [iApply "HTU" | iApply "HLU"]).
     (* iIntros "**". iApply ("HLT" with "Hg").  | iApply "HTU" | iApply "HLU"]. *)
     - iIntros "#HL".
-      iSpecialize ("HLT" with "Hg").
-      iDestruct ("HLT" with "HL") as "#HLT1"; auto.
-  Qed.
+      iSpecialize ("HLT" $! ρ v with "Hg").
+      iDestruct ("HLT" $! Hcl with "HL") as "#HLT1"; auto.
+  Admitted.
 
   Lemma dtp_tand_i T U ρ d ds:
     defs_interp T ρ ds -∗
@@ -136,7 +137,10 @@ Section Sec.
     idstp (TLater T :: Γ) T ds ⊢
     ietp Γ (TMu T) (tv (vobj ds)).
   Proof.
-    iIntros "/= #Hds !> * #Hρ".
+    iIntros "/= [% #Hds]". iSplit.
+
+
+    iIntros " !> * #Hρ".
     change ((tv (vobj ds)).|[to_subst ρ]) with (tv (vobj ds).[to_subst ρ]).
     iApply wp_value.
     iLöb as "IH".
