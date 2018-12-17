@@ -24,8 +24,8 @@ Section Sec.
     (*──────────────────────*)
     Γ ⊨ tv (var_vl x) : T.|[ren (+x)].
   Proof.
-    move => Hx /=. iIntros "!> * #Hg".
-    iApply wp_value'.
+    move => Hx /=; iSplit; first eauto using lookup_fv.
+    iIntros "!> * #Hg". iApply wp_value'.
     by iApply interp_env_lookup.
   Qed.
 
@@ -61,9 +61,11 @@ Section Sec.
     (Γ ⊨ e : T, S i →
      Γ ⊨ tskip e : T, i)%I.
   Proof.
-    iIntros "/= #HT !> * #HG".
-    iApply wp_pure_step_later; auto.
-    iSpecialize ("HT" $! ρ with "HG"). by iModIntro.
+    iIntros "/= #[% #HT]"; iSplit.
+    - iPureIntro; by apply fv_tskip.
+    - iIntros " !> * #HG".
+      iApply wp_pure_step_later; auto.
+      iSpecialize ("HT" $! ρ with "HG"). by iModIntro.
   Qed.
 
   Lemma And1_Sub T1 T2 i: Γ ⊨ [TAnd T1 T2, i] <: [T1, i].
@@ -119,7 +121,7 @@ Section Sec.
   Proof.
     iIntros "/= #Hstp !> * #Hg #HT1".
     iApply ("Hstp" $! (v :: ρ) _);
-      rewrite ?iterate_TLater_later //; by iSplit.
+      rewrite ?iterate_TLater_later //; repeat iSplit; try done.
   Qed.
 
   (*
