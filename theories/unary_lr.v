@@ -230,11 +230,11 @@ Section logrel.
   Global Arguments step_indexed_ietp /.
 
   (* Subtyping. Defined on (values). *)
-  Definition ivstp Γ T1 T2: iProp Σ := (□∀ ρ v, ⟦Γ⟧* ρ → ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
+  Definition ivstp Γ T1 T2: iProp Σ := (□∀ ρ v, ⟦Γ⟧* ρ → ⌜ fv_n_vl v 0 ⌝ → ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
   Global Arguments ivstp /.
 
   Definition step_indexed_ivstp Γ T1 T2 i j: iProp Σ :=
-    (□∀ ρ v, ⟦Γ⟧*ρ -∗ (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
+    (□∀ ρ v, ⟦Γ⟧*ρ -∗ ⌜ fv_n_vl v 0 ⌝ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
   Global Arguments step_indexed_ivstp /.
 End logrel.
 

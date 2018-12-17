@@ -18,12 +18,12 @@ Section Sec.
      one ([length ds]) for [d]. That's a bit like de Bruijn levels.
    *)
   Lemma idtp_vmem_i T v l:
-    ▷ ivtp Γ T v -∗
-      idtp Γ (TVMem l T) l (dvl v).
-  Proof.
-    iIntros "#Hv !> * #Hg /=".
-    iSplit; try done.
-    iExists _; iSplit; try done. by iApply "Hv".
+    ivtp Γ (TLater T) v -∗
+    idtp Γ (TVMem l T) l (dvl v).
+  Proof with (try done).
+    iIntros "/= [% #Hv]". iSplit; auto 3 using fv_dvl.
+    iIntros "!> * #Hg /=".
+    iSplit... iExists _; iSplit... by iApply "Hv".
   Qed.
 
   (*
@@ -92,12 +92,13 @@ Section Sec.
     iExists (interp T), _. iSplit; first auto.
 
     iModIntro; repeat iSplitL; iIntros "*";
+      assert (fv_n_vl v 0) as Hcl by admit;
       try (iIntros "**"; by [iApply "HTU" | iApply "HLU"]).
     (* iIntros "**". iApply ("HLT" with "Hg").  | iApply "HTU" | iApply "HLU"]. *)
     - iIntros "#HL".
-      iSpecialize ("HLT" with "Hg").
-      iDestruct ("HLT" with "HL") as "#HLT1"; auto.
-  Qed.
+      iSpecialize ("HLT" $! ρ v with "Hg").
+      iDestruct ("HLT" $! Hcl with "HL") as "#HLT1"; auto.
+  Admitted.
 
   Lemma dtp_tand_i T U ρ d ds:
     defs_interp T ρ ds -∗
@@ -136,14 +137,23 @@ Section Sec.
     idstp (TLater T :: Γ) T ds ⊢
     ietp Γ (TMu T) (tv (vobj ds)).
   Proof.
-    iIntros "/= #Hds !> * #Hρ".
+    iIntros "/= [% #Hds]". move: H => Hclds. iSplit; auto using fv_tv, fv_vobj.
+
+
+    iIntros " !> * #Hρ".
     change ((tv (vobj ds)).|[to_subst ρ]) with (tv (vobj ds).[to_subst ρ]).
     iApply wp_value.
     iLöb as "IH".
     (* set (v0 := (vobj ds).[to_subst ρ]). *)
     iApply wip_hard.
     iApply "Hds".
-    auto.
+    repeat iSplit; try done.
+    iPoseProof (interp_env_len_agree with "Hρ") as "%". move: H => Hlen.
+    iPoseProof (interp_env_closed with "Hρ") as "%". move: H => Hclρ.
+    iPureIntro.
+    rewrite <- Hlen in *.
+    (* auto using fv_to_subst_vl, fv_vobj. *)
+    apply fv_to_subst_vl; auto using fv_vobj.
   Qed.
 
   (* Lemma dtp_new_i T ds ρ: *)
@@ -167,10 +177,10 @@ Section Sec.
     idtp Γ (TTMem l T T) l (dtysem ρ1 γ).
   Proof.
     unfold idtp.
-    iIntros "/= #Hγ !> **".
+    iIntros "/= #Hγ". iSplit. admit. iIntros " !> **".
     iSplit; try done.
     iExists (interp T), _. iSplit; first auto.
-    iModIntro; repeat iSplitL; iIntros "**".
+    iModIntro; repeat iSplitL; iIntros "**"; try done.
   Abort.
 
 End Sec.

@@ -1,12 +1,39 @@
 From iris.base_logic Require Import base_logic.
 From iris.proofmode Require Import tactics.
-From iris.program_logic Require Import weakestpre lifting ectxi_language.
+From iris.program_logic Require Import weakestpre.
+
+(** Paolo to Amin: it seems below we might need something vaguely similar to the following. Not sure they're exactly true as stated. *)
+Section wp_extra.
+Context `{irisG Λ Σ}.
+Implicit Types s : stuckness.
+Implicit Types P : iProp Σ.
+Implicit Types Φ : val Λ → iProp Σ.
+Implicit Types v : val Λ.
+Implicit Types e : expr Λ.
+
+(** A variant of wp_wand that requires proof of [Φ v -∗ Ψ v] only if [v] is an evaluation result. *)
+Lemma wp_wand_steps s E e Φ Ψ:
+    (WP e @ s; E {{ v, Φ v }} -∗
+    (** The nsteps premise is wrong for a multithreaded program logic, feel free to use a more accurate one.
+        This one might be fine for DOT. *)
+    (∀ v σ1 κ σ2 i, ⌜ nsteps i ([e], σ1) κ ([of_val v], σ2) ⌝ -∗ Φ v -∗ Ψ v)-∗
+    WP e @ s; E {{ v, Ψ v }})%I.
+Admitted.
+End wp_extra.
+
+From iris.program_logic Require Import lifting language ectxi_language.
 From Dot Require Import tactics unary_lr rules synLemmas.
+
+(** For use with wp_wand_steps; the exact shape of the premise is in question. *)
+Lemma steps_preserve_nclosed e v σ1 κ σ2 i n: nsteps i ([e], σ1) κ ([of_val v], σ2) → fv_n e n → fv_n_vl v n.
+Admitted.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 
 Section Sec.
   Context `{HdotG: dotG Σ} Γ.
+
+  Ltac dupGoal := match goal with | |- ?T => assert T as _ end.
 
   Lemma T_Sub e T1 T2 :
     (Γ ⊨ e : T1 →
@@ -14,10 +41,78 @@ Section Sec.
     (*───────────────────────────────*)
     Γ ⊨ e : T2)%I.
   Proof.
-    iIntros "/= * #[% #HeT1] #Hsub". iSplit; trivial. iIntros " !> * #Hg".
-    iApply wp_wand. by iApply "HeT1".
-    iIntros; by iApply "Hsub".
-  Qed.
+  (*   iIntros "/= * #[% #HeT1] #Hsub". iSplit; trivial. iIntros " !> * #Hg". *)
+  (*   iApply wp_wand. by iApply "HeT1". *)
+  (*   iIntros; by iApply "Hsub". *)
+  (* Qed. *)
+    iIntros "/= * #[% #HeT1] #Hsub". move: H => Hcle. iSplit; trivial; iIntros " !> * #Hg".
+    iAssert (⌜ length ρ = length Γ ⌝)%I as "%". by iApply interp_env_len_agree. move: H => Hlen.
+    iAssert (⌜ cl_ρ ρ ⌝)%I as "%". by iApply interp_env_closed. move: H => Hclρ.
+
+    set (e' := e.|[to_subst ρ]).
+
+    assert (fv_n e' 0) as Hcleρ.
+    { apply fv_to_subst; by rewrite ?Hlen. }
+
+    (* Duplicate goal to show different attempts. *)
+    dupGoal.
+    dupGoal.
+    (** Paolo to Amin: here, it seems we need to show something similar to: if
+        [fv_n e' 0] then [WP e' {{v, ⌜ fv_n_vl v 0 ⌝ }}] (where [e' =
+        e.|[to_subst ρ]]). (In fact we can't just use that.)
+
+        Maybe using fv_n_vl in interp_expr would shift the proof obligation to a
+        better place, but we'd still have to prove something similar.
+
+        More specifically: we know [e]'s result is in [T1] (from ["HeT1"]) and
+        must show it's in [T2]. We can almost use ["Hsub"]; but ["Hsub"] only
+        says that all *closed* values in T1 are in T2! *)
+    - iApply wp_wand.
+      by iApply ("HeT1" $! ρ).
+      iIntros. iApply "Hsub"; try done.
+      admit.
+      (** Here we must show tht v is closed, but we can't: in fact [v] is a
+          result of evaluating [e'] (in a sense), but [wp_wand] does not expose this fact.
+
+          One possible approach would be to prove [wp_wand_steps], a variant of [wp_wand]
+          that exposes the reduction sequence from [e'] to [v], by first proving a variant of
+          [wp_strong_mono] that does the same. From the reduction sequence we
+          can prove that v is closed outside Iris. See attempt n. 3. *)
+    - (** Below, the same problem appears in a different place. *)
+      iApply (wp_wand _ _ _ (λ v, ⟦ T1 ⟧ ρ v ∗ ⌜ fv_n_vl v 0 ⌝)%I).
+      + iSpecialize ("HeT1" $! ρ with "Hg").
+        (**
+            This is the situation summarized in
+            https://gist.github.com/Blaisorblade/0e928e7b023cfc8bae3b3154a1bd0a90:
+
+            Here we must show [WP e' {{ v, ⟦ T1 ⟧ ρ v ∗ ⌜fv_n_vl v 0⌝ }}] while
+            ["HeT1"] only gives [WP e' {{ v, ⟦ T1 ⟧ ρ v }}]. Since [e'] is
+            closed, this should be true, but it's hard to prove.
+            And I wouldn't know how to fix the hole here;
+         *)
+        admit.
+      + iIntros "* [#H #%]"; by iApply "Hsub".
+    (** Attempt n. 3. *)
+    - iApply (wp_wand_steps NotStuck ⊤ e' (λ v, ⟦ T1 ⟧ ρ v) (λ v, ⟦ T2 ⟧ ρ v))%I.
+      subst e'.
+      by iApply ("HeT1" $! ρ).
+      iIntros. iApply "Hsub"; try done.
+      iPureIntro.
+      by eapply steps_preserve_nclosed.
+  Admitted.
+    (** Paolo to Amin: we can't finish this proof without changing definitions.
+        Here we must show that *all values* in TMu T1 are in TMu T2 using
+        "Hstp", but "Hstp" only holds for closed values.
+
+        To fix this, we can modify the definition of [Γ ⊨ [T1, i] <: [T2, j]] to
+        apply only to closed values, as in next commit. That requires changing
+        further definitions in a similar way.
+
+        Alternatively, we could modify [interp] to ensure
+        [interp T ρ v → fv_n_vl v 0] and
+        [interp T ρ v → fv_n T (length ρ)]
+        I think that is a more principled solution, and the one I have used in the past.
+     *)
 
   Lemma T_Var x T:
     Γ !! x = Some T →
@@ -30,14 +125,14 @@ Section Sec.
   Qed.
 
   Lemma Sub_Refl T i : Γ ⊨ [T, i] <: [T, i].
-  Proof. by iIntros "/= !> * _ HT". Qed.
+  Proof. by iIntros "/= !> * _" (Hcl) " HT". Qed.
 
   Lemma Sub_Trans T1 T2 T3 i1 i2 i3 : (Γ ⊨ [T1, i1] <: [T2, i2] →
                                        Γ ⊨ [T2, i2] <: [T3, i3] →
                                        Γ ⊨ [T1, i1] <: [T3, i3])%I.
   Proof.
-    iIntros "#Hsub1 #Hsub2 /= !> * #Hg #HT".
-    iApply "Hsub2"; first done. by iApply "Hsub1".
+    iIntros "#Hsub1 #Hsub2 /= !> * #Hg % #HT".
+    iApply "Hsub2"; try done. by iApply "Hsub1".
   Qed.
 
   Lemma Sub_Mono e T i :
@@ -69,9 +164,9 @@ Section Sec.
   Qed.
 
   Lemma And1_Sub T1 T2 i: Γ ⊨ [TAnd T1 T2, i] <: [T1, i].
-  Proof. by iIntros "/= !> * ? [? ?]". Qed.
+  Proof. by iIntros "/= !> * ? % [? ?]". Qed.
   Lemma And2_Sub T1 T2 i: Γ ⊨ [TAnd T1 T2, i] <: [T2, i].
-  Proof. by iIntros "/= !> * ? [? ?]". Qed.
+  Proof. by iIntros "/= !> * ? % [? ?]". Qed.
 
   (* Lemma stp_andi T1 T2 ρ v: *)
   (*   ⟦T1⟧ ρ v -∗ *)
@@ -84,9 +179,9 @@ Section Sec.
     Γ ⊨ [S, i] <: [T2, j] -∗
     Γ ⊨ [S, i] <: [TAnd T1 T2, j].
   Proof.
-    iIntros "/= #H1 #H2 !> * #Hg #HS".
-    iSpecialize ("H1" with "Hg HS").
-    iSpecialize ("H2" with "Hg HS").
+    iIntros "/= #H1 #H2 !> * #Hg #Hcl #HS".
+    iSpecialize ("H1" with "Hg Hcl HS").
+    iSpecialize ("H2" with "Hg Hcl HS").
     iModIntro; by iSplit.
   Qed.
 
@@ -99,7 +194,7 @@ Section Sec.
     Γ ⊨ [T1, i] <: [S, j] -∗
     Γ ⊨ [T2, i] <: [S, j] -∗
     Γ ⊨ [TOr T1 T2, i] <: [S, j].
-  Proof. iIntros "/= #H1 #H2 !> * #Hg #[HT1 | HT2]"; by [iApply "H1" | iApply "H2"]. Qed.
+  Proof. iIntros "/= #H1 #H2 !> * #Hg #Hcl #[HT1 | HT2]"; by [iApply "H1" | iApply "H2"]. Qed.
 
   Lemma Sub_Top T i:
     Γ ⊨ [T, i] <: [TTop, i].
@@ -119,23 +214,10 @@ Section Sec.
     (iterate TLater i T1 :: Γ ⊨ [T1, i] <: [T2, j] →
      Γ ⊨ [TMu T1, i] <: [TMu T2, j])%I.
   Proof.
-    iIntros "/= #Hstp !> * #Hg #HT1".
+    iIntros "/= #Hstp !> * #Hg #Hcl #HT1".
     iApply ("Hstp" $! (v :: ρ) _);
       rewrite ?iterate_TLater_later //; repeat iSplit; try done.
-    (** Paolo to Amin: we can't finish this proof without changing definitions.
-        Here we must show that *all values* in TMu T1 are in TMu T2 using
-        "Hstp", but "Hstp" only holds for closed values.
-
-        To fix this, we can modify the definition of [Γ ⊨ [T1, i] <: [T2, j]] to
-        apply only to closed values, as in next commit. That requires changing
-        further definitions in a similar way.
-
-        Alternatively, we could modify [interp] to ensure
-        [interp T ρ v → fv_n_vl v 0] and
-        [interp T ρ v → fv_n T (length ρ)]
-        I think that is a more principled solution, and the one I have used in the past.
-     *)
-  Admitted.
+  Qed.
 
   (*
      Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂
@@ -147,10 +229,10 @@ Section Sec.
     (iterate TLater i T1 :: Γ ⊨ [T1, i] <: [T2.|[ren (+1)], j] →
      Γ ⊨ [TMu T1, i] <: [T2, j])%I.
   Proof.
-    iIntros "/= #Hstp !> * #Hg #HT1".
+    iIntros "/= #Hstp !> * #Hg #Hcl #HT1".
     iApply (interp_weaken_one v).
     iApply ("Hstp" $! (v :: ρ)); rewrite ?iterate_TLater_later //; repeat iSplit; try done.
-  Admitted.
+  Qed.
 
   (*
      Γ, z: T₁ᶻ ⊨ T₁ <: T₂ᶻ
@@ -161,10 +243,10 @@ Section Sec.
     (iterate TLater i T1.|[ren (+1)] :: Γ ⊨ [T1.|[ren (+1)], i] <: [T2, j] →
     Γ ⊨ [T1, i] <: [TMu T2, j])%I.
   Proof.
-    iIntros "/= #Hstp !> * #Hg #HT1".
+    iIntros "/= #Hstp !> * #Hg #Hcl #HT1".
     rewrite -(interp_weaken_one v T1 ρ v).
     iApply ("Hstp" $! (_ :: _) _); rewrite ?iterate_TLater_later //; repeat iSplit; try done.
-  Admitted.
+  Qed.
 
   Lemma T_Forall_E e1 e2 T1 T2:
     (Γ ⊨ e1: TAll T1 T2.|[ren (+1)] →
