@@ -318,6 +318,29 @@ Section logrel_lemmas.
       by iDestruct ("IHΓ" $! ρ with "HG'") as "->".
   Qed.
 
+  Lemma interp_subst_all ρ τ v:
+    cl_ρ ρ → ⟦ τ.|[to_subst ρ] ⟧ [] v ≡ ⟦ τ ⟧ ρ v.
+  Proof.
+    elim: ρ τ => /= [|w ρ IHρ] τ Hwρcl; asimpl; first by [].
+    assert (fv_n_vl w 0 /\ Forall (λ v, fv_n_vl v 0) ρ) as [Hwcl Hρcl]. by inversion Hwρcl.
+    specialize (IHρ (τ.|[w/]) Hρcl).
+    asimpl in IHρ.
+    by rewrite -interp_subst closed_subst_vl_id -?IHρ ?closed_subst_vl_id.
+  Qed.
+
+  Lemma to_subst_interp T ρ v w: cl_ρ ρ → fv_n_vl v (length ρ) →
+    ⟦ T.|[v/] ⟧ ρ w ≡ ⟦ T.|[v.[to_subst ρ]/] ⟧ ρ w.
+  Proof.
+    intros Hclρ Hclv.
+    rewrite -(interp_subst_all ρ (T.|[v/])) -?(interp_subst_all ρ (T.|[v.[to_subst ρ]/])); trivial.
+    asimpl. do 5 f_equiv.
+    apply Hclv.
+    intros x Hl.
+    asimpl.
+    rewrite closed_subst_vl_id; trivial.
+    by apply closed_to_subst.
+  Qed.
+
   Lemma interp_subst_closed T v w ρ:
     fv_n_vl v (length ρ) →
     (⟦ Γ ⟧* ρ → ⟦ T.|[v/] ⟧ ρ w ∗-∗ ⟦ T ⟧ (v.[to_subst ρ] :: ρ) w)%I.

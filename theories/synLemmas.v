@@ -72,3 +72,51 @@ Proof.
   - rewrite undo_to_subst. by asimpl.
   - by f_equal.
 Qed.
+
+Lemma closed_subst_vl_id v σ: fv_n_vl v 0 → v.[σ] = v.
+Proof.
+  intro Hcl. rewrite (Hcl σ ids); first by asimpl.
+  intros; omega.
+Qed.
+
+Lemma closed_to_subst ρ x: cl_ρ ρ → x < length ρ → fv_n_vl (to_subst ρ x) 0.
+  elim: ρ x => /= [|v ρ IHρ] [|x] Hcl Hl; asimpl; try omega; inverse Hcl; try by [].
+  by apply IHρ; try omega.
+Qed.
+
+Lemma fv_to_subst `{ia: Ids A} `{ha: HSubst vl A} `{@HSubstLemmas vl A Ids_vl Subst_vl ia ha} (a: A) ρ:
+  fv_n a (length ρ) → cl_ρ ρ →
+  fv_n (a.|[to_subst ρ]) 0.
+Proof.
+  rewrite /fv_n /fv_n_vl => Hcla Hclρ s1 s2 _ /=; asimpl.
+  apply Hcla.
+  intros x Hl; asimpl; rewrite !(closed_subst_vl_id (to_subst ρ x)); auto using closed_to_subst.
+Qed.
+
+Lemma fv_to_subst_vl v ρ:
+  fv_n_vl v (length ρ) → cl_ρ ρ →
+  fv_n_vl (v.[to_subst ρ]) 0.
+Proof.
+  rewrite /fv_n /fv_n_vl => Hclv Hclρ s1 s2 _ /=; asimpl.
+  apply Hclv.
+  intros x Hl; asimpl; rewrite !(closed_subst_vl_id (to_subst ρ x)); auto using closed_to_subst.
+Qed.
+
+Lemma fv_tskip e n: fv_n e n → fv_n (tskip e) n.
+Proof. rewrite /fv_n /fv_n_vl => * /=; f_equiv; auto. Qed.
+
+Lemma fv_tproj e l n: fv_n e n → fv_n (tproj e l) n.
+Proof. rewrite /fv_n /fv_n_vl => * /=; f_equiv; auto. Qed.
+
+Lemma fv_tapp e1 e2 n: fv_n e1 n → fv_n e2 n → fv_n (tapp e1 e2) n.
+Proof. rewrite /fv_n /fv_n_vl => * /=; f_equiv; auto. Qed.
+
+Lemma fv_tv v n: fv_n_vl v n → fv_n (tv v) n.
+Proof. rewrite /fv_n /fv_n_vl => * /=; f_equiv; auto. Qed.
+
+Implicit Types (T: ty).
+Lemma lookup_success Γ x T: Γ !! x = Some T → x < length Γ.
+Proof. apply lookup_lt_Some. Qed.
+
+Lemma lookup_fv Γ x T: Γ !! x = Some T → fv_n (tv (var_vl x)) (length Γ).
+Proof. rewrite /fv_n /fv_n_vl => * /=; f_equiv; eauto using lookup_success. Qed.

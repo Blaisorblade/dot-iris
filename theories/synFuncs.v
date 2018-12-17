@@ -81,3 +81,6 @@ Definition fv_n_vl (v: vl) n :=
 
 Definition fv_n `{HSubst vl X} (t: X) n :=
   ∀ s1 s2, (∀ x, x < n → s1 x = s2 x) → t.|[s1] = t.|[s2].
+
+Definition cl_ρ ρ := Forall (λ v, fv_n_vl v 0) ρ.
+Arguments cl_ρ /.
