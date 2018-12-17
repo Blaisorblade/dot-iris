@@ -75,7 +75,7 @@ Qed.
 
 Lemma closed_subst_vl_id v σ: fv_n_vl v 0 → v.[σ] = v.
 Proof.
-  intro Hcl. rewrite (Hcl σ ids); first by asimpl.
+  intro Hcl. rewrite (Hcl σ ids) /=; first by asimpl.
   intros; omega.
 Qed.
 
@@ -102,17 +102,43 @@ Proof.
   intros x Hl; asimpl; rewrite !(closed_subst_vl_id (to_subst ρ x)); auto using closed_to_subst.
 Qed.
 
+(** Needed by solve_fv_congruence when dealing with binders, such as in fv_vobj and fv_vabs. *)
+Lemma eq_up s1 s2 n: eq_n_s s1 s2 n → eq_n_s (up s1) (up s2) (S n).
+Proof.
+  rewrite /up. move => Heq [|x] Hl //=. f_equiv. apply Heq. omega.
+Qed.
+
+(** Lemmas on fv for various constructors. Their proofs are mostly similar. *)
+
+(** This proof is for an "inverse" lemma: deduce that v is closed by knowing that v is closed. *)
+Lemma fv_tv_inv v n: fv_n (tv v) n → fv_n_vl v n.
+Proof.
+  rewrite /fv_n_vl /fv_n /= => Hcl s1 s2 HsEq. by injection (Hcl s1 s2 HsEq).
+Qed.
+
+Ltac solve_fv_congruence := rewrite /fv_n /fv_n_vl => * /=; f_equiv; auto using eq_up.
+(** The following ones are "direct" lemmas: deduce that an expression is closed
+    by knowing that its subexpression are closed. *)
 Lemma fv_tskip e n: fv_n e n → fv_n (tskip e) n.
-Proof. rewrite /fv_n /fv_n_vl => * /=; f_equiv; auto. Qed.
+Proof. solve_fv_congruence. Qed.
 
 Lemma fv_tproj e l n: fv_n e n → fv_n (tproj e l) n.
-Proof. rewrite /fv_n /fv_n_vl => * /=; f_equiv; auto. Qed.
+Proof. solve_fv_congruence. Qed.
 
 Lemma fv_tapp e1 e2 n: fv_n e1 n → fv_n e2 n → fv_n (tapp e1 e2) n.
-Proof. rewrite /fv_n /fv_n_vl => * /=; f_equiv; auto. Qed.
+Proof. solve_fv_congruence. Qed.
 
 Lemma fv_tv v n: fv_n_vl v n → fv_n (tv v) n.
-Proof. rewrite /fv_n /fv_n_vl => * /=; f_equiv; auto. Qed.
+Proof. solve_fv_congruence. Qed.
+
+Lemma fv_vobj ds n: fv_n ds (S n) → fv_n_vl (vobj ds) n.
+Proof. solve_fv_congruence. Qed.
+
+Lemma fv_vabs e n: fv_n e (S n) → fv_n_vl (vabs e) n.
+Proof. solve_fv_congruence. Qed.
+
+Lemma fv_dvl v n: fv_n_vl v n → fv_n (dvl v) n.
+Proof. solve_fv_congruence. Qed.
 
 Implicit Types (T: ty).
 Lemma lookup_success Γ x T: Γ !! x = Some T → x < length Γ.

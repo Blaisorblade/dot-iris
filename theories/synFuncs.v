@@ -74,13 +74,17 @@ Fixpoint idsσ n: vls :=
   | S n => push_var (idsσ n)
   end.
 
+(** When two substitutions are equivalent up to n. *)
+Definition eq_n_s (s1 s2: var → vl) n := ∀ x, x < n → s1 x = s2 x.
+Arguments eq_n_s /.
+
 (** Define when some AST's free variables are at most n. *)
 (* Definition of fv_n for values must use subst not hsubst. *)
 Definition fv_n_vl (v: vl) n :=
-  ∀ s1 s2, (∀ x, x < n → s1 x = s2 x) → v.[s1] = v.[s2].
+  ∀ s1 s2, eq_n_s s1 s2 n → v.[s1] = v.[s2].
 
 Definition fv_n `{HSubst vl X} (t: X) n :=
-  ∀ s1 s2, (∀ x, x < n → s1 x = s2 x) → t.|[s1] = t.|[s2].
+  ∀ s1 s2, eq_n_s s1 s2 n → t.|[s1] = t.|[s2].
 
 Definition cl_ρ ρ := Forall (λ v, fv_n_vl v 0) ρ.
 Arguments cl_ρ /.
