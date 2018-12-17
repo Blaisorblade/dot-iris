@@ -18,9 +18,7 @@ Section Sec.
     ivtp Γ (TTMem l L U) va -∗
     Γ ⊨ L <: TSelA (pv va) l L U.
   Proof.
-    iIntros "#Hva".
-
-    iIntros "/= !> * Hg #HvL".
+    iIntros "[% #Hva] /= !> * #Hg" (Hclv) "#HvL". move: H => Hclva.
     iDestruct ("Hva" $! ρ with "Hg") as (d) "#[% #H]"; iClear "Hva".
     iDestruct "H" as (φ σ) "#[Hl [#HLφ [#HφU #HLU]]]".
     repeat iSplit; first by iApply "HLU".
@@ -35,7 +33,7 @@ Section Sec.
     ivtp Γ (TTMem l L U) va -∗
     ivstp Γ (TLater L) (TSel (pv va) l).
   Proof.
-    iIntros "/= #Hva !> * #Hg #HvL".
+    iIntros "/= [% #Hva] !> * #Hg" (Hclv) "#HvL".
     iDestruct ("Hva" $! ρ with "Hg") as (d) "#[% #H]"; iClear "Hva".
     iDestruct "H" as (φ σ) "#[Hl [#HLφ [#HφU #HLU]]]".
     repeat iSplit; first done.
@@ -53,7 +51,7 @@ Section Sec.
     (ivtp Γ (TVMem l1 (TTMem l2 L U)) va -∗
     ivstp Γ (TLater L) ((TSel (pself (pv va) l1) l2)))%I.
   Proof.
-    iIntros "/= #Hva !> * #Hg #HvL".
+    iIntros "/= [% #Hva] !> * #Hg % #HvL".
 
     iDestruct ("Hva" $! ρ with "Hg") as (d) "#[% #Hvb]"; iClear "Hva".
     iDestruct "Hvb" as (vmem) "[-> H1]".
@@ -72,7 +70,7 @@ Section Sec.
     ivtp Γ (TTMem l L U) va -∗
     ivstp Γ (TSel (pv va) l) (TLater U).
   Proof.
-    iIntros "/= #Hva !> * #Hg #[_ [[] | Hφ]]".
+    iIntros "/= [% #Hva] !> * #Hg % #[_ [[] | Hφ]]".
     iDestruct ("Hva" $! ρ with "Hg") as (d) "#[% #H]"; iClear "Hva".
     iDestruct "H" as (φ σ) "#[Hlφ [HLφ [HφU #HLU]]]".
     iDestruct "Hlφ" as (γ) "[% Hγφ]".

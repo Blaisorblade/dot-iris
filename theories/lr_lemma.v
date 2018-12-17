@@ -14,10 +14,22 @@ Section Sec.
     (*───────────────────────────────*)
     Γ ⊨ e : T2)%I.
   Proof.
-    iIntros "/= * #[% #HeT1] #Hsub". iSplit; trivial. iIntros " !> * #Hg".
-    iApply wp_wand. by iApply "HeT1".
-    iIntros; by iApply "Hsub".
-  Qed.
+  (*   iIntros "/= * #[% #HeT1] #Hsub". iSplit; trivial. iIntros " !> * #Hg". *)
+  (*   iApply wp_wand. by iApply "HeT1". *)
+  (*   iIntros; by iApply "Hsub". *)
+  (* Qed. *)
+    iIntros "/= * #[% #HeT1] #Hsub". move: H => Hcle. iSplit; trivial; iIntros " !> * #Hg".
+    iAssert (⌜ length ρ = length Γ ⌝)%I as "%". by iApply interp_env_len_agree. move: H => Hlen.
+    iAssert (⌜ cl_ρ ρ ⌝)%I as "%". by iApply interp_env_closed. move: H => Hclρ.
+    assert (fv_n (e.|[to_subst ρ]) 0) as Hcleρ. { apply fv_to_subst; by rewrite ?Hlen. }
+    iApply (wp_wand _ _ _ (λ v, ⟦ T1 ⟧ ρ v ∗ ⌜ fv_n_vl v 0 ⌝)%I).
+    iSpecialize ("HeT1" $! ρ with "Hg").
+    (* Maybe put closure in interp_expr, or in ietp's postcondition *)
+    rewrite !wp_unfold /wp_pre.
+    admit.
+
+    - iIntros "* [#H #%]"; by iApply "Hsub".
+  Admitted.
 
   Lemma T_Var x T:
     Γ !! x = Some T →
