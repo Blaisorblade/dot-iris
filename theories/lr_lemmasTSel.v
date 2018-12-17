@@ -45,15 +45,6 @@ Section Sec.
     repeat iModIntro; by repeat iSplit.
   Qed.
 
-  Instance Inh_vl: Inhabited vl.
-  Proof. solve [repeat constructor]. Qed.
-  (* Proof. constructor. exact (vabs (tv (var_vl 0))). Qed. *)
-  Instance Inh_dm: Inhabited dm.
-  Proof. solve [repeat constructor]. Qed.
-  (* Proof. constructor. exact (dvl (inhabitant Inh_vl)). Qed. *)
-  Instance Inh_vls: Inhabited vls.
-  Proof. solve [repeat constructor]. Qed.
-
   Instance Inhϕ: Inhabited (list vl * vl → iProp Σ).
   Proof. constructor. exact (λ _, False)%I. Qed.
 
