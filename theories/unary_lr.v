@@ -241,6 +241,7 @@ Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T a
 Notation "Γ ⊨ T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).
 Notation "Γ '⊨' '[' T1 ',' i ']' '<:' '[' T2 ',' j ']'" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
 
+Require Import Dot.synLemmas.
 (* Lemmas about the logical relation itself. *)
 Section logrel_lemmas.
   Context `{HdotG: dotG Σ}.

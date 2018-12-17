@@ -3,9 +3,7 @@ Lemmas on SynFuncs.v needed for proofs on the operational semantics.
 To reduce compile times, unary_lr should not depend on this file.
 This file should load as little Iris code as possible, to reduce compile times. But we must import operational.
  *)
-Require Import Dot.tactics.
-Require Export Dot.dotsyn.
-Require Export Dot.operational.
+From Dot Require Import tactics dotsyn operational.
 
 (** Rewrite v ↗ ds to vobj ds' ↗ ds. *)
 Ltac simplOpen ds' :=
@@ -40,4 +38,37 @@ Proof.
   rewrite /subst_sigma. move :n.
   induction ρ => *; subst => //; asimpl.
   f_equal. by apply IHρ.
+Qed.
+
+Lemma to_subst_app_is_lookup ρ x: x < length ρ → ρ !! x = Some (to_subst ρ x).
+Proof.
+  elim :ρ x => [|v ρ IHρ] [|x] //= Hl; try lia.
+  rewrite to_subst_cons /=.
+  apply IHρ; lia.
+Qed.
+
+Lemma rename_to_subst ρ1 ρ2 : (+length ρ1) >>> to_subst (ρ1 ++ ρ2) = to_subst ρ2.
+Proof. induction ρ1; by asimpl. Qed.
+
+Lemma undo_to_subst ρ : (+length ρ) >>> to_subst ρ = ids.
+Proof.
+  pose proof (rename_to_subst ρ []) as H. rewrite app_nil_r in H; asimpl in H. exact H.
+Qed.
+
+Lemma to_subst_weaken ρ1 ρ2 ρ3:
+  upn (length ρ1) (ren (+length ρ2)) >> to_subst (ρ1 ++ ρ2 ++ ρ3) =
+  to_subst (ρ1 ++ ρ3).
+Proof.
+  induction ρ1; asimpl.
+  - by rewrite rename_to_subst.
+  - by f_equal.
+Qed.
+
+Lemma to_subst_up ρ1 ρ2 v:
+  upn (length ρ1) (v.[ren (+length ρ2)] .: ids) >> to_subst (ρ1 ++ ρ2) =
+  to_subst (ρ1 ++ v :: ρ2).
+Proof.
+  induction ρ1; asimpl.
+  - rewrite undo_to_subst. by asimpl.
+  - by f_equal.
 Qed.
