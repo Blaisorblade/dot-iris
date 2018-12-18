@@ -4,6 +4,7 @@ Require Import Dot.unary_lr.
 Require Import Dot.typing.
 Require Import Dot.AAsynToSem.
 Require Import Dot.tactics.
+Require Import Dot.lr_lemma.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 
@@ -41,16 +42,59 @@ Section fundamental.
     is_syn_ctx Γ.
   Admitted.
 
+  Lemma translations_types_equivalent_vals T T' T'' v ρ σ:
+    (t_ty σ T T' → t_ty σ T T'' → ⟦ T' ⟧ρ  v → ⟦ T'' ⟧ ρ v )%I.
+  Proof. 
+  Admitted.
+
+  Lemma translations_types_equivalent e T T' T'' σ Γ:
+    (t_ty σ T T' → t_ty σ T T'' → Γ ⊨ e : T' → Γ ⊨ e : T'' )%I.
+  Proof. 
+    iIntros "#A #B #C". iIntros (ρ). iModIntro. iIntros "#D".
+    unfold interp_expr. simpl.
+    iApply (wp_strong_mono); try done.
+      { by iApply "C". }
+    iIntros (v) "HT'". iModIntro. by iApply (translations_types_equivalent_vals T T' T'').
+  Qed.
+
   Fixpoint not_yet_fundamental Γ e T e' T' (HT: Γ ⊢ₜ e : T) {struct HT}:
   (* Lemma not_yet_fundamental Γ e T e' T' (HT: Γ ⊢ₜ e : T): *)
-    (t_tm [] e e' → t_ty [] T T' → |==> ∃ Γ',
+    (t_tm [] e e' → t_ty [] T T' → |==>
           (* Using [] as σ is wrong. *)
-        Γ' ⊨ e' : T')%I.
+        Γ ⊨ e' : T')%I.
   Proof.
     iIntros "#HtrE #HtrT".
     (* destruct HT. *)
      iInduction HT as [] "IHT" forall (e' T') "HtrE HtrT".
     -
+      (* I'm careful with simplification to avoid unfolding too much. *)
+      set (e2 := tv v2).
+      cbn [t_tm] in * |- *; case_match; try done.
+      iDestruct "HtrE" as "[Htr1 Htr2]".
+      unfold e2.
+      iEval (cbn [t_tm]) in "Htr2"; case_match; try done; fold (t_vl [] v2 v).
+      iAssert (t_tm [] (tv v2) (tv v)) as "#Ht2"; first done.
+      iMod (ex_t_ty [] (length Γ) T1) as (T1') "#HTT1r".
+      { eauto using typed_ty_is_syn. }
+      iMod (ex_t_ty (push_var []) ((length Γ)+1) T2) as (T2') "#HTT2r".
+      { eauto using typed_ty_is_syn. admit. }
+
+      iPoseProof (not_yet_fundamental Γ e1 _ _ _ HT1 with "Htr1") as "HsT1".
+      iMod (not_yet_fundamental Γ (tv v2) _ _ _ HT2 with "Ht2 HTT1r") as "#HsT2".
+      iPoseProof ("IHT" $! t1 (TAll T1' T2') with "Htr1 []") as "toto".
+      { iModIntro. unfold t_ty; simpl. fold t_ty. iSplit; try done. }
+      iPoseProof ("IHT1" $! (tv v) T1' with "Ht2 []") as "tata".
+      { iModIntro. unfold t_ty; simpl. fold t_ty. done. }
+      iMod "toto". iMod "tata".
+
+      iAssert (t_ty [] (T2.|[v2/]) (T2'.|[v/])) as "#HHH".
+      { admit. }
+      iApply (translations_types_equivalent); try done.
+
+      by iApply (T_Forall_Ex  with "[toto] [tata]"); first last.
+      
+
+    - 
       (* I'm careful with simplification to avoid unfolding too much. *)
       set (e2 := tv v2).
       cbn [t_tm] in * |- *; case_match; try done.
