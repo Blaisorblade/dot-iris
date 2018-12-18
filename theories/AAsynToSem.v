@@ -1,7 +1,7 @@
 (** Define translation from syntactic terms/values to semantic ones, following Sec. 3.2 of the PDF. *)
-From Dot Require Import tactics synFuncs operational.
 From iris.proofmode Require Import tactics.
 From iris.program_logic Require Import ectx_lifting.
+From Dot Require Import tactics synFuncs operational synLemmas.
 Import operational.lang.
 
 Section Sec.
@@ -20,93 +20,109 @@ Section Sec.
 
   (** Translation between syntactic and semantic *type member definitions*.
     This is the interesting case of the translation. *)
-  Definition t_dty_syn2sem (t_ty: vls -> ty -> ty -> iProp Σ) (T1: ty) (σ σ2: vls) γ2: iProp Σ :=
-    (∃ φ T2, γ2 ⤇ φ ∧ t_ty σ T1 T2 ∧
+  Definition t_dty_syn2sem (t_ty: ty -> ty -> iProp Σ) T1 σ2 γ2: iProp Σ :=
+    (∃ φ2 T2, γ2 ⤇ φ2 ∧ t_ty T1 T2 ∧
              ∀ ρ v,
+               ⌜ length ρ = length σ2 ⌝ →
+               ⌜ cl_ρ ρ ⌝ →
                (* We should demand that ρ is closed, and we should check that FV (T) ⊂ dom σ *)
-               dot_interp T2 (subst_sigma σ ρ) v ≡ φ (subst_sigma σ2 ρ) v)%I.
+               dot_interp T2 ρ v ≡ φ2 (subst_sigma σ2 ρ) v)%I.
 
   (** Lift translation between syntactic and semantic entities throughout the whole language.
       Lift [t_dty_syn2sem] throughout the syntax of terms and types, checking that otherwise the terms are equal.
    *)
 
-  Fixpoint t_tm (σ: vls) (t1 t2: tm) {struct t1}: iProp Σ :=
+  Fixpoint t_tm (t1 t2: tm) {struct t1}: iProp Σ :=
     match (t1, t2) with
-    | (tv v1, tv v2) => t_vl σ v1 v2
+    | (tv v1, tv v2) => t_vl v1 v2
     | (tapp t11 t12, tapp t21 t22) =>
-      t_tm σ t11 t21 ∧ t_tm σ t12 t22
+      t_tm t11 t21 ∧ t_tm t12 t22
     | (tproj t1 l1, tproj t2 l2) =>
-      t_tm σ t1 t2 ∧ ⌜l1 = l2⌝
+      t_tm t1 t2 ∧ ⌜l1 = l2⌝
     | (tskip t1, tskip t2) =>
-      t_tm σ t1 t2
+      t_tm t1 t2
     | _ => False
     end%I
   with
-  t_vl (σ: vls) (v1 v2: vl) {struct v1}: iProp Σ :=
+  t_vl (v1 v2: vl) {struct v1}: iProp Σ :=
     match (v1, v2) with
     | (var_vl i1, var_vl i2) => ⌜i1 = i2⌝
-    | (vabs t1, vabs t2) => t_tm (push_var σ) t1 t2
+    | (vabs t1, vabs t2) => t_tm t1 t2
     | (vobj ds1, vobj ds2) =>
-      let fix t_dms (σ: vls) (ds1 ds2: dms) : iProp Σ :=
-          (* ([∗ list] d1 ; d2 ∈ ds1 ; ds2 , t_dm σ d1 d2)%I *)
+      let fix t_dms (ds1 ds2: dms) : iProp Σ :=
+          (* ([∗ list] d1 ; d2 ∈ ds1 ; ds2 , t_dm d1 d2)%I *)
           match (ds1, ds2) with
           | (nil, nil) => True
           | (cons d1 ds1, cons d2 ds2) =>
-            t_dm σ d1 d2 ∧ t_dms σ ds1 ds2
+            t_dm d1 d2 ∧ t_dms ds1 ds2
           | _ => False
           end%I
       in
-      t_dms (push_var σ) ds1 ds2
+      t_dms ds1 ds2
     | (vnat n1, vnat n2) => ⌜ n1 = n2 ⌝
     | _ => False
     end%I
   with
-  t_dm (σ: vls) (d1 d2: dm) {struct d1}: iProp Σ :=
+  t_dm (d1 d2: dm) {struct d1}: iProp Σ :=
     match (d1, d2) with
     | (dtysyn T1, dtysem σ2 γ2) =>
       (* Only nontrivial case *)
-      t_dty_syn2sem t_ty T1 σ σ2 γ2
-    | (dvl v1, dvl v2) => t_vl σ v1 v2
+      t_dty_syn2sem t_ty T1 σ2 γ2
+    | (dvl v1, dvl v2) => t_vl v1 v2
     | _ => False
     end%I
   with
-  t_path (σ: vls) (p1 p2: path) {struct p1}: iProp Σ :=
+  t_path (p1 p2: path) {struct p1}: iProp Σ :=
     match (p1, p2) with
-    | (pv v1, pv v2) => t_vl σ v1 v2
-    | (pself p1 l1, pself p2 l2) => t_path σ p1 p2 ∧ ⌜l1 = l2⌝
+    | (pv v1, pv v2) => t_vl v1 v2
+    | (pself p1 l1, pself p2 l2) => t_path p1 p2 ∧ ⌜l1 = l2⌝
     | _ => False
     end%I
   with
-  t_ty (σ: vls) (T1 T2: ty) {struct T1}: iProp Σ :=
+  t_ty (T1 T2: ty) {struct T1}: iProp Σ :=
     match (T1, T2) with
     | (TTop, TTop) => True
     | (TBot, TBot) => True
     | (TAnd T11 T12, TAnd T21 T22) =>
-      t_ty σ T11 T21 ∧ t_ty σ T12 T22
+      t_ty T11 T21 ∧ t_ty T12 T22
     | (TOr T11 T12, TOr T21 T22) =>
-      t_ty σ T11 T21 ∧ t_ty σ T12 T22
+      t_ty T11 T21 ∧ t_ty T12 T22
     | (TLater T1, TLater T2) =>
-      t_ty σ T1 T2
+      t_ty T1 T2
     | (TAll T11 T12, TAll T21 T22) =>
-      t_ty σ T11 T21 ∧ t_ty (push_var σ) T12 T22
+      t_ty T11 T21 ∧ t_ty T12 T22
     | (TMu T1, TMu T2) =>
-      t_ty (push_var σ) T1 T2
-    | (TVMem l1 T1, TVMem l2 T2) => ⌜l1 = l2⌝ ∧ t_ty σ T1 T2
-    | (TTMem l1 T11 T12, TTMem l2 T21 T22) => ⌜l1 = l2⌝ ∧ t_ty σ T11 T21 ∧ t_ty σ T12 T22
-    | (TSel p1 l1, TSel p2 l2) => t_path σ p1 p2 ∧ ⌜l1 = l2⌝
-    | (TSelA p1 l1 T11 T12, TSelA p2 l2 T21 T22) => t_path σ p1 p2 ∧ ⌜l1 = l2⌝ ∧ t_ty σ T11 T21 ∧ t_ty σ T12 T22
+      t_ty T1 T2
+    | (TVMem l1 T1, TVMem l2 T2) => ⌜l1 = l2⌝ ∧ t_ty T1 T2
+    | (TTMem l1 T11 T12, TTMem l2 T21 T22) => ⌜l1 = l2⌝ ∧ t_ty T11 T21 ∧ t_ty T12 T22
+    | (TSel p1 l1, TSel p2 l2) => t_path p1 p2 ∧ ⌜l1 = l2⌝
+    | (TSelA p1 l1 T11 T12, TSelA p2 l2 T21 T22) => t_path p1 p2 ∧ ⌜l1 = l2⌝ ∧ t_ty T11 T21 ∧ t_ty T12 T22
     | (TNat, TNat) => True
     | _ => False
-    end%I
-  .
+    end%I.
 
   (** Translation for definitions. Used? *)
-  Definition t_dms (σ: vls) (ds1 ds2: dms) : iProp Σ :=
-    ([∗ list] d1 ; d2 ∈ ds1 ; ds2 , t_dm σ d1 d2)%I.
+  (* ([∗ list] d1 ; d2 ∈ ds1 ; ds2 , t_dm σ d1 d2)%I. *)
+  Definition t_dms : dms → dms → iProp Σ :=
+    fix t_dms (ds1 ds2: dms) : iProp Σ :=
+      match (ds1, ds2) with
+      | (nil, nil) => True
+      | (cons d1 ds1, cons d2 ds2) =>
+        t_dm d1 d2 ∧ t_dms ds1 ds2
+      | _ => False
+      end%I.
   Global Arguments t_dms _ /.
+
   (** Translation for value sequences [vls]. Probably unused. *)
-  Definition t_vls (σ: vls) (vs1 vs2: vls) : iProp Σ :=
-    ([∗ list] v1 ; v2 ∈ vs1 ; vs2 , t_vl σ v1 v2)%I.
+  Definition t_vls: vls → vls → iProp Σ :=
+    fix t_vls (vs1 vs2: vls) : iProp Σ :=
+      match (vs1, vs2) with
+      | (nil, nil) => True
+      | (cons d1 vs1, cons d2 vs2) =>
+        t_vl d1 d2 ∧ t_vls vs1 vs2
+      | _ => False
+      end%I.
+    (* ([∗ list] v1 ; v2 ∈ vs1 ; vs2 , t_vl σ v1 v2)%I. *)
 
   (** For each type T, we can save its interpretation in the ghost state.
       Caveat: you only want to use this on translated (semantic) types. Not to
@@ -117,13 +133,13 @@ Section Sec.
   Proof. by apply saved_interp_alloc. Qed.
 
   (** The translation relation is persistent. *)
-  Lemma t_ty_persistent t1 t2 σ: Persistent (t_ty σ t1 t2)
-  with  t_path_persistent t1 t2 σ: Persistent (t_path σ t1 t2)
-  with  t_vl_persistent t1 t2 σ: Persistent (t_vl σ t1 t2)
-  with  t_tm_persistent t1 t2 σ: Persistent (t_tm σ t1 t2)
-  with  t_dm_persistent t1 t2 σ: Persistent (t_dm σ t1 t2).
+  Lemma t_ty_persistent t1 t2: Persistent (t_ty t1 t2)
+  with  t_path_persistent t1 t2: Persistent (t_path t1 t2)
+  with  t_vl_persistent t1 t2: Persistent (t_vl t1 t2)
+  with  t_tm_persistent t1 t2: Persistent (t_tm t1 t2)
+  with  t_dm_persistent t1 t2: Persistent (t_dm t1 t2).
   Proof.
-    all: revert t1 t2 σ; induction t1; destruct t2;
+    all: revert t1 t2; induction t1; destruct t2;
       try (revert l0; induction l; destruct l0);
       simpl; try apply _.
   Qed.
@@ -133,9 +149,9 @@ Section Sec.
   Global Existing Instance t_tm_persistent.
   Global Existing Instance t_dm_persistent.
 
-  Lemma t_dms_persistent ds1 ds2 σ: Persistent (t_dms σ ds1 ds2).
+  Lemma t_dms_persistent ds1 ds2: Persistent (t_dms ds1 ds2).
   Proof.
-    revert ds1 ds2 σ; induction ds1; destruct ds2; simpl;
+    revert ds1 ds2; induction ds1; destruct ds2; simpl;
       try apply _.
   Qed.
   Global Existing Instance t_dms_persistent.
@@ -145,111 +161,92 @@ Section Sec.
    *)
 
   (** Existence of translations for type member definitions. *)
-  Lemma ex_t_dty T1 T2 σ:
-    t_ty σ T1 T2 -∗
-    (|==> ∃(d: dm), t_dm σ (dtysyn T1) d)%I.
+  Lemma ex_t_dty T1 T2 n:
+    fv_n T1 n →
+    t_ty T1 T2 -∗
+    (|==> ∃(d: dm), t_dm (dtysyn T1) d)%I.
   Proof.
     iMod (alloc_sp T2) as (γ) "#Hγ".
-    iIntros "#HT !> /=".
+    iIntros (Hcl) "#HT !> /=".
     rewrite /t_dty_syn2sem.
-    by iExists (dtysem σ γ), (dot_interp T2), T2; repeat iSplit.
+    iExists (dtysem (idsσ n) γ), (dot_interp T2), T2; repeat iSplit; trivial.
+    rewrite length_idsσ. iIntros. by rewrite (subst_sigma_idsσ ρ n).
   Qed.
 
   (** is_syn_* are predicates to distinguish syntactic entities/source syntax.
       They also check for free variables at the same time, but that's probably a bad idea.
    *)
-  Fixpoint is_syn_tm (n: nat) (t: tm): Prop :=
+  Fixpoint is_syn_tm (t: tm): Prop :=
     match t with
     | tv v =>
-      is_syn_vl n v
+      is_syn_vl v
     | tapp t1 t2 =>
-      is_syn_tm n t1 ∧ is_syn_tm n t2
+      is_syn_tm t1 ∧ is_syn_tm t2
     | tproj t l =>
-      is_syn_tm n t
+      is_syn_tm t
     | tskip t =>
-      is_syn_tm n t
+      is_syn_tm t
     end
   with
-  is_syn_vl (n: nat) (v1: vl): Prop :=
+  is_syn_vl (v1: vl): Prop :=
     match v1 with
-    | var_vl i => i < n
-    | vabs t => is_syn_tm (S n) t
+    | var_vl i => True
+    | vabs t => is_syn_tm t
     | vobj ds =>
-      let fix is_syn_dms (n: nat) (ds: dms): Prop :=
+      let fix is_syn_dms (ds: dms): Prop :=
           match ds with
           | nil => True
           | cons d ds =>
-            is_syn_dm n d ∧ is_syn_dms n ds
+            is_syn_dm d ∧ is_syn_dms ds
           end
         in
-          is_syn_dms (S n) ds
-    | vnat n => True
+          is_syn_dms ds
+    | vnat _ => True
     end
   with
-  is_syn_dm (n: nat) (d: dm): Prop :=
+  is_syn_dm (d: dm): Prop :=
     match d with
     (* Only nontrivial case *)
     | dtysyn T =>
-      is_syn_ty n T
+      is_syn_ty T
     | dtysem _ _ => False
-    | dvl v1 => is_syn_vl n v1
+    | dvl v1 => is_syn_vl v1
     end
   with
-  is_syn_path (n: nat) (p1: path): Prop :=
+  is_syn_path (p1: path): Prop :=
     match p1 with
-    | pv v => is_syn_vl n v
-    | pself p l => is_syn_path n p
+    | pv v => is_syn_vl v
+    | pself p l => is_syn_path p
     end
   with
-  is_syn_ty (n: nat) (T1: ty): Prop :=
+  is_syn_ty (T1: ty): Prop :=
     match T1 with
     | TTop => True
     | TBot => True
     | TAnd T1 T2 =>
-      is_syn_ty n T1 ∧ is_syn_ty n T2
+      is_syn_ty T1 ∧ is_syn_ty T2
     | TOr T1 T2 =>
-      is_syn_ty n T1 ∧ is_syn_ty n T2
+      is_syn_ty T1 ∧ is_syn_ty T2
     | TLater T1 =>
-      is_syn_ty n T1
+      is_syn_ty T1
     | TAll T1 T2 =>
-      is_syn_ty n T1 ∧ is_syn_ty (S n) T2
+      is_syn_ty T1 ∧ is_syn_ty T2
     | TMu T =>
-      is_syn_ty (S n) T
-    | TVMem l T => is_syn_ty n T
-    | TTMem l T1 T2 => is_syn_ty n T1 ∧ is_syn_ty n T2
-    | TSel p l => is_syn_path n p
-    | TSelA p l T1 T2 => is_syn_path n p ∧ is_syn_ty n T1 ∧ is_syn_ty n T2
+      is_syn_ty T
+    | TVMem l T => is_syn_ty T
+    | TTMem l T1 T2 => is_syn_ty T1 ∧ is_syn_ty T2
+    | TSel p l => is_syn_path p
+    | TSelA p l T1 T2 => is_syn_path p ∧ is_syn_ty T1 ∧ is_syn_ty T2
     | TNat => True
     end.
 
-  Definition is_syn_dms (n: nat) (ds: dms): Prop :=
-    Forall (is_syn_dm n) ds.
-
-  Ltac iModSpec H xt :=
-    iMod H as (xt) "#?"; try intuition eassumption.
-
-  Ltac pickSigmaInHp :=
-    cbn; repeat match goal with
-                  | H : context [?p _ ?t1 ] |- context [?p ?σ ?t1 _] =>
-                    let x := fresh "TEMP" in
-                    evar (x:nat);
-                    specialize (H σ x); subst x;
-                    let xt := fresh "t" in
-                    iModSpec H xt
-                  end.
-
-  Tactic Notation "finish" uconstr(p) := iIntros "!>"; iExists p; simpl; repeat iSplit; auto.
-  Tactic Notation "recursiveTransf" uconstr(p) := pickSigmaInHp; finish p.
-  Ltac fill :=
-    lazymatch goal with
-    | |- context [(∃ t2, ?p ?σ (?c ?t11 ?t12) t2)%I] =>
-      recursiveTransf (c _ _)
-    | |- context [(∃ t2, ?p ?σ (?c ?t11) t2)%I] =>
-      recursiveTransf (c _)
-    | |- context [(∃ t2, ?p ?σ ?c t2)%I] =>
-      recursiveTransf c
-    end.
-  Ltac skeleton σ n t1 := revert σ n; induction t1; intros * Hsyn; simpl in Hsyn; try solve [contradiction|fill].
+  Definition is_syn_dms: dms → Prop :=
+    fix is_syn_dms (ds: dms): Prop :=
+      match ds with
+      | nil => True
+      | cons d ds =>
+        is_syn_dm d ∧ is_syn_dms ds
+      end.
 
   (** BEWARE!
    Not using Admitted here, as it skips well-foundedness checks, which are
@@ -257,37 +254,74 @@ Section Sec.
   Axiom false: False.
   Ltac skipAdmit := exfalso; apply false.
 
-  Lemma ex_t_ty σ n t1: is_syn_ty n t1 -> (|==> ∃t2, t_ty σ t1 t2)%I
-  with  ex_t_path σ n t1: is_syn_path n t1 -> (|==> ∃t2, t_path σ t1 t2)%I
-  with  ex_t_vl σ n t1: is_syn_vl n t1 -> (|==> ∃t2, t_vl σ t1 t2)%I
-  with  ex_t_tm σ n t1: is_syn_tm n t1 -> (|==> ∃t2, t_tm σ t1 t2)%I
-  with  ex_t_dm σ n t1: is_syn_dm n t1 -> (|==> ∃t2, t_dm σ t1 t2)%I.
+  Ltac solve_inv_fv_congruence_h Hfv :=
+    move: Hfv; solve_inv_fv_congruence.
+
+  Ltac iModSpec Hfv H xt :=
+    iMod H as (xt) "#?"; try solve [simpl; intuition eassumption | solve_inv_fv_congruence_h Hfv].
+
+  Ltac tailPick Hfv H :=
+    let xt := fresh "t" in
+    (* idtac H; *)
+    iModSpec Hfv H xt; clear H.
+
+  Ltac pickSigmaInHp n Hfv :=
+    cbn; rewrite /fv_n /= in Hfv;
+    repeat match goal with
+           | H : context [(∃ _, ?p ?t1 _)%I ], H2 : context [?t1.|[up _]] |- context [?p ?t1 _] =>
+             specialize (H (S n)); tailPick Hfv H; try solve_inv_fv_congruence_h Hfv
+           | H : context [(∃ _, ?p ?t1 _)%I ], H2 : context [?t1.|[_]] |- context [?p ?t1 _] =>
+             specialize (H n); tailPick Hfv H; try solve_inv_fv_congruence_h Hfv
+           (* | H : context [(∃ _, ?p _ _)%I ], H2 : context [?t1.|[_]] |- context [_ ?t1 _] => *)
+           (*   idtac H; *)
+           (*   specialize (H n t1); tailPick Hfv H; try solve_inv_fv_congruence_h Hfv *)
+           end.
+
+  Tactic Notation "finish" uconstr(p) := iIntros "!>"; iExists p; simpl; repeat iSplit; auto.
+  Tactic Notation "recursiveTransf" uconstr(p) ident(n) ident(Hfv) := pickSigmaInHp n Hfv; finish p.
+
+  Ltac fill n Hfv :=
+    lazymatch goal with
+    | |- context [(∃ t2, ?p (?c ?t11 ?t12) t2)%I] =>
+      recursiveTransf (c _ _) n Hfv
+    | |- context [(∃ t2, ?p (?c ?t11) t2)%I] =>
+      recursiveTransf (c _) n Hfv
+    | |- context [(∃ t2, ?p ?c t2)%I] =>
+      recursiveTransf c n Hfv
+    end.
+  Ltac skeleton n t1 Hfv := revert n; induction t1; intros * Hfv Hsyn; simpl in Hsyn; try solve [contradiction|fill n Hfv].
+
+  Lemma ex_t_ty n t1: fv_n t1 n → is_syn_ty t1 → (|==> ∃t2, t_ty t1 t2)%I
+  with  ex_t_path n t1: fv_n t1 n → is_syn_path t1 -> (|==> ∃t2, t_path t1 t2)%I
+  with  ex_t_vl n t1: fv_n_vl t1 n → is_syn_vl t1 -> (|==> ∃t2, t_vl t1 t2)%I
+  with  ex_t_tm n t1: fv_n t1 n → is_syn_tm t1 -> (|==> ∃t2, t_tm t1 t2)%I
+  with  ex_t_dm n t1: fv_n t1 n → is_syn_dm t1 -> (|==> ∃t2, t_dm t1 t2)%I.
   (* with  ex_t_dms σ n t1: is_syn_dms n t1 -> (|==> ∃t2, t_dms σ t1 t2)%I. *)
   Proof.
-    - skeleton σ n t1.
-      + iModSpec (ex_t_path σ n p) p2. finish (TSel _ _).
-      + iModSpec (ex_t_path σ n p) p2. recursiveTransf (TSelA _ _ _ _).
-    - skeleton σ n t1.
-      + iModSpec (ex_t_vl σ n v) v2. finish (pv _).
-    - skeleton σ n t1.
-      + iModSpec (ex_t_tm (push_var σ) (S n) t) t2. finish (vabs _).
-      +
-        (* iModSpec (ex_t_dms (push_var σ) (S n) d) d2. finish (vobj _). *)
-        iInduction l as [|d ds] "IHl".
-        * by iExists (vobj []).
-        * ev.
-          iMod (ex_t_dm (push_var σ) (S n) d H0) as (d2) "#Hd".
-          iMod ("IHl" $! H1) as (v2) "#Hds". iClear "IHl".
-          destruct v2 as [ | | | ds2]; try done.
-          iExists (vobj (d2 :: ds2)).
-          iModIntro; by iSplit.
-    - skeleton σ n t1.
-      + iModSpec (ex_t_vl σ n v) v2. finish (tv _).
-    - skeleton σ n t1.
-      + iModSpec (ex_t_ty σ n t) t2. by iApply ex_t_dty.
-      + iModSpec (ex_t_vl σ n v) v2. finish (dvl _).
-    (* - skeleton σ n t1. *)
-    (*   + iModSpec (ex_t_dm σ n a) d2. recursiveTransf (cons _ _). *)
+
+  all: skeleton n t1 Hfv.
+  - iModSpec Hfv (ex_t_path n p) p2. recursiveTransf (TSel _ _) n Hfv.
+  - iModSpec Hfv (ex_t_path n p) p2. recursiveTransf (TSelA _ _ _ _) n Hfv.
+  - iModSpec Hfv (ex_t_vl n v) v2. recursiveTransf (pv _) n Hfv.
+  - iModSpec Hfv (ex_t_tm (S n) t) t2. recursiveTransf (vabs _) n Hfv.
+  - iInduction l as [|d ds] "IHl".
+    + by iExists (vobj []).
+    + ev.
+      have: fv_n d (S n). solve_inv_fv_congruence_h Hfv. move => Hcld.
+      iMod (ex_t_dm (S n) d Hcld H0) as (d2) "#Hd".
+
+      have: fv_n_vl (vobj ds) n. by eapply fv_vobj_ds_inv. move => Hclds.
+      iMod ("IHl" $! Hclds H1) as (v2) "#Hds". iClear "IHl".
+
+      destruct v2 as [ | | | ds2]; try done.
+      iExists (vobj (d2 :: ds2)).
+      iModIntro; by iSplit.
+
+  - iModSpec Hfv (ex_t_vl n v) v2. recursiveTransf (tv _) n Hfv.
+  - iModSpec Hfv (ex_t_ty n t) t2.
+    iApply (ex_t_dty _ _ n); try done.
+    solve_inv_fv_congruence_h Hfv.
+  - iModSpec Hfv (ex_t_vl n v) v2. recursiveTransf (dvl _) n Hfv.
   Qed.
 
   Fixpoint same_skel_tm (t1 t2: tm): Prop :=
@@ -355,22 +389,22 @@ Section Sec.
     | _ => False
     end.
 
-  Lemma translation_same_skel σ t t':
-    ( t_tm σ t t' → ⌜same_skel_tm t t'⌝)%I
-  with translation_same_ty σ t t':
-    ( t_ty σ t t' → ⌜same_skel_ty t t'⌝)%I
-  with translation_same_path σ t t':
-    ( t_path σ t t' → ⌜same_skel_path t t'⌝)%I
-  with translation_same_dm σ t t':
-    ( t_dm σ t t' → ⌜same_skel_dm t t'⌝)%I
-  (* with translation_same_skel_dms σ t t': *)
-  (*   ( t_dms σ t t' → ⌜same_skel_dms t t'⌝)%I *)
-  with translation_same_skel_vl σ t t':
-    ( t_vl σ t t' → ⌜same_skel_vl t t'⌝)%I.
+  Lemma translation_same_skel t t':
+    ( t_tm t t' → ⌜same_skel_tm t t'⌝)%I
+  with translation_same_ty t t':
+    ( t_ty t t' → ⌜same_skel_ty t t'⌝)%I
+  with translation_same_path t t':
+    ( t_path t t' → ⌜same_skel_path t t'⌝)%I
+  with translation_same_dm t t':
+    ( t_dm t t' → ⌜same_skel_dm t t'⌝)%I
+  (* with translation_same_skel_dms t t': *)
+  (*   ( t_dms t t' → ⌜same_skel_dms t t'⌝)%I *)
+  with translation_same_skel_vl t t':
+    ( t_vl t t' → ⌜same_skel_vl t t'⌝)%I.
   Proof.
     Ltac localAuto :=
       match goal with
-      | [ HH: context[?P _ _ _] |- context[?P _ _ _] ] => iApply HH; try done
+      | [ HH: context[?P _ _] |- context[?P _ _] ] => iApply HH; try done
       | _ => try done
       end.
     all: iIntros "Hyp";
@@ -381,6 +415,7 @@ Section Sec.
       try (iDestruct "Hyp1" as "[Hyp11 Hyp12]");
       try (iDestruct "Hyp2" as "[Hyp21 Hyp22]");
       try (iDestruct "Hyp22" as "[Hyp221 Hyp222]"); localAuto.
+
     iInduction l as [| d l] "IHl" forall (l0); destruct l0 as [|d0 l0]; try done.
     repeat iSplit;
       try (iDestruct "Hyp" as "[Hyp1 Hyp2]"); localAuto.
