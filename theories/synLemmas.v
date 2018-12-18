@@ -84,7 +84,7 @@ Lemma closed_to_subst ρ x: cl_ρ ρ → x < length ρ → fv_n_vl (to_subst ρ 
   by apply IHρ; try omega.
 Qed.
 
-Lemma fv_to_subst `{ia: Ids A} `{ha: HSubst vl A} `{@HSubstLemmas vl A Ids_vl Subst_vl ia ha} (a: A) ρ:
+Lemma fv_to_subst `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A) ρ:
   fv_n a (length ρ) → cl_ρ ρ →
   fv_n (a.|[to_subst ρ]) 0.
 Proof.
@@ -102,23 +102,29 @@ Proof.
   intros x Hl; asimpl; rewrite !(closed_subst_vl_id (to_subst ρ x)); auto using closed_to_subst.
 Qed.
 
+Implicit Types (T: ty).
+Lemma lookup_success Γ x T: Γ !! x = Some T → x < length Γ.
+Proof. apply lookup_lt_Some. Qed.
+
+Lemma lookup_fv Γ x T: Γ !! x = Some T → fv_n (tv (var_vl x)) (length Γ).
+Proof. rewrite /fv_n /fv_n_vl => * /=; f_equiv; eauto using lookup_success. Qed.
+
+(** Not yet used. *)
+Lemma eq_n_s_mon {n s1 s2}: eq_n_s s1 s2 (S n) → eq_n_s s1 s2 n.
+Proof. rewrite /eq_n_s => HsEq x Hl; apply HsEq; omega. Qed.
+
+(** The following ones are "direct" lemmas: deduce that an expression is closed
+    by knowing that its subexpression are closed. *)
+
 (** Needed by solve_fv_congruence when dealing with binders, such as in fv_vobj and fv_vabs. *)
 Lemma eq_up s1 s2 n: eq_n_s s1 s2 n → eq_n_s (up s1) (up s2) (S n).
 Proof.
   rewrite /up. move => Heq [|x] Hl //=. f_equiv. apply Heq. omega.
 Qed.
 
-(** Lemmas on fv for various constructors. Their proofs are mostly similar. *)
-
-(** This proof is for an "inverse" lemma: deduce that v is closed by knowing that v is closed. *)
-Lemma fv_tv_inv v n: fv_n (tv v) n → fv_n_vl v n.
-Proof.
-  rewrite /fv_n_vl /fv_n /= => Hcl s1 s2 HsEq. by injection (Hcl s1 s2 HsEq).
-Qed.
-
+(** Automated proof for such lemmas. *)
 Ltac solve_fv_congruence := rewrite /fv_n /fv_n_vl => * /=; f_equiv; auto using eq_up.
-(** The following ones are "direct" lemmas: deduce that an expression is closed
-    by knowing that its subexpression are closed. *)
+
 Lemma fv_tskip e n: fv_n e n → fv_n (tskip e) n.
 Proof. solve_fv_congruence. Qed.
 
@@ -140,9 +146,63 @@ Proof. solve_fv_congruence. Qed.
 Lemma fv_dvl v n: fv_n_vl v n → fv_n (dvl v) n.
 Proof. solve_fv_congruence. Qed.
 
-Implicit Types (T: ty).
-Lemma lookup_success Γ x T: Γ !! x = Some T → x < length Γ.
-Proof. apply lookup_lt_Some. Qed.
+(** The following ones are "inverse" lemmas: by knowing that an expression is closed,
+    deduce that one of its subexpressions is closed *)
 
-Lemma lookup_fv Γ x T: Γ !! x = Some T → fv_n (tv (var_vl x)) (length Γ).
-Proof. rewrite /fv_n /fv_n_vl => * /=; f_equiv; eauto using lookup_success. Qed.
+(** Dealing with binders in fv "inverse" lemmas requires more infrastructure. See fv_vabs_inv_manual for an explanation. *)
+
+Definition stail s := ren (+1) >> s.
+Definition shead (s: var → vl) := s 0.
+
+Lemma eq_n_s_tails {n s1 s2}: eq_n_s s1 s2 (S n) → eq_n_s (stail s1) (stail s2) n.
+Proof. rewrite /stail => /= HsEq x Hl. apply HsEq. omega. Qed.
+Lemma eq_n_s_heads {n s1 s2}: eq_n_s s1 s2 n → n > 0 → shead s1 = shead s2.
+Proof. rewrite /shead => /= HsEq. apply HsEq. Qed.
+
+Lemma decomp_s `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A) s:
+  a.|[s] = a.|[up (stail s)].|[shead s/].
+Proof. by rewrite /stail /shead; asimpl. Qed.
+
+Lemma decomp_s_vl v s:
+  v.[s] = v.[up (stail s)].[shead s/].
+Proof. by rewrite /stail /shead; asimpl. Qed.
+
+(** Rewrite thesis with equalities learned from injection, if possible *)
+Ltac rewriteHyps := let H := fresh "H" in repeat (move => H; rewrite ?H {H}).
+
+Ltac solve_inv_fv_congruence_up_body Hfv s1 s2 HsEq :=
+  rewrite ?(decomp_s _ s1) ?(decomp_s _ s2) ?(decomp_s_vl _ s1) ?(decomp_s_vl _ s2) (eq_n_s_heads HsEq); last (by omega);
+  injection (Hfv _ _ (eq_n_s_tails HsEq)); by rewriteHyps.
+Ltac solve_inv_fv_congruence_body Hfv s1 s2 HsEq :=
+  by [ injection (Hfv s1 s2 HsEq) | solve_inv_fv_congruence_up_body Hfv s1 s2 HsEq ].
+
+Ltac solve_inv_fv_congruence :=
+  let s1 := fresh "s1" in
+  let s2 := fresh "s2" in
+  let HsEq := fresh "HsEq" in
+  let Hfv := fresh "Hfv" in
+  rewrite /fv_n_vl /fv_n /= => Hfv s1 s2 HsEq; solve_inv_fv_congruence_body Hfv s1 s2 HsEq.
+
+Lemma fv_tv_inv v n: fv_n (tv v) n → fv_n_vl v n.
+Proof. solve_inv_fv_congruence. Qed.
+
+Lemma fv_vabs_inv e n: fv_n_vl (vabs e) n → fv_n e (S n).
+Proof. solve_inv_fv_congruence. Qed.
+Lemma fv_TAll_inv_2 n T1 T2: fv_n (TAll T1 T2) n → fv_n T2 (S n).
+Proof. solve_inv_fv_congruence. Qed.
+Lemma fv_TAll_inv_1 n T1 T2: fv_n (TAll T1 T2) n → fv_n T1 n.
+Proof. solve_inv_fv_congruence. Qed.
+
+Lemma fv_vabs_inv_manual e n: fv_n_vl (vabs e) n → fv_n e (S n).
+Proof.
+  rewrite /fv_n_vl /fv_n => /= Hfv s1 s2 HsEq.
+
+  (** From Hfv, we only learn that [e.|[up s1] = e.|[up s2]], for arbitrary [s1]
+      and [s2], but substitutions in our thesis [e.|[s1] = e.|[s2]] are not of form [up ?].
+      Hence, we rewrite it using [decomp_s] / [decomp_s_vl] to get a
+      substitution of form [up ?], then rewrite with [e.|[up (stail s1)] =
+      e.|[up (stail s2)]] (got from [Hfv]), and conclude.
+      *)
+  rewrite ?(decomp_s _ s1) ?(decomp_s _ s2) ?(decomp_s_vl _ s1) ?(decomp_s_vl _ s2) (eq_n_s_heads HsEq); last (by omega).
+  injection (Hfv _ _ (eq_n_s_tails HsEq)); rewriteHyps; reflexivity.
+Qed.
