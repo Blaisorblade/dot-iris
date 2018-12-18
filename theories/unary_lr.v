@@ -380,8 +380,8 @@ Section logrel_lemmas.
       iIntros (x Hxl). asimpl.
       iPoseProof (to_subst_closed Γ ρ x Hxl with "HG") as "%". move :H => Hclx.
       iPureIntro.
-      rewrite (Hclx (ren (+length ρ)) ids); first by asimpl.
-      intros; omega.
+      rewrite (Hclx (ren (+length ρ)) ids) /=; first by asimpl.
+      intros. omega.
     }
     rewrite (Hcl (to_subst ρ >> ren (+length ρ)) (to_subst ρ)); last by [].
     by rewrite Hren.

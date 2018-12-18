@@ -42,14 +42,14 @@ Section Sec.
   Qed.
 
   Lemma Sub_Refl T i : Γ ⊨ [T, i] <: [T, i].
-  Proof. by iIntros "/= !> * _ HT". Qed.
+  Proof. by iIntros "/= !> * _" (Hcl) " HT". Qed.
 
   Lemma Sub_Trans T1 T2 T3 i1 i2 i3 : (Γ ⊨ [T1, i1] <: [T2, i2] →
                                        Γ ⊨ [T2, i2] <: [T3, i3] →
                                        Γ ⊨ [T1, i1] <: [T3, i3])%I.
   Proof.
-    iIntros "#Hsub1 #Hsub2 /= !> * #Hg #HT".
-    iApply "Hsub2"; first done. by iApply "Hsub1".
+    iIntros "#Hsub1 #Hsub2 /= !> * #Hg % #HT".
+    iApply "Hsub2"; try done. by iApply "Hsub1".
   Qed.
 
   Lemma Sub_Mono e T i :
@@ -81,9 +81,9 @@ Section Sec.
   Qed.
 
   Lemma And1_Sub T1 T2 i: Γ ⊨ [TAnd T1 T2, i] <: [T1, i].
-  Proof. by iIntros "/= !> * ? [? ?]". Qed.
+  Proof. by iIntros "/= !> * ? % [? ?]". Qed.
   Lemma And2_Sub T1 T2 i: Γ ⊨ [TAnd T1 T2, i] <: [T2, i].
-  Proof. by iIntros "/= !> * ? [? ?]". Qed.
+  Proof. by iIntros "/= !> * ? % [? ?]". Qed.
 
   (* Lemma stp_andi T1 T2 ρ v: *)
   (*   ⟦T1⟧ ρ v -∗ *)
@@ -96,9 +96,9 @@ Section Sec.
     Γ ⊨ [S, i] <: [T2, j] -∗
     Γ ⊨ [S, i] <: [TAnd T1 T2, j].
   Proof.
-    iIntros "/= #H1 #H2 !> * #Hg #HS".
-    iSpecialize ("H1" with "Hg HS").
-    iSpecialize ("H2" with "Hg HS").
+    iIntros "/= #H1 #H2 !> * #Hg #Hcl #HS".
+    iSpecialize ("H1" with "Hg Hcl HS").
+    iSpecialize ("H2" with "Hg Hcl HS").
     iModIntro; by iSplit.
   Qed.
 
@@ -111,7 +111,7 @@ Section Sec.
     Γ ⊨ [T1, i] <: [S, j] -∗
     Γ ⊨ [T2, i] <: [S, j] -∗
     Γ ⊨ [TOr T1 T2, i] <: [S, j].
-  Proof. iIntros "/= #H1 #H2 !> * #Hg #[HT1 | HT2]"; by [iApply "H1" | iApply "H2"]. Qed.
+  Proof. iIntros "/= #H1 #H2 !> * #Hg #Hcl #[HT1 | HT2]"; by [iApply "H1" | iApply "H2"]. Qed.
 
   Lemma Sub_Top T i:
     Γ ⊨ [T, i] <: [TTop, i].
@@ -131,10 +131,10 @@ Section Sec.
     (iterate TLater i T1 :: Γ ⊨ [T1, i] <: [T2, j] →
      Γ ⊨ [TMu T1, i] <: [TMu T2, j])%I.
   Proof.
-    iIntros "/= #Hstp !> * #Hg #HT1".
+    iIntros "/= #Hstp !> * #Hg #Hcl #HT1".
     iApply ("Hstp" $! (v :: ρ) _);
       rewrite ?iterate_TLater_later //; repeat iSplit; try done.
-  Admitted.
+  Qed.
 
   (*
      Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂
@@ -146,10 +146,10 @@ Section Sec.
     (iterate TLater i T1 :: Γ ⊨ [T1, i] <: [T2.|[ren (+1)], j] →
      Γ ⊨ [TMu T1, i] <: [T2, j])%I.
   Proof.
-    iIntros "/= #Hstp !> * #Hg #HT1".
+    iIntros "/= #Hstp !> * #Hg #Hcl #HT1".
     iApply (interp_weaken_one v).
     iApply ("Hstp" $! (v :: ρ)); rewrite ?iterate_TLater_later //; repeat iSplit; try done.
-  Admitted.
+  Qed.
 
   (*
      Γ, z: T₁ᶻ ⊨ T₁ <: T₂ᶻ
@@ -160,10 +160,10 @@ Section Sec.
     (iterate TLater i T1.|[ren (+1)] :: Γ ⊨ [T1.|[ren (+1)], i] <: [T2, j] →
     Γ ⊨ [T1, i] <: [TMu T2, j])%I.
   Proof.
-    iIntros "/= #Hstp !> * #Hg #HT1".
+    iIntros "/= #Hstp !> * #Hg #Hcl #HT1".
     rewrite -(interp_weaken_one v T1 ρ v).
     iApply ("Hstp" $! (_ :: _) _); rewrite ?iterate_TLater_later //; repeat iSplit; try done.
-  Admitted.
+  Qed.
 
   Lemma T_Forall_E e1 e2 T1 T2:
     (Γ ⊨ e1: TAll T1 T2.|[ren (+1)] →

@@ -21,7 +21,7 @@ Section Sec.
     ivtp Γ (TLater T) v -∗
     idtp Γ (TVMem l T) l (dvl v).
   Proof with (try done).
-    iIntros "/= [% #Hv]". iSplit; auto 3.
+    iIntros "/= [% #Hv]". iSplit; auto 3 using fv_dvl.
     iIntros "!> * #Hg /=".
     iSplit... iExists _; iSplit... by iApply "Hv".
   Qed.
@@ -137,7 +137,7 @@ Section Sec.
     idstp (TLater T :: Γ) T ds ⊢
     ietp Γ (TMu T) (tv (vobj ds)).
   Proof.
-    iIntros "/= [% #Hds]". iSplit.
+    iIntros "/= [% #Hds]". move: H => Hclds. iSplit; auto using fv_tv, fv_vobj.
 
 
     iIntros " !> * #Hρ".
@@ -147,7 +147,13 @@ Section Sec.
     (* set (v0 := (vobj ds).[to_subst ρ]). *)
     iApply wip_hard.
     iApply "Hds".
-    auto.
+    repeat iSplit; try done.
+    iPoseProof (interp_env_len_agree with "Hρ") as "%". move: H => Hlen.
+    iPoseProof (interp_env_closed with "Hρ") as "%". move: H => Hclρ.
+    iPureIntro.
+    rewrite <- Hlen in *.
+    (* auto using fv_to_subst_vl, fv_vobj. *)
+    apply fv_to_subst_vl; auto using fv_vobj.
   Qed.
 
   (* Lemma dtp_new_i T ds ρ: *)
@@ -171,10 +177,10 @@ Section Sec.
     idtp Γ (TTMem l T T) l (dtysem ρ1 γ).
   Proof.
     unfold idtp.
-    iIntros "/= #Hγ !> **".
+    iIntros "/= #Hγ". iSplit. admit. iIntros " !> **".
     iSplit; try done.
     iExists (interp T), _. iSplit; first auto.
-    iModIntro; repeat iSplitL; iIntros "**".
+    iModIntro; repeat iSplitL; iIntros "**"; try done.
   Abort.
 
 End Sec.
