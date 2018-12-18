@@ -227,6 +227,9 @@ Hint Rewrite dms_hsubst_fold : autosubst.
 Lemma ctx_hsubst_fold sb (Γ : ctx) : map (hsubst sb) Γ = hsubst sb Γ.
 Proof. trivial. Qed.
 Hint Rewrite ctx_hsubst_fold : autosubst.
+Arguments dms_hsubst /.
+Arguments vls_hsubst /.
+Arguments ctx_hsubst /.
 
 Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
 with
@@ -372,18 +375,18 @@ Qed.
 
 Instance HSubstLemmas_vls : HSubstLemmas vl vls.
 Proof.
-  split; trivial; intros; rewrite /hsubst /vls_hsubst;
-    elim s => * //=; asimpl; by f_equal.
+  split; trivial; intros; rewrite /hsubst;
+    induction s; asimpl; by f_equal.
 Qed.
 
 Instance HSubstLemmas_dms : HSubstLemmas vl dms.
 Proof.
-  split; trivial; intros; rewrite /hsubst /dms_hsubst;
-    elim s => * //=; asimpl; by f_equal.
+  split; trivial; intros; rewrite /hsubst;
+    induction s; asimpl; by f_equal.
 Qed.
 
 Instance HSubstLemmas_ctx : HSubstLemmas vl ctx.
 Proof.
-  split; trivial; intros; rewrite /hsubst /ctx_hsubst;
-    induction s; asimpl in *; by f_equal.
+  split; trivial; intros; rewrite /hsubst;
+    induction s; asimpl; by f_equal.
 Qed.
