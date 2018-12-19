@@ -34,7 +34,7 @@ Section fundamental.
     is_syn_ty T.
   Admitted.
 
-  (* Check all types are syntactic. The number of free varibles changes. Probably drop free variable count from is_syn_*. *)
+  (* Check all types are syntactic. *)
   Definition is_syn_ctx Γ := Forall is_syn_ty Γ.
 
   Lemma typed_ctx_is_syn Γ e T:
@@ -56,6 +56,17 @@ Section fundamental.
       { by iApply "C". }
     iIntros (v) "HT'". iModIntro. by iApply (translations_types_equivalent_vals T T' T'').
   Qed.
+
+  (* What we actually want is closer to:
+
+  (* Check all types are translated. *)
+  Definition t_ctx Γ Γ' := Forall2 t_ty Γ Γ'.
+  Fixpoint fundamental Γ e T Γ' e' T' (HT: Γ ⊢ₜ e : T) {struct HT}:
+  (* Lemma not_yet_fundamental Γ e T e' T' (HT: Γ ⊢ₜ e : T): *)
+    t_ctx Γ Γ' → (t_tm e e' → t_ty T T' → |==> Γ' ⊨ e' : T')%I.
+
+  Except we need an "Iris" Forall2. Gotta run but I know a few ways.
+   *)
 
   Fixpoint not_yet_fundamental Γ e T e' T' (HT: Γ ⊢ₜ e : T) {struct HT}:
   (* Lemma not_yet_fundamental Γ e T e' T' (HT: Γ ⊢ₜ e : T): *)
