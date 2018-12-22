@@ -106,70 +106,120 @@ Section Sec.
     defs_interp (TAnd T U) ρ (cons d ds).
   Proof. naive_solver. Qed.
 
+  Lemma index_cons d ds: reverse (d :: ds) !! length ds = Some d.
+  Proof. Admitted.
+
+  Lemma index_lookup l d ds: l = length ds → reverse (d :: ds) !! l = Some d.
+  Proof.
+    (* elim: ds d => //= d' ds IHd d. *)
+    (* asimpl. *)
+    (* rewrite /lookup /list_lookup /=. *)
+  Admitted.
+
+  Lemma obj_lookup_cons d ds: vobj (d :: ds) @ length ds ↘ d.|[vobj (d :: ds)/].
+  Proof.
+    hnf. eexists; split; trivial.
+    rewrite /selfSubst /=. apply index_lookup. by rewrite map_length.
+  Qed.
+
+  Lemma def_interp_to_interp T d ds ρ s:
+    let v0 := (vobj (d :: ds)).[s] in
+    def_interp T (length ds) ρ (d.|[v0 .: s]) ⊢
+    interp T ρ v0.
+  Proof.
+    induction T; simpl; iIntros "H"; trivial;
+      asimpl; set (d' := d.|[up s]); set (ds' := ds.|[up s]);
+      iDestruct "H" as "[% #H]";
+      move: H => Hlen; rewrite <- Hlen.
+
+    - iDestruct "H" as (vmem) "[#H1 #H2]".
+      iExists (d'.|[vobj (d' :: ds')/]). iSplit.
+      + iPureIntro.
+        assert (length ds = length ds') as ->. by rewrite /ds' /hsubst map_length.
+          by apply obj_lookup_cons.
+      + iExists _; iSplit; trivial.
+        subst d'. by asimpl.
+    -
+      iDestruct "H" as (φ σ) "[#Hl [#? [#? #?]]]".
+      iDestruct "Hl" as (γ) "[% #Hγ]". move: H => Hl.
+      iExists (d'.|[vobj (d' :: ds')/]); iSplit.
+      + iPureIntro.
+        assert (length ds = length ds') as ->. by rewrite /ds' /hsubst map_length.
+        apply obj_lookup_cons.
+      + iExists φ, σ; iSplit; trivial.
+        * iExists γ.
+          subst d'. asimpl.
+          auto.
+        * iModIntro. repeat iSplitL; naive_solver.
+  Qed.
+
   (* Check that Löb induction works as expected for proving introduction of
-   * objects. Using Löb induction works easily, but the scoping in the statement should be
-   * checked (but might be okay now).
-   * What I should prove is the following, and the correct statement
-   * involves closing substitutions!
+   * objects. Using Löb induction works easily.
    *
    * Γ, x: ▷ T ⊨ ds : T
    * ---------------------
    * Γ ⊨ nu x. ds : μ x. T
-   *
-   * It also seems this would be easier to prove if TMu *weakened* the value;
-   * the current definition is OK for closed v, but we never make that explicit
-   * and Autosubst doesn't seem to happy to talk about closed terms.
-   *
-    Program Definition interp_mu (interp : envD) : envD := uncurryD (λne ρ, λne v,
-      (curryD interp (v::ρ) v.[up (ren var_vl)])) % I.
    *)
-  Lemma wip_hard T ds ρ:
-    let v0 := (vobj ds).[to_subst ρ] in
-    defs_interp T (v0 :: ρ) (ds.|[to_subst (v0 :: ρ)]) ⊢
-    interp T (v0 :: ρ) v0.
+  (* Formerly wip_hard. *)
+  Lemma defs_interp_to_interp T ds ρ s:
+    let v0 := (vobj ds).[s] in
+    defs_interp T ρ (ds.|[v0 .: s]) ⊢
+    interp T ρ v0.
+  Proof.
+    induction ds; asimpl; iIntros "H".
+    - destruct T; simpl; trivial.
+    - simpl in IHds.
+      destruct T; trivial.
+      Fail iApply dtp_tand_i.
+      Fail iApply IHds.
+      Restart.
+    
+    revert ds.
+    induction T; simpl; iIntros (ds) "H"; trivial.
+    destruct ds; simpl; first done. rewrite map_length.
+    iDestruct "H" as "[#H1 #H2]".
+    iSplit.
+    2: {
+      iApply (def_interp_to_interp T2 d ds ρ s).
+      iApply "H2".
+    }
+    - asimpl.
+      iApply (IHT1 (d :: ds)).
+      iAssert (⟦ T1 ⟧ ρ (vobj (ds.|[up s]))) as "H3".
+
+      (* iApply (IHT1 (d :: ds)). *)
+      (* set (d' := d.|[up (to_subst ρ)]). *)
+      (* set (ds' := ds.|[up (to_subst ρ)]). *)
+      (* change (ds.|[up (to_subst ρ)]) with ds'. *)
+
+    (* simpl. *)
+    (* induction T; rewrite /defs_interp => //=; fold defs_interp; *)
+    (* try solve [iIntros; try done]. *)
   Admitted.
 
-  (* XXX Seems needed for idtp_new_i as stated, but the scoping seems all wrong.
-   * Instead, we need to use closing substitutions in both sides of the lemma;
-   * Still missing: use of closing substitutions in the term. TODO: follow examples.
-   *)
-  Lemma idstp_new_i T ds:
-    idstp (TLater T :: Γ) T ds ⊢
-    ietp Γ (TMu T) (tv (vobj ds)).
+  Lemma T_New_I T ds:
+     (TLater T :: Γ ⊨ds ds : T →
+     Γ ⊨ tv (vobj ds) : TMu T)%I.
   Proof.
     iIntros "/= [% #Hds]". move: H => Hclds. iSplit; auto using fv_tv, fv_vobj.
 
 
     iIntros " !> * #Hρ".
-    change ((tv (vobj ds)).|[to_subst ρ]) with (tv (vobj ds).[to_subst ρ]).
-    iApply wp_value.
-    iLöb as "IH".
-    (* set (v0 := (vobj ds).[to_subst ρ]). *)
-    iApply wip_hard.
-    iApply "Hds".
-    repeat iSplit; try done.
     iPoseProof (interp_env_len_agree with "Hρ") as "%". move: H => Hlen.
     iPoseProof (interp_env_closed with "Hρ") as "%". move: H => Hclρ.
-    iPureIntro.
     rewrite <- Hlen in *.
-    (* auto using fv_to_subst_vl, fv_vobj. *)
-    apply fv_to_subst_vl; auto using fv_vobj.
+    iApply wp_value.
+    change (vobj ds.|[up (to_subst ρ)]) with ((vobj ds).[to_subst ρ]).
+    iLöb as "IH".
+    iApply defs_interp_to_interp.
+    iPoseProof ("Hds" $! (vobj ds.|[up (to_subst ρ)] :: ρ)) as "H".
+    asimpl.
+    iApply "H".
+    repeat iSplit; eauto 7 using fv_to_subst_vl, fv_vobj.
+    iPureIntro.
+    pose proof (fv_to_subst_vl (vobj ds) ρ). asimpl in H.
+    auto using fv_vobj.
   Qed.
-
-  (* Lemma dtp_new_i T ds ρ: *)
-  (*   defs_interp T (vobj ds :: ρ) ds *)
-  (*   ⊢ *)
-  (*   interp (TMu T) ρ (vobj ds). *)
-  (* Proof. iIntros. simpl. iApply wip_hard. Qed. *)
-
-
-    (*
-  "Hds" : ⟦ Γ ⟧* ρ ∗ ▷ (uinterp T) (vobj ds :: ρ, vobj ds) -∗ (defs_uinterp T) (vobj ds :: ρ, ds)
-  "Hρ" : ⟦ Γ ⟧* ρ
-  --------------------------------------□
-  (uinterp T) (vobj ds :: ρ, vobj ds)
-
-    *)
 
   (* Still wrong. The correct statement will arise from the translation. *)
   Lemma idtp_tmem_i T γ l ρ1:
