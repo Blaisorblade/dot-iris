@@ -95,11 +95,10 @@ Section fundamental.
       
 
     - 
-      (* I'm careful with simplification to avoid unfolding too much. *)
-      set (e2 := tv v2).
+      (*
+
       cbn [t_tm] in * |- *; case_match; try done.
       iDestruct "HtrE" as "[Htr1 Htr2]".
-      unfold e2.
       iEval (cbn [t_tm]) in "Htr2"; case_match; try done; fold (t_vl [] v2 v).
       iAssert (t_tm [] (tv v2) (tv v)) as "#Ht2"; first done.
       iMod (ex_t_ty [] (length Γ) T1) as (T1') "#HTTr".
@@ -107,6 +106,7 @@ Section fundamental.
       iPoseProof (not_yet_fundamental Γ e1 _ _ _ HT1 with "Htr1") as "HsT1".
       iMod (not_yet_fundamental Γ (tv v2) _ _ _ HT2 with "Ht2 HTTr") as (Γ') "#HsT2".
 
+       *)
     (* pose proof (typed_tm_is_syn Γ e T HT) as HeSyn. *)
     (* pose proof (typed_ty_is_syn Γ e T HT) as HTSyn. *)
     (* pose proof (typed_ctx_is_syn Γ e T HT) as HΓSyn. *)
