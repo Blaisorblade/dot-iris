@@ -23,6 +23,97 @@ Ltac objLookupDet :=
     assert (d2 = d1) as ? by (eapply objLookupDet; eassumption); injectHyps
   end.
 
+(** Auxiliary definitions to prove [lookup_reverse_length], since a direct inductive proof appers to fail (but
+see rev_append_map for an approach that has a chance). *)
+Fixpoint indexr {X} (i: nat) (xs: list X) : option X :=
+  match xs with
+  | [] => None
+  | x :: xs =>
+    if decide (i = length xs) then Some x else indexr i xs
+  end.
+
+Lemma indexr_max {X} (T: X) i vs:
+                       indexr i vs = Some T ->
+                       i < length vs.
+Proof.
+  induction vs; first done; rewrite /lt in IHvs |- *; move => /= H.
+  case_decide; subst; [ lia | eauto ].
+Qed.
+Hint Resolve indexr_max.
+
+Lemma lookup_reverse_indexr {X} (ds: list X) l: reverse ds !! l = indexr l ds.
+Proof.
+  elim: ds l => [|d ds IHds] l //=.
+  case_decide; subst.
+  - rewrite reverse_cons lookup_app_r reverse_length ?Nat.sub_diag //=.
+  - case (decide (l < length ds)) => Hl.
+    + rewrite reverse_cons lookup_app_l ?reverse_length //=.
+    + assert (l > length ds) by omega.
+      assert (indexr l ds = None). {
+        destruct (indexr l ds) eqn:? => //.
+        assert (l < length ds) by (eapply indexr_max; eauto); lia.
+      }
+      rewrite lookup_ge_None_2 ?reverse_length //=.
+Qed.
+
+Lemma lookup_reverse_length {X} l (d: X) ds: l = length ds → reverse (d :: ds) !! l = Some d.
+Proof.
+  intros; subst. rewrite lookup_reverse_indexr /=. case_decide => //=.
+Qed.
+
+Lemma obj_lookup_cons d ds: vobj (d :: ds) @ length ds ↘ d.|[vobj (d :: ds)/].
+Proof.
+  hnf. eexists; split; trivial.
+  rewrite /selfSubst /=. apply lookup_reverse_length. by rewrite map_length.
+Qed.
+
+Lemma indexr_extend {X} vs n x (T: X):
+                       indexr n vs = Some T ->
+                       indexr n (x::vs) = Some T.
+Proof.
+  move => H /=; assert (n < length vs) by naive_solver; by case_decide; first lia.
+Qed.
+Hint Resolve indexr_extend.
+
+Lemma lookup_reverse_extend {X} l (d: X) ds:
+  reverse ds !! l = Some d →
+  reverse (d :: ds) !! l = Some d.
+Proof.
+  intros; subst. rewrite -> lookup_reverse_indexr in *. by apply indexr_extend.
+Qed.
+
+Lemma rev_append_map {X Y} (xs1 xs2: list X) (f: X → Y): rev_append (map f xs1) (map f xs2) = map f (rev_append xs1 xs2).
+Proof.
+  elim: xs1 xs2 => [|x xs1 IH] xs2 //=. eapply (IH (x :: xs2)).
+Qed.
+Lemma reverse_map {X Y} (xs: list X) (f: X → Y): reverse (map f xs) = map f (reverse xs).
+Proof. rewrite /reverse. eapply (rev_append_map xs []). Qed.
+
+Lemma lookup_map {X Y} x (xs: list X) (f: X → Y) l: xs !! l = Some x → map f xs !! l = Some (f x).
+Proof.
+  elim: xs l => /= [|x' xs IH] [|l] //= Hl; by [cinject Hl | apply IH].
+Qed.
+
+(* Lemma lookup_map_inv {X Y} x (xs: list X) (f: X → Y) l: map f xs !! l = Some (f x) → xs !! l = Some x. *)
+(* Proof. *)
+(*   elim: xs l => [|x' xs IH] [|l] //=. (* ONLY FOR F INDUCTIVE! *) *)
+
+(* Lemma obj_lookup_extend d ds l: *)
+(*   vobj ds @ l ↘ d.|[vobj ds/] → *)
+(*   vobj (d :: ds) @ l ↘ d.|[vobj (d :: ds)/]. *)
+(* Proof. *)
+(*   hnf. *)
+(*   intros (ds0 & Heq & Hl). cinject Heq. *)
+(*   eexists; split; trivial. *)
+(*   move: Hl. rewrite /selfSubst /lookup_reverse_indexr /= => Hl. *)
+(*   apply lookup_reverse_extend. *)
+(*   move: Hl. rewrite /hsubst /HSubst_dm !reverse_map => Hl. *)
+(*   apply lookup_map. apply lookup_map_inv in Hl. apply Hl. *)
+(*   (* eauto using lookup_map, lookup_map_inv. *) *)
+(* Qed. *)
+
+
+(* Auxiliary lemma for [length_idsσ]. *)
 Lemma length_idsσr n r: length (idsσ n).|[ren r] = n.
 Proof.
   elim : n r => [r | n IHn r] => //.

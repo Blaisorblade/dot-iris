@@ -105,22 +105,6 @@ Section Sec.
     defs_interp (TAnd T U) ρ (cons d ds).
   Proof. naive_solver. Qed.
 
-  Lemma index_cons d ds: reverse (d :: ds) !! length ds = Some d.
-  Proof. Admitted.
-
-  Lemma index_lookup l d ds: l = length ds → reverse (d :: ds) !! l = Some d.
-  Proof.
-    (* elim: ds d => //= d' ds IHd d. *)
-    (* asimpl. *)
-    (* rewrite /lookup /list_lookup /=. *)
-  Admitted.
-
-  Lemma obj_lookup_cons d ds: vobj (d :: ds) @ length ds ↘ d.|[vobj (d :: ds)/].
-  Proof.
-    hnf. eexists; split; trivial.
-    rewrite /selfSubst /=. apply index_lookup. by rewrite map_length.
-  Qed.
-
   Lemma def_interp_to_interp T d ds ρ s:
     let v0 := (vobj (d :: ds)).[s] in
     def_interp T (length ds) ρ (d.|[v0 .: s]) ⊢
