@@ -235,6 +235,8 @@ End logrel.
 Notation "⟦ T ⟧" := (interp T).
 Notation "⟦ Γ ⟧*" := (interp_env Γ).
 Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
+
+Notation "Γ ⊨ds ds : T" := (idstp Γ T ds) (at level 74, ds, T at next level).
 Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
 
