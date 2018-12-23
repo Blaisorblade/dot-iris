@@ -226,7 +226,7 @@ Proof.
 Qed.
 
 (** Automated proof for such lemmas. *)
-Ltac solve_fv_congruence := rewrite /fv_n /fv_n_vl => * /=; f_equiv; auto using eq_up.
+Ltac solve_fv_congruence := rewrite /fv_n /fv_n_vl => * /=; f_equiv; solve [(idtac + asimpl); auto using eq_up].
 
 Implicit Types
          (L U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
@@ -254,9 +254,7 @@ Lemma fv_dvl v n: fv_n_vl v n → fv_n (dvl v) n.
 Proof. solve_fv_congruence. Qed.
 
 Lemma fv_dms_cons d ds: fv_n ds 0 → fv_n d 0 → fv_n (d :: ds) 0.
-Proof.
-  rewrite /fv_n /fv_n_vl => * /=; f_equiv; solve [(idtac + asimpl); auto using eq_up].
-Qed.
+Proof. solve_fv_congruence. Qed.
 
 (* Not needed right now, and doesn't work without a generic instance for HSubst X → HSubst (list X). *)
 (* Lemma fv_cons `{Ids X} `{HSubst vl X} `{HSubst vl (list X)} {hsla: HSubstLemmas vl X} (x: X) xs: fv_n xs 0 → fv_n x 0 → fv_n (x :: xs) 0. *)
@@ -348,4 +346,10 @@ Qed.
 Lemma fv_dtysem ρ γ l: fv_n ρ l → fv_n (dtysem ρ γ) l.
 Proof. solve_fv_congruence. Qed.
 
-Lemma cl_ρ_fv ρ : cl_ρ ρ → fv_n ρ 0. Admitted.
+Lemma fv_vls_cons v vs: fv_n vs 0 → fv_n_vl v 0 → fv_n (v :: vs) 0.
+Proof. solve_fv_congruence. Qed.
+
+Lemma cl_ρ_fv ρ : cl_ρ ρ → fv_n ρ 0.
+  induction ρ => // Hcl.
+  inverse Hcl. apply fv_vls_cons => //. apply IHρ => //.
+Qed.

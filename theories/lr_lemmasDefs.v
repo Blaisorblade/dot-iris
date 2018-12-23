@@ -141,10 +141,8 @@ Section Sec.
     assert (length ds = length ds') as Hlen'. by rewrite /ds' /hsubst map_length.
     assert (vobj (d' :: ds') @ length ds ↘ d'.|[vobj (d' :: ds')/]) as Hlookup.
       by rewrite Hlen'; apply obj_lookup_cons.
-    (* assert (fv_n d'.|[vobj (d' :: ds')/] 0). subst d'. asimpl.  *)
     induction T => //=; try (by iIntros "**").
     all: iIntros "[% [% #H]]"; move: H H0 => Hlen Hfvd; rewrite <- Hlen.
-    (* { apply fv_vobj. auto. admit. } *)
     - iDestruct "H" as (vmem) "[#H1 #H2]".
       iSplit => //.
       iExists (d'.|[vobj (d' :: ds')/]). iSplit => //.
@@ -170,46 +168,37 @@ Section Sec.
   (* Formerly wip_hard. *)
   Lemma defs_interp_to_interp T ds ρ s:
     let v0 := (vobj ds).[s] in
+    fv_n_vl v0 0 →
     defs_interp T ρ (ds.|[v0 .: s]) ⊢
     interp T ρ v0.
   Proof.
-    induction ds; asimpl; iIntros "H".
+    induction ds; asimpl; iIntros (Hcl) "H".
     - destruct T => //=.
     - simpl in IHds.
       destruct T => //=.
-      + iDestruct "H" as "%". iPureIntro.
-        admit.
-        (* apply fv_vobj. *)
-        (* asimpl. *)
       Fail iApply dtp_tand_i.
       Fail iApply IHds.
       Restart.
 
-    iIntros "#H".
+    simpl; iIntros (Hcl) "#H".
     iPoseProof (defs_interp_v_closed with "H") as "%". move: H => Hclds.
-    (* revert ds Hclds. *)
-    (* induction T => ds Hclds //. *)
-    assert (fv_n_vl (vobj ds).[s] 0) as Hclv0 by admit.
-    iInduction T as [] "IHT" forall (ds Hclds Hclv0) => //.
-    (* On closedness: *)
-      (* apply fv_vobj. *)
-      (* unfold fv_n in *. *)
-      (* intros. *)
-      (* asimpl. *)
-      (* remember (selfSubst ds.|[up s]) as x. *)
-      (* rewrite /selfSubst /= in Heqx. asimpl in Heqx. *)
-      (* asimpl. asimpl in H.  *)
-
-      (* solve_fv_congruence. *)
-      (* asimpl. *)
-      (* apply H. *)
+    iInduction T as [] "IHT" forall (ds Hcl Hclds) => //.
     destruct ds => //=. rewrite map_length.
     iDestruct "H" as "[#H1 #H2]".
     iSplit.
     2: { by iApply (def_interp_to_interp T2 d ds ρ s). }
     - asimpl.
+      iAssert (⟦ T1 ⟧ ρ (vobj (ds.|[up s]))) as "#H3". {
+        iApply ("IHT" $! ds) => //.
+        admit.
+        admit.
+        asimpl.
+        Fail iApply "H1".
+        admit.
+      }
+      (* We could probably go from H3 to the thesis... *)
       iApply ("IHT" $! (d :: ds)) => //.
-      iAssert (⟦ T1 ⟧ ρ (vobj (ds.|[up s]))) as "#H3".
+      admit.
 
       (* iApply (IHT1 (d :: ds)). *)
       (* set (d' := d.|[up (to_subst ρ)]). *)
@@ -225,18 +214,18 @@ Section Sec.
      (TLater T :: Γ ⊨ds ds : T →
      Γ ⊨ tv (vobj ds) : TMu T)%I.
   Proof.
-    iIntros "/= #[% Hds]". move: H => Hclds. iSplit; auto using fv_tv, fv_vobj. iIntros " !> * #Hρ".
+    iIntros "/= #[% Hds]". move: H => Hclds. iSplit; auto using fv_tv, fv_vobj. iIntros " !> * #Hρ /=".
     iApply wp_value.
-    iLöb as "IH".
-    iApply defs_interp_to_interp.
-    iPoseProof ("Hds" $! (vobj ds.|[up (to_subst ρ)] :: ρ)) as "#H".
-    asimpl.
-    iApply "H". repeat iSplit => //.
     iPoseProof (interp_env_ρ_closed with "Hρ") as "%". move: H => Hclρ.
     iPoseProof (interp_env_len_agree with "Hρ") as "%". move: H => Hlen. rewrite <- Hlen in *.
+    assert (fv_n_vl (vobj ds).[to_subst ρ] 0) as Hclvds. {
+      eapply (fv_to_subst_vl' (vobj ds)) => //. by apply fv_vobj.
+    }
 
-    iPureIntro.
-    eapply (fv_to_subst_vl' (vobj ds)) => //. by apply fv_vobj.
+    iLöb as "IH".
+    iApply defs_interp_to_interp. exact Hclvds.
+    iPoseProof ("Hds" $! (vobj ds.|[up (to_subst ρ)] :: ρ)) as "#H".
+    asimpl. iApply "H". repeat iSplit => //.
   Qed.
 
 End Sec.
