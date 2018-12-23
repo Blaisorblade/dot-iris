@@ -48,7 +48,7 @@ Section logrel.
     λne ρ d,
     (⌜ fv_n d 0 ⌝ ∗ ∃ φ σ, (d ↗ σ , φ) ∗
        □ ((∀ v, ⌜ fv_n_vl v 0 ⌝ → ▷ interp1 ρ v → ▷ □ φ σ v) ∗
-          (∀ v, ⌜ fv_n_vl v 0 ⌝ → ▷ φ σ v → ▷ interp2 ρ v) ∗
+          (∀ v, ⌜ fv_n_vl v 0 ⌝ → ▷ □ φ σ v → ▷ interp2 ρ v) ∗
           (∀ v, interp1 ρ v → interp2 ρ v)))%I.
 
   Program Definition interp_tmem l (interp1 interp2 : listVlC -n> D) : listVlC -n> D :=

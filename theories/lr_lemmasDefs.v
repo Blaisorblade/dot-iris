@@ -88,11 +88,12 @@ Section Sec.
     repeat iSplit => //. by eauto using fv_dtysem.
     iExists (interp T), _.
     iSplit; first auto.
-    iModIntro; repeat iSplitL; iIntros "*";
-      try (iIntros "**"; by [iApply "HTU" | iApply "HLU" => //; iApply interp_v_closed]).
+    iModIntro; repeat iSplitL; iIntros "*".
     - iIntros (Hclv) "#HL".
       iSpecialize ("HLT" $! ρ v Hclv with "Hg").
       iDestruct ("HLT" with "HL") as "#HLT1". by iNext.
+    - iIntros; iApply "HTU" => //; iNext => //.
+    - iIntros; iApply "HLU" => //; iApply interp_v_closed => //.
   Qed.
 
   (* Lemma idtp_tmem_i T γ l: *)
