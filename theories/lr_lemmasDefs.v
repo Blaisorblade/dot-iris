@@ -239,18 +239,4 @@ Section Sec.
     eapply (fv_to_subst_vl' (vobj ds)) => //. by apply fv_vobj.
   Qed.
 
-
-  (* Still wrong. The correct statement will arise from the translation. *)
-  Lemma idtp_tmem_i T γ l ρ1:
-    γ ⤇ dot_interp T -∗
-    idtp Γ (TTMem l T T) l (dtysem ρ1 γ).
-  Proof.
-    unfold idtp.
-    iIntros "/= #Hγ". iSplit. admit. iIntros " !> **".
-    repeat iSplit => //.
-    admit.
-    iExists (interp T), _. iSplit; first auto.
-    iModIntro; repeat iSplitL; iIntros "**" => //.
-  Abort.
-
 End Sec.
