@@ -47,8 +47,8 @@ Section logrel.
     listVlC -n> dmC -n> iProp Σ :=
     λne ρ d,
     (⌜ fv_n d 0 ⌝ ∗ ∃ φ σ, (d ↗ σ , φ) ∗
-       □ ((∀ v, ▷ interp1 ρ v → ▷ □ φ σ v) ∗
-          (∀ v, ▷ φ σ v → ▷ interp2 ρ v) ∗
+       □ ((∀ v, ⌜ fv_n_vl v 0 ⌝ → ▷ interp1 ρ v → ▷ □ φ σ v) ∗
+          (∀ v, ⌜ fv_n_vl v 0 ⌝ → ▷ φ σ v → ▷ interp2 ρ v) ∗
           (∀ v, interp1 ρ v → interp2 ρ v)))%I.
 
   Program Definition interp_tmem l (interp1 interp2 : listVlC -n> D) : listVlC -n> D :=
@@ -291,7 +291,7 @@ Notation "⟦ Γ ⟧*" := (interp_env Γ).
 Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
 
 (** Single-definition typing *)
-Notation "Γ ⊨d d : T" := (idtp Γ T d) (at level 74, d, T at next level).
+Notation "Γ ⊨d { l = d } : T" := (idtp Γ T l d) (at level 64, l, d, T at next level).
 (** Multi-definition typing *)
 Notation "Γ ⊨ds ds : T" := (idstp Γ T ds) (at level 74, ds, T at next level).
 (** Expression typing *)

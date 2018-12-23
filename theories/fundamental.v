@@ -53,7 +53,7 @@ Section fundamental.
     iIntros "#A #B #[% C] /="; iSplit => //. iIntros (ρ) "!> #D".
     unfold interp_expr. simpl.
     iApply wp_strong_mono => //. { by iApply "C". }
-    iIntros (v) "#HT' !>". by iApply (translations_types_equivalent_vals T T' T'').
+    iIntros (v) "HT' !>". by iApply (translations_types_equivalent_vals T T' T'').
   Qed.
 
   Fixpoint not_yet_fundamental Γ e T e' T' (HT: Γ ⊢ₜ e : T) {struct HT}:

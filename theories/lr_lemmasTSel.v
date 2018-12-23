@@ -18,13 +18,14 @@ Section Sec.
     ivtp Γ (TTMem l L U) va -∗
     Γ ⊨ L <: TSelA (pv va) l L U.
   Proof.
-    iIntros "/= #[% #Hva] !> * #Hg #HvL".
-    iDestruct ("Hva" $! ρ with "Hg") as (Hclva d Hl Hcld φ σ) "#H"; iClear "Hva".
+    iIntros "/= #[% #Hva] !> * #Hg #HvL". move: H => Hclva.
+    iDestruct ("Hva" $! ρ with "Hg") as (Hclvas d Hl Hcld φ σ) "#H"; iClear "Hva".
     iDestruct "H" as "#[Hl [#HLφ [#HφU #HLU]]]".
     repeat iSplit; first by iApply "HLU".
     iRight.
     iExists σ, φ, d.
-    iDestruct ("HLφ" with "HvL") as "#HLφ'".
+    iPoseProof (interp_v_closed with "HvL") as "%". move: H => Hclv.
+    iDestruct ("HLφ" $! _ Hclv with "HvL") as "#HLφ'".
     iDestruct ("HLU" with "HvL") as "#HLU'".
     repeat iModIntro; by repeat iSplit.
   Qed.
@@ -33,13 +34,13 @@ Section Sec.
     ivtp Γ (TTMem l L U) va -∗
     Γ ⊨ TLater L <: TSel (pv va) l.
   Proof.
-    iIntros "/= #[% Hva] !> * #Hg #[% HvL]".
-    iDestruct ("Hva" $! ρ with "Hg") as (Hclva d Hl Hcld φ σ) "#H"; iClear "Hva".
+    iIntros "/= #[% Hva] !> * #Hg #[% HvL]". move: H H0 => Hclva Hclv.
+    iDestruct ("Hva" $! ρ with "Hg") as (Hclvas d Hl Hcld φ σ) "#H"; iClear "Hva".
     iDestruct "H" as "#[Hl [#HLφ [#HφU #HLU]]]".
     repeat iSplit => //.
     iRight.
     iExists σ , φ, d.
-    iDestruct ("HLφ" with "HvL") as "#HLφ'".
+    iDestruct ("HLφ" $! _ Hclv with "HvL") as "#HLφ'".
     repeat iModIntro; by repeat iSplit.
   Qed.
 
@@ -51,28 +52,26 @@ Section Sec.
     (ivtp Γ (TVMem l1 (TTMem l2 L U)) va -∗
     ivstp Γ (TLater L) ((TSel (pself (pv va) l1) l2)))%I.
   Proof.
-    iIntros "/= #[% Hva] !> * #Hg #[% HvL]".
-
-    iDestruct ("Hva" $! ρ with "Hg") as (Hclva d Hl Hcld vmem) "#[-> #[_ H1]]"; iClear "Hva".
-    iDestruct "H1" as (d) "[Hl2 [_ H]]".
+    iIntros "/= #[% Hva] !> * #Hg #[% HvL]". move: H H0 => Hclva Hclv.
+    iDestruct ("Hva" $! ρ with "Hg") as (Hclvas d Hl Hcld vmem) "#[-> #[_ H1]]"; iClear "Hva".
+    iDestruct "H1" as (d1) "[Hl2 [_ H]]".
     iDestruct "H" as (φ σ) "#[Hl [#HLφ [#HφU #HLU]]]".
-    iDestruct ("HLφ" with "HvL") as "HLφ'".
+    iDestruct ("HLφ" $! _ Hclv with "HvL") as "HLφ'".
     iSplit; first done.
     iRight.
     iExists vmem.
-    iSplit; try done.
-    iExists σ, φ, d.
-    repeat iModIntro; by repeat iSplit.
+    iSplit => //.
+    iExists σ, φ, d1. repeat iModIntro; by repeat iSplit.
   Qed.
 
   Lemma mem_stp_sub_sel L U va l:
     ivtp Γ (TTMem l L U) va -∗
     ivstp Γ (TSel (pv va) l) (TLater U).
   Proof.
-    iIntros "/= #[% Hva] !> * #Hg #[$ [[] | Hφ]]".
-    iDestruct ("Hva" $! ρ with "Hg") as (Hclva d Hl Hcld φ σ) "#[Hlφ [HLφ [HφU #HLU]]]"; iClear "Hva".
+    iIntros "/= #[% Hva] !> * #Hg #[$ [[] | Hφ]]". move: H => Hclva.
+    iDestruct ("Hva" $! ρ with "Hg") as (Hclvas d Hl Hcld φ σ) "#[Hlφ [HLφ [HφU #HLU]]]"; iClear "Hva".
     iDestruct "Hlφ" as (γ Hd) "Hγφ".
-    iApply "HφU".
+    iApply "HφU" => //.
     iDestruct "Hφ" as (σ1 φ1 d1 Hva) "[Hγ #HΦ1v]".
     iDestruct "Hγ" as (γ' Hd1) "HγΦ1".
 

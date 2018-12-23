@@ -193,6 +193,18 @@ Proof.
   intros x Hl; asimpl; rewrite !(closed_subst_vl_id (to_subst ρ x)); auto using closed_to_subst.
 Qed.
 
+(** Variants of [fv_to_subst] and [fv_to_subst_vl] for more convenient application. *)
+Lemma fv_to_subst' `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A) ρ a':
+  fv_n a (length ρ) → cl_ρ ρ →
+  a' = (a.|[to_subst ρ]) →
+  fv_n a' 0.
+Proof. intros; subst. by apply fv_to_subst. Qed.
+Lemma fv_to_subst_vl' v ρ v':
+  fv_n_vl v (length ρ) → cl_ρ ρ →
+  v' = (v.[to_subst ρ]) →
+  fv_n_vl v' 0.
+Proof. intros; subst. by apply fv_to_subst_vl. Qed.
+
 Implicit Types (T: ty).
 Lemma lookup_success Γ x T: Γ !! x = Some T → x < length Γ.
 Proof. apply lookup_lt_Some. Qed.
@@ -325,3 +337,15 @@ Lemma fv_TAll_inv_2 n T1 T2: fv_n (TAll T1 T2) n → fv_n T2 (S n).
 Proof. solve_inv_fv_congruence. Qed.
 Lemma fv_TAll_inv_1 n T1 T2: fv_n (TAll T1 T2) n → fv_n T1 n.
 Proof. solve_inv_fv_congruence. Qed.
+
+Lemma fv_idsσ n: fv_n (idsσ n) n.
+Proof.
+  elim: n => //=.
+  rewrite /push_var /fv_n /eq_n_s //=; intros * IHn * Heq; asimpl.
+  f_equiv; [| apply IHn; intros]; apply Heq => /=; lia.
+Qed.
+
+Lemma fv_dtysem ρ γ l: fv_n ρ l → fv_n (dtysem ρ γ) l.
+Proof. solve_fv_congruence. Qed.
+
+Lemma cl_ρ_fv ρ : cl_ρ ρ → fv_n ρ 0. Admitted.
