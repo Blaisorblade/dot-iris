@@ -216,6 +216,10 @@ Qed.
 (** Automated proof for such lemmas. *)
 Ltac solve_fv_congruence := rewrite /fv_n /fv_n_vl => * /=; f_equiv; auto using eq_up.
 
+Implicit Types
+         (L U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
+         (Γ : ctx) (ρ : vls).
+
 Lemma fv_tskip e n: fv_n e n → fv_n (tskip e) n.
 Proof. solve_fv_congruence. Qed.
 
@@ -236,6 +240,17 @@ Proof. solve_fv_congruence. Qed.
 
 Lemma fv_dvl v n: fv_n_vl v n → fv_n (dvl v) n.
 Proof. solve_fv_congruence. Qed.
+
+Lemma fv_dms_cons d ds: fv_n ds 0 → fv_n d 0 → fv_n (d :: ds) 0.
+Proof.
+  rewrite /fv_n /fv_n_vl => * /=; f_equiv; solve [(idtac + asimpl); auto using eq_up].
+Qed.
+
+(* Not needed right now, and doesn't work without a generic instance for HSubst X → HSubst (list X). *)
+(* Lemma fv_cons `{Ids X} `{HSubst vl X} `{HSubst vl (list X)} {hsla: HSubstLemmas vl X} (x: X) xs: fv_n xs 0 → fv_n x 0 → fv_n (x :: xs) 0. *)
+(* Proof. *)
+(*   rewrite /fv_n /fv_n_vl => * /=. f_equiv. solve [(idtac + asimpl); auto using eq_up]. *)
+(* Qed. *)
 
 (** The following ones are "inverse" lemmas: by knowing that an expression is closed,
     deduce that one of its subexpressions is closed *)

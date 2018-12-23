@@ -50,11 +50,10 @@ Section fundamental.
   Lemma translations_types_equivalent e T T' T'' σ Γ:
     (t_ty σ T T' → t_ty σ T T'' → Γ ⊨ e : T' → Γ ⊨ e : T'' )%I.
   Proof. 
-    iIntros "#A #B #C". iIntros (ρ). iModIntro. iIntros "#D".
+    iIntros "#A #B #[% C] /="; iSplit => //. iIntros (ρ) "!> #D".
     unfold interp_expr. simpl.
-    iApply (wp_strong_mono); try done.
-      { by iApply "C". }
-    iIntros (v) "HT'". iModIntro. by iApply (translations_types_equivalent_vals T T' T'').
+    iApply wp_strong_mono => //. { by iApply "C". }
+    iIntros (v) "#HT' !>". by iApply (translations_types_equivalent_vals T T' T'').
   Qed.
 
   Fixpoint not_yet_fundamental Γ e T e' T' (HT: Γ ⊢ₜ e : T) {struct HT}:
