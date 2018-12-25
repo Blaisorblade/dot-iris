@@ -2,7 +2,6 @@
 Functions for manipulating the syntax needed for the operational semantics.
 This file should not load Iris code to reduce compile times.
  *)
-Require Import Coq.Logic.FunctionalExtensionality.
 Require Import Dot.tactics.
 Require Export Dot.dotsyn.
 Require Import stdpp.list.

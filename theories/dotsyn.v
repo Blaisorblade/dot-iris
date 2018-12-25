@@ -1,6 +1,4 @@
-Require Import Logic.FunctionalExtensionality.
-From iris.program_logic Require Import language.
-From iris.base_logic.lib Require Import invariants.
+From iris.base_logic.lib Require Import iprop.
 From Dot Require Export prelude.
 
 Definition label := nat.
