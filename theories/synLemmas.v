@@ -164,53 +164,53 @@ Proof.
   - by f_equal.
 Qed.
 
-Lemma closed_subst_vl_id v σ: fv_n_vl v 0 → v.[σ] = v.
+Lemma closed_subst_vl_id v σ: nclosed_vl v 0 → v.[σ] = v.
 Proof.
   intro Hcl. rewrite (Hcl σ ids) /=; first by asimpl.
   intros; omega.
 Qed.
 
-Lemma closed_to_subst ρ x: cl_ρ ρ → x < length ρ → fv_n_vl (to_subst ρ x) 0.
+Lemma closed_to_subst ρ x: cl_ρ ρ → x < length ρ → nclosed_vl (to_subst ρ x) 0.
   elim: ρ x => /= [|v ρ IHρ] [|x] Hcl Hl; asimpl; try omega; inverse Hcl; try by [].
   by apply IHρ; try omega.
 Qed.
 
 Lemma fv_to_subst `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A) ρ:
-  fv_n a (length ρ) → cl_ρ ρ →
-  fv_n (a.|[to_subst ρ]) 0.
+  nclosed a (length ρ) → cl_ρ ρ →
+  nclosed (a.|[to_subst ρ]) 0.
 Proof.
-  rewrite /fv_n /fv_n_vl => Hcla Hclρ s1 s2 _ /=; asimpl.
+  rewrite /nclosed /nclosed_vl => Hcla Hclρ s1 s2 _ /=; asimpl.
   apply Hcla.
   intros x Hl; asimpl; rewrite !(closed_subst_vl_id (to_subst ρ x)); auto using closed_to_subst.
 Qed.
 
 Lemma fv_to_subst_vl v ρ:
-  fv_n_vl v (length ρ) → cl_ρ ρ →
-  fv_n_vl (v.[to_subst ρ]) 0.
+  nclosed_vl v (length ρ) → cl_ρ ρ →
+  nclosed_vl (v.[to_subst ρ]) 0.
 Proof.
-  rewrite /fv_n /fv_n_vl => Hclv Hclρ s1 s2 _ /=; asimpl.
+  rewrite /nclosed /nclosed_vl => Hclv Hclρ s1 s2 _ /=; asimpl.
   apply Hclv.
   intros x Hl; asimpl; rewrite !(closed_subst_vl_id (to_subst ρ x)); auto using closed_to_subst.
 Qed.
 
 (** Variants of [fv_to_subst] and [fv_to_subst_vl] for more convenient application. *)
 Lemma fv_to_subst' `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A) ρ a':
-  fv_n a (length ρ) → cl_ρ ρ →
+  nclosed a (length ρ) → cl_ρ ρ →
   a' = (a.|[to_subst ρ]) →
-  fv_n a' 0.
+  nclosed a' 0.
 Proof. intros; subst. by apply fv_to_subst. Qed.
 Lemma fv_to_subst_vl' v ρ v':
-  fv_n_vl v (length ρ) → cl_ρ ρ →
+  nclosed_vl v (length ρ) → cl_ρ ρ →
   v' = (v.[to_subst ρ]) →
-  fv_n_vl v' 0.
+  nclosed_vl v' 0.
 Proof. intros; subst. by apply fv_to_subst_vl. Qed.
 
 Implicit Types (T: ty).
 Lemma lookup_success Γ x T: Γ !! x = Some T → x < length Γ.
 Proof. apply lookup_lt_Some. Qed.
 
-Lemma lookup_fv Γ x T: Γ !! x = Some T → fv_n (tv (var_vl x)) (length Γ).
-Proof. rewrite /fv_n /fv_n_vl => * /=; f_equiv; eauto using lookup_success. Qed.
+Lemma lookup_fv Γ x T: Γ !! x = Some T → nclosed (tv (var_vl x)) (length Γ).
+Proof. rewrite /nclosed /nclosed_vl => * /=; f_equiv; eauto using lookup_success. Qed.
 
 (** Not yet used. *)
 Lemma eq_n_s_mon {n s1 s2}: eq_n_s s1 s2 (S n) → eq_n_s s1 s2 n.
@@ -226,40 +226,40 @@ Proof.
 Qed.
 
 (** Automated proof for such lemmas. *)
-Ltac solve_fv_congruence := rewrite /fv_n /fv_n_vl => * /=; f_equiv; solve [(idtac + asimpl); auto using eq_up].
+Ltac solve_fv_congruence := rewrite /nclosed /nclosed_vl => * /=; f_equiv; solve [(idtac + asimpl); auto using eq_up].
 
 Implicit Types
          (L U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
          (Γ : ctx) (ρ : vls).
 
-Lemma fv_tskip e n: fv_n e n → fv_n (tskip e) n.
+Lemma fv_tskip e n: nclosed e n → nclosed (tskip e) n.
 Proof. solve_fv_congruence. Qed.
 
-Lemma fv_tproj e l n: fv_n e n → fv_n (tproj e l) n.
+Lemma fv_tproj e l n: nclosed e n → nclosed (tproj e l) n.
 Proof. solve_fv_congruence. Qed.
 
-Lemma fv_tapp e1 e2 n: fv_n e1 n → fv_n e2 n → fv_n (tapp e1 e2) n.
+Lemma fv_tapp e1 e2 n: nclosed e1 n → nclosed e2 n → nclosed (tapp e1 e2) n.
 Proof. solve_fv_congruence. Qed.
 
-Lemma fv_tv v n: fv_n_vl v n → fv_n (tv v) n.
+Lemma fv_tv v n: nclosed_vl v n → nclosed (tv v) n.
 Proof. solve_fv_congruence. Qed.
 
-Lemma fv_vobj ds n: fv_n ds (S n) → fv_n_vl (vobj ds) n.
+Lemma fv_vobj ds n: nclosed ds (S n) → nclosed_vl (vobj ds) n.
 Proof. solve_fv_congruence. Qed.
 
-Lemma fv_vabs e n: fv_n e (S n) → fv_n_vl (vabs e) n.
+Lemma fv_vabs e n: nclosed e (S n) → nclosed_vl (vabs e) n.
 Proof. solve_fv_congruence. Qed.
 
-Lemma fv_dvl v n: fv_n_vl v n → fv_n (dvl v) n.
+Lemma fv_dvl v n: nclosed_vl v n → nclosed (dvl v) n.
 Proof. solve_fv_congruence. Qed.
 
-Lemma fv_dms_cons d ds: fv_n ds 0 → fv_n d 0 → fv_n (d :: ds) 0.
+Lemma fv_dms_cons d ds: nclosed ds 0 → nclosed d 0 → nclosed (d :: ds) 0.
 Proof. solve_fv_congruence. Qed.
 
 (* Not needed right now, and doesn't work without a generic instance for HSubst X → HSubst (list X). *)
-(* Lemma fv_cons `{Ids X} `{HSubst vl X} `{HSubst vl (list X)} {hsla: HSubstLemmas vl X} (x: X) xs: fv_n xs 0 → fv_n x 0 → fv_n (x :: xs) 0. *)
+(* Lemma fv_cons `{Ids X} `{HSubst vl X} `{HSubst vl (list X)} {hsla: HSubstLemmas vl X} (x: X) xs: nclosed xs 0 → nclosed x 0 → nclosed (x :: xs) 0. *)
 (* Proof. *)
-(*   rewrite /fv_n /fv_n_vl => * /=. f_equiv. solve [(idtac + asimpl); auto using eq_up]. *)
+(*   rewrite /nclosed /nclosed_vl => * /=. f_equiv. solve [(idtac + asimpl); auto using eq_up]. *)
 (* Qed. *)
 
 (** The following ones are "inverse" lemmas: by knowing that an expression is closed,
@@ -287,9 +287,9 @@ Proof. by rewrite /stail /shead; asimpl. Qed.
 Ltac rewritePremises := let H := fresh "H" in repeat (move => H; rewrite ?H {H}).
 
 (** Here is a manual proof of a lemma, with explanations. *)
-Lemma fv_vabs_inv_manual e n: fv_n_vl (vabs e) n → fv_n e (S n).
+Lemma fv_vabs_inv_manual e n: nclosed_vl (vabs e) n → nclosed e (S n).
 Proof.
-  rewrite /fv_n_vl /fv_n => /= Hfv s1 s2 HsEq.
+  rewrite /nclosed_vl /nclosed => /= Hfv s1 s2 HsEq.
 
   (** From Hfv, we only learn that [e.|[up s1] = e.|[up s2]], for arbitrary [s1]
       and [s2], but substitutions in our thesis [e.|[s1] = e.|[s2]] are not of form [up ?].
@@ -320,36 +320,36 @@ Ltac solve_inv_fv_congruence :=
   let s2 := fresh "s2" in
   let HsEq := fresh "HsEq" in
   let Hfv := fresh "Hfv" in
-  rewrite /fv_n_vl /fv_n /= => Hfv s1 s2 HsEq; solve_inv_fv_congruence_body Hfv s1 s2 HsEq.
+  rewrite /nclosed_vl /nclosed /= => Hfv s1 s2 HsEq; solve_inv_fv_congruence_body Hfv s1 s2 HsEq.
 
 (* The proof of this lemma needs asimpl and hence is expensive. *)
-Lemma fv_vobj_ds_inv d ds n: fv_n_vl (vobj (d :: ds)) n → fv_n_vl (vobj ds) n.
+Lemma fv_vobj_ds_inv d ds n: nclosed_vl (vobj (d :: ds)) n → nclosed_vl (vobj ds) n.
 Proof. solve_inv_fv_congruence. Qed.
 
-Lemma fv_tv_inv v n: fv_n (tv v) n → fv_n_vl v n.
+Lemma fv_tv_inv v n: nclosed (tv v) n → nclosed_vl v n.
 Proof. solve_inv_fv_congruence. Qed.
 
-Lemma fv_vabs_inv e n: fv_n_vl (vabs e) n → fv_n e (S n).
+Lemma fv_vabs_inv e n: nclosed_vl (vabs e) n → nclosed e (S n).
 Proof. solve_inv_fv_congruence. Qed.
-Lemma fv_TAll_inv_2 n T1 T2: fv_n (TAll T1 T2) n → fv_n T2 (S n).
+Lemma fv_TAll_inv_2 n T1 T2: nclosed (TAll T1 T2) n → nclosed T2 (S n).
 Proof. solve_inv_fv_congruence. Qed.
-Lemma fv_TAll_inv_1 n T1 T2: fv_n (TAll T1 T2) n → fv_n T1 n.
+Lemma fv_TAll_inv_1 n T1 T2: nclosed (TAll T1 T2) n → nclosed T1 n.
 Proof. solve_inv_fv_congruence. Qed.
 
-Lemma fv_idsσ n: fv_n (idsσ n) n.
+Lemma fv_idsσ n: nclosed (idsσ n) n.
 Proof.
   elim: n => //=.
-  rewrite /push_var /fv_n /eq_n_s //=; intros * IHn * Heq; asimpl.
+  rewrite /push_var /nclosed /eq_n_s //=; intros * IHn * Heq; asimpl.
   f_equiv; [| apply IHn; intros]; apply Heq => /=; lia.
 Qed.
 
-Lemma fv_dtysem ρ γ l: fv_n ρ l → fv_n (dtysem ρ γ) l.
+Lemma fv_dtysem ρ γ l: nclosed ρ l → nclosed (dtysem ρ γ) l.
 Proof. solve_fv_congruence. Qed.
 
-Lemma fv_vls_cons v vs: fv_n vs 0 → fv_n_vl v 0 → fv_n (v :: vs) 0.
+Lemma fv_vls_cons v vs: nclosed vs 0 → nclosed_vl v 0 → nclosed (v :: vs) 0.
 Proof. solve_fv_congruence. Qed.
 
-Lemma cl_ρ_fv ρ : cl_ρ ρ → fv_n ρ 0.
+Lemma cl_ρ_fv ρ : cl_ρ ρ → nclosed ρ 0.
   induction ρ => // Hcl.
   inverse Hcl. apply fv_vls_cons => //. apply IHρ => //.
 Qed.

@@ -81,11 +81,11 @@ Arguments eq_n_s /.
 (** [n]-closedness defines when some AST has at most [n] free variables (from [0] to [n - 1]). *)
 (** Here and elsewhere, we give one definition for values, using [subst], and
     another for other ASTs, using [hsubst]. *)
-Definition fv_n_vl (v: vl) n :=
+Definition nclosed_vl (v: vl) n :=
   ∀ s1 s2, eq_n_s s1 s2 n → v.[s1] = v.[s2].
 
-Definition fv_n `{HSubst vl X} (t: X) n :=
+Definition nclosed `{HSubst vl X} (t: X) n :=
   ∀ s1 s2, eq_n_s s1 s2 n → t.|[s1] = t.|[s2].
 
-Definition cl_ρ ρ := Forall (λ v, fv_n_vl v 0) ρ.
+Definition cl_ρ ρ := Forall (λ v, nclosed_vl v 0) ρ.
 Arguments cl_ρ /.

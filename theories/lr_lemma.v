@@ -29,7 +29,7 @@ Section Sec.
   Context `{HdotG: dotG Σ} Γ.
 
   Lemma wp_wand_cl e Φ Ψ:
-    (WP e {{ v, Φ v }} -∗ ⌜ fv_n e 0 ⌝ -∗ (∀ v, Φ v -∗ ⌜ fv_n_vl v 0 ⌝ -∗ Ψ v) -∗ WP e {{ v, Ψ v }})%I.
+    (WP e {{ v, Φ v }} -∗ ⌜ nclosed e 0 ⌝ -∗ (∀ v, Φ v -∗ ⌜ nclosed_vl v 0 ⌝ -∗ Ψ v) -∗ WP e {{ v, Ψ v }})%I.
   Admitted.
 
   Lemma T_Sub e T1 T2 :
@@ -206,8 +206,8 @@ Section Sec.
   Proof.
     iIntros "/= #[% He1] #[% Hv2Arg]". move: H H0 => Hcle1 Hclv2. iSplit; eauto using fv_tapp. iIntros " !> * #HG".
     (* iAssert (⌜ length ρ = length Γ ⌝)%I as "%". by iApply interp_env_len_agree. move: H => Hlen. *)
-    iAssert (⌜ fv_n_vl v2 (length Γ) ⌝)%I as "%". by iPureIntro; apply fv_tv_inv. move: H => Hcl.
-    (* assert (fv_n_vl v2 (length ρ)). by rewrite Hlen. *)
+    iAssert (⌜ nclosed_vl v2 (length Γ) ⌝)%I as "%". by iPureIntro; apply fv_tv_inv. move: H => Hcl.
+    (* assert (nclosed_vl v2 (length ρ)). by rewrite Hlen. *)
     smart_wp_bind (AppLCtx (tv v2.[to_subst ρ])) v "#[% HvFun]" "He1".
     iApply wp_wand.
     - iApply fupd_wp.

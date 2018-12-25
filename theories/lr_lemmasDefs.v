@@ -31,7 +31,7 @@ Section Sec.
     simpl. iDestruct ("Hv" with "Hg") as "[% Hv▷T]". iExact "Hv▷T".
   Qed.
 
-  Lemma interp_env_ρ_fv ρ: ⟦ Γ ⟧* ρ -∗ ⌜ fv_n ρ 0 ⌝.
+  Lemma interp_env_ρ_fv ρ: ⟦ Γ ⟧* ρ -∗ ⌜ nclosed ρ 0 ⌝.
   Proof.
     iIntros "Hg".
     iPoseProof (interp_env_ρ_closed with "Hg") as "%".
@@ -130,13 +130,13 @@ Section Sec.
 
   Lemma def_interp_to_interp T d ds ρ s:
     let v0 := (vobj (d :: ds)).[s] in
-    fv_n_vl v0 0 →
+    nclosed_vl v0 0 →
     def_interp T (length ds) ρ (d.|[v0 .: s]) ⊢
     interp T ρ v0.
   Proof.
     intros * Hfvv0. asimpl.
     set (d' := d.|[up s]); set (ds' := ds.|[up s]).
-    assert (fv_n_vl (vobj (d' :: ds')) 0) as Hfv'. {
+    assert (nclosed_vl (vobj (d' :: ds')) 0) as Hfv'. {
       revert v0 Hfvv0.
       asimpl.
       by subst d' ds'.
@@ -171,7 +171,7 @@ Section Sec.
   (* Formerly wip_hard. *)
   Lemma defs_interp_to_interp T ds ρ s:
     let v0 := (vobj ds).[s] in
-    fv_n_vl v0 0 →
+    nclosed_vl v0 0 →
     defs_interp T ρ (ds.|[v0 .: s]) ⊢
     interp T ρ v0.
   Proof.
@@ -221,7 +221,7 @@ Section Sec.
     iApply wp_value.
     iPoseProof (interp_env_ρ_closed with "Hρ") as "%". move: H => Hclρ.
     iPoseProof (interp_env_len_agree with "Hρ") as "%". move: H => Hlen. rewrite <- Hlen in *.
-    assert (fv_n_vl (vobj ds).[to_subst ρ] 0) as Hclvds. {
+    assert (nclosed_vl (vobj ds).[to_subst ρ] 0) as Hclvds. {
       eapply (fv_to_subst_vl' (vobj ds)) => //. by apply fv_vobj.
     }
 
