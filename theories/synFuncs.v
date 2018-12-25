@@ -78,8 +78,9 @@ Fixpoint idsσ n: vls :=
 Definition eq_n_s (s1 s2: var → vl) n := ∀ x, x < n → s1 x = s2 x.
 Arguments eq_n_s /.
 
-(** Define when some AST's free variables are at most n. *)
-(* Definition of fv_n for values must use subst not hsubst. *)
+(** [n]-closedness defines when some AST has at most [n] free variables (from [0] to [n - 1]). *)
+(** Here and elsewhere, we give one definition for values, using [subst], and
+    another for other ASTs, using [hsubst]. *)
 Definition fv_n_vl (v: vl) n :=
   ∀ s1 s2, eq_n_s s1 s2 n → v.[s1] = v.[s2].
 
