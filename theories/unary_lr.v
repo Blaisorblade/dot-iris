@@ -1,6 +1,6 @@
 From iris.program_logic Require Import weakestpre.
 From iris.proofmode Require Import tactics.
-From Dot Require Export operational tactics.
+From Dot Require Export operational tactics synLemmas.
 
 (** Deduce types from variable names, like on paper, for readability and to help
     type inference for some overloaded operations (e.g. substitution). *)
@@ -158,8 +158,6 @@ Section logrel.
     Persistent (def_interp T l ρ d).
   Proof. revert ρ d; induction T; simpl; try apply _. Qed.
 
-  Require Import Dot.synLemmas.
-
   Lemma interp_v_closed T v ρ: (interp T ρ v → ⌜ nclosed_vl v 0 ⌝)%I.
   Proof.
     iInduction T as [] "IHT" forall (ρ v); iIntros "#HT //="; try by iDestruct "HT" as "[% _]".
@@ -302,7 +300,6 @@ Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T a
 Notation "Γ ⊨ T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).
 Notation "Γ '⊨' '[' T1 ',' i ']' '<:' '[' T2 ',' j ']'" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
 
-Require Import Dot.synLemmas.
 (* Lemmas about the logical relation itself. *)
 Section logrel_lemmas.
   Context `{HdotG: dotG Σ}.
