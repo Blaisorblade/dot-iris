@@ -226,7 +226,7 @@ Proof.
 Qed.
 
 (** Automated proof for such lemmas. *)
-Ltac solve_fv_congruence := rewrite /nclosed /nclosed_vl => * /=; f_equiv; solve [(idtac + asimpl); auto using eq_up].
+Ltac solve_fv_congruence := rewrite /nclosed /nclosed_vl => * /=; f_equiv; solve [(idtac + genasimpl); auto using eq_up].
 
 Implicit Types
          (L U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
@@ -253,14 +253,13 @@ Proof. solve_fv_congruence. Qed.
 Lemma fv_dvl v n: nclosed_vl v n → nclosed (dvl v) n.
 Proof. solve_fv_congruence. Qed.
 
-Lemma fv_dms_cons d ds: nclosed ds 0 → nclosed d 0 → nclosed (d :: ds) 0.
+Lemma fv_cons `{Ids X} `{HSubst vl X} {hsla: HSubstLemmas vl X} (x: X) xs: nclosed xs 0 → nclosed x 0 → nclosed (x :: xs) 0.
 Proof. solve_fv_congruence. Qed.
 
-(* Not needed right now, and doesn't work without a generic instance for HSubst X → HSubst (list X). *)
-(* Lemma fv_cons `{Ids X} `{HSubst vl X} `{HSubst vl (list X)} {hsla: HSubstLemmas vl X} (x: X) xs: nclosed xs 0 → nclosed x 0 → nclosed (x :: xs) 0. *)
-(* Proof. *)
-(*   rewrite /nclosed /nclosed_vl => * /=. f_equiv. solve [(idtac + asimpl); auto using eq_up]. *)
-(* Qed. *)
+Definition fv_dms_cons : ∀ d ds, nclosed ds 0 → nclosed d 0 → nclosed (d :: ds) 0 := fv_cons.
+Lemma fv_vls_cons : ∀ v vs, nclosed vs 0 → nclosed_vl v 0 → nclosed (v :: vs) 0.
+Proof. solve_fv_congruence. Qed.
+
 
 (** The following ones are "inverse" lemmas: by knowing that an expression is closed,
     deduce that one of its subexpressions is closed *)
@@ -344,9 +343,6 @@ Proof.
 Qed.
 
 Lemma fv_dtysem ρ γ l: nclosed ρ l → nclosed (dtysem ρ γ) l.
-Proof. solve_fv_congruence. Qed.
-
-Lemma fv_vls_cons v vs: nclosed vs 0 → nclosed_vl v 0 → nclosed (v :: vs) 0.
 Proof. solve_fv_congruence. Qed.
 
 Lemma cl_ρ_fv ρ : cl_ρ ρ → nclosed ρ 0.

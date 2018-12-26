@@ -43,8 +43,6 @@ Instance Inh_vl : Inhabited vl := populate (vnat 0).
 Instance Inh_dm : Inhabited dm := populate (dvl inhabitant).
 Instance Inh_pth : Inhabited path := populate (pv inhabitant).
 Instance Inh_tm : Inhabited tm := populate (tv inhabitant).
-Instance Inh_vls : Inhabited vls := populate [].
-Instance Inh_dms : Inhabited dms := populate [].
 
 Instance Ids_vl : Ids vl.
 Proof. by constructor. Defined.
@@ -53,15 +51,13 @@ Instance Ids_tm : Ids tm := λ _, inhabitant.
 Instance Ids_dm : Ids dm := λ _, inhabitant.
 Instance Ids_pth : Ids path := λ _, inhabitant.
 Instance Ids_ty : Ids ty := λ _, inhabitant.
-Instance Ids_vls : Ids vls := λ _, inhabitant.
-Instance Ids_dms : Ids dms := λ _, inhabitant.
-Instance Ids_ctx : Ids ctx := λ _, inhabitant.
+Instance Ids_list {A}: Ids (list A) := λ _, inhabitant.
+Instance Ids_vls : Ids vls := _.
+Instance Ids_dms : Ids dms := _.
+Instance Ids_ctx : Ids ctx := _.
 
-Instance vls_rename `{Rename vl} : Rename vls :=
-  λ (sb : var → var) (vs : vls), map (rename sb) vs.
-
-Instance dms_rename `{Rename dm} : Rename dms :=
-  λ (sb : var → var) (ds : dms), map (rename sb) ds.
+Instance list_rename `{Rename X} : Rename (list X) :=
+  λ (sb : var → var) xs, map (rename sb) xs.
 
 Fixpoint tm_rename (sb : var → var) (e : tm) {struct e} : tm :=
   let a := tm_rename : Rename tm in
@@ -124,30 +120,23 @@ Instance Rename_vl : Rename vl := vl_rename.
 Instance Rename_ty : Rename ty := ty_rename.
 Instance Rename_dm : Rename dm := dm_rename.
 Instance Rename_pth : Rename path := path_rename.
-Instance Rename_vls : Rename vls := vls_rename.
-Instance Rename_dms : Rename dms := dms_rename.
 
-Definition ctx_rename (sb : var → var) (Γ : ctx) := map (rename sb) Γ.
-Instance Rename_ctx : Rename ctx := ctx_rename.
-
-Lemma vls_rename_fold (sb : var → var) (vs : vls) :
-  map (rename sb) vs = rename sb vs.
+Lemma list_rename_fold `{Rename X} (sb : var → var) (xs : list X) : map (rename sb) xs = rename sb xs.
 Proof. trivial. Qed.
-Hint Rewrite vls_rename_fold : autosubst.
 
-Lemma dms_rename_fold sb (ds : dms) : map (rename sb) ds = rename sb ds.
-Proof. trivial. Qed.
-Hint Rewrite dms_rename_fold : autosubst.
+Definition vls_rename_fold: ∀ sb vs, map (rename sb) vs = rename sb vs := list_rename_fold.
+Definition dms_rename_fold: ∀ sb ds, map (rename sb) ds = rename sb ds := list_rename_fold.
+Definition ctx_rename_fold: ∀ sb Γ, map (rename sb) Γ = rename sb Γ := list_rename_fold.
 
-Lemma ctx_rename_fold sb (Γ : ctx) : map (rename sb) Γ = rename sb Γ.
-Proof. trivial. Qed.
-Hint Rewrite ctx_rename_fold : autosubst.
+(* Not applied by autorewrite.*)
+(* Hint Rewrite list_rename_fold : autosubst. *)
+(* Specific instances: *)
+Hint Rewrite vls_rename_fold dms_rename_fold ctx_rename_fold : autosubst.
 
 Instance vls_hsubst `{Subst vl} : HSubst vl vls :=
   λ (sb : var → vl) (vs : vls), map (subst sb) vs.
 
-Instance dms_hsubst `{HSubst vl dm} : HSubst vl dms :=
-  λ (sb : var → vl) (ds : dms), map (hsubst sb) ds.
+Instance list_hsubst `{HSubst vl X}: HSubst vl (list X) := λ sb xs, map (hsubst sb) xs.
 
 Fixpoint tm_hsubst (sb : var → vl) (e : tm) : tm :=
   let a := tm_hsubst : HSubst vl tm in
@@ -204,30 +193,31 @@ path_hsubst (sb : var → vl) (pth : path) : path :=
   | pself pth l => pself (hsubst sb pth) l
   end.
 
-Instance HSubst_tm : HSubst vl tm := tm_hsubst.
 Instance Subst_vl : Subst vl := vl_subst.
+Instance HSubst_tm : HSubst vl tm := tm_hsubst.
 Instance HSubst_ty : HSubst vl ty := ty_hsubst.
 Instance HSubst_dm : HSubst vl dm := dm_hsubst.
 Instance HSubst_pth : HSubst vl path := path_hsubst.
 
-Definition ctx_hsubst (sb : var → vl) (Γ : ctx) := map (hsubst sb) Γ.
-Instance HSubst_ctx : HSubst vl ctx := ctx_hsubst.
-
-Lemma vls_hsubst_fold (sb : var → vl) (vs : vls) :
-  map (subst sb) vs = hsubst sb vs.
+Lemma vls_subst_fold (sb : var → vl) (vs : vls) : map (subst sb) vs = hsubst sb vs.
 Proof. trivial. Qed.
-Hint Rewrite vls_hsubst_fold : autosubst.
 
-Lemma dms_hsubst_fold sb (ds : dms) : map (hsubst sb) ds = hsubst sb ds.
+Lemma list_hsubst_fold `{HSubst vl X} sb (xs : list X) : map (hsubst sb) xs = hsubst sb xs.
 Proof. trivial. Qed.
-Hint Rewrite dms_hsubst_fold : autosubst.
 
-Lemma ctx_hsubst_fold sb (Γ : ctx) : map (hsubst sb) Γ = hsubst sb Γ.
-Proof. trivial. Qed.
-Hint Rewrite ctx_hsubst_fold : autosubst.
-Arguments dms_hsubst /.
+Definition dms_hsubst_fold : ∀ sb (ds : dms), map (hsubst sb) ds = hsubst sb ds := list_hsubst_fold.
+Definition ctx_hsubst_fold: ∀ sb (Γ : ctx), map (hsubst sb) Γ = hsubst sb Γ := list_hsubst_fold.
+
+(* This is not applied by autorewrite. *)
+Hint Rewrite list_hsubst_fold : autosubst.
+(* Use this if you need list_hsubst_fold (for generic proofs). *)
+Ltac genasimpl := rewrite /= ?list_hsubst_fold; asimpl.
+
+(* For sort-specific specific proofs, we add instances of list_hsubst_fold to asimpl's rewrite database. *)
+Hint Rewrite vls_subst_fold dms_hsubst_fold ctx_hsubst_fold : autosubst.
+
 Arguments vls_hsubst /.
-Arguments ctx_hsubst /.
+Arguments list_hsubst /.
 
 Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
 with
@@ -377,14 +367,11 @@ Proof.
     induction s; asimpl; by f_equal.
 Qed.
 
-Instance HSubstLemmas_dms : HSubstLemmas vl dms.
+Instance HSubstLemmas_list `{Ids X} `{HSubst vl X} {hsl: HSubstLemmas vl X}: HSubstLemmas vl (list X).
 Proof.
   split; trivial; intros; rewrite /hsubst;
-    induction s; asimpl; by f_equal.
+    induction s; genasimpl; by f_equal.
 Qed.
 
-Instance HSubstLemmas_ctx : HSubstLemmas vl ctx.
-Proof.
-  split; trivial; intros; rewrite /hsubst;
-    induction s; asimpl; by f_equal.
-Qed.
+Instance HSubstLemmas_dms : HSubstLemmas vl dms := _.
+Instance HSubstLemmas_ctx : HSubstLemmas vl ctx := _.
