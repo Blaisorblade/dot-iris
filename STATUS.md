@@ -93,8 +93,10 @@ The names are taken from the PDF. In parens, you'll find the names of lemmas.
 
 ## Creating objects
 
-- [ ] D-Typ
+- [x] T-{}-I (T_New_I) (with big missing lemmas, see `defs_interp_to_interp`)
 
-- [ ] D-Trm
+- [ ] D-Typ (almost, see idtp_tmem_abs_i)
+
+- [ ] D-Trm (almost, see idtp_vmem_i)
 
 - [ ] D-And

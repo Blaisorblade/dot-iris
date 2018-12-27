@@ -73,8 +73,6 @@ Ltac fequalSafe :=
 Hint Constructors option.
 Hint Constructors list.
 
-Hint Resolve ex_intro.
-
 (** Support writing external hints for lemmas that must not be applied twice for a goal. *)
 (* The usedLemma and un_usedLemma marker is taken from Crush.v (where they were called done and un_done). *)
 

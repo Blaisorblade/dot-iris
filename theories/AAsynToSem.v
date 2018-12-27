@@ -162,7 +162,7 @@ Section Sec.
 
   (** Existence of translations for type member definitions. *)
   Lemma ex_t_dty T1 T2 n:
-    fv_n T1 n →
+    nclosed T1 n →
     t_ty T1 T2 -∗
     (|==> ∃(d: dm), t_dm (dtysyn T1) d)%I.
   Proof.
@@ -266,7 +266,7 @@ Section Sec.
     iModSpec Hfv H xt; clear H.
 
   Ltac pickSigmaInHp n Hfv :=
-    cbn; rewrite /fv_n /= in Hfv;
+    cbn; rewrite /nclosed /= in Hfv;
     repeat match goal with
            | H : context [(∃ _, ?p ?t1 _)%I ], H2 : context [?t1.|[up _]] |- context [?p ?t1 _] =>
              specialize (H (S n)); tailPick Hfv H; try solve_inv_fv_congruence_h Hfv
@@ -291,11 +291,11 @@ Section Sec.
     end.
   Ltac skeleton n t1 Hfv := revert n; induction t1; intros * Hfv Hsyn; simpl in Hsyn; try solve [contradiction|fill n Hfv].
 
-  Lemma ex_t_ty n t1: fv_n t1 n → is_syn_ty t1 → (|==> ∃t2, t_ty t1 t2)%I
-  with  ex_t_path n t1: fv_n t1 n → is_syn_path t1 -> (|==> ∃t2, t_path t1 t2)%I
-  with  ex_t_vl n t1: fv_n_vl t1 n → is_syn_vl t1 -> (|==> ∃t2, t_vl t1 t2)%I
-  with  ex_t_tm n t1: fv_n t1 n → is_syn_tm t1 -> (|==> ∃t2, t_tm t1 t2)%I
-  with  ex_t_dm n t1: fv_n t1 n → is_syn_dm t1 -> (|==> ∃t2, t_dm t1 t2)%I.
+  Lemma ex_t_ty n t1: nclosed t1 n → is_syn_ty t1 → (|==> ∃t2, t_ty t1 t2)%I
+  with  ex_t_path n t1: nclosed t1 n → is_syn_path t1 -> (|==> ∃t2, t_path t1 t2)%I
+  with  ex_t_vl n t1: nclosed_vl t1 n → is_syn_vl t1 -> (|==> ∃t2, t_vl t1 t2)%I
+  with  ex_t_tm n t1: nclosed t1 n → is_syn_tm t1 -> (|==> ∃t2, t_tm t1 t2)%I
+  with  ex_t_dm n t1: nclosed t1 n → is_syn_dm t1 -> (|==> ∃t2, t_dm t1 t2)%I.
   (* with  ex_t_dms σ n t1: is_syn_dms n t1 -> (|==> ∃t2, t_dms σ t1 t2)%I. *)
   Proof.
 
@@ -307,10 +307,10 @@ Section Sec.
   - iInduction l as [|d ds] "IHl".
     + by iExists (vobj []).
     + ev.
-      have: fv_n d (S n). solve_inv_fv_congruence_h Hfv. move => Hcld.
+      have: nclosed d (S n). solve_inv_fv_congruence_h Hfv. move => Hcld.
       iMod (ex_t_dm (S n) d Hcld H0) as (d2) "#Hd".
 
-      have: fv_n_vl (vobj ds) n. by eapply fv_vobj_ds_inv. move => Hclds.
+      have: nclosed_vl (vobj ds) n. by eapply fv_vobj_ds_inv. move => Hclds.
       iMod ("IHl" $! Hclds H1) as (v2) "#Hds". iClear "IHl".
 
       destruct v2 as [ | | | ds2]; try done.

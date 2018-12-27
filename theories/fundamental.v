@@ -50,11 +50,10 @@ Section fundamental.
   Lemma translations_types_equivalent e T T' T'' Γ:
     (t_ty T T' → t_ty T T'' → Γ ⊨ e : T' → Γ ⊨ e : T'' )%I.
   Proof. 
-    iIntros "#A #B #C". iIntros (ρ). iModIntro. iIntros "#D".
+    iIntros "#A #B #[% C] /="; iSplit => //. iIntros (ρ) "!> #D".
     unfold interp_expr. simpl.
-    iApply (wp_strong_mono); try done.
-      { by iApply "C". }
-    iIntros (v) "HT'". iModIntro. by iApply (translations_types_equivalent_vals T T' T'').
+    iApply wp_strong_mono => //. { by iApply "C". }
+    iIntros (v) "HT' !>". by iApply (translations_types_equivalent_vals T T' T'').
   Qed.
 
   (* What we actually want is closer to:
@@ -84,10 +83,10 @@ Section fundamental.
       iEval (cbn [t_tm]) in "Htr2"; case_match; try done; fold (t_vl v2 v).
       iAssert (t_tm (tv v2) (tv v)) as "#Ht2"; first done.
       iMod (ex_t_ty (length Γ) T1) as (T1') "#HTT1r".
-      (* fv_n: *) admit.
+      (* nclosed: *) admit.
       { eauto using typed_ty_is_syn. }
       iMod (ex_t_ty (S (length Γ)) T2) as (T2') "#HTT2r".
-      (* fv_n: *) admit.
+      (* nclosed: *) admit.
       { assert (is_syn_ty (TAll T1 T2)) by eauto using typed_ty_is_syn. simpl in H0. intuition. }
 
       iPoseProof (not_yet_fundamental Γ e1 _ _ _ HT1 with "Htr1") as "HsT1".
@@ -108,7 +107,7 @@ Section fundamental.
       cbn [t_tm] in * |- *; case_match; try done.
       iDestruct "HtrE" as "[Htr1 Htr2]".
       iMod (ex_t_ty (length Γ) T1) as (T1') "#HTTr".
-      (* fv_n: *) admit.
+      (* nclosed: *) admit.
       eauto using typed_ty_is_syn.
       iAssert (t_ty T2.|[ren (+1)] T'.|[ren (+1)]) as "#HtrT2s". { admit. }
       iAssert (t_ty (TAll T1 T2.|[ren (+1)]) (TAll T1' T'.|[ren (+1)])) as "#HtrTAll".
@@ -116,7 +115,6 @@ Section fundamental.
       iMod (not_yet_fundamental Γ e1 _ _ _ HT1 with "Htr1 HtrTAll") as "#HsT1".
       iMod (not_yet_fundamental Γ e2 _ _ _ HT2 with "Htr2 HTTr") as "#HsT2".
       by iApply (T_Forall_E with "HsT1 HsT2").
-
     (* pose proof (typed_tm_is_syn Γ e T HT) as HeSyn. *)
     (* pose proof (typed_ty_is_syn Γ e T HT) as HTSyn. *)
     (* pose proof (typed_ctx_is_syn Γ e T HT) as HΓSyn. *)
