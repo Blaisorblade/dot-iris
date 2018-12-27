@@ -17,51 +17,42 @@ Section Sec.
      This way, [dcons d ds] keeps the existing labels for [ds] and uses a new
      one ([length ds]) for [d]. That's a bit like de Bruijn levels.
    *)
+  (* TODO: switch to ietp. Might involve challenges with fancy updates;
+     worst-case, we can add a fancy update to definition typing. *)
   Lemma idtp_vmem_i T v l:
-    ▷ ivtp Γ T v -∗
-      idtp Γ (TVMem l T) l (dvl v).
+    ivtp Γ (TLater T) v -∗
+    Γ ⊨d { l = dvl v } : TVMem l T.
   Proof.
-    iIntros "#Hv !> * #Hg /=".
-    iSplit; try done.
-    iExists _; iSplit; try done. by iApply "Hv".
+    iIntros "#[% #Hv]". move: H => Hclv. iSplit; auto using fv_dvl. iIntros "!> * #Hg".
+    iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H => Hclρ.
+    iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *.
+    repeat iSplit => //. { iPureIntro. apply fv_to_subst, Hclρ. apply fv_dvl, Hclv. }
+    iExists _; iSplit; try done.
+    simpl. iDestruct ("Hv" with "Hg") as "[% Hv▷T]". iExact "Hv▷T".
   Qed.
 
-  (*
-    What I'd want, if we store envD instead, is closer to:
-
-    Lemma idtp_tmem_i T γ:
-      SP γ ⟦T⟧ -∗
-      idtp Γ (TTMem 0 T T) [@ dtysem γ].
-    Tho we need something about syntactic definitions as well (or not??)
-
-    TODO: prove what I actually want, now that we store envD.
-  *)
-  Lemma dtp_tmem_i T γ ρ l :
-    γ ⤇ dot_interp T -∗ ⟦Γ⟧* ρ -∗
-    def_interp (TTMem l T T) l ρ (dtysem ρ γ).
+  Lemma interp_env_ρ_fv ρ: ⟦ Γ ⟧* ρ -∗ ⌜ nclosed ρ 0 ⌝.
   Proof.
-    iIntros "#Hv * #Hg /=".
-    (* iExists _, _. iSplit. _auto. *)
-    iSplit; try done.
-    iExists (interp T), _. iSplit; first naive_solver.
-    iModIntro; repeat iSplitL; auto.
+    iIntros "Hg".
+    iPoseProof (interp_env_ρ_closed with "Hg") as "%".
+    iPureIntro. by apply cl_ρ_fv.
   Qed.
 
-  (* We can't write idtp_tmem_i as above, but for now we can write: *)
-  (* Lemma idtp_tmem_i T γ ρ: *)
-  (*   SP γ (⟦T⟧ ρ) -∗ *)
-  (*      idtp Γ (TTMem 0 T T) [@ dtysem γ]. *)
+  (* Lemma dtp_tmem_i T γ ρ l : *)
+  (*   γ ⤇ dot_interp T -∗ ⟦Γ⟧* ρ -∗ *)
+  (*   def_interp (TTMem l T T) l ρ (dtysem ρ γ). *)
   (* Proof. *)
-  (*   iIntros "#Hv !> * #Hg /=". *)
-  (*   iExists (⟦T⟧ ρ); iSplit. *)
-  (*   iExists γ; by iSplit. *)
-  (*   iSplit; iIntros "!> **". *)
-  (* Aborted. *)
+  (*   iIntros "#Hv * #Hg /=". *)
+  (*   (* iExists _, _. iSplit. _auto. *) *)
+  (*   iPoseProof (interp_env_ρ_fv with "Hg") as "%". move: H => Hclρ. *)
+  (*   repeat iSplit => //. eauto using fv_dtysem. *)
+  (*   iExists (interp T), _. iSplit; first naive_solver. *)
+  (*   iModIntro; repeat iSplitL; auto. *)
+  (* Qed. *)
 
-
-  Lemma dtp_tmem_abs_i T L U γ ρ l :
-    γ ⤇ dot_interp T -∗ ⟦Γ⟧* ρ -∗
-    Γ ⊨ L <: U -∗
+  (* XXX: the PDF indexes definition typing. *)
+  Lemma idtp_tmem_abs_i T L U γ l :
+    Γ ⊨ [L, 0] <: [U, 0] -∗
     (* We want the next two hypotheses to hold in a later world, but for this Γ,
        both because that's what we need to introduce, and because it allows
        using Γ *now* to establish the assumption.
@@ -83,20 +74,52 @@ Section Sec.
 
        And that forces using the same implication in the logical relation
        (unlike I did originally). *)
-    (Γ ⊨ TLater T <: TLater U) -∗
-    (Γ ⊨ TLater L <: TLater T) →
-    def_interp (TTMem l L U) l ρ (dtysem ρ γ).
+    Γ ⊨ [T, 1] <: [U, 1] -∗
+    Γ ⊨ [L, 1] <: [T, 1] -∗
+    γ ⤇ dot_interp T -∗
+    Γ ⊨d { l = dtysem (idsσ (length Γ)) γ } : TTMem l L U.
   Proof.
-    iIntros "#Hv * #Hg #HLU #HTU #HLT /=".
-    iSplit; try done.
-    iExists (interp T), _. iSplit; first auto.
+    iIntros " #HLU #HTU #HLT #Hγ /=".
+    iSplit. by auto using fv_dtysem, fv_idsσ.
+    iIntros "!>" (ρ) "#Hg".
+    iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *.
+    setoid_rewrite (subst_sigma_idsσ ρ (length ρ) eq_refl).
+    iPoseProof (interp_env_ρ_fv with "Hg") as "%". move: H => Hfvρ.
+    repeat iSplit => //. by eauto using fv_dtysem.
+    iExists (interp T), _.
+    iSplit; first auto.
+    iModIntro; repeat iSplitL; iIntros "*".
+    - iIntros (Hclv) "#HL".
+      iSpecialize ("HLT" $! ρ v Hclv with "Hg").
+      iDestruct ("HLT" with "HL") as "#HLT1". by iNext.
+    - iIntros; iApply "HTU" => //; iNext => //.
+    - iIntros; iApply "HLU" => //; iApply interp_v_closed => //.
+  Qed.
 
-    iModIntro; repeat iSplitL; iIntros "*";
-      try (iIntros "**"; by [iApply "HTU" | iApply "HLU"]).
-    (* iIntros "**". iApply ("HLT" with "Hg").  | iApply "HTU" | iApply "HLU"]. *)
-    - iIntros "#HL".
-      iSpecialize ("HLT" with "Hg").
-      iDestruct ("HLT" with "HL") as "#HLT1"; auto.
+  (* Lemma idtp_tmem_i T γ l: *)
+  (*   γ ⤇ dot_interp T -∗ *)
+  (*   Γ ⊨d { l = dtysem (idsσ (length Γ)) γ } : TTMem l T T. *)
+  (* Proof. *)
+  (*   iIntros " #Hγ /=". *)
+  (*   iSplit. by auto using fv_dtysem, fv_idsσ. *)
+  (*   iIntros "!>" (ρ) "#Hg". *)
+
+  (*   iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *. *)
+  (*   setoid_rewrite (subst_sigma_idsσ ρ (length ρ) eq_refl). *)
+  (*   iPoseProof (interp_env_ρ_fv with "Hg") as "%". move: H => Hfvρ. *)
+  (*   repeat iSplit => //. by eauto using fv_dtysem. *)
+  (*   iExists (interp T), _. iSplit; first auto. *)
+  (*   iModIntro; repeat iSplitL; auto. *)
+  (* Qed. *)
+
+  Lemma idtp_tmem_i T γ l:
+    γ ⤇ dot_interp T -∗
+    Γ ⊨d { l = dtysem (idsσ (length Γ)) γ } : TTMem l T T.
+  Proof.
+    iIntros " #Hγ".
+    iApply (idtp_tmem_abs_i T T T) => //=;
+      (* XXX Inline copy of Sub_Refl: *)
+      by iIntros "!> **".
   Qed.
 
   Lemma dtp_tand_i T U ρ d ds:
@@ -107,33 +130,35 @@ Section Sec.
 
   Lemma def_interp_to_interp T d ds ρ s:
     let v0 := (vobj (d :: ds)).[s] in
+    nclosed_vl v0 0 →
     def_interp T (length ds) ρ (d.|[v0 .: s]) ⊢
     interp T ρ v0.
   Proof.
-    induction T; simpl; iIntros "H"; trivial;
-      asimpl; set (d' := d.|[up s]); set (ds' := ds.|[up s]);
-      iDestruct "H" as "[% #H]";
-      move: H => Hlen; rewrite <- Hlen.
-
+    intros * Hfvv0. asimpl.
+    set (d' := d.|[up s]); set (ds' := ds.|[up s]).
+    assert (nclosed_vl (vobj (d' :: ds')) 0) as Hfv'. {
+      revert v0 Hfvv0.
+      asimpl.
+      by subst d' ds'.
+    }
+    assert (length ds = length ds') as Hlen'. by rewrite /ds' /hsubst map_length.
+    assert (vobj (d' :: ds') @ length ds ↘ d'.|[vobj (d' :: ds')/]) as Hlookup.
+      by rewrite Hlen'; apply obj_lookup_cons.
+    induction T => //=; try (by iIntros "**").
+    all: iIntros "[% [% #H]]"; move: H H0 => Hlen Hfvd; rewrite <- Hlen.
     - iDestruct "H" as (vmem) "[#H1 #H2]".
-      iExists (d'.|[vobj (d' :: ds')/]). iSplit.
-      + iPureIntro.
-        assert (length ds = length ds') as ->. by rewrite /ds' /hsubst map_length.
-          by apply obj_lookup_cons.
-      + iExists _; iSplit; trivial.
-        subst d'. by asimpl.
-    -
-      iDestruct "H" as (φ σ) "[#Hl [#? [#? #?]]]".
+      iSplit => //.
+      iExists (d'.|[vobj (d' :: ds')/]). iSplit => //.
+      subst d'. asimpl.
+      iSplit => //. iExists _. iSplit => //.
+    - iDestruct "H" as (φ σ) "[#Hl [#? [#? #?]]]".
       iDestruct "Hl" as (γ) "[% #Hγ]". move: H => Hl.
-      iExists (d'.|[vobj (d' :: ds')/]); iSplit.
-      + iPureIntro.
-        assert (length ds = length ds') as ->. by rewrite /ds' /hsubst map_length.
-        apply obj_lookup_cons.
-      + iExists φ, σ; iSplit; trivial.
-        * iExists γ.
-          subst d'. asimpl.
-          auto.
-        * iModIntro. repeat iSplitL; naive_solver.
+      iSplit => //.
+      iExists (d'.|[vobj (d' :: ds')/]). iSplit => //.
+      subst d'; asimpl.
+      iSplit => //. iExists φ, σ; iSplit => //.
+      * iExists γ; iSplit => //.
+      * iModIntro. repeat iSplitL; naive_solver.
   Qed.
 
   (* Check that Löb induction works as expected for proving introduction of
@@ -146,29 +171,37 @@ Section Sec.
   (* Formerly wip_hard. *)
   Lemma defs_interp_to_interp T ds ρ s:
     let v0 := (vobj ds).[s] in
+    nclosed_vl v0 0 →
     defs_interp T ρ (ds.|[v0 .: s]) ⊢
     interp T ρ v0.
   Proof.
-    induction ds; asimpl; iIntros "H".
-    - destruct T; simpl; trivial.
+    induction ds; asimpl; iIntros (Hcl) "H".
+    - destruct T => //=.
     - simpl in IHds.
-      destruct T; trivial.
+      destruct T => //=.
       Fail iApply dtp_tand_i.
       Fail iApply IHds.
       Restart.
-    
-    revert ds.
-    induction T; simpl; iIntros (ds) "H"; trivial.
-    destruct ds; simpl; first done. rewrite map_length.
+
+    simpl; iIntros (Hcl) "#H".
+    iPoseProof (defs_interp_v_closed with "H") as "%". move: H => Hclds.
+    iInduction T as [] "IHT" forall (ds Hcl Hclds) => //.
+    destruct ds => //=. rewrite map_length.
     iDestruct "H" as "[#H1 #H2]".
     iSplit.
-    2: {
-      iApply (def_interp_to_interp T2 d ds ρ s).
-      iApply "H2".
-    }
+    2: { by iApply (def_interp_to_interp T2 d ds ρ s). }
     - asimpl.
-      iApply (IHT1 (d :: ds)).
-      iAssert (⟦ T1 ⟧ ρ (vobj (ds.|[up s]))) as "H3".
+      iAssert (⟦ T1 ⟧ ρ (vobj (ds.|[up s]))) as "#H3". {
+        iApply ("IHT" $! ds) => //.
+        admit.
+        admit.
+        asimpl.
+        Fail iApply "H1".
+        admit.
+      }
+      (* We could probably go from H3 to the thesis... *)
+      iApply ("IHT" $! (d :: ds)) => //.
+      admit.
 
       (* iApply (IHT1 (d :: ds)). *)
       (* set (d' := d.|[up (to_subst ρ)]). *)
@@ -184,25 +217,18 @@ Section Sec.
      (TLater T :: Γ ⊨ds ds : T →
      Γ ⊨ tv (vobj ds) : TMu T)%I.
   Proof.
-    iIntros "/= #Hds !> * #Hρ".
+    iIntros "/= #[% Hds]". move: H => Hclds. iSplit; auto using fv_tv, fv_vobj. iIntros " !> * #Hρ /=".
     iApply wp_value.
-    iLöb as "IH".
-    iApply defs_interp_to_interp.
-    iPoseProof ("Hds" $! (vobj ds.|[up (to_subst ρ)] :: ρ)) as "H".
-    asimpl.
-    iApply "H"; by iSplit.
-  Qed.
+    iPoseProof (interp_env_ρ_closed with "Hρ") as "%". move: H => Hclρ.
+    iPoseProof (interp_env_len_agree with "Hρ") as "%". move: H => Hlen. rewrite <- Hlen in *.
+    assert (nclosed_vl (vobj ds).[to_subst ρ] 0) as Hclvds. {
+      eapply (fv_to_subst_vl' (vobj ds)) => //. by apply fv_vobj.
+    }
 
-  (* Still wrong. The correct statement will arise from the translation. *)
-  Lemma idtp_tmem_i T γ l ρ1:
-    γ ⤇ dot_interp T -∗
-    idtp Γ (TTMem l T T) l (dtysem ρ1 γ).
-  Proof.
-    unfold idtp.
-    iIntros "/= #Hγ !> **".
-    iSplit; try done.
-    iExists (interp T), _. iSplit; first auto.
-    iModIntro; repeat iSplitL; iIntros "**".
-  Abort.
+    iLöb as "IH".
+    iApply defs_interp_to_interp. exact Hclvds.
+    iPoseProof ("Hds" $! (vobj ds.|[up (to_subst ρ)] :: ρ)) as "#H".
+    asimpl. iApply "H". repeat iSplit => //.
+  Qed.
 
 End Sec.

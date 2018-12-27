@@ -2,7 +2,6 @@
 Functions for manipulating the syntax needed for the operational semantics.
 This file should not load Iris code to reduce compile times.
  *)
-Require Import Coq.Logic.FunctionalExtensionality.
 Require Import Dot.tactics.
 Require Export Dot.dotsyn.
 Require Import stdpp.list.
@@ -78,13 +77,14 @@ Fixpoint idsσ n: vls :=
 Definition eq_n_s (s1 s2: var → vl) n := ∀ x, x < n → s1 x = s2 x.
 Arguments eq_n_s /.
 
-(** Define when some AST's free variables are at most n. *)
-(* Definition of fv_n for values must use subst not hsubst. *)
-Definition fv_n_vl (v: vl) n :=
+(** [n]-closedness defines when some AST has at most [n] free variables (from [0] to [n - 1]). *)
+(** Here and elsewhere, we give one definition for values, using [subst], and
+    another for other ASTs, using [hsubst]. *)
+Definition nclosed_vl (v: vl) n :=
   ∀ s1 s2, eq_n_s s1 s2 n → v.[s1] = v.[s2].
 
-Definition fv_n `{HSubst vl X} (t: X) n :=
+Definition nclosed `{HSubst vl X} (t: X) n :=
   ∀ s1 s2, eq_n_s s1 s2 n → t.|[s1] = t.|[s2].
 
-Definition cl_ρ ρ := Forall (λ v, fv_n_vl v 0) ρ.
+Definition cl_ρ ρ := Forall (λ v, nclosed_vl v 0) ρ.
 Arguments cl_ρ /.
