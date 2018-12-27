@@ -26,29 +26,29 @@ Section fundamental.
      implies is_syn and closure. Stop talking about free variables inside is_syn? *)
   Lemma typed_tm_is_syn Γ e T:
     Γ ⊢ₜ e : T →
-    is_syn_tm (length Γ) e.
+    is_syn_tm e.
   Admitted.
 
   Lemma typed_ty_is_syn Γ e T:
     Γ ⊢ₜ e : T →
-    is_syn_ty (length Γ) T.
+    is_syn_ty T.
   Admitted.
 
-  (* Check all types are syntactic. The number of free varibles changes. Probably drop free variable count from is_syn_*. *)
-  Definition is_syn_ctx Γ := True.
+  (* Check all types are syntactic. *)
+  Definition is_syn_ctx Γ := Forall is_syn_ty Γ.
 
   Lemma typed_ctx_is_syn Γ e T:
     Γ ⊢ₜ e : T →
     is_syn_ctx Γ.
   Admitted.
 
-  Lemma translations_types_equivalent_vals T T' T'' v ρ σ:
-    (t_ty σ T T' → t_ty σ T T'' → ⟦ T' ⟧ρ  v → ⟦ T'' ⟧ ρ v )%I.
+  Lemma translations_types_equivalent_vals T T' T'' v ρ:
+    (t_ty T T' → t_ty T T'' → ⟦ T' ⟧ρ  v → ⟦ T'' ⟧ ρ v )%I.
   Proof. 
   Admitted.
 
-  Lemma translations_types_equivalent e T T' T'' σ Γ:
-    (t_ty σ T T' → t_ty σ T T'' → Γ ⊨ e : T' → Γ ⊨ e : T'' )%I.
+  Lemma translations_types_equivalent e T T' T'' Γ:
+    (t_ty T T' → t_ty T T'' → Γ ⊨ e : T' → Γ ⊨ e : T'' )%I.
   Proof. 
     iIntros "#A #B #[% C] /="; iSplit => //. iIntros (ρ) "!> #D".
     unfold interp_expr. simpl.
@@ -56,11 +56,20 @@ Section fundamental.
     iIntros (v) "HT' !>". by iApply (translations_types_equivalent_vals T T' T'').
   Qed.
 
+  (* What we actually want is closer to:
+
+  (* Check all types are translated. *)
+  Definition t_ctx Γ Γ' := Forall2 t_ty Γ Γ'.
+  Fixpoint fundamental Γ e T Γ' e' T' (HT: Γ ⊢ₜ e : T) {struct HT}:
+  (* Lemma not_yet_fundamental Γ e T e' T' (HT: Γ ⊢ₜ e : T): *)
+    t_ctx Γ Γ' → (t_tm e e' → t_ty T T' → |==> Γ' ⊨ e' : T')%I.
+
+  Except we need an "Iris" Forall2. Gotta run but I know a few ways.
+   *)
+
   Fixpoint not_yet_fundamental Γ e T e' T' (HT: Γ ⊢ₜ e : T) {struct HT}:
   (* Lemma not_yet_fundamental Γ e T e' T' (HT: Γ ⊢ₜ e : T): *)
-    (t_tm [] e e' → t_ty [] T T' → |==>
-          (* Using [] as σ is wrong. *)
-        Γ ⊨ e' : T')%I.
+    (t_tm e e' → t_ty T T' → |==> Γ ⊨ e' : T')%I.
   Proof.
     iIntros "#HtrE #HtrT".
     (* destruct HT. *)
@@ -71,12 +80,14 @@ Section fundamental.
       cbn [t_tm] in * |- *; case_match; try done.
       iDestruct "HtrE" as "[Htr1 Htr2]".
       unfold e2.
-      iEval (cbn [t_tm]) in "Htr2"; case_match; try done; fold (t_vl [] v2 v).
-      iAssert (t_tm [] (tv v2) (tv v)) as "#Ht2"; first done.
-      iMod (ex_t_ty [] (length Γ) T1) as (T1') "#HTT1r".
+      iEval (cbn [t_tm]) in "Htr2"; case_match; try done; fold (t_vl v2 v).
+      iAssert (t_tm (tv v2) (tv v)) as "#Ht2"; first done.
+      iMod (ex_t_ty (length Γ) T1) as (T1') "#HTT1r".
+      (* nclosed: *) admit.
       { eauto using typed_ty_is_syn. }
-      iMod (ex_t_ty (push_var []) ((length Γ)+1) T2) as (T2') "#HTT2r".
-      { eauto using typed_ty_is_syn. admit. }
+      iMod (ex_t_ty (S (length Γ)) T2) as (T2') "#HTT2r".
+      (* nclosed: *) admit.
+      { assert (is_syn_ty (TAll T1 T2)) by eauto using typed_ty_is_syn. simpl in H0. intuition. }
 
       iPoseProof (not_yet_fundamental Γ e1 _ _ _ HT1 with "Htr1") as "HsT1".
       iMod (not_yet_fundamental Γ (tv v2) _ _ _ HT2 with "Ht2 HTT1r") as "#HsT2".
@@ -86,26 +97,24 @@ Section fundamental.
       { iModIntro. unfold t_ty; simpl. fold t_ty. done. }
       iMod "toto". iMod "tata".
 
-      iAssert (t_ty [] (T2.|[v2/]) (T2'.|[v/])) as "#HHH".
+      iAssert (t_ty (T2.|[v2/]) (T2'.|[v/])) as "#HHH".
       { admit. }
       iApply (translations_types_equivalent); try done.
 
-      by iApply (T_Forall_Ex  with "[toto] [tata]"); first last.
-      
-
+      by iApply (T_Forall_Ex  with "toto tata").
     - 
-      (*
-
+      (* I'm careful with simplification to avoid unfolding too much. *)
       cbn [t_tm] in * |- *; case_match; try done.
       iDestruct "HtrE" as "[Htr1 Htr2]".
-      iEval (cbn [t_tm]) in "Htr2"; case_match; try done; fold (t_vl [] v2 v).
-      iAssert (t_tm [] (tv v2) (tv v)) as "#Ht2"; first done.
-      iMod (ex_t_ty [] (length Γ) T1) as (T1') "#HTTr".
+      iMod (ex_t_ty (length Γ) T1) as (T1') "#HTTr".
+      (* nclosed: *) admit.
       eauto using typed_ty_is_syn.
-      iPoseProof (not_yet_fundamental Γ e1 _ _ _ HT1 with "Htr1") as "HsT1".
-      iMod (not_yet_fundamental Γ (tv v2) _ _ _ HT2 with "Ht2 HTTr") as (Γ') "#HsT2".
-
-       *)
+      iAssert (t_ty T2.|[ren (+1)] T'.|[ren (+1)]) as "#HtrT2s". { admit. }
+      iAssert (t_ty (TAll T1 T2.|[ren (+1)]) (TAll T1' T'.|[ren (+1)])) as "#HtrTAll".
+      { cbn; by iSplit. }
+      iMod (not_yet_fundamental Γ e1 _ _ _ HT1 with "Htr1 HtrTAll") as "#HsT1".
+      iMod (not_yet_fundamental Γ e2 _ _ _ HT2 with "Htr2 HTTr") as "#HsT2".
+      by iApply (T_Forall_E with "HsT1 HsT2").
     (* pose proof (typed_tm_is_syn Γ e T HT) as HeSyn. *)
     (* pose proof (typed_ty_is_syn Γ e T HT) as HTSyn. *)
     (* pose proof (typed_ctx_is_syn Γ e T HT) as HΓSyn. *)
