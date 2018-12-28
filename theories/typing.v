@@ -110,6 +110,10 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 | Refl_stp i T : Γ ⊢ₜ T, i <: T, i
 | Trans_stp i1 i2 i3 T1 T2 T3:
     Γ ⊢ₜ T1, i1 <: T2, i2 → Γ ⊢ₜ T2, i2 <: T3, i3 → Γ ⊢ₜ T1, i1 <: T3, i3
+| TLaterL_stp i T:
+   Γ ⊢ₜ TLater T, i <: T, S i
+| TLaterR_stp i T:
+   Γ ⊢ₜ T, S i <: TLater T, i
 
 (* "Structural" rules about indexes *)
 | TSucc_stp T i:

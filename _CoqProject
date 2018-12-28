@@ -17,3 +17,4 @@ theories/lr_lemma.v
 theories/lr_lemmasTSel.v
 theories/lr_lemmasDefs.v
 theories/unary_lr_binding.v
+theories/typingExamples.v
