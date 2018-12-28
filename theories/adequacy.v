@@ -1,7 +1,6 @@
-Require Import Dot.tactics.
-Require Import Dot.unary_lr.
 From iris.program_logic Require Import adequacy.
 From iris.proofmode Require Import tactics.
+From Dot Require Import tactics unary_lr.
 
 Theorem adequacy Σ `{HdotG: dotPreG Σ} e e' thp σ σ' T ρ:
   (forall `{dotG Σ}, True ⊢ ⟦ T ⟧ₑ ρ e) →
@@ -15,7 +14,6 @@ Proof.
   set (DotΣ := DotG Σ Hinv _).
   iApply (wp_wand with "[]"); by [iApply Hlog | auto].
 Qed.
-From iris.base_logic Require Export lib.saved_prop.
 
 (* Instead of still assuming semantic typing, here we should assume syntactic
    typing and use the fundamental lemma. But otherwise this follows the general

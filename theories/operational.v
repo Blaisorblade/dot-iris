@@ -5,8 +5,8 @@ From iris.base_logic Require Import lib.iprop (* For gname *)
      lib.saved_prop invariants.
 From iris.program_logic Require Import weakestpre.
 
-Require Export Dot.dotsyn.
-Require Import Dot.tactics.
+From Dot Require Export dotsyn.
+From Dot Require Import tactics.
 
 Class dotG Σ := DotG {
   dotG_invG : invG Σ;
