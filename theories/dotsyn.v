@@ -128,10 +128,7 @@ Definition vls_rename_fold: ∀ sb vs, map (rename sb) vs = rename sb vs := list
 Definition dms_rename_fold: ∀ sb ds, map (rename sb) ds = rename sb ds := list_rename_fold.
 Definition ctx_rename_fold: ∀ sb Γ, map (rename sb) Γ = rename sb Γ := list_rename_fold.
 
-(* Not applied by autorewrite.*)
-(* Hint Rewrite list_rename_fold : autosubst. *)
-(* Specific instances: *)
-Hint Rewrite vls_rename_fold dms_rename_fold ctx_rename_fold : autosubst.
+Hint Rewrite @list_rename_fold : autosubst.
 
 Instance vls_hsubst `{Subst vl} : HSubst vl vls :=
   λ (sb : var → vl) (vs : vls), map (subst sb) vs.
@@ -205,16 +202,7 @@ Proof. trivial. Qed.
 Lemma list_hsubst_fold `{HSubst vl X} sb (xs : list X) : map (hsubst sb) xs = hsubst sb xs.
 Proof. trivial. Qed.
 
-Definition dms_hsubst_fold : ∀ sb (ds : dms), map (hsubst sb) ds = hsubst sb ds := list_hsubst_fold.
-Definition ctx_hsubst_fold: ∀ sb (Γ : ctx), map (hsubst sb) Γ = hsubst sb Γ := list_hsubst_fold.
-
-(* This is not applied by autorewrite. *)
-Hint Rewrite list_hsubst_fold : autosubst.
-(* Use this if you need list_hsubst_fold (for generic proofs). *)
-Ltac genasimpl := rewrite /= ?list_hsubst_fold; asimpl.
-
-(* For sort-specific specific proofs, we add instances of list_hsubst_fold to asimpl's rewrite database. *)
-Hint Rewrite vls_subst_fold dms_hsubst_fold ctx_hsubst_fold : autosubst.
+Hint Rewrite vls_subst_fold @list_hsubst_fold : autosubst.
 
 Arguments vls_hsubst /.
 Arguments list_hsubst /.
@@ -370,7 +358,7 @@ Qed.
 Instance HSubstLemmas_list `{Ids X} `{HSubst vl X} {hsl: HSubstLemmas vl X}: HSubstLemmas vl (list X).
 Proof.
   split; trivial; intros; rewrite /hsubst;
-    induction s; genasimpl; by f_equal.
+    induction s; asimpl; by f_equal.
 Qed.
 
 Instance HSubstLemmas_dms : HSubstLemmas vl dms := _.
@@ -428,4 +416,4 @@ Proof.
 Qed.
 
 (** Automated proof for such lemmas. *)
-Ltac solve_fv_congruence := rewrite /nclosed /nclosed_vl => * /=; f_equiv; solve [(idtac + genasimpl); auto using eq_up].
+Ltac solve_fv_congruence := rewrite /nclosed /nclosed_vl => * /=; f_equiv; solve [(idtac + asimpl); auto using eq_up].

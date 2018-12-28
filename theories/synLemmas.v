@@ -112,15 +112,6 @@ Proof. rewrite /eq_n_s => HsEq x Hl; apply HsEq; omega. Qed.
 (** The following ones are "direct" lemmas: deduce that an expression is closed
     by knowing that its subexpression are closed. *)
 
-(** Needed by solve_fv_congruence when dealing with binders, such as in fv_vobj and fv_vabs. *)
-Lemma eq_up s1 s2 n: eq_n_s s1 s2 n → eq_n_s (up s1) (up s2) (S n).
-Proof.
-  rewrite /up. move => Heq [|x] Hl //=. f_equiv. apply Heq. omega.
-Qed.
-
-(** Automated proof for such lemmas. *)
-Ltac solve_fv_congruence := rewrite /nclosed /nclosed_vl => * /=; f_equiv; solve [(idtac + genasimpl); auto using eq_up].
-
 Implicit Types
          (L U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
          (Γ : ctx) (ρ : vls).
