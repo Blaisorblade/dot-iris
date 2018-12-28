@@ -174,13 +174,13 @@ Section Sec.
     defs_interp T ρ (ds.|[v0 .: s]) ⊢
     interp T ρ v0.
   Proof.
-    induction ds; asimpl; iIntros (Hcl) "H".
-    - destruct T => //=.
-    - simpl in IHds.
-      destruct T => //=.
-      Fail iApply dtp_tand_i.
-      Fail iApply IHds.
-      Restart.
+    (* induction ds; asimpl; iIntros (Hcl) "H". *)
+    (* - destruct T => //=. *)
+    (* - simpl in IHds. *)
+    (*   destruct T => //=. *)
+    (*   Fail iApply dtp_tand_i. *)
+    (*   Fail iApply IHds. *)
+    (*   Restart. *)
 
     simpl; iIntros (Hcl) "#H".
     iPoseProof (defs_interp_v_closed with "H") as "%". move: H => Hclds.
