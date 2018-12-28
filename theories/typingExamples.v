@@ -1,8 +1,69 @@
+(**
+WIP examples constructing syntactic typing derivations.
+I am also experimenting with notations, but beware the current definitions are pretty bad.
+ *)
 From Dot Require Import tactics dotsyn typing.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
 Hint Constructors typed subtype dms_typed dm_typed path_typed.
+
+(** First, let's maybe start defining some nicer notation. I have little clue what I'm doing tho.
+    And this would need changing anyway if we switch to explicit labels. *)
+
+(* Beware that "Bind Scope" just presets the scope of arguments for *new* definitions. *)
+
+(** Notation for object values. *)
+Bind Scope dms_scope with dms.
+Open Scope dms_scope.
+Notation " {@ } " := (@nil dm) (format "{@ }") : dms_scope.
+Notation " {@ x } " := ( x :: {@} ) (format "{@  x  }"): dms_scope.
+Notation " {@ x ; y ; .. ; z } " := (cons x (cons y .. (cons z nil) ..)) (format "{@  x ;  y ;  .. ;  z  }"): dms_scope.
+Close Scope dms_scope.
+Arguments vobj _%dms_scope.
+
+Notation "'ν' ds " := (vobj ds) (at level 20, ds at next level).
+Notation "'val' = v" := (dvl v) (at level 20).
+Notation "'type' = T" := (dtysyn T) (at level 20).
+
+(** Notation for object types. *)
+Bind Scope ty_scope with ty.
+Open Scope ty_scope.
+(* Notation "⊤" := TTop : ty_scope. *)
+Notation " {@ } " := TTop (format "{@ }") : ty_scope.
+Notation " {@ T1 } " := ( TAnd {@} T1 ) (format "{@  T1  }"): ty_scope.
+Notation " {@ T1 ; T2 ; .. ; Tn } " := (TAnd .. (TAnd (TAnd {@} T1) T2) .. Tn)
+                                       (format "{@  T1  ;  T2  ;  ..  ;  Tn  }") : ty_scope.
+(* Notation " {@ T1 ; .. ; T2 ; Tn } " := (TAnd (TAnd .. (TAnd {@} T1) .. T2) Tn) *)
+(*                                          (format "{@  T1  ;  ..  ;  T2  ;  Tn  }"): ty_scope. *)
+Close Scope ty_scope.
+
+Notation "'μ' Ts " := (TMu Ts) (at level 20, Ts at next level).
+Notation "'type' l >: L <: U" := (TTMem l L U) (at level 0, l, L, U at level 10).
+Notation "'val' l : T" := (TVMem l T) (at level 0, l, T at level 10).
+
+Check ν {@ val = vnat 0 }.
+Check ν {@ type = TTop }.
+Check ν {@ val = vnat 0; type = TTop }.
+Check μ {@ type 0 >: TNat <: TTop }.
+Check μ {@ val 0 : TNat }.
+
+Check vobj {@}.
+Check ν {@ }.
+Check ν {@ val = vnat 0 }.
+Check ν {@ val = vnat 0 ; val = vnat 1 }.
+Check ν {@ val = vnat 0 ; type = TTop }.
+
+(* Notation "v @ l1 @ .. @ l2 ; l" := (TSel (pself .. (pself (pv v) l1) .. l2) l) *)
+(*                                      (format "v  @  l1  @  ..  @  l2  ;  l", at level 69, l1, l2 at level 60). *)
+(* Check (TSel (pself (pself (pv (var_vl 0)) 1) 2) 3). *)
+(* Check (var_vl 0 @ 1 @ 2 ; 3). *)
+Notation "v @ l1 @ .. @ l2" := (pself .. (pself (pv v) l1) .. l2)
+                                     (format "v  @  l1  @  ..  @  l2", at level 69, l1, l2 at level 60).
+Notation "p @; l" := (TSel p l) (at level 71).
+Check (pv (var_vl 0) @; 1).
+Check (pself (pself (pv (var_vl 0)) 1) 2 @; 3).
+Check (var_vl 0 @ 1 @ 2 @; 3).
 
 Example ex0 e Γ T:
   Γ ⊢ₜ e : T →
@@ -12,8 +73,13 @@ Proof.
   econstructor. apply Top_stp. eassumption.
 Qed.
 
+(* XXX Redeclaring notation so that it picks new scopes. Once it picks new
+   scopes, the pretty-printer can use overloaded notation in its arguments.
+   Instead, declare scopes before typing notation. *)
+Local Notation "Γ ⊢ds ds : T"  := (dms_typed Γ ds T) (at level 74, ds, T at next level).
+
 Example ex1 Γ n T:
-  Γ ⊢ₜ tv (vobj [dvl (vnat n)]) : TMu (TAnd TTop (TVMem 0 TNat)).
+  Γ ⊢ₜ tv (ν {@ val = vnat n}) : μ {@ val 0 : TNat }.
 Proof.
   (* Help proof search: *)
   apply VObj_typed. (* Avoid trying TMuI_typed, that's slow. *)
@@ -51,7 +117,7 @@ Definition F3 T :=
   TMu (TAnd TTop (TTMem 0 T T)).
 
 Example ex3 Γ T:
-  Γ ⊢ₜ tv (vobj [dtysyn (F3 (TSel (pv (var_vl 0)) 0))]) :
+  Γ ⊢ₜ tv (ν {@ type = (F3 (TSel (pv (var_vl 0)) 0)) } ) :
     F3 (F3 (TSel (pv (var_vl 0)) 0)).
 Proof.
   apply VObj_typed. (* Avoid trying TMuI_typed, that's slow. *)
@@ -70,14 +136,15 @@ Qed.
 (*   econstructor => //=. *)
 (* Abort. *)
 
-(* Definition F4 T := *)
-(*   TMu (TAnd (TAnd TTop (TTMem 0 T T))  *)
-(*             (TVMem 1 (TSel (pv (var_vl 0)) 0))). *)
+Definition F4 T :=
+  TMu (TAnd (TAnd TTop (TTMem 0 T T))
+            (TVMem 1 (TSel (pv (var_vl 0)) 0))).
+Print F4.
 
-(* Example ex3 Γ T: *)
-(*   Γ ⊢ₜ tv (vobj [dvl (var_vl 0); *)
-(*                    dtysyn (TSel (pv (var_vl 0)) 0)]) : *)
-(*     F4 (F4 (TSel (pv (var_vl 0)) 0)). *)
+Example ex4 Γ T:
+  Γ ⊢ₜ tv (ν {@ val = var_vl 0; type = TSel (pv (var_vl 0)) 0 }) :
+    F4 (F4 (TSel (pv (var_vl 0)) 0)).
+Abort.
 (*     (* TMu (TAnd (TAnd TTop (TTMem 0 ?))  *) *)
 (*     (*                      (TVMem 1 (TSel (pv (var_vl 0)) 0))). *) *)
 (* Proof. *)
