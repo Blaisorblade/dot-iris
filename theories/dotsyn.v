@@ -375,3 +375,57 @@ Qed.
 
 Instance HSubstLemmas_dms : HSubstLemmas vl dms := _.
 Instance HSubstLemmas_ctx : HSubstLemmas vl ctx := _.
+
+(** After instantiating Autosubst, a few binding-related syntactic definitions
+    that need not their own file. *)
+
+Definition to_subst (ρ: list vl) : var → vl := foldr (λ v s, v .: s) ids ρ.
+
+Lemma to_subst_nil: to_subst [] = ids.
+Proof. trivial. Qed.
+
+Lemma to_subst_cons v ρ : to_subst (v :: ρ) = v .: to_subst ρ.
+Proof. trivial. Qed.
+Global Hint Rewrite to_subst_nil to_subst_cons : autosubst.
+
+Global Typeclasses Opaque to_subst.
+Global Opaque to_subst.
+
+Definition subst_sigma (σ: vls) (ρ: list vl) := σ.|[to_subst ρ].
+
+Definition push_var (σ: vls) : vls := (var_vl 0) :: σ.|[ren (+1)].
+
+(** Create an identity environment of the given length. *)
+Fixpoint idsσ n: vls :=
+  match n with
+  | 0 => []
+  | S n => push_var (idsσ n)
+  end.
+
+(** When two substitutions are equivalent up to n. *)
+Definition eq_n_s (s1 s2: var → vl) n := ∀ x, x < n → s1 x = s2 x.
+Arguments eq_n_s /.
+
+(** [n]-closedness defines when some AST has at most [n] free variables (from [0] to [n - 1]). *)
+(** Here and elsewhere, we give one definition for values, using [subst], and
+    another for other ASTs, using [hsubst]. *)
+Definition nclosed_vl (v: vl) n :=
+  ∀ s1 s2, eq_n_s s1 s2 n → v.[s1] = v.[s2].
+
+Definition nclosed `{HSubst vl X} (t: X) n :=
+  ∀ s1 s2, eq_n_s s1 s2 n → t.|[s1] = t.|[s2].
+
+Definition cl_ρ ρ := Forall (λ v, nclosed_vl v 0) ρ.
+Arguments cl_ρ /.
+
+(** The following ones are "direct" lemmas: deduce that an expression is closed
+    by knowing that its subexpression are closed. *)
+
+(** Needed by solve_fv_congruence when dealing with binders, such as in fv_vobj and fv_vabs. *)
+Lemma eq_up s1 s2 n: eq_n_s s1 s2 n → eq_n_s (up s1) (up s2) (S n).
+Proof.
+  rewrite /up. move => Heq [|x] Hl //=. f_equiv. apply Heq. omega.
+Qed.
+
+(** Automated proof for such lemmas. *)
+Ltac solve_fv_congruence := rewrite /nclosed /nclosed_vl => * /=; f_equiv; solve [(idtac + genasimpl); auto using eq_up].

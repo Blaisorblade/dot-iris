@@ -1,6 +1,6 @@
 From iris.program_logic Require Import weakestpre.
 From iris.proofmode Require Import tactics.
-From Dot Require Import tactics unary_lr synLemmas rules.
+From Dot Require Import tactics unary_lr_binding rules.
 
 Section Sec.
   Context `{HdotG: dotG Σ}.
@@ -23,7 +23,7 @@ Section Sec.
     ivtp Γ (TLater T) v -∗
     Γ ⊨d { l = dvl v } : TVMem l T.
   Proof.
-    iIntros "#[% #Hv]". move: H => Hclv. iSplit; auto using fv_dvl. iIntros "!> * #Hg".
+    iIntros "#[% #Hv]". move: H => Hclv. iSplit. auto using fv_dvl. iIntros "!> * #Hg".
     iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H => Hclρ.
     iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *.
     repeat iSplit => //. { iPureIntro. apply fv_to_subst, Hclρ. apply fv_dvl, Hclv. }
@@ -118,7 +118,6 @@ Section Sec.
   Proof.
     iIntros " #Hγ".
     iApply (idtp_tmem_abs_i T T T) => //=;
-      (* XXX Inline copy of Sub_Refl: *)
       by iIntros "!> **".
   Qed.
 

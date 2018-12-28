@@ -1,6 +1,5 @@
 Require Import Dot.tactics.
-Require Import Dot.operational.
-Import operational.lang.
+Require Import Dot.dotsyn.
 
 Reserved Notation "Γ ⊢ₜ e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ ⊢ₚ p : T , i" (at level 74, p, T, i at next level).

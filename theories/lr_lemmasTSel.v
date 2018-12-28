@@ -1,19 +1,12 @@
 From iris.program_logic Require Import weakestpre.
 From iris.proofmode Require Import tactics.
-From Dot Require Import operational tactics unary_lr synLemmas.
+From Dot Require Import tactics unary_lr.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
 Section Sec.
-  Context `{HdotG: dotG Σ}.
+  Context `{HdotG: dotG Σ} Γ.
 
-  Context (Γ: list ty).
-
-  (** Show that inclusion between postconditions is equivalent to inclusion
-      between value predicates *with an update modality. This is useful to show
-      equivalent value and expression subtyping, both for a fixed environment and
-      for environments matching a [Γ].
-   *)
   Lemma mem_stp_sela_sub L U va l:
     ivtp Γ (TTMem l L U) va -∗
     Γ ⊨ L <: TSelA (pv va) l L U.
@@ -24,9 +17,9 @@ Section Sec.
     repeat iSplit; first by iApply "HLU".
     iRight.
     iExists σ, φ, d.
+    iDestruct ("HLU" with "HvL") as "#HLU'".
     iPoseProof (interp_v_closed with "HvL") as "%". move: H => Hclv.
     iDestruct ("HLφ" $! _ Hclv with "HvL") as "#HLφ'".
-    iDestruct ("HLU" with "HvL") as "#HLU'".
     repeat iModIntro; by repeat iSplit.
   Qed.
 
@@ -39,7 +32,7 @@ Section Sec.
     iDestruct "H" as "#[Hl [#HLφ [#HφU #HLU]]]".
     repeat iSplit => //.
     iRight.
-    iExists σ , φ, d.
+    iExists σ, φ, d.
     iDestruct ("HLφ" $! _ Hclv with "HvL") as "#HLφ'".
     repeat iModIntro; by repeat iSplit.
   Qed.

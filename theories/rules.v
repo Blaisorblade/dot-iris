@@ -2,8 +2,6 @@ From iris.program_logic Require Export weakestpre.
 From iris.program_logic Require Import ectx_lifting.
 From Dot Require Export operational.
 
-Import operational.lang.
-
 Section lang_rules.
   (* Context `{irisG }. *)
   Implicit Types e : tm.
