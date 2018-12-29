@@ -24,7 +24,6 @@ Section Sec.
              ∀ ρ v,
                ⌜ length ρ = length σ2 ⌝ →
                ⌜ cl_ρ ρ ⌝ →
-               (* We should demand that ρ is closed, and we should check that FV (T) ⊂ dom σ *)
                dot_interp T2 ρ v ≡ φ2 (subst_sigma σ2 ρ) v)%I.
 
   (** For each type T, we can save its interpretation in the ghost state.

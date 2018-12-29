@@ -8,15 +8,7 @@ Section Sec.
   Context (Γ: list ty).
   Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
-  (**
-     Lemmas about definition typing.
-     TODO: generalize them for definitions at arbitrary positions.
-
-     This should be easier now, since we made labels index
-     definitions from the end, as done by existing formalizations.
-     This way, [dcons d ds] keeps the existing labels for [ds] and uses a new
-     one ([length ds]) for [d]. That's a bit like de Bruijn levels.
-   *)
+  (** Lemmas about definition typing. *)
   (* TODO: switch to ietp. Might involve challenges with fancy updates;
      worst-case, we can add a fancy update to definition typing. *)
   Lemma idtp_vmem_i T v l:
@@ -160,13 +152,6 @@ Section Sec.
       * iModIntro. repeat iSplitL; naive_solver.
   Qed.
 
-  (* Check that Löb induction works as expected for proving introduction of
-   * objects. Using Löb induction works easily.
-   *
-   * Γ, x: ▷ T ⊨ ds : T
-   * ---------------------
-   * Γ ⊨ nu x. ds : μ x. T
-   *)
   (* Formerly wip_hard. *)
   Lemma defs_interp_to_interp T ds ρ s:
     let v0 := (vobj ds).[s] in
@@ -212,6 +197,13 @@ Section Sec.
     (* try solve [iIntros; try done]. *)
   Admitted.
 
+  (* Check that Löb induction works as expected for proving introduction of
+   * objects. Using Löb induction works easily.
+   *
+   * Γ, x: ▷ T ⊨ ds : T
+   * ---------------------
+   * Γ ⊨ nu x. ds : μ x. T
+   *)
   Lemma T_New_I T ds:
      (TLater T :: Γ ⊨ds ds : T →
      Γ ⊨ tv (vobj ds) : TMu T)%I.
