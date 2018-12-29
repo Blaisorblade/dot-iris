@@ -23,7 +23,6 @@ Section Sec.
     (∃ φ2 T2, γ2 ⤇ φ2 ∧ t_ty T1 T2 ∧
              ∀ ρ v,
                ⌜ length ρ = length σ2 ⌝ →
-               ⌜ cl_ρ ρ ⌝ →
                dot_interp T2 ρ v ≡ φ2 (subst_sigma σ2 ρ) v)%I.
 
   (** For each type T, we can save its interpretation in the ghost state.
@@ -44,7 +43,34 @@ Section Sec.
     iIntros (Hcl) "HT !> /=".
     rewrite /t_dty_syn2sem.
     iExists (idsσ n), γ, (dot_interp T2), T2; repeat iSplit; trivial.
-    rewrite length_idsσ. iIntros. by rewrite (subst_sigma_idsσ ρ n).
+    rewrite length_idsσ. iIntros. by rewrite subst_sigma_idsσ.
+  Qed.
+
+  (**
+     Eventually we want [ t_ty T T1 -∗ t_ty T T2 -∗ ∀ ρ v, ⟦ T1 ⟧ ρ v ≡ ⟦ T2 ⟧ ρ v ].
+     This lemma is meant to be the interesting case of that proof.
+   *)
+  Lemma t_dty_equiv T σ1 γ1 σ2 γ2 t_ty:
+    t_dty_syn2sem t_ty T σ1 γ1 -∗
+    t_dty_syn2sem t_ty T σ2 γ2 -∗
+    (* XXX Should be implied from the rest! This isn't OK! *)
+    ⌜ length σ1 = length σ2 ⌝ -∗
+    (□∀ T1 T2 ρ v, t_ty T1 T2 -∗ dot_interp T1 ρ v ≡ dot_interp T2 ρ v) -∗
+    ∃ φ1 φ2, γ1 ⤇ φ1 ∗ γ2 ⤇ φ2 ∗
+                ∀ ρ v,
+                  ⌜ length ρ = length σ1 ⌝ →
+                  φ1 (subst_sigma σ1 ρ) v ≡ φ2 (subst_sigma σ2 ρ) v.
+  Proof.
+    rewrite /= /t_dty_syn2sem.
+    iIntros "H1 H2 % #Hproper".
+    iDestruct "H1" as (φ1 T1) "(#H1 & HeqT1 & #Heqφ1)".
+    iDestruct "H2" as (φ2 T2) "(#H2 & HeqT2 & #Heqφ2)".
+    iExists φ1, φ2. repeat iSplit => //.
+    iIntros (ρ v Heq1).
+    iRewrite -("Heqφ1" $! ρ v _). iRewrite -("Hproper" $! T T1 ρ v with "HeqT1").
+    iRewrite -("Heqφ2" $! ρ v _). iRewrite -("Hproper" $! T T2 ρ v with "HeqT2").
+    trivial.
+    Unshelve. all: congruence.
   Qed.
 
   (** Lift translation between syntactic and semantic entities throughout the whole language.
@@ -513,4 +539,87 @@ Section Sec.
     eapply simulation_skeleton_head in H2 as [e'' [Hhs Hskk]]; last by eauto.
     exists (fill Ks' e''). subst. split; [econstructor; eauto | by apply same_skel_fill_item].
   Qed.
+
+  (** We want to prove that different translations give equivalent lookup
+      results. This is the core case of that proof. A better statement might say
+      that type lookup on different translation gives "equivalent"" results, and
+      introduce abbreviations/names for the relevant equivalence and lookup. *)
+  (** TODO Reuse more of [t_dty_equiv]. *)
+  Lemma t_dm_agree_v0 d d1 d2 σ1 γ1 :
+    d1 = dtysem σ1 γ1 →
+    t_dm d d1 -∗ t_dm d d2 -∗
+    ∃ φ1 φ2 σ2 γ2,
+      ⌜ d2 = dtysem σ2 γ2 ⌝ ∧
+      γ1 ⤇ φ1 ∧
+      γ2 ⤇ φ2 ∧
+      ∀ ρ v,
+        ⌜ length ρ = length σ1 ⌝ →
+        (φ1 (subst_sigma σ1 ρ) v ≡ φ2 (subst_sigma σ2 ρ) v).
+  Proof.
+    intros ->. iIntros "#Htr1 #Htr2".
+    destruct d as [T0| |]=> //; destruct d2 as [|σ2 γ2|] => //.
+    cbn; rewrite /t_dty_syn2sem -/t_ty /=.
+    iDestruct "Htr1" as (φ1 T1) "[Hγ1' [HT1 Hφ1]]".
+    iDestruct "Htr2" as (φ2 T2) "[Hγ2' [HT2 Hφ2]]".
+    (* XXX even if we added this, we still couldn't conclude the desired
+       [ length ρ = length σ2 ]. *)
+    (* assert (nclosed T0 (length σ1)). admit. *)
+    (* assert (nclosed T0 (length σ2)). admit. *)
+    iExists φ1, φ2, σ2, γ2. repeat iSplit => //=.
+    iIntros (ρ v) "#Hlen1".
+    (* Currently false, adjust definitions to ensure this! *)
+    iAssert (⌜length ρ = length σ2⌝)%I as "#Hlen2". admit.
+    iSpecialize ("Hφ1" $! _ v with "Hlen1").
+    iSpecialize ("Hφ2" $! _ v with "Hlen2").
+    (* Inductive hypothesis in [translations_types_equivalent_vals] . *)
+    iAssert (dot_interp T1 ρ v ≡ dot_interp T2 ρ v)%I as "#Heq". admit.
+    iRewrite - "Hφ1".
+    iRewrite "Heq".
+    iExact "Hφ2".
+  Admitted.
+
+  Lemma t_dm_agree d d1 d2 σ1 γ1 φ1:
+    d1 = dtysem σ1 γ1 →
+    t_dm d d1 -∗ t_dm d d2 -∗
+    γ1 ⤇ φ1 -∗
+    ∃ σ2 γ2 (φ2: listVlC -n> vlC -n> iProp Σ), ⌜ d2 = dtysem σ2 γ2 ⌝ ∧ γ2 ⤇ (λ vs, φ2 vs) ∧
+                ∀ ρ v,
+                  ⌜ length ρ = length σ1 ⌝ →
+                  ▷ (φ1 (subst_sigma σ1 ρ) v ≡ φ2 (subst_sigma σ2 ρ) v).
+  (* Lemma t_dm_agree d d1 d2 σ1 γ1 φ1: *)
+  (*   d1 = dtysem σ1 γ1 → *)
+  (*   t_dm d d1 -∗ t_dm d d2 -∗ *)
+  (*   γ1 ⤇ φ1 -∗ *)
+  (*   ∃ σ2 γ2 φ2, ⌜ d2 = dtysem σ2 γ2 ⌝ ∧ γ2 ⤇ φ2 ∧ *)
+  (*               ∀ ρ v, *)
+  (*                 ⌜ length ρ = length σ1 ⌝ → *)
+  (*                 ⌜ cl_ρ ρ ⌝ → *)
+  (*                 ▷ (φ1 (subst_sigma σ1 ρ) v ≡ φ2 (subst_sigma σ2 ρ) v). *)
+  Proof.
+    intros ->. iIntros "#Htr1 #Htr2 #Hγ1".
+    destruct d as [T0| |]=> //; destruct d2 as [|σ2 γ2|] => //.
+    cbn; rewrite /t_dty_syn2sem -/t_ty /=.
+    iDestruct "Htr1" as (φ1' T1) "[Hγ1' [HT1 Hφ1]]".
+    iDestruct "Htr2" as (φ2 T2) "[Hγ2' [HT2 Hφ2]]".
+    (* XXX even if we added this, we still couldn't conclude the desired
+       [ length ρ = length σ2 ]. *)
+    (* assert (nclosed T0 (length σ1)). admit. *)
+    (* assert (nclosed T0 (length σ2)). admit. *)
+    iExists σ2, γ2, (λne vs w, φ2 vs w). repeat iSplit => //=.
+    iAssert (∀ v ρ, ▷ (φ1 ρ v ≡ φ1' ρ v))%I as "#Hag".
+      by iIntros; iApply (saved_interp_agree_eta γ1 φ1 φ1' ρ v).
+    iIntros (ρ v) "#Hlen1".
+    (* Currently false, adjust definitions to ensure this! *)
+    iAssert (⌜length ρ = length σ2⌝)%I as "#Hlen2". admit.
+    iSpecialize ("Hφ1" $! _ v with "Hlen1").
+    iSpecialize ("Hφ2" $! _ v with "Hlen2").
+    iSpecialize ("Hag" $! v (subst_sigma σ1 ρ)).
+    iNext.
+    (* Inductive hypothesis in [translations_types_equivalent_vals] . *)
+    iAssert (dot_interp T1 ρ v ≡ dot_interp T2 ρ v)%I as "#Heq". admit.
+    iRewrite "Hag". iRewrite - "Hφ1".
+    iRewrite "Heq".
+    iExact "Hφ2".
+  Admitted.
+
 End Sec.

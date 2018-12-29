@@ -105,54 +105,6 @@ Section fundamental.
   (*   - iFrame "Hv1". by iApply (IHT with "H1 H2"). *)
   (*   -  *)
 
-  Lemma t_dm_agree d d1 d2 σ1 γ1 φ1:
-    d1 = dtysem σ1 γ1 →
-    t_dm d d1 -∗ t_dm d d2 -∗
-    γ1 ⤇ φ1 -∗
-    ∃ σ2 γ2 (φ2: listVlC -n> vlC -n> iProp Σ), ⌜ d2 = dtysem σ2 γ2 ⌝ ∧ γ2 ⤇ (λ vs, φ2 vs) ∧
-                ∀ ρ v,
-                  ⌜ length ρ = length σ1 ⌝ →
-                  ⌜ cl_ρ ρ ⌝ →
-                  ▷ (φ1 (subst_sigma σ1 ρ) v ≡ φ2 (subst_sigma σ2 ρ) v).
-  (* Lemma t_dm_agree d d1 d2 σ1 γ1 φ1: *)
-  (*   d1 = dtysem σ1 γ1 → *)
-  (*   t_dm d d1 -∗ t_dm d d2 -∗ *)
-  (*   γ1 ⤇ φ1 -∗ *)
-  (*   ∃ σ2 γ2 φ2, ⌜ d2 = dtysem σ2 γ2 ⌝ ∧ γ2 ⤇ φ2 ∧ *)
-  (*               ∀ ρ v, *)
-  (*                 ⌜ length ρ = length σ1 ⌝ → *)
-  (*                 ⌜ cl_ρ ρ ⌝ → *)
-  (*                 ▷ (φ1 (subst_sigma σ1 ρ) v ≡ φ2 (subst_sigma σ2 ρ) v). *)
-  Proof.
-    intros ->. iIntros "#Htr1 #Htr2 #Hγ1".
-    destruct d as [T0| |]=> //; destruct d2 as [|σ2 γ2|] => //.
-    cbn; rewrite /t_dty_syn2sem -/t_ty /=.
-    iDestruct "Htr1" as (φ1' T1) "[Hγ1' [HT1 Hφ1]]".
-    iDestruct "Htr2" as (φ2 T2) "[Hγ2' [HT2 Hφ2]]".
-    (* XXX even if we added this, we still couldn't conclude the desired
-       [ length ρ = length σ2 ]. *)
-    (* assert (nclosed T0 (length σ1)). admit. *)
-    (* assert (nclosed T0 (length σ2)). admit. *)
-    iExists σ2, γ2, (λne vs w, φ2 vs w). repeat iSplit => //=.
-    iAssert (∀ v ρ, ▷ (φ1 ρ v ≡ φ1' ρ v))%I as "#Hag".
-    { iIntros.
-      (* Paolo: This manual eta-expansion is needed to get coercions to apply. *)
-      by iApply (saved_interp_agree_eta γ1 (λ a, φ1 a) (λ a, φ1' a) ρ v).
-    }
-    iIntros (ρ v) "#Hlen1 #Hcl".
-    (* Currently false, adjust definitions to ensure this! *)
-    iAssert (⌜length ρ = length σ2⌝)%I as "#Hlen2". admit.
-    iSpecialize ("Hφ1" $! _ v with "Hlen1 Hcl").
-    iSpecialize ("Hφ2" $! _ v with "Hlen2 Hcl").
-    iSpecialize ("Hag" $! v (subst_sigma σ1 ρ)).
-    iNext.
-    (* Inductive hypothesis in [translations_types_equivalent_vals] . *)
-    iAssert (⟦ T1 ⟧ ρ v ≡ ⟦ T2 ⟧ ρ v)%I as "#Heq". admit.
-    iRewrite "Hag". iRewrite - "Hφ1".
-    iRewrite "Heq".
-    iExact "Hφ2".
-  Admitted.
-
   Lemma translations_types_equivalent_vals T T' T'' v ρ:
     (t_ty T T' → t_ty T T'' → ⟦ T' ⟧ ρ v ↔ ⟦ T'' ⟧ ρ v)%I.
   Proof.
@@ -219,7 +171,6 @@ Section fundamental.
         assert (∃ σ2 γ2, v2.[to_subst ρ] @ l1 ↘ dtysem σ2 γ2) as (σ2 & γ2 & ?) by admit.
         iAssert (∃ d, t_dm d (dtysem σ1 γ1))%I as (d) "#Htrd1". admit.
         iAssert (t_dm d (dtysem σ2 γ2))%I as "#Htrd2". admit.
-
         iPoseProof (t_dm_agree _ _ _ _ _ _ eq_refl with "Htrd1 Htrd2 Hγ1") as (σ γ φ) "[% [Hγ2 Hfoo]]".
         injectHyps.
         iExists σ, φ, (dtysem σ γ). repeat iSplit => //.
@@ -229,9 +180,8 @@ Section fundamental.
              [v2.[to_subst ρ] @ l1 ↘ dtysem σ γ], they are closed, and arise
              from substituting [ρ] into the open σs in [v1] and [v2]. *)
           (* XXX We must restrict the hypotheses: this lemma only holds for ρ that are closed and of the right size.*)
-          iAssert (⌜ cl_ρ ρ ⌝)%I as "#Hcl". admit.
           iAssert (⌜ length ρ = length σ1 ⌝)%I as "#Hlen". admit.
-          iSpecialize ("Hfoo" $! ρ v with "Hlen Hcl").
+          iSpecialize ("Hfoo" $! ρ v with "Hlen").
           assert (subst_sigma σ ρ = σ) as -> by admit.
           assert (subst_sigma σ1 ρ = σ1) as -> by admit.
           repeat iModIntro.
