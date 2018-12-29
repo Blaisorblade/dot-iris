@@ -137,9 +137,6 @@ Proof. solve_fv_congruence. Qed.
 Lemma fv_dvl v n: nclosed_vl v n → nclosed (dvl v) n.
 Proof. solve_fv_congruence. Qed.
 
-Lemma fv_cons `{Ids X} `{HSubst vl X} {hsla: HSubstLemmas vl X} (x: X) xs: nclosed xs 0 → nclosed x 0 → nclosed (x :: xs) 0.
-Proof. solve_fv_congruence. Qed.
-
 Definition fv_dms_cons : ∀ d ds, nclosed ds 0 → nclosed d 0 → nclosed (d :: ds) 0 := fv_cons.
 Lemma fv_vls_cons : ∀ v vs, nclosed vs 0 → nclosed_vl v 0 → nclosed (v :: vs) 0.
 Proof. solve_fv_congruence. Qed.
