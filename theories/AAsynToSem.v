@@ -27,6 +27,27 @@ Section Sec.
                (* We should demand that ρ is closed, and we should check that FV (T) ⊂ dom σ *)
                dot_interp T2 ρ v ≡ φ2 (subst_sigma σ2 ρ) v)%I.
 
+  (** For each type T, we can save its interpretation in the ghost state.
+      Caveat: you only want to use this on translated (semantic) types. Not to
+      be confused with the results of the interpretation (ARGH).
+   *)
+  Lemma alloc_sp T:
+    (|==> ∃ γ, γ ⤇ dot_interp T)%I.
+  Proof. by apply saved_interp_alloc. Qed.
+
+  (** Existence of translations for type member definitions. *)
+  Lemma ex_t_dty_gen T1 T2 n t_ty:
+    nclosed T1 n →
+    t_ty T1 T2 -∗
+    (|==> ∃ σ2 γ2, t_dty_syn2sem t_ty T1 σ2 γ2)%I.
+  Proof.
+    iMod (alloc_sp T2) as (γ) "#Hγ".
+    iIntros (Hcl) "HT !> /=".
+    rewrite /t_dty_syn2sem.
+    iExists (idsσ n), γ, (dot_interp T2), T2; repeat iSplit; trivial.
+    rewrite length_idsσ. iIntros. by rewrite (subst_sigma_idsσ ρ n).
+  Qed.
+
   (** Lift translation between syntactic and semantic entities throughout the whole language.
       Lift [t_dty_syn2sem] throughout the syntax of terms and types, checking that otherwise the terms are equal.
    *)
@@ -123,14 +144,6 @@ Section Sec.
       end%I.
     (* ([∗ list] v1 ; v2 ∈ vs1 ; vs2 , t_vl σ v1 v2)%I. *)
 
-  (** For each type T, we can save its interpretation in the ghost state.
-      Caveat: you only want to use this on translated (semantic) types. Not to
-      be confused with the results of the interpretation (ARGH).
-   *)
-  Lemma alloc_sp T:
-    (|==> ∃ γ, γ ⤇ dot_interp T)%I.
-  Proof. by apply saved_interp_alloc. Qed.
-
   (** The translation relation is persistent. *)
   Lemma t_ty_persistent t1 t2: Persistent (t_ty t1 t2)
   with  t_path_persistent t1 t2: Persistent (t_path t1 t2)
@@ -165,11 +178,8 @@ Section Sec.
     t_ty T1 T2 -∗
     (|==> ∃(d: dm), t_dm (dtysyn T1) d)%I.
   Proof.
-    iMod (alloc_sp T2) as (γ) "#Hγ".
-    iIntros (Hcl) "#HT !> /=".
-    rewrite /t_dty_syn2sem.
-    iExists (dtysem (idsσ n) γ), (dot_interp T2), T2; repeat iSplit; trivial.
-    rewrite length_idsσ. iIntros. by rewrite (subst_sigma_idsσ ρ n).
+    iIntros "% #Htr /=".
+    iMod (ex_t_dty_gen with "Htr") as (σ γ) "#H" => //. by iExists (dtysem σ γ).
   Qed.
 
   (** is_syn_* are predicates to distinguish syntactic entities/source syntax.
