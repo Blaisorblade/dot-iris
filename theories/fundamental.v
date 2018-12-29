@@ -38,14 +38,219 @@ Section fundamental.
     is_syn_ctx Γ.
   Admitted.
 
+  (* The proof of the lemma below is tedious.
+     It'd be nicer to prove a variant using as relation either ⌜ _ = _ ⌝ or ⌜ _
+     ≡ _ ⌝ or _ ≡ _ (those are all distinct!); however, proofs failed for each
+     of those in a different way I did not know how to fix - a combination of
+     - the [properness] tactic does not work here because it's for a different set of lemmas.
+     - iRewrite doesn't work under binders
+     - iRewrite works only with some but not others of those equivalence relations
+
+     BTW, it'd be ideal to equate ⟦ T' ⟧ ≡ ⟦ T'' ⟧ since sometimes we pass other
+     arguments, but that doesn't seem to work either for unclear reasons.
+     Here are two attempts.
+   *)
+  Lemma translations_types_equivalent_vals_try1 T T' T'':
+    (t_ty T T' → t_ty T T'' → ⟦ T' ⟧ ≡ ⟦ T'' ⟧)%I.
+  Proof.
+    revert T' T''.
+    induction T => /=; iIntros (T' T'') "#H1 #H2"; destruct T' => //=; destruct T'' => //=; cbn;
+    try (iDestruct "H1" as "[H11 H12]");
+    try (iDestruct "H2" as "[H21 H22]").
+    Fail iRewrite (IHT1 _ _ with "H11 H21").
+  Abort.
+
+  Lemma translations_types_equivalent_vals_try2 T T' T'' ρ:
+    (t_ty T T' → t_ty T T'' → ⟦ T' ⟧ ρ ≡ ⟦ T'' ⟧ ρ)%I.
+  Proof.
+    revert T' T'' ρ.
+    induction T => /=; iIntros (T' T'' ρ) "#H1 #H2"; destruct T' => //=; destruct T'' => //=; cbn;
+    try (iDestruct "H1" as "[H11 H12]");
+    try (iDestruct "H2" as "[H21 H22]").
+    Fail iRewrite (IHT1 _ _ ρ with "H11 H21").
+  Abort.
+
+  (* Lemma translations_types_equivalent_vals T T' T'' v ρ: *)
+  (*   (t_ty T T' → t_ty T T'' → ⌜ ⟦ T' ⟧ ρ v ≡ ⟦ T'' ⟧ ρ v ⌝)%I. *)
+  (* Proof.  *)
+  (*   revert T' T'' ρ v. *)
+  (*   induction T => /=; iIntros (T' T'' ρ v) "#H1 #H2"; destruct T' => //=; destruct T'' => //=; cbn; *)
+  (*   try (iDestruct "H1" as "[H11 H12]"); *)
+  (*   try (iDestruct "H2" as "[H21 H22]"). *)
+  (*   all: try iPoseProof (IHT1 _ _ ρ v with "H11 H21") as "->"; try iPoseProof (IHT2 _ _ ρ v with "H12 H22") as "->"; try iPoseProof (IHT _ _ ρ v with "H1 H2") as "->". *)
+  (*   all: try done. *)
+  (*   iAssert (∀ ρ v, ⌜ ⟦ T'1 ⟧ ρ v ≡ ⟦ T''1 ⟧ ρ v ⌝)%I as "#H". by iIntros; iApply IHT1. *)
+  (*   iRewrite "H". *)
+
+  (*   all: try iRewrite (IHT1 _ _ ρ v with "H11 H21"); try iRewrite (IHT2 _ _ ρ v with "H12 H22"); *)
+  (*   try iRewrite (IHT _ _ ρ v with "H1 H2"). *)
+  (*   all: try done. *)
+
+  (*   iPoseProof (IHT1 _ _ ρ v with "H11 H21") as "->". *)
+  (*   iPoseProof (IHT2 _ _ ρ v with "H11 H21") as "->". *)
+  (*   try iRewrite (IHT2 _ _ ρ v with "H12 H22"); *)
+  (*   admit. *)
+  (*   by iRewrite (IHT _ _ (v :: ρ) v with "H1 H2"). *)
+  (*   Check bi.sep_proper. *)
+  (*   -  *)
+  (*     About sbi_internal_eq. *)
+  (*     Check sbi_internal_eq. *)
+  (*   Set Printing All. *)
+  (*   Check (1 ≡ 2)%I. *)
+  (*   Check bi_emp_valid. *)
+  (*   properness. *)
+  (*   iRewrite (IHT _ _ ρ with "H1 H2"). *)
+  (*   - iSplit; by [iApply (IHT1 with "H11 H21") | iApply (IHT2 with "H12 H22")]. *)
+  (*   - iDestruct "Hv" as "[Hv1 | Hv2]"; by [iLeft ; iApply (IHT1 with "H11") | iRight; iApply (IHT2 with "H12")]. *)
+  (*   - iFrame "Hv1". by iApply (IHT with "H1 H2"). *)
+  (*   -  *)
+
+  Lemma t_dm_agree d d1 d2 σ1 γ1 φ1:
+    d1 = dtysem σ1 γ1 →
+    t_dm d d1 -∗ t_dm d d2 -∗
+    γ1 ⤇ φ1 -∗
+    ∃ σ2 γ2 (φ2: listVlC -n> vlC -n> iProp Σ), ⌜ d2 = dtysem σ2 γ2 ⌝ ∧ γ2 ⤇ (λ vs, φ2 vs) ∧
+                ∀ ρ v,
+                  ⌜ length ρ = length σ1 ⌝ →
+                  ⌜ cl_ρ ρ ⌝ →
+                  ▷ (φ1 (subst_sigma σ1 ρ) v ≡ φ2 (subst_sigma σ2 ρ) v).
+  (* Lemma t_dm_agree d d1 d2 σ1 γ1 φ1: *)
+  (*   d1 = dtysem σ1 γ1 → *)
+  (*   t_dm d d1 -∗ t_dm d d2 -∗ *)
+  (*   γ1 ⤇ φ1 -∗ *)
+  (*   ∃ σ2 γ2 φ2, ⌜ d2 = dtysem σ2 γ2 ⌝ ∧ γ2 ⤇ φ2 ∧ *)
+  (*               ∀ ρ v, *)
+  (*                 ⌜ length ρ = length σ1 ⌝ → *)
+  (*                 ⌜ cl_ρ ρ ⌝ → *)
+  (*                 ▷ (φ1 (subst_sigma σ1 ρ) v ≡ φ2 (subst_sigma σ2 ρ) v). *)
+  Proof.
+    intros ->. iIntros "#Htr1 #Htr2 #Hγ1".
+    destruct d as [T0| |]=> //; destruct d2 as [|σ2 γ2|] => //.
+    cbn; rewrite /t_dty_syn2sem -/t_ty /=.
+    iDestruct "Htr1" as (φ1' T1) "[Hγ1' [HT1 Hφ1]]".
+    iDestruct "Htr2" as (φ2 T2) "[Hγ2' [HT2 Hφ2]]".
+    (* XXX even if we added this, we still couldn't conclude the desired
+       [ length ρ = length σ2 ]. *)
+    (* assert (nclosed T0 (length σ1)). admit. *)
+    (* assert (nclosed T0 (length σ2)). admit. *)
+    iExists σ2, γ2, (λne vs w, φ2 vs w). repeat iSplit => //=.
+    iAssert (∀ v ρ, ▷ (φ1 ρ v ≡ φ1' ρ v))%I as "#Hag".
+    { iIntros.
+      (* Paolo: This manual eta-expansion is needed to get coercions to apply. *)
+      by iApply (saved_interp_agree_eta γ1 (λ a, φ1 a) (λ a, φ1' a) ρ v).
+    }
+    iIntros (ρ v) "#Hlen1 #Hcl".
+    (* Currently false, adjust definitions to ensure this! *)
+    iAssert (⌜length ρ = length σ2⌝)%I as "#Hlen2". admit.
+    iSpecialize ("Hφ1" $! _ v with "Hlen1 Hcl").
+    iSpecialize ("Hφ2" $! _ v with "Hlen2 Hcl").
+    iSpecialize ("Hag" $! v (subst_sigma σ1 ρ)).
+    iNext.
+    (* Inductive hypothesis in [translations_types_equivalent_vals] . *)
+    iAssert (⟦ T1 ⟧ ρ v ≡ ⟦ T2 ⟧ ρ v)%I as "#Heq". admit.
+    iRewrite "Hag". iRewrite - "Hφ1".
+    iRewrite "Heq".
+    iExact "Hφ2".
+  Admitted.
+
   Lemma translations_types_equivalent_vals T T' T'' v ρ:
-    (t_ty T T' → t_ty T T'' → ⟦ T' ⟧ρ  v → ⟦ T'' ⟧ ρ v )%I.
-  Proof. 
+    (t_ty T T' → t_ty T T'' → ⟦ T' ⟧ ρ v ↔ ⟦ T'' ⟧ ρ v)%I.
+  Proof.
+    revert T' T'' ρ v.
+    induction T => /=; iIntros (T' T'' ρ v) "#H1 #H2"; destruct T' => //=; destruct T'' => //=; cbn;
+    try (iDestruct "H1" as "[H11 H12]");
+    try (iDestruct "H2" as "[H21 H22]").
+
+    all: iSplit; iIntros "#Hv"; try (iDestruct "Hv" as "[#Hv1 #Hv2]"); try iFrame "Hv1"; try by iApply (IHT with "H1 H2").
+
+    (* To prove equivalence this way, I end up having to copy-paste proofs. *)
+    - iSplit; by [iApply (IHT1 with "H11 H21") | iApply (IHT2 with "H12 H22")].
+    - iSplit; by [iApply (IHT1 with "H11 H21") | iApply (IHT2 with "H12 H22")].
+    - iDestruct "Hv" as "[Hv1 | Hv2]"; by [iLeft ; iApply (IHT1 with "H11") | iRight; iApply (IHT2 with "H12")].
+    - iDestruct "Hv" as "[Hv1 | Hv2]"; by [iLeft ; iApply (IHT1 with "H11") | iRight; iApply (IHT2 with "H12")].
+    - iIntros "!> **".
+      iApply wp_wand.
+      + iApply "Hv2". by iApply (IHT1 with "H11 H21").
+      + iIntros. by iApply (IHT2 with "H12 H22").
+    - iIntros "!> **".
+      iApply wp_wand.
+      + iApply "Hv2". by iApply (IHT1 with "H11 H21").
+      + iIntros. by iApply (IHT2 with "H12 H22").
+    - iDestruct "H11" as "%". iDestruct "H21" as "%".
+      iDestruct "Hv2" as (d) "[% [% H]]". iDestruct "H" as (vmem) "[% H]".
+      subst.
+      repeat (iExists _; repeat iSplit => //). by iApply (IHT with "H12 H22").
+    - iDestruct "H11" as "%". iDestruct "H21" as "%".
+      iDestruct "Hv2" as (d) "[% [% H]]". iDestruct "H" as (vmem) "[% H]".
+      subst.
+      repeat (iExists _; repeat iSplit => //). by iApply (IHT with "H12 H22").
+    - iDestruct "H11" as "%". iDestruct "H21" as "%".
+      iDestruct "H12" as "[H11 H12]".
+      iDestruct "H22" as "[H21 H22]".
+      iDestruct "Hv2" as (d) "[% [% H]]". iDestruct "H" as (φ σ) "[Hl #[H2 [H3 H4]]]".
+      subst.
+      repeat (iExists _; repeat iSplit => //).
+      iDestruct "Hv1" as "%".
+      iModIntro. repeat iSplitL; iIntros.
+      + iApply "H2" => //. by iApply (IHT1 with "H11 H21").
+      + iApply (IHT2 with "H12 H22"). by iApply "H3".
+      + iApply (IHT2 with "H12 H22"). iApply "H4". by iApply (IHT1 with "H11 H21").
+    (* Copy-paste *)
+    - iDestruct "H11" as "%". iDestruct "H21" as "%".
+      iDestruct "H12" as "[H11 H12]".
+      iDestruct "H22" as "[H21 H22]".
+      iDestruct "Hv2" as (d) "[% [% H]]". iDestruct "H" as (φ σ) "[Hl #[H2 [H3 H4]]]".
+      subst.
+      repeat (iExists _; repeat iSplit => //).
+      iDestruct "Hv1" as "%".
+      iModIntro. repeat iSplitL; iIntros.
+      + iApply "H2" => //. by iApply (IHT1 with "H11 H21").
+      + iApply (IHT2 with "H12 H22"). by iApply "H3".
+      + iApply (IHT2 with "H12 H22"). iApply "H4". by iApply (IHT1 with "H11 H21").
+    - fold t_path.
+      iDestruct "H12" as "%". iDestruct "H22" as "%".
+      iDestruct "Hv1" as "%".
+      iDestruct "Hv2" as "[[] | H]". iRight.
+      subst.
+      iInduction p as [] "IHp" forall (p0 p1) "H"; destruct p0 => //; destruct p1 => //; cbn.
+      fold t_vl.
+      + iDestruct "H" as (σ1 φ1 d1) "[% [H Hφ]]". iDestruct "H" as (γ1) "[-> Hγ1]".
+        (* These admits are syntactic lemmas provable on the translation. *)
+        assert (∃ σ2 γ2, v2.[to_subst ρ] @ l1 ↘ dtysem σ2 γ2) as (σ2 & γ2 & ?) by admit.
+        iAssert (∃ d, t_dm d (dtysem σ1 γ1))%I as (d) "#Htrd1". admit.
+        iAssert (t_dm d (dtysem σ2 γ2))%I as "#Htrd2". admit.
+
+        iPoseProof (t_dm_agree _ _ _ _ _ _ eq_refl with "Htrd1 Htrd2 Hγ1") as (σ γ φ) "[% [Hγ2 Hfoo]]".
+        injectHyps.
+        iExists σ, φ, (dtysem σ γ). repeat iSplit => //.
+        * iExists _; iSplit =>//.
+        * (* Since σ and σ1 come from
+             [v1.[to_subst ρ] @ l1 ↘ dtysem σ1 γ1] and
+             [v2.[to_subst ρ] @ l1 ↘ dtysem σ γ], they are closed, and arise
+             from substituting [ρ] into the open σs in [v1] and [v2]. *)
+          (* XXX We must restrict the hypotheses: this lemma only holds for ρ that are closed and of the right size.*)
+          iAssert (⌜ cl_ρ ρ ⌝)%I as "#Hcl". admit.
+          iAssert (⌜ length ρ = length σ1 ⌝)%I as "#Hlen". admit.
+          iSpecialize ("Hfoo" $! ρ v with "Hlen Hcl").
+          assert (subst_sigma σ ρ = σ) as -> by admit.
+          assert (subst_sigma σ1 ρ = σ1) as -> by admit.
+          repeat iModIntro.
+          iRewrite -"Hfoo". done.
+      +
+        iDestruct "H11" as "[H11 ->]".
+        iDestruct "H21" as "[H21 ->]".
+        iSpecialize ("IHp" $! p0 p1 with "H11 H21").
+        (* This induction doesn't seem to work - we must generalize by hand over
+           the continuation I guess? *)
+        admit.
+    - admit.
+    - admit.
+    - admit.
   Admitted.
 
   Lemma translations_types_equivalent e T T' T'' Γ:
     (t_ty T T' → t_ty T T'' → Γ ⊨ e : T' → Γ ⊨ e : T'' )%I.
-  Proof. 
+  Proof.
     iIntros "#A #B #[% C] /="; iSplit => //. iIntros (ρ) "!> #D".
     unfold interp_expr. simpl.
     iApply wp_strong_mono => //. { by iApply "C". }
@@ -98,7 +303,7 @@ Section fundamental.
       iApply (translations_types_equivalent); try done.
 
       by iApply (T_Forall_Ex  with "toto tata").
-    - 
+    -
       (* I'm careful with simplification to avoid unfolding too much. *)
       cbn [t_tm] in * |- *; case_match; try done.
       iDestruct "HtrE" as "[Htr1 Htr2]".
