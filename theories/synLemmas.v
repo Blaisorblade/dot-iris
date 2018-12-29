@@ -136,10 +136,26 @@ Proof. solve_fv_congruence. Qed.
 Lemma fv_dvl v n: nclosed_vl v n → nclosed (dvl v) n.
 Proof. solve_fv_congruence. Qed.
 
+Lemma fv_dtysem ρ γ l: nclosed ρ l → nclosed (dtysem ρ γ) l.
+Proof. solve_fv_congruence. Qed.
+
 Definition fv_dms_cons : ∀ d ds, nclosed ds 0 → nclosed d 0 → nclosed (d :: ds) 0 := fv_cons.
+
 Lemma fv_vls_cons : ∀ v vs, nclosed vs 0 → nclosed_vl v 0 → nclosed (v :: vs) 0.
 Proof. solve_fv_congruence. Qed.
 
+Lemma fv_idsσ n: nclosed (idsσ n) n.
+Proof.
+  elim: n => //=.
+  rewrite /push_var /nclosed /eq_n_s //=; intros * IHn * Heq; asimpl.
+  f_equiv; [| apply IHn; intros]; apply Heq => /=; lia.
+Qed.
+
+Lemma cl_ρ_fv ρ : cl_ρ ρ → nclosed ρ 0.
+Proof.
+  induction ρ => // Hcl.
+  inverse Hcl. apply fv_vls_cons => //. by apply IHρ.
+Qed.
 
 (** The following ones are "inverse" lemmas: by knowing that an expression is closed,
     deduce that one of its subexpressions is closed *)
@@ -176,7 +192,7 @@ Proof.
       substitution of form [up ?], then rewrite with [e.|[up (stail s1)] =
       e.|[up (stail s2)]] (got from [Hfv]), and conclude.
       *)
-  rewrite ?(decomp_s _ s1) ?(decomp_s _ s2) ?(decomp_s_vl _ s1) ?(decomp_s_vl _ s2) (eq_n_s_heads HsEq); last (by omega).
+  rewrite ?(decomp_s _ s1) ?(decomp_s _ s2) ?(decomp_s_vl _ s1) ?(decomp_s_vl _ s2) (eq_n_s_heads HsEq); last omega.
   injection (Hfv _ _ (eq_n_s_tails HsEq)); rewritePremises; reflexivity.
 Qed.
 
@@ -210,22 +226,9 @@ Proof. solve_inv_fv_congruence. Qed.
 
 Lemma fv_vabs_inv e n: nclosed_vl (vabs e) n → nclosed e (S n).
 Proof. solve_inv_fv_congruence. Qed.
+
 Lemma fv_TAll_inv_2 n T1 T2: nclosed (TAll T1 T2) n → nclosed T2 (S n).
 Proof. solve_inv_fv_congruence. Qed.
+
 Lemma fv_TAll_inv_1 n T1 T2: nclosed (TAll T1 T2) n → nclosed T1 n.
 Proof. solve_inv_fv_congruence. Qed.
-
-Lemma fv_idsσ n: nclosed (idsσ n) n.
-Proof.
-  elim: n => //=.
-  rewrite /push_var /nclosed /eq_n_s //=; intros * IHn * Heq; asimpl.
-  f_equiv; [| apply IHn; intros]; apply Heq => /=; lia.
-Qed.
-
-Lemma fv_dtysem ρ γ l: nclosed ρ l → nclosed (dtysem ρ γ) l.
-Proof. solve_fv_congruence. Qed.
-
-Lemma cl_ρ_fv ρ : cl_ρ ρ → nclosed ρ 0.
-  induction ρ => // Hcl.
-  inverse Hcl. apply fv_vls_cons => //. apply IHρ => //.
-Qed.
