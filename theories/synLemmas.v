@@ -200,22 +200,18 @@ Qed.
     such lemmas easily, both here and elsewhere.
     Its internals are used directly in AAsynToSem. *)
 
-Ltac solve_inv_fv_congruence_up_body Hfv s1 s2 HsEq :=
-  rewrite ?(decomp_s _ s1) ?(decomp_s _ s2) ?(decomp_s_vl _ s1) ?(decomp_s_vl _ s2) (eq_n_s_heads HsEq); last (by omega);
-  injection (Hfv _ _ (eq_n_s_tails HsEq)); by rewritePremises.
-
-(* asimpl is expensive, but sometimes needed when simplification does mistakes.
-   It must also be done after injection because it might not rewrite under Hfv's
-   binders. *)
-Ltac solve_inv_fv_congruence_body Hfv s1 s2 HsEq :=
-  by [ injection (Hfv s1 s2); trivial; by (idtac + asimpl; rewritePremises; reflexivity) | solve_inv_fv_congruence_up_body Hfv s1 s2 HsEq ].
-
 Ltac solve_inv_fv_congruence :=
   let s1 := fresh "s1" in
   let s2 := fresh "s2" in
   let HsEq := fresh "HsEq" in
   let Hfv := fresh "Hfv" in
-  rewrite /nclosed_vl /nclosed /= => Hfv s1 s2 HsEq; solve_inv_fv_congruence_body Hfv s1 s2 HsEq.
+  rewrite /nclosed_vl /nclosed /= => Hfv s1 s2 HsEq;
+(* asimpl is expensive, but sometimes needed when simplification does mistakes.
+   It must also be done after injection because it might not rewrite under Hfv's
+   binders. *)
+  by [ injection (Hfv s1 s2); trivial; by (idtac + asimpl; rewritePremises; reflexivity) |
+       rewrite ?(decomp_s _ s1) ?(decomp_s _ s2) ?(decomp_s_vl _ s1) ?(decomp_s_vl _ s2) (eq_n_s_heads HsEq); last omega;
+       injection (Hfv _ _ (eq_n_s_tails HsEq)); by rewritePremises ].
 
 (* The proof of this lemma needs asimpl and hence is expensive. *)
 Lemma fv_vobj_ds_inv d ds n: nclosed_vl (vobj (d :: ds)) n → nclosed_vl (vobj ds) n.
