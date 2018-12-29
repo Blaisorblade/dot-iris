@@ -98,7 +98,10 @@ Lemma fv_to_subst_vl' v ρ v':
   nclosed_vl v' 0.
 Proof. intros; subst. by apply fv_to_subst_vl. Qed.
 
-Implicit Types (T: ty).
+Implicit Types
+         (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
+         (Γ : ctx) (ρ : vls).
+
 Lemma lookup_success Γ x T: Γ !! x = Some T → x < length Γ.
 Proof. apply lookup_lt_Some. Qed.
 
@@ -111,10 +114,6 @@ Proof. rewrite /eq_n_s => HsEq x Hl; apply HsEq; omega. Qed.
 
 (** The following ones are "direct" lemmas: deduce that an expression is closed
     by knowing that its subexpression are closed. *)
-
-Implicit Types
-         (L U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
-         (Γ : ctx) (ρ : vls).
 
 Lemma fv_tskip e n: nclosed e n → nclosed (tskip e) n.
 Proof. solve_fv_congruence. Qed.

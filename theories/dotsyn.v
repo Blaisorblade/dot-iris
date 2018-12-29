@@ -374,7 +374,7 @@ Proof. trivial. Qed.
 
 Lemma to_subst_cons v ρ : to_subst (v :: ρ) = v .: to_subst ρ.
 Proof. trivial. Qed.
-Global Hint Rewrite to_subst_nil to_subst_cons : autosubst.
+Hint Rewrite to_subst_nil to_subst_cons : autosubst.
 
 Global Typeclasses Opaque to_subst.
 Global Opaque to_subst.
