@@ -333,30 +333,34 @@ Section Sec.
   (* with  ex_t_dms σ n t1: is_syn_dms n t1 -> (|==> ∃t2, t_dms σ t1 t2)%I. *)
   Proof.
 
-  all: skeleton n t1 Hfv.
-  - iModSpec Hfv (ex_t_path n p) p2. recursiveTransf (TSel _ _) n Hfv.
-  - iModSpec Hfv (ex_t_path n p) p2. recursiveTransf (TSelA _ _ _ _) n Hfv.
-  - iModSpec Hfv (ex_t_vl n v) v2. recursiveTransf (pv _) n Hfv.
-  - iModSpec Hfv (ex_t_tm (S n) t) t2. recursiveTransf (vabs _) n Hfv.
-  - iInduction l as [|d ds] "IHl".
-    + by iExists (vobj []).
-    + ev.
-      have: nclosed d (S n). solve_inv_fv_congruence_h Hfv. move => Hcld.
-      iMod (ex_t_dm (S n) d Hcld H0) as (d2) "#Hd".
+    (* XXX Temporarily commented out only because it's very slow and details of
+       the statement are premature. *)
+  (* all: skeleton n t1 Hfv. *)
+  (* - iModSpec Hfv (ex_t_path n p) p2. recursiveTransf (TSel _ _) n Hfv. *)
+  (* - iModSpec Hfv (ex_t_path n p) p2. recursiveTransf (TSelA _ _ _ _) n Hfv. *)
+  (* - iModSpec Hfv (ex_t_vl n v) v2. recursiveTransf (pv _) n Hfv. *)
+  (* - iModSpec Hfv (ex_t_tm (S n) t) t2. recursiveTransf (vabs _) n Hfv. *)
+  (* - iInduction l as [|d ds] "IHl". *)
+  (*   + by iExists (vobj []). *)
+  (*   + ev. *)
+  (*     have: nclosed d (S n). solve_inv_fv_congruence_h Hfv. move => Hcld. *)
+  (*     iMod (ex_t_dm (S n) d Hcld H0) as (d2) "#Hd". *)
 
-      have: nclosed_vl (vobj ds) n. by eapply fv_vobj_ds_inv. move => Hclds.
-      iMod ("IHl" $! Hclds H1) as (v2) "#Hds". iClear "IHl".
+  (*     have: nclosed_vl (vobj ds) n. by eapply fv_vobj_ds_inv. move => Hclds. *)
+  (*     iMod ("IHl" $! Hclds H1) as (v2) "#Hds". iClear "IHl". *)
 
-      destruct v2 as [ | | | ds2]; try done.
-      iExists (vobj (d2 :: ds2)).
-      iModIntro; by iSplit.
+  (*     destruct v2 as [ | | | ds2]; try done. *)
+  (*     iExists (vobj (d2 :: ds2)). *)
+  (*     iModIntro; by iSplit. *)
 
-  - iModSpec Hfv (ex_t_vl n v) v2. recursiveTransf (tv _) n Hfv.
-  - iModSpec Hfv (ex_t_ty n t) t2.
-    iApply (ex_t_dty _ _ n); try done.
-    solve_inv_fv_congruence_h Hfv.
-  - iModSpec Hfv (ex_t_vl n v) v2. recursiveTransf (dvl _) n Hfv.
-  Qed.
+  (* - iModSpec Hfv (ex_t_vl n v) v2. recursiveTransf (tv _) n Hfv. *)
+  (* - iModSpec Hfv (ex_t_ty n t) t2. *)
+  (*   iApply (ex_t_dty _ _ n); try done. *)
+  (*   solve_inv_fv_congruence_h Hfv. *)
+  (* - iModSpec Hfv (ex_t_vl n v) v2. recursiveTransf (dvl _) n Hfv. *)
+  (* Qed. *)
+
+  Admitted.
 
   Fixpoint same_skel_tm (t1 t2: tm): Prop :=
     match (t1, t2) with
