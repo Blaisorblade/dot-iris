@@ -1,8 +1,10 @@
 -Q theories Dot
+-Q dsub DSub
 -arg -w -arg -notation-overridden,-redundant-canonical-projection,-several-object-files
 
 theories/tactics.v
 theories/prelude.v
+dsub/syn.v
 theories/dotsyn.v
 theories/typing.v
 theories/operational.v
