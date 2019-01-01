@@ -197,8 +197,7 @@ Proof.
 Qed.
 
 (** Finally, a heuristic solver [solve_inv_fv_congruence] to be able to prove
-    such lemmas easily, both here and elsewhere.
-    Its internals are used directly in AAsynToSem. *)
+    such lemmas easily, both here and elsewhere. *)
 
 Ltac solve_inv_fv_congruence :=
   let s1 := fresh "s1" in
