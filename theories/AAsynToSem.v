@@ -13,8 +13,8 @@ Section Sec.
       the results of the interpretation of types. Right now, we'd use semantic
       types for both.
 
-      Maybe we should talk about source syntax vs translated syntax; we'd hence
-      have source types, translated types and semantic types.
+      Maybe we should talk about unstamped syntax vs stamped syntax; we'd hence
+      have unstamped types, stamped types and semantic types.
    *)
 
   (** Translation between syntactic and semantic *type member definitions*.
@@ -514,7 +514,7 @@ Section Sec.
                     | H: ?A ∧ ?B |- _ => destruct H
                     end.
 
-   Lemma simulation_skeleton_head t1' t1 t2 σ σ' ts:
+  Lemma simulation_skeleton_head t1' t1 t2 σ σ' ts:
     same_skel_tm t1 t1' →
     head_step t1 σ [] t2 σ' ts →
     exists t2', head_step t1' σ [] t2' σ' ts ∧ same_skel_tm t2 t2'.
