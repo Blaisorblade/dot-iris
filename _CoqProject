@@ -8,7 +8,7 @@ theories/typing.v
 theories/operational.v
 theories/synLemmas.v
 theories/skeleton.v
-theories/AAsynToSem.v
+theories/synToSem.v
 theories/rules.v
 theories/adequacy.v
 theories/fundamental.v

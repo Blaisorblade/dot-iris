@@ -15,7 +15,7 @@ Code is not perfectly modularized, but here is a rough layout of the various fil
   - synLemmas.v: (SYNtactic Lemmas): lemmas about synFuncs.v
   - rules.v: lemmas about WP and this language's semantics.
 * Translation from syntactic values/terms/... to semantic ones:
-  - AAsynToSem.v
+  - synToSem.v
 * Unary logical relation:
   - unary_lr.v
 * (Sub)typing lemmas about unary logical relation:
