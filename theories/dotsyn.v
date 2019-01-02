@@ -1,6 +1,152 @@
 From iris.base_logic.lib Require Import iprop.
 From Dot Require Export prelude.
 
+Set Default Proof Using "Type*".
+
+Section Autosubst_Extras.
+  Context {vl} `{!Ids vl} `{!Rename vl} `{!Subst vl} `{!SubstLemmas vl} `{!EqDecision vl}.
+
+  Definition to_subst (ρ: list vl) : var → vl := foldr (λ v s, v .: s) ids ρ.
+
+  Lemma to_subst_nil: to_subst [] = ids.
+  Proof. trivial. Qed.
+
+  Lemma to_subst_cons v ρ : to_subst (v :: ρ) = v .: to_subst ρ.
+  Proof. trivial. Qed.
+  Global Hint Rewrite to_subst_nil to_subst_cons : autosubst.
+
+  Global Typeclasses Opaque to_subst.
+  Global Opaque to_subst.
+
+  Definition vls := list vl.
+  Instance vls_eq_dec' : EqDecision vls := list_eq_dec.
+
+  Global Instance Ids_list {A}: Ids (list A) := λ _, inhabitant.
+  Global Instance Ids_vls : Ids vls := _.
+
+  (* Instance list_rename `{Rename X} : Rename (list X) := *)
+  (*   λ (sb : var → var) xs, mmap (rename sb) xs. *)
+  (* Instance vls_hsubst `{Subst vl} : HSubst vl vls := *)
+  (*   λ (sb : var → vl) (vs : vls), mmap (subst sb) vs. *)
+  (* Instance list_hsubst `{HSubst vl X}: HSubst vl (list X) := λ sb xs, mmap (hsubst sb) xs. *)
+  (* Instance HSubstLemmas_vls : HSubstLemmas vl vls. *)
+  (* Proof. *)
+  (* split; trivial; intros; rewrite /hsubst; *)
+  (*   induction s; asimpl; f_equal. apply mmap_id. *)
+
+  Global Instance list_rename `{Rename X} : Rename (list X) :=
+    λ (sb : var → var) xs, map (rename sb) xs.
+
+  Lemma list_rename_fold `{Rename X} (sb : var → var) (xs : list X) : map (rename sb) xs = rename sb xs.
+  Proof. trivial. Qed.
+
+  Global Hint Rewrite @list_rename_fold : autosubst.
+
+  Global Instance vls_hsubst `{Subst vl} : HSubst vl vls :=
+    λ (sb : var → vl) (vs : vls), map (subst sb) vs.
+  Global Instance list_hsubst `{HSubst vl X}: HSubst vl (list X) := λ sb xs, map (hsubst sb) xs.
+
+  Definition vls_subst_fold sb vs : map (subst sb) vs = hsubst sb vs := eq_refl.
+  Definition list_hsubst_fold `{HSubst vl X} sb (xs : list X) : map (hsubst sb) xs = hsubst sb xs := eq_refl.
+  Definition vls_subst_fold' sb vs : vls_hsubst sb vs = hsubst sb vs := eq_refl.
+  Definition list_hsubst_fold' `{HSubst vl X} sb (xs : list X) : list_hsubst sb xs = hsubst sb xs := eq_refl.
+  Global Hint Rewrite vls_subst_fold @list_hsubst_fold
+    using apply _: autosubst.
+  Global Hint Rewrite vls_subst_fold' @list_hsubst_fold'
+    using apply _: autosubst.
+
+  Global Instance HSubstLemmas_vls : HSubstLemmas vl vls.
+  Proof.
+    split; trivial; intros; rewrite /hsubst;
+      induction s; asimpl; by f_equal.
+  Qed. 
+
+  (* Instance HSubstLemmas_vls : HSubstLemmas vl vls. *)
+  (* Proof. *)
+  (*   split; trivial; intros; *)
+  (*     (* rewrite /hsubst; *) *)
+  (*     induction s. *)
+  (*   f_equal. *)
+  (*   asimpl. *)
+  (*   rewrite @mmap_id. *)
+  (*   f_equal. *)
+  (*   f_equal. *)
+  (*   autorewrite with mmap. *)
+  (*   asimpl. *)
+  (*   f_equal. *)
+  (*   apply mmap_id. *)
+  (*   Set Printing All. *)
+  (*   Check vls_subst_fold'. *)
+  (*   split; trivial; intros; rewrite /hsubst; *)
+  (*     induction s; asimpl; by f_equal. *)
+  (*   rewrite -> vls_subst_fold' in *. *)
+  (*   (* try rewrite -> vls_subst_fold in *. *) *)
+  (*   (* asimpl. *) *)
+  (*   induction s. *)
+  (*   done. *)
+  (*   asimpl => //; try by f_equal. *)
+  (*   About id. *)
+  (*   SearchPattern (map id).  _ = _). *)
+  (*   rewrite -> vls_subst_fold' in *. rewrite -> vls_subst_fold in *. *)
+
+
+  (*   asimpl. *)
+  (*     by f_equal. *)
+  (* Qed. *)
+  (* Hint Rewrite vls_subst_fold @list_hsubst_fold : autosubst. *)
+  (* Hint Rewrite vls_subst_fold' @list_hsubst_fold' : autosubst. *)
+
+
+  Global Instance HSubstLemmas_list `{Ids X} `{HSubst vl X} {hsl: HSubstLemmas vl X}: HSubstLemmas vl (list X).
+  Proof.
+    split; trivial; intros; rewrite /hsubst;
+      induction s; asimpl; by f_equal.
+  Qed.
+
+  Definition subst_sigma (σ: vls) (ρ: list vl) := σ.|[to_subst ρ].
+
+  Definition push_var (σ: vls) : vls := ids 0 :: σ.|[ren (+1)].
+  Arguments push_var /.
+
+  (** Create an identity environment of the given length. *)
+  Fixpoint idsσ n: vls :=
+    match n with
+    | 0 => []
+    | S n => push_var (idsσ n)
+    end.
+
+  (** When two substitutions are equivalent up to n. *)
+  Definition eq_n_s (s1 s2: var → vl) n := ∀ x, x < n → s1 x = s2 x.
+  Arguments eq_n_s /.
+
+  (** [n]-closedness defines when some AST has at most [n] free variables (from [0] to [n - 1]). *)
+  (** Here and elsewhere, we give one definition for values, using [subst], and
+      another for other ASTs, using [hsubst]. *)
+  Definition nclosed_vl (v: vl) n :=
+    ∀ s1 s2, eq_n_s s1 s2 n → v.[s1] = v.[s2].
+
+  Definition nclosed `{HSubst vl X} (t: X) n :=
+    ∀ s1 s2, eq_n_s s1 s2 n → t.|[s1] = t.|[s2].
+
+  Definition cl_ρ ρ := Forall (λ v, nclosed_vl v 0) ρ.
+  Arguments cl_ρ /.
+
+  (** The following ones are "direct" lemmas: deduce that an expression is closed
+      by knowing that its subexpression are closed. *)
+
+  (** Needed by solve_fv_congruence when dealing with binders, such as in fv_vobj and fv_vabs. *)
+  Lemma eq_up s1 s2 n: eq_n_s s1 s2 n → eq_n_s (up s1) (up s2) (S n).
+  Proof.
+    rewrite /up. move => Heq [|x] Hl //=. f_equiv. apply Heq. omega.
+  Qed.
+
+  (** Automated proof for such lemmas. *)
+  Ltac solve_fv_congruence := rewrite /nclosed /nclosed_vl => * /=; f_equiv; solve [(idtac + asimpl); auto using eq_up].
+
+  Lemma fv_cons `{Ids X} `{HSubst vl X} {hsla: HSubstLemmas vl X} (x: X) xs: nclosed xs 0 → nclosed x 0 → nclosed (x :: xs) 0.
+  Proof. solve_fv_congruence. Qed.
+End Autosubst_Extras.
+
 Definition label := nat.
 
 Inductive tm  : Type :=
@@ -34,7 +180,6 @@ Inductive tm  : Type :=
   | TSelA : path -> label -> ty -> ty -> ty
   | TNat :  ty.
 
-Definition vls := list vl.
 Definition dms := list dm.
 Definition ctx := list ty.
 
@@ -51,13 +196,8 @@ Instance Ids_tm : Ids tm := λ _, inhabitant.
 Instance Ids_dm : Ids dm := λ _, inhabitant.
 Instance Ids_pth : Ids path := λ _, inhabitant.
 Instance Ids_ty : Ids ty := λ _, inhabitant.
-Instance Ids_list {A}: Ids (list A) := λ _, inhabitant.
-Instance Ids_vls : Ids vls := _.
 Instance Ids_dms : Ids dms := _.
 Instance Ids_ctx : Ids ctx := _.
-
-Instance list_rename `{Rename X} : Rename (list X) :=
-  λ (sb : var → var) xs, map (rename sb) xs.
 
 Fixpoint tm_rename (sb : var → var) (e : tm) {struct e} : tm :=
   let a := tm_rename : Rename tm in
@@ -120,21 +260,6 @@ Instance Rename_vl : Rename vl := vl_rename.
 Instance Rename_ty : Rename ty := ty_rename.
 Instance Rename_dm : Rename dm := dm_rename.
 Instance Rename_pth : Rename path := path_rename.
-
-Lemma list_rename_fold `{Rename X} (sb : var → var) (xs : list X) : map (rename sb) xs = rename sb xs.
-Proof. trivial. Qed.
-
-Definition vls_rename_fold: ∀ sb vs, map (rename sb) vs = rename sb vs := list_rename_fold.
-Definition dms_rename_fold: ∀ sb ds, map (rename sb) ds = rename sb ds := list_rename_fold.
-Definition ctx_rename_fold: ∀ sb Γ, map (rename sb) Γ = rename sb Γ := list_rename_fold.
-
-Hint Rewrite @list_rename_fold : autosubst.
-
-Instance vls_hsubst `{Subst vl} : HSubst vl vls :=
-  λ (sb : var → vl) (vs : vls), map (subst sb) vs.
-
-Instance list_hsubst `{HSubst vl X}: HSubst vl (list X) := λ sb xs, map (hsubst sb) xs.
-
 Fixpoint tm_hsubst (sb : var → vl) (e : tm) : tm :=
   let a := tm_hsubst : HSubst vl tm in
   let b := vl_subst : Subst vl in
@@ -196,14 +321,6 @@ Instance HSubst_ty : HSubst vl ty := ty_hsubst.
 Instance HSubst_dm : HSubst vl dm := dm_hsubst.
 Instance HSubst_pth : HSubst vl path := path_hsubst.
 
-Definition vls_subst_fold sb vs : map (subst sb) vs = hsubst sb vs := eq_refl.
-Definition list_hsubst_fold `{HSubst vl X} sb (xs : list X) : map (hsubst sb) xs = hsubst sb xs := eq_refl.
-Definition vls_subst_fold' sb vs : vls_hsubst sb vs = hsubst sb vs := eq_refl.
-Definition list_hsubst_fold' `{HSubst vl X} sb (xs : list X) : list_hsubst sb xs = hsubst sb xs := eq_refl.
-
-Hint Rewrite vls_subst_fold @list_hsubst_fold : autosubst.
-Hint Rewrite vls_subst_fold' @list_hsubst_fold' : autosubst.
-
 Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
 with
 tm_eq_dec (t1 t2 : tm) : Decision (t1 = t2)
@@ -225,7 +342,6 @@ Instance tm_eq_dec' : EqDecision tm := tm_eq_dec.
 Instance dm_eq_dec' : EqDecision dm := dm_eq_dec.
 Instance ty_eq_dec' : EqDecision ty := ty_eq_dec.
 Instance path_eq_dec' : EqDecision path := path_eq_dec.
-Instance vls_eq_dec' : EqDecision vls := list_eq_dec.
 Instance dms_eq_dec' : EqDecision dms := list_eq_dec.
 
 Lemma vl_rename_Lemma (ξ : var → var) (v : vl) : rename ξ v = v.[ren ξ]
@@ -346,10 +462,14 @@ Proof.
   split; auto using path_ids_Lemma, path_comp_Lemma.
 Qed.
 
-Instance HSubstLemmas_vls : HSubstLemmas vl vls.
+  Global Hint Rewrite vls_subst_fold @list_hsubst_fold
+    using apply _: autosubst.
+  Global Hint Rewrite vls_subst_fold' @list_hsubst_fold'
+    using apply _: autosubst.
+Instance hHSubstLemmas_vls : HSubstLemmas vl vls.
 Proof.
   split; trivial; intros; rewrite /hsubst;
-    induction s; asimpl; by f_equal.
+    induction s; asimpl; f_equal.
 Qed.
 
 Instance HSubstLemmas_list `{Ids X} `{HSubst vl X} {hsl: HSubstLemmas vl X}: HSubstLemmas vl (list X).
@@ -363,58 +483,3 @@ Instance HSubstLemmas_ctx : HSubstLemmas vl ctx := _.
 
 (** After instantiating Autosubst, a few binding-related syntactic definitions
     that need not their own file. *)
-
-Definition to_subst (ρ: list vl) : var → vl := foldr (λ v s, v .: s) ids ρ.
-
-Lemma to_subst_nil: to_subst [] = ids.
-Proof. trivial. Qed.
-
-Lemma to_subst_cons v ρ : to_subst (v :: ρ) = v .: to_subst ρ.
-Proof. trivial. Qed.
-Hint Rewrite to_subst_nil to_subst_cons : autosubst.
-
-Global Typeclasses Opaque to_subst.
-Global Opaque to_subst.
-
-Definition subst_sigma (σ: vls) (ρ: list vl) := σ.|[to_subst ρ].
-
-Definition push_var (σ: vls) : vls := ids 0 :: σ.|[ren (+1)].
-Arguments push_var /.
-
-(** Create an identity environment of the given length. *)
-Fixpoint idsσ n: vls :=
-  match n with
-  | 0 => []
-  | S n => push_var (idsσ n)
-  end.
-
-(** When two substitutions are equivalent up to n. *)
-Definition eq_n_s (s1 s2: var → vl) n := ∀ x, x < n → s1 x = s2 x.
-Arguments eq_n_s /.
-
-(** [n]-closedness defines when some AST has at most [n] free variables (from [0] to [n - 1]). *)
-(** Here and elsewhere, we give one definition for values, using [subst], and
-    another for other ASTs, using [hsubst]. *)
-Definition nclosed_vl (v: vl) n :=
-  ∀ s1 s2, eq_n_s s1 s2 n → v.[s1] = v.[s2].
-
-Definition nclosed `{HSubst vl X} (t: X) n :=
-  ∀ s1 s2, eq_n_s s1 s2 n → t.|[s1] = t.|[s2].
-
-Definition cl_ρ ρ := Forall (λ v, nclosed_vl v 0) ρ.
-Arguments cl_ρ /.
-
-(** The following ones are "direct" lemmas: deduce that an expression is closed
-    by knowing that its subexpression are closed. *)
-
-(** Needed by solve_fv_congruence when dealing with binders, such as in fv_vobj and fv_vabs. *)
-Lemma eq_up s1 s2 n: eq_n_s s1 s2 n → eq_n_s (up s1) (up s2) (S n).
-Proof.
-  rewrite /up. move => Heq [|x] Hl //=. f_equiv. apply Heq. omega.
-Qed.
-
-(** Automated proof for such lemmas. *)
-Ltac solve_fv_congruence := rewrite /nclosed /nclosed_vl => * /=; f_equiv; solve [(idtac + asimpl); auto using eq_up].
-
-Lemma fv_cons `{Ids X} `{HSubst vl X} {hsla: HSubstLemmas vl X} (x: X) xs: nclosed xs 0 → nclosed x 0 → nclosed (x :: xs) 0.
-Proof. solve_fv_congruence. Qed.
