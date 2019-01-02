@@ -397,7 +397,7 @@ Section Sec.
 
   (** We want to prove that different translations give equivalent lookup
       results. This is the core case of that proof. A better statement might say
-      that type lookup on different translation gives "equivalent"" results, and
+      that type lookup on different translation gives "equivalent" results, and
       introduce abbreviations/names for the relevant equivalence and lookup. *)
   (** TODO Reuse more of [t_dty_equiv]. *)
   Lemma t_dm_agree_v0 d d1 d2 σ1 γ1 :
