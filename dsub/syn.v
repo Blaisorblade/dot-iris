@@ -13,16 +13,16 @@ Inductive tm  : Type :=
   | vty : ty -> vl
   | vstamp: list vl -> stamp -> vl
  with ty  : Type :=
-  | TTop :  ty
-  | TBot :  ty
-  | TAnd : ty -> ty -> ty
-  | TOr : ty -> ty -> ty
-  | TLater : ty -> ty
+  (* | TTop :  ty *)
+  (* | TBot :  ty *)
+  (* | TAnd : ty -> ty -> ty *)
+  (* | TOr : ty -> ty -> ty *)
+  (* | TLater : ty -> ty *)
   | TAll : ty -> ty -> ty
-  | TMu : ty -> ty
+  (* | TMu : ty -> ty *)
   | TTMem : ty -> ty -> ty
   | TSel : vl -> ty
-  | TSelA : vl -> ty -> ty -> ty
+  (* | TSelA : vl -> ty -> ty -> ty *)
   | TNat :  ty.
 
 Definition vls := list vl.
@@ -73,16 +73,16 @@ ty_rename (sb : var → var) (T : ty) {struct T}: ty :=
   let a := ty_rename : Rename ty in
   let b := vl_rename : Rename vl in
   match T with
-  | TTop => TTop
-  | TBot => TBot
-  | TAnd T1 T2 => TAnd (rename sb T1) (rename sb T2)
-  | TOr T1 T2 => TOr (rename sb T1) (rename sb T2)
-  | TLater T => TLater (rename sb T)
+  (* | TTop => TTop *)
+  (* | TBot => TBot *)
+  (* | TAnd T1 T2 => TAnd (rename sb T1) (rename sb T2) *)
+  (* | TOr T1 T2 => TOr (rename sb T1) (rename sb T2) *)
+  (* | TLater T => TLater (rename sb T) *)
   | TAll T1 T2 => TAll (rename sb T1) (rename (upren sb) T2)
-  | TMu T => TMu (rename (upren sb) T)
+  (* | TMu T => TMu (rename (upren sb) T) *)
   | TTMem T1 T2 => TTMem (rename sb T1) (rename sb T2)
   | TSel v => TSel (rename sb v)
-  | TSelA v T1 T2 => TSelA (rename sb v) (rename sb T1) (rename sb T2)
+  (* | TSelA v T1 T2 => TSelA (rename sb v) (rename sb T1) (rename sb T2) *)
   | TNat => TNat
   end.
 
@@ -128,16 +128,16 @@ ty_hsubst (sb : var → vl) (T : ty) : ty :=
   let a := ty_hsubst : HSubst vl ty in
   let b := vl_subst : Subst vl in
   match T with
-  | TTop => TTop
-  | TBot => TBot
-  | TAnd T1 T2 => TAnd (hsubst sb T1) (hsubst sb T2)
-  | TOr T1 T2 => TOr (hsubst sb T1) (hsubst sb T2)
-  | TLater T => TLater (hsubst sb T)
+  (* | TTop => TTop *)
+  (* | TBot => TBot *)
+  (* | TAnd T1 T2 => TAnd (hsubst sb T1) (hsubst sb T2) *)
+  (* | TOr T1 T2 => TOr (hsubst sb T1) (hsubst sb T2) *)
+  (* | TLater T => TLater (hsubst sb T) *)
   | TAll T1 T2 => TAll (hsubst sb T1) (hsubst (up sb) T2)
-  | TMu T => TMu (hsubst (up sb) T)
+  (* | TMu T => TMu (hsubst (up sb) T) *)
   | TTMem T1 T2 => TTMem (hsubst sb T1) (hsubst sb T2)
   | TSel v => TSel (subst sb v)
-  | TSelA v T1 T2 => TSelA (subst sb v) (hsubst sb T1) (hsubst sb T2)
+  (* | TSelA v T1 T2 => TSelA (subst sb v) (hsubst sb T1) (hsubst sb T2) *)
   | TNat => TNat
   end.
 

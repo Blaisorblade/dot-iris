@@ -259,16 +259,16 @@ Section translation.
   unstamp_ty g (T: ty): ty :=
     let fix go (T: ty): ty :=
         match T with
-        | TTop => T
-        | TBot => T
-        | TAnd T1 T2 => TAnd (go T1) (go T2)
-        | TOr T1 T2 => TOr (go T1) (go T2)
-        | TLater T => TLater (go T)
+        (* | TTop => T *)
+        (* | TBot => T *)
+        (* | TAnd T1 T2 => TAnd (go T1) (go T2) *)
+        (* | TOr T1 T2 => TOr (go T1) (go T2) *)
+        (* | TLater T => TLater (go T) *)
         | TAll T1 T2 => TAll (go T1) (go T2)
-        | TMu T => TMu (go T)
+        (* | TMu T => TMu (go T) *)
         | TTMem T1 T2 => TTMem (go T1) (go T2)
         | TSel v => TSel (unstamp_vl g v)
-        | TSelA v T1 T2 => TSelA (unstamp_vl g v) (go T1) (go T2)
+        (* | TSelA v T1 T2 => TSelA (unstamp_vl g v) (go T1) (go T2) *)
         | TNat => T
         end
     in go T.
@@ -354,10 +354,10 @@ Section translation.
     (* We should make this impossible. *)
     admit.
 
-    pose proof (exists_stamped_vl v) as (v' & g3 & Hre3 & Hs3).
-    rewrite Hre3 ?(unstamp_mono_ty g2 g3) //.
-    exists (TSelA v' t0_1' t0_2'). exists g3.
-    split; try by [cbn; f_equiv; destruct t0_1'; destruct t0_2' | simplify_order].
+    (* pose proof (exists_stamped_vl v) as (v' & g3 & Hre3 & Hs3). *)
+    (* rewrite Hre3 ?(unstamp_mono_ty g2 g3) //. *)
+    (* exists (TSelA v' t0_1' t0_2'). exists g3. *)
+    (* split; try by [cbn; f_equiv; destruct t0_1'; destruct t0_2' | simplify_order]. *)
   Admitted.
 
   Fixpoint t_tm n g (t1 t2: tm) {struct t1}: Prop :=
@@ -383,21 +383,21 @@ Section translation.
     end.
   Fixpoint t_ty n g (T1 T2: ty) {struct T1}: Prop :=
     match (T1, T2) with
-    | (TTop, TTop) => True
-    | (TBot, TBot) => True
-    | (TAnd T11 T12, TAnd T21 T22) =>
-      t_ty n g T11 T21 ∧ t_ty n g T12 T22
-    | (TOr T11 T12, TOr T21 T22) =>
-      t_ty n g T11 T21 ∧ t_ty n g T12 T22
-    | (TLater T1, TLater T2) =>
-      t_ty n g T1 T2
+    (* | (TTop, TTop) => True *)
+    (* | (TBot, TBot) => True *)
+    (* | (TAnd T11 T12, TAnd T21 T22) => *)
+    (*   t_ty n g T11 T21 ∧ t_ty n g T12 T22 *)
+    (* | (TOr T11 T12, TOr T21 T22) => *)
+    (*   t_ty n g T11 T21 ∧ t_ty n g T12 T22 *)
+    (* | (TLater T1, TLater T2) => *)
+    (*   t_ty n g T1 T2 *)
     | (TAll T11 T12, TAll T21 T22) =>
       t_ty n g T11 T21 ∧ t_ty (S n) g T12 T22
-    | (TMu T1, TMu T2) =>
-      t_ty (S n) g T1 T2
+    (* | (TMu T1, TMu T2) => *)
+    (*   t_ty (S n) g T1 T2 *)
     | (TTMem T11 T12, TTMem T21 T22) => t_ty n g T11 T21 ∧ t_ty n g T12 T22
     | (TSel v1, TSel v2) => t_vl n g v1 v2
-    | (TSelA v1 T11 T12, TSelA v2 T21 T22) => t_vl n g v1 v2 ∧ t_ty n g T11 T21 ∧ t_ty n g T12 T22
+    (* | (TSelA v1 T11 T12, TSelA v2 T21 T22) => t_vl n g v1 v2 ∧ t_ty n g T11 T21 ∧ t_ty n g T12 T22 *)
     | (TNat, TNat) => True
     | _ => False
     end.
