@@ -195,6 +195,7 @@ Implicit Types
          (L T U: ty) (v: vl) (e: tm)
          (Γ : ctx).
 
+(* XXX now duplicated with synLemmas.v *)
 (** Let's prove that [nclosed a n → a.|[to_subst (idsσ n)] = a], and ditto for values. *)
 Section to_subst_idsσ_is_id.
   Lemma to_subst_map_commute_aux f n x r: x < n → to_subst (map f (idsσ n).|[ren r]) x = f (to_subst (idsσ n).|[ren r] x).
