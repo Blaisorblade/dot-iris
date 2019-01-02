@@ -196,16 +196,13 @@ Instance HSubst_ty : HSubst vl ty := ty_hsubst.
 Instance HSubst_dm : HSubst vl dm := dm_hsubst.
 Instance HSubst_pth : HSubst vl path := path_hsubst.
 
-Lemma vls_subst_fold (sb : var → vl) (vs : vls) : map (subst sb) vs = hsubst sb vs.
-Proof. trivial. Qed.
-
-Lemma list_hsubst_fold `{HSubst vl X} sb (xs : list X) : map (hsubst sb) xs = hsubst sb xs.
-Proof. trivial. Qed.
+Definition vls_subst_fold sb vs : map (subst sb) vs = hsubst sb vs := eq_refl.
+Definition list_hsubst_fold `{HSubst vl X} sb (xs : list X) : map (hsubst sb) xs = hsubst sb xs := eq_refl.
+Definition vls_subst_fold' sb vs : vls_hsubst sb vs = hsubst sb vs := eq_refl.
+Definition list_hsubst_fold' `{HSubst vl X} sb (xs : list X) : list_hsubst sb xs = hsubst sb xs := eq_refl.
 
 Hint Rewrite vls_subst_fold @list_hsubst_fold : autosubst.
-
-Arguments vls_hsubst /.
-Arguments list_hsubst /.
+Hint Rewrite vls_subst_fold' @list_hsubst_fold' : autosubst.
 
 Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
 with
