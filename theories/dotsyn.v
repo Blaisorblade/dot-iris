@@ -381,7 +381,7 @@ Global Opaque to_subst.
 
 Definition subst_sigma (σ: vls) (ρ: list vl) := σ.|[to_subst ρ].
 
-Definition push_var (σ: vls) : vls := (var_vl 0) :: σ.|[ren (+1)].
+Definition push_var (σ: vls) : vls := ids 0 :: σ.|[ren (+1)].
 
 (** Create an identity environment of the given length. *)
 Fixpoint idsσ n: vls :=
