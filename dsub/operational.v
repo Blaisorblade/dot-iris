@@ -229,9 +229,13 @@ Section to_subst_idsσ_is_id.
   Qed.
 End to_subst_idsσ_is_id.
 
+(** This is a yet imperfect version of an alternative translation. *)
 Section translation.
   Definition stys := gmap stamp ty.
   Implicit Type g: stys.
+  Definition unstamp_vstamp g vs s := (default TNat (g !! s)).|[to_subst vs].
+  Arguments unstamp_vstamp /.
+
   Fixpoint unstamp_tm g (t: tm): tm :=
     let fix go (t: tm): tm :=
         match t with
@@ -244,7 +248,7 @@ Section translation.
   unstamp_vl g (v: vl): vl :=
     let fix go (v: vl): vl :=
         match v with
-        | vstamp vs s => vty (default TNat (g !! s)).|[to_subst vs]
+        | vstamp vs s => vty (unstamp_vstamp g vs s)
         | vabs t => vabs (unstamp_tm g t)
         | vty T => vty (unstamp_ty g T)
         | vnat _ => v
@@ -269,242 +273,133 @@ Section translation.
         end
     in go T.
 
-  (* Not enough *)
+  (* XXX: Not enough, we must also require that e2 contains no concrete types. *)
   Definition stamps_tm e1 g e2 := e1 = unstamp_tm g e2.
   Definition stamps_vl v1 g v2 := v1 = unstamp_vl g v2.
   Definition stamps_ty T1 g T2 := T1 = unstamp_ty g T2.
 
   Definition emptystys: stys := ∅.
-  Set Default Proof Using "Type".
-  Lemma exists_stamped_vty_bad T: ∃ v' g, stamps_vl (vty T) g v'.
+
+  Definition gdom {X} (g: gmap stamp X) := dom (gset stamp) g.
+  Arguments gdom /.
+
+  Lemma fresh_stamp {X} (g: gmap stamp X): ∃ s, s ∉ gdom g.
+  Proof. exists (fresh (dom (gset stamp) g)). by apply is_fresh. Qed.
+
+  Lemma fresh_stamp_strong g T: ∃ s, s ∉ dom (gset stamp) g ∧ g ⊆ <[s := T]> g.
   Proof.
-    assert (∃ s, s ∉ dom (gset stamp) emptystys) as [s H].
-    exists (fresh (dom (gset stamp)emptystys)). by eapply not_elem_of_dom.
+    pose proof (fresh_stamp g) as [s Hfresh].
+    exists s; split =>//. by eapply insert_subseteq, not_elem_of_dom, Hfresh.
+  Qed.
 
-    (* exists (vstamp (idsσ 2) s). *)
-    (* rewrite /stamps_vl /unstamp_vl /=. *)
-    (* unfold push_var. *)
-    (* rewrite ?to_subst_cons ?to_subst_nil. *)
-    (* asimpl. *)
+  Lemma fresh_stamp_strong' g T: ∃ s, s ∉ gdom g ∧ gdom g ⊆ gdom (<[s := T]> g).
+  Proof.
+    pose proof (fresh_stamp_strong g T) as [s []].
+    exists s; split =>//=. by apply subseteq_dom.
+  Qed.
 
-    (* exists (insert s T ∅); rewrite lookup_insert //=. *)
+  (** This lemma suggests this definition is problematic: we don't want empty environments to work.
+      They'd fail later lemmas but this is annoying.
+      Bigger problem: we should also translate T before storing it in the map! Or after? *)
+  Lemma exists_stamped_vty_bad T g: ∃ v' g', stamps_vl (vty T) g' v' ∧ g ⊆ g'.
+  Proof.
+    pose proof (fresh_stamp_strong g T) as [s []].
     exists (vstamp (idsσ 0) s); rewrite /stamps_vl /unstamp_vl /=; asimpl.
-    exists (insert s T ∅); rewrite lookup_insert //=.
+    exists (<[s:=T]> g); by rewrite lookup_insert /=.
   Qed.
-    (* unfold push_var. *)
-    (* Check (@ids vl _). *)
-    (* change (var_vl 0) with ((var_vl 0).[ren (+0)]). *)
 
-    (* change (var_vl 0) with (@ids vl _ 0). *)
-    (* replace (@ids vl _ 0 .: @ids vl _) with (@ids vl _). *)
-    (* by asimpl. *)
-    (* f_ext. move => [|x] //= . *)
-  Lemma closed_subst_idsρ `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A) n :
-    nclosed a n → a.|[to_subst (idsσ n)] = a.
-  Admitted.
-
-  Lemma exists_stamped_vty T n: nclosed T n → ∃ v' g, stamps_vl (vty T) g v'.
+  Lemma exists_stamped_vty T n g: nclosed T n → ∃ v' g', stamps_vl (vty T) g' v' ∧ g ⊆ g'.
   Proof.
-    assert (∃ s, s ∉ dom (gset stamp) emptystys) as [s H]. {
-      exists (fresh (dom (gset stamp)emptystys)). by eapply not_elem_of_dom.
-    }
+    pose proof (fresh_stamp_strong g T) as [s []].
     exists (vstamp (idsσ n) s); rewrite /stamps_vl /unstamp_vl /=; asimpl.
-    exists (insert s T ∅); rewrite lookup_insert //=. by rewrite closed_subst_idsρ.
+    exists (<[s:=T]> g); by rewrite lookup_insert closed_subst_idsρ /=.
   Qed.
 
-  Lemma closed_subst_id `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A) σ: nclosed a 0 → a.|[σ] = a.
-  Proof.
-    intro Hcl. rewrite (Hcl σ ids) /=; first by asimpl.
-    intros; omega.
-  Qed.
+  (** Only true for really stamped values. *)
+  Lemma unstamp_mono_tm g1 g2 t: g1 ⊆ g2 → (unstamp_tm g1 t) = (unstamp_tm g2 t). Admitted.
+  Lemma unstamp_mono_vl g1 g2 v: g1 ⊆ g2 → (unstamp_vl g1 v) = (unstamp_vl g2 v). Admitted.
+  Lemma unstamp_mono_ty g1 g2 T: g1 ⊆ g2 → (unstamp_ty g1 T) = (unstamp_ty g2 T). Admitted.
 
-  Lemma subst_sigma_idsσ ρ n : length ρ = n →
-                               (subst_sigma (idsσ n) ρ) = ρ.
-  Proof.
-    rewrite /subst_sigma. move :n.
-    induction ρ => *; subst => //; asimpl.
-    f_equal. by apply IHρ.
-  Qed.
-
-  Lemma foo f n x: x < n → to_subst (map f (idsσ n)) x = f (to_subst (idsσ n) x).
-  Proof.
-    induction n => //=; intros Hle. omega.
-    destruct x => //=.
-    asimpl.
-    assert (x < n) as Hle' by omega. clear Hle.
-    destruct (decide (S x < n)).
-    (* asimpl; intros. omega. *)
-    (* asimpl. hsubst_vls. *)
-    (* inversion Hle. *)
-    (* destruct (decide (x = 0)); subst => //=. *)
-    (* destruct (decide (x = n)); subst; asimpl. *)
-    (* admit. *)
-    (* rewrite -IHn. *)
-    (* subst => //; asimpl. *)
-    (* rewrite /push_var; asimpl. *)
-    (* intros x Hn. *)
-    (* rewrite closed_subst_id. *)
-  Abort.
-
-  (* Same statement, try to prove it now. *)
-  Lemma closed_subst_idsρ_try `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A) n :
-    nclosed a n → a.|[to_subst (idsσ n)] = a.
-  Proof.
-    intro Hcl. rewrite (Hcl _ ids) /=; first by asimpl.
-    clear a Hcl.
-    Arguments push_var /.
-
-    (* intros x Hle; induction x. *)
-    (* destruct n => //. *)
-    (* destruct n => //. *)
-    (* asimpl. *)
-    (* asimpl in IHx. *)
-    (*   rewrite /push_var to_subst_cons. *)
-    (*   simpl. *)
-    (*   => /=. reflexivity. reflexivity. =>//. *)
-    (* induction 0. *)
-
-    induction n => //.
-    intros x Hle.
-    asimpl.
-    destruct x => //=.
-    assert (x < n) as Hle' by omega. clear Hle.
-    transitivity ((to_subst (idsσ n) x).[ren (+1)]).
-
-    unfold hsubst.
-    generalize (subst (ren (+1))) as f => f.
-    Abort.
-
+  (* The statement isn't quite right yet. This only works for properly
+     translated values, and we don't yethave the correct definition. *)
   Lemma
-    exists_stamped_vl t: ∃ t' g, stamps_vl t g t'
+    exists_stamped_vl t g: ∃ t' g', stamps_vl t g' t' ∧ g ⊆ g'
     with
-    exists_stamped_tm t: ∃ t' g, stamps_tm t g t'
+    exists_stamped_tm t g: ∃ t' g', stamps_tm t g' t' ∧ g ⊆ g'
     with
-    exists_stamped_ty t: ∃ t' g, stamps_ty t g t'.
+    exists_stamped_ty t g: ∃ t' g', stamps_ty t g' t' ∧ g ⊆ g'.
   Proof.
     all: destruct t eqn:?; rewrite ?/stamps_tm ?/stamps_vl ?/stamps_ty; cbn.
-    all: try by (exists t; exists ∅; subst; cbn).
-    all: try lazymatch goal with
-      | H : context [vstamp _] |- _ => fail
+    all: try by (exists t; exists g; subst; cbn).
+    all: try match goal with
+      | H : context [vstamp _] |- _ => fail 1
+      | H : context [vty _] |- _ => fail 1
       | H : ?t = ?c ?t1 ?t2 |- _ =>
-        (pose proof (exists_stamped_tm t1) as (t1' & g1 & Hre1) ||
-        pose proof (exists_stamped_vl t1) as (t1' & g1 & Hre1) ||
-        pose proof (exists_stamped_ty t1) as (t1' & g1 & Hre1));
-        (pose proof (exists_stamped_tm t2) as (t2' & g2 & Hre2) ||
-        pose proof (exists_stamped_vl t2) as (t2' & g2 & Hre2) ||
-        pose proof (exists_stamped_ty t2) as (t2' & g2 & Hre2));
-        assert (g2 = g1) as -> by admit; (* XXX False! *)
-          rewrite Hre1 Hre2;
-            exists (c t1' t2'); exists g1=>/=; by [f_equiv | destruct t1'; destruct t2']
-      | H : ?t = ?c ?t1 |- _ =>
-        pose proof (exists_stamped_tm t1) as (t1' & g1 & Hre) ||
-        pose proof (exists_stamped_vl t1) as (t1' & g1 & Hre) ||
-        pose proof (exists_stamped_ty t1) as (t1' & g1 & Hre);
-          rewrite Hre;
-            exists (c t1'); exists g1=>/=; by [f_equiv | destruct t1']
+        (pose proof (exists_stamped_tm t0_1 g) as (t0_1' & g1 & Hre1 & Hs1) ||
+        pose proof (exists_stamped_vl t0_1 g) as (t0_1' & g1 & Hre1 & Hs1) ||
+        pose proof (exists_stamped_ty t0_1 g) as (t0_1' & g1 & Hre1 & Hs1));
+        (pose proof (exists_stamped_tm t0_2 g1) as (t0_2' & g2 & Hre2 & Hs2) ||
+        pose proof (exists_stamped_vl t0_2 g1) as (t0_2' & g2 & Hre2 & Hs2) ||
+        pose proof (exists_stamped_ty t0_2 g1) as (t0_2' & g2 & Hre2 & Hs2));
+          rewrite Hre1 Hre2 ?(unstamp_mono_tm g1 g2) ?(unstamp_mono_vl g1 g2) ?(unstamp_mono_ty g1 g2) //;
+            try (exists (c t0_1' t0_2'); exists g2=>/=; split; by [f_equiv | destruct t0_1'; destruct t0_2' | simplify_order])
+      | H : ?t = ?c ?t0_1 |- _ =>
+        (pose proof (exists_stamped_tm t0_1 g) as (t0_1' & g1 & Hre1 & Hs1) ||
+        pose proof (exists_stamped_vl t0_1 g) as (t0_1' & g1 & Hre1 & Hs1) ||
+        pose proof (exists_stamped_ty t0_1 g) as (t0_1' & g1 & Hre1 & Hs1));
+          rewrite Hre1;
+            try (exists (c t0_1'); exists g1=>/=; by [f_equiv | destruct t0_1'])
       end.
+    eapply exists_stamped_vty_bad.
+    (* We should make this impossible. *)
     admit.
-        (pose proof (exists_stamped_tm t0_1) as (t1' & g1 & Hre1) ||
-        pose proof (exists_stamped_vl t0_1) as (t1' & g1 & Hre1) ||
-        pose proof (exists_stamped_ty t0_1) as (t1' & g1 & Hre1));
-        (pose proof (exists_stamped_tm t0_2) as (t2' & g2 & Hre2) ||
-        pose proof (exists_stamped_vl t0_2) as (t2' & g2 & Hre2) ||
-        pose proof (exists_stamped_ty t0_2) as (t2' & g2 & Hre2));
-    (* pose proof (exists_stamped_tm t0_1) as (t1' & g1 & Hre1); *)
-      (* pose proof (exists_stamped_tm t0_2) as (t2' & g2 & Hre2); *)
-    pose proof (exists_stamped_vl v) as (v' & g3 & Hre3);
-    assert (g3 = g1) as -> by admit;
-    assert (g2 = g1) as -> by admit; (* False. *)
-          rewrite Hre1 Hre2 Hre3.
 
-            exists (TSelA v' t1' t2'); exists g1=>/=;
-          by [f_equiv; destruct t1'; destruct t2'].
+    pose proof (exists_stamped_vl v) as (v' & g3 & Hre3 & Hs3).
+    rewrite Hre3 ?(unstamp_mono_ty g2 g3) //.
+    exists (TSelA v' t0_1' t0_2'). exists g3.
+    split; try by [cbn; f_equiv; destruct t0_1'; destruct t0_2' | simplify_order].
   Admitted.
 
-  Fixpoint t_tm n (t1 t2: tm) {struct t1}: Prop :=
+  Fixpoint t_tm n g (t1 t2: tm) {struct t1}: Prop :=
     match (t1, t2) with
-    | (tv v1, tv v2) => t_vl n v1 v2
+    | (tv v1, tv v2) => t_vl n g v1 v2
     | (tapp t11 t12, tapp t21 t22) =>
-      t_tm n t11 t21 ∧ t_tm n t12 t22
+      t_tm n g t11 t21 ∧ t_tm n g t12 t22
     | (tskip t1, tskip t2) =>
-      t_tm n t1 t2
+      t_tm n g t1 t2
     | _ => False
     end
   with
-  t_vl (n: nat) (v1 v2: vl) {struct v1}: Prop :=
+  t_vl n g (v1 v2: vl) {struct v1}: Prop :=
     match (v1, v2) with
     | (var_vl i1, var_vl i2) => i1 = i2
-    | (vabs t1, vabs t2) => t_tm (S n) t1 t2
+    | (vabs t1, vabs t2) => t_tm (S n) g t1 t2
     | (vnat n1, vnat n2) => n1 = n2
-    | (vty T1, vstamp vs s) => 
+    | (vty T1, vstamp vs s) =>
+      (* Needn't we also check that the contents of T1 are syntactic? *)
+      nclosed T1 n ∧
+      T1 = unstamp_vstamp g vs s
     | _ => False
-    end with
-  t_ty n (T1 T2: ty) {struct T1}: Prop :=
+    end.
+  Fixpoint t_ty n g (T1 T2: ty) {struct T1}: Prop :=
     match (T1, T2) with
     | (TTop, TTop) => True
     | (TBot, TBot) => True
     | (TAnd T11 T12, TAnd T21 T22) =>
-      t_ty n T11 T21 ∧ t_ty n T12 T22
+      t_ty n g T11 T21 ∧ t_ty n g T12 T22
     | (TOr T11 T12, TOr T21 T22) =>
-      t_ty n T11 T21 ∧ t_ty n T12 T22
+      t_ty n g T11 T21 ∧ t_ty n g T12 T22
     | (TLater T1, TLater T2) =>
-      t_ty n T1 T2
+      t_ty n g T1 T2
     | (TAll T11 T12, TAll T21 T22) =>
-      t_ty n T11 T21 ∧ t_ty (S n) T12 T22
+      t_ty n g T11 T21 ∧ t_ty (S n) g T12 T22
     | (TMu T1, TMu T2) =>
-      t_ty (S n) T1 T2
-    | (TTMem T11 T12, TTMem T21 T22) => t_ty n T11 T21 ∧ t_ty n T12 T22
-    | (TSel v1, TSel v2) => t_vl n v1 v2
-    | (TSelA v1 T11 T12, TSelA v2 T21 T22) => t_vl n v1 v2 ∧ t_ty n T11 T21 ∧ t_ty n T12 T22
+      t_ty (S n) g T1 T2
+    | (TTMem T11 T12, TTMem T21 T22) => t_ty n g T11 T21 ∧ t_ty n g T12 T22
+    | (TSel v1, TSel v2) => t_vl n g v1 v2
+    | (TSelA v1 T11 T12, TSelA v2 T21 T22) => t_vl n g v1 v2 ∧ t_ty n g T11 T21 ∧ t_ty n g T12 T22
     | (TNat, TNat) => True
     | _ => False
     end.
-
-  with
-  t_dm (d1 d2: dm) {struct d1}: iProp Σ :=
-    match (d1, d2) with
-    | (dtysyn T1, dtysem σ2 γ2) =>
-      (* Only nontrivial case *)
-      t_dty_syn2sem t_ty T1 σ2 γ2
-    | (dvl v1, dvl v2) => t_vl v1 v2
-    | _ => False
-    end%I
-  with
-  t_path (p1 p2: path) {struct p1}: iProp Σ :=
-    match (p1, p2) with
-    | (pv v1, pv v2) => t_vl v1 v2
-    | (pself p1 l1, pself p2 l2) => t_path p1 p2 ∧ ⌜l1 = l2⌝
-    | _ => False
-    end%I
-  with
-  t_ty (T1 T2: ty) {struct T1}: iProp Σ :=
-    match (T1, T2) with
-    | (TTop, TTop) => True
-    | (TBot, TBot) => True
-    | (TAnd T11 T12, TAnd T21 T22) =>
-      t_ty T11 T21 ∧ t_ty T12 T22
-    | (TOr T11 T12, TOr T21 T22) =>
-      t_ty T11 T21 ∧ t_ty T12 T22
-    | (TLater T1, TLater T2) =>
-      t_ty T1 T2
-    | (TAll T11 T12, TAll T21 T22) =>
-      t_ty T11 T21 ∧ t_ty T12 T22
-    | (TMu T1, TMu T2) =>
-      t_ty T1 T2
-    | (TVMem l1 T1, TVMem l2 T2) => ⌜l1 = l2⌝ ∧ t_ty T1 T2
-    | (TTMem l1 T11 T12, TTMem l2 T21 T22) => ⌜l1 = l2⌝ ∧ t_ty T11 T21 ∧ t_ty T12 T22
-    | (TSel p1 l1, TSel p2 l2) => t_path p1 p2 ∧ ⌜l1 = l2⌝
-    | (TSelA p1 l1 T11 T12, TSelA p2 l2 T21 T22) => t_path p1 p2 ∧ ⌜l1 = l2⌝ ∧ t_ty T11 T21 ∧ t_ty T12 T22
-    | (TNat, TNat) => True
-    | _ => False
-    end%I.
-
-
-  Lemma 
-    t_tm (n: nat) (t1 t2: tm): Prop
-    with
-    t_vl (n: nat) (t1 t2: vl): Prop.
-  Proof.
-    destruct t1 eqn:Heq1; destruct t2 eqn: Heqn2.
 
 End translation.
