@@ -62,6 +62,12 @@ Proof.
   intros; omega.
 Qed.
 
+Lemma closed_subst_id `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A) σ: nclosed a 0 → a.|[σ] = a.
+Proof.
+  intro Hcl. rewrite (Hcl σ ids) /=; first by asimpl.
+  intros; omega.
+Qed.
+
 Lemma closed_to_subst ρ x: cl_ρ ρ → x < length ρ → nclosed_vl (to_subst ρ x) 0.
 Proof.
   elim: ρ x => /= [|v ρ IHρ] [|x] Hcl Hl; asimpl; try omega; inverse Hcl; try by [].
