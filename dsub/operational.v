@@ -235,6 +235,24 @@ Section translation.
   Definition stys := gmap stamp ty.
   Implicit Type g: stys.
   Definition unstamp_vstamp g vs s := (default TNat (g !! s)).|[to_subst vs].
+
+  Definition gdom {X} (g: gmap stamp X) := dom (gset stamp) g.
+  Arguments gdom /.
+
+  Lemma fresh_stamp {X} (g: gmap stamp X): ∃ s, s ∉ gdom g.
+  Proof. exists (fresh (dom (gset stamp) g)). by apply is_fresh. Qed.
+
+  Lemma fresh_stamp_strong g T: ∃ s, s ∉ dom (gset stamp) g ∧ g ⊆ <[s := T]> g.
+  Proof.
+    pose proof (fresh_stamp g) as [s Hfresh].
+    exists s; split =>//. by eapply insert_subseteq, not_elem_of_dom, Hfresh.
+  Qed.
+
+  Lemma fresh_stamp_strong' g T: ∃ s, s ∉ gdom g ∧ gdom g ⊆ gdom (<[s := T]> g).
+  Proof.
+    pose proof (fresh_stamp_strong g T) as [s []].
+    exists s; split =>//=. by apply subseteq_dom.
+  Qed.
   Arguments unstamp_vstamp /.
 
   Fixpoint unstamp_tm g (t: tm): tm :=
@@ -278,26 +296,6 @@ Section translation.
   Definition stamps_tm e1 g e2 := e1 = unstamp_tm g e2.
   Definition stamps_vl v1 g v2 := v1 = unstamp_vl g v2.
   Definition stamps_ty T1 g T2 := T1 = unstamp_ty g T2.
-
-  Definition emptystys: stys := ∅.
-
-  Definition gdom {X} (g: gmap stamp X) := dom (gset stamp) g.
-  Arguments gdom /.
-
-  Lemma fresh_stamp {X} (g: gmap stamp X): ∃ s, s ∉ gdom g.
-  Proof. exists (fresh (dom (gset stamp) g)). by apply is_fresh. Qed.
-
-  Lemma fresh_stamp_strong g T: ∃ s, s ∉ dom (gset stamp) g ∧ g ⊆ <[s := T]> g.
-  Proof.
-    pose proof (fresh_stamp g) as [s Hfresh].
-    exists s; split =>//. by eapply insert_subseteq, not_elem_of_dom, Hfresh.
-  Qed.
-
-  Lemma fresh_stamp_strong' g T: ∃ s, s ∉ gdom g ∧ gdom g ⊆ gdom (<[s := T]> g).
-  Proof.
-    pose proof (fresh_stamp_strong g T) as [s []].
-    exists s; split =>//=. by apply subseteq_dom.
-  Qed.
 
   (** This lemma suggests this definition is problematic: we don't want empty environments to work.
       They'd fail later lemmas but this is annoying.
