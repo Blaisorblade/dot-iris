@@ -74,6 +74,39 @@ Proof.
   by apply IHρ; try omega.
 Qed.
 
+(** Let's prove that [nclosed a n → a.|[to_subst (idsσ n)] = a], and ditto for values. *)
+Section to_subst_idsσ_is_id.
+  Lemma to_subst_map_commute_aux f n x r: x < n → to_subst (map f (idsσ n).|[ren r]) x = f (to_subst (idsσ n).|[ren r] x).
+  Proof.
+    elim: n r x => [|n IHn] r x Hle; first omega.
+    destruct x; first done; asimpl.
+    apply IHn; omega.
+  Qed.
+
+  Lemma to_subst_map_commute f n x: x < n → to_subst (map f (idsσ n)) x = f (to_subst (idsσ n) x).
+  Proof. pose proof (to_subst_map_commute_aux f n x (+0)) as H. asimpl in H. exact H. Qed.
+
+  Lemma idsσ_eq_ids n: eq_n_s (to_subst (idsσ n)) ids n.
+  Proof.
+    induction n => x Hle. by rewrite to_subst_nil.
+    destruct x => //=.
+    assert (x < n) as Hle' by auto using lt_S_n.
+    rewrite to_subst_cons /= to_subst_map_commute // IHn //.
+  Qed.
+
+  Lemma closed_subst_idsρ `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A) n :
+    nclosed a n → a.|[to_subst (idsσ n)] = a.
+  Proof.
+    intro Hcl. rewrite (Hcl _ ids); first by asimpl. by apply idsσ_eq_ids.
+  Qed.
+
+  Lemma closed_subst_vl_idsρ v n:
+    nclosed_vl v n → v.[to_subst (idsσ n)] = v.
+  Proof.
+    intro Hcl. rewrite (Hcl _ ids); first by asimpl. by apply idsσ_eq_ids.
+  Qed.
+End to_subst_idsσ_is_id.
+
 Lemma fv_to_subst `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A) ρ:
   nclosed a (length ρ) → cl_ρ ρ →
   nclosed (a.|[to_subst ρ]) 0.
