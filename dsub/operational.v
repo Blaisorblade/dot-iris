@@ -463,6 +463,13 @@ Module TraversalV2.
     pick_lemma constr:(stamps_unstamp_mono_ty) constr:(stamps_unstamp_mono_tm) constr:(stamps_unstamp_mono_vl).
   Ltac pick_is_stamped_mono :=
     pick_lemma constr:(is_stamped_mono_ty) constr:(is_stamped_mono_tm) constr:(is_stamped_mono_vl).
+  Ltac pick_nclosed :=
+    pick_lemma uconstr:(nclosed) uconstr:(nclosed) uconstr:(nclosed_vl).
+  Ltac assert_closed n t Hcl :=
+    pick_nclosed t ltac:(fun D => assert (D t n) by (move: Hcl; solve_inv_fv_congruence)).
+  Ltac with_freevars n t Hcl tac :=
+    (assert_closed n t Hcl; tac n) || (assert_closed (S n) t Hcl; tac (S n)).
+  (* Maybe it'd be better to write the translation as a plain recursive function. *)
 
   Fixpoint exists_stamped_vl t__u g1 n {struct t__u}: is_unstamped_vl t__u → nclosed_vl t__u n → { t__s & { g2 | stamps_vl n t__u g2 t__s ∧ g1 ⊆ g2 } }
   with exists_stamped_tm t__u g1 n {struct t__u}: is_unstamped_tm t__u → nclosed t__u n → { t__s & { g2 | stamps_tm n t__u g2 t__s ∧ g1 ⊆ g2 } }
@@ -475,15 +482,15 @@ Module TraversalV2.
         pick_exists_stamped :=
         pick_lemma constr:(exists_stamped_ty) constr:(exists_stamped_tm) constr:(exists_stamped_vl)
       in let
-        recurse L t g n Hcl t__s g2 :=
+        recurse L t g n t__s g2 :=
         efeed (L t g n)
               using (fun p => pose proof p as (t__s & g2 & ?))
-          by (by [ | inverse Hus | move: Hcl; solve_inv_fv_congruence ])
+          by (by [ | inverse Hus ])
       in let
         smartRecurse t t__s g1 g2 :=
-        pick_exists_stamped t ltac:(fun L =>
-                                      recurse L t g1 n Hcl t__s g2 ||
-                                      recurse L t g1 (S n) Hcl t__s g2)
+        with_freevars n t Hcl
+                      ltac:(fun n' =>
+                              pick_exists_stamped t ltac:(fun L => recurse L t g1 n' t__s g2))
       in
       match goal with
       | |- { _ & { _ | (_ ∧ _ ?c ∧ _) ∧ _ } } =>
