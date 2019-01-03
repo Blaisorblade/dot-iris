@@ -195,40 +195,11 @@ Implicit Types
          (L T U: ty) (v: vl) (e: tm)
          (Γ : ctx).
 
-(* XXX now duplicated with synLemmas.v *)
-(** Let's prove that [nclosed a n → a.|[to_subst (idsσ n)] = a], and ditto for values. *)
-Section to_subst_idsσ_is_id.
-  Lemma to_subst_map_commute_aux f n x r: x < n → to_subst (map f (idsσ n).|[ren r]) x = f (to_subst (idsσ n).|[ren r] x).
-  Proof.
-    elim: n r x => [|n IHn] r x Hle; first omega.
-    destruct x; first done; asimpl.
-    apply IHn; omega.
-  Qed.
+Require Import DSub.synLemmas.
 
-  Lemma to_subst_map_commute f n x: x < n → to_subst (map f (idsσ n)) x = f (to_subst (idsσ n) x).
-  Proof. pose proof (to_subst_map_commute_aux f n x (+0)) as H. asimpl in H. exact H. Qed.
 
-  Arguments push_var /.
-  Lemma idsσ_eq_ids n: eq_n_s (to_subst (idsσ n)) ids n.
-  Proof.
-    induction n => x Hle. by rewrite to_subst_nil.
-    destruct x => //=.
-    assert (x < n) as Hle' by auto using lt_S_n.
-    rewrite to_subst_cons /= to_subst_map_commute // IHn //.
-  Qed.
 
-  Lemma closed_subst_idsρ `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A) n :
-    nclosed a n → a.|[to_subst (idsσ n)] = a.
-  Proof.
-    intro Hcl. rewrite (Hcl _ ids); first by asimpl. by apply idsσ_eq_ids.
-  Qed.
 
-  Lemma closed_subst_vl_idsρ v n:
-    nclosed_vl v n → v.[to_subst (idsσ n)] = v.
-  Proof.
-    intro Hcl. rewrite (Hcl _ ids); first by asimpl. by apply idsσ_eq_ids.
-  Qed.
-End to_subst_idsσ_is_id.
 
 (** This is a yet imperfect version of an alternative translation. *)
 Section translation.
@@ -364,8 +335,6 @@ Section translation.
   Definition stamps_tm n e__u g e__s := unstamp_tm g e__s = e__u ∧ is_unstamped_tm e__u ∧ is_stamped_tm n g e__s.
   Definition stamps_vl n v__u g v__s := unstamp_vl g v__s = v__u ∧ is_unstamped_vl v__u ∧ is_stamped_vl n g v__s.
   Definition stamps_ty n T__u g T__s := unstamp_ty g T__s = T__u ∧ is_unstamped_ty T__u ∧ is_stamped_ty n g T__s.
-
-  Require Import DSub.synLemmas.
 
   (** This lemma suggests this definition is problematic: we don't want empty environments to work.
       They'd fail later lemmas but this is annoying.
