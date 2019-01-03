@@ -482,8 +482,8 @@ Module TraversalV2.
       in let
         smartRecurse t t__s g1 g2 :=
         pick_exists_stamped t ltac:(fun L =>
-                                      recurse L t g1 (S n) Hcl t__s g2 ||
-                                      recurse L t g1 n Hcl t__s g2)
+                                      recurse L t g1 n Hcl t__s g2 ||
+                                      recurse L t g1 (S n) Hcl t__s g2)
       in
       match goal with
       | |- { _ & { _ | (_ ∧ _ ?c ∧ _) ∧ _ } } =>
