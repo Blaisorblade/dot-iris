@@ -256,6 +256,7 @@ unstamp_ty g (T: ty): ty :=
   end.
 (* End translation. *)
 
+Set Primitive Projections.
 Module TraversalV2.
   Record Traversal {travStateT: Type} :=
     {
@@ -694,7 +695,7 @@ Section translation.
         try (by eapply stamps_unstamp_vstamp_mono);
         cbn in Hus |- *;
         subst; cbn in *; f_equal; ev; try done.
-      erewrite stamps_unstamp_mono_tm => //. repeat split => //. exact Hs.
+      erewrite stamps_unstamp_mono_tm => //.
     - revert n T__u Hs Hu Hus. induction T__s; intros; cbn in Hus |- *;
         subst; cbn in *; f_equal; ev;
           try eauto || by eapply stamps_unstamp_mono_vl || done.
