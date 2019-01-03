@@ -297,7 +297,7 @@ Module TraversalV2.
           forall_traversal_vl ts (vty T)
       | trav_vstamp ts vs s:
             trav.(vstampP) ts vs s →
-            (* This is weirid, but apparently we get away without checking that
+            (* This is weird, but apparently we get away without checking that
                these values are syntactic. *)
             (* Forall (forall_traversal_vl ts) vs → *)
             forall_traversal_vl ts (vstamp vs s)
