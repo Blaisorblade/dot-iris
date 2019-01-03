@@ -269,7 +269,7 @@ Section translation.
         op: resT → resT → resT;
       }.
     Global Arguments Traversal _ _: clear implicits.
-    Context `{trav: Traversal travStateT resT}.
+    Context `(trav: Traversal travStateT resT).
     Local Definition opP := trav.(op).
     Infix "++" := opP.
 
@@ -321,6 +321,8 @@ Section translation.
       varP := λ ts n, True;
       vtyP := λ ts T resT, False;
       vstampP := λ '(n, g) vs ressVs s, length vs = n ∧ ∃ T, g !! s = Some T ∧ nclosed T n;
+      (* XXX: Here too, it seems we get away without checking this. *)
+      (* ∧ Forall ressVs (λ x, x) *)
       base := True;
       op := and
     |}.
@@ -382,6 +384,7 @@ Section translation.
   Arguments traverse_vl _ _ _: simpl nomatch.
   Arguments traverse_tm _ _ _: simpl nomatch.
   Arguments traverse_ty _ _ _: simpl nomatch.
+  Arguments upS /.
 
   Lemma
     is_stamped_mono_tm g1 g2 n e__s:
@@ -439,8 +442,6 @@ Section translation.
     assert (g2 !! s = Some T) as Hlook2. by eapply map_subseteq_spec.
     by rewrite /= Hlook1 Hlook2.
   Qed.
-
-  Arguments upS /.
 
   Fixpoint stamps_unstamp_mono_tm g1 g2 n e__u e__s: g1 ⊆ g2 →
                                      stamps_tm n e__u g1 e__s →
