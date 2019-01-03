@@ -328,31 +328,25 @@ Module TraversalV2.
       .
   End fold.
 
-  Definition is_unstamped_tm := forall_traversal_tm is_unstamped_trav ().
-  Definition is_unstamped_vl := forall_traversal_vl is_unstamped_trav ().
-  Definition is_unstamped_ty := forall_traversal_ty is_unstamped_trav ().
+  Notation is_unstamped_tm := (forall_traversal_tm is_unstamped_trav ()).
+  Notation is_unstamped_vl := (forall_traversal_vl is_unstamped_trav ()).
+  Notation is_unstamped_ty := (forall_traversal_ty is_unstamped_trav ()).
+  Notation is_stamped_tm n g := (forall_traversal_tm is_stamped_trav (n, g)).
+  Notation is_stamped_vl n g := (forall_traversal_vl is_stamped_trav (n, g)).
+  Notation is_stamped_ty n g := (forall_traversal_ty is_stamped_trav (n, g)).
+
   Check (is_unstamped_tm: tm → Prop).
 
-  Definition is_stamped_tm := uncurry (forall_traversal_tm is_stamped_trav).
-  Definition is_stamped_vl := uncurry (forall_traversal_vl is_stamped_trav).
-  Definition is_stamped_ty := uncurry (forall_traversal_ty is_stamped_trav).
-  Check (is_stamped_tm: nat → stys → tm → Prop).
-
-  Arguments upS /.
-
-  Arguments is_stamped_vl _ _ !_ /.
-  Arguments is_stamped_ty _ _ !_ /.
-  Arguments is_stamped_tm _ _ !_ /.
-  Arguments prod_uncurry _ _ _ /.
-  (* Arguments forall_traversal_vl _ _ _: simpl nomatch. *)
-  (* Arguments forall_traversal_tm _ _ _: simpl nomatch. *)
-  (* Arguments forall_traversal_ty _ _ _: simpl nomatch. *)
+  Global Arguments upS /.
+  Global Arguments varP /.
+  Global Arguments vtyP /.
+  Global Arguments vstampP /.
 
   Definition is_stamped_gmap g: Prop := ∀ s T, g !! s = Some T → ∃ n, is_stamped_ty n g T.
 
-  Definition stamps_tm n e__u g e__s := unstamp_tm g e__s = e__u ∧ is_unstamped_tm e__u ∧ is_stamped_tm n g e__s.
-  Definition stamps_vl n v__u g v__s := unstamp_vl g v__s = v__u ∧ is_unstamped_vl v__u ∧ is_stamped_vl n g v__s.
-  Definition stamps_ty n T__u g T__s := unstamp_ty g T__s = T__u ∧ is_unstamped_ty T__u ∧ is_stamped_ty n g T__s.
+  Notation stamps_tm n e__u g e__s := (unstamp_tm g e__s = e__u ∧ is_unstamped_tm e__u ∧ is_stamped_tm n g e__s).
+  Notation stamps_vl n v__u g v__s := (unstamp_vl g v__s = v__u ∧ is_unstamped_vl v__u ∧ is_stamped_vl n g v__s).
+  Notation stamps_ty n T__u g T__s := (unstamp_ty g T__s = T__u ∧ is_unstamped_ty T__u ∧ is_stamped_ty n g T__s).
 
   Lemma stamped_idsσ_ren g m n r: Forall (is_stamped_vl m g) (idsσ n).|[ren r].
   Proof.
@@ -362,20 +356,26 @@ Module TraversalV2.
 
   Hint Constructors forall_traversal_vl forall_traversal_ty forall_traversal_tm.
 
+  (* Unused. *)
   (* Lemma stamped_idsσ g m n: Forall (is_stamped_vl m g) (idsσ n). *)
   (* Proof. pose proof (stamped_idsσ_ren g m n (+0)) as H. by asimpl in H. Qed. *)
 
-  Lemma exists_stamped_vty T n g: is_unstamped_ty T → nclosed T n → ∃ v' g', stamps_vl n (vty T) g' v' ∧ g ⊆ g'.
+  (* Core cases of existence of translations. *)
+  Lemma exists_stamped_vty T n g: is_unstamped_vl (vty T) → nclosed_vl (vty T) n → ∃ v' g', stamps_vl n (vty T) g' v' ∧ g ⊆ g'.
+  (* Lemma exists_stamped_vty T n g: is_unstamped_ty T → nclosed T n → ∃ v' g', stamps_vl n (vty T) g' v' ∧ g ⊆ g'. *)
   Proof.
-    intros Hunst Hcl.
+    intros Hus Hcl.
     pose proof (fresh_stamp_strong g T) as [s []].
-    exists (vstamp (idsσ n) s); rewrite /stamps_vl /unstamp_vl /=; asimpl.
+    exists (vstamp (idsσ n) s); rewrite /=; asimpl.
     exists (<[s:=T]> g).
-    by repeat (econstructor; rewrite ?lookup_insert ?closed_subst_idsρ ?length_idsσ /=).
+    have: nclosed T n. by move: Hcl; solve_inv_fv_congruence.
+    repeat (econstructor; rewrite ?lookup_insert ?closed_subst_idsρ ?length_idsσ /=) => //.
       (* [|apply stamped_idsσ]. *)
   Qed.
 
-  (* Derive Inversion is_unstamped_ty with Sort Prop. with forall ident&: type&, I arg+ Sort sort. *)
+  Lemma exists_stamped_vstamp vs s n g: is_unstamped_vl (vstamp vs s) → nclosed_vl (vstamp vs s) n → ∃ v' g', stamps_vl n (vstamp vs s) g' v' ∧ g ⊆ g'.
+  Proof. by inversion 1. Qed.
+
   Lemma not_stamped_vty g n T:
     is_stamped_vl n g (vty T) → False.
   Proof. by inversion 1. Qed.
@@ -385,10 +385,6 @@ Module TraversalV2.
     is_stamped_vl n g1 (vty T) →
     is_stamped_vl n g2 (vty T).
   Proof. intros; exfalso. by eapply not_stamped_vty. Qed.
-
-  Global Arguments is_stamped_vl _ _ _ /.
-  Global Arguments is_stamped_ty _ _ _ /.
-  Global Arguments is_stamped_tm _ _ _ /.
 
   Lemma is_stamped_vstamp_mono g1 g2 n s vs:
     g1 ⊆ g2 →
@@ -440,10 +436,9 @@ Module TraversalV2.
                                     unstamp_ty g2 T__s = T__u.
   Proof.
     all: intros Hg (Hus & Hu & Hs); revert n Hs Hu Hus;
-        [> revert e__u; induction e__s | revert v__u; induction v__s | revert T__u; induction T__s];
-    try (intros; try (by eapply stamps_unstamp_vstamp_mono);
-                       cbn in Hus |- *; inverse Hs; inverse Hu; f_equal; cbn in *;
-                         by [eauto | eapply stamps_unstamp_mono_vl | eapply stamps_unstamp_mono_tm ]).
+        [> revert e__u; induction e__s | revert v__u; induction v__s | revert T__u; induction T__s]; intros;
+    try (by eapply stamps_unstamp_vstamp_mono) || cbn in Hus |- *; inverse Hs; inverse Hu; f_equal;
+    by [eauto | eapply stamps_unstamp_mono_vl | eapply stamps_unstamp_mono_tm].
   Qed.
 
   Lemma stamps_mono_tm g1 g2 n e__u e__s: g1 ⊆ g2 →
@@ -456,29 +451,17 @@ Module TraversalV2.
                                     stamps_ty n T__u g1 T__s →
                                     stamps_ty n T__u g2 T__s.
   Proof.
-    all: intros Hg Hs; ev; repeat split;
-      eauto using stamps_unstamp_mono_vl, stamps_unstamp_mono_ty, stamps_unstamp_mono_tm;
-      red in Hs; ev;
-        eauto using is_stamped_mono_vl, is_stamped_mono_tm, is_stamped_mono_ty.
+    all: intros Hg Hs; destruct_and! ; repeat split;
+      eauto using stamps_unstamp_mono_vl, stamps_unstamp_mono_ty, stamps_unstamp_mono_tm,
+        is_stamped_mono_vl, is_stamped_mono_tm, is_stamped_mono_ty.
   Qed.
-
-  (** Next step: reprove existence of translations, but for real. *)
-  Lemma exists_stamped_vty' T n g: is_unstamped_vl (vty T) → nclosed_vl (vty T) n → ∃ v' g', stamps_vl n (vty T) g' v' ∧ g ⊆ g'.
-  Proof.
-    intros Hus Hcl; inverse Hus; eapply exists_stamped_vty => //.
-    move: Hcl. solve_inv_fv_congruence.
-  Qed.
-  Lemma exists_stamped_vstamp vs s n g: is_unstamped_vl (vstamp vs s) → nclosed_vl (vstamp vs s) n → ∃ v' g', stamps_vl n (vstamp vs s) g' v' ∧ g ⊆ g'.
-  Proof. by inversion 1. Qed.
 
   Fixpoint exists_stamped_vl t__u g1 n {struct t__u}: is_unstamped_vl t__u → nclosed_vl t__u n → ∃ t__s g2, stamps_vl n t__u g2 t__s ∧ g1 ⊆ g2
   with exists_stamped_tm t__u g1 n {struct t__u}: is_unstamped_tm t__u → nclosed t__u n → ∃ t__s g2, stamps_tm n t__u g2 t__s ∧ g1 ⊆ g2
-    (* exists_stamped_tm t g n {struct t}: ∃ t' g', stamps_tm n t g' t' ∧ g ⊆ g' *)
   with exists_stamped_ty t__u g1 n {struct t__u}: is_unstamped_ty t__u → nclosed t__u n → ∃ t__s g2, stamps_ty n t__u g2 t__s ∧ g1 ⊆ g2.
-    (* exists_stamped_ty t g n {struct t}: ∃ t' g', stamps_ty n t g' t' ∧ g ⊆ g'. *)
   Proof.
-    all: intros Hus Hcl; destruct t__u eqn:?; rewrite ?/stamps_tm ?/stamps_vl ?/stamps_ty; cbn.
-    all: (abstract by [exists t__u; exists g1; subst; repeat constructor =>// | eapply exists_stamped_vstamp | eapply exists_stamped_vty']) || inverse Hus.
+    all: intros Hus Hcl; destruct t__u eqn:?; cbn.
+    all: (abstract by [exists t__u; exists g1; subst; repeat constructor =>// | eapply exists_stamped_vstamp | eapply exists_stamped_vty]) || inverse Hus.
 
     Tactic Notation "recurse" constr(L) constr(t) constr(g) constr(n) constr(Hcl) simple_intropattern(p') :=
       efeed (L t g n) using (fun p => pose proof p as p') by ((try done) || move: Hcl; solve_inv_fv_congruence).
@@ -509,8 +492,6 @@ Module TraversalV2.
     - recurse exists_stamped_vl v g1 n Hcl (t__s1 & g2 & [[?[]]]).
       finish (TSel t__s1) g2.
   Qed.
-  (* Next step: turn wrappers onto traversals into notation, to reduce the proof
-     noise needed to force simplification. *)
 
 End TraversalV2.
 
