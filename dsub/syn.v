@@ -327,3 +327,95 @@ Ltac solve_fv_congruence := rewrite /nclosed /nclosed_vl => * /=; f_equiv; solve
 
 Lemma fv_cons `{Ids X} `{HSubst vl X} {hsla: HSubstLemmas vl X} (x: X) xs: nclosed xs 0 → nclosed x 0 → nclosed (x :: xs) 0.
 Proof. solve_fv_congruence. Qed.
+
+(** Induction principles for syntax. *)
+
+(* Explore builtin induction principles to generate a good one. *)
+(* Module Coq_IndPrinciples_Bad. *)
+(*   Scheme vl_badmut := Induction for vl Sort Prop *)
+(*   with   tm_badmut := Induction for tm Sort Prop *)
+(*   with   ty_badmut := Induction for ty Sort Prop . *)
+(*   Scheme vl_badmutt := Induction for vl Sort Type *)
+(*   with   tm_badmutt := Induction for tm Sort Type *)
+(*   with   ty_badmutt := Induction for ty Sort Type. *)
+(*   Combined Scheme syntax_badmutind from vl_badmut, tm_badmut, ty_badmut. *)
+(*   Combined Scheme syntax_badmutindt from vl_badmut, tm_badmutt, ty_badmut. *)
+
+(*   Lemma syntax_mut_rect_bad (P : vl → Type) (P0 : tm → Type) (P1 : ty → Type): *)
+(*     (∀ i, P (var_vl i)) → *)
+(*     (∀ n, P (vnat n)) → *)
+(*     (∀ t, P0 t → P (vabs t)) → *)
+(*     (∀ t, P1 t → P (vty t)) → *)
+(*     (∀ l s, P (vstamp l s)) → *)
+(*     (∀ v, P v → P0 (tv v)) → *)
+(*     (∀ t, P0 t → ∀ t0, P0 t0 → P0 (tapp t t0)) → *)
+(*     (∀ t, P0 t → P0 (tskip t)) → *)
+(*     (∀ t, P1 t → ∀ t0, P1 t0 → P1 (TAll t t0)) → *)
+(*     (∀ t, P1 t → ∀ t0, P1 t0 → P1 (TTMem t t0)) → *)
+(*     (∀ v, P v → P1 (TSel v)) → *)
+(*     P1 TNat → *)
+(*     (∀ v, P v) * (∀ t, P0 t) * (∀ t, P1 t). *)
+(*   Proof. *)
+(*     intros; repeat split; intros. *)
+(*     eapply vl_badmutt; eassumption. *)
+(*     eapply tm_badmutt; eassumption. *)
+(*     eapply ty_badmutt; eassumption. *)
+(*   Qed. *)
+
+(*   Check syntax_badmutindt. *)
+(*   (* Print syntax_badmutind. *) *)
+(*   Check vl_badmutt. *)
+(* End Bad. *)
+
+(* Using a Section is a trick taken from CPDT. *)
+
+Section syntax_mut_rect.
+  Variable Pvl : vl → Type.
+  Variable Ptm : tm → Type.
+  Variable Pty : ty → Type.
+
+  Variable f_var_vl : ∀ i, Pvl (var_vl i).
+  Variable f_vnat : ∀ n, Pvl (vnat n).
+  Variable f_vabs : ∀ t, Ptm t → Pvl (vabs t).
+  Variable f_vty : ∀ t, Pty t → Pvl (vty t).
+  Variable f_vstamp : ∀ vs s, ForallT Pvl vs → Pvl (vstamp vs s).
+  Variable f_tv : ∀ v, Pvl v → Ptm (tv v).
+  Variable f_tapp : ∀ t, Ptm t → ∀ t0, Ptm t0 → Ptm (tapp t t0).
+  Variable f_tskip : ∀ t, Ptm t → Ptm (tskip t).
+  Variable f_TALl : ∀ t, Pty t → ∀ t0, Pty t0 → Pty (TAll t t0).
+  Variable f_TTMem : ∀ t, Pty t → ∀ t0, Pty t0 → Pty (TTMem t t0).
+  Variable f_TSel : ∀ v, Pvl v → Pty (TSel v).
+  Variable f_TNat : Pty TNat.
+
+  Fixpoint vl_mut_rect v: Pvl v
+  with tm_mut_rect t: Ptm t
+  with ty_mut_rect T: Pty T.
+  Proof.
+    all: [> destruct v | destruct t | destruct T].
+    (* Automation risk calling the lemma we're proving recursively.
+       We only trust auto after doing at least one proof step, where it's OK to
+       invoke the induction principles recursively - but on subterms! *)
+    - apply f_var_vl; trivial.
+    - apply f_vnat; trivial.
+    - apply f_vabs; trivial.
+    - apply f_vty; trivial.
+    - apply f_vstamp; trivial.
+      induction l; auto.
+    - apply f_tv; trivial.
+    - apply f_tapp; trivial.
+    - apply f_tskip; trivial.
+    - apply f_TALl; trivial.
+    - apply f_TTMem; trivial.
+    - apply f_TSel; trivial.
+    - apply f_TNat; trivial.
+  Qed.
+
+  Lemma syntax_mut_rect: (∀ v, Pvl v) * (∀ t, Ptm t) * (∀ T, Pty T).
+  Proof.
+    repeat split; intros.
+    - eapply vl_mut_rect.
+    - eapply tm_mut_rect.
+    - eapply ty_mut_rect.
+  Qed.
+
+End syntax_mut_rect.
