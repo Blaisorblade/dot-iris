@@ -466,31 +466,44 @@ Module TraversalV2.
     Tactic Notation "recurse" constr(L) constr(t) constr(g) constr(n) constr(Hcl) simple_intropattern(p') :=
       efeed (L t g n) using (fun p => pose proof p as p') by ((try done) || move: Hcl; solve_inv_fv_congruence).
     Ltac finish t g :=
-      abstract (exists t, g; repeat constructor => //=; by f_equal).
+      abstract (ev; exists t, g; repeat constructor => //=; by f_equal).
 
-    - recurse exists_stamped_tm t g1 (S n) Hcl (t__s1 & g2 & [[?[]]]).
-      finish (vabs t__s1) g2.
-    - recurse exists_stamped_vl v g1 n Hcl (t__s1 & g2 & [[?[]]]).
-      finish (tv t__s1) g2.
-    - recurse exists_stamped_tm t1 g1 n Hcl (t__s1 & g2 & [[?[]]]).
-      recurse exists_stamped_tm t2 g2 n Hcl (t__s2 & g3 & [[?[]]]).
-      exists (tapp t__s1 t__s2), g3 => /=.
-      erewrite (stamps_unstamp_mono_tm g2 g3 _ t1) => //.
-      by simplify_order; repeat constructor; f_equal => //; eapply (is_stamped_mono_tm g2).
-    - recurse exists_stamped_tm t g1 n Hcl (t__s1 & g2 & [[?[]]]).
-      finish (tskip t__s1) g2.
-    - recurse exists_stamped_ty t1 g1 n Hcl (t__s1 & g2 & [[?[]]]).
-      recurse exists_stamped_ty t2 g2 (S n) Hcl (t__s2 & g3 & [[?[]]]).
-      exists (TAll t__s1 t__s2), g3 => /=.
-      erewrite (stamps_unstamp_mono_ty g2 g3 n t1) => //.
-      by simplify_order; repeat constructor; f_equal => //; eapply (is_stamped_mono_ty g2).
-    - recurse exists_stamped_ty t1 g1 n Hcl (t__s1 & g2 & [[?[]]]).
-      recurse exists_stamped_ty t2 g2 n Hcl (t__s2 & g3 & [[?[]]]).
-      exists (TTMem t__s1 t__s2), g3 => /=.
-      erewrite (stamps_unstamp_mono_ty g2 g3 n t1) => //.
-      by simplify_order; repeat constructor; f_equal => //; eapply (is_stamped_mono_ty g2).
-    - recurse exists_stamped_vl v g1 n Hcl (t__s1 & g2 & [[?[]]]).
-      finish (TSel t__s1) g2.
+    all: let
+           pick_lemma lty ltm lvl trm tac :=
+           let L := match type of trm with | ty => lty | tm => ltm | vl => lvl end
+           in tac L
+         in let
+           pick_exists_stamped trm tac :=
+           pick_lemma constr:(exists_stamped_ty) constr:(exists_stamped_tm) constr:(exists_stamped_vl) trm tac
+         in let
+           pick_stamps_unstamp_mono trm tac :=
+           pick_lemma constr:(stamps_unstamp_mono_ty) constr:(stamps_unstamp_mono_tm) constr:(stamps_unstamp_mono_vl) trm tac
+         in let
+           pick_is_stamped_mono trm tac :=
+           pick_lemma constr:(is_stamped_mono_ty) constr:(is_stamped_mono_tm) constr:(is_stamped_mono_vl) trm tac
+         in
+         let
+           smartRecurse t t__s g1 g2 :=
+           pick_exists_stamped
+             t
+             ltac:(fun L =>
+                     recurse L t g1 (S n) Hcl (t__s & g2 & ?) ||
+                     recurse L t g1 n Hcl (t__s & g2 & ?))
+         in
+         match goal with
+         | |- ∃ _ _, (_ ∧ _ ?c ∧ _) ∧ _ =>
+           lazymatch c with
+           | ?c ?t1 ?t2 =>
+             idtac c t1 t2;
+               smartRecurse t1 t__s1 g1 g2;
+               smartRecurse t2 t__s2 g2 g3;
+               ev; exists (c t__s1 t__s2), g3; cbn;
+                 pick_stamps_unstamp_mono t1 ltac:(fun L => erewrite (L g2 g3 _ t1) => //);
+                   by simplify_order; repeat constructor; f_equal; try done; pick_is_stamped_mono t__s1 ltac:(fun L => eapply (L g2))
+           | ?c ?t1 =>
+             idtac c t1; smartRecurse t1 t__s1 g1 g2; finish (c t__s1) g2 || idtac
+           end
+         end.
   Qed.
 
 End TraversalV2.
