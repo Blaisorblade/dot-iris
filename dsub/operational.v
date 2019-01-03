@@ -456,6 +456,14 @@ Module TraversalV2.
         is_stamped_mono_vl, is_stamped_mono_tm, is_stamped_mono_ty.
   Qed.
 
+  Ltac pick_lemma lty ltm lvl trm tac :=
+    let L := match type of trm with | ty => lty | tm => ltm | vl => lvl end
+    in tac L.
+  Ltac pick_stamps_unstamp_mono :=
+    pick_lemma constr:(stamps_unstamp_mono_ty) constr:(stamps_unstamp_mono_tm) constr:(stamps_unstamp_mono_vl).
+  Ltac pick_is_stamped_mono :=
+    pick_lemma constr:(is_stamped_mono_ty) constr:(is_stamped_mono_tm) constr:(is_stamped_mono_vl).
+
   Fixpoint exists_stamped_vl t__u g1 n {struct t__u}: is_unstamped_vl t__u → nclosed_vl t__u n → ∃ t__s g2, stamps_vl n t__u g2 t__s ∧ g1 ⊆ g2
   with exists_stamped_tm t__u g1 n {struct t__u}: is_unstamped_tm t__u → nclosed t__u n → ∃ t__s g2, stamps_tm n t__u g2 t__s ∧ g1 ⊆ g2
   with exists_stamped_ty t__u g1 n {struct t__u}: is_unstamped_ty t__u → nclosed t__u n → ∃ t__s g2, stamps_ty n t__u g2 t__s ∧ g1 ⊆ g2.
@@ -463,47 +471,36 @@ Module TraversalV2.
     all: intros Hus Hcl; destruct t__u eqn:?; cbn.
     all: (abstract by [exists t__u; exists g1; subst; repeat constructor =>// | eapply exists_stamped_vstamp | eapply exists_stamped_vty]) || inverse Hus.
 
-    Tactic Notation "recurse" constr(L) constr(t) constr(g) constr(n) constr(Hcl) simple_intropattern(p') :=
-      efeed (L t g n) using (fun p => pose proof p as p') by ((try done) || move: Hcl; solve_inv_fv_congruence).
-    Ltac finish t g :=
-      abstract (ev; exists t, g; repeat constructor => //=; by f_equal).
-
-    all: let
-           pick_lemma lty ltm lvl trm tac :=
-           let L := match type of trm with | ty => lty | tm => ltm | vl => lvl end
-           in tac L
-         in let
-           pick_exists_stamped trm tac :=
-           pick_lemma constr:(exists_stamped_ty) constr:(exists_stamped_tm) constr:(exists_stamped_vl) trm tac
-         in let
-           pick_stamps_unstamp_mono trm tac :=
-           pick_lemma constr:(stamps_unstamp_mono_ty) constr:(stamps_unstamp_mono_tm) constr:(stamps_unstamp_mono_vl) trm tac
-         in let
-           pick_is_stamped_mono trm tac :=
-           pick_lemma constr:(is_stamped_mono_ty) constr:(is_stamped_mono_tm) constr:(is_stamped_mono_vl) trm tac
-         in
-         let
-           smartRecurse t t__s g1 g2 :=
-           pick_exists_stamped
-             t
-             ltac:(fun L =>
-                     recurse L t g1 (S n) Hcl (t__s & g2 & ?) ||
-                     recurse L t g1 n Hcl (t__s & g2 & ?))
-         in
-         match goal with
-         | |- ∃ _ _, (_ ∧ _ ?c ∧ _) ∧ _ =>
-           lazymatch c with
-           | ?c ?t1 ?t2 =>
-             idtac c t1 t2;
-               smartRecurse t1 t__s1 g1 g2;
-               smartRecurse t2 t__s2 g2 g3;
-               ev; exists (c t__s1 t__s2), g3; cbn;
-                 pick_stamps_unstamp_mono t1 ltac:(fun L => erewrite (L g2 g3 _ t1) => //);
-                   by simplify_order; repeat constructor; f_equal; try done; pick_is_stamped_mono t__s1 ltac:(fun L => eapply (L g2))
-           | ?c ?t1 =>
-             idtac c t1; smartRecurse t1 t__s1 g1 g2; finish (c t__s1) g2 || idtac
-           end
-         end.
+    all:
+      let
+        pick_exists_stamped :=
+        pick_lemma constr:(exists_stamped_ty) constr:(exists_stamped_tm) constr:(exists_stamped_vl)
+      in let
+        recurse L t g n Hcl t__s g2 :=
+        efeed (L t g n)
+              using (fun p => pose proof p as (t__s & g2 & ?))
+          by (by [| move: Hcl; solve_inv_fv_congruence])
+      in let
+        smartRecurse t t__s g1 g2 :=
+        pick_exists_stamped t ltac:(fun L =>
+                                      recurse L t g1 (S n) Hcl t__s g2 ||
+                                      recurse L t g1 n Hcl t__s g2)
+      in
+      match goal with
+      | |- ∃ _ _, (_ ∧ _ ?c ∧ _) ∧ _ =>
+        lazymatch c with
+        | ?c ?t1 ?t2 =>
+          try solve [
+                  smartRecurse t1 t__s1 g1 g2;
+                  smartRecurse t2 t__s2 g2 g3;
+                  ev; exists (c t__s1 t__s2), g3; cbn;
+                  pick_stamps_unstamp_mono t1 ltac:(fun L => erewrite (L g2 g3 _ t1) => //);
+                    by simplify_order; repeat constructor; f_equal; try done; pick_is_stamped_mono t__s1 ltac:(fun L => eapply (L g2))]
+        | ?c ?t1 =>
+          try solve [smartRecurse t1 t__s1 g1 g2;
+                  ev; exists (c t__s1), g2; repeat constructor => //=; by f_equal]
+        end
+      end.
   Qed.
 
 End TraversalV2.
