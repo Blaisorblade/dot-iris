@@ -197,67 +197,234 @@ Implicit Types
 
 Require Import DSub.synLemmas.
 
-
-
-
-
 (** This is a yet imperfect version of an alternative translation. *)
-Section translation.
-  Definition stys := gmap stamp ty.
-  Implicit Type g: stys.
+Definition stys := gmap stamp ty.
+Implicit Type g: stys.
 
-  Definition gdom {X} (g: gmap stamp X) := dom (gset stamp) g.
-  Arguments gdom /.
+(* Section translation. *)
 
-  Lemma fresh_stamp {X} (g: gmap stamp X): ∃ s, s ∉ gdom g.
-  Proof. exists (fresh (dom (gset stamp) g)). by apply is_fresh. Qed.
+Definition gdom {X} (g: gmap stamp X) := dom (gset stamp) g.
+Arguments gdom /.
 
-  Lemma fresh_stamp_strong g T: ∃ s, s ∉ dom (gset stamp) g ∧ g ⊆ <[s := T]> g.
+Lemma fresh_stamp {X} (g: gmap stamp X): ∃ s, s ∉ gdom g.
+Proof. exists (fresh (dom (gset stamp) g)). by apply is_fresh. Qed.
+
+Lemma fresh_stamp_strong g T: ∃ s, s ∉ dom (gset stamp) g ∧ g ⊆ <[s := T]> g.
+Proof.
+  pose proof (fresh_stamp g) as [s Hfresh].
+  exists s; split =>//. by eapply insert_subseteq, not_elem_of_dom, Hfresh.
+Qed.
+
+Lemma fresh_stamp_strong' g T: ∃ s, s ∉ gdom g ∧ gdom g ⊆ gdom (<[s := T]> g).
+Proof.
+  pose proof (fresh_stamp_strong g T) as [s []].
+  exists s; split =>//=. by apply subseteq_dom.
+Qed.
+
+Definition unstamp_vstamp g vs s := (from_option vty (vstamp vs s) (g !! s)).[to_subst vs].
+Arguments unstamp_vstamp /.
+
+Fixpoint unstamp_tm g (t: tm): tm :=
+  match t with
+  | tv v => tv (unstamp_vl g v)
+  | tapp t1 t2 => tapp (unstamp_tm g t1) (unstamp_tm g t2)
+  | tskip t => tskip (unstamp_tm g t)
+  end
+with
+unstamp_vl g (v: vl): vl :=
+  match v with
+  | vstamp vs s => unstamp_vstamp g vs s
+  | vabs t => vabs (unstamp_tm g t)
+  | vty T => vty (unstamp_ty g T)
+  | vnat _ => v
+  | var_vl _ => v
+  end
+with
+unstamp_ty g (T: ty): ty :=
+  match T with
+  (* | TTop => T *)
+  (* | TBot => T *)
+  (* | TAnd T1 T2 => TAnd (unstamp_ty g T1) (unstamp_ty g T2) *)
+  (* | TOr T1 T2 => TOr (unstamp_ty g T1) (unstamp_ty g T2) *)
+  (* | TLater T => TLater (unstamp_ty g T) *)
+  | TAll T1 T2 => TAll (unstamp_ty g T1) (unstamp_ty g T2)
+  (* | TMu T => TMu (unstamp_ty g T) *)
+  | TTMem T1 T2 => TTMem (unstamp_ty g T1) (unstamp_ty g T2)
+  | TSel v => TSel (unstamp_vl g v)
+  (* | TSelA v T1 T2 => TSelA (unstamp_vl g v) (unstamp_ty g T1) (unstamp_ty g T2) *)
+  | TNat => T
+  end.
+(* End translation. *)
+
+Module TraversalV2.
+  Record Traversal {travStateT: Type} :=
+    {
+      upS: travStateT → travStateT;
+      varP: travStateT → nat → Prop;
+      vtyP: travStateT → ty → Prop;
+      vstampP: travStateT → vls → stamp → Prop;
+    }.
+  Global Arguments Traversal _: clear implicits.
+
+  Definition is_unstamped_trav: Traversal unit :=
+    {|
+      upS := id;
+      varP := λ s n, True;
+      vtyP := λ s T, True;
+      vstampP := λ s vs s, False;
+    |}.
+
+  Definition is_stamped_trav: Traversal (nat * stys) :=
+    {|
+      upS := λ '(n, g), (S n, g);
+      varP := λ ts n, True;
+      vtyP := λ ts T, False;
+      vstampP := λ '(n, g) vs s, length vs = n ∧ ∃ T, g !! s = Some T ∧ nclosed T n;
+    |}.
+
+  Section fold.
+    Context `(trav: Traversal travStateT).
+
+    Inductive forall_traversal_vl: travStateT → vl → Prop :=
+      | trav_var_vl ts i: trav.(varP) ts i → forall_traversal_vl ts (var_vl i)
+      | trav_vabs ts t: forall_traversal_tm (trav.(upS) ts) t →
+                           forall_traversal_vl ts (vabs t)
+      | trav_vnat ts n: forall_traversal_vl ts (vnat n)
+      | trav_vty ts T:
+          forall_traversal_ty ts T →
+          trav.(vtyP) ts T →
+          forall_traversal_vl ts (vty T)
+      | trav_vstamp ts vs s:
+            trav.(vstampP) ts vs s →
+            (* This is weirid, but apparently we get away without checking that
+               these values are syntactic. *)
+            (* Forall (forall_traversal_vl ts) vs → *)
+            forall_traversal_vl ts (vstamp vs s)
+    with
+    forall_traversal_tm: travStateT → tm → Prop :=
+    | trav_tv ts v: forall_traversal_vl ts v → forall_traversal_tm ts (tv v)
+    | trav_tapp ts t1 t2:
+        forall_traversal_tm ts t1 →
+        forall_traversal_tm ts t2 →
+        forall_traversal_tm ts (tapp t1 t2)
+    | trav_tskip ts t:
+        forall_traversal_tm ts t →
+        forall_traversal_tm ts (tskip t)
+    with
+    forall_traversal_ty: travStateT → ty → Prop :=
+    | trav_TAll ts T1 T2:
+        forall_traversal_ty ts T1 →
+        forall_traversal_ty (trav.(upS) ts) T2 →
+        forall_traversal_ty ts (TAll T1 T2)
+    | trav_TMem ts T1 T2:
+        forall_traversal_ty ts T1 →
+        forall_traversal_ty ts T2 →
+        forall_traversal_ty ts (TTMem T1 T2)
+    | trav_TSel ts v:
+        forall_traversal_vl ts v →
+        forall_traversal_ty ts (TSel v)
+    | trav_TNat ts: forall_traversal_ty ts TNat
+      .
+  End fold.
+
+  Definition is_unstamped_tm := forall_traversal_tm is_unstamped_trav ().
+  Definition is_unstamped_vl := forall_traversal_vl is_unstamped_trav ().
+  Definition is_unstamped_ty := forall_traversal_ty is_unstamped_trav ().
+  Check (is_unstamped_tm: tm → Prop).
+
+  Definition is_stamped_tm := uncurry (forall_traversal_tm is_stamped_trav).
+  Definition is_stamped_vl := uncurry (forall_traversal_vl is_stamped_trav).
+  Definition is_stamped_ty := uncurry (forall_traversal_ty is_stamped_trav).
+  Check (is_stamped_tm: nat → stys → tm → Prop).
+
+  Arguments upS /.
+
+  Arguments is_stamped_vl _ _ !_ /.
+  Arguments is_stamped_ty _ _ !_ /.
+  Arguments is_stamped_tm _ _ !_ /.
+  Arguments prod_uncurry _ _ _ /.
+  (* Arguments forall_traversal_vl _ _ _: simpl nomatch. *)
+  (* Arguments forall_traversal_tm _ _ _: simpl nomatch. *)
+  (* Arguments forall_traversal_ty _ _ _: simpl nomatch. *)
+
+  Definition is_stamped_gmap g: Prop := ∀ s T, g !! s = Some T → ∃ n, is_stamped_ty n g T.
+
+  Definition stamps_tm n e__u g e__s := unstamp_tm g e__s = e__u ∧ is_unstamped_tm e__u ∧ is_stamped_tm n g e__s.
+  Definition stamps_vl n v__u g v__s := unstamp_vl g v__s = v__u ∧ is_unstamped_vl v__u ∧ is_stamped_vl n g v__s.
+  Definition stamps_ty n T__u g T__s := unstamp_ty g T__s = T__u ∧ is_unstamped_ty T__u ∧ is_stamped_ty n g T__s.
+
+  Lemma stamped_idsσ_ren g m n r: Forall (is_stamped_vl m g) (idsσ n).|[ren r].
   Proof.
-    pose proof (fresh_stamp g) as [s Hfresh].
-    exists s; split =>//. by eapply insert_subseteq, not_elem_of_dom, Hfresh.
+    elim: n m r => [|n IHn] m r //=.
+    repeat constructor => //=. asimpl. apply IHn.
   Qed.
 
-  Lemma fresh_stamp_strong' g T: ∃ s, s ∉ gdom g ∧ gdom g ⊆ gdom (<[s := T]> g).
+  Hint Constructors forall_traversal_vl forall_traversal_ty forall_traversal_tm.
+
+  (* Lemma stamped_idsσ g m n: Forall (is_stamped_vl m g) (idsσ n). *)
+  (* Proof. pose proof (stamped_idsσ_ren g m n (+0)) as H. by asimpl in H. Qed. *)
+
+  Lemma exists_stamped_vty T n g: is_unstamped_ty T → nclosed T n → ∃ v' g', stamps_vl n (vty T) g' v' ∧ g ⊆ g'.
   Proof.
+    intros Hunst Hcl.
     pose proof (fresh_stamp_strong g T) as [s []].
-    exists s; split =>//=. by apply subseteq_dom.
+    exists (vstamp (idsσ n) s); rewrite /stamps_vl /unstamp_vl /=; asimpl.
+    exists (<[s:=T]> g).
+    by repeat (econstructor; rewrite ?lookup_insert ?closed_subst_idsρ ?length_idsσ /=).
+      (* [|apply stamped_idsσ]. *)
   Qed.
 
-  Definition unstamp_vstamp g vs s := (from_option vty (vstamp vs s) (g !! s)).[to_subst vs].
-  Arguments unstamp_vstamp /.
+  (* Derive Inversion is_unstamped_ty with Sort Prop. with forall ident&: type&, I arg+ Sort sort. *)
+  Lemma not_stamped_vty g n T:
+    is_stamped_vl n g (vty T) → False.
+  Proof. by inversion 1. Qed.
 
-  Fixpoint unstamp_tm g (t: tm): tm :=
-    match t with
-    | tv v => tv (unstamp_vl g v)
-    | tapp t1 t2 => tapp (unstamp_tm g t1) (unstamp_tm g t2)
-    | tskip t => tskip (unstamp_tm g t)
-    end
-  with
-  unstamp_vl g (v: vl): vl :=
-    match v with
-    | vstamp vs s => unstamp_vstamp g vs s
-    | vabs t => vabs (unstamp_tm g t)
-    | vty T => vty (unstamp_ty g T)
-    | vnat _ => v
-    | var_vl _ => v
-    end
-  with
-  unstamp_ty g (T: ty): ty :=
-    match T with
-    (* | TTop => T *)
-    (* | TBot => T *)
-    (* | TAnd T1 T2 => TAnd (unstamp_ty g T1) (unstamp_ty g T2) *)
-    (* | TOr T1 T2 => TOr (unstamp_ty g T1) (unstamp_ty g T2) *)
-    (* | TLater T => TLater (unstamp_ty g T) *)
-    | TAll T1 T2 => TAll (unstamp_ty g T1) (unstamp_ty g T2)
-    (* | TMu T => TMu (unstamp_ty g T) *)
-    | TTMem T1 T2 => TTMem (unstamp_ty g T1) (unstamp_ty g T2)
-    | TSel v => TSel (unstamp_vl g v)
-    (* | TSelA v T1 T2 => TSelA (unstamp_vl g v) (unstamp_ty g T1) (unstamp_ty g T2) *)
-    | TNat => T
-    end.
+  Lemma is_stamped_vty_mono g1 g2 n T:
+    g1 ⊆ g2 →
+    is_stamped_vl n g1 (vty T) →
+    is_stamped_vl n g2 (vty T).
+  Proof. intros; exfalso. by eapply not_stamped_vty. Qed.
 
+  Global Arguments is_stamped_vl _ _ _ /.
+  Global Arguments is_stamped_ty _ _ _ /.
+  Global Arguments is_stamped_tm _ _ _ /.
+
+  Lemma is_stamped_vstamp_mono g1 g2 n s vs:
+    g1 ⊆ g2 →
+    is_stamped_vl n g1 (vstamp vs s) →
+    is_stamped_vl n g2 (vstamp vs s).
+  Proof.
+    inversion 2; subst; simpl in *; ev.
+    repeat econstructor => //=. by eapply map_subseteq_spec.
+  Qed.
+
+  Fixpoint
+    is_stamped_mono_tm g1 g2 n e__s {struct e__s}:
+    g1 ⊆ g2 →
+    is_stamped_tm n g1 e__s →
+    is_stamped_tm n g2 e__s
+  with
+  is_stamped_mono_vl g1 g2 n v__s {struct v__s}:
+    g1 ⊆ g2 →
+    is_stamped_vl n g1 v__s →
+    is_stamped_vl n g2 v__s
+  with
+  is_stamped_mono_ty g1 g2 n T__s {struct T__s}:
+    g1 ⊆ g2 →
+    is_stamped_ty n g1 T__s →
+    is_stamped_ty n g2 T__s.
+  Proof.
+    (* Using tactic3 instead of tactic is ESSENTIAL to get the right precedence.
+       Otherwise [induct n e foo; bar] parses like [induct n e (foo; bar)]. *)
+    Tactic Notation "induct" constr(n) constr(t__s) tactic3(tac1) := intros Hg; revert n; induction t__s; intros n0 Hs; inversion Hs; subst; tac1; constructor => //.
+
+    all: [> induct n e__s idtac | induct n v__s (try by [|eapply is_stamped_vstamp_mono]) | induct n T__s idtac];
+    by [eapply is_stamped_mono_vl | eapply is_stamped_mono_tm | eapply is_stamped_mono_ty].
+  Qed.
+
+End TraversalV2.
+
+Section translation.
   Section fold.
     Record Traversal {travStateT: Type} {resT: Type} :=
       {
