@@ -398,25 +398,22 @@ Module TraversalV2.
     repeat econstructor => //=. by eapply map_subseteq_spec.
   Qed.
 
-  Fixpoint
-    is_stamped_mono_tm g1 g2 n e__s {struct e__s}:
+  Fixpoint is_stamped_mono_tm g1 g2 n e__s {struct e__s}:
     g1 ⊆ g2 →
     is_stamped_tm n g1 e__s →
     is_stamped_tm n g2 e__s
-  with
-  is_stamped_mono_vl g1 g2 n v__s {struct v__s}:
+  with is_stamped_mono_vl g1 g2 n v__s {struct v__s}:
     g1 ⊆ g2 →
     is_stamped_vl n g1 v__s →
     is_stamped_vl n g2 v__s
-  with
-  is_stamped_mono_ty g1 g2 n T__s {struct T__s}:
+  with is_stamped_mono_ty g1 g2 n T__s {struct T__s}:
     g1 ⊆ g2 →
     is_stamped_ty n g1 T__s →
     is_stamped_ty n g2 T__s.
   Proof.
-    Local Ltac induct n t__s := intros Hg; revert n; induction t__s; intros n0 Hs; inversion Hs; subst.
     all:
-      [> induct n e__s | induct n v__s; try by [eapply is_stamped_vstamp_mono] | induct n T__s ];
+      intros Hg Hs; [> destruct e__s | destruct v__s | destruct T__s ]; inverse Hs;
+      try eapply is_stamped_vstamp_mono => //;
       constructor => //; by [eapply is_stamped_mono_vl | eapply is_stamped_mono_tm | eapply is_stamped_mono_ty].
   Qed.
 
