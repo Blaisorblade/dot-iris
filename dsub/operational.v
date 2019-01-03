@@ -461,6 +461,55 @@ Module TraversalV2.
         eauto using is_stamped_mono_vl, is_stamped_mono_tm, is_stamped_mono_ty.
   Qed.
 
+  (** Next step: reprove existence of translations, but for real. *)
+  Lemma exists_stamped_vty' T n g: is_unstamped_vl (vty T) → nclosed_vl (vty T) n → ∃ v' g', stamps_vl n (vty T) g' v' ∧ g ⊆ g'.
+  Proof.
+    intros Hus Hcl; inverse Hus; eapply exists_stamped_vty => //.
+    move: Hcl. solve_inv_fv_congruence.
+  Qed.
+  Lemma exists_stamped_vstamp vs s n g: is_unstamped_vl (vstamp vs s) → nclosed_vl (vstamp vs s) n → ∃ v' g', stamps_vl n (vstamp vs s) g' v' ∧ g ⊆ g'.
+  Proof. by inversion 1. Qed.
+
+  Fixpoint exists_stamped_vl t__u g1 n {struct t__u}: is_unstamped_vl t__u → nclosed_vl t__u n → ∃ t__s g2, stamps_vl n t__u g2 t__s ∧ g1 ⊆ g2
+  with exists_stamped_tm t__u g1 n {struct t__u}: is_unstamped_tm t__u → nclosed t__u n → ∃ t__s g2, stamps_tm n t__u g2 t__s ∧ g1 ⊆ g2
+    (* exists_stamped_tm t g n {struct t}: ∃ t' g', stamps_tm n t g' t' ∧ g ⊆ g' *)
+  with exists_stamped_ty t__u g1 n {struct t__u}: is_unstamped_ty t__u → nclosed t__u n → ∃ t__s g2, stamps_ty n t__u g2 t__s ∧ g1 ⊆ g2.
+    (* exists_stamped_ty t g n {struct t}: ∃ t' g', stamps_ty n t g' t' ∧ g ⊆ g'. *)
+  Proof.
+    all: intros Hus Hcl; destruct t__u eqn:?; rewrite ?/stamps_tm ?/stamps_vl ?/stamps_ty; cbn.
+    all: (abstract by [exists t__u; exists g1; subst; repeat constructor =>// | eapply exists_stamped_vstamp | eapply exists_stamped_vty']) || inverse Hus.
+
+    Tactic Notation "recurse" constr(L) constr(t) constr(g) constr(n) constr(Hcl) simple_intropattern(p') :=
+      efeed (L t g n) using (fun p => pose proof p as p') by ((try done) || move: Hcl; solve_inv_fv_congruence).
+    Ltac finish t g :=
+      abstract (exists t, g; repeat constructor => //=; by f_equal).
+
+    - recurse exists_stamped_tm t g1 (S n) Hcl (t__s1 & g2 & [[?[]]]).
+      finish (vabs t__s1) g2.
+    - recurse exists_stamped_vl v g1 n Hcl (t__s1 & g2 & [[?[]]]).
+      finish (tv t__s1) g2.
+    - recurse exists_stamped_tm t1 g1 n Hcl (t__s1 & g2 & [[?[]]]).
+      recurse exists_stamped_tm t2 g2 n Hcl (t__s2 & g3 & [[?[]]]).
+      exists (tapp t__s1 t__s2), g3 => /=.
+      erewrite (stamps_unstamp_mono_tm g2 g3 _ t1) => //.
+      by simplify_order; repeat constructor; f_equal => //; eapply (is_stamped_mono_tm g2).
+    - recurse exists_stamped_tm t g1 n Hcl (t__s1 & g2 & [[?[]]]).
+      finish (tskip t__s1) g2.
+    - recurse exists_stamped_ty t1 g1 n Hcl (t__s1 & g2 & [[?[]]]).
+      recurse exists_stamped_ty t2 g2 (S n) Hcl (t__s2 & g3 & [[?[]]]).
+      exists (TAll t__s1 t__s2), g3 => /=.
+      erewrite (stamps_unstamp_mono_ty g2 g3 n t1) => //.
+      by simplify_order; repeat constructor; f_equal => //; eapply (is_stamped_mono_ty g2).
+    - recurse exists_stamped_ty t1 g1 n Hcl (t__s1 & g2 & [[?[]]]).
+      recurse exists_stamped_ty t2 g2 n Hcl (t__s2 & g3 & [[?[]]]).
+      exists (TTMem t__s1 t__s2), g3 => /=.
+      erewrite (stamps_unstamp_mono_ty g2 g3 n t1) => //.
+      by simplify_order; repeat constructor; f_equal => //; eapply (is_stamped_mono_ty g2).
+    - recurse exists_stamped_vl v g1 n Hcl (t__s1 & g2 & [[?[]]]).
+      finish (TSel t__s1) g2.
+  Qed.
+  (* Next step: turn wrappers onto traversals into notation, to reduce the proof
+     noise needed to force simplification. *)
 
 End TraversalV2.
 
@@ -665,88 +714,5 @@ Section translation.
       eauto using stamps_unstamp_mono_vl, stamps_unstamp_mono_ty, stamps_unstamp_mono_tm;
       rewrite /stamps_ty /stamps_vl /stamps_tm in Hs; ev; eauto using is_stamped_mono_vl, is_stamped_mono_tm, is_stamped_mono_ty.
   Qed.
-
-  (** Next step: reprove existence of translations, but for real. *)
-  (* The statement isn't quite right yet. This only works for properly *)
-  (*    translated values, and we don't yethave the correct definition. *)
-  (* Lemma *)
-  (*   exists_stamped_vl t g: ∃ t' g', stamps_vl t g' t' ∧ g ⊆ g' *)
-  (*   with *)
-  (*   exists_stamped_tm t g: ∃ t' g', stamps_tm t g' t' ∧ g ⊆ g' *)
-  (*   with *)
-  (*   exists_stamped_ty t g: ∃ t' g', stamps_ty t g' t' ∧ g ⊆ g'. *)
-  (* Proof. *)
-  (*   all: destruct t eqn:?; rewrite ?/stamps_tm ?/stamps_vl ?/stamps_ty; cbn. *)
-  (*   all: try by (exists t; exists g; subst; cbn). *)
-  (*   all: try match goal with *)
-  (*     | H : context [vstamp _] |- _ => fail 1 *)
-  (*     | H : context [vty _] |- _ => fail 1 *)
-  (*     | H : ?t = ?c ?t1 ?t2 |- _ => *)
-  (*       (pose proof (exists_stamped_tm t0_1 g) as (t0_1' & g1 & Hre1 & Hs1) || *)
-  (*       pose proof (exists_stamped_vl t0_1 g) as (t0_1' & g1 & Hre1 & Hs1) || *)
-  (*       pose proof (exists_stamped_ty t0_1 g) as (t0_1' & g1 & Hre1 & Hs1)); *)
-  (*       (pose proof (exists_stamped_tm t0_2 g1) as (t0_2' & g2 & Hre2 & Hs2) || *)
-  (*       pose proof (exists_stamped_vl t0_2 g1) as (t0_2' & g2 & Hre2 & Hs2) || *)
-  (*       pose proof (exists_stamped_ty t0_2 g1) as (t0_2' & g2 & Hre2 & Hs2)); *)
-  (*         rewrite Hre1 Hre2 ?(unstamp_mono_tm g1 g2) ?(unstamp_mono_vl g1 g2) ?(unstamp_mono_ty g1 g2) //; *)
-  (*           try (exists (c t0_1' t0_2'); exists g2=>/=; split; by [f_equiv | destruct t0_1'; destruct t0_2' | simplify_order]) *)
-  (*     | H : ?t = ?c ?t0_1 |- _ => *)
-  (*       (pose proof (exists_stamped_tm t0_1 g) as (t0_1' & g1 & Hre1 & Hs1) || *)
-  (*       pose proof (exists_stamped_vl t0_1 g) as (t0_1' & g1 & Hre1 & Hs1) || *)
-  (*       pose proof (exists_stamped_ty t0_1 g) as (t0_1' & g1 & Hre1 & Hs1)); *)
-  (*         rewrite Hre1; *)
-  (*           try (exists (c t0_1'); exists g1=>/=; by [f_equiv | destruct t0_1']) *)
-  (*     end. *)
-  (*   eapply exists_stamped_vty_bad. *)
-  (*   (* We should make this impossible. *) *)
-  (*   admit. *)
-
-  (*   (* pose proof (exists_stamped_vl v) as (v' & g3 & Hre3 & Hs3). *) *)
-  (*   (* rewrite Hre3 ?(unstamp_mono_ty g2 g3) //. *) *)
-  (*   (* exists (TSelA v' t0_1' t0_2'). exists g3. *) *)
-  (*   (* split; try by [cbn; f_equiv; destruct t0_1'; destruct t0_2' | simplify_order]. *) *)
-  (* Admitted. *)
-
-  Fixpoint t_tm n g (t1 t2: tm) {struct t1}: Prop :=
-    match (t1, t2) with
-    | (tv v1, tv v2) => t_vl n g v1 v2
-    | (tapp t11 t12, tapp t21 t22) =>
-      t_tm n g t11 t21 ∧ t_tm n g t12 t22
-    | (tskip t1, tskip t2) =>
-      t_tm n g t1 t2
-    | _ => False
-    end
-  with
-  t_vl n g (v1 v2: vl) {struct v1}: Prop :=
-    match (v1, v2) with
-    | (var_vl i1, var_vl i2) => i1 = i2
-    | (vabs t1, vabs t2) => t_tm (S n) g t1 t2
-    | (vnat n1, vnat n2) => n1 = n2
-    | (vty T1, vstamp vs s) =>
-      (* Needn't we also check that the contents of T1 are syntactic? *)
-      nclosed T1 n ∧
-      vty T1 = unstamp_vstamp g vs s
-    | _ => False
-    end.
-  Fixpoint t_ty n g (T1 T2: ty) {struct T1}: Prop :=
-    match (T1, T2) with
-    (* | (TTop, TTop) => True *)
-    (* | (TBot, TBot) => True *)
-    (* | (TAnd T11 T12, TAnd T21 T22) => *)
-    (*   t_ty n g T11 T21 ∧ t_ty n g T12 T22 *)
-    (* | (TOr T11 T12, TOr T21 T22) => *)
-    (*   t_ty n g T11 T21 ∧ t_ty n g T12 T22 *)
-    (* | (TLater T1, TLater T2) => *)
-    (*   t_ty n g T1 T2 *)
-    | (TAll T11 T12, TAll T21 T22) =>
-      t_ty n g T11 T21 ∧ t_ty (S n) g T12 T22
-    (* | (TMu T1, TMu T2) => *)
-    (*   t_ty (S n) g T1 T2 *)
-    | (TTMem T11 T12, TTMem T21 T22) => t_ty n g T11 T21 ∧ t_ty n g T12 T22
-    | (TSel v1, TSel v2) => t_vl n g v1 v2
-    (* | (TSelA v1 T11 T12, TSelA v2 T21 T22) => t_vl n g v1 v2 ∧ t_ty n g T11 T21 ∧ t_ty n g T12 T22 *)
-    | (TNat, TNat) => True
-    | _ => False
-    end.
 
 End translation.
