@@ -417,18 +417,6 @@ Module TraversalV2.
       constructor => //; by [eapply is_stamped_mono_vl | eapply is_stamped_mono_tm | eapply is_stamped_mono_ty].
   Qed.
 
-  (* Lemma stamps_unstamp_vty_mono g1 g2 n T v__s: *)
-  (*   g1 ⊆ g2 → *)
-  (*   stamps_vl n (vty T) g1 v__s → *)
-  (*   unstamp_vl g2 v__s = vty T. *)
-  (* Proof. *)
-  (*   intros Hg (Huns & _ & Hs). *)
-  (*   destruct v__s; try by [inversion Huns| inversion Hs]. *)
-  (*   assert (∃ T, g1 !! s = Some T) as [T__s Hlook1]. by inverse Hs; cbn in *; ev; econstructor. *)
-  (*   assert (g2 !! s = Some T__s) as Hlook2. by eapply map_subseteq_spec. *)
-  (*   move: Huns. by rewrite /= Hlook1 Hlook2. *)
-  (* Qed. *)
-
   Lemma stamps_unstamp_vstamp_mono g1 g2 n v__u vs s:
     g1 ⊆ g2 →
     stamps_vl n v__u g1 (vstamp vs s) →
@@ -440,14 +428,39 @@ Module TraversalV2.
     move: Huns. by rewrite /= Hlook1 Hlook2.
   Qed.
 
-  Lemma stamps_vstamp_mono g1 g2 n v__u vs s:
-    g1 ⊆ g2 →
-    stamps_vl n v__u g1 (vstamp vs s) →
-    stamps_vl n v__u g2 (vstamp vs s).
+  Fixpoint stamps_unstamp_mono_tm g1 g2 n e__u e__s {struct e__s}: g1 ⊆ g2 →
+                                     stamps_tm n e__u g1 e__s →
+                                     unstamp_tm g2 e__s = e__u
+  with stamps_unstamp_mono_vl g1 g2 n v__u (v__s: vl) {struct v__s}: g1 ⊆ g2 →
+                                    stamps_vl n v__u g1 v__s →
+                                    unstamp_vl g2 v__s = v__u
+  with stamps_unstamp_mono_ty g1 g2 n T__u T__s {struct T__s}: g1 ⊆ g2 →
+                                    stamps_ty n T__u g1 T__s →
+                                    unstamp_ty g2 T__s = T__u.
   Proof.
-    rewrite /stamps_vl /=.
-    intros; ev; repeat split => //; by [eapply stamps_unstamp_vstamp_mono | eapply is_stamped_mono_vl ].
+    all: intros Hg (Hus & Hu & Hs); revert n Hs Hu Hus;
+        [> revert e__u; induction e__s | revert v__u; induction v__s | revert T__u; induction T__s];
+    try (intros; try (by eapply stamps_unstamp_vstamp_mono);
+                       cbn in Hus |- *; inverse Hs; inverse Hu; f_equal; cbn in *;
+                         by [eauto | eapply stamps_unstamp_mono_vl | eapply stamps_unstamp_mono_tm ]).
   Qed.
+
+  Lemma stamps_mono_tm g1 g2 n e__u e__s: g1 ⊆ g2 →
+                                     stamps_tm n e__u g1 e__s →
+                                     stamps_tm n e__u g2 e__s
+  with stamps_mono_vl g1 g2 n v__u v__s: g1 ⊆ g2 →
+                                    stamps_vl n v__u g1 v__s →
+                                    stamps_vl n v__u g2 v__s
+  with stamps_mono_ty g1 g2 n T__u T__s: g1 ⊆ g2 →
+                                    stamps_ty n T__u g1 T__s →
+                                    stamps_ty n T__u g2 T__s.
+  Proof.
+    all: intros Hg Hs; ev; repeat split;
+      eauto using stamps_unstamp_mono_vl, stamps_unstamp_mono_ty, stamps_unstamp_mono_tm;
+      red in Hs; ev;
+        eauto using is_stamped_mono_vl, is_stamped_mono_tm, is_stamped_mono_ty.
+  Qed.
+
 
 End TraversalV2.
 
