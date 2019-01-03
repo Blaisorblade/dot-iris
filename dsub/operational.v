@@ -257,41 +257,35 @@ Section translation.
   Arguments unstamp_vstamp /.
 
   Fixpoint unstamp_tm g (t: tm): tm :=
-    let fix go (t: tm): tm :=
-        match t with
-        | tv v => tv (unstamp_vl g v)
-        | tapp t1 t2 => tapp (go t1) (go t2)
-        | tskip t => tskip (go t)
-        end
-    in go t
+    match t with
+    | tv v => tv (unstamp_vl g v)
+    | tapp t1 t2 => tapp (unstamp_tm g t1) (unstamp_tm g t2)
+    | tskip t => tskip (unstamp_tm g t)
+    end
   with
   unstamp_vl g (v: vl): vl :=
-    let fix go (v: vl): vl :=
-        match v with
-        | vstamp vs s => unstamp_vstamp g vs s
-        | vabs t => vabs (unstamp_tm g t)
-        | vty T => vty (unstamp_ty g T)
-        | vnat _ => v
-        | var_vl _ => v
-        end
-    in go v
+    match v with
+    | vstamp vs s => unstamp_vstamp g vs s
+    | vabs t => vabs (unstamp_tm g t)
+    | vty T => vty (unstamp_ty g T)
+    | vnat _ => v
+    | var_vl _ => v
+    end
   with
   unstamp_ty g (T: ty): ty :=
-    let fix go (T: ty): ty :=
-        match T with
-        (* | TTop => T *)
-        (* | TBot => T *)
-        (* | TAnd T1 T2 => TAnd (go T1) (go T2) *)
-        (* | TOr T1 T2 => TOr (go T1) (go T2) *)
-        (* | TLater T => TLater (go T) *)
-        | TAll T1 T2 => TAll (go T1) (go T2)
-        (* | TMu T => TMu (go T) *)
-        | TTMem T1 T2 => TTMem (go T1) (go T2)
-        | TSel v => TSel (unstamp_vl g v)
-        (* | TSelA v T1 T2 => TSelA (unstamp_vl g v) (go T1) (go T2) *)
-        | TNat => T
-        end
-    in go T.
+    match T with
+    (* | TTop => T *)
+    (* | TBot => T *)
+    (* | TAnd T1 T2 => TAnd (unstamp_ty g T1) (unstamp_ty g T2) *)
+    (* | TOr T1 T2 => TOr (unstamp_ty g T1) (unstamp_ty g T2) *)
+    (* | TLater T => TLater (unstamp_ty g T) *)
+    | TAll T1 T2 => TAll (unstamp_ty g T1) (unstamp_ty g T2)
+    (* | TMu T => TMu (unstamp_ty g T) *)
+    | TTMem T1 T2 => TTMem (unstamp_ty g T1) (unstamp_ty g T2)
+    | TSel v => TSel (unstamp_vl g v)
+    (* | TSelA v T1 T2 => TSelA (unstamp_vl g v) (unstamp_ty g T1) (unstamp_ty g T2) *)
+    | TNat => T
+    end.
 
   Section fold.
     Record Traversal {travStateT: Type} {resT: Type} :=
@@ -371,6 +365,8 @@ Section translation.
   Definition stamps_vl n v__u g v__s := unstamp_vl g v__s = v__u ∧ is_unstamped_vl v__u ∧ is_stamped_vl n g v__s.
   Definition stamps_ty n T__u g T__s := unstamp_ty g T__s = T__u ∧ is_unstamped_ty T__u ∧ is_stamped_ty n g T__s.
 
+  Require Import DSub.synLemmas.
+
   (** This lemma suggests this definition is problematic: we don't want empty environments to work.
       They'd fail later lemmas but this is annoying.
       Bigger problem: we should also translate T before storing it in the map! Or after? *)
@@ -379,7 +375,6 @@ Section translation.
     intros Hunst Hcl.
     pose proof (fresh_stamp_strong g T) as [s []].
     exists (vstamp (idsσ n) s); rewrite /stamps_vl /unstamp_vl /=; asimpl.
-    Require Import DSub.synLemmas.
     exists (<[s:=T]> g); rewrite lookup_insert /= closed_subst_idsρ // length_idsσ.
     repeat split; eauto.
   Qed.
@@ -443,12 +438,12 @@ Section translation.
   (* That worked, but a mutual induction principle might be more robust... however, beware the lists!
      Write it by hand? *)
 
-  Lemma stamps_vty_mono g1 g2 n T v__s:
+  Lemma stamps_unstamp_vty_mono g1 g2 n T v__s:
     g1 ⊆ g2 →
     stamps_vl n (vty T) g1 v__s →
-    stamps_vl n (vty T) g2 v__s.
+    unstamp_vl g2 v__s = (vty T).
   Proof.
-    intros Hg (Huns & Hu & Hs).
+    intros Hg (Huns & _ & Hs).
     destruct v__s; cbn in *; try solve [inversion Huns | inversion Hs].
     repeat (split => //; try by eapply is_stamped_mono_vl); cbn.
     move: Hs Huns => [_] [T'] [Heq1 _] /=.
@@ -457,10 +452,31 @@ Section translation.
     rewrite Heq2 //=.
   Qed.
 
-  Lemma stamps_unstamp_mono_tm g1 g2 n e__u e__s: g1 ⊆ g2 →
+  Lemma stamps_vty_mono g1 g2 n T v__s:
+    g1 ⊆ g2 →
+    stamps_vl n (vty T) g1 v__s →
+    stamps_vl n (vty T) g2 v__s.
+  Proof.
+    rewrite /stamps_vl /=.
+    intros; ev; repeat split => //; by [eapply stamps_unstamp_vty_mono | eapply is_stamped_mono_vl ].
+  Qed.
+
+  Lemma stamps_unstamp_vstamp_mono g1 g2 n v__u vs s:
+    g1 ⊆ g2 →
+    stamps_vl n v__u g1 (vstamp vs s) →
+    unstamp_vl g2 (vstamp vs s) = v__u.
+  Proof.
+    intros Hg (Huns & _ & _ & T & Hlook1 & _). move: Huns.
+    assert (g2 !! s = Some T) as Hlook2. by eapply map_subseteq_spec.
+    by rewrite /= Hlook1 Hlook2.
+  Qed.
+
+  Arguments upS /.
+
+  Fixpoint stamps_unstamp_mono_tm g1 g2 n e__u e__s: g1 ⊆ g2 →
                                      stamps_tm n e__u g1 e__s →
                                      unstamp_tm g2 e__s = e__u
-  with stamps_unstamp_mono_vl g1 g2 n v__u v__s: g1 ⊆ g2 →
+  with stamps_unstamp_mono_vl g1 g2 n v__u (v__s: vl)  {struct v__s}: g1 ⊆ g2 →
                                     stamps_vl n v__u g1 v__s →
                                     unstamp_vl g2 v__s = v__u
   with stamps_unstamp_mono_ty g1 g2 n T__u T__s: g1 ⊆ g2 →
@@ -469,18 +485,17 @@ Section translation.
   Proof.
     all: rewrite /stamps_ty /stamps_vl /stamps_tm;
       intros Hg (Hus & Hu & Hs).
-    -
-      revert n e__u Hs Hu Hus. induction e__s; intros; cbn in Hus |- *;
-        cbn; f_equal; try by subst; f_equal; eapply (stamps_unstamp_mono_vl _ _ _ _ v).
-      cbn in *. subst; f_equal.
-      specialize (IHe__s1 n (unstamp_tm g1 e__s1)).
-      remember (unstamp_tm g1 e__s1) as e eqn:Heqe.
-      unfold unstamp_tm in Heqe. cbv fix in Heqe.
-      cbn in Heqe.
-      unfold unstamp_tm.
-      (* rewrite -IHe__s1. *)
-      (* eapply IHe__s1. *)
-  Abort.
+    - revert n e__u Hs Hu Hus. induction e__s; intros; cbn in Hus |- *;
+        subst; cbn in *; f_equal; ev; try eauto || by eapply (stamps_unstamp_mono_vl _ _ _ _ v).
+    - revert n v__u Hs Hu Hus; induction v__s; intros;
+        try (by eapply stamps_unstamp_vstamp_mono);
+        cbn in Hus |- *;
+        subst; cbn in *; f_equal; ev; try done.
+      erewrite stamps_unstamp_mono_tm => //. repeat split => //. exact Hs.
+    - revert n T__u Hs Hu Hus. induction T__s; intros; cbn in Hus |- *;
+        subst; cbn in *; f_equal; ev;
+          try eauto || by eapply stamps_unstamp_mono_vl || done.
+  Qed.
 
   Lemma stamps_mono_tm g1 g2 n e__u e__s: g1 ⊆ g2 →
                                      stamps_tm n e__u g1 e__s →
@@ -492,15 +507,14 @@ Section translation.
                                     stamps_ty n T__u g1 T__s →
                                     stamps_ty n T__u g2 T__s.
   Proof.
-    all: rewrite /stamps_ty /stamps_vl /stamps_tm;
-      intros Hg (Hus & Hu & Hs).
-    - revert n Hs; induction e__s => n Hs; cbn in Hus |- *.
-    all: repeat (split => //; try eauto using is_stamped_mono_tm, is_stamped_mono_vl, is_stamped_mono_ty).
-    destruct e__u.
-  Admitted.
+    all: intros Hg Hs; ev; repeat split;
+      eauto using stamps_unstamp_mono_vl, stamps_unstamp_mono_ty, stamps_unstamp_mono_tm;
+      rewrite /stamps_ty /stamps_vl /stamps_tm in Hs; ev; eauto using is_stamped_mono_vl, is_stamped_mono_tm, is_stamped_mono_ty.
+  Qed.
 
-  (* (* The statement isn't quite right yet. This only works for properly *)
-  (*    translated values, and we don't yethave the correct definition. *) *)
+  (** Next step: reprove existence of translations, but for real. *)
+  (* The statement isn't quite right yet. This only works for properly *)
+  (*    translated values, and we don't yethave the correct definition. *)
   (* Lemma *)
   (*   exists_stamped_vl t g: ∃ t' g', stamps_vl t g' t' ∧ g ⊆ g' *)
   (*   with *)
