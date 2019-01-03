@@ -377,7 +377,7 @@ Module TraversalV2.
   Proof. by inversion 1. Qed.
 
   Lemma not_stamped_vty g n T:
-    is_stamped_vl n g (vty T) → False.
+    ¬ (is_stamped_vl n g (vty T)).
   Proof. by inversion 1. Qed.
 
   Lemma is_stamped_vty_mono g1 g2 n T:
