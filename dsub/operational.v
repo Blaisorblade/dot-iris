@@ -414,12 +414,10 @@ Module TraversalV2.
     is_stamped_ty n g1 T__s →
     is_stamped_ty n g2 T__s.
   Proof.
-    (* Using tactic3 instead of tactic is ESSENTIAL to get the right precedence.
-       Otherwise [induct n e foo; bar] parses like [induct n e (foo; bar)]. *)
-    Tactic Notation "induct" constr(n) constr(t__s) tactic3(tac1) := intros Hg; revert n; induction t__s; intros n0 Hs; inversion Hs; subst; tac1; constructor => //.
-
-    all: [> induct n e__s idtac | induct n v__s (try by [|eapply is_stamped_vstamp_mono]) | induct n T__s idtac];
-    by [eapply is_stamped_mono_vl | eapply is_stamped_mono_tm | eapply is_stamped_mono_ty].
+    Local Ltac induct n t__s := intros Hg; revert n; induction t__s; intros n0 Hs; inversion Hs; subst.
+    all:
+      [> induct n e__s | induct n v__s; try by [eapply is_stamped_vstamp_mono] | induct n T__s ];
+      constructor => //; by [eapply is_stamped_mono_vl | eapply is_stamped_mono_tm | eapply is_stamped_mono_ty].
   Qed.
 
 End TraversalV2.
