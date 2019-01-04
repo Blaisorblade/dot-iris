@@ -335,8 +335,6 @@ Module TraversalV2.
   Notation is_stamped_vl n g := (forall_traversal_vl is_stamped_trav (n, g)).
   Notation is_stamped_ty n g := (forall_traversal_ty is_stamped_trav (n, g)).
 
-  Check (is_unstamped_tm: tm → Prop).
-
   Global Arguments upS /.
   Global Arguments varP /.
   Global Arguments vtyP /.
@@ -567,7 +565,6 @@ Section translation.
   Definition is_unstamped_tm := traverse_tm is_unstamped_trav ().
   Definition is_unstamped_vl := traverse_vl is_unstamped_trav ().
   Definition is_unstamped_ty := traverse_ty is_unstamped_trav ().
-  Check (is_unstamped_tm: tm → Prop).
 
   Program Definition is_stamped_trav: Traversal (nat * stys) Prop :=
     {|
@@ -584,7 +581,6 @@ Section translation.
   Definition is_stamped_tm := uncurry (traverse_tm is_stamped_trav).
   Definition is_stamped_vl := uncurry (traverse_vl is_stamped_trav).
   Definition is_stamped_ty := uncurry (traverse_ty is_stamped_trav).
-  Check (is_stamped_tm: nat → stys → tm → Prop).
 
   Definition is_stamped_gmap g: Prop := ∀ s T, g !! s = Some T → ∃ n, is_stamped_ty n g T.
 

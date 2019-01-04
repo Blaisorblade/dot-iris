@@ -340,52 +340,30 @@ Proof. solve_fv_congruence. Qed.
 (*   with   ty_badmutt := Induction for ty Sort Type. *)
 (*   Combined Scheme syntax_badmutind from vl_badmut, tm_badmut, ty_badmut. *)
 (*   Combined Scheme syntax_badmutindt from vl_badmut, tm_badmutt, ty_badmut. *)
-
-(*   Lemma syntax_mut_rect_bad (P : vl → Type) (P0 : tm → Type) (P1 : ty → Type): *)
-(*     (∀ i, P (var_vl i)) → *)
-(*     (∀ n, P (vnat n)) → *)
-(*     (∀ t, P0 t → P (vabs t)) → *)
-(*     (∀ t, P1 t → P (vty t)) → *)
-(*     (∀ l s, P (vstamp l s)) → *)
-(*     (∀ v, P v → P0 (tv v)) → *)
-(*     (∀ t, P0 t → ∀ t0, P0 t0 → P0 (tapp t t0)) → *)
-(*     (∀ t, P0 t → P0 (tskip t)) → *)
-(*     (∀ t, P1 t → ∀ t0, P1 t0 → P1 (TAll t t0)) → *)
-(*     (∀ t, P1 t → ∀ t0, P1 t0 → P1 (TTMem t t0)) → *)
-(*     (∀ v, P v → P1 (TSel v)) → *)
-(*     P1 TNat → *)
-(*     (∀ v, P v) * (∀ t, P0 t) * (∀ t, P1 t). *)
-(*   Proof. *)
-(*     intros; repeat split; intros. *)
-(*     eapply vl_badmutt; eassumption. *)
-(*     eapply tm_badmutt; eassumption. *)
-(*     eapply ty_badmutt; eassumption. *)
-(*   Qed. *)
-
-(*   Check syntax_badmutindt. *)
-(*   (* Print syntax_badmutind. *) *)
-(*   Check vl_badmutt. *)
 (* End Bad. *)
 
-(* Using a Section is a trick taken from CPDT. *)
+(* Using a Section is a trick taken from CPDT, but there bodies are hand-written.
+   The rest is written by taking Coq's generated recursion principles and doing
+   lots of regexp search-n-replace.
+ *)
 
 Section syntax_mut_rect.
   Variable Pvl : vl → Type.
   Variable Ptm : tm → Type.
   Variable Pty : ty → Type.
 
-  Variable f_var_vl : ∀ i, Pvl (var_vl i).
-  Variable f_vnat : ∀ n, Pvl (vnat n).
-  Variable f_vabs : ∀ t, Ptm t → Pvl (vabs t).
-  Variable f_vty : ∀ t, Pty t → Pvl (vty t).
-  Variable f_vstamp : ∀ vs s, ForallT Pvl vs → Pvl (vstamp vs s).
-  Variable f_tv : ∀ v, Pvl v → Ptm (tv v).
-  Variable f_tapp : ∀ t, Ptm t → ∀ t0, Ptm t0 → Ptm (tapp t t0).
-  Variable f_tskip : ∀ t, Ptm t → Ptm (tskip t).
-  Variable f_TALl : ∀ t, Pty t → ∀ t0, Pty t0 → Pty (TAll t t0).
-  Variable f_TTMem : ∀ t, Pty t → ∀ t0, Pty t0 → Pty (TTMem t t0).
-  Variable f_TSel : ∀ v, Pvl v → Pty (TSel v).
-  Variable f_TNat : Pty TNat.
+  Variable step_var_vl : ∀ i, Pvl (var_vl i).
+  Variable step_vnat : ∀ n, Pvl (vnat n).
+  Variable step_vabs : ∀ t, Ptm t → Pvl (vabs t).
+  Variable step_vty : ∀ t, Pty t → Pvl (vty t).
+  Variable step_vstamp : ∀ vs s, ForallT Pvl vs → Pvl (vstamp vs s).
+  Variable step_tv : ∀ v, Pvl v → Ptm (tv v).
+  Variable step_tapp : ∀ t, Ptm t → ∀ t0, Ptm t0 → Ptm (tapp t t0).
+  Variable step_tskip : ∀ t, Ptm t → Ptm (tskip t).
+  Variable step_TALl : ∀ t, Pty t → ∀ t0, Pty t0 → Pty (TAll t t0).
+  Variable step_TTMem : ∀ t, Pty t → ∀ t0, Pty t0 → Pty (TTMem t t0).
+  Variable step_TSel : ∀ v, Pvl v → Pty (TSel v).
+  Variable step_TNat : Pty TNat.
 
   Fixpoint vl_mut_rect v: Pvl v
   with tm_mut_rect t: Ptm t
