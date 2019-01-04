@@ -369,23 +369,18 @@ Section syntax_mut_rect.
   with tm_mut_rect t: Ptm t
   with ty_mut_rect T: Pty T.
   Proof.
-    all: [> destruct v | destruct t | destruct T].
-    (* Automation risk calling the lemma we're proving recursively.
-       We only trust auto after doing at least one proof step, where it's OK to
-       invoke the induction principles recursively - but on subterms! *)
-    - apply f_var_vl; trivial.
-    - apply f_vnat; trivial.
-    - apply f_vabs; trivial.
-    - apply f_vty; trivial.
-    - apply f_vstamp; trivial.
-      induction l; auto.
-    - apply f_tv; trivial.
-    - apply f_tapp; trivial.
-    - apply f_tskip; trivial.
-    - apply f_TALl; trivial.
-    - apply f_TTMem; trivial.
-    - apply f_TSel; trivial.
-    - apply f_TNat; trivial.
+    (* Automation risk producing circular proofs that call right away the lemma we're proving.
+       Instead we want to apply one of the [case_] arguments to perform an
+       inductive step, and only then call ourselves recursively. *)
+    all: destruct 0;
+      match goal with
+      (* Warning: add other arities as needed. *)
+      | Hstep: context [?P (?c _ _ _)] |- ?P (?c _ _ _) => apply Hstep; trivial
+      | Hstep: context [?P (?c _ _)] |- ?P (?c _ _) => apply Hstep; trivial
+      | Hstep: context [?P (?c _)] |- ?P (?c _) => apply Hstep; trivial
+      | Hstep: context [?P (?c)] |- ?P (?c) => apply Hstep; trivial
+      end.
+    induction l; auto.
   Qed.
 
   Lemma syntax_mut_rect: (∀ v, Pvl v) * (∀ t, Ptm t) * (∀ T, Pty T).
