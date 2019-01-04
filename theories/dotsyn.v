@@ -1,5 +1,5 @@
 From iris.base_logic.lib Require Import iprop.
-From Dot Require Export prelude.
+From Dot Require Export prelude tactics.
 
 Definition label := nat.
 
@@ -37,6 +37,137 @@ Inductive tm  : Type :=
 Definition vls := list vl.
 Definition dms := list dm.
 Definition ctx := list ty.
+
+(* Module Coq_IndPrinciples_Bad. *)
+(*   Scheme tm_bad_mut_ind := Induction for tm Sort Prop *)
+(*   with   vl_bad_mut_ind := Induction for vl Sort Prop *)
+(*   with   dm_bad_mut_ind := Induction for dm Sort Prop *)
+(*   with   path_bad_mut_ind := Induction for path Sort Prop *)
+(*   with   ty_bad_mut_ind := Induction for ty Sort Prop. *)
+
+(*   Combined Scheme syntax_bad_mut_ind from tm_bad_mut_ind, vl_bad_mut_ind, dm_bad_mut_ind, path_bad_mut_ind, ty_bad_mut_ind. *)
+(*   Check syntax_bad_mut_ind. *)
+
+(*   Scheme tm_bad_mut_rect := Induction for tm Sort Type *)
+(*   with   vl_bad_mut_rect := Induction for vl Sort Type *)
+(*   with   dm_bad_mut_rect := Induction for dm Sort Type *)
+(*   with   path_bad_mut_rect := Induction for path Sort Type *)
+(*   with   ty_bad_mut_rect := Induction for ty Sort Type. *)
+
+(*   Fail Combined Scheme syntax_bad_mut_rect from tm_bad_mut_rect, vl_bad_mut_rect, dm_bad_mut_rect, path_bad_mut_rect, ty_bad_mut_rect. *)
+(*   Combined Scheme syntax_bad_mut_rect from tm_bad_mut_ind, vl_bad_mut_rect, dm_bad_mut_rect, path_bad_mut_rect, ty_bad_mut_rect. *)
+(*   Check syntax_bad_mut_rect. *)
+(* End Coq_IndPrinciples_Bad. *)
+
+Section syntax_mut_rect.
+  Variable Ptm : tm   → Type.
+  Variable Pvl : vl   → Type.
+  Variable Pdm : dm   → Type.
+  Variable Ppt : path → Type.
+  Variable Pty : ty   → Type.
+
+  Variable step_tv: ∀ v, Pvl v → Ptm (tv v).
+  Variable step_tapp: ∀ t, Ptm t → ∀ t0, Ptm t0 → Ptm (tapp t t0).
+  Variable step_tproj: ∀ t, Ptm t → ∀ l, Ptm (tproj t l).
+  Variable step_tskip: ∀ t, Ptm t → Ptm (tskip t).
+  Variable step_var_vl: ∀ v, Pvl (var_vl v).
+  Variable step_vnat: ∀ n, Pvl (vnat n).
+  Variable step_vabs: ∀ t, Ptm t → Pvl (vabs t).
+  Variable step_vobj: ∀ l, Pvl (vobj l).
+  Variable step_dtysyn: ∀ t, Pty t → Pdm (dtysyn t).
+  (* Original: *)
+  (* Variable step_dtysem: ∀ vsl g, Pdm (dtysem vs g). *)
+  Variable step_dtysem: ∀ vs g, ForallT Pvl vs → Pdm (dtysem vs g).
+  Variable step_dvl: ∀ v, Pvl v → Pdm (dvl v).
+  Variable step_pv: ∀ v, Pvl v → Ppt (pv v).
+  Variable step_psefl: ∀ p, Ppt p → ∀ l, Ppt (pself p l).
+  Variable step_TTop: Pty TTop.
+  Variable step_TBot: Pty TBot.
+  Variable step_TAnd: ∀ t, Pty t → ∀ t0, Pty t0 → Pty (TAnd t t0).
+  Variable step_TOr: ∀ t, Pty t → ∀ t0, Pty t0 → Pty (TOr t t0).
+  Variable step_TLater: ∀ t, Pty t → Pty (TLater t).
+  Variable step_TAll: ∀ t, Pty t → ∀ t0 : ty, Pty t0 → Pty (TAll t t0).
+  Variable step_TMu: ∀ t, Pty t → Pty (TMu t).
+  Variable step_TVMem: ∀ l t, Pty t → Pty (TVMem l t).
+  Variable step_TTMem: ∀ l t, Pty t → ∀ t0, Pty t0 → Pty (TTMem l t t0).
+  Variable step_TSel: ∀ p, Ppt p → ∀ l : label, Pty (TSel p l).
+  Variable step_TSElA: ∀ p, Ppt p → ∀ (l : label) (t : ty), Pty t → ∀ t0 : ty, Pty t0 → Pty (TSelA p l t t0).
+  Variable step_TNat: Pty TNat.
+
+  Fixpoint tm_mut_rect t: Ptm t
+  with vl_mut_rect v: Pvl v
+  with dm_mut_rect d: Pdm d
+  with path_mut_rect p: Ppt p
+  with ty_mut_rect T: Pty T.
+  Proof.
+    (* Automation risk producing circular proofs that call right away the lemma we're proving.
+       Instead we want to apply one of the [case_] arguments to perform an
+       inductive step, and only then call ourselves recursively. *)
+    all: destruct 0;
+      try match goal with
+      (* Warning: add other arities as needed. *)
+      | Hstep: context [?P (?c _ _ _ _)] |- ?P (?c _ _ _ _) => apply Hstep; trivial
+      | Hstep: context [?P (?c _ _ _)] |- ?P (?c _ _ _) => apply Hstep; trivial
+      | Hstep: context [?P (?c _ _)] |- ?P (?c _ _) => apply Hstep; trivial
+      | Hstep: context [?P (?c _)] |- ?P (?c _) => apply Hstep; trivial
+      | Hstep: context [?P (?c)] |- ?P (?c) => apply Hstep; trivial
+      end.
+    induction l; auto.
+  Qed.
+
+  Lemma syntax_mut_rect: (∀ t, Ptm t) * (∀ v, Pvl v) * (∀ d, Pdm d) * (∀ p, Ppt p) * (∀ t, Pty t).
+  Proof.
+    repeat split; intros.
+    - eapply tm_mut_rect.
+    - eapply vl_mut_rect.
+    - eapply dm_mut_rect.
+    - eapply path_mut_rect.
+    - eapply ty_mut_rect.
+  Qed.
+End syntax_mut_rect.
+
+Section syntax_mut_ind.
+  Variable Ptm : tm   → Prop.
+  Variable Pvl : vl   → Prop.
+  Variable Pdm : dm   → Prop.
+  Variable Ppt : path → Prop.
+  Variable Pty : ty   → Prop.
+
+  Variable step_tv: ∀ v, Pvl v → Ptm (tv v).
+  Variable step_tapp: ∀ t, Ptm t → ∀ t0, Ptm t0 → Ptm (tapp t t0).
+  Variable step_tproj: ∀ t, Ptm t → ∀ l, Ptm (tproj t l).
+  Variable step_tskip: ∀ t, Ptm t → Ptm (tskip t).
+  Variable step_var_vl: ∀ v, Pvl (var_vl v).
+  Variable step_vnat: ∀ n, Pvl (vnat n).
+  Variable step_vabs: ∀ t, Ptm t → Pvl (vabs t).
+  Variable step_vobj: ∀ l, Pvl (vobj l).
+  Variable step_dtysyn: ∀ t, Pty t → Pdm (dtysyn t).
+  (* Original: *)
+  (* Variable step_dtysem: ∀ vsl g, Pdm (dtysem vs g). *)
+  Variable step_dtysem: ∀ vs g, Forall Pvl vs → Pdm (dtysem vs g).
+  Variable step_dvl: ∀ v, Pvl v → Pdm (dvl v).
+  Variable step_pv: ∀ v, Pvl v → Ppt (pv v).
+  Variable step_psefl: ∀ p, Ppt p → ∀ l, Ppt (pself p l).
+  Variable step_TTop: Pty TTop.
+  Variable step_TBot: Pty TBot.
+  Variable step_TAnd: ∀ t, Pty t → ∀ t0, Pty t0 → Pty (TAnd t t0).
+  Variable step_TOr: ∀ t, Pty t → ∀ t0, Pty t0 → Pty (TOr t t0).
+  Variable step_TLater: ∀ t, Pty t → Pty (TLater t).
+  Variable step_TAll: ∀ t, Pty t → ∀ t0 : ty, Pty t0 → Pty (TAll t t0).
+  Variable step_TMu: ∀ t, Pty t → Pty (TMu t).
+  Variable step_TVMem: ∀ l t, Pty t → Pty (TVMem l t).
+  Variable step_TTMem: ∀ l t, Pty t → ∀ t0, Pty t0 → Pty (TTMem l t t0).
+  Variable step_TSel: ∀ p, Ppt p → ∀ l : label, Pty (TSel p l).
+  Variable step_TSElA: ∀ p, Ppt p → ∀ (l : label) (t : ty), Pty t → ∀ t0 : ty, Pty t0 → Pty (TSelA p l t t0).
+  Variable step_TNat: Pty TNat.
+
+  Lemma syntax_mut_ind: (∀ t, Ptm t) ∧ (∀ v, Pvl v) ∧ (∀ d, Pdm d) ∧ (∀ p, Ppt p) ∧ (∀ t, Pty t).
+  Proof.
+    efeed pose proof syntax_mut_rect as H; try done.
+    - intros vs g HvsT. apply step_dtysem, ForallT_Forall, HvsT.
+    - ev; split_and! ; assumption.
+  Qed.
+End syntax_mut_ind.
 
 Instance Inh_ty : Inhabited ty := populate TNat.
 Instance Inh_vl : Inhabited vl := populate (vnat 0).
