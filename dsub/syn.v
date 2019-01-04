@@ -1,4 +1,4 @@
-From Dot Require Export prelude.
+From Dot Require Export prelude tactics.
 
 Definition stamp := positive.
 
@@ -390,5 +390,30 @@ Section syntax_mut_rect.
     - eapply vl_mut_rect.
     - eapply ty_mut_rect.
   Qed.
-
 End syntax_mut_rect.
+
+Section syntax_mut_ind.
+  Variable Ptm : tm → Prop.
+  Variable Pvl : vl → Prop.
+  Variable Pty : ty → Prop.
+
+  Variable step_tv : ∀ v, Pvl v → Ptm (tv v).
+  Variable step_tapp : ∀ t, Ptm t → ∀ t0, Ptm t0 → Ptm (tapp t t0).
+  Variable step_tskip : ∀ t, Ptm t → Ptm (tskip t).
+  Variable step_var_vl : ∀ i, Pvl (var_vl i).
+  Variable step_vnat : ∀ n, Pvl (vnat n).
+  Variable step_vabs : ∀ t, Ptm t → Pvl (vabs t).
+  Variable step_vty : ∀ t, Pty t → Pvl (vty t).
+  Variable step_vstamp : ∀ vs s, Forall Pvl vs → Pvl (vstamp vs s).
+  Variable step_TALl : ∀ t, Pty t → ∀ t0, Pty t0 → Pty (TAll t t0).
+  Variable step_TTMem : ∀ t, Pty t → ∀ t0, Pty t0 → Pty (TTMem t t0).
+  Variable step_TSel : ∀ v, Pvl v → Pty (TSel v).
+  Variable step_TNat : Pty TNat.
+
+  Lemma syntax_mut_ind: (∀ t, Ptm t) ∧ (∀ v, Pvl v) ∧ (∀ T, Pty T).
+  Proof.
+    efeed pose proof syntax_mut_rect as H; try done.
+    - intros vs g HvsT. apply step_vstamp, ForallT_Forall, HvsT.
+    - ev; split_and! ; assumption.
+  Qed.
+End syntax_mut_ind.
