@@ -37,7 +37,7 @@ Inductive tm  : Type :=
 (*   with   ty_badmutt := Induction for ty Sort Type. *)
 (*   Combined Scheme syntax_badmutind from vl_badmut, tm_badmut, ty_badmut. *)
 (*   Combined Scheme syntax_badmutindt from vl_badmut, tm_badmutt, ty_badmut. *)
-(* End Bad. *)
+(* End Coq_IndPrinciples_Bad. *)
 
 (* Using a Section is a trick taken from CPDT, but there bodies are hand-written.
    The rest is written by taking Coq's generated recursion principles and doing
@@ -49,17 +49,19 @@ Section syntax_mut_rect.
   Variable Pvl : vl → Type.
   Variable Pty : ty → Type.
 
-  Variable step_tv : ∀ v, Pvl v → Ptm (tv v).
-  Variable step_tapp : ∀ t, Ptm t → ∀ t0, Ptm t0 → Ptm (tapp t t0).
-  Variable step_tskip : ∀ t, Ptm t → Ptm (tskip t).
+  Implicit Types (T: ty) (v: vl) (t: tm).
+
+  Variable step_tv : ∀ v1, Pvl v1 → Ptm (tv v1).
+  Variable step_tapp : ∀ t1 t2, Ptm t1 → Ptm t2 → Ptm (tapp t1 t2).
+  Variable step_tskip : ∀ t1, Ptm t1 → Ptm (tskip t1).
   Variable step_var_vl : ∀ i, Pvl (var_vl i).
   Variable step_vnat : ∀ n, Pvl (vnat n).
-  Variable step_vabs : ∀ t, Ptm t → Pvl (vabs t).
-  Variable step_vty : ∀ t, Pty t → Pvl (vty t).
+  Variable step_vabs : ∀ t1, Ptm t1 → Pvl (vabs t1).
+  Variable step_vty : ∀ T1, Pty T1 → Pvl (vty T1).
   Variable step_vstamp : ∀ vs s, ForallT Pvl vs → Pvl (vstamp vs s).
-  Variable step_TALl : ∀ t, Pty t → ∀ t0, Pty t0 → Pty (TAll t t0).
-  Variable step_TTMem : ∀ t, Pty t → ∀ t0, Pty t0 → Pty (TTMem t t0).
-  Variable step_TSel : ∀ v, Pvl v → Pty (TSel v).
+  Variable step_TALl : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAll T1 T2).
+  Variable step_TTMem : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TTMem T1 T2).
+  Variable step_TSel : ∀ v1, Pvl v1 → Pty (TSel v1).
   Variable step_TNat : Pty TNat.
 
   Fixpoint tm_mut_rect t: Ptm t
@@ -94,17 +96,20 @@ Section syntax_mut_ind.
   Variable Pvl : vl → Prop.
   Variable Pty : ty → Prop.
 
-  Variable step_tv : ∀ v, Pvl v → Ptm (tv v).
-  Variable step_tapp : ∀ t, Ptm t → ∀ t0, Ptm t0 → Ptm (tapp t t0).
-  Variable step_tskip : ∀ t, Ptm t → Ptm (tskip t).
+  Implicit Types (T: ty) (v: vl) (t: tm).
+
+  Variable step_tv : ∀ v1, Pvl v1 → Ptm (tv v1).
+  Variable step_tapp : ∀ t1 t2, Ptm t1 → Ptm t2 → Ptm (tapp t1 t2).
+  Variable step_tskip : ∀ t1, Ptm t1 → Ptm (tskip t1).
   Variable step_var_vl : ∀ i, Pvl (var_vl i).
   Variable step_vnat : ∀ n, Pvl (vnat n).
-  Variable step_vabs : ∀ t, Ptm t → Pvl (vabs t).
-  Variable step_vty : ∀ t, Pty t → Pvl (vty t).
+  Variable step_vabs : ∀ t1, Ptm t1 → Pvl (vabs t1).
+  Variable step_vty : ∀ T1, Pty T1 → Pvl (vty T1).
+  (** Beware here in Prop we use Forall, not ForallT! *)
   Variable step_vstamp : ∀ vs s, Forall Pvl vs → Pvl (vstamp vs s).
-  Variable step_TALl : ∀ t, Pty t → ∀ t0, Pty t0 → Pty (TAll t t0).
-  Variable step_TTMem : ∀ t, Pty t → ∀ t0, Pty t0 → Pty (TTMem t t0).
-  Variable step_TSel : ∀ v, Pvl v → Pty (TSel v).
+  Variable step_TALl : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAll T1 T2).
+  Variable step_TTMem : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TTMem T1 T2).
+  Variable step_TSel : ∀ v1, Pvl v1 → Pty (TSel v1).
   Variable step_TNat : Pty TNat.
 
   Lemma syntax_mut_ind: (∀ t, Ptm t) ∧ (∀ v, Pvl v) ∧ (∀ T, Pty T).
