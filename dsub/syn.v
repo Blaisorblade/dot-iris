@@ -348,25 +348,25 @@ Proof. solve_fv_congruence. Qed.
  *)
 
 Section syntax_mut_rect.
-  Variable Pvl : vl → Type.
   Variable Ptm : tm → Type.
+  Variable Pvl : vl → Type.
   Variable Pty : ty → Type.
 
+  Variable step_tv : ∀ v, Pvl v → Ptm (tv v).
+  Variable step_tapp : ∀ t, Ptm t → ∀ t0, Ptm t0 → Ptm (tapp t t0).
+  Variable step_tskip : ∀ t, Ptm t → Ptm (tskip t).
   Variable step_var_vl : ∀ i, Pvl (var_vl i).
   Variable step_vnat : ∀ n, Pvl (vnat n).
   Variable step_vabs : ∀ t, Ptm t → Pvl (vabs t).
   Variable step_vty : ∀ t, Pty t → Pvl (vty t).
   Variable step_vstamp : ∀ vs s, ForallT Pvl vs → Pvl (vstamp vs s).
-  Variable step_tv : ∀ v, Pvl v → Ptm (tv v).
-  Variable step_tapp : ∀ t, Ptm t → ∀ t0, Ptm t0 → Ptm (tapp t t0).
-  Variable step_tskip : ∀ t, Ptm t → Ptm (tskip t).
   Variable step_TALl : ∀ t, Pty t → ∀ t0, Pty t0 → Pty (TAll t t0).
   Variable step_TTMem : ∀ t, Pty t → ∀ t0, Pty t0 → Pty (TTMem t t0).
   Variable step_TSel : ∀ v, Pvl v → Pty (TSel v).
   Variable step_TNat : Pty TNat.
 
-  Fixpoint vl_mut_rect v: Pvl v
-  with tm_mut_rect t: Ptm t
+  Fixpoint tm_mut_rect t: Ptm t
+  with vl_mut_rect v: Pvl v
   with ty_mut_rect T: Pty T.
   Proof.
     (* Automation risk producing circular proofs that call right away the lemma we're proving.
@@ -383,11 +383,11 @@ Section syntax_mut_rect.
     induction l; auto.
   Qed.
 
-  Lemma syntax_mut_rect: (∀ v, Pvl v) * (∀ t, Ptm t) * (∀ T, Pty T).
+  Lemma syntax_mut_rect: (∀ t, Ptm t) * (∀ v, Pvl v) * (∀ T, Pty T).
   Proof.
     repeat split; intros.
-    - eapply vl_mut_rect.
     - eapply tm_mut_rect.
+    - eapply vl_mut_rect.
     - eapply ty_mut_rect.
   Qed.
 
