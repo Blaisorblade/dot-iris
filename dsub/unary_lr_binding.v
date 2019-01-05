@@ -1,29 +1,14 @@
 From iris.program_logic Require Import weakestpre.
 From iris.proofmode Require Import tactics.
-From Dot Require Export unary_lr synLemmas.
+From DSub Require Export unary_lr synLemmas.
 
 Implicit Types
-         (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
+         (L T U: ty) (v: vl) (e: tm)
          (Γ : ctx) (ρ : leibnizC vls).
 
 (* Lemmas about the logical relation itself. *)
 Section logrel_binding_lemmas.
-  Context `{HdotG: dotG Σ}.
-
-  Lemma def_interp_v_closed T d l ρ: (def_interp T l ρ d → ⌜ nclosed d 0 ⌝)%I.
-  Proof.
-    iInduction T as [] "IH" forall (ρ d); iIntros "#HT //="; by iDestruct "HT" as "[% [% _]]".
-  Qed.
-
-  Lemma defs_interp_v_closed T ds ρ: (defs_interp T ρ ds → ⌜ nclosed ds 0 ⌝)%I.
-  Proof.
-    iInduction T as [] "IH" forall (ρ ds); iIntros "#HT //=".
-    destruct ds. done.
-    iDestruct "HT" as "[HT1 HT2]".
-    iPoseProof ("IH" with "HT1") as "%".
-    iPoseProof (def_interp_v_closed with "HT2") as "%".
-    iPureIntro. by apply fv_dms_cons.
-  Qed.
+  Context `{!dsubG Σ}.
 
   Lemma interp_weaken ρ1 ρ2 ρ3 τ :
     ⟦ τ.|[upn (length ρ1) (ren (+ length ρ2))] ⟧ (ρ1 ++ ρ2 ++ ρ3)

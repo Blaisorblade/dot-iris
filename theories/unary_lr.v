@@ -38,8 +38,8 @@ Section logrel.
   Program Definition interp_vmem l (interp : listVlC -n> D) : listVlC -n> D :=
     λne ρ v, (⌜ nclosed_vl v 0 ⌝ ∗ ∃ d, ⌜v @ l ↘ d⌝ ∧ def_interp_vmem interp ρ d)%I.
 
-  Definition idm_proj_semtype d σ' (φ : listVlC -n> D) : iProp Σ :=
-    (∃ γ, ⌜ d = dtysem σ' γ ⌝ ∗ γ ⤇ (λ vs w, φ vs w))%I.
+  Definition idm_proj_semtype d σ (φ : listVlC -n> D) : iProp Σ :=
+    (∃ γ, ⌜ d = dtysem σ γ ⌝ ∗ γ ⤇ (λ vs w, φ vs w))%I.
   Global Arguments idm_proj_semtype /.
   Notation "d ↗ σ , φ" := (idm_proj_semtype d σ φ) (at level 20).
 
@@ -297,7 +297,6 @@ Section logrel_lemmas.
   Lemma interp_v_closed T v ρ: (interp T ρ v → ⌜ nclosed_vl v 0 ⌝)%I.
   Proof.
     iInduction T as [] "IHT" forall (ρ v); iIntros "#HT //="; try by (iDestruct "HT" as "[% _]").
-    (* move: ρ v; induction T; iIntros (ρ v) "HT //="; try solve [by iDestruct "HT" as "[% _]"]. *)
     - iDestruct "HT" as "[#HT1 #HT2]". by iApply "IHT".
     - iDestruct "HT" as "[#HT1 | #HT2]"; by [iApply "IHT" | iApply "IHT1"].
     - by iApply "IHT".
@@ -310,7 +309,6 @@ Section logrel_lemmas.
   Proof.
     iInduction Γ as [|τ Γ'] "IHΓ" forall (ρ); destruct ρ => //=.
     iIntros "#[HG Hv]".
-    (* Fail iRewrite ("IHΓ" $! ρ with "HG"). *)
     by iDestruct ("IHΓ" $! ρ with "HG") as "->".
   Qed.
 

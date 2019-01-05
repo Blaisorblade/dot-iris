@@ -28,6 +28,19 @@ Section Autosubst_Lemmas.
 
 End Autosubst_Lemmas.
 
+Inductive ForallT {A : Type} (P : A → Type) : list A → Type :=
+    Forall_nil : ForallT P [] | Forall_cons : ∀ (x : A) (l : list A), P x → ForallT P l → ForallT P (x :: l).
+Hint Constructors ForallT.
+
+(** To be able to reuse lemmas on Forall, show that ForallT is equivalent to Forall for predicates in Prop.
+    The proof is a bit subtler than you'd think because it can't look into Prop
+    to produce proof-relevant part of the result (and that's why I can't inversion until very late.
+ *)
+Lemma ForallT_Forall {X} (P: X → Prop) xs: (ForallT P xs -> Forall P xs) * (Forall P xs -> ForallT P xs).
+Proof.
+  split; (elim: xs => [|x xs IHxs] H; constructor; [|apply IHxs]; by inversion H).
+Qed.
+
 Ltac properness :=
   repeat match goal with
   | |- (∃ _: _, _)%I ≡ (∃ _: _, _)%I => apply bi.exist_proper =>?
