@@ -167,8 +167,6 @@ Section logrel.
     (□∀ ρ v, ⌜ nclosed_vl v 0 ⌝ → ⟦Γ⟧*ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
   Global Arguments step_indexed_ivstp /.
 
-  (* Global Instance idtp_persistent Γ T l d: Persistent (idtp Γ T l d) := _. *)
-  (* Global Instance idstp_persistent Γ T ds: Persistent (idstp Γ T ds) := _. *)
   Global Instance ietp_persistent Γ T e : Persistent (ietp Γ T e) := _.
   Global Instance step_indexed_ietp_persistent Γ T e i : Persistent (step_indexed_ietp Γ T e i) := _.
   Global Instance step_indexed_ivstp_persistent Γ T1 T2 i j : Persistent (step_indexed_ivstp Γ T1 T2 i j) := _.
@@ -179,10 +177,6 @@ Notation "⟦ T ⟧" := (interp T).
 Notation "⟦ Γ ⟧*" := (interp_env Γ).
 Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
 
-(* (** Single-definition typing *) *)
-(* Notation "Γ ⊨d { l = d } : T" := (idtp Γ T l d) (at level 64, l, d, T at next level). *)
-(* (** Multi-definition typing *) *)
-(* Notation "Γ ⊨ds ds : T" := (idstp Γ T ds) (at level 74, ds, T at next level). *)
 (** Expression typing *)
 Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 (** Indexed expression typing *)
