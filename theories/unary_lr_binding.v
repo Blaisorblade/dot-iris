@@ -103,35 +103,6 @@ Section logrel_binding_lemmas.
     iPoseProof (ietp_closed with "H") as "%". by iPureIntro; apply fv_tv_inv.
   Qed.
 
-  (* Lemma interp_env_to_subst_closed ρ x: x < length ρ → (⟦ Γ ⟧* ρ → ⌜ nclosed_vl (to_subst ρ x) 0 ⌝)%I. *)
-  (* Proof. *)
-  (*   (* Hint Resolve defs_interp_v_closed def_interp_v_closed interp_v_closed. *) *)
-  (*   revert Γ ρ x. *)
-  (*   elim => [|T Γ IHl] [|v ρ] [|x] /= Hl; try omega; try (iIntros "%"; discriminate); iIntros "[#HG #HT]". *)
-  (*   - iApply interp_v_closed. rewrite to_subst_cons /=. iApply "HT". *)
-  (*   - asimpl. by iApply IHl; first omega. *)
-  (* Qed. *)
-
-  (* Lemma interp_subst_closed T v w ρ: *)
-  (*   nclosed_vl v (length ρ) → *)
-  (*   (⟦ Γ ⟧* ρ → ⟦ T.|[v/] ⟧ ρ w ∗-∗ ⟦ T ⟧ (v.[to_subst ρ] :: ρ) w)%I. *)
-  (* Proof. *)
-  (*   iIntros (Hcl) "#HG". *)
-  (*   iAssert ⌜ cl_ρ ρ ⌝%I as "%". by iApply interp_env_ρ_closed. move: H => Hclρ. *)
-  (*   assert (⟦ T.|[v.[to_subst ρ]/] ⟧ ρ w ≡ ⟦ T.|[v/] ⟧ ρ w) as Hren. by rewrite (to_subst_interp T ρ v w). *)
-  (*   iPoseProof (interp_subst ρ T (v.[to_subst ρ]) w) as "Heq"; asimpl. *)
-  (*   iAssert (⌜ eq_n_s (to_subst ρ >> ren (+length ρ)) (to_subst ρ) (length ρ) ⌝)%I as "%". *)
-  (*   { *)
-  (*     iIntros (x Hxl). *)
-  (*     iPoseProof (interp_env_to_subst_closed ρ x Hxl with "HG") as "%". move: H => Hclx. *)
-  (*     iPureIntro; apply closed_subst_vl_id, Hclx. *)
-  (*   } *)
-  (*   rewrite (Hcl (to_subst ρ >> ren (+length ρ)) (to_subst ρ)) //. *)
-  (*   rewrite Hren. *)
-  (*   iExact "Heq". *)
-  (* Qed. *)
-
-  (* Try giving a simpler proof: *)
   Lemma interp_subst_closed_aux T v w ρ:
     nclosed_vl v (length ρ) →
     (⟦ Γ ⟧* ρ → ⟦ T.|[v/] ⟧ ρ w ∗-∗ ⟦ T ⟧ (v.[to_subst ρ] :: ρ) w)%I.
