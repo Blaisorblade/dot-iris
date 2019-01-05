@@ -9,6 +9,8 @@ dsub/rules.v
 dsub/astStamping.v
 dsub/synLemmas.v
 dsub/operational.v
+dsub/unary_lr.v
+dsub/unary_lr_binding.v
 theories/dotsyn.v
 theories/typing.v
 theories/operational.v
