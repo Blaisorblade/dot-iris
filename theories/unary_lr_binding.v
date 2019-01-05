@@ -29,11 +29,9 @@ Section logrel_binding_lemmas.
     ⟦ τ.|[upn (length ρ1) (ren (+ length ρ2))] ⟧ (ρ1 ++ ρ2 ++ ρ3)
     ≡ ⟦ τ ⟧ (ρ1 ++ ρ3).
   Proof.
-    revert ρ1 ρ2 ρ3; induction τ=> ρ1 ρ2 ρ3 w; simpl; trivial; asimpl;
-                                    rewrite ?to_subst_weaken.
-    all: try solve [properness; trivial;
-                    apply IHτ || apply IHτ1 || apply IHτ2 ||
-                          apply (IHτ2 (_ :: _)) || apply (IHτ (_ :: _))].
+    revert ρ1 ρ2 ρ3; induction τ=> ρ1 ρ2 ρ3 w /=; properness; try solve [
+      trivial | apply IHτ | apply IHτ1 | apply IHτ2 | apply (IHτ2 (_ :: _)) | apply (IHτ (_ :: _)) |
+      asimpl; rewrite ?to_subst_weaken //].
   Qed.
 
   Lemma interp_weaken_one v τ ρ:
@@ -44,11 +42,9 @@ Section logrel_binding_lemmas.
     ⟦ τ.|[upn (length ρ1) (v.[ren (+length ρ2)] .: ids)] ⟧ (ρ1 ++ ρ2)
     ≡ ⟦ τ ⟧ (ρ1 ++ v :: ρ2).
   Proof.
-    revert ρ1 ρ2; induction τ=> ρ1 ρ2 w; simpl; trivial; asimpl;
-                                    rewrite ?to_subst_up.
-    all: try solve [properness; trivial;
-                    apply IHτ || apply IHτ1 || apply IHτ2 ||
-                          apply (IHτ2 (_ :: _)) || apply (IHτ (_ :: _))].
+    revert ρ1 ρ2; induction τ=> ρ1 ρ2 w /=; properness; try solve [
+      trivial | apply IHτ | apply IHτ1 | apply IHτ2 | apply (IHτ2 (_ :: _)) | apply (IHτ (_ :: _)) |
+      asimpl; rewrite ?to_subst_up //].
   Qed.
 
   Lemma interp_subst ρ τ v1 v2 : ⟦ τ.|[v1.[ren (+length ρ)]/] ⟧ ρ v2 ≡ ⟦ τ ⟧ (v1 :: ρ) v2.
