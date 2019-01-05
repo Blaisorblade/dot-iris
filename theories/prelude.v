@@ -33,7 +33,8 @@ Inductive ForallT {A : Type} (P : A → Type) : list A → Type :=
 Hint Constructors ForallT.
 
 (** To be able to reuse lemmas on Forall, show that ForallT is equivalent to Forall for predicates in Prop.
-    The proof is a bit subtle, as it needs to 
+    The proof is a bit subtler than you'd think because it can't look into Prop
+    to produce proof-relevant part of the result (and that's why I can't inversion until very late.
  *)
 Lemma ForallT_Forall {X} (P: X → Prop) xs: (ForallT P xs -> Forall P xs) * (Forall P xs -> ForallT P xs).
 Proof.
