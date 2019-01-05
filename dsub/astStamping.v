@@ -8,6 +8,9 @@ Set Primitive Projections.
 
 Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx).
 
+(** XXX Still missing:
+    the translation must also stamp the contained types, recursively. That is ignored here.
+ *)
 (** This is a yet imperfect version of an alternative translation. *)
 Definition stys := gmap stamp ty.
 Implicit Type g: stys.
@@ -31,6 +34,16 @@ Proof.
 Qed.
 
 (* XXX taking a function would be more flexible; but is that needed? *)
+(** Here we do not unstamp types from the map, and we can't: unstamping the map
+    recursively might not be terminate. We need an unstamped map, which is
+    what's produced in the first pass.
+
+    Stamping a term is a terminating structural recursion; it's less obvious
+    that unstamping is terminating, as it follows pointes and it's not clear
+    what would prevent cycles.
+    Using a relational formulation of stamping, as done originally by Léo, would
+    avoid this problem. We could make it an inductive relation if preferred.
+ *)
 Definition unstamp_vstamp g vs s := (from_option vty (vstamp vs s) (g !! s)).[to_subst vs].
 Arguments unstamp_vstamp /.
 
@@ -147,6 +160,7 @@ Global Arguments varP /.
 Global Arguments vtyP /.
 Global Arguments vstampP /.
 
+(** XXX this formulation might be inconvenient: storing the correct n in the map might be preferable. *)
 Definition is_stamped_gmap g: Prop := ∀ s T, g !! s = Some T → ∃ n, is_stamped_ty n g T.
 
 Notation stamps_tm n e__u g e__s := (unstamp_tm g e__s = e__u ∧ is_unstamped_tm e__u ∧ is_stamped_tm n g e__s).
