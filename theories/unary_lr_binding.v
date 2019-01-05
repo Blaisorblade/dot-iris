@@ -148,7 +148,7 @@ Section logrel_binding_lemmas.
     (⟦ Γ ⟧* ρ → ⟦ T.|[v/] ⟧ ρ w ∗-∗ ⟦ T ⟧ (v.[to_subst ρ] :: ρ) w)%I.
   Proof.
     iIntros (Hcl) "#Hg".
-    iPoseProof (interp_env_len_agree with "Hg") as "%"; move: H => HlenEq; rewrite <- HlenEq in *.
+    iRevertIntros (Hcl) with (iPoseProof (interp_env_len_agree with "Hg") as "<-").
     by iApply interp_subst_closed_aux.
   Qed.
 
