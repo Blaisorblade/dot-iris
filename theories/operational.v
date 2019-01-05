@@ -96,7 +96,7 @@ Notation "v @ l ↘ d" := (objLookup v l d) (at level 20).
     provide tactics to show it's deterministic and so on. *)
 
 (** Rewrite v ↗ ds to vobj ds' ↗ ds. *)
-Ltac simplOpen ds' :=
+Ltac simplOpen ds :=
   lazymatch goal with
   | H: ?v @ ?l ↘ ?d |-_=>
     inversion H as (ds & -> & _)
