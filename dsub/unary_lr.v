@@ -32,13 +32,6 @@ Section logrel.
   Notation D := (vlC -n> iProp Σ).
   Implicit Types τi : D.
 
-(*   Program Definition def_interp_vmem (interp : listVlC -n> D) : *)
-(*     listVlC -n> dmC -n> iProp Σ := *)
-(*     λne ρ d, (⌜ nclosed d 0 ⌝ ∗ ∃ vmem, ⌜d = dvl vmem⌝ ∧ ▷ interp ρ vmem)%I. *)
-
-(*   Program Definition interp_vmem l (interp : listVlC -n> D) : listVlC -n> D := *)
-(*     λne ρ v, (⌜ nclosed_vl v 0 ⌝ ∗ ∃ d, ⌜v @ l ↘ d⌝ ∧ def_interp_vmem interp ρ d)%I. *)
-
   Example __x: stamp = gname := eq_refl.
 
   (* XXX this is wrong unless we translate, and here I want for now to switch to having no translation.
@@ -90,29 +83,6 @@ Section logrel.
     λne ρ v,
     (⌜ nclosed_vl v 0 ⌝ ∗ □ ∀ w, interp1 ρ w -∗ interp_expr interp2 (w :: ρ) (tapp (tv v) (tv w)))%I.
 
-(*   Program Definition interp_mu (interp : listVlC -n> D) : listVlC -n> D := *)
-(*     λne ρ v, interp (v::ρ) v. *)
-
-(*   (** A simplified variant of weakest preconditions for path evaluation. *)
-(*       The difference is that path evaluation is completely pure, and *)
-(*       postconditions must hold now, not after updating resources. *)
-(*       vp ("Value from Path") and vq range over results of evaluating paths. *)
-
-(*       Path evaluation was initially more complex; now that we got to this *)
-(*       version, I wonder whether we can just use the standard Iris WP, but I am *)
-(*       not sure if that would work. *)
-(*       *) *)
-(*   Fixpoint path_wp p (interp_k: D): iProp Σ := *)
-(*     match p with *)
-(*     | pself p l => path_wp p (λne vp, ∃ vq, ⌜ vp @ l ↘ dvl vq ⌝ ∧ ▷ interp_k vq) *)
-(*     | pv vp => interp_k vp *)
-(*     end%I. *)
-
-(*   Global Instance path_wp_persistent (pred: D) p: *)
-(*     (forall (vp: vl), Persistent (pred vp)) → *)
-(*     Persistent (path_wp p pred). *)
-(*   Proof. elim: p pred => *; apply _. Qed. *)
-
   Program Definition interp_selA w (interpL interpU : listVlC -n> D) :
     listVlC -n> D :=
     λne ρ v,
@@ -145,42 +115,6 @@ Section logrel.
     Persistent (⟦ T ⟧ ρ v).
   Proof. revert v ρ; induction T => w ρ; simpl; try apply _. Qed.
 
-(*   Program Fixpoint def_interp (T: ty) (l : label) : *)
-(*     listVlC -n> dmC -n> iProp Σ := *)
-(*     λne ρ d, *)
-(*     match T with *)
-(*     | TTMem l' L U => ⌜ l = l' ⌝ ∧ def_interp_tmem (interp L) (interp U) ρ d *)
-(*     | TVMem l' T' => ⌜ l = l' ⌝ ∧ def_interp_vmem (interp T') ρ d *)
-(*     | _ => False *)
-(*     end%I. *)
-
-(*   Global Instance def_interp_persistent T l ρ d : *)
-(*     Persistent (def_interp T l ρ d). *)
-(*   Proof. revert ρ d; induction T; simpl; try apply _. Qed. *)
-
-(*   Program Definition defs_interp_and *)
-(*              (interp1 : listVlC -n> dmsC -n> iProp Σ) *)
-(*              (interp2: label -> listVlC -n> dmC -n> iProp Σ) *)
-(*     : listVlC -n> dmsC -n> iProp Σ := *)
-(*     λne ρ ds, *)
-(*     match ds with *)
-(*     | [] => False *)
-(*     | d :: ds => interp1 ρ ds ∧ interp2 (length ds) ρ d *)
-(*     end%I. *)
-
-(*   Program Fixpoint defs_interp (T: ty) : listVlC -n> dmsC -n> iProp Σ := *)
-(*     match T with *)
-(*     | TAnd T1 T2 => defs_interp_and (defs_interp T1) (def_interp T2) *)
-(*     | TTop => λne ρ ds, ⌜ nclosed ds 0 ⌝ *)
-(*     | _ => λne ρ ds, False *)
-(*     end % I. *)
-
-(*   Global Instance defs_interp_persistent T ρ ds : *)
-(*     Persistent (defs_interp T ρ ds). *)
-(*   Proof. *)
-(*     revert ds ρ; induction T; simpl; intros; try case_match; try apply _. *)
-(*   Qed. *)
-
   (* XXX here we needn't add a variable to the scope of its own type. But that won't hurt. *)
   Fixpoint interp_env (Γ : ctx) (vs : vls) : iProp Σ :=
     match Γ with
@@ -201,24 +135,6 @@ Section logrel.
     - rewrite /Persistent /interp_env. eauto.
     - simpl. destruct ρ; rewrite /Persistent; eauto.
   Qed.
-
-(*   (** Definitions for semantic (definition) (sub)typing *) *)
-(*   (** Since [⟦Γ⟧* ρ] might be impossible, we must require closedness explicitly. *) *)
-(*   Definition idtp Γ T l d : iProp Σ := *)
-(*     (⌜ nclosed d (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → def_interp T l ρ d.|[to_subst ρ])%I. *)
-(*   Global Arguments idtp /. *)
-(*   Notation "Γ ⊨d { l = d } : T" := (idtp Γ T l d) (at level 64, l, d, T at next level). *)
-
-(*   Lemma idtp_closed Γ T l d: (Γ ⊨d {l = d} : T → ⌜ nclosed d (length Γ) ⌝)%I. *)
-(*   Proof. iIntros "[$ _]". Qed. *)
-
-(*   Definition idstp Γ T ds : iProp Σ := *)
-(*     (⌜ nclosed ds (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → defs_interp T ρ ds.|[to_subst ρ])%I. *)
-(*   Global Arguments idstp /. *)
-(*   Notation "Γ ⊨ds ds : T" := (idstp Γ T ds) (at level 74, ds, T at next level). *)
-
-(*   Lemma idstp_closed Γ T ds: (Γ ⊨ds ds : T → ⌜ nclosed ds (length Γ) ⌝)%I. *)
-(*   Proof. iIntros "[$ _]". Qed. *)
 
   Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
 
@@ -311,7 +227,6 @@ Section logrel_lemmas.
   Proof.
     iInduction Γ as [|τ Γ'] "IHΓ" forall (ρ); destruct ρ => //=.
     iIntros "#[HG Hv]".
-    (* Fail iRewrite ("IHΓ" $! ρ with "HG"). *)
     by iDestruct ("IHΓ" $! ρ with "HG") as "->".
   Qed.
 
