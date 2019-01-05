@@ -219,6 +219,7 @@ Proof.
   exists s; split =>//=. by apply subseteq_dom.
 Qed.
 
+(* XXX taking a function would be more flexible; but is that needed? *)
 Definition unstamp_vstamp g vs s := (from_option vty (vstamp vs s) (g !! s)).[to_subst vs].
 Arguments unstamp_vstamp /.
 

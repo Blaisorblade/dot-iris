@@ -217,6 +217,10 @@ Section fundamental.
 
   Except we need an "Iris" Forall2. Gotta run but I know a few ways.
    *)
+  (* Similarly, below we use: *)
+  Lemma t_ty_subst_special: ∀ T T' v v', (t_ty T T' → t_vl v v' → t_ty (T.|[v/]) (T'.|[v'/]))%I.
+  Admitted.
+  (* But I guess we'll we actually need to say that two substitutions translate each other. *)
 
   Fixpoint not_yet_fundamental Γ e T e' T' (HT: Γ ⊢ₜ e : T) {struct HT}:
   (* Lemma not_yet_fundamental Γ e T e' T' (HT: Γ ⊢ₜ e : T): *)
@@ -240,17 +244,13 @@ Section fundamental.
       (* nclosed: *) admit.
       { assert (is_syn_ty (TAll T1 T2)) by eauto using typed_ty_is_syn. simpl in H0. intuition. }
 
-      iPoseProof (not_yet_fundamental Γ e1 _ _ _ HT1 with "Htr1") as "HsT1".
-      iMod (not_yet_fundamental Γ (tv v2) _ _ _ HT2 with "Ht2 HTT1r") as "#HsT2".
-      iPoseProof ("IHT" $! t1 (TAll T1' T2') with "Htr1 []") as "toto".
-      { iModIntro. unfold t_ty; simpl. fold t_ty. iSplit; try done. }
-      iPoseProof ("IHT1" $! (tv v) T1' with "Ht2 []") as "tata".
-      { iModIntro. unfold t_ty; simpl. fold t_ty. done. }
-      iMod "toto". iMod "tata".
+      iMod ("IHT" $! t1 (TAll T1' T2') with "Htr1 []") as "#toto".
+      { iModIntro. unfold t_ty; simpl; fold t_ty. iSplit; try done. }
+      iMod ("IHT1" $! (tv v) T1' with "Ht2 []") as "#tata". by [].
 
       iAssert (t_ty (T2.|[v2/]) (T2'.|[v/])) as "#HHH".
-      { admit. }
-      iApply (translations_types_equivalent); try done.
+      { by iApply t_ty_subst_special. }
+      iApply translations_types_equivalent; try done.
 
       by iApply (T_Forall_Ex  with "toto tata").
     -
