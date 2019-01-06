@@ -327,6 +327,14 @@ Instance HSubst_ty : HSubst vl ty := ty_hsubst.
 Instance HSubst_dm : HSubst vl dm := dm_hsubst.
 Instance HSubst_pth : HSubst vl path := path_hsubst.
 
+(* Now type inference solves HSubst vl ? by infering HSubst vl ty infers unspecified asts to be [path]s. *)
+(* Goal ∀ s x, x.|[s] = x. *)
+(* Abort. *)
+Hint Mode HSubst - + : typeclass_instances.
+(* That Hint stops that. *)
+(* Fail Goal ∀ s x, x.|[s] = x. *)
+(* Goal ∀ s (x: ty) , x.|[s] = x. Abort. *)
+
 Lemma vls_subst_fold (sb : var → vl) (vs : vls) : map (subst sb) vs = hsubst sb vs.
 Proof. trivial. Qed.
 
