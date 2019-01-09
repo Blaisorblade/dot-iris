@@ -234,6 +234,16 @@ Section fundamental.
           (* XXX We must restrict the hypotheses: this lemma only holds for ρ that are closed and of the right size.*)
           iAssert (⌜ length ρ = length σ1 ⌝)%I as "#Hlen". admit.
           iSpecialize ("Hφequiv" $! ρ v with "Hlen").
+          (* XXX I'm not sure exactly how we should prove those. We need extra hypotheses.
+             IMHO, we should ensure that [v1.[to_subst ρ]] and [v2.[to_subst ρ]]
+             are closed, then reason that [σ1] and [σ2] are closed, hence
+             [subst_sigma σ1 ρ = σ1] and [subst_sigma σ2 ρ = σ2] by [closed_subst_id].
+             For that, IMHO, we must use [fv_to_subst_vl]. For that, finally, we
+             must require [cl_ρ ρ] (which follows from [⟦Γ⟧*ρ] by
+             [interp_env_ρ_closed]), so we should have it in the fundamental
+             theorem), and [nclosed v1 (length ρ)] and [nclosed v2 (length ρ)],
+             which should follow from [nclosed v0 (length ρ)].
+           *)
           assert (subst_sigma σ2 ρ = σ2) as -> by admit.
           assert (subst_sigma σ1 ρ = σ1) as -> by admit.
           repeat iModIntro.
