@@ -123,8 +123,10 @@ Section Sec.
      Γ ⊨ tapp e1 e2 : T2)%I.
   Proof.
     iIntros "/= #[% He1] #[% Hv2]". iSplit; eauto using fv_tapp. iIntros " !> * #HG".
-    smart_wp_bind (AppLCtx (e2.|[to_subst ρ])) v "#[% Hv]" "He1".
+    smart_wp_bind (AppLCtx (e2.|[to_subst ρ])) v "#Hr" "He1".
     smart_wp_bind (AppRCtx v) w "#Hw" "Hv2".
+    iDestruct "Hr" as (Hclv t ->) "#Hv".
+    iApply wp_pure_step_later; trivial. iNext.
     iApply wp_mono; [|iApply "Hv"]; auto.
     iIntros (v0) "#H".
     by iApply (interp_weaken_one w).
@@ -140,7 +142,9 @@ Section Sec.
     (* iAssert (⌜ length ρ = length Γ ⌝)%I as "%". by iApply interp_env_len_agree. move: H => Hlen. *)
     iAssert (⌜ nclosed_vl v2 (length Γ) ⌝)%I as "%". by iPureIntro; apply fv_tv_inv. move: H => Hcl.
     (* assert (nclosed_vl v2 (length ρ)). by rewrite Hlen. *)
-    smart_wp_bind (AppLCtx (tv v2.[to_subst ρ])) v "#[% HvFun]" "He1".
+    smart_wp_bind (AppLCtx (tv v2.[to_subst ρ])) v "#Hr" "He1".
+    iDestruct "Hr" as (Hclv t ->) "#HvFun".
+    iApply wp_pure_step_later; trivial. iNext.
     iApply wp_wand.
     - iApply fupd_wp.
       iApply "HvFun".
@@ -169,13 +173,13 @@ Section Sec.
       (* apply fv_tv_inv, Hfv => //; apply fv_tv, fv_vabs, Hcle. *)
       eauto using fv_tv_inv, fv_vabs, fv_tv.
     }
-    iIntros "!>" (v) "#Hv".
+    iExists _; iSplitL; first done.
+    iIntros "!> !>" (v) "#Hv".
     iSpecialize ("HeT" $! (v :: ρ)).
-    iApply wp_pure_step_later; trivial.
-    asimpl.
+    replace (e.|[up (to_subst ρ)].|[v/]) with (e.|[to_subst (v :: ρ)]) by by asimpl.
     iApply "HeT".
     iFrame "HG".
-    iNext. by iApply (interp_weaken_one v).
+    by iApply (interp_weaken_one v).
   Qed.
 
   Lemma T_Mem_E e T l:

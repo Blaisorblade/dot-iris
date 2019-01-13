@@ -88,7 +88,9 @@ Section logrel.
    *)
   Program Definition interp_forall (interp1 interp2 : listVlC -n> D) : listVlC -n> D :=
     λne ρ v,
-    (⌜ nclosed_vl v 0 ⌝ ∗ □ ∀ w, interp1 ρ w -∗ interp_expr interp2 (w :: ρ) (tapp (tv v) (tv w)))%I.
+    (⌜ nclosed_vl v 0 ⌝ ∗
+       ∃ t, ⌜ v = vabs t ⌝ ∗
+       □ ▷ ∀ w, interp1 ρ w -∗ interp_expr interp2 (w :: ρ) t.|[w/])%I.
 
   Program Definition interp_mu (interp : listVlC -n> D) : listVlC -n> D :=
     λne ρ v, interp (v::ρ) v.

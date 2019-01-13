@@ -176,11 +176,15 @@ Section fundamental.
     - iSplit; by [iApply (IHT1 with "H11 H21") | iApply (IHT2 with "H12 H22")].
     - iDestruct "Hv" as "[Hv1 | Hv2]"; by [iLeft ; iApply (IHT1 with "H11") | iRight; iApply (IHT2 with "H12")].
     - iDestruct "Hv" as "[Hv1 | Hv2]"; by [iLeft ; iApply (IHT1 with "H11") | iRight; iApply (IHT2 with "H12")].
-    - iIntros "!> **".
+    - iDestruct "Hv2" as (t ->) "#Hv2".
+      iExists _; iSplitL; first done.
+      iIntros "!> !> **".
       iApply wp_wand.
       + iApply "Hv2". by iApply (IHT1 with "H11 H21").
       + iIntros. by iApply (IHT2 with "H12 H22").
-    - iIntros "!> **".
+    - iDestruct "Hv2" as (t ->) "#Hv2".
+      iExists _; iSplitL; first done.
+      iIntros "!> !> **".
       iApply wp_wand.
       + iApply "Hv2". by iApply (IHT1 with "H11 H21").
       + iIntros. by iApply (IHT2 with "H12 H22").
