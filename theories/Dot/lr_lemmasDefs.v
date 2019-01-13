@@ -24,13 +24,6 @@ Section Sec.
     simpl. iDestruct ("Hv" with "Hg") as "[% Hv▷T]". iExact "Hv▷T".
   Qed.
 
-  Lemma interp_env_ρ_fv ρ: ⟦ Γ ⟧* ρ -∗ ⌜ nclosed ρ 0 ⌝.
-  Proof.
-    iIntros "Hg".
-    iPoseProof (interp_env_ρ_closed with "Hg") as "%".
-    iPureIntro. by apply cl_ρ_fv.
-  Qed.
-
   (* Lemma dtp_tmem_i T γ ρ l : *)
   (*   γ ⤇ dot_interp T -∗ ⟦Γ⟧* ρ -∗ *)
   (*   def_interp (TTMem l T T) l ρ (dtysem ρ γ). *)

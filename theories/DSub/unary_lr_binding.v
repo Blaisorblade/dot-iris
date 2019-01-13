@@ -37,6 +37,13 @@ Section logrel_binding_lemmas.
 
   Context Γ.
 
+  Lemma interp_env_ρ_fv ρ: ⟦ Γ ⟧* ρ -∗ ⌜ nclosed ρ 0 ⌝.
+  Proof.
+    iIntros "Hg".
+    iPoseProof (interp_env_ρ_closed with "Hg") as "%".
+    iPureIntro. by apply cl_ρ_fv.
+  Qed.
+
   Lemma interp_env_lookup ρ T x:
     Γ !! x = Some T →
     (⟦ Γ ⟧* ρ → ⟦ T.|[ren (+x)] ⟧ ρ (to_subst ρ x))%I.
