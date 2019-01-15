@@ -214,24 +214,49 @@ Proof.
   repeat econstructor => //=. by eapply map_subseteq_spec.
 Qed.
 
-Fixpoint is_stamped_mono_tm g1 g2 n e__s {struct e__s}:
+Ltac with_is_stamped tac :=
+  match goal with
+    | H: is_stamped_ty _ _ _ |- _ => tac H
+    | H: is_stamped_tm _ _ _ |- _ => tac H
+    | H: is_stamped_vl _ _ _ |- _ => tac H
+  end.
+
+Lemma is_stamped_mono_mut:
+  (∀ e__s g1 g2 n,
+       g1 ⊆ g2 →
+       is_stamped_tm n g1 e__s →
+       is_stamped_tm n g2 e__s) ∧
+  (∀ v__s g1 g2 n,
+      g1 ⊆ g2 →
+      is_stamped_vl n g1 v__s →
+      is_stamped_vl n g2 v__s) ∧
+  (∀ T__s g1 g2 n,
+      g1 ⊆ g2 →
+      is_stamped_ty n g1 T__s →
+      is_stamped_ty n g2 T__s).
+Proof.
+  apply syntax_mut_ind => *; with_is_stamped inverse;
+    by [ eapply is_stamped_vstamp_mono | constructor; cbn in *; eauto].
+Qed.
+
+(** Tactic to split a lemma proven by mutual induction into its pieces. *)
+Ltac unmut_lemma H := destruct H; ev; eauto.
+
+Lemma is_stamped_mono_tm g1 g2 n e__s:
   g1 ⊆ g2 →
   is_stamped_tm n g1 e__s →
-  is_stamped_tm n g2 e__s
-with is_stamped_mono_vl g1 g2 n v__s {struct v__s}:
+  is_stamped_tm n g2 e__s.
+Proof. unmut_lemma is_stamped_mono_mut. Qed.
+Lemma is_stamped_mono_vl g1 g2 n v__s:
   g1 ⊆ g2 →
   is_stamped_vl n g1 v__s →
-  is_stamped_vl n g2 v__s
-with is_stamped_mono_ty g1 g2 n T__s {struct T__s}:
+  is_stamped_vl n g2 v__s.
+Proof. unmut_lemma is_stamped_mono_mut. Qed.
+Lemma is_stamped_mono_ty g1 g2 n T__s:
   g1 ⊆ g2 →
   is_stamped_ty n g1 T__s →
   is_stamped_ty n g2 T__s.
-Proof.
-  all:
-    intros Hg Hs; [> destruct e__s | destruct v__s | destruct T__s ]; inverse Hs;
-    try eapply is_stamped_vstamp_mono => //;
-    constructor => //; by [eapply is_stamped_mono_vl | eapply is_stamped_mono_tm | eapply is_stamped_mono_ty].
-Qed.
+Proof. unmut_lemma is_stamped_mono_mut. Qed.
 
 Lemma stamps_unstamp_vstamp_mono g1 g2 n v__u vs s:
   g1 ⊆ g2 →
@@ -244,36 +269,41 @@ Proof.
   move: Huns. by rewrite /= Hlook1 Hlook2.
 Qed.
 
-Fixpoint stamps_unstamp_mono_tm g1 g2 n e__u e__s {struct e__s}: g1 ⊆ g2 →
-                                    stamps_tm n e__u g1 e__s →
-                                    unstamp_tm g2 e__s = e__u
-with stamps_unstamp_mono_vl g1 g2 n v__u (v__s: vl) {struct v__s}: g1 ⊆ g2 →
-                                  stamps_vl n v__u g1 v__s →
-                                  unstamp_vl g2 v__s = v__u
-with stamps_unstamp_mono_ty g1 g2 n T__u T__s {struct T__s}: g1 ⊆ g2 →
-                                  stamps_ty n T__u g1 T__s →
-                                  unstamp_ty g2 T__s = T__u.
+Ltac with_is_unstamped tac :=
+  match goal with
+    | H: is_unstamped_ty _ |- _ => tac H
+    | H: is_unstamped_tm _ |- _ => tac H
+    | H: is_unstamped_vl _ |- _ => tac H
+  end.
+
+Lemma stamps_unstamp_mono_mut:
+  (∀ e__s g1 g2 n e__u, g1 ⊆ g2 →
+                    stamps_tm n e__u g1 e__s →
+                    unstamp_tm g2 e__s = e__u) ∧
+  (∀ v__s g1 g2 n v__u, g1 ⊆ g2 →
+                   stamps_vl n v__u g1 v__s →
+                   unstamp_vl g2 v__s = v__u) ∧
+  (∀ T__s g1 g2 n T__u, g1 ⊆ g2 →
+                    stamps_ty n T__u g1 T__s →
+                    unstamp_ty g2 T__s = T__u).
 Proof.
-  all: intros Hg (Hus & Hu & Hs); revert n Hs Hu Hus;
-      [> revert e__u; induction e__s | revert v__u; induction v__s | revert T__u; induction T__s]; intros;
-  try (by eapply stamps_unstamp_vstamp_mono) || cbn in Hus |- *; inverse Hs; inverse Hu; f_equal;
-  by [eauto | eapply stamps_unstamp_mono_vl | eapply stamps_unstamp_mono_tm].
+  apply syntax_mut_ind; intros; ev; try (by eapply stamps_unstamp_vstamp_mono);
+    cbn in *; with_is_stamped inverse; with_is_unstamped inverse; f_equal; eauto.
 Qed.
 
-Lemma stamps_mono_tm g1 g2 n e__u e__s: g1 ⊆ g2 →
+Lemma stamps_unstamp_mono_tm e__s g1 g2 n e__u: g1 ⊆ g2 →
                                     stamps_tm n e__u g1 e__s →
-                                    stamps_tm n e__u g2 e__s
-with stamps_mono_vl g1 g2 n v__u v__s: g1 ⊆ g2 →
+                                    unstamp_tm g2 e__s = e__u.
+Proof. unmut_lemma stamps_unstamp_mono_mut. Qed.
+
+Lemma stamps_unstamp_mono_vl (v__s: vl) g1 g2 n v__u : g1 ⊆ g2 →
                                   stamps_vl n v__u g1 v__s →
-                                  stamps_vl n v__u g2 v__s
-with stamps_mono_ty g1 g2 n T__u T__s: g1 ⊆ g2 →
+                                  unstamp_vl g2 v__s = v__u.
+Proof. unmut_lemma stamps_unstamp_mono_mut. Qed.
+Lemma stamps_unstamp_mono_ty T__s g1 g2 n T__u : g1 ⊆ g2 →
                                   stamps_ty n T__u g1 T__s →
-                                  stamps_ty n T__u g2 T__s.
-Proof.
-  all: intros Hg Hs; destruct_and! ; repeat split;
-    eauto using stamps_unstamp_mono_vl, stamps_unstamp_mono_ty, stamps_unstamp_mono_tm,
-      is_stamped_mono_vl, is_stamped_mono_tm, is_stamped_mono_ty.
-Qed.
+                                  unstamp_ty g2 T__s = T__u.
+Proof. unmut_lemma stamps_unstamp_mono_mut. Qed.
 
 Ltac pick_lemma lty ltm lvl trm tac :=
   let L := match type of trm with | ty => lty | tm => ltm | vl => lvl end
@@ -319,7 +349,7 @@ Proof.
                 smartRecurse t1 t__s1 g1 g2;
                 smartRecurse t2 t__s2 g2 g3;
                 ev; exists (c t__s1 t__s2), g3; inversion Hus; cbn;
-                pick_stamps_unstamp_mono t1 ltac:(fun L => erewrite (L g2 g3 _ t1) => //);
+                pick_stamps_unstamp_mono t1 ltac:(fun L => erewrite (L _ g2 g3 _ t1) => //);
                   by simplify_order; repeat constructor; f_equal; try done; pick_is_stamped_mono t__s1 ltac:(fun L => eapply (L g2))]
       | ?c ?t1 =>
         try solve [smartRecurse t1 t__s1 g1 g2; ev; exists (c t__s1), g2;
