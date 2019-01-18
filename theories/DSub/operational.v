@@ -5,8 +5,8 @@ From iris.base_logic Require Import lib.iprop (* For gname *)
      lib.saved_prop invariants.
 From iris.program_logic Require Import weakestpre.
 
-From Dot Require Import tactics.
-From DSub Require Export syn.
+From D Require Import tactics.
+From D.DSub Require Export syn.
 
 (** Instantiating iris with DSub *)
 Module lang.

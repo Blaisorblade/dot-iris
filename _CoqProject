@@ -1,29 +1,28 @@
--Q theories Dot
--Q dsub DSub
+-Q theories D
 -arg -w -arg -notation-overridden,-redundant-canonical-projection,-several-object-files
 
 theories/tactics.v
 theories/prelude.v
-dsub/syn.v
-dsub/rules.v
-dsub/astStamping.v
-dsub/synLemmas.v
-dsub/operational.v
-dsub/unary_lr.v
-dsub/unary_lr_binding.v
-theories/dotsyn.v
-theories/typing.v
-theories/operational.v
-theories/synLemmas.v
-theories/skeleton.v
-theories/synToSem.v
-theories/rules.v
-theories/adequacy.v
-theories/fundamental.v
-theories/unary_lr.v
-theories/lr_lemma_nobinding.v
-theories/lr_lemma.v
-theories/lr_lemmasTSel.v
-theories/lr_lemmasDefs.v
-theories/unary_lr_binding.v
-theories/typingExamples.v
+theories/DSub/syn.v
+theories/DSub/rules.v
+theories/DSub/astStamping.v
+theories/DSub/synLemmas.v
+theories/DSub/operational.v
+theories/DSub/unary_lr.v
+theories/DSub/unary_lr_binding.v
+theories/Dot/dotsyn.v
+theories/Dot/typing.v
+theories/Dot/operational.v
+theories/Dot/synLemmas.v
+theories/Dot/skeleton.v
+theories/Dot/synToSem.v
+theories/Dot/rules.v
+theories/Dot/adequacy.v
+theories/Dot/fundamental.v
+theories/Dot/unary_lr.v
+theories/Dot/lr_lemma_nobinding.v
+theories/Dot/lr_lemma.v
+theories/Dot/lr_lemmasTSel.v
+theories/Dot/lr_lemmasDefs.v
+theories/Dot/unary_lr_binding.v
+theories/Dot/typingExamples.v

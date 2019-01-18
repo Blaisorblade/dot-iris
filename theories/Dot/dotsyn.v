@@ -1,5 +1,5 @@
 From iris.base_logic.lib Require Import iprop.
-From Dot Require Export prelude tactics.
+From D Require Export prelude tactics.
 
 Definition label := nat.
 

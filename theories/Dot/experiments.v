@@ -1,6 +1,7 @@
 From iris.program_logic Require Import weakestpre.
 From iris.proofmode Require Import tactics.
-From Dot Require Import tactics unary_lr synLemmas.
+From D Require Import tactics.
+From D.Dot Require Import unary_lr synLemmas.
 (* Workflow: Use this file for new experiments, and move experiments here in appropriate files once they're done. *)
 
 (* From iris.bi Require Export derived_laws_bi. *)

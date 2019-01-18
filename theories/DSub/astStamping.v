@@ -1,7 +1,7 @@
 (** Define "stamping" (what we used to call translation) in a purely syntactic
     way, without involving Iris. *)
-From Dot Require Import tactics.
-From DSub Require Import syn operational synLemmas.
+From D Require Import tactics.
+From D.DSub Require Import syn operational synLemmas.
 From stdpp Require Import gmap.
 
 Set Primitive Projections.

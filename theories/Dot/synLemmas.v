@@ -3,7 +3,8 @@ Lemmas on SynFuncs.v needed for proofs on the operational semantics.
 To reduce compile times, unary_lr should not depend on this file.
 This file should load as little Iris code as possible, to reduce compile times.
  *)
-From Dot Require Import tactics dotsyn.
+From D Require Import tactics.
+From D.Dot Require Import dotsyn.
 
 (* Auxiliary lemma for [length_idsσ]. *)
 Lemma length_idsσr n r: length (idsσ n).|[ren r] = n.

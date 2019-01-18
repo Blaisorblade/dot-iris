@@ -1,7 +1,8 @@
 (** Define translation from syntactic terms/values to semantic ones, following Sec. 3.2 of the PDF. *)
 From iris.proofmode Require Import tactics.
 From iris.program_logic Require Import ectx_lifting.
-From Dot Require Import tactics operational skeleton synLemmas.
+From D Require Import tactics.
+From D.Dot Require Import operational skeleton synLemmas.
 
 Section Sec.
   Context `{HdotG: dotG Σ}.

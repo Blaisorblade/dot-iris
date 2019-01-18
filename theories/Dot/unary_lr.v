@@ -1,6 +1,7 @@
 From iris.program_logic Require Import weakestpre.
 From iris.proofmode Require Import tactics.
-From Dot Require Export operational tactics.
+From D Require Export tactics.
+From D.Dot Require Export operational.
 
 (** Deduce types from variable names, like on paper, for readability and to help
     type inference for some overloaded operations (e.g. substitution). *)

@@ -23,7 +23,8 @@ Implicit Types e : expr Λ.
 End wp_extra.
 
 From iris.program_logic Require Import lifting language.
-From Dot Require Import tactics rules synLemmas unary_lr_binding.
+From D Require Import tactics.
+From D.Dot Require Import rules synLemmas unary_lr_binding.
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 Section Sec.
   Context `{HdotG: dotG Σ} Γ.

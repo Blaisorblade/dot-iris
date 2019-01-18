@@ -1,6 +1,7 @@
 From iris.program_logic Require Import weakestpre.
 From iris.proofmode Require Import tactics.
-From Dot Require Import tactics unary_lr_binding rules.
+From D Require Import tactics.
+From D.Dot Require Import unary_lr_binding rules.
 
 Section Sec.
   Context `{HdotG: dotG Σ}.

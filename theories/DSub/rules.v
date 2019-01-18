@@ -1,6 +1,6 @@
 From iris.program_logic Require Export weakestpre.
 From iris.program_logic Require Import ectx_lifting.
-From Dot Require Export operational.
+From D.DSub Require Export operational.
 
 Section lang_rules.
   (* Context `{irisG }. *)
@@ -30,10 +30,6 @@ Section lang_rules.
 
   Global Instance pure_lam e1 v2 :
     PureExec True 1 (tapp (tv (vabs e1)) (tv v2)) e1.|[v2 /].
-  Proof. solve_pure_exec. Qed.
-
-  Global Instance pure_tproj ds l v :
-    PureExec (reverse (selfSubst ds) !! l = Some (dvl v)) 1 (tproj (tv (vobj ds)) l) (tv v).
   Proof. solve_pure_exec. Qed.
 
   Global Instance pure_tskip t:

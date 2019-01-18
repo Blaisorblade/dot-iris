@@ -1,6 +1,7 @@
 From iris.program_logic Require Import weakestpre.
 From iris.proofmode Require Import tactics.
-From Dot Require Import tactics unary_lr.
+From D Require Import tactics.
+From D.Dot Require Import unary_lr.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 

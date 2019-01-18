@@ -1,6 +1,6 @@
 From iris.program_logic Require Import weakestpre.
 From iris.proofmode Require Import tactics.
-From DSub Require Export unary_lr synLemmas.
+From D.DSub Require Export unary_lr synLemmas.
 
 Implicit Types
          (L T U: ty) (v: vl) (e: tm)

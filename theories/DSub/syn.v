@@ -1,4 +1,4 @@
-From Dot Require Export prelude tactics.
+From D Require Export prelude tactics.
 
 Definition stamp := positive.
 
