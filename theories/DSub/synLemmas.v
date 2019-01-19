@@ -167,9 +167,7 @@ Proof. solve_fv_congruence. Qed.
 Lemma fv_vabs e n: nclosed e (S n) → nclosed_vl (vabs e) n.
 Proof. solve_fv_congruence. Qed.
 
-Definition fv_dms_cons : ∀ d ds, nclosed ds 0 → nclosed d 0 → nclosed (d :: ds) 0 := fv_cons.
-
-Lemma fv_vls_cons : ∀ v vs, nclosed vs 0 → nclosed_vl v 0 → nclosed (v :: vs) 0.
+Lemma fv_vls_cons v vs n: nclosed vs n → nclosed_vl v n → nclosed (v :: vs) n.
 Proof. solve_fv_congruence. Qed.
 
 Lemma fv_idsσ n: nclosed (idsσ n) n.
@@ -239,6 +237,9 @@ Ltac solve_inv_fv_congruence :=
   by [ injection (Hfv s1 s2); trivial; by (idtac + asimpl; rewritePremises; reflexivity) |
        rewrite ?(decomp_s _ s1) ?(decomp_s _ s2) ?(decomp_s_vl _ s1) ?(decomp_s_vl _ s2) (eq_n_s_heads HsEq); last omega;
        injection (Hfv _ _ (eq_n_s_tails HsEq)); by rewritePremises ].
+
+Ltac solve_inv_fv_congruence_h Hfv :=
+  move: Hfv; solve_inv_fv_congruence.
 
 Lemma fv_tv_inv v n: nclosed (tv v) n → nclosed_vl v n.
 Proof. solve_inv_fv_congruence. Qed.

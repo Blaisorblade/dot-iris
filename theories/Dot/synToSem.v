@@ -289,9 +289,6 @@ Section Sec.
   Axiom false: False.
   Ltac skipAdmit := exfalso; apply false.
 
-  Ltac solve_inv_fv_congruence_h Hfv :=
-    move: Hfv; solve_inv_fv_congruence.
-
   Ltac iModSpec Hfv H xt :=
     iMod H as (xt) "#?"; try solve [simpl; intuition eassumption | solve_inv_fv_congruence_h Hfv].
 
