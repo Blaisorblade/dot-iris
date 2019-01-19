@@ -18,18 +18,18 @@ Implicit Type g: stys.
 Definition gdom {X} (g: gmap stamp X) := dom (gset stamp) g.
 Arguments gdom /.
 
-Lemma fresh_stamp {X} (g: gmap stamp X): { s | s ∉ gdom g }.
+Lemma ex_fresh_stamp {X} (g: gmap stamp X): { s | s ∉ gdom g }.
 Proof. exists (fresh (dom (gset stamp) g)). by apply is_fresh. Qed.
 
-Lemma fresh_stamp_strong g T: { s | s ∉ dom (gset stamp) g ∧ g ⊆ <[s := T]> g }.
+Lemma ex_fresh_stamp_strong g T: { s | s ∉ gdom g ∧ g ⊆ <[s := T]> g }.
 Proof.
-  pose proof (fresh_stamp g) as [s Hfresh].
+  pose proof (ex_fresh_stamp g) as [s Hfresh].
   exists s; split =>//. by eapply insert_subseteq, not_elem_of_dom, Hfresh.
 Qed.
 
-Lemma fresh_stamp_strong' g T: { s | s ∉ gdom g ∧ gdom g ⊆ gdom (<[s := T]> g) }.
+Lemma ex_fresh_stamp_strong' g T: { s | s ∉ gdom g ∧ gdom g ⊆ gdom (<[s := T]> g) }.
 Proof.
-  pose proof (fresh_stamp_strong g T) as [s []].
+  pose proof (ex_fresh_stamp_strong g T) as [s []].
   exists s; split =>//=. by apply subseteq_dom.
 Qed.
 
@@ -184,7 +184,7 @@ Lemma exists_stamped_vty T n g: is_unstamped_vl (vty T) → nclosed_vl (vty T) n
 (* Lemma exists_stamped_vty T n g: is_unstamped_ty T → nclosed T n → ∃ v' g', stamps_vl n (vty T) g' v' ∧ g ⊆ g'. *)
 Proof.
   intros Hus Hcl.
-  pose proof (fresh_stamp_strong g T) as [s []].
+  pose proof (ex_fresh_stamp_strong g T) as [s []].
   exists (vstamp (idsσ n) s); rewrite /=; asimpl.
   exists (<[s:=T]> g).
   have: nclosed T n. by move: Hcl; solve_inv_fv_congruence.
@@ -443,7 +443,7 @@ Module TraversalV1.
   Lemma exists_stamped_vty T n g: is_unstamped_ty T → nclosed T n → ∃ v' g', stamps_vl n (vty T) g' v' ∧ g ⊆ g'.
   Proof.
     intros Hunst Hcl.
-    pose proof (fresh_stamp_strong g T) as [s []].
+    pose proof (ex_fresh_stamp_strong g T) as [s []].
     exists (vstamp (idsσ n) s); rewrite /stamps_vl /unstamp_vl /=; asimpl.
     exists (<[s:=T]> g); rewrite lookup_insert /= closed_subst_idsρ // length_idsσ.
     repeat split; eauto.
@@ -451,7 +451,7 @@ Module TraversalV1.
 
   (* Lemma exists_stamped_vty_bad T g (n: nat): is_unstamped_ty T → ∃ v' g', stamps_vl 0 (vty T) g' v' ∧ g ⊆ g'. *)
   (* Proof. *)
-  (*   pose proof (fresh_stamp_strong g T) as [s []]. *)
+  (*   pose proof (ex_fresh_stamp_strong g T) as [s []]. *)
   (*   exists (vstamp (idsσ 0) s); rewrite /stamps_vl /unstamp_vl /=; asimpl. *)
   (*   exists (<[s:=T]> g); rewrite lookup_insert //=; repeat esplit; eauto. *)
   (* Fail Qed. *)
