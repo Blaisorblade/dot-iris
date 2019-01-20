@@ -15,6 +15,7 @@ Qed.
 
 Lemma length_idsσ n: length (idsσ n) = n.
 Proof. pose proof (length_idsσr n (+0)) as Hr. asimpl in Hr. exact Hr. Qed.
+Hint Resolve length_idsσ.
 
 Lemma subst_sigma_idsσ ρ n : length ρ = n →
                 (subst_sigma (idsσ n) ρ) = ρ.
@@ -170,17 +171,35 @@ Proof. solve_fv_congruence. Qed.
 Lemma fv_vls_cons v vs n: nclosed vs n → nclosed_vl v n → nclosed (v :: vs) n.
 Proof. solve_fv_congruence. Qed.
 
-Lemma fv_idsσ n: nclosed (idsσ n) n.
+Lemma nclosed_ids x n: nclosed_vl (ids x) (S (x + n)).
+Proof. move => /= s1 s2 Heq. apply Heq. omega. Qed.
+
+Lemma nclosed_idsσr n x: nclosed_σ (idsσ n).|[ren (+x)] (x + n).
 Proof.
-  elim: n => //=.
-  rewrite /push_var /nclosed /eq_n_s //=; intros * IHn * Heq; asimpl.
-  f_equiv; [| apply IHn; intros]; apply Heq => /=; lia.
+  elim: n x => [|n IHn] x //=.
+  constructor; asimpl; [apply nclosed_ids | apply (IHn (S x)) ].
 Qed.
 
-Lemma cl_ρ_fv ρ : cl_ρ ρ → nclosed ρ 0.
+Lemma nclosed_idsσ n: nclosed_σ (idsσ n) n.
+Proof. pose proof nclosed_idsσr n 0 as H; asimpl in H; exact H. Qed.
+Hint Resolve nclosed_idsσ.
+
+Lemma Forall_to_closed_vls n σ:
+  nclosed_σ σ n → nclosed σ n.
 Proof.
-  induction ρ => // Hcl.
-  inverse Hcl. apply fv_vls_cons => //. by apply IHρ.
+  elim: σ => [|v σ IHσ] Hcl //=.
+  inverse Hcl; apply fv_vls_cons; by [ apply IHσ | ].
+Qed.
+
+Definition cl_ρ_fv: ∀ ρ, cl_ρ ρ → nclosed ρ 0 := Forall_to_closed_vls 0.
+
+Lemma fv_idsσ n: nclosed (idsσ n) n.
+Proof. apply Forall_to_closed_vls, nclosed_idsσ. Qed.
+
+Lemma fv_idsσ_alt n: nclosed (idsσ n) n.
+Proof.
+  rewrite /nclosed. elim: n => [|n] //= IHn s1 s2 Heq. asimpl.
+  f_equiv; [| apply IHn; intros]; apply Heq => /=; lia.
 Qed.
 
 (** The following ones are "inverse" lemmas: by knowing that an expression is closed,
@@ -241,6 +260,14 @@ Ltac solve_inv_fv_congruence :=
 Ltac solve_inv_fv_congruence_h Hfv :=
   move: Hfv; solve_inv_fv_congruence.
 
+Lemma closed_vls_to_Forall m σ:
+  nclosed σ m -> Forall (λ v, nclosed_vl v m) σ.
+Proof.
+  elim: σ => [|v σ IHσ] Hcl //=.
+  constructor. solve_inv_fv_congruence_h Hcl.
+  apply IHσ. solve_inv_fv_congruence_h Hcl.
+Qed.
+
 Lemma fv_tv_inv v n: nclosed (tv v) n → nclosed_vl v n.
 Proof. solve_inv_fv_congruence. Qed.
 
@@ -252,3 +279,41 @@ Proof. solve_inv_fv_congruence. Qed.
 
 Lemma fv_TAll_inv_1 n T1 T2: nclosed (TAll T1 T2) n → nclosed T1 n.
 Proof. solve_inv_fv_congruence. Qed.
+
+Lemma to_subst_compose σ σ':
+  eq_n_s (to_subst σ.|[σ']) (to_subst σ >> σ') (length σ).
+Proof.
+  induction σ as [| v σ] => /= x Hxn; first omega; asimpl.
+  destruct x => //=.
+  (* elim: σ => /= [|v σ IHσ] x Hxn; first omega; asimpl. *)
+  (* case: x Hxn => [|x] Hxn //=. *)
+  apply IHσ. omega.
+Qed.
+
+Lemma to_subst_compose_alt σ σ' n:
+  n = length σ →
+  eq_n_s (to_subst σ.|[σ']) (to_subst σ >> σ') n.
+Proof. intros; subst. apply to_subst_compose. Qed.
+
+Lemma subst_compose_x
+      `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A)
+      σ ξ n1 n2 n3:
+  nclosed a n1 →
+  length σ = n1 → nclosed_σ σ n2 →
+  length ξ = n2 → nclosed_σ ξ n3 →
+  a.|[to_subst σ.|[to_subst ξ]] = a.|[to_subst σ].|[to_subst ξ].
+Proof.
+  intros HclA Hlenσ Hclσ Hlenξ Hclξ.
+  asimpl. apply HclA. subst. by apply to_subst_compose.
+Qed.
+Hint Resolve @subst_compose_x.
+
+Lemma subst_compose_idsσ_x
+      `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A)
+      n m ξ:
+  nclosed a n →
+  nclosed_σ ξ m →
+  length ξ = n →
+  a.|[to_subst (idsσ n).|[to_subst ξ]] = a.|[to_subst (idsσ n)].|[to_subst ξ].
+Proof. intros; eauto. Qed.
+Hint Resolve @subst_compose_idsσ_x.
