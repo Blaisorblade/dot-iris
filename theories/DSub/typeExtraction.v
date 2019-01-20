@@ -63,13 +63,27 @@ Definition extract g n T: stys * extractedTy :=
   in (<[s := T]> g, (s, idsσ n)).
 
 Definition extraction n T: (stys * extractedTy → Prop) :=
-  λ '(g, (s, σ)), ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T ∧ nclosed T n ∧ nclosed T' (length σ).
-
+  λ '(g, (s, σ)),
+  ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T ∧ nclosed_σ σ n ∧ nclosed T' (length σ).
 Notation "T ~[ n  ] gsσ" := (extraction n T gsσ) (at level 70).
 
 Lemma extract_spec g n T: nclosed T n → T ~[ n ] (extract g n T).
 Proof. move => Hcl; exists T; by rewrite lookup_insert closed_subst_idsρ ?length_idsσ. Qed.
 Hint Resolve extract_spec.
+
+Lemma nclosed_σ_to_subst ξ σ n:
+  nclosed_σ ξ (length σ) → nclosed_σ σ n →
+  nclosed_σ (ξ.|[to_subst σ]) n.
+Proof.
+  intros.
+  apply closed_vls_to_Forall, fv_to_subst => //. by apply Forall_to_closed_vls.
+Qed.
+Hint Resolve nclosed_σ_to_subst.
+
+Lemma extraction_closed g n T s σ:
+  T ~[ n ] (g, (s, σ)) →
+  nclosed T n.
+Proof. intros (T' & Hlook & <- & Hclσ & HclT'). by apply fv_to_subst. Qed.
 
 Lemma extraction_subst g n T s σ m σ':
   T ~[ n ] (g, (s, σ)) →
@@ -77,10 +91,10 @@ Lemma extraction_subst g n T s σ m σ':
   nclosed_σ σ' m →
   T.|[to_subst σ'] ~[ m ] (g, (s, σ.|[to_subst σ'])).
 Proof.
-  intros (T' & Hlook & Heq & HclT & HclT') Hlσ' => /=. rewrite -Heq map_length.
+  intros (T' & Hlook & <- & Hclσ & HclT') <- => /=. rewrite map_length.
   exists T'; repeat split => //.
   - asimpl. apply HclT', to_subst_compose.
-  - subst; by apply fv_to_subst.
+  - by apply nclosed_σ_to_subst.
 Qed.
 Hint Resolve extraction_subst.
 
@@ -101,7 +115,7 @@ Lemma extraction_mono T g g' s σ n:
   T ~[ n ] (g, (s, σ)) →
   T ~[ n ] (g', (s, σ)).
 Proof.
-  cbn. intros Hg (T' & Hlook & Heq & Hcl).
+  cbn. intros Hg (T' & Hlook & Heq & ?).
   exists T'; repeat split => //. by eapply map_subseteq_spec.
 Qed.
 Hint Extern 5 (_ ~[ _ ] (_, _)) => try_once extraction_mono.
@@ -185,15 +199,6 @@ Section interp_equiv.
   Goal ∀ T (P : ty → iProp Σ), (P T ≡ ∃ T', ⌜Some T = Some T'⌝ ∧ P T')%I : iProp Σ.
   Abort.
 
-  Lemma nclosed_σ_to_subst ξ σ n:
-    nclosed_σ ξ (length σ) → nclosed_σ σ n →
-    nclosed_σ (ξ.|[to_subst σ]) n.
-  Proof.
-    intros. apply closed_vls_to_Forall, fv_to_subst => //.
-    by apply Forall_to_closed_vls.
-  Qed.
-  Hint Resolve nclosed_σ_to_subst.
-
   Lemma interp_subst_commute T σ ρ v:
     nclosed T (length σ) →
     nclosed_σ σ (length ρ) →
@@ -206,26 +211,14 @@ Section interp_equiv.
     - by apply nclosed_σ_to_subst.
   Qed.
 
-(** XXX strenghten translation to also have that
-    nclosed_σ σ n. Go from:
-
-    ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T ∧ nclosed T n ∧ nclosed T' (length σ).
-
-to
-    ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T ∧ nclosed_σ σ n ∧ nclosed T' (length σ).
-
-and prove that nclosed T n is a consequence.
- *)
-
   Lemma extraction_equiv g s σ T n:
     T ~[ n ] (g, (s, σ)) →
-    nclosed_σ σ n → (* XXX! *)
     ⟦ T ⟧ ≈[ n ] ⟦ s , σ ⟧ [ g ].
   Proof.
     rewrite /interp_extractedTy /envD_equiv /=.
-    iIntros ((T' & -> & <- & HclT & HclT') Hclσ ρ v <- Hclρ).
-    iSplit; iIntros "H"; [| iDestruct "H" as (? ?) "?" ];
-      injectHyps; rewrite interp_subst_commute; by eauto.
+    iIntros ((T' & -> & <- & HclT & HclT') ρ v <- Hclρ).
+    iSplit; iIntros "H"; [| iDestruct "H" as (T'' Heq) "?" ];
+      rewrite interp_subst_commute /subst_sigma //; naive_solver.
   Qed.
 
 End interp_equiv.
