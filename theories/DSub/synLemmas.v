@@ -69,7 +69,7 @@ Proof.
   intros; omega.
 Qed.
 
-Lemma closed_to_subst ρ x: cl_ρ ρ → x < length ρ → nclosed_vl (to_subst ρ x) 0.
+Lemma closed_to_subst ρ x n: nclosed_σ ρ n → x < length ρ → nclosed_vl (to_subst ρ x) n.
 Proof.
   elim: ρ x => /= [|v ρ IHρ] [|x] Hcl Hl; asimpl; try omega; inverse Hcl; try by [].
   by apply IHρ; try omega.
@@ -108,34 +108,34 @@ Section to_subst_idsσ_is_id.
   Qed.
 End to_subst_idsσ_is_id.
 
-Lemma fv_to_subst `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A) ρ:
-  nclosed a (length ρ) → cl_ρ ρ →
-  nclosed (a.|[to_subst ρ]) 0.
+Lemma fv_to_subst `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A) σ n:
+  nclosed a (length σ) → nclosed_σ σ n →
+  nclosed (a.|[to_subst σ]) n.
 Proof.
-  rewrite /nclosed /nclosed_vl => Hcla Hclρ s1 s2 _ /=; asimpl.
+  rewrite /nclosed /nclosed_vl => Hcla Hclρ s1 s2 Heqsn /=; asimpl.
   apply Hcla.
-  intros x Hl; asimpl; rewrite !(closed_subst_vl_id (to_subst ρ x)); auto using closed_to_subst.
+  intros x Hl; asimpl. by eapply (closed_to_subst σ x n).
 Qed.
 
-Lemma fv_to_subst_vl v ρ:
-  nclosed_vl v (length ρ) → cl_ρ ρ →
-  nclosed_vl (v.[to_subst ρ]) 0.
+Lemma fv_to_subst_vl v σ n:
+  nclosed_vl v (length σ) → nclosed_σ σ n →
+  nclosed_vl (v.[to_subst σ]) n.
 Proof.
-  rewrite /nclosed /nclosed_vl => Hclv Hclρ s1 s2 _ /=; asimpl.
+  rewrite /nclosed /nclosed_vl => Hclv Hclσ s1 s2 Heqsn /=; asimpl.
   apply Hclv.
-  intros x Hl; asimpl; rewrite !(closed_subst_vl_id (to_subst ρ x)); auto using closed_to_subst.
+  intros x Hl; asimpl. by eapply (closed_to_subst σ x n).
 Qed.
 
 (** Variants of [fv_to_subst] and [fv_to_subst_vl] for more convenient application. *)
-Lemma fv_to_subst' `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A) ρ a':
-  nclosed a (length ρ) → cl_ρ ρ →
-  a' = (a.|[to_subst ρ]) →
-  nclosed a' 0.
+Lemma fv_to_subst' `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A) σ a' n:
+  nclosed a (length σ) → nclosed_σ σ n →
+  a' = (a.|[to_subst σ]) →
+  nclosed a' n.
 Proof. intros; subst. by apply fv_to_subst. Qed.
-Lemma fv_to_subst_vl' v ρ v':
-  nclosed_vl v (length ρ) → cl_ρ ρ →
-  v' = (v.[to_subst ρ]) →
-  nclosed_vl v' 0.
+Lemma fv_to_subst_vl' v σ v' n:
+  nclosed_vl v (length σ) → nclosed_σ σ n →
+  v' = (v.[to_subst σ]) →
+  nclosed_vl v' n.
 Proof. intros; subst. by apply fv_to_subst_vl. Qed.
 
 Implicit Types

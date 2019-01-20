@@ -413,7 +413,10 @@ Definition nclosed_vl (v: vl) n :=
 Definition nclosed `{HSubst vl X} (t: X) n :=
   ∀ s1 s2, eq_n_s s1 s2 n → t.|[s1] = t.|[s2].
 
-Definition cl_ρ ρ := Forall (λ v, nclosed_vl v 0) ρ.
+Definition nclosed_σ σ n := Forall (λ v, nclosed_vl v n) σ.
+Arguments nclosed_σ /.
+
+Definition cl_ρ ρ := nclosed_σ ρ 0.
 Arguments cl_ρ /.
 
 (** The following ones are "direct" lemmas: deduce that an expression is closed
