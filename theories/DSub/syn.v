@@ -416,8 +416,7 @@ Definition nclosed `{HSubst vl X} (t: X) n :=
 Definition nclosed_σ σ n := Forall (λ v, nclosed_vl v n) σ.
 Arguments nclosed_σ /.
 
-Definition cl_ρ ρ := nclosed_σ ρ 0.
-Arguments cl_ρ /.
+Notation cl_ρ ρ := (nclosed_σ ρ 0).
 
 (** The following ones are "direct" lemmas: deduce that an expression is closed
     by knowing that its subexpression are closed. *)
