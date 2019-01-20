@@ -1,7 +1,10 @@
 (** *)
 From stdpp Require Import gmap.
+From iris.base_logic Require Import invariants.
+From iris.proofmode Require Import tactics.
+
 From D Require Import tactics.
-From D.DSub Require Import syn operational synLemmas.
+From D.DSub Require Import syn operational synLemmas unary_lr unary_lr_binding.
 
 Set Primitive Projections.
 Set Implicit Arguments.
@@ -160,3 +163,69 @@ Proof.
     rewrite !closed_subst_idsρ => //.
     apply fv_to_subst; eauto. (* eauto with typeclass_instances. *)
 Qed.
+
+Section interp_equiv.
+  Context `{!dsubG Σ}.
+
+  Notation envD := (listVlC -n> vlC -n> iProp Σ).
+  Implicit Types (φ: envD).
+
+  Definition interp_extractedTy: extractionResult -> envD :=
+    λ gsσ, λne ρ v,
+    let '(g, (s, σ)) := gsσ in
+    (∃ T' : ty, ⌜g !! s = Some T'⌝ ∧ ⟦ T' ⟧ (subst_sigma σ ρ) v)%I.
+  Notation "⟦ s , σ ⟧ [ g ]" := (interp_extractedTy (g, (s, σ))).
+
+  Definition envD_equiv n φ1 φ2: iProp Σ :=
+    (∀ ρ v, ⌜ length ρ = n ⌝ → ⌜ cl_ρ ρ ⌝ → φ1 ρ v ↔ φ2 ρ v)%I.
+  Notation "φ1 ≈[  n  ] φ2" := (envD_equiv n φ1 φ2) (at level 70).
+
+  (* XXX I wanted to use ≡ not ↔ but I'm not sure how to prove this lemma: *)
+  (* Definition envD_equiv n φ1 φ2: iProp Σ := (∀ ρ v, ⌜ length ρ = n ⌝ → φ1 ρ v ≡ φ2 ρ v)%I. *)
+  Goal ∀ T (P : ty → iProp Σ), (P T ≡ ∃ T', ⌜Some T = Some T'⌝ ∧ P T')%I : iProp Σ.
+  Abort.
+
+  Lemma nclosed_σ_to_subst ξ σ n:
+    nclosed_σ ξ (length σ) → nclosed_σ σ n →
+    nclosed_σ (ξ.|[to_subst σ]) n.
+  Proof.
+    intros. apply closed_vls_to_Forall, fv_to_subst => //.
+    by apply Forall_to_closed_vls.
+  Qed.
+  Hint Resolve nclosed_σ_to_subst.
+
+  Lemma interp_subst_commute T σ ρ v:
+    nclosed T (length σ) →
+    nclosed_σ σ (length ρ) →
+    cl_ρ ρ →
+    ⟦ T.|[to_subst σ] ⟧ ρ v ≡ ⟦ T ⟧ σ.|[to_subst ρ] v.
+  Proof.
+    intros HclT Hclσ Hclρ.
+    rewrite -(interp_subst_all ρ _ v) // -(interp_subst_all _ T v) //.
+    - by erewrite subst_compose_x.
+    - by apply nclosed_σ_to_subst.
+  Qed.
+
+(** XXX strenghten translation to also have that
+    nclosed_σ σ n. Go from:
+
+    ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T ∧ nclosed T n ∧ nclosed T' (length σ).
+
+to
+    ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T ∧ nclosed_σ σ n ∧ nclosed T' (length σ).
+
+and prove that nclosed T n is a consequence.
+ *)
+
+  Lemma extraction_equiv g s σ T n:
+    T ~[ n ] (g, (s, σ)) →
+    nclosed_σ σ n → (* XXX! *)
+    ⟦ T ⟧ ≈[ n ] ⟦ s , σ ⟧ [ g ].
+  Proof.
+    rewrite /interp_extractedTy /envD_equiv /=.
+    iIntros ((T' & -> & <- & HclT & HclT') Hclσ ρ v <- Hclρ).
+    iSplit; iIntros "H"; [| iDestruct "H" as (? ?) "?" ];
+      injectHyps; rewrite interp_subst_commute; by eauto.
+  Qed.
+
+End interp_equiv.

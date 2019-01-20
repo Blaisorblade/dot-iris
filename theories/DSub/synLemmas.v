@@ -261,7 +261,7 @@ Ltac solve_inv_fv_congruence_h Hfv :=
   move: Hfv; solve_inv_fv_congruence.
 
 Lemma closed_vls_to_Forall m σ:
-  nclosed σ m -> Forall (λ v, nclosed_vl v m) σ.
+  nclosed σ m -> nclosed_σ σ m.
 Proof.
   elim: σ => [|v σ IHσ] Hcl //=.
   constructor. solve_inv_fv_congruence_h Hcl.
