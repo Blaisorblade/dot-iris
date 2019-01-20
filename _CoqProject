@@ -5,6 +5,7 @@ theories/tactics.v
 theories/prelude.v
 theories/DSub/syn.v
 theories/DSub/rules.v
+theories/DSub/typeExtraction.v
 theories/DSub/astStamping.v
 theories/DSub/synLemmas.v
 theories/DSub/operational.v
