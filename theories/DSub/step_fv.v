@@ -19,12 +19,13 @@ Section nclosed_prim_step.
   Qed.
 
   Theorem nclosed_head_step t1 t2 σ σ' ts n:
-    nclosed t1 n →
     head_step t1 σ [] t2 σ' ts →
+    nclosed t1 n →
     nclosed t2 n.
   Proof.
-    move => Hcl Hst; destruct Hst as [t1 v2|t]; [ exact (nclosed_beta Hcl) | solve_inv_fv_congruence_h Hcl ].
+    move => Hst Hcl; destruct Hst as [t1 v2|t]; [ exact (nclosed_beta Hcl) | solve_inv_fv_congruence_h Hcl ].
   Qed.
+  Hint Resolve nclosed_head_step.
 
   Inductive nclosed_ectx_item: ectx_item → nat → Prop :=
   | ClAppLCtx t2 n: nclosed t2 n → nclosed_ectx_item (AppLCtx t2) n
@@ -35,30 +36,30 @@ Section nclosed_prim_step.
 
   Lemma nclosed_fill_item_inv_t Ki t n: nclosed (fill_item Ki t) n → nclosed t n.
   Proof. case: Ki => [e2|v1] /=; solve_inv_fv_congruence. Qed.
+  Hint Resolve nclosed_fill_item_inv_t.
 
   Lemma nclosed_fill_item_inv_Ki Ki t n: nclosed (fill_item Ki t) n → nclosed_ectx_item Ki n.
   Proof. case: Ki => [e2|v1] Hcl /=; constructor; solve_inv_fv_congruence_h Hcl. Qed.
+  Hint Resolve nclosed_fill_item_inv_Ki.
 
   Lemma nclosed_fill_inv_t K t n: nclosed (fill K t) n → nclosed t n.
-  Proof. elim: K t => //= Ki K IHK t Hcl. by apply (nclosed_fill_item_inv_t Ki), IHK, Hcl. Qed.
+  Proof. elim: K t => //= Ki K IHK t Hcl; eauto. Qed.
+  Hint Resolve nclosed_fill_inv_t.
 
   Lemma nclosed_fill_inv_K K t n: nclosed (fill K t) n → nclosed_ectx K n.
-  Proof.
-    elim: K t => //= Ki K IHK t Hcl.
-    eauto using nclosed_fill_item_inv_Ki, nclosed_fill_inv_t.
-  Qed.
+  Proof. elim: K t => //= Ki K IHK t Hcl; eauto. Qed.
+  Hint Resolve nclosed_fill_inv_K.
 
   Lemma nclosed_fill_item Ki t n: nclosed t n → nclosed_ectx_item Ki n → nclosed (fill_item Ki t) n.
   Proof.
     case: Ki => [e2|v1] /= Hclt HclKi; inverse HclKi; try solve_fv_congruence.
     eauto using fv_tv, fv_tapp.
   Qed.
+  Hint Resolve nclosed_fill_item.
 
   Lemma nclosed_fill K t n: nclosed t n → nclosed_ectx K n → nclosed (fill K t) n.
-  Proof.
-    elim: K t => //= Ki K IHK t Hclt HclKKi. inverse HclKKi.
-    apply IHK => //. by apply nclosed_fill_item.
-  Qed.
+  Proof. elim: K t => //= Ki K IHK t Hclt HclKKi; inverse HclKKi; eauto. Qed.
+  Hint Resolve nclosed_fill.
 
   Theorem nclosed_prim_step t1 t2 σ σ' ts n:
     nclosed t1 n →
@@ -66,7 +67,6 @@ Section nclosed_prim_step.
     nclosed t2 n.
   Proof.
     move => Hclt1 [K t1' t2' Heqe1 Heqe2 Hhst] /=; subst; cbn in *.
-    eapply nclosed_fill, nclosed_fill_inv_K => //.
-    eapply nclosed_head_step, Hhst. by eapply nclosed_fill_inv_t.
+    eapply nclosed_fill; eauto.
   Qed.
 End nclosed_prim_step.
