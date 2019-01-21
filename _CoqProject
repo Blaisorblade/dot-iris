@@ -16,6 +16,7 @@ theories/Dot/dotsyn.v
 theories/Dot/typing.v
 theories/Dot/operational.v
 theories/Dot/synLemmas.v
+theories/Dot/step_fv.v
 theories/Dot/skeleton.v
 theories/Dot/synToSem.v
 theories/Dot/rules.v
