@@ -543,8 +543,10 @@ Definition nclosed_vl (v: vl) n :=
 Definition nclosed `{HSubst vl X} (t: X) n :=
   ∀ s1 s2, eq_n_s s1 s2 n → t.|[s1] = t.|[s2].
 
-Definition cl_ρ ρ := Forall (λ v, nclosed_vl v 0) ρ.
-Arguments cl_ρ /.
+Definition nclosed_σ σ n := Forall (λ v, nclosed_vl v n) σ.
+Arguments nclosed_σ /.
+
+Notation cl_ρ ρ := (nclosed_σ ρ 0).
 
 (** The following ones are "direct" lemmas: deduce that an expression is closed
     by knowing that its subexpression are closed. *)
@@ -560,3 +562,71 @@ Ltac solve_fv_congruence := rewrite /nclosed /nclosed_vl => * /=; f_equiv; solve
 
 Lemma fv_cons `{Ids X} `{HSubst vl X} {hsla: HSubstLemmas vl X} (x: X) xs n: nclosed xs n → nclosed x n → nclosed (x :: xs) n.
 Proof. solve_fv_congruence. Qed.
+
+(** The following ones are "inverse" lemmas: by knowing that an expression is closed,
+    deduce that one of its subexpressions is closed *)
+
+(** Dealing with binders in fv "inverse" lemmas requires more infrastructure. See fv_vabs_inv_manual for an explanation. *)
+
+Definition stail s := ren (+1) >> s.
+Definition shead (s: var → vl) := s 0.
+
+Lemma eq_n_s_tails {n s1 s2}: eq_n_s s1 s2 (S n) → eq_n_s (stail s1) (stail s2) n.
+Proof. rewrite /stail => /= HsEq x Hl. apply HsEq. omega. Qed.
+Lemma eq_n_s_heads {n s1 s2}: eq_n_s s1 s2 n → n > 0 → shead s1 = shead s2.
+Proof. rewrite /shead => /= HsEq. apply HsEq. Qed.
+
+Lemma decomp_s `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A) s:
+  a.|[s] = a.|[up (stail s)].|[shead s/].
+Proof. by rewrite /stail /shead; asimpl. Qed.
+
+Lemma decomp_s_vl v s:
+  v.[s] = v.[up (stail s)].[shead s/].
+Proof. by rewrite /stail /shead; asimpl. Qed.
+
+(** Rewrite thesis with equalities learned from injection, if possible *)
+Ltac rewritePremises := let H := fresh "H" in repeat (move => H; rewrite ?H {H}).
+
+(** Here is a manual proof of a lemma, with explanations. *)
+Lemma fv_vabs_inv_manual e n: nclosed_vl (vabs e) n → nclosed e (S n).
+Proof.
+  rewrite /nclosed_vl /nclosed => /= Hfv s1 s2 HsEq.
+
+  (** From Hfv, we only learn that [e.|[up s1] = e.|[up s2]], for arbitrary [s1]
+      and [s2], but substitutions in our thesis [e.|[s1] = e.|[s2]] are not of form [up ?].
+      Hence, we rewrite it using [decomp_s] / [decomp_s_vl] to get a
+      substitution of form [up ?], then rewrite with [e.|[up (stail s1)] =
+      e.|[up (stail s2)]] (got from [Hfv]), and conclude.
+      *)
+  rewrite ?(decomp_s _ s1) ?(decomp_s _ s2) ?(decomp_s_vl _ s1) ?(decomp_s_vl _ s2) (eq_n_s_heads HsEq); last omega.
+  injection (Hfv _ _ (eq_n_s_tails HsEq)); rewritePremises; reflexivity.
+Qed.
+
+(** Finally, a heuristic solver [solve_inv_fv_congruence] to be able to prove
+    such lemmas easily, both here and elsewhere. *)
+
+Ltac solve_inv_fv_congruence :=
+  let s1 := fresh "s1" in
+  let s2 := fresh "s2" in
+  let HsEq := fresh "HsEq" in
+  let Hfv := fresh "Hfv" in
+  rewrite /nclosed_vl /nclosed /= => Hfv s1 s2 HsEq;
+(* asimpl is expensive, but sometimes needed when simplification does mistakes.
+   It must also be done after injection because it might not rewrite under Hfv's
+   binders. *)
+  by [ injection (Hfv s1 s2); trivial; by (idtac + asimpl; rewritePremises; reflexivity) |
+       rewrite ?(decomp_s _ s1) ?(decomp_s _ s2) ?(decomp_s_vl _ s1) ?(decomp_s_vl _ s2) (eq_n_s_heads HsEq); last omega;
+       injection (Hfv _ _ (eq_n_s_tails HsEq)); by rewritePremises ].
+
+Ltac solve_inv_fv_congruence_h Hcl :=
+  move: Hcl; solve_inv_fv_congruence.
+
+Ltac solve_inv_fv_congruence_auto :=
+  match goal with
+  | Hcl: nclosed ?t ?n |- nclosed _ _ => solve_inv_fv_congruence_h Hcl
+  | Hcl: nclosed_vl ?t ?n |- nclosed _ _ => solve_inv_fv_congruence_h Hcl
+  | Hcl: nclosed ?t ?n |- nclosed_vl _ _ => solve_inv_fv_congruence_h Hcl
+  | Hcl: nclosed_vl ?t ?n |- nclosed_vl _ _ => solve_inv_fv_congruence_h Hcl
+  end.
+
+Hint Extern 10 => solve_inv_fv_congruence_auto: fv.
