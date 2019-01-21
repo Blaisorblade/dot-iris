@@ -199,6 +199,7 @@ Section interp_equiv.
   Goal ∀ T (P : ty → iProp Σ), (P T ≡ ∃ T', ⌜Some T = Some T'⌝ ∧ P T')%I : iProp Σ.
   Abort.
 
+  (* Belongs in synLemmas. *)
   Lemma interp_subst_commute T σ ρ v:
     nclosed T (length σ) →
     nclosed_σ σ (length ρ) →
@@ -211,7 +212,7 @@ Section interp_equiv.
     - by apply nclosed_σ_to_subst.
   Qed.
 
-  Lemma extraction_equiv g s σ T n:
+  Lemma extraction_envD_equiv g s σ T n:
     T ~[ n ] (g, (s, σ)) →
     ⟦ T ⟧ ≈[ n ] ⟦ s , σ ⟧ [ g ].
   Proof.
@@ -219,6 +220,22 @@ Section interp_equiv.
     iIntros ((T' & -> & <- & HclT & HclT') ρ v <- Hclρ).
     iSplit; iIntros "H"; [| iDestruct "H" as (T'' Heq) "?" ];
       rewrite interp_subst_commute /subst_sigma //; naive_solver.
+  Qed.
+
+  (** envD_equiv commutes with substitution. *)
+  Lemma envD_equiv_subst g T m n ξ s1 σ1 s2 σ2:
+    T ~[ m ] (g, (s1, σ1)) →
+    T.|[to_subst ξ] ~[ n ] (g, (s2, σ2)) →
+    length ξ = m →
+    nclosed_σ ξ n →
+    ⟦ s1, σ1.|[to_subst ξ] ⟧ [ g ] ≈[ n ] ⟦ s2, σ2 ⟧ [ g ].
+  Proof.
+    rewrite /interp_extractedTy; iIntros ((T1 & -> & Heq1 & Hclσ1 & HclT1) (T2 & -> & Heq2 & Hclσ2 & HclT2) Hlenξ Hclξ ρ v Hlenρ Hclρ) "/="; subst.
+    assert (Hclσ1ξ: nclosed_σ σ1.|[to_subst ξ] (length ρ)). by apply nclosed_σ_to_subst.
+    assert (Hrew: T2.|[to_subst σ2.|[to_subst ρ]] =
+                  T1.|[to_subst σ1.|[to_subst ξ].|[to_subst ρ]]). by repeat erewrite subst_compose_x; rewrite ?map_length ?Heq1 ?Heq2.
+    iSplit; iIntros "#H"; iDestruct "H" as (T' Heq) "?"; injection Heq; intros <-; iExists _;
+      iSplit => //; rewrite -(interp_subst_all _ T1) -?(interp_subst_all _ T2) ?Hrew //; by apply nclosed_σ_to_subst.
   Qed.
 
 End interp_equiv.
