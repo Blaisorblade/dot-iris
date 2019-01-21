@@ -9,6 +9,7 @@ theories/DSub/typeExtraction.v
 theories/DSub/astStamping.v
 theories/DSub/synLemmas.v
 theories/DSub/operational.v
+theories/DSub/step_fv.v
 theories/DSub/unary_lr.v
 theories/DSub/unary_lr_binding.v
 theories/Dot/dotsyn.v
