@@ -1,7 +1,7 @@
 From iris.program_logic Require Import weakestpre.
 From iris.proofmode Require Import tactics.
 From D Require Import tactics.
-From D.Dot Require Import unary_lr synLemmas.
+From D.Dot Require Import unary_lr unary_lr_binding synLemmas.
 (* Workflow: Use this file for new experiments, and move experiments here in appropriate files once they're done. *)
 
 (* From iris.bi Require Export derived_laws_bi. *)
@@ -53,6 +53,25 @@ Implicit Types
 
 Section Sec.
   Context `{HdotG: dotG Σ}.
+
+  (** Core definitions for singleton types. ⟦ w.type ⟧ ρ v *)
+  Definition sem_singleton w ρ v : iProp Σ := (⌜ w.[to_subst ρ] = v ∧ nclosed_vl v 0 ⌝)%I.
+  Arguments sem_singleton /.
+
+  (* Core typing lemmas, sketches. TODO: make the above into a type, and add all
+     the plumbing. *)
+  Lemma self_sem_singleton ρ v: cl_ρ ρ → nclosed_vl v 0 → sem_singleton v ρ v.
+  Proof.
+    iIntros (Hclρ Hclv) "/= !%"; split => //. by apply closed_subst_vl_id.
+  Qed.
+
+  Lemma other_sem_singleton ρ w v v':
+    (sem_singleton w ρ v →
+    sem_singleton w ρ v' ↔ sem_singleton v ρ v')%I.
+  Proof.
+    iIntros ((Hv & Hclv)) "/="; iSplit; iIntros ((Hv1 & Hclv')) "!%"; split => //;
+    by [> rewrite closed_subst_vl_id // -Hv -Hv1 | rewrite Hv -Hv1 closed_subst_vl_id ].
+  Qed.
 
   Lemma internal_iff_eq_try1 (P Q: iProp Σ) `(!Affine P) `(!Affine Q): (P ↔ Q ⊢ P ≡ Q)%I.
   Proof.
