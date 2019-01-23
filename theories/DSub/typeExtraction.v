@@ -144,6 +144,10 @@ Lemma extract_lookup g g' s σ n T:
 Proof. intros H; cinject H; by rewrite lookup_insert. Qed.
 Hint Resolve extract_lookup.
 
+Lemma extraction_lookup g s σ n T:
+  T ~[ n ] (g, (s, σ)) → ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T.
+Proof. naive_solver. Qed.
+
 Lemma subst_compose_extract g g' T n m ξ σ s:
   nclosed T n →
   nclosed_σ ξ m →
@@ -184,6 +188,31 @@ Section interp_equiv.
   Notation envD := (listVlC -n> vlC -n> iProp Σ).
   Implicit Types (φ: envD).
 
+  (** This interpretation is too naive: it substitutes σ into T' *before* applying our semantics,
+      but we will not be able to do this when we use saved propositions to pre-interpret T'. *)
+  Definition interp_extractedTy_naive: extractionResult -> envD :=
+    λ gsσ, λne ρ v,
+    let '(g, (s, σ)) := gsσ in
+    (∃ T' : ty, ⌜g !! s = Some T'⌝ ∧ ⟦ T'.|[to_subst σ] ⟧ ρ v)%I.
+
+  (** We can relate the  ⟦ T ⟧ with the naive stamp semantics at all environments. *)
+  Lemma extraction_envD_equiv g s σ T n ρ v:
+    T ~[ n ] (g, (s, σ)) →
+    (⟦ T ⟧ ρ v ↔ interp_extractedTy_naive (g, (s, σ)) ρ v)%I.
+  Proof.
+    cbn; intros (T' & -> & <- & HclT & HclT').
+    iSplit; iIntros "H"; [| iDestruct "H" as (T'' Heq) "?" ]; naive_solver.
+  Qed.
+
+  (* Given a mapping from stamps to gnames, we can also define when a map is properly translated. *)
+  Definition wellMapped g (stampHeap: gmap stamp gname) : iProp Σ :=
+    (∀ s T γ ρ v,
+        ⌜ g !! s = Some T⌝ → ⌜ stampHeap !! s = Some γ⌝ →
+        ∃ P, γ ⤇ P ∧ ⟦ T ⟧ ρ v ≡ P ρ v)%I.
+  (* To give a definitive version of wellMapped, we need stampHeap to be stored in a resource. *)
+
+  (** However, a stamp semantics that carries over to saved predicates must use
+      σ in ρ. And the result is only equivalent for closed ρ with the expected length. *)
   Definition interp_extractedTy: extractionResult -> envD :=
     λ gsσ, λne ρ v,
     let '(g, (s, σ)) := gsσ in
