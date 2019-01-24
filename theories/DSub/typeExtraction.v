@@ -196,7 +196,7 @@ Section interp_equiv.
     (∃ T' : ty, ⌜g !! s = Some T'⌝ ∧ ⟦ T'.|[to_subst σ] ⟧ ρ v)%I.
 
   (** We can relate the  ⟦ T ⟧ with the naive stamp semantics at all environments. *)
-  Lemma extraction_envD_equiv g s σ T n ρ v:
+  Lemma extraction_envD_equiv_naive g s σ T n ρ v:
     T ~[ n ] (g, (s, σ)) →
     (⟦ T ⟧ ρ v ↔ interp_extractedTy_naive (g, (s, σ)) ρ v)%I.
   Proof.
@@ -213,14 +213,13 @@ Section interp_equiv.
 
   (** However, a stamp semantics that carries over to saved predicates must use
       σ in ρ. And the result is only equivalent for closed ρ with the expected length. *)
-  Definition interp_extractedTy: extractionResult -> envD :=
-    λ gsσ, λne ρ v,
-    let '(g, (s, σ)) := gsσ in
-    (∃ T' : ty, ⌜g !! s = Some T'⌝ ∧ ⟦ T' ⟧ (subst_sigma σ ρ) v)%I.
-  Notation "⟦ s , σ ⟧ [ g ]" := (interp_extractedTy (g, (s, σ))).
+  Definition interp_extractedTy: (ty * vls) → envD :=
+    λ '(T, σ), λne ρ v,
+    (⟦ T ⟧ (subst_sigma σ ρ) v)%I.
+  Notation "⟦ T ⟧ [ σ ]" := (interp_extractedTy (T, σ)).
 
   Definition envD_equiv n φ1 φ2: iProp Σ :=
-    (∀ ρ v, ⌜ length ρ = n ⌝ → ⌜ cl_ρ ρ ⌝ → φ1 ρ v ↔ φ2 ρ v)%I.
+    (∀ ρ v, ⌜ length ρ = n ⌝ → ⌜ cl_ρ ρ ⌝ → φ1 ρ v ≡ φ2 ρ v)%I.
   Notation "φ1 ≈[  n  ] φ2" := (envD_equiv n φ1 φ2) (at level 70).
 
   (* XXX I wanted to use ≡ not ↔ but I'm not sure how to prove this lemma: *)
@@ -236,19 +235,18 @@ Section interp_equiv.
     ⟦ T.|[to_subst σ] ⟧ ρ v ≡ ⟦ T ⟧ σ.|[to_subst ρ] v.
   Proof.
     intros HclT Hclσ Hclρ.
-    rewrite -(interp_subst_all ρ _ v) // -(interp_subst_all _ T v) //.
+    rewrite -(interp_subst_all ρ _ v) // -(interp_subst_all _ T v).
     - by erewrite subst_compose_x.
     - by apply nclosed_σ_to_subst.
   Qed.
 
   Lemma extraction_envD_equiv g s σ T n:
     T ~[ n ] (g, (s, σ)) →
-    ⟦ T ⟧ ≈[ n ] ⟦ s , σ ⟧ [ g ].
+    (∃ T', ⌜ g !! s = Some T'⌝ ∧
+        ⟦ T ⟧ ≈[ n ] ⟦ T' ⟧ [ σ ])%I.
   Proof.
-    rewrite /interp_extractedTy /envD_equiv /=.
-    iIntros ((T' & -> & <- & HclT & HclT') ρ v <- Hclρ).
-    iSplit; iIntros "H"; [| iDestruct "H" as (T'' Heq) "?" ];
-      rewrite interp_subst_commute /subst_sigma //; naive_solver.
+    iIntros ((T' & -> & <- & HclT & HclT')). iExists _; iSplit => //.
+    iIntros (ρ v <- Hclρ). by rewrite interp_subst_commute /subst_sigma.
   Qed.
 
   (** envD_equiv commutes with substitution. *)
@@ -257,14 +255,16 @@ Section interp_equiv.
     T.|[to_subst ξ] ~[ n ] (g, (s2, σ2)) →
     length ξ = m →
     nclosed_σ ξ n →
-    ⟦ s1, σ1.|[to_subst ξ] ⟧ [ g ] ≈[ n ] ⟦ s2, σ2 ⟧ [ g ].
+    (∃ T1 T2, ⌜ g !! s1 = Some T1⌝ ∧ ⌜ g !! s2 = Some T2 ⌝ ∧
+    ⟦ T1 ⟧ [ σ1.|[to_subst ξ] ] ≈[ n ] ⟦ T2 ⟧ [ σ2 ])%I.
   Proof.
-    rewrite /interp_extractedTy; iIntros ((T1 & -> & Heq1 & Hclσ1 & HclT1) (T2 & -> & Heq2 & Hclσ2 & HclT2) Hlenξ Hclξ ρ v Hlenρ Hclρ) "/="; subst.
+    rewrite /interp_extractedTy; iIntros ((T1 & -> & Heq1 & Hclσ1 & HclT1) (T2 & -> & Heq2 & Hclσ2 & HclT2) Hlenξ Hclξ).
+    iExists _, _; repeat iSplit => //; iIntros (ρ v Hlenρ Hclρ) "/="; subst.
     assert (Hclσ1ξ: nclosed_σ σ1.|[to_subst ξ] (length ρ)). by apply nclosed_σ_to_subst.
     assert (Hrew: T2.|[to_subst σ2.|[to_subst ρ]] =
-                  T1.|[to_subst σ1.|[to_subst ξ].|[to_subst ρ]]). by repeat erewrite subst_compose_x; rewrite ?map_length ?Heq1 ?Heq2.
-    iSplit; iIntros "#H"; iDestruct "H" as (T' Heq) "?"; injection Heq; intros <-; iExists _;
-      iSplit => //; rewrite -(interp_subst_all _ T1) -?(interp_subst_all _ T2) ?Hrew //; by apply nclosed_σ_to_subst.
+                  T1.|[to_subst σ1.|[to_subst ξ].|[to_subst ρ]]). by repeat erewrite subst_compose_x;
+                                                                    rewrite ?map_length ?Heq1 ?Heq2.
+    rewrite -(interp_subst_all _ T1) -?(interp_subst_all _ T2) ?Hrew //; by apply nclosed_σ_to_subst.
   Qed.
 
 End interp_equiv.
