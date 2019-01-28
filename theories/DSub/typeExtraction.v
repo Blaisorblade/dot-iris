@@ -182,6 +182,10 @@ Proof.
     apply fv_to_subst; eauto. (* eauto with typeclass_instances. *)
 Qed.
 
+From iris.base_logic.lib Require Import gen_heap.
+
+Definition logN : namespace := nroot .@ "logN".
+
 Section interp_equiv.
   Context `{!dsubG Σ}.
 
@@ -204,13 +208,6 @@ Section interp_equiv.
     iSplit; iIntros "H"; [| iDestruct "H" as (T'' Heq) "?" ]; naive_solver.
   Qed.
 
-  (* Given a mapping from stamps to gnames, we can also define when a map is properly translated. *)
-  Definition wellMapped g (stampHeap: gmap stamp gname) : iProp Σ :=
-    (∀ s T γ ρ v,
-        ⌜ g !! s = Some T⌝ → ⌜ stampHeap !! s = Some γ⌝ →
-        ∃ P, γ ⤇ P ∧ ⟦ T ⟧ ρ v ≡ P ρ v)%I.
-  (* To give a definitive version of wellMapped, we need stampHeap to be stored in a resource. *)
-
   (** However, a stamp semantics that carries over to saved predicates must use
       σ in ρ. And the result is only equivalent for closed ρ with the expected length. *)
   Definition interp_extractedTy: (ty * vls) → envD :=
@@ -221,11 +218,6 @@ Section interp_equiv.
   Definition envD_equiv n φ1 φ2: iProp Σ :=
     (∀ ρ v, ⌜ length ρ = n ⌝ → ⌜ cl_ρ ρ ⌝ → φ1 ρ v ≡ φ2 ρ v)%I.
   Notation "φ1 ≈[  n  ] φ2" := (envD_equiv n φ1 φ2) (at level 70).
-
-  (* XXX I wanted to use ≡ not ↔ but I'm not sure how to prove this lemma: *)
-  (* Definition envD_equiv n φ1 φ2: iProp Σ := (∀ ρ v, ⌜ length ρ = n ⌝ → φ1 ρ v ≡ φ2 ρ v)%I. *)
-  Goal ∀ T (P : ty → iProp Σ), (P T ≡ ∃ T', ⌜Some T = Some T'⌝ ∧ P T')%I : iProp Σ.
-  Abort.
 
   (* Belongs in synLemmas. *)
   Lemma interp_subst_commute T σ ρ v:
@@ -267,4 +259,105 @@ Section interp_equiv.
     rewrite -(interp_subst_all _ T1) -?(interp_subst_all _ T2) ?Hrew //; by apply nclosed_σ_to_subst.
   Qed.
 
+  Notation "¬ P" := (□ (P → False))%I : bi_scope.
+  Notation "s ↦  γ" := (mapsto (hG := dsubG_interpNames) s 1 γ) (at level 20) : bi_scope.
+  Notation "s ⇨ γ" := (inv logN (s ↦ γ)%I) (at level 20) : bi_scope.
+  Global Instance: Timeless (s ↦ γ).
+  Proof. apply _. Qed.
+  Global Instance: Persistent (s ⇨ γ).
+  Proof. apply _. Qed.
+
+  Definition allGs gs := (gen_heap_ctx (hG := dsubG_interpNames) gs).
+  Arguments allGs /.
+
+  Lemma alloc_sp T: (|==> ∃ γ, γ ⤇ dsub_interp T)%I.
+  Proof. by apply saved_interp_alloc. Qed.
+
+  (*
+    Prove "transfer" theorems:
+    transferOne: s ↦ T → |==> s ↦ γ ∗ γ ⤇ ⟦ T ⟧
+    transfer: (2) map (1) over a gmap, someHow.
+   *)
+
+  Lemma transferOne_base_old gs: ∀ (sT : stamp * ty),
+      let '(s, T) := sT in
+      gs !! s = None → (allGs gs ==∗ ∃ γ, allGs (<[s:=γ]> gs) ∗ s ↦ γ ∗ γ ⤇ (λ ρ, ⟦ T ⟧ ρ))%I.
+  Proof.
+    iIntros ([s T] HsFresh) "Hown /=".
+    iMod (alloc_sp T) as (γ) "#Hγ".
+    iExists γ. iFrame "Hγ". by iApply gen_heap_alloc.
+  Qed.
+
+  Lemma transferOne_base_inv_old gs E: ∀ (sT : stamp * ty),
+      let '(s, T) := sT in
+      gs !! s = None → (allGs gs ={E}=∗ ∃ γ, allGs (<[s:=γ]> gs) ∗ (s ⇨ γ) ∗ γ ⤇ (λ ρ, ⟦ T ⟧ ρ))%I.
+  Proof.
+    iIntros ([s T] HsFresh) "Hown /=".
+    iMod (transferOne_base_old gs (s, T) HsFresh with "Hown") as (γ) "(Hgs & Hsγ & Hγ)".
+    iExists γ; iFrame. by iApply inv_alloc.
+  Qed.
+
+  Lemma transferOne_base_inv gs E: ∀ (sT : stamp * ty),
+      let '(s, T) := sT in
+      gs !! s = None → (allGs gs ={E}=∗ ∃ γ, allGs (<[s:=γ]> gs) ∗ (s ⇨ γ) ∗ γ ⤇ (λ ρ, ⟦ T ⟧ ρ))%I.
+  Proof.
+    iIntros ([s T] HsFresh) "Hown /=".
+    iMod (alloc_sp T) as (γ) "#Hγ".
+    iExists γ. iFrame "Hγ".
+    iMod (gen_heap_alloc _ s γ with "Hown") as "[$ Hsγ]" => //.
+    by iApply inv_alloc.
+  Qed.
+
+  (* Given a mapping from stamps to gnames, we can also define when a map is properly translated. *)
+  Definition wellMapped g (stampHeap: gmap stamp gname) : iProp Σ :=
+    (∀ s T ρ v,
+        ⌜ g !! s = Some T⌝ →
+        ∃ γ P, ⌜ stampHeap !! s = Some γ⌝ → γ ⤇ P ∧ ⟦ T ⟧ ρ v ≡ P ρ v)%I.
+
+  (* To give a definitive version of wellMapped, we need stampHeap to be stored in a resource. Here it is: *)
+  Definition wellMappedCtx g : iProp Σ :=
+    (□∀ s T ρ v,
+        ⌜ g !! s = Some T⌝ → ∃ γ P, s ⇨ γ ∗ γ ⤇ P ∧ ⟦ T ⟧ ρ v ≡ P ρ v)%I.
+  Instance: Persistent (wellMappedCtx g).
+  Proof. apply _. Qed.
+
+  Lemma transferOne gs E g: ∀ (sT : stamp * ty),
+      let '(s, T) := sT in
+      gs !! s = None → (wellMappedCtx g → allGs gs ={E}=∗ ∃ gs', wellMappedCtx (<[s := T]> g) ∧ allGs gs' ∧ ⌜gs ⊆ gs'⌝)%I.
+  Proof.
+    iIntros ([s T] HsFresh) "#Hg Hown /=".
+    iMod (transferOne_base_inv gs E (s, T) HsFresh with "Hown") as (γ) "(Hgs & #Hsγ & #Hγ)".
+    iExists ((<[s:=γ]> gs)); iModIntro; iFrame "Hgs".
+    iSplit; last (iPureIntro; by eapply insert_subseteq).
+    iIntros (s' T' ρ v Hlook) "!>".
+    destruct (decide (s = s')) as [<-|Hne].
+    - iExists γ, (dsub_interp T).
+      enough (T = T') as <- by by iFrame "Hsγ Hγ".
+      rewrite lookup_insert in Hlook. by injection Hlook.
+    - rewrite lookup_insert_ne //= in Hlook. by iApply "Hg".
+  Qed.
+
+  (* Not clearly needed. *)
+  Lemma transferOne_empty gs E: ∀ (sT : stamp * ty),
+      let '(s, T) := sT in
+      gs !! s = None → (allGs gs ={E}=∗ ∃ gs', wellMappedCtx (<[s := T]> ∅) ∧ allGs gs' ∧ ⌜gs ⊆ gs'⌝)%I.
+  Proof.
+    iIntros ([s T] HsFresh) "Hown /=".
+    iApply (transferOne gs E ∅ (s, T)) => //.
+    iIntros (s' T' ρ v Hlook); inverse Hlook.
+  Qed.
+
+  Definition wellMappedCtxList g : iProp Σ :=
+    (∀ s T ρ v,
+        ⌜ g !! s = Some T⌝ → ∃ γ P, s ⇨ γ ∗ γ ⤇ P ∧ ⟦ T ⟧ ρ v ≡ P ρ v)%I.
+
+  (* Lemma transferList glist gs g: (∀ s, s ∈ fmap fst glist → gs !! s = None) → (allGs gs ==∗ wellMappedCtx g)%I. *)
+
+  (* Lemma transfer g gs: ((∀ s, ⌜s ∈ gdom g⌝ -∗ ¬ ∃ γ, s ↦ γ) -∗ allGs gs ==∗ wellMappedCtx g)%I. *)
+  Lemma transfer g gs E: (∀ s, s ∈ gdom g → gs !! s = None) → (allGs gs ={E}=∗ wellMappedCtx g)%I.
+  Proof.
+    iIntros "/=" (H) "Hgs".
+    (* induction (NoDup_map_to_list g) as [|[p x] l Hpx]. *)
+    (* set (x := fmap (transferOne gs) map_to_list g). *)
+  Abort.
 End interp_equiv.
