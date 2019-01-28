@@ -11,7 +11,7 @@ Set Implicit Arguments.
 
 Definition stys := gmap stamp ty.
 
-Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx) (g: stys) (n: nat).
+Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx) (g: stys) (n: nat) (s: stamp).
 
 Definition gdom {X} (g: gmap stamp X) := dom (gset stamp) g.
 Arguments gdom /.
@@ -279,29 +279,10 @@ Section interp_equiv.
     transfer: (2) map (1) over a gmap, someHow.
    *)
 
-  Lemma transferOne_base_old gs: ∀ (sT : stamp * ty),
-      let '(s, T) := sT in
-      gs !! s = None → (allGs gs ==∗ ∃ γ, allGs (<[s:=γ]> gs) ∗ s ↦ γ ∗ γ ⤇ (λ ρ, ⟦ T ⟧ ρ))%I.
-  Proof.
-    iIntros ([s T] HsFresh) "Hown /=".
-    iMod (alloc_sp T) as (γ) "#Hγ".
-    iExists γ. iFrame "Hγ". by iApply gen_heap_alloc.
-  Qed.
-
-  Lemma transferOne_base_inv_old gs E: ∀ (sT : stamp * ty),
-      let '(s, T) := sT in
+  Lemma transferOne_base_inv gs E s T:
       gs !! s = None → (allGs gs ={E}=∗ ∃ γ, allGs (<[s:=γ]> gs) ∗ (s ⇨ γ) ∗ γ ⤇ (λ ρ, ⟦ T ⟧ ρ))%I.
   Proof.
-    iIntros ([s T] HsFresh) "Hown /=".
-    iMod (transferOne_base_old gs (s, T) HsFresh with "Hown") as (γ) "(Hgs & Hsγ & Hγ)".
-    iExists γ; iFrame. by iApply inv_alloc.
-  Qed.
-
-  Lemma transferOne_base_inv gs E: ∀ (sT : stamp * ty),
-      let '(s, T) := sT in
-      gs !! s = None → (allGs gs ={E}=∗ ∃ γ, allGs (<[s:=γ]> gs) ∗ (s ⇨ γ) ∗ γ ⤇ (λ ρ, ⟦ T ⟧ ρ))%I.
-  Proof.
-    iIntros ([s T] HsFresh) "Hown /=".
+    iIntros (HsFresh) "Hown /=".
     iMod (alloc_sp T) as (γ) "#Hγ".
     iExists γ. iFrame "Hγ".
     iMod (gen_heap_alloc _ s γ with "Hown") as "[$ Hsγ]" => //.
@@ -309,24 +290,26 @@ Section interp_equiv.
   Qed.
 
   (* Given a mapping from stamps to gnames, we can also define when a map is properly translated. *)
-  Definition wellMapped g (stampHeap: gmap stamp gname) : iProp Σ :=
-    (∀ s T ρ v,
-        ⌜ g !! s = Some T⌝ →
-        ∃ γ P, ⌜ stampHeap !! s = Some γ⌝ → γ ⤇ P ∧ ⟦ T ⟧ ρ v ≡ P ρ v)%I.
+  (* Definition wellMapped g (stampHeap: gmap stamp gname) : iProp Σ := *)
+  (*   (∀ s T ρ v, *)
+  (*       ⌜ g !! s = Some T⌝ → *)
+  (*       ∃ γ P, ⌜ stampHeap !! s = Some γ⌝ → γ ⤇ P ∧ ⟦ T ⟧ ρ v ≡ P ρ v)%I. *)
 
   (* To give a definitive version of wellMapped, we need stampHeap to be stored in a resource. Here it is: *)
-  Definition wellMappedCtx g : iProp Σ :=
+  Definition wellMapped g : iProp Σ :=
     (□∀ s T ρ v,
         ⌜ g !! s = Some T⌝ → ∃ γ P, s ⇨ γ ∗ γ ⤇ P ∧ ⟦ T ⟧ ρ v ≡ P ρ v)%I.
-  Instance: Persistent (wellMappedCtx g).
+  Instance: Persistent (wellMapped g).
   Proof. apply _. Qed.
 
-  Lemma transferOne gs E g: ∀ (sT : stamp * ty),
-      let '(s, T) := sT in
-      gs !! s = None → (wellMappedCtx g → allGs gs ={E}=∗ ∃ gs', wellMappedCtx (<[s := T]> g) ∧ allGs gs' ∧ ⌜gs ⊆ gs'⌝)%I.
+  (** We can transfer one mapping from [g] into Iris resources. Note that [gs ⊆
+      gs'] in the outpu might not be ultimately needed; that's enforced indirectly
+      by both wellMapped and by invariants. *)
+  Lemma transferOne gs E g s T:
+      gs !! s = None → (wellMapped g → allGs gs ={E}=∗ ∃ gs', wellMapped (<[s := T]> g) ∧ allGs gs' ∧ ⌜gs ⊆ gs'⌝)%I.
   Proof.
-    iIntros ([s T] HsFresh) "#Hg Hown /=".
-    iMod (transferOne_base_inv gs E (s, T) HsFresh with "Hown") as (γ) "(Hgs & #Hsγ & #Hγ)".
+    iIntros (HsFresh) "#Hg Hown /=".
+    iMod (transferOne_base_inv gs E s T HsFresh with "Hown") as (γ) "(Hgs & #Hsγ & #Hγ)".
     iExists ((<[s:=γ]> gs)); iModIntro; iFrame "Hgs".
     iSplit; last (iPureIntro; by eapply insert_subseteq).
     iIntros (s' T' ρ v Hlook) "!>".
@@ -338,23 +321,30 @@ Section interp_equiv.
   Qed.
 
   (* Not clearly needed. *)
-  Lemma transferOne_empty gs E: ∀ (sT : stamp * ty),
-      let '(s, T) := sT in
-      gs !! s = None → (allGs gs ={E}=∗ ∃ gs', wellMappedCtx (<[s := T]> ∅) ∧ allGs gs' ∧ ⌜gs ⊆ gs'⌝)%I.
+  Lemma transferOne_empty gs E s T:
+      gs !! s = None → (allGs gs ={E}=∗ ∃ gs', wellMapped (<[s := T]> ∅) ∧ allGs gs' ∧ ⌜gs ⊆ gs'⌝)%I.
   Proof.
-    iIntros ([s T] HsFresh) "Hown /=".
-    iApply (transferOne gs E ∅ (s, T)) => //.
+    iIntros (HsFresh) "Hown /=".
+    iApply (transferOne gs E ∅ s T) => //.
     iIntros (s' T' ρ v Hlook); inverse Hlook.
   Qed.
 
-  Definition wellMappedCtxList g : iProp Σ :=
+  (** Next, I must prove that we can map transferOne over [gmap g], ensuring
+      [wellMapped g]. To this end, I suspect we must convert [g] to a list using
+      [map_to_list], prove that list contains no duplicate keys (maybe using
+      [NoDup_map_to_list], or maybe actually extracting the set of keys)
+      and use induction on that list.
+      For the induction, we need a variant of wellMapped taking a list instead of  *)
+
+  Definition wellMappedList (glist: list (stamp * ty)) : iProp Σ :=
     (∀ s T ρ v,
-        ⌜ g !! s = Some T⌝ → ∃ γ P, s ⇨ γ ∗ γ ⤇ P ∧ ⟦ T ⟧ ρ v ≡ P ρ v)%I.
+        ⌜ (s, T) ∈ glist ⌝ → ∃ γ P, s ⇨ γ ∗ γ ⤇ P ∧ ⟦ T ⟧ ρ v ≡ P ρ v)%I.
 
-  (* Lemma transferList glist gs g: (∀ s, s ∈ fmap fst glist → gs !! s = None) → (allGs gs ==∗ wellMappedCtx g)%I. *)
+  Lemma transferList glist gs E: (∀ s, s ∈ fmap fst glist → gs !! s = None) → (allGs gs ={E}=∗ wellMappedList glist)%I.
+  Abort.
 
-  (* Lemma transfer g gs: ((∀ s, ⌜s ∈ gdom g⌝ -∗ ¬ ∃ γ, s ↦ γ) -∗ allGs gs ==∗ wellMappedCtx g)%I. *)
-  Lemma transfer g gs E: (∀ s, s ∈ gdom g → gs !! s = None) → (allGs gs ={E}=∗ wellMappedCtx g)%I.
+  (* Lemma transfer g gs: ((∀ s, ⌜s ∈ gdom g⌝ -∗ ¬ ∃ γ, s ↦ γ) -∗ allGs gs ==∗ wellMapped g)%I. *)
+  Lemma transfer g gs E: (∀ s, s ∈ gdom g → gs !! s = None) → (allGs gs ={E}=∗ wellMapped g)%I.
   Proof.
     iIntros "/=" (H) "Hgs".
     (* induction (NoDup_map_to_list g) as [|[p x] l Hpx]. *)
