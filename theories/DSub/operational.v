@@ -101,7 +101,6 @@ From iris.base_logic.lib Require Import gen_heap.
 Class dsubG Σ := DsubG {
   dsubG_invG : invG Σ;
   dsubG_savior :> savedAnythingG Σ (vls -c> vl -c> ▶ ∙);
-  dsubG_types : gen_heapG stamp ty Σ;
   dsubG_interpNames : gen_heapG stamp gname Σ;
 }.
 
@@ -114,7 +113,6 @@ Instance dsubG_irisG `{dsubG Σ} : irisG dsub_lang Σ := {
 Class dsubPreG Σ := DsubPreG {
   dsubPreG_invG : invPreG Σ;
   dsubPreG_savior :> savedAnythingG Σ (vls -c> vl -c> ▶ ∙);
-  dsubPreG_types : gen_heapPreG stamp ty Σ;
   dsubPreG_interpNames : gen_heapPreG stamp gname Σ;
 }.
 
@@ -205,30 +203,28 @@ entries.
 
 That is, for each type definition [vty T] in [x], we have [vstamp vs s] in [x'],
 with [s] pointing to [T'] where [T] stamps to [T'.|[to_subst vs]], and where
-initially [length vs = n].
+[nclosed T' (length vs)].
 
-After translation [vs = idsσ n], but if [σ] stamps to [σ'] and [x] to [x'], we want
-(x.|[σ]) to stamp to (x'.|[σ']).
+After translation [vs = idsσ n], but if [ξ] stamps to [ξ'] and [x] to [x'], we want
+(x.|[ξ]) to stamp to (x'.|[ξ']).
 
 Currently, there's a bug and the map contained unstamped [T], but that can be
 fixed.
 
 Finally, a persistent Iris predicate tells that entries [s -> T] in [g] are
 properly reflected in Iris [s ↦ φ], where ⟦ T ⟧ and φ are related by a suitable
-relation.
+relation. That relation means that [∀ ρ v, ⟦ T ⟧ ρ v ≡ φ ρ v].
 
-That relation means that [∀ ρ v, length ρ = n → ⟦ T ⟧ ρ v ≡ φ vs v] (and maybe
-more?). It's not clear where [n] goes; probably in the map. This is a family of
+This is a family of
 relations, one for each [n]; each of those relation seems to be a quasi-PER, an
 asymmetric zig-zag relation which induces PERs (in fact, here equivalences) on
 source and target:
 on source [∀ ρ v, length ρ = n → ⟦ T1 ⟧ ρ v ≡ ⟦ T2 ⟧ ρ v].
 on target [∀ ρ v, length ρ = n → φ1 ρ v ≡ φ2 ρ v].
-
 That is, if T n-relates to [φ1] and to [φ2], then [φ1] and [φ2] are related by
 the target relation.
 
-In the current translation we require a stronger, if [x] n-stamps to [x1] and
+In the current translation we require a stronger relation, if [x] n-stamps to [x1] and
 [x2], types in [x1] and [x2] are equivalent in this sense. Beware that if [x]
 stamps to [x1] and [x2] but with different [n]s, types [x1] and [x2] are not
 necessarily related.
@@ -245,8 +241,8 @@ happen at translation time.
 
 XXX
 Does substitution commute with translation at different times?
-What happens if we we stamp [x.[σ1]] to get [x1], or we stamp [x] to [x2] and
-then substitute in it to get [x1.|[σ2]], assuming [σ1] stamps to [σ2]?
+What happens if we we stamp [x.[ξ1]] to get [x1], or we stamp [x] to [x2] and
+then substitute in it to get [x1.|[ξ2]], assuming [ξ1] stamps to [ξ2]?
 Those are probably related in a suitable sense, tho that'd be a different
 theorem from what we're needing yet; plus, the relation needs to use substitution.
 If [x1] contains [vstamp s1 vs1] with [s1 -> T1] and [x2] contains [vstamp s2
