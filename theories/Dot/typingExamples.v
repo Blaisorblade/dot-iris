@@ -66,9 +66,9 @@ Check (pv (var_vl 0) @; 1).
 Check (pself (pself (pv (var_vl 0)) 1) 2 @; 3).
 Check (var_vl 0 @ 1 @ 2 @; 3).
 
-Example ex0 e Γ T:
-  Γ ⊢ₜ e : T →
-  Γ ⊢ₜ e : TTop.
+Example ex0 e Γ T i:
+  Γ ⊢ₜ e : T, i →
+  Γ ⊢ₜ e : TTop, i.
 Proof.
   (* eauto 2. *)
   econstructor. apply Top_stp. eassumption.
@@ -80,7 +80,7 @@ Qed.
 Local Notation "Γ ⊢ds ds : T"  := (dms_typed Γ ds T) (at level 74, ds, T at next level).
 
 Example ex1 Γ n T:
-  Γ ⊢ₜ tv (ν {@ val = vnat n}) : μ {@ val 0 : TNat }.
+  Γ ⊢ₜ tv (ν {@ val = vnat n}) : μ {@ val 0 : TNat }, 0.
 Proof.
   (* Help proof search: *)
   apply VObj_typed. (* Avoid trying TMuI_typed, that's slow. *)
@@ -106,7 +106,7 @@ Qed.
 
 Example ex2 Γ T:
   Γ ⊢ₜ tv (vobj [dtysyn (TSel (pv (var_vl 0)) 0)]) :
-    TMu (TAnd TTop (TTMem 0 TBot TTop)).
+    TMu (TAnd TTop (TTMem 0 TBot TTop)), 0.
 Proof.
   apply VObj_typed.
   econstructor => //=.
@@ -119,7 +119,7 @@ Definition F3 T :=
 
 Example ex3 Γ T:
   Γ ⊢ₜ tv (ν {@ type = (F3 (TSel (pv (var_vl 0)) 0)) } ) :
-    F3 (F3 (TSel (pv (var_vl 0)) 0)).
+    F3 (F3 (TSel (pv (var_vl 0)) 0)), 0.
 Proof.
   apply VObj_typed. (* Avoid trying TMuI_typed, that's slow. *)
   econstructor => //=.
@@ -144,7 +144,7 @@ Print F4.
 
 Example ex4 Γ T:
   Γ ⊢ₜ tv (ν {@ val = var_vl 0; type = TSel (pv (var_vl 0)) 0 }) :
-    F4 (F4 (TSel (pv (var_vl 0)) 0)).
+    F4 (F4 (TSel (pv (var_vl 0)) 0)), 0.
 Abort.
 (*     (* TMu (TAnd (TAnd TTop (TTMem 0 ?))  *) *)
 (*     (*                      (TVMem 1 (TSel (pv (var_vl 0)) 0))). *) *)

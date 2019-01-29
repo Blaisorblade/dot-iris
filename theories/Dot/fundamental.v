@@ -21,21 +21,21 @@ Section fundamental.
       (and probably add hypotheses to that effect). *)
   (* XXX lift translation and is_syn to contexts. Show that syntactic typing
      implies is_syn and closure. Stop talking about free variables inside is_syn? *)
-  Lemma typed_tm_is_syn Γ e T:
-    Γ ⊢ₜ e : T →
+  Lemma typed_tm_is_syn Γ e T i:
+    Γ ⊢ₜ e : T, i →
     is_syn_tm e.
   Admitted.
 
-  Lemma typed_ty_is_syn Γ e T:
-    Γ ⊢ₜ e : T →
+  Lemma typed_ty_is_syn Γ e T i:
+    Γ ⊢ₜ e : T, i →
     is_syn_ty T.
   Admitted.
 
   (* Check all types are syntactic. *)
   Definition is_syn_ctx Γ := Forall is_syn_ty Γ.
 
-  Lemma typed_ctx_is_syn Γ e T:
-    Γ ⊢ₜ e : T →
+  Lemma typed_ctx_is_syn Γ e T i:
+    Γ ⊢ₜ e : T, i →
     is_syn_ctx Γ.
   Admitted.
 
@@ -274,12 +274,13 @@ Section fundamental.
     - admit.
   Admitted.
 
-  Lemma translations_types_equivalent e T T' T'' Γ:
-    (t_ty T T' → t_ty T T'' → Γ ⊨ e : T' → Γ ⊨ e : T'' )%I.
+  Lemma translations_types_equivalent e T T' T'' Γ i:
+    (t_ty T T' → t_ty T T'' → Γ ⊨ e : T', i → Γ ⊨ e : T'', i )%I.
   Proof.
-    iIntros "#A #B #[% #C] /="; iSplit => //. iIntros (ρ) "!> #D".
+    iIntros "#A #B #[% #HeT'] /="; iSplit => //. iIntros (ρ) "!> #HG".
     rewrite /interp_expr /=.
-    iApply wp_strong_mono => //. { by iApply "C". }
+    iSpecialize ("HeT'" with "HG"). iModIntro.
+    iApply wp_strong_mono => //.
     iIntros (v) "HT' !>". by iApply (translations_types_equivalent_vals T T' T'').
   Qed.
 
@@ -298,9 +299,9 @@ Section fundamental.
   Admitted.
   (* But I guess we'll we actually need to say that two substitutions translate each other. *)
 
-  Fixpoint not_yet_fundamental Γ e T e' T' (HT: Γ ⊢ₜ e : T) {struct HT}:
+  Fixpoint not_yet_fundamental Γ e T e' T' i (HT: Γ ⊢ₜ e : T, i) {struct HT}:
   (* Lemma not_yet_fundamental Γ e T e' T' (HT: Γ ⊢ₜ e : T): *)
-    (t_tm e e' → t_ty T T' → |==> Γ ⊨ e' : T')%I.
+    (t_tm e e' → t_ty T T' → |==> Γ ⊨ e' : T', i)%I.
   Proof.
     iIntros "#HtrE #HtrT".
     (* destruct HT. *)
