@@ -129,7 +129,7 @@ Section Sec.
     iApply wp_pure_step_later; trivial. iNext.
     iApply wp_mono; [|iApply "Hv"]; auto.
     iIntros (v0) "#H".
-    by iApply (interp_weaken_one w).
+    by iApply interp_weaken_one.
   Qed.
 
   Lemma T_Forall_Ex e1 v2 T1 T2:
@@ -157,7 +157,7 @@ Section Sec.
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2)%I.
   Proof.
-    iIntros "/= #[% HeT]". move: H => Hcle.
+    iIntros "/= #[% #HeT]". move: H => Hcle.
     iSplit; eauto using fv_tv, fv_vabs.
     iIntros " !> * #HG".
     iPoseProof (interp_env_ρ_closed with "HG") as "%". move: H => Hclρ.
@@ -179,7 +179,7 @@ Section Sec.
     replace (e.|[up (to_subst ρ)].|[v/]) with (e.|[to_subst (v :: ρ)]) by by asimpl.
     iApply "HeT".
     iFrame "HG".
-    by iApply (interp_weaken_one v).
+    by iApply interp_weaken_one.
   Qed.
 
   Lemma T_Mem_E e T l:

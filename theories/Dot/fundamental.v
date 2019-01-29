@@ -277,8 +277,8 @@ Section fundamental.
   Lemma translations_types_equivalent e T T' T'' Γ:
     (t_ty T T' → t_ty T T'' → Γ ⊨ e : T' → Γ ⊨ e : T'' )%I.
   Proof.
-    iIntros "#A #B #[% C] /="; iSplit => //. iIntros (ρ) "!> #D".
-    unfold interp_expr. simpl.
+    iIntros "#A #B #[% #C] /="; iSplit => //. iIntros (ρ) "!> #D".
+    rewrite /interp_expr /=.
     iApply wp_strong_mono => //. { by iApply "C". }
     iIntros (v) "HT' !>". by iApply (translations_types_equivalent_vals T T' T'').
   Qed.
