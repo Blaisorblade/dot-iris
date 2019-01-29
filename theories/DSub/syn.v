@@ -185,8 +185,7 @@ Instance Rename_tm : Rename tm := tm_rename.
 Instance Rename_vl : Rename vl := vl_rename.
 Instance Rename_ty : Rename ty := ty_rename.
 
-Lemma list_rename_fold `{Rename X} (sb : var → var) (xs : list X) : map (rename sb) xs = rename sb xs.
-Proof. trivial. Qed.
+Definition list_rename_fold `{Rename X} (sb : var → var) (xs : list X) : map (rename sb) xs = rename sb xs := eq_refl.
 
 Definition vls_rename_fold: ∀ sb vs, map (rename sb) vs = rename sb vs := list_rename_fold.
 Definition ctx_rename_fold: ∀ sb Γ, map (rename sb) Γ = rename sb Γ := list_rename_fold.
@@ -248,11 +247,8 @@ Hint Mode HSubst - + : typeclass_instances.
 (* Fail Goal ∀ s x, x.|[s] = x. *)
 (* Goal ∀ s (x: ty) , x.|[s] = x. Abort. *)
 
-Lemma vls_subst_fold (sb : var → vl) (vs : vls) : map (subst sb) vs = hsubst sb vs.
-Proof. trivial. Qed.
-
-Lemma list_hsubst_fold `{HSubst vl X} sb (xs : list X) : map (hsubst sb) xs = hsubst sb xs.
-Proof. trivial. Qed.
+Definition vls_subst_fold (sb : var → vl) (vs : vls) : map (subst sb) vs = hsubst sb vs := eq_refl.
+Definition list_hsubst_fold `{HSubst vl X} sb (xs : list X) : map (hsubst sb) xs = hsubst sb xs := eq_refl.
 
 Hint Rewrite vls_subst_fold @list_hsubst_fold : autosubst.
 
@@ -276,16 +272,16 @@ Instance tm_eq_dec' : EqDecision tm := tm_eq_dec.
 Instance ty_eq_dec' : EqDecision ty := ty_eq_dec.
 Instance vls_eq_dec' : EqDecision vls := list_eq_dec.
 
+Local Ltac finish_lists l x :=
+  elim: l => [|x xs IHds] //=; by f_equal.
+
 Lemma vl_rename_Lemma (ξ : var → var) (v : vl) : rename ξ v = v.[ren ξ]
 with
 tm_rename_Lemma (ξ : var → var) (t : tm) : rename ξ t = t.|[ren ξ]
 with
 ty_rename_Lemma (ξ : var → var) (T : ty) : rename ξ T = T.|[ren ξ].
 Proof.
-  all: (destruct v || destruct t || destruct T);
-    simpl;
-      rewrite ?up_upren_internal; f_equal; trivial;
-        elim l => * /=; f_equal; trivial.
+  all: destruct 0; rewrite /= ?up_upren_internal; f_equal => //; finish_lists l x.
 Qed.
 
 Lemma vl_ids_Lemma (v : vl) : v.[ids] = v
@@ -294,10 +290,7 @@ tm_ids_Lemma (t : tm) : t.|[ids] = t
 with
 ty_ids_Lemma (T : ty) : T.|[ids] = T.
 Proof.
-  all: (destruct v || destruct t || destruct T);
-    simpl; f_equal; trivial;
-      rewrite ?up_id_internal; trivial;
-        elim l => * /=; f_equal; trivial.
+  all: destruct 0; rewrite /= ?up_id_internal; f_equal => //; finish_lists l x.
 Qed.
 
 Lemma vl_comp_rename_Lemma (ξ : var → var) (σ : var → vl) (v : vl) :
@@ -309,10 +302,7 @@ with
 ty_comp_rename_Lemma (ξ : var → var) (σ : var → vl) (T : ty) :
   (rename ξ T).|[σ] = T.|[ξ >>> σ].
 Proof.
-  all: (destruct v || destruct t || destruct T);
-    simpl; f_equal; trivial;
-      rewrite 1? up_comp_ren_subst; trivial;
-        elim l => * /=; by f_equal.
+  all: destruct 0; rewrite /= 1? up_comp_ren_subst; f_equal => //; finish_lists l x.
 Qed.
 
 Lemma vl_rename_comp_Lemma (σ : var → vl) (ξ : var → var) (v : vl) :
@@ -324,11 +314,8 @@ with
 ty_rename_comp_Lemma (σ : var → vl) (ξ : var → var) (T : ty) :
   rename ξ T.|[σ] = T.|[σ >>> rename ξ].
 Proof.
-  all: (destruct v || destruct t || destruct T);
-    simpl; f_equal; trivial;
-      rewrite 1? up_comp_subst_ren_internal;
-      auto using vl_rename_Lemma, vl_comp_rename_Lemma;
-      elim l => * /=; by f_equal.
+  all: destruct 0; rewrite /= ? up_comp_subst_ren_internal; f_equal => //;
+    auto using vl_rename_Lemma, vl_comp_rename_Lemma; finish_lists l x.
 Qed.
 
 Lemma vl_comp_Lemma (σ τ : var → vl) (v : vl) : v.[σ].[τ] = v.[σ >> τ]
@@ -337,11 +324,8 @@ tm_comp_Lemma (σ τ : var → vl) (t : tm) : t.|[σ].|[τ] = t.|[σ >> τ]
 with
 ty_comp_Lemma (σ τ : var → vl) (T : ty) : T.|[σ].|[τ] = T.|[σ >> τ].
 Proof.
-  all: (destruct v || destruct t || destruct T);
-    simpl; f_equal; trivial;
-      rewrite 1? up_comp_internal; auto using vl_rename_comp_Lemma, vl_comp_rename_Lemma;
-        auto using vl_rename_comp_Lemma, vl_comp_rename_Lemma;
-        elim l => * /=; by f_equal.
+  all: destruct 0; rewrite /= ? up_comp_internal; f_equal;
+    auto using vl_rename_comp_Lemma, vl_comp_rename_Lemma; finish_lists l x.
 Qed.
 
 Instance SubstLemmas_vl : SubstLemmas vl.
