@@ -3,7 +3,7 @@ From D.Dot Require Import dotsyn.
 
 Reserved Notation "Γ ⊢ₜ e : T , i" (at level 74, e, T at next level).
 Reserved Notation "Γ ⊢ₚ p : T , i" (at level 74, p, T, i at next level).
-Reserved Notation "Γ ⊢ { l = d } : T" (at level 64, l, d, T at next level).
+Reserved Notation "Γ ⊢d d : T" (at level 64, d, T at next level).
 Reserved Notation "Γ ⊢ds ds : T" (at level 74, ds, T at next level).
 Reserved Notation "Γ ⊢ₜ T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
 
@@ -76,22 +76,24 @@ Inductive typed Γ: tm → ty → nat → Prop :=
     Γ ⊢ₜ t : TAnd T1 T2, i
 with dms_typed Γ: dms → ty → Prop :=
 | dnil_typed : Γ ⊢ds [] : TTop
+(* This demands definitions and members to be defined in aligned lists. I think
+   we want more freedom, just like in the logical relation? *)
 | dcons_typed l d ds T1 T2 :
-    Γ ⊢ds ds : T1 →
-    l = length ds →
-    Γ ⊢ { l = d } : T2 →
+    Γ ⊢d d : T1 →
+    Γ ⊢ds ds : T2 →
+    dms_hasnt ds l →
+    label_of_ty T1 = Some l →
     (*──────────────────────*)
-    Γ ⊢ds d :: ds : TAnd T1 T2
-
-with dm_typed Γ : label → dm → ty → Prop :=
+    Γ ⊢ds (l, d) :: ds : TAnd T1 T2
+with dm_typed Γ : dm → ty → Prop :=
 | dty_typed l L T U:
     Γ ⊢ₜ L, 0 <: U, 0 →
     Γ ⊢ₜ L, 1 <: T, 1 →
     Γ ⊢ₜ T, 1 <: U, 1 →
-    Γ ⊢ { l = dtysyn T } : TTMem l L U
+    Γ ⊢d dtysyn T : TTMem l L U
 | dvl_typed l v T:
     Γ ⊢ₜ tv v : TLater T, 0 →
-    Γ ⊢ { l = dvl v } : TVMem l T
+    Γ ⊢d dvl v : TVMem l T
 with path_typed Γ: path → ty → nat → Prop :=
 | pv_typed v T i:
     Γ ⊢ₜ tv v : T, i →
@@ -194,5 +196,5 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 where "Γ ⊢ₜ e : T , i" := (typed Γ e T i)
 and "Γ ⊢ₚ p : T , i" := (path_typed Γ p T i)
 and "Γ ⊢ds ds : T" := (dms_typed Γ ds T)
-and "Γ ⊢ { l = d } : T" := (dm_typed Γ l d T)
+and "Γ ⊢d d : T" := (dm_typed Γ d T)
 and "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).

@@ -44,9 +44,9 @@ Section fundamental.
     iIntros "#H".
     cbn; fold t_dm t_dms.
     (* remember t_dms as t_ds eqn:Heqt. unfold t_dms in Heqt. rewrite -Heqt. fold t_dms in Heqt. rewrite Heqt. *)
-    iInduction ds as [] "IHds" forall (ds'); destruct ds' => //.
+    iInduction ds as [|(l, d) ds] "IHds" forall (ds'); destruct ds' as [| (l', d') ds' ]=> //.
                                       cbn; fold t_dms.
-                                      iDestruct "H" as "[Hd Hds]".
+                                      iDestruct "H" as "[% [Hd Hds]]".
                                         by iPoseProof ("IHds" with "Hds") as "<-".
   Qed.
 
@@ -61,9 +61,9 @@ Section fundamental.
     iIntros (Hlook1 Hlook2) "#HTr".
     inversion Hlook1 as (ds1 & -> & Hl1).
     inversion Hlook2 as (ds2 & -> & Hl2).
-    rewrite lookup_reverse_indexr in Hl1.
-    rewrite lookup_reverse_indexr in Hl2.
-    iInduction ds1 as [| dh1 ds1] "IHds" forall (ds2 Hlook2 Hl2); destruct ds2 as [|dh2 ds2]=>//.
+    (* rewrite lookup_reverse_indexr in Hl1. *)
+    (* rewrite lookup_reverse_indexr in Hl2. *)
+    iInduction ds1 as [| (l1, dh1) ds1] "IHds" forall (ds2 Hlook2 Hl2); destruct ds2 as [|(l2, dh2) ds2]=>//.
     iPoseProof (transl_len with "HTr") as "%". move: H => Hlen.
     injection Hlen; clear Hlen; intro Hlen.
     cbn in *; fold t_dm t_dms.
@@ -84,14 +84,15 @@ Section fundamental.
     destruct v => //.
     iPoseProof (transl_len with "HTr1") as "%". move: H => Hlen1.
     iPoseProof (transl_len with "HTr2") as "%". move: H => Hlen2.
-    assert (∃ d, reverse (selfSubst l0) !! l = Some d) as [d Hl]. {
-      apply lookup_lt_is_Some_2.
-      rewrite reverse_length selfSubst_len Hlen1 -selfSubst_len -reverse_length.
-      eapply lookup_lt_is_Some_1. rewrite Hl1; eauto.
+    assert (∃ d, dms_lookup l (selfSubst l0) = Some d) as [d Hl]. {
+      (* (* apply lookup_lt_is_Some_2. *) *)
+      (* rewrite reverse_length selfSubst_len Hlen1 -selfSubst_len -reverse_length. *)
+      (* eapply lookup_lt_is_Some_1. rewrite Hl1; eauto. *)
+      admit.
     }
     assert (vobj l0 @ l ↘ d). by exists l0.
     iExists d. repeat iSplit => //; by iApply transl_lookup_commute'.
-  Qed.
+  Admitted.
 
   Lemma lookups_agree v0 v1 v2 ρ σ1 σ2 γ1 γ2 φ1  l:
     v1.[to_subst ρ] @ l ↘ dtysem σ1 γ1 → v2.[to_subst ρ] @ l ↘ dtysem σ2 γ2 →

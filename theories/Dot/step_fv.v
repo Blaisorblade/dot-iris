@@ -26,31 +26,34 @@ Section nclosed_prim_step.
     nclosed ds (S n) → nclosed (selfSubst ds) n.
   Proof. move => Hcl. by apply nclosed_subst, fv_vobj. Qed.
 
-  Lemma fv_head d ds n: nclosed (d :: ds) n → nclosed d n.
+  Lemma fv_head l d ds n: nclosed ((l, d) :: ds) n → nclosed d n.
   Proof. solve_inv_fv_congruence. Qed.
   Hint Resolve fv_head: fvl.
 
-  Lemma fv_tail d ds n: nclosed (d :: ds) n → nclosed ds n.
+  Lemma fv_tail l d ds n: nclosed ((l, d) :: ds) n → nclosed ds n.
   Proof. solve_inv_fv_congruence. Qed.
   Hint Resolve fv_tail: fvl.
   Hint Resolve fv_dms_cons: fvl.
 
-  Lemma nclosed_rev_append (ds1 ds2: dms) n: nclosed ds1 n → nclosed ds2 n → nclosed (rev_append ds1 ds2) n.
+  (* Lemma nclosed_rev_append (ds1 ds2: dms) n: nclosed ds1 n → nclosed ds2 n → nclosed (rev_append ds1 ds2) n. *)
+  (* Proof. *)
+  (*   elim: ds1 ds2 => [|d1 ds1 IHds1] //= ds2 Hcl1 Hcl2. *)
+  (*   assert (Hcld1: nclosed d1 n) by eauto with fvl. *)
+  (*   assert (Hclds1: nclosed ds1 n) by eauto with fvl. *)
+  (*   by apply IHds1, fv_dms_cons. *)
+  (* Qed. *)
+
+  (* Lemma nclosed_reverse ds n: nclosed ds n → nclosed (reverse ds) n. *)
+  (* Proof. move => Hcl. by apply nclosed_rev_append. Qed. *)
+
+  Lemma nclosed_lookup ds d n l: nclosed ds n → dms_lookup l ds = Some d → nclosed d n.
   Proof.
-    elim: ds1 ds2 => [|d1 ds1 IHds1] //= ds2 Hcl1 Hcl2.
-    assert (Hcld1: nclosed d1 n) by eauto with fvl.
-    assert (Hclds1: nclosed ds1 n) by eauto with fvl.
-    by apply IHds1, fv_dms_cons.
+    elim: ds => [|[l' d'] ds IHds] Hcl //= Heq.
+    case_decide; simplify_eq; eauto with fvl.
   Qed.
 
-  Lemma nclosed_reverse ds n: nclosed ds n → nclosed (reverse ds) n.
-  Proof. move => Hcl. by apply nclosed_rev_append. Qed.
-
-  Lemma nclosed_lookup ds d n l: nclosed ds n → ds !! l = Some d → nclosed d n.
-  Proof. elim: ds l => [|d' ds IHds] [|l] //= Hcl Heq; simplify_eq; eauto with fvl. Qed.
-
   Lemma nclosed_proj ds l v n:
-    reverse (selfSubst ds) !! l = Some (dvl v) →
+    dms_lookup l (selfSubst ds) = Some (dvl v) →
     nclosed (tproj (tv (vobj ds)) l) n →
     nclosed (tv v) n.
   Proof.
@@ -58,7 +61,7 @@ Section nclosed_prim_step.
     assert (Hclt1: nclosed ds (S n)) by eauto with fv.
     apply fv_tv.
     enough (nclosed (dvl v) n) by eauto with fv.
-    eapply nclosed_lookup => //. by eapply nclosed_reverse, nclosed_selfSubst.
+    eapply nclosed_lookup => //. by eapply nclosed_selfSubst.
   Qed.
 
   Theorem nclosed_head_step t1 t2 σ σ' ts n:

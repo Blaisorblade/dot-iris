@@ -180,7 +180,7 @@ Proof. solve_fv_congruence. Qed.
 Lemma fv_dtysem ρ γ l: nclosed ρ l → nclosed (dtysem ρ γ) l.
 Proof. solve_fv_congruence. Qed.
 
-Definition fv_dms_cons : ∀ d ds n, nclosed ds n → nclosed d n → nclosed (d :: ds) n := fv_cons.
+Definition fv_dms_cons : ∀ l d ds n, nclosed ds n → nclosed d n → nclosed ((l, d) :: ds) n := fv_pair_cons.
 
 Lemma fv_vls_cons v vs n: nclosed vs n → nclosed_vl v n → nclosed (v :: vs) n.
 Proof. solve_fv_congruence. Qed.
@@ -225,7 +225,7 @@ Proof.
 Qed.
 
 (* The proof of this lemma needs asimpl and hence is expensive. *)
-Lemma fv_vobj_ds_inv d ds n: nclosed_vl (vobj (d :: ds)) n → nclosed_vl (vobj ds) n.
+Lemma fv_vobj_ds_inv l d ds n: nclosed_vl (vobj ((l, d) :: ds)) n → nclosed_vl (vobj ds) n.
 Proof. solve_inv_fv_congruence. Qed.
 
 Lemma fv_tv_inv v n: nclosed (tv v) n → nclosed_vl v n.

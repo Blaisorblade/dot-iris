@@ -42,6 +42,26 @@ Implicit Types
          (T: ty) (v: vl) (t e: tm) (d: dm) (ds: dms) (vs: vls)
          (Γ : ctx).
 
+Definition label_of_ty (T: ty): option label :=
+  match T with
+  | TTMem l _ _ => Some l
+  | TVMem l _ => Some l
+  | _ => None
+  end.
+
+Fixpoint dms_lookup (l : label) (ds : dms): option dm :=
+  match ds with
+  | [] => None
+  | (l', d) :: ds =>
+    match (decide (l = l')) with
+    | left Heq => Some d
+    | right _ => dms_lookup l ds
+    end
+  end.
+
+Definition dms_has ds l d := dms_lookup l ds = Some d.
+Definition dms_hasnt ds l := dms_lookup l ds = None.
+
 (* Module Coq_IndPrinciples_Bad. *)
 (*   Scheme tm_bad_mut_ind := Induction for tm Sort Prop *)
 (*   with   vl_bad_mut_ind := Induction for vl Sort Prop *)
