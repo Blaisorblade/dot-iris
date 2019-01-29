@@ -56,8 +56,7 @@ Section nclosed_prim_step.
 
   Lemma nclosed_fill_item Ki t n: nclosed t n → nclosed_ectx_item Ki n → nclosed (fill_item Ki t) n.
   Proof.
-    case: Ki => [e2|v1] /= Hclt HclKi; inverse HclKi; try solve_fv_congruence.
-    eauto using fv_tv, fv_tapp.
+    case: Ki => [e2|v1] /= Hclt HclKi; inverse HclKi; solve_fv_congruence.
   Qed.
   Hint Resolve nclosed_fill_item.
 

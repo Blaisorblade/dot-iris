@@ -412,7 +412,8 @@ Proof.
 Qed.
 
 (** Automated proof for such lemmas. *)
-Ltac solve_fv_congruence := rewrite /nclosed /nclosed_vl => * /=; f_equiv; solve [(idtac + asimpl); auto using eq_up].
+Ltac solve_fv_congruence :=
+  rewrite /nclosed /nclosed_vl => * /=; repeat (f_equiv; try solve [(idtac + asimpl); auto using eq_up]).
 
 Lemma fv_cons `{Ids X} `{HSubst vl X} {hsla: HSubstLemmas vl X} (x: X) xs n: nclosed xs n → nclosed x n → nclosed (x :: xs) n.
 Proof. solve_fv_congruence. Qed.
