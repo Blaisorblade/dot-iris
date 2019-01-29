@@ -1,4 +1,4 @@
-From iris.base_logic.lib Require Import iprop.
+From stdpp Require Import numbers.
 From D Require Export prelude tactics.
 
 Definition label := nat.
@@ -15,7 +15,7 @@ Inductive tm  : Type :=
   | vobj : (list dm) -> vl
  with dm  : Type :=
   | dtysyn : ty -> dm
-  | dtysem : (list vl) -> gname -> dm
+  | dtysem : (list vl) -> positive -> dm
   | dvl : vl -> dm
  with path  : Type :=
   | pv : vl -> path
