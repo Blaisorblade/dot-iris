@@ -197,7 +197,7 @@ Instance Ids_dms : Ids dms := _.
 Instance Ids_ctx : Ids ctx := _.
 
 Instance list_rename `{Rename X} : Rename (list X) :=
-  λ (sb : var → var) xs, map (rename sb) xs.
+  λ sb xs, map (rename sb) xs.
 
 Fixpoint tm_rename (sb : var → var) (e : tm) {struct e} : tm :=
   let a := tm_rename : Rename tm in
