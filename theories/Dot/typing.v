@@ -58,10 +58,10 @@ Inductive typed Γ: tm → ty → nat → Prop :=
     Γ !! x = Some T →
     (*──────────────────────*)
     Γ ⊢ₜ tv (var_vl x) : T.|[ren (+x)], 0
-| Subs_typed e T1 T2 i j :
-    Γ ⊢ₜ T1, i <: T2, j → Γ ⊢ₜ e : T1, i →
+| Subs_typed e T1 T2 j :
+    Γ ⊢ₜ T1, 0 <: T2, j → Γ ⊢ₜ e : T1, 0 →
     (*───────────────────────────────*)
-    Γ ⊢ₜ e : T2, j
+    Γ ⊢ₜ iterate tskip j e : T2, 0
 (* XXX Must be generalized to something like the following, but that needs either
    skip instructions, or an indexed typing judgment. *)
 (* | Subs_typed e i1 i2 T1 T2 : *)
