@@ -7,7 +7,7 @@ Reserved Notation "Γ ⊢d d : T" (at level 64, d, T at next level).
 Reserved Notation "Γ ⊢ds ds : T" (at level 74, ds, T at next level).
 Reserved Notation "Γ ⊢ₜ T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
 
-Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
+Implicit Types (L T U V: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
 (**
 Judgments for typing, subtyping, path and definition typing.
@@ -74,6 +74,7 @@ Inductive typed Γ: tm → ty → nat → Prop :=
     Γ ⊢ₜ t : T1, i →
     Γ ⊢ₜ t : T2, i→
     Γ ⊢ₜ t : TAnd T1 T2, i
+where "Γ ⊢ₜ e : T , i" := (typed Γ e T i)
 with dms_typed Γ: dms → ty → Prop :=
 | dnil_typed : Γ ⊢ds [] : TTop
 (* This demands definitions and members to be defined in aligned lists. I think
@@ -85,6 +86,7 @@ with dms_typed Γ: dms → ty → Prop :=
     label_of_ty T1 = Some l →
     (*──────────────────────*)
     Γ ⊢ds (l, d) :: ds : TAnd T1 T2
+where "Γ ⊢ds ds : T" := (dms_typed Γ ds T)
 with dm_typed Γ : dm → ty → Prop :=
 | dty_typed l L T U:
     Γ ⊢ₜ L, 0 <: U, 0 →
@@ -94,6 +96,7 @@ with dm_typed Γ : dm → ty → Prop :=
 | dvl_typed l v T:
     Γ ⊢ₜ tv v : TLater T, 0 →
     Γ ⊢d dvl v : TVMem l T
+where "Γ ⊢d d : T" := (dm_typed Γ d T)
 with path_typed Γ: path → ty → nat → Prop :=
 | pv_typed v T i:
     Γ ⊢ₜ tv v : T, i →
@@ -106,7 +109,7 @@ with path_typed Γ: path → ty → nat → Prop :=
     Γ ⊢ₜ T1, i <: T2, j → Γ ⊢ₚ p : T1, i →
     (*───────────────────────────────*)
     Γ ⊢ₚ p : T2, j
-
+where "Γ ⊢ₚ p : T , i" := (path_typed Γ p T i)
 (* Γ ⊢ₜ T1, i1 <: T2, i2 means that TLater^i1 T1 <: TLater^i2 T2. *)
 with subtype Γ : ty → nat → ty → nat → Prop :=
 | Refl_stp i T : Γ ⊢ₜ T, i <: T, i
@@ -192,9 +195,4 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Γ ⊢ₜ L2, S i <: L1, S i →
     Γ ⊢ₜ U1, S i <: U2, S i →
     Γ ⊢ₜ TTMem l L1 U1, i <: TTMem l L2 U2, i
-
-where "Γ ⊢ₜ e : T , i" := (typed Γ e T i)
-and "Γ ⊢ₚ p : T , i" := (path_typed Γ p T i)
-and "Γ ⊢ds ds : T" := (dms_typed Γ ds T)
-and "Γ ⊢d d : T" := (dm_typed Γ d T)
-and "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
+where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
