@@ -3,8 +3,8 @@ From D.Dot Require Import dotsyn.
 
 Reserved Notation "Γ ⊢ₜ e : T , i" (at level 74, e, T at next level).
 Reserved Notation "Γ ⊢ₚ p : T , i" (at level 74, p, T, i at next level).
-Reserved Notation "Γ ⊢d d : T" (at level 64, d, T at next level).
-Reserved Notation "Γ ⊢ds ds : T" (at level 74, ds, T at next level).
+Reserved Notation "Γ |d V ⊢ d : T" (at level 74, d, T, V at next level).
+Reserved Notation "Γ |ds V ⊢ ds : T" (at level 74, ds, T, V at next level).
 Reserved Notation "Γ ⊢ₜ T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
 
 Implicit Types (L T U V: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
@@ -42,7 +42,7 @@ Inductive typed Γ: tm → ty → nat → Prop :=
     (*─────────────────────────*)
     Γ ⊢ₜ tv (vabs e) : TAll T1 T2, 0
 | VObj_typed ds T:
-    (TLater T :: Γ) ⊢ds ds: T →
+    Γ |ds T ⊢ ds: T →
     (*──────────────────────*)
     Γ ⊢ₜ tv (vobj ds): TMu T, 0
 | TMuI_typed v T i:
@@ -72,31 +72,31 @@ Inductive typed Γ: tm → ty → nat → Prop :=
    only admissible if t has a type U that is a proper subtype of TAnd T1 T2. *)
 | TAndI_typed T1 T2 t i:
     Γ ⊢ₜ t : T1, i →
-    Γ ⊢ₜ t : T2, i→
+    Γ ⊢ₜ t : T2, i →
     Γ ⊢ₜ t : TAnd T1 T2, i
 where "Γ ⊢ₜ e : T , i" := (typed Γ e T i)
-with dms_typed Γ: dms → ty → Prop :=
-| dnil_typed : Γ ⊢ds [] : TTop
+with dms_typed Γ: ty → dms → ty → Prop :=
+| dnil_typed V : Γ |ds V ⊢ [] : TTop
 (* This demands definitions and members to be defined in aligned lists. I think
    we want more freedom, just like in the logical relation? *)
-| dcons_typed l d ds T1 T2 :
-    Γ ⊢d d : T1 →
-    Γ ⊢ds ds : T2 →
+| dcons_typed V l d ds T1 T2:
+    Γ |d V ⊢ d : T1 →
+    Γ |ds V ⊢ ds : T2 →
     dms_hasnt ds l →
     label_of_ty T1 = Some l →
     (*──────────────────────*)
-    Γ ⊢ds (l, d) :: ds : TAnd T1 T2
-where "Γ ⊢ds ds : T" := (dms_typed Γ ds T)
-with dm_typed Γ : dm → ty → Prop :=
-| dty_typed l L T U:
-    Γ ⊢ₜ L, 0 <: U, 0 →
-    Γ ⊢ₜ L, 1 <: T, 1 →
-    Γ ⊢ₜ T, 1 <: U, 1 →
-    Γ ⊢d dtysyn T : TTMem l L U
-| dvl_typed l v T:
-    Γ ⊢ₜ tv v : TLater T, 0 →
-    Γ ⊢d dvl v : TVMem l T
-where "Γ ⊢d d : T" := (dm_typed Γ d T)
+    Γ |ds V ⊢ (l, d) :: ds : TAnd T1 T2
+where "Γ |ds V ⊢ ds : T" := (dms_typed Γ V ds T)
+with dm_typed Γ : ty → dm → ty → Prop :=
+| dty_typed V l L T U:
+    TLater V :: Γ ⊢ₜ L, 0 <: U, 0 →
+    TLater V :: Γ ⊢ₜ L, 1 <: T, 1 →
+    TLater V :: Γ ⊢ₜ T, 1 <: U, 1 →
+    Γ |d V ⊢ dtysyn T : TTMem l L U
+| dvl_typed V l v T:
+    V :: Γ ⊢ₜ tv v : T, 0 →
+    Γ |d V ⊢ dvl v : TVMem l T
+where "Γ |d V ⊢ d : T" := (dm_typed Γ V d T)
 with path_typed Γ: path → ty → nat → Prop :=
 | pv_typed v T i:
     Γ ⊢ₜ tv v : T, i →
