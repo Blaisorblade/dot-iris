@@ -101,6 +101,9 @@ with path_typed Γ: path → ty → nat → Prop :=
 | pv_typed v T i:
     Γ ⊢ₜ tv v : T, i →
     Γ ⊢ₚ pv v : T, i
+| pv_dlater p T i:
+    Γ ⊢ₚ p : TLater T, i →
+    Γ ⊢ₚ p : T, S i
 (* Mnemonic: Path from SELecting a Field *)
 | pself_typed p T i l:
     Γ ⊢ₚ p : T, i →
