@@ -23,8 +23,8 @@ same_skel_vl (v1 v2: vl): Prop :=
     let fix same_skel_dms (ds1 ds2: dms): Prop :=
         match (ds1, ds2) with
         | (nil, nil) => True
-        | (cons d1 ds1, cons d2 ds2) =>
-          same_skel_dm d1 d2 ∧ same_skel_dms ds1 ds2
+        | (cons (l1, d1) ds1, cons (l2, d2) ds2) =>
+          l1 = l2 ∧ same_skel_dm d1 d2 ∧ same_skel_dms ds1 ds2
         | _ => False
         end
     in same_skel_dms ds1 ds2
@@ -111,12 +111,14 @@ Proof.
     cbn in Hske |- *; try inversion Hske; ev; asimpl; auto using same_skel_vl_subst.
   Qed.
 
-Definition same_skel_dms (ds1 ds2: dms): Prop := Forall2 same_skel_dm ds1 ds2.
+(* Maybe copy-paste instead same_skel_dms from above. Or switch everything to an inductive definition, *)
+Definition same_skel_dms (ds1 ds2: dms): Prop :=
+  Forall2 (λ '(l1, d1) '(l2, d2), l1 = l2 ∧ same_skel_dm d1 d2) ds1 ds2.
 
 Lemma same_skel_dms_index ds ds' v l:
   same_skel_dms ds ds' →
-  reverse (selfSubst ds) !! l = Some (dvl v) →
-  exists v', reverse (selfSubst ds') !! l = Some (dvl v') ∧ same_skel_vl v v'.
+  dms_lookup l (selfSubst ds) = Some (dvl v) →
+  exists v', dms_lookup l (selfSubst ds') = Some (dvl v') ∧ same_skel_vl v v'.
 Proof.
 Admitted.
 

@@ -33,7 +33,7 @@ Section lang_rules.
   Proof. solve_pure_exec. Qed.
 
   Global Instance pure_tproj ds l v :
-    PureExec (reverse (selfSubst ds) !! l = Some (dvl v)) 1 (tproj (tv (vobj ds)) l) (tv v).
+    PureExec (dms_lookup l (selfSubst ds) = Some (dvl v)) 1 (tproj (tv (vobj ds)) l) (tv v).
   Proof. solve_pure_exec. Qed.
 
   Global Instance pure_tskip t:

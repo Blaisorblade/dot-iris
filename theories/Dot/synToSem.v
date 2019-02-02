@@ -99,8 +99,8 @@ Section Sec.
           (* ([∗ list] d1 ; d2 ∈ ds1 ; ds2 , t_dm d1 d2)%I *)
           match (ds1, ds2) with
           | (nil, nil) => True
-          | (cons d1 ds1, cons d2 ds2) =>
-            t_dm d1 d2 ∧ t_dms ds1 ds2
+          | (cons (l1, d1) ds1, cons (l2, d2) ds2) =>
+            ⌜l1 = l2⌝ ∧ t_dm d1 d2 ∧ t_dms ds1 ds2
           | _ => False
           end%I
       in
@@ -153,8 +153,8 @@ Section Sec.
     fix t_dms (ds1 ds2: dms) : iProp Σ :=
       match (ds1, ds2) with
       | (nil, nil) => True
-      | (cons d1 ds1, cons d2 ds2) =>
-        t_dm d1 d2 ∧ t_dms ds1 ds2
+      | (cons (l1, d1) ds1, cons (l2, d2) ds2) =>
+        ⌜l1 = l2⌝ ∧ t_dm d1 d2 ∧ t_dms ds1 ds2
       | _ => False
       end%I.
   Global Arguments t_dms _ /.
@@ -177,8 +177,9 @@ Section Sec.
   with  t_tm_persistent t1 t2: Persistent (t_tm t1 t2)
   with  t_dm_persistent t1 t2: Persistent (t_dm t1 t2).
   Proof.
-    all: revert t1 t2; induction t1; destruct t2;
-      try (revert l0; induction l; destruct l0);
+    all:
+      revert t1 t2; induction t1; destruct t2;
+      try (elim: l l0 => [|[l1 d1] ds1 IHds1] [|[l2 d2] ds2]);
       simpl; try apply _.
   Qed.
   Global Existing Instance t_ty_persistent.
@@ -189,8 +190,7 @@ Section Sec.
 
   Lemma t_dms_persistent ds1 ds2: Persistent (t_dms ds1 ds2).
   Proof.
-    revert ds1 ds2; induction ds1; destruct ds2; simpl;
-      try apply _.
+    elim: ds1 ds2 => [|[l1 d1] ds1 IHds1] [|[l2 d2] ds2] /=; try apply _.
   Qed.
   Global Existing Instance t_dms_persistent.
 
@@ -231,7 +231,7 @@ Section Sec.
       let fix is_syn_dms (ds: dms): Prop :=
           match ds with
           | nil => True
-          | cons d ds =>
+          | cons (l, d) ds =>
             is_syn_dm d ∧ is_syn_dms ds
           end
         in
@@ -279,7 +279,7 @@ Section Sec.
     fix is_syn_dms (ds: dms): Prop :=
       match ds with
       | nil => True
-      | cons d ds =>
+      | cons (l, d) ds =>
         is_syn_dm d ∧ is_syn_dms ds
       end.
 
@@ -387,9 +387,9 @@ Section Sec.
       try (iDestruct "Hyp2" as "[Hyp21 Hyp22]");
       try (iDestruct "Hyp22" as "[Hyp221 Hyp222]"); localAuto.
 
-    iInduction l as [| d l] "IHl" forall (l0); destruct l0 as [|d0 l0]; try done.
+    iInduction l as [| (l1, d1) ds1] "IHl" forall (l0); destruct l0 as [|(l2, d2) ds2]; try done.
     repeat iSplit;
-      try (iDestruct "Hyp" as "[Hyp1 Hyp2]"); localAuto.
+      try (iDestruct "Hyp" as "[% [Hyp1 Hyp2]]"); localAuto.
     by iApply "IHl".
   Qed.
 

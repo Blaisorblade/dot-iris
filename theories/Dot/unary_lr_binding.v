@@ -10,19 +10,16 @@ Implicit Types
 Section logrel_binding_lemmas.
   Context `{HdotG: dotG Σ}.
 
-  Lemma def_interp_v_closed T d l ρ: (def_interp T l ρ d → ⌜ nclosed d 0 ⌝)%I.
+  Lemma def_interp_v_closed T d ρ: (def_interp T ρ d → ⌜ nclosed d 0 ⌝)%I.
   Proof.
-    iInduction T as [] "IH" forall (ρ d); iIntros "#HT //="; by iDestruct "HT" as "[% [% _]]".
+    iInduction T as [] "IH" forall (ρ d); iIntros "#HT //="; by iDestruct "HT" as "[% _]".
   Qed.
 
   Lemma defs_interp_v_closed T ds ρ: (defs_interp T ρ ds → ⌜ nclosed ds 0 ⌝)%I.
   Proof.
-    iInduction T as [] "IH" forall (ρ ds); iIntros "#HT //=".
-    destruct ds. done.
-    iDestruct "HT" as "[HT1 HT2]".
-    iPoseProof ("IH" with "HT1") as "%".
-    iPoseProof (def_interp_v_closed with "HT2") as "%".
-    iPureIntro. by apply fv_dms_cons.
+    iInduction T as [] "IH" forall (ρ ds);
+      iIntros "#HT //="; try iDestruct "HT" as (l1 d) "[% ?]"; ev; trivial.
+    iDestruct "HT" as "[HT1 _]"; by iApply "IH".
   Qed.
 
   Lemma interp_weaken ρ1 ρ2 ρ3 τ :

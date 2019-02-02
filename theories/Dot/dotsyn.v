@@ -1,7 +1,7 @@
-From stdpp Require Import numbers.
+From stdpp Require Import numbers strings.
 From D Require Export prelude tactics.
 
-Definition label := nat.
+Definition label := string.
 
 Inductive tm  : Type :=
   | tv : vl -> tm
@@ -12,7 +12,7 @@ Inductive tm  : Type :=
   | var_vl : var -> vl
   | vnat : nat -> vl
   | vabs : tm -> vl
-  | vobj : (list dm) -> vl
+  | vobj : list (label * dm) -> vl
  with dm  : Type :=
   | dtysyn : ty -> dm
   | dtysem : (list vl) -> positive -> dm
@@ -35,12 +35,32 @@ Inductive tm  : Type :=
   | TNat :  ty.
 
 Definition vls := list vl.
-Definition dms := list dm.
+Definition dms := list (label * dm).
 Definition ctx := list ty.
 
 Implicit Types
          (T: ty) (v: vl) (t e: tm) (d: dm) (ds: dms) (vs: vls)
          (Γ : ctx).
+
+Definition label_of_ty (T: ty): option label :=
+  match T with
+  | TTMem l _ _ => Some l
+  | TVMem l _ => Some l
+  | _ => None
+  end.
+
+Fixpoint dms_lookup (l : label) (ds : dms): option dm :=
+  match ds with
+  | [] => None
+  | (l', d) :: ds =>
+    match (decide (l = l')) with
+    | left Heq => Some d
+    | right _ => dms_lookup l ds
+    end
+  end.
+
+Definition dms_has ds l d := dms_lookup l ds = Some d.
+Definition dms_hasnt ds l := dms_lookup l ds = None.
 
 (* Module Coq_IndPrinciples_Bad. *)
 (*   Scheme tm_bad_mut_ind := Induction for tm Sort Prop *)
@@ -79,7 +99,7 @@ Section syntax_mut_rect.
   Variable step_vabs: ∀ t, Ptm t → Pvl (vabs t).
   (* Original: *)
   (* Variable step_vobj: ∀ l, Pvl (vobj l). *)
-  Variable step_vobj: ∀ ds, ForallT Pdm ds → Pvl (vobj ds).
+  Variable step_vobj: ∀ ds, ForallT Pdm (map snd ds) → Pvl (vobj ds).
   Variable step_dtysyn: ∀ T, Pty T → Pdm (dtysyn T).
   (* Original: *)
   (* Variable step_dtysem: ∀ vsl g, Pdm (dtysem vs g). *)
@@ -118,7 +138,8 @@ Section syntax_mut_rect.
       | Hstep: context [?P (?c _)] |- ?P (?c _) => apply Hstep; trivial
       | Hstep: context [?P (?c)] |- ?P (?c) => apply Hstep; trivial
       end.
-    all: elim: l => [|x xs IHxs] //=; auto.
+    - elim: l => [|[l d] ds IHds] //=; auto.
+    - elim: l => [|v vs IHxs] //=; auto.
   Qed.
 
   Lemma syntax_mut_rect: (∀ t, Ptm t) * (∀ v, Pvl v) * (∀ d, Pdm d) * (∀ p, Ppt p) * (∀ T, Pty T).
@@ -148,7 +169,7 @@ Section syntax_mut_ind.
   Variable step_vabs: ∀ t, Ptm t → Pvl (vabs t).
   (* Original: *)
   (* Variable step_vobj: ∀ l, Pvl (vobj l). *)
-  Variable step_vobj: ∀ ds, Forall Pdm ds → Pvl (vobj ds).
+  Variable step_vobj: ∀ ds, Forall Pdm (map snd ds) → Pvl (vobj ds).
   Variable step_dtysyn: ∀ T, Pty T → Pdm (dtysyn T).
   (* Original: *)
   (* Variable step_dtysem: ∀ vsl g, Pdm (dtysem vs g). *)
@@ -196,8 +217,12 @@ Instance Ids_vls : Ids vls := _.
 Instance Ids_dms : Ids dms := _.
 Instance Ids_ctx : Ids ctx := _.
 
+Definition mapsnd {A} `(f: B → C) : A * B → A * C := λ '(a, b), (a, f b).
+
 Instance list_rename `{Rename X} : Rename (list X) :=
   λ sb xs, map (rename sb) xs.
+Instance list_pair_rename {A} `{Rename X}: Rename (list (A * X)) :=
+  λ sb xs, map (mapsnd (rename sb)) xs.
 
 Fixpoint tm_rename (sb : var → var) (e : tm) {struct e} : tm :=
   let a := tm_rename : Rename tm in
@@ -262,17 +287,19 @@ Instance Rename_dm : Rename dm := dm_rename.
 Instance Rename_pth : Rename path := path_rename.
 
 Definition list_rename_fold `{Rename X} (sb : var → var) (xs : list X) : map (rename sb) xs = rename sb xs := eq_refl.
+Definition list_pair_rename_fold {A} `{Rename X} sb (xs: list (A * X)): map (mapsnd (rename sb)) xs = rename sb xs := eq_refl.
 
 Definition vls_rename_fold: ∀ sb vs, map (rename sb) vs = rename sb vs := list_rename_fold.
-Definition dms_rename_fold: ∀ sb ds, map (rename sb) ds = rename sb ds := list_rename_fold.
 Definition ctx_rename_fold: ∀ sb Γ, map (rename sb) Γ = rename sb Γ := list_rename_fold.
+Definition dms_rename_fold: ∀ sb ds, map (mapsnd (rename sb)) ds = rename sb ds := list_pair_rename_fold.
 
-Hint Rewrite @list_rename_fold : autosubst.
+Hint Rewrite @list_rename_fold @list_pair_rename_fold : autosubst.
 
 Instance vls_hsubst `{Subst vl} : HSubst vl vls :=
   λ (sb : var → vl) (vs : vls), map (subst sb) vs.
 
 Instance list_hsubst `{HSubst vl X}: HSubst vl (list X) := λ sb xs, map (hsubst sb) xs.
+Instance list_pair_hsubst {A} `{HSubst vl X}: HSubst vl (list (A * X)) := λ sb xs, map (mapsnd (hsubst sb)) xs.
 
 Fixpoint tm_hsubst (sb : var → vl) (e : tm) : tm :=
   let a := tm_hsubst : HSubst vl tm in
@@ -345,11 +372,13 @@ Hint Mode HSubst - + : typeclass_instances.
 
 Definition vls_subst_fold (sb : var → vl) (vs : vls) : map (subst sb) vs = hsubst sb vs := eq_refl.
 Definition list_hsubst_fold `{HSubst vl X} sb (xs : list X) : map (hsubst sb) xs = hsubst sb xs := eq_refl.
+Definition list_pair_hsubst_fold {A} `{HSubst vl X} sb (xs : list (A * X)) : map (mapsnd (hsubst sb)) xs = hsubst sb xs := eq_refl.
 
-Hint Rewrite vls_subst_fold @list_hsubst_fold : autosubst.
+Hint Rewrite vls_subst_fold @list_hsubst_fold @list_pair_hsubst_fold : autosubst.
 
 Arguments vls_hsubst /.
 Arguments list_hsubst /.
+Arguments list_pair_hsubst /.
 
 Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
 with
@@ -362,9 +391,10 @@ with
 path_eq_dec (pth1 pth2 : path) : Decision (pth1 = pth2).
 Proof.
    all: rewrite /Decision; decide equality;
-       try (apply vl_eq_dec || apply tm_eq_dec || apply ty_eq_dec || apply path_eq_dec ||
+       try repeat (apply vl_eq_dec || apply tm_eq_dec || apply ty_eq_dec || apply path_eq_dec ||
+            apply @prod_eq_dec ||
             apply @list_eq_dec ||
-            apply nat_eq_dec || apply positive_eq_dec); auto.
+            apply nat_eq_dec || apply positive_eq_dec || apply string_eq_dec); auto.
 Qed.
 
 Instance vl_eq_dec' : EqDecision vl := vl_eq_dec.
@@ -376,7 +406,7 @@ Instance vls_eq_dec' : EqDecision vls := list_eq_dec.
 Instance dms_eq_dec' : EqDecision dms := list_eq_dec.
 
 Local Ltac finish_lists l x :=
-  elim: l => [|x xs IHds] //=; by f_equal.
+  elim: l => [|x xs IHds] //=; idtac + elim: x => [l d] //=; f_equal => //; by f_equal.
 
 Lemma vl_rename_Lemma (ξ : var → var) (v : vl) : rename ξ v = v.[ren ξ]
 with
@@ -493,8 +523,14 @@ Proof.
     induction s; asimpl; by f_equal.
 Qed.
 
-Instance HSubstLemmas_dms : HSubstLemmas vl dms := _.
 Instance HSubstLemmas_ctx : HSubstLemmas vl ctx := _.
+
+Instance HSubstLemmas_list_pair {A} `{Ids X} `{HSubst vl X} {hsl: HSubstLemmas vl X}: HSubstLemmas vl (list (A * X)).
+Proof.
+  split; trivial; intros; rewrite /hsubst /list_pair_hsubst;
+    elim: s => [|[l d] xs IHds] //; asimpl; by f_equal.
+Qed.
+Instance HSubstLemmas_dms : HSubstLemmas vl dms := _.
 
 (** After instantiating Autosubst, a few binding-related syntactic definitions
     that need not their own file. *)
@@ -555,6 +591,9 @@ Ltac solve_fv_congruence :=
   rewrite /nclosed /nclosed_vl => * /=; repeat (f_equiv; try solve [(idtac + asimpl); auto using eq_up]).
 
 Lemma fv_cons `{Ids X} `{HSubst vl X} {hsla: HSubstLemmas vl X} (x: X) xs n: nclosed xs n → nclosed x n → nclosed (x :: xs) n.
+Proof. solve_fv_congruence. Qed.
+
+Lemma fv_pair_cons {A} `{Ids X} `{HSubst vl X} {hsla: HSubstLemmas vl X} (a: A) (x: X) xs n: nclosed xs n → nclosed x n → nclosed ((a, x) :: xs) n.
 Proof. solve_fv_congruence. Qed.
 
 (** The following ones are "inverse" lemmas: by knowing that an expression is closed,
