@@ -88,65 +88,6 @@ Section Russell.
     iIntros "!>!>"; iSplit. iExact "HvHasA".
     iExact "HnotRussellV".
   Qed.
-
-  Lemma notRussellVOld: γ ⤇ (λ ρ v, russell_p ρ v) -∗ □ (russell_p [] v → False).
-    assert (Hclv: nclosed_vl (vobj [("A", dtysem [] γ)]) 0) by done.
-    assert (Hlook: vobj [("A", dtysem [] γ)] @ "A" ↘ dtysem [] γ) by (hnf; eauto).
-    iIntros "#Hγ !>". iIntros "#[HvHasA #HnotRussellV]".
-    iAssert (⟦ TSel (pv (vobj [("A", dtysem [] γ)])) "A" ⟧ [] v) as "#HrussellV".
-    2: {iApply "HnotRussellV". iApply "HrussellV". }
-
-    iSplitL => //. iRight.
-    iExists [], russell_p, (dtysem [] γ).
-    repeat (repeat iExists _ ; repeat iSplit => //).
-
-    (* iPoseProof "HvHasA" as "H'". *)
-    (* iDestruct "H'" as "[_ H1]". iDestruct "H1" as (d) "[% [% H2]]". *)
-    (* iDestruct "H2" as (φ σ) "[H3 #_]". iDestruct "H3" as (γ') "[% #Hlook']". *)
-    (* assert (γ' = γ ∧ σ = []) as [-> ->]. by objLookupDet; subst; injectHyps. *)
-
-    (* iAssert (▷ (φ [] v ≡ russell_p [] v))%I as "#Hag". *)
-    (* { iIntros; by iApply (saved_interp_agree_eta γ (λ a, φ a) (λ a, russell_p a) [] v). } *)
-    iIntros "!>!>".
-    (* repeat (repeat iExists _ ; repeat iSplit => //). *)
-    iSplit. iApply "HvHasA".
-    iApply "HnotRussellV".
-  Qed.
-
-
-  Lemma foo0: γ ⤇ (λ ρ v, russell_p ρ v) -∗ russell_p [] v.
-    assert (Hclv: nclosed_vl (vobj [("A", dtysem [] γ)]) 0) by done.
-    assert (Hlook: vobj [("A", dtysem [] γ)] @ "A" ↘ dtysem [] γ) by (hnf; eauto).
-    rewrite /v; iIntros "#Hγ"; (iEval cbn); iSplit => //.
-
-    - iSplit => //. repeat (repeat iExists _ ; repeat iSplit => //).
-      iModIntro; repeat iSplit; by iIntros "**"; try iModIntro.
-    -
-      iIntros "/= !>"; repeat iSplit =>//.
-      iIntros "#[% [[] | H]]".
-      iDestruct "H" as (σ φ d) "[% [H1 H2]]". iDestruct "H1" as (γ') "[-> Hγ']".
-      assert (γ' = γ ∧ σ = []) as [-> ->] by admit.
-      iAssert (▷ (φ [] v ≡ russell_p [] v))%I as "#Hag".
-      { iIntros; by iApply (saved_interp_agree_eta γ (λ a, φ a) (λ a, russell_p a) [] v). }
-  Abort.
-
-  Lemma foo: γ ⤇ (λ ρ v, russell_p ρ v) -∗ ⟦TSel (pv v) "A"⟧ [] v.
-    assert (Hclv: nclosed_vl (vobj [("A", dtysem [] γ)]) 0) by done.
-    assert (Hlook: vobj [("A", dtysem [] γ)] @ "A" ↘ dtysem [] γ) by (hnf; eauto).
-    rewrite /v; iIntros "#Hγ"; (iEval cbn); iSplit => //; iRight.
-    iExists [], russell_p, (dtysem [] γ); iSplit => //.
-    iSplit. naive_solver.
-    rewrite /russell_p.
-    iIntros "!>!>"; iSplit.
-    iEval (cbn).
-    iSplit => //. repeat (repeat iExists _ ; repeat iSplit => //).
-    - iModIntro; repeat iSplit; by iIntros "**"; try iModIntro.
-    - iIntros "/= !>"; repeat iSplit =>//.
-      iIntros "#[% [[] | H]]".
-      iDestruct "H" as (σ Φ d) "[% [H1 H2]]". iDestruct "H1" as (γ') "[-> Hγ']".
-      assert (γ' = γ ∧ σ = []) as [-> ->] by admit.
-  Abort.
-
 End Russell.
 
 Section Sec.
