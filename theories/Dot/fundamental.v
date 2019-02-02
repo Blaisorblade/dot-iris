@@ -21,21 +21,21 @@ Section fundamental.
       (and probably add hypotheses to that effect). *)
   (* XXX lift translation and is_syn to contexts. Show that syntactic typing
      implies is_syn and closure. Stop talking about free variables inside is_syn? *)
-  Lemma typed_tm_is_syn Γ e T i:
-    Γ ⊢ₜ e : T, i →
+  Lemma typed_tm_is_syn Γ e T:
+    Γ ⊢ₜ e : T →
     is_syn_tm e.
   Admitted.
 
-  Lemma typed_ty_is_syn Γ e T i:
-    Γ ⊢ₜ e : T, i →
+  Lemma typed_ty_is_syn Γ e T:
+    Γ ⊢ₜ e : T →
     is_syn_ty T.
   Admitted.
 
   (* Check all types are syntactic. *)
   Definition is_syn_ctx Γ := Forall is_syn_ty Γ.
 
-  Lemma typed_ctx_is_syn Γ e T i:
-    Γ ⊢ₜ e : T, i →
+  Lemma typed_ctx_is_syn Γ e T:
+    Γ ⊢ₜ e : T →
     is_syn_ctx Γ.
   Admitted.
 
@@ -275,12 +275,12 @@ Section fundamental.
     - admit.
   Admitted.
 
-  Lemma translations_types_equivalent e T T' T'' Γ i:
-    (t_ty T T' → t_ty T T'' → Γ ⊨ e : T', i → Γ ⊨ e : T'', i )%I.
+  Lemma translations_types_equivalent e T T' T'' Γ:
+    (t_ty T T' → t_ty T T'' → Γ ⊨ e : T' → Γ ⊨ e : T'')%I.
   Proof.
     iIntros "#A #B #[% #HeT'] /="; iSplit => //. iIntros (ρ) "!> #HG".
     rewrite /interp_expr /=.
-    iSpecialize ("HeT'" with "HG"). iModIntro.
+    iSpecialize ("HeT'" with "HG").
     iApply wp_strong_mono => //.
     iIntros (v) "HT' !>". by iApply (translations_types_equivalent_vals T T' T'').
   Qed.
@@ -300,9 +300,9 @@ Section fundamental.
   Admitted.
   (* But I guess we'll we actually need to say that two substitutions translate each other. *)
 
-  Fixpoint not_yet_fundamental Γ e T e' T' i (HT: Γ ⊢ₜ e : T, i) {struct HT}:
+  Fixpoint not_yet_fundamental Γ e T e' T' (HT: Γ ⊢ₜ e : T) {struct HT}:
   (* Lemma not_yet_fundamental Γ e T e' T' (HT: Γ ⊢ₜ e : T): *)
-    (t_tm e e' → t_ty T T' → |==> Γ ⊨ e' : T', i)%I.
+    (t_tm e e' → t_ty T T' → |==> Γ ⊨ e' : T')%I.
   Proof.
     iIntros "#HtrE #HtrT".
     (* destruct HT. *)
@@ -330,7 +330,7 @@ Section fundamental.
       { by iApply t_ty_subst_special. }
       iApply translations_types_equivalent; try done.
 
-      by iApply (T_Forall_Ex  with "toto tata").
+      admit; by iApply (T_Forall_Ex  with "toto tata").
     -
       (* I'm careful with simplification to avoid unfolding too much. *)
       cbn [t_tm] in * |- *; case_match; try done.
@@ -343,7 +343,7 @@ Section fundamental.
       { cbn; by iSplit. }
       iMod ("IHT"with "Htr1 HtrTAll") as "#HsT1".
       iMod ("IHT1" with "Htr2 HTTr") as "#HsT2".
-      by iApply (T_Forall_E with "HsT1 HsT2").
+      admit; by iApply (T_Forall_E with "HsT1 HsT2").
     (* pose proof (typed_tm_is_syn Γ e T HT) as HeSyn. *)
     (* pose proof (typed_ty_is_syn Γ e T HT) as HTSyn. *)
     (* pose proof (typed_ctx_is_syn Γ e T HT) as HΓSyn. *)

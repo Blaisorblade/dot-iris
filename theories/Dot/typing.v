@@ -1,7 +1,7 @@
 From D Require Import tactics.
 From D.Dot Require Import dotsyn.
 
-Reserved Notation "Γ ⊢ₜ e : T , i" (at level 74, e, T at next level).
+Reserved Notation "Γ ⊢ₜ e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ ⊢ₚ p : T , i" (at level 74, p, T, i at next level).
 Reserved Notation "Γ |d V ⊢ d : T" (at level 74, d, T, V at next level).
 Reserved Notation "Γ |ds V ⊢ ds : T" (at level 74, ds, T, V at next level).
@@ -15,66 +15,60 @@ Here we follow Nada Amin's judgment for definition typing: it is Γ ⊢ { l = d 
 meaning: this definition, with label l, has type T.
 This works, but requires reformulating again a bit semantic definition typing for proofs.
 *)
-Inductive typed Γ: tm → ty → nat → Prop :=
+Inductive typed Γ: tm → ty → Prop :=
 (** First, elimination forms *)
 (** Dependent application; only allowed if the argument is a value . *)
-| Appv_typed e1 v2 T1 T2 i:
-    Γ ⊢ₜ e1: TAll T1 T2, i →                        Γ ⊢ₜ tv v2 : T1, i →
+| Appv_typed e1 v2 T1 T2:
+    Γ ⊢ₜ e1: TAll T1 T2 →                        Γ ⊢ₜ tv v2 : T1 →
     (*────────────────────────────────────────────────────────────*)
-    Γ ⊢ₜ tapp e1 (tv v2) : T2.|[v2/], i
+    Γ ⊢ₜ tapp e1 (tv v2) : T2.|[v2/]
 (** Non-dependent application; allowed for any argument. *)
-| App_typed e1 e2 T1 T2 i:
-    Γ ⊢ₜ e1: TAll T1 T2.|[ren (+1)], i →      Γ ⊢ₜ e2 : T1, i →
+| App_typed e1 e2 T1 T2:
+    Γ ⊢ₜ e1: TAll T1 T2.|[ren (+1)] →      Γ ⊢ₜ e2 : T1 →
     (*────────────────────────────────────────────────────────────*)
-    Γ ⊢ₜ tapp e1 e2 : T2, i
-| Proj_typed e T l i:
-    Γ ⊢ₜ e : TVMem l T, i →
+    Γ ⊢ₜ tapp e1 e2 : T2
+| Proj_typed e T l:
+    Γ ⊢ₜ e : TVMem l T →
     (*─────────────────────────*)
-    Γ ⊢ₜ tproj e l : T, i
-| TMuE_typed v T i:
-    Γ ⊢ₜ tv v: TMu T, i →
+    Γ ⊢ₜ tproj e l : T
+| TMuE_typed v T:
+    Γ ⊢ₜ tv v: TMu T →
     (*──────────────────────*)
-    Γ ⊢ₜ tv v: T.|[v/], i
+    Γ ⊢ₜ tv v: T.|[v/]
 (** Introduction forms *)
-| Lam_typed e T1 T2 :
+| Lam_typed e T1 T2:
     (* T1 :: Γ ⊢ₜ e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
-    T1.|[ren (+1)] :: Γ ⊢ₜ e : T2, 0 →
+    T1.|[ren (+1)] :: Γ ⊢ₜ e : T2 →
     (*─────────────────────────*)
-    Γ ⊢ₜ tv (vabs e) : TAll T1 T2, 0
+    Γ ⊢ₜ tv (vabs e) : TAll T1 T2
 | VObj_typed ds T:
     Γ |ds T ⊢ ds: T →
     (*──────────────────────*)
-    Γ ⊢ₜ tv (vobj ds): TMu T, 0
-| TMuI_typed v T i:
-    Γ ⊢ₜ tv v: T.|[v/], i →
+    Γ ⊢ₜ tv (vobj ds): TMu T
+| TMuI_typed v T:
+    Γ ⊢ₜ tv v: T.|[v/] →
     (*──────────────────────*)
-    Γ ⊢ₜ tv v: TMu T, i
+    Γ ⊢ₜ tv v: TMu T
 | Nat_typed n:
-    Γ ⊢ₜ tv (vnat n): TNat, 0
+    Γ ⊢ₜ tv (vnat n): TNat
 
 (** "General" rules *)
 | Var_typed x T :
     (* After looking up in Γ, we must weaken T for the variables on top of x. *)
     Γ !! x = Some T →
     (*──────────────────────*)
-    Γ ⊢ₜ tv (var_vl x) : T.|[ren (+x)], 0
-| Subs_typed e T1 T2 j :
-    Γ ⊢ₜ T1, 0 <: T2, j → Γ ⊢ₜ e : T1, 0 →
+    Γ ⊢ₜ tv (var_vl x) : T.|[ren (+x)]
+| Subs_typed e T1 T2 i :
+    Γ ⊢ₜ T1, 0 <: T2, i → Γ ⊢ₜ e : T1 →
     (*───────────────────────────────*)
-    Γ ⊢ₜ iterate tskip j e : T2, 0
-(* XXX Must be generalized to something like the following, but that needs either
-   skip instructions, or an indexed typing judgment. *)
-(* | Subs_typed e i1 i2 T1 T2 : *)
-(*     Γ ⊢ₜ T1, i1 <: T2, i2 → Γ ⊢ₜ  e : T1 → *)
-(*     (*──────────────────────*) *)
-(*     Γ ⊢ₜ e : T2 *)
+    Γ ⊢ₜ iterate tskip i e : T2
 (* A bit surprising this is needed, but appears in the DOT papers, and this is
    only admissible if t has a type U that is a proper subtype of TAnd T1 T2. *)
-| TAndI_typed T1 T2 t i:
-    Γ ⊢ₜ t : T1, i →
-    Γ ⊢ₜ t : T2, i →
-    Γ ⊢ₜ t : TAnd T1 T2, i
-where "Γ ⊢ₜ e : T , i" := (typed Γ e T i)
+| TAndI_typed T1 T2 t:
+    Γ ⊢ₜ t : T1 →
+    Γ ⊢ₜ t : T2 →
+    Γ ⊢ₜ t : TAnd T1 T2
+where "Γ ⊢ₜ e : T " := (typed Γ e T)
 with dms_typed Γ: ty → dms → ty → Prop :=
 | dnil_typed V : Γ |ds V ⊢ [] : TTop
 (* This demands definitions and members to be defined in aligned lists. I think
@@ -94,13 +88,13 @@ with dm_typed Γ : ty → dm → ty → Prop :=
     TLater V :: Γ ⊢ₜ T, 1 <: U, 1 →
     Γ |d V ⊢ dtysyn T : TTMem l L U
 | dvl_typed V l v T:
-    V :: Γ ⊢ₜ tv v : T, 0 →
+    V :: Γ ⊢ₜ tv v : T →
     Γ |d V ⊢ dvl v : TVMem l T
 where "Γ |d V ⊢ d : T" := (dm_typed Γ V d T)
 with path_typed Γ: path → ty → nat → Prop :=
-| pv_typed v T i:
-    Γ ⊢ₜ tv v : T, i →
-    Γ ⊢ₚ pv v : T, i
+| pv_typed v T:
+    Γ ⊢ₜ tv v : T →
+    Γ ⊢ₚ pv v : T, 0
 | pv_dlater p T i:
     Γ ⊢ₚ p : TLater T, i →
     Γ ⊢ₚ p : T, S i
