@@ -116,14 +116,14 @@ Section Sec.
     iApply ("Hstp" $! (_ :: _) _); rewrite ?iterate_TLater_later //; by iSplit.
   Qed.
 
-  Lemma T_Forall_E e1 e2 T1 T2 i:
-    (Γ ⊨ e1: TAll T1 T2.|[ren (+1)], i →
-     Γ ⊨ e2 : T1, i →
+  Lemma T_Forall_E e1 e2 T1 T2:
+    (Γ ⊨ e1: TAll T1 T2.|[ren (+1)] →
+     Γ ⊨ e2 : T1 →
     (*────────────────────────────────────────────────────────────*)
-     Γ ⊨ tapp e1 e2 : T2, i)%I.
+     Γ ⊨ tapp e1 e2 : T2)%I.
   Proof.
     iIntros "/= #[% He1] #[% Hv2]". iSplit; eauto using fv_tapp. iIntros " !> * #HG".
-    iSpecialize ("He1" with "HG"); iSpecialize ("Hv2" with "HG"). iModIntro.
+    iSpecialize ("He1" with "HG"); iSpecialize ("Hv2" with "HG").
     smart_wp_bind (AppLCtx (e2.|[to_subst ρ])) v "#Hr" "He1".
     smart_wp_bind (AppRCtx v) w "#Hw" "Hv2".
     iDestruct "Hr" as (Hclv t ->) "#Hv".
@@ -133,17 +133,17 @@ Section Sec.
     by iApply interp_weaken_one.
   Qed.
 
-  Lemma T_Forall_Ex e1 v2 T1 T2 i:
-    (Γ ⊨ e1: TAll T1 T2, i →
-     Γ ⊨ tv v2 : T1, i →
+  Lemma T_Forall_Ex e1 v2 T1 T2:
+    (Γ ⊨ e1: TAll T1 T2 →
+     Γ ⊨ tv v2 : T1 →
     (*────────────────────────────────────────────────────────────*)
-     Γ ⊨ tapp e1 (tv v2) : T2.|[v2/], i)%I.
+     Γ ⊨ tapp e1 (tv v2) : T2.|[v2/])%I.
   Proof.
     iIntros "/= #[% He1] #[% Hv2Arg]". move: H H0 => Hcle1 Hclv2. iSplit; eauto using fv_tapp. iIntros " !> * #HG".
     (* iAssert (⌜ length ρ = length Γ ⌝)%I as "%". by iApply interp_env_len_agree. move: H => Hlen. *)
     iAssert (⌜ nclosed_vl v2 (length Γ) ⌝)%I as "%". by iPureIntro; apply fv_tv_inv. move: H => Hcl.
     (* assert (nclosed_vl v2 (length ρ)). by rewrite Hlen. *)
-    iSpecialize ("He1" with "HG"); iSpecialize ("Hv2Arg" with "HG"). iModIntro.
+    iSpecialize ("He1" with "HG"); iSpecialize ("Hv2Arg" with "HG").
     smart_wp_bind (AppLCtx (tv v2.[to_subst ρ])) v "#Hr" "He1".
     iDestruct "Hr" as (Hclv t ->) "#HvFun".
     iApply wp_pure_step_later; trivial. iNext.
@@ -159,9 +159,9 @@ Section Sec.
       We'd need this swap, and then [iIntros (v)], to specialize the hypothesis
       and drop the [▷^i] modality.*)
   Lemma T_Forall_I T1 T2 e:
-    (T1.|[ren (+1)] :: Γ ⊨ e : T2, 0 →
+    (T1.|[ren (+1)] :: Γ ⊨ e : T2 →
     (*─────────────────────────*)
-    Γ ⊨ tv (vabs e) : TAll T1 T2, 0)%I.
+    Γ ⊨ tv (vabs e) : TAll T1 T2)%I.
   Proof.
     iIntros "/= #[% #HeT]". move: H => Hcle.
     iSplit; eauto using fv_tv, fv_vabs.
