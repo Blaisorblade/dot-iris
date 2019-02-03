@@ -191,26 +191,19 @@ Section Sec.
     iIntros "/= #[% #HeT]". move: H => Hcle.
     iSplit; eauto using fv_tv, fv_vabs.
     iIntros " !> * #HG".
-    iPoseProof (interp_env_ρ_closed with "HG") as "%". move: H => Hclρ.
-    iPoseProof (interp_env_len_agree with "HG") as "%". move: H => Hlen. rewrite <- Hlen in Hcle.
-    (* iAssert (⌜ length ρ = length Γ ⌝)%I as "%". by iApply interp_env_len_agree. move: H => Hlen. *)
     iApply wp_value'.
     iSplit.
     { 
+      iPoseProof (interp_env_ρ_closed with "HG") as "%". move: H => Hclρ.
+      iPoseProof (interp_env_len_agree with "HG") as "%". move: H => Hlen. rewrite <- Hlen in Hcle.
       iPureIntro.
-      (* Applying the lemma directly fails due to the ordering of typeclass
-         search. Canonical structures would probably avoid that problem. *)
-      pose proof (fv_to_subst (tv (vabs e)) ρ) as Hfv.
-      (* apply fv_tv_inv, Hfv => //; apply fv_tv, fv_vabs, Hcle. *)
-      eauto using fv_tv_inv, fv_vabs, fv_tv.
+      apply (fv_to_subst_vl (vabs _)); eauto using fv_vabs.
     }
     iExists _; iSplitL; first done.
     iIntros "!> !>" (v) "#Hv".
     iSpecialize ("HeT" $! (v :: ρ)).
     replace (e.|[up (to_subst ρ)].|[v/]) with (e.|[to_subst (v :: ρ)]) by by asimpl.
-    iApply "HeT".
-    iFrame "HG".
-    by iApply interp_weaken_one.
+    iApply "HeT". iFrame "HG". by iApply interp_weaken_one.
   Qed.
 
   Lemma T_Mem_E e T l:
