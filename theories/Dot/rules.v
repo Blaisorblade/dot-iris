@@ -39,6 +39,15 @@ Section lang_rules.
   Global Instance pure_tskip t:
     PureExec True 1 (tskip t) t.
   Proof. solve_pure_exec. Qed.
+
+  Global Instance pure_tskip_iter t i:
+    PureExec True i (iterate tskip i t) t.
+  Proof.
+    move => _. elim: i => [|i IHi]; rewrite ?iterate_0 ?iterate_S //. repeat constructor.
+    change (S i) with (1 + i); eapply nsteps_trans with (y := iterate tskip i t) => //.
+      by apply pure_tskip.
+  Qed.
+
 End lang_rules.
 
 (* Copied from F_mu *)

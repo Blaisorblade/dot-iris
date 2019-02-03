@@ -33,6 +33,13 @@ Section Sec.
     (WP e {{ v, Φ v }} -∗ ⌜ nclosed e 0 ⌝ -∗ (∀ v, Φ v -∗ ⌜ nclosed_vl v 0 ⌝ -∗ Ψ v) -∗ WP e {{ v, Ψ v }})%I.
   Admitted.
 
+  Lemma nclosed_tskip_i e n i:
+    nclosed e n →
+    nclosed (iterate tskip i e) n.
+  Proof.
+    move => Hcl; elim: i => [|i IHi]; rewrite ?iterate_0 ?iterate_S //; solve_fv_congruence.
+  Qed.
+
   Lemma T_Sub e T1 T2 :
     (Γ ⊨ e : T1 →
     Γ ⊨ [T1, 0] <: [T2, 0] →
