@@ -86,12 +86,12 @@ Section Sec.
   Qed.
 
   Lemma T_Skip e T i:
-    (Γ ⊨ e : TLater T, i →
+    (Γ ⊨ e : T, S i →
      Γ ⊨ tskip e : T, i)%I.
   Proof.
     iIntros "[% #HT]". iSplit; auto using fv_tskip. iIntros " !> * #HG".
     iSpecialize ("HT" $! ρ with "HG").
-    rewrite -iterate_Sr iterate_S.
+    rewrite iterate_S.
     smart_wp_bind SkipCtx v "#[% Hr]" "HT".
     iApply wp_pure_step_later; auto.
     iNext. by iApply wp_value.
