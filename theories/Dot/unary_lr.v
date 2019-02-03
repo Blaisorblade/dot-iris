@@ -231,7 +231,7 @@ Section logrel.
   Proof. iIntros "[$ _]". Qed.
 
   Definition step_indexed_ietp Γ T e i: iProp Σ :=
-    (⌜ nclosed e (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → ▷^i ⟦T⟧ₑ ρ (e.|[to_subst ρ]))%I.
+    (⌜ nclosed e (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → ⟦iterate TLater i T⟧ₑ ρ (e.|[to_subst ρ]))%I.
   Global Arguments step_indexed_ietp /.
   Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
 
@@ -284,13 +284,6 @@ Section logrel_lemmas.
   Qed.
 
   Context Γ.
-
-  Lemma semantic_typing_uniform_step_index T e i:
-    (Γ ⊨ e : T → Γ ⊨ e : T,i)%I.
-  Proof.
-    iIntros "[$ #H] !>" (ρ) "#HΓ".
-    iInduction i as [|i] "IHi". by iApply "H". iApply "IHi".
-  Qed.
 
   Lemma interp_v_closed T v ρ: (interp T ρ v → ⌜ nclosed_vl v 0 ⌝)%I.
   Proof.

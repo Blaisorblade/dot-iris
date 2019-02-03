@@ -33,6 +33,21 @@ Section Sec.
     (WP e {{ v, Φ v }} -∗ ⌜ nclosed e 0 ⌝ -∗ (∀ v, Φ v -∗ ⌜ nclosed_vl v 0 ⌝ -∗ Ψ v) -∗ WP e {{ v, Ψ v }})%I.
   Admitted.
 
+  Lemma semantic_typing_uniform_step_index T e i:
+    (Γ ⊨ e : T → Γ ⊨ e : T, i)%I.
+  Proof.
+    iIntros "[% #H]"; move: H => Hcl; iSplit => //.
+    iIntros " !>" (ρ) "#HΓ".
+    iPoseProof (interp_env_ρ_closed with "HΓ") as "%". move: H => Hclρ.
+    iPoseProof (interp_env_len_agree with "HΓ") as "%". move: H => Hlen. rewrite <- Hlen in Hcl.
+    have Hcles: nclosed e.|[to_subst ρ] 0. by apply fv_to_subst.
+    iInduction i as [|i] "IHi". by iApply "H".
+    rewrite iterate_S /=.
+    iApply (wp_wand_cl (e.|[to_subst ρ]) (⟦ iterate TLater i T ⟧ ρ) _) => //.
+    naive_solver.
+  Qed.
+
+
   Lemma nclosed_tskip_i e n i:
     nclosed e n →
     nclosed (iterate tskip i e) n.
@@ -75,7 +90,8 @@ Section Sec.
      Γ ⊨ tskip e : T, i)%I.
   Proof.
     iIntros "[% #HT]". iSplit; auto using fv_tskip. iIntros " !> * #HG".
-    iSpecialize ("HT" $! ρ with "HG"). iModIntro.
+    iSpecialize ("HT" $! ρ with "HG").
+    rewrite -iterate_Sr iterate_S.
     smart_wp_bind SkipCtx v "#[% Hr]" "HT".
     iApply wp_pure_step_later; auto.
     iNext. by iApply wp_value.
