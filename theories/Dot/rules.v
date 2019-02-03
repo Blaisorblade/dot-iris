@@ -36,16 +36,19 @@ Section lang_rules.
     PureExec (dms_lookup l (selfSubst ds) = Some (dvl v)) 1 (tproj (tv (vobj ds)) l) (tv v).
   Proof. solve_pure_exec. Qed.
 
-  Global Instance pure_tskip t:
-    PureExec True 1 (tskip t) t.
+  Global Instance pure_tskip v:
+    PureExec True 1 (tskip (tv v)) (tv v).
   Proof. solve_pure_exec. Qed.
 
-  Global Instance pure_tskip_iter t i:
-    PureExec True i (iterate tskip i t) t.
+  Global Instance pure_tskip_iter v i:
+    PureExec True i (iterate tskip i (tv v)) (tv v).
   Proof.
-    move => _. elim: i => [|i IHi]; rewrite ?iterate_0 ?iterate_S //. repeat constructor.
-    change (S i) with (1 + i); eapply nsteps_trans with (y := iterate tskip i t) => //.
-      by apply pure_tskip.
+    move => _. elim: i => [|i IHi]; rewrite ?iterate_0 ?iterate_S //. by repeat constructor.
+    replace (S i) with (i + 1) by lia.
+    eapply nsteps_trans with (y := tskip (tv v)) => //.
+    - change tskip with (fill [SkipCtx]) in *.
+      by apply pure_step_nsteps_ctx; try apply _.
+    - by apply pure_tskip.
   Qed.
 
 End lang_rules.
