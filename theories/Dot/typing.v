@@ -70,7 +70,10 @@ Inductive typed Γ: tm → ty → Prop :=
     Γ ⊢ₜ t : TAnd T1 T2
 where "Γ ⊢ₜ e : T " := (typed Γ e T)
 with dms_typed Γ: ty → dms → ty → Prop :=
-| dnil_typed V : Γ |ds V ⊢ [] : TTop
+| dnil_typed V d l T :
+    Γ |d V ⊢ d : T →
+    label_of_ty T = Some l →
+    Γ |ds V ⊢ [(l, d)] : T
 (* This demands definitions and members to be defined in aligned lists. I think
    we want more freedom, just like in the logical relation? *)
 | dcons_typed V l d ds T1 T2:
