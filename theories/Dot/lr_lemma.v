@@ -107,6 +107,16 @@ Section Sec.
   Qed.
 
   (*
+     x ∉ fv T
+     ----------------------------------------------- (<:)
+     Γ ⊨ mu x: T <: T    Γ ⊨ T <: mu(x: T)
+
+     Luckily we don't need that, all the rules that exist before appear reasonable. *)
+
+  Lemma interp_TMu_ren T ρ v: ⟦ TMu T.|[ren (+1)] ⟧ ρ v ≡ ⟦ T ⟧ ρ v.
+  Proof. by rewrite /= (interp_weaken_one v T ρ v). Qed.
+
+  (*
      Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂ᶻ
      ----------------------------------------------- (<:-μ-X)
      Γ ⊨ μ (x: T₁ˣ) <: μ(x: T₂ˣ)
@@ -121,6 +131,12 @@ Section Sec.
       rewrite ?iterate_TLater_later //; by iSplit.
   Qed.
 
+  Lemma Sub_Mu_A T i: (Γ ⊨ [TMu T.|[ren (+1)], i] <: [T, i])%I.
+  Proof. iIntros "!> *" (Hcl) "**". by rewrite (interp_TMu_ren T ρ v). Qed.
+
+  Lemma Sub_Mu_B T i: (Γ ⊨ [T, i] <: [TMu T.|[ren (+1)], i])%I.
+  Proof. iIntros "!> *" (Hcl) "**". by rewrite (interp_TMu_ren T ρ v). Qed.
+
   (*
      Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂
      ----------------------------------------------- (<:-Mu-1)
@@ -130,11 +146,7 @@ Section Sec.
   Lemma Sub_Mu_1 T1 T2 i j:
     (iterate TLater i T1 :: Γ ⊨ [T1, i] <: [T2.|[ren (+1)], j] →
      Γ ⊨ [TMu T1, i] <: [T2, j])%I.
-  Proof.
-    iIntros "/= #Hstp !> * % #Hg #HT1".
-    iApply (interp_weaken_one v).
-    iApply ("Hstp" $! (v :: ρ)); rewrite ?iterate_TLater_later //; by iSplit.
-  Qed.
+  Proof. iIntros "#Hstp !> * % #Hg #HT1". rewrite -(interp_TMu_ren T2 ρ v). by iApply Sub_Mu_X. Qed.
 
   (*
      Γ, z: T₁ᶻ ⊨ T₁ <: T₂ᶻ
@@ -144,11 +156,57 @@ Section Sec.
   Lemma Sub_Mu_2 T1 T2 i j:
     (iterate TLater i T1.|[ren (+1)] :: Γ ⊨ [T1.|[ren (+1)], i] <: [T2, j] →
     Γ ⊨ [T1, i] <: [TMu T2, j])%I.
+  Proof. iIntros "#Hstp !> * % #Hg #HT1". rewrite -(interp_TMu_ren T1 ρ v). by iApply Sub_Mu_X. Qed.
+
+  (* Sort-of-show this rule is derivable from Sub_Mu_X and Sub_Mu_A. *)
+  Lemma Sub_Mu_1' T1 T2 i j:
+    (iterate TLater i T1 :: Γ ⊨ [T1, i] <: [T2.|[ren (+1)], j] →
+     Γ ⊨ [TMu T1, i] <: [T2, j])%I.
+  Proof. iIntros "Hstp"; iApply (Sub_Trans with "[-] []"). by iApply Sub_Mu_X. iApply Sub_Mu_A. Qed.
+
+  Lemma Sub_Mu_2' T1 T2 i j:
+    (iterate TLater i T1.|[ren (+1)] :: Γ ⊨ [T1.|[ren (+1)], i] <: [T2, j] →
+    Γ ⊨ [T1, i] <: [TMu T2, j])%I.
+  Proof. iIntros "Hstp"; iApply (Sub_Trans with "[] [-]"). iApply Sub_Mu_B. by iApply Sub_Mu_X. Qed.
+
+  (*
+     Γ ⊨ z: Tᶻ
+     =============================================== (T-Rec-I/T-Rec-E)
+     Γ ⊨ z: mu(x: Tˣ)
+   *)
+  Lemma ivstp_rec_eq T v: (ivtp Γ (TMu T) v ∗-∗ ivtp Γ T.|[v/] v)%I.
   Proof.
-    iIntros "/= #Hstp !> * % #Hg #HT1".
-    rewrite -(interp_weaken_one v T1 ρ v).
-    iApply ("Hstp" $! (_ :: _) _); rewrite ?iterate_TLater_later //; by iSplit.
+    iSplit; iIntros "/= #[% #Htp]"; iSplit => //; iIntros " !> * #Hg";
+    iPoseProof (interp_subst_closed Γ T v (v.[to_subst ρ]) with "Hg") as "H" => //;
+    [ iRewrite "H" | iRewrite -"H" ]; by iApply "Htp".
   Qed.
+
+  Lemma ivstp_rec_i T v: ivtp Γ T.|[v/] v -∗ ivtp Γ (TMu T) v.
+  Proof. by intros; iDestruct ivstp_rec_eq as "[? ?]". Qed.
+
+  Lemma ivstp_rec_e T v: ivtp Γ (TMu T) v -∗ ivtp Γ T.|[v/] v.
+  Proof. by intros; iDestruct ivstp_rec_eq as "[? ?]". Qed.
+
+  (*
+     Γ ⊨ z: Tᶻ
+     =============================================== (T-Rec-I/T-Rec-E)
+     Γ ⊨ z: mu(x: Tˣ)
+   *)
+  Lemma TMu_equiv T v: (Γ ⊨ tv v : TMu T ↔ Γ ⊨ tv v : T.|[v/])%I.
+  Proof.
+    Import uPred.
+    iSplit; iIntros "/= #[% #Htp]"; iSplit => //; iIntros " !> * #Hg"; iSpecialize ("Htp" with "Hg");
+      iApply wp_value_fupd;
+      iPoseProof (interp_subst_closed Γ T v (v.[to_subst ρ]) with "Hg") as "Heq"; try (by apply fv_tv_inv);
+      iApply (internal_eq_iff with "Heq"); iApply (wp_value_inv with "Htp").
+      (* Fail iRewrite "Heq". *) (* WTF *)
+  Qed.
+
+  Lemma TMu_I T v: (Γ ⊨ tv v : T.|[v/] → Γ ⊨ tv v : TMu T)%I.
+  Proof. by iIntros; iApply (TMu_equiv T v). Qed.
+
+  Lemma TMu_E T v: (Γ ⊨ tv v : TMu T → Γ ⊨ tv v : T.|[v/])%I.
+  Proof. by iIntros; iApply (TMu_equiv T v). Qed.
 
   Lemma T_Forall_E e1 e2 T1 T2:
     (Γ ⊨ e1: TAll T1 T2.|[ren (+1)] →
@@ -185,7 +243,9 @@ Section Sec.
     - iApply fupd_wp.
       iApply "HvFun".
       iApply wp_value_inv'; by iApply "Hv2Arg".
-    - iIntros (v0) "#H". by iApply (interp_subst_closed _ T2 v2 v0).
+    - iIntros (v0) "#H".
+      iPoseProof (interp_subst_closed Γ T2 v2 v0 with "HG") as "Heq" => //.
+      by iApply (internal_eq_iff with "Heq").
   Qed.
 
   (** Restricting this to index 0 appears necessary: it seems we can't swap [▷^i
@@ -229,38 +289,6 @@ Section Sec.
     iApply wp_pure_step_later; eauto.
     by iApply wp_value.
   Qed.
-
-  (* BEWARE NONSENSE IN NOTES:
-     Γ ⊨ x: Tˣ
-     ----------------------------------------------- (<:)
-     Γ ⊨ mu(x: Tˣ) <: Tˣ    Γ ⊨ Tˣ <: mu(x: Tˣ)
-
-     Luckily we don't need that, all the rules that exist before appear reasonable. *)
-
-  (*
-     Γ ⊨ z: Tᶻ
-     =============================================== (T-Rec-I/T-Rec-E)
-     Γ ⊨ z: mu(x: Tˣ)
-   *)
-  Lemma ivstp_rec_eq T v:
-    (ivtp Γ (TMu T) v ∗-∗
-    ivtp Γ T.|[v/] v)%I.
-  Proof.
-    iSplit; iIntros "/= #[% #Htp]"; iSplit => //; iIntros " !> * #Hg";
-    iApply interp_subst_closed => //; by iApply "Htp".
-  Qed.
-
-  Lemma ivstp_rec_i T v:
-    ((∀ ρ1 ρ2, (∀ x, x < length Γ → ρ1 x = ρ2 x) → v.[ρ1] = v.[ρ2]) ->
-    ivtp Γ T.|[v/] v -∗
-    ivtp Γ (TMu T) v).
-  Proof. by intros; iDestruct ivstp_rec_eq as "[? ?]". Qed.
-
-  Lemma ivstp_rec_e T v:
-    ((∀ ρ1 ρ2, (∀ x, x < length Γ → ρ1 x = ρ2 x) → v.[ρ1] = v.[ρ2]) ->
-    ivtp Γ (TMu T) v -∗
-    ivtp Γ T.|[v/] v).
-  Proof. by intros; iDestruct ivstp_rec_eq as "[? ?]". Qed.
 
 
 End Sec.

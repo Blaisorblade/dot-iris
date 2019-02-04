@@ -8,17 +8,6 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 Section Sec.
   Context `{HdotG: dotG Σ} Γ.
 
-  Lemma Sub_Refl T i : Γ ⊨ [T, i] <: [T, i].
-  Proof. by iIntros "/= !> **". Qed.
-
-  Lemma Sub_Trans T1 T2 T3 i1 i2 i3 : (Γ ⊨ [T1, i1] <: [T2, i2] →
-                                       Γ ⊨ [T2, i2] <: [T3, i3] →
-                                       Γ ⊨ [T1, i1] <: [T3, i3])%I.
-  Proof.
-    iIntros "#Hsub1 #Hsub2 /= !> * % #Hg #HT".
-    iApply "Hsub2" => //. by iApply "Hsub1".
-  Qed.
-
   Lemma Sub_Mono e T i :
     (Γ ⊨ [T, i] <: [T, S i])%I.
   Proof. by iIntros "!> **". Qed.

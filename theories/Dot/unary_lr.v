@@ -312,4 +312,15 @@ Section logrel_lemmas.
     iPureIntro; by constructor.
   Qed.
 
+  Lemma Sub_Refl T i : Γ ⊨ [T, i] <: [T, i].
+  Proof. by iIntros "/= !> **". Qed.
+
+  Lemma Sub_Trans T1 T2 T3 i1 i2 i3 : (Γ ⊨ [T1, i1] <: [T2, i2] →
+                                       Γ ⊨ [T2, i2] <: [T3, i3] →
+                                       Γ ⊨ [T1, i1] <: [T3, i3])%I.
+  Proof.
+    iIntros "#Hsub1 #Hsub2 /= !> * % #Hg #HT".
+    iApply "Hsub2" => //. by iApply "Hsub1".
+  Qed.
+
 End logrel_lemmas.
