@@ -65,52 +65,7 @@ Section Sec.
   Lemma tskip_subst i e s: (iterate tskip i e).|[s] = iterate tskip i e.|[s].
   Proof. elim: i => [|i IHi]; by rewrite ?iterate_0 ?iterate_S //= IHi. Qed.
 
-  Lemma T_Sub e T1 T2 :
-    (Γ ⊨ e : T1 →
-    Γ ⊨ [T1, 0] <: [T2, 0] →
-    (*───────────────────────────────*)
-    Γ ⊨ e : T2)%I.
-  Proof.
-    iIntros "/= * #[% #HeT1] #Hsub". move: H => Hcle. iFrame "%". iIntros " !> * #Hg".
-    iApply (wp_wand _ _ _ (⟦ T1 ⟧ ρ) (⟦ T2 ⟧ ρ)).
-    iApply ("HeT1" $! ρ with "Hg").
-    iIntros (v) "#HT1". iApply "Hsub" => //. by iApply interp_v_closed.
-  Qed.
-
-  Lemma T_Sub' e T1 T2 i:
-    (Γ ⊨ e : T1, 0 →
-    Γ ⊨ [T1, 0] <: [T2, i] →
-    (*───────────────────────────────*)
-    Γ ⊨ e : T2, i)%I.
-  Proof.
-    iIntros "/= * #[% #HeT1] #Hsub". move: H => Hcle.
-    iFrame "%"; iIntros " !> * #Hg".
-    iApply (wp_wand_cl _ (⟦ T1 ⟧ ρ) (⟦ iterate TLater i T2 ⟧ ρ)) => //.
-    - iApply ("HeT1" $! ρ with "Hg").
-    - by iApply nclosed_subst_ρ.
-    - iIntros; by rewrite iterate_TLater_later //; iApply "Hsub".
-  Qed.
-
-  Lemma T_Sub'' e T1 T2 i:
-    (Γ ⊨ e : T1, 0 →
-    Γ ⊨ [T1, 0] <: [T2, i] →
-    (*───────────────────────────────*)
-    Γ ⊨ iterate tskip i e : T2, 0)%I.
-  Proof.
-    iIntros "/= * #[% #HeT1] #Hsub". move: H => Hcle.
-    have Hclte: nclosed (iterate tskip i e) (length Γ) by eauto using nclosed_tskip_i. iFrame "%".
-    move: Hclte => _. iIntros "!> * #Hg".
-    rewrite !iterate_0 tskip_subst tskip_n_to_fill. iApply wp_bind.
-    iApply (wp_wand_cl _ (⟦ T1 ⟧ ρ)) => //.
-    - iApply ("HeT1" $! ρ with "Hg").
-    - by iApply nclosed_subst_ρ.
-    - iIntros (v) "#HvT1"; iIntros (Hclv). rewrite -tskip_n_to_fill.
-      iApply wp_pure_step_later => //.
-      iSpecialize ("Hsub" $! ρ v Hclv with "Hg HvT1"). iNext.
-      iApply wp_value. iApply "Hsub".
-  Qed.
-
-  Lemma T_Sub''' e T1 T2 i:
+  Lemma T_Sub e T1 T2 i:
     (Γ ⊨ e : T1 →
     Γ ⊨ [T1, 0] <: [T2, i] →
     (*───────────────────────────────*)
