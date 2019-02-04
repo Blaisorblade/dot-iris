@@ -29,7 +29,7 @@ The names are taken from the PDF. In parens, you'll find the names of lemmas.
 
 ## Canonical typing lemmas
 
-- [ ] T-Nat-I
+- [xg T-Nat-I
 
 - [x] T-{}-E (T_Mem_E)
 

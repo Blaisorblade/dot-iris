@@ -1,4 +1,5 @@
 From iris.base_logic Require Import base_logic.
+From iris.program_logic Require Import weakestpre.
 From iris.proofmode Require Import tactics.
 From D.Dot Require Import unary_lr.
 
@@ -76,4 +77,8 @@ Section Sec.
     Γ ⊨ [TBot, i] <: [T, i].
   Proof. by iIntros "/= !> ** !>". Qed.
 
+  Lemma T_Nat_I n: Γ ⊨ tv (vnat n): TNat.
+  Proof.
+    iSplit => //; iIntros "!> ** /="; iApply wp_value; naive_solver.
+  Qed.
 End Sec.
