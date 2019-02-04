@@ -33,20 +33,24 @@ Section Sec.
     (WP e {{ v, Φ v }} -∗ ⌜ nclosed e 0 ⌝ -∗ (∀ v, Φ v -∗ ⌜ nclosed_vl v 0 ⌝ -∗ Ψ v) -∗ WP e {{ v, Ψ v }})%I.
   Admitted.
 
+  Lemma nclosed_subst_ρ e ρ: nclosed e (length Γ) → ⟦ Γ ⟧* ρ -∗ ⌜ nclosed e.|[to_subst ρ] 0 ⌝.
+  Proof.
+    iIntros (Hcl) "Hg".
+    iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H => Hclρ.
+    iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in Hcl.
+    iPureIntro. by apply fv_to_subst.
+  Qed.
+
   Lemma semantic_typing_uniform_step_index T e i:
     (Γ ⊨ e : T → Γ ⊨ e : T, i)%I.
   Proof.
-    iIntros "[% #H]"; move: H => Hcl; iSplit => //.
-    iIntros " !>" (ρ) "#HΓ".
-    iPoseProof (interp_env_ρ_closed with "HΓ") as "%". move: H => Hclρ.
-    iPoseProof (interp_env_len_agree with "HΓ") as "%". move: H => Hlen. rewrite <- Hlen in Hcl.
-    have Hcles: nclosed e.|[to_subst ρ] 0. by apply fv_to_subst.
+    iIntros "[% #H]"; move: H => Hcl; iFrame "%". iIntros " !>" (ρ) "#HΓ".
     iInduction i as [|i] "IHi". by iApply "H".
     rewrite iterate_S /=.
     iApply (wp_wand_cl (e.|[to_subst ρ]) (⟦ iterate TLater i T ⟧ ρ) _) => //.
-    naive_solver.
+    - by iApply nclosed_subst_ρ.
+    - naive_solver.
   Qed.
-
 
   Lemma nclosed_tskip_i e n i:
     nclosed e n →
@@ -62,17 +66,10 @@ Section Sec.
     Γ ⊨ e : T2)%I.
   Proof.
     iIntros "/= * #[% #HeT1] #Hsub". move: H => Hcle. iFrame "%". iIntros " !> * #Hg".
-    (* match type of wp_wand with *)
-    (* | ?H => let x := eval simpl in H in idtac x *)
-    (* end. *)
-    (* Check wp_wand. *)
-    (* iApply wp_wand. *)
     iApply (wp_wand_cl (e.|[to_subst ρ]) _ (⟦ T2 ⟧ ρ)).
     3: {iIntros; iApply "Hsub" => //. }
     iApply ("HeT1" $! ρ with "Hg").
-    iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H => Hclρ.
-    iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in Hcle.
-    iPureIntro. by apply fv_to_subst.
+    by iApply nclosed_subst_ρ.
   Qed.
 
   Lemma T_Var x T:
