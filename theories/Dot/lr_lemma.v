@@ -22,9 +22,10 @@ Implicit Types e : expr Λ.
 
 End wp_extra.
 
-From iris.program_logic Require Import lifting language.
+From iris.program_logic Require Import lifting language ectx_lifting.
 From D Require Import tactics.
 From D.Dot Require Import rules synLemmas unary_lr_binding.
+
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 Section Sec.
   Context `{HdotG: dotG Σ} Γ.
@@ -59,6 +60,11 @@ Section Sec.
     move => Hcl; elim: i => [|i IHi]; rewrite ?iterate_0 ?iterate_S //; solve_fv_congruence.
   Qed.
 
+  Lemma tskip_n_to_fill i e: iterate tskip i e = fill (repeat SkipCtx i) e.
+  Proof. elim: i e => [|i IHi] e //; by rewrite ?iterate_0 ?iterate_Sr /= -IHi. Qed.
+  Lemma tskip_subst i e s: (iterate tskip i e).|[s] = iterate tskip i e.|[s].
+  Proof. elim: i => [|i IHi]; by rewrite ?iterate_0 ?iterate_S //= IHi. Qed.
+
   Lemma T_Sub e T1 T2 :
     (Γ ⊨ e : T1 →
     Γ ⊨ [T1, 0] <: [T2, 0] →
@@ -66,10 +72,61 @@ Section Sec.
     Γ ⊨ e : T2)%I.
   Proof.
     iIntros "/= * #[% #HeT1] #Hsub". move: H => Hcle. iFrame "%". iIntros " !> * #Hg".
-    iApply (wp_wand_cl (e.|[to_subst ρ]) _ (⟦ T2 ⟧ ρ)).
-    3: {iIntros; iApply "Hsub" => //. }
+    iApply (wp_wand _ _ _ (⟦ T1 ⟧ ρ) (⟦ T2 ⟧ ρ)).
     iApply ("HeT1" $! ρ with "Hg").
-    by iApply nclosed_subst_ρ.
+    iIntros (v) "#HT1". iApply "Hsub" => //. by iApply interp_v_closed.
+  Qed.
+
+  Lemma T_Sub' e T1 T2 i:
+    (Γ ⊨ e : T1, 0 →
+    Γ ⊨ [T1, 0] <: [T2, i] →
+    (*───────────────────────────────*)
+    Γ ⊨ e : T2, i)%I.
+  Proof.
+    iIntros "/= * #[% #HeT1] #Hsub". move: H => Hcle.
+    iFrame "%"; iIntros " !> * #Hg".
+    iApply (wp_wand_cl _ (⟦ T1 ⟧ ρ) (⟦ iterate TLater i T2 ⟧ ρ)) => //.
+    - iApply ("HeT1" $! ρ with "Hg").
+    - by iApply nclosed_subst_ρ.
+    - iIntros; by rewrite iterate_TLater_later //; iApply "Hsub".
+  Qed.
+
+  Lemma T_Sub'' e T1 T2 i:
+    (Γ ⊨ e : T1, 0 →
+    Γ ⊨ [T1, 0] <: [T2, i] →
+    (*───────────────────────────────*)
+    Γ ⊨ iterate tskip i e : T2, 0)%I.
+  Proof.
+    iIntros "/= * #[% #HeT1] #Hsub". move: H => Hcle.
+    have Hclte: nclosed (iterate tskip i e) (length Γ) by eauto using nclosed_tskip_i. iFrame "%".
+    move: Hclte => _. iIntros "!> * #Hg".
+    rewrite !iterate_0 tskip_subst tskip_n_to_fill. iApply wp_bind.
+    iApply (wp_wand_cl _ (⟦ T1 ⟧ ρ)) => //.
+    - iApply ("HeT1" $! ρ with "Hg").
+    - by iApply nclosed_subst_ρ.
+    - iIntros (v) "#HvT1"; iIntros (Hclv). rewrite -tskip_n_to_fill.
+      iApply wp_pure_step_later => //.
+      iSpecialize ("Hsub" $! ρ v Hclv with "Hg HvT1"). iNext.
+      iApply wp_value. iApply "Hsub".
+  Qed.
+
+  Lemma T_Sub''' e T1 T2 i:
+    (Γ ⊨ e : T1 →
+    Γ ⊨ [T1, 0] <: [T2, i] →
+    (*───────────────────────────────*)
+    Γ ⊨ iterate tskip i e : T2)%I.
+  Proof.
+    iIntros "/= * #[% #HeT1] #Hsub". move: H => Hcle.
+    have Hclte: nclosed (iterate tskip i e) (length Γ) by eauto using nclosed_tskip_i. iFrame "%".
+    move: Hclte => _. iIntros "!> * #Hg".
+    rewrite tskip_subst tskip_n_to_fill. iApply wp_bind.
+    iApply (wp_wand_cl _ (⟦ T1 ⟧ ρ)) => //.
+    - iApply ("HeT1" $! ρ with "Hg").
+    - by iApply nclosed_subst_ρ.
+    - iIntros (v) "#HvT1"; iIntros (Hclv). rewrite -tskip_n_to_fill.
+      iApply wp_pure_step_later; trivial.
+      (* We can swap ▷^i with WP (tv v)! *)
+      iApply wp_value; by iApply "Hsub".
   Qed.
 
   Lemma T_Var x T:
