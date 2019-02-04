@@ -215,7 +215,7 @@ Section Sec.
     iPoseProof (interp_env_ρ_closed with "Hρ") as "%". move: H => Hclρ.
     iPoseProof (interp_env_len_agree with "Hρ") as "%". move: H => Hlen. rewrite <- Hlen in *.
     assert (nclosed_vl (vobj ds).[to_subst ρ] 0) as Hclvds. {
-      eapply (fv_to_subst_vl' (vobj ds)) => //. by apply fv_vobj.
+      eapply (fv_to_subst_vl (vobj ds)) => //. by apply fv_vobj.
     }
 
     iLöb as "IH".

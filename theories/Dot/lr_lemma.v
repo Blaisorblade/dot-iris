@@ -22,9 +22,10 @@ Implicit Types e : expr Λ.
 
 End wp_extra.
 
-From iris.program_logic Require Import lifting language.
+From iris.program_logic Require Import lifting language ectx_lifting.
 From D Require Import tactics.
 From D.Dot Require Import rules synLemmas unary_lr_binding.
+
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 Section Sec.
   Context `{HdotG: dotG Σ} Γ.
@@ -33,24 +34,54 @@ Section Sec.
     (WP e {{ v, Φ v }} -∗ ⌜ nclosed e 0 ⌝ -∗ (∀ v, Φ v -∗ ⌜ nclosed_vl v 0 ⌝ -∗ Ψ v) -∗ WP e {{ v, Ψ v }})%I.
   Admitted.
 
-  Lemma T_Sub e T1 T2 :
-    (Γ ⊨ e : T1 →
-    Γ ⊨ [T1, 0] <: [T2, 0] →
-    (*───────────────────────────────*)
-    Γ ⊨ e : T2)%I.
+  Lemma nclosed_subst_ρ e ρ: nclosed e (length Γ) → ⟦ Γ ⟧* ρ -∗ ⌜ nclosed e.|[to_subst ρ] 0 ⌝.
   Proof.
-    iIntros "/= * #[% #HeT1] #Hsub". move: H => Hcle. iFrame "%". iIntros " !> * #Hg".
-    (* match type of wp_wand with *)
-    (* | ?H => let x := eval simpl in H in idtac x *)
-    (* end. *)
-    (* Check wp_wand. *)
-    (* iApply wp_wand. *)
-    iApply (wp_wand_cl (e.|[to_subst ρ]) _ (⟦ T2 ⟧ ρ)).
-    3: {iIntros; iApply "Hsub" => //. }
-    iApply ("HeT1" $! ρ with "Hg").
+    iIntros (Hcl) "Hg".
     iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H => Hclρ.
-    iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in Hcle.
+    iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in Hcl.
     iPureIntro. by apply fv_to_subst.
+  Qed.
+
+  Lemma semantic_typing_uniform_step_index T e i:
+    (Γ ⊨ e : T → Γ ⊨ e : T, i)%I.
+  Proof.
+    iIntros "[% #H]"; move: H => Hcl; iFrame "%". iIntros " !>" (ρ) "#HΓ".
+    iInduction i as [|i] "IHi". by iApply "H".
+    rewrite iterate_S /=.
+    iApply (wp_wand_cl (e.|[to_subst ρ]) (⟦ iterate TLater i T ⟧ ρ) _) => //.
+    - by iApply nclosed_subst_ρ.
+    - naive_solver.
+  Qed.
+
+  Lemma nclosed_tskip_i e n i:
+    nclosed e n →
+    nclosed (iterate tskip i e) n.
+  Proof.
+    move => Hcl; elim: i => [|i IHi]; rewrite ?iterate_0 ?iterate_S //; solve_fv_congruence.
+  Qed.
+
+  Lemma tskip_n_to_fill i e: iterate tskip i e = fill (repeat SkipCtx i) e.
+  Proof. elim: i e => [|i IHi] e //; by rewrite ?iterate_0 ?iterate_Sr /= -IHi. Qed.
+  Lemma tskip_subst i e s: (iterate tskip i e).|[s] = iterate tskip i e.|[s].
+  Proof. elim: i => [|i IHi]; by rewrite ?iterate_0 ?iterate_S //= IHi. Qed.
+
+  Lemma T_Sub e T1 T2 i:
+    (Γ ⊨ e : T1 →
+    Γ ⊨ [T1, 0] <: [T2, i] →
+    (*───────────────────────────────*)
+    Γ ⊨ iterate tskip i e : T2)%I.
+  Proof.
+    iIntros "/= * #[% #HeT1] #Hsub". move: H => Hcle.
+    have Hclte: nclosed (iterate tskip i e) (length Γ) by eauto using nclosed_tskip_i. iFrame "%".
+    move: Hclte => _. iIntros "!> * #Hg".
+    rewrite tskip_subst tskip_n_to_fill. iApply wp_bind.
+    iApply (wp_wand_cl _ (⟦ T1 ⟧ ρ)) => //.
+    - iApply ("HeT1" $! ρ with "Hg").
+    - by iApply nclosed_subst_ρ.
+    - iIntros (v) "#HvT1"; iIntros (Hclv). rewrite -tskip_n_to_fill.
+      iApply wp_pure_step_later; trivial.
+      (* We can swap ▷^i with WP (tv v)! *)
+      iApply wp_value; by iApply "Hsub".
   Qed.
 
   Lemma T_Var x T:
@@ -67,9 +98,12 @@ Section Sec.
     (Γ ⊨ e : T, S i →
      Γ ⊨ tskip e : T, i)%I.
   Proof.
-    iIntros "/= [% #HT]". iSplit; auto using fv_tskip. iIntros " !> * #HG".
+    iIntros "[% #HT]". iSplit; auto using fv_tskip. iIntros " !> * #HG".
+    iSpecialize ("HT" $! ρ with "HG").
+    rewrite iterate_S.
+    smart_wp_bind SkipCtx v "#[% Hr]" "HT".
     iApply wp_pure_step_later; auto.
-    iSpecialize ("HT" $! ρ with "HG"). by iModIntro.
+    iNext. by iApply wp_value.
   Qed.
 
   (*
@@ -166,26 +200,19 @@ Section Sec.
     iIntros "/= #[% #HeT]". move: H => Hcle.
     iSplit; eauto using fv_tv, fv_vabs.
     iIntros " !> * #HG".
-    iPoseProof (interp_env_ρ_closed with "HG") as "%". move: H => Hclρ.
-    iPoseProof (interp_env_len_agree with "HG") as "%". move: H => Hlen. rewrite <- Hlen in Hcle.
-    (* iAssert (⌜ length ρ = length Γ ⌝)%I as "%". by iApply interp_env_len_agree. move: H => Hlen. *)
     iApply wp_value'.
     iSplit.
     { 
+      iPoseProof (interp_env_ρ_closed with "HG") as "%". move: H => Hclρ.
+      iPoseProof (interp_env_len_agree with "HG") as "%". move: H => Hlen. rewrite <- Hlen in Hcle.
       iPureIntro.
-      (* Applying the lemma directly fails due to the ordering of typeclass
-         search. Canonical structures would probably avoid that problem. *)
-      pose proof (fv_to_subst (tv (vabs e)) ρ) as Hfv.
-      (* apply fv_tv_inv, Hfv => //; apply fv_tv, fv_vabs, Hcle. *)
-      eauto using fv_tv_inv, fv_vabs, fv_tv.
+      apply (fv_to_subst_vl (vabs _)); eauto using fv_vabs.
     }
     iExists _; iSplitL; first done.
     iIntros "!> !>" (v) "#Hv".
     iSpecialize ("HeT" $! (v :: ρ)).
     replace (e.|[up (to_subst ρ)].|[v/]) with (e.|[to_subst (v :: ρ)]) by by asimpl.
-    iApply "HeT".
-    iFrame "HG".
-    by iApply interp_weaken_one.
+    iApply "HeT". iFrame "HG". by iApply interp_weaken_one.
   Qed.
 
   Lemma T_Mem_E e T l:
