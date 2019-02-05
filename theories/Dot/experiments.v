@@ -51,6 +51,7 @@ Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
          (Γ : ctx) (ρ : listVlC).
 
+Module Russell.
 Section Russell.
   Context `{HdotG: dotG Σ}.
 
@@ -88,6 +89,7 @@ Section Russell.
     iIntros "!>!>"; iSplit. iExact "HvHasA".
     iExact "HnotRussellV".
   Qed.
+End Russell.
 End Russell.
 
 Section Sec.
@@ -257,7 +259,6 @@ Section Sec.
     - apply Hf1; first apply Hxl; done.
     - apply Hf2; first apply Hxl; done.
   Abort.
-  Require Import Dot.synToSem.
 
   Lemma translations_types_equivalent_vals T T' T'' v ρ:
     (t_ty T T' → t_ty T T'' → ⟦ T' ⟧ ρ v ≡ ⟦ T'' ⟧ ρ v)%I.
@@ -303,21 +304,21 @@ Section Sec.
 (*        (ofe_mor_car _ _ (ofe_mor_car _ _ (@interp Σ H T') ρ) v) *)
 (*              (ofe_mor_car _ _ (ofe_mor_car _ _ (@interp Σ H T'') ρ) v))). *)
 
-    iInduction T as [] "IHT" forall (T' T'' ρ v); iIntros "#H1 #H2";
-      destruct T' => //=; destruct T'' => //; cbn.
-                                    properness.
-                                    try (iDestruct "H1" as "[H11 H12]"); try (iDestruct "H2" as "[H21 H22]").
-    all: try iRewrite ("IHT" $! _ _ ρ v with "H11 H21"); try iRewrite ("IHT1" $! _ _ ρ v with "H12 H22"); try iRewrite ("IHT" $! _ _ ρ v with "H1 H2"); try done.
-    -
-      iAssert (∀ ρ v, ⟦ T'1 ⟧ ρ v ≡ ⟦ T''1 ⟧ ρ v)%I as "#H". by iIntros; iApply ("IHT").
-      admit.
-    - by iRewrite ("IHT" $! _ _ (v :: ρ) v with "H1 H2").
-    -
-      iDestruct "H11" as "->".
-      iDestruct "H21" as "->".
-      iAssert (∀ v, ⟦ T' ⟧ ρ v ≡ ⟦ T'' ⟧ ρ v)%I as "#H". by iIntros; iApply ("IHT").
-      Fail iRewrite ("H" $! _).
-      admit.
+    (* iInduction T as [] "IHT" forall (T' T'' ρ v); iIntros "#H1 #H2"; *)
+    (*   destruct T' => //=; destruct T'' => //; cbn. *)
+    (*                                 properness. *)
+    (*                                 try (iDestruct "H1" as "[H11 H12]"); try (iDestruct "H2" as "[H21 H22]"). *)
+    (* all: try iRewrite ("IHT" $! _ _ ρ v with "H11 H21"); try iRewrite ("IHT1" $! _ _ ρ v with "H12 H22"); try iRewrite ("IHT" $! _ _ ρ v with "H1 H2"); try done. *)
+    (* - *)
+    (*   iAssert (∀ ρ v, ⟦ T'1 ⟧ ρ v ≡ ⟦ T''1 ⟧ ρ v)%I as "#H". iIntros; iApply ("IHT"). *)
+    (*   admit. *)
+    (* - by iRewrite ("IHT" $! _ _ (v :: ρ) v with "H1 H2"). *)
+    (* - *)
+    (*   iDestruct "H11" as "->". *)
+    (*   iDestruct "H21" as "->". *)
+    (*   iAssert (∀ v, ⟦ T' ⟧ ρ v ≡ ⟦ T'' ⟧ ρ v)%I as "#H". by iIntros; iApply ("IHT"). *)
+    (*   Fail iRewrite ("H" $! _). *)
+    (*   admit. *)
   Abort.
     (*   iClear "H". *)
     (*   About (≡). *)
@@ -387,19 +388,6 @@ Section Sec.
   Qed.
 
   Context (Γ: list ty).
-
-  (* Still wrong. The correct statement will arise from the translation. *)
-  Lemma idtp_tmem_i T γ l ρ1:
-    γ ⤇ dot_interp T -∗
-    idtp Γ (TTMem l T T) l (dtysem ρ1 γ).
-  Proof.
-    unfold idtp.
-    iIntros "/= #Hγ". iSplit. admit. iIntros " !> **".
-    repeat iSplit => //.
-    admit.
-    iExists (interp T), _. iSplit; first auto.
-    iModIntro; repeat iSplitL; iIntros "**" => //.
-  Abort.
 
   (* Lemma iuvstp_later T: Γ ⊨> T <: TLater T. *)
   (* Proof. by iIntros "!> ** /=". Qed. *)
@@ -503,32 +491,5 @@ Section Sec.
     - iApply wp_fupd.
       iApply (wp_wand with " [-]"); first iApply "HP".
       iIntros "* HP". by iApply "Himpl".
-  Qed.
-
-  Lemma alloc_sp T:
-    (|==> ∃ γ, γ ⤇ (λ ρ v, interp T ρ v))%I.
-  Proof. by apply saved_interp_alloc. Qed.
-
-  (* [idsσ] was needed for the lemma below, but no more as [def_interp] now expects
-   *closed* definitions. *)
-
-  (* (** Create an identity environment vls. *) *)
-  (* (*  * The definition gives the right results but is not ideal to reason about. It *) *)
-  (* (*    is hard to prove it does what it should, and it's likely theorems using it *) *)
-  (* (*    should be rephrased in terms of the translation. *) *)
-  (* (*  *) *)
-  (* Definition idsσ: vls -> vls := foldr (λ _, push_var) []. *)
-  (* Lemma idsσ_is_id ρ: ρ = (idsσ ρ).|[to_subst ρ]. *)
-  (* Admitted. *)
-
-  Lemma alloc_dtp_tmem_i T ρ l:
-    ⟦Γ⟧* ρ -∗
-    (|==> ∃ γ, def_interp (TTMem l T T) l ρ (dtysem ρ γ))%I.
-  Proof.
-    iIntros "#Hg /=".
-    iDestruct (alloc_sp T) as "HupdSp".
-    iMod "HupdSp" as (γ) "#Hsp".
-    iModIntro; iExists γ; iSplit; try done; iExists _, _; iSplit; first auto.
-    repeat iSplitL; naive_solver.
   Qed.
 End Sec.
