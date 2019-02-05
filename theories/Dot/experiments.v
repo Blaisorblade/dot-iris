@@ -1,7 +1,7 @@
 From iris.program_logic Require Import weakestpre.
 From iris.proofmode Require Import tactics.
 From D Require Import tactics.
-From D.Dot Require Import unary_lr unary_lr_binding synLemmas.
+From D.Dot Require Import unary_lr unary_lr_binding synLemmas rules synToSem.
 (* Workflow: Use this file for new experiments, and move experiments here in appropriate files once they're done. *)
 
 (* From iris.bi Require Export derived_laws_bi. *)
@@ -111,6 +111,138 @@ Section Sec.
     iIntros ((Hv & Hclv)) "/="; iSplit; iIntros ((Hv1 & Hclv')) "!%"; split => //;
     by [> rewrite closed_subst_vl_id // -Hv -Hv1 | rewrite Hv -Hv1 closed_subst_vl_id ].
   Qed.
+
+  Lemma ivtp_later Γ V T v:
+    ivtp (V :: Γ) T v -∗
+    ivtp (TLater V :: Γ) (TLater T) v.
+  Proof.
+    iIntros "/= #[% #Hv]". move: H => Hclv. iFrame (Hclv). iIntros "!> *".
+    destruct ρ as [|w ρ]; first by iIntros.
+    iIntros "[#Hg [% #Hw]]". move: H => Hclw.
+    iSplit. {
+      iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H => Hclρ.
+      iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *.
+      iPureIntro. apply fv_to_subst_vl; naive_solver.
+    }
+    iNext. iApply "Hv"; naive_solver.
+  Qed.
+
+  Lemma ietp_later_fails Γ W T v:
+    W :: Γ ⊨ tv v : T -∗
+    TLater W :: Γ ⊨ tv v: TLater T.
+  Proof.
+    iIntros "/= #[% #Hv]". move: H => Hclv. iFrame (Hclv). iIntros "!> *".
+    destruct ρ as [|w ρ]; first by iIntros.
+    iIntros "[#Hg [% #Hw]]". move: H => Hclw.
+    iApply wp_value_fupd.
+    iAssert ⌜nclosed_vl v.[to_subst (w :: ρ)] 0⌝%I as "%". {
+      iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H => Hclρ.
+      iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *.
+      iPureIntro. apply fv_to_subst_vl; naive_solver eauto using fv_tv_inv.
+    }
+    move: H => Hclvs. iFrame (Hclvs).
+    iSpecialize ("Hv" $! (w :: ρ)).
+
+    iAssert (□(⟦ W ⟧ (w :: ρ) w → WP tv v.[to_subst (w :: ρ)] {{ v, ⟦ T ⟧ (w :: ρ) v }}))%I as "#Hv'". {
+      iIntros "!> #Hw'". iApply "Hv". naive_solver.
+    }
+    iPoseProof ("Hv'" with "Hw") as "Hv2".
+    iPoseProof (wp_value_inv with "Hv2") as "Hv3".
+
+    iAssert (□ ▷ |={⊤}=> ⟦ W ⟧ (w :: ρ) w)%I as "#Hw''". naive_solver.
+    iSpecialize ("Hv'" with "Hw''").
+    iPoseProof (wp_value_inv with "Hv'") as "Hv4".
+
+  (*   iSpecialize ("Hv" $! (w :: ρ)). *)
+  (*   iApply wp_wand. iApply "Hv". *)
+  (*   iNext. iApply "Hv"; naive_solver. *)
+  (* Qed. *)
+  Abort.
+
+  Lemma ietp_later_futuremod Γ W T v:
+    W :: Γ ⊨ tv v : T -∗
+    (* Essentially [TLater W :: Γ ⊨ tv v: TLater T], but interpret TLater with
+       the future modality. *)
+         ⌜ nclosed (tv v) (length (W :: Γ)) ⌝ ∗
+         □(∀ ρ w,
+              ⟦Γ⟧* ρ →
+              ⌜nclosed_vl w 0⌝ →
+              (□ |={⊤}▷=> ⟦W⟧ (w :: ρ) w) →
+                        WP (tv v.[to_subst (w :: ρ)])
+                           {{ v0,
+                              ⌜nclosed_vl v0 0⌝ ∗
+                               |={⊤}▷=> ⟦T⟧ (w::ρ) v0 }}).
+  Proof.
+    iIntros "/= #[% #Hv]". move: H => Hclv. iFrame (Hclv). iIntros "!> *".
+    iIntros "#Hg" (Hclw) "#Hw".
+    iApply wp_value_fupd.
+    iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H => Hclρ.
+    iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *.
+    have Hclvs: nclosed_vl v.[to_subst (w :: ρ)] 0.
+      by apply fv_to_subst_vl; naive_solver eauto using fv_tv_inv.
+    iFrame (Hclvs).
+    iApply wp_value_inv'. iApply fupd_wp. iApply "Hv".
+    iFrame "Hg". iExact "Hw".
+  Qed.
+
+  Definition idtp Γ T d : iProp Σ :=
+    (⌜ nclosed d (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → |={⊤}=> def_interp T ρ d.|[to_subst ρ])%I.
+  Global Instance idtp_persistent Γ T d: Persistent (idtp Γ T d) := _.
+  Notation "Γ ⊨d d : T" := (idtp Γ T d) (at level 64, d, T at next level).
+
+  Lemma idtp_vmem_i' Γ W T v l:
+    W :: Γ ⊨ tv v : T -∗
+    TLater W :: Γ ⊨d dvl v : TVMem l T.
+  Proof.
+    iIntros "/= #[% #Hv]". move: H => Hclv. iSplit. auto using fv_tv_inv, fv_dvl. iIntros "!> *".
+    destruct ρ as [|w ρ]; first by iIntros.
+    cbn.
+    iIntros "[#Hg [% #Hw]]". move: H => Hclw.
+    iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H => Hclρ.
+    iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *.
+
+    have Hclvs: nclosed (dvl v.[to_subst (w :: ρ)]) 0. {
+      apply fv_dvl; apply fv_to_subst_vl; naive_solver eauto using fv_tv_inv.
+    }
+    have Hrefl: dvl v.[to_subst (w :: ρ)] = dvl v.[to_subst (w :: ρ)]. done.
+    iFrame (Hclvs).
+    iExists v.[to_subst (w :: ρ)].
+    iFrame (Hrefl).
+    iSpecialize ("Hv" $! (w :: ρ)).
+
+    iAssert (□ (⟦ W ⟧ (w :: ρ) w →
+             WP tv v.[to_subst (w :: ρ)] {{ v, ⟦ T ⟧ (w :: ρ) v }}))%I as "#Hv'". {
+      iIntros "!> #Hw'". iApply "Hv". naive_solver.
+    }
+
+    iAssert (□ (⟦ W ⟧ (w :: ρ) w →
+             |={⊤}=> ⟦ T ⟧ (w :: ρ) (v.[to_subst (w :: ρ)])))%I as "#Hv''". {
+      iIntros "!> #Hw'".
+      iSpecialize ("Hv'" with "Hw'").
+      iApply (wp_value_inv with "Hv'").
+    }
+    iSpecialize ("Hv''" with "Hw").
+    (* iApply "Hv''". *)
+    Abort.
+
+  (*   iPoseProof (wp_value_inv with "Hv") as "Hv'". *)
+  (*   iNext. *)
+  (*   iAssert (⟦ V :: Γ ⟧* (w :: ρ)) as "HvHyp". naive_solver. *)
+  (*   iSpecialize ("Hv" $! (w :: ρ) with "HvHyp"). iPoseProof (wp_value_inv with "Hv") as "Hv'". *)
+  (*   iApply "Hv". naive_solver.. *)
+  (* Qed. *)
+
+
+  (* Lemma foo V T v: *)
+  (*   ivtp (TLater V :: Γ) (TLater T) v -∗ *)
+  (*   ivtp (V :: Γ) T v. *)
+  (* Proof. *)
+  (*   iIntros "#[% #Hv]". move: H => Hclv. iFrame (Hclv). iIntros "!> *". *)
+  (*   destruct ρ as [|w ρ]; first by iIntros. iIntros "/= [#Hg #Hw]". *)
+  (*   iAssert (⟦ Γ ⟧* ρ ∗ ⌜nclosed_vl w 0⌝ ∗ ▷ ⟦ V ⟧ (w :: ρ) w)%I as "#HvHyp". { *)
+  (*     repeat iSplit => //. by iApply interp_v_closed. } *)
+  (*   iDestruct ("Hv" $! (w :: ρ) with "HvHyp") as "[% H2]". *)
+  (*   iApply "Hv". *)
 
   Lemma internal_iff_eq_try1 (P Q: iProp Σ) `(!Affine P) `(!Affine Q): (P ↔ Q ⊢ P ≡ Q)%I.
   Proof.
