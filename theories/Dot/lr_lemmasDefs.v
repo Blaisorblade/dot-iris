@@ -11,17 +11,24 @@ Section Sec.
 
   (** Lemmas about definition typing. *)
   (* TODO: switch to ietp. Might involve challenges with fancy updates;
-     worst-case, we can add a fancy update to definition typing. *)
-  Lemma idtp_vmem_i T v l:
-    ivtp Γ (TLater T) v -∗
-    Γ ⊨d dvl v : TVMem l T.
+     worst-case, we can add a fancy update to definition typing.
+     Also, replace [TLater V :: Γ ⊨d dvl v : TVMem l T] by [Γ | V ⊨d dvl v : TVMem l T].
+   *)
+  Lemma idtp_vmem_i V T v l:
+    ivtp (V :: Γ) (T) v -∗
+    TLater V :: Γ ⊨d dvl v : TVMem l T.
   Proof.
-    iIntros "#[% #Hv]". move: H => Hclv. iSplit. auto using fv_dvl. iIntros "!> * #Hg".
-    iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H => Hclρ.
-    iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *.
-    repeat iSplit => //. { iPureIntro. apply fv_to_subst, Hclρ. apply fv_dvl, Hclv. }
+    iIntros "/= #[% #Hv]". move: H => Hclv. iSplit. auto using fv_dvl. iIntros "!> *".
+    destruct ρ as [|w ρ]; first by iIntros.
+    iIntros "[#Hg [% #Hw]]". move: H => Hclw.
+    repeat iSplit => //. {
+      iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H => Hclρ.
+      iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *.
+      iPureIntro. apply fv_dvl; apply fv_to_subst_vl; naive_solver.
+    }
     iExists _; iSplit; try done.
-    simpl. iDestruct ("Hv" with "Hg") as "[% Hv▷T]". iExact "Hv▷T".
+    iNext.
+    iApply "Hv". naive_solver.
   Qed.
 
   (* Lemma dtp_tmem_i T γ ρ l : *)
