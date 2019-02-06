@@ -29,3 +29,4 @@ theories/Dot/lr_lemmasTSel.v
 theories/Dot/lr_lemmasDefs.v
 theories/Dot/unary_lr_binding.v
 theories/Dot/typingExamples.v
+theories/Dot/experiments.v
