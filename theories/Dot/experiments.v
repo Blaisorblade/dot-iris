@@ -1,4 +1,4 @@
-From iris.program_logic Require Import weakestpre.
+From iris.program_logic Require Import weakestpre lifting language ectx_lifting.
 From iris.proofmode Require Import tactics.
 From D Require Import tactics.
 From D.Dot Require Import unary_lr unary_lr_binding synLemmas rules synToSem.
@@ -112,6 +112,20 @@ Section Sec.
   Proof.
     iIntros ((Hv & Hclv)) "/="; iSplit; iIntros ((Hv1 & Hclv')) "!%"; split => //;
     by [> rewrite closed_subst_vl_id // -Hv -Hv1 | rewrite Hv -Hv1 closed_subst_vl_id ].
+  Qed.
+
+  Lemma tskip_self_sem_singleton ρ v: cl_ρ ρ → nclosed_vl v 0 → WP (tskip (tv v)) {{ v, sem_singleton v ρ v }}%I.
+  Proof.
+    iIntros (Hclρ Hclv) "/=".
+    iApply wp_pure_step_later => //; iApply wp_value.
+    iIntros "!%"; split => //. by apply closed_subst_vl_id.
+  Qed.
+
+  Lemma tskip_other_sem_singleton ρ w v v':
+    sem_singleton w ρ v -∗
+     WP (tskip (tv v)) {{ v', sem_singleton w ρ v' }}%I.
+  Proof.
+    iIntros (H); iApply wp_pure_step_later => //; iApply wp_value. by iIntros "!%".
   Qed.
 
   Lemma ivtp_later Γ V T v:
