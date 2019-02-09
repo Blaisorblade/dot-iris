@@ -39,17 +39,27 @@ Section logrel.
   Program Definition interp_vmem l (interp : listVlC -n> D) : listVlC -n> D :=
     λne ρ v, (⌜ nclosed_vl v 0 ⌝ ∗ ∃ d, ⌜v @ l ↘ d⌝ ∧ def_interp_vmem interp ρ d)%I.
 
-  Definition idm_proj_semtype d σ (φ : listVlC -n> D) : iProp Σ :=
-    (∃ γ, ⌜ d = dtysem σ γ ⌝ ∗ γ ⤇ (λ vs w, φ vs w))%I.
+  Definition idm_proj_semtype d (φ : D) : iProp Σ :=
+    (∃ γ σ (φ' : listVlC -n> D), ⌜ d = dtysem σ γ ∧ φ = φ' σ ⌝ ∗ γ ⤇ (λ vs w, φ' vs w))%I.
   Global Arguments idm_proj_semtype /.
-  Notation "d ↗ σ , φ" := (idm_proj_semtype d σ φ) (at level 20).
+  Notation "d ↗ φ" := (idm_proj_semtype d φ) (at level 20).
+
+  Lemma stored_pred_agree d φ1 φ2 v:
+    d ↗ φ1 -∗ d ↗ φ2 -∗ ▷ (φ1 v ≡ φ2 v).
+  Proof.
+    iIntros "/= #Hd1 #Hd2".
+    iDestruct "Hd2" as (γ' σ' φ2' H2) "Hγ2".
+    iDestruct "Hd1" as (γ σ φ1' H1) "Hγ1".
+    (* Paolo: This manual eta-expansion is needed to get coercions to apply. *)
+    ev; subst; injectHyps. by iApply (saved_interp_agree_eta _ (λ a, φ1' a) (λ a, φ2' a)).
+  Qed.
 
   Program Definition def_interp_tmem (interp1 interp2 : listVlC -n> D) :
     listVlC -n> dmC -n> iProp Σ :=
     λne ρ d,
-    (⌜ nclosed d 0 ⌝ ∗ ∃ φ σ, (d ↗ σ , φ) ∗
-       □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ interp1 ρ v → ▷ □ φ σ v) ∗
-          (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ φ σ v → ▷ interp2 ρ v) ∗
+    (⌜ nclosed d 0 ⌝ ∗ ∃ φ, (d ↗ φ) ∗
+       □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ interp1 ρ v → ▷ □ φ v) ∗
+          (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ φ v → ▷ interp2 ρ v) ∗
           (∀ v, interp1 ρ v → interp2 ρ v)))%I.
 
   Program Definition interp_tmem l (interp1 interp2 : listVlC -n> D) : listVlC -n> D :=
@@ -120,7 +130,7 @@ Section logrel.
     λne ρ v,
     (interpU ρ v ∧ (interpL ρ v ∨
                     path_wp p.|[to_subst ρ]
-                            (λne vp, ∃ σ ϕ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ σ , ϕ ∧ ▷ □ ϕ σ v)))%I.
+                            (λne vp, ∃ ϕ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ϕ ∧ ▷ □ ϕ v)))%I.
 
   Definition interp_sel (p: path) (l: label) : listVlC -n> D :=
     interp_selA p l interp_bot interp_top.
@@ -256,6 +266,7 @@ Section logrel.
   Global Instance ivstp_persistent Γ T1 T2 : Persistent (ivstp Γ T1 T2) := _.
 End logrel.
 
+Notation "d ↗ φ" := (idm_proj_semtype d φ) (at level 20).
 Notation "⟦ T ⟧" := (interp T).
 Notation "⟦ Γ ⟧*" := (interp_env Γ).
 Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).

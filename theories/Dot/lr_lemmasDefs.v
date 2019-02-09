@@ -79,7 +79,7 @@ Section Sec.
     setoid_rewrite (subst_sigma_idsσ ρ (length ρ) eq_refl).
     iPoseProof (interp_env_ρ_fv with "Hg") as "%". move: H => Hfvρ.
     repeat iSplit => //. by eauto using fv_dtysem.
-    iExists (interp T), _.
+    iExists (interp T ρ).
     iSplit; first auto.
     iModIntro; repeat iSplitL; iIntros "*".
     - iIntros (Hclv) "#HL".
@@ -150,14 +150,12 @@ Section Sec.
       (* subst; eauto. *)
       (* subst d'. asimpl. *)
       iSplit => //. iExists _. iSplit => //.
-    - iDestruct "H" as (φ σ) "[#Hl [#? [#? #?]]]".
-      iDestruct "Hl" as (γ) "[% #Hγ]". move: H => Hl.
+    - iDestruct "H" as (φ) "[#Hl [#? [#? #?]]]".
       iSplit => //.
       iExists (d'.|[vobj ((l, d') :: ds')/]). iSplit => //.
       subst d'; asimpl.
-      iSplit => //. iExists φ, σ; iSplit => //.
-      * iExists γ; iSplit => //.
-      * iModIntro. repeat iSplitL; naive_solver.
+      iSplit => //. iExists φ; iSplit => //.
+      iModIntro. repeat iSplitL; naive_solver.
   Admitted.
 
   (* Formerly wip_hard. *)

@@ -84,7 +84,7 @@ Section Russell.
     2: {iApply "HnotRussellV". iApply "HrussellV". }
 
     iSplitL => //. iRight.
-    iExists [], russell_p, (dtysem [] γ).
+    iExists (russell_p []), (dtysem [] γ).
     repeat (repeat iExists _ ; repeat iSplit => //).
     iIntros "!>!>"; iSplit. iExact "HvHasA".
     iExact "HnotRussellV".

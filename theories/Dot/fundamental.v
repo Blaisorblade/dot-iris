@@ -200,7 +200,7 @@ Section fundamental.
     - iDestruct "H11" as "%". iDestruct "H21" as "%".
       iDestruct "H12" as "[H11 H12]".
       iDestruct "H22" as "[H21 H22]".
-      iDestruct "Hv2" as (d) "[% [% H]]". iDestruct "H" as (φ σ) "[Hl #[H2 [H3 H4]]]".
+      iDestruct "Hv2" as (d) "[% [% H]]". iDestruct "H" as (φ) "[Hl #[H2 [H3 H4]]]".
       subst.
       repeat (iExists _; repeat iSplit => //).
       iDestruct "Hv1" as "%".
@@ -212,7 +212,7 @@ Section fundamental.
     - iDestruct "H11" as "%". iDestruct "H21" as "%".
       iDestruct "H12" as "[H11 H12]".
       iDestruct "H22" as "[H21 H22]".
-      iDestruct "Hv2" as (d) "[% [% H]]". iDestruct "H" as (φ σ) "[Hl #[H2 [H3 H4]]]".
+      iDestruct "Hv2" as (d) "[% [% H]]". iDestruct "H" as (φ) "[Hl #[H2 [H3 H4]]]".
       subst.
       repeat (iExists _; repeat iSplit => //).
       iDestruct "Hv1" as "%".
@@ -225,14 +225,14 @@ Section fundamental.
       iDestruct "Hv1" as "%". move: H => Hclv.
       iDestruct "Hv2" as "[[] | H]". iRight.
       iInduction p as [] "IHp" forall (p0 p1) "H"; destruct p0 => //; destruct p1 => //; cbn; fold t_vl.
-      + iDestruct "H" as (σ1 φ1 d1) "[% [H Hφ]]". move: H => Hlook1.
-        iDestruct "H" as (γ1) "[-> Hγ1]".
+      + iDestruct "H" as (φ1 d1) "[% [H Hφ]]". move: H => Hlook1.
+        iDestruct "H" as (γ1 σ1 φ'1) "[[-> ->] Hγ1]".
         (* These admits are (hopefully )syntactic lemmas provable on the translation. *)
         assert (∃ σ2 γ2, v2.[to_subst ρ] @ l1 ↘ dtysem σ2 γ2) as (σ2 & γ2 & Hlook2) by admit.
         iPoseProof (lookups_agree with "H11 H21 Hγ1") as "H" => //.
         iDestruct "H" as (φ2) "[Hγ2 Hφequiv]".
-        iExists σ2, φ2, (dtysem σ2 γ2). repeat iSplit => //.
-        * iExists _; iSplit =>//.
+        iExists (φ2 σ2), (dtysem σ2 γ2). repeat iSplit => //.
+        * iExists _, _, _; iSplit =>//.
         * (* Since σ and σ1 come from
              [v1.[to_subst ρ] @ l1 ↘ dtysem σ1 γ1] and
              [v2.[to_subst ρ] @ l1 ↘ dtysem σ γ], they are closed, and arise

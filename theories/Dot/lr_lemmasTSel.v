@@ -13,11 +13,11 @@ Section Sec.
     Γ ⊨ L <: TSelA (pv va) l L U.
   Proof.
     iIntros "/= #[% #Hva] !> * #Hg #HvL". move: H => Hclva.
-    iDestruct ("Hva" $! ρ with "Hg") as (Hclvas d Hl Hcld φ σ) "#H"; iClear "Hva".
+    iDestruct ("Hva" $! ρ with "Hg") as (Hclvas d Hl Hcld φ) "#H"; iClear "Hva".
     iDestruct "H" as "#[Hl [#HLφ [#HφU #HLU]]]".
     repeat iSplit; first by iApply "HLU".
     iRight.
-    iExists σ, φ, d.
+    iExists φ, d.
     iDestruct ("HLU" with "HvL") as "#HLU'".
     iPoseProof (interp_v_closed with "HvL") as "%". move: H => Hclv.
     iDestruct ("HLφ" $! _ Hclv with "HvL") as "#HLφ'".
@@ -29,11 +29,11 @@ Section Sec.
     Γ ⊨ TLater L <: TSel (pv va) l.
   Proof.
     iIntros "/= #[% Hva] !> * #Hg #[% HvL]". move: H H0 => Hclva Hclv.
-    iDestruct ("Hva" $! ρ with "Hg") as (Hclvas d Hl Hcld φ σ) "#H"; iClear "Hva".
+    iDestruct ("Hva" $! ρ with "Hg") as (Hclvas d Hl Hcld φ) "#H"; iClear "Hva".
     iDestruct "H" as "#[Hl [#HLφ [#HφU #HLU]]]".
     repeat iSplit => //.
     iRight.
-    iExists σ, φ, d.
+    iExists φ, d.
     iDestruct ("HLφ" $! _ Hclv with "HvL") as "#HLφ'".
     repeat iModIntro; by repeat iSplit.
   Qed.
@@ -49,38 +49,24 @@ Section Sec.
     iIntros "/= #[% Hva] !> * #Hg #[% HvL]". move: H H0 => Hclva Hclv.
     iDestruct ("Hva" $! ρ with "Hg") as (Hclvas d Hl Hcld vmem) "#[-> #[_ H1]]"; iClear "Hva".
     iDestruct "H1" as (d1) "[Hl2 [_ H]]".
-    iDestruct "H" as (φ σ) "#[Hl [#HLφ [#HφU #HLU]]]".
+    iDestruct "H" as (φ) "#[Hl [#HLφ [#HφU #HLU]]]".
     iDestruct ("HLφ" $! _ Hclv with "HvL") as "HLφ'".
     iSplit; first done.
     iRight.
     iExists vmem.
     iSplit => //.
-    iExists σ, φ, d1. repeat iModIntro; by repeat iSplit.
+    iExists φ, d1. repeat iModIntro; by repeat iSplit.
   Qed.
 
   Lemma mem_stp_sub_sel L U va l:
     ivtp Γ (TTMem l L U) va -∗
     ivstp Γ (TSel (pv va) l) (TLater U).
   Proof.
-    iIntros "/= #[% Hva] !> * #Hg #[$ [[] | Hφ]]". move: H => Hclva.
-    iDestruct ("Hva" $! ρ with "Hg") as (Hclvas d Hl Hcld φ σ) "#[Hlφ [HLφ [HφU #HLU]]]"; iClear "Hva".
-    iDestruct "Hlφ" as (γ Hd) "Hγφ".
-    iApply "HφU" => //.
-    iDestruct "Hφ" as (σ1 φ1 d1 Hva) "[Hγ #HΦ1v]".
-    iDestruct "Hγ" as (γ' Hd1) "HγΦ1".
-
-    injectHyps; subst; objLookupDet.
-
-    iAssert (∀ ρ v, ▷ (φ ρ v ≡ φ1 ρ v))%I as "#Hag".
-    { iIntros.
-      (* Paolo: This manual eta-expansion is needed to get coercions to apply. *)
-      by iApply (saved_interp_agree_eta γ (λ a, φ a) (λ a, φ1 a) ρ0 v0).
-    }
-
-    (* iAssert (▷ (subst_phi σ ρ φ v ≡ subst_phi σ ρ φ1 v))%I as "#Hag"; simpl. *)
-    (*  ▷ (subst_phi σ ρ φ v ≡ subst_phi σ ρ φ1 v))%I as "#Hag". simpl. *)
-    (* { qy iApply saved_pred_agree. } *)
-    repeat iModIntro.
-    by iRewrite ("Hag" $! σ v).
+    cbn.
+    iIntros "/= #[% Hva] !> * #Hg #[$ [[] | #Hφ]]". move: H => Hclva.
+    iDestruct ("Hva" $! ρ with "Hg") as (Hclvas d Hl Hcld φ) "#[#Hlφ [#HLφ [#HφU #HLU]]]"; iClear "Hva".
+    iDestruct "Hφ" as (φ1 d1 Hva) "[Hγ #HΦ1v]".
+    objLookupDet; subst. iPoseProof (stored_pred_agree d _ _ v with "Hlφ Hγ") as "#Hag".
+    iApply "HφU" => //. repeat iModIntro. by iRewrite "Hag".
   Qed.
 End Sec.
