@@ -136,7 +136,7 @@ Section Sec.
     }
     assert (length ds = length ds') as Hlen'. by rewrite /ds' /hsubst map_length.
     assert (vobj ((l, d') :: ds') @ l ↘ d'.|[vobj ((l, d') :: ds')/]) as Hlookup.
-    admit.
+      by eexists _; split => //=; case_match.
       (* XXX we need to rewrite this lemma for the new lookup relation, after fixing typing.
         by rewrite Hlen'; apply obj_lookup_cons. *)
     induction T => //=; try (by iIntros "**").
@@ -156,7 +156,7 @@ Section Sec.
       subst d'; asimpl.
       iSplit => //. iExists φ; iSplit => //.
       iModIntro. repeat iSplitL; naive_solver.
-  Admitted.
+  Qed.
 
   (* Formerly wip_hard. *)
   Lemma defs_interp_to_interp T ds ρ s:
