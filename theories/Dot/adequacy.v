@@ -13,7 +13,7 @@ Proof.
   iIntros (Hinv ?). iModIntro. iExists (λ _ _, True%I). iSplit=> //.
   (* rewrite -(empty_env_subst e). *)
   set (DotΣ := DotG Σ Hinv _).
-  iApply (wp_wand with "[]"); by [iApply Hlog | auto].
+  iApply wp_wand; by [iApply Hlog | auto].
 Qed.
 
 (* Instead of still assuming semantic typing, here we should assume syntactic

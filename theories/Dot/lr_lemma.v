@@ -76,7 +76,7 @@ Section Sec.
     move: Hclte => _. iIntros "!> * #Hg".
     rewrite tskip_subst tskip_n_to_fill. iApply wp_bind.
     iApply (wp_wand_cl _ (⟦ T1 ⟧ ρ)) => //.
-    - iApply ("HeT1" $! ρ with "Hg").
+    - iApply ("HeT1" with "[//]").
     - by iApply nclosed_subst_ρ.
     - iIntros (v) "#HvT1"; iIntros (Hclv). rewrite -tskip_n_to_fill.
       iApply wp_pure_step_later; trivial.
@@ -99,10 +99,10 @@ Section Sec.
      Γ ⊨ tskip e : T, i)%I.
   Proof.
     iIntros "[% #HT]". iSplit; auto using fv_tskip. iIntros " !> * #HG".
-    iSpecialize ("HT" $! ρ with "HG").
+    iSpecialize ("HT" with "[#//]").
     rewrite iterate_S.
     smart_wp_bind SkipCtx v "#[% Hr]" "HT".
-    iApply wp_pure_step_later; auto.
+    iApply wp_pure_step_later; trivial.
     iNext. by iApply wp_value.
   Qed.
 
@@ -195,10 +195,9 @@ Section Sec.
   Lemma TMu_equiv T v: (Γ ⊨ tv v : TMu T ↔ Γ ⊨ tv v : T.|[v/])%I.
   Proof.
     Import uPred.
-    iSplit; iIntros "/= #[% #Htp]"; iSplit => //; iIntros " !> * #Hg"; iSpecialize ("Htp" with "Hg");
-      iApply wp_value_fupd;
-      iPoseProof (interp_subst_closed Γ T v (v.[to_subst ρ]) with "Hg") as "Heq"; try (by apply fv_tv_inv);
-      iApply (internal_eq_iff with "Heq"); iApply (wp_value_inv with "Htp").
+    iSplit; iIntros "/= #[% #Htp]"; iSplit => //; iIntros " !> * #Hg"; iApply wp_value_fupd;
+      (iPoseProof (interp_subst_closed Γ T v (v.[to_subst ρ]) with "[#//]") as "Heq"; first (by apply fv_tv_inv));
+        iApply (internal_eq_iff with "Heq"); iSpecialize ("Htp" with "[#//]"); iApply (wp_value_inv with "Htp").
       (* Fail iRewrite "Heq". *) (* WTF *)
   Qed.
 
@@ -215,12 +214,12 @@ Section Sec.
      Γ ⊨ tapp e1 e2 : T2)%I.
   Proof.
     iIntros "/= #[% He1] #[% Hv2]". iSplit; eauto using fv_tapp. iIntros " !> * #HG".
-    iSpecialize ("He1" with "HG"); iSpecialize ("Hv2" with "HG").
+    iSpecialize ("He1" with "[#//]"); iSpecialize ("Hv2" with "[#//]").
     smart_wp_bind (AppLCtx (e2.|[to_subst ρ])) v "#Hr" "He1".
     smart_wp_bind (AppRCtx v) w "#Hw" "Hv2".
     iDestruct "Hr" as (Hclv t ->) "#Hv".
     iApply wp_pure_step_later; trivial. iNext.
-    iApply wp_mono; [|iApply "Hv"]; auto.
+    iApply wp_mono; last iApply ("Hv" with "[//]").
     iIntros (v0) "#H".
     by iApply interp_weaken_one.
   Qed.
@@ -232,17 +231,13 @@ Section Sec.
      Γ ⊨ tapp e1 (tv v2) : T2.|[v2/])%I.
   Proof.
     iIntros "/= #[% He1] #[% Hv2Arg]". move: H H0 => Hcle1 Hclv2. iSplit; eauto using fv_tapp. iIntros " !> * #HG".
-    (* iAssert (⌜ length ρ = length Γ ⌝)%I as "%". by iApply interp_env_len_agree. move: H => Hlen. *)
-    iAssert (⌜ nclosed_vl v2 (length Γ) ⌝)%I as "%". by iPureIntro; apply fv_tv_inv. move: H => Hcl.
-    (* assert (nclosed_vl v2 (length ρ)). by rewrite Hlen. *)
-    iSpecialize ("He1" with "HG"); iSpecialize ("Hv2Arg" with "HG").
+    have Hcl: nclosed_vl v2 (length Γ). by apply fv_tv_inv.
+    iSpecialize ("He1" with "[#//]"); iSpecialize ("Hv2Arg" with "[#//]").
     smart_wp_bind (AppLCtx (tv v2.[to_subst ρ])) v "#Hr" "He1".
     iDestruct "Hr" as (Hclv t ->) "#HvFun".
     iApply wp_pure_step_later; trivial. iNext.
     iApply wp_wand.
-    - iApply fupd_wp.
-      iApply "HvFun".
-      iApply wp_value_inv'; by iApply "Hv2Arg".
+    - iApply fupd_wp. iApply "HvFun". by iApply wp_value_inv'.
     - iIntros (v0) "#H".
       iPoseProof (interp_subst_closed Γ T2 v2 v0 with "HG") as "Heq" => //.
       by iApply (internal_eq_iff with "Heq").
