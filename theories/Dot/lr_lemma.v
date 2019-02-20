@@ -269,15 +269,12 @@ Section Sec.
 
     Tactic Notation "locAsimpl'" uconstr(e1) :=
       remember (e1) as __e' eqn:__Heqe';
-      (* time *)
       progress asimpl in __Heqe'; subst __e'.
     (* This retries multiple times; must lock patterns and ignore them *)
     Ltac locAsimpl :=
       repeat match goal with
       | |- context [?a.[?s]] => locAsimpl' a.[s]
-      | |- context [?a.|[?s]] =>
-        idtac a s;
-        locAsimpl' (a.|[s])
+      | |- context [?a.|[?s]] => locAsimpl' (a.|[s])
       end.
 
     locAsimpl.
@@ -285,20 +282,6 @@ Section Sec.
     (* time locAsimpl' (e.|[to_subst (v :: ρ)]). *)
     iApply "HeT". iFrame "HG". by iApply interp_weaken_one.
   Qed.
-    (* replace (e.|[up (to_subst ρ)].|[v/]) with (e.|[to_subst (v :: ρ)]) by by asimpl. *)
-    (* ltac:(let locAsimpl := (remember (e.|[up (to_subst ρ)].|[v/]) as e' eqn:Heqe'; *)
-    (*                   asimpl in Heqe'; rewrite Heqe') in locAsimpl). *)
-
-    (* ltac:(let locAsimpl e1 := (remember e1 as e' eqn:Heqe' *)
-    (*                   ) in locAsimpl (e.|[up (to_subst ρ)].|[v/])). *)
-    (* Ltac locAsimpl e1 Heqe' := *)
-    (*   remember (e1) as e' eqn:Heqe'. *)
-    (* match goal with *)
-    (* | |- context [?e: tm] => idtac e *)
-    (* end. *)
-    (* foo (e.|[up (to_subst ρ)].|[v/]) Heqe'. asimpl in Heqe'. rewrite Heqe'. *)
-    (* subst e'. *)
-  (* Qed. *)
 
   Lemma T_Mem_E e T l:
     (Γ ⊨ e : TVMem l T →
