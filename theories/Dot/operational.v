@@ -3,7 +3,7 @@ From iris.algebra Require Import ofe agree.
 From iris.proofmode Require Import tactics.
 From iris.base_logic Require Import lib.iprop (* For gname *)
      lib.saved_prop invariants.
-From iris.program_logic Require Import weakestpre.
+From iris.program_logic Require Export weakestpre.
 
 From D Require Import tactics.
 From D.Dot Require Export dotsyn.

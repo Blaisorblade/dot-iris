@@ -1,4 +1,3 @@
-From iris.program_logic Require Export weakestpre.
 From iris.program_logic Require Import ectx_lifting.
 From D.DSub Require Import operational.
 

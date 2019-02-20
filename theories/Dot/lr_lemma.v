@@ -1,6 +1,5 @@
 From iris.base_logic Require Import base_logic.
 From iris.proofmode Require Import tactics.
-From iris.program_logic Require Import weakestpre.
 From iris.program_logic Require Import lifting language ectx_lifting.
 
 (** Paolo to Amin: it seems below we might need something vaguely similar to the following. Not sure they're exactly true as stated. *)

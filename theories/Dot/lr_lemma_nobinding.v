@@ -1,5 +1,4 @@
 From iris.base_logic Require Import base_logic.
-From iris.program_logic Require Import weakestpre.
 From iris.proofmode Require Import tactics.
 From D.Dot Require Import unary_lr.
 

@@ -1,4 +1,4 @@
-From iris.program_logic Require Import weakestpre lifting language ectx_lifting.
+From iris.program_logic Require Import lifting language ectx_lifting.
 From iris.proofmode Require Import tactics.
 From D Require Import tactics.
 From D.Dot Require Import unary_lr unary_lr_binding synLemmas rules synToSem.
