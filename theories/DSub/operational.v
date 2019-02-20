@@ -116,7 +116,7 @@ Class dsubPreG Σ := DsubPreG {
   dsubPreG_interpNames : gen_heapPreG stamp gname Σ;
 }.
 
-Definition dsubΣ := #[invΣ; savedAnythingΣ (vls -c> vl -c> ▶ ∙); gen_heapΣ stamp ty; gen_heapΣ stamp gname].
+Definition dsubΣ := #[invΣ; savedAnythingΣ (vls -c> vl -c> ▶ ∙); gen_heapΣ stamp gname].
 
 Instance subG_dsubΣ {Σ} : subG dsubΣ Σ → dsubPreG Σ.
 Proof. solve_inG. Qed.
