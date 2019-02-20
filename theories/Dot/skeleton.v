@@ -1,7 +1,7 @@
 (** Define translation from syntactic terms/values to semantic ones, following Sec. 3.2 of the PDF. *)
+From iris.program_logic Require Import ectx_lifting.
 From D Require Import tactics.
 From D.Dot Require Import operational.
-From iris.program_logic Require Import ectx_lifting.
 
 Fixpoint same_skel_tm (t1 t2: tm): Prop :=
   match (t1, t2) with
