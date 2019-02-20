@@ -259,6 +259,7 @@ Section interp_equiv.
   Qed.
 
   Notation "¬ P" := (□ (P → False))%I : bi_scope.
+
   Section definitions.
     Context `{hG : gen_iheapG L V Σ}.
 
@@ -303,6 +304,8 @@ Section interp_equiv.
   Global Instance: Timeless (s ↦ γ).
   Proof. apply _. Qed.
 
+  Notation "s ↝ φ" := (∃ γ, s ↦ γ ∗ γ ⤇ φ)%I  (at level 20) : bi_scope.
+
   Definition allGs gs := (gen_iheap_ctx (hG := dsubG_interpNames) gs).
   Arguments allGs /.
 
@@ -318,12 +321,14 @@ Section interp_equiv.
 
 
   Lemma transferOne_base_inv gs s T:
-      gs !! s = None → (allGs gs ==∗ ∃ γ, allGs (<[s:=γ]> gs) ∗ (s ↦ γ) ∗ γ ⤇ (λ ρ, ⟦ T ⟧ ρ))%I.
+      gs !! s = None → (allGs gs ==∗ ∃ gs', allGs gs' ∗ s ↝ (λ ρ, ⟦ T ⟧ ρ) ∗ ⌜ gdom gs' ≡ gdom gs ∪ {[s]} ⌝)%I.
   Proof.
     iIntros (HsFresh) "Hown /=".
     iMod (alloc_sp T) as (γ) "#Hγ".
-    iExists γ. iFrame "Hγ".
-    by iMod (gen_iheap_alloc _ s γ with "Hown") as "[$ $]".
+    iMod (gen_iheap_alloc _ s γ with "Hown") as "[H1 H2]" => //.
+    iModIntro. iExists (<[s:=γ]> gs). iFrame. iSplitL.
+    - iExists γ. iFrame. done.
+    - by rewrite dom_insert union_comm.
   Qed.
 
   (* Given a mapping from stamps to gnames, we can also define when a map is properly translated. *)
@@ -335,7 +340,7 @@ Section interp_equiv.
   (* To give a definitive version of wellMapped, we need stampHeap to be stored in a resource. Here it is: *)
   Definition wellMapped g : iProp Σ :=
     (□∀ s T ρ v,
-        ⌜ g !! s = Some T⌝ → ∃ γ P, s ↦ γ ∗ γ ⤇ P ∧ ⟦ T ⟧ ρ v ≡ P ρ v)%I.
+        ⌜ g !! s = Some T⌝ → ∃ P, s ↝ P ∧ ⟦ T ⟧ ρ v ≡ P ρ v)%I.
   Instance: Persistent (wellMapped g).
   Proof. apply _. Qed.
 
@@ -346,16 +351,14 @@ Section interp_equiv.
       gs !! s = None → (wellMapped g → allGs gs ==∗ ∃ gs', wellMapped (<[s := T]> g) ∧ allGs gs' ∧ ⌜gdom gs' ≡ gdom gs ∪ {[s]}⌝)%I.
   Proof.
     iIntros (HsFresh) "#Hg Hown /=".
-    iMod (transferOne_base_inv gs s T HsFresh with "Hown") as (γ) "(Hgs & #Hsγ & #Hγ)".
-    iExists ((<[s:=γ]> gs)); iModIntro; iFrame "Hgs".
-    iSplit. (* last (iPureIntro; by eapply insert_subseteq). *)
+    iMod (transferOne_base_inv gs s T HsFresh with "Hown") as (gs') "(Hgs & #Hmaps & #Hdom)".
+    iExists gs'; iModIntro; iFrame "Hgs".
+    iSplit =>//.
     iIntros (s' T' ρ v Hlook) "!>".
     destruct (decide (s = s')) as [<-|Hne].
-    - iExists γ, (dsub_interp T).
-      enough (T = T') as <- by by iFrame "Hsγ Hγ".
-      rewrite lookup_insert in Hlook. by injection Hlook.
+    - iExists (dsub_interp T).
+      suff <-: T = T' by iSplit. by rewrite lookup_insert in Hlook; injection Hlook.
     - rewrite lookup_insert_ne //= in Hlook. by iApply "Hg".
-    - iPureIntro. by rewrite dom_insert union_comm. 
   Qed.
 
   (* (* Not clearly needed. *) *)
@@ -376,13 +379,14 @@ Section interp_equiv.
 
   Definition wellMappedList (glist: list (stamp * ty)) : iProp Σ :=
     (∀ s T ρ v,
-        ⌜ (s, T) ∈ glist ⌝ → ∃ γ P, s ↦ γ ∗ γ ⤇ P ∧ ⟦ T ⟧ ρ v ≡ P ρ v)%I.
+        ⌜ (s, T) ∈ glist ⌝ → ∃ P, s ↝ P ∧ ⟦ T ⟧ ρ v ≡ P ρ v)%I.
 
-  Lemma transferList glist gs: (∀ s, s ∈ fmap fst glist → gs !! s = None) → (allGs gs ==∗ wellMappedList glist)%I.
-  Abort.
+  (* I think we can delete this, right? -- leo *)
+  (* Lemma transferList glist gs: (∀ s, s ∈ fmap fst glist → gs !! s = None) → (allGs gs ==∗ wellMappedList glist)%I. *)
+  (* Abort. *)
 
   (* Lemma transfer g gs: ((∀ s, ⌜s ∈ gdom g⌝ -∗ ¬ ∃ γ, s ↦ γ) -∗ allGs gs ==∗ wellMapped g)%I. *)
-  Lemma transfer g gs: (∀ s, s ∈ gdom g → gs !! s = None) →
+  Lemma transfer' g gs: (∀ s, s ∈ gdom g → gs !! s = None) →
                        (allGs gs ==∗ ∃ gs', wellMapped g ∧ allGs gs' ∧ ⌜gdom gs' ≡ gdom gs ∪ gdom g⌝).
   Proof.
     elim g using map_ind.
@@ -404,5 +408,11 @@ Section interp_equiv.
         iFrame. iPureIntro. rewrite /gdom.
         rewrite dom_insert union_comm -union_assoc [dom _ _ ∪ dom _ _]union_comm.
           by rewrite -H union_comm -H0. (* set_solver very slow *)
+  Qed.
+
+  Lemma transfer g gs: (∀ s, s ∈ gdom g → gs !! s = None) →
+                       (allGs gs ==∗ wellMapped g)%I.
+  Proof.
+    iIntros (Hs) "H". iMod (transfer' gs Hs with "H") as (gs') "[H ?]". iModIntro. iFrame.
   Qed.
 End interp_equiv.
