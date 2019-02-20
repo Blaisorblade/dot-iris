@@ -1,4 +1,5 @@
-From iris.program_logic Require Import lifting language ectx_lifting.
+From D.pure_program_logic Require Import lifting.
+From iris.program_logic Require Import language ectx_language.
 From iris.proofmode Require Import tactics.
 From D Require Import tactics.
 From D.Dot Require Import unary_lr unary_lr_binding synLemmas rules synToSem.
@@ -143,37 +144,21 @@ Section Sec.
     iNext. iApply "Hv"; naive_solver.
   Qed.
 
-  Lemma ietp_later_fails Γ W T v:
+  Lemma ietp_later_works Γ W T v:
     W :: Γ ⊨ tv v : T -∗
     TLater W :: Γ ⊨ tv v: TLater T.
   Proof.
     iIntros "/= #[% #Hv]". move: H => Hclv. iFrame (Hclv). iIntros "!> *".
     destruct ρ as [|w ρ]; first by iIntros.
     iIntros "[#Hg [% #Hw]]". move: H => Hclw.
-    iApply wp_value_fupd.
-    iAssert ⌜nclosed_vl v.[to_subst (w :: ρ)] 0⌝%I as "%". {
-      iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H => Hclρ.
-      iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *.
-      iPureIntro. apply fv_to_subst_vl; naive_solver eauto using fv_tv_inv.
-    }
-    move: H => Hclvs. iFrame (Hclvs).
-    iSpecialize ("Hv" $! (w :: ρ)).
-
-    iAssert (□(⟦ W ⟧ (w :: ρ) w → WP tv v.[to_subst (w :: ρ)] {{ v, ⟦ T ⟧ (w :: ρ) v }}))%I as "#Hv'". {
-      iIntros "!> #Hw'". iApply "Hv". naive_solver.
-    }
-    iPoseProof ("Hv'" with "Hw") as "Hv2".
-    iPoseProof (wp_value_inv with "Hv2") as "Hv3".
-
-    iAssert (□ ▷ |={⊤}=> ⟦ W ⟧ (w :: ρ) w)%I as "#Hw''". naive_solver.
-    iSpecialize ("Hv'" with "Hw''").
-    iPoseProof (wp_value_inv with "Hv'") as "Hv4".
-
-  (*   iSpecialize ("Hv" $! (w :: ρ)). *)
-  (*   iApply wp_wand. iApply "Hv". *)
-  (*   iNext. iApply "Hv"; naive_solver. *)
-  (* Qed. *)
-  Abort.
+    iApply wp_value.
+    iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H => Hclρ.
+    iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *.
+    have Hclvs: nclosed_vl v.[to_subst (w :: ρ)] 0.
+      by apply fv_to_subst_vl; naive_solver eauto using fv_tv_inv.
+    iFrame (Hclvs).
+    iApply wp_value_inv'. iApply "Hv". by iSplit.
+  Qed.
 
   Lemma ietp_later_futuremod Γ W T v:
     W :: Γ ⊨ tv v : T -∗
@@ -183,11 +168,11 @@ Section Sec.
          □(∀ ρ w,
               ⟦Γ⟧* ρ →
               ⌜nclosed_vl w 0⌝ →
-              (□ |={⊤}▷=> ⟦W⟧ (w :: ρ) w) →
+              (□ ▷ ⟦W⟧ (w :: ρ) w) →
                         WP (tv v.[to_subst (w :: ρ)])
                            {{ v0,
                               ⌜nclosed_vl v0 0⌝ ∗
-                               |={⊤}▷=> ⟦T⟧ (w::ρ) v0 }}).
+                               ▷ ⟦T⟧ (w::ρ) v0 }}).
   Proof.
     iIntros "/= #[% #Hv]". move: H => Hclv. iFrame (Hclv). iIntros "!> *".
     iIntros "#Hg" (Hclw) "#Hw".
@@ -197,12 +182,11 @@ Section Sec.
     have Hclvs: nclosed_vl v.[to_subst (w :: ρ)] 0.
       by apply fv_to_subst_vl; naive_solver eauto using fv_tv_inv.
     iFrame (Hclvs).
-    iApply wp_value_inv'. iApply fupd_wp. iApply "Hv".
-    iFrame "Hg". iExact "Hw".
+    iApply wp_value_inv'. iApply "Hv". by iSplit.
   Qed.
 
   Definition idtp Γ T d : iProp Σ :=
-    (⌜ nclosed d (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → |={⊤}=> def_interp T ρ d.|[to_subst ρ])%I.
+    (⌜ nclosed d (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → |==> def_interp T ρ d.|[to_subst ρ])%I.
   Global Instance idtp_persistent Γ T d: Persistent (idtp Γ T d) := _.
   Notation "Γ ⊨d d : T" := (idtp Γ T d) (at level 64, d, T at next level).
 
@@ -232,7 +216,7 @@ Section Sec.
     }
 
     iAssert (□ (⟦ W ⟧ (w :: ρ) w →
-             |={⊤}=> ⟦ T ⟧ (w :: ρ) (v.[to_subst (w :: ρ)])))%I as "#Hv''". {
+             |==> ⟦ T ⟧ (w :: ρ) (v.[to_subst (w :: ρ)])))%I as "#Hv''". {
       iIntros "!> #Hw'".
       iSpecialize ("Hv'" with "Hw'").
       iApply (wp_value_inv with "Hv'").
@@ -374,14 +358,14 @@ Section Sec.
   Global Arguments istp /.
 
   Definition uvstp Γ T1 T2: iProp Σ :=
-    (□∀ ρ v, ⟦Γ⟧*ρ -∗ ((*|={⊤}=>*) ⟦T1⟧ ρ v) → |={⊤}=> ⟦T2⟧ ρ v)%I.
+    (□∀ ρ v, ⟦Γ⟧*ρ -∗ ((*|={⊤}=>*) ⟦T1⟧ ρ v) → |==> ⟦T2⟧ ρ v)%I.
   Global Arguments uvstp /.
 
   Notation "Γ ⊨e T1 <: T2" := (istp Γ T1 T2) (at level 74, T1, T2 at next level).
   Notation "Γ ⊨> T1 <: T2" := (uvstp Γ T1 T2) (at level 74, T1, T2 at next level).
 
   Definition uvstp2 Γ T1 T2: iProp Σ :=
-    (□∀ ρ v, ⟦Γ⟧*ρ → |={⊤}=> (⟦T1⟧ ρ v) → ⟦T2⟧ ρ v)%I.
+    (□∀ ρ v, ⟦Γ⟧*ρ → |==> (⟦T1⟧ ρ v) → ⟦T2⟧ ρ v)%I.
   Global Arguments uvstp2 /.
   (* Print uvstp2. *)
 
@@ -394,7 +378,7 @@ Section Sec.
                                                  WP e {{v, ⟦T1⟧ ρ v → ⟦T2⟧ ρ v}})%I.
 
   Lemma dropUpdateFromPremise {A B: iProp Σ}:
-    (□ ((|={⊤}=> A) → |={⊤}=> B) ↔ □ (A → |={⊤}=> B))%I.
+    (□ ((|==> A) → |==> B) ↔ □ (A → |==> B))%I.
   Proof.
     iSplit; iIntros "#Himpl !>".
     - iIntros "HA". by iApply "Himpl".
@@ -413,7 +397,6 @@ Section Sec.
   Proof.
     iIntros "/= #Hstp". iFrame "Hstp".
     iIntros " !> * #Hg HeT1".
-    iApply wp_fupd.
     iApply (wp_wand with " [-]"); try iApply "HeT1".
     iIntros "* HT1". by iApply "Hstp".
   Qed.
@@ -497,12 +480,12 @@ Section Sec.
   Qed.
 
   Lemma inclusion_equiv_wp_upd {P Q}:
-    ((□∀ e, WP e {{P}} → WP e {{Q}})%I ≡ (□∀ v, P v → |={⊤}=> Q v)%I).
+    ((□∀ e, WP e {{P}} → WP e {{Q}})%I ≡ (□∀ v, P v → Q v)%I).
   Proof.
     iSplit; iIntros "#Himpl !> * HP".
     - setoid_rewrite wp_unfold.
         by iApply ("Himpl" $! (of_val v)).
-    - iApply wp_fupd.
+    -
       iApply (wp_wand with " [-]"); first iApply "HP".
       iIntros "* HP". by iApply "Himpl".
   Qed.

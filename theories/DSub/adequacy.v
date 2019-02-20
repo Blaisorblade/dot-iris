@@ -1,4 +1,4 @@
-From iris.program_logic Require Import adequacy.
+From D.pure_program_logic Require Import adequacy.
 From iris.proofmode Require Import tactics.
 From D Require Import tactics.
 From D.DSub Require Import unary_lr.
@@ -11,16 +11,16 @@ Theorem adequacy Σ `{HdsubG: dsubPreG Σ} e e' thp σ σ' T ρ:
   is_Some (to_val e') ∨ reducible e' σ'.
 Proof.
   intros Hlog ??. cut (adequate NotStuck e σ (λ _ _, True)); first (intros [_ ?]; eauto).
-  eapply (wp_adequacy Σ); eauto. apply HdsubG.
-  iIntros (Hinv ?). iModIntro. iExists (λ _ _, True%I). iSplit=> //.
+  eapply (wp_adequacy Σ).
+  iMod (@gen_heap_init _ _ _ _ _ dsubPreG_interpNames ∅) as (g) "H".
+  iIntros (?). iModIntro. iExists (λ _ _, True%I). iSplit=> //.
   (* rewrite -(empty_env_subst e). *)
   (* Works: *)
   (* iMod (gen_heap_init ∅) as "H". *)
   (* iDestruct "H" as (g) "H1". *)
   Fail iMod (gen_heap_init ∅) as (g) "H".
 
-  iMod (@gen_heap_init _ _ _ _ _ dsubPreG_interpNames ∅) as (g) "H".
-  set (DsubΣ := DsubG Σ Hinv _ g).
+  set (DsubΣ := DsubG Σ _ g).
   iApply (wp_wand with "[]"); by [iApply Hlog | auto].
 Qed.
 

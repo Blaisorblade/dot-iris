@@ -281,7 +281,7 @@ Section fundamental.
     rewrite /interp_expr /=.
     iSpecialize ("HeT'" with "HG").
     iApply wp_strong_mono => //.
-    iIntros (v) "HT' !>". by iApply (translations_types_equivalent_vals T T' T'').
+    iIntros (v) "HT'". by iApply (translations_types_equivalent_vals T T' T'').
   Qed.
 
   (* What we actually want is closer to:
@@ -329,7 +329,7 @@ Section fundamental.
       { by iApply t_ty_subst_special. }
       iApply translations_types_equivalent; try done.
 
-      admit; by iApply (T_Forall_Ex  with "toto tata").
+      by iApply (T_Forall_Ex  with "toto tata").
     -
       (* I'm careful with simplification to avoid unfolding too much. *)
       cbn [t_tm] in * |- *; case_match; try done.
@@ -342,7 +342,7 @@ Section fundamental.
       { cbn; by iSplit. }
       iMod ("IHT"with "Htr1 HtrTAll") as "#HsT1".
       iMod ("IHT1" with "Htr2 HTTr") as "#HsT2".
-      admit; by iApply (T_Forall_E with "HsT1 HsT2").
+      by iApply (T_Forall_E with "HsT1 HsT2").
     (* pose proof (typed_tm_is_syn Γ e T HT) as HeSyn. *)
     (* pose proof (typed_ty_is_syn Γ e T HT) as HTSyn. *)
     (* pose proof (typed_ctx_is_syn Γ e T HT) as HΓSyn. *)
