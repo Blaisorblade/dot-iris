@@ -95,13 +95,36 @@ Canonical Structure tyC := leibnizC ty.
 Canonical Structure listVlC := leibnizC (list vl).
 
 From stdpp Require Import gmap.
-From iris.algebra Require Import gmap.
-From iris.base_logic.lib Require Import gen_heap.
+From iris.algebra Require Import auth gmap agree.
+From iris.base_logic.lib Require Export own.
+
+Definition gen_iheapUR (L V : Type) `{Countable L} : ucmraT :=
+  gmapUR L (agreeR (leibnizC V)).
+Definition to_gen_iheap {L V} `{Countable L} : gmap L V → gen_iheapUR L V :=
+  fmap (λ v, to_agree (v : leibnizC V)).
+
+(** The CMRA we need. *)
+Class gen_iheapG (L V : Type) (Σ : gFunctors) `{Countable L} := GenIHeapG {
+  gen_iheap_inG :> inG Σ (authR (gen_iheapUR L V));
+  gen_iheap_name : gname
+}.
+Arguments gen_iheap_name {_ _ _ _ _} _ : assert.
+
+Class gen_iheapPreG (L V : Type) (Σ : gFunctors) `{Countable L} :=
+  { gen_iheap_preG_inG :> inG Σ (authR (gen_iheapUR L V)) }.
+
+Definition gen_iheapΣ (L V : Type) `{Countable L} : gFunctors :=
+  #[GFunctor (authR (gen_iheapUR L V))].
+
+Instance subG_gen_iheapPreG {Σ L V} `{Countable L} :
+  subG (gen_iheapΣ L V) Σ → gen_iheapPreG L V Σ.
+Proof. solve_inG. Qed.
+
 
 Class dsubG Σ := DsubG {
   dsubG_invG : invG Σ;
   dsubG_savior :> savedAnythingG Σ (vls -c> vl -c> ▶ ∙);
-  dsubG_interpNames : gen_heapG stamp gname Σ;
+  dsubG_interpNames : gen_iheapG stamp gname Σ;
 }.
 
 Instance dsubG_irisG `{dsubG Σ} : irisG dsub_lang Σ := {
@@ -113,10 +136,10 @@ Instance dsubG_irisG `{dsubG Σ} : irisG dsub_lang Σ := {
 Class dsubPreG Σ := DsubPreG {
   dsubPreG_invG : invPreG Σ;
   dsubPreG_savior :> savedAnythingG Σ (vls -c> vl -c> ▶ ∙);
-  dsubPreG_interpNames : gen_heapPreG stamp gname Σ;
+  dsubPreG_interpNames : gen_iheapPreG stamp gname Σ;
 }.
 
-Definition dsubΣ := #[invΣ; savedAnythingΣ (vls -c> vl -c> ▶ ∙); gen_heapΣ stamp gname].
+Definition dsubΣ := #[invΣ; savedAnythingΣ (vls -c> vl -c> ▶ ∙); gen_iheapΣ stamp gname].
 
 Instance subG_dsubΣ {Σ} : subG dsubΣ Σ → dsubPreG Σ.
 Proof. solve_inG. Qed.

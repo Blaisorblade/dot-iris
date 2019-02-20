@@ -182,9 +182,8 @@ Proof.
     apply fv_to_subst; eauto. (* eauto with typeclass_instances. *)
 Qed.
 
-From iris.base_logic.lib Require Import gen_heap.
-
-Definition logN : namespace := nroot .@ "logN".
+From iris.algebra Require Import auth gmap agree.
+From iris.base_logic.lib Require Export own.
 
 Section interp_equiv.
   Context `{!dsubG Σ}.
@@ -260,14 +259,51 @@ Section interp_equiv.
   Qed.
 
   Notation "¬ P" := (□ (P → False))%I : bi_scope.
-  Notation "s ↦  γ" := (mapsto (hG := dsubG_interpNames) s 1 γ) (at level 20) : bi_scope.
-  Notation "s ⇨ γ" := (inv logN (s ↦ γ)%I) (at level 20) : bi_scope.
+  Section definitions.
+    Context `{hG : gen_iheapG L V Σ}.
+
+    Definition gen_iheap_ctx (σ : gmap L V) : iProp Σ :=
+      own (gen_iheap_name hG) (● (to_gen_iheap σ)).
+
+    Definition mapsto_def (l : L) (v: V) : iProp Σ :=
+      own (gen_iheap_name hG) (◯ {[ l := to_agree (v : leibnizC V) ]}).
+    Definition mapsto_aux : seal (@mapsto_def). by eexists. Qed.
+    Definition mapsto := mapsto_aux.(unseal).
+    Definition mapsto_eq : @mapsto = @mapsto_def := mapsto_aux.(seal_eq).
+    Global Instance mapsto_timeless : Timeless (mapsto l v).
+    Proof. rewrite mapsto_eq /mapsto_def. apply _. Qed.
+    Global Instance mapsto_persistent : Persistent (mapsto l v).
+    Proof. rewrite mapsto_eq /mapsto_def. apply _. Qed.
+
+    Implicit Types σ : gmap L V.
+    Lemma lookup_to_gen_iheap_None σ l : σ !! l = None → to_gen_iheap σ !! l = None.
+    Proof. by rewrite /to_gen_iheap lookup_fmap=> ->. Qed.
+
+    Lemma to_gen_iheap_insert l (v: V) σ :
+      to_gen_iheap (<[l:=v]> σ) = <[l:=(to_agree (v:leibnizC V))]> (to_gen_iheap σ).
+    Proof. by rewrite /to_gen_iheap fmap_insert. Qed.
+
+    Lemma gen_iheap_alloc σ l (v: V):
+      σ !! l = None → gen_iheap_ctx σ ==∗ gen_iheap_ctx (<[l:=v]>σ) ∗ mapsto l v.
+    Proof.
+      iIntros (?) "Hσ". rewrite /gen_iheap_ctx mapsto_eq /mapsto_def.
+      iMod (own_update with "Hσ") as "[Hσ Hl]".
+      { eapply auth_update_alloc,
+        (alloc_singleton_local_update _ _ (to_agree (v:leibnizC _)))=> //.
+          by apply lookup_to_gen_iheap_None. }
+      iModIntro. rewrite to_gen_iheap_insert. iFrame.
+    Qed.
+  End definitions.
+
+  Notation "s ↦ γ" := (mapsto (hG := dsubG_interpNames) s γ)  (at level 20) : bi_scope.
+                           (* (◯ {[ s := to_agree (γ : leibnizC gname) ]})) *)
+  (* Notation "s ⇨ γ" := (inv logN (s ↦ γ)%I) (at level 20) : bi_scope. *)
+  Global Instance: Persistent (s ↦ γ).
+  Proof. apply _. Qed.
   Global Instance: Timeless (s ↦ γ).
   Proof. apply _. Qed.
-  Global Instance: Persistent (s ⇨ γ).
-  Proof. apply _. Qed.
 
-  Definition allGs gs := (gen_heap_ctx (hG := dsubG_interpNames) gs).
+  Definition allGs gs := (gen_iheap_ctx (hG := dsubG_interpNames) gs).
   Arguments allGs /.
 
   Lemma alloc_sp T: (|==> ∃ γ, γ ⤇ dsub_interp T)%I.
@@ -279,14 +315,15 @@ Section interp_equiv.
     transfer: (2) map (1) over a gmap, someHow.
    *)
 
-  Lemma transferOne_base_inv gs E s T:
-      gs !! s = None → (allGs gs ={E}=∗ ∃ γ, allGs (<[s:=γ]> gs) ∗ (s ⇨ γ) ∗ γ ⤇ (λ ρ, ⟦ T ⟧ ρ))%I.
+
+
+  Lemma transferOne_base_inv gs s T:
+      gs !! s = None → (allGs gs ==∗ ∃ γ, allGs (<[s:=γ]> gs) ∗ (s ↦ γ) ∗ γ ⤇ (λ ρ, ⟦ T ⟧ ρ))%I.
   Proof.
     iIntros (HsFresh) "Hown /=".
     iMod (alloc_sp T) as (γ) "#Hγ".
     iExists γ. iFrame "Hγ".
-    iMod (gen_heap_alloc _ s γ with "Hown") as "[$ Hsγ]" => //.
-    by iApply inv_alloc.
+    by iMod (gen_iheap_alloc _ s γ with "Hown") as "[$ $]".
   Qed.
 
   (* Given a mapping from stamps to gnames, we can also define when a map is properly translated. *)
@@ -298,18 +335,18 @@ Section interp_equiv.
   (* To give a definitive version of wellMapped, we need stampHeap to be stored in a resource. Here it is: *)
   Definition wellMapped g : iProp Σ :=
     (□∀ s T ρ v,
-        ⌜ g !! s = Some T⌝ → ∃ γ P, s ⇨ γ ∗ γ ⤇ P ∧ ⟦ T ⟧ ρ v ≡ P ρ v)%I.
+        ⌜ g !! s = Some T⌝ → ∃ γ P, s ↦ γ ∗ γ ⤇ P ∧ ⟦ T ⟧ ρ v ≡ P ρ v)%I.
   Instance: Persistent (wellMapped g).
   Proof. apply _. Qed.
 
   (** We can transfer one mapping from [g] into Iris resources. Note that [gs ⊆
       gs'] in the outpu might not be ultimately needed; that's enforced indirectly
       by both wellMapped and by invariants. *)
-  Lemma transferOne gs E g s T:
-      gs !! s = None → (wellMapped g → allGs gs ={E}=∗ ∃ gs', wellMapped (<[s := T]> g) ∧ allGs gs' ∧ ⌜gs ⊆ gs'⌝)%I.
+  Lemma transferOne gs g s T:
+      gs !! s = None → (wellMapped g → allGs gs ==∗ ∃ gs', wellMapped (<[s := T]> g) ∧ allGs gs' ∧ ⌜gs ⊆ gs'⌝)%I.
   Proof.
     iIntros (HsFresh) "#Hg Hown /=".
-    iMod (transferOne_base_inv gs E s T HsFresh with "Hown") as (γ) "(Hgs & #Hsγ & #Hγ)".
+    iMod (transferOne_base_inv gs s T HsFresh with "Hown") as (γ) "(Hgs & #Hsγ & #Hγ)".
     iExists ((<[s:=γ]> gs)); iModIntro; iFrame "Hgs".
     iSplit; last (iPureIntro; by eapply insert_subseteq).
     iIntros (s' T' ρ v Hlook) "!>".
@@ -321,11 +358,11 @@ Section interp_equiv.
   Qed.
 
   (* Not clearly needed. *)
-  Lemma transferOne_empty gs E s T:
-      gs !! s = None → (allGs gs ={E}=∗ ∃ gs', wellMapped (<[s := T]> ∅) ∧ allGs gs' ∧ ⌜gs ⊆ gs'⌝)%I.
+  Lemma transferOne_empty gs s T:
+      gs !! s = None → (allGs gs ==∗ ∃ gs', wellMapped (<[s := T]> ∅) ∧ allGs gs' ∧ ⌜gs ⊆ gs'⌝)%I.
   Proof.
     iIntros (HsFresh) "Hown /=".
-    iApply (transferOne gs E ∅ s T) => //.
+    iApply (transferOne gs ∅ s T) => //.
     iIntros (s' T' ρ v Hlook); inverse Hlook.
   Qed.
 
@@ -338,13 +375,13 @@ Section interp_equiv.
 
   Definition wellMappedList (glist: list (stamp * ty)) : iProp Σ :=
     (∀ s T ρ v,
-        ⌜ (s, T) ∈ glist ⌝ → ∃ γ P, s ⇨ γ ∗ γ ⤇ P ∧ ⟦ T ⟧ ρ v ≡ P ρ v)%I.
+        ⌜ (s, T) ∈ glist ⌝ → ∃ γ P, s ↦ γ ∗ γ ⤇ P ∧ ⟦ T ⟧ ρ v ≡ P ρ v)%I.
 
-  Lemma transferList glist gs E: (∀ s, s ∈ fmap fst glist → gs !! s = None) → (allGs gs ={E}=∗ wellMappedList glist)%I.
+  Lemma transferList glist gs: (∀ s, s ∈ fmap fst glist → gs !! s = None) → (allGs gs ==∗ wellMappedList glist)%I.
   Abort.
 
   (* Lemma transfer g gs: ((∀ s, ⌜s ∈ gdom g⌝ -∗ ¬ ∃ γ, s ↦ γ) -∗ allGs gs ==∗ wellMapped g)%I. *)
-  Lemma transfer g gs E: (∀ s, s ∈ gdom g → gs !! s = None) → (allGs gs ={E}=∗ wellMapped g)%I.
+  Lemma transfer g gs: (∀ s, s ∈ gdom g → gs !! s = None) → (allGs gs ==∗ wellMapped g)%I.
   Proof.
     iIntros "/=" (H) "Hgs".
     (* induction (NoDup_map_to_list g) as [|[p x] l Hpx]. *)
