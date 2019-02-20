@@ -318,7 +318,7 @@ Section interp_equiv.
     iMod (alloc_sp T) as (γ) "#Hγ".
     iMod (gen_iheap_alloc _ s γ with "Hown") as "[H1 H2]" => //.
     iModIntro. iExists (<[s:=γ]> gs). iFrame. iSplitL.
-    - iExists γ. iFrame. done.
+    - iExists γ. by iFrame.
     - by rewrite dom_insert union_comm.
   Qed.
 
@@ -342,7 +342,7 @@ Section interp_equiv.
     iIntros (s' T' ρ v Hlook) "!>".
     destruct (decide (s = s')) as [<-|Hne].
     - iExists (dsub_interp T).
-      suff <-: T = T' by iSplit. by rewrite lookup_insert in Hlook; injection Hlook.
+      suff <-: T = T' by iSplit. rewrite lookup_insert in Hlook; by injection Hlook.
     - rewrite lookup_insert_ne //= in Hlook. by iApply "Hg".
   Qed.
 
@@ -350,29 +350,30 @@ Section interp_equiv.
                        (allGs gs ==∗ ∃ gs', wellMapped g ∧ allGs gs' ∧ ⌜gdom gs' ≡ gdom gs ∪ gdom g⌝).
   Proof.
     elim g using map_ind.
-    iIntros "/=" (H) "Hgs".
-    - iModIntro. unfold wellMapped. iExists gs. iSplit.
-      + iIntros (s T rho v HH). exfalso. done.
-      + iFrame. iPureIntro. rewrite dom_empty. set_solver.
-    - move=> {g}. iIntros (s T g Hs IH Hdom) "Hallgs".
+    - iIntros "/=" (H) "Hgs !>". iExists gs. repeat iSplit => //.
+      + by iIntros (?????).
+      + iPureIntro. rewrite dom_empty. set_solver.
+    - move=> {g} /=. iIntros (s T g Hs IH Hdom) "Hallgs".
+      setoid_rewrite dom_insert in Hdom.
       iPoseProof (IH with "Hallgs") as "IH".
-      { move=> s' Hs'. apply Hdom. rewrite /gdom dom_insert. set_solver. }
-      iMod "IH". iDestruct "IH" as (gs') "[Hwm [Hgs %]]".
+      { move=> s' Hs'. apply Hdom. set_solver. }
+      iMod "IH" as (gs') "[Hwm [Hgs %]]". move: H => Hgs'.
 
       iPoseProof (transferOne gs' g s T) as "HH".
       + cut (s ∉ dom (gset stamp) gs').
         * move=> Hsgs. by eapply not_elem_of_dom.
-        * unfold gdom in H. rewrite H. apply not_elem_of_union.
-          split; eapply not_elem_of_dom =>//. apply Hdom. rewrite /gdom dom_insert. set_solver.
-      + iMod ("HH" with "Hwm Hgs") as (gs'') "[H1 [H2 %]]". iModIntro. iExists gs''.
-        iFrame. iPureIntro. rewrite /gdom.
-        rewrite dom_insert union_comm -union_assoc [dom _ _ ∪ dom _ _]union_comm.
-          by rewrite -H union_comm -H0. (* set_solver very slow *)
+        * rewrite Hgs'. apply not_elem_of_union.
+          split; eapply not_elem_of_dom =>//. apply Hdom. set_solver.
+      + iMod ("HH" with "Hwm Hgs") as (gs'') "[H1 [H2 %]]". move: H => /= Hgs''.
+        iExists gs''. iFrame; iPureIntro.
+        rewrite dom_insert Hgs'' Hgs'. (* set_solver very slow, so: *)
+        (* clear; set_solver. (* 0.2 s *) *)
+        by rewrite -union_assoc [dom _ _ ∪ {[_]}]union_comm.
   Qed.
 
   Lemma transfer g gs: (∀ s, s ∈ gdom g → gs !! s = None) →
                        (allGs gs ==∗ wellMapped g)%I.
   Proof.
-    iIntros (Hs) "H". iMod (transfer' gs Hs with "H") as (gs') "[H ?]". iModIntro. iFrame.
+    iIntros (Hs) "H". by iMod (transfer' gs Hs with "H") as (gs') "[H ?]".
   Qed.
 End interp_equiv.
