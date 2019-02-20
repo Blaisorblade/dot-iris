@@ -1,5 +1,5 @@
 (** *)
-From stdpp Require Import gmap.
+From stdpp Require Import gmap fin_map_dom.
 From iris.base_logic Require Import invariants.
 From iris.proofmode Require Import tactics.
 
@@ -343,28 +343,29 @@ Section interp_equiv.
       gs'] in the outpu might not be ultimately needed; that's enforced indirectly
       by both wellMapped and by invariants. *)
   Lemma transferOne gs g s T:
-      gs !! s = None → (wellMapped g → allGs gs ==∗ ∃ gs', wellMapped (<[s := T]> g) ∧ allGs gs' ∧ ⌜gs ⊆ gs'⌝)%I.
+      gs !! s = None → (wellMapped g → allGs gs ==∗ ∃ gs', wellMapped (<[s := T]> g) ∧ allGs gs' ∧ ⌜gdom gs' ≡ gdom gs ∪ {[s]}⌝)%I.
   Proof.
     iIntros (HsFresh) "#Hg Hown /=".
     iMod (transferOne_base_inv gs s T HsFresh with "Hown") as (γ) "(Hgs & #Hsγ & #Hγ)".
     iExists ((<[s:=γ]> gs)); iModIntro; iFrame "Hgs".
-    iSplit; last (iPureIntro; by eapply insert_subseteq).
+    iSplit. (* last (iPureIntro; by eapply insert_subseteq). *)
     iIntros (s' T' ρ v Hlook) "!>".
     destruct (decide (s = s')) as [<-|Hne].
     - iExists γ, (dsub_interp T).
       enough (T = T') as <- by by iFrame "Hsγ Hγ".
       rewrite lookup_insert in Hlook. by injection Hlook.
     - rewrite lookup_insert_ne //= in Hlook. by iApply "Hg".
+    - iPureIntro. by rewrite dom_insert union_comm. 
   Qed.
 
-  (* Not clearly needed. *)
-  Lemma transferOne_empty gs s T:
-      gs !! s = None → (allGs gs ==∗ ∃ gs', wellMapped (<[s := T]> ∅) ∧ allGs gs' ∧ ⌜gs ⊆ gs'⌝)%I.
-  Proof.
-    iIntros (HsFresh) "Hown /=".
-    iApply (transferOne gs ∅ s T) => //.
-    iIntros (s' T' ρ v Hlook); inverse Hlook.
-  Qed.
+  (* (* Not clearly needed. *) *)
+  (* Lemma transferOne_empty gs s T: *)
+  (*     gs !! s = None → (allGs gs ==∗ ∃ gs', wellMapped (<[s := T]> ∅) ∧ allGs gs' ∧ ⌜gs ⊆ gs'⌝)%I. *)
+  (* Proof. *)
+  (*   iIntros (HsFresh) "Hown /=". *)
+  (*   iApply (transferOne gs ∅ s T) => //. *)
+  (*   iIntros (s' T' ρ v Hlook); inverse Hlook. *)
+  (* Qed. *)
 
   (** Next, I must prove that we can map transferOne over [gmap g], ensuring
       [wellMapped g]. To this end, I suspect we must convert [g] to a list using
@@ -381,10 +382,27 @@ Section interp_equiv.
   Abort.
 
   (* Lemma transfer g gs: ((∀ s, ⌜s ∈ gdom g⌝ -∗ ¬ ∃ γ, s ↦ γ) -∗ allGs gs ==∗ wellMapped g)%I. *)
-  Lemma transfer g gs: (∀ s, s ∈ gdom g → gs !! s = None) → (allGs gs ==∗ wellMapped g)%I.
+  Lemma transfer g gs: (∀ s, s ∈ gdom g → gs !! s = None) →
+                       (allGs gs ==∗ ∃ gs', wellMapped g ∧ allGs gs' ∧ ⌜gdom gs' ≡ gdom gs ∪ gdom g⌝).
   Proof.
+    elim g using map_ind.
     iIntros "/=" (H) "Hgs".
-    (* induction (NoDup_map_to_list g) as [|[p x] l Hpx]. *)
-    (* set (x := fmap (transferOne gs) map_to_list g). *)
-  Abort.
+    - iModIntro. unfold wellMapped. iExists gs. iSplit.
+      + iIntros (s T rho v HH). exfalso. done.
+      + iFrame. iPureIntro. rewrite dom_empty. set_solver.
+    - move=> {g}. iIntros (s T g Hs IH Hdom) "Hallgs".
+      iPoseProof (IH with "Hallgs") as "IH".
+      { move=> s' Hs'. apply Hdom. rewrite /gdom dom_insert. set_solver. }
+      iMod "IH". iDestruct "IH" as (gs') "[Hwm [Hgs %]]".
+
+      iPoseProof (transferOne gs' g s T) as "HH".
+      + cut (s ∉ dom (gset stamp) gs').
+        * move=> Hsgs. by eapply not_elem_of_dom.
+        * unfold gdom in H. rewrite H. apply not_elem_of_union.
+          split; eapply not_elem_of_dom =>//. apply Hdom. rewrite /gdom dom_insert. set_solver.
+      + iMod ("HH" with "Hwm Hgs") as (gs'') "[H1 [H2 %]]". iModIntro. iExists gs''.
+        iFrame. iPureIntro. rewrite /gdom.
+        rewrite dom_insert union_comm -union_assoc [dom _ _ ∪ dom _ _]union_comm.
+          by rewrite -H union_comm -H0. (* set_solver very slow *)
+  Qed.
 End interp_equiv.
