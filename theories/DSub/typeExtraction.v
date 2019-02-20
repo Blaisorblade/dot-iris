@@ -298,7 +298,6 @@ Section interp_equiv.
 
   Notation "s ↦ γ" := (mapsto (hG := dsubG_interpNames) s γ)  (at level 20) : bi_scope.
                            (* (◯ {[ s := to_agree (γ : leibnizC gname) ]})) *)
-  (* Notation "s ⇨ γ" := (inv logN (s ↦ γ)%I) (at level 20) : bi_scope. *)
   Global Instance: Persistent (s ↦ γ).
   Proof. apply _. Qed.
   Global Instance: Timeless (s ↦ γ).
@@ -312,14 +311,6 @@ Section interp_equiv.
   Lemma alloc_sp T: (|==> ∃ γ, γ ⤇ dsub_interp T)%I.
   Proof. by apply saved_interp_alloc. Qed.
 
-  (*
-    Prove "transfer" theorems:
-    transferOne: s ↦ T → |==> s ↦ γ ∗ γ ⤇ ⟦ T ⟧
-    transfer: (2) map (1) over a gmap, someHow.
-   *)
-
-
-
   Lemma transferOne_base_inv gs s T:
       gs !! s = None → (allGs gs ==∗ ∃ gs', allGs gs' ∗ s ↝ (λ ρ, ⟦ T ⟧ ρ) ∗ ⌜ gdom gs' ≡ gdom gs ∪ {[s]} ⌝)%I.
   Proof.
@@ -330,12 +321,6 @@ Section interp_equiv.
     - iExists γ. iFrame. done.
     - by rewrite dom_insert union_comm.
   Qed.
-
-  (* Given a mapping from stamps to gnames, we can also define when a map is properly translated. *)
-  (* Definition wellMapped g (stampHeap: gmap stamp gname) : iProp Σ := *)
-  (*   (∀ s T ρ v, *)
-  (*       ⌜ g !! s = Some T⌝ → *)
-  (*       ∃ γ P, ⌜ stampHeap !! s = Some γ⌝ → γ ⤇ P ∧ ⟦ T ⟧ ρ v ≡ P ρ v)%I. *)
 
   (* To give a definitive version of wellMapped, we need stampHeap to be stored in a resource. Here it is: *)
   Definition wellMapped g : iProp Σ :=
@@ -361,31 +346,6 @@ Section interp_equiv.
     - rewrite lookup_insert_ne //= in Hlook. by iApply "Hg".
   Qed.
 
-  (* (* Not clearly needed. *) *)
-  (* Lemma transferOne_empty gs s T: *)
-  (*     gs !! s = None → (allGs gs ==∗ ∃ gs', wellMapped (<[s := T]> ∅) ∧ allGs gs' ∧ ⌜gs ⊆ gs'⌝)%I. *)
-  (* Proof. *)
-  (*   iIntros (HsFresh) "Hown /=". *)
-  (*   iApply (transferOne gs ∅ s T) => //. *)
-  (*   iIntros (s' T' ρ v Hlook); inverse Hlook. *)
-  (* Qed. *)
-
-  (** Next, I must prove that we can map transferOne over [gmap g], ensuring
-      [wellMapped g]. To this end, I suspect we must convert [g] to a list using
-      [map_to_list], prove that list contains no duplicate keys (maybe using
-      [NoDup_map_to_list], or maybe actually extracting the set of keys)
-      and use induction on that list.
-      For the induction, we need a variant of wellMapped taking a list instead of  *)
-
-  Definition wellMappedList (glist: list (stamp * ty)) : iProp Σ :=
-    (∀ s T ρ v,
-        ⌜ (s, T) ∈ glist ⌝ → ∃ P, s ↝ P ∧ ⟦ T ⟧ ρ v ≡ P ρ v)%I.
-
-  (* I think we can delete this, right? -- leo *)
-  (* Lemma transferList glist gs: (∀ s, s ∈ fmap fst glist → gs !! s = None) → (allGs gs ==∗ wellMappedList glist)%I. *)
-  (* Abort. *)
-
-  (* Lemma transfer g gs: ((∀ s, ⌜s ∈ gdom g⌝ -∗ ¬ ∃ γ, s ↦ γ) -∗ allGs gs ==∗ wellMapped g)%I. *)
   Lemma transfer' g gs: (∀ s, s ∈ gdom g → gs !! s = None) →
                        (allGs gs ==∗ ∃ gs', wellMapped g ∧ allGs gs' ∧ ⌜gdom gs' ≡ gdom gs ∪ gdom g⌝).
   Proof.
