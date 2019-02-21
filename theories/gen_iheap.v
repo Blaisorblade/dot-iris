@@ -38,17 +38,53 @@ Section definitions.
   Definition mapsto_aux : seal (@mapsto_def). by eexists. Qed.
   Definition mapsto := mapsto_aux.(unseal).
   Definition mapsto_eq : @mapsto = @mapsto_def := mapsto_aux.(seal_eq).
+End definitions.
 
-  Local Notation "l ↦ v" := (mapsto l v) (at level 20) : bi_scope.
+Local Notation "l ↦ v" := (mapsto l v) (at level 20) : bi_scope.
 
-  Global Instance mapsto_timeless : Timeless (mapsto l v).
-  Proof. rewrite mapsto_eq /mapsto_def. apply _. Qed.
-  Global Instance mapsto_persistent : Persistent (mapsto l v).
-  Proof. rewrite mapsto_eq /mapsto_def. apply _. Qed.
-
+Section to_gen_iheap.
+  Context (L V : Type) `{Countable L}.
   Implicit Types σ : gmap L V.
+
+  (** Conversion to heaps and back *)
+  Lemma to_gen_iheap_valid σ : ✓ to_gen_iheap σ.
+  Proof. intros l. rewrite lookup_fmap. by case (σ !! l). Qed.
   Lemma lookup_to_gen_iheap_None σ l : σ !! l = None → to_gen_iheap σ !! l = None.
   Proof. by rewrite /to_gen_iheap lookup_fmap=> ->. Qed.
+  Lemma gen_iheap_singleton_included σ l v :
+    {[l := to_agree v]} ≼ to_gen_iheap σ → σ !! l = Some v.
+  Proof.
+    rewrite singleton_included=> -[[q' av] []].
+    rewrite /to_gen_iheap lookup_fmap fmap_Some_equiv. move => -[v' [Hl ->]].
+    by move => /Some_included [ /to_agree_inj | /to_agree_included ] /leibniz_equiv_iff ->.
+  Qed.
+
+  Lemma to_gen_iheap_insert l v σ :
+    to_gen_iheap (<[l:=v]> σ) = <[l:=(to_agree (v:leibnizC V))]> (to_gen_iheap σ).
+  Proof. by rewrite /to_gen_iheap fmap_insert. Qed.
+End to_gen_iheap.
+
+Lemma gen_iheap_init `{hG : gen_iheapPreG L V Σ} σ :
+  (|==> ∃ _ : gen_iheapG L V Σ, gen_iheap_ctx σ)%I.
+Proof.
+  iMod (own_alloc (● to_gen_iheap σ)) as (γ) "Hh".
+  { apply: auth_auth_valid. exact: to_gen_iheap_valid. }
+  iModIntro. by iExists (GenIHeapG L V Σ _ _ _ γ).
+Qed.
+
+Section gen_iheap.
+  Context `{hG : gen_iheapG L V Σ}.
+  Implicit Types P Q : iProp Σ.
+  Implicit Types Φ : V → iProp Σ.
+  Implicit Types σ : gmap L V.
+  Implicit Types h g : gen_iheapUR L V.
+  Implicit Types l : L.
+  Implicit Types v : V.
+
+  Global Instance mapsto_timeless l v : Timeless (l ↦ v).
+  Proof. rewrite mapsto_eq /mapsto_def. apply _. Qed.
+  Global Instance mapsto_persistent l v: Persistent (l ↦ v).
+  Proof. rewrite mapsto_eq /mapsto_def. apply _. Qed.
 
   Lemma mapsto_agree l v1 v2 : l ↦ v1 -∗ l ↦ v2 -∗ ⌜v1 = v2⌝.
   Proof.
@@ -58,12 +94,8 @@ Section definitions.
     by intros ?%agree_op_invL'.
   Qed.
 
-  Lemma to_gen_iheap_insert l (v: V) σ :
-    to_gen_iheap (<[l:=v]> σ) = <[l:=(to_agree (v:leibnizC V))]> (to_gen_iheap σ).
-  Proof. by rewrite /to_gen_iheap fmap_insert. Qed.
-
   Lemma gen_iheap_alloc σ l (v: V):
-    σ !! l = None → gen_iheap_ctx σ ==∗ gen_iheap_ctx (<[l:=v]>σ) ∗ mapsto l v.
+    σ !! l = None → gen_iheap_ctx σ ==∗ gen_iheap_ctx (<[l:=v]>σ) ∗ l ↦ v.
   Proof.
     iIntros (?) "Hσ". rewrite /gen_iheap_ctx mapsto_eq /mapsto_def.
     iMod (own_update with "Hσ") as "[Hσ Hl]".
@@ -72,4 +104,13 @@ Section definitions.
         by apply lookup_to_gen_iheap_None. }
     iModIntro. rewrite to_gen_iheap_insert. iFrame.
   Qed.
-End definitions.
+
+  Lemma gen_iheap_valid σ l v : gen_iheap_ctx σ -∗ l ↦ v -∗ ⌜σ !! l = Some v⌝.
+  Proof.
+    iIntros "Hσ Hl". rewrite /gen_iheap_ctx mapsto_eq /mapsto_def.
+    iDestruct (own_valid_2 with "Hσ Hl")
+      as %[Hl%gen_iheap_singleton_included _]%auth_valid_discrete_2; auto.
+  Qed.
+
+  (* Deallocation/update should be impossible. *)
+End gen_iheap.
