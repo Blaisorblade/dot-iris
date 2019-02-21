@@ -4,6 +4,7 @@
 theories/tactics.v
 theories/prelude.v
 theories/gen_iheap.v
+theories/saved_interp.v
 theories/DSub/syn.v
 theories/DSub/rules.v
 theories/DSub/typeExtraction.v
