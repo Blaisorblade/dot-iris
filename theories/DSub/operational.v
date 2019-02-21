@@ -94,7 +94,7 @@ Canonical Structure tyC := leibnizC ty.
 
 Canonical Structure listVlC := leibnizC (list vl).
 
-From D Require Import gen_iheap.
+From D Require Export gen_iheap.
 
 Class dsubG Σ := DsubG {
   dsubG_invG : invG Σ;

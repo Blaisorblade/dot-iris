@@ -3,7 +3,7 @@ From stdpp Require Import gmap fin_map_dom.
 From iris.base_logic Require Import invariants.
 From iris.proofmode Require Import tactics.
 
-From D Require Import tactics gen_iheap.
+From D Require Import tactics.
 From D.DSub Require Import syn operational synLemmas unary_lr unary_lr_binding.
 
 Set Primitive Projections.
@@ -181,9 +181,6 @@ Proof.
     rewrite !closed_subst_idsρ => //.
     apply fv_to_subst; eauto. (* eauto with typeclass_instances. *)
 Qed.
-
-From iris.algebra Require Import auth gmap agree.
-From iris.base_logic.lib Require Export own.
 
 Section interp_equiv.
   Context `{!dsubG Σ}.
