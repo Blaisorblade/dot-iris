@@ -11,7 +11,7 @@ From D Require Import tactics.
 Notation savedInterpG Σ A B := (savedAnythingG Σ (A -c> B -c> ▶ ∙)).
 Notation savedInterpΣ A B := (savedAnythingΣ (A -c> B -c> ▶ ∙)).
 Section saved_interp.
-  Context {vls vl: Type}.
+  Context {vls vl: ofeT}.
   Context `{!savedInterpG Σ vls vl}.
   (* Context `{!savedAnythingG Σ (vls -c> vl -c> ▶ ∙)}. *)
 
@@ -48,16 +48,6 @@ Section saved_interp.
     by rewrite bi.ofe_fun_equivI; iSpecialize ("Heq" $! v); simpl.
   Qed.
 
-  Lemma saved_interp_agree_eta γ Φ Ψ vs v :
-    saved_interp_own γ (λ (vs : vls) (v : vl), (Φ vs) v) -∗
-    saved_interp_own γ (λ (vs : vls) (v : vl), (Ψ vs) v) -∗
-    ▷ (Φ vs v ≡ Ψ vs v).
-  Proof.
-    iIntros "#H1 #H2".
-    repeat change (fun x => ?h x) with h.
-    by iApply saved_interp_agree.
-  Qed.
-
   Lemma saved_interp_impl γ Φ Ψ vs v :
     saved_interp_own γ Φ -∗ saved_interp_own γ Ψ -∗ □ (▷ Φ vs v -∗ ▷ Ψ vs v).
   Proof.
@@ -69,6 +59,14 @@ Section saved_interp.
     by iNext; iRewrite -"Heq".
   Qed.
 
+  Lemma saved_interp_agree_eta γ (Φ Ψ : vls -n> vl -n> iProp Σ) vs v :
+    saved_interp_own γ (λ (vs : vls) (v : vl), Φ vs v) -∗
+    saved_interp_own γ (λ (vs : vls) (v : vl), Ψ vs v) -∗
+    ▷ (Φ vs v ≡ Ψ vs v).
+  Proof.
+    (* Paolo: This manual eta-expansion is needed to get coercions to apply. *)
+    iIntros; by iApply (saved_interp_agree _ (λ a, Φ a) (λ a, Ψ a)).
+  Qed.
 End saved_interp.
 
-Notation "g ⤇ p" := (saved_interp_own g p) (at level 20).
+Notation "γ ⤇ φ" := (saved_interp_own γ φ) (at level 20).

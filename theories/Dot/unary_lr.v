@@ -49,8 +49,7 @@ Section logrel.
     iIntros "/= #Hd1 #Hd2".
     iDestruct "Hd2" as (γ' σ' φ2' H2) "Hγ2".
     iDestruct "Hd1" as (γ σ φ1' H1) "Hγ1".
-    (* Paolo: This manual eta-expansion is needed to get coercions to apply. *)
-    ev; subst; injectHyps. by iApply (saved_interp_agree_eta _ (λ a, φ1' a) (λ a, φ2' a)).
+    ev; subst; injectHyps. by iApply (saved_interp_agree_eta _ φ1' φ2').
   Qed.
 
   Program Definition def_interp_tmem (interp1 interp2 : listVlC -n> D) :

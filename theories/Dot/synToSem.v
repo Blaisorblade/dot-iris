@@ -460,7 +460,7 @@ Section Sec.
     (* assert (nclosed T0 (length σ2)). admit. *)
     iExists σ2, γ2, (λne vs w, φ2 vs w). repeat iSplit => //=.
     iAssert (∀ v ρ, ▷ (φ1 ρ v ≡ φ1' ρ v))%I as "#Hag".
-      by iIntros; iApply (saved_interp_agree_eta γ1 φ1 φ1' ρ v).
+      by iIntros; iApply (saved_interp_agree γ1 φ1 φ1' ρ v).
     iIntros (ρ v) "#Hlen1".
     (* Currently false, adjust definitions to ensure this! *)
     iAssert (⌜length ρ = length σ2⌝)%I as "#Hlen2". admit.
