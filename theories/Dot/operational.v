@@ -268,17 +268,13 @@ Instance dotG_irisG `{dotG Σ} : irisG dot_lang Σ := {
 
 Export lang.
 
-Section Sec.
-  Context `{dotG Σ}.
+Canonical Structure vlC := leibnizC vl.
+Canonical Structure tmC := leibnizC tm.
+Canonical Structure dmC := leibnizC dm.
+Canonical Structure dmsC := leibnizC dms.
+Canonical Structure pathC := leibnizC path.
 
-  Canonical Structure vlC := leibnizC vl.
-  Canonical Structure tmC := leibnizC tm.
-  Canonical Structure dmC := leibnizC dm.
-  Canonical Structure dmsC := leibnizC dms.
-  Canonical Structure pathC := leibnizC path.
-
-  Canonical Structure listVlC := leibnizC (list vl).
-End Sec.
+Canonical Structure listVlC := leibnizC (list vl).
 
 (* For abstracting synToSem. *)
 Class dotInterpG Σ := DotInterpG {
