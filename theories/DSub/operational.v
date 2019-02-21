@@ -2,8 +2,8 @@ From iris.program_logic Require Import ectx_language ectxi_language.
 From iris.algebra Require Import ofe agree.
 From iris.proofmode Require Import tactics.
 From iris.base_logic Require Import lib.iprop (* For gname *)
-     lib.saved_prop invariants.
-From iris.program_logic Require Import weakestpre.
+     lib.saved_prop.
+From D.pure_program_logic Require Export weakestpre.
 
 From D Require Import tactics.
 From D.DSub Require Export syn.
@@ -97,24 +97,21 @@ Canonical Structure listVlC := leibnizC (list vl).
 From D Require Export gen_iheap saved_interp.
 
 Class dsubG Σ := DsubG {
-  dsubG_invG : invG Σ;
   dsubG_savior :> savedInterpG Σ vls vl;
   dsubG_interpNames : gen_iheapG stamp gname Σ;
 }.
 
 Instance dsubG_irisG `{dsubG Σ} : irisG dsub_lang Σ := {
-  iris_invG := dsubG_invG;
   state_interp σ κs _ := True%I;
   fork_post _ := True%I;
 }.
 
 Class dsubPreG Σ := DsubPreG {
-  dsubPreG_invG : invPreG Σ;
   dsubPreG_savior :> savedInterpG Σ vls vl;
   dsubPreG_interpNames : gen_iheapPreG stamp gname Σ;
 }.
 
-Definition dsubΣ := #[invΣ; savedInterpΣ vls vl; gen_iheapΣ stamp gname].
+Definition dsubΣ := #[savedInterpΣ vls vl; gen_iheapΣ stamp gname].
 
 Instance subG_dsubΣ {Σ} : subG dsubΣ Σ → dsubPreG Σ.
 Proof. solve_inG. Qed.

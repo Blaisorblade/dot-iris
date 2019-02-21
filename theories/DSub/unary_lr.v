@@ -1,4 +1,3 @@
-From iris.program_logic Require Import weakestpre.
 From iris.proofmode Require Import tactics.
 From D Require Export tactics.
 From D.DSub Require Export operational.

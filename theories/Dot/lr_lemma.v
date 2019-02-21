@@ -1,6 +1,7 @@
 From iris.base_logic Require Import base_logic.
 From iris.proofmode Require Import tactics.
-From iris.program_logic Require Import weakestpre.
+From D.pure_program_logic Require Import lifting.
+From iris.program_logic Require Import language.
 
 (** Paolo to Amin: it seems below we might need something vaguely similar to the following. Not sure they're exactly true as stated. *)
 Section wp_extra.
@@ -22,9 +23,9 @@ Implicit Types e : expr Λ.
 
 End wp_extra.
 
-From iris.program_logic Require Import lifting language ectx_lifting.
 From D Require Import tactics.
 From D.Dot Require Import rules synLemmas unary_lr_binding.
+From iris.program_logic Require Import ectx_language.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 Section Sec.
@@ -237,7 +238,7 @@ Section Sec.
     iDestruct "Hr" as (Hclv t ->) "#HvFun".
     iApply wp_pure_step_later; trivial. iNext.
     iApply wp_wand.
-    - iApply fupd_wp. iApply "HvFun". by iApply wp_value_inv'.
+    - iApply "HvFun". by iApply wp_value_inv'.
     - iIntros (v0) "#H".
       iPoseProof (interp_subst_closed Γ T2 v2 v0 with "HG") as "Heq" => //.
       by iApply (internal_eq_iff with "Heq").

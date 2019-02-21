@@ -1,4 +1,3 @@
-From iris.program_logic Require Import weakestpre.
 From iris.proofmode Require Import tactics.
 From D Require Import tactics.
 From D.Dot Require Import unary_lr_binding rules.
@@ -10,25 +9,21 @@ Section Sec.
   Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
   (** Lemmas about definition typing. *)
-  (* TODO: switch to ietp. Might involve challenges with fancy updates;
-     worst-case, we can add a fancy update to definition typing.
-     Also, replace [TLater V :: Γ ⊨d dvl v : TVMem l T] by [Γ | V ⊨d dvl v : TVMem l T].
-   *)
+  (* TODO: replace [TLater V :: Γ ⊨d dvl v : TVMem l T] by
+    [Γ | V ⊨d dvl v : TVMem l T]. *)
   Lemma idtp_vmem_i V T v l:
-    ivtp (V :: Γ) (T) v -∗
+    V :: Γ ⊨ tv v : T -∗
     TLater V :: Γ ⊨d dvl v : TVMem l T.
   Proof.
-    iIntros "/= #[% #Hv]". move: H => Hclv. iSplit. auto using fv_dvl. iIntros "!> *".
-    destruct ρ as [|w ρ]; first by iIntros.
+    iIntros "/= #[% #Hv]". move: H => Hclv. apply fv_tv_inv in Hclv.
+    iSplit. by auto using fv_dvl.
+    iIntros "!> *". destruct ρ as [|w ρ]; first by iIntros.
     iIntros "[#Hg [% #Hw]]". move: H => Hclw.
-    repeat iSplit => //. {
-      iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H => Hclρ.
-      iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *.
-      iPureIntro. apply fv_dvl; apply fv_to_subst_vl; naive_solver.
-    }
-    iExists _; iSplit; try done.
-    iNext.
-    iApply "Hv". naive_solver.
+    iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H => Hclρ.
+    iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *.
+    repeat iSplit => //. { iPureIntro; apply fv_dvl, fv_to_subst_vl => //=; auto. }
+    iExists _; iSplit => //.
+    iNext. iApply wp_value_inv'; iApply "Hv"; by iSplit.
   Qed.
 
   (* Lemma dtp_tmem_i T γ ρ l : *)

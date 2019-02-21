@@ -2,8 +2,8 @@ From iris.program_logic Require Import ectx_language ectxi_language.
 From iris.algebra Require Import ofe agree.
 From iris.proofmode Require Import tactics.
 From iris.base_logic Require Import lib.iprop (* For gname *)
-     lib.saved_prop invariants.
-From iris.program_logic Require Import weakestpre.
+     lib.saved_prop.
+From D.pure_program_logic Require Export weakestpre.
 
 From D Require Import tactics.
 From D.Dot Require Export dotsyn.
@@ -256,22 +256,19 @@ Canonical Structure listVlC := leibnizC (list vl).
 From D Require Export saved_interp.
 
 Class dotG Σ := DotG {
-  dotG_invG : invG Σ;
   dotG_savior :> savedInterpG Σ vls vl
 }.
 
 Instance dotG_irisG `{dotG Σ} : irisG dot_lang Σ := {
-  iris_invG := dotG_invG;
   state_interp σ κs _ := True%I;
   fork_post _ := True%I;
 }.
 
 Class dotPreG Σ := DotPreG {
-  dotPreG_invG : invPreG Σ;
   dotPreG_savior :> savedInterpG Σ vls vl
 }.
 
-Definition dotΣ := #[invΣ; savedInterpΣ vls vl].
+Definition dotΣ := #[savedInterpΣ vls vl].
 
 Instance subG_dotΣ {Σ} : subG dotΣ Σ → dotPreG Σ.
 Proof. solve_inG. Qed.
