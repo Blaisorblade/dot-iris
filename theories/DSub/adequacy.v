@@ -3,8 +3,6 @@ From iris.proofmode Require Import tactics.
 From D Require Import tactics.
 From D.DSub Require Import unary_lr.
 
-From D Require Import gen_iheap.
-
 Theorem adequacy Σ `{HdsubG: dsubPreG Σ} e e' thp σ σ' T ρ:
   (forall `{dsubG Σ}, True ⊢ ⟦ T ⟧ₑ ρ e) →
   rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →

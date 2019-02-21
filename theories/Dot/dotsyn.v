@@ -1,5 +1,7 @@
-From stdpp Require Import numbers strings.
+From stdpp Require Import strings.
 From D Require Export prelude tactics.
+
+Definition stamp := positive.
 
 Definition label := string.
 
@@ -15,7 +17,7 @@ Inductive tm  : Type :=
   | vobj : list (label * dm) -> vl
  with dm  : Type :=
   | dtysyn : ty -> dm
-  | dtysem : (list vl) -> positive -> dm
+  | dtysem : (list vl) -> stamp -> dm
   | dvl : vl -> dm
  with path  : Type :=
   | pv : vl -> path

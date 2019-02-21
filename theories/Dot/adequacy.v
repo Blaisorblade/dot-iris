@@ -9,9 +9,9 @@ Theorem adequacy Σ `{HdotG: dotPreG Σ} e e' thp σ σ' T ρ:
   is_Some (to_val e') ∨ reducible e' σ'.
 Proof.
   intros Hlog ??. cut (adequate NotStuck e σ (λ _ _, True)); first (intros [_ ?]; eauto).
-  eapply (wp_adequacy Σ).
-  iIntros (?). iModIntro. iExists (λ _ _, True%I). iSplit=> //.
-  (* rewrite -(empty_env_subst e). *)
+  eapply (wp_adequacy Σ) => /=.
+  iMod (gen_iheap_init (hG := dotPreG_interpNames) ∅) as (g) "H".
+  iIntros (?) "!>". iExists (λ _ _, True%I); iSplit=> //.
   set (DotΣ := DotG Σ _).
   iApply wp_wand; by [iApply Hlog | auto].
 Qed.

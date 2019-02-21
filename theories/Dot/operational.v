@@ -252,11 +252,11 @@ Canonical Structure pathC := leibnizC path.
 
 Canonical Structure listVlC := leibnizC (list vl).
 
-(* gen_iheap *)
-From D Require Export saved_interp.
+From D Require Export gen_iheap saved_interp.
 
 Class dotG Σ := DotG {
-  dotG_savior :> savedInterpG Σ vls vl
+  dotG_savior :> savedInterpG Σ vls vl;
+  dotG_interpNames : gen_iheapG stamp gname Σ;
 }.
 
 Instance dotG_irisG `{dotG Σ} : irisG dot_lang Σ := {
@@ -265,10 +265,11 @@ Instance dotG_irisG `{dotG Σ} : irisG dot_lang Σ := {
 }.
 
 Class dotPreG Σ := DotPreG {
-  dotPreG_savior :> savedInterpG Σ vls vl
+  dotPreG_savior :> savedInterpG Σ vls vl;
+  dotPreG_interpNames : gen_iheapPreG stamp gname Σ;
 }.
 
-Definition dotΣ := #[savedInterpΣ vls vl].
+Definition dotΣ := #[savedInterpΣ vls vl; gen_iheapΣ stamp gname].
 
 Instance subG_dotΣ {Σ} : subG dotΣ Σ → dotPreG Σ.
 Proof. solve_inG. Qed.
