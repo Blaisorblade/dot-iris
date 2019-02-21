@@ -265,7 +265,7 @@ Section interp_equiv.
   Global Instance: Timeless (s ↦ γ).
   Proof. apply _. Qed.
 
-  Notation "s ↝ φ" := (∃ γ, s ↦ γ ∗ γ ⤇ φ)%I  (at level 20) : bi_scope.
+  Notation "s ↝ φ" := (∃ γ, s ↦ γ ∗ γ ⤇ (λ (vs: vls) v, φ vs v))%I  (at level 20) : bi_scope.
 
   Definition allGs gs := (gen_iheap_ctx (hG := dsubG_interpNames) gs).
   Arguments allGs /.
@@ -274,7 +274,7 @@ Section interp_equiv.
   Proof. by apply saved_interp_alloc. Qed.
 
   Lemma transferOne_base_inv gs s T:
-      gs !! s = None → (allGs gs ==∗ ∃ gs', allGs gs' ∗ s ↝ (λ ρ, ⟦ T ⟧ ρ) ∗ ⌜ gdom gs' ≡ gdom gs ∪ {[s]} ⌝)%I.
+      gs !! s = None → (allGs gs ==∗ ∃ gs', allGs gs' ∗ s ↝ ⟦ T ⟧ ∗ ⌜ gdom gs' ≡ gdom gs ∪ {[s]} ⌝)%I.
   Proof.
     iIntros (HsFresh) "Hown /=".
     iMod (alloc_sp T) as (γ) "#Hγ".
@@ -287,7 +287,7 @@ Section interp_equiv.
   (* To give a definitive version of wellMapped, we need stampHeap to be stored in a resource. Here it is: *)
   Definition wellMapped g : iProp Σ :=
     (□∀ s T ρ v,
-        ⌜ g !! s = Some T⌝ → ∃ P, s ↝ P ∧ ⟦ T ⟧ ρ v ≡ P ρ v)%I.
+        ⌜ g !! s = Some T⌝ → ∃ φ, s ↝ φ ∧ ⟦ T ⟧ ρ v ≡ φ ρ v)%I.
   Instance: Persistent (wellMapped g).
   Proof. apply _. Qed.
 
@@ -303,7 +303,7 @@ Section interp_equiv.
     iSplit =>//.
     iIntros (s' T' ρ v Hlook) "!>".
     destruct (decide (s = s')) as [<-|Hne].
-    - iExists (dsub_interp T).
+    - iExists (⟦ T ⟧).
       suff <-: T = T' by iSplit. rewrite lookup_insert in Hlook; by injection Hlook.
     - rewrite lookup_insert_ne //= in Hlook. by iApply "Hg".
   Qed.
