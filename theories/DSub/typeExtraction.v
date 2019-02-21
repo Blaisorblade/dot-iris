@@ -3,7 +3,7 @@ From stdpp Require Import gmap fin_map_dom.
 From iris.base_logic Require Import invariants.
 From iris.proofmode Require Import tactics.
 
-From D Require Import tactics.
+From D Require Import tactics gen_iheap.
 From D.DSub Require Import syn operational synLemmas unary_lr unary_lr_binding.
 
 Set Primitive Projections.
@@ -260,41 +260,6 @@ Section interp_equiv.
 
   Notation "¬ P" := (□ (P → False))%I : bi_scope.
 
-  Section definitions.
-    Context `{hG : gen_iheapG L V Σ}.
-
-    Definition gen_iheap_ctx (σ : gmap L V) : iProp Σ :=
-      own (gen_iheap_name hG) (● (to_gen_iheap σ)).
-
-    Definition mapsto_def (l : L) (v: V) : iProp Σ :=
-      own (gen_iheap_name hG) (◯ {[ l := to_agree (v : leibnizC V) ]}).
-    Definition mapsto_aux : seal (@mapsto_def). by eexists. Qed.
-    Definition mapsto := mapsto_aux.(unseal).
-    Definition mapsto_eq : @mapsto = @mapsto_def := mapsto_aux.(seal_eq).
-    Global Instance mapsto_timeless : Timeless (mapsto l v).
-    Proof. rewrite mapsto_eq /mapsto_def. apply _. Qed.
-    Global Instance mapsto_persistent : Persistent (mapsto l v).
-    Proof. rewrite mapsto_eq /mapsto_def. apply _. Qed.
-
-    Implicit Types σ : gmap L V.
-    Lemma lookup_to_gen_iheap_None σ l : σ !! l = None → to_gen_iheap σ !! l = None.
-    Proof. by rewrite /to_gen_iheap lookup_fmap=> ->. Qed.
-
-    Lemma to_gen_iheap_insert l (v: V) σ :
-      to_gen_iheap (<[l:=v]> σ) = <[l:=(to_agree (v:leibnizC V))]> (to_gen_iheap σ).
-    Proof. by rewrite /to_gen_iheap fmap_insert. Qed.
-
-    Lemma gen_iheap_alloc σ l (v: V):
-      σ !! l = None → gen_iheap_ctx σ ==∗ gen_iheap_ctx (<[l:=v]>σ) ∗ mapsto l v.
-    Proof.
-      iIntros (?) "Hσ". rewrite /gen_iheap_ctx mapsto_eq /mapsto_def.
-      iMod (own_update with "Hσ") as "[Hσ Hl]".
-      { eapply auth_update_alloc,
-        (alloc_singleton_local_update _ _ (to_agree (v:leibnizC _)))=> //.
-          by apply lookup_to_gen_iheap_None. }
-      iModIntro. rewrite to_gen_iheap_insert. iFrame.
-    Qed.
-  End definitions.
 
   Notation "s ↦ γ" := (mapsto (hG := dsubG_interpNames) s γ)  (at level 20) : bi_scope.
                            (* (◯ {[ s := to_agree (γ : leibnizC gname) ]})) *)

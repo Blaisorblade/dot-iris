@@ -94,32 +94,7 @@ Canonical Structure tyC := leibnizC ty.
 
 Canonical Structure listVlC := leibnizC (list vl).
 
-From stdpp Require Import gmap.
-From iris.algebra Require Import auth gmap agree.
-From iris.base_logic.lib Require Export own.
-
-Definition gen_iheapUR (L V : Type) `{Countable L} : ucmraT :=
-  gmapUR L (agreeR (leibnizC V)).
-Definition to_gen_iheap {L V} `{Countable L} : gmap L V → gen_iheapUR L V :=
-  fmap (λ v, to_agree (v : leibnizC V)).
-
-(** The CMRA we need. *)
-Class gen_iheapG (L V : Type) (Σ : gFunctors) `{Countable L} := GenIHeapG {
-  gen_iheap_inG :> inG Σ (authR (gen_iheapUR L V));
-  gen_iheap_name : gname
-}.
-Arguments gen_iheap_name {_ _ _ _ _} _ : assert.
-
-Class gen_iheapPreG (L V : Type) (Σ : gFunctors) `{Countable L} :=
-  { gen_iheap_preG_inG :> inG Σ (authR (gen_iheapUR L V)) }.
-
-Definition gen_iheapΣ (L V : Type) `{Countable L} : gFunctors :=
-  #[GFunctor (authR (gen_iheapUR L V))].
-
-Instance subG_gen_iheapPreG {Σ L V} `{Countable L} :
-  subG (gen_iheapΣ L V) Σ → gen_iheapPreG L V Σ.
-Proof. solve_inG. Qed.
-
+From D Require Import gen_iheap.
 
 Class dsubG Σ := DsubG {
   dsubG_invG : invG Σ;
