@@ -1,7 +1,9 @@
 (** An "immutable" version of Iris's gen_heap, created by removing fractions from it. *)
-From stdpp Require Import gmap.
 From iris.algebra Require Import auth gmap agree.
 From iris.base_logic.lib Require Export own.
+From iris.proofmode Require Import tactics.
+Set Default Proof Using "Type".
+Import uPred.
 
 Definition gen_iheapUR (L V : Type) `{Countable L} : ucmraT :=
   gmapUR L (agreeR (leibnizC V)).
@@ -25,8 +27,6 @@ Instance subG_gen_iheapPreG {Σ L V} `{Countable L} :
   subG (gen_iheapΣ L V) Σ → gen_iheapPreG L V Σ.
 Proof. solve_inG. Qed.
 
-From iris.proofmode Require Import tactics.
-
 Section definitions.
   Context `{hG : gen_iheapG L V Σ}.
 
@@ -38,6 +38,9 @@ Section definitions.
   Definition mapsto_aux : seal (@mapsto_def). by eexists. Qed.
   Definition mapsto := mapsto_aux.(unseal).
   Definition mapsto_eq : @mapsto = @mapsto_def := mapsto_aux.(seal_eq).
+
+  Local Notation "l ↦ v" := (mapsto l v) (at level 20) : bi_scope.
+
   Global Instance mapsto_timeless : Timeless (mapsto l v).
   Proof. rewrite mapsto_eq /mapsto_def. apply _. Qed.
   Global Instance mapsto_persistent : Persistent (mapsto l v).
@@ -46,6 +49,14 @@ Section definitions.
   Implicit Types σ : gmap L V.
   Lemma lookup_to_gen_iheap_None σ l : σ !! l = None → to_gen_iheap σ !! l = None.
   Proof. by rewrite /to_gen_iheap lookup_fmap=> ->. Qed.
+
+  Lemma mapsto_agree l v1 v2 : l ↦ v1 -∗ l ↦ v2 -∗ ⌜v1 = v2⌝.
+  Proof.
+    apply wand_intro_r.
+    rewrite mapsto_eq /mapsto_def -own_op -auth_frag_op own_valid discrete_valid.
+    f_equiv=> /auth_own_valid /=. rewrite op_singleton singleton_valid.
+    by intros ?%agree_op_invL'.
+  Qed.
 
   Lemma to_gen_iheap_insert l (v: V) σ :
     to_gen_iheap (<[l:=v]> σ) = <[l:=(to_agree (v:leibnizC V))]> (to_gen_iheap σ).
