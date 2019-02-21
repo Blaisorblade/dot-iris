@@ -8,24 +8,6 @@ From iris.program_logic Require Import weakestpre.
 From D Require Import tactics.
 From D.Dot Require Export dotsyn.
 
-(* gen_iheap *)
-From D Require Export saved_interp.
-
-Class dotG Σ := DotG {
-  dotG_invG : invG Σ;
-  dotG_savior :> savedInterpG Σ vls vl
-}.
-
-Class dotPreG Σ := DotPreG {
-  dotPreG_invG : invPreG Σ;
-  dotPreG_savior :> savedInterpG Σ vls vl
-}.
-
-Definition dotΣ := #[invΣ; savedInterpΣ vls vl].
-
-Instance subG_dotΣ {Σ} : subG dotΣ Σ → dotPreG Σ.
-Proof. solve_inG. Qed.
-
 Implicit Types
          (T: ty) (v: vl) (t e: tm) (d: dm) (ds: dms) (vs: vls)
          (Γ : ctx).
@@ -256,17 +238,11 @@ Qed.
 
 End lang.
 
+Export lang.
+
 Canonical Structure dot_ectxi_lang := EctxiLanguage lang.dot_lang_mixin.
 Canonical Structure dot_ectx_lang := EctxLanguageOfEctxi dot_ectxi_lang.
 Canonical Structure dot_lang := LanguageOfEctx dot_ectx_lang.
-
-Instance dotG_irisG `{dotG Σ} : irisG dot_lang Σ := {
-  iris_invG := dotG_invG;
-  state_interp σ κs _ := True%I;
-  fork_post _ := True%I;
-}.
-
-Export lang.
 
 Canonical Structure vlC := leibnizC vl.
 Canonical Structure tmC := leibnizC tm.
@@ -275,6 +251,30 @@ Canonical Structure dmsC := leibnizC dms.
 Canonical Structure pathC := leibnizC path.
 
 Canonical Structure listVlC := leibnizC (list vl).
+
+(* gen_iheap *)
+From D Require Export saved_interp.
+
+Class dotG Σ := DotG {
+  dotG_invG : invG Σ;
+  dotG_savior :> savedInterpG Σ vls vl
+}.
+
+Instance dotG_irisG `{dotG Σ} : irisG dot_lang Σ := {
+  iris_invG := dotG_invG;
+  state_interp σ κs _ := True%I;
+  fork_post _ := True%I;
+}.
+
+Class dotPreG Σ := DotPreG {
+  dotPreG_invG : invPreG Σ;
+  dotPreG_savior :> savedInterpG Σ vls vl
+}.
+
+Definition dotΣ := #[invΣ; savedInterpΣ vls vl].
+
+Instance subG_dotΣ {Σ} : subG dotΣ Σ → dotPreG Σ.
+Proof. solve_inG. Qed.
 
 (* For abstracting synToSem. *)
 Class dotInterpG Σ := DotInterpG {
