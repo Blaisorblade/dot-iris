@@ -1,5 +1,5 @@
 From D Require Import tactics.
-From D.Dot Require Import dotsyn.
+From D.Dot Require Export dotsyn typeExtraction.
 
 Reserved Notation "Γ ⊢ₜ e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ ⊢ₚ p : T , i" (at level 74, p, T, i at next level).
@@ -7,15 +7,19 @@ Reserved Notation "Γ |d V ⊢ d : T" (at level 74, d, T, V at next level).
 Reserved Notation "Γ |ds V ⊢ ds : T" (at level 74, ds, T, V at next level).
 Reserved Notation "Γ ⊢ₜ T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
 
-Implicit Types (L T U V: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
+Implicit Types (L T U V : ty) (v : vl) (e : tm) (d : dm) (ds : dms) (Γ : list ty) (g : stys).
 
+Class stampTable := getStampTable : stys.
+
+Section syntyping.
+  Context `{hasStampTable: stampTable}.
 (**
 Judgments for typing, subtyping, path and definition typing.
 Here we follow Nada Amin's judgment for definition typing: it is Γ ⊢ { l = d } : T,
 meaning: this definition, with label l, has type T.
 This works, but requires reformulating again a bit semantic definition typing for proofs.
 *)
-Inductive typed Γ: tm → ty → Prop :=
+Inductive typed Γ : tm → ty → Prop :=
 (** First, elimination forms *)
 (** Dependent application; only allowed if the argument is a value . *)
 | Appv_typed e1 v2 T1 T2:
@@ -34,8 +38,7 @@ Inductive typed Γ: tm → ty → Prop :=
 | TMuE_typed v T:
     Γ ⊢ₜ tv v: TMu T →
     (*──────────────────────*)
-    Γ ⊢ₜ tv v: T.|[v/]
-(** Introduction forms *)
+    Γ ⊢ₜ tv v: T.|[v/] (** Introduction forms *)
 | Lam_typed e T1 T2:
     (* T1 :: Γ ⊢ₜ e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
     T1.|[ren (+1)] :: Γ ⊢ₜ e : T2 →
@@ -69,7 +72,7 @@ Inductive typed Γ: tm → ty → Prop :=
     Γ ⊢ₜ t : T2 →
     Γ ⊢ₜ t : TAnd T1 T2
 where "Γ ⊢ₜ e : T " := (typed Γ e T)
-with dms_typed Γ: ty → dms → ty → Prop :=
+with dms_typed Γ : ty → dms → ty → Prop :=
 | dnil_typed V : Γ |ds V ⊢ [] : TTop
 (* This demands definitions and members to be defined in aligned lists. I think
    we want more freedom, just like in the logical relation? *)
@@ -82,16 +85,17 @@ with dms_typed Γ: ty → dms → ty → Prop :=
     Γ |ds V ⊢ (l, d) :: ds : TAnd T1 T2
 where "Γ |ds V ⊢ ds : T" := (dms_typed Γ V ds T)
 with dm_typed Γ : ty → dm → ty → Prop :=
-| dty_typed V l L T U:
+| dty_typed V l L T U s σ:
+    T ~[ length Γ ] (getStampTable, (s, σ)) →
     TLater V :: Γ ⊢ₜ L, 0 <: U, 0 →
     TLater V :: Γ ⊢ₜ L, 1 <: T, 1 →
     TLater V :: Γ ⊢ₜ T, 1 <: U, 1 →
-    Γ |d V ⊢ dtysyn T : TTMem l L U
+    Γ |d V ⊢ dtysem σ s : TTMem l L U
 | dvl_typed V l v T:
     V :: Γ ⊢ₜ tv v : T →
     Γ |d V ⊢ dvl v : TVMem l T
 where "Γ |d V ⊢ d : T" := (dm_typed Γ V d T)
-with path_typed Γ: path → ty → nat → Prop :=
+with path_typed Γ : path → ty → nat → Prop :=
 | pv_typed v T:
     Γ ⊢ₜ tv v : T →
     Γ ⊢ₚ pv v : T, 0
@@ -193,3 +197,10 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Γ ⊢ₜ U1, S i <: U2, S i →
     Γ ⊢ₜ TTMem l L1 U1, i <: TTMem l L2 U2, i
 where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
+End syntyping.
+
+Notation "Γ ⊢ₜ e : T " := (typed Γ e T).
+Notation "Γ |ds V ⊢ ds : T" := (dms_typed Γ V ds T).
+Notation "Γ |d V ⊢ d : T" := (dm_typed Γ V d T).
+Notation "Γ ⊢ₚ p : T , i" := (path_typed Γ p T i).
+Notation "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).

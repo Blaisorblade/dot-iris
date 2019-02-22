@@ -13,6 +13,7 @@ Ltac iDestrConjs :=
 
 Section fundamental.
   Context `{!dotG Σ}.
+  Context `{hasStampTable: stampTable}.
 
   (** Show fundamental lemma. *)
   (** That depends on existence of translations. To use it, we must start from syntactic terms.

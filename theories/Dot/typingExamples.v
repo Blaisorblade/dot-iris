@@ -3,12 +3,11 @@ WIP examples constructing syntactic typing derivations.
 I am also experimenting with notations, but beware the current definitions are pretty bad.
  *)
 From D Require Import tactics.
-From D.Dot Require Import dotsyn typing.
+From D.Dot Require Import dotsyn.
 From stdpp Require Import strings.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
-Hint Constructors typed subtype dms_typed dm_typed path_typed.
 
 (** First, let's maybe start defining some nicer notation. I have little clue what I'm doing tho.
     And this would need changing anyway if we switch to explicit labels. *)
@@ -26,7 +25,7 @@ Arguments vobj _%dms_scope.
 
 Notation "'ν' ds " := (vobj ds) (at level 20, ds at next level).
 Notation "'val' l = v" := (l, dvl v) (at level 20, l at level 10).
-Notation "'type' l = T" := (l, dtysyn T) (at level 20, l at level 10).
+Notation "'type' l = ( σ ; s )" := (l, dtysem σ s) (at level 20, l at level 10).
 
 (** Notation for object types. *)
 Bind Scope ty_scope with ty.
@@ -44,9 +43,16 @@ Notation "'μ' Ts " := (TMu Ts) (at level 20, Ts at next level).
 Notation "'type' l >: L <: U" := (TTMem l L U) (at level 20, l, L, U at level 10).
 Notation "'val' l : T" := (TVMem l T) (at level 20, l, T at level 10).
 
+Definition σ1 : vls := [].
+Definition s1 : positive := 1.
+
+Definition σ2 : vls := [].
+Definition s2 : positive := 2.
+
 Check ν {@ val "a" = vnat 0 }.
-Check ν {@ type "A" = TTop }.
-Check ν {@ val "a" = vnat 0; type "A" = TTop }.
+
+Check ν {@ type "A" = (σ1 ; s1) }.
+Check ν {@ val "a" = vnat 0; type "A" = (σ1 ; s1) }.
 Check μ {@ type "A" >: TNat <: TTop }.
 Check μ {@ val "a" : TNat }.
 
@@ -54,7 +60,7 @@ Check vobj {@}.
 Check ν {@ }.
 Check ν {@ val "a" = vnat 0 }.
 Check ν {@ val "a" = vnat 0 ; val "b" = vnat 1 }.
-Check ν {@ val "a" = vnat 0 ; type "A" = TTop }.
+Check ν {@ val "a" = vnat 0 ; type "A" = (σ1 ; s1) }.
 
 (* Notation "v @ l1 @ .. @ l2 ; l" := (TSel (pself .. (pself (pv v) l1) .. l2) l) *)
 (*                                      (format "v  @  l1  @  ..  @  l2  ;  l", at level 69, l1, l2 at level 60). *)
@@ -67,6 +73,12 @@ Check (pv (var_vl 0) @; "A").
 Check (pself (pself (pv (var_vl 0)) "A") "B" @; "C").
 Check (var_vl 0 @ "A" @ "B" @; "C").
 
+From D.Dot Require Import typing.
+
+Hint Constructors typed subtype dms_typed dm_typed path_typed.
+
+(* From D Require Import typeExtraction *)
+Context `{hasStampTable: stampTable}.
 Example ex0 e Γ T:
   Γ ⊢ₜ e : T →
   Γ ⊢ₜ e : TTop.
@@ -84,7 +96,7 @@ Example ex1 Γ n T:
   Γ ⊢ₜ tv (ν {@ val "a" = vnat n}) : μ {@ val "a" : TNat }.
 Proof.
   (* Help proof search: *)
-  apply VObj_typed. (* Avoid trying TMuI_typed, that's slow. *)
+  apply VObj_typed. (* Avoid trying TMuI_typed, that's1 slow. *)
 
   (* (* info eauto: *) *)
   (* simple eapply dcons_typed. *)
@@ -105,26 +117,28 @@ Proof.
   constructor; naive_solver.
 Qed.
 
-Example ex2 Γ T:
-  Γ ⊢ₜ tv (vobj [("A", dtysyn (TSel (pv (var_vl 0)) "B"))]) :
+Example ex2 Γ T
+  (Hs: (TSel (pv (var_vl 0)) "B") ~[ length Γ ] (getStampTable, (s1, σ1))):
+  Γ ⊢ₜ tv (ν {@ type "A" = (σ1 ; s1) } ) :
     TMu (TAnd (TTMem "A" TBot TTop) TTop).
 Proof.
   apply VObj_typed.
   econstructor => //=.
-  econstructor => //=.
+  by eapply dty_typed.
 Qed.
 
 (* Try out fixpoints. *)
 Definition F3 T :=
   TMu (TAnd (TTMem "A" T T) TTop).
 
-Example ex3 Γ T:
-  Γ ⊢ₜ tv (ν {@ type "A" = (F3 (TSel (pv (var_vl 0)) "A")) } ) :
+Example ex3 Γ T
+  (Hs: (F3 (TSel (pv (var_vl 0)) "A")) ~[ length Γ ] (getStampTable, (s1, σ1))):
+  Γ ⊢ₜ tv (ν {@ type "A" = (σ1 ; s1) } ) :
     F3 (F3 (TSel (pv (var_vl 0)) "A")).
 Proof.
   apply VObj_typed. (* Avoid trying TMuI_typed, that's slow. *)
   econstructor => //=.
-  eapply dty_typed; trivial.
+  by eapply dty_typed.
 Qed.
 
 (* Example ex3' Γ T: *)
@@ -143,8 +157,9 @@ Definition F4 T :=
 Print F4.
 
 (* XXX Not sure I got this right. *)
-Example ex4 Γ T:
-  Γ ⊢ₜ tv (ν {@ val "a" = var_vl 0; type "B" = TSel (pv (var_vl 0)) "A" }) :
+Example ex4 Γ T
+  (Hs: TSel (pv (var_vl 0)) "A" ~[ length Γ ] (getStampTable, (s1, σ1))):
+  Γ ⊢ₜ tv (ν {@ val "a" = var_vl 0; type "B" = (σ1 ; s1) }) :
     F4 (F4 (TSel (pv (var_vl 0)) "A")).
 Abort.
 (*     (* TMu (TAnd (TAnd TTop (TTMem 0 ?))  *) *)
