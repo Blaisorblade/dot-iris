@@ -267,10 +267,10 @@ Section interp_equiv.
 
   Notation "s ↝ φ" := (∃ γ, s ↦ γ ∗ γ ⤇ (λ (vs: vls) v, φ vs v))%I  (at level 20) : bi_scope.
 
-  Definition allGs gs := (gen_iheap_ctx (hG := dsubG_interpNames) gs).
+  Definition allGs gs := (gen_iheap_ctx (hG := dotG_interpNames) gs).
   Arguments allGs /.
 
-  Lemma alloc_sp T: (|==> ∃ γ, γ ⤇ dsub_interp T)%I.
+  Lemma alloc_sp T: (|==> ∃ γ, γ ⤇ dot_interp T)%I.
   Proof. by apply saved_interp_alloc. Qed.
 
   Lemma transferOne_base_inv gs s T:

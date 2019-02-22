@@ -17,6 +17,7 @@ theories/DSub/unary_lr.v
 theories/DSub/unary_lr_binding.v
 theories/Dot/dotsyn.v
 theories/Dot/typing.v
+theories/Dot/typeExtraction.v
 theories/Dot/operational.v
 theories/Dot/synLemmas.v
 theories/Dot/step_fv.v
