@@ -2,7 +2,7 @@
     way, without involving Iris. *)
 From stdpp Require Import gmap.
 From D Require Import tactics.
-From D.DSub Require Import syn operational synLemmas typeExtraction.
+From D.DSub Require Import syn operational synLemmas typeExtractionSyn.
 
 Set Primitive Projections.
 Set Implicit Arguments.
