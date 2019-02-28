@@ -1,5 +1,5 @@
 From D Require Import tactics.
-From D.Dot Require Export dotsyn typeExtractionSyn.
+From D.Dot Require Export dotsyn typeExtractionSyn stampedness.
 
 Reserved Notation "Γ ⊢ₜ e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ ⊢ₚ p : T , i" (at level 74, p, T, i at next level).
@@ -86,7 +86,7 @@ with dms_typed Γ : ty → dms → ty → Prop :=
 where "Γ |ds V ⊢ ds : T" := (dms_typed Γ V ds T)
 with dm_typed Γ : ty → dm → ty → Prop :=
 | dty_typed V l L T U s σ:
-    T ~[ length Γ ] (getStampTable, (s, σ)) →
+    T ~[ S (length Γ) ] (getStampTable, (s, σ)) →
     TLater V :: Γ ⊢ₜ L, 0 <: U, 0 →
     TLater V :: Γ ⊢ₜ L, 1 <: T, 1 →
     TLater V :: Γ ⊢ₜ T, 1 <: U, 1 →
@@ -197,6 +197,31 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Γ ⊢ₜ U1, S i <: U2, S i →
     Γ ⊢ₜ TTMem l L1 U1, i <: TTMem l L2 U2, i
 where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
+
+  Scheme typed_mut_ind := Induction for typed Sort Prop
+  with   dms_typed_mut_ind := Induction for dms_typed Sort Prop
+  with   dm_typed_mut_ind := Induction for dm_typed Sort Prop.
+  (* with   path_typed_mut_ind := Induction for path_typed Sort Prop
+  with   subtype_mut_ind := Induction for subtype Sort Prop. *)
+
+  Combined Scheme typing_mut_ind from typed_mut_ind, dms_typed_mut_ind, dm_typed_mut_ind.
+
+  Hint Constructors Forall.
+  Lemma stamped_mut Γ:
+    (∀ e  T, Γ ⊢ₜ e : T → is_stamped_tm (length Γ) getStampTable e) ∧
+    (∀ V ds T, Γ |ds V ⊢ ds : T → Forall (is_stamped_dm (S (length Γ)) getStampTable) (map snd ds)) ∧
+    (∀ V d T, Γ |d V ⊢ d : T → is_stamped_dm (S (length Γ)) getStampTable d).
+  Proof.
+    eapply typing_mut_ind with
+        (P := λ Γ e T _, is_stamped_tm (length Γ) getStampTable e)
+        (P0 := λ Γ V ds T _, Forall (is_stamped_dm (S (length Γ)) getStampTable) (map snd ds))
+        (P1 := λ Γ V d T _, is_stamped_dm (S (length Γ)) getStampTable d); cbn; eauto.
+    - repeat constructor.
+    - intros; elim: i {s} => [|i IHi]; rewrite /= ?iterate_0 ?iterate_S //; eauto.
+    - intros; ev. constructor; naive_solver.
+    - intros; with_is_stamped inverse; eauto.
+  Qed.
+
 End syntyping.
 
 Notation "Γ ⊢ₜ e : T " := (typed Γ e T).

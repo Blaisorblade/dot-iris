@@ -118,7 +118,7 @@ Proof.
 Qed.
 
 Example ex2 Γ T
-  (Hs: (TSel (pv (var_vl 0)) "B") ~[ length Γ ] (getStampTable, (s1, σ1))):
+  (Hs: (TSel (pv (var_vl 0)) "B") ~[ S (length Γ) ] (getStampTable, (s1, σ1))):
   Γ ⊢ₜ tv (ν {@ type "A" = (σ1 ; s1) } ) :
     TMu (TAnd (TTMem "A" TBot TTop) TTop).
 Proof.
@@ -132,7 +132,7 @@ Definition F3 T :=
   TMu (TAnd (TTMem "A" T T) TTop).
 
 Example ex3 Γ T
-  (Hs: (F3 (TSel (pv (var_vl 0)) "A")) ~[ length Γ ] (getStampTable, (s1, σ1))):
+  (Hs: (F3 (TSel (pv (var_vl 0)) "A")) ~[ S (length Γ) ] (getStampTable, (s1, σ1))):
   Γ ⊢ₜ tv (ν {@ type "A" = (σ1 ; s1) } ) :
     F3 (F3 (TSel (pv (var_vl 0)) "A")).
 Proof.
@@ -158,7 +158,7 @@ Print F4.
 
 (* XXX Not sure I got this right. *)
 Example ex4 Γ T
-  (Hs: TSel (pv (var_vl 0)) "A" ~[ length Γ ] (getStampTable, (s1, σ1))):
+  (Hs: TSel (pv (var_vl 0)) "A" ~[ S (length Γ) ] (getStampTable, (s1, σ1))):
   Γ ⊢ₜ tv (ν {@ val "a" = var_vl 0; type "B" = (σ1 ; s1) }) :
     F4 (F4 (TSel (pv (var_vl 0)) "A")).
 Abort.
