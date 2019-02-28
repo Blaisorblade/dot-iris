@@ -77,6 +77,7 @@ From D.Dot Require Import typing.
 
 Hint Constructors typed subtype dms_typed dm_typed path_typed.
 
+Section examples.
 (* From D Require Import typeExtraction *)
 Context `{hasStampTable: stampTable}.
 Example ex0 e Γ T:
@@ -209,3 +210,5 @@ Abort.
 (*   Unshelve. *)
 (*   all: eauto. *)
 (* Abort. *)
+
+End examples.
