@@ -39,7 +39,7 @@ Section logrel.
     λne ρ v, (⌜ nclosed_vl v 0 ⌝ ∗ ∃ d, ⌜v @ l ↘ d⌝ ∧ def_interp_vmem interp ρ d)%I.
 
   Definition idm_proj_semtype d (φ : D) : iProp Σ :=
-    (∃ γ σ (φ' : listVlC -n> D), ⌜ d = dtysem σ γ ∧ φ = φ' σ ⌝ ∗ γ ⤇ (λ vs w, φ' vs w))%I.
+    (∃ s σ (φ' : listVlC -n> D), ⌜ d = dtysem σ s ∧ φ = φ' σ ⌝ ∗ s ↝ (λ vs w, φ' vs w))%I.
   Global Arguments idm_proj_semtype /.
   Notation "d ↗ φ" := (idm_proj_semtype d φ) (at level 20).
 
@@ -47,9 +47,9 @@ Section logrel.
     d ↗ φ1 -∗ d ↗ φ2 -∗ ▷ (φ1 v ≡ φ2 v).
   Proof.
     iIntros "/= #Hd1 #Hd2".
-    iDestruct "Hd2" as (γ' σ' φ2' H2) "Hγ2".
-    iDestruct "Hd1" as (γ σ φ1' H1) "Hγ1".
-    ev; subst; injectHyps. by iApply (saved_interp_agree_eta _ φ1' φ2').
+    iDestruct "Hd2" as (s' σ' φ2' H2) "Hs2".
+    iDestruct "Hd1" as (s σ φ1' H1) "Hs1".
+    ev; subst; injectHyps. by iApply (leadsto_agree _ φ1' φ2').
   Qed.
 
   Program Definition def_interp_tmem (interp1 interp2 : listVlC -n> D) :

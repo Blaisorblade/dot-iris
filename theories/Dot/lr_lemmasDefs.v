@@ -26,9 +26,9 @@ Section Sec.
     iNext. iApply wp_value_inv'; iApply "Hv"; by iSplit.
   Qed.
 
-  (* Lemma dtp_tmem_i T γ ρ l : *)
-  (*   γ ⤇ dot_interp T -∗ ⟦Γ⟧* ρ -∗ *)
-  (*   def_interp (TTMem l T T) l ρ (dtysem ρ γ). *)
+  (* Lemma dtp_tmem_i T s ρ l : *)
+  (*   s ↝ dot_interp T -∗ ⟦Γ⟧* ρ -∗ *)
+  (*   def_interp (TTMem l T T) l ρ (dtysem ρ s). *)
   (* Proof. *)
   (*   iIntros "#Hv * #Hg /=". *)
   (*   (* iExists _, _. iSplit. _auto. *) *)
@@ -39,7 +39,7 @@ Section Sec.
   (* Qed. *)
 
   (* XXX: the PDF indexes definition typing. *)
-  Lemma idtp_tmem_abs_i T L U γ l :
+  Lemma idtp_tmem_abs_i T L U s l :
     (* We want the next two hypotheses to hold in a later world, but for this Γ,
        both because that's what we need to introduce, and because it allows
        using Γ *now* to establish the assumption.
@@ -63,10 +63,10 @@ Section Sec.
        (unlike I did originally). *)
     Γ ⊨ [T, 1] <: [U, 1] -∗
     Γ ⊨ [L, 1] <: [T, 1] -∗
-    γ ⤇ dot_interp T -∗
-    Γ ⊨d dtysem (idsσ (length Γ)) γ : TTMem l L U.
+    s ↝ dot_interp T -∗
+    Γ ⊨d dtysem (idsσ (length Γ)) s : TTMem l L U.
   Proof.
-    iIntros "#HTU #HLT #Hγ /=".
+    iIntros "#HTU #HLT #Hs /=".
     iSplit. by auto using fv_dtysem, fv_idsσ.
     iIntros "!>" (ρ) "#Hg".
     iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *.
@@ -82,11 +82,11 @@ Section Sec.
     - iIntros; iApply "HTU" => //; iNext => //.
   Qed.
 
-  (* Lemma idtp_tmem_i T γ l: *)
-  (*   γ ⤇ dot_interp T -∗ *)
-  (*   Γ ⊨d { l = dtysem (idsσ (length Γ)) γ } : TTMem l T T. *)
+  (* Lemma idtp_tmem_i T s l: *)
+  (*   s ↝ dot_interp T -∗ *)
+  (*   Γ ⊨d { l = dtysem (idsσ (length Γ)) s } : TTMem l T T. *)
   (* Proof. *)
-  (*   iIntros " #Hγ /=". *)
+  (*   iIntros " #Hs /=". *)
   (*   iSplit. by auto using fv_dtysem, fv_idsσ. *)
   (*   iIntros "!>" (ρ) "#Hg". *)
 
@@ -98,11 +98,11 @@ Section Sec.
   (*   iModIntro; repeat iSplitL; auto. *)
   (* Qed. *)
 
-  Lemma idtp_tmem_i T γ l:
-    γ ⤇ dot_interp T -∗
-    Γ ⊨d dtysem (idsσ (length Γ)) γ : TTMem l T T.
+  Lemma idtp_tmem_i T s l:
+    s ↝ dot_interp T -∗
+    Γ ⊨d dtysem (idsσ (length Γ)) s : TTMem l T T.
   Proof.
-    iIntros " #Hγ".
+    iIntros " #Hs".
     iApply (idtp_tmem_abs_i T T T) => //=;
       by iIntros "!> **".
   Qed.
