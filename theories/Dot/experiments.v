@@ -2,7 +2,7 @@ From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language ectx_language.
 From iris.proofmode Require Import tactics.
 From D Require Import tactics.
-From D.Dot Require Import unary_lr unary_lr_binding synLemmas rules synToSem.
+From D.Dot Require Import unary_lr unary_lr_binding synLemmas rules.
 (* Workflow: Use this file for new experiments, and move experiments here in appropriate files once they're done. *)
 
 (* From iris.bi Require Export derived_laws_bi. *)
@@ -257,96 +257,6 @@ Section Sec.
     - apply Hf1; first apply Hxl; done.
     - apply Hf2; first apply Hxl; done.
   Abort.
-
-  Lemma translations_types_equivalent_vals T T' T'' v ρ:
-    (t_ty T T' → t_ty T T'' → ⟦ T' ⟧ ρ v ≡ ⟦ T'' ⟧ ρ v)%I.
-  Proof.
-    (* -  *)
-    (*   iIntros. *)
-(*       Check uPred_primitive.equiv_spec. *)
-(* (* From iris.base_logic Require Import upred. *) *)
-(* (*       Import uPred. *) *)
-(* (*       Check uPred. *) *)
-(* From iris.bi Require Import bi. *)
-(* Import bi. *)
-(*       Check bi.equiv_spec . *)
-(*       pose proof (proj2 (bi.equiv_spec (⟦ T' ⟧ ρ v) (⟦ T'' ⟧ ρ v))) as Heq. *)
-(* From iris.bi Require Import derived_laws_sbi. *)
-(*       Set Printing All. *)
-(*       About internal_eq_iff. *)
-(*       pose proof ((bi.internal_eq_iff (⟦ T' ⟧ ρ v) (⟦ T'' ⟧ ρ v))) as Heq1. *)
-(*       Unset Printing All. *)
-(*       iApply Heq. *)
-(*       Locate "↔". *)
-(*       SearchAbout and. *)
-(*       destruct H1. *)
-(*       pose proof (bi.equiv_spec (⟦ T' ⟧ ρ v) (⟦ T'' ⟧ ρ v)) as H1. *)
-(*       iRewrite (bi_mixin_equiv_spec (⟦ T' ⟧ ρ v) (⟦ T'' ⟧ ρ v)). *)
-(*       Set Printing All. *)
-(*       SearchAbout (sbi_internal_eq). *)
-(*       Set Printing All. *)
-(*       SearchAbout uPred_entails. *)
-(*       Check @bi.internal_eq_iff. *)
-(*       Search *)
-(*         (@bi_entails (sbi_bi _) (@sbi_internal_eq _ (sbi_ofeC _) _ _) (@bi_iff (sbi_bi _) _ _)). *)
-(*       Require Import ssrbool. *)
-(*       SearchHead sbi_internal_eq. *)
-(*       Search "~~". *)
-(*       Search (bi_entails (sbi_internal_eq _ _) (bi_iff _ _))%I. *)
-(*       SearchPattern uPred_internal_eq. *)
-(*       set (t := (@sbi_internal_eq (uPredSI (iResUR Σ)) (uPredC (iResUR Σ)))). *)
-(*       hnf in t. *)
-(*       Set Printing All. *)
-(*        red. *)
-(*        hnf. *)
-(*        (ofe_mor_car _ _ (ofe_mor_car _ _ (@interp Σ H T') ρ) v) *)
-(*              (ofe_mor_car _ _ (ofe_mor_car _ _ (@interp Σ H T'') ρ) v))). *)
-
-    (* iInduction T as [] "IHT" forall (T' T'' ρ v); iIntros "#H1 #H2"; *)
-    (*   destruct T' => //=; destruct T'' => //; cbn. *)
-    (*                                 properness. *)
-    (*                                 try (iDestruct "H1" as "[H11 H12]"); try (iDestruct "H2" as "[H21 H22]"). *)
-    (* all: try iRewrite ("IHT" $! _ _ ρ v with "H11 H21"); try iRewrite ("IHT1" $! _ _ ρ v with "H12 H22"); try iRewrite ("IHT" $! _ _ ρ v with "H1 H2"); try done. *)
-    (* - *)
-    (*   iAssert (∀ ρ v, ⟦ T'1 ⟧ ρ v ≡ ⟦ T''1 ⟧ ρ v)%I as "#H". iIntros; iApply ("IHT"). *)
-    (*   admit. *)
-    (* - by iRewrite ("IHT" $! _ _ (v :: ρ) v with "H1 H2"). *)
-    (* - *)
-    (*   iDestruct "H11" as "->". *)
-    (*   iDestruct "H21" as "->". *)
-    (*   iAssert (∀ v, ⟦ T' ⟧ ρ v ≡ ⟦ T'' ⟧ ρ v)%I as "#H". by iIntros; iApply ("IHT"). *)
-    (*   Fail iRewrite ("H" $! _). *)
-    (*   admit. *)
-  Abort.
-    (*   iClear "H". *)
-    (*   About (≡). *)
-    (*   About sbi_internal_eq. *)
-    (* Check (1 ≡ 2: iProp Σ)%I. *)
-    (* Check bi_emp_valid. *)
-
-    (*   red. *)
-    (*   iEval (hnf). *)
-    (*   iRewrite ("H" $! ρ). *)
-
-    (* all: try iRewrite (IHT1 _ _ ρ v with "H11 H21"); try iRewrite (IHT2 _ _ ρ v with "H12 H22"); *)
-    (* try iRewrite (IHT _ _ ρ v with "H1 H2"). *)
-    (* all: try done. *)
-
-    (* iPoseProof (IHT1 _ _ ρ v with "H11 H21") as "->". *)
-    (* iPoseProof (IHT2 _ _ ρ v with "H11 H21") as "->". *)
-    (* try iRewrite (IHT2 _ _ ρ v with "H12 H22"); *)
-    (* admit. *)
-    (* by iRewrite (IHT _ _ (v :: ρ) v with "H1 H2"). *)
-    (* Check bi.sep_proper. *)
-    (* - *)
-    (*   About sbi_internal_eq. *)
-    (*   Check sbi_internal_eq. *)
-    (* Set Printing All. *)
-    (* Check (1 ≡ 2)%I. *)
-    (* Check bi_emp_valid. *)
-    (* properness. *)
-    (* iRewrite (IHT _ _ ρ with "H1 H2"). *)
-
 
   (* Can't find how to use it. *)
   Lemma later_persistently_1 (P: iProp Σ): (▷ □ P → ▷ P)%I.
