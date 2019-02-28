@@ -13,6 +13,7 @@ Section interp_equiv.
   Context `{!dotG Σ}.
 
   Notation envD := (listVlC -n> vlC -n> iProp Σ).
+
   Implicit Types (φ: envD).
 
   (** This interpretation is too naive: it substitutes σ into T' *before* applying our semantics,
@@ -82,21 +83,6 @@ Section interp_equiv.
     rewrite -(interp_subst_all _ T1) -?(interp_subst_all _ T2) ?Hrew //; by apply nclosed_σ_to_subst.
   Qed.
 
-  Notation "¬ P" := (□ (P → False))%I : bi_scope.
-
-
-  Notation "s ↦ γ" := (mapsto (hG := dotG_interpNames) s γ)  (at level 20) : bi_scope.
-                           (* (◯ {[ s := to_agree (γ : leibnizC gname) ]})) *)
-  Global Instance: Persistent (s ↦ γ).
-  Proof. apply _. Qed.
-  Global Instance: Timeless (s ↦ γ).
-  Proof. apply _. Qed.
-
-  Notation "s ↝ φ" := (∃ γ, s ↦ γ ∗ γ ⤇ (λ (vs: vls) v, φ vs v))%I  (at level 20) : bi_scope.
-
-  Definition allGs gs := (gen_iheap_ctx (hG := dotG_interpNames) gs).
-  Arguments allGs /.
-
   Lemma alloc_sp T: (|==> ∃ γ, γ ⤇ dot_interp T)%I.
   Proof. by apply saved_interp_alloc. Qed.
 
@@ -164,14 +150,5 @@ Section interp_equiv.
                        (allGs gs ==∗ wellMapped g)%I.
   Proof.
     iIntros (Hs) "H". by iMod (transfer' gs Hs with "H") as (gs') "[H ?]".
-  Qed.
-
-  Lemma leadsto_agree s φ1 φ2 ρ v: s ↝ φ1 -∗ s ↝ φ2 -∗ ▷ (φ1 ρ v ≡ φ2 ρ v).
-  Proof.
-    iIntros "/= #H1 #H2".
-    iDestruct "H1" as (γ1) "[Hs1 Hg1]".
-    iDestruct "H2" as (γ2) "[Hs2 Hg2]".
-    iPoseProof (mapsto_agree with "Hs1 Hs2") as "%"; subst.
-    by iApply (saved_interp_agree_eta _ φ1 φ2).
   Qed.
 End interp_equiv.
