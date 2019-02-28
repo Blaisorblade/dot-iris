@@ -81,10 +81,11 @@ Hint Constructors typed subtype dms_typed dm_typed path_typed.
 Context `{hasStampTable: stampTable}.
 Example ex0 e Γ T:
   Γ ⊢ₜ e : T →
+  is_stamped_ty (length Γ) getStampTable T →
   Γ ⊢ₜ e : TTop.
 Proof.
   intro HeT. change e with (iterate tskip 0 e).
-  econstructor. apply Top_stp. eassumption.
+  econstructor; first apply Top_stp; eassumption.
 Qed.
 
 (* XXX Redeclaring notation so that it picks new scopes. Once it picks new
@@ -95,8 +96,6 @@ Local Notation "Γ ⊢ds ds : T"  := (dms_typed Γ ds T) (at level 74, ds, T at 
 Example ex1 Γ n T:
   Γ ⊢ₜ tv (ν {@ val "a" = vnat n}) : μ {@ val "a" : TNat }.
 Proof.
-  (* Help proof search: *)
-  apply VObj_typed. (* Avoid trying TMuI_typed, that's1 slow. *)
 
   (* (* info eauto: *) *)
   (* simple eapply dcons_typed. *)
@@ -114,7 +113,8 @@ Proof.
     intro.
     eapply Trans_stp; by [apply TSucc_stp | apply TLaterR_stp].
   }
-  constructor; naive_solver.
+  (* Help proof search: Avoid trying TMuI_typed, that's1 slow. *)
+  apply VObj_typed; first constructor; naive_solver.
 Qed.
 
 Example ex2 Γ T
@@ -122,9 +122,9 @@ Example ex2 Γ T
   Γ ⊢ₜ tv (ν {@ type "A" = (σ1 ; s1) } ) :
     TMu (TAnd (TTMem "A" TBot TTop) TTop).
 Proof.
-  apply VObj_typed.
+  apply VObj_typed; eauto.
   econstructor => //=.
-  by eapply dty_typed.
+  eapply dty_typed; eauto.
 Qed.
 
 (* Try out fixpoints. *)
@@ -136,9 +136,11 @@ Example ex3 Γ T
   Γ ⊢ₜ tv (ν {@ type "A" = (σ1 ; s1) } ) :
     F3 (F3 (TSel (pv (var_vl 0)) "A")).
 Proof.
-  apply VObj_typed. (* Avoid trying TMuI_typed, that's slow. *)
+  have Hst: is_stamped_ty (S (length Γ)) getStampTable (F3 (pv (var_vl 0) @; "A")).
+  by constructor; naive_solver.
+  apply VObj_typed; last eauto. (* Avoid trying TMuI_typed, that's slow. *)
   econstructor => //=.
-  by eapply dty_typed.
+  eapply dty_typed; naive_solver.
 Qed.
 
 (* Example ex3' Γ T: *)
