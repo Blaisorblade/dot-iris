@@ -20,6 +20,7 @@ theories/Dot/dotsyn.v
 theories/Dot/typing.v
 theories/Dot/typeExtractionSyn.v
 theories/Dot/typeExtractionSem.v
+theories/Dot/stampedness.v
 theories/Dot/operational.v
 theories/Dot/synLemmas.v
 theories/Dot/step_fv.v
