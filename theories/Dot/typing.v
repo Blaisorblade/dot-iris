@@ -170,7 +170,7 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     (T1 :: Γ) ⊢ₜ T1, i <: T2.|[ren (+1)], i →
     Γ ⊢ₜ TMu T1, i <: T2, i
 | mu_2_stp T1 T2 i:
-    (T1 :: Γ) ⊢ₜ T1.|[ren (+1)], i <: T2, i →
+    T1.|[ren (+1)] :: Γ ⊢ₜ T1.|[ren (+1)], i <: T2, i →
     Γ ⊢ₜ T1, i <: TMu T2, i
 
 (* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types.
@@ -187,7 +187,7 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     (* TLater T2 :: Γ ⊢ₜ U1, S i <: U2, S i → *)
     (* Non-tight premises. *)
     Γ ⊢ₜ T2, i <: T1, i →
-    T2 :: Γ ⊢ₜ U1, i <: U2, i →
+    T2.|[ren (+1)] :: Γ ⊢ₜ U1, i <: U2, i →
     Γ ⊢ₜ TAll T1 U1, i <: TAll T2 U2, i
 | TVMemCov_stp T1 T2 i l:
     Γ ⊢ₜ T1, S i <: T2, S i →
