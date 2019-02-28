@@ -140,7 +140,6 @@ Section logrel.
     | TAll T1 T2 => interp_forall (interp T1) (interp T2)
     | TMu T => interp_mu (interp T)
     | TSel p l => interp_sel p l
-    | TSelA p l L U => interp_bot
   end % I.
 
   Global Instance dotInterpΣ : dotInterpG Σ := DotInterpG _ (λ T ρ, interp T ρ).

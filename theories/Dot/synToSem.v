@@ -142,7 +142,6 @@ Section Sec.
     | (TVMem l1 T1, TVMem l2 T2) => ⌜l1 = l2⌝ ∧ t_ty T1 T2
     | (TTMem l1 T11 T12, TTMem l2 T21 T22) => ⌜l1 = l2⌝ ∧ t_ty T11 T21 ∧ t_ty T12 T22
     | (TSel p1 l1, TSel p2 l2) => t_path p1 p2 ∧ ⌜l1 = l2⌝
-    | (TSelA p1 l1 T11 T12, TSelA p2 l2 T21 T22) => t_path p1 p2 ∧ ⌜l1 = l2⌝ ∧ t_ty T11 T21 ∧ t_ty T12 T22
     | (TNat, TNat) => True
     | _ => False
     end%I.
@@ -271,7 +270,6 @@ Section Sec.
     | TVMem l T => is_syn_ty T
     | TTMem l T1 T2 => is_syn_ty T1 ∧ is_syn_ty T2
     | TSel p l => is_syn_path p
-    | TSelA p l T1 T2 => is_syn_path p ∧ is_syn_ty T1 ∧ is_syn_ty T2
     | TNat => True
     end.
 
@@ -335,7 +333,6 @@ Section Sec.
        the statement are premature. *)
   (* all: skeleton n t1 Hfv. *)
   (* - iModSpec Hfv (ex_t_path n p) p2. recursiveTransf (TSel _ _) n Hfv. *)
-  (* - iModSpec Hfv (ex_t_path n p) p2. recursiveTransf (TSelA _ _ _ _) n Hfv. *)
   (* - iModSpec Hfv (ex_t_vl n v) v2. recursiveTransf (pv _) n Hfv. *)
   (* - iModSpec Hfv (ex_t_tm (S n) t) t2. recursiveTransf (vabs _) n Hfv. *)
   (* - iInduction l as [|d ds] "IHl". *)

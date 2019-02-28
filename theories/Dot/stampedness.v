@@ -112,11 +112,6 @@ Section fold.
   | trav_TSel ts p l:
       forall_traversal_path ts p →
       forall_traversal_ty ts (TSel p l)
-  | trav_TSelA ts p l T1 T2:
-      forall_traversal_path ts p →
-      forall_traversal_ty ts T1 →
-      forall_traversal_ty ts T2 →
-      forall_traversal_ty ts (TSelA p l T1 T2)
   | trav_TNat ts: forall_traversal_ty ts TNat
     .
 End fold.

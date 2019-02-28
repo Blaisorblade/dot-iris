@@ -33,7 +33,6 @@ Inductive tm  : Type :=
   | TVMem : label -> ty -> ty
   | TTMem : label -> ty -> ty -> ty
   | TSel : path -> label -> ty
-  | TSelA : path -> label -> ty -> ty -> ty
   | TNat :  ty.
 
 Definition vls := list vl.
@@ -119,7 +118,6 @@ Section syntax_mut_rect.
   Variable step_TVMem: ∀ l T1, Pty T1 → Pty (TVMem l T1).
   Variable step_TTMem: ∀ l T1 T2, Pty T1 → Pty T2 → Pty (TTMem l T1 T2).
   Variable step_TSel: ∀ p, Ppt p → ∀ l : label, Pty (TSel p l).
-  Variable step_TSelA: ∀ p l T1 T2, Ppt p → Pty T1 → Pty T2 → Pty (TSelA p l T1 T2).
   Variable step_TNat: Pty TNat.
 
   Fixpoint tm_mut_rect t: Ptm t
@@ -189,7 +187,6 @@ Section syntax_mut_ind.
   Variable step_TVMem: ∀ l T1, Pty T1 → Pty (TVMem l T1).
   Variable step_TTMem: ∀ l T1 T2, Pty T1 → Pty T2 → Pty (TTMem l T1 T2).
   Variable step_TSel: ∀ p, Ppt p → ∀ l : label, Pty (TSel p l).
-  Variable step_TSelA: ∀ p l T1 T2, Ppt p → Pty T1 → Pty T2 → Pty (TSelA p l T1 T2).
   Variable step_TNat: Pty TNat.
 
   Lemma syntax_mut_ind: (∀ t, Ptm t) ∧ (∀ v, Pvl v) ∧ (∀ d, Pdm d) ∧ (∀ p, Ppt p) ∧ (∀ T, Pty T).
@@ -270,7 +267,6 @@ ty_rename (sb : var → var) (T : ty) {struct T}: ty :=
   | TVMem l T => TVMem l (rename sb T)
   | TTMem l T1 T2 => TTMem l (rename sb T1) (rename sb T2)
   | TSel pth l => TSel (rename sb pth) l
-  | TSelA pth l T1 T2 => TSelA (rename sb pth) l (rename sb T1) (rename sb T2)
   | TNat => TNat
   end
 with
@@ -346,7 +342,6 @@ ty_hsubst (sb : var → vl) (T : ty) : ty :=
   | TVMem l T => TVMem l (hsubst sb T)
   | TTMem l T1 T2 => TTMem l (hsubst sb T1) (hsubst sb T2)
   | TSel pth l => TSel (hsubst sb pth) l
-  | TSelA pth l T1 T2 => TSelA (hsubst sb pth) l (hsubst sb T1) (hsubst sb T2)
   | TNat => TNat
   end
 with
