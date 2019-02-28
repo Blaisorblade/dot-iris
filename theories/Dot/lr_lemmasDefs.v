@@ -40,7 +40,6 @@ Section Sec.
 
   (* XXX: the PDF indexes definition typing. *)
   Lemma idtp_tmem_abs_i T L U γ l :
-    Γ ⊨ [L, 0] <: [U, 0] -∗
     (* We want the next two hypotheses to hold in a later world, but for this Γ,
        both because that's what we need to introduce, and because it allows
        using Γ *now* to establish the assumption.
@@ -67,7 +66,7 @@ Section Sec.
     γ ⤇ dot_interp T -∗
     Γ ⊨d dtysem (idsσ (length Γ)) γ : TTMem l L U.
   Proof.
-    iIntros " #HLU #HTU #HLT #Hγ /=".
+    iIntros "#HTU #HLT #Hγ /=".
     iSplit. by auto using fv_dtysem, fv_idsσ.
     iIntros "!>" (ρ) "#Hg".
     iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *.
@@ -81,7 +80,6 @@ Section Sec.
       iSpecialize ("HLT" $! ρ v Hclv with "Hg").
       iDestruct ("HLT" with "HL") as "#HLT1". by iNext.
     - iIntros; iApply "HTU" => //; iNext => //.
-    - iIntros; iApply "HLU" => //; iApply interp_v_closed => //.
   Qed.
 
   (* Lemma idtp_tmem_i T γ l: *)
@@ -145,7 +143,7 @@ Section Sec.
       (* subst; eauto. *)
       (* subst d'. asimpl. *)
       iSplit => //. iExists _. iSplit => //.
-    - iDestruct "H" as (φ) "[#Hl [#? [#? #?]]]".
+    - iDestruct "H" as (φ) "[#Hl [#? #?]]".
       iSplit => //.
       iExists (d'.|[vobj ((l, d') :: ds')/]). iSplit => //.
       subst d'; asimpl.

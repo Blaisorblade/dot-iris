@@ -174,12 +174,6 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 | LSel_stp l L U p i j:
     Γ ⊢ₚ p : TTMem l L U, i →
     Γ ⊢ₜ L, S (i + j) <: TSel p l, j
-| SelAU_stp l L U p i j:
-    Γ ⊢ₚ p : TTMem l L U, i →
-    Γ ⊢ₜ TSelA p l L U, j <: U, i + j
-| LSelA_stp l L U p i j:
-    Γ ⊢ₚ p : TTMem l L U, i →
-    Γ ⊢ₜ L, i + j <: TSelA p l L U, j
 
 (* Subtyping for recursive types. Congruence, and opening in both directions. *)
 | mu_x_stp T1 T2 i:

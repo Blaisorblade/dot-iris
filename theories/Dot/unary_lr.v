@@ -57,8 +57,7 @@ Section logrel.
     λne ρ d,
     (⌜ nclosed d 0 ⌝ ∗ ∃ φ, (d ↗ φ) ∗
        □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ interp1 ρ v → ▷ □ φ v) ∗
-          (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ φ v → ▷ interp2 ρ v) ∗
-          (∀ v, interp1 ρ v → interp2 ρ v)))%I.
+          (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ φ v → ▷ interp2 ρ v)))%I.
 
   Program Definition interp_tmem l (interp1 interp2 : listVlC -n> D) : listVlC -n> D :=
     λne ρ v,
@@ -123,15 +122,10 @@ Section logrel.
     Persistent (path_wp p pred).
   Proof. elim: p pred => *; apply _. Qed.
 
-  Program Definition interp_selA (p: path) (l: label) (interpL interpU : listVlC -n> D) :
+  Program Definition interp_sel (p: path) (l: label) :
     listVlC -n> D :=
-    λne ρ v,
-    (interpU ρ v ∧ (interpL ρ v ∨
-                    path_wp p.|[to_subst ρ]
-                            (λne vp, ∃ ϕ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ϕ ∧ ▷ □ ϕ v)))%I.
-
-  Definition interp_sel (p: path) (l: label) : listVlC -n> D :=
-    interp_selA p l interp_bot interp_top.
+    λne ρ v, (⌜ nclosed_vl v 0 ⌝ ∧ path_wp p.|[to_subst ρ]
+      (λne vp, ∃ ϕ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ϕ ∧ ▷ □ ϕ v))%I.
 
   Fixpoint interp (T: ty) : listVlC -n> D :=
     match T with
@@ -146,7 +140,7 @@ Section logrel.
     | TAll T1 T2 => interp_forall (interp T1) (interp T2)
     | TMu T => interp_mu (interp T)
     | TSel p l => interp_sel p l
-    | TSelA p l L U => interp_selA p l (interp L) (interp U)
+    | TSelA p l L U => interp_bot
   end % I.
 
   Global Instance dotInterpΣ : dotInterpG Σ := DotInterpG _ (λ T ρ, interp T ρ).
@@ -302,7 +296,6 @@ Section logrel_lemmas.
     - iDestruct "HT" as "[#HT1 #HT2]". by iApply "IHT".
     - iDestruct "HT" as "[#HT1 | #HT2]"; by [iApply "IHT" | iApply "IHT1"].
     - by iApply "IHT".
-    - iDestruct "HT" as "[#HT2 _]". by iApply "IHT1".
     - by iDestruct "HT" as (n) "->".
   Qed.
 

@@ -82,13 +82,14 @@ Section Russell.
     (* iApply "HnotRussellV". *)
     (* or some convolution to state the goal explicitly and explain what happens. *)
     iAssert (⟦ TSel (pv v) "A" ⟧ [] v) as "#HrussellV".
-    2: {iApply "HnotRussellV". iApply "HrussellV". }
+    - iSplitL => //.
+      iExists (russell_p []), (dtysem [] γ).
+      repeat (repeat iExists _ ; repeat iSplit => //).
+      iIntros "!>!>"; iSplit.
+      + iExact "HvHasA".
+      + iExact "HnotRussellV".
 
-    iSplitL => //. iRight.
-    iExists (russell_p []), (dtysem [] γ).
-    repeat (repeat iExists _ ; repeat iSplit => //).
-    iIntros "!>!>"; iSplit. iExact "HvHasA".
-    iExact "HnotRussellV".
+    - iApply "HnotRussellV". iExact "HrussellV".
   Qed.
 End Russell.
 End Russell.
