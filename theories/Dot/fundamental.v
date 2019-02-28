@@ -1,6 +1,7 @@
 From iris.proofmode Require Import tactics.
 From D Require Import tactics.
-From D.Dot Require Import unary_lr typing synToSem lr_lemma.
+From D.Dot Require Import unary_lr typing lr_lemma typeExtractionSem.
+From D.Dot Require Import lr_lemmasDefs lr_lemma_nobinding lr_lemmasTSel.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 
@@ -19,34 +20,97 @@ Section fundamental.
   (** That depends on existence of translations. To use it, we must start from syntactic terms.
       So, we should show that syntactic typing only applies to syntactic terms/types/contexts
       (and probably add hypotheses to that effect). *)
-  (* XXX lift translation and is_syn to contexts. Show that syntactic typing
-     implies is_syn and closure. Stop talking about free variables inside is_syn? *)
-  Lemma typed_tm_is_syn Γ e T:
-    Γ ⊢ₜ e : T →
-    is_syn_tm e.
-  Admitted.
+  (* (* XXX lift translation and is_syn to contexts. Show that syntactic typing *)
+  (*    implies is_syn and closure. Stop talking about free variables inside is_syn? *) *)
+  (* Lemma typed_tm_is_syn Γ e T: *)
+  (*   Γ ⊢ₜ e : T → *)
+  (*   is_syn_tm e. *)
+  (* Admitted. *)
 
-  Lemma typed_ty_is_syn Γ e T:
-    Γ ⊢ₜ e : T →
-    is_syn_ty T.
-  Admitted.
+  (* Lemma typed_ty_is_syn Γ e T: *)
+  (*   Γ ⊢ₜ e : T → *)
+  (*   is_syn_ty T. *)
+  (* Admitted. *)
 
-  (* Check all types are syntactic. *)
-  Definition is_syn_ctx Γ := Forall is_syn_ty Γ.
+  (* (* Check all types are syntactic. *) *)
+  (* Definition is_syn_ctx Γ := Forall is_syn_ty Γ. *)
 
-  Lemma typed_ctx_is_syn Γ e T:
-    Γ ⊢ₜ e : T →
-    is_syn_ctx Γ.
-  Admitted.
+  (* Lemma typed_ctx_is_syn Γ e T: *)
+  (*   Γ ⊢ₜ e : T → *)
+  (*   is_syn_ctx Γ. *)
+  (* Admitted. *)
 
-
-  Lemma not_yet_fundamental Γ e T e' T' (HT: Γ ⊢ₜ e : T) {struct HT}:
-  (* Lemma not_yet_fundamental Γ e T e' T' (HT: Γ ⊢ₜ e : T): *)
-    (t_tm e e' → t_ty T T' → |==> Γ ⊨ e' : T')%I.
+  Lemma wp_and (P1 P2: vl → iProp Σ) e:
+    ((WP e {{ P1 }} ) -∗ (WP e  {{ P2 }} ) -∗ WP e {{ v, P1 v ∧ P2 v }})%I.
   Proof.
-    iIntros "#HtrE #HtrT".
-    (* destruct HT. *)
-     iInduction HT as [] "IHT" forall (e' T') "HtrE HtrT".
+    iLöb as "IH" forall (e).
+    iIntros "H1 H2".
+    iEval (rewrite !wp_unfold /wp_pre) in "H1";
+    iEval (rewrite !wp_unfold /wp_pre) in "H2";
+    iEval (rewrite !wp_unfold /wp_pre).
+    case_match. auto.
+    iIntros (σ1 k ks n) "#Ha".
+    iDestruct ("H1" $! σ1 k ks n with "Ha") as "[$ H1]".
+    iDestruct ("H2" $! σ1 k ks n with "Ha") as "[% H2]".
+    iIntros (e2 σ2 efs Hstep).
+    iSpecialize ("H1" $! e2 σ2 efs Hstep);
+    iSpecialize ("H2" $! e2 σ2 efs Hstep).
+    iNext.
+    iDestruct "H1" as "[$ [H1 $]]".
+    iDestruct "H2" as "[_ [H2 _]]".
+    iApply ("IH" with "H1 H2").
+  Qed.
+
+  (* XXX these statements point out we need to realign the typing judgemnts. *)
+  (* XXX *)
+  Lemma fundamental_dms_typed Γ V ds T (HT: Γ |ds V ⊢ ds : T):
+    wellMapped getStampTable -∗ TLater V :: Γ ⊨ds ds : T.
   Admitted.
+  (* XXX *)
+  Lemma fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2):
+    wellMapped getStampTable -∗ Γ ⊨ [T1, i1] <: [T2, i2].
+  Admitted.
+
+  Lemma TAnd_I Γ e T1 T2:
+    Γ ⊨ e : T1 -∗
+    Γ ⊨ e : T2 -∗
+    Γ ⊨ e : TAnd T1 T2.
+  Proof.
+    iIntros "#HT #HT1". cbn.
+    (* iDestruct "HT" as "[% #HT]". *) (* Works *)
+    (* Fail iDestruct "HT" as "[$ #HT]". *)
+    iDestruct "HT" as "[$ #HT']". iClear "HT".
+    iDestruct "HT1" as (_) "#HT1".
+    iIntros "!>" (ρ) "#Hg".
+    iSpecialize ("HT'" with "Hg").
+    iSpecialize ("HT1" with "Hg").
+    by iApply wp_and.
+  Qed.
+
+  Lemma fundamental_typed Γ e T (HT: Γ ⊢ₜ e : T):
+    wellMapped getStampTable -∗ Γ ⊨ e : T.
+  Proof.
+    iIntros "#Hm"; iInduction HT as [] "IHT".
+    - by iApply T_Forall_Ex.
+    - by iApply T_Forall_E.
+    - by iApply T_Mem_E.
+    - by iApply TMu_E.
+    - by iApply T_Forall_I.
+    - iApply T_New_I.
+      by iApply fundamental_dms_typed.
+    - by iApply TMu_I.
+    - by iApply T_Nat_I.
+    - by iApply T_Var.
+    - iApply T_Sub => //.
+      by iApply fundamental_subtype.
+    - by iApply TAnd_I.
+  Qed.
+
+  Lemma fundamental_typed_upd Γ e T (HT: Γ ⊢ₜ e : T): (allGs ∅ -∗ |==> Γ ⊨ e : T)%I.
+  Proof.
+    iIntros.
+    iApply fundamental_typed => //.
+    iApply transfer; last eauto; eauto.
+  Qed.
 
 End fundamental.

@@ -399,4 +399,11 @@ Section Sec.
       iApply (wp_wand with " [-]"); first iApply "HP".
       iIntros "* HP". by iApply "Himpl".
   Qed.
+
+  Lemma upd_sep (P1 P2: iProp Σ): ((|==> P1) -∗ (|==> P2) -∗ |==> P1 ∗ P2)%I.
+  Proof.
+    iIntros; iApply bupd_sep; iFrame.
+    Restart.
+    iIntros "H1 H2"; iMod "H1"; iMod "H2"; by iFrame.
+  Qed.
 End Sec.
