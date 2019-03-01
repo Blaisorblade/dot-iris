@@ -17,42 +17,38 @@ Section fundamental.
   Context `{hasStampTable: stampTable}.
 
   (* XXX these statements point out we need to realign the typing judgemnts. *)
-  (* XXX *)
   Lemma fundamental_dm_typed Γ V d T (HT: Γ |d V ⊢ d : T):
-    wellMapped getStampTable -∗ TLater V :: Γ ⊨d d : T.
-  Proof.
-    iIntros "#Hm"; iInduction HT as [] "IHT".
-    - iApply D_Typ. admit. admit.
-      by iApply extraction_to_leadsto_envD_equiv.
-    - iApply idtp_vmem_i. admit.
-  Admitted.
-
-  Lemma fundamental_dms_typed Γ V ds T (HT: Γ |ds V ⊢ ds : T):
-    wellMapped getStampTable -∗ TLater V :: Γ ⊨ds ds : T.
-  Admitted.
-  (* XXX *)
-  Lemma fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2):
-    wellMapped getStampTable -∗ Γ ⊨ [T1, i1] <: [T2, i2].
-  Admitted.
-
-  Lemma fundamental_typed Γ e T (HT: Γ ⊢ₜ e : T):
+    wellMapped getStampTable -∗ TLater V :: Γ ⊨d d : T with
+  fundamental_dms_typed Γ V ds T (HT: Γ |ds V ⊢ ds : T):
+    wellMapped getStampTable -∗ TLater V :: Γ ⊨ds ds : T with
+  fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2):
+    wellMapped getStampTable -∗ Γ ⊨ [T1, i1] <: [T2, i2] with
+  fundamental_typed Γ e T (HT: Γ ⊢ₜ e : T):
     wellMapped getStampTable -∗ Γ ⊨ e : T.
   Proof.
-    iIntros "#Hm"; iInduction HT as [] "IHT".
-    - by iApply T_Forall_Ex.
-    - by iApply T_Forall_E.
-    - by iApply T_Mem_E.
-    - by iApply TMu_E.
-    - by iApply T_Forall_I.
-    - iApply T_New_I.
-      by iApply fundamental_dms_typed.
-    - by iApply TMu_I.
-    - by iApply T_Nat_I.
-    - by iApply T_Var.
-    - iApply T_Sub => //.
-      by iApply fundamental_subtype.
-    - by iApply TAnd_I.
-  Qed.
+    - iIntros "#Hm"; iInduction HT as [] "IHT".
+      + iApply D_Typ;
+        last by iApply extraction_to_leadsto_envD_equiv.
+        by iApply fundamental_subtype.
+        by iApply fundamental_subtype.
+      + iApply idtp_vmem_i. by iApply fundamental_typed.
+    - admit.
+    - admit.
+    - iIntros "#Hm"; iInduction HT as [] "IHT".
+      + by iApply T_Forall_Ex.
+      + by iApply T_Forall_E.
+      + by iApply T_Mem_E.
+      + by iApply TMu_E.
+      + by iApply T_Forall_I.
+      + iApply T_New_I.
+        by iApply fundamental_dms_typed.
+      + by iApply TMu_I.
+      + by iApply T_Nat_I.
+      + by iApply T_Var.
+      + iApply T_Sub => //.
+        by iApply fundamental_subtype.
+      + by iApply TAnd_I.
+  Admitted.
 
   Lemma fundamental_typed_upd Γ e T (HT: Γ ⊢ₜ e : T): (allGs ∅ -∗ |==> Γ ⊨ e : T)%I.
   Proof.
