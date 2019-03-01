@@ -1,10 +1,9 @@
-From iris.program_logic Require Import ectx_lifting.
+From iris.program_logic Require Import ectx_language.
 From D.Dot Require Import operational.
 
-Section lang_rules.
-  (* Context `{irisG }. *)
-  Implicit Types e : tm.
+Implicit Types e : tm.
 
+Section lang_rules.
   Ltac inv_head_step :=
     repeat match goal with
     | H : to_val _ = Some _ |- _ => apply of_to_val in H
