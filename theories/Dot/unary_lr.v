@@ -245,6 +245,23 @@ Section logrel.
 
   (** Indexed Subtyping. Defined on closed values. We must require closedness
       explicitly, since closedness now does not follow from being well-typed later. *)
+  (** How do we represent subtyping in a later world? We have two distinct
+      choices, because in Iris ▷(P ⇒ Q) ⊢ ▷ P ⇒ ▷ Q but not viceversa
+      (unlike with raw step-indexing).
+      In turn, that's because to show ▷ P ⇒ ▷ Q we can assume resources are
+      valid one step earlier, unlike for ▷(P ⇒ Q).
+
+      It seems easier, in subtyping judgment, to use the weaker choice: that is,
+      just delay individual types via (Γ ⊨ TLater T <: TLater U), that is
+
+      (□∀ v ρ, ⟦Γ⟧* ρ → ▷ ⟦T1⟧ ρ v → ▷ ⟦T2⟧ ρ v),
+
+      instead of instead of introducing some notation to write
+
+      (□∀ v ρ, ⟦Γ⟧* ρ → ▷ (⟦T1⟧ ρ v → ⟦T2⟧ ρ v)).
+
+      And that forces using the same implication in the logical relation
+      (unlike I did originally). *)
   Definition step_indexed_ivstp Γ T1 T2 i j: iProp Σ :=
     (□∀ ρ v, ⌜ nclosed_vl v 0 ⌝ → ⟦Γ⟧*ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
   Global Arguments step_indexed_ivstp /.

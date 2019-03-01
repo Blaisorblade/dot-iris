@@ -16,30 +16,6 @@ Section fundamental.
   Context `{!dotG Σ}.
   Context `{hasStampTable: stampTable}.
 
-  (** Show fundamental lemma. *)
-  (** That depends on existence of translations. To use it, we must start from syntactic terms.
-      So, we should show that syntactic typing only applies to syntactic terms/types/contexts
-      (and probably add hypotheses to that effect). *)
-  (* (* XXX lift translation and is_syn to contexts. Show that syntactic typing *)
-  (*    implies is_syn and closure. Stop talking about free variables inside is_syn? *) *)
-  (* Lemma typed_tm_is_syn Γ e T: *)
-  (*   Γ ⊢ₜ e : T → *)
-  (*   is_syn_tm e. *)
-  (* Admitted. *)
-
-  (* Lemma typed_ty_is_syn Γ e T: *)
-  (*   Γ ⊢ₜ e : T → *)
-  (*   is_syn_ty T. *)
-  (* Admitted. *)
-
-  (* (* Check all types are syntactic. *) *)
-  (* Definition is_syn_ctx Γ := Forall is_syn_ty Γ. *)
-
-  (* Lemma typed_ctx_is_syn Γ e T: *)
-  (*   Γ ⊢ₜ e : T → *)
-  (*   is_syn_ctx Γ. *)
-  (* Admitted. *)
-
   (* XXX these statements point out we need to realign the typing judgemnts. *)
   (* XXX *)
   Lemma fundamental_dm_typed Γ V d T (HT: Γ |d V ⊢ d : T):

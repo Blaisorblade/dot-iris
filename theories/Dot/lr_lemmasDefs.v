@@ -26,41 +26,7 @@ Section Sec.
     iNext. iApply wp_value_inv'; iApply "Hv"; by iSplit.
   Qed.
 
-  (* Lemma dtp_tmem_i T s ρ l : *)
-  (*   s ↝ dot_interp T -∗ ⟦Γ⟧* ρ -∗ *)
-  (*   def_interp (TTMem l T T) l ρ (dtysem ρ s). *)
-  (* Proof. *)
-  (*   iIntros "#Hv * #Hg /=". *)
-  (*   (* iExists _, _. iSplit. _auto. *) *)
-  (*   iPoseProof (interp_env_ρ_fv with "Hg") as "%". move: H => Hclρ. *)
-  (*   repeat iSplit => //. eauto using fv_dtysem. *)
-  (*   iExists (interp T), _. iSplit; first naive_solver. *)
-  (*   iModIntro; repeat iSplitL; auto. *)
-  (* Qed. *)
-
-  (* XXX: the PDF indexes definition typing. *)
   Lemma idtp_tmem_abs_i T L U s l :
-    (* We want the next two hypotheses to hold in a later world, but for this Γ,
-       both because that's what we need to introduce, and because it allows
-       using Γ *now* to establish the assumption.
-
-       How do we represent subtyping in a later world? We have two distinct
-       choices, because in Iris ▷(P ⇒ Q) ⊢ ▷ P ⇒ ▷ Q but not viceversa
-       (unlike with raw step-indexing).
-       In turn, that's because to show ▷ P ⇒ ▷ Q we can assume resources are
-       valid one step earlier, unlike for ▷(P ⇒ Q).
-
-       It seems easier, in subtyping judgment, to just delay individual types
-       via (Γ ⊨ TLater T <: TLater U), that is
-
-       (□∀ v ρ, ⟦Γ⟧* ρ → ▷ ⟦T1⟧ ρ v → ▷ ⟦T2⟧ ρ v),
-
-       instead of instead of introducing some notation to write
-
-       (□∀ v ρ, ⟦Γ⟧* ρ → ▷ (⟦T1⟧ ρ v → ⟦T2⟧ ρ v)).
-
-       And that forces using the same implication in the logical relation
-       (unlike I did originally). *)
     Γ ⊨ [T, 1] <: [U, 1] -∗
     Γ ⊨ [L, 1] <: [T, 1] -∗
     s ↝ dot_interp T -∗
@@ -81,22 +47,6 @@ Section Sec.
       iDestruct ("HLT" with "HL") as "#HLT1". by iNext.
     - iIntros; iApply "HTU" => //; iNext => //.
   Qed.
-
-  (* Lemma idtp_tmem_i T s l: *)
-  (*   s ↝ dot_interp T -∗ *)
-  (*   Γ ⊨d { l = dtysem (idsσ (length Γ)) s } : TTMem l T T. *)
-  (* Proof. *)
-  (*   iIntros " #Hs /=". *)
-  (*   iSplit. by auto using fv_dtysem, fv_idsσ. *)
-  (*   iIntros "!>" (ρ) "#Hg". *)
-
-  (*   iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *. *)
-  (*   setoid_rewrite (subst_sigma_idsσ ρ (length ρ) eq_refl). *)
-  (*   iPoseProof (interp_env_ρ_fv with "Hg") as "%". move: H => Hfvρ. *)
-  (*   repeat iSplit => //. by eauto using fv_dtysem. *)
-  (*   iExists (interp T), _. iSplit; first auto. *)
-  (*   iModIntro; repeat iSplitL; auto. *)
-  (* Qed. *)
 
   Lemma idtp_tmem_i T s l:
     s ↝ dot_interp T -∗

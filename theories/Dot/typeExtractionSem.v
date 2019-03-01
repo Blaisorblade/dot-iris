@@ -62,10 +62,10 @@ Section interp_equiv.
     ⟦ T1 ⟧ [ σ1.|[to_subst ξ] ] ≈[ n ] ⟦ T2 ⟧ [ σ2 ])%I.
   Proof.
     rewrite /interp_extractedTy; iIntros ((T1 & -> & Heq1 & Hclσ1 & HclT1) (T2 & -> & Heq2 & Hclσ2 & HclT2) Hlenξ Hclξ).
-    iExists _, _; repeat iSplit => //; iIntros (ρ v Hlenρ Hclρ) "/="; subst.
-    assert (Hclσ1ξ: nclosed_σ σ1.|[to_subst ξ] (length ρ)). by apply nclosed_σ_to_subst.
-    assert (Hrew: T2.|[to_subst σ2.|[to_subst ρ]] =
-                  T1.|[to_subst σ1.|[to_subst ξ].|[to_subst ρ]]). by repeat erewrite subst_compose_x;
+    iExists _, _; repeat iSplit => //; iIntros (ρ v Hlenρ Hclρ) "/= !%"; subst.
+    have Hclσ1ξ: nclosed_σ σ1.|[to_subst ξ] (length ρ). by apply nclosed_σ_to_subst.
+    have Hrew: T2.|[to_subst σ2.|[to_subst ρ]] =
+                  T1.|[to_subst σ1.|[to_subst ξ].|[to_subst ρ]]. by erewrite !subst_compose_x;
                                                                     rewrite ?map_length ?Heq1 ?Heq2.
     rewrite -(interp_subst_all _ T1) -?(interp_subst_all _ T2) ?Hrew //; by apply nclosed_σ_to_subst.
   Qed.
