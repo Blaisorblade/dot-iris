@@ -89,7 +89,6 @@ where "Γ |ds V ⊢ ds : T" := (dms_typed Γ V ds T)
 with dm_typed Γ : ty → dm → ty → Prop :=
 | dty_typed V l L T U s σ:
     T ~[ S (length Γ) ] (getStampTable, (s, σ)) →
-    TLater V :: Γ ⊢ₜ L, 0 <: U, 0 →
     TLater V :: Γ ⊢ₜ L, 1 <: T, 1 →
     TLater V :: Γ ⊢ₜ T, 1 <: U, 1 →
     Γ |d V ⊢ dtysem σ s : TTMem l L U
@@ -333,7 +332,7 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
       econstructor; eauto. by eapply stamped_ren in f.
     - by apply stamped_lookup.
     - have Hctx': stamped_ctx getStampTable (TLater V :: Γ). by constructor => //; constructor.
-      specialize (H Hctx'); ev; constructor; auto.
+      specialize (H Hctx'); specialize (H0 Hctx'); ev; constructor; auto.
     - have Hctx': stamped_ctx getStampTable (V :: Γ). by constructor.
       specialize (H Hctx'); ev; constructor; auto.
     - have Hctx': stamped_ctx getStampTable (T1 :: Γ). by constructor.
