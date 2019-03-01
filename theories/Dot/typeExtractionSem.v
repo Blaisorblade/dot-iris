@@ -1,8 +1,9 @@
-From stdpp Require Import gmap fin_map_dom.
+From stdpp Require Import gmap.
 From iris.proofmode Require Import tactics.
 
 From D Require Import tactics.
 From D.Dot Require Import dotsyn operational synLemmas unary_lr unary_lr_binding typeExtractionSyn.
+Import uPred.
 
 Set Primitive Projections.
 Set Implicit Arguments.
@@ -166,27 +167,33 @@ Section typing_type_member_defs.
     by apply interp_subst_commute.
   Qed.
 
-  Lemma fv_dtysem' ρ γ l: nclosed_σ ρ l → nclosed (dtysem ρ γ) l.
-  Proof. move => /Forall_to_closed_vls. solve_fv_congruence. Qed.
-
+  (** XXX In fact, this lemma should be provable for any φ,
+      not just ⟦ T ⟧, but we haven't actually defined the
+      necessary notation to state it:
+  Lemma D_Typ_Sem L U s σ l φ:
+    Γ ⊨ [φ, 1] <: [U, 1] -∗
+    Γ ⊨ [L, 1] <: [φ, 1] -∗
+    (s, σ) ↝[ length Γ ] φ -∗
+    Γ ⊨d dtysem σ s : TTMem l L U.
+    *)
   Lemma D_Typ T L U s σ l:
     Γ ⊨ [T, 1] <: [U, 1] -∗
     Γ ⊨ [L, 1] <: [T, 1] -∗
-    (s, σ) ↝[ (length Γ) ] ⟦ T ⟧ -∗
+    (s, σ) ↝[ length Γ ] ⟦ T ⟧ -∗
     Γ ⊨d dtysem σ s : TTMem l L U.
   Proof.
     iIntros "#HTU #HLT #[% Hs] /=". move: H => Hclσ.
-    iSplit. by auto using Forall_to_closed_vls, fv_dtysem.
+    have Hclσs: nclosed (dtysem σ s) (length Γ). by apply fv_dtysem.
+    iSplit => //.
     iIntros "!>" (ρ) "#Hg".
     iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *.
     iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H => Hfvρ.
-    repeat iSplit. by eauto using fv_dtysem', nclosed_σ_to_subst.
+    have Hclσss: nclosed (dtysem σ.|[to_subst ρ] s) 0. by eapply fv_to_subst'.
     iDestruct "Hs" as (φ) "[Hγ Hγφ]".
-    iExists (φ (σ.|[to_subst ρ])).
-    iSplit. by iExists s, (σ.|[to_subst ρ]), φ; iSplit.
-    Import uPred.
+    iSplit => //; iExists (φ (σ.|[to_subst ρ]));
+      iSplit; first by repeat iExists _; iSplit.
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL";
-    iSpecialize ("Hγφ" $! ρ v with "[#//] [#//]").
+      iSpecialize ("Hγφ" $! ρ v with "[#//] [#//]").
     - iSpecialize ("HLT" $! ρ v Hclv with "Hg").
       iDestruct ("HLT" with "HL") as "#HLT1".
       by repeat iModIntro; iApply (internal_eq_iff with "Hγφ").
