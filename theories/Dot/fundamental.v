@@ -40,27 +40,6 @@ Section fundamental.
   (*   is_syn_ctx Γ. *)
   (* Admitted. *)
 
-  Lemma wp_and (P1 P2: vl → iProp Σ) e:
-    ((WP e {{ P1 }} ) -∗ (WP e  {{ P2 }} ) -∗ WP e {{ v, P1 v ∧ P2 v }})%I.
-  Proof.
-    iLöb as "IH" forall (e).
-    iIntros "H1 H2".
-    iEval (rewrite !wp_unfold /wp_pre) in "H1";
-    iEval (rewrite !wp_unfold /wp_pre) in "H2";
-    iEval (rewrite !wp_unfold /wp_pre).
-    case_match. auto.
-    iIntros (σ1 k ks n) "#Ha".
-    iDestruct ("H1" $! σ1 k ks n with "Ha") as "[$ H1]".
-    iDestruct ("H2" $! σ1 k ks n with "Ha") as "[% H2]".
-    iIntros (e2 σ2 efs Hstep).
-    iSpecialize ("H1" $! e2 σ2 efs Hstep);
-    iSpecialize ("H2" $! e2 σ2 efs Hstep).
-    iNext.
-    iDestruct "H1" as "[$ [H1 $]]".
-    iDestruct "H2" as "[_ [H2 _]]".
-    iApply ("IH" with "H1 H2").
-  Qed.
-
   (* XXX these statements point out we need to realign the typing judgemnts. *)
   (* XXX *)
   Lemma fundamental_dm_typed Γ V d T (HT: Γ |d V ⊢ d : T):
@@ -94,22 +73,6 @@ Section fundamental.
   Lemma fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2):
     wellMapped getStampTable -∗ Γ ⊨ [T1, i1] <: [T2, i2].
   Admitted.
-
-  Lemma TAnd_I Γ e T1 T2:
-    Γ ⊨ e : T1 -∗
-    Γ ⊨ e : T2 -∗
-    Γ ⊨ e : TAnd T1 T2.
-  Proof.
-    iIntros "#HT #HT1". cbn.
-    (* iDestruct "HT" as "[% #HT]". *) (* Works *)
-    (* Fail iDestruct "HT" as "[$ #HT]". *)
-    iDestruct "HT" as "[$ #HT']". iClear "HT".
-    iDestruct "HT1" as (_) "#HT1".
-    iIntros "!>" (ρ) "#Hg".
-    iSpecialize ("HT'" with "Hg").
-    iSpecialize ("HT1" with "Hg").
-    by iApply wp_and.
-  Qed.
 
   Lemma fundamental_typed Γ e T (HT: Γ ⊢ₜ e : T):
     wellMapped getStampTable -∗ Γ ⊨ e : T.

@@ -35,6 +35,41 @@ Section Sec.
     (WP e {{ v, Φ v }} -∗ ⌜ nclosed e 0 ⌝ -∗ (∀ v, Φ v -∗ ⌜ nclosed_vl v 0 ⌝ -∗ Ψ v) -∗ WP e {{ v, Ψ v }})%I.
   Admitted.
 
+  Lemma wp_and (P1 P2: vl → iProp Σ) e:
+    ((WP e {{ P1 }} ) -∗ (WP e  {{ P2 }} ) -∗ WP e {{ v, P1 v ∧ P2 v }})%I.
+  Proof.
+    iLöb as "IH" forall (e).
+    iIntros "H1 H2".
+    iEval (rewrite !wp_unfold /wp_pre) in "H1";
+    iEval (rewrite !wp_unfold /wp_pre) in "H2";
+    iEval (rewrite !wp_unfold /wp_pre).
+    case_match; first by auto.
+    iIntros (σ1 k ks n) "#Ha".
+    iDestruct ("H1" $! σ1 k ks n with "Ha") as "[$ H1]".
+    iDestruct ("H2" $! σ1 k ks n with "Ha") as "[% H2]".
+    iIntros (e2 σ2 efs Hstep).
+    iSpecialize ("H1" $! e2 σ2 efs Hstep);
+    iSpecialize ("H2" $! e2 σ2 efs Hstep).
+    iNext.
+    iDestruct "H1" as "[$ [H1 $]]".
+    iDestruct "H2" as "[_ [H2 _]]".
+    by iApply ("IH" with "H1 H2").
+  Qed.
+
+  Lemma TAnd_I e T1 T2:
+    Γ ⊨ e : T1 -∗
+    Γ ⊨ e : T2 -∗
+    Γ ⊨ e : TAnd T1 T2.
+  Proof.
+    iIntros "#HT1 #HT2 /=".
+    (* iDestruct "HT1" as "[% #HT1]". *) (* Works *)
+    (* Fail iDestruct "HT1" as "[$ #HT1]". *)
+    iDestruct "HT1" as "[$ #HT1']". iClear "HT1".
+    iDestruct "HT2" as "[_ #HT2]".
+    iIntros "!>" (ρ) "#Hg".
+    iApply wp_and; by [> iApply "HT1'" | iApply "HT2"].
+  Qed.
+
   Lemma nclosed_subst_ρ e ρ: nclosed e (length Γ) → ⟦ Γ ⟧* ρ -∗ ⌜ nclosed e.|[to_subst ρ] 0 ⌝.
   Proof.
     iIntros (Hcl) "Hg".
@@ -53,18 +88,6 @@ Section Sec.
     - by iApply nclosed_subst_ρ.
     - naive_solver.
   Qed.
-
-  Lemma nclosed_tskip_i e n i:
-    nclosed e n →
-    nclosed (iterate tskip i e) n.
-  Proof.
-    move => Hcl; elim: i => [|i IHi]; rewrite ?iterate_0 ?iterate_S //; solve_fv_congruence.
-  Qed.
-
-  Lemma tskip_n_to_fill i e: iterate tskip i e = fill (repeat SkipCtx i) e.
-  Proof. elim: i e => [|i IHi] e //; by rewrite ?iterate_0 ?iterate_Sr /= -IHi. Qed.
-  Lemma tskip_subst i e s: (iterate tskip i e).|[s] = iterate tskip i e.|[s].
-  Proof. elim: i => [|i IHi]; by rewrite ?iterate_0 ?iterate_S //= IHi. Qed.
 
   Lemma T_Sub e T1 T2 i:
     (Γ ⊨ e : T1 →

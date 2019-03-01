@@ -43,19 +43,6 @@ Section interp_equiv.
     (∀ ρ v, ⌜ length ρ = n ⌝ → ⌜ cl_ρ ρ ⌝ → φ1 ρ v ≡ φ2 ρ v)%I.
   Notation "φ1 ≈[  n  ] φ2" := (envD_equiv n φ1 φ2) (at level 70).
 
-  (* Belongs in synLemmas. *)
-  Lemma interp_subst_commute T σ ρ v:
-    nclosed T (length σ) →
-    nclosed_σ σ (length ρ) →
-    cl_ρ ρ →
-    ⟦ T.|[to_subst σ] ⟧ ρ v ≡ ⟦ T ⟧ σ.|[to_subst ρ] v.
-  Proof.
-    intros HclT Hclσ Hclρ.
-    rewrite -(interp_subst_all ρ _ v) // -(interp_subst_all _ T v).
-    - by erewrite subst_compose_x.
-    - by apply nclosed_σ_to_subst.
-  Qed.
-
   Lemma extraction_envD_equiv g s σ T n:
     T ~[ n ] (g, (s, σ)) →
     (∃ T', ⌜ g !! s = Some T'⌝ ∧

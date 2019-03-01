@@ -69,15 +69,6 @@ Lemma extract_spec g n T: nclosed T n → T ~[ n ] (extract g n T).
 Proof. move => Hcl; exists T; by rewrite lookup_insert closed_subst_idsρ ?length_idsσ. Qed.
 Hint Resolve extract_spec.
 
-Lemma nclosed_σ_to_subst ξ σ n:
-  nclosed_σ ξ (length σ) → nclosed_σ σ n →
-  nclosed_σ (ξ.|[to_subst σ]) n.
-Proof.
-  intros.
-  apply closed_vls_to_Forall, fv_to_subst => //. by apply Forall_to_closed_vls.
-Qed.
-Hint Resolve nclosed_σ_to_subst.
-
 Lemma extraction_closed g n T s σ:
   T ~[ n ] (g, (s, σ)) →
   nclosed T n.

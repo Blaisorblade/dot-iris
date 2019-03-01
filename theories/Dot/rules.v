@@ -62,3 +62,6 @@ Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
   iApply (wp_bind (fill[ctx]));
   iApply (wp_wand with "[-]"); [iApply Hp; trivial|]; cbn;
   iIntros (v) Hv.
+
+Lemma tskip_n_to_fill i e: iterate tskip i e = fill (repeat SkipCtx i) e.
+Proof. elim: i e => [|i IHi] e //; by rewrite ?iterate_0 ?iterate_Sr /= -IHi. Qed.
