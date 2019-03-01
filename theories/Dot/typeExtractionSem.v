@@ -99,8 +99,8 @@ Section interp_equiv.
 
   (* To give a definitive version of wellMapped, we need stampHeap to be stored in a resource. Here it is: *)
   Definition wellMapped g : iProp Σ :=
-    (□∀ s T ρ v,
-        ⌜ g !! s = Some T⌝ → ∃ φ, s ↝ φ ∧ ⟦ T ⟧ ρ v ≡ φ ρ v)%I.
+    (□∀ s T,
+        ⌜ g !! s = Some T⌝ → ∃ φ, s ↝ φ ∧ ⌜ ⟦ T ⟧ = φ ⌝)%I.
   Instance: Persistent (wellMapped g).
   Proof. apply _. Qed.
 
@@ -114,7 +114,7 @@ Section interp_equiv.
     iMod (transferOne_base_inv gs s T HsFresh with "Hown") as (gs') "(Hgs & #Hmaps & #Hdom)".
     iExists gs'; iModIntro; iFrame "Hgs".
     iSplit =>//.
-    iIntros (s' T' ρ v Hlook) "!>".
+    iIntros (s' T' Hlook) "!>".
     destruct (decide (s = s')) as [<-|Hne].
     - iExists (⟦ T ⟧).
       suff <-: T = T' by iSplit. rewrite lookup_insert in Hlook; by injection Hlook.
@@ -126,7 +126,7 @@ Section interp_equiv.
   Proof.
     elim g using map_ind.
     - iIntros "/=" (H) "Hgs !>". iExists gs. repeat iSplit => //.
-      + by iIntros (?????).
+      + by iIntros (???).
       + iPureIntro. rewrite dom_empty. set_solver.
     - move=> {g} /=. iIntros (s T g Hs IH Hdom) "Hallgs".
       setoid_rewrite dom_insert in Hdom.

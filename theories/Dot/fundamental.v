@@ -1,7 +1,7 @@
 From iris.proofmode Require Import tactics.
 From D Require Import tactics.
-From D.Dot Require Import unary_lr typing lr_lemma typeExtractionSem.
-From D.Dot Require Import lr_lemmasDefs lr_lemma_nobinding lr_lemmasTSel.
+From D.Dot Require Import unary_lr unary_lr_binding typing typeExtractionSem synLemmas.
+From D.Dot Require Import lr_lemma lr_lemmasDefs lr_lemma_nobinding lr_lemmasTSel.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 
@@ -63,6 +63,30 @@ Section fundamental.
 
   (* XXX these statements point out we need to realign the typing judgemnts. *)
   (* XXX *)
+  Lemma fundamental_dm_typed Γ V d T (HT: Γ |d V ⊢ d : T):
+    wellMapped getStampTable -∗ TLater V :: Γ ⊨d d : T.
+  Proof.
+    iIntros "#Hm"; iInduction HT as [] "IHT".
+    -
+      (* XXX Cheat for simplicity, since the semantic typing lemma makes
+        more assumptions on σ than it should. *)
+      have ?: σ = idsσ (length (TLater V :: Γ)). admit. subst.
+      (* Remaining admits are fixable by making all these lemmas mutually recursive. *)
+      iApply (@idtp_tmem_abs_i _ _ _ T). admit. admit.
+      (** If g is well mapped and it maps syntactically s to T,
+          then s also maps semantically to ⟦ T ⟧. Specialized proof: *)
+      cbn in *.
+      destruct H as (T' & Heq & HT'T & Hclσ & HclT).
+      iSpecialize ("Hm" $! s T' Heq).
+      iDestruct "Hm" as (φ) "[Hm1 %]". move: H => HT'φ.
+      iDestruct "Hm1" as (γ) "[Hsγ Hγ]".
+      iExists γ. iFrame "Hsγ".
+      rewrite (closed_subst_idsρ T' (S (length Γ))) in HT'T.
+      rewrite -HT'T -HT'φ //.
+      rewrite length_idsσr // in HclT.
+    - iApply idtp_vmem_i. admit.
+  Admitted.
+
   Lemma fundamental_dms_typed Γ V ds T (HT: Γ |ds V ⊢ ds : T):
     wellMapped getStampTable -∗ TLater V :: Γ ⊨ds ds : T.
   Admitted.
