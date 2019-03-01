@@ -22,23 +22,8 @@ Section fundamental.
     wellMapped getStampTable -∗ TLater V :: Γ ⊨d d : T.
   Proof.
     iIntros "#Hm"; iInduction HT as [] "IHT".
-    -
-      (* XXX Cheat for simplicity, since the semantic typing lemma makes
-        more assumptions on σ than it should. *)
-      have ?: σ = idsσ (length (TLater V :: Γ)). admit. subst.
-      (* Remaining admits are fixable by making all these lemmas mutually recursive. *)
-      iApply (@idtp_tmem_abs_i _ _ _ T). admit. admit.
-      (** If g is well mapped and it maps syntactically s to T,
-          then s also maps semantically to ⟦ T ⟧. Specialized proof: *)
-      cbn in *.
-      destruct H as (T' & Heq & HT'T & Hclσ & HclT).
-      iSpecialize ("Hm" $! s T' Heq).
-      iDestruct "Hm" as (φ) "[Hm1 %]". move: H => HT'φ.
-      iDestruct "Hm1" as (γ) "[Hsγ Hγ]".
-      iExists γ. iFrame "Hsγ".
-      rewrite (closed_subst_idsρ T' (S (length Γ))) in HT'T.
-      rewrite -HT'T -HT'φ //.
-      rewrite length_idsσr // in HclT.
+    - iApply D_Typ. admit. admit.
+      by iApply extraction_to_leadsto_envD_equiv.
     - iApply idtp_vmem_i. admit.
   Admitted.
 

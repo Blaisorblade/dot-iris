@@ -139,3 +139,63 @@ Section interp_equiv.
     iIntros (Hs) "H". by iMod (transfer' gs Hs with "H") as (gs') "[H ?]".
   Qed.
 End interp_equiv.
+
+Section typing_type_member_defs.
+  Context `{!dotG Σ} Γ.
+
+  Definition leadsto_envD_equiv (sσ: extractedTy) n (φ : envD Σ) : iProp Σ :=
+    let '(s, σ) := sσ in
+    (⌜nclosed_σ σ n⌝ ∧ ∃ (φ' : envD Σ), s ↝ φ' ∗ envD_equiv n φ (λne ρ, φ' (subst_sigma σ ρ)))%I.
+  Arguments leadsto_envD_equiv /.
+  Notation "sσ ↝[  n  ] φ" := (leadsto_envD_equiv sσ n φ) (at level 20).
+
+  Lemma wellMapped_maps s T g: g !! s = Some T →
+      wellMapped g -∗ s ↝ dot_interp T.
+  Proof.
+    iIntros (Hl) "/= #Hm".
+    by iDestruct ("Hm" $! _ _ Hl) as (φ) "[? <-]".
+  Qed.
+
+  Lemma extraction_to_leadsto_envD_equiv T g sσ n: T ~[ n ] (g, sσ) →
+    wellMapped g -∗ sσ ↝[ n ] ⟦ T ⟧.
+  Proof.
+    move: sσ => [s σ] [T'] [Hl] [<-] [Hclσ] HclT /=; iIntros "#Hm".
+    iDestruct ("Hm" $! _ _ Hl) as (φ) "[Hm1 <-]"; iClear "Hm".
+    iSplit => //; iExists ⟦ T' ⟧; iSplit => //.
+    iIntros (ρ v <- Hclρ) "!%".
+    by apply interp_subst_commute.
+  Qed.
+
+  Lemma fv_dtysem' ρ γ l: nclosed_σ ρ l → nclosed (dtysem ρ γ) l.
+  Proof. move => /Forall_to_closed_vls. solve_fv_congruence. Qed.
+
+  Lemma D_Typ T L U s σ l:
+    Γ ⊨ [T, 1] <: [U, 1] -∗
+    Γ ⊨ [L, 1] <: [T, 1] -∗
+    (s, σ) ↝[ (length Γ) ] ⟦ T ⟧ -∗
+    Γ ⊨d dtysem σ s : TTMem l L U.
+  Proof.
+    iIntros "#HTU #HLT #[% Hs] /=". move: H => Hclσ.
+    iSplit. by auto using Forall_to_closed_vls, fv_dtysem.
+    iIntros "!>" (ρ) "#Hg".
+    iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *.
+    iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H => Hfvρ.
+    repeat iSplit. by eauto using fv_dtysem', nclosed_σ_to_subst.
+    iDestruct "Hs" as (φ) "[Hγ Hγφ]".
+    iExists (φ (σ.|[to_subst ρ])).
+    iSplit. by iExists s, (σ.|[to_subst ρ]), φ; iSplit.
+    Import uPred.
+    iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL";
+    iSpecialize ("Hγφ" $! ρ v with "[#//] [#//]").
+    - iSpecialize ("HLT" $! ρ v Hclv with "Hg").
+      iDestruct ("HLT" with "HL") as "#HLT1".
+      by repeat iModIntro; iApply (internal_eq_iff with "Hγφ").
+    - iApply "HTU" => //.
+      by repeat iModIntro; iApply (internal_eq_iff with "Hγφ").
+  Qed.
+
+  Lemma D_Typ_Concr T s σ l:
+    (s, σ) ↝[ (length Γ) ] ⟦ T ⟧ -∗
+    Γ ⊨d dtysem σ s : TTMem l T T.
+  Proof. iIntros "#Hs"; iApply D_Typ; by [| iIntros "!> **"]. Qed.
+End typing_type_member_defs.

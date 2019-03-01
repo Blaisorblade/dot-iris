@@ -26,37 +26,6 @@ Section Sec.
     iNext. iApply wp_value_inv'; iApply "Hv"; by iSplit.
   Qed.
 
-  Lemma idtp_tmem_abs_i T L U s l :
-    Γ ⊨ [T, 1] <: [U, 1] -∗
-    Γ ⊨ [L, 1] <: [T, 1] -∗
-    s ↝ dot_interp T -∗
-    Γ ⊨d dtysem (idsσ (length Γ)) s : TTMem l L U.
-  Proof.
-    iIntros "#HTU #HLT #Hs /=".
-    iSplit. by auto using fv_dtysem, fv_idsσ.
-    iIntros "!>" (ρ) "#Hg".
-    iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *.
-    setoid_rewrite (subst_sigma_idsσ ρ (length ρ) eq_refl).
-    iPoseProof (interp_env_ρ_fv with "Hg") as "%". move: H => Hfvρ.
-    repeat iSplit => //. by eauto using fv_dtysem.
-    iExists (interp T ρ).
-    iSplit; first auto.
-    iModIntro; repeat iSplitL; iIntros "*".
-    - iIntros (Hclv) "#HL".
-      iSpecialize ("HLT" $! ρ v Hclv with "Hg").
-      iDestruct ("HLT" with "HL") as "#HLT1". by iNext.
-    - iIntros; iApply "HTU" => //; iNext => //.
-  Qed.
-
-  Lemma idtp_tmem_i T s l:
-    s ↝ dot_interp T -∗
-    Γ ⊨d dtysem (idsσ (length Γ)) s : TTMem l T T.
-  Proof.
-    iIntros " #Hs".
-    iApply (idtp_tmem_abs_i T T T) => //=;
-      by iIntros "!> **".
-  Qed.
-
   (* Lemma dtp_tand_i T U ρ d ds l: *)
   (*   defs_interp T ρ ds -∗ *)
   (*   def_interp U ρ d -∗ *)
