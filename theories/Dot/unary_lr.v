@@ -5,7 +5,7 @@ From D.Dot Require Export operational.
 (** Deduce types from variable names, like on paper, for readability and to help
     type inference for some overloaded operations (e.g. substitution). *)
 Implicit Types
-         (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
+         (L T U: ty) (v w: vl) (e: tm) (d: dm) (ds: dms)
          (Γ : ctx) (ρ : leibnizC vls).
 
 

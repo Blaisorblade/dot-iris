@@ -167,26 +167,32 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Γ ⊢ₜ TOr T1 T2, i <: U, i
 
 (* Type selections *)
-| SelU_stp l L U p i j:
+| SelU_stp l L U p i:
     Γ ⊢ₚ p : TTMem l L U, i →
-    Γ ⊢ₜ TSel p l, j <: U, S (i + j)
-| LSel_stp l L U p i j:
+    Γ ⊢ₜ TSel p l, i <: TLater U, i
+| LSel_stp l L U p i:
     Γ ⊢ₚ p : TTMem l L U, i →
-    Γ ⊢ₜ L, S (i + j) <: TSel p l, j
+    Γ ⊢ₜ TLater L, i <: TSel p l, i
+
+(* TODO: figure out if the drugs I had when I wrote these rules were good or bad. *)
+(* | SelU_stp l L U p i j: *)
+(*     Γ ⊢ₚ p : TTMem l L U, i → *)
+(*     Γ ⊢ₜ TSel p l, j <: U, S (i + j) *)
+(* | LSel_stp l L U p i j: *)
+(*     Γ ⊢ₚ p : TTMem l L U, i → *)
+(*     Γ ⊢ₜ L, S (i + j) <: TSel p l, j *)
 
 (* Subtyping for recursive types. Congruence, and opening in both directions. *)
-| mu_x_stp T1 T2 i:
-    (T1 :: Γ) ⊢ₜ T1, i <: T2, i →
+| Mu_stp_mu T1 T2 i:
+    (iterate TLater i T1 :: Γ) ⊢ₜ T1, i <: T2, i →
     is_stamped_ty (S (length Γ)) getStampTable T1 →
     Γ ⊢ₜ TMu T1, i <: TMu T2, i
-| mu_1_stp T1 T2 i:
-    (T1 :: Γ) ⊢ₜ T1, i <: T2.|[ren (+1)], i →
-    is_stamped_ty (S (length Γ)) getStampTable T1 →
-    Γ ⊢ₜ TMu T1, i <: T2, i
-| mu_2_stp T1 T2 i:
-    T1.|[ren (+1)] :: Γ ⊢ₜ T1.|[ren (+1)], i <: T2, i →
-    is_stamped_ty (length Γ) getStampTable T1 →
-    Γ ⊢ₜ T1, i <: TMu T2, i
+| Mu_stp T i:
+    is_stamped_ty (length Γ) getStampTable T →
+    Γ ⊢ₜ TMu T.|[ren (+1)], i <: T, i
+| Stp_mu T i:
+    is_stamped_ty (length Γ) getStampTable T →
+    Γ ⊢ₜ T, i <: TMu T.|[ren (+1)], i
 
 (* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types.
  "Cov" stands for covariance, "Con" for contravariance. *)
@@ -335,13 +341,12 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
       specialize (H Hctx'); specialize (H0 Hctx'); ev; constructor; auto.
     - have Hctx': stamped_ctx getStampTable (V :: Γ). by constructor.
       specialize (H Hctx'); ev; constructor; auto.
-    - have Hctx': stamped_ctx getStampTable (T1 :: Γ). by constructor.
-      specialize (H Hctx'); ev; constructor; auto.
-    - have Hctx': stamped_ctx getStampTable (T1 :: Γ). by constructor.
-      specialize (H Hctx'); ev; constructor; eauto. by eapply stamped_ren.
-    - have Hctx': stamped_ctx getStampTable (T1.|[ren (+1)] :: Γ).
-        constructor => //. by eapply stamped_ren in f.
-      specialize (H Hctx'); ev; constructor; eauto.
+    - have HsT1: is_stamped_ty (S (length Γ)) getStampTable (iterate TLater i T1).
+      + move=> {s} {H}. elim: i => [|i IHi] //=. rewrite iterate_S. by constructor.
+      + have Hctx': stamped_ctx getStampTable (iterate TLater i T1 :: Γ). by constructor.
+        specialize (H Hctx'); ev; constructor; auto.
+    - constructor; eauto. eapply stamped_ren in f. by constructor.
+    - constructor; eauto. eapply stamped_ren in f. by constructor.
     - have Hctx': stamped_ctx getStampTable (T2.|[ren (+1)] :: Γ).
         constructor => //. by eapply stamped_ren in f.
       specialize (H Hctx); specialize (H0 Hctx');

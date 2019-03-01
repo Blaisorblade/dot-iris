@@ -10,6 +10,8 @@ Ltac iDestrConjs :=
   iMatchHyp (fun H P => match P with
                         | (_ ∧ _)%I =>
                           iDestruct H as "[#HA #HB]"
+                        | (_ ∗ _)%I =>
+                          iDestruct H as "[#HA #HB]"
                         end).
 
 Section fundamental.
@@ -33,7 +35,52 @@ Section fundamental.
         by iApply fundamental_subtype.
       + iApply idtp_vmem_i. by iApply fundamental_typed.
     - admit.
-    - admit.
+    - iIntros "#Hm"; iInduction HT as [] "IHT".
+      + by iApply Sub_Refl.
+      + by iApply Sub_Trans.
+      + by iApply Later_Sub.
+      + by iApply Sub_Later.
+      + by iApply Sub_Mono.
+      + by iApply Sub_Index_Incr.
+      + by iApply Sub_Top.
+      + by iApply Bot_Sub.
+      + by iApply And1_Sub.
+      + by iApply And2_Sub.
+      + by iApply Sub_And.
+      + by iApply Sub_Or1.
+      + by iApply Sub_Or2.
+      + by iApply Or_Sub.
+      + destruct p. iApply Sel_Sub. admit. admit.
+      + destruct p. iApply Sub_Sel. admit. admit.
+      + by iApply Sub_Mu_X.
+      + iApply Sub_Mu_A.
+      + iApply Sub_Mu_B.
+      + iIntros "/= !>" (ρ v Hcl) "#Hg #[_ HT1]"; iFrame "%".
+        iSpecialize ("IHT" $! _ v _ with "Hg").
+        (* Contortions to swap from ▷^i ▷ to ▷ ▷^i. *)
+        iAssert (▷ ▷^i ⟦ T1 ⟧ ρ v)%I as "#HT1'". by iNext; iNext.
+        iAssert (▷ ▷^i ⟦ T2 ⟧ ρ v)%I as "#HT2"; last by iNext; iNext.
+        by iApply "IHT".
+      (* Subtyping covariance. PROBLEMS WITH MODALITY SWAPS! *)
+      (* Maybe putting the later around the *whole* subtyping judgment would help? *)
+      + iIntros "/= !>" (ρ v Hcl) "#Hg #[$ HT1]".
+        iDestruct "HT1" as (t) "#[Heq #HT1']".
+        iExists t; iSplit => //.
+        iNext.
+        iIntros (w) "!>!> #HwT2".
+        iSpecialize ("IHT" $! _ w _ with "Hg").
+        admit.
+      + iIntros "/= !>" (ρ v Hcl) "#Hg [$ #HT1]".
+        iDestruct "HT1" as (d) "#[Hdl [Hcld #HT1]]".
+        iExists d; repeat iSplit => //.
+        iDestruct "HT1" as (vmem) "[Heq HvT1]".
+        iExists vmem; repeat iSplit => //.
+        iAssert (▷ ▷^i ⟦ T1 ⟧ ρ vmem)%I as "#HT1'". by iNext; iNext.
+        iAssert (▷ ▷^i ⟦ T2 ⟧ ρ vmem)%I as "#HT2"; last by iNext; iNext.
+        iApply "IHT" => //.
+        (* Fixable by except-0? But we must strip *i+1* laters! *)
+        admit.
+      + admit.
     - iIntros "#Hm"; iInduction HT as [] "IHT".
       + by iApply T_Forall_Ex.
       + by iApply T_Forall_E.

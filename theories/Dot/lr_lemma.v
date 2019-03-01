@@ -281,7 +281,7 @@ Section Sec.
     iIntros " !> * #HG".
     iApply wp_value'.
     iSplit.
-    { 
+    {
       iPoseProof (interp_env_ρ_closed with "HG") as "%". move: H => Hclρ.
       iPoseProof (interp_env_len_agree with "HG") as "%". move: H => Hlen. rewrite <- Hlen in Hcle.
       iPureIntro.

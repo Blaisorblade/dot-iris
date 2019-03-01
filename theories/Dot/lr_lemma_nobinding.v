@@ -7,19 +7,19 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 Section Sec.
   Context `{HdotG: dotG Σ} Γ.
 
-  Lemma Sub_Mono e T i :
+  Lemma Sub_Mono T i :
     (Γ ⊨ [T, i] <: [T, S i])%I.
   Proof. by iIntros "!> **". Qed.
 
-  Lemma Later_Sub e T i :
+  Lemma Later_Sub T i :
     (Γ ⊨ [TLater T, i] <: [T, S i])%I.
   Proof. by iIntros "/= !>" (ρ v Hclv) "#HG #[Hcl HT] !>". Qed.
 
-  Lemma Sub_Later e T i :
+  Lemma Sub_Later T i :
     (Γ ⊨ [T, S i] <: [TLater T, i])%I.
   Proof. iIntros "/= !> ** !>". naive_solver. Qed.
 
-  Lemma Sub_Index_Incr e T U i j:
+  Lemma Sub_Index_Incr T U i j:
     (Γ ⊨ [T, i] <: [U, j] →
      Γ ⊨ [T, S i] <: [U, S j])%I.
   Proof. iIntros "/= #Hsub !> ** !>". by iApply "Hsub". Qed.
