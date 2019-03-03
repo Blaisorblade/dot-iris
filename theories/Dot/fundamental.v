@@ -1,5 +1,5 @@
 From iris.proofmode Require Import tactics.
-From D Require Import tactics.
+From D Require Import tactics proofmode_extra.
 From D.Dot Require Import unary_lr unary_lr_binding typing typeExtractionSem synLemmas.
 From D.Dot Require Import lr_lemma lr_lemmasDefs lr_lemma_nobinding lr_lemmasTSel.
 
@@ -66,9 +66,12 @@ Section fundamental.
       + iIntros "/= !>" (ρ v Hcl) "#Hg #[$ HT1]".
         iDestruct "HT1" as (t) "#[Heq #HT1']".
         iExists t; iSplit => //.
-        iNext.
-        iIntros (w) "!>!> #HwT2".
+        iIntros (w).
         iSpecialize ("IHT" $! _ w _ with "Hg").
+        iNext.
+        iIntros "!>!> #HwT2".
+        iSpecialize ("IHT1" $! (w :: ρ) w _ with "[#]").
+        iFrame "Hg". by iApply interp_weaken_one.
         admit.
       + iIntros "/= !>" (ρ v Hcl) "#Hg [$ #HT1]".
         iDestruct "HT1" as (d) "#[Hdl [Hcld #HT1]]".
