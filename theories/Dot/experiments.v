@@ -137,24 +137,31 @@ Section Sec.
   Proof.
     iIntros "#HsubT #HsubU /= !>" (ρ v Hcl) "#Hg [$ #HT1]".
     iDestruct "HT1" as (t) "#[Heq #HT1]"; iExists t; iSplit => //.
-    iIntros (w) "!>!> #HwT2". iApply wp_wand.
-    - iApply "HT1". iApply "HsubT" => //. by iApply interp_v_closed.
+    iIntros "!>" (w) "#HwT2".
+    iSpecialize ("HsubT" $! ρ w with "[#] [#//] HwT2"). admit.
+    iSpecialize ("HT1" $! w with "HsubT").
+    iNext.
+    iApply wp_wand.
+    - iApply "HT1".
+      (* iApply "HsubT" => //. by iApply interp_v_closed. *)
     - iIntros (u) "#HuU1".
       iApply ("HsubU" $! (w :: ρ) u with "[#] [#] [//]").
       by iApply interp_v_closed.
       iFrame "Hg". by iApply interp_weaken_one.
-  Qed.
+  Admitted.
 
+  From D Require Import proofmode_extra.
   Lemma Sub_AllVariance_fails Γ T1 T2 U1 U2 i:
     Γ ⊨ [T2, i] <: [T1, i] -∗
     T2.|[ren (+1)] :: Γ ⊨ [U1, i] <: [U2, i] -∗
     Γ ⊨ [TAll T1 U1, i] <: [TAll T2 U2, i].
   Proof.
-    have ->: i = 0. admit.
     iIntros "#HsubT #HsubU /= !>" (ρ v Hcl) "#Hg [$ #HT1]".
     iDestruct "HT1" as (t) "#[Heq #HT1]".
     iExists t; iSplit => //.
-    iIntros (w) "!>!> #HwT2".
+    iIntros (w).
+    iSpecialize ("HsubT" $! ρ w with "[#] [#//]"). admit.
+    iIntros "!>!> #HwT2".
     (* iSpecialize ("HsubT" $! _ w _ with "Hg").
     iSpecialize ("HT1" $! w). *)
     iApply wp_wand.

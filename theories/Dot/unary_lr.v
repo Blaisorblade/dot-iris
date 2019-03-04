@@ -97,7 +97,7 @@ Section logrel.
     λne ρ v,
     (⌜ nclosed_vl v 0 ⌝ ∗
        ∃ t, ⌜ v = vabs t ⌝ ∗
-       □ ▷ ∀ w, interp1 ρ w -∗ interp_expr interp2 (w :: ρ) t.|[w/])%I.
+       □ ∀ w, ▷ interp1 ρ w -∗ ▷ interp_expr interp2 (w :: ρ) t.|[w/])%I.
 
   Program Definition interp_mu (interp : listVlC -n> D) : listVlC -n> D :=
     λne ρ v, interp (v::ρ) v.
