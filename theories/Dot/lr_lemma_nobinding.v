@@ -24,6 +24,49 @@ Section Sec.
     by iApply "Hsub".
   Qed.
 
+  Lemma Sub_TAll_Variant Γ T1 T2 U1 U2 i:
+    ▷^(S i) (Γ ⊨ [T2, 0] <: [T1, 0]) -∗
+    ▷^(S i) (T2.|[ren (+1)] :: Γ ⊨ [U1, 0] <: [U2, 0]) -∗
+    ▷^i (Γ ⊨ [TAll T1 U1, 0] <: [TAll T2 U2, 0]).
+  Proof.
+    iIntros "#HsubT #HsubU /= !>!>" (ρ v Hcl) "#Hg [$ #HT1]".
+    iDestruct "HT1" as (t) "#[Heq #HT1]"; iExists t; iSplit => //.
+    iIntros (w) "!>!> #HwT2". iApply wp_wand.
+    - iApply "HT1". iApply "HsubT" => //. by iApply interp_v_closed.
+    - iIntros (u) "#HuU1".
+      iApply ("HsubU" $! (w :: ρ) u with "[#] [#] [//]").
+      by iApply interp_v_closed.
+      iFrame "Hg". by iApply interp_weaken_one.
+  Qed.
+
+  Lemma Sub_TVMem_Covariant Γ T1 T2 i l:
+    ▷^(S i) (Γ ⊨ [T1, 0] <: [T2, 0]) -∗
+    ▷^i (Γ ⊨ [TVMem l T1, 0] <: [TVMem l T2, 0]).
+  Proof.
+    iIntros "#HsubT /= !>!>" (ρ v Hcl) "#Hg [$ #HT1]".
+    iDestruct "HT1" as (d) "#[Hdl [Hcld #HT1]]".
+    iExists d; repeat iSplit => //.
+    iDestruct "HT1" as (vmem) "[Heq HvT1]".
+    iExists vmem; repeat iSplit => //.
+    iApply "HsubT" => //.
+    by iApply interp_v_closed.
+  Qed.
+
+  Lemma Sub_TMem_Variant Γ L1 L2 U1 U2 i l:
+    ▷^(S i)(Γ ⊨ [L2, 0] <: [L1, 0]) -∗
+    ▷^(S i)(Γ ⊨ [U1, 0] <: [U2, 0]) -∗
+    ▷^i (Γ ⊨ [TTMem l L1 U1, 0] <: [TTMem l L2 U2, 0]).
+  Proof.
+    iIntros "#HsubT #HsubU /= !>!>" (ρ v Hcl) "#Hg [$ #HT1]".
+    iDestruct "HT1" as (d) "#[Hdl [Hcld #HT1]]".
+    iExists d; repeat iSplit => //.
+    iDestruct "HT1" as (φ) "[Heq #[HLφ HφU]]".
+    iExists φ; repeat iSplit => //.
+    iModIntro; iSplitL; iIntros (w Hclw) "#H".
+    - iApply "HLφ" => //. by iApply "HsubT".
+    - iApply "HsubU" => //. by iApply "HφU".
+  Qed.
+
   Lemma Later_Sub T i :
     (Γ ⊨ [TLater T, i] <: [T, S i])%I.
   Proof. by iIntros "/= !>" (ρ v Hclv) "#HG #[Hcl HT] !>". Qed.
