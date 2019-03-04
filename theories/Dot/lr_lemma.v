@@ -56,6 +56,21 @@ Section Sec.
     by iApply ("IH" with "H1 H2").
   Qed.
 
+  Lemma Sub_TAll_Variant T1 T2 U1 U2 i:
+    ▷^(S i) (Γ ⊨ [T2, 0] <: [T1, 0]) -∗
+    ▷^(S i) (T2.|[ren (+1)] :: Γ ⊨ [U1, 0] <: [U2, 0]) -∗
+    ▷^i (Γ ⊨ [TAll T1 U1, 0] <: [TAll T2 U2, 0]).
+  Proof.
+    iIntros "#HsubT #HsubU /= !>!>" (ρ v Hcl) "#Hg [$ #HT1]".
+    iDestruct "HT1" as (t) "#[Heq #HT1]"; iExists t; iSplit => //.
+    iIntros (w) "!>!> #HwT2". iApply wp_wand.
+    - iApply "HT1". iApply "HsubT" => //. by iApply interp_v_closed.
+    - iIntros (u) "#HuU1".
+      iApply ("HsubU" $! (w :: ρ) u with "[#] [#] [//]").
+      by iApply interp_v_closed.
+      iFrame "Hg". by iApply interp_weaken_one.
+  Qed.
+
   Lemma TAnd_I e T1 T2:
     Γ ⊨ e : T1 -∗
     Γ ⊨ e : T2 -∗
