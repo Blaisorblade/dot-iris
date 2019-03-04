@@ -18,6 +18,49 @@ Section fundamental.
   Context `{!dotG Σ}.
   Context `{hasStampTable: stampTable}.
 
+  Lemma Sub_TAll_Variant Γ T1 T2 U1 U2 i:
+    ▷^(S i) (Γ ⊨ [T2, 0] <: [T1, 0]) -∗
+    ▷^(S i) (T2.|[ren (+1)] :: Γ ⊨ [U1, 0] <: [U2, 0]) -∗
+    ▷^i (Γ ⊨ [TAll T1 U1, 0] <: [TAll T2 U2, 0]).
+  Proof.
+    iIntros "#HsubT #HsubU /= !>!>" (ρ v Hcl) "#Hg [$ #HT1]".
+    iDestruct "HT1" as (t) "#[Heq #HT1]"; iExists t; iSplit => //.
+    iIntros (w) "!>!> #HwT2". iApply wp_wand.
+    - iApply "HT1". iApply "HsubT" => //. by iApply interp_v_closed.
+    - iIntros (u) "#HuU1".
+      iApply ("HsubU" $! (w :: ρ) u with "[#] [#] [//]").
+      by iApply interp_v_closed.
+      iFrame "Hg". by iApply interp_weaken_one.
+  Qed.
+
+  Lemma Sub_TVMem_Covariant Γ T1 T2 i l:
+    ▷^(S i) (Γ ⊨ [T1, 0] <: [T2, 0]) -∗
+    ▷^i (Γ ⊨ [TVMem l T1, 0] <: [TVMem l T2, 0]).
+  Proof.
+    iIntros "#HsubT /= !>!>" (ρ v Hcl) "#Hg [$ #HT1]".
+    iDestruct "HT1" as (d) "#[Hdl [Hcld #HT1]]".
+    iExists d; repeat iSplit => //.
+    iDestruct "HT1" as (vmem) "[Heq HvT1]".
+    iExists vmem; repeat iSplit => //.
+    iApply "HsubT" => //.
+    by iApply interp_v_closed.
+  Qed.
+
+  Lemma Sub_TMem_Variant Γ L1 L2 U1 U2 i l:
+    ▷^(S i)(Γ ⊨ [L2, 0] <: [L1, 0]) -∗
+    ▷^(S i)(Γ ⊨ [U1, 0] <: [U2, 0]) -∗
+    ▷^i (Γ ⊨ [TTMem l L1 U1, 0] <: [TTMem l L2 U2, 0]).
+  Proof.
+    iIntros "#HsubT #HsubU /= !>!>" (ρ v Hcl) "#Hg [$ #HT1]".
+    iDestruct "HT1" as (d) "#[Hdl [Hcld #HT1]]".
+    iExists d; repeat iSplit => //.
+    iDestruct "HT1" as (φ) "[Heq #[HLφ HφU]]".
+    iExists φ; repeat iSplit => //.
+    iModIntro; iSplitL; iIntros (w Hclw) "#H".
+    - iApply "HLφ" => //. by iApply "HsubT".
+    - iApply "HsubU" => //. by iApply "HφU".
+  Qed.
+
   (* XXX these statements point out we need to realign the typing judgemnts. *)
   Lemma fundamental_dm_typed Γ V d T (HT: Γ |d V ⊢ d : T):
     wellMapped getStampTable -∗ TLater V :: Γ ⊨d d : T with
@@ -55,14 +98,9 @@ Section fundamental.
       + by iApply Sub_Mu_X.
       + iApply Sub_Mu_A.
       + iApply Sub_Mu_B.
-      + iIntros "/= !>" (ρ v Hcl) "#Hg #[_ HT1]"; iFrame "%".
-        iSpecialize ("IHT" $! _ v _ with "Hg").
-        (* Contortions to swap from ▷^i ▷ to ▷ ▷^i. *)
-        iAssert (▷ ▷^i ⟦ T1 ⟧ ρ v)%I as "#HT1'". by iNext; iNext.
-        iAssert (▷ ▷^i ⟦ T2 ⟧ ρ v)%I as "#HT2"; last by iNext; iNext.
-        by iApply "IHT".
-      (* Subtyping covariance. PROBLEMS WITH MODALITY SWAPS! *)
-      (* Maybe putting the later around the *whole* subtyping judgment would help? *)
+      + by iApply Sub_Later_Sub.
+      (* Subtyping variance. PROBLEMS WITH MODALITY SWAPS! *)
+      (* Putting the later around the *whole* subtyping judgment would help here. *)
       + iIntros "/= !>" (ρ v Hcl) "#Hg #[$ HT1]".
         iDestruct "HT1" as (t) "#[Heq #HT1']".
         iExists t; iSplit => //.

@@ -11,6 +11,19 @@ Section Sec.
     (Γ ⊨ [T, i] <: [T, S i])%I.
   Proof. by iIntros "!> **". Qed.
 
+  Lemma swap_later {n} {PROP: sbi} (P : PROP): ▷^n ▷ P ⊣⊢ ▷ ▷^n P.
+  Proof. iSplit; by iIntros "H !>!>". Qed.
+
+  Lemma Sub_Later_Sub T1 T2 i:
+    Γ ⊨ [T1, S i] <: [T2, S i] -∗
+    Γ ⊨ [TLater T1, i] <: [TLater T2, i].
+  Proof.
+    iIntros "/= #Hsub !>" (ρ v Hclv) "#Hg #[_ HT1]"; iFrame "%".
+    iSpecialize ("Hsub" $! _ v Hclv with "Hg").
+    rewrite !swap_later.
+    by iApply "Hsub".
+  Qed.
+
   Lemma Later_Sub T i :
     (Γ ⊨ [TLater T, i] <: [T, S i])%I.
   Proof. by iIntros "/= !>" (ρ v Hclv) "#HG #[Hcl HT] !>". Qed.

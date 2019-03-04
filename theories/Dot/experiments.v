@@ -130,6 +130,42 @@ Section Sec.
     iIntros (H); iApply wp_pure_step_later => //; iApply wp_value. by iIntros "!%".
   Qed.
 
+  Lemma Sub_AllVariance_spec Γ T1 T2 U1 U2:
+    Γ ⊨ [T2, 0] <: [T1, 0] -∗
+    T2.|[ren (+1)] :: Γ ⊨ [U1, 0] <: [U2, 0] -∗
+    Γ ⊨ [TAll T1 U1, 0] <: [TAll T2 U2, 0].
+  Proof.
+    iIntros "#HsubT #HsubU /= !>" (ρ v Hcl) "#Hg [$ #HT1]".
+    iDestruct "HT1" as (t) "#[Heq #HT1]"; iExists t; iSplit => //.
+    iIntros (w) "!>!> #HwT2". iApply wp_wand.
+    - iApply "HT1". iApply "HsubT" => //. by iApply interp_v_closed.
+    - iIntros (u) "#HuU1".
+      iApply ("HsubU" $! (w :: ρ) u with "[#] [#] [//]").
+      by iApply interp_v_closed.
+      iFrame "Hg". by iApply interp_weaken_one.
+  Qed.
+
+  Lemma Sub_AllVariance_fails Γ T1 T2 U1 U2 i:
+    Γ ⊨ [T2, i] <: [T1, i] -∗
+    T2.|[ren (+1)] :: Γ ⊨ [U1, i] <: [U2, i] -∗
+    Γ ⊨ [TAll T1 U1, i] <: [TAll T2 U2, i].
+  Proof.
+    have ->: i = 0. admit.
+    iIntros "#HsubT #HsubU /= !>" (ρ v Hcl) "#Hg [$ #HT1]".
+    iDestruct "HT1" as (t) "#[Heq #HT1]".
+    iExists t; iSplit => //.
+    iIntros (w) "!>!> #HwT2".
+    (* iSpecialize ("HsubT" $! _ w _ with "Hg").
+    iSpecialize ("HT1" $! w). *)
+    iApply wp_wand.
+    - iApply "HT1". iApply "HsubT" => //. by iApply interp_v_closed.
+    - iIntros (u) "#HuU1".
+      iSpecialize ("HsubU" $! (w :: ρ) u with "[#] [#]").
+      by iApply interp_v_closed.
+      iFrame "Hg". by iApply interp_weaken_one.
+      by iApply "HsubU".
+  Abort.
+
   Lemma ivtp_later Γ V T v:
     ivtp (V :: Γ) T v -∗
     ivtp (TLater V :: Γ) (TLater T) v.
