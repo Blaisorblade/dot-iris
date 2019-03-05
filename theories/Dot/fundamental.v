@@ -73,8 +73,7 @@ Section fundamental.
         iExists d; repeat iSplit => //.
         iDestruct "HT1" as (vmem) "[Heq HvT1]".
         iExists vmem; repeat iSplit => //.
-        iAssert (▷ ▷^i ⟦ T1 ⟧ ρ vmem)%I as "#HT1'". by iNext; iNext.
-        iAssert (▷ ▷^i ⟦ T2 ⟧ ρ vmem)%I as "#HT2"; last by iNext; iNext.
+        rewrite !swap_later.
         iApply "IHT" => //.
         (* Fixable by except-0? But we must strip *i+1* laters! *)
         admit.

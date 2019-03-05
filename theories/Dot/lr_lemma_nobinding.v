@@ -37,7 +37,7 @@ Section Sec.
     by iApply interp_v_closed.
   Qed.
 
-  Lemma Sub_TMem_Variant L1 L2 U1 U2 i l:
+  Lemma Sub_TTMem_Variant L1 L2 U1 U2 i l:
     ▷^(S i)(Γ ⊨ [L2, 0] <: [L1, 0]) -∗
     ▷^(S i)(Γ ⊨ [U1, 0] <: [U2, 0]) -∗
     ▷^i (Γ ⊨ [TTMem l L1 U1, 0] <: [TTMem l L2 U2, 0]).
