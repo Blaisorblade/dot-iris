@@ -176,8 +176,8 @@ Section typing_type_member_defs.
     Γ ⊨d dtysem σ s : TTMem l L U.
     *)
   Lemma D_Typ T L U s σ l:
-    Γ ⊨ [T, 1] <: [U, 1] -∗
-    Γ ⊨ [L, 1] <: [T, 1] -∗
+    Γ ⊨[1] T <: U -∗
+    Γ ⊨[1] L <: T -∗
     (s, σ) ↝[ length Γ ] ⟦ T ⟧ -∗
     Γ ⊨d dtysem σ s : TTMem l L U.
   Proof.
@@ -188,20 +188,19 @@ Section typing_type_member_defs.
     iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *.
     iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H => Hfvρ.
     have Hclσss: nclosed (dtysem σ.|[to_subst ρ] s) 0. by eapply fv_to_subst'.
-    iDestruct "Hs" as (φ) "[Hγ Hγφ]".
+    iDestruct "Hs" as (φ) "[Hγ HTφ]".
     iSplit => //; iExists (φ (σ.|[to_subst ρ]));
       iSplit; first by repeat iExists _; iSplit.
-    iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL";
-      iSpecialize ("Hγφ" $! ρ v with "[#//] [#//]").
-    - iSpecialize ("HLT" $! ρ v Hclv with "Hg").
-      iDestruct ("HLT" with "HL") as "#HLT1".
-      by repeat iModIntro; iApply (internal_eq_iff with "Hγφ").
-    - iApply "HTU" => //.
-      by repeat iModIntro; iApply (internal_eq_iff with "Hγφ").
+    iSpecialize ("HTU" with "Hg"); iSpecialize ("HLT" with "Hg").
+    iModIntro; iModIntro; repeat iSplitL; iIntros (v) "#HL";
+      iSpecialize ("HTφ" $! ρ v with "[#//] [#//]");
+      iEval (rewrite /= /subst_sigma) in "HTφ".
+    - iRewrite -"HTφ"; iModIntro. by iApply "HLT".
+    - iApply "HTU". by iRewrite -"HTφ" in "HL".
   Qed.
 
   Lemma D_Typ_Concr T s σ l:
     (s, σ) ↝[ (length Γ) ] ⟦ T ⟧ -∗
     Γ ⊨d dtysem σ s : TTMem l T T.
-  Proof. iIntros "#Hs"; iApply D_Typ; by [| iIntros "!> **"]. Qed.
+  Proof. iIntros "#Hs"; iApply D_Typ; by [| iIntros "!>** !>**"]. Qed.
 End typing_type_member_defs.

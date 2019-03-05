@@ -18,7 +18,7 @@ Section Russell.
   Definition uAu u := ⟦TSel (pv u) "A"⟧ [] u.
   Instance uauP: Persistent (uAu u) := _.
 
-  Definition russell_p : envD Σ := λ ρ v, (□ (uAu v -∗ False))%I.
+  Definition russell_p : envD Σ := λ ρ v, (⟦ TTop ⟧ [] v ∧ □ (uAu v -∗ False))%I.
   Context (s: stamp).
 
   Definition Hs := (s ↝ russell_p)%I.
@@ -30,7 +30,8 @@ Section Russell.
   Lemma vHasA: Hs -∗ ⟦ TTMem "A" TBot TTop ⟧ [] v.
   Proof.
     iIntros "#Hs". repeat (repeat iExists _; repeat iSplit; try done).
-    iModIntro; repeat iSplit; by iIntros "** !>".
+    repeat iModIntro; repeat iSplit. by iIntros.
+    iIntros "/= * #[H1 #H2]"; by iApply interp_v_closed.
   Qed.
 
   Lemma later_not_UAU: Hs -∗ uAu v -∗ ▷ False.
@@ -38,10 +39,10 @@ Section Russell.
     iIntros "#Hs #[_ Hvav]". rewrite /uAu.
     iDestruct "Hvav" as (φ d Hl) "[Hs1 Hvav]".
     iPoseProof "Hs1" as (s' σ φ' [Heq ->]) "H".
-    iAssert (d ↗ (λ w, □ (uAu w -∗ False)))%I as "#Hs2".
+    iAssert (d ↗ russell_p [])%I as "#Hs2".
     - subst d; move: Hl => [d] [[<-]] /= [?] ?; subst s' σ.
-      iExists s, [], (λ ρ w, □ (uAu w -∗ False))%I.
-      repeat iExists _; repeat iSplit => //.
+      iExists s, [], russell_p.
+      repeat iExists _; repeat iSplit => //=.
     - iPoseProof (stored_pred_agree d _ _ v with "Hs1 Hs2") as "#Hag".
       iNext.
       iRewrite "Hag" in "Hvav"; iEval (cbn) in "Hvav".
@@ -49,13 +50,13 @@ Section Russell.
       repeat (repeat iSplit => //; repeat iExists _ => //).
   Qed.
 
-  Lemma uauEquiv: Hs -∗ ▷ □ (uAu v -∗ False) ∗-∗ uAu v.
+  Lemma uauEquiv: nclosed_vl v 0 → Hs -∗ ▷ □ (uAu v -∗ False) ∗-∗ uAu v.
   Proof.
-    iIntros "#Hs"; iSplit.
+    iIntros (Hclv) "#Hs"; iSplit.
     - iIntros "#HnotVAV"; iSplit => //.
       iExists (russell_p []), (dtysem [] s).
       repeat (repeat iSplit => //; repeat iExists _).
-      iIntros "!>!>!> #Hvav". iApply ("HnotVAV" with "Hvav").
+      iIntros "!>!>"; iSplit; first done. iExact "HnotVAV".
     - iIntros "#Hvav".
       iPoseProof (later_not_UAU with "Hs Hvav") as "#HF".
       by iNext.
@@ -75,5 +76,6 @@ Section Russell.
     by iApply uauEquiv.
   Qed.
 
-  Definition notRussellV: Hs -∗ russell_p [] v → False := notNotVAV.
+  Lemma notRussellV: Hs -∗ russell_p [] v → False.
+  Proof. iIntros "#Hs #[% H]". by iApply notNotVAV. Qed.
 End Russell.

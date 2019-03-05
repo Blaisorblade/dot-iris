@@ -104,12 +104,13 @@ Section Sec.
     objLookupDet; subst; injectHyps.
     iExists d; repeat iSplit => //.
     iExists φ; repeat iSplit => //.
-    iModIntro; iSplitL; iIntros (w Hclw) "#Hw".
+    iSplitL; iIntros (w);
+    iPoseProof (stored_pred_agree d _ _ w with "Hsφ1 Hsφ2") as "#Hag"; iClear "Hsφ2";
+    repeat iModIntro; iIntros "#Hw".
     - by iApply "HLφ1".
-    - iPoseProof (stored_pred_agree d _ _ w with "Hsφ1 Hsφ2") as "#Hag"; iClear "Hsφ2".
-      iAssert (▷ □ φ' w)%I as "#Hw'". by iNext; iRewrite -"Hag".
-      iSpecialize ("HφU1" $! w Hclw with "Hw").
-      iSpecialize ("HφU2" $! w Hclw with "Hw'").
+    - iAssert (□ φ' w)%I as "#Hw'". by iRewrite -"Hag".
+      iSpecialize ("HφU1" $! w with "Hw").
+      iSpecialize ("HφU2" $! w with "Hw'").
       by iFrame "HφU1 HφU2".
   Qed.
 

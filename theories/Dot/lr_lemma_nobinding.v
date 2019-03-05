@@ -22,30 +22,40 @@ Section Sec.
     by iApply "Hsub".
   Qed.
 
-  Lemma Sub_TVMem_Covariant T1 T2 i l:
-    ▷^(S i) (Γ ⊨ [T1, 0] <: [T2, 0]) -∗
-    ▷^i (Γ ⊨ [TVMem l T1, 0] <: [TVMem l T2, 0]).
+  Lemma DSub_Later_Sub T1 T2 i:
+    Γ ⊨[S i] T1 <: T2 -∗
+    Γ ⊨[i] TLater T1 <: TLater T2.
   Proof.
-    iIntros "#HsubT /= !>!>" (ρ v Hcl) "#Hg [$ #HT1]".
+    iIntros "/= #Hsub !>" (ρ) "#Hg". iSpecialize ("Hsub" with "Hg").
+    iIntros "!>" (v) "[$ #HT1]". by iApply "Hsub".
+  Qed.
+
+  Lemma DSub_TVMem_Covariant T1 T2 i l:
+    Γ ⊨[S i] T1 <: T2 -∗
+    Γ ⊨[i] TVMem l T1 <: TVMem l T2.
+  Proof.
+    iIntros "#HsubT /= !>" (ρ) "#Hg"; iSpecialize ("HsubT" with "Hg").
+    iIntros "!>" (v) "[$ #HT1]".
     iDestruct "HT1" as (d) "#[Hdl [Hcld #HT1]]".
     iExists d; repeat iSplit => //.
     iDestruct "HT1" as (vmem) "[Heq HvT1]".
     iExists vmem; repeat iSplit => //.
     iApply "HsubT" => //.
-    by iApply interp_v_closed.
   Qed.
 
-  Lemma Sub_TTMem_Variant L1 L2 U1 U2 i l:
-    ▷^(S i)(Γ ⊨ [L2, 0] <: [L1, 0]) -∗
-    ▷^(S i)(Γ ⊨ [U1, 0] <: [U2, 0]) -∗
-    ▷^i (Γ ⊨ [TTMem l L1 U1, 0] <: [TTMem l L2 U2, 0]).
+  Lemma DSub_TTMem_Variant L1 L2 U1 U2 i l:
+    Γ ⊨[S i] L2 <: L1 -∗
+    Γ ⊨[S i] U1 <: U2 -∗
+    Γ ⊨[i] TTMem l L1 U1 <: TTMem l L2 U2.
   Proof.
-    iIntros "#HsubT #HsubU /= !>!>" (ρ v Hcl) "#Hg [$ #HT1]".
+    iIntros "#HsubT #HsubU /= !>" (ρ) "#Hg".
+    iSpecialize ("HsubT" with "Hg"); iSpecialize ("HsubU" with "Hg").
+    iIntros "!>" (v) "[$ #HT1]".
     iDestruct "HT1" as (d) "#[Hdl [Hcld #HT1]]".
     iExists d; repeat iSplit => //.
     iDestruct "HT1" as (φ) "[Heq #[HLφ HφU]]".
     iExists φ; repeat iSplit => //.
-    iModIntro; iSplitL; iIntros (w Hclw) "#H".
+    iSplitL; iIntros (w) "!> !> #H".
     - iApply "HLφ" => //. by iApply "HsubT".
     - iApply "HsubU" => //. by iApply "HφU".
   Qed.
@@ -63,10 +73,20 @@ Section Sec.
      Γ ⊨ [T, S i] <: [U, S j])%I.
   Proof. iIntros "/= #Hsub !> ** !>". by iApply "Hsub". Qed.
 
+  Lemma DSub_Index_Incr T U i:
+    Γ ⊨[i] T <: U -∗
+    Γ ⊨[S i] T <: U.
+  Proof. iIntros "/= #Hsub !> ** !>". by iApply "Hsub". Qed.
+
   Lemma And1_Sub T1 T2 i: Γ ⊨ [TAnd T1 T2, i] <: [T1, i].
   Proof. by iIntros "/= !> * ? ? [? ?]". Qed.
   Lemma And2_Sub T1 T2 i: Γ ⊨ [TAnd T1 T2, i] <: [T2, i].
   Proof. by iIntros "/= !> * ? ? [? ?]". Qed.
+
+  Lemma And1_DSub T1 T2 i: Γ ⊨[i] TAnd T1 T2 <: T1.
+  Proof. by iIntros "/= !> ** !> * [? ?]". Qed.
+  Lemma And2_DSub T1 T2 i: Γ ⊨[i] TAnd T1 T2 <: T2.
+  Proof. by iIntros "/= !> ** !> * [? ?]". Qed.
 
   (* Lemma stp_andi T1 T2 ρ v: *)
   (*   ⟦T1⟧ ρ v -∗ *)
@@ -85,16 +105,41 @@ Section Sec.
     iModIntro; by iSplit.
   Qed.
 
+  Lemma DSub_And S T1 T2 i:
+    Γ ⊨[i] S <: T1 -∗
+    Γ ⊨[i] S <: T2 -∗
+    Γ ⊨[i] S <: TAnd T1 T2.
+  Proof.
+    iIntros "/= #H1 #H2 !> * #Hg".
+    iSpecialize ("H1" with "Hg"); iSpecialize ("H2" with "Hg").
+    iNext; iIntros; iSplit; by [> iApply "H1" | iApply "H2"].
+  Qed.
+
   Lemma Sub_Or1 T1 T2 i: Γ ⊨ [T1, i] <: [TOr T1 T2, i].
   Proof. iIntros "/= !> ** !>"; naive_solver. Qed.
   Lemma Sub_Or2 T1 T2 i: Γ ⊨ [T2, i] <: [TOr T1 T2, i].
   Proof. iIntros "/= !> ** !>"; naive_solver. Qed.
+
+  Lemma Or1_DSub T1 T2 i: Γ ⊨[i] T1 <: TOr T1 T2.
+  Proof. iIntros "/= !> ** !> **"; naive_solver. Qed.
+  Lemma Or2_DSub T1 T2 i: Γ ⊨[i] T2 <: TOr T1 T2.
+  Proof. iIntros "/= !> ** !> **"; naive_solver. Qed.
 
   Lemma Or_Sub S T1 T2 i j:
     Γ ⊨ [T1, i] <: [S, j] -∗
     Γ ⊨ [T2, i] <: [S, j] -∗
     Γ ⊨ [TOr T1 T2, i] <: [S, j].
   Proof. iIntros "/= #H1 #H2 !> * #Hcl #Hg #[HT1 | HT2]"; by [iApply "H1" | iApply "H2"]. Qed.
+
+  Lemma DSub_Or S T1 T2 i:
+    Γ ⊨[i] T1 <: S -∗
+    Γ ⊨[i] T2 <: S -∗
+    Γ ⊨[i] TOr T1 T2 <: S.
+  Proof.
+    iIntros "/= #H1 #H2 !> * #Hg".
+    iSpecialize ("H1" with "Hg"); iSpecialize ("H2" with "Hg").
+    iIntros "!> * #[HT1 | HT2]"; by [> iApply "H1" | iApply "H2"].
+  Qed.
 
   Lemma Sub_Top T i:
     Γ ⊨ [T, i] <: [TTop, i].

@@ -57,8 +57,8 @@ Section logrel.
   Definition def_interp_tmem interp1 interp2 : envPred dm :=
     λ ρ d,
     (⌜ nclosed d 0 ⌝ ∗ ∃ φ, (d ↗ φ) ∗
-       □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ interp1 ρ v → ▷ □ φ v) ∗
-          (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ φ v → ▷ interp2 ρ v)))%I.
+       ▷□ ((∀ v, interp1 ρ v → □ φ v) ∗
+           (∀ v, □ φ v → interp2 ρ v)))%I.
   Global Arguments def_interp_tmem /.
 
   Definition interp_tmem l interp1 interp2 : envD Σ :=
@@ -274,12 +274,17 @@ Section logrel.
     (□∀ ρ v, ⌜ nclosed_vl v 0 ⌝ → ⟦Γ⟧*ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
   Global Arguments step_indexed_ivstp /.
 
+  Definition delayed_ivstp Γ T1 T2 i: iProp Σ :=
+    (□ ∀ ρ, ⟦Γ⟧*ρ → ▷^i ∀v, ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
+  Global Arguments delayed_ivstp /.
+
   Global Instance idtp_persistent Γ T d: Persistent (idtp Γ T d) := _.
   Global Instance idstp_persistent Γ T ds: Persistent (idstp Γ T ds) := _.
   Global Instance ietp_persistent Γ T e : Persistent (ietp Γ T e) := _.
   Global Instance step_indexed_ietp_persistent Γ T e i : Persistent (step_indexed_ietp Γ T e i) := _.
   Global Instance step_indexed_ivstp_persistent Γ T1 T2 i j : Persistent (step_indexed_ivstp Γ T1 T2 i j) := _.
   Global Instance ivstp_persistent Γ T1 T2 : Persistent (ivstp Γ T1 T2) := _.
+  Global Instance delayed_ivstp_persistent Γ T1 T2 i : Persistent (delayed_ivstp Γ T1 T2 i) := _.
 End logrel.
 
 Notation "d ↗ φ" := (idm_proj_semtype d φ) (at level 20).
@@ -300,6 +305,7 @@ Notation "Γ ⊨ T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next leve
 
 Notation "Γ ⊨ [ T1 , i ]  <: [ T2 , j ]" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
 Notation "Γ ⊨ T1 , i  <: T2 , j" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
+Notation "Γ ⊨[ i  ] T1 <: T2" := (delayed_ivstp Γ T1 T2 i) (at level 74, T1, T2 at next level).
 
 Section logrel_lemmas.
   Context `{HdotG: dotG Σ}.
@@ -351,4 +357,16 @@ Section logrel_lemmas.
     iApply "Hsub2" => //. by iApply "Hsub1".
   Qed.
 
+  Lemma DSub_Refl T i : Γ ⊨[i] T <: T.
+  Proof. by iIntros "/= !> ** !> **". Qed.
+
+
+  Lemma DSub_Trans T1 T2 T3 i : Γ ⊨[i] T1 <: T2 -∗
+                                Γ ⊨[i] T2 <: T3 -∗
+                                Γ ⊨[i] T1 <: T3.
+  Proof.
+    iIntros "#Hsub1 #Hsub2 /= !> * #Hg".
+    iSpecialize ("Hsub1" with "Hg"); iSpecialize ("Hsub2" with "Hg").
+    iIntros "!>" (v) "#HT". iApply "Hsub2". by iApply "Hsub1".
+  Qed.
 End logrel_lemmas.

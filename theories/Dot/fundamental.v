@@ -31,8 +31,10 @@ Section fundamental.
     - iIntros "#Hm"; iInduction HT as [] "IHT".
       + iApply D_Typ;
         last by iApply extraction_to_leadsto_envD_equiv.
-        by iApply fundamental_subtype.
-        by iApply fundamental_subtype.
+        admit.
+        admit.
+        (* by iApply fundamental_subtype.
+        by iApply fundamental_subtype. *)
       + iApply idtp_vmem_i. by iApply fundamental_typed.
     - admit.
     - iIntros "#Hm"; iInduction HT as [] "IHT".
