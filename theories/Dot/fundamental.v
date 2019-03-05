@@ -78,6 +78,9 @@ Section fundamental.
         (* Fixable by except-0? But we must strip *i+1* laters! *)
         admit.
       + admit.
+      + iApply Sub_TAll_Cov_Distr.
+      + iApply Sub_TVMem_Cov_Distr.
+      + iApply Sub_TTMem_Cov_Distr.
     - iIntros "#Hm"; iInduction HT as [] "IHT".
       + by iApply T_Forall_Ex.
       + by iApply T_Forall_E.

@@ -218,6 +218,25 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Γ ⊢ₜ L2, S i <: L1, S i →
     Γ ⊢ₜ U1, S i <: U2, S i →
     Γ ⊢ₜ TTMem l L1 U1, i <: TTMem l L2 U2, i
+  (* Is it true that for covariant F, F[A ∧ B] = F[A] ∧ F[B]?
+    Dotty assumes that, tho DOT didn't capture it.
+    F[A ∧ B] <: F[A] ∧ F[B] is provable by covariance.
+    Let's prove F[A] ∧ F[B] <: F[A ∧ B] in the model.
+    *)
+| TAllDistr_stp T U1 U2:
+    is_stamped_ty (length Γ) getStampTable T →
+    is_stamped_ty (S (length Γ)) getStampTable U1 →
+    is_stamped_ty (S (length Γ)) getStampTable U2 →
+    Γ ⊢ₜ TAnd (TAll T U1) (TAll T U2), 0 <: TAll T (TAnd U1 U2), 0
+| TVMemDistr_stp l T1 T2:
+    is_stamped_ty (length Γ) getStampTable T1 →
+    is_stamped_ty (length Γ) getStampTable T2 →
+    Γ ⊢ₜ TAnd (TVMem l T1) (TVMem l T2), 0 <: TVMem l (TAnd T1 T2), 0
+| TTMemDistr_strp l L U1 U2:
+    is_stamped_ty (length Γ) getStampTable L →
+    is_stamped_ty (length Γ) getStampTable U1 →
+    is_stamped_ty (length Γ) getStampTable U2 →
+    Γ ⊢ₜ TAnd (TTMem l L U1) (TTMem l L U2), 0 <: TTMem l L (TAnd U1 U2), 0
 where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
 
   Scheme exp_typed_mut_ind := Induction for typed Sort Prop
