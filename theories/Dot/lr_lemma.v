@@ -18,19 +18,51 @@ Section Sec.
     iIntros (v Hclv) "/= H". iApply ("Himpl" with "H [%]"). by apply fv_tv_inv.
   Qed.
 
-  Lemma Sub_TAll_Variant T1 T2 U1 U2 i:
-    ▷^(S i) (Γ ⊨ [T2, 0] <: [T1, 0]) -∗
-    ▷^(S i) (T2.|[ren (+1)] :: Γ ⊨ [U1, 0] <: [U2, 0]) -∗
-    ▷^i (Γ ⊨ [TAll T1 U1, 0] <: [TAll T2 U2, 0]).
+  Lemma Sub_TAll_Variant_Argh T1 T2 U1 U2 i:
+    Γ ⊨[S i] T2 <: T1 -∗
+    ▷^(S i) (T2.|[ren (+1)] :: Γ ⊨[0] U1 <: U2) -∗
+    Γ ⊨[i] TAll T1 U1 <: TAll T2 U2.
   Proof.
-    iIntros "#HsubT #HsubU /= !>!>" (ρ v Hcl) "#Hg [$ #HT1]".
+    iIntros "#HsubT ##HsubU /= !>" (ρ) "#Hg".
+    iSpecialize ("HsubT" with "Hg").
+    iNext.
+    iIntros (v) "[$ #HT1]".
     iDestruct "HT1" as (t) "#[Heq #HT1]"; iExists t; iSplit => //.
-    iIntros (w) "!>!> #HwT2". iApply wp_wand.
-    - iApply "HT1". iApply "HsubT" => //. by iApply interp_v_closed.
+    (* iModIntro. iNext. *)
+    iIntros (w) "!>!> #HwT2"; iApply wp_wand.
+    - iApply "HT1". by iApply "HsubT".
     - iIntros (u) "#HuU1".
-      iApply ("HsubU" $! (w :: ρ) u with "[#] [#] [//]").
-      by iApply interp_v_closed.
+      iSpecialize ("HsubU" $! (w :: ρ) with "[#]").
       iFrame "Hg". by iApply interp_weaken_one.
+      by iApply "HsubU".
+  Qed.
+
+  (* To finish this one, push \later down in interp_forall.
+  Unclear if this is useful. *)
+  Lemma Sub_TAll_Variant_ArghIsh T1 T2 U1 U2 i:
+    Γ ⊨[S i] T2 <: T1 -∗
+    iterate TLater (i) T2.|[ren (+1)] :: Γ ⊨[i] U1 <: U2 -∗
+    Γ ⊨[0] TAll (iterate TLater i T1) (iterate TLater i U1) <: TAll (iterate TLater i T2) (iterate TLater i U2).
+  Proof.
+    rewrite ?iterate_S /=.
+    iIntros "/= #HsubT #HsubU !>" (ρ) "#Hg".
+    iIntros (v) "[% #HT1]". move: H => Hclv. iFrame (Hclv).
+    iDestruct "HT1" as (t) "#[% #HT1]"; iExists t; iSplit => //. move: H => Heq.
+    iSpecialize ("HsubT" with "Hg").
+    iAssert (□∀ w, ⌜nclosed_vl w 0⌝ -∗ ▷^i ⟦ T2.|[ren (+1)]⟧ (w :: ρ) w -∗ ▷^i(∀ v, ⟦ U1 ⟧ (w :: ρ) v → ⟦ U2 ⟧ (w :: ρ) v))%I as "#HsubU'".
+    by iIntros "!>" (w Hclw) "#Hw"; iApply "HsubU"; rewrite iterate_TLater_later //; iFrame "#". iClear "HsubU".
+
+    iIntros (w) "!>!> #HwT2".
+    iAssert (⌜nclosed_vl w 0⌝)%I as "%". by iApply interp_v_closed.
+    have Hclt: nclosed t 1. by subst; apply fv_vabs_inv.
+    From D.Dot Require Import step_fv.
+    have Hcltw: nclosed t.|[w/] 0. by apply nclosed_subst.
+    iApply (wp_wand_cl (t.|[w/]) (⟦ iterate TLater i U1 ⟧ (w :: ρ)) (⟦ iterate TLater i U2 ⟧ (w :: ρ))) => //.
+    - iApply ("HT1" $! w).
+      rewrite !iterate_TLater_later //; by iApply "HsubT".
+    - iIntros (u) "#HuU1"; iIntros (Hclu).
+      rewrite !iterate_TLater_later //.
+      iApply "HsubU'" => //. by iApply interp_weaken_one.
   Qed.
 
   Lemma TAnd_I e T1 T2:
