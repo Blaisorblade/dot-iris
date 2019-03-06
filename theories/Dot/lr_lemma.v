@@ -3,57 +3,19 @@ From iris.proofmode Require Import tactics.
 From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language.
 
-(** Paolo to Amin: it seems below we might need something vaguely similar to the following. Not sure they're exactly true as stated. *)
-Section wp_extra.
-Context `{irisG Λ Σ}.
-Implicit Types s : stuckness.
-Implicit Types P : iProp Σ.
-Implicit Types Φ : val Λ → iProp Σ.
-Implicit Types v : val Λ.
-Implicit Types e : expr Λ.
-
-(* (** A variant of wp_wand that requires proof of [Φ v -∗ Ψ v] only if [v] is an evaluation result. *) *)
-(* Lemma wp_wand_steps s E e Φ Ψ: *)
-(*     (WP e @ s; E {{ v, Φ v }} -∗ *)
-(*     (** The nsteps premise is wrong for a multithreaded program logic, feel free to use a more accurate one. *)
-(*         This one might be fine for DOT. *) *)
-(*     (∀ v σ1 κ σ2 i, ⌜ nsteps i ([e], σ1) κ ([of_val v], σ2) ⌝ -∗ Φ v -∗ Ψ v)-∗ *)
-(*     WP e @ s; E {{ v, Ψ v }})%I. *)
-(* Admitted. *)
-
-End wp_extra.
-
-From D Require Import tactics.
-From D.Dot Require Import rules synLemmas unary_lr_binding.
-From iris.program_logic Require Import ectx_language.
+From D Require Import tactics proofmode_extra.
+From D.Dot Require Import rules synLemmas unary_lr_binding step_fv.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 Section Sec.
   Context `{HdotG: dotG Σ} Γ.
 
   Lemma wp_wand_cl e Φ Ψ:
-    (WP e {{ v, Φ v }} -∗ ⌜ nclosed e 0 ⌝ -∗ (∀ v, Φ v -∗ ⌜ nclosed_vl v 0 ⌝ -∗ Ψ v) -∗ WP e {{ v, Ψ v }})%I.
-  Admitted.
-
-  Lemma wp_and (P1 P2: vl → iProp Σ) e:
-    ((WP e {{ P1 }} ) -∗ (WP e  {{ P2 }} ) -∗ WP e {{ v, P1 v ∧ P2 v }})%I.
+    WP e {{ v, Φ v }} -∗ ⌜ nclosed e 0 ⌝ -∗ (∀ v, Φ v -∗ ⌜ nclosed_vl v 0 ⌝ -∗ Ψ v) -∗ WP e {{ v, Ψ v }}.
   Proof.
-    iLöb as "IH" forall (e).
-    iIntros "H1 H2".
-    iEval (rewrite !wp_unfold /wp_pre) in "H1";
-    iEval (rewrite !wp_unfold /wp_pre) in "H2";
-    iEval (rewrite !wp_unfold /wp_pre).
-    case_match; first by auto.
-    iIntros (σ1 k ks n) "#Ha".
-    iDestruct ("H1" $! σ1 k ks n with "Ha") as "[$ H1]".
-    iDestruct ("H2" $! σ1 k ks n with "Ha") as "[% H2]".
-    iIntros (e2 σ2 efs Hstep).
-    iSpecialize ("H1" $! e2 σ2 efs Hstep);
-    iSpecialize ("H2" $! e2 σ2 efs Hstep).
-    iNext.
-    iDestruct "H1" as "[$ [H1 $]]".
-    iDestruct "H2" as "[_ [H2 _]]".
-    by iApply ("IH" with "H1 H2").
+    iIntros "/= He" (Hcle) "Himpl". iApply (wp_wand_wf _ _ e Φ (flip nclosed 0) Hcle with "He [Himpl]").
+    intros. by eapply nclosed_prim_step.
+    iIntros (v Hclv) "/= H". iApply ("Himpl" with "H [%]"). by apply fv_tv_inv.
   Qed.
 
   Lemma Sub_TAll_Variant T1 T2 U1 U2 i:
