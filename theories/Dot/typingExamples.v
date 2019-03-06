@@ -99,23 +99,9 @@ Local Notation "Γ ⊢ds ds : T"  := (dms_typed Γ ds T) (at level 74, ds, T at 
 Example ex1 Γ n T:
   Γ ⊢ₜ tv (ν {@ val "a" = vnat n}) : μ {@ val "a" : TNat }.
 Proof.
-
-  (* (* info eauto: *) *)
-  (* simple eapply dcons_typed. *)
-  (* simple apply dnil_typed. *)
-  (* (*external*) reflexivity. *)
-  (* simple apply dvl_typed. *)
-  (* simple eapply Subs_typed. *)
-  (* simple eapply Trans_stp. *)
-  (* simple apply TSucc_stp. *)
-  (* simple apply TLaterR_stp. *)
-  (* simple apply Nat_typed. *)
-
-  assert (∀ Γ, Γ ⊢ₜ TNat, 0 <: TLater TNat, 0). {
-    (* eauto 3. (* Avoid longer routes.*) *)
-    intro.
-    eapply Trans_stp; by [apply TSucc_stp | apply TLaterR_stp].
-  }
+  (* assert (∀ Γ, Γ ⊢[0] TNat <: TLater TNat). {
+    intros; by apply TSucc_stp.
+  } *)
   (* Help proof search: Avoid trying TMuI_typed, that's1 slow. *)
   apply VObj_typed; first constructor; naive_solver.
 Qed.

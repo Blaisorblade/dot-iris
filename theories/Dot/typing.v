@@ -128,9 +128,9 @@ with subtype Γ : nat → ty → ty → Prop :=
 (*     Γ ⊢ₜ T, S i <: TLater T, i *)
 
 (* "Structural" rules about indexes *)
-(* | TSucc_stp T i: *)
-(*     is_stamped_ty (length Γ) getStampTable T → *)
-(*     Γ ⊢ₜ T, i <: T, S i *)
+| TSucc_stp T i:
+    is_stamped_ty (length Γ) getStampTable T →
+    Γ ⊢[i] T <: TLater T
 | TMono_stp T1 T2 i:
     Γ ⊢[i] T1 <: T2 →
     Γ ⊢[S i] T1 <: T2

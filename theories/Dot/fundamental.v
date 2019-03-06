@@ -23,66 +23,65 @@ Section fundamental.
     wellMapped getStampTable -∗ TLater V :: Γ ⊨d d : T with
   fundamental_dms_typed Γ V ds T (HT: Γ |ds V ⊢ ds : T):
     wellMapped getStampTable -∗ TLater V :: Γ ⊨ds ds : T with
-  fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2):
-    wellMapped getStampTable -∗ Γ ⊨ [T1, i1] <: [T2, i2] with
+  fundamental_subtype Γ T1 i T2 (HT: Γ ⊢[i] T1 <: T2):
+    wellMapped getStampTable -∗ Γ ⊨[i] T1 <: T2 with
   fundamental_typed Γ e T (HT: Γ ⊢ₜ e : T):
     wellMapped getStampTable -∗ Γ ⊨ e : T.
   Proof.
     - iIntros "#Hm"; iInduction HT as [] "IHT".
-      + iApply D_Typ;
-        last by iApply extraction_to_leadsto_envD_equiv.
-        admit.
-        admit.
-        (* by iApply fundamental_subtype.
-        by iApply fundamental_subtype. *)
+      + iApply D_Typ; by [iApply fundamental_subtype | iApply extraction_to_leadsto_envD_equiv].
       + iApply idtp_vmem_i. by iApply fundamental_typed.
     - admit.
     - iIntros "#Hm"; iInduction HT as [] "IHT".
-      + by iApply Sub_Refl.
-      + by iApply Sub_Trans.
-      + by iApply Later_Sub.
-      + by iApply Sub_Later.
-      + by iApply Sub_Mono.
-      + by iApply Sub_Index_Incr.
-      + by iApply Sub_Top.
-      + by iApply Bot_Sub.
-      + by iApply And1_Sub.
-      + by iApply And2_Sub.
-      + by iApply Sub_And.
-      + by iApply Sub_Or1.
-      + by iApply Sub_Or2.
-      + by iApply Or_Sub.
-      + destruct p. iApply Sel_Sub. admit. admit.
-      + destruct p. iApply Sub_Sel. admit. admit.
-      + by iApply Sub_Mu_X.
-      + iApply Sub_Mu_A.
-      + iApply Sub_Mu_B.
-      + by iApply Sub_Later_Sub.
+      + by iApply DSub_Refl.
+      + by iApply DSub_Trans.
+      + admit; by iApply DSub_Mono.
+      + by iApply DSub_Index_Incr.
+      + admit; by iApply DSub_Top.
+      + admit; by iApply Bot_DSub.
+      + by iApply And1_DSub.
+      + by iApply And2_DSub.
+      + by iApply DSub_And.
+      + by iApply DSub_Or1.
+      + by iApply DSub_Or2.
+      + by iApply Or_DSub.
+      + destruct p. admit; iApply Sel_Sub. admit.
+      + destruct p. admit; iApply Sub_Sel. admit.
+      + admit; by iApply DSub_Mu_X.
+      + admit; iApply Sub_Mu_A.
+      + admit; iApply Sub_Mu_B.
+      + by iApply DSub_Later_Sub.
       (* Subtyping variance. PROBLEMS WITH MODALITY SWAPS! *)
       (* Putting the later around the *whole* subtyping judgment would help here. *)
-      + iIntros "/= !>" (ρ v Hcl) "#Hg #[$ HT1]".
-        iDestruct "HT1" as (t) "#[Heq #HT1']".
-        iExists t; iSplit => //.
-        iIntros (w).
-        iSpecialize ("IHT" $! _ w _ with "Hg").
+      + iApply Sub_TAll_Variant_Argh. iApply "IHT". admit.
+      + iIntros "/= !>" (ρ) "#Hg".
+        iSpecialize ("IHT" with "Hg").
         iNext.
-        iIntros "!>!> #HwT2".
-        iSpecialize ("IHT1" $! (w :: ρ) w _ with "[#]").
-        iFrame "Hg". by iApply interp_weaken_one.
-        admit.
-      + iIntros "/= !>" (ρ v Hcl) "#Hg [$ #HT1]".
+        iIntros (v) "#[$ #HT1]".
         iDestruct "HT1" as (d) "#[Hdl [Hcld #HT1]]".
         iExists d; repeat iSplit => //.
         iDestruct "HT1" as (vmem) "[Heq HvT1]".
         iExists vmem; repeat iSplit => //.
-        rewrite !swap_later.
+        (* rewrite !swap_later.
         iApply (strip_pure_laterN (S i) (nclosed_vl vmem 0)).
         * iIntros. by iApply "IHT".
-        * by iApply interp_v_closed.
-      + admit.
-      + iApply Sub_TAll_Cov_Distr.
-      + iApply Sub_TVMem_Cov_Distr.
-      + iApply Sub_TTMem_Cov_Distr.
+        * by iApply interp_v_closed. *)
+        by iApply "IHT".
+      + iIntros "/= !>" (ρ) "#Hg".
+        iSpecialize ("IHT" with "Hg").
+        iSpecialize ("IHT1" with "Hg").
+        iNext.
+        iIntros (v) "#[$ #HT1]".
+        iDestruct "HT1" as (d) "#[Hdl [Hcld #HT1]]".
+        iExists d; repeat iSplit => //.
+        iDestruct "HT1" as (φ) "[Heq #[HLT HTU]]".
+        iExists φ; repeat iSplit => //.
+        iNext. iModIntro. iSplitL.
+        * iIntros (u) "#Hu". iApply "HLT". by iApply "IHT".
+        * iIntros (u) "#Hu". iApply "IHT1". by iApply "HTU".
+      + admit; iApply Sub_TAll_Cov_Distr.
+      + admit; iApply Sub_TVMem_Cov_Distr.
+      + admit; iApply Sub_TTMem_Cov_Distr.
     - iIntros "#Hm"; iInduction HT as [] "IHT".
       + by iApply T_Forall_Ex.
       + by iApply T_Forall_E.
@@ -95,7 +94,7 @@ Section fundamental.
       + by iApply T_Nat_I.
       + by iApply T_Var.
       + iApply T_Sub => //.
-        by iApply fundamental_subtype.
+        admit; by iApply fundamental_subtype.
       + by iApply TAnd_I.
   Admitted.
 

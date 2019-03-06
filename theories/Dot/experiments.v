@@ -1,7 +1,7 @@
 From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language ectx_language.
 From iris.proofmode Require Import tactics.
-From D Require Import tactics.
+From D Require Import tactics proofmode_extra.
 From D.Dot Require Import unary_lr unary_lr_binding synLemmas rules.
 (* Workflow: Use this file for new experiments, and move experiments here in appropriate files once they're done. *)
 
@@ -101,7 +101,6 @@ Section Sec.
     iNext. iApply (wp_wand with "HtT1toU1").
     iIntros (u) "#HuU1". by iApply "HsubU".
   Qed.
-  From D Require Import proofmode_extra.
 
   Lemma Sub_AllVariance_fails Γ T1 T2 U1 U2 i:
     Γ ⊨[S i] T2 <: T1 -∗
@@ -110,18 +109,18 @@ Section Sec.
   Proof.
     iIntros "#HsubT #HsubU /= !>" (ρ) "#Hg". iIntros (v).
     iSpecialize ("HsubT" $! ρ with "Hg").
-    iSpecialize ("HsubU")
-    Show.
+    iNext; iIntros "[$ #HtT1toU1]".
 
-    rewrite (iterate_TLater_later (S i) T2.|[ren (+1)] ρ).
+    (* rewrite (iterate_TLater_later (S i) T2.|[ren (+1)] ρ). *)
 
-     iIntros "[$ #HtT1toU1]".
     iDestruct "HtT1toU1" as (t) "#[Heq #HtT1toU1]"; iExists t; iSplit => //.
     iIntros "!>" (w Hclw) "#HwT2".
     iSpecialize ("HtT1toU1" $! w with "[#//] [#]"). by iApply "HsubT".
+    iNext.
     iSpecialize ("HsubU" $! (w :: ρ) with "[#]"). repeat iSplitL => //. by iApply interp_weaken_one.
-    iNext. iApply (wp_wand with "HtT1toU1").
+    iApply (wp_wand with "HtT1toU1").
     iIntros (u) "#HuU1". by iApply "HsubU".
+  Qed.
 
     (* iIntros "#HsubT #HsubU /= !>". (ρ v) "#Hg [$ #HT1]".
     iDestruct "HT1" as (t) "#[Heq #HT1]".
@@ -136,9 +135,8 @@ Section Sec.
       by iApply interp_v_closed.
       iFrame "Hg". by iApply interp_weaken_one.
       by iApply "HsubU". *)
-  Abort.
 
-  Lemma Sub_TAll_Variant T1 T2 U1 U2 i:
+  Lemma Sub_TAll_Variant Γ T1 T2 U1 U2 i:
     Γ ⊨[S i] T2 <: T1 -∗
     iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨[S i] U1 <: U2 -∗
     Γ ⊨[i] TAll T1 U1 <: TAll T2 U2.
@@ -157,10 +155,11 @@ Section Sec.
 
     iIntros "!> [$ #HT1]".
     iDestruct "HT1" as (t) "#[Heq #HT1]"; iExists t; iSplit => //.
-    iIntros "!>" (w) "#HwT2". About wp_wand.
-    iSpecialize ("HT1" $! w with "[#]"). by iApply "HsubT".
+    iIntros "!>" (w Hclw) "#HwT2".
+    iSpecialize ("HT1" $! w with "[#//] [#]"). by iApply "HsubT".
+    iNext.
     iApply wp_wand.
-    - iApply ("HT1" $! w). iApply "HsubT" => //.
+    - iApply ("HT1").
     - iIntros (u) "#HuU1".
       iSpecialize ("HsubU'" $! w with "[#] [#]"). by iApply interp_v_closed. by iApply interp_weaken_one.
       iAssert (▷^(S i)  ⟦ U1 ⟧ (w :: ρ) u)%I as "#lHuU1". by [].

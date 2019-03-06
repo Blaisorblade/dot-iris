@@ -12,6 +12,10 @@ Section Sec.
     (Γ ⊨ [T, i] <: [T, S i])%I.
   Proof. by iIntros "!> **". Qed.
 
+  Lemma DSub_Mono T i :
+    Γ ⊨[i] T <: TLater T.
+  Proof. iIntros "!> ** !> ** //="; iSplit => //. by iApply interp_v_closed. Qed.
+
   Lemma Sub_Later_Sub T1 T2 i:
     Γ ⊨ [T1, S i] <: [T2, S i] -∗
     Γ ⊨ [TLater T1, i] <: [TLater T2, i].
@@ -120,9 +124,9 @@ Section Sec.
   Lemma Sub_Or2 T1 T2 i: Γ ⊨ [T2, i] <: [TOr T1 T2, i].
   Proof. iIntros "/= !> ** !>"; naive_solver. Qed.
 
-  Lemma Or1_DSub T1 T2 i: Γ ⊨[i] T1 <: TOr T1 T2.
+  Lemma DSub_Or1 T1 T2 i: Γ ⊨[i] T1 <: TOr T1 T2.
   Proof. iIntros "/= !> ** !> **"; naive_solver. Qed.
-  Lemma Or2_DSub T1 T2 i: Γ ⊨[i] T2 <: TOr T1 T2.
+  Lemma DSub_Or2 T1 T2 i: Γ ⊨[i] T2 <: TOr T1 T2.
   Proof. iIntros "/= !> ** !> **"; naive_solver. Qed.
 
   Lemma Or_Sub S T1 T2 i j:
@@ -131,7 +135,7 @@ Section Sec.
     Γ ⊨ [TOr T1 T2, i] <: [S, j].
   Proof. iIntros "/= #H1 #H2 !> * #Hcl #Hg #[HT1 | HT2]"; by [iApply "H1" | iApply "H2"]. Qed.
 
-  Lemma DSub_Or S T1 T2 i:
+  Lemma Or_DSub S T1 T2 i:
     Γ ⊨[i] T1 <: S -∗
     Γ ⊨[i] T2 <: S -∗
     Γ ⊨[i] TOr T1 T2 <: S.
@@ -145,9 +149,17 @@ Section Sec.
     Γ ⊨ [T, i] <: [TTop, i].
   Proof. by iIntros "!> ** /=". Qed.
 
+  Lemma DSub_Top T i:
+    Γ ⊨[i] T <: TTop.
+  Proof. iIntros "!> ** !> ** /=". by iApply interp_v_closed. Qed.
+
   Lemma Bot_Sub T i:
     Γ ⊨ [TBot, i] <: [T, i].
   Proof. by iIntros "/= !> ** !>". Qed.
+
+  Lemma Bot_DSub T i:
+    Γ ⊨[i] TBot <: T.
+  Proof. by iIntros "!> ** !> ** /=". Qed.
 
   Lemma T_Nat_I n: Γ ⊨ tv (vnat n): TNat.
   Proof.
