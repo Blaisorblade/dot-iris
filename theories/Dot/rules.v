@@ -1,10 +1,9 @@
-From iris.program_logic Require Import ectx_lifting.
+From iris.program_logic Require Import ectx_language.
 From D.Dot Require Import operational.
 
-Section lang_rules.
-  (* Context `{irisG }. *)
-  Implicit Types e : tm.
+Implicit Types e : tm.
 
+Section lang_rules.
   Ltac inv_head_step :=
     repeat match goal with
     | H : to_val _ = Some _ |- _ => apply of_to_val in H
@@ -62,3 +61,6 @@ Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
   iApply (wp_bind (fill[ctx]));
   iApply (wp_wand with "[-]"); [iApply Hp; trivial|]; cbn;
   iIntros (v) Hv.
+
+Lemma tskip_n_to_fill i e: iterate tskip i e = fill (repeat SkipCtx i) e.
+Proof. elim: i e => [|i IHi] e //; by rewrite ?iterate_0 ?iterate_Sr /= -IHi. Qed.

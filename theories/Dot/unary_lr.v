@@ -5,7 +5,7 @@ From D.Dot Require Export operational.
 (** Deduce types from variable names, like on paper, for readability and to help
     type inference for some overloaded operations (e.g. substitution). *)
 Implicit Types
-         (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
+         (L T U: ty) (v w: vl) (e: tm) (d: dm) (ds: dms)
          (Γ : ctx) (ρ : leibnizC vls).
 
 
@@ -39,7 +39,7 @@ Section logrel.
     λne ρ v, (⌜ nclosed_vl v 0 ⌝ ∗ ∃ d, ⌜v @ l ↘ d⌝ ∧ def_interp_vmem interp ρ d)%I.
 
   Definition idm_proj_semtype d (φ : D) : iProp Σ :=
-    (∃ γ σ (φ' : listVlC -n> D), ⌜ d = dtysem σ γ ∧ φ = φ' σ ⌝ ∗ γ ⤇ (λ vs w, φ' vs w))%I.
+    (∃ s σ (φ' : listVlC -n> D), ⌜ d = dtysem σ s ∧ φ = φ' σ ⌝ ∗ s ↝ (λ vs w, φ' vs w))%I.
   Global Arguments idm_proj_semtype /.
   Notation "d ↗ φ" := (idm_proj_semtype d φ) (at level 20).
 
@@ -47,9 +47,9 @@ Section logrel.
     d ↗ φ1 -∗ d ↗ φ2 -∗ ▷ (φ1 v ≡ φ2 v).
   Proof.
     iIntros "/= #Hd1 #Hd2".
-    iDestruct "Hd2" as (γ' σ' φ2' H2) "Hγ2".
-    iDestruct "Hd1" as (γ σ φ1' H1) "Hγ1".
-    ev; subst; injectHyps. by iApply (saved_interp_agree_eta _ φ1' φ2').
+    iDestruct "Hd2" as (s' σ' φ2' H2) "Hs2".
+    iDestruct "Hd1" as (s σ φ1' H1) "Hs1".
+    ev; subst; injectHyps. by iApply (leadsto_agree _ φ1' φ2').
   Qed.
 
   Program Definition def_interp_tmem (interp1 interp2 : listVlC -n> D) :
@@ -57,8 +57,7 @@ Section logrel.
     λne ρ d,
     (⌜ nclosed d 0 ⌝ ∗ ∃ φ, (d ↗ φ) ∗
        □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ interp1 ρ v → ▷ □ φ v) ∗
-          (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ φ v → ▷ interp2 ρ v) ∗
-          (∀ v, interp1 ρ v → interp2 ρ v)))%I.
+          (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ φ v → ▷ interp2 ρ v)))%I.
 
   Program Definition interp_tmem l (interp1 interp2 : listVlC -n> D) : listVlC -n> D :=
     λne ρ v,
@@ -123,15 +122,10 @@ Section logrel.
     Persistent (path_wp p pred).
   Proof. elim: p pred => *; apply _. Qed.
 
-  Program Definition interp_selA (p: path) (l: label) (interpL interpU : listVlC -n> D) :
+  Program Definition interp_sel (p: path) (l: label) :
     listVlC -n> D :=
-    λne ρ v,
-    (interpU ρ v ∧ (interpL ρ v ∨
-                    path_wp p.|[to_subst ρ]
-                            (λne vp, ∃ ϕ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ϕ ∧ ▷ □ ϕ v)))%I.
-
-  Definition interp_sel (p: path) (l: label) : listVlC -n> D :=
-    interp_selA p l interp_bot interp_top.
+    λne ρ v, (⌜ nclosed_vl v 0 ⌝ ∧ path_wp p.|[to_subst ρ]
+      (λne vp, ∃ ϕ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ϕ ∧ ▷ □ ϕ v))%I.
 
   Fixpoint interp (T: ty) : listVlC -n> D :=
     match T with
@@ -146,7 +140,6 @@ Section logrel.
     | TAll T1 T2 => interp_forall (interp T1) (interp T2)
     | TMu T => interp_mu (interp T)
     | TSel p l => interp_sel p l
-    | TSelA p l L U => interp_selA p l (interp L) (interp U)
   end % I.
 
   Global Instance dotInterpΣ : dotInterpG Σ := DotInterpG _ (λ T ρ, interp T ρ).
@@ -252,6 +245,23 @@ Section logrel.
 
   (** Indexed Subtyping. Defined on closed values. We must require closedness
       explicitly, since closedness now does not follow from being well-typed later. *)
+  (** How do we represent subtyping in a later world? We have two distinct
+      choices, because in Iris ▷(P ⇒ Q) ⊢ ▷ P ⇒ ▷ Q but not viceversa
+      (unlike with raw step-indexing).
+      In turn, that's because to show ▷ P ⇒ ▷ Q we can assume resources are
+      valid one step earlier, unlike for ▷(P ⇒ Q).
+
+      It seems easier, in subtyping judgment, to use the weaker choice: that is,
+      just delay individual types via (Γ ⊨ TLater T <: TLater U), that is
+
+      (□∀ v ρ, ⟦Γ⟧* ρ → ▷ ⟦T1⟧ ρ v → ▷ ⟦T2⟧ ρ v),
+
+      instead of instead of introducing some notation to write
+
+      (□∀ v ρ, ⟦Γ⟧* ρ → ▷ (⟦T1⟧ ρ v → ⟦T2⟧ ρ v)).
+
+      And that forces using the same implication in the logical relation
+      (unlike I did originally). *)
   Definition step_indexed_ivstp Γ T1 T2 i j: iProp Σ :=
     (□∀ ρ v, ⌜ nclosed_vl v 0 ⌝ → ⟦Γ⟧*ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
   Global Arguments step_indexed_ivstp /.
@@ -279,7 +289,9 @@ Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
 
 Notation "Γ ⊨ T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).
-Notation "Γ '⊨' '[' T1 ',' i ']' '<:' '[' T2 ',' j ']'" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
+
+Notation "Γ ⊨ [ T1 , i ]  <: [ T2 , j ]" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
+Notation "Γ ⊨ T1 , i  <: T2 , j" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
 
 Section logrel_lemmas.
   Context `{HdotG: dotG Σ}.
@@ -300,7 +312,6 @@ Section logrel_lemmas.
     - iDestruct "HT" as "[#HT1 #HT2]". by iApply "IHT".
     - iDestruct "HT" as "[#HT1 | #HT2]"; by [iApply "IHT" | iApply "IHT1"].
     - by iApply "IHT".
-    - iDestruct "HT" as "[#HT2 _]". by iApply "IHT1".
     - by iDestruct "HT" as (n) "->".
   Qed.
 

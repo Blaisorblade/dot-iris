@@ -40,12 +40,7 @@ Section Sec.
     t_ty T1 T2 -∗
     (|==> ∃ σ2 γ2, t_dty_syn2sem t_ty T1 σ2 γ2)%I.
   Proof.
-    iMod (alloc_sp T2) as (γ) "#Hγ".
-    iIntros (Hcl) "HT !> /=".
-    rewrite /t_dty_syn2sem.
-    iExists (idsσ n), γ, (dot_interp T2), T2; repeat iSplit; trivial.
-    rewrite length_idsσ. iIntros. by rewrite subst_sigma_idsσ.
-  Qed.
+  Abort.
 
   (**
      Eventually we want [ t_ty T T1 -∗ t_ty T T2 -∗ ∀ ρ v, ⟦ T1 ⟧ ρ v ≡ ⟦ T2 ⟧ ρ v ].
@@ -62,17 +57,7 @@ Section Sec.
                   ⌜ length ρ = length σ1 ⌝ →
                   φ1 (subst_sigma σ1 ρ) v ≡ φ2 (subst_sigma σ2 ρ) v.
   Proof.
-    rewrite /= /t_dty_syn2sem.
-    iIntros "H1 H2 % #Hproper".
-    iDestruct "H1" as (φ1 T1) "(#H1 & HeqT1 & #Heqφ1)".
-    iDestruct "H2" as (φ2 T2) "(#H2 & HeqT2 & #Heqφ2)".
-    iExists φ1, φ2. repeat iSplit => //.
-    iIntros (ρ v Heq1).
-    iRewrite -("Heqφ1" $! ρ v _). iRewrite -("Hproper" $! T T1 ρ v with "HeqT1").
-    iRewrite -("Heqφ2" $! ρ v _). iRewrite -("Hproper" $! T T2 ρ v with "HeqT2").
-    trivial.
-    Unshelve. all: congruence.
-  Qed.
+  Abort.
 
   (** Lift translation between syntactic and semantic entities throughout the whole language.
       Lift [t_dty_syn2sem] throughout the syntax of terms and types, checking that otherwise the terms are equal.
@@ -142,7 +127,6 @@ Section Sec.
     | (TVMem l1 T1, TVMem l2 T2) => ⌜l1 = l2⌝ ∧ t_ty T1 T2
     | (TTMem l1 T11 T12, TTMem l2 T21 T22) => ⌜l1 = l2⌝ ∧ t_ty T11 T21 ∧ t_ty T12 T22
     | (TSel p1 l1, TSel p2 l2) => t_path p1 p2 ∧ ⌜l1 = l2⌝
-    | (TSelA p1 l1 T11 T12, TSelA p2 l2 T21 T22) => t_path p1 p2 ∧ ⌜l1 = l2⌝ ∧ t_ty T11 T21 ∧ t_ty T12 T22
     | (TNat, TNat) => True
     | _ => False
     end%I.
@@ -197,16 +181,6 @@ Section Sec.
   (** We now prove the lemmas on *existence of translations*, in stages.
       FIXME: unlike on paper, we do not yet check free variables.
    *)
-
-  (** Existence of translations for type member definitions. *)
-  Lemma ex_t_dty T1 T2 n:
-    nclosed T1 n →
-    t_ty T1 T2 -∗
-    (|==> ∃(d: dm), t_dm (dtysyn T1) d)%I.
-  Proof.
-    iIntros "% #Htr /=".
-    iMod (ex_t_dty_gen with "Htr") as (σ γ) "#H" => //. by iExists (dtysem σ γ).
-  Qed.
 
   (** is_syn_* are predicates to distinguish syntactic entities/source syntax.
       They also check for free variables at the same time, but that's probably a bad idea.
@@ -271,7 +245,6 @@ Section Sec.
     | TVMem l T => is_syn_ty T
     | TTMem l T1 T2 => is_syn_ty T1 ∧ is_syn_ty T2
     | TSel p l => is_syn_path p
-    | TSelA p l T1 T2 => is_syn_path p ∧ is_syn_ty T1 ∧ is_syn_ty T2
     | TNat => True
     end.
 
@@ -282,46 +255,6 @@ Section Sec.
       | cons (l, d) ds =>
         is_syn_dm d ∧ is_syn_dms ds
       end.
-
-  (** BEWARE!
-   Not using Admitted here, as it skips well-foundedness checks, which are
-   important here. **)
-  Axiom false: False.
-  Ltac skipAdmit := exfalso; apply false.
-
-  Ltac iModSpec Hfv H xt :=
-    iMod H as (xt) "#?"; try solve [simpl; intuition eassumption | solve_inv_fv_congruence_h Hfv].
-
-  Ltac tailPick Hfv H :=
-    let xt := fresh "t" in
-    (* idtac H; *)
-    iModSpec Hfv H xt; clear H.
-
-  Ltac pickSigmaInHp n Hfv :=
-    cbn; rewrite /nclosed /= in Hfv;
-    repeat match goal with
-           | H : context [(∃ _, ?p ?t1 _)%I ], H2 : context [?t1.|[up _]] |- context [?p ?t1 _] =>
-             specialize (H (S n)); tailPick Hfv H; try solve_inv_fv_congruence_h Hfv
-           | H : context [(∃ _, ?p ?t1 _)%I ], H2 : context [?t1.|[_]] |- context [?p ?t1 _] =>
-             specialize (H n); tailPick Hfv H; try solve_inv_fv_congruence_h Hfv
-           (* | H : context [(∃ _, ?p _ _)%I ], H2 : context [?t1.|[_]] |- context [_ ?t1 _] => *)
-           (*   idtac H; *)
-           (*   specialize (H n t1); tailPick Hfv H; try solve_inv_fv_congruence_h Hfv *)
-           end.
-
-  Tactic Notation "finish" uconstr(p) := iIntros "!>"; iExists p; simpl; repeat iSplit; auto.
-  Tactic Notation "recursiveTransf" uconstr(p) ident(n) ident(Hfv) := pickSigmaInHp n Hfv; finish p.
-
-  Ltac fill n Hfv :=
-    lazymatch goal with
-    | |- context [(∃ t2, ?p (?c ?t11 ?t12) t2)%I] =>
-      recursiveTransf (c _ _) n Hfv
-    | |- context [(∃ t2, ?p (?c ?t11) t2)%I] =>
-      recursiveTransf (c _) n Hfv
-    | |- context [(∃ t2, ?p ?c t2)%I] =>
-      recursiveTransf c n Hfv
-    end.
-  Ltac skeleton n t1 Hfv := revert n; induction t1; intros * Hfv Hsyn; simpl in Hsyn; try solve [contradiction|fill n Hfv].
 
   Lemma ex_t_ty n t1: nclosed t1 n → is_syn_ty t1 → (|==> ∃t2, t_ty t1 t2)%I
   with  ex_t_path n t1: nclosed t1 n → is_syn_path t1 -> (|==> ∃t2, t_path t1 t2)%I
@@ -335,7 +268,6 @@ Section Sec.
        the statement are premature. *)
   (* all: skeleton n t1 Hfv. *)
   (* - iModSpec Hfv (ex_t_path n p) p2. recursiveTransf (TSel _ _) n Hfv. *)
-  (* - iModSpec Hfv (ex_t_path n p) p2. recursiveTransf (TSelA _ _ _ _) n Hfv. *)
   (* - iModSpec Hfv (ex_t_vl n v) v2. recursiveTransf (pv _) n Hfv. *)
   (* - iModSpec Hfv (ex_t_tm (S n) t) t2. recursiveTransf (vabs _) n Hfv. *)
   (* - iInduction l as [|d ds] "IHl". *)
@@ -357,8 +289,7 @@ Section Sec.
   (*   solve_inv_fv_congruence_h Hfv. *)
   (* - iModSpec Hfv (ex_t_vl n v) v2. recursiveTransf (dvl _) n Hfv. *)
   (* Qed. *)
-
-  Admitted.
+  Abort.
 
   Lemma translation_same_skel t t':
     ( t_tm t t' → ⌜same_skel_tm t t'⌝)%I
@@ -373,25 +304,7 @@ Section Sec.
   with translation_same_skel_vl t t':
     ( t_vl t t' → ⌜same_skel_vl t t'⌝)%I.
   Proof.
-    Ltac localAuto :=
-      match goal with
-      | [ HH: context[?P _ _] |- context[?P _ _] ] => iApply HH; try done
-      | _ => try done
-      end.
-    all: iIntros "Hyp";
-      destruct t; destruct t'; simpl; eauto;
-      (* by iApply translation_same_skel_vl. *)
-      repeat iSplit;
-      try (iDestruct "Hyp" as "[Hyp1 Hyp2]");
-      try (iDestruct "Hyp1" as "[Hyp11 Hyp12]");
-      try (iDestruct "Hyp2" as "[Hyp21 Hyp22]");
-      try (iDestruct "Hyp22" as "[Hyp221 Hyp222]"); localAuto.
-
-    iInduction l as [| (l1, d1) ds1] "IHl" forall (l0); destruct l0 as [|(l2, d2) ds2]; try done.
-    repeat iSplit;
-      try (iDestruct "Hyp" as "[% [Hyp1 Hyp2]]"); localAuto.
-    by iApply "IHl".
-  Qed.
+  Abort.
 
   (** We want to prove that different translations give equivalent lookup
       results. This is the core case of that proof. A better statement might say
@@ -409,27 +322,7 @@ Section Sec.
         ⌜ length ρ = length σ1 ⌝ →
         (φ1 (subst_sigma σ1 ρ) v ≡ φ2 (subst_sigma σ2 ρ) v).
   Proof.
-    intros ->. iIntros "#Htr1 #Htr2".
-    destruct d as [T0| |]=> //; destruct d2 as [|σ2 γ2|] => //.
-    cbn; rewrite /t_dty_syn2sem -/t_ty /=.
-    iDestruct "Htr1" as (φ1 T1) "[Hγ1' [HT1 Hφ1]]".
-    iDestruct "Htr2" as (φ2 T2) "[Hγ2' [HT2 Hφ2]]".
-    (* XXX even if we added this, we still couldn't conclude the desired
-       [ length ρ = length σ2 ]. *)
-    (* assert (nclosed T0 (length σ1)). admit. *)
-    (* assert (nclosed T0 (length σ2)). admit. *)
-    iExists φ1, φ2, σ2, γ2. repeat iSplit => //=.
-    iIntros (ρ v) "#Hlen1".
-    (* Currently false, adjust definitions to ensure this! *)
-    iAssert (⌜length ρ = length σ2⌝)%I as "#Hlen2". admit.
-    iSpecialize ("Hφ1" $! _ v with "Hlen1").
-    iSpecialize ("Hφ2" $! _ v with "Hlen2").
-    (* Inductive hypothesis in [translations_types_equivalent_vals] . *)
-    iAssert (dot_interp T1 ρ v ≡ dot_interp T2 ρ v)%I as "#Heq". admit.
-    iRewrite - "Hφ1".
-    iRewrite "Heq".
-    iExact "Hφ2".
-  Admitted.
+  Abort.
 
   Lemma t_dm_agree d d1 d2 σ1 γ1 φ1:
     d1 = dtysem σ1 γ1 →
@@ -449,30 +342,6 @@ Section Sec.
   (*                 ⌜ cl_ρ ρ ⌝ → *)
   (*                 ▷ (φ1 (subst_sigma σ1 ρ) v ≡ φ2 (subst_sigma σ2 ρ) v). *)
   Proof.
-    intros ->. iIntros "#Htr1 #Htr2 #Hγ1".
-    destruct d as [T0| |]=> //; destruct d2 as [|σ2 γ2|] => //.
-    cbn; rewrite /t_dty_syn2sem -/t_ty /=.
-    iDestruct "Htr1" as (φ1' T1) "[Hγ1' [HT1 Hφ1]]".
-    iDestruct "Htr2" as (φ2 T2) "[Hγ2' [HT2 Hφ2]]".
-    (* XXX even if we added this, we still couldn't conclude the desired
-       [ length ρ = length σ2 ]. *)
-    (* assert (nclosed T0 (length σ1)). admit. *)
-    (* assert (nclosed T0 (length σ2)). admit. *)
-    iExists σ2, γ2, (λne vs w, φ2 vs w). repeat iSplit => //=.
-    iAssert (∀ v ρ, ▷ (φ1 ρ v ≡ φ1' ρ v))%I as "#Hag".
-      by iIntros; iApply (saved_interp_agree γ1 φ1 φ1' ρ v).
-    iIntros (ρ v) "#Hlen1".
-    (* Currently false, adjust definitions to ensure this! *)
-    iAssert (⌜length ρ = length σ2⌝)%I as "#Hlen2". admit.
-    iSpecialize ("Hφ1" $! _ v with "Hlen1").
-    iSpecialize ("Hφ2" $! _ v with "Hlen2").
-    iSpecialize ("Hag" $! v (subst_sigma σ1 ρ)).
-    iNext.
-    (* Inductive hypothesis in [translations_types_equivalent_vals] . *)
-    iAssert (dot_interp T1 ρ v ≡ dot_interp T2 ρ v)%I as "#Heq". admit.
-    iRewrite "Hag". iRewrite - "Hφ1".
-    iRewrite "Heq".
-    iExact "Hφ2".
-  Admitted.
+  Abort.
 
 End Sec.

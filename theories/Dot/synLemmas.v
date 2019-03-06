@@ -177,9 +177,6 @@ Proof. solve_fv_congruence. Qed.
 Lemma fv_dvl v n: nclosed_vl v n → nclosed (dvl v) n.
 Proof. solve_fv_congruence. Qed.
 
-Lemma fv_dtysem ρ γ l: nclosed ρ l → nclosed (dtysem ρ γ) l.
-Proof. solve_fv_congruence. Qed.
-
 Definition fv_dms_cons : ∀ l d ds n, nclosed ds n → nclosed d n → nclosed ((l, d) :: ds) n := fv_pair_cons.
 
 Lemma fv_vls_cons v vs n: nclosed vs n → nclosed_vl v n → nclosed (v :: vs) n.
@@ -277,3 +274,25 @@ Lemma subst_compose_idsσ_x
   a.|[to_subst (idsσ n).|[to_subst ξ]] = a.|[to_subst (idsσ n)].|[to_subst ξ].
 Proof. intros; eauto. Qed.
 Hint Resolve @subst_compose_idsσ_x.
+
+Lemma nclosed_tskip_i e n i:
+  nclosed e n →
+  nclosed (iterate tskip i e) n.
+Proof.
+  move => Hcl; elim: i => [|i IHi]; rewrite ?iterate_0 ?iterate_S //; solve_fv_congruence.
+Qed.
+
+Lemma tskip_subst i e s: (iterate tskip i e).|[s] = iterate tskip i e.|[s].
+Proof. elim: i => [|i IHi]; by rewrite ?iterate_0 ?iterate_S //= IHi. Qed.
+
+Lemma nclosed_σ_to_subst ξ σ n:
+  nclosed_σ ξ (length σ) → nclosed_σ σ n →
+  nclosed_σ (ξ.|[to_subst σ]) n.
+Proof.
+  intros.
+  apply closed_vls_to_Forall, fv_to_subst => //. by apply Forall_to_closed_vls.
+Qed.
+Hint Resolve nclosed_σ_to_subst.
+
+Lemma fv_dtysem ρ γ l: nclosed_σ ρ l → nclosed (dtysem ρ γ) l.
+Proof. move => /Forall_to_closed_vls. solve_fv_congruence. Qed.

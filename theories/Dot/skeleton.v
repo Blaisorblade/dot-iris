@@ -63,7 +63,6 @@ Fixpoint same_skel_ty (T1 T2: ty): Prop :=
   | (TVMem l1 T1, TVMem l2 T2) => l1 = l2 ∧ same_skel_ty T1 T2
   | (TTMem l1 T11 T12, TTMem l2 T21 T22) => l1 = l2 ∧ same_skel_ty T11 T21 ∧ same_skel_ty T12 T22
   | (TSel p1 l1, TSel p2 l2) => same_skel_path p1 p2 ∧ l1 = l2
-  | (TSelA p1 l1 T11 T12, TSelA p2 l2 T21 T22) => same_skel_path p1 p2 ∧ l1 = l2 ∧ same_skel_ty T11 T21 ∧ same_skel_ty T12 T22
   | (TNat, TNat) => True
   | _ => False
   end.

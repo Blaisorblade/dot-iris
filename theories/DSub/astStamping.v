@@ -50,7 +50,6 @@ unstamp_ty g (T: ty): ty :=
   (* | TMu T => TMu (unstamp_ty g T) *)
   | TTMem T1 T2 => TTMem (unstamp_ty g T1) (unstamp_ty g T2)
   | TSel v => TSel (unstamp_vl g v)
-  (* | TSelA v T1 T2 => TSelA (unstamp_vl g v) (unstamp_ty g T1) (unstamp_ty g T2) *)
   | TNat => T
   end.
 

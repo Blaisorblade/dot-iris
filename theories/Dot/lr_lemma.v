@@ -35,6 +35,97 @@ Section Sec.
     (WP e {{ v, Φ v }} -∗ ⌜ nclosed e 0 ⌝ -∗ (∀ v, Φ v -∗ ⌜ nclosed_vl v 0 ⌝ -∗ Ψ v) -∗ WP e {{ v, Ψ v }})%I.
   Admitted.
 
+  Lemma wp_and (P1 P2: vl → iProp Σ) e:
+    ((WP e {{ P1 }} ) -∗ (WP e  {{ P2 }} ) -∗ WP e {{ v, P1 v ∧ P2 v }})%I.
+  Proof.
+    iLöb as "IH" forall (e).
+    iIntros "H1 H2".
+    iEval (rewrite !wp_unfold /wp_pre) in "H1";
+    iEval (rewrite !wp_unfold /wp_pre) in "H2";
+    iEval (rewrite !wp_unfold /wp_pre).
+    case_match; first by auto.
+    iIntros (σ1 k ks n) "#Ha".
+    iDestruct ("H1" $! σ1 k ks n with "Ha") as "[$ H1]".
+    iDestruct ("H2" $! σ1 k ks n with "Ha") as "[% H2]".
+    iIntros (e2 σ2 efs Hstep).
+    iSpecialize ("H1" $! e2 σ2 efs Hstep);
+    iSpecialize ("H2" $! e2 σ2 efs Hstep).
+    iNext.
+    iDestruct "H1" as "[$ [H1 $]]".
+    iDestruct "H2" as "[_ [H2 _]]".
+    by iApply ("IH" with "H1 H2").
+  Qed.
+
+  Lemma Sub_TAll_Variant T1 T2 U1 U2 i:
+    ▷^(S i) (Γ ⊨ [T2, 0] <: [T1, 0]) -∗
+    ▷^(S i) (T2.|[ren (+1)] :: Γ ⊨ [U1, 0] <: [U2, 0]) -∗
+    ▷^i (Γ ⊨ [TAll T1 U1, 0] <: [TAll T2 U2, 0]).
+  Proof.
+    iIntros "#HsubT #HsubU /= !>!>" (ρ v Hcl) "#Hg [$ #HT1]".
+    iDestruct "HT1" as (t) "#[Heq #HT1]"; iExists t; iSplit => //.
+    iIntros (w) "!>!> #HwT2". iApply wp_wand.
+    - iApply "HT1". iApply "HsubT" => //. by iApply interp_v_closed.
+    - iIntros (u) "#HuU1".
+      iApply ("HsubU" $! (w :: ρ) u with "[#] [#] [//]").
+      by iApply interp_v_closed.
+      iFrame "Hg". by iApply interp_weaken_one.
+  Qed.
+
+  Lemma TAnd_I e T1 T2:
+    Γ ⊨ e : T1 -∗
+    Γ ⊨ e : T2 -∗
+    Γ ⊨ e : TAnd T1 T2.
+  Proof.
+    iIntros "#HT1 #HT2 /=".
+    (* iDestruct "HT1" as "[% #HT1]". *) (* Works *)
+    (* Fail iDestruct "HT1" as "[$ #HT1]". *)
+    iDestruct "HT1" as "[$ #HT1']". iClear "HT1".
+    iDestruct "HT2" as "[_ #HT2]".
+    iIntros "!>" (ρ) "#Hg".
+    iApply wp_and; by [> iApply "HT1'" | iApply "HT2"].
+  Qed.
+
+
+  (* Is it true that for covariant F, F[A ∧ B] = F[A] ∧ F[B]?
+    Dotty assumes that, tho DOT didn't capture it.
+    F[A ∧ B] <: F[A] ∧ F[B] is provable by covariance.
+    Let's prove F[A] ∧ F[B] <: F[A ∧ B] in the model.
+    *)
+  Lemma Sub_TAll_Cov_Distr T U1 U2:
+    Γ ⊨ [TAnd (TAll T U1) (TAll T U2), 0] <: [TAll T (TAnd U1 U2), 0].
+  Proof.
+    iIntros "/= !>" (ρ v Hcl) "#Hg [[$ #H1] #[_ H2]]".
+    iDestruct "H1" as (t Heq) "#H1"; iDestruct "H2" as (t' ->) "#H2"; cinject Heq.
+    iExists _; iSplit => //.
+    iIntros "!>!>" (w) "#HT".
+    iApply wp_and. by iApply "H1". by iApply "H2".
+  Qed.
+
+  Lemma Sub_TVMem_Cov_Distr l T1 T2:
+    Γ ⊨ [TAnd (TVMem l T1) (TVMem l T2), 0] <: [TVMem l (TAnd T1 T2), 0].
+  Proof.
+    iIntros "/= !>" (ρ v Hcl) "#Hg [[$ #H1] #[_ H2]]".
+    iDestruct "H1" as (d?? vmem?) "#H1"; iDestruct "H2" as (d'?? vmem'?) "#H2". objLookupDet; subst; injectHyps.
+    repeat (iExists _; repeat iSplit => //).
+  Qed.
+
+  Lemma Sub_TTMem_Cov_Distr l L U1 U2:
+    Γ ⊨ [TAnd (TTMem l L U1) (TTMem l L U2), 0] <: [TTMem l L (TAnd U1 U2), 0].
+  Proof.
+    iIntros "/= !>" (ρ v Hcl) "#Hg [[$ #H1] #[_ H2]]".
+    iDestruct "H1" as (d?? φ) "#[Hsφ1 #[HLφ1 HφU1]]"; iDestruct "H2" as (d'?? φ') "#[Hsφ2 #[HLφ2 HφU2]]".
+    objLookupDet; subst; injectHyps.
+    iExists d; repeat iSplit => //.
+    iExists φ; repeat iSplit => //.
+    iModIntro; iSplitL; iIntros (w Hclw) "#Hw".
+    - by iApply "HLφ1".
+    - iPoseProof (stored_pred_agree d _ _ w with "Hsφ1 Hsφ2") as "#Hag"; iClear "Hsφ2".
+      iAssert (▷ □ φ' w)%I as "#Hw'". by iNext; iRewrite -"Hag".
+      iSpecialize ("HφU1" $! w Hclw with "Hw").
+      iSpecialize ("HφU2" $! w Hclw with "Hw'").
+      by iFrame "HφU1 HφU2".
+  Qed.
+
   Lemma nclosed_subst_ρ e ρ: nclosed e (length Γ) → ⟦ Γ ⟧* ρ -∗ ⌜ nclosed e.|[to_subst ρ] 0 ⌝.
   Proof.
     iIntros (Hcl) "Hg".
@@ -53,18 +144,6 @@ Section Sec.
     - by iApply nclosed_subst_ρ.
     - naive_solver.
   Qed.
-
-  Lemma nclosed_tskip_i e n i:
-    nclosed e n →
-    nclosed (iterate tskip i e) n.
-  Proof.
-    move => Hcl; elim: i => [|i IHi]; rewrite ?iterate_0 ?iterate_S //; solve_fv_congruence.
-  Qed.
-
-  Lemma tskip_n_to_fill i e: iterate tskip i e = fill (repeat SkipCtx i) e.
-  Proof. elim: i e => [|i IHi] e //; by rewrite ?iterate_0 ?iterate_Sr /= -IHi. Qed.
-  Lemma tskip_subst i e s: (iterate tskip i e).|[s] = iterate tskip i e.|[s].
-  Proof. elim: i => [|i IHi]; by rewrite ?iterate_0 ?iterate_S //= IHi. Qed.
 
   Lemma T_Sub e T1 T2 i:
     (Γ ⊨ e : T1 →
@@ -258,7 +337,7 @@ Section Sec.
     iIntros " !> * #HG".
     iApply wp_value'.
     iSplit.
-    { 
+    {
       iPoseProof (interp_env_ρ_closed with "HG") as "%". move: H => Hclρ.
       iPoseProof (interp_env_len_agree with "HG") as "%". move: H => Hlen. rewrite <- Hlen in Hcle.
       iPureIntro.

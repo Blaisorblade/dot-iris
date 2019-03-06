@@ -22,7 +22,6 @@ Inductive tm  : Type :=
   (* | TMu : ty -> ty *)
   | TTMem : ty -> ty -> ty
   | TSel : vl -> ty
-  (* | TSelA : vl -> ty -> ty -> ty *)
   | TNat :  ty.
 
 (** Induction principles for syntax. *)
@@ -177,7 +176,6 @@ ty_rename (sb : var → var) (T : ty) {struct T}: ty :=
   (* | TMu T => TMu (rename (upren sb) T) *)
   | TTMem T1 T2 => TTMem (rename sb T1) (rename sb T2)
   | TSel v => TSel (rename sb v)
-  (* | TSelA v T1 T2 => TSelA (rename sb v) (rename sb T1) (rename sb T2) *)
   | TNat => TNat
   end.
 
@@ -231,7 +229,6 @@ ty_hsubst (sb : var → vl) (T : ty) : ty :=
   (* | TMu T => TMu (hsubst (up sb) T) *)
   | TTMem T1 T2 => TTMem (hsubst sb T1) (hsubst sb T2)
   | TSel v => TSel (subst sb v)
-  (* | TSelA v T1 T2 => TSelA (subst sb v) (hsubst sb T1) (hsubst sb T2) *)
   | TNat => TNat
   end.
 

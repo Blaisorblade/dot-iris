@@ -29,7 +29,7 @@ The names are taken from the PDF. In parens, you'll find the names of lemmas.
 
 ## Canonical typing lemmas
 
-- [xg T-Nat-I
+- [x] T-Nat-I
 
 - [x] T-{}-E (T_Mem_E)
 
@@ -49,11 +49,7 @@ The names are taken from the PDF. In parens, you'll find the names of lemmas.
 
 - [ ] Sel-<:
 
-- [ ] Sel-<:-::
-
 - [ ] <:-Sel
-
-- [ ] <:-Sel-::
 
 - [x] <:-mu-X (Sub_Mu_X)
 
@@ -63,9 +59,9 @@ The names are taken from the PDF. In parens, you'll find the names of lemmas.
 
 - [x] <:-mu-2 (Sub_Mu_2)
 
-- [ ] T-mu-I
+- [x] T-mu-I
 
-- [ ] T-mu-E
+- [x] T-mu-E
 
 ## Canonical semantic typing lemmas for set-theoretic connectives
 
@@ -95,8 +91,8 @@ The names are taken from the PDF. In parens, you'll find the names of lemmas.
 
 - [x] T-{}-I (T_New_I) (with big missing lemmas, see `defs_interp_to_interp`)
 
-- [ ] D-Typ (almost, see idtp_tmem_abs_i)
+- [x] D-Typ
 
-- [ ] D-Trm (almost, see idtp_vmem_i)
+- [x] D-Trm
 
 - [ ] D-And

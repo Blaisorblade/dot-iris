@@ -2,7 +2,7 @@ From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language ectx_language.
 From iris.proofmode Require Import tactics.
 From D Require Import tactics.
-From D.Dot Require Import unary_lr unary_lr_binding synLemmas rules synToSem.
+From D.Dot Require Import unary_lr unary_lr_binding synLemmas rules.
 (* Workflow: Use this file for new experiments, and move experiments here in appropriate files once they're done. *)
 
 (* From iris.bi Require Export derived_laws_bi. *)
@@ -58,8 +58,8 @@ Section Russell.
 
   (** Russell's paradox, directly. *)
   Definition russell_p : listVlC -n> vlC -n> iProp Σ := λne ρ v, (⟦ TTMem "A" TBot TTop ⟧ [] v ∧ □ (⟦TSel (pv v) "A"⟧ [] v → False))%I.
-  Context (γ: gname).
-  Definition v := vobj [("A", dtysem [] γ)].
+  Context (s: stamp).
+  Definition v := vobj [("A", dtysem [] s)].
 
   Lemma taut0 (p: Prop): (p ↔(¬p))→ False. Proof. tauto. Qed.
   Lemma taut1 (p: Prop): (p ↔ ¬p)→ False.
@@ -70,25 +70,26 @@ Section Russell.
     apply H2notP, H2p.
   Qed.
 
-  Lemma vHasA: γ ⤇ (λ ρ v, russell_p ρ v) -∗ ⟦ TTMem "A" TBot TTop ⟧ [] v.
+  Lemma vHasA: s ↝ (λ ρ v, russell_p ρ v) -∗ ⟦ TTMem "A" TBot TTop ⟧ [] v.
   Proof.
-    iIntros "#Hγ". repeat (repeat iExists _; repeat iSplit; try done).
+    iIntros "#Hs". repeat (repeat iExists _; repeat iSplit; try done).
     iModIntro; repeat iSplit; by iIntros "**"; try iModIntro.
   Qed.
 
-  Lemma notRussellV: γ ⤇ (λ ρ v, russell_p ρ v) -∗ □ (russell_p [] v → False).
-    iIntros "#Hγ !> #[HvHasA #HnotRussellV]".
+  Lemma notRussellV: s ↝ (λ ρ v, russell_p ρ v) -∗ □ (russell_p [] v → False).
+    iIntros "#Hs !> #[HvHasA #HnotRussellV]".
     (* Either: *)
     (* iApply "HnotRussellV". *)
     (* or some convolution to state the goal explicitly and explain what happens. *)
     iAssert (⟦ TSel (pv v) "A" ⟧ [] v) as "#HrussellV".
-    2: {iApply "HnotRussellV". iApply "HrussellV". }
+    - iSplitL => //.
+      iExists (russell_p []), (dtysem [] s).
+      repeat (repeat iExists _ ; repeat iSplit => //).
+      iIntros "!>!>"; iSplit.
+      + iExact "HvHasA".
+      + iExact "HnotRussellV".
 
-    iSplitL => //. iRight.
-    iExists (russell_p []), (dtysem [] γ).
-    repeat (repeat iExists _ ; repeat iSplit => //).
-    iIntros "!>!>"; iSplit. iExact "HvHasA".
-    iExact "HnotRussellV".
+    - iApply "HnotRussellV". iExact "HrussellV".
   Qed.
 End Russell.
 End Russell.
@@ -128,6 +129,42 @@ Section Sec.
   Proof.
     iIntros (H); iApply wp_pure_step_later => //; iApply wp_value. by iIntros "!%".
   Qed.
+
+  Lemma Sub_AllVariance_spec Γ T1 T2 U1 U2:
+    Γ ⊨ [T2, 0] <: [T1, 0] -∗
+    T2.|[ren (+1)] :: Γ ⊨ [U1, 0] <: [U2, 0] -∗
+    Γ ⊨ [TAll T1 U1, 0] <: [TAll T2 U2, 0].
+  Proof.
+    iIntros "#HsubT #HsubU /= !>" (ρ v Hcl) "#Hg [$ #HT1]".
+    iDestruct "HT1" as (t) "#[Heq #HT1]"; iExists t; iSplit => //.
+    iIntros (w) "!>!> #HwT2". iApply wp_wand.
+    - iApply "HT1". iApply "HsubT" => //. by iApply interp_v_closed.
+    - iIntros (u) "#HuU1".
+      iApply ("HsubU" $! (w :: ρ) u with "[#] [#] [//]").
+      by iApply interp_v_closed.
+      iFrame "Hg". by iApply interp_weaken_one.
+  Qed.
+
+  Lemma Sub_AllVariance_fails Γ T1 T2 U1 U2 i:
+    Γ ⊨ [T2, i] <: [T1, i] -∗
+    T2.|[ren (+1)] :: Γ ⊨ [U1, i] <: [U2, i] -∗
+    Γ ⊨ [TAll T1 U1, i] <: [TAll T2 U2, i].
+  Proof.
+    have ->: i = 0. admit.
+    iIntros "#HsubT #HsubU /= !>" (ρ v Hcl) "#Hg [$ #HT1]".
+    iDestruct "HT1" as (t) "#[Heq #HT1]".
+    iExists t; iSplit => //.
+    iIntros (w) "!>!> #HwT2".
+    (* iSpecialize ("HsubT" $! _ w _ with "Hg").
+    iSpecialize ("HT1" $! w). *)
+    iApply wp_wand.
+    - iApply "HT1". iApply "HsubT" => //. by iApply interp_v_closed.
+    - iIntros (u) "#HuU1".
+      iSpecialize ("HsubU" $! (w :: ρ) u with "[#] [#]").
+      by iApply interp_v_closed.
+      iFrame "Hg". by iApply interp_weaken_one.
+      by iApply "HsubU".
+  Abort.
 
   Lemma ivtp_later Γ V T v:
     ivtp (V :: Γ) T v -∗
@@ -257,96 +294,6 @@ Section Sec.
     - apply Hf1; first apply Hxl; done.
     - apply Hf2; first apply Hxl; done.
   Abort.
-
-  Lemma translations_types_equivalent_vals T T' T'' v ρ:
-    (t_ty T T' → t_ty T T'' → ⟦ T' ⟧ ρ v ≡ ⟦ T'' ⟧ ρ v)%I.
-  Proof.
-    (* -  *)
-    (*   iIntros. *)
-(*       Check uPred_primitive.equiv_spec. *)
-(* (* From iris.base_logic Require Import upred. *) *)
-(* (*       Import uPred. *) *)
-(* (*       Check uPred. *) *)
-(* From iris.bi Require Import bi. *)
-(* Import bi. *)
-(*       Check bi.equiv_spec . *)
-(*       pose proof (proj2 (bi.equiv_spec (⟦ T' ⟧ ρ v) (⟦ T'' ⟧ ρ v))) as Heq. *)
-(* From iris.bi Require Import derived_laws_sbi. *)
-(*       Set Printing All. *)
-(*       About internal_eq_iff. *)
-(*       pose proof ((bi.internal_eq_iff (⟦ T' ⟧ ρ v) (⟦ T'' ⟧ ρ v))) as Heq1. *)
-(*       Unset Printing All. *)
-(*       iApply Heq. *)
-(*       Locate "↔". *)
-(*       SearchAbout and. *)
-(*       destruct H1. *)
-(*       pose proof (bi.equiv_spec (⟦ T' ⟧ ρ v) (⟦ T'' ⟧ ρ v)) as H1. *)
-(*       iRewrite (bi_mixin_equiv_spec (⟦ T' ⟧ ρ v) (⟦ T'' ⟧ ρ v)). *)
-(*       Set Printing All. *)
-(*       SearchAbout (sbi_internal_eq). *)
-(*       Set Printing All. *)
-(*       SearchAbout uPred_entails. *)
-(*       Check @bi.internal_eq_iff. *)
-(*       Search *)
-(*         (@bi_entails (sbi_bi _) (@sbi_internal_eq _ (sbi_ofeC _) _ _) (@bi_iff (sbi_bi _) _ _)). *)
-(*       Require Import ssrbool. *)
-(*       SearchHead sbi_internal_eq. *)
-(*       Search "~~". *)
-(*       Search (bi_entails (sbi_internal_eq _ _) (bi_iff _ _))%I. *)
-(*       SearchPattern uPred_internal_eq. *)
-(*       set (t := (@sbi_internal_eq (uPredSI (iResUR Σ)) (uPredC (iResUR Σ)))). *)
-(*       hnf in t. *)
-(*       Set Printing All. *)
-(*        red. *)
-(*        hnf. *)
-(*        (ofe_mor_car _ _ (ofe_mor_car _ _ (@interp Σ H T') ρ) v) *)
-(*              (ofe_mor_car _ _ (ofe_mor_car _ _ (@interp Σ H T'') ρ) v))). *)
-
-    (* iInduction T as [] "IHT" forall (T' T'' ρ v); iIntros "#H1 #H2"; *)
-    (*   destruct T' => //=; destruct T'' => //; cbn. *)
-    (*                                 properness. *)
-    (*                                 try (iDestruct "H1" as "[H11 H12]"); try (iDestruct "H2" as "[H21 H22]"). *)
-    (* all: try iRewrite ("IHT" $! _ _ ρ v with "H11 H21"); try iRewrite ("IHT1" $! _ _ ρ v with "H12 H22"); try iRewrite ("IHT" $! _ _ ρ v with "H1 H2"); try done. *)
-    (* - *)
-    (*   iAssert (∀ ρ v, ⟦ T'1 ⟧ ρ v ≡ ⟦ T''1 ⟧ ρ v)%I as "#H". iIntros; iApply ("IHT"). *)
-    (*   admit. *)
-    (* - by iRewrite ("IHT" $! _ _ (v :: ρ) v with "H1 H2"). *)
-    (* - *)
-    (*   iDestruct "H11" as "->". *)
-    (*   iDestruct "H21" as "->". *)
-    (*   iAssert (∀ v, ⟦ T' ⟧ ρ v ≡ ⟦ T'' ⟧ ρ v)%I as "#H". by iIntros; iApply ("IHT"). *)
-    (*   Fail iRewrite ("H" $! _). *)
-    (*   admit. *)
-  Abort.
-    (*   iClear "H". *)
-    (*   About (≡). *)
-    (*   About sbi_internal_eq. *)
-    (* Check (1 ≡ 2: iProp Σ)%I. *)
-    (* Check bi_emp_valid. *)
-
-    (*   red. *)
-    (*   iEval (hnf). *)
-    (*   iRewrite ("H" $! ρ). *)
-
-    (* all: try iRewrite (IHT1 _ _ ρ v with "H11 H21"); try iRewrite (IHT2 _ _ ρ v with "H12 H22"); *)
-    (* try iRewrite (IHT _ _ ρ v with "H1 H2"). *)
-    (* all: try done. *)
-
-    (* iPoseProof (IHT1 _ _ ρ v with "H11 H21") as "->". *)
-    (* iPoseProof (IHT2 _ _ ρ v with "H11 H21") as "->". *)
-    (* try iRewrite (IHT2 _ _ ρ v with "H12 H22"); *)
-    (* admit. *)
-    (* by iRewrite (IHT _ _ (v :: ρ) v with "H1 H2"). *)
-    (* Check bi.sep_proper. *)
-    (* - *)
-    (*   About sbi_internal_eq. *)
-    (*   Check sbi_internal_eq. *)
-    (* Set Printing All. *)
-    (* Check (1 ≡ 2)%I. *)
-    (* Check bi_emp_valid. *)
-    (* properness. *)
-    (* iRewrite (IHT _ _ ρ with "H1 H2"). *)
-
 
   (* Can't find how to use it. *)
   Lemma later_persistently_1 (P: iProp Σ): (▷ □ P → ▷ P)%I.
@@ -488,5 +435,12 @@ Section Sec.
     -
       iApply (wp_wand with " [-]"); first iApply "HP".
       iIntros "* HP". by iApply "Himpl".
+  Qed.
+
+  Lemma upd_sep (P1 P2: iProp Σ): ((|==> P1) -∗ (|==> P2) -∗ |==> P1 ∗ P2)%I.
+  Proof.
+    iIntros; iApply bupd_sep; iFrame.
+    Restart.
+    iIntros "H1 H2"; iMod "H1"; iMod "H2"; by iFrame.
   Qed.
 End Sec.

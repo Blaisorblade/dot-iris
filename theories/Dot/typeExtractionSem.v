@@ -1,8 +1,9 @@
-From stdpp Require Import gmap fin_map_dom.
+From stdpp Require Import gmap.
 From iris.proofmode Require Import tactics.
 
 From D Require Import tactics.
 From D.Dot Require Import dotsyn operational synLemmas unary_lr unary_lr_binding typeExtractionSyn.
+Import uPred.
 
 Set Primitive Projections.
 Set Implicit Arguments.
@@ -13,6 +14,7 @@ Section interp_equiv.
   Context `{!dotG Σ}.
 
   Notation envD := (listVlC -n> vlC -n> iProp Σ).
+
   Implicit Types (φ: envD).
 
   (** This interpretation is too naive: it substitutes σ into T' *before* applying our semantics,
@@ -42,19 +44,6 @@ Section interp_equiv.
     (∀ ρ v, ⌜ length ρ = n ⌝ → ⌜ cl_ρ ρ ⌝ → φ1 ρ v ≡ φ2 ρ v)%I.
   Notation "φ1 ≈[  n  ] φ2" := (envD_equiv n φ1 φ2) (at level 70).
 
-  (* Belongs in synLemmas. *)
-  Lemma interp_subst_commute T σ ρ v:
-    nclosed T (length σ) →
-    nclosed_σ σ (length ρ) →
-    cl_ρ ρ →
-    ⟦ T.|[to_subst σ] ⟧ ρ v ≡ ⟦ T ⟧ σ.|[to_subst ρ] v.
-  Proof.
-    intros HclT Hclσ Hclρ.
-    rewrite -(interp_subst_all ρ _ v) // -(interp_subst_all _ T v).
-    - by erewrite subst_compose_x.
-    - by apply nclosed_σ_to_subst.
-  Qed.
-
   Lemma extraction_envD_equiv g s σ T n:
     T ~[ n ] (g, (s, σ)) →
     (∃ T', ⌜ g !! s = Some T'⌝ ∧
@@ -74,28 +63,13 @@ Section interp_equiv.
     ⟦ T1 ⟧ [ σ1.|[to_subst ξ] ] ≈[ n ] ⟦ T2 ⟧ [ σ2 ])%I.
   Proof.
     rewrite /interp_extractedTy; iIntros ((T1 & -> & Heq1 & Hclσ1 & HclT1) (T2 & -> & Heq2 & Hclσ2 & HclT2) Hlenξ Hclξ).
-    iExists _, _; repeat iSplit => //; iIntros (ρ v Hlenρ Hclρ) "/="; subst.
-    assert (Hclσ1ξ: nclosed_σ σ1.|[to_subst ξ] (length ρ)). by apply nclosed_σ_to_subst.
-    assert (Hrew: T2.|[to_subst σ2.|[to_subst ρ]] =
-                  T1.|[to_subst σ1.|[to_subst ξ].|[to_subst ρ]]). by repeat erewrite subst_compose_x;
+    iExists _, _; repeat iSplit => //; iIntros (ρ v Hlenρ Hclρ) "/= !%"; subst.
+    have Hclσ1ξ: nclosed_σ σ1.|[to_subst ξ] (length ρ). by apply nclosed_σ_to_subst.
+    have Hrew: T2.|[to_subst σ2.|[to_subst ρ]] =
+                  T1.|[to_subst σ1.|[to_subst ξ].|[to_subst ρ]]. by erewrite !subst_compose_x;
                                                                     rewrite ?map_length ?Heq1 ?Heq2.
     rewrite -(interp_subst_all _ T1) -?(interp_subst_all _ T2) ?Hrew //; by apply nclosed_σ_to_subst.
   Qed.
-
-  Notation "¬ P" := (□ (P → False))%I : bi_scope.
-
-
-  Notation "s ↦ γ" := (mapsto (hG := dotG_interpNames) s γ)  (at level 20) : bi_scope.
-                           (* (◯ {[ s := to_agree (γ : leibnizC gname) ]})) *)
-  Global Instance: Persistent (s ↦ γ).
-  Proof. apply _. Qed.
-  Global Instance: Timeless (s ↦ γ).
-  Proof. apply _. Qed.
-
-  Notation "s ↝ φ" := (∃ γ, s ↦ γ ∗ γ ⤇ (λ (vs: vls) v, φ vs v))%I  (at level 20) : bi_scope.
-
-  Definition allGs gs := (gen_iheap_ctx (hG := dotG_interpNames) gs).
-  Arguments allGs /.
 
   Lemma alloc_sp T: (|==> ∃ γ, γ ⤇ dot_interp T)%I.
   Proof. by apply saved_interp_alloc. Qed.
@@ -113,8 +87,8 @@ Section interp_equiv.
 
   (* To give a definitive version of wellMapped, we need stampHeap to be stored in a resource. Here it is: *)
   Definition wellMapped g : iProp Σ :=
-    (□∀ s T ρ v,
-        ⌜ g !! s = Some T⌝ → ∃ φ, s ↝ φ ∧ ⟦ T ⟧ ρ v ≡ φ ρ v)%I.
+    (□∀ s T,
+        ⌜ g !! s = Some T⌝ → ∃ φ, s ↝ φ ∧ ⌜ ⟦ T ⟧ = φ ⌝)%I.
   Instance: Persistent (wellMapped g).
   Proof. apply _. Qed.
 
@@ -128,7 +102,7 @@ Section interp_equiv.
     iMod (transferOne_base_inv gs s T HsFresh with "Hown") as (gs') "(Hgs & #Hmaps & #Hdom)".
     iExists gs'; iModIntro; iFrame "Hgs".
     iSplit =>//.
-    iIntros (s' T' ρ v Hlook) "!>".
+    iIntros (s' T' Hlook) "!>".
     destruct (decide (s = s')) as [<-|Hne].
     - iExists (⟦ T ⟧).
       suff <-: T = T' by iSplit. rewrite lookup_insert in Hlook; by injection Hlook.
@@ -140,7 +114,7 @@ Section interp_equiv.
   Proof.
     elim g using map_ind.
     - iIntros "/=" (H) "Hgs !>". iExists gs. repeat iSplit => //.
-      + by iIntros (?????).
+      + by iIntros (???).
       + iPureIntro. rewrite dom_empty. set_solver.
     - move=> {g} /=. iIntros (s T g Hs IH Hdom) "Hallgs".
       setoid_rewrite dom_insert in Hdom.
@@ -165,13 +139,70 @@ Section interp_equiv.
   Proof.
     iIntros (Hs) "H". by iMod (transfer' gs Hs with "H") as (gs') "[H ?]".
   Qed.
-
-  Lemma leadsto_agree s φ1 φ2 ρ v: s ↝ φ1 -∗ s ↝ φ2 -∗ ▷ (φ1 ρ v ≡ φ2 ρ v).
-  Proof.
-    iIntros "/= #H1 #H2".
-    iDestruct "H1" as (γ1) "[Hs1 Hg1]".
-    iDestruct "H2" as (γ2) "[Hs2 Hg2]".
-    iPoseProof (mapsto_agree with "Hs1 Hs2") as "%"; subst.
-    by iApply (saved_interp_agree_eta _ φ1 φ2).
-  Qed.
 End interp_equiv.
+
+Section typing_type_member_defs.
+  Context `{!dotG Σ} Γ.
+
+  Definition leadsto_envD_equiv (sσ: extractedTy) n (φ : envD Σ) : iProp Σ :=
+    let '(s, σ) := sσ in
+    (⌜nclosed_σ σ n⌝ ∧ ∃ (φ' : envD Σ), s ↝ φ' ∗ envD_equiv n φ (λne ρ, φ' (subst_sigma σ ρ)))%I.
+  Arguments leadsto_envD_equiv /.
+  Notation "sσ ↝[  n  ] φ" := (leadsto_envD_equiv sσ n φ) (at level 20).
+
+  Lemma wellMapped_maps s T g: g !! s = Some T →
+      wellMapped g -∗ s ↝ dot_interp T.
+  Proof.
+    iIntros (Hl) "/= #Hm".
+    by iDestruct ("Hm" $! _ _ Hl) as (φ) "[? <-]".
+  Qed.
+
+  Lemma extraction_to_leadsto_envD_equiv T g sσ n: T ~[ n ] (g, sσ) →
+    wellMapped g -∗ sσ ↝[ n ] ⟦ T ⟧.
+  Proof.
+    move: sσ => [s σ] [T'] [Hl] [<-] [Hclσ] HclT /=; iIntros "#Hm".
+    iDestruct ("Hm" $! _ _ Hl) as (φ) "[Hm1 <-]"; iClear "Hm".
+    iSplit => //; iExists ⟦ T' ⟧; iSplit => //.
+    iIntros (ρ v <- Hclρ) "!%".
+    by apply interp_subst_commute.
+  Qed.
+
+  (** XXX In fact, this lemma should be provable for any φ,
+      not just ⟦ T ⟧, but we haven't actually defined the
+      necessary notation to state it:
+  Lemma D_Typ_Sem L U s σ l φ:
+    Γ ⊨ [φ, 1] <: [U, 1] -∗
+    Γ ⊨ [L, 1] <: [φ, 1] -∗
+    (s, σ) ↝[ length Γ ] φ -∗
+    Γ ⊨d dtysem σ s : TTMem l L U.
+    *)
+  Lemma D_Typ T L U s σ l:
+    Γ ⊨ [T, 1] <: [U, 1] -∗
+    Γ ⊨ [L, 1] <: [T, 1] -∗
+    (s, σ) ↝[ length Γ ] ⟦ T ⟧ -∗
+    Γ ⊨d dtysem σ s : TTMem l L U.
+  Proof.
+    iIntros "#HTU #HLT #[% Hs] /=". move: H => Hclσ.
+    have Hclσs: nclosed (dtysem σ s) (length Γ). by apply fv_dtysem.
+    iSplit => //.
+    iIntros "!>" (ρ) "#Hg".
+    iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *.
+    iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H => Hfvρ.
+    have Hclσss: nclosed (dtysem σ.|[to_subst ρ] s) 0. by eapply fv_to_subst'.
+    iDestruct "Hs" as (φ) "[Hγ Hγφ]".
+    iSplit => //; iExists (φ (σ.|[to_subst ρ]));
+      iSplit; first by repeat iExists _; iSplit.
+    iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL";
+      iSpecialize ("Hγφ" $! ρ v with "[#//] [#//]").
+    - iSpecialize ("HLT" $! ρ v Hclv with "Hg").
+      iDestruct ("HLT" with "HL") as "#HLT1".
+      by repeat iModIntro; iApply (internal_eq_iff with "Hγφ").
+    - iApply "HTU" => //.
+      by repeat iModIntro; iApply (internal_eq_iff with "Hγφ").
+  Qed.
+
+  Lemma D_Typ_Concr T s σ l:
+    (s, σ) ↝[ (length Γ) ] ⟦ T ⟧ -∗
+    Γ ⊨d dtysem σ s : TTMem l T T.
+  Proof. iIntros "#Hs"; iApply D_Typ; by [| iIntros "!> **"]. Qed.
+End typing_type_member_defs.

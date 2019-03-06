@@ -104,7 +104,6 @@ Section logrel.
     | TAll T1 T2 => interp_forall (interp T1) (interp T2)
     (* | TMu T => interp_mu (interp T) *)
     | TSel w => interp_sel w
-    (* | TSelA p l L U => interp_selA p l (interp L) (interp U) *)
   end % I.
 
   Global Instance dsubInterpΣ : dsubInterpG Σ := DsubInterpG _ (λ T ρ, interp T ρ).
