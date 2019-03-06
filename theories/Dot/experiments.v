@@ -89,27 +89,41 @@ Section Sec.
   Qed.
 
   Lemma Sub_AllVariance_spec Γ T1 T2 U1 U2:
-    Γ ⊨ [T2, 0] <: [T1, 0] -∗
-    T2.|[ren (+1)] :: Γ ⊨ [U1, 0] <: [U2, 0] -∗
-    Γ ⊨ [TAll T1 U1, 0] <: [TAll T2 U2, 0].
+    Γ ⊨[1] T2 <: T1 -∗
+    TLater T2.|[ren (+1)] :: Γ ⊨[1] U1 <: U2 -∗
+    Γ ⊨[0] TAll T1 U1 <: TAll T2 U2.
   Proof.
-    iIntros "#HsubT #HsubU /= !>" (ρ v Hcl) "#Hg [$ #HT1]".
-    iDestruct "HT1" as (t) "#[Heq #HT1]"; iExists t; iSplit => //.
-    iIntros (w) "!>!> #HwT2". iApply wp_wand.
-    - iApply "HT1". iApply "HsubT" => //. by iApply interp_v_closed.
-    - iIntros (u) "#HuU1".
-      iApply ("HsubU" $! (w :: ρ) u with "[#] [#] [//]").
-      by iApply interp_v_closed.
-      iFrame "Hg". by iApply interp_weaken_one.
+    iIntros "#HsubT #HsubU /= !>" (ρ) "#Hg"; iIntros (v) "[$ #HtT1toU1]".
+    iDestruct "HtT1toU1" as (t) "#[Heq #HtT1toU1]"; iExists t; iSplit => //.
+    iIntros "!>" (w Hclw) "#HwT2".
+    iSpecialize ("HtT1toU1" $! w with "[#//] [#]"). by iApply "HsubT".
+    iSpecialize ("HsubU" $! (w :: ρ) with "[#]"). repeat iSplitL => //. by iApply interp_weaken_one.
+    iNext. iApply (wp_wand with "HtT1toU1").
+    iIntros (u) "#HuU1". by iApply "HsubU".
   Qed.
+  From D Require Import proofmode_extra.
 
   Lemma Sub_AllVariance_fails Γ T1 T2 U1 U2 i:
-    Γ ⊨ [T2, i] <: [T1, i] -∗
-    T2.|[ren (+1)] :: Γ ⊨ [U1, i] <: [U2, i] -∗
-    Γ ⊨ [TAll T1 U1, i] <: [TAll T2 U2, i].
+    Γ ⊨[S i] T2 <: T1 -∗
+    ▷^i (T2.|[ren (+1)] :: Γ ⊨[0] U1 <: U2) -∗
+    Γ ⊨[i] TAll T1 U1 <: TAll T2 U2.
   Proof.
-    have ->: i = 0. admit.
-    iIntros "#HsubT #HsubU /= !>" (ρ v Hcl) "#Hg [$ #HT1]".
+    iIntros "#HsubT #HsubU /= !>" (ρ) "#Hg". iIntros (v).
+    iSpecialize ("HsubT" $! ρ with "Hg").
+    iSpecialize ("HsubU")
+    Show.
+
+    rewrite (iterate_TLater_later (S i) T2.|[ren (+1)] ρ).
+
+     iIntros "[$ #HtT1toU1]".
+    iDestruct "HtT1toU1" as (t) "#[Heq #HtT1toU1]"; iExists t; iSplit => //.
+    iIntros "!>" (w Hclw) "#HwT2".
+    iSpecialize ("HtT1toU1" $! w with "[#//] [#]"). by iApply "HsubT".
+    iSpecialize ("HsubU" $! (w :: ρ) with "[#]"). repeat iSplitL => //. by iApply interp_weaken_one.
+    iNext. iApply (wp_wand with "HtT1toU1").
+    iIntros (u) "#HuU1". by iApply "HsubU".
+
+    (* iIntros "#HsubT #HsubU /= !>". (ρ v) "#Hg [$ #HT1]".
     iDestruct "HT1" as (t) "#[Heq #HT1]".
     iExists t; iSplit => //.
     iIntros (w) "!>!> #HwT2".
@@ -121,7 +135,36 @@ Section Sec.
       iSpecialize ("HsubU" $! (w :: ρ) u with "[#] [#]").
       by iApply interp_v_closed.
       iFrame "Hg". by iApply interp_weaken_one.
-      by iApply "HsubU".
+      by iApply "HsubU". *)
+  Abort.
+
+  Lemma Sub_TAll_Variant T1 T2 U1 U2 i:
+    Γ ⊨[S i] T2 <: T1 -∗
+    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨[S i] U1 <: U2 -∗
+    Γ ⊨[i] TAll T1 U1 <: TAll T2 U2.
+  Proof.
+    rewrite iterate_S /=.
+    iIntros "#HsubT #HsubU /= !>" (ρ) "#Hg".
+    iIntros (v).
+    iSpecialize ("HsubT" with "Hg").
+    iAssert (□∀ w, ⌜nclosed_vl w 0⌝ -∗ ▷^(S i) ⟦ T2.|[ren (+1)]⟧ (w :: ρ) w -∗ ▷ ▷^i(∀ v, ⟦ U1 ⟧ (w :: ρ) v → ⟦ U2 ⟧ (w :: ρ) v))%I as "#HsubU'".
+    by iIntros "!>" (w Hclw) "#Hw"; iApply "HsubU"; rewrite iterate_TLater_later //; iFrame "#". iClear "HsubU".
+
+    (* iAssert (□∀ w, ⌜nclosed_vl w 0⌝ -∗ ▷^(S i) (⟦ T2.|[ren (+1)]⟧ (w :: ρ) w → ∀ v, ⟦ U1 ⟧ (w :: ρ) v → ⟦ U2 ⟧ (w :: ρ) v))%I as "#HsubU''".
+    iIntros "!>" (w Hclw).
+    iSpecialize ("HsubU'" $! w Hclw). iNext. iNext.
+    iIntros "#Hw" (u) "#Hu". Fail iApply "HsubU". *)
+
+    iIntros "!> [$ #HT1]".
+    iDestruct "HT1" as (t) "#[Heq #HT1]"; iExists t; iSplit => //.
+    iIntros "!>" (w) "#HwT2". About wp_wand.
+    iSpecialize ("HT1" $! w with "[#]"). by iApply "HsubT".
+    iApply wp_wand.
+    - iApply ("HT1" $! w). iApply "HsubT" => //.
+    - iIntros (u) "#HuU1".
+      iSpecialize ("HsubU'" $! w with "[#] [#]"). by iApply interp_v_closed. by iApply interp_weaken_one.
+      iAssert (▷^(S i)  ⟦ U1 ⟧ (w :: ρ) u)%I as "#lHuU1". by [].
+      iSpecialize ("HsubU'" with "lHuU1").
   Abort.
 
   Lemma ivtp_later Γ V T v:
@@ -401,32 +444,4 @@ Section Sec.
     Restart.
     iIntros "H1 H2"; iMod "H1"; iMod "H2"; by iFrame.
   Qed.
-
-  From D Require Import proofmode_extra.
-  Lemma Sub_TAll_Variant T1 T2 U1 U2 i:
-    Γ ⊨[S i] T2 <: T1 -∗
-    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨[S i] U1 <: U2 -∗
-    Γ ⊨[i] TAll T1 U1 <: TAll T2 U2.
-  Proof.
-    rewrite iterate_S /=.
-    iIntros "#HsubT #HsubU /= !>" (ρ) "#Hg".
-    iIntros (v).
-    iSpecialize ("HsubT" with "Hg").
-    iAssert (□∀ w, ⌜nclosed_vl w 0⌝ -∗ ▷^(S i) ⟦ T2.|[ren (+1)]⟧ (w :: ρ) w -∗ ▷ ▷^i(∀ v, ⟦ U1 ⟧ (w :: ρ) v → ⟦ U2 ⟧ (w :: ρ) v))%I as "#HsubU'".
-    by iIntros "!>" (w Hclw) "#Hw"; iApply "HsubU"; rewrite iterate_TLater_later //; iFrame "#". iClear "HsubU".
-
-    (* iAssert (□∀ w, ⌜nclosed_vl w 0⌝ -∗ ▷^(S i) (⟦ T2.|[ren (+1)]⟧ (w :: ρ) w → ∀ v, ⟦ U1 ⟧ (w :: ρ) v → ⟦ U2 ⟧ (w :: ρ) v))%I as "#HsubU''".
-    iIntros "!>" (w Hclw).
-    iSpecialize ("HsubU'" $! w Hclw). iNext. iNext.
-    iIntros "#Hw" (u) "#Hu". Fail iApply "HsubU". *)
-
-    iIntros "!> [$ #HT1]".
-    iDestruct "HT1" as (t) "#[Heq #HT1]"; iExists t; iSplit => //.
-    iIntros (w) "!>!> #HwT2". iApply wp_wand.
-    - iApply "HT1". iApply "HsubT" => //.
-    - iIntros (u) "#HuU1".
-      iSpecialize ("HsubU'" $! w with "[#] [#]"). by iApply interp_v_closed. by iApply interp_weaken_one.
-      iAssert (▷^(S i)  ⟦ U1 ⟧ (w :: ρ) u)%I as "#lHuU1". by [].
-      iSpecialize ("HsubU'" with "lHuU1").
-  Abort.
 End Sec.

@@ -28,12 +28,12 @@ Section Sec.
     iNext.
     iIntros (v) "[$ #HT1]".
     iDestruct "HT1" as (t) "#[Heq #HT1]"; iExists t; iSplit => //.
-    (* iModIntro. iNext. *)
-    iIntros (w) "!>!> #HwT2"; iApply wp_wand.
-    - iApply "HT1". by iApply "HsubT".
+    iIntros "!>" (w Hclw) "#HwT2".
+    iSpecialize ("HT1" $! w Hclw with "[#]"). by iApply "HsubT".
+    iSpecialize ("HsubU" $! (w :: ρ) with "[#]"). iFrame "Hg"; by iApply interp_weaken_one.
+    iNext. iApply wp_wand.
+    - iApply "HT1".
     - iIntros (u) "#HuU1".
-      iSpecialize ("HsubU" $! (w :: ρ) with "[#]").
-      iFrame "Hg". by iApply interp_weaken_one.
       by iApply "HsubU".
   Qed.
 
@@ -41,7 +41,7 @@ Section Sec.
   Unclear if this is useful. *)
   Lemma Sub_TAll_Variant_ArghIsh T1 T2 U1 U2 i:
     Γ ⊨[S i] T2 <: T1 -∗
-    iterate TLater (i) T2.|[ren (+1)] :: Γ ⊨[i] U1 <: U2 -∗
+    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨[i] U1 <: U2 -∗
     Γ ⊨[0] TAll (iterate TLater i T1) (iterate TLater i U1) <: TAll (iterate TLater i T2) (iterate TLater i U2).
   Proof.
     rewrite ?iterate_S /=.
@@ -49,20 +49,18 @@ Section Sec.
     iIntros (v) "[% #HT1]". move: H => Hclv. iFrame (Hclv).
     iDestruct "HT1" as (t) "#[% #HT1]"; iExists t; iSplit => //. move: H => Heq.
     iSpecialize ("HsubT" with "Hg").
-    iAssert (□∀ w, ⌜nclosed_vl w 0⌝ -∗ ▷^i ⟦ T2.|[ren (+1)]⟧ (w :: ρ) w -∗ ▷^i(∀ v, ⟦ U1 ⟧ (w :: ρ) v → ⟦ U2 ⟧ (w :: ρ) v))%I as "#HsubU'".
-    by iIntros "!>" (w Hclw) "#Hw"; iApply "HsubU"; rewrite iterate_TLater_later //; iFrame "#". iClear "HsubU".
-
-    iIntros (w) "!>!> #HwT2".
-    iAssert (⌜nclosed_vl w 0⌝)%I as "%". by iApply interp_v_closed.
+    iIntros "!>" (w Hclw) "#HwT2".
     have Hclt: nclosed t 1. by subst; apply fv_vabs_inv.
-    From D.Dot Require Import step_fv.
     have Hcltw: nclosed t.|[w/] 0. by apply nclosed_subst.
+
+    rewrite !iterate_TLater_later //.
+    iSpecialize ("HT1" $! w Hclw with "[#]"). by rewrite !iterate_TLater_later //; iApply "HsubT".
+    iSpecialize ("HsubU" $! (w :: ρ) with "[#]"). iFrame (Hclw) "Hg". by rewrite !iterate_TLater_later //; iApply interp_weaken_one.
+    iNext.
     iApply (wp_wand_cl (t.|[w/]) (⟦ iterate TLater i U1 ⟧ (w :: ρ)) (⟦ iterate TLater i U2 ⟧ (w :: ρ))) => //.
-    - iApply ("HT1" $! w).
-      rewrite !iterate_TLater_later //; by iApply "HsubT".
     - iIntros (u) "#HuU1"; iIntros (Hclu).
       rewrite !iterate_TLater_later //.
-      iApply "HsubU'" => //. by iApply interp_weaken_one.
+      iApply "HsubU" => //.
   Qed.
 
   Lemma TAnd_I e T1 T2:
@@ -91,8 +89,10 @@ Section Sec.
     iIntros "/= !>" (ρ v Hcl) "#Hg [[$ #H1] #[_ H2]]". iNext.
     iDestruct "H1" as (t Heq) "#H1"; iDestruct "H2" as (t' ->) "#H2"; cinject Heq.
     iExists _; iSplit => //.
-    iIntros "!>!>" (w) "#HT".
-    iApply wp_and. by iApply "H1". by iApply "H2".
+    iIntros "!>" (w Hclw) "#HT".
+    iSpecialize ("H1" $! w with "[#//] [#//]").
+    iSpecialize ("H2" $! w with "[#//] [#//]").
+    iNext; by iApply wp_and.
   Qed.
 
   Lemma Sub_TVMem_Cov_Distr l T1 T2 i:
@@ -318,10 +318,11 @@ Section Sec.
     smart_wp_bind (AppLCtx (e2.|[to_subst ρ])) v "#Hr" "He1".
     smart_wp_bind (AppRCtx v) w "#Hw" "Hv2".
     iDestruct "Hr" as (Hclv t ->) "#Hv".
-    iApply wp_pure_step_later; trivial. iNext.
-    iApply wp_mono; last iApply ("Hv" with "[//]").
-    iIntros (v0) "#H".
-    by iApply interp_weaken_one.
+    iApply wp_pure_step_later; trivial.
+    iSpecialize ("Hv" $! w with "[#] [#//]"). by iApply interp_v_closed.
+    iNext.
+    iApply wp_mono; last iApply "Hv".
+    iIntros (v0) "#H". by iApply interp_weaken_one.
   Qed.
 
   Lemma T_Forall_Ex e1 v2 T1 T2:
@@ -335,11 +336,15 @@ Section Sec.
     iSpecialize ("He1" with "[#//]"); iSpecialize ("Hv2Arg" with "[#//]").
     smart_wp_bind (AppLCtx (tv v2.[to_subst ρ])) v "#Hr" "He1".
     iDestruct "Hr" as (Hclv t ->) "#HvFun".
-    iApply wp_pure_step_later; trivial. iNext.
+    iApply wp_pure_step_later; trivial.
+    iPoseProof (interp_env_ρ_closed with "HG") as "%". move: H => Hclρ.
+    iPoseProof (interp_env_len_agree with "HG") as "%". move: H => Hlen. rewrite <- Hlen in *.
+    iSpecialize ("HvFun" $! v2.[to_subst ρ] with "[%] [#]"). by eapply fv_to_subst_vl. by iApply wp_value_inv'.
+    iNext.
     iApply wp_wand.
-    - iApply "HvFun". by iApply wp_value_inv'.
+    - iApply "HvFun".
     - iIntros (v0) "#H".
-      iPoseProof (interp_subst_closed Γ T2 v2 v0 with "HG") as "Heq" => //.
+      iPoseProof (interp_subst_closed_aux Γ T2 v2 v0 with "HG") as "Heq" => //.
       by iApply (internal_eq_iff with "Heq").
   Qed.
 
@@ -364,7 +369,7 @@ Section Sec.
       apply (fv_to_subst_vl (vabs _)); eauto using fv_vabs.
     }
     iExists _; iSplitL; first done.
-    iIntros "!> !>" (v) "#Hv".
+    iIntros "!>" (v Hclv) "#Hv".
     iSpecialize ("HeT" $! (v :: ρ)).
 
     Tactic Notation "locAsimpl'" uconstr(e1) :=
