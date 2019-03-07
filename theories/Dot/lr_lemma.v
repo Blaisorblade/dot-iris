@@ -53,28 +53,28 @@ Section Sec.
     F[A ∧ B] <: F[A] ∧ F[B] is provable by covariance.
     Let's prove F[A] ∧ F[B] <: F[A ∧ B] in the model.
     *)
-  Lemma Sub_TAll_Cov_Distr T U1 U2:
-    Γ ⊨ [TAnd (TAll T U1) (TAll T U2), 0] <: [TAll T (TAnd U1 U2), 0].
+  Lemma Sub_TAll_Cov_Distr T U1 U2 i:
+    Γ ⊨ [TAnd (TAll T U1) (TAll T U2), i] <: [TAll T (TAnd U1 U2), i].
   Proof.
-    iIntros "/= !>" (ρ v Hcl) "#Hg [[$ #H1] #[_ H2]]".
+    iIntros "/= !>" (ρ v Hcl) "#Hg [[$ #H1] #[_ H2]]". iNext.
     iDestruct "H1" as (t Heq) "#H1"; iDestruct "H2" as (t' ->) "#H2"; cinject Heq.
     iExists _; iSplit => //.
     iIntros "!>!>" (w) "#HT".
     iApply wp_and. by iApply "H1". by iApply "H2".
   Qed.
 
-  Lemma Sub_TVMem_Cov_Distr l T1 T2:
-    Γ ⊨ [TAnd (TVMem l T1) (TVMem l T2), 0] <: [TVMem l (TAnd T1 T2), 0].
+  Lemma Sub_TVMem_Cov_Distr l T1 T2 i:
+    Γ ⊨ [TAnd (TVMem l T1) (TVMem l T2), i] <: [TVMem l (TAnd T1 T2), i].
   Proof.
-    iIntros "/= !>" (ρ v Hcl) "#Hg [[$ #H1] #[_ H2]]".
+    iIntros "/= !>" (ρ v Hcl) "#Hg [[$ #H1] #[_ H2]]". iNext.
     iDestruct "H1" as (d?? vmem?) "#H1"; iDestruct "H2" as (d'?? vmem'?) "#H2". objLookupDet; subst; injectHyps.
     repeat (iExists _; repeat iSplit => //).
   Qed.
 
-  Lemma Sub_TTMem_Cov_Distr l L U1 U2:
-    Γ ⊨ [TAnd (TTMem l L U1) (TTMem l L U2), 0] <: [TTMem l L (TAnd U1 U2), 0].
+  Lemma Sub_TTMem_Cov_Distr l L U1 U2 i:
+    Γ ⊨ [TAnd (TTMem l L U1) (TTMem l L U2), i] <: [TTMem l L (TAnd U1 U2), i].
   Proof.
-    iIntros "/= !>" (ρ v Hcl) "#Hg [[$ #H1] #[_ H2]]".
+    iIntros "/= !>" (ρ v Hcl) "#Hg [[$ #H1] #[_ H2]]". iNext.
     iDestruct "H1" as (d?? φ) "#[Hsφ1 #[HLφ1 HφU1]]"; iDestruct "H2" as (d'?? φ') "#[Hsφ2 #[HLφ2 HφU2]]".
     objLookupDet; subst; injectHyps.
     iExists d; repeat iSplit => //.
