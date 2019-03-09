@@ -30,7 +30,7 @@ Definition is_unstamped_trav: Traversal unit :=
 Definition is_stamped_trav: Traversal (nat * stys) :=
   {|
     upS := λ '(n, g), (S n, g);
-    varP := λ ts n, True;
+    varP := λ '(n, g) i, i < n;
     dtysynP := λ ts T, False;
     dtysemP := λ '(n, g) vs s, ∃ T', g !! s = Some T' ∧ nclosed T' (length vs) ∧ nclosed_σ vs n;
   |}.
@@ -133,11 +133,15 @@ Global Arguments varP /.
 Global Arguments dtysynP /.
 Global Arguments dtysemP /.
 
-Lemma stamped_idsσ_ren g m n r: Forall (is_stamped_vl m g) (idsσ n).|[ren r].
+Lemma stamped_idsσ_ren g m n j: j + n <= m → Forall (is_stamped_vl m g) (idsσ n).|[ren (+j)].
 Proof.
-  elim: n m r => [|n IHn] m r //=.
-  repeat constructor => //=. asimpl. apply IHn.
+  elim: n m j => [|n IHn] m j Ijm //=.
+  repeat constructor => //=; first lia.
+  asimpl; apply IHn; lia.
 Qed.
+
+Lemma stamped_idsσ g m n: n <= m → Forall (is_stamped_vl m g) (idsσ n).
+Proof. pose proof (@stamped_idsσ_ren g m n 0) as H. asimpl in H. exact: H. Qed.
 
 Hint Constructors forall_traversal_vl forall_traversal_tm forall_traversal_dm
      forall_traversal_path forall_traversal_ty.

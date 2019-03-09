@@ -260,7 +260,7 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
         (P0 := λ Γ V ds T _, Forall (is_stamped_dm (S (length Γ)) getStampTable) (map snd ds))
         (P1 := λ Γ V d T _, is_stamped_dm (S (length Γ)) getStampTable d)
         (P2 := λ Γ p T i _, is_stamped_path (length Γ) getStampTable p); cbn; intros; eauto.
-    - repeat constructor.
+    - repeat constructor => //=. by eapply lookup_lt_Some.
     - intros; elim: i {s} => [|i IHi]; rewrite /= ?iterate_0 ?iterate_S //; eauto.
     - intros; ev. constructor; naive_solver.
     - intros; with_is_stamped inverse; eauto.

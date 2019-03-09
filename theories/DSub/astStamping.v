@@ -178,6 +178,7 @@ Proof.
                     inverse Hus; repeat constructor => //=; by f_equal]
       end
     end.
+    exists t__u, g1; subst; repeat constructor => //=; eauto.
 Qed.
 
 Module TraversalV1.
