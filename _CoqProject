@@ -11,6 +11,7 @@ theories/DSub/syn.v
 theories/DSub/typeExtractionSyn.v
 theories/DSub/typeExtractionSem.v
 theories/DSub/rules.v
+theories/DSub/stampedness.v
 theories/DSub/astStamping.v
 theories/DSub/synLemmas.v
 theories/DSub/operational.v
