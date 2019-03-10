@@ -191,6 +191,9 @@ Proof.
   inverse Hcl; apply fv_vls_cons; by [ apply IHσ | ].
 Qed.
 
+Lemma fv_vstamp σ s n: nclosed_σ σ n → nclosed_vl (vstamp σ s) n.
+Proof. move => /Forall_to_closed_vls. solve_fv_congruence. Qed.
+
 Definition cl_ρ_fv: ∀ ρ, cl_ρ ρ → nclosed ρ 0 := Forall_to_closed_vls 0.
 
 Lemma fv_idsσ n: nclosed (idsσ n) n.

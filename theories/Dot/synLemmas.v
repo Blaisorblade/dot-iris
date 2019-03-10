@@ -294,5 +294,5 @@ Proof.
 Qed.
 Hint Resolve nclosed_σ_to_subst.
 
-Lemma fv_dtysem ρ γ l: nclosed_σ ρ l → nclosed (dtysem ρ γ) l.
+Lemma fv_dtysem σ s n: nclosed_σ σ n → nclosed (dtysem σ s) n.
 Proof. move => /Forall_to_closed_vls. solve_fv_congruence. Qed.
