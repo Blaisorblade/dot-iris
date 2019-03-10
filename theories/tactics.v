@@ -14,6 +14,9 @@ Ltac ev := repeat match goal with
                     | p : _ * _ |- _ => destruct p
                   end.
 
+(** Tactic to split a lemma proven by mutual induction into its pieces. *)
+Ltac unmut_lemma H := destruct H; ev; eauto.
+
 (* Avoid case distinctions when we know the right case from the hypotheses.
    Otherwise, we end up with branches where the context says that ?x = A and ?x
    = B, with A and B incompatible, and must use discriminate to remove those

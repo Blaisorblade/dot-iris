@@ -200,9 +200,6 @@ Proof.
   inverse Hdsg1; inverse Hds; eauto.
 Qed.
 
-(** Tactic to split a lemma proven by mutual induction into its pieces. *)
-Ltac unmut_lemma H := destruct H; ev; eauto.
-
 Lemma is_stamped_mono_tm g1 g2 n e__s:
   g1 ⊆ g2 →
   is_stamped_tm n g1 e__s →
