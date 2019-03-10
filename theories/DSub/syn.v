@@ -535,23 +535,16 @@ Section syntax_mut_ind_closed.
        Instead we want to apply one of the [case_] arguments to perform an
        inductive step, and only then call ourselves recursively. *)
     all: destruct 0; intro Hcl.
-    Ltac tryClose t n := try assert (nclosed t n) by solve_inv_fv_congruence_auto.
-    Ltac tryCloseVl v n := try assert (nclosed_vl v n) by solve_inv_fv_congruence_auto.
-
-    all: let byEapply Hstep := eapply (Hstep n); eauto 2
+    all: let byEapply p := efeed p using (fun q => apply q) by (eauto 2; eauto with fv)
     in
-         tryCloseVl v n; tryClose t1 n; tryClose t2 n; tryClose t n; tryClose T1 n; tryClose T2 n; tryClose t (S n); tryClose T2 (S n);
       match goal with
       (* Warning: add other arities as needed. *)
-      | Hstep: context [?P (?c _ _ _) _] |- ?P (?c _ _ _) _ => byEapply Hstep
-      | Hstep: context [?P (?c _ _) _] |- ?P (?c _ _) _ => byEapply Hstep
-      | Hstep: context [?P (?c _) _] |- ?P (?c _) _ => byEapply Hstep
-      | Hstep: context [?P (?c) _] |- ?P (?c) _ => byEapply Hstep
+      | Hstep: context [?P (?c _ _ _) _] |- ?P (?c ?a1 ?a2 ?a3) _ => byEapply Hstep (Hstep n a1 a2 a3)
+      | Hstep: context [?P (?c _ _) _] |- ?P (?c ?a1 ?a2) _ => byEapply (Hstep n a1 a2)
+      | Hstep: context [?P (?c _) _] |- ?P (?c ?a1) _ => byEapply (Hstep n a1)
+      | Hstep: context [?P (?c) _] |- ?P (?c) _ => byEapply (Hstep n)
       end.
-    - eauto with fv.
-    - induction l as [| a l]; first constructor.
-      tryCloseVl a n; tryClose l n.
-      constructor => /=; first by eauto. apply IHl; solve_inv_fv_congruence_auto.
+    - induction l as [| a l]; constructor => /=; eauto with fv.
   Qed.
 
   Lemma nclosed_syntax_mut_ind: (∀ t n, nclosed t n → Ptm t n) ∧ (∀ v n, nclosed_vl v n → Pvl v n) ∧ (∀ T n, nclosed T n → Pty T n).
