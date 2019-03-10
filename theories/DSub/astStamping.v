@@ -74,7 +74,7 @@ Proof.
   exists (<[s:=T]> g).
   have HclT: nclosed T n. by move: Hcl; solve_inv_fv_congruence.
   repeat (econstructor; rewrite ?lookup_insert ?closed_subst_idsρ ?length_idsσ /=) => //.
-  exact: nclosed_idsσ.
+  eapply is_stamped_idsσ; lia.
 Qed.
 
 Lemma exists_stamped_vstamp vs s n g: is_unstamped_vl (vstamp vs s) → nclosed_vl (vstamp vs s) n → { v' & { g' | stamps_vl n (vstamp vs s) g' v' ∧ g ⊆ g' } }.
