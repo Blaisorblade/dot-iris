@@ -7,7 +7,7 @@ Set Primitive Projections.
 Set Implicit Arguments.
 
 Implicit Types
-         (T: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (vs: vls)
+         (T: ty) (v: vl) (e: tm) (p: path) (d: dm) (ds: dms) (vs: vls)
          (Γ : ctx) (g: stys) (n: nat).
 
 Record Traversal {travStateT: Type} :=
