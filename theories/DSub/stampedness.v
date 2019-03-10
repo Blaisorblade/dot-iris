@@ -291,46 +291,6 @@ Lemma is_stamped_sub_ty T g s m n:
   is_stamped_ty m g T.|[s].
 Proof. unmut_lemma is_stamped_sub_mut. Qed.
 
-(*
-Lemma is_stamped_sub_rev_mut g:
-  (∀ t s m n,
-    is_stamped_sub n m g s →
-    is_stamped_tm m g (t.|[s]) →
-    is_stamped_tm n g t) ∧
-  (∀ v s m n,
-    is_stamped_sub n m g s →
-    is_stamped_vl m g (v.[s]) →
-    is_stamped_vl n g v) ∧
-  (∀ T s m n,
-    is_stamped_sub n m g s →
-    is_stamped_ty m g (T.|[s]) →
-    is_stamped_ty n g T).
-Proof.
-  apply syntax_mut_ind => /=; intros;
-    try by with_is_stamped inverse; ev;
-    constructor => /=; eauto using eq_up with lia.
-  constructor => /=. *)
-
-(* Lemma is_stamped_sub_rev_mut g:
-  (∀ t s m n,
-    is_stamped_sub n m g s →
-    is_stamped_tm m g (t.|[s]) →
-    is_stamped_tm n g t) ∧
-  (∀ v s m n,
-    is_stamped_sub n m g s →
-    is_stamped_vl m g (v.[s]) →
-    is_stamped_vl n g v) ∧
-  (∀ T s m n,
-    is_stamped_sub n m g s →
-    is_stamped_ty m g (T.|[s]) →
-    is_stamped_ty n g T).
-Proof.
-  apply syntax_mut_ind => /=; intros;
-    try by with_is_stamped inverse; ev;
-    constructor => /=; eauto using eq_up with lia.
-  constructor => /=. *)
-  (* That's false! *)
-
 Lemma is_stamped_sub_rev_mut g:
   (∀ e i,
     nclosed e i →
