@@ -72,9 +72,9 @@ Proof.
   pose proof (ex_fresh_stamp_strong g T) as [s []].
   exists (vstamp (idsσ n) s); rewrite /=; asimpl.
   exists (<[s:=T]> g).
-  have: nclosed T n. by move: Hcl; solve_inv_fv_congruence.
+  have HclT: nclosed T n. by move: Hcl; solve_inv_fv_congruence.
   repeat (econstructor; rewrite ?lookup_insert ?closed_subst_idsρ ?length_idsσ /=) => //.
-    (* [|apply stamped_idsσ]. *)
+  exact: nclosed_idsσ.
 Qed.
 
 Lemma exists_stamped_vstamp vs s n g: is_unstamped_vl (vstamp vs s) → nclosed_vl (vstamp vs s) n → { v' & { g' | stamps_vl n (vstamp vs s) g' v' ∧ g ⊆ g' } }.
