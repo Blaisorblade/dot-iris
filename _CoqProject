@@ -19,7 +19,7 @@ theories/DSub/step_fv.v
 theories/DSub/unary_lr.v
 theories/DSub/unary_lr_binding.v
 theories/DSub/closed_subst.v
-theories/Dot/dotsyn.v
+theories/Dot/syn.v
 theories/Dot/typing.v
 theories/Dot/typeExtractionSyn.v
 theories/Dot/typeExtractionSem.v

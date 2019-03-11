@@ -4,7 +4,7 @@ To reduce compile times, unary_lr should not depend on this file.
 This file should load as little Iris code as possible, to reduce compile times.
  *)
 From D Require Import tactics.
-From D.Dot Require Import dotsyn.
+From D.Dot Require Import syn.
 
 (* Auxiliary lemma for [length_idsσ]. *)
 Lemma length_idsσr n r: length (idsσ n).|[ren r] = n.

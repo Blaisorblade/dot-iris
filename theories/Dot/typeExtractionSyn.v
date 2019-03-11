@@ -2,7 +2,7 @@
 From stdpp Require Import gmap fin_map_dom.
 
 From D Require Import tactics.
-From D.Dot Require Import dotsyn operational synLemmas.
+From D.Dot Require Import syn operational synLemmas.
 
 Set Primitive Projections.
 Set Implicit Arguments.
