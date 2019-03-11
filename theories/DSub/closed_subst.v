@@ -61,15 +61,3 @@ Lemma nclosed_ren_up n m r:
   nclosed_ren (S n) (S m) (upren r).
 Proof. move => //= Hr [|i] Hi; asimpl; eauto with lia. Qed.
 Hint Resolve nclosed_ren_up.
-
-(** [nclosed_ren_x] doesn't work because there's no [rename_hsubst] lemma analogous to [rename_subst], and
-    [nclosed_ren_mut] is more maintenance work than I like, and now is unused, so drop it. *)
-(*
-Lemma nclosed_ren_x `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} {hra: Rename A} (a: A) r i j:
-  nclosed_ren i j r →
-  nclosed a i → nclosed (rename r a) j.
-Proof.
-  move => Hcls Hcla s1 s2 Heqs; asimpl.
-  (* rewrite -rename_hsubst. *)
-  (* eapply nclosed_sub_x. *)
-*)
