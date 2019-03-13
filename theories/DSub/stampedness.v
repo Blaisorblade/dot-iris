@@ -14,16 +14,16 @@ Record Traversal {travStateT: Type} :=
     upS: travStateT → travStateT;
     varP: travStateT → nat → Prop;
     vtyP: travStateT → ty → Prop;
-    vstampP: travStateT → vls → stamp → Prop;
+    vstampP: travStateT → vls → stamp → ty → travStateT → Prop;
   }.
 Global Arguments Traversal _: clear implicits.
 
 Definition is_unstamped_trav: Traversal unit :=
   {|
     upS := id;
-    varP := λ s n, True;
-    vtyP := λ s T, True;
-    vstampP := λ s vs s, False;
+    varP := λ ts n, True;
+    vtyP := λ ts T, True;
+    vstampP := λ ts vs s T' ts', False;
   |}.
 
 Definition is_stamped_trav: Traversal (nat * stys) :=
@@ -31,11 +31,12 @@ Definition is_stamped_trav: Traversal (nat * stys) :=
     upS := λ '(n, g), (S n, g);
     varP := λ '(n, g) i, i < n;
     vtyP := λ ts T, False;
-    vstampP := λ '(n, g) vs s, ∃ T', g !! s = Some T' ∧ nclosed T' (length vs);
+    vstampP := λ '(n, g) vs s T' '(n', g'), g !! s = Some T' ∧ g' = g ∧ n' = length vs;
   |}.
 
 Section fold.
   Context `(trav: Traversal travStateT).
+  Implicit Types (t: tm) (ts: travStateT) (s: stamp).
 
   Inductive forall_traversal_vl: travStateT → vl → Prop :=
     | trav_var_vl ts i: trav.(varP) ts i → forall_traversal_vl ts (var_vl i)
@@ -46,8 +47,9 @@ Section fold.
         forall_traversal_ty ts T →
         trav.(vtyP) ts T →
         forall_traversal_vl ts (vty T)
-    | trav_vstamp ts vs s:
-          trav.(vstampP) ts vs s →
+    | trav_vstamp ts vs s T' ts':
+          trav.(vstampP) ts vs s T' ts' →
+          forall_traversal_ty ts' T' →
           Forall (forall_traversal_vl ts) vs →
           forall_traversal_vl ts (vstamp vs s)
   with
@@ -140,11 +142,14 @@ Lemma is_stamped_mono_mut:
 Proof.
   apply syntax_mut_ind;
     try by [ intros; with_is_stamped inverse; constructor; cbn in *; eauto].
-  - move => vs s IHvs g1 g2 n Hg Hstg1.
-    inversion Hstg1; subst. cbn in *; ev.
-    repeat econstructor => //=. by eapply map_subseteq_spec.
-    decompose_Forall; eauto.
-Qed.
+  move => vs s IHvs g1 g2 n Hg Hstg1.
+  inversion Hstg1. subst. cbn in *; ev. subst.
+
+  eapply @trav_vstamp with (T' := T') (ts' := (length vs, g2)) => //=.
+  split_and!; by [|eapply map_subseteq_spec].
+  admit.
+  by decompose_Forall; eauto.
+Admitted.
 
 Lemma is_stamped_mono_tm g1 g2 n e__s:
   g1 ⊆ g2 →
@@ -213,9 +218,10 @@ Proof.
   apply syntax_mut_ind; intros; with_is_stamped ltac:(fun H => inversion_clear H);
     cbn in *; try by [constructor; cbn; eauto].
   - eauto.
-  - constructor. rewrite /= /rename /list_rename map_length /=.
-    by ev; eexists; split_and!.
-    by rewrite Forall_fmap; decompose_Forall; eauto.
+  - eapply @trav_vstamp with (ts' := ts') (T' := T'); ev; subst;
+      rewrite //= ?map_length ?Forall_fmap.
+    by split_and!.
+    by decompose_Forall; eauto.
 Qed.
 
 Lemma is_stamped_ren_vl: ∀ v g r i j,
@@ -281,11 +287,12 @@ Lemma is_stamped_sub_mut:
     is_stamped_ty j g T.|[s]).
 Proof.
   apply syntax_mut_ind; intros; with_is_stamped ltac:(fun H => inversion_clear H);
-    cbn in *; try by [constructor; cbn; eauto]; eauto.
-  - constructor.
-    + rewrite /= map_length.
-      ev; eexists; split_and!; eauto.
-    + rewrite Forall_fmap; decompose_Forall; eauto.
+    cbn in *; try by [constructor; cbn; eauto].
+  - eauto.
+  - eapply @trav_vstamp with (ts' := ts') (T' := T'); ev; subst;
+      rewrite //= ?map_length ?Forall_fmap.
+    by split_and!.
+    by decompose_Forall; eauto.
 Qed.
 
 Lemma is_stamped_sub_vl v g s m n:
@@ -338,9 +345,11 @@ Proof.
     try by with_is_stamped inverse; ev;
     constructor => /=; eauto using eq_up with lia.
 
-  with_is_stamped inverse; cbn in *; ev.
-  unfold hsubst, list_hsubst in *; rewrite -> map_length, @Forall_fmap in *.
-  constructor => /=. by eexists; split_and!; eauto.
+  with_is_stamped inverse; cbn in *.
+  unfold hsubst, list_hsubst in *; rewrite -> @Forall_fmap in *.
+  eapply @trav_vstamp with (ts' := ts') (T' := T'); ev; subst => //=;
+    rewrite //= ?map_length.
+  by split_and!.
   by decompose_Forall; eauto.
 Qed.
 
