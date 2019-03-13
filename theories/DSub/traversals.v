@@ -5,7 +5,7 @@ From D.DSub Require Import syn.
 Set Primitive Projections.
 Set Implicit Arguments.
 
-Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx) (n: nat).
+Implicit Types (T: ty) (v: vl) (e t: tm) (Γ : ctx) (n: nat).
 
 Module Trav1.
 Record Traversal {travStateT: Type} :=
@@ -13,7 +13,7 @@ Record Traversal {travStateT: Type} :=
     upS: travStateT → travStateT;
     varP: travStateT → nat → Prop;
     vtyP: travStateT → ty → Prop;
-    vstampP: travStateT → vls → stamp → Prop;
+    vstampP: travStateT → vls → stamp → ty → travStateT → Prop;
     tselP: travStateT → vl → Prop;
   }.
 
@@ -21,6 +21,7 @@ Global Arguments Traversal _: clear implicits.
 
 Section fold.
   Context `(trav: Traversal travStateT).
+  Implicit Types (ts: travStateT) (s: stamp).
 
   Inductive forall_traversal_vl: travStateT → vl → Prop :=
   | trav_var_vl ts i: trav.(varP) ts i → forall_traversal_vl ts (var_vl i)
@@ -31,8 +32,9 @@ Section fold.
       forall_traversal_ty ts T →
       trav.(vtyP) ts T →
       forall_traversal_vl ts (vty T)
-  | trav_vstamp ts vs s:
-      trav.(vstampP) ts vs s →
+  | trav_vstamp ts vs s T' ts':
+      trav.(vstampP) ts vs s T' ts' →
+      forall_traversal_ty ts' T' →
       Forall (forall_traversal_vl ts) vs →
       forall_traversal_vl ts (vstamp vs s)
   with

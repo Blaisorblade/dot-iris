@@ -64,6 +64,20 @@ Definition stamp_vty g n T :=
   let '(g', (s, σ)) := (extract g n T) in
   (vstamp σ s, g').
 
+(** Unstamped types are already stamped, because they can't contain type
+    definitions to stamp. *)
+Lemma unstamped_stamped_type T g n:
+  is_unstamped_ty T →
+  nclosed T n →
+  is_stamped_ty n g T.
+Proof.
+  move => Hus; move: n. induction T => n Hcl; inverse Hus; cbn in *; constructor => //=.
+  all: try by (eapply IHT || eapply IHT1 || eapply IHT2; eauto 2; auto with fv).
+  ev; simplify_eq; constructor. rewrite /= -nclosed_vl_ids_equiv. auto with fv.
+Qed.
+Arguments extraction: simpl never.
+Import traversals.Trav1.
+
 Lemma stamp_vty_spec {T n} g:
   is_unstamped_vl (vty T) → nclosed T n →
   let '(g', (s, σ)) := (extract g n T) in
@@ -75,9 +89,10 @@ Proof.
   have Hext: T ~[ n ] (extract g n T). by apply extract_spec.
   destruct (extract g n T) as (g' & s & σ) eqn:Heq.
   rewrite /extract in Heq; simplify_eq.
-  split_and!; [| | constructor| | trivial ];
-    rewrite /= ?lookup_insert /= ?closed_subst_idsρ ?length_idsσ //;
-    eauto using is_stamped_idsσ.
+  inverse Hus.
+  split_and!; try eapply trav_vstamp with (T' := T) (ts' := (n, <[fresh_stamp g := T]> g));
+    rewrite /= ?lookup_insert //= ?closed_subst_idsρ ?length_idsσ //;
+    eauto using is_stamped_idsσ, unstamped_stamped_type.
 Qed.
 
 Lemma exists_stamped_vty T n g:
@@ -88,18 +103,6 @@ Proof.
   have HclT: nclosed T n. by solve_inv_fv_congruence_h Hclv.
   edestruct (stamp_vty_spec g Hus HclT); cbn in *.
   exists v', g'; simplify_eq; eauto.
-Qed.
-
-(** Unstamped types are already stamped, because they can't contain type
-    definitions to stamp. *)
-Lemma unstamped_stamped_type T g n:
-  is_unstamped_ty T →
-  nclosed T n →
-  is_stamped_ty n g T.
-Proof.
-  move => Hus; move: n. induction T => n Hcl; inverse Hus; cbn in *; constructor => //=.
-  all: try by (eapply IHT || eapply IHT1 || eapply IHT2; eauto 2; auto with fv).
-  ev; simplify_eq; constructor. rewrite /= -nclosed_vl_ids_equiv. auto with fv.
 Qed.
 
 Lemma var_stamps_to_self1 g x v: unstamp_vl g v = var_vl x → v = var_vl x.

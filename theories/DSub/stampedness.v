@@ -37,43 +37,33 @@ Ltac with_is_stamped tac :=
     | H: is_stamped_vl _ _ _ |- _ => tac H
   end.
 
-Lemma is_stamped_mono_mut:
-  (∀ e__s g1 g2 n,
-       g1 ⊆ g2 →
-       is_stamped_tm n g1 e__s →
-       is_stamped_tm n g2 e__s) ∧
-  (∀ v__s g1 g2 n,
-      g1 ⊆ g2 →
-      is_stamped_vl n g1 v__s →
-      is_stamped_vl n g2 v__s) ∧
-  (∀ T__s g1 g2 n,
-      g1 ⊆ g2 →
-      is_stamped_ty n g1 T__s →
-      is_stamped_ty n g2 T__s).
-Proof.
-  apply syntax_mut_ind;
-    try by [ intros; with_is_stamped inverse; constructor; cbn in *; eauto].
-  - move => vs s IHvs g1 g2 n Hg Hstg1.
-    inversion Hstg1; subst. cbn in *; ev.
-    repeat econstructor => //=. by eapply map_subseteq_spec.
-    decompose_Forall; eauto.
-Qed.
-
 Lemma is_stamped_mono_tm g1 g2 n e__s:
   g1 ⊆ g2 →
   is_stamped_tm n g1 e__s →
-  is_stamped_tm n g2 e__s.
-Proof. unmut_lemma is_stamped_mono_mut. Qed.
-Lemma is_stamped_mono_vl g1 g2 n v__s:
+  is_stamped_tm n g2 e__s
+with is_stamped_mono_vl g1 g2 n v__s:
   g1 ⊆ g2 →
   is_stamped_vl n g1 v__s →
-  is_stamped_vl n g2 v__s.
-Proof. unmut_lemma is_stamped_mono_mut. Qed.
-Lemma is_stamped_mono_ty g1 g2 n T__s:
+  is_stamped_vl n g2 v__s
+with is_stamped_mono_ty g1 g2 n T__s:
   g1 ⊆ g2 →
   is_stamped_ty n g1 T__s →
   is_stamped_ty n g2 T__s.
-Proof. unmut_lemma is_stamped_mono_mut. Qed.
+Proof.
+  all: intros Hleg Hst; dependent induction Hst.
+  all: try solve [constructor;
+    by [| exact: (is_stamped_mono_tm _ _ _ _ Hleg)
+        | exact: (is_stamped_mono_vl _ _ _ _ Hleg)
+        | exact: (is_stamped_mono_ty _ _ _ _ Hleg)]].
+
+  move: ts' H H0 H1 => /= [l g0] [Hgs [-> Heq]] HstT Hstvs.
+  eapply @trav_vstamp with (T' := T') (ts' := (length vs, g2)) => //=.
+  split_and!; by [|eapply map_subseteq_spec].
+  subst l; exact: (is_stamped_mono_ty _ _ _ _ Hleg).
+  (* Termination checking requires here a nested induction. *)
+  elim: Hstvs {Heq} => [|v vs' Hv H IHHstvs]; constructor;
+    by [| apply: (is_stamped_mono_vl _ _ _ _ Hleg Hv)].
+Qed.
 
 Definition is_stamped_sub n m g s :=
   ∀ i, i < n → is_stamped_vl m g (s i).
@@ -119,9 +109,10 @@ Proof.
   apply syntax_mut_ind; intros; with_is_stamped ltac:(fun H => inversion_clear H);
     cbn in *; try by [constructor; cbn; eauto].
   - eauto.
-  - constructor. rewrite /= /rename /list_rename map_length /=.
-    by ev; eexists; split_and!.
-    by rewrite Forall_fmap; decompose_Forall; eauto.
+  - eapply @trav_vstamp with (ts' := ts') (T' := T'); ev; subst;
+      rewrite //= ?map_length ?Forall_fmap.
+    by split_and!.
+    by decompose_Forall; eauto.
 Qed.
 
 Lemma is_stamped_ren_vl: ∀ v g r i j,
@@ -186,11 +177,12 @@ Lemma is_stamped_sub_mut:
     is_stamped_ty j g T.|[s]).
 Proof.
   apply syntax_mut_ind; intros; with_is_stamped ltac:(fun H => inversion_clear H);
-    cbn in *; try by [constructor; cbn; eauto]; eauto.
-  - constructor.
-    + rewrite /= map_length.
-      ev; eexists; split_and!; eauto.
-    + rewrite Forall_fmap; decompose_Forall; eauto.
+    cbn in *; try by [constructor; cbn; eauto].
+  - eauto.
+  - eapply @trav_vstamp with (ts' := ts') (T' := T'); ev; subst;
+      rewrite //= ?map_length ?Forall_fmap.
+    by split_and!.
+    by decompose_Forall; eauto.
 Qed.
 
 Lemma is_stamped_sub_vl v g s m n:
@@ -242,9 +234,11 @@ Proof.
     try by with_is_stamped inverse; ev;
     constructor => /=; eauto using eq_up with lia.
   - auto using nclosed_var_lt.
-  - with_is_stamped inverse; cbn in *; ev.
-    unfold hsubst, list_hsubst in *; rewrite -> map_length, @Forall_fmap in *.
-    constructor => /=. by eexists; split_and!; eauto.
+  - with_is_stamped inverse; cbn in *.
+    unfold hsubst, list_hsubst in *; rewrite -> @Forall_fmap in *.
+    eapply @trav_vstamp with (ts' := ts') (T' := T'); ev; subst => //=;
+      rewrite //= ?map_length.
+    by split_and!.
     by decompose_Forall; eauto.
 Qed.
 
