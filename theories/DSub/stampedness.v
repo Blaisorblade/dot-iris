@@ -291,20 +291,37 @@ Lemma is_stamped_sub_ty T g s m n:
   is_stamped_ty m g T.|[s].
 Proof. unmut_lemma is_stamped_sub_mut. Qed.
 
+Lemma is_stamped_vl_ids g i j: i < j → is_stamped_vl j g (ids i).
+Proof. rewrite /ids /Ids_vl; by constructor. Qed.
+Hint Resolve is_stamped_vl_ids.
+
+Lemma is_stamped_sub_single n v g:
+  is_stamped_vl n g v →
+  is_stamped_sub (S n) n g (v .: ids).
+Proof. move => Hv [|i] Hin /=; eauto with lia. Qed.
+
+Lemma is_stamped_sub_one n T v g:
+  is_stamped_ty (S n) g T →
+  is_stamped_vl n g v →
+  is_stamped_ty n g (T.|[v/]).
+Proof.
+  intros; eapply is_stamped_sub_ty => //; by apply is_stamped_sub_single.
+Qed.
+
 Lemma is_stamped_sub_rev_mut g:
   (∀ e i,
     nclosed e i →
-    ∀ s j, is_stamped_sub i j g s →
+    ∀ s j,
     is_stamped_tm j g (e.|[s]) →
     is_stamped_tm i g e) ∧
   (∀ v i,
     nclosed_vl v i →
-    ∀ s j, is_stamped_sub i j g s →
+    ∀ s j,
     is_stamped_vl j g (v.[s]) →
     is_stamped_vl i g v) ∧
   (∀ T i,
     nclosed T i →
-    ∀ s j, is_stamped_sub i j g s →
+    ∀ s j,
     is_stamped_ty j g (T.|[s]) →
     is_stamped_ty i g T).
 Proof.
@@ -319,19 +336,23 @@ Proof.
   by decompose_Forall; eauto.
 Qed.
 
-Lemma is_stamped_sub_rev_vl g: ∀ v s i j,
+Lemma is_stamped_sub_rev_vl g v s i j:
   nclosed_vl v i →
-  is_stamped_sub i j g s →
   is_stamped_vl j g (v.[s]) →
   is_stamped_vl i g v.
 Proof. unmut_lemma (is_stamped_sub_rev_mut g). Qed.
 
 Lemma is_stamped_sub_rev_ty g T s i j:
   nclosed T i →
-  is_stamped_sub i j g s →
   is_stamped_ty j g (T.|[s]) →
   is_stamped_ty i g T.
 Proof. unmut_lemma (is_stamped_sub_rev_mut g). Qed.
+
+Lemma is_stamped_sub_one_rev i T v g:
+  nclosed T (S i) →
+  is_stamped_ty i g (T.|[v/]) →
+  is_stamped_ty (S i) g T.
+Proof. intros; by eapply is_stamped_sub_rev_ty. Qed.
 
 Lemma is_stamped_ren_ty i T g:
   nclosed T i →
