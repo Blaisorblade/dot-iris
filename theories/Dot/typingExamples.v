@@ -3,7 +3,7 @@ WIP examples constructing syntactic typing derivations.
 I am also experimenting with notations, but beware the current definitions are pretty bad.
  *)
 From D Require Import tactics.
-From D.Dot Require Import dotsyn.
+From D.Dot Require Import syn.
 From stdpp Require Import strings.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).

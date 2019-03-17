@@ -6,7 +6,7 @@ From iris.base_logic Require Import lib.iprop (* For gname *)
 From D.pure_program_logic Require Export weakestpre.
 
 From D Require Import tactics.
-From D.Dot Require Export dotsyn.
+From D.Dot Require Export syn.
 
 Implicit Types
          (T: ty) (v: vl) (t e: tm) (d: dm) (ds: dms) (vs: vls)

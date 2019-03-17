@@ -1,13 +1,13 @@
 (** Define purely syntactically whether a term is stamped or not. *)
 From stdpp Require Import gmap.
 From D Require Import tactics.
-From D.Dot Require Import dotsyn operational typeExtractionSyn.
+From D.Dot Require Import syn operational typeExtractionSyn.
 
 Set Primitive Projections.
 Set Implicit Arguments.
 
 Implicit Types
-         (T: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (vs: vls)
+         (T: ty) (v: vl) (e: tm) (p: path) (d: dm) (ds: dms) (vs: vls)
          (Γ : ctx) (g: stys) (n: nat).
 
 Record Traversal {travStateT: Type} :=
@@ -199,9 +199,6 @@ Proof.
   elim: ds Hds Hsg1 => [| d ds IHds] /= Hds Hdsg1; constructor;
   inverse Hdsg1; inverse Hds; eauto.
 Qed.
-
-(** Tactic to split a lemma proven by mutual induction into its pieces. *)
-Ltac unmut_lemma H := destruct H; ev; eauto.
 
 Lemma is_stamped_mono_tm g1 g2 n e__s:
   g1 ⊆ g2 →

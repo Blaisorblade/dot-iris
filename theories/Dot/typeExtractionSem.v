@@ -2,7 +2,7 @@ From stdpp Require Import gmap.
 From iris.proofmode Require Import tactics.
 
 From D Require Import tactics.
-From D.Dot Require Import dotsyn operational synLemmas unary_lr unary_lr_binding typeExtractionSyn.
+From D.Dot Require Import syn operational synLemmas unary_lr unary_lr_binding typeExtractionSyn.
 Import uPred.
 
 Set Primitive Projections.

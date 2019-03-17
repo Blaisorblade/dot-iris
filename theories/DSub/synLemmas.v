@@ -149,6 +149,16 @@ Proof. apply lookup_lt_Some. Qed.
 Lemma lookup_fv Γ x T: Γ !! x = Some T → nclosed (tv (var_vl x)) (length Γ).
 Proof. rewrite /nclosed /nclosed_vl => * /=; f_equiv; eauto using lookup_success. Qed.
 
+Lemma nclosed_var_lt i n: nclosed_vl (var_vl i) n -> i < n.
+Proof.
+  rewrite /nclosed_vl /= => Heq.
+  set s0 := fun k x => if (decide (x < n)) then var_vl 0 else var_vl k.
+  set s1 := s0 1; set s2 := s0 2. subst s0.
+  have Heqs: eq_n_s s1 s2 n. by subst s1 s2; move=> ??; case_decide.
+  specialize (Heq s1 s2 Heqs); move: Heq {Heqs}; subst s1 s2 => /=. by case_decide.
+Qed.
+Hint Resolve nclosed_var_lt.
+
 (** Not yet used. *)
 Lemma eq_n_s_mon {n s1 s2}: eq_n_s s1 s2 (S n) → eq_n_s s1 s2 n.
 Proof. rewrite /eq_n_s => HsEq x Hl; apply HsEq; omega. Qed.
@@ -190,6 +200,9 @@ Proof.
   elim: σ => [|v σ IHσ] Hcl //=.
   inverse Hcl; apply fv_vls_cons; by [ apply IHσ | ].
 Qed.
+
+Lemma fv_vstamp σ s n: nclosed_σ σ n → nclosed_vl (vstamp σ s) n.
+Proof. move => /Forall_to_closed_vls. solve_fv_congruence. Qed.
 
 Definition cl_ρ_fv: ∀ ρ, cl_ρ ρ → nclosed ρ 0 := Forall_to_closed_vls 0.
 

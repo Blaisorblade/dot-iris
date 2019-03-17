@@ -4,7 +4,7 @@ To reduce compile times, unary_lr should not depend on this file.
 This file should load as little Iris code as possible, to reduce compile times.
  *)
 From D Require Import tactics.
-From D.Dot Require Import dotsyn.
+From D.Dot Require Import syn.
 
 (* Auxiliary lemma for [length_idsσ]. *)
 Lemma length_idsσr n r: length (idsσ n).|[ren r] = n.
@@ -148,6 +148,16 @@ Proof. apply lookup_lt_Some. Qed.
 
 Lemma lookup_fv Γ x T: Γ !! x = Some T → nclosed (tv (var_vl x)) (length Γ).
 Proof. rewrite /nclosed /nclosed_vl => * /=; f_equiv; eauto using lookup_success. Qed.
+
+Lemma nclosed_var_lt i n: nclosed_vl (var_vl i) n -> i < n.
+Proof.
+  rewrite /nclosed_vl /= => Heq.
+  set s0 := fun k x => if (decide (x < n)) then var_vl 0 else var_vl k.
+  set s1 := s0 1; set s2 := s0 2. subst s0.
+  have Heqs: eq_n_s s1 s2 n. by subst s1 s2; move=> ??; case_decide.
+  specialize (Heq s1 s2 Heqs); move: Heq {Heqs}; subst s1 s2 => /=. by case_decide.
+Qed.
+Hint Resolve nclosed_var_lt.
 
 (** Not yet used. *)
 Lemma eq_n_s_mon {n s1 s2}: eq_n_s s1 s2 (S n) → eq_n_s s1 s2 n.
@@ -294,5 +304,5 @@ Proof.
 Qed.
 Hint Resolve nclosed_σ_to_subst.
 
-Lemma fv_dtysem ρ γ l: nclosed_σ ρ l → nclosed (dtysem ρ γ) l.
+Lemma fv_dtysem σ s n: nclosed_σ σ n → nclosed (dtysem σ s) n.
 Proof. move => /Forall_to_closed_vls. solve_fv_congruence. Qed.

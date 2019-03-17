@@ -484,77 +484,70 @@ Ltac solve_inv_fv_congruence_auto :=
 Hint Extern 10 => solve_inv_fv_congruence_auto: fv.
 
 Section syntax_mut_ind_closed.
-  Variable Ptm : tm → Prop.
-  Variable Pvl : vl → Prop.
-  Variable Pty : ty → Prop.
+  Variable Ptm : tm → nat → Prop.
+  Variable Pvl : vl → nat → Prop.
+  Variable Pty : ty → nat → Prop.
 
   Implicit Types (n: nat).
 
   Variable step_tv : ∀ n v1,
-      nclosed_vl v1 n → nclosed (tv v1) n → Ptm (tv v1).
+      nclosed_vl v1 n → nclosed (tv v1) n → Pvl v1 n → Ptm (tv v1) n.
   Variable step_tapp : ∀ n t1 t2,
       nclosed t1 n → nclosed t2 n → nclosed (tapp t1 t2) n →
-      Ptm t1 → Ptm t2 → Ptm (tapp t1 t2).
+      Ptm t1 n → Ptm t2 n → Ptm (tapp t1 t2) n.
   Variable step_tskip : ∀ n t1,
       nclosed t1 n → nclosed (tskip t1) n →
-      Ptm t1 → Ptm (tskip t1).
+      Ptm t1 n → Ptm (tskip t1) n.
   Variable step_var_vl : ∀ n i,
-      nclosed_vl (var_vl i) n → Pvl (var_vl i).
+      nclosed_vl (var_vl i) n → Pvl (var_vl i) n.
   Variable step_vnat : ∀ n m,
-      nclosed_vl (vnat m) n → Pvl (vnat m).
+      nclosed_vl (vnat m) n → Pvl (vnat m) n.
   Variable step_vabs : ∀ n t1,
       nclosed t1 (S n) →
       nclosed_vl (vabs t1) n →
-      Ptm t1 → Pvl (vabs t1).
+      Ptm t1 (S n) → Pvl (vabs t1) n.
 
   Variable step_vty : ∀ n T1,
       nclosed T1 n → nclosed_vl (vty T1) n →
-      Pty T1 → Pvl (vty T1).
+      Pty T1 n → Pvl (vty T1) n.
   (** Beware here in Prop we use Forall, not ForallT! *)
   Variable step_vstamp : ∀ n vs s,
       nclosed vs n → nclosed_vl (vstamp vs s) n →
-      Forall Pvl vs → Pvl (vstamp vs s).
+      Forall (flip Pvl n) vs → Pvl (vstamp vs s) n.
   Variable step_TALl : ∀ n T1 T2,
       nclosed T1 n → nclosed T2 (S n) → nclosed (TAll T1 T2) n →
-      Pty T1 → Pty T2 → Pty (TAll T1 T2).
+      Pty T1 n → Pty T2 (S n) → Pty (TAll T1 T2) n.
   Variable step_TTMem : ∀ n T1 T2,
       nclosed T1 n → nclosed T2 n → nclosed (TTMem T1 T2) n →
-      Pty T1 → Pty T2 → Pty (TTMem T1 T2).
+      Pty T1 n → Pty T2 n → Pty (TTMem T1 T2) n.
   Variable step_TSel : ∀ n v1,
       nclosed_vl v1 n → nclosed (TSel v1) n →
-      Pvl v1 → Pty (TSel v1).
+      Pvl v1 n → Pty (TSel v1) n.
   Variable step_TNat : ∀ n,
       nclosed TNat n →
-      Pty TNat.
+      Pty TNat n.
 
-  Fixpoint nclosed_tm_mut_rect n t: nclosed t n → Ptm t
-  with     nclosed_vl_mut_rect n v: nclosed_vl v n → Pvl v
-  with     nclosed_ty_mut_rect n T: nclosed T n → Pty T.
+  Fixpoint nclosed_tm_mut_rect n t: nclosed t n → Ptm t n
+  with     nclosed_vl_mut_rect n v: nclosed_vl v n → Pvl v n
+  with     nclosed_ty_mut_rect n T: nclosed T n → Pty T n.
   Proof.
     (* Automation risk producing circular proofs that call right away the lemma we're proving.
        Instead we want to apply one of the [case_] arguments to perform an
        inductive step, and only then call ourselves recursively. *)
     all: destruct 0; intro Hcl.
-    Ltac tryClose t n := try assert (nclosed t n) by solve_inv_fv_congruence_auto.
-    Ltac tryCloseVl v n := try assert (nclosed_vl v n) by solve_inv_fv_congruence_auto.
-
-    all: let byEapply Hstep := eapply (Hstep n); eauto 2
+    all: let byEapply p := efeed p using (fun q => apply q) by (eauto 2; eauto with fv)
     in
-         tryCloseVl v n; tryClose t1 n; tryClose t2 n; tryClose t n; tryClose T1 n; tryClose T2 n; tryClose t (S n); tryClose T2 (S n);
       match goal with
       (* Warning: add other arities as needed. *)
-      | Hstep: context [?P (?c _ _ _)] |- ?P (?c _ _ _) => byEapply Hstep
-      | Hstep: context [?P (?c _ _)] |- ?P (?c _ _) => byEapply Hstep
-      | Hstep: context [?P (?c _)] |- ?P (?c _) => byEapply Hstep
-      | Hstep: context [?P (?c)] |- ?P (?c) => byEapply Hstep
+      | Hstep: context [?P (?c _ _ _) _] |- ?P (?c ?a1 ?a2 ?a3) _ => byEapply Hstep (Hstep n a1 a2 a3)
+      | Hstep: context [?P (?c _ _) _] |- ?P (?c ?a1 ?a2) _ => byEapply (Hstep n a1 a2)
+      | Hstep: context [?P (?c _) _] |- ?P (?c ?a1) _ => byEapply (Hstep n a1)
+      | Hstep: context [?P (?c) _] |- ?P (?c) _ => byEapply (Hstep n)
       end.
-    - eauto with fv.
-    - induction l as [| a l]; first constructor.
-      tryCloseVl a n; tryClose l n.
-      constructor; first eauto; apply IHl; solve_inv_fv_congruence_auto.
+    - induction l as [| a l]; constructor => /=; eauto with fv.
   Qed.
 
-  Lemma nclosed_syntax_mut_ind: (∀ t n, nclosed t n → Ptm t) ∧ (∀ v n, nclosed_vl v n → Pvl v) ∧ (∀ T n, nclosed T n → Pty T).
+  Lemma nclosed_syntax_mut_ind: (∀ t n, nclosed t n → Ptm t n) ∧ (∀ v n, nclosed_vl v n → Pvl v n) ∧ (∀ T n, nclosed T n → Pty T n).
   Proof.
     repeat split; intros.
     - by eapply nclosed_tm_mut_rect.

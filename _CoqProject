@@ -11,13 +11,15 @@ theories/DSub/syn.v
 theories/DSub/typeExtractionSyn.v
 theories/DSub/typeExtractionSem.v
 theories/DSub/rules.v
+theories/DSub/stampedness.v
 theories/DSub/astStamping.v
 theories/DSub/synLemmas.v
 theories/DSub/operational.v
 theories/DSub/step_fv.v
 theories/DSub/unary_lr.v
 theories/DSub/unary_lr_binding.v
-theories/Dot/dotsyn.v
+theories/DSub/closed_subst.v
+theories/Dot/syn.v
 theories/Dot/typing.v
 theories/Dot/typeExtractionSyn.v
 theories/Dot/typeExtractionSem.v
@@ -38,6 +40,7 @@ theories/Dot/lr_lemmasDefs.v
 theories/Dot/unary_lr_binding.v
 theories/Dot/typingExamples.v
 theories/Dot/experiments.v
+theories/Dot/closed_subst.v
 theories/plain_program_logic/weakestpre.v
 theories/plain_program_logic/hoare.v
 theories/plain_program_logic/lifting.v
