@@ -4,6 +4,10 @@ From D.DSub Require Import syn synLemmas.
 Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx).
 Set Implicit Arguments.
 
+(*
+  TODO: part of this code implements a variant of lemmas in synLemmas, but for arbitrary substitutions, not just the ones produced
+  by to_subst. Reducing the overlap might be good.
+ *)
 Definition nclosed_sub n m s :=
   ∀ i, i < n → nclosed_vl (s i) m.
 Definition nclosed_ren n m (r: var → var) := nclosed_sub n m (ren r).
