@@ -40,6 +40,7 @@ theories/Dot/lr_lemmasDefs.v
 theories/Dot/unary_lr_binding.v
 theories/Dot/typingExamples.v
 theories/Dot/experiments.v
+theories/Dot/noRussell.v
 theories/Dot/closed_subst.v
 theories/plain_program_logic/weakestpre.v
 theories/plain_program_logic/hoare.v
