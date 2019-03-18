@@ -301,6 +301,11 @@ Proof.
 Qed.
 Hint Resolve is_stamped_sub_up.
 
+Lemma is_stamped_nclosed_ty T g i:
+  is_stamped_ty i g T →
+  nclosed T i.
+Admitted.
+
 Lemma is_stamped_sub_vl v g s m n:
   is_stamped_sub n m g s →
   is_stamped_vl n g v →
@@ -346,23 +351,25 @@ Proof.
 Qed.
 
 Lemma is_stamped_sub_rev_vl g v s i j:
-  is_stamped_sub i j g s →
+  nclosed_vl v i →
   is_stamped_vl j g (v.[s]) →
   is_stamped_vl i g v.
 Admitted.
 
 Lemma is_stamped_sub_rev_ty g T s i j:
-  is_stamped_sub i j g s →
+  nclosed T i →
   is_stamped_ty j g (T.|[s]) →
   is_stamped_ty i g T.
 Admitted.
 
 Lemma is_stamped_sub_one_rev i T v g:
+  nclosed T (S i) →
   is_stamped_ty i g (T.|[v/]) →
   is_stamped_ty (S i) g T.
 Admitted.
 
 Lemma is_stamped_ren_ty i T g:
+  nclosed T i →
   is_stamped_ty i g T <->
   is_stamped_ty (S i) g (T.|[ren (+1)]).
 Proof.

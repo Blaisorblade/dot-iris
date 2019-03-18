@@ -252,6 +252,11 @@ Lemma is_stamped_nclosed_vl v g i:
   nclosed_vl v i.
 Proof. unmut_lemma (is_stamped_nclosed_mut g). Qed.
 
+Lemma is_stamped_nclosed_ty T g i:
+  is_stamped_ty i g T →
+  nclosed T i.
+Proof. unmut_lemma (is_stamped_nclosed_mut g). Qed.
+
 Lemma is_stamped_nclosed_sub i j g s: is_stamped_sub i j g s → nclosed_sub i j s.
 Proof.
   move => /= Hs x Hx. eapply is_stamped_nclosed_vl, (Hs x Hx).
