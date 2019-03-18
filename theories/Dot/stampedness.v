@@ -32,7 +32,7 @@ Definition is_stamped_trav: Traversal (nat * stys) :=
     upS := λ '(n, g), (S n, g);
     varP := λ '(n, g) i, i < n;
     dtysynP := λ ts T, False;
-    dtysemP := λ '(n, g) vs s, ∃ T', g !! s = Some T' ∧ nclosed T' (length vs) ∧ nclosed_σ vs n;
+    dtysemP := λ '(n, g) vs s, ∃ T', g !! s = Some T' ∧ nclosed T' (length vs);
   |}.
 
 Section fold.
@@ -69,9 +69,7 @@ Section fold.
       forall_traversal_dm ts (dtysyn T)
   | trav_dtysem ts vs s:
       trav.(dtysemP) ts vs s →
-      (* This is weird, but apparently we get away without checking that
-         these values are syntactic. *)
-      (* Forall (forall_traversal_vl ts) vs → *)
+      Forall (forall_traversal_vl ts) vs →
       forall_traversal_dm ts (dtysem vs s)
   with
   forall_traversal_path: travStateT → path → Prop :=
@@ -156,15 +154,6 @@ Lemma is_stamped_dtysyn_mono g1 g2 n T:
   is_stamped_dm n g2 (dtysyn T).
 Proof. intros; exfalso. by eapply not_stamped_dtysyn. Qed.
 
-Lemma is_stamped_dtysem_mono g1 g2 n s vs:
-  g1 ⊆ g2 →
-  is_stamped_dm n g1 (dtysem vs s) →
-  is_stamped_dm n g2 (dtysem vs s).
-Proof.
-  inversion 2; subst; simpl in *; ev.
-  repeat econstructor => //=. by eapply map_subseteq_spec.
-Qed.
-
 Ltac with_is_stamped tac :=
   match goal with
     | H: is_stamped_ty _ _ _ |- _ => tac H
@@ -196,12 +185,16 @@ Lemma is_stamped_mono_mut:
       is_stamped_ty n g1 T__s →
       is_stamped_ty n g2 T__s).
 Proof.
-  apply syntax_mut_ind.
-  all: try by [ intros; with_is_stamped inverse; by [ eapply is_stamped_dtysem_mono | constructor; cbn in *; eauto]].
-  move => ds Hds g1 g2 n Hg12 Hsg1. constructor.
-  inversion_clear Hsg1; move: H => Hsg1.
-  elim: ds Hds Hsg1 => [| d ds IHds] /= Hds Hdsg1; constructor;
-  inverse Hdsg1; inverse Hds; eauto.
+  apply syntax_mut_ind;
+    try by [ intros; with_is_stamped inverse; constructor; cbn in *; eauto].
+  - move => ds Hds g1 g2 n Hg12 Hsg1. constructor.
+    inversion_clear Hsg1; move: H => Hsg1.
+    elim: ds Hds Hsg1 => [| d ds IHds] /= Hds Hdsg1; constructor;
+    inverse Hdsg1; inverse Hds; eauto.
+  - move => vs s IHvs g1 g2 n Hg Hstg1.
+    inversion Hstg1; subst. cbn in *; ev.
+    repeat econstructor => //=. by eapply map_subseteq_spec.
+    decompose_Forall; eauto.
 Qed.
 
 Lemma is_stamped_mono_tm g1 g2 n e__s:
@@ -214,11 +207,28 @@ Lemma is_stamped_mono_vl g1 g2 n v__s:
   is_stamped_vl n g1 v__s →
   is_stamped_vl n g2 v__s.
 Proof. unmut_lemma is_stamped_mono_mut. Qed.
+Lemma is_stamped_mono_dm g1 g2 n d__s:
+  g1 ⊆ g2 →
+  is_stamped_dm n g1 d__s →
+  is_stamped_dm n g2 d__s.
+Proof. unmut_lemma is_stamped_mono_mut. Qed.
+Lemma is_stamped_mono_path g1 g2 n p__s:
+  g1 ⊆ g2 →
+  is_stamped_path n g1 p__s →
+  is_stamped_path n g2 p__s.
+Proof. unmut_lemma is_stamped_mono_mut. Qed.
 Lemma is_stamped_mono_ty g1 g2 n T__s:
   g1 ⊆ g2 →
   is_stamped_ty n g1 T__s →
   is_stamped_ty n g2 T__s.
 Proof. unmut_lemma is_stamped_mono_mut. Qed.
+
+(* XXX Still used? *)
+Lemma is_stamped_dtysem_mono g1 g2 n s vs:
+  g1 ⊆ g2 →
+  is_stamped_dm n g1 (dtysem vs s) →
+  is_stamped_dm n g2 (dtysem vs s).
+Proof. apply is_stamped_mono_dm. Qed.
 
 Lemma swap_snd_list_pair_rename r ds: map snd (list_pair_rename r ds) = map (rename r) (map snd ds).
 Proof.
@@ -249,7 +259,9 @@ Hint Resolve is_stamped_ren_up is_stamped_ren_shift.
 From D.Dot Require Import closed_subst.
 
 Lemma is_stamped_nclosed_ren i j g r: is_stamped_ren i j g r → nclosed_ren i j r.
-Admitted.
+Proof.
+  move => /= Hr x Hx. specialize (Hr x Hx); inverse Hr. exact: nclosed_vl_ids.
+Qed.
 
 Lemma is_stamped_ren_mut:
   (∀ t g r i j,
@@ -279,11 +291,8 @@ Proof.
   - constructor; rewrite swap_snd_list_pair_rename Forall_fmap;
       by decompose_Forall; eauto.
   - constructor. rewrite /= /rename /list_rename map_length /=.
-    ev; eexists; split_and!; eauto.
-    rewrite Forall_fmap.
-    decompose_Forall.
-    eapply nclosed_ren_vl => //.
-    by eapply is_stamped_nclosed_ren.
+    by ev; eexists; split_and!.
+    by rewrite Forall_fmap; decompose_Forall; eauto.
 Qed.
 
 Lemma is_stamped_ren_vl: ∀ v g r i j,

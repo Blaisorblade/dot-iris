@@ -89,6 +89,7 @@ where "Γ |ds V ⊢ ds : T" := (dms_typed Γ V ds T)
 with dm_typed Γ : ty → dm → ty → Prop :=
 | dty_typed V l L T U s σ:
     T ~[ S (length Γ) ] (getStampTable, (s, σ)) →
+    Forall (is_stamped_vl (S (length Γ)) getStampTable) σ →
     TLater V :: Γ ⊢ₜ L, 1 <: T, 1 →
     TLater V :: Γ ⊢ₜ T, 1 <: U, 1 →
     Γ |d V ⊢ dtysem σ s : TTMem l L U

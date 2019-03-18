@@ -135,10 +135,10 @@ Lemma is_stamped_mono_mut:
 Proof.
   apply syntax_mut_ind;
     try by [ intros; with_is_stamped inverse; constructor; cbn in *; eauto].
-  move => vs s IHvs g1 g2 n Hg Hstg1.
-  inversion Hstg1; subst. cbn in *; ev.
-  repeat econstructor => //=. by eapply map_subseteq_spec.
-  decompose_Forall; eauto.
+  - move => vs s IHvs g1 g2 n Hg Hstg1.
+    inversion Hstg1; subst. cbn in *; ev.
+    repeat econstructor => //=. by eapply map_subseteq_spec.
+    decompose_Forall; eauto.
 Qed.
 
 Lemma is_stamped_mono_tm g1 g2 n e__s:
@@ -210,7 +210,7 @@ Proof.
   - eauto.
   - constructor. rewrite /= /rename /list_rename map_length /=.
     by ev; eexists; split_and!.
-    rewrite Forall_fmap; decompose_Forall; eauto.
+    by rewrite Forall_fmap; decompose_Forall; eauto.
 Qed.
 
 Lemma is_stamped_ren_vl: ∀ v g r i j,
