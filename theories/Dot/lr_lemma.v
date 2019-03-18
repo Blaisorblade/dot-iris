@@ -71,6 +71,31 @@ Section Sec.
     repeat (iExists _; repeat iSplit => //).
   Qed.
 
+  Lemma Sub_TVMem_Cov_Distr_2 l T1 T2 i:
+    Γ ⊨ [TVMem l (TAnd T1 T2), i] <: [TAnd (TVMem l T1) (TVMem l T2), i].
+  Proof.
+    iIntros "/= !>" (ρ v Hcl) "#Hg [$ #H]". iNext.
+    iDestruct "H" as (d?? vmem?) "#[H1 H2]".
+    iSplit; repeat (iExists _; repeat iSplit => //).
+  Qed.
+
+  (* This should also follows internally from covariance, once that's proven. *)
+  Lemma Sub_TVMem_Cov_Distr_Or_1 l T1 T2 i:
+    Γ ⊨ [TOr (TVMem l T1) (TVMem l T2), i] <: [TVMem l (TOr T1 T2), i].
+  Proof.
+    iIntros "/= !>" (ρ v Hcl) "#Hg [[$ #H]| [$ #H]]"; iNext;
+    iDestruct "H" as (d?? vmem?) "#H";
+    repeat (iExists _; repeat iSplit => //); by [iLeft | iRight].
+  Qed.
+
+  Lemma Sub_TVMem_Cov_Distr_Or_2 l T1 T2 i:
+    Γ ⊨ [TVMem l (TOr T1 T2), i] <: [TOr (TVMem l T1) (TVMem l T2), i].
+  Proof.
+    iIntros "/= !>" (ρ v Hcl) "#Hg [$ #H]". iNext.
+    iDestruct "H" as (d?? vmem?) "#[H | H]"; [> iLeft | iRight];
+      repeat (iExists _; repeat iSplit => //).
+  Qed.
+
   Lemma Sub_TTMem_Cov_Distr l L U1 U2 i:
     Γ ⊨ [TAnd (TTMem l L U1) (TTMem l L U2), i] <: [TTMem l L (TAnd U1 U2), i].
   Proof.

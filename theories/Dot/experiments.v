@@ -52,48 +52,6 @@ Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
          (Γ : ctx) (ρ : listVlC).
 
-Module Russell.
-Section Russell.
-  Context `{HdotG: dotG Σ}.
-
-  (** Russell's paradox, directly. *)
-  Definition russell_p : listVlC -n> vlC -n> iProp Σ := λne ρ v, (⟦ TTMem "A" TBot TTop ⟧ [] v ∧ □ (⟦TSel (pv v) "A"⟧ [] v → False))%I.
-  Context (s: stamp).
-  Definition v := vobj [("A", dtysem [] s)].
-
-  Lemma taut0 (p: Prop): (p ↔(¬p))→ False. Proof. tauto. Qed.
-  Lemma taut1 (p: Prop): (p ↔ ¬p)→ False.
-  Proof.
-    rewrite /not; intros [H0 H1].
-    assert (H2notP: p → False). by intro H2p; apply H0; apply H2p.
-    assert (H2p: p). by apply H1, H2notP.
-    apply H2notP, H2p.
-  Qed.
-
-  Lemma vHasA: s ↝ (λ ρ v, russell_p ρ v) -∗ ⟦ TTMem "A" TBot TTop ⟧ [] v.
-  Proof.
-    iIntros "#Hs". repeat (repeat iExists _; repeat iSplit; try done).
-    iModIntro; repeat iSplit; by iIntros "**"; try iModIntro.
-  Qed.
-
-  Lemma notRussellV: s ↝ (λ ρ v, russell_p ρ v) -∗ □ (russell_p [] v → False).
-    iIntros "#Hs !> #[HvHasA #HnotRussellV]".
-    (* Either: *)
-    (* iApply "HnotRussellV". *)
-    (* or some convolution to state the goal explicitly and explain what happens. *)
-    iAssert (⟦ TSel (pv v) "A" ⟧ [] v) as "#HrussellV".
-    - iSplitL => //.
-      iExists (russell_p []), (dtysem [] s).
-      repeat (repeat iExists _ ; repeat iSplit => //).
-      iIntros "!>!>"; iSplit.
-      + iExact "HvHasA".
-      + iExact "HnotRussellV".
-
-    - iApply "HnotRussellV". iExact "HrussellV".
-  Qed.
-End Russell.
-End Russell.
-
 Section Sec.
   Context `{HdotG: dotG Σ}.
 
