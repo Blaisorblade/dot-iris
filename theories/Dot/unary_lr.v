@@ -30,8 +30,9 @@ Section logrel.
 
   Notation D := (vl -c> iProp Σ).
   Implicit Types (interp : envD Σ) (φ : D).
+  Notation envPred s := (vls -c> s -c> iProp Σ).
 
-  Definition def_interp_vmem interp : vls -c> dm -c> iProp Σ :=
+  Definition def_interp_vmem interp : envPred dm :=
     λ ρ d, (⌜ nclosed d 0 ⌝ ∗ ∃ vmem, ⌜d = dvl vmem⌝ ∧ ▷ interp ρ vmem)%I.
   Global Arguments def_interp_vmem /.
 
@@ -53,7 +54,7 @@ Section logrel.
     ev; subst; injectHyps. by iApply (leadsto_agree _ interp1 interp2).
   Qed.
 
-  Definition def_interp_tmem interp1 interp2 : vls -c> dm -c> iProp Σ :=
+  Definition def_interp_tmem interp1 interp2 : envPred dm :=
     λ ρ d,
     (⌜ nclosed d 0 ⌝ ∗ ∃ φ, (d ↗ φ) ∗
        □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ interp1 ρ v → ▷ □ φ v) ∗
@@ -65,7 +66,7 @@ Section logrel.
     (⌜ nclosed_vl v 0 ⌝ ∗ ∃ d, ⌜ v @ l ↘ d ⌝ ∧ def_interp_tmem interp1 interp2 ρ d)%I.
   Global Arguments interp_tmem /.
 
-  Definition interp_expr interp : vls -c> tm -c> iProp Σ :=
+  Definition interp_expr interp : envPred tm :=
     λ ρ t, WP t {{ interp ρ }} %I.
   Global Arguments interp_expr /.
 
@@ -158,7 +159,7 @@ Section logrel.
     Persistent (⟦ T ⟧ ρ v).
   Proof. revert v ρ; induction T => v ρ; simpl; try apply _. Qed.
 
-  Fixpoint def_interp (T: ty) : vls -c> dm -c> iProp Σ :=
+  Fixpoint def_interp (T: ty) : envPred dm :=
     λ ρ d,
     match T with
     | TTMem _ L U => def_interp_tmem (interp L) (interp U) ρ d
@@ -170,12 +171,10 @@ Section logrel.
     Persistent (def_interp T ρ d).
   Proof. revert ρ d; induction T; simpl; try apply _. Qed.
 
-  Notation envDmsD := (vls -c> dms -c> iProp Σ).
-
-  Definition defs_interp_and (interp1 interp2 : envDmsD) : envDmsD :=
+  Definition defs_interp_and (interp1 interp2 : envPred dms) : envPred dms :=
     λ ρ ds, (interp1 ρ ds ∧ interp2 ρ ds)%I.
 
-  Fixpoint defs_interp (T: ty) : envDmsD :=
+  Fixpoint defs_interp (T: ty) : envPred dms :=
     match T with
     | TAnd T1 T2 => defs_interp_and (defs_interp T1) (defs_interp T2)
     | TTop => λ ρ ds, ⌜ nclosed ds 0 ⌝
