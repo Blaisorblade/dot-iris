@@ -99,12 +99,12 @@ see rev_append_map for an approach that has a chance). *)
 (*   asimpl. cbn. *)
 (*   f_equal. *)
 (*   rewrite /selfSubst /=. *)
-  
+
 (*   assert ((l, d.|[vobj ds/]) ∈ ds.|[vobj ds/]). *)
 (*   rewrite /hsubst /list_pair_hsubst -/mapsnd. *)
 (*   set (sb := (hsubst (vobj ds .: ids))). *)
 (*   assert (map (mapsnd ) (l, d.|[vobj ds/]) ∈ ds.|[vobj ds/]). *)
-  
+
 (*   Search "_ ∈ _". *)
 (*   assert ((l, d) ∈ gmap_of_dms ds). *)
 (*   apply lookup_reverse_length. by rewrite map_length. *)

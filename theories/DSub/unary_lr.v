@@ -66,17 +66,17 @@ Section logrel.
 
   Program Definition interp_bot : listVlC -n> D := λne ρ v, False%I.
 
-  (* XXX Paolo: This definition is correct but non-expansive; I suspect we might 
-      need to readd later here, but also to do the beta-reduction in place, to 
-      make it contractive (similarly to what's useful for equi-recursive types). 
-      However, I am not totally sure and might be wrong; it'd be good to 
-      write an example where this makes a difference. 
-      I think that would be something like 
-      nu x. { T = TNat; U = x.T -> x.T }: 
-      mu (x: {T <: TNat; U <: x.T -> TNat}). 
-      If the function type constructor is not contractive but only non-expansive, 
-      typechecking this example needs to establish x.T <: TNat having in context 
-      only x: {T <: TNat; U <: x.T -> TNat}. 
+  (* XXX Paolo: This definition is correct but non-expansive; I suspect we might
+      need to readd later here, but also to do the beta-reduction in place, to
+      make it contractive (similarly to what's useful for equi-recursive types).
+      However, I am not totally sure and might be wrong; it'd be good to
+      write an example where this makes a difference.
+      I think that would be something like
+      nu x. { T = TNat; U = x.T -> x.T }:
+      mu (x: {T <: TNat; U <: x.T -> TNat}).
+      If the function type constructor is not contractive but only non-expansive,
+      typechecking this example needs to establish x.T <: TNat having in context
+      only x: {T <: TNat; U <: x.T -> TNat}.
     *)
   Program Definition interp_forall (interp1 interp2 : listVlC -n> D) : listVlC -n> D :=
     λne ρ v,
