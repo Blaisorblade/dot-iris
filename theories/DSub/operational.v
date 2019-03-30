@@ -88,12 +88,6 @@ Canonical Structure dsub_ectxi_lang := EctxiLanguage lang.dsub_lang_mixin.
 Canonical Structure dsub_ectx_lang := EctxLanguageOfEctxi dsub_ectxi_lang.
 Canonical Structure dsub_lang := LanguageOfEctx dsub_ectx_lang.
 
-Canonical Structure vlC := leibnizC vl.
-Canonical Structure tmC := leibnizC tm.
-Canonical Structure tyC := leibnizC ty.
-
-Canonical Structure listVlC := leibnizC (list vl).
-
 From D Require Export gen_iheap saved_interp.
 
 Class dsubG Σ := DsubG {
@@ -122,11 +116,11 @@ Class dsubInterpG Σ := DsubInterpG {
 }.
 
 Notation "s ↦ γ" := (mapsto (hG := dsubG_interpNames) s γ)  (at level 20) : bi_scope.
-Notation "s ↝ φ" := (∃ γ, s ↦ γ ∗ γ ⤇ (λ (vs: vls) v, φ vs v))%I  (at level 20) : bi_scope.
-Notation envD Σ := (listVlC -n> vlC -n> iProp Σ).
+Notation "s ↝ φ" := (∃ γ, s ↦ γ ∗ γ ⤇ φ)%I  (at level 20) : bi_scope.
+Notation envD Σ := (vls -c> vl -c> iProp Σ).
 
 Instance Inhϕ: Inhabited (envD Σ).
-Proof. constructor. exact (λne _ _, False)%I. Qed.
+Proof. constructor. exact (λ _ _, False)%I. Qed.
 
 Section mapsto.
   Context `{!dsubG Σ}.
@@ -144,7 +138,7 @@ Section mapsto.
     iDestruct "H1" as (γ1) "[Hs1 Hg1]".
     iDestruct "H2" as (γ2) "[Hs2 Hg2]".
     iPoseProof (mapsto_agree with "Hs1 Hs2") as "%"; subst.
-    by iApply (saved_interp_agree_eta _ φ1 φ2).
+    by iApply (saved_interp_agree _ φ1 φ2).
   Qed.
 End mapsto.
 

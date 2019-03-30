@@ -28,31 +28,36 @@ Section logrel.
      its handling of coercions. *)
   Unset Program Cases.
 
-  Notation D := (vlC -n> iProp Σ).
-  Implicit Types (interp : envD Σ).
+  Notation D := (vl -c> iProp Σ).
+  Implicit Types (interp : envD Σ) (φ : D).
 
   (* XXX this is wrong unless we translate, and here I want for now to switch to having no translation.
      Tho maybe let's do one thing at a time. *)
   Definition idm_proj_semtype v (φ : D) : iProp Σ :=
-    (∃ γ σ φ1, ⌜ v = vstamp σ γ ⌝ ∗ γ ⤇ φ1 ∗ φ ≡ (λne v, φ1 σ v))%I.
+    (∃ γ σ interp, ⌜ v = vstamp σ γ ⌝ ∗ γ ⤇ interp ∗ φ ≡ interp σ)%I.
   Global Arguments idm_proj_semtype /.
   Notation "v ↗ φ" := (idm_proj_semtype v φ) (at level 20).
 
-  Program Definition interp_tmem interp1 interp2 : envD Σ :=
-    λne ρ v,
+  Definition interp_tmem interp1 interp2 : envD Σ :=
+    λ ρ v,
     (⌜ nclosed_vl v 0 ⌝ ∗  ∃ φ, (v ↗ φ) ∗
        □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ interp1 ρ v → ▷ □ φ v) ∗
           (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ φ v → ▷ interp2 ρ v) ∗
           (∀ v, interp1 ρ v → interp2 ρ v)))%I.
+  Global Arguments interp_tmem /.
 
-  Program Definition interp_expr interp : listVlC -n> tmC -n> iProp Σ :=
-    λne ρ t, WP t {{ interp ρ }} %I.
+  Definition interp_expr interp : vls -c> tm -c> iProp Σ :=
+    λ ρ t, WP t {{ interp ρ }} %I.
+  Global Arguments interp_expr /.
 
-  Program Definition interp_nat : envD Σ := λne ρ v, (∃ n, ⌜v = vnat n⌝) %I.
+  Definition interp_nat : envD Σ := λ ρ v, (∃ n, ⌜v = vnat n⌝) %I.
+  Global Arguments interp_nat /.
 
-  Program Definition interp_top : envD Σ := λne ρ v, ⌜ nclosed_vl v 0 ⌝%I.
+  Definition interp_top : envD Σ := λ ρ v, ⌜ nclosed_vl v 0 ⌝%I.
+  Global Arguments interp_top /.
 
-  Program Definition interp_bot : envD Σ := λne ρ v, False%I.
+  Definition interp_bot : envD Σ := λ ρ v, False%I.
+  Global Arguments interp_bot /.
 
   (* XXX Paolo: This definition is correct but non-expansive; I suspect we might
       need to readd later here, but also to do the beta-reduction in place, to
@@ -66,17 +71,20 @@ Section logrel.
       typechecking this example needs to establish x.T <: TNat having in context
       only x: {T <: TNat; U <: x.T -> TNat}.
     *)
-  Program Definition interp_forall interp1 interp2 : envD Σ :=
-    λne ρ v,
+  Definition interp_forall interp1 interp2 : envD Σ :=
+    λ ρ v,
     (⌜ nclosed_vl v 0 ⌝ ∗ □ ∀ w, interp1 ρ w -∗ interp_expr interp2 (w :: ρ) (tapp (tv v) (tv w)))%I.
+  Global Arguments interp_forall /.
 
-  Program Definition interp_selA w (interpL interpU : envD Σ) : envD Σ :=
-    λne ρ v,
+  Definition interp_selA w interpL interpU : envD Σ :=
+    λ ρ v,
     (interpU ρ v ∧ (interpL ρ v ∨
                     ∃ ϕ, w.[to_subst ρ] ↗ ϕ ∧ ▷ □ ϕ v))%I.
+  Global Arguments interp_selA /.
 
   Definition interp_sel w : envD Σ :=
     interp_selA w interp_bot interp_top.
+  Global Arguments interp_sel /.
 
   Fixpoint interp (T: ty) : envD Σ :=
     match T with
@@ -86,7 +94,7 @@ Section logrel.
     | TSel w => interp_sel w
   end % I.
 
-  Global Instance dsubInterpΣ : dsubInterpG Σ := DsubInterpG _ (λ T ρ, interp T ρ).
+  Global Instance dsubInterpΣ : dsubInterpG Σ := DsubInterpG _ interp.
   Notation "⟦ T ⟧" := (interp T).
 
   Global Instance interp_persistent T ρ v :

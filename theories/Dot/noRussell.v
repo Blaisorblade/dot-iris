@@ -18,7 +18,7 @@ Section Russell.
   Definition uAu u := ⟦TSel (pv u) "A"⟧ [] u.
   Instance uauP: Persistent (uAu u) := _.
 
-  Definition russell_p : envD Σ := λne ρ v, (□ (uAu v -∗ False))%I.
+  Definition russell_p : envD Σ := λ ρ v, (□ (uAu v -∗ False))%I.
   Context (s: stamp).
 
   Definition Hs := (s ↝ russell_p)%I.
@@ -38,9 +38,9 @@ Section Russell.
     iIntros "#Hs #[_ Hvav]". rewrite /uAu.
     iDestruct "Hvav" as (φ d Hl) "[Hs1 Hvav]".
     iPoseProof "Hs1" as (s' σ φ' [Heq ->]) "H".
-    iAssert (d ↗ (λne w, □ (uAu w -∗ False)))%I as "#Hs2".
+    iAssert (d ↗ (λ w, □ (uAu w -∗ False)))%I as "#Hs2".
     - subst d; move: Hl => [d] [[<-]] /= [?] ?; subst s' σ.
-      iExists s, [], (λne ρ w, □ (uAu w -∗ False))%I.
+      iExists s, [], (λ ρ w, □ (uAu w -∗ False))%I.
       repeat iExists _; repeat iSplit => //.
     - iPoseProof (stored_pred_agree d _ _ v with "Hs1 Hs2") as "#Hag".
       iNext.

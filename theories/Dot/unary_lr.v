@@ -28,17 +28,19 @@ Section logrel.
      its handling of coercions. *)
   Unset Program Cases.
 
-  Notation D := (vlC -n> iProp Σ).
-  Implicit Types (interp : envD Σ).
+  Notation D := (vl -c> iProp Σ).
+  Implicit Types (interp : envD Σ) (φ : D).
 
-  Program Definition def_interp_vmem interp : listVlC -n> dmC -n> iProp Σ :=
-    λne ρ d, (⌜ nclosed d 0 ⌝ ∗ ∃ vmem, ⌜d = dvl vmem⌝ ∧ ▷ interp ρ vmem)%I.
+  Definition def_interp_vmem interp : vls -c> dm -c> iProp Σ :=
+    λ ρ d, (⌜ nclosed d 0 ⌝ ∗ ∃ vmem, ⌜d = dvl vmem⌝ ∧ ▷ interp ρ vmem)%I.
+  Global Arguments def_interp_vmem /.
 
-  Program Definition interp_vmem l interp : envD Σ :=
-    λne ρ v, (⌜ nclosed_vl v 0 ⌝ ∗ ∃ d, ⌜v @ l ↘ d⌝ ∧ def_interp_vmem interp ρ d)%I.
+  Definition interp_vmem l interp : envD Σ :=
+    λ ρ v, (⌜ nclosed_vl v 0 ⌝ ∗ ∃ d, ⌜v @ l ↘ d⌝ ∧ def_interp_vmem interp ρ d)%I.
+  Global Arguments interp_vmem /.
 
-  Definition idm_proj_semtype d (φ : D) : iProp Σ :=
-    (∃ s σ (φ' : envD Σ), ⌜ d = dtysem σ s ∧ φ = φ' σ ⌝ ∗ s ↝ (λ vs w, φ' vs w))%I.
+  Definition idm_proj_semtype d φ : iProp Σ :=
+    (∃ s σ interp, ⌜ d = dtysem σ s ∧ φ = interp σ ⌝ ∗ s ↝ interp)%I.
   Global Arguments idm_proj_semtype /.
   Notation "d ↗ φ" := (idm_proj_semtype d φ) (at level 20).
 
@@ -46,38 +48,47 @@ Section logrel.
     d ↗ φ1 -∗ d ↗ φ2 -∗ ▷ (φ1 v ≡ φ2 v).
   Proof.
     iIntros "/= #Hd1 #Hd2".
-    iDestruct "Hd2" as (s' σ' φ2' H2) "Hs2".
-    iDestruct "Hd1" as (s σ φ1' H1) "Hs1".
-    ev; subst; injectHyps. by iApply (leadsto_agree _ φ1' φ2').
+    iDestruct "Hd2" as (s' σ' interp2 H2) "Hs2".
+    iDestruct "Hd1" as (s σ interp1 H1) "Hs1".
+    ev; subst; injectHyps. by iApply (leadsto_agree _ interp1 interp2).
   Qed.
 
-  Program Definition def_interp_tmem interp1 interp2 : listVlC -n> dmC -n> iProp Σ :=
-    λne ρ d,
+  Definition def_interp_tmem interp1 interp2 : vls -c> dm -c> iProp Σ :=
+    λ ρ d,
     (⌜ nclosed d 0 ⌝ ∗ ∃ φ, (d ↗ φ) ∗
        □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ interp1 ρ v → ▷ □ φ v) ∗
           (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ φ v → ▷ interp2 ρ v)))%I.
+  Global Arguments def_interp_tmem /.
 
-  Program Definition interp_tmem l interp1 interp2 : envD Σ :=
-    λne ρ v,
+  Definition interp_tmem l interp1 interp2 : envD Σ :=
+    λ ρ v,
     (⌜ nclosed_vl v 0 ⌝ ∗ ∃ d, ⌜ v @ l ↘ d ⌝ ∧ def_interp_tmem interp1 interp2 ρ d)%I.
+  Global Arguments interp_tmem /.
 
-  Program Definition interp_expr interp : listVlC -n> tmC -n> iProp Σ :=
-    λne ρ t, WP t {{ interp ρ }} %I.
+  Definition interp_expr interp : vls -c> tm -c> iProp Σ :=
+    λ ρ t, WP t {{ interp ρ }} %I.
+  Global Arguments interp_expr /.
 
-  Program Definition interp_and interp1 interp2: envD Σ :=
-    λne ρ v, (interp1 ρ v ∧ interp2 ρ v) %I.
+  Definition interp_and interp1 interp2 : envD Σ :=
+    λ ρ v, (interp1 ρ v ∧ interp2 ρ v) %I.
+  Global Arguments interp_and /.
 
-  Program Definition interp_or interp1 interp2 : envD Σ :=
-    λne ρ v, (interp1 ρ v ∨ interp2 ρ v) %I.
+  Definition interp_or interp1 interp2 : envD Σ :=
+    λ ρ v, (interp1 ρ v ∨ interp2 ρ v) %I.
+  Global Arguments interp_or /.
 
-  Program Definition interp_later interp : envD Σ :=
-    λne ρ v, (⌜ nclosed_vl v 0 ⌝ ∗ ▷ (interp ρ v)) % I.
+  Definition interp_later interp : envD Σ :=
+    λ ρ v, (⌜ nclosed_vl v 0 ⌝ ∗ ▷ interp ρ v) % I.
+  Global Arguments interp_later /.
 
-  Program Definition interp_nat : envD Σ := λne ρ v, (∃ n, ⌜v = vnat n⌝) %I.
+  Definition interp_nat : envD Σ := λ ρ v, (∃ n, ⌜v = vnat n⌝) %I.
+  Global Arguments interp_nat /.
 
-  Program Definition interp_top : envD Σ := λne ρ v, ⌜ nclosed_vl v 0 ⌝%I.
+  Definition interp_top : envD Σ := λ ρ v, ⌜ nclosed_vl v 0 ⌝%I.
+  Global Arguments interp_top /.
 
-  Program Definition interp_bot : envD Σ := λne ρ v, False%I.
+  Definition interp_bot : envD Σ := λ ρ v, False%I.
+  Global Arguments interp_bot /.
 
   (* Paolo: This definition is contractive (similarly to what's useful for
      equi-recursive types).
@@ -90,14 +101,16 @@ Section logrel.
      typechecking this example needs to establish x.T <: TNat having in context
      only x: {T <: TNat; U <: x.T -> TNat}.
    *)
-  Program Definition interp_forall interp1 interp2 : envD Σ :=
-    λne ρ v,
+  Definition interp_forall interp1 interp2 : envD Σ :=
+    λ ρ v,
     (⌜ nclosed_vl v 0 ⌝ ∗
        ∃ t, ⌜ v = vabs t ⌝ ∗
        □ ▷ ∀ w, interp1 ρ w -∗ interp_expr interp2 (w :: ρ) t.|[w/])%I.
+  Global Arguments interp_forall /.
 
-  Program Definition interp_mu interp : envD Σ :=
-    λne ρ v, interp (v::ρ) v.
+  Definition interp_mu interp : envD Σ :=
+    λ ρ v, interp (v::ρ) v.
+  Global Arguments interp_mu /.
 
   (** A simplified variant of weakest preconditions for path evaluation.
       The difference is that path evaluation is completely pure, and
@@ -108,19 +121,20 @@ Section logrel.
       version, I wonder whether we can just use the standard Iris WP, but I am
       not sure if that would work.
       *)
-  Fixpoint path_wp p (φ : D): iProp Σ :=
+  Fixpoint path_wp p φ: iProp Σ :=
     match p with
-    | pself p l => path_wp p (λne vp, ∃ vq, ⌜ vp @ l ↘ dvl vq ⌝ ∧ ▷ φ vq)
+    | pself p l => path_wp p (λ vp, ∃ vq, ⌜ vp @ l ↘ dvl vq ⌝ ∧ ▷ φ vq)
     | pv vp => φ vp
     end%I.
 
-  Global Instance path_wp_persistent (φ : D) p:
+  Global Instance path_wp_persistent φ p:
     (∀ v, Persistent (φ v)) → Persistent (path_wp p φ).
   Proof. elim: p φ => *; apply _. Qed.
 
-  Program Definition interp_sel p (l: label) : envD Σ :=
-    λne ρ v, (⌜ nclosed_vl v 0 ⌝ ∧ path_wp p.|[to_subst ρ]
-      (λne vp, ∃ ϕ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ϕ ∧ ▷ □ ϕ v))%I.
+  Definition interp_sel p (l: label) : envD Σ :=
+    λ ρ v, (⌜ nclosed_vl v 0 ⌝ ∧ path_wp p.|[to_subst ρ]
+      (λ vp, ∃ ϕ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ϕ ∧ ▷ □ ϕ v))%I.
+  Global Arguments interp_sel /.
 
   Fixpoint interp (T: ty) : envD Σ :=
     match T with
@@ -137,15 +151,15 @@ Section logrel.
     | TSel p l => interp_sel p l
   end % I.
 
-  Global Instance dotInterpΣ : dotInterpG Σ := DotInterpG _ (λ T ρ, interp T ρ).
+  Global Instance dotInterpΣ : dotInterpG Σ := DotInterpG _ interp.
   Notation "⟦ T ⟧" := (interp T).
 
   Global Instance interp_persistent T ρ v :
     Persistent (⟦ T ⟧ ρ v).
   Proof. revert v ρ; induction T => v ρ; simpl; try apply _. Qed.
 
-  Fixpoint def_interp (T: ty) : listVlC -n> dmC -n> iProp Σ :=
-    λne ρ d,
+  Fixpoint def_interp (T: ty) : vls -c> dm -c> iProp Σ :=
+    λ ρ d,
     match T with
     | TTMem _ L U => def_interp_tmem (interp L) (interp U) ρ d
     | TVMem _ T' => def_interp_vmem (interp T') ρ d
@@ -156,15 +170,16 @@ Section logrel.
     Persistent (def_interp T ρ d).
   Proof. revert ρ d; induction T; simpl; try apply _. Qed.
 
-  Notation envDmsD := (listVlC -n> dmsC -n> iProp Σ).
-  Program Definition defs_interp_and (interp1 interp2 : envDmsD) : envDmsD :=
-    λne ρ ds, (interp1 ρ ds ∧ interp2 ρ ds)%I.
+  Notation envDmsD := (vls -c> dms -c> iProp Σ).
+
+  Definition defs_interp_and (interp1 interp2 : envDmsD) : envDmsD :=
+    λ ρ ds, (interp1 ρ ds ∧ interp2 ρ ds)%I.
 
   Fixpoint defs_interp (T: ty) : envDmsD :=
     match T with
     | TAnd T1 T2 => defs_interp_and (defs_interp T1) (defs_interp T2)
-    | TTop => λne ρ ds, ⌜ nclosed ds 0 ⌝
-    | _ => λne ρ ds,
+    | TTop => λ ρ ds, ⌜ nclosed ds 0 ⌝
+    | _ => λ ρ ds,
            ∃ l d,
              ⌜ label_of_ty T = Some l ∧ dms_lookup l ds = Some d ∧ nclosed ds 0 ⌝
              ∧ def_interp T ρ d

@@ -12,13 +12,12 @@ Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx) (g: stys) (n: nat) (s: stamp).
 Section interp_equiv.
   Context `{!dsubG Σ}.
 
-  Notation envD := (listVlC -n> vlC -n> iProp Σ).
-  Implicit Types (φ: envD).
+  Implicit Types (φ: envD Σ).
 
   (** This interpretation is too naive: it substitutes σ into T' *before* applying our semantics,
       but we will not be able to do this when we use saved propositions to pre-interpret T'. *)
-  Definition interp_extractedTy_naive: extractionResult -> envD :=
-    λ gsσ, λne ρ v,
+  Definition interp_extractedTy_naive: extractionResult -> envD Σ :=
+    λ gsσ ρ v,
     let '(g, (s, σ)) := gsσ in
     (∃ T' : ty, ⌜g !! s = Some T'⌝ ∧ ⟦ T'.|[to_subst σ] ⟧ ρ v)%I.
 
@@ -33,8 +32,8 @@ Section interp_equiv.
 
   (** However, a stamp semantics that carries over to saved predicates must use
       σ in ρ. And the result is only equivalent for closed ρ with the expected length. *)
-  Definition interp_extractedTy: (ty * vls) → envD :=
-    λ '(T, σ), λne ρ v,
+  Definition interp_extractedTy: (ty * vls) → envD Σ :=
+    λ '(T, σ) ρ v,
     (⟦ T ⟧ (subst_sigma σ ρ) v)%I.
   Notation "⟦ T ⟧ [ σ ]" := (interp_extractedTy (T, σ)).
 
