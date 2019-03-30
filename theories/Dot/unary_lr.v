@@ -5,8 +5,8 @@ From D.Dot Require Export operational.
 (** Deduce types from variable names, like on paper, for readability and to help
     type inference for some overloaded operations (e.g. substitution). *)
 Implicit Types
-         (L T U: ty) (v w: vl) (e: tm) (d: dm) (ds: dms)
-         (Γ : ctx) (ρ : leibnizC vls).
+         (L T U: ty) (v w: vl) (e: tm) (d: dm) (ds: dms) (p: path)
+         (Γ : ctx) (ρ : vls).
 
 
 (** The logical relation core is the [interp], interprets *open* types into
@@ -29,21 +29,20 @@ Section logrel.
   Unset Program Cases.
 
   Notation D := (vlC -n> iProp Σ).
-  Implicit Types τi : D.
+  Implicit Types (interp : envD Σ).
 
-  Program Definition def_interp_vmem (interp : listVlC -n> D) :
-    listVlC -n> dmC -n> iProp Σ :=
+  Program Definition def_interp_vmem interp : listVlC -n> dmC -n> iProp Σ :=
     λne ρ d, (⌜ nclosed d 0 ⌝ ∗ ∃ vmem, ⌜d = dvl vmem⌝ ∧ ▷ interp ρ vmem)%I.
 
-  Program Definition interp_vmem l (interp : listVlC -n> D) : listVlC -n> D :=
+  Program Definition interp_vmem l interp : envD Σ :=
     λne ρ v, (⌜ nclosed_vl v 0 ⌝ ∗ ∃ d, ⌜v @ l ↘ d⌝ ∧ def_interp_vmem interp ρ d)%I.
 
   Definition idm_proj_semtype d (φ : D) : iProp Σ :=
-    (∃ s σ (φ' : listVlC -n> D), ⌜ d = dtysem σ s ∧ φ = φ' σ ⌝ ∗ s ↝ (λ vs w, φ' vs w))%I.
+    (∃ s σ (φ' : envD Σ), ⌜ d = dtysem σ s ∧ φ = φ' σ ⌝ ∗ s ↝ (λ vs w, φ' vs w))%I.
   Global Arguments idm_proj_semtype /.
   Notation "d ↗ φ" := (idm_proj_semtype d φ) (at level 20).
 
-  Lemma stored_pred_agree d φ1 φ2 v:
+  Lemma stored_pred_agree d φ1 φ2 v :
     d ↗ φ1 -∗ d ↗ φ2 -∗ ▷ (φ1 v ≡ φ2 v).
   Proof.
     iIntros "/= #Hd1 #Hd2".
@@ -52,39 +51,37 @@ Section logrel.
     ev; subst; injectHyps. by iApply (leadsto_agree _ φ1' φ2').
   Qed.
 
-  Program Definition def_interp_tmem (interp1 interp2 : listVlC -n> D) :
-    listVlC -n> dmC -n> iProp Σ :=
+  Program Definition def_interp_tmem interp1 interp2 : listVlC -n> dmC -n> iProp Σ :=
     λne ρ d,
     (⌜ nclosed d 0 ⌝ ∗ ∃ φ, (d ↗ φ) ∗
        □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ interp1 ρ v → ▷ □ φ v) ∗
           (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ φ v → ▷ interp2 ρ v)))%I.
 
-  Program Definition interp_tmem l (interp1 interp2 : listVlC -n> D) : listVlC -n> D :=
+  Program Definition interp_tmem l interp1 interp2 : envD Σ :=
     λne ρ v,
     (⌜ nclosed_vl v 0 ⌝ ∗ ∃ d, ⌜ v @ l ↘ d ⌝ ∧ def_interp_tmem interp1 interp2 ρ d)%I.
 
-  Program Definition interp_expr (φ : listVlC -n> D) : listVlC -n> tmC -n> iProp Σ :=
-    λne ρ t, WP t {{ φ ρ }} %I.
+  Program Definition interp_expr interp : listVlC -n> tmC -n> iProp Σ :=
+    λne ρ t, WP t {{ interp ρ }} %I.
 
-  Program Definition interp_and (interp1 interp2 : listVlC -n> D): listVlC -n> D :=
+  Program Definition interp_and interp1 interp2: envD Σ :=
     λne ρ v, (interp1 ρ v ∧ interp2 ρ v) %I.
 
-  Program Definition interp_or (interp1 interp2 : listVlC -n> D) : listVlC -n> D :=
+  Program Definition interp_or interp1 interp2 : envD Σ :=
     λne ρ v, (interp1 ρ v ∨ interp2 ρ v) %I.
 
-  Program Definition interp_later (interp : listVlC -n> D) : listVlC -n> D :=
+  Program Definition interp_later interp : envD Σ :=
     λne ρ v, (⌜ nclosed_vl v 0 ⌝ ∗ ▷ (interp ρ v)) % I.
 
-  Program Definition interp_nat : listVlC -n> D := λne ρ v, (∃ n, ⌜v = vnat n⌝) %I.
+  Program Definition interp_nat : envD Σ := λne ρ v, (∃ n, ⌜v = vnat n⌝) %I.
 
-  Program Definition interp_top : listVlC -n> D := λne ρ v, ⌜ nclosed_vl v 0 ⌝%I.
+  Program Definition interp_top : envD Σ := λne ρ v, ⌜ nclosed_vl v 0 ⌝%I.
 
-  Program Definition interp_bot : listVlC -n> D := λne ρ v, False%I.
+  Program Definition interp_bot : envD Σ := λne ρ v, False%I.
 
-  (* XXX Paolo: This definition is correct but non-expansive; I suspect we might
-     need to readd later here, but also to do the beta-reduction in place, to
-     make it contractive (similarly to what's useful for equi-recursive types).
-     However, I am not totally sure and might be wrong; it'd be good to
+  (* Paolo: This definition is contractive (similarly to what's useful for
+     equi-recursive types).
+     However, I am not sure we need this; it'd be good to
      write an example where this makes a difference.
      I think that would be something like
      nu x. { T = TNat; U = x.T -> x.T }:
@@ -93,13 +90,13 @@ Section logrel.
      typechecking this example needs to establish x.T <: TNat having in context
      only x: {T <: TNat; U <: x.T -> TNat}.
    *)
-  Program Definition interp_forall (interp1 interp2 : listVlC -n> D) : listVlC -n> D :=
+  Program Definition interp_forall interp1 interp2 : envD Σ :=
     λne ρ v,
     (⌜ nclosed_vl v 0 ⌝ ∗
        ∃ t, ⌜ v = vabs t ⌝ ∗
        □ ▷ ∀ w, interp1 ρ w -∗ interp_expr interp2 (w :: ρ) t.|[w/])%I.
 
-  Program Definition interp_mu (interp : listVlC -n> D) : listVlC -n> D :=
+  Program Definition interp_mu interp : envD Σ :=
     λne ρ v, interp (v::ρ) v.
 
   (** A simplified variant of weakest preconditions for path evaluation.
@@ -111,23 +108,21 @@ Section logrel.
       version, I wonder whether we can just use the standard Iris WP, but I am
       not sure if that would work.
       *)
-  Fixpoint path_wp p (interp_k: D): iProp Σ :=
+  Fixpoint path_wp p (φ : D): iProp Σ :=
     match p with
-    | pself p l => path_wp p (λne vp, ∃ vq, ⌜ vp @ l ↘ dvl vq ⌝ ∧ ▷ interp_k vq)
-    | pv vp => interp_k vp
+    | pself p l => path_wp p (λne vp, ∃ vq, ⌜ vp @ l ↘ dvl vq ⌝ ∧ ▷ φ vq)
+    | pv vp => φ vp
     end%I.
 
-  Global Instance path_wp_persistent (pred: D) p:
-    (forall (vp: vl), Persistent (pred vp)) →
-    Persistent (path_wp p pred).
-  Proof. elim: p pred => *; apply _. Qed.
+  Global Instance path_wp_persistent (φ : D) p:
+    (∀ v, Persistent (φ v)) → Persistent (path_wp p φ).
+  Proof. elim: p φ => *; apply _. Qed.
 
-  Program Definition interp_sel (p: path) (l: label) :
-    listVlC -n> D :=
+  Program Definition interp_sel p (l: label) : envD Σ :=
     λne ρ v, (⌜ nclosed_vl v 0 ⌝ ∧ path_wp p.|[to_subst ρ]
       (λne vp, ∃ ϕ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ϕ ∧ ▷ □ ϕ v))%I.
 
-  Fixpoint interp (T: ty) : listVlC -n> D :=
+  Fixpoint interp (T: ty) : envD Σ :=
     match T with
     | TTMem l L U => interp_tmem l (interp L) (interp U)
     | TVMem l T' => interp_vmem l (interp T')
@@ -149,8 +144,7 @@ Section logrel.
     Persistent (⟦ T ⟧ ρ v).
   Proof. revert v ρ; induction T => v ρ; simpl; try apply _. Qed.
 
-  Program Fixpoint def_interp (T: ty) :
-    listVlC -n> dmC -n> iProp Σ :=
+  Fixpoint def_interp (T: ty) : listVlC -n> dmC -n> iProp Σ :=
     λne ρ d,
     match T with
     | TTMem _ L U => def_interp_tmem (interp L) (interp U) ρ d
@@ -162,11 +156,11 @@ Section logrel.
     Persistent (def_interp T ρ d).
   Proof. revert ρ d; induction T; simpl; try apply _. Qed.
 
-  Program Definition defs_interp_and (interp1 interp2 : listVlC -n> dmsC -n> iProp Σ) :
-    listVlC -n> dmsC -n> iProp Σ :=
+  Notation envDmsD := (listVlC -n> dmsC -n> iProp Σ).
+  Program Definition defs_interp_and (interp1 interp2 : envDmsD) : envDmsD :=
     λne ρ ds, (interp1 ρ ds ∧ interp2 ρ ds)%I.
 
-  Program Fixpoint defs_interp (T: ty) : listVlC -n> dmsC -n> iProp Σ :=
+  Fixpoint defs_interp (T: ty) : envDmsD :=
     match T with
     | TAnd T1 T2 => defs_interp_and (defs_interp T1) (defs_interp T2)
     | TTop => λne ρ ds, ⌜ nclosed ds 0 ⌝
@@ -325,10 +319,10 @@ Section logrel_lemmas.
 
   Lemma interp_env_ρ_closed ρ: (⟦ Γ ⟧* ρ → ⌜ cl_ρ ρ ⌝)%I.
   Proof.
-    revert Γ ρ. elim => [|T Γ IHl] [|v ρ] /=; try (by iIntros "%").
+    iInduction Γ as [|τ Γ'] "IHΓ" forall (ρ); destruct ρ => //=.
     iIntros "[#HG #HT]".
     iPoseProof (interp_v_closed with "HT") as "%".
-    iPoseProof (IHl with "HG") as "%".
+    iPoseProof ("IHΓ" with "HG") as "%".
     iPureIntro; by constructor.
   Qed.
 

@@ -6,7 +6,7 @@ From D.DSub Require Export operational.
     type inference for some overloaded operations (e.g. substitution). *)
 Implicit Types
          (L T U: ty) (v: vl) (e: tm)
-         (Γ : ctx) (ρ : leibnizC vls).
+         (Γ : ctx) (ρ : vls).
 
 
 (** The logical relation core is the [interp], interprets *open* types into
@@ -29,9 +29,7 @@ Section logrel.
   Unset Program Cases.
 
   Notation D := (vlC -n> iProp Σ).
-  Implicit Types τi : D.
-
-  Example __x: stamp = gname := eq_refl.
+  Implicit Types (interp : envD Σ).
 
   (* XXX this is wrong unless we translate, and here I want for now to switch to having no translation.
      Tho maybe let's do one thing at a time. *)
@@ -40,31 +38,21 @@ Section logrel.
   Global Arguments idm_proj_semtype /.
   Notation "v ↗ φ" := (idm_proj_semtype v φ) (at level 20).
 
-  Program Definition interp_tmem (interp1 interp2 : listVlC -n> D):
-    listVlC -n> D :=
+  Program Definition interp_tmem interp1 interp2 : envD Σ :=
     λne ρ v,
     (⌜ nclosed_vl v 0 ⌝ ∗  ∃ φ, (v ↗ φ) ∗
        □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ interp1 ρ v → ▷ □ φ v) ∗
           (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ φ v → ▷ interp2 ρ v) ∗
           (∀ v, interp1 ρ v → interp2 ρ v)))%I.
 
-  Program Definition interp_expr (φ : listVlC -n> D) : listVlC -n> tmC -n> iProp Σ :=
-    λne ρ t, WP t {{ φ ρ }} %I.
+  Program Definition interp_expr interp : listVlC -n> tmC -n> iProp Σ :=
+    λne ρ t, WP t {{ interp ρ }} %I.
 
-(*   Program Definition interp_and (interp1 interp2 : listVlC -n> D): listVlC -n> D := *)
-(*     λne ρ v, (interp1 ρ v ∧ interp2 ρ v) %I. *)
+  Program Definition interp_nat : envD Σ := λne ρ v, (∃ n, ⌜v = vnat n⌝) %I.
 
-(*   Program Definition interp_or (interp1 interp2 : listVlC -n> D) : listVlC -n> D := *)
-(*     λne ρ v, (interp1 ρ v ∨ interp2 ρ v) %I. *)
+  Program Definition interp_top : envD Σ := λne ρ v, ⌜ nclosed_vl v 0 ⌝%I.
 
-(*   Program Definition interp_later (interp : listVlC -n> D) : listVlC -n> D := *)
-(*     λne ρ v, (⌜ nclosed_vl v 0 ⌝ ∗ ▷ (interp ρ v)) % I. *)
-
-  Program Definition interp_nat : listVlC -n> D := λne ρ v, (∃ n, ⌜v = vnat n⌝) %I.
-
-  Program Definition interp_top : listVlC -n> D := λne ρ v, ⌜ nclosed_vl v 0 ⌝%I.
-
-  Program Definition interp_bot : listVlC -n> D := λne ρ v, False%I.
+  Program Definition interp_bot : envD Σ := λne ρ v, False%I.
 
   (* XXX Paolo: This definition is correct but non-expansive; I suspect we might
       need to readd later here, but also to do the beta-reduction in place, to
@@ -78,31 +66,23 @@ Section logrel.
       typechecking this example needs to establish x.T <: TNat having in context
       only x: {T <: TNat; U <: x.T -> TNat}.
     *)
-  Program Definition interp_forall (interp1 interp2 : listVlC -n> D) : listVlC -n> D :=
+  Program Definition interp_forall interp1 interp2 : envD Σ :=
     λne ρ v,
     (⌜ nclosed_vl v 0 ⌝ ∗ □ ∀ w, interp1 ρ w -∗ interp_expr interp2 (w :: ρ) (tapp (tv v) (tv w)))%I.
 
-  Program Definition interp_selA w (interpL interpU : listVlC -n> D) :
-    listVlC -n> D :=
+  Program Definition interp_selA w (interpL interpU : envD Σ) : envD Σ :=
     λne ρ v,
     (interpU ρ v ∧ (interpL ρ v ∨
                     ∃ ϕ, w.[to_subst ρ] ↗ ϕ ∧ ▷ □ ϕ v))%I.
 
-  Definition interp_sel w : listVlC -n> D :=
+  Definition interp_sel w : envD Σ :=
     interp_selA w interp_bot interp_top.
 
-  Fixpoint interp (T: ty) : listVlC -n> D :=
+  Fixpoint interp (T: ty) : envD Σ :=
     match T with
     | TTMem L U => interp_tmem (interp L) (interp U)
-    (* | TVMem l T' => interp_vmem l (interp T') *)
-    (* | TAnd T1 T2 => interp_and (interp T1) (interp T2) *)
-    (* | TOr T1 T2 => interp_or (interp T1) (interp T2) *)
-    (* | TLater T => interp_later (interp T) *)
     | TNat => interp_nat
-    (* | TTop => interp_top *)
-    (* | TBot => interp_bot *)
     | TAll T1 T2 => interp_forall (interp T1) (interp T2)
-    (* | TMu T => interp_mu (interp T) *)
     | TSel w => interp_sel w
   end % I.
 
@@ -206,11 +186,6 @@ Section logrel_lemmas.
   Lemma interp_v_closed T w ρ: (interp T ρ w → ⌜ nclosed_vl w 0 ⌝)%I.
   Proof.
     iInduction T as [] "IHT" forall (ρ w); iIntros "#HT //="; try by (iDestruct "HT" as "[% _]").
-    (* (* move: ρ v; induction T; iIntros (ρ v) "HT //="; try solve [by iDestruct "HT" as "[% _]"]. *) *)
-    (* - iDestruct "HT" as "[#HT1 #HT2]". by iApply "IHT". *)
-    (* - iDestruct "HT" as "[#HT1 | #HT2]"; by [iApply "IHT" | iApply "IHT1"]. *)
-    (* - by iApply "IHT". *)
-    (* - iDestruct "HT" as "[#HT2 _]". by iApply "IHT1". *)
     - by iDestruct "HT" as (n) "->".
   Qed.
 
@@ -224,10 +199,10 @@ Section logrel_lemmas.
 
   Lemma interp_env_ρ_closed ρ: (⟦ Γ ⟧* ρ → ⌜ cl_ρ ρ ⌝)%I.
   Proof.
-    revert Γ ρ. elim => [|T Γ IHl] [|v ρ] /=; try (by iIntros "%").
+    iInduction Γ as [|τ Γ'] "IHΓ" forall (ρ); destruct ρ => //=.
     iIntros "[#HG #HT]".
     iPoseProof (interp_v_closed with "HT") as "%".
-    iPoseProof (IHl with "HG") as "%".
+    iPoseProof ("IHΓ" with "HG") as "%".
     iPureIntro; by constructor.
   Qed.
 

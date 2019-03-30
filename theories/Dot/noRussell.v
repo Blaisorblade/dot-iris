@@ -3,7 +3,7 @@ From D.Dot Require Import unary_lr.
 
 Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
-         (Γ : ctx) (ρ : listVlC).
+         (Γ : ctx) (ρ : vls).
 
 Section Russell.
   Context `{HdotG: dotG Σ}.
@@ -18,7 +18,7 @@ Section Russell.
   Definition uAu u := ⟦TSel (pv u) "A"⟧ [] u.
   Instance uauP: Persistent (uAu u) := _.
 
-  Definition russell_p : listVlC -n> vlC -n> iProp Σ := λne ρ v, (□ (uAu v -∗ False))%I.
+  Definition russell_p : envD Σ := λne ρ v, (□ (uAu v -∗ False))%I.
   Context (s: stamp).
 
   Definition Hs := (s ↝ russell_p)%I.

@@ -17,7 +17,7 @@ Inductive tm  : Type :=
   | vobj : list (label * dm) -> vl
  with dm  : Type :=
   | dtysyn : ty -> dm
-  | dtysem : (list vl) -> stamp -> dm
+  | dtysem : list vl -> stamp -> dm
   | dvl : vl -> dm
  with path  : Type :=
   | pv : vl -> path
@@ -532,7 +532,7 @@ Instance HSubstLemmas_dms : HSubstLemmas vl dms := _.
 (** After instantiating Autosubst, a few binding-related syntactic definitions
     that need not their own file. *)
 
-Definition to_subst (ρ: list vl) : var → vl := foldr (λ v s, v .: s) ids ρ.
+Definition to_subst (ρ: vls) : var → vl := foldr (λ v s, v .: s) ids ρ.
 
 Lemma to_subst_nil: to_subst [] = ids.
 Proof. trivial. Qed.
@@ -544,7 +544,7 @@ Hint Rewrite to_subst_nil to_subst_cons : autosubst.
 Global Typeclasses Opaque to_subst.
 Global Opaque to_subst.
 
-Definition subst_sigma (σ: vls) (ρ: list vl) := σ.|[to_subst ρ].
+Definition subst_sigma (σ: vls) (ρ: vls) := σ.|[to_subst ρ].
 
 Definition push_var (σ: vls) : vls := ids 0 :: σ.|[ren (+1)].
 Arguments push_var /.

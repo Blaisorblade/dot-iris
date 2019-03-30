@@ -82,21 +82,6 @@ Section interp_equiv.
     rewrite -(interp_subst_all _ T1) -?(interp_subst_all _ T2) ?Hrew //; by apply nclosed_σ_to_subst.
   Qed.
 
-  Notation "¬ P" := (□ (P → False))%I : bi_scope.
-
-
-  Notation "s ↦ γ" := (mapsto (hG := dsubG_interpNames) s γ)  (at level 20) : bi_scope.
-                           (* (◯ {[ s := to_agree (γ : leibnizC gname) ]})) *)
-  Global Instance: Persistent (s ↦ γ).
-  Proof. apply _. Qed.
-  Global Instance: Timeless (s ↦ γ).
-  Proof. apply _. Qed.
-
-  Notation "s ↝ φ" := (∃ γ, s ↦ γ ∗ γ ⤇ (λ (vs: vls) v, φ vs v))%I  (at level 20) : bi_scope.
-
-  Definition allGs gs := (gen_iheap_ctx (hG := dsubG_interpNames) gs).
-  Arguments allGs /.
-
   Lemma alloc_sp T: (|==> ∃ γ, γ ⤇ dsub_interp T)%I.
   Proof. by apply saved_interp_alloc. Qed.
 
@@ -113,8 +98,8 @@ Section interp_equiv.
 
   (* To give a definitive version of wellMapped, we need stampHeap to be stored in a resource. Here it is: *)
   Definition wellMapped g : iProp Σ :=
-    (□∀ s T ρ v,
-        ⌜ g !! s = Some T⌝ → ∃ φ, s ↝ φ ∧ ⟦ T ⟧ ρ v ≡ φ ρ v)%I.
+    (□∀ s T,
+        ⌜ g !! s = Some T⌝ → ∃ φ, s ↝ φ ∧ ⟦ T ⟧ ≡ φ)%I.
   Instance: Persistent (wellMapped g).
   Proof. apply _. Qed.
 
@@ -128,7 +113,7 @@ Section interp_equiv.
     iMod (transferOne_base_inv gs s T HsFresh with "Hown") as (gs') "(Hgs & #Hmaps & #Hdom)".
     iExists gs'; iModIntro; iFrame "Hgs".
     iSplit =>//.
-    iIntros (s' T' ρ v Hlook) "!>".
+    iIntros (s' T' Hlook) "!>".
     destruct (decide (s = s')) as [<-|Hne].
     - iExists (⟦ T ⟧).
       suff <-: T = T' by iSplit. rewrite lookup_insert in Hlook; by injection Hlook.
@@ -140,7 +125,7 @@ Section interp_equiv.
   Proof.
     elim g using map_ind.
     - iIntros "/=" (H) "Hgs !>". iExists gs. repeat iSplit => //.
-      + by iIntros (?????).
+      + by iIntros (???).
       + iPureIntro. rewrite dom_empty. set_solver.
     - move=> {g} /=. iIntros (s T g Hs IH Hdom) "Hallgs".
       setoid_rewrite dom_insert in Hdom.
@@ -164,14 +149,5 @@ Section interp_equiv.
                        (allGs gs ==∗ wellMapped g)%I.
   Proof.
     iIntros (Hs) "H". by iMod (transfer' gs Hs with "H") as (gs') "[H ?]".
-  Qed.
-
-  Lemma leadsto_agree s φ1 φ2 ρ v: s ↝ φ1 -∗ s ↝ φ2 -∗ ▷ (φ1 ρ v ≡ φ2 ρ v).
-  Proof.
-    iIntros "/= #H1 #H2".
-    iDestruct "H1" as (γ1) "[Hs1 Hg1]".
-    iDestruct "H2" as (γ2) "[Hs2 Hg2]".
-    iPoseProof (mapsto_agree with "Hs1 Hs2") as "%"; subst.
-    by iApply (saved_interp_agree_eta _ φ1 φ2).
   Qed.
 End interp_equiv.

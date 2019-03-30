@@ -283,6 +283,9 @@ Notation "s ↦ γ" := (mapsto (hG := dotG_interpNames) s γ)  (at level 20) : b
 Notation "s ↝ φ" := (∃ γ, s ↦ γ ∗ γ ⤇ (λ (vs: vls) v, φ vs v))%I  (at level 20) : bi_scope.
 Notation envD Σ := (listVlC -n> vlC -n> iProp Σ).
 
+Instance Inhϕ: Inhabited (envD Σ).
+Proof. constructor. exact (λne _ _, False)%I. Qed.
+
 Section mapsto.
   Context `{!dotG Σ}.
   Global Instance: Persistent (s ↦ γ).
@@ -291,7 +294,7 @@ Section mapsto.
   Proof. apply _. Qed.
 
   Definition allGs gs := (gen_iheap_ctx (hG := dotG_interpNames) gs).
-  Arguments allGs /.
+  Global Arguments allGs /.
 
   Lemma leadsto_agree s (φ1 φ2: envD Σ) ρ v: s ↝ φ1 -∗ s ↝ φ2 -∗ ▷ (φ1 ρ v ≡ φ2 ρ v).
   Proof.

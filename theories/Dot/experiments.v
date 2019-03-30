@@ -50,7 +50,7 @@ From D.Dot Require Import unary_lr unary_lr_binding synLemmas rules.
 
 Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
-         (Γ : ctx) (ρ : listVlC).
+         (Γ : ctx) (ρ : vls).
 
 Section Sec.
   Context `{HdotG: dotG Σ}.

@@ -328,7 +328,7 @@ Section Sec.
     d1 = dtysem σ1 γ1 →
     t_dm d d1 -∗ t_dm d d2 -∗
     γ1 ⤇ φ1 -∗
-    ∃ σ2 γ2 (φ2: listVlC -n> vlC -n> iProp Σ), ⌜ d2 = dtysem σ2 γ2 ⌝ ∧ γ2 ⤇ (λ vs, φ2 vs) ∧
+    ∃ σ2 γ2 (φ2: envD Σ), ⌜ d2 = dtysem σ2 γ2 ⌝ ∧ γ2 ⤇ (λ vs, φ2 vs) ∧
                 ∀ ρ v,
                   ⌜ length ρ = length σ1 ⌝ →
                   ▷ (φ1 (subst_sigma σ1 ρ) v ≡ φ2 (subst_sigma σ2 ρ) v).

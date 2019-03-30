@@ -13,14 +13,13 @@ Notation savedInterpΣ A B := (savedAnythingΣ (A -c> B -c> ▶ ∙)).
 Section saved_interp.
   Context {vls vl: ofeT}.
   Context `{!savedInterpG Σ vls vl}.
-  (* Context `{!savedAnythingG Σ (vls -c> vl -c> ▶ ∙)}. *)
+  Implicit Type (Φ : vls -c> vl -c> iProp Σ).
 
-  Definition saved_interp_own (γ : gname) (Φ : vls → vl → iProp Σ) :=
+  Definition saved_interp_own (γ : gname) Φ :=
     saved_anything_own
       (F := vls -c> vl -c> ▶ ∙) γ (λ vs v, CofeMor Next (Φ vs v)).
 
-  Instance saved_interp_own_contractive γ :
-    Contractive (saved_interp_own γ : (vls -c> vl -c> iProp Σ) → iProp Σ).
+  Instance saved_interp_own_contractive γ : Contractive (saved_interp_own γ).
   Proof.
     intros n X Y HXY.
     rewrite /saved_interp_own /saved_anything_own /=.
@@ -31,11 +30,11 @@ Section saved_interp.
     apply HXY.
   Qed.
 
-  Lemma saved_interp_alloc_strong (G : gset gname) (Φ : vls → vl → iProp Σ) :
+  Lemma saved_interp_alloc_strong (G : gset gname) Φ :
     (|==> ∃ γ, ⌜γ ∉ G⌝ ∧ saved_interp_own γ Φ)%I.
   Proof. iApply saved_anything_alloc_strong. Qed.
 
-  Lemma saved_interp_alloc (Φ : vls → vl → iProp Σ) :
+  Lemma saved_interp_alloc Φ :
     (|==> ∃ γ, saved_interp_own γ Φ)%I.
   Proof. iApply saved_anything_alloc. Qed.
 

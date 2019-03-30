@@ -14,7 +14,6 @@ Section interp_equiv.
   Context `{!dotG Σ}.
 
   Notation envD := (listVlC -n> vlC -n> iProp Σ).
-
   Implicit Types (φ: envD).
 
   (** This interpretation is too naive: it substitutes σ into T' *before* applying our semantics,
