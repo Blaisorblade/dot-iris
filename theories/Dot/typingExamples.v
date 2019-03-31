@@ -45,9 +45,11 @@ Notation "'val' l : T" := (TVMem l T) (at level 20, l, T at level 10).
 
 Definition σ1 : vls := [].
 Definition s1 : positive := 1.
+Arguments σ1 /.
 
 Definition σ2 : vls := [].
 Definition s2 : positive := 2.
+Arguments σ2 /.
 
 Check ν {@ val "a" = vnat 0 }.
 

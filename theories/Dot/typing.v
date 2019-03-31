@@ -1,5 +1,5 @@
 From D Require Import tactics.
-From D.Dot Require Export syn typeExtractionSyn stampedness.
+From D.Dot Require Export syn typeExtractionSyn stampedness closed_subst.
 
 Reserved Notation "Γ ⊢ₜ e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ ⊢ₚ p : T , i" (at level 74, p, T, i at next level).
@@ -89,6 +89,7 @@ where "Γ |ds V ⊢ ds : T" := (dms_typed Γ V ds T)
 with dm_typed Γ : ty → dm → ty → Prop :=
 | dty_typed V l L T U s σ:
     T ~[ S (length Γ) ] (getStampTable, (s, σ)) →
+    Forall (is_stamped_vl (S (length Γ)) getStampTable) σ →
     TLater V :: Γ ⊢ₜ L, 1 <: T, 1 →
     TLater V :: Γ ⊢ₜ T, 1 <: U, 1 →
     Γ |d V ⊢ dtysem σ s : TTMem l L U
@@ -260,7 +261,7 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
         (P0 := λ Γ V ds T _, Forall (is_stamped_dm (S (length Γ)) getStampTable) (map snd ds))
         (P1 := λ Γ V d T _, is_stamped_dm (S (length Γ)) getStampTable d)
         (P2 := λ Γ p T i _, is_stamped_path (length Γ) getStampTable p); cbn; intros; eauto.
-    - repeat constructor.
+    - repeat constructor => //=. by eapply lookup_lt_Some.
     - intros; elim: i {s} => [|i IHi]; rewrite /= ?iterate_0 ?iterate_S //; eauto.
     - intros; ev. constructor; naive_solver.
     - intros; with_is_stamped inverse; eauto.
@@ -282,23 +283,7 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
   Combined Scheme typing_mut_ind from typed_mut_ind, dms_typed_mut_ind, dm_typed_mut_ind,
     path_typed_mut_ind, subtype_mut_ind.
 
-  Lemma stamped_ren n T g:
-    is_stamped_ty n g T <->
-    is_stamped_ty (S n) g (T.|[ren (+1)]).
-  Admitted.
-
-  Lemma stamped_subst_one n T v g:
-    is_stamped_ty (S n) g T →
-    is_stamped_vl n g v →
-    is_stamped_ty n g (T.|[v/]).
-  Admitted.
-
-  Lemma stamped_subst_one_rev n T v g:
-    is_stamped_ty n g (T.|[v/]) →
-    is_stamped_ty (S n) g T.
-  Admitted.
-
-  Hint Resolve stamped_path_subject stamped_ren stamped_subst_one stamped_subst_one_rev.
+  Hint Resolve stamped_path_subject is_stamped_ren_ty is_stamped_sub_one is_stamped_sub_one_rev.
 
   Inductive stamped_ctx g: ctx → Prop :=
   | stamped_nil : stamped_ctx g []
@@ -308,6 +293,12 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
     stamped_ctx g (T :: Γ)
   .
 
+  Lemma stamped_nclosed_lookup Γ x T g:
+    stamped_ctx g Γ →
+    Γ !! x = Some T →
+    nclosed T.|[ren (+x)] (length Γ).
+  Admitted.
+
   Lemma stamped_lookup Γ x T g:
     stamped_ctx g Γ →
     Γ !! x = Some T →
@@ -316,8 +307,23 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
     elim: x Γ => /= [|x IHx] [|U Γ] /= Hctx Hl; asimpl; try discriminate.
     - cinject Hl. by inverse Hctx.
     - replace (T.|[ren (+S x)]) with (T.|[ren (+x)].|[ren (+1)]); last by asimpl.
-      eapply (stamped_ren (length Γ) (T.|[ren (+x)])), IHx; eauto. by inverse Hctx.
+      have HstΓ: stamped_ctx g Γ. by inverse Hctx.
+      eapply (@is_stamped_ren_ty (length Γ) (T.|[ren (+x)]) g), IHx; eauto.
+      by eapply stamped_nclosed_lookup.
   Qed.
+
+    (* move => Hfv s1 s2 HsEq.
+    specialize (Hfv s1 s2). asimpl in Hfv.
+
+    rewrite ?(decomp_s _ s1) ?(decomp_s _ s2) ?(decomp_s_vl _ s1) ?(decomp_s_vl _ s2).
+    rewrite /up /scons.
+    injection (Hfv _ _ (eq_n_s_tails HsEq)).
+    About eq_n_s_heads.
+    rewrite (eq_n_s_heads HsEq).
+      by rewritePremises ].
+
+    solve_inv_fv_congruence.
+    specialize (Hcl s1 s2). asimpl in Hcl. *)
 
   (* n (Hctx: stamped_ctx getStampTable n Γ) *)
   Lemma stamped_mut_types Γ :
@@ -347,14 +353,20 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
     (* Needed: substitution lemma for stamping. *)
     - specialize (H Hctx). inverse H. cbn in *.
       apply stamped_exp_subject in t0. inverse t0.
-      by eapply stamped_subst_one.
-    - specialize (H Hctx). inverse H. cbn in *. by apply stamped_ren.
+      by eapply is_stamped_sub_one.
+    - specialize (H Hctx). inverse H. cbn in *.
+      eapply is_stamped_sub_rev_ty => //.
+      by eapply nclosed_ren_inv_ty, is_stamped_nclosed_ty.
     - apply stamped_exp_subject in t. inverse t.
       specialize (H Hctx). inverse H.
-      by eapply stamped_subst_one.
+      by eapply is_stamped_sub_one.
     (* - constructor; eauto. apply stamped_ren. (* Needed: the context is well-stamped as well! *) admit. *)
     - constructor; cbn; eauto. apply H.
-      econstructor; eauto. by eapply stamped_ren in f.
+      econstructor; eauto.
+      eapply is_stamped_ren_ty in f => //.
+      by eapply is_stamped_nclosed_ty.
+    - constructor =>/=. eapply is_stamped_sub_rev_ty; eauto.
+      eapply nclosed_sub_inv. eauto using is_stamped_nclosed_ty.
     - by apply stamped_lookup.
     - have Hctx': stamped_ctx getStampTable (TLater V :: Γ). by constructor => //; constructor.
       specialize (H Hctx'); specialize (H0 Hctx'); ev; constructor; auto.
@@ -364,14 +376,16 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
       + move=> {s} {H}. elim: i => [|i IHi] //=. rewrite iterate_S. by constructor.
       + have Hctx': stamped_ctx getStampTable (iterate TLater i T1 :: Γ). by constructor.
         specialize (H Hctx'); ev; constructor; auto.
-    - constructor; eauto. eapply stamped_ren in f. by constructor.
-    - constructor; eauto. eapply stamped_ren in f. by constructor.
+    - constructor; eauto. eapply is_stamped_ren_ty in f. by constructor.
+      by eapply is_stamped_nclosed_ty.
+    - constructor; eauto. eapply is_stamped_ren_ty in f. by constructor.
+      by eapply is_stamped_nclosed_ty.
     - have Hctx': stamped_ctx getStampTable (T2.|[ren (+1)] :: Γ).
-        constructor => //. by eapply stamped_ren in f.
+        constructor => //.
+        eapply is_stamped_sub_ty => //. apply is_stamped_ren_shift; lia.
       specialize (H Hctx); specialize (H0 Hctx');
         ev; constructor; eauto.
   Qed.
-
 End syntyping.
 
 Notation "Γ ⊢ₜ e : T " := (typed Γ e T).
