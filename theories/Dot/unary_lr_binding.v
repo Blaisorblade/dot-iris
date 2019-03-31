@@ -3,7 +3,7 @@ From D.Dot Require Export unary_lr synLemmas.
 
 Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
-         (Γ : ctx) (ρ : leibnizC vls).
+         (Γ : ctx) (ρ : vls).
 
 (* Lemmas about the logical relation itself. *)
 Section logrel_binding_lemmas.

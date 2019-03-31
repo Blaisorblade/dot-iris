@@ -50,7 +50,7 @@ From D.Dot Require Import unary_lr unary_lr_binding synLemmas rules.
 
 Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
-         (Γ : ctx) (ρ : listVlC).
+         (Γ : ctx) (ρ : vls).
 
 Section Sec.
   Context `{HdotG: dotG Σ}.
@@ -206,7 +206,7 @@ Section Sec.
     iSpecialize ("Hv" $! (w :: ρ)).
 
     iAssert (□ (⟦ W ⟧ (w :: ρ) w →
-             WP tv v.[to_subst (w :: ρ)] {{ v, ⟦ T ⟧ (w :: ρ) v }}))%I as "#Hv'". {
+             ⟦ T ⟧ₑ (w :: ρ) (tv v.[to_subst (w :: ρ)])))%I as "#Hv'". {
       iIntros "!> #Hw'". iApply "Hv". naive_solver.
     }
 

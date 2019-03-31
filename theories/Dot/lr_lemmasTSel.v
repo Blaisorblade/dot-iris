@@ -7,9 +7,6 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 Section Sec.
   Context `{HdotG: dotG Σ} Γ.
 
-  Instance Inhϕ: Inhabited (listVlC -n> vlC -n> iProp Σ).
-  Proof. constructor. exact (λne _ _, False)%I. Qed.
-
   (* Next step: proper lemma on arbitrary-length paths. *)
   Lemma mem_stp_sel_sub_path1 L U va l1 l2:
     (ivtp Γ (TVMem l1 (TTMem l2 L U)) va -∗

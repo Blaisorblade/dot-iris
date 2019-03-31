@@ -88,12 +88,6 @@ Canonical Structure dsub_ectxi_lang := EctxiLanguage lang.dsub_lang_mixin.
 Canonical Structure dsub_ectx_lang := EctxLanguageOfEctxi dsub_ectxi_lang.
 Canonical Structure dsub_lang := LanguageOfEctx dsub_ectx_lang.
 
-Canonical Structure vlC := leibnizC vl.
-Canonical Structure tmC := leibnizC tm.
-Canonical Structure tyC := leibnizC ty.
-
-Canonical Structure listVlC := leibnizC (list vl).
-
 From D Require Export gen_iheap saved_interp.
 
 Class dsubG Σ := DsubG {
@@ -120,6 +114,33 @@ Proof. solve_inG. Qed.
 Class dsubInterpG Σ := DsubInterpG {
   dsub_interp: ty -> vls -> vl -> iProp Σ
 }.
+
+Notation "s ↦ γ" := (mapsto (hG := dsubG_interpNames) s γ)  (at level 20) : bi_scope.
+Notation "s ↝ φ" := (∃ γ, s ↦ γ ∗ γ ⤇ φ)%I  (at level 20) : bi_scope.
+Notation envD Σ := (vls -c> vl -c> iProp Σ).
+
+Instance Inhϕ: Inhabited (envD Σ).
+Proof. constructor. exact (λ _ _, False)%I. Qed.
+
+Section mapsto.
+  Context `{!dsubG Σ}.
+  Global Instance: Persistent (s ↦ γ).
+  Proof. apply _. Qed.
+  Global Instance: Timeless (s ↦ γ).
+  Proof. apply _. Qed.
+
+  Definition allGs gs := (gen_iheap_ctx (hG := dsubG_interpNames) gs).
+  Global Arguments allGs /.
+
+  Lemma leadsto_agree s (φ1 φ2: envD Σ) ρ v: s ↝ φ1 -∗ s ↝ φ2 -∗ ▷ (φ1 ρ v ≡ φ2 ρ v).
+  Proof.
+    iIntros "/= #H1 #H2".
+    iDestruct "H1" as (γ1) "[Hs1 Hg1]".
+    iDestruct "H2" as (γ2) "[Hs2 Hg2]".
+    iPoseProof (mapsto_agree with "Hs1 Hs2") as "%"; subst.
+    by iApply (saved_interp_agree _ φ1 φ2).
+  Qed.
+End mapsto.
 
 (**
 Possible future plan.

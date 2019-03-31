@@ -99,12 +99,12 @@ see rev_append_map for an approach that has a chance). *)
 (*   asimpl. cbn. *)
 (*   f_equal. *)
 (*   rewrite /selfSubst /=. *)
-  
+
 (*   assert ((l, d.|[vobj ds/]) ∈ ds.|[vobj ds/]). *)
 (*   rewrite /hsubst /list_pair_hsubst -/mapsnd. *)
 (*   set (sb := (hsubst (vobj ds .: ids))). *)
 (*   assert (map (mapsnd ) (l, d.|[vobj ds/]) ∈ ds.|[vobj ds/]). *)
-  
+
 (*   Search "_ ∈ _". *)
 (*   assert ((l, d) ∈ gmap_of_dms ds). *)
 (*   apply lookup_reverse_length. by rewrite map_length. *)
@@ -244,14 +244,6 @@ Canonical Structure dot_ectxi_lang := EctxiLanguage lang.dot_lang_mixin.
 Canonical Structure dot_ectx_lang := EctxLanguageOfEctxi dot_ectxi_lang.
 Canonical Structure dot_lang := LanguageOfEctx dot_ectx_lang.
 
-Canonical Structure vlC := leibnizC vl.
-Canonical Structure tmC := leibnizC tm.
-Canonical Structure dmC := leibnizC dm.
-Canonical Structure dmsC := leibnizC dms.
-Canonical Structure pathC := leibnizC path.
-
-Canonical Structure listVlC := leibnizC (list vl).
-
 From D Require Export gen_iheap saved_interp.
 
 Class dotG Σ := DotG {
@@ -280,8 +272,11 @@ Class dotInterpG Σ := DotInterpG {
 }.
 
 Notation "s ↦ γ" := (mapsto (hG := dotG_interpNames) s γ)  (at level 20) : bi_scope.
-Notation "s ↝ φ" := (∃ γ, s ↦ γ ∗ γ ⤇ (λ (vs: vls) v, φ vs v))%I  (at level 20) : bi_scope.
-Notation envD Σ := (listVlC -n> vlC -n> iProp Σ).
+Notation "s ↝ φ" := (∃ γ, s ↦ γ ∗ γ ⤇ φ)%I  (at level 20) : bi_scope.
+Notation envD Σ := (vls -c> vl -c> iProp Σ).
+
+Instance Inhϕ: Inhabited (envD Σ).
+Proof. constructor. exact (λ _ _, False)%I. Qed.
 
 Section mapsto.
   Context `{!dotG Σ}.
@@ -291,7 +286,7 @@ Section mapsto.
   Proof. apply _. Qed.
 
   Definition allGs gs := (gen_iheap_ctx (hG := dotG_interpNames) gs).
-  Arguments allGs /.
+  Global Arguments allGs /.
 
   Lemma leadsto_agree s (φ1 φ2: envD Σ) ρ v: s ↝ φ1 -∗ s ↝ φ2 -∗ ▷ (φ1 ρ v ≡ φ2 ρ v).
   Proof.
@@ -299,6 +294,6 @@ Section mapsto.
     iDestruct "H1" as (γ1) "[Hs1 Hg1]".
     iDestruct "H2" as (γ2) "[Hs2 Hg2]".
     iPoseProof (mapsto_agree with "Hs1 Hs2") as "%"; subst.
-    by iApply (saved_interp_agree_eta _ φ1 φ2).
+    by iApply (saved_interp_agree _ φ1 φ2).
   Qed.
 End mapsto.
