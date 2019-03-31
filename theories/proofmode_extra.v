@@ -20,6 +20,9 @@ Section proofmode_extra.
   Context {PROP : sbi}.
   Implicit Types P Q R : PROP.
 
+  Lemma swap_later {n} P: ▷^n ▷ P ⊣⊢ ▷ ▷^n P.
+  Proof. by rewrite -bi.later_laterN bi.laterN_later. Qed.
+
   Global Instance from_forall_laterN {A} P (Φ : A → PROP) n :
         FromForall P Φ → FromForall (▷^n P)%I (λ a, ▷^n (Φ a))%I.
   Proof. rewrite /FromForall => <-. by rewrite laterN_forall. Qed.

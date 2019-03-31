@@ -1,5 +1,6 @@
 From iris.base_logic Require Import base_logic.
 From iris.proofmode Require Import tactics.
+From D Require Import proofmode_extra.
 From D.Dot Require Import unary_lr.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
@@ -10,9 +11,6 @@ Section Sec.
   Lemma Sub_Mono T i :
     (Γ ⊨ [T, i] <: [T, S i])%I.
   Proof. by iIntros "!> **". Qed.
-
-  Lemma swap_later {n} {PROP: sbi} (P : PROP): ▷^n ▷ P ⊣⊢ ▷ ▷^n P.
-  Proof. iSplit; by iIntros "H !>!>". Qed.
 
   Lemma Sub_Later_Sub T1 T2 i:
     Γ ⊨ [T1, S i] <: [T2, S i] -∗
