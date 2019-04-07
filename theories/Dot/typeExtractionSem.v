@@ -127,6 +127,9 @@ Section interp_equiv.
           split; eapply not_elem_of_dom =>//. apply Hdom. set_solver.
       + iMod ("HH" with "Hwm Hgs") as (gs'') "[H1 [H2 %]]". move: H => /= Hgs''.
         iExists gs''. iFrame; iPureIntro.
+        (* code I quoted in https://gitlab.mpi-sws.org/iris/stdpp/issues/29 *)
+        (* time set_solver. *) (* infinite loop *)
+        (* rewrite dom_insert. time set_solver. *) (* 7 s *)
         rewrite dom_insert Hgs'' Hgs'. (* set_solver very slow, so: *)
         (* clear; set_solver. (* 0.2 s *) *)
         by rewrite -union_assoc [dom _ _ ∪ {[_]}]union_comm.
