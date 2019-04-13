@@ -1,10 +1,9 @@
 From iris.program_logic Require Import ectx_lifting.
 From D.DSub Require Import operational.
 
-Section lang_rules.
-  (* Context `{irisG }. *)
-  Implicit Types e : tm.
+Implicit Types e : tm.
 
+Section lang_rules.
   Ltac inv_head_step :=
     repeat match goal with
     | H : to_val _ = Some _ |- _ => apply of_to_val in H
@@ -31,9 +30,21 @@ Section lang_rules.
     PureExec True 1 (tapp (tv (vabs e1)) (tv v2)) e1.|[v2 /].
   Proof. solve_pure_exec. Qed.
 
-  Global Instance pure_tskip t:
-    PureExec True 1 (tskip t) t.
+  Global Instance pure_tskip v:
+    PureExec True 1 (tskip (tv v)) (tv v).
   Proof. solve_pure_exec. Qed.
+
+  Global Instance pure_tskip_iter v i:
+    PureExec True i (iterate tskip i (tv v)) (tv v).
+  Proof.
+    move => _. elim: i => [|i IHi]; rewrite ?iterate_0 ?iterate_S //. by repeat constructor.
+    replace (S i) with (i + 1) by lia.
+    eapply nsteps_trans with (y := tskip (tv v)) => //.
+    - change tskip with (fill [SkipCtx]) in *.
+      by apply pure_step_nsteps_ctx; try apply _.
+    - by apply pure_tskip.
+  Qed.
+
 End lang_rules.
 
 (* Copied from F_mu *)
@@ -46,3 +57,6 @@ Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
   iApply (wp_bind (fill[ctx]));
   iApply (wp_wand with "[-]"); [iApply Hp; trivial|]; cbn;
   iIntros (v) Hv.
+
+Lemma tskip_n_to_fill i e: iterate tskip i e = fill (repeat SkipCtx i) e.
+Proof. elim: i e => [|i IHi] e //; by rewrite ?iterate_0 ?iterate_Sr /= -IHi. Qed.

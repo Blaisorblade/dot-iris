@@ -272,3 +272,22 @@ Lemma subst_compose_idsσ_x
   a.|[to_subst (idsσ n).|[to_subst ξ]] = a.|[to_subst (idsσ n)].|[to_subst ξ].
 Proof. intros; eauto. Qed.
 Hint Resolve @subst_compose_idsσ_x.
+
+Lemma nclosed_tskip_i e n i:
+  nclosed e n →
+  nclosed (iterate tskip i e) n.
+Proof.
+  move => Hcl; elim: i => [|i IHi]; rewrite ?iterate_0 ?iterate_S //; solve_fv_congruence.
+Qed.
+
+Lemma tskip_subst i e s: (iterate tskip i e).|[s] = iterate tskip i e.|[s].
+Proof. elim: i => [|i IHi]; by rewrite ?iterate_0 ?iterate_S //= IHi. Qed.
+
+Lemma nclosed_σ_to_subst ξ σ n:
+  nclosed_σ ξ (length σ) → nclosed_σ σ n →
+  nclosed_σ (ξ.|[to_subst σ]) n.
+Proof.
+  intros.
+  apply closed_vls_to_Forall, fv_to_subst => //. by apply Forall_to_closed_vls.
+Qed.
+Hint Resolve nclosed_σ_to_subst.

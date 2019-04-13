@@ -40,7 +40,8 @@ Section nclosed_prim_step.
 
   Inductive nclosed_ectx_item: ectx_item → nat → Prop :=
   | ClAppLCtx t2 n: nclosed t2 n → nclosed_ectx_item (AppLCtx t2) n
-  | ClAppRCtx v1 n: nclosed_vl v1 n → nclosed_ectx_item (AppRCtx v1) n.
+  | ClAppRCtx v1 n: nclosed_vl v1 n → nclosed_ectx_item (AppRCtx v1) n
+  | ClSkipCtx n: nclosed_ectx_item SkipCtx n.
   Hint Constructors nclosed_ectx_item.
 
   Notation nclosed_ectx K n := (Forall (λ Ki, nclosed_ectx_item Ki n) K).

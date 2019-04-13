@@ -21,12 +21,14 @@ Definition of_val: vl -> tm := tv.
 
 Inductive ectx_item :=
 | AppLCtx (e2: tm)
-| AppRCtx (v1: vl).
+| AppRCtx (v1: vl)
+| SkipCtx.
 
 Definition fill_item (Ki : ectx_item) (e : tm) : tm :=
   match Ki with
   | AppLCtx e2 => tapp e e2
   | AppRCtx v1 => tapp (tv v1) e
+  | TSkipCtx => tskip e
   end.
 
 Definition state := unit.
@@ -35,8 +37,8 @@ Definition observation := unit.
 Inductive head_step : tm -> state -> list observation -> tm -> state -> list tm -> Prop :=
 | st_beta t1 v2 σ:
     head_step (tapp (tv (vabs t1)) (tv v2)) σ [] (t1.|[v2/]) σ []
-| st_skip t σ:
-    head_step (tskip t) σ [] t σ [].
+| st_skip v σ:
+    head_step (tskip (tv v)) σ [] (tv v) σ [].
 
 Lemma to_of_val v : to_val (of_val v) = Some v.
 Proof. done. Qed.
