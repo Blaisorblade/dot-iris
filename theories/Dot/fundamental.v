@@ -35,10 +35,10 @@ Section fundamental.
     - iIntros "#Hm"; iInduction HT as [] "IHT".
       + by iApply DSub_Refl.
       + by iApply DSub_Trans.
-      + admit; by iApply DSub_Mono.
+      + by iApply DSub_Mono.
       + by iApply DSub_Index_Incr.
-      + admit; by iApply DSub_Top.
-      + admit; by iApply Bot_DSub.
+      + by iApply DSub_Top.
+      + by iApply Bot_DSub.
       + by iApply And1_DSub.
       + by iApply And2_DSub.
       + by iApply DSub_And.
@@ -53,7 +53,7 @@ Section fundamental.
       + by iApply DSub_Later_Sub.
       (* Subtyping variance. PROBLEMS WITH MODALITY SWAPS! *)
       (* Putting the later around the *whole* subtyping judgment would help here. *)
-      + iApply Sub_TAll_Variant_Argh. iApply "IHT". admit.
+      + iApply Sub_TAll_Variant_Argh => //. admit.
       + iIntros "/= !>" (ρ) "#Hg".
         iSpecialize ("IHT" with "Hg").
         iNext.
@@ -79,9 +79,15 @@ Section fundamental.
         iNext. iModIntro. iSplitL.
         * iIntros (u) "#Hu". iApply "HLT". by iApply "IHT".
         * iIntros (u) "#Hu". iApply "IHT1". by iApply "HTU".
-      + admit; iApply Sub_TAll_Cov_Distr.
-      + admit; iApply Sub_TVMem_Cov_Distr.
-      + admit; iApply Sub_TTMem_Cov_Distr.
+      + iIntros "!> ** !> * #H".
+        iApply (Sub_TAll_Cov_Distr _ _ _ _ 0) => //.
+        by iApply interp_v_closed.
+      + iIntros "!> ** !> * #H".
+        iApply (Sub_TVMem_Cov_Distr _ _ _ _ 0) => //.
+        by iApply interp_v_closed.
+      + iIntros "!> ** !> * #H".
+        iApply (Sub_TTMem_Cov_Distr _ _ _ _ _ 0) => //.
+        by iApply interp_v_closed.
     - iIntros "#Hm"; iInduction HT as [] "IHT".
       + by iApply T_Forall_Ex.
       + by iApply T_Forall_E.
@@ -93,8 +99,11 @@ Section fundamental.
       + by iApply TMu_I.
       + by iApply T_Nat_I.
       + by iApply T_Var.
-      + iApply T_Sub => //.
-        admit; by iApply fundamental_subtype.
+      + iApply T_Sub => //. iClear "IHT".
+        iIntros "/= !>" (ρ v Hclv) "#Hg #HT1".
+        iPoseProof (fundamental_subtype Γ T1 0 (iterate TLater i T2) H with "Hm") as "#H".
+        rewrite -iterate_TLater_later; last done.
+        by iApply "H".
       + by iApply TAnd_I.
   Admitted.
 
