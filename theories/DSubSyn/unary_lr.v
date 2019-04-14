@@ -244,10 +244,15 @@ Section logrel.
     (□∀ ρ v, ⌜ nclosed_vl v 0 ⌝ → ⟦Γ⟧*ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
   Global Arguments step_indexed_ivstp /.
 
+  Definition delayed_ivstp Γ T1 T2 i: iProp Σ :=
+    (□ ∀ ρ, ⟦Γ⟧*ρ → ▷^i ∀v, ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
+  Global Arguments delayed_ivstp /.
+
   Global Instance ietp_persistent Γ T e : Persistent (ietp Γ T e) := _.
   Global Instance step_indexed_ietp_persistent Γ T e i : Persistent (step_indexed_ietp Γ T e i) := _.
   Global Instance step_indexed_ivstp_persistent Γ T1 T2 i j : Persistent (step_indexed_ivstp Γ T1 T2 i j) := _.
   Global Instance ivstp_persistent Γ T1 T2 : Persistent (ivstp Γ T1 T2) := _.
+  Global Instance delayed_ivstp_persistent Γ T1 T2 i : Persistent (delayed_ivstp Γ T1 T2 i) := _.
 End logrel.
 
 Notation "⟦ T ⟧" := (interp T).
@@ -261,6 +266,7 @@ Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T a
 
 Notation "Γ ⊨ T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).
 Notation "Γ '⊨' '[' T1 ',' i ']' '<:' '[' T2 ',' j ']'" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
+Notation "Γ ⊨[ i  ] T1 <: T2" := (delayed_ivstp Γ T1 T2 i) (at level 74, T1, T2 at next level).
 
 Ltac unfold_interp := rewrite ?interp_TLater ?interp_TAll ?interp_TNat ?interp_TTMem ?interp_TSel /=.
 Ltac setoid_unfold_interp :=
@@ -325,4 +331,15 @@ Section logrel_lemmas.
     iApply "Hsub2" => //. by iApply "Hsub1".
   Qed.
 
+  Lemma DSub_Refl T i : Γ ⊨[i] T <: T.
+  Proof. by iIntros "/= !> ** !> **". Qed.
+
+  Lemma DSub_Trans T1 T2 T3 i : Γ ⊨[i] T1 <: T2 -∗
+                                Γ ⊨[i] T2 <: T3 -∗
+                                Γ ⊨[i] T1 <: T3.
+  Proof.
+    iIntros "#Hsub1 #Hsub2 /= !> * #Hg".
+    iSpecialize ("Hsub1" with "Hg"); iSpecialize ("Hsub2" with "Hg").
+    iIntros "!>" (v) "#HT". iApply "Hsub2". by iApply "Hsub1".
+  Qed.
 End logrel_lemmas.
