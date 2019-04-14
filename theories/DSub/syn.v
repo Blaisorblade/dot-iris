@@ -514,7 +514,7 @@ Section syntax_mut_ind_closed.
   Variable step_vstamp : ∀ n vs s,
       nclosed vs n → nclosed_vl (vstamp vs s) n →
       Forall (flip Pvl n) vs → Pvl (vstamp vs s) n.
-  Variable step_TALl : ∀ n T1 T2,
+  Variable step_TAll : ∀ n T1 T2,
       nclosed T1 n → nclosed T2 (S n) → nclosed (TAll T1 T2) n →
       Pty T1 n → Pty T2 (S n) → Pty (TAll T1 T2) n.
   Variable step_TTMem : ∀ n T1 T2,
