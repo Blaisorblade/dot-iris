@@ -131,6 +131,27 @@ Section Sec.
       iApply wp_value; by iApply "Hsub".
   Qed.
 
+  Lemma DT_Sub e T1 T2 i:
+    (Γ ⊨ e : T1 →
+    Γ ⊨[0] T1 <: iterate TLater i T2 →
+    (*───────────────────────────────*)
+    Γ ⊨ iterate tskip i e : T2)%I.
+  Proof.
+    iIntros "/= * #[% #HeT1] #Hsub". move: H => Hcle.
+    have Hclte: nclosed (iterate tskip i e) (length Γ) by eauto using nclosed_tskip_i. iFrame "%".
+    move: Hclte => _. iIntros "!> * #Hg".
+    rewrite tskip_subst tskip_n_to_fill. iApply wp_bind.
+    iApply (wp_wand_cl _ (⟦ T1 ⟧ ρ)) => //.
+    - iApply ("HeT1" with "[//]").
+    - by iApply nclosed_subst_ρ.
+    - iIntros (v) "#HvT1"; iIntros (Hclv). rewrite -tskip_n_to_fill.
+      iApply wp_pure_step_later; trivial.
+      iSpecialize ("Hsub" with "Hg HvT1").
+      rewrite iterate_TLater_later; last done.
+      (* We can swap ▷^i with WP (tv v)! *)
+      iApply wp_value. by iApply "Hsub".
+  Qed.
+
   Lemma T_Vty_abs_I T L U :
     nclosed T (length Γ) →
     Γ ⊨ [T, 1] <: [U, 1] -∗
@@ -167,6 +188,42 @@ Section Sec.
     iIntros; iApply T_Vty_abs_I => //; by iApply Sub_Refl.
   Qed.
 
+  Lemma DT_Vty_abs_I T L U :
+    nclosed T (length Γ) →
+    Γ ⊨[1] T <: U -∗
+    Γ ⊨[1] L <: T -∗
+    Γ ⊨ tv (vty T) : TTMem L U.
+  Proof.
+    (* Ltac solve_fv_congruence := rewrite /nclosed /nclosed_vl /= => *; f_equiv; solve [(idtac + asimpl); auto using eq_up]. *)
+    iIntros (HclT) "#HTU #HLT /=".
+    have HclV: nclosed_vl (vty T) (length Γ). by apply fv_vty.
+    have HclTV: nclosed (tv (vty T)) (length Γ). by apply fv_tv.
+    iSplit => //.
+    iIntros "!>" (ρ) "#HG".
+    iApply wp_value.
+    unfold_interp.
+    iPoseProof (interp_env_ρ_closed with "HG") as "%". move: H => Hclρ.
+    iPoseProof (interp_env_len_agree with "HG") as "%". move: H => Hlen. rewrite <- Hlen in *.
+    iSplit. {
+      iPureIntro; by apply (fv_to_subst_vl (vty T) ρ).
+    }
+    iExists (λ v, ⟦ T.|[to_subst ρ ] ⟧ [] v)%I.
+    iSplit. by iExists (T.|[to_subst ρ ]).
+    iModIntro; repeat iSplitL; iIntros "*".
+    - iIntros (Hclv) "#HL /=".
+      iSpecialize ("HLT" $! ρ with "HG HL"). iNext.
+      by rewrite interp_subst_all.
+    - iIntros; iApply "HTU" => //; iNext => //.
+      by rewrite interp_subst_all.
+  Qed.
+
+  Lemma DT_Vty_I T L U :
+    nclosed T (length Γ) →
+    Γ ⊨ tv (vty T) : TTMem T T.
+  Proof.
+    iIntros; iApply DT_Vty_abs_I => //; by iApply DSub_Refl.
+  Qed.
+
   Lemma Sub_Sel L U va i:
     Γ ⊨ tv va : TTMem L U, i -∗
     Γ ⊨ [L, S i] <: [TSel va, i].
@@ -174,6 +231,23 @@ Section Sec.
     iIntros "/= #[% #Hva] !> *" (Hclv) " #Hg #HvL". move: H => Hclva.
     iSpecialize ("Hva" $! ρ with "Hg"). iNext.
     iPoseProof (wp_value_inv' with "Hva") as "Hva'";  iClear "Hva".
+    unfold_interp.
+    iDestruct "Hva'" as (Hclvas φ) "#[H1 #[HLφ HφU]]".
+    iDestruct "H1" as (T) "[% Hφ]".
+    repeat iSplit => //.
+    iExists φ. repeat iSplit. naive_solver.
+    by iApply "HLφ".
+  Qed.
+
+  Lemma DSub_Sel L U va i:
+    Γ ⊨ tv va : TTMem L U, i -∗
+    Γ ⊨[i] TLater L <: TSel va.
+  Proof.
+    iIntros "/= #[% #Hva] !> * #Hg". move: H => Hclva.
+    iSpecialize ("Hva" $! ρ with "Hg"). iNext.
+    setoid_unfold_interp.
+    iIntros (v) " #[% HvL]". move: H => Hclv.
+    iPoseProof (wp_value_inv' with "Hva") as "Hva'"; iClear "Hva".
     unfold_interp.
     iDestruct "Hva'" as (Hclvas φ) "#[H1 #[HLφ HφU]]".
     iDestruct "H1" as (T) "[% Hφ]".
@@ -259,6 +333,46 @@ Section Sec.
     - iIntros. by iApply "IHT1'".
   Qed.
 
+  Lemma DSub_TAll_Variant T1 T2 U1 U2 i:
+    Γ ⊨[S i] T2 <: T1 -∗
+    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨[S i] U1 <: U2 -∗
+    Γ ⊨[i] TAll T1 U1 <: TAll T2 U2.
+  Proof.
+    rewrite iterate_S /=.
+    setoid_unfold_interp.
+    iIntros "#HsubT #HsubU /= !>" (ρ) "#Hg".
+    iIntros (v).
+    iSpecialize ("HsubT" with "Hg").
+    iAssert (□∀ w, ⌜nclosed_vl w 0⌝ -∗ ▷^(S i) ⟦ T2.|[ren (+1)]⟧ (w :: ρ) w -∗ ▷ ▷^i(∀ v, ⟦ U1 ⟧ (w :: ρ) v → ⟦ U2 ⟧ (w :: ρ) v))%I as "#HsubU'".
+    by iIntros "!>" (w Hclw) "#Hw"; iApply "HsubU"; unfold_interp; rewrite iterate_TLater_later //; iFrame "#%". iClear "HsubU".
+
+    (* iAssert (□∀ w, ⌜nclosed_vl w 0⌝ -∗ ▷^(S i) (⟦ T2.|[ren (+1)]⟧ (w :: ρ) w → ∀ v, ⟦ U1 ⟧ (w :: ρ) v → ⟦ U2 ⟧ (w :: ρ) v))%I as "#HsubU''".
+    iIntros "!>" (w Hclw).
+    iSpecialize ("HsubU'" $! w Hclw). iNext. iNext.
+    iIntros "#Hw" (u) "#Hu". Fail iApply "HsubU". *)
+
+    unfold_interp.
+    rewrite -mlaterN_impl.
+    iIntros "[$ #HT1]".
+    iDestruct "HT1" as (t) "#[Heq #HT1]"; iExists t; iSplit => //.
+    iIntros (w).
+    iSpecialize ("HT1" $! w).
+    iSpecialize ("HsubT" $! w).
+    rewrite -!mlaterN_pers -!laterN_later/= -!mlaterN_impl -!mlater_impl.
+    iIntros "!> #HwT2".
+    iAssert (▷ ▷^i ⌜ nclosed_vl w 0 ⌝)%I as "#Hlclw".
+    by iNext; iNext; iApply interp_v_closed.
+    iApply (strip_pure_laterN_impl (S i) (nclosed_vl w 0)) => //=.
+    iIntros (Hclw).
+    iSpecialize ("HT1" with "[#]"). by iApply "HsubT".
+    iSpecialize ("HsubU'" $! w Hclw with "[#]").
+    by iApply interp_weaken_one.
+    iNext; iNext i.
+    iApply wp_wand.
+    - iApply "HT1".
+    - iIntros (u) "#HuU1". by iApply "HsubU'".
+  Qed.
+
   Lemma Sub_TTMem_Variant L1 L2 U1 U2 i:
     Γ ⊨ [L2, S i] <: [L1, S i] -∗
     Γ ⊨ [U1, S i] <: [U2, S i] -∗
@@ -279,18 +393,29 @@ Section Sec.
     - iApply "HLφ" => //. by iApply "IHT".
     - iApply "IHT1". by iApply "HφU".
   Qed.
+  (* Lemma DSub_TTMem_Variant L1 L2 U1 U2 i:
+    Γ ⊨[S i] L2 <: L1 -∗
+    Γ ⊨[S i] U1 <: U2 -∗
+    Γ ⊨[i] TTMem L1 U1 <: TTMem L2 U2. *)
 
   Lemma Sub_Top T i:
     Γ ⊨ [T, i] <: [TTop, i].
   Proof. by iIntros "!> **"; unfold_interp. Qed.
 
+  Lemma DSub_Top T i:
+    Γ ⊨[i] T <: TTop.
+  Proof.
+    iIntros "!> ** !> **"; unfold_interp.
+    by iApply interp_v_closed.
+  Qed.
+
   Lemma Bot_Sub T i:
     Γ ⊨ [TBot, i] <: [T, i].
   Proof. by iIntros "!> ** !>"; unfold_interp. Qed.
-  (* Lemma DSub_TTMem_Variant L1 L2 U1 U2 i:
-    Γ ⊨[S i] L2 <: L1 -∗
-    Γ ⊨[S i] U1 <: U2 -∗
-    Γ ⊨[i] TTMem L1 U1 <: TTMem L2 U2. *)
+
+  Lemma DBot_Sub T i:
+    Γ ⊨[i] TBot <: T.
+  Proof. by iIntros "!> ** !> **"; unfold_interp. Qed.
 End Sec.
 
 From D.DSubSyn Require Import typing.
