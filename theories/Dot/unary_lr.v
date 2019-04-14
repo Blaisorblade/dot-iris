@@ -314,7 +314,7 @@ Section logrel_lemmas.
 
   Context Γ.
 
-  Lemma interp_v_closed T v ρ: (interp T ρ v → ⌜ nclosed_vl v 0 ⌝)%I.
+  Lemma interp_v_closed T v ρ: interp T ρ v -∗ ⌜ nclosed_vl v 0 ⌝.
   Proof.
     iInduction T as [] "IHT" forall (ρ v); iIntros "#HT //="; try by (iDestruct "HT" as "[% _]").
     - iDestruct "HT" as "[#HT1 #HT2]". by iApply "IHT".
@@ -324,14 +324,14 @@ Section logrel_lemmas.
   Qed.
 
   Lemma interp_env_len_agree ρ:
-    (⟦ Γ ⟧* ρ → ⌜ length ρ = length Γ ⌝)%I.
+    ⟦ Γ ⟧* ρ -∗ ⌜ length ρ = length Γ ⌝.
   Proof.
     iInduction Γ as [|τ Γ'] "IHΓ" forall (ρ); destruct ρ => //=.
     iIntros "#[HG Hv]".
     by iDestruct ("IHΓ" $! ρ with "HG") as "->".
   Qed.
 
-  Lemma interp_env_ρ_closed ρ: (⟦ Γ ⟧* ρ → ⌜ cl_ρ ρ ⌝)%I.
+  Lemma interp_env_ρ_closed ρ: ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ⌝.
   Proof.
     iInduction Γ as [|τ Γ'] "IHΓ" forall (ρ); destruct ρ => //=.
     iIntros "[#HG #HT]".
@@ -343,9 +343,9 @@ Section logrel_lemmas.
   Lemma Sub_Refl T i : Γ ⊨ [T, i] <: [T, i].
   Proof. by iIntros "/= !> **". Qed.
 
-  Lemma Sub_Trans T1 T2 T3 i1 i2 i3 : (Γ ⊨ [T1, i1] <: [T2, i2] →
-                                       Γ ⊨ [T2, i2] <: [T3, i3] →
-                                       Γ ⊨ [T1, i1] <: [T3, i3])%I.
+  Lemma Sub_Trans T1 T2 T3 i1 i2 i3 : Γ ⊨ [T1, i1] <: [T2, i2] -∗
+                                      Γ ⊨ [T2, i2] <: [T3, i3] -∗
+                                      Γ ⊨ [T1, i1] <: [T3, i3].
   Proof.
     iIntros "#Hsub1 #Hsub2 /= !> * % #Hg #HT".
     iApply "Hsub2" => //. by iApply "Hsub1".
