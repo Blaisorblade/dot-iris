@@ -17,7 +17,7 @@ Inductive tm  : Type :=
   (* | TBot :  ty *)
   (* | TAnd : ty -> ty -> ty *)
   (* | TOr : ty -> ty -> ty *)
-  (* | TLater : ty -> ty *)
+  | TLater : ty -> ty
   | TAll : ty -> ty -> ty
   (* | TMu : ty -> ty *)
   | TTMem : ty -> ty -> ty
@@ -58,6 +58,7 @@ Section syntax_mut_rect.
   Variable step_vabs : ∀ t1, Ptm t1 → Pvl (vabs t1).
   Variable step_vty : ∀ T1, Pty T1 → Pvl (vty T1).
   Variable step_vstamp : ∀ vs s, ForallT Pvl vs → Pvl (vstamp vs s).
+  Variable step_TLater : ∀ T1, Pty T1 → Pty (TLater T1).
   Variable step_TALl : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAll T1 T2).
   Variable step_TTMem : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TTMem T1 T2).
   Variable step_TSel : ∀ v1, Pvl v1 → Pty (TSel v1).
@@ -106,6 +107,7 @@ Section syntax_mut_ind.
   Variable step_vty : ∀ T1, Pty T1 → Pvl (vty T1).
   (** Beware here in Prop we use Forall, not ForallT! *)
   Variable step_vstamp : ∀ vs s, Forall Pvl vs → Pvl (vstamp vs s).
+  Variable step_TLater : ∀ T1, Pty T1 → Pty (TLater T1).
   Variable step_TALl : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAll T1 T2).
   Variable step_TTMem : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TTMem T1 T2).
   Variable step_TSel : ∀ v1, Pvl v1 → Pty (TSel v1).
@@ -171,7 +173,7 @@ ty_rename (sb : var → var) (T : ty) {struct T}: ty :=
   (* | TBot => TBot *)
   (* | TAnd T1 T2 => TAnd (rename sb T1) (rename sb T2) *)
   (* | TOr T1 T2 => TOr (rename sb T1) (rename sb T2) *)
-  (* | TLater T => TLater (rename sb T) *)
+  | TLater T => TLater (rename sb T)
   | TAll T1 T2 => TAll (rename sb T1) (rename (upren sb) T2)
   (* | TMu T => TMu (rename (upren sb) T) *)
   | TTMem T1 T2 => TTMem (rename sb T1) (rename sb T2)
@@ -224,7 +226,7 @@ ty_hsubst (sb : var → vl) (T : ty) : ty :=
   (* | TBot => TBot *)
   (* | TAnd T1 T2 => TAnd (hsubst sb T1) (hsubst sb T2) *)
   (* | TOr T1 T2 => TOr (hsubst sb T1) (hsubst sb T2) *)
-  (* | TLater T => TLater (hsubst sb T) *)
+  | TLater T => TLater (hsubst sb T)
   | TAll T1 T2 => TAll (hsubst sb T1) (hsubst (up sb) T2)
   (* | TMu T => TMu (hsubst (up sb) T) *)
   | TTMem T1 T2 => TTMem (hsubst sb T1) (hsubst sb T2)
@@ -514,6 +516,9 @@ Section syntax_mut_ind_closed.
   Variable step_vstamp : ∀ n vs s,
       nclosed vs n → nclosed_vl (vstamp vs s) n →
       Forall (flip Pvl n) vs → Pvl (vstamp vs s) n.
+  Variable step_TLater : ∀ n T1,
+    nclosed T1 n → nclosed (TLater T1) n →
+    Pty T1 n → Pty (TLater T1) n.
   Variable step_TAll : ∀ n T1 T2,
       nclosed T1 n → nclosed T2 (S n) → nclosed (TAll T1 T2) n →
       Pty T1 n → Pty T2 (S n) → Pty (TAll T1 T2) n.

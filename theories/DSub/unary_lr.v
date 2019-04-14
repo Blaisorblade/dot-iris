@@ -82,12 +82,17 @@ Section logrel.
                     ∃ ϕ, w.[to_subst ρ] ↗ ϕ ∧ ▷ □ ϕ v))%I.
   Global Arguments interp_selA /.
 
+  Definition interp_later interp : envD Σ :=
+    λ ρ v, (⌜ nclosed_vl v 0 ⌝ ∗ ▷ interp ρ v) % I.
+  Global Arguments interp_later /.
+
   Definition interp_sel w : envD Σ :=
     interp_selA w interp_bot interp_top.
   Global Arguments interp_sel /.
 
   Fixpoint interp (T: ty) : envD Σ :=
     match T with
+    | TLater T => interp_later (interp T)
     | TTMem L U => interp_tmem (interp L) (interp U)
     | TNat => interp_nat
     | TAll T1 T2 => interp_forall (interp T1) (interp T2)

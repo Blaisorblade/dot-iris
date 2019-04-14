@@ -45,7 +45,7 @@ unstamp_ty g (T: ty): ty :=
   (* | TBot => T *)
   (* | TAnd T1 T2 => TAnd (unstamp_ty g T1) (unstamp_ty g T2) *)
   (* | TOr T1 T2 => TOr (unstamp_ty g T1) (unstamp_ty g T2) *)
-  (* | TLater T => TLater (unstamp_ty g T) *)
+  | TLater T => TLater (unstamp_ty g T)
   | TAll T1 T2 => TAll (unstamp_ty g T1) (unstamp_ty g T2)
   (* | TMu T => TMu (unstamp_ty g T) *)
   | TTMem T1 T2 => TTMem (unstamp_ty g T1) (unstamp_ty g T2)
@@ -215,6 +215,7 @@ Module TraversalV1.
     with
     traverse_ty (ts: travStateT) T: resT :=
       match T with
+      | TLater T1 => traverse_ty ts T1
       | TAll T1 T2 => traverse_ty ts T1 ++ traverse_ty (trav.(upS) ts) T2
       | TTMem T1 T2 => traverse_ty ts T1 ++ traverse_ty ts T2
       | TSel v => traverse_vl ts v
