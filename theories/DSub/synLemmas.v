@@ -178,6 +178,9 @@ Proof. solve_fv_congruence. Qed.
 Lemma fv_vabs e n: nclosed e (S n) → nclosed_vl (vabs e) n.
 Proof. solve_fv_congruence. Qed.
 
+Lemma fv_vty T n: nclosed T n → nclosed_vl (vty T) n.
+Proof. solve_fv_congruence. Qed.
+
 Lemma fv_vls_cons v vs n: nclosed vs n → nclosed_vl v n → nclosed (v :: vs) n.
 Proof. solve_fv_congruence. Qed.
 
