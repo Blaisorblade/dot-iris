@@ -425,3 +425,30 @@ Section Fundamental.
         by iApply fundamental_subtype.
   Qed.
 End Fundamental.
+
+From D.pure_program_logic Require Import adequacy.
+
+Theorem adequacy Σ `{HdsubG: dsubSynG Σ} e e' thp σ σ' T:
+  (forall `{dsubSynG Σ}, True ⊢ [] ⊨ e : T) →
+  rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
+  is_Some (to_val e') ∨ reducible e' σ'.
+Proof.
+  intros Hlog ??. cut (adequate NotStuck e σ (λ _ _, True)); first (intros [_ ?]; eauto).
+  eapply (wp_adequacy Σ) => /=.
+  iIntros (?) "!>". iExists (λ _ _, True%I); iSplit=> //.
+  iPoseProof (Hlog with "[//]") as "#[_ #Hlog]".
+  iEval (replace e with (e.|[to_subst []]) by by asimpl).
+  iApply wp_wand; by [iApply "Hlog" | auto].
+Qed.
+
+Instance dsubSynG_empty: dsubSynG #[].
+
+Corollary type_soundness e e' thp σ σ' T:
+  ([] ⊢ₜ e : T) →
+  rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
+  is_Some (to_val e') ∨ reducible e' σ'.
+Proof.
+  intros HT Heval.
+  eapply (adequacy #[]); last done.
+  iIntros; by iApply (fundamental_typed _ _ _ HT).
+Qed.
