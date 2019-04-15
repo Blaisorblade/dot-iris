@@ -13,8 +13,8 @@ Inductive tm  : Type :=
   | vty : ty -> vl
   | vstamp: list vl -> stamp -> vl
  with ty  : Type :=
-  (* | TTop :  ty *)
-  (* | TBot :  ty *)
+  | TTop :  ty
+  | TBot :  ty
   (* | TAnd : ty -> ty -> ty *)
   (* | TOr : ty -> ty -> ty *)
   | TLater : ty -> ty
@@ -58,6 +58,8 @@ Section syntax_mut_rect.
   Variable step_vabs : ∀ t1, Ptm t1 → Pvl (vabs t1).
   Variable step_vty : ∀ T1, Pty T1 → Pvl (vty T1).
   Variable step_vstamp : ∀ vs s, ForallT Pvl vs → Pvl (vstamp vs s).
+  Variable step_TTop : Pty TTop.
+  Variable step_TBot : Pty TBot.
   Variable step_TLater : ∀ T1, Pty T1 → Pty (TLater T1).
   Variable step_TALl : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAll T1 T2).
   Variable step_TTMem : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TTMem T1 T2).
@@ -107,6 +109,8 @@ Section syntax_mut_ind.
   Variable step_vty : ∀ T1, Pty T1 → Pvl (vty T1).
   (** Beware here in Prop we use Forall, not ForallT! *)
   Variable step_vstamp : ∀ vs s, Forall Pvl vs → Pvl (vstamp vs s).
+  Variable step_TTop : Pty TTop.
+  Variable step_TBot : Pty TBot.
   Variable step_TLater : ∀ T1, Pty T1 → Pty (TLater T1).
   Variable step_TALl : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAll T1 T2).
   Variable step_TTMem : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TTMem T1 T2).
@@ -169,8 +173,8 @@ ty_rename (sb : var → var) (T : ty) {struct T}: ty :=
   let a := ty_rename : Rename ty in
   let b := vl_rename : Rename vl in
   match T with
-  (* | TTop => TTop *)
-  (* | TBot => TBot *)
+  | TTop => TTop
+  | TBot => TBot
   (* | TAnd T1 T2 => TAnd (rename sb T1) (rename sb T2) *)
   (* | TOr T1 T2 => TOr (rename sb T1) (rename sb T2) *)
   | TLater T => TLater (rename sb T)
@@ -222,8 +226,8 @@ ty_hsubst (sb : var → vl) (T : ty) : ty :=
   let a := ty_hsubst : HSubst vl ty in
   let b := vl_subst : Subst vl in
   match T with
-  (* | TTop => TTop *)
-  (* | TBot => TBot *)
+  | TTop => TTop
+  | TBot => TBot
   (* | TAnd T1 T2 => TAnd (hsubst sb T1) (hsubst sb T2) *)
   (* | TOr T1 T2 => TOr (hsubst sb T1) (hsubst sb T2) *)
   | TLater T => TLater (hsubst sb T)
@@ -516,6 +520,12 @@ Section syntax_mut_ind_closed.
   Variable step_vstamp : ∀ n vs s,
       nclosed vs n → nclosed_vl (vstamp vs s) n →
       Forall (flip Pvl n) vs → Pvl (vstamp vs s) n.
+  Variable step_TTop : ∀ n,
+      nclosed TTop n →
+      Pty TTop n.
+  Variable step_TBot : ∀ n,
+      nclosed TBot n →
+      Pty TBot n.
   Variable step_TLater : ∀ n T1,
       nclosed T1 n → nclosed (TLater T1) n →
       Pty T1 n → Pty (TLater T1) n.

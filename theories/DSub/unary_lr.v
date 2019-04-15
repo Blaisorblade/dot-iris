@@ -92,6 +92,8 @@ Section logrel.
 
   Fixpoint interp (T: ty) : envD Σ :=
     match T with
+    | TTop => interp_top
+    | TBot => interp_bot
     | TLater T => interp_later (interp T)
     | TTMem L U => interp_tmem (interp L) (interp U)
     | TNat => interp_nat

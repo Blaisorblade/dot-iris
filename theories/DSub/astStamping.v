@@ -41,8 +41,8 @@ unstamp_vl g (v: vl): vl :=
 with
 unstamp_ty g (T: ty): ty :=
   match T with
-  (* | TTop => T *)
-  (* | TBot => T *)
+  | TTop => T
+  | TBot => T
   (* | TAnd T1 T2 => TAnd (unstamp_ty g T1) (unstamp_ty g T2) *)
   (* | TOr T1 T2 => TOr (unstamp_ty g T1) (unstamp_ty g T2) *)
   | TLater T => TLater (unstamp_ty g T)
@@ -178,7 +178,7 @@ Proof.
                     inverse Hus; repeat constructor => //=; by f_equal]
       end
     end.
-    exists t__u, g1; subst; repeat constructor => //=; eauto.
+    all: exists t__u, g1; subst; repeat constructor => //=; eauto.
 Qed.
 
 Module TraversalV1.
@@ -215,6 +215,8 @@ Module TraversalV1.
     with
     traverse_ty (ts: travStateT) T: resT :=
       match T with
+      | TTop => trav.(base)
+      | TBot => trav.(base)
       | TLater T1 => traverse_ty ts T1
       | TAll T1 T2 => traverse_ty ts T1 ++ traverse_ty (trav.(upS) ts) T2
       | TTMem T1 T2 => traverse_ty ts T1 ++ traverse_ty ts T2
