@@ -418,7 +418,9 @@ Section Fundamental.
       + by iApply T_Var.
       + iApply T_Sub => //.
         by iApply fundamental_subtype.
-  Qed.
+      + iApply T_Vty_abs_I => //;
+        by iApply fundamental_subtype.
+      Qed.
 End Fundamental.
 
 From D.pure_program_logic Require Import adequacy.
