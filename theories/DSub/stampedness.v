@@ -62,6 +62,9 @@ Section fold.
       forall_traversal_tm ts (tskip t)
   with
   forall_traversal_ty: travStateT → ty → Prop :=
+  | trav_TLater ts T1:
+      forall_traversal_ty ts T1 →
+      forall_traversal_ty ts (TLater T1)
   | trav_TAll ts T1 T2:
       forall_traversal_ty ts T1 →
       forall_traversal_ty (trav.(upS) ts) T2 →
