@@ -292,15 +292,10 @@ Section Sec.
     iIntros "#HwT2"; iNext 1.
     iAssert (▷^i ⌜ nclosed_vl w 0 ⌝)%I as "#Hlclw".
     by iNext; iApply interp_v_closed.
-    (* Not sure how easy is this to fix??? If
-    it's possible at all? Maybe with except-0,
-    but we must strip *i+1* laters!
-    Or by using the alternative subtyping judgment.
-    *)
-    have Hclw: nclosed_vl w 0. admit.
-    (* Alternative: investigate how forall
-    commutes with later, and see if that lets us anticipate
-    pure hypotheses.*)
+
+    (* Amazingly, this is possible! *)
+    iApply (strip_pure_laterN i with "[] Hlclw").
+    iIntros (Hclw).
 
     iSpecialize ("IHT" $! ρ w Hclw with "Hg HwT2").
 
@@ -322,7 +317,7 @@ Section Sec.
     - iDestruct "Heq" as "%"; subst.
       iPureIntro; apply nclosed_subst; by [|apply fv_vabs_inv].
     - iIntros. by iApply "IHT1'".
-  Admitted.
+  Qed.
 
   Lemma DSub_TAll_Variant T1 T2 U1 U2 i:
     Γ ⊨[S i] T2 <: T1 -∗
@@ -353,16 +348,16 @@ Section Sec.
     iIntros "!> #HwT2".
     iAssert (▷ ▷^i ⌜ nclosed_vl w 0 ⌝)%I as "#Hlclw".
     by iNext; iNext; iApply interp_v_closed.
-    have Hclw: nclosed_vl w 0. admit.
-
+    iApply (strip_pure_laterN (S i) (nclosed_vl w 0)) => //=.
+    iIntros (Hclw).
     iSpecialize ("HT1" with "[#]"). by iApply "HsubT".
     iSpecialize ("HsubU'" $! w Hclw with "[#]").
     by iApply interp_weaken_one.
     iNext; iNext i.
     iApply wp_wand.
-    - iApply ("HT1").
+    - iApply "HT1".
     - iIntros (u) "#HuU1". by iApply "HsubU'".
-  Admitted.
+  Qed.
 
   Lemma Sub_TTMem_Variant L1 L2 U1 U2 i:
     Γ ⊨ [L2, S i] <: [L1, S i] -∗
