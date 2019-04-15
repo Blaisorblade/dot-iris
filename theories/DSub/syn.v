@@ -517,8 +517,8 @@ Section syntax_mut_ind_closed.
       nclosed vs n → nclosed_vl (vstamp vs s) n →
       Forall (flip Pvl n) vs → Pvl (vstamp vs s) n.
   Variable step_TLater : ∀ n T1,
-    nclosed T1 n → nclosed (TLater T1) n →
-    Pty T1 n → Pty (TLater T1) n.
+      nclosed T1 n → nclosed (TLater T1) n →
+      Pty T1 n → Pty (TLater T1) n.
   Variable step_TAll : ∀ n T1 T2,
       nclosed T1 n → nclosed T2 (S n) → nclosed (TAll T1 T2) n →
       Pty T1 n → Pty T2 (S n) → Pty (TAll T1 T2) n.
