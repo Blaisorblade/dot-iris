@@ -74,9 +74,9 @@ Section fundamental.
         iDestruct "HT1" as (vmem) "[Heq HvT1]".
         iExists vmem; repeat iSplit => //.
         rewrite !swap_later.
-        iApply "IHT" => //.
-        (* Fixable by except-0? But we must strip *i+1* laters! *)
-        admit.
+        iApply (strip_pure_laterN (S i) (nclosed_vl vmem 0)).
+        * iIntros. by iApply "IHT".
+        * by iApply interp_v_closed.
       + admit.
       + iApply Sub_TAll_Cov_Distr.
       + iApply Sub_TVMem_Cov_Distr.

@@ -42,10 +42,52 @@ Module Test_Succeeds.
   End foo.
 End Test_Succeeds.
 
-From iris.base_logic Require Import base_logic.
-From iris.proofmode Require Import tactics.
+From iris.base_logic Require Import base_logic lib.iprop.
+
+Import uPred.
+
+Section uPred_later_extra.
+  Context `{M: ucmraT}.
+  Implicit Types (Q: uPred M) (x: M).
+
+  Lemma laterN_pure_id i n P x: i <= n →
+    (▷^i uPred_pure_def P)%I n x → P.
+  Proof.
+    move => Hle H; induction i => //=.
+    apply IHi; first lia.
+    elim: i n Hle H {IHi} => [|i IHi] [|n] Hle;
+      unseal => // H; first lia.
+    apply IHi; first lia. by unseal.
+  Qed.
+
+  Lemma laterN_trivial i n Q x: i > n →
+    (▷^i Q)%I n x.
+  Proof.
+    move: i => [|i] Hle. by lia.
+    apply uPred_mono with i x; eauto with lia.
+    elim: i {Hle}; by unseal.
+  Qed.
+
+  Lemma strip_pure_later P Q:
+    (⌜ P ⌝ → ▷ Q) ⊢ (▷ ⌜ P ⌝ → ▷ Q).
+  Proof.
+    unseal; constructor => n x Hvx Hyp [|n'] // ?????.
+    by apply Hyp.
+  Qed.
+
+  Lemma strip_pure_laterN i P Q:
+    (⌜ P ⌝ → ▷^i Q) ⊢ ▷^i ⌜ P ⌝ → ▷^i Q.
+  Proof.
+    unseal; constructor => n x Hvx Hyp n' //= x' ?? Hvx' H.
+    destruct (decide (i <= n')) as [Hle|Hge].
+    - by eapply Hyp, laterN_pure_id.
+    - by apply laterN_trivial; lia.
+  Qed.
+End uPred_later_extra.
+
 From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language.
+From iris.proofmode Require Import tactics.
 
 Section wp_extra.
   Context `{irisG Λ Σ}.
