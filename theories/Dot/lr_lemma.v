@@ -33,10 +33,10 @@ Section Sec.
       iFrame "Hg". by iApply interp_weaken_one.
   Qed.
 
-  Lemma TAnd_I e T1 T2:
-    Γ ⊨ e : T1 -∗
-    Γ ⊨ e : T2 -∗
-    Γ ⊨ e : TAnd T1 T2.
+  Lemma TAnd_I v T1 T2:
+    Γ ⊨ tv v : T1 -∗
+    Γ ⊨ tv v : T2 -∗
+    Γ ⊨ tv v : TAnd T1 T2.
   Proof.
     iIntros "#HT1 #HT2 /=".
     (* iDestruct "HT1" as "[% #HT1]". *) (* Works *)
@@ -44,7 +44,7 @@ Section Sec.
     iDestruct "HT1" as "[$ #HT1']". iClear "HT1".
     iDestruct "HT2" as "[_ #HT2]".
     iIntros "!>" (ρ) "#Hg".
-    iApply wp_and; by [> iApply "HT1'" | iApply "HT2"].
+    iApply wp_and_val; by [> iApply "HT1'" | iApply "HT2"].
   Qed.
 
 

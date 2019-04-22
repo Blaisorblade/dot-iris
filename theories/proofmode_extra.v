@@ -148,6 +148,16 @@ Section wp_extra.
     iIntros (HwfE Hpres) "Hwp HΦ". iApply (wp_strong_mono_wf with "Hwp"); eauto.
   Qed.
 
+  Lemma wp_and_val P1 P2 v:
+    WP of_val v {{ P1 }} -∗ WP of_val v {{ P2 }} -∗
+      WP of_val v {{ v, P1 v ∧ P2 v }}.
+  Proof.
+    iIntros "H1 H2".
+    iDestruct (wp_value_inv' with "H1") as "H1'".
+    iDestruct (wp_value_inv' with "H2") as "H2'".
+    iApply wp_value'; by iSplit.
+  Qed.
+
   Lemma wp_and `{∀ σ κ n, Persistent (state_interp σ κ n)} (P1 P2: val Λ → iProp Σ) e:
     WP e {{ P1 }} -∗ WP e {{ P2 }} -∗ WP e {{ v, P1 v ∧ P2 v }}.
   Proof.
