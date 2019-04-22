@@ -82,14 +82,9 @@ subtype Γ : ty → nat → ty → nat → Prop :=
     Γ ⊢ₜ T1, S i <: T2, S i →
     Γ ⊢ₜ TLater T1, i <: TLater T2, i *)
 | TAllConCov_stp T1 T2 U1 U2 i:
-    (* "Tight" premises. To avoid TLater, we'd probably need to index the
-    context. But let's not; indexing the conclusion of typing and having an
-    elimination form for TLater (which increases the index) would be enough. *)
-    (* Γ ⊢ₜ T2, S i <: T1, S i → *)
-    (* TLater T2 :: Γ ⊢ₜ U1, S i <: U2, S i → *)
-    (* Non-tight premises. *)
-    Γ ⊢ₜ T2, i <: T1, i →
-    iterate TLater i T2.|[ren (+1)] :: Γ ⊢ₜ U1, i <: U2, i →
+    (* "Tight" premises. *)
+    Γ ⊢ₜ T2, S i <: T1, S i →
+    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊢ₜ U1, S i <: U2, S i →
     Γ ⊢ₜ TAll T1 U1, i <: TAll T2 U2, i
 | TTMemConCov_stp L1 L2 U1 U2 i:
     Γ ⊢ₜ L2, S i <: L1, S i →

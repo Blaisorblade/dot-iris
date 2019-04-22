@@ -297,87 +297,62 @@ Section Sec.
   Proof. iIntros "/= #Hsub !> ** !>". by iApply "Hsub". Qed.
 
   Lemma Sub_TAllConCov T1 T2 U1 U2 i:
-    Γ ⊨ [ T2, i ] <: [ T1, i ] -∗
-    iterate TLater i T2.|[ren (+1)] :: Γ ⊨ [ U1, i ] <: [ U2, i ] -∗
+    Γ ⊨ [ T2, S i ] <: [ T1, S i ] -∗
+    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨ [ U1, S i ] <: [ U2, S i ] -∗
     Γ ⊨ [ TAll T1 U1, i ] <: [ TAll T2 U2, i ].
   Proof.
-    iIntros "#IHT #IHT1 /= !>" (ρ v Hcl) "#Hg".
+    rewrite iterate_S /=.
+    iIntros "#HsubT #HsubU /= !>" (ρ v Hcl) "#Hg".
     unfold_interp.
     iIntros "[$ #HT1]".
-    iDestruct "HT1" as (t) "#[Heq #HT1']".
-    iExists t; iSplit => //.
-    rewrite -!mlaterN_pers.
-    iDestruct "HT1'" as "#HT1"; iModIntro.
+    iDestruct "HT1" as (t) "#[Heq #HT1]". iExists t; iSplit => //.
     iIntros (w).
-    rewrite -mlater_impl -mlaterN_impl !swap_later.
-    iIntros "#HwT2"; iNext 1.
-    iAssert (▷^i ⌜ nclosed_vl w 0 ⌝)%I as "#Hlclw".
-    by iNext; iApply interp_v_closed.
-
-    (* Amazingly, this is possible! *)
-    iApply (strip_pure_laterN_impl i with "[] Hlclw").
+    rewrite -!mlaterN_pers -mlater_impl -mlaterN_impl !swap_later.
+    iIntros "!> #HwT2".
+    iApply (strip_pure_laterN_impl (S i) (nclosed_vl w 0)); first last.
+      by iApply interp_v_closed.
     iIntros (Hclw).
-
-    iSpecialize ("IHT" $! ρ w Hclw with "Hg HwT2").
-
-    (* iSpecialize ("IHT1" $! (w :: ρ)). *)
-    iAssert (□ ▷^i (∀ v0, ⌜ nclosed_vl v0 0 ⌝ →
-      ⟦ U1 ⟧ (w :: ρ) v0 → ⟦ U2 ⟧ (w :: ρ) v0))%I as "#IHT1'". {
-      iIntros "!>" (v0 Hclv0).
-      rewrite -!mlaterN_impl.
-      iApply ("IHT1" $! (w :: ρ) v0 Hclv0 with "[#]").
-      iFrame "Hg".
-      rewrite iterate_TLater_later //.
-      by iApply interp_weaken_one.
+    iSpecialize ("HsubT" $! ρ w Hclw with "Hg HwT2").
+    iAssert (□ ▷ ▷^i (∀ v0, ⟦ U1 ⟧ (w :: ρ) v0 →
+        ⟦ U2 ⟧ (w :: ρ) v0))%I as "#HsubU'". {
+      iIntros (v0); rewrite -!mlaterN_impl -mlater_impl.
+      iIntros "!> #HUv0".
+      iApply (strip_pure_laterN_impl (S i) (nclosed_vl v0 0)); first last.
+        by iApply interp_v_closed.
+      iIntros (Hclv0).
+      iApply ("HsubU" $! (w :: ρ) v0) => //.
+      unfold_interp; rewrite iterate_TLater_later //.
+      iFrame "Hg %". by iApply interp_weaken_one.
     }
-    iClear "IHT1".
-    (* rewrite laterN_impl. *)
-    iSpecialize ("HT1" $! w with "IHT").
-    iNext i.
-    iApply (wp_wand_cl (t.|[w/]) (⟦ U1 ⟧ (w :: ρ)) (⟦ U2 ⟧ (w :: ρ)) with "HT1").
-    - iDestruct "Heq" as "%"; subst.
-      iPureIntro; apply nclosed_subst; by [|apply fv_vabs_inv].
-    - iIntros. by iApply "IHT1'".
+    iClear "HsubU". iNext 1; iNext i. iApply wp_wand.
+    - iApply "HT1". by iApply "HsubT".
+    - iIntros (u) "#HuU1". by iApply "HsubU'".
   Qed.
 
-  Lemma DSub_TAll_Variant T1 T2 U1 U2 i:
+  Lemma DSub_TAll_ConCov T1 T2 U1 U2 i:
     Γ ⊨[S i] T2 <: T1 -∗
     iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨[S i] U1 <: U2 -∗
     Γ ⊨[i] TAll T1 U1 <: TAll T2 U2.
   Proof.
     rewrite iterate_S /=.
-    setoid_unfold_interp.
-    iIntros "#HsubT #HsubU /= !>" (ρ) "#Hg".
-    iIntros (v).
-    iSpecialize ("HsubT" with "Hg").
-    iAssert (□∀ w, ⌜nclosed_vl w 0⌝ -∗ ▷^(S i) ⟦ T2.|[ren (+1)]⟧ (w :: ρ) w -∗ ▷ ▷^i(∀ v, ⟦ U1 ⟧ (w :: ρ) v → ⟦ U2 ⟧ (w :: ρ) v))%I as "#HsubU'".
-    by iIntros "!>" (w Hclw) "#Hw"; iApply "HsubU"; unfold_interp; rewrite iterate_TLater_later //; iFrame "#%". iClear "HsubU".
-
-    (* iAssert (□∀ w, ⌜nclosed_vl w 0⌝ -∗ ▷^(S i) (⟦ T2.|[ren (+1)]⟧ (w :: ρ) w → ∀ v, ⟦ U1 ⟧ (w :: ρ) v → ⟦ U2 ⟧ (w :: ρ) v))%I as "#HsubU''".
-    iIntros "!>" (w Hclw).
-    iSpecialize ("HsubU'" $! w Hclw). iNext. iNext.
-    iIntros "#Hw" (u) "#Hu". Fail iApply "HsubU". *)
-
-    unfold_interp.
-    rewrite -mlaterN_impl.
+    iIntros "#HsubT #HsubU /= !>" (ρ) "#Hg"; iIntros (v).
+    unfold_interp; rewrite -mlaterN_impl.
     iIntros "[$ #HT1]".
     iDestruct "HT1" as (t) "#[Heq #HT1]"; iExists t; iSplit => //.
     iIntros (w).
-    iSpecialize ("HT1" $! w).
-    iSpecialize ("HsubT" $! w).
     rewrite -!mlaterN_pers -!laterN_later/= -!mlaterN_impl -!mlater_impl.
     iIntros "!> #HwT2".
-    iAssert (▷ ▷^i ⌜ nclosed_vl w 0 ⌝)%I as "#Hlclw".
-    by iNext; iNext; iApply interp_v_closed.
-    iApply (strip_pure_laterN_impl (S i) (nclosed_vl w 0)) => //=.
+    iApply (strip_pure_laterN_impl (S i) (nclosed_vl w 0)); first last.
+      by iApply interp_v_closed.
     iIntros (Hclw).
-    iSpecialize ("HT1" with "[#]"). by iApply "HsubT".
-    iSpecialize ("HsubU'" $! w Hclw with "[#]").
-    by iApply interp_weaken_one.
-    iNext; iNext i.
-    iApply wp_wand.
-    - iApply "HT1".
-    - iIntros (u) "#HuU1". by iApply "HsubU'".
+    iSpecialize ("HsubT" with "Hg").
+    iSpecialize ("HsubU" $! (w :: ρ) with "[#]"). {
+      unfold_interp; rewrite iterate_TLater_later //.
+      iFrame "#%". by iApply interp_weaken_one.
+    }
+    iNext; iNext i. iApply wp_wand.
+    - iApply "HT1". by iApply "HsubT".
+    - iIntros (u) "#HuU1". by iApply "HsubU".
   Qed.
 
   Lemma Sub_TTMem_Variant L1 L2 U1 U2 i:
