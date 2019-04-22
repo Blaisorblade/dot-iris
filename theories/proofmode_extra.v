@@ -12,6 +12,33 @@ Module Tests1.
       Fail iSpecialize ("H" $! "a").
     Abort.
   End Fail.
+
+  Section Succeed.
+    Context {PROP : sbi}.
+    Implicit Types P Q R : PROP.
+
+    Lemma strip_timeless_later_wand P Q :
+      Timeless P →
+      (P -∗ ▷ Q) ⊢ (▷ P -∗ ▷ Q).
+    Proof.
+      iIntros (?) "Hw >HP". by iApply "Hw".
+    Qed.
+
+    Lemma strip_timeless_later_impl `{!BiAffine PROP} P Q:
+      Timeless P → Persistent P →
+      (P → ▷ Q) ⊢ (▷ P → ▷ Q).
+    Proof.
+      iIntros (??) "Hi >HP". by iApply "Hi".
+    Qed.
+
+    Lemma strip_pure_later_wand φ Q :
+      (⌜ φ ⌝ -∗ ▷ Q) -∗ (▷ ⌜ φ ⌝ -∗ ▷ Q).
+    Proof. apply strip_timeless_later_wand; apply _. Qed.
+
+    Lemma strip_pure_later_impl `{!BiAffine PROP} φ Q:
+      (⌜ φ ⌝ → ▷ Q) ⊢ (▷ ⌜ φ ⌝ → ▷ Q).
+    Proof. apply strip_timeless_later_impl; apply _. Qed.
+  End Succeed.
 End Tests1.
 
 Section proofmode_extra.
@@ -28,6 +55,42 @@ Section proofmode_extra.
   Global Instance into_forall_laterN {A} P (Φ : A → PROP) n :
     IntoForall P Φ → IntoForall (▷^n P) (λ a, ▷^n (Φ a))%I.
   Proof. rewrite /IntoForall=> HP. by rewrite HP laterN_forall. Qed.
+
+  Lemma timeless_timelessN i P :
+    Timeless P →
+    ▷^i P ⊢ ▷^i False ∨ P.
+  Proof.
+    iIntros (?) "H". iInduction i as [|i] "IH"; cbn; first by auto.
+    iDestruct ("IH" with "H") as "[H|H]"; first by auto.
+    iDestruct (timeless with "H") as "H".
+    rewrite /sbi_except_0. iDestruct "H" as "[H|H]"; auto.
+  Qed.
+
+  Lemma strip_timeless_laterN_wand i P Q :
+    Timeless P →
+    (P -∗ ▷^i Q) -∗ (▷^i P -∗ ▷^i Q).
+  Proof.
+    iIntros (?) "Hw HP".
+    iDestruct (timeless_timelessN with "HP") as "[H|H]"; first by iNext.
+    by iApply "Hw".
+  Qed.
+
+  Lemma strip_timeless_laterN_impl `{!BiAffine PROP} i P Q:
+    Timeless P → Persistent P →
+    (P → ▷^i Q) ⊢ (▷^i P → ▷^i Q).
+  Proof.
+    iIntros (??) "Hi HP".
+    iDestruct (timeless_timelessN with "HP") as "[H|H]"; first by iNext.
+    by iApply "Hi".
+  Qed.
+
+  Lemma strip_pure_laterN_wand i φ Q :
+    (⌜ φ ⌝ -∗ ▷^i Q) -∗ (▷^i ⌜ φ ⌝ -∗ ▷^i Q).
+  Proof. apply strip_timeless_laterN_wand; apply _. Qed.
+
+  Lemma strip_pure_laterN_impl `{!BiAffine PROP} i φ Q :
+    (⌜ φ ⌝ → ▷^i Q) ⊢ ▷^i ⌜ φ ⌝ → ▷^i Q.
+  Proof. apply strip_timeless_laterN_impl; apply _. Qed.
 End proofmode_extra.
 
 Module Test_Succeeds.
@@ -39,49 +102,6 @@ Module Test_Succeeds.
     Qed.
   End foo.
 End Test_Succeeds.
-
-From iris.base_logic Require Import base_logic lib.iprop.
-
-Import uPred.
-
-Section uPred_later_extra.
-  Context `{M: ucmraT}.
-  Implicit Types (Q: uPred M) (x: M).
-
-  Lemma laterN_pure_id i n P x: i <= n →
-    (▷^i uPred_pure_def P)%I n x → P.
-  Proof.
-    move => Hle H; induction i => //=.
-    apply IHi; first lia.
-    elim: i n Hle H {IHi} => [|i IHi] [|n] Hle;
-      unseal => // H; first lia.
-    apply IHi; first lia. by unseal.
-  Qed.
-
-  Lemma laterN_trivial i n Q x: i > n →
-    (▷^i Q)%I n x.
-  Proof.
-    move: i => [|i] Hle. by lia.
-    apply uPred_mono with i x; eauto with lia.
-    elim: i {Hle}; by unseal.
-  Qed.
-
-  Lemma strip_pure_later P Q:
-    (⌜ P ⌝ → ▷ Q) ⊢ (▷ ⌜ P ⌝ → ▷ Q).
-  Proof.
-    unseal; constructor => n x Hvx Hyp [|n'] // ?????.
-    by apply Hyp.
-  Qed.
-
-  Lemma strip_pure_laterN i P Q:
-    (⌜ P ⌝ → ▷^i Q) ⊢ ▷^i ⌜ P ⌝ → ▷^i Q.
-  Proof.
-    unseal; constructor => n x Hvx Hyp n' //= x' ?? Hvx' H.
-    destruct (decide (i <= n')) as [Hle|Hge].
-    - by eapply Hyp, laterN_pure_id.
-    - by apply laterN_trivial; lia.
-  Qed.
-End uPred_later_extra.
 
 From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language.
