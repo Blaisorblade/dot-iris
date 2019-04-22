@@ -1,10 +1,8 @@
 From iris.proofmode Require Import tactics.
-From iris.bi Require Import bi tactics.
-From iris.proofmode Require Import base modality_instances classes class_instances_bi ltac_tactics.
 Import bi.
 
-Module Test_Fail.
-  Section foo.
+Module Tests1.
+  Section Fail.
     Context {PROP : sbi}.
     Implicit Types P Q R : PROP.
 
@@ -13,8 +11,8 @@ Module Test_Fail.
       iIntros "H". Fail iIntros (w).
       Fail iSpecialize ("H" $! "a").
     Abort.
-  End foo.
-End Test_Fail.
+  End Fail.
+End Tests1.
 
 Section proofmode_extra.
   Context {PROP : sbi}.
@@ -87,7 +85,6 @@ End uPred_later_extra.
 
 From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language.
-From iris.proofmode Require Import tactics.
 
 Section wp_extra.
   Context `{irisG Λ Σ}.
@@ -132,7 +129,7 @@ Section wp_extra.
   Qed.
 
   Lemma wp_and `{∀ σ κ n, Persistent (state_interp σ κ n)} (P1 P2: val Λ → iProp Σ) e:
-    (WP e {{ P1 }} ) -∗ (WP e  {{ P2 }} ) -∗ WP e {{ v, P1 v ∧ P2 v }}.
+    WP e {{ P1 }} -∗ WP e {{ P2 }} -∗ WP e {{ v, P1 v ∧ P2 v }}.
   Proof.
     iLöb as "IH" forall (e).
     iIntros "H1 H2".
