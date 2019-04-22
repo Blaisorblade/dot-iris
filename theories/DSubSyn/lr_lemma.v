@@ -375,10 +375,23 @@ Section Sec.
     - iApply "HLφ" => //. by iApply "IHT".
     - iApply "IHT1". by iApply "HφU".
   Qed.
-  (* Lemma DSub_TTMem_Variant L1 L2 U1 U2 i:
+
+  Lemma DSub_TTMem_Variant L1 L2 U1 U2 i:
     Γ ⊨[S i] L2 <: L1 -∗
     Γ ⊨[S i] U1 <: U2 -∗
-    Γ ⊨[i] TTMem L1 U1 <: TTMem L2 U2. *)
+    Γ ⊨[i] TTMem L1 U1 <: TTMem L2 U2.
+  Proof.
+    iIntros "#HsubL #HsubU /= !>" (ρ) "#Hg"; iIntros (v).
+    iSpecialize ("HsubL" with "Hg").
+    iSpecialize ("HsubU" with "Hg").
+    unfold_interp.
+    iIntros "!> [$ #HT1]".
+    iDestruct "HT1" as (φ) "[Hφl [#HLφ #HφU]]".
+    iExists φ; repeat iSplitL; first done;
+      iIntros "!>" (w Hclw) "#Hw".
+    - iApply "HLφ" => //. by iApply "HsubL".
+    - iApply "HsubU". by iApply "HφU".
+  Qed.
 
   Lemma Sub_Top T i:
     Γ ⊨ [T, i] <: [TTop, i].
