@@ -10,8 +10,15 @@ Import uPred.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (Γ : ctx).
 
+Class SwapProp (PROP: sbi) := {
+  impl_later : ∀ (P Q: PROP), (▷ P → ▷ Q) ⊢ ▷ (P → Q)
+}.
+
+Lemma impl_laterN n `{SwapProp PROP} (P Q: PROP) : (▷^n P → ▷^n Q) ⊢ ▷^n (P → Q).
+Proof. elim: n => [//|n IHn]. by rewrite impl_later IHn. Qed.
+
 Section Sec.
-  Context `{!dsubSynG Σ}.
+  Context `{!dsubSynG Σ} `{!SwapProp (iPropSI Σ)}.
 
   Lemma wp_wand_cl e Φ Ψ:
     WP e {{ v, Φ v }} -∗ ⌜ nclosed e 0 ⌝ -∗ (∀ v, Φ v -∗ ⌜ nclosed_vl v 0 ⌝ -∗ Ψ v) -∗ WP e {{ v, Ψ v }}.
@@ -26,9 +33,9 @@ Section Sec.
   Lemma mlaterN_pers (P: iProp Σ) i : □ ▷^i P ⊣⊢ ▷^i □ P.
   Proof. iSplit; by iIntros "#? !>!>". Qed.
   Lemma mlater_impl (P Q: iProp Σ) : (▷ P → ▷ Q) ⊣⊢ ▷ (P → Q).
-  Proof. iSplit. admit. iApply later_impl. Admitted.
+  Proof. iSplit. iApply impl_later. iApply later_impl. Qed.
   Lemma mlaterN_impl (P Q: iProp Σ) i : (▷^i P → ▷^i Q) ⊣⊢ ▷^i (P → Q).
-  Proof. iSplit. admit. iApply laterN_impl. Admitted.
+  Proof. iSplit. iApply impl_laterN. iApply laterN_impl. Qed.
 
   Context {Γ}.
 
@@ -421,7 +428,7 @@ End Sec.
 From D.DSubSyn Require Import typing.
 
 Section Fundamental.
-  Context `{!dsubSynG Σ}.
+  Context `{!dsubSynG Σ} `{!SwapProp (iPropSI Σ)}.
 
   Lemma fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2):
     Γ ⊨ [T1, i1] <: [T2, i2]
@@ -461,8 +468,8 @@ End Fundamental.
 
 From D.pure_program_logic Require Import adequacy.
 
-Theorem adequacy Σ `{HdsubG: dsubSynG Σ} e e' thp σ σ' T:
-  (forall `{dsubSynG Σ}, True ⊢ [] ⊨ e : T) →
+Theorem adequacy Σ `{HdsubG: dsubSynG Σ} `{!SwapProp (iPropSI Σ)} e e' thp σ σ' T:
+  (forall `{dsubSynG Σ} `{SwapProp (iPropSI Σ)}, True ⊢ [] ⊨ e : T) →
   rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
   is_Some (to_val e') ∨ reducible e' σ'.
 Proof.
@@ -475,6 +482,28 @@ Proof.
 Qed.
 
 Instance dsubSynG_empty: dsubSynG #[].
+
+Class CmraSwappable (A : cmraT) := {
+  (* TODO cmra_extend should really be cmra_extend_sep. *)
+  cmra_extend_included: ∀ n (x x': A), ✓{S n} x → x ≼ x' → ✓{n} x' → ∃ x'', ✓{S n} x'' ∧ x ≼ x'' ∧ x' ≡{n}≡ x'';
+}.
+
+(* Lemma impl_later {M : ucmraT} `{!CmraSwappable M} (P Q: uPred M) : (▷ P → ▷ Q) ⊢ ▷ (P → Q). *)
+Instance SwapCmra {M : ucmraT} `{!CmraSwappable M}: SwapProp (uPredSI M).
+Proof.
+  split.
+  unseal; split => /= -[//|n] x ? HPQ n' x' Hle ?? HP.
+  specialize (HPQ (S n')); cbn in HPQ.
+  edestruct (cmra_extend_included n' x x') as (x'' &?&?& Hnx'x'') => //.
+  - by eapply cmra_validN_le; eauto with lia.
+  - rewrite Hnx'x''. apply HPQ; eauto with lia. hnf. by rewrite -Hnx'x''.
+Qed.
+
+Instance Swappable_iResUREmpty: CmraSwappable (iResUR #[]).
+Proof.
+  split. rewrite /iResUR /gid /= => n x x' Hvx Hxx' Hvx'.
+  exists x'; split_and! => // ??; by apply fin_0_inv.
+Qed.
 
 Corollary type_soundness e e' thp σ σ' T:
   ([] ⊢ₜ e : T) →
