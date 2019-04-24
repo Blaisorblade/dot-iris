@@ -471,26 +471,30 @@ Qed.
 
 Instance dsubSynG_empty: dsubSynG #[].
 
-Class CmraSwappable (A : cmraT) := {
+Class CmraSwappable (M : cmraT) := {
   (* TODO cmra_extend should really be cmra_extend_sep. *)
-  cmra_extend_included: ∀ n (x x': A), ✓{S n} x → x ≼ x' → ✓{n} x' → ∃ x'', ✓{S n} x'' ∧ x ≼ x'' ∧ x' ≡{n}≡ x'';
+  cmra_extend_included: ∀ n (mx : option M) z,
+    ✓{S n} mx → ✓{n} (z ⋅? mx) → ∃ z', ✓{S n} (z' ⋅? mx) ∧ z ≡{n}≡ z'
 }.
 
 (* Lemma impl_later {M : ucmraT} `{!CmraSwappable M} (P Q: uPred M) : (▷ P → ▷ Q) ⊢ ▷ (P → Q). *)
 Instance SwapCmra {M : ucmraT} `{!CmraSwappable M}: SwapProp (uPredSI M).
 Proof.
   split.
-  unseal; split => /= -[//|n] x ? HPQ n' x' Hle ?? HP.
+  unseal; split => /= -[//|n] x ? HPQ n' ? [x' ->] ?? HP.
   specialize (HPQ (S n')); cbn in HPQ.
-  edestruct (cmra_extend_included n' x x') as (x'' &?&?& Hnx'x'') => //.
+  case: (cmra_extend_included n' (Some x) x'); last move => x'' [];
+    rewrite /= ?[_ ⋅ x]comm ?Some_validN //=.
   - by eapply cmra_validN_le; eauto with lia.
-  - rewrite Hnx'x''. apply HPQ; eauto with lia. hnf. by rewrite -Hnx'x''.
+  - move => Hv Hnx'x''.
+    rewrite Hnx'x''. apply HPQ; eauto using cmra_included_l with lia.
+    rewrite /uPred_holds /=. by rewrite -Hnx'x''.
 Qed.
 
 Instance Swappable_iResUREmpty: CmraSwappable (iResUR #[]).
 Proof.
-  split. rewrite /iResUR /gid /= => n x x' Hvx Hxx' Hvx'.
-  exists x'; split_and! => // ??; by apply fin_0_inv.
+  split. rewrite /iResUR /gid /= => n mx z Hvmx Hvzmx.
+  exists z; split_and! => // ??. by apply fin_0_inv.
 Qed.
 
 Corollary type_soundness e e' thp σ σ' T:
