@@ -6,6 +6,7 @@ theories/prelude.v
 theories/gen_iheap.v
 theories/saved_interp.v
 theories/proofmode_extra.v
+theories/swap_later_impl.v
 theories/DSub/adequacy.v
 theories/DSub/syn.v
 theories/DSub/typeExtractionSyn.v
