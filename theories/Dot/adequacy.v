@@ -1,10 +1,10 @@
 From D.pure_program_logic Require Import adequacy.
 From iris.proofmode Require Import tactics.
-From D Require Import tactics.
+From D Require Import tactics swap_later_impl.
 From D.Dot Require Import unary_lr typeExtractionSem fundamental typing.
 
-Theorem adequacy Σ `{HdotG: dotPreG Σ} e e' thp σ σ' T:
-  (forall `{dotG Σ}, allGs ∅ ⊢ |==> [] ⊨ e : T) →
+Theorem adequacy Σ `{HdotG: dotPreG Σ} `{SwapProp (iPropSI Σ)} e e' thp σ σ' T:
+  (forall `{dotG Σ} `{SwapProp (iPropSI Σ)}, allGs ∅ ⊢ |==> [] ⊨ e : T) →
   rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
   is_Some (to_val e') ∨ reducible e' σ'.
 Proof.
@@ -27,8 +27,6 @@ Corollary type_soundness e e' thp σ σ' T `{stampTable}:
   rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
   is_Some (to_val e') ∨ reducible e' σ'.
 Proof.
-  intros ??. set (Σ := dotΣ).
-  eapply (adequacy Σ).
-  - iIntros; by iApply fundamental_typed_upd.
-  - eauto.
+  intros; eapply (adequacy dotΣ) => * //.
+  by iApply fundamental_typed_upd.
 Qed.
