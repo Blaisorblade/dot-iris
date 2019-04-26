@@ -11,7 +11,7 @@ Import uPred.
 Implicit Types (L T U: ty) (v: vl) (e: tm) (Γ : ctx).
 
 Section Sec.
-  Context `{!dsubSynG Σ} `{!SwapProp (iPropSI Σ)}.
+  Context `{!dsubSynG Σ}.
 
   Lemma wp_wand_cl e Φ Ψ:
     WP e {{ v, Φ v }} -∗ ⌜ nclosed e 0 ⌝ -∗ (∀ v, Φ v -∗ ⌜ nclosed_vl v 0 ⌝ -∗ Ψ v) -∗ WP e {{ v, Ψ v }}.
@@ -20,15 +20,6 @@ Section Sec.
     intros. by eapply nclosed_prim_step.
     iIntros (v Hclv) "/= H". iApply ("Himpl" with "H [%]"). by apply fv_tv_inv.
   Qed.
-
-  Lemma mlater_pers (P: iProp Σ) : □ ▷ P ⊣⊢ ▷ □ P.
-  Proof. iSplit; by iIntros "#? !>!>". Qed.
-  Lemma mlaterN_pers (P: iProp Σ) i : □ ▷^i P ⊣⊢ ▷^i □ P.
-  Proof. iSplit; by iIntros "#? !>!>". Qed.
-  Lemma mlater_impl (P Q: iProp Σ) : (▷ P → ▷ Q) ⊣⊢ ▷ (P → Q).
-  Proof. iSplit. iApply impl_later. iApply later_impl. Qed.
-  Lemma mlaterN_impl (P Q: iProp Σ) i : (▷^i P → ▷^i Q) ⊣⊢ ▷^i (P → Q).
-  Proof. iSplit. iApply impl_laterN. iApply laterN_impl. Qed.
 
   Context {Γ}.
 
@@ -289,6 +280,57 @@ Section Sec.
     Γ ⊨ [T, S i] <: [U, S j].
   Proof. iIntros "/= #Hsub !> ** !>". by iApply "Hsub". Qed.
 
+  Lemma DSub_TTMem_Variant L1 L2 U1 U2 i:
+    Γ ⊨[S i] L2 <: L1 -∗
+    Γ ⊨[S i] U1 <: U2 -∗
+    Γ ⊨[i] TTMem L1 U1 <: TTMem L2 U2.
+  Proof.
+    iIntros "#HsubL #HsubU /= !>" (ρ) "#Hg"; iIntros (v).
+    iSpecialize ("HsubL" with "Hg").
+    iSpecialize ("HsubU" with "Hg").
+    unfold_interp.
+    iIntros "!> [$ #HT1]".
+    iDestruct "HT1" as (φ) "[Hφl [#HLφ #HφU]]".
+    iExists φ; repeat iSplitL; first done;
+      iIntros "!>" (w Hclw) "#Hw".
+    - iApply "HLφ" => //. by iApply "HsubL".
+    - iApply "HsubU". by iApply "HφU".
+  Qed.
+
+  Lemma Sub_Top T i:
+    Γ ⊨ [T, i] <: [TTop, i].
+  Proof. by iIntros "!> **"; unfold_interp. Qed.
+
+  Lemma DSub_Top T i:
+    Γ ⊨[i] T <: TTop.
+  Proof.
+    iIntros "!> ** !> **"; unfold_interp.
+    by iApply interp_v_closed.
+  Qed.
+
+  Lemma Bot_Sub T i:
+    Γ ⊨ [TBot, i] <: [T, i].
+  Proof. by iIntros "!> ** !>"; unfold_interp. Qed.
+
+  Lemma DBot_Sub T i:
+    Γ ⊨[i] TBot <: T.
+  Proof. by iIntros "!> ** !> **"; unfold_interp. Qed.
+End Sec.
+
+Section swap_based_typing_lemmas.
+  Context `{!dsubSynG Σ} `{!SwapProp (iPropSI Σ)} {Γ}.
+
+  Context `{!SwapProp (iPropSI Σ)}.
+  Lemma mlater_pers (P: iProp Σ) : □ ▷ P ⊣⊢ ▷ □ P.
+  Proof. iSplit; by iIntros "#? !>!>". Qed.
+  Lemma mlaterN_pers (P: iProp Σ) i : □ ▷^i P ⊣⊢ ▷^i □ P.
+  Proof. iSplit; by iIntros "#? !>!>". Qed.
+  Lemma mlater_impl (P Q: iProp Σ) : (▷ P → ▷ Q) ⊣⊢ ▷ (P → Q).
+  Proof. iSplit. iApply impl_later. iApply later_impl. Qed.
+  Lemma mlaterN_impl (P Q: iProp Σ) i : (▷^i P → ▷^i Q) ⊣⊢ ▷^i (P → Q).
+  Proof. iSplit. iApply impl_laterN. iApply laterN_impl. Qed.
+
+
   Lemma Sub_TAllConCov T1 T2 U1 U2 i:
     Γ ⊨ [ T2, S i ] <: [ T1, S i ] -∗
     iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨ [ U1, S i ] <: [ U2, S i ] -∗
@@ -368,43 +410,7 @@ Section Sec.
     - iApply "HLφ" => //. by iApply "IHT".
     - iApply "IHT1". by iApply "HφU".
   Qed.
-
-  Lemma DSub_TTMem_Variant L1 L2 U1 U2 i:
-    Γ ⊨[S i] L2 <: L1 -∗
-    Γ ⊨[S i] U1 <: U2 -∗
-    Γ ⊨[i] TTMem L1 U1 <: TTMem L2 U2.
-  Proof.
-    iIntros "#HsubL #HsubU /= !>" (ρ) "#Hg"; iIntros (v).
-    iSpecialize ("HsubL" with "Hg").
-    iSpecialize ("HsubU" with "Hg").
-    unfold_interp.
-    iIntros "!> [$ #HT1]".
-    iDestruct "HT1" as (φ) "[Hφl [#HLφ #HφU]]".
-    iExists φ; repeat iSplitL; first done;
-      iIntros "!>" (w Hclw) "#Hw".
-    - iApply "HLφ" => //. by iApply "HsubL".
-    - iApply "HsubU". by iApply "HφU".
-  Qed.
-
-  Lemma Sub_Top T i:
-    Γ ⊨ [T, i] <: [TTop, i].
-  Proof. by iIntros "!> **"; unfold_interp. Qed.
-
-  Lemma DSub_Top T i:
-    Γ ⊨[i] T <: TTop.
-  Proof.
-    iIntros "!> ** !> **"; unfold_interp.
-    by iApply interp_v_closed.
-  Qed.
-
-  Lemma Bot_Sub T i:
-    Γ ⊨ [TBot, i] <: [T, i].
-  Proof. by iIntros "!> ** !>"; unfold_interp. Qed.
-
-  Lemma DBot_Sub T i:
-    Γ ⊨[i] TBot <: T.
-  Proof. by iIntros "!> ** !> **"; unfold_interp. Qed.
-End Sec.
+End swap_based_typing_lemmas.
 
 From D.DSubSyn Require Import typing.
 
@@ -469,7 +475,6 @@ Corollary type_soundness e e' thp σ σ' T:
   rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
   is_Some (to_val e') ∨ reducible e' σ'.
 Proof.
-  intros HT Heval.
-  eapply (adequacy #[]); last done.
-  iIntros; by iApply (fundamental_typed _ _ _ HT).
+  intros; eapply (adequacy #[]) => //; iIntros.
+  by iApply fundamental_typed.
 Qed.
