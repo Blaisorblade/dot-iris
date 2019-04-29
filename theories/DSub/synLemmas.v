@@ -61,28 +61,28 @@ Qed.
 Lemma closed_subst_vl_id v σ: nclosed_vl v 0 → v.[σ] = v.
 Proof.
   intro Hcl. rewrite (Hcl σ ids) /=; first by asimpl.
-  intros; omega.
+  intros; lia.
 Qed.
 
 Lemma closed_subst_id `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A) σ: nclosed a 0 → a.|[σ] = a.
 Proof.
   intro Hcl. rewrite (Hcl σ ids) /=; first by asimpl.
-  intros; omega.
+  intros; lia.
 Qed.
 
 Lemma closed_to_subst ρ x n: nclosed_σ ρ n → x < length ρ → nclosed_vl (to_subst ρ x) n.
 Proof.
-  elim: ρ x => /= [|v ρ IHρ] [|x] Hcl Hl; asimpl; try omega; inverse Hcl; try by [].
-  by apply IHρ; try omega.
+  elim: ρ x => /= [|v ρ IHρ] [|x] Hcl Hl; asimpl; try lia; inverse Hcl; try by [].
+  by apply IHρ; try lia.
 Qed.
 
 (** Let's prove that [nclosed a n → a.|[to_subst (idsσ n)] = a], and ditto for values. *)
 Section to_subst_idsσ_is_id.
   Lemma to_subst_map_commute_aux f n x r: x < n → to_subst (map f (idsσ n).|[ren r]) x = f (to_subst (idsσ n).|[ren r] x).
   Proof.
-    elim: n r x => [|n IHn] r x Hle; first omega.
+    elim: n r x => [|n IHn] r x Hle; first lia.
     destruct x; first done; asimpl.
-    apply IHn; omega.
+    apply IHn; lia.
   Qed.
 
   Lemma to_subst_map_commute f n x: x < n → to_subst (map f (idsσ n)) x = f (to_subst (idsσ n) x).
@@ -161,7 +161,7 @@ Hint Resolve nclosed_var_lt.
 
 (** Not yet used. *)
 Lemma eq_n_s_mon {n s1 s2}: eq_n_s s1 s2 (S n) → eq_n_s s1 s2 n.
-Proof. rewrite /eq_n_s => HsEq x Hl; apply HsEq; omega. Qed.
+Proof. rewrite /eq_n_s => HsEq x Hl; apply HsEq; lia. Qed.
 
 (** The following ones are "direct" lemmas: deduce that an expression is closed
     by knowing that its subexpression are closed. *)
@@ -185,7 +185,7 @@ Lemma fv_vls_cons v vs n: nclosed vs n → nclosed_vl v n → nclosed (v :: vs) 
 Proof. solve_fv_congruence. Qed.
 
 Lemma nclosed_ids x n: nclosed_vl (ids x) (S (x + n)).
-Proof. move => /= s1 s2 Heq. apply Heq. omega. Qed.
+Proof. move => /= s1 s2 Heq. apply Heq. lia. Qed.
 
 Lemma nclosed_idsσr n x: nclosed_σ (idsσ n).|[ren (+x)] (x + n).
 Proof.
@@ -241,11 +241,11 @@ Proof. solve_inv_fv_congruence. Qed.
 Lemma to_subst_compose σ σ':
   eq_n_s (to_subst σ.|[σ']) (to_subst σ >> σ') (length σ).
 Proof.
-  induction σ as [| v σ] => /= x Hxn; first omega; asimpl.
+  induction σ as [| v σ] => /= x Hxn; first lia; asimpl.
   destruct x => //=.
-  (* elim: σ => /= [|v σ IHσ] x Hxn; first omega; asimpl. *)
+  (* elim: σ => /= [|v σ IHσ] x Hxn; first lia; asimpl. *)
   (* case: x Hxn => [|x] Hxn //=. *)
-  apply IHσ. omega.
+  apply IHσ. lia.
 Qed.
 
 Lemma to_subst_compose_alt σ σ' n:

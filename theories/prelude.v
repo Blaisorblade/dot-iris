@@ -26,7 +26,7 @@ Section Autosubst_Lemmas.
   Proof.
     revert m; induction n => m; first done.
     rewrite -fold_upn_up fold_up_upn; simpl.
-    replace (S (n + m)) with (n + S m) by omega; auto.
+    replace (S (n + m)) with (n + S m) by lia; auto.
   Qed.
 
 End Autosubst_Lemmas.

@@ -580,7 +580,7 @@ Notation cl_ρ ρ := (nclosed_σ ρ 0).
 (** Needed by solve_fv_congruence when dealing with binders, such as in fv_vobj and fv_vabs. *)
 Lemma eq_up s1 s2 n: eq_n_s s1 s2 n → eq_n_s (up s1) (up s2) (S n).
 Proof.
-  rewrite /up. move => Heq [|x] Hl //=. f_equiv. apply Heq. omega.
+  rewrite /up. move => Heq [|x] Hl //=. f_equiv. apply Heq. lia.
 Qed.
 
 (** Automated proof for such lemmas. *)
@@ -602,7 +602,7 @@ Definition stail s := ren (+1) >> s.
 Definition shead (s: var → vl) := s 0.
 
 Lemma eq_n_s_tails {n s1 s2}: eq_n_s s1 s2 (S n) → eq_n_s (stail s1) (stail s2) n.
-Proof. rewrite /stail => /= HsEq x Hl. apply HsEq. omega. Qed.
+Proof. rewrite /stail => /= HsEq x Hl. apply HsEq. lia. Qed.
 Lemma eq_n_s_heads {n s1 s2}: eq_n_s s1 s2 n → n > 0 → shead s1 = shead s2.
 Proof. rewrite /shead => /= HsEq. apply HsEq. Qed.
 
@@ -628,7 +628,7 @@ Proof.
       substitution of form [up ?], then rewrite with [e.|[up (stail s1)] =
       e.|[up (stail s2)]] (got from [Hfv]), and conclude.
       *)
-  rewrite ?(decomp_s _ s1) ?(decomp_s _ s2) ?(decomp_s_vl _ s1) ?(decomp_s_vl _ s2) (eq_n_s_heads HsEq); last omega.
+  rewrite ?(decomp_s _ s1) ?(decomp_s _ s2) ?(decomp_s_vl _ s1) ?(decomp_s_vl _ s2) (eq_n_s_heads HsEq); last lia.
   injection (Hfv _ _ (eq_n_s_tails HsEq)); rewritePremises; reflexivity.
 Qed.
 
@@ -645,7 +645,7 @@ Ltac solve_inv_fv_congruence :=
    It must also be done after injection because it might not rewrite under Hfv's
    binders. *)
   by [ injection (Hfv s1 s2); trivial; by (idtac + asimpl; rewritePremises; reflexivity) |
-       rewrite ?(decomp_s _ s1) ?(decomp_s _ s2) ?(decomp_s_vl _ s1) ?(decomp_s_vl _ s2) (eq_n_s_heads HsEq); last omega;
+       rewrite ?(decomp_s _ s1) ?(decomp_s _ s2) ?(decomp_s_vl _ s1) ?(decomp_s_vl _ s2) (eq_n_s_heads HsEq); last lia;
        injection (Hfv _ _ (eq_n_s_tails HsEq)); by rewritePremises ].
 
 Ltac solve_inv_fv_congruence_h Hcl :=
