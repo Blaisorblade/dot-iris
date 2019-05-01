@@ -2,17 +2,6 @@ From iris.proofmode Require Import tactics.
 Import bi.
 
 Module Tests1.
-  Section Fail.
-    Context {PROP : sbi}.
-    Implicit Types P Q R : PROP.
-
-    Lemma demo_laterN_forall P Q n: (▷^n ∀ x: string, P) -∗ (▷^n ∀ x: string, Q).
-    Proof.
-      iIntros "H". Fail iIntros (w).
-      Fail iSpecialize ("H" $! "a").
-    Abort.
-  End Fail.
-
   Section Succeed.
     Context {PROP : sbi}.
     Implicit Types P Q R : PROP.

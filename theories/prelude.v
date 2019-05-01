@@ -16,14 +16,17 @@ Section Autosubst_Lemmas.
     upn m f x = if lt_dec x m then ids x else rename (+m) (f (x - m)).
   Proof.
     revert x; induction m as [|m IH]=> -[|x];
-      repeat (case_match || asimpl || rewrite IH); auto with omega.
+      case_match => //; asimpl; rewrite // IH; case_match; asimpl.
+    (* lia fails here, because some inequalities are used
+       in other hypotheses. *)
+    all: by [|omega].
   Qed.
 
   Lemma upn_comp n m f: upn n (upn m f) = upn (n + m) f.
   Proof.
     revert m; induction n => m; first done.
     rewrite -fold_upn_up fold_up_upn; simpl.
-    replace (S (n + m)) with (n + S m) by omega; auto.
+    replace (S (n + m)) with (n + S m) by lia; auto.
   Qed.
 
 End Autosubst_Lemmas.
