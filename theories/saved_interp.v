@@ -27,7 +27,10 @@ Section saved_interp.
 
   Lemma saved_interp_alloc_strong (G : gset gname) Φ :
     (|==> ∃ γ, ⌜γ ∉ G⌝ ∧ saved_interp_own γ Φ)%I.
-  Proof. iApply saved_anything_alloc_cofinite. Qed.
+  Proof.
+    (* TODO: DROP after the update. *)
+    iApply saved_anything_alloc_cofinite || iApply saved_anything_alloc_strong.
+  Qed.
 
   Lemma saved_interp_alloc Φ :
     (|==> ∃ γ, saved_interp_own γ Φ)%I.
