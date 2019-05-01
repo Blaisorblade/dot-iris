@@ -1,8 +1,13 @@
 opam-version: "2.0"
 name: "dot-iris"
-build: [ "true" ]
-install: [[ "true" ]]
-remove: [ "true" ]
+maintainer: []
+authors: []
+homepage: []
+bug-reports: []
+synopsis: []
+build: []
+install: []
+remove: []
 depends: [
   "coq" { >= "8.8.2" }
   "coq-iris" { = "dev.2018-11-01.2.19e85810" }
