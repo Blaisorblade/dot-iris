@@ -69,7 +69,7 @@ opam repo add iris-dev https://gitlab.mpi-sws.org/FP/opam-dev.git --set-default
 to add the iris opam repository, and then, in this directory, do
 
 ```shell
-opam switch create . --deps-only --locked
+opam switch create . --locked
 ```
 
 to create the local switch. Then, every time you wants to work on this, do
