@@ -63,7 +63,7 @@ and of coq that will only be used when one is inside this directory. _The first
 time,_ one should do:
 
 ```shell
-opam repo add iris-dev https://gitlab.mpi-sws.org/FP/opam-dev.git --set-default
+opam repo add iris-dev https://gitlab.mpi-sws.org/FP/opam-dev.git --set-default --all
 ```
 
 to add the iris opam repository, and then, in this directory, do
@@ -78,4 +78,31 @@ to create the local switch. Then, every time you wants to work on this, do
 eval $(opam env)
 ```
 
-so that `coqc`, etc, correspond to the local version.
+so that `coqc`, etc, correspond to the local version. You can also configure
+opam to do this automatically by answering yes when `opam init` asks you the
+following:
+"A hook can be added to opam's init scripts to ensure that the shell remains in sync with the opam environment when they are loaded. Set that up?"
+
+To answer that question again, check `opam init` docs; `opam init --reinit`
+works here.
+
+### Upgrading switch
+
+Use
+
+```
+opam install .
+```
+
+to upgrade the switch when we bump dependencies (which for now we do seldom).
+To make this succeed, you might need to first run `opam unpin coq-stdpp
+coq-iris`, `opam uninstall dot-iris`, `opam uninstall .`, or such.
+
+After updating deps, you will need to do a clean build, so `make clean` and then
+`make`.
+
+### Bumping Iris
+
+Find the version name on top of
+https://gitlab.mpi-sws.org/iris/opam/commits/master/packages/coq-iris, then
+modify `opam`, *commit*, and reinstall with `opam install .`
