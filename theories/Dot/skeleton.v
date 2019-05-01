@@ -1,5 +1,5 @@
 (** Define translation from syntactic terms/values to semantic ones, following Sec. 3.2 of the PDF. *)
-From iris.program_logic Require Import ectx_lifting.
+From iris.program_logic Require Import ectx_lifting ectx_language ectxi_language.
 From D Require Import tactics.
 From D.Dot Require Import operational.
 
@@ -72,22 +72,69 @@ Fixpoint same_skel_ectx K K' :=
   | AppLCtx e2, AppLCtx e2' => same_skel_tm e2 e2'
   | AppRCtx v1, AppRCtx v1' => same_skel_vl v1 v1'
   | ProjCtx l, ProjCtx l' => l = l'
+  | SkipCtx, SkipCtx => True
   | _, _ => False
   end.
 
 Definition same_skel_list_ectx Ks Ks' :=
   List.Forall2 same_skel_ectx Ks Ks'.
 
+Lemma same_skel_list_ectx_app Ks Ks' K K' :
+  same_skel_list_ectx Ks Ks' →
+  same_skel_ectx K K' →
+  same_skel_list_ectx (Ks ++ [K]) (Ks' ++ [K']).
+Proof. intros ? ?; apply Forall2_app; auto. Qed.
+
+Lemma same_skel_list_ectx_empty : same_skel_list_ectx [] [].
+Proof. constructor. Qed.
+
 Lemma same_skel_fill Ks e t':
   same_skel_tm (fill Ks e) t' →
   exists Ks' e',  t' = fill Ks' e' ∧ same_skel_tm e e' ∧ same_skel_list_ectx Ks Ks'.
-Proof. Admitted.
+Proof.
+  revert e t'.
+  induction Ks using rev_ind => e t'; simpl.
+  {intros ?. exists [], t'; simpl; repeat split; auto using same_skel_list_ectx_empty. }
+  rewrite fill_app /= => HKe.
+  destruct x; destruct t'; simpl in *; try done.
+  - destruct HKe as [HKe Ht'].
+    apply IHKs in HKe.
+    destruct HKe as (Ks' & e' & -> & He' & HKs').
+    exists (Ks' ++ [AppLCtx t'2]), e'.
+    rewrite fill_app /=; repeat split; auto using same_skel_list_ectx_app.
+  - destruct HKe as [Ht HKe'].
+    destruct t'1; try done.
+    apply IHKs in HKe'.
+    destruct HKe' as (Ks' & e' & -> & He' & HKs').
+    exists (Ks' ++ [AppRCtx v]), e'.
+    rewrite fill_app /=; repeat split; auto using same_skel_list_ectx_app.
+  - destruct HKe as [HKe <-].
+    apply IHKs in HKe.
+    destruct HKe as (Ks' & e' & -> & He' & HKs').
+    exists (Ks' ++ [ProjCtx l]), e'.
+    rewrite fill_app /=; repeat split; trivial.
+    apply same_skel_list_ectx_app; simpl; auto.
+  - apply IHKs in HKe.
+    destruct HKe as (Ks' & e' & -> & He' & HKs').
+    exists (Ks' ++ [SkipCtx]), e'.
+    rewrite fill_app /=; repeat split; trivial.
+    apply same_skel_list_ectx_app; simpl; auto.
+Qed.
 
 Lemma same_skel_fill_item Ks Ks' e e':
   same_skel_list_ectx Ks Ks' →
   same_skel_tm e e' →
   same_skel_tm (fill Ks e) (fill Ks' e').
-Admitted.
+Proof.
+  revert Ks' e e'.
+  induction Ks using rev_ind => Ks' e e'; simpl.
+  { by inversion 1; subst. }
+  rewrite fill_app /=; destruct x;
+    intros (Ks'' & Ks3 & HKs &
+            (z & ? & ? & ->%Forall2_nil_inv_l & ->)%Forall2_cons_inv_l & ->)
+           %List.Forall2_app_inv_l; simpl in *;
+      destruct z; try done; rewrite fill_app /=; auto.
+Qed.
 
 (* Generalize over all the syntax, and same_skeleton environments. I proved
     same_skel_tm_subst just as a minimal sanity check. *)
@@ -146,9 +193,9 @@ Theorem simulation_skeleton t1 t1' t2 σ σ' ts:
   prim_step t1 σ [] t2 σ' ts →
   exists t2', prim_step t1' σ [] t2' σ' ts ∧ same_skel_tm t2 t2'.
 Proof.
-  move=> Hsk Hstep. rewrite /prim_step in Hstep. simpl in *.
+  move=> Hsk Hstep. simpl in *.
   inversion Hstep; subst; simpl in *.
-  apply same_skel_fill in Hsk as [Ks' [e' [Hfill [Hskel Hsklsit]]]].  simpl in *.
+  apply same_skel_fill in Hsk as [Ks' [e' [Hfill [Hskel Hsklsit]]]]; simpl in *.
   eapply simulation_skeleton_head in H1 as [e'' [Hhs Hskk]]; last by eauto.
   exists (fill Ks' e''). subst. split; [econstructor; eauto | by apply same_skel_fill_item].
 Qed.
