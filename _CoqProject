@@ -24,6 +24,7 @@ theories/DSubSyn/lr_lemma.v
 theories/DSubSyn/unary_lr.v
 theories/DSubSyn/unary_lr_binding.v
 theories/DSubSyn/typing.v
+theories/DSubSyn/fundamental.v
 theories/Dot/syn.v
 theories/Dot/typing.v
 theories/Dot/typeExtractionSyn.v
