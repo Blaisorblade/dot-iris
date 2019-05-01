@@ -66,7 +66,7 @@ Ltac optFuncs_det :=
 
 (* To use with repeat fequalSafe in automation.
    Unlike f_equal, won't try to prove a = b = c + d by a = c and b = d --- such
-   equaities are omega's job. *)
+   equalities are omega's job. *)
 Ltac fequalSafe :=
   match goal with
   | [ |- Some _ = Some _ ] => f_equal
