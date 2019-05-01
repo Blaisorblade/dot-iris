@@ -6,6 +6,7 @@ theories/prelude.v
 theories/gen_iheap.v
 theories/saved_interp.v
 theories/proofmode_extra.v
+theories/swap_later_impl.v
 theories/DSub/adequacy.v
 theories/DSub/syn.v
 theories/DSub/typeExtractionSyn.v
@@ -23,6 +24,7 @@ theories/DSubSyn/lr_lemma.v
 theories/DSubSyn/unary_lr.v
 theories/DSubSyn/unary_lr_binding.v
 theories/DSubSyn/typing.v
+theories/DSubSyn/fundamental.v
 theories/Dot/syn.v
 theories/Dot/typing.v
 theories/Dot/typeExtractionSyn.v

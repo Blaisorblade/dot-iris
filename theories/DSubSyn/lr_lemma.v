@@ -1,24 +1,18 @@
-From iris.base_logic Require Import base_logic.
+(* This files contains proofs of most typing lemmas for DSub.
+
+   This file *must not* depend on either typing.v (typing ruls) or
+   swap_later_impl.v (extra swap lemmas).
+ *)
 From iris.proofmode Require Import tactics.
-From D.pure_program_logic Require Import weakestpre lifting.
-From iris.program_logic Require Import language.
-From D Require Import tactics proofmode_extra.
+From D.pure_program_logic Require Import lifting.
+From D Require Import proofmode_extra.
 From D.DSub Require Import rules synLemmas step_fv.
 From D.DSubSyn Require Import unary_lr_binding.
 
-Import uPred.
-
 Implicit Types (L T U: ty) (v: vl) (e: tm) (Γ : ctx).
 
-Class SwapProp (PROP: sbi) := {
-  impl_later : ∀ (P Q: PROP), (▷ P → ▷ Q) ⊢ ▷ (P → Q)
-}.
-
-Lemma impl_laterN n `{SwapProp PROP} (P Q: PROP) : (▷^n P → ▷^n Q) ⊢ ▷^n (P → Q).
-Proof. elim: n => [//|n IHn]. by rewrite impl_later IHn. Qed.
-
 Section Sec.
-  Context `{!dsubSynG Σ} `{!SwapProp (iPropSI Σ)}.
+  Context `{!dsubSynG Σ}.
 
   Lemma wp_wand_cl e Φ Ψ:
     WP e {{ v, Φ v }} -∗ ⌜ nclosed e 0 ⌝ -∗ (∀ v, Φ v -∗ ⌜ nclosed_vl v 0 ⌝ -∗ Ψ v) -∗ WP e {{ v, Ψ v }}.
@@ -27,15 +21,6 @@ Section Sec.
     intros. by eapply nclosed_prim_step.
     iIntros (v Hclv) "/= H". iApply ("Himpl" with "H [%]"). by apply fv_tv_inv.
   Qed.
-
-  Lemma mlater_pers (P: iProp Σ) : □ ▷ P ⊣⊢ ▷ □ P.
-  Proof. iSplit; by iIntros "#? !>!>". Qed.
-  Lemma mlaterN_pers (P: iProp Σ) i : □ ▷^i P ⊣⊢ ▷^i □ P.
-  Proof. iSplit; by iIntros "#? !>!>". Qed.
-  Lemma mlater_impl (P Q: iProp Σ) : (▷ P → ▷ Q) ⊣⊢ ▷ (P → Q).
-  Proof. iSplit. iApply impl_later. iApply later_impl. Qed.
-  Lemma mlaterN_impl (P Q: iProp Σ) i : (▷^i P → ▷^i Q) ⊣⊢ ▷^i (P → Q).
-  Proof. iSplit. iApply impl_laterN. iApply laterN_impl. Qed.
 
   Context {Γ}.
 
@@ -296,86 +281,6 @@ Section Sec.
     Γ ⊨ [T, S i] <: [U, S j].
   Proof. iIntros "/= #Hsub !> ** !>". by iApply "Hsub". Qed.
 
-  Lemma Sub_TAllConCov T1 T2 U1 U2 i:
-    Γ ⊨ [ T2, S i ] <: [ T1, S i ] -∗
-    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨ [ U1, S i ] <: [ U2, S i ] -∗
-    Γ ⊨ [ TAll T1 U1, i ] <: [ TAll T2 U2, i ].
-  Proof.
-    rewrite iterate_S /=.
-    iIntros "#HsubT #HsubU /= !>" (ρ v Hcl) "#Hg".
-    unfold_interp.
-    iIntros "[$ #HT1]".
-    iDestruct "HT1" as (t) "#[Heq #HT1]". iExists t; iSplit => //.
-    iIntros (w).
-    rewrite -!mlaterN_pers -mlater_impl -mlaterN_impl !swap_later.
-    iIntros "!> #HwT2".
-    iApply (strip_pure_laterN_impl (S i) (nclosed_vl w 0)); first last.
-      by iApply interp_v_closed.
-    iIntros (Hclw).
-    iSpecialize ("HsubT" $! ρ w Hclw with "Hg HwT2").
-    iAssert (□ ▷ ▷^i (∀ v0, ⟦ U1 ⟧ (w :: ρ) v0 →
-        ⟦ U2 ⟧ (w :: ρ) v0))%I as "#HsubU'". {
-      iIntros (v0); rewrite -!mlaterN_impl -mlater_impl.
-      iIntros "!> #HUv0".
-      iApply (strip_pure_laterN_impl (S i) (nclosed_vl v0 0)); first last.
-        by iApply interp_v_closed.
-      iIntros (Hclv0).
-      iApply ("HsubU" $! (w :: ρ) v0) => //.
-      unfold_interp; rewrite iterate_TLater_later //.
-      iFrame "Hg %". by iApply interp_weaken_one.
-    }
-    iClear "HsubU". iNext 1; iNext i. iApply wp_wand.
-    - iApply "HT1". by iApply "HsubT".
-    - iIntros (u) "#HuU1". by iApply "HsubU'".
-  Qed.
-
-  Lemma DSub_TAll_ConCov T1 T2 U1 U2 i:
-    Γ ⊨[S i] T2 <: T1 -∗
-    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨[S i] U1 <: U2 -∗
-    Γ ⊨[i] TAll T1 U1 <: TAll T2 U2.
-  Proof.
-    rewrite iterate_S /=.
-    iIntros "#HsubT #HsubU /= !>" (ρ) "#Hg"; iIntros (v).
-    unfold_interp; rewrite -mlaterN_impl.
-    iIntros "[$ #HT1]".
-    iDestruct "HT1" as (t) "#[Heq #HT1]"; iExists t; iSplit => //.
-    iIntros (w).
-    rewrite -!mlaterN_pers -!laterN_later/= -!mlaterN_impl -!mlater_impl.
-    iIntros "!> #HwT2".
-    iApply (strip_pure_laterN_impl (S i) (nclosed_vl w 0)); first last.
-      by iApply interp_v_closed.
-    iIntros (Hclw).
-    iSpecialize ("HsubT" with "Hg").
-    iSpecialize ("HsubU" $! (w :: ρ) with "[#]"). {
-      unfold_interp; rewrite iterate_TLater_later //.
-      iFrame "#%". by iApply interp_weaken_one.
-    }
-    iNext; iNext i. iApply wp_wand.
-    - iApply "HT1". by iApply "HsubT".
-    - iIntros (u) "#HuU1". by iApply "HsubU".
-  Qed.
-
-  Lemma Sub_TTMem_Variant L1 L2 U1 U2 i:
-    Γ ⊨ [L2, S i] <: [L1, S i] -∗
-    Γ ⊨ [U1, S i] <: [U2, S i] -∗
-    Γ ⊨ [TTMem L1 U1, i] <: [TTMem L2 U2, i].
-  Proof.
-    iIntros "#IHT #IHT1 /= !>" (ρ v Hcl) "#Hg".
-    unfold_interp.
-    iIntros "[$ #HT1]".
-    iDestruct "HT1" as (φ) "#[Hφl [HLφ #HφU]]".
-    setoid_rewrite <- later_laterN.
-    setoid_rewrite mlaterN_impl.
-    iExists φ; repeat iSplitL; first done;
-      rewrite -!mlaterN_pers;
-      iIntros "!>" (w Hclw);
-      iSpecialize ("IHT" $! ρ w Hclw with "Hg");
-      iSpecialize ("IHT1" $! ρ w Hclw with "Hg");
-      iNext; iIntros.
-    - iApply "HLφ" => //. by iApply "IHT".
-    - iApply "IHT1". by iApply "HφU".
-  Qed.
-
   Lemma DSub_TTMem_Variant L1 L2 U1 U2 i:
     Γ ⊨[S i] L2 <: L1 -∗
     Γ ⊨[S i] U1 <: U2 -∗
@@ -412,93 +317,3 @@ Section Sec.
     Γ ⊨[i] TBot <: T.
   Proof. by iIntros "!> ** !> **"; unfold_interp. Qed.
 End Sec.
-
-From D.DSubSyn Require Import typing.
-
-Section Fundamental.
-  Context `{!dsubSynG Σ} `{!SwapProp (iPropSI Σ)}.
-
-  Lemma fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2):
-    Γ ⊨ [T1, i1] <: [T2, i2]
-  with
-  fundamental_typed Γ e T (HT: Γ ⊢ₜ e : T):
-    Γ ⊨ e : T.
-  Proof.
-    - iInduction HT as [] "IHT".
-      + by iApply Sub_Refl.
-      + by iApply Sub_Trans.
-      + by iIntros "!> **".
-      (* + by iApply Sub_Later.
-      + by iApply Sub_Mono. *)
-      + by iApply Sub_Index_Incr.
-      + by iApply Sub_Top.
-      + by iApply Bot_Sub.
-      + iApply Sel_Sub. by iApply fundamental_typed.
-      + iApply Sub_Sel. by iApply fundamental_typed.
-      + by iApply Sub_TAllConCov.
-      + by iApply Sub_TTMem_Variant.
-    - iInduction HT as [] "IHT".
-      + by iApply T_Forall_Ex.
-      + by iApply T_Forall_E.
-      + by iApply T_Forall_I.
-      (* + iApply T_New_I.
-        by iApply fundamental_dms_typed.
-      + by iApply TMu_I. *)
-      + by iApply T_Nat_I.
-      + by iApply T_Var.
-      + iApply T_Sub => //.
-        by iApply fundamental_subtype.
-      + iApply T_Vty_abs_I => //;
-        by iApply fundamental_subtype.
-      + by iApply T_Vty_I.
-    Qed.
-End Fundamental.
-
-From D.pure_program_logic Require Import adequacy.
-
-Theorem adequacy Σ `{HdsubG: dsubSynG Σ} `{!SwapProp (iPropSI Σ)} e e' thp σ σ' T:
-  (forall `{dsubSynG Σ} `{SwapProp (iPropSI Σ)}, True ⊢ [] ⊨ e : T) →
-  rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
-  is_Some (to_val e') ∨ reducible e' σ'.
-Proof.
-  intros Hlog ??. cut (adequate NotStuck e σ (λ _ _, True)); first (intros [_ ?]; eauto).
-  eapply (wp_adequacy Σ) => /=.
-  iIntros (?) "!>". iExists (λ _ _, True%I); iSplit=> //.
-  iPoseProof (Hlog with "[//]") as "#[_ #Hlog]".
-  iEval (replace e with (e.|[to_subst []]) by by asimpl).
-  iApply wp_wand; by [iApply "Hlog" | auto].
-Qed.
-
-Instance dsubSynG_empty: dsubSynG #[].
-
-Class CmraSwappable (A : cmraT) := {
-  (* TODO cmra_extend should really be cmra_extend_sep. *)
-  cmra_extend_included: ∀ n (x x': A), ✓{S n} x → x ≼ x' → ✓{n} x' → ∃ x'', ✓{S n} x'' ∧ x ≼ x'' ∧ x' ≡{n}≡ x'';
-}.
-
-(* Lemma impl_later {M : ucmraT} `{!CmraSwappable M} (P Q: uPred M) : (▷ P → ▷ Q) ⊢ ▷ (P → Q). *)
-Instance SwapCmra {M : ucmraT} `{!CmraSwappable M}: SwapProp (uPredSI M).
-Proof.
-  split.
-  unseal; split => /= -[//|n] x ? HPQ n' x' Hle ?? HP.
-  specialize (HPQ (S n')); cbn in HPQ.
-  edestruct (cmra_extend_included n' x x') as (x'' &?&?& Hnx'x'') => //.
-  - by eapply cmra_validN_le; eauto with lia.
-  - rewrite Hnx'x''. apply HPQ; eauto with lia. hnf. by rewrite -Hnx'x''.
-Qed.
-
-Instance Swappable_iResUREmpty: CmraSwappable (iResUR #[]).
-Proof.
-  split. rewrite /iResUR /gid /= => n x x' Hvx Hxx' Hvx'.
-  exists x'; split_and! => // ??; by apply fin_0_inv.
-Qed.
-
-Corollary type_soundness e e' thp σ σ' T:
-  ([] ⊢ₜ e : T) →
-  rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
-  is_Some (to_val e') ∨ reducible e' σ'.
-Proof.
-  intros HT Heval.
-  eapply (adequacy #[]); last done.
-  iIntros; by iApply (fundamental_typed _ _ _ HT).
-Qed.

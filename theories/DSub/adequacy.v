@@ -1,10 +1,10 @@
 From D.pure_program_logic Require Import adequacy.
 From iris.proofmode Require Import tactics.
-From D Require Import tactics.
+From D Require Import tactics swap_later_impl.
 From D.DSub Require Import unary_lr.
 
-Theorem adequacy Σ `{HdsubG: dsubPreG Σ} e e' thp σ σ' T ρ:
-  (forall `{dsubG Σ}, True ⊢ ⟦ T ⟧ₑ ρ e) →
+Theorem adequacy Σ `{HdsubG: dsubPreG Σ} `{!SwapProp (iPropSI Σ)} e e' thp σ σ' T ρ:
+  (forall `{dsubG Σ} `{SwapProp (iPropSI Σ)}, True ⊢ ⟦ T ⟧ₑ ρ e) →
   rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
   is_Some (to_val e') ∨ reducible e' σ'.
 Proof.
@@ -13,6 +13,7 @@ Proof.
   iMod (gen_iheap_init (hG := dsubPreG_interpNames) ∅) as (g) "H".
   iIntros (?) "!>". iExists (λ _ _, True%I); iSplit=> //.
   set (DsubΣ := DsubG Σ _ g).
+  specialize (@Hlog _ _).
   iApply wp_wand; by [iApply Hlog | auto].
 Qed.
 
@@ -21,16 +22,11 @@ Qed.
    instantiation pattern, from e.g.
    https://gitlab.mpi-sws.org/iris/examples/blob/a89dc12821b63eeb9b831d21629ac55ebd601f38/theories/logrel/F_mu_ref/soundness.v#L29-39. *)
 Corollary almost_type_soundness e e' thp σ σ' T:
-  (forall `{dsubG Σ}, True ⊢ ⟦ T ⟧ₑ [] e) →
+  (forall `{dsubG Σ} `{SwapProp (iPropSI Σ)}, True ⊢ ⟦ T ⟧ₑ [] e) →
   rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
   is_Some (to_val e') ∨ reducible e' σ'.
 Proof.
-  intros ??. set (Σ := dsubΣ).
-  (* set (HG := DsubPreG Σ _ (subG_savedAnythingΣ _)). *)
-  set (HG := _: dsubPreG Σ).
-  eapply (adequacy Σ).
-  - intros ?.
-    apply H.
-      (* by apply fundamental. *)
-  - eauto.
+  intros; eapply (adequacy dsubΣ) => //.
+  exact: H.
+  (* by apply fundamental. *)
 Qed.
