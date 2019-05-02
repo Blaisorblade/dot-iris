@@ -147,6 +147,10 @@ Section wp_extra.
     iApply wp_value'; by iSplit.
   Qed.
 
+  (*
+    Overly strong, and doesn't generalize, as state_interp
+    is basically never persistent. Still here for now.
+  *)
   Lemma wp_and `{∀ σ κ n, Persistent (state_interp σ κ n)} (P1 P2: val Λ → iProp Σ) e:
     WP e {{ P1 }} -∗ WP e {{ P2 }} -∗ WP e {{ v, P1 v ∧ P2 v }}.
   Proof.
