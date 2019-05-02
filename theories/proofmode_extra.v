@@ -37,14 +37,6 @@ Section proofmode_extra.
   Lemma swap_later {n} P: ▷^n ▷ P ⊣⊢ ▷ ▷^n P.
   Proof. by rewrite -bi.later_laterN bi.laterN_later. Qed.
 
-  Global Instance from_forall_laterN {A} P (Φ : A → PROP) n :
-        FromForall P Φ → FromForall (▷^n P)%I (λ a, ▷^n (Φ a))%I.
-  Proof. rewrite /FromForall => <-. by rewrite laterN_forall. Qed.
-
-  Global Instance into_forall_laterN {A} P (Φ : A → PROP) n :
-    IntoForall P Φ → IntoForall (▷^n P) (λ a, ▷^n (Φ a))%I.
-  Proof. rewrite /IntoForall=> HP. by rewrite HP laterN_forall. Qed.
-
   Lemma timeless_timelessN i P :
     Timeless P →
     ▷^i P ⊢ ▷^i False ∨ P.
@@ -81,16 +73,6 @@ Section proofmode_extra.
     (⌜ φ ⌝ → ▷^i Q) ⊢ ▷^i ⌜ φ ⌝ → ▷^i Q.
   Proof. apply strip_timeless_laterN_impl; apply _. Qed.
 End proofmode_extra.
-
-Module Test_Succeeds.
-  Section foo.
-    Context {PROP : sbi}.
-    Lemma demo_laterN_forall {A} (Φ Ψ: A → PROP) n: (∀ x, ▷^n Φ x) -∗ ▷^n (∀ x, Φ x).
-    Proof.
-      iIntros "H" (w). iApply ("H" $! w).
-    Qed.
-  End foo.
-End Test_Succeeds.
 
 From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language.
