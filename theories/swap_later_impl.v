@@ -147,13 +147,13 @@ Qed.
 
 From D Require Import tactics proofmode_extra saved_interp gen_iheap.
 From iris.base_logic Require Import gen_heap.
+
 Instance CmraSwappable_savedInterp Σ A B: CmraSwappable (savedInterpΣ A B Fin.F1 (iPreProp Σ)) := Swappable_agreeR.
 Instance CmraSwappable_gen_iheap Σ `{Countable A} B: CmraSwappable (gen_iheapΣ A B Fin.F1 (iPreProp Σ)) := Swappable_discrete _.
 Instance CmraSwappable_gen_heap Σ `{Countable A} B: CmraSwappable (gen_heapΣ A B Fin.F1 (iPreProp Σ)) := Swappable_discrete _.
 
-From D.DSub Require Import operational.
-
 Require Import Program.
+From D.DSub Require Import operational.
 
 Instance CmraSwappable_dsub: CmraSwappable (iResUR dsubΣ).
 Proof.
