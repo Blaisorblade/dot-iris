@@ -3,7 +3,7 @@ From iris.proofmode Require Import tactics.
 From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language.
 
-From D Require Import tactics proofmode_extra.
+From D Require Import tactics proofmode_extra locAsimpl.
 From D.Dot Require Import rules synLemmas unary_lr_binding step_fv.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
@@ -333,8 +333,6 @@ Section Sec.
     iExists _; iSplitL; first done.
     iIntros "!> !>" (v) "#Hv".
     iSpecialize ("HeT" $! (v :: ρ)).
-From D Require Import locAsimpl.
-
     (* time locAsimpl. (* 10x faster than asimpl. *) *)
     (* 20x faster than asimpl. *)
     time (locAsimpl' (e.|[up (to_subst ρ)].|[v/]); locAsimpl' (e.|[to_subst (v :: ρ)])).
