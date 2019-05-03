@@ -160,7 +160,24 @@ Section fundamental.
       + iApply T_Sub => //.
         by iApply fundamental_subtype.
       + by iApply TAnd_I.
-    - admit.
+    - iIntros "#Hm".
+      (* Dependent iInduction. *)
+      remember (pv v) as p eqn:Heqp; iInduction HT as [] "IHT"; simplify_eq;
+        try iSpecialize ("IHT" with "[#//]").
+      + iApply semantic_typing_uniform_step_index.
+        by iApply fundamental_typed.
+      + by rewrite /= -iterate_Sr.
+      + iDestruct "IHT" as (Hcltv) "#IHT". iFrame "%".
+        move: H => HsubSyn; iIntros "!> * #HG".
+        iSpecialize ("IHT" with "HG").
+        iPoseProof (interp_env_ρ_closed with "HG") as "%". move: H => Hclρ.
+        iPoseProof (interp_env_len_agree with "HG") as "%". move: H => Hlen. rewrite <-Hlen in *.
+        have Hclv: nclosed_vl v (length ρ). by apply fv_tv_inv.
+        have Hclvs: nclosed_vl v.[to_subst ρ] 0. by apply fv_to_subst_vl.
+        iApply wp_value.
+        iPoseProof (wp_value_inv' with "IHT") as "?".
+        rewrite !iterate_TLater_later //.
+        by iApply fundamental_subtype.
   Admitted.
 
   Lemma fundamental_typed_upd Γ e T (HT: Γ ⊢ₜ e : T): (allGs ∅ -∗ |==> Γ ⊨ e : T)%I.
