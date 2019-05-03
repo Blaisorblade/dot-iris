@@ -16,15 +16,6 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (Γ : ctx).
 Section swap_based_typing_lemmas.
   Context `{!dsubSynG Σ} `{!SwapProp (iPropSI Σ)} {Γ}.
 
-  Lemma mlater_pers (P: iProp Σ) : □ ▷ P ⊣⊢ ▷ □ P.
-  Proof. iSplit; by iIntros "#? !>!>". Qed.
-  Lemma mlaterN_pers (P: iProp Σ) i : □ ▷^i P ⊣⊢ ▷^i □ P.
-  Proof. iSplit; by iIntros "#? !>!>". Qed.
-  Lemma mlater_impl (P Q: iProp Σ) : (▷ P → ▷ Q) ⊣⊢ ▷ (P → Q).
-  Proof. iSplit. iApply impl_later. iApply later_impl. Qed.
-  Lemma mlaterN_impl (P Q: iProp Σ) i : (▷^i P → ▷^i Q) ⊣⊢ ▷^i (P → Q).
-  Proof. iSplit. iApply impl_laterN. iApply laterN_impl. Qed.
-
   Lemma Sub_TAllConCov T1 T2 U1 U2 i:
     Γ ⊨ [ T2, S i ] <: [ T1, S i ] -∗
     iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨ [ U1, S i ] <: [ U2, S i ] -∗

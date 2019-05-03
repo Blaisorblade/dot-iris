@@ -12,6 +12,20 @@ Class SwapProp (PROP: sbi) := {
 Lemma impl_laterN n `{SwapProp PROP} (P Q: PROP) : (▷^n P → ▷^n Q) ⊢ ▷^n (P → Q).
 Proof. elim: n => [//|n IHn]. by rewrite impl_later IHn. Qed.
 
+Section derived_swap_lemmas.
+  Context `{Σ: gFunctors}.
+  Lemma mlater_pers (P: iProp Σ) : □ ▷ P ⊣⊢ ▷ □ P.
+  Proof. iSplit; by iIntros "#? !>!>". Qed.
+  Lemma mlaterN_pers (P: iProp Σ) i : □ ▷^i P ⊣⊢ ▷^i □ P.
+  Proof. iSplit; by iIntros "#? !>!>". Qed.
+
+  Context `{!SwapProp (iPropSI Σ)}.
+  Lemma mlater_impl (P Q: iProp Σ) : (▷ P → ▷ Q) ⊣⊢ ▷ (P → Q).
+  Proof. iSplit. iApply impl_later. iApply later_impl. Qed.
+  Lemma mlaterN_impl (P Q: iProp Σ) i : (▷^i P → ▷^i Q) ⊣⊢ ▷^i (P → Q).
+  Proof. iSplit. iApply impl_laterN. iApply laterN_impl. Qed.
+End derived_swap_lemmas.
+
 Class CmraSwappable (M : cmraT) := {
   (* TODO cmra_extend should really be cmra_extend_sep. *)
   (* cmra_extend_included: ∀ n (x x': A), ✓{S n} x → x ≼ x' → ✓{n} x' → ∃ x'', ✓{S n} x'' ∧ x ≼ x'' ∧ x' ≡{n}≡ x''; *)
