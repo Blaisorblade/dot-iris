@@ -202,14 +202,8 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Γ ⊢ₜ T1, S i <: T2, S i →
     Γ ⊢ₜ TLater T1, i <: TLater T2, i
 | TAllConCov_stp T1 T2 U1 U2 i:
-    (* "Tight" premises. To avoid TLater, we'd probably need to index the
-    context. But let's not; indexing the conclusion of typing and having an
-    elimination form for TLater (which increases the index) would be enough. *)
-    (* Γ ⊢ₜ T2, S i <: T1, S i → *)
-    (* TLater T2 :: Γ ⊢ₜ U1, S i <: U2, S i → *)
-    (* Non-tight premises. *)
-    Γ ⊢ₜ T2, i <: T1, i →
-    T2.|[ren (+1)] :: Γ ⊢ₜ U1, i <: U2, i →
+    Γ ⊢ₜ T2, S i <: T1, S i →
+    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊢ₜ U1, S i <: U2, S i →
     is_stamped_ty (length Γ) getStampTable T2 →
     Γ ⊢ₜ TAll T1 U1, i <: TAll T2 U2, i
 | TVMemCov_stp T1 T2 i l:
@@ -380,10 +374,13 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
       by eapply is_stamped_nclosed_ty.
     - constructor; eauto. eapply is_stamped_ren_ty in f. by constructor.
       by eapply is_stamped_nclosed_ty.
-    - have Hctx': stamped_ctx getStampTable (T2.|[ren (+1)] :: Γ).
-        constructor => //.
-        eapply is_stamped_sub_ty => //. apply is_stamped_ren_shift; lia.
-      specialize (H Hctx); specialize (H0 Hctx');
+    - have Hctx': stamped_ctx getStampTable (iterate TLater (S i) T2.|[ren (+1)] :: Γ).
+      + constructor => //.
+        elim: i {s s0 H0} => [|i IHi].
+        * constructor; eapply is_stamped_ren_ty in f => //.
+          eauto using is_stamped_nclosed_ty.
+        * by rewrite iterate_S; eauto.
+      + specialize (H Hctx); specialize (H0 Hctx').
         ev; constructor; eauto.
   Qed.
 End syntyping.
