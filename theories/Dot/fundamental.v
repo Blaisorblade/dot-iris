@@ -98,9 +98,9 @@ Section fundamental.
 
   (* XXX these statements point out we need to realign the typing judgemnts. *)
   Lemma fundamental_dm_typed Γ V d T (HT: Γ |d V ⊢ d : T):
-    wellMapped getStampTable -∗ TLater V :: Γ ⊨d d : T with
+    wellMapped getStampTable -∗ Γ |L V ⊨d d : T with
   fundamental_dms_typed Γ V ds T (HT: Γ |ds V ⊢ ds : T):
-    wellMapped getStampTable -∗ TLater V :: Γ ⊨ds ds : T with
+    wellMapped getStampTable -∗ Γ |L V ⊨ds ds : T with
   fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2):
     wellMapped getStampTable -∗ Γ ⊨ [T1, i1] <: [T2, i2] with
   fundamental_typed Γ e T (HT: Γ ⊢ₜ e : T):
@@ -113,8 +113,10 @@ Section fundamental.
         last by iApply extraction_to_leadsto_envD_equiv.
         by iApply fundamental_subtype.
         by iApply fundamental_subtype.
-      + iApply idtp_vmem_i. by iApply fundamental_typed.
-    - admit.
+      + iApply TVMem_I. by iApply fundamental_typed.
+    - iIntros "#Hm"; iInduction HT as [] "IHT".
+      + by iApply DNil_I.
+      + iApply DCons_I => //. by iApply fundamental_dm_typed.
     - iIntros "#Hm"; iInduction HT as [] "IHT".
       + by iApply Sub_Refl.
       + by iApply Sub_Trans.
