@@ -141,7 +141,7 @@ Section interp_equiv.
 End interp_equiv.
 
 Section typing_type_member_defs.
-  Context `{!dotG Σ} Γ.
+  Context `{!dotG Σ}.
 
   Definition leadsto_envD_equiv (sσ: extractedTy) n (φ : envD Σ) : iProp Σ :=
     let '(s, σ) := sσ in
@@ -169,13 +169,13 @@ Section typing_type_member_defs.
   (** XXX In fact, this lemma should be provable for any φ,
       not just ⟦ T ⟧, but we haven't actually defined the
       necessary notation to state it:
-  Lemma D_Typ_Sem L U s σ l φ:
+  Lemma D_Typ_Sem Γ L U s σ l φ:
     Γ ⊨ [φ, 1] <: [U, 1] -∗
     Γ ⊨ [L, 1] <: [φ, 1] -∗
     (s, σ) ↝[ length Γ ] φ -∗
     Γ ⊨d dtysem σ s : TTMem l L U.
     *)
-  Lemma D_Typ T L U s σ l:
+  Lemma D_Typ Γ T L U s σ l:
     Γ ⊨ [T, 1] <: [U, 1] -∗
     Γ ⊨ [L, 1] <: [T, 1] -∗
     (s, σ) ↝[ length Γ ] ⟦ T ⟧ -∗
@@ -200,8 +200,8 @@ Section typing_type_member_defs.
       by repeat iModIntro; iApply (internal_eq_iff with "Hγφ").
   Qed.
 
-  Lemma D_Typ_Concr T s σ l:
-    (s, σ) ↝[ (length Γ) ] ⟦ T ⟧ -∗
+  Lemma D_Typ_Concr Γ T s σ l:
+    (s, σ) ↝[ length Γ ] ⟦ T ⟧ -∗
     Γ ⊨d dtysem σ s : TTMem l T T.
   Proof. iIntros "#Hs"; iApply D_Typ; by [| iIntros "!> **"]. Qed.
 End typing_type_member_defs.

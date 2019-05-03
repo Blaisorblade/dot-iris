@@ -36,10 +36,6 @@ Section logrel.
     λ ρ d, (⌜ nclosed d 0 ⌝ ∗ ∃ vmem, ⌜d = dvl vmem⌝ ∧ ▷ interp ρ vmem)%I.
   Global Arguments def_interp_vmem /.
 
-  Definition interp_vmem l interp : envD Σ :=
-    λ ρ v, (⌜ nclosed_vl v 0 ⌝ ∗ ∃ d, ⌜v @ l ↘ d⌝ ∧ def_interp_vmem interp ρ d)%I.
-  Global Arguments interp_vmem /.
-
   Definition idm_proj_semtype d φ : iProp Σ :=
     (∃ s σ interp, ⌜ d = dtysem σ s ∧ φ = interp σ ⌝ ∗ s ↝ interp)%I.
   Global Arguments idm_proj_semtype /.
@@ -61,9 +57,16 @@ Section logrel.
           (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ φ v → ▷ interp2 ρ v)))%I.
   Global Arguments def_interp_tmem /.
 
+  Definition lift_dinterp_vl l (dinterp: envPred dm): envD Σ :=
+    λ ρ v, (⌜ nclosed_vl v 0 ⌝ ∗ ∃ d, ⌜v @ l ↘ d⌝ ∧ dinterp ρ d)%I.
+  Global Arguments lift_dinterp_vl /.
+
+  Definition interp_vmem l interp : envD Σ :=
+    lift_dinterp_vl l (def_interp_vmem interp).
+  Global Arguments interp_vmem /.
+
   Definition interp_tmem l interp1 interp2 : envD Σ :=
-    λ ρ v,
-    (⌜ nclosed_vl v 0 ⌝ ∗ ∃ d, ⌜ v @ l ↘ d ⌝ ∧ def_interp_tmem interp1 interp2 ρ d)%I.
+    lift_dinterp_vl l (def_interp_tmem interp1 interp2).
   Global Arguments interp_tmem /.
 
   Definition interp_expr interp : envPred tm :=
@@ -174,19 +177,19 @@ Section logrel.
   Definition defs_interp_and (interp1 interp2 : envPred dms) : envPred dms :=
     λ ρ ds, (interp1 ρ ds ∧ interp2 ρ ds)%I.
 
-  Fixpoint defs_interp (T: ty) : envPred dms :=
+  Definition lift_dinterp_dms T : envPred dms := λ ρ ds, (∃ l d,
+    ⌜ label_of_ty T = Some l ∧ dms_lookup l ds = Some d ∧ nclosed ds 0 ⌝
+    ∧ def_interp T ρ d)%I.
+
+  Fixpoint defs_interp T : envPred dms :=
     match T with
     | TAnd T1 T2 => defs_interp_and (defs_interp T1) (defs_interp T2)
     | TTop => λ ρ ds, ⌜ nclosed ds 0 ⌝
-    | _ => λ ρ ds,
-           ∃ l d,
-             ⌜ label_of_ty T = Some l ∧ dms_lookup l ds = Some d ∧ nclosed ds 0 ⌝
-             ∧ def_interp T ρ d
+    | _ => lift_dinterp_dms T
     end % I.
 
   Global Instance defs_interp_persistent T ρ ds : Persistent (defs_interp T ρ ds).
-  Proof. revert ds ρ; induction T; cbn; try case_match; try apply _.
-  Qed.
+  Proof. revert ds ρ; induction T; cbn; try case_match; try apply _. Qed.
 
   Fixpoint interp_env (Γ : ctx) (vs : vls) : iProp Σ :=
     match Γ with
@@ -207,6 +210,8 @@ Section logrel.
     - rewrite /Persistent /interp_env. eauto.
     - simpl. destruct ρ; rewrite /Persistent; eauto.
   Qed.
+
+  Definition defCtxCons Γ V := TLater V :: Γ.
 
   (** Definitions for semantic (definition) (sub)typing *)
   (** Since [⟦Γ⟧* ρ] might be impossible, we must require closedness explicitly. *)
@@ -300,6 +305,10 @@ Notation "Γ ⊨ T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next leve
 
 Notation "Γ ⊨ [ T1 , i ]  <: [ T2 , j ]" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
 Notation "Γ ⊨ T1 , i  <: T2 , j" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
+
+(** Context extension for use with definition typing, as in
+    [Γ |L V ⊨d d : T] and [Γ |L V ⊨ds ds : T]. *)
+Notation "Γ |L V" := (defCtxCons Γ V) (at level 60).
 
 Section logrel_lemmas.
   Context `{HdotG: dotG Σ}.
