@@ -106,7 +106,7 @@ Section logrel.
     λ ρ v,
     (⌜ nclosed_vl v 0 ⌝ ∗
        ∃ t, ⌜ v = vabs t ⌝ ∗
-       □ ▷ ∀ w, interp1 ρ w -∗ interp_expr interp2 (w :: ρ) t.|[w/])%I.
+       □ ▷ ∀ w, interp1 ρ w → interp_expr interp2 (w :: ρ) t.|[w/])%I.
   Global Arguments interp_forall /.
 
   Definition interp_mu interp : envD Σ :=
