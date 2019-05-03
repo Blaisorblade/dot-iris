@@ -333,20 +333,11 @@ Section Sec.
     iExists _; iSplitL; first done.
     iIntros "!> !>" (v) "#Hv".
     iSpecialize ("HeT" $! (v :: ρ)).
+From D Require Import locAsimpl.
 
-    Tactic Notation "locAsimpl'" uconstr(e1) :=
-      remember (e1) as __e' eqn:__Heqe';
-      progress asimpl in __Heqe'; subst __e'.
-    (* This retries multiple times; must lock patterns and ignore them *)
-    Ltac locAsimpl :=
-      repeat match goal with
-      | |- context [?a.[?s]] => locAsimpl' a.[s]
-      | |- context [?a.|[?s]] => locAsimpl' (a.|[s])
-      end.
-
-    locAsimpl.
-    (* time locAsimpl' (e.|[up (to_subst ρ)].|[v/]). *)
-    (* time locAsimpl' (e.|[to_subst (v :: ρ)]). *)
+    (* time locAsimpl. (* 10x faster than asimpl. *) *)
+    (* 20x faster than asimpl. *)
+    time (locAsimpl' (e.|[up (to_subst ρ)].|[v/]); locAsimpl' (e.|[to_subst (v :: ρ)])).
     iApply "HeT". iFrame "HG". by iApply interp_weaken_one.
   Qed.
 

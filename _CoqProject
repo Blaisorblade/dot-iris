@@ -3,6 +3,7 @@
 
 theories/tactics.v
 theories/prelude.v
+theories/locAsimpl.v
 theories/gen_iheap.v
 theories/saved_interp.v
 theories/proofmode_extra.v
