@@ -30,6 +30,9 @@ Proof. move => ????/=; eauto. Qed.
 
 Hint Resolve nclosed_vl_ids_0 nclosed_vl_ids_S nclosed_vl_ids.
 
+Lemma nclosed_vl_ids_equiv i j: nclosed_vl (ids i) j <-> i < j.
+Proof. split; eauto. Qed.
+
 Lemma nclosed_ren_shift n m j:
   m >= j + n → nclosed_ren n m (+j).
 Proof. move=>???/=; eauto with lia. Qed.
@@ -66,6 +69,22 @@ Lemma nclosed_ren_up n m r:
 Proof. move => //= Hr [|i] Hi; asimpl; eauto with lia. Qed.
 Hint Resolve nclosed_ren_up.
 
+Lemma eq_n_s_mon' n m {s1 s2}: eq_n_s s1 s2 m → n < m → eq_n_s s1 s2 n.
+Proof. rewrite /eq_n_s => HsEq Hnm x Hl. apply HsEq; lia. Qed.
+
+Lemma nclosed_mono {A}  `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A) n m:
+  nclosed a n → n < m → nclosed a m.
+Proof. move => Hcl Hle s1 s2 Hseq. by eapply Hcl, eq_n_s_mon'. Qed.
+
+Lemma nclosed_ids_rev i j x:
+  nclosed_vl (ids x).[ren (+j)] (j + i) → nclosed_vl (ids x) i.
+Proof. rewrite /= !nclosed_vl_ids_equiv; lia. Qed.
+
+Lemma fv_tapp_inv_1 n e1 e2: nclosed (tapp e1 e2) n → nclosed e1 n.
+Proof. solve_inv_fv_congruence. Qed.
+
+Lemma fv_tapp_inv_2 n e1 e2: nclosed (tapp e1 e2) n → nclosed e2 n.
+Proof. solve_inv_fv_congruence. Qed.
 
 Lemma nclosed_sub_inv T v n: nclosed T.|[v/] n → nclosed T (S n).
 Proof. Admitted.
