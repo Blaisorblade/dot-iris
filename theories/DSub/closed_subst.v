@@ -26,7 +26,7 @@ Proof.
 Qed.
 
 Lemma nclosed_vl_ids i j: i < j → nclosed_vl (ids i) j.
-Proof. move => Hj s1 s2 Hseq /=. exact: Hseq. Qed.
+Proof. move => ????/=; eauto. Qed.
 
 Hint Resolve nclosed_vl_ids_0 nclosed_vl_ids_S nclosed_vl_ids.
 

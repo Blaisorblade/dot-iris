@@ -311,37 +311,93 @@ Proof.
 Qed.
 Hint Resolve is_stamped_sub_up.
 
+Definition nclosed_ds ds n := Forall (λ '(l, d), nclosed d n) ds.
+Arguments nclosed_ds /.
+
+Lemma Forall_to_closed_dms n ds:
+  nclosed_ds ds n → nclosed ds n.
+Proof.
+  elim: ds => [|[l d] ds IHds] Hcl //=.
+  inverse Hcl; apply fv_dms_cons; by [ apply IHds | ].
+Qed.
+
+Lemma is_stamped_nclosed_mut g:
+  (∀ t i,
+    is_stamped_tm i g t →
+    nclosed t i) ∧
+  (∀ v i,
+    is_stamped_vl i g v →
+    nclosed_vl v i) ∧
+  (∀ d i,
+    is_stamped_dm i g d →
+    nclosed d i) ∧
+  (∀ p i,
+    is_stamped_path i g p →
+    nclosed p i) ∧
+  (∀ T i,
+    is_stamped_ty i g T →
+    nclosed T i).
+Proof.
+  apply syntax_mut_ind; intros; with_is_stamped inverse => //;
+    cbn in *; ev;
+    try by move => s1 s2 Hseq /=; f_equal;
+      try eapply H; try eapply H0; eauto using eq_up.
+  - apply fv_vobj, Forall_to_closed_dms.
+    rewrite ->?Forall_fmap in H, H3.
+    decompose_Forall.
+    case_match; subst; cbn; eauto.
+  - apply fv_dtysem. decompose_Forall. by eauto.
+Qed.
+
 Lemma is_stamped_nclosed_ty T g i:
   is_stamped_ty i g T →
   nclosed T i.
-Admitted.
+Proof. unmut_lemma (is_stamped_nclosed_mut g). Qed.
+
+Lemma is_stamped_sub_mut:
+  (∀ t g s i j,
+    is_stamped_sub i j g s →
+    is_stamped_tm i g t →
+    is_stamped_tm j g t.|[s]) ∧
+  (∀ v g s i j,
+    is_stamped_sub i j g s →
+    is_stamped_vl i g v →
+    is_stamped_vl j g v.[s]) ∧
+  (∀ d g s i j,
+    is_stamped_sub i j g s →
+    is_stamped_dm i g d →
+    is_stamped_dm j g d.|[s]) ∧
+  (∀ p g s i j,
+    is_stamped_sub i j g s →
+    is_stamped_path i g p →
+    is_stamped_path j g p.|[s]) ∧
+  (∀ T g s i j,
+    is_stamped_sub i j g s →
+    is_stamped_ty i g T →
+    is_stamped_ty j g T.|[s]).
+Proof.
+  apply syntax_mut_ind; intros; with_is_stamped ltac:(fun H => inversion_clear H);
+    cbn in *; try by [constructor; cbn; eauto]; eauto.
+  - constructor => /=.
+    repeat rewrite ->Forall_fmap in *; rewrite !Forall_fmap.
+    decompose_Forall.
+    unfold snd in *; case_match; subst; cbn; eauto.
+  - constructor.
+    + rewrite /= map_length.
+      ev; eexists; split_and!; eauto.
+    + rewrite Forall_fmap; decompose_Forall; eauto.
+Qed.
 
 Lemma is_stamped_sub_vl v g s m n:
   is_stamped_sub n m g s →
   is_stamped_vl n g v →
-  is_stamped_vl m g v.[s]
-with
-is_stamped_sub_ty T g s m n:
+  is_stamped_vl m g v.[s].
+Proof. unmut_lemma is_stamped_sub_mut. Qed.
+Lemma is_stamped_sub_ty T g s m n:
   is_stamped_sub n m g s →
   is_stamped_ty n g T →
   is_stamped_ty m g T.|[s].
-Proof.
-  -
-    move: s m n. induction v => s i j Hss HsV //=;
-    with_is_stamped ltac:(fun H => inversion_clear H); try econstructor;
-      eauto 3 using is_stamped_sub_up with lia.
-      all: cbn in *.
-      admit.
-      (* Check swap_snd_list_pair_rename.
-      Print list_pair_hsubst. *)
-      (* rewrite swap_snd_list_pair_rename. *)
-      rewrite Forall_fmap.
-      admit.
-  - move: s m n; induction T => s m n Hss HsT //;
-    with_is_stamped ltac:(fun H => inversion_clear H); constructor; cbn;
-      eauto 3 using is_stamped_sub_up.
-    (* Missing: case for paths. *)
-Admitted.
+Proof. unmut_lemma is_stamped_sub_mut. Qed.
 
 Lemma is_stamped_vl_ids g i j: i < j → is_stamped_vl j g (ids i).
 Proof. rewrite /ids /Ids_vl; by constructor. Qed.
@@ -360,23 +416,53 @@ Proof.
   intros; eapply is_stamped_sub_ty => //; by apply is_stamped_sub_single.
 Qed.
 
+Lemma is_stamped_sub_rev_mut g:
+  (∀ e i,
+    nclosed e i →
+    ∀ s j,
+    is_stamped_tm j g (e.|[s]) →
+    is_stamped_tm i g e) ∧
+  (∀ v i,
+    nclosed_vl v i →
+    ∀ s j,
+    is_stamped_vl j g (v.[s]) →
+    is_stamped_vl i g v) ∧
+  (∀ d i,
+    nclosed d i →
+    ∀ s j,
+    is_stamped_dm j g (d.|[s]) →
+    is_stamped_dm i g d) ∧
+  (∀ p i,
+    nclosed p i →
+    ∀ s j,
+    is_stamped_path j g (p.|[s]) →
+    is_stamped_path i g p) ∧
+  (∀ T i,
+    nclosed T i →
+    ∀ s j,
+    is_stamped_ty j g (T.|[s]) →
+    is_stamped_ty i g T).
+Proof.
+(* Neeeded: nclosed_syntax_mut_ind. *)
+Admitted.
+
 Lemma is_stamped_sub_rev_vl g v s i j:
   nclosed_vl v i →
   is_stamped_vl j g (v.[s]) →
   is_stamped_vl i g v.
-Admitted.
+Proof. unmut_lemma (is_stamped_sub_rev_mut g). Qed.
 
 Lemma is_stamped_sub_rev_ty g T s i j:
   nclosed T i →
   is_stamped_ty j g (T.|[s]) →
   is_stamped_ty i g T.
-Admitted.
+Proof. unmut_lemma (is_stamped_sub_rev_mut g). Qed.
 
 Lemma is_stamped_sub_one_rev i T v g:
   nclosed T (S i) →
   is_stamped_ty i g (T.|[v/]) →
   is_stamped_ty (S i) g T.
-Admitted.
+Proof. intros; by eapply is_stamped_sub_rev_ty. Qed.
 
 Lemma is_stamped_ren_ty i T g:
   nclosed T i →

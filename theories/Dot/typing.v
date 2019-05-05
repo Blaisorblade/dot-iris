@@ -291,7 +291,13 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
     stamped_ctx g Γ →
     Γ !! x = Some T →
     nclosed T.|[ren (+x)] (length Γ).
-  Admitted.
+  Proof.
+    elim: Γ T x => // U Γ IHΓ T [Hs [<-]|x Hs Hl] /=; inverse Hs.
+    - asimpl; by eapply is_stamped_nclosed_ty.
+    - have ->: T.|[ren (+S x)] = T.|[ren (+x)].|[ren (+1)]. by asimpl.
+      eapply nclosed_sub_x; last by eapply IHΓ.
+      eapply nclosed_ren_shift; lia.
+  Qed.
 
   Lemma stamped_lookup Γ x T g:
     stamped_ctx g Γ →

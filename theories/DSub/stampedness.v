@@ -245,11 +245,10 @@ Lemma is_stamped_nclosed_mut g:
     nclosed T i).
 Proof.
   apply syntax_mut_ind; intros; with_is_stamped inverse => //;
-    cbn in *; ev; try (by apply fv_vstamp; decompose_Forall; eauto);
-    move => s1 s2 Hseq /=; f_equal.
-  (* all: time try firstorder eauto using eq_up. (* 1.7 s *) *)
-  (* all: time try naive_solver; eauto using eq_up. (* 0.8s, not all goals. *) *)
-  all: try eapply H; try eapply H0; eauto using eq_up.
+    cbn in *; ev;
+    try by move => s1 s2 Hseq /=; f_equal;
+      try eapply H; try eapply H0; eauto using eq_up.
+  apply fv_vstamp. decompose_Forall. by eauto.
 Qed.
 
 Lemma is_stamped_nclosed_vl v g i:
@@ -282,11 +281,11 @@ Lemma is_stamped_sub_mut:
     is_stamped_ty j g T.|[s]).
 Proof.
   apply syntax_mut_ind; intros; with_is_stamped ltac:(fun H => inversion_clear H);
-    cbn in *; try by [constructor; cbn; eauto].
-  - eauto.
-  - constructor. rewrite /= map_length.
-    ev; eexists; split_and!; eauto.
-    rewrite Forall_fmap; decompose_Forall; eauto.
+    cbn in *; try by [constructor; cbn; eauto]; eauto.
+  - constructor.
+    + rewrite /= map_length.
+      ev; eexists; split_and!; eauto.
+    + rewrite Forall_fmap; decompose_Forall; eauto.
 Qed.
 
 Lemma is_stamped_sub_vl v g s m n:
