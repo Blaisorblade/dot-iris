@@ -85,3 +85,9 @@ Proof. solve_inv_fv_congruence. Qed.
 
 Lemma fv_tapp_inv_2 n e1 e2: nclosed (tapp e1 e2) n → nclosed e2 n.
 Proof. solve_inv_fv_congruence. Qed.
+
+Lemma nclosed_sub_inv T v n: nclosed T.|[v/] n → nclosed T (S n).
+Proof. Admitted.
+
+Lemma nclosed_ren_inv_ty T n: nclosed T.|[ren (+1)] (S n) → nclosed T n.
+Proof. Admitted.

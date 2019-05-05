@@ -29,7 +29,6 @@ Inductive typed Γ : tm → ty → Prop :=
 (** Non-dependent application; allowed for any argument. *)
 | App_typed e1 e2 T1 T2:
     Γ ⊢ₜ e1: TAll T1 T2.|[ren (+1)] →      Γ ⊢ₜ e2 : T1 →
-    nclosed T2 (length Γ) →
     (*────────────────────────────────────────────────────────────*)
     Γ ⊢ₜ tapp e1 e2 : T2
 | Proj_typed e T l:
@@ -53,7 +52,6 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ ⊢ₜ tv (vobj ds): TMu T
 | TMuI_typed v T:
     Γ ⊢ₜ tv v: T.|[v/] →
-    nclosed T (S (length Γ)) →
     (*──────────────────────*)
     Γ ⊢ₜ tv v: TMu T
 | Nat_typed n:
@@ -352,18 +350,23 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
     all: intros; cbn in *; ev; try solve [ eauto ].
     all: try solve [try specialize (H Hctx); try specialize (H0 Hctx); ev;
       with_is_stamped inverse; eauto; constructor; cbn; eauto].
+    (* Needed: substitution lemma for stamping. *)
     - specialize (H Hctx). inverse H. cbn in *.
       apply stamped_exp_subject in t0. inverse t0.
       by eapply is_stamped_sub_one.
     - specialize (H Hctx). inverse H. cbn in *.
-      by eapply is_stamped_sub_rev_ty.
+      eapply is_stamped_sub_rev_ty => //.
+      by eapply nclosed_ren_inv_ty, is_stamped_nclosed_ty.
     - apply stamped_exp_subject in t. inverse t.
       specialize (H Hctx). inverse H.
       by eapply is_stamped_sub_one.
+    (* - constructor; eauto. apply stamped_ren. (* Needed: the context is well-stamped as well! *) admit. *)
     - constructor; cbn; eauto. apply H.
       econstructor; eauto.
       eapply is_stamped_ren_ty in f => //.
       by eapply is_stamped_nclosed_ty.
+    - constructor =>/=. eapply is_stamped_sub_rev_ty; eauto.
+      eapply nclosed_sub_inv. eauto using is_stamped_nclosed_ty.
     - by apply stamped_lookup.
     - have Hctx': stamped_ctx getStampTable (TLater V :: Γ). by constructor => //; constructor.
       specialize (H Hctx'); specialize (H0 Hctx'); ev; constructor; auto.
