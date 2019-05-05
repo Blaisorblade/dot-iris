@@ -74,6 +74,7 @@ Section fold.
   with
   forall_traversal_path: travStateT → path → Prop :=
   | trav_pv ts v:
+    forall_traversal_vl ts v →
     forall_traversal_path ts (pv v)
   | trav_pself ts p l:
     forall_traversal_path ts p →
