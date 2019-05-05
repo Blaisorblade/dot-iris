@@ -61,10 +61,3 @@ Lemma nclosed_ren_up n m r:
   nclosed_ren (S n) (S m) (upren r).
 Proof. move => //= Hr [|i] Hi; asimpl; eauto with lia. Qed.
 Hint Resolve nclosed_ren_up.
-
-
-Lemma nclosed_sub_inv T v n: nclosed T.|[v/] n → nclosed T (S n).
-Proof. Admitted.
-
-Lemma nclosed_ren_inv_ty T n: nclosed T.|[ren (+1)] (S n) → nclosed T n.
-Proof. Admitted.
