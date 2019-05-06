@@ -22,9 +22,9 @@ Global Arguments Traversal _: clear implicits.
 Definition is_unstamped_trav: Traversal unit :=
   {|
     upS := id;
-    varP := λ s n, True;
-    dtysynP := λ s T, True;
-    dtysemP := λ s vs s, False;
+    varP := λ _ n, True;
+    dtysynP := λ _ T, True;
+    dtysemP := λ _ vs s, False;
   |}.
 
 Definition is_stamped_trav: Traversal (nat * stys) :=
