@@ -36,7 +36,6 @@ theories/Dot/operational.v
 theories/Dot/synLemmas.v
 theories/Dot/step_fv.v
 theories/Dot/skeleton.v
-theories/Dot/synToSem.v
 theories/Dot/rules.v
 theories/Dot/adequacy.v
 theories/Dot/fundamental.v
