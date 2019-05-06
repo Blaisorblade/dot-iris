@@ -1,4 +1,5 @@
-(** Define translation from syntactic terms/values to semantic ones, following Sec. 3.2 of the PDF. *)
+(** Define matching between terms which only differ in type members,
+    following Sec. 3.5 of the PDF. *)
 From iris.program_logic Require Import ectx_lifting ectx_language ectxi_language.
 From D Require Import tactics.
 From D.Dot Require Import operational.
@@ -34,11 +35,18 @@ same_skel_vl (v1 v2: vl): Prop :=
 with
 same_skel_dm (d1 d2: dm): Prop :=
   match (d1, d2) with
-  | (dtysyn T1, dtysem σ2 γ2) =>
-    (* Only nontrivial case *)
-    True
   | (dvl v1, dvl v2) => same_skel_vl v1 v2
-  | _ => False
+  | (dvl _, _) => False
+  | (_, dvl _) => False
+    (* Only nontrivial cases. Could be replaced by a catchall. *)
+  | (dtysyn _, dtysyn _) =>
+    True
+  | (dtysyn _, dtysem _ _) =>
+    True
+  | (dtysem _ _, dtysyn _) =>
+    True
+  | (dtysem _ _, dtysem _ _) =>
+    True
   end.
 Fixpoint same_skel_path (p1 p2: path): Prop :=
   match (p1, p2) with
