@@ -231,10 +231,6 @@ Proof.
   apply IHσ. solve_inv_fv_congruence_h Hcl.
 Qed.
 
-(* The proof of this lemma needs asimpl and hence is expensive. *)
-Lemma fv_vobj_ds_inv l d ds n: nclosed_vl (vobj ((l, d) :: ds)) n → nclosed_vl (vobj ds) n.
-Proof. solve_inv_fv_congruence. Qed.
-
 Lemma fv_tv_inv v n: nclosed (tv v) n → nclosed_vl v n.
 Proof. solve_inv_fv_congruence. Qed.
 
