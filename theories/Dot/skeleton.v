@@ -1,5 +1,5 @@
-(** Define translation from syntactic terms/values to semantic ones,
-    following Sec. 3.2 of the PDF. *)
+(** Define matching between terms which only differ in type members,
+    following Sec. 3.5 of the PDF. *)
 From iris.program_logic Require Import
      ectx_lifting ectx_language ectxi_language.
 From D Require Import prelude tactics.
