@@ -542,15 +542,15 @@ Section syntax_mut_ind_closed.
       nclosed TNat n →
       Pty TNat n.
 
-  Fixpoint nclosed_tm_mut_rect n t: nclosed t n → Ptm t n
-  with     nclosed_vl_mut_rect n v: nclosed_vl v n → Pvl v n
-  with     nclosed_ty_mut_rect n T: nclosed T n → Pty T n.
+  Fixpoint nclosed_tm_mut_ind n t: nclosed t n → Ptm t n
+  with     nclosed_vl_mut_ind n v: nclosed_vl v n → Pvl v n
+  with     nclosed_ty_mut_ind n T: nclosed T n → Pty T n.
   Proof.
     (* Automation risk producing circular proofs that call right away the lemma we're proving.
        Instead we want to apply one of the [case_] arguments to perform an
        inductive step, and only then call ourselves recursively. *)
     all: destruct 0; intro Hcl.
-    all: let byEapply p := efeed p using (fun q => apply q) by (eauto 2; eauto with fv)
+    all: let byEapply p := efeed p using (fun q => apply q) by (eauto 2; eauto 1 with fv)
     in
       match goal with
       (* Warning: add other arities as needed. *)
@@ -559,14 +559,14 @@ Section syntax_mut_ind_closed.
       | Hstep: context [?P (?c _) _] |- ?P (?c ?a1) _ => byEapply (Hstep n a1)
       | Hstep: context [?P (?c) _] |- ?P (?c) _ => byEapply (Hstep n)
       end.
-    - induction l as [| a l]; constructor => /=; eauto with fv.
+    - induction l as [| a l]; constructor => /=; eauto 2 with fv.
   Qed.
 
   Lemma nclosed_syntax_mut_ind: (∀ t n, nclosed t n → Ptm t n) ∧ (∀ v n, nclosed_vl v n → Pvl v n) ∧ (∀ T n, nclosed T n → Pty T n).
   Proof.
     repeat split; intros.
-    - by eapply nclosed_tm_mut_rect.
-    - by eapply nclosed_vl_mut_rect.
-    - by eapply nclosed_ty_mut_rect.
+    - exact: nclosed_tm_mut_ind.
+    - exact: nclosed_vl_mut_ind.
+    - exact: nclosed_ty_mut_ind.
   Qed.
 End syntax_mut_ind_closed.

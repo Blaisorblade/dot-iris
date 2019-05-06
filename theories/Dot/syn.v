@@ -104,7 +104,7 @@ Section syntax_mut_rect.
   Variable step_dtysyn: ∀ T, Pty T → Pdm (dtysyn T).
   (* Original: *)
   (* Variable step_dtysem: ∀ vsl g, Pdm (dtysem vs g). *)
-  Variable step_dtysem: ∀ vs g, ForallT Pvl vs → Pdm (dtysem vs g).
+  Variable step_dtysem: ∀ vs s, ForallT Pvl vs → Pdm (dtysem vs s).
   Variable step_dvl: ∀ v, Pvl v → Pdm (dvl v).
   Variable step_pv: ∀ v, Pvl v → Ppt (pv v).
   Variable step_psefl: ∀ p, Ppt p → ∀ l, Ppt (pself p l).
