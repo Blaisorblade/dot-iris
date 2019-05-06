@@ -95,13 +95,17 @@ Ltac try_once lm :=
     | _ => markUsed lm; eapply lm
     end.
 
-Ltac better_case_match_ex := try better_case_match; injectHyps; try discriminate.
-
 Tactic Notation "try_once_tac" constr(T) tactic(tac) :=
   match goal with
   | H : usedLemma T |- _ => fail 1
   | _ => markUsed T; tac
   end.
+
+(** Perform [tac], then fail if more than
+    one goal is created. *)
+Tactic Notation "nosplit" tactic3(tac) := tac; let n := numgoals in guard n = 1.
+
+Ltac better_case_match_ex := try better_case_match; injectHyps; try discriminate.
 
 (* Example. *)
 (* Definition injectHyps_marker := 0. *)
