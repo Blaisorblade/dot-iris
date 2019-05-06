@@ -3,7 +3,22 @@
 From iris.program_logic Require Import
      ectx_lifting ectx_language ectxi_language.
 From D Require Import prelude tactics.
-From D.Dot Require Import operational.
+From D.Dot Require Import operational traversals.
+
+Import Trav2.
+
+Definition same_skeleton_trav: Traversal unit :=
+  {|
+    upS := id;
+    varP := λ s i1 i2, i1 = i2;
+    dtyP := λ s tm1 tm2, True;
+  |}.
+
+Notation same_skeleton_tm := (forall_traversal_tm same_skeleton_trav ()).
+Notation same_skeleton_vl := (forall_traversal_vl same_skeleton_trav ()).
+Notation same_skeleton_dm := (forall_traversal_dm same_skeleton_trav ()).
+Notation same_skeleton_path := (forall_traversal_path same_skeleton_trav ()).
+Notation same_skeleton_ty := (forall_traversal_ty same_skeleton_trav ()).
 
 Fixpoint same_skel_tm (t1 t2: tm) {struct t1} : Prop :=
   match (t1, t2) with
