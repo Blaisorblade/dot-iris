@@ -16,6 +16,7 @@ Definition same_skeleton_trav: Traversal unit :=
 Notation same_skel_tm := (forall_traversal_tm same_skeleton_trav ()).
 Notation same_skel_vl := (forall_traversal_vl same_skeleton_trav ()).
 Notation same_skel_dm := (forall_traversal_dm same_skeleton_trav ()).
+Notation same_skel_dms := (forall_traversal_dms same_skeleton_trav ()).
 Notation same_skel_path := (forall_traversal_path same_skeleton_trav ()).
 Notation same_skel_ty := (forall_traversal_ty same_skeleton_trav ()).
 
@@ -109,10 +110,6 @@ Proof.
     inversion Hske; ev; auto using same_skel_vl_subst.
 Qed.
 
-(* Maybe copy-paste instead same_skel_dms from above. Or switch everything to an inductive definition, *)
-Definition same_skel_dms (ds1 ds2: dms): Prop :=
-  Forall2 (λ '(l1, d1) '(l2, d2), l1 = l2 ∧ same_skel_dm d1 d2) ds1 ds2.
-
 Lemma same_skel_dms_index ds ds' v l:
   same_skel_dms ds ds' →
   dms_lookup l (selfSubst ds) = Some (dvl v) →
@@ -149,16 +146,10 @@ Lemma simulation_skeleton_head t1' t1 t2 σ σ' ts:
   head_step t1 σ [] t2 σ' ts →
   exists t2', head_step t1' σ [] t2' σ' ts ∧ same_skel_tm t2 t2'.
 Proof.
-  move=> Hsk Hhs. inversion Hhs; subst; with_same_skel_loop ltac:(fun P => nosplit (inverse P)).
+  move=> Hsk Hhs. inversion Hhs; subst; with_same_skel_loop ltac:(fun P => nosplit (inverse P); cbn in * ).
   - eexists. split; first by econstructor. by eapply same_skel_tm_subst.
   - destruct (same_skel_dms_index ds ds2 v l) as [? [? ?]]; try done.
-    + clear Hhs H. hnf.
-      (* Rewrite all hyps that mention ds. *)
-      generalize dependent ds => ds.
-      rewrite !Forall2_fmap=>*.
-      decompose_Forall.
-      repeat case_match; intuition.
-    + by eexists; split; econstructor.
+    by eexists; split; econstructor.
   - eexists. split; by [econstructor|].
 Qed.
 
