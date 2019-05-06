@@ -254,11 +254,11 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
         (P := λ Γ e T _, is_stamped_tm (length Γ) getStampTable e)
         (P0 := λ Γ V ds T _, Forall (is_stamped_dm (S (length Γ)) getStampTable) (map snd ds))
         (P1 := λ Γ V d T _, is_stamped_dm (S (length Γ)) getStampTable d)
-        (P2 := λ Γ p T i _, is_stamped_path (length Γ) getStampTable p); cbn; intros; eauto.
+        (P2 := λ Γ p T i _, is_stamped_path (length Γ) getStampTable p);
+        cbn; intros; try by (with_is_stamped inverse + idtac); eauto.
     - repeat constructor => //=. by eapply lookup_lt_Some.
     - intros; elim: i {s} => [|i IHi]; rewrite /= ?iterate_0 ?iterate_S //; eauto.
     - intros; ev. constructor; naive_solver.
-    - intros; with_is_stamped inverse; eauto.
   Qed.
 
   Lemma stamped_exp_subject Γ e T: Γ ⊢ₜ e : T →
@@ -284,14 +284,19 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
   | stamped_cons Γ T:
     stamped_ctx g Γ →
     is_stamped_ty (S (length Γ)) g T →
-    stamped_ctx g (T :: Γ)
-  .
+    stamped_ctx g (T :: Γ).
 
   Lemma stamped_nclosed_lookup Γ x T g:
     stamped_ctx g Γ →
     Γ !! x = Some T →
     nclosed T.|[ren (+x)] (length Γ).
-  Admitted.
+  Proof.
+    elim: Γ T x => // U Γ IHΓ T [Hs [<-]|x Hs Hl] /=; inverse Hs.
+    - asimpl; by eapply is_stamped_nclosed_ty.
+    - have ->: T.|[ren (+S x)] = T.|[ren (+x)].|[ren (+1)]. by asimpl.
+      eapply nclosed_sub_x; last by eapply IHΓ.
+      eapply nclosed_ren_shift; lia.
+  Qed.
 
   Lemma stamped_lookup Γ x T g:
     stamped_ctx g Γ →
@@ -306,22 +311,8 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
       by eapply stamped_nclosed_lookup.
   Qed.
 
-    (* move => Hfv s1 s2 HsEq.
-    specialize (Hfv s1 s2). asimpl in Hfv.
-
-    rewrite ?(decomp_s _ s1) ?(decomp_s _ s2) ?(decomp_s_vl _ s1) ?(decomp_s_vl _ s2).
-    rewrite /up /scons.
-    injection (Hfv _ _ (eq_n_s_tails HsEq)).
-    About eq_n_s_heads.
-    rewrite (eq_n_s_heads HsEq).
-      by rewritePremises ].
-
-    solve_inv_fv_congruence.
-    specialize (Hcl s1 s2). asimpl in Hcl. *)
-
-  (* n (Hctx: stamped_ctx getStampTable n Γ) *)
   Lemma stamped_mut_types Γ :
-    (∀ e  T, Γ ⊢ₜ e : T → ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (length Γ) getStampTable T) ∧
+    (∀ e T, Γ ⊢ₜ e : T → ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (length Γ) getStampTable T) ∧
     (∀ V ds T, Γ |ds V ⊢ ds : T → ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (S (length Γ)) getStampTable V →
       is_stamped_ty (S (length Γ)) getStampTable T) ∧
     (∀ V d T, Γ |d V ⊢ d : T → ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (S (length Γ)) getStampTable V →
@@ -344,23 +335,21 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
     all: intros; cbn in *; ev; try solve [ eauto ].
     all: try solve [try specialize (H Hctx); try specialize (H0 Hctx); ev;
       with_is_stamped inverse; eauto; constructor; cbn; eauto].
-    (* Needed: substitution lemma for stamping. *)
     - specialize (H Hctx). inverse H. cbn in *.
       apply stamped_exp_subject in t0. inverse t0.
       by eapply is_stamped_sub_one.
     - specialize (H Hctx). inverse H. cbn in *.
       eapply is_stamped_sub_rev_ty => //.
-      by eapply nclosed_ren_inv_ty, is_stamped_nclosed_ty.
+      by eapply nclosed_ren_inv_ty_one, is_stamped_nclosed_ty.
     - apply stamped_exp_subject in t. inverse t.
       specialize (H Hctx). inverse H.
       by eapply is_stamped_sub_one.
-    (* - constructor; eauto. apply stamped_ren. (* Needed: the context is well-stamped as well! *) admit. *)
     - constructor; cbn; eauto. apply H.
       econstructor; eauto.
       eapply is_stamped_ren_ty in f => //.
       by eapply is_stamped_nclosed_ty.
     - constructor =>/=. eapply is_stamped_sub_rev_ty; eauto.
-      eapply nclosed_sub_inv. eauto using is_stamped_nclosed_ty.
+      eapply nclosed_sub_inv_ty_one. eauto using is_stamped_nclosed_ty.
     - by apply stamped_lookup.
     - have Hctx': stamped_ctx getStampTable (TLater V :: Γ). by constructor => //; constructor.
       specialize (H Hctx'); specialize (H0 Hctx'); ev; constructor; auto.

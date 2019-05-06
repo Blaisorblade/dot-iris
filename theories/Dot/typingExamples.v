@@ -127,7 +127,9 @@ Example ex2 Γ T
 Proof.
   apply VObj_typed; eauto.
   econstructor => //=.
-  eapply dty_typed; eauto.
+  have Hst: is_stamped_vl (S (length Γ)) getStampTable (var_vl 0).
+  by eauto with lia.
+  eapply dty_typed => //; eauto with lia.
 Qed.
 
 (* Try out fixpoints. *)
@@ -139,8 +141,10 @@ Example ex3 Γ T
   Γ ⊢ₜ tv (ν {@ type "A" = (σ1 ; s1) } ) :
     F3 (F3 (TSel (pv (var_vl 0)) "A")).
 Proof.
+  have Hstp: is_stamped_vl (S (S (length Γ))) getStampTable (var_vl 0).
+  by eauto with lia.
   have Hst: is_stamped_ty (S (length Γ)) getStampTable (F3 (pv (var_vl 0) @; "A")).
-  by constructor; naive_solver.
+  by constructor; eauto 7.
   apply VObj_typed; last eauto. (* Avoid trying TMuI_typed, that's slow. *)
   econstructor => //=.
   eapply dty_typed; naive_solver.

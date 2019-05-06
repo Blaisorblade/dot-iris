@@ -62,9 +62,23 @@ Lemma nclosed_ren_up n m r:
 Proof. move => //= Hr [|i] Hi; asimpl; eauto with lia. Qed.
 Hint Resolve nclosed_ren_up.
 
-
-Lemma nclosed_sub_inv T v n: nclosed T.|[v/] n → nclosed T (S n).
+Lemma nclosed_sub_inv_ty T v n j: j <= n → nclosed T.|[upn j (v .: ids)] n → nclosed T (S n).
 Proof. Admitted.
 
-Lemma nclosed_ren_inv_ty T n: nclosed T.|[ren (+1)] (S n) → nclosed T n.
+Lemma nclosed_sub_inv_ty_one T v n: nclosed T.|[v/] n → nclosed T (S n).
+Proof.
+  move=> Hcl.
+  apply (@nclosed_sub_inv_ty T v n 0); by [lia|asimpl].
+Qed.
+
+Lemma nclosed_ren_inv_ty T i j k:
+    nclosed (T.|[upn k (ren (+j))]) (i + j + k) →
+    nclosed T (i + k).
 Proof. Admitted.
+
+Lemma nclosed_ren_inv_ty_one T i: nclosed T.|[ren (+1)] (S i) → nclosed T i.
+Proof.
+  move=> Hcl.
+  pose proof (nclosed_ren_inv_ty T i 1 0) as H.
+  asimpl in H; eauto.
+Qed.
