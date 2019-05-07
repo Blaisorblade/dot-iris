@@ -91,23 +91,23 @@ Section syntax_mut_rect.
   Variable Ppt : path → Type.
   Variable Pty : ty   → Type.
 
-  Variable step_tv: ∀ v, Pvl v → Ptm (tv v).
-  Variable step_tapp: ∀ t, Ptm t → ∀ t0, Ptm t0 → Ptm (tapp t t0).
-  Variable step_tproj: ∀ t, Ptm t → ∀ l, Ptm (tproj t l).
-  Variable step_tskip: ∀ t, Ptm t → Ptm (tskip t).
-  Variable step_var_vl: ∀ x, Pvl (var_vl x).
+  Variable step_tv: ∀ v1, Pvl v1 → Ptm (tv v1).
+  Variable step_tapp: ∀ t1 t2, Ptm t1 → Ptm t2 → Ptm (tapp t1 t2).
+  Variable step_tproj: ∀ t1 l, Ptm t1 → Ptm (tproj t1 l).
+  Variable step_tskip: ∀ t1, Ptm t1 → Ptm (tskip t1).
+  Variable step_var_vl: ∀ i, Pvl (var_vl i).
   Variable step_vnat: ∀ n, Pvl (vnat n).
-  Variable step_vabs: ∀ t, Ptm t → Pvl (vabs t).
+  Variable step_vabs: ∀ t1, Ptm t1 → Pvl (vabs t1).
   (* Original: *)
   (* Variable step_vobj: ∀ l, Pvl (vobj l). *)
   Variable step_vobj: ∀ ds, ForallT Pdm (map snd ds) → Pvl (vobj ds).
-  Variable step_dtysyn: ∀ T, Pty T → Pdm (dtysyn T).
+  Variable step_dtysyn: ∀ T1, Pty T1 → Pdm (dtysyn T1).
   (* Original: *)
   (* Variable step_dtysem: ∀ vsl g, Pdm (dtysem vs g). *)
   Variable step_dtysem: ∀ vs s, ForallT Pvl vs → Pdm (dtysem vs s).
-  Variable step_dvl: ∀ v, Pvl v → Pdm (dvl v).
-  Variable step_pv: ∀ v, Pvl v → Ppt (pv v).
-  Variable step_psefl: ∀ p, Ppt p → ∀ l, Ppt (pself p l).
+  Variable step_dvl: ∀ v1, Pvl v1 → Pdm (dvl v1).
+  Variable step_pv: ∀ v1, Pvl v1 → Ppt (pv v1).
+  Variable step_psefl: ∀ p1 l, Ppt p1 → Ppt (pself p1 l).
   Variable step_TTop: Pty TTop.
   Variable step_TBot: Pty TBot.
   Variable step_TAnd: ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAnd T1 T2).
@@ -117,7 +117,7 @@ Section syntax_mut_rect.
   Variable step_TMu: ∀ T1, Pty T1 → Pty (TMu T1).
   Variable step_TVMem: ∀ l T1, Pty T1 → Pty (TVMem l T1).
   Variable step_TTMem: ∀ l T1 T2, Pty T1 → Pty T2 → Pty (TTMem l T1 T2).
-  Variable step_TSel: ∀ p, Ppt p → ∀ l : label, Pty (TSel p l).
+  Variable step_TSel: ∀ p1 l, Ppt p1 → Pty (TSel p1 l).
   Variable step_TNat: Pty TNat.
 
   Fixpoint tm_mut_rect t: Ptm t
@@ -160,23 +160,23 @@ Section syntax_mut_ind.
   Variable Ppt : path → Prop.
   Variable Pty : ty   → Prop.
 
-  Variable step_tv: ∀ v, Pvl v → Ptm (tv v).
-  Variable step_tapp: ∀ t, Ptm t → ∀ t0, Ptm t0 → Ptm (tapp t t0).
-  Variable step_tproj: ∀ t, Ptm t → ∀ l, Ptm (tproj t l).
-  Variable step_tskip: ∀ t, Ptm t → Ptm (tskip t).
-  Variable step_var_vl: ∀ x, Pvl (var_vl x).
+  Variable step_tv: ∀ v1, Pvl v1 → Ptm (tv v1).
+  Variable step_tapp: ∀ t1 t2, Ptm t1 → Ptm t2 → Ptm (tapp t1 t2).
+  Variable step_tproj: ∀ t1 l, Ptm t1 → Ptm (tproj t1 l).
+  Variable step_tskip: ∀ t1, Ptm t1 → Ptm (tskip t1).
+  Variable step_var_vl: ∀ i, Pvl (var_vl i).
   Variable step_vnat: ∀ n, Pvl (vnat n).
-  Variable step_vabs: ∀ t, Ptm t → Pvl (vabs t).
+  Variable step_vabs: ∀ t1, Ptm t1 → Pvl (vabs t1).
   (* Original: *)
   (* Variable step_vobj: ∀ l, Pvl (vobj l). *)
   Variable step_vobj: ∀ ds, Forall Pdm (map snd ds) → Pvl (vobj ds).
-  Variable step_dtysyn: ∀ T, Pty T → Pdm (dtysyn T).
+  Variable step_dtysyn: ∀ T1, Pty T1 → Pdm (dtysyn T1).
   (* Original: *)
   (* Variable step_dtysem: ∀ vsl g, Pdm (dtysem vs g). *)
-  Variable step_dtysem: ∀ vs g, Forall Pvl vs → Pdm (dtysem vs g).
-  Variable step_dvl: ∀ v, Pvl v → Pdm (dvl v).
-  Variable step_pv: ∀ v, Pvl v → Ppt (pv v).
-  Variable step_psefl: ∀ p, Ppt p → ∀ l, Ppt (pself p l).
+  Variable step_dtysem: ∀ vs s, Forall Pvl vs → Pdm (dtysem vs s).
+  Variable step_dvl: ∀ v1, Pvl v1 → Pdm (dvl v1).
+  Variable step_pv: ∀ v1, Pvl v1 → Ppt (pv v1).
+  Variable step_psefl: ∀ p1 l, Ppt p1 → Ppt (pself p1 l).
   Variable step_TTop: Pty TTop.
   Variable step_TBot: Pty TBot.
   Variable step_TAnd: ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAnd T1 T2).
@@ -186,7 +186,7 @@ Section syntax_mut_ind.
   Variable step_TMu: ∀ T1, Pty T1 → Pty (TMu T1).
   Variable step_TVMem: ∀ l T1, Pty T1 → Pty (TVMem l T1).
   Variable step_TTMem: ∀ l T1 T2, Pty T1 → Pty T2 → Pty (TTMem l T1 T2).
-  Variable step_TSel: ∀ p, Ppt p → ∀ l : label, Pty (TSel p l).
+  Variable step_TSel: ∀ p1 l, Ppt p1 → Pty (TSel p1 l).
   Variable step_TNat: Pty TNat.
 
   Lemma syntax_mut_ind: (∀ t, Ptm t) ∧ (∀ v, Pvl v) ∧ (∀ d, Pdm d) ∧ (∀ p, Ppt p) ∧ (∀ T, Pty T).
