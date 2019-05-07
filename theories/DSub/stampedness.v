@@ -340,7 +340,6 @@ Proof.
 
   with_is_stamped inverse; cbn in *; ev.
   unfold hsubst, list_hsubst in *; rewrite -> map_length, @Forall_fmap in *.
-  (* move: H8; rewrite /hsubst /list_hsubst Forall_fmap; move => Hstl. *)
   constructor => /=. by eexists; split_and!; eauto.
   by decompose_Forall; eauto.
 Qed.
