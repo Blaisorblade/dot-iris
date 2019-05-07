@@ -157,11 +157,35 @@ Proof.
   have Heqs: eq_n_s s1 s2 n. by subst s1 s2; move=> ??; case_decide.
   specialize (Heq s1 s2 Heqs); move: Heq {Heqs}; subst s1 s2 => /=. by case_decide.
 Qed.
-Hint Resolve nclosed_var_lt.
+
+Lemma nclosed_vl_ids_0 i: i > 0 → nclosed_vl (ids 0) i.
+Proof. move => Hi s1 s2 /= Heqs. by apply Heqs. Qed.
+
+Lemma nclosed_vl_ids_S i j: nclosed_vl (ids i) j → nclosed_vl (ids (S i)) (S j).
+Proof.
+  move => /= Hij s1 s2 Heqs. apply: Heqs.
+  suff: i < j by lia. by apply nclosed_var_lt.
+Qed.
+
+Lemma nclosed_vl_ids i j: i < j → nclosed_vl (ids i) j.
+Proof. move => ????/=; eauto. Qed.
+
+Hint Resolve nclosed_var_lt nclosed_vl_ids_0 nclosed_vl_ids_S nclosed_vl_ids.
+
+Lemma nclosed_vl_ids_equiv i j: nclosed_vl (ids i) j <-> i < j.
+Proof. split; eauto. Qed.
+
+Lemma nclosed_ids_rev i j x:
+  nclosed_vl (ids x).[ren (+j)] (j + i) → nclosed_vl (ids x) i.
+Proof. rewrite /= !nclosed_vl_ids_equiv; lia. Qed.
 
 (** Not yet used. *)
-Lemma eq_n_s_mon {n s1 s2}: eq_n_s s1 s2 (S n) → eq_n_s s1 s2 n.
-Proof. rewrite /eq_n_s => HsEq x Hl; apply HsEq; lia. Qed.
+Lemma eq_n_s_mon n m {s1 s2}: eq_n_s s1 s2 m → n < m → eq_n_s s1 s2 n.
+Proof. rewrite /eq_n_s => HsEq Hnm x Hl. apply HsEq; lia. Qed.
+
+Lemma nclosed_mono {A}  `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A) n m:
+  nclosed a n → n < m → nclosed a m.
+Proof. move => Hcl Hle s1 s2 Hseq. by eapply Hcl, eq_n_s_mon. Qed.
 
 (** The following ones are "direct" lemmas: deduce that an expression is closed
     by knowing that its subexpression are closed. *)
@@ -180,6 +204,23 @@ Proof. solve_fv_congruence. Qed.
 
 Lemma fv_vty T n: nclosed T n → nclosed_vl (vty T) n.
 Proof. solve_fv_congruence. Qed.
+
+Lemma fv_TLater T n: nclosed T n → nclosed (TLater T) n.
+Proof. solve_fv_congruence. Qed.
+
+Lemma fv_TAll T1 T2 n: nclosed T1 n →
+                       nclosed T2 (S n) →
+                       nclosed (TAll T1 T2) n.
+Proof. solve_fv_congruence. Qed.
+
+Lemma fv_TTMem T1 T2 n: nclosed T1 n →
+                        nclosed T2 n →
+                        nclosed (TTMem T1 T2) n.
+Proof. solve_fv_congruence. Qed.
+
+Lemma fv_TSel v n: nclosed_vl v n → nclosed (TSel v) n.
+Proof. solve_fv_congruence. Qed.
+
 
 Lemma fv_vls_cons v vs n: nclosed vs n → nclosed_vl v n → nclosed (v :: vs) n.
 Proof. solve_fv_congruence. Qed.
@@ -204,8 +245,13 @@ Proof.
   inverse Hcl; apply fv_vls_cons; by [ apply IHσ | ].
 Qed.
 
-Lemma fv_vstamp σ s n: nclosed_σ σ n → nclosed_vl (vstamp σ s) n.
-Proof. move => /Forall_to_closed_vls. solve_fv_congruence. Qed.
+Lemma closed_vls_to_Forall m σ:
+  nclosed σ m -> nclosed_σ σ m.
+Proof.
+  elim: σ => [|v σ IHσ] Hcl //=.
+  constructor. solve_inv_fv_congruence_h Hcl.
+  apply IHσ. solve_inv_fv_congruence_h Hcl.
+Qed.
 
 Definition cl_ρ_fv: ∀ ρ, cl_ρ ρ → nclosed ρ 0 := Forall_to_closed_vls 0.
 
@@ -218,24 +264,41 @@ Proof.
   f_equiv; [| apply IHn; intros]; apply Heq => /=; lia.
 Qed.
 
-Lemma closed_vls_to_Forall m σ:
-  nclosed σ m -> nclosed_σ σ m.
-Proof.
-  elim: σ => [|v σ IHσ] Hcl //=.
-  constructor. solve_inv_fv_congruence_h Hcl.
-  apply IHσ. solve_inv_fv_congruence_h Hcl.
-Qed.
+Lemma fv_vstamp σ s n: nclosed_σ σ n → nclosed_vl (vstamp σ s) n.
+Proof. move => /Forall_to_closed_vls. solve_fv_congruence. Qed.
+
+Lemma fv_vstamp_inv σ s n: nclosed_vl (vstamp σ s) n → nclosed_σ σ n.
+Proof. intro. apply closed_vls_to_Forall. eauto with fv. Qed.
+
 
 Lemma fv_tv_inv v n: nclosed (tv v) n → nclosed_vl v n.
+Proof. solve_inv_fv_congruence. Qed.
+
+Lemma fv_tapp_inv_1 n e1 e2: nclosed (tapp e1 e2) n → nclosed e1 n.
+Proof. solve_inv_fv_congruence. Qed.
+
+Lemma fv_tapp_inv_2 n e1 e2: nclosed (tapp e1 e2) n → nclosed e2 n.
+Proof. solve_inv_fv_congruence. Qed.
+
+Lemma fv_tskip_inv t n: nclosed (tskip t) n → nclosed t n.
 Proof. solve_inv_fv_congruence. Qed.
 
 Lemma fv_vabs_inv e n: nclosed_vl (vabs e) n → nclosed e (S n).
 Proof. solve_inv_fv_congruence. Qed.
 
+Lemma fv_TAll_inv_1 n T1 T2: nclosed (TAll T1 T2) n → nclosed T1 n.
+Proof. solve_inv_fv_congruence. Qed.
+
 Lemma fv_TAll_inv_2 n T1 T2: nclosed (TAll T1 T2) n → nclosed T2 (S n).
 Proof. solve_inv_fv_congruence. Qed.
 
-Lemma fv_TAll_inv_1 n T1 T2: nclosed (TAll T1 T2) n → nclosed T1 n.
+Lemma fv_TTMem_inv_1 n T1 T2: nclosed (TTMem T1 T2) n → nclosed T1 n.
+Proof. solve_inv_fv_congruence. Qed.
+
+Lemma fv_TTMem_inv_2 n T1 T2: nclosed (TTMem T1 T2) n → nclosed T2 n.
+Proof. solve_inv_fv_congruence. Qed.
+
+Lemma fv_TSel_inv v n: nclosed (TSel v) n → nclosed_vl v n.
 Proof. solve_inv_fv_congruence. Qed.
 
 Lemma to_subst_compose σ σ':

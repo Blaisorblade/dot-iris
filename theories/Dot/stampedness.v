@@ -215,16 +215,6 @@ Proof.
 Qed.
 Hint Resolve is_stamped_sub_up.
 
-Definition nclosed_ds ds n := Forall (λ '(l, d), nclosed d n) ds.
-Arguments nclosed_ds /.
-
-Lemma Forall_to_closed_dms n ds:
-  nclosed_ds ds n → nclosed ds n.
-Proof.
-  elim: ds => [|[l d] ds IHds] Hcl //=.
-  inverse Hcl; apply fv_dms_cons; by [ apply IHds | ].
-Qed.
-
 Lemma is_stamped_nclosed_mut g:
   (∀ t i,
     is_stamped_tm i g t →

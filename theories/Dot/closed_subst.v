@@ -12,20 +12,6 @@ Lemma compose_sub_closed s s1 s2 i j:
   nclosed_sub i j s → eq_n_s s1 s2 j → eq_n_s (s >> s1) (s >> s2) i.
 Proof. move => /= Hs Heqs x Hxi. exact: Hs. Qed.
 
-Lemma nclosed_vl_ids_0 i: i > 0 → nclosed_vl (ids 0) i.
-Proof. move => Hi s1 s2 /= Heqs. by apply Heqs. Qed.
-
-Lemma nclosed_vl_ids_S i j: nclosed_vl (ids i) j → nclosed_vl (ids (S i)) (S j).
-Proof.
-  move => /= Hij s1 s2 Heqs. apply: Heqs.
-  suff: i < j by lia. by apply nclosed_var_lt.
-Qed.
-
-Lemma nclosed_vl_ids i j: i < j → nclosed_vl (ids i) j.
-Proof. move => Hj s1 s2 Hseq /=. exact: Hseq. Qed.
-
-Hint Resolve nclosed_vl_ids_0 nclosed_vl_ids_S nclosed_vl_ids.
-
 Lemma nclosed_ren_shift n m j:
   m >= j + n → nclosed_ren n m (+j).
 Proof. move=>???/=; eauto with lia. Qed.
