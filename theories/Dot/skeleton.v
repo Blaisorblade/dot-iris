@@ -1,9 +1,11 @@
-(** Define translation from syntactic terms/values to semantic ones, following Sec. 3.2 of the PDF. *)
-From iris.program_logic Require Import ectx_lifting ectx_language ectxi_language.
-From D Require Import tactics.
+(** Define translation from syntactic terms/values to semantic ones,
+    following Sec. 3.2 of the PDF. *)
+From iris.program_logic Require Import
+     ectx_lifting ectx_language ectxi_language.
+From D Require Import prelude tactics.
 From D.Dot Require Import operational.
 
-Fixpoint same_skel_tm (t1 t2: tm): Prop :=
+Fixpoint same_skel_tm (t1 t2: tm) {struct t1} : Prop :=
   match (t1, t2) with
   | (tv v1, tv v2) => same_skel_vl v1 v2
   | (tapp t11 t12, tapp t21 t22) =>
@@ -15,7 +17,7 @@ Fixpoint same_skel_tm (t1 t2: tm): Prop :=
   | _ => False
   end
 with
-same_skel_vl (v1 v2: vl): Prop :=
+same_skel_vl (v1 v2: vl) {struct v1} : Prop :=
   match (v1, v2) with
   | (var_vl i1, var_vl i2) => i1 = i2
   | (vabs t1, vabs t2) => same_skel_tm t1 t2
@@ -32,13 +34,16 @@ same_skel_vl (v1 v2: vl): Prop :=
   | _ => False
   end
 with
-same_skel_dm (d1 d2: dm): Prop :=
+same_skel_dm (d1 d2: dm) {struct d1} : Prop :=
   match (d1, d2) with
-  | (dtysyn T1, dtysem σ2 γ2) =>
-    (* Only nontrivial case *)
-    True
   | (dvl v1, dvl v2) => same_skel_vl v1 v2
-  | _ => False
+  | (dvl _, _) => False
+  | (_, dvl _) => False
+    (* Only nontrivial cases. Could be replaced by a catchall. *)
+  | (dtysyn _, dtysyn _) => True
+  | (dtysyn _, dtysem _ _) => True
+  | (dtysem _ _, dtysyn _) => True
+  | (dtysem _ _, dtysem _ _) => True
   end.
 Fixpoint same_skel_path (p1 p2: path): Prop :=
   match (p1, p2) with
@@ -61,7 +66,8 @@ Fixpoint same_skel_ty (T1 T2: ty): Prop :=
   | (TMu T1, TMu T2) =>
     same_skel_ty T1 T2
   | (TVMem l1 T1, TVMem l2 T2) => l1 = l2 ∧ same_skel_ty T1 T2
-  | (TTMem l1 T11 T12, TTMem l2 T21 T22) => l1 = l2 ∧ same_skel_ty T11 T21 ∧ same_skel_ty T12 T22
+  | (TTMem l1 T11 T12, TTMem l2 T21 T22) =>
+    l1 = l2 ∧ same_skel_ty T11 T21 ∧ same_skel_ty T12 T22
   | (TSel p1 l1, TSel p2 l2) => same_skel_path p1 p2 ∧ l1 = l2
   | (TNat, TNat) => True
   | _ => False
@@ -136,16 +142,106 @@ Proof.
       destruct z; try done; rewrite fill_app /=; auto.
 Qed.
 
-(* Generalize over all the syntax, and same_skeleton environments. I proved
-    same_skel_tm_subst just as a minimal sanity check. *)
-Lemma same_skel_vl_subst e e' v v':
-  same_skel_vl e e' → same_skel_vl v v' →
-  same_skel_vl (e.[v/]) (e'.[v'/]).
+Definition same_skel_tm_up_ren_def t : Prop :=
+  ∀ n m t', same_skel_tm t t' →
+            same_skel_tm t.|[upn n (ren (+m))] t'.|[upn n (ren (+m))].
+
+Definition same_skel_vl_up_ren_def v : Prop :=
+  ∀ n m v', same_skel_vl v v' →
+            same_skel_vl v.[upn n (ren (+m))] v'.[upn n (ren (+m))].
+
+Definition same_skel_dm_up_ren_def d : Prop :=
+  ∀ n m d', same_skel_dm d d' →
+            same_skel_dm d.|[upn n (ren (+m))] d'.|[upn n (ren (+m))].
+
+Definition same_skel_path_up_ren_def p : Prop :=
+  ∀ n m p', same_skel_path p p' →
+            same_skel_path p.|[upn n (ren (+m))] p'.|[upn n (ren (+m))].
+
+Definition same_skel_ty_up_ren_def T : Prop :=
+  ∀ n m T', same_skel_ty T T' →
+            same_skel_ty T.|[upn n (ren (+m))] T'.|[upn n (ren (+m))].
+
+Lemma same_skel_up_ren :
+  (∀ t, same_skel_tm_up_ren_def t) ∧ (∀ v, same_skel_vl_up_ren_def v) ∧
+  (∀ d, same_skel_dm_up_ren_def d) ∧ (∀ p, same_skel_path_up_ren_def p) ∧
+  (∀ T, same_skel_ty_up_ren_def T).
 Proof.
-  move: e'; induction e; destruct e';
-  move => Hske Hskv;
-    cbn in Hske |- *; try inversion Hske; ev; asimpl; auto.
-Admitted.
+  apply syntax_mut_ind;
+    try by (repeat intros ?; simpl in *; case_match;
+            simpl in *; intuition (asimpl; auto)).
+  - intros x n m v' Hv'; destruct v'; simpl in *; subst; intuition auto.
+    rewrite iter_up; destruct lt_dec; simpl; auto.
+  - intros ds Hds n m ds' Hds'; simpl in *.
+    destruct ds' as [| | | ds']; simpl in *; intuition auto.
+    revert Hds m n ds' Hds'.
+    induction ds as [|[lbl dm] ds]; intros Hds m n ds' Hds';
+      simpl in *; first by destruct ds'.
+    destruct ds' as [|[lbl' dm'] ds']; simpl in *; first done.
+    asimpl.
+    inversion Hds; simplify_eq.
+    destruct Hds' as [-> [Hdm Hds']].
+    repeat split; auto.
+    apply IHds; auto.
+Qed.
+
+Lemma same_skel_vl_up_ren v : same_skel_vl_up_ren_def v.
+Proof. apply same_skel_up_ren. Qed.
+
+Definition same_skel_tm_subst_def t : Prop :=
+  ∀ f f' t', same_skel_tm t t' → (∀ x, same_skel_vl (f x) (f' x)) →
+            same_skel_tm (t.|[f]) (t'.|[f']).
+
+Definition same_skel_vl_subst_def v : Prop :=
+  ∀ f f' v', same_skel_vl v v' → (∀ x, same_skel_vl (f x) (f' x)) →
+            same_skel_vl (v.[f]) (v'.[f']).
+
+Definition same_skel_dm_subst_def d : Prop :=
+  ∀ f f' d', same_skel_dm d d' → (∀ x, same_skel_vl (f x) (f' x)) →
+             same_skel_dm (d.|[f]) (d'.|[f']).
+
+Definition same_skel_path_subst_def p : Prop :=
+  ∀ f f' p', same_skel_path p p' → (∀ x, same_skel_vl (f x) (f' x)) →
+             same_skel_path (p.|[f]) (p'.|[f']).
+
+Definition same_skel_ty_subst_def T : Prop :=
+  ∀ f f' T', same_skel_ty T T' → (∀ x, same_skel_vl (f x) (f' x)) →
+            same_skel_ty (T.|[f]) (T'.|[f']).
+
+Lemma same_skel_subst_up f f' :
+  (∀ x, same_skel_vl (f x) (f' x)) →
+  (∀ x, same_skel_vl (up f x) (up f' x)).
+Proof.
+  intros Hf x; destruct x as [|x]; asimpl; simpl; auto.
+  by apply (same_skel_vl_up_ren (f x) 0 1 (f' x)).
+Qed.
+
+Lemma same_skel_subst :
+  (∀ t, same_skel_tm_subst_def t) ∧ (∀ v, same_skel_vl_subst_def v) ∧
+  (∀ d, same_skel_dm_subst_def d) ∧ (∀ p, same_skel_path_subst_def p) ∧
+  (∀ T, same_skel_ty_subst_def T).
+Proof.
+  apply syntax_mut_ind;
+    try by repeat intros ?; simpl in *; case_match;
+      simpl in *; try subst; intuition auto using same_skel_subst_up.
+  - intros ds Hds f f' ds' Hds' Hf; simpl in *.
+    destruct ds' as [| | | ds']; simpl in *; intuition auto.
+    revert Hds f f' ds' Hds' Hf.
+    induction ds as [|[lbl dm] ds]; intros Hds f f' ds' Hds' Hf;
+      simpl in *; first by destruct ds'.
+    destruct ds' as [|[lbl' dm'] ds']; simpl in *; first done.
+    asimpl.
+    inversion Hds as [|? ? Hdm Hds_rest]; simplify_eq.
+    destruct Hds' as [-> [Hdm' Hds']].
+    repeat split; auto using same_skel_subst_up.
+    apply IHds; auto.
+Qed.
+
+Lemma same_skel_vl_subst v : same_skel_vl_subst_def v.
+Proof. apply same_skel_subst. Qed.
+
+Lemma same_skel_dm_subst v : same_skel_dm_subst_def v.
+Proof. apply same_skel_subst. Qed.
 
 (* Just a test proof. *)
 Lemma same_skel_tm_subst e e' v v':
@@ -154,25 +250,71 @@ Lemma same_skel_tm_subst e e' v v':
 Proof.
   move: e'; induction e; destruct e';
   move => Hske Hskv;
-    cbn in Hske |- *; try inversion Hske; ev; asimpl; auto using same_skel_vl_subst.
-  Qed.
+    cbn in Hske |- *; try inversion Hske; ev; asimpl;
+      auto.
+  - apply same_skel_vl_subst; auto.
+    intros x; destruct x as [|x]; asimpl; simpl; auto.
+Qed.
 
-(* Maybe copy-paste instead same_skel_dms from above. Or switch everything to an inductive definition, *)
-Definition same_skel_dms (ds1 ds2: dms): Prop :=
-  Forall2 (λ '(l1, d1) '(l2, d2), l1 = l2 ∧ same_skel_dm d1 d2) ds1 ds2.
+Fixpoint same_skel_dms (ds1 ds2 : dms) {struct ds1} : Prop :=
+  match ds1 with
+  | [] => match ds2 with
+         | [] => True
+         | _ :: _ => False
+         end
+  | (l1, d1) :: ds3 =>
+    match ds2 with
+    | [] => False
+    | (l2, d2) :: ds4 => l1 = l2 ∧ same_skel_dm d1 d2 ∧ same_skel_dms ds3 ds4
+    end
+  end.
+
+Lemma same_skel_dms_subst dms :
+  ∀ f f' dms', same_skel_dms dms dms' → (∀ x, same_skel_vl (f x) (f' x)) →
+               same_skel_dms dms.|[f] dms'.|[f'].
+Proof.
+  induction dms as [|[l d] dms]; intros f f' dms' Hdms Hf;
+    simpl in *; destruct dms' as [|[l' d'] dms']; simpl in *;
+      intuition (asimpl; auto).
+  apply same_skel_dm_subst; auto.
+Qed.
+
+Lemma same_skel_dms_selfSubst ds ds' :
+  same_skel_dms ds ds' → same_skel_dms (selfSubst ds) (selfSubst ds').
+Proof.
+  intros Hds.
+  apply same_skel_dms_subst; auto.
+  - intros x; destruct x as [|x]; simpl; auto.
+Qed.
+
+Lemma same_skel_dms_index_gen ds ds' v l:
+  same_skel_dms ds ds' →
+  dms_lookup l ds = Some (dvl v) →
+  exists v', dms_lookup l ds' = Some (dvl v') ∧ same_skel_vl v v'.
+Proof.
+  revert ds' l v.
+  induction ds as [|[lbl d] ds]; intros ds' l v Hds Hlu; simpl in *; first done.
+  destruct decide; subst.
+  - destruct ds' as [|[l' d'] ds']; first done.
+    destruct Hds as [? [Hd hds]]; simplify_eq; auto.
+    destruct d'; simpl in *; try done.
+    eexists; split; eauto.
+    destruct decide; intuition auto.
+  - destruct ds' as [|[l' d'] ds']; first done.
+    destruct Hds as [? [Hd Hds]]; simplify_eq; auto.
+    destruct (IHds ds' l v Hds Hlu) as [v' [? ?]].
+    eexists; split; eauto.
+    simpl; destruct decide; intuition auto.
+Qed.
 
 Lemma same_skel_dms_index ds ds' v l:
   same_skel_dms ds ds' →
   dms_lookup l (selfSubst ds) = Some (dvl v) →
   exists v', dms_lookup l (selfSubst ds') = Some (dvl v') ∧ same_skel_vl v v'.
 Proof.
-Admitted.
-
-Ltac destruct_matches :=
-  repeat progress match goal with
-                  | H: match ?t with | _ => _ end |- _ => destruct t; try done
-                  | H: ?A ∧ ?B |- _ => destruct H
-                  end.
+  intros ? ?; eapply same_skel_dms_index_gen;
+    eauto using same_skel_dms_selfSubst.
+Qed.
 
 Lemma simulation_skeleton_head t1' t1 t2 σ σ' ts:
   same_skel_tm t1 t1' →
@@ -180,12 +322,11 @@ Lemma simulation_skeleton_head t1' t1 t2 σ σ' ts:
   exists t2', head_step t1' σ [] t2' σ' ts ∧ same_skel_tm t2 t2'.
 Proof.
   move=> Hsk Hhs. inversion Hhs; subst; simpl in *.
-  - destruct_matches. eexists. split; first by econstructor. by eapply same_skel_tm_subst.
-  - destruct_matches. subst. destruct (same_skel_dms_index ds l1 v l0) as [? [? ?]]; try done.
-    + clear Hhs H. red; generalize dependent l1; induction ds; destruct l1; try constructor; ev; try apply IHds; done.
-    + eexists.
-    split; [by econstructor | done].
-  - destruct_matches. eexists. split; by [econstructor|idtac].
+  - repeat (case_match; intuition auto; simplify_eq).
+    eexists; split; eauto using head_step, same_skel_tm_subst.
+  - repeat (case_match; intuition auto; simplify_eq).
+    edestruct same_skel_dms_index as [? [? ?]]; eauto using head_step.
+  - repeat (case_match; intuition eauto using head_step).
 Qed.
 
 Theorem simulation_skeleton t1 t1' t2 σ σ' ts:
@@ -197,5 +338,6 @@ Proof.
   inversion Hstep; subst; simpl in *.
   apply same_skel_fill in Hsk as [Ks' [e' [Hfill [Hskel Hsklsit]]]]; simpl in *.
   eapply simulation_skeleton_head in H1 as [e'' [Hhs Hskk]]; last by eauto.
-  exists (fill Ks' e''). subst. split; [econstructor; eauto | by apply same_skel_fill_item].
+  exists (fill Ks' e''). subst.
+  split; [econstructor; eauto | by apply same_skel_fill_item].
 Qed.
