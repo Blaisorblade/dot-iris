@@ -6,25 +6,41 @@ From iris.algebra Require Import agree excl gmap auth.
 Import uPred.
 
 Class SwapProp (PROP: sbi) := {
-  impl_later : ∀ (P Q: PROP), (▷ P → ▷ Q) ⊢ ▷ (P → Q)
+  impl_later : ∀ (P Q: PROP), (▷ P → ▷ Q) ⊢ ▷ (P → Q);
+  wand_later: ∀ (P Q: PROP), (▷ P -∗ ▷ Q) ⊢ ▷ (P -∗ Q)
 }.
 
 Lemma impl_laterN n `{SwapProp PROP} (P Q: PROP) : (▷^n P → ▷^n Q) ⊢ ▷^n (P → Q).
 Proof. elim: n => [//|n IHn]. by rewrite impl_later IHn. Qed.
 
+Lemma wand_laterN n `{SwapProp PROP} (P Q: PROP) : (▷^n P -∗ ▷^n Q) ⊢ ▷^n (P -∗ Q).
+Proof. elim: n => [//|n IHn]. by rewrite wand_later IHn. Qed.
+
 Section derived_swap_lemmas.
-  Context `{Σ: gFunctors}.
-  Lemma mlater_pers (P: iProp Σ) : □ ▷ P ⊣⊢ ▷ □ P.
+  Context `{M : ucmraT}.
+  Lemma mlater_pers (P: uPred M) : □ ▷ P ⊣⊢ ▷ □ P.
   Proof. iSplit; by iIntros "#? !>!>". Qed.
-  Lemma mlaterN_pers (P: iProp Σ) i : □ ▷^i P ⊣⊢ ▷^i □ P.
+  Lemma mlaterN_pers (P: uPred M) i : □ ▷^i P ⊣⊢ ▷^i □ P.
   Proof. iSplit; by iIntros "#? !>!>". Qed.
 
-  Context `{!SwapProp (iPropSI Σ)}.
-  Lemma mlater_impl (P Q: iProp Σ) : (▷ P → ▷ Q) ⊣⊢ ▷ (P → Q).
+  Context `{!SwapProp (uPredSI M)}.
+  Lemma mlater_impl (P Q: uPred M) : (▷ P → ▷ Q) ⊣⊢ ▷ (P → Q).
   Proof. iSplit. iApply impl_later. iApply later_impl. Qed.
-  Lemma mlaterN_impl (P Q: iProp Σ) i : (▷^i P → ▷^i Q) ⊣⊢ ▷^i (P → Q).
+  Lemma mlaterN_impl (P Q: uPred M) i : (▷^i P → ▷^i Q) ⊣⊢ ▷^i (P → Q).
   Proof. iSplit. iApply impl_laterN. iApply laterN_impl. Qed.
+
+  Lemma mlater_wand (P Q: uPred M) : (▷ P -∗ ▷ Q) ⊣⊢ ▷ (P -∗ Q).
+  Proof. iSplit. iApply wand_later. iApply later_wand. Qed.
+  Lemma mlaterN_wand (P Q: uPred M) i : (▷^i P -∗ ▷^i Q) ⊣⊢ ▷^i (P -∗ Q).
+  Proof. iSplit. iApply wand_laterN. iApply laterN_wand. Qed.
 End derived_swap_lemmas.
+
+Class SwapBUpd (PROP: sbi) `(BUpd PROP) := {
+  later_bupd_commute: ∀(P:PROP), (|==> ▷ P) ⊣⊢ ▷ |==> P
+}.
+
+Lemma laterN_bupd_commute n `{SwapBUpd PROP} (P: PROP) : (▷^n |==> P) ⊣⊢ |==> ▷^n P.
+Proof. elim: n => [//|n IHn]. by rewrite later_bupd_commute /= IHn. Qed.
 
 Class CmraSwappable (M : cmraT) := {
   (* TODO cmra_extend should really be cmra_extend_sep. *)
@@ -34,21 +50,70 @@ Class CmraSwappable (M : cmraT) := {
 }.
 
 Section SwapCmra.
+(* Hints from Iris cmra.v, so that we can copy proofs unchanged. *)
 Local Hint Extern 10 (_ ≤ _) => lia : core.
+Arguments uPred_holds {_} !_ _ _ /.
+Context {M : ucmraT}.
+Implicit Types P Q : uPred M.
 
-Global Instance SwapCmra {M : ucmraT} `{!CmraSwappable M}: SwapProp (uPredSI M).
+Lemma later_impl `{!CmraSwappable M} P Q : (▷ P → ▷ Q) ⊢ ▷ (P → Q).
 Proof.
-  split.
   unseal; split => /= -[//|n] x ? HPQ n' ? [x' ->] ?? HP.
   specialize (HPQ (S n')); cbn in HPQ.
   case: (cmra_extend_included n' (Some x) x') => [||x'' []];
-    rewrite /= ?[_ ⋅ x]comm ?Some_validN //=.
+    rewrite /= ?(comm _ _ x) ?Some_validN //.
   - by eapply cmra_validN_le; eauto.
-  - move => Hv Hnx'x''.
+  - move => ? Hnx'x''.
     rewrite Hnx'x''. apply HPQ; eauto using cmra_included_l.
-    rewrite /uPred_holds /=.
     by rewrite -Hnx'x''.
 Qed.
+
+Lemma later_wand `{!CmraSwappable M} P Q : (▷ P -∗ ▷ Q) ⊢ ▷ (P -∗ Q).
+Proof.
+  unseal; split => /= -[//|n] x ? HPQ n' x' ?? HP.
+  specialize (HPQ (S n')); cbn in HPQ.
+  case: (cmra_extend_included n' (Some x) x') => [||x'' []];
+    rewrite /= ?(comm _ _ x) ?Some_validN //.
+  - by eapply cmra_validN_le; eauto.
+  - move => ? Hnx'x''.
+    rewrite Hnx'x''. apply HPQ; eauto.
+    by rewrite -Hnx'x''.
+Qed.
+
+Lemma later_bupd `{!CmraSwappable M} P : (▷ |==> P) ⊢ |==> ▷ P.
+Proof.
+  unseal; split => /= -[|n] x ? HP k yf Hkl.
+  - have ->: k = 0 by lia. by eauto.
+  - case: (decide (k ≤ n)) Hkl => [Hle _ Hv|Hn Hkl].
+    + case (HP k yf Hle Hv) => [x' [Hv' HP']]. exists x'; split_and! => //.
+      case: k Hle {Hv Hv'} HP' => [//|]. eauto using uPred_mono.
+    + have ->: k = S n by lia. move => {Hn Hkl} Hv.
+      case (HP n yf) => [||x' [Hv' HP']]; eauto using cmra_validN_le.
+      case: (cmra_extend_included n (Some yf) x') => [||x'' []];
+      rewrite /= ?(comm _ _ x) ?Some_validN; eauto using cmra_validN_op_r.
+      move => Hv'' Hnx'x''.
+      exists x''; split; first done.
+      by rewrite -Hnx'x''.
+Qed.
+
+Lemma bupd_later `{!CmraSwappable M} P : (|==> ▷ P) ⊢ ▷ |==> P.
+Proof.
+  unseal; split => /= -[//|n] x ? HP k yf Hkl Hv.
+  case: (cmra_extend_included k (Some x) yf) => [||yf' []];
+    rewrite /= ?(comm _ _ x) ?Some_validN //.
+  - by eapply cmra_validN_le; eauto.
+  - move => ? HyfEq.
+    case (HP (S k) yf') => [||x' [Hv' HP']]; eauto.
+    exists x'; rewrite HyfEq; split_and!;
+    eauto using cmra_validN_le.
+Qed.
+
+Global Instance SwapCmra `{!CmraSwappable M}: SwapProp (uPredSI M).
+Proof. split. exact: later_impl. exact: later_wand. Qed.
+
+Global Instance SwapBUpdCmra `{!CmraSwappable M}: SwapBUpd (uPredSI M) _.
+Proof. split=>P. iSplit; [iApply bupd_later | iApply later_bupd]. Qed.
+
 End SwapCmra.
 
 (** * [CmraSwappable] Instances. *)
