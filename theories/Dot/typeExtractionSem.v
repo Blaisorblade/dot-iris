@@ -25,7 +25,7 @@ Section interp_equiv.
   (** We can relate the  ⟦ T ⟧ with the naive stamp semantics at all environments. *)
   Lemma extraction_envD_equiv_naive g s σ T n ρ v:
     T ~[ n ] (g, (s, σ)) →
-    (⟦ T ⟧ ρ v ↔ interp_extractedTy_naive (g, (s, σ)) ρ v)%I.
+    ⟦ T ⟧ ρ v ≡ interp_extractedTy_naive (g, (s, σ)) ρ v.
   Proof.
     cbn; intros (T' & -> & <- & HclT & HclT').
     iSplit; iIntros "H"; [| iDestruct "H" as (T'' Heq) "?" ]; naive_solver.
@@ -48,7 +48,7 @@ Section interp_equiv.
         ⟦ T ⟧ ≈[ n ] ⟦ T' ⟧ [ σ ])%I.
   Proof.
     iIntros ((T' & -> & <- & HclT & HclT')). iExists _; iSplit => //.
-    iIntros (ρ v <- Hclρ). by rewrite interp_subst_commute /subst_sigma.
+    iIntros (ρ v <- Hclρ). by rewrite interp_subst_commute.
   Qed.
 
   (** envD_equiv commutes with substitution. *)
