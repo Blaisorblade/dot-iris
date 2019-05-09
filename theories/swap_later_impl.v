@@ -34,7 +34,9 @@ Class CmraSwappable (M : cmraT) := {
 }.
 
 Section SwapCmra.
+(* Hints from Iris cmra.v, so that we can copy proofs unchanged. *)
 Local Hint Extern 10 (_ ≤ _) => lia : core.
+Arguments uPred_holds {_} !_ _ _ /.
 
 Global Instance SwapCmra {M : ucmraT} `{!CmraSwappable M}: SwapProp (uPredSI M).
 Proof.
@@ -46,7 +48,6 @@ Proof.
   - by eapply cmra_validN_le; eauto.
   - move => Hv Hnx'x''.
     rewrite Hnx'x''. apply HPQ; eauto using cmra_included_l.
-    rewrite /uPred_holds /=.
     by rewrite -Hnx'x''.
 Qed.
 End SwapCmra.
