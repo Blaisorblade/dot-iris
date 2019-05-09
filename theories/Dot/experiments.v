@@ -167,6 +167,152 @@ Section Sec.
     iIntros (H); iApply wp_pure_step_later => //; iApply wp_value. by iIntros "!%".
   Qed.
 
+  Fixpoint pth_to_tm (p: path): tm :=
+    match p with
+    | pv v => tv v
+    | pself p l => tproj (pth_to_tm p) l
+    end.
+  Definition sem_singleton_path p ρ v : iProp Σ := (□WP (pth_to_tm p).|[to_subst ρ] {{ w, ⌜ w = v ∧ nclosed_vl v 0 ⌝ }})%I.
+  Arguments sem_singleton_path /.
+  Lemma singletons_equiv w ρ v: sem_singleton w ρ v ⊣⊢ sem_singleton_path (pv w) ρ v.
+  Proof.
+    iSplit; iIntros "#H/=".
+    - iModIntro. by iApply wp_value.
+    - by iPoseProof (wp_value_inv with "H") as "H2".
+  Qed.
+
+  Lemma self_sem_singleton_path_v00 p i v:
+    nclosed_vl v 0 → PureExec True i (pth_to_tm p) (tv v) →
+    True ⊢ WP (pth_to_tm p) {{ sem_singleton_path p [] }}.
+  Proof.
+    iIntros (Hcl Hpure) "_ /=". rewrite to_subst_nil /=.
+    iApply wp_pure_step_later => //.
+    iNext.
+    iApply wp_value. iModIntro.
+    asimpl.
+    iApply wp_pure_step_later => //.
+    iNext.
+    by iApply wp_value.
+  Qed.
+
+  From iris.program_logic Require Import ectxi_language.
+
+  (*
+    We get. in fact, a chain of pure execution steps, each in a different world. IOW, a pure/path WP.
+    It might be easier to define it directly (as path_wp) and prove typing rules for it,
+    instead of trying to bridge across the two WP. *)
+  Lemma step2 p ρ P:
+    □WP (pth_to_tm p).|[to_subst ρ] {{ P }} -∗
+    ∃ i, ▷^i ∃ v, ⌜ PureExec True i (pth_to_tm p).|[to_subst ρ] (tv v) ⌝ ∧ P v.
+  Proof.
+    iIntros "#H".
+    iInduction p as [|] "IHp" forall (P); cbn.
+    - iExists 0, (v.[to_subst ρ]). iPoseProof (wp_value_inv with "H") as "$".
+      iPureIntro => ?. constructor.
+    - iPoseProof (wp_bind_inv (fill [ProjCtx l]) with "H") as "H'"; rewrite /= /of_val.
+      iDestruct ("IHp" with "H'") as (i0 v0) "[Hpure Hv]". iClear "IHp".
+      Import uPred.
+      iExists (S i0); rewrite laterN_later; iNext i0. iDestruct "Hpure" as "%". move: H => Hpure.
+      iEval (rewrite !wp_unfold /wp_pre) in "Hv". cbn.
+      iSpecialize ("Hv" $! inhabitant [] [] 0 with "[#//]"). iDestruct "Hv" as "[% Hv]". move: H => Hred.
+      case: Hred => /= x [e' [σ' [efs Hred]]]. case Hred => /= K e1' e2' Heq1 Heq2 Hstp.
+      have Heq: K = [].
+      + eapply (ectxi_language_sub_redexes_are_values (tproj (tv v0) l)); [| apply Heq1| by eapply val_head_stuck].
+        move=> Ki e2. move: Ki => []//=. move=>?[<-]?/=; eauto.
+      + subst; cbn in *; subst.
+        inverse Hstp.
+        iSpecialize ("Hv" $! _ _ _ Hred). cbn.
+        iExists v. iNext. iDestruct "Hv" as "[_ [Hv _]]".
+        iPoseProof (wp_value_inv with "Hv") as "$".
+        iPureIntro => ?. specialize (Hpure I).
+        replace (S i0) with (i0+1) by lia.
+        eapply (relations.nsteps_trans i0 1 _ (tproj (tv (vobj ds)) l) _).
+        by eapply (pure_step_nsteps_ctx (fill [ProjCtx l])).
+        by eapply pure_tproj.
+  Qed.
+(*
+  Lemma step2_v0 p ρ P:
+    □WP (pth_to_tm p).|[to_subst ρ] {{ P }} -∗
+    ∃ v i, ⌜ PureExec True i (pth_to_tm p).|[to_subst ρ] (tv v) ⌝ ∧  P v.
+  Proof.
+    iIntros "#H".
+    iInduction p as [|] "IHp" forall (P); cbn.
+    - iExists (v.[to_subst ρ]), 0. iPoseProof (wp_value_inv with "H") as "$".
+      iPureIntro => ?. constructor.
+    - iPoseProof (wp_bind_inv (fill [ProjCtx l]) with "H") as "H'"; rewrite /= /of_val.
+      iDestruct ("IHp" with "H'") as (v0 i0) "[% Hv]". iClear "IHp". move: H => Hpure.
+      iEval (rewrite !wp_unfold /wp_pre) in "Hv". cbn.
+      iSpecialize ("Hv" $! inhabitant [] [] 0 with "[#//]"). iDestruct "Hv" as "[% Hv]". move: H => Hred.
+      case: Hred => /= x [e' [σ' [efs Hred]]]. case Hred => /= K e1' e2' Heq1 Heq2 Hstp.
+      have Heq: K = [].
+      + eapply (ectxi_language_sub_redexes_are_values (tproj (tv v0) l)); [| apply Heq1| by eapply val_head_stuck].
+        move=> Ki e2. move: Ki => []//=. move=>?[<-]?/=; eauto.
+      + subst; cbn in *; subst.
+        inverse Hstp.
+        iSpecialize ("Hv" $! _ _ _ Hred). cbn.
+        iExists v, (S i0).
+        (* Okay, this is interesting, we get a later! *)
+        iIntros (?).
+  Admitted. *)
+
+      (* iPoseProof (wp_value_inv with "Hv") as "?". *)
+
+  Lemma self_sem_singleton_path_v00 p T i v:
+    Γ ⊨ pth_to_tm p : T -∗
+    PureExec True i (pth_to_tm p) (tv v)
+  (* TODOs: demonstrate safety, demonstrate *)
+
+
+  Lemma self_sem_singleton_path_v0 Γ p T i v:
+    nclosed (pth_to_tm p) (length Γ) → PureExec True i (pth_to_tm p) (tv v) →
+    True ⊢ ⌜ nclosed (pth_to_tm p) (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → WP (pth_to_tm p).|[to_subst ρ] {{ sem_singleton_path p ρ }}.
+  Proof.
+    iIntros (Hcl Hpure) "_". iFrame "%". iIntros "!>" (ρ) "HG".
+    iApply wp_pure_step_later. exact Hpure. => //.
+
+  Lemma self_sem_singleton_path Γ p T:
+    Γ ⊨ pth_to_tm p : T -∗
+    ⌜ nclosed (pth_to_tm p) (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → WP (pth_to_tm p).|[to_subst ρ] {{ sem_singleton_path p ρ }}.
+  Proof.
+    iIntros "/= #[% #HT]". move: H => Hcl. iFrame (Hcl). iIntros "!>" (ρ) "#HG". iSpecialize ("HT" with "HG").
+    iPoseProof (interp_env_ρ_closed with "HG") as "%". move: H => /= Hclρ.
+    iPoseProof (interp_env_len_agree with "HG") as "%". move: H => Hlen. rewrite <- Hlen in Hcl.
+
+    iInduction p as [|] "IHp" forall (T Hcl); cbn.
+    (* elim: p Hcl => [v|p IHp l] /= Hcl. *)
+    (* iIntros "[$ #HT] !>" (ρ) "#HG"; iSpecialize ("HT" with "HG"). *)
+    - iPoseProof (wp_value_inv with "HT") as "HvT".
+      iPoseProof (interp_v_closed with "HvT") as "%".
+      iApply wp_value. iModIntro. by iApply wp_value.
+    -
+      iPoseProof (wp_bind_inv (fill [ProjCtx l]) with "HT") as "H"; rewrite /= /of_val.
+      smart_wp_bind (ProjCtx l) w "Hw" "H".
+
+      iApply (wp_wand with "Hw"). cbn. iIntros (v) "#Hv !>".
+      smart_wp_bind (ProjCtx l) w' "Hw" "H".
+      iApply (wp_wand with "Hw"). cbn. iIntros (v') "#Hv'".
+      Print PureExec.
+      Print pure_step.
+
+      (* (* wwp_unfold /wp_pre
+    iEval (rewrite !wp_unfold /wp_pre /=) in "HT".
+ *)
+      iApply (wp_bind (fill[(ProjCtx l)])).
+      (* About wp_wand. *)
+      (* : iProp Σ *)
+      (* set foo : vl → iProp Σ := (λ v, WP (tproj (tv v) l) {{ w, ⟦ T ⟧ ρ w : iProp Σ }})%I. *)
+      iApply (wp_wand _ _ _ (λ v, □WP tproj (tv v) l {{ w, ⟦ T ⟧ ρ w : iProp Σ }})%I). [iApply "H"; trivial|]; cbn;
+      iIntros (v) Hv.
+
+      smart_wp_bind (ProjCtx l) w "#Hw" "HT". *)
+     iApply wp_pure_step_later.
+
+    iPoseProof (interp_env_ρ_closed with "HG") as "%". move: H => /= Hclρ.
+    iPoseProof (interp_env_len_agree with "HG") as "%". move: H => Hlen. rewrite <- Hlen in Hcl.
+
+
+  (* From D.pure_program_logic Require Import weakestpre. *)
+
   Lemma ietp_later_works Γ W T v:
     W :: Γ ⊨ tv v : T -∗
     TLater W :: Γ ⊨ tv v: TLater T.
