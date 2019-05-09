@@ -2,6 +2,7 @@ From D.pure_program_logic Require Import adequacy.
 From iris.proofmode Require Import tactics.
 From D Require Import tactics swap_later_impl.
 From D.DSub Require Import unary_lr.
+Require Import Program.
 
 Theorem adequacy Σ `{HdsubG: dsubPreG Σ} `{!SwapProp (iPropSI Σ)} e e' thp σ σ' T ρ:
   (forall `{dsubG Σ} `{SwapProp (iPropSI Σ)}, True ⊢ ⟦ T ⟧ₑ ρ e) →
@@ -15,6 +16,12 @@ Proof.
   set (DsubΣ := DsubG Σ _ g).
   specialize (@Hlog _ _).
   iApply wp_wand; by [iApply Hlog | auto].
+Qed.
+
+Instance CmraSwappable_dsub: CmraSwappable (iResUR dsubΣ).
+Proof.
+  apply Swappable_iResUR.
+  rewrite /gid; repeat (dependent destruction i; cbn; try apply _).
 Qed.
 
 (* Instead of still assuming semantic typing, here we should assume syntactic

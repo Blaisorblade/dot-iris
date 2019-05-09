@@ -2,6 +2,7 @@ From D.pure_program_logic Require Import adequacy.
 From iris.proofmode Require Import tactics.
 From D Require Import tactics swap_later_impl.
 From D.Dot Require Import unary_lr typeExtractionSem fundamental typing.
+Require Import Program.
 
 Theorem adequacy Σ `{HdotG: dotPreG Σ} `{SwapProp (iPropSI Σ)} e e' thp σ σ' T:
   (forall `{dotG Σ} `{SwapProp (iPropSI Σ)}, allGs ∅ ⊢ |==> [] ⊨ e : T) →
@@ -16,6 +17,12 @@ Proof.
   iIntros (?) "!>". iExists (λ _ _, True%I); iSplit=> //.
   iEval (replace e with (e.|[to_subst []]) by by asimpl).
   iApply wp_wand; by [iApply "Hlog" | auto].
+Qed.
+
+Instance CmraSwappable_dot: CmraSwappable (iResUR dotΣ).
+Proof.
+  apply Swappable_iResUR.
+  rewrite /gid; repeat (dependent destruction i; cbn; try apply _).
 Qed.
 
 (* Instead of still assuming semantic typing, here we should assume syntactic
