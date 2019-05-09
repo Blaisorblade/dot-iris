@@ -138,8 +138,7 @@ Section wp_extra.
   Proof.
     iLöb as "IH" forall (e).
     iIntros "H1 H2".
-    iEval (rewrite !wp_unfold /wp_pre) in "H1";
-    iEval (rewrite !wp_unfold /wp_pre) in "H2";
+    iEval (rewrite !wp_unfold /wp_pre) in "H1 H2".
     iEval (rewrite !wp_unfold /wp_pre).
     case_match; first by auto.
     iIntros (σ1 k ks n) "#Ha".
