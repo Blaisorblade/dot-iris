@@ -200,6 +200,32 @@ Section Sec.
     - iApply (iterate_Later_Sub _ _ 0 i).
   Qed.
 
+  From D Require Import swap_later_impl proofmode_extra.
+  Lemma Sub_TAll_TLater `{!SwapProp (iPropSI Σ)} Γ A B: Γ ⊨ TAll (TLater A) (TLater B) <: TLater (TAll A B).
+  Proof.
+    iIntros (ρ v) "!> /= #HG #[% HT]"; move: H=>Hcl; iFrame (Hcl).
+    iDestruct "HT" as (t) "[% #HT]"; subst; iExists _; iSplit => //.
+    iIntros (w) "!> !>"; rewrite -mlater_impl. iIntros "#Hw".
+    iApply (strip_pure_laterN_impl 1 (nclosed_vl w 0)); first last.
+      by iApply interp_v_closed.
+    iIntros (Hclw).
+    iSpecialize ("HT" $! w with "[# $Hw //]").
+    iApply (wp_wand with "HT"). iIntros (v).
+    rewrite mlater_impl.
+    iIntros "#Hw".  move: H=>Hw.
+    iSpecialize ("HT" $! w with "Hw").
+
+
+  Lemma foo Γ A B: Γ ⊨ TLater (TAll A B) <: TAll (TLater A) (TLater B).
+  Proof. cbn.
+    iIntros (ρ v) "!> #HG #[% [_ HT]]"; move: H=>Hcl; iFrame (Hcl).
+    iDestruct "HT" as (t) "[H #HT]"; iExists t.
+    iSplit.
+    destruct v.
+    admit.
+    iIntros (w) "!> !> [% #Hw]"; move: H=>Hw.
+    iSpecialize ("HT" $! w with "Hw").
+
   (* Exercise: do this with only *syntactic* typing rules. *)
 
   (** Core definitions for singleton types. ⟦ w.type ⟧ ρ v *)
