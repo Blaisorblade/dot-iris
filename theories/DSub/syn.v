@@ -192,7 +192,6 @@ Instance Rename_ty : Rename ty := ty_rename.
 Definition list_rename_fold `{Rename X} (sb : var → var) (xs : list X) : map (rename sb) xs = rename sb xs := eq_refl.
 
 Definition vls_rename_fold: ∀ sb vs, map (rename sb) vs = rename sb vs := list_rename_fold.
-Definition ctx_rename_fold: ∀ sb Γ, map (rename sb) Γ = rename sb Γ := list_rename_fold.
 
 Hint Rewrite @list_rename_fold : autosubst.
 
