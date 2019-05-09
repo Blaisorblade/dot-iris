@@ -30,7 +30,8 @@ Section Sec.
     by [> rewrite closed_subst_vl_id // -Hv -Hv1 | rewrite Hv -Hv1 closed_subst_vl_id ].
   Qed.
 
-  Lemma tskip_self_sem_singleton ρ v: cl_ρ ρ → nclosed_vl v 0 → WP (tskip (tv v)) {{ v, sem_singleton v ρ v }}%I.
+  Lemma tskip_self_sem_singleton ρ v: cl_ρ ρ → nclosed_vl v 0 →
+    WP (tskip (tv v)) {{ v, sem_singleton v ρ v }}%I.
   Proof.
     iIntros (Hclρ Hclv) "/=".
     iApply wp_pure_step_later => //; iApply wp_value.
@@ -39,7 +40,7 @@ Section Sec.
 
   Lemma tskip_other_sem_singleton ρ w v v':
     sem_singleton w ρ v -∗
-     WP (tskip (tv v)) {{ v', sem_singleton w ρ v' }}%I.
+    WP (tskip (tv v)) {{ v', sem_singleton w ρ v' }}%I.
   Proof.
     iIntros (H); iApply wp_pure_step_later => //; iApply wp_value. by iIntros "!%".
   Qed.
