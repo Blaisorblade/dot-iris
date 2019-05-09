@@ -36,7 +36,7 @@ Section derived_swap_lemmas.
 End derived_swap_lemmas.
 
 Class SwapBUpd (PROP: sbi) `(BUpd PROP) := {
-  later_bupd_commute: ∀(P:PROP), (|==> ▷ P) ⊣⊢ ▷ |==> P
+  later_bupd_commute: ∀ (P: PROP), (|==> ▷ P) ⊣⊢ ▷ |==> P
 }.
 
 Lemma laterN_bupd_commute n `{SwapBUpd PROP} (P: PROP) : (▷^n |==> P) ⊣⊢ |==> ▷^n P.
