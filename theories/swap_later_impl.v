@@ -37,18 +37,24 @@ Section SwapCmra.
 (* Hints from Iris cmra.v, so that we can copy proofs unchanged. *)
 Local Hint Extern 10 (_ ≤ _) => lia : core.
 Arguments uPred_holds {_} !_ _ _ /.
+Context {M : ucmraT}.
+Implicit Types P Q : uPred M.
 
-Global Instance SwapCmra {M : ucmraT} `{!CmraSwappable M}: SwapProp (uPredSI M).
+Lemma later_impl `{!CmraSwappable M} P Q : (▷ P → ▷ Q) ⊢ ▷ (P → Q).
 Proof.
-  split.
   unseal; split => /= -[//|n] x ? HPQ n' ? [x' ->] ?? HP.
   specialize (HPQ (S n')); cbn in HPQ.
   case: (cmra_extend_included n' (Some x) x') => [||x'' []];
-    rewrite /= ?[_ ⋅ x]comm ?Some_validN //=.
+    rewrite /= ?(comm _ _ x) ?Some_validN //.
   - by eapply cmra_validN_le; eauto.
-  - move => Hv Hnx'x''.
+  - move => ? Hnx'x''.
     rewrite Hnx'x''. apply HPQ; eauto using cmra_included_l.
     by rewrite -Hnx'x''.
+Qed.
+
+Global Instance SwapCmra `{!CmraSwappable M}: SwapProp (uPredSI M).
+Proof.
+  split. exact: later_impl.
 Qed.
 End SwapCmra.
 
