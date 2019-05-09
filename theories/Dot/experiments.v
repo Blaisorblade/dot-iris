@@ -2,7 +2,8 @@ From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language ectx_language.
 From iris.proofmode Require Import tactics.
 From D Require Import tactics.
-From D.Dot Require Import unary_lr unary_lr_binding synLemmas rules.
+From D.Dot Require Import unary_lr unary_lr_binding synLemmas rules
+  lr_lemma_nobinding.
 
 Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
@@ -10,6 +11,127 @@ Implicit Types
 
 Section Sec.
   Context `{HdotG: dotG Σ}.
+
+  (** Rename. *)
+  Lemma iterate_Sub_Mono Γ T i j:
+    Γ ⊨ [ T, i ] <: [T, j + i].
+  Proof.
+    iInduction j as [] "IHj".
+    - iApply Sub_Refl.
+    - iApply (Sub_Trans with "IHj").
+      iApply Sub_Mono.
+  Qed.
+
+  Lemma iterate_Sub_Later Γ T i j:
+    Γ ⊨ [T, j + i] <: [iterate TLater j T, i].
+  Proof.
+      iInduction j as [] "IHj" forall (T).
+    - iApply Sub_Refl.
+    - iApply Sub_Trans; rewrite ?iterate_Sr /=.
+      + iApply Sub_Later.
+      + iApply ("IHj" $! (TLater T)).
+  Qed.
+
+  Lemma Distr_TLater_And T1 T2 ρ v:
+    ⟦ TLater (TAnd T1 T2) ⟧ ρ v ⊣⊢
+    ⟦ TAnd (TLater T1) (TLater T2) ⟧ ρ v.
+  Proof.
+    iSplit.
+    iIntros "/= [$ [??]]"; eauto.
+    iIntros "/= [[$?] [_?]]"; eauto.
+  Qed.
+
+  Lemma selfIntersect Γ T U i j:
+    Γ ⊨ [ T, i ] <: [ U, j + i ] -∗
+    Γ ⊨ [ T, i ] <: [ TAnd U T, j + i ].
+  Proof.
+    iIntros "H"; iApply (Sub_And with "[H//] []").
+    iApply iterate_Sub_Mono.
+  Qed.
+
+  Lemma selfIntersectLater Γ T U i:
+    Γ ⊨ [ T, i ] <: [ TLater U, i ] -∗
+    Γ ⊨ [ T, i ] <: [ TLater (TAnd T U), i ].
+  Proof.
+    iIntros "H"; iSimpl; setoid_rewrite Distr_TLater_And.
+    iApply (Sub_And with "[] H").
+    iApply (Sub_Trans _ _ T _ _ (S i)).
+    - by iApply Sub_Mono.
+    - by iApply Sub_Later.
+  Qed.
+
+  Lemma Distr_TLaterN_And T1 T2 j ρ v:
+    nclosed_vl v 0 →
+    ⟦ iterate TLater j (TAnd T1 T2) ⟧ ρ v ⊣⊢
+    ⟦ TAnd (iterate TLater j T1) (iterate TLater j T2) ⟧ ρ v.
+  Proof.
+    intro Hclv.
+    rewrite /= !iterate_TLater_later //=.
+    iSplit; iIntros "/= [??]"; iSplit; by [].
+  Qed.
+
+  Lemma sub_rewrite_2 Γ T U1 U2 i:
+    (∀ ρ v, nclosed_vl v 0 → ⟦ U1 ⟧ ρ v ⊣⊢ ⟦ U2 ⟧ ρ v) →
+    Γ ⊨ [ T, i ] <: [ U1, i ] ⊣⊢
+    Γ ⊨ [ T, i ] <: [ U2, i ].
+  Proof.
+    iIntros (Heq); iSplit; iIntros "/= #H !>" (ρ v Hcl) "#Hg #HT";
+      [rewrite -Heq //|rewrite Heq //]; by iApply "H".
+  Qed.
+
+  Lemma sub_rewrite_1 Γ T1 T2 U i:
+    (∀ ρ v, nclosed_vl v 0 → ⟦ T1 ⟧ ρ v ⊣⊢ ⟦ T2 ⟧ ρ v) →
+    Γ ⊨ [ T1, i ] <: [ U, i ] ⊣⊢
+    Γ ⊨ [ T2, i ] <: [ U, i ].
+  Proof.
+    iIntros (Heq); iSplit; iIntros "/= #H !>" (ρ v Hcl) "#Hg #HT";
+      [rewrite -Heq //|rewrite Heq //]; by iApply "H".
+  Qed.
+
+  Lemma eq_to_bisub Γ T1 T2 i:
+    (∀ ρ v, nclosed_vl v 0 → ⟦ T1 ⟧ ρ v ⊣⊢ ⟦ T2 ⟧ ρ v) → True ⊢
+    Γ ⊨ [ T1, i ] <: [ T2, i ] ∗
+    Γ ⊨ [ T2, i ] <: [ T1, i ].
+  Proof.
+    iIntros (Heq) "_"; iSplit; iIntros "/= !>" (ρ v Hcl) "#Hg #HT";
+      [rewrite -Heq //|rewrite Heq //]; by iApply "H".
+  Qed.
+
+  Lemma selfIntersectLaterN Γ T U i j:
+    Γ ⊨ [ T, i ] <: [ iterate TLater j U, i ] -∗
+    Γ ⊨ [ T, i ] <: [ iterate TLater j (TAnd T U), i ].
+  Proof.
+    iIntros "H".
+    setoid_rewrite (sub_rewrite_2 Γ T _ _ i (Distr_TLaterN_And T U j)).
+    iApply (Sub_And with "[] H").
+    iApply (Sub_Trans _ _ T _ _ (j + i)).
+    - by iApply iterate_Sub_Mono.
+    - by iApply iterate_Sub_Later.
+  Qed.
+  From D.Dot Require Import lr_lemma.
+  Lemma iterate_Later_Sub Γ T i j:
+    Γ ⊨ [iterate TLater j T, i] <: [T, i + j].
+  Proof.
+      iInduction j as [] "IHj" forall (T); rewrite ?plusnO ?iterate_Sr ?plusnS.
+    - iApply Sub_Refl.
+    - iApply Sub_Trans.
+      iApply ("IHj" $! (TLater T)).
+      iApply Later_Sub.
+  Qed.
+
+  (* The point is, ensuring this works with T being a singleton type :-) *)
+  Lemma dropLaters Γ e T U i:
+    Γ ⊨ e : T -∗ Γ ⊨ [T, 0] <: [iterate TLater i U, 0] -∗
+    Γ ⊨ iterate tskip i e : TAnd T U.
+  Proof.
+    iIntros "HeT Hsub".
+    iApply (T_Sub with "HeT [Hsub]").
+    iApply (Sub_Trans with "[-]").
+    - by iApply selfIntersectLaterN.
+    - iApply (iterate_Later_Sub _ _ 0 i).
+  Qed.
+
+  (* Exercise: do this with only *syntactic* typing rules. *)
 
   (** Core definitions for singleton types. ⟦ w.type ⟧ ρ v *)
   Definition sem_singleton w ρ v : iProp Σ := (⌜ w.[to_subst ρ] = v ∧ nclosed_vl v 0 ⌝)%I.
