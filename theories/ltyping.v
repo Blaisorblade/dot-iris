@@ -560,8 +560,6 @@ Proof.
   f_equiv; [| apply IHn; intros]; apply Heq => /=; lia.
 Qed.
 
-
-
 Lemma to_subst_compose σ σ':
   eq_n_s (to_subst σ.|[σ']) (to_subst σ >> σ') (length σ).
 Proof.
@@ -594,7 +592,6 @@ Lemma subst_compose_idsσ_x x n m ξ:
   length ξ = n →
   x.|[to_subst (idsσ n).|[to_subst ξ]] = x.|[to_subst (idsσ n)].|[to_subst ξ].
 Proof. intros; eauto. Qed.
-Hint Resolve @subst_compose_idsσ_x.
 
 (* Lemma nclosed_tskip_i e n i: *)
 (*   nclosed e n → *)
@@ -606,9 +603,13 @@ Hint Resolve @subst_compose_idsσ_x.
 (* Lemma tskip_subst i e s: (iterate tskip i e).|[s] = iterate tskip i e.|[s]. *)
 (* Proof. elim: i => [|i IHi]; by rewrite ?iterate_0 ?iterate_S //= IHi. Qed. *)
 End sort_lemmas.
+Hint Resolve nclosed_var_lt nclosed_vl_ids_0 nclosed_vl_ids_S nclosed_vl_ids.
+Hint Resolve nclosed_idsσ @subst_compose_x @subst_compose_idsσ_x.
 
 Section sort_lemmas_2.
   Context `{!Values vl} `{!Sort X}.
+  Implicit Types (v: vl) (vs: vls) (x: X).
+
   Lemma nclosed_σ_to_subst ξ σ n:
     nclosed_σ ξ (length σ) → nclosed_σ σ n →
     nclosed_σ (ξ.|[to_subst σ]) n.
@@ -616,8 +617,67 @@ Section sort_lemmas_2.
     intros.
     apply closed_vls_to_Forall, fv_to_subst => //. by apply Forall_to_closed_vls.
   Qed.
+
+  Definition nclosed_sub n m s :=
+    ∀ i, i < n → nclosed_vl (s i) m.
+  Definition nclosed_ren n m (r: var → var) := nclosed_sub n m (ren r).
+
+  Lemma compose_sub_closed s s1 s2 i j:
+    nclosed_sub i j s → eq_n_s s1 s2 j → eq_n_s (s >> s1) (s >> s2) i.
+  Proof. move => /= Hs Heqs x Hxi. exact: Hs. Qed.
+
+  Lemma nclosed_ren_shift n m j:
+    m >= j + n → nclosed_ren n m (+j).
+  Proof. move=>???/=; eauto with lia. Qed.
+  Hint Resolve nclosed_ren_shift.
+
+  Lemma nclosed_sub_vl v s i j:
+    nclosed_sub i j s →
+    nclosed_vl v i → nclosed_vl v.[s] j.
+  Proof. move => Hcls Hclv s1 s2 Heqs; asimpl. by eapply Hclv, compose_sub_closed. Qed.
+
+  Lemma nclosed_sub_x (x: X) s i j:
+    nclosed_sub i j s →
+    nclosed x i → nclosed x.|[s] j.
+  Proof. move => Hcls Hcla s1 s2 Heqs; asimpl. by eapply Hcla, compose_sub_closed. Qed.
+
+  Lemma nclosed_ren_vl v r i j:
+    nclosed_ren i j r →
+    nclosed_vl v i → nclosed_vl (rename r v) j.
+  Proof. (* asimpl. *)
+  rewrite rename_subst. exact: nclosed_sub_vl. Qed.
+
+  Lemma nclosed_sub_up i j s:
+    nclosed_sub i j s →
+    nclosed_sub (S i) (S j) (up s).
+  Proof.
+    move => //= Hs [|x] Hx; asimpl. eauto with lia.
+    asimpl; rewrite -rename_subst.
+    eapply nclosed_ren_vl; by eauto with lia.
+  Qed.
+  Hint Resolve nclosed_sub_up.
+
+  Lemma nclosed_ren_up n m r:
+    nclosed_ren n m r →
+    nclosed_ren (S n) (S m) (upren r).
+  Proof. move => //= Hr [|i] Hi; asimpl; eauto with lia. Qed.
+  Hint Resolve nclosed_ren_up.
+
+  Lemma nclosed_sub_inv_var n w i j k: j + k <= i →
+    nclosed_vl (ids n).[upn j (w .: ids) >> ren (+k)] i →
+    nclosed_vl (ids n) (S i).
+  Proof.
+    asimpl; rewrite /= !nclosed_vl_ids_equiv iter_up.
+    case: (lt_dec n j) => [?|Hge]; first lia.
+    case: (decide (n = j)) => [->|Hne]; first lia.
+    case (n - j) as [|nj] eqn:Hnj; first lia.
+    rewrite /= rename_subst !id_subst. (* asimpl loops *)
+    rewrite nclosed_vl_ids_equiv /=. lia.
+  Qed.
+
 End sort_lemmas_2.
-Hint Resolve nclosed_idsσ nclosed_σ_to_subst @subst_compose_x @subst_compose_idsσ_x.
+Hint Resolve nclosed_σ_to_subst.
+
 
 (* (** The following ones are "direct" lemmas: deduce that an expression is closed *)
 (*     by knowing that its subexpression are closed. *) *)
