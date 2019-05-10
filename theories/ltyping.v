@@ -214,9 +214,7 @@ Ltac solve_fv_congruence :=
 (** [Sort X → Sort (list X)]. *)
 Section sort_list.
   Context `{!Values vl} `{!Sort X}.
-
-  Implicit Types
-         (v: vl) (vs: vls) (x: X).
+  Implicit Types (v: vl) (vs: vls) (x: X).
 
   Global Instance list_hsubst `{HSubst vl X}: HSubst vl (list X) := λ sb xs, map (hsubst sb) xs.
   Global Arguments list_hsubst /.
@@ -411,6 +409,9 @@ Implicit Types
 
 Lemma lookup_success Γ x T: Γ !! x = Some T → x < length Γ.
 Proof. apply lookup_lt_Some. Qed.
+
+(* Lemma lookup_fv Γ x T: Γ !! x = Some T → nclosed (tv (var_vl x)) (length Γ). *)
+(* Proof. rewrite /nclosed /nclosed_vl => * /=; f_equiv; eauto using lookup_success. Qed. *)
 
 Lemma lookup_var Γ x T: Γ !! x = Some T → nclosed_vl (ids x) (length Γ).
 Proof. rewrite /nclosed /nclosed_vl => *; rewrite !id_subst. eauto using lookup_success. Qed.
