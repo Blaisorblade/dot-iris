@@ -236,29 +236,74 @@ Section sort_list.
   Proof. solve_fv_congruence. Qed.
 End sort_list.
 
-Section sort_list_pair.
-  Context `{!Values vl} `{!Sort X}.
+Section sort_pair_snd.
+  Context `{!Values vl} `{!Sort X} `{Inhabited A}.
+  Implicit Types (v: vl) (vs: vls) (x: X) (a: A).
 
-  Definition mapsnd {A} `(f: B → C) : A * B → A * C := λ '(a, b), (a, f b).
+  (** [Sort X → Sort (A, X)] *)
+  Definition mapsnd `(f: B → C) : A * B → A * C := λ '(a, b), (a, f b).
+  Global Instance pair_rename: Rename (A * X) :=
+    λ sb, mapsnd (rename sb).
+  Global Instance pair_hsubst: HSubst vl (A * X) :=
+    λ sb, mapsnd (hsubst sb).
+  Global Instance pair_ids: Ids (A * X) := λ n, (inhabitant, ids n).
+  Definition pair_rename_fold sb (ax: A * X): mapsnd (rename sb) ax = rename sb ax := eq_refl.
+  Definition pair_hsubst_fold sb (ax: A * X) : mapsnd (hsubst sb) ax = hsubst sb ax := eq_refl.
 
-  Global Instance list_pair_rename {A}: Rename (list (A * X)) :=
-    λ sb xs, map (mapsnd (rename sb)) xs.
-  Global Instance list_pair_hsubst {A} `{HSubst vl X}: HSubst vl (list (A * X)) :=
-    λ sb xs, map (mapsnd (hsubst sb)) xs.
+  Global Instance HSubstLemmas_pair: HSubstLemmas vl (A * X).
+  Proof.
+    split; trivial; intros; rewrite /hsubst /pair_hsubst /mapsnd /=;
+      repeat case_match; simplify_eq; asimpl; by [].
+  Qed.
+  Global Instance Sort_pair_snd: Sort (A * X).
+  Proof. esplit; apply _. Defined.
 
-  Definition list_pair_rename_fold {A} sb (xs: list (A * X)): map (mapsnd (rename sb)) xs = rename sb xs := eq_refl.
-  Definition list_pair_hsubst_fold {A} `{HSubst vl X} sb (xs : list (A * X)) : map (mapsnd (hsubst sb)) xs = hsubst sb xs := eq_refl.
+  Lemma fv_pair (a: A) (x: X) n: nclosed x n → nclosed (a, x) n.
+  Proof. solve_fv_congruence. Qed.
+End sort_pair_snd.
+Global Hint Rewrite @pair_rename_fold @pair_hsubst_fold : autosubst.
+Global Hint Rewrite @list_rename_fold @list_hsubst_fold : autosubst.
+Definition list_rename_fold2 `{!Inhabited A} `{Sort vl X} (sb : var → var) (xs : list X) : map (rename sb) xs = rename sb xs := eq_refl.
+Definition list_hsubst_fold2 `{!Inhabited A} `{Sort vl X} sb (xs : list X) : map (hsubst sb) xs = hsubst sb xs := eq_refl.
+Global Hint Rewrite @list_rename_fold2 @list_hsubst_fold2 : autosubst.
+
+Print Rewrite HintDb autosubst.
+About Sort.
+(* Global Instance Sort_list_pair_snd `{!Inhabited A} `{Sort vl X}: Sort (list (A * X)). apply _. Defined. *)
+Lemma fv_pair_cons `{!Inhabited A} `{Sort vl X} (a: A) (x: X) xs n: nclosed xs n → nclosed x n → nclosed ((a, x) :: xs) n.
+Proof.
+(* solve_fv_congruence. *)
+(* intros. move=>s1 s2 ?/=. f_equal; asimpl. f_equal. auto.
+change (map (hsubst s1) xs) with (hsubst s1 xs).
+change (map (hsubst s2) xs) with (hsubst s2 xs).
+rewrite (list_hsubst_fold2 s1 xs).
+About list_hsubst_fold.
+rewrite (list_hsubst_fold s1 xs). eapply H1. f_equal. auto. try by [idtac+asimpl; auto]. Print solve_fv_congruence. Qed. *)
+intros. by apply fv_cons, fv_pair. Qed.
+
+(* Print Sort_list_pair_snd. *)
+Section sort_list_pair_snd.
+  Context `{!Values vl} `{!Sort X} `{Inhabited A}.
+  Definition list_pair_rename_fold sb (xs: list (A * X)): map (mapsnd (rename sb)) xs = rename sb xs := eq_refl.
+  Definition list_pair_hsubst_fold sb (xs: list (A * X)) : map (mapsnd (hsubst sb)) xs = hsubst sb xs := eq_refl.
   Global Hint Rewrite @list_pair_rename_fold @list_pair_hsubst_fold : autosubst.
+  (* Lemma fv_pair_cons2 (a: A) (x: X) xs n: nclosed xs n → nclosed x n → nclosed ((a, x) :: xs) n.
+Proof.
+solve_fv_congruence. *)
 
-  Global Instance HSubstLemmas_list_pair {A}: HSubstLemmas vl (list (A * X)).
+
+(*
+  Global Arguments list_pair_hsubst /.
+
+  Global Instance HSubstLemmas_list_pair: HSubstLemmas vl (list (A * X)).
   Proof.
     split; trivial; intros; rewrite /hsubst /list_pair_hsubst;
-      elim: s => [|[l d] xs IHds] //; asimpl; by f_equal.
-  Qed.
-End sort_list_pair.
+      elim: s => [|[l d] xs IHds] //;
+      rewrite /= IHds; asimpl; by [].
+  Qed. *)
+End sort_list_pair_snd.
 
 Arguments vls_hsubst /.
-Arguments list_pair_hsubst /.
 
 (* TODO Next: provide instances, and move synLemmas in here. *)
 Section sort_lemmas.
