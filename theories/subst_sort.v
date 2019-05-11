@@ -53,7 +53,7 @@ Definition vls `{Values vl} := list vl.
 Definition eq_n_s `{Values vl} (s1 s2: var → vl) n := ∀ x, x < n → s1 x = s2 x.
 Global Arguments eq_n_s /.
 
-Section vls.
+Section vl1.
   (* Context {vl: valueT}. *)
   Context `{!Values vl}.
   Implicit Types (v: vl) (vs: vls).
@@ -122,87 +122,29 @@ Section vls.
     (* XXX Not needed in syn.v, as id_subst equality holds there definitionally: *)
     (* asimpl. *) rewrite !id_subst.
     apply HsEq. lia. Qed.
+
   Lemma eq_n_s_heads {n s1 s2}: eq_n_s s1 s2 n → n > 0 → shead s1 = shead s2.
   Proof. rewrite /shead => /= HsEq. apply HsEq. Qed.
 
   Lemma decomp_s_vl v s:
     v.[s] = v.[up (stail s)].[shead s/].
   Proof. by rewrite /stail /shead; asimpl. Qed.
-End vls.
 
-Print Rewrite HintDb autosubst. (* The hint has disappeared! *)
-Global Hint Rewrite @vls_subst_fold : autosubst.
-Global Hint Rewrite @to_subst_nil @to_subst_cons : autosubst.
-(* (* Print Rewrite HintDb autosubst. *) *)
-(* Section test. *)
-(*   (* Context {vl: valueT}. *) *)
-(*   Context `{!Values vl}. *)
-(*   (* Goal True. *) *)
-(*   (* Set Typeclasses Debug Verbosity 2. *) *)
-(*   (* Set Printing All. *) *)
-(*   (* About idsσ. *) *)
-(*   (* About hsubst. *) *)
-(*   (* About vls_hsubst. *) *)
-(*   (* About vls. *) *)
-(*   (* About vls_hsubst. *) *)
-(* (* Lemma length_idsσr n r: length (@hsubst vl _ _ (ren r) (@idsσ vl _ n) ) = n. *) *)
-(* Lemma length_idsσr n r: length (idsσ n).|[ren r] = n. *)
-(* Proof. *)
-(*   elim : n r => [r | n IHn r] => //. *)
-(*   (* Print HintDb typeclass_instances. *) *)
-(*   (* Set Typeclasses Debug Verbosity 2. *) *)
-(*   asimpl. by rewrite IHn. *)
-(* Qed. *)
-(* (* Lemma length_idsσr n r: length (@hsubst vl _ _ (ren r) (@idsσ vl Values0 n) ) = n. *) *)
-(* End test. *)
+  Notation cl_ρ ρ := (nclosed_σ ρ 0).
 
-Notation cl_ρ ρ := (nclosed_σ ρ 0).
+  Section sort.
+    Context `{!Sort X}.
 
-Section sort.
-  Context `{!Values vl} `{!Sort X}.
+    Implicit Types (x: X).
 
-  Implicit Types
-         (v: vl) (vs: vls) (x: X).
+    Definition nclosed x n :=
+      ∀ s1 s2, eq_n_s s1 s2 n → x.|[s1] = x.|[s2].
 
-  Definition nclosed x n :=
-    ∀ s1 s2, eq_n_s s1 s2 n → x.|[s1] = x.|[s2].
-
-  Lemma decomp_s x s:
-    x.|[s] = x.|[up (stail s)].|[shead s/].
-  Proof. rewrite /stail /shead. by asimpl. Qed.
-End sort.
-
-(** Rewrite thesis with equalities learned from injection, if possible *)
-Ltac rewritePremises := let H := fresh "H" in repeat (move => H; rewrite ?H {H}).
-
-(** Finally, a heuristic solver [solve_inv_fv_congruence] to be able to prove
-    such lemmas easily, both here and elsewhere. *)
-
-Ltac solve_inv_fv_congruence :=
-  let s1 := fresh "s1" in
-  let s2 := fresh "s2" in
-  let HsEq := fresh "HsEq" in
-  let Hfv := fresh "Hfv" in
-  rewrite /nclosed_vl /nclosed /= => Hfv s1 s2 HsEq;
-(* asimpl is expensive, but sometimes needed when simplification does mistakes.
-   It must also be done after injection because it might not rewrite under Hfv's
-   binders. *)
-  by [ injection (Hfv s1 s2); trivial; by (idtac + asimpl; rewritePremises; reflexivity) |
-       rewrite ?(decomp_s _ s1) ?(decomp_s _ s2) ?(decomp_s_vl _ s1) ?(decomp_s_vl _ s2) (eq_n_s_heads HsEq); last lia;
-       injection (Hfv _ _ (eq_n_s_tails HsEq)); by rewritePremises ].
-
-Ltac solve_inv_fv_congruence_h Hcl :=
-  move: Hcl; solve_inv_fv_congruence.
-
-Ltac solve_inv_fv_congruence_auto :=
-  match goal with
-  | Hcl: nclosed ?x ?n |- nclosed _ _ => solve_inv_fv_congruence_h Hcl
-  | Hcl: nclosed_vl ?v ?n |- nclosed _ _ => solve_inv_fv_congruence_h Hcl
-  | Hcl: nclosed ?x ?n |- nclosed_vl _ _ => solve_inv_fv_congruence_h Hcl
-  | Hcl: nclosed_vl ?v ?n |- nclosed_vl _ _ => solve_inv_fv_congruence_h Hcl
-  end.
-
-Hint Extern 10 => solve_inv_fv_congruence_auto: fv.
+    Lemma decomp_s x s:
+      x.|[s] = x.|[up (stail s)].|[shead s/].
+    Proof. rewrite /stail /shead. by asimpl. Qed.
+  End sort.
+End vl1.
 
 (* XXXX rewrite comment *)
 (** The following ones are "direct" lemmas: deduce that an expression is closed
@@ -211,10 +153,15 @@ Hint Extern 10 => solve_inv_fv_congruence_auto: fv.
 Ltac solve_fv_congruence :=
   rewrite /nclosed /nclosed_vl => * /=; repeat (f_equiv; try solve [(idtac + asimpl); auto using eq_up]).
 
+Section vl2.
+  (* Context {vl: valueT}. *)
+  Context `{!Values vl}.
+  Implicit Types (v: vl) (vs: vls).
+
 (** [Sort X → Sort (list X)]. *)
 Section sort_list.
-  Context `{!Values vl} `{!Sort X}.
-  Implicit Types (v: vl) (vs: vls) (x: X).
+  Context `{!Sort X}.
+  Implicit Types (x: X).
 
   Global Instance list_hsubst `{HSubst vl X}: HSubst vl (list X) := λ sb xs, map (hsubst sb) xs.
   Global Arguments list_hsubst /.
@@ -237,8 +184,8 @@ Section sort_list.
 End sort_list.
 
 Section sort_pair_snd.
-  Context `{!Values vl} `{!Sort X} `{Inhabited A}.
-  Implicit Types (v: vl) (vs: vls) (x: X) (a: A).
+  Context `{!Sort X} `{Inhabited A}.
+  Implicit Types (x: X) (a: A).
 
   (** [Sort X → Sort (A, X)] *)
   Definition mapsnd `(f: B → C) : A * B → A * C := λ '(a, b), (a, f b).
@@ -260,17 +207,22 @@ Section sort_pair_snd.
 
   Lemma fv_pair (a: A) (x: X) n: nclosed x n → nclosed (a, x) n.
   Proof. solve_fv_congruence. Qed.
+
+  Definition list_pair_rename_fold sb (xs: list (A * X)): map (mapsnd (rename sb)) xs = rename sb xs := eq_refl.
+  Definition list_pair_hsubst_fold sb (xs: list (A * X)): map (mapsnd (hsubst sb)) xs = hsubst sb xs := eq_refl.
 End sort_pair_snd.
+Instance foo `{!Inhabited A} `{!Sort X}: Sort (list (A * X)) := _.
+(* unshelve eapply (@Sort_list_sort (A * X) _). unshelve eapply Sort_pair_snd. apply _. *)
+(* Definition list_rename_fold2 (sb : var → var) (xs : list X) : map (rename sb) xs = rename sb xs := eq_refl.
+Definition list_hsubst_fold2 sb (xs : list X) : map (hsubst sb) xs = hsubst sb xs := eq_refl. *)
+
 Global Hint Rewrite @pair_rename_fold @pair_hsubst_fold : autosubst.
 Global Hint Rewrite @list_rename_fold @list_hsubst_fold : autosubst.
-Definition list_rename_fold2 `{!Inhabited A} `{Sort vl X} (sb : var → var) (xs : list X) : map (rename sb) xs = rename sb xs := eq_refl.
-Definition list_hsubst_fold2 `{!Inhabited A} `{Sort vl X} sb (xs : list X) : map (hsubst sb) xs = hsubst sb xs := eq_refl.
-Global Hint Rewrite @list_rename_fold2 @list_hsubst_fold2 : autosubst.
+(* Global Hint Rewrite @list_rename_fold2 @list_hsubst_fold2 : autosubst. *)
+Global Hint Rewrite @list_pair_rename_fold @list_pair_hsubst_fold : autosubst.
 
-Print Rewrite HintDb autosubst.
-About Sort.
 (* Global Instance Sort_list_pair_snd `{!Inhabited A} `{Sort vl X}: Sort (list (A * X)). apply _. Defined. *)
-Lemma fv_pair_cons `{!Inhabited A} `{Sort vl X} (a: A) (x: X) xs n: nclosed xs n → nclosed x n → nclosed ((a, x) :: xs) n.
+Lemma fv_pair_cons `{!Inhabited A} `{!Sort X} (a: A) (x: X) xs n: nclosed xs n → nclosed x n → nclosed ((a, x) :: xs) n.
 Proof.
 (* solve_fv_congruence. *)
 (* intros. move=>s1 s2 ?/=. f_equal; asimpl. f_equal. auto.
@@ -283,10 +235,7 @@ intros. by apply fv_cons, fv_pair. Qed.
 
 (* Print Sort_list_pair_snd. *)
 Section sort_list_pair_snd.
-  Context `{!Values vl} `{!Sort X} `{Inhabited A}.
-  Definition list_pair_rename_fold sb (xs: list (A * X)): map (mapsnd (rename sb)) xs = rename sb xs := eq_refl.
-  Definition list_pair_hsubst_fold sb (xs: list (A * X)) : map (mapsnd (hsubst sb)) xs = hsubst sb xs := eq_refl.
-  Global Hint Rewrite @list_pair_rename_fold @list_pair_hsubst_fold : autosubst.
+  Context `{!Sort X} `{Inhabited A}.
   (* Lemma fv_pair_cons2 (a: A) (x: X) xs n: nclosed xs n → nclosed x n → nclosed ((a, x) :: xs) n.
 Proof.
 solve_fv_congruence. *)
@@ -676,4 +625,47 @@ Section sort_lemmas_2.
   Qed.
 
 End sort_lemmas_2.
+
+End vl2.
+Global Hint Rewrite @vls_subst_fold : autosubst.
+Global Hint Rewrite @to_subst_nil @to_subst_cons : autosubst.
+
+Global Hint Rewrite @pair_rename_fold @pair_hsubst_fold : autosubst.
+Global Hint Rewrite @list_rename_fold @list_hsubst_fold : autosubst.
+(* Global Hint Rewrite @list_rename_fold2 @list_hsubst_fold2 : autosubst. *)
+Global Hint Rewrite @list_pair_rename_fold @list_pair_hsubst_fold : autosubst.
+
+
 Hint Resolve nclosed_σ_to_subst.
+
+(** Rewrite thesis with equalities learned from injection, if possible *)
+Ltac rewritePremises := let H := fresh "H" in repeat (move => H; rewrite ?H {H}).
+
+(** Finally, a heuristic solver [solve_inv_fv_congruence] to be able to prove
+    such lemmas easily, both here and elsewhere. *)
+
+Ltac solve_inv_fv_congruence :=
+  let s1 := fresh "s1" in
+  let s2 := fresh "s2" in
+  let HsEq := fresh "HsEq" in
+  let Hfv := fresh "Hfv" in
+  rewrite /nclosed_vl /nclosed /= => Hfv s1 s2 HsEq;
+(* asimpl is expensive, but sometimes needed when simplification does mistakes.
+   It must also be done after injection because it might not rewrite under Hfv's
+   binders. *)
+  by [ injection (Hfv s1 s2); trivial; by (idtac + asimpl; rewritePremises; reflexivity) |
+       rewrite ?(decomp_s _ s1) ?(decomp_s _ s2) ?(decomp_s_vl _ s1) ?(decomp_s_vl _ s2) (eq_n_s_heads HsEq); last lia;
+       injection (Hfv _ _ (eq_n_s_tails HsEq)); by rewritePremises ].
+
+Ltac solve_inv_fv_congruence_h Hcl :=
+  move: Hcl; solve_inv_fv_congruence.
+
+Ltac solve_inv_fv_congruence_auto :=
+  match goal with
+  | Hcl: nclosed ?x ?n |- nclosed _ _ => solve_inv_fv_congruence_h Hcl
+  | Hcl: nclosed_vl ?v ?n |- nclosed _ _ => solve_inv_fv_congruence_h Hcl
+  | Hcl: nclosed ?x ?n |- nclosed_vl _ _ => solve_inv_fv_congruence_h Hcl
+  | Hcl: nclosed_vl ?v ?n |- nclosed_vl _ _ => solve_inv_fv_congruence_h Hcl
+  end.
+
+Hint Extern 10 => solve_inv_fv_congruence_auto: fv.
