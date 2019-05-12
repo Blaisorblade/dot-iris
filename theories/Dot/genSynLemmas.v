@@ -138,10 +138,10 @@ Lemma fv_to_subst_vl' v σ v' n:
   nclosed_vl v' n.
 Proof. intros; subst. by apply fv_to_subst_vl. Qed.
 
-Lemma nclosed_var_lt i n: nclosed_vl (var_vl i) n -> i < n.
+Lemma nclosed_var_lt i n: nclosed_vl (ids i) n -> i < n.
 Proof.
   rewrite /nclosed_vl /= => Heq.
-  set s0 := fun k x => if (decide (x < n)) then var_vl 0 else var_vl k.
+  set s0 := fun k x => if (decide (x < n)) then ids 0 else ids k: vl.
   set s1 := s0 1; set s2 := s0 2. subst s0.
   have Heqs: eq_n_s s1 s2 n. by subst s1 s2; move=> ??; case_decide.
   specialize (Heq s1 s2 Heqs); move: Heq {Heqs}; subst s1 s2 => /=. by case_decide.
@@ -264,3 +264,16 @@ Proof.
   apply closed_vls_to_Forall, fv_to_subst => //. by apply Forall_to_closed_vls.
 Qed.
 Hint Resolve nclosed_σ_to_subst.
+
+Lemma lookup_ids_fv {X} {Γ: list X} {x} {T: X}: Γ !! x = Some T → nclosed_vl (ids x) (length Γ).
+Proof. move=> ????/=; eauto using lookup_lt_Some. Qed.
+
+Lemma nclosed_subst `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A) v n:
+  nclosed a (S n) →
+  nclosed_vl v n →
+  nclosed a.|[v/] n.
+Proof.
+  move => Hclt1 Hclv ?? HsEq /=; asimpl.
+  apply Hclt1.
+  move => [|x] Hxn //=; auto with lia.
+Qed.

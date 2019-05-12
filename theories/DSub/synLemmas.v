@@ -11,12 +11,6 @@ Implicit Types
          (L T U: ty) (v: vl) (e: tm)
          (Γ : ctx) (ρ : vls).
 
-Lemma lookup_success Γ x T: Γ !! x = Some T → x < length Γ.
-Proof. apply lookup_lt_Some. Qed.
-
-Lemma lookup_fv Γ x T: Γ !! x = Some T → nclosed (tv (var_vl x)) (length Γ).
-Proof. rewrite /nclosed /nclosed_vl => * /=; f_equiv; eauto using lookup_success. Qed.
-
 (** The following ones are "direct" lemmas: deduce that an expression is closed
     by knowing that its subexpression are closed. *)
 
@@ -99,3 +93,6 @@ Qed.
 
 Lemma tskip_subst i e s: (iterate tskip i e).|[s] = iterate tskip i e.|[s].
 Proof. elim: i => [|i IHi]; by rewrite ?iterate_0 ?iterate_S //= IHi. Qed.
+
+Lemma lookup_fv Γ x T: Γ !! x = Some T → nclosed (tv (ids x)) (length Γ).
+Proof. move =>/lookup_ids_fv /fv_tv //. Qed.
