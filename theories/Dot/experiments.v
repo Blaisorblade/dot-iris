@@ -17,8 +17,8 @@ Record olty Σ := Olty {
   olty_persistent ρ v : Persistent (olty_car ρ v)
 }.
 Arguments Olty {_} _%I {_}.
-Arguments olty_car {_} _ _ _: simpl never.
-(* Arguments olty_car {_} _ _ _ /. *) (* TODO *)
+(* Arguments olty_car {_} _ _ _: simpl never. *)
+Arguments olty_car {_} _ _ _ /. (* TODO *)
 Bind Scope olty_scope with olty.
 Delimit Scope olty_scope with T.
 Existing Instance olty_persistent.
