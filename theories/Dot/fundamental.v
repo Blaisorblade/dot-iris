@@ -76,6 +76,21 @@ Section swap_based_typing_lemmas.
     - iApply "IHT1". by iApply "HφU".
   Qed.
 
+  Lemma Sub_TVMem_Variant' T1 T2 i j l:
+    Γ ⊨ [T1, S i] <: [T2, S (j + i)] -∗
+    Γ ⊨ [TVMem l T1, i] <: [TVMem l T2, j + i].
+  Proof.
+    iIntros "#IHT /= !>" (ρ v Hcl) "#Hg #[_ HT1]". iFrame "%". rewrite laterN_plus.
+    iDestruct "HT1" as (d) "#[Hdl [Hcld #HT1]]".
+    iExists d; repeat iSplit => //.
+    iDestruct "HT1" as (vmem) "[Heq HvT1]".
+    iExists vmem; repeat iSplit => //.
+    rewrite !swap_later -laterN_plus.
+    iApply (strip_pure_laterN_wand (S (j + i)) (nclosed_vl vmem 0)).
+    - iIntros. by iApply "IHT".
+    - rewrite laterN_plus -!swap_later. by iApply interp_v_closed.
+  Qed.
+
   Lemma Sub_TVMem_Variant T1 T2 i l:
     Γ ⊨ [T1, S i] <: [T2, S i] -∗
     Γ ⊨ [TVMem l T1, i] <: [TVMem l T2, i].
