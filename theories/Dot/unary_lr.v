@@ -38,7 +38,7 @@ Section logrel.
 
   Definition idm_proj_semtype d φ : iProp Σ :=
     (∃ s σ interp, ⌜ d = dtysem σ s ∧ φ = interp σ ⌝ ∗ s ↝ interp)%I.
-  Global Arguments idm_proj_semtype /.
+  Global Arguments idm_proj_semtype: simpl never.
   Notation "d ↗ φ" := (idm_proj_semtype d φ) (at level 20).
 
   Lemma stored_pred_agree d φ1 φ2 v :
