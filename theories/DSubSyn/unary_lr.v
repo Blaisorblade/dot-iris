@@ -1,5 +1,5 @@
 From iris.proofmode Require Import tactics.
-From D Require Export tactics.
+From D Require Export tactics iris_prelude.
 From D.DSub Require Export operational.
 
 (** Deduce types from variable names, like on paper, for readability and to help
@@ -7,17 +7,6 @@ From D.DSub Require Export operational.
 Implicit Types
          (L T U: ty) (v: vl) (e: tm)
          (Γ : ctx) (ρ : vls).
-
-(** An ad-hoc variant of solve_proper that seems to work better when defining
-      proper higher-order functions. In particular, using intro allows showing that a
-      lambda abstraction is proper if its body is proper.
-      Its implementation can also prove [f1 x ≡ f2 x] from [H : f1 ≡ f2]:
-      neither f_equiv nor rewrite deal with that, but [apply H] does. *)
-Ltac solve_proper_ho_core tac :=
-  solve [repeat intro; cbn; repeat tac (); cbn in *;
-  repeat match goal with H : _ ≡{_}≡ _|- _ => apply H end].
-Ltac solve_proper_ho := solve_proper_ho_core ltac:(fun _ => f_equiv).
-Ltac solve_contractive_ho := solve_proper_ho_core ltac:(fun _ => f_contractive || f_equiv).
 
 (** The logical relation core is the [interp], interprets *open* types into
     predicates over *closed* values. Hence, [interp T ρ v] uses its argument [ρ]
