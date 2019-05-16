@@ -5,7 +5,15 @@ From iris.base_logic Require Import invariants.
 From Autosubst Require Export Autosubst.
 Import uPred.
 
-Canonical Structure varC := leibnizC var.
+Definition stamp := positive.
+
+(* Now type inference solves HSubst vl ? by infering HSubst vl ty infers unspecified asts to be [path]s. *)
+(* Goal ∀ s x, x.|[s] = x. *)
+(* Abort. *)
+Hint Mode HSubst - + : typeclass_instances.
+(* That Hint stops that. *)
+(* Fail Goal ∀ s x, x.|[s] = x. *)
+(* Goal ∀ s (x: ty) , x.|[s] = x. Abort. *)
 
 Section Autosubst_Lemmas.
   Context {term : Type} {Ids_term : Ids term}
