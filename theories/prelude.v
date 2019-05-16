@@ -1,9 +1,6 @@
+(* Base Coq settings (ssreflect and setup): *)
 From iris.algebra Require Export base.
-From iris.base_logic Require Import upred.
-From D.pure_program_logic Require Export weakestpre.
-From iris.base_logic Require Import invariants.
 From Autosubst Require Export Autosubst.
-Import uPred.
 
 Definition stamp := positive.
 
@@ -50,67 +47,4 @@ Hint Constructors ForallT.
 Lemma ForallT_Forall {X} (P: X → Prop) xs: (ForallT P xs -> Forall P xs) * (Forall P xs -> ForallT P xs).
 Proof.
   split; (elim: xs => [|x xs IHxs] H; constructor; [|apply IHxs]; by inversion H).
-Qed.
-
-Ltac properness :=
-  repeat match goal with
-  | |- (∃ _: _, _)%I ≡ (∃ _: _, _)%I => apply bi.exist_proper =>?
-  | |- (∀ _: _, _)%I ≡ (∀ _: _, _)%I => apply bi.forall_proper =>?
-  | |- (_ ∧ _)%I ≡ (_ ∧ _)%I => apply bi.and_proper
-  | |- (_ ∨ _)%I ≡ (_ ∨ _)%I => apply bi.or_proper
-  | |- (_ → _)%I ≡ (_ → _)%I => apply bi.impl_proper
-  | |- (_ -∗ _)%I ≡ (_ -∗ _)%I => apply bi.wand_proper
-  | |- (WP _ {{ _ }})%I ≡ (WP _ {{ _ }})%I => apply wp_proper =>?
-  | |- (▷ _)%I ≡ (▷ _)%I => apply bi.later_proper
-  | |- (□ _)%I ≡ (□ _)%I => apply bi.intuitionistically_proper
-  | |- (_ ∗ _)%I ≡ (_ ∗ _)%I => apply bi.sep_proper
-  | |- (inv _ _)%I ≡ (inv _ _)%I => apply (contractive_proper _)
-  end.
-
-Ltac solve_proper_alt :=
-  repeat intro; (simpl + idtac);
-  by repeat match goal with H : _ ≡{_}≡ _|- _ => rewrite H end.
-
-(* Reserved Notation "⟦ τ ⟧" (at level 0, τ at level 70). *)
-(* Reserved Notation "⟦ τ ⟧ₑ" (at level 0, τ at level 70). *)
-(* Reserved Notation "⟦ Γ ⟧*" (at level 0, Γ at level 70). *)
-
-Lemma list_cons_inv (A : Type) (x x' : A) (l l' : list A) :
-  x :: l = x' :: l' → x = x' ∧ l = l'.
-Proof. inversion 1; subst; tauto. Qed.
-
-Lemma list_app_increasing_base (A : Type) (ll l lr : list A) :
-  l = ll ++ l ++ lr → ll = [] ∧ lr = [].
-Proof.
-  revert ll lr.
-  induction l => ll lr Heq; simpl in *.
-  - by apply app_eq_nil.
-  - destruct ll as [|b ll]; first destruct lr; first done; simpl in *.
-    + apply list_cons_inv in Heq; destruct Heq as [_ Heq].
-      by apply (IHl []) in Heq.
-    + apply list_cons_inv in Heq; destruct Heq as [? Heq]; subst.
-      change (b :: l ++ lr) with ([b] ++ l ++ lr) in Heq.
-      rewrite app_assoc in Heq.
-      apply IHl in Heq; destruct Heq as [Heq _].
-      exfalso; eapply app_cons_not_nil; eauto.
-Qed.
-
-Lemma list_app_increasing (A : Type) (l1 l2 l1' l2' : list A) :
-  l1 = l2 ++ l2' → l2 = l1 ++ l1' → l1 = l2.
-Proof.
-  intros Heq1 Heq2.
-  pose proof Heq1 as Heq1'; rewrite Heq2 -assoc in Heq1'.
-  apply (list_app_increasing_base _ []) in Heq1'; destruct Heq1' as [_ Heq1'].
-  apply app_eq_nil in Heq1'; intuition subst; eauto using app_nil_r.
-Qed.
-
-Lemma list_app_increasing' (A : Type) (l1 l2 l1' l2' : list A) :
-  l1 = l2' ++ l2 → l2 = l1' ++ l1 → l1 = l2.
-Proof.
-  intros Heq1 Heq2.
-  pose proof Heq1 as Heq1';
-    rewrite Heq2 assoc -(app_nil_r ((l2' ++ l1') ++ l1)) -assoc in Heq1'.
-  eapply (list_app_increasing_base _ _ _ []) in Heq1'.
-  destruct Heq1' as [Heq1' _].
-  apply app_eq_nil in Heq1'; intuition subst; auto.
 Qed.
