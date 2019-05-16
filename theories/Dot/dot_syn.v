@@ -1,24 +1,24 @@
 From stdpp Require Import strings.
-From D Require Export prelude tactics.
+From D Require Export prelude tactics asubst_base.
 
 Definition label := string.
 
 Inductive tm : Type :=
-  | tv : vl -> tm
+  | tv : vl_ -> tm
   | tapp : tm -> tm -> tm
   | tproj : tm -> label -> tm
   | tskip : tm -> tm
- with vl : Type :=
-  | var_vl : var -> vl
-  | vnat : nat -> vl
-  | vabs : tm -> vl
-  | vobj : list (label * dm) -> vl
+ with vl_ : Type :=
+  | var_vl : var -> vl_
+  | vnat : nat -> vl_
+  | vabs : tm -> vl_
+  | vobj : list (label * dm) -> vl_
  with dm : Type :=
   | dtysyn : ty -> dm
-  | dtysem : list vl -> stamp -> dm
-  | dvl : vl -> dm
+  | dtysem : list vl_ -> stamp -> dm
+  | dvl : vl_ -> dm
  with path : Type :=
-  | pv : vl -> path
+  | pv : vl_ -> path
   | pself : path -> label -> path
  with ty : Type :=
   | TTop : ty
@@ -32,6 +32,8 @@ Inductive tm : Type :=
   | TTMem : label -> ty -> ty -> ty
   | TSel : path -> label -> ty
   | TNat : ty.
+
+Definition vl := vl_.
 
 Definition vls := list vl.
 Definition dms := list (label * dm).
@@ -476,3 +478,10 @@ Instance hsubst_lemmas_ctx : HSubstLemmas vl ctx := _.
 Instance inh_string: Inhabited string := populate "".
 Instance inh_label: Inhabited label := _.
 Instance hsubst_lemmas_dms : HSubstLemmas vl dms := _.
+
+Include Sorts.
+
+Instance sort_tm: Sort tm := {}.
+Instance sort_dm: Sort dm := {}.
+Instance sort_path: Sort path := {}.
+Instance sort_ty: Sort ty := {}.

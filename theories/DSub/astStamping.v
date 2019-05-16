@@ -128,7 +128,7 @@ Lemma stamps_unstamp_mono_ty T__s g1 g2 n T__u : g1 ⊆ g2 →
 Proof. unmut_lemma stamps_unstamp_mono_mut. Qed.
 
 Ltac pick_lemma lty ltm lvl trm tac :=
-  let L := match type of trm with | ty => lty | tm => ltm | vl => lvl end
+  let L := match type of trm with | ty => lty | tm => ltm | vl_ => lvl end
   in tac L.
 Ltac pick_stamps_unstamp_mono :=
   pick_lemma constr:(stamps_unstamp_mono_ty) constr:(stamps_unstamp_mono_tm) constr:(stamps_unstamp_mono_vl).

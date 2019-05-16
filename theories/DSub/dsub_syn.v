@@ -1,15 +1,15 @@
-From D Require Export prelude tactics.
+From D Require Export prelude tactics asubst_base.
 
 Inductive tm : Type :=
-  | tv : vl -> tm
+  | tv : vl_ -> tm
   | tapp : tm -> tm -> tm
   | tskip : tm -> tm
- with vl : Type :=
-  | var_vl : var -> vl
-  | vnat : nat -> vl
-  | vabs : tm -> vl
-  | vty : ty -> vl
-  | vstamp: list vl -> stamp -> vl
+ with vl_ : Type :=
+  | var_vl : var -> vl_
+  | vnat : nat -> vl_
+  | vabs : tm -> vl_
+  | vty : ty -> vl_
+  | vstamp: list vl_ -> stamp -> vl_
  with ty : Type :=
   | TTop : ty
   | TBot : ty
@@ -19,8 +19,10 @@ Inductive tm : Type :=
   | TAll : ty -> ty -> ty
   (* | TMu : ty -> ty *)
   | TTMem : ty -> ty -> ty
-  | TSel : vl -> ty
+  | TSel : vl_ -> ty
   | TNat : ty.
+
+Definition vl := vl_.
 
 (** Induction principles for syntax. *)
 
@@ -315,3 +317,8 @@ Proof.
 Qed.
 
 Instance hsubst_lemmas_ctx : HSubstLemmas vl ctx := _.
+
+Include Sorts.
+
+Instance sort_tm: Sort tm := {}.
+Instance sort_ty: Sort ty := {}.

@@ -4,6 +4,7 @@
 theories/tactics.v
 theories/prelude.v
 theories/iris_prelude.v
+theories/asubst_base.v
 theories/locAsimpl.v
 theories/gen_iheap.v
 theories/saved_interp.v
