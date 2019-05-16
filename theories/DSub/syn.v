@@ -553,7 +553,7 @@ Section syntax_mut_ind_closed.
     in
       match goal with
       (* Warning: add other arities as needed. *)
-      | Hstep: context [?P (?c _ _ _) _] |- ?P (?c ?a1 ?a2 ?a3) _ => byEapply Hstep (Hstep n a1 a2 a3)
+      | Hstep: context [?P (?c _ _ _) _] |- ?P (?c ?a1 ?a2 ?a3) _ => byEapply (Hstep n a1 a2 a3)
       | Hstep: context [?P (?c _ _) _] |- ?P (?c ?a1 ?a2) _ => byEapply (Hstep n a1 a2)
       | Hstep: context [?P (?c _) _] |- ?P (?c ?a1) _ => byEapply (Hstep n a1)
       | Hstep: context [?P (?c) _] |- ?P (?c) _ => byEapply (Hstep n)
