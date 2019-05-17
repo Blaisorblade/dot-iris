@@ -3,6 +3,8 @@ From iris.algebra Require Export base.
 From Autosubst Require Export Autosubst.
 
 Definition stamp := positive.
+Definition inh_ids `{Inhabited X}: Ids X := λ _, inhabitant.
+Instance ids_list {A}: Ids (list A) := inh_ids.
 
 (* Now type inference solves HSubst vl ? by infering HSubst vl ty infers unspecified asts to be [path]s. *)
 (* Goal ∀ s x, x.|[s] = x. *)
