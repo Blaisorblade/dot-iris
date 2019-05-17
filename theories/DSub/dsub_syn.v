@@ -134,8 +134,10 @@ Instance inh_ty : Inhabited ty := populate TNat.
 Instance inh_vl : Inhabited vl := populate (vnat 0).
 Instance inh_tm : Inhabited tm := populate (tv inhabitant).
 
-Instance ids_vl : Ids vl.
-Proof. by constructor. Defined.
+Instance ids_vl : Ids vl := var_vl.
+
+Instance inj_ids : Inj (=) (=@{vl}) ids.
+Proof. by move=>??[]. Qed.
 
 Instance ids_tm : Ids tm := inh_ids.
 Instance ids_ty : Ids ty := inh_ids.
