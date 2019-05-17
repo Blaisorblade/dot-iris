@@ -65,8 +65,8 @@ Section logrel_binding_lemmas.
     elim: ρ τ => /= [|w ρ IHρ] τ Hwρcl; asimpl; first by [].
     assert (nclosed_vl w 0 /\ Forall (λ v, nclosed_vl v 0) ρ) as [Hwcl Hρcl]. by inversion Hwρcl.
     specialize (IHρ (τ.|[w/]) Hρcl).
-    asimpl in IHρ. move: IHρ. rewrite closed_subst_vl_id// => IHρ.
-    rewrite IHρ -interp_subst closed_subst_vl_id //.
+    asimpl in IHρ. move: IHρ.
+    by rewrite -interp_subst !closed_subst_vl_id.
   Qed.
 
   Lemma to_subst_interp T ρ v w: cl_ρ ρ → nclosed_vl v (length ρ) →
