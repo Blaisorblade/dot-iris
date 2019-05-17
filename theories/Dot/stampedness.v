@@ -135,10 +135,9 @@ Lemma is_stamped_dtysem_mono g1 g2 n s vs:
   is_stamped_dm n g2 (dtysem vs s).
 Proof. apply is_stamped_mono_dm. Qed.
 
-Lemma swap_snd_list_pair_rename r ds: map snd (list_pair_rename r ds) = map (rename r) (map snd ds).
+Lemma list_pair_swap_snd_rename r ds: map snd (rename r ds) = map (rename r) (map snd ds).
 Proof.
-  rewrite /list_pair_rename /mapsnd !map_map /=.
-  elim: ds => [| [a b] ds IHds] //=; by f_equal.
+  rewrite !map_map; elim: ds => [//| [a b] ds IHds /=]. by f_equal.
 Qed.
 
 Definition is_stamped_sub n m g s :=
@@ -193,7 +192,7 @@ Proof.
   apply syntax_mut_ind; intros; with_is_stamped ltac:(fun H => inversion_clear H);
     cbn in *; try by [constructor; cbn; eauto].
   - eauto.
-  - constructor; rewrite swap_snd_list_pair_rename Forall_fmap;
+  - constructor; rewrite list_pair_swap_snd_rename Forall_fmap;
       by decompose_Forall; eauto.
   - constructor. rewrite /= /rename /list_rename map_length /=.
     by ev; eexists; split_and!.
