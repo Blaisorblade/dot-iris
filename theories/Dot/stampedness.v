@@ -135,11 +135,6 @@ Lemma is_stamped_dtysem_mono g1 g2 n s vs:
   is_stamped_dm n g2 (dtysem vs s).
 Proof. apply is_stamped_mono_dm. Qed.
 
-Lemma list_pair_swap_snd_rename r ds: map snd (rename r ds) = map (rename r) (map snd ds).
-Proof.
-  rewrite !map_map; elim: ds => [//| [a b] ds IHds /=]. by f_equal.
-Qed.
-
 Definition is_stamped_sub n m g s :=
   ∀ i, i < n → is_stamped_vl m g (s i).
 Definition is_stamped_ren n m g r := is_stamped_sub n m g (ren r).

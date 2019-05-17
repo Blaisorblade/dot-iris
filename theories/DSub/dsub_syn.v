@@ -144,9 +144,6 @@ Instance ids_ty : Ids ty := inh_ids.
 Instance ids_vls : Ids vls := _.
 Instance ids_ctx : Ids ctx := _.
 
-Instance list_rename `{Rename X} : Rename (list X) :=
-  λ (sb : var → var) xs, map (rename sb) xs.
-
 Fixpoint tm_rename (sb : var → var) (e : tm) {struct e} : tm :=
   let a := tm_rename : Rename tm in
   let b := vl_rename : Rename vl in
@@ -188,17 +185,6 @@ Instance rename_tm : Rename tm := tm_rename.
 Instance rename_vl : Rename vl := vl_rename.
 Instance rename_ty : Rename ty := ty_rename.
 
-Definition list_rename_fold `{Rename X} (sb : var → var) (xs : list X) : map (rename sb) xs = rename sb xs := eq_refl.
-
-Definition vls_rename_fold: ∀ sb vs, map (rename sb) vs = rename sb vs := list_rename_fold.
-
-Hint Rewrite @list_rename_fold : autosubst.
-
-Instance vls_hsubst `{Subst vl} : HSubst vl vls :=
-  λ (sb : var → vl) (vs : vls), map (subst sb) vs.
-
-Instance list_hsubst `{HSubst vl X}: HSubst vl (list X) := λ sb xs, map (hsubst sb) xs.
-
 Fixpoint tm_hsubst (sb : var → vl) (e : tm) : tm :=
   let a := tm_hsubst : HSubst vl tm in
   let b := vl_subst : Subst vl in
@@ -239,15 +225,6 @@ ty_hsubst (sb : var → vl) (T : ty) : ty :=
 Instance subst_vl : Subst vl := vl_subst.
 Instance hsubst_tm : HSubst vl tm := tm_hsubst.
 Instance hsubst_ty : HSubst vl ty := ty_hsubst.
-
-
-Definition vls_subst_fold (sb : var → vl) (vs : vls) : map (subst sb) vs = hsubst sb vs := eq_refl.
-Definition list_hsubst_fold `{HSubst vl X} sb (xs : list X) : map (hsubst sb) xs = hsubst sb xs := eq_refl.
-
-Hint Rewrite vls_subst_fold @list_hsubst_fold : autosubst.
-
-Arguments vls_hsubst /.
-Arguments list_hsubst /.
 
 Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
 with
@@ -335,18 +312,6 @@ Qed.
 Instance hsubst_lemmas_ty : HSubstLemmas vl ty.
 Proof.
   split; auto using ty_ids_Lemma, ty_comp_Lemma.
-Qed.
-
-Instance hsubst_lemmas_vls : HSubstLemmas vl vls.
-Proof.
-  split; trivial; intros; rewrite /hsubst;
-    induction s; asimpl; by f_equal.
-Qed.
-
-Instance hsubst_lemmas_list `{Ids X} `{HSubst vl X} {hsl: HSubstLemmas vl X}: HSubstLemmas vl (list X).
-Proof.
-  split; trivial; intros; rewrite /hsubst;
-    induction s; asimpl; by f_equal.
 Qed.
 
 Instance hsubst_lemmas_ctx : HSubstLemmas vl ctx := _.
