@@ -335,7 +335,7 @@ Section Sec.
     iSpecialize ("HeT" $! (v :: ρ)).
     (* time locAsimpl. (* 10x faster than asimpl. *) *)
     (* 20x faster than asimpl. *)
-    time (locAsimpl' (e.|[up (to_subst ρ)].|[v/]); locAsimpl' (e.|[to_subst (v :: ρ)])).
+    locAsimpl' (e.|[up (to_subst ρ)].|[v/]); locAsimpl' (e.|[to_subst (v :: ρ)]).
     iApply "HeT". iFrame "HG". by iApply interp_weaken_one.
   Qed.
 
