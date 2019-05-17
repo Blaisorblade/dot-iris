@@ -13,9 +13,9 @@ Hint Mode HSubst - + : typeclass_instances.
 (* Goal ∀ s (x: ty) , x.|[s] = x. Abort. *)
 
 Section Autosubst_Lemmas.
-  Context {term : Type} {Ids_term : Ids term}
-          {Rename_term : Rename term} {Subst_term : Subst term}
-          {SubstLemmas_term : SubstLemmas term}.
+  Context {term : Type} {ids_term : Ids term}
+          {rename_term : Rename term} {subst_term : Subst term}
+          {subst_lemmas_term : SubstLemmas term}.
 
   Lemma iter_up (m x : nat) (f : var → term) :
     upn m f x = if lt_dec x m then ids x else rename (+m) (f (x - m)).

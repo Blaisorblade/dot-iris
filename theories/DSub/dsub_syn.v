@@ -130,18 +130,18 @@ Implicit Types
          (L T U: ty) (v: vl) (e: tm)
          (Γ : ctx).
 
-Instance Inh_ty : Inhabited ty := populate TNat.
-Instance Inh_vl : Inhabited vl := populate (vnat 0).
-Instance Inh_tm : Inhabited tm := populate (tv inhabitant).
+Instance inh_ty : Inhabited ty := populate TNat.
+Instance inh_vl : Inhabited vl := populate (vnat 0).
+Instance inh_tm : Inhabited tm := populate (tv inhabitant).
 
-Instance Ids_vl : Ids vl.
+Instance ids_vl : Ids vl.
 Proof. by constructor. Defined.
 
-Instance Ids_tm : Ids tm := λ _, inhabitant.
-Instance Ids_ty : Ids ty := λ _, inhabitant.
-Instance Ids_list {A}: Ids (list A) := λ _, inhabitant.
-Instance Ids_vls : Ids vls := _.
-Instance Ids_ctx : Ids ctx := _.
+Instance ids_tm : Ids tm := λ _, inhabitant.
+Instance ids_ty : Ids ty := λ _, inhabitant.
+Instance ids_list {A}: Ids (list A) := λ _, inhabitant.
+Instance ids_vls : Ids vls := _.
+Instance ids_ctx : Ids ctx := _.
 
 Instance list_rename `{Rename X} : Rename (list X) :=
   λ (sb : var → var) xs, map (rename sb) xs.
@@ -183,9 +183,9 @@ ty_rename (sb : var → var) (T : ty) {struct T}: ty :=
   | TNat => TNat
   end.
 
-Instance Rename_tm : Rename tm := tm_rename.
-Instance Rename_vl : Rename vl := vl_rename.
-Instance Rename_ty : Rename ty := ty_rename.
+Instance rename_tm : Rename tm := tm_rename.
+Instance rename_vl : Rename vl := vl_rename.
+Instance rename_ty : Rename ty := ty_rename.
 
 Definition list_rename_fold `{Rename X} (sb : var → var) (xs : list X) : map (rename sb) xs = rename sb xs := eq_refl.
 
@@ -235,9 +235,9 @@ ty_hsubst (sb : var → vl) (T : ty) : ty :=
   | TNat => TNat
   end.
 
-Instance Subst_vl : Subst vl := vl_subst.
-Instance HSubst_tm : HSubst vl tm := tm_hsubst.
-Instance HSubst_ty : HSubst vl ty := ty_hsubst.
+Instance subst_vl : Subst vl := vl_subst.
+Instance hsubst_tm : HSubst vl tm := tm_hsubst.
+Instance hsubst_ty : HSubst vl ty := ty_hsubst.
 
 
 Definition vls_subst_fold (sb : var → vl) (vs : vls) : map (subst sb) vs = hsubst sb vs := eq_refl.
@@ -321,31 +321,31 @@ Proof.
     auto using vl_rename_comp_Lemma, vl_comp_rename_Lemma; finish_lists l x.
 Qed.
 
-Instance SubstLemmas_vl : SubstLemmas vl.
+Instance subst_lemmas_vl : SubstLemmas vl.
 Proof.
   split; auto using vl_rename_Lemma, vl_ids_Lemma, vl_comp_Lemma.
 Qed.
 
-Instance HSubstLemmas_tm : HSubstLemmas vl tm.
+Instance hsubst_lemmas_tm : HSubstLemmas vl tm.
 Proof.
   split; auto using tm_ids_Lemma, tm_comp_Lemma.
 Qed.
 
-Instance HSubstLemmas_ty : HSubstLemmas vl ty.
+Instance hsubst_lemmas_ty : HSubstLemmas vl ty.
 Proof.
   split; auto using ty_ids_Lemma, ty_comp_Lemma.
 Qed.
 
-Instance HSubstLemmas_vls : HSubstLemmas vl vls.
+Instance hsubst_lemmas_vls : HSubstLemmas vl vls.
 Proof.
   split; trivial; intros; rewrite /hsubst;
     induction s; asimpl; by f_equal.
 Qed.
 
-Instance HSubstLemmas_list `{Ids X} `{HSubst vl X} {hsl: HSubstLemmas vl X}: HSubstLemmas vl (list X).
+Instance hsubst_lemmas_list `{Ids X} `{HSubst vl X} {hsl: HSubstLemmas vl X}: HSubstLemmas vl (list X).
 Proof.
   split; trivial; intros; rewrite /hsubst;
     induction s; asimpl; by f_equal.
 Qed.
 
-Instance HSubstLemmas_ctx : HSubstLemmas vl ctx := _.
+Instance hsubst_lemmas_ctx : HSubstLemmas vl ctx := _.
