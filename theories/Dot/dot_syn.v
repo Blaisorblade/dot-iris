@@ -202,8 +202,10 @@ Instance inh_dm : Inhabited dm := populate (dvl inhabitant).
 Instance inh_pth : Inhabited path := populate (pv inhabitant).
 Instance inh_tm : Inhabited tm := populate (tv inhabitant).
 
-Instance ids_vl : Ids vl.
-Proof. by constructor. Defined.
+Instance ids_vl : Ids vl := var_vl.
+
+Lemma inj_ids : Inj (=) (=@{vl}) ids.
+Proof. by move=>??[]. Qed.
 
 Instance ids_tm : Ids tm := inh_ids.
 Instance ids_dm : Ids dm := inh_ids.
