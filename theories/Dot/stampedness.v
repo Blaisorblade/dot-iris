@@ -294,7 +294,7 @@ Lemma is_stamped_sub_ty T g s m n:
 Proof. unmut_lemma is_stamped_sub_mut. Qed.
 
 Lemma is_stamped_vl_ids g i j: i < j → is_stamped_vl j g (ids i).
-Proof. rewrite /ids /Ids_vl; by constructor. Qed.
+Proof. rewrite /ids /ids_vl; by constructor. Qed.
 Hint Resolve is_stamped_vl_ids.
 
 Lemma is_stamped_sub_single n v g:

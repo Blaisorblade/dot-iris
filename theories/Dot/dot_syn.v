@@ -196,23 +196,23 @@ Section syntax_mut_ind.
   Qed.
 End syntax_mut_ind.
 
-Instance Inh_ty : Inhabited ty := populate TNat.
-Instance Inh_vl : Inhabited vl := populate (vnat 0).
-Instance Inh_dm : Inhabited dm := populate (dvl inhabitant).
-Instance Inh_pth : Inhabited path := populate (pv inhabitant).
-Instance Inh_tm : Inhabited tm := populate (tv inhabitant).
+Instance inh_ty : Inhabited ty := populate TNat.
+Instance inh_vl : Inhabited vl := populate (vnat 0).
+Instance inh_dm : Inhabited dm := populate (dvl inhabitant).
+Instance inh_pth : Inhabited path := populate (pv inhabitant).
+Instance inh_tm : Inhabited tm := populate (tv inhabitant).
 
-Instance Ids_vl : Ids vl.
+Instance ids_vl : Ids vl.
 Proof. by constructor. Defined.
 
-Instance Ids_tm : Ids tm := λ _, inhabitant.
-Instance Ids_dm : Ids dm := λ _, inhabitant.
-Instance Ids_pth : Ids path := λ _, inhabitant.
-Instance Ids_ty : Ids ty := λ _, inhabitant.
-Instance Ids_list {A}: Ids (list A) := λ _, inhabitant.
-Instance Ids_vls : Ids vls := _.
-Instance Ids_dms : Ids dms := _.
-Instance Ids_ctx : Ids ctx := _.
+Instance ids_tm : Ids tm := λ _, inhabitant.
+Instance ids_dm : Ids dm := λ _, inhabitant.
+Instance ids_pth : Ids path := λ _, inhabitant.
+Instance ids_ty : Ids ty := λ _, inhabitant.
+Instance ids_list {A}: Ids (list A) := λ _, inhabitant.
+Instance ids_vls : Ids vls := _.
+Instance ids_dms : Ids dms := _.
+Instance ids_ctx : Ids ctx := _.
 
 Definition mapsnd {A} `(f: B → C) : A * B → A * C := λ '(a, b), (a, f b).
 
@@ -276,11 +276,11 @@ path_rename (sb : var → var) (pth : path) {struct pth} : path :=
   | pself pth l => pself (rename sb pth) l
   end.
 
-Instance Rename_tm : Rename tm := tm_rename.
-Instance Rename_vl : Rename vl := vl_rename.
-Instance Rename_ty : Rename ty := ty_rename.
-Instance Rename_dm : Rename dm := dm_rename.
-Instance Rename_pth : Rename path := path_rename.
+Instance rename_tm : Rename tm := tm_rename.
+Instance rename_vl : Rename vl := vl_rename.
+Instance rename_ty : Rename ty := ty_rename.
+Instance rename_dm : Rename dm := dm_rename.
+Instance rename_pth : Rename path := path_rename.
 
 Definition list_rename_fold `{Rename X} (sb : var → var) (xs : list X) : map (rename sb) xs = rename sb xs := eq_refl.
 Definition list_pair_rename_fold {A} `{Rename X} sb (xs: list (A * X)): map (mapsnd (rename sb)) xs = rename sb xs := eq_refl.
@@ -349,11 +349,11 @@ path_hsubst (sb : var → vl) (pth : path) : path :=
   | pself pth l => pself (hsubst sb pth) l
   end.
 
-Instance Subst_vl : Subst vl := vl_subst.
-Instance HSubst_tm : HSubst vl tm := tm_hsubst.
-Instance HSubst_ty : HSubst vl ty := ty_hsubst.
-Instance HSubst_dm : HSubst vl dm := dm_hsubst.
-Instance HSubst_pth : HSubst vl path := path_hsubst.
+Instance subst_vl : Subst vl := vl_subst.
+Instance hsubst_tm : HSubst vl tm := tm_hsubst.
+Instance hsubst_ty : HSubst vl ty := ty_hsubst.
+Instance hsubst_dm : HSubst vl dm := dm_hsubst.
+Instance hsubst_pth : HSubst vl path := path_hsubst.
 
 Definition vls_subst_fold (sb : var → vl) (vs : vls) : map (subst sb) vs = hsubst sb vs := eq_refl.
 Definition list_hsubst_fold `{HSubst vl X} sb (xs : list X) : map (hsubst sb) xs = hsubst sb xs := eq_refl.
@@ -471,48 +471,48 @@ Proof.
     auto using vl_rename_comp_Lemma, vl_comp_rename_Lemma; finish_lists l x.
 Qed.
 
-Instance SubstLemmas_vl : SubstLemmas vl.
+Instance subst_lemmas_vl : SubstLemmas vl.
 Proof.
   split; auto using vl_rename_Lemma, vl_ids_Lemma, vl_comp_Lemma.
 Qed.
 
-Instance HSubstLemmas_tm : HSubstLemmas vl tm.
+Instance hsubst_lemmas_tm : HSubstLemmas vl tm.
 Proof.
   split; auto using tm_ids_Lemma, tm_comp_Lemma.
 Qed.
 
-Instance HSubstLemmas_ty : HSubstLemmas vl ty.
+Instance hsubst_lemmas_ty : HSubstLemmas vl ty.
 Proof.
   split; auto using ty_ids_Lemma, ty_comp_Lemma.
 Qed.
 
-Instance HSubstLemmas_dm : HSubstLemmas vl dm.
+Instance hsubst_lemmas_dm : HSubstLemmas vl dm.
 Proof.
   split; auto using dm_ids_Lemma, dm_comp_Lemma.
 Qed.
 
-Instance HSubstLemmas_pth : HSubstLemmas vl path.
+Instance hsubst_lemmas_pth : HSubstLemmas vl path.
 Proof.
   split; auto using path_ids_Lemma, path_comp_Lemma.
 Qed.
 
-Instance HSubstLemmas_vls : HSubstLemmas vl vls.
+Instance hsubst_lemmas_vls : HSubstLemmas vl vls.
 Proof.
   split; trivial; intros; rewrite /hsubst;
     induction s; asimpl; by f_equal.
 Qed.
 
-Instance HSubstLemmas_list `{Ids X} `{HSubst vl X} {hsl: HSubstLemmas vl X}: HSubstLemmas vl (list X).
+Instance hsubst_lemmas_list `{Ids X} `{HSubst vl X} {hsl: HSubstLemmas vl X}: HSubstLemmas vl (list X).
 Proof.
   split; trivial; intros; rewrite /hsubst;
     induction s; asimpl; by f_equal.
 Qed.
 
-Instance HSubstLemmas_ctx : HSubstLemmas vl ctx := _.
+Instance hsubst_lemmas_ctx : HSubstLemmas vl ctx := _.
 
-Instance HSubstLemmas_list_pair {A} `{Ids X} `{HSubst vl X} {hsl: HSubstLemmas vl X}: HSubstLemmas vl (list (A * X)).
+Instance hsubst_lemmas_list_pair {A} `{Ids X} `{HSubst vl X} {hsl: HSubstLemmas vl X}: HSubstLemmas vl (list (A * X)).
 Proof.
   split; trivial; intros; rewrite /hsubst /list_pair_hsubst;
     elim: s => [|[l d] xs IHds] //; asimpl; by f_equal.
 Qed.
-Instance HSubstLemmas_dms : HSubstLemmas vl dms := _.
+Instance hsubst_lemmas_dms : HSubstLemmas vl dms := _.
