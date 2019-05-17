@@ -215,13 +215,6 @@ Instance ids_vls : Ids vls := _.
 Instance ids_dms : Ids dms := _.
 Instance ids_ctx : Ids ctx := _.
 
-Definition mapsnd {A} `(f: B → C) : A * B → A * C := λ '(a, b), (a, f b).
-
-Instance list_rename `{Rename X} : Rename (list X) :=
-  λ sb xs, map (rename sb) xs.
-Instance list_pair_rename {A} `{Rename X}: Rename (list (A * X)) :=
-  λ sb xs, map (mapsnd (rename sb)) xs.
-
 Fixpoint tm_rename (sb : var → var) (e : tm) {struct e} : tm :=
   let a := tm_rename : Rename tm in
   let b := vl_rename : Rename vl in
@@ -283,18 +276,7 @@ Instance rename_ty : Rename ty := ty_rename.
 Instance rename_dm : Rename dm := dm_rename.
 Instance rename_pth : Rename path := path_rename.
 
-Definition list_rename_fold `{Rename X} (sb : var → var) (xs : list X) : map (rename sb) xs = rename sb xs := eq_refl.
-Definition list_pair_rename_fold {A} `{Rename X} sb (xs: list (A * X)): map (mapsnd (rename sb)) xs = rename sb xs := eq_refl.
-
-Definition vls_rename_fold: ∀ sb vs, map (rename sb) vs = rename sb vs := list_rename_fold.
-
 Hint Rewrite @list_rename_fold @list_pair_rename_fold : autosubst.
-
-Instance vls_hsubst `{Subst vl} : HSubst vl vls :=
-  λ (sb : var → vl) (vs : vls), map (subst sb) vs.
-
-Instance list_hsubst `{HSubst vl X}: HSubst vl (list X) := λ sb xs, map (hsubst sb) xs.
-Instance list_pair_hsubst {A} `{HSubst vl X}: HSubst vl (list (A * X)) := λ sb xs, map (mapsnd (hsubst sb)) xs.
 
 Fixpoint tm_hsubst (sb : var → vl) (e : tm) : tm :=
   let a := tm_hsubst : HSubst vl tm in
@@ -355,16 +337,6 @@ Instance hsubst_tm : HSubst vl tm := tm_hsubst.
 Instance hsubst_ty : HSubst vl ty := ty_hsubst.
 Instance hsubst_dm : HSubst vl dm := dm_hsubst.
 Instance hsubst_pth : HSubst vl path := path_hsubst.
-
-Definition vls_subst_fold (sb : var → vl) (vs : vls) : map (subst sb) vs = hsubst sb vs := eq_refl.
-Definition list_hsubst_fold `{HSubst vl X} sb (xs : list X) : map (hsubst sb) xs = hsubst sb xs := eq_refl.
-Definition list_pair_hsubst_fold {A} `{HSubst vl X} sb (xs : list (A * X)) : map (mapsnd (hsubst sb)) xs = hsubst sb xs := eq_refl.
-
-Hint Rewrite vls_subst_fold @list_hsubst_fold @list_pair_hsubst_fold : autosubst.
-
-Arguments vls_hsubst /.
-Arguments list_hsubst /.
-Arguments list_pair_hsubst /.
 
 Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
 with
@@ -497,23 +469,10 @@ Proof.
   split; auto using path_ids_Lemma, path_comp_Lemma.
 Qed.
 
-Instance hsubst_lemmas_vls : HSubstLemmas vl vls.
-Proof.
-  split; trivial; intros; rewrite /hsubst;
-    induction s; asimpl; by f_equal.
-Qed.
-
-Instance hsubst_lemmas_list `{Ids X} `{HSubst vl X} {hsl: HSubstLemmas vl X}: HSubstLemmas vl (list X).
-Proof.
-  split; trivial; intros; rewrite /hsubst;
-    induction s; asimpl; by f_equal.
-Qed.
+Instance hsubst_lemmas_vls : HSubstLemmas vl vls := _.
 
 Instance hsubst_lemmas_ctx : HSubstLemmas vl ctx := _.
 
-Instance hsubst_lemmas_list_pair {A} `{Ids X} `{HSubst vl X} {hsl: HSubstLemmas vl X}: HSubstLemmas vl (list (A * X)).
-Proof.
-  split; trivial; intros; rewrite /hsubst /list_pair_hsubst;
-    elim: s => [|[l d] xs IHds] //; asimpl; by f_equal.
-Qed.
+Instance inh_string: Inhabited string := populate "".
+Instance inh_label: Inhabited label := _.
 Instance hsubst_lemmas_dms : HSubstLemmas vl dms := _.
