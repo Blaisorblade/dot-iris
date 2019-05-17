@@ -205,11 +205,10 @@ Instance inh_tm : Inhabited tm := populate (tv inhabitant).
 Instance ids_vl : Ids vl.
 Proof. by constructor. Defined.
 
-Instance ids_tm : Ids tm := λ _, inhabitant.
-Instance ids_dm : Ids dm := λ _, inhabitant.
-Instance ids_pth : Ids path := λ _, inhabitant.
-Instance ids_ty : Ids ty := λ _, inhabitant.
-Instance ids_list {A}: Ids (list A) := λ _, inhabitant.
+Instance ids_tm : Ids tm := inh_ids.
+Instance ids_dm : Ids dm := inh_ids.
+Instance ids_pth : Ids path := inh_ids.
+Instance ids_ty : Ids ty := inh_ids.
 Instance ids_vls : Ids vls := _.
 Instance ids_dms : Ids dms := _.
 Instance ids_ctx : Ids ctx := _.
