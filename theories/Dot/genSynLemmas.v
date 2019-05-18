@@ -334,14 +334,13 @@ Lemma nclosed_sub_inv_var x w i j k: j + k <= i →
 Proof.
   rewrite /= !nclosed_vl_ids_equiv iter_up.
   case: (lt_dec x j) => [?|Hge]; first lia.
-  case: (decide (x = j)) => [->|Hne]; first lia.
-  case (x - j) as [|xj] eqn:Hxj; first lia.
+  case Hxj: (x - j) => [|xj]; first lia.
   rewrite nclosed_vl_ids_equiv /=. lia.
 Qed.
 
 Lemma nclosed_ren_rev_var i j k x:
   nclosed_vl (ids x).[upn k (ren (+j))] (i + j + k) → nclosed_vl (ids x) (i + k).
 Proof.
-  rewrite /= !nclosed_vl_ids_equiv iter_up.
-  case_match; rewrite /= nclosed_vl_ids_equiv /=; omega.
+  rewrite /= iter_up.
+  case_match; rewrite /= !nclosed_vl_ids_equiv; omega.
 Qed.
