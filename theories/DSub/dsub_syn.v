@@ -4,15 +4,15 @@ Inductive tm : Type :=
   | tv : vl -> tm
   | tapp : tm -> tm -> tm
   | tskip : tm -> tm
- with vl  : Type :=
+ with vl : Type :=
   | var_vl : var -> vl
   | vnat : nat -> vl
   | vabs : tm -> vl
   | vty : ty -> vl
   | vstamp: list vl -> stamp -> vl
- with ty  : Type :=
-  | TTop :  ty
-  | TBot :  ty
+ with ty : Type :=
+  | TTop : ty
+  | TBot : ty
   (* | TAnd : ty -> ty -> ty *)
   (* | TOr : ty -> ty -> ty *)
   | TLater : ty -> ty
@@ -20,7 +20,7 @@ Inductive tm : Type :=
   (* | TMu : ty -> ty *)
   | TTMem : ty -> ty -> ty
   | TSel : vl -> ty
-  | TNat :  ty.
+  | TNat : ty.
 
 (** Induction principles for syntax. *)
 

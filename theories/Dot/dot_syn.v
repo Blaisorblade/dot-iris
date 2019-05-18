@@ -3,26 +3,26 @@ From D Require Export prelude tactics.
 
 Definition label := string.
 
-Inductive tm  : Type :=
+Inductive tm : Type :=
   | tv : vl -> tm
   | tapp : tm -> tm -> tm
   | tproj : tm -> label -> tm
   | tskip : tm -> tm
- with vl  : Type :=
+ with vl : Type :=
   | var_vl : var -> vl
   | vnat : nat -> vl
   | vabs : tm -> vl
   | vobj : list (label * dm) -> vl
- with dm  : Type :=
+ with dm : Type :=
   | dtysyn : ty -> dm
   | dtysem : list vl -> stamp -> dm
   | dvl : vl -> dm
- with path  : Type :=
+ with path : Type :=
   | pv : vl -> path
   | pself : path -> label -> path
- with ty  : Type :=
-  | TTop :  ty
-  | TBot :  ty
+ with ty : Type :=
+  | TTop : ty
+  | TBot : ty
   | TAnd : ty -> ty -> ty
   | TOr : ty -> ty -> ty
   | TLater : ty -> ty
@@ -31,7 +31,7 @@ Inductive tm  : Type :=
   | TVMem : label -> ty -> ty
   | TTMem : label -> ty -> ty -> ty
   | TSel : path -> label -> ty
-  | TNat :  ty.
+  | TNat : ty.
 
 Definition vls := list vl.
 Definition dms := list (label * dm).
