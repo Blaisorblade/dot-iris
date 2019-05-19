@@ -73,7 +73,7 @@ Section logrel_binding_lemmas.
   Lemma interp_subst_all ρ τ v:
     cl_ρ ρ → ⟦ τ.|[to_subst ρ] ⟧ [] v ≡ ⟦ τ ⟧ ρ v.
   Proof.
-    elim: ρ τ => /= [|w ρ IHρ] τ Hwρcl; asimpl; first by [].
+    elim: ρ τ => /= [|w ρ IHρ] τ Hwρcl; rewrite ?to_subst_nil; first by asimpl.
     assert (nclosed_vl w 0 /\ Forall (λ v, nclosed_vl v 0) ρ) as [Hwcl Hρcl]. by inversion Hwρcl.
     specialize (IHρ (τ.|[w/]) Hρcl).
     asimpl in IHρ. move: IHρ.
@@ -117,7 +117,9 @@ Section logrel_binding_lemmas.
   Proof.
     iIntros (Hcl) "#Hg".
     iPoseProof (interp_env_ρ_closed with "Hg") as "%"; move: H => Hclρ.
-    iRewrite -(interp_subst_internal ρ T (v.[to_subst ρ]) w). asimpl.
+    pose proof (interp_subst_internal ρ T (v.[to_subst ρ]) w) as Heq.
+    rewrite /_vl in Heq |- *.
+    iRewrite -Heq. asimpl.
     rewrite (Hcl (to_subst ρ >> ren (+length ρ)) (to_subst ρ)) // -?(to_subst_interp T ρ v w) //.
     move => x Hlρ. asimpl. by rewrite closed_subst_vl_id; [|apply closed_to_subst].
   Qed.

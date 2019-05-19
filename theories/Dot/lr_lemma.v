@@ -245,6 +245,7 @@ Section Sec.
   Proof.
     iSplit; iIntros "/= #[% #Htp]"; iSplit => //; iIntros " !> * #Hg";
     iPoseProof (interp_subst_closed Γ T v (v.[to_subst ρ]) with "Hg") as "H" => //;
+    unfold _vl in *;
     [ iRewrite "H" | iRewrite -"H" ]; by iApply "Htp".
   Qed.
 
@@ -333,9 +334,10 @@ Section Sec.
     iExists _; iSplitL; first done.
     iIntros "!> !>" (v) "#Hv".
     iSpecialize ("HeT" $! (v :: ρ)).
-    (* time locAsimpl. (* 10x faster than asimpl. *) *)
+    time locAsimpl. (* 10x faster than asimpl. *)
     (* 20x faster than asimpl. *)
-    locAsimpl' (e.|[up (to_subst ρ)].|[v/]); locAsimpl' (e.|[to_subst (v :: ρ)]).
+    (* progress unfold _vl in *. *)
+    (* locAsimpl' (e.|[up (to_subst ρ)].|[v/]). locAsimpl' (e.|[to_subst (v :: ρ)]). *)
     iApply "HeT". iFrame "HG". by iApply interp_weaken_one.
   Qed.
 

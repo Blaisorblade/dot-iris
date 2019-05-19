@@ -61,7 +61,7 @@ Section logrel_binding_lemmas.
   Lemma interp_subst_all ρ τ v:
     cl_ρ ρ → ⟦ τ.|[to_subst ρ] ⟧ [] v ≡ ⟦ τ ⟧ ρ v.
   Proof.
-    elim: ρ τ => /= [|w ρ IHρ] τ Hwρcl; asimpl; first by [].
+    elim: ρ τ => /= [|w ρ IHρ] τ Hwρcl; rewrite ?to_subst_nil; first by asimpl.
     assert (nclosed_vl w 0 /\ Forall (λ v, nclosed_vl v 0) ρ) as [Hwcl Hρcl]. by inversion Hwρcl.
     specialize (IHρ (τ.|[w/]) Hρcl).
     asimpl in IHρ. move: IHρ.

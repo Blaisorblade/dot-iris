@@ -149,7 +149,8 @@ Proof.
   eapply (wp_adequacy Σ) => /=.
   iIntros (?) "!>". iExists (λ _ _, True%I); iSplit=> //.
   iPoseProof (Hlog with "[//]") as "#[_ #Hlog]".
-  iEval (replace e with (e.|[to_subst []]) by by asimpl).
+  have Heq: e = e.|[to_subst []]. by rewrite to_subst_nil; asimpl.
+  iEval (rewrite Heq).
   iApply wp_wand; by [iApply "Hlog" | auto].
 Qed.
 
