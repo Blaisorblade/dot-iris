@@ -6,17 +6,6 @@ Set Implicit Arguments.
 Implicit Types (T: ty) (v: vl) (t: tm).
 
 Section nclosed_prim_step.
-  Lemma nclosed_subst `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A) v n:
-    nclosed a (S n) →
-    nclosed_vl v n →
-    nclosed a.|[v/] n.
-  Proof.
-    move => Hclt1 Hclv.
-    move => s1 s2 HsEq /=; asimpl.
-    apply Hclt1.
-    move => [|x] Hxn //=; auto with lia.
-  Qed.
-
   Lemma nclosed_beta t1 v2 n:
     nclosed (tapp (tv (vabs t1)) (tv v2)) n →
     nclosed t1.|[v2/] n.
@@ -77,7 +66,7 @@ Section nclosed_prim_step.
     prim_step t1 σ κ t2 σ' ts →
     nclosed t2 n ∧ Forall (flip nclosed n) ts.
   Proof.
-    move => Hclt1 [K t1' t2' Heqe1 Heqe2 Hhst] /=; subst; cbn in *.
+    move => Hclt1 [K t1' t2' Heqe1 Heqe2 Hhst] /=; subst.
     pose proof (nclosed_fill_inv_t _ _ Hclt1).
     split; first eapply nclosed_fill; eauto 2.
   Qed.

@@ -6,17 +6,6 @@ Set Implicit Arguments.
 Implicit Types (T: ty) (v: vl) (t: tm) (d: dm) (ds: dms).
 
 Section nclosed_prim_step.
-  Lemma nclosed_subst `{Ids A} `{HSubst vl A} {hsla: HSubstLemmas vl A} (a: A) v n:
-    nclosed a (S n) →
-    nclosed_vl v n →
-    nclosed a.|[v/] n.
-  Proof.
-    move => Hclt1 Hclv.
-    move => s1 s2 HsEq /=; asimpl.
-    apply Hclt1.
-    move => [|x] Hxn //=; auto with lia.
-  Qed.
-
   Lemma nclosed_beta t1 v2 n:
     nclosed (tapp (tv (vabs t1)) (tv v2)) n →
     nclosed t1.|[v2/] n.
@@ -34,17 +23,6 @@ Section nclosed_prim_step.
   Proof. solve_inv_fv_congruence. Qed.
   Hint Resolve fv_tail: fvl.
   Hint Resolve fv_dms_cons: fvl.
-
-  (* Lemma nclosed_rev_append (ds1 ds2: dms) n: nclosed ds1 n → nclosed ds2 n → nclosed (rev_append ds1 ds2) n. *)
-  (* Proof. *)
-  (*   elim: ds1 ds2 => [|d1 ds1 IHds1] //= ds2 Hcl1 Hcl2. *)
-  (*   assert (Hcld1: nclosed d1 n) by eauto with fvl. *)
-  (*   assert (Hclds1: nclosed ds1 n) by eauto with fvl. *)
-  (*   by apply IHds1, fv_dms_cons. *)
-  (* Qed. *)
-
-  (* Lemma nclosed_reverse ds n: nclosed ds n → nclosed (reverse ds) n. *)
-  (* Proof. move => Hcl. by apply nclosed_rev_append. Qed. *)
 
   Lemma nclosed_lookup ds d n l: nclosed ds n → dms_lookup l ds = Some d → nclosed d n.
   Proof.
