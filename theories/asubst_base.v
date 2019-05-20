@@ -21,6 +21,13 @@ Module Sorts (values: Values).
     {hsubst_lemmas_vl_s: HSubstLemmas vl s} := {}.
 
   Global Instance sort_vls: Sort vls := {}.
+  Global Instance inh_vls_: Inhabited vls := _.
+  Global Instance ids_vls_: Ids vls := _.
+  Global Instance rename_vls_: Rename vls := _.
+  Global Instance hsubst_vls_: HSubst vl vls := _.
+  Global Instance hsubst_lemmas_vls_: HSubstLemmas vl vls := _.
+  Global Typeclasses Opaque vls.
+
   Global Instance sort_list `{Sort X}: Sort (list X) := {}.
   Global Instance sort_pair_snd `{Sort X} `{Inhabited A}: Sort (A * X) := {}.
   Global Instance sort_list_pair_snd `{Sort X} `{Inhabited A}: Sort (list (A * X)) := {}.
