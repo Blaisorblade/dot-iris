@@ -136,7 +136,7 @@ Instance inh_tm : Inhabited tm := populate (tv inhabitant).
 
 Instance ids_vl : Ids vl := var_vl.
 
-Lemma inj_ids : Inj (=) (=@{vl}) ids.
+Instance inj_ids : Inj (=) (=@{vl}) ids.
 Proof. by move=>??[]. Qed.
 
 Instance ids_tm : Ids tm := inh_ids.
