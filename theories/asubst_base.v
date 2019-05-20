@@ -15,6 +15,8 @@ End Values.
 Module Sorts (values: Values).
   Import values.
 
+  (* Bundling this would avoid term blowup - one needs to use Defined to make
+     things convertible then tho. The instance for lemmas would need to be convertible. *)
   Class Sort (s: Type)
     {inh_s: Inhabited s}
     {ids_s: Ids s} {ren_s: Rename s} {hsubst_vl_s: HSubst vl s}
@@ -32,6 +34,8 @@ Module Sorts (values: Values).
   Global Instance sort_pair_snd `{Sort X} `{Inhabited A}: Sort (A * X) := {}.
   Global Instance sort_list_pair_snd `{Sort X} `{Inhabited A}: Sort (list (A * X)) := {}.
 
+  (* Instance foo `{Sort X}: (Sort (list (list (list (list (list X)))))).
+  Check foo. *)
   Implicit Types (v: vl) (vs: vls).
 
   Definition eq_n_s (s1 s2: var → vl) n := ∀ x, x < n → s1 x = s2 x.
