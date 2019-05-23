@@ -1,7 +1,7 @@
 From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language ectx_language.
 From iris.proofmode Require Import tactics.
-From D Require Import tactics.
+From D Require Import tactics swap_later_impl proofmode_extra.
 From D.Dot Require Import unary_lr unary_lr_binding synLemmas rules
   lr_lemma_nobinding.
 
@@ -11,6 +11,75 @@ Implicit Types
 
 Section Sec.
   Context `{HdotG: dotG Σ}.
+
+  Lemma TAll_Later_Swap0 Γ T U `{SwapProp (iPropSI Σ)}:
+    Γ ⊨ [TAll (TLater T) U, 0] <: [TLater (TAll T U), 0].
+  Proof.
+    iIntros "!>" (ρ v Hclv) "#HG /= #[_ #HvTU]". iFrame (Hclv).
+    iDestruct "HvTU" as (t ->) "#HvTU".
+    iExists t; iSplit => //. iNext.
+    iIntros (w) "!>".
+    rewrite -mlater_impl.
+    iIntros "#HwT".
+    iApply (strip_pure_laterN_impl 1 (nclosed_vl w 0)); first last.
+      by iApply interp_v_closed.
+    iIntros (Hclw).
+    by iApply ("HvTU" with "[# $HwT]").
+  Qed.
+
+  Lemma wp_later_swap t Φ: WP t {{ v, ▷ Φ v }} ⊢ ▷ WP t {{ v, Φ v }}.
+  Proof.
+    iLöb as "IH" forall (t Φ).
+    iEval (rewrite !wp_unfold /wp_pre /=).
+    case: (to_val t) => [v|]. eauto.
+    iIntros "H" (σ1 κ κs n _); iDestruct ("H" $! σ1 κ κs n with "[#//]") as "[$ H]".
+    iIntros (e2 σ2 efs Hstep); iDestruct ("H" $! e2 σ2 efs Hstep) as "[$ [H $]]".
+    iApply ("IH" with "H").
+  Qed.
+
+  (** Stronger version of TAll_Later_Swap0, needs wp_later_swap, which
+      might not extend to stronger WPs?*)
+  Lemma TAll_Later_Swap Γ T U `{SwapProp (iPropSI Σ)}:
+    Γ ⊨ [TAll (TLater T) (TLater U), 0] <: [TLater (TAll T U), 0].
+  Proof.
+    iIntros "!>" (ρ v Hclv) "#HG /= #[_ #HvTU]". iFrame (Hclv).
+    iDestruct "HvTU" as (t ->) "#HvTU".
+    iExists t; iSplit => //. iNext.
+    iIntros (w) "!>".
+    rewrite -mlater_impl.
+    iIntros "#HwT".
+    iApply (strip_pure_laterN_impl 1 (nclosed_vl w 0)); first last.
+      by iApply interp_v_closed.
+    iIntros (Hclw).
+    iSpecialize ("HvTU" with "[# $HwT //]").
+    iApply (wp_later_swap t.|[w/] (⟦ U ⟧ (w :: ρ))).
+    iApply (wp_wand with "HvTU") => /=.
+    by iIntros (v) "[_ $]".
+  Qed.
+
+  Lemma TVMem_Later_Swap Γ l T:
+    Γ ⊨ [TVMem l (TLater T), 0] <: [TLater (TVMem l T), 0].
+  Proof.
+    iIntros "!>" (ρ v Hclv) "#HG /= #[_ #HvT]". iFrame (Hclv).
+    iDestruct "HvT" as (d Hlook) "#[Hcld HvT]".
+    iExists (d); (iSplit; try iSplitL) => //.
+    iDestruct "HvT" as (vmem ->) "[_ HvT]".
+    iExists (vmem); by iSplit.
+  Qed.
+
+  (* This would be surprising without ◇, and fails even with it. *)
+  Lemma wp_later_swap2 t Φ: ▷ WP t {{ v, Φ v }} ⊢ ◇ WP t {{ v, ▷ Φ v }}.
+  Proof.
+    iLöb as "IH" forall (t Φ).
+    iEval (rewrite !wp_unfold /wp_pre /=).
+    case: (to_val t) => [v|]. eauto.
+    iIntros "H" (σ1 κ κs n _); iDestruct ("H" $! σ1 κ κs n with "[#//]") as "[Hr H]".
+    iSplit. iApply (timeless with "Hr").
+    iIntros (e2 σ2 efs Hstep); iDestruct ("H" $! e2 σ2 efs Hstep) as "[_ [H H2]]".
+    iSplit => //. iSplitR "H2"; first last.
+    iApply (timeless with "H2"). admit.
+    iSpecialize ("IH" with "H").
+  Abort.
 
   (** Rename. *)
   Lemma iterate_Sub_Mono Γ T i j:
