@@ -300,6 +300,7 @@ Section logrel_lemmas.
     ⟦ Γ ⟧* ρ ⊢ ⌜ length ρ = length Γ ⌝.
   Proof.
     iInduction Γ as [|τ Γ'] "IHΓ" forall (ρ); destruct ρ => //=.
+    fold ctx in *.
     iIntros "#[HG Hv]".
     by iDestruct ("IHΓ" $! ρ with "HG") as "->".
   Qed.
@@ -307,6 +308,7 @@ Section logrel_lemmas.
   Lemma interp_env_ρ_closed ρ: ⟦ Γ ⟧* ρ ⊢ ⌜ cl_ρ ρ ⌝.
   Proof.
     iInduction Γ as [|τ Γ'] "IHΓ" forall (ρ); destruct ρ => //=.
+    fold ctx in *.
     iIntros "[#HG #HT]".
     iPoseProof (interp_v_closed with "HT") as "%".
     iPoseProof ("IHΓ" with "HG") as "%".

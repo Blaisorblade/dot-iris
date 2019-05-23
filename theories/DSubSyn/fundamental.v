@@ -161,5 +161,5 @@ Corollary type_soundness e e' thp σ σ' T:
   is_Some (to_val e') ∨ reducible e' σ'.
 Proof.
   intros; eapply (adequacy #[]) => //; iIntros.
-  by iApply fundamental_typed.
+  by iApply (fundamental_typed []).
 Qed.

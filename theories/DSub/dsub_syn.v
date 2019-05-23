@@ -322,3 +322,10 @@ Include Sorts.
 
 Instance sort_tm: Sort tm := {}.
 Instance sort_ty: Sort ty := {}.
+
+Instance inh_ctx: Inhabited ctx := _.
+Instance rename_ctx: Rename ctx := _.
+Instance hsubst_vl_ctx: HSubst vl ctx := _.
+Instance sort_ctx: Sort ctx := {}.
+Instance lookup_ctx: Lookup var ty ctx := _.
+Global Typeclasses Opaque ctx.
