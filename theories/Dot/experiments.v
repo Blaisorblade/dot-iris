@@ -1,9 +1,9 @@
 From D.pure_program_logic Require Import lifting.
-From iris.program_logic Require Import language ectx_language.
+From iris.program_logic Require Import language ectx_language ectxi_language.
 From iris.proofmode Require Import tactics.
 From D Require Import tactics swap_later_impl proofmode_extra.
 From D.Dot Require Import unary_lr unary_lr_binding synLemmas rules
-  lr_lemma_nobinding.
+  lr_lemma lr_lemma_nobinding.
 
 Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
@@ -177,7 +177,7 @@ Section Sec.
     - by iApply iterate_Sub_Mono.
     - by iApply iterate_Sub_Later.
   Qed.
-  From D.Dot Require Import lr_lemma.
+
   Lemma iterate_Later_Sub Γ T i j:
     Γ ⊨ [iterate TLater j T, i] <: [T, i + j].
   Proof.
@@ -264,7 +264,6 @@ Section Sec.
     by iApply wp_value.
   Qed.
 
-  From iris.program_logic Require Import ectxi_language.
 
   (*
     We get. in fact, a chain of pure execution steps, each in a different world. IOW, a pure/path WP.
@@ -326,10 +325,11 @@ Section Sec.
 
       (* iPoseProof (wp_value_inv with "Hv") as "?". *)
 
-  Lemma self_sem_singleton_path_v00 p T i v:
+  Lemma self_sem_singleton_path_v01 p Γ T i v:
     Γ ⊨ pth_to_tm p : T -∗
-    PureExec True i (pth_to_tm p) (tv v)
+    ⌜ PureExec True i (pth_to_tm p) (tv v) ⌝ .
   (* TODOs: demonstrate safety, demonstrate *)
+  Abort.
 
 
   Lemma self_sem_singleton_path_v0 Γ p T i v:
@@ -337,7 +337,8 @@ Section Sec.
     True ⊢ ⌜ nclosed (pth_to_tm p) (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → WP (pth_to_tm p).|[to_subst ρ] {{ sem_singleton_path p ρ }}.
   Proof.
     iIntros (Hcl Hpure) "_". iFrame "%". iIntros "!>" (ρ) "HG".
-    iApply wp_pure_step_later. exact Hpure. => //.
+    iApply wp_pure_step_later. Fail eapply Hpure.
+  Abort.
 
   Lemma self_sem_singleton_path Γ p T:
     Γ ⊨ pth_to_tm p : T -∗
@@ -360,8 +361,8 @@ Section Sec.
       iApply (wp_wand with "Hw"). cbn. iIntros (v) "#Hv !>".
       smart_wp_bind (ProjCtx l) w' "Hw" "H".
       iApply (wp_wand with "Hw"). cbn. iIntros (v') "#Hv'".
-      Print PureExec.
-      Print pure_step.
+      (* Print PureExec.
+      Print pure_step. *)
 
       (* (* wwp_unfold /wp_pre
     iEval (rewrite !wp_unfold /wp_pre /=) in "HT".
@@ -374,10 +375,8 @@ Section Sec.
       iIntros (v) Hv.
 
       smart_wp_bind (ProjCtx l) w "#Hw" "HT". *)
-     iApply wp_pure_step_later.
-
-    iPoseProof (interp_env_ρ_closed with "HG") as "%". move: H => /= Hclρ.
-    iPoseProof (interp_env_len_agree with "HG") as "%". move: H => Hlen. rewrite <- Hlen in Hcl.
+     Fail iApply wp_pure_step_later.
+  Abort.
 
 
   (* From D.pure_program_logic Require Import weakestpre. *)
