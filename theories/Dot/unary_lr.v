@@ -157,6 +157,7 @@ Section logrel.
 
   Global Instance dotInterpΣ : dotInterpG Σ := DotInterpG _ interp.
   Notation "⟦ T ⟧" := (interp T).
+  Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
 
   Global Instance interp_persistent T ρ v :
     Persistent (⟦ T ⟧ ρ v).
@@ -204,12 +205,8 @@ Section logrel.
   Notation "⟦ Γ ⟧*" := (interp_env Γ).
 
   Global Instance interp_env_persistent Γ ρ :
-    Persistent (⟦ Γ ⟧* ρ) := _.
-  Proof.
-    revert ρ. induction Γ.
-    - rewrite /Persistent /interp_env. eauto.
-    - simpl. destruct ρ; rewrite /Persistent; eauto.
-  Qed.
+    Persistent (⟦ Γ ⟧* ρ).
+  Proof. elim: Γ ρ => [|τ Γ IHΓ] [|v ρ]; apply _. Qed.
 
   Definition defCtxCons Γ V := TLater V :: Γ.
 
@@ -230,8 +227,6 @@ Section logrel.
 
   Lemma idstp_closed Γ T ds: (Γ ⊨ds ds : T → ⌜ nclosed ds (length Γ) ⌝)%I.
   Proof. iIntros "[$ _]". Qed.
-
-  Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
 
   (* Really needed? Try to stop using it. *)
   Definition ivtp Γ T v : iProp Σ := (⌜ nclosed_vl v (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ ρ v.[to_subst ρ])%I.

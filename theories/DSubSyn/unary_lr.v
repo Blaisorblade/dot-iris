@@ -225,8 +225,6 @@ Section logrel_part2.
     Persistent (⟦ Γ ⟧* ρ).
   Proof. elim: Γ ρ => [|τ Γ IHΓ] [|v ρ]; apply _. Qed.
 
-  Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
-
   (* Really needed? Try to stop using it. *)
   Definition ivtp Γ T v : iProp Σ := (⌜ nclosed_vl v (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ ρ v.[to_subst ρ])%I.
   Global Arguments ivtp /.

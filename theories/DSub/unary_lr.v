@@ -103,6 +103,7 @@ Section logrel.
 
   Global Instance dsubInterpΣ : dsubInterpG Σ := DsubInterpG _ interp.
   Notation "⟦ T ⟧" := (interp T).
+  Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
 
   Global Instance interp_persistent T ρ v :
     Persistent (⟦ T ⟧ ρ v).
@@ -122,14 +123,8 @@ Section logrel.
   Notation "⟦ Γ ⟧*" := (interp_env Γ).
 
   Global Instance interp_env_persistent Γ ρ :
-    Persistent (⟦ Γ ⟧* ρ) := _.
-  Proof.
-    revert ρ. induction Γ.
-    - rewrite /Persistent /interp_env. eauto.
-    - simpl. destruct ρ; rewrite /Persistent; eauto.
-  Qed.
-
-  Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
+    Persistent (⟦ Γ ⟧* ρ).
+  Proof. elim: Γ ρ => [|τ Γ IHΓ] [|v ρ]; apply _. Qed.
 
   (* Really needed? Try to stop using it. *)
   Definition ivtp Γ T v : iProp Σ := (⌜ nclosed_vl v (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ ρ v.[to_subst ρ])%I.
