@@ -11,6 +11,7 @@ Module SortsLemmas (values: Values).
   Lemma length_idsσr n r: length (idsσ n).|[ren r] = n.
   Proof.
     elim : n r => [r | n IHn r] => //.
+    rewrite /hsubst_vl_s.
     asimpl. by rewrite IHn.
   Qed.
 
@@ -21,7 +22,7 @@ Module SortsLemmas (values: Values).
   Lemma subst_sigma_idsσ ρ n : length ρ = n →
                   (subst_sigma (idsσ n) ρ) = ρ.
   Proof.
-    rewrite /subst_sigma. move :n.
+    rewrite /subst_sigma /hsubst_vl_s. move: n.
     induction ρ => *; subst => //; asimpl.
     f_equal. by apply IHρ.
   Qed.
@@ -83,7 +84,7 @@ Module SortsLemmas (values: Values).
     Lemma to_subst_map_commute_aux f n x r: x < n → to_subst (map f (idsσ n).|[ren r]) x = f (to_subst (idsσ n).|[ren r] x).
     Proof.
       elim: n r x => [|n IHn] r x Hle; first lia.
-      destruct x; first done; asimpl.
+      destruct x; first done; rewrite /hsubst_vl_s; asimpl.
       apply IHn; lia.
     Qed.
 

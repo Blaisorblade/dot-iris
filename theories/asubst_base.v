@@ -14,11 +14,27 @@ End Values.
 
 Module Sorts (values: Values).
   Import values.
+  Class Sort s := {
+    inh_s: Inhabited s;
+    ids_s: Ids s;
+    ren_s: Rename s;
+    hsubst_vl_s: HSubst vl s;
+    hsubst_lemmas_vl_s: HSubstLemmas vl s;
+  }.
+  Global Existing Instances inh_s ids_s ren_s hsubst_vl_s hsubst_lemmas_vl_s.
 
+  (*
+    Arguments inh_s: simpl never.
+    Arguments ids_s: simpl never.
+    Arguments ren_s: simpl never.
+    Arguments hsubst_vl_s: simpl never.
+    Arguments hsubst_lemmas_vl_s: simpl never. *)
+
+(*
   Class Sort (s: Type)
     {inh_s: Inhabited s}
     {ids_s: Ids s} {ren_s: Rename s} {hsubst_vl_s: HSubst vl s}
-    {hsubst_lemmas_vl_s: HSubstLemmas vl s} := {}.
+    {hsubst_lemmas_vl_s: HSubstLemmas vl s} := {}. *)
 
   Global Instance sort_vls: Sort vls := {}.
   Global Instance sort_list `{Sort X}: Sort (list X) := {}.
@@ -155,5 +171,7 @@ Module Sorts (values: Values).
   Lemma fv_pair_cons `{!Inhabited A} `{Sort X} (a: A) (x: X) xs n: nclosed xs n → nclosed x n → nclosed ((a, x) :: xs) n.
   Proof.
     (* solve_fv_congruence. *) (* Works *)
-    intros. by apply fv_cons, fv_pair. Qed.
+    intros. by apply fv_cons, fv_pair.
+  Qed.
+  Arguments hsubst_vl_s: simpl never.
 End Sorts.

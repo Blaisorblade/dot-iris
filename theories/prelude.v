@@ -3,6 +3,8 @@ From iris.algebra Require Export base.
 From Autosubst Require Export Autosubst.
 
 Definition stamp := positive.
+
+Module autosubst_instances.
 (* Not an instance because it should *not* be used automatically. *)
 Definition inh_ids `{Inhabited X}: Ids X := λ _, inhabitant.
 Instance list_ids {X}: Ids (list X) := inh_ids.
@@ -71,7 +73,9 @@ Section subst_instances.
   End pair_instances.
 End subst_instances.
 Definition list_pair_hsubst_fold {A} `{HSubst vl X} sb (xs: list (A * X)): map (mapsnd (hsubst sb)) xs = hsubst sb xs := eq_refl.
+End autosubst_instances.
 
+Import autosubst_instances.
 Global Hint Rewrite @vls_subst_fold @list_hsubst_fold : autosubst.
 (* The hints in the previous line are needed; for the next ones, that's less clear. *)
 Global Hint Rewrite @pair_rename_fold @pair_hsubst_fold : autosubst.

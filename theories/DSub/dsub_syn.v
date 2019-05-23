@@ -1,5 +1,8 @@
 From D Require Export prelude tactics asubst_base.
 
+Module sort_instances.
+Import autosubst_instances.
+
 Inductive tm : Type :=
   | tv : vl_ -> tm
   | tapp : tm -> tm -> tm
@@ -320,5 +323,8 @@ Instance hsubst_lemmas_ctx : HSubstLemmas vl ctx := _.
 
 Include Sorts.
 
-Instance sort_tm: Sort tm := {}.
-Instance sort_ty: Sort ty := {}.
+Global Instance sort_tm: Sort tm := {}.
+Global Instance sort_ty: Sort ty := {}.
+End sort_instances.
+
+Export sort_instances.
