@@ -4,7 +4,7 @@ From D.DSub Require Export syn.
 Reserved Notation "Γ ⊢ₜ e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ ⊢ₜ T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
 
-Implicit Types (L T U V : ty) (v : vl) (e : tm) (Γ : list ty).
+Implicit Types (L T U V : ty) (v : vl) (e : tm) (Γ : ctx).
 
 Inductive typed Γ : tm → ty → Prop :=
 | Appv_typed e1 v2 T1 T2:
