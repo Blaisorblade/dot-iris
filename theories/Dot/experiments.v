@@ -15,7 +15,7 @@ Section Sec.
   Lemma TAll_Later_Swap0 Γ T U `{SwapProp (iPropSI Σ)}:
     Γ ⊨ [TAll (TLater T) U, 0] <: [TLater (TAll T U), 0].
   Proof.
-    iIntros "!>" (ρ v Hclv) "#HG /= #[_ #HvTU]". iFrame (Hclv).
+    iIntros "!>" (ρ v Hclv) "_ /= #[_ #HvTU]". iFrame (Hclv).
     iDestruct "HvTU" as (t ->) "#HvTU".
     iExists t; iSplit => //. iNext.
     iIntros (w) "!>".
@@ -39,28 +39,26 @@ Section Sec.
 
   (** Stronger version of TAll_Later_Swap0, needs wp_later_swap, which
       might not extend to stronger WPs?*)
-  Lemma TAll_Later_Swap Γ T U `{SwapProp (iPropSI Σ)}:
-    Γ ⊨ [TAll (TLater T) (TLater U), 0] <: [TLater (TAll T U), 0].
+  Lemma TAll_Later_Swap `{SwapProp (iPropSI Σ)} Γ T U i:
+    Γ ⊨ [TAll (TLater T) (TLater U), i] <: [TLater (TAll T U), i].
   Proof.
-    iIntros "!>" (ρ v Hclv) "#HG /= #[_ #HvTU]". iFrame (Hclv).
+    iIntros "!>" (ρ v Hclv) "_ /= [_ #HvTU]". iFrame (Hclv). iNext i.
     iDestruct "HvTU" as (t ->) "#HvTU".
-    iExists t; iSplit => //. iNext.
-    iIntros (w) "!>".
-    rewrite -mlater_impl.
-    iIntros "#HwT".
+    iExists t; iSplit => //.
+    iNext.
+    iIntros (w); rewrite -mlater_impl; iIntros "!> #HwT".
     iApply (strip_pure_laterN_impl 1 (nclosed_vl w 0)); first last.
       by iApply interp_v_closed.
     iIntros (Hclw).
-    iSpecialize ("HvTU" with "[# $HwT //]").
-    iApply (wp_later_swap t.|[w/] (⟦ U ⟧ (w :: ρ))).
-    iApply (wp_wand with "HvTU") => /=.
+    rewrite -(wp_later_swap _ (⟦ _ ⟧ _)).
+    iApply (wp_wand with "(HvTU [# $HwT //])").
     by iIntros (v) "[_ $]".
   Qed.
 
-  Lemma TVMem_Later_Swap Γ l T:
-    Γ ⊨ [TVMem l (TLater T), 0] <: [TLater (TVMem l T), 0].
+  Lemma TVMem_Later_Swap Γ l T i:
+    Γ ⊨ [TVMem l (TLater T), i] <: [TLater (TVMem l T), i].
   Proof.
-    iIntros "!>" (ρ v Hclv) "#HG /= #[_ #HvT]". iFrame (Hclv).
+    iIntros "!>" (ρ v Hclv) "_ /= #[_ #HvT]". iFrame (Hclv). iNext i.
     iDestruct "HvT" as (d Hlook) "#[Hcld HvT]".
     iExists (d); (iSplit; try iSplitL) => //.
     iDestruct "HvT" as (vmem ->) "[_ HvT]".
@@ -409,8 +407,6 @@ Section Sec.
     - apply Hf2; first apply Hxl; done.
     all: fail.
   Abort.
-
-  Context (Γ: list ty).
 
   Lemma inclusion_equiv_wp_upd {P Q}:
     ((□∀ e, WP e {{P}} → WP e {{Q}})%I ≡ (□∀ v, P v → Q v)%I).
