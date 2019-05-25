@@ -68,7 +68,7 @@ Lemma gen_iheap_init `{hG : gen_iheapPreG L V Σ} σ :
   (|==> ∃ _ : gen_iheapG L V Σ, gen_iheap_ctx σ)%I.
 Proof.
   iMod (own_alloc (● to_gen_iheap σ)) as (γ) "Hh".
-  { apply: auth_auth_valid. exact: to_gen_iheap_valid. }
+  { apply auth_auth_valid. exact: to_gen_iheap_valid. }
   iModIntro. by iExists (GenIHeapG L V Σ _ _ _ γ).
 Qed.
 
@@ -90,7 +90,7 @@ Section gen_iheap.
   Proof.
     apply wand_intro_r.
     rewrite mapsto_eq /mapsto_def -own_op -auth_frag_op own_valid discrete_valid.
-    f_equiv=> /auth_own_valid /=. rewrite op_singleton singleton_valid.
+    f_equiv=> /auth_frag_valid /=. rewrite op_singleton singleton_valid.
     by intros ?%agree_op_invL'.
   Qed.
 
@@ -108,8 +108,7 @@ Section gen_iheap.
   Lemma gen_iheap_valid σ l v : gen_iheap_ctx σ -∗ l ↦ v -∗ ⌜σ !! l = Some v⌝.
   Proof.
     iIntros "Hσ Hl". rewrite /gen_iheap_ctx mapsto_eq /mapsto_def.
-    iDestruct (own_valid_2 with "Hσ Hl")
-      as %[Hl%gen_iheap_singleton_included _]%auth_valid_discrete_2; auto.
+    by iDestruct (own_valid_2 with "Hσ Hl") as %[Hl%gen_iheap_singleton_included _]%auth_both_valid.
   Qed.
 
   (* Deallocation/update should be impossible. *)
