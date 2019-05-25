@@ -59,8 +59,14 @@ Module Sorts (values: Values).
   Definition nclosed_vl (v: vl) n :=
     ∀ s1 s2, eq_n_s s1 s2 n → v.[s1] = v.[s2].
 
+  Definition nclosed `{HSubst vl X} (x: X) n :=
+    ∀ s1 s2, eq_n_s s1 s2 n → x.|[s1] = x.|[s2].
+
   Definition nclosed_σ σ n := Forall (λ v, nclosed_vl v n) σ.
   Global Arguments nclosed_σ /.
+
+  (** Infrastructure to prove "direct" lemmas on nclosed{,_vl}: deduce that an expression is closed
+      by knowing that its subexpression are closed. *)
 
   (** Needed by solve_fv_congruence when dealing with binders, such as in fv_vobj and fv_vabs. *)
   Lemma eq_up s1 s2 n: eq_n_s s1 s2 n → eq_n_s (up s1) (up s2) (S n).
@@ -68,20 +74,39 @@ Module Sorts (values: Values).
     rewrite /up. move => Heq [|x] Hl //=. f_equiv. apply Heq. lia.
   Qed.
 
+  Global Ltac solve_fv_congruence :=
+    rewrite /nclosed /nclosed_vl => * /=; repeat (f_equiv; try solve [(idtac + asimpl); auto using eq_up]).
+
+  (** Generic direct lemmas. *)
+  Lemma fv_cons `{Sort X} (x: X) xs n: nclosed xs n → nclosed x n → nclosed (x :: xs) n.
+  Proof. solve_fv_congruence. Qed.
+
+  Lemma fv_pair `{Sort X} `{Inhabited A} (a: A) (x: X) n: nclosed x n → nclosed (a, x) n.
+  Proof. solve_fv_congruence. Qed.
+
+  Lemma fv_pair_cons `{Sort X} `{!Inhabited A} (a: A) (x: X) xs n: nclosed xs n → nclosed x n → nclosed ((a, x) :: xs) n.
+  (* solve_fv_congruence would work, but this gives a smaller proof. *)
+  Proof. intros. by apply fv_cons, fv_pair. Qed.
+
+  (** Infrastructure for "inverse" lemmas on nclosed{,_vl}: by knowing that an expression is closed,
+      deduce that one of its subexpressions is closed.
+      Dealing with binders in nclosed "inverse" lemmas requires more infrastructure than for "direct" lemmas.
+      See fv_vabs_inv_manual for an explanation. *)
+
   Definition stail s := ren (+1) >> s.
   Definition shead (s: var → vl) := s 0.
 
   Lemma eq_n_s_tails {n s1 s2}: eq_n_s s1 s2 (S n) → eq_n_s (stail s1) (stail s2) n.
-  Proof. rewrite /stail => /= HsEq x Hl.
-    (* XXX Not needed in syn.v, as id_subst equality holds there definitionally: *)
-    (* asimpl. *) rewrite !id_subst.
-    apply HsEq. lia. Qed.
+  Proof.
+    move => /= HsEq x Hl.
+    rewrite /stail /= !id_subst.
+    apply HsEq. lia.
+  Qed.
 
   Lemma eq_n_s_heads {n s1 s2}: eq_n_s s1 s2 n → n > 0 → shead s1 = shead s2.
-  Proof. rewrite /shead => /= HsEq. apply HsEq. Qed.
+  Proof. rewrite /shead => /= HsEq. exact: HsEq. Qed.
 
-  Lemma decomp_s_vl v s:
-    v.[s] = v.[up (stail s)].[shead s/].
+  Lemma decomp_s_vl v s: v.[s] = v.[up (stail s)].[shead s/].
   Proof. by rewrite /stail /shead; asimpl. Qed.
 
   Notation cl_ρ ρ := (nclosed_σ ρ 0).
@@ -89,22 +114,10 @@ Module Sorts (values: Values).
   Section sort.
     Context `{Sort X}.
 
-    Implicit Types (x: X).
-
-    Definition nclosed x n :=
-      ∀ s1 s2, eq_n_s s1 s2 n → x.|[s1] = x.|[s2].
-
-    Lemma decomp_s x s:
+    Lemma decomp_s (x: X) s:
       x.|[s] = x.|[up (stail s)].|[shead s/].
     Proof. rewrite /stail /shead. by asimpl. Qed.
   End sort.
-
-  (* XXXX rewrite comment *)
-  (** The following ones are "direct" lemmas: deduce that an expression is closed
-      by knowing that its subexpression are closed. *)
-  (** Automated proof for such lemmas. *)
-  Global Ltac solve_fv_congruence :=
-    rewrite /nclosed /nclosed_vl => * /=; repeat (f_equiv; try solve [(idtac + asimpl); auto using eq_up]).
 
   (** Rewrite thesis with equalities learned from injection, if possible *)
   Ltac rewritePremises := let H := fresh "H" in repeat (move => H; rewrite ?H {H}).
@@ -137,23 +150,4 @@ Module Sorts (values: Values).
     end.
 
   Hint Extern 10 => solve_inv_fv_congruence_auto: fv.
-
-  Section sort_list.
-    Context `{Sort X}.
-    Implicit Types (x: X).
-
-    Lemma fv_cons x xs n: nclosed xs n → nclosed x n → nclosed (x :: xs) n.
-    Proof. solve_fv_congruence. Qed.
-
-    Context `{Inhabited A}.
-    Implicit Types (a: A).
-
-    Lemma fv_pair (a: A) (x: X) n: nclosed x n → nclosed (a, x) n.
-    Proof. solve_fv_congruence. Qed.
-  End sort_list.
-
-  Lemma fv_pair_cons `{!Inhabited A} `{Sort X} (a: A) (x: X) xs n: nclosed xs n → nclosed x n → nclosed ((a, x) :: xs) n.
-  Proof.
-    (* solve_fv_congruence. *) (* Works *)
-    intros. by apply fv_cons, fv_pair. Qed.
 End Sorts.
