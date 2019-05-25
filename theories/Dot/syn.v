@@ -40,17 +40,17 @@ Definition dms := list (label * dm).
 Definition ctx := list ty.
 
 Implicit Types
-         (T: ty) (v: vl) (t e: tm) (d: dm) (ds: dms) (vs: vls)
-         (Γ : ctx).
+         (T : ty) (v : vl) (t : tm) (d : dm) (ds : dms) (p : path)
+         (Γ : ctx) (vs : vls) (l : label).
 
-Definition label_of_ty (T: ty): option label :=
+Definition label_of_ty T : option label :=
   match T with
   | TTMem l _ _ => Some l
   | TVMem l _ => Some l
   | _ => None
   end.
 
-Fixpoint dms_lookup (l : label) (ds : dms): option dm :=
+Fixpoint dms_lookup l ds : option dm :=
   match ds with
   | [] => None
   | (l', d) :: ds =>
@@ -82,17 +82,17 @@ Instance ids_vls : Ids vls := _.
 Instance ids_dms : Ids dms := _.
 Instance ids_ctx : Ids ctx := _.
 
-Fixpoint tm_rename (sb : var → var) (e : tm) {struct e} : tm :=
+Fixpoint tm_rename (sb : var → var) t : tm :=
   let a := tm_rename : Rename tm in
   let b := vl_rename : Rename vl in
-  match e with
+  match t with
   | tv v => tv (rename sb v)
   | tapp t1 t2 => tapp (rename sb t1) (rename sb t2)
   | tproj t l => (tproj (rename sb t) l)
   | tskip t => tskip (rename sb t)
   end
 with
-vl_rename (sb : var → var) (v : vl) {struct v} : vl :=
+vl_rename (sb : var → var) v : vl :=
   let a := tm_rename : Rename tm in
   let b := vl_rename : Rename vl in
   let c := dm_rename : Rename dm in
@@ -103,7 +103,7 @@ vl_rename (sb : var → var) (v : vl) {struct v} : vl :=
   | vobj d => vobj (rename (upren sb) d)
   end
 with
-dm_rename (sb : var → var) (d : dm) {struct d} : dm :=
+dm_rename (sb : var → var) d : dm :=
   let a := vl_rename : Rename vl in
   let b := ty_rename : Rename ty in
   match d with
@@ -112,7 +112,7 @@ dm_rename (sb : var → var) (d : dm) {struct d} : dm :=
   | dvl v => dvl (rename sb v)
   end
 with
-ty_rename (sb : var → var) (T : ty) {struct T}: ty :=
+ty_rename (sb : var → var) T : ty :=
   let a := ty_rename : Rename ty in
   let b := path_rename : Rename path in
   match T with
@@ -125,16 +125,16 @@ ty_rename (sb : var → var) (T : ty) {struct T}: ty :=
   | TMu T => TMu (rename (upren sb) T)
   | TVMem l T => TVMem l (rename sb T)
   | TTMem l T1 T2 => TTMem l (rename sb T1) (rename sb T2)
-  | TSel pth l => TSel (rename sb pth) l
+  | TSel p l => TSel (rename sb p) l
   | TNat => TNat
   end
 with
-path_rename (sb : var → var) (pth : path) {struct pth} : path :=
+path_rename (sb : var → var) p : path :=
   let a := vl_rename : Rename vl in
   let b := path_rename : Rename path in
-  match pth with
+  match p with
   | pv v => pv (rename sb v)
-  | pself pth l => pself (rename sb pth) l
+  | pself p l => pself (rename sb p) l
   end.
 
 Instance rename_tm : Rename tm := tm_rename.
@@ -145,17 +145,17 @@ Instance rename_pth : Rename path := path_rename.
 
 Hint Rewrite @list_rename_fold @list_pair_rename_fold : autosubst.
 
-Fixpoint tm_hsubst (sb : var → vl) (e : tm) : tm :=
+Fixpoint tm_hsubst (sb : var → vl) t : tm :=
   let a := tm_hsubst : HSubst vl tm in
   let b := vl_subst : Subst vl in
-  match e with
+  match t with
   | tv v => tv (subst sb v)
   | tapp t1 t2 => tapp (hsubst sb t1) (hsubst sb t2)
   | tproj t l => (tproj (hsubst sb t) l)
   | tskip t => tskip (hsubst sb t)
   end
 with
-vl_subst (sb : var → vl) (v : vl) : vl :=
+vl_subst (sb : var → vl) v : vl :=
   let a := tm_hsubst : HSubst vl tm in
   let b := dm_hsubst : HSubst vl dm in
   match v with
@@ -165,7 +165,7 @@ vl_subst (sb : var → vl) (v : vl) : vl :=
   | vobj d => vobj (hsubst (up sb) d)
   end
 with
-dm_hsubst (sb : var → vl) (d : dm) : dm :=
+dm_hsubst (sb : var → vl) d : dm :=
   let a := vl_subst : Subst vl in
   let b := ty_hsubst : HSubst vl ty in
   match d with
@@ -174,7 +174,7 @@ dm_hsubst (sb : var → vl) (d : dm) : dm :=
   | dvl v => dvl (subst sb v)
   end
 with
-ty_hsubst (sb : var → vl) (T : ty) : ty :=
+ty_hsubst (sb : var → vl) T : ty :=
   let a := ty_hsubst : HSubst vl ty in
   let b := path_hsubst : HSubst vl path in
   match T with
@@ -187,16 +187,16 @@ ty_hsubst (sb : var → vl) (T : ty) : ty :=
   | TMu T => TMu (hsubst (up sb) T)
   | TVMem l T => TVMem l (hsubst sb T)
   | TTMem l T1 T2 => TTMem l (hsubst sb T1) (hsubst sb T2)
-  | TSel pth l => TSel (hsubst sb pth) l
+  | TSel p l => TSel (hsubst sb p) l
   | TNat => TNat
   end
 with
-path_hsubst (sb : var → vl) (pth : path) : path :=
+path_hsubst (sb : var → vl) p : path :=
   let b := vl_subst : Subst vl in
   let b := path_hsubst : HSubst vl path in
-  match pth with
+  match p with
   | pv v => pv (subst sb v)
-  | pself pth l => pself (hsubst sb pth) l
+  | pself p l => pself (hsubst sb p) l
   end.
 
 Instance subst_vl : Subst vl := vl_subst.
@@ -205,15 +205,15 @@ Instance hsubst_ty : HSubst vl ty := ty_hsubst.
 Instance hsubst_dm : HSubst vl dm := dm_hsubst.
 Instance hsubst_pth : HSubst vl path := path_hsubst.
 
-Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
+Lemma vl_eq_dec v1 v2 : Decision (v1 = v2)
 with
-tm_eq_dec (t1 t2 : tm) : Decision (t1 = t2)
+tm_eq_dec t1 t2 : Decision (t1 = t2)
 with
-dm_eq_dec (d1 d2 : dm) : Decision (d1 = d2)
+dm_eq_dec d1 d2 : Decision (d1 = d2)
 with
-ty_eq_dec (ty1 ty2 : ty) : Decision (ty1 = ty2)
+ty_eq_dec T1 T2 : Decision (T1 = T2)
 with
-path_eq_dec (pth1 pth2 : path) : Decision (pth1 = pth2).
+path_eq_dec p1 p2 : Decision (p1 = p2).
 Proof.
    all: rewrite /Decision; decide equality;
        try repeat (apply vl_eq_dec || apply tm_eq_dec || apply ty_eq_dec || apply path_eq_dec ||
@@ -233,79 +233,79 @@ Instance dms_eq_dec' : EqDecision dms := list_eq_dec.
 Local Ltac finish_lists l x :=
   elim: l => [|x xs IHds] //=; idtac + elim: x => [l d] //=; f_equal => //; by f_equal.
 
-Lemma vl_rename_Lemma (ξ : var → var) (v : vl) : rename ξ v = v.[ren ξ]
+Lemma vl_rename_Lemma (ξ : var → var) v : rename ξ v = v.[ren ξ]
 with
-tm_rename_Lemma (ξ : var → var) (t : tm) : rename ξ t = t.|[ren ξ]
+tm_rename_Lemma (ξ : var → var) t : rename ξ t = t.|[ren ξ]
 with
-dm_rename_Lemma (ξ : var → var) (d : dm) : rename ξ d = d.|[ren ξ]
+dm_rename_Lemma (ξ : var → var) d : rename ξ d = d.|[ren ξ]
 with
-ty_rename_Lemma (ξ : var → var) (T : ty) : rename ξ T = T.|[ren ξ]
+ty_rename_Lemma (ξ : var → var) T : rename ξ T = T.|[ren ξ]
 with
-path_rename_Lemma (ξ : var → var) (pth : path) :
-  rename ξ pth = pth.|[ren ξ].
+path_rename_Lemma (ξ : var → var) p :
+  rename ξ p = p.|[ren ξ].
 Proof.
   all: destruct 0; rewrite /= ?up_upren_internal; f_equal => //; finish_lists l x.
 Qed.
 
-Lemma vl_ids_Lemma (v : vl) : v.[ids] = v
+Lemma vl_ids_Lemma v : v.[ids] = v
 with
-tm_ids_Lemma (t : tm) : t.|[ids] = t
+tm_ids_Lemma t : t.|[ids] = t
 with
-dm_ids_Lemma (d : dm) : d.|[ids] = d
+dm_ids_Lemma d : d.|[ids] = d
 with
-ty_ids_Lemma (T : ty) : T.|[ids] = T
+ty_ids_Lemma T : T.|[ids] = T
 with
-path_ids_Lemma (pth : path) : pth.|[ids] = pth.
+path_ids_Lemma p : p.|[ids] = p.
 Proof.
   all: destruct 0; rewrite /= ?up_id_internal; f_equal => //; finish_lists l x.
 Qed.
 
-Lemma vl_comp_rename_Lemma (ξ : var → var) (σ : var → vl) (v : vl) :
+Lemma vl_comp_rename_Lemma (ξ : var → var) (σ : var → vl) v :
   (rename ξ v).[σ] = v.[ξ >>> σ]
 with
-tm_comp_rename_Lemma (ξ : var → var) (σ : var → vl) (t : tm) :
+tm_comp_rename_Lemma (ξ : var → var) (σ : var → vl) t :
   (rename ξ t).|[σ] = t.|[ξ >>> σ]
 with
-dm_comp_rename_Lemma (ξ : var → var) (σ : var → vl) (d : dm) :
+dm_comp_rename_Lemma (ξ : var → var) (σ : var → vl) d :
   (rename ξ d).|[σ] = d.|[ξ >>> σ]
 with
-ty_comp_rename_Lemma (ξ : var → var) (σ : var → vl) (T : ty) :
+ty_comp_rename_Lemma (ξ : var → var) (σ : var → vl) T :
   (rename ξ T).|[σ] = T.|[ξ >>> σ]
 with
-path_comp_rename_Lemma (ξ : var → var) (σ : var → vl) (pth : path) :
-  (rename ξ pth).|[σ] = pth.|[ξ >>> σ].
+path_comp_rename_Lemma (ξ : var → var) (σ : var → vl) p :
+  (rename ξ p).|[σ] = p.|[ξ >>> σ].
 Proof.
   all: destruct 0; rewrite /= 1? up_comp_ren_subst; f_equal => //; finish_lists l x.
 Qed.
 
-Lemma vl_rename_comp_Lemma (σ : var → vl) (ξ : var → var) (v : vl) :
+Lemma vl_rename_comp_Lemma (σ : var → vl) (ξ : var → var) v :
   rename ξ v.[σ] = v.[σ >>> rename ξ]
 with
-tm_rename_comp_Lemma (σ : var → vl) (ξ : var → var) (t : tm) :
+tm_rename_comp_Lemma (σ : var → vl) (ξ : var → var) t :
   rename ξ t.|[σ] = t.|[σ >>> rename ξ]
 with
-dm_rename_comp_Lemma (σ : var → vl) (ξ : var → var) (d : dm) :
+dm_rename_comp_Lemma (σ : var → vl) (ξ : var → var) d :
   rename ξ d.|[σ] = d.|[σ >>> rename ξ]
 with
-ty_rename_comp_Lemma (σ : var → vl) (ξ : var → var) (T : ty) :
+ty_rename_comp_Lemma (σ : var → vl) (ξ : var → var) T :
   rename ξ T.|[σ] = T.|[σ >>> rename ξ]
 with
-path_rename_comp_Lemma (σ : var → vl) (ξ : var → var) (pth : path) :
-  rename ξ pth.|[σ] = pth.|[σ >>> rename ξ].
+path_rename_comp_Lemma (σ : var → vl) (ξ : var → var) p :
+  rename ξ p.|[σ] = p.|[σ >>> rename ξ].
 Proof.
   all: destruct 0; rewrite /= ? up_comp_subst_ren_internal; f_equal => //;
     auto using vl_rename_Lemma, vl_comp_rename_Lemma; finish_lists l x.
 Qed.
 
-Lemma vl_comp_Lemma (σ τ : var → vl) (v : vl) : v.[σ].[τ] = v.[σ >> τ]
+Lemma vl_comp_Lemma (σ τ : var → vl) v : v.[σ].[τ] = v.[σ >> τ]
 with
-tm_comp_Lemma (σ τ : var → vl) (t : tm) : t.|[σ].|[τ] = t.|[σ >> τ]
+tm_comp_Lemma (σ τ : var → vl) t : t.|[σ].|[τ] = t.|[σ >> τ]
 with
-dm_comp_Lemma (σ τ : var → vl) (d : dm) : d.|[σ].|[τ] = d.|[σ >> τ]
+dm_comp_Lemma (σ τ : var → vl) d : d.|[σ].|[τ] = d.|[σ >> τ]
 with
-ty_comp_Lemma (σ τ : var → vl) (T : ty) : T.|[σ].|[τ] = T.|[σ >> τ]
+ty_comp_Lemma (σ τ : var → vl) T : T.|[σ].|[τ] = T.|[σ >> τ]
 with
-path_comp_Lemma (σ τ : var → vl) (pth : path) : pth.|[σ].|[τ] = pth.|[σ >> τ].
+path_comp_Lemma (σ τ : var → vl) p : p.|[σ].|[τ] = p.|[σ >> τ].
 Proof.
   all: destruct 0; rewrite /= ? up_comp_internal; f_equal;
     auto using vl_rename_comp_Lemma, vl_comp_rename_Lemma; finish_lists l x.
@@ -340,22 +340,22 @@ Instance hsubst_lemmas_vls : HSubstLemmas vl vls := _.
 
 Instance hsubst_lemmas_ctx : HSubstLemmas vl ctx := _.
 
-Instance inh_string: Inhabited string := populate "".
-Instance inh_label: Inhabited label := _.
+Instance inh_string : Inhabited string := populate "".
+Instance inh_label : Inhabited label := _.
 Instance hsubst_lemmas_dms : HSubstLemmas vl dms := _.
 
 Include Sorts.
 
-Instance sort_tm: Sort tm := {}.
-Instance sort_dm: Sort dm := {}.
-Instance sort_path: Sort path := {}.
-Instance sort_ty: Sort ty := {}.
+Instance sort_tm : Sort tm := {}.
+Instance sort_dm : Sort dm := {}.
+Instance sort_path : Sort path := {}.
+Instance sort_ty : Sort ty := {}.
 
 (** After instantiating Autosubst, a few binding-related syntactic definitions
     that need not their own file. *)
 
 (** Here is a manual proof of a lemma, with explanations. *)
-Lemma fv_vabs_inv_manual e n: nclosed_vl (vabs e) n → nclosed e (S n).
+Lemma fv_vabs_inv_manual e n : nclosed_vl (vabs e) n → nclosed e (S n).
 Proof.
   rewrite /nclosed_vl /nclosed => /= Hfv s1 s2 HsEq.
 
@@ -373,19 +373,19 @@ Qed.
 
 (* The proof of this lemma needs asimpl and hence is expensive, so we provide it
    separately. *)
-Lemma fv_vobj_ds_inv l d ds n: nclosed_vl (vobj ((l, d) :: ds)) n → nclosed_vl (vobj ds) n.
+Lemma fv_vobj_ds_inv l d ds n : nclosed_vl (vobj ((l, d) :: ds)) n → nclosed_vl (vobj ds) n.
 Proof. solve_inv_fv_congruence. Qed.
 
-Lemma fv_vobj_d_inv l d ds n: nclosed_vl (vobj ((l, d) :: ds)) n → nclosed d (S n).
+Lemma fv_vobj_d_inv l d ds n : nclosed_vl (vobj ((l, d) :: ds)) n → nclosed d (S n).
 Proof. solve_inv_fv_congruence. Qed.
 
-Lemma fv_dtysem_inv_vs s v vs n: nclosed (dtysem (v :: vs) s) n → nclosed (dtysem vs s) n.
+Lemma fv_dtysem_inv_vs s v vs n : nclosed (dtysem (v :: vs) s) n → nclosed (dtysem vs s) n.
 Proof. solve_inv_fv_congruence. Qed.
 
-Lemma fv_dtysem_inv_v s v vs n: nclosed (dtysem (v :: vs) s) n → nclosed_vl v n.
+Lemma fv_dtysem_inv_v s v vs n : nclosed (dtysem (v :: vs) s) n → nclosed_vl v n.
 Proof. solve_inv_fv_congruence. Qed.
 
-Hint Resolve fv_vobj_ds_inv fv_vobj_d_inv fv_dtysem_inv_v fv_dtysem_inv_vs: fvl.
+Hint Resolve fv_vobj_ds_inv fv_vobj_d_inv fv_dtysem_inv_v fv_dtysem_inv_vs : fvl.
 
 (** Induction principles for syntax. *)
 
@@ -396,40 +396,40 @@ Section syntax_mut_rect.
   Variable Ppt : path → Type.
   Variable Pty : ty   → Type.
 
-  Variable step_tv: ∀ v1, Pvl v1 → Ptm (tv v1).
-  Variable step_tapp: ∀ t1 t2, Ptm t1 → Ptm t2 → Ptm (tapp t1 t2).
-  Variable step_tproj: ∀ t1 l, Ptm t1 → Ptm (tproj t1 l).
-  Variable step_tskip: ∀ t1, Ptm t1 → Ptm (tskip t1).
-  Variable step_var_vl: ∀ i, Pvl (var_vl i).
-  Variable step_vnat: ∀ n, Pvl (vnat n).
-  Variable step_vabs: ∀ t1, Ptm t1 → Pvl (vabs t1).
+  Variable step_tv : ∀ v1, Pvl v1 → Ptm (tv v1).
+  Variable step_tapp : ∀ t1 t2, Ptm t1 → Ptm t2 → Ptm (tapp t1 t2).
+  Variable step_tproj : ∀ t1 l, Ptm t1 → Ptm (tproj t1 l).
+  Variable step_tskip : ∀ t1, Ptm t1 → Ptm (tskip t1).
+  Variable step_var_vl : ∀ i, Pvl (var_vl i).
+  Variable step_vnat : ∀ n, Pvl (vnat n).
+  Variable step_vabs : ∀ t1, Ptm t1 → Pvl (vabs t1).
   (* Original: *)
-  (* Variable step_vobj: ∀ l, Pvl (vobj l). *)
-  Variable step_vobj: ∀ ds, ForallT Pdm (map snd ds) → Pvl (vobj ds).
-  Variable step_dtysyn: ∀ T1, Pty T1 → Pdm (dtysyn T1).
+  (* Variable step_vobj : ∀ l, Pvl (vobj l). *)
+  Variable step_vobj : ∀ ds, ForallT Pdm (map snd ds) → Pvl (vobj ds).
+  Variable step_dtysyn : ∀ T1, Pty T1 → Pdm (dtysyn T1).
   (* Original: *)
-  (* Variable step_dtysem: ∀ vsl g, Pdm (dtysem vs g). *)
-  Variable step_dtysem: ∀ vs s, ForallT Pvl vs → Pdm (dtysem vs s).
-  Variable step_dvl: ∀ v1, Pvl v1 → Pdm (dvl v1).
-  Variable step_pv: ∀ v1, Pvl v1 → Ppt (pv v1).
-  Variable step_psefl: ∀ p1 l, Ppt p1 → Ppt (pself p1 l).
-  Variable step_TTop: Pty TTop.
-  Variable step_TBot: Pty TBot.
-  Variable step_TAnd: ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAnd T1 T2).
-  Variable step_TOr: ∀ T1 T2, Pty T1 → Pty T2 → Pty (TOr T1 T2).
-  Variable step_TLater: ∀ T1, Pty T1 → Pty (TLater T1).
-  Variable step_TAll: ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAll T1 T2).
-  Variable step_TMu: ∀ T1, Pty T1 → Pty (TMu T1).
-  Variable step_TVMem: ∀ l T1, Pty T1 → Pty (TVMem l T1).
-  Variable step_TTMem: ∀ l T1 T2, Pty T1 → Pty T2 → Pty (TTMem l T1 T2).
-  Variable step_TSel: ∀ p1 l, Ppt p1 → Pty (TSel p1 l).
-  Variable step_TNat: Pty TNat.
+  (* Variable step_dtysem : ∀ vsl g, Pdm (dtysem vs g). *)
+  Variable step_dtysem : ∀ vs s, ForallT Pvl vs → Pdm (dtysem vs s).
+  Variable step_dvl : ∀ v1, Pvl v1 → Pdm (dvl v1).
+  Variable step_pv : ∀ v1, Pvl v1 → Ppt (pv v1).
+  Variable step_psefl : ∀ p1 l, Ppt p1 → Ppt (pself p1 l).
+  Variable step_TTop : Pty TTop.
+  Variable step_TBot : Pty TBot.
+  Variable step_TAnd : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAnd T1 T2).
+  Variable step_TOr : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TOr T1 T2).
+  Variable step_TLater : ∀ T1, Pty T1 → Pty (TLater T1).
+  Variable step_TAll : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAll T1 T2).
+  Variable step_TMu : ∀ T1, Pty T1 → Pty (TMu T1).
+  Variable step_TVMem : ∀ l T1, Pty T1 → Pty (TVMem l T1).
+  Variable step_TTMem : ∀ l T1 T2, Pty T1 → Pty T2 → Pty (TTMem l T1 T2).
+  Variable step_TSel : ∀ p1 l, Ppt p1 → Pty (TSel p1 l).
+  Variable step_TNat : Pty TNat.
 
-  Fixpoint tm_mut_rect t: Ptm t
-  with vl_mut_rect v: Pvl v
-  with dm_mut_rect d: Pdm d
-  with path_mut_rect p: Ppt p
-  with ty_mut_rect T: Pty T.
+  Fixpoint tm_mut_rect t : Ptm t
+  with vl_mut_rect v : Pvl v
+  with dm_mut_rect d : Pdm d
+  with path_mut_rect p : Ppt p
+  with ty_mut_rect T : Pty T.
   Proof.
     (* Automation risk producing circular proofs that call right away the lemma we're proving.
        Instead we want to apply one of the [case_] arguments to perform an
@@ -437,17 +437,17 @@ Section syntax_mut_rect.
     all: destruct 0;
       try match goal with
       (* Warning: add other arities as needed. *)
-      | Hstep: context [?P (?c _ _ _ _)] |- ?P (?c _ _ _ _) => apply Hstep; trivial
-      | Hstep: context [?P (?c _ _ _)] |- ?P (?c _ _ _) => apply Hstep; trivial
-      | Hstep: context [?P (?c _ _)] |- ?P (?c _ _) => apply Hstep; trivial
-      | Hstep: context [?P (?c _)] |- ?P (?c _) => apply Hstep; trivial
-      | Hstep: context [?P (?c)] |- ?P (?c) => apply Hstep; trivial
+      | Hstep : context [?P (?c _ _ _ _)] |- ?P (?c _ _ _ _) => apply Hstep; trivial
+      | Hstep : context [?P (?c _ _ _)] |- ?P (?c _ _ _) => apply Hstep; trivial
+      | Hstep : context [?P (?c _ _)] |- ?P (?c _ _) => apply Hstep; trivial
+      | Hstep : context [?P (?c _)] |- ?P (?c _) => apply Hstep; trivial
+      | Hstep : context [?P (?c)] |- ?P (?c) => apply Hstep; trivial
       end.
     - elim: l => [|[l d] ds IHds] //=; auto.
     - elim: l => [|v vs IHxs] //=; auto.
   Qed.
 
-  Lemma syntax_mut_rect: (∀ t, Ptm t) * (∀ v, Pvl v) * (∀ d, Pdm d) * (∀ p, Ppt p) * (∀ T, Pty T).
+  Lemma syntax_mut_rect : (∀ t, Ptm t) * (∀ v, Pvl v) * (∀ d, Pdm d) * (∀ p, Ppt p) * (∀ T, Pty T).
   Proof.
     repeat split; intros.
     - eapply tm_mut_rect.
@@ -465,36 +465,36 @@ Section syntax_mut_ind.
   Variable Ppt : path → Prop.
   Variable Pty : ty   → Prop.
 
-  Variable step_tv: ∀ v1, Pvl v1 → Ptm (tv v1).
-  Variable step_tapp: ∀ t1 t2, Ptm t1 → Ptm t2 → Ptm (tapp t1 t2).
-  Variable step_tproj: ∀ t1 l, Ptm t1 → Ptm (tproj t1 l).
-  Variable step_tskip: ∀ t1, Ptm t1 → Ptm (tskip t1).
-  Variable step_var_vl: ∀ i, Pvl (var_vl i).
-  Variable step_vnat: ∀ n, Pvl (vnat n).
-  Variable step_vabs: ∀ t1, Ptm t1 → Pvl (vabs t1).
+  Variable step_tv : ∀ v1, Pvl v1 → Ptm (tv v1).
+  Variable step_tapp : ∀ t1 t2, Ptm t1 → Ptm t2 → Ptm (tapp t1 t2).
+  Variable step_tproj : ∀ t1 l, Ptm t1 → Ptm (tproj t1 l).
+  Variable step_tskip : ∀ t1, Ptm t1 → Ptm (tskip t1).
+  Variable step_var_vl : ∀ i, Pvl (var_vl i).
+  Variable step_vnat : ∀ n, Pvl (vnat n).
+  Variable step_vabs : ∀ t1, Ptm t1 → Pvl (vabs t1).
   (* Original: *)
-  (* Variable step_vobj: ∀ l, Pvl (vobj l). *)
-  Variable step_vobj: ∀ ds, Forall Pdm (map snd ds) → Pvl (vobj ds).
-  Variable step_dtysyn: ∀ T1, Pty T1 → Pdm (dtysyn T1).
+  (* Variable step_vobj : ∀ l, Pvl (vobj l). *)
+  Variable step_vobj : ∀ ds, Forall Pdm (map snd ds) → Pvl (vobj ds).
+  Variable step_dtysyn : ∀ T1, Pty T1 → Pdm (dtysyn T1).
   (* Original: *)
-  (* Variable step_dtysem: ∀ vsl g, Pdm (dtysem vs g). *)
-  Variable step_dtysem: ∀ vs s, Forall Pvl vs → Pdm (dtysem vs s).
-  Variable step_dvl: ∀ v1, Pvl v1 → Pdm (dvl v1).
-  Variable step_pv: ∀ v1, Pvl v1 → Ppt (pv v1).
-  Variable step_psefl: ∀ p1 l, Ppt p1 → Ppt (pself p1 l).
-  Variable step_TTop: Pty TTop.
-  Variable step_TBot: Pty TBot.
-  Variable step_TAnd: ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAnd T1 T2).
-  Variable step_TOr: ∀ T1 T2, Pty T1 → Pty T2 → Pty (TOr T1 T2).
-  Variable step_TLater: ∀ T1, Pty T1 → Pty (TLater T1).
-  Variable step_TAll: ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAll T1 T2).
-  Variable step_TMu: ∀ T1, Pty T1 → Pty (TMu T1).
-  Variable step_TVMem: ∀ l T1, Pty T1 → Pty (TVMem l T1).
-  Variable step_TTMem: ∀ l T1 T2, Pty T1 → Pty T2 → Pty (TTMem l T1 T2).
-  Variable step_TSel: ∀ p1 l, Ppt p1 → Pty (TSel p1 l).
-  Variable step_TNat: Pty TNat.
+  (* Variable step_dtysem : ∀ vsl g, Pdm (dtysem vs g). *)
+  Variable step_dtysem : ∀ vs s, Forall Pvl vs → Pdm (dtysem vs s).
+  Variable step_dvl : ∀ v1, Pvl v1 → Pdm (dvl v1).
+  Variable step_pv : ∀ v1, Pvl v1 → Ppt (pv v1).
+  Variable step_psefl : ∀ p1 l, Ppt p1 → Ppt (pself p1 l).
+  Variable step_TTop : Pty TTop.
+  Variable step_TBot : Pty TBot.
+  Variable step_TAnd : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAnd T1 T2).
+  Variable step_TOr : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TOr T1 T2).
+  Variable step_TLater : ∀ T1, Pty T1 → Pty (TLater T1).
+  Variable step_TAll : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAll T1 T2).
+  Variable step_TMu : ∀ T1, Pty T1 → Pty (TMu T1).
+  Variable step_TVMem : ∀ l T1, Pty T1 → Pty (TVMem l T1).
+  Variable step_TTMem : ∀ l T1 T2, Pty T1 → Pty T2 → Pty (TTMem l T1 T2).
+  Variable step_TSel : ∀ p1 l, Ppt p1 → Pty (TSel p1 l).
+  Variable step_TNat : Pty TNat.
 
-  Lemma syntax_mut_ind: (∀ t, Ptm t) ∧ (∀ v, Pvl v) ∧ (∀ d, Pdm d) ∧ (∀ p, Ppt p) ∧ (∀ T, Pty T).
+  Lemma syntax_mut_ind : (∀ t, Ptm t) ∧ (∀ v, Pvl v) ∧ (∀ d, Pdm d) ∧ (∀ p, Ppt p) ∧ (∀ T, Pty T).
   Proof.
     efeed pose proof syntax_mut_rect as H; try done.
     - intros ds HdsT. apply step_vobj, ForallT_Forall, HdsT.
@@ -512,7 +512,7 @@ Section syntax_mut_ind_closed.
   Variable Ppt : path → nat → Prop.
   Variable Pty : ty   → nat → Prop.
 
-  Implicit Types (n: nat).
+  Implicit Types (n : nat).
 
   Variable step_tv : ∀ n v1,
       nclosed_vl v1 n → nclosed (tv v1) n →
@@ -520,7 +520,7 @@ Section syntax_mut_ind_closed.
   Variable step_tapp : ∀ n t1 t2,
       nclosed t1 n → nclosed t2 n → nclosed (tapp t1 t2) n →
       Ptm t1 n → Ptm t2 n → Ptm (tapp t1 t2) n.
-  Variable step_tproj: ∀ n t1 l,
+  Variable step_tproj : ∀ n t1 l,
       nclosed t1 n → nclosed (tproj t1 l) n →
       Ptm t1 n → Ptm (tproj t1 l) n.
   Variable step_tskip : ∀ n t1,
@@ -535,26 +535,26 @@ Section syntax_mut_ind_closed.
       nclosed t1 (S n) →
       nclosed_vl (vabs t1) n →
       Ptm t1 (S n) → Pvl (vabs t1) n.
-  Variable step_vobj: ∀ n ds,
+  Variable step_vobj : ∀ n ds,
       nclosed ds (S n) → nclosed_vl (vobj ds) n →
       Forall (flip Pdm (S n)) (map snd ds) →
       Pvl (vobj ds) n.
 
-  Variable step_dtysyn: ∀ n T1,
+  Variable step_dtysyn : ∀ n T1,
       nclosed T1 n →
       nclosed (dtysyn T1) n →
       Pty T1 n → Pdm (dtysyn T1) n.
-  Variable step_dtysem: ∀ n vs s,
+  Variable step_dtysem : ∀ n vs s,
       nclosed vs n → nclosed (dtysem vs s) n →
       Forall (flip Pvl n) vs → Pdm (dtysem vs s) n.
-  Variable step_dvl: ∀ n v1,
+  Variable step_dvl : ∀ n v1,
       nclosed_vl v1 n → nclosed (dvl v1) n →
       Pvl v1 n → Pdm (dvl v1) n.
 
-  Variable step_pv: ∀ n v1,
+  Variable step_pv : ∀ n v1,
       nclosed_vl v1 n → nclosed (pv v1) n →
       Pvl v1 n → Ppt (pv v1) n.
-  Variable step_psefl: ∀ n p1 l,
+  Variable step_psefl : ∀ n p1 l,
       nclosed p1 n →
       Ppt p1 n → Ppt (pself p1 l) n.
 
@@ -565,10 +565,10 @@ Section syntax_mut_ind_closed.
       nclosed TBot n →
       Pty TBot n.
 
-  Variable step_TAnd: ∀ n T1 T2,
+  Variable step_TAnd : ∀ n T1 T2,
       nclosed T1 n → nclosed T2 n → nclosed (TAnd T1 T2) n →
       Pty T1 n → Pty T2 n → Pty (TAnd T1 T2) n.
-  Variable step_TOr: ∀ n T1 T2,
+  Variable step_TOr : ∀ n T1 T2,
       nclosed T1 n → nclosed T2 n → nclosed (TOr T1 T2) n →
       Pty T1 n → Pty T2 n → Pty (TOr T1 T2) n.
   Variable step_TLater : ∀ n T1,
@@ -577,10 +577,10 @@ Section syntax_mut_ind_closed.
   Variable step_TAll : ∀ n T1 T2,
       nclosed T1 n → nclosed T2 (S n) → nclosed (TAll T1 T2) n →
       Pty T1 n → Pty T2 (S n) → Pty (TAll T1 T2) n.
-  Variable step_TMu: ∀ n T1,
+  Variable step_TMu : ∀ n T1,
       nclosed T1 (S n) → nclosed (TMu T1) n →
       Pty T1 (S n) → Pty (TMu T1) n.
-  Variable step_TVMem: ∀ n l T1,
+  Variable step_TVMem : ∀ n l T1,
       nclosed T1 n → nclosed (TVMem l T1) n →
       Pty T1 n → Pty (TVMem l T1) n.
   Variable step_TTMem : ∀ n l T1 T2,
@@ -593,11 +593,11 @@ Section syntax_mut_ind_closed.
       nclosed TNat n →
       Pty TNat n.
 
-  Fixpoint nclosed_tm_mut_ind n t: nclosed t n → Ptm t n
-  with     nclosed_vl_mut_ind n v: nclosed_vl v n → Pvl v n
-  with     nclosed_dm_mut_ind n d: nclosed d n → Pdm d n
-  with     nclosed_path_mut_ind n p: nclosed p n → Ppt p n
-  with     nclosed_ty_mut_ind n T: nclosed T n → Pty T n.
+  Fixpoint nclosed_tm_mut_ind n t : nclosed t n → Ptm t n
+  with     nclosed_vl_mut_ind n v : nclosed_vl v n → Pvl v n
+  with     nclosed_dm_mut_ind n d : nclosed d n → Pdm d n
+  with     nclosed_path_mut_ind n p : nclosed p n → Ppt p n
+  with     nclosed_ty_mut_ind n T : nclosed T n → Pty T n.
   Proof.
     (* Automation risk producing circular proofs that call right away the lemma we're proving.
        Instead we want to apply one of the [case_] arguments to perform an
@@ -607,16 +607,16 @@ Section syntax_mut_ind_closed.
     in
       match goal with
       (* Warning: add other arities as needed. *)
-      | Hstep: context [?P (?c _ _ _) _] |- ?P (?c ?a1 ?a2 ?a3) _ => byEapply (Hstep n a1 a2 a3)
-      | Hstep: context [?P (?c _ _) _] |- ?P (?c ?a1 ?a2) _ => byEapply (Hstep n a1 a2)
-      | Hstep: context [?P (?c _) _] |- ?P (?c ?a1) _ => byEapply (Hstep n a1)
-      | Hstep: context [?P (?c) _] |- ?P (?c) _ => byEapply (Hstep n)
+      | Hstep : context [?P (?c _ _ _) _] |- ?P (?c ?a1 ?a2 ?a3) _ => byEapply (Hstep n a1 a2 a3)
+      | Hstep : context [?P (?c _ _) _] |- ?P (?c ?a1 ?a2) _ => byEapply (Hstep n a1 a2)
+      | Hstep : context [?P (?c _) _] |- ?P (?c ?a1) _ => byEapply (Hstep n a1)
+      | Hstep : context [?P (?c) _] |- ?P (?c) _ => byEapply (Hstep n)
       end.
     - elim: l Hcl => [|[l d] ds IHds] Hcl /=; constructor => /=; eauto 3 with fvl.
     - elim: l Hcl => [|v vs IHxs]; constructor => /=; eauto 3 with fvl.
   Qed.
 
-  Lemma nclosed_syntax_mut_ind: (∀ t n, nclosed t n → Ptm t n) ∧ (∀ v n, nclosed_vl v n → Pvl v n) ∧ (∀ d n, nclosed d n → Pdm d n) ∧ (∀ p n, nclosed p n → Ppt p n) ∧ (∀ T n, nclosed T n → Pty T n).
+  Lemma nclosed_syntax_mut_ind : (∀ t n, nclosed t n → Ptm t n) ∧ (∀ v n, nclosed_vl v n → Pvl v n) ∧ (∀ d n, nclosed d n → Pdm d n) ∧ (∀ p n, nclosed p n → Ppt p n) ∧ (∀ T n, nclosed T n → Pty T n).
   Proof.
     repeat split; intros.
     - exact: nclosed_tm_mut_ind.

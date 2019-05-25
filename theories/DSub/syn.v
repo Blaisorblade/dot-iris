@@ -9,7 +9,7 @@ Inductive tm : Type :=
   | vnat : nat -> vl_
   | vabs : tm -> vl_
   | vty : ty -> vl_
-  | vstamp: list vl_ -> stamp -> vl_
+  | vstamp : list vl_ -> stamp -> vl_
  with ty : Type :=
   | TTop : ty
   | TBot : ty
@@ -28,7 +28,7 @@ Definition vls := list vl.
 Definition ctx := list ty.
 
 Implicit Types
-         (L T U: ty) (v: vl) (e: tm)
+         (L T U : ty) (v : vl) (t : tm)
          (Γ : ctx).
 
 Instance inh_ty : Inhabited ty := populate TNat.
@@ -45,16 +45,16 @@ Instance ids_ty : Ids ty := inh_ids.
 Instance ids_vls : Ids vls := _.
 Instance ids_ctx : Ids ctx := _.
 
-Fixpoint tm_rename (sb : var → var) (e : tm) {struct e} : tm :=
+Fixpoint tm_rename (sb : var → var) t : tm :=
   let a := tm_rename : Rename tm in
   let b := vl_rename : Rename vl in
-  match e with
+  match t with
   | tv v => tv (rename sb v)
   | tapp t1 t2 => tapp (rename sb t1) (rename sb t2)
   | tskip t => tskip (rename sb t)
   end
 with
-vl_rename (sb : var → var) (v : vl) {struct v} : vl :=
+vl_rename (sb : var → var) v : vl :=
   let a := tm_rename : Rename tm in
   let b := vl_rename : Rename vl in
   let c := ty_rename : Rename ty in
@@ -66,7 +66,7 @@ vl_rename (sb : var → var) (v : vl) {struct v} : vl :=
   | vstamp vs s => vstamp (rename sb vs) s
   end
 with
-ty_rename (sb : var → var) (T : ty) {struct T}: ty :=
+ty_rename (sb : var → var) T : ty :=
   let a := ty_rename : Rename ty in
   let b := vl_rename : Rename vl in
   match T with
@@ -86,16 +86,16 @@ Instance rename_tm : Rename tm := tm_rename.
 Instance rename_vl : Rename vl := vl_rename.
 Instance rename_ty : Rename ty := ty_rename.
 
-Fixpoint tm_hsubst (sb : var → vl) (e : tm) : tm :=
+Fixpoint tm_hsubst (sb : var → vl) t : tm :=
   let a := tm_hsubst : HSubst vl tm in
   let b := vl_subst : Subst vl in
-  match e with
+  match t with
   | tv v => tv (subst sb v)
   | tapp t1 t2 => tapp (hsubst sb t1) (hsubst sb t2)
   | tskip t => tskip (hsubst sb t)
   end
 with
-vl_subst (sb : var → vl) (v : vl) : vl :=
+vl_subst (sb : var → vl) v : vl :=
   let a := tm_hsubst : HSubst vl tm in
   let b := vl_subst : Subst vl in
   let c := ty_hsubst : HSubst vl ty in
@@ -107,7 +107,7 @@ vl_subst (sb : var → vl) (v : vl) : vl :=
   | vstamp vs s => vstamp (hsubst sb vs) s
   end
 with
-ty_hsubst (sb : var → vl) (T : ty) : ty :=
+ty_hsubst (sb : var → vl) T : ty :=
   let a := ty_hsubst : HSubst vl ty in
   let b := vl_subst : Subst vl in
   match T with
@@ -127,11 +127,11 @@ Instance subst_vl : Subst vl := vl_subst.
 Instance hsubst_tm : HSubst vl tm := tm_hsubst.
 Instance hsubst_ty : HSubst vl ty := ty_hsubst.
 
-Lemma vl_eq_dec (v1 v2 : vl) : Decision (v1 = v2)
+Lemma vl_eq_dec v1 v2 : Decision (v1 = v2)
 with
-tm_eq_dec (t1 t2 : tm) : Decision (t1 = t2)
+tm_eq_dec t1 t2 : Decision (t1 = t2)
 with
-ty_eq_dec (ty1 ty2 : ty) : Decision (ty1 = ty2).
+ty_eq_dec T1 T2 : Decision (T1 = T2).
 Proof.
    all: rewrite /Decision; decide equality;
        try (apply vl_eq_dec || apply tm_eq_dec || apply ty_eq_dec ||
@@ -147,54 +147,54 @@ Instance vls_eq_dec' : EqDecision vls := list_eq_dec.
 Local Ltac finish_lists l x :=
   elim: l => [|x xs IHds] //=; by f_equal.
 
-Lemma vl_rename_Lemma (ξ : var → var) (v : vl) : rename ξ v = v.[ren ξ]
+Lemma vl_rename_Lemma (ξ : var → var) v : rename ξ v = v.[ren ξ]
 with
-tm_rename_Lemma (ξ : var → var) (t : tm) : rename ξ t = t.|[ren ξ]
+tm_rename_Lemma (ξ : var → var) t : rename ξ t = t.|[ren ξ]
 with
-ty_rename_Lemma (ξ : var → var) (T : ty) : rename ξ T = T.|[ren ξ].
+ty_rename_Lemma (ξ : var → var) T : rename ξ T = T.|[ren ξ].
 Proof.
   all: destruct 0; rewrite /= ?up_upren_internal; f_equal => //; finish_lists l x.
 Qed.
 
-Lemma vl_ids_Lemma (v : vl) : v.[ids] = v
+Lemma vl_ids_Lemma v : v.[ids] = v
 with
-tm_ids_Lemma (t : tm) : t.|[ids] = t
+tm_ids_Lemma t : t.|[ids] = t
 with
-ty_ids_Lemma (T : ty) : T.|[ids] = T.
+ty_ids_Lemma T : T.|[ids] = T.
 Proof.
   all: destruct 0; rewrite /= ?up_id_internal; f_equal => //; finish_lists l x.
 Qed.
 
-Lemma vl_comp_rename_Lemma (ξ : var → var) (σ : var → vl) (v : vl) :
+Lemma vl_comp_rename_Lemma (ξ : var → var) (σ : var → vl) v :
   (rename ξ v).[σ] = v.[ξ >>> σ]
 with
-tm_comp_rename_Lemma (ξ : var → var) (σ : var → vl) (t : tm) :
+tm_comp_rename_Lemma (ξ : var → var) (σ : var → vl) t :
   (rename ξ t).|[σ] = t.|[ξ >>> σ]
 with
-ty_comp_rename_Lemma (ξ : var → var) (σ : var → vl) (T : ty) :
+ty_comp_rename_Lemma (ξ : var → var) (σ : var → vl) T :
   (rename ξ T).|[σ] = T.|[ξ >>> σ].
 Proof.
   all: destruct 0; rewrite /= 1? up_comp_ren_subst; f_equal => //; finish_lists l x.
 Qed.
 
-Lemma vl_rename_comp_Lemma (σ : var → vl) (ξ : var → var) (v : vl) :
+Lemma vl_rename_comp_Lemma (σ : var → vl) (ξ : var → var) v :
   rename ξ v.[σ] = v.[σ >>> rename ξ]
 with
-tm_rename_comp_Lemma (σ : var → vl) (ξ : var → var) (t : tm) :
+tm_rename_comp_Lemma (σ : var → vl) (ξ : var → var) t :
   rename ξ t.|[σ] = t.|[σ >>> rename ξ]
 with
-ty_rename_comp_Lemma (σ : var → vl) (ξ : var → var) (T : ty) :
+ty_rename_comp_Lemma (σ : var → vl) (ξ : var → var) T :
   rename ξ T.|[σ] = T.|[σ >>> rename ξ].
 Proof.
   all: destruct 0; rewrite /= ? up_comp_subst_ren_internal; f_equal => //;
     auto using vl_rename_Lemma, vl_comp_rename_Lemma; finish_lists l x.
 Qed.
 
-Lemma vl_comp_Lemma (σ τ : var → vl) (v : vl) : v.[σ].[τ] = v.[σ >> τ]
+Lemma vl_comp_Lemma (σ τ : var → vl) v : v.[σ].[τ] = v.[σ >> τ]
 with
-tm_comp_Lemma (σ τ : var → vl) (t : tm) : t.|[σ].|[τ] = t.|[σ >> τ]
+tm_comp_Lemma (σ τ : var → vl) t : t.|[σ].|[τ] = t.|[σ >> τ]
 with
-ty_comp_Lemma (σ τ : var → vl) (T : ty) : T.|[σ].|[τ] = T.|[σ >> τ].
+ty_comp_Lemma (σ τ : var → vl) T : T.|[σ].|[τ] = T.|[σ >> τ].
 Proof.
   all: destruct 0; rewrite /= ? up_comp_internal; f_equal;
     auto using vl_rename_comp_Lemma, vl_comp_rename_Lemma; finish_lists l x.
@@ -219,14 +219,14 @@ Instance hsubst_lemmas_ctx : HSubstLemmas vl ctx := _.
 
 Include Sorts.
 
-Instance sort_tm: Sort tm := {}.
-Instance sort_ty: Sort ty := {}.
+Instance sort_tm : Sort tm := {}.
+Instance sort_ty : Sort ty := {}.
 
 (** After instantiating Autosubst, a few binding-related syntactic definitions
     that need not their own file. *)
 
 (** Here is a manual proof of a lemma, with explanations. *)
-Lemma fv_vabs_inv_manual e n: nclosed_vl (vabs e) n → nclosed e (S n).
+Lemma fv_vabs_inv_manual e n : nclosed_vl (vabs e) n → nclosed e (S n).
 Proof.
   rewrite /nclosed_vl /nclosed => /= Hfv s1 s2 HsEq.
 
@@ -246,8 +246,6 @@ Qed.
    The rest is written by taking Coq's generated recursion principles and doing
    lots of regexp search-n-replace.
  *)
-
-Implicit Types (t: tm).
 
 Section syntax_mut_rect.
   Variable Ptm : tm → Type.
@@ -270,9 +268,9 @@ Section syntax_mut_rect.
   Variable step_TSel : ∀ v1, Pvl v1 → Pty (TSel v1).
   Variable step_TNat : Pty TNat.
 
-  Fixpoint tm_mut_rect t: Ptm t
-  with vl_mut_rect v: Pvl v
-  with ty_mut_rect T: Pty T.
+  Fixpoint tm_mut_rect t : Ptm t
+  with vl_mut_rect v : Pvl v
+  with ty_mut_rect T : Pty T.
   Proof.
     (* Automation risk producing circular proofs that call right away the lemma we're proving.
        Instead we want to apply one of the [case_] arguments to perform an
@@ -280,15 +278,15 @@ Section syntax_mut_rect.
     all: destruct 0;
       match goal with
       (* Warning: add other arities as needed. *)
-      | Hstep: context [?P (?c _ _ _)] |- ?P (?c _ _ _) => apply Hstep; trivial
-      | Hstep: context [?P (?c _ _)] |- ?P (?c _ _) => apply Hstep; trivial
-      | Hstep: context [?P (?c _)] |- ?P (?c _) => apply Hstep; trivial
-      | Hstep: context [?P (?c)] |- ?P (?c) => apply Hstep; trivial
+      | Hstep : context [?P (?c _ _ _)] |- ?P (?c _ _ _) => apply Hstep; trivial
+      | Hstep : context [?P (?c _ _)] |- ?P (?c _ _) => apply Hstep; trivial
+      | Hstep : context [?P (?c _)] |- ?P (?c _) => apply Hstep; trivial
+      | Hstep : context [?P (?c)] |- ?P (?c) => apply Hstep; trivial
       end.
     induction l; auto.
   Qed.
 
-  Lemma syntax_mut_rect: (∀ t, Ptm t) * (∀ v, Pvl v) * (∀ T, Pty T).
+  Lemma syntax_mut_rect : (∀ t, Ptm t) * (∀ v, Pvl v) * (∀ T, Pty T).
   Proof.
     repeat split; intros.
     - eapply tm_mut_rect.
@@ -319,7 +317,7 @@ Section syntax_mut_ind.
   Variable step_TSel : ∀ v1, Pvl v1 → Pty (TSel v1).
   Variable step_TNat : Pty TNat.
 
-  Lemma syntax_mut_ind: (∀ t, Ptm t) ∧ (∀ v, Pvl v) ∧ (∀ T, Pty T).
+  Lemma syntax_mut_ind : (∀ t, Ptm t) ∧ (∀ v, Pvl v) ∧ (∀ T, Pty T).
   Proof.
     efeed pose proof syntax_mut_rect as H; try done.
     - intros vs g HvsT. apply step_vstamp, ForallT_Forall, HvsT.
@@ -334,7 +332,7 @@ Section syntax_mut_ind_closed.
   Variable Pvl : vl → nat → Prop.
   Variable Pty : ty → nat → Prop.
 
-  Implicit Types (n: nat).
+  Implicit Types (n : nat).
 
   Variable step_tv : ∀ n v1,
       nclosed_vl v1 n → nclosed (tv v1) n → Pvl v1 n → Ptm (tv v1) n.
@@ -382,9 +380,9 @@ Section syntax_mut_ind_closed.
       nclosed TNat n →
       Pty TNat n.
 
-  Fixpoint nclosed_tm_mut_ind n t: nclosed t n → Ptm t n
-  with     nclosed_vl_mut_ind n v: nclosed_vl v n → Pvl v n
-  with     nclosed_ty_mut_ind n T: nclosed T n → Pty T n.
+  Fixpoint nclosed_tm_mut_ind n t : nclosed t n → Ptm t n
+  with     nclosed_vl_mut_ind n v : nclosed_vl v n → Pvl v n
+  with     nclosed_ty_mut_ind n T : nclosed T n → Pty T n.
   Proof.
     (* Automation risk producing circular proofs that call right away the lemma we're proving.
        Instead we want to apply one of the [case_] arguments to perform an
@@ -394,15 +392,15 @@ Section syntax_mut_ind_closed.
     in
       match goal with
       (* Warning: add other arities as needed. *)
-      | Hstep: context [?P (?c _ _ _) _] |- ?P (?c ?a1 ?a2 ?a3) _ => byEapply (Hstep n a1 a2 a3)
-      | Hstep: context [?P (?c _ _) _] |- ?P (?c ?a1 ?a2) _ => byEapply (Hstep n a1 a2)
-      | Hstep: context [?P (?c _) _] |- ?P (?c ?a1) _ => byEapply (Hstep n a1)
-      | Hstep: context [?P (?c) _] |- ?P (?c) _ => byEapply (Hstep n)
+      | Hstep : context [?P (?c _ _ _) _] |- ?P (?c ?a1 ?a2 ?a3) _ => byEapply (Hstep n a1 a2 a3)
+      | Hstep : context [?P (?c _ _) _] |- ?P (?c ?a1 ?a2) _ => byEapply (Hstep n a1 a2)
+      | Hstep : context [?P (?c _) _] |- ?P (?c ?a1) _ => byEapply (Hstep n a1)
+      | Hstep : context [?P (?c) _] |- ?P (?c) _ => byEapply (Hstep n)
       end.
     - induction l as [| a l]; constructor => /=; eauto 2 with fv.
   Qed.
 
-  Lemma nclosed_syntax_mut_ind: (∀ t n, nclosed t n → Ptm t n) ∧ (∀ v n, nclosed_vl v n → Pvl v n) ∧ (∀ T n, nclosed T n → Pty T n).
+  Lemma nclosed_syntax_mut_ind : (∀ t n, nclosed t n → Ptm t n) ∧ (∀ v n, nclosed_vl v n → Pvl v n) ∧ (∀ T n, nclosed T n → Pty T n).
   Proof.
     repeat split; intros.
     - exact: nclosed_tm_mut_ind.
