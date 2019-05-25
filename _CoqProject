@@ -11,7 +11,6 @@ theories/saved_interp.v
 theories/proofmode_extra.v
 theories/swap_later_impl.v
 theories/DSub/adequacy.v
-theories/DSub/dsub_syn.v
 theories/DSub/syn.v
 theories/DSub/typeExtractionSyn.v
 theories/DSub/typeExtractionSem.v
@@ -30,7 +29,6 @@ theories/DSubSyn/unary_lr.v
 theories/DSubSyn/unary_lr_binding.v
 theories/DSubSyn/typing.v
 theories/DSubSyn/fundamental.v
-theories/Dot/dot_syn.v
 theories/Dot/syn.v
 theories/Dot/typing.v
 theories/Dot/typeExtractionSyn.v
