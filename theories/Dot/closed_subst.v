@@ -41,7 +41,7 @@ Proof.
   - eapply fv_tapp; [> eapply IH1 | eapply IH2]; eauto with fv.
   - eapply fv_tproj, IH1; eauto with fv.
   - eapply fv_tskip, IH1; eauto with fv.
-  - eapply (@nclosed_sub_inv_var _ _ _ j 0); asimpl; by [lia|].
+  - apply (nclosed_sub_inv_var w j (k := 0)); asimpl; by [lia|].
   - eapply fv_vabs, (IH1 (S i) (S j)), fv_vabs_inv, Hcl; lia.
   - eapply fv_vobj, Forall_to_closed_dms.
     move: Hcl => /fv_vobj_inv.

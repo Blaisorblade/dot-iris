@@ -23,7 +23,7 @@ Proof.
   - by eapply fv_tv, IH1, fv_tv_inv.
   - eapply fv_tapp; [> eapply IH1 | eapply IH2]; eauto with fv.
   - eapply fv_tskip, IH1; eauto with fv.
-  - eapply (@nclosed_sub_inv_var _ _ _ j 0); asimpl; by [lia|].
+  - apply (nclosed_sub_inv_var w j (k := 0)); asimpl; by [lia|].
   - eapply fv_vabs, (IH1 (S i) (S j)), fv_vabs_inv, Hcl; lia.
   - eapply fv_vty, IH1; eauto with fv.
   - eapply fv_vstamp.
