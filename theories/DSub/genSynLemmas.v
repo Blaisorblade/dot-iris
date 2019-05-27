@@ -307,11 +307,6 @@ Lemma nclosed_sub_x `{Ids X} `{HSubst vl X} {hsla: HSubstLemmas vl X} (x: X) s i
   nclosed x i → nclosed x.|[s] j.
 Proof. move => Hcls Hclx s1 s2 Heqs; asimpl. by eapply Hclx, compose_sub_closed. Qed.
 
-Lemma nclosed_ren_vl v r i j:
-  nclosed_ren i j r →
-  nclosed_vl v i → nclosed_vl (rename r v) j.
-Proof. rewrite rename_subst. exact: nclosed_sub_vl. Qed.
-
 Definition nclosed_sub_shift n m j:
   m >= j + n → nclosed_sub n m (ren (+j)).
 Proof. exact: nclosed_ren_shift. Qed.
