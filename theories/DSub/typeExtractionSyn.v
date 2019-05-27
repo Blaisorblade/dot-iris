@@ -4,7 +4,6 @@ From stdpp Require Import gmap fin_map_dom.
 From D Require Import tactics.
 From D.DSub Require Import syn operational synLemmas.
 
-Set Primitive Projections.
 Set Implicit Arguments.
 
 Definition stys := gmap stamp ty.
@@ -134,8 +133,6 @@ Proof.
   rewrite Hlook /= in H; by (case_match; subst).
 Qed.
 Hint Extern 5 (_ !! _ = Some _) => try_once lookup_mono.
-
-Hint Resolve @fv_to_subst fv_to_subst_vl.
 
 Lemma extract_lookup g g' s σ n T:
   (g', (s, σ)) = extract g n T → g' !! s = Some T.
