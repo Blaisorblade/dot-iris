@@ -352,7 +352,7 @@ Section logrel_lemmas.
                                       Γ ⊨ [T1, i1] <: [T3, i3].
   Proof.
     iIntros "#Hsub1 #Hsub2 /= !> * % #Hg #HT".
-    iApply "Hsub2" => //. by iApply "Hsub1".
+    iApply ("Hsub2" with "[//] [//] (Hsub1 [//] [//] [//])").
   Qed.
 
 End logrel_lemmas.
