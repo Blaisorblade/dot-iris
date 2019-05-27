@@ -122,7 +122,7 @@ Section logrel_binding_lemmas.
   Proof.
     intros HclT Hclσ Hclρ.
     rewrite -(interp_subst_all ρ _ v) // -(interp_subst_all _ T v).
-    - by erewrite subst_compose_x.
+    - by erewrite subst_compose.
     - by apply nclosed_σ_to_subst.
   Qed.
 End logrel_binding_lemmas.

@@ -150,7 +150,7 @@ Lemma subst_compose_extract g g' T n m ξ σ s:
   (g', (s, σ)) = extract g n T →
   T.|[to_subst σ.|[to_subst ξ]] = T.|[to_subst σ].|[to_subst ξ].
 Proof.
-  intros HclT Hclξ Hlen Hext; cinject Hext. by eapply subst_compose_idsσ_x.
+  intros HclT Hclξ Hlen Hext; cinject Hext. by eapply subst_compose_idsσ.
 Qed.
 
 Lemma extract_subst_commute g g' g'' T ξ n m s1 σ1 s2 σ2:
