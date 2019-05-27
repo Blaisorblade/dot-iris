@@ -5,7 +5,6 @@ This file should load as little Iris code as possible, to reduce compile times.
  *)
 From D Require Import tactics.
 From D.DSub Require Import syn.
-From D.DSub Require Export genSynLemmas.
 
 Implicit Types
          (L T U: ty) (v: vl) (e: tm)

@@ -1,4 +1,5 @@
-From D Require Export prelude tactics asubst_base.
+From D Require Export prelude tactics.
+From D Require Import asubst_lemmas.
 
 Inductive tm : Type :=
   | tv : vl_ -> tm
@@ -217,7 +218,7 @@ Qed.
 
 Instance hsubst_lemmas_ctx : HSubstLemmas vl ctx := _.
 
-Include Sorts.
+Include SortsLemmas.
 
 Instance sort_tm : Sort tm := {}.
 Instance sort_ty : Sort ty := {}.

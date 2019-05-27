@@ -5,6 +5,7 @@ theories/tactics.v
 theories/prelude.v
 theories/iris_prelude.v
 theories/asubst_base.v
+theories/asubst_lemmas.v
 theories/locAsimpl.v
 theories/gen_iheap.v
 theories/saved_interp.v
@@ -17,7 +18,6 @@ theories/DSub/typeExtractionSem.v
 theories/DSub/rules.v
 theories/DSub/stampedness.v
 theories/DSub/astStamping.v
-theories/DSub/genSynLemmas.v
 theories/DSub/synLemmas.v
 theories/DSub/operational.v
 theories/DSub/step_fv.v
@@ -36,7 +36,6 @@ theories/Dot/typeExtractionSem.v
 theories/Dot/traversals.v
 theories/Dot/stampedness.v
 theories/Dot/operational.v
-theories/Dot/genSynLemmas.v
 theories/Dot/synLemmas.v
 theories/Dot/step_fv.v
 theories/Dot/skeleton.v

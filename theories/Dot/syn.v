@@ -1,5 +1,6 @@
 From stdpp Require Import strings.
-From D Require Export prelude tactics asubst_base.
+From D Require Export prelude tactics.
+From D Require Import asubst_lemmas.
 
 Definition label := string.
 
@@ -344,7 +345,7 @@ Instance inh_string : Inhabited string := populate "".
 Instance inh_label : Inhabited label := _.
 Instance hsubst_lemmas_dms : HSubstLemmas vl dms := _.
 
-Include Sorts.
+Include SortsLemmas.
 
 Instance sort_tm : Sort tm := {}.
 Instance sort_dm : Sort dm := {}.
