@@ -13,7 +13,7 @@ Proof.
 Qed.
 
 Lemma length_idsσ n: length (idsσ n) = n.
-Proof. pose proof (length_idsσr n (+0)) as Hr. asimpl in Hr. exact Hr. Qed.
+Proof. pose proof (length_idsσr n (+0)) as Hgoal. asimpl in Hgoal. exact Hgoal. Qed.
 Hint Resolve length_idsσ.
 
 Lemma subst_sigma_idsσ ρ n : length ρ = n →
@@ -36,7 +36,7 @@ Proof. induction ρ1; by asimpl. Qed.
 
 Lemma undo_to_subst ρ : (+length ρ) >>> to_subst ρ = ids.
 Proof.
-  pose proof (rename_to_subst ρ []) as H. rewrite app_nil_r in H; asimpl in H. exact H.
+  pose proof (rename_to_subst ρ []) as Hgoal. rewrite app_nil_r in Hgoal; asimpl in Hgoal. exact Hgoal.
 Qed.
 
 Lemma to_subst_weaken ρ1 ρ2 ρ3:
@@ -85,7 +85,7 @@ Section to_subst_idsσ_is_id.
   Qed.
 
   Lemma to_subst_map_commute f n i: i < n → to_subst (map f (idsσ n)) i = f (to_subst (idsσ n) i).
-  Proof. pose proof (to_subst_map_commute_aux f n i (+0)) as H. asimpl in H. exact H. Qed.
+  Proof. pose proof (to_subst_map_commute_aux f n i (+0)) as Hgoal. asimpl in Hgoal. exact Hgoal. Qed.
 
   Lemma idsσ_eq_ids n: eq_n_s (to_subst (idsσ n)) ids n.
   Proof.
@@ -189,7 +189,7 @@ Proof.
 Qed.
 
 Lemma nclosed_idsσ n: nclosed_σ (idsσ n) n.
-Proof. pose proof nclosed_idsσr n 0 as H; asimpl in H; exact H. Qed.
+Proof. pose proof nclosed_idsσr n 0 as Hgoal; asimpl in Hgoal; exact Hgoal. Qed.
 Hint Resolve nclosed_idsσ.
 
 Lemma Forall_to_closed_vls n σ:
