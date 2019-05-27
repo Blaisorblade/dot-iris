@@ -115,9 +115,9 @@ Section Sec.
 
   Lemma nclosed_subst_ρ e ρ: nclosed e (length Γ) → ⟦ Γ ⟧* ρ -∗ ⌜ nclosed e.|[to_subst ρ] 0 ⌝.
   Proof.
-    iIntros (Hcl) "Hg".
-    iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H => Hclρ.
-    iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in Hcl.
+    iIntros (Hcl) "HG".
+    iDestruct (interp_env_ρ_closed with "HG") as %Hclp.
+    iDestruct (interp_env_len_agree with "HG") as %Hlen. rewrite <- Hlen in *.
     iPureIntro. by apply fv_to_subst.
   Qed.
 
@@ -324,8 +324,8 @@ Section Sec.
     iApply wp_value'.
     iSplit.
     {
-      iPoseProof (interp_env_ρ_closed with "HG") as "%". move: H => Hclρ.
-      iPoseProof (interp_env_len_agree with "HG") as "%". move: H => Hlen. rewrite <- Hlen in Hcle.
+      iDestruct (interp_env_ρ_closed with "HG") as %Hclp.
+      iDestruct (interp_env_len_agree with "HG") as %Hlen. rewrite <- Hlen in *.
       iPureIntro.
       apply (fv_to_subst_vl (vabs _)); eauto using fv_vabs.
     }

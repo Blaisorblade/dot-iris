@@ -40,7 +40,7 @@ Section logrel_binding_lemmas.
   Lemma interp_env_ρ_fv ρ: ⟦ Γ ⟧* ρ -∗ ⌜ nclosed ρ 0 ⌝.
   Proof.
     iIntros "Hg".
-    iPoseProof (interp_env_ρ_closed with "Hg") as "%".
+    iDestruct (interp_env_ρ_closed with "Hg") as %?.
     iPureIntro. by apply cl_ρ_fv.
   Qed.
 
@@ -85,14 +85,14 @@ Section logrel_binding_lemmas.
 
   Lemma interp_env_to_subst_closed ρ x: x < length ρ → (⟦ Γ ⟧* ρ → ⌜ nclosed_vl (to_subst ρ x) 0 ⌝)%I.
   Proof.
-    iIntros (Hl) "#HG". iPoseProof (interp_env_ρ_closed with "HG") as "%".
+    iIntros (Hl) "#HG". iDestruct (interp_env_ρ_closed with "HG") as %?.
     iPureIntro; by apply closed_to_subst.
   Qed.
 
   Lemma ietp_closed_vl T v: (Γ ⊨ tv v : T → ⌜ nclosed_vl v (length Γ) ⌝)%I.
   Proof.
     iIntros "H".
-    iPoseProof (ietp_closed with "H") as "%". by iPureIntro; apply fv_tv_inv.
+    iDestruct (ietp_closed with "H") as %?. by iPureIntro; apply fv_tv_inv.
   Qed.
 
   Import uPred.
@@ -105,7 +105,7 @@ Section logrel_binding_lemmas.
     ⟦ Γ ⟧* ρ -∗ ⟦ T.|[v/] ⟧ ρ w ≡ ⟦ T ⟧ (v.[to_subst ρ] :: ρ) w.
   Proof.
     iIntros (Hcl) "#Hg".
-    iPoseProof (interp_env_ρ_closed with "Hg") as "%"; move: H => Hclρ.
+    iDestruct (interp_env_ρ_closed with "Hg") as %Hclρ.
     iRewrite -(interp_subst_internal ρ T (v.[to_subst ρ]) w). asimpl.
     rewrite (Hcl (to_subst ρ >> ren (+length ρ)) (to_subst ρ)) // -?(to_subst_interp T ρ v w) //.
     move => x Hlρ. asimpl. by rewrite closed_subst_vl_id; [|apply closed_to_subst].

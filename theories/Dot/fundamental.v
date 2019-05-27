@@ -172,8 +172,8 @@ Section fundamental.
       + iDestruct "IHT" as (Hcltv) "#IHT". iFrame "%".
         move: H => HsubSyn; iIntros "!> * #HG".
         iSpecialize ("IHT" with "HG").
-        iPoseProof (interp_env_ρ_closed with "HG") as "%". move: H => Hclρ.
-        iPoseProof (interp_env_len_agree with "HG") as "%". move: H => Hlen. rewrite <-Hlen in *.
+        iDestruct (interp_env_len_agree with "HG") as %Hlen. rewrite <- Hlen in *.
+        iDestruct (interp_env_ρ_closed with "HG") as %Hclρ.
         have Hclv: nclosed_vl v (length ρ). by apply fv_tv_inv.
         have Hclvs: nclosed_vl v.[to_subst ρ] 0. by apply fv_to_subst_vl.
         iApply wp_value.

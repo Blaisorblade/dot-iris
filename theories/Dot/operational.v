@@ -182,7 +182,7 @@ Section mapsto.
     iIntros "/= #H1 #H2".
     iDestruct "H1" as (γ1) "[Hs1 Hg1]".
     iDestruct "H2" as (γ2) "[Hs2 Hg2]".
-    iPoseProof (mapsto_agree with "Hs1 Hs2") as "%"; subst.
+    iDestruct (mapsto_agree with "Hs1 Hs2") as %->.
     by iApply (saved_interp_agree _ φ1 φ2).
   Qed.
 End mapsto.

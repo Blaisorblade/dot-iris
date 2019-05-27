@@ -278,7 +278,7 @@ Section Sec.
     - iPoseProof (wp_bind_inv (fill [ProjCtx l]) with "H") as "H'"; rewrite /= /of_val.
       iDestruct ("IHp" with "H'") as (i0 v0) "[Hpure Hv]". iClear "IHp".
       Import uPred.
-      iExists (S i0); rewrite laterN_later; iNext i0. iDestruct "Hpure" as "%". move: H => Hpure.
+      iExists (S i0); rewrite laterN_later; iNext i0. iDestruct "Hpure" as %Hpure.
       iEval (rewrite !wp_unfold /wp_pre) in "Hv". cbn.
       iSpecialize ("Hv" $! inhabitant [] [] 0 with "[#//]"). iDestruct "Hv" as "[% Hv]". move: H => Hred.
       case: Hred => /= x [e' [σ' [efs Hred]]]. case Hred => /= K e1' e2' Heq1 Heq2 Hstp.
@@ -343,14 +343,14 @@ Section Sec.
     ⌜ nclosed (pth_to_tm p) (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → WP (pth_to_tm p).|[to_subst ρ] {{ sem_singleton_path p ρ }}.
   Proof.
     iIntros "/= #[% #HT]". move: H => Hcl. iFrame (Hcl). iIntros "!>" (ρ) "#HG". iSpecialize ("HT" with "HG").
-    iPoseProof (interp_env_ρ_closed with "HG") as "%". move: H => /= Hclρ.
-    iPoseProof (interp_env_len_agree with "HG") as "%". move: H => Hlen. rewrite <- Hlen in Hcl.
+    iDestruct (interp_env_len_agree with "HG") as %Hlen. rewrite <- Hlen in *.
+    iDestruct (interp_env_ρ_closed with "HG") as %Hclρ.
 
     iInduction p as [|] "IHp" forall (T Hcl); cbn.
     (* elim: p Hcl => [v|p IHp l] /= Hcl. *)
     (* iIntros "[$ #HT] !>" (ρ) "#HG"; iSpecialize ("HT" with "HG"). *)
     - iPoseProof (wp_value_inv with "HT") as "HvT".
-      iPoseProof (interp_v_closed with "HvT") as "%".
+      iDestruct (interp_v_closed with "HvT") as %?.
       iApply wp_value. iModIntro. by iApply wp_value.
     -
       iPoseProof (wp_bind_inv (fill [ProjCtx l]) with "HT") as "H"; rewrite /= /of_val.
@@ -387,8 +387,8 @@ Section Sec.
     destruct ρ as [|w ρ]; first by iIntros.
     iIntros "[#Hg [% #Hw]]". move: H => Hclw.
     iApply wp_value.
-    iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H => Hclρ.
-    iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *.
+    iDestruct (interp_env_len_agree with "Hg") as %Hlen. rewrite <- Hlen in *.
+    iDestruct (interp_env_ρ_closed with "Hg") as %Hclρ.
     have Hclvs: nclosed_vl v.[to_subst (w :: ρ)] 0.
       by apply fv_to_subst_vl; naive_solver eauto using fv_tv_inv.
     iFrame (Hclvs).

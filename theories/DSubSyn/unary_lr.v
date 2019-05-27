@@ -308,8 +308,8 @@ Section logrel_lemmas.
   Proof.
     iInduction Γ as [|τ Γ'] "IHΓ" forall (ρ); destruct ρ => //=.
     iIntros "[#HG #HT]".
-    iPoseProof (interp_v_closed with "HT") as "%".
-    iPoseProof ("IHΓ" with "HG") as "%".
+    iDestruct (interp_v_closed with "HT") as %?.
+    iDestruct ("IHΓ" with "HG") as %?.
     iPureIntro; by constructor.
   Qed.
 

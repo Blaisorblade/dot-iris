@@ -48,7 +48,7 @@ Section Sec.
     interp T ρ (vobj ds).
   Proof.
     iIntros (Hcl) "#H".
-    iPoseProof (defs_interp_v_closed with "H") as "%". move: H => Hclds.
+    iDestruct (defs_interp_v_closed with "H") as %Hclds.
     iInduction T as [] "IHT"; cbn;
     try by [| iDestruct "H" as (???) "?"].
     - iDestruct "H" as "[#H1 #H2]".
@@ -105,8 +105,8 @@ Section Sec.
     iSplit. by auto using fv_dvl.
     iIntros "!> *". destruct ρ as [|w ρ]; first by iIntros.
     iIntros "[#Hg [% #Hw]]". move: H => Hclw.
-    iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H => Hclρ.
-    iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in *.
+    iDestruct (interp_env_ρ_closed with "Hg") as %Hclp.
+    iDestruct (interp_env_len_agree with "Hg") as %Hlen. rewrite <- Hlen in *.
     repeat iSplit => //. { iPureIntro; apply fv_dvl, fv_to_subst_vl => //=; auto. }
     iExists _; iSplit => //.
     iNext. iApply wp_value_inv'; iApply "Hv"; by iSplit.
@@ -125,15 +125,15 @@ Section Sec.
   Proof.
     iIntros "/= #[% #Hds]"; move: H => Hclds.
     iSplit; auto using fv_tv, fv_vobj.
-    iIntros " !> * #Hρ /="; iApply wp_value.
-    iPoseProof (interp_env_ρ_closed with "Hρ") as "%". move: H => Hclρ.
-    iPoseProof (interp_env_len_agree with "Hρ") as "%". move: H => Hlen.
+    iIntros " !> * #Hg /="; iApply wp_value.
+    iDestruct (interp_env_ρ_closed with "Hg") as %Hclp.
+    iDestruct (interp_env_len_agree with "Hg") as %Hlen.
     have Hclvds: nclosed_vl (vobj ds).[to_subst ρ] 0.
       by eapply (fv_to_subst_vl (vobj ds)); rewrite // Hlen; apply fv_vobj.
     iLöb as "IH".
     iApply lift_dsinterp_dms_vl_commute;
       rewrite // norm_selfSubst -to_subst_cons.
-      iApply "Hds"; by iFrame "IH Hρ".
+      iApply "Hds"; by iFrame "IH Hg".
   Qed.
 
   Lemma DNil_I : Γ ⊨ds [] : TTop.
@@ -147,15 +147,12 @@ Section Sec.
   Proof.
     iIntros (Hlds Hl) "[% #H1] [% #H2]". move: H H0 => Hcld Hclds.
     have Hclc: nclosed ((l, d) :: ds) (length Γ). by auto.
-    iSplit => //; iIntros "!>" (ρ) "#HG /=".
-    iSpecialize ("H1" with "HG"); iSpecialize ("H2" with "HG").
-    iPoseProof (interp_env_ρ_closed with "HG") as "%". move: H => Hclρ.
-    iPoseProof (interp_env_len_agree with "HG") as "%". move: H => Hlen. rewrite <-Hlen in *.
-    have Hclsd: nclosed d.|[to_subst ρ] 0. by eapply fv_to_subst.
-    have Hclsds: nclosed ds.|[to_subst ρ] 0. by eapply fv_to_subst.
+    iSplit => //; iIntros "!>" (ρ) "#Hg /=".
+    iDestruct (interp_env_ρ_closed with "Hg") as %Hclp.
+    iDestruct (interp_env_len_agree with "Hg") as %Hlen. rewrite <-Hlen in *.
     have Hclsc: nclosed ((l, d) :: ds).|[to_subst ρ] 0. by eapply fv_to_subst.
     iSplit.
-    - destruct T1; simplify_eq; by iApply def2defs_head.
-    - iApply defs_interp_mono => //; by apply dms_hasnt_map_mono.
+    - destruct T1; simplify_eq; iApply (def2defs_head with "(H1 Hg)") => //.
+    - iApply (defs_interp_mono with "(H2 Hg)") => //; by [apply dms_hasnt_map_mono|eapply fv_to_subst].
   Qed.
 End Sec.

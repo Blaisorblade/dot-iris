@@ -57,9 +57,7 @@ Section Sec.
     Γ ⊨ tapp e1 (tv v2) : T2.|[v2/].
   Proof.
     iIntros "/= #[% He1] #[% Hv2Arg]". move: H H0 => Hcle1 Hclv2. iSplit; eauto using fv_tapp. iIntros " !> * #HG".
-    (* iAssert (⌜ length ρ = length Γ ⌝)%I as "%". by iApply interp_env_len_agree. move: H => Hlen. *)
-    iAssert (⌜ nclosed_vl v2 (length Γ) ⌝)%I as "%". by iPureIntro; apply fv_tv_inv. move: H => Hcl.
-    (* assert (nclosed_vl v2 (length ρ)). by rewrite Hlen. *)
+    iAssert (⌜ nclosed_vl v2 (length Γ) ⌝)%I as %Hcl. by iPureIntro; apply fv_tv_inv.
     smart_wp_bind (AppLCtx (tv v2.[to_subst ρ])) v "#Hr" "He1".
     unfold_interp. iDestruct "Hr" as (Hclv t ->) "#HvFun".
     iApply wp_pure_step_later; trivial. iNext.
@@ -77,9 +75,8 @@ Section Sec.
     iIntros "/= #[% #HeT]". move: H => Hcle.
     iSplit; eauto using fv_tv, fv_vabs.
     iIntros " !> * #HG".
-    iPoseProof (interp_env_ρ_closed with "HG") as "%". move: H => Hclρ.
-    iPoseProof (interp_env_len_agree with "HG") as "%". move: H => Hlen. rewrite <- Hlen in Hcle.
-    (* iAssert (⌜ length ρ = length Γ ⌝)%I as "%". by iApply interp_env_len_agree. move: H => Hlen. *)
+    iDestruct (interp_env_ρ_closed with "HG") as %Hclp.
+    iDestruct (interp_env_len_agree with "HG") as %Hlen. rewrite <- Hlen in *.
     iApply wp_value'.
     unfold_interp.
     iSplit.
@@ -98,9 +95,9 @@ Section Sec.
 
   Lemma nclosed_subst_ρ e ρ: nclosed e (length Γ) → ⟦ Γ ⟧* ρ -∗ ⌜ nclosed e.|[to_subst ρ] 0 ⌝.
   Proof.
-    iIntros (Hcl) "Hg".
-    iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H => Hclρ.
-    iPoseProof (interp_env_len_agree with "Hg") as "%". move: H => Hlen. rewrite <- Hlen in Hcl.
+    iIntros (Hcl) "HG".
+    iDestruct (interp_env_ρ_closed with "HG") as %Hclp.
+    iDestruct (interp_env_len_agree with "HG") as %Hlen. rewrite <- Hlen in *.
     iPureIntro. by apply fv_to_subst.
   Qed.
 
@@ -158,8 +155,8 @@ Section Sec.
     iIntros "!>" (ρ) "#HG".
     iApply wp_value.
     unfold_interp.
-    iPoseProof (interp_env_ρ_closed with "HG") as "%". move: H => Hclρ.
-    iPoseProof (interp_env_len_agree with "HG") as "%". move: H => Hlen. rewrite <- Hlen in *.
+    iDestruct (interp_env_ρ_closed with "HG") as %Hclp.
+    iDestruct (interp_env_len_agree with "HG") as %Hlen. rewrite <- Hlen in *.
     iSplit. {
       iPureIntro; by apply (fv_to_subst_vl (vty T) ρ).
     }
@@ -194,8 +191,8 @@ Section Sec.
     iIntros "!>" (ρ) "#HG".
     iApply wp_value.
     unfold_interp.
-    iPoseProof (interp_env_ρ_closed with "HG") as "%". move: H => Hclρ.
-    iPoseProof (interp_env_len_agree with "HG") as "%". move: H => Hlen. rewrite <- Hlen in *.
+    iDestruct (interp_env_ρ_closed with "HG") as %Hclp.
+    iDestruct (interp_env_len_agree with "HG") as %Hlen. rewrite <- Hlen in *.
     iSplit. {
       iPureIntro; by apply (fv_to_subst_vl (vty T) ρ).
     }

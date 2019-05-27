@@ -27,8 +27,8 @@ Section Sec.
     Γ ⊨ [TLater L, i] <: [TSel (pv va) l, i].
   Proof.
     iIntros "/= [% #Hva] !>" (ρ v Hclv) "#Hg #[_ HvL]"; move: H =>?; iFrame (Hclv).
-    iPoseProof (interp_env_len_agree with "Hg") as "%". rewrite <- H in *. move: H =>?.
-    iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H =>?.
+    iDestruct (interp_env_len_agree with "Hg") as %Hlen. rewrite <- Hlen in *.
+    iDestruct (interp_env_ρ_closed with "Hg") as %?.
 
     iDestruct (wp_value_inv' with "(Hva Hg)") as "Hva'"; iClear "Hva".
     rewrite iterate_TLater_later //=; last by eauto using fv_to_subst_vl, fv_tv_inv.
@@ -46,8 +46,8 @@ Section Sec.
   Proof.
     iIntros "/= #[% #Hva] !>" (ρ v Hclv) "#Hg [$ #Hφ]". move: H =>?.
 
-    iPoseProof (interp_env_len_agree with "Hg") as "%". rewrite <- H in *. move: H =>?.
-    iPoseProof (interp_env_ρ_closed with "Hg") as "%". move: H =>?.
+    iDestruct (interp_env_len_agree with "Hg") as %Hlen. rewrite <- Hlen in *.
+    iDestruct (interp_env_ρ_closed with "Hg") as %?.
 
     iPoseProof (wp_value_inv' with "(Hva Hg)") as "Hva'"; iClear "Hva".
     rewrite iterate_TLater_later //=; last by eauto using fv_to_subst_vl, fv_tv_inv.
