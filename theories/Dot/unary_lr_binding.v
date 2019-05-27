@@ -124,10 +124,10 @@ Section logrel_binding_lemmas.
 
   Lemma interp_subst_closed T v w ρ:
     nclosed_vl v (length Γ) →
-    (⟦ Γ ⟧* ρ → ⟦ T.|[v/] ⟧ ρ w ≡ ⟦ T ⟧ (v.[to_subst ρ] :: ρ) w)%I.
+    ⟦ Γ ⟧* ρ -∗ ⟦ T.|[v/] ⟧ ρ w ≡ ⟦ T ⟧ (v.[to_subst ρ] :: ρ) w.
   Proof.
     iIntros (Hcl) "#Hg".
-    iRevertIntros (Hcl) with (iPoseProof (interp_env_len_agree with "Hg") as "<-").
+    iDestruct (interp_env_len_agree with "Hg") as %Hlen; rewrite <-Hlen in *.
     by iApply interp_subst_closed_aux.
   Qed.
 

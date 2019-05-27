@@ -66,7 +66,7 @@ Section Sec.
     iApply wp_wand.
     - iApply "HvFun".
       iApply wp_value_inv'. by iApply "Hv2Arg".
-    - iIntros (v0) "#H". by iApply (interp_subst_closed _ T2 v2 v0).
+    - iIntros (v0) "#?". by iRewrite (interp_subst_closed Γ T2 v2 v0 with "HG").
   Qed.
 
   Lemma T_Forall_I T1 T2 e:

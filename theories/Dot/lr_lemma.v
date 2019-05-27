@@ -306,8 +306,7 @@ Section Sec.
     iApply wp_wand.
     - iApply "HvFun". by iApply wp_value_inv'.
     - iIntros (v0) "#H".
-      iPoseProof (interp_subst_closed Γ T2 v2 v0 with "HG") as "Heq" => //.
-      by iApply (internal_eq_iff with "Heq").
+      by iRewrite (interp_subst_closed Γ T2 v2 v0 with "HG").
   Qed.
 
   (** Restricting this to index 0 appears necessary: it seems we can't swap [▷^i
