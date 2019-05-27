@@ -13,7 +13,7 @@ Proof.
 Qed.
 
 Lemma length_idsσ n: length (idsσ n) = n.
-Proof. move: (length_idsσr n (+0)) => Hgoal. asimpl in Hgoal. exact Hgoal. Qed.
+Proof. move: (length_idsσr n (+0)) => Hgoal. by asimpl in Hgoal. Qed.
 Hint Resolve length_idsσ.
 
 Lemma subst_sigma_idsσ ρ n : length ρ = n →
