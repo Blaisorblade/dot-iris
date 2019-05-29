@@ -49,7 +49,7 @@ Lemma fill_item_val Ki e :
   is_Some (to_val (fill_item Ki e)) → is_Some (to_val e).
 Proof. intros [v ?]. destruct Ki; simplify_option_eq; eauto. Qed.
 
-Instance fill_item_inj Ki : Inj (=) (=) (fill_item Ki).
+Local Instance fill_item_inj Ki : Inj (=) (=) (fill_item Ki).
 Proof. destruct Ki; intros ???; simplify_eq; auto with f_equal. Qed.
 
 Lemma val_stuck e1 σ1 k e2 σ2 ef :

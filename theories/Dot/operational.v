@@ -83,22 +83,16 @@ Inductive head_step : tm -> state -> list observation -> tm -> state -> list tm 
 | st_skip v σ:
     head_step (tskip (tv v)) σ [] (tv v) σ [].
 
-Lemma to_of_val v : to_val (of_val v) = Some v.
-Proof. done. Qed.
-
 Lemma of_to_val e v : to_val e = Some v → of_val v = e.
 Proof.
   revert v; induction e; intros; simplify_option_eq; auto with f_equal.
 Qed.
 
-Instance of_val_inj : Inj (=) (=) of_val.
-Proof. by intros ?? Hv; apply (inj Some); rewrite -!to_of_val Hv. Qed.
-
 Lemma fill_item_val Ki e :
   is_Some (to_val (fill_item Ki e)) → is_Some (to_val e).
 Proof. intros [v ?]. destruct Ki; simplify_option_eq; eauto. Qed.
 
-Instance fill_item_inj Ki : Inj (=) (=) (fill_item Ki).
+Local Instance fill_item_inj Ki : Inj (=) (=) (fill_item Ki).
 Proof. destruct Ki; intros ???; simplify_eq; auto with f_equal. Qed.
 
 Lemma val_stuck e1 σ1 k e2 σ2 ef :
@@ -121,8 +115,8 @@ Qed.
 
 Lemma dot_lang_mixin : EctxiLanguageMixin of_val to_val fill_item head_step.
 Proof.
-split; apply _ || eauto using to_of_val, of_to_val, val_stuck,
-    fill_item_val, fill_item_no_val_inj, head_ctx_step_val.
+  split; eauto using of_to_val, val_stuck, fill_item_val,
+    fill_item_no_val_inj, head_ctx_step_val with typeclass_instances.
 Qed.
 
 End lang.
