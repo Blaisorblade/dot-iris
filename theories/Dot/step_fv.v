@@ -1,6 +1,6 @@
 From D Require Import tactics.
 From D.Dot Require Import operational synLemmas.
-From iris.program_logic Require Import ectx_lifting.
+From iris.program_logic Require Import ectx_language.
 
 Set Implicit Arguments.
 Implicit Types (T: ty) (v: vl) (t: tm) (d: dm) (ds: dms).
