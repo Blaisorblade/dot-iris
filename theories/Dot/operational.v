@@ -37,9 +37,7 @@ Ltac simplOpen ds :=
 
 (** Determinacy of obj_opens_to. *)
 Lemma objLookupDet v l d1 d2: v @ l ↘ d1 -> v @ l ↘ d2 -> d1 = d2.
-Proof.
-  rewrite /objLookup; intros; ev; by subst; injectHyps; optFuncs_det.
-Qed.
+Proof. rewrite /objLookup => *; ev. by simplify_eq. Qed.
 Ltac objLookupDet :=
   lazymatch goal with
   | H1: ?v @ ?l ↘ ?d1, H2: ?v @ ?l ↘ ?d2 |- _=>
