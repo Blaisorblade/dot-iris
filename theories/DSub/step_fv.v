@@ -61,13 +61,12 @@ Section nclosed_prim_step.
   Proof. elim: K t => //= Ki K IHK t Hclt HclKKi; inverse HclKKi; eauto. Qed.
   Hint Resolve nclosed_fill.
 
+  Lemma nclosed_fill_inv K t n: nclosed (fill K t) n → nclosed t n ∧ nclosed_ectx K n.
+  Proof. split; eauto. Qed.
+
   Theorem nclosed_prim_step t1 t2 σ σ' ts κ n:
-    nclosed t1 n →
     prim_step t1 σ κ t2 σ' ts →
+    nclosed t1 n →
     nclosed t2 n ∧ Forall (flip nclosed n) ts.
-  Proof.
-    move => Hclt1 [K t1' t2' Heqe1 Heqe2 Hhst] /=; subst.
-    pose proof (nclosed_fill_inv_t _ _ Hclt1).
-    split; first eapply nclosed_fill; eauto 2.
-  Qed.
+  Proof. move => [K t1' t2' -> -> Hhst] /nclosed_fill_inv [??]; eauto. Qed.
 End nclosed_prim_step.
