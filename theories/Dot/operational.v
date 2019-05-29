@@ -46,7 +46,7 @@ Ltac objLookupDet :=
     assert (d2 = d1) as ? by (eapply objLookupDet; eassumption); injectHyps
   end.
 
-(** Instantiating iris with  *)
+(** Instantiating iris with Dot *)
 Module lang.
 
 Definition to_val (t: tm) : option vl :=
