@@ -1,5 +1,7 @@
 From D Require Export prelude tactics.
 From D Require Import asubst_base.
+From iris.program_logic Require ectx_language ectxi_language.
+
 
 Inductive tm : Type :=
   | tv : vl_ -> tm
@@ -217,8 +219,6 @@ Proof.
 Qed.
 
 Instance hsubst_lemmas_ctx : HSubstLemmas vl ctx := _.
-
-From iris.program_logic Require ectx_language ectxi_language.
 
 (** Instantiating iris with DSub *)
 Module lang.
