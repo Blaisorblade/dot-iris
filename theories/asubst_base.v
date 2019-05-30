@@ -163,12 +163,110 @@ Module Sorts (values : Values) <: SortsIntf values.
   Hint Extern 10 => solve_inv_fv_congruence_auto : fv.
 End Sorts.
 
+From D Require Import tactics locAsimpl swap_later_impl proofmode_extra.
+(* From D.pure_program_logic Require Import lifting. *)
+From iris.base_logic Require Import lib.iprop.
+From iris.proofmode Require Import tactics.
+From iris.program_logic Require Import language ectxi_language ectx_language.
+From D.pure_program_logic Require Import lifting adequacy.
+From D Require Export gen_iheap saved_interp.
+Require Import Program.
+
+Module LiftWp (values: Values) (sorts: SortsIntf values).
+  Import values sorts.
+  (* Module M := Sorts sorts.
+  Export M. *)
+  Implicit Types (v: vl) (ρ vs : vls).
+  Implicit Types (Σ : gFunctors).
+
+  Notation envD Σ := (vls -c> vl -c> iProp Σ).
+  Instance Inhϕ: Inhabited (envD Σ).
+  Proof. constructor. exact (λ _ _, False)%I. Qed.
+
+  Class TyInterp ty Σ := TyInterpG {
+    ty_interp: ty -> vls -> vl -> iProp Σ
+  }.
+
+  Module GenWp.
+  Class dlangG Σ := DLangG {
+    dlangG_savior :> savedInterpG Σ vls vl;
+    dlangG_interpNames : gen_iheapG stamp gname Σ;
+  }.
+
+  Instance dlangG_irisG `{dlangG Σ} : irisG Λ Σ := {
+    state_interp σ κs _ := True%I;
+    fork_post _ := True%I;
+  }.
+
+  (* Defining this needs the above irisG instance in scope. *)
+  Definition test_interp_expr `{dlangG Σ} :=
+    λ (t: expr Λ), WP t {{ v, False }} %I.
+
+  Notation "s ↦ γ" := (mapsto (hG := dlangG_interpNames) s γ)  (at level 20) : bi_scope.
+  Notation "s ↝ φ" := (∃ γ, s ↦ γ ∗ γ ⤇ φ)%I  (at level 20) : bi_scope.
+
+  Section mapsto.
+    Context `{!dlangG Σ}.
+    Global Instance: Persistent (s ↦ γ).
+    Proof. apply _. Qed.
+    Global Instance: Timeless (s ↦ γ).
+    Proof. apply _. Qed.
+
+    Definition allGs gs := (gen_iheap_ctx (hG := dlangG_interpNames) gs).
+    Global Arguments allGs /.
+
+    Lemma leadsto_agree s (φ1 φ2: envD Σ) ρ v: s ↝ φ1 -∗ s ↝ φ2 -∗ ▷ (φ1 ρ v ≡ φ2 ρ v).
+    Proof.
+      iIntros "/= #H1 #H2".
+      iDestruct "H1" as (γ1) "[Hs1 Hg1]".
+      iDestruct "H2" as (γ2) "[Hs2 Hg2]".
+      iDestruct (mapsto_agree with "Hs1 Hs2") as %->.
+      by iApply (saved_interp_agree _ φ1 φ2).
+    Qed.
+  End mapsto.
+
+  Module dlang_adequacy.
+    Class dlangPreG Σ := DLangPreG {
+      dlangPreG_savior :> savedInterpG Σ vls vl;
+      dlangPreG_interpNames : gen_iheapPreG stamp gname Σ;
+    }.
+    Definition dlangΣ := #[savedInterpΣ vls vl; gen_iheapΣ stamp gname].
+
+    Instance subG_dlangΣ {Σ} : subG dlangΣ Σ → dlangPreG Σ.
+    Proof. solve_inG. Qed.
+
+    (* XXX WP here resolves the wrong way, so this theorem can't be used to actually prove adequacy :-(((. *)
+    Theorem adequacy Σ `{Sort (expr Λ)} `{HdlangG: dlangPreG Σ} `{SwapProp (iPropSI Σ)} e e' thp σ σ' Φ:
+      (forall `{dlangG Σ} `{SwapProp (iPropSI Σ)}, allGs ∅ ⊢ |==> □ WP e.|[ ids ] {{ Φ }} ) →
+      rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
+      is_Some (to_val e') ∨ reducible e' σ'.
+    Proof.
+      intros Hlog ??. cut (adequate NotStuck e σ (λ _ _, True)); first (move => [] /= _ ?; by eauto).
+      eapply (wp_adequacy Σ) => /=.
+      iMod (gen_iheap_init (hG := dlangPreG_interpNames) ∅) as (g) "Hgs".
+      set (DLangΣ := DLangG Σ _ g).
+      iMod (Hlog DLangΣ with "Hgs") as "#Hlog".
+      iIntros (?) "!>". iExists (λ _ _, True%I); iSplit=> //.
+      rewrite hsubst_id.
+      iApply wp_wand; by [iApply "Hlog" | auto].
+    Qed.
+    Instance CmraSwappable_dlang: CmraSwappable (iResUR dlangΣ).
+    Proof.
+      apply Swappable_iResUR.
+      rewrite /gid; repeat (dependent destruction i; cbn; try apply _).
+    Qed.
+  End dlang_adequacy.
+  End GenWp.
+End LiftWp.
+
 (** Syntax/binding lemmas shared between DSub and Dot. *)
 
 Module SortsLemmas (values: Values).
 Import values.
 Module M := Sorts values.
 Export M.
+Module N := LiftWp values M.
+Export N.
 
 Implicit Types (v w : vl) (ρ : vls) (i j k n : nat) (r : nat → nat).
 
