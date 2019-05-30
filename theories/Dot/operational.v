@@ -15,12 +15,6 @@ Implicit Types
     variable). To use when descending under the [vobj] binder. *)
 Definition selfSubst ds: dms := ds.|[vobj ds/].
 
-(* Unset Program Cases. *)
-(* Definition gmap_of_dms ds: gmap label dm := map_of_list ds. *)
-(* Definition dms_lookup l ds := gmap_of_dms ds !! l. *)
-(* Arguments gmap_of_dms /. *)
-(* Arguments dms_lookup /. *)
-
 Definition objLookup v (l: label) d: Prop :=
   ∃ ds, v = vobj ds ∧ (dms_lookup l (selfSubst ds)) = Some d.
 Notation "v @ l ↘ d" := (objLookup v l d) (at level 20).
