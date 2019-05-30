@@ -1,6 +1,6 @@
 From D Require Import prelude tactics asubst_intf.
 
-Module Sorts (values : Values).
+Module Sorts (values : Values) <: SortsIntf values.
   Import values.
 
   Class Sort (s : Type)
