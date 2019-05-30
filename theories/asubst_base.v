@@ -58,13 +58,19 @@ Module Sorts (values : Values).
   (** [n]-closedness defines when some AST has at most [n] free variables (from [0] to [n - 1]). *)
   (** Here and elsewhere, we give one definition for values, using [subst], and
       another for other ASTs, using [hsubst]. *)
-  Definition nclosed_vl (v : vl) n :=
-    ∀ s1 s2, eq_n_s s1 s2 n → v.[s1] = v.[s2].
-
   Definition nclosed `{HSubst vl X} (x : X) n :=
     ∀ s1 s2, eq_n_s s1 s2 n → x.|[s1] = x.|[s2].
 
-  Definition nclosed_σ σ n := Forall (λ v, nclosed_vl v n) σ.
+  Definition nclosed_vl v n :=
+    ∀ s1 s2, eq_n_s s1 s2 n → v.[s1] = v.[s2].
+
+  Instance hsubst_vl_vl: HSubst vl vl := subst.
+
+  Definition nclosed_to_vl v n : nclosed v n = nclosed_vl v n := eq_refl.
+  Definition hsubst_vl_vl_to_subst v s: hsubst s v = subst s v := eq_refl.
+  Hint Rewrite nclosed_to_vl hsubst_vl_vl_to_subst: autosubst.
+
+  Definition nclosed_σ (σ : vls) n := Forall (flip nclosed n) σ.
   Global Arguments nclosed_σ /.
 
   (** Infrastructure to prove "direct" lemmas on nclosed{,_vl}: deduce that an expression is closed
@@ -132,7 +138,7 @@ Module Sorts (values : Values).
     let s2 := fresh "s2" in
     let HsEq := fresh "HsEq" in
     let Hfv := fresh "Hfv" in
-    rewrite /nclosed_vl /nclosed /= => Hfv s1 s2 HsEq;
+    rewrite /nclosed_vl /nclosed; cbn => Hfv s1 s2 HsEq;
   (* asimpl is expensive, but sometimes needed when simplification does mistakes.
     It must also be done after injection because it might not rewrite under Hfv's
     binders. *)
