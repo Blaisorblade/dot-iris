@@ -1,5 +1,5 @@
 From D Require Export prelude tactics.
-From D Require Import asubst_lemmas.
+From D Require Import asubst_base.
 
 Inductive tm : Type :=
   | tv : vl_ -> tm

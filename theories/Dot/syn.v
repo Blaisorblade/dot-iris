@@ -1,6 +1,6 @@
 From stdpp Require Import strings.
 From D Require Export prelude tactics.
-From D Require Import asubst_lemmas.
+From D Require Import asubst_base.
 
 Definition label := string.
 
