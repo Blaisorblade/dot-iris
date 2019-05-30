@@ -157,8 +157,8 @@ End Sorts.
 (** Syntax/binding lemmas shared between DSub and Dot. *)
 
 Module SortsLemmas (values: Values).
-Module M := Sorts values.
 Import values.
+Module M := Sorts values.
 Export M.
 
 Implicit Types (v w : vl) (ρ : vls) (i j k n : nat) (r : nat → nat).
