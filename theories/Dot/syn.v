@@ -433,7 +433,6 @@ Canonical Structure ectxi_lang := ectxi_language.EctxiLanguage lang.lang_mixin.
 Canonical Structure ectx_lang := ectxi_language.EctxLanguageOfEctxi ectxi_lang.
 Canonical Structure lang := ectx_language.LanguageOfEctx ectx_lang.
 
-Definition Λ := dot_ectxi_lang.
 Include SortsLemmas.
 
 Instance sort_tm : Sort tm := {}.
