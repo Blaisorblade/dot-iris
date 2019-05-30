@@ -293,11 +293,11 @@ End lang.
 
 Export lang.
 
-Canonical Structure dsub_ectxi_lang := ectxi_language.EctxiLanguage lang.dsub_lang_mixin.
-Canonical Structure dsub_ectx_lang := ectxi_language.EctxLanguageOfEctxi dsub_ectxi_lang.
-Canonical Structure dsub_lang := ectx_language.LanguageOfEctx dsub_ectx_lang.
+Canonical Structure dlang_ectxi_lang := ectxi_language.EctxiLanguage lang.dsub_lang_mixin.
+Canonical Structure dlang_ectx_lang := ectxi_language.EctxLanguageOfEctxi dlang_ectxi_lang.
+Canonical Structure dlang_lang := ectx_language.LanguageOfEctx dlang_ectx_lang.
 
-Definition Λ := dsub_ectxi_lang.
+Definition Λ := dlang_ectxi_lang.
 Include SortsLemmas.
 
 Instance sort_tm : Sort tm := {}.

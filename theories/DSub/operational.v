@@ -15,7 +15,7 @@ Class dsubG Σ := DsubG {
   dsubG_interpNames : gen_iheapG stamp gname Σ;
 }.
 
-Instance dsubG_irisG `{dsubG Σ} : irisG dsub_lang Σ := {
+Instance dsubG_irisG `{dsubG Σ} : irisG dlang_lang Σ := {
   state_interp σ κs _ := True%I;
   fork_post _ := True%I;
 }.

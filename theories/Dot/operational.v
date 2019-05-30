@@ -20,7 +20,7 @@ Class dotG Σ := DotG {
   dotG_interpNames : gen_iheapG stamp gname Σ;
 }.
 
-Instance dotG_irisG `{dotG Σ} : irisG dot_lang Σ := {
+Instance dotG_irisG `{dotG Σ} : irisG dlang_lang Σ := {
   state_interp σ κs _ := True%I;
   fork_post _ := True%I;
 }.
