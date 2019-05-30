@@ -341,7 +341,6 @@ Instance hsubst_lemmas_vls : HSubstLemmas vl vls := _.
 
 Instance hsubst_lemmas_ctx : HSubstLemmas vl ctx := _.
 
-Instance inh_string : Inhabited string := populate "".
 Instance inh_label : Inhabited label := _.
 Instance hsubst_lemmas_dms : HSubstLemmas vl dms := _.
 
