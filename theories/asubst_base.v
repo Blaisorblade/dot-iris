@@ -14,7 +14,16 @@ Module Type Values.
   Declare Instance subst_lemmas_vl : SubstLemmas vl.
 End Values.
 
-Module Sorts (values : Values).
+Module Type SortsIntf (values: Values).
+  Import values.
+  Class Sort (s : Type)
+    {inh_s : Inhabited s}
+    {ids_s : Ids s} {ren_s : Rename s} {hsubst_vl_s : HSubst vl s}
+    {hsubst_lemmas_vl_s : HSubstLemmas vl s} := {}.
+
+End SortsIntf.
+
+Module Sorts (values : Values) <: SortsIntf values.
   Import values.
 
   Class Sort (s : Type)
