@@ -15,7 +15,7 @@ Proof.
   set (DotΣ := DotG Σ _ g).
   iMod (Hlog DotΣ with "Hgs") as "[_ #Hlog]".
   iIntros (?) "!>". iExists (λ _ _, True%I); iSplit=> //.
-  iEval (replace e with (e.|[to_subst []]) by by asimpl).
+  iSpecialize ("Hlog" $! []); rewrite to_subst_nil hsubst_id.
   iApply wp_wand; by [iApply "Hlog" | auto].
 Qed.
 
