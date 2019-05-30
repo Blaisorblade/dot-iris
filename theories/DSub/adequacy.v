@@ -14,8 +14,7 @@ Proof.
   iMod (gen_iheap_init (hG := dsubPreG_interpNames) ∅) as (g) "H".
   iIntros (?) "!>". iExists (λ _ _, True%I); iSplit=> //.
   set (DsubΣ := DsubG Σ _ g).
-  specialize (@Hlog _ _).
-  iApply wp_wand; by [iApply Hlog | auto].
+  iApply wp_wand; by [iApply (Hlog _) | auto].
 Qed.
 
 Instance CmraSwappable_dsub: CmraSwappable (iResUR dsubΣ).
