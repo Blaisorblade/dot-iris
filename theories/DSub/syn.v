@@ -283,7 +283,7 @@ Proof.
            end; auto.
 Qed.
 
-Lemma dsub_lang_mixin : EctxiLanguageMixin of_val to_val fill_item head_step.
+Lemma lang_mixin : EctxiLanguageMixin of_val to_val fill_item head_step.
 Proof.
   split; eauto using of_to_val, val_stuck, fill_item_val,
     fill_item_no_val_inj, head_ctx_step_val with typeclass_instances.
@@ -293,9 +293,9 @@ End lang.
 
 Export lang.
 
-Canonical Structure dsub_ectxi_lang := ectxi_language.EctxiLanguage lang.dsub_lang_mixin.
-Canonical Structure dsub_ectx_lang := ectxi_language.EctxLanguageOfEctxi dsub_ectxi_lang.
-Canonical Structure dsub_lang := ectx_language.LanguageOfEctx dsub_ectx_lang.
+Canonical Structure ectxi_lang := ectxi_language.EctxiLanguage lang.lang_mixin.
+Canonical Structure ectx_lang := ectxi_language.EctxLanguageOfEctxi ectxi_lang.
+Canonical Structure lang := ectx_language.LanguageOfEctx ectx_lang.
 
 Include SortsLemmas.
 
