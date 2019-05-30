@@ -345,6 +345,34 @@ Instance inh_string : Inhabited string := populate "".
 Instance inh_label : Inhabited label := _.
 Instance hsubst_lemmas_dms : HSubstLemmas vl dms := _.
 
+Module field_lookup.
+  (** Substitute object inside itself (to give semantics to the "self"
+      variable). To use when descending under the [vobj] binder. *)
+  Definition selfSubst ds: dms := ds.|[vobj ds/].
+
+  Definition objLookup v (l: label) d: Prop :=
+    ∃ ds, v = vobj ds ∧ (dms_lookup l (selfSubst ds)) = Some d.
+  Notation "v @ l ↘ d" := (objLookup v l d) (at level 20).
+
+  (** Instead of letting obj_opens_to autounfold,
+      provide tactics to show it's deterministic and so on. *)
+
+  (** Rewrite v ↗ ds to vobj ds' ↗ ds. *)
+  Ltac simplOpen ds :=
+    lazymatch goal with
+    | H: ?v @ ?l ↘ ?d |-_=>
+      inversion H as (ds & -> & _)
+    end.
+
+  (** Determinacy of obj_opens_to. *)
+  Lemma objLookupDet v l d1 d2: v @ l ↘ d1 -> v @ l ↘ d2 -> d1 = d2.
+  Proof. rewrite /objLookup => *; ev. by simplify_eq. Qed.
+  Ltac objLookupDet :=
+    lazymatch goal with
+    | H1: ?v @ ?l ↘ ?d1, H2: ?v @ ?l ↘ ?d2 |- _=>
+      assert (d2 = d1) as ? by (eapply objLookupDet; eassumption); injectHyps
+    end.
+End field_lookup.
 Include SortsLemmas.
 
 Instance sort_tm : Sort tm := {}.
