@@ -299,9 +299,20 @@ Canonical Structure dsub_lang := ectx_language.LanguageOfEctx dsub_ectx_lang.
 
 Definition Λ := dsub_ectxi_lang.
 Include SortsLemmas.
+Export GenWp.
 
 Instance sort_tm : Sort tm := {}.
 Instance sort_ty : Sort ty := {}.
+
+From D Require Export saved_interp gen_iheap.
+From D.pure_program_logic Require Export weakestpre.
+Class dsubG Σ := DsubG {
+  dsub_dlang :> dlangG Σ
+}.
+Existing Instance DsubG.
+Class dsubInterpG Σ := DsubInterpG {
+  dsub_interp: ty -> vls -> vl -> iProp Σ
+}.
 
 (** After instantiating Autosubst, a few binding-related syntactic definitions
     that need not their own file. *)
