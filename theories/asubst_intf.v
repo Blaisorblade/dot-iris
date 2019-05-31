@@ -27,4 +27,7 @@ Module Type SortsIntf (values: Values).
     {inh_s : Inhabited s}
     {ids_s : Ids s} {ren_s : Rename s} {hsubst_vl_s : HSubst vl s}
     {hsubst_lemmas_vl_s : HSubstLemmas vl s} := {}.
+
+  Parameter nclosed_vl : vl → nat → Prop.
+  Parameter nclosed : ∀ {X} {h0: HSubst vl X}, X → nat → Prop.
 End SortsIntf.
