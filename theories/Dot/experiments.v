@@ -9,6 +9,194 @@ Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
          (Γ : ctx) (ρ : vls).
 
+Implicit Types (Σ : gFunctors).
+
+Require D.olty.
+
+(* Section olty_ofe.
+  Context `{Σ : gFunctors}. *)
+  (* About olty_car.
+  Print Classes.
+  Print Graph.
+
+  (* Definition foo Σ := ofe_car (envD Σ).
+  Identity Coercion fooenv: foo >-> ofe_car. *)
+  Definition D := olty Σ.
+  Fail Definition test (v: D) ρ := v ρ.
+  Definition olty_car_wrap (o: D) ρ := olty_car o ρ.
+  Coercion olty_car_wrap: D >-> Funclass.
+  Definition test (v: D) ρ := v ρ.
+  Print test.
+  Fail Definition test2 (v: olty Σ) ρ := v ρ.
+
+  (* Identity Coercion barenv: D >-> olty. *)
+  Definition olty' (Σ': gFunctors) := olty Σ.
+  Identity Coercion barenv: olty' >-> olty.
+  Definition test2 (v: olty' Σ) ρ := v ρ.
+
+  Print test.
+
+  (* Definition D1 Σ := olty Σ.
+  Identity Coercion bar1env: D >-> olty.
+  Definition olty_car_wrap1 (o: D1 Σ) ρ := olty_car o ρ.
+  Coercion olty_car_wrap1: D1 >-> Funclass. *)
+
+  Print Graph.
+  Print Classes.
+
+  Coercion olty_car : olty >-> envD.
+  Identity Coercion
+
+  vls → vl → iProp Σ
+  Coercion foo : (olty Σ) >-> Funclass. *)
+
+(* Context {PROP : bi}.
+Implicit Types φ : Prop.
+Implicit Types P Q R : PROP.
+Implicit Types Ps : list PROP.
+Implicit Types A : Type. *)
+
+(* From iris.bi Require Import bi. Import bi.
+Global Instance limit_preserving_Persistent2 {A B : ofeT} `{Cofe A} `{Cofe B} (Φ : A → B → PROP) :
+  NonExpansive2 Φ → LimitPreserving (λ x, ∀ w, Persistent (Φ x w)).
+(* Proof. intros. apply limit_preserving_entails; solve_proper. Qed. *)
+Admitted. *)
+
+
+
+
+(* This would fail in adequacy *)
+(* Definition savedInterpG Σ := (savedAnythingG Σ (oltyC Σ)).
+Definition savedInterpΣ Σ := (savedAnythingΣ (oltyC Σ)).
+Print savedInterpΣ.
+Print oFunctor.
+savedAnythingΣ (constRF (iProp dotΣ)) *)
+(* Module foo.
+Section foo.
+Context `{PROP: bi} {A B: Type}.
+Record persistentPred := PersistentPred {
+  persistentPred_car : A -d> B -d> PROP;
+  persistentPred_persistent a b : Persistent (persistentPred_car a b)
+}.
+About uPred.
+About uPredO.
+About uPredSI.
+Program Definition oltyF (B : ofeT) : oFunctor :=
+  {| oFunctor_car A1 A2 := B; oFunctor_map A1 A2 B1 B2 f := cid |}.
+oFunctor_car
+End foo.
+End foo. *)
+
+Module SemTypes.
+Import olty.
+Include OLty syn syn.
+
+Section SemTypes.
+  Context `{HdotG: dlangG Σ}.
+  Implicit Types (φ: olty Σ).
+  Definition ietp Γ φ e : iProp Σ := (⌜ nclosed e (length Γ) ⌝ ∗
+    □∀ ρ, ⟦Γ⟧* ρ → interp_expr φ ρ (e.|[to_subst ρ]))%I.
+  Global Arguments ietp /.
+  Definition step_indexed_ietp Γ φ e i: iProp Σ :=
+    (⌜ nclosed e (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ →
+      interp_expr (λ ρ v, ▷^i φ ρ v) ρ (e.|[to_subst ρ]))%I.
+  Global Arguments step_indexed_ietp /.
+
+  Definition step_indexed_ivstp Γ φ1 φ2 i j: iProp Σ :=
+    (□∀ ρ v, ⌜ nclosed_vl v 0 ⌝ → ⟦Γ⟧*ρ → (▷^i φ1 ρ v) → ▷^j φ2 ρ v)%I.
+  Global Arguments step_indexed_ivstp /.
+  Notation "Γ ⊨ e : φ" := (ietp Γ φ e) (at level 74, e, φ at next level).
+  Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
+  Notation "Γ ⊨ [ φ1 , i ]  <: [ φ2 , j ]" := (step_indexed_ivstp Γ φ1 φ2 i j) (at level 74, φ1, φ2 at next level): bi_scope.
+
+
+  (* Global Arguments sem_sel /. *)
+
+  Lemma iterate_TLater_later i (φ : olty Σ) ρ v:
+    nclosed_vl v 0 →
+    (iterate interp_later i φ) ρ v ≡ (▷^i φ ρ v)%I.
+  Proof.
+    elim: i => [|i IHi] // => Hcl. rewrite iterate_S /= IHi //.
+    iSplit; by [iIntros "#[_ $]" | iIntros "$"].
+  Qed.
+  Program Definition oLater φ := Olty (interp_later φ) _.
+  Next Obligation. rewrite /vclosed /interp_later. by iIntros "* [$_]". Qed.
+
+  Program Definition oInterp T := Olty ⟦ T ⟧ _.
+  Next Obligation. rewrite /vclosed=>*. by rewrite interp_v_closed. Qed.
+
+  Definition oTTMem l L U := oInterp (TTMem l L U).
+  Definition oTLater L := oInterp (TLater L).
+  Definition oTSel p l := oInterp (TSel p l).
+
+  Lemma Sub_Sel Γ L U va l i:
+    Γ ⊨ tv va : oTTMem l L U, i -∗
+    Γ ⊨ [oTLater L, i] <: [oTSel (pv va) l, i].
+  Proof.
+    iIntros "/= #[% #Hva] !>" (ρ v Hclv) "#Hg #[_ HvL]". iFrame (Hclv).
+    iDestruct (interp_env_props with "Hg") as %[Hclρ Hlen]. rewrite <- Hlen in *.
+    iSpecialize ("Hva" with "Hg"); rewrite wp_value_inv'.
+    iNext.
+
+    iDestruct "Hva" as (Hclvas' d Hl φ) "#[Hlφ [#HLφ #HφU]]".
+    iSpecialize ("HLφ" $! _ Hclv with "HvL").
+    iExists φ, d; by repeat iSplit.
+  Qed.
+
+  Lemma Sel_Sub Γ L U va l i:
+    Γ ⊨ tv va : oTTMem l L U, i -∗
+    Γ ⊨ [oTSel (pv va) l, i] <: [oTLater U, i].
+  Proof.
+    iIntros "/= #[% #Hva] !>" (ρ v Hclv) "#Hg [$ #Hφ]". move: H => Hclva.
+    iDestruct (interp_env_props with "Hg") as %[Hclρ Hlen]. rewrite <- Hlen in *.
+    iSpecialize ("Hva" with "Hg"); rewrite wp_value_inv'.
+    iNext.
+    iDestruct "Hva" as (Hclvas d Hl φ) "#[Hlφ [#HLφ #HφU]]".
+    iDestruct "Hφ" as (φ1 d1 Hva) "[Hγ #HΦ1v]".
+    objLookupDet; subst. iDestruct (stored_pred_agree d _ _ v with "Hlφ Hγ") as "#Hag".
+    iApply "HφU" => //. iNext; repeat iModIntro. by iRewrite "Hag".
+  Qed.
+
+  (* Alternative (and failed) definition. *)
+  Program Definition sem_sel p (l: label) :=
+    Olty (λ ρ v, (⌜ nclosed_vl v 0 ⌝ ∧ path_wp p.|[to_subst ρ]
+      (λ vp, ∃ ϕ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ϕ ∧ □ ϕ v))%I) _.
+  Next Obligation. rewrite /vclosed=>*. by iIntros "[$_]". Qed.
+
+  Lemma Sub_Sel2 Γ L U va l i:
+    Γ ⊨ tv va : oTTMem l L U, i -∗
+    Γ ⊨ [oTLater L, i] <: [oLater (sem_sel (pv va) l), i].
+  Proof.
+    iIntros "/= #[% #Hva] !>" (ρ v Hclv) "#Hg #[_ HvL]". move: H => Hclva. iFrame (Hclv).
+    iDestruct (interp_env_props with "Hg") as %[Hclρ Hlen]. rewrite <- Hlen in *.
+    iSpecialize ("Hva" with "Hg"); rewrite wp_value_inv'.
+    iNext.
+
+    iDestruct "Hva" as (Hclvas' d Hl φ) "#[Hlφ [#HLφ ?]]".
+    iSpecialize ("HLφ" $! _ Hclv with "HvL").
+    iExists φ, d; by repeat iSplit.
+  Qed.
+
+  Lemma Sel_Sub2_Failed Γ L U va l i:
+    Γ ⊨ tv va : oTTMem l L U, i -∗
+    Γ ⊨ [oLater ((sem_sel (pv va) l)), i] <: [oTLater U, i].
+  Proof.
+    iIntros "/= #[% #Hva] !>" (ρ v Hclv) "#Hg #[$ #[_ Hφ]]".
+    iDestruct (interp_env_props with "Hg") as %[Hclρ Hlen]. rewrite <- Hlen in *.
+    iSpecialize ("Hva" with "Hg"); rewrite wp_value_inv'.
+    iNext.
+    iDestruct "Hva" as (Hclvas d Hl φ) "#[Hlφ [_ #HφU]]".
+    iApply "HφU" => //.
+    iDestruct "Hφ" as (φ1 d1) "[>% [Hγ #HΦ1v]]".
+    (* iSpecialize ("HLφ" $! v Hclv); iSpecialize ("HφU" $! v Hclv). *)
+    (* rewrite /sem_sel /olty_car. *)
+    objLookupDet; subst. iNext. iDestruct (stored_pred_agree d _ _ v with "Hlφ Hγ") as "#Hag".
+    repeat iModIntro. Fail by iRewrite "Hag".
+  Abort.
+
+End SemTypes.
+End SemTypes.
+
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
