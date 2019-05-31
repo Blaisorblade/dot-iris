@@ -144,8 +144,8 @@ End Sorts.
 
 Module SortsLemmas (values: Values).
 Import values.
-Module M := Sorts values.
-Export M.
+Module Sorts := Sorts values.
+Include Sorts.
 
 Implicit Types (v w : vl) (ρ : vls) (i j k n : nat) (r : nat → nat).
 
