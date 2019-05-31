@@ -2,6 +2,7 @@
 -arg -w -arg -notation-overridden,-redundant-canonical-projection,-several-object-files
 
 theories/tactics.v
+theories/olty.v
 theories/prelude.v
 theories/iris_prelude.v
 theories/asubst_base.v
