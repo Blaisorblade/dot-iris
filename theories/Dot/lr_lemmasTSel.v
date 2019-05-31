@@ -5,7 +5,7 @@ From D.Dot Require Import unary_lr synLemmas.
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
 Section Sec.
-  Context `{HdotG: dotG Σ} Γ.
+  Context `{HdlangG: dlangG Σ} Γ.
 
   (* Next step: proper lemma on arbitrary-length paths. *)
   Lemma mem_stp_sel_sub_path1 L U va l1 l2:

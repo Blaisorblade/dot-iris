@@ -4,15 +4,6 @@ From D.DSub Require Export syn.
 Module LiftWp := LiftWp syn syn.
 Export LiftWp.
 
-Class dsubG Σ := DsubG {
-  dsub_dlang :> dlangG Σ
-}.
-Existing Instance DsubG.
-
-Class dsubInterpG Σ := DsubInterpG {
-  dsub_interp: ty -> vls -> vl -> iProp Σ
-}.
-
 (**
 Possible future plan.
 
