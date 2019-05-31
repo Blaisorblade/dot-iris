@@ -1,11 +1,13 @@
 (* Basic interfaces. *)
 
-From iris.program_logic Require Import ectxi_language.
+From iris.program_logic Require Import language ectx_language ectxi_language.
 From D Require Import prelude.
 
 Module Type Values.
-  Parameter Λ : ectxiLanguage.
-  Definition vl : Type := val Λ.
+  Parameter dlang_ectxi_lang : ectxiLanguage.
+  Parameter dlang_ectx_lang : ectxLanguage.
+  Parameter dlang_lang : language.
+  Definition vl : Type := val dlang_ectxi_lang.
   Definition vls := list vl.
   Declare Instance inh_vl : Inhabited vl.
   Declare Instance ids_vl : Ids vl.
