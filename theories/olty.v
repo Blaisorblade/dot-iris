@@ -92,6 +92,21 @@ Arguments oltyC : clear implicits.
 Class OTyInterp ty Σ :=
   oty_interp: ty → olty Σ.
 End OLty.
+(*
+  - Redefining *existing judgments* on Olty will let us
+    generalize current typing lemmas to be about semantic types.
+    + However, we need to define substitution on semantic types.
+      And figure out corresponding lemmas.
+      Crucially, we must have (⟦ T ⟧).|[σ] ≡ ⟦ T.|[σ] ⟧.
+      We might have already proven that, for to_subst.
+  - Redefining judgments will let us... do what?
+    Prove theorems about judgments? What is that good for?
+    - Stating the lemmas without mentioning Γ?
+    - Using common notation [Γ ⊨ J] for judgments?
+    Neither seems so compelling.
+  - What would be useful would be to prepare for HK-D<:
+    while reusing as much as possible.
+*)
 
 Module OLty_judge (values: Values) (sorts: SortsIntf values).
 Import values sorts.
