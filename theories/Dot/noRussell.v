@@ -19,6 +19,8 @@ Section Russell.
   Instance uauP: Persistent (uAu u) := _.
 
   Definition russell_p : envD Σ := λ ρ v, (□ (uAu v -∗ False))%I.
+  (* This would internalize as [russell_p ρ v := v : μ x. not (x.A)]. *)
+
   Context (s: stamp).
 
   Definition Hs := (s ↝ russell_p)%I.
