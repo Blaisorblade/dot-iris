@@ -18,10 +18,25 @@ Section olty_limit_preserving.
 
   Definition envD_persistent (A : envD Σ) := ∀ ρ w, Persistent (A ρ w).
 
-  Global Instance: LimitPreserving envD_persistent.
+  Instance: LimitPreserving envD_persistent.
   Proof.
     apply limit_preserving_forall=> ρ; apply limit_preserving_forall=> w.
       apply bi.limit_preserving_Persistent => n ?? H. exact: H.
+  Qed.
+
+  Definition vclosed (A : envD Σ) := ∀ ρ v, A ρ v ⊢ ⌜ nclosed_vl v 0 ⌝.
+
+  Instance: LimitPreserving vclosed.
+  Proof.
+    apply limit_preserving_forall=> ρ; apply limit_preserving_forall=> w.
+    apply limit_preserving_entails; last apply _.
+    solve_proper_ho.
+  Qed.
+
+  Definition restrict A := vclosed A ∧ envD_persistent A.
+  Global Instance: LimitPreserving restrict.
+  Proof.
+    apply limit_preserving_and; apply _.
   Qed.
 End olty_limit_preserving.
 
@@ -31,10 +46,12 @@ and values. Adapted from
 https://gitlab.mpi-sws.org/iris/examples/blob/d4f4153920ea82617c7222aeeb00b6710d51ee03/theories/logrel_heaplang/ltyping.v#L5. *)
 Record olty Σ := Olty {
   olty_car : envD Σ;
-  olty_persistent ρ v : Persistent (olty_car ρ v)
+  olty_v_closed : vclosed olty_car;
+  olty_persistent ρ v : Persistent (olty_car ρ v);
 }.
-Arguments Olty {_} _%I {_}.
+Arguments Olty {_} _%I _ {_}.
 Arguments olty_car {_} _ _ _ /.
+Arguments olty_v_closed {_} _ _ _ /.
 Bind Scope olty_scope with olty.
 Delimit Scope olty_scope with T.
 Existing Instance olty_persistent.
@@ -57,32 +74,38 @@ Section olty_ofe.
   (* Only needed to define Olty using Iris fixpoints (e.g. for normal recursive types). *)
   Global Instance olty_cofe : Cofe oltyC.
   Proof.
-    apply (iso_cofe_subtype' envD_persistent
-      (@Olty _) olty_car)=> //; rewrite /envD_persistent; apply _.
+    set curry_olty : ∀ A, restrict A → olty Σ := λ A '(conj P1 P2), @Olty Σ A P1 P2.
+    apply (iso_cofe_subtype' restrict curry_olty olty_car) => //.
+    - by move => [].
+    - by move => ? [].
+    - apply _.
   Qed.
 
-  Global Program Instance olty_inhabited : Inhabited (olty Σ) := populate (Olty (λ _ _, False)%I).
+  Global Program Instance olty_inhabited : Inhabited (olty Σ) := populate (Olty (λ _ _, False)%I _).
+  Next Obligation. by unseal=>?. Qed.
 
   Global Instance olty_car_ne: NonExpansive (@olty_car Σ).
   Proof. by intros ??. Qed.
   Global Instance lty_car_proper : Proper ((≡) ==> (≡)) (@olty_car Σ).
   Proof. apply ne_proper, olty_car_ne. Qed.
 
-  Definition pack φ : olty Σ := Olty (λ ρ v, □ φ ρ v)%I.
+  Program Definition pack φ (H : vclosed φ) := Olty (λ ρ v, □ φ ρ v)%I _.
+  Next Obligation. iIntros (??) "H". by iApply H. Qed.
+
   Lemma persistently_id (P : iProp Σ) `{!Persistent P}: □P ⊣⊢ P.
   (* Proof. by iSplit; iIntros. Qed. *)
   Proof. apply: intuitionistic_intuitionistically. Qed.
 
-  Lemma olty_car_pack_id φ `{∀ ρ v, Persistent (φ ρ v)} :
-    olty_car (pack φ) ≡ φ.
+  Lemma olty_car_pack_id φ (H : vclosed φ) `{∀ ρ v, Persistent (φ ρ v)} :
+    olty_car (pack φ H) ≡ φ.
   Proof.
     move => ?? /=.
     apply: intuitionistic_intuitionistically.
   Qed.
 
-  Lemma pack_olty_car_id τ : pack (olty_car τ) ≡ τ.
+  Lemma pack_olty_car_id τ : pack (olty_car τ) (olty_v_closed τ) ≡ τ.
   Proof.
-    move: τ => []????/=.
+    move: τ => []?????/=.
     apply: intuitionistic_intuitionistically.
   Qed.
 End olty_ofe.
@@ -196,7 +219,12 @@ Proof.
     iIntros "#H"; iSplit; first done; iIntros "!>" (?) "#? /="; iIntros (??)].
   all: by iApply "H".
 Qed.
-Definition oAnd φ1 φ2 : olty Σ := Olty (λ ρ v, φ1 ρ v ∧ φ2 ρ v)%I.
+Program Definition oAnd φ1 φ2 : olty Σ := Olty (λ ρ v, φ1 ρ v ∧ φ2 ρ v)%I _.
+Next Obligation. iIntros (??) "#[H _]". by iApply olty_v_closed. Qed.
+
+Program Definition oOr φ1 φ2 : olty Σ := Olty (λ ρ v, φ1 ρ v ∨ φ2 ρ v)%I _.
+Next Obligation. iIntros (??) "#[H | H]"; by iApply olty_v_closed. Qed.
+
 Lemma andstp1 Γ φ1 φ2 i : (Γ ⊨ [oAnd φ1 φ2 , i] <: [φ1 , i]).
 Proof.
   rewrite equiv_vstp /=. by iIntros "!>" (???) "#Hg #[? ?]".
