@@ -217,7 +217,7 @@ Section logrel.
   Global Arguments idtp /.
   Notation "Γ ⊨d d : T" := (idtp Γ T d) (at level 64, d, T at next level).
 
-  Lemma idtp_closed Γ T d: (Γ ⊨d d : T → ⌜ nclosed d (length Γ) ⌝)%I.
+  Lemma idtp_closed Γ T d: Γ ⊨d d : T -∗ ⌜ nclosed d (length Γ) ⌝.
   Proof. iIntros "[$ _]". Qed.
 
   Definition idstp Γ T ds : iProp Σ :=
@@ -225,7 +225,7 @@ Section logrel.
   Global Arguments idstp /.
   Notation "Γ ⊨ds ds : T" := (idstp Γ T ds) (at level 74, ds, T at next level).
 
-  Lemma idstp_closed Γ T ds: (Γ ⊨ds ds : T → ⌜ nclosed ds (length Γ) ⌝)%I.
+  Lemma idstp_closed Γ T ds: Γ ⊨ds ds : T -∗ ⌜ nclosed ds (length Γ) ⌝.
   Proof. iIntros "[$ _]". Qed.
 
   (* Really needed? Try to stop using it. *)
@@ -236,15 +236,17 @@ Section logrel.
   Global Arguments ietp /.
   Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 
-  Lemma ietp_closed Γ T e: (Γ ⊨ e : T → ⌜ nclosed e (length Γ) ⌝)%I.
+  Lemma ietp_closed Γ T e: Γ ⊨ e : T -∗ ⌜ nclosed e (length Γ) ⌝.
   Proof. iIntros "[$ _]". Qed.
 
   Definition step_indexed_ietp Γ T e i: iProp Σ :=
-    (⌜ nclosed e (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → ⟦iterate TLater i T⟧ₑ ρ (e.|[to_subst ρ]))%I.
+    (⌜ nclosed e (length Γ) ⌝ ∗
+      □∀ ρ, ⟦Γ⟧* ρ →
+      interp_expr (λ ρ v, ▷^i ⟦T⟧ ρ v) ρ (e.|[to_subst ρ]))%I.
   Global Arguments step_indexed_ietp /.
   Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
 
-  Lemma step_indexed_ietp_closed Γ T e i: (Γ ⊨ e : T, i → ⌜ nclosed e (length Γ) ⌝)%I.
+  Lemma step_indexed_ietp_closed Γ T e i: Γ ⊨ e : T, i -∗ ⌜ nclosed e (length Γ) ⌝.
   Proof. iIntros "[$ _]". Qed.
 
   (** Subtyping. Defined on values. *)
@@ -306,7 +308,7 @@ Notation "Γ ⊨ T1 , i  <: T2 , j" := (step_indexed_ivstp Γ T1 T2 i j) (at lev
 Notation "Γ |L V" := (defCtxCons Γ V) (at level 60).
 
 Section logrel_lemmas.
-  Context `{HdlangG: dlangG Σ}.
+  Context `{!dlangG Σ}.
 
   Lemma iterate_TLater_later i T ρ v:
     nclosed_vl v 0 →
@@ -318,30 +320,35 @@ Section logrel_lemmas.
 
   Context Γ.
 
-  Lemma interp_v_closed T v ρ: interp T ρ v -∗ ⌜ nclosed_vl v 0 ⌝.
+  Lemma semantic_typing_uniform_step_index T e i:
+    Γ ⊨ e : T -∗ Γ ⊨ e : T,i.
   Proof.
-    iInduction T as [] "IHT" forall (ρ v); iIntros "#HT //="; try by (iDestruct "HT" as "[% _]").
-    - iDestruct "HT" as "[#HT1 #HT2]". by iApply "IHT".
-    - iDestruct "HT" as "[#HT1 | #HT2]"; by [iApply "IHT" | iApply "IHT1"].
-    - by iApply "IHT".
-    - by iDestruct "HT" as (n) "->".
+    iIntros "[$ #H] !>" (ρ) "#HΓ".
+    iInduction i as [|i] "IHi". by iApply "H".
+    iApply wp_wand.
+    iExact "IHi". naive_solver.
+  Qed.
+
+  Lemma interp_v_closed T w ρ: interp T ρ w -∗ ⌜ nclosed_vl w 0 ⌝.
+  Proof.
+    move: ρ; induction T => ρ /=;
+      try by [iPureIntro | iIntros "[$ _]"];
+      rewrite ?IHT1 ?IHT2 ?IHT; iPureIntro.
+    all: by [intuition idtac | move => [n ->]].
   Qed.
 
   Lemma interp_env_len_agree ρ:
     ⟦ Γ ⟧* ρ -∗ ⌜ length ρ = length Γ ⌝.
   Proof.
-    iInduction Γ as [|τ Γ'] "IHΓ" forall (ρ); destruct ρ => //=.
-    iIntros "#[HG Hv]".
-    by iDestruct ("IHΓ" $! ρ with "HG") as "->".
+    elim: Γ ρ => [|τ Γ' IHΓ] [|v ρ] //=; try by iPureIntro.
+    rewrite IHΓ. by iIntros "[-> _] !%".
   Qed.
 
   Lemma interp_env_ρ_closed ρ: ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ⌝.
   Proof.
-    iInduction Γ as [|τ Γ'] "IHΓ" forall (ρ); destruct ρ => //=.
-    iIntros "[#HG #HT]".
-    iDestruct (interp_v_closed with "HT") as %?.
-    iDestruct ("IHΓ" with "HG") as %?.
-    iPureIntro; by constructor.
+    elim: Γ ρ => [|τ Γ' IHΓ] [|v ρ] //=; try by iPureIntro.
+    rewrite interp_v_closed IHΓ; iPureIntro => -[].
+    by constructor.
   Qed.
 
   Lemma Sub_Refl T i : Γ ⊨ [T, i] <: [T, i].

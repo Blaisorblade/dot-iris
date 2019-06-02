@@ -183,7 +183,8 @@ Section fundamental.
         try iSpecialize ("IHT" with "[#//]").
       + iApply semantic_typing_uniform_step_index.
         by iApply fundamental_typed.
-      + by rewrite /= -iterate_Sr.
+      + iDestruct "IHT" as "[$ #HT]". iIntros "!>" (ρ) "#Hg".
+        iApply (wp_wand with "(HT [//])"). by iIntros (w) "[_ $]".
       + iDestruct "IHT" as (Hcltv) "#IHT". iFrame "%".
         move: H => HsubSyn; iIntros "!> * #HG".
         iSpecialize ("IHT" with "HG").
@@ -191,10 +192,8 @@ Section fundamental.
         iDestruct (interp_env_ρ_closed with "HG") as %Hclρ.
         have Hclv: nclosed_vl v (length ρ). by apply fv_tv_inv.
         have Hclvs: nclosed_vl v.[to_subst ρ] 0. by apply fv_to_subst_vl.
-        iApply wp_value.
-        iPoseProof (wp_value_inv' with "IHT") as "?".
-        rewrite !iterate_TLater_later //.
-        by iApply fundamental_subtype.
+        rewrite /interp_expr /= wp_value_inv' -wp_value'.
+        iApply fundamental_subtype => //.
   Admitted.
 
   Lemma fundamental_typed_upd Γ e T (HT: Γ ⊢ₜ e : T): (allGs ∅ -∗ |==> Γ ⊨ e : T)%I.

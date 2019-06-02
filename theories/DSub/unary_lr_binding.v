@@ -1,5 +1,7 @@
 From iris.proofmode Require Import tactics.
+From D Require Import locAsimpl.
 From D.DSub Require Export unary_lr synLemmas.
+Import uPred.
 
 Implicit Types
          (L T U: ty) (v: vl) (e: tm)
@@ -38,30 +40,30 @@ Section logrel_binding_lemmas.
 
   Lemma interp_env_ρ_fv ρ: ⟦ Γ ⟧* ρ -∗ ⌜ nclosed ρ 0 ⌝.
   Proof.
-    iIntros "Hg".
-    iDestruct (interp_env_ρ_closed with "Hg") as %?.
-    iPureIntro. by apply cl_ρ_fv.
+    rewrite interp_env_ρ_closed. iPureIntro. exact: cl_ρ_fv.
   Qed.
 
   Lemma interp_env_lookup ρ T x:
     Γ !! x = Some T →
     (⟦ Γ ⟧* ρ → ⟦ T.|[ren (+x)] ⟧ ρ (to_subst ρ x))%I.
   Proof.
-    iIntros (Hx) "* #Hg".
-    iInduction Γ as [|T' Γ'] "IHL" forall (x ρ Hx); simpl; try solve [inversion Hx].
-    destruct ρ; try by iExFalso.
-    iDestruct "Hg" as "[̋Hg Ht]".
+    iIntros (Hx) "* Hg".
+    iInduction Γ as [|T' Γ'] "IHL" forall (x ρ Hx); simpl; first solve [inversion Hx].
+    destruct ρ; first by [iExFalso]; rewrite to_subst_cons.
     case: x Hx => /= [|x] Hx.
-    - move: Hx => [ -> ]. iSpecialize ("IHL" $! 0). by asimpl.
-    - rewrite to_subst_cons /=.
-      iAssert (⟦ T.|[ren (+x)] ⟧ ρ (to_subst ρ x)) as "#Hv". by iApply "IHL".
-      iPoseProof (interp_weaken [] [v] ρ with "Hv") as "H"; asimpl. iExact "H".
+    - move: Hx => [ -> ]. iClear "IHL". locAsimpl.
+      by iDestruct "Hg" as "[_ $]".
+    - iAssert (⟦ T.|[ren (+x)] ⟧ ρ (to_subst ρ x)) with "[Hg]" as "Hv".
+      by iDestruct "Hg" as "[Hg _]"; iApply "IHL".
+      iClear "IHL".
+      iDestruct (interp_weaken_one v with "Hv") as "Hv".
+      by iEval (locAsimpl) in "Hv".
   Qed.
 
   Lemma interp_subst_all ρ τ v:
     cl_ρ ρ → ⟦ τ.|[to_subst ρ] ⟧ [] v ≡ ⟦ τ ⟧ ρ v.
   Proof.
-    elim: ρ τ => /= [|w ρ IHρ] τ Hwρcl; asimpl; first by [].
+    elim: ρ τ => /= [|w ρ IHρ] τ Hwρcl /=.  by rewrite to_subst_nil hsubst_id.
     assert (nclosed_vl w 0 /\ Forall (λ v, nclosed_vl v 0) ρ) as [Hwcl Hρcl]. by inversion Hwρcl.
     specialize (IHρ (τ.|[w/]) Hρcl).
     asimpl in IHρ. move: IHρ.
@@ -72,51 +74,36 @@ Section logrel_binding_lemmas.
     ⟦ T.|[v/] ⟧ ρ w ≡ ⟦ T.|[v.[to_subst ρ]/] ⟧ ρ w.
   Proof.
     intros Hclρ Hclv.
-    assert (v.[to_subst ρ] = v.[to_subst ρ >> to_subst ρ]) as Hrew. {
-      apply Hclv.
-      intros x Hl.
-      asimpl.
-      rewrite closed_subst_vl_id //. by apply closed_to_subst.
-    }
-    rewrite -(interp_subst_all ρ (T.|[v/])) // -(interp_subst_all ρ (T.|[v.[to_subst ρ]/])) //.
-    asimpl. by rewrite -Hrew.
+    rewrite -(interp_subst_all ρ (T.|[v/])) // -(interp_subst_all ρ (T.|[v.[to_subst ρ]/])) //; f_equiv.
+    asimpl.
+    have ->: (v.[to_subst ρ] = v.[to_subst ρ >> to_subst ρ]); last done.
+    apply Hclv => x Hl.
+    asimpl.
+    rewrite closed_subst_vl_id //. by apply closed_to_subst.
   Qed.
 
   Lemma interp_env_to_subst_closed ρ x: x < length ρ → (⟦ Γ ⟧* ρ → ⌜ nclosed_vl (to_subst ρ x) 0 ⌝)%I.
   Proof.
-    iIntros (Hl) "#HG". iDestruct (interp_env_ρ_closed with "HG") as %?.
-    iPureIntro; by apply closed_to_subst.
+    rewrite interp_env_ρ_closed. iPureIntro => ??.  exact: closed_to_subst.
   Qed.
 
   Lemma ietp_closed_vl T v: (Γ ⊨ tv v : T → ⌜ nclosed_vl v (length Γ) ⌝)%I.
-  Proof.
-    iIntros "H".
-    iDestruct (ietp_closed with "H") as %?. by iPureIntro; apply fv_tv_inv.
-  Qed.
-
-  Import uPred.
+  Proof. rewrite ietp_closed; iPureIntro; exact: fv_tv_inv. Qed.
 
   Lemma interp_subst_internal ρ τ v1 v2 : (⟦ τ.|[v1.[ren (+length ρ)]/] ⟧ ρ v2 ≡ ⟦ τ ⟧ (v1 :: ρ) v2)%I : iProp Σ.
   Proof. rewrite (interp_subst ρ τ v1 v2). apply internal_eq_refl. Qed.
-
-  Lemma interp_subst_closed_aux T v w ρ:
-    nclosed_vl v (length ρ) →
-    ⟦ Γ ⟧* ρ -∗ ⟦ T.|[v/] ⟧ ρ w ≡ ⟦ T ⟧ (v.[to_subst ρ] :: ρ) w.
-  Proof.
-    iIntros (Hcl) "#Hg".
-    iDestruct (interp_env_ρ_closed with "Hg") as %Hclρ.
-    iRewrite -(interp_subst_internal ρ T (v.[to_subst ρ]) w). asimpl.
-    rewrite (Hcl (to_subst ρ >> ren (+length ρ)) (to_subst ρ)) // -?(to_subst_interp T ρ v w) //.
-    move => x Hlρ. asimpl. by rewrite closed_subst_vl_id; [|apply closed_to_subst].
-  Qed.
 
   Lemma interp_subst_closed T v w ρ:
     nclosed_vl v (length Γ) →
     ⟦ Γ ⟧* ρ -∗ ⟦ T.|[v/] ⟧ ρ w ≡ ⟦ T ⟧ (v.[to_subst ρ] :: ρ) w.
   Proof.
-    iIntros (Hcl) "#Hg".
+    iIntros (Hcl) "Hg".
     iDestruct (interp_env_len_agree with "Hg") as %Hlen; rewrite <-Hlen in *.
-    by iApply interp_subst_closed_aux.
+    iDestruct (interp_env_ρ_closed with "Hg") as %Hclρ.
+    iRewrite -(interp_subst_internal ρ T (v.[to_subst ρ]) w). asimpl.
+    rewrite (Hcl (to_subst ρ >> ren (+length ρ)) (to_subst ρ))
+      -?(to_subst_interp T ρ v w) // => x Hlρ.
+    asimpl. by rewrite closed_subst_vl_id; [|apply closed_to_subst].
   Qed.
 
   Lemma interp_subst_commute T σ ρ v:

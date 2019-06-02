@@ -31,7 +31,6 @@ Section Sec.
     iDestruct (interp_env_ρ_closed with "Hg") as %?.
 
     iDestruct (wp_value_inv' with "(Hva Hg)") as "Hva'"; iClear "Hva".
-    rewrite iterate_TLater_later //=; last by eauto using fv_to_subst_vl, fv_tv_inv.
     iNext.
     iDestruct "Hva'" as (Hclvas' d Hl Hcld φ) "#[Hlφ [#HLφ #HφU]]".
 
@@ -50,7 +49,6 @@ Section Sec.
     iDestruct (interp_env_ρ_closed with "Hg") as %?.
 
     iPoseProof (wp_value_inv' with "(Hva Hg)") as "Hva'"; iClear "Hva".
-    rewrite iterate_TLater_later //=; last by eauto using fv_to_subst_vl, fv_tv_inv.
     iNext.
     iDestruct "Hva'" as (Hclvas d Hl Hcld φ) "#[Hlφ [#HLφ #HφU]]".
     iDestruct "Hφ" as (φ1 d1 Hva) "[Hγ #HΦ1v]".

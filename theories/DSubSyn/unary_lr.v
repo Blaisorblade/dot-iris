@@ -233,7 +233,7 @@ Section logrel_part2.
   Global Arguments ietp /.
   Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 
-  Lemma ietp_closed Γ T e: (Γ ⊨ e : T → ⌜ nclosed e (length Γ) ⌝)%I.
+  Lemma ietp_closed Γ T e: Γ ⊨ e : T -∗ ⌜ nclosed e (length Γ) ⌝.
   Proof. iIntros "[$ _]". Qed.
 
   Definition step_indexed_ietp Γ T e i: iProp Σ :=
@@ -241,7 +241,7 @@ Section logrel_part2.
   Global Arguments step_indexed_ietp /.
   Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
 
-  Lemma step_indexed_ietp_closed Γ T e i: (Γ ⊨ e : T, i → ⌜ nclosed e (length Γ) ⌝)%I.
+  Lemma step_indexed_ietp_closed Γ T e i: Γ ⊨ e : T, i -∗ ⌜ nclosed e (length Γ) ⌝.
   Proof. iIntros "[$ _]". Qed.
 
   (** Indexed Subtyping. Defined on closed values. We must require closedness
@@ -284,33 +284,31 @@ Section logrel_lemmas.
   Context Γ.
 
   Lemma semantic_typing_uniform_step_index T e i:
-    Γ ⊨ e : T ⊢ Γ ⊨ e : T,i.
+    Γ ⊨ e : T -∗ Γ ⊨ e : T,i.
   Proof.
     iIntros "[$ #H] !>" (ρ) "#HΓ".
-    iInduction i as [|i] "IHi". by iApply "H". iApply "IHi".
+    iInduction i as [|i] "IHi". by iApply "H". iExact "IHi".
   Qed.
 
-  Lemma interp_v_closed T w ρ: ⟦ T ⟧ ρ w ⊢ ⌜ nclosed_vl w 0 ⌝.
+  Lemma interp_v_closed T w ρ: interp T ρ w -∗ ⌜ nclosed_vl w 0 ⌝.
   Proof.
-    iInduction T as [] "IHT" forall (ρ w); iIntros "#HT //="; unfold_interp;
-      by [iDestruct "HT" as "[% _]"|iDestruct "HT" as (n) "->"|].
+    move: ρ w; induction T => ρ w /=; unfold_interp;
+      try by [iPureIntro | iIntros "[$ _]"].
+    - iPureIntro. by move => [n ->].
   Qed.
 
   Lemma interp_env_len_agree ρ:
-    ⟦ Γ ⟧* ρ ⊢ ⌜ length ρ = length Γ ⌝.
+    ⟦ Γ ⟧* ρ -∗ ⌜ length ρ = length Γ ⌝.
   Proof.
-    iInduction Γ as [|τ Γ'] "IHΓ" forall (ρ); destruct ρ => //=.
-    iIntros "#[HG Hv]".
-    by iDestruct ("IHΓ" $! ρ with "HG") as "->".
+    elim: Γ ρ => [|τ Γ' IHΓ] [|v ρ] //=; try by iPureIntro.
+    rewrite IHΓ. by iIntros "[-> _] !%".
   Qed.
 
-  Lemma interp_env_ρ_closed ρ: ⟦ Γ ⟧* ρ ⊢ ⌜ cl_ρ ρ ⌝.
+  Lemma interp_env_ρ_closed ρ: ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ⌝.
   Proof.
-    iInduction Γ as [|τ Γ'] "IHΓ" forall (ρ); destruct ρ => //=.
-    iIntros "[#HG #HT]".
-    iDestruct (interp_v_closed with "HT") as %?.
-    iDestruct ("IHΓ" with "HG") as %?.
-    iPureIntro; by constructor.
+    elim: Γ ρ => [|τ Γ' IHΓ] [|v ρ] //=; try by iPureIntro.
+    rewrite interp_v_closed IHΓ; iPureIntro => -[].
+    by constructor.
   Qed.
 
   Lemma Sub_Refl T i : Γ ⊨ [T, i] <: [T, i].
