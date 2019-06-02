@@ -18,94 +18,6 @@ Section Sec.
     iIntros (v Hclv) "/= H". iApply ("Himpl" with "H [%]"). by apply fv_tv_inv.
   Qed.
 
-  Lemma Sub_TAll_Variant T1 T2 U1 U2 i:
-    ▷^(S i) (Γ ⊨ [T2, 0] <: [T1, 0]) -∗
-    ▷^(S i) (T2.|[ren (+1)] :: Γ ⊨ [U1, 0] <: [U2, 0]) -∗
-    ▷^i (Γ ⊨ [TAll T1 U1, 0] <: [TAll T2 U2, 0]).
-  Proof.
-    iIntros "#HsubT #HsubU /= !>!>" (ρ v Hcl) "#Hg [$ #HT1]".
-    iDestruct "HT1" as (t) "#[Heq #HT1]"; iExists t; iSplit => //.
-    iIntros (w) "!>!> #HwT2". iApply wp_wand.
-    - iApply "HT1". iApply "HsubT" => //. by iApply interp_v_closed.
-    - iIntros (u) "#HuU1".
-      iApply ("HsubU" $! (w :: ρ) u with "[#] [#] [//]").
-      by iApply interp_v_closed.
-      iFrame "Hg". by iApply interp_weaken_one.
-  Qed.
-
-  Lemma TAnd_I v T1 T2:
-    Γ ⊨ tv v : T1 -∗
-    Γ ⊨ tv v : T2 -∗
-    Γ ⊨ tv v : TAnd T1 T2.
-  Proof.
-    iIntros "#[$ #HT1] #[_ #HT2] /= !>" (ρ) "#Hg".
-    iApply (wp_and_val with "(HT1 Hg) (HT2 Hg)").
-  Qed.
-
-  (* Is it true that for covariant F, F[A ∧ B] = F[A] ∧ F[B]?
-    Dotty assumes that, tho DOT didn't capture it.
-    F[A ∧ B] <: F[A] ∧ F[B] is provable by covariance.
-    Let's prove F[A] ∧ F[B] <: F[A ∧ B] in the model.
-    *)
-  Lemma Sub_TAll_Cov_Distr T U1 U2 i:
-    Γ ⊨ [TAnd (TAll T U1) (TAll T U2), i] <: [TAll T (TAnd U1 U2), i].
-  Proof.
-    iIntros "/= !>" (ρ v Hcl) "#Hg [[$ #H1] #[_ H2]]". iNext.
-    iDestruct "H1" as (t Heq) "#H1"; iDestruct "H2" as (t' ->) "#H2"; cinject Heq.
-    iExists _; iSplit => //.
-    iIntros "!>!>" (w) "#HT".
-    iApply wp_and. by iApply "H1". by iApply "H2".
-  Qed.
-
-  Lemma Sub_TVMem_Cov_Distr l T1 T2 i:
-    Γ ⊨ [TAnd (TVMem l T1) (TVMem l T2), i] <: [TVMem l (TAnd T1 T2), i].
-  Proof.
-    iIntros "/= !>" (ρ v Hcl) "#Hg [[$ #H1] #[_ H2]]". iNext.
-    iDestruct "H1" as (d?? vmem?) "#H1"; iDestruct "H2" as (d'?? vmem'?) "#H2". objLookupDet; subst; injectHyps.
-    repeat (iExists _; repeat iSplit => //).
-  Qed.
-
-  Lemma Sub_TVMem_Cov_Distr_2 l T1 T2 i:
-    Γ ⊨ [TVMem l (TAnd T1 T2), i] <: [TAnd (TVMem l T1) (TVMem l T2), i].
-  Proof.
-    iIntros "/= !>" (ρ v Hcl) "#Hg [$ #H]". iNext.
-    iDestruct "H" as (d?? vmem?) "#[H1 H2]".
-    iSplit; repeat (iExists _; repeat iSplit => //).
-  Qed.
-
-  (* This should also follows internally from covariance, once that's proven. *)
-  Lemma Sub_TVMem_Cov_Distr_Or_1 l T1 T2 i:
-    Γ ⊨ [TOr (TVMem l T1) (TVMem l T2), i] <: [TVMem l (TOr T1 T2), i].
-  Proof.
-    iIntros "/= !>" (ρ v Hcl) "#Hg [[$ #H]| [$ #H]]"; iNext;
-    iDestruct "H" as (d?? vmem?) "#H";
-    repeat (iExists _; repeat iSplit => //); by [iLeft | iRight].
-  Qed.
-
-  Lemma Sub_TVMem_Cov_Distr_Or_2 l T1 T2 i:
-    Γ ⊨ [TVMem l (TOr T1 T2), i] <: [TOr (TVMem l T1) (TVMem l T2), i].
-  Proof.
-    iIntros "/= !>" (ρ v Hcl) "#Hg [$ #H]". iNext.
-    iDestruct "H" as (d?? vmem?) "#[H | H]"; [> iLeft | iRight];
-      repeat (iExists _; repeat iSplit => //).
-  Qed.
-
-  Lemma Sub_TTMem_Cov_Distr l L U1 U2 i:
-    Γ ⊨ [TAnd (TTMem l L U1) (TTMem l L U2), i] <: [TTMem l L (TAnd U1 U2), i].
-  Proof.
-    iIntros "/= !>" (ρ v Hcl) "Hg [[$ H1] [_ H2]]". iNext.
-    iDestruct "H1" as (d?? φ) "#[Hsφ1 [#HLφ1 #HφU1]]"; iDestruct "H2" as (d'?? φ') "#[Hsφ2 [_ #HφU2]]".
-    objLookupDet; subst; injectHyps.
-    iExists d; repeat iSplit => //.
-    iExists φ; repeat iSplit => //.
-    iModIntro; iSplitL; iIntros (w Hclw) "Hw".
-    - by iApply "HLφ1".
-    - iDestruct (stored_pred_agree d _ _ w with "Hsφ1 Hsφ2") as "#Hag".
-      iClear "Hsφ1 Hsφ2 HLφ1".
-      iSplit; [iApply "HφU1" | iApply "HφU2"] => //.
-      iNext. by iRewrite -"Hag".
-  Qed.
-
   Lemma T_Sub e T1 T2 i:
     (Γ ⊨ e : T1 →
     Γ ⊨ [T1, 0] <: [T2, i] →
@@ -135,16 +47,6 @@ Section Sec.
     rewrite -wp_value' interp_env_lookup; by [].
   Qed.
 
-  Lemma T_Skip e T i:
-    Γ ⊨ e : T, S i -∗
-    Γ ⊨ tskip e : T, i.
-  Proof.
-    iIntros "[% #HT]". iSplit; auto using fv_tskip. iIntros " !> * #HG".
-    iSpecialize ("HT" with "[#//]").
-    smart_wp_bind SkipCtx v "#Hr" "HT".
-    by rewrite -wp_pure_step_later // -wp_value.
-  Qed.
-
   (*
      x ∉ fv T
      ----------------------------------------------- (<:)
@@ -170,6 +72,8 @@ Section Sec.
       rewrite ?iterate_TLater_later //; by iSplit.
   Qed.
 
+  (* Novel subtyping rules. Sub_Mu_1 and Sub_Mu_2 become (sort-of?)
+  derivable. *)
   Lemma Sub_Mu_A T i: (Γ ⊨ [TMu T.|[ren (+1)], i] <: [T, i])%I.
   Proof. iIntros "!> *" (Hcl) "**". by rewrite (interp_TMu_ren T ρ v). Qed.
 
@@ -181,50 +85,21 @@ Section Sec.
      ----------------------------------------------- (<:-Mu-1)
      Γ ⊨ μ (x: T₁ˣ) <: T₂
   *)
-
+  (* Sort-of-show this rule is derivable from Sub_Mu_X and Sub_Mu_A. *)
   Lemma Sub_Mu_1 T1 T2 i j:
     (iterate TLater i T1 :: Γ ⊨ [T1, i] <: [T2.|[ren (+1)], j] →
      Γ ⊨ [TMu T1, i] <: [T2, j])%I.
-  Proof. iIntros "#Hstp !> * % #Hg #HT1". rewrite -(interp_TMu_ren T2 ρ v). by iApply Sub_Mu_X. Qed.
-
+  Proof. iIntros "Hstp"; iApply (Sub_Trans with "[-] []"). by iApply Sub_Mu_X. iApply Sub_Mu_A. Qed.
   (*
      Γ, z: T₁ᶻ ⊨ T₁ <: T₂ᶻ
      ----------------------------------------------- (<:-Bind-2)
      Γ ⊨ T₁ <: μ(x: T₂ˣ)
   *)
+
   Lemma Sub_Mu_2 T1 T2 i j:
     (iterate TLater i T1.|[ren (+1)] :: Γ ⊨ [T1.|[ren (+1)], i] <: [T2, j] →
     Γ ⊨ [T1, i] <: [TMu T2, j])%I.
-  Proof. iIntros "#Hstp !> * % #Hg #HT1". rewrite -(interp_TMu_ren T1 ρ v). by iApply Sub_Mu_X. Qed.
-
-  (* Sort-of-show this rule is derivable from Sub_Mu_X and Sub_Mu_A. *)
-  Lemma Sub_Mu_1' T1 T2 i j:
-    (iterate TLater i T1 :: Γ ⊨ [T1, i] <: [T2.|[ren (+1)], j] →
-     Γ ⊨ [TMu T1, i] <: [T2, j])%I.
-  Proof. iIntros "Hstp"; iApply (Sub_Trans with "[-] []"). by iApply Sub_Mu_X. iApply Sub_Mu_A. Qed.
-
-  Lemma Sub_Mu_2' T1 T2 i j:
-    (iterate TLater i T1.|[ren (+1)] :: Γ ⊨ [T1.|[ren (+1)], i] <: [T2, j] →
-    Γ ⊨ [T1, i] <: [TMu T2, j])%I.
   Proof. iIntros "Hstp"; iApply (Sub_Trans with "[] [-]"). iApply Sub_Mu_B. by iApply Sub_Mu_X. Qed.
-
-  (*
-     Γ ⊨ z: Tᶻ
-     =============================================== (T-Rec-I/T-Rec-E)
-     Γ ⊨ z: mu(x: Tˣ)
-   *)
-  Lemma ivstp_rec_eq T v: (ivtp Γ (TMu T) v ∗-∗ ivtp Γ T.|[v/] v)%I.
-  Proof.
-    iSplit; iIntros "/= #[% #Htp]"; iSplit => //; iIntros " !> * #Hg";
-    iDestruct (interp_subst_closed Γ T v (v.[to_subst ρ]) with "Hg") as "H" => //;
-    [ iRewrite "H" | iRewrite -"H" ]; by iApply "Htp".
-  Qed.
-
-  Lemma ivstp_rec_i T v: ivtp Γ T.|[v/] v -∗ ivtp Γ (TMu T) v.
-  Proof. by iDestruct ivstp_rec_eq as "[? ?]". Qed.
-
-  Lemma ivstp_rec_e T v: ivtp Γ (TMu T) v -∗ ivtp Γ T.|[v/] v.
-  Proof. by iDestruct ivstp_rec_eq as "[? ?]". Qed.
 
   (*
      Γ ⊨ z: Tᶻ

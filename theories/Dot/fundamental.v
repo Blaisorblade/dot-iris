@@ -91,15 +91,7 @@ Section swap_based_typing_lemmas.
     Γ ⊨ [T1, S i] <: [T2, S i] -∗
     Γ ⊨ [TVMem l T1, i] <: [TVMem l T2, i].
   Proof.
-    iIntros "#IHT /= !>" (ρ v Hcl) "#Hg [$ #HT1]".
-    iDestruct "HT1" as (d) "#[Hdl [Hcld #HT1]]".
-    iExists d; repeat iSplit => //.
-    iDestruct "HT1" as (vmem) "[Heq HvT1]".
-    iExists vmem; repeat iSplit => //.
-    rewrite !swap_later.
-    iApply (strip_pure_laterN_wand (S i) (nclosed_vl vmem 0)).
-    - iIntros. by iApply "IHT".
-    - by iApply interp_v_closed.
+    iApply (Sub_TVMem_Variant' _ _ _ 0).
   Qed.
 End swap_based_typing_lemmas.
 
