@@ -195,7 +195,7 @@ Section logrel_lemmas.
 
   Lemma interp_v_closed T w ρ: interp T ρ w -∗ ⌜ nclosed_vl w 0 ⌝.
   Proof.
-    move: ρ w; induction T => ρ w /=;
+    move: ρ; induction T => ρ /=;
       try by [iPureIntro | iIntros "[$ _]"].
     - iPureIntro. by move => [n ->].
   Qed.
@@ -212,6 +212,15 @@ Section logrel_lemmas.
     elim: Γ ρ => [|τ Γ' IHΓ] [|v ρ] //=; try by iPureIntro.
     rewrite interp_v_closed IHΓ; iPureIntro => -[].
     by constructor.
+  Qed.
+
+  Lemma interp_env_props ρ:
+    ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ∧ length ρ = length Γ ⌝.
+  Proof.
+    iIntros "#HG".
+    iDestruct (interp_env_ρ_closed with "HG") as %?.
+    iDestruct (interp_env_len_agree with "HG") as %?.
+    by iPureIntro.
   Qed.
 
 End logrel_lemmas.

@@ -351,6 +351,15 @@ Section logrel_lemmas.
     by constructor.
   Qed.
 
+  Lemma interp_env_props ρ:
+    ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ∧ length ρ = length Γ ⌝.
+  Proof.
+    iIntros "#HG".
+    iDestruct (interp_env_ρ_closed with "HG") as %?.
+    iDestruct (interp_env_len_agree with "HG") as %?.
+    by iPureIntro.
+  Qed.
+
   Lemma Sub_Refl T i : Γ ⊨ [T, i] <: [T, i].
   Proof. by iIntros "/= !> **". Qed.
 
