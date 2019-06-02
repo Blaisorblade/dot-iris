@@ -29,7 +29,7 @@ Proof.
 Qed.
 
 Section Sec.
-  Context `{HdotG: dotG Σ}.
+  Context `{HdlangG: dlangG Σ}.
 
   Lemma lift_dinterp_dms_vl_commute T ds ρ l:
     nclosed_vl (vobj ds) 0 →

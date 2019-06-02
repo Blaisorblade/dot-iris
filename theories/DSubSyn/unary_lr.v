@@ -156,7 +156,7 @@ Section logrel.
   Program Definition interp: ty -c> envD Σ := fixpoint interp_rec1.
   Notation "⟦ T ⟧" := (interp T).
 
-  Global Instance dsubInterpΣ : dsubInterpG Σ := DsubInterpG _ interp.
+  Global Instance dlang_interp : TyInterp ty Σ := interp.
 
   Lemma fixpoint_interp_eq1 T: interp T ≡ interp_rec1 interp T.
   Proof. apply fixpoint_interp_rec1_eq. Qed.

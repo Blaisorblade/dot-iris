@@ -2,27 +2,17 @@ From D.pure_program_logic Require Import adequacy.
 From iris.proofmode Require Import tactics.
 From D Require Import tactics swap_later_impl.
 From D.Dot Require Import unary_lr typeExtractionSem fundamental typing.
-Require Import Program.
 
-Theorem adequacy Σ `{HdotG: dotPreG Σ} `{SwapProp (iPropSI Σ)} e e' thp σ σ' T:
-  (forall `{dotG Σ} `{SwapProp (iPropSI Σ)}, allGs ∅ ⊢ |==> [] ⊨ e : T) →
+Import dlang_adequacy.
+
+Theorem adequacy Σ `{HdlangG: dlangPreG Σ} `{SwapProp (iPropSI Σ)} e e' thp σ σ' T:
+  (forall `{dlangG Σ} `{SwapProp (iPropSI Σ)}, allGs ∅ ⊢ |==> [] ⊨ e : T) →
   rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
   is_Some (to_val e') ∨ reducible e' σ'.
 Proof.
-  intros Hlog ??. cut (adequate NotStuck e σ (λ _ _, True)); first (intros [_ ?]; eauto).
-  eapply (wp_adequacy Σ) => /=.
-  iMod (gen_iheap_init (hG := dotPreG_interpNames) ∅) as (g) "Hgs".
-  set (DotΣ := DotG Σ _ g).
-  iMod (Hlog DotΣ with "Hgs") as "[_ #Hlog]".
-  iIntros (?) "!>". iExists (λ _ _, True%I); iSplit=> //.
-  iSpecialize ("Hlog" $! []); rewrite to_subst_nil hsubst_id.
-  iApply wp_wand; by [iApply "Hlog" | auto].
-Qed.
-
-Instance CmraSwappable_dot: CmraSwappable (iResUR dotΣ).
-Proof.
-  apply Swappable_iResUR.
-  rewrite /gid; repeat (dependent destruction i; cbn; try apply _).
+  intros Hlog; eapply (adequacy _).
+  iIntros (??) "Hs"; iDestruct (Hlog with "Hs") as ">[_ #H]".
+  by iSpecialize ("H" $! [] with "[#//]"); rewrite hsubst_id.
 Qed.
 
 (* Instead of still assuming semantic typing, here we should assume syntactic
@@ -34,6 +24,6 @@ Corollary type_soundness e e' thp σ σ' T `{stampTable}:
   rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
   is_Some (to_val e') ∨ reducible e' σ'.
 Proof.
-  intros; eapply (adequacy dotΣ) => * //.
+  intros; eapply (adequacy dlangΣ) => // *.
   by iApply fundamental_typed_upd.
 Qed.

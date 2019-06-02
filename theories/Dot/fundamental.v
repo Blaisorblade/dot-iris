@@ -15,7 +15,7 @@ Ltac iDestrConjs :=
                         end).
 
 Section swap_based_typing_lemmas.
-  Context `{!dotG Σ} `{!SwapProp (iPropSI Σ)} {Γ}.
+  Context `{!dlangG Σ} `{!SwapProp (iPropSI Σ)} {Γ}.
   Context `{hasStampTable: stampTable}.
 
   Ltac unfold_interp := idtac.
@@ -108,7 +108,7 @@ Section swap_based_typing_lemmas.
 End swap_based_typing_lemmas.
 
 Section fundamental.
-  Context `{!dotG Σ} `{!SwapProp (iPropSI Σ)}.
+  Context `{!dlangG Σ} `{!SwapProp (iPropSI Σ)}.
   Context `{hasStampTable: stampTable}.
 
   (* XXX these statements point out we need to realign the typing judgemnts. *)

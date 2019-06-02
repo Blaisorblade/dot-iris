@@ -10,7 +10,7 @@ Set Implicit Arguments.
 Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx) (g: stys) (n: nat) (s: stamp).
 
 Section interp_equiv.
-  Context `{!dsubG Σ}.
+  Context `{!dlangG Σ}.
 
   Implicit Types (φ: envD Σ).
 
@@ -68,7 +68,7 @@ Section interp_equiv.
     rewrite -(interp_subst_all _ T1) -?(interp_subst_all _ T2) ?Hrew //; by apply nclosed_σ_to_subst.
   Qed.
 
-  Lemma alloc_sp T: (|==> ∃ γ, γ ⤇ dsub_interp T)%I.
+  Lemma alloc_sp T: (|==> ∃ γ, γ ⤇ ty_interp T)%I.
   Proof. by apply saved_interp_alloc. Qed.
 
   Lemma transferOne_base_inv gs s T:

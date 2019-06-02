@@ -22,7 +22,7 @@ Implicit Types
     [dtysem] and not [dtysyn] for type member definitions.
  *)
 Section logrel.
-  Context `{!dsubG Σ}.
+  Context `{!dlangG Σ}.
 
   (* Use Program without its extended pattern-matching compiler; we only need
      its handling of coercions. *)
@@ -101,7 +101,7 @@ Section logrel.
     | TSel w => interp_sel w
   end % I.
 
-  Global Instance dsubInterpΣ : dsubInterpG Σ := DsubInterpG _ interp.
+  Global Instance dlang_interp : TyInterp ty Σ := interp.
   Notation "⟦ T ⟧" := (interp T).
   Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
 
@@ -174,7 +174,7 @@ Notation "Γ ⊨ T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next leve
 Notation "Γ '⊨' '[' T1 ',' i ']' '<:' '[' T2 ',' j ']'" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
 
 Section logrel_lemmas.
-  Context `{!dsubG Σ}.
+  Context `{!dlangG Σ}.
 
   (* Lemma iterate_TLater_later i T ρ v: *)
   (*   nclosed_vl v 0 → *)

@@ -7,7 +7,7 @@ Implicit Types
 
 (* Lemmas about the logical relation itself. *)
 Section logrel_binding_lemmas.
-  Context `{!dsubG Σ}.
+  Context `{!dlangG Σ}.
 
   Lemma interp_weaken ρ1 ρ2 ρ3 τ :
     ⟦ τ.|[upn (length ρ1) (ren (+ length ρ2))] ⟧ (ρ1 ++ ρ2 ++ ρ3)

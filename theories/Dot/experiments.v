@@ -10,7 +10,7 @@ Implicit Types
          (Γ : ctx) (ρ : vls).
 
 Section Sec.
-  Context `{HdotG: dotG Σ}.
+  Context `{HdlangG: dlangG Σ}.
 
   Lemma TAll_Later_Swap0 Γ T U `{SwapProp (iPropSI Σ)}:
     Γ ⊨ [TAll (TLater T) U, 0] <: [TLater (TAll T U), 0].

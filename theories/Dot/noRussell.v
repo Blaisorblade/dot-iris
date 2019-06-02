@@ -6,7 +6,7 @@ Implicit Types
          (Γ : ctx) (ρ : vls).
 
 Section Russell.
-  Context `{HdotG: dotG Σ}.
+  Context `{HdlangG: dlangG Σ}.
 
   (**
     A version of Russell's paradox, that however does not go through because of

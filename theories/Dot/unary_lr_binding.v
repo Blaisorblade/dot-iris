@@ -7,7 +7,7 @@ Implicit Types
 
 (* Lemmas about the logical relation itself. *)
 Section logrel_binding_lemmas.
-  Context `{HdotG: dotG Σ}.
+  Context `{HdlangG: dlangG Σ}.
 
   Lemma def_interp_v_closed T d ρ: (def_interp T ρ d → ⌜ nclosed d 0 ⌝)%I.
   Proof.

@@ -8,7 +8,7 @@ From D.Dot Require Import rules synLemmas unary_lr_binding step_fv.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 Section Sec.
-  Context `{HdotG: dotG Σ} Γ.
+  Context `{HdlangG: dlangG Σ} Γ.
 
   Lemma wp_wand_cl e Φ Ψ:
     WP e {{ v, Φ v }} -∗ ⌜ nclosed e 0 ⌝ -∗ (∀ v, Φ v -∗ ⌜ nclosed_vl v 0 ⌝ -∗ Ψ v) -∗ WP e {{ v, Ψ v }}.

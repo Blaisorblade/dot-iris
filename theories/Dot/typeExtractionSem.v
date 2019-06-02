@@ -11,7 +11,7 @@ Set Implicit Arguments.
 Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx) (g: stys) (n: nat) (s: stamp).
 
 Section interp_equiv.
-  Context `{!dotG Σ}.
+  Context `{!dlangG Σ}.
 
   Implicit Types (φ: envD Σ).
 
@@ -69,7 +69,7 @@ Section interp_equiv.
     rewrite -(interp_subst_all _ T1) -?(interp_subst_all _ T2) ?Hrew //; by apply nclosed_σ_to_subst.
   Qed.
 
-  Lemma alloc_sp T: (|==> ∃ γ, γ ⤇ dot_interp T)%I.
+  Lemma alloc_sp T: (|==> ∃ γ, γ ⤇ ty_interp T)%I.
   Proof. by apply saved_interp_alloc. Qed.
 
   Lemma transferOne_base_inv gs s T:
@@ -141,7 +141,7 @@ Section interp_equiv.
 End interp_equiv.
 
 Section typing_type_member_defs.
-  Context `{!dotG Σ}.
+  Context `{!dlangG Σ}.
 
   Definition leadsto_envD_equiv (sσ: extractedTy) n (φ : envD Σ) : iProp Σ :=
     let '(s, σ) := sσ in
@@ -150,7 +150,7 @@ Section typing_type_member_defs.
   Notation "sσ ↝[  n  ] φ" := (leadsto_envD_equiv sσ n φ) (at level 20).
 
   Lemma wellMapped_maps s T g: g !! s = Some T →
-      wellMapped g -∗ s ↝ dot_interp T.
+      wellMapped g -∗ s ↝ ty_interp T.
   Proof.
     iIntros (Hl) "/= #Hm".
     by iDestruct ("Hm" $! _ _ Hl) as (φ) "[? <-]".

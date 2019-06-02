@@ -1,5 +1,5 @@
-From iris.program_logic Require Import ectx_lifting.
-From D.DSub Require Import operational.
+From iris.program_logic Require Import language ectx_language.
+From D.DSub Require Import syn.
 
 Implicit Types e : tm.
 
@@ -46,17 +46,6 @@ Section lang_rules.
   Qed.
 
 End lang_rules.
-
-(* Copied from F_mu *)
-Hint Extern 5 (IntoVal _ _) => eapply of_to_val; fast_done : typeclass_instances.
-Hint Extern 10 (IntoVal _ _) =>
-  rewrite /IntoVal; eapply of_to_val; rewrite /= !to_of_val /=; solve [ eauto ] : typeclass_instances.
-
-From iris.proofmode Require Import tactics.
-Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
-  iApply (wp_bind (fill[ctx]));
-  iApply (wp_wand with "[-]"); [iApply Hp; trivial|]; cbn;
-  iIntros (v) Hv.
 
 Lemma tskip_n_to_fill i e: iterate tskip i e = fill (repeat SkipCtx i) e.
 Proof. elim: i e => [|i IHi] e //; by rewrite ?iterate_0 ?iterate_Sr /= -IHi. Qed.
