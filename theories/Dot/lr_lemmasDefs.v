@@ -105,8 +105,7 @@ Section Sec.
     iSplit. by auto using fv_dvl.
     iIntros "!> *". destruct ρ as [|w ρ]; first by iIntros.
     iIntros "[#Hg [% #Hw]]". move: H => Hclw.
-    iDestruct (interp_env_ρ_closed with "Hg") as %Hclp.
-    iDestruct (interp_env_len_agree with "Hg") as %Hlen. rewrite <- Hlen in *.
+    iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]; rewrite <- Hlen in *.
     repeat iSplit => //. { iPureIntro; apply fv_dvl, fv_to_subst_vl => //=; auto. }
     iExists _; iSplit => //.
     iNext. iApply wp_value_inv'; iApply "Hv"; by iSplit.
@@ -126,8 +125,7 @@ Section Sec.
     iIntros "/= #[% #Hds]"; move: H => Hclds.
     iSplit; auto using fv_tv, fv_vobj.
     iIntros " !> * #Hg /="; iApply wp_value.
-    iDestruct (interp_env_ρ_closed with "Hg") as %Hclp.
-    iDestruct (interp_env_len_agree with "Hg") as %Hlen.
+    iDestruct (interp_env_props with "Hg") as %[Hclp Hlen].
     have Hclvds: nclosed_vl (vobj ds).[to_subst ρ] 0.
       by eapply (fv_to_subst_vl (vobj ds)); rewrite // Hlen; apply fv_vobj.
     iLöb as "IH".
@@ -148,11 +146,10 @@ Section Sec.
     iIntros (Hlds Hl) "[% #H1] [% #H2]". move: H H0 => Hcld Hclds.
     have Hclc: nclosed ((l, d) :: ds) (length Γ). by auto.
     iSplit => //; iIntros "!>" (ρ) "#Hg /=".
-    iDestruct (interp_env_ρ_closed with "Hg") as %Hclp.
-    iDestruct (interp_env_len_agree with "Hg") as %Hlen. rewrite <-Hlen in *.
+    iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]; rewrite <- Hlen in *.
     have Hclsc: nclosed ((l, d) :: ds).|[to_subst ρ] 0. by eapply fv_to_subst.
     iSplit.
     - destruct T1; simplify_eq; iApply (def2defs_head with "(H1 Hg)") => //.
-    - iApply (defs_interp_mono with "(H2 Hg)") => //; by [apply dms_hasnt_map_mono|eapply fv_to_subst].
+    - iApply (defs_interp_mono with "(H2 Hg)") => //; by [apply dms_hasnt_map_mono | eapply fv_to_subst].
   Qed.
 End Sec.

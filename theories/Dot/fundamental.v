@@ -18,7 +18,6 @@ Section swap_based_typing_lemmas.
   Context `{!dlangG Σ} `{!SwapProp (iPropSI Σ)} {Γ}.
   Context `{hasStampTable: stampTable}.
 
-  Ltac unfold_interp := idtac.
   Lemma Sub_TAllConCov T1 T2 U1 U2 i:
     Γ ⊨ [ T2, S i ] <: [ T1, S i ] -∗
     iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨ [ U1, S i ] <: [ U2, S i ] -∗
@@ -26,14 +25,13 @@ Section swap_based_typing_lemmas.
   Proof.
     rewrite iterate_S /=.
     iIntros "#HsubT #HsubU /= !>" (ρ v Hcl) "#Hg".
-    unfold_interp.
     iIntros "[$ #HT1]".
     iDestruct "HT1" as (t) "#[Heq #HT1]". iExists t; iSplit => //.
     iIntros (w).
     rewrite -!mlaterN_pers -mlater_impl -mlaterN_impl !swap_later.
     iIntros "!> #HwT2".
     iApply (strip_pure_laterN_impl (S i) (nclosed_vl w 0)); first last.
-      by iApply interp_v_closed.
+      by rewrite interp_v_closed.
     iIntros (Hclw).
     iSpecialize ("HsubT" $! ρ w Hclw with "Hg HwT2").
     iAssert (□ ▷ ▷^i (∀ v0, ⟦ U1 ⟧ (w :: ρ) v0 →
@@ -41,10 +39,10 @@ Section swap_based_typing_lemmas.
       iIntros (v0); rewrite -!mlaterN_impl -mlater_impl.
       iIntros "!> #HUv0".
       iApply (strip_pure_laterN_impl (S i) (nclosed_vl v0 0)); first last.
-        by iApply interp_v_closed.
+        by rewrite (interp_v_closed _ v0).
       iIntros (Hclv0).
       iApply ("HsubU" $! (w :: ρ) v0) => //.
-      unfold_interp; rewrite iterate_TLater_later //.
+      rewrite iterate_TLater_later //.
       iFrame "Hg %". by iApply interp_weaken_one.
     }
     iClear "HsubU". iNext 1; iNext i. iApply wp_wand.
@@ -58,9 +56,7 @@ Section swap_based_typing_lemmas.
     Γ ⊨ [U1, S i] <: [U2, S i] -∗
     Γ ⊨ [TTMem l L1 U1, i] <: [TTMem l L2 U2, i].
   Proof.
-    iIntros "#IHT #IHT1 /= !>" (ρ v Hcl) "#Hg".
-    unfold_interp.
-    iIntros "[$ #HT1]".
+    iIntros "#IHT #IHT1 /= !>" (ρ v Hcl) "#Hg [$ #HT1]".
     iDestruct "HT1" as (d) "[Hl2 [? H]]".
     iDestruct "H" as (φ) "#[Hφl [HLφ #HφU]]".
     setoid_rewrite <- later_laterN.
@@ -88,7 +84,7 @@ Section swap_based_typing_lemmas.
     rewrite !swap_later -laterN_plus.
     iApply (strip_pure_laterN_wand (S (j + i)) (nclosed_vl vmem 0)).
     - iIntros. by iApply "IHT".
-    - rewrite laterN_plus -!swap_later. by iApply interp_v_closed.
+    - rewrite laterN_plus -!swap_later interp_v_closed. by [].
   Qed.
 
   Lemma Sub_TVMem_Variant T1 T2 i l:
@@ -188,8 +184,7 @@ Section fundamental.
       + iDestruct "IHT" as (Hcltv) "#IHT". iFrame "%".
         move: H => HsubSyn; iIntros "!> * #HG".
         iSpecialize ("IHT" with "HG").
-        iDestruct (interp_env_len_agree with "HG") as %Hlen. rewrite <- Hlen in *.
-        iDestruct (interp_env_ρ_closed with "HG") as %Hclρ.
+        iDestruct (interp_env_props with "HG") as %[Hclp Hlen]; rewrite <- Hlen in *.
         have Hclv: nclosed_vl v (length ρ). by apply fv_tv_inv.
         have Hclvs: nclosed_vl v.[to_subst ρ] 0. by apply fv_to_subst_vl.
         rewrite /interp_expr /= wp_value_inv' -wp_value'.

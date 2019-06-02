@@ -185,8 +185,7 @@ Section typing_type_member_defs.
     have Hclσs: nclosed (dtysem σ s) (length Γ). by apply fv_dtysem.
     iSplit => //.
     iIntros "!>" (ρ) "#Hg".
-    iDestruct (interp_env_len_agree with "Hg") as %Hlen. rewrite <- Hlen in *.
-    iDestruct (interp_env_ρ_closed with "Hg") as %Hclρ.
+    iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]; rewrite <- Hlen in *.
     have Hclσss: nclosed (dtysem σ.|[to_subst ρ] s) 0. by eapply fv_to_subst'.
     iDestruct "Hs" as (φ) "[Hγ Hγφ]".
     iSplit => //; iExists (φ (σ.|[to_subst ρ]));

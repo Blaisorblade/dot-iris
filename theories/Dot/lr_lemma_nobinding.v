@@ -52,7 +52,7 @@ Section Sec.
 
   Lemma Later_Sub T i :
     (Γ ⊨ [TLater T, i] <: [T, S i])%I.
-  Proof. by iIntros "/= !>" (ρ v Hclv) "#HG #[Hcl HT] !>". Qed.
+  Proof. by iIntros "/= !>" (ρ v Hclv) "#HG #[_ HT] !>". Qed.
 
   Lemma Sub_Later T i :
     (Γ ⊨ [T, S i] <: [TLater T, i])%I.
@@ -79,16 +79,14 @@ Section Sec.
     Γ ⊨ [S, i] <: [T2, j] -∗
     Γ ⊨ [S, i] <: [TAnd T1 T2, j].
   Proof.
-    iIntros "/= #H1 #H2 !> * #Hcl #Hg #HS".
-    iSpecialize ("H1" with "Hcl Hg HS").
-    iSpecialize ("H2" with "Hcl Hg HS").
-    iModIntro; by iSplit.
+    iIntros "/= #H1 #H2 !> * % #? ?".
+    by iSplit; [iApply "H1" | iApply "H2"].
   Qed.
 
   Lemma Sub_Or1 T1 T2 i: Γ ⊨ [T1, i] <: [TOr T1 T2, i].
-  Proof. iIntros "/= !> ** !>"; naive_solver. Qed.
+  Proof. by iIntros "/= !> * _ _ ? !>"; eauto. Qed.
   Lemma Sub_Or2 T1 T2 i: Γ ⊨ [T2, i] <: [TOr T1 T2, i].
-  Proof. iIntros "/= !> ** !>"; naive_solver. Qed.
+  Proof. by iIntros "/= !> * _ _ ? !>"; eauto. Qed.
 
   Lemma Or_Sub S T1 T2 i j:
     Γ ⊨ [T1, i] <: [S, j] -∗
@@ -106,6 +104,6 @@ Section Sec.
 
   Lemma T_Nat_I n: Γ ⊨ tv (vnat n): TNat.
   Proof.
-    iSplit => //; iIntros "!> ** /="; iApply wp_value; naive_solver.
+    iSplit => //=; iIntros "!> * _"; rewrite -wp_value; eauto.
   Qed.
 End Sec.

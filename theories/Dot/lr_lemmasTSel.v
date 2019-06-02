@@ -27,12 +27,11 @@ Section Sec.
     Γ ⊨ [TLater L, i] <: [TSel (pv va) l, i].
   Proof.
     iIntros "/= [% #Hva] !>" (ρ v Hclv) "#Hg #[_ HvL]"; move: H =>?; iFrame (Hclv).
-    iDestruct (interp_env_len_agree with "Hg") as %Hlen. rewrite <- Hlen in *.
-    iDestruct (interp_env_ρ_closed with "Hg") as %?.
+    iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]; rewrite <- Hlen in *.
 
-    iDestruct (wp_value_inv' with "(Hva Hg)") as "Hva'"; iClear "Hva".
+    iSpecialize ("Hva" with "Hg"); rewrite wp_value_inv'.
     iNext.
-    iDestruct "Hva'" as (Hclvas' d Hl Hcld φ) "#[Hlφ [#HLφ #HφU]]".
+    iDestruct "Hva" as (Hclvas' d Hl Hcld φ) "#[Hlφ [#HLφ #HφU]]".
 
     iExists φ, d.
     iDestruct ("HLφ" $! _ Hclv with "HvL") as "#HLφ'".
@@ -44,13 +43,11 @@ Section Sec.
     Γ ⊨ [TSel (pv va) l, i] <: [TLater U, i].
   Proof.
     iIntros "/= #[% #Hva] !>" (ρ v Hclv) "#Hg [$ #Hφ]". move: H =>?.
+    iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]; rewrite <- Hlen in *.
 
-    iDestruct (interp_env_len_agree with "Hg") as %Hlen. rewrite <- Hlen in *.
-    iDestruct (interp_env_ρ_closed with "Hg") as %?.
-
-    iPoseProof (wp_value_inv' with "(Hva Hg)") as "Hva'"; iClear "Hva".
+    iSpecialize ("Hva" with "Hg"); rewrite wp_value_inv'.
     iNext.
-    iDestruct "Hva'" as (Hclvas d Hl Hcld φ) "#[Hlφ [#HLφ #HφU]]".
+    iDestruct "Hva" as (Hclvas d Hl Hcld φ) "#[Hlφ [_ #HφU]]".
     iDestruct "Hφ" as (φ1 d1 Hva) "[Hγ #HΦ1v]".
 
     objLookupDet; subst.

@@ -106,14 +106,6 @@ Section Sec.
       iNext. by iRewrite -"Hag".
   Qed.
 
-  Lemma nclosed_subst_ρ e ρ: nclosed e (length Γ) → ⟦ Γ ⟧* ρ -∗ ⌜ nclosed e.|[to_subst ρ] 0 ⌝.
-  Proof.
-    iIntros (Hcl) "HG".
-    iDestruct (interp_env_ρ_closed with "HG") as %Hclp.
-    iDestruct (interp_env_len_agree with "HG") as %Hlen. rewrite <- Hlen in *.
-    iPureIntro. exact: fv_to_subst.
-  Qed.
-
   Lemma T_Sub e T1 T2 i:
     (Γ ⊨ e : T1 →
     Γ ⊨ [T1, 0] <: [T2, i] →
@@ -126,17 +118,18 @@ Section Sec.
     rewrite tskip_subst tskip_n_to_fill. iApply wp_bind.
     iApply (wp_wand_cl _ (⟦ T1 ⟧ ρ)) => //.
     - iApply ("HeT1" with "[//]").
-    - by rewrite nclosed_subst_ρ.
-    - iIntros (v) "#HvT1"; iIntros (Hclv). rewrite -tskip_n_to_fill.
+    - iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]; rewrite <- Hlen in *.
+      iPureIntro. exact: fv_to_subst.
+    - iIntros (v) "#HvT1 %".
       (* We can swap ▷^i with WP (tv v)! *)
-      rewrite -wp_pure_step_later // -wp_value.
+      rewrite -tskip_n_to_fill -wp_pure_step_later // -wp_value.
       by iApply "Hsub".
   Qed.
 
   Lemma T_Var x T:
     Γ !! x = Some T →
     (*──────────────────────*)
-    Γ ⊨ tv (var_vl x) : T.|[ren (+x)].
+    Γ ⊨ tv (ids x) : T.|[ren (+x)].
   Proof.
     iIntros (Hx) "/=". iSplit; eauto using lookup_fv. iIntros "!> * #Hg".
     rewrite -wp_value' interp_env_lookup; by [].
@@ -241,7 +234,7 @@ Section Sec.
   Lemma TMu_equiv T v: (Γ ⊨ tv v : TMu T) ≡ (Γ ⊨ tv v : T.|[v/]).
   Proof.
     Import uPred.
-    iSplit; iIntros "/= #[% #Htp]"; iSplit => //; iIntros " !> * #Hg"; rewrite -wp_value;
+    iSplit; iIntros "/= #[% #Htp]"; iFrame "%"; iIntros "!> * #Hg"; rewrite -wp_value;
       (iDestruct (interp_subst_closed Γ T v (v.[to_subst ρ]) with "[#//]") as "Heq"; first (by apply fv_tv_inv));
         iApply (internal_eq_iff with "Heq"); iApply (wp_value_inv with "(Htp [#//])").
       (* Fail iRewrite "Heq". *) (* WTF *)
@@ -260,13 +253,11 @@ Section Sec.
      Γ ⊨ tapp e1 e2 : T2)%I.
   Proof.
     iIntros "/= #[% He1] #[% Hv2]". iSplit; eauto using fv_tapp. iIntros " !> * #HG".
-    smart_wp_bind (AppLCtx (e2.|[to_subst ρ])) v "#Hr" ("He1" with "[#//]").
-    smart_wp_bind (AppRCtx v) w "#Hw" ("Hv2" with "[#//]").
+    smart_wp_bind (AppLCtx (e2.|[to_subst ρ])) v "#Hr" "He1".
+    smart_wp_bind (AppRCtx v) w "#Hw" "Hv2".
     iDestruct "Hr" as (Hclv t ->) "#Hv".
-    rewrite -wp_pure_step_later; last done. iNext.
-    iApply wp_mono; last iApply ("Hv" with "[//]").
-    iIntros (v).
-    by rewrite (interp_weaken_one w T2 ρ v).
+    rewrite -wp_pure_step_later // -wp_mono /=; first by iApply "Hv".
+    iIntros (v); by rewrite (interp_weaken_one w T2 ρ v).
   Qed.
 
   Lemma T_Forall_Ex e1 v2 T1 T2:
@@ -283,8 +274,8 @@ Section Sec.
     rewrite -wp_pure_step_later; last done. iNext.
     iApply wp_wand.
     - iApply "HvFun". rewrite -wp_value_inv'. by iApply "Hv2Arg".
-    - iIntros (v0).
-      iRewrite (interp_subst_closed Γ T2 v2 v0 with "HG"); auto.
+    - iIntros (v).
+      iRewrite (interp_subst_closed Γ T2 v2 v with "HG"); auto.
   Qed.
 
   (** Restricting this to index 0 appears necessary: it seems we can't swap [▷^i
@@ -302,8 +293,7 @@ Section Sec.
     rewrite -wp_value'.
     iSplit.
     {
-      iDestruct (interp_env_ρ_closed with "HG") as %Hclp.
-      iDestruct (interp_env_len_agree with "HG") as %Hlen. rewrite <- Hlen in *.
+      iDestruct (interp_env_props with "HG") as %[Hclp Hlen]; rewrite <- Hlen in *.
       iPureIntro.
       apply (fv_to_subst_vl (vabs _)); eauto using fv_vabs.
     }
