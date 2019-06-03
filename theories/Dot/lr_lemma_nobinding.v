@@ -8,6 +8,81 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 Section Sec.
   Context `{HdlangG: dlangG Σ} Γ.
 
+  (* Is it true that for covariant F, F[A ∧ B] = F[A] ∧ F[B]?
+    Dotty assumes that, tho DOT didn't capture it.
+    F[A ∧ B] <: F[A] ∧ F[B] is provable by covariance.
+    Let's prove F[A] ∧ F[B] <: F[A ∧ B] in the model.
+    *)
+  Lemma Sub_TAll_Cov_Distr T U1 U2 i:
+    Γ ⊨ [TAnd (TAll T U1) (TAll T U2), i] <: [TAll T (TAnd U1 U2), i].
+  Proof.
+    iIntros "/= !>" (ρ v Hcl) "#Hg [[$ #H1] #[_ H2]]". iNext.
+    iDestruct "H1" as (t Heq) "#H1"; iDestruct "H2" as (t' ->) "#H2"; cinject Heq.
+    iExists _; iSplit => //.
+    iIntros "!>!>" (w) "#HT".
+    (* Oh. Dreaded conjunction rule. Tho could we use a version
+    for separating conjunction? *)
+    iApply wp_and. by iApply "H1". by iApply "H2".
+  Qed.
+
+  Lemma Sub_TVMem_Cov_Distr l T1 T2 i:
+    Γ ⊨ [TAnd (TVMem l T1) (TVMem l T2), i] <: [TVMem l (TAnd T1 T2), i].
+  Proof.
+    iIntros "/= !>" (ρ v Hcl) "#Hg [[$ #H1] #[_ H2]]". iNext.
+    iDestruct "H1" as (d?? vmem?) "#H1"; iDestruct "H2" as (d'?? vmem'?) "#H2". objLookupDet; subst; injectHyps.
+    repeat (iExists _; repeat iSplit => //).
+  Qed.
+
+  Lemma Sub_TVMem_Cov_Distr_2 l T1 T2 i:
+    Γ ⊨ [TVMem l (TAnd T1 T2), i] <: [TAnd (TVMem l T1) (TVMem l T2), i].
+  Proof.
+    iIntros "/= !>" (ρ v Hcl) "#Hg [$ #H]". iNext.
+    iDestruct "H" as (d?? vmem?) "#[H1 H2]".
+    iSplit; repeat (iExists _; repeat iSplit => //).
+  Qed.
+
+  (* This should also follows internally from covariance, once that's proven. *)
+  Lemma Sub_TVMem_Cov_Distr_Or_1 l T1 T2 i:
+    Γ ⊨ [TOr (TVMem l T1) (TVMem l T2), i] <: [TVMem l (TOr T1 T2), i].
+  Proof.
+    iIntros "/= !>" (ρ v Hcl) "#Hg [[$ #H]| [$ #H]]"; iNext;
+    iDestruct "H" as (d?? vmem?) "#H";
+    repeat (iExists _; repeat iSplit => //); by [iLeft | iRight].
+  Qed.
+
+  Lemma Sub_TVMem_Cov_Distr_Or_2 l T1 T2 i:
+    Γ ⊨ [TVMem l (TOr T1 T2), i] <: [TOr (TVMem l T1) (TVMem l T2), i].
+  Proof.
+    iIntros "/= !>" (ρ v Hcl) "#Hg [$ #H]". iNext.
+    iDestruct "H" as (d?? vmem?) "#[H | H]"; [> iLeft | iRight];
+      repeat (iExists _; repeat iSplit => //).
+  Qed.
+
+  Lemma Sub_TTMem_Cov_Distr l L U1 U2 i:
+    Γ ⊨ [TAnd (TTMem l L U1) (TTMem l L U2), i] <: [TTMem l L (TAnd U1 U2), i].
+  Proof.
+    iIntros "/= !>" (ρ v Hcl) "Hg [[$ H1] [_ H2]]". iNext.
+    iDestruct "H1" as (d?? φ) "#[Hsφ1 [#HLφ1 #HφU1]]"; iDestruct "H2" as (d'?? φ') "#[Hsφ2 [_ #HφU2]]".
+    objLookupDet; subst; injectHyps.
+    iExists d; repeat iSplit => //.
+    iExists φ; repeat iSplit => //.
+    iModIntro; iSplitL; iIntros (w Hclw) "Hw".
+    - by iApply "HLφ1".
+    - iDestruct (stored_pred_agree d _ _ w with "Hsφ1 Hsφ2") as "#Hag".
+      iClear "Hsφ1 Hsφ2 HLφ1".
+      iSplit; [iApply "HφU1" | iApply "HφU2"] => //.
+      iNext. by iRewrite -"Hag".
+  Qed.
+
+  Lemma TAnd_I v T1 T2:
+    Γ ⊨ tv v : T1 -∗
+    Γ ⊨ tv v : T2 -∗
+    Γ ⊨ tv v : TAnd T1 T2.
+  Proof.
+    iIntros "#[$ #HT1] #[_ #HT2] /= !>" (ρ) "#Hg".
+    iApply (wp_and_val with "(HT1 Hg) (HT2 Hg)").
+  Qed.
+
   Lemma Sub_Mono T i :
     (Γ ⊨ [T, i] <: [T, S i])%I.
   Proof. by iIntros "!> **". Qed.
@@ -20,34 +95,6 @@ Section Sec.
     iSpecialize ("Hsub" $! _ v Hclv with "Hg").
     rewrite !swap_later.
     by iApply "Hsub".
-  Qed.
-
-  Lemma Sub_TVMem_Covariant T1 T2 i l:
-    ▷^(S i) (Γ ⊨ [T1, 0] <: [T2, 0]) -∗
-    ▷^i (Γ ⊨ [TVMem l T1, 0] <: [TVMem l T2, 0]).
-  Proof.
-    iIntros "#HsubT /= !>!>" (ρ v Hcl) "#Hg [$ #HT1]".
-    iDestruct "HT1" as (d) "#[Hdl [Hcld #HT1]]".
-    iExists d; repeat iSplit => //.
-    iDestruct "HT1" as (vmem) "[Heq HvT1]".
-    iExists vmem; repeat iSplit => //.
-    iApply "HsubT" => //.
-    by iApply interp_v_closed.
-  Qed.
-
-  Lemma Sub_TTMem_Variant L1 L2 U1 U2 i l:
-    ▷^(S i)(Γ ⊨ [L2, 0] <: [L1, 0]) -∗
-    ▷^(S i)(Γ ⊨ [U1, 0] <: [U2, 0]) -∗
-    ▷^i (Γ ⊨ [TTMem l L1 U1, 0] <: [TTMem l L2 U2, 0]).
-  Proof.
-    iIntros "#HsubT #HsubU /= !>!>" (ρ v Hcl) "#Hg [$ #HT1]".
-    iDestruct "HT1" as (d) "#[Hdl [Hcld #HT1]]".
-    iExists d; repeat iSplit => //.
-    iDestruct "HT1" as (φ) "[Heq #[HLφ HφU]]".
-    iExists φ; repeat iSplit => //.
-    iModIntro; iSplitL; iIntros (w Hclw) "#H".
-    - iApply "HLφ" => //. by iApply "HsubT".
-    - iApply "HsubU" => //. by iApply "HφU".
   Qed.
 
   Lemma Later_Sub T i :
