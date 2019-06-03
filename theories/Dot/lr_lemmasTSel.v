@@ -33,9 +33,8 @@ Section Sec.
     iNext.
     iDestruct "Hva" as (Hclvas' d Hl Hcld φ) "#[Hlφ [#HLφ #HφU]]".
 
-    iExists φ, d.
-    iDestruct ("HLφ" $! _ Hclv with "HvL") as "#HLφ'".
-    by repeat iSplit.
+    iSpecialize ("HLφ" $! _ Hclv with "HvL").
+    iExists φ, d; by repeat iSplit.
   Qed.
 
   Lemma Sel_Sub L U va l i:
@@ -51,7 +50,7 @@ Section Sec.
     iDestruct "Hφ" as (φ1 d1 Hva) "[Hγ #HΦ1v]".
 
     objLookupDet; subst.
-    iPoseProof (stored_pred_agree d _ _ v with "Hlφ Hγ") as "#Hag".
+    iDestruct (stored_pred_agree d _ _ v with "Hlφ Hγ") as "#Hag".
     iApply "HφU" => //. repeat iModIntro. by iRewrite "Hag".
   Qed.
 End Sec.
