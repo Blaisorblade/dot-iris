@@ -6,7 +6,7 @@ From D.Dot Require Import unary_lr unary_lr_binding synLemmas rules
   lr_lemma lr_lemma_nobinding.
 
 Implicit Types
-         (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
+         (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
          (Γ : ctx) (ρ : vls).
 
 Section Sec.
@@ -234,7 +234,7 @@ Section Sec.
     iIntros (H); iApply wp_pure_step_later => //; iApply wp_value. by iIntros "!%".
   Qed.
 
-  Fixpoint pth_to_tm (p: path): tm :=
+  Fixpoint pth_to_tm p: tm :=
     match p with
     | pv v => tv v
     | pself p l => tproj (pth_to_tm p) l
