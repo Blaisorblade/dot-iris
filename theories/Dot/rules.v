@@ -35,6 +35,10 @@ Section lang_rules.
     PureExec (dms_lookup l (selfSubst ds) = Some (dvl v)) 1 (tproj (tv (vobj ds)) l) (tv v).
   Proof. solve_pure_exec. Qed.
 
+  Global Instance pure_tproj' l v w :
+    PureExec (v @ l ↘ dvl w) 1 (tproj (tv v) l) (tv w).
+  Proof. move => [ds [->]]. exact: pure_tproj. Qed.
+
   Global Instance pure_tskip v:
     PureExec True 1 (tskip (tv v)) (tv v).
   Proof. solve_pure_exec. Qed.

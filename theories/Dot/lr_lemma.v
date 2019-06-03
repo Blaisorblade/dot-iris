@@ -189,7 +189,7 @@ Section Sec.
   Proof.
     iIntros "#[% #HE] /=". iSplit; auto using fv_tproj. iIntros " !>" (ρ) "#HG".
     smart_wp_bind (ProjCtx l) v "#[% Hv]" "HE". iClear "HE".
-    iDestruct "Hv" as (d (ds & -> & Hlookup) Hcld vmem ->) "Hv".
+    iDestruct "Hv" as (? Hl _ vmem ->) "Hv".
     rewrite -wp_pure_step_later // -wp_value. by [].
   Qed.
 
