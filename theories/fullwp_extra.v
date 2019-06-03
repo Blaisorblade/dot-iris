@@ -12,8 +12,8 @@ Section wp_extra.
                             WP of_val v {{ v, P1 v ∧ P2 v }}.
   Proof.
     iIntros "H1 H2".
-    iMod (wp_value_inv' with "H1") as "H1'".
-    iMod (wp_value_inv' with "H2") as "H2'".
-    iApply wp_value'; by iSplit.
+    iEval (rewrite wp_value_inv') in "H1 H2".
+    iMod "H1"; iMod "H2".
+    rewrite -wp_value'. by iSplit.
   Qed.
 End wp_extra.
