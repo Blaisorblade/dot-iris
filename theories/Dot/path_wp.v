@@ -8,42 +8,6 @@ Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
          (Γ : ctx) (ρ : vls).
 
-(*
-Fixpoint path_fill (ls : list label) p : path :=
-  match ls with
-  | [] => p
-  | l :: ls => pself (path_fill ls p) l
-  end.
-
-Fixpoint path_split p : list label * vl :=
-  match p with
-  | pv v => ([], v)
-  | pself p l => let '(ls, v) := path_split p in (l :: ls, v)
-  end.
-
-Lemma path_inv p : let '(ls, v) := path_split p in
-  path_fill ls (pv v) = p.
-Proof.
-  elim: p => [v // | p IHp l /=].
-  case: (path_split p) IHp => /= ?? -> //.
-Qed. *)
-(* Lemma path_inv_2 ls v : path_split (path_fill ls (pv v)) = (ls, v).
-Proof. elim: ls => [// | l ls /= -> //]. Qed. *)
-
-(* Section lemmas.
-  Context `{HdlangG: dlangG Σ}.
-  Implicit Types (φ : vl → iProp Σ).
-  Definition path_wp_bind_0 p φ :
-    path_wp p φ = path_wp p (λ v, path_wp (pv v) φ) := eq_refl.
-
-  Lemma path_wp_bind ls p φ:
-    path_wp (path_fill ls p) φ = path_wp p (λ w, path_wp (path_fill ls (pv w)) φ).
-  Proof.
-    elim: ls φ => [// | l ls /= IHls ?].
-    exact: IHls.
-  Qed.
-End lemmas. *)
-
 Section path_wp.
   Context `{HdlangG: dlangG Σ}.
   Implicit Types (φ : vl → iProp Σ).
@@ -163,38 +127,4 @@ Section path_wp.
       enough (nclosed (dvl v) n). by eauto with fv.
       eapply nclosed_lookup', Himpl; eauto with fv.
   Qed.
-
-(*
-  Instance v l w: Timeless (⌜ v @ l ↘ w ⌝: iProp Σ)%I := _.
-  Instance Timeless_path_wp p φ {Hφ: ∀ v, Timeless (φ v)}:
-    Timeless (path_wp p φ).
-  Proof.
-    (* move: Hφ. rewrite /Timeless => Hφ. *)
-    elim: p φ Hφ => /= [v //|p IHp l] φ Hφ.
-    (* exact (Hφ v 0). *)
-    apply IHp.
-    rewrite /Timeless.
-    iIntros (v) "H".
-    iDestruct "H" as (vq) "[>% H]".
-    iExists vq. iSplit => //. iApply timeless => //.
-    move: (Hφ vq) => {Hφ} Hφ.
-
-    Import uPred.
-    rewrite /Timeless /sbi_except_0 -later_or.
-    iIntros "H".
-    Check (strip_timeless_laterN_wand 1 (▷(φ vq)) ((False ∨ φ vq)))%I. => /=. auto.
-    auto.
-    iIntros.  iRight. done.
-    move: Hφ.
-     => Hφ.
-    (* rewrite /Timeless in Hφ. *)
-    iNext. iDestruct (Hφ with "H") as "[H | H]"; last by iRight.
-    iLeft.
-    rewrite timeless /sbi_except_0. iDestruct "H" as "[H|H]".
-    iDestruct (timeless_timelessN 2 with "H") as "[H|H]".
-    iLeft. iNext.
-    apply _.
-    iDe
-    iEval (rewrite path_wp_wand). *)
-
 End path_wp.
