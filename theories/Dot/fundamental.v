@@ -1,7 +1,7 @@
 From iris.proofmode Require Import tactics.
 From D Require Import tactics proofmode_extra swap_later_impl.
 From D.Dot Require Import unary_lr unary_lr_binding typing typeExtractionSem synLemmas.
-From D.Dot Require Import lr_lemma lr_lemmasDefs lr_lemma_nobinding lr_lemmasTSel.
+From D.Dot Require Import lr_lemma lr_lemmasDefs lr_lemma_nobinding lr_lemmasTSel path_wp.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 
@@ -108,8 +108,8 @@ Section fundamental.
     wellMapped getStampTable -∗ Γ ⊨ [T1, i1] <: [T2, i2] with
   fundamental_typed Γ e T (HT: Γ ⊢ₜ e : T):
     wellMapped getStampTable -∗ Γ ⊨ e : T with
-  fundamental_path_typed Γ v T i (HT : Γ ⊢ₚ pv v : T, i):
-    wellMapped getStampTable -∗ Γ ⊨ tv v : T, i.
+  fundamental_path_typed Γ p T i (HT : Γ ⊢ₚ p : T, i):
+    wellMapped getStampTable -∗ Γ ⊨p p : T, i.
   Proof.
     - iIntros "#Hm"; iInduction HT as [] "IHT".
       + iApply D_Typ;
@@ -135,12 +135,8 @@ Section fundamental.
       + by iApply Sub_Or1.
       + by iApply Sub_Or2.
       + by iApply Or_Sub.
-      + destruct p.
-        iApply Sel_Sub. by iApply fundamental_path_typed.
-        admit.
-      + destruct p.
-        iApply Sub_Sel. by iApply fundamental_path_typed.
-        admit.
+      + iApply Sel_Sub_Path. by iApply fundamental_path_typed.
+      + iApply Sub_Sel_Path. by iApply fundamental_path_typed.
       + by iApply Sub_Mu_X.
       + iApply Sub_Mu_A.
       + iApply Sub_Mu_B.
@@ -166,22 +162,15 @@ Section fundamental.
         by iApply fundamental_subtype.
       + by iApply TAnd_I.
     - iIntros "#Hm".
-      (* Dependent iInduction. *)
-      remember (pv v) as p eqn:Heqp; iInduction HT as [] "IHT"; simplify_eq;
+      iInduction HT as [] "IHT";
         try iSpecialize ("IHT" with "[#//]").
-      + iApply semantic_typing_uniform_step_index.
-        by iApply fundamental_typed.
-      + iDestruct "IHT" as "[$ #HT]". iIntros "!>" (ρ) "#Hg".
-        iApply (wp_wand with "(HT [//])"). by iIntros (w) "[_ $]".
-      + iDestruct "IHT" as (Hcltv) "#IHT". iFrame "%".
-        move: H => HsubSyn; iIntros "!> * #HG".
-        iSpecialize ("IHT" with "HG").
-        iDestruct (interp_env_props with "HG") as %[Hclp Hlen]; rewrite <- Hlen in *.
-        have Hclv: nclosed_vl v (length ρ). by apply fv_tv_inv.
-        have Hclvs: nclosed_vl v.[to_subst ρ] 0. by apply fv_to_subst_vl.
-        rewrite /interp_expr /= wp_value_inv' -wp_value'.
-        iApply fundamental_subtype => //.
-  Admitted.
+        + iApply P_Val.
+          by iApply fundamental_typed.
+        + by iApply P_DLater.
+        + by iApply P_Mem_E.
+        + iApply P_Sub => //.
+          by iApply fundamental_subtype.
+  Qed.
 
   Lemma fundamental_typed_upd Γ e T (HT: Γ ⊢ₜ e : T): (allGs ∅ -∗ |==> Γ ⊨ e : T)%I.
   Proof.
