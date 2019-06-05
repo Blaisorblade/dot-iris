@@ -1,6 +1,6 @@
 From iris.proofmode Require Import tactics.
 From D Require Export tactics iris_prelude.
-From D.Dot Require Export operational.
+From D.Dot Require Export operational path_wp.
 
 (** Deduce types from variable names, like on paper, for readability and to help
     type inference for some overloaded operations (e.g. substitution). *)
@@ -116,25 +116,6 @@ Section logrel.
     λ ρ v, interp (v::ρ) v.
   Global Arguments interp_mu /.
 
-  (** A simplified variant of weakest preconditions for path evaluation.
-      The difference is that path evaluation is completely pure, and
-      postconditions must hold now, not after updating resources.
-      vp ("Value from Path") and vq range over results of evaluating paths.
-
-      Path evaluation was initially more complex; now that we got to this
-      version, I wonder whether we can just use the standard Iris WP, but I am
-      not sure if that would work.
-      *)
-  Fixpoint path_wp p φ: iProp Σ :=
-    match p with
-    | pself p l => path_wp p (λ vp, ∃ vq, ⌜ vp @ l ↘ dvl vq ⌝ ∧ ▷ φ vq)
-    | pv vp => φ vp
-    end%I.
-
-  Global Instance path_wp_persistent φ p:
-    (∀ v, Persistent (φ v)) → Persistent (path_wp p φ).
-  Proof. elim: p φ => *; apply _. Qed.
-
   Definition interp_sel p (l: label) : envD Σ :=
     λ ρ v, (⌜ nclosed_vl v 0 ⌝ ∧ path_wp p.|[to_subst ρ]
       (λ vp, ∃ ϕ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ϕ ∧ ▷ □ ϕ v))%I.
@@ -239,16 +220,6 @@ Section logrel.
   Lemma ietp_closed Γ T e: Γ ⊨ e : T -∗ ⌜ nclosed e (length Γ) ⌝.
   Proof. iIntros "[$ _]". Qed.
 
-  Definition step_indexed_ietp Γ T e i: iProp Σ :=
-    (⌜ nclosed e (length Γ) ⌝ ∗
-      □∀ ρ, ⟦Γ⟧* ρ →
-      interp_expr (λ ρ v, ▷^i ⟦T⟧ ρ v) ρ (e.|[to_subst ρ]))%I.
-  Global Arguments step_indexed_ietp /.
-  Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
-
-  Lemma step_indexed_ietp_closed Γ T e i: Γ ⊨ e : T, i -∗ ⌜ nclosed e (length Γ) ⌝.
-  Proof. iIntros "[$ _]". Qed.
-
   (** Subtyping. Defined on values. *)
   Definition ivstp Γ T1 T2: iProp Σ := (□∀ ρ v, ⟦Γ⟧* ρ → ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
   Global Arguments ivstp /.
@@ -276,12 +247,18 @@ Section logrel.
     (□∀ ρ v, ⌜ nclosed_vl v 0 ⌝ → ⟦Γ⟧*ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
   Global Arguments step_indexed_ivstp /.
 
+  Definition iptp Γ T p i: iProp Σ :=
+    (⌜ nclosed p (length Γ) ⌝ ∗
+      □∀ ρ, ⟦Γ⟧* ρ →
+      ▷^i path_wp (p.|[to_subst ρ]) (λ v, ⟦T⟧ ρ v))%I.
+  Global Arguments iptp /.
+
   Global Instance idtp_persistent Γ T d: Persistent (idtp Γ T d) := _.
   Global Instance idstp_persistent Γ T ds: Persistent (idstp Γ T ds) := _.
   Global Instance ietp_persistent Γ T e : Persistent (ietp Γ T e) := _.
-  Global Instance step_indexed_ietp_persistent Γ T e i : Persistent (step_indexed_ietp Γ T e i) := _.
   Global Instance step_indexed_ivstp_persistent Γ T1 T2 i j : Persistent (step_indexed_ivstp Γ T1 T2 i j) := _.
   Global Instance ivstp_persistent Γ T1 T2 : Persistent (ivstp Γ T1 T2) := _.
+  Global Instance iptp_persistent Γ T p i : Persistent (iptp Γ T p i) := _.
 End logrel.
 
 Notation "d ↗ φ" := (idm_proj_semtype d φ) (at level 20).
@@ -295,8 +272,8 @@ Notation "Γ ⊨d d : T" := (idtp Γ T d) (at level 64, d, T at next level).
 Notation "Γ ⊨ds ds : T" := (idstp Γ T ds) (at level 74, ds, T at next level).
 (** Expression typing *)
 Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
-(** Indexed expression typing *)
-Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
+
+Notation "Γ ⊨p p : T , i" := (iptp Γ T p i) (at level 74, p, T at next level).
 
 Notation "Γ ⊨ T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).
 
@@ -319,15 +296,6 @@ Section logrel_lemmas.
   Qed.
 
   Context Γ.
-
-  Lemma semantic_typing_uniform_step_index T e i:
-    Γ ⊨ e : T -∗ Γ ⊨ e : T,i.
-  Proof.
-    iIntros "[$ #H] !>" (ρ) "#HΓ".
-    iInduction i as [|i] "IHi". by iApply "H".
-    iApply wp_wand.
-    iExact "IHi". naive_solver.
-  Qed.
 
   Lemma interp_v_closed T w ρ: interp T ρ w -∗ ⌜ nclosed_vl w 0 ⌝.
   Proof.

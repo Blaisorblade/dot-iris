@@ -1,6 +1,7 @@
 From D Require Import tactics.
-From D.Dot Require Import operational synLemmas.
+From D.Dot Require Import syn synLemmas.
 From iris.program_logic Require Import ectx_language.
+Import field_lookup.
 
 Set Implicit Arguments.
 Implicit Types (T: ty) (v: vl) (t: tm) (d: dm) (ds: dms).
@@ -10,25 +11,6 @@ Section nclosed_prim_step.
     nclosed (tapp (tv (vabs t1)) (tv v2)) n →
     nclosed t1.|[v2/] n.
   Proof. move => Hcl. apply nclosed_subst; eauto with fv. Qed.
-
-  Lemma nclosed_selfSubst ds n:
-    nclosed ds (S n) → nclosed (selfSubst ds) n.
-  Proof. move => Hcl. by apply nclosed_subst, fv_vobj. Qed.
-
-  Lemma fv_head l d ds n: nclosed ((l, d) :: ds) n → nclosed d n.
-  Proof. solve_inv_fv_congruence. Qed.
-  Hint Resolve fv_head: fvl.
-
-  Lemma fv_tail l d ds n: nclosed ((l, d) :: ds) n → nclosed ds n.
-  Proof. solve_inv_fv_congruence. Qed.
-  Hint Resolve fv_tail: fvl.
-  Hint Resolve fv_dms_cons: fvl.
-
-  Lemma nclosed_lookup ds d n l: nclosed ds n → dms_lookup l ds = Some d → nclosed d n.
-  Proof.
-    elim: ds => [|[l' d'] ds IHds] Hcl //= Heq.
-    case_decide; simplify_eq; eauto with fvl.
-  Qed.
 
   Lemma nclosed_proj ds l v n:
     dms_lookup l (selfSubst ds) = Some (dvl v) →

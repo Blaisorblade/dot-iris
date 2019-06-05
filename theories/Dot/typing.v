@@ -106,12 +106,12 @@ with path_typed Γ : path → ty → nat → Prop :=
     Γ ⊢ₚ p : T, S i
 (* Mnemonic: Path from SELecting a Field *)
 | pself_typed p T i l:
-    Γ ⊢ₚ p : T, i →
+    Γ ⊢ₚ p : TVMem l T, i →
     Γ ⊢ₚ pself p l : T, i
 | p_subs_typed p T1 T2 i j :
-    Γ ⊢ₜ T1, i <: T2, j → Γ ⊢ₚ p : T1, i →
+    Γ ⊢ₜ T1, i <: T2, i + j → Γ ⊢ₚ p : T1, i →
     (*───────────────────────────────*)
-    Γ ⊢ₚ p : T2, j
+    Γ ⊢ₚ p : T2, i + j
 where "Γ ⊢ₚ p : T , i" := (path_typed Γ p T i)
 (* Γ ⊢ₜ T1, i1 <: T2, i2 means that TLater^i1 T1 <: TLater^i2 T2. *)
 with subtype Γ : ty → nat → ty → nat → Prop :=
@@ -170,10 +170,10 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 (* Type selections *)
 | SelU_stp l L U p i:
     Γ ⊢ₚ p : TTMem l L U, i →
-    Γ ⊢ₜ TSel p l, i <: TLater U, i
+    Γ ⊢ₜ TSel p l, i <: iterate TLater (S (plength p)) U, i
 | LSel_stp l L U p i:
     Γ ⊢ₚ p : TTMem l L U, i →
-    Γ ⊢ₜ TLater L, i <: TSel p l, i
+    Γ ⊢ₜ iterate TLater (S (plength p)) L, i <: TSel p l, i
 
 (* TODO: figure out if the drugs I had when I wrote these rules were good or bad. *)
 (* | SelU_stp l L U p i j: *)
@@ -277,7 +277,18 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
   Combined Scheme typing_mut_ind from typed_mut_ind, dms_typed_mut_ind, dm_typed_mut_ind,
     path_typed_mut_ind, subtype_mut_ind.
 
-  Hint Resolve stamped_path_subject is_stamped_ren_ty is_stamped_sub_one is_stamped_sub_one_rev.
+  (* The reverse direction slows proof search and isn't used anyway? *)
+  Lemma is_stamped_ren_ty_1 i T g:
+    nclosed T i →
+    is_stamped_ty i g T ->
+    is_stamped_ty (S i) g (T.|[ren (+1)]).
+  Proof. intros; unmut_lemma (@is_stamped_ren_ty i T g). Qed.
+
+  Local Hint Resolve stamped_path_subject
+    is_stamped_ren_ty_1
+    is_stamped_sub_one is_stamped_sub_one_rev
+    nclosed_sub_inv_ty_one
+    is_stamped_nclosed_ty.
 
   Inductive stamped_ctx g: ctx → Prop :=
   | stamped_nil : stamped_ctx g []
@@ -285,6 +296,7 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
     stamped_ctx g Γ →
     is_stamped_ty (S (length Γ)) g T →
     stamped_ctx g (T :: Γ).
+  Hint Constructors stamped_ctx.
 
   Lemma stamped_nclosed_lookup Γ x T g:
     stamped_ctx g Γ →
@@ -292,11 +304,12 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
     nclosed T.|[ren (+x)] (length Γ).
   Proof.
     elim: Γ T x => // U Γ IHΓ T [Hs [<-]|x Hs Hl] /=; inverse Hs.
-    - asimpl; by eapply is_stamped_nclosed_ty.
+    - asimpl; eauto.
     - have ->: T.|[ren (+S x)] = T.|[ren (+x)].|[ren (+1)]. by asimpl.
       eapply nclosed_sub_app; last by eapply IHΓ.
       eapply nclosed_ren_shift; lia.
   Qed.
+  Local Hint Resolve stamped_nclosed_lookup.
 
   Lemma stamped_lookup Γ x T g:
     stamped_ctx g Γ →
@@ -307,9 +320,16 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
     - simplify_eq. by inverse Hctx.
     - replace (T.|[ren (+S x)]) with (T.|[ren (+x)].|[ren (+1)]); last by asimpl.
       have HstΓ: stamped_ctx g Γ. by inverse Hctx.
-      eapply (@is_stamped_ren_ty (length Γ) (T.|[ren (+x)]) g), IHx; eauto.
-      by eapply stamped_nclosed_lookup.
+      eapply (@is_stamped_ren_ty_1 (length Γ) (T.|[ren (+x)]) g), IHx; eauto.
   Qed.
+
+  Lemma is_stamped_TLater {i n T}:
+    is_stamped_ty n getStampTable T →
+    is_stamped_ty n getStampTable (iterate TLater i T).
+  Proof.
+    elim: i => [|//i IHi]; rewrite ?iterate_0 ?iterate_S //; auto.
+  Qed.
+  Local Hint Resolve is_stamped_TLater.
 
   Lemma stamped_mut_types Γ :
     (∀ e T, Γ ⊢ₜ e : T → ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (length Γ) getStampTable T) ∧
@@ -344,33 +364,18 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
     - apply stamped_exp_subject in t. inverse t.
       specialize (H Hctx). inverse H.
       by eapply is_stamped_sub_one.
-    - constructor; cbn; eauto. apply H.
-      econstructor; eauto.
-      eapply is_stamped_ren_ty in f => //.
-      by eapply is_stamped_nclosed_ty.
-    - constructor =>/=. eapply is_stamped_sub_rev_ty; eauto.
-      eapply nclosed_sub_inv_ty_one. eauto using is_stamped_nclosed_ty.
     - by apply stamped_lookup.
-    - have Hctx': stamped_ctx getStampTable (TLater V :: Γ). by constructor => //; constructor.
-      specialize (H Hctx'); specialize (H0 Hctx'); ev; constructor; auto.
-    - have Hctx': stamped_ctx getStampTable (V :: Γ). by constructor.
-      specialize (H Hctx'); ev; constructor; auto.
-    - have HsT1: is_stamped_ty (S (length Γ)) getStampTable (iterate TLater i T1).
-      + move=> {s} {H}. elim: i => [|i IHi] //=. rewrite iterate_S. by constructor.
-      + have Hctx': stamped_ctx getStampTable (iterate TLater i T1 :: Γ). by constructor.
-        specialize (H Hctx'); ev; constructor; auto.
-    - constructor; eauto. eapply is_stamped_ren_ty in f. by constructor.
-      by eapply is_stamped_nclosed_ty.
-    - constructor; eauto. eapply is_stamped_ren_ty in f. by constructor.
-      by eapply is_stamped_nclosed_ty.
+    - have Hctx': stamped_ctx getStampTable (TLater V :: Γ). by eauto.
+      specialize (H Hctx'); specialize (H0 Hctx'); intuition.
+    - have Hctx': stamped_ctx getStampTable (iterate TLater i T1 :: Γ).
+      by eauto.
+      specialize (H Hctx'); intuition.
+    - constructor; eauto. eapply is_stamped_ren_ty_1 in f; eauto.
+    - constructor; eauto. eapply is_stamped_ren_ty_1 in f; eauto.
     - have Hctx': stamped_ctx getStampTable (iterate TLater (S i) T2.|[ren (+1)] :: Γ).
-      + constructor => //.
-        elim: i {s s0 H0} => [|i IHi].
-        * constructor; eapply is_stamped_ren_ty in f => //.
-          eauto using is_stamped_nclosed_ty.
-        * by rewrite iterate_S; eauto.
-      + specialize (H Hctx); specialize (H0 Hctx').
-        ev; constructor; eauto.
+      by eauto.
+      specialize (H Hctx); specialize (H0 Hctx').
+      intuition.
   Qed.
 End syntyping.
 

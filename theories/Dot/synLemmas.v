@@ -154,3 +154,31 @@ Proof. elim: i => [|i IHi]; by rewrite ?iterate_0 ?iterate_S //= IHi. Qed.
 
 Lemma lookup_fv Γ x T: Γ !! x = Some T → nclosed (tv (ids x)) (length Γ).
 Proof. move =>/lookup_ids_fv /fv_tv //. Qed.
+
+
+Lemma fv_head l d ds n: nclosed ((l, d) :: ds) n → nclosed d n.
+Proof. solve_inv_fv_congruence. Qed.
+
+Lemma fv_tail l d ds n: nclosed ((l, d) :: ds) n → nclosed ds n.
+Proof. solve_inv_fv_congruence. Qed.
+
+Import field_lookup.
+Lemma nclosed_selfSubst ds n:
+  nclosed ds (S n) → nclosed (selfSubst ds) n.
+Proof. move => Hcl. by apply nclosed_subst, fv_vobj. Qed.
+
+Lemma nclosed_lookup ds d n l: nclosed ds n → dms_lookup l ds = Some d → nclosed d n.
+Proof.
+  elim: ds => [|[l' d'] ds IHds] Hcl //= Heq.
+  case_decide; simplify_eq; eauto using fv_head, fv_tail.
+Qed.
+
+Lemma nclosed_lookup' {w l d n}: w @ l ↘ d → nclosed_vl w n → nclosed d n.
+Proof.
+  move => [ds [->]] Hl.
+  eauto using fv_vobj_inv, Forall_to_closed_dms, nclosed_lookup, nclosed_selfSubst.
+Qed.
+
+Lemma plength_subst_inv p s :
+  plength p.|[s] = plength p.
+Proof. by elim: p => [v //| p /= -> //]. Qed.

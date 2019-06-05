@@ -61,6 +61,12 @@ Fixpoint dms_lookup l ds : option dm :=
     end
   end.
 
+Fixpoint plength p : nat :=
+  match p with
+  | pv _ => 0
+  | pself p _ => S (plength p)
+  end.
+
 Definition dms_has ds l d := dms_lookup l ds = Some d.
 Definition dms_hasnt ds l := dms_lookup l ds = None.
 
