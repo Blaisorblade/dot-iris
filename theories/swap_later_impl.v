@@ -215,8 +215,8 @@ Proof.
     case (gmap_cmra_extend_included n ∅ z) => [||z' Hv] //; last (exists z'; move: Hv); by rewrite right_id.
 Qed.
 
-Instance Swappable_iResUR (Σ: gFunctors): (∀ i, CmraSwappable (Σ i (iPreProp Σ))) → CmraSwappable (iResUR Σ) := _.
-Instance Swappable_iResUR_manual (Σ: gFunctors): (∀ i, CmraSwappable (Σ i (iPreProp Σ))) → CmraSwappable (iResUR Σ).
+Instance Swappable_iResUR (Σ: gFunctors): (∀ i, CmraSwappable (Σ i (iPreProp Σ) _)) → CmraSwappable (iResUR Σ) := _.
+Instance Swappable_iResUR_manual (Σ: gFunctors): (∀ i, CmraSwappable (Σ i (iPreProp Σ) _)) → CmraSwappable (iResUR Σ).
 Proof. move=>*. apply Swappable_ofe_funUR=>*. exact: Swappable_gmapUR. Qed.
 
 Instance Swappable_iResUREmpty: CmraSwappable (iResUR #[]).
@@ -227,6 +227,6 @@ Qed.
 From D Require Import saved_interp gen_iheap.
 From iris.base_logic Require Import gen_heap.
 
-Instance CmraSwappable_savedInterp Σ A B: CmraSwappable (savedInterpΣ A B Fin.F1 (iPreProp Σ)) := Swappable_agreeR.
-Instance CmraSwappable_gen_iheap Σ `{Countable A} B: CmraSwappable (gen_iheapΣ A B Fin.F1 (iPreProp Σ)) := Swappable_discrete _.
-Instance CmraSwappable_gen_heap Σ `{Countable A} B: CmraSwappable (gen_heapΣ A B Fin.F1 (iPreProp Σ)) := Swappable_discrete _.
+Instance CmraSwappable_savedInterp Σ A B: CmraSwappable (savedInterpΣ A B Fin.F1 (iPreProp Σ) _) := Swappable_agreeR.
+Instance CmraSwappable_gen_iheap Σ `{Countable A} B: CmraSwappable (gen_iheapΣ A B Fin.F1 (iPreProp Σ) _) := Swappable_discrete _.
+Instance CmraSwappable_gen_heap Σ `{Countable A} B: CmraSwappable (gen_heapΣ A B Fin.F1 (iPreProp Σ) _) := Swappable_discrete _.
