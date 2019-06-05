@@ -369,8 +369,9 @@ Module field_lookup.
   Ltac objLookupDet :=
     lazymatch goal with
     | H1: ?v @ ?l ↘ ?d1, H2: ?v @ ?l ↘ ?d2 |- _=>
-      assert (d2 = d1) as ? by (eapply objLookupDet; eassumption); injectHyps
+      have ?: d2 = d1 by [eapply objLookupDet; eassumption]; simplify_eq
     end.
+
 End field_lookup.
 From iris.program_logic Require ectx_language ectxi_language.
 

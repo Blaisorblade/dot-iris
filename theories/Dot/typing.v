@@ -304,7 +304,7 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
     is_stamped_ty (length Γ) g T.|[ren (+x)].
   Proof.
     elim: x Γ => /= [|x IHx] [|U Γ] /= Hctx Hl; asimpl; try discriminate.
-    - cinject Hl. by inverse Hctx.
+    - simplify_eq. by inverse Hctx.
     - replace (T.|[ren (+S x)]) with (T.|[ren (+x)].|[ren (+1)]); last by asimpl.
       have HstΓ: stamped_ctx g Γ. by inverse Hctx.
       eapply (@is_stamped_ren_ty (length Γ) (T.|[ren (+x)]) g), IHx; eauto.

@@ -17,7 +17,7 @@ Section Sec.
     Γ ⊨ [TAnd (TAll T U1) (TAll T U2), i] <: [TAll T (TAnd U1 U2), i].
   Proof.
     iIntros "/= !>" (ρ v Hcl) "#Hg [[$ #H1] #[_ H2]]". iNext.
-    iDestruct "H1" as (t Heq) "#H1"; iDestruct "H2" as (t' ->) "#H2"; cinject Heq.
+    iDestruct "H1" as (t ?) "#H1"; iDestruct "H2" as (t' ->) "#H2"; simplify_eq.
     iExists _; iSplit => //.
     iIntros "!>!>" (w) "#HT".
     (* Oh. Dreaded conjunction rule. Tho could we use a version
@@ -29,7 +29,7 @@ Section Sec.
     Γ ⊨ [TAnd (TVMem l T1) (TVMem l T2), i] <: [TVMem l (TAnd T1 T2), i].
   Proof.
     iIntros "/= !>" (ρ v Hcl) "#Hg [[$ #H1] #[_ H2]]". iNext.
-    iDestruct "H1" as (d?? vmem?) "#H1"; iDestruct "H2" as (d'?? vmem'?) "#H2". objLookupDet; subst; injectHyps.
+    iDestruct "H1" as (d?? vmem?) "#H1"; iDestruct "H2" as (d'?? vmem'?) "#H2". objLookupDet.
     repeat (iExists _; repeat iSplit => //).
   Qed.
 
@@ -63,7 +63,7 @@ Section Sec.
   Proof.
     iIntros "/= !>" (ρ v Hcl) "Hg [[$ H1] [_ H2]]". iNext.
     iDestruct "H1" as (d?? φ) "#[Hsφ1 [#HLφ1 #HφU1]]"; iDestruct "H2" as (d'?? φ') "#[Hsφ2 [_ #HφU2]]".
-    objLookupDet; subst; injectHyps.
+    objLookupDet.
     iExists d; repeat iSplit => //.
     iExists φ; repeat iSplit => //.
     iModIntro; iSplitL; iIntros (w Hclw) "Hw".

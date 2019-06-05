@@ -47,7 +47,7 @@ Section logrel.
     iIntros "/= #Hd1 #Hd2".
     iDestruct "Hd2" as (s' σ' interp2 H2) "Hs2".
     iDestruct "Hd1" as (s σ interp1 H1) "Hs1".
-    ev; subst; injectHyps. by iApply (leadsto_agree _ interp1 interp2).
+    ev; simplify_eq. by iApply (leadsto_agree _ interp1 interp2).
   Qed.
 
   Definition def_interp_tmem interp1 interp2 : envPred dm :=

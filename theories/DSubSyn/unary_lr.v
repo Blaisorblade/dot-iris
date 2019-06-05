@@ -91,7 +91,7 @@ Section logrel.
      ∀ w, ▷ (φ1 w ≡ φ2 w))%I.
   Proof.
     iIntros "/= #H1 #H2" (w).
-    iDestruct "H1" as (T1 ->) "#Heq1"; iDestruct "H2" as (T ?) "#Heq2"; injectHyps.
+    iDestruct "H1" as (T1 ->) "#Heq1"; iDestruct "H2" as (T ?) "#Heq2"; simplify_eq.
     iNext.
     by iRewrite ("Heq1" $! w); iRewrite ("Heq2" $! w).
   Qed.

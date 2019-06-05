@@ -111,7 +111,7 @@ Hint Extern 5 (_ ~[ _ ] (_, _)) => try_once extraction_mono.
 Lemma extract_spec_growg g n T g' sσ:
   (g', sσ) = extract g n T → g ⊆ g'.
 Proof.
-  intros H; cinject H. apply insert_grow, fresh_stamp_spec.
+  move => [-> _]. apply insert_grow, fresh_stamp_spec.
 Qed.
 Hint Resolve extract_spec_growg.
 
@@ -120,14 +120,14 @@ Lemma lookup_mono g g' s T:
   g ⊆ g' →
   g' !! s = Some T.
 Proof.
-  intros Hlook Hless. pose proof (Hless s) as H.
+  intros Hlook Hless. move: (Hless s) => H.
   rewrite Hlook /= in H; by (case_match; subst).
 Qed.
 Hint Extern 5 (_ !! _ = Some _) => try_once lookup_mono.
 
 Lemma extract_lookup g g' s σ n T:
   (g', (s, σ)) = extract g n T → g' !! s = Some T.
-Proof. intros H; cinject H; by rewrite lookup_insert. Qed.
+Proof. move => [-> -> _]. by rewrite lookup_insert. Qed.
 Hint Resolve extract_lookup.
 
 Lemma extraction_lookup g s σ n T:
@@ -141,7 +141,7 @@ Lemma subst_compose_extract g g' T n m ξ σ s:
   (g', (s, σ)) = extract g n T →
   T.|[to_subst σ.|[to_subst ξ]] = T.|[to_subst σ].|[to_subst ξ].
 Proof.
-  intros HclT Hclξ Hlen Hext; cinject Hext. by eapply subst_compose_idsσ.
+  move => HclT Hclξ Hlen [_ _ ->]. by eapply subst_compose_idsσ.
 Qed.
 
 Lemma extract_subst_commute g g' g'' T ξ n m s1 σ1 s2 σ2:
@@ -157,13 +157,10 @@ Lemma extract_subst_commute g g' g'' T ξ n m s1 σ1 s2 σ2:
     (* T1.|[to_subst σ1].|[to_subst ξ] = T2.|[to_subst σ2]. *)
     T1.|[to_subst σ1.|[to_subst ξ]] = T2.|[to_subst σ2].
 Proof.
-  intros HclT Hclξ Hlen Hext1 Hext2. split; eauto.
+  rewrite /extract => HclT Hclξ Hlen Hext1 Hext2. split; first eauto.
   exists T, T.|[to_subst ξ]; split_and!; eauto.
-  (* - apply (@lookup_mono g' g''); info_eauto. *)
-  (*   cinject Hext1; by rewrite lookup_insert. *)
-  (* - cinject Hext2; by rewrite lookup_insert. *)
   - erewrite subst_compose_extract => //.
-    cinject Hext1; cinject Hext2.
-    rewrite !closed_subst_idsρ => //.
-    apply fv_to_subst; eauto. (* eauto with typeclass_instances. *)
+    simplify_eq.
+    rewrite !closed_subst_idsρ //.
+    exact: fv_to_subst. (* eauto with typeclass_instances. *)
 Qed.

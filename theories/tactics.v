@@ -38,32 +38,6 @@ Ltac better_case_match :=
     destruct x eqn:?
   end.
 
-(* From Chlipala's tactics. *)
-Ltac cinject H := injection H; clear H; intros; subst.
-
-(* Apply automatically injection on hypotheses of form ?c args1 = ?c args2; if c
-   is a constructor this will produce equalities args1_i = args2_i for all i.
-   Since this tactic uses injection, it is more reliable than attempts based on
-   inversion. *)
-Ltac injectHyp :=
-  match goal with
-  | H : ?c _ _ _ _ _ _ = ?c _ _ _ _ _ _ |- _ => cinject H
-  | H : ?c _ _ _ _ _ = ?c _ _ _ _ _ |- _ => cinject H
-  | H : ?c _ _ _ _ = ?c _ _ _ _ |- _ => cinject H
-  | H : ?c _ _ _ = ?c _ _ _ |- _ => cinject H
-  | H : ?c _ _ = ?c _ _ |- _ => cinject H
-  | H : ?c _ = ?c _ |- _ => cinject H
-  | H : ?c = ?c |- _ => clear H
-  end.
-Ltac injectHyps := repeat injectHyp.
-
-Ltac optFuncs_det :=
-  match goal with
-  | H1 : ?t = _, H2 : ?t = _ |- _ =>
-    let H := fresh "H" in
-    rewrite H2 in H1; injectHyps
-  end.
-
 (* To use with repeat fequalSafe in automation.
    Unlike f_equal, won't try to prove a = b = c + d by a = c and b = d --- such
    equalities are omega's job. *)
@@ -104,8 +78,6 @@ Tactic Notation "try_once_tac" constr(T) tactic(tac) :=
 (** Perform [tac], then fail if more than
     one goal is created. *)
 Tactic Notation "nosplit" tactic3(tac) := tac; let n := numgoals in guard n = 1.
-
-Ltac better_case_match_ex := try better_case_match; injectHyps; try discriminate.
 
 (* Example. *)
 (* Definition injectHyps_marker := 0. *)
