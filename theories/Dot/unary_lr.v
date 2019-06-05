@@ -347,8 +347,7 @@ Section logrel_lemmas.
   Lemma interp_env_ρ_closed ρ: ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ⌝.
   Proof.
     elim: Γ ρ => [|τ Γ' IHΓ] [|v ρ] //=; try by iPureIntro.
-    rewrite interp_v_closed IHΓ; iPureIntro => -[].
-    by constructor.
+    rewrite interp_v_closed IHΓ; iPureIntro. intuition.
   Qed.
 
   Lemma interp_env_props ρ:

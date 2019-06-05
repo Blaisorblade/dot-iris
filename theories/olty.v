@@ -1,4 +1,4 @@
-From D Require Import tactics swap_later_impl proofmode_extra.
+From D Require Import tactics proofmode_extra.
 (* From D.pure_program_logic Require Import lifting. *)
 From iris.base_logic Require Import lib.iprop.
 From iris.proofmode Require Import tactics.
