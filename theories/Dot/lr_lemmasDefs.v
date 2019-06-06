@@ -33,11 +33,11 @@ Section Sec.
     nclosed_vl (vobj ds) 0 →
     label_of_ty T = Some l →
     lift_dinterp_dms T ρ (selfSubst ds) -∗
-    lift_dinterp_vl l (def_interp T) ρ (vobj ds).
+    lift_dinterp_vl l (def_interp_base T) ρ (vobj ds).
   Proof.
-    rewrite /lift_dinterp_dms => /= ? ->; iIntros "H".
-    iDestruct "H" as (?l d (?&?&?)) "?"; simplify_eq.
-    iSplit => //. iExists d; iFrame; iPureIntro. by eexists _.
+    rewrite /lift_dinterp_dms /=. iIntros (Hcl ?) "H". iFrame (Hcl).
+    iDestruct "H" as (?l d (?&?)) "[% H]"; simplify_eq.
+    iExists d; iFrame. by iExists ds.
   Qed.
 
   Lemma lift_dsinterp_dms_vl_commute T ds ρ:
@@ -46,19 +46,17 @@ Section Sec.
     interp T ρ (vobj ds).
   Proof.
     iIntros (Hcl) "#H".
-    iDestruct (defs_interp_v_closed with "H") as %Hclds.
     iInduction T as [] "IHT"; cbn;
-    try by [| iDestruct "H" as (???) "?"].
+      try by [|iDestruct "H" as (???) "[_[]]"].
     - iDestruct "H" as "[#H1 #H2]".
       by iSplit; [> iApply "IHT"| iApply "IHT1"].
-    - by iApply (lift_dinterp_dms_vl_commute (TVMem _ _)).
-    - by iApply (lift_dinterp_dms_vl_commute (TTMem _ _ _)).
+    - by rewrite (lift_dinterp_dms_vl_commute (TVMem _ _)).
+    - by rewrite (lift_dinterp_dms_vl_commute (TTMem _ _ _)).
   Qed.
 
-  Lemma def2defs_head T l ρ d ds:
-    label_of_ty T = Some l →
+  Lemma def2defs_head {T l ρ d ds}:
     nclosed ((l, d) :: ds) 0 →
-    def_interp T ρ d -∗
+    def_interp T l ρ d -∗
     lift_dinterp_dms T ρ ((l, d) :: ds).
   Proof. iIntros; iExists l, d. eauto using dms_lookup_head. Qed.
 
@@ -69,7 +67,7 @@ Section Sec.
     lift_dinterp_dms T ρ ds -∗
     lift_dinterp_dms T ρ ((l, d) :: ds).
   Proof.
-    iIntros (???) "#HT"; iDestruct "HT" as (l' d' (?&?&?)) "#H".
+    iIntros (???) "#HT"; iDestruct "HT" as (l' d' (?&?)) "#H".
     iExists _, _; iSplit; eauto 6 using dms_lookup_mono.
   Qed.
 
@@ -94,7 +92,7 @@ Section Sec.
   (** Lemmas about definition typing. *)
   Lemma TVMem_I (V: ty) T v l:
     V :: Γ ⊨ tv v : T -∗
-    Γ |L V ⊨d dvl v : TVMem l T.
+    Γ |L V ⊨d{ l := dvl v } : TVMem l T.
   Proof.
     iIntros "/= #[% #Hv]". move: H => Hclv. apply fv_tv_inv in Hclv.
     iSplit. by auto using fv_dvl.
@@ -119,7 +117,7 @@ Section Sec.
   Proof.
     iIntros "/= #[% #Hds]"; move: H => Hclds.
     iSplit; auto using fv_tv, fv_vobj.
-    iIntros " !> * #Hg /="; iApply wp_value.
+    iIntros " !> * #Hg /=". rewrite -wp_value'.
     iDestruct (interp_env_props with "Hg") as %[Hclp Hlen].
     have Hclvds: nclosed_vl (vobj ds).[to_subst ρ] 0.
       by eapply (fv_to_subst_vl (vobj ds)); rewrite // Hlen; apply fv_vobj.
@@ -134,17 +132,17 @@ Section Sec.
 
   Lemma DCons_I d ds l T1 T2:
     dms_hasnt ds l →
-    label_of_ty T1 = Some l →
-    Γ  ⊨d d : T1 -∗ Γ  ⊨ds ds : T2 -∗
+    Γ  ⊨d{ l := d } : T1 -∗ Γ  ⊨ds ds : T2 -∗
     Γ  ⊨ds (l, d) :: ds : TAnd T1 T2.
   Proof.
-    iIntros (Hlds Hl) "[% #H1] [% #H2]". move: H H0 => Hcld Hclds.
+    iIntros (Hlds) "[% #HT1] [% #HT2]". move: H H0 => Hcld Hclds.
     have Hclc: nclosed ((l, d) :: ds) (length Γ). by auto.
     iSplit => //; iIntros "!>" (ρ) "#Hg /=".
     iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]; rewrite <- Hlen in *.
     have Hclsc: nclosed ((l, d) :: ds).|[to_subst ρ] 0. by eapply fv_to_subst.
+    iSpecialize ("HT1" with "Hg"). iPoseProof "HT1" as (Hl) "_".
     iSplit.
-    - destruct T1; simplify_eq; iApply (def2defs_head with "(H1 Hg)") => //.
-    - iApply (defs_interp_mono with "(H2 Hg)") => //; by [apply dms_hasnt_map_mono | eapply fv_to_subst].
+    - destruct T1; simplify_eq; iApply (def2defs_head Hclsc with "HT1").
+    - iApply (defs_interp_mono with "(HT2 Hg)") => //; by [apply dms_hasnt_map_mono | eapply fv_to_subst].
   Qed.
 End Sec.

@@ -144,7 +144,7 @@ Section logrel.
     Persistent (⟦ T ⟧ ρ v).
   Proof. revert v ρ; induction T => v ρ; simpl; try apply _. Qed.
 
-  Fixpoint def_interp (T: ty) : envPred dm :=
+  Fixpoint def_interp_base (T : ty) : envPred dm :=
     λ ρ d,
     match T with
     | TTMem _ L U => def_interp_tmem (interp L) (interp U) ρ d
@@ -152,16 +152,23 @@ Section logrel.
     | _ => False
     end%I.
 
-  Global Instance def_interp_persistent T ρ d :
-    Persistent (def_interp T ρ d).
-  Proof. revert ρ d; induction T; simpl; try apply _. Qed.
+  Definition def_interp (T : ty) l : envPred dm :=
+    λ ρ d,
+    (⌜ label_of_ty T = Some l ⌝ ∧ def_interp_base T ρ d)%I.
+
+  Global Instance def_interp_base_persistent T ρ d :
+    Persistent (def_interp_base T ρ d).
+  Proof. destruct T; try apply _. Qed.
+
+  Global Instance def_interp_persistent T l ρ d :
+    Persistent (def_interp T l ρ d) := _.
 
   Definition defs_interp_and (interp1 interp2 : envPred dms) : envPred dms :=
     λ ρ ds, (interp1 ρ ds ∧ interp2 ρ ds)%I.
 
   Definition lift_dinterp_dms T : envPred dms := λ ρ ds, (∃ l d,
-    ⌜ label_of_ty T = Some l ∧ dms_lookup l ds = Some d ∧ nclosed ds 0 ⌝
-    ∧ def_interp T ρ d)%I.
+    ⌜ dms_lookup l ds = Some d ∧ nclosed ds 0 ⌝
+    ∧ def_interp T l ρ d)%I.
 
   Fixpoint defs_interp T : envPred dms :=
     match T with
@@ -171,7 +178,7 @@ Section logrel.
     end % I.
 
   Global Instance defs_interp_persistent T ρ ds : Persistent (defs_interp T ρ ds).
-  Proof. revert ds ρ; induction T; cbn; try case_match; try apply _. Qed.
+  Proof. induction T; try apply _. Qed.
 
   Fixpoint interp_env (Γ : ctx) (vs : vls) : iProp Σ :=
     match Γ with
@@ -193,8 +200,8 @@ Section logrel.
 
   (** Definitions for semantic (definition) (sub)typing *)
   (** Since [⟦Γ⟧* ρ] might be impossible, we must require closedness explicitly. *)
-  Definition idtp Γ T d : iProp Σ :=
-    (⌜ nclosed d (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → def_interp T ρ d.|[to_subst ρ])%I.
+  Definition idtp Γ T l d : iProp Σ :=
+    (⌜ nclosed d (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → def_interp T l ρ d.|[to_subst ρ])%I.
   Global Arguments idtp /.
 
   Definition idstp Γ T ds : iProp Σ :=
@@ -233,7 +240,7 @@ Section logrel.
       ▷^i path_wp (p.|[to_subst ρ]) (λ v, ⟦T⟧ ρ v))%I.
   Global Arguments iptp /.
 
-  Global Instance idtp_persistent Γ T d: Persistent (idtp Γ T d) := _.
+  Global Instance idtp_persistent Γ T l d: Persistent (idtp Γ T l d) := _.
   Global Instance idstp_persistent Γ T ds: Persistent (idstp Γ T ds) := _.
   Global Instance ietp_persistent Γ T e : Persistent (ietp Γ T e) := _.
   Global Instance step_indexed_ivstp_persistent Γ T1 T2 i j : Persistent (step_indexed_ivstp Γ T1 T2 i j) := _.
@@ -246,7 +253,7 @@ Notation "⟦ Γ ⟧*" := (interp_env Γ).
 Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
 
 (** Single-definition typing *)
-Notation "Γ ⊨d d : T" := (idtp Γ T d) (at level 64, d, T at next level).
+Notation "Γ ⊨d{ l := d  } : T" := (idtp Γ T l d) (at level 64, d, l, T at next level).
 (** Multi-definition typing *)
 Notation "Γ ⊨ds ds : T" := (idstp Γ T ds) (at level 74, ds, T at next level).
 (** Expression typing *)
@@ -263,7 +270,7 @@ Notation "Γ |L V" := (defCtxCons Γ V) (at level 60).
 Section logrel_lemmas.
   Context `{!dlangG Σ}.
 
-  Lemma idtp_closed Γ T d: Γ ⊨d d : T -∗ ⌜ nclosed d (length Γ) ⌝.
+  Lemma idtp_closed Γ T l d: Γ ⊨d{ l := d } : T -∗ ⌜ nclosed d (length Γ) ⌝.
   Proof. iIntros "[$ _]". Qed.
 
   Lemma idstp_closed Γ T ds: Γ ⊨ds ds : T -∗ ⌜ nclosed ds (length Γ) ⌝.

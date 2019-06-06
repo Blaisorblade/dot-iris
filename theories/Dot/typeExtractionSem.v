@@ -179,7 +179,7 @@ Section typing_type_member_defs.
     Γ ⊨ [T, 1] <: [U, 1] -∗
     Γ ⊨ [L, 1] <: [T, 1] -∗
     (s, σ) ↝[ length Γ ] ⟦ T ⟧ -∗
-    Γ ⊨d dtysem σ s : TTMem l L U.
+    Γ ⊨d{ l := dtysem σ s } : TTMem l L U.
   Proof.
     iIntros "#HTU #HLT #[% Hs] /=". move: H => Hclσ.
     have Hclσs: nclosed (dtysem σ s) (length Γ). by apply fv_dtysem.
@@ -188,7 +188,7 @@ Section typing_type_member_defs.
     iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]; rewrite <- Hlen in *.
     have Hclσss: nclosed (dtysem σ.|[to_subst ρ] s) 0. by eapply fv_to_subst'.
     iDestruct "Hs" as (φ) "[Hγ Hγφ]".
-    iSplit => //; iExists (φ (σ.|[to_subst ρ]));
+    repeat iSplit => //; iExists (φ (σ.|[to_subst ρ]));
       iSplit; first by repeat iExists _; iSplit.
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL";
       iSpecialize ("Hγφ" $! ρ v with "[#//] [#//]").
@@ -201,6 +201,6 @@ Section typing_type_member_defs.
 
   Lemma D_Typ_Concr Γ T s σ l:
     (s, σ) ↝[ length Γ ] ⟦ T ⟧ -∗
-    Γ ⊨d dtysem σ s : TTMem l T T.
+    Γ ⊨d{ l := dtysem σ s } : TTMem l T T.
   Proof. iIntros "#Hs"; iApply D_Typ; by [| iIntros "!> **"]. Qed.
 End typing_type_member_defs.
