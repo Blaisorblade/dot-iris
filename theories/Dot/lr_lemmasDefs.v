@@ -98,9 +98,7 @@ Section Sec.
     iSplit. by auto using fv_dvl.
     iIntros "!> *". destruct ρ as [|w ρ]; first by iIntros.
     iIntros "[#Hg [% #Hw]]". move: H => Hclw.
-    iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]; rewrite <- Hlen in *.
-    repeat iSplit => //. { iPureIntro; apply fv_dvl, fv_to_subst_vl => //=; auto. }
-    iExists _; iSplit => //.
+    iSplit => //; iExists _; iSplit => //.
     iNext. iApply wp_value_inv'; iApply "Hv"; by iSplit.
   Qed.
 

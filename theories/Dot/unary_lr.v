@@ -33,7 +33,7 @@ Section logrel.
   Notation envPred s := (vls -c> s -c> iProp Σ).
 
   Definition def_interp_vmem interp : envPred dm :=
-    λ ρ d, (⌜ nclosed d 0 ⌝ ∗ ∃ vmem, ⌜d = dvl vmem⌝ ∧ ▷ interp ρ vmem)%I.
+    λ ρ d, (∃ vmem, ⌜d = dvl vmem⌝ ∧ ▷ interp ρ vmem)%I.
   Global Arguments def_interp_vmem /.
 
   Definition idm_proj_semtype d φ : iProp Σ :=
@@ -52,7 +52,7 @@ Section logrel.
 
   Definition def_interp_tmem interp1 interp2 : envPred dm :=
     λ ρ d,
-    (⌜ nclosed d 0 ⌝ ∗ ∃ φ, (d ↗ φ) ∗
+    (∃ φ, (d ↗ φ) ∗
        □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ interp1 ρ v → ▷ □ φ v) ∗
           (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ φ v → ▷ interp2 ρ v)))%I.
   Global Arguments def_interp_tmem /.

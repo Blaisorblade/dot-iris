@@ -21,7 +21,7 @@ Section Sec.
       strong_path_wp_wand plength_subst_inv -swap_later.
     iApply "Hp"; iClear "Hp".
     iNext (plength p); iIntros (w) "#Hp";
-      iDestruct "Hp" as (Hclvas d Hl Hcld φ) "#[Hlφ [#HLφ #HφU]]".
+      iDestruct "Hp" as (Hclvas d Hl φ) "#[Hlφ [#HLφ #HφU]]".
     iExists φ, d; repeat iSplit => //.
     by iApply "HLφ".
   Qed.
@@ -41,7 +41,7 @@ Section Sec.
     iDestruct (path_wp_det with "Hw Hw'") as "Heqw"; iClear "Hw Hw'".
     rewrite !plength_subst_inv -swap_later; iNext (plength p).
     iDestruct "Heqw" as %<-.
-    iDestruct "Hp" as (d Hl Hcld φ) "#[Hlφ [_ #HφU]]".
+    iDestruct "Hp" as (d Hl φ) "#[Hlφ [_ #HφU]]".
     iDestruct "Hφ" as (φ1 d1 Hva) "[Hγ #HΦ1v]".
     objLookupDet.
     iDestruct (stored_pred_agree d _ _ v with "Hlφ Hγ") as "#Hag".
@@ -66,7 +66,7 @@ Section Sec.
     iApply (path_wp_wand with "(HE HG)"); iClear "HE".
     iNext.
     iIntros (v) "#[_ Hv]".
-    iDestruct "Hv" as (d Hl _ vmem ->) "Hv".
+    iDestruct "Hv" as (d Hl vmem ->) "Hv".
     iExists vmem. iSplit; eauto.
   Qed.
   (* In the above proof, in contrast with T_Mem_E, lots of the lemmas

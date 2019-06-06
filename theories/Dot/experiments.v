@@ -59,7 +59,7 @@ Section Sec.
     Γ ⊨ [TVMem l (TLater T), i] <: [TLater (TVMem l T), i].
   Proof.
     iIntros "!>" (ρ v Hclv) "_ /= #[_ #HvT]". iFrame (Hclv). iNext i.
-    iDestruct "HvT" as (d Hlook) "#[Hcld HvT]".
+    iDestruct "HvT" as (d Hlook) "#HvT".
     iExists (d); (iSplit; try iSplitL) => //.
     iDestruct "HvT" as (vmem ->) "[_ HvT]".
     iExists (vmem); by iSplit.
