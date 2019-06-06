@@ -201,16 +201,8 @@ Section logrel.
     (⌜ nclosed ds (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → defs_interp T ρ ds.|[to_subst ρ])%I.
   Global Arguments idstp /.
 
-  (* Really needed? Try to stop using it. *)
-  Definition ivtp Γ T v : iProp Σ := (⌜ nclosed_vl v (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ ρ v.[to_subst ρ])%I.
-  Global Arguments ivtp /.
-
   Definition ietp Γ T e : iProp Σ := (⌜ nclosed e (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ₑ ρ (e.|[to_subst ρ]))%I.
   Global Arguments ietp /.
-
-  (** Subtyping. Defined on values. *)
-  Definition ivstp Γ T1 T2: iProp Σ := (□∀ ρ v, ⟦Γ⟧* ρ → ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
-  Global Arguments ivstp /.
 
   (** Indexed Subtyping. Defined on closed values. We must require closedness
       explicitly, since closedness now does not follow from being well-typed later. *)
@@ -245,7 +237,6 @@ Section logrel.
   Global Instance idstp_persistent Γ T ds: Persistent (idstp Γ T ds) := _.
   Global Instance ietp_persistent Γ T e : Persistent (ietp Γ T e) := _.
   Global Instance step_indexed_ivstp_persistent Γ T1 T2 i j : Persistent (step_indexed_ivstp Γ T1 T2 i j) := _.
-  Global Instance ivstp_persistent Γ T1 T2 : Persistent (ivstp Γ T1 T2) := _.
   Global Instance iptp_persistent Γ T p i : Persistent (iptp Γ T p i) := _.
 End logrel.
 
@@ -262,8 +253,6 @@ Notation "Γ ⊨ds ds : T" := (idstp Γ T ds) (at level 74, ds, T at next level)
 Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 
 Notation "Γ ⊨p p : T , i" := (iptp Γ T p i) (at level 74, p, T at next level).
-
-Notation "Γ ⊨ T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).
 
 Notation "Γ ⊨ [ T1 , i ]  <: [ T2 , j ]" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
 
