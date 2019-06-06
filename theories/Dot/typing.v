@@ -15,9 +15,6 @@ Section syntyping.
   Context `{hasStampTable: stampTable}.
 (**
 Judgments for typing, subtyping, path and definition typing.
-Here we follow Nada Amin's judgment for definition typing: it is Γ ⊢ { l = d } : T,
-meaning: this definition, with label l, has type T.
-This works, but requires reformulating again a bit semantic definition typing for proofs.
 *)
 Inductive typed Γ : tm → ty → Prop :=
 (** First, elimination forms *)
@@ -82,6 +79,7 @@ with dms_typed Γ : ty → dms → ty → Prop :=
     Γ |d V ⊢ d : T1 →
     Γ |ds V ⊢ ds : T2 →
     dms_hasnt ds l →
+    (* move to be part of single-definition typing? *)
     label_of_ty T1 = Some l →
     (*──────────────────────*)
     Γ |ds V ⊢ (l, d) :: ds : TAnd T1 T2
