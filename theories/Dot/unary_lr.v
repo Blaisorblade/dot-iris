@@ -196,18 +196,10 @@ Section logrel.
   Definition idtp Γ T d : iProp Σ :=
     (⌜ nclosed d (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → def_interp T ρ d.|[to_subst ρ])%I.
   Global Arguments idtp /.
-  Notation "Γ ⊨d d : T" := (idtp Γ T d) (at level 64, d, T at next level).
-
-  Lemma idtp_closed Γ T d: Γ ⊨d d : T -∗ ⌜ nclosed d (length Γ) ⌝.
-  Proof. iIntros "[$ _]". Qed.
 
   Definition idstp Γ T ds : iProp Σ :=
     (⌜ nclosed ds (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → defs_interp T ρ ds.|[to_subst ρ])%I.
   Global Arguments idstp /.
-  Notation "Γ ⊨ds ds : T" := (idstp Γ T ds) (at level 74, ds, T at next level).
-
-  Lemma idstp_closed Γ T ds: Γ ⊨ds ds : T -∗ ⌜ nclosed ds (length Γ) ⌝.
-  Proof. iIntros "[$ _]". Qed.
 
   (* Really needed? Try to stop using it. *)
   Definition ivtp Γ T v : iProp Σ := (⌜ nclosed_vl v (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ ρ v.[to_subst ρ])%I.
@@ -215,10 +207,6 @@ Section logrel.
 
   Definition ietp Γ T e : iProp Σ := (⌜ nclosed e (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ₑ ρ (e.|[to_subst ρ]))%I.
   Global Arguments ietp /.
-  Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
-
-  Lemma ietp_closed Γ T e: Γ ⊨ e : T -∗ ⌜ nclosed e (length Γ) ⌝.
-  Proof. iIntros "[$ _]". Qed.
 
   (** Subtyping. Defined on values. *)
   Definition ivstp Γ T1 T2: iProp Σ := (□∀ ρ v, ⟦Γ⟧* ρ → ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
@@ -285,6 +273,15 @@ Notation "Γ |L V" := (defCtxCons Γ V) (at level 60).
 
 Section logrel_lemmas.
   Context `{!dlangG Σ}.
+
+  Lemma idtp_closed Γ T d: Γ ⊨d d : T -∗ ⌜ nclosed d (length Γ) ⌝.
+  Proof. iIntros "[$ _]". Qed.
+
+  Lemma idstp_closed Γ T ds: Γ ⊨ds ds : T -∗ ⌜ nclosed ds (length Γ) ⌝.
+  Proof. iIntros "[$ _]". Qed.
+
+  Lemma ietp_closed Γ T e: Γ ⊨ e : T -∗ ⌜ nclosed e (length Γ) ⌝.
+  Proof. iIntros "[$ _]". Qed.
 
   Lemma iterate_TLater_later i T ρ v:
     nclosed_vl v 0 →
