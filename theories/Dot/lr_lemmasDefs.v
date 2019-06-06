@@ -29,6 +29,8 @@ Qed.
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
+  Local Hint Resolve fv_dms_cons fv_tv fv_vobj fv_dvl dms_lookup_head dms_lookup_mono.
+
   Lemma lift_dinterp_dms_vl_commute T ds ρ l:
     nclosed_vl (vobj ds) 0 →
     label_of_ty T = Some l →
@@ -58,9 +60,7 @@ Section Sec.
     nclosed ((l, d) :: ds) 0 →
     def_interp T l ρ d -∗
     lift_dinterp_dms T ρ ((l, d) :: ds).
-  Proof. iIntros; iExists l, d. eauto using dms_lookup_head. Qed.
-
-  Hint Resolve fv_dms_cons.
+  Proof. iIntros; iExists l, d. auto. Qed.
 
   Lemma lift_dinterp_dms_mono T l ρ d ds:
     dms_hasnt ds l → nclosed d 0 → nclosed ds 0 →
@@ -68,7 +68,7 @@ Section Sec.
     lift_dinterp_dms T ρ ((l, d) :: ds).
   Proof.
     iIntros (???) "#HT"; iDestruct "HT" as (l' d' (?&?)) "#H".
-    iExists _, _; iSplit; eauto 6 using dms_lookup_mono.
+    iExists l', d'; iSplit; auto.
   Qed.
 
   Lemma defs_interp_mono T l ρ d ds:
@@ -94,8 +94,8 @@ Section Sec.
     V :: Γ ⊨ tv v : T -∗
     Γ |L V ⊨d{ l := dvl v } : TVMem l T.
   Proof.
-    iIntros "/= #[% #Hv]". move: H => Hclv. apply fv_tv_inv in Hclv.
-    iSplit. by auto using fv_dvl.
+    iIntros "/= #[% #Hv]". move: H => /fv_tv_inv Hclv.
+    iSplit. by auto.
     iIntros "!> *". destruct ρ as [|w ρ]; first by iIntros.
     iIntros "[#Hg [% #Hw]]". move: H => Hclw.
     iSplit => //; iExists _; iSplit => //.
@@ -114,11 +114,10 @@ Section Sec.
      Γ ⊨ tv (vobj ds) : TMu T.
   Proof.
     iIntros "/= #[% #Hds]"; move: H => Hclds.
-    iSplit; auto using fv_tv, fv_vobj.
+    iSplit; auto.
     iIntros " !> * #Hg /=". rewrite -wp_value'.
-    iDestruct (interp_env_props with "Hg") as %[Hclp Hlen].
-    have Hclvds: nclosed_vl (vobj ds).[to_subst ρ] 0.
-      by eapply (fv_to_subst_vl (vobj ds)); rewrite // Hlen; apply fv_vobj.
+    iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]. rewrite <- Hlen in *.
+    have Hclvds: nclosed_vl (vobj ds).[to_subst ρ] 0. by eapply fv_to_subst_vl; auto.
     iLöb as "IH".
     iApply lift_dsinterp_dms_vl_commute;
       rewrite // norm_selfSubst -to_subst_cons.
@@ -137,10 +136,10 @@ Section Sec.
     have Hclc: nclosed ((l, d) :: ds) (length Γ). by auto.
     iSplit => //; iIntros "!>" (ρ) "#Hg /=".
     iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]; rewrite <- Hlen in *.
-    have Hclsc: nclosed ((l, d) :: ds).|[to_subst ρ] 0. by eapply fv_to_subst.
+    eapply fv_to_subst in Hclc => //.
     iSpecialize ("HT1" with "Hg"). iPoseProof "HT1" as (Hl) "_".
     iSplit.
-    - destruct T1; simplify_eq; iApply (def2defs_head Hclsc with "HT1").
+    - destruct T1; simplify_eq; iApply (def2defs_head Hclc with "HT1").
     - iApply (defs_interp_mono with "(HT2 Hg)") => //; by [apply dms_hasnt_map_mono | eapply fv_to_subst].
   Qed.
 End Sec.
