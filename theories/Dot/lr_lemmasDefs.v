@@ -64,10 +64,7 @@ Section Sec.
     lift_dinterp_dms T ρ ((l, d) :: ds).
   Proof. iIntros; iExists l, d. eauto using dms_lookup_head. Qed.
 
-  Lemma fv_pair_cons_dms l d ds n:
-    nclosed ds n → nclosed d n → nclosed ((l, d) :: ds) n.
-  Proof. by apply fv_pair_cons. Qed.
-  Hint Resolve fv_pair_cons_dms.
+  Hint Resolve fv_dms_cons.
 
   Lemma lift_dinterp_dms_mono T l ρ d ds:
     dms_hasnt ds l → nclosed d 0 → nclosed ds 0 →
