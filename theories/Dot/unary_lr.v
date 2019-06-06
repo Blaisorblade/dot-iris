@@ -278,7 +278,6 @@ Notation "Γ ⊨p p : T , i" := (iptp Γ T p i) (at level 74, p, T at next level
 Notation "Γ ⊨ T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).
 
 Notation "Γ ⊨ [ T1 , i ]  <: [ T2 , j ]" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
-Notation "Γ ⊨ T1 , i  <: T2 , j" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
 
 (** Context extension for use with definition typing, as in
     [Γ |L V ⊨d d : T] and [Γ |L V ⊨ds ds : T]. *)
