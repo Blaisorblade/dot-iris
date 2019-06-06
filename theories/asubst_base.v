@@ -167,7 +167,7 @@ Hint Resolve length_idsσ.
 Lemma subst_sigma_idsσ ρ n : length ρ = n →
                 (subst_sigma (idsσ n) ρ) = ρ.
 Proof.
-  rewrite /subst_sigma. move :n.
+  rewrite /subst_sigma. move: n.
   induction ρ => *; subst => //; asimpl.
   f_equal. by apply IHρ.
 Qed.
@@ -260,7 +260,7 @@ Lemma fv_to_subst x σ n:
   nclosed x (length σ) → nclosed_σ σ n →
   nclosed (x.|[to_subst σ]) n.
 Proof.
-  rewrite /nclosed /nclosed_vl => Hclx Hclρ s1 s2 Heqsn /=; asimpl.
+  rewrite /nclosed /nclosed_vl => Hclx Hclσ s1 s2 Heqsn /=; asimpl.
   apply Hclx.
   intros i Hl; asimpl. by eapply (closed_to_subst σ i n).
 Qed.

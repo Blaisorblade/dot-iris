@@ -51,8 +51,7 @@ Section Sec.
      x ∉ fv T
      ----------------------------------------------- (<:)
      Γ ⊨ mu x: T <: T    Γ ⊨ T <: mu(x: T)
-
-     Luckily we don't need that, all the rules that exist before appear reasonable. *)
+  *)
 
   Lemma interp_TMu_ren T ρ v: ⟦ TMu T.|[ren (+1)] ⟧ ρ v ≡ ⟦ T ⟧ ρ v.
   Proof. by rewrite /= (interp_weaken_one v T ρ v). Qed.
@@ -122,7 +121,7 @@ Section Sec.
   Proof. by rewrite TMu_equiv. Qed.
 
   Lemma T_Forall_E e1 e2 T1 T2:
-    (Γ ⊨ e1: TAll T1 T2.|[ren (+1)] →
+    (Γ ⊨ e1 : TAll T1 T2.|[ren (+1)] →
      Γ ⊨ e2 : T1 →
     (*────────────────────────────────────────────────────────────*)
      Γ ⊨ tapp e1 e2 : T2)%I.

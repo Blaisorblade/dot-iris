@@ -38,7 +38,8 @@ Inductive typed Γ : tm → ty → Prop :=
 | TMuE_typed v T:
     Γ ⊢ₜ tv v: TMu T →
     (*──────────────────────*)
-    Γ ⊢ₜ tv v: T.|[v/] (** Introduction forms *)
+    Γ ⊢ₜ tv v: T.|[v/]
+(** Introduction forms *)
 | Lam_typed e T1 T2:
     (* T1 :: Γ ⊢ₜ e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
     is_stamped_ty (length Γ) getStampTable T1 →
@@ -76,8 +77,7 @@ Inductive typed Γ : tm → ty → Prop :=
 where "Γ ⊢ₜ e : T " := (typed Γ e T)
 with dms_typed Γ : ty → dms → ty → Prop :=
 | dnil_typed V : Γ |ds V ⊢ [] : TTop
-(* This demands definitions and members to be defined in aligned lists. I think
-   we want more freedom, just like in the logical relation? *)
+(* This demands definitions and members to be defined in aligned lists. *)
 | dcons_typed V l d ds T1 T2:
     Γ |d V ⊢ d : T1 →
     Γ |ds V ⊢ ds : T2 →
