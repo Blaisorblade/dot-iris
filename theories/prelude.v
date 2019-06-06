@@ -1,6 +1,7 @@
 (* Base Coq settings (ssreflect and setup): *)
 From iris.algebra Require Export base.
 From Autosubst Require Export Autosubst.
+From D Require Export locAsimpl.
 
 Definition stamp := positive.
 (* Not an instance because it should *not* be used automatically. *)

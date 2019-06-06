@@ -4,8 +4,6 @@ From D.Dot Require Import unary_lr_binding rules.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 
-From D Require Import locAsimpl.
-
 Lemma norm_selfSubst ds s: selfSubst ds.|[up s] = ds.|[(vobj ds).[s] .: s].
 Proof. by rewrite /selfSubst /=; asimpl. Qed.
 

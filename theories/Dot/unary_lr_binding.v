@@ -1,5 +1,4 @@
 From iris.proofmode Require Import tactics.
-From D Require Import locAsimpl.
 From D.Dot Require Export unary_lr synLemmas.
 Import uPred.
 
