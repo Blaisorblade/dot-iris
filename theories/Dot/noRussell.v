@@ -29,29 +29,28 @@ Section Russell.
   Definition v := vobj [("A", dtysem [] s)].
 
   (** Yes, v has a valid type member. *)
-  Lemma vHasA: Hs -∗ ⟦ TTMem "A" TBot TTop ⟧ [] v.
+  Lemma vHasA: Hs ⊢ ⟦ TTMem "A" TBot TTop ⟧ [] v.
   Proof.
     iIntros "#Hs". repeat (repeat iExists _; repeat iSplit; try done).
     iModIntro; repeat iSplit; by iIntros "** !>".
   Qed.
 
-  Lemma later_not_UAU: Hs -∗ uAu v -∗ ▷ False.
+  Lemma later_not_UAU: Hs ⊢ uAu v -∗ ▷ False.
   Proof.
-    iIntros "#Hs #[_ Hvav]". rewrite /uAu.
-    iDestruct "Hvav" as (φ d Hl) "[Hs1 Hvav]".
-    iPoseProof "Hs1" as (s' σ φ' [Heq ->]) "H".
-    iAssert (d ↗ (λ w, □ (uAu w -∗ False)))%I as "#Hs2".
-    - subst d; move: Hl => [d] [[<-]] /= [?] ?; subst s' σ.
-      iExists s, [], (λ ρ w, □ (uAu w -∗ False))%I.
-      repeat iExists _; repeat iSplit => //.
+    iIntros "#Hs #HuauV".
+    iPoseProof "HuauV" as (_ φ d Hl) "[Hs1 #Hvav]".
+    iPoseProof "Hs1" as (s' σ φ' [_ ->]) "H".
+    iAssert (d ↗ russell_p []) as "#Hs2".
+    - iExists s, [], russell_p; iFrame "Hs"; iPureIntro.
+      move: Hl => [ds] [[<- /=] ?]. by simplify_eq.
     - iPoseProof (stored_pred_agree d _ _ v with "Hs1 Hs2") as "#Hag".
-      iNext.
-      iRewrite "Hag" in "Hvav"; iEval (cbn) in "Hvav".
-      iApply "Hvav".
-      repeat (repeat iSplit => //; repeat iExists _ => //).
+      (* without lock, iNext would strip a later in [HuauV]. *)
+      rewrite [uAu]lock; iNext; unlock.
+      iRewrite "Hag" in "Hvav".
+      iApply ("Hvav" with "HuauV").
   Qed.
 
-  Lemma uauEquiv: Hs -∗ ▷ □ (uAu v -∗ False) ∗-∗ uAu v.
+  Lemma uauEquiv: Hs ⊢ ▷ □ (uAu v -∗ False) ∗-∗ uAu v.
   Proof.
     iIntros "#Hs"; iSplit.
     - iIntros "#HnotVAV"; iSplit => //.
@@ -59,8 +58,7 @@ Section Russell.
       repeat (repeat iSplit => //; repeat iExists _).
       iIntros "!>!>!> #Hvav". iApply ("HnotVAV" with "Hvav").
     - iIntros "#Hvav".
-      iPoseProof (later_not_UAU with "Hs Hvav") as "#HF".
-      by iNext.
+      by iDestruct (later_not_UAU with "Hs Hvav") as "#>[]".
   Qed.
 
   (** uauEquiv would be absurd without later: a proposition
@@ -71,11 +69,11 @@ Section Russell.
     (▷ □ (P -∗ False) ∗-∗ P) -∗ □(P -∗ False) -∗ False.
   Proof. iIntros "Eq #NP". iApply "NP". by iApply "Eq". Qed.
 
-  Lemma notNotVAV: Hs -∗ □ (uAu v -∗ False) → False.
+  Lemma notNotVAV: Hs ⊢ □ (uAu v -∗ False) → False.
   Proof.
     iIntros "#Hs #notVAV". iApply (irisTaut (uAu v)) => //.
     by iApply uauEquiv.
   Qed.
 
-  Definition notRussellV: Hs -∗ russell_p [] v → False := notNotVAV.
+  Definition notRussellV: Hs ⊢ russell_p [] v → False := notNotVAV.
 End Russell.
