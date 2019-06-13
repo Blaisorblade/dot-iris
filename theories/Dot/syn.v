@@ -414,9 +414,9 @@ Definition observation := unit.
 Inductive head_step : tm -> state -> list observation -> tm -> state -> list tm -> Prop :=
 | st_beta t1 v2 σ:
     head_step (tapp (tv (vabs t1)) (tv v2)) σ [] (t1.|[v2/]) σ []
-| st_proj ds l σ v:
-    dms_lookup l (selfSubst ds) = Some (dvl v) ->
-    head_step (tproj (tv (vobj ds)) l) σ [] (tv v) σ []
+| st_proj v l σ w:
+    v @ l ↘ dvl w →
+    head_step (tproj (tv v) l) σ [] (tv w) σ []
 | st_skip v σ:
     head_step (tskip (tv v)) σ [] (tv v) σ [].
 

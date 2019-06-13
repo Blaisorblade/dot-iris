@@ -12,16 +12,16 @@ Section nclosed_prim_step.
     nclosed t1.|[v2/] n.
   Proof. move => Hcl. apply nclosed_subst; eauto with fv. Qed.
 
-  Lemma nclosed_proj ds l v n:
-    dms_lookup l (selfSubst ds) = Some (dvl v) →
-    nclosed (tproj (tv (vobj ds)) l) n →
-    nclosed (tv v) n.
+  Lemma nclosed_proj v l w n:
+    v @ l ↘ dvl w →
+    nclosed (tproj (tv v) l) n →
+    nclosed (tv w) n.
   Proof.
     move => Hl Hcl.
-    assert (Hclt1: nclosed ds (S n)) by eauto with fv.
+    assert (Hclt1: nclosed_vl v n) by eauto with fv.
     apply fv_tv.
-    enough (nclosed (dvl v) n) by eauto with fv.
-    eapply nclosed_lookup => //. by eapply nclosed_selfSubst.
+    enough (nclosed (dvl w) n) by eauto with fv.
+    exact: nclosed_lookup'.
   Qed.
 
   Theorem nclosed_head_step t1 t2 σ σ' ts κ n:

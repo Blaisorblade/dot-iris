@@ -288,11 +288,11 @@ Section Sec.
       + subst; cbn in *; subst.
         inverse Hstp.
         iSpecialize ("Hv" $! _ _ _ Hred). cbn.
-        iExists v. iNext. iDestruct "Hv" as "[_ [Hv _]]".
+        iExists w. iNext. iDestruct "Hv" as "[_ [Hv _]]".
         iPoseProof (wp_value_inv with "Hv") as "$".
         iPureIntro => ?. specialize (Hpure I).
         replace (S i0) with (i0+1) by lia.
-        eapply (relations.nsteps_trans i0 1 _ (tproj (tv (vobj ds)) l) _).
+        eapply (relations.nsteps_trans i0 1 _ (tproj (tv v0) l) _).
         by eapply (pure_step_nsteps_ctx (fill [ProjCtx l])).
         by eapply pure_tproj.
   Qed.

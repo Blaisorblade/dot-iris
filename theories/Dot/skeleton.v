@@ -302,7 +302,7 @@ Proof.
   - intros x; destruct x as [|x]; simpl; auto.
 Qed.
 
-Lemma same_skel_dms_index_gen ds ds' v l:
+Lemma same_skel_dms_index_gen {ds ds' v l}:
   same_skel_dms ds ds' →
   dms_lookup l ds = Some (dvl v) →
   exists v', dms_lookup l ds' = Some (dvl v') ∧ same_skel_vl v v'.
@@ -322,13 +322,15 @@ Proof.
     simpl; destruct decide; intuition auto.
 Qed.
 
-Lemma same_skel_dms_index ds ds' v l:
-  same_skel_dms ds ds' →
-  dms_lookup l (selfSubst ds) = Some (dvl v) →
-  exists v', dms_lookup l (selfSubst ds') = Some (dvl v') ∧ same_skel_vl v v'.
+Lemma same_skel_obj_lookup v v' w l:
+  same_skel_vl v v' →
+  v @ l ↘ dvl w →
+  ∃ w', v' @ l ↘ dvl w' ∧ same_skel_vl w w'.
 Proof.
-  intros ? ?; eapply same_skel_dms_index_gen;
-    eauto using same_skel_dms_selfSubst.
+  intros Hv [ds [-> Hl]]. case: v' Hv => // ds' Hv.
+  have [w' [Hl' Hw]]: ∃ w', dms_lookup l (selfSubst ds') = Some (dvl w') ∧ same_skel_vl w w'.
+  by eauto using same_skel_dms_selfSubst, same_skel_dms_index_gen.
+  exists w'; split; by [|exists ds'].
 Qed.
 
 Lemma simulation_skeleton_head t1' t1 t2 σ σ' ts:
@@ -340,7 +342,7 @@ Proof.
   - repeat (case_match; intuition auto; simplify_eq).
     eexists; split; eauto using head_step, same_skel_tm_subst.
   - repeat (case_match; intuition auto; simplify_eq).
-    edestruct same_skel_dms_index as [? [? ?]]; eauto using head_step.
+    edestruct same_skel_obj_lookup as [? [? ?]]; eauto using head_step.
   - repeat (case_match; intuition eauto using head_step).
 Qed.
 

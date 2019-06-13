@@ -12,7 +12,11 @@ Section lang_rules.
        try (is_var e; fail 1); (* inversion yields many goals if [e] is a variable
        and can thus better be avoided. *)
        inversion H; subst; clear H
-    end; try (repeat split; congruence).
+    end;
+    (* DOT-specific addition. *)
+    try objLookupDet;
+    (* DOT-specific addition end. *)
+    try (repeat split; congruence).
 
   Local Hint Extern 0 (head_reducible _ _) => eexists _, _, _, _; simpl.
 
@@ -31,13 +35,9 @@ Section lang_rules.
     PureExec True 1 (tapp (tv (vabs e1)) (tv v2)) e1.|[v2 /].
   Proof. solve_pure_exec. Qed.
 
-  Global Instance pure_tproj ds l v :
-    PureExec (dms_lookup l (selfSubst ds) = Some (dvl v)) 1 (tproj (tv (vobj ds)) l) (tv v).
-  Proof. solve_pure_exec. Qed.
-
-  Global Instance pure_tproj' l v w :
+  Global Instance pure_tproj l v w :
     PureExec (v @ l ↘ dvl w) 1 (tproj (tv v) l) (tv w).
-  Proof. move => [ds [->]]. exact: pure_tproj. Qed.
+  Proof. solve_pure_exec. Qed.
 
   Global Instance pure_tskip v:
     PureExec True 1 (tskip (tv v)) (tv v).
