@@ -3,7 +3,7 @@ From D.Dot Require Export syn typeExtractionSyn stampedness closed_subst synLemm
 
 Reserved Notation "Γ ⊢ₜ e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ ⊢ₚ p : T , i" (at level 74, p, T, i at next level).
-Reserved Notation "Γ |d V ⊢ d : T" (at level 74, d, T, V at next level).
+Reserved Notation "Γ |d V ⊢{ l := d  } : T" (at level 74, l, d, T, V at next level).
 Reserved Notation "Γ |ds V ⊢ ds : T" (at level 74, ds, T, V at next level).
 Reserved Notation "Γ ⊢ₜ T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
 
@@ -76,25 +76,23 @@ with dms_typed Γ : ty → dms → ty → Prop :=
 | dnil_typed V : Γ |ds V ⊢ [] : TTop
 (* This demands definitions and members to be defined in aligned lists. *)
 | dcons_typed V l d ds T1 T2:
-    Γ |d V ⊢ d : T1 →
+    Γ |d V ⊢{ l := d } : T1 →
     Γ |ds V ⊢ ds : T2 →
     dms_hasnt ds l →
-    (* move to be part of single-definition typing? *)
-    label_of_ty T1 = Some l →
     (*──────────────────────*)
     Γ |ds V ⊢ (l, d) :: ds : TAnd T1 T2
 where "Γ |ds V ⊢ ds : T" := (dms_typed Γ V ds T)
-with dm_typed Γ : ty → dm → ty → Prop :=
+with dm_typed Γ : ty → label → dm → ty → Prop :=
 | dty_typed V l L T U s σ:
     T ~[ S (length Γ) ] (getStampTable, (s, σ)) →
     Forall (is_stamped_vl (S (length Γ)) getStampTable) σ →
     TLater V :: Γ ⊢ₜ L, 1 <: T, 1 →
     TLater V :: Γ ⊢ₜ T, 1 <: U, 1 →
-    Γ |d V ⊢ dtysem σ s : TTMem l L U
+    Γ |d V ⊢{ l := dtysem σ s } : TTMem l L U
 | dvl_typed V l v T:
     V :: Γ ⊢ₜ tv v : T →
-    Γ |d V ⊢ dvl v : TVMem l T
-where "Γ |d V ⊢ d : T" := (dm_typed Γ V d T)
+    Γ |d V ⊢{ l := dvl v } : TVMem l T
+where "Γ |d V ⊢{ l := d  } : T" := (dm_typed Γ V l d T)
 with path_typed Γ : path → ty → nat → Prop :=
 | pv_typed v T:
     Γ ⊢ₜ tv v : T →
@@ -245,13 +243,13 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
   Lemma stamped_mut_subject Γ:
     (∀ e  T, Γ ⊢ₜ e : T → is_stamped_tm (length Γ) getStampTable e) ∧
     (∀ V ds T, Γ |ds V ⊢ ds : T → Forall (is_stamped_dm (S (length Γ)) getStampTable) (map snd ds)) ∧
-    (∀ V d T, Γ |d V ⊢ d : T → is_stamped_dm (S (length Γ)) getStampTable d) ∧
+    (∀ V l d T, Γ |d V ⊢{ l := d } : T → is_stamped_dm (S (length Γ)) getStampTable d) ∧
     (∀ p T i, Γ ⊢ₚ p : T, i → is_stamped_path (length Γ) getStampTable p).
   Proof.
     eapply exp_typing_mut_ind with
         (P := λ Γ e T _, is_stamped_tm (length Γ) getStampTable e)
         (P0 := λ Γ V ds T _, Forall (is_stamped_dm (S (length Γ)) getStampTable) (map snd ds))
-        (P1 := λ Γ V d T _, is_stamped_dm (S (length Γ)) getStampTable d)
+        (P1 := λ Γ V l d T _, is_stamped_dm (S (length Γ)) getStampTable d)
         (P2 := λ Γ p T i _, is_stamped_path (length Γ) getStampTable p);
         cbn; intros; try by (with_is_stamped inverse + idtac); eauto.
     - repeat constructor => //=. by eapply lookup_lt_Some.
@@ -333,7 +331,7 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
     (∀ e T, Γ ⊢ₜ e : T → ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (length Γ) getStampTable T) ∧
     (∀ V ds T, Γ |ds V ⊢ ds : T → ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (S (length Γ)) getStampTable V →
       is_stamped_ty (S (length Γ)) getStampTable T) ∧
-    (∀ V d T, Γ |d V ⊢ d : T → ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (S (length Γ)) getStampTable V →
+    (∀ V l d T, Γ |d V ⊢{ l := d } : T → ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (S (length Γ)) getStampTable V →
       is_stamped_ty (S (length Γ)) getStampTable T) ∧
     (∀ p T i, Γ ⊢ₚ p : T , i → ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (length Γ) getStampTable T) ∧
     (∀ T1 i1 T2 i2, Γ ⊢ₜ T1, i1 <: T2, i2 → ∀ (Hctx: stamped_ctx getStampTable Γ),
@@ -344,7 +342,7 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
           is_stamped_ty (length Γ) getStampTable T)
         (P0 := λ Γ V ds T _, ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (S (length Γ)) getStampTable V →
           is_stamped_ty (S (length Γ)) getStampTable T)
-        (P1 := λ Γ V d T _, ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (S (length Γ)) getStampTable V →
+        (P1 := λ Γ V l d T _, ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (S (length Γ)) getStampTable V →
           is_stamped_ty (S (length Γ)) getStampTable T)
         (P2 := λ Γ p T i _, ∀ (Hctx: stamped_ctx getStampTable Γ),
           is_stamped_ty (length Γ) getStampTable T)
@@ -379,6 +377,6 @@ End syntyping.
 
 Notation "Γ ⊢ₜ e : T " := (typed Γ e T).
 Notation "Γ |ds V ⊢ ds : T" := (dms_typed Γ V ds T).
-Notation "Γ |d V ⊢ d : T" := (dm_typed Γ V d T).
+Notation "Γ |d V ⊢{ l := d  } : T" := (dm_typed Γ V l d T).
 Notation "Γ ⊢ₚ p : T , i" := (path_typed Γ p T i).
 Notation "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).

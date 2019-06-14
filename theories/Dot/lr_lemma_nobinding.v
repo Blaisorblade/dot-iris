@@ -29,7 +29,7 @@ Section Sec.
     Γ ⊨ [TAnd (TVMem l T1) (TVMem l T2), i] <: [TVMem l (TAnd T1 T2), i].
   Proof.
     iIntros "/= !>" (ρ v Hcl) "#Hg [[$ #H1] #[_ H2]]". iNext.
-    iDestruct "H1" as (d?? vmem?) "#H1"; iDestruct "H2" as (d'?? vmem'?) "#H2". objLookupDet.
+    iDestruct "H1" as (d? vmem?) "#H1"; iDestruct "H2" as (d'? vmem'?) "#H2". objLookupDet.
     repeat (iExists _; repeat iSplit => //).
   Qed.
 
@@ -37,7 +37,7 @@ Section Sec.
     Γ ⊨ [TVMem l (TAnd T1 T2), i] <: [TAnd (TVMem l T1) (TVMem l T2), i].
   Proof.
     iIntros "/= !>" (ρ v Hcl) "#Hg [$ #H]". iNext.
-    iDestruct "H" as (d?? vmem?) "#[H1 H2]".
+    iDestruct "H" as (d? vmem?) "#[H1 H2]".
     iSplit; repeat (iExists _; repeat iSplit => //).
   Qed.
 
@@ -46,7 +46,7 @@ Section Sec.
     Γ ⊨ [TOr (TVMem l T1) (TVMem l T2), i] <: [TVMem l (TOr T1 T2), i].
   Proof.
     iIntros "/= !>" (ρ v Hcl) "#Hg [[$ #H]| [$ #H]]"; iNext;
-    iDestruct "H" as (d?? vmem?) "#H";
+    iDestruct "H" as (d? vmem?) "#H";
     repeat (iExists _; repeat iSplit => //); by [iLeft | iRight].
   Qed.
 
@@ -54,7 +54,7 @@ Section Sec.
     Γ ⊨ [TVMem l (TOr T1 T2), i] <: [TOr (TVMem l T1) (TVMem l T2), i].
   Proof.
     iIntros "/= !>" (ρ v Hcl) "#Hg [$ #H]". iNext.
-    iDestruct "H" as (d?? vmem?) "#[H | H]"; [> iLeft | iRight];
+    iDestruct "H" as (d? vmem?) "#[H | H]"; [> iLeft | iRight];
       repeat (iExists _; repeat iSplit => //).
   Qed.
 
@@ -62,7 +62,7 @@ Section Sec.
     Γ ⊨ [TAnd (TTMem l L U1) (TTMem l L U2), i] <: [TTMem l L (TAnd U1 U2), i].
   Proof.
     iIntros "/= !>" (ρ v Hcl) "Hg [[$ H1] [_ H2]]". iNext.
-    iDestruct "H1" as (d?? φ) "#[Hsφ1 [#HLφ1 #HφU1]]"; iDestruct "H2" as (d'?? φ') "#[Hsφ2 [_ #HφU2]]".
+    iDestruct "H1" as (d? φ) "#[Hsφ1 [#HLφ1 #HφU1]]"; iDestruct "H2" as (d'? φ') "#[Hsφ2 [_ #HφU2]]".
     objLookupDet.
     iExists d; repeat iSplit => //.
     iExists φ; repeat iSplit => //.

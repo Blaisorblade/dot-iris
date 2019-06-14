@@ -57,7 +57,7 @@ Section swap_based_typing_lemmas.
     Γ ⊨ [TTMem l L1 U1, i] <: [TTMem l L2 U2, i].
   Proof.
     iIntros "#IHT #IHT1 /= !>" (ρ v Hcl) "#Hg [$ #HT1]".
-    iDestruct "HT1" as (d) "[Hl2 [? H]]".
+    iDestruct "HT1" as (d) "[Hl2 H]".
     iDestruct "H" as (φ) "#[Hφl [HLφ #HφU]]".
     setoid_rewrite <- later_laterN.
     setoid_rewrite mlaterN_impl.
@@ -77,7 +77,7 @@ Section swap_based_typing_lemmas.
     Γ ⊨ [TVMem l T1, i] <: [TVMem l T2, j + i].
   Proof.
     iIntros "#IHT /= !>" (ρ v Hcl) "#Hg #[_ HT1]". iFrame "%". rewrite laterN_plus.
-    iDestruct "HT1" as (d) "#[Hdl [Hcld #HT1]]".
+    iDestruct "HT1" as (d) "#[Hdl #HT1]".
     iExists d; repeat iSplit => //.
     iDestruct "HT1" as (vmem) "[Heq HvT1]".
     iExists vmem; repeat iSplit => //.
@@ -100,8 +100,8 @@ Section fundamental.
   Context `{hasStampTable: stampTable}.
 
   (* XXX these statements point out we need to realign the typing judgemnts. *)
-  Lemma fundamental_dm_typed Γ V d T (HT: Γ |d V ⊢ d : T):
-    wellMapped getStampTable -∗ Γ |L V ⊨d d : T with
+  Lemma fundamental_dm_typed Γ V l d T (HT: Γ |d V ⊢{ l := d } : T):
+    wellMapped getStampTable -∗ Γ |L V ⊨d{ l := d } : T with
   fundamental_dms_typed Γ V ds T (HT: Γ |ds V ⊢ ds : T):
     wellMapped getStampTable -∗ Γ |L V ⊨ds ds : T with
   fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2):
