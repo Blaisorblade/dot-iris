@@ -10,7 +10,7 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
 
 (** First, let's maybe start defining some nicer notation. I have little clue what I'm doing tho.
-    And this would need changing anyway if we switch to explicit labels. *)
+    *)
 
 (* Beware that "Bind Scope" just presets the scope of arguments for *new* definitions. *)
 
