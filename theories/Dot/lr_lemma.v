@@ -5,6 +5,7 @@ From iris.program_logic Require Import language.
 
 From D Require Import tactics proofmode_extra.
 From D.Dot Require Import rules synLemmas unary_lr_binding step_fv.
+Import uPred.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 Section Sec.
@@ -15,7 +16,7 @@ Section Sec.
   Proof.
     iIntros "/= He" (Hcle) "Himpl". iApply (wp_wand_wf _ _ e Φ (flip nclosed 0) Hcle with "He [Himpl]").
     intros. by eapply nclosed_prim_step.
-    iIntros (v Hclv) "/= H". iApply ("Himpl" with "H [%]"). by apply fv_tv_inv.
+    iIntros (v Hclv) "/= H". iApply ("Himpl" with "H [%]"). exact: fv_tv_inv.
   Qed.
 
   Lemma T_Sub e T1 T2 i:
@@ -25,9 +26,9 @@ Section Sec.
     Γ ⊨ iterate tskip i e : T2)%I.
   Proof.
     iIntros "/= * #[% #HeT1] #Hsub". move: H => Hcle.
-    have Hclte: nclosed (iterate tskip i e) (length Γ) by eauto using nclosed_tskip_i. iFrame (Hclte) => {Hclte}.
+    iSplit; first by eauto using nclosed_tskip_i.
     iIntros "!> * #Hg".
-    rewrite tskip_subst tskip_n_to_fill. iApply wp_bind.
+    rewrite tskip_subst tskip_n_to_fill -wp_bind.
     iApply (wp_wand_cl _ (⟦ T1 ⟧ ρ)) => //.
     - iApply ("HeT1" with "[//]").
     - iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]; rewrite <- Hlen in *.
@@ -107,10 +108,9 @@ Section Sec.
    *)
   Lemma TMu_equiv T v: (Γ ⊨ tv v : TMu T) ≡ (Γ ⊨ tv v : T.|[v/]).
   Proof.
-    Import uPred.
     iSplit; iIntros "/= #[% #Htp]"; iFrame "%"; iIntros "!> * #Hg"; rewrite -wp_value;
-      (iDestruct (interp_subst_closed Γ T v (v.[to_subst ρ]) with "[#//]") as "Heq"; first (by apply fv_tv_inv));
-        iApply (internal_eq_iff with "Heq"); iApply (wp_value_inv with "(Htp [#//])").
+      (iDestruct (interp_subst_closed Γ T v (v.[to_subst ρ]) with "[//]") as "Heq"; first exact: fv_tv_inv);
+        iApply (internal_eq_iff with "Heq"); iApply (wp_value_inv with "(Htp [//])").
       (* Fail iRewrite "Heq". *) (* WTF *)
   Qed.
 
@@ -126,10 +126,10 @@ Section Sec.
     (*────────────────────────────────────────────────────────────*)
      Γ ⊨ tapp e1 e2 : T2)%I.
   Proof.
-    iIntros "/= #[% He1] #[% Hv2]". iSplit; eauto using fv_tapp. iIntros " !> * #HG".
-    smart_wp_bind (AppLCtx (e2.|[to_subst ρ])) v "#Hr" "He1".
+    iIntros "/= [% #He1] #[% Hv2]". iSplit; eauto using fv_tapp. iIntros " !> * #HG".
+    smart_wp_bind (AppLCtx (e2.|[_])) v "#[_ Hr]" "He1".
     smart_wp_bind (AppRCtx v) w "#Hw" "Hv2".
-    iDestruct "Hr" as (Hclv t ->) "#Hv".
+    iDestruct "Hr" as (t ->) "#Hv".
     rewrite -wp_pure_step_later // -wp_mono /=; first by iApply "Hv".
     iIntros (v); by rewrite (interp_weaken_one w T2 ρ v).
   Qed.
@@ -141,10 +141,10 @@ Section Sec.
      Γ ⊨ tapp e1 (tv v2) : T2.|[v2/])%I.
   Proof.
     iIntros "/= [% #He1] [% #Hv2Arg]". move: H H0 => Hcle1 Hclv2. iSplit; eauto using fv_tapp. iIntros " !> * #HG".
-    have Hcl: nclosed_vl v2 (length Γ). by apply fv_tv_inv.
-    smart_wp_bind (AppLCtx (tv v2.[to_subst ρ])) v "[_ #Hr]" ("He1" with "[#//]").
-    iDestruct "Hr" as (t ->) "#HvFun".
+    move: Hclv2 => /fv_tv_inv Hclv2.
+    smart_wp_bind (AppLCtx (tv v2.[_])) v "[_ #Hr]" ("He1" with "[#//]").
     iClear "He1".
+    iDestruct "Hr" as (t ->) "#HvFun".
     rewrite -wp_pure_step_later; last done. iNext.
     iApply wp_wand.
     - iApply "HvFun". rewrite -wp_value_inv'. by iApply "Hv2Arg".
@@ -172,12 +172,11 @@ Section Sec.
       apply (fv_to_subst_vl (vabs _)); eauto using fv_vabs.
     }
     iExists _; iSplitL; first done.
-    iIntros "!> !>" (v) "#Hv".
-    iSpecialize ("HeT" $! (v :: ρ)).
+    iIntros "!> !>" (v) "#Hv". iSpecialize ("HeT" $! (v :: ρ)).
+    rewrite (interp_weaken_one v T1 ρ v).
     (* time locAsimpl. (* 10x faster than asimpl. *) *)
     (* 20x faster than asimpl. *)
-    locAsimpl' (e.|[up (to_subst ρ)].|[v/]); locAsimpl' (e.|[to_subst (v :: ρ)]).
-    rewrite (interp_weaken_one v T1 ρ v).
+    rewrite to_subst_cons; time locAsimpl' (e.|[up (to_subst ρ)].|[v/]).
     by iApply ("HeT" with "[$HG//]").
   Qed.
 

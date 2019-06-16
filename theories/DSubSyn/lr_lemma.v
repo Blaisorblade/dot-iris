@@ -8,6 +8,7 @@ From D.pure_program_logic Require Import lifting.
 From D Require Import proofmode_extra.
 From D.DSub Require Import rules synLemmas step_fv.
 From D.DSubSyn Require Import unary_lr_binding.
+Import uPred.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (Γ : ctx).
 
@@ -19,7 +20,7 @@ Section Sec.
   Proof.
     iIntros "/= He" (Hcle) "Himpl". iApply (wp_wand_wf _ _ e Φ (flip nclosed 0) Hcle with "He [Himpl]").
     intros. by eapply nclosed_prim_step.
-    iIntros (v Hclv) "/= H". iApply ("Himpl" with "H [%]"). by apply fv_tv_inv.
+    iIntros (v Hclv) "/= H". iApply ("Himpl" with "H [%]"). exact: fv_tv_inv.
   Qed.
 
   Context {Γ}.
@@ -54,8 +55,8 @@ Section Sec.
     Γ ⊨ tapp e1 (tv v2) : T2.|[v2/].
   Proof.
     iIntros "/= #[% He1] #[% Hv2Arg]". move: H H0 => Hcle1 Hclv2. iSplit; eauto using fv_tapp. iIntros " !> * #HG".
-    iAssert (⌜ nclosed_vl v2 (length Γ) ⌝)%I as %Hcl. by iPureIntro; apply fv_tv_inv.
-    smart_wp_bind (AppLCtx (tv v2.[to_subst ρ])) v "#Hr" "He1".
+    move: Hclv2 => /fv_tv_inv Hclv2.
+    smart_wp_bind (AppLCtx (tv v2.[_])) v "#Hr" "He1".
     unfold_interp. iDestruct "Hr" as (Hclv t ->) "#HvFun".
     rewrite -wp_pure_step_later; last done. iNext.
     iApply wp_wand.
@@ -72,27 +73,26 @@ Section Sec.
     iIntros "/= #[% #HeT]". move: H => Hcle.
     iSplit; eauto using fv_tv, fv_vabs.
     iIntros " !> * #HG".
-    iDestruct (interp_env_props with "HG") as %[Hclp Hlen]; rewrite <- Hlen in *.
     rewrite -wp_value'; unfold_interp.
     iSplit.
     {
+      iDestruct (interp_env_props with "HG") as %[Hclp Hlen]; rewrite <- Hlen in *.
       pose proof (fv_to_subst (tv (vabs e)) ρ) as Hfv.
       eauto 6 using fv_tv_inv, fv_vabs, fv_tv.
     }
     iExists _; iSplitL => //.
     iIntros "!> !>" (v) "#Hv". iSpecialize ("HeT" $! (v :: ρ)).
+    rewrite (interp_weaken_one v T1 ρ v).
     (* Faster than 'asimpl'. *)
-    replace (e.|[up (to_subst ρ)].|[v/]) with (e.|[to_subst (v :: ρ)]) by by asimpl.
-    iApply "HeT".
-    iFrame "HG".
-    by iApply (interp_weaken_one v).
+    rewrite to_subst_cons; locAsimpl' (e.|[up (to_subst ρ)].|[v/]).
+    by iApply ("HeT" with "[$HG//]").
   Qed.
 
   Lemma nclosed_subst_ρ e ρ: nclosed e (length Γ) → ⟦ Γ ⟧* ρ -∗ ⌜ nclosed e.|[to_subst ρ] 0 ⌝.
   Proof.
     iIntros (Hcl) "HG".
     iDestruct (interp_env_props with "HG") as %[Hclp Hlen]; rewrite <- Hlen in *.
-    iPureIntro. by apply fv_to_subst.
+    iPureIntro. exact: fv_to_subst.
   Qed.
 
   Lemma T_Sub e T1 T2 i:
@@ -102,13 +102,13 @@ Section Sec.
     Γ ⊨ iterate tskip i e : T2.
   Proof.
     iIntros "/= * #[% #HeT1] #Hsub". move: H => Hcle.
-    have Hclte: nclosed (iterate tskip i e) (length Γ) by eauto using nclosed_tskip_i. iFrame "%".
-    move: Hclte => _. iIntros "!> * #Hg".
+    iSplit; first by eauto using nclosed_tskip_i.
+    iIntros "!> * #Hg".
     rewrite tskip_subst tskip_n_to_fill -wp_bind.
     iApply (wp_wand_cl _ (⟦ T1 ⟧ ρ)) => //.
     - iApply ("HeT1" with "[//]").
     - by rewrite nclosed_subst_ρ.
-    - iIntros (v) "#HvT1"; iIntros (Hclv).
+    - iIntros (v) "#HvT1 %".
       (* We can swap ▷^i with WP (tv v)! *)
       rewrite -tskip_n_to_fill -wp_pure_step_later // -wp_value.
       by iApply "Hsub".
@@ -127,7 +127,7 @@ Section Sec.
     iApply (wp_wand_cl _ (⟦ T1 ⟧ ρ)) => //.
     - iApply ("HeT1" with "[//]").
     - by rewrite nclosed_subst_ρ.
-    - iIntros (v) "#HvT1"; iIntros (Hclv).
+    - iIntros (v) "#HvT1 %".
       rewrite -tskip_n_to_fill -wp_pure_step_later //.
       iSpecialize ("Hsub" with "Hg HvT1").
       (* We can swap ▷^i with WP (tv v)! *)
@@ -141,11 +141,9 @@ Section Sec.
     Γ ⊨ [L, 1] <: [T, 1] -∗
     Γ ⊨ tv (vty T) : TTMem L U.
   Proof.
-    (* Ltac solve_fv_congruence := rewrite /nclosed /nclosed_vl /= => *; f_equiv; solve [(idtac + asimpl); auto using eq_up]. *)
-    iIntros (HclT) "#HTU #HLT /=".
-    have HclV: nclosed_vl (vty T) (length Γ). by apply fv_vty.
-    have HclTV: nclosed (tv (vty T)) (length Γ). by apply fv_tv.
-    iSplit => //.
+    move => /fv_vty HclV.
+    iIntros "#HTU #HLT /=".
+    iSplit; first eauto using fv_tv.
     iIntros "!>" (ρ) "#HG".
     rewrite -wp_value; unfold_interp.
     iDestruct (interp_env_props with "HG") as %[Hclp Hlen]; rewrite <- Hlen in *.
@@ -153,13 +151,11 @@ Section Sec.
       iPureIntro; by apply (fv_to_subst_vl (vty T) ρ).
     }
     iExists (λ v, ⟦ T.|[to_subst ρ ] ⟧ [] v)%I.
-    iSplit. by iExists (T.|[to_subst ρ ]).
-    iModIntro; repeat iSplitL; iIntros "*".
-    - iIntros (Hclv) "#HL /=".
-      iSpecialize ("HLT" $! ρ v Hclv with "HG HL"). iNext.
-      by rewrite interp_subst_all.
-    - iIntros; iApply "HTU" => //; iNext => //.
-      by rewrite interp_subst_all.
+    iSplit. by iExists (T.|[to_subst ρ]).
+    iModIntro; repeat iSplitL; iIntros (v Hclv) "#H";
+      rewrite later_intuitionistically interp_subst_all //.
+    - iIntros "!>"; by iApply "HLT".
+    - by iApply "HTU".
   Qed.
 
   Lemma T_Vty_I T L U :
@@ -177,8 +173,8 @@ Section Sec.
   Proof.
     (* Ltac solve_fv_congruence := rewrite /nclosed /nclosed_vl /= => *; f_equiv; solve [(idtac + asimpl); auto using eq_up]. *)
     iIntros (HclT) "#HTU #HLT /=".
-    have HclV: nclosed_vl (vty T) (length Γ). by apply fv_vty.
-    have HclTV: nclosed (tv (vty T)) (length Γ). by apply fv_tv.
+    have HclV: nclosed_vl (vty T) (length Γ). exact: fv_vty.
+    have HclTV: nclosed (tv (vty T)) (length Γ). exact: fv_tv.
     iSplit => //.
     iIntros "!>" (ρ) "#HG".
     rewrite -wp_value; unfold_interp.
@@ -188,12 +184,10 @@ Section Sec.
     }
     iExists (λ v, ⟦ T.|[to_subst ρ ] ⟧ [] v)%I.
     iSplit. by iExists (T.|[to_subst ρ ]).
-    iModIntro; repeat iSplitL; iIntros "*".
-    - iIntros (Hclv) "#HL /=".
-      iSpecialize ("HLT" $! ρ with "HG HL"). iNext.
-      by rewrite interp_subst_all.
-    - iIntros; iApply "HTU" => //; iNext => //.
-      by rewrite interp_subst_all.
+    iModIntro; repeat iSplitL; iIntros (v Hclv) "#H";
+      rewrite later_intuitionistically interp_subst_all //.
+    - iIntros "!>"; by iApply "HLT".
+    - by iApply "HTU".
   Qed.
 
   Lemma DT_Vty_I T L U :

@@ -62,15 +62,14 @@ Section interp_equiv.
   Proof.
     rewrite /interp_extractedTy; iIntros ((T1 & -> & Heq1 & Hclσ1 & HclT1) (T2 & -> & Heq2 & Hclσ2 & HclT2) Hlenξ Hclξ).
     iExists _, _; repeat iSplit => //; iIntros (ρ v Hlenρ Hclρ) "/= !%"; subst.
-    have Hclσ1ξ: nclosed_σ σ1.|[to_subst ξ] (length ρ). by apply nclosed_σ_to_subst.
-    have Hrew: T2.|[to_subst σ2.|[to_subst ρ]] =
-                  T1.|[to_subst σ1.|[to_subst ξ].|[to_subst ρ]]. by erewrite !subst_compose;
-                                                                    rewrite ?map_length ?Heq1 ?Heq2.
-    rewrite -(interp_subst_all _ T1) -?(interp_subst_all _ T2) ?Hrew //; by apply nclosed_σ_to_subst.
+    have Hclσ1ξ: nclosed_σ σ1.|[to_subst ξ] (length ρ). exact: nclosed_σ_to_subst.
+    have Hrew: T2.|[to_subst σ2.|[to_subst ρ]] = T1.|[to_subst σ1.|[to_subst ξ].|[to_subst ρ]].
+    by erewrite !subst_compose; rewrite ?map_length ?Heq1 ?Heq2.
+    rewrite -(interp_subst_all _ T1) -?(interp_subst_all _ T2) ?Hrew //; exact: nclosed_σ_to_subst.
   Qed.
 
   Lemma alloc_sp T: (|==> ∃ γ, γ ⤇ ty_interp T)%I.
-  Proof. by apply saved_interp_alloc. Qed.
+  Proof. exact: saved_interp_alloc. Qed.
 
   Lemma transferOne_base_inv gs s T:
       gs !! s = None → (allGs gs ==∗ ∃ gs', allGs gs' ∗ s ↝ ⟦ T ⟧ ∗ ⌜ gdom gs' ≡ gdom gs ∪ {[s]} ⌝)%I.
@@ -163,7 +162,7 @@ Section typing_type_member_defs.
     iDestruct ("Hm" $! _ _ Hl) as (φ) "[Hm1 <-]"; iClear "Hm".
     iSplit => //; iExists ⟦ T' ⟧; iSplit => //.
     iIntros (ρ v <- Hclρ) "!%".
-    by apply interp_subst_commute.
+    exact: interp_subst_commute.
   Qed.
 
   (** XXX In fact, this lemma should be provable for any φ,
@@ -181,22 +180,18 @@ Section typing_type_member_defs.
     (s, σ) ↝[ length Γ ] ⟦ T ⟧ -∗
     Γ ⊨d{ l := dtysem σ s } : TTMem l L U.
   Proof.
-    iIntros "#HTU #HLT #[% Hs] /=". move: H => Hclσ.
-    have Hclσs: nclosed (dtysem σ s) (length Γ). by apply fv_dtysem.
-    iSplit => //.
+    iIntros "#HTU #HLT #[% Hs] /=". iSplit; first auto using fv_dtysem.
     iIntros "!>" (ρ) "#Hg".
     iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]; rewrite <- Hlen in *.
-    have Hclσss: nclosed (dtysem σ.|[to_subst ρ] s) 0. by eapply fv_to_subst'.
     iDestruct "Hs" as (φ) "[Hγ Hγφ]".
     repeat iSplit => //; iExists (φ (σ.|[to_subst ρ]));
       iSplit; first by repeat iExists _; iSplit.
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL";
-      iSpecialize ("Hγφ" $! ρ v with "[#//] [#//]").
-    - iSpecialize ("HLT" $! ρ v Hclv with "Hg").
-      iDestruct ("HLT" with "HL") as "#HLT1".
-      by repeat iModIntro; iApply (internal_eq_iff with "Hγφ").
+      rewrite later_intuitionistically.
+    - iIntros "!>"; iApply (internal_eq_iff with "(Hγφ [#//] [#//])").
+      by iApply "HLT".
     - iApply "HTU" => //.
-      by repeat iModIntro; iApply (internal_eq_iff with "Hγφ").
+      by iApply (internal_eq_iff with "(Hγφ [#//] [#//])").
   Qed.
 
   Lemma D_Typ_Concr Γ T s σ l:
