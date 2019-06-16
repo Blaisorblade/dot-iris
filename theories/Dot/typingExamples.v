@@ -6,6 +6,7 @@ From D Require Import tactics.
 From D.Dot Require Import syn.
 From stdpp Require Import strings.
 
+Import field_lookup.
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
 
