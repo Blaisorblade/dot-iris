@@ -1,6 +1,5 @@
 From iris.program_logic Require Import language ectx_language.
 From D.Dot Require Import syn.
-Import field_lookup.
 
 Implicit Types e : tm.
 

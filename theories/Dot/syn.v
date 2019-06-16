@@ -350,40 +350,39 @@ Instance hsubst_lemmas_ctx : HSubstLemmas vl ctx := _.
 Instance inh_label : Inhabited label := _.
 Instance hsubst_lemmas_dms : HSubstLemmas vl dms := _.
 
-Module field_lookup.
-  (** Substitute object inside itself (to give semantics to the "self"
-      variable). To use when descending under the [vobj] binder. *)
-  Definition selfSubst ds: dms := ds.|[vobj ds/].
+(** Substitute object inside itself (to give semantics to the "self"
+    variable). To use when descending under the [vobj] binder. *)
+Definition selfSubst ds: dms := ds.|[vobj ds/].
 
-  Definition objLookup v (l: label) d: Prop :=
-    ∃ ds, v = vobj ds ∧ (dms_lookup l (selfSubst ds)) = Some d.
-  Notation "v @ l ↘ d" := (objLookup v l d) (at level 20).
+Definition objLookup v (l: label) d: Prop :=
+  ∃ ds, v = vobj ds ∧ (dms_lookup l (selfSubst ds)) = Some d.
 
-  (** Instead of letting obj_opens_to autounfold,
-      provide tactics to show it's deterministic and so on. *)
+(* Precedence: tighter than negation and conjunction *)
+Notation "v @ l ↘ d" := (objLookup v l d) (at level 74).
 
-  (** Rewrite v ↗ ds to vobj ds' ↗ ds. *)
-  Ltac simplOpen ds :=
-    lazymatch goal with
-    | H: ?v @ ?l ↘ ?d |-_=>
-      inversion H as (ds & -> & _)
-    end.
+(** Instead of letting obj_opens_to autounfold,
+    provide tactics to show it's deterministic and so on. *)
 
-  (** Determinacy of obj_opens_to. *)
-  Lemma objLookupDet v l d1 d2: v @ l ↘ d1 -> v @ l ↘ d2 -> d1 = d2.
-  Proof. rewrite /objLookup => *; ev. by simplify_eq. Qed.
-  Ltac objLookupDet :=
-    lazymatch goal with
-    | H1: ?v @ ?l ↘ ?d1, H2: ?v @ ?l ↘ ?d2 |- _=>
-      have ?: d2 = d1 by [eapply objLookupDet; eassumption]; simplify_eq
-    end.
+(** Rewrite v ↗ ds to vobj ds' ↗ ds. *)
+Ltac simplOpen ds :=
+  lazymatch goal with
+  | H: ?v @ ?l ↘ ?d |-_=>
+    inversion H as (ds & -> & _)
+  end.
 
-End field_lookup.
+(** Determinacy of obj_opens_to. *)
+Lemma objLookupDet v l d1 d2: v @ l ↘ d1 -> v @ l ↘ d2 -> d1 = d2.
+Proof. rewrite /objLookup => *; ev. by simplify_eq. Qed.
+Ltac objLookupDet :=
+  lazymatch goal with
+  | H1: ?v @ ?l ↘ ?d1, H2: ?v @ ?l ↘ ?d2 |- _=>
+    have ?: d2 = d1 by [eapply objLookupDet; eassumption]; simplify_eq
+  end.
+
 From iris.program_logic Require ectx_language ectxi_language.
 
 (** Instantiating iris with Dot *)
 Module lang.
-Import field_lookup.
 Import ectxi_language.
 
 Definition to_val (t: tm) : option vl :=
