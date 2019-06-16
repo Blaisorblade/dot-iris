@@ -9,10 +9,21 @@ Require Import Program.
 Import uPred.
 
 From D Require Import prelude iris_prelude asubst_base asubst_intf dlang.
+From Coq Require ProofIrrelevance.
+
+Module Type SortsIntf2 (values: Values).
+Import values.
+Include (SortsIntf values).
+End SortsIntf2.
 
 Module OLty (values: Values) (sorts: SortsIntf values).
 Import values sorts.
-Notation envD Σ := (vls -d> vl -d> iProp Σ).
+(* Test that this interface works. *)
+(* Module M <: SortsIntf2 values := SortsLemmas values. *)
+(* Include SortsLemmas values. *)
+
+Notation envD Σ := ((var -> vl) -d> vl -d> iProp Σ).
+
 Section olty_limit_preserving.
   Context `{Σ : gFunctors}.
 
@@ -108,6 +119,87 @@ Section olty_ofe.
     move: τ => []?????/=.
     apply: intuitionistic_intuitionistically.
   Qed.
+
+  Global Instance ids_envD : Ids (envD Σ) := λ _, inhabitant.
+  Global Instance rename_envD : Rename (envD Σ) :=
+    λ r φ ρ, φ (r >>> ρ).
+  Global Instance hsubst_envD : HSubst vl (envD Σ) :=
+    λ sb φ ρ, φ (sb >> ρ).
+
+  Ltac renLemmas_envD :=
+    hnf; rewrite /hsubst /hsubst_envD => /= *;
+    try (apply functional_extensionality_dep => ?); by asimpl.
+
+  Global Instance HSubstLemmas_envD : HSubstLemmas vl (envD Σ).
+  Proof.
+    split => //; renLemmas_envD.
+  Qed.
+
+  (*
+    Since substitution lemmas don't use setoids,
+    [HSubstLemmas vl (olty Σ)] requires proof irrelevance.
+   *)
+
+  Lemma olty_eq τ1 τ2: olty_car τ1 = olty_car τ2 → τ1 = τ2.
+  Proof.
+    move: τ1 τ2 => [φ1 ??] [φ2 ??]; rewrite /olty_car.
+    destruct 1. f_equal; exact: ProofIrrelevance.proof_irrelevance.
+  Qed.
+
+  Global Instance ids_olty : Ids (olty Σ) := λ _, inhabitant.
+  Global Program Instance rename_olty : Rename (olty Σ) :=
+    λ r τ, Olty (rename r (olty_car τ)) _.
+  Next Obligation. move=>??. exact: olty_v_closed. Qed.
+  Global Program Instance hsubst_olty : HSubst vl (olty Σ) :=
+    λ sb τ, Olty ((olty_car τ).|[sb]) (_ (olty_car τ).|[sb]).
+  Next Obligation. move=>??. exact: olty_v_closed. Qed.
+
+  Global Instance hsubstLemmas_olty : HSubstLemmas vl (olty Σ).
+  Proof.
+    split=> [s|??|?? s]; apply olty_eq => //; case: s => [φ??];
+    rewrite /hsubst /hsubst_olty /olty_car.
+    all: trivial using hsubst_id, id_hsubst, hsubst_comp.
+  Qed.
+
+(* Global Instance rename_olty2 : Rename (olty Σ) :=
+    λ r τ, Olty (λ ρ, τ (r >>> ρ)) (λ ρ, olty_v_closed τ _).
+  Global Instance hsubst_olty2 : HSubst vl (olty Σ) :=
+    λ sb τ, Olty (λ ρ, τ (sb >> ρ)) (λ ρ, olty_v_closed τ _).
+  Global Instance HSubstLemmas_olty2 : HSubstLemmas vl (olty Σ).
+  Proof.
+    split=> [s|??|?? s]; apply olty_eq => //; case: s => [φ??];
+    (apply functional_extensionality_dep => ?);
+    rewrite /hsubst /hsubst_olty2 /olty_car /=.
+    all: by asimpl.
+  Qed. *)
+
+  Lemma envD_weaken ρ1 ρ2 ρ3 φ :
+    φ.|[upn (length ρ1) (ren (+ length ρ2))] (to_subst (ρ1 ++ ρ2 ++ ρ3))
+    = φ (to_subst (ρ1 ++ ρ3)).
+  Proof. rewrite /hsubst_envD /hsubst to_subst_weaken //. Qed.
+
+  Lemma envD_subst_up ρ1 ρ2 v φ :
+    φ.|[upn (length ρ1) (v.[ren (+length ρ2)] .: ids)] (to_subst (ρ1 ++ ρ2))
+    ≡ φ (to_subst (ρ1 ++ v :: ρ2)).
+  Proof. rewrite /hsubst_envD /hsubst to_subst_up //. Qed.
+
+  Lemma olty_weaken ρ1 ρ2 ρ3 τ :
+    τ.|[upn (length ρ1) (ren (+ length ρ2))] (to_subst (ρ1 ++ ρ2 ++ ρ3))
+    = τ (to_subst (ρ1 ++ ρ3)).
+  Proof.
+    (* rewrite /hsubst_olty /hsubst_envD /hsubst /= to_subst_weaken //. *)
+    rewrite [@hsubst _ _ hsubst_olty]/hsubst /hsubst_olty /=.
+    exact: envD_weaken.
+  Qed.
+
+  Lemma olty_subst_up ρ1 ρ2 v τ :
+    τ.|[upn (length ρ1) (v.[ren (+length ρ2)] .: ids)] (to_subst (ρ1 ++ ρ2))
+    ≡ τ (to_subst (ρ1 ++ v :: ρ2)).
+  Proof.
+    (* rewrite /hsubst_olty /hsubst_envD /hsubst /= to_subst_up //. *)
+    rewrite [@hsubst _ _ hsubst_olty]/hsubst /hsubst_olty /=.
+    exact: envD_subst_up.
+  Qed.
 End olty_ofe.
 Arguments oltyC : clear implicits.
 
@@ -146,7 +238,9 @@ Class Closeable s := nclosed_s : s → nat → Prop.
 Instance closeable_sort s `{Sort s} : Closeable s := nclosed.
 Instance closeable_vl : Closeable vl := nclosed_vl.
 
-Implicit Types (v: vl) (ρ vs : vls).
+Definition env := var -> vl.
+
+Implicit Types (v: vl) (vs : vls) (ρ : env).
 Implicit Types (Σ : gFunctors).
 
 Definition test_interp_expr2 `{dlangG Σ} (φ : olty Σ) :=
@@ -160,32 +254,70 @@ Notation ctx := (list ty).
 
 Notation "⟦ T ⟧" := (oty_interp T).
 
-Fixpoint env_oltyped (Γ : sCtx) ρ : iProp Σ :=
-  match Γ, ρ with
-  | φ :: Γ', v :: ρ => env_oltyped Γ' ρ ∗ φ (v::ρ) v
+Fixpoint env_oltyped' (Γ : sCtx) (ρ : var → vl) : iProp Σ :=
+  match Γ with
+  | φ :: Γ' => env_oltyped' Γ' ((+1) >>> ρ) ∗ φ ρ (ρ 0)
+  | nil => True
+  end%I.
+
+Lemma env_oltyped_cl_ρ Γ ρ:
+  env_oltyped' Γ ρ -∗ ⌜ nclosed_sub (length Γ) 0 ρ ⌝.
+Proof.
+  elim: Γ ρ => [|φ Γ IHΓ] ρ /=. by iIntros "!%" (???); lia.
+  rewrite IHΓ; iDestruct 1 as (Hf) "Hρ0"; iIntros ([|i] Hle).
+  - by iApply olty_v_closed.
+  - iIntros "!%". apply Hf. lia.
+Qed.
+
+Lemma env_oltyped_cl_app `{Sort X} (x : X) Γ ρ:
+  env_oltyped' Γ ρ -∗
+  ⌜ nclosed x (length Γ) ⌝ → ⌜ nclosed x.|[ρ] 0 ⌝.
+Proof.
+  rewrite env_oltyped_cl_ρ. iIntros "!%".
+  exact: nclosed_sub_app.
+Qed.
+
+Lemma env_oltyped_cl_app_vl v Γ ρ:
+  env_oltyped' Γ ρ -∗
+  ⌜ nclosed_vl v (length Γ) ⌝ → ⌜ nclosed_vl v.[ρ] 0 ⌝.
+Proof.
+  rewrite env_oltyped_cl_ρ. iIntros "!%".
+  exact: nclosed_sub_app_vl.
+Qed.
+
+Fixpoint env_oltyped (Γ : sCtx) vs : iProp Σ :=
+  match Γ, vs with
+  | φ :: Γ', v :: vs => env_oltyped Γ' vs ∗ φ (v .: to_subst vs) v
   | nil, nil => True
   | _, _ => False
   end%I.
-Instance env_oltyped_persistent (Γ : sCtx) ρ: Persistent (env_oltyped Γ ρ).
-Proof. elim: Γ ρ => [|τ Γ IHΓ] [|v ρ] /=; apply _. Qed.
+Instance env_oltyped_persistent (Γ : sCtx) vs: Persistent (env_oltyped Γ vs).
+Proof. elim: Γ vs => [|τ Γ IHΓ] [|v vs] /=; apply _. Qed.
+
+Lemma env_oltyped_transl Γ vs :
+  env_oltyped Γ vs -∗ env_oltyped' Γ (to_subst vs).
+Proof.
+  elim: Γ vs => [|Γ φ IHΓ] [|v vs] /=;
+    by [|iIntros "[]"|asimpl; rewrite IHΓ].
+Qed.
 
 Definition oty_interp_env (Γ : ctx) : sCtx := map oty_interp Γ.
 Definition env_typed (Γ : ctx) : vls -d> iProp Σ := env_oltyped (oty_interp_env Γ).
 
-Instance env_typed_persistent `{OTyInterp ty Σ} Γ ρ : Persistent (env_typed Γ ρ) := env_oltyped_persistent _ _.
+Instance env_typed_persistent `{OTyInterp ty Σ} Γ vs : Persistent (env_typed Γ vs) := env_oltyped_persistent _ _.
 
-Definition judgment Σ s : Type := option s * (vls -d> option s -d> iProp Σ).
-Definition nosubj_judgment Σ : Type := vls -d> iProp Σ.
-Definition subj_judgment Σ s : Type := s * (vls -d> s -d> iProp Σ).
+Definition judgment Σ s : Type := option s * (env -d> option s -d> iProp Σ).
+Definition nosubj_judgment Σ : Type := env -d> iProp Σ.
+Definition subj_judgment Σ s : Type := s * (env -d> s -d> iProp Σ).
 Program Definition subj_judgment_to_judgment {Σ s} : subj_judgment Σ s → judgment Σ s :=
   λ '(x, φ), (Some x, λ ρ, from_option (φ ρ) False)%I.
 
 Definition judgment_holds `{Closeable s} (Γ : sCtx) (J : judgment Σ s): iProp Σ :=
-  (⌜ from_option (flip nclosed_s (length Γ)) True (fst J) ⌝ ∗ □∀ ρ, env_oltyped Γ ρ → (snd J) ρ (fst J))%I.
+  (⌜ from_option (flip nclosed_s (length Γ)) True (fst J) ⌝ ∗ □∀ vs, env_oltyped Γ vs → (snd J) (to_subst vs) (fst J))%I.
 Notation "Γ ⊨ J" := (judgment_holds Γ J) (at level 74, J at next level).
 Global Arguments judgment_holds /.
 
-Program Definition ivtp (φ: olty Σ) v : judgment Σ vl := subj_judgment_to_judgment (v, φ).
+Program Definition ivtp (φ : olty Σ) v : judgment Σ vl := subj_judgment_to_judgment (v, φ).
 Global Arguments ivtp /.
 
 (* DOT/D<: judgments are indexed by [⋅]. *)
@@ -213,7 +345,8 @@ Program Definition step_indexed_ivstp φ1 i1 φ2 i2 := nosubj_judgment_to_judgme
   (λ ρ, ∀ v, ⌜ nclosed_vl v 0 ⌝ → (▷^i1 φ1 ρ v) → ▷^i2 φ2 ρ v)%I.
 Notation "[ φ1 , i1 ] <: [ φ2 , i2 ]" := (step_indexed_ivstp φ1 i1 φ2 i2) (at level 73).
 Lemma equiv_vstp Γ (φ1 φ2: olty Σ) i1 i2: (Γ ⊨ [φ1 , i1] <: [φ2 , i2]) ⊣⊢
-    (□∀ ρ v, ⌜ nclosed_vl v 0 ⌝ → env_oltyped Γ ρ → (▷^i1 φ1 ρ v) → ▷^i2 φ2 ρ v)%I.
+    (□∀ vs v, ⌜ nclosed_vl v 0 ⌝ → env_oltyped Γ vs →
+      (▷^i1 φ1 (to_subst vs) v) → ▷^i2 φ2 (to_subst vs) v)%I.
 Proof.
   iSplit; [iIntros "#[_ H] /= !>" (???) "#?" |
     iIntros "#H"; iSplit; first done; iIntros "!>" (?) "#? /="; iIntros (??)].
