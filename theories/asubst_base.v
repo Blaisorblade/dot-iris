@@ -257,22 +257,40 @@ Section to_subst_idsσ_is_id.
   Qed.
 End to_subst_idsσ_is_id.
 
+Definition nclosed_sub n m s :=
+  ∀ i, i < n → nclosed_vl (s i) m.
+Definition nclosed_ren n m (r: var → var) := nclosed_sub n m (ren r).
+
+Lemma compose_sub_closed s s1 s2 i j:
+  nclosed_sub i j s → eq_n_s s1 s2 j → eq_n_s (s >> s1) (s >> s2) i.
+Proof. move => /= Hs Heqs n Hxi. exact: Hs. Qed.
+
+Lemma nclosed_sub_app_vl v s i j:
+  nclosed_sub i j s →
+  nclosed_vl v i → nclosed_vl v.[s] j.
+Proof. move => Hcls Hclv s1 s2 Heqs; asimpl. by eapply Hclv, compose_sub_closed. Qed.
+
+Lemma nclosed_sub_app x s i j:
+  nclosed_sub i j s →
+  nclosed x i → nclosed x.|[s] j.
+Proof. move => Hcls Hclx s1 s2 Heqs; asimpl. by eapply Hclx, compose_sub_closed. Qed.
+
+Lemma nclosed_sub_to_subst j σ: nclosed_σ σ j →
+  nclosed_sub (length σ) j (to_subst σ).
+Proof. move =>???. exact: closed_to_subst. Qed.
+
 Lemma fv_to_subst x σ n:
   nclosed x (length σ) → nclosed_σ σ n →
   nclosed (x.|[to_subst σ]) n.
 Proof.
-  rewrite /nclosed /nclosed_vl => Hclx Hclσ s1 s2 Heqsn /=; asimpl.
-  apply Hclx.
-  intros i Hl; asimpl. exact: closed_to_subst.
+  eauto using nclosed_sub_app, nclosed_sub_to_subst.
 Qed.
 
 Lemma fv_to_subst_vl v σ n:
   nclosed_vl v (length σ) → nclosed_σ σ n →
   nclosed_vl (v.[to_subst σ]) n.
 Proof.
-  rewrite /nclosed /nclosed_vl => Hclv Hclσ s1 s2 Heqsn /=; asimpl.
-  apply Hclv.
-  intros i Hl; asimpl. exact: closed_to_subst.
+  eauto using nclosed_sub_app_vl, nclosed_sub_to_subst.
 Qed.
 
 (** Variants of [fv_to_subst] and [fv_to_subst_vl] for more convenient application. *)
@@ -441,28 +459,11 @@ Qed.
   arbitrary substitutions, not just the ones produced
   by to_subst. Reducing the overlap might be good.
  *)
-Definition nclosed_sub n m s :=
-  ∀ i, i < n → nclosed_vl (s i) m.
-Definition nclosed_ren n m (r: var → var) := nclosed_sub n m (ren r).
-
-Lemma compose_sub_closed s s1 s2 i j:
-  nclosed_sub i j s → eq_n_s s1 s2 j → eq_n_s (s >> s1) (s >> s2) i.
-Proof. move => /= Hs Heqs n Hxi. exact: Hs. Qed.
 
 Lemma nclosed_ren_shift n m j:
   m >= j + n → nclosed_ren n m (+j).
 Proof. move=>???/=; eauto with lia. Qed.
 Hint Resolve nclosed_ren_shift.
-
-Lemma nclosed_sub_app_vl v s i j:
-  nclosed_sub i j s →
-  nclosed_vl v i → nclosed_vl v.[s] j.
-Proof. move => Hcls Hclv s1 s2 Heqs; asimpl. by eapply Hclv, compose_sub_closed. Qed.
-
-Lemma nclosed_sub_app x s i j:
-  nclosed_sub i j s →
-  nclosed x i → nclosed x.|[s] j.
-Proof. move => Hcls Hclx s1 s2 Heqs; asimpl. by eapply Hclx, compose_sub_closed. Qed.
 
 Definition nclosed_sub_shift n m j:
   m >= j + n → nclosed_sub n m (ren (+j)).
