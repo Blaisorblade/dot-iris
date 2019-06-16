@@ -162,7 +162,6 @@ Proof. solve_inv_fv_congruence. Qed.
 Lemma fv_tail l d ds n: nclosed ((l, d) :: ds) n → nclosed ds n.
 Proof. solve_inv_fv_congruence. Qed.
 
-Import field_lookup.
 Lemma nclosed_selfSubst ds n:
   nclosed ds (S n) → nclosed (selfSubst ds) n.
 Proof. move => Hcl. by apply nclosed_subst, fv_vobj. Qed.

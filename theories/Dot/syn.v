@@ -350,7 +350,6 @@ Instance hsubst_lemmas_ctx : HSubstLemmas vl ctx := _.
 Instance inh_label : Inhabited label := _.
 Instance hsubst_lemmas_dms : HSubstLemmas vl dms := _.
 
-Module field_lookup.
 (** Substitute object inside itself (to give semantics to the "self"
     variable). To use when descending under the [vobj] binder. *)
 Definition selfSubst ds: dms := ds.|[vobj ds/].
@@ -379,13 +378,11 @@ Ltac objLookupDet :=
   | H1: ?v @ ?l ↘ ?d1, H2: ?v @ ?l ↘ ?d2 |- _=>
     have ?: d2 = d1 by [eapply objLookupDet; eassumption]; simplify_eq
   end.
-End field_lookup.
 
 From iris.program_logic Require ectx_language ectxi_language.
 
 (** Instantiating iris with Dot *)
 Module lang.
-Import field_lookup.
 Import ectxi_language.
 
 Definition to_val (t: tm) : option vl :=

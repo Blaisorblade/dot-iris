@@ -1,7 +1,6 @@
 From D Require Import tactics.
 From D.Dot Require Import syn synLemmas.
 From iris.program_logic Require Import ectx_language.
-Import field_lookup.
 
 Set Implicit Arguments.
 Implicit Types (T: ty) (v: vl) (t: tm) (d: dm) (ds: dms).
