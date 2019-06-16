@@ -152,6 +152,7 @@ Implicit Types (v w : vl) (ρ : vls) (i j k n : nat) (r : nat → nat).
 Section sort_lemmas.
 Context `{_HsX: Sort X}.
 Implicit Types (x : X) (Γ : list X).
+Set Implicit Arguments.
 
 (* Auxiliary lemma for [length_idsσ]. *)
 Lemma length_idsσr n r: length (idsσ n).|[ren r] = n.
@@ -233,7 +234,7 @@ Section to_subst_idsσ_is_id.
   Qed.
 
   Lemma to_subst_map_commute f n i: i < n → to_subst (map f (idsσ n)) i = f (to_subst (idsσ n) i).
-  Proof. move: (to_subst_map_commute_aux f n i (+0)) => Hgoal. by asimpl in Hgoal. Qed.
+  Proof. move: (@to_subst_map_commute_aux f n i (+0)) => Hgoal. by asimpl in Hgoal. Qed.
 
   Lemma idsσ_eq_ids n: eq_n_s (to_subst (idsσ n)) ids n.
   Proof.
@@ -378,7 +379,7 @@ Proof.
   apply IHσ. solve_inv_fv_congruence_h Hcl.
 Qed.
 
-Definition cl_ρ_fv: ∀ ρ, cl_ρ ρ → nclosed ρ 0 := Forall_to_closed_vls 0.
+Definition cl_ρ_fv: ∀ ρ, cl_ρ ρ → nclosed ρ 0 := @Forall_to_closed_vls 0.
 
 Lemma fv_idsσ n: nclosed (idsσ n) n.
 Proof. apply Forall_to_closed_vls, nclosed_idsσ. Qed.
@@ -440,7 +441,6 @@ Qed.
   arbitrary substitutions, not just the ones produced
   by to_subst. Reducing the overlap might be good.
  *)
-Set Implicit Arguments.
 Definition nclosed_sub n m s :=
   ∀ i, i < n → nclosed_vl (s i) m.
 Definition nclosed_ren n m (r: var → var) := nclosed_sub n m (ren r).

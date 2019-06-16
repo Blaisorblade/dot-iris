@@ -168,8 +168,8 @@ Section Sec.
     iSplit.
     {
       iDestruct (interp_env_props with "HG") as %[Hclp Hlen]; rewrite <- Hlen in *.
-      iPureIntro.
-      apply (fv_to_subst_vl (vabs _)); eauto using fv_vabs.
+      apply fv_vabs in Hcle.
+      iPureIntro; exact: (fv_to_subst_vl Hcle).
     }
     iExists _; iSplitL; first done.
     iIntros "!> !>" (v) "#Hv". iSpecialize ("HeT" $! (v :: ρ)).

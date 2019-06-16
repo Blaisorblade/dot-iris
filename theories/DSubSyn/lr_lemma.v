@@ -77,8 +77,8 @@ Section Sec.
     iSplit.
     {
       iDestruct (interp_env_props with "HG") as %[Hclp Hlen]; rewrite <- Hlen in *.
-      pose proof (fv_to_subst (tv (vabs e)) ρ) as Hfv.
-      eauto 6 using fv_tv_inv, fv_vabs, fv_tv.
+      apply fv_vabs in Hcle.
+      iPureIntro; exact: (fv_to_subst_vl Hcle).
     }
     iExists _; iSplitL => //.
     iIntros "!> !>" (v) "#Hv". iSpecialize ("HeT" $! (v :: ρ)).
@@ -148,7 +148,7 @@ Section Sec.
     rewrite -wp_value; unfold_interp.
     iDestruct (interp_env_props with "HG") as %[Hclp Hlen]; rewrite <- Hlen in *.
     iSplit. {
-      iPureIntro; by apply (fv_to_subst_vl (vty T) ρ).
+      iPureIntro. exact: (fv_to_subst_vl HclV).
     }
     iExists (λ v, ⟦ T.|[to_subst ρ ] ⟧ [] v)%I.
     iSplit. by iExists (T.|[to_subst ρ]).
@@ -180,7 +180,7 @@ Section Sec.
     rewrite -wp_value; unfold_interp.
     iDestruct (interp_env_props with "HG") as %[Hclp Hlen]; rewrite <- Hlen in *.
     iSplit. {
-      iPureIntro; by apply (fv_to_subst_vl (vty T) ρ).
+      iPureIntro; exact: (fv_to_subst_vl HclV).
     }
     iExists (λ v, ⟦ T.|[to_subst ρ ] ⟧ [] v)%I.
     iSplit. by iExists (T.|[to_subst ρ ]).
