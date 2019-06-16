@@ -68,11 +68,14 @@ Check ν {@ val "a" = vnat 0 ; type "A" = (σ1 ; s1) }.
 (*                                      (format "v  @  l1  @  ..  @  l2  ;  l", at level 69, l1, l2 at level 60). *)
 (* Check (TSel (pself (pself (pv (var_vl 0)) 1) 2) 3). *)
 (* Check (var_vl 0 @ 1 @ 2 ; 3). *)
+
 Notation "v @ l1 @ .. @ l2" := (pself .. (pself (pv v) l1) .. l2)
                                      (format "v  @  l1  @  ..  @  l2", at level 69, l1, l2 at level 60).
+
 Notation "p @; l" := (TSel p l) (at level 71).
 Check (pv (var_vl 0) @; "A").
 Check (pself (pself (pv (var_vl 0)) "A") "B" @; "C").
+Check (var_vl 0 @ "A").
 Check (var_vl 0 @ "A" @ "B" @; "C").
 
 From D.Dot Require Import typing.
