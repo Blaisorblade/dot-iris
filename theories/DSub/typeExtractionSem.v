@@ -24,7 +24,7 @@ Section interp_equiv.
   (** We can relate the  ⟦ T ⟧ with the naive stamp semantics at all environments. *)
   Lemma extraction_envD_equiv_naive g s σ T n ρ v:
     T ~[ n ] (g, (s, σ)) →
-    (⟦ T ⟧ ρ v ↔ interp_extractedTy_naive (g, (s, σ)) ρ v)%I.
+    ⟦ T ⟧ ρ v ≡ interp_extractedTy_naive (g, (s, σ)) ρ v.
   Proof.
     cbn; intros (T' & -> & <- & HclT & HclT').
     iSplit; iIntros "H"; [| iDestruct "H" as (T'' Heq) "?" ]; naive_solver.
@@ -47,7 +47,7 @@ Section interp_equiv.
         ⟦ T ⟧ ≈[ n ] ⟦ T' ⟧ [ σ ])%I.
   Proof.
     iIntros ((T' & -> & <- & HclT & HclT')). iExists _; iSplit => //.
-    iIntros (ρ v <- Hclρ). by rewrite interp_subst_commute /subst_sigma.
+    iIntros (ρ v <- Hclρ). by rewrite interp_subst_commute.
   Qed.
 
   (** envD_equiv commutes with substitution. *)
@@ -60,16 +60,15 @@ Section interp_equiv.
     ⟦ T1 ⟧ [ σ1.|[to_subst ξ] ] ≈[ n ] ⟦ T2 ⟧ [ σ2 ])%I.
   Proof.
     rewrite /interp_extractedTy; iIntros ((T1 & -> & Heq1 & Hclσ1 & HclT1) (T2 & -> & Heq2 & Hclσ2 & HclT2) Hlenξ Hclξ).
-    iExists _, _; repeat iSplit => //; iIntros (ρ v Hlenρ Hclρ) "/="; subst.
-    assert (Hclσ1ξ: nclosed_σ σ1.|[to_subst ξ] (length ρ)). by apply nclosed_σ_to_subst.
-    assert (Hrew: T2.|[to_subst σ2.|[to_subst ρ]] =
-                  T1.|[to_subst σ1.|[to_subst ξ].|[to_subst ρ]]). by repeat erewrite subst_compose;
-                                                                    rewrite ?map_length ?Heq1 ?Heq2.
-    rewrite -(interp_subst_all _ T1) -?(interp_subst_all _ T2) ?Hrew //; by apply nclosed_σ_to_subst.
+    iExists _, _; repeat iSplit => //; iIntros (ρ v Hlenρ Hclρ) "/= !%"; subst.
+    have Hclσ1ξ: nclosed_σ σ1.|[to_subst ξ] (length ρ). exact: nclosed_σ_to_subst.
+    have Hrew: T2.|[to_subst σ2.|[to_subst ρ]] = T1.|[to_subst σ1.|[to_subst ξ].|[to_subst ρ]].
+    by erewrite !subst_compose; rewrite ?map_length ?Heq1 ?Heq2.
+    rewrite -(interp_subst_all _ T1) -?(interp_subst_all _ T2) ?Hrew //; exact: nclosed_σ_to_subst.
   Qed.
 
   Lemma alloc_sp T: (|==> ∃ γ, γ ⤇ ty_interp T)%I.
-  Proof. by apply saved_interp_alloc. Qed.
+  Proof. exact: saved_interp_alloc. Qed.
 
   Lemma transferOne_base_inv gs s T:
       gs !! s = None → (allGs gs ==∗ ∃ gs', allGs gs' ∗ s ↝ ⟦ T ⟧ ∗ ⌜ gdom gs' ≡ gdom gs ∪ {[s]} ⌝)%I.
@@ -85,7 +84,7 @@ Section interp_equiv.
   (* To give a definitive version of wellMapped, we need stampHeap to be stored in a resource. Here it is: *)
   Definition wellMapped g : iProp Σ :=
     (□∀ s T,
-        ⌜ g !! s = Some T⌝ → ∃ φ, s ↝ φ ∧ ⟦ T ⟧ ≡ φ)%I.
+        ⌜ g !! s = Some T⌝ → ∃ φ, s ↝ φ ∧ ⌜ ⟦ T ⟧ = φ ⌝)%I.
   Instance: Persistent (wellMapped g).
   Proof. apply _. Qed.
 
@@ -126,9 +125,10 @@ Section interp_equiv.
           split; eapply not_elem_of_dom =>//. apply Hdom. set_solver.
       + iMod ("HH" with "Hwm Hgs") as (gs'') "[H1 [H2 %]]". move: H => /= Hgs''.
         iExists gs''. iFrame; iPureIntro.
-        rewrite dom_insert Hgs'' Hgs'. (* set_solver very slow, so: *)
-        (* clear; set_solver. (* 0.2 s *) *)
-        by rewrite -union_assoc [dom _ _ ∪ {[_]}]union_comm.
+        (* code I quoted in https://gitlab.mpi-sws.org/iris/stdpp/issues/29 *)
+        (* set_solver very slow, so: *)
+        rewrite Hgs'' Hgs' dom_insert. by set_solver-.
+        (* by rewrite -union_assoc [dom _ _ ∪ {[_]}]union_comm. *)
   Qed.
 
   Lemma transfer g gs: (∀ s, s ∈ gdom g → gs !! s = None) →
