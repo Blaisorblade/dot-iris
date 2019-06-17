@@ -49,4 +49,17 @@ Module Type SortsIntf (values: Values).
   Parameter to_subst_up : ∀ ρ1 ρ2 v,
     upn (length ρ1) (v.[ren (+length ρ2)] .: ids) >> to_subst (ρ1 ++ ρ2) =
     to_subst (ρ1 ++ v :: ρ2).
+
+  Definition nclosed_sub n m s :=
+    ∀ i, i < n → nclosed_vl (s i) m.
+  Parameter compose_sub_closed : ∀ s s1 s2 i j,
+    nclosed_sub i j s → eq_n_s s1 s2 j → eq_n_s (s >> s1) (s >> s2) i.
+
+  Parameter nclosed_sub_app_vl : ∀ v s i j,
+    nclosed_sub i j s →
+    nclosed_vl v i → nclosed_vl v.[s] j.
+
+  Parameter nclosed_sub_app : ∀ `{Ids X} `{HSubst vl X} `{!HSubstLemmas vl X} (x : X) s i j,
+    nclosed_sub i j s →
+    nclosed x i → nclosed x.|[s] j.
 End SortsIntf.
