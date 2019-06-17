@@ -65,18 +65,20 @@ Notation stamps_ty n T__u g T__s := (unstamp_ty g T__s = T__u ∧ is_unstamped_t
 (* Proof. pose proof (stamped_idsσ_ren g m n (+0)) as H. by asimpl in H. Qed. *)
 
 (* Core cases of existence of translations. *)
-Lemma exists_stamped_vty T n g: is_unstamped_vl (vty T) → nclosed_vl (vty T) n → { v' & { g' | stamps_vl n (vty T) g' v' ∧ g ⊆ g' } }.
+Lemma exists_stamped_vty T T' n g: stamps_ty n T g T' → is_unstamped_vl (vty T) → nclosed_vl (vty T) n → { v' & { g' | stamps_vl n (vty T) g' v' ∧ g ⊆ g' } }.
 (* Lemma exists_stamped_vty T n g: is_unstamped_ty T → nclosed T n → ∃ v' g', stamps_vl n (vty T) g' v' ∧ g ⊆ g'. *)
 Proof.
-  intros Hus Hcl.
-  pose proof (ex_fresh_stamp_strong g T) as [s []].
+  intros Hs Hus Hcl.
+  pose proof (ex_fresh_stamp_strong g T') as [s []].
   exists (vstamp (idsσ n) s); rewrite /=; asimpl.
-  exists (<[s:=T]> g).
+  exists (<[s:=T']> g).
   have HclT: nclosed T n. by move: Hcl; solve_inv_fv_congruence.
-  split_and!; try eapply @trav_vstamp with (T' := T) (ts' := (n, <[s := T]> g));
+  have HclT': nclosed T' n. by case: Hs => [_[_ /is_stamped_nclosed_ty]].
+  split_and!; try eapply @trav_vstamp with (T' := T') (ts' := (n, <[s := T']> g));
     try split_and!;
     rewrite ?lookup_insert //= ?closed_subst_idsρ ?length_idsσ //.
   admit.
+  eapply (@is_stamped_mono_ty g) => //. by case: Hs => [_[_ ?]].
   eapply is_stamped_idsσ; lia.
 Admitted.
 
