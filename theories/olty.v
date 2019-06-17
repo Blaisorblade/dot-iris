@@ -200,7 +200,44 @@ Section olty_ofe.
     rewrite [@hsubst _ _ hsubst_olty]/hsubst /hsubst_olty /=.
     exact: envD_subst_up.
   Qed.
+
+  Definition sCtx := list (olty Σ).
+
+  Fixpoint env_oltyped (Γ : sCtx) (ρ : var → vl) : iProp Σ :=
+    match Γ with
+    | φ :: Γ' => env_oltyped Γ' ((+1) >>> ρ) ∗ φ ρ (ρ 0)
+    | nil => True
+    end%I.
+
+  Lemma env_oltyped_cl_ρ Γ ρ:
+    env_oltyped Γ ρ -∗ ⌜ nclosed_sub (length Γ) 0 ρ ⌝.
+  Proof.
+    elim: Γ ρ => [|φ Γ IHΓ] ρ /=. by iIntros "!%" (???); lia.
+    rewrite IHΓ; iDestruct 1 as (Hf) "Hρ0"; iIntros ([|i] Hle).
+    - by iApply olty_v_closed.
+    - iIntros "!%". apply Hf. lia.
+  Qed.
+
+  Lemma env_oltyped_cl_app `{Sort X} (x : X) Γ ρ:
+    env_oltyped Γ ρ -∗
+    ⌜ nclosed x (length Γ) ⌝ → ⌜ nclosed x.|[ρ] 0 ⌝.
+  Proof.
+    rewrite env_oltyped_cl_ρ. iIntros "!%".
+    exact: nclosed_sub_app.
+  Qed.
+
+  Lemma env_oltyped_cl_app_vl v Γ ρ:
+    env_oltyped Γ ρ -∗
+    ⌜ nclosed_vl v (length Γ) ⌝ → ⌜ nclosed_vl v.[ρ] 0 ⌝.
+  Proof.
+    rewrite env_oltyped_cl_ρ. iIntros "!%".
+    exact: nclosed_sub_app_vl.
+  Qed.
+
+  Global Instance env_oltyped_persistent (Γ : sCtx) vs: Persistent (env_oltyped Γ vs).
+  Proof. elim: Γ vs => [|τ Γ IHΓ] vs /=; apply _. Qed.
 End olty_ofe.
+
 Arguments oltyC : clear implicits.
 
 (* Different from normal TyInterp. Better? *)
@@ -248,63 +285,31 @@ Definition test_interp_expr2 `{dlangG Σ} (φ : olty Σ) :=
 
 Section judgments.
 Context `{dlangG Σ} `{OTyInterp ty Σ}.
-
-Notation sCtx := (list (olty Σ)).
 Notation ctx := (list ty).
 
 Notation "⟦ T ⟧" := (oty_interp T).
 
-Fixpoint env_oltyped' (Γ : sCtx) (ρ : var → vl) : iProp Σ :=
-  match Γ with
-  | φ :: Γ' => env_oltyped' Γ' ((+1) >>> ρ) ∗ φ ρ (ρ 0)
-  | nil => True
-  end%I.
 
-Lemma env_oltyped_cl_ρ Γ ρ:
-  env_oltyped' Γ ρ -∗ ⌜ nclosed_sub (length Γ) 0 ρ ⌝.
-Proof.
-  elim: Γ ρ => [|φ Γ IHΓ] ρ /=. by iIntros "!%" (???); lia.
-  rewrite IHΓ; iDestruct 1 as (Hf) "Hρ0"; iIntros ([|i] Hle).
-  - by iApply olty_v_closed.
-  - iIntros "!%". apply Hf. lia.
-Qed.
-
-Lemma env_oltyped_cl_app `{Sort X} (x : X) Γ ρ:
-  env_oltyped' Γ ρ -∗
-  ⌜ nclosed x (length Γ) ⌝ → ⌜ nclosed x.|[ρ] 0 ⌝.
-Proof.
-  rewrite env_oltyped_cl_ρ. iIntros "!%".
-  exact: nclosed_sub_app.
-Qed.
-
-Lemma env_oltyped_cl_app_vl v Γ ρ:
-  env_oltyped' Γ ρ -∗
-  ⌜ nclosed_vl v (length Γ) ⌝ → ⌜ nclosed_vl v.[ρ] 0 ⌝.
-Proof.
-  rewrite env_oltyped_cl_ρ. iIntros "!%".
-  exact: nclosed_sub_app_vl.
-Qed.
-
-Fixpoint env_oltyped (Γ : sCtx) vs : iProp Σ :=
+Fixpoint env_oltyped' (Γ : sCtx) vs : iProp Σ :=
   match Γ, vs with
-  | φ :: Γ', v :: vs => env_oltyped Γ' vs ∗ φ (v .: to_subst vs) v
+  | φ :: Γ', v :: vs => env_oltyped' Γ' vs ∗ φ (v .: to_subst vs) v
   | nil, nil => True
   | _, _ => False
   end%I.
-Instance env_oltyped_persistent (Γ : sCtx) vs: Persistent (env_oltyped Γ vs).
+Instance env_oltyped_persistent' (Γ : sCtx) vs: Persistent (env_oltyped' Γ vs).
 Proof. elim: Γ vs => [|τ Γ IHΓ] [|v vs] /=; apply _. Qed.
 
 Lemma env_oltyped_transl Γ vs :
-  env_oltyped Γ vs -∗ env_oltyped' Γ (to_subst vs).
+  env_oltyped' Γ vs -∗ env_oltyped Γ (to_subst vs).
 Proof.
   elim: Γ vs => [|Γ φ IHΓ] [|v vs] /=;
     by [|iIntros "[]"|asimpl; rewrite IHΓ].
 Qed.
 
 Definition oty_interp_env (Γ : ctx) : sCtx := map oty_interp Γ.
-Definition env_typed (Γ : ctx) : vls -d> iProp Σ := env_oltyped (oty_interp_env Γ).
+Definition env_typed (Γ : ctx) : vls -d> iProp Σ := env_oltyped' (oty_interp_env Γ).
 
-Instance env_typed_persistent `{OTyInterp ty Σ} Γ vs : Persistent (env_typed Γ vs) := env_oltyped_persistent _ _.
+Instance env_typed_persistent' `{OTyInterp ty Σ} Γ vs : Persistent (env_typed Γ vs) := env_oltyped_persistent' _ _.
 
 Definition judgment Σ s : Type := option s * (env -d> option s -d> iProp Σ).
 Definition nosubj_judgment Σ : Type := env -d> iProp Σ.
@@ -313,7 +318,7 @@ Program Definition subj_judgment_to_judgment {Σ s} : subj_judgment Σ s → jud
   λ '(x, φ), (Some x, λ ρ, from_option (φ ρ) False)%I.
 
 Definition judgment_holds `{Closeable s} (Γ : sCtx) (J : judgment Σ s): iProp Σ :=
-  (⌜ from_option (flip nclosed_s (length Γ)) True (fst J) ⌝ ∗ □∀ vs, env_oltyped Γ vs → (snd J) (to_subst vs) (fst J))%I.
+  (⌜ from_option (flip nclosed_s (length Γ)) True (fst J) ⌝ ∗ □∀ ρ, env_oltyped Γ ρ → (snd J) ρ (fst J))%I.
 Notation "Γ ⊨ J" := (judgment_holds Γ J) (at level 74, J at next level).
 Global Arguments judgment_holds /.
 
@@ -345,8 +350,8 @@ Program Definition step_indexed_ivstp φ1 i1 φ2 i2 := nosubj_judgment_to_judgme
   (λ ρ, ∀ v, ⌜ nclosed_vl v 0 ⌝ → (▷^i1 φ1 ρ v) → ▷^i2 φ2 ρ v)%I.
 Notation "[ φ1 , i1 ] <: [ φ2 , i2 ]" := (step_indexed_ivstp φ1 i1 φ2 i2) (at level 73).
 Lemma equiv_vstp Γ (φ1 φ2: olty Σ) i1 i2: (Γ ⊨ [φ1 , i1] <: [φ2 , i2]) ⊣⊢
-    (□∀ vs v, ⌜ nclosed_vl v 0 ⌝ → env_oltyped Γ vs →
-      (▷^i1 φ1 (to_subst vs) v) → ▷^i2 φ2 (to_subst vs) v)%I.
+    (□∀ ρ v, ⌜ nclosed_vl v 0 ⌝ → env_oltyped Γ ρ →
+      (▷^i1 φ1 ρ v) → ▷^i2 φ2 ρ v)%I.
 Proof.
   iSplit; [iIntros "#[_ H] /= !>" (???) "#?" |
     iIntros "#H"; iSplit; first done; iIntros "!>" (?) "#? /="; iIntros (??)].

@@ -5,8 +5,7 @@ From D Require Import tactics swap_later_impl proofmode_extra locAsimpl.
 From D.Dot Require Import unary_lr unary_lr_binding synLemmas rules
   lr_lemma lr_lemma_nobinding lr_lemmasDefs typeExtractionSem.
 Implicit Types
-         (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
-         (Γ : ctx) (ρ : vls).
+         (v: vl) (e: tm) (d: dm) (ds: dms) (p : path).
 
 Implicit Types (Σ : gFunctors).
 
@@ -16,15 +15,29 @@ Module SemTypes.
 Import olty.
 Include OLty syn syn.
 
+  Class dlangG Σ := DLangG {
+    dlangG_savior :> savedInterpG Σ (var → vl) vl;
+    dlangG_interpNames : gen_iheapG stamp gname Σ;
+  }.
+
+  Instance dlangG_irisG `{dlangG Σ} : irisG dlang_lang Σ := {
+    state_interp σ κs _ := True%I;
+    fork_post _ := True%I;
+  }.
 Section SemTypes.
   Context `{HdotG: dlangG Σ}.
-  Implicit Types (φ: olty Σ).
+  Implicit Types (φ: olty Σ) (τ : vl → iProp Σ).
+  Definition interp_expr (φ : envD Σ) :=
+    λ ρ t, WP t {{ φ ρ }} %I.
+  Global Arguments interp_expr /.
+
+  Notation "⟦ Γ ⟧*" := (env_oltyped Γ).
   Definition ietp Γ φ e : iProp Σ := (⌜ nclosed e (length Γ) ⌝ ∗
-    □∀ ρ, ⟦Γ⟧* ρ → interp_expr φ ρ (e.|[to_subst ρ]))%I.
+    □∀ ρ, ⟦Γ⟧* ρ → interp_expr φ ρ (e.|[ρ]))%I.
   Global Arguments ietp /.
   Definition step_indexed_ietp Γ φ e i: iProp Σ :=
     (⌜ nclosed e (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ →
-      interp_expr (λ ρ v, ▷^i φ ρ v) ρ (e.|[to_subst ρ]))%I.
+      interp_expr (λ ρ v, ▷^i φ ρ v) ρ (e.|[ρ]))%I.
   Global Arguments step_indexed_ietp /.
 
   Definition step_indexed_ivstp Γ φ1 φ2 i j: iProp Σ :=
@@ -34,84 +47,133 @@ Section SemTypes.
   Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
   Notation "Γ ⊨ [ φ1 , i ]  <: [ φ2 , j ]" := (step_indexed_ivstp Γ φ1 φ2 i j) (at level 74, φ1, φ2 at next level): bi_scope.
 
+  Program Definition closed_olty (φ : envD Σ) `{∀ ρ v, Persistent (φ ρ v)} : olty Σ :=
+    Olty (λ ρ v, ⌜ nclosed_vl v 0 ⌝ ∗ φ ρ v)%I _.
+  Next Obligation. iIntros (????) "[$_]". Qed.
+
+  Definition oLater φ :=
+    closed_olty (λ ρ v, ▷ φ ρ v)%I.
 
   (* Global Arguments sem_sel /. *)
 
   Lemma iterate_TLater_later i (φ : olty Σ) ρ v:
     nclosed_vl v 0 →
-    (iterate interp_later i φ) ρ v ≡ (▷^i φ ρ v)%I.
+    (iterate oLater i φ) ρ v ≡ (▷^i φ ρ v)%I.
   Proof.
     elim: i => [|i IHi] // => Hcl. rewrite iterate_S /= IHi //.
     iSplit; by [iIntros "#[_ $]" | iIntros "$"].
   Qed.
-  Program Definition oLater φ := Olty (interp_later φ) _.
-  Next Obligation. rewrite /vclosed /interp_later. by iIntros "* [$_]". Qed.
+  Notation envPred s := ((var → vl) -d> s -d> iProp Σ).
+  Notation "s ↦ γ" := (mapsto (hG := dlangG_interpNames) s γ)  (at level 20) : bi_scope.
+  Notation "s ↝ φ" := (∃ γ, s ↦ γ ∗ γ ⤇ φ)%I  (at level 20) : bi_scope.
 
+  Definition idm_proj_semtype d τ : iProp Σ :=
+    (∃ s σ interp, ⌜ d = dtysem σ s ∧ τ = interp (to_subst σ) ⌝ ∗ s ↝ interp)%I.
+  Global Arguments idm_proj_semtype: simpl never.
+
+  Notation "d ↗ τ" := (idm_proj_semtype d τ) (at level 20).
+
+  Definition def_interp_tmem φ1 φ2 : envPred dm :=
+    λ ρ d,
+    (∃ τ, (d ↗ τ) ∗
+       □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ φ1 ρ v → □ ▷ τ v) ∗
+          (∀ v, ⌜ nclosed_vl v 0 ⌝ → □ ▷ τ v → ▷ φ2 ρ v)))%I.
+
+  Definition def_interp_vmem φ : envPred dm :=
+    λ ρ d, (∃ vmem, ⌜d = dvl vmem⌝ ∧ ▷ φ ρ vmem)%I.
+
+  Definition lift_dinterp_vl l (dinterp: envPred dm)
+   `{∀ ρ d, Persistent (dinterp ρ d)} :=
+    closed_olty (λ ρ v, (∃ d, ⌜v @ l ↘ d⌝ ∧ dinterp ρ d)%I).
+
+  Definition oTVMem l φ :=
+    lift_dinterp_vl l (def_interp_vmem φ).
+
+  Definition oTTMem l φ1 φ2 :=
+    lift_dinterp_vl l (def_interp_tmem φ1 φ2).
+(*
   Program Definition oInterp T := Olty ⟦ T ⟧ _.
-  Next Obligation. rewrite /vclosed=>*. by rewrite interp_v_closed. Qed.
+  Next Obligation. rewrite /vclosed=>*. by rewrite interp_v_closed. Qed. *)
 
-  Definition oTTMem l L U := oInterp (TTMem l L U).
-  Definition oTLater L := oInterp (TLater L).
-  Definition oTSel p l := oInterp (TSel p l).
+  Definition oTSel p (l : label) :=
+    closed_olty (λ ρ v, path_wp p.|[ρ]
+      (λ vp, ∃ ϕ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ϕ ∧ □ ▷ ϕ v)%I).
 
   Lemma Sub_Sel Γ L U va l i:
     Γ ⊨ tv va : oTTMem l L U, i -∗
-    Γ ⊨ [oTLater L, i] <: [oTSel (pv va) l, i].
+    Γ ⊨ [oLater L, i] <: [oTSel (pv va) l, i].
   Proof.
     iIntros "/= #[% #Hva] !>" (ρ v Hclv) "#Hg #[_ HvL]". iFrame (Hclv).
-    iDestruct (interp_env_props with "Hg") as %[Hclρ Hlen]. rewrite <- Hlen in *.
-    iSpecialize ("Hva" with "Hg"); rewrite wp_value_inv'.
+    (* iDestruct (interp_env_props with "Hg") as %[Hclρ Hlen]. rewrite <- Hlen in *. *)
+    iSpecialize ("Hva" with "Hg"). rewrite wp_value_inv'.
     iNext.
 
     iDestruct "Hva" as (Hclvas' d Hl φ) "#[Hlφ [#HLφ #HφU]]".
-    iSpecialize ("HLφ" $! _ Hclv with "HvL").
-    iExists φ, d; by repeat iSplit.
+    iExists φ, d; repeat iSplit => //. by iApply "HLφ".
+  Qed.
+
+  Lemma leadsto_agree s (φ1 φ2: envD Σ) ρ v: s ↝ φ1 -∗ s ↝ φ2 -∗ ▷ (φ1 ρ v ≡ φ2 ρ v).
+  Proof.
+    iIntros "/= #H1 #H2".
+    iDestruct "H1" as (γ1) "[Hs1 Hg1]".
+    iDestruct "H2" as (γ2) "[Hs2 Hg2]".
+    iDestruct (mapsto_agree with "Hs1 Hs2") as %->.
+    by iApply (saved_interp_agree _ φ1 φ2).
+  Qed.
+
+  Lemma stored_pred_agree d τ1 τ2 v :
+    d ↗ τ1 -∗ d ↗ τ2 -∗ ▷ (τ1 v ≡ τ2 v).
+  Proof.
+    iIntros "/= #Hd1 #Hd2".
+    iDestruct "Hd2" as (s' σ' interp2 H2) "Hs2".
+    iDestruct "Hd1" as (s σ interp1 H1) "Hs1".
+    ev; simplify_eq. by iApply (leadsto_agree _ interp1 interp2).
   Qed.
 
   Lemma Sel_Sub Γ L U va l i:
     Γ ⊨ tv va : oTTMem l L U, i -∗
-    Γ ⊨ [oTSel (pv va) l, i] <: [oTLater U, i].
+    Γ ⊨ [oTSel (pv va) l, i] <: [oLater U, i].
   Proof.
     iIntros "/= #[% #Hva] !>" (ρ v Hclv) "#Hg [$ #Hφ]". move: H => Hclva.
-    iDestruct (interp_env_props with "Hg") as %[Hclρ Hlen]. rewrite <- Hlen in *.
     iSpecialize ("Hva" with "Hg"); rewrite wp_value_inv'.
     iNext.
     iDestruct "Hva" as (Hclvas d Hl φ) "#[Hlφ [#HLφ #HφU]]".
     iDestruct "Hφ" as (φ1 d1 Hva) "[Hγ #HΦ1v]".
     objLookupDet; subst. iDestruct (stored_pred_agree d _ _ v with "Hlφ Hγ") as "#Hag".
-    iApply "HφU" => //. iNext; repeat iModIntro. by iRewrite "Hag".
+    iApply "HφU" => //. iModIntro. iNext. by iRewrite "Hag".
   Qed.
 
   (* Alternative (and failed) definition. *)
-  Program Definition sem_sel p (l: label) :=
-    Olty (λ ρ v, (⌜ nclosed_vl v 0 ⌝ ∧ path_wp p.|[to_subst ρ]
-      (λ vp, ∃ ϕ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ϕ ∧ □ ϕ v))%I) _.
-  Next Obligation. rewrite /vclosed=>*. by iIntros "[$_]". Qed.
+  Program Definition sem_sel p (l : label) :=
+    closed_olty (λ ρ v, path_wp p.|[ρ]
+      (λ vp, ∃ ϕ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ϕ ∧ □ ϕ v)%I).
+
+  Import uPred.
 
   Lemma Sub_Sel2 Γ L U va l i:
     Γ ⊨ tv va : oTTMem l L U, i -∗
-    Γ ⊨ [oTLater L, i] <: [oLater (sem_sel (pv va) l), i].
+    Γ ⊨ [oLater L, i] <: [oLater (sem_sel (pv va) l), i].
   Proof.
     iIntros "/= #[% #Hva] !>" (ρ v Hclv) "#Hg #[_ HvL]". move: H => Hclva. iFrame (Hclv).
-    iDestruct (interp_env_props with "Hg") as %[Hclρ Hlen]. rewrite <- Hlen in *.
     iSpecialize ("Hva" with "Hg"); rewrite wp_value_inv'.
     iNext.
 
     iDestruct "Hva" as (Hclvas' d Hl φ) "#[Hlφ [#HLφ ?]]".
     iSpecialize ("HLφ" $! _ Hclv with "HvL").
+    rewrite -later_intuitionistically.
     iExists φ, d; by repeat iSplit.
   Qed.
 
   Lemma Sel_Sub2_Failed Γ L U va l i:
     Γ ⊨ tv va : oTTMem l L U, i -∗
-    Γ ⊨ [oLater ((sem_sel (pv va) l)), i] <: [oTLater U, i].
+    Γ ⊨ [oLater ((sem_sel (pv va) l)), i] <: [oLater U, i].
   Proof.
     iIntros "/= #[% #Hva] !>" (ρ v Hclv) "#Hg #[$ #[_ Hφ]]".
-    iDestruct (interp_env_props with "Hg") as %[Hclρ Hlen]. rewrite <- Hlen in *.
     iSpecialize ("Hva" with "Hg"); rewrite wp_value_inv'.
     iNext.
     iDestruct "Hva" as (Hclvas d Hl φ) "#[Hlφ [_ #HφU]]".
     iApply "HφU" => //.
+    rewrite -later_intuitionistically.
     iDestruct "Hφ" as (φ1 d1) "[>% [Hγ #HΦ1v]]".
     (* iSpecialize ("HLφ" $! v Hclv); iSpecialize ("HφU" $! v Hclv). *)
     (* rewrite /sem_sel /olty_car. *)
@@ -244,6 +306,7 @@ Section ex.
 End ex.
 End example.
 
+Implicit Types (ρ : vls) (Γ : ctx) (L T U: ty).
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
