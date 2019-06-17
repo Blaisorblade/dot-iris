@@ -1,6 +1,6 @@
 From D Require Import prelude tactics asubst_intf.
 
-Module Sorts (values : Values) <: SortsIntf values.
+Module Sorts (values : Values).
   Import values.
 
   Class Sort (s : Type)
@@ -142,7 +142,7 @@ End Sorts.
 
 (** Syntax/binding lemmas shared between DSub and Dot. *)
 
-Module SortsLemmas (values: Values).
+Module SortsLemmas (values: Values) <: SortsIntf values.
 Import values.
 Module Sorts := Sorts values.
 Include Sorts.
