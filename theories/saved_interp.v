@@ -1,5 +1,6 @@
 From iris.proofmode Require Import tactics.
 From iris.base_logic Require Import lib.saved_prop.
+Require Import D.iris_prelude.
 
 (** saved interpretations *)
 
@@ -16,10 +17,7 @@ Section saved_interp.
       (F := A -c> B -c> ▶ ∙) γ (λ a b, Next (Φ a b)).
 
   Instance saved_interp_own_contractive γ : Contractive (saved_interp_own γ).
-  Proof.
-    rewrite /saved_interp_own /saved_anything_own => /= n X Y HXY.
-    (do 3 f_equiv) => ??. f_contractive. exact: HXY.
-  Qed.
+  Proof. rewrite /saved_interp_own /saved_anything_own. solve_contractive_ho. Qed.
 
   Lemma saved_interp_alloc_strong (G : gset gname) Φ :
     (|==> ∃ γ, ⌜γ ∉ G⌝ ∧ saved_interp_own γ Φ)%I.

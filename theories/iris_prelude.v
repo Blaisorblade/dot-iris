@@ -30,7 +30,9 @@ Ltac solve_proper_alt :=
       Its implementation can also prove [f1 x ≡ f2 x] from [H : f1 ≡ f2]:
       neither f_equiv nor rewrite deal with that, but [apply H] does. *)
 Ltac solve_proper_ho_core tac :=
-  solve [repeat intro; cbn; repeat tac (); cbn in *;
+  solve [repeat (tac (); cbn); cbn in *;
   repeat match goal with H : _ ≡{_}≡ _|- _ => apply H end].
-Ltac solve_proper_ho := solve_proper_ho_core ltac:(fun _ => f_equiv).
-Ltac solve_contractive_ho := solve_proper_ho_core ltac:(fun _ => f_contractive || f_equiv).
+Ltac solve_proper_ho := solve_proper_ho_core
+  ltac:(fun _ => f_equiv || intro).
+Ltac solve_contractive_ho := solve_proper_ho_core
+  ltac:(fun _ => f_contractive || f_equiv || intro).
