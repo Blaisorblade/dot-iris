@@ -176,7 +176,7 @@ Section Sec.
     rewrite (interp_weaken_one v T1 ρ v).
     (* time locAsimpl. (* 10x faster than asimpl. *) *)
     (* 20x faster than asimpl. *)
-    rewrite to_subst_cons; time locAsimpl' (e.|[up (to_subst ρ)].|[v/]).
+    rewrite to_subst_cons; locAsimpl' (e.|[up (to_subst ρ)].|[v/]).
     by iApply ("HeT" with "[$HG//]").
   Qed.
 
