@@ -43,12 +43,10 @@ Proof.
   - eapply fv_tskip, IH1; eauto with fv.
   - apply (nclosed_sub_inv_var w j (k := 0)); asimpl; by [lia|].
   - eapply fv_vabs, (IH1 (S i) (S j)), fv_vabs_inv, Hcl; lia.
-  - eapply fv_vobj, Forall_to_closed_dms.
-    move: Hcl => /fv_vobj_inv.
+  - eapply fv_vobj. move: Hcl => /fv_vobj_inv. rewrite -!nclosed_axs_to_nclosed.
     generalize dependent ds => ds.
     rewrite /= !Forall_fmap => *.
-    decompose_Forall.
-    destruct x; cbn in *.
+    decompose_Forall; destruct x; cbn in *.
     eapply (H1 (S i) (S j)); eauto with lia.
   - eapply fv_dtysyn, IH1; eauto with fv.
   - eapply fv_dtysem.
@@ -117,12 +115,10 @@ Proof.
   - exact: nclosed_ren_rev_var.
   - specialize (IH1 (S k)); rewrite ?plusnS in IH1.
     eapply fv_vabs, IH1, fv_vabs_inv, Hcl.
-  - eapply fv_vobj, Forall_to_closed_dms.
-    move: Hcl IHds => /fv_vobj_inv.
-    rewrite /= !Forall_fmap => *.
-    decompose_Forall.
-    specialize (H0 (S k)); rewrite ?plusnS in H0.
-    destruct x; cbn in *.
+  - eapply fv_vobj. move: Hcl => /fv_vobj_inv. rewrite -!nclosed_axs_to_nclosed.
+    generalize dependent ds => ds; rewrite /= !Forall_fmap => *.
+    decompose_Forall; destruct x; cbn in *.
+    specialize (H1 (S k)); rewrite ?plusnS in H1.
     eauto with lia.
   - eapply fv_dtysyn, IH1; eauto with fv.
   - eapply fv_dtysem.

@@ -230,11 +230,10 @@ Proof.
     cbn in *; ev;
     try by move => s1 s2 Hseq /=; f_equal;
       try eapply H; try eapply H0; eauto using eq_up.
-  - apply fv_vobj, Forall_to_closed_dms.
+  - apply fv_vobj, nclosed_axs_to_nclosed.
     generalize dependent ds => ds.
     rewrite !Forall_fmap => *.
-    decompose_Forall.
-    case_match; subst; cbn; eauto.
+    decompose_Forall; case_match; subst. eauto.
   - apply fv_dtysem. decompose_Forall. by eauto.
 Qed.
 

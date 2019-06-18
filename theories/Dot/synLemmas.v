@@ -77,23 +77,6 @@ Proof. solve_fv_congruence. Qed.
 
 Definition fv_dms_cons : ∀ l d ds n, nclosed ds n → nclosed d n → nclosed ((l, d) :: ds) n := fv_pair_cons.
 
-Definition nclosed_ds ds n := Forall (λ '(l, d), nclosed d n) ds.
-Arguments nclosed_ds /.
-
-Lemma Forall_to_closed_dms n ds:
-  nclosed_ds ds n → nclosed ds n.
-Proof.
-  elim: ds => [|[l d] ds IHds] Hcl //=.
-  inverse Hcl; apply fv_dms_cons; by [ apply IHds | ].
-Qed.
-Lemma closed_dms_to_Forall n ds:
-  nclosed ds n → nclosed_ds ds n.
-Proof.
-  elim: ds => [|[l d] ds IHds] Hcl //=.
-  constructor. solve_inv_fv_congruence_h Hcl.
-  apply IHds. solve_inv_fv_congruence_h Hcl.
-Qed.
-
 Lemma fv_dtysem σ s n: nclosed_σ σ n → nclosed (dtysem σ s) n.
 Proof. move => /Forall_to_closed_vls. solve_fv_congruence. Qed.
 
@@ -118,8 +101,8 @@ Proof. solve_inv_fv_congruence. Qed.
 Lemma fv_vabs_inv e n: nclosed_vl (vabs e) n → nclosed e (S n).
 Proof. solve_inv_fv_congruence. Qed.
 
-Lemma fv_vobj_inv ds n: nclosed_vl (vobj ds) n → nclosed_ds ds (S n).
-Proof. intro. apply closed_dms_to_Forall. solve_inv_fv_congruence_h H. Qed.
+Lemma fv_vobj_inv ds n: nclosed_vl (vobj ds) n → nclosed ds (S n).
+Proof. solve_inv_fv_congruence. Qed.
 
 Lemma fv_pv_inv v n: nclosed (pv v) n → nclosed_vl v n.
 Proof. solve_inv_fv_congruence. Qed.
@@ -155,29 +138,25 @@ Proof. elim: i => [|i IHi]; by rewrite ?iterate_0 ?iterate_S //= IHi. Qed.
 Lemma lookup_fv Γ x T: Γ !! x = Some T → nclosed (tv (ids x)) (length Γ).
 Proof. move =>/lookup_ids_fv /fv_tv //. Qed.
 
-
 Lemma fv_head l d ds n: nclosed ((l, d) :: ds) n → nclosed d n.
-Proof. solve_inv_fv_congruence. Qed.
+Proof. exact: fv_cons_pair_inv_head. Qed.
 
 Lemma fv_tail l d ds n: nclosed ((l, d) :: ds) n → nclosed ds n.
-Proof. solve_inv_fv_congruence. Qed.
+Proof. exact: fv_cons_pair_inv_tail. Qed.
 
 Lemma nclosed_selfSubst ds n:
   nclosed ds (S n) → nclosed (selfSubst ds) n.
-Proof. move => Hcl. by apply nclosed_subst, fv_vobj. Qed.
+Proof. move => ?. by apply /nclosed_subst /fv_vobj. Qed.
 
-Lemma nclosed_lookup ds d n l: nclosed ds n → dms_lookup l ds = Some d → nclosed d n.
+Lemma nclosed_lookup ds d n l: dms_lookup l ds = Some d → nclosed ds n → nclosed d n.
 Proof.
-  elim: ds => [|[l' d'] ds IHds] Hcl //= Heq.
+  elim: ds => [|[l' d'] ds IHds] //= Heq Hcl.
   case_decide; simplify_eq; eauto using fv_head, fv_tail.
 Qed.
 
 Lemma nclosed_lookup' {w l d n}: w @ l ↘ d → nclosed_vl w n → nclosed d n.
-Proof.
-  move => [ds [->]] Hl.
-  eauto using fv_vobj_inv, Forall_to_closed_dms, nclosed_lookup, nclosed_selfSubst.
-Qed.
+Proof. move => [ds [->]] Hl /fv_vobj_inv /nclosed_selfSubst. exact: nclosed_lookup. Qed.
 
 Lemma plength_subst_inv p s :
   plength p.|[s] = plength p.
-Proof. by elim: p => [v //| p /= -> //]. Qed.
+Proof. by elim: p => [v| p /= ->]. Qed.
