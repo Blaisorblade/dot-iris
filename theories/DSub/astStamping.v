@@ -178,7 +178,7 @@ Proof.
                     inverse Hus; repeat constructor => //=; by f_equal]
       end
     end.
-    all: exists t__u, g1; subst; repeat constructor => //=; eauto.
+  all: exists t__u, g1; subst; repeat constructor => //=; eauto using nclosed_var_lt.
 Qed.
 
 Module TraversalV1.

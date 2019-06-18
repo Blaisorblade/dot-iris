@@ -337,11 +337,12 @@ Proof.
   apply nclosed_syntax_mut_ind => /=; intros;
     try by with_is_stamped inverse; ev;
     constructor => /=; eauto using eq_up with lia.
+  - eauto using nclosed_var_lt.
 
-  with_is_stamped inverse; cbn in *; ev.
-  unfold hsubst, list_hsubst in *; rewrite -> map_length, @Forall_fmap in *.
-  constructor => /=. by eexists; split_and!; eauto.
-  by decompose_Forall; eauto.
+  - with_is_stamped inverse; cbn in *; ev.
+    unfold hsubst, list_hsubst in *; rewrite -> map_length, @Forall_fmap in *.
+    constructor => /=. by eexists; split_and!; eauto.
+    by decompose_Forall; eauto.
 Qed.
 
 Lemma is_stamped_sub_rev_vl g v s i j:

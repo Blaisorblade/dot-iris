@@ -50,8 +50,7 @@ Module Sorts (values : Values).
   Definition nclosed `{HSubst vl X} (x : X) n :=
     ∀ s1 s2, eq_n_s s1 s2 n → x.|[s1] = x.|[s2].
 
-  Definition nclosed_σ σ n := Forall (λ v, nclosed_vl v n) σ.
-  Global Arguments nclosed_σ /.
+  Notation nclosed_σ σ n := (Forall (λ v, nclosed_vl v n) σ).
 
   (** Infrastructure to prove "direct" lemmas on nclosed{,_vl}: deduce that an expression is closed
       by knowing that its subexpression are closed. *)
@@ -154,6 +153,44 @@ Context `{_HsX: Sort X}.
 Implicit Types (x : X) (Γ : list X).
 Set Implicit Arguments.
 
+Definition nclosed_sub n m s :=
+  ∀ i, i < n → nclosed_vl (s i) m.
+Definition nclosed_ren n m (r: var → var) := nclosed_sub n m (ren r).
+
+Lemma compose_sub_closed s s1 s2 i j :
+  nclosed_sub i j s → eq_n_s s1 s2 j → eq_n_s (s >> s1) (s >> s2) i.
+Proof. move => /= Hs Heqs n Hxi. exact: Hs. Qed.
+
+Lemma nclosed_sub_app_vl v s i j :
+  nclosed_sub i j s →
+  nclosed_vl v i → nclosed_vl v.[s] j.
+Proof. move => Hcls Hclv s1 s2 Heqs; asimpl. by eapply Hclv, compose_sub_closed. Qed.
+
+Lemma nclosed_sub_app x s i j :
+  nclosed_sub i j s →
+  nclosed x i → nclosed x.|[s] j.
+Proof. move => Hcls Hclx s1 s2 Heqs; asimpl. by eapply Hclx, compose_sub_closed. Qed.
+
+Lemma eq_n_s_total σ: eq_n_s σ ids 0.
+Proof. move=>??. lia. Qed.
+
+Lemma closed_subst_vl_id v σ: nclosed_vl v 0 → v.[σ] = v.
+Proof. intro Hcl. rewrite (Hcl σ ids (eq_n_s_total σ)). by asimpl. Qed.
+
+Lemma closed_subst_id x σ: nclosed x 0 → x.|[σ] = x.
+Proof. intro Hcl. rewrite (Hcl σ ids (eq_n_s_total σ)). by asimpl. Qed.
+
+Lemma nclosed_sub_to_subst j σ: nclosed_σ σ j →
+  nclosed_sub (length σ) j (to_subst σ).
+Proof.
+  move => Hcl i Hle.
+  elim: σ i Hcl Hle => /= [|v σ IHσ] [|i] Hcl Hl; asimpl; [lia..| |]; inverse Hcl; first by [].
+  by apply IHσ; try lia.
+Qed.
+
+Lemma closed_to_subst σ i n: nclosed_σ σ n → i < length σ → nclosed_vl (to_subst σ i) n.
+Proof. move =>???. exact: nclosed_sub_to_subst. Qed.
+
 (* Auxiliary lemma for [length_idsσ]. *)
 Lemma length_idsσr n r: length (idsσ n).|[ren r] = n.
 Proof.
@@ -164,21 +201,6 @@ Qed.
 Lemma length_idsσ n: length (idsσ n) = n.
 Proof. move: (length_idsσr n (+0)) => Hgoal. by asimpl in Hgoal. Qed.
 Hint Resolve length_idsσ.
-
-Lemma subst_sigma_idsσ ρ n : length ρ = n →
-                (subst_sigma (idsσ n) ρ) = ρ.
-Proof.
-  rewrite /subst_sigma. move: n.
-  induction ρ => *; subst => //; asimpl.
-  f_equal. exact: IHρ.
-Qed.
-
-Lemma to_subst_app_is_lookup ρ i: i < length ρ → ρ !! i = Some (to_subst ρ i).
-Proof.
-  elim: ρ i => [|v ρ IHρ] [|i] //= Hl; try lia.
-  rewrite to_subst_cons /=.
-  apply IHρ; lia.
-Qed.
 
 Lemma rename_to_subst ρ1 ρ2 : (+length ρ1) >>> to_subst (ρ1 ++ ρ2) = to_subst ρ2.
 Proof. induction ρ1; by asimpl. Qed.
@@ -206,31 +228,12 @@ Proof.
   - by f_equal.
 Qed.
 
-Lemma closed_subst_vl_id v σ: nclosed_vl v 0 → v.[σ] = v.
-Proof.
-  intro Hcl. rewrite (Hcl σ ids) /=; first by asimpl.
-  intros; lia.
-Qed.
-
-Lemma closed_subst_id x σ: nclosed x 0 → x.|[σ] = x.
-Proof.
-  intro Hcl. rewrite (Hcl σ ids) /=; first by asimpl.
-  intros; lia.
-Qed.
-
-Lemma closed_to_subst ρ i n: nclosed_σ ρ n → i < length ρ → nclosed_vl (to_subst ρ i) n.
-Proof.
-  elim: ρ i => /= [|v ρ IHρ] [|i] Hcl Hl; asimpl; try lia; inverse Hcl; try by [].
-  by apply IHρ; try lia.
-Qed.
-
 (** Let's prove that [nclosed x n → x.|[to_subst (idsσ n)] = x], and ditto for values. *)
 Section to_subst_idsσ_is_id.
-  Lemma to_subst_map_commute_aux f n i r: i < n → to_subst (map f (idsσ n).|[ren r]) i = f (to_subst (idsσ n).|[ren r] i).
+  Lemma to_subst_map_commute_aux f n i r: i < n →
+    to_subst (map f (idsσ n).|[ren r]) i = f (to_subst (idsσ n).|[ren r] i).
   Proof.
-    elim: n r i => [|n IHn] r i Hle; first lia.
-    destruct i; first done; asimpl.
-    apply IHn; lia.
+    elim: n r i => [|n IHn] r [//|i] Hle; try lia. asimpl. apply: IHn. lia.
   Qed.
 
   Lemma to_subst_map_commute f n i: i < n → to_subst (map f (idsσ n)) i = f (to_subst (idsσ n) i).
@@ -238,99 +241,49 @@ Section to_subst_idsσ_is_id.
 
   Lemma idsσ_eq_ids n: eq_n_s (to_subst (idsσ n)) ids n.
   Proof.
-    induction n => i Hle. by rewrite to_subst_nil.
-    destruct i => //=.
-    assert (i < n) as Hle' by auto using lt_S_n.
-    by rewrite to_subst_cons /= to_subst_map_commute // IHn // id_subst.
+    elim: n => [|n IHn] [|i] // /lt_S_n Hle.
+    rewrite /= to_subst_cons /= to_subst_map_commute // IHn // id_subst //.
   Qed.
 
   Lemma closed_subst_idsρ x n :
     nclosed x n → x.|[to_subst (idsσ n)] = x.
-  Proof.
-    intro Hcl. rewrite (Hcl _ ids); first by asimpl. exact: idsσ_eq_ids.
-  Qed.
+  Proof. intro Hcl. rewrite (Hcl _ ids (@idsσ_eq_ids n)). by asimpl. Qed.
 
   Lemma closed_subst_vl_idsρ v n:
     nclosed_vl v n → v.[to_subst (idsσ n)] = v.
-  Proof.
-    intro Hcl. rewrite (Hcl _ ids); first by asimpl. exact: idsσ_eq_ids.
-  Qed.
+  Proof. intro Hcl. rewrite (Hcl _ ids (@idsσ_eq_ids n)). by asimpl. Qed.
 End to_subst_idsσ_is_id.
-
-Definition nclosed_sub n m s :=
-  ∀ i, i < n → nclosed_vl (s i) m.
-Definition nclosed_ren n m (r: var → var) := nclosed_sub n m (ren r).
-
-Lemma compose_sub_closed s s1 s2 i j:
-  nclosed_sub i j s → eq_n_s s1 s2 j → eq_n_s (s >> s1) (s >> s2) i.
-Proof. move => /= Hs Heqs n Hxi. exact: Hs. Qed.
-
-Lemma nclosed_sub_app_vl v s i j:
-  nclosed_sub i j s →
-  nclosed_vl v i → nclosed_vl v.[s] j.
-Proof. move => Hcls Hclv s1 s2 Heqs; asimpl. by eapply Hclv, compose_sub_closed. Qed.
-
-Lemma nclosed_sub_app x s i j:
-  nclosed_sub i j s →
-  nclosed x i → nclosed x.|[s] j.
-Proof. move => Hcls Hclx s1 s2 Heqs; asimpl. by eapply Hclx, compose_sub_closed. Qed.
-
-Lemma nclosed_sub_to_subst j σ: nclosed_σ σ j →
-  nclosed_sub (length σ) j (to_subst σ).
-Proof. move =>???. exact: closed_to_subst. Qed.
 
 Lemma fv_to_subst x σ n:
   nclosed x (length σ) → nclosed_σ σ n →
   nclosed (x.|[to_subst σ]) n.
-Proof.
-  eauto using nclosed_sub_app, nclosed_sub_to_subst.
-Qed.
+Proof. eauto using nclosed_sub_app, nclosed_sub_to_subst. Qed.
 
 Lemma fv_to_subst_vl v σ n:
   nclosed_vl v (length σ) → nclosed_σ σ n →
   nclosed_vl (v.[to_subst σ]) n.
-Proof.
-  eauto using nclosed_sub_app_vl, nclosed_sub_to_subst.
-Qed.
-
-(** Variants of [fv_to_subst] and [fv_to_subst_vl] for more convenient application. *)
-Lemma fv_to_subst' x x' σ n:
-  nclosed x (length σ) → nclosed_σ σ n →
-  x' = (x.|[to_subst σ]) →
-  nclosed x' n.
-Proof. intros; subst. exact: fv_to_subst. Qed.
-Lemma fv_to_subst_vl' v σ v' n:
-  nclosed_vl v (length σ) → nclosed_σ σ n →
-  v' = (v.[to_subst σ]) →
-  nclosed_vl v' n.
-Proof. intros; subst. exact: fv_to_subst_vl. Qed.
-
-Lemma nclosed_var_lt i n: nclosed_vl (ids i) n -> i < n.
-Proof.
-  rewrite /nclosed_vl /= => Heq.
-  set s0 := fun c m => if (decide (m < n)) then ids 0 else ids c: vl.
-  set s1 := s0 1; set s2 := s0 2. subst s0.
-  have Heqs: eq_n_s s1 s2 n. by subst s1 s2; move=> ??; case_decide.
-  specialize (Heq s1 s2 Heqs); move: Heq {Heqs}; subst s1 s2 => /=.
-  rewrite !id_subst. by case_decide => // /inj_ids.
-Qed.
-
-Lemma nclosed_vl_ids_0 n: n > 0 → nclosed_vl (ids 0) n.
-Proof. move => Hi s1 s2 /= Heqs. rewrite !id_subst. exact: Heqs. Qed.
-
-Lemma nclosed_vl_ids_S i j: nclosed_vl (ids i) j → nclosed_vl (ids (S i)) (S j).
-Proof.
-  move => /= Hij s1 s2 Heqs. rewrite !id_subst. apply: Heqs.
-  suff: i < j by lia. exact: nclosed_var_lt.
-Qed.
+Proof. eauto using nclosed_sub_app_vl, nclosed_sub_to_subst. Qed.
 
 Lemma nclosed_vl_ids i j: i < j → nclosed_vl (ids i) j.
 Proof. move => ????; rewrite !id_subst. eauto. Qed.
 
-Hint Resolve nclosed_var_lt nclosed_vl_ids_0 nclosed_vl_ids_S nclosed_vl_ids.
+Lemma nclosed_var_lt i n: nclosed_vl (ids i) n -> i < n.
+Proof.
+  move => Heq.
+  set s0 := fun c m => if (decide (m < n)) then ids 0 else ids c: vl.
+  set s1 := s0 1; set s2 := s0 2.
+  have Heqs: eq_n_s s1 s2 n. by subst s0 s1 s2; move=> ??; case_decide.
+  move: {Heq Heqs} (Heq s1 s2 Heqs); subst s0 s1 s2 => /=.
+  rewrite !id_subst. by case_decide => // /inj_ids.
+Qed.
+
+Hint Resolve nclosed_vl_ids.
 
 Lemma nclosed_vl_ids_equiv i j: nclosed_vl (ids i) j <-> i < j.
-Proof. split; eauto. Qed.
+Proof. split; eauto using nclosed_var_lt. Qed.
+
+Lemma nclosed_vl_ids_S i j: nclosed_vl (ids i) j → nclosed_vl (ids (S i)) (S j).
+Proof. rewrite !nclosed_vl_ids_equiv. lia. Qed.
 
 Lemma nclosed_ids_rev i j k:
   nclosed_vl (ids i).[ren (+j)] (j + k) → nclosed_vl (ids i) k.
@@ -350,13 +303,10 @@ Proof. move => Hcl Hle s1 s2 Hseq. by eapply Hcl, eq_n_s_mon. Qed.
 Lemma fv_vls_cons v vs n: nclosed vs n → nclosed_vl v n → nclosed (v :: vs) n.
 Proof. solve_fv_congruence. Qed.
 
-Lemma nclosed_ids i n: nclosed_vl (ids i) (S (i + n)).
-Proof. move => /= s1 s2 Heq. rewrite !id_subst Heq; eauto with lia. Qed.
-
 Lemma nclosed_idsσr n i: nclosed_σ (idsσ n).|[ren (+i)] (i + n).
 Proof.
   elim: n i => [|n IHn] i //=.
-  constructor; asimpl; [apply nclosed_ids | apply (IHn (S i)) ].
+  constructor; asimpl; [rewrite nclosed_vl_ids_equiv; lia | apply (IHn (S i)) ].
 Qed.
 
 Lemma nclosed_idsσ n: nclosed_σ (idsσ n) n.
@@ -389,25 +339,27 @@ Proof.
   inverse Hcl; apply fv_vls_cons; by [ apply IHσ | ].
 Qed.
 
-Lemma closed_vls_to_Forall m σ:
-  nclosed σ m -> nclosed_σ σ m.
-Proof.
-  elim: σ => [|v σ IHσ] Hcl //=.
-  constructor. solve_inv_fv_congruence_h Hcl.
-  apply IHσ. solve_inv_fv_congruence_h Hcl.
-Qed.
-
 Definition cl_ρ_fv: ∀ ρ, cl_ρ ρ → nclosed ρ 0 := @Forall_to_closed_vls 0.
 
+Lemma fv_cons_inv_1 v vs n : nclosed (v :: vs) n → nclosed_vl v n.
+Proof. solve_inv_fv_congruence. Qed.
+Lemma fv_cons_inv_2 v vs n : nclosed (v :: vs) n → nclosed vs n.
+Proof. solve_inv_fv_congruence. Qed.
+Lemma fv_cons_inv v vs n : nclosed (v :: vs) n → nclosed_vl v n /\ nclosed vs n.
+Proof. intros Hcl; split; solve_inv_fv_congruence_h Hcl. Qed.
+
+Lemma closed_vls_to_Forall m σ:
+  nclosed σ m -> nclosed_σ σ m.
+Proof. elim: σ => [//=|v σ IHσ] /fv_cons_inv [Hclv Hclσ]. eauto. Qed.
+
 Lemma fv_idsσ n: nclosed (idsσ n) n.
-Proof. apply Forall_to_closed_vls, nclosed_idsσ. Qed.
+Proof. apply /Forall_to_closed_vls /nclosed_idsσ. Qed.
 
 Lemma to_subst_compose σ σ':
   eq_n_s (to_subst σ.|[σ']) (to_subst σ >> σ') (length σ).
 Proof.
   elim: σ => /= [|v σ IHσ] i Hin; first lia; asimpl.
-  case: i Hin => [|i] Hin //=.
-  apply IHσ. lia.
+  case: i Hin => [//|i] /lt_S_n Hin /=. exact: IHσ.
 Qed.
 
 Lemma subst_compose x σ ξ n1 n2 n3:
@@ -429,7 +381,7 @@ Lemma subst_compose_idsσ x n m ξ:
 Proof. intros; eauto. Qed.
 
 End sort_lemmas.
-Hint Resolve nclosed_var_lt nclosed_vl_ids_0 nclosed_vl_ids_S nclosed_vl_ids.
+Hint Resolve nclosed_vl_ids_S nclosed_vl_ids.
 Hint Resolve nclosed_idsσ @subst_compose @subst_compose_idsσ.
 
 Section sort_lemmas_2.
@@ -490,9 +442,8 @@ Lemma nclosed_sub_inv_var n w i j k: j + k <= i →
 Proof.
   rewrite !id_subst /= !nclosed_vl_ids_equiv iter_up.
   case: (lt_dec n j) => [?|Hge]; first lia.
-  case Hnj: (n - j) => [|nj]; first lia.
-  rewrite rename_subst !id_subst.
-  rewrite nclosed_vl_ids_equiv /=. lia.
+  case Hnj: (n - j) => [|nj]; first lia. asimpl.
+  rewrite nclosed_vl_ids_equiv; lia.
 Qed.
 
 Lemma nclosed_ren_rev_var i j k n:
@@ -501,6 +452,17 @@ Proof.
   rewrite !id_subst iter_up !rename_subst id_subst /=.
   case_match; rewrite /= !nclosed_vl_ids_equiv; omega.
 Qed.
+
+(*
+Lemma subst_sigma_idsσ ρ n : length ρ = n →
+                (subst_sigma (idsσ n) ρ) = ρ.
+Proof. rewrite /subst_sigma => <-. elim: ρ => [//|v ρ]. by asimpl => ->. Qed.
+
+Lemma to_subst_app_is_lookup ρ i: i < length ρ → ρ !! i = Some (to_subst ρ i).
+Proof.
+  elim: ρ i => [|v ρ IHρ] i //=; first lia. case: i IHρ => [//|i] IHρ => /lt_S_n Hl.
+  rewrite to_subst_cons /=. exact: IHρ.
+Qed. *)
 End sort_lemmas_2.
 
 Hint Resolve nclosed_σ_to_subst nclosed_ren_shift @nclosed_sub_shift nclosed_ren_up @nclosed_sub_up.
