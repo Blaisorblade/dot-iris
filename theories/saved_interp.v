@@ -19,10 +19,6 @@ Section saved_interp.
   Instance saved_interp_own_contractive γ : Contractive (saved_interp_own γ).
   Proof. rewrite /saved_interp_own /saved_anything_own. solve_contractive_ho. Qed.
 
-  Lemma saved_interp_alloc_strong (G : gset gname) Φ :
-    (|==> ∃ γ, ⌜γ ∉ G⌝ ∧ saved_interp_own γ Φ)%I.
-  Proof. apply saved_anything_alloc_cofinite. Qed.
-
   Lemma saved_interp_alloc Φ :
     (|==> ∃ γ, saved_interp_own γ Φ)%I.
   Proof. apply saved_anything_alloc. Qed.
@@ -37,5 +33,7 @@ Section saved_interp.
     iApply bi.later_equivI; iApply "Heq".
   Qed.
 End saved_interp.
+
+Opaque saved_interp_own.
 
 Notation "γ ⤇ φ" := (saved_interp_own γ φ) (at level 20).
