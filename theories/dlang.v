@@ -51,10 +51,8 @@ Module LiftWp (values: Values) (sorts: SortsIntf values).
 
   Section mapsto.
     Context `{!dlangG Σ}.
-    Global Instance: Persistent (s ↦ γ).
-    Proof. apply _. Qed.
-    Global Instance: Timeless (s ↦ γ).
-    Proof. apply _. Qed.
+    Global Instance: Persistent (s ↦ γ) := _.
+    Global Instance: Timeless (s ↦ γ) := _.
 
     Definition allGs gs := (gen_iheap_ctx (hG := dlangG_interpNames) gs).
     Global Arguments allGs /.

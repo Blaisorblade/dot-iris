@@ -8,7 +8,7 @@ Notation savedInterpG Σ A B := (savedAnythingG Σ (A -c> B -c> ▶ ∙)).
 Notation savedInterpΣ A B := (savedAnythingΣ (A -c> B -c> ▶ ∙)).
 
 Section saved_interp.
-  Context {A B: Type}.
+  Context {A B : Type}.
   Context `{!savedInterpG Σ A B}.
   Implicit Type (Φ : A -c> B -c> iProp Σ).
 
@@ -21,8 +21,7 @@ Section saved_interp.
 
   Global Instance persistent_saved_interp_own: Persistent (saved_interp_own γ Φ) := _.
 
-  Lemma saved_interp_alloc Φ :
-    (|==> ∃ γ, saved_interp_own γ Φ)%I.
+  Lemma saved_interp_alloc Φ : (|==> ∃ γ, saved_interp_own γ Φ)%I.
   Proof. apply saved_anything_alloc. Qed.
 
   Lemma saved_interp_agree γ Φ Ψ a b :
