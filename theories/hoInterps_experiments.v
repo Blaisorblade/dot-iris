@@ -4,18 +4,28 @@ From D Require iris_prelude saved_interp_n.
 
 Module try1.
 Section saved_pred3_use.
-  Context {vl : Type}.
-  Import saved_interp_n.
-  Context `{!savedPred3G Σ (var → vl) vl (list vl)}.
-  Notation hoEnvD Σ := ((var → vl) -d> vl -d> (list vl) -d> iProp Σ).
-  Implicit Type (Φ : hoEnvD Σ).
-  Definition beta Φ a : hoEnvD Σ := λ ρ v args, Φ ρ v (a :: args).
-  Definition close Φ := λ ρ v, Φ ρ v [].
-  Definition lambda (Φ : vl → hoEnvD Σ) : hoEnvD Σ := λ ρ v args,
-    match args with
-    | w :: args => Φ w ρ v args
-    | [] => False
+  Context {vl : Type} {Σ : gFunctors}.
+
+  Notation envD Σ := ((var → vl) -d> vl -d> iProp Σ).
+  Notation hoEnvD Σ := (list vl -d> envD Σ).
+  Implicit Types (Φ : hoEnvD Σ) (n : nat).
+  Definition eFalse : envD Σ := λ ρ v, False%I.
+
+  (* We can track function arity by just storing a number,
+     but that's a bit cumbersome. *)
+  Definition hoEnvND Σ : Type := nat * hoEnvD Σ.
+  Definition beta : hoEnvND Σ → vl → hoEnvND Σ := λ '(n, Φ) a,
+    match n with
+    | 0 => (0, λ _, eFalse)
+    | S n => (n, λ args, Φ (a :: args))
     end%I.
+  Definition close : hoEnvND Σ → envD Σ := λ '(n, Φ), Φ [].
+  Definition lambda n (Φ : vl → hoEnvD Σ) : hoEnvND Σ :=
+    (n + 1, λ args,
+      match args with
+      | w :: args => Φ w args
+      | [] => eFalse
+      end%I).
 End saved_pred3_use.
 End try1.
 
