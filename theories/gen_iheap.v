@@ -6,9 +6,9 @@ Set Default Proof Using "Type".
 Import uPred.
 
 Definition gen_iheapUR (L V : Type) `{Countable L} : ucmraT :=
-  gmapUR L (agreeR (leibnizC V)).
+  gmapUR L (agreeR (leibnizO V)).
 Definition to_gen_iheap {L V} `{Countable L} : gmap L V → gen_iheapUR L V :=
-  fmap (λ v, to_agree (v : leibnizC V)).
+  fmap (λ v, to_agree (v : leibnizO V)).
 
 (** The CMRA we need. *)
 Class gen_iheapG (L V : Type) (Σ : gFunctors) `{Countable L} := GenIHeapG {
@@ -34,7 +34,7 @@ Section definitions.
     own (gen_iheap_name hG) (● (to_gen_iheap σ)).
 
   Definition mapsto_def (l : L) (v: V) : iProp Σ :=
-    own (gen_iheap_name hG) (◯ {[ l := to_agree (v : leibnizC V) ]}).
+    own (gen_iheap_name hG) (◯ {[ l := to_agree (v : leibnizO V) ]}).
   Definition mapsto_aux : seal (@mapsto_def). by eexists. Qed.
   Definition mapsto := mapsto_aux.(unseal).
   Definition mapsto_eq : @mapsto = @mapsto_def := mapsto_aux.(seal_eq).
@@ -60,7 +60,7 @@ Section to_gen_iheap.
   Qed.
 
   Lemma to_gen_iheap_insert l v σ :
-    to_gen_iheap (<[l:=v]> σ) = <[l:=(to_agree (v:leibnizC V))]> (to_gen_iheap σ).
+    to_gen_iheap (<[l:=v]> σ) = <[l:=(to_agree (v:leibnizO V))]> (to_gen_iheap σ).
   Proof. by rewrite /to_gen_iheap fmap_insert. Qed.
 End to_gen_iheap.
 
@@ -100,7 +100,7 @@ Section gen_iheap.
     iIntros (?) "Hσ". rewrite /gen_iheap_ctx mapsto_eq /mapsto_def.
     iMod (own_update with "Hσ") as "[Hσ Hl]".
     { eapply auth_update_alloc,
-      (alloc_singleton_local_update _ _ (to_agree (v:leibnizC _)))=> //.
+      (alloc_singleton_local_update _ _ (to_agree (v:leibnizO _)))=> //.
         by apply lookup_to_gen_iheap_None. }
     iModIntro. rewrite to_gen_iheap_insert. iFrame.
   Qed.

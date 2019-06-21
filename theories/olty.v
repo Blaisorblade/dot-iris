@@ -12,7 +12,7 @@ From D Require Import prelude iris_prelude asubst_base asubst_intf dlang.
 
 Module OLty (values: Values) (sorts: SortsIntf values).
 Import values sorts.
-Notation envD Σ := (vls -c> vl -c> iProp Σ).
+Notation envD Σ := (vls -d> vl -d> iProp Σ).
 Section olty_limit_preserving.
   Context `{Σ : gFunctors}.
 
@@ -147,13 +147,13 @@ Instance env_oltyped_persistent (Γ : sCtx) ρ: Persistent (env_oltyped Γ ρ).
 Proof. elim: Γ ρ => [|τ Γ IHΓ] [|v ρ] /=; apply _. Qed.
 
 Definition oty_interp_env (Γ : ctx) : sCtx := map oty_interp Γ.
-Definition env_typed (Γ : ctx) : vls -c> iProp Σ := env_oltyped (oty_interp_env Γ).
+Definition env_typed (Γ : ctx) : vls -d> iProp Σ := env_oltyped (oty_interp_env Γ).
 
 Instance env_typed_persistent `{OTyInterp ty Σ} Γ ρ : Persistent (env_typed Γ ρ) := env_oltyped_persistent _ _.
 
-Definition judgment Σ s : Type := option s * (vls -c> option s -c> iProp Σ).
-Definition nosubj_judgment Σ : Type := vls -c> iProp Σ.
-Definition subj_judgment Σ s : Type := s * (vls -c> s -c> iProp Σ).
+Definition judgment Σ s : Type := option s * (vls -d> option s -d> iProp Σ).
+Definition nosubj_judgment Σ : Type := vls -d> iProp Σ.
+Definition subj_judgment Σ s : Type := s * (vls -d> s -d> iProp Σ).
 Program Definition subj_judgment_to_judgment {Σ s} : subj_judgment Σ s → judgment Σ s :=
   λ '(x, φ), (Some x, λ ρ, from_option (φ ρ) False)%I.
 

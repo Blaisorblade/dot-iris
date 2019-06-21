@@ -36,10 +36,10 @@ Unset Program Cases.
 Section logrel.
   Context `{!dsubSynG Σ}.
 
-  Notation D := (vl -c> iProp Σ).
+  Notation D := (vl -d> iProp Σ).
   Implicit Types (interp : envD Σ) (φ : D).
 
-  Program Definition interp_expr : envD Σ -n> vls -c> tm -c> iProp Σ :=
+  Program Definition interp_expr : envD Σ -n> vls -d> tm -d> iProp Σ :=
     λne interp, λ ρ t, WP t {{ interp ρ }} %I.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_expr /.
@@ -78,7 +78,7 @@ Section logrel.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_forall /.
 
-  Program Definition vl_has_semtype : (ty -c> envD Σ) -n> vl -c> D -n> iProp Σ :=
+  Program Definition vl_has_semtype : (ty -d> envD Σ) -n> vl -d> D -n> iProp Σ :=
     λne rinterp, λ v, λne φ,
     (∃ T, ⌜ v = vty T ⌝ ∧ ∀ w, ▷ (φ w ≡ rinterp T [] w))%I.
   Solve All Obligations with solve_proper_ho.
@@ -100,7 +100,7 @@ Section logrel.
   Proof. solve_contractive_ho. Qed.
 
   Program Definition interp_tmem :
-    (ty -c> envD Σ) -n> envD Σ -n> envD Σ -n> envD Σ :=
+    (ty -d> envD Σ) -n> envD Σ -n> envD Σ -n> envD Σ :=
     λne rinterp interpL interpU, λ ρ v,
     (⌜ nclosed_vl v 0 ⌝ ∗  ∃ φ, [ rinterp ] v ↗ φ ∗
        □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ interpL ρ v → ▷ □ φ v) ∗
@@ -111,7 +111,7 @@ Section logrel.
   Global Instance interp_tmem_contractive : Contractive interp_tmem.
   Proof. solve_contractive_ho. Qed.
 
-  Program Definition interp_sel: (ty -c> envD Σ) -n> vl -c> envD Σ :=
+  Program Definition interp_sel: (ty -d> envD Σ) -n> vl -d> envD Σ :=
     λne rinterp, λ w ρ v,
     (⌜ nclosed_vl v 0 ⌝ ∧ (∃ ϕ, [rinterp] w.[to_subst ρ] ↗ ϕ ∧ ▷ □ ϕ v))%I.
   Solve All Obligations with solve_proper_ho.
@@ -121,7 +121,7 @@ Section logrel.
 
   (* This is structurally recursive, so must be a normal function.
      Non-structurally recursive calls must happen under [▷] and use [rinterp]. *)
-  Program Fixpoint interp_rec0 (rinterp: ty -c> envD Σ) (T: ty): envD Σ :=
+  Program Fixpoint interp_rec0 (rinterp: ty -d> envD Σ) (T: ty): envD Σ :=
     match T with
     | TLater T => interp_later (interp_rec0 rinterp T)
     | TTMem L U => interp_tmem rinterp (interp_rec0 rinterp L) (interp_rec0 rinterp U)
@@ -132,7 +132,7 @@ Section logrel.
     | TBot => interp_bot
     end%I.
   (* This is a non-expansive function so can't be a fixpoint, but it can call it. *)
-  Definition interp_rec1 : (ty -c> envD Σ) -> ty -c> envD Σ := interp_rec0.
+  Definition interp_rec1 : (ty -d> envD Σ) -> ty -d> envD Σ := interp_rec0.
 
   (* solve_contractive is really not happy about checking this code. *)
   Global Instance interp_rec1_contractive : Contractive interp_rec1.
@@ -153,7 +153,7 @@ Section logrel.
     fixpoint interp_rec1 ≡ interp_rec1 (fixpoint interp_rec1).
   Proof. exact: (fixpoint_unfold (interp_rec1)). Qed.
 
-  Program Definition interp: ty -c> envD Σ := fixpoint interp_rec1.
+  Program Definition interp: ty -d> envD Σ := fixpoint interp_rec1.
   Notation "⟦ T ⟧" := (interp T).
 
   Global Instance dlang_interp : TyInterp ty Σ := interp.

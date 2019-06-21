@@ -15,7 +15,7 @@ Module LiftWp (values: Values) (sorts: SortsIntf values).
   Implicit Types (v: vl) (ρ vs : vls).
   Implicit Types (Σ : gFunctors).
 
-  Notation envD Σ := (vls -c> vl -c> iProp Σ).
+  Notation envD Σ := (vls -d> vl -d> iProp Σ).
   Instance Inhϕ: Inhabited (envD Σ).
   Proof. constructor. exact (λ _ _, False)%I. Qed.
 

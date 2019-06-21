@@ -28,7 +28,7 @@ Section logrel.
      its handling of coercions. *)
   Unset Program Cases.
 
-  Notation D := (vl -c> iProp Σ).
+  Notation D := (vl -d> iProp Σ).
   Implicit Types (interp : envD Σ) (φ : D).
 
   (* XXX this is wrong unless we translate, and here I want for now to switch to having no translation.
@@ -46,7 +46,7 @@ Section logrel.
           (∀ v, interp1 ρ v → interp2 ρ v)))%I.
   Global Arguments interp_tmem /.
 
-  Definition interp_expr interp : vls -c> tm -c> iProp Σ :=
+  Definition interp_expr interp : vls -d> tm -d> iProp Σ :=
     λ ρ t, WP t {{ interp ρ }} %I.
   Global Arguments interp_expr /.
 

@@ -28,9 +28,9 @@ Section logrel.
      its handling of coercions. *)
   Unset Program Cases.
 
-  Notation D := (vl -c> iProp Σ).
+  Notation D := (vl -d> iProp Σ).
   Implicit Types (interp : envD Σ) (φ : D).
-  Notation envPred s := (vls -c> s -c> iProp Σ).
+  Notation envPred s := (vls -d> s -d> iProp Σ).
 
   Definition def_interp_vmem interp : envPred dm :=
     λ ρ d, (∃ vmem, ⌜d = dvl vmem⌝ ∧ ▷ interp ρ vmem)%I.
