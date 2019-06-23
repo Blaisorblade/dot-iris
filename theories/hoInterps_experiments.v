@@ -37,16 +37,8 @@ End try1.
 Module try2.
 
 Definition vec n vl := fin n → vl.
-
-(* To prove saved_pred3_own_contractive, below, we need to hide n under ▶. *)
-Definition nFun vl : oFunctor := { n & vec n vl -d> (var → vl) -d> vl -d> ∙ }.
-Definition mFun vl : oFunctor := ▶ nFun vl.
-Notation savedPred3G Σ vl := (savedAnythingG Σ (mFun vl)).
-Notation savedPred3Σ vl := (savedAnythingΣ (mFun vl)).
-
-Section saved_pred3.
-  Context `{!savedPred3G Σ vl}.
-
+Section vec.
+  Context {vl : Type}.
   (* vector operations, on a functional representation of vectors. *)
   Definition vcons {n} (v : vl) (args: vec n vl) : fin (S n) → vl :=
     λ i,
@@ -59,9 +51,28 @@ Section saved_pred3.
   Definition vhead {n} (args: vec (S n) vl) : vl := args Fin.F1.
   Definition vtail {n} (args: vec (S n) vl) : fin n → vl :=
     λ i, args (Fin.FS i).
+End vec.
+
+(* To prove saved_pred3_own_contractive, below, we need to hide n under ▶. *)
+Definition mFun vl : oFunctor := { n & vec n vl -d> (var → vl) -d> vl -d> ▶ ∙ }.
+Notation savedPred3G Σ vl := (savedAnythingG Σ (mFun vl)).
+Notation savedPred3Σ vl := (savedAnythingΣ (mFun vl)).
+
+Section saved_pred3.
+  Context `{!savedPred3G Σ vl}.
 
   Notation envD Σ := ((var → vl) -d> vl -d> iProp Σ).
   Notation hoEnvND n Σ := (vec n vl -d> envD Σ).
+
+  Definition hoEnvD_P Σ := (λ n, hoEnvND n Σ).
+  Definition hoEnvDO Σ : ofeT := sigTO (hoEnvD_P Σ).
+
+  Definition packedFun : ofeT := mFun vl (iProp Σ) uPred_cofe.
+  Definition packedFun_eq : packedFun =
+    sigTO (λ n, vec n vl -d> (var → vl) -d> vl -d> laterO (iProp Σ)) := reflexivity _.
+
+  Implicit Types (Φ : hoEnvDO Σ) (Ψ : packedFun).
+
   (* Manipulate *)
   Definition close (Φ : hoEnvND 0 Σ): envD Σ := Φ emptyArgs.
 
@@ -71,44 +82,85 @@ Section saved_pred3.
   Definition lambda {n} (Φ : vl → hoEnvND n Σ) : hoEnvND (S n) Σ :=
     λ args, Φ (vhead args) (vtail args).
 
-  Definition hoEnvD Σ := { n : nat & hoEnvND n Σ }.
+  Global Instance: NonExpansive (projT1 : packedFun → nat).
+  Proof. solve_proper. Qed.
 
-  (* Make hoEnvD a Cofe. *)
-  Definition hoEnvDC Σ : ofeT := sigTC (λ n, hoEnvND n Σ).
-  Global Instance: Cofe (hoEnvDC Σ) := _.
+  Definition cpack n : hoEnvND n Σ → packedFun :=
+    λ Φf, existT n (λ args ρ v, Next (Φf args ρ v)).
 
-  Implicit Types (Φ : hoEnvD Σ).
-
-  Definition packedFun := nFun vl (iProp Σ) uPred_cofe.
-  Definition pack : hoEnvD Σ → laterO packedFun :=
-    λ '(existT n Φ), Next (existT n (λ args ρ v, Φ args ρ v)).
-
-  Definition packedFun_arity : packedFun → nat := projT1.
-  Definition unpack : ∀ (Φ : packedFun), hoEnvND (packedFun_arity Φ) Σ := projT2.
-
-  Definition saved_pred3_own (γ : gname) (Φ : hoEnvD Σ) : iProp Σ :=
-    saved_anything_own (F := mFun vl) γ (pack Φ).
-
-  Instance saved_pred3_own_contractive γ : Contractive (saved_pred3_own γ).
-  Proof. rewrite /saved_pred3_own => n [ix x] [iy y] /= Heq. f_equiv. done. Qed.
-
-  Import uPred EqNotations.
-  Instance: NonExpansive (projT1 : packedFun → nat). solve_proper. Qed.
-
-  Lemma saved_pred3_alloc Φ :
-    (|==> ∃ γ, saved_pred3_own γ Φ)%I.
-  Proof. apply saved_anything_alloc. Qed.
-
-  Lemma saved_pred3_agree γ Φ Ψ:
-    saved_pred3_own γ Φ -∗ saved_pred3_own γ Ψ -∗
-    ▷ (Φ ≡ Ψ).
+  Global Instance cpack_contractive: Contractive (cpack n).
   Proof.
-    iIntros "HΦ HΨ /=".
-    iDestruct (saved_anything_agree with "HΦ HΨ") as "Heq".
-    destruct Φ, Ψ; rewrite /pack.
-    iApply bi.later_equivI; iApply "Heq".
+    rewrite /cpack => ?????.
+    apply (existT_ne _ eq_refl).
+    solve_contractive_ho.
+  Qed.
+  Program Definition pack : hoEnvDO Σ -n> packedFun :=
+    λne '(existT n Φ), cpack n Φ.
+  Next Obligation.
+    move => ?[??][??][/= Heq ?]. destruct Heq. by f_equiv.
   Qed.
 
+  Definition packedFun_arity : packedFun → nat := projT1.
+
+  Definition saved_pred3_own (γ : gname) i (Φ : hoEnvND i Σ) : iProp Σ :=
+    saved_anything_own (F := mFun vl) γ (pack (existT i Φ)).
+
+  Import uPred EqNotations.
+  Instance saved_pred3_own_contractive γ i : Contractive (saved_pred3_own γ i).
+  Proof.
+    rewrite /saved_pred3_own => n f g /= Heq. f_equiv.
+    apply (existT_ne _ eq_refl) => ??? /=.
+    solve_contractive_ho.
+  Qed.
+
+  Lemma saved_pred3_alloc i (Φ : hoEnvND i Σ) :
+    (|==> ∃ γ, saved_pred3_own γ i Φ)%I.
+  Proof. apply saved_anything_alloc. Qed.
+
+  Lemma existT_ne_inv {A} {P : A → ofeT} n {i1 i2} {v1 : P i1} {v2 : P i2}:
+    ∀ H : existT i1 v1 ≡{n}≡ existT i2 v2,
+    rew f_equal P (sigT_dist_proj1 _ H) in v1 ≡{n}≡ v2.
+  Proof. move => [/=] Heq. by destruct Heq. Qed.
+
+  Definition unpack :
+    ∀ Ψ, hoEnvND (packedFun_arity Ψ) Σ :=
+    λ '(existT n Φ), (λ args ρ v,
+      let '(Next f) := (Φ args ρ v) in f)%I.
+
+  Lemma unpack_lemma {i i' φ φ'} (Heq : i = i'):
+    ((pack (existT i φ) ≡ pack (existT i' φ')) ⊢
+    ▷ ((rew f_equal (hoEnvD_P Σ) Heq in unpack (pack (existT i φ))) ≡ unpack (pack (existT i' φ')): iProp Σ))%I.
+  Proof.
+    unseal; constructor.
+    rewrite /uPred_internal_eq_def /uPred_later_def /= /uPred_holds /=.
+    move => [//|n] x Hx [/= Heq'] /=.
+    destruct Heq'. by rewrite (proof_irrel Heq eq_refl).
+  Qed.
+
+  Lemma saved_pred3_agree γ i (Φ1 Φ2 : hoEnvND i Σ) a b c:
+    saved_pred3_own γ i Φ1 -∗ saved_pred3_own γ i Φ2 -∗
+    ▷ (Φ1 a b c ≡ Φ2 a b c).
+  Proof.
+    iIntros "HΦ1 HΦ2 /=".
+    iDestruct (saved_anything_agree with "HΦ1 HΦ2") as "Heq".
+    rewrite (unpack_lemma eq_refl) /=. iNext.
+    repeat setoid_rewrite discrete_fun_equivI.
+    iApply "Heq".
+  Qed.
+
+(*
+  Lemma saved_pred3_agree_arity γ i (Φ1 Φ2 : hoEnvND i Σ):
+    saved_pred3_own γ i Φ1 -∗ saved_pred3_own γ i Φ2 -∗
+    ⌜ packedFun_arity Φ1 = packedFun_arity Φ2 ⌝.
+  Proof.
+    iIntros "HΦ HΨ /=".
+    iDestruct (saved_pred3_agree with "HΦ HΨ") as "Heq".
+    iNext. iApply (eq_1 with "Heq").
+  Qed. *)
+
+  (* XXX solve_proper_ho loops here, since commit ee4856206410d63121a7502e3cd64f010d0b35cc. *)
+  (* Program Definition ofe_apply {A B: ofeT}: (A -n> B) -n> A -n> B :=
+    λne f a, f a. *)
   Lemma same_arity {Φ Ψ : packedFun} {n} :
     Φ ≡{n}≡ Ψ → packedFun_arity Φ = packedFun_arity Ψ.
   Proof. destruct Φ, Ψ. by case. Qed.
@@ -118,7 +170,7 @@ Section saved_pred3.
 
   Lemma pred_impl (Φ Ψ : packedFun) n (Heq: Φ ≡{n}≡ Ψ)
     (a : vec (packedFun_arity Φ) vl) b c:
-    unpack Φ a b c ≡{n}≡ unpack Ψ (rew [λ n, vec n vl] (same_arity Heq) in a) b c.
+    Next (unpack Φ a b c) ≡{n}≡ Next (unpack Ψ (rew [λ n, vec n vl] (same_arity Heq) in a) b c).
   Proof.
     move: (same_arity Heq) => HeqN. destruct Φ, Ψ; simpl in *.
     case: Heq => /= Heq1.
@@ -133,14 +185,6 @@ Section saved_pred3.
     move => n [/= ix ?] [/= iy ?] [/=]. intros ->. done.
   Qed.
 
-  Lemma saved_pred3_agree_arity γ Φ Ψ:
-    saved_pred3_own γ Φ -∗ saved_pred3_own γ Ψ -∗
-    ▷ ⌜ packedFun_arity Φ = packedFun_arity Ψ ⌝.
-  Proof.
-    iIntros "HΦ HΨ /=".
-    iDestruct (saved_pred3_agree with "HΦ HΨ") as "Heq".
-    iNext. iApply (eq_1 with "Heq").
-  Qed.
 (*
   Lemma saved_pred3_agree γ Φ Ψ a b c:
     saved_pred3_own γ Φ -∗ saved_pred3_own γ Ψ -∗
