@@ -117,24 +117,20 @@ Section saved_pred3.
     (|==> ∃ γ, saved_pred3_own γ i Φ)%I.
   Proof. apply saved_anything_alloc. Qed.
 
-  Lemma existT_ne_inv {A} {P : A → ofeT} n {i1 i2} {v1 : P i1} {v2 : P i2}:
-    ∀ H : existT i1 v1 ≡{n}≡ existT i2 v2,
-    rew f_equal P (sigT_dist_proj1 _ H) in v1 ≡{n}≡ v2.
-  Proof. move => [/=] Heq. by destruct Heq. Qed.
-
-  Definition unpack :
-    ∀ Ψ, hoEnvND (packedFun_arity Ψ) Σ :=
-    λ '(existT n Φ), (λ args ρ v,
-      let '(Next f) := (Φ args ρ v) in f)%I.
-
-  Lemma unpack_lemma {i i' φ φ'} (Heq : i = i'):
-    ((pack (existT i φ) ≡ pack (existT i' φ')) ⊢
-    ▷ ((rew f_equal (hoEnvD_P Σ) Heq in unpack (pack (existT i φ))) ≡ unpack (pack (existT i' φ')): iProp Σ))%I.
+  Lemma eq_1 (Φ Ψ : packedFun) : Φ ≡ Ψ -∗
+    ⌜ packedFun_arity Φ = packedFun_arity Ψ ⌝: iProp Σ.
   Proof.
-    unseal; constructor.
-    rewrite /uPred_internal_eq_def /uPred_later_def /= /uPred_holds /=.
-    move => [//|n] x Hx [/= Heq'] /=.
-    destruct Heq'. by rewrite (proof_irrel Heq eq_refl).
+    rewrite /= sigT_equivI /packedFun_arity.
+    by iDestruct 1 as (Heq) "_".
+  Qed.
+
+  Lemma saved_pred3_agree_arity γ {i j α1 α2}:
+    saved_pred3_own γ i α1 -∗ saved_pred3_own γ j α2 -∗
+    ⌜ i = j ⌝.
+  Proof.
+    iIntros "HΦ1 HΦ2 /=".
+    iDestruct (saved_anything_agree with "HΦ1 HΦ2") as "Heq".
+    rewrite /= sigT_equivI /=. by iDestruct "Heq" as (Heq) "_".
   Qed.
 
   Lemma saved_pred3_agree γ i (Φ1 Φ2 : hoEnvND i Σ) a b c:
@@ -143,30 +139,20 @@ Section saved_pred3.
   Proof.
     iIntros "HΦ1 HΦ2 /=".
     iDestruct (saved_anything_agree with "HΦ1 HΦ2") as "Heq".
-    rewrite (unpack_lemma eq_refl) /=. iNext.
-    repeat setoid_rewrite discrete_fun_equivI.
+    rewrite /= sigT_equivI. iDestruct "Heq" as (Heq) "Heq".
+    rewrite (proof_irrel Heq eq_refl) /=.
+    repeat setoid_rewrite bi.discrete_fun_equivI; iNext.
     iApply "Heq".
   Qed.
 
-(*
-  Lemma saved_pred3_agree_arity γ i (Φ1 Φ2 : hoEnvND i Σ):
-    saved_pred3_own γ i Φ1 -∗ saved_pred3_own γ i Φ2 -∗
-    ⌜ packedFun_arity Φ1 = packedFun_arity Φ2 ⌝.
-  Proof.
-    iIntros "HΦ HΨ /=".
-    iDestruct (saved_pred3_agree with "HΦ HΨ") as "Heq".
-    iNext. iApply (eq_1 with "Heq").
-  Qed. *)
+  Definition unpack :
+    ∀ Ψ, hoEnvND (packedFun_arity Ψ) Σ :=
+    λ '(existT n Φ), (λ args ρ v,
+      let '(Next f) := (Φ args ρ v) in f)%I.
 
-  (* XXX solve_proper_ho loops here, since commit ee4856206410d63121a7502e3cd64f010d0b35cc. *)
-  (* Program Definition ofe_apply {A B: ofeT}: (A -n> B) -n> A -n> B :=
-    λne f a, f a. *)
   Lemma same_arity {Φ Ψ : packedFun} {n} :
     Φ ≡{n}≡ Ψ → packedFun_arity Φ = packedFun_arity Ψ.
   Proof. destruct Φ, Ψ. by case. Qed.
-
-  Lemma eq_ext (Φ Ψ : packedFun) : Φ ≡ Ψ ⊢ ⌜ ∃ n, Φ ≡{n}≡ Ψ ⌝: iProp Σ.
-  Proof. unseal; constructor => n x Hx /=. by exists n. Qed.
 
   Lemma pred_impl (Φ Ψ : packedFun) n (Heq: Φ ≡{n}≡ Ψ)
     (a : vec (packedFun_arity Φ) vl) b c:
@@ -177,25 +163,6 @@ Section saved_pred3.
     have {HeqN} ->: HeqN = Heq1. exact: proof_irrel.
     destruct Heq1; cbn => H. exact: H.
   Qed.
-
-  Lemma eq_1 (Φ Ψ : packedFun) : Φ ≡ Ψ -∗ ⌜ packedFun_arity Φ = packedFun_arity Ψ ⌝: iProp Σ.
-  Proof.
-    iIntros "H".
-    iApply (internal_eq_rewrite _ _ (λ x, ⌜ packedFun_arity Φ = packedFun_arity x ⌝)%I with "H") => //.
-    move => n [/= ix ?] [/= iy ?] [/=]. intros ->. done.
-  Qed.
-
-(*
-  Lemma saved_pred3_agree γ Φ Ψ a b c:
-    saved_pred3_own γ Φ -∗ saved_pred3_own γ Ψ -∗
-    ⌜ proj1_sig Φ ⌝
-    ▷ (Φ a b c ≡ Ψ a b c).
-  Proof.
-    iIntros "HΦ HΨ /=".
-    iDestruct (saved_anything_agree with "HΦ HΨ") as "Heq".
-    repeat setoid_rewrite bi.discrete_fun_equivI.
-    iApply bi.later_equivI; iApply "Heq".
-  Qed. *)
 
 End saved_pred3.
 
