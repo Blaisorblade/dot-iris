@@ -59,6 +59,17 @@ Notation savedPred3G Σ vl := (savedAnythingG Σ (mFun vl)).
 Notation savedPred3Σ vl := (savedAnythingΣ (mFun vl)).
 
 Section saved_pred3.
+  Import uPred EqNotations.
+
+  (* For Iris. *)
+
+  Global Instance projT1_ne {A P}: NonExpansive (projT1: @sigTO A P → leibnizO A).
+  Proof. solve_proper. Qed.
+
+  Lemma projT2_ne {A P}: ∀ n (x1 x2 : @sigTO A P) (Heq : x1 ≡{n}≡ x2),
+    rew (sigT_dist_proj1 n Heq) in projT2 x1 ≡{n}≡ projT2 x2.
+  Proof. by destruct Heq. Qed.
+
   Context `{!savedPred3G Σ vl}.
 
   Notation envD Σ := ((var → vl) -d> vl -d> iProp Σ).
@@ -71,6 +82,8 @@ Section saved_pred3.
   Definition packedFun_eq : packedFun =
     sigTO (λ n, vec n vl -d> (var → vl) -d> vl -d> laterO (iProp Σ)) := reflexivity _.
 
+  Definition packedFun_arity : packedFun -n> natO := λne x, projT1 x.
+
   Implicit Types (Φ : hoEnvDO Σ) (Ψ : packedFun).
 
   (* Manipulate *)
@@ -81,9 +94,6 @@ Section saved_pred3.
 
   Definition lambda {n} (Φ : vl → hoEnvND n Σ) : hoEnvND (S n) Σ :=
     λ args, Φ (vhead args) (vtail args).
-
-  Global Instance: NonExpansive (projT1 : packedFun → nat).
-  Proof. solve_proper. Qed.
 
   Definition cpack n : hoEnvND n Σ → packedFun :=
     λ Φf, existT n (λ args ρ v, Next (Φf args ρ v)).
@@ -100,12 +110,9 @@ Section saved_pred3.
     move => ?[??][??][/= Heq ?]. destruct Heq. by f_equiv.
   Qed.
 
-  Definition packedFun_arity : packedFun → nat := projT1.
-
   Definition saved_pred3_own (γ : gname) i (Φ : hoEnvND i Σ) : iProp Σ :=
     saved_anything_own (F := mFun vl) γ (pack (existT i Φ)).
 
-  Import uPred EqNotations.
   Instance saved_pred3_own_contractive γ i : Contractive (saved_pred3_own γ i).
   Proof.
     rewrite /saved_pred3_own => n f g /= Heq. f_equiv.
