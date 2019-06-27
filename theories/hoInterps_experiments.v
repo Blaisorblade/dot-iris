@@ -1,6 +1,7 @@
 From iris.proofmode Require Import tactics.
 From iris.base_logic Require Import lib.saved_prop.
 From D Require Import prelude iris_prelude saved_interp_n.
+Import uPred.
 
 Unset Program Cases.
 (* Repeat temporarily-disabled Iris notations. *)
@@ -57,9 +58,17 @@ End vec.
 Definition mFun vl : oFunctor := { n & vec n vl -d> (var → vl) -d> vl -d> ▶ ∙ }.
 Notation savedPred3G Σ vl := (savedAnythingG Σ (mFun vl)).
 Notation savedPred3Σ vl := (savedAnythingΣ (mFun vl)).
+From D Require Import asubst_intf dlang olty.
+
+Module Foo (values: Values) (sorts: SortsIntf values).
+  Module M := (OLty values sorts).
+  Module N := LiftWp values sorts.
+  Import M N values.
+  Notation envD Σ := ((var → vl) -d> vl -d> iProp Σ).
+  Notation hoEnvND n Σ := (vec n vl -d> envD Σ).
 
 Section saved_pred3.
-  Import uPred EqNotations.
+  Import EqNotations.
 
   (* For Iris. *)
 
@@ -71,9 +80,6 @@ Section saved_pred3.
   Proof. by destruct Heq. Qed.
 
   Context `{!savedPred3G Σ vl}.
-
-  Notation envD Σ := ((var → vl) -d> vl -d> iProp Σ).
-  Notation hoEnvND n Σ := (vec n vl -d> envD Σ).
 
   Definition hoEnvD_P Σ := (λ n, hoEnvND n Σ).
   Definition hoEnvDO Σ : ofeT := sigTO (hoEnvD_P Σ).
@@ -87,13 +93,27 @@ Section saved_pred3.
   Implicit Types (Φ : hoEnvDO Σ) (Ψ : packedFun).
 
   (* Manipulate *)
-  Definition close (Φ : hoEnvND 0 Σ): envD Σ := Φ emptyArgs.
+  Definition close {A} (Φ : vec 0 vl -d> A): A := Φ emptyArgs.
 
-  Definition beta {n} (Φ : hoEnvND (S n) Σ) (v : vl) : hoEnvND n Σ :=
+  Definition beta {n A} (Φ : vec (S n) vl -d> A) v : vec n vl -d> A :=
     λ args, Φ (vcons v args).
 
-  Definition lambda {n} (Φ : vl → hoEnvND n Σ) : hoEnvND (S n) Σ :=
+  Definition lambda {n A} (Φ : vl → vec n vl -d> A) : vec (S n) vl -d> A :=
     λ args, Φ (vhead args) (vtail args).
+
+  (* Right definition? *)
+  Definition subtype {n} (φ1 φ2 : hoEnvND n Σ) ρ : iProp Σ :=
+    (∀ (args : vec n vl) v, φ1 args ρ v -∗ φ2 args ρ v)%I.
+
+  Fixpoint subtype_w_expKind ρ n :
+      ∀ (φ1 φ2 : hoEnvND n Σ) (argTs : vec n (envD Σ)), iProp Σ :=
+    match n with
+    | 0 =>   λ φ1 φ2 argTs,
+        ∀ v, close φ1 ρ v -∗ close φ2 ρ v
+    | S n => λ φ1 φ2 argTs,
+        ∀ v, vhead argTs ρ v -∗
+          subtype_w_expKind ρ n (beta φ1 v) (beta φ2 v) (vtail argTs)
+    end%I.
 
   Definition cpack n : hoEnvND n Σ → packedFun :=
     λ Φf, existT n (λ args ρ v, Next (Φf args ρ v)).
@@ -139,9 +159,10 @@ Section saved_pred3.
     iDestruct (saved_anything_agree with "HΦ1 HΦ2") as "Heq".
     rewrite /= sigT_equivI /=. by iDestruct "Heq" as (Heq) "_".
   Qed.
+  Notation "γ ⤇[ i ] φ" := (saved_pred3_own γ i φ) (at level 20).
 
   Lemma saved_pred3_agree γ i (Φ1 Φ2 : hoEnvND i Σ) a b c:
-    saved_pred3_own γ i Φ1 -∗ saved_pred3_own γ i Φ2 -∗
+    γ ⤇[ i ] Φ1 -∗ saved_pred3_own γ i Φ2 -∗
     ▷ (Φ1 a b c ≡ Φ2 a b c).
   Proof.
     iIntros "HΦ1 HΦ2 /=".
@@ -170,9 +191,81 @@ Section saved_pred3.
     have {HeqN} ->: HeqN = Heq1. exact: proof_irrel.
     destruct Heq1; cbn => H. exact: H.
   Qed.
+  Notation "s ↝[ i ] φ" := (∃ γ, (s ↦ γ) ∗ (γ ⤇[ i ] φ))%I  (at level 20) : bi_scope.
 
 End saved_pred3.
 
 Opaque saved_pred3_own.
 
-Notation "γ ⤇ φ" := (saved_pred3_own γ φ) (at level 20).
+Notation "γ ⤇[ i ] φ" := (saved_pred3_own γ i φ) (at level 20).
+Notation "s ↝[ i ] φ" := (∃ γ, (s ↦ γ) ∗ (γ ⤇[ i ] φ))%I  (at level 20) : bi_scope.
+
+End Foo.
+From D.Dot Require Import syn unary_lr.
+Include Foo syn syn.
+
+Section bar.
+  Context `{!savedPred3G Σ vl} `{!N.dlangG Σ}.
+  (* Implicit Types (interp : envD Σ) (φ : D). *)
+About saved_pred3_own.
+
+  Definition hoD n Σ := vec n vl -d> vl -d> iProp Σ.
+
+  Definition idm_proj_semtype (d : dm) n (φ : hoD n Σ) : iProp Σ :=
+    (∃ s σ interp,
+      s ↝[ n ] interp ∗
+      ⌜ d = dtysem σ s
+       ∧ φ = λ args v, interp args (to_subst σ) v ⌝)%I.
+  Global Arguments idm_proj_semtype: simpl never.
+  Notation "d ↗[ n ] φ" := (idm_proj_semtype d n φ) (at level 20).
+
+  Notation envPred s := (vls -d> s -d> iProp Σ).
+  Definition subtype' {n} i j (φ1 φ2 : hoD n Σ) : iProp Σ :=
+    (□∀ (args : vec n vl) v, ⌜ nclosed_vl v 0 ⌝ → ▷^i φ1 args v -∗ ▷^j φ2 args v)%I.
+  Definition semEquiv {n} i j (φ1 φ2 : hoD n Σ) : iProp Σ :=
+    (□∀ (args : vec n vl) v, ⌜ nclosed_vl v 0 ⌝ → ▷^i φ1 args v ∗-∗ ▷^j φ2 args v)%I.
+
+  Definition kind n Σ := hoD n Σ → iProp Σ.
+
+  (* The point of Sandro's kind syntax is to use this only at kind 0. *)
+  (* Definition ktmem {n} (φ1 φ2 : hoD n Σ) φ :=
+    (subtype' n 1 1 φ1 φ ∗ subtype' n 1 1 φ φ)%I. *)
+  Definition ktmem (φ1 φ2 : hoD 0 Σ) φ :=
+    (subtype' 1 1 φ1 φ ∗ subtype' 1 1 φ φ)%I.
+
+  Definition kpi {n} (K : kind n Σ) (φ₁ : hoD 0 Σ) : kind (S n) Σ :=
+    λ φ, (□∀ arg, close φ₁ arg → K (beta φ arg))%I.
+
+  Definition def_interp_tmem {n} : kind n Σ → envPred dm :=
+    λ K ρ d, (∃ φ, d ↗[ n ] φ ∗ K φ)%I.
+  Definition def_interp_tmem_spec (φ1 φ2 : hoD 0 Σ) : envPred dm :=
+    def_interp_tmem (ktmem φ1 φ2).
+  (* Olty needed. Also, without using Olty, we can't use the fact that v is closed in a subtyping proof.
+    *)
+  (*
+    A possible sketch of subtyping for lambdas? Not quite working...
+    It's good, but we can't use to compare the various subtyping rules
+    for lambdas. Also because my lambdas are total and work
+    on arbitrary arguments — they might, at best, become False on bad
+    ones. *)
+  Definition lam_subtype {n} (argT : hoD 0 Σ) (φ1 φ2 : hoD (S n) Σ) :=
+    (□∀ arg, □close argT arg -∗ subtype' 0 0 (beta φ1 arg) (beta φ2 arg))%I.
+
+  Definition lam_semEquiv {n} (argT : hoD 0 Σ) (φ1 φ2 : hoD (S n) Σ) :=
+    (□∀ arg, □close argT arg -∗ semEquiv 0 0 (beta φ1 arg) (beta φ2 arg))%I.
+
+  (* Here, we inherit eta from the metalanguage, in both directions. *)
+  Lemma eta1 {n} argT (φ : hoD (S n) Σ): lam_subtype argT φ (λ v, φ v).
+  Proof.
+    rewrite /lam_subtype /subtype' /beta /=.
+    iIntros "!>" (arg) "#Harg !>"; iIntros (args v Hcl) "? //".
+  Qed.
+
+  Lemma eta {n} argT (φ : hoD (S n) Σ): lam_semEquiv argT φ (λ v, φ v).
+  Proof.
+    rewrite /lam_semEquiv /semEquiv /beta /=.
+    iIntros "!>" (arg) "#Harg !>"; iIntros (args v Hcl).
+    by iApply wand_iff_refl.
+  Qed.
+End bar.
+
