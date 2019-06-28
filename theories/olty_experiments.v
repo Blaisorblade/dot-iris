@@ -4,6 +4,7 @@ From iris.proofmode Require Import tactics.
 From D.pure_program_logic Require Import lifting adequacy.
 From D Require Import gen_iheap saved_interp olty dlang.
 
+Implicit Types (Σ : gFunctors).
 
 (*
   - Redefining *existing judgments* on Olty will let us
@@ -21,57 +22,47 @@ From D Require Import gen_iheap saved_interp olty dlang.
     while reusing as much as possible.
 *)
 
-Module Type OLty_judge (Import sorts: SortsIntf).
+Module Type OLty_judge (Import vals: Values) (Import sorts: SortsLemmas vals).
 (* TODO Eventually switch to: *)
 
-(* Include (LiftWp values sorts). *)
 (* Or just inline this code there. *)
-Include OLty sorts.
+Include OLty vals sorts.
+Include LiftWp sorts.
 
 Class Closeable s := nclosed_s : s → nat → Prop.
 Instance closeable_sort s `{Sort s} : Closeable s := nclosed.
 Instance closeable_vl : Closeable vl := nclosed_vl.
 
-Implicit Types (v: vl) (vs : vls) (ρ : var → vl).
-Implicit Types (Σ : gFunctors).
+Definition env := var -> vl.
+
+Implicit Types (v: vl) (vs : vls) (ρ : env).
 
 Definition test_interp_expr2 `{dlangG Σ} (φ : olty Σ) :=
   λ ρ t, WP t {{ φ ρ }} %I.
 
 Section judgments.
 Context `{dlangG Σ} `{OTyInterp ty Σ}.
-
-Notation sCtx := (list (olty Σ)).
 Notation ctx := (list ty).
 
 Notation "⟦ T ⟧" := (oty_interp T).
 
-Fixpoint env_oltyped (Γ : sCtx) vs : iProp Σ :=
-  match Γ, vs with
-  | φ :: Γ', v :: vs => env_oltyped Γ' vs ∗ φ (v .: to_subst vs) v
-  | nil, nil => True
-  | _, _ => False
-  end%I.
-Instance env_oltyped_persistent (Γ : sCtx) vs: Persistent (env_oltyped Γ vs).
-Proof. elim: Γ vs => [|τ Γ IHΓ] [|v vs] /=; apply _. Qed.
-
 Definition oty_interp_env (Γ : ctx) : sCtx := map oty_interp Γ.
-Definition env_typed (Γ : ctx) : vls -d> iProp Σ := env_oltyped (oty_interp_env Γ).
+Definition env_typed (Γ : ctx) : vls -d> iProp Σ := env_oltyped_fin (oty_interp_env Γ).
 
-Instance env_typed_persistent `{OTyInterp ty Σ} Γ vs : Persistent (env_typed Γ vs) := env_oltyped_persistent _ _.
+Instance env_typed_persistent' `{OTyInterp ty Σ} Γ vs : Persistent (env_typed Γ vs) := env_oltyped_fin_persistent _ _.
 
-Definition judgment Σ s : Type := option s * ((var → vl) -d> option s -d> iProp Σ).
-Definition nosubj_judgment Σ : Type := (var → vl) -d> iProp Σ.
-Definition subj_judgment Σ s : Type := s * ((var → vl) -d> s -d> iProp Σ).
+Definition judgment Σ s : Type := option s * (env -d> option s -d> iProp Σ).
+Definition nosubj_judgment Σ : Type := env -d> iProp Σ.
+Definition subj_judgment Σ s : Type := s * (env -d> s -d> iProp Σ).
 Program Definition subj_judgment_to_judgment {Σ s} : subj_judgment Σ s → judgment Σ s :=
   λ '(x, φ), (Some x, λ ρ, from_option (φ ρ) False)%I.
 
 Definition judgment_holds `{Closeable s} (Γ : sCtx) (J : judgment Σ s): iProp Σ :=
-  (⌜ from_option (flip nclosed_s (length Γ)) True (fst J) ⌝ ∗ □∀ vs, env_oltyped Γ vs → (snd J) (to_subst vs) (fst J))%I.
+  (⌜ from_option (flip nclosed_s (length Γ)) True (fst J) ⌝ ∗ □∀ vs, env_oltyped_fin Γ vs → (snd J) (to_subst vs) (fst J))%I.
 Notation "Γ ⊨ J" := (judgment_holds Γ J) (at level 74, J at next level).
 Global Arguments judgment_holds /.
 
-Program Definition ivtp (φ: olty Σ) v : judgment Σ vl := subj_judgment_to_judgment (v, φ).
+Program Definition ivtp (φ : olty Σ) v : judgment Σ vl := subj_judgment_to_judgment (v, φ).
 Global Arguments ivtp /.
 
 (* DOT/D<: judgments are indexed by [⋅]. *)
@@ -99,13 +90,18 @@ Program Definition step_indexed_ivstp φ1 i1 φ2 i2 := nosubj_judgment_to_judgme
   (λ ρ, ∀ v, ⌜ nclosed_vl v 0 ⌝ → (▷^i1 φ1 ρ v) → ▷^i2 φ2 ρ v)%I.
 Notation "[ φ1 , i1 ] <: [ φ2 , i2 ]" := (step_indexed_ivstp φ1 i1 φ2 i2) (at level 73).
 Lemma equiv_vstp Γ (φ1 φ2: olty Σ) i1 i2: (Γ ⊨ [φ1 , i1] <: [φ2 , i2]) ⊣⊢
-    (□∀ vs v, ⌜ nclosed_vl v 0 ⌝ → env_oltyped Γ vs → (▷^i1 φ1 (to_subst vs) v) → ▷^i2 φ2 (to_subst vs) v)%I.
+    (□∀ vs v, ⌜ nclosed_vl v 0 ⌝ → env_oltyped_fin Γ vs → (▷^i1 φ1 (to_subst vs) v) → ▷^i2 φ2 (to_subst vs) v)%I.
 Proof.
   iSplit; [iIntros "#[_ H] /= !>" (???) "#?" |
     iIntros "#H"; iSplit; first done; iIntros "!>" (?) "#? /="; iIntros (??)].
   all: by iApply "H".
 Qed.
-Definition oAnd φ1 φ2 : olty Σ := Olty (λ ρ v, φ1 ρ v ∧ φ2 ρ v)%I.
+Program Definition oAnd φ1 φ2 : olty Σ := Olty (λ ρ v, φ1 ρ v ∧ φ2 ρ v)%I _.
+Next Obligation. rewrite /vclosed; intros; iIntros "#[H _]". by iApply olty_v_closed. Qed.
+
+Program Definition oOr φ1 φ2 : olty Σ := Olty (λ ρ v, φ1 ρ v ∨ φ2 ρ v)%I _.
+Next Obligation. rewrite /vclosed; intros; iIntros "#[H | H]"; by iApply olty_v_closed. Qed.
+
 Lemma andstp1 Γ φ1 φ2 i : (Γ ⊨ [oAnd φ1 φ2 , i] <: [φ1 , i]).
 Proof.
   rewrite equiv_vstp /=. by iIntros "!>" (???) "#Hg #[? ?]".
