@@ -11,6 +11,7 @@ theories/dlang.v
 theories/locAsimpl.v
 theories/gen_iheap.v
 theories/saved_interp.v
+theories/saved_interp_dep.v
 theories/saved_interp_n.v
 theories/hoInterps_experiments.v
 theories/proofmode_extra.v
