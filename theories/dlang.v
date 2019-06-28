@@ -9,11 +9,24 @@ From D.pure_program_logic Require weakestpre adequacy.
 From D Require gen_iheap saved_interp.
 Require Program.
 
+Module mapsto.
+Export gen_iheap.
+
+Notation "s ↦ γ" := (mapsto (L := stamp) s γ) (at level 20) : bi_scope.
+Section mapsto_stamp_gname.
+  Context `{gen_iheapG stamp gname Σ}.
+  Global Instance: Persistent (s ↦ γ) := _.
+  Global Instance: Timeless (s ↦ γ) := _.
+
+  Definition allGs (gs : gmap stamp gname) := gen_iheap_ctx gs.
+  Global Arguments allGs /.
+End mapsto_stamp_gname.
+End mapsto.
+
 Module LiftWp (values: Values) (sorts: SortsIntf values).
   Import values sorts.
-  Export gen_iheap saved_interp weakestpre.
-  Implicit Types (v: vl) (ρ vs : vls).
-  Implicit Types (Σ : gFunctors).
+  Export mapsto saved_interp weakestpre.
+  Implicit Types (v : vl) (ρ vs : vls) (Σ : gFunctors).
 
   Notation envD Σ := (vls -d> vl -d> iProp Σ).
   Instance Inhϕ: Inhabited (envD Σ).
@@ -24,7 +37,7 @@ Module LiftWp (values: Values) (sorts: SortsIntf values).
 
   Class dlangG Σ := DLangG {
     dlangG_savior :> savedInterpG Σ vls vl;
-    dlangG_interpNames : gen_iheapG stamp gname Σ;
+    dlangG_interpNames :> gen_iheapG stamp gname Σ;
   }.
 
   Instance dlangG_irisG `{dlangG Σ} : irisG dlang_lang Σ := {
@@ -46,16 +59,10 @@ Module LiftWp (values: Values) (sorts: SortsIntf values).
     iApply (wp_wand with "[-]"); [iApply Hp; trivial|]; cbn;
     iIntros (v) Hv.
 
-  Notation "s ↦ γ" := (mapsto (hG := dlangG_interpNames) s γ)  (at level 20) : bi_scope.
   Notation "s ↝ φ" := (∃ γ, s ↦ γ ∗ γ ⤇ φ)%I  (at level 20) : bi_scope.
 
   Section mapsto.
     Context `{!dlangG Σ}.
-    Global Instance: Persistent (s ↦ γ) := _.
-    Global Instance: Timeless (s ↦ γ) := _.
-
-    Definition allGs gs := (gen_iheap_ctx (hG := dlangG_interpNames) gs).
-    Global Arguments allGs /.
 
     Lemma leadsto_agree s (φ1 φ2: envD Σ) ρ v: s ↝ φ1 -∗ s ↝ φ2 -∗ ▷ (φ1 ρ v ≡ φ2 ρ v).
     Proof.
@@ -70,7 +77,7 @@ Module LiftWp (values: Values) (sorts: SortsIntf values).
   Module dlang_adequacy.
     Class dlangPreG Σ := DLangPreG {
       dlangPreG_savior :> savedInterpG Σ vls vl;
-      dlangPreG_interpNames : gen_iheapPreG stamp gname Σ;
+      dlangPreG_interpNames :> gen_iheapPreG stamp gname Σ;
     }.
     Definition dlangΣ := #[savedInterpΣ vls vl; gen_iheapΣ stamp gname].
 
@@ -94,7 +101,7 @@ Module LiftWp (values: Values) (sorts: SortsIntf values).
     Proof.
       intros Hlog ??. cut (adequate NotStuck e σ (λ _ _, True)); first (move => [_ ?]; by eauto).
       eapply (wp_adequacy Σ) => /=.
-      iMod (gen_iheap_init (hG := dlangPreG_interpNames) ∅) as (g) "Hgs".
+      iMod (gen_iheap_init (L := stamp) ∅) as (g) "Hgs".
       set (DLangΣ := DLangG Σ _ g).
       iMod (Hlog _ with "Hgs") as "#Hlog".
       iIntros (?) "!>". iExists (λ _ _, True%I); iSplit=> //.
