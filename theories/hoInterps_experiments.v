@@ -1,8 +1,8 @@
 From iris.proofmode Require Import tactics.
 From iris.base_logic Require Import lib.saved_prop.
 From D Require Import prelude iris_prelude saved_interp_n.
-From D Require Import saved_interp_dep.
-Import uPred EqNotations.
+From D Require Import saved_interp_dep asubst_intf dlang.
+Import uPred EqNotations mapsto.
 
 Module try1.
 Section saved_pred3_use.
@@ -57,8 +57,6 @@ Section vec.
     vec (S n) vl -d> A :=
     λ args, Φ (vhead args) (vtail args).
 End vec.
-
-From D Require Import asubst_intf dlang olty.
 
 Module HoSemTypes (values: Values) (sorts: SortsIntf values).
 
@@ -116,6 +114,7 @@ Section saved_ho_sem_type_extra.
 End saved_ho_sem_type_extra.
 End HoSemTypes.
 
+Import mapsto.
 Notation "s ↝[ n ] φ" := (∃ γ, (s ↦ γ) ∗ (γ ⤇[ n ] φ))%I  (at level 20) : bi_scope.
 
 From D.Dot Require Import syn operational.
@@ -181,3 +180,4 @@ Section bar.
 End bar.
 
 Notation "d ↗[ n ] φ" := (idm_proj_semtype d n φ) (at level 20).
+End try2.
