@@ -90,7 +90,7 @@ Section saved_pred3.
 
   Definition packedFun_arity : packedFun -n> natO := λne x, projT1 x.
 
-  Implicit Types (Φ : hoEnvDO Σ) (Ψ : packedFun).
+  Implicit Types (Ψ : packedFun).
 
   (* Manipulate *)
   Definition close {A} (Φ : vec 0 vl -d> A): A := Φ emptyArgs.
@@ -130,8 +130,10 @@ Section saved_pred3.
     move => ?[??][??][/= Heq ?]. destruct Heq. by f_equiv.
   Qed.
 
-  Definition saved_pred3_own (γ : gname) i (Φ : hoEnvND i Σ) : iProp Σ :=
+  Definition saved_pred3_own γ i (Φ : hoEnvND i Σ) : iProp Σ :=
     saved_anything_own (F := mFun vl) γ (pack (existT i Φ)).
+
+  Notation "γ ⤇[ i  ] φ" := (saved_pred3_own γ i φ) (at level 20).
 
   Instance saved_pred3_own_contractive γ i : Contractive (saved_pred3_own γ i).
   Proof.
@@ -140,30 +142,27 @@ Section saved_pred3.
     solve_contractive_ho.
   Qed.
 
-  Lemma saved_pred3_alloc i (Φ : hoEnvND i Σ) :
-    (|==> ∃ γ, saved_pred3_own γ i Φ)%I.
+  Lemma saved_pred3_alloc i φ : (|==> ∃ γ, γ ⤇[ i ] φ)%I.
   Proof. apply saved_anything_alloc. Qed.
 
-  Lemma eq_1 (Φ Ψ : packedFun) : Φ ≡ Ψ -∗
-    ⌜ packedFun_arity Φ = packedFun_arity Ψ ⌝: iProp Σ.
-  Proof.
-    rewrite /= sigT_equivI /packedFun_arity.
-    by iDestruct 1 as (Heq) "_".
-  Qed.
+  Lemma same_arity_1 {Φ Ψ : packedFun} {n} :
+    Φ ≡{n}≡ Ψ → packedFun_arity Φ = packedFun_arity Ψ.
+  Proof. destruct Φ, Ψ. by case. Qed.
 
-  Lemma saved_pred3_agree_arity γ {i j α1 α2}:
-    saved_pred3_own γ i α1 -∗ saved_pred3_own γ j α2 -∗
-    ⌜ i = j ⌝.
+  Lemma same_arity Ψ1 Ψ2 : Ψ1 ≡ Ψ2 -∗
+    ⌜ packedFun_arity Ψ1 = packedFun_arity Ψ2 ⌝: iProp Σ.
+  Proof. rewrite /= sigT_equivI. by iDestruct 1 as (Heq) "_". Qed.
+
+  Lemma saved_pred3_agree_arity γ {i j Φ1 Φ2}:
+    γ ⤇[ i ] Φ1 -∗ γ ⤇[ j ] Φ2 -∗ ⌜ i = j ⌝.
   Proof.
     iIntros "HΦ1 HΦ2 /=".
     iDestruct (saved_anything_agree with "HΦ1 HΦ2") as "Heq".
-    rewrite /= sigT_equivI /=. by iDestruct "Heq" as (Heq) "_".
+    by rewrite same_arity.
   Qed.
-  Notation "γ ⤇[ i ] φ" := (saved_pred3_own γ i φ) (at level 20).
 
   Lemma saved_pred3_agree γ i (Φ1 Φ2 : hoEnvND i Σ) a b c:
-    γ ⤇[ i ] Φ1 -∗ saved_pred3_own γ i Φ2 -∗
-    ▷ (Φ1 a b c ≡ Φ2 a b c).
+    γ ⤇[ i ] Φ1 -∗ γ ⤇[ i ] Φ2 -∗ ▷ (Φ1 a b c ≡ Φ2 a b c).
   Proof.
     iIntros "HΦ1 HΦ2 /=".
     iDestruct (saved_anything_agree with "HΦ1 HΦ2") as "Heq".
@@ -173,20 +172,26 @@ Section saved_pred3.
     iApply "Heq".
   Qed.
 
+  Lemma saved_pred3_agree_dep γ {i j Φ1 Φ2} a b c:
+    γ ⤇[ i ] Φ1 -∗ γ ⤇[ j ] Φ2 -∗ ∃ eq : i = j,
+    ▷ ((rew [hoEnvD_P Σ] eq in Φ1) a b c ≡ Φ2 a b c).
+  Proof.
+    iIntros "HΦ1 HΦ2 /=".
+    iDestruct (saved_pred3_agree_arity with "HΦ1 HΦ2") as %->.
+    iExists eq_refl; cbn.
+    iApply (saved_pred3_agree with "HΦ1 HΦ2").
+  Qed.
+
   Definition unpack :
     ∀ Ψ, hoEnvND (packedFun_arity Ψ) Σ :=
     λ '(existT n Φ), (λ args ρ v,
       let '(Next f) := (Φ args ρ v) in f)%I.
 
-  Lemma same_arity {Φ Ψ : packedFun} {n} :
-    Φ ≡{n}≡ Ψ → packedFun_arity Φ = packedFun_arity Ψ.
-  Proof. destruct Φ, Ψ. by case. Qed.
-
   Lemma pred_impl (Φ Ψ : packedFun) n (Heq: Φ ≡{n}≡ Ψ)
     (a : vec (packedFun_arity Φ) vl) b c:
-    Next (unpack Φ a b c) ≡{n}≡ Next (unpack Ψ (rew [λ n, vec n vl] (same_arity Heq) in a) b c).
+    Next (unpack Φ a b c) ≡{n}≡ Next (unpack Ψ (rew [λ n, vec n vl] (same_arity_1 Heq) in a) b c).
   Proof.
-    move: (same_arity Heq) => HeqN. destruct Φ, Ψ; simpl in *.
+    move: (same_arity_1 Heq) => HeqN. destruct Φ, Ψ; simpl in *.
     case: Heq => /= Heq1.
     have {HeqN} ->: HeqN = Heq1. exact: proof_irrel.
     destruct Heq1; cbn => H. exact: H.
