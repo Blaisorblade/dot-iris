@@ -1,8 +1,7 @@
-From iris.algebra Require Export base.
+From D Require Export prelude proofmode_extra.
 From iris.base_logic Require Import upred.
 From D.pure_program_logic Require Export weakestpre.
 From iris.proofmode Require Export tactics.
-From D Require Export prelude proofmode_extra.
 
 (* From iris.base_logic Require Import invariants. *)
 
