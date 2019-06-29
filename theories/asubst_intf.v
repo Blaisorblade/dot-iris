@@ -20,8 +20,8 @@ Module Type Values.
   Declare Instance subst_lemmas_vl : SubstLemmas vl.
 End Values.
 
-Module Type SortsIntf (values: Values).
-  Import values.
+Module Type SortsIntf.
+  Declare Module Export values : Values.
 
   Class Sort (s : Type)
     {inh_s : Inhabited s}
