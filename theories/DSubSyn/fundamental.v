@@ -5,11 +5,8 @@
    kept separate, because we might have to extend Σ with resources without a
    CmraSwappable instance.
  *)
-From iris.proofmode Require Import tactics.
 From D Require Import proofmode_extra swap_later_impl.
 From D.DSubSyn Require Import unary_lr_binding lr_lemma.
-
-Import uPred.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (Γ : ctx).
 

@@ -1,13 +1,8 @@
-From D Require Import prelude tactics asubst_intf.
-
-From D Require Import swap_later_impl proofmode_extra.
-From iris.base_logic Require Import lib.iprop.
-From iris.proofmode Require Import tactics.
+From D Require Import iris_prelude swap_later_impl asubst_intf.
 From iris.program_logic Require Import ectx_language language.
 
-From D.pure_program_logic Require weakestpre adequacy.
+From D.pure_program_logic Require adequacy.
 From D Require gen_iheap saved_interp.
-Require Program.
 
 Module mapsto.
 Export gen_iheap.
@@ -84,7 +79,6 @@ Module LiftWp (values: Values) (sorts: SortsIntf values).
     Instance subG_dlangΣ {Σ} : subG dlangΣ Σ → dlangPreG Σ.
     Proof. solve_inG. Qed.
 
-    Import Program.
     Instance CmraSwappable_dlang: CmraSwappable (iResUR dlangΣ).
     Proof.
       apply Swappable_iResUR.

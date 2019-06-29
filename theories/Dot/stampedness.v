@@ -1,7 +1,6 @@
 (** Define purely syntactically whether a term is stamped or not. *)
 From stdpp Require Import gmap list.
-From D Require Import tactics.
-From D.Dot Require Import syn operational synLemmas traversals typeExtractionSyn.
+From D.Dot Require Import operational synLemmas traversals typeExtractionSyn.
 
 Import Trav1.
 Set Primitive Projections.

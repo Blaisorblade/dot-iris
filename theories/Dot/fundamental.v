@@ -1,4 +1,3 @@
-From iris.proofmode Require Import tactics.
 From D Require Import tactics proofmode_extra swap_later_impl.
 From D.Dot Require Import unary_lr unary_lr_binding typing typeExtractionSem synLemmas.
 From D.Dot Require Import lr_lemma lr_lemmasDefs lr_lemma_nobinding lr_lemmasTSel path_wp.
@@ -50,7 +49,6 @@ Section swap_based_typing_lemmas.
     - iIntros (u) "#HuU1". by iApply "HsubU'".
   Qed.
 
-  Import uPred.
   Lemma Sub_TTMem_Variant L1 L2 U1 U2 i l:
     Γ ⊨ [L2, S i] <: [L1, S i] -∗
     Γ ⊨ [U1, S i] <: [U2, S i] -∗

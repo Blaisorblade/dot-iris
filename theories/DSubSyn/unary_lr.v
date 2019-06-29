@@ -1,5 +1,4 @@
-From iris.proofmode Require Import tactics.
-From D Require Export tactics iris_prelude.
+From D Require Export iris_prelude.
 From D.DSub Require Export operational.
 
 (** Deduce types from variable names, like on paper, for readability and to help

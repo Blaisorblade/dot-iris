@@ -1,6 +1,8 @@
 From stdpp Require Import strings.
-From D Require Export prelude tactics.
+From D Require Export prelude.
 From D Require Import asubst_base.
+From iris.program_logic Require ectx_language ectxi_language.
+
 
 Definition label := string.
 
@@ -378,8 +380,6 @@ Ltac objLookupDet :=
   | H1: ?v @ ?l ↘ ?d1, H2: ?v @ ?l ↘ ?d2 |- _=>
     have ?: d2 = d1 by [eapply objLookupDet; eassumption]; simplify_eq
   end.
-
-From iris.program_logic Require ectx_language ectxi_language.
 
 (** Instantiating iris with Dot *)
 Module lang.

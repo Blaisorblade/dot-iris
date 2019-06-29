@@ -1,11 +1,6 @@
 From stdpp Require Import gmap.
-From iris.proofmode Require Import tactics.
+From D.Dot Require Import synLemmas unary_lr_binding typeExtractionSyn.
 
-From D Require Import tactics.
-From D.Dot Require Import syn operational synLemmas unary_lr unary_lr_binding typeExtractionSyn.
-Import uPred.
-
-Set Primitive Projections.
 Set Implicit Arguments.
 
 Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx) (g: stys) (n: nat) (s: stamp).

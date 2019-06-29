@@ -1,4 +1,4 @@
-From D Require Export prelude tactics.
+From D Require Export prelude.
 From D Require Import asubst_base.
 From iris.program_logic Require ectx_language ectxi_language.
 

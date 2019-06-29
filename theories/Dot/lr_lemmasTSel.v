@@ -1,5 +1,3 @@
-From iris.proofmode Require Import tactics.
-From D Require Import tactics proofmode_extra.
 From D.Dot Require Import unary_lr synLemmas.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).

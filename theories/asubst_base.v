@@ -1,4 +1,4 @@
-From D Require Import prelude tactics asubst_intf.
+From D Require Import prelude asubst_intf.
 
 Module Sorts (values : Values).
   Import values.

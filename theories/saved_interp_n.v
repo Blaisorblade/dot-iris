@@ -1,6 +1,5 @@
 From iris.proofmode Require Import tactics.
 From iris.base_logic Require Import lib.saved_prop.
-Require Import D.iris_prelude.
 
 (** saved interpretations *)
 

@@ -1,6 +1,3 @@
-From iris.base_logic Require Import base_logic.
-From iris.proofmode Require Import tactics.
-From D Require Import proofmode_extra.
 From D.Dot Require Import unary_lr.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).

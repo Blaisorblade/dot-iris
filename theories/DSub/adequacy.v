@@ -1,6 +1,4 @@
-From D.pure_program_logic Require Import adequacy.
-From iris.proofmode Require Import tactics.
-From D Require Import tactics swap_later_impl.
+From D Require Import swap_later_impl.
 From D.DSub Require Import unary_lr.
 
 Import dlang_adequacy.

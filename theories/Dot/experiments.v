@@ -1,8 +1,7 @@
 From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language ectx_language ectxi_language.
-From iris.proofmode Require Import tactics.
-From D Require Import tactics swap_later_impl proofmode_extra.
-From D.Dot Require Import unary_lr unary_lr_binding synLemmas rules
+From D Require Import swap_later_impl.
+From D.Dot Require Import unary_lr_binding synLemmas rules
   lr_lemma lr_lemma_nobinding.
 
 Implicit Types
@@ -277,7 +276,6 @@ Section Sec.
       iPureIntro => ?. constructor.
     - iPoseProof (wp_bind_inv (fill [ProjCtx l]) with "H") as "H'"; rewrite /= /of_val.
       iDestruct ("IHp" with "H'") as (i0 v0) "[Hpure Hv]". iClear "IHp".
-      Import uPred.
       iExists (S i0); rewrite laterN_later; iNext i0. iDestruct "Hpure" as %Hpure.
       iEval (rewrite !wp_unfold /wp_pre) in "Hv". cbn.
       iSpecialize ("Hv" $! inhabitant [] [] 0 with "[#//]"). iDestruct "Hv" as "[% Hv]". move: H => Hred.
@@ -395,7 +393,6 @@ Section Sec.
     iApply wp_value_inv'. iApply "Hv". by iSplit.
   Qed.
 
-  Import uPred.
   Lemma internal_iff_eq_try1 (P Q: iProp Σ) `(!Affine P) `(!Affine Q): (P ↔ Q ⊢ P ≡ Q)%I.
   Proof.
     rewrite /bi_iff; unseal.

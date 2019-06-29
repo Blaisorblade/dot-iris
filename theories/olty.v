@@ -1,14 +1,8 @@
-From D Require Import tactics proofmode_extra.
+From D Require Import iris_prelude asubst_base asubst_intf dlang.
 (* From D.pure_program_logic Require Import lifting. *)
-From iris.base_logic Require Import lib.iprop.
-From iris.proofmode Require Import tactics.
 From iris.program_logic Require Import language.
 From D.pure_program_logic Require Import lifting adequacy.
 From D Require Export gen_iheap saved_interp.
-Require Import Program.
-Import uPred.
-
-From D Require Import prelude iris_prelude asubst_base asubst_intf dlang.
 
 Module OLty (values: Values) (sorts: SortsIntf values).
 Import values sorts.

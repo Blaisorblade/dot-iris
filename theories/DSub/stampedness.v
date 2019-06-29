@@ -1,8 +1,7 @@
 (** Define "stamping" (what we used to call translation) in a purely syntactic
     way, without involving Iris. *)
 From stdpp Require Import gmap list.
-From D Require Import tactics.
-From D.DSub Require Import syn operational synLemmas typeExtractionSyn.
+From D.DSub Require Import operational synLemmas typeExtractionSyn.
 
 Set Primitive Projections.
 Set Implicit Arguments.

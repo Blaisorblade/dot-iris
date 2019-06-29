@@ -1,7 +1,5 @@
-From iris.proofmode Require Import tactics.
 From D.DSub Require Export synLemmas.
 From D.DSubSyn Require Export unary_lr.
-Import uPred.
 
 Implicit Types
          (L T U: ty) (v: vl) (e: tm)
