@@ -4,9 +4,12 @@ From iris.program_logic Require Import language.
 From D.pure_program_logic Require Import lifting adequacy.
 From D Require Export gen_iheap saved_interp.
 
-Module OLty (values: Values) (sorts: SortsIntf values).
-Import values sorts.
-Notation envD Σ := (vls -d> vl -d> iProp Σ).
+Module Type OLty (Import values: Values) (Import sorts: SortsIntf values).
+
+(* Instead of duplicating [envD], Include LiftWp: *)
+(* Notation envD Σ := (vls -d> vl -d> iProp Σ). *)
+Include LiftWp values sorts.
+
 Section olty_limit_preserving.
   Context `{Σ : gFunctors}.
 
@@ -102,15 +105,11 @@ End OLty.
     while reusing as much as possible.
 *)
 
-Module OLty_judge (values: Values) (sorts: SortsIntf values).
-Import values sorts.
+Module Type OLty_judge (Import values: Values) (Import sorts: SortsIntf values).
 (* TODO Eventually switch to: *)
 
 (* Include (LiftWp values sorts). *)
 (* Or just inline this code there. *)
-Module M := LiftWp values sorts.
-Import M.
-
 Include OLty values sorts.
 
 Class Closeable s := nclosed_s : s → nat → Prop.

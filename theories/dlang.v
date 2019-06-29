@@ -18,8 +18,7 @@ Section mapsto_stamp_gname.
 End mapsto_stamp_gname.
 End mapsto.
 
-Module LiftWp (values: Values) (sorts: SortsIntf values).
-  Import values sorts.
+Module Type LiftWp (Import values: Values) (Import sorts: SortsIntf values).
   Export mapsto saved_interp weakestpre.
   Implicit Types (v : vl) (ρ vs : vls) (Σ : gFunctors).
 
