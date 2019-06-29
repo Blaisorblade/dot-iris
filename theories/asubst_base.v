@@ -1,7 +1,6 @@
 From D Require Import prelude asubst_intf.
 
-Module Sorts (values : Values).
-Import values.
+Module Type SortsLemmas (Import values : Values) <: SortsIntf values.
 
 Class Sort (s : Type)
   {inh_s : Inhabited s}
@@ -13,7 +12,7 @@ Global Instance sort_list `{Sort X} : Sort (list X) := {}.
 Global Instance sort_pair_snd `{Sort X} `{Inhabited A} : Sort (A * X) := {}.
 Global Instance sort_list_pair_snd `{Sort X} `{Inhabited A} : Sort (list (A * X)) := {}.
 
-Implicit Types (v : vl) (vs : vls).
+Implicit Types (v w : vl) (vs ρ : vls) (i j k n : nat) (r : nat → nat).
 
 Definition eq_n_s (s1 s2 : var → vl) n := ∀ x, x < n → s1 x = s2 x.
 Global Arguments eq_n_s /.
@@ -136,16 +135,6 @@ Ltac solve_inv_fv_congruence_auto :=
   end.
 
 Hint Extern 10 => solve_inv_fv_congruence_auto : fv.
-End Sorts.
-
-(** Syntax/binding lemmas shared between DSub and Dot. *)
-
-Module SortsLemmas (values: Values) <: SortsIntf values.
-Import values.
-Module Sorts := Sorts values.
-Include Sorts.
-
-Implicit Types (v w : vl) (ρ : vls) (i j k n : nat) (r : nat → nat).
 
 Section sort_lemmas.
 Context `{_HsX: Sort X}.
