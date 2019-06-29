@@ -1,7 +1,7 @@
 From D Require Import prelude asubst_intf.
 
-Module Type SortsLemmas (Import values : Values) <: SortsIntf values.
-
+Module Type SortsLemmas (V : Values) <: SortsIntf.
+Module Import values := V.
 Class Sort (s : Type)
   {inh_s : Inhabited s}
   {ids_s : Ids s} {ren_s : Rename s} {hsubst_vl_s : HSubst vl s}
