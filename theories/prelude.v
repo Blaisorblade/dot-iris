@@ -4,6 +4,13 @@ From iris.algebra Require Export base.
 From Autosubst Require Export Autosubst.
 From D Require Export tactics.
 
+(*
+  If [prelude] and [Program] are imported after Iris modules,
+  side effects from [iris.algebra.base] and [stdpp.base], including
+  setting the obligation tactic, won't be re-run. So let's do it
+  ourselves: *)
+Obligation Tactic := idtac.
+
 Tactic Notation "locAsimpl'" uconstr(e1) :=
   remember (e1) as __e' eqn:__Heqe';
   progress asimpl in __Heqe'; subst __e'.
