@@ -27,8 +27,7 @@ Section Sec.
     rewrite tskip_subst tskip_n_to_fill -wp_bind.
     iApply (wp_wand_cl _ (⟦ T1 ⟧ ρ)) => //.
     - iApply ("HeT1" with "[//]").
-    - iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]; rewrite <- Hlen in *.
-      iPureIntro. exact: fv_to_subst.
+    - by iApply interp_env_cl_app.
     - iIntros (v) "#HvT1 %".
       (* We can swap ▷^i with WP (tv v)! *)
       rewrite -tskip_n_to_fill -wp_pure_step_later // -wp_value.
@@ -163,9 +162,8 @@ Section Sec.
     rewrite -wp_value'.
     iSplit.
     {
-      iDestruct (interp_env_props with "HG") as %[Hclp Hlen]; rewrite <- Hlen in *.
       apply fv_vabs in Hcle.
-      iPureIntro; exact: (fv_to_subst_vl Hcle).
+      by iApply (interp_env_cl_app_vl (vabs e) Hcle).
     }
     iExists _; iSplitL; first done.
     iIntros "!> !>" (v) "#Hv". iSpecialize ("HeT" $! (v :: ρ)).

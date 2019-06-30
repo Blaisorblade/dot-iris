@@ -11,7 +11,6 @@ Section Sec.
   Proof.
     rewrite iterate_S.
     iIntros "/= [% #Hp] !>" (ρ v Hclv) "#Hg [$ #Hφ] /=". move: H => Hclp.
-    iDestruct (interp_env_props with "Hg") as %[Hclρ Hlen]; rewrite <- Hlen in *.
     iSpecialize ("Hp" with "Hg").
     iNext i.
 
@@ -30,7 +29,6 @@ Section Sec.
   Proof.
     rewrite iterate_S.
     iIntros "/= #[% #Hp] !>" (ρ v Hclv) "#Hg [$ #Hφ] /=". move: H => Hclp.
-    iDestruct (interp_env_props with "Hg") as %[Hclρ Hlen]; rewrite <- Hlen in *.
     iSpecialize ("Hp" with "Hg").
     iNext i.
     rewrite iterate_TLater_later // !path_wp_eq.
@@ -86,15 +84,14 @@ Section Sec.
     (*───────────────────────────────*)
     Γ ⊨p p : T2, i + j.
   Proof.
-    iIntros "/= * #[% #HpT1] #Hsub"; iSplit => //; iIntros "!> * #Hg".
-    iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]; rewrite <- Hlen in *.
+    iIntros "/= * #[% #HpT1] #Hsub"; move: H => Hclp; iSplit => //; iIntros "!> * #Hg".
     iSpecialize ("HpT1" with "Hg").
     rewrite !path_wp_eq plength_subst_inv.
     iDestruct "HpT1" as (v) "Hpv"; iExists v; iDestruct "Hpv" as "[$ HpT1]".
     rewrite (path_wp_cl 0) plength_subst_inv -!(swap_laterN (plength p)).
     iNext (plength p).
     iApply (strip_pure_laterN_wand' i j _ with "[] Hpv"); iIntros (Hclpv).
-    have Hclv: nclosed_vl v 0. by apply Hclpv, fv_to_subst.
-    by iApply "Hsub".
+    iDestruct (interp_env_cl_app p with "Hg") as %Hclps => //.
+    iApply "Hsub" => //. iIntros "!%". apply Hclpv, Hclps.
   Qed.
 End Sec.

@@ -111,11 +111,11 @@ Section Sec.
      Γ |L T ⊨ds ds : T -∗
      Γ ⊨ tv (vobj ds) : TMu T.
   Proof.
-    iIntros "/= #[% #Hds]"; move: H => Hclds.
-    iSplit; auto.
+    iIntros "/= #[% #Hds]"; move: H => Hclds. iSplit; auto.
     iIntros " !> * #Hg /=". rewrite -wp_value'.
-    iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]. rewrite <- Hlen in *.
-    have Hclvds: nclosed_vl (vobj ds).[to_subst ρ] 0. by eapply fv_to_subst_vl; auto.
+    iDestruct (interp_env_cl_ρ with "Hg") as %Hclρ.
+    have Hclvds: nclosed_vl (vobj ds).[to_subst ρ] 0.
+    by eapply nclosed_sub_app_vl; eauto.
     iLöb as "IH".
     iApply lift_dsinterp_dms_vl_commute;
       rewrite // norm_selfSubst -to_subst_cons.
@@ -133,11 +133,11 @@ Section Sec.
     iIntros (Hlds) "[% #HT1] [% #HT2]". move: H H0 => Hcld Hclds.
     have Hclc: nclosed ((l, d) :: ds) (length Γ). by auto.
     iSplit => //; iIntros "!>" (ρ) "#Hg /=".
-    iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]; rewrite <- Hlen in *.
-    eapply fv_to_subst in Hclc => //.
+    iDestruct (interp_env_cl_ρ with "Hg") as %Hclρ.
+    eapply (nclosed_sub_app Hclρ) in Hclc.
     iSpecialize ("HT1" with "Hg"). iPoseProof "HT1" as (Hl) "_".
     iSplit.
     - destruct T1; simplify_eq; iApply (def2defs_head Hclc with "HT1").
-    - iApply (defs_interp_mono with "(HT2 Hg)") => //; by [apply dms_hasnt_map_mono | eapply fv_to_subst].
+    - iApply (defs_interp_mono with "(HT2 Hg)"); by [apply dms_hasnt_map_mono | eapply nclosed_sub_app].
   Qed.
 End Sec.

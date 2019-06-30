@@ -121,7 +121,7 @@ Section Sec.
   Proof.
     iIntros "H"; iSimpl; setoid_rewrite Distr_TLater_And.
     iApply (Sub_And with "[] H").
-    iApply (Sub_Trans _ _ T _ _ (S i)).
+    iApply (Sub_Trans _ T _ _ (S i)).
     - by iApply Sub_Mono.
     - by iApply Sub_Later.
   Qed.
@@ -170,7 +170,7 @@ Section Sec.
     iIntros "H".
     setoid_rewrite (sub_rewrite_2 Γ T _ _ i (Distr_TLaterN_And T U j)).
     iApply (Sub_And with "[] H").
-    iApply (Sub_Trans _ _ T _ _ (j + i)).
+    iApply (Sub_Trans _ T _ _ (j + i)).
     - by iApply iterate_Sub_Mono.
     - by iApply iterate_Sub_Later.
   Qed.

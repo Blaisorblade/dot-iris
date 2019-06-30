@@ -286,8 +286,6 @@ Section logrel_lemmas.
     iSplit; by [iIntros "#[_ $]" | iIntros "$"].
   Qed.
 
-  Context Γ.
-
   Lemma interp_v_closed T w ρ: interp T ρ w -∗ ⌜ nclosed_vl w 0 ⌝.
   Proof.
     move: ρ; induction T => ρ /=;
@@ -296,20 +294,20 @@ Section logrel_lemmas.
     all: by [intuition idtac | move => [n ->]].
   Qed.
 
-  Lemma interp_env_len_agree ρ:
+  Lemma interp_env_len_agree Γ ρ:
     ⟦ Γ ⟧* ρ -∗ ⌜ length ρ = length Γ ⌝.
   Proof.
-    elim: Γ ρ => [|τ Γ' IHΓ] [|v ρ] //=; try by iPureIntro.
+    elim: Γ ρ => [|τ Γ IHΓ] [|v ρ] //=; try by iPureIntro.
     rewrite IHΓ. by iIntros "[-> _] !%".
   Qed.
 
-  Lemma interp_env_ρ_closed ρ: ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ⌝.
+  Lemma interp_env_ρ_closed Γ ρ: ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ⌝.
   Proof.
-    elim: Γ ρ => [|τ Γ' IHΓ] [|v ρ] //=; try by iPureIntro.
+    elim: Γ ρ => [|τ Γ IHΓ] [|v ρ] //=; try by iPureIntro.
     rewrite interp_v_closed IHΓ; iPureIntro. intuition.
   Qed.
 
-  Lemma interp_env_props ρ:
+  Lemma interp_env_props Γ ρ:
     ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ∧ length ρ = length Γ ⌝.
   Proof.
     iIntros "#HG".
@@ -318,6 +316,31 @@ Section logrel_lemmas.
     by iPureIntro.
   Qed.
 
+  Lemma interp_env_cl_ρ {Γ ρ}:
+    ⟦ Γ ⟧* ρ -∗ ⌜ nclosed_sub (length Γ) 0 (to_subst ρ) ⌝.
+  Proof.
+    elim: Γ ρ => [|T Γ' IHΓ] ρ /=; first by iIntros "!%" (???); lia.
+    case: ρ => [|v ρ]; last rewrite interp_v_closed IHΓ; iIntros "!% //".
+    move => [Hclρ Hclv] [//|i /lt_S_n Hle].
+    rewrite to_subst_cons /=. apply Hclρ, Hle.
+  Qed.
+
+  Lemma interp_env_cl_app `{Sort X} (x : X) {Γ ρ} :
+    nclosed x (length Γ) →
+    ⟦ Γ ⟧* ρ -∗ ⌜ nclosed x.|[to_subst ρ] 0 ⌝.
+  Proof.
+    rewrite interp_env_cl_ρ. iIntros "!% /=".
+    eauto using nclosed_sub_app.
+  Qed.
+
+  Lemma interp_env_cl_app_vl v {Γ ρ}: nclosed_vl v (length Γ) →
+     ⟦ Γ ⟧* ρ -∗ ⌜ nclosed_vl v.[to_subst ρ] 0 ⌝.
+  Proof.
+    rewrite interp_env_cl_ρ. iIntros "!% /=".
+    eauto using nclosed_sub_app_vl.
+  Qed.
+
+  Context {Γ}.
   Lemma Sub_Refl T i : Γ ⊨ [T, i] <: [T, i].
   Proof. by iIntros "/= !> **". Qed.
 
