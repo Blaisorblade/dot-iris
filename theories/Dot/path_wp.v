@@ -114,13 +114,12 @@ Section path_wp.
     ▷^(plength p) ⌜ nclosed p n → nclosed_vl v n ⌝.
   Proof.
     elim: p v => /= [w|p IHp l] v.
-    - iPureIntro. move => ->. exact: fv_pv_inv.
-    - rewrite path_wp_eq -swap_later.
-      iIntros "H". iDestruct "H" as (w) "[Hpwp H]".
-      rewrite IHp.
+    - iIntros "!%" (->). exact: fv_pv_inv.
+    - rewrite path_wp_eq -swap_later; setoid_rewrite IHp.
+      iDestruct 1 as (w) "[Hpwp H]".
       iNext (plength p).
       iDestruct "Hpwp" as %Himpl.
-      iDestruct "H" as (v' Hl) "> ->". iPureIntro => Hclps.
+      iDestruct "H" as (? Hl) "> ->". iIntros "!%" (Hclps).
       enough (nclosed (dvl v) n). by eauto with fv.
       eapply nclosed_lookup', Himpl; eauto with fv.
   Qed.

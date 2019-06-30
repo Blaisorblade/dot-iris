@@ -1,6 +1,5 @@
 From stdpp Require Import gmap.
-
-From D.DSub Require Import operational synLemmas unary_lr_binding typeExtractionSyn.
+From D.DSub Require Import unary_lr_binding typeExtractionSyn.
 
 Set Implicit Arguments.
 

@@ -19,7 +19,7 @@ End mapsto_stamp_gname.
 End mapsto.
 
 Module Type LiftWp (Import sorts: SortsIntf).
-  Export mapsto saved_interp weakestpre.
+  Export mapsto saved_interp.
   Implicit Types (v : vl) (ρ vs : vls) (Σ : gFunctors).
 
   Notation envD Σ := (vls -d> vl -d> iProp Σ).
