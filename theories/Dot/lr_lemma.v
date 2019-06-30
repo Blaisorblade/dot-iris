@@ -1,3 +1,4 @@
+From iris.proofmode Require Import tactics.
 From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language.
 

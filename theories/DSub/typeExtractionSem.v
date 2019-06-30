@@ -1,4 +1,5 @@
 From stdpp Require Import gmap.
+From iris.proofmode Require Import tactics.
 From D.DSub Require Import unary_lr_binding typeExtractionSyn.
 
 Set Implicit Arguments.

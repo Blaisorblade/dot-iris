@@ -1,5 +1,6 @@
 From D Require Import iris_prelude asubst_base asubst_intf dlang.
 (* From D.pure_program_logic Require Import lifting. *)
+From iris.proofmode Require Import tactics.
 From iris.program_logic Require Import language.
 From D.pure_program_logic Require Import lifting adequacy.
 From D Require Export gen_iheap saved_interp.
