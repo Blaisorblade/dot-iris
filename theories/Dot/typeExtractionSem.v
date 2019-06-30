@@ -35,7 +35,7 @@ Section interp_equiv.
   Notation "⟦ T ⟧[ σ ]" := (interp_extractedTy (T, σ)).
 
   Definition envD_equiv n φ1 φ2: iProp Σ :=
-    (∀ ρ v, ⌜ length ρ = n ⌝ → ⌜ cl_ρ ρ ⌝ → φ1 ρ v ≡ φ2 ρ v)%I.
+    (∀ ρ v, ⌜ nclosed_sub n 0 (to_subst ρ) ⌝ → φ1 ρ v ≡ φ2 ρ v)%I.
   Notation "φ1 ≈[  n  ] φ2" := (envD_equiv n φ1 φ2) (at level 70).
 
   Lemma nclosed_sub_ids {i}: nclosed_sub 0 i ids.
@@ -75,17 +75,45 @@ Section interp_equiv.
     move => HclT Hclσ /nclosed_σ_sub_equiv Hclρ.
     exact: interp_subst_commute.
   Qed.
+
+(*  - erewrite subst_compose => //. admit. admit.
+    - apply nclosed_σ_to_subst => //.
+  Qed. *)
+
+  Lemma interp_subst_all' ρ τ v :
+    nclosed_sub (length ρ) 0 (to_subst ρ) →
+    ⟦ τ.|[to_subst ρ] ⟧ [] v ≡ ⟦ τ ⟧ ρ v.
+  Proof.
+    elim: ρ τ => /= [|w ρ IHρ] τ /=. by rewrite hsubst_id.
+    move => /nclosed_sub_inv [Hwcl Hρcl].
+    specialize (IHρ (τ.|[w/]) Hρcl).
+    asimpl in IHρ. move: IHρ.
+    by rewrite -interp_subst !closed_subst_vl_id.
+  Qed.
+(*
+  Lemma interp_subst_all'' n ρ τ v :
+    nclosed_sub n 0 ρ →
+    ⟦ τ.|[ρ] ⟧ [] v ≡ ⟦ τ ⟧ (to_subst_inv n ρ) v.
+  Proof.
+    elim: n.
+    elim: ρ τ => /= [|w ρ IHρ] τ /=. by rewrite hsubst_id.
+    move => /nclosed_sub_inv [Hwcl Hρcl].
+    specialize (IHρ (τ.|[w/]) Hρcl).
+    asimpl in IHρ. move: IHρ.
+    by rewrite -interp_subst !closed_subst_vl_id.
+  Qed. *)
+(*
   Lemma extraction_envD_equiv g s σ T n:
     T ~[ n ] (g, (s, σ)) →
     (∃ T', ⌜ g !! s = Some T'⌝ ∧
         ⟦ T ⟧ ≈[ n ] ⟦ T' ⟧[ σ ])%I.
   Proof.
     iIntros ((T' & -> & <- & HclT & HclT')). iExists _; iSplit => //.
-    iIntros (ρ v <- Hclρ). by rewrite interp_subst_commute.
-  Qed.
+    iIntros (ρ v Hclρ). by rewrite interp_subst_commute'.
+  Qed. *)
 
   (** envD_equiv commutes with substitution. *)
-  Lemma envD_equiv_subst g T m n ξ s1 σ1 s2 σ2:
+  (* Lemma envD_equiv_subst g T m n ξ s1 σ1 s2 σ2:
     T ~[ m ] (g, (s1, σ1)) →
     T.|[to_subst ξ] ~[ n ] (g, (s2, σ2)) →
     length ξ = m →
@@ -94,12 +122,12 @@ Section interp_equiv.
     ⟦ T1 ⟧ [ σ1.|[to_subst ξ] ] ≈[ n ] ⟦ T2 ⟧ [ σ2 ])%I.
   Proof.
     rewrite /interp_extractedTy; iIntros ((T1 & -> & Heq1 & Hclσ1 & HclT1) (T2 & -> & Heq2 & Hclσ2 & HclT2) Hlenξ Hclξ).
-    iExists _, _; repeat iSplit => //; iIntros (ρ v Hlenρ Hclρ) "/= !%"; subst.
+    iExists _, _; repeat iSplit => //; iIntros (ρ v Hclρ) "/= !%"; subst.
     have Hclσ1ξ: nclosed_σ σ1.|[to_subst ξ] (length ρ). exact: nclosed_σ_to_subst.
     have Hrew: T2.|[to_subst σ2.|[to_subst ρ]] = T1.|[to_subst σ1.|[to_subst ξ].|[to_subst ρ]].
     by erewrite !subst_compose; rewrite ?map_length ?Heq1 ?Heq2.
     rewrite -(interp_subst_all _ T1) -?(interp_subst_all _ T2) ?Hrew //; exact: nclosed_σ_to_subst.
-  Qed.
+  Qed. *)
 
   Lemma alloc_sp T: (|==> ∃ γ, γ ⤇ ty_interp T)%I.
   Proof. exact: saved_interp_alloc. Qed.
@@ -194,9 +222,9 @@ Section typing_type_member_defs.
     move: sσ => [s σ] [T'] [Hl] [<-] [Hclσ] HclT /=; iIntros "#Hm".
     iDestruct ("Hm" $! _ _ Hl) as (φ) "[Hm1 <-]"; iClear "Hm".
     iSplit => //; iExists ⟦ T' ⟧; iSplit => //.
-    iIntros (ρ v <- Hclρ) "!%".
-    exact: interp_subst_commute.
-  Qed.
+    iIntros (ρ v Hclρ) "!%".
+    apply: interp_subst_commute' => //.
+  Admitted.
 
   (** XXX In fact, this lemma should be provable for any φ,
       not just ⟦ T ⟧, but we haven't actually defined the
@@ -215,16 +243,17 @@ Section typing_type_member_defs.
   Proof.
     iIntros "#HTU #HLT #[% Hs] /=". iSplit; first auto using fv_dtysem.
     iIntros "!>" (ρ) "#Hg".
-    iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]; rewrite <- Hlen in *.
+    iDestruct (interp_env_cl_ρ with "Hg") as %Hclρ.
+    (* iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]; rewrite <- Hlen in *. *)
     iDestruct "Hs" as (φ) "[Hγ Hγφ]".
     repeat iSplit => //; iExists (φ (σ.|[to_subst ρ]));
       iSplit; first by repeat iExists _; iSplit.
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL";
       rewrite later_intuitionistically.
-    - iIntros "!>"; iApply (internal_eq_iff with "(Hγφ [#//] [#//])").
+    - iIntros "!>". iApply (internal_eq_iff with "(Hγφ [#//])").
       by iApply "HLT".
     - iApply "HTU" => //.
-      by iApply (internal_eq_iff with "(Hγφ [#//] [#//])").
+      by iApply (internal_eq_iff with "(Hγφ [#//])").
   Qed.
 
   Lemma D_Typ_Concr Γ T s σ l:
