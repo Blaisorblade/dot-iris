@@ -32,16 +32,53 @@ Section interp_equiv.
   Definition interp_extractedTy: (ty * vls) → envD Σ :=
     λ '(T, σ) ρ v,
     (⟦ T ⟧ (subst_sigma σ ρ) v)%I.
-  Notation "⟦ T ⟧ [ σ ]" := (interp_extractedTy (T, σ)).
+  Notation "⟦ T ⟧[ σ ]" := (interp_extractedTy (T, σ)).
 
   Definition envD_equiv n φ1 φ2: iProp Σ :=
     (∀ ρ v, ⌜ length ρ = n ⌝ → ⌜ cl_ρ ρ ⌝ → φ1 ρ v ≡ φ2 ρ v)%I.
   Notation "φ1 ≈[  n  ] φ2" := (envD_equiv n φ1 φ2) (at level 70).
 
+  Lemma nclosed_sub_ids {i}: nclosed_sub 0 i ids.
+  Proof. intros ??. lia. Qed.
+  Hint Resolve nclosed_sub_ids.
+
+  Lemma nclosed_sub_inv i j v sb:
+    nclosed_sub (S i) j (v .: sb) →
+    nclosed_vl v j ∧ nclosed_sub i j sb.
+  Proof.
+    move => Hcl; split. by eapply (Hcl 0); lia.
+    move => k Hle. eapply (Hcl (S k)), lt_n_S, Hle.
+  Qed.
+
+  Lemma nclosed_sub_tail i j v sb:
+    nclosed_sub (S i) j (v .: sb) →
+    nclosed_sub i j sb.
+  Proof. move => /nclosed_sub_inv [//]. Qed.
+
+  Transparent to_subst.
+
+  Lemma nclosed_σ_sub_equiv {ρ i} : nclosed_σ ρ i ↔ nclosed_sub (length ρ) i (to_subst ρ).
+  Proof.
+    split; elim: ρ => [//| /= v ρ IHρ] Hcl.
+    - inverse Hcl. move => [//|j /lt_S_n] /=. exact: IHρ.
+    - constructor.
+      by apply (Hcl 0); lia.
+      eapply IHρ, nclosed_sub_tail, Hcl.
+  Qed.
+
+  Lemma interp_subst_commute' T σ ρ v:
+    nclosed T (length σ) →
+    nclosed_σ σ (length ρ) →
+    nclosed_sub (length ρ) 0 (to_subst ρ) →
+    ⟦ T.|[to_subst σ] ⟧ ρ v ≡ ⟦ T ⟧ σ.|[to_subst ρ] v.
+  Proof.
+    move => HclT Hclσ /nclosed_σ_sub_equiv Hclρ.
+    exact: interp_subst_commute.
+  Qed.
   Lemma extraction_envD_equiv g s σ T n:
     T ~[ n ] (g, (s, σ)) →
     (∃ T', ⌜ g !! s = Some T'⌝ ∧
-        ⟦ T ⟧ ≈[ n ] ⟦ T' ⟧ [ σ ])%I.
+        ⟦ T ⟧ ≈[ n ] ⟦ T' ⟧[ σ ])%I.
   Proof.
     iIntros ((T' & -> & <- & HclT & HclT')). iExists _; iSplit => //.
     iIntros (ρ v <- Hclρ). by rewrite interp_subst_commute.
