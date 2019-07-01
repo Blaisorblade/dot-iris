@@ -3,7 +3,6 @@ From D Require Import iris_prelude asubst_base asubst_intf dlang.
 From iris.proofmode Require Import tactics.
 From iris.program_logic Require Import language.
 From D.pure_program_logic Require Import lifting adequacy.
-From D Require Import gen_iheap saved_interp.
 
 From Coq Require ProofIrrelevance FunctionalExtensionality.
 
@@ -14,9 +13,9 @@ Include LiftWp sorts.
 Section olty_limit_preserving.
   Context `{Σ : gFunctors}.
 
-  Definition infEnvD_persistent (A : envD Σ) := ∀ ρ w, Persistent (A ρ w).
+  Definition envD_persistent (A : envD Σ) := ∀ ρ w, Persistent (A ρ w).
 
-  Instance: LimitPreserving infEnvD_persistent.
+  Instance: LimitPreserving envD_persistent.
   Proof.
     apply limit_preserving_forall=> ρ; apply limit_preserving_forall=> w.
       apply bi.limit_preserving_Persistent => n ?? H. exact: H.
@@ -31,7 +30,7 @@ Section olty_limit_preserving.
     solve_proper_ho.
   Qed.
 
-  Definition restrict A := vclosed A ∧ infEnvD_persistent A.
+  Definition restrict A := vclosed A ∧ envD_persistent A.
   Global Instance: LimitPreserving restrict.
   Proof.
     apply limit_preserving_and; apply _.
@@ -107,20 +106,18 @@ Section olty_ofe.
     apply: intuitionistic_intuitionistically.
   Qed.
 
-  Global Instance ids_infEnvD : Ids (envD Σ) := λ _, inhabitant.
-  Global Instance rename_infEnvD : Rename (envD Σ) :=
+  Global Instance ids_envD : Ids (envD Σ) := λ _, inhabitant.
+  Global Instance rename_envD : Rename (envD Σ) :=
     λ r φ ρ, φ (r >>> ρ).
-  Global Instance hsubst_infEnvD : HSubst vl (envD Σ) :=
+  Global Instance hsubst_envD : HSubst vl (envD Σ) :=
     λ sb φ ρ, φ (sb >> ρ).
 
-  Ltac renLemmas_infEnvD :=
-    hnf; rewrite /hsubst /hsubst_infEnvD => /= *;
+  Ltac renLemmas_envD :=
+    hnf; rewrite /hsubst /hsubst_envD => /= *;
     try (apply FunctionalExtensionality.functional_extensionality_dep => ?); by asimpl.
 
-  Global Instance HSubstLemmas_infEnvD : HSubstLemmas vl (envD Σ).
-  Proof.
-    split => //; renLemmas_infEnvD.
-  Qed.
+  Global Instance HSubstLemmas_envD : HSubstLemmas vl (envD Σ).
+  Proof. split => //; renLemmas_envD. Qed.
 
   (*
     Since substitution lemmas don't use setoids,
@@ -160,32 +157,32 @@ Section olty_ofe.
     all: by asimpl.
   Qed. *)
 
-  Lemma infEnvD_weaken ρ1 ρ2 ρ3 φ :
+  Lemma envD_weaken ρ1 ρ2 ρ3 φ :
     φ.|[upn (length ρ1) (ren (+ length ρ2))] (to_subst (ρ1 ++ ρ2 ++ ρ3))
     = φ (to_subst (ρ1 ++ ρ3)).
-  Proof. rewrite /hsubst_infEnvD /hsubst to_subst_weaken //. Qed.
+  Proof. rewrite /hsubst_envD /hsubst to_subst_weaken //. Qed.
 
-  Lemma infEnvD_subst_up ρ1 ρ2 v φ :
+  Lemma envD_subst_up ρ1 ρ2 v φ :
     φ.|[upn (length ρ1) (v.[ren (+length ρ2)] .: ids)] (to_subst (ρ1 ++ ρ2))
     ≡ φ (to_subst (ρ1 ++ v :: ρ2)).
-  Proof. rewrite /hsubst_infEnvD /hsubst to_subst_up //. Qed.
+  Proof. rewrite /hsubst_envD /hsubst to_subst_up //. Qed.
 
   Lemma olty_weaken ρ1 ρ2 ρ3 τ :
     τ.|[upn (length ρ1) (ren (+ length ρ2))] (to_subst (ρ1 ++ ρ2 ++ ρ3))
     = τ (to_subst (ρ1 ++ ρ3)).
   Proof.
-    (* rewrite /hsubst_olty /hsubst_infEnvD /hsubst /= to_subst_weaken //. *)
+    (* rewrite /hsubst_olty /hsubst_envD /hsubst /= to_subst_weaken //. *)
     rewrite [@hsubst _ _ hsubst_olty]/hsubst /hsubst_olty /=.
-    exact: infEnvD_weaken.
+    exact: envD_weaken.
   Qed.
 
   Lemma olty_subst_up ρ1 ρ2 v τ :
     τ.|[upn (length ρ1) (v.[ren (+length ρ2)] .: ids)] (to_subst (ρ1 ++ ρ2))
     ≡ τ (to_subst (ρ1 ++ v :: ρ2)).
   Proof.
-    (* rewrite /hsubst_olty /hsubst_infEnvD /hsubst /= to_subst_up //. *)
+    (* rewrite /hsubst_olty /hsubst_envD /hsubst /= to_subst_up //. *)
     rewrite [@hsubst _ _ hsubst_olty]/hsubst /hsubst_olty /=.
-    exact: infEnvD_subst_up.
+    exact: envD_subst_up.
   Qed.
 
   Definition sCtx := list (olty Σ).
