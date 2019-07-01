@@ -3,7 +3,7 @@ From D.Dot Require Import unary_lr.
 
 Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
-         (Γ : ctx) (ρ : vls).
+         (Γ : ctx).
 
 Section Russell.
   Context `{HdlangG: dlangG Σ}.
@@ -15,7 +15,7 @@ Section Russell.
     paradoxical without Iris, because (informally) [v.A] points to [λ u, ¬ (u.A u)],
     hence [v.A v] is equivalent to ▷¬ (u.A u).
     *)
-  Definition uAu u := ⟦TSel (pv u) "A"⟧ [] u.
+  Definition uAu u := ⟦TSel (pv u) "A"⟧ ids u.
   Instance uauP: Persistent (uAu u) := _.
 
   Definition russell_p : envD Σ := λ ρ v, (□ (uAu v -∗ False))%I.
@@ -29,9 +29,9 @@ Section Russell.
   Definition v := vobj [("A", dtysem [] s)].
 
   (** Yes, v has a valid type member. *)
-  Lemma vHasA: Hs ⊢ ⟦ TTMem "A" TBot TTop ⟧ [] v.
+  Lemma vHasA: Hs ⊢ ⟦ TTMem "A" TBot TTop ⟧ ids v.
   Proof.
-    iIntros "#Hs". repeat (repeat iExists _; repeat iSplit; try done).
+    iIntros "#Hs". repeat (repeat iExists _; repeat iSplit; try by [|iApply idm_proj_intro]).
     iModIntro; repeat iSplit; by iIntros "** !>".
   Qed.
 
@@ -40,7 +40,7 @@ Section Russell.
     iIntros "#Hs #HuauV".
     iPoseProof "HuauV" as (_ φ d Hl) "[Hs1 #Hvav]".
     iPoseProof "Hs1" as (s' σ φ' [_ ->]) "H".
-    iAssert (d ↗ russell_p []) as "#Hs2".
+    iAssert (d ↗ russell_p ids) as "#Hs2".
     - iExists s, [], russell_p; iFrame "Hs"; iPureIntro.
       move: Hl => [ds] [[<- /=] ?]. by simplify_eq.
     - iPoseProof (stored_pred_agree d _ _ v with "Hs1 Hs2") as "#Hag".
@@ -54,7 +54,7 @@ Section Russell.
   Proof.
     iIntros "#Hs"; iSplit.
     - iIntros "#HnotVAV"; iSplit => //.
-      iExists (russell_p []), (dtysem [] s).
+      iExists (russell_p ids), (dtysem [] s).
       repeat (repeat iSplit => //; repeat iExists _).
       iIntros "!>!>!> #Hvav". iApply ("HnotVAV" with "Hvav").
     - iIntros "#Hvav".
@@ -75,5 +75,5 @@ Section Russell.
     by iApply uauEquiv.
   Qed.
 
-  Definition notRussellV: Hs ⊢ russell_p [] v → False := notNotVAV.
+  Definition notRussellV: Hs ⊢ russell_p ids v → False := notNotVAV.
 End Russell.

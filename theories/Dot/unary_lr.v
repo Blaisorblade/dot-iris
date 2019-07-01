@@ -6,7 +6,7 @@ From D.Dot Require Export operational path_wp.
     type inference for some overloaded operations (e.g. substitution). *)
 Implicit Types
          (L T U : ty) (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
-         (Γ : ctx) (ρ vs : vls).
+         (Γ : ctx) (vs : vls) (ρ : var → vl).
 
 (** The logical relation core is the [interp], interprets *open* types into
     predicates over *closed* values. Hence, [interp T ρ v] uses its argument [ρ]
@@ -30,14 +30,14 @@ Section logrel.
 
   Notation D := (vl -d> iProp Σ).
   Implicit Types (interp : envD Σ) (φ : D).
-  Notation envPred s := (vls -d> s -d> iProp Σ).
+  Notation envPred s := ((var → vl) -d> s -d> iProp Σ).
 
   Definition def_interp_vmem interp : envPred dm :=
     λ ρ d, (∃ vmem, ⌜d = dvl vmem⌝ ∧ ▷ interp ρ vmem)%I.
   Global Arguments def_interp_vmem /.
 
   Definition idm_proj_semtype d φ : iProp Σ :=
-    (∃ s σ interp, ⌜ d = dtysem σ s ∧ φ = interp σ ⌝ ∗ s ↝ interp)%I.
+    (∃ s σ interp, ⌜ d = dtysem σ s ∧ φ = interp (to_subst σ) ⌝ ∗ s ↝ interp)%I.
   Notation "d ↗ φ" := (idm_proj_semtype d φ) (at level 20).
   Global Instance idm_proj_persistent d τ: Persistent (d ↗ τ) := _.
 
@@ -51,7 +51,7 @@ Section logrel.
   Qed.
 
   Lemma idm_proj_intro s σ (φ : envD Σ) :
-    s ↝ φ -∗ dtysem σ s ↗ φ σ.
+    s ↝ φ -∗ dtysem σ s ↗ φ (to_subst σ).
   Proof. iIntros. iExists s, σ , φ. by iSplit. Qed.
 
   Global Arguments idm_proj_semtype : simpl never.
@@ -116,15 +116,15 @@ Section logrel.
     λ ρ v,
     (⌜ nclosed_vl v 0 ⌝ ∗
        ∃ t, ⌜ v = vabs t ⌝ ∗
-       □ ▷ ∀ w, interp1 ρ w → interp_expr interp2 (w :: ρ) t.|[w/])%I.
+       □ ▷ ∀ w, interp1 ρ w → interp_expr interp2 (w .: ρ) t.|[w/])%I.
   Global Arguments interp_forall /.
 
   Definition interp_mu interp : envD Σ :=
-    λ ρ v, interp (v::ρ) v.
+    λ ρ v, interp (v .: ρ) v.
   Global Arguments interp_mu /.
 
   Definition interp_sel p (l: label) : envD Σ :=
-    λ ρ v, (⌜ nclosed_vl v 0 ⌝ ∧ path_wp p.|[to_subst ρ]
+    λ ρ v, (⌜ nclosed_vl v 0 ⌝ ∧ path_wp p.|[ρ]
       (λ vp, ∃ ϕ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ϕ ∧ ▷ □ ϕ v))%I.
   Global Arguments interp_sel /.
 
@@ -193,7 +193,7 @@ Section logrel.
     | T :: Γ' =>
       match vs with
       | nil => False
-      | v :: vs => interp_env Γ' vs ∗ ⟦ T ⟧ (v :: vs) v
+      | v :: vs => interp_env Γ' vs ∗ ⟦ T ⟧ (v .: to_subst vs) v
       end
     end%I.
 
@@ -208,14 +208,14 @@ Section logrel.
   (** Definitions for semantic (definition) (sub)typing *)
   (** Since [⟦Γ⟧* vs] might be impossible, we must require closedness explicitly. *)
   Definition idtp Γ T l d : iProp Σ :=
-    (⌜ nclosed d (length Γ) ⌝ ∗ □∀ vs, ⟦Γ⟧* vs → def_interp T l vs d.|[to_subst vs])%I.
+    (⌜ nclosed d (length Γ) ⌝ ∗ □∀ vs, ⟦Γ⟧* vs → def_interp T l (to_subst vs) d.|[to_subst vs])%I.
   Global Arguments idtp /.
 
   Definition idstp Γ T ds : iProp Σ :=
-    (⌜ nclosed ds (length Γ) ⌝ ∗ □∀ vs, ⟦Γ⟧* vs → defs_interp T vs ds.|[to_subst vs])%I.
+    (⌜ nclosed ds (length Γ) ⌝ ∗ □∀ vs, ⟦Γ⟧* vs → defs_interp T (to_subst vs) ds.|[to_subst vs])%I.
   Global Arguments idstp /.
 
-  Definition ietp Γ T e : iProp Σ := (⌜ nclosed e (length Γ) ⌝ ∗ □∀ vs, ⟦Γ⟧* vs → ⟦T⟧ₑ vs (e.|[to_subst vs]))%I.
+  Definition ietp Γ T e : iProp Σ := (⌜ nclosed e (length Γ) ⌝ ∗ □∀ vs, ⟦Γ⟧* vs → ⟦T⟧ₑ (to_subst vs) (e.|[to_subst vs]))%I.
   Global Arguments ietp /.
 
   (** Indexed Subtyping. Defined on closed values. We must require closedness
@@ -238,13 +238,13 @@ Section logrel.
       And that forces using the same implication in the logical relation
       (unlike I did originally). *)
   Definition step_indexed_ivstp Γ T1 T2 i j: iProp Σ :=
-    (□∀ vs v, ⌜ nclosed_vl v 0 ⌝ → ⟦Γ⟧* vs → (▷^i ⟦T1⟧ vs v) → ▷^j ⟦T2⟧ vs v)%I.
+    (□∀ vs v, ⌜ nclosed_vl v 0 ⌝ → ⟦Γ⟧* vs → (▷^i ⟦T1⟧ (to_subst vs) v) → ▷^j ⟦T2⟧ (to_subst vs) v)%I.
   Global Arguments step_indexed_ivstp /.
 
   Definition iptp Γ T p i: iProp Σ :=
     (⌜ nclosed p (length Γ) ⌝ ∗
       □∀ vs, ⟦Γ⟧* vs →
-      ▷^i path_wp (p.|[to_subst vs]) (λ v, ⟦T⟧ vs v))%I.
+      ▷^i path_wp (p.|[to_subst vs]) (λ v, ⟦T⟧ (to_subst vs) v))%I.
   Global Arguments iptp /.
 
   Global Instance idtp_persistent Γ T l d: Persistent (idtp Γ T l d) := _.

@@ -21,7 +21,7 @@ Section ex.
   Definition v := vobj [("A", dtysem [] s); ("n", dvl (vnat 2))].
 
   (** Yes, v has a valid type member. *)
-  Lemma vHasA0: Hs -∗ ⟦ TTMem "A" TBot TNat ⟧ [] v.
+  Lemma vHasA0: Hs -∗ ⟦ TTMem "A" TBot TNat ⟧ ids v.
   Proof.
     iIntros "#Hs". repeat (repeat iExists _; repeat iSplit; try done).
     iModIntro; repeat iSplit;
@@ -30,14 +30,14 @@ Section ex.
 
   (* Generic useful lemmas — not needed for fundamental theorem,
      but very useful for examples. *)
-  Lemma ietp_value T v: nclosed_vl v 0 → ⟦ T ⟧ [] v -∗ [] ⊨ tv v : T.
+  Lemma ietp_value T v: nclosed_vl v 0 → ⟦ T ⟧ ids v -∗ [] ⊨ tv v : T.
   Proof.
     iIntros (?) "#H /="; iSplit; first by auto using fv_tv.
     iIntros "!>" (?->).
     rewrite -wp_value' to_subst_nil subst_id. iApply "H".
   Qed.
 
-  Lemma ietp_value_inv T v: [] ⊨ tv v : T -∗ ⟦ T ⟧ [] v.
+  Lemma ietp_value_inv T v: [] ⊨ tv v : T -∗ ⟦ T ⟧ ids v.
   Proof.
     iIntros "/= [% H]".
     iDestruct ("H" $! [] with "[//]") as "H".
@@ -60,7 +60,7 @@ Section ex.
   Lemma vHasA1: Hs -∗
     ⟦ TMu (TAnd
           (TTMem "A" TBot TNat)
-          (TAnd (TVMem "n" (TSel (pv (ids 0)) "A")) TTop)) ⟧ [] v.
+          (TAnd (TVMem "n" (TSel (pv (ids 0)) "A")) TTop)) ⟧ ids v.
   Proof.
     rewrite -ietp_value_inv -(TMu_I [] _ v).
     iIntros "#Hs".
@@ -90,7 +90,7 @@ Section ex.
   Lemma vHasA1': Hs -∗
     ⟦ TMu (TAnd
           (TTMem "A" TBot TNat)
-          (TAnd (TVMem "n" (TSel (pv (ids 0)) "A")) TTop)) ⟧ [] v.
+          (TAnd (TVMem "n" (TSel (pv (ids 0)) "A")) TTop)) ⟧ ids v.
   Proof.
     iIntros "#Hs".
     iDestruct (T_New_I [] _ with "[]") as "[% #H]"; first last.

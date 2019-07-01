@@ -31,11 +31,11 @@ Section interp_equiv.
       σ in ρ. And the result is only equivalent for closed ρ with the expected length. *)
   Definition interp_extractedTy: (ty * vls) → envD Σ :=
     λ '(T, σ) ρ v,
-    (⟦ T ⟧ (subst_sigma σ ρ) v)%I.
+    (⟦ T ⟧ (to_subst σ.|[ρ]) v)%I.
   Notation "⟦ T ⟧ [ σ ]" := (interp_extractedTy (T, σ)).
 
   Definition envD_equiv n φ1 φ2: iProp Σ :=
-    (∀ ρ v, ⌜ length ρ = n ⌝ → ⌜ cl_ρ ρ ⌝ → φ1 ρ v ≡ φ2 ρ v)%I.
+    (∀ ρ v, ⌜ length ρ = n ⌝ → ⌜ cl_ρ ρ ⌝ → φ1 (to_subst ρ) v ≡ φ2 (to_subst ρ) v)%I.
   Notation "φ1 ≈[  n  ] φ2" := (envD_equiv n φ1 φ2) (at level 70).
 
   Lemma extraction_envD_equiv g s σ T n:

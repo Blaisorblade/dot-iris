@@ -32,7 +32,7 @@ Class Closeable s := nclosed_s : s → nat → Prop.
 Instance closeable_sort s `{Sort s} : Closeable s := nclosed.
 Instance closeable_vl : Closeable vl := nclosed_vl.
 
-Implicit Types (v: vl) (ρ vs : vls).
+Implicit Types (v: vl) (vs : vls) (ρ : var → vl).
 Implicit Types (Σ : gFunctors).
 
 Definition test_interp_expr2 `{dlangG Σ} (φ : olty Σ) :=
@@ -46,28 +46,28 @@ Notation ctx := (list ty).
 
 Notation "⟦ T ⟧" := (oty_interp T).
 
-Fixpoint env_oltyped (Γ : sCtx) ρ : iProp Σ :=
-  match Γ, ρ with
-  | φ :: Γ', v :: ρ => env_oltyped Γ' ρ ∗ φ (v::ρ) v
+Fixpoint env_oltyped (Γ : sCtx) vs : iProp Σ :=
+  match Γ, vs with
+  | φ :: Γ', v :: vs => env_oltyped Γ' vs ∗ φ (v .: to_subst vs) v
   | nil, nil => True
   | _, _ => False
   end%I.
-Instance env_oltyped_persistent (Γ : sCtx) ρ: Persistent (env_oltyped Γ ρ).
-Proof. elim: Γ ρ => [|τ Γ IHΓ] [|v ρ] /=; apply _. Qed.
+Instance env_oltyped_persistent (Γ : sCtx) vs: Persistent (env_oltyped Γ vs).
+Proof. elim: Γ vs => [|τ Γ IHΓ] [|v vs] /=; apply _. Qed.
 
 Definition oty_interp_env (Γ : ctx) : sCtx := map oty_interp Γ.
 Definition env_typed (Γ : ctx) : vls -d> iProp Σ := env_oltyped (oty_interp_env Γ).
 
-Instance env_typed_persistent `{OTyInterp ty Σ} Γ ρ : Persistent (env_typed Γ ρ) := env_oltyped_persistent _ _.
+Instance env_typed_persistent `{OTyInterp ty Σ} Γ vs : Persistent (env_typed Γ vs) := env_oltyped_persistent _ _.
 
-Definition judgment Σ s : Type := option s * (vls -d> option s -d> iProp Σ).
-Definition nosubj_judgment Σ : Type := vls -d> iProp Σ.
-Definition subj_judgment Σ s : Type := s * (vls -d> s -d> iProp Σ).
+Definition judgment Σ s : Type := option s * ((var → vl) -d> option s -d> iProp Σ).
+Definition nosubj_judgment Σ : Type := (var → vl) -d> iProp Σ.
+Definition subj_judgment Σ s : Type := s * ((var → vl) -d> s -d> iProp Σ).
 Program Definition subj_judgment_to_judgment {Σ s} : subj_judgment Σ s → judgment Σ s :=
   λ '(x, φ), (Some x, λ ρ, from_option (φ ρ) False)%I.
 
 Definition judgment_holds `{Closeable s} (Γ : sCtx) (J : judgment Σ s): iProp Σ :=
-  (⌜ from_option (flip nclosed_s (length Γ)) True (fst J) ⌝ ∗ □∀ ρ, env_oltyped Γ ρ → (snd J) ρ (fst J))%I.
+  (⌜ from_option (flip nclosed_s (length Γ)) True (fst J) ⌝ ∗ □∀ vs, env_oltyped Γ vs → (snd J) (to_subst vs) (fst J))%I.
 Notation "Γ ⊨ J" := (judgment_holds Γ J) (at level 74, J at next level).
 Global Arguments judgment_holds /.
 
@@ -99,7 +99,7 @@ Program Definition step_indexed_ivstp φ1 i1 φ2 i2 := nosubj_judgment_to_judgme
   (λ ρ, ∀ v, ⌜ nclosed_vl v 0 ⌝ → (▷^i1 φ1 ρ v) → ▷^i2 φ2 ρ v)%I.
 Notation "[ φ1 , i1 ] <: [ φ2 , i2 ]" := (step_indexed_ivstp φ1 i1 φ2 i2) (at level 73).
 Lemma equiv_vstp Γ (φ1 φ2: olty Σ) i1 i2: (Γ ⊨ [φ1 , i1] <: [φ2 , i2]) ⊣⊢
-    (□∀ ρ v, ⌜ nclosed_vl v 0 ⌝ → env_oltyped Γ ρ → (▷^i1 φ1 ρ v) → ▷^i2 φ2 ρ v)%I.
+    (□∀ vs v, ⌜ nclosed_vl v 0 ⌝ → env_oltyped Γ vs → (▷^i1 φ1 (to_subst vs) v) → ▷^i2 φ2 (to_subst vs) v)%I.
 Proof.
   iSplit; [iIntros "#[_ H] /= !>" (???) "#?" |
     iIntros "#H"; iSplit; first done; iIntros "!>" (?) "#? /="; iIntros (??)].

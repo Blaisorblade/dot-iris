@@ -19,7 +19,7 @@ Qed.
    instantiation pattern, from e.g.
    https://gitlab.mpi-sws.org/iris/examples/blob/a89dc12821b63eeb9b831d21629ac55ebd601f38/theories/logrel/F_mu_ref/soundness.v#L29-39. *)
 Corollary almost_type_soundness e e' thp σ σ' T:
-  (forall `{dlangG Σ} `{SwapProp (iPropSI Σ)}, True ⊢ ⟦ T ⟧ₑ [] e) →
+  (forall `{dlangG Σ} `{SwapProp (iPropSI Σ)}, True ⊢ ⟦ T ⟧ₑ ids e) →
   rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
   is_Some (to_val e') ∨ reducible e' σ'.
 Proof.

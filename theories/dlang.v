@@ -21,17 +21,17 @@ End mapsto.
 
 Module Type LiftWp (Import sorts: SortsIntf).
   Export mapsto saved_interp.
-  Implicit Types (v : vl) (ρ vs : vls) (Σ : gFunctors).
+  Implicit Types (v : vl) (Σ : gFunctors).
 
-  Notation envD Σ := (vls -d> vl -d> iProp Σ).
+  Notation envD Σ := ((var → vl) -d> vl -d> iProp Σ).
   Instance Inhϕ: Inhabited (envD Σ).
   Proof. constructor. exact (λ _ _, False)%I. Qed.
 
   Class TyInterp ty Σ :=
-    ty_interp : ty -> vls -> vl -> iProp Σ.
+    ty_interp : ty -> (var → vl) -> vl -> iProp Σ.
 
   Class dlangG Σ := DLangG {
-    dlangG_savior :> savedInterpG Σ vls vl;
+    dlangG_savior :> savedInterpG Σ (var → vl) vl;
     dlangG_interpNames :> gen_iheapG stamp gname Σ;
   }.
 
@@ -71,10 +71,10 @@ Module Type LiftWp (Import sorts: SortsIntf).
 
   Module dlang_adequacy.
     Class dlangPreG Σ := DLangPreG {
-      dlangPreG_savior :> savedInterpG Σ vls vl;
+      dlangPreG_savior :> savedInterpG Σ (var → vl) vl;
       dlangPreG_interpNames :> gen_iheapPreG stamp gname Σ;
     }.
-    Definition dlangΣ := #[savedInterpΣ vls vl; gen_iheapΣ stamp gname].
+    Definition dlangΣ := #[savedInterpΣ (var → vl) vl; gen_iheapΣ stamp gname].
 
     Instance subG_dlangΣ {Σ} : subG dlangΣ Σ → dlangPreG Σ.
     Proof. solve_inG. Qed.
