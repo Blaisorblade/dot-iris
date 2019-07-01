@@ -1,4 +1,5 @@
 From D Require Import iris_prelude swap_later_impl asubst_intf.
+From iris.proofmode Require Import tactics.
 From iris.program_logic Require Import ectx_language language.
 
 From D.pure_program_logic Require adequacy.

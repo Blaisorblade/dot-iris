@@ -1,3 +1,4 @@
+From iris.proofmode Require Import tactics.
 From D Require Import iris_prelude.
 From D.Dot Require Import operational synLemmas.
 

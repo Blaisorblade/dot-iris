@@ -1,9 +1,11 @@
 From D Require Export prelude proofmode_extra.
 From iris.base_logic Require Import upred.
 From D.pure_program_logic Require Export weakestpre.
-From iris.proofmode Require Export tactics.
 
-(* From iris.base_logic Require Import invariants. *)
+(* Do not export iris.proofmode.tactics! *)
+(* From iris.proofmode Require Export tactics. *)
+(* As discussed in https://github.com/Blaisorblade/dot-iris/pull/2#discussion_r239389417, exporting that confuses Coq, who then
+  prints [length] as [strings.length]. *)
 
 Export uPred.
 

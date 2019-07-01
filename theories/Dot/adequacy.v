@@ -1,3 +1,4 @@
+From iris.proofmode Require Import tactics.
 From D Require Import swap_later_impl.
 From D.Dot Require Import unary_lr fundamental typing.
 

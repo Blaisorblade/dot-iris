@@ -1,3 +1,4 @@
+From iris.proofmode Require Import tactics.
 From D.DSub Require Export synLemmas.
 From D.DSubSyn Require Export unary_lr.
 
