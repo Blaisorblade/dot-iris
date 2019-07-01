@@ -215,17 +215,17 @@ Section logrel_part2.
     | T :: Γ' =>
       match vs with
       | nil => False
-      | v :: ρ => interp_env Γ' ρ ∗ ⟦ T ⟧ (v::ρ) v
+      | v :: vs => interp_env Γ' vs ∗ ⟦ T ⟧ (v :: vs) v
       end
     end%I.
 
   Notation "⟦ Γ ⟧*" := (interp_env Γ).
 
-  Global Instance interp_env_persistent Γ ρ :
-    Persistent (⟦ Γ ⟧* ρ).
-  Proof. elim: Γ ρ => [|τ Γ IHΓ] [|v ρ]; apply _. Qed.
+  Global Instance interp_env_persistent Γ vs :
+    Persistent (⟦ Γ ⟧* vs).
+  Proof. elim: Γ vs => [|τ Γ IHΓ] [|v vs]; apply _. Qed.
 
-  Definition ietp Γ T e : iProp Σ := (⌜ nclosed e (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ₑ ρ (e.|[to_subst ρ]))%I.
+  Definition ietp Γ T e : iProp Σ := (⌜ nclosed e (length Γ) ⌝ ∗ □∀ vs, ⟦Γ⟧* vs → ⟦T⟧ₑ vs (e.|[to_subst vs]))%I.
   Global Arguments ietp /.
   Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 
@@ -233,7 +233,7 @@ Section logrel_part2.
   Proof. iIntros "[$ _]". Qed.
 
   Definition step_indexed_ietp Γ T e i: iProp Σ :=
-    (⌜ nclosed e (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → ▷^i ⟦T⟧ₑ ρ (e.|[to_subst ρ]))%I.
+    (⌜ nclosed e (length Γ) ⌝ ∗ □∀ vs, ⟦Γ⟧* vs → ▷^i ⟦T⟧ₑ vs (e.|[to_subst vs]))%I.
   Global Arguments step_indexed_ietp /.
   Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
 
@@ -243,11 +243,11 @@ Section logrel_part2.
   (** Indexed Subtyping. Defined on closed values. We must require closedness
       explicitly, since closedness now does not follow from being well-typed later. *)
   Definition step_indexed_ivstp Γ T1 T2 i j: iProp Σ :=
-    (□∀ ρ v, ⌜ nclosed_vl v 0 ⌝ → ⟦Γ⟧*ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
+    (□∀ vs v, ⌜ nclosed_vl v 0 ⌝ → ⟦Γ⟧* vs → (▷^i ⟦T1⟧ vs v) → ▷^j ⟦T2⟧ vs v)%I.
   Global Arguments step_indexed_ivstp /.
 
   Definition delayed_ivstp Γ T1 T2 i: iProp Σ :=
-    (□ ∀ ρ, ⟦Γ⟧*ρ → ▷^i ∀v, ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
+    (□ ∀ vs, ⟦Γ⟧*vs → ▷^i ∀v, ⟦T1⟧ vs v → ⟦T2⟧ vs v)%I.
   Global Arguments delayed_ivstp /.
 
   Global Instance ietp_persistent Γ T e : Persistent (ietp Γ T e) := _.
@@ -292,21 +292,21 @@ Section logrel_lemmas.
     - iPureIntro. by move => [n ->].
   Qed.
 
-  Lemma interp_env_len_agree Γ ρ:
-    ⟦ Γ ⟧* ρ -∗ ⌜ length ρ = length Γ ⌝.
+  Lemma interp_env_len_agree Γ vs:
+    ⟦ Γ ⟧* vs -∗ ⌜ length vs = length Γ ⌝.
   Proof.
-    elim: Γ ρ => [|τ Γ IHΓ] [|v ρ] //=; try by iPureIntro.
+    elim: Γ vs => [|τ Γ IHΓ] [|v vs] //=; try by iPureIntro.
     rewrite IHΓ. by iIntros "[-> _] !%".
   Qed.
 
-  Lemma interp_env_ρ_closed Γ ρ: ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ⌝.
+  Lemma interp_env_ρ_closed Γ vs: ⟦ Γ ⟧* vs -∗ ⌜ cl_ρ vs ⌝.
   Proof.
-    elim: Γ ρ => [|τ Γ IHΓ] [|v ρ] //=; try by iPureIntro.
+    elim: Γ vs => [|τ Γ IHΓ] [|v vs] //=; try by iPureIntro.
     rewrite interp_v_closed IHΓ; iPureIntro. intuition.
   Qed.
 
-  Lemma interp_env_props Γ ρ:
-    ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ∧ length ρ = length Γ ⌝.
+  Lemma interp_env_props Γ vs:
+    ⟦ Γ ⟧* vs -∗ ⌜ cl_ρ vs ∧ length vs = length Γ ⌝.
   Proof.
     iIntros "#HG".
     iDestruct (interp_env_ρ_closed with "HG") as %?.
