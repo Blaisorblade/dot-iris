@@ -27,7 +27,6 @@ Module Type OLty_judge (Import vals: Values) (Import sorts: SortsLemmas vals).
 
 (* Or just inline this code there. *)
 Include OLty vals sorts.
-Include LiftWp sorts.
 
 Class Closeable s := nclosed_s : s → nat → Prop.
 Instance closeable_sort s `{Sort s} : Closeable s := nclosed.
@@ -119,19 +118,6 @@ Module SemTypes.
 
 Include OLty syn syn.
 
-Class dlangG Σ := DLangG {
-  dlangG_savior :> savedInterpG Σ (var → vl) vl;
-  dlangG_interpNames :> gen_iheapG stamp gname Σ;
-}.
-
-Instance dlangG_irisG `{dlangG Σ} : irisG dlang_lang Σ := {
-  state_interp σ κs _ := True%I;
-  fork_post _ := True%I;
-}.
-
-Import mapsto.
-Notation "s ↝ φ" := (∃ γ, s ↦ γ ∗ γ ⤇ φ)%I  (at level 20) : bi_scope.
-
 Set Primitive Projections.
 Record dlty Σ := Dlty {
   dlty_label : label;
@@ -146,18 +132,9 @@ Global Existing Instance dlty_persistent.
 Section Judgments.
   Context `{HdotG: dlangG Σ}.
 
-  Lemma leadsto_agree s (φ1 φ2 : infEnvD Σ) ρ v :
-    s ↝ φ1 -∗ s ↝ φ2 -∗ ▷ (φ1 ρ v ≡ φ2 ρ v).
-  Proof.
-    iIntros "/= #H1 #H2".
-    iDestruct "H1" as (γ1) "[Hs1 Hg1]".
-    iDestruct "H2" as (γ2) "[Hs2 Hg2]".
-    iDestruct (mapsto_agree with "Hs1 Hs2") as %->.
-    by iApply (saved_interp_agree _ φ1 φ2).
-  Qed.
   Implicit Types (φ : olty Σ).
 
-  Definition interp_expr (φ : infEnvD Σ) :=
+  Definition interp_expr (φ : envD Σ) :=
     λ ρ t, WP t {{ φ ρ }} %I.
   Global Arguments interp_expr /.
 
@@ -192,7 +169,7 @@ Section SemTypes.
 
   Implicit Types (φ : olty Σ) (τ : vl → iProp Σ).
 
-  Program Definition closed_olty (φ : infEnvD Σ) `{∀ ρ v, Persistent (φ ρ v)} : olty Σ :=
+  Program Definition closed_olty (φ : envD Σ) `{∀ ρ v, Persistent (φ ρ v)} : olty Σ :=
     Olty (λ ρ v, ⌜ nclosed_vl v 0 ⌝ ∗ φ ρ v)%I _.
   Next Obligation. iIntros (????) "[$_]". Qed.
 
@@ -225,7 +202,7 @@ Section SemTypes.
     ev; simplify_eq. by iApply (leadsto_agree _ interp1 interp2).
   Qed.
 
-  Lemma idm_proj_intro s σ (φ : infEnvD Σ) :
+  Lemma idm_proj_intro s σ (φ : envD Σ) :
     s ↝ φ -∗ dtysem σ s ↗ φ (to_subst σ).
   Proof. iIntros. iExists s, σ , φ. by iSplit. Qed.
 
@@ -324,13 +301,13 @@ Section Sec.
   Context `{HdotG: dlangG Σ}.
   Implicit Types (φ: olty Σ) (τ : vl → iProp Σ).
 
-  Definition envD_equiv n (φ1 φ2 : infEnvD Σ): iProp Σ :=
+  Definition envD_equiv n (φ1 φ2 : envD Σ): iProp Σ :=
     (∀ ρ v, ⌜ length ρ = n ⌝ → ⌜ cl_ρ ρ ⌝ → φ1 (to_subst ρ) v ≡ φ2 (to_subst ρ) v)%I.
   Notation "φ1 ≈[  n  ] φ2" := (envD_equiv n φ1 φ2) (at level 70).
 
-  Definition leadsto_envD_equiv (sσ : extractedTy) n (φ : infEnvD Σ) : iProp Σ :=
+  Definition leadsto_envD_equiv (sσ : extractedTy) n (φ : envD Σ) : iProp Σ :=
     let '(s, σ) := sσ in
-    (⌜nclosed_σ σ n⌝ ∧ ∃ (φ' : infEnvD Σ), s ↝ φ' ∗ envD_equiv n φ (λ ρ, φ' (to_subst σ.|[ρ])))%I.
+    (⌜nclosed_σ σ n⌝ ∧ ∃ (φ' : envD Σ), s ↝ φ' ∗ envD_equiv n φ (λ ρ, φ' (to_subst σ.|[ρ])))%I.
   Arguments leadsto_envD_equiv /.
   Notation "sσ ↝[  n  ] φ" := (leadsto_envD_equiv sσ n φ) (at level 20).
 
@@ -367,13 +344,13 @@ Section Sec.
   Context `{HdotG: dlangG Σ}.
   Implicit Types (φ: olty Σ) (τ : vl → iProp Σ).
 
-  Definition infEnvD_equiv n (φ1 φ2 : infEnvD Σ) : iProp Σ :=
+  Definition infEnvD_equiv n (φ1 φ2 : envD Σ) : iProp Σ :=
     (∀ ρ v, ⌜ nclosed_sub n 0 ρ ⌝ → φ1 ρ v ≡ φ2 ρ v)%I.
   Notation "φ1 ≈[  n  ] φ2" := (infEnvD_equiv n φ1 φ2) (at level 70).
 
-  Definition leadsto_infEnvD_equiv (sσ: extractedTy) n (φ : infEnvD Σ) : iProp Σ :=
+  Definition leadsto_infEnvD_equiv (sσ: extractedTy) n (φ : envD Σ) : iProp Σ :=
     let '(s, σ) := sσ in
-    (⌜nclosed_σ σ n⌝ ∧ ∃ (φ' : infEnvD Σ), s ↝ φ' ∗
+    (⌜nclosed_σ σ n⌝ ∧ ∃ (φ' : envD Σ), s ↝ φ' ∗
       infEnvD_equiv n φ (λ ρ, φ' (to_subst σ.|[ρ])))%I.
   Notation "sσ ↝[  n  ] φ" := (leadsto_infEnvD_equiv sσ n φ) (at level 20).
 

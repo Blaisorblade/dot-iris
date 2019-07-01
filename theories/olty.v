@@ -9,14 +9,12 @@ From Coq Require ProofIrrelevance FunctionalExtensionality.
 
 Module Type OLty (Import vals: Values) (Import sorts: SortsLemmas vals).
 
-Notation infEnvD Σ := ((var -> vl) -d> vl -d> iProp Σ).
-
-(* Include LiftWp sorts. *)
+Include LiftWp sorts.
 
 Section olty_limit_preserving.
   Context `{Σ : gFunctors}.
 
-  Definition infEnvD_persistent (A : infEnvD Σ) := ∀ ρ w, Persistent (A ρ w).
+  Definition infEnvD_persistent (A : envD Σ) := ∀ ρ w, Persistent (A ρ w).
 
   Instance: LimitPreserving infEnvD_persistent.
   Proof.
@@ -24,7 +22,7 @@ Section olty_limit_preserving.
       apply bi.limit_preserving_Persistent => n ?? H. exact: H.
   Qed.
 
-  Definition vclosed (A : infEnvD Σ) := ∀ ρ v, A ρ v ⊢ ⌜ nclosed_vl v 0 ⌝.
+  Definition vclosed (A : envD Σ) := ∀ ρ v, A ρ v ⊢ ⌜ nclosed_vl v 0 ⌝.
 
   Instance: LimitPreserving vclosed.
   Proof.
@@ -45,7 +43,7 @@ End olty_limit_preserving.
 and values. Adapted from
 https://gitlab.mpi-sws.org/iris/examples/blob/d4f4153920ea82617c7222aeeb00b6710d51ee03/theories/logrel_heaplang/ltyping.v#L5. *)
 Record olty Σ := Olty {
-  olty_car : infEnvD Σ;
+  olty_car : envD Σ;
   olty_v_closed : vclosed olty_car;
   olty_persistent ρ v : Persistent (olty_car ρ v);
 }.
@@ -63,7 +61,7 @@ Definition testCoerce `(φ: olty Σ) ρ := φ ρ.
 
 Section olty_ofe.
   Context `{Σ : gFunctors}.
-  Implicit Types (φ : infEnvD Σ) (τ : olty Σ).
+  Implicit Types (φ : envD Σ) (τ : olty Σ).
 
   Instance olty_equiv : Equiv (olty Σ) := λ A B, olty_car A ≡ B.
   Instance olty_dist : Dist (olty Σ) := λ n A B, olty_car A ≡{n}≡ B.
@@ -109,17 +107,17 @@ Section olty_ofe.
     apply: intuitionistic_intuitionistically.
   Qed.
 
-  Global Instance ids_infEnvD : Ids (infEnvD Σ) := λ _, inhabitant.
-  Global Instance rename_infEnvD : Rename (infEnvD Σ) :=
+  Global Instance ids_infEnvD : Ids (envD Σ) := λ _, inhabitant.
+  Global Instance rename_infEnvD : Rename (envD Σ) :=
     λ r φ ρ, φ (r >>> ρ).
-  Global Instance hsubst_infEnvD : HSubst vl (infEnvD Σ) :=
+  Global Instance hsubst_infEnvD : HSubst vl (envD Σ) :=
     λ sb φ ρ, φ (sb >> ρ).
 
   Ltac renLemmas_infEnvD :=
     hnf; rewrite /hsubst /hsubst_infEnvD => /= *;
     try (apply FunctionalExtensionality.functional_extensionality_dep => ?); by asimpl.
 
-  Global Instance HSubstLemmas_infEnvD : HSubstLemmas vl (infEnvD Σ).
+  Global Instance HSubstLemmas_infEnvD : HSubstLemmas vl (envD Σ).
   Proof.
     split => //; renLemmas_infEnvD.
   Qed.
