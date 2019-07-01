@@ -3,6 +3,7 @@
 
 theories/tactics.v
 theories/olty.v
+theories/olty_experiments.v
 theories/prelude.v
 theories/iris_prelude.v
 theories/asubst_base.v
