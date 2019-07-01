@@ -24,7 +24,11 @@ Implicit Types (v w : vl) (vs ρ : vls) (i j k n : nat) (r : nat → nat).
 Definition eq_n_s (s1 s2 : var → vl) n := ∀ x, x < n → s1 x = s2 x.
 Global Arguments eq_n_s /.
 
-Definition to_subst (ρ : vls) : var → vl := foldr (λ v s, v .: s) ids ρ.
+Fixpoint to_subst (ρ : vls) : var → vl :=
+  match ρ with
+  | [] => ids
+  | v :: ρ => v .: to_subst ρ
+  end.
 Definition subst_sigma (σ : vls) (ρ : vls) := σ.|[to_subst ρ].
 
 Lemma to_subst_nil : to_subst [] = ids.
@@ -32,10 +36,6 @@ Proof. trivial. Qed.
 
 Lemma to_subst_cons v ρ : to_subst (v :: ρ) = v .: to_subst ρ.
 Proof. trivial. Qed.
-Global Hint Rewrite to_subst_nil to_subst_cons : autosubst.
-
-Global Typeclasses Opaque to_subst.
-Global Opaque to_subst.
 
 Definition push_var (σ : vls) : vls := ids 0 :: σ.|[ren (+1)].
 Arguments push_var /.
@@ -274,7 +274,7 @@ Section to_subst_idsσ_is_id.
   Lemma idsσ_eq_ids n: eq_n_s (to_subst (idsσ n)) ids n.
   Proof.
     elim: n => [|n IHn] [|i] // /lt_S_n Hle.
-    rewrite /= to_subst_cons /= to_subst_map_commute // IHn // id_subst //.
+    rewrite /= to_subst_map_commute // IHn // id_subst //.
   Qed.
 
   Lemma closed_subst_idsρ x n :

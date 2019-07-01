@@ -252,14 +252,9 @@ Section Sec.
     nclosed_vl v 0 → PureExec True i (pth_to_tm p) (tv v) →
     True ⊢ WP (pth_to_tm p) {{ sem_singleton_path p [] }}.
   Proof.
-    iIntros (Hcl Hpure) "_ /=". rewrite to_subst_nil /=.
-    iApply wp_pure_step_later => //.
-    iNext.
-    iApply wp_value. iModIntro.
-    asimpl.
-    iApply wp_pure_step_later => //.
-    iNext.
-    by iApply wp_value.
+    iIntros (Hcl Hpure) "_ /=".
+    rewrite -wp_pure_step_later // -wp_value hsubst_id.
+    rewrite -wp_pure_step_later // -wp_value //.
   Qed.
 
 
