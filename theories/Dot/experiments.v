@@ -7,7 +7,7 @@ From D.Dot Require Import unary_lr_binding synLemmas rules
 
 Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
-         (Γ : ctx) (ρ : vls).
+         (Γ : ctx).
 
 Section Sec.
   Context `{HdlangG: dlangG Σ}.

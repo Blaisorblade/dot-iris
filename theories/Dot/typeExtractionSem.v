@@ -31,11 +31,11 @@ Section interp_equiv.
       σ in ρ. And the result is only equivalent for closed ρ with the expected length. *)
   Definition interp_extractedTy: (ty * vls) → envD Σ :=
     λ '(T, σ) ρ v,
-    (⟦ T ⟧ (subst_sigma σ ρ) v)%I.
+    (⟦ T ⟧ (to_subst σ.|[ρ]) v)%I.
   Notation "⟦ T ⟧ [ σ ]" := (interp_extractedTy (T, σ)).
 
   Definition envD_equiv n φ1 φ2: iProp Σ :=
-    (∀ ρ v, ⌜ length ρ = n ⌝ → ⌜ cl_ρ ρ ⌝ → φ1 ρ v ≡ φ2 ρ v)%I.
+    (∀ ρ v, ⌜ length ρ = n ⌝ → ⌜ cl_ρ ρ ⌝ → φ1 (to_subst ρ) v ≡ φ2 (to_subst ρ) v)%I.
   Notation "φ1 ≈[  n  ] φ2" := (envD_equiv n φ1 φ2) (at level 70).
 
   Lemma extraction_envD_equiv g s σ T n:
@@ -140,7 +140,7 @@ Section typing_type_member_defs.
 
   Definition leadsto_envD_equiv (sσ: extractedTy) n (φ : envD Σ) : iProp Σ :=
     let '(s, σ) := sσ in
-    (⌜nclosed_σ σ n⌝ ∧ ∃ (φ' : envD Σ), s ↝ φ' ∗ envD_equiv n φ (λ ρ, φ' (subst_sigma σ ρ)))%I.
+    (⌜nclosed_σ σ n⌝ ∧ ∃ (φ' : envD Σ), s ↝ φ' ∗ envD_equiv n φ (λ ρ, φ' (to_subst σ.|[ρ])))%I.
   Arguments leadsto_envD_equiv /.
   Notation "sσ ↝[  n  ] φ" := (leadsto_envD_equiv sσ n φ) (at level 20).
 
@@ -180,7 +180,7 @@ Section typing_type_member_defs.
     iIntros "!>" (ρ) "#Hg".
     iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]; rewrite <- Hlen in *.
     iDestruct "Hs" as (φ) "[Hγ Hγφ]".
-    repeat iSplit => //; iExists (φ (σ.|[to_subst ρ]));
+    repeat iSplit => //; iExists (φ (to_subst σ.|[to_subst ρ]));
       iSplit; first by repeat iExists _; iSplit.
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL";
       rewrite later_intuitionistically.

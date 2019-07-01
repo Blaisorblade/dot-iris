@@ -103,7 +103,7 @@ Section Sec.
     iSplit; first by eauto using nclosed_tskip_i.
     iIntros "!>" (vs) "#Hg".
     rewrite tskip_subst tskip_n_to_fill -wp_bind.
-    iApply (wp_wand_cl _ (⟦ T1 ⟧ vs)) => //.
+    iApply (wp_wand_cl _ (⟦ T1 ⟧ (to_subst vs))) => //.
     - iApply ("HeT1" with "[//]").
     - by rewrite nclosed_subst_ρ.
     - iIntros (v) "#HvT1 %".
@@ -122,7 +122,7 @@ Section Sec.
     have Hclte: nclosed (iterate tskip i e) (length Γ) by eauto using nclosed_tskip_i. iFrame "%".
     move: Hclte => _. iIntros "!>" (vs) "#Hg".
     rewrite tskip_subst tskip_n_to_fill -wp_bind.
-    iApply (wp_wand_cl _ (⟦ T1 ⟧ vs)) => //.
+    iApply (wp_wand_cl _ (⟦ T1 ⟧ (to_subst vs))) => //.
     - iApply ("HeT1" with "[//]").
     - by rewrite nclosed_subst_ρ.
     - iIntros (v) "#HvT1 %".
@@ -148,7 +148,7 @@ Section Sec.
     iSplit. {
       iPureIntro. exact: (fv_to_subst_vl HclV).
     }
-    iExists (λ v, ⟦ T.|[to_subst vs ] ⟧ [] v)%I.
+    iExists (λ v, ⟦ T.|[to_subst vs] ⟧ ids v)%I.
     iSplit. by iExists (T.|[to_subst vs]).
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#H";
       rewrite later_intuitionistically interp_subst_all //.
@@ -180,7 +180,7 @@ Section Sec.
     iSplit. {
       iPureIntro; exact: (fv_to_subst_vl HclV).
     }
-    iExists (λ v, ⟦ T.|[to_subst ρ ] ⟧ [] v)%I.
+    iExists (λ v, ⟦ T.|[to_subst ρ] ⟧ ids v)%I.
     iSplit. by iExists (T.|[to_subst ρ ]).
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#H";
       rewrite later_intuitionistically interp_subst_all //.

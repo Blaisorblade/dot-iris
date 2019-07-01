@@ -34,8 +34,8 @@ Section swap_based_typing_lemmas.
       by rewrite interp_v_closed.
     iIntros (Hclw).
     iSpecialize ("HsubT" $! ρ w Hclw with "Hg HwT2").
-    iAssert (□ ▷ ▷^i (∀ v0, ⟦ U1 ⟧ (w :: ρ) v0 →
-        ⟦ U2 ⟧ (w :: ρ) v0))%I as "#HsubU'". {
+    iAssert (□ ▷ ▷^i (∀ v0, ⟦ U1 ⟧ (w .: to_subst ρ) v0 →
+        ⟦ U2 ⟧ (w .: to_subst ρ) v0))%I as "#HsubU'". {
       iIntros (v0); rewrite -!mlaterN_impl -mlater_impl.
       iIntros "!> #HUv0".
       iApply (strip_pure_laterN_impl (S i) (nclosed_vl v0 0)); first last.

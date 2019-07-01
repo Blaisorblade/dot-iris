@@ -230,19 +230,9 @@ Section bar.
     | TLam n : hoEnvND 0 Σ → htype n → htype (S n).
   (* Now I need substitution. *)
 
-  (** This takes the first [n] elements from ρ *)
-  Definition to_subst_inv (n : nat) (ρ : var → vl) : vls :=
-    map ρ (seq 0 n).
-
-  Lemma to_subst_inv_spec ρ : to_subst_inv (length ρ) (to_subst ρ) = ρ.
-  Proof.
-    rewrite /to_subst_inv; elim: ρ => /= [//|v ρ IH].
-    rewrite /= -seq_shift; f_equal. by rewrite map_map.
-  Qed.
-
   Program Fixpoint typeSem {n} (T : htype n): hoEnvND n Σ :=
     match T with
-    | TWrap n T' => λ _ ρ, ⟦ T' ⟧ (to_subst_inv n ρ)
+    | TWrap n T' => λ _ ρ, ⟦ T' ⟧ ρ
     | TLam n φ T' => tUncurry (λ v, typeSem T')
     end.
 

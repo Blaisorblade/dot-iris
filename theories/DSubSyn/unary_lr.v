@@ -6,7 +6,7 @@ From D.DSub Require Export operational.
     type inference for some overloaded operations (e.g. substitution). *)
 Implicit Types
          (L T U : ty) (v : vl) (e : tm)
-         (Γ : ctx) (ρ vs : vls).
+         (Γ : ctx) (vs : vls) (ρ : var → vl).
 
 (** The logical relation core is the [interp], interprets *open* types into
     predicates over *closed* values. Hence, [interp T ρ v] uses its argument [ρ]
@@ -39,7 +39,7 @@ Section logrel.
   Notation D := (vl -d> iProp Σ).
   Implicit Types (interp : envD Σ) (φ : D).
 
-  Program Definition interp_expr : envD Σ -n> vls -d> tm -d> iProp Σ :=
+  Program Definition interp_expr : envD Σ -n> (var → vl) -d> tm -d> iProp Σ :=
     λne interp, λ ρ t, WP t {{ interp ρ }} %I.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_expr /.
@@ -74,13 +74,13 @@ Section logrel.
     λne interp1 interp2, λ ρ v,
     (⌜ nclosed_vl v 0 ⌝ ∗
        ∃ t, ⌜ v = vabs t ⌝ ∗
-       □ ▷ ∀ w, interp1 ρ w → interp_expr interp2 (w :: ρ) t.|[w/])%I.
+       □ ▷ ∀ w, interp1 ρ w → interp_expr interp2 (w .: ρ) t.|[w/])%I.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_forall /.
 
   Program Definition vl_has_semtype : (ty -d> envD Σ) -n> vl -d> D -n> iProp Σ :=
     λne rinterp, λ v, λne φ,
-    (∃ T, ⌜ v = vty T ⌝ ∧ ∀ w, ▷ (φ w ≡ rinterp T [] w))%I.
+    (∃ T, ⌜ v = vty T ⌝ ∧ ∀ w, ▷ (φ w ≡ rinterp T ids w))%I.
   Solve All Obligations with solve_proper_ho.
   Global Arguments vl_has_semtype /.
   Notation "[ rinterp ] v ↗ φ" := (vl_has_semtype rinterp v φ) (at level 20).
@@ -113,7 +113,7 @@ Section logrel.
 
   Program Definition interp_sel: (ty -d> envD Σ) -n> vl -d> envD Σ :=
     λne rinterp, λ w ρ v,
-    (⌜ nclosed_vl v 0 ⌝ ∧ (∃ ϕ, [rinterp] w.[to_subst ρ] ↗ ϕ ∧ ▷ □ ϕ v))%I.
+    (⌜ nclosed_vl v 0 ⌝ ∧ (∃ ϕ, [rinterp] w.[ρ] ↗ ϕ ∧ ▷ □ ϕ v))%I.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_sel /.
   Global Instance interp_sel_contractive : Contractive interp_sel.
@@ -215,7 +215,7 @@ Section logrel_part2.
     | T :: Γ' =>
       match vs with
       | nil => False
-      | v :: vs => interp_env Γ' vs ∗ ⟦ T ⟧ (v :: vs) v
+      | v :: vs => interp_env Γ' vs ∗ ⟦ T ⟧ (v .: to_subst vs) v
       end
     end%I.
 
@@ -225,7 +225,7 @@ Section logrel_part2.
     Persistent (⟦ Γ ⟧* vs).
   Proof. elim: Γ vs => [|τ Γ IHΓ] [|v vs]; apply _. Qed.
 
-  Definition ietp Γ T e : iProp Σ := (⌜ nclosed e (length Γ) ⌝ ∗ □∀ vs, ⟦Γ⟧* vs → ⟦T⟧ₑ vs (e.|[to_subst vs]))%I.
+  Definition ietp Γ T e : iProp Σ := (⌜ nclosed e (length Γ) ⌝ ∗ □∀ vs, ⟦Γ⟧* vs → ⟦T⟧ₑ (to_subst vs) (e.|[to_subst vs]))%I.
   Global Arguments ietp /.
   Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 
@@ -233,7 +233,7 @@ Section logrel_part2.
   Proof. iIntros "[$ _]". Qed.
 
   Definition step_indexed_ietp Γ T e i: iProp Σ :=
-    (⌜ nclosed e (length Γ) ⌝ ∗ □∀ vs, ⟦Γ⟧* vs → ▷^i ⟦T⟧ₑ vs (e.|[to_subst vs]))%I.
+    (⌜ nclosed e (length Γ) ⌝ ∗ □∀ vs, ⟦Γ⟧* vs → ▷^i ⟦T⟧ₑ (to_subst vs) (e.|[to_subst vs]))%I.
   Global Arguments step_indexed_ietp /.
   Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
 
@@ -243,11 +243,11 @@ Section logrel_part2.
   (** Indexed Subtyping. Defined on closed values. We must require closedness
       explicitly, since closedness now does not follow from being well-typed later. *)
   Definition step_indexed_ivstp Γ T1 T2 i j: iProp Σ :=
-    (□∀ vs v, ⌜ nclosed_vl v 0 ⌝ → ⟦Γ⟧* vs → (▷^i ⟦T1⟧ vs v) → ▷^j ⟦T2⟧ vs v)%I.
+    (□∀ vs v, ⌜ nclosed_vl v 0 ⌝ → ⟦Γ⟧* vs → (▷^i ⟦T1⟧ (to_subst vs) v) → ▷^j ⟦T2⟧ (to_subst vs) v)%I.
   Global Arguments step_indexed_ivstp /.
 
   Definition delayed_ivstp Γ T1 T2 i: iProp Σ :=
-    (□ ∀ vs, ⟦Γ⟧*vs → ▷^i ∀v, ⟦T1⟧ vs v → ⟦T2⟧ vs v)%I.
+    (□ ∀ vs, ⟦Γ⟧*vs → ▷^i ∀v, ⟦T1⟧ (to_subst vs) v → ⟦T2⟧ (to_subst vs) v)%I.
   Global Arguments delayed_ivstp /.
 
   Global Instance ietp_persistent Γ T e : Persistent (ietp Γ T e) := _.

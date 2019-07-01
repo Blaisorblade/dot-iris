@@ -26,7 +26,7 @@ Section Sec.
     iSplit; first by eauto using nclosed_tskip_i.
     iIntros "!>" (vs) "#Hg".
     rewrite tskip_subst tskip_n_to_fill -wp_bind.
-    iApply (wp_wand_cl _ (⟦ T1 ⟧ vs)) => //.
+    iApply (wp_wand_cl _ (⟦ T1 ⟧ (to_subst vs))) => //.
     - iApply ("HeT1" with "[//]").
     - by iApply interp_env_cl_app.
     - iIntros (v) "#HvT1 %".
@@ -50,7 +50,7 @@ Section Sec.
      Γ ⊨ mu x: T <: T    Γ ⊨ T <: mu(x: T)
   *)
 
-  Lemma interp_TMu_ren T ρ v: ⟦ TMu T.|[ren (+1)] ⟧ ρ v ≡ ⟦ T ⟧ ρ v.
+  Lemma interp_TMu_ren T ρ v: ⟦ TMu T.|[ren (+1)] ⟧ (to_subst ρ) v ≡ ⟦ T ⟧ (to_subst ρ) v.
   Proof. by rewrite /= (interp_weaken_one v T ρ v). Qed.
 
   (*
