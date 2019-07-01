@@ -37,6 +37,7 @@ theories/DSubSyn/fundamental.v
 theories/Dot/syn.v
 theories/Dot/typing.v
 theories/Dot/path_wp.v
+theories/Dot/examples.v
 theories/Dot/typeExtractionSyn.v
 theories/Dot/typeExtractionSem.v
 theories/Dot/traversals.v
