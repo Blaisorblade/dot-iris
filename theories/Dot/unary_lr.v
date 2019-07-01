@@ -8,7 +8,6 @@ Implicit Types
          (L T U: ty) (v w: vl) (e: tm) (d: dm) (ds: dms) (p: path)
          (Γ : ctx) (ρ : vls).
 
-
 (** The logical relation core is the [interp], interprets *open* types into
     predicates over *closed* values. Hence, [interp T ρ v] uses its argument [ρ]
     to interpret anything contained in T, but not things contained in v.
@@ -39,7 +38,6 @@ Section logrel.
 
   Definition idm_proj_semtype d φ : iProp Σ :=
     (∃ s σ interp, ⌜ d = dtysem σ s ∧ φ = interp σ ⌝ ∗ s ↝ interp)%I.
-  Global Arguments idm_proj_semtype: simpl never.
   Notation "d ↗ φ" := (idm_proj_semtype d φ) (at level 20).
   Global Instance idm_proj_persistent d τ: Persistent (d ↗ τ) := _.
 
@@ -151,7 +149,7 @@ Section logrel.
 
   Global Instance interp_persistent T ρ v :
     Persistent (⟦ T ⟧ ρ v).
-  Proof. revert v ρ; induction T => v ρ; simpl; try apply _. Qed.
+  Proof. revert v ρ; induction T => w ρ /=; try apply _. Qed.
 
   Fixpoint def_interp_base (T : ty) : envPred dm :=
     λ ρ d,
@@ -329,10 +327,10 @@ Section logrel_lemmas.
   Lemma interp_env_cl_ρ {Γ ρ}:
     ⟦ Γ ⟧* ρ -∗ ⌜ nclosed_sub (length Γ) 0 (to_subst ρ) ⌝.
   Proof.
-    elim: Γ ρ => [|T Γ' IHΓ] ρ /=; first by iIntros "!%" (???); lia.
+    elim: Γ ρ => [|T Γ IHΓ] ρ /=; first by iIntros "!%" (???); lia.
     case: ρ => [|v ρ]; last rewrite interp_v_closed IHΓ; iIntros "!% //".
-    move => [Hclρ Hclv] [//|i /lt_S_n Hle].
-    rewrite to_subst_cons /=. apply Hclρ, Hle.
+    move => [Hclρ Hclv] [//|i /lt_S_n Hle /=].
+    apply Hclρ, Hle.
   Qed.
 
   Lemma interp_env_cl_app `{Sort X} (x : X) {Γ ρ} :

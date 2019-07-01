@@ -5,8 +5,8 @@ From D.DSub Require Export operational.
 (** Deduce types from variable names, like on paper, for readability and to help
     type inference for some overloaded operations (e.g. substitution). *)
 Implicit Types
-         (L T U: ty) (v: vl) (e: tm)
-         (Γ : ctx) (ρ : vls).
+         (L T U : ty) (v : vl) (e : tm)
+         (Γ : ctx) (ρ vs : vls).
 
 (** The logical relation core is the [interp], interprets *open* types into
     predicates over *closed* values. Hence, [interp T ρ v] uses its argument [ρ]

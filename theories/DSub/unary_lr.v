@@ -8,7 +8,6 @@ Implicit Types
          (L T U: ty) (v: vl) (e: tm)
          (Γ : ctx) (ρ : vls).
 
-
 (** The logical relation core is the [interp], interprets *open* types into
     predicates over *closed* values. Hence, [interp T ρ v] uses its argument [ρ]
     to interpret anything contained in T, but not things contained in v.
@@ -109,7 +108,7 @@ Section logrel.
 
   Global Instance interp_persistent T ρ v :
     Persistent (⟦ T ⟧ ρ v).
-  Proof. revert v ρ; induction T => w ρ; simpl; try apply _. Qed.
+  Proof. revert v ρ; induction T => w ρ /=; try apply _. Qed.
 
   (* XXX here we needn't add a variable to the scope of its own type. But that won't hurt. *)
   Fixpoint interp_env (Γ : ctx) (vs : vls) : iProp Σ :=
@@ -143,12 +142,8 @@ Section logrel.
   Lemma step_indexed_ietp_closed Γ T e i: Γ ⊨ e : T, i -∗ ⌜ nclosed e (length Γ) ⌝.
   Proof. iIntros "[$ _]". Qed.
 
-  (** Subtyping. Defined on values. *)
-  Definition ivstp Γ T1 T2: iProp Σ := (□∀ ρ v, ⟦Γ⟧* ρ → ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
-  Global Arguments ivstp /.
-
-  (** Indexed Subtyping. Defined on closed values. We must require closedness *)
-(*       explicitly, since closedness now does not follow from being well-typed later. *)
+  (** Indexed Subtyping. Defined on closed values. We must require closedness
+      explicitly, since closedness now does not follow from being well-typed later. *)
   Definition step_indexed_ivstp Γ T1 T2 i j: iProp Σ :=
     (□∀ ρ v, ⌜ nclosed_vl v 0 ⌝ → ⟦Γ⟧*ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
   Global Arguments step_indexed_ivstp /.
@@ -156,7 +151,6 @@ Section logrel.
   Global Instance ietp_persistent Γ T e : Persistent (ietp Γ T e) := _.
   Global Instance step_indexed_ietp_persistent Γ T e i : Persistent (step_indexed_ietp Γ T e i) := _.
   Global Instance step_indexed_ivstp_persistent Γ T1 T2 i j : Persistent (step_indexed_ivstp Γ T1 T2 i j) := _.
-  Global Instance ivstp_persistent Γ T1 T2 : Persistent (ivstp Γ T1 T2) := _.
 End logrel.
 
 Notation "⟦ T ⟧" := (interp T).

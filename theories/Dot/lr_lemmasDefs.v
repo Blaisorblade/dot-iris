@@ -95,7 +95,7 @@ Section Sec.
   Proof.
     iIntros "/= #[% #Hv]". move: H => /fv_tv_inv Hclv.
     iSplit. by auto.
-    iIntros "!> *". destruct ρ as [|w ρ]; first by iIntros.
+    iIntros "!>" ([|w vs]); first by iIntros.
     iIntros "[#Hg [% #Hw]]". move: H => Hclw.
     iSplit => //; iExists _; iSplit => //.
     iNext. iApply wp_value_inv'; iApply "Hv"; by iSplit.
