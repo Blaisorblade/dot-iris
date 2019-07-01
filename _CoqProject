@@ -10,7 +10,9 @@ theories/asubst_intf.v
 theories/dlang.v
 theories/gen_iheap.v
 theories/saved_interp.v
+theories/saved_interp_dep.v
 theories/saved_interp_n.v
+theories/hoInterps_experiments.v
 theories/proofmode_extra.v
 theories/swap_later_impl.v
 theories/DSub/adequacy.v
