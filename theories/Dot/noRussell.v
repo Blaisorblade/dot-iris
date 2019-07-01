@@ -32,7 +32,7 @@ Section Russell.
   Lemma vHasA: Hs ⊢ ⟦ TTMem "A" TBot TTop ⟧ ids v.
   Proof.
     iIntros "#Hs". repeat (repeat iExists _; repeat iSplit; try by [|iApply idm_proj_intro]).
-    iModIntro; repeat iSplit; by iIntros "** !>".
+    iModIntro; repeat iSplit; by iIntros "** !> // !> //".
   Qed.
 
   Lemma later_not_UAU: Hs ⊢ uAu v -∗ ▷ False.
@@ -55,8 +55,9 @@ Section Russell.
     iIntros "#Hs"; iSplit.
     - iIntros "#HnotVAV"; iSplit => //.
       iExists (russell_p ids), (dtysem [] s).
-      repeat (repeat iSplit => //; repeat iExists _).
-      iIntros "!>!>!> #Hvav". iApply ("HnotVAV" with "Hvav").
+      iSplit; last iSplit.
+      1-2: repeat (repeat iSplit => //; repeat iExists _).
+      rewrite /russell_p. done.
     - iIntros "#Hvav".
       by iDestruct (later_not_UAU with "Hs Hvav") as "#>[]".
   Qed.

@@ -64,12 +64,12 @@ Section Sec.
     objLookupDet.
     iExists d; repeat iSplit => //.
     iExists φ; repeat iSplit => //.
-    iModIntro; iSplitL; iIntros (w Hclw) "Hw".
+    iModIntro; iSplitL; iIntros (w Hclw) "#Hw".
     - by iApply "HLφ1".
     - iDestruct (stored_pred_agree d _ _ w with "Hsφ1 Hsφ2") as "#Hag".
       iClear "Hsφ1 Hsφ2 HLφ1".
-      iSplit; [iApply "HφU1" | iApply "HφU2"] => //.
-      iNext. by iRewrite -"Hag".
+      iSplit; [iApply "HφU1" | iApply ("HφU2")] => //.
+      iModIntro. iNext. by iRewrite -"Hag".
   Qed.
 
   Lemma TAnd_I v T1 T2:

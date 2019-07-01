@@ -25,7 +25,7 @@ Section ex.
   Proof.
     iIntros "#Hs". repeat (repeat iExists _; repeat iSplit; try done).
     iModIntro; repeat iSplit;
-    iIntros (v Hcl); rewrite -?even_nat /=; iIntros ">#% //".
+    iIntros (v Hcl); rewrite -?even_nat /=; iIntros "#H !> // !> //".
   Qed.
 
   (* Generic useful lemmas — not needed for fundamental theorem,
@@ -108,7 +108,7 @@ Section ex.
       repeat (repeat iExists _; repeat iSplit; try done).
       iModIntro; repeat iSplit;
       iIntros (w Hcl); rewrite -?even_nat /=.
-      by iIntros ">?".
+      by iIntros "#? !>!>".
       rewrite even_nat.
       by iIntros ">?".
     - iApply DCons_I => //; last by iApply DNil_I.

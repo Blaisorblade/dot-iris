@@ -42,7 +42,7 @@ Section Sec.
     iDestruct "Hφ" as (φ1 d1 Hva) "[Hγ #HΦ1v]".
     objLookupDet.
     iDestruct (stored_pred_agree d _ _ v with "Hlφ Hγ") as "#Hag".
-    iApply "HφU" => //. iNext. by iRewrite "Hag".
+    iApply "HφU" => //. iModIntro. iNext. by iRewrite "Hag".
   Qed.
 
   Lemma P_Val v T:

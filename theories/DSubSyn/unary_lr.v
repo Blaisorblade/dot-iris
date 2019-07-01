@@ -103,8 +103,8 @@ Section logrel.
     (ty -d> envD Σ) -n> envD Σ -n> envD Σ -n> envD Σ :=
     λne rinterp interpL interpU, λ ρ v,
     (⌜ nclosed_vl v 0 ⌝ ∗  ∃ φ, [ rinterp ] v ↗ φ ∗
-       □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ interpL ρ v → ▷ □ φ v) ∗
-          (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ φ v → ▷ interpU ρ v)))%I.
+       □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ interpL ρ v → □ ▷ φ v) ∗
+          (∀ v, ⌜ nclosed_vl v 0 ⌝ → □ ▷ φ v → ▷ interpU ρ v)))%I.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_tmem /.
 
@@ -113,7 +113,7 @@ Section logrel.
 
   Program Definition interp_sel: (ty -d> envD Σ) -n> vl -d> envD Σ :=
     λne rinterp, λ w ρ v,
-    (⌜ nclosed_vl v 0 ⌝ ∧ (∃ ϕ, [rinterp] w.[ρ] ↗ ϕ ∧ ▷ □ ϕ v))%I.
+    (⌜ nclosed_vl v 0 ⌝ ∧ (∃ ϕ, [rinterp] w.[ρ] ↗ ϕ ∧ □ ▷ ϕ v))%I.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_sel /.
   Global Instance interp_sel_contractive : Contractive interp_sel.

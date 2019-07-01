@@ -151,7 +151,7 @@ Section Sec.
     iExists (λ v, ⟦ T.|[to_subst vs] ⟧ ids v)%I.
     iSplit. by iExists (T.|[to_subst vs]).
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#H";
-      rewrite later_intuitionistically interp_subst_all //.
+      rewrite interp_subst_all //.
     - iIntros "!>"; by iApply "HLT".
     - by iApply "HTU".
   Qed.
@@ -183,7 +183,7 @@ Section Sec.
     iExists (λ v, ⟦ T.|[to_subst ρ] ⟧ ids v)%I.
     iSplit. by iExists (T.|[to_subst ρ ]).
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#H";
-      rewrite later_intuitionistically interp_subst_all //.
+      rewrite interp_subst_all //.
     - iIntros "!>"; by iApply "HLT".
     - by iApply "HTU".
   Qed.
@@ -240,7 +240,7 @@ Section Sec.
 
     (* To conclude, show that both types fetched from va coincide - but later! *)
     iPoseProof (vl_has_semtype_agree with "HT0 HT1") as "Hag".
-    iNext. by iRewrite ("Hag" $! v).
+    iModIntro. iNext. by iRewrite ("Hag" $! v).
   Qed.
 
   Lemma T_Nat_I n:

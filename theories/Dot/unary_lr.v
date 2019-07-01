@@ -60,8 +60,8 @@ Section logrel.
   Definition def_interp_tmem interp1 interp2 : envPred dm :=
     λ ρ d,
     (∃ φ, (d ↗ φ) ∗
-       □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ interp1 ρ v → ▷ □ φ v) ∗
-          (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ φ v → ▷ interp2 ρ v)))%I.
+       □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ interp1 ρ v → □ ▷ φ v) ∗
+          (∀ v, ⌜ nclosed_vl v 0 ⌝ → □ ▷ φ v → ▷ interp2 ρ v)))%I.
   Global Arguments def_interp_tmem /.
 
   Definition lift_dinterp_vl l (dinterp: envPred dm): envD Σ :=
@@ -125,7 +125,7 @@ Section logrel.
 
   Definition interp_sel p (l: label) : envD Σ :=
     λ ρ v, (⌜ nclosed_vl v 0 ⌝ ∧ path_wp p.|[ρ]
-      (λ vp, ∃ ϕ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ϕ ∧ ▷ □ ϕ v))%I.
+      (λ vp, ∃ ϕ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ϕ ∧ □ ▷ ϕ v))%I.
   Global Arguments interp_sel /.
 
   Fixpoint interp (T: ty) : envD Σ :=

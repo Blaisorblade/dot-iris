@@ -182,8 +182,7 @@ Section typing_type_member_defs.
     iDestruct "Hs" as (φ) "[Hγ Hγφ]".
     repeat iSplit => //; iExists (φ (to_subst σ.|[to_subst ρ]));
       iSplit; first by repeat iExists _; iSplit.
-    iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL";
-      rewrite later_intuitionistically.
+    iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL".
     - iIntros "!>"; iApply (internal_eq_iff with "(Hγφ [#//] [#//])").
       by iApply "HLT".
     - iApply "HTU" => //.
