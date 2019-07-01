@@ -38,12 +38,12 @@ Section logrel_binding_lemmas.
 
   Lemma interp_env_ρ_fv ρ: ⟦ Γ ⟧* ρ -∗ ⌜ nclosed ρ 0 ⌝.
   Proof.
-    rewrite interp_env_ρ_closed. iPureIntro. exact: cl_ρ_fv.
+    rewrite interp_env_ρ_closed. iIntros "!%". exact: cl_ρ_fv.
   Qed.
 
   Lemma interp_env_to_subst_closed ρ x: x < length ρ → ⟦ Γ ⟧* ρ -∗ ⌜ nclosed_vl (to_subst ρ x) 0 ⌝%I.
   Proof.
-    rewrite interp_env_ρ_closed. iPureIntro => ??. exact: closed_to_subst.
+    rewrite interp_env_ρ_closed. iIntros "!%" (??). exact: closed_to_subst.
   Qed.
 
   Lemma interp_env_lookup ρ T x:
