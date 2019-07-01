@@ -116,7 +116,6 @@ Section ex.
       iSplit => //=.
       iIntros "!>" ([|v ρ]) "/= #H". done.
       iDestruct "H" as "[-> [[% HA] [[% HB] _]]]".
-      rewrite to_subst_cons to_subst_nil /=.
       rewrite -wp_value'; iSplit => //.
       iDestruct "HA" as (dA HlA φ) "[Hlφ HA]".
       iDestruct "HB" as (dB HlB w) "HB".

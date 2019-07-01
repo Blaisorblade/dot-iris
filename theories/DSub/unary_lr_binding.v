@@ -52,7 +52,7 @@ Section logrel_binding_lemmas.
   Proof.
     iIntros (Hx) "* Hg".
     iInduction Γ as [|T' Γ'] "IHL" forall (x ρ Hx); simpl; first solve [inversion Hx].
-    destruct ρ; first by [iExFalso]; rewrite to_subst_cons.
+    destruct ρ; first by [iExFalso].
     case: x Hx => /= [|x] Hx.
     - move: Hx => [ -> ]. iClear "IHL". locAsimpl.
       by iDestruct "Hg" as "[_ $]".
@@ -66,7 +66,7 @@ Section logrel_binding_lemmas.
   Lemma interp_subst_all ρ τ v:
     cl_ρ ρ → ⟦ τ.|[to_subst ρ] ⟧ [] v ≡ ⟦ τ ⟧ ρ v.
   Proof.
-    elim: ρ τ => /= [|w ρ IHρ] τ Hwρcl /=.  by rewrite to_subst_nil hsubst_id.
+    elim: ρ τ => /= [|w ρ IHρ] τ Hwρcl /=. by rewrite hsubst_id.
     assert (nclosed_vl w 0 /\ Forall (λ v, nclosed_vl v 0) ρ) as [Hwcl Hρcl]. by inversion Hwρcl.
     specialize (IHρ (τ.|[w/]) Hρcl).
     asimpl in IHρ. move: IHρ.

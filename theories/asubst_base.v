@@ -36,9 +36,6 @@ Proof. trivial. Qed.
 
 Lemma to_subst_cons v ρ : to_subst (v :: ρ) = v .: to_subst ρ.
 Proof. trivial. Qed.
-Global Hint Rewrite to_subst_nil to_subst_cons : autosubst.
-
-Global Arguments to_subst: simpl never.
 
 Definition push_var (σ : vls) : vls := ids 0 :: σ.|[ren (+1)].
 Arguments push_var /.
@@ -277,7 +274,7 @@ Section to_subst_idsσ_is_id.
   Lemma idsσ_eq_ids n: eq_n_s (to_subst (idsσ n)) ids n.
   Proof.
     elim: n => [|n IHn] [|i] // /lt_S_n Hle.
-    rewrite /= to_subst_cons /= to_subst_map_commute // IHn // id_subst //.
+    rewrite /= to_subst_map_commute // IHn // id_subst //.
   Qed.
 
   Lemma closed_subst_idsρ x n :

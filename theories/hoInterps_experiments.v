@@ -237,8 +237,7 @@ Section bar.
   Lemma to_subst_inv_spec ρ : to_subst_inv (length ρ) (to_subst ρ) = ρ.
   Proof.
     rewrite /to_subst_inv; elim: ρ => /= [//|v ρ IH].
-    rewrite to_subst_cons /= -seq_shift; f_equal.
-    by rewrite map_map.
+    rewrite /= -seq_shift; f_equal. by rewrite map_map.
   Qed.
 
   Program Fixpoint typeSem {n} (T : htype n): hoEnvND n Σ :=
