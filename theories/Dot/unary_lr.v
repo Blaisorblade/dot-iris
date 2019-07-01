@@ -5,8 +5,8 @@ From D.Dot Require Export operational path_wp.
 (** Deduce types from variable names, like on paper, for readability and to help
     type inference for some overloaded operations (e.g. substitution). *)
 Implicit Types
-         (L T U: ty) (v w: vl) (e: tm) (d: dm) (ds: dms) (p: path)
-         (Γ : ctx) (ρ : vls).
+         (L T U : ty) (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
+         (Γ : ctx) (ρ vs : vls).
 
 (** The logical relation core is the [interp], interprets *open* types into
     predicates over *closed* values. Hence, [interp T ρ v] uses its argument [ρ]
@@ -193,29 +193,29 @@ Section logrel.
     | T :: Γ' =>
       match vs with
       | nil => False
-      | v :: ρ => interp_env Γ' ρ ∗ ⟦ T ⟧ (v::ρ) v
+      | v :: vs => interp_env Γ' vs ∗ ⟦ T ⟧ (v :: vs) v
       end
     end%I.
 
   Notation "⟦ Γ ⟧*" := (interp_env Γ).
 
-  Global Instance interp_env_persistent Γ ρ :
-    Persistent (⟦ Γ ⟧* ρ).
-  Proof. elim: Γ ρ => [|τ Γ IHΓ] [|v ρ]; apply _. Qed.
+  Global Instance interp_env_persistent Γ vs :
+    Persistent (⟦ Γ ⟧* vs).
+  Proof. elim: Γ vs => [|τ Γ IHΓ] [|v vs]; apply _. Qed.
 
   Definition defCtxCons Γ V := TLater V :: Γ.
 
   (** Definitions for semantic (definition) (sub)typing *)
-  (** Since [⟦Γ⟧* ρ] might be impossible, we must require closedness explicitly. *)
+  (** Since [⟦Γ⟧* vs] might be impossible, we must require closedness explicitly. *)
   Definition idtp Γ T l d : iProp Σ :=
-    (⌜ nclosed d (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → def_interp T l ρ d.|[to_subst ρ])%I.
+    (⌜ nclosed d (length Γ) ⌝ ∗ □∀ vs, ⟦Γ⟧* vs → def_interp T l vs d.|[to_subst vs])%I.
   Global Arguments idtp /.
 
   Definition idstp Γ T ds : iProp Σ :=
-    (⌜ nclosed ds (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → defs_interp T ρ ds.|[to_subst ρ])%I.
+    (⌜ nclosed ds (length Γ) ⌝ ∗ □∀ vs, ⟦Γ⟧* vs → defs_interp T vs ds.|[to_subst vs])%I.
   Global Arguments idstp /.
 
-  Definition ietp Γ T e : iProp Σ := (⌜ nclosed e (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ₑ ρ (e.|[to_subst ρ]))%I.
+  Definition ietp Γ T e : iProp Σ := (⌜ nclosed e (length Γ) ⌝ ∗ □∀ vs, ⟦Γ⟧* vs → ⟦T⟧ₑ vs (e.|[to_subst vs]))%I.
   Global Arguments ietp /.
 
   (** Indexed Subtyping. Defined on closed values. We must require closedness
@@ -229,22 +229,22 @@ Section logrel.
       It seems easier, in subtyping judgment, to use the weaker choice: that is,
       just delay individual types via (Γ ⊨ TLater T <: TLater U), that is
 
-      (□∀ v ρ, ⟦Γ⟧* ρ → ▷ ⟦T1⟧ ρ v → ▷ ⟦T2⟧ ρ v),
+      (□∀ v vs, ⟦Γ⟧* vs → ▷ ⟦T1⟧ vs v → ▷ ⟦T2⟧ vs v),
 
       instead of instead of introducing some notation to write
 
-      (□∀ v ρ, ⟦Γ⟧* ρ → ▷ (⟦T1⟧ ρ v → ⟦T2⟧ ρ v)).
+      (□∀ v vs, ⟦Γ⟧* vs → ▷ (⟦T1⟧ vs v → ⟦T2⟧ vs v)).
 
       And that forces using the same implication in the logical relation
       (unlike I did originally). *)
   Definition step_indexed_ivstp Γ T1 T2 i j: iProp Σ :=
-    (□∀ ρ v, ⌜ nclosed_vl v 0 ⌝ → ⟦Γ⟧*ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
+    (□∀ vs v, ⌜ nclosed_vl v 0 ⌝ → ⟦Γ⟧* vs → (▷^i ⟦T1⟧ vs v) → ▷^j ⟦T2⟧ vs v)%I.
   Global Arguments step_indexed_ivstp /.
 
   Definition iptp Γ T p i: iProp Σ :=
     (⌜ nclosed p (length Γ) ⌝ ∗
-      □∀ ρ, ⟦Γ⟧* ρ →
-      ▷^i path_wp (p.|[to_subst ρ]) (λ v, ⟦T⟧ ρ v))%I.
+      □∀ vs, ⟦Γ⟧* vs →
+      ▷^i path_wp (p.|[to_subst vs]) (λ v, ⟦T⟧ vs v))%I.
   Global Arguments iptp /.
 
   Global Instance idtp_persistent Γ T l d: Persistent (idtp Γ T l d) := _.
@@ -302,21 +302,21 @@ Section logrel_lemmas.
     all: by [intuition idtac | move => [n ->]].
   Qed.
 
-  Lemma interp_env_len_agree Γ ρ:
-    ⟦ Γ ⟧* ρ -∗ ⌜ length ρ = length Γ ⌝.
+  Lemma interp_env_len_agree Γ vs:
+    ⟦ Γ ⟧* vs -∗ ⌜ length vs = length Γ ⌝.
   Proof.
-    elim: Γ ρ => [|τ Γ IHΓ] [|v ρ] //=; try by iPureIntro.
+    elim: Γ vs => [|τ Γ IHΓ] [|v vs] //=; try by iPureIntro.
     rewrite IHΓ. by iIntros "[-> _] !%".
   Qed.
 
-  Lemma interp_env_ρ_closed Γ ρ: ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ⌝.
+  Lemma interp_env_ρ_closed Γ vs: ⟦ Γ ⟧* vs -∗ ⌜ cl_ρ vs ⌝.
   Proof.
-    elim: Γ ρ => [|τ Γ IHΓ] [|v ρ] //=; try by iPureIntro.
+    elim: Γ vs => [|τ Γ IHΓ] [|v vs] //=; try by iPureIntro.
     rewrite interp_v_closed IHΓ; iPureIntro. intuition.
   Qed.
 
-  Lemma interp_env_props Γ ρ:
-    ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ∧ length ρ = length Γ ⌝.
+  Lemma interp_env_props Γ vs:
+    ⟦ Γ ⟧* vs -∗ ⌜ cl_ρ vs ∧ length vs = length Γ ⌝.
   Proof.
     iIntros "#HG".
     iDestruct (interp_env_ρ_closed with "HG") as %?.
@@ -324,25 +324,25 @@ Section logrel_lemmas.
     by iPureIntro.
   Qed.
 
-  Lemma interp_env_cl_ρ {Γ ρ}:
-    ⟦ Γ ⟧* ρ -∗ ⌜ nclosed_sub (length Γ) 0 (to_subst ρ) ⌝.
+  Lemma interp_env_cl_ρ {Γ vs}:
+    ⟦ Γ ⟧* vs -∗ ⌜ nclosed_sub (length Γ) 0 (to_subst vs) ⌝.
   Proof.
-    elim: Γ ρ => [|T Γ IHΓ] ρ /=; first by iIntros "!%" (???); lia.
-    case: ρ => [|v ρ]; last rewrite interp_v_closed IHΓ; iIntros "!% //".
-    move => [Hclρ Hclv] [//|i /lt_S_n Hle /=].
-    apply Hclρ, Hle.
+    elim: Γ vs => [|T Γ IHΓ] vs /=; first by iIntros "!%" (???); lia.
+    case: vs => [|v vs]; last rewrite interp_v_closed IHΓ; iIntros "!% //".
+    move => [Hclvs Hclv] [//|i /lt_S_n Hle /=].
+    apply Hclvs, Hle.
   Qed.
 
-  Lemma interp_env_cl_app `{Sort X} (x : X) {Γ ρ} :
+  Lemma interp_env_cl_app `{Sort X} (x : X) {Γ vs} :
     nclosed x (length Γ) →
-    ⟦ Γ ⟧* ρ -∗ ⌜ nclosed x.|[to_subst ρ] 0 ⌝.
+    ⟦ Γ ⟧* vs -∗ ⌜ nclosed x.|[to_subst vs] 0 ⌝.
   Proof.
     rewrite interp_env_cl_ρ. iIntros "!% /=".
     eauto using nclosed_sub_app.
   Qed.
 
-  Lemma interp_env_cl_app_vl v {Γ ρ}: nclosed_vl v (length Γ) →
-     ⟦ Γ ⟧* ρ -∗ ⌜ nclosed_vl v.[to_subst ρ] 0 ⌝.
+  Lemma interp_env_cl_app_vl v {Γ vs}: nclosed_vl v (length Γ) →
+     ⟦ Γ ⟧* vs -∗ ⌜ nclosed_vl v.[to_subst vs] 0 ⌝.
   Proof.
     rewrite interp_env_cl_ρ. iIntros "!% /=".
     eauto using nclosed_sub_app_vl.
