@@ -21,12 +21,13 @@ Implicit Types
     Additionally, both apply to *translated* arguments, hence they only expect
     [dtysem] and not [dtysyn] for type member definitions.
  *)
-Section logrel.
-  Context `{dlangG Σ}.
 
-  (* Use Program without its extended pattern-matching compiler; we only need
-     its handling of coercions. *)
-  Unset Program Cases.
+(* Use Program without its extended pattern-matching compiler; we only need
+   its handling of coercions. *)
+Unset Program Cases.
+
+Section logrel.
+  Context `{!dlangG Σ}.
 
   Notation D := (vl -d> iProp Σ).
   Implicit Types (interp : envD Σ) (φ : D).
@@ -40,6 +41,7 @@ Section logrel.
     (∃ s σ interp, ⌜ d = dtysem σ s ∧ φ = interp σ ⌝ ∗ s ↝ interp)%I.
   Global Arguments idm_proj_semtype: simpl never.
   Notation "d ↗ φ" := (idm_proj_semtype d φ) (at level 20).
+  Global Instance idm_proj_persistent d τ: Persistent (d ↗ τ) := _.
 
   Lemma stored_pred_agree d φ1 φ2 v :
     d ↗ φ1 -∗ d ↗ φ2 -∗ ▷ (φ1 v ≡ φ2 v).
@@ -49,6 +51,13 @@ Section logrel.
     iDestruct "Hd1" as (s σ interp1 H1) "Hs1".
     ev; simplify_eq. by iApply (leadsto_agree _ interp1 interp2).
   Qed.
+
+  Lemma idm_proj_intro s σ (φ : envD Σ) :
+    s ↝ φ -∗ dtysem σ s ↗ φ σ.
+  Proof. iIntros. iExists s, σ , φ. by iSplit. Qed.
+
+  Global Arguments idm_proj_semtype : simpl never.
+  (* Global Opaque idm_proj_semtype. *)
 
   Definition def_interp_tmem interp1 interp2 : envPred dm :=
     λ ρ d,

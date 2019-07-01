@@ -21,12 +21,13 @@ Implicit Types
     Additionally, both apply to *translated* arguments, hence they only expect
     [dtysem] and not [dtysyn] for type member definitions.
  *)
+
+(* Use Program without its extended pattern-matching compiler; we only need
+   its handling of coercions. *)
+Unset Program Cases.
+
 Section logrel.
   Context `{!dlangG Σ}.
-
-  (* Use Program without its extended pattern-matching compiler; we only need
-     its handling of coercions. *)
-  Unset Program Cases.
 
   Notation D := (vl -d> iProp Σ).
   Implicit Types (interp : envD Σ) (φ : D).
@@ -37,6 +38,7 @@ Section logrel.
     (∃ γ σ interp, ⌜ v = vstamp σ γ ⌝ ∗ γ ⤇ interp ∗ φ ≡ interp σ)%I.
   Global Arguments idm_proj_semtype /.
   Notation "v ↗ φ" := (idm_proj_semtype v φ) (at level 20).
+  Global Instance idm_proj_persistent d τ: Persistent (d ↗ τ) := _.
 
   Definition interp_tmem interp1 interp2 : envD Σ :=
     λ ρ v,
@@ -126,10 +128,6 @@ Section logrel.
     Persistent (⟦ Γ ⟧* ρ).
   Proof. elim: Γ ρ => [|τ Γ IHΓ] [|v ρ]; apply _. Qed.
 
-  (* Really needed? Try to stop using it. *)
-  Definition ivtp Γ T v : iProp Σ := (⌜ nclosed_vl v (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ ρ v.[to_subst ρ])%I.
-  Global Arguments ivtp /.
-
   Definition ietp Γ T e : iProp Σ := (⌜ nclosed e (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ₑ ρ (e.|[to_subst ρ]))%I.
   Global Arguments ietp /.
   Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
@@ -170,7 +168,6 @@ Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 (** Indexed expression typing *)
 Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
 
-Notation "Γ ⊨ T1 <: T2" := (ivstp Γ T1 T2) (at level 74, T1, T2 at next level).
 Notation "Γ '⊨' '[' T1 ',' i ']' '<:' '[' T2 ',' j ']'" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
 
 Section logrel_lemmas.
@@ -184,9 +181,9 @@ Section logrel_lemmas.
   (*   iSplit; by [iIntros "#[_ $]" | iIntros "$"]. *)
   (* Qed. *)
 
-  Context Γ.
 
-  Lemma semantic_typing_uniform_step_index T e i:
+
+  Lemma semantic_typing_uniform_step_index Γ T e i:
     Γ ⊨ e : T -∗ Γ ⊨ e : T,i.
   Proof.
     iIntros "[$ #H] !>" (ρ) "#HΓ".
@@ -200,21 +197,20 @@ Section logrel_lemmas.
     - iPureIntro. by move => [n ->].
   Qed.
 
-  Lemma interp_env_len_agree ρ:
+  Lemma interp_env_len_agree Γ ρ:
     ⟦ Γ ⟧* ρ -∗ ⌜ length ρ = length Γ ⌝.
   Proof.
-    elim: Γ ρ => [|τ Γ' IHΓ] [|v ρ] //=; try by iPureIntro.
+    elim: Γ ρ => [|τ Γ IHΓ] [|v ρ] //=; try by iPureIntro.
     rewrite IHΓ. by iIntros "[-> _] !%".
   Qed.
 
-  Lemma interp_env_ρ_closed ρ: ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ⌝.
+  Lemma interp_env_ρ_closed Γ ρ: ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ⌝.
   Proof.
-    elim: Γ ρ => [|τ Γ' IHΓ] [|v ρ] //=; try by iPureIntro.
-    rewrite interp_v_closed IHΓ; iPureIntro => -[].
-    by constructor.
+    elim: Γ ρ => [|τ Γ IHΓ] [|v ρ] //=; try by iPureIntro.
+    rewrite interp_v_closed IHΓ; iPureIntro. intuition.
   Qed.
 
-  Lemma interp_env_props ρ:
+  Lemma interp_env_props Γ ρ:
     ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ∧ length ρ = length Γ ⌝.
   Proof.
     iIntros "#HG".

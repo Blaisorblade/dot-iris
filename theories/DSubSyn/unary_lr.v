@@ -30,7 +30,7 @@ Instance dsubsynG_irisG `{!dsubSynG Σ}: irisG dlang_lang Σ := {
 }.
 
 (* Use Program without its extended pattern-matching compiler; we only need
-    its handling of coercions. *)
+   its handling of coercions. *)
 Unset Program Cases.
 
 Section logrel.
@@ -225,10 +225,6 @@ Section logrel_part2.
     Persistent (⟦ Γ ⟧* ρ).
   Proof. elim: Γ ρ => [|τ Γ IHΓ] [|v ρ]; apply _. Qed.
 
-  (* Really needed? Try to stop using it. *)
-  Definition ivtp Γ T v : iProp Σ := (⌜ nclosed_vl v (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ ρ v.[to_subst ρ])%I.
-  Global Arguments ivtp /.
-
   Definition ietp Γ T e : iProp Σ := (⌜ nclosed e (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ₑ ρ (e.|[to_subst ρ]))%I.
   Global Arguments ietp /.
   Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
@@ -281,9 +277,8 @@ Section logrel_lemmas.
     iSplit; by [> iIntros "#[_ $]" | iIntros "$"].
   Qed.
 
-  Context Γ.
 
-  Lemma semantic_typing_uniform_step_index T e i:
+  Lemma semantic_typing_uniform_step_index Γ T e i:
     Γ ⊨ e : T -∗ Γ ⊨ e : T,i.
   Proof.
     iIntros "[$ #H] !>" (ρ) "#HΓ".
@@ -297,21 +292,20 @@ Section logrel_lemmas.
     - iPureIntro. by move => [n ->].
   Qed.
 
-  Lemma interp_env_len_agree ρ:
+  Lemma interp_env_len_agree Γ ρ:
     ⟦ Γ ⟧* ρ -∗ ⌜ length ρ = length Γ ⌝.
   Proof.
-    elim: Γ ρ => [|τ Γ' IHΓ] [|v ρ] //=; try by iPureIntro.
+    elim: Γ ρ => [|τ Γ IHΓ] [|v ρ] //=; try by iPureIntro.
     rewrite IHΓ. by iIntros "[-> _] !%".
   Qed.
 
-  Lemma interp_env_ρ_closed ρ: ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ⌝.
+  Lemma interp_env_ρ_closed Γ ρ: ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ⌝.
   Proof.
-    elim: Γ ρ => [|τ Γ' IHΓ] [|v ρ] //=; try by iPureIntro.
-    rewrite interp_v_closed IHΓ; iPureIntro => -[].
-    by constructor.
+    elim: Γ ρ => [|τ Γ IHΓ] [|v ρ] //=; try by iPureIntro.
+    rewrite interp_v_closed IHΓ; iPureIntro. intuition.
   Qed.
 
-  Lemma interp_env_props ρ:
+  Lemma interp_env_props Γ ρ:
     ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ∧ length ρ = length Γ ⌝.
   Proof.
     iIntros "#HG".
@@ -320,6 +314,7 @@ Section logrel_lemmas.
     by iPureIntro.
   Qed.
 
+  Context {Γ}.
   Lemma Sub_Refl T i : Γ ⊨ [T, i] <: [T, i].
   Proof. by iIntros "/= !> **". Qed.
 
