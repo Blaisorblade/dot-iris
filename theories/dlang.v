@@ -24,8 +24,7 @@ Module Type LiftWp (Import sorts: SortsIntf).
   Implicit Types (v : vl) (Σ : gFunctors).
 
   Notation envD Σ := ((var → vl) -d> vl -d> iProp Σ).
-  Instance Inhϕ: Inhabited (envD Σ).
-  Proof. constructor. exact (λ _ _, False)%I. Qed.
+  Instance Inhϕ Σ : Inhabited (envD Σ) := populate (λ _ _, False)%I.
 
   Class TyInterp ty Σ :=
     ty_interp : ty -> (var → vl) -> vl -> iProp Σ.
