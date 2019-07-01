@@ -22,11 +22,11 @@ Section Sec.
     (*───────────────────────────────*)
     Γ ⊨ iterate tskip i e : T2)%I.
   Proof.
-    iIntros "/= * #[% #HeT1] #Hsub". move: H => Hcle.
+    iIntros "/= #[% #HeT1] #Hsub". move: H => Hcle.
     iSplit; first by eauto using nclosed_tskip_i.
-    iIntros "!> * #Hg".
+    iIntros "!>" (vs) "#Hg".
     rewrite tskip_subst tskip_n_to_fill -wp_bind.
-    iApply (wp_wand_cl _ (⟦ T1 ⟧ ρ)) => //.
+    iApply (wp_wand_cl _ (⟦ T1 ⟧ vs)) => //.
     - iApply ("HeT1" with "[//]").
     - by iApply interp_env_cl_app.
     - iIntros (v) "#HvT1 %".
@@ -63,18 +63,18 @@ Section Sec.
     (iterate TLater i T1 :: Γ ⊨ [T1, i] <: [T2, j] →
      Γ ⊨ [TMu T1, i] <: [TMu T2, j])%I.
   Proof.
-    iIntros "/= #Hstp !> * % #Hg #HT1".
-    iApply ("Hstp" $! (v :: ρ) _);
-      rewrite ?iterate_TLater_later //; by iSplit.
+    iIntros "/= #Hstp !>" (vs v Hclv) "#Hg #HT1".
+    iApply ("Hstp" $! (v :: vs) v with "[#//] [# $Hg] [#//]").
+    by rewrite iterate_TLater_later.
   Qed.
 
   (* Novel subtyping rules. Sub_Mu_1 and Sub_Mu_2 become (sort-of?)
   derivable. *)
   Lemma Sub_Mu_A T i: (Γ ⊨ [TMu T.|[ren (+1)], i] <: [T, i])%I.
-  Proof. iIntros "!> *" (Hcl) "**". by rewrite (interp_TMu_ren T ρ v). Qed.
+  Proof. iIntros "!>" (vs v Hcl) "**". by rewrite (interp_TMu_ren T vs v). Qed.
 
   Lemma Sub_Mu_B T i: (Γ ⊨ [T, i] <: [TMu T.|[ren (+1)], i])%I.
-  Proof. iIntros "!> *" (Hcl) "**". by rewrite (interp_TMu_ren T ρ v). Qed.
+  Proof. iIntros "!>" (vs v Hcl) "**". by rewrite (interp_TMu_ren T vs v). Qed.
 
   (*
      Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂
@@ -104,8 +104,8 @@ Section Sec.
    *)
   Lemma TMu_equiv T v: (Γ ⊨ tv v : TMu T) ≡ (Γ ⊨ tv v : T.|[v/]).
   Proof.
-    iSplit; iIntros "/= #[% #Htp]"; iFrame "%"; iIntros "!> * #Hg"; rewrite -wp_value;
-      (iDestruct (interp_subst_closed Γ T v (v.[to_subst ρ]) with "[//]") as "Heq"; first exact: fv_tv_inv);
+    iSplit; iIntros "/= #[% #Htp]"; iFrame "%"; iIntros "!>" (vs) "#Hg"; rewrite -wp_value;
+      (iDestruct (interp_subst_closed Γ T v (v.[to_subst vs]) with "[//]") as "Heq"; first exact: fv_tv_inv);
         iApply (internal_eq_iff with "Heq"); iApply (wp_value_inv with "(Htp [//])").
       (* Fail iRewrite "Heq". *) (* WTF *)
   Qed.
@@ -122,12 +122,12 @@ Section Sec.
     (*────────────────────────────────────────────────────────────*)
      Γ ⊨ tapp e1 e2 : T2)%I.
   Proof.
-    iIntros "/= [% #He1] #[% Hv2]". iSplit; eauto using fv_tapp. iIntros " !> * #HG".
+    iIntros "/= [% #He1] #[% Hv2]". iSplit; eauto using fv_tapp. iIntros "!>" (vs) "#HG".
     smart_wp_bind (AppLCtx (e2.|[_])) v "#[_ Hr]" "He1".
     smart_wp_bind (AppRCtx v) w "#Hw" "Hv2".
     iDestruct "Hr" as (t ->) "#Hv".
     rewrite -wp_pure_step_later // -wp_mono /=; first by iApply "Hv".
-    iIntros (v); by rewrite (interp_weaken_one w T2 ρ v).
+    iIntros (v); by rewrite (interp_weaken_one w T2 vs v).
   Qed.
 
   Lemma T_Forall_Ex e1 v2 T1 T2:
@@ -159,7 +159,7 @@ Section Sec.
   Proof.
     iIntros "/= #[% #HeT]". move: H => Hcle.
     iSplit; eauto using fv_tv, fv_vabs.
-    iIntros " !> * #HG".
+    iIntros " !>" (vs) "#HG".
     rewrite -wp_value'.
     iSplit.
     {
@@ -167,11 +167,11 @@ Section Sec.
       by iApply (interp_env_cl_app_vl (vabs e) Hcle).
     }
     iExists _; iSplitL; first done.
-    iIntros "!> !>" (v) "#Hv". iSpecialize ("HeT" $! (v :: ρ)).
-    rewrite (interp_weaken_one v T1 ρ v).
+    iIntros "!> !>" (v) "#Hv". iSpecialize ("HeT" $! (v :: vs)).
+    rewrite (interp_weaken_one v T1 vs v).
     (* time locAsimpl. (* 10x faster than asimpl. *) *)
     (* 20x faster than asimpl. *)
-    rewrite to_subst_cons; locAsimpl' (e.|[up (to_subst ρ)].|[v/]).
+    rewrite to_subst_cons; locAsimpl' (e.|[up (to_subst vs)].|[v/]).
     by iApply ("HeT" with "[$HG//]").
   Qed.
 
@@ -180,7 +180,7 @@ Section Sec.
     (*─────────────────────────*)
     Γ ⊨ tproj e l : T)%I.
   Proof.
-    iIntros "#[% #HE] /=". iSplit; auto using fv_tproj. iIntros " !>" (ρ) "#HG".
+    iIntros "#[% #HE] /=". iSplit; auto using fv_tproj. iIntros " !>" (vs) "#HG".
     smart_wp_bind (ProjCtx l) v "#[% Hv]" "HE". iClear "HE".
     iDestruct "Hv" as (? Hl vmem ->) "Hv".
     rewrite -wp_pure_step_later // -wp_value. by [].

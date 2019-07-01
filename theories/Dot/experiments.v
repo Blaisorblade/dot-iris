@@ -377,10 +377,10 @@ Section Sec.
     W :: Γ ⊨ tv v : T -∗
     TLater W :: Γ ⊨ tv v: TLater T.
   Proof.
-    iIntros "/= #[% #Hv]". move: H => Hclv. iFrame (Hclv). iIntros "!> *".
-    destruct ρ as [|w ρ]; first by iIntros.
+    iIntros "/= #[% #Hv]". move: H => Hclv. iFrame (Hclv).
+    iIntros "!>" ([|w ρ]); first by iIntros.
     iIntros "[#Hg [% #Hw]]". move: H => Hclw.
-    iApply wp_value.
+    rewrite -wp_value.
     iDestruct (interp_env_len_agree with "Hg") as %Hlen. rewrite <- Hlen in *.
     iDestruct (interp_env_ρ_closed with "Hg") as %Hclρ.
     have Hclvs: nclosed_vl v.[to_subst (w :: ρ)] 0.

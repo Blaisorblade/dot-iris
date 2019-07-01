@@ -38,12 +38,12 @@ Section Sec.
     (*────────────────────────────────────────────────────────────*)
     Γ ⊨ tapp e1 e2 : T2.
   Proof.
-    iIntros "/= #[% #He1] #[% #Hv2]". iSplit; eauto using fv_tapp. iIntros " !> * #HG".
-    smart_wp_bind (AppLCtx (e2.|[to_subst ρ])) v "#Hr" "He1".
+    iIntros "/= #[% #He1] #[% #Hv2]". iSplit; eauto using fv_tapp. iIntros " !>" (vs) "#HG".
+    smart_wp_bind (AppLCtx _) v "#Hr" "He1".
     smart_wp_bind (AppRCtx v) w "#Hw" "Hv2".
     unfold_interp. iDestruct "Hr" as (Hclv t ->) "#Hv".
     rewrite -wp_pure_step_later // -wp_mono /=; first by iApply "Hv".
-    iIntros (v); by rewrite (interp_weaken_one w T2 ρ v).
+    iIntros (v); by rewrite (interp_weaken_one w T2 vs v).
   Qed.
 
   Lemma T_Forall_Ex e1 v2 T1 T2:
@@ -52,9 +52,9 @@ Section Sec.
     (*────────────────────────────────────────────────────────────*)
     Γ ⊨ tapp e1 (tv v2) : T2.|[v2/].
   Proof.
-    iIntros "/= #[% He1] #[% Hv2Arg]". move: H H0 => Hcle1 Hclv2. iSplit; eauto using fv_tapp. iIntros " !> * #HG".
+    iIntros "/= #[% He1] #[% Hv2Arg]". move: H H0 => Hcle1 Hclv2. iSplit; eauto using fv_tapp. iIntros "!>" (vs) "#HG".
     move: Hclv2 => /fv_tv_inv Hclv2.
-    smart_wp_bind (AppLCtx (tv v2.[_])) v "#Hr" "He1".
+    smart_wp_bind (AppLCtx _) v "#Hr" "He1".
     unfold_interp. iDestruct "Hr" as (Hclv t ->) "#HvFun".
     rewrite -wp_pure_step_later; last done. iNext.
     iApply wp_wand.
@@ -70,7 +70,7 @@ Section Sec.
   Proof.
     iIntros "/= #[% #HeT]". move: H => Hcle.
     iSplit; eauto using fv_tv, fv_vabs.
-    iIntros " !> * #HG".
+    iIntros " !>" (vs) "#HG".
     rewrite -wp_value'; unfold_interp.
     iSplit.
     {
@@ -79,10 +79,10 @@ Section Sec.
       iPureIntro; exact: (fv_to_subst_vl Hcle).
     }
     iExists _; iSplitL => //.
-    iIntros "!> !>" (v) "#Hv". iSpecialize ("HeT" $! (v :: ρ)).
-    rewrite (interp_weaken_one v T1 ρ v).
+    iIntros "!> !>" (v) "#Hv". iSpecialize ("HeT" $! (v :: _)).
+    rewrite (interp_weaken_one v T1 _ v) /=.
     (* Faster than 'asimpl'. *)
-    rewrite to_subst_cons; locAsimpl' (e.|[up (to_subst ρ)].|[v/]).
+    locAsimpl' (e.|[up (to_subst vs)].|[v/]).
     by iApply ("HeT" with "[$HG//]").
   Qed.
 
@@ -101,9 +101,9 @@ Section Sec.
   Proof.
     iIntros "/= * #[% #HeT1] #Hsub". move: H => Hcle.
     iSplit; first by eauto using nclosed_tskip_i.
-    iIntros "!> * #Hg".
+    iIntros "!>" (vs) "#Hg".
     rewrite tskip_subst tskip_n_to_fill -wp_bind.
-    iApply (wp_wand_cl _ (⟦ T1 ⟧ ρ)) => //.
+    iApply (wp_wand_cl _ (⟦ T1 ⟧ vs)) => //.
     - iApply ("HeT1" with "[//]").
     - by rewrite nclosed_subst_ρ.
     - iIntros (v) "#HvT1 %".
@@ -120,9 +120,9 @@ Section Sec.
   Proof.
     iIntros "/= * #[% #HeT1] #Hsub". move: H => Hcle.
     have Hclte: nclosed (iterate tskip i e) (length Γ) by eauto using nclosed_tskip_i. iFrame "%".
-    move: Hclte => _. iIntros "!> * #Hg".
+    move: Hclte => _. iIntros "!>" (vs) "#Hg".
     rewrite tskip_subst tskip_n_to_fill -wp_bind.
-    iApply (wp_wand_cl _ (⟦ T1 ⟧ ρ)) => //.
+    iApply (wp_wand_cl _ (⟦ T1 ⟧ vs)) => //.
     - iApply ("HeT1" with "[//]").
     - by rewrite nclosed_subst_ρ.
     - iIntros (v) "#HvT1 %".
@@ -142,14 +142,14 @@ Section Sec.
     move => /fv_vty HclV.
     iIntros "#HTU #HLT /=".
     iSplit; first eauto using fv_tv.
-    iIntros "!>" (ρ) "#HG".
+    iIntros "!>" (vs) "#HG".
     rewrite -wp_value; unfold_interp.
     iDestruct (interp_env_props with "HG") as %[Hclp Hlen]; rewrite <- Hlen in *.
     iSplit. {
       iPureIntro. exact: (fv_to_subst_vl HclV).
     }
-    iExists (λ v, ⟦ T.|[to_subst ρ ] ⟧ [] v)%I.
-    iSplit. by iExists (T.|[to_subst ρ]).
+    iExists (λ v, ⟦ T.|[to_subst vs ] ⟧ [] v)%I.
+    iSplit. by iExists (T.|[to_subst vs]).
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#H";
       rewrite later_intuitionistically interp_subst_all //.
     - iIntros "!>"; by iApply "HLT".
@@ -199,8 +199,8 @@ Section Sec.
     Γ ⊨ tv va : TTMem L U, i -∗
     Γ ⊨ [L, S i] <: [TSel va, i].
   Proof.
-    iIntros "/= #[% #Hva] !> *" (Hclv) " #Hg #HvL". move: H => Hclva.
-    iSpecialize ("Hva" $! ρ with "Hg"). iNext.
+    iIntros "/= #[% #Hva] !>" (vs v Hclv) "#Hg #HvL". move: H => Hclva.
+    iSpecialize ("Hva" $! vs with "Hg"). iNext.
     rewrite wp_value_inv'; unfold_interp.
     iDestruct "Hva" as (Hclvas φ) "#[H1 #[HLφ HφU]]".
     iDestruct "H1" as (T) "[% Hφ]".
@@ -213,8 +213,8 @@ Section Sec.
     Γ ⊨ tv va : TTMem L U, i -∗
     Γ ⊨[i] TLater L <: TSel va.
   Proof.
-    iIntros "/= #[% #Hva] !> * #Hg". move: H => Hclva.
-    iSpecialize ("Hva" $! ρ with "Hg"). iNext.
+    iIntros "/= #[% #Hva] !>" (vs) "#Hg". move: H => Hclva.
+    iSpecialize ("Hva" $! vs with "Hg"). iNext.
     setoid_unfold_interp.
     iIntros (v) " #[% HvL]". move: H => Hclv.
     rewrite wp_value_inv'; unfold_interp.
@@ -229,8 +229,8 @@ Section Sec.
     Γ ⊨ tv va : TTMem L U, i -∗
     Γ ⊨ [TSel va, i] <: [U, S i].
   Proof.
-    iIntros "/= #[% #Hva] !> *" (Hclv) "#Hg #Hφ". move: H => Hclva.
-    iSpecialize ("Hva" $! ρ with "Hg").
+    iIntros "/= #[% #Hva] !>" (vs v Hclv) "#Hg #Hφ". move: H => Hclva.
+    iSpecialize ("Hva" $! vs with "Hg").
     rewrite -swap_later wp_value_inv'; unfold_interp.
     iNext i.
     iDestruct "Hva" as (Hclvas φ) "#[HT0 #[HLφ HφU]]".

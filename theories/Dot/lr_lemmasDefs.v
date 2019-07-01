@@ -113,9 +113,9 @@ Section Sec.
      Γ ⊨ tv (vobj ds) : TMu T.
   Proof.
     iIntros "/= #[% #Hds]"; move: H => Hclds. iSplit; auto.
-    iIntros " !> * #Hg /=". rewrite -wp_value'.
+    iIntros " !>" (vs) "#Hg /=". rewrite -wp_value'.
     iDestruct (interp_env_cl_ρ with "Hg") as %Hclρ.
-    have Hclvds: nclosed_vl (vobj ds).[to_subst ρ] 0.
+    have Hclvds: nclosed_vl (vobj ds).[to_subst vs] 0.
     by eapply nclosed_sub_app_vl; eauto.
     iLöb as "IH".
     iApply lift_dsinterp_dms_vl_commute;
