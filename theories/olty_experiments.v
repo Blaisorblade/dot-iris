@@ -41,6 +41,7 @@ Definition test_interp_expr2 `{dlangG Σ} (φ : olty Σ) :=
 
 Section judgments.
 Context `{dlangG Σ} `{OTyInterp ty Σ}.
+
 Notation ctx := (list ty).
 
 Notation "⟦ T ⟧" := (oty_interp T).
@@ -118,7 +119,7 @@ Module SemTypes.
 
 Include OLty syn syn.
 
-Set Primitive Projections.
+(* Set Primitive Projections. *)
 Record dlty Σ := Dlty {
   dlty_label : label;
   dlty_car : ((var → vl) -d> dm -d> iProp Σ);
@@ -134,6 +135,24 @@ Section Judgments.
 
   Implicit Types (φ : olty Σ).
 
+  Lemma interp_env_lookup2 Γ vs (φ : olty Σ) x:
+    Γ !! x = Some φ →
+    ⟦ Γ ⟧* vs -∗ φ.|[ren (+x)] (to_subst vs) (to_subst vs x).
+  Proof.
+  (* Arguments olty2fun: simpl never. *)
+    elim: Γ x vs => [//|φ' Γ' IHΓ] [//|x] [//|v vs] /= Hx;
+      try by [|iIntros "[]"]; iDestruct 1 as "[Hg Hv]".
+    - move: Hx => [ -> ]. by locAsimpl.
+    -
+    (* change φ.|[ren (+S x)] with φ.|[ren (+x)].|[ren (+1)]. *)
+     (* iPoseProof (olty_weaken_one v (φ.|[ren (+x)])) as "Heq".
+    (* asimpl. *)
+    replace φ.|[ren (+S x)] with φ.|[ren (+x)].|[ren (+1)]; last by asimpl.
+    iApply "Heq". *)
+      (* abstract (iApply (olty_weaken_one v (φ.|[ren (+x)])); *)
+      iApply (IHΓ x vs Hx with "Hg").
+  Qed.
+  (* Print interp_env_lookup. *)
   Definition interp_expr (φ : envD Σ) :=
     λ ρ t, WP t {{ φ ρ }} %I.
   Global Arguments interp_expr /.
@@ -179,14 +198,24 @@ Section SemTypes.
   Definition oLater φ :=
     closed_olty (λ ρ v, ▷ φ ρ v)%I.
 
-  Lemma interp_env_lookup Γ ρ φ x:
+  Lemma olty_weaken_one2 v (τ : olty Σ) ρ w:
+    τ.|[ren (+1)] (v .: to_subst ρ) w ≡ τ (to_subst ρ) w.
+  Proof. done. Qed.
+
+  Lemma interp_env_lookup3 Γ ρ φ x:
     Γ !! x = Some φ →
     ⟦ Γ ⟧* ρ -∗ φ.|[ren (+x)] (to_subst ρ) (to_subst ρ x).
   Proof.
     elim: Γ x ρ => [//|φ' Γ' IHΓ] [//|x] [//|v ρ] /= Hx;
       try by [|iIntros "[]"]; iDestruct 1 as "[Hg Hv]".
     - move: Hx => [ -> ]. by locAsimpl.
-    - iApply (olty_weaken_one v (φ.|[ren (+x)])).
+    -
+    (* have Heq : (φ).|[ren (+S x)] = (φ).|[ren (+x)].|[ren (+1)]. *)
+    iPoseProof (olty_weaken_one v (φ.|[ren (+x)]) ρ (to_subst ρ x)) as "[Heq1 Heq2]".
+    iApply "Heq1". cbn.
+    iApply "Heq1".
+    iApply "Heq1".
+    (* iApply "Heq". *)
       iApply (IHΓ x ρ Hx with "Hg").
   Qed.
 

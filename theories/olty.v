@@ -42,30 +42,30 @@ End olty_limit_preserving.
 and values. Adapted from
 https://gitlab.mpi-sws.org/iris/examples/blob/d4f4153920ea82617c7222aeeb00b6710d51ee03/theories/logrel_heaplang/ltyping.v#L5. *)
 Record olty Σ := Olty {
-  olty_car : envD Σ;
+  olty_car :> (var → vl) → vl → iProp Σ;
   olty_v_closed : vclosed olty_car;
   olty_persistent ρ v : Persistent (olty_car ρ v);
 }.
 Arguments Olty {_} _%I _ {_}.
-Arguments olty_car {_} _ _ _ /.
-Arguments olty_v_closed {_} _ _ _ /.
+Global Arguments olty_car {_} _ _ _ /.
+Global Arguments olty_v_closed {_} _ _ _ /.
 Bind Scope olty_scope with olty.
 Delimit Scope olty_scope with T.
-Existing Instance olty_persistent.
+Global Existing Instance olty_persistent.
 
-Fail Definition testCoerce `(φ: olty Σ) ρ := φ ρ.
-Definition olty2fun `(o: olty Σ) ρ := olty_car o ρ.
-Coercion olty2fun: olty >-> Funclass.
 Definition testCoerce `(φ: olty Σ) ρ := φ ρ.
+(* Definition olty2fun `(o: olty Σ) ρ := olty_car o ρ.
+Coercion olty2fun: olty >-> Funclass. *)
+(* Definition testCoerce2 `(φ: olty Σ) ρ := φ ρ. *)
 
 Section olty_ofe.
   Context `{Σ : gFunctors}.
   Implicit Types (φ : envD Σ) (τ : olty Σ).
 
-  Instance olty_equiv : Equiv (olty Σ) := λ A B, olty_car A ≡ B.
-  Instance olty_dist : Dist (olty Σ) := λ n A B, olty_car A ≡{n}≡ B.
+  Instance olty_equiv : Equiv (olty Σ) := λ A B, ∀ vs v, A vs v ≡ B vs v.
+  Instance olty_dist : Dist (olty Σ) := λ n A B, ∀ vs v, A vs v ≡{n}≡ B vs v.
   Lemma olty_ofe_mixin : OfeMixin (olty Σ).
-  Proof. by apply (iso_ofe_mixin olty_car). Qed.
+  Proof. by apply (iso_ofe_mixin (olty_car : _ → (var → vl) -d> vl -d> _)). Qed.
   Canonical Structure oltyC := OfeT (olty Σ) olty_ofe_mixin.
 
   (* Only needed to define Olty using Iris fixpoints (e.g. for normal recursive types). *)
@@ -80,11 +80,10 @@ Section olty_ofe.
 
   Global Program Instance olty_inhabited : Inhabited (olty Σ) := populate (Olty (λ _ _, False)%I _).
   Next Obligation. by unseal=>?. Qed.
-
-  Global Instance olty_car_ne: NonExpansive (@olty_car Σ).
-  Proof. by intros ??. Qed.
-  Global Instance lty_car_proper : Proper ((≡) ==> (≡)) (@olty_car Σ).
-  Proof. apply ne_proper, olty_car_ne. Qed.
+  Global Instance olty_car_ne n : Proper (dist n ==> (=) ==> (=) ==> dist n) olty_car.
+  Proof. intros f g Heq ??????; subst. apply Heq. Qed.
+  Global Instance lty_car_proper : Proper ((≡) ==> (=) ==> (=) ==> (≡)) (@olty_car Σ).
+  Proof. intros f g Heq ??????; subst. apply Heq. Qed.
 
   Program Definition pack φ (Hvc : vclosed φ) := Olty (λ ρ v, □ φ ρ v)%I _.
   Next Obligation. rewrite /vclosed; intros. iIntros "?". by iApply Hvc. Qed.
@@ -93,8 +92,8 @@ Section olty_ofe.
   (* Proof. by iSplit; iIntros. Qed. *)
   Proof. apply: intuitionistic_intuitionistically. Qed.
 
-  Lemma olty_car_pack_id φ (H : vclosed φ) `{∀ ρ v, Persistent (φ ρ v)} :
-    olty_car (pack φ H) ≡ φ.
+  Lemma olty_car_pack_id (φ : envD Σ) (H : vclosed φ) `{∀ ρ v, Persistent (φ ρ v)} :
+    (olty_car (pack φ H) : envD Σ) ≡ φ.
   Proof.
     move => ?? /=.
     apply: intuitionistic_intuitionistically.
@@ -126,7 +125,7 @@ Section olty_ofe.
 
   Lemma olty_eq τ1 τ2: olty_car τ1 = olty_car τ2 → τ1 = τ2.
   Proof.
-    move: τ1 τ2 => [φ1 ??] [φ2 ??]; rewrite /olty_car.
+    move: τ1 τ2 => [φ1 ??] [φ2 ??]; rewrite /olty_car /=.
     destruct 1. f_equal; exact: ProofIrrelevance.proof_irrelevance.
   Qed.
 
@@ -141,7 +140,7 @@ Section olty_ofe.
   Global Instance hsubstLemmas_olty : HSubstLemmas vl (olty Σ).
   Proof.
     split=> [s|??|?? s]; apply olty_eq => //; case: s => [φ??];
-    rewrite /hsubst /hsubst_olty /olty_car.
+    rewrite /hsubst /hsubst_olty /olty_car /=.
     all: trivial using hsubst_id, id_hsubst, hsubst_comp.
   Qed.
 
@@ -179,13 +178,13 @@ Section olty_ofe.
     φ.|[ren (+1)] (v .: to_subst ρ) ≡ φ (to_subst ρ).
   Proof. by rewrite (envD_weaken [] [v]). Qed.
 
-  Lemma olty_weaken_one v τ ρ:
-    τ.|[ren (+1)] (v .: to_subst ρ) ≡ τ (to_subst ρ).
+  Lemma olty_weaken_one v τ ρ w:
+    τ.|[ren (+1)] (v .: to_subst ρ) w ≡ τ (to_subst ρ) w.
   Proof. by rewrite (olty_weaken [] [v]). Qed.
 
-  Lemma olty_subst_up ρ1 ρ2 v τ :
-    τ.|[upn (length ρ1) (v.[ren (+length ρ2)] .: ids)] (to_subst (ρ1 ++ ρ2))
-    ≡ τ (to_subst (ρ1 ++ v :: ρ2)).
+  Lemma olty_subst_up ρ1 ρ2 v τ w :
+    τ.|[upn (length ρ1) (v.[ren (+length ρ2)] .: ids)] (to_subst (ρ1 ++ ρ2)) w
+    ≡ τ (to_subst (ρ1 ++ v :: ρ2)) w.
   Proof.
     (* rewrite /hsubst_olty /hsubst_envD /hsubst /= to_subst_up //. *)
     rewrite [@hsubst _ _ hsubst_olty]/hsubst /hsubst_olty /=.
@@ -267,10 +266,11 @@ Section olty_ofe.
     rewrite IHΓ. by iIntros "[-> _] !%".
   Qed.
 
+  Arguments olty_car {_} _ _ : simpl never.
   Lemma interp_env_ρ_closed Γ ρ: ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ⌝.
   Proof.
     elim: Γ ρ => [|τ Γ IHΓ] [|v ρ] //=; try by iPureIntro.
-    rewrite IHΓ /olty2fun olty_v_closed. iPureIntro. intuition.
+    rewrite IHΓ olty_v_closed. iPureIntro. intuition.
   Qed.
 
   Lemma interp_env_props Γ ρ:
@@ -282,17 +282,50 @@ Section olty_ofe.
     by iPureIntro.
   Qed.
 
-
   Lemma interp_env_lookup Γ ρ τ x:
     Γ !! x = Some τ →
     ⟦ Γ ⟧* ρ -∗ τ.|[ren (+x)] (to_subst ρ) (to_subst ρ x).
   Proof.
+  (* Arguments olty_car {_} _ _ _ /. *)
     elim: Γ x ρ => [//|τ' Γ' IHΓ] [//|x] [//|v ρ] /= Hx;
       try by [|iIntros "[]"]; iDestruct 1 as "[Hg Hv]".
     - move: Hx => [ -> ]. by locAsimpl.
-    - Fail iApply (olty_weaken_one v (τ.|[ren (+x)])).
+    - have -> : τ.|[ren (+S x)] = τ.|[ren (+x)].|[ren (+1)]. by asimpl.
+      iApply (olty_weaken_one v (τ.|[ren (+x)])).
+      iApply (IHΓ x ρ Hx with "Hg").
+    Qed.
+       (* cbn. *)
+    (* iApply (IHΓ x ρ Hx with "Hg").
+    have Heq : (τ).|[ren (+S x)] = (τ).|[ren (+x)].|[ren (+1)]. done.
+    iApply (olty_weaken_one v (τ.|[ren (+x)])). *)
       (* iApply (IHΓ x ρ Hx with "Hg"). *)
-  Abort.
+(*
+  Lemma interp_env_lookup Γ vs (φ : olty Σ) x:
+    Γ !! x = Some φ →
+    ⟦ Γ ⟧* vs -∗ φ.|[ren (+x)] (to_subst vs) (to_subst vs x).
+  Proof.
+    (* Arguments olty2fun: simpl never. *)
+    elim: Γ x vs => [//|φ' Γ' IHΓ] [//|x] [//|v vs] /= Hx;
+      try by [|iIntros "[]"]; iDestruct 1 as "[Hg Hv]".
+    - move: Hx => [ -> ]. by locAsimpl.
+    -
+      (* change (olty_car φ).|[ren (+S x)] with (olty_car φ).|[ren (+x)].|[ren (+1)]. *)
+    (* replace φ.|[ren (+S x)] with φ.|[ren (+x)].|[ren (+1)]; last by asimpl. *)
+      iApply (envD_weaken_one v ((olty_car φ).|[ren (+x)])).
+      iApply (IHΓ x vs Hx with "Hg").
+  Qed. *)
+
+    (* rewrite /olty2fun. *)
+    (* elim: Γ x ρ => [//|τ' Γ' IHΓ] [//|x] [//|v ρ] /= Hx;
+      try by [|iIntros "[]"]; iDestruct 1 as "[Hg Hv]".
+    - move: Hx => [ -> ]. by locAsimpl.
+    -
+      (* rewrite /olty_car /=. *)
+     iPoseProof (olty_weaken_one v (τ.|[ren (+x)]) ρ (to_subst ρ x)) as "H".
+     (* rewrite /olty2fun. *)
+      iApply "H".
+      iApply (IHΓ x ρ Hx with "Hg").
+  Qed. *)
 End olty_ofe.
 
 Notation "⟦ Γ ⟧*" := (env_oltyped_fin Γ).
