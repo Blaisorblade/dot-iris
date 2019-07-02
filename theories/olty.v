@@ -281,6 +281,18 @@ Section olty_ofe.
     iDestruct (interp_env_len_agree with "HG") as %?.
     by iPureIntro.
   Qed.
+
+
+  Lemma interp_env_lookup Γ ρ τ x:
+    Γ !! x = Some τ →
+    ⟦ Γ ⟧* ρ -∗ τ.|[ren (+x)] (to_subst ρ) (to_subst ρ x).
+  Proof.
+    elim: Γ x ρ => [//|τ' Γ' IHΓ] [//|x] [//|v ρ] /= Hx;
+      try by [|iIntros "[]"]; iDestruct 1 as "[Hg Hv]".
+    - move: Hx => [ -> ]. by locAsimpl.
+    - Fail iApply (olty_weaken_one v (τ.|[ren (+x)])).
+      (* iApply (IHΓ x ρ Hx with "Hg"). *)
+  Abort.
 End olty_ofe.
 
 Notation "⟦ Γ ⟧*" := (env_oltyped_fin Γ).
