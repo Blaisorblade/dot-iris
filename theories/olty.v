@@ -47,7 +47,7 @@ Record olty Σ := Olty {
   olty_persistent ρ v : Persistent (olty_car ρ v);
 }.
 Arguments Olty {_} _%I _ {_}.
-Global Arguments olty_car {_} _ _ _ /.
+Arguments olty_car {_} _ _ _ /.
 Global Arguments olty_v_closed {_} _ _ _ /.
 Bind Scope olty_scope with olty.
 Delimit Scope olty_scope with T.

@@ -232,7 +232,8 @@ Section SemTypes.
     nclosed_vl v 0 →
     (iterate oLater i φ) ρ v ≡ (▷^i φ ρ v)%I.
   Proof.
-    elim: i => [|i IHi] // => Hcl. rewrite iterate_S /= IHi //.
+    elim: i => [|i IHi] // Hcl. rewrite iterate_S /=. /= IHi.
+    move: IHi. rewrite iterate_S /= /=. move => -> //.
     iSplit; by [iIntros "#[_ $]" | iIntros "$"].
   Qed.
 
