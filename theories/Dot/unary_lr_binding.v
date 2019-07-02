@@ -52,15 +52,13 @@ Section logrel_binding_lemmas.
   Proof.
     iIntros (Hx) "* Hg".
     iInduction Γ as [|T' Γ'] "IHL" forall (x ρ Hx); simpl; first solve [inversion Hx].
-    destruct ρ; first by [iExFalso].
+    destruct ρ; first by [iExFalso]; iDestruct "Hg" as "[Hg Hv]".
     case: x Hx => /= [|x] Hx.
-    - move: Hx => [ -> ]. iClear "IHL". locAsimpl.
-      by iDestruct "Hg" as "[_ $]".
-    - iAssert (⟦ T.|[ren (+x)] ⟧ (to_subst ρ) (to_subst ρ x)) with "[Hg]" as "Hv".
-      by iDestruct "Hg" as "[Hg _]"; iApply "IHL".
-      iClear "IHL".
-      iDestruct (interp_weaken_one v with "Hv") as "Hv".
-      by iEval (locAsimpl) in "Hv".
+    - move: Hx => [ -> ]. by locAsimpl.
+    - iAssert (⟦ T.|[ren (+x)] ⟧ (to_subst ρ) (to_subst ρ x)) with "[Hg]" as "Hv'".
+      by iApply "IHL".
+      iDestruct (interp_weaken_one v with "Hv'") as "Hv'".
+      by iEval (locAsimpl) in "Hv'".
   Qed.
 
   Lemma interp_subst_all ρ τ v:
