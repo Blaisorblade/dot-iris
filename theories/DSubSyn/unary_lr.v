@@ -314,6 +314,30 @@ Section logrel_lemmas.
     by iPureIntro.
   Qed.
 
+  Lemma interp_env_cl_ρ {Γ vs}:
+    ⟦ Γ ⟧* vs -∗ ⌜ nclosed_sub (length Γ) 0 (to_subst vs) ⌝.
+  Proof.
+    elim: Γ vs => [|T Γ IHΓ] vs /=; first by iIntros "!%" (???); lia.
+    case: vs => [|v vs]; last rewrite interp_v_closed IHΓ; iIntros "!% //".
+    move => [Hclvs Hclv] [//|i /lt_S_n Hle /=].
+    apply Hclvs, Hle.
+  Qed.
+
+  Lemma interp_env_cl_app `{Sort X} (x : X) {Γ vs} :
+    nclosed x (length Γ) →
+    ⟦ Γ ⟧* vs -∗ ⌜ nclosed x.|[to_subst vs] 0 ⌝.
+  Proof.
+    rewrite interp_env_cl_ρ. iIntros "!% /=".
+    eauto using nclosed_sub_app.
+  Qed.
+
+  Lemma interp_env_cl_app_vl v {Γ vs}: nclosed_vl v (length Γ) →
+     ⟦ Γ ⟧* vs -∗ ⌜ nclosed_vl v.[to_subst vs] 0 ⌝.
+  Proof.
+    rewrite interp_env_cl_ρ. iIntros "!% /=".
+    eauto using nclosed_sub_app_vl.
+  Qed.
+
   Context {Γ}.
   Lemma Sub_Refl T i : Γ ⊨ [T, i] <: [T, i].
   Proof. by iIntros "/= !> **". Qed.

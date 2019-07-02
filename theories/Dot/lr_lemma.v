@@ -28,7 +28,7 @@ Section Sec.
     rewrite tskip_subst tskip_n_to_fill -wp_bind.
     iApply (wp_wand_cl _ (⟦ T1 ⟧ (to_subst vs))) => //.
     - iApply ("HeT1" with "[//]").
-    - by iApply interp_env_cl_app.
+    - by rewrite -interp_env_cl_app.
     - iIntros (v) "#HvT1 %".
       (* We can swap ▷^i with WP (tv v)! *)
       rewrite -tskip_n_to_fill -wp_pure_step_later // -wp_value.

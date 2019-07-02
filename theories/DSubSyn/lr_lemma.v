@@ -74,9 +74,8 @@ Section Sec.
     rewrite -wp_value'; unfold_interp.
     iSplit.
     {
-      iDestruct (interp_env_props with "HG") as %[Hclp Hlen]; rewrite <- Hlen in *.
       apply fv_vabs in Hcle.
-      iPureIntro; exact: (fv_to_subst_vl Hcle).
+      by iApply (interp_env_cl_app_vl (vabs e) Hcle).
     }
     iExists _; iSplitL => //.
     iIntros "!> !>" (v) "#Hv". iSpecialize ("HeT" $! (v :: _)).
@@ -84,13 +83,6 @@ Section Sec.
     (* Faster than 'asimpl'. *)
     locAsimpl' (e.|[up (to_subst vs)].|[v/]).
     by iApply ("HeT" with "[$HG//]").
-  Qed.
-
-  Lemma nclosed_subst_ρ e ρ: nclosed e (length Γ) → ⟦ Γ ⟧* ρ -∗ ⌜ nclosed e.|[to_subst ρ] 0 ⌝.
-  Proof.
-    iIntros (Hcl) "HG".
-    iDestruct (interp_env_props with "HG") as %[Hclp Hlen]; rewrite <- Hlen in *.
-    iPureIntro. exact: fv_to_subst.
   Qed.
 
   Lemma T_Sub e T1 T2 i:
@@ -105,7 +97,7 @@ Section Sec.
     rewrite tskip_subst tskip_n_to_fill -wp_bind.
     iApply (wp_wand_cl _ (⟦ T1 ⟧ (to_subst vs))) => //.
     - iApply ("HeT1" with "[//]").
-    - by rewrite nclosed_subst_ρ.
+    - by rewrite -interp_env_cl_app.
     - iIntros (v) "#HvT1 %".
       (* We can swap ▷^i with WP (tv v)! *)
       rewrite -tskip_n_to_fill -wp_pure_step_later // -wp_value.
@@ -124,7 +116,7 @@ Section Sec.
     rewrite tskip_subst tskip_n_to_fill -wp_bind.
     iApply (wp_wand_cl _ (⟦ T1 ⟧ (to_subst vs))) => //.
     - iApply ("HeT1" with "[//]").
-    - by rewrite nclosed_subst_ρ.
+    - by rewrite -interp_env_cl_app.
     - iIntros (v) "#HvT1 %".
       rewrite -tskip_n_to_fill -wp_pure_step_later //.
       iSpecialize ("Hsub" with "Hg HvT1").
@@ -145,9 +137,7 @@ Section Sec.
     iIntros "!>" (vs) "#HG".
     rewrite -wp_value; unfold_interp.
     iDestruct (interp_env_props with "HG") as %[Hclp Hlen]; rewrite <- Hlen in *.
-    iSplit. {
-      iPureIntro. exact: (fv_to_subst_vl HclV).
-    }
+    iSplit. { iIntros "!%". exact: (fv_to_subst_vl HclV). }
     iExists (λ v, ⟦ T.|[to_subst vs] ⟧ ids v)%I.
     iSplit. by iExists (T.|[to_subst vs]).
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#H";
@@ -177,9 +167,7 @@ Section Sec.
     iIntros "!>" (ρ) "#HG".
     rewrite -wp_value; unfold_interp.
     iDestruct (interp_env_props with "HG") as %[Hclp Hlen]; rewrite <- Hlen in *.
-    iSplit. {
-      iPureIntro; exact: (fv_to_subst_vl HclV).
-    }
+    iSplit. { iIntros "!%". exact: (fv_to_subst_vl HclV). }
     iExists (λ v, ⟦ T.|[to_subst ρ] ⟧ ids v)%I.
     iSplit. by iExists (T.|[to_subst ρ ]).
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#H";
