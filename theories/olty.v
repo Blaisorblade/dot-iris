@@ -176,6 +176,14 @@ Section olty_ofe.
     exact: envD_weaken.
   Qed.
 
+  Lemma envD_weaken_one v φ ρ:
+    φ.|[ren (+1)] (v .: to_subst ρ) ≡ φ (to_subst ρ).
+  Proof. by rewrite (envD_weaken [] [v]). Qed.
+
+  Lemma olty_weaken_one v τ ρ:
+    τ.|[ren (+1)] (v .: to_subst ρ) ≡ τ (to_subst ρ).
+  Proof. by rewrite (olty_weaken [] [v]). Qed.
+
   Lemma olty_subst_up ρ1 ρ2 v τ :
     τ.|[upn (length ρ1) (v.[ren (+length ρ2)] .: ids)] (to_subst (ρ1 ++ ρ2))
     ≡ τ (to_subst (ρ1 ++ v :: ρ2)).
