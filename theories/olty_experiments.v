@@ -176,17 +176,6 @@ Section SemTypes.
   Definition eLater i (φ : envD Σ) : envD Σ := (λ ρ v, ▷^i φ ρ v)%I.
   Definition oLater φ := closed_olty (eLater 1 φ).
 
-  Lemma interp_env_lookup Γ ρ φ x:
-    Γ !! x = Some φ →
-    ⟦ Γ ⟧* ρ -∗ φ.|[ren (+x)] (to_subst ρ) (to_subst ρ x).
-  Proof.
-    elim: Γ x ρ => [//|φ' Γ' IHΓ] [//|x] [//|v ρ] /= Hx;
-      try by [|iIntros "[]"]; iDestruct 1 as "[Hg Hv]".
-    - move: Hx => [ -> ]. by locAsimpl.
-    - iApply (olty_weaken_one v (φ.|[ren (+x)])).
-      iApply (IHΓ x ρ Hx with "Hg").
-  Qed.
-
   Lemma T_Var Γ x φ:
     Γ !! x = Some φ →
     (*──────────────────────*)
