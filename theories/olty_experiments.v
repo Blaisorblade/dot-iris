@@ -122,7 +122,7 @@ Record dlty Σ := Dlty {
   dlty_persistent ρ d :> Persistent (dlty_car ρ d);
 }.
 Global Arguments Dlty {_} _%I _ {_}.
-Global Arguments dlty_car {_} _ _ _ /.
+Global Arguments dlty_car {_} _ _ _ : simpl never.
 Global Arguments dlty_label {_} _ /.
 Global Existing Instance dlty_persistent.
 
@@ -200,7 +200,7 @@ Section SemTypes.
     nclosed_vl v 0 →
     (iterate oLater i φ) ρ v ≡ (▷^i φ ρ v)%I.
   Proof.
-    elim: i => [|i IHi] // => Hcl. rewrite iterate_S /= /eLater IHi //.
+    elim: i => [|i IHi] // => Hcl. rewrite iterate_S [_ ρ]/olty_car/= /eLater IHi //.
     iSplit; by [iIntros "#[_ $]" | iIntros "$"].
   Qed.
 

@@ -42,30 +42,27 @@ End olty_limit_preserving.
 and values. Adapted from
 https://gitlab.mpi-sws.org/iris/examples/blob/d4f4153920ea82617c7222aeeb00b6710d51ee03/theories/logrel_heaplang/ltyping.v#L5. *)
 Record olty Σ := Olty {
-  olty_car : envD Σ;
+  olty_car :> (var → vl) → vl → iProp Σ;
   olty_v_closed : vclosed olty_car;
   olty_persistent ρ v : Persistent (olty_car ρ v);
 }.
-Arguments Olty {_} _%I _ {_}.
-Arguments olty_car {_} _ _ _ /.
-Arguments olty_v_closed {_} _ _ _ /.
+Global Arguments Olty {_} _%I _ {_}.
+Global Arguments olty_car {_} _ _ _: simpl never.
+Global Arguments olty_v_closed {_} _ _ _ /.
 Bind Scope olty_scope with olty.
 Delimit Scope olty_scope with T.
-Existing Instance olty_persistent.
+Global Existing Instance olty_persistent.
 
-Fail Definition testCoerce `(φ: olty Σ) ρ := φ ρ.
-Definition olty2fun `(o: olty Σ) ρ := olty_car o ρ.
-Coercion olty2fun: olty >-> Funclass.
-Definition testCoerce `(φ: olty Σ) ρ := φ ρ.
+Local Definition testCoerce `(φ: olty Σ) ρ := φ ρ.
 
 Section olty_ofe.
   Context `{Σ : gFunctors}.
   Implicit Types (φ : envD Σ) (τ : olty Σ).
 
-  Instance olty_equiv : Equiv (olty Σ) := λ A B, olty_car A ≡ B.
-  Instance olty_dist : Dist (olty Σ) := λ n A B, olty_car A ≡{n}≡ B.
+  Instance olty_equiv : Equiv (olty Σ) := λ A B, A ≡@{envD Σ} B.
+  Instance olty_dist : Dist (olty Σ) := λ n A B, A ≡{n}@{envD Σ}≡ B.
   Lemma olty_ofe_mixin : OfeMixin (olty Σ).
-  Proof. by apply (iso_ofe_mixin olty_car). Qed.
+  Proof. by apply (iso_ofe_mixin (olty_car : _ → (var → vl) -d> vl -d> _)). Qed.
   Canonical Structure oltyC := OfeT (olty Σ) olty_ofe_mixin.
 
   (* Only needed to define Olty using Iris fixpoints (e.g. for normal recursive types). *)
@@ -81,9 +78,9 @@ Section olty_ofe.
   Global Program Instance olty_inhabited : Inhabited (olty Σ) := populate (Olty (λ _ _, False)%I _).
   Next Obligation. by unseal=>?. Qed.
 
-  Global Instance olty_car_ne: NonExpansive (@olty_car Σ).
-  Proof. by intros ??. Qed.
-  Global Instance lty_car_proper : Proper ((≡) ==> (≡)) (@olty_car Σ).
+  Global Instance olty_car_ne : NonExpansive (@olty_car Σ : olty Σ -> envD Σ).
+  Proof. intros n f g Heq. apply Heq. Qed.
+  Global Instance lty_car_proper : Proper ((≡) ==> (≡)) (@olty_car Σ : olty Σ -> envD Σ).
   Proof. apply ne_proper, olty_car_ne. Qed.
 
   Program Definition pack φ (Hvc : vclosed φ) := Olty (λ ρ v, □ φ ρ v)%I _.
@@ -94,7 +91,7 @@ Section olty_ofe.
   Proof. apply: intuitionistic_intuitionistically. Qed.
 
   Lemma olty_car_pack_id φ (H : vclosed φ) `{∀ ρ v, Persistent (φ ρ v)} :
-    olty_car (pack φ H) ≡ φ.
+    olty_car (pack φ H) ≡@{envD Σ} φ.
   Proof.
     move => ?? /=.
     apply: intuitionistic_intuitionistically.
@@ -177,16 +174,16 @@ Section olty_ofe.
   Qed.
 
   Lemma envD_weaken_one v φ ρ:
-    φ.|[ren (+1)] (v .: to_subst ρ) ≡ φ (to_subst ρ).
+    φ.|[ren (+1)] (v .: to_subst ρ) = φ (to_subst ρ).
   Proof. by rewrite (envD_weaken [] [v]). Qed.
 
   Lemma olty_weaken_one v τ ρ:
-    τ.|[ren (+1)] (v .: to_subst ρ) ≡ τ (to_subst ρ).
+    τ.|[ren (+1)] (v .: to_subst ρ) ≡@{vl -d> _} τ (to_subst ρ).
   Proof. by rewrite (olty_weaken [] [v]). Qed.
 
   Lemma olty_subst_up ρ1 ρ2 v τ :
     τ.|[upn (length ρ1) (v.[ren (+length ρ2)] .: ids)] (to_subst (ρ1 ++ ρ2))
-    ≡ τ (to_subst (ρ1 ++ v :: ρ2)).
+    ≡@{vl -d> _} τ (to_subst (ρ1 ++ v :: ρ2)).
   Proof.
     (* rewrite /hsubst_olty /hsubst_envD /hsubst /= to_subst_up //. *)
     rewrite [@hsubst _ _ hsubst_olty]/hsubst /hsubst_olty /=.
@@ -207,7 +204,7 @@ Section olty_ofe.
   Lemma env_oltyped_cl_ρ Γ ρ :
     env_oltyped Γ ρ -∗ ⌜ nclosed_sub (length Γ) 0 ρ ⌝.
   Proof.
-    elim: Γ ρ => [|φ Γ IHΓ] ρ /=; [| rewrite IHΓ /olty2fun olty_v_closed ]; iIntros "!% //".
+    elim: Γ ρ => [|φ Γ IHΓ] ρ /=; [| rewrite IHΓ olty_v_closed ]; iIntros "!% //".
     - move => [Hclρ Hclp0] [|i /lt_S_n] Hle. exact Hclp0. apply Hclρ, Hle.
   Qed.
 
@@ -263,7 +260,7 @@ Section olty_ofe.
   Lemma interp_env_ρ_closed Γ ρ: ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ⌝.
   Proof.
     elim: Γ ρ => [|τ Γ IHΓ] [|v ρ] //=; try by iPureIntro.
-    rewrite IHΓ /olty2fun olty_v_closed. iPureIntro. intuition.
+    rewrite IHΓ olty_v_closed. iPureIntro. intuition.
   Qed.
 
   Lemma interp_env_props Γ ρ:
