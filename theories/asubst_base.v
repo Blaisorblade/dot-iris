@@ -434,3 +434,5 @@ End sort_lemmas_2.
 Hint Resolve nclosed_σ_to_subst nclosed_ren_shift @nclosed_sub_shift nclosed_ren_up @nclosed_sub_up.
 
 End Sorts.
+
+Module Type VlSortsFullSig <: VlSortsSig := ValuesSig <+ Sorts.

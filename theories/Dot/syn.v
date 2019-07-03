@@ -5,7 +5,7 @@ From iris.program_logic Require ectx_language ectxi_language.
 
 (** This module is included right away. Its only point is asserting explicitly
     that it implements [VlSortsSig]. *)
-Module VlSorts <: VlSortsSig.
+Module VlSorts <: VlSortsFullSig.
 
 Definition label := string.
 
