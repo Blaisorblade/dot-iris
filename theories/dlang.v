@@ -23,8 +23,9 @@ Module Type LiftWp (Import VS : VlSortsSig).
   Export mapsto saved_interp.
   Implicit Types (v : vl) (vs : vls) (Σ : gFunctors).
 
-  Notation envD Σ := ((var → vl) -d> vl -d> iProp Σ).
-  Instance Inhϕ Σ : Inhabited (envD Σ) := populate (λ _ _, False)%I.
+  Notation envPred s Σ := ((var → vl) -d> s -d> iProp Σ).
+  Instance InhEnvPred s Σ : Inhabited (envPred s Σ) := populate (λ _ _, False)%I.
+  Notation envD Σ := (envPred vl Σ).
 
   Class TyInterp ty Σ :=
     ty_interp : ty -> (var → vl) -> vl -> iProp Σ.
@@ -40,7 +41,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
   }.
 
   (* Defining this needs the above irisG instance in scope. *)
-  Definition test_interp_expr `{dlangG Σ} :=
+  Local Definition test_interp_expr `{dlangG Σ} :=
     λ (t: expr dlang_lang), WP t {{ v, False }} %I.
 
   (* Copied from F_mu *)
