@@ -21,9 +21,9 @@ From D Require Import gen_iheap saved_interp olty dlang.
     while reusing as much as possible.
 *)
 
-Module Type OLty_judge (Import sorts: SortsIntf).
+Module Type OLty_judge (Import S: SortsSig).
 
-Include OLty sorts.
+Include OLty S.
 
 Class Closeable s := nclosed_s : s → nat → Prop.
 Instance closeable_sort s `{Sort s} : Closeable s := nclosed.

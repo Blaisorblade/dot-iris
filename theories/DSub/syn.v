@@ -297,7 +297,7 @@ Canonical Structure dlang_ectxi_lang := ectxi_language.EctxiLanguage lang.dsub_l
 Canonical Structure dlang_ectx_lang := ectxi_language.EctxLanguageOfEctxi dlang_ectxi_lang.
 Canonical Structure dlang_lang := ectx_language.LanguageOfEctx dlang_ectx_lang.
 
-Include SortsLemmas.
+Include Sorts.
 
 Instance sort_tm : Sort tm := {}.
 Instance sort_ty : Sort ty := {}.

@@ -19,7 +19,7 @@ Section mapsto_stamp_gname.
 End mapsto_stamp_gname.
 End mapsto.
 
-Module Type LiftWp (Import sorts: SortsIntf).
+Module Type LiftWp (Import S: SortsSig).
   Export mapsto saved_interp.
   Implicit Types (v : vl) (vs : vls) (Σ : gFunctors).
 
