@@ -5,11 +5,11 @@ From iris.program_logic Require Import language.
 From D.pure_program_logic Require Import lifting adequacy.
 From D Require Export gen_iheap saved_interp.
 
-Module Type OLty (Import S: SortsSig).
+Module Type OLty (Import VS: VlSortsSig).
 
 (* Instead of duplicating [envD], Include LiftWp: *)
 (* Notation envD Σ := (vls -d> vl -d> iProp Σ). *)
-Include LiftWp S.
+Include LiftWp VS.
 
 Section olty_limit_preserving.
   Context `{Σ : gFunctors}.

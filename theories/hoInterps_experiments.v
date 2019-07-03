@@ -61,7 +61,7 @@ Section vec.
     λ args, Φ (vhead args) (vtail args).
 End vec.
 
-Module HoSemTypes (Import S: SortsSig).
+Module HoSemTypes (Import VS: VlSortsSig).
 (* Module M := (OLty values). Import M. *)
 (* Notation _envD vl Σ := ((var → vl) -d> vl -d> iProp Σ).
 Notation hoEnvND n vl Σ := (vec n vl -d> _envD vl Σ). *)

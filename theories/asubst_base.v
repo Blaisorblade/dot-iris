@@ -1,13 +1,6 @@
 From D Require Import prelude asubst_intf.
 
-Module Type Sorts (Import V : ValuesSig) <: SortsSig.
-
-(** Here, it's important to import [V], not [values].
-    When we include [Sorts] in [syn], [V] maps to [syn],
-    while [values] is a separate nested module.
-    By importing [V], our definitions will mention [vl]
-    rather than [values.vl]. *)
-Module values := V.
+Module Type Sorts (Import V : ValuesSig) <: SortsSig V.
 
 Class Sort (s : Type)
   {inh_s : Inhabited s}

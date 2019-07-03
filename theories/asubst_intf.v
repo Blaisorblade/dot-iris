@@ -16,9 +16,7 @@ Module Type ValuesSig.
   Declare Instance subst_lemmas_vl : SubstLemmas vl.
 End ValuesSig.
 
-Module Type SortsSig.
-  Declare Module Export values : ValuesSig.
-
+Module Type SortsSig (Import V : ValuesSig).
   Class Sort (s : Type)
     {inh_s : Inhabited s}
     {ids_s : Ids s} {ren_s : Rename s} {hsubst_vl_s : HSubst vl s}
@@ -59,3 +57,5 @@ Module Type SortsSig.
     nclosed_sub i j s →
     nclosed x i → nclosed x.|[s] j.
 End SortsSig.
+
+Module Type VlSortsSig := ValuesSig <+ SortsSig.
