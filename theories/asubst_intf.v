@@ -3,7 +3,7 @@
 From iris.program_logic Require Import language.
 From D Require Import prelude.
 
-Module Type Values.
+Module Type ValuesSig.
   Parameter dlang_lang : language.
   Definition vl : Type := val dlang_lang.
   Definition vls := list vl.
@@ -14,11 +14,9 @@ Module Type Values.
   Declare Instance rename_vl : Rename vl.
   Declare Instance subst_vl : Subst vl.
   Declare Instance subst_lemmas_vl : SubstLemmas vl.
-End Values.
+End ValuesSig.
 
-Module Type SortsIntf.
-  Declare Module Export values : Values.
-
+Module Type SortsSig (Import V : ValuesSig).
   Class Sort (s : Type)
     {inh_s : Inhabited s}
     {ids_s : Ids s} {ren_s : Rename s} {hsubst_vl_s : HSubst vl s}
@@ -58,4 +56,6 @@ Module Type SortsIntf.
   Parameter nclosed_sub_app : ∀ `{Ids X} `{HSubst vl X} `{!HSubstLemmas vl X} (x : X) s i j,
     nclosed_sub i j s →
     nclosed x i → nclosed x.|[s] j.
-End SortsIntf.
+End SortsSig.
+
+Module Type VlSortsSig := ValuesSig <+ SortsSig.

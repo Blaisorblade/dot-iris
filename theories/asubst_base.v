@@ -1,13 +1,6 @@
 From D Require Import prelude asubst_intf.
 
-Module Type SortsLemmas (Import V : Values) <: SortsIntf.
-
-(** Here, it's important to import [V], not [values].
-    When we include [SortsLemmas] in [syn], [V] maps to [syn],
-    while [values] is a separate nested module.
-    By importing [V], our definitions will mention [vl]
-    rather than [values.vl]. *)
-Module values := V.
+Module Type Sorts (Import V : ValuesSig) <: SortsSig V.
 
 Class Sort (s : Type)
   {inh_s : Inhabited s}
@@ -440,4 +433,4 @@ End sort_lemmas_2.
 
 Hint Resolve nclosed_σ_to_subst nclosed_ren_shift @nclosed_sub_shift nclosed_ren_up @nclosed_sub_up.
 
-End SortsLemmas.
+End Sorts.
