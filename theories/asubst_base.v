@@ -206,25 +206,46 @@ Lemma nclosed_ren_up n m r:
 Proof. move => //= Hr [|i] Hi; asimpl; eauto with lia. Qed.
 Hint Resolve nclosed_ren_up.
 
+Lemma nclosed_sub_base i s : nclosed_sub 0 i s.
+Proof. move => j /Nat.nlt_0_r []. Qed.
+Hint Resolve nclosed_sub_base.
+
+Lemma nclosed_sub_scons_inv i j v s:
+  nclosed_sub (S i) j (v .: s) →
+  nclosed_vl v j ∧ nclosed_sub i j s.
+Proof.
+  move => Hcl; split. by eapply (Hcl 0); lia.
+  move => k Hle. eapply (Hcl (S k)), lt_n_S, Hle.
+Qed.
+
+Lemma nclosed_sub_stail i j v s:
+  nclosed_sub (S i) j (v .: s) →
+  nclosed_sub i j s.
+Proof. move => /nclosed_sub_scons_inv [//]. Qed.
+
+Lemma nclosed_σ_sub_equiv {ρ i} : nclosed_σ ρ i ↔ nclosed_sub (length ρ) i (to_subst ρ).
+Proof.
+  split; elim: ρ => [//| /= v ρ IHρ] Hcl ; [|].
+  - inverse Hcl. move => [//|j /lt_S_n] /=. exact: IHρ.
+  - constructor. by apply (Hcl 0); lia.
+    eapply IHρ, nclosed_sub_stail, Hcl.
+Qed.
+
+Lemma nclosed_sub_to_subst j σ: nclosed_σ σ j →
+  nclosed_sub (length σ) j (to_subst σ).
+Proof. apply nclosed_σ_sub_equiv. Qed.
+
+Lemma closed_to_subst σ i n: nclosed_σ σ n → i < length σ → nclosed_vl (to_subst σ i) n.
+Proof. intros. exact: nclosed_sub_to_subst. Qed.
+
 Lemma eq_n_s_total σ: eq_n_s σ ids 0.
-Proof. move=>??. lia. Qed.
+Proof. move => ? /Nat.nlt_0_r []. Qed.
 
 Lemma closed_subst_vl_id v σ: nclosed_vl v 0 → v.[σ] = v.
 Proof. intro Hcl. rewrite (Hcl σ ids (eq_n_s_total σ)). by asimpl. Qed.
 
 Lemma closed_subst_id x σ: nclosed x 0 → x.|[σ] = x.
 Proof. intro Hcl. rewrite (Hcl σ ids (eq_n_s_total σ)). by asimpl. Qed.
-
-Lemma nclosed_sub_to_subst j σ: nclosed_σ σ j →
-  nclosed_sub (length σ) j (to_subst σ).
-Proof.
-  move => Hcl i Hle.
-  elim: σ i Hcl Hle => /= [|v σ IHσ] [|i] Hcl Hl; asimpl; [lia..| |]; inverse Hcl; first by [].
-  by apply IHσ; try lia.
-Qed.
-
-Lemma closed_to_subst σ i n: nclosed_σ σ n → i < length σ → nclosed_vl (to_subst σ i) n.
-Proof. move =>???. exact: nclosed_sub_to_subst. Qed.
 
 (* Auxiliary lemma for [length_idsσ]. *)
 Lemma length_idsσr n r: length (idsσ n).|[ren r] = n.
@@ -372,7 +393,7 @@ Lemma subst_compose_idsσ x n m ξ:
 Proof. intros; eauto. Qed.
 
 End sort_lemmas.
-Hint Resolve nclosed_vl_ids_S nclosed_vl_ids.
+Hint Resolve nclosed_vl_ids_S nclosed_vl_ids nclosed_sub_base.
 Hint Resolve nclosed_idsσ @subst_compose @subst_compose_idsσ.
 
 Section sort_lemmas_2.
