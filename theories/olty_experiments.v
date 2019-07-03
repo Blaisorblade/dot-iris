@@ -22,10 +22,7 @@ From D Require Import gen_iheap saved_interp olty dlang.
 *)
 
 Module Type OLty_judge (Import sorts: SortsIntf).
-(* TODO Eventually switch to: *)
 
-(* Include (LiftWp values sorts). *)
-(* Or just inline this code there. *)
 Include OLty sorts.
 
 Class Closeable s := nclosed_s : s → nat → Prop.

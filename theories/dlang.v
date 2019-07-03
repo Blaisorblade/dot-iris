@@ -21,7 +21,7 @@ End mapsto.
 
 Module Type LiftWp (Import sorts: SortsIntf).
   Export mapsto saved_interp.
-  Implicit Types (v : vl) (Σ : gFunctors).
+  Implicit Types (v : vl) (vs : vls) (Σ : gFunctors).
 
   Notation envD Σ := ((var → vl) -d> vl -d> iProp Σ).
   Instance Inhϕ Σ : Inhabited (envD Σ) := populate (λ _ _, False)%I.
