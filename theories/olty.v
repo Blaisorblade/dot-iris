@@ -43,17 +43,21 @@ and values. Adapted from
 https://gitlab.mpi-sws.org/iris/examples/blob/d4f4153920ea82617c7222aeeb00b6710d51ee03/theories/logrel_heaplang/ltyping.v#L5. *)
 Record olty Σ := Olty {
   olty_car :> (var → vl) → vl → iProp Σ;
-  olty_v_closed : vclosed olty_car;
+  olty_vclosed : vclosed olty_car;
   olty_persistent ρ v : Persistent (olty_car ρ v);
 }.
 Global Arguments Olty {_} _%I _ {_}.
 Global Arguments olty_car {_} _ _ _: simpl never.
-Global Arguments olty_v_closed {_} _ _ _ /.
+Global Arguments olty_vclosed {_} _ _ _ /.
 Bind Scope olty_scope with olty.
 Delimit Scope olty_scope with T.
 Global Existing Instance olty_persistent.
 
-Local Definition testCoerce `(φ: olty Σ) ρ := φ ρ.
+(* Different from normal TyInterp. Better? *)
+Class OTyInterp ty Σ :=
+  oty_interp: ty → olty Σ.
+
+Local Definition testCoerce `(τ : olty Σ) ρ := τ ρ.
 
 Section olty_ofe.
   Context `{Σ : gFunctors}.
@@ -63,10 +67,10 @@ Section olty_ofe.
   Instance olty_dist : Dist (olty Σ) := λ n A B, A ≡{n}@{envD Σ}≡ B.
   Lemma olty_ofe_mixin : OfeMixin (olty Σ).
   Proof. by apply (iso_ofe_mixin (olty_car : _ → (var → vl) -d> vl -d> _)). Qed.
-  Canonical Structure oltyC := OfeT (olty Σ) olty_ofe_mixin.
+  Canonical Structure oltyO := OfeT (olty Σ) olty_ofe_mixin.
 
   (* Only needed to define Olty using Iris fixpoints (e.g. for normal recursive types). *)
-  Global Instance olty_cofe : Cofe oltyC.
+  Global Instance olty_cofe : Cofe oltyO.
   Proof.
     set curry_olty : ∀ A, restrict A → olty Σ := λ A '(conj P1 P2), @Olty Σ A P1 P2.
     apply (iso_cofe_subtype' restrict curry_olty olty_car) => //.
@@ -97,7 +101,7 @@ Section olty_ofe.
     apply: intuitionistic_intuitionistically.
   Qed.
 
-  Lemma pack_olty_car_id τ : pack (olty_car τ) (olty_v_closed τ) ≡ τ.
+  Lemma pack_olty_car_id τ : pack (olty_car τ) (olty_vclosed τ) ≡ τ.
   Proof.
     move: τ => []?????/=.
     apply: intuitionistic_intuitionistically.
@@ -130,10 +134,10 @@ Section olty_ofe.
   Global Instance ids_olty : Ids (olty Σ) := λ _, inhabitant.
   Global Program Instance rename_olty : Rename (olty Σ) :=
     λ r τ, Olty (rename r (olty_car τ)) _.
-  Next Obligation. rewrite /vclosed; intros. exact: olty_v_closed. Qed.
+  Next Obligation. rewrite /vclosed; intros. exact: olty_vclosed. Qed.
   Global Program Instance hsubst_olty : HSubst vl (olty Σ) :=
     λ sb τ, Olty ((olty_car τ).|[sb]) (_ (olty_car τ).|[sb]).
-  Next Obligation. rewrite /vclosed; intros. exact: olty_v_closed. Qed.
+  Next Obligation. rewrite /vclosed; intros. exact: olty_vclosed. Qed.
 
   Global Instance hsubstLemmas_olty : HSubstLemmas vl (olty Σ).
   Proof.
@@ -143,9 +147,9 @@ Section olty_ofe.
   Qed.
 
 (* Global Instance rename_olty2 : Rename (olty Σ) :=
-    λ r τ, Olty (λ ρ, τ (r >>> ρ)) (λ ρ, olty_v_closed τ _).
+    λ r τ, Olty (λ ρ, τ (r >>> ρ)) (λ ρ, olty_vclosed τ _).
   Global Instance hsubst_olty2 : HSubst vl (olty Σ) :=
-    λ sb τ, Olty (λ ρ, τ (sb >> ρ)) (λ ρ, olty_v_closed τ _).
+    λ sb τ, Olty (λ ρ, τ (sb >> ρ)) (λ ρ, olty_vclosed τ _).
   Global Instance HSubstLemmas_olty2 : HSubstLemmas vl (olty Σ).
   Proof.
     split=> [s|??|?? s]; apply olty_eq => //; case: s => [φ??];
@@ -204,7 +208,7 @@ Section olty_ofe.
   Lemma env_oltyped_cl_ρ Γ ρ :
     env_oltyped Γ ρ -∗ ⌜ nclosed_sub (length Γ) 0 ρ ⌝.
   Proof.
-    elim: Γ ρ => [|φ Γ IHΓ] ρ /=; [| rewrite IHΓ olty_v_closed ]; iIntros "!% //".
+    elim: Γ ρ => [|φ Γ IHΓ] ρ /=; [| rewrite IHΓ olty_vclosed ]; iIntros "!% //".
     - move => [Hclρ Hclp0] [|i /lt_S_n] Hle. exact Hclp0. apply Hclρ, Hle.
   Qed.
 
@@ -233,7 +237,7 @@ Section olty_ofe.
     ⟦ Γ ⟧* vs -∗ env_oltyped Γ (to_subst vs).
   Proof.
     elim: Γ vs => [|Γ φ IHΓ] [|v vs] /=;
-      by [|iIntros "[]"|asimpl; rewrite IHΓ].
+      by [ | iIntros "[]"| asimpl; rewrite IHΓ ].
   Qed.
 
   Lemma env_oltyped_fin_cl_ρ Γ ρ:
@@ -253,14 +257,14 @@ Section olty_ofe.
   Lemma interp_env_len_agree Γ ρ:
     ⟦ Γ ⟧* ρ -∗ ⌜ length ρ = length Γ ⌝.
   Proof.
-    elim: Γ ρ => [|τ Γ IHΓ] [|v ρ] //=; try by iPureIntro.
+    elim: Γ ρ => [|τ Γ IHΓ] [|v ρ] //=; try by iIntros "!%".
     rewrite IHΓ. by iIntros "[-> _] !%".
   Qed.
 
   Lemma interp_env_ρ_closed Γ ρ: ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ⌝.
   Proof.
-    elim: Γ ρ => [|τ Γ IHΓ] [|v ρ] //=; try by iPureIntro.
-    rewrite IHΓ olty_v_closed. iPureIntro. intuition.
+    elim: Γ ρ => [|τ Γ IHΓ] [|v ρ] //=; try by iIntros "!%".
+    rewrite IHΓ olty_vclosed. iIntros "!%". intuition.
   Qed.
 
   Lemma interp_env_props Γ ρ:
@@ -269,7 +273,7 @@ Section olty_ofe.
     iIntros "#HG".
     iDestruct (interp_env_ρ_closed with "HG") as %?.
     iDestruct (interp_env_len_agree with "HG") as %?.
-    by iPureIntro.
+    by iIntros "!%".
   Qed.
 
   Lemma interp_env_lookup Γ ρ τ x:
@@ -295,16 +299,16 @@ Section olty_ofe.
   Next Obligation. intros **?**. exact: False_elim. Qed.
 
   Program Definition oAnd τ1 τ2 : olty Σ := Olty (λ ρ v, τ1 ρ v ∧ τ2 ρ v)%I _.
-  Next Obligation. intros **?**. rewrite olty_v_closed. iIntros "[$ _]". Qed.
+  Next Obligation. intros **?**. rewrite olty_vclosed. iIntros "[$ _]". Qed.
 
   Program Definition oOr τ1 τ2 : olty Σ := Olty (λ ρ v, τ1 ρ v ∨ τ2 ρ v)%I _.
-  Next Obligation. intros **?**. rewrite !olty_v_closed. iIntros "[$ | $]". Qed.
+  Next Obligation. intros **?**. rewrite !olty_vclosed. iIntros "[$ | $]". Qed.
 
   Definition eLater i (φ : envD Σ) : envD Σ := (λ ρ v, ▷^i φ ρ v)%I.
   Definition oLater τ := closed_olty (eLater 1 τ).
 
   Program Definition oMu τ : olty Σ := Olty (λ ρ v, τ (v .: ρ) v) _.
-  Next Obligation. rewrite /vclosed; intros. exact: olty_v_closed. Qed.
+  Next Obligation. rewrite /vclosed; intros. exact: olty_vclosed. Qed.
 
   Lemma interp_TMu_ren T ρ v: oMu T.|[ren (+1)] (to_subst ρ) v ≡ T (to_subst ρ) v.
   Proof. rewrite [_ (oMu _)]/olty_car /= (olty_weaken_one v T ρ v). by []. Qed.
@@ -315,11 +319,7 @@ Section olty_ofe.
 End olty_ofe.
 
 Notation "⟦ Γ ⟧*" := (env_oltyped_fin Γ).
-Arguments oltyC : clear implicits.
-
-(* Different from normal TyInterp. Better? *)
-Class OTyInterp ty Σ :=
-  oty_interp: ty → olty Σ.
+Arguments oltyO : clear implicits.
 End OLty.
 
 Module Type OLtyJudgements (Import VS: VlSortsFullSig).
@@ -345,7 +345,7 @@ Section judgments.
 End judgments.
 
 Notation "Γ ⊨ e : τ" := (ietp Γ τ e) (at level 74, e, τ at next level).
-Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
+Notation "Γ ⊨ e : τ , i" := (step_indexed_ietp Γ τ e i) (at level 74, e, τ at next level).
 Notation "Γ ⊨ [ τ1 , i ]  <: [ τ2 , j ]" := (step_indexed_ivstp Γ τ1 τ2 i j) (at level 74, τ1, τ2 at next level).
 
 Section typing.
