@@ -1,3 +1,4 @@
+From iris.program_logic Require Import language.
 From D Require Import prelude asubst_intf.
 
 Module Type Sorts (Import V : ValuesSig) <: SortsSig V.
@@ -7,6 +8,7 @@ Class Sort (s : Type)
   {ids_s : Ids s} {ren_s : Rename s} {hsubst_vl_s : HSubst vl s}
   {hsubst_lemmas_vl_s : HSubstLemmas vl s} := {}.
 
+Global Instance sort_tm : Sort tm := {}.
 Global Instance sort_vls : Sort vls := {}.
 Global Instance sort_list `{Sort X} : Sort (list X) := {}.
 Global Instance sort_pair_snd `{Sort X} `{Inhabited A} : Sort (A * X) := {}.
@@ -433,4 +435,15 @@ End sort_lemmas_2.
 
 Hint Resolve nclosed_σ_to_subst nclosed_ren_shift @nclosed_sub_shift nclosed_ren_up @nclosed_sub_up.
 
+Lemma fv_of_val v n: nclosed_vl v n → nclosed (of_val v) n.
+Proof. intros Hclv s1 s2 Heqs. rewrite !hsubst_of_val. f_equiv. exact: Hclv. Qed.
+
+Lemma fv_of_val_inv v n: nclosed (of_val v) n → nclosed_vl v n.
+Proof. intros Hclt s1 s2 Heqs. apply (inj of_val). rewrite -!hsubst_of_val. exact: Hclt. Qed.
+
+Lemma lookup_fv {X} {Γ : list X} {x} {T : X} : Γ !! x = Some T → nclosed (of_val (ids x : vl)) (length Γ).
+Proof. move => /lookup_ids_fv /fv_of_val //. Qed.
+
 End Sorts.
+
+Module Type VlSortsFullSig <: VlSortsSig := ValuesSig <+ Sorts.

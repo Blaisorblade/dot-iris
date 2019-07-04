@@ -4,8 +4,8 @@ From D Require Import asubst_intf asubst_base.
 From iris.program_logic Require ectx_language ectxi_language.
 
 (** This module is included right away. Its only point is asserting explicitly
-    that it implements [VlSortsSig]. *)
-Module VlSorts <: VlSortsSig.
+    what interface it implements. *)
+Module VlSorts <: VlSortsFullSig.
 
 Definition label := string.
 
@@ -466,11 +466,13 @@ Canonical Structure dlang_ectxi_lang := ectxi_language.EctxiLanguage lang.dot_la
 Canonical Structure dlang_ectx_lang := ectxi_language.EctxLanguageOfEctxi dlang_ectxi_lang.
 Canonical Structure dlang_lang := ectx_language.LanguageOfEctx dlang_ectx_lang.
 
+Lemma hsubst_of_val (v : vl) s : (of_val v).|[s] = of_val (v.[s]).
+Proof. done. Qed.
+
 Include Sorts.
 End VlSorts.
 Include VlSorts.
 
-Instance sort_tm : Sort tm := {}.
 Instance sort_dm : Sort dm := {}.
 Instance sort_path : Sort path := {}.
 Instance sort_ty : Sort ty := {}.
