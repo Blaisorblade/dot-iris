@@ -134,9 +134,6 @@ Qed.
 Lemma tskip_subst i e s: (iterate tskip i e).|[s] = iterate tskip i e.|[s].
 Proof. elim: i => [|i IHi]; by rewrite ?iterate_0 ?iterate_S //= IHi. Qed.
 
-Lemma lookup_fv Γ x T: Γ !! x = Some T → nclosed (tv (ids x)) (length Γ).
-Proof. move =>/lookup_ids_fv /fv_tv //. Qed.
-
 Lemma fv_head l d ds n: nclosed ((l, d) :: ds) n → nclosed d n.
 Proof. exact: fv_cons_pair_inv_head. Qed.
 
