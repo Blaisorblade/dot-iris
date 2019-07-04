@@ -471,7 +471,7 @@ Proof. done. Qed.
 
 Include Sorts.
 End VlSorts.
-Include VlSorts.
+Export VlSorts.
 
 Instance sort_dm : Sort dm := {}.
 Instance sort_path : Sort path := {}.

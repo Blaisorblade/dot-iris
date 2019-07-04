@@ -1,7 +1,7 @@
 From D Require Import dlang.
 From D.DSub Require Export syn.
 
-Include LiftWp syn.
+Include LiftWp VlSorts.
 
 (**
 Possible future plan.

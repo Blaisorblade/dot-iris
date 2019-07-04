@@ -144,7 +144,7 @@ End HoSemTypes.
 Import mapsto.
 Notation "s ↝[ n ] φ" := (∃ γ, (s ↦ γ) ∗ (γ ⤇[ n ] φ))%I  (at level 20) : bi_scope.
 
-Include HoSemTypes syn.
+Include HoSemTypes VlSorts.
 
 Section bar.
   Context `{!savedHoSemTypeG Σ} `{!dlangG Σ}.
