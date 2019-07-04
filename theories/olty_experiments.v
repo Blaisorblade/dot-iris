@@ -34,9 +34,6 @@ Definition env := var -> vl.
 
 Implicit Types (v: vl) (vs : vls) (ρ : env).
 
-Definition test_interp_expr2 `{dlangG Σ} (φ : olty Σ) :=
-  λ ρ t, WP t {{ φ ρ }} %I.
-
 Section judgments.
 Context `{dlangG Σ} `{OTyInterp ty Σ}.
 Notation ctx := (list ty).
@@ -66,10 +63,6 @@ Global Arguments ivtp /.
 Notation "v v⋅: φ" := (ivtp φ v) (at level 73).
 Definition judge_me Γ v φ := Γ ⊨ v v⋅: φ.
 
-Definition interp_expr (φ : olty Σ) :=
-  λ ρ t, WP t {{ φ ρ }} %I.
-Global Arguments interp_expr /.
-Definition tm := expr dlang_lang.
 Context `{Closeable tm}.
 Definition ittp (φ: olty Σ) t : judgment Σ tm := subj_judgment_to_judgment (t, interp_expr φ).
 Global Arguments ittp /.
@@ -86,6 +79,7 @@ Definition ivstp φ1 φ2 : nosubj_judgment Σ := (λ ρ, ∀ v, ⌜ nclosed_vl v
 Program Definition step_indexed_ivstp φ1 i1 φ2 i2 := nosubj_judgment_to_judgment (Σ := Σ)
   (λ ρ, ∀ v, ⌜ nclosed_vl v 0 ⌝ → (▷^i1 φ1 ρ v) → ▷^i2 φ2 ρ v)%I.
 Notation "[ φ1 , i1 ] <: [ φ2 , i2 ]" := (step_indexed_ivstp φ1 i1 φ2 i2) (at level 73).
+
 Lemma equiv_vstp Γ (φ1 φ2: olty Σ) i1 i2: (Γ ⊨ [φ1 , i1] <: [φ2 , i2]) ⊣⊢
     (□∀ vs v, ⌜ nclosed_vl v 0 ⌝ → env_oltyped_fin Γ vs → (▷^i1 φ1 (to_subst vs) v) → ▷^i2 φ2 (to_subst vs) v)%I.
 Proof.
@@ -93,11 +87,6 @@ Proof.
     iIntros "#H"; iSplit; first done; iIntros "!>" (?) "#? /="; iIntros (??)].
   all: by iApply "H".
 Qed.
-Program Definition oAnd φ1 φ2 : olty Σ := Olty (λ ρ v, φ1 ρ v ∧ φ2 ρ v)%I _.
-Next Obligation. rewrite /vclosed; intros; iIntros "#[H _]". by iApply olty_v_closed. Qed.
-
-Program Definition oOr φ1 φ2 : olty Σ := Olty (λ ρ v, φ1 ρ v ∨ φ2 ρ v)%I _.
-Next Obligation. rewrite /vclosed; intros; iIntros "#[H | H]"; by iApply olty_v_closed. Qed.
 
 Lemma andstp1 Γ φ1 φ2 i : (Γ ⊨ [oAnd φ1 φ2 , i] <: [φ1 , i]).
 Proof.
@@ -114,7 +103,7 @@ Implicit Types
 
 Module SemTypes.
 
-Include OLty VlSorts.
+Include OLtyJudgements VlSorts.
 
 Record dlty Σ := Dlty {
   dlty_label : label;
@@ -126,39 +115,10 @@ Global Arguments dlty_car {_} _ _ _ : simpl never.
 Global Arguments dlty_label {_} _ /.
 Global Existing Instance dlty_persistent.
 
-Section Judgments.
-  Context `{HdotG: dlangG Σ}.
-
-  Implicit Types (φ : olty Σ).
-
-  Definition interp_expr (φ : envD Σ) :=
-    λ ρ t, WP t {{ φ ρ }} %I.
-  Global Arguments interp_expr /.
-
-  Definition ietp Γ φ e : iProp Σ := (⌜ nclosed e (length Γ) ⌝ ∗
-    □∀ ρ, ⟦Γ⟧* ρ → interp_expr φ (to_subst ρ) (e.|[to_subst ρ]))%I.
-  Global Arguments ietp /.
-
-  Definition step_indexed_ietp Γ φ e i: iProp Σ :=
-    (⌜ nclosed e (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ →
-      interp_expr (λ ρ v, ▷^i φ ρ v) (to_subst ρ) (e.|[to_subst ρ]))%I.
-  Global Arguments step_indexed_ietp /.
-
-  Definition step_indexed_ivstp Γ φ1 φ2 i j: iProp Σ :=
-    (□∀ ρ v, ⌜ nclosed_vl v 0 ⌝ →
-      ⟦Γ⟧*ρ → (▷^i φ1 (to_subst ρ) v) → ▷^j φ2 (to_subst ρ) v)%I.
-  Global Arguments step_indexed_ivstp /.
-
-  Definition idtp Γ l (T : dlty Σ) d : iProp Σ :=
-    (⌜ nclosed d (length Γ) ⌝ ∧ ⌜ l = dlty_label T ⌝ ∗
-      □∀ ρ, ⟦Γ⟧* ρ → dlty_car T (to_subst ρ) d.|[to_subst ρ])%I.
-
-  Global Arguments idtp /.
-End Judgments.
-
-Notation "Γ ⊨ e : φ" := (ietp Γ φ e) (at level 74, e, φ at next level).
-Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
-Notation "Γ ⊨ [ φ1 , i ]  <: [ φ2 , j ]" := (step_indexed_ivstp Γ φ1 φ2 i j) (at level 74, φ1, φ2 at next level): bi_scope.
+Definition idtp `{dlangG Σ} Γ l (T : dlty Σ) d : iProp Σ :=
+  (⌜ nclosed d (length Γ) ⌝ ∧ ⌜ l = dlty_label T ⌝ ∗
+    □∀ ρ, ⟦Γ⟧* ρ → dlty_car T (to_subst ρ) d.|[to_subst ρ])%I.
+Global Arguments idtp /.
 Notation "Γ ⊨d{ l := d  } : T" := (idtp Γ l T d) (at level 64, d, l, T at next level).
 
 Section SemTypes.
@@ -166,32 +126,8 @@ Section SemTypes.
 
   Implicit Types (φ : olty Σ) (τ : vl → iProp Σ).
 
-  Program Definition closed_olty (φ : envD Σ) `{∀ ρ v, Persistent (φ ρ v)} : olty Σ :=
-    Olty (λ ρ v, ⌜ nclosed_vl v 0 ⌝ ∗ φ ρ v)%I _.
-  Next Obligation. iIntros (????) "[$_]". Qed.
-
   Program Definition lift_dinterp_vl (T : dlty Σ): olty Σ :=
     closed_olty (λ ρ v, (∃ d, ⌜v @ dlty_label T ↘ d⌝ ∧ dlty_car T ρ d)%I).
-
-  Definition eLater i (φ : envD Σ) : envD Σ := (λ ρ v, ▷^i φ ρ v)%I.
-  Definition oLater φ := closed_olty (eLater 1 φ).
-
-  Lemma T_Var Γ x φ:
-    Γ !! x = Some φ →
-    (*──────────────────────*)
-    Γ ⊨ tv (ids x) : φ.|[ren (+x)].
-  Proof.
-    iIntros (Hx) "/=". iSplit. eauto using lookup_fv.
-    iIntros "!> * #Hg". rewrite -wp_value' interp_env_lookup; by [].
-  Qed.
-
-  Lemma iterate_TLater_later i (φ : olty Σ) ρ v:
-    nclosed_vl v 0 →
-    (iterate oLater i φ) ρ v ≡ (▷^i φ ρ v)%I.
-  Proof.
-    elim: i => [|i IHi] // => Hcl. rewrite iterate_S [_ ρ]/olty_car/= /eLater IHi //.
-    iSplit; by [iIntros "#[_ $]" | iIntros "$"].
-  Qed.
 
   Definition idm_proj_semtype d τ : iProp Σ :=
     (∃ s σ interp, ⌜ d = dtysem σ s ∧ τ = interp (to_subst σ) ⌝ ∗ s ↝ interp)%I.

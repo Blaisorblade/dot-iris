@@ -283,6 +283,35 @@ Section olty_ofe.
       iApply (olty_weaken_one v (τ.|[ren (+x)])).
       iApply (IHΓ x ρ Hx with "Hg").
   Qed.
+
+  Program Definition closed_olty (φ : envD Σ) `{∀ ρ v, Persistent (φ ρ v)} : olty Σ :=
+    Olty (λ ρ v, ⌜ nclosed_vl v 0 ⌝ ∗ φ ρ v)%I _.
+  Next Obligation. iIntros (????) "[$_]". Qed.
+
+  (** We can define once and for all basic "logical" types: top, bottom, and, or, later and μ. *)
+  Definition oTop := closed_olty (λ ρ v, True)%I.
+
+  Program Definition oBot : olty Σ := Olty (λ ρ v, False)%I _.
+  Next Obligation. intros **?**. exact: False_elim. Qed.
+
+  Program Definition oAnd τ1 τ2 : olty Σ := Olty (λ ρ v, τ1 ρ v ∧ τ2 ρ v)%I _.
+  Next Obligation. intros **?**. rewrite olty_v_closed. iIntros "[$ _]". Qed.
+
+  Program Definition oOr τ1 τ2 : olty Σ := Olty (λ ρ v, τ1 ρ v ∨ τ2 ρ v)%I _.
+  Next Obligation. intros **?**. rewrite !olty_v_closed. iIntros "[$ | $]". Qed.
+
+  Definition eLater i (φ : envD Σ) : envD Σ := (λ ρ v, ▷^i φ ρ v)%I.
+  Definition oLater τ := closed_olty (eLater 1 τ).
+
+  Program Definition oMu τ : olty Σ := Olty (λ ρ v, τ (v .: ρ) v) _.
+  Next Obligation. rewrite /vclosed; intros. exact: olty_v_closed. Qed.
+
+  Lemma interp_TMu_ren T ρ v: oMu T.|[ren (+1)] (to_subst ρ) v ≡ T (to_subst ρ) v.
+  Proof. rewrite [_ (oMu _)]/olty_car /= (olty_weaken_one v T ρ v). by []. Qed.
+
+  Definition interp_expr `{dlangG Σ} (φ : envD Σ) : envPred tm Σ :=
+    λ ρ t, WP t {{ φ ρ }} %I.
+  Global Arguments interp_expr /.
 End olty_ofe.
 
 Notation "⟦ Γ ⟧*" := (env_oltyped_fin Γ).
@@ -292,3 +321,59 @@ Arguments oltyC : clear implicits.
 Class OTyInterp ty Σ :=
   oty_interp: ty → olty Σ.
 End OLty.
+
+Module Type OLtyJudgements (Import VS: VlSortsFullSig).
+Include OLty VS.
+Section judgments.
+  Context `{dlangG Σ}.
+  Implicit Types (τ : olty Σ).
+
+  Definition step_indexed_ivstp Γ τ1 τ2 i j: iProp Σ :=
+    (□∀ ρ v, ⌜ nclosed_vl v 0 ⌝ →
+      ⟦Γ⟧*ρ → (▷^i τ1 (to_subst ρ) v) → ▷^j τ2 (to_subst ρ) v)%I.
+  Global Arguments step_indexed_ivstp /.
+
+  Definition ietp Γ τ e : iProp Σ := (⌜ nclosed e (length Γ) ⌝ ∗
+    □∀ ρ, ⟦Γ⟧* ρ → interp_expr τ (to_subst ρ) (e.|[to_subst ρ]))%I.
+  Global Arguments ietp /.
+
+  Definition step_indexed_ietp Γ τ e i: iProp Σ :=
+    (⌜ nclosed e (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ →
+      interp_expr (λ ρ v, ▷^i τ ρ v) (to_subst ρ) (e.|[to_subst ρ]))%I.
+  Global Arguments step_indexed_ietp /.
+
+End judgments.
+
+Notation "Γ ⊨ e : τ" := (ietp Γ τ e) (at level 74, e, τ at next level).
+Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
+Notation "Γ ⊨ [ τ1 , i ]  <: [ τ2 , j ]" := (step_indexed_ivstp Γ τ1 τ2 i j) (at level 74, τ1, τ2 at next level).
+
+Section typing.
+  Context `{dlangG Σ}.
+  Implicit Types (τ : olty Σ).
+
+  Lemma iterate_TLater_later i (τ : olty Σ) ρ v:
+    nclosed_vl v 0 →
+    (iterate oLater i τ) ρ v ≡ (▷^i τ ρ v)%I.
+  Proof.
+    elim: i => [|i IHi] // => Hcl. rewrite iterate_S [_ ρ]/olty_car/= /eLater IHi //.
+    iSplit; by [iIntros "#[_ $]" | iIntros "$"].
+  Qed.
+
+  Lemma T_Var Γ x τ:
+    Γ !! x = Some τ →
+    (*──────────────────────*)
+    Γ ⊨ of_val (ids x) : τ.|[ren (+x)].
+  Proof.
+    iIntros (Hx) "/=". iSplit. eauto using lookup_fv.
+    iIntros "!>" (vs) "#Hg". rewrite hsubst_of_val -wp_value' interp_env_lookup // id_subst. by [].
+  Qed.
+
+  Lemma andstp1 Γ τ1 τ2 i : Γ ⊨ [oAnd τ1 τ2 , i] <: [τ1 , i].
+  Proof. iIntros "!>" (???) "#Hg #[$ _]". Qed.
+
+  Lemma andstp2 Γ τ1 τ2 i : Γ ⊨ [oAnd τ1 τ2 , i] <: [τ2 , i].
+  Proof. iIntros "!>" (???) "#Hg #[_ $]". Qed.
+End typing.
+
+End OLtyJudgements.
