@@ -30,9 +30,8 @@ Section logrel.
 
   Notation D := (vl -d> iProp Σ).
   Implicit Types (interp : envD Σ) (φ : D).
-  Notation envPred s := ((var → vl) -d> s -d> iProp Σ).
 
-  Definition def_interp_vmem interp : envPred dm :=
+  Definition def_interp_vmem interp : envPred dm Σ :=
     λ ρ d, (∃ vmem, ⌜d = dvl vmem⌝ ∧ ▷ interp ρ vmem)%I.
   Global Arguments def_interp_vmem /.
 
@@ -57,14 +56,14 @@ Section logrel.
   Global Arguments idm_proj_semtype : simpl never.
   (* Global Opaque idm_proj_semtype. *)
 
-  Definition def_interp_tmem interp1 interp2 : envPred dm :=
+  Definition def_interp_tmem interp1 interp2 : envPred dm Σ :=
     λ ρ d,
     (∃ φ, (d ↗ φ) ∗
        □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ interp1 ρ v → ▷ □ φ v) ∗
           (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ φ v → ▷ interp2 ρ v)))%I.
   Global Arguments def_interp_tmem /.
 
-  Definition lift_dinterp_vl l (dinterp: envPred dm): envD Σ :=
+  Definition lift_dinterp_vl l (dinterp: envPred dm Σ): envD Σ :=
     λ ρ v, (⌜ nclosed_vl v 0 ⌝ ∗ ∃ d, ⌜v @ l ↘ d⌝ ∧ dinterp ρ d)%I.
   Global Arguments lift_dinterp_vl /.
 
@@ -76,7 +75,7 @@ Section logrel.
     lift_dinterp_vl l (def_interp_tmem interp1 interp2).
   Global Arguments interp_tmem /.
 
-  Definition interp_expr interp : envPred tm :=
+  Definition interp_expr interp : envPred tm Σ :=
     λ ρ t, WP t {{ interp ρ }} %I.
   Global Arguments interp_expr /.
 
@@ -151,7 +150,7 @@ Section logrel.
     Persistent (⟦ T ⟧ ρ v).
   Proof. revert v ρ; induction T => w ρ /=; try apply _. Qed.
 
-  Fixpoint def_interp_base (T : ty) : envPred dm :=
+  Fixpoint def_interp_base (T : ty) : envPred dm Σ :=
     λ ρ d,
     match T with
     | TTMem _ L U => def_interp_tmem (interp L) (interp U) ρ d
@@ -159,7 +158,7 @@ Section logrel.
     | _ => False
     end%I.
 
-  Definition def_interp (T : ty) l : envPred dm :=
+  Definition def_interp (T : ty) l : envPred dm Σ :=
     λ ρ d,
     (⌜ label_of_ty T = Some l ⌝ ∧ def_interp_base T ρ d)%I.
 
@@ -170,14 +169,14 @@ Section logrel.
   Global Instance def_interp_persistent T l ρ d :
     Persistent (def_interp T l ρ d) := _.
 
-  Definition defs_interp_and (interp1 interp2 : envPred dms) : envPred dms :=
+  Definition defs_interp_and (interp1 interp2 : envPred dms Σ) : envPred dms Σ :=
     λ ρ ds, (interp1 ρ ds ∧ interp2 ρ ds)%I.
 
-  Definition lift_dinterp_dms T : envPred dms := λ ρ ds, (∃ l d,
+  Definition lift_dinterp_dms T : envPred dms Σ := λ ρ ds, (∃ l d,
     ⌜ dms_lookup l ds = Some d ∧ nclosed ds 0 ⌝
     ∧ def_interp T l ρ d)%I.
 
-  Fixpoint defs_interp T : envPred dms :=
+  Fixpoint defs_interp T : envPred dms Σ :=
     match T with
     | TAnd T1 T2 => defs_interp_and (defs_interp T1) (defs_interp T2)
     | TTop => λ ρ ds, ⌜ nclosed ds 0 ⌝

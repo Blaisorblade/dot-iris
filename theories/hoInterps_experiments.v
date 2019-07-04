@@ -158,8 +158,6 @@ Section bar.
   Global Arguments idm_proj_semtype: simpl never.
   Notation "d ↗[ n ] φ" := (idm_proj_semtype d n φ) (at level 20).
 
-  Notation envPred s := ((var → vl) -d> s -d> iProp Σ).
-
   Definition skind n Σ := hoD n Σ -> iProp Σ.
 
   (* The point of Sandro's kind syntax is to use this only at kind 0. *)
@@ -239,9 +237,9 @@ Section bar.
  (* move => _ n _ k ? φ1 k' [?] ?. //. subst.
   refine (res). Defined. *)
 
-  Definition def_interp_tmem {n} : skind n Σ → envPred dm :=
+  Definition def_interp_tmem {n} : skind n Σ → envPred dm Σ :=
     λ K ρ d, (∃ φ, d.|[ρ] ↗[ n ] φ ∗ K φ)%I.
-  Definition def_interp_tmem_spec (φ1 φ2 : hoD 0 Σ) : envPred dm :=
+  Definition def_interp_tmem_spec (φ1 φ2 : hoD 0 Σ) : envPred dm Σ :=
     def_interp_tmem (sktmem φ1 φ2).
 
   (* Olty needed. Also, without using Olty, we can't use the fact that v is closed in a subtyping proof.
