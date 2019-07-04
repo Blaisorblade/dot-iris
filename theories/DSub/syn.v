@@ -305,7 +305,7 @@ Proof. done. Qed.
 
 Include Sorts.
 End VlSorts.
-Include VlSorts.
+Export VlSorts.
 
 Instance sort_ty : Sort ty := {}.
 
