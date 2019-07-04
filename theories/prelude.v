@@ -11,6 +11,15 @@ From D Require Export tactics.
   ourselves: *)
 Obligation Tactic := idtac.
 
+(**
+  This is the correct setting for this flag, even if it's not the default, per
+  https://coq.inria.fr/refman/proof-engine/tactics.html#hint-locality.
+  With the old behavior, after `Module Foo. Hint Extern bla. End Foo. Include
+  Foo.`, the Hint is available twice; we hit this an expensive hint,
+  so it's crucial to set this globally.
+ *)
+Global Set Loose Hint Behavior "Strict".
+
 Tactic Notation "locAsimpl'" uconstr(e1) :=
   remember (e1) as __e' eqn:__Heqe';
   progress asimpl in __Heqe'; subst __e'.
