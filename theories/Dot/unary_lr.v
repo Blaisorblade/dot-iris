@@ -250,9 +250,10 @@ Section logrel.
     (□∀ vs v, ⟦Γ⟧* vs → ▷^i ⟦T1⟧ (to_subst vs) v → ▷^j ⟦T2⟧ (to_subst vs) v)%I.
   Global Arguments step_indexed_ivstp /.
 
-  Definition iptp Γ T p i: iProp Σ :=
-    (□∀ vs, ⟦Γ⟧* vs →
-     ▷^i path_wp (p.|[to_subst vs]) (λ v, ⟦T⟧ (to_subst vs) v))%I.
+  Program Definition iptp Γ T p (i : nat): iProp Σ :=
+    (∃ j : nat, ⌜ i = (j + plength p)%nat ⌝ ∗
+      □∀ vs, ⟦Γ⟧* vs →
+      ▷^j path_wp (p.|[to_subst vs]) (λ v, ⟦T⟧ (to_subst vs) v))%I.
   Global Arguments iptp /.
 
   Global Instance idtp_persistent Γ T l d: Persistent (idtp Γ T l d) := _.

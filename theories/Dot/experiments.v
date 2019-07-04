@@ -237,8 +237,9 @@ Section Sec.
       ▷^i path_wp (p.|[to_subst vs])
       (λ v, sem_psingleton p (to_subst vs) v)).
   Proof.
-    iIntros "#Hp !>" (vs) "#Hg".
-    iSpecialize ("Hp" with "Hg"); iNext i.
+    iDestruct 1 as (j ->) "#Hp".
+    iIntros "!>" (vs) "#Hg".
+    iSpecialize ("Hp" with "Hg"). iNext _.
     rewrite !path_wp_eq plength_subst_inv.
     iDestruct "Hp" as (v) "(Heq & _)". by iExists v; iFrame "Heq".
   Qed.
