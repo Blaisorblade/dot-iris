@@ -150,13 +150,13 @@ Section bar.
   Context `{!savedHoSemTypeG Σ} `{!dlangG Σ}.
   (* Implicit Types (interp : _envD Σ) (φ : D). *)
 
-  Definition idm_proj_semtype (d : dm) n (φ : hoD n Σ) : iProp Σ :=
+  Definition dm_to_type (d : dm) n (φ : hoD n Σ) : iProp Σ :=
     (∃ s σ interp,
       s ↝[ n ] interp ∗
       ⌜ d = dtysem σ s
        ∧ φ = λ args v, interp args (to_subst σ) v ⌝)%I.
-  Global Arguments idm_proj_semtype: simpl never.
-  Notation "d ↗[ n ] φ" := (idm_proj_semtype d n φ) (at level 20).
+  Global Arguments dm_to_type: simpl never.
+  Notation "d ↗[ n ] φ" := (dm_to_type d n φ) (at level 20).
 
   Definition skind n Σ := hoD n Σ -> iProp Σ.
 
@@ -270,5 +270,5 @@ Section bar.
   Qed.
 End bar.
 
-Notation "d ↗[ n ] φ" := (idm_proj_semtype d n φ) (at level 20).
+Notation "d ↗[ n ] φ" := (dm_to_type d n φ) (at level 20).
 End try2.

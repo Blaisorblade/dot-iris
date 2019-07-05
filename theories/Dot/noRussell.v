@@ -31,7 +31,7 @@ Section Russell.
   (** Yes, v has a valid type member. *)
   Lemma vHasA: Hs ⊢ ⟦ TTMem "A" TBot TTop ⟧ ids v.
   Proof.
-    iIntros "#Hs". repeat (repeat iExists _; repeat iSplit; try by [|iApply idm_proj_intro]).
+    iIntros "#Hs". repeat (repeat iExists _; repeat iSplit; try by [|iApply dm_to_type_intro]).
     iModIntro; repeat iSplit; by iIntros "** !>".
   Qed.
 
@@ -43,7 +43,7 @@ Section Russell.
     iAssert (d ↗ russell_p ids) as "#Hs2".
     - iExists s, [], russell_p; iFrame "Hs"; iPureIntro.
       move: Hl => [ds] [[<- /=] ?]. by simplify_eq.
-    - iPoseProof (stored_pred_agree d _ _ v with "Hs1 Hs2") as "#Hag".
+    - iPoseProof (dm_to_type_agree d _ _ v with "Hs1 Hs2") as "#Hag".
       (* without lock, iNext would strip a later in [HuauV]. *)
       rewrite [uAu]lock; iNext; unlock.
       iRewrite "Hag" in "Hvav".

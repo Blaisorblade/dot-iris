@@ -41,7 +41,7 @@ Section Sec.
     iDestruct "Hp" as (d Hl φ) "#[Hlφ [_ #HφU]]".
     iDestruct "Hφ" as (φ1 d1 Hva) "[Hγ #HΦ1v]".
     objLookupDet.
-    iDestruct (stored_pred_agree d _ _ v with "Hlφ Hγ") as "#Hag".
+    iDestruct (dm_to_type_agree d _ _ v with "Hlφ Hγ") as "#Hag".
     iApply "HφU" => //. iNext. by iRewrite "Hag".
   Qed.
 

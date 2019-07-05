@@ -130,12 +130,12 @@ Section SemTypes.
   Program Definition lift_dinterp_vl (T : dlty Σ): olty Σ :=
     closed_olty (λ ρ v, (∃ d, ⌜v @ dlty_label T ↘ d⌝ ∧ dlty_car T ρ d)%I).
 
-  Definition idm_proj_semtype d ψ : iProp Σ :=
+  Definition dm_to_type d ψ : iProp Σ :=
     (∃ s σ interp, ⌜ d = dtysem σ s ∧ ψ = interp (to_subst σ) ⌝ ∗ s ↝ interp)%I.
-  Notation "d ↗ ψ" := (idm_proj_semtype d ψ) (at level 20).
-  Global Instance idm_proj_persistent d ψ: Persistent (d ↗ ψ) := _.
+  Notation "d ↗ ψ" := (dm_to_type d ψ) (at level 20).
+  Global Instance dm_to_type_persistent d ψ: Persistent (d ↗ ψ) := _.
 
-  Lemma stored_pred_agree d ψ1 ψ2 v :
+  Lemma dm_to_type_agree d ψ1 ψ2 v :
     d ↗ ψ1 -∗ d ↗ ψ2 -∗ ▷ (ψ1 v ≡ ψ2 v).
   Proof.
     iIntros "/= #Hd1 #Hd2".
@@ -144,11 +144,11 @@ Section SemTypes.
     ev; simplify_eq. by iApply (leadsto_agree _ interp1 interp2).
   Qed.
 
-  Lemma idm_proj_intro s σ φ :
+  Lemma dm_to_type_intro s σ φ :
     s ↝ φ -∗ dtysem σ s ↗ φ (to_subst σ).
   Proof. iIntros. iExists s, σ , φ. by iSplit. Qed.
 
-  Global Opaque idm_proj_semtype.
+  Global Opaque dm_to_type.
 
   Definition oDTMem l τ1 τ2 : dlty Σ := Dlty l
     (λ ρ d,
@@ -192,7 +192,7 @@ Section SemTypes.
     iNext.
     iDestruct "Hva" as (Hclvas d Hl ψ) "#[Hlψ [#HLψ #HψU]]".
     iDestruct "Hψ" as (ψ1 d1 Hva) "[Hγ #Hψ1v]".
-    objLookupDet; subst. iDestruct (stored_pred_agree d _ _ v with "Hlψ Hγ") as "#Hag".
+    objLookupDet; subst. iDestruct (dm_to_type_agree d _ _ v with "Hlψ Hγ") as "#Hag".
     iApply "HψU" => //. iNext. by iRewrite "Hag".
   Qed.
 
@@ -229,7 +229,7 @@ Section SemTypes.
     iDestruct "Hψ" as (ψ1 d1) "[>% [Hγ #Hψ1v]]".
     (* iSpecialize ("HLψ" $! v Hclv); iSpecialize ("HψU" $! v Hclv). *)
     (* rewrite /sem_sel /olty_car. *)
-    objLookupDet; subst. iNext. iDestruct (stored_pred_agree d _ _ v with "Hlψ Hγ") as "#Hag".
+    objLookupDet; subst. iNext. iDestruct (dm_to_type_agree d _ _ v with "Hlψ Hγ") as "#Hag".
     repeat iModIntro. Fail by iRewrite "Hag".
   Abort. *)
 End SemTypes.
@@ -265,7 +265,7 @@ Section Sec.
     (* iDestruct (env_oltyped_fin_cl_ρ with "Hg") as %Hclp. *)
     iDestruct "Hs" as (φ) "[Hγ Hγφ]".
     iExists (φ (to_subst σ.|[to_subst ρ])); iSplit.
-    by iApply idm_proj_intro.
+    by iApply dm_to_type_intro.
     rewrite /envD_equiv.
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL"; rewrite later_intuitionistically.
     - iIntros "!>". iApply (internal_eq_iff with "(Hγφ [#//] [#//])").
@@ -307,7 +307,7 @@ Section Sec.
     iDestruct (env_oltyped_fin_cl_ρ with "Hg") as %Hclp.
     iDestruct "Hs" as (φ) "[Hγ Hγφ]".
     iExists (φ (to_subst σ.|[to_subst ρ])); iSplit.
-    by iApply idm_proj_intro.
+    by iApply dm_to_type_intro.
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL"; rewrite later_intuitionistically.
     - iIntros "!>". iApply (internal_eq_iff with "(Hγφ [#//])").
       by iApply "HLT".
