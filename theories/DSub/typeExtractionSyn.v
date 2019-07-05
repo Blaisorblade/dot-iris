@@ -2,7 +2,7 @@
 From stdpp Require Import gmap fin_map_dom.
 
 From D Require Import tactics.
-From D.DSub Require Import syn operational synLemmas.
+From D.DSub Require Import syn synLemmas.
 
 Set Implicit Arguments.
 
