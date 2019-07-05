@@ -50,17 +50,12 @@ Section logrel_binding_lemmas.
     Γ !! x = Some T →
     ⟦ Γ ⟧* ρ -∗ ⟦ T.|[ren (+x)] ⟧ (to_subst ρ) (to_subst ρ x).
   Proof.
-    iIntros (Hx) "* Hg".
-    iInduction Γ as [|T' Γ'] "IHL" forall (x ρ Hx); simpl; first solve [inversion Hx].
-    destruct ρ; first by [iExFalso].
-    case: x Hx => /= [|x] Hx.
-    - move: Hx => [ -> ]. iClear "IHL". locAsimpl.
-      by iDestruct "Hg" as "[_ $]".
-    - iAssert (⟦ T.|[ren (+x)] ⟧ (to_subst ρ) (to_subst ρ x)) with "[Hg]" as "Hv".
-      by iDestruct "Hg" as "[Hg _]"; iApply "IHL".
-      iClear "IHL".
-      iDestruct (interp_weaken_one v with "Hv") as "Hv".
-      by iEval (locAsimpl) in "Hv".
+    elim: Γ ρ x => [//|τ' Γ' IHΓ] [|v ρ] x Hx /=. by iIntros "[]".
+    iDestruct 1 as "[Hg Hv]". move: x Hx => [ [->] | x Hx] /=.
+    - rewrite hsubst_id. by [].
+    - rewrite hrenS.
+      iApply (interp_weaken_one v (T.|[ren (+x)]) ρ).
+      iApply (IHΓ ρ x Hx with "Hg").
   Qed.
 
   Lemma interp_subst_all ρ τ v:

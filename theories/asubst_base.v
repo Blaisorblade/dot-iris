@@ -343,6 +343,12 @@ Section sort_lemmas.
 Context `{_HsX: Sort X}.
 Implicit Types (x : X) (Γ : list X).
 
+Lemma renS_comp n : ren (+S n) = ren (+n) >> ren (+1).
+Proof. rewrite /ren/scomp. fsimpl. by rewrite (id_scompX ((+1) >>> ids)). Qed.
+
+Lemma hrenS x n : x.|[ren (+S n)] = x.|[ren (+n)].|[ren (+1)].
+Proof. rewrite hsubst_comp renS_comp. by []. Qed.
+
 Lemma closed_subst_idsρ x n :
   nclosed x n → x.|[to_subst (idsσ n)] = x.
 Proof. intro Hcl. rewrite (Hcl _ ids (@idsσ_eq_ids n)). by asimpl. Qed.

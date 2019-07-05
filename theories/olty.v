@@ -280,12 +280,12 @@ Section olty_ofe.
     Γ !! x = Some τ →
     ⟦ Γ ⟧* ρ -∗ τ.|[ren (+x)] (to_subst ρ) (to_subst ρ x).
   Proof.
-    elim: Γ x ρ => [//|τ' Γ' IHΓ] [//|x] [//|v ρ] /= Hx;
-      try by [|iIntros "[]"]; iDestruct 1 as "[Hg Hv]".
-    - move: Hx => [ -> ]. by locAsimpl.
-    - have -> : τ.|[ren (+S x)] = τ.|[ren (+x)].|[ren (+1)]. by asimpl.
-      iApply (olty_weaken_one v (τ.|[ren (+x)])).
-      iApply (IHΓ x ρ Hx with "Hg").
+    elim: Γ ρ x => [//|τ' Γ' IHΓ] [|v ρ] x Hx /=. by iIntros "[]".
+    iDestruct 1 as "[Hg Hv]". move: x Hx => [ [->] | x Hx] /=.
+    - rewrite hsubst_id. by [].
+    - rewrite hrenS.
+      iApply (olty_weaken_one v (τ.|[ren (+x)]) ρ).
+      iApply (IHΓ ρ x Hx with "Hg").
   Qed.
 
   Program Definition closed_olty (φ : envD Σ) `{∀ ρ v, Persistent (φ ρ v)} : olty Σ :=
