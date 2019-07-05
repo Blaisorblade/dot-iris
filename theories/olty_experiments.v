@@ -144,8 +144,8 @@ Section SemTypes.
     ev; simplify_eq. by iApply (leadsto_agree _ interp1 interp2).
   Qed.
 
-  Lemma dm_to_type_intro s σ φ :
-    s ↝ φ -∗ dtysem σ s ↗ φ (to_subst σ).
+  Lemma dm_to_type_intro d s σ φ :
+    d = dtysem σ s → s ↝ φ -∗ d ↗ φ (to_subst σ).
   Proof. iIntros. iExists s, σ , φ. by iSplit. Qed.
 
   Global Opaque dm_to_type.

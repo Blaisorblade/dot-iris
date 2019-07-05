@@ -23,7 +23,8 @@ Section ex.
   (** Yes, v has a valid type member. *)
   Lemma vHasA0: Hs -∗ ⟦ TTMem "A" TBot TNat ⟧ ids v.
   Proof.
-    iIntros "#Hs". repeat (repeat iExists _; repeat iSplit; try done).
+    iIntros "#Hs".
+    repeat (repeat iExists _; repeat iSplit => //). by iApply dm_to_type_intro.
     iModIntro; repeat iSplit;
     iIntros (v Hcl); rewrite -?even_nat /=; iIntros ">#% //".
   Qed.
@@ -69,12 +70,9 @@ Section ex.
     - iApply (T_Sub _ _ _ _ 0); last by iApply Sub_Top.
       by iApply vHasA0'.
     - rewrite -ietp_value /=; last done; iSplit => //.
-      do 2 (repeat iExists _; [repeat iSplit]) => //=.
-      iNext.
-      iExists _, _; repeat iSplit =>//;
-      repeat iExists _; [repeat iSplit..] => //=.
-      by iExists 1.
-      (* by instantiate (1 := 1). *)
+      have Hev2: even (vnat 2). by exists 1.
+      repeat (repeat iExists _; repeat iSplit);
+        by [|iApply dm_to_type_intro].
   Qed.
 
   (*
@@ -106,6 +104,7 @@ Section ex.
       iIntros ([|v ρ]) "/= #H". done.
       iDestruct "H" as "[-> [% _]]".
       repeat (repeat iExists _; repeat iSplit; try done).
+      by iApply dm_to_type_intro.
       iModIntro; repeat iSplit;
       iIntros (w Hcl); rewrite -?even_nat /=.
       by iIntros ">?".
@@ -122,6 +121,7 @@ Section ex.
       iExists φ, dA; repeat iSplit => //.
       (* This will fail, since we don't know what v is and what
       "A" points to. *)
+      Fail unfold v.
   Abort.
 End ex.
 End example.

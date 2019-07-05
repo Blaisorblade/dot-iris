@@ -35,9 +35,9 @@ Section logrel.
      Tho maybe let's do one thing at a time. *)
   Definition dm_to_type v (φ : D) : iProp Σ :=
     (∃ γ σ interp, ⌜ v = vstamp σ γ ⌝ ∗ γ ⤇ interp ∗ φ ≡ interp (to_subst σ))%I.
-  Global Arguments dm_to_type /.
   Notation "v ↗ φ" := (dm_to_type v φ) (at level 20).
   Global Instance dm_to_type_persistent d τ: Persistent (d ↗ τ) := _.
+  Global Opaque dm_to_type.
 
   Definition interp_tmem interp1 interp2 : envD Σ :=
     λ ρ v,
