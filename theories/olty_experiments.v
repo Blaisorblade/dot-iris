@@ -131,22 +131,20 @@ Section SemTypes.
     closed_olty (λ ρ v, (∃ d, ⌜v @ dlty_label T ↘ d⌝ ∧ dlty_car T ρ d)%I).
 
   Definition dm_to_type d ψ : iProp Σ :=
-    (∃ s σ interp, ⌜ d = dtysem σ s ∧ ψ = interp (to_subst σ) ⌝ ∗ s ↝ interp)%I.
+    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∗ s ↗[ σ ] ψ)%I.
   Notation "d ↗ ψ" := (dm_to_type d ψ) (at level 20).
   Global Instance dm_to_type_persistent d ψ: Persistent (d ↗ ψ) := _.
 
-  Lemma dm_to_type_agree d ψ1 ψ2 v :
-    d ↗ ψ1 -∗ d ↗ ψ2 -∗ ▷ (ψ1 v ≡ ψ2 v).
+  Lemma dm_to_type_agree d ψ1 ψ2 v : d ↗ ψ1 -∗ d ↗ ψ2 -∗ ▷ (ψ1 v ≡ ψ2 v).
   Proof.
-    iIntros "/= #Hd1 #Hd2".
-    iDestruct "Hd2" as (s' σ' interp2 ?) "Hs2".
-    iDestruct "Hd1" as (s σ interp1 ?) "Hs1".
-    ev; simplify_eq. by iApply (leadsto_agree _ interp1 interp2).
+    iDestruct 1 as (s σ ?) "#Hs1".
+    iDestruct 1 as (s' σ' ?) "#Hs2".
+    simplify_eq. by iApply stamp_σ_to_type_agree.
   Qed.
 
   Lemma dm_to_type_intro d s σ φ :
     d = dtysem σ s → s ↝ φ -∗ d ↗ φ (to_subst σ).
-  Proof. iIntros. iExists s, σ , φ. by iSplit. Qed.
+  Proof. iIntros. iExists s, σ. rewrite -stamp_σ_to_type_intro. auto. Qed.
 
   Global Opaque dm_to_type.
 

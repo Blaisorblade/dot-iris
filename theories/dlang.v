@@ -56,17 +56,26 @@ Module Type LiftWp (Import VS : VlSortsSig).
 
   Notation "s ↝ φ" := (∃ γ, s ↦ γ ∗ γ ⤇ φ)%I  (at level 20) : bi_scope.
 
+  Definition stamp_σ_to_type `{!dlangG Σ} s σ (ψ : vl -d> iProp Σ) : iProp Σ :=
+    (∃ φ : envD Σ, ⌜ ψ = φ (to_subst σ) ⌝ ∗ s ↝ φ)%I.
+  Notation "s ↗[ σ  ] ψ" := (stamp_σ_to_type s σ ψ) (at level 20).
+
   Section mapsto.
     Context `{!dlangG Σ}.
 
-    Lemma leadsto_agree s (φ1 φ2: envD Σ) ρ v: s ↝ φ1 -∗ s ↝ φ2 -∗ ▷ (φ1 ρ v ≡ φ2 ρ v).
+    Global Instance stamp_σ_to_type_persistent σ s ψ: Persistent (s ↗[ σ  ] ψ) := _.
+
+    Lemma stamp_σ_to_type_agree σ s ψ1 ψ2 v :
+      s ↗[ σ ] ψ1 -∗ s ↗[ σ ] ψ2 -∗ ▷ (ψ1 v ≡ ψ2 v).
     Proof.
-      iIntros "/= #H1 #H2".
-      iDestruct "H1" as (γ1) "[Hs1 Hg1]".
-      iDestruct "H2" as (γ2) "[Hs2 Hg2]".
+      iDestruct 1 as (φ1 -> γ1) "[Hs1 Hg1]".
+      iDestruct 1 as (φ2 -> γ2) "[Hs2 Hg2]".
       iDestruct (mapsto_agree with "Hs1 Hs2") as %->.
-      by iApply (saved_interp_agree _ φ1 φ2).
+      iApply (saved_interp_agree with "Hg1 Hg2").
     Qed.
+
+    Lemma stamp_σ_to_type_intro s σ φ : s ↝ φ -∗ s ↗[ σ ] φ (to_subst σ).
+    Proof. rewrite /stamp_σ_to_type. iIntros; iExists φ; auto. Qed.
   End mapsto.
 
   Module dlang_adequacy.
