@@ -138,8 +138,7 @@ Section Sec.
   Proof.
     iIntros "/= [% #He1] [% #Hv2Arg]". move: H H0 => Hcle1 Hclv2. iSplit; eauto using fv_tapp. iIntros " !> * #HG".
     move: Hclv2 => /fv_tv_inv Hclv2.
-    smart_wp_bind (AppLCtx (tv v2.[_])) v "[_ #Hr]" ("He1" with "[#//]").
-    iClear "He1".
+    smart_wp_bind (AppLCtx (tv v2.[_])) v "[_ #Hr] {He1}" ("He1" with "[#//]").
     iDestruct "Hr" as (t ->) "#HvFun".
     rewrite -wp_pure_step_later; last done. iNext.
     iApply wp_wand.
@@ -181,7 +180,7 @@ Section Sec.
     Γ ⊨ tproj e l : T)%I.
   Proof.
     iIntros "#[% #HE] /=". iSplit; auto using fv_tproj. iIntros " !>" (vs) "#HG".
-    smart_wp_bind (ProjCtx l) v "#[% Hv]" "HE". iClear "HE".
+    smart_wp_bind (ProjCtx l) v "#[% Hv] {HE}" "HE".
     iDestruct "Hv" as (? Hl vmem ->) "Hv".
     rewrite -wp_pure_step_later // -wp_value. by [].
   Qed.

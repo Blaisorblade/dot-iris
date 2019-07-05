@@ -17,9 +17,9 @@ Section Sec.
 
     rewrite iterate_TLater_later //
       strong_path_wp_wand plength_subst_inv -swap_later.
-    iApply "Hp"; iClear "Hp".
-    iNext (plength p); iIntros (w) "#Hp";
-      iDestruct "Hp" as (Hclvas d Hl φ) "#[Hlφ [#HLφ #HφU]]".
+    iApply "Hp".
+    iNext (plength p); iIntros (w).
+    iDestruct 1 as (Hclvas d Hl φ) "{Hp} #[Hlφ [#HLφ #HφU]]".
     iExists φ, d; repeat iSplit => //.
     by iApply "HLφ".
   Qed.
@@ -35,7 +35,7 @@ Section Sec.
     rewrite iterate_TLater_later // !path_wp_eq.
     iDestruct "Hp" as (w) "[Hw [Hclw Hp]]".
     iDestruct "Hφ" as (w') "[Hw' Hφ]".
-    iDestruct (path_wp_det with "Hw Hw'") as "Heqw"; iClear "Hw Hw'".
+    iDestruct (path_wp_det with "Hw Hw'") as "{Hw Hw'} Heqw".
     rewrite !plength_subst_inv -swap_later; iNext (plength p).
     iDestruct "Heqw" as %<-.
     iDestruct "Hp" as (d Hl φ) "#[Hlφ [_ #HφU]]".
@@ -60,9 +60,8 @@ Section Sec.
     Γ ⊨p pself p l : T, i.
   Proof.
     iIntros "[% #HE]"; iSplit; auto using fv_pself. iIntros " !>" (ρ) "#HG /=".
-    iApply (path_wp_wand with "(HE HG)"); iClear "HE".
-    iNext.
-    iIntros (v) "#[_ Hv]".
+    iApply (path_wp_wand with "(HE HG)"); iNext i.
+    iIntros (v) "{HE} #[_ Hv]".
     iDestruct "Hv" as (d Hl vmem ->) "Hv".
     iExists vmem. iSplit; eauto.
   Qed.

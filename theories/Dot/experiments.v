@@ -271,7 +271,7 @@ Section Sec.
     - iExists 0, (v.[to_subst ρ]). iPoseProof (wp_value_inv with "H") as "$".
       iPureIntro => ?. constructor.
     - iPoseProof (wp_bind_inv (fill [ProjCtx l]) with "H") as "H'"; rewrite /= /of_val.
-      iDestruct ("IHp" with "H'") as (i0 v0) "[Hpure Hv]". iClear "IHp".
+      iDestruct ("IHp" with "H'") as (i0 v0) "[Hpure Hv] {IHp}".
       iExists (S i0); rewrite laterN_later; iNext i0. iDestruct "Hpure" as %Hpure.
       iEval (rewrite !wp_unfold /wp_pre) in "Hv". cbn.
       iSpecialize ("Hv" $! inhabitant [] [] 0 with "[#//]"). iDestruct "Hv" as "[% Hv]". move: H => Hred.
@@ -300,7 +300,7 @@ Section Sec.
     - iExists (v.[to_subst ρ]), 0. iPoseProof (wp_value_inv with "H") as "$".
       iPureIntro => ?. constructor.
     - iPoseProof (wp_bind_inv (fill [ProjCtx l]) with "H") as "H'"; rewrite /= /of_val.
-      iDestruct ("IHp" with "H'") as (v0 i0) "[% Hv]". iClear "IHp". move: H => Hpure.
+      iDestruct ("IHp" with "H'") as (v0 i0) "[% Hv] {IHp}". move: H => Hpure.
       iEval (rewrite !wp_unfold /wp_pre) in "Hv". cbn.
       iSpecialize ("Hv" $! inhabitant [] [] 0 with "[#//]"). iDestruct "Hv" as "[% Hv]". move: H => Hred.
       case: Hred => /= x [e' [σ' [efs Hred]]]. case Hred => /= K e1' e2' Heq1 Heq2 Hstp.

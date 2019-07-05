@@ -35,7 +35,7 @@ Section swap_based_typing_lemmas.
     iIntros (Hclw).
     iSpecialize ("HsubT" $! ρ w Hclw with "Hg HwT2").
     iAssert (□ ▷ ▷^i (∀ v0, ⟦ U1 ⟧ (w .: to_subst ρ) v0 →
-        ⟦ U2 ⟧ (w .: to_subst ρ) v0))%I as "#HsubU'". {
+        ⟦ U2 ⟧ (w .: to_subst ρ) v0))%I as "{HsubU} #HsubU". {
       iIntros (v0); rewrite -!mlaterN_impl -mlater_impl.
       iIntros "!> #HUv0".
       iApply (strip_pure_laterN_impl (S i) (nclosed_vl v0 0)); first last.
@@ -45,9 +45,9 @@ Section swap_based_typing_lemmas.
       rewrite iterate_TLater_later //.
       iFrame "Hg %". by iApply interp_weaken_one.
     }
-    iClear "HsubU". iNext 1; iNext i. iApply wp_wand.
+    iNext 1; iNext i. iApply wp_wand.
     - iApply "HT1". by iApply "HsubT".
-    - iIntros (u) "#HuU1". by iApply "HsubU'".
+    - iIntros (u) "#HuU1". by iApply "HsubU".
   Qed.
 
   Lemma Sub_TTMem_Variant L1 L2 U1 U2 i l:

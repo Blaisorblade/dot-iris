@@ -28,11 +28,11 @@ Section swap_based_typing_lemmas.
     rewrite -!mlaterN_pers -mlater_impl -mlaterN_impl !swap_later.
     iIntros "!> #HwT2".
     iApply (strip_pure_laterN_impl (S i) (nclosed_vl w 0)); first last.
-      by iApply interp_v_closed.
+      by rewrite interp_v_closed.
     iIntros (Hclw).
     iSpecialize ("HsubT" $! ρ w Hclw with "Hg HwT2").
     iAssert (□ ▷ ▷^i (∀ v0, ⟦ U1 ⟧ (w .: to_subst ρ) v0 →
-        ⟦ U2 ⟧ (w .: to_subst ρ) v0))%I as "#HsubU'". {
+        ⟦ U2 ⟧ (w .: to_subst ρ) v0))%I as "{HsubU} #HsubU". {
       iIntros (v0); rewrite -!mlaterN_impl -mlater_impl.
       iIntros "!> #HUv0".
       iApply (strip_pure_laterN_impl (S i) (nclosed_vl v0 0)); first last.
@@ -42,9 +42,9 @@ Section swap_based_typing_lemmas.
       unfold_interp; rewrite iterate_TLater_later //.
       iFrame "Hg %". by iApply interp_weaken_one.
     }
-    iClear "HsubU". iNext 1; iNext i. iApply wp_wand.
+    iNext 1; iNext i. iApply wp_wand.
     - iApply "HT1". by iApply "HsubT".
-    - iIntros (u) "#HuU1". by iApply "HsubU'".
+    - iIntros (u) "#HuU1". by iApply "HsubU".
   Qed.
 
   Lemma DSub_TAll_ConCov T1 T2 U1 U2 i:
@@ -61,7 +61,7 @@ Section swap_based_typing_lemmas.
     rewrite -!mlaterN_pers -!laterN_later/= -!mlaterN_impl -!mlater_impl.
     iIntros "!> #HwT2".
     iApply (strip_pure_laterN_impl (S i) (nclosed_vl w 0)); first last.
-      by iApply interp_v_closed.
+      by rewrite interp_v_closed.
     iIntros (Hclw).
     iSpecialize ("HsubT" with "Hg").
     iSpecialize ("HsubU" $! (w :: ρ) with "[#]"). {

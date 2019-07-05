@@ -154,8 +154,8 @@ Section typing_type_member_defs.
   Lemma extraction_to_leadsto_envD_equiv T g sσ n: T ~[ n ] (g, sσ) →
     wellMapped g -∗ sσ ↝[ n ] ⟦ T ⟧.
   Proof.
-    move: sσ => [s σ] [T'] [Hl] [<-] [Hclσ] HclT /=; iIntros "#Hm".
-    iDestruct ("Hm" $! _ _ Hl) as (φ) "[Hm1 <-]"; iClear "Hm".
+    move: sσ => [s σ] [T'] [Hl] [<-] [Hclσ] HclT /=. iIntros "Hm".
+    iDestruct ("Hm" $! _ _ Hl) as (φ) "[#Hm1 <-]".
     iSplit => //; iExists ⟦ T' ⟧; iSplit => //.
     iIntros (ρ v <- Hclρ) "!%".
     exact: interp_subst_commute.
