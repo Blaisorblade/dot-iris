@@ -4,7 +4,6 @@ From iris.proofmode Require Import tactics.
 From iris.base_logic Require Import lib.saved_prop.
 From D Require Import iris_prelude saved_interp_n.
 From D Require Import saved_interp_dep asubst_intf dlang.
-From D.Dot Require syn operational unary_lr.
 Import EqNotations.
 
 Module try1.
@@ -35,11 +34,12 @@ Section saved_pred3_use.
 End saved_pred3_use.
 End try1.
 
-Module try2.
-Module Type HoSemTypes (Import VS : VlSortsSig) (Import LWP : LiftWp VS).
+From D Require Import saved_interp_dep.
+Module Type HoSemTypes (Import VS : VlSortsSig) (Import SVS : SavedInterpDep VS).
 
 Section saved_ho_sem_type_extra.
-  Context `{!savedHoSemTypeG Σ}.
+  (* Context `{!savedHoSemTypeG Σ}. *)
+    Context {Σ : gFunctors}.
 
   Implicit Types (Ψ : packedHoEnvD Σ).
 
@@ -89,22 +89,6 @@ Section saved_ho_sem_type_extra.
     (rew [hoEnvD Σ] (packedHoEnvD_arity_ne Heq) in unpack Ψ1) a b c ≡{n}≡
     unpack Ψ2 a b c.
   Proof. exact: unpack_ne. Qed.
-End saved_ho_sem_type_extra.
-End HoSemTypes.
-
-Import mapsto.
-
-Import syn operational unary_lr.
-Include HoSemTypes VlSorts operational.
-
-Section bar.
-  Context `{!savedHoSemTypeG Σ} `{!dlangG Σ}.
-  (* Implicit Types (interp : envD Σ) (φ : D). *)
-
-  Definition dm_to_type (d : dm) n (ψ : hoD Σ n) : iProp Σ :=
-    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∗ s ↗n[ σ, n ] ψ)%I.
-  Notation "d ↗n[ n ] φ" := (dm_to_type d n φ) (at level 20).
-  Global Arguments dm_to_type: simpl never.
 
   Definition skind Σ n := hoD Σ n -> iProp Σ.
 
@@ -127,17 +111,78 @@ Section bar.
     | kintv : ty → ty → kind 0
     | kpi n : ty → kind n → kind (S n). *)
 
-  Inductive kind : nat → Type :=
+  Inductive kind {Σ} : nat → Type :=
     | kintv : hoD Σ 0 → hoD Σ 0 → kind 0
     | kpi n : hoD Σ 0 → kind n → kind (S n).
+  Global Arguments kind: clear implicits.
 
-  Fixpoint sem {n} (k : kind n) : skind Σ n :=
+  Fixpoint sem {n} (k : kind Σ n) : skind Σ n :=
     match k with
       | kintv φ1 φ2 => skintv φ1 φ2
       | kpi n φ1 k' => skpi φ1 (sem k')
     end.
 
-  Program Fixpoint sem_program {n} {struct n} : kind n → skind Σ n :=
+  Inductive hoSTy : nat → Type :=
+    | TSWrap : hoEnvD Σ 0 → hoSTy 0
+    | TSLam n : hoEnvD Σ 0 → hoSTy n → hoSTy (S n).
+  Fixpoint hoSTySem {n} (T : hoSTy n): hoEnvD Σ n :=
+    match T with
+    | TSWrap φ => φ
+    | TSLam n φ T' => vuncurry (λ v, hoSTySem T')
+    end.
+
+  (* Olty needed. Also, without using Olty, we can't use the fact that v is closed in a subtyping proof.
+    *)
+  (*
+    A possible sketch of subtyping for lambdas? Not quite working...
+    It's good, but we can't use to compare the various subtyping rules
+    for lambdas. Also because my lambdas are total and work
+    on arbitrary arguments — they might, at best, become False on bad
+    ones. *)
+  Definition lam_subtype {n} (argT : hoD Σ 0) (φ1 φ2 : hoD Σ (S n)) :=
+    (□∀ arg, □ vclose argT arg -∗ subtype (vcurry φ1 arg) (vcurry φ2 arg))%I.
+
+  Definition lam_semEquiv {n} (argT : hoD Σ 0) (φ1 φ2 : hoD Σ (S n)) :=
+    (□∀ arg, □ vclose argT arg -∗ semEquiv (vcurry φ1 arg) (vcurry φ2 arg))%I.
+End saved_ho_sem_type_extra.
+End HoSemTypes.
+
+Module Type HoGenExperimnents (Import VS : VlSortsSig) (Import LWP : LiftWp VS).
+Include HoSemTypes VS LWP.
+Section sec.
+  Context `{TyInterp ty Σ}.
+
+  (* Here, we inherit eta from the metalanguage, in both directions. *)
+  Lemma eta1 {n} argT (φ : hoD Σ (S n)): lam_subtype argT φ (λ v, φ v).
+  Proof.
+    rewrite /lam_subtype /subtype /vcurry /=.
+    iIntros "!> * #Harg !> **". done.
+  Qed.
+
+  Lemma eta {n} argT (φ : hoD Σ (S n)): lam_semEquiv argT φ (λ v, φ v).
+  Proof.
+    rewrite /lam_semEquiv /semEquiv /vcurry /=.
+    iIntros "!> * #Harg !> **"; rewrite -wand_iff_refl. done.
+  Qed.
+
+  Inductive htype : nat → Type :=
+    | TWrap : ty → htype 0
+    | TLam n : hoEnvD Σ 0 → htype n → htype (S n).
+
+  Fixpoint typeSem {n} (T : htype n): hoEnvD Σ n :=
+    (* match T in htype n0 return vec vl n0 -> env -> vl -> iProp Σ with *)
+    match T in htype n0 return hoEnvD Σ n0 with
+    (* match T return _ with *)
+    | TWrap T' => vopen (ty_interp T' : envD Σ)
+    | TLam n' φ T' =>
+        (* XXX Now I need semantic substitution. *)
+        (* vuncurry (A := envD Σ) (λ v, (typeSem T').|[v/]) *)
+        (* Alternatives: *)
+        vuncurry (A := envD Σ) (λ v args ρ, typeSem T' args (v .: ρ))
+        (* λ args ρ, typeSem T' (vtail args) (vhead args .: ρ) *)
+    end.
+
+  Program Fixpoint sem_program {n} {struct n} : kind Σ n → skind Σ n :=
     match n return _ with
     | 0 => λ k, match k with
       | kintv φ1 φ2 => skintv φ1 φ2
@@ -155,71 +200,35 @@ Section bar.
   (* Derive Signature NoConfusion Subterm EqDec for kind. *)
 
   Derive Signature for kind.
-  Equations sem_eq {n} : kind n → skind Σ n :=
+  Equations sem_eq {n} : kind Σ n → skind Σ n :=
     sem_eq (kintv φ1 φ2) := skintv φ1 φ2;
     sem_eq (kpi n φ1 k') := skpi φ1 (sem_eq k').
 
   Lemma unfold_sem_kintv φ1 φ2: sem_eq (kintv φ1 φ2) = skintv φ1 φ2.
   Proof. by simp sem_eq. Qed.
+End sec.
+End HoGenExperimnents.
 
-  Inductive hoSTy : nat → Type :=
-    | TSWrap : hoEnvD Σ 0 → hoSTy 0
-    | TSLam n : hoEnvD Σ 0 → hoSTy n → hoSTy (S n).
-  Fixpoint hoSTySem {n} (T : hoSTy n): hoEnvD Σ n :=
-    match T with
-    | TSWrap φ => φ
-    | TSLam n φ T' => vuncurry (λ v, hoSTySem T')
-    end.
+From D.Dot Require syn operational.
 
-  Inductive htype : nat → Type :=
-    | TWrap : ty → htype 0
-    | TLam n : hoEnvD Σ 0 → htype n → htype (S n).
+Module dot_experiments.
+Import syn operational.
+Include HoSemTypes VlSorts operational.
 
-  Fixpoint typeSem {n} (T : htype n): hoEnvD Σ n :=
-    (* match T in htype n0 return vec vl n0 -> env -> vl -> iProp Σ with *)
-    match T in htype n0 return hoEnvD Σ n0 with
-    (* match T return _ with *)
-    | TWrap T' => vopen (⟦ T' ⟧ : envD Σ)
-    | TLam n' φ T' =>
-        (* XXX Now I need semantic substitution. *)
-        (* vuncurry (A := envD Σ) (λ v, (typeSem T').|[v/]) *)
-        (* Alternatives: *)
-        vuncurry (A := envD Σ) (λ v args ρ, typeSem T' args (v .: ρ))
-        (* λ args ρ, typeSem T' (vtail args) (vhead args .: ρ) *)
-    end.
+Section sec.
+  Context `{!savedHoSemTypeG Σ} `{!dlangG Σ} `{TyInterp ty Σ}.
+  (* Implicit Types (interp : envD Σ) (φ : D). *)
+
+  Definition dm_to_type (d : dm) n (ψ : hoD Σ n) : iProp Σ :=
+    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∗ s ↗n[ σ, n ] ψ)%I.
+  Notation "d ↗n[ n ] φ" := (dm_to_type d n φ) (at level 20).
+  Global Arguments dm_to_type: simpl never.
 
   Definition def_interp_tmem {n} : skind Σ n → envPred dm Σ :=
     λ K ρ d, (∃ φ, d.|[ρ] ↗n[ n ] φ ∗ K φ)%I.
   Definition def_interp_tmem_spec (φ1 φ2 : hoD Σ 0) : envPred dm Σ :=
     def_interp_tmem (sktmem φ1 φ2).
-
-  (* Olty needed. Also, without using Olty, we can't use the fact that v is closed in a subtyping proof.
-    *)
-  (*
-    A possible sketch of subtyping for lambdas? Not quite working...
-    It's good, but we can't use to compare the various subtyping rules
-    for lambdas. Also because my lambdas are total and work
-    on arbitrary arguments — they might, at best, become False on bad
-    ones. *)
-  Definition lam_subtype {n} (argT : hoD Σ 0) (φ1 φ2 : hoD Σ (S n)) :=
-    (□∀ arg, □ vclose argT arg -∗ subtype (vcurry φ1 arg) (vcurry φ2 arg))%I.
-
-  Definition lam_semEquiv {n} (argT : hoD Σ 0) (φ1 φ2 : hoD Σ (S n)) :=
-    (□∀ arg, □ vclose argT arg -∗ semEquiv (vcurry φ1 arg) (vcurry φ2 arg))%I.
-
-  (* Here, we inherit eta from the metalanguage, in both directions. *)
-  Lemma eta1 {n} argT (φ : hoD Σ (S n)): lam_subtype argT φ (λ v, φ v).
-  Proof.
-    rewrite /lam_subtype /subtype /vcurry /=.
-    iIntros "!> * #Harg !> **". done.
-  Qed.
-
-  Lemma eta {n} argT (φ : hoD Σ (S n)): lam_semEquiv argT φ (λ v, φ v).
-  Proof.
-    rewrite /lam_semEquiv /semEquiv /vcurry /=.
-    iIntros "!> * #Harg !> **"; rewrite -wand_iff_refl. done.
-  Qed.
-End bar.
+End sec.
 
 Notation "d ↗n[ n ] φ" := (dm_to_type d n φ) (at level 20).
-End try2.
+End dot_experiments.
