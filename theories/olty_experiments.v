@@ -30,8 +30,6 @@ Class Closeable s := nclosed_s : s → nat → Prop.
 Instance closeable_sort s `{Sort s} : Closeable s := nclosed.
 Instance closeable_vl : Closeable vl := nclosed_vl.
 
-Definition env := var -> vl.
-
 Implicit Types (v: vl) (vs : vls) (ρ : env).
 
 Section judgments.
@@ -125,7 +123,7 @@ Notation "Γ ⊨d{ l := d  } : T" := (idtp Γ l T d) (at level 64, d, l, T at ne
 Section SemTypes.
   Context `{HdotG: dlangG Σ}.
 
-  Implicit Types (φ : envD Σ) (τ : olty Σ) (ψ : vl → iProp Σ).
+  Implicit Types (φ : envD Σ) (τ : olty Σ) (ψ : vl -d> iProp Σ).
 
   Program Definition lift_dinterp_vl (T : dlty Σ): olty Σ :=
     closed_olty (λ ρ v, (∃ d, ⌜v @ dlty_label T ↘ d⌝ ∧ dlty_car T ρ d)%I).
@@ -139,12 +137,15 @@ Section SemTypes.
   Proof.
     iDestruct 1 as (s σ ?) "#Hs1".
     iDestruct 1 as (s' σ' ?) "#Hs2".
-    simplify_eq. by iApply stamp_σ_to_type_agree.
+    simplify_eq. by iApply (stamp_σ_to_type_agree vnil with "Hs1 Hs2").
   Qed.
 
   Lemma dm_to_type_intro d s σ φ :
     d = dtysem σ s → s ↝ φ -∗ d ↗ φ (to_subst σ).
-  Proof. iIntros. iExists s, σ. rewrite -stamp_σ_to_type_intro. auto. Qed.
+  Proof.
+    iIntros. iExists s, σ. iFrame "%".
+    by iApply stamp_σ_to_type_intro.
+  Qed.
 
   Global Opaque dm_to_type.
 

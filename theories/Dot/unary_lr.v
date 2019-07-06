@@ -44,7 +44,7 @@ Section logrel.
   Proof.
     iDestruct 1 as (s σ ?) "#Hs1".
     iDestruct 1 as (s' σ' ?) "#Hs2".
-    simplify_eq. by iApply stamp_σ_to_type_agree.
+    simplify_eq. by iApply (stamp_σ_to_type_agree vnil with "Hs1 Hs2").
   Qed.
 
   Lemma dm_to_type_intro d s σ φ :

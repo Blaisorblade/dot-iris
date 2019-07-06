@@ -65,7 +65,7 @@ Section interp_equiv.
   Qed.
 
   Lemma alloc_sp T: (|==> ∃ γ, γ ⤇ ty_interp T)%I.
-  Proof. exact: saved_interp_alloc. Qed.
+  Proof. exact: saved_ho_sem_type_alloc. Qed.
 
   Lemma transferOne_base_inv gs s T:
       gs !! s = None → (allGs gs ==∗ ∃ gs', allGs gs' ∗ s ↝ ⟦ T ⟧ ∗ ⌜ gdom gs' ≡ gdom gs ∪ {[s]} ⌝)%I.
