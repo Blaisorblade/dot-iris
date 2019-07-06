@@ -100,10 +100,13 @@ Section saved_ho_sem_type.
 
   Definition saved_ho_sem_type_own γ n (Φ : hoPredN n A B C Σ) : iProp Σ :=
     saved_anything_own (F := hoPredOF A B C) γ (pack (existT n Φ)).
-
   Notation "γ ⤇[ n  ] φ" := (saved_ho_sem_type_own γ n φ) (at level 20).
 
-  Instance saved_ho_sem_type_own_contractive γ i : Contractive (saved_ho_sem_type_own γ i).
+  Global Instance saved_ho_sem_type_own_persistent γ n φ :
+    Persistent (γ ⤇[ n ] φ) := _.
+
+  Global Instance saved_ho_sem_type_own_contractive γ i :
+    Contractive (saved_ho_sem_type_own γ i).
   Proof.
     rewrite /saved_ho_sem_type_own => n f g /= Heq. f_equiv.
     apply (existT_ne _ eq_refl) => ??? /=.
