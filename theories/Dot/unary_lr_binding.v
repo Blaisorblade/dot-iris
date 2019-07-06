@@ -105,8 +105,8 @@ Section logrel_binding_lemmas.
     ⟦ T.|[to_subst σ] ⟧ (to_subst ρ) v ≡ ⟦ T ⟧ (to_subst σ.|[to_subst ρ]) v.
   Proof.
     intros HclT Hclσ Hclρ.
-    rewrite -(interp_subst_all ρ _ v) // -(interp_subst_all _ T v).
-    - by erewrite subst_compose.
-    - by apply nclosed_σ_to_subst.
+    rewrite -(interp_subst_all ρ _ v) // -(interp_subst_all _ T v)
+      ?(subst_compose HclT _ Hclσ _ Hclρ) //.
+    exact: nclosed_σ_to_subst.
   Qed.
 End logrel_binding_lemmas.
