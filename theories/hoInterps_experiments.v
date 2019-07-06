@@ -180,18 +180,21 @@ Section bar.
     end.
 
   Inductive htype : nat → Type :=
-    | TWrap : nat → ty → htype 0
+    | TWrap : ty → htype 0
     | TLam n : hoEnvD Σ 0 → htype n → htype (S n).
-  (* Now I need substitution. *)
 
-  Program Fixpoint typeSem {n} (T : htype n): hoEnvD Σ n :=
-    match T with
-    | TWrap n T' => λ _ ρ, ⟦ T' ⟧ ρ
-    | TLam n φ T' => vuncurry (λ v, typeSem T')
+  Fixpoint typeSem {n} (T : htype n): hoEnvD Σ n :=
+    (* match T in htype n0 return vec vl n0 -> env -> vl -> iProp Σ with *)
+    match T in htype n0 return hoEnvD Σ n0 with
+    (* match T return _ with *)
+    | TWrap T' => vopen (⟦ T' ⟧ : envD Σ)
+    | TLam n' φ T' =>
+        (* XXX Now I need semantic substitution. *)
+        (* vuncurry (A := envD Σ) (λ v, (typeSem T').|[v/]) *)
+        (* Alternatives: *)
+        vuncurry (A := envD Σ) (λ v args ρ, typeSem T' args (v .: ρ))
+        (* λ args ρ, typeSem T' (vtail args) (vhead args .: ρ) *)
     end.
-
- (* move => _ n _ k ? φ1 k' [?] ?. //. subst.
-  refine (res). Defined. *)
 
   Definition def_interp_tmem {n} : skind Σ n → envPred dm Σ :=
     λ K ρ d, (∃ φ, d.|[ρ] ↗n[ n ] φ ∗ K φ)%I.
