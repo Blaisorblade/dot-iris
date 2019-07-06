@@ -2,7 +2,7 @@ From iris.proofmode Require Import tactics.
 From iris.base_logic Require Import lib.saved_prop.
 From D Require Import prelude iris_prelude.
 
-Import uPred EqNotations.
+Import EqNotations.
 Unset Program Cases.
 
 (* Repeat temporarily-disabled Iris notations. *)
@@ -30,6 +30,32 @@ Proof.
 Qed.
 
 Definition vec n vl := fin n → vl.
+
+Section vec.
+  Context {vl : Type}.
+  (* vector operations, on a functional representation of vectors. *)
+  Definition vcons {n} (v : vl) (args: vec n vl) : fin (S n) → vl :=
+    λ i,
+      match i in fin (S n0) with
+      | Fin.F1 => λ _, v
+      | Fin.FS i' => λ args', args' i'
+      end args.
+
+  Definition emptyArgs : vec 0 vl := Fin.case0 _.
+  Definition vhead {n} (args: vec (S n) vl) : vl := args Fin.F1.
+  Definition vtail {n} (args: vec (S n) vl) : fin n → vl :=
+    λ i, args (Fin.FS i).
+
+  (* Manipulation of higher-order semantic types. *)
+  Definition close {A} (Φ : vec 0 vl -d> A): A := Φ emptyArgs.
+
+  Definition tCurry {n A} (Φ : vec (S n) vl -d> A) : vl -d> vec n vl -d> A :=
+    λ v args, Φ (vcons v args).
+
+  Definition tUncurry {n A} (Φ : vl → vec n vl -d> A) :
+    vec (S n) vl -d> A :=
+    λ args, Φ (vhead args) (vtail args).
+End vec.
 
 Notation pred B C Σ := (B -d> C -d> iProp Σ).
 Notation hoPredN n A B C Σ := (vec n A -d> pred B C Σ).
