@@ -36,11 +36,7 @@ End saved_pred3_use.
 End try1.
 
 Module try2.
-Module Type HoSemTypes (Import VS : VlSortsSig).
-Include SavedInterpDep VS.
-
-Notation savedHoSemTypeG Σ := (savedHoEnvPredG vl Σ).
-Notation savedHoSemTypeΣ := (savedHoEnvPredΣ vl).
+Module Type HoSemTypes (Import VS : VlSortsSig) (Import LWP : LiftWp VS).
 
 Section saved_ho_sem_type_extra.
   Context `{!savedHoSemTypeG Σ}.
@@ -99,20 +95,16 @@ End HoSemTypes.
 Import mapsto.
 
 Import syn operational unary_lr.
-Include HoSemTypes VlSorts.
-Notation "s ↝n[ n ] φ" := (∃ γ, (s ↦ γ) ∗ (γ ⤇n[ n ] φ))%I  (at level 20) : bi_scope.
+Include HoSemTypes VlSorts operational.
 
 Section bar.
   Context `{!savedHoSemTypeG Σ} `{!dlangG Σ}.
   (* Implicit Types (interp : envD Σ) (φ : D). *)
 
-  Definition dm_to_type (d : dm) n (φ : hoD Σ n) : iProp Σ :=
-    (∃ s σ interp,
-      s ↝n[ n ] interp ∗
-      ⌜ d = dtysem σ s
-       ∧ φ = λ args v, interp args (to_subst σ) v ⌝)%I.
-  Global Arguments dm_to_type: simpl never.
+  Definition dm_to_type (d : dm) n (ψ : hoD Σ n) : iProp Σ :=
+    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∗ s ↗n[ σ, n ] ψ)%I.
   Notation "d ↗n[ n ] φ" := (dm_to_type d n φ) (at level 20).
+  Global Arguments dm_to_type: simpl never.
 
   Definition skind Σ n := hoD Σ n -> iProp Σ.
 
