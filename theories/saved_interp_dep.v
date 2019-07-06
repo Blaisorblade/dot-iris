@@ -8,6 +8,27 @@ Unset Program Cases.
 (* Repeat temporarily-disabled Iris notations. *)
 Notation "{ x  &  P }" := (sigTOF (λ x, P%OF)) : oFunctor_scope.
 Notation "{ x : A &  P }" := (@sigTOF A%type (λ x, P%OF)) : oFunctor_scope.
+
+(* For Iris. *)
+Global Instance projT1_ne {A P}: NonExpansive (projT1: @sigTO A P → leibnizO A).
+Proof. solve_proper. Qed.
+
+Global Instance projT1_proper {A P}: Proper ((≡) ==> (≡)) (projT1: @sigTO A P → leibnizO A).
+Proof. apply ne_proper, projT1_ne. Qed.
+
+Lemma projT2_ne {A P} n (x1 x2 : @sigTO A P) (Heq : x1 ≡{n}≡ x2):
+  rew (sigT_dist_proj1 n Heq) in projT2 x1 ≡{n}≡ projT2 x2.
+Proof. by destruct Heq. Qed.
+
+Lemma projT2_proper {A P} `{!∀ a b : A, ProofIrrel (a = b)} :
+  ∀ (x1 x2 : @sigTO A P) (Heqs : x1 ≡ x2),
+    rew (sigT_equiv_proj1 _ _ Heqs) in projT2 x1 ≡ projT2 x2.
+Proof.
+  move => [a1 x1] [a2 x2] Heqs.
+  case: (proj1 (sigT_equiv_eq_alt _ _) Heqs) => /=. intros ->.
+  rewrite (proof_irrel (sigT_equiv_proj1 _ _ Heqs) eq_refl) //.
+Qed.
+
 Definition vec n vl := fin n → vl.
 
 Notation pred B C Σ := (B -d> C -d> iProp Σ).
@@ -23,13 +44,7 @@ Notation savedHoPredΣ A B C := (savedAnythingΣ (hoPredOF A B C)).
 
 Definition packedHoPred A B C Σ : ofeT := hoPredOF A B C (iProp Σ) _.
 
-(* For Iris. *)
-Global Instance projT1_ne {A P}: NonExpansive (projT1: @sigTO A P → leibnizO A).
-Proof. solve_proper. Qed.
 
-Lemma projT2_ne {A P}: ∀ n (x1 x2 : @sigTO A P) (Heq : x1 ≡{n}≡ x2),
-  rew (sigT_dist_proj1 n Heq) in projT2 x1 ≡{n}≡ projT2 x2.
-Proof. by destruct Heq. Qed.
 
 Section saved_ho_sem_type.
   Context {A B C : Type}.
