@@ -49,8 +49,13 @@ Section logrel.
 
   Lemma dm_to_type_intro d s σ φ :
     d = dtysem σ s → s ↝ φ -∗ d ↗ φ (to_subst σ).
-  Proof. iIntros. iExists s, σ. rewrite -stamp_σ_to_type_intro. auto. Qed.
+  Proof.
+    iIntros. iExists s, σ. iFrame "%".
+    by iApply stamp_σ_to_type_intro.
+  Qed.
 
+  Definition dm_to_type_eq d ψ : dm_to_type d ψ =
+    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∗ s ↗[ σ ] ψ)%I := eq_refl.
   Global Opaque dm_to_type.
 
   Definition def_interp_tmem interp1 interp2 : envPred dm Σ :=

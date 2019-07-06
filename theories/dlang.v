@@ -78,6 +78,8 @@ Module Type LiftWp (Import VS : VlSortsSig).
     Proof. rewrite /stamp_σ_to_type. iIntros; iExists φ; auto. Qed.
   End mapsto.
 
+  Global Opaque stamp_σ_to_type.
+
   Module dlang_adequacy.
     Class dlangPreG Σ := DLangPreG {
       dlangPreG_savior :> savedInterpG Σ (var → vl) vl;

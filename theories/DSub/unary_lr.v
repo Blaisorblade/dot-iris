@@ -33,8 +33,8 @@ Section logrel.
 
   (* XXX this is wrong unless we translate, and here I want for now to switch to having no translation.
      Tho maybe let's do one thing at a time. *)
-  Definition dm_to_type v (φ : D) : iProp Σ :=
-    (∃ γ σ interp, ⌜ v = vstamp σ γ ⌝ ∗ γ ⤇ interp ∗ φ ≡ interp (to_subst σ))%I.
+  Definition dm_to_type v (ψ : D) : iProp Σ :=
+    (∃ s σ, ⌜ v = vstamp σ s ⌝ ∗ s ↗[ σ ] ψ)%I.
   Notation "v ↗ φ" := (dm_to_type v φ) (at level 20).
   Global Instance dm_to_type_persistent d τ: Persistent (d ↗ τ) := _.
   Global Opaque dm_to_type.
