@@ -29,77 +29,81 @@ Proof.
   rewrite (proof_irrel (sigT_equiv_proj1 _ _ Heqs) eq_refl) //.
 Qed.
 
-Definition vec n vl := fin n → vl.
+Definition vec vl n := fin n → vl.
 
 Section vec.
-  Context {vl : Type}.
+  Context {vl : Type} {n : nat} {A : ofeT}.
   (* vector operations, on a functional representation of vectors. *)
-  Definition vcons {n} (v : vl) (args: vec n vl) : fin (S n) → vl :=
+  Definition vcons (v : vl) (args: vec vl n) : fin (S n) → vl :=
     λ i,
       match i in fin (S n0) with
       | Fin.F1 => λ _, v
       | Fin.FS i' => λ args', args' i'
       end args.
 
-  Definition emptyArgs : vec 0 vl := Fin.case0 _.
-  Definition vhead {n} (args: vec (S n) vl) : vl := args Fin.F1.
-  Definition vtail {n} (args: vec (S n) vl) : fin n → vl :=
+  Definition vnil : vec vl 0 := Fin.case0 _.
+  Definition vhead (args: vec vl (S n)) : vl := args Fin.F1.
+  Definition vtail (args: vec vl (S n)) : fin n → vl :=
     λ i, args (Fin.FS i).
 
   (* Manipulation of higher-order semantic types. *)
-  Definition close {A} (Φ : vec 0 vl -d> A): A := Φ emptyArgs.
+  Definition vclose (Φ : vec vl 0 -d> A): A := Φ vnil.
+  Definition vopen (Φ : A) : vec vl 0 -d> A := λ args, Φ.
 
-  Definition tCurry {n A} (Φ : vec (S n) vl -d> A) : vl -d> vec n vl -d> A :=
+  Definition vcurry (Φ : vec vl (S n) -d> A) : vl -d> vec vl n -d> A :=
     λ v args, Φ (vcons v args).
 
-  Definition tUncurry {n A} (Φ : vl → vec n vl -d> A) :
-    vec (S n) vl -d> A :=
+  Definition vuncurry (Φ : vl -d> vec vl n -d> A) : vec vl (S n) -d> A :=
     λ args, Φ (vhead args) (vtail args).
 End vec.
 
-Notation pred B C Σ := (B -d> C -d> iProp Σ).
-Notation hoPredN n A B C Σ := (vec n A -d> pred B C Σ).
+Module Type ValueTSig. Parameter vl : Type. End ValueTSig.
 
-Definition hoPred_P A B C Σ := (λ n, hoPredN n A B C Σ).
-Definition hoPredO A B C Σ : ofeT := sigTO (hoPred_P A B C Σ).
+Module Type SavedInterpDep (Import V : ValueTSig).
 
-Definition hoPredOF A B C : oFunctor := { n & vec n A -d> B -d> C -d> ▶ ∙ }.
+Definition env := var -> vl.
+Notation envPred s Σ := (env -d> s -d> iProp Σ).
+Definition hoEnvPred s Σ n := vec vl n -d> envPred s Σ.
+Definition hoEnvPredO s Σ : ofeT := sigTO (hoEnvPred s Σ).
+Definition hoEnvPredOF s : oFunctor := { n & vec vl n -d> env -d> s -d> ▶ ∙ }.
+Definition packedHoEnvPred s Σ : ofeT := hoEnvPredOF s (iProp Σ) _.
 
-Notation savedHoPredG A B C Σ := (savedAnythingG Σ (hoPredOF A B C)).
-Notation savedHoPredΣ A B C := (savedAnythingΣ (hoPredOF A B C)).
+Definition hoD Σ n := vec vl n -d> vl -d> iProp Σ.
+Notation hoEnvD := (hoEnvPred vl).
+Notation envD Σ := (envPred vl Σ).
+Definition packedHoEnvD Σ := packedHoEnvPred vl Σ.
 
-Definition packedHoPred A B C Σ : ofeT := hoPredOF A B C (iProp Σ) _.
-
-
+Notation savedHoEnvPredG s Σ := (savedAnythingG Σ (hoEnvPredOF s)).
+Notation savedHoEnvPredΣ s := (savedAnythingΣ (hoEnvPredOF s)).
 
 Section saved_ho_sem_type.
-  Context {A B C : Type}.
-  Context `{!savedHoPredG A B C Σ}.
-  Implicit Types (Ψ : packedHoPred A B C Σ).
+  Context {s : Type}.
+  Context `{!savedHoEnvPredG s Σ}.
+  Implicit Types (Ψ : packedHoEnvPred s Σ).
 
-  Definition packedHoPred_eq : packedHoPred A B C Σ =
-    sigTO (λ n, vec n A -d> B -d> C -d> laterO (iProp Σ)) := reflexivity _.
+  Definition packedHoEnvPred_eq : packedHoEnvPred s Σ =
+    sigTO (λ n, vec vl n -d> env -d> s -d> laterO (iProp Σ)) := reflexivity _.
 
-  Definition packedHoPred_arity : packedHoPred A B C Σ -n> natO := λne x, projT1 x.
+  Definition packedHoEnvPred_arity : packedHoEnvPred s Σ -n> natO := λne x, projT1 x.
 
-  Definition cpack n : hoPredN n A B C Σ → packedHoPred A B C Σ :=
+  Definition ho_cpack n : hoEnvPred s Σ n → packedHoEnvPred s Σ :=
     λ Φ, existT n (λ args ρ v, Next (Φ args ρ v)).
 
-  Global Instance cpack_contractive: Contractive (cpack n).
+  Global Instance cpack_contractive: Contractive (ho_cpack n).
   Proof.
-    rewrite /cpack => ?????.
+    rewrite /ho_cpack /hoEnvPred => ?????.
     apply (existT_ne _ eq_refl).
     solve_contractive_ho.
   Qed.
 
-  Program Definition pack : hoPredO A B C Σ -n> packedHoPred A B C Σ :=
-    λne Φ, cpack (projT1 Φ) (projT2 Φ).
+  Program Definition ho_pack : hoEnvPredO s Σ -n> packedHoEnvPred s Σ :=
+    λne Φ, ho_cpack (projT1 Φ) (projT2 Φ).
   Next Obligation.
     move => n [i1 Φ1] [i2 Φ2][/= Heqi HeqΦ]. destruct Heqi. by f_equiv.
   Qed.
 
-  Definition saved_ho_sem_type_own γ n (Φ : hoPredN n A B C Σ) : iProp Σ :=
-    saved_anything_own (F := hoPredOF A B C) γ (pack (existT n Φ)).
+  Definition saved_ho_sem_type_own γ n (Φ : hoEnvPred s Σ n) : iProp Σ :=
+    saved_anything_own (F := hoEnvPredOF s) γ (ho_pack (existT n Φ)).
   Notation "γ ⤇[ n  ] φ" := (saved_ho_sem_type_own γ n φ) (at level 20).
 
   Global Instance saved_ho_sem_type_own_persistent γ n φ :
@@ -108,7 +112,7 @@ Section saved_ho_sem_type.
   Global Instance saved_ho_sem_type_own_contractive γ i :
     Contractive (saved_ho_sem_type_own γ i).
   Proof.
-    rewrite /saved_ho_sem_type_own => n f g /= Heq. f_equiv.
+    rewrite /saved_ho_sem_type_own /hoEnvPred => n f g /= Heq. f_equiv.
     apply (existT_ne _ eq_refl) => ??? /=.
     solve_contractive_ho.
   Qed.
@@ -116,27 +120,27 @@ Section saved_ho_sem_type.
   Lemma saved_ho_sem_type_alloc i φ : (|==> ∃ γ, γ ⤇[ i ] φ)%I.
   Proof. apply saved_anything_alloc. Qed.
 
-  Lemma packedHoPred_arity_neI Ψ1 Ψ2 : Ψ1 ≡ Ψ2 ⊢@{iPropI Σ}
-    packedHoPred_arity Ψ1 ≡ packedHoPred_arity Ψ2.
+  Lemma packedHoEnvPred_arity_neI Ψ1 Ψ2 : Ψ1 ≡ Ψ2 ⊢@{iPropI Σ}
+    packedHoEnvPred_arity Ψ1 ≡ packedHoEnvPred_arity Ψ2.
   Proof. exact: f_equiv. Qed.
 
-  Lemma packedHoPred_arity_neI_pure Ψ1 Ψ2 : Ψ1 ≡ Ψ2 ⊢@{iPropI Σ}
-    ⌜ packedHoPred_arity Ψ1 = packedHoPred_arity Ψ2 ⌝.
-  Proof. rewrite packedHoPred_arity_neI; auto. Qed.
+  Lemma packedHoEnvPred_arity_neI_pure Ψ1 Ψ2 : Ψ1 ≡ Ψ2 ⊢@{iPropI Σ}
+    ⌜ packedHoEnvPred_arity Ψ1 = packedHoEnvPred_arity Ψ2 ⌝.
+  Proof. rewrite packedHoEnvPred_arity_neI; auto. Qed.
 
   Lemma saved_ho_sem_type_agree_arity γ {i j Φ1 Φ2}:
     γ ⤇[ i ] Φ1 -∗ γ ⤇[ j ] Φ2 -∗ ⌜ i = j ⌝.
   Proof.
     iIntros "HΦ1 HΦ2 /=".
-    (* iDestruct (packedHoPred_arity_neI_pure with "[HΦ1 HΦ2]") as "?".
+    (* iDestruct (packedHoEnvPred_arity_neI_pure with "[HΦ1 HΦ2]") as "?".
     iApply (saved_anything_agree with "HΦ1 HΦ2"). done. *)
-    (* Fail iDestruct (packedHoPred_arity_neI_pure $! (saved_anything_agree with "HΦ1 HΦ2")) as "?". *)
+    (* Fail iDestruct (packedHoEnvPred_arity_neI_pure $! (saved_anything_agree with "HΦ1 HΦ2")) as "?". *)
     iDestruct (saved_anything_agree with "HΦ1 HΦ2") as "Heq".
-    (* iDestruct (packedHoPred_arity_neI_pure with "Heq") as "?". *)
-    rewrite packedHoPred_arity_neI_pure. done.
+    (* iDestruct (packedHoEnvPred_arity_neI_pure with "Heq") as "?". *)
+    rewrite packedHoEnvPred_arity_neI_pure. done.
   Qed.
 
-  Lemma saved_ho_sem_type_agree γ n (Φ1 Φ2 : hoPredN n A B C Σ) a b c:
+  Lemma saved_ho_sem_type_agree γ n (Φ1 Φ2 : hoEnvPred s Σ n) a b c:
     γ ⤇[ n ] Φ1 -∗ γ ⤇[ n ] Φ2 -∗ ▷ (Φ1 a b c ≡ Φ2 a b c).
   Proof.
     iIntros "HΦ1 HΦ2 /=".
@@ -149,7 +153,7 @@ Section saved_ho_sem_type.
 
   Lemma saved_ho_sem_type_agree_dep γ {i j Φ1 Φ2} a b c:
     γ ⤇[ i ] Φ1 -∗ γ ⤇[ j ] Φ2 -∗ ∃ eq : i = j,
-    ▷ ((rew [hoPred_P A B C Σ] eq in Φ1) a b c ≡ Φ2 a b c).
+    ▷ ((rew [hoEnvPred s Σ] eq in Φ1) a b c ≡ Φ2 a b c).
   Proof.
     iIntros "HΦ1 HΦ2 /=".
     iDestruct (saved_ho_sem_type_agree_arity with "HΦ1 HΦ2") as %->.
@@ -158,5 +162,7 @@ Section saved_ho_sem_type.
   Qed.
 End saved_ho_sem_type.
 
-Notation "γ ⤇[ n  ] φ" := (saved_ho_sem_type_own γ n φ) (at level 20).
+Notation "γ ⤇n[ n  ] φ" := (saved_ho_sem_type_own γ n φ) (at level 20).
 Global Opaque saved_ho_sem_type_own.
+
+End SavedInterpDep.
