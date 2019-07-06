@@ -226,11 +226,12 @@ Proof. apply nclosed_σ_sub_equiv. Qed.
 Lemma closed_to_subst σ i n: nclosed_σ σ n → i < length σ → nclosed_vl (to_subst σ i) n.
 Proof. intros. exact: nclosed_sub_to_subst. Qed.
 
-Lemma eq_n_s_total σ: eq_n_s σ ids 0.
+Lemma eq_n_s_total σ1 σ2: eq_n_s σ1 σ2 0.
 Proof. move => ? /Nat.nlt_0_r []. Qed.
+Hint Resolve eq_n_s_total.
 
 Lemma closed_subst_vl_id v σ: nclosed_vl v 0 → v.[σ] = v.
-Proof. intro Hcl. rewrite (Hcl σ ids (eq_n_s_total σ)). by asimpl. Qed.
+Proof. intro Hcl. rewrite (Hcl σ ids) // subst_id //. Qed.
 
 (* Auxiliary lemma for [length_idsσ]. *)
 Lemma length_idsσr n r: length (idsσ n).|[ren r] = n.
@@ -359,7 +360,7 @@ Lemma nclosed_sub_app x s i j :
 Proof. move => Hcls Hclx s1 s2 Heqs; asimpl. by eapply Hclx, compose_sub_closed. Qed.
 
 Lemma closed_subst_id x σ: nclosed x 0 → x.|[σ] = x.
-Proof. intro Hcl. rewrite (Hcl σ ids (eq_n_s_total σ)). by asimpl. Qed.
+Proof. intro Hcl. rewrite (Hcl σ ids) // hsubst_id //. Qed.
 
 Lemma fv_to_subst x σ n:
   nclosed x (length σ) → nclosed_σ σ n →
