@@ -151,6 +151,49 @@ Section typing_type_member_defs.
     by iDestruct ("Hm" $! _ _ Hl) as (φ) "[? <-]".
   Qed.
 
+
+  Lemma interp_closed_1 T n sb1 sb2:
+    nclosed T n → eq_n_s sb1 sb2 n → ⟦ T.|[sb1] ⟧ ≡ ⟦ T.|[sb2] ⟧.
+  Proof.
+    intros HclT Heqs. by rewrite (HclT sb1 sb2 Heqs).
+(*
+    revert n sb1 sb2. induction T; intros n sb1 sb2 Hcl Heqs ρ v; simpl. all: trivial. properness.
+    all: first
+      [ eapply IHT1 | eapply IHT2 | eapply IHT
+      | done | idtac ]; eauto 2 using eq_up; eauto with fv.
+    have Hclp: nclosed p n. by eauto with fv.
+    by rewrite (Hclp sb1 sb2 Heqs). *)
+  Qed.
+  Lemma eq_cons v sb1 sb2 n : eq_n_s sb1 sb2 n → eq_n_s (v .: sb1) (v .: sb2) (S n).
+  Proof. move => Heqs [//|x] /lt_S_n /Heqs //. Qed.
+
+  Lemma interp_closed_2 T n sb1 sb2:
+    nclosed T n → eq_n_s sb1 sb2 n → ⟦ T ⟧ sb1 ≡ ⟦ T ⟧ sb2.
+  Proof.
+    revert n sb1 sb2. induction T; intros n sb1 sb2 Hcl Heqs v; simpl; trivial; properness.
+    all: try by
+      (first [ eapply IHT1 | eapply IHT2 | eapply IHT
+      | done | idtac ]; eauto 2; eauto with fv).
+    eapply (IHT2 (S n)); eauto 2 using eq_cons; eauto with fv.
+    eapply (IHT (S n)); eauto 2 using eq_cons; eauto with fv.
+    have Hclp: nclosed p n. by eauto with fv.
+    by rewrite (Hclp sb1 sb2 Heqs).
+  Qed.
+
+  Lemma interp_subst_commute2 T σ ρ v:
+    nclosed T (length σ) →
+    nclosed_σ σ (length ρ) →
+    cl_ρ ρ →
+    ⟦ T.|[to_subst σ] ⟧ (to_subst ρ) v ≡ ⟦ T ⟧ (to_subst σ >> to_subst ρ) v.
+  Proof.
+    intros HclT Hclσ Hclρ.
+    rewrite -(interp_subst_all ρ _ v) // -(subst_compose HclT _ Hclσ _ Hclρ) //
+      (interp_subst_all _ T v).
+    - apply (interp_closed_2 HclT).
+      exact: to_subst_compose.
+    - by apply nclosed_σ_to_subst.
+  Qed.
+
   Lemma extraction_to_leadsto_envD_equiv T g sσ n: T ~[ n ] (g, sσ) →
     wellMapped g -∗ sσ ↝[ n ] ⟦ T ⟧.
   Proof.
@@ -161,6 +204,23 @@ Section typing_type_member_defs.
     exact: interp_subst_commute.
   Qed.
 
+  Lemma interp_subst_all2 ρ T n v:
+    nclosed T n → nclosed_sub n 0 ρ → ⟦ T.|[ρ] ⟧ ids v ≡ ⟦ T ⟧ ρ v.
+  Proof.
+    elim: n ρ T v => /= [|n IHn] ρ T v HclT Hclρ.
+    - rewrite closed_subst_id //.
+      exact: (interp_closed_2 (n := 0)).
+    - rewrite decomp_s.
+     (* rewrite IHn.
+    assert (nclosed_vl w 0 /\ Forall (λ v, nclosed_vl v 0) ρ) as [Hwcl Hρcl]. by inversion Hwρcl.
+
+        elim: ρ T => /= [|w ρ IHρ] T Hwρcl /=. by rewrite hsubst_id.
+
+    specialize (IHρ (T.|[w/]) Hρcl).
+    asimpl in IHρ. move: IHρ.
+    by rewrite -interp_subst !closed_subst_vl_id.
+  Qed. *)
+  Abort.
   (** XXX In fact, this lemma should be provable for any φ,
       not just ⟦ T ⟧, but we haven't actually defined the
       necessary notation to state it:
