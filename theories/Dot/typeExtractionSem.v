@@ -138,9 +138,10 @@ End interp_equiv.
 Section typing_type_member_defs.
   Context `{!dlangG Σ}.
 
-  Definition leadsto_envD_equiv (sσ: extractedTy) n (φ : envD Σ) : iProp Σ :=
+  Program Definition leadsto_envD_equiv (sσ: extractedTy) n (φ : envD Σ) : iProp Σ :=
     let '(s, σ) := sσ in
-    (⌜nclosed_σ σ n⌝ ∧ ∃ (φ' : envD Σ), s ↝ φ' ∗ envD_equiv n φ (λ ρ, φ' (to_subst σ.|[ρ])))%I.
+    (⌜nclosed_σ σ n⌝ ∧ ∃ (φ' : envD Σ), s ↝ φ' ∗
+      envD_equiv n φ (λ ρ, φ' (to_subst σ >> ρ)))%I.
   Arguments leadsto_envD_equiv /.
   Notation "sσ ↝[  n  ] φ" := (leadsto_envD_equiv sσ n φ) (at level 20).
 
@@ -201,7 +202,7 @@ Section typing_type_member_defs.
     iDestruct ("Hm" $! _ _ Hl) as (φ) "[#Hm1 <-]".
     iSplit => //; iExists ⟦ T' ⟧; iSplit => //.
     iIntros (ρ v <- Hclρ) "!%".
-    exact: interp_subst_commute.
+    exact: interp_subst_commute2.
   Qed.
 
   Lemma interp_subst_all2 ρ T n v:
