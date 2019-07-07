@@ -29,38 +29,40 @@ Section logrel.
   Context `{!dlangG Σ}.
 
   Notation D := (vl -d> iProp Σ).
-  Implicit Types (interp : envD Σ) (φ : D).
+  Implicit Types (interp φ : envD Σ) (ψ : D).
 
   Definition def_interp_vmem interp : envPred dm Σ :=
     λ ρ d, (∃ vmem, ⌜d = dvl vmem⌝ ∧ ▷ interp ρ vmem)%I.
   Global Arguments def_interp_vmem /.
 
-  Definition idm_proj_semtype d φ : iProp Σ :=
-    (∃ s σ interp, ⌜ d = dtysem σ s ∧ φ = interp (to_subst σ) ⌝ ∗ s ↝ interp)%I.
-  Notation "d ↗ φ" := (idm_proj_semtype d φ) (at level 20).
-  Global Instance idm_proj_persistent d τ: Persistent (d ↗ τ) := _.
+  Definition dm_to_type d ψ : iProp Σ :=
+    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∗ s ↗[ σ ] ψ)%I.
+  Notation "d ↗ ψ" := (dm_to_type d ψ) (at level 20).
+  Global Instance dm_to_type_persistent d ψ: Persistent (d ↗ ψ) := _.
 
-  Lemma stored_pred_agree d φ1 φ2 v :
-    d ↗ φ1 -∗ d ↗ φ2 -∗ ▷ (φ1 v ≡ φ2 v).
+  Lemma dm_to_type_agree d ψ1 ψ2 v : d ↗ ψ1 -∗ d ↗ ψ2 -∗ ▷ (ψ1 v ≡ ψ2 v).
   Proof.
-    iIntros "/= #Hd1 #Hd2".
-    iDestruct "Hd2" as (s' σ' interp2 H2) "Hs2".
-    iDestruct "Hd1" as (s σ interp1 H1) "Hs1".
-    ev; simplify_eq. by iApply (leadsto_agree _ interp1 interp2).
+    iDestruct 1 as (s σ ?) "#Hs1".
+    iDestruct 1 as (s' σ' ?) "#Hs2".
+    simplify_eq. by iApply stamp_σ_to_type_agree.
   Qed.
 
-  Lemma idm_proj_intro s σ (φ : envD Σ) :
-    s ↝ φ -∗ dtysem σ s ↗ φ (to_subst σ).
-  Proof. iIntros. iExists s, σ , φ. by iSplit. Qed.
+  Lemma dm_to_type_intro d s σ φ :
+    d = dtysem σ s → s ↝ φ -∗ d ↗ φ (to_subst σ).
+  Proof.
+    iIntros. iExists s, σ. iFrame "%".
+    by iApply stamp_σ_to_type_intro.
+  Qed.
 
-  Global Arguments idm_proj_semtype : simpl never.
-  (* Global Opaque idm_proj_semtype. *)
+  Definition dm_to_type_eq d ψ : dm_to_type d ψ =
+    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∗ s ↗[ σ ] ψ)%I := eq_refl.
+  Global Opaque dm_to_type.
 
   Definition def_interp_tmem interp1 interp2 : envPred dm Σ :=
     λ ρ d,
-    (∃ φ, (d ↗ φ) ∗
-       □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ interp1 ρ v → ▷ □ φ v) ∗
-          (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ φ v → ▷ interp2 ρ v)))%I.
+    (∃ ψ, (d ↗ ψ) ∗
+       □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ interp1 ρ v → ▷ □ ψ v) ∗
+          (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ ψ v → ▷ interp2 ρ v)))%I.
   Global Arguments def_interp_tmem /.
 
   Definition lift_dinterp_vl l (dinterp: envPred dm Σ): envD Σ :=
@@ -124,7 +126,7 @@ Section logrel.
 
   Definition interp_sel p (l: label) : envD Σ :=
     λ ρ v, (⌜ nclosed_vl v 0 ⌝ ∧ path_wp p.|[ρ]
-      (λ vp, ∃ ϕ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ϕ ∧ ▷ □ ϕ v))%I.
+      (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ψ ∧ ▷ □ ψ v))%I.
   Global Arguments interp_sel /.
 
   Fixpoint interp (T: ty) : envD Σ :=
@@ -253,7 +255,7 @@ Section logrel.
   Global Instance iptp_persistent Γ T p i : Persistent (iptp Γ T p i) := _.
 End logrel.
 
-Notation "d ↗ φ" := (idm_proj_semtype d φ) (at level 20).
+Notation "d ↗ ψ" := (dm_to_type d ψ) (at level 20).
 Notation "⟦ T ⟧" := (interp T).
 Notation "⟦ Γ ⟧*" := (interp_env Γ).
 Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).

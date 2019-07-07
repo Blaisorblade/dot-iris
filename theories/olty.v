@@ -316,6 +316,9 @@ Section olty_ofe.
   Definition interp_expr `{dlangG Σ} (φ : envD Σ) : envPred tm Σ :=
     λ ρ t, WP t {{ φ ρ }} %I.
   Global Arguments interp_expr /.
+
+  Definition oTSel0 `{dlangG Σ} s σ :=
+    closed_olty (λ ρ v, ∃ ψ, s ↗[ σ ] ψ ∧ ▷ □ ψ v)%I.
 End olty_ofe.
 
 Notation "⟦ Γ ⟧*" := (env_oltyped_fin Γ).

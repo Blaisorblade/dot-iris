@@ -31,32 +31,33 @@ Section Russell.
   (** Yes, v has a valid type member. *)
   Lemma vHasA: Hs ⊢ ⟦ TTMem "A" TBot TTop ⟧ ids v.
   Proof.
-    iIntros "#Hs". repeat (repeat iExists _; repeat iSplit; try by [|iApply idm_proj_intro]).
+    iIntros "#Hs /=".
+    iSplit => //.
+    repeat (repeat iExists _; repeat iSplit => //). by iApply dm_to_type_intro.
     iModIntro; repeat iSplit; by iIntros "** !>".
   Qed.
 
   Lemma later_not_UAU: Hs ⊢ uAu v -∗ ▷ False.
   Proof.
-    iIntros "#Hs #HuauV".
-    iPoseProof "HuauV" as (_ φ d Hl) "[Hs1 #Hvav]".
-    iPoseProof "Hs1" as (s' σ φ' [_ ->]) "H".
-    iAssert (d ↗ russell_p ids) as "#Hs2".
-    - iExists s, [], russell_p; iFrame "Hs"; iPureIntro.
-      move: Hl => [ds] [[<- /=] ?]. by simplify_eq.
-    - iPoseProof (stored_pred_agree d _ _ v with "Hs1 Hs2") as "#Hag".
-      (* without lock, iNext would strip a later in [HuauV]. *)
-      rewrite [uAu]lock; iNext; unlock.
-      iRewrite "Hag" in "Hvav".
-      iApply ("Hvav" with "HuauV").
+    iIntros "Hs #HuauV". rewrite /Hs /v.
+    iPoseProof "HuauV" as (_ ψ d Hl) "[Hs1 Hvav]".
+    have Hdeq: d = dtysem [] s. by move: Hl => /= [ds [[<- /=] ?]]; simplify_eq.
+    iAssert (d ↗ russell_p ids) as "#Hs2". by iApply (dm_to_type_intro with "Hs").
+    iPoseProof (dm_to_type_agree d _ _ v with "Hs1 Hs2") as "#Hag".
+    (* without lock, iNext would strip a later in [HuauV]. *)
+    rewrite /v [uAu]lock; iNext; unlock.
+    iRewrite "Hag" in "Hvav".
+    iApply ("Hvav" with "HuauV").
   Qed.
 
   Lemma uauEquiv: Hs ⊢ ▷ □ (uAu v -∗ False) ∗-∗ uAu v.
   Proof.
     iIntros "#Hs"; iSplit.
-    - iIntros "#HnotVAV"; iSplit => //.
+    - iIntros "#HnotVAV"; iSplit => //=.
       iExists (russell_p ids), (dtysem [] s).
-      repeat (repeat iSplit => //; repeat iExists _).
-      iIntros "!>!>!> #Hvav". iApply ("HnotVAV" with "Hvav").
+      repeat iSplit; first by eauto.
+      + by iApply (dm_to_type_intro with "Hs").
+      + iIntros "!>!>!>". iApply "HnotVAV".
     - iIntros "#Hvav".
       by iDestruct (later_not_UAU with "Hs Hvav") as "#>[]".
   Qed.

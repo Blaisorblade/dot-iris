@@ -180,8 +180,8 @@ Section typing_type_member_defs.
     iIntros "!>" (ρ) "#Hg".
     iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]; rewrite <- Hlen in *.
     iDestruct "Hs" as (φ) "[Hγ Hγφ]".
-    repeat iSplit => //; iExists (φ (to_subst σ.|[to_subst ρ]));
-      iSplit; first by repeat iExists _; iSplit.
+    iSplit => //. iExists (φ _); iSplit.
+    by iApply (dm_to_type_intro with "Hγ").
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL";
       rewrite later_intuitionistically.
     - iIntros "!>"; iApply (internal_eq_iff with "(Hγφ [#//] [#//])").
