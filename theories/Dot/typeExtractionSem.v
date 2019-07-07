@@ -153,10 +153,39 @@ Section typing_type_member_defs.
   Qed.
 
 
+  Lemma scons_up_swap a sb1 sb2: a .: sb1 >> sb2 = up sb1 >> a .: sb2.
+  Proof. autosubst. Qed.
+
+  Lemma interp_subst_all_gen_ind T sb1 sb2 v:
+    ⟦ T.|[sb1] ⟧ sb2 v ⊣⊢ ⟦ T ⟧ (sb1 >> sb2) v.
+  Proof.
+    move: sb1 sb2 v. induction T => sb1 sb2 v /=; properness;
+      rewrite /= ?scons_up_swap; trivial.
+    f_equiv; autosubst.
+  Qed.
+
+  Lemma interp_subst_all_gen T sb1 sb2 sb3:
+    sb1 >> sb2 = sb3 → ⟦ T.|[sb1] ⟧ sb2 ≡ ⟦ T ⟧ sb3.
+  Proof. move=> <- v. exact: interp_subst_all_gen_ind. Qed.
+
+  Lemma interp_subst_all_ids T sb1: ⟦ T.|[sb1] ⟧ ids ≡ ⟦ T ⟧ sb1.
+  Proof. apply interp_subst_all_gen. autosubst. Qed.
+
+  Lemma interp_weaken_again ρ1 ρ2 ρ3 τ :
+    ⟦ τ.|[upn (length ρ1) (ren (+ length ρ2))] ⟧ (to_subst (ρ1 ++ ρ2 ++ ρ3))
+    ≡ ⟦ τ ⟧ (to_subst (ρ1 ++ ρ3)).
+  Proof. apply interp_subst_all_gen, to_subst_weaken. Qed.
+
+  Lemma interp_subst_up ρ1 ρ2 τ v:
+    ⟦ τ.|[upn (length ρ1) (v.[ren (+length ρ2)] .: ids)] ⟧ (to_subst (ρ1 ++ ρ2))
+    ≡ ⟦ τ ⟧ (to_subst (ρ1 ++ v :: ρ2)).
+  Proof. apply interp_subst_all_gen, to_subst_up. Qed.
+
   Lemma interp_closed_1 T n sb1 sb2:
     nclosed T n → eq_n_s sb1 sb2 n → ⟦ T.|[sb1] ⟧ ≡ ⟦ T.|[sb2] ⟧.
   Proof.
     intros HclT Heqs. by rewrite (HclT sb1 sb2 Heqs).
+  Qed.
 (*
     revert n sb1 sb2. induction T; intros n sb1 sb2 Hcl Heqs ρ v; simpl. all: trivial. properness.
     all: first
@@ -164,37 +193,44 @@ Section typing_type_member_defs.
       | done | idtac ]; eauto 2 using eq_up; eauto with fv.
     have Hclp: nclosed p n. by eauto with fv.
     by rewrite (Hclp sb1 sb2 Heqs). *)
-  Qed.
   Lemma eq_cons v sb1 sb2 n : eq_n_s sb1 sb2 n → eq_n_s (v .: sb1) (v .: sb2) (S n).
   Proof. move => Heqs [//|x] /lt_S_n /Heqs //. Qed.
 
   Lemma interp_closed_2 T n sb1 sb2:
     nclosed T n → eq_n_s sb1 sb2 n → ⟦ T ⟧ sb1 ≡ ⟦ T ⟧ sb2.
   Proof.
-    revert n sb1 sb2. induction T; intros n sb1 sb2 Hcl Heqs v; simpl; trivial; properness.
-    all: try by
-      (first [ eapply IHT1 | eapply IHT2 | eapply IHT
-      | done | idtac ]; eauto 2; eauto with fv).
-    eapply (IHT2 (S n)); eauto 2 using eq_cons; eauto with fv.
-    eapply (IHT (S n)); eauto 2 using eq_cons; eauto with fv.
-    have Hclp: nclosed p n. by eauto with fv.
-    by rewrite (Hclp sb1 sb2 Heqs).
+    move => Hcl Heqs.
+    rewrite -(interp_subst_all_ids _ sb1) -(interp_subst_all_ids _ sb2).
+    f_equiv. apply Hcl, Heqs.
   Qed.
-  Lemma interp_subst_all0 ρ T n v:
-    ⟦ T.|[ρ] ⟧ ids v ≡ ⟦ T ⟧ ρ v.
 
   Lemma interp_subst_commute2 T σ ρ v:
-    nclosed T (length σ) →
+    (* nclosed T (length σ) →
     nclosed_σ σ (length ρ) →
-    cl_ρ ρ →
+    cl_ρ ρ → *)
     ⟦ T.|[to_subst σ] ⟧ (to_subst ρ) v ≡ ⟦ T ⟧ (to_subst σ >> to_subst ρ) v.
   Proof.
-    intros HclT Hclσ Hclρ.
-    rewrite -(interp_subst_all ρ _ v) // -(subst_compose HclT _ Hclσ _ Hclρ) //
+    (* intros HclT Hclσ Hclρ. *)
+    exact: interp_subst_all_gen.
+    (* rewrite -(interp_subst_all ρ _ v) // -(subst_compose HclT _ Hclσ _ Hclρ) //
       (interp_subst_all _ T v).
     - apply (interp_closed_2 HclT).
       exact: to_subst_compose.
-    - by apply nclosed_σ_to_subst.
+    - by apply nclosed_σ_to_subst. *)
+  Qed.
+
+  Lemma eq_n_s_symm sb1 sb2 n: eq_n_s sb1 sb2 n → eq_n_s sb2 sb1 n.
+  Proof. move => Heqs x ?. symmetry. exact: Heqs. Qed.
+
+  Lemma interp_subst_commute_again T σ ρ v:
+    nclosed T (length σ) →
+    (* nclosed_σ σ (length ρ) →
+    cl_ρ ρ → *)
+    ⟦ T.|[to_subst σ] ⟧ (to_subst ρ) v ≡ ⟦ T ⟧ (to_subst σ.|[to_subst ρ]) v.
+  Proof.
+    intros HclT.
+    rewrite (interp_subst_all_gen T eq_refl v).
+    apply (interp_closed_2 HclT), eq_n_s_symm, to_subst_compose.
   Qed.
 
   Lemma extraction_to_leadsto_envD_equiv T g sσ n: T ~[ n ] (g, sσ) →
@@ -210,6 +246,8 @@ Section typing_type_member_defs.
   Lemma interp_subst_all2 ρ T n v:
     nclosed T n → nclosed_sub n 0 ρ → ⟦ T.|[ρ] ⟧ ids v ≡ ⟦ T ⟧ ρ v.
   Proof.
+    intros. apply interp_subst_all_ids. Qed.
+(*
     elim: n ρ T v => /= [|n IHn] ρ T v HclT Hclρ.
     - rewrite closed_subst_id //.
       exact: (interp_closed_2 (n := 0)).
@@ -223,7 +261,7 @@ Section typing_type_member_defs.
     asimpl in IHρ. move: IHρ.
     by rewrite -interp_subst !closed_subst_vl_id.
   Qed. *)
-  Abort.
+  Abort. *)
   (** XXX In fact, this lemma should be provable for any φ,
       not just ⟦ T ⟧, but we haven't actually defined the
       necessary notation to state it:
@@ -247,7 +285,7 @@ Section typing_type_member_defs.
     by iApply (dm_to_type_intro with "Hγ").
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL";
       rewrite later_intuitionistically.
-    - iIntros "!>"; iApply (internal_eq_iff with "(Hγφ [#//] [#//])").
+    - iIntros "!>". iApply (internal_eq_iff with "(Hγφ [#] [#])").
       by iApply "HLT".
     - iApply "HTU" => //.
       by iApply (internal_eq_iff with "(Hγφ [#//] [#//])").
