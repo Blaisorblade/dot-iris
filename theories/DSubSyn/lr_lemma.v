@@ -60,7 +60,7 @@ Section Sec.
     iApply wp_wand.
     - iApply "HvFun". rewrite -wp_value_inv'. by iApply "Hv2Arg".
     - iIntros (v).
-      iRewrite (interp_subst_closed Γ T2 v2 v with "HG"); auto.
+      rewrite (interp_subst_closed T2 v2 v); auto.
   Qed.
 
   Lemma T_Forall_I T1 T2 e:
@@ -141,7 +141,7 @@ Section Sec.
     iExists (λ v, ⟦ T.|[to_subst vs] ⟧ ids v)%I.
     iSplit. by iExists (T.|[to_subst vs]).
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#H";
-      rewrite later_intuitionistically interp_subst_all //.
+      rewrite later_intuitionistically -(interp_subst_ids _ _ _) //.
     - iIntros "!>"; by iApply "HLT".
     - by iApply "HTU".
   Qed.
@@ -171,7 +171,7 @@ Section Sec.
     iExists (λ v, ⟦ T.|[to_subst ρ] ⟧ ids v)%I.
     iSplit. by iExists (T.|[to_subst ρ ]).
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#H";
-      rewrite later_intuitionistically interp_subst_all //.
+      rewrite later_intuitionistically -(interp_subst_ids _ _ _) //.
     - iIntros "!>"; by iApply "HLT".
     - by iApply "HTU".
   Qed.

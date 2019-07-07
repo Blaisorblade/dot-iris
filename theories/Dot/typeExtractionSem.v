@@ -63,7 +63,7 @@ Section interp_equiv.
     have Hclσ1ξ: nclosed_σ σ1.|[to_subst ξ] (length ρ). exact: nclosed_σ_to_subst.
     have Hrew: T2.|[to_subst σ2.|[to_subst ρ]] = T1.|[to_subst σ1.|[to_subst ξ].|[to_subst ρ]].
     by erewrite !subst_compose; rewrite ?map_length ?Heq1 ?Heq2.
-    rewrite -(interp_subst_all _ T1) -?(interp_subst_all _ T2) ?Hrew //; exact: nclosed_σ_to_subst.
+    rewrite (interp_subst_ids T1 _ _) (interp_subst_ids T2 _ _) ?Hrew //; exact: nclosed_σ_to_subst.
   Qed.
 
   (* To give a definitive version of wellMapped, we need stampHeap to be stored in a resource. Here it is: *)

@@ -1,6 +1,9 @@
 From iris.proofmode Require Import tactics.
 From D Require Export iris_prelude.
+From D Require Import ty_interp_subst_lemmas.
 From D.Dot Require Export operational path_wp.
+
+Include TyInterpLemmas VlSorts operational.
 
 (** Deduce types from variable names, like on paper, for readability and to help
     type inference for some overloaded operations (e.g. substitution). *)
@@ -144,6 +147,13 @@ Section logrel.
     | TMu T => interp_mu (⟦ T ⟧)
     | TSel p l => interp_sel p l
     end % I.
+
+  Global Instance interp_lemmas: TyInterpLemmas ty Σ.
+  Proof.
+    split; induction T => sb1 sb2 w /=;
+      properness; rewrite /= ?scons_up_swap; trivial.
+    f_equiv; autosubst.
+  Qed.
 
   Notation "⟦ T ⟧ₑ" := (interp_expr ⟦ T ⟧).
 

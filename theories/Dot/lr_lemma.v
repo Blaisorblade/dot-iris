@@ -104,10 +104,9 @@ Section Sec.
    *)
   Lemma TMu_equiv T v: (Γ ⊨ tv v : TMu T) ≡ (Γ ⊨ tv v : T.|[v/]).
   Proof.
-    iSplit; iIntros "/= #[% #Htp]"; iFrame "%"; iIntros "!>" (vs) "#Hg"; rewrite -wp_value;
-      (iDestruct (interp_subst_closed Γ T v (v.[to_subst vs]) with "[//]") as "Heq"; first exact: fv_tv_inv);
-        iApply (internal_eq_iff with "Heq"); iApply (wp_value_inv with "(Htp [//])").
-      (* Fail iRewrite "Heq". *) (* WTF *)
+    iSplit; iIntros "/= #[% #Htp]"; iFrame "%"; iIntros "!>" (vs) "Hg";
+    iDestruct (wp_value_inv with "(Htp Hg)") as "{Htp} Hgoal";
+    rewrite -wp_value (interp_subst_closed T v (v.[to_subst vs])); done.
   Qed.
 
   Lemma TMu_I T v: Γ ⊨ tv v : T.|[v/] -∗ Γ ⊨ tv v : TMu T.
@@ -143,8 +142,8 @@ Section Sec.
     rewrite -wp_pure_step_later; last done. iNext.
     iApply wp_wand.
     - iApply "HvFun". rewrite -wp_value_inv'. by iApply "Hv2Arg".
-    - iIntros (v).
-      iRewrite (interp_subst_closed Γ T2 v2 v with "HG"); auto.
+    - iIntros (v) "{HG HvFun Hv2Arg} H".
+      rewrite (interp_subst_closed T2 v2 v) //.
   Qed.
 
   (** Restricting this to index 0 appears necessary: it seems we can't swap [▷^i
