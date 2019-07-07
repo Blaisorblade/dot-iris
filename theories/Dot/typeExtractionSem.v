@@ -35,7 +35,7 @@ Section interp_equiv.
   Notation "⟦ T ⟧ [ σ ]" := (interp_extractedTy (T, σ)).
 
   Definition envD_equiv n φ1 φ2: iProp Σ :=
-    (∀ ρ v, ⌜ length ρ = n ⌝ → ⌜ cl_ρ ρ ⌝ → φ1 (to_subst ρ) v ≡ φ2 (to_subst ρ) v)%I.
+    (∀ ρ v, φ1 (to_subst ρ) v ≡ φ2 (to_subst ρ) v)%I.
   Notation "φ1 ≈[  n  ] φ2" := (envD_equiv n φ1 φ2) (at level 70).
 
   Lemma extraction_envD_equiv g s σ T n:
@@ -43,11 +43,14 @@ Section interp_equiv.
     (∃ T', ⌜ g !! s = Some T'⌝ ∧
         ⟦ T ⟧ ≈[ n ] ⟦ T' ⟧ [ σ ])%I.
   Proof.
-    iIntros ((T' & -> & <- & HclT & HclT')). iExists _; iSplit => //.
-    iIntros (ρ v <- Hclρ). by rewrite interp_subst_commute.
+    iIntros ((T' & -> & <- & Hclσ & HclT')).
+    (* XXX Now unused *)
+    clear Hclσ.
+    iExists _; iSplit => //.
+    iIntros (ρ v). rewrite interp_subst_commute //.
   Qed.
 
-  (** envD_equiv commutes with substitution. *)
+  (** envD_equiv commutes with substitution? Now broken. *)
   Lemma envD_equiv_subst g T m n ξ s1 σ1 s2 σ2:
     T ~[ m ] (g, (s1, σ1)) →
     T.|[to_subst ξ] ~[ n ] (g, (s2, σ2)) →
@@ -57,12 +60,14 @@ Section interp_equiv.
     ⟦ T1 ⟧ [ σ1.|[to_subst ξ] ] ≈[ n ] ⟦ T2 ⟧ [ σ2 ])%I.
   Proof.
     rewrite /interp_extractedTy; iIntros ((T1 & -> & Heq1 & Hclσ1 & HclT1) (T2 & -> & Heq2 & Hclσ2 & HclT2) Hlenξ Hclξ).
-    iExists _, _; repeat iSplit => //; iIntros (ρ v Hlenρ Hclρ) "/= !%"; subst.
-    have Hclσ1ξ: nclosed_σ σ1.|[to_subst ξ] (length ρ). exact: nclosed_σ_to_subst.
-    have Hrew: T2.|[to_subst σ2.|[to_subst ρ]] = T1.|[to_subst σ1.|[to_subst ξ].|[to_subst ρ]].
-    by erewrite !subst_compose; rewrite ?map_length ?Heq1 ?Heq2.
-    rewrite -(interp_subst_all _ T1) -?(interp_subst_all _ T2) ?Hrew //; exact: nclosed_σ_to_subst.
-  Qed.
+    iExists _, _; repeat iSplit => //; iIntros (ρ v) "/= !%"; subst.
+    have Hclσ1ξ: nclosed_σ σ1.|[to_subst ξ] n. apply: nclosed_σ_to_subst => //.
+    (* have Hrew: T2.|[to_subst σ2.|[to_subst ρ]] = T1.|[to_subst σ1.|[to_subst ξ].|[to_subst ρ]].
+    by erewrite !subst_compose; rewrite ?map_length ?Heq1 ?Heq2. *)
+    rewrite -(interp_subst_all _ T1) -?(interp_subst_all _ T2).
+    f_equiv.
+    erewrite !subst_compose; rewrite ?map_length ?Heq1 ?Heq2 //.
+  Abort.
 
   Lemma alloc_sp T: (|==> ∃ γ, γ ⤇ ty_interp T)%I.
   Proof. exact: saved_ho_sem_type_alloc. Qed.
@@ -85,9 +90,7 @@ Section interp_equiv.
   Instance: Persistent (wellMapped g).
   Proof. apply _. Qed.
 
-  (** We can transfer one mapping from [g] into Iris resources. Note that [gs ⊆
-      gs'] in the outpu might not be ultimately needed; that's enforced indirectly
-      by both wellMapped and by invariants. *)
+  (** We can transfer one mapping from [g] into Iris resources. *)
   Lemma transferOne gs g s T:
       gs !! s = None → (wellMapped g → allGs gs ==∗ ∃ gs', wellMapped (<[s := T]> g) ∧ allGs gs' ∧ ⌜gdom gs' ≡ gdom gs ∪ {[s]}⌝)%I.
   Proof.
@@ -157,7 +160,7 @@ Section typing_type_member_defs.
     move: sσ => [s σ] [T'] [Hl] [<-] [Hclσ] HclT /=. iIntros "Hm".
     iDestruct ("Hm" $! _ _ Hl) as (φ) "[#Hm1 <-]".
     iSplit => //; iExists ⟦ T' ⟧; iSplit => //.
-    iIntros (ρ v <- Hclρ) "!%".
+    iIntros (ρ v) "!%".
     exact: interp_subst_commute.
   Qed.
 
@@ -184,10 +187,9 @@ Section typing_type_member_defs.
     by iApply (dm_to_type_intro with "Hγ").
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL";
       rewrite later_intuitionistically.
-    - iIntros "!>"; iApply (internal_eq_iff with "(Hγφ [#//] [#//])").
+    - iIntros "!>". iApply (internal_eq_iff with "Hγφ").
       by iApply "HLT".
-    - iApply "HTU" => //.
-      by iApply (internal_eq_iff with "(Hγφ [#//] [#//])").
+    - iApply "HTU" => //. by iApply (internal_eq_iff with "Hγφ").
   Qed.
 
   Lemma D_Typ_Concr Γ T s σ l:
