@@ -34,10 +34,10 @@ Section interp_equiv.
       σ in ρ. And the result is only equivalent for closed ρ with the expected length. *)
   Definition interp_extractedTy: (ty * vls) → envD Σ :=
     λ '(T, σ) ρ v,
-    (⟦ T ⟧ (to_subst σ.|[ρ]) v)%I.
+    (⟦ T ⟧ (to_subst σ >> ρ) v)%I.
   Notation "⟦ T ⟧ [ σ ]" := (interp_extractedTy (T, σ)).
 
-  Definition envD_equiv n φ1 φ2: iProp Σ :=
+  Definition envD_equiv (n : nat) φ1 φ2: iProp Σ :=
     (∀ ρ v, φ1 (to_subst ρ) v ≡ φ2 (to_subst ρ) v)%I.
   Notation "φ1 ≈[  n  ] φ2" := (envD_equiv n φ1 φ2) (at level 70).
 
@@ -50,7 +50,7 @@ Section interp_equiv.
     (* XXX Now unused *)
     clear Hclσ.
     iExists _; iSplit => //.
-    iIntros (ρ v). rewrite interp_subst_commute //.
+    iIntros (ρ v). rewrite interp_subst_commute_gen //.
   Qed.
 
   (** envD_equiv commutes with substitution? Now broken. *)
@@ -64,12 +64,12 @@ Section interp_equiv.
   Proof.
     rewrite /interp_extractedTy; iIntros ((T1 & -> & Heq1 & Hclσ1 & HclT1) (T2 & -> & Heq2 & Hclσ2 & HclT2) Hlenξ Hclξ).
     iExists _, _; repeat iSplit => //; iIntros (ρ v) "/= !%"; subst.
-    have Hclσ1ξ: nclosed_σ σ1.|[to_subst ξ] n. apply: nclosed_σ_to_subst => //.
+    (* have Hclσ1ξ: nclosed_σ σ1.|[to_subst ξ] n. apply: nclosed_σ_to_subst => //.
     (* have Hrew: T2.|[to_subst σ2.|[to_subst ρ]] = T1.|[to_subst σ1.|[to_subst ξ].|[to_subst ρ]].
     by erewrite !subst_compose; rewrite ?map_length ?Heq1 ?Heq2. *)
     rewrite -(interp_subst_all _ T1) -?(interp_subst_all _ T2).
     f_equiv.
-    erewrite !subst_compose; rewrite ?map_length ?Heq1 ?Heq2 //.
+    erewrite !subst_compose => //; rewrite ?map_length ?Heq2 //. *)
   Abort.
 
 
@@ -80,7 +80,8 @@ Section typing_type_member_defs.
 
   Definition leadsto_envD_equiv (sσ: extractedTy) n (φ : envD Σ) : iProp Σ :=
     let '(s, σ) := sσ in
-    (⌜nclosed_σ σ n⌝ ∧ ∃ (φ' : envD Σ), s ↝ φ' ∗ envD_equiv n φ (λ ρ, φ' (to_subst σ.|[ρ])))%I.
+    (⌜nclosed_σ σ n⌝ ∧ ∃ (φ' : envD Σ), s ↝ φ' ∗
+      envD_equiv n φ (λ ρ, φ' (to_subst σ.|[ρ])))%I.
   Arguments leadsto_envD_equiv /.
   Notation "sσ ↝[  n  ] φ" := (leadsto_envD_equiv sσ n φ) (at level 20).
 
@@ -111,7 +112,6 @@ Section typing_type_member_defs.
   Proof.
     iIntros "#HTU #HLT #[% Hs] /=". iSplit; first auto using fv_dtysem.
     iIntros "!>" (ρ) "#Hg".
-    iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]; rewrite <- Hlen in *.
     iDestruct "Hs" as (φ) "[Hγ Hγφ]".
     iSplit => //. iExists (φ _); iSplit.
     by iApply (dm_to_type_intro with "Hγ").
