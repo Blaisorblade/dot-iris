@@ -3,6 +3,7 @@
 
 theories/README.v
 theories/tactics.v
+theories/unary_lr_binding.v
 theories/olty.v
 theories/olty_experiments.v
 theories/prelude.v

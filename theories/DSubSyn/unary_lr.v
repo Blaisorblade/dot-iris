@@ -1,6 +1,9 @@
 From iris.proofmode Require Import tactics.
 From D Require Export iris_prelude.
 From D.DSub Require Export operational.
+Require Import D.unary_lr_binding.
+
+Include TyInterpBinding VlSorts operational.
 
 (** Deduce types from variable names, like on paper, for readability and to help
     type inference for some overloaded operations (e.g. substitution). *)
@@ -198,6 +201,13 @@ Ltac setoid_unfold_interp :=
 
 Section logrel_part2.
   Context `{!dsubSynG Σ}.
+
+  Global Instance interp_lemmas: TyInterpLemmas ty Σ.
+  Proof.
+    split; induction T => sb1 sb2 w; unfold_interp;
+      properness; rewrite /= ?scons_up_swap; trivial.
+    autosubst.
+  Qed.
 
   Global Instance interp_persistent T ρ v :
     Persistent (⟦ T ⟧ ρ v).
