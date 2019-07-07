@@ -180,6 +180,8 @@ Section typing_type_member_defs.
     have Hclp: nclosed p n. by eauto with fv.
     by rewrite (Hclp sb1 sb2 Heqs).
   Qed.
+  Lemma interp_subst_all0 ρ T n v:
+    ⟦ T.|[ρ] ⟧ ids v ≡ ⟦ T ⟧ ρ v.
 
   Lemma interp_subst_commute2 T σ ρ v:
     nclosed T (length σ) →
