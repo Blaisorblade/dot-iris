@@ -9,6 +9,14 @@ Implicit Types
 Section logrel_binding_lemmas.
   Context `{!dlangG Σ}.
 
+  Lemma interp_subst_all_gen_ind T sb1 sb2 v:
+    ⟦ T.|[sb1] ⟧ sb2 v ⊣⊢ ⟦ T ⟧ (sb1 >> sb2) v.
+  Proof.
+    move: sb1 sb2 v; induction T => sb1 sb2 w /=;
+      properness; rewrite /= ?scons_up_swap; trivial.
+    autosubst.
+  Qed.
+
   Lemma interp_weaken ρ1 ρ2 ρ3 τ :
     ⟦ τ.|[upn (length ρ1) (ren (+ length ρ2))] ⟧ (to_subst (ρ1 ++ ρ2 ++ ρ3))
     ≡ ⟦ τ ⟧ (to_subst (ρ1 ++ ρ3)).
