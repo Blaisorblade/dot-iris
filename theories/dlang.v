@@ -9,13 +9,12 @@ Module mapsto.
 Export gen_iheap.
 
 Notation "s ↦ γ" := (mapsto (L := stamp) s γ) (at level 20) : bi_scope.
+Notation allGs gs := (gen_iheap_ctx (L := stamp) gs).
+
 Section mapsto_stamp_gname.
   Context `{gen_iheapG stamp gname Σ}.
   Global Instance: Persistent (s ↦ γ) := _.
   Global Instance: Timeless (s ↦ γ) := _.
-
-  Definition allGs (gs : gmap stamp gname) := gen_iheap_ctx gs.
-  Global Arguments allGs /.
 End mapsto_stamp_gname.
 End mapsto.
 
