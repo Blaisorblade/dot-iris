@@ -29,7 +29,8 @@ html: Makefile.coq
 
 # Create Coq Makefile.
 Makefile.coq: _CoqProject Makefile
-	"$(COQBIN)coq_makefile" -f _CoqProject -o Makefile.coq
+	@echo "COQ_MAKEFILE"
+	@"$(COQBIN)coq_makefile" -f _CoqProject -o Makefile.coq
 
 # Some files that do *not* need to be forwarded to Makefile.coq
 Makefile: ;
