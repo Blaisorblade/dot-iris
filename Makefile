@@ -1,6 +1,6 @@
 COQDOCFLAGS:= \
   --toc --toc-depth 2 --html --interpolate \
-  --index indexpage --no-lib-name --parse-comments
+  --index indexpage --no-lib-name --parse-comments --utf8
 
 export COQDOCFLAGS
 
