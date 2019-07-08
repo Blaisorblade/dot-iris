@@ -22,9 +22,8 @@ Implicit Types (Σ : gFunctors).
     while reusing as much as possible.
 *)
 
-Module Type OLty_judge (Import VS: VlSortsFullSig).
-
-Include OLty VS.
+Module Type OLty_judge (Import VS: VlSortsFullSig) (Import LVS : LiftWp VS).
+Include OLty VS LVS.
 
 Class Closeable s := nclosed_s : s → nat → Prop.
 Instance closeable_sort s `{Sort s} : Closeable s := nclosed.
@@ -95,14 +94,14 @@ End judgments.
 
 End OLty_judge.
 
-From D.Dot Require Import syn synLemmas rules typeExtractionSyn path_wp.
+From D.Dot Require Import syn synLemmas operational rules typeExtractionSyn path_wp.
 
 Implicit Types
          (v: vl) (e: tm) (d: dm) (ds: dms) (p : path).
 
 Module SemTypes.
 
-Include OLtyJudgements VlSorts.
+Include OLtyJudgements VlSorts operational.
 
 Record dlty Σ := Dlty {
   dlty_label : label;
