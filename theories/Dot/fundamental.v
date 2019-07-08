@@ -173,7 +173,7 @@ Section fundamental.
 
   Lemma fundamental_typed_upd Γ e T (HT: Γ ⊢ₜ e : T): (allGs ∅ -∗ |==> Γ ⊨ e : T)%I.
   Proof.
-    iIntros. iApply fundamental_typed => //. by iApply (transfer ∅).
+    iIntros. iApply fundamental_typed => //. by iApply transfer_empty.
   Qed.
 
 End fundamental.
