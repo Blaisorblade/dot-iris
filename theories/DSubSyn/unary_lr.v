@@ -121,7 +121,7 @@ Section logrel.
 
   (* This is a structurally recursive Coq function.
      Non-structurally recursive calls must happen under [▷] and use [rinterp]. *)
-  Definition interp_rec1: (ty -d> envD Σ) -> ty -d> envD Σ :=
+  Definition interp_rec: (ty -d> envD Σ) -> ty -d> envD Σ :=
     fix rec rinterp T :=
     match T with
     | TLater T => interp_later (rec rinterp T)
@@ -134,7 +134,7 @@ Section logrel.
     end%I.
 
   (* solve_contractive is really not happy about checking this code. *)
-  Global Instance interp_rec1_contractive : Contractive interp_rec1.
+  Global Instance interp_rec_contractive : Contractive interp_rec.
   Proof.
     move => n i1 i2 Heq T /=; induction T.
     (* Generic but slow *)
@@ -148,21 +148,21 @@ Section logrel.
     exact: interp_tmem_contractive.
   Qed.
 
-  Program Lemma fixpoint_interp_rec1_eq:
-    fixpoint interp_rec1 ≡ interp_rec1 (fixpoint interp_rec1).
-  Proof. exact: (fixpoint_unfold interp_rec1). Qed.
+  Program Lemma fixpoint_interp_rec_eq:
+    fixpoint interp_rec ≡ interp_rec (fixpoint interp_rec).
+  Proof. exact: (fixpoint_unfold interp_rec). Qed.
 
-  Program Definition interp: ty -d> envD Σ := fixpoint interp_rec1.
+  Program Definition interp: ty -d> envD Σ := fixpoint interp_rec.
   Notation "⟦ T ⟧" := (interp T).
 
   Global Instance dlang_interp : TyInterp ty Σ := interp.
 
-  Lemma fixpoint_interp_eq1 T: interp T ≡ interp_rec1 interp T.
-  Proof. apply fixpoint_interp_rec1_eq. Qed.
-  Lemma fixpoint_interp_eq2 T ρ: interp T ρ ≡ interp_rec1 interp T ρ.
-  Proof. apply fixpoint_interp_rec1_eq. Qed.
-  Lemma fixpoint_interp_eq3 T ρ v: interp T ρ v ≡ interp_rec1 interp T ρ v.
-  Proof. apply fixpoint_interp_rec1_eq. Qed.
+  Lemma fixpoint_interp_eq1 T: interp T ≡ interp_rec interp T.
+  Proof. apply fixpoint_interp_rec_eq. Qed.
+  Lemma fixpoint_interp_eq2 T ρ: interp T ρ ≡ interp_rec interp T ρ.
+  Proof. apply fixpoint_interp_rec_eq. Qed.
+  Lemma fixpoint_interp_eq3 T ρ v: interp T ρ v ≡ interp_rec interp T ρ v.
+  Proof. apply fixpoint_interp_rec_eq. Qed.
 
   Ltac rewrite_interp := repeat first [rewrite fixpoint_interp_eq3 | progress (repeat f_equiv; rewrite ?fixpoint_interp_eq1 //=) | move => ? /= ].
   Lemma interp_TAll T1 T2 ρ v: ⟦ TAll T1 T2 ⟧ ρ v ≡ interp_forall ⟦ T1 ⟧ ⟦ T2 ⟧ ρ v.
