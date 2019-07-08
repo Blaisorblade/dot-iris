@@ -20,9 +20,11 @@ clean: Makefile.coq
 	rm -f Makefile.coq
 .PHONY: clean
 
-html: all
-	rm -fr html
-	+make -f Makefile.coq $@
+html: Makefile.coq
+	rm -fr html-old
+	[ -d html ] && mv html html-old || true
+	+@make -f Makefile.coq all
+	+@make -f Makefile.coq $@
 .PHONY: html
 
 # Create Coq Makefile.

@@ -16,3 +16,5 @@ Makefile.coq
 Makefile.coq.conf
 *.crashcoqide
 _opam/
+html/
+html-old/
