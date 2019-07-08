@@ -94,7 +94,8 @@ End judgments.
 
 End OLty_judge.
 
-From D.Dot Require Import syn synLemmas operational rules typeExtractionSyn path_wp.
+From D.Dot Require Import syn operational synLemmas rules typeExtractionSyn path_wp.
+From D.Dot Require unary_lr.
 
 Implicit Types
          (v: vl) (e: tm) (d: dm) (ds: dms) (p : path).
@@ -234,17 +235,41 @@ Section SemTypes.
   Abort. *)
 End SemTypes.
 
+Module Import LogRelAdapt.
+Import unary_lr.
+
+Inductive hty : nat → Type :=
+| h : ty → hty 0.
+Instance hsubst_hty {i}: HSubst vl (hty i) := λ sb '(h T), h (T.|[sb]).
+
+Global Program Instance oty_interp_dot `{!dlangG Σ}: OTyInterp hty Σ :=
+  λ _ '(h T), Olty (vopen ⟦ T ⟧) _.
+Next Obligation. rewrite /vclosed/vopen=>*. by rewrite interp_v_closed. Qed.
+
+Lemma oty_interp_subst_commute `{!dlangG Σ} T σ args sb v:
+  nclosed T (length σ) →
+  oty_interp (h T.|[to_subst σ]) args sb v ≡ oty_interp (h T) args (to_subst σ.|[sb]) v.
+Proof. rewrite /olty_car/=. exact: interp_subst_commute. Qed.
+
+Lemma oty_interp_subst_commute' `{!dlangG Σ} (T : hty 0) σ args sb v:
+  nclosed T (length σ) →
+  oty_interp T.|[to_subst σ] args sb v ≡ oty_interp T args (to_subst σ.|[sb]) v.
+Proof.
+  case: T args => T args; rewrite /olty_car/= => Hcl.
+  apply interp_subst_commute; auto with fv.
+Qed.
+End LogRelAdapt.
+
 (*
   Even if semantic types use infinite substitutions, we can still reuse the
   current stamping theory, based on finite substitutions.
 *)
 Section Sec.
-  Context `{HdotG: dlangG Σ} {i : nat}.
+  Context `{!dlangG Σ} {i : nat}.
   Implicit Types (φ : hoEnvD Σ i) (τ : olty Σ i).
 
-  Definition envD_equiv n φ1 φ2 : iProp Σ :=
-    (∀ args ρ v, ⌜ length ρ = n ⌝ → ⌜ cl_ρ ρ ⌝ →
-      φ1 args (to_subst ρ) v ≡ φ2 args (to_subst ρ) v)%I.
+  Definition envD_equiv (n : nat) φ1 φ2 : iProp Σ :=
+    (∀ args ρ v, φ1 args ρ v ≡ φ2 args ρ v)%I.
 
   Definition leadsto_envD_equiv (sσ : extractedTy) n φ : iProp Σ :=
     let '(s, σ) := sσ in
@@ -267,7 +292,6 @@ Section Sec2.
   Proof.
     iIntros "#HTU #HLT #[% Hs] /="; repeat iSplit; [auto using fv_dtysem..|].
     iIntros "!>" (ρ) "#Hg /=".
-    iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]; rewrite <- Hlen in *.
     (* iDestruct (env_oltyped_fin_cl_ρ with "Hg") as %Hclp. *)
     iDestruct "Hs" as (φ) "[Hγ Hγφ]".
     rewrite /dlty_car /=.
@@ -275,15 +299,30 @@ Section Sec2.
     by iApply dm_to_type_intro.
     rewrite /envD_equiv.
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL"; rewrite later_intuitionistically.
-    - iIntros "!>". iApply (internal_eq_iff with "(Hγφ [#//] [#//])").
+    - iIntros "!>". iApply (internal_eq_iff with "Hγφ").
       by iApply "HLT".
     - iApply "HTU" => //.
-      by iApply (internal_eq_iff with "(Hγφ [#//] [#//])").
+      by iApply (internal_eq_iff with "Hγφ").
   Qed.
 
   Lemma D_Typ_Concr Γ (τ : olty Σ 0) s σ l:
     (s, σ) ↝[ length Γ ] τ -∗
     Γ ⊨d{ l := dtysem σ s } : oDTMem l τ τ.
   Proof. iIntros "#Hs"; iApply D_Typ; by [| iIntros "!> **"]. Qed.
+
+  Definition wellMapped (g : stys) : iProp Σ :=
+    (□∀ s T, ⌜ g !! s = Some T⌝ → s ↝n[ 0 ] oty_interp (h T))%I.
+  Instance wellMapped_persistent g: Persistent (wellMapped g) := _.
+  Global Arguments wellMapped: simpl never.
+
+  Lemma extraction_to_leadsto_envD_equiv T g sσ n: T ~[ n ] (g, sσ) →
+    wellMapped g -∗ sσ ↝[ n ] oty_interp (h T).
+  Proof.
+    move: sσ => [s σ] [T'] [Hl] [<-] [Hclσ HclT]. iIntros "Hm".
+    iSplit => //; iExists (oty_interp (h T')); iSplitL; [iApply "Hm" | ];
+    iIntros "!% //" (args ρ v).
+    apply (oty_interp_subst_commute' (h T')). solve_fv_congruence.
+    (* exact: oty_interp_subst_commute. *)
+  Qed.
 End Sec2.
 End SemTypes.
