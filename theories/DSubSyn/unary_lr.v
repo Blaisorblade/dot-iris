@@ -119,39 +119,38 @@ Section logrel.
   Global Instance interp_sel_contractive : Contractive interp_sel.
   Proof. solve_contractive_ho. Qed.
 
-  (* This is structurally recursive, so must be a normal function.
+  (* This is a structurally recursive Coq function.
      Non-structurally recursive calls must happen under [▷] and use [rinterp]. *)
-  Program Fixpoint interp_rec0 (rinterp: ty -d> envD Σ) (T: ty): envD Σ :=
+  Definition interp_rec1: (ty -d> envD Σ) -> ty -d> envD Σ :=
+    fix rec rinterp T :=
     match T with
-    | TLater T => interp_later (interp_rec0 rinterp T)
-    | TTMem L U => interp_tmem rinterp (interp_rec0 rinterp L) (interp_rec0 rinterp U)
+    | TLater T => interp_later (rec rinterp T)
+    | TTMem L U => interp_tmem rinterp (rec rinterp L) (rec rinterp U)
     | TNat => interp_nat
-    | TAll T1 T2 => interp_forall (interp_rec0 rinterp T1) (interp_rec0 rinterp T2)
+    | TAll T1 T2 => interp_forall (rec rinterp T1) (rec rinterp T2)
     | TSel w => interp_sel rinterp w
     | TTop => interp_top
     | TBot => interp_bot
     end%I.
-  (* This is a non-expansive function so can't be a fixpoint, but it can call it. *)
-  Definition interp_rec1 : (ty -d> envD Σ) -> ty -d> envD Σ := interp_rec0.
 
   (* solve_contractive is really not happy about checking this code. *)
   Global Instance interp_rec1_contractive : Contractive interp_rec1.
   Proof.
-    move => ???? T /=; induction T.
+    move => n i1 i2 Heq T /=; induction T.
     (* Generic but slow *)
     (* all: time (cbn -[interp_forall interp_tmem interp_sel interp_nat] in *; trivial;
       repeat (match goal with
                 H : _ ≡{_}≡ _|- _ => apply dist_S, H || apply H
               end || (f_contractive; cbn -[interp_forall interp_tmem interp_sel interp_nat] in * ) || f_equiv)). *)
     all: cbn -[interp_later interp_forall interp_tmem interp_sel interp_nat];
-      try by [apply interp_sel_contractive];
-      rewrite // ?IHT ?IHT2; f_equiv; rewrite IHT1 //.
-    - f_equiv. by f_contractive.
+      try by [apply interp_sel_contractive|];
+      rewrite ?IHT ?IHT2; f_equiv; rewrite IHT1 //.
+    exact: interp_tmem_contractive.
   Qed.
 
   Program Lemma fixpoint_interp_rec1_eq:
     fixpoint interp_rec1 ≡ interp_rec1 (fixpoint interp_rec1).
-  Proof. exact: (fixpoint_unfold (interp_rec1)). Qed.
+  Proof. exact: (fixpoint_unfold interp_rec1). Qed.
 
   Program Definition interp: ty -d> envD Σ := fixpoint interp_rec1.
   Notation "⟦ T ⟧" := (interp T).
