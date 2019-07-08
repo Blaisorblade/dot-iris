@@ -166,12 +166,12 @@ Section Sec.
       by iApply (interp_env_cl_app_vl (vabs e) Hcle).
     }
     iExists _; iSplitL; first done.
-    iIntros "!> !>" (v) "#Hv". iSpecialize ("HeT" $! (v :: vs)).
-    rewrite (interp_weaken_one v T1 vs v).
+    iIntros "!> !>" (v) "#Hv /=".
+    iSpecialize ("HeT" $! (v :: vs) with "[$HG]").
+    by rewrite (interp_weaken_one v T1 vs v).
     (* time locAsimpl. (* 10x faster than asimpl. *) *)
     (* 20x faster than asimpl. *)
-    rewrite to_subst_cons; locAsimpl' (e.|[up (to_subst vs)].|[v/]).
-    by iApply ("HeT" with "[$HG//]").
+    by cbn; locAsimpl' (e.|[_].|[_]).
   Qed.
 
   Lemma T_Mem_E e T l:
