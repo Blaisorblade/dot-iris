@@ -238,7 +238,6 @@ End SemTypes.
   Even if semantic types use infinite substitutions, we can still reuse the
   current stamping theory, based on finite substitutions.
 *)
-Module FinSubst.
 Section Sec.
   Context `{HdotG: dlangG Σ} {i : nat}.
   Implicit Types (φ : hoEnvD Σ i) (τ : olty Σ i).
@@ -287,52 +286,4 @@ Section Sec2.
     Γ ⊨d{ l := dtysem σ s } : oDTMem l τ τ.
   Proof. iIntros "#Hs"; iApply D_Typ; by [| iIntros "!> **"]. Qed.
 End Sec2.
-End FinSubst.
-
-Module InfSubst.
-Section Sec.
-  Context `{HdotG: dlangG Σ} {i : nat}.
-  Implicit Types (φ : hoEnvD Σ i) (τ : olty Σ i).
-
-  Definition infEnvD_equiv n φ1 φ2 : iProp Σ :=
-    (∀ args ρ v, ⌜ nclosed_sub n 0 ρ ⌝ → φ1 args ρ v ≡ φ2 args ρ v)%I.
-
-  Definition leadsto_infEnvD_equiv (sσ: extractedTy) n φ : iProp Σ :=
-    let '(s, σ) := sσ in
-    (⌜nclosed_σ σ n⌝ ∧ ∃ (φ' : hoEnvD Σ i), s ↝n[ i ] φ' ∗
-      infEnvD_equiv n φ (λ args ρ, φ' args (to_subst σ.|[ρ])))%I.
-End Sec.
-
-Notation "φ1 ≈[  n  ] φ2" := (infEnvD_equiv n φ1 φ2) (at level 70).
-Notation "sσ ↝[  n  ] φ" := (leadsto_infEnvD_equiv sσ n φ) (at level 20).
-
-Section Sec2.
-  Context `{HdotG: dlangG Σ}.
-  Lemma D_Typ Γ T L U s σ l :
-    Γ ⊨ [T, 1] <: [U, 1] -∗
-    Γ ⊨ [L, 1] <: [T, 1] -∗
-    (s, σ) ↝[ length Γ ] T -∗
-    Γ ⊨d{ l := dtysem σ s } : oDTMem l L U.
-  Proof.
-    iIntros "#HTU #HLT #[% Hs] /="; repeat iSplit; [auto using fv_dtysem..|].
-    iIntros "!>" (ρ) "#Hg /=".
-    iDestruct (env_oltyped_fin_cl_ρ with "Hg") as %Hclp.
-    iDestruct "Hs" as (φ) "[Hγ Hγφ]".
-    iExists (hoEnvD_inst φ (σ.|[to_subst ρ])); iSplit.
-    (* iExists (φ (to_subst σ.|[to_subst ρ])); iSplit. *)
-    by iApply dm_to_type_intro.
-    iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL"; rewrite later_intuitionistically.
-    - iIntros "!>". iApply (internal_eq_iff with "(Hγφ [#//])").
-      by iApply "HLT".
-    - iApply "HTU" => //.
-      by iApply (internal_eq_iff with "(Hγφ [#//])").
-  Qed.
-
-  Lemma D_Typ_Concr Γ (τ : olty Σ 0) s σ l:
-    (s, σ) ↝[ length Γ ] τ -∗
-    Γ ⊨d{ l := dtysem σ s } : oDTMem l τ τ.
-  Proof. iIntros "#Hs"; iApply D_Typ; by [| iIntros "!> **"]. Qed.
-End Sec2.
-End InfSubst.
-
 End SemTypes.
