@@ -1,6 +1,7 @@
 -Q theories D
 -arg -w -arg -notation-overridden,-redundant-canonical-projection,-several-object-files
 
+theories/README.v
 theories/tactics.v
 theories/olty.v
 theories/olty_experiments.v
