@@ -72,23 +72,18 @@ Section interp_equiv.
   Instance wellMapped_persistent g: Persistent (wellMapped g) := _.
   Global Arguments wellMapped: simpl never.
 
-  Lemma alloc_sp T: (|==> ∃ γ, γ ⤇ ty_interp T)%I.
-  Proof. exact: saved_ho_sem_type_alloc. Qed.
-
   (** We can transfer one mapping from [g] into Iris resources. *)
   Lemma transferOne sγ g s T :
     sγ !! s = None → allGs sγ ∧ wellMapped g ==∗
     ∃ sγ', ⌜gdom sγ' ≡ {[s]} ∪ gdom sγ⌝ ∧ allGs sγ' ∧ wellMapped (<[s := T]> g).
   Proof.
     iIntros (HsFresh) "[Hallsγ #Hwmg]".
-    iMod (alloc_sp T) as (γ) "Hγ".
+    iMod (saved_ho_sem_type_alloc 0 (vopen (ty_interp T))) as (γ) "Hγ".
     iMod (gen_iheap_alloc _ _ γ HsFresh with "Hallsγ") as "[Hallsγ Hs]".
-    iExists (<[s:=γ]> sγ); iModIntro; iFrame; iSplit.
-    by rewrite dom_insert.
+    iExists (<[s:=γ]> sγ); iModIntro; iFrame; iSplit. by rewrite dom_insert.
     iAssert (s ↝ ⟦ T ⟧)%I as "#Hmaps {Hγ Hs}". iExists γ. by iFrame.
-    iIntros (s' T' Hlook) "!>".
-    destruct (decide (s' = s)) as [->|Hne].
-    - suff ->: T' = T by []. rewrite lookup_insert in Hlook; by injection Hlook.
+    iIntros (s' T' Hlook) "!>". destruct (decide (s' = s)) as [->|Hne].
+    - suff ->: T' = T by []. move: Hlook. by rewrite lookup_insert => -[->].
     - rewrite lookup_insert_ne // in Hlook. by iApply "Hwmg".
   Qed.
 
@@ -97,8 +92,8 @@ Section interp_equiv.
   Lemma freshMappings_split s T g sγ :
     freshMappings (<[s:=T]> g) sγ → sγ !! s = None ∧ freshMappings g sγ.
   Proof.
-    intros Hdom. setoid_rewrite dom_insert in Hdom.
-    split => [|s' Hs']; apply Hdom; set_solver.
+    intros Hdom; split => [|s' Hs']; apply Hdom;
+    rewrite dom_insert; set_solver.
   Qed.
 
   Lemma transfer' g sγ : freshMappings g sγ → allGs sγ ==∗
@@ -113,7 +108,7 @@ Section interp_equiv.
       iMod (transferOne sγ' g s T with "Hown") as (sγ'' Hsγ'') "Hown".
       + eapply (not_elem_of_dom (D := gset stamp)).
         rewrite Hsγ' not_elem_of_union !not_elem_of_dom; by split.
-      + iExists sγ''; iFrame. iPureIntro.
+      + iExists sγ''; iFrame; iIntros "!%".
         by rewrite Hsγ'' Hsγ' dom_insert union_assoc.
   Qed.
 
