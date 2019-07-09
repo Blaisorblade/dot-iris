@@ -96,7 +96,7 @@ Section Sec.
     iIntros "/= #[% #Hv]". move: H => /fv_tv_inv Hclv.
     iSplit. by auto.
     iIntros "!>" ([|w vs]); first by iIntros.
-    iIntros "[#Hg [% #Hw]]". move: H => Hclw.
+    iIntros "[#Hg [_ #Hw]]".
     iSplit => //; iExists _; iSplit => //.
     iNext. iApply wp_value_inv'; iApply "Hv"; by iSplit.
   Qed.
@@ -120,7 +120,7 @@ Section Sec.
     iLöb as "IH".
     iApply lift_dsinterp_dms_vl_commute;
       rewrite // norm_selfSubst -to_subst_cons.
-      iApply "Hds"; by iFrame "IH Hg".
+    iApply ("Hds" $! (vobj _ :: vs)); by iFrame "IH Hg".
   Qed.
 
   Lemma DNil_I : Γ ⊨ds [] : TTop.
@@ -135,7 +135,7 @@ Section Sec.
     have Hclc: nclosed ((l, d) :: ds) (length Γ). by auto.
     iSplit => //; iIntros "!>" (ρ) "#Hg /=".
     iDestruct (interp_env_cl_ρ with "Hg") as %Hclρ.
-    eapply (nclosed_sub_app Hclρ) in Hclc.
+    apply (nclosed_sub_app Hclρ) in Hclc.
     iSpecialize ("HT1" with "Hg"). iPoseProof "HT1" as (Hl) "_".
     iSplit.
     - destruct T1; simplify_eq; iApply (def2defs_head Hclc with "HT1").
