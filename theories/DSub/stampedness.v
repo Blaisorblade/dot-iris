@@ -1,21 +1,13 @@
 (** Define "stamping" (what we used to call translation) in a purely syntactic
     way, without involving Iris. *)
 From stdpp Require Import gmap list.
-From D.DSub Require Import operational synLemmas typeExtractionSyn.
+From D.DSub Require Import operational synLemmas traversals typeExtractionSyn.
 
+Import Trav1.
 Set Primitive Projections.
 Set Implicit Arguments.
 
 Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx) (g: stys) (n: nat).
-
-Record Traversal {travStateT: Type} :=
-  {
-    upS: travStateT → travStateT;
-    varP: travStateT → nat → Prop;
-    vtyP: travStateT → ty → Prop;
-    vstampP: travStateT → vls → stamp → Prop;
-  }.
-Global Arguments Traversal _: clear implicits.
 
 Definition is_unstamped_trav: Traversal unit :=
   {|
@@ -33,54 +25,6 @@ Definition is_stamped_trav: Traversal (nat * stys) :=
     vstampP := λ '(n, g) vs s, ∃ T', g !! s = Some T' ∧ nclosed T' (length vs);
   |}.
 
-Section fold.
-  Context `(trav: Traversal travStateT).
-
-  Inductive forall_traversal_vl: travStateT → vl → Prop :=
-    | trav_var_vl ts i: trav.(varP) ts i → forall_traversal_vl ts (var_vl i)
-    | trav_vabs ts t: forall_traversal_tm (trav.(upS) ts) t →
-                          forall_traversal_vl ts (vabs t)
-    | trav_vnat ts n: forall_traversal_vl ts (vnat n)
-    | trav_vty ts T:
-        forall_traversal_ty ts T →
-        trav.(vtyP) ts T →
-        forall_traversal_vl ts (vty T)
-    | trav_vstamp ts vs s:
-          trav.(vstampP) ts vs s →
-          Forall (forall_traversal_vl ts) vs →
-          forall_traversal_vl ts (vstamp vs s)
-  with
-  forall_traversal_tm: travStateT → tm → Prop :=
-  | trav_tv ts v: forall_traversal_vl ts v → forall_traversal_tm ts (tv v)
-  | trav_tapp ts t1 t2:
-      forall_traversal_tm ts t1 →
-      forall_traversal_tm ts t2 →
-      forall_traversal_tm ts (tapp t1 t2)
-  | trav_tskip ts t:
-      forall_traversal_tm ts t →
-      forall_traversal_tm ts (tskip t)
-  with
-  forall_traversal_ty: travStateT → ty → Prop :=
-  | trav_TTop ts: forall_traversal_ty ts TTop
-  | trav_TBot ts: forall_traversal_ty ts TBot
-  | trav_TLater ts T1:
-      forall_traversal_ty ts T1 →
-      forall_traversal_ty ts (TLater T1)
-  | trav_TAll ts T1 T2:
-      forall_traversal_ty ts T1 →
-      forall_traversal_ty (trav.(upS) ts) T2 →
-      forall_traversal_ty ts (TAll T1 T2)
-  | trav_TMem ts T1 T2:
-      forall_traversal_ty ts T1 →
-      forall_traversal_ty ts T2 →
-      forall_traversal_ty ts (TTMem T1 T2)
-  | trav_TSel ts v:
-      forall_traversal_vl ts v →
-      forall_traversal_ty ts (TSel v)
-  | trav_TNat ts: forall_traversal_ty ts TNat
-    .
-End fold.
-
 Notation is_unstamped_tm := (forall_traversal_tm is_unstamped_trav ()).
 Notation is_unstamped_vl := (forall_traversal_vl is_unstamped_trav ()).
 Notation is_unstamped_ty := (forall_traversal_ty is_unstamped_trav ()).
@@ -88,11 +32,6 @@ Notation is_unstamped_ty := (forall_traversal_ty is_unstamped_trav ()).
 Notation is_stamped_tm n g := (forall_traversal_tm is_stamped_trav (n, g)).
 Notation is_stamped_vl n g := (forall_traversal_vl is_stamped_trav (n, g)).
 Notation is_stamped_ty n g := (forall_traversal_ty is_stamped_trav (n, g)).
-
-Global Arguments upS /.
-Global Arguments varP /.
-Global Arguments vtyP /.
-Global Arguments vstampP /.
 
 Lemma is_stamped_idsσ_ren g m n j: j + n <= m → Forall (is_stamped_vl m g) (idsσ n).|[ren (+j)].
 Proof.
@@ -292,7 +231,6 @@ Lemma is_stamped_sub_vl v g s m n:
   is_stamped_vl n g v →
   is_stamped_vl m g v.[s].
 Proof. unmut_lemma is_stamped_sub_mut. Qed.
-
 Lemma is_stamped_sub_ty T g s m n:
   is_stamped_sub n m g s →
   is_stamped_ty n g T →
@@ -336,8 +274,7 @@ Proof.
   apply nclosed_syntax_mut_ind => /=; intros;
     try by with_is_stamped inverse; ev;
     constructor => /=; eauto using eq_up with lia.
-  - eauto using nclosed_var_lt.
-
+  - auto using nclosed_var_lt.
   - with_is_stamped inverse; cbn in *; ev.
     unfold hsubst, list_hsubst in *; rewrite -> map_length, @Forall_fmap in *.
     constructor => /=. by eexists; split_and!; eauto.

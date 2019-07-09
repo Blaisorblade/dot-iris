@@ -21,6 +21,7 @@ theories/DSub/adequacy.v
 theories/DSub/syn.v
 theories/DSub/typeExtractionSyn.v
 theories/DSub/typeExtractionSem.v
+theories/DSub/traversals.v
 theories/DSub/rules.v
 theories/DSub/stampedness.v
 theories/DSub/astStamping.v
