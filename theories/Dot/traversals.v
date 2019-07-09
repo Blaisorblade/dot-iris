@@ -128,7 +128,7 @@ Definition fold_tmemc: (ty → Prop) → (vls → Prop) → tmemc → Prop :=
   | inr (vs, s) => vlsP vs
   end.
 
-Module Trav2.
+Module Traversal2.
 Record Traversal {travStateT: Type} :=
   {
     upS: travStateT → travStateT;
@@ -136,6 +136,13 @@ Record Traversal {travStateT: Type} :=
     dtyP: travStateT → tmemc → tmemc → Prop;
   }.
 Global Arguments Traversal _: clear implicits.
+Global Arguments upS /.
+Global Arguments varP /.
+Global Arguments dtyP /.
+End Traversal2.
+
+Module Trav2.
+Export Traversal2.
 
 Section fold.
   Context `(trav: Traversal travStateT).
@@ -228,10 +235,79 @@ Section fold.
     Forall2 (forall_traversal_dm (trav.(upS) ts)) (map snd ds1) (map snd ds2).
 End fold.
 
-Global Arguments upS /.
-Global Arguments varP /.
-Global Arguments dtyP /.
-
 Global Hint Constructors forall_traversal_vl forall_traversal_tm forall_traversal_dm
      forall_traversal_path forall_traversal_ty.
 End Trav2.
+
+Module Trav2_recursive.
+Export Traversal2.
+
+Section fold.
+  Context `(trav: Traversal travStateT).
+
+  Fixpoint forall_traversal_tm (ts : travStateT) (t1 t2 : tm) {struct t1} : Prop :=
+    match (t1, t2) with
+    | (tv v1, tv v2) => forall_traversal_vl ts v1 v2
+    | (tapp t11 t12, tapp t21 t22) =>
+      forall_traversal_tm ts t11 t21 ∧ forall_traversal_tm ts t12 t22
+    | (tproj t1 l1, tproj t2 l2) =>
+      forall_traversal_tm ts t1 t2 ∧ l1 = l2
+    | (tskip t1, tskip t2) =>
+      forall_traversal_tm ts t1 t2
+    | _ => False
+    end
+  with
+  forall_traversal_vl (ts : travStateT) (v1 v2: vl) {struct v1} : Prop :=
+    match (v1, v2) with
+    | (var_vl i1, var_vl i2) => trav.(varP) ts i1 i2
+    | (vabs t1, vabs t2) => forall_traversal_tm (trav.(upS) ts) t1 t2
+    | (vobj ds1, vobj ds2) =>
+      let fix forall_traversal_dms (ts : travStateT) (ds1 ds2: dms): Prop :=
+          match (ds1, ds2) with
+          | (nil, nil) => True
+          | (cons (l1, d1) ds1, cons (l2, d2) ds2) =>
+            l1 = l2 ∧ forall_traversal_dm ts d1 d2 ∧ forall_traversal_dms ts ds1 ds2
+          | _ => False
+          end
+      in forall_traversal_dms (trav.(upS) ts) ds1 ds2
+    | (vnat n1, vnat n2) => n1 = n2
+    | _ => False
+    end
+  with
+  forall_traversal_dm (ts : travStateT) (d1 d2: dm) {struct d1} : Prop :=
+    match (d1, d2) with
+    | (dvl v1, dvl v2) => forall_traversal_vl ts v1 v2
+    | (dvl _, _) => False
+    | (_, dvl _) => False
+    | (_, _) =>
+      default False (f ← trav.(dtyP) ts <$> (dm2tmemc d1); f <$> (dm2tmemc d2))
+    end.
+  Fixpoint forall_traversal_path (ts : travStateT) (p1 p2: path): Prop :=
+    match (p1, p2) with
+    | (pv v1, pv v2) => forall_traversal_vl ts v1 v2
+    | (pself p1 l1, pself p2 l2) => forall_traversal_path ts p1 p2 ∧ l1 = l2
+    | _ => False
+    end.
+  Fixpoint forall_traversal_ty (ts : travStateT) (T1 T2: ty): Prop :=
+    match (T1, T2) with
+    | (TTop, TTop) => True
+    | (TBot, TBot) => True
+    | (TAnd T11 T12, TAnd T21 T22) =>
+      forall_traversal_ty ts T11 T21 ∧ forall_traversal_ty ts T12 T22
+    | (TOr T11 T12, TOr T21 T22) =>
+      forall_traversal_ty ts T11 T21 ∧ forall_traversal_ty ts T12 T22
+    | (TLater T1, TLater T2) =>
+      forall_traversal_ty ts T1 T2
+    | (TAll T11 T12, TAll T21 T22) =>
+      forall_traversal_ty ts T11 T21 ∧ forall_traversal_ty (trav.(upS) ts) T12 T22
+    | (TMu T1, TMu T2) =>
+      forall_traversal_ty (trav.(upS) ts) T1 T2
+    | (TVMem l1 T1, TVMem l2 T2) => l1 = l2 ∧ forall_traversal_ty ts T1 T2
+    | (TTMem l1 T11 T12, TTMem l2 T21 T22) =>
+      l1 = l2 ∧ forall_traversal_ty ts T11 T21 ∧ forall_traversal_ty ts T12 T22
+    | (TSel p1 l1, TSel p2 l2) => forall_traversal_path ts p1 p2 ∧ l1 = l2
+    | (TNat, TNat) => True
+    | _ => False
+    end.
+End fold.
+End Trav2_recursive.
