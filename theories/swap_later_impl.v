@@ -164,7 +164,7 @@ Proof.
 Qed.
 
 Section agree.
-(** * Agreement CMRA. *)
+(** ** Agreement CMRA. *)
 Context {A : ofeT}.
 Implicit Types a b : A.
 
@@ -191,7 +191,7 @@ Proof.
 Qed.
 End agree.
 
-(** * Exclusive CMRA. *)
+(** ** Exclusive CMRA. *)
 Instance Swappable_exclR {A} : CmraSwappable (exclR A).
 Proof. by split => n [x|] [z|] //; exists (Excl z). Qed.
 
