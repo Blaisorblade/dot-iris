@@ -10,8 +10,6 @@ Section ex.
   Definition even v := ∃ n, v = vnat (2 * n).
   Definition ieven: envD Σ := λ ρ v, (⌜ even v ⌝) %I.
   Instance evenP ρ v: Persistent (ieven ρ v) := _.
-  Lemma even_nat ρ v : ieven ρ v ⊢ ⟦ TNat ⟧ ρ v.
-  Proof. iIntros ([]) "!% /=". eauto. Qed.
 
   Context (s: stamp).
 
@@ -20,13 +18,18 @@ Section ex.
       We assume [Hs] throughout the rest of the section. *)
   Definition v := vobj [("A", dtysem [] s); ("n", dvl (vnat 2))].
 
+  Lemma sHasA : Hs -∗ def_interp_tmem ⟦ TBot ⟧ ⟦ TNat ⟧ ids (dtysem [] s).
+  Proof.
+    iIntros; repeat (repeat iExists _; repeat iSplit; try done).
+    by iApply dm_to_type_intro.
+    iModIntro; repeat iSplit; iIntros (w Hcl). by iIntros ">[]".
+    iMod 1 as %[n ->]. eauto.
+  Qed.
+
   (** Yes, v has a valid type member. *)
   Lemma vHasA0: Hs -∗ ⟦ TTMem "A" TBot TNat ⟧ ids v.
   Proof.
-    iIntros "#Hs".
-    repeat (repeat iExists _; repeat iSplit => //). by iApply dm_to_type_intro.
-    iModIntro; repeat iSplit;
-    iIntros (v Hcl); [|rewrite /= ?{1}even_nat //=]; iIntros ">#% //".
+    iIntros "#Hs"; iSplit => //; iExists _; iSplit; by [eauto | iApply sHasA].
   Qed.
 
   (* Generic useful lemmas — not needed for fundamental theorem,
@@ -103,11 +106,7 @@ Section ex.
       iSplit => //=; iModIntro.
       iIntros ([|v ρ]) "/= #H". done.
       iDestruct "H" as "[-> [% _]]".
-      repeat (repeat iExists _; repeat iSplit; try done).
-      by iApply dm_to_type_intro.
-      iModIntro; repeat iSplit;
-      iIntros (w Hcl); rewrite -?even_nat /=;
-      by iIntros ">?".
+      iSplit => //. by iApply sHasA.
     - iApply DCons_I => //; last by iApply DNil_I.
       iApply TVMem_I.
       iSplit => //=.
@@ -120,6 +119,6 @@ Section ex.
       (* This will fail, since we don't know what v is and what
       "A" points to. *)
       Fail unfold v.
-  Abort.
+ Abort.
 End ex.
 End example.
