@@ -32,12 +32,11 @@ Section interp_equiv.
   (** However, a stamp semantics that carries over to saved predicates must use
       σ in ρ. And the result is only equivalent for closed ρ with the expected length. *)
   Definition interp_extractedTy: (ty * vls) → envD Σ :=
-    λ '(T, σ) ρ v,
-    (⟦ T ⟧ (to_subst σ.|[ρ]) v)%I.
+    λ '(T, σ) ρ v, (⟦ T ⟧ (to_subst σ >> ρ) v)%I.
   Notation "⟦ T ⟧ [ σ ]" := (interp_extractedTy (T, σ)).
 
   Definition envD_equiv n φ1 φ2: iProp Σ :=
-    (∀ ρ v, ⌜ length ρ = n ⌝ → ⌜ cl_ρ ρ ⌝ → φ1 (to_subst ρ) v ≡ φ2 (to_subst ρ) v)%I.
+    (∀ ρ v, φ1 (to_subst ρ) v ≡ φ2 (to_subst ρ) v)%I.
   Notation "φ1 ≈[  n  ] φ2" := (envD_equiv n φ1 φ2) (at level 70).
 
   Lemma extraction_envD_equiv g s σ T n:
@@ -45,8 +44,9 @@ Section interp_equiv.
     (∃ T', ⌜ g !! s = Some T'⌝ ∧
         ⟦ T ⟧ ≈[ n ] ⟦ T' ⟧ [ σ ])%I.
   Proof.
-    iIntros ((T' & -> & <- & HclT & HclT')). iExists _; iSplit => //.
-    iIntros (ρ v <- Hclρ). by rewrite interp_subst_commute.
+    iIntros ((T' & -> & <- & _ & _)). iExists _; iSplit => //.
+    iIntros (ρ v) "!%".
+    rewrite /interp_extractedTy. exact: interp_subst_compose.
   Qed.
 
   (** envD_equiv commutes with substitution. *)
@@ -59,11 +59,12 @@ Section interp_equiv.
     ⟦ T1 ⟧ [ σ1.|[to_subst ξ] ] ≈[ n ] ⟦ T2 ⟧ [ σ2 ])%I.
   Proof.
     rewrite /interp_extractedTy; iIntros ((T1 & -> & Heq1 & Hclσ1 & HclT1) (T2 & -> & Heq2 & Hclσ2 & HclT2) Hlenξ Hclξ).
-    iExists _, _; repeat iSplit => //; iIntros (ρ v Hlenρ Hclρ) "/= !%"; subst.
-    have Hclσ1ξ: nclosed_σ σ1.|[to_subst ξ] (length ρ). exact: nclosed_σ_to_subst.
-    have Hrew: T2.|[to_subst σ2.|[to_subst ρ]] = T1.|[to_subst σ1.|[to_subst ξ].|[to_subst ρ]].
-    by erewrite !subst_compose; rewrite ?map_length ?Heq1 ?Heq2.
-    rewrite (interp_subst_ids T1 _ _) (interp_subst_ids T2 _ _) ?Hrew //; exact: nclosed_σ_to_subst.
+    iExists _, _; repeat iSplit => //; iIntros (ρ v) "/= !%".
+    have Hrew: T2.|[to_subst σ2].|[to_subst ρ] =
+      T1.|[to_subst σ1.|[to_subst ξ]].|[ to_subst ρ].
+    by erewrite !subst_compose, Heq2, Heq1.
+    asimpl in Hrew.
+    rewrite (interp_subst_ids T1 _ _) (interp_subst_ids T2 _ _) Hrew //.
   Qed.
 
   (* To give a definitive version of wellMapped, we need stampHeap to be stored in a resource. Here it is: *)
@@ -135,7 +136,7 @@ Section typing_type_member_defs.
   Proof.
     move: sσ => [s σ] [T'] [Hl] [<-] [Hclσ HclT] /=. iIntros "Hm".
     iSplit => //; iExists (ty_interp T'); iSplitL; [iApply "Hm" | ];
-    iIntros "!% //" (ρ v <- Hclρ).
+    iIntros "!% //" (ρ v).
     exact: interp_subst_commute.
   Qed.
 
@@ -156,16 +157,15 @@ Section typing_type_member_defs.
   Proof.
     iIntros "#HTU #HLT #[% Hs] /=". iSplit; first auto using fv_dtysem.
     iIntros "!>" (ρ) "#Hg".
-    iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]; rewrite <- Hlen in *.
     iDestruct "Hs" as (φ) "[Hγ Hγφ]".
     iSplit => //. iExists (φ _); iSplit.
     by iApply (dm_to_type_intro with "Hγ").
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL";
       rewrite later_intuitionistically.
-    - iIntros "!>"; iApply (internal_eq_iff with "(Hγφ [#//] [#//])").
+    - iIntros "!>"; iApply (internal_eq_iff with "Hγφ").
       by iApply "HLT".
     - iApply "HTU" => //.
-      by iApply (internal_eq_iff with "(Hγφ [#//] [#//])").
+      by iApply (internal_eq_iff with "Hγφ").
   Qed.
 
   Lemma D_Typ_Concr Γ T s σ l:
