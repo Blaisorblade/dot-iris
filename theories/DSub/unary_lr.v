@@ -91,20 +91,19 @@ Section logrel.
     interp_selA w interp_bot interp_top.
   Global Arguments interp_sel /.
 
-  Fixpoint interp (T: ty) : envD Σ :=
+  Global Instance interp : TyInterp ty Σ := fix interp (T : ty) : envD Σ :=
+    let _ := interp : TyInterp ty Σ in
     match T with
     | TTop => interp_top
     | TBot => interp_bot
-    | TLater T => interp_later (interp T)
-    | TTMem L U => interp_tmem (interp L) (interp U)
+    | TLater T => interp_later (⟦ T ⟧)
+    | TTMem L U => interp_tmem (⟦ L ⟧) (⟦ U ⟧)
     | TNat => interp_nat
-    | TAll T1 T2 => interp_forall (interp T1) (interp T2)
+    | TAll T1 T2 => interp_forall (⟦ T1 ⟧) (⟦ T2 ⟧)
     | TSel w => interp_sel w
-  end % I.
+    end % I.
 
-  Global Instance dlang_interp : TyInterp ty Σ := interp.
-  Notation "⟦ T ⟧" := (interp T).
-  Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
+  Notation "⟦ T ⟧ₑ" := (interp_expr ⟦ T ⟧).
 
   Global Instance interp_persistent T ρ v :
     Persistent (⟦ T ⟧ ρ v).
@@ -153,9 +152,8 @@ Section logrel.
   Global Instance step_indexed_ivstp_persistent Γ T1 T2 i j : Persistent (step_indexed_ivstp Γ T1 T2 i j) := _.
 End logrel.
 
-Notation "⟦ T ⟧" := (interp T).
+Notation "⟦ T ⟧ₑ" := (interp_expr ⟦ T ⟧).
 Notation "⟦ Γ ⟧*" := (interp_env Γ).
-Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
 
 (** Expression typing *)
 Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
@@ -184,7 +182,7 @@ Section logrel_lemmas.
     iInduction i as [|i] "IHi". by iApply "H". iExact "IHi".
   Qed.
 
-  Lemma interp_v_closed T w ρ: interp T ρ w -∗ ⌜ nclosed_vl w 0 ⌝.
+  Lemma interp_v_closed T w ρ: ⟦ T ⟧ ρ w -∗ ⌜ nclosed_vl w 0 ⌝.
   Proof.
     move: ρ; induction T => ρ /=;
       try by [iPureIntro | iIntros "[$ _]"].

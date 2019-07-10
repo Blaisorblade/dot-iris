@@ -152,10 +152,7 @@ Section logrel.
     fixpoint interp_rec ≡ interp_rec (fixpoint interp_rec).
   Proof. exact: (fixpoint_unfold interp_rec). Qed.
 
-  Program Definition interp: ty -d> envD Σ := fixpoint interp_rec.
-  Notation "⟦ T ⟧" := (interp T).
-
-  Global Instance dlang_interp : TyInterp ty Σ := interp.
+  Global Instance interp : TyInterp ty Σ := fixpoint interp_rec.
 
   Lemma fixpoint_interp_eq1 T: interp T ≡ interp_rec interp T.
   Proof. apply fixpoint_interp_rec_eq. Qed.
@@ -164,29 +161,28 @@ Section logrel.
   Lemma fixpoint_interp_eq3 T ρ v: interp T ρ v ≡ interp_rec interp T ρ v.
   Proof. apply fixpoint_interp_rec_eq. Qed.
 
-  Ltac rewrite_interp := repeat first [rewrite fixpoint_interp_eq3 | progress (repeat f_equiv; rewrite ?fixpoint_interp_eq1 //=) | move => ? /= ].
-  Lemma interp_TAll T1 T2 ρ v: ⟦ TAll T1 T2 ⟧ ρ v ≡ interp_forall ⟦ T1 ⟧ ⟦ T2 ⟧ ρ v.
+  Ltac rewrite_interp := rewrite /ty_interp; repeat first [rewrite fixpoint_interp_eq3 | progress (repeat f_equiv; rewrite ?fixpoint_interp_eq1 //=) | move => ? /= ].
+  Lemma interp_TAll T1 T2 ρ v: interp (TAll T1 T2) ρ v ≡ interp_forall ⟦ T1 ⟧ ⟦ T2 ⟧ ρ v.
   Proof. rewrite_interp. Qed.
-  Lemma interp_TNat ρ v: ⟦ TNat ⟧ ρ v ≡ interp_nat ρ v.
+  Lemma interp_TNat ρ v: interp TNat ρ v ≡ interp_nat ρ v.
   Proof. rewrite_interp. Qed.
-  Lemma interp_TLater T1 ρ v: ⟦ TLater T1 ⟧ ρ v ≡ interp_later ⟦ T1 ⟧ ρ v.
+  Lemma interp_TLater T1 ρ v: interp (TLater T1) ρ v ≡ interp_later ⟦ T1 ⟧ ρ v.
   Proof. rewrite_interp. Qed.
-  Lemma interp_TTMem T1 T2 ρ v: ⟦ TTMem T1 T2 ⟧ ρ v ≡ interp_tmem interp ⟦ T1 ⟧ ⟦ T2 ⟧ ρ v.
+  Lemma interp_TTMem T1 T2 ρ v: interp (TTMem T1 T2) ρ v ≡ interp_tmem ty_interp ⟦ T1 ⟧ ⟦ T2 ⟧ ρ v.
   Proof. rewrite_interp. Qed.
-  Lemma interp_TSel ρ v w: ⟦ TSel w ⟧ ρ v ≡ interp_sel interp w ρ v.
+  Lemma interp_TSel ρ v w: interp (TSel w) ρ v ≡ interp_sel ty_interp w ρ v.
   Proof. rewrite_interp. Qed.
-  Lemma interp_TTop ρ v: ⟦ TTop ⟧ ρ v ≡ interp_top ρ v.
+  Lemma interp_TTop ρ v: interp TTop ρ v ≡ interp_top ρ v.
   Proof. rewrite_interp. Qed.
-  Lemma interp_TBot ρ v: ⟦ TBot ⟧ ρ v ≡ interp_bot ρ v.
+  Lemma interp_TBot ρ v: interp TBot ρ v ≡ interp_bot ρ v.
   Proof. rewrite_interp. Qed.
 End logrel.
 
-Notation "⟦ T ⟧" := (interp T).
-Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
+Notation "⟦ T ⟧ₑ" := (interp_expr ⟦ T ⟧).
 
 (** Unfold uses of interp, but only if the argument allows progress. *)
 Ltac unfold_interp :=
-  rewrite
+  rewrite /=
     ?interp_TLater ?interp_TAll ?interp_TNat ?interp_TTMem
     ?interp_TSel ?interp_TTop ?interp_TBot /=.
 
@@ -284,7 +280,7 @@ Section logrel_lemmas.
     iInduction i as [|i] "IHi". by iApply "H". iExact "IHi".
   Qed.
 
-  Lemma interp_v_closed T w ρ: interp T ρ w -∗ ⌜ nclosed_vl w 0 ⌝.
+  Lemma interp_v_closed T w ρ: ⟦ T ⟧ ρ w -∗ ⌜ nclosed_vl w 0 ⌝.
   Proof.
     move: ρ; induction T => ρ /=; unfold_interp;
       try by [iPureIntro | iIntros "[$ _]"].

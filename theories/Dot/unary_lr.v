@@ -129,24 +129,23 @@ Section logrel.
       (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ψ ∧ ▷ □ ψ v))%I.
   Global Arguments interp_sel /.
 
-  Fixpoint interp (T: ty) : envD Σ :=
+  Global Instance interp : TyInterp ty Σ := fix interp (T : ty) : envD Σ :=
+    let _ := interp : TyInterp ty Σ in
     match T with
-    | TTMem l L U => interp_tmem l (interp L) (interp U)
-    | TVMem l T' => interp_vmem l (interp T')
-    | TAnd T1 T2 => interp_and (interp T1) (interp T2)
-    | TOr T1 T2 => interp_or (interp T1) (interp T2)
-    | TLater T => interp_later (interp T)
+    | TTMem l L U => interp_tmem l (⟦ L ⟧) (⟦ U ⟧)
+    | TVMem l T' => interp_vmem l (⟦ T' ⟧)
+    | TAnd T1 T2 => interp_and (⟦ T1 ⟧) (⟦ T2 ⟧)
+    | TOr T1 T2 => interp_or (⟦ T1 ⟧) (⟦ T2 ⟧)
+    | TLater T => interp_later (⟦ T ⟧)
     | TNat => interp_nat
     | TTop => interp_top
     | TBot => interp_bot
-    | TAll T1 T2 => interp_forall (interp T1) (interp T2)
-    | TMu T => interp_mu (interp T)
+    | TAll T1 T2 => interp_forall (⟦ T1 ⟧) (⟦ T2 ⟧)
+    | TMu T => interp_mu (⟦ T ⟧)
     | TSel p l => interp_sel p l
-  end % I.
+    end % I.
 
-  Global Instance dlang_interp : TyInterp ty Σ := interp.
-  Notation "⟦ T ⟧" := (interp T).
-  Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
+  Notation "⟦ T ⟧ₑ" := (interp_expr ⟦ T ⟧).
 
   Global Instance interp_persistent T ρ v :
     Persistent (⟦ T ⟧ ρ v).
@@ -155,8 +154,8 @@ Section logrel.
   Fixpoint def_interp_base (T : ty) : envPred dm Σ :=
     λ ρ d,
     match T with
-    | TTMem _ L U => def_interp_tmem (interp L) (interp U) ρ d
-    | TVMem _ T' => def_interp_vmem (interp T') ρ d
+    | TTMem _ L U => def_interp_tmem (⟦ L ⟧) (⟦ U ⟧) ρ d
+    | TVMem _ T' => def_interp_vmem (⟦ T' ⟧) ρ d
     | _ => False
     end%I.
 
@@ -256,9 +255,8 @@ Section logrel.
 End logrel.
 
 Notation "d ↗ ψ" := (dm_to_type d ψ) (at level 20).
-Notation "⟦ T ⟧" := (interp T).
 Notation "⟦ Γ ⟧*" := (interp_env Γ).
-Notation "⟦ T ⟧ₑ" := (interp_expr (interp T)).
+Notation "⟦ T ⟧ₑ" := (interp_expr ⟦ T ⟧).
 
 (** Single-definition typing *)
 Notation "Γ ⊨d{ l := d  } : T" := (idtp Γ T l d) (at level 64, d, l, T at next level).
@@ -295,7 +293,7 @@ Section logrel_lemmas.
     iSplit; by [iIntros "#[_ $]" | iIntros "$"].
   Qed.
 
-  Lemma interp_v_closed T w ρ: interp T ρ w -∗ ⌜ nclosed_vl w 0 ⌝.
+  Lemma interp_v_closed T w ρ: ⟦ T ⟧ ρ w -∗ ⌜ nclosed_vl w 0 ⌝.
   Proof.
     move: ρ; induction T => ρ /=;
       try by [iPureIntro | iIntros "[$ _]"];

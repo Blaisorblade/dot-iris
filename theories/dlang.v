@@ -30,6 +30,10 @@ Module Type LiftWp (Import VS : VlSortsSig).
 
   Class TyInterp ty Σ :=
     ty_interp : ty -> envD Σ.
+  Notation "⟦ T ⟧" := (ty_interp T).
+
+  (* Also appears in Autosubst.*)
+  Global Arguments ty_interp {_ _ _} !_ /.
 
   Class dlangG Σ := DLangG {
     dlangG_savior :> savedHoSemTypeG Σ;

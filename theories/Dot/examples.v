@@ -10,7 +10,7 @@ Section ex.
   Definition even v := ∃ n, v = vnat (2 * n).
   Definition ieven: envD Σ := λ ρ v, (⌜ even v ⌝) %I.
   Instance evenP ρ v: Persistent (ieven ρ v) := _.
-  Lemma even_nat ρ v : ieven ρ v ⊢ interp_nat ρ v.
+  Lemma even_nat ρ v : ieven ρ v ⊢ ⟦ TNat ⟧ ρ v.
   Proof. iIntros ([]) "!% /=". eauto. Qed.
 
   Context (s: stamp).
@@ -26,7 +26,7 @@ Section ex.
     iIntros "#Hs".
     repeat (repeat iExists _; repeat iSplit => //). by iApply dm_to_type_intro.
     iModIntro; repeat iSplit;
-    iIntros (v Hcl); rewrite -?even_nat /=; iIntros ">#% //".
+    iIntros (v Hcl); [|rewrite /= ?{1}even_nat //=]; iIntros ">#% //".
   Qed.
 
   (* Generic useful lemmas — not needed for fundamental theorem,
@@ -106,9 +106,7 @@ Section ex.
       repeat (repeat iExists _; repeat iSplit; try done).
       by iApply dm_to_type_intro.
       iModIntro; repeat iSplit;
-      iIntros (w Hcl); rewrite -?even_nat /=.
-      by iIntros ">?".
-      rewrite even_nat.
+      iIntros (w Hcl); rewrite -?even_nat /=;
       by iIntros ">?".
     - iApply DCons_I => //; last by iApply DNil_I.
       iApply TVMem_I.
