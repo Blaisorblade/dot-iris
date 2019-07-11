@@ -64,14 +64,17 @@ Definition extraction n T: (stys * extractedTy → Prop) :=
   ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T ∧ nclosed_σ σ n ∧ nclosed T' (length σ).
 Notation "T ~[ n  ] gsσ" := (extraction n T gsσ) (at level 70).
 
-Lemma extract_spec g n T: nclosed T n → T ~[ n ] (extract g n T).
-Proof. move => Hcl; exists T; by rewrite lookup_insert closed_subst_idsρ ?length_idsσ. Qed.
-Hint Resolve extract_spec.
-
 Lemma extraction_closed g n T s σ:
   T ~[ n ] (g, (s, σ)) →
   nclosed T n.
-Proof. intros (T' & Hlook & <- & Hclσ & HclT'). by apply fv_to_subst. Qed.
+Proof. intros (T' & Hlook & <- & Hclσ & HclT'). exact: fv_to_subst. Qed.
+
+Lemma extract_spec g n T: nclosed T n ↔ T ~[ n ] (extract g n T).
+Proof.
+  split; last exact: extraction_closed.
+  exists T. by rewrite lookup_insert closed_subst_idsρ ?length_idsσ.
+Qed.
+Hint Resolve -> extract_spec.
 
 Lemma extraction_subst g n T s σ m σ':
   T ~[ n ] (g, (s, σ)) →
