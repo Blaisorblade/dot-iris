@@ -364,7 +364,8 @@ Section logrel_lemmas.
 
   Lemma interp_env_to_subst_closed Γ vs x: x < length vs → ⟦ Γ ⟧* vs -∗ ⌜ nclosed_vl (to_subst vs x) 0 ⌝%I.
   Proof.
-    rewrite interp_env_ρ_closed. iIntros "!%" (??). exact: closed_to_subst.
+    rewrite interp_env_ρ_closed. iIntros "!%" (??).
+    by apply nclosed_σ_sub_equiv.
   Qed.
 
   Lemma interp_env_lookup Γ vs T x:

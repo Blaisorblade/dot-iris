@@ -233,9 +233,6 @@ Lemma nclosed_sub_to_subst j σ: nclosed_σ σ j →
   nclosed_sub (length σ) j (to_subst σ).
 Proof. apply nclosed_σ_sub_equiv. Qed.
 
-Lemma closed_to_subst σ i n: nclosed_σ σ n → i < length σ → nclosed_vl (to_subst σ i) n.
-Proof. intros. exact: nclosed_sub_to_subst. Qed.
-
 Lemma eq_n_s_total σ1 σ2: eq_n_s σ1 σ2 0.
 Proof. move => ? /Nat.nlt_0_r []. Qed.
 Hint Resolve eq_n_s_total.
