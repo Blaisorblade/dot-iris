@@ -60,17 +60,12 @@ Definition extract g n T: stys * extractedTy :=
 
 Definition extraction n T: (stys * extractedTy → Prop) :=
   λ '(g, (s, σ)),
-  ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T ∧ nclosed_σ σ n ∧ nclosed T' (length σ).
+  ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T ∧ nclosed T' (length σ).
 Notation "T ~[ n  ] gsσ" := (extraction n T gsσ) (at level 70).
 
 Lemma extract_spec g n T: nclosed T n → T ~[ n ] (extract g n T).
 Proof. move => Hcl; exists T; by rewrite lookup_insert closed_subst_idsρ ?length_idsσ. Qed.
 Hint Resolve extract_spec.
-
-Lemma extraction_closed g n T s σ:
-  T ~[ n ] (g, (s, σ)) →
-  nclosed T n.
-Proof. intros (T' & Hlook & <- & Hclσ & HclT'). by apply fv_to_subst. Qed.
 
 Lemma extraction_subst g n T s σ m σ':
   T ~[ n ] (g, (s, σ)) →
@@ -78,10 +73,9 @@ Lemma extraction_subst g n T s σ m σ':
   nclosed_σ σ' m →
   T.|[to_subst σ'] ~[ m ] (g, (s, σ.|[to_subst σ'])).
 Proof.
-  intros (T' & Hlook & <- & Hclσ & HclT') <- => /=. rewrite map_length.
-  exists T'; repeat split => //.
+  intros (T' & Hlook & <- & HclT') <- => /=. rewrite map_length.
+  exists T'. repeat split => //.
   - asimpl. apply HclT', to_subst_compose.
-  - by apply nclosed_σ_to_subst.
 Qed.
 Hint Resolve extraction_subst.
 
@@ -93,7 +87,7 @@ Lemma extract_subst_spec g g' n T s σ m σ':
   T.|[to_subst σ'] ~[ m ] (g', (s, σ.|[to_subst σ'])).
 Proof.
   intros * HclT Hlen Hclσ Heq.
-  eapply extraction_subst => //. rewrite Heq. by eapply extract_spec.
+  eapply extraction_subst => //. rewrite Heq. exact: extract_spec.
 Qed.
 Hint Resolve extract_subst_spec.
 
@@ -133,15 +127,9 @@ Lemma extraction_lookup g s σ n T:
   T ~[ n ] (g, (s, σ)) → ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T.
 Proof. naive_solver. Qed.
 
-Lemma subst_compose_extract g g' T n m ξ σ s:
-  nclosed T n →
-  nclosed_σ ξ m →
-  length ξ = n →
-  (g', (s, σ)) = extract g n T →
-  T.|[to_subst σ.|[to_subst ξ]] = T.|[to_subst σ].|[to_subst ξ].
-Proof.
-  move => HclT Hclξ Hlen [_ _ ->]. by eapply subst_compose_idsσ.
-Qed.
+Lemma subst_compose_extract T ξ σ:
+  T.|[to_subst σ >> to_subst ξ] = T.|[to_subst σ].|[to_subst ξ].
+Proof. autosubst. Qed.
 
 Lemma extract_subst_commute g g' g'' T ξ n m s1 σ1 s2 σ2:
   nclosed T n →
@@ -154,12 +142,11 @@ Lemma extract_subst_commute g g' g'' T ξ n m s1 σ1 s2 σ2:
     g'' !! s1 = Some T1 ∧
     g'' !! s2 = Some T2 ∧
     (* T1.|[to_subst σ1].|[to_subst ξ] = T2.|[to_subst σ2]. *)
-    T1.|[to_subst σ1.|[to_subst ξ]] = T2.|[to_subst σ2].
+    T1.|[to_subst σ1 >> to_subst ξ] = T2.|[to_subst σ2].
 Proof.
   rewrite /extract => HclT Hclξ Hlen Hext1 Hext2. split; first eauto.
   exists T, T.|[to_subst ξ]; split_and!; eauto.
-  - erewrite subst_compose_extract => //.
-    simplify_eq.
-    rewrite !closed_subst_idsρ //.
+  - simplify_eq.
+    rewrite subst_compose_extract !closed_subst_idsρ //.
     exact: fv_to_subst. (* eauto with typeclass_instances. *)
 Qed.

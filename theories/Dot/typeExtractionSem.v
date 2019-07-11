@@ -25,14 +25,14 @@ Section interp_equiv.
     T ~[ n ] (g, (s, σ)) →
     ⟦ T ⟧ ρ v ≡ interp_extractedTy_naive (g, (s, σ)) ρ v.
   Proof.
-    cbn; intros (T' & -> & <- & HclT & HclT').
+    cbn; intros (T' & -> & <- & _).
     iSplit; iIntros "H"; [| iDestruct "H" as (T'' Heq) "?" ]; naive_solver.
   Qed.
 
   (** However, a stamp semantics that carries over to saved predicates must use
       σ in ρ. And the result is only equivalent for closed ρ with the expected length. *)
-  Definition interp_extractedTy: (ty * vls) → envD Σ :=
-    λ '(T, σ) ρ v, (⟦ T ⟧ (to_subst σ >> ρ) v)%I.
+  Definition interp_extractedTy: (ty * env) → envD Σ :=
+    λ '(T, σ) ρ v, (⟦ T ⟧ (σ >> ρ) v)%I.
   Notation "⟦ T ⟧ [ σ ]" := (interp_extractedTy (T, σ)).
 
   Definition envD_equiv n φ1 φ2: iProp Σ :=
@@ -42,9 +42,9 @@ Section interp_equiv.
   Lemma extraction_envD_equiv g s σ T n:
     T ~[ n ] (g, (s, σ)) →
     (∃ T', ⌜ g !! s = Some T'⌝ ∧
-        ⟦ T ⟧ ≈[ n ] ⟦ T' ⟧ [ σ ])%I.
+        ⟦ T ⟧ ≈[ n ] ⟦ T' ⟧ [ to_subst σ ])%I.
   Proof.
-    iIntros ((T' & -> & <- & _ & _)). iExists _; iSplit => //.
+    iIntros ((T' & -> & <- & _)). iExists _; iSplit => //.
     iIntros (ρ v) "!%".
     rewrite /interp_extractedTy. exact: interp_subst_compose.
   Qed.
@@ -53,19 +53,15 @@ Section interp_equiv.
   Lemma envD_equiv_subst g T m n ξ s1 σ1 s2 σ2:
     T ~[ m ] (g, (s1, σ1)) →
     T.|[to_subst ξ] ~[ n ] (g, (s2, σ2)) →
-    length ξ = m →
-    nclosed_σ ξ n →
     (∃ T1 T2, ⌜ g !! s1 = Some T1⌝ ∧ ⌜ g !! s2 = Some T2 ⌝ ∧
-    ⟦ T1 ⟧ [ σ1.|[to_subst ξ] ] ≈[ n ] ⟦ T2 ⟧ [ σ2 ])%I.
+    ⟦ T1 ⟧ [ to_subst σ1 >> to_subst ξ ] ≈[ n ] ⟦ T2 ⟧ [ to_subst σ2 ])%I.
   Proof.
-    rewrite /interp_extractedTy; iIntros ((T1 & -> & Heq1 & Hclσ1 & HclT1) (T2 & -> & Heq2 & Hclσ2 & HclT2) Hlenξ Hclξ).
+    rewrite /interp_extractedTy; iIntros ((T1 & -> & Heq1 & _) (T2 & -> & Heq2 & _)).
     iExists _, _; repeat iSplit => //; iIntros (ρ v) "/= !%".
-    have Hrew: T2.|[to_subst σ2].|[to_subst ρ] =
-      T1.|[to_subst σ1.|[to_subst ξ]].|[ to_subst ρ].
-    by erewrite !subst_compose, Heq2, Heq1.
-    asimpl in Hrew.
-    rewrite (interp_subst_ids T1 _ _) (interp_subst_ids T2 _ _) Hrew //.
-  Qed.
+    rewrite (interp_subst_ids T1 _ _) (interp_subst_ids T2 _ _). f_equiv.
+    move: Heq1 Heq2 => <- /(f_equal (λ T, T.|[to_subst ρ])).
+    by asimpl.
+ Qed.
 
   (* To give a definitive version of wellMapped, we need stampHeap to be stored in a resource. Here it is: *)
   Definition wellMapped g : iProp Σ :=
@@ -134,8 +130,8 @@ Section typing_type_member_defs.
   Lemma extraction_to_leadsto_envD_equiv T g sσ n: T ~[ n ] (g, sσ) →
     wellMapped g -∗ sσ ↝[ n ] ty_interp T.
   Proof.
-    move: sσ => [s σ] [T'] [Hl] [<-] [Hclσ HclT] /=. iIntros "Hm".
-    iSplit => //; iExists (ty_interp T'); iSplitL; [iApply "Hm" | ];
+    move: sσ => [s σ] [T'] [Hl] [<- HclT] /=. iIntros "Hm".
+    iSplit => //. iExists (ty_interp T'); iSplitL; [iApply "Hm" | ];
     iIntros "!% //" (ρ v).
     exact: interp_subst_commute.
   Qed.

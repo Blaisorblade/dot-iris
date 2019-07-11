@@ -318,7 +318,7 @@ Section Sec2.
   Lemma extraction_to_leadsto_envD_equiv T g sσ n: T ~[ n ] (g, sσ) →
     wellMapped g -∗ sσ ↝[ n ] oty_interp (h T).
   Proof.
-    move: sσ => [s σ] [T'] [Hl] [<-] [Hclσ HclT]. iIntros "Hm".
+    move: sσ => [s σ] [T'] [Hl] [<- HclT]. iIntros "Hm".
     iSplit => //; iExists (oty_interp (h T')); iSplitL; [iApply "Hm" | ];
     iIntros "!% //" (args ρ v).
     apply (oty_interp_subst_commute' (h T')). solve_fv_congruence.
