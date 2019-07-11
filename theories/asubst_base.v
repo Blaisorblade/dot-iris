@@ -19,6 +19,9 @@ Implicit Types (v w : vl) (vs ρ : vls) (i j k n : nat) (r : nat → nat).
 Definition eq_n_s (s1 s2 : var → vl) n := ∀ x, x < n → s1 x = s2 x.
 Global Arguments eq_n_s /.
 
+Lemma eq_n_s_symm s1 s2 n: eq_n_s s1 s2 n → eq_n_s s2 s1 n.
+Proof. move => Heqs x ?. symmetry. exact: Heqs. Qed.
+
 Fixpoint to_subst (ρ : vls) : var → vl :=
   match ρ with
   | [] => ids
@@ -95,6 +98,10 @@ Qed.
 Lemma eq_n_s_heads {n s1 s2} : eq_n_s s1 s2 n → n > 0 → shead s1 = shead s2.
 Proof. rewrite /shead => /= HsEq. exact: HsEq. Qed.
 
+(* Unused? *)
+Lemma eq_cons v sb1 sb2 n : eq_n_s sb1 sb2 n → eq_n_s (v .: sb1) (v .: sb2) (S n).
+Proof. move => Heqs [//|x] /lt_S_n /Heqs //. Qed.
+
 Lemma decomp_s_vl v s : v.[s] = v.[up (stail s)].[shead s/].
 Proof. by rewrite /stail /shead; asimpl. Qed.
 
@@ -135,6 +142,9 @@ Ltac solve_inv_fv_congruence_auto :=
 Hint Extern 10 => solve_inv_fv_congruence_auto : fv.
 
 Set Implicit Arguments.
+
+Lemma scons_up_swap a sb1 sb2 : a .: sb1 >> sb2 = up sb1 >> a .: sb2.
+Proof. autosubst. Qed.
 
 Definition nclosed_sub n m s :=
   ∀ i, i < n → nclosed_vl (s i) m.

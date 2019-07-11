@@ -1,6 +1,9 @@
 From iris.proofmode Require Import tactics.
 From D Require Export iris_prelude.
+From D Require Import ty_interp_subst_lemmas.
 From D.DSub Require Export operational.
+
+Include TyInterpLemmas VlSorts operational.
 
 (** Deduce types from variable names, like on paper, for readability and to help
     type inference for some overloaded operations (e.g. substitution). *)
@@ -47,14 +50,14 @@ Section logrel.
   Definition interp_nat : envD Σ := λ ρ v, (∃ n, ⌜v = vnat n⌝) %I.
   Global Arguments interp_nat /.
 
-  Definition interp_top : envD Σ := λ ρ v, ⌜ nclosed_vl v 0 ⌝%I.
+  Definition interp_top : envD Σ := λ ρ v, True%I.
   Global Arguments interp_top /.
 
   Definition interp_bot : envD Σ := λ ρ v, False%I.
   Global Arguments interp_bot /.
 
   Program Definition interp_later: envD Σ -n> envD Σ :=
-    λne interp, λ ρ v, (⌜ nclosed_vl v 0 ⌝ ∗ ▷ interp ρ v) % I.
+    λne interp, λ ρ v, (▷ interp ρ v) % I.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_later /.
 
@@ -72,9 +75,8 @@ Section logrel.
 
   Program Definition interp_forall: envD Σ -n> envD Σ -n> envD Σ :=
     λne interp1 interp2, λ ρ v,
-    (⌜ nclosed_vl v 0 ⌝ ∗
-       ∃ t, ⌜ v = vabs t ⌝ ∗
-       □ ▷ ∀ w, interp1 ρ w → interp_expr interp2 (w .: ρ) t.|[w/])%I.
+    (∃ t, ⌜ v = vabs t ⌝ ∗
+      □ ▷ ∀ w, interp1 ρ w → interp_expr interp2 (w .: ρ) t.|[w/])%I.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_forall /.
 
@@ -102,9 +104,9 @@ Section logrel.
   Program Definition interp_tmem :
     (ty -d> envD Σ) -n> envD Σ -n> envD Σ -n> envD Σ :=
     λne rinterp interpL interpU, λ ρ v,
-    (⌜ nclosed_vl v 0 ⌝ ∗  ∃ φ, [ rinterp ] v ↗ φ ∗
-       □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ interpL ρ v → ▷ □ φ v) ∗
-          (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ φ v → ▷ interpU ρ v)))%I.
+    (∃ φ, [ rinterp ] v ↗ φ ∗
+       □ ((∀ v, ▷ interpL ρ v → ▷ □ φ v) ∗
+          (∀ v, ▷ □ φ v → ▷ interpU ρ v)))%I.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_tmem /.
 
@@ -113,7 +115,7 @@ Section logrel.
 
   Program Definition interp_sel: (ty -d> envD Σ) -n> vl -d> envD Σ :=
     λne rinterp, λ w ρ v,
-    (⌜ nclosed_vl v 0 ⌝ ∧ (∃ ϕ, [rinterp] w.[ρ] ↗ ϕ ∧ ▷ □ ϕ v))%I.
+    (∃ ϕ, [rinterp] w.[ρ] ↗ ϕ ∧ ▷ □ ϕ v)%I.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_sel /.
   Global Instance interp_sel_contractive : Contractive interp_sel.
@@ -199,6 +201,13 @@ Ltac setoid_unfold_interp :=
 Section logrel_part2.
   Context `{!dsubSynG Σ}.
 
+  Global Instance interp_lemmas: TyInterpLemmas ty Σ.
+  Proof.
+    split; induction T => sb1 sb2 w; unfold_interp;
+      properness; rewrite /= ?scons_up_swap; trivial.
+    autosubst.
+  Qed.
+
   Global Instance interp_persistent T ρ v :
     Persistent (⟦ T ⟧ ρ v).
   Proof. revert v ρ; induction T => w ρ; unfold_interp; try apply _. Qed.
@@ -220,25 +229,20 @@ Section logrel_part2.
     Persistent (⟦ Γ ⟧* vs).
   Proof. elim: Γ vs => [|τ Γ IHΓ] [|v vs]; apply _. Qed.
 
-  Definition ietp Γ T e : iProp Σ := (⌜ nclosed e (length Γ) ⌝ ∗ □∀ vs, ⟦Γ⟧* vs → ⟦T⟧ₑ (to_subst vs) (e.|[to_subst vs]))%I.
+  Definition ietp Γ T e : iProp Σ :=
+    (□∀ vs, ⟦Γ⟧* vs → ⟦T⟧ₑ (to_subst vs) (e.|[to_subst vs]))%I.
   Global Arguments ietp /.
   Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 
-  Lemma ietp_closed Γ T e: Γ ⊨ e : T -∗ ⌜ nclosed e (length Γ) ⌝.
-  Proof. iIntros "[$ _]". Qed.
-
   Definition step_indexed_ietp Γ T e i: iProp Σ :=
-    (⌜ nclosed e (length Γ) ⌝ ∗ □∀ vs, ⟦Γ⟧* vs → ▷^i ⟦T⟧ₑ (to_subst vs) (e.|[to_subst vs]))%I.
+    (□∀ vs, ⟦Γ⟧* vs → ▷^i ⟦T⟧ₑ (to_subst vs) (e.|[to_subst vs]))%I.
   Global Arguments step_indexed_ietp /.
   Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
-
-  Lemma step_indexed_ietp_closed Γ T e i: Γ ⊨ e : T, i -∗ ⌜ nclosed e (length Γ) ⌝.
-  Proof. iIntros "[$ _]". Qed.
 
   (** Indexed Subtyping. Defined on closed values. We must require closedness
       explicitly, since closedness now does not follow from being well-typed later. *)
   Definition step_indexed_ivstp Γ T1 T2 i j: iProp Σ :=
-    (□∀ vs v, ⌜ nclosed_vl v 0 ⌝ → ⟦Γ⟧* vs → (▷^i ⟦T1⟧ (to_subst vs) v) → ▷^j ⟦T2⟧ (to_subst vs) v)%I.
+    (□∀ vs v, ⟦Γ⟧* vs → (▷^i ⟦T1⟧ (to_subst vs) v) → ▷^j ⟦T2⟧ (to_subst vs) v)%I.
   Global Arguments step_indexed_ivstp /.
 
   Definition delayed_ivstp Γ T1 T2 i: iProp Σ :=
@@ -264,27 +268,17 @@ Section logrel_lemmas.
   Context `{!dsubSynG Σ}.
 
   Lemma iterate_TLater_later i T ρ v:
-    nclosed_vl v 0 →
     ⟦ iterate TLater i T ⟧ ρ v ≡ (▷^i ⟦ T ⟧ ρ v)%I.
   Proof.
-    elim: i => [|i IHi] // => Hcl.
+    elim: i => [|i IHi] //.
     rewrite iterate_S /=; unfold_interp; rewrite IHi //.
-    iSplit; by [> iIntros "#[_ $]" | iIntros "$"].
   Qed.
-
 
   Lemma semantic_typing_uniform_step_index Γ T e i:
     Γ ⊨ e : T -∗ Γ ⊨ e : T,i.
   Proof.
-    iIntros "[$ #H] !>" (ρ) "#HΓ".
+    iIntros "#H !>" (ρ) "#HΓ".
     iInduction i as [|i] "IHi". by iApply "H". iExact "IHi".
-  Qed.
-
-  Lemma interp_v_closed T w ρ: ⟦ T ⟧ ρ w -∗ ⌜ nclosed_vl w 0 ⌝.
-  Proof.
-    move: ρ; induction T => ρ /=; unfold_interp;
-      try by [iPureIntro | iIntros "[$ _]"].
-    - iPureIntro. by move => [n ->].
   Qed.
 
   Lemma interp_env_len_agree Γ vs:
@@ -294,43 +288,12 @@ Section logrel_lemmas.
     rewrite IHΓ. by iIntros "[-> _] !%".
   Qed.
 
-  Lemma interp_env_ρ_closed Γ vs: ⟦ Γ ⟧* vs -∗ ⌜ cl_ρ vs ⌝.
-  Proof.
-    elim: Γ vs => [|τ Γ IHΓ] [|v vs] //=; try by iPureIntro.
-    rewrite interp_v_closed IHΓ; iPureIntro. intuition.
-  Qed.
-
   Lemma interp_env_props Γ vs:
-    ⟦ Γ ⟧* vs -∗ ⌜ cl_ρ vs ∧ length vs = length Γ ⌝.
+    ⟦ Γ ⟧* vs -∗ ⌜ length vs = length Γ ⌝.
   Proof.
     iIntros "#HG".
-    iDestruct (interp_env_ρ_closed with "HG") as %?.
     iDestruct (interp_env_len_agree with "HG") as %?.
     by iPureIntro.
-  Qed.
-
-  Lemma interp_env_cl_ρ {Γ vs}:
-    ⟦ Γ ⟧* vs -∗ ⌜ nclosed_sub (length Γ) 0 (to_subst vs) ⌝.
-  Proof.
-    elim: Γ vs => [|T Γ IHΓ] vs /=; first by iIntros "!%" (???); lia.
-    case: vs => [|v vs]; last rewrite interp_v_closed IHΓ; iIntros "!% //".
-    move => [Hclvs Hclv] [//|i /lt_S_n Hle /=].
-    apply Hclvs, Hle.
-  Qed.
-
-  Lemma interp_env_cl_app `{Sort X} (x : X) {Γ vs} :
-    nclosed x (length Γ) →
-    ⟦ Γ ⟧* vs -∗ ⌜ nclosed x.|[to_subst vs] 0 ⌝.
-  Proof.
-    rewrite interp_env_cl_ρ. iIntros "!% /=".
-    eauto using nclosed_sub_app.
-  Qed.
-
-  Lemma interp_env_cl_app_vl v {Γ vs}: nclosed_vl v (length Γ) →
-     ⟦ Γ ⟧* vs -∗ ⌜ nclosed_vl v.[to_subst vs] 0 ⌝.
-  Proof.
-    rewrite interp_env_cl_ρ. iIntros "!% /=".
-    eauto using nclosed_sub_app_vl.
   Qed.
 
   Context {Γ}.
@@ -341,8 +304,8 @@ Section logrel_lemmas.
                                       Γ ⊨ [T2, i2] <: [T3, i3] -∗
                                       Γ ⊨ [T1, i1] <: [T3, i3].
   Proof.
-    iIntros "#Hsub1 #Hsub2 /= !> * % #Hg #HT".
-    iApply ("Hsub2" with "[//] [//] (Hsub1 [//] [//] [//])").
+    iIntros "#Hsub1 #Hsub2 /= !> * #Hg #HT".
+    iApply ("Hsub2" with "Hg (Hsub1 Hg [//])").
   Qed.
 
   Lemma DSub_Refl T i : Γ ⊨[i] T <: T.

@@ -3,6 +3,7 @@
 
 theories/README.v
 theories/tactics.v
+theories/ty_interp_subst_lemmas.v
 theories/olty.v
 theories/olty_experiments.v
 theories/prelude.v

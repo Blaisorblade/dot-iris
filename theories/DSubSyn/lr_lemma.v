@@ -28,7 +28,7 @@ Section Sec.
     (*──────────────────────*)
     Γ ⊨ tv (var_vl x) : T.|[ren (+x)].
   Proof.
-    iIntros (Hx) "/=". iSplit; eauto using lookup_fv. iIntros "!> * #Hg".
+    iIntros (Hx) "/= !> * #Hg".
     by rewrite -wp_value' interp_env_lookup.
   Qed.
 
@@ -38,10 +38,10 @@ Section Sec.
     (*────────────────────────────────────────────────────────────*)
     Γ ⊨ tapp e1 e2 : T2.
   Proof.
-    iIntros "/= #[% #He1] #[% #Hv2]". iSplit; eauto using fv_tapp. iIntros " !>" (vs) "#HG".
+    iIntros "/= #He1 #Hv2 !>" (vs) "#HG".
     smart_wp_bind (AppLCtx _) v "#Hr" "He1".
     smart_wp_bind (AppRCtx v) w "#Hw" "Hv2".
-    unfold_interp. iDestruct "Hr" as (Hclv t ->) "#Hv".
+    unfold_interp. iDestruct "Hr" as (t ->) "#Hv".
     rewrite -wp_pure_step_later // -wp_mono /=; first by iApply "Hv".
     iIntros (v); by rewrite (interp_weaken_one w T2 vs v).
   Qed.
@@ -52,15 +52,14 @@ Section Sec.
     (*────────────────────────────────────────────────────────────*)
     Γ ⊨ tapp e1 (tv v2) : T2.|[v2/].
   Proof.
-    iIntros "/= #[% He1] #[% Hv2Arg]". move: H H0 => Hcle1 Hclv2. iSplit; eauto using fv_tapp. iIntros "!>" (vs) "#HG".
-    move: Hclv2 => /fv_tv_inv Hclv2.
+    iIntros "/= #He1 #Hv2Arg !>" (vs) "#HG".
     smart_wp_bind (AppLCtx _) v "#Hr" "He1".
-    unfold_interp. iDestruct "Hr" as (Hclv t ->) "#HvFun".
+    unfold_interp. iDestruct "Hr" as (t ->) "#HvFun".
     rewrite -wp_pure_step_later; last done. iNext.
     iApply wp_wand.
     - iApply "HvFun". rewrite -wp_value_inv'. by iApply "Hv2Arg".
     - iIntros (v).
-      iRewrite (interp_subst_closed Γ T2 v2 v with "HG"); auto.
+      rewrite (interp_subst_closed T2 v2 v); auto.
   Qed.
 
   Lemma T_Forall_I T1 T2 e:
@@ -68,17 +67,10 @@ Section Sec.
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.
-    iIntros "/= #[% #HeT]". move: H => Hcle.
-    iSplit; eauto using fv_tv, fv_vabs.
-    iIntros " !>" (vs) "#HG".
+    iIntros "/= #HeT !>" (vs) "#HG".
     rewrite -wp_value'; unfold_interp.
-    iSplit.
-    {
-      apply fv_vabs in Hcle.
-      by iApply (interp_env_cl_app_vl (vabs e) Hcle).
-    }
-    iExists _; iSplitL => //.
-    iIntros "!> !>" (v) "#Hv". iSpecialize ("HeT" $! (v :: _)).
+    iExists _; iSplit => //.
+    iIntros "!> !>" (v) "#Hv". iSpecialize ("HeT" $! (v :: vs)).
     rewrite (interp_weaken_one v T1 _ v) /=.
     (* Faster than 'asimpl'. *)
     locAsimpl' (e.|[up (to_subst vs)].|[v/]).
@@ -91,152 +83,113 @@ Section Sec.
     (*───────────────────────────────*)
     Γ ⊨ iterate tskip i e : T2.
   Proof.
-    iIntros "/= * #[% #HeT1] #Hsub". move: H => Hcle.
-    iSplit; first by eauto using nclosed_tskip_i.
-    iIntros "!>" (vs) "#Hg".
+    iIntros "/= * #HeT1 #Hsub !>" (vs) "#Hg".
     rewrite tskip_subst tskip_n_to_fill -wp_bind.
-    iApply (wp_wand_cl _ (⟦ T1 ⟧ (to_subst vs))) => //.
-    - iApply ("HeT1" with "[//]").
-    - by rewrite -interp_env_cl_app.
-    - iIntros (v) "#HvT1 %".
-      (* We can swap ▷^i with WP (tv v)! *)
-      rewrite -tskip_n_to_fill -wp_pure_step_later // -wp_value.
-      by iApply "Hsub".
+    iApply (wp_wand with "(HeT1 Hg)").
+    iIntros (v) "#HvT1".
+    (* We can swap ▷^i with WP (tv v)! *)
+    rewrite -tskip_n_to_fill -wp_pure_step_later // -wp_value.
+    by iApply "Hsub".
   Qed.
 
   Lemma DT_Sub e T1 T2 i:
-    (Γ ⊨ e : T1 →
-    Γ ⊨[0] T1 <: iterate TLater i T2 →
+    Γ ⊨ e : T1 -∗
+    Γ ⊨[0] T1 <: iterate TLater i T2 -∗
     (*───────────────────────────────*)
-    Γ ⊨ iterate tskip i e : T2)%I.
+    Γ ⊨ iterate tskip i e : T2.
   Proof.
-    iIntros "/= * #[% #HeT1] #Hsub". move: H => Hcle.
-    have Hclte: nclosed (iterate tskip i e) (length Γ) by eauto using nclosed_tskip_i. iFrame "%".
-    move: Hclte => _. iIntros "!>" (vs) "#Hg".
+    iIntros "/= * #HeT1 #Hsub". iIntros "!>" (vs) "#Hg".
     rewrite tskip_subst tskip_n_to_fill -wp_bind.
-    iApply (wp_wand_cl _ (⟦ T1 ⟧ (to_subst vs))) => //.
-    - iApply ("HeT1" with "[//]").
-    - by rewrite -interp_env_cl_app.
-    - iIntros (v) "#HvT1 %".
-      rewrite -tskip_n_to_fill -wp_pure_step_later //.
-      iSpecialize ("Hsub" with "Hg HvT1").
-      (* We can swap ▷^i with WP (tv v)! *)
-      rewrite iterate_TLater_later // -wp_value.
-      by iApply "Hsub".
+    iApply (wp_wand with "(HeT1 Hg)").
+    iIntros (v) "#HvT1".
+    rewrite -tskip_n_to_fill -wp_pure_step_later //.
+    iSpecialize ("Hsub" with "Hg HvT1").
+    (* We can swap ▷^i with WP (tv v)! *)
+    rewrite iterate_TLater_later -wp_value.
+    by iApply "Hsub".
   Qed.
 
   Lemma T_Vty_abs_I T L U :
-    nclosed T (length Γ) →
     Γ ⊨ [T, 1] <: [U, 1] -∗
     Γ ⊨ [L, 1] <: [T, 1] -∗
     Γ ⊨ tv (vty T) : TTMem L U.
   Proof.
-    move => /fv_vty HclV.
-    iIntros "#HTU #HLT /=".
-    iSplit; first eauto using fv_tv.
-    iIntros "!>" (vs) "#HG".
+    iIntros "#HTU #HLT /= !>" (vs) "#HG".
     rewrite -wp_value; unfold_interp.
-    iDestruct (interp_env_props with "HG") as %[Hclp Hlen]; rewrite <- Hlen in *.
-    iSplit. { iIntros "!%". exact: (fv_to_subst_vl HclV). }
-    iExists (λ v, ⟦ T.|[to_subst vs] ⟧ ids v)%I.
-    iSplit. by iExists (T.|[to_subst vs]).
-    iModIntro; repeat iSplitL; iIntros (v Hclv) "#H";
-      rewrite later_intuitionistically interp_subst_all //.
+    iExists _; iSplit. by iExists _.
+    iModIntro; repeat iSplitL; iIntros (v) "#H";
+      rewrite later_intuitionistically -(interp_subst_ids _ _ _).
     - iIntros "!>"; by iApply "HLT".
     - by iApply "HTU".
   Qed.
 
   Lemma T_Vty_I T L U :
-    nclosed T (length Γ) →
     Γ ⊨ tv (vty T) : TTMem T T.
-  Proof.
-    iIntros; iApply T_Vty_abs_I => //; by iApply Sub_Refl.
-  Qed.
+  Proof. iIntros; iApply T_Vty_abs_I; by rewrite -Sub_Refl. Qed.
 
   Lemma DT_Vty_abs_I T L U :
-    nclosed T (length Γ) →
     Γ ⊨[1] T <: U -∗
     Γ ⊨[1] L <: T -∗
     Γ ⊨ tv (vty T) : TTMem L U.
   Proof.
     (* Ltac solve_fv_congruence := rewrite /nclosed /nclosed_vl /= => *; f_equiv; solve [(idtac + asimpl); auto using eq_up]. *)
-    iIntros (HclT) "#HTU #HLT /=".
-    have HclV: nclosed_vl (vty T) (length Γ). exact: fv_vty.
-    have HclTV: nclosed (tv (vty T)) (length Γ). exact: fv_tv.
-    iSplit => //.
-    iIntros "!>" (ρ) "#HG".
+    iIntros "#HTU #HLT /= !>" (ρ) "#HG".
     rewrite -wp_value; unfold_interp.
-    iDestruct (interp_env_props with "HG") as %[Hclp Hlen]; rewrite <- Hlen in *.
-    iSplit. { iIntros "!%". exact: (fv_to_subst_vl HclV). }
-    iExists (λ v, ⟦ T.|[to_subst ρ] ⟧ ids v)%I.
-    iSplit. by iExists (T.|[to_subst ρ ]).
-    iModIntro; repeat iSplitL; iIntros (v Hclv) "#H";
-      rewrite later_intuitionistically interp_subst_all //.
+    iExists _; iSplit. by iExists _.
+    iModIntro; repeat iSplitL; iIntros (v) "#H";
+      rewrite later_intuitionistically -(interp_subst_ids _ _ _).
     - iIntros "!>"; by iApply "HLT".
     - by iApply "HTU".
   Qed.
 
   Lemma DT_Vty_I T L U :
-    nclosed T (length Γ) →
     Γ ⊨ tv (vty T) : TTMem T T.
-  Proof.
-    iIntros; iApply DT_Vty_abs_I => //; by iApply DSub_Refl.
-  Qed.
+  Proof. iIntros; iApply DT_Vty_abs_I => //; by iApply DSub_Refl. Qed.
 
   Lemma Sub_Sel L U va i:
     Γ ⊨ tv va : TTMem L U, i -∗
     Γ ⊨ [L, S i] <: [TSel va, i].
   Proof.
-    iIntros "/= #[% #Hva] !>" (vs v Hclv) "#Hg #HvL". move: H => Hclva.
-    iSpecialize ("Hva" $! vs with "Hg"). iNext.
+    iIntros "/= #Hva !>" (vs v) "#Hg #HvL".
+    iSpecialize ("Hva" with "Hg"). iNext.
     rewrite wp_value_inv'; unfold_interp.
-    iDestruct "Hva" as (Hclvas φ) "#[H1 #[HLφ HφU]]".
-    iDestruct "H1" as (T) "[% Hφ]".
-    repeat iSplit => //.
-    iExists φ. repeat iSplit. naive_solver.
-    by iApply "HLφ".
+    iDestruct "Hva" as (φ) "#[H1 #[HLφ HφU]]".
+    iDestruct "H1" as (T Heq) "Hφ".
+    iExists φ; iSplit. naive_solver. by iApply "HLφ".
   Qed.
 
   Lemma DSub_Sel L U va i:
     Γ ⊨ tv va : TTMem L U, i -∗
     Γ ⊨[i] TLater L <: TSel va.
   Proof.
-    iIntros "/= #[% #Hva] !>" (vs) "#Hg". move: H => Hclva.
-    iSpecialize ("Hva" $! vs with "Hg"). iNext.
-    setoid_unfold_interp.
-    iIntros (v) " #[% HvL]". move: H => Hclv.
+    iIntros "/= #Hva !>" (vs) "#Hg".
+    iSpecialize ("Hva" with "Hg"). iNext.
+    iIntros (v) " #HvL".
     rewrite wp_value_inv'; unfold_interp.
-    iDestruct "Hva" as (Hclvas φ) "#[H1 #[HLφ HφU]]".
-    iDestruct "H1" as (T) "[% Hφ]".
-    repeat iSplit => //.
-    iExists φ. repeat iSplit. naive_solver.
-    by iApply "HLφ".
+    iDestruct "Hva" as (φ) "#[H1 #[HLφ HφU]]".
+    iDestruct "H1" as (T Heq) "Hφ".
+    iExists φ; iSplit. naive_solver. by iApply "HLφ".
   Qed.
 
   Lemma Sel_Sub L U va i:
     Γ ⊨ tv va : TTMem L U, i -∗
     Γ ⊨ [TSel va, i] <: [U, S i].
   Proof.
-    iIntros "/= #[% #Hva] !>" (vs v Hclv) "#Hg #Hφ". move: H => Hclva.
-    iSpecialize ("Hva" $! vs with "Hg").
+    iIntros "/= #Hva !>" (vs v) "#Hg #Hφ".
+    iSpecialize ("Hva" with "Hg").
     rewrite -swap_later wp_value_inv'; unfold_interp.
-    iNext i.
-    iDestruct "Hva" as (Hclvas φ) "#[HT0 #[HLφ HφU]]".
-    iDestruct "Hφ" as "[_ Hφ]".
+    iDestruct "Hva" as (φ) "#[HT0 #[HLφ HφU]]".
+    iApply "HφU".
     iDestruct "Hφ" as (φ1) "[HT1 #Hφ1v]".
-    iApply "HφU" => //.
-
     (* To conclude, show that both types fetched from va coincide - but later! *)
     iPoseProof (vl_has_semtype_agree with "HT0 HT1") as "Hag".
-    iNext. by iRewrite ("Hag" $! v).
+    iNext i. iNext. by iRewrite ("Hag" $! v).
   Qed.
 
   Lemma T_Nat_I n:
     Γ ⊨ tv (vnat n): TNat.
   Proof.
-    iSplit => //.
-    iIntros "/= !>" (ρ) "Hg".
-    rewrite -wp_value; unfold_interp. by iExists n.
+    iIntros "/= !>" (ρ) "_". rewrite -wp_value; unfold_interp. by iExists n.
   Qed.
 
   Lemma Sub_Index_Incr T U i j:
@@ -250,13 +203,11 @@ Section Sec.
     Γ ⊨[i] TTMem L1 U1 <: TTMem L2 U2.
   Proof.
     iIntros "#HsubL #HsubU /= !>" (ρ) "#Hg"; iIntros (v).
-    iSpecialize ("HsubL" with "Hg").
-    iSpecialize ("HsubU" with "Hg").
-    unfold_interp.
-    iIntros "!> [$ #HT1]".
-    iDestruct "HT1" as (φ) "[Hφl [#HLφ #HφU]]".
+    iSpecialize ("HsubL" with "Hg"); iSpecialize ("HsubU" with "Hg").
+    unfold_interp. iNext.
+    iDestruct 1 as (φ) "#[Hφl [#HLφ #HφU]]".
     iExists φ; repeat iSplitL; first done;
-      iIntros "!>" (w Hclw) "#Hw".
+      iIntros "!>" (w) "#Hw".
     - iApply "HLφ" => //. by iApply "HsubL".
     - iApply "HsubU". by iApply "HφU".
   Qed.
@@ -268,8 +219,7 @@ Section Sec.
   Lemma DSub_Top T i:
     Γ ⊨[i] T <: TTop.
   Proof.
-    iIntros "!> ** !> **"; unfold_interp.
-    by iApply interp_v_closed.
+    iIntros "!> ** !> **". by unfold_interp.
   Qed.
 
   Lemma Bot_Sub T i:

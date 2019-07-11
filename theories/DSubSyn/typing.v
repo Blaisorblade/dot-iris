@@ -35,12 +35,10 @@ Inductive typed Γ : tm → ty → Prop :=
     (*───────────────────────────────*)
     Γ ⊢ₜ iterate tskip i e : T2
 | Vty_abs_typed T L U :
-    nclosed T (length Γ) →
     Γ ⊢ₜ T, 1 <: U, 1 →
     Γ ⊢ₜ L, 1 <: T, 1 →
     Γ ⊢ₜ tv (vty T) : TTMem L U
 | Vty_typed T L U :
-    nclosed T (length Γ) →
     Γ ⊢ₜ tv (vty T) : TTMem T T
 (* A bit surprising this is needed, but appears in the DOT papers, and this is
    only admissible if t has a type U that is a proper subtype of TAnd T1 T2. *)
