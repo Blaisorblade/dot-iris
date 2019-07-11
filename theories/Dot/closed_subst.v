@@ -37,7 +37,7 @@ Proof.
     | l T1 T2 IH1 IH2
     | p1 l IH1
     ] i j Hle Hcl.
-  - by eapply fv_tv, IH1, fv_tv_inv.
+  - by eapply fv_of_val, IH1, fv_of_val_inv.
   - eapply fv_tapp; [> eapply IH1 | eapply IH2]; eauto with fv.
   - eapply fv_tproj, IH1; eauto with fv.
   - eapply fv_tskip, IH1; eauto with fv.
@@ -108,7 +108,7 @@ Proof.
     | l T1 T2 IH1 IH2
     | p1 l IH1
     ] k Hcl /=.
-  - by eapply fv_tv, IH1, fv_tv_inv.
+  - by eapply fv_of_val, IH1, fv_of_val_inv.
   - eapply fv_tapp; [> eapply IH1 | eapply IH2]; eauto with fv.
   - eapply fv_tproj, IH1; eauto with fv.
   - eapply fv_tskip, IH1; eauto with fv.

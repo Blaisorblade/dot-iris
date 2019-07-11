@@ -32,5 +32,5 @@ Section logrel_binding_lemmas.
   Qed.
 
   Lemma ietp_closed_vl T v: Γ ⊨ tv v : T -∗ ⌜ nclosed_vl v (length Γ) ⌝.
-  Proof. rewrite ietp_closed; iPureIntro; exact: fv_tv_inv. Qed.
+  Proof. rewrite ietp_closed; iPureIntro; exact: fv_of_val_inv. Qed.
 End logrel_binding_lemmas.

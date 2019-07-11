@@ -13,7 +13,7 @@ Section Sec.
   Proof.
     iIntros "/= He" (Hcle) "Himpl". iApply (wp_wand_wf _ _ e Φ (flip nclosed 0) Hcle with "He [Himpl]").
     intros. by eapply nclosed_prim_step.
-    iIntros (v Hclv) "/= H". iApply ("Himpl" with "H [%]"). exact: fv_tv_inv.
+    iIntros (v Hclv) "/= H". iApply ("Himpl" with "H [%]"). exact: fv_of_val_inv.
   Qed.
 
   Lemma T_Sub e T1 T2 i:
@@ -136,7 +136,7 @@ Section Sec.
      Γ ⊨ tapp e1 (tv v2) : T2.|[v2/])%I.
   Proof.
     iIntros "/= [% #He1] [% #Hv2Arg]". move: H H0 => Hcle1 Hclv2. iSplit; eauto using fv_tapp. iIntros " !> * #HG".
-    move: Hclv2 => /fv_tv_inv Hclv2.
+    move: Hclv2 => /fv_of_val_inv Hclv2.
     smart_wp_bind (AppLCtx (tv v2.[_])) v "[_ #Hr] {He1}" ("He1" with "[#//]").
     iDestruct "Hr" as (t ->) "#HvFun".
     rewrite -wp_pure_step_later; last done. iNext.
@@ -156,7 +156,7 @@ Section Sec.
     Γ ⊨ tv (vabs e) : TAll T1 T2)%I.
   Proof.
     iIntros "/= #[% #HeT]". move: H => Hcle.
-    iSplit; eauto using fv_tv, fv_vabs.
+    iSplit; eauto using fv_of_val, fv_vabs.
     iIntros " !>" (vs) "#HG".
     rewrite -wp_value'.
     iSplit.

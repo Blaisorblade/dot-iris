@@ -384,7 +384,7 @@ Section Sec.
     iDestruct (interp_env_len_agree with "Hg") as %Hlen. rewrite <- Hlen in *.
     iDestruct (interp_env_ρ_closed with "Hg") as %Hclρ.
     have Hclvs: nclosed_vl v.[to_subst (w :: ρ)] 0.
-      by apply fv_to_subst_vl; naive_solver eauto using fv_tv_inv.
+      by apply fv_to_subst_vl; naive_solver eauto using fv_of_val_inv.
     iFrame (Hclvs).
     iApply wp_value_inv'. iApply "Hv". by iSplit.
   Qed.

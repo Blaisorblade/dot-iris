@@ -36,7 +36,7 @@ Section ex.
      but very useful for examples. *)
   Lemma ietp_value T v: nclosed_vl v 0 → ⟦ T ⟧ ids v -∗ [] ⊨ tv v : T.
   Proof.
-    iIntros (?) "#H /="; iSplit; first by auto using fv_tv.
+    iIntros (?) "#H /="; iSplit; first by auto using fv_of_val.
     iIntros "!>" (?->).
     rewrite -wp_value' to_subst_nil subst_id. iApply "H".
   Qed.

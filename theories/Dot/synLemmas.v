@@ -20,9 +20,6 @@ Proof. solve_fv_congruence. Qed.
 Lemma fv_tapp e1 e2 n: nclosed e1 n → nclosed e2 n → nclosed (tapp e1 e2) n.
 Proof. solve_fv_congruence. Qed.
 
-Lemma fv_tv v n: nclosed_vl v n → nclosed (tv v) n.
-Proof. solve_fv_congruence. Qed.
-
 Lemma fv_vobj ds n: nclosed ds (S n) → nclosed_vl (vobj ds) n.
 Proof. solve_fv_congruence. Qed.
 
@@ -84,9 +81,6 @@ Proof. intro. apply closed_vls_to_Forall. eauto with fv. Qed.
 
 
 
-
-Lemma fv_tv_inv v n: nclosed (tv v) n → nclosed_vl v n.
-Proof. solve_inv_fv_congruence. Qed.
 
 Lemma fv_tapp_inv_1 n e1 e2: nclosed (tapp e1 e2) n → nclosed e1 n.
 Proof. solve_inv_fv_congruence. Qed.

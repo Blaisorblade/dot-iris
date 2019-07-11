@@ -20,7 +20,7 @@ Proof.
          x|t1 IH1|T1 IH1|vs s IHvs|
          T1 IH1 |T1 T2 IH1 IH2|T1 T2 IH1 IH2|v1 IH1]
         i j Hle Hcl.
-  - by eapply fv_tv, IH1, fv_tv_inv.
+  - by eapply fv_of_val, IH1, fv_of_val_inv.
   - eapply fv_tapp; [> eapply IH1 | eapply IH2]; eauto with fv.
   - eapply fv_tskip, IH1; eauto with fv.
   - apply (nclosed_sub_inv_var w j (k := 0)); asimpl; by [lia|].
@@ -61,7 +61,7 @@ Proof.
                              x|t1 IH1|T1 IH1|vs s IHvs|
                              T1 IH1 |T1 T2 IH1 IH2|T1 T2 IH1 IH2|v1 IH1]
                             k Hcl /=.
-  - eauto using fv_tv, fv_tv_inv.
+  - eauto using fv_of_val, fv_of_val_inv.
   - eapply fv_tapp; eauto using fv_tapp_inv_1, fv_tapp_inv_2.
   - specialize (IH1 k); eapply fv_tskip; eauto using fv_tskip_inv.
   - exact: nclosed_ren_rev_var.

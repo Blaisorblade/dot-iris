@@ -18,7 +18,7 @@ Section nclosed_prim_step.
   Proof.
     move => Hl Hcl.
     assert (Hclt1: nclosed_vl v n) by eauto with fv.
-    apply fv_tv.
+    apply fv_of_val.
     enough (nclosed (dvl w) n) by eauto with fv.
     exact: nclosed_lookup'.
   Qed.

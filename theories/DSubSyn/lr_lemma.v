@@ -18,7 +18,7 @@ Section Sec.
   Proof.
     iIntros "/= He" (Hcle) "Himpl". iApply (wp_wand_wf _ _ e Φ (flip nclosed 0) Hcle with "He [Himpl]").
     intros. by eapply nclosed_prim_step.
-    iIntros (v Hclv) "/= H". iApply ("Himpl" with "H [%]"). exact: fv_tv_inv.
+    iIntros (v Hclv) "/= H". iApply ("Himpl" with "H [%]"). exact: fv_of_val_inv.
   Qed.
 
   Context {Γ}.

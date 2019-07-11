@@ -49,7 +49,7 @@ Section Sec.
     Γ ⊨ tv v : T -∗
     Γ ⊨p pv v : T, 0.
   Proof.
-    iIntros "/= #[% #Hp]". iSplit; eauto using fv_tv_inv, fv_pv.
+    iIntros "/= #[% #Hp]". iSplit; eauto using fv_of_val_inv, fv_pv.
     iIntros "!>" (ρ) "#Hg".
     iSpecialize ("Hp" with "Hg"); rewrite wp_value_inv'. by [].
   Qed.

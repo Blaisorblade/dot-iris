@@ -28,7 +28,7 @@ Qed.
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
-  Local Hint Resolve fv_dms_cons fv_tv fv_vobj fv_dvl dms_lookup_head dms_lookup_mono.
+  Local Hint Resolve fv_dms_cons fv_of_val fv_vobj fv_dvl dms_lookup_head dms_lookup_mono.
 
   Lemma lift_dinterp_dms_vl_commute T ds ρ l:
     nclosed_vl (vobj ds) 0 →
@@ -93,7 +93,7 @@ Section Sec.
     V :: Γ ⊨ tv v : T -∗
     Γ |L V ⊨d{ l := dvl v } : TVMem l T.
   Proof.
-    iIntros "/= #[% #Hv]". move: H => /fv_tv_inv Hclv.
+    iIntros "/= #[% #Hv]". move: H => /fv_of_val_inv Hclv.
     iSplit. by auto.
     iIntros "!>" ([|w vs]); first by iIntros.
     iIntros "[#Hg [_ #Hw]]".
