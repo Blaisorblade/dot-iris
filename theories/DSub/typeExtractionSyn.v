@@ -6,12 +6,11 @@ From D.DSub Require Import syn synLemmas.
 
 Set Implicit Arguments.
 
-Definition stys := gmap stamp ty.
+Notation stys := (gmap stamp ty).
 
 Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx) (g: stys) (n: nat) (s: stamp).
 
-Definition gdom {X} (g: gmap stamp X) := dom (gset stamp) g.
-Arguments gdom /.
+Notation gdom g := (dom (gset stamp) g).
 
 Definition fresh_stamp {X} (g: gmap stamp X): stamp := fresh (dom (gset stamp) g).
 
