@@ -228,10 +228,7 @@ Proof.
   - constructor. by apply (Hcl 0); lia.
     eapply IHρ, nclosed_sub_stail, Hcl.
 Qed.
-
-Lemma nclosed_sub_to_subst j σ: nclosed_σ σ j →
-  nclosed_sub (length σ) j (to_subst σ).
-Proof. apply nclosed_σ_sub_equiv. Qed.
+Hint Resolve -> nclosed_σ_sub_equiv.
 
 Lemma eq_n_s_total σ1 σ2: eq_n_s σ1 σ2 0.
 Proof. move => ? /Nat.nlt_0_r []. Qed.
@@ -272,7 +269,7 @@ Proof. induction ρ1; asimpl; rewrite ?undo_to_subst ?subst_id ?IHρ1 //. Qed.
 Lemma fv_to_subst_vl v σ n:
   nclosed_vl v (length σ) → nclosed_σ σ n →
   nclosed_vl (v.[to_subst σ]) n.
-Proof. eauto using nclosed_sub_app_vl, nclosed_sub_to_subst. Qed.
+Proof. eauto using nclosed_sub_app_vl. Qed.
 
 (** Let's prove that [nclosed x n → x.|[to_subst (idsσ n)] = x], and ditto for values. *)
 Section to_subst_idsσ_is_id.
@@ -372,7 +369,7 @@ Proof. intro Hcl. rewrite (Hcl σ ids) // hsubst_id //. Qed.
 Lemma fv_to_subst x σ n:
   nclosed x (length σ) → nclosed_σ σ n →
   nclosed (x.|[to_subst σ]) n.
-Proof. eauto using nclosed_sub_app, nclosed_sub_to_subst. Qed.
+Proof. eauto using nclosed_sub_app. Qed.
 
 Lemma fv_cons_inv_head_v v vs n : nclosed (v :: vs) n → nclosed_vl v n.
 Proof. solve_inv_fv_congruence. Qed.
