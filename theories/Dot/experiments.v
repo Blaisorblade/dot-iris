@@ -2,7 +2,7 @@ From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language ectx_language ectxi_language.
 From iris.proofmode Require Import tactics.
 From D Require Import swap_later_impl.
-From D.Dot Require Import unary_lr_binding synLemmas rules
+From D.Dot Require Import unary_lr synLemmas rules
   lr_lemma lr_lemma_nobinding.
 
 Implicit Types

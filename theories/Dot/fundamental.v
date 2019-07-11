@@ -1,6 +1,6 @@
 From iris.proofmode Require Import tactics.
 From D Require Import swap_later_impl.
-From D.Dot Require Import unary_lr_binding typing typeExtractionSem synLemmas.
+From D.Dot Require Import unary_lr typing typeExtractionSem synLemmas.
 From D.Dot Require Import lr_lemma lr_lemmasDefs lr_lemma_nobinding lr_lemmasTSel.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).

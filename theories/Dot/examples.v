@@ -1,5 +1,5 @@
 From iris.proofmode Require Import tactics.
-From D.Dot Require Import unary_lr_binding
+From D.Dot Require Import unary_lr
   lr_lemma lr_lemma_nobinding lr_lemmasDefs typeExtractionSem.
 
 (** XXX Not currently using olty. *)

@@ -30,11 +30,9 @@ theories/DSub/synLemmas.v
 theories/DSub/operational.v
 theories/DSub/step_fv.v
 theories/DSub/unary_lr.v
-theories/DSub/unary_lr_binding.v
 theories/DSub/closed_subst.v
 theories/DSubSyn/lr_lemma.v
 theories/DSubSyn/unary_lr.v
-theories/DSubSyn/unary_lr_binding.v
 theories/DSubSyn/typing.v
 theories/DSubSyn/fundamental.v
 theories/Dot/syn.v
@@ -57,7 +55,6 @@ theories/Dot/lr_lemma_nobinding.v
 theories/Dot/lr_lemma.v
 theories/Dot/lr_lemmasTSel.v
 theories/Dot/lr_lemmasDefs.v
-theories/Dot/unary_lr_binding.v
 theories/Dot/typingExamples.v
 theories/Dot/experiments.v
 theories/Dot/noRussell.v

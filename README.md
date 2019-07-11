@@ -20,11 +20,10 @@ In each folder:
 
 * Unary logical relation:
   - `unary_lr.v`: definition of logical relation
-  - `unary_lr_binding.v`: binding-related lemmas on the logical relation
 * (Sub)typing lemmas about unary logical relation:
   - lr_lemmasDefs.v: lemmas about DEFinition typing
   - lr_lemmasTSel.v: lemmas about TSel (type selection)
-  - lr_lemma_nobinding.v: various typing lemmas, not requiring `unary_lr_binding.v`.
+  - lr_lemma_nobinding.v: various typing lemmas, not requiring `synLemmas.v`.
   - lr_lemma.v: other misc typing lemmas
   - fundamental.v: prove fundamental theorem
   - adequacy.v: relating semantic typing and runtime safety, using Iris WP

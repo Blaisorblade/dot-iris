@@ -296,6 +296,18 @@ Section logrel_lemmas.
     by iPureIntro.
   Qed.
 
+  Lemma interp_env_lookup Γ vs T x:
+    Γ !! x = Some T →
+    ⟦ Γ ⟧* vs -∗ ⟦ T.|[ren (+x)] ⟧ (to_subst vs) (to_subst vs x).
+  Proof.
+    elim: Γ vs x => [//|τ' Γ' IHΓ] [|v vs] x Hx /=. by iIntros "[]".
+    iDestruct 1 as "[Hg Hv]". move: x Hx => [ [->] | x Hx] /=.
+    - rewrite hsubst_id. by [].
+    - rewrite hrenS.
+      iApply (interp_weaken_one v (T.|[ren (+x)]) vs).
+      iApply (IHΓ vs x Hx with "Hg").
+  Qed.
+
   Context {Γ}.
   Lemma Sub_Refl T i : Γ ⊨ [T, i] <: [T, i].
   Proof. by iIntros "/= !> **". Qed.

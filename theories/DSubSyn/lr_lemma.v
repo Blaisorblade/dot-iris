@@ -6,7 +6,7 @@
 From iris.proofmode Require Import tactics.
 From D.pure_program_logic Require Import lifting.
 From D.DSub Require Import rules synLemmas step_fv.
-From D.DSubSyn Require Import unary_lr_binding.
+From D.DSubSyn Require Import unary_lr.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (Γ : ctx).
 

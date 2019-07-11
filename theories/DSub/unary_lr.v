@@ -221,4 +221,29 @@ Section logrel_lemmas.
     by iPureIntro.
   Qed.
 
+  Lemma interp_env_ρ_fv Γ vs: ⟦ Γ ⟧* vs -∗ ⌜ nclosed vs 0 ⌝.
+  Proof.
+    rewrite interp_env_ρ_closed. iIntros "!%". exact: cl_ρ_fv.
+  Qed.
+
+  Lemma interp_env_to_subst_closed Γ vs x: x < length vs → ⟦ Γ ⟧* vs -∗ ⌜ nclosed_vl (to_subst vs x) 0 ⌝%I.
+  Proof.
+    rewrite interp_env_ρ_closed. iIntros "!%" (??). exact: closed_to_subst.
+  Qed.
+
+  Lemma interp_env_lookup Γ vs T x:
+    Γ !! x = Some T →
+    ⟦ Γ ⟧* vs -∗ ⟦ T.|[ren (+x)] ⟧ (to_subst vs) (to_subst vs x).
+  Proof.
+    elim: Γ vs x => [//|τ' Γ' IHΓ] [|v vs] x Hx /=. by iIntros "[]".
+    iDestruct 1 as "[Hg Hv]". move: x Hx => [ [->] | x Hx] /=.
+    - rewrite hsubst_id. by [].
+    - rewrite hrenS.
+      iApply (interp_weaken_one v (T.|[ren (+x)]) vs).
+      iApply (IHΓ vs x Hx with "Hg").
+  Qed.
+
+  Lemma ietp_closed_vl Γ T v: Γ ⊨ tv v : T -∗ ⌜ nclosed_vl v (length Γ) ⌝.
+  Proof. rewrite ietp_closed; iIntros "!%"; exact: fv_of_val_inv. Qed.
+
 End logrel_lemmas.
