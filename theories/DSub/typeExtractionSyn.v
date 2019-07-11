@@ -76,17 +76,23 @@ Proof.
 Qed.
 Hint Resolve -> extract_spec.
 
-Lemma extraction_subst g n T s σ m σ':
+Lemma extraction_inf_subst g n T s σ m σ':
   T ~[ n ] (g, (s, σ)) →
-  length σ' = n →
-  nclosed_σ σ' m →
-  T.|[to_subst σ'] ~[ m ] (g, (s, σ.|[to_subst σ'])).
+  nclosed_sub n m σ' →
+  T.|[σ'] ~[ m ] (g, (s, σ.|[σ'])).
 Proof.
-  intros (T' & Hlook & <- & Hclσ & HclT') <- => /=. rewrite map_length.
+  intros (T' & Hlook & <- & Hclσ & HclT') Hclσ' => /=. rewrite map_length.
   exists T'; repeat split => //.
   - asimpl. apply HclT', to_subst_compose.
-  - by apply nclosed_σ_to_subst.
+  - exact: nclosed_σ_compose.
 Qed.
+Hint Resolve extraction_inf_subst.
+
+Lemma extraction_subst g n T s σ m σ':
+  T ~[ n ] (g, (s, σ)) →
+  length σ' = n → nclosed_σ σ' m →
+  T.|[to_subst σ'] ~[ m ] (g, (s, σ.|[to_subst σ'])).
+Proof. intros; subst; eauto. Qed.
 Hint Resolve extraction_subst.
 
 Lemma extract_subst_spec g g' n T s σ m σ':

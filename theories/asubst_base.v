@@ -419,13 +419,18 @@ Proof. intros; eauto using subst_compose. Qed.
 End sort_lemmas.
 Hint Resolve @subst_compose @subst_compose_idsσ.
 
+Lemma nclosed_σ_compose ξ σ m n:
+  nclosed_σ ξ m → nclosed_sub m n σ →
+  nclosed_σ (ξ.|[σ]) n.
+Proof.
+  move => Hclξ Hclσ. apply closed_vls_to_Forall, (nclosed_sub_app Hclσ).
+  exact: Forall_to_closed_vls.
+Qed.
+
 Lemma nclosed_σ_to_subst ξ σ n:
   nclosed_σ ξ (length σ) → nclosed_σ σ n →
   nclosed_σ (ξ.|[to_subst σ]) n.
-Proof.
-  intros.
-  apply closed_vls_to_Forall, fv_to_subst => //. exact: Forall_to_closed_vls.
-Qed.
+Proof. intros. eapply nclosed_σ_compose; eauto. Qed.
 Hint Resolve nclosed_σ_to_subst.
 
 Section sort_lemmas_2.
