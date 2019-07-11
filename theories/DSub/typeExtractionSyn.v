@@ -58,7 +58,7 @@ Definition extract g n T: stys * extractedTy :=
   let s := fresh_stamp g
   in (<[s := T]> g, (s, idsσ n)).
 
-Definition extraction n T: (stys * extractedTy → Prop) :=
+Definition extraction n T : (stys * extractedTy) → Prop :=
   λ '(g, (s, σ)),
   ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T ∧ nclosed_σ σ n ∧ nclosed T' (length σ).
 Notation "T ~[ n  ] gsσ" := (extraction n T gsσ) (at level 70).
@@ -94,16 +94,23 @@ Lemma extraction_subst g n T s σ m σ':
 Proof. intros; subst; eauto. Qed.
 Hint Resolve extraction_subst.
 
+Lemma extract_inf_subst_spec g g' n T s σ m σ':
+  nclosed T n →
+  nclosed_sub n m σ' →
+  (g', (s, σ)) = extract g n T →
+  T.|[σ'] ~[ m ] (g', (s, σ.|[σ'])).
+Proof.
+  intros * HclT Hclσ Heq.
+  eapply extraction_inf_subst => //. rewrite Heq. auto.
+Qed.
+Hint Resolve extract_inf_subst_spec.
+
 Lemma extract_subst_spec g g' n T s σ m σ':
   nclosed T n →
-  length σ' = n →
-  nclosed_σ σ' m →
+  length σ' = n → nclosed_σ σ' m →
   (g', (s, σ)) = extract g n T →
   T.|[to_subst σ'] ~[ m ] (g', (s, σ.|[to_subst σ'])).
-Proof.
-  intros * HclT Hlen Hclσ Heq.
-  eapply extraction_subst => //. rewrite Heq. by eapply extract_spec.
-Qed.
+Proof. intros; subst; eauto. Qed.
 Hint Resolve extract_subst_spec.
 
 Lemma extraction_mono T g g' s σ n:
@@ -118,19 +125,13 @@ Hint Extern 5 (_ ~[ _ ] (_, _)) => try_once extraction_mono.
 
 Lemma extract_spec_growg g n T g' sσ:
   (g', sσ) = extract g n T → g ⊆ g'.
-Proof.
-  move => [-> _]. apply insert_grow, fresh_stamp_spec.
-Qed.
+Proof. move => [-> _]. apply insert_grow, fresh_stamp_spec. Qed.
 Hint Resolve extract_spec_growg.
 
 Lemma lookup_mono g g' s T:
-  g !! s = Some T →
-  g ⊆ g' →
+  g !! s = Some T → g ⊆ g' →
   g' !! s = Some T.
-Proof.
-  intros Hlook Hless. move: (Hless s) => H.
-  rewrite Hlook /= in H; by (case_match; subst).
-Qed.
+Proof. move => Hlook /(_ s). rewrite Hlook /= => H. by case_match; subst. Qed.
 Hint Extern 5 (_ !! _ = Some _) => try_once lookup_mono.
 
 Lemma extract_lookup g g' s σ n T:
@@ -142,14 +143,21 @@ Lemma extraction_lookup g s σ n T:
   T ~[ n ] (g, (s, σ)) → ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T.
 Proof. naive_solver. Qed.
 
-Lemma subst_compose_extract g g' T n m ξ σ s:
+Lemma extract_inf_subst_commute g g' g'' T ξ n m s1 σ1 s2 σ2:
   nclosed T n →
-  nclosed_σ ξ m →
-  length ξ = n →
-  (g', (s, σ)) = extract g n T →
-  T.|[to_subst σ.|[to_subst ξ]] = T.|[to_subst σ].|[to_subst ξ].
+  nclosed_sub n m ξ →
+  (g', (s1, σ1)) = extract g n T →
+  (g'', (s2, σ2)) = extract g' m (T.|[ξ]) →
+  T.|[ξ] ~[ m ] (g'', (s1, σ1.|[ξ])) ∧
+  ∃ T1 T2,
+    g'' !! s1 = Some T1 ∧
+    g'' !! s2 = Some T2 ∧
+    T1.|[to_subst σ1.|[ξ]] = T2.|[to_subst σ2].
 Proof.
-  move => HclT Hclξ Hlen [_ _ ->]. by eapply subst_compose_idsσ.
+  rewrite /extract => HclT Hclξ Hext1 Hext2. split; first eauto.
+  exists T, T.|[ξ]; split_and!; eauto.
+  simplify_eq; erewrite (inf_subst_compose HclT); eauto.
+  rewrite !closed_subst_idsρ //. exact: nclosed_sub_app.
 Qed.
 
 Lemma extract_subst_commute g g' g'' T ξ n m s1 σ1 s2 σ2:
@@ -162,13 +170,5 @@ Lemma extract_subst_commute g g' g'' T ξ n m s1 σ1 s2 σ2:
   ∃ T1 T2,
     g'' !! s1 = Some T1 ∧
     g'' !! s2 = Some T2 ∧
-    (* T1.|[to_subst σ1].|[to_subst ξ] = T2.|[to_subst σ2]. *)
     T1.|[to_subst σ1.|[to_subst ξ]] = T2.|[to_subst σ2].
-Proof.
-  rewrite /extract => HclT Hclξ Hlen Hext1 Hext2. split; first eauto.
-  exists T, T.|[to_subst ξ]; split_and!; eauto.
-  - erewrite subst_compose_extract => //.
-    simplify_eq.
-    rewrite !closed_subst_idsρ //.
-    exact: fv_to_subst. (* eauto with typeclass_instances. *)
-Qed.
+Proof. intros; subst; eapply extract_inf_subst_commute; eauto. Qed.
