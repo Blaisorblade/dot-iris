@@ -120,42 +120,76 @@ Definition idtp `{dlangG Σ} Γ l (φ : dlty Σ) d : iProp Σ :=
 Global Arguments idtp /.
 Notation "Γ ⊨d{ l := d  } : T" := (idtp Γ l T d) (at level 64, d, l, T at next level).
 
-Section SemTypes.
-  Context `{HdotG: dlangG Σ}.
+Definition hoEnvD_to_olty {Σ n} φ : olty Σ n := ho_closed_olty (λ args ρ v, □ φ args ρ v)%I.
 
-  Implicit Types (τ : olty Σ 0).
-   (* (ψ : vl -d> iProp Σ) (φ : envD Σ)  *)
+Definition stamp_σ_to_type_n' `{!dlangG Σ} s σ n (τ : olty Σ n) : iProp Σ :=
+  (∃ φ, ⌜ τ = hoEnvD_to_olty φ.|[to_subst σ] ⌝ ∗ s ↝n[ n ] φ)%I.
+Notation "s ↗n[ σ , n  ] φ" := (stamp_σ_to_type_n' s σ n φ) (at level 20): bi_scope.
+
+Definition dm_to_type `{!dlangG Σ} (d : dm) n (τ : olty Σ n) : iProp Σ :=
+  (∃ s σ, ⌜ d = dtysem σ s ⌝ ∗ s ↗n[ σ, n ] τ)%I.
+Notation "d ↗n[ n  ] φ" := (dm_to_type d n φ) (at level 20).
+
+Section SemTypes.
+  Context `{!dlangG Σ}.
+
+  Global Instance stamp_σ_to_type_persistent σ s n ψ : Persistent (s ↗n[ σ , n ] ψ) := _.
+
+  Import EqNotations.
+  Lemma stamp_σ_to_type_agree_dep {σ s n1 n2 φ1 φ2} args ρ v :
+    s ↗n[ σ , n1 ] φ1 -∗ s ↗n[ σ , n2 ] φ2 -∗ ∃ eq : n1 = n2,
+      ▷ ((rew [hoEnvD Σ] eq in φ1) args ρ v ≡ φ2 args ρ v).
+  Proof.
+    iDestruct 1 as (φ1' ->) "Hsg1"; iDestruct 1 as (φ2' ->) "Hsg2".
+    iDestruct (stamp_to_type_agree_dep args (to_subst σ >> ρ) v with "Hsg1 Hsg2") as (Heq) "Hgoal".
+    iExists Heq; destruct Heq; rewrite /olty_car /hsubst /hsubst_hoEnvD /=. iNext. by iRewrite "Hgoal".
+  Qed.
+
+  Context {n : nat}.
+  Implicit Types (φ : hoEnvD Σ n) (τ : olty Σ n).
+   (* (ψ : vl -d> iProp Σ)  *)
 
   Program Definition lift_dinterp_vl (T : dlty Σ): olty Σ 0 :=
     closed_olty (λ ρ v, (∃ d, ⌜v @ dlty_label T ↘ d⌝ ∧ dlty_car T ρ d)%I).
 
-  Definition dm_to_type d i (ψ : hoD Σ i) : iProp Σ :=
-    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∗ s ↗n[ σ , i ] ψ)%I.
-  Notation "d ↗n[ i  ] ψ" := (dm_to_type d i ψ) (at level 20).
-  Global Instance dm_to_type_persistent d i ψ: Persistent (d ↗n[ i ] ψ) := _.
+  Lemma stamp_σ_to_type_intro s σ φ :
+    s ↝n[ n ] φ -∗ s ↗n[ σ , n ] hoEnvD_to_olty φ.|[to_subst σ].
+  Proof. rewrite /stamp_σ_to_type_n'. iIntros; iExists φ. eauto. Qed.
 
-  Lemma dm_to_type_agree d i ψ1 ψ2 args v : d ↗n[ i ] ψ1 -∗ d ↗n[ i ] ψ2 -∗ ▷ (ψ1 args v ≡ ψ2 args v).
+  Lemma stamp_σ_to_type_agree {σ s τ1 τ2} args ρ v :
+    s ↗n[ σ , n ] τ1 -∗ s ↗n[ σ , n ] τ2 -∗ ▷ (τ1 args ρ v ≡ τ2 args ρ v).
   Proof.
-    iDestruct 1 as (s σ ?) "#Hs1".
-    iDestruct 1 as (s' σ' ?) "#Hs2".
+    iIntros "Hs1 Hs2".
+    iDestruct (stamp_σ_to_type_agree_dep args ρ v with "Hs1 Hs2") as (eq) "H".
+    rewrite (proof_irrel eq eq_refl) /=. by [].
+  Qed.
+
+  (* Global Opaque stamp_σ_to_type_n'. *)
+
+  Global Instance dm_to_type_persistent d τ: Persistent (d ↗n[ n ] τ) := _.
+
+  Lemma dm_to_type_agree d τ1 τ2 args ρ v : d ↗n[ n ] τ1 -∗ d ↗n[ n ] τ2 -∗ ▷ (τ1 args ρ v ≡ τ2 args ρ v).
+  Proof.
+    iDestruct 1 as (s σ ?) "#Hs1"; iDestruct 1 as (s' σ' ?) "#Hs2".
     simplify_eq. by iApply (stamp_σ_to_type_agree args with "Hs1 Hs2").
   Qed.
 
-  Lemma dm_to_type_intro d i s σ φ :
-    d = dtysem σ s → s ↝n[ i ] φ -∗ d ↗n[ i ] hoEnvD_inst σ φ.
-  Proof.
-    iIntros. iExists s, σ. iFrame "%".
-    by iApply stamp_σ_to_type_intro.
-  Qed.
+  Lemma dm_to_type_intro d s σ (φ : hoEnvD Σ n) :
+    d = dtysem σ s → s ↝n[ n ] φ -∗ d ↗n[ n ] hoEnvD_to_olty φ.|[to_subst σ].
+  Proof. iIntros. iExists s, σ. iFrame "%". by iApply stamp_σ_to_type_intro. Qed.
 
   Global Opaque dm_to_type.
+End SemTypes.
 
+Section SemTypes2.
+  Context `{HdotG: dlangG Σ}.
+  Implicit Types (τ : olty Σ 0).
   (* Rewrite using (higher) semantic kinds! *)
   Definition oDTMem l τ1 τ2 : dlty Σ := Dlty l
     (λ ρ d,
-    ∃ ψ, (d ↗n[ 0 ] ψ) ∗
-       □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ τ1 vnil ρ v → ▷ □ ψ vnil v) ∗
-          (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ ψ vnil v → ▷ τ2 vnil ρ v)))%I.
+    ∃ τ, (d ↗n[ 0 ] τ) ∗
+       □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ τ1 vnil ρ v → ▷ τ vnil ids v) ∗
+          (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ τ vnil ids v → ▷ τ2 vnil ρ v)))%I.
 
   Definition oTTMem l τ1 τ2 :=
     lift_dinterp_vl (oDTMem l τ1 τ2).
@@ -171,7 +205,7 @@ Section SemTypes.
 
   Definition oTSel p (l : label) :=
     closed_olty (λ ρ v, path_wp p.|[ρ]
-      (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗n[ 0 ] ψ ∧ ▷ □ ψ vnil v))%I.
+      (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗n[ 0 ] ψ ∧ ▷ ψ vnil (* ρ *) ids v))%I.
 
   Lemma Sub_Sel Γ L U va l i:
     Γ ⊨ tv va : oTTMem l L U, i -∗
@@ -193,7 +227,7 @@ Section SemTypes.
     iNext.
     iDestruct "Hva" as (Hclvas d Hl ψ) "#[Hlψ [#HLψ #HψU]]".
     iDestruct "Hψ" as (ψ1 d1 Hva) "[Hγ #Hψ1v]".
-    objLookupDet; subst. iDestruct (dm_to_type_agree d _ _ _ vnil v with "Hlψ Hγ") as "#Hag".
+    objLookupDet; subst. iDestruct (dm_to_type_agree d _ _ vnil ids v with "Hlψ Hγ") as "#Hag".
     iApply "HψU" => //. iNext. by iRewrite "Hag".
   Qed.
 
@@ -233,7 +267,7 @@ Section SemTypes.
     objLookupDet; subst. iNext. iDestruct (dm_to_type_agree d _ _ v with "Hlψ Hγ") as "#Hag".
     repeat iModIntro. Fail by iRewrite "Hag".
   Abort. *)
-End SemTypes.
+End SemTypes2.
 
 Module Import LogRelAdapt.
 Import unary_lr.
@@ -265,20 +299,14 @@ End LogRelAdapt.
   current stamping theory, based on finite substitutions.
 *)
 Section Sec.
-  Context `{!dlangG Σ} {i : nat}.
-  Implicit Types (φ : hoEnvD Σ i) (τ : olty Σ i).
+  Context `{!dlangG Σ} .
 
-  Definition envD_equiv (n : nat) φ1 φ2 : iProp Σ :=
-    (∀ args ρ v, φ1 args ρ v ≡ φ2 args ρ v)%I.
-
-  Definition leadsto_envD_equiv (sσ : extractedTy) n φ : iProp Σ :=
+  Definition leadsto_envD_equiv (sσ : extractedTy) n {i : nat} (τ : olty Σ i) : iProp Σ :=
     let '(s, σ) := sσ in
-    (⌜nclosed_σ σ n⌝ ∧ ∃ (φ' : hoEnvD Σ i), s ↝n[ i ] φ' ∗
-      envD_equiv n φ (λ args ρ, φ' args (to_subst σ.|[ρ])))%I.
+    (⌜nclosed_σ σ n⌝ ∧ s ↗n[ σ , i ] τ)%I.
   Arguments leadsto_envD_equiv /.
 End Sec.
 
-Notation "φ1 ≈[  n  ] φ2" := (envD_equiv n φ1 φ2) (at level 70).
 Notation "sσ ↝[  n  ] φ" := (leadsto_envD_equiv sσ n φ) (at level 20).
 
 Section Sec2.
@@ -291,19 +319,21 @@ Section Sec2.
     Γ ⊨d{ l := dtysem σ s } : oDTMem l L U.
   Proof.
     iIntros "#HTU #HLT #[% Hs] /="; repeat iSplit; [auto using fv_dtysem..|].
-    iIntros "!>" (ρ) "#Hg /=".
-    (* iDestruct (env_oltyped_fin_cl_ρ with "Hg") as %Hclp. *)
-    iDestruct "Hs" as (φ) "[Hγ Hγφ]".
+    iIntros "!>" (ρ) "#Hg"; iDestruct "Hs" as (φ ->) "Hγ".
     rewrite /dlty_car /=.
-    iExists (hoEnvD_inst (σ.|[to_subst ρ]) φ); iSplit.
-    by iApply dm_to_type_intro.
-    rewrite /envD_equiv.
-    iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL"; rewrite later_intuitionistically.
-    - iIntros "!>". iApply (internal_eq_iff with "Hγφ").
-      by iApply "HLT".
-    - iApply "HTU" => //.
-      by iApply (internal_eq_iff with "Hγφ").
-  Qed.
+    iExists _; iSplit. by iApply dm_to_type_intro.
+    (* rewrite [olty_car (_ _)]/olty_car /=. *)
+    (* rewrite [(_ _) _]/olty_car /=. *)
+    iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL".
+    - iDestruct ("HLT" $! ρ v Hclv with "Hg HL") as "{HLT HTU HL} [$ HLT]".
+      rewrite /hsubst /hsubst_hoEnvD/=. asimpl.
+
+      Fail iApply "HLT".
+      admit.
+    - iApply "HTU" => //. iClear "HLT HTU Hg Hγ".
+      rewrite /hsubst /hsubst_hoEnvD/olty_car/=. asimpl.
+      Fail iApply "HL".
+    Abort.
 
   Lemma D_Typ_Concr Γ (τ : olty Σ 0) s σ l:
     (s, σ) ↝[ length Γ ] τ -∗
