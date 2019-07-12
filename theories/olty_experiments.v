@@ -120,10 +120,14 @@ Definition idtp `{dlangG Σ} Γ l (φ : dlty Σ) d : iProp Σ :=
 Global Arguments idtp /.
 Notation "Γ ⊨d{ l := d  } : T" := (idtp Γ l T d) (at level 64, d, l, T at next level).
 
-Definition hoEnvD_to_olty {Σ n} φ : olty Σ n := ho_closed_olty (λ args ρ v, □ φ args ρ v)%I.
+Definition hoEnvD_to_olty {Σ n} (φ : hoEnvD Σ n) : olty Σ n := ho_closed_olty (λ args ρ v, □ φ args ρ v)%I.
+(** Here, it is *crucial* that we use finite composition [to_subst σ.|[ρ]], not infinite composition [to_subst σ >> ρ].
+    That's because when proving D_Typ, we retrieve the type pointed by [s,
+    σ.|[ρ]], and there we must use finite composition. *)
+Definition hoEnvD_inst {n Σ} (φ : hoEnvD Σ n) σ : olty Σ n := hoEnvD_to_olty (λ args ρ, φ args (to_subst σ.|[ρ])).
 
 Definition stamp_σ_to_type_n' `{!dlangG Σ} s σ n (τ : olty Σ n) : iProp Σ :=
-  (∃ φ, ⌜ τ = hoEnvD_to_olty φ.|[to_subst σ] ⌝ ∗ s ↝n[ n ] φ)%I.
+  (∃ φ, ⌜ τ ≡ hoEnvD_inst φ σ ⌝ ∗ s ↝n[ n ] φ)%I.
 Notation "s ↗n[ σ , n  ] φ" := (stamp_σ_to_type_n' s σ n φ) (at level 20): bi_scope.
 
 Definition dm_to_type `{!dlangG Σ} (d : dm) n (τ : olty Σ n) : iProp Σ :=
@@ -140,9 +144,11 @@ Section SemTypes.
     s ↗n[ σ , n1 ] φ1 -∗ s ↗n[ σ , n2 ] φ2 -∗ ∃ eq : n1 = n2,
       ▷ ((rew [hoEnvD Σ] eq in φ1) args ρ v ≡ φ2 args ρ v).
   Proof.
-    iDestruct 1 as (φ1' ->) "Hsg1"; iDestruct 1 as (φ2' ->) "Hsg2".
-    iDestruct (stamp_to_type_agree_dep args (to_subst σ >> ρ) v with "Hsg1 Hsg2") as (Heq) "Hgoal".
-    iExists Heq; destruct Heq; rewrite /olty_car /hsubst /hsubst_hoEnvD /=. iNext. by iRewrite "Hgoal".
+    iDestruct 1 as (φ1' Heq1) "Hsg1"; iDestruct 1 as (φ2' Heq2) "Hsg2".
+    iDestruct (stamp_to_type_agree_dep args (to_subst σ.|[ρ]) v with "Hsg1 Hsg2") as (Heq) "Hgoal".
+    iExists Heq; destruct Heq; simpl.
+    rewrite (Heq1 _ _ _) (Heq2 _ _ _)/= /olty_car/=.
+    iNext. by iRewrite "Hgoal".
   Qed.
 
   Context {n : nat}.
@@ -153,7 +159,7 @@ Section SemTypes.
     closed_olty (λ ρ v, (∃ d, ⌜v @ dlty_label T ↘ d⌝ ∧ dlty_car T ρ d)%I).
 
   Lemma stamp_σ_to_type_intro s σ φ :
-    s ↝n[ n ] φ -∗ s ↗n[ σ , n ] hoEnvD_to_olty φ.|[to_subst σ].
+    s ↝n[ n ] φ -∗ s ↗n[ σ , n ] hoEnvD_inst φ σ.
   Proof. rewrite /stamp_σ_to_type_n'. iIntros; iExists φ. eauto. Qed.
 
   Lemma stamp_σ_to_type_agree {σ s τ1 τ2} args ρ v :
@@ -175,7 +181,7 @@ Section SemTypes.
   Qed.
 
   Lemma dm_to_type_intro d s σ (φ : hoEnvD Σ n) :
-    d = dtysem σ s → s ↝n[ n ] φ -∗ d ↗n[ n ] hoEnvD_to_olty φ.|[to_subst σ].
+    d = dtysem σ s → s ↝n[ n ] φ -∗ d ↗n[ n ] hoEnvD_inst φ σ.
   Proof. iIntros. iExists s, σ. iFrame "%". by iApply stamp_σ_to_type_intro. Qed.
 
   Global Opaque dm_to_type.
@@ -319,21 +325,18 @@ Section Sec2.
     Γ ⊨d{ l := dtysem σ s } : oDTMem l L U.
   Proof.
     iIntros "#HTU #HLT #[% Hs] /="; repeat iSplit; [auto using fv_dtysem..|].
-    iIntros "!>" (ρ) "#Hg"; iDestruct "Hs" as (φ ->) "Hγ".
+    iIntros "!>" (ρ) "#Hg". iDestruct "Hs" as (φ Heq) "Hγ".
     rewrite /dlty_car /=.
     iExists _; iSplit. by iApply dm_to_type_intro.
     (* rewrite [olty_car (_ _)]/olty_car /=. *)
     (* rewrite [(_ _) _]/olty_car /=. *)
-    iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL".
-    - iDestruct ("HLT" $! ρ v Hclv with "Hg HL") as "{HLT HTU HL} [$ HLT]".
-      rewrite /hsubst /hsubst_hoEnvD/=. asimpl.
-
-      Fail iApply "HLT".
-      admit.
-    - iApply "HTU" => //. iClear "HLT HTU Hg Hγ".
-      rewrite /hsubst /hsubst_hoEnvD/olty_car/=. asimpl.
-      Fail iApply "HL".
-    Abort.
+    iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL {Hγ}".
+    - iDestruct ("HLT" $! ρ v Hclv with "Hg HL") as "{HLT HTU HL} HLT".
+      rewrite (Heq _ _ _) /olty_car/=. asimpl.
+      iApply "HLT".
+    - iApply "HTU" => //. iClear "HLT HTU Hg".
+      rewrite (Heq _ _ _) /olty_car/=. by asimpl.
+  Qed.
 
   Lemma D_Typ_Concr Γ (τ : olty Σ 0) s σ l:
     (s, σ) ↝[ length Γ ] τ -∗
@@ -349,10 +352,12 @@ Section Sec2.
     wellMapped g -∗ sσ ↝[ n ] oty_interp (h T).
   Proof.
     move: sσ => [s σ] [T'] [Hl] [<-] [Hclσ HclT]. iIntros "Hm".
-    iSplit => //; iExists (oty_interp (h T')); iSplitL; [iApply "Hm" | ];
-    iIntros "!% //" (args ρ v).
-    apply (oty_interp_subst_commute' (h T')). solve_fv_congruence.
-    (* exact: oty_interp_subst_commute. *)
+    iSplit => //; iExists (oty_interp (h T')); iSplitR; [|iApply "Hm"];
+      iIntros "!% //=" (args ρ v).
+    rewrite (oty_interp_subst_commute' (h T')) //=; last solve_fv_congruence.
+    iSplit; last iIntros "[_ #$]".
+    iIntros "#$". by rewrite -olty_vclosed.
+    (* rewrite /oty_interp/hoEnvD_inst/olty_car/= /vopen/=. *)
   Qed.
 End Sec2.
 End SemTypes.
