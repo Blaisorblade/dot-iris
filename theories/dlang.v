@@ -66,7 +66,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
   Definition hoEnvD_inst {n Σ} (φ : hoEnvD Σ n) σ : hoD Σ n := λ args, φ args (to_subst σ).
 
   Definition stamp_σ_to_type_n `{!dlangG Σ} s σ n (ψ : hoD Σ n) : iProp Σ :=
-    (∃ φ : hoEnvD Σ n, ⌜ ψ = hoEnvD_inst φ σ ⌝ ∗ s ↝n[ n ] φ)%I.
+    (∃ φ : hoEnvD Σ n, s ↝n[ n ] φ ∗ ▷ (ψ ≡ hoEnvD_inst φ σ))%I.
   Notation "s ↗n[ σ , n  ] ψ" := (stamp_σ_to_type_n s σ n ψ) (at level 20): bi_scope.
 
   Notation "γ ⤇ φ" := (γ ⤇n[ 0 ] vopen φ) (at level 20).
@@ -76,31 +76,63 @@ Module Type LiftWp (Import VS : VlSortsSig).
   Section mapsto.
     Context `{!dlangG Σ}.
 
+    Global Instance: Contractive (stamp_to_type_n s n).
+    Proof. solve_contractive. Qed.
+
     Global Instance: Persistent (s ↝n[ n ] φ) := _.
 
-    Global Instance stamp_σ_to_type_persistent σ s n ψ : Persistent (s ↗n[ σ , n ] ψ) := _.
-
-    Lemma stamp_σ_to_type_agree_dep_arity {σ s n1 n2 ψ1 ψ2} :
-      s ↗n[ σ , n1 ] ψ1 -∗ s ↗n[ σ , n2 ] ψ2 -∗ ⌜ n1 = n2 ⌝.
-    Proof.
-      iDestruct 1 as (φ1 -> γ1) "[Hs1 Hg1]".
-      iDestruct 1 as (φ2 -> γ2) "[Hs2 Hg2]".
-      iDestruct (mapsto_agree with "Hs1 Hs2") as %->.
-      iDestruct (saved_ho_sem_type_agree_arity with "Hg1 Hg2") as %->.
-      by [].
-    Qed.
+    Global Instance: Contractive (stamp_σ_to_type_n s σ i).
+    Proof. rewrite /stamp_σ_to_type_n. solve_contractive_ho. Qed.
 
     Import EqNotations.
+    Lemma stamp_to_type_agree_dep_abs {s n1 n2 φ1 φ2} :
+      s ↝n[ n1 ] φ1 -∗ s ↝n[ n2 ] φ2 -∗ ∃ eq : n1 = n2,
+        ▷ ((rew [hoEnvD Σ] eq in φ1) ≡ φ2).
+    Proof.
+      iDestruct 1 as (γ1) "[Hs1 Hg1]"; iDestruct 1 as (γ2) "[Hs2 Hg2]".
+      iDestruct (mapsto_agree with "Hs1 Hs2") as %->.
+      iDestruct (saved_ho_sem_type_agree_dep_abs _ with "Hg1 Hg2") as (->) "Hgoal".
+      iExists eq_refl; simpl. by [].
+    Qed.
+
+    Lemma stamp_to_type_agree_dep {s n1 n2 φ1 φ2} args ρ v :
+      s ↝n[ n1 ] φ1 -∗ s ↝n[ n2 ] φ2 -∗ ∃ eq : n1 = n2,
+        ▷ ((rew [hoEnvD Σ] eq in φ1) args ρ v ≡ φ2 args ρ v).
+    Proof.
+      iIntros "Hsg1 Hsg2".
+      iDestruct (stamp_to_type_agree_dep_abs with "Hsg1 Hsg2") as (->) "H".
+      iExists eq_refl; cbn.
+      iNext. repeat setoid_rewrite bi.discrete_fun_equivI. iApply "H".
+    Qed.
+
+    Lemma stamp_to_type_agree {s n φ1 φ2} args ρ v :
+      s ↝n[ n ] φ1 -∗ s ↝n[ n ] φ2 -∗ ▷ (φ1 args ρ v ≡ φ2 args ρ v).
+    Proof.
+      iIntros "Hs1 Hs2".
+      iDestruct (stamp_to_type_agree_dep args ρ v with "Hs1 Hs2") as (eq) "Hgoal".
+      rewrite (proof_irrel eq eq_refl) /=. by [].
+    Qed.
+    (* Global Opaque stamp_to_type_n. *)
+
+    Lemma stamp_σ_to_type_agree_dep_abs {σ s n1 n2 ψ1 ψ2} :
+      s ↗n[ σ , n1 ] ψ1 -∗ s ↗n[ σ , n2 ] ψ2 -∗ ∃ eq : n1 = n2,
+        ▷ ((rew [hoD Σ] eq in ψ1) ≡ ψ2).
+    Proof.
+      iDestruct 1 as (φ1) "[Hsg1 Heq1]"; iDestruct 1 as (φ2) "[Hsg2 Heq2]".
+      iDestruct (stamp_to_type_agree_dep_abs with "Hsg1 Hsg2") as (->) "Hgoal".
+      iExists eq_refl. iNext. cbn. iRewrite "Heq1"; iRewrite "Heq2".
+      repeat setoid_rewrite discrete_fun_equivI.
+      iIntros (??). iApply "Hgoal".
+    Qed.
+
     Lemma stamp_σ_to_type_agree_dep {σ s n1 n2 ψ1 ψ2} args v :
       s ↗n[ σ , n1 ] ψ1 -∗ s ↗n[ σ , n2 ] ψ2 -∗ ∃ eq : n1 = n2,
         ▷ ((rew [hoD Σ] eq in ψ1) args v ≡ ψ2 args v).
     Proof.
-      iDestruct 1 as (φ1 -> γ1) "[Hs1 Hg1]".
-      iDestruct 1 as (φ2 -> γ2) "[Hs2 Hg2]".
-      iDestruct (mapsto_agree with "Hs1 Hs2") as %->.
-      iDestruct (saved_ho_sem_type_agree_arity with "Hg1 Hg2") as %->.
-      iExists eq_refl; cbn.
-      iApply (saved_ho_sem_type_agree with "Hg1 Hg2").
+      iIntros "H1 H2".
+      iDestruct (stamp_σ_to_type_agree_dep_abs with "H1 H2") as (->) "H".
+      iExists eq_refl; cbn. iNext.
+      repeat setoid_rewrite discrete_fun_equivI. iApply "H".
     Qed.
 
     Lemma stamp_σ_to_type_agree {σ s n ψ1 ψ2} args v :
@@ -114,6 +146,8 @@ Module Type LiftWp (Import VS : VlSortsSig).
     Lemma stamp_σ_to_type_intro s σ n (φ : hoEnvD Σ n) :
       s ↝n[ n ] φ -∗ s ↗n[ σ , n ] hoEnvD_inst φ σ.
     Proof. rewrite /stamp_σ_to_type_n. iIntros; iExists φ; auto. Qed.
+
+    Global Instance stamp_σ_to_type_persistent σ s n ψ : Persistent (s ↗n[ σ , n ] ψ) := _.
   End mapsto.
 
   Global Opaque stamp_σ_to_type_n.
