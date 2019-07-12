@@ -31,22 +31,21 @@ Section interp_equiv.
 
   (** However, a stamp semantics that carries over to saved predicates must use
       σ in ρ. And the result is only equivalent for closed ρ with the expected length. *)
-  Definition interp_extractedTy: (ty * vls) → envD Σ :=
-    λ '(T, σ) ρ v, (⟦ T ⟧ (to_subst σ >> ρ) v)%I.
+  Definition interp_extractedTy: (ty * env) → envD Σ :=
+    λ '(T, σ) ρ v, (⟦ T ⟧ (σ >> ρ) v)%I.
   Notation "⟦ T ⟧ [ σ ]" := (interp_extractedTy (T, σ)).
 
   Definition envD_equiv n φ1 φ2: iProp Σ :=
-    (∀ ρ v, φ1 (to_subst ρ) v ≡ φ2 (to_subst ρ) v)%I.
+    (∀ ρ v, φ1 ρ v ≡ φ2 ρ v)%I.
   Notation "φ1 ≈[  n  ] φ2" := (envD_equiv n φ1 φ2) (at level 70).
 
   Lemma extraction_envD_equiv g s σ T n:
     T ~[ n ] (g, (s, σ)) →
     (∃ T', ⌜ g !! s = Some T'⌝ ∧
-        ⟦ T ⟧ ≈[ n ] ⟦ T' ⟧ [ σ ])%I.
+        ⟦ T ⟧ ≈[ n ] ⟦ T' ⟧ [ to_subst σ ])%I.
   Proof.
     iIntros ((T' & -> & <- & _ & _)). iExists _; iSplit => //.
-    iIntros (ρ v) "!%".
-    rewrite /interp_extractedTy. exact: interp_subst_compose.
+    iIntros (ρ v) "!%". exact: interp_subst_compose.
   Qed.
 
   (** envD_equiv commutes with substitution. *)
@@ -134,10 +133,9 @@ Section typing_type_member_defs.
   Lemma extraction_to_leadsto_envD_equiv T g sσ n: T ~[ n ] (g, sσ) →
     wellMapped g -∗ sσ ↝[ n ] ty_interp T.
   Proof.
-    move: sσ => [s σ] [T'] [Hl] [<-] [Hclσ HclT] /=. iIntros "Hm".
-    iSplit => //; iExists (ty_interp T'); iSplitL; [iApply "Hm" | ];
-    iIntros "!% //" (ρ v).
-    exact: interp_subst_commute.
+    move: sσ => [s σ] [T'] [Hl] [<- [Hclσ HclT]] /=. iFrame (Hclσ).
+    iIntros "Hm". iExists (ty_interp T'). iSplitL; [by iApply "Hm" | ].
+    iIntros "!%" (ρ v). exact: interp_subst_commute.
   Qed.
 
   (** XXX In fact, this lemma should be provable for any φ,
