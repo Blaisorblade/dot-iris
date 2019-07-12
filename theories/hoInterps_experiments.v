@@ -288,20 +288,51 @@ Module dot_experiments.
 Import syn operational.
 Include HoSemTypes VlSorts operational.
 
+Module V1.
 Section sec.
-  Context `{!savedHoSemTypeG Σ} `{!dlangG Σ} `{TyInterp ty Σ}.
+  Context `{!dlangG Σ}.
   (* Implicit Types (interp : envD Σ) (φ : D). *)
 
-  Definition dm_to_type (d : dm) n (ψ : hoD Σ n) : iProp Σ :=
-    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∗ s ↗n[ σ, n ] ψ)%I.
+  (* XXX how to compose things probably infinite composition is better. *)
+    (* λ args ρ, φ args (to_subst σ.|[ρ]). *)
+  Definition stamp_σ_to_type_n' s σ n (φ : hoEnvD Σ n) : iProp Σ :=
+    (∃ φ' : hoEnvD Σ n, ⌜ φ = φ'.|[to_subst σ] ⌝ ∗ s ↝n[ n ] φ')%I.
+  Notation "s ↗n[ σ , n  ] φ" := (stamp_σ_to_type_n' s σ n φ) (at level 20): bi_scope.
+
+  Definition dm_to_type (d : dm) n (φ : hoEnvD Σ n) : iProp Σ :=
+    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∗ s ↗n[ σ, n ] φ)%I.
   Notation "d ↗n[ n ] φ" := (dm_to_type d n φ) (at level 20).
   Global Arguments dm_to_type: simpl never.
 
-  (* Definition def_interp_tmem {n} : skind Σ n → envPred dm Σ :=
-    λ K ρ d, (∃ φ, d.|[ρ] ↗n[ n ] φ ∗ K ρ (ho_closed_olty φ))%I.
-  Definition def_interp_tmem_spec (φ1 φ2 : hoD Σ 0) : envPred dm Σ :=
-    def_interp_tmem (sktmem φ1 φ2). *)
+  Definition def_interp_tmem {n} : skind Σ n → envPred dm Σ :=
+    λ K ρ d, (∃ φ, d.|[ρ] ↗n[ n ] φ ∗ K ρ (ho_closed_olty (λ args ρ v, □φ args ρ v)))%I.
+  Definition def_interp_tmem_spec (φ1 φ2 : olty Σ 0) : envPred dm Σ :=
+    def_interp_tmem (sktmem φ1 φ2).
 End sec.
 
 Notation "d ↗n[ n ] φ" := (dm_to_type d n φ) (at level 20).
+End V1.
+
+(* Let's fetch olty direclty. *)
+Module V2.
+Section sec.
+  Context `{!dlangG Σ}.
+
+  Definition hoEnvD_to_olty {n} (φ : hoEnvD Σ n) : olty Σ n := ho_closed_olty (λ args ρ v, □ φ args ρ v)%I.
+
+  Definition stamp_σ_to_type_n' `{!dlangG Σ} s σ n (φ : olty Σ n) : iProp Σ :=
+    (∃ φ' : hoEnvD Σ n, ⌜ φ = hoEnvD_to_olty φ'.|[to_subst σ] ⌝ ∗ s ↝n[ n ] φ')%I.
+  Notation "s ↗n[ σ , n  ] φ" := (stamp_σ_to_type_n' s σ n φ) (at level 20): bi_scope.
+
+  Definition dm_to_type (d : dm) n (φ : olty Σ n) : iProp Σ :=
+    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∗ s ↗n[ σ, n ] φ)%I.
+  Notation "d ↗n[ n ] φ" := (dm_to_type d n φ) (at level 20).
+  Global Arguments dm_to_type: simpl never.
+
+  Definition def_interp_tmem {n} : skind Σ n → envPred dm Σ :=
+    λ K ρ d, (∃ φ, d.|[ρ] ↗n[ n ] φ ∗ K ρ φ)%I.
+  Definition def_interp_tmem_spec (φ1 φ2 : olty Σ 0) : envPred dm Σ :=
+    def_interp_tmem (sktmem φ1 φ2).
+End sec.
+End V2.
 End dot_experiments.
