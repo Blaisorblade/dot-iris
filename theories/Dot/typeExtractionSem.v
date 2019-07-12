@@ -30,41 +30,62 @@ Section interp_equiv.
   Qed.
 
   (** However, a stamp semantics that carries over to saved predicates must use
-      σ in ρ. And the result is only equivalent for closed ρ with the expected length. *)
-  Definition interp_extractedTy: (ty * vls) → envD Σ :=
-    λ '(T, σ) ρ v, (⟦ T ⟧ (to_subst σ >> ρ) v)%I.
-  Notation "⟦ T ⟧ [ σ ]" := (interp_extractedTy (T, σ)).
-
-  Definition envD_equiv n φ1 φ2: iProp Σ :=
-    (∀ ρ v, φ1 (to_subst ρ) v ≡ φ2 (to_subst ρ) v)%I.
-  Notation "φ1 ≈[  n  ] φ2" := (envD_equiv n φ1 φ2) (at level 70).
+      σ in ρ. *)
+  Definition interp_extractedTy: ty → env → envD Σ :=
+    λ T σ ρ, ⟦ T ⟧ (σ >> ρ).
+  Notation "⟦ T ⟧ [ σ ]" := (interp_extractedTy T σ).
+  Global Arguments interp_extractedTy /.
 
   Lemma extraction_envD_equiv g s σ T n:
     T ~[ n ] (g, (s, σ)) →
-    (∃ T', ⌜ g !! s = Some T'⌝ ∧
-        ⟦ T ⟧ ≈[ n ] ⟦ T' ⟧ [ σ ])%I.
+    ∃ T', g !! s = Some T' ∧ ⟦ T ⟧ ≡ ⟦ T' ⟧ [ to_subst σ ].
   Proof.
-    iIntros ((T' & -> & <- & _ & _)). iExists _; iSplit => //.
-    iIntros (ρ v) "!%".
-    rewrite /interp_extractedTy. exact: interp_subst_compose.
+    intros (T' & -> & <- & _ & _). eexists _; split => //.
+    intros ρ v. exact: interp_subst_compose.
   Qed.
 
-  (** envD_equiv commutes with substitution. *)
+  (** [envD_equiv] commutes with infinite substitution. *)
+  Lemma envD_equiv_infsubst {g T m n ξ s1 σ1 s2 σ2}:
+    T ~[ m ] (g, (s1, σ1)) →
+    T.|[ξ] ~[ n ] (g, (s2, σ2)) →
+    ∃ T1 T2, g !! s1 = Some T1 ∧ g !! s2 = Some T2 ∧
+    ⟦ T1 ⟧ [ to_subst σ1 >> ξ ] ≡ ⟦ T2 ⟧ [ to_subst σ2 ].
+  Proof.
+    intros (T1 & -> & <- & _ & _) (T2 & -> & Heq2 & _ & _).
+    exists T1, T2; split_and! => // ρ v /=.
+    rewrite (interp_subst_ids T1 _ _) (interp_subst_ids T2 _ _). f_equiv.
+    move: Heq2 => /(f_equal (λ T, T.|[ρ])). by asimpl.
+  Qed.
+
+  (** [envD_equiv] commutes with finite substitution, but under extra
+      assumptions on the substitutions in questions (on free variables and
+      length). *)
   Lemma envD_equiv_subst g T m n ξ s1 σ1 s2 σ2:
     T ~[ m ] (g, (s1, σ1)) →
     T.|[to_subst ξ] ~[ n ] (g, (s2, σ2)) →
     length ξ = m →
     nclosed_σ ξ n →
-    (∃ T1 T2, ⌜ g !! s1 = Some T1⌝ ∧ ⌜ g !! s2 = Some T2 ⌝ ∧
-    ⟦ T1 ⟧ [ σ1.|[to_subst ξ] ] ≈[ n ] ⟦ T2 ⟧ [ σ2 ])%I.
+    ∃ T1 T2, g !! s1 = Some T1 ∧ g !! s2 = Some T2 ∧
+    ⟦ T1 ⟧ [ to_subst σ1.|[to_subst ξ] ] ≡ ⟦ T2 ⟧ [ to_subst σ2 ].
   Proof.
-    rewrite /interp_extractedTy; iIntros ((T1 & -> & Heq1 & Hclσ1 & HclT1) (T2 & -> & Heq2 & Hclσ2 & HclT2) Hlenξ Hclξ).
-    iExists _, _; repeat iSplit => //; iIntros (ρ v) "/= !%".
-    have Hrew: T2.|[to_subst σ2].|[to_subst ρ] =
-      T1.|[to_subst σ1.|[to_subst ξ]].|[ to_subst ρ].
-    by erewrite !subst_compose, Heq2, Heq1.
-    asimpl in Hrew.
-    rewrite (interp_subst_ids T1 _ _) (interp_subst_ids T2 _ _) Hrew //.
+    intros (T1 & -> & <- & Hclσ1 & HclT1) (T2 & -> & Heq2 & Hclσ2 & HclT2) Hlenξ Hclξ.
+    exists T1, T2; split_and! => // ρ v /=.
+    rewrite (interp_subst_ids T1 _ _) (interp_subst_ids T2 _ _). f_equiv.
+    have: T1.|[to_subst σ1.|[to_subst ξ]] = T2.|[to_subst σ2].
+    - by rewrite Heq2 (subst_compose HclT1 _ Hclσ1 _ Hclξ).
+    - move => /(f_equal (λ T, T.|[ρ])). by asimpl.
+    (* Reusing envD_equiv_infsubst takes more work than proving it from scratch! *)
+    (* Restart.
+    intros Hext1 Hext2 Hlen Hclξ.
+    destruct (envD_equiv_infsubst Hext1 Hext2) as (T1 & T2 & Hgs1 & Hgs2 & Heq).
+    destruct Hext1 as (T1' & Hgs1' & Heq1 & Hclσ1 & HclT1).
+    have ?: T1' = T1 by simplify_eq. subst. simplify_eq.
+    exists T1, T2; split_and! => // ρ v /=.
+    move: (Heq ρ v) => /= <- {Heq}.
+    have: T1.|[to_subst σ1.|[to_subst ξ]] = T1.|[to_subst σ1 >> to_subst ξ].
+    - rewrite (subst_compose HclT1 _ Hclσ1 _ Hclξ) //. by asimpl.
+    - move => /(f_equal (λ T, T.|[ρ])). asimpl.
+      rewrite !(interp_subst_ids T1 _ _). by move->. *)
   Qed.
 
   (* To give a definitive version of wellMapped, we need stampHeap to be stored in a resource. Here it is: *)
@@ -125,19 +146,24 @@ End interp_equiv.
 Section typing_type_member_defs.
   Context `{!dlangG Σ}.
 
+  (* Beware: here we must use [to_subst σ.|[ρ]], not [to_subst σ >> ρ],
+     since the former is what we need to prove [D_Typ] below.
+     Not sure that's still true if we change dm_to_type,
+    but quite possibly yes.. *)
+    (* use interp_extractedTy? *)
   Definition leadsto_envD_equiv (sσ: extractedTy) n (φ : envD Σ) : iProp Σ :=
     let '(s, σ) := sσ in
-    (⌜nclosed_σ σ n⌝ ∧ ∃ (φ' : envD Σ), s ↝ φ' ∗ envD_equiv n φ (λ ρ, φ' (to_subst σ.|[ρ])))%I.
+    (⌜nclosed_σ σ n⌝ ∧ ∃ (φ' : envD Σ),
+      ⌜φ ≡ (λ ρ, φ' (to_subst σ.|[ρ]))⌝ ∗ s ↝ φ')%I.
   Arguments leadsto_envD_equiv /.
   Notation "sσ ↝[  n  ] φ" := (leadsto_envD_equiv sσ n φ) (at level 20).
 
   Lemma extraction_to_leadsto_envD_equiv T g sσ n: T ~[ n ] (g, sσ) →
     wellMapped g -∗ sσ ↝[ n ] ty_interp T.
   Proof.
-    move: sσ => [s σ] [T'] [Hl] [<-] [Hclσ HclT] /=. iIntros "Hm".
-    iSplit => //; iExists (ty_interp T'); iSplitL; [iApply "Hm" | ];
-    iIntros "!% //" (ρ v).
-    exact: interp_subst_commute.
+    move: sσ => [s σ] [T'] [Hl] [<- [Hclσ HclT]] /=. iFrame (Hclσ).
+    iIntros "Hm". iExists (ty_interp T'). iSplitR; [|by iApply "Hm"].
+    iIntros "!%" (ρ v). exact: interp_subst_commute.
   Qed.
 
   (** XXX In fact, this lemma should be provable for any φ,
@@ -156,20 +182,16 @@ Section typing_type_member_defs.
     Γ ⊨d{ l := dtysem σ s } : TTMem l L U.
   Proof.
     iIntros "#HTU #HLT #[% Hs] /=". iSplit; first auto using fv_dtysem.
-    iIntros "!>" (ρ) "#Hg".
-    iDestruct "Hs" as (φ) "[Hγ Hγφ]".
-    iSplit => //. iExists (φ _); iSplit.
-    by iApply (dm_to_type_intro with "Hγ").
+    iIntros "!>" (ρ) "#Hg"; iDestruct "Hs" as (φ Hγφ) "Hγ"; iSplit => //=.
+    iExists (φ _); iSplit. by iApply (dm_to_type_intro with "Hγ").
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL";
       rewrite later_intuitionistically.
-    - iIntros "!>"; iApply (internal_eq_iff with "Hγφ").
-      by iApply "HLT".
-    - iApply "HTU" => //.
-      by iApply (internal_eq_iff with "Hγφ").
+    - iIntros "!>". iApply Hγφ. by iApply "HLT".
+    - iApply "HTU" => //. by iApply Hγφ.
   Qed.
 
   Lemma D_Typ_Concr Γ T s σ l:
     (s, σ) ↝[ length Γ ] ⟦ T ⟧ -∗
     Γ ⊨d{ l := dtysem σ s } : TTMem l T T.
-  Proof. iIntros "#Hs"; iApply D_Typ; by [| iIntros "!> **"]. Qed.
+  Proof. iIntros "#Hs"; iApply D_Typ => //; iApply Sub_Refl. Qed.
 End typing_type_member_defs.
