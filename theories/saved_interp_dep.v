@@ -9,26 +9,6 @@ Unset Program Cases.
 Notation "{ x  &  P }" := (sigTOF (λ x, P%OF)) : oFunctor_scope.
 Notation "{ x : A &  P }" := (@sigTOF A%type (λ x, P%OF)) : oFunctor_scope.
 
-(* For Iris. *)
-Global Instance projT1_ne {A P}: NonExpansive (projT1: @sigTO A P → leibnizO A).
-Proof. solve_proper. Qed.
-
-Global Instance projT1_proper {A P}: Proper ((≡) ==> (≡)) (projT1: @sigTO A P → leibnizO A).
-Proof. apply ne_proper, projT1_ne. Qed.
-
-Lemma projT2_ne {A P} n (x1 x2 : @sigTO A P) (Heq : x1 ≡{n}≡ x2):
-  rew (sigT_dist_proj1 n Heq) in projT2 x1 ≡{n}≡ projT2 x2.
-Proof. by destruct Heq. Qed.
-
-Lemma projT2_proper {A P} `{!∀ a b : A, ProofIrrel (a = b)} :
-  ∀ (x1 x2 : @sigTO A P) (Heqs : x1 ≡ x2),
-    rew (sigT_equiv_proj1 _ _ Heqs) in projT2 x1 ≡ projT2 x2.
-Proof.
-  move => [a1 x1] [a2 x2] Heqs.
-  case: (proj1 (sigT_equiv_eq_alt _ _) Heqs) => /=. intros ->.
-  rewrite (proof_irrel (sigT_equiv_proj1 _ _ Heqs) eq_refl) //.
-Qed.
-
 Definition vec vl n := fin n → vl.
 
 Section vec.
