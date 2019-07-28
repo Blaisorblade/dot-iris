@@ -111,7 +111,7 @@ Section saved_ho_sem_type.
   Lemma saved_ho_sem_type_agree_arity γ {i j Φ1 Φ2}:
     γ ⤇n[ i ] Φ1 -∗ γ ⤇n[ j ] Φ2 -∗ ⌜ i = j ⌝.
   Proof.
-    iIntros "HΦ1 HΦ2 /=".
+    iIntros "HΦ1 HΦ2".
     (* iDestruct (packedHoEnvPred_arity_neI_pure with "[HΦ1 HΦ2]") as "?".
     iApply (saved_anything_agree with "HΦ1 HΦ2"). done. *)
     (* Fail iDestruct (packedHoEnvPred_arity_neI_pure $! (saved_anything_agree with "HΦ1 HΦ2")) as "?". *)
@@ -123,7 +123,7 @@ Section saved_ho_sem_type.
   Lemma saved_ho_sem_type_agree γ n (Φ1 Φ2 : hoEnvPred s Σ n) a b c:
     γ ⤇n[ n ] Φ1 -∗ γ ⤇n[ n ] Φ2 -∗ ▷ (Φ1 a b c ≡ Φ2 a b c).
   Proof.
-    iIntros "HΦ1 HΦ2 /=".
+    iIntros "HΦ1 HΦ2".
     iDestruct (saved_anything_agree with "HΦ1 HΦ2") as "Heq".
     rewrite /= sigT_equivI. iDestruct "Heq" as (Heq) "Heq".
     rewrite (proof_irrel Heq eq_refl) /=.
@@ -135,7 +135,7 @@ Section saved_ho_sem_type.
     γ ⤇n[ i ] Φ1 -∗ γ ⤇n[ j ] Φ2 -∗ ∃ eq : i = j,
     ▷ ((rew [hoEnvPred s Σ] eq in Φ1) a b c ≡ Φ2 a b c).
   Proof.
-    iIntros "HΦ1 HΦ2 /=".
+    iIntros "HΦ1 HΦ2".
     iDestruct (saved_ho_sem_type_agree_arity with "HΦ1 HΦ2") as %->.
     iExists eq_refl; cbn.
     iApply (saved_ho_sem_type_agree with "HΦ1 HΦ2").
