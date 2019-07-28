@@ -84,10 +84,10 @@ Section saved_ho_sem_type.
 
   Definition saved_ho_sem_type_own γ n (Φ : hoEnvPred s Σ n) : iProp Σ :=
     saved_anything_own (F := hoEnvPredOF s) γ (ho_pack (existT n Φ)).
-  Notation "γ ⤇[ n  ] φ" := (saved_ho_sem_type_own γ n φ) (at level 20).
+  Notation "γ ⤇n[ n  ] φ" := (saved_ho_sem_type_own γ n φ) (at level 20).
 
   Global Instance saved_ho_sem_type_own_persistent γ n φ :
-    Persistent (γ ⤇[ n ] φ) := _.
+    Persistent (γ ⤇n[ n ] φ) := _.
 
   Global Instance saved_ho_sem_type_own_contractive γ i :
     Contractive (saved_ho_sem_type_own γ i).
@@ -97,7 +97,7 @@ Section saved_ho_sem_type.
     solve_contractive_ho.
   Qed.
 
-  Lemma saved_ho_sem_type_alloc i φ : (|==> ∃ γ, γ ⤇[ i ] φ)%I.
+  Lemma saved_ho_sem_type_alloc i φ : (|==> ∃ γ, γ ⤇n[ i ] φ)%I.
   Proof. apply saved_anything_alloc. Qed.
 
   Lemma packedHoEnvPred_arity_neI Ψ1 Ψ2 : Ψ1 ≡ Ψ2 ⊢@{iPropI Σ}
@@ -109,7 +109,7 @@ Section saved_ho_sem_type.
   Proof. rewrite packedHoEnvPred_arity_neI; auto. Qed.
 
   Lemma saved_ho_sem_type_agree_arity γ {i j Φ1 Φ2}:
-    γ ⤇[ i ] Φ1 -∗ γ ⤇[ j ] Φ2 -∗ ⌜ i = j ⌝.
+    γ ⤇n[ i ] Φ1 -∗ γ ⤇n[ j ] Φ2 -∗ ⌜ i = j ⌝.
   Proof.
     iIntros "HΦ1 HΦ2 /=".
     (* iDestruct (packedHoEnvPred_arity_neI_pure with "[HΦ1 HΦ2]") as "?".
@@ -121,7 +121,7 @@ Section saved_ho_sem_type.
   Qed.
 
   Lemma saved_ho_sem_type_agree γ n (Φ1 Φ2 : hoEnvPred s Σ n) a b c:
-    γ ⤇[ n ] Φ1 -∗ γ ⤇[ n ] Φ2 -∗ ▷ (Φ1 a b c ≡ Φ2 a b c).
+    γ ⤇n[ n ] Φ1 -∗ γ ⤇n[ n ] Φ2 -∗ ▷ (Φ1 a b c ≡ Φ2 a b c).
   Proof.
     iIntros "HΦ1 HΦ2 /=".
     iDestruct (saved_anything_agree with "HΦ1 HΦ2") as "Heq".
@@ -132,7 +132,7 @@ Section saved_ho_sem_type.
   Qed.
 
   Lemma saved_ho_sem_type_agree_dep γ {i j Φ1 Φ2} a b c:
-    γ ⤇[ i ] Φ1 -∗ γ ⤇[ j ] Φ2 -∗ ∃ eq : i = j,
+    γ ⤇n[ i ] Φ1 -∗ γ ⤇n[ j ] Φ2 -∗ ∃ eq : i = j,
     ▷ ((rew [hoEnvPred s Σ] eq in Φ1) a b c ≡ Φ2 a b c).
   Proof.
     iIntros "HΦ1 HΦ2 /=".
