@@ -126,8 +126,10 @@ Definition hoEnvD_to_olty {Σ n} (φ : hoEnvD Σ n) : olty Σ n := ho_closed_olt
     σ.|[ρ]], and there we must use finite composition. *)
 Definition hoEnvD_inst {n Σ} (φ : hoEnvD Σ n) σ : olty Σ n := hoEnvD_to_olty (λ args ρ, φ args (to_subst σ.|[ρ])).
 
+Definition flip_hoEnvD_inst {n Σ} σ := flip (@hoEnvD_inst n Σ) σ.
+
 Definition stamp_σ_to_type_n' `{!dlangG Σ} s σ n (τ : olty Σ n) : iProp Σ :=
-  (∃ φ, ⌜ τ ≡ hoEnvD_inst φ σ ⌝ ∗ s ↝n[ n ] φ)%I.
+  (∃ φ, s ↝n[ n ] φ ∗ ▷ (τ ≡ flip_hoEnvD_inst σ φ))%I.
 Notation "s ↗n[ σ , n  ] φ" := (stamp_σ_to_type_n' s σ n φ) (at level 20): bi_scope.
 
 Definition dm_to_type `{!dlangG Σ} (d : dm) n (τ : olty Σ n) : iProp Σ :=
@@ -138,17 +140,50 @@ Section SemTypes.
   Context `{!dlangG Σ}.
 
   Global Instance stamp_σ_to_type_persistent σ s n ψ : Persistent (s ↗n[ σ , n ] ψ) := _.
+  Global Instance: Contractive (stamp_σ_to_type_n' s σ i).
+  Proof. rewrite /stamp_σ_to_type_n'. solve_contractive_ho. Qed.
 
   Import EqNotations.
+
+  Instance hoEnvD_to_olty_ne: NonExpansive (@hoEnvD_to_olty Σ i).
+  Proof.
+    intros => x y Heq args ρ v. rewrite /olty_car/=.
+    repeat f_equiv. exact: Heq.
+  Qed.
+
+  Instance hoEnvD_inst_ne: Proper (dist n ==> (=) ==> dist n) (@hoEnvD_inst i Σ).
+  Proof.
+    rewrite /hoEnvD_inst/=.
+    intros n i x y Heq σ ? <-. f_equiv => args ρ v. exact: Heq.
+  Qed.
+
+  (* XXX flip base definition. *)
+  Instance flip_hoEnvD_inst_ne: NonExpansive (@flip_hoEnvD_inst i Σ σ).
+  Proof. intros * ????. exact: hoEnvD_inst_ne. Qed.
+
+  Lemma stamp_σ_to_type_agree_dep_abs {σ s n1 n2 ψ1 ψ2} :
+    s ↗n[ σ , n1 ] ψ1 -∗ s ↗n[ σ , n2 ] ψ2 -∗ ∃ eq : n1 = n2,
+      ▷ ((rew [olty Σ] eq in ψ1) ≡ ψ2).
+  Proof.
+    iDestruct 1 as (φ1) "[Hsg1 Heq1]"; iDestruct 1 as (φ2) "[Hsg2 Heq2]".
+    iDestruct (stamp_to_type_agree_dep_abs with "Hsg1 Hsg2") as (->) "Hgoal".
+    iExists eq_refl. iNext. cbn.
+    iRewrite "Heq1"; iRewrite "Heq2". by iApply f_equiv.
+  Qed.
+
+  Lemma olty_equivI i (φ1 φ2 : olty Σ i):
+    φ1 ≡ φ2 ⊣⊢@{iPropSI Σ} (φ1 : hoEnvD Σ i) ≡ φ2.
+  Proof. by unseal. Qed.
+
   Lemma stamp_σ_to_type_agree_dep {σ s n1 n2 φ1 φ2} args ρ v :
     s ↗n[ σ , n1 ] φ1 -∗ s ↗n[ σ , n2 ] φ2 -∗ ∃ eq : n1 = n2,
-      ▷ ((rew [hoEnvD Σ] eq in φ1) args ρ v ≡ φ2 args ρ v).
+      ▷ ((rew [olty Σ] eq in φ1) args ρ v ≡ φ2 args ρ v).
   Proof.
-    iDestruct 1 as (φ1' Heq1) "Hsg1"; iDestruct 1 as (φ2' Heq2) "Hsg2".
-    iDestruct (stamp_to_type_agree_dep args (to_subst σ.|[ρ]) v with "Hsg1 Hsg2") as (Heq) "Hgoal".
-    iExists Heq; destruct Heq; simpl.
-    rewrite (Heq1 _ _ _) (Heq2 _ _ _)/= /olty_car/=.
-    iNext. by iRewrite "Hgoal".
+    iIntros "H1 H2".
+    iDestruct (stamp_σ_to_type_agree_dep_abs with "H1 H2") as (->) "H".
+    iExists eq_refl. iNext.
+    rewrite olty_equivI /=; repeat setoid_rewrite discrete_fun_equivI.
+    iApply "H".
   Qed.
 
   Context {n : nat}.
@@ -237,6 +272,45 @@ Section SemTypes2.
     iApply "HψU" => //. iNext. by iRewrite "Hag".
   Qed.
 
+  Definition oDTMemUp l τ1 (UF : hoEnvD Σ 0 → hoEnvD Σ 0) : dlty Σ := Dlty l
+    (λ ρ d,
+    ∃ ψ, (d ↗n[ 0 ] ψ) ∗
+       □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ τ1 vnil ρ v → ▷ ψ vnil ids v) ∗
+          (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ ψ vnil ids v → ▷ UF ψ vnil ρ v)))%I.
+
+  Definition oTSel2 p (l : label) :=
+    closed_olty (λ ρ v, path_wp p.|[ρ]
+      (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗n[ 0 ] ψ ∧ ▷ ψ vnil (* ρ *) ids v))%I.
+
+  Definition oTSelRec s σ i (UF : olty Σ i -> olty Σ i) : olty Σ i -> olty Σ i :=
+    λ ψ, ho_closed_olty (λ args ρ v,
+    (s ↗n[ σ , i ] ψ ∧ UF ψ args ρ v ∧ ▷ ψ args ids v))%I.
+
+  Instance oTSelRec_contractive i (UF : olty Σ i -> olty Σ i) {Hc: Contractive UF}: Contractive (oTSelRec s σ i UF).
+  Proof.
+    intros => x y Heq args ρ v.
+    rewrite ![_ (oTSelRec _ _ _ _ _)]/olty_car/=.
+    f_equiv.
+    f_equiv; first last.
+    - f_equiv; first exact: Hc. f_contractive. exact: Heq.
+    - by f_contractive.
+  Qed.
+  Definition oTSelR s σ i UF `{Contractive UF} := fixpoint (oTSelRec s σ i UF).
+  (* OOOOOOOOOOO *)
+
+  (* Definition dm_to_type d i (ψ : hoEnvD Σ i) : iProp Σ :=
+    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∗ s ↗n[ σ , i ] ψ)%I.
+  Definition oTSelRec vp (l : label) (UF : hoD Σ 0 → olty Σ 0) ψ : hoEnvD Σ 0 :=
+    λ args ρ v,
+      (∃ d, ⌜vp @ l ↘ d⌝ ∧ d ↗n[ 0 ] ψ ∧ ▷ □ ψ vnil v)%I.
+
+  Definition oTSelRec vp (l : label) (UF : hoD Σ 0 → olty Σ 0) ψ : hoEnvD Σ 0 :=
+    λ args ρ v,
+      (∃ d, ⌜vp @ l ↘ d⌝ ∧ d ↗n[ 0 ] ψ ∧ ▷ □ ψ vnil v)%I.
+
+  Definition oTSel p (l : label) (UF : hoD Σ 0 → olty Σ 0) :=
+    closed_olty (λ ρ v, path_wp p.|[ρ]
+      (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗n[ 0 ] ψ ∧ ▷ □ ψ vnil v))%I. *)
 (*
   (* Alternative (and failed) definition. *)
   Program Definition sem_sel p (l : label) :=
