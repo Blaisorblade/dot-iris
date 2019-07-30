@@ -275,14 +275,6 @@ Section SemTypes2.
     iApply "HψU" => //. iNext. by iRewrite "Hag".
   Qed.
 
-  Definition oDTMemUp l τ1 (UF : olty Σ 0 → olty Σ 0) : dlty Σ := Dlty l
-    (λ ρ d,
-    ∃ ψ, (d ↗n[ 0 ] ψ) ∗
-       □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ τ1 vnil ρ v → ▷ ψ vnil ids v) ∗
-          (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ ψ vnil ids v → ▷ UF ψ vnil ρ v)))%I.
-
-  Definition oTTMemUp l τ1 UF := lift_dinterp_vl (oDTMemUp l τ1 UF).
-
 (*
   Definition oStampSelRec s σ i (UF : olty Σ i -> olty Σ i) : olty Σ i -> olty Σ i :=
     λ ψ, ho_closed_olty (λ args ρ v,
@@ -347,16 +339,14 @@ iDestruct (dm_to_type_agree d _ _ vnil ids v with "Hlψ Hγ") as "#Hag".
   Definition oTSelRec p l i
     (UF : olty Σ i -> olty Σ i) : olty Σ i -> olty Σ i := λ ψ,
     ho_closed_olty (λ args ρ v, path_wp p.|[ρ]
-      (λ vp, ∃ d σ s, ⌜vp @ l ↘ d ∧ d = dtysem σ s ⌝ ∧
-        (s ↗n[ σ , i ] ψ ∧ UF ψ args ρ v ∧ ▷ ψ args ids v)))%I.
+      (λ vp, ∃ d, ⌜vp @ l ↘ d ⌝ ∧ d ↗n[ i ] ψ ∧
+        (UF ψ args ρ v ∧ ▷ ψ args ids v)))%I.
 
   Instance oTSelRec_contractive i (UF : olty Σ i -> olty Σ i) {Hc: Contractive UF}: Contractive (oTSelRec p l i UF).
   Proof.
     intros => x y Heq args ρ v.
     rewrite ![_ (oTSelRec _ _ _ _ _)]/olty_car/=.
-    f_equiv. f_equiv => vp.
-    f_equiv => d; f_equiv => σ; f_equiv => s; f_equiv.
-    f_equiv; first by f_contractive.
+    f_equiv; f_equiv => vp; f_equiv => d; f_equiv; f_equiv. by f_contractive.
     f_equiv; first exact: Hc.
     f_contractive. exact: Heq.
   Qed.
@@ -377,10 +367,18 @@ iDestruct (dm_to_type_agree d _ _ vnil ids v with "Hlψ Hγ") as "#Hag".
     iIntros "!>" (ρ v Hclv) "#Hg #Hψ".
     iNext.
     rewrite (oTSelR_unfold _ _ _ UF _ _ _) [_ (oTSelRec _ _ _ _ _)]/olty_car/=.
-    iDestruct "Hψ" as (_ d1 σ s [Hlookup ->]) "[Hψ1v [HUF Hstamp]]".
+    iDestruct "Hψ" as (_ d Hlookup) "[Hψ1v [HUF Hstamp]]".
     iExact "HUF".
   Qed.
   (* Too easy - the other subtyping rule will be harder? *)
+
+  Definition oDTMemUp l τ1 (UF : olty Σ 0 → olty Σ 0) : dlty Σ := Dlty l
+    (λ ρ d,
+    ∃ ψ, (d ↗n[ 0 ] ψ) ∗
+       □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ τ1 vnil ρ v → ▷ ψ vnil ids v) ∗
+          (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ ψ vnil ids v → ▷ UF ψ vnil ρ v)))%I.
+
+  Definition oTTMemUp l τ1 UF := lift_dinterp_vl (oDTMemUp l τ1 UF).
 
   Lemma Sub_TTMemUp Γ L UF l i:
     Γ ⊨ [oTTMemUp l L UF, i] <: [oTTMem l L oTop, i].
@@ -402,8 +400,8 @@ iDestruct (dm_to_type_agree d _ _ vnil ids v with "Hlψ Hγ") as "#Hag".
     iSpecialize ("Hva" with "Hg"). rewrite /= wp_value_inv'.
     iNext.
     iDestruct "Hva" as (Hclvas' d Hl ψ) "#[Hlψ [#HLψ #HψU]]".
-    iExists d, ψ; repeat iSplit => //. by iApply "HLψ".
-  Qed.
+    iExists d; repeat iSplit => //. Abort.
+    (* by iApply "HLψ". Qed. *)
 
   Transparent dm_to_type.
 
