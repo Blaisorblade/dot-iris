@@ -161,6 +161,9 @@ Section SemTypes.
   Instance flip_hoEnvD_inst_ne: NonExpansive (@flip_hoEnvD_inst i Σ σ).
   Proof. intros * ????. exact: hoEnvD_inst_ne. Qed.
 
+  Global Instance dm_to_type_contractive d i : Contractive (dm_to_type d i).
+  Proof. solve_contractive. Qed.
+
   Lemma stamp_σ_to_type_agree_dep_abs {σ s n1 n2 ψ1 ψ2} :
     s ↗n[ σ , n1 ] ψ1 -∗ s ↗n[ σ , n2 ] ψ2 -∗ ∃ eq : n1 = n2,
       ▷ ((rew [olty Σ] eq in ψ1) ≡ ψ2).
@@ -207,7 +210,7 @@ Section SemTypes.
 
   (* Global Opaque stamp_σ_to_type_n'. *)
 
-  Global Instance dm_to_type_persistent d τ: Persistent (d ↗n[ n ] τ) := _.
+  Global Instance dm_to_type_persistent d τ : Persistent (d ↗n[ n ] τ) := _.
 
   Lemma dm_to_type_agree d τ1 τ2 args ρ v : d ↗n[ n ] τ1 -∗ d ↗n[ n ] τ2 -∗ ▷ (τ1 args ρ v ≡ τ2 args ρ v).
   Proof.
@@ -358,14 +361,14 @@ iDestruct (dm_to_type_agree d _ _ vnil ids v with "Hlψ Hγ") as "#Hag".
     f_contractive. exact: Heq.
   Qed.
 
-  Definition oTSelR s σ i UF `{Contractive UF} : olty Σ i := fixpoint (oTSelRec s σ i UF).
-  Lemma oTSelR_unfold s σ i UF `{Contractive UF} :
-    oTSelR s σ i UF ≡ oTSelRec s σ i UF (oTSelR s σ i UF).
+  Definition oTSelR p l i UF `{Contractive UF} : olty Σ i :=
+    fixpoint (oTSelRec p l i UF).
+
+  Lemma oTSelR_unfold p l i UF `{Contractive UF} :
+    oTSelR p l i UF ≡ oTSelRec p l i UF (oTSelR p l i UF).
   Proof. apply fixpoint_unfold. Qed.
 
   (* OOOOOOOOOOO *)
-
-  Transparent dm_to_type.
 
   Lemma Sel_Sub_Rec Γ UF `{Contractive UF} va l i:
     (* Γ ⊨ tv va : oTTMemUp l L UF, i -∗ *)
@@ -375,8 +378,35 @@ iDestruct (dm_to_type_agree d _ _ vnil ids v with "Hlψ Hγ") as "#Hag".
     iNext.
     rewrite (oTSelR_unfold _ _ _ UF _ _ _) [_ (oTSelRec _ _ _ _ _)]/olty_car/=.
     iDestruct "Hψ" as (_ d1 σ s [Hlookup ->]) "[Hψ1v [HUF Hstamp]]".
-    done.
+    iExact "HUF".
   Qed.
+  (* Too easy - the other subtyping rule will be harder? *)
+
+  Lemma Sub_TTMemUp Γ L UF l i:
+    Γ ⊨ [oTTMemUp l L UF, i] <: [oTTMem l L oTop, i].
+  Proof.
+    rewrite /= /olty_car/= /vopen/= /dlty_car/=.
+    iIntros "!>" (ρ v Hclv) "#Hg [$ H] /= !>".
+    iDestruct "H" as (d Hlook ψ) "[Hl [#HLψ _]]".
+    repeat (iExists _; iSplit => //).
+    iModIntro; iSplitL; eauto.
+  Qed.
+
+  Lemma Sub_SelUp Γ L UF `{Contractive UF} va l i:
+    Γ ⊨ tv va : oTTMemUp l L UF, i -∗
+    Γ ⊨ [oLater L, i] <: [oTSelR (pv va) l 0 UF, i].
+  Proof.
+    iIntros "#[% #Hva] !>" (ρ v Hclv) "#Hg #[_ HvL]".
+    rewrite (oTSelR_unfold _ _ _ UF _ _ _) [_ (oTSelRec _ _ _ _ _)]/olty_car/=.
+    iFrame (Hclv).
+    iSpecialize ("Hva" with "Hg"). rewrite /= wp_value_inv'.
+    iNext.
+    iDestruct "Hva" as (Hclvas' d Hl ψ) "#[Hlψ [#HLψ #HψU]]".
+    iExists d, ψ; repeat iSplit => //. by iApply "HLψ".
+  Qed.
+
+  Transparent dm_to_type.
+
 
     objLookupDet.
     iDestruct "Hlψ" as (s' σ' ?) "Hs2"; simplify_eq.
