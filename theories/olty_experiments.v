@@ -563,17 +563,21 @@ Section Sec2.
     Γ ⊨d{ l := dtysem σ s } : oDTMem l L U.
   Proof.
     iIntros "#HTU #HLT #[% Hs] /="; repeat iSplit; [auto using fv_dtysem..|].
-    iIntros "!>" (ρ) "#Hg". iDestruct "Hs" as (φ Heq) "Hγ".
+    iIntros "!>" (ρ) "#Hg". iDestruct "Hs" as (φ) "[Hγ Heq]".
     rewrite /dlty_car /=.
     iExists _; iSplit. by iApply dm_to_type_intro.
     (* rewrite [olty_car (_ _)]/olty_car /=. *)
     (* rewrite [(_ _) _]/olty_car /=. *)
+    rewrite olty_equivI; repeat setoid_rewrite discrete_fun_equivI.
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL {Hγ}".
     - iDestruct ("HLT" $! ρ v Hclv with "Hg HL") as "{HLT HTU HL} HLT".
-      rewrite (Heq _ _ _) /olty_car/=. asimpl.
-      iApply "HLT".
+      iNext.
+      iRewrite ("Heq" $! vnil (to_subst ρ) v) in "HLT".
+      rewrite /olty_car /=. asimpl. iExact "HLT".
     - iApply "HTU" => //. iClear "HLT HTU Hg".
-      rewrite (Heq _ _ _) /olty_car/=. by asimpl.
+      iNext.
+      iRewrite ("Heq" $! vnil (to_subst ρ) v).
+      rewrite /olty_car/=. asimpl. iExact "HL".
   Qed.
 
   Lemma D_Typ_Concr Γ (τ : olty Σ 0) s σ l:
@@ -590,7 +594,7 @@ Section Sec2.
     wellMapped g -∗ sσ ↝[ n ] oty_interp (h T).
   Proof.
     move: sσ => [s σ] [T'] [Hl] [<-] [Hclσ HclT]. iIntros "Hm".
-    iSplit => //; iExists (oty_interp (h T')); iSplitR; [|iApply "Hm"];
+    iSplit => //; iExists (oty_interp (h T')); iSplitL; [iApply "Hm"|];
       iIntros "!% //=" (args ρ v).
     rewrite (oty_interp_subst_commute' (h T')) //=; last solve_fv_congruence.
     iSplit; last iIntros "[_ #$]".
