@@ -141,7 +141,7 @@ Section SemTypes.
   Qed.
 
   Lemma dm_to_type_intro d i s σ φ :
-    d = dtysem σ s → s ↝n[ i ] φ -∗ d ↗n[ i ] hoEnvD_inst φ σ.
+    d = dtysem σ s → s ↝n[ i ] φ -∗ d ↗n[ i ] hoEnvD_inst σ φ.
   Proof.
     iIntros. iExists s, σ. iFrame "%".
     by iApply stamp_σ_to_type_intro.
@@ -271,7 +271,7 @@ Section Sec2.
     (* iDestruct (env_oltyped_fin_cl_ρ with "Hg") as %Hclp. *)
     iDestruct "Hs" as (φ) "[Hγ Hγφ]".
     rewrite /dlty_car /=.
-    iExists (hoEnvD_inst φ (σ.|[to_subst ρ])); iSplit.
+    iExists (hoEnvD_inst (σ.|[to_subst ρ]) φ); iSplit.
     by iApply dm_to_type_intro.
     rewrite /envD_equiv.
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL"; rewrite later_intuitionistically.
