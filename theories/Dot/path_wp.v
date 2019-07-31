@@ -25,7 +25,7 @@ Section path_wp.
     | pv vp => φ vp
     end%I.
 
-  Instance path_wp_ne p : NonExpansive (path_wp p).
+  Global Instance path_wp_ne p : NonExpansive (path_wp p).
   Proof.
     elim: p => [w|p IHp l] n x y Heq /=. done.
     f_equiv => vp. f_equiv => vq. f_equiv. f_equiv. exact: Heq.
