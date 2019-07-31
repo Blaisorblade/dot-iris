@@ -8,7 +8,7 @@ Implicit Types
 
 Section path_wp.
   Context `{HdlangG: dlangG Σ}.
-  Implicit Types (φ : vl → iProp Σ).
+  Implicit Types (φ : vl -d> iProp Σ).
 
   (** A simplified variant of weakest preconditions for path evaluation.
       The difference is that path evaluation is completely pure, and
@@ -24,6 +24,12 @@ Section path_wp.
     | pself p l => path_wp p (λ vp, ∃ vq, ⌜ vp @ l ↘ dvl vq ⌝ ∧ ▷ φ vq)
     | pv vp => φ vp
     end%I.
+
+  Instance path_wp_ne p : NonExpansive (path_wp p).
+  Proof.
+    elim: p => [w|p IHp l] n x y Heq /=. done.
+    f_equiv => vp. f_equiv => vq. f_equiv. f_equiv. exact: Heq.
+  Qed.
 
   Global Instance path_wp_persistent φ p:
     (∀ v, Persistent (φ v)) → Persistent (path_wp p φ).
