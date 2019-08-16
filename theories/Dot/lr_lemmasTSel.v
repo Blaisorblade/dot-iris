@@ -19,7 +19,7 @@ Section Sec.
       strong_path_wp_wand plength_subst_inv -swap_later.
     iApply "Hp".
     iNext (plength p); iIntros (w).
-    iDestruct 1 as (Hclvas d Hl φ) "{Hp} #[Hlφ [#HLφ #HφU]]".
+    iDestruct 1 as (Hclvas d Hl φ) "{Hp} #(Hlφ & #HLφ & #HφU)".
     iExists φ, d; repeat iSplit => //.
     by iApply "HLφ".
   Qed.
