@@ -234,12 +234,12 @@ Section Sec.
     iIntros (H); iApply wp_pure_step_later => //; iApply wp_value. by iIntros "!%".
   Qed.
 
-  Fixpoint pth_to_tm p: tm :=
+  Fixpoint path2tm p: tm :=
     match p with
     | pv v => tv v
-    | pself p l => tproj (pth_to_tm p) l
+    | pself p l => tproj (path2tm p) l
     end.
-  Definition sem_singleton_path p ρ v : iProp Σ := (□WP (pth_to_tm p).|[to_subst ρ] {{ w, ⌜ w = v ∧ nclosed_vl v 0 ⌝ }})%I.
+  Definition sem_singleton_path p ρ v : iProp Σ := (□WP (path2tm p).|[to_subst ρ] {{ w, ⌜ w = v ∧ nclosed_vl v 0 ⌝ }})%I.
   Arguments sem_singleton_path /.
   Lemma singletons_equiv w ρ v: sem_singleton w ρ v ⊣⊢ sem_singleton_path (pv w) ρ v.
   Proof.
@@ -249,8 +249,8 @@ Section Sec.
   Qed.
 
   Lemma self_sem_singleton_path_v00 p i v:
-    nclosed_vl v 0 → PureExec True i (pth_to_tm p) (tv v) →
-    True ⊢ WP (pth_to_tm p) {{ sem_singleton_path p [] }}.
+    nclosed_vl v 0 → PureExec True i (path2tm p) (tv v) →
+    True ⊢ WP (path2tm p) {{ sem_singleton_path p [] }}.
   Proof.
     iIntros (Hcl Hpure) "_ /=".
     rewrite -wp_pure_step_later // -wp_value hsubst_id.
@@ -263,8 +263,8 @@ Section Sec.
     It might be easier to define it directly (as path_wp) and prove typing rules for it,
     instead of trying to bridge across the two WP. *)
   Lemma step2 p ρ P:
-    □WP (pth_to_tm p).|[to_subst ρ] {{ P }} -∗
-    ∃ i, ▷^i ∃ v, ⌜ PureExec True i (pth_to_tm p).|[to_subst ρ] (tv v) ⌝ ∧ P v.
+    □WP (path2tm p).|[to_subst ρ] {{ P }} -∗
+    ∃ i, ▷^i ∃ v, ⌜ PureExec True i (path2tm p).|[to_subst ρ] (tv v) ⌝ ∧ P v.
   Proof.
     iIntros "#H".
     iInduction p as [|] "IHp" forall (P); cbn.
@@ -292,8 +292,8 @@ Section Sec.
   Qed.
 (*
   Lemma step2_v0 p ρ P:
-    □WP (pth_to_tm p).|[to_subst ρ] {{ P }} -∗
-    ∃ v i, ⌜ PureExec True i (pth_to_tm p).|[to_subst ρ] (tv v) ⌝ ∧  P v.
+    □WP (path2tm p).|[to_subst ρ] {{ P }} -∗
+    ∃ v i, ⌜ PureExec True i (path2tm p).|[to_subst ρ] (tv v) ⌝ ∧  P v.
   Proof.
     iIntros "#H".
     iInduction p as [|] "IHp" forall (P); cbn.
@@ -318,23 +318,23 @@ Section Sec.
       (* iPoseProof (wp_value_inv with "Hv") as "?". *)
 
   Lemma self_sem_singleton_path_v01 p Γ T i v:
-    Γ ⊨ pth_to_tm p : T -∗
-    ⌜ PureExec True i (pth_to_tm p) (tv v) ⌝ .
+    Γ ⊨ path2tm p : T -∗
+    ⌜ PureExec True i (path2tm p) (tv v) ⌝ .
   (* TODOs: demonstrate safety, demonstrate *)
   Abort.
 
 
   Lemma self_sem_singleton_path_v0 Γ p T i v:
-    nclosed (pth_to_tm p) (length Γ) → PureExec True i (pth_to_tm p) (tv v) →
-    True ⊢ ⌜ nclosed (pth_to_tm p) (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → WP (pth_to_tm p).|[to_subst ρ] {{ sem_singleton_path p ρ }}.
+    nclosed (path2tm p) (length Γ) → PureExec True i (path2tm p) (tv v) →
+    True ⊢ ⌜ nclosed (path2tm p) (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → WP (path2tm p).|[to_subst ρ] {{ sem_singleton_path p ρ }}.
   Proof.
     iIntros (Hcl Hpure) "_". iFrame "%". iIntros "!>" (ρ) "HG".
     iApply wp_pure_step_later. Fail eapply Hpure.
   Abort.
 
   Lemma self_sem_singleton_path Γ p T:
-    Γ ⊨ pth_to_tm p : T -∗
-    ⌜ nclosed (pth_to_tm p) (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → WP (pth_to_tm p).|[to_subst ρ] {{ sem_singleton_path p ρ }}.
+    Γ ⊨ path2tm p : T -∗
+    ⌜ nclosed (path2tm p) (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ → WP (path2tm p).|[to_subst ρ] {{ sem_singleton_path p ρ }}.
   Proof.
     iIntros "/= #[% #HT]". move: H => Hcl. iFrame (Hcl). iIntros "!>" (ρ) "#HG". iSpecialize ("HT" with "HG").
     iDestruct (interp_env_len_agree with "HG") as %Hlen. rewrite <- Hlen in *.
