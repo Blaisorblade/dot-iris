@@ -234,11 +234,6 @@ Section Sec.
     iIntros (H); iApply wp_pure_step_later => //; iApply wp_value. by iIntros "!%".
   Qed.
 
-  Fixpoint path2tm p: tm :=
-    match p with
-    | pv v => tv v
-    | pself p l => tproj (path2tm p) l
-    end.
   Definition sem_singleton_path p ρ v : iProp Σ := (□WP (path2tm p).|[to_subst ρ] {{ w, ⌜ w = v ∧ nclosed_vl v 0 ⌝ }})%I.
   Arguments sem_singleton_path /.
   Lemma singletons_equiv w ρ v: sem_singleton w ρ v ⊣⊢ sem_singleton_path (pv w) ρ v.
