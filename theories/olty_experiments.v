@@ -638,21 +638,6 @@ Proof.
 Qed.
 End LogRelAdapt.
 
-(*
-  Even if semantic types use infinite substitutions, we can still reuse the
-  current stamping theory, based on finite substitutions.
-*)
-Section Sec.
-  Context `{!dlangG Σ} .
-
-  Definition leadsto_envD_equiv (sσ : extractedTy) n {i : nat} (τ : olty Σ i) : iProp Σ :=
-    let '(s, σ) := sσ in
-    (⌜nclosed_σ σ n⌝ ∧ s ↗n[ σ , i ] τ)%I.
-  Arguments leadsto_envD_equiv /.
-End Sec.
-
-Notation "sσ ↝[  n  ] φ" := (leadsto_envD_equiv sσ n φ) (at level 20).
-
 Section Sec2.
   Context `{HdotG: dlangG Σ}.
 
