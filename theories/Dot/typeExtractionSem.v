@@ -1,6 +1,6 @@
 From stdpp Require Import gmap.
 From iris.proofmode Require Import tactics.
-From D.Dot Require Import unary_lr synLemmas typeExtractionSyn.
+From D.Dot Require Import unary_lr typeExtractionSyn.
 
 Set Implicit Arguments.
 
@@ -153,7 +153,7 @@ Section typing_type_member_defs.
     (* use interp_extractedTy? *)
   Definition leadsto_envD_equiv (sσ: extractedTy) n (φ : envD Σ) : iProp Σ :=
     let '(s, σ) := sσ in
-    (⌜nclosed_σ σ n⌝ ∧ ∃ (φ' : envD Σ),
+    (∃ (φ' : envD Σ),
       ⌜φ ≡ (λ ρ, φ' (to_subst σ.|[ρ]))⌝ ∗ s ↝ φ')%I.
   Arguments leadsto_envD_equiv /.
   Notation "sσ ↝[  n  ] φ" := (leadsto_envD_equiv sσ n φ) (at level 20).
@@ -161,7 +161,7 @@ Section typing_type_member_defs.
   Lemma extraction_to_leadsto_envD_equiv T g sσ n: T ~[ n ] (g, sσ) →
     wellMapped g -∗ sσ ↝[ n ] ty_interp T.
   Proof.
-    move: sσ => [s σ] [T'] [Hl] [<- [Hclσ HclT]] /=. iFrame (Hclσ).
+    move: sσ => [s σ] [T'] [Hl] [<- [_ HclT]] /=.
     iIntros "Hm". iExists (ty_interp T'). iSplitR; [|by iApply "Hm"].
     iIntros "!%" (ρ v). exact: interp_subst_commute.
   Qed.
@@ -181,10 +181,10 @@ Section typing_type_member_defs.
     (s, σ) ↝[ length Γ ] ⟦ T ⟧ -∗
     Γ ⊨d{ l := dtysem σ s } : TTMem l L U.
   Proof.
-    iIntros "#HTU #HLT #[% Hs] /=". iSplit; first auto using fv_dtysem.
-    iIntros "!>" (ρ) "#Hg"; iDestruct "Hs" as (φ Hγφ) "Hγ"; iSplit => //=.
+    iIntros "#HTU #HLT #Hs /= !>" (ρ) "#Hg".
+    iDestruct "Hs" as (φ Hγφ) "Hγ"; iSplit => //=.
     iExists (φ _); iSplit. by iApply (dm_to_type_intro with "Hγ").
-    iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL";
+    iModIntro; repeat iSplitL; iIntros (v) "#HL";
       rewrite later_intuitionistically.
     - iIntros "!>". iApply Hγφ. by iApply "HLT".
     - iApply "HTU" => //. by iApply Hγφ.

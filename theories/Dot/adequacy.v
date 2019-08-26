@@ -10,7 +10,7 @@ Theorem adequacy Σ `{HdlangG: dlangPreG Σ} `{SwapProp (iPropSI Σ)} e e' thp �
   is_Some (to_val e') ∨ reducible e' σ'.
 Proof.
   intros Hlog; eapply (adequacy _).
-  iIntros (??) "Hs"; iDestruct (Hlog with "Hs") as ">[_ #H]".
+  iIntros (??) "Hs"; iDestruct (Hlog with "Hs") as ">#H".
   by iSpecialize ("H" $! [] with "[#//]"); rewrite hsubst_id.
 Qed.
 

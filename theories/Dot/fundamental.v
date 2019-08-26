@@ -24,26 +24,18 @@ Section swap_based_typing_lemmas.
     Γ ⊨ [ TAll T1 U1, i ] <: [ TAll T2 U2, i ].
   Proof.
     rewrite iterate_S /=.
-    iIntros "#HsubT #HsubU /= !>" (ρ v Hcl) "#Hg".
-    iIntros "[$ #HT1]".
+    iIntros "#HsubT #HsubU /= !>" (ρ v) "#Hg #HT1".
     iDestruct "HT1" as (t) "#[Heq #HT1]". iExists t; iSplit => //.
     iIntros (w).
     rewrite -!mlaterN_pers -mlater_impl -mlaterN_impl !swap_later.
     iIntros "!> #HwT2".
-    iApply (strip_pure_laterN_impl (S i) (nclosed_vl w 0)); first last.
-      by rewrite interp_v_closed.
-    iIntros (Hclw).
-    iSpecialize ("HsubT" $! ρ w Hclw with "Hg HwT2").
+    iSpecialize ("HsubT" $! ρ w with "Hg HwT2").
     iAssert (□ ▷ ▷^i (∀ v0, ⟦ U1 ⟧ (w .: to_subst ρ) v0 →
         ⟦ U2 ⟧ (w .: to_subst ρ) v0))%I as "{HsubU} #HsubU". {
-      iIntros (v0); rewrite -!mlaterN_impl -mlater_impl.
-      iIntros "!> #HUv0".
-      iApply (strip_pure_laterN_impl (S i) (nclosed_vl v0 0)); first last.
-        by rewrite (interp_v_closed _ v0).
-      iIntros (Hclv0).
-      iApply ("HsubU" $! (w :: ρ) v0) => //.
-      rewrite iterate_TLater_later //.
-      iFrame "Hg %". by iApply interp_weaken_one.
+      iIntros (u) "!>"; rewrite -!mlaterN_impl -mlater_impl.
+      iApply ("HsubU" $! (w :: ρ) u with "[# $Hg]").
+      rewrite iterate_TLater_later.
+      by iApply interp_weaken_one.
     }
     iNext 1; iNext i. iApply wp_wand.
     - iApply "HT1". by iApply "HsubT".
@@ -55,7 +47,7 @@ Section swap_based_typing_lemmas.
     Γ ⊨ [U1, S i] <: [U2, S i] -∗
     Γ ⊨ [TTMem l L1 U1, i] <: [TTMem l L2 U2, i].
   Proof.
-    iIntros "#IHT #IHT1 /= !>" (ρ v Hcl) "#Hg [$ #HT1]".
+    iIntros "#IHT #IHT1 /= !>" (ρ v) "#Hg #HT1".
     iDestruct "HT1" as (d) "[Hl2 H]".
     iDestruct "H" as (φ) "#[Hφl [HLφ #HφU]]".
     setoid_rewrite <- later_laterN.
@@ -63,9 +55,9 @@ Section swap_based_typing_lemmas.
     iExists d; repeat iSplit => //.
     iExists φ; repeat iSplitL => //;
       rewrite -!mlaterN_pers;
-      iIntros "!>" (w Hclw);
-      iSpecialize ("IHT" $! ρ w Hclw with "Hg");
-      iSpecialize ("IHT1" $! ρ w Hclw with "Hg");
+      iIntros "!>" (w);
+      iSpecialize ("IHT" $! ρ w with "Hg");
+      iSpecialize ("IHT1" $! ρ w with "Hg");
       iNext; iIntros.
     - iApply "HLφ" => //. by iApply "IHT".
     - iApply "IHT1". by iApply "HφU".
@@ -75,15 +67,13 @@ Section swap_based_typing_lemmas.
     Γ ⊨ [T1, S i] <: [T2, S (j + i)] -∗
     Γ ⊨ [TVMem l T1, i] <: [TVMem l T2, j + i].
   Proof.
-    iIntros "#IHT /= !>" (ρ v Hcl) "#Hg #[_ HT1]". iFrame "%". rewrite laterN_plus.
+    iIntros "#IHT /= !>" (ρ v) "#Hg #HT1". rewrite laterN_plus.
     iDestruct "HT1" as (d) "#[Hdl #HT1]".
     iExists d; repeat iSplit => //.
     iDestruct "HT1" as (vmem) "[Heq HvT1]".
     iExists vmem; repeat iSplit => //.
     rewrite !swap_later -laterN_plus.
-    iApply (strip_pure_laterN_wand (S (j + i)) (nclosed_vl vmem 0)).
-    - iIntros. by iApply "IHT".
-    - rewrite laterN_plus -!swap_later interp_v_closed. by [].
+    iIntros. by iApply "IHT".
   Qed.
 
   Lemma Sub_TVMem_Variant T1 T2 i l:
