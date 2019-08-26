@@ -234,6 +234,79 @@ Section Sec.
     iIntros (H); iApply wp_pure_step_later => //; iApply wp_value. by iIntros "!%".
   Qed.
 
+  Definition sem_psingleton p ρ v : iProp Σ := (□path_wp p.|[ρ] (λ w, ⌜ w = v ∧ nclosed_vl v 0 ⌝ ))%I.
+  Global Arguments sem_psingleton /.
+
+  Lemma psingletons_equiv w ρ v: sem_singleton w ρ v ⊣⊢ sem_psingleton (pv w) (to_subst ρ) v.
+  Proof. iSplit; iIntros "#H /="; iApply "H". Qed.
+
+  Lemma self_sem_psingleton p ρ v : ▷^(plength p) ⌜ nclosed_vl v 0 ⌝ -∗
+    path_wp p.|[ρ] (λ w, ⌜ w = v ⌝) -∗ path_wp p.|[ρ] (sem_psingleton p ρ).
+  Proof.
+    iIntros "#Hcl #Heq /=".
+    iEval rewrite path_wp_eq plength_subst_inv. iExists v; iFrame "Heq".
+    iNext; iIntros "!>"; iDestruct "Hcl" as %Hcl.
+    iEval rewrite path_wp_eq plength_subst_inv. eauto.
+  Qed.
+
+  Lemma T_self_sem_psingleton Γ p T i :
+    (Γ ⊨p p : T , i) -∗
+    (* (Γ ⊨p p : sem_psingleton p , i) *)
+    (⌜ nclosed p (length Γ) ⌝ ∗
+      □∀ vs, ⟦Γ⟧* vs →
+      ▷^i path_wp (p.|[to_subst vs])
+      (λ v, sem_psingleton p (to_subst vs) v)).
+  Proof.
+    iDestruct 1 as (Hclp) "#Hp". iFrame (Hclp).
+    iIntros "!>" (vs) "#Hg".
+    iSpecialize ("Hp" with "Hg"); iNext i.
+    rewrite !path_wp_eq plength_subst_inv.
+    iDestruct "Hp" as (v) "(Heq & Hcl)".
+    iExists v; iFrame "Heq".
+    iNext; iIntros "!>".
+    rewrite interp_v_closed; iDestruct "Hcl" as %Hcl.
+    iEval rewrite path_wp_eq plength_subst_inv. eauto.
+  Qed.
+
+  (* Lemma nsteps_ind_r_weak `(R : relation A) (P : nat → A → A → Prop)
+    (Prefl : ∀ x, P 0 x x) (Pstep : ∀ x y z n, relations.nsteps R n x y → R y z → P n x y → P (S n) x z) :
+    ∀ x z n, relations.nsteps R n x z → P n x z.
+  Proof.
+  Admitted.
+    cut (∀ y z m n, relations.nsteps R n y z → ∀ x, relations.nsteps R m x y → P m x y → P (m + n) x z).
+    admit.
+    (* { eauto using relations.nsteps_0. } *)
+    Search _ (_ + S _ = S (_ + _)).
+    induction 1; rewrite /= ?Nat.add_0_r; eauto using nsteps_trans, nsteps_r.
+    intros. eapply Pstep. [apply H1|..]. nsteps_r.
+  Qed.
+  *)
+
+  (* Lemma self_sem_psingleton p:
+    nclosed p 0 → path_wp p (sem_psingleton p []).
+  Proof.
+    elim: p => [v|p IHp l] /=; asimpl.
+    by iIntros (Hcl%fv_pv_inv) "!> !%".
+
+    iIntros (Hcl%fv_pself_inv). *)
+    (* induction p. *)
+  Lemma fv_pself_inv p l n: nclosed (pself p l) n → nclosed p n.
+  Proof. solve_inv_fv_congruence. Qed.
+
+  Lemma path_wp_exec2 {p v m} :
+    PureExec True m (path2tm p) (tv v) →
+    path_wp p (λ w, ⌜ w = v ⌝ : iProp Σ)%I.
+  Admitted.
+  Lemma self_sem_psingleton3 p i v:
+    nclosed_vl v 0 → PureExec True i (path2tm p) (tv v) →
+    path_wp p (sem_psingleton p ids).
+  Proof.
+    iIntros (Hcl Hexec) "/=".
+    rewrite hsubst_id !path_wp_eq. iExists v.
+    iDestruct (path_wp_exec2 Hexec) as "#H". iFrame "H".
+    iIntros "!> !>". iEval rewrite path_wp_eq. eauto.
+  Qed.
+
   Definition sem_singleton_path p ρ v : iProp Σ := (□WP (path2tm p).|[to_subst ρ] {{ w, ⌜ w = v ∧ nclosed_vl v 0 ⌝ }})%I.
   Arguments sem_singleton_path /.
   Lemma singletons_equiv w ρ v: sem_singleton w ρ v ⊣⊢ sem_singleton_path (pv w) ρ v.
