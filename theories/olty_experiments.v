@@ -124,17 +124,22 @@ Definition hoEnvD_to_olty {Σ n} (φ : hoEnvD Σ n) : olty Σ n := ho_closed_olt
 (** Here, it is *crucial* that we use finite composition [to_subst σ.|[ρ]], not infinite composition [to_subst σ >> ρ].
     That's because when proving D_Typ, we retrieve the type pointed by [s,
     σ.|[ρ]], and there we must use finite composition. *)
-Definition hoEnvD_inst {n Σ} (φ : hoEnvD Σ n) σ : olty Σ n := hoEnvD_to_olty (λ args ρ, φ args (to_subst σ.|[ρ])).
-
-Definition flip_hoEnvD_inst {n Σ} σ := flip (@hoEnvD_inst n Σ) σ.
+Definition hoEnvD_inst {n Σ} σ (φ : hoEnvD Σ n) : olty Σ n := hoEnvD_to_olty (λ args ρ, φ args (to_subst σ.|[ρ])).
 
 Definition stamp_σ_to_type_n' `{!dlangG Σ} s σ n (τ : olty Σ n) : iProp Σ :=
-  (∃ φ, s ↝n[ n ] φ ∗ ▷ (τ ≡ flip_hoEnvD_inst σ φ))%I.
+  (∃ φ, s ↝n[ n ] φ ∗ ▷ (τ ≡ hoEnvD_inst σ φ))%I.
 Notation "s ↗n[ σ , n  ] φ" := (stamp_σ_to_type_n' s σ n φ) (at level 20): bi_scope.
 
 Definition dm_to_type `{!dlangG Σ} (d : dm) n (τ : olty Σ n) : iProp Σ :=
   (∃ s σ, ⌜ d = dtysem σ s ⌝ ∗ s ↗n[ σ, n ] τ)%I.
 Notation "d ↗n[ n  ] φ" := (dm_to_type d n φ) (at level 20).
+
+Definition leadsto_envD_equiv `{!dlangG Σ} (sσ : extractedTy) n {i : nat} (τ : olty Σ i) : iProp Σ :=
+  let '(s, σ) := sσ in
+  (⌜nclosed_σ σ n⌝ ∧ s ↗n[ σ , i ] τ)%I.
+Global Arguments leadsto_envD_equiv /.
+
+Notation "sσ ↝[  n  ] φ" := (leadsto_envD_equiv sσ n φ) (at level 20).
 
 Section SemTypes.
   Context `{!dlangG Σ}.
@@ -151,15 +156,11 @@ Section SemTypes.
     repeat f_equiv. exact: Heq.
   Qed.
 
-  Instance hoEnvD_inst_ne: Proper (dist n ==> (=) ==> dist n) (@hoEnvD_inst i Σ).
+  Instance hoEnvD_inst_ne: NonExpansive (@hoEnvD_inst i Σ σ).
   Proof.
     rewrite /hoEnvD_inst/=.
-    intros n i x y Heq σ ? <-. f_equiv => args ρ v. exact: Heq.
+    intros => x y Heq. f_equiv => args ρ v. exact: Heq.
   Qed.
-
-  (* XXX flip base definition. *)
-  Instance flip_hoEnvD_inst_ne: NonExpansive (@flip_hoEnvD_inst i Σ σ).
-  Proof. intros * ????. exact: hoEnvD_inst_ne. Qed.
 
   Global Instance dm_to_type_contractive d i : Contractive (dm_to_type d i).
   Proof. solve_contractive. Qed.
@@ -171,7 +172,8 @@ Section SemTypes.
     iDestruct 1 as (φ1) "[Hsg1 Heq1]"; iDestruct 1 as (φ2) "[Hsg2 Heq2]".
     iDestruct (stamp_to_type_agree_dep_abs with "Hsg1 Hsg2") as (->) "Hgoal".
     iExists eq_refl. iNext. cbn.
-    iRewrite "Heq1"; iRewrite "Heq2". by iApply f_equiv.
+    iRewrite "Heq1"; iRewrite "Heq2".
+    by iApply (f_equiv (hoEnvD_inst _) with "Hgoal").
   Qed.
 
   Lemma olty_equivI i (φ1 φ2 : olty Σ i):
@@ -197,7 +199,7 @@ Section SemTypes.
     closed_olty (λ ρ v, (∃ d, ⌜v @ dlty_label T ↘ d⌝ ∧ dlty_car T ρ d)%I).
 
   Lemma stamp_σ_to_type_intro s σ φ :
-    s ↝n[ n ] φ -∗ s ↗n[ σ , n ] hoEnvD_inst φ σ.
+    s ↝n[ n ] φ -∗ s ↗n[ σ , n ] hoEnvD_inst σ φ.
   Proof. rewrite /stamp_σ_to_type_n'. iIntros; iExists φ. eauto. Qed.
 
   Lemma stamp_σ_to_type_agree {σ s τ1 τ2} args ρ v :
@@ -219,7 +221,7 @@ Section SemTypes.
   Qed.
 
   Lemma dm_to_type_intro d s σ (φ : hoEnvD Σ n) :
-    d = dtysem σ s → s ↝n[ n ] φ -∗ d ↗n[ n ] hoEnvD_inst φ σ.
+    d = dtysem σ s → s ↝n[ n ] φ -∗ d ↗n[ n ] hoEnvD_inst σ φ.
   Proof. iIntros. iExists s, σ. iFrame "%". by iApply stamp_σ_to_type_intro. Qed.
 
   Global Opaque dm_to_type.
