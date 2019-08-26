@@ -308,8 +308,10 @@ Section SemTypes2.
     iNext; iIntros. iApply prop_ext. iApply ("Hsub" $! _ _).
   Qed.
 
-  Program Definition applyUF {i} (UF : hoD Σ i -> olty Σ i) (A : olty Σ i) : hoEnvD Σ i :=
+  Definition applyUF {i} (UF : hoD Σ i -> olty Σ i)
+      (A : olty Σ i) : hoEnvD Σ i :=
     λ args ρ, UF (λ args, A args ρ) args ρ.
+  Global Arguments applyUF /.
 
   Program Definition oApplyUF {i} (UF : hoD Σ i -> olty Σ i) (A : olty Σ i) : olty Σ i :=
     Olty (applyUF UF A) _.
@@ -325,108 +327,99 @@ Section SemTypes2.
     by iRewrite -(UF_contractive_equivI _ _ _ args ρ v with "Heq").
   Qed.
 
-  Program Definition oTyUFRec i (UF : hoD Σ i -> olty Σ i)
-          (φ ψ : olty Σ i) : olty Σ i :=
-    Olty (λ args ρ v,
-          applyUF UF ψ args ρ v ∧
-          ▷ (∀ args ρ v, φ args ρ v ≡ ψ args ids v) ∧
-          ▷ ψ args ids v)%I _.
-  Next Obligation.
-    intros **?**. rewrite /applyUF olty_vclosed. iIntros "[$ _]".
-  Qed.
+  Definition SSel s σ i : hoEnvD Σ i := λ args ρ v,
+    (∃ ψ, s ↗n[ σ, i ] ψ ∧ ▷ ψ args ids v)%I.
 
-  Instance oTyUFRec_contractive i UF {Hc: Contractive UF}: Contractive (oTyUFRec i UF φ).
+  Program Definition oSSel s σ i := ho_closed_olty (SSel s σ i).
+
+  Program Definition oSSelRec s σ i (UF : hoD Σ i -> olty Σ i)
+          (ψ : olty Σ i) : olty Σ i :=
+    (oAnd (oApplyUF UF ψ) (oSSel s σ i)
+      (* ∧ ▷ (∀ args ρ v, φ args ids v ≡ ψ args ρ v) *)
+    (* ∃ φ : olty Σ i,
+      s ↗n[ σ , i ] φ
+      ∧ ▷ (∀ args ρ v, φ args ids v ≡ ψ args ρ v) *)
+      )%I.
+  (* Lemma olty_dist_alt τ1 τ2: olty_car τ1 = olty_car τ2 → τ1 = τ2.
+  Proof.
+    move: τ1 τ2 => [φ1 Hp1 Hvc1] [φ2 Hp2 Hvc2]. rewrite /olty_car /=.
+    intros ->. f_equal; exact: ProofIrrelevance.proof_irrelevance.
+  Qed. *)
+
+  Instance hsubst_olty_ne i σ : NonExpansive (hsubst σ : olty Σ i → olty Σ i).
+  Proof. move => n x y Heq args ρ v. exact: Heq. Qed.
+
+  Instance oSSelRec_contractive i UF {Hc: Contractive UF}: Contractive (oSSelRec s σ i UF).
   Proof.
     intros => x y Heq args ρ v.
-    rewrite ![_ (oTyUFRec _ _ _ _)]/olty_car/=.
-    f_equiv.
-    - apply: Hc. case: n Heq => [//|n /= Heq ?]. exact: Heq.
-    - f_equiv; f_contractive; last exact: Heq.
-      do 3 (f_equiv => ?). f_equiv. exact: Heq.
+    rewrite /olty_car/=; f_equiv.
+    rewrite /olty_car/=/applyUF.
+    apply: Hc. case: n Heq => [//|n /= Heq ?]. exact: Heq.
+    (* - f_equiv. f_contractive. exact: Heq.
+      f_contractive. by f_equiv. *)
+      (* f_equiv => φ. f_equiv. f_contractive.
+      do 3 (f_equiv => ?). f_equiv. exact: Heq. *)
   Qed.
 
-  Definition oTyUFR i UF `{Contractive UF} φ : olty Σ i :=
-    fixpoint (oTyUFRec i UF φ).
-  Lemma oTyUFR_unfold i UF `{Contractive UF} φ :
-    oTyUFR i UF φ ≡ oTyUFRec i UF φ (oTyUFR i UF φ).
+  Definition oSSelR s σ i UF `{Contractive UF} : olty Σ i := fixpoint (oSSelRec s σ i UF).
+  Lemma oSSelR_unfold s σ i UF `{Contractive UF} :
+    oSSelR s σ i UF ≡ oSSelRec s σ i UF (oSSelR s σ i UF).
   Proof. apply fixpoint_unfold. Qed.
 
   Program Definition oDSelUF d i UF `{!Contractive UF} : olty Σ i :=
     Olty (λ args ρ v,
-    ∃ φ, d ↗n[ i ] φ ∗ oTyUFR i UF φ args ρ v)%I _.
+    ∃ σ s, ⌜d = dtysem σ s⌝ ∧ oSSelR s σ i UF args ρ v)%I _.
   Next Obligation.
-    intros **?**. iDestruct 1 as (φ) "[_ H]". by rewrite olty_vclosed.
+    intros **?**. iDestruct 1 as (???) "H". by rewrite olty_vclosed.
   Qed.
 
-  Program Definition oTSelUF p l i UF `{!Contractive UF} : olty Σ i :=
+  Program Definition oTSelUF_path p l i UF `{!Contractive UF} : olty Σ i :=
     ho_closed_olty (λ args ρ v, path_wp p.|[ρ]
-      (λ vp, ∃ d, ⌜vp @ l ↘ d ⌝ ∧
-        oDSelUF d i UF args ρ v))%I.
+      (λ vp, ∃ d, ⌜vp @ l ↘ d ⌝ ∧ oDSelUF d i UF args ρ v))%I.
+  Program Definition oTSelUF w l i UF `{!Contractive UF} : olty Σ i :=
+    Olty (λ args ρ v, ∃ d, ⌜w.[ρ] @ l ↘ d ⌝ ∧ oDSelUF d i UF args ρ v)%I _.
+  Next Obligation.
+    intros **?**. iDestruct 1 as (d ? σ s ?) "H". by rewrite olty_vclosed.
+  Qed.
 
-  Definition oDTMemUp l τ1 UF `{Contractive UF}: dlty Σ := Dlty l
-    (λ ρ d, □ (∀ args ρ v, τ1 args ρ v → oDSelUF d 0 UF args ρ v))%I.
+  Lemma oSSelR_oTSelUF_equiv w l σ s UF `{Contractive UF} args ρ v:
+    w.[ρ] @ l ↘ dtysem σ s →
+    oSSelR s σ 0 UF args ρ v ≡ oTSelUF w l 0 UF args ρ v.
+  Proof.
+    intros Hl1; iSplit.
+    + iIntros "Hψ".
+      do 2 (rewrite /olty_car/=). eauto 6.
+    + (* repeat rewrite /olty_car/=. *)
+      iDestruct 1 as (d Hl2 σ' s' ?) "H". by objLookupDet.
+  Qed.
 
-  Definition oTTMemUp l τ1 UF `{Contractive UF} :=
-    lift_dinterp_vl (oDTMemUp l τ1 UF).
+  Lemma oSSelR_oTSelUF_wand_iff w l σ s UF `{Contractive UF} args ρ v:
+    w.[ρ] @ l ↘ dtysem σ s →
+    (oSSelR s σ 0 UF args ρ v ∗-∗ oTSelUF w l 0 UF args ρ v)%I.
+  Proof.
+    intros. rewrite (oSSelR_oTSelUF_equiv w l σ s UF args ρ v) //.
+    exact: wand_iff_refl.
+  Qed.
+
+  Lemma Sel_Sub_Rec0 (* L *) UF `{Contractive UF} va l args ρ v :
+    (* Γ ⊨ tv va : oTTMemUp1 l L UF, i -∗ *)
+    oTSelUF va l 0 UF args ρ v -∗ oApplyUF UF (oTSelUF va l 0 UF) args ρ v.
+  Proof.
+    iDestruct 1 as (d Hlookup σ s ->) "Hψ1v".
+    rewrite (oSSelR_unfold _ _ 0 UF _ _ _).
+    iDestruct "Hψ1v" as "[HUF _]".
+    rewrite /olty_car/=.
+    iApply (UF_contractive_equivI2 with "HUF"). clear args. iIntros (args w).
+    iModIntro. iModIntro. by iApply oSSelR_oTSelUF_wand_iff.
+  Qed.
 
   Lemma Sel_Sub_Rec Γ (* L *) UF `{Contractive UF} va l i:
     (* Γ ⊨ tv va : oTTMemUp1 l L UF, i -∗ *)
-    Γ ⊨ [oTSelUF (pv va) l 0 UF, i] <:
-        [oApplyUF UF (oTSelUF (pv va) l 0 UF), i].
-  Proof.
-    (* iIntros "#[% #Hva]". move: H => Hclva. *)
-    iIntros " !>" (ρ v Hclv) "#Hg [_ #Hψ]".
-    (* iSpecialize ("Hva" with "Hg"); rewrite /= wp_value_inv'. *)
-    iNext.
-    iDestruct "Hψ" as (d Hlookup φ) "[Hl Hψ1v]".
-    rewrite (oTyUFR_unfold 0 UF _ _ _ _) [_ (oTyUFRec _ _ _ _)]/olty_car/= /applyUF.
-    iDestruct "Hψ1v" as "[HUF [Heq Hlater]]".
-    iEval (rewrite /olty_car/= /applyUF).
-    iApply (UF_contractive_equivI2 with "HUF").
-    iModIntro.
-    iClear "Hg Heq HUF Hlater Hl". (* iClear "Hs2 HLψ HψU". *)
-    iModIntro.
-    iIntros (args w).
-    iSplit.
-    - iIntros "Hψ". iSplit; first by iApply olty_vclosed.
-      cbn. iExists d; iSplit => //. rewrite /olty_car/=.
+    Γ ⊨ [oTSelUF va l 0 UF, i] <:
+        [oApplyUF UF (oTSelUF va l 0 UF), i].
+  Proof. iIntros " !>" (ρ v Hclv) "_ #H". by rewrite Sel_Sub_Rec0. Qed.
 
-    rewrite (oTyUFR_unfold 0 UF _ _ _ _) [_ (oTyUFRec _ _ _ _)]/olty_car/= /applyUF /oTSelUF.
-    iSplit.
-    - iIntros "[Hψ ?]". iSplit; first by iApply olty_vclosed. cbn.
-
-eauto 6.
-    - iDestruct 1 as (Hclw d σ' s' [Hl ->]) "H". by objLookupDet.
-  Qed.
-
-
-
-  Definition oTSelRec1 p l i UF `{!Contractive UF} : olty Σ i :=
-    ho_closed_olty (λ args ρ v, path_wp p.|[ρ]
-      (λ vp, ∃ d σ s, ⌜vp @ l ↘ d ∧ d = dtysem σ s ⌝ ∧
-        oStampSelR s σ i UF args ρ v))%I.
-
-  Definition oStampSelRec s σ i (UF : hoD Σ i -> olty Σ i) : olty Σ i -> olty Σ i :=
-    λ ψ, ho_closed_olty (λ args ρ v,
-    (s ↗n[ σ , i ] ψ ∧ UF (λ args v, ψ args ρ v) args ρ v ∧ ▷ ψ args ids v))%I.
-
-  Instance oStampSelRec_contractive i UF {Hc: Contractive UF}: Contractive (oStampSelRec s σ i UF).
-  Proof.
-    intros => x y Heq args ρ v.
-    rewrite ![_ (oStampSelRec _ _ _ _ _)]/olty_car/=.
-    f_equiv.
-    f_equiv. by f_contractive.
-    f_equiv.
-    - apply: Hc. case: n Heq => [//|n /= Heq ?]. exact: Heq.
-    - f_contractive. exact: Heq.
-  Qed.
-
-  Definition oStampSelR s σ i UF `{Contractive UF} : olty Σ i := fixpoint (oStampSelRec s σ i UF).
-  Lemma oStampSelR_unfold s σ i UF `{Contractive UF} :
-    oStampSelR s σ i UF ≡ oStampSelRec s σ i UF (oStampSelR s σ i UF).
-  Proof. apply fixpoint_unfold. Qed.
-
-  Definition oDTMemUp1 l τ1 (UF : hoD Σ 0 → olty Σ 0) : dlty Σ := Dlty l
+  (* Definition oDTMemUp1 l τ1 (UF : hoD Σ 0 → olty Σ 0) : dlty Σ := Dlty l
     (λ ρ d,
     ∃ ψ, (d ↗n[ 0 ] ψ) ∗
        □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ τ1 vnil ρ v → ▷ ψ vnil ids v) ∗
@@ -442,75 +435,138 @@ eauto 6.
     iDestruct "H" as (d Hlook ψ) "[Hl [#HLψ _]]".
     repeat (iExists _; iSplit => //).
     iModIntro; iSplitL; eauto.
-  Qed.
-
-  Definition oTSelRec1 p l i UF `{!Contractive UF} : olty Σ i :=
-    ho_closed_olty (λ args ρ v, path_wp p.|[ρ]
-      (λ vp, ∃ d σ s, ⌜vp @ l ↘ d ∧ d = dtysem σ s ⌝ ∧
-        oStampSelR s σ i UF args ρ v))%I.
-
-  Lemma Sel_Sub_Rec Γ (* L *) UF `{Contractive UF} va l i:
-    (* Γ ⊨ tv va : oTTMemUp1 l L UF, i -∗ *)
-    Γ ⊨ [oTSelRec1 (pv va) l 0 UF, i] <:
-        [applyUF UF (oTSelRec1 (pv va) l 0 UF), i].
-  Proof.
-    (* iIntros "#[% #Hva]". move: H => Hclva. *)
-    iIntros " !>" (ρ v Hclv) "#Hg [_ #Hψ]".
-    (* iSpecialize ("Hva" with "Hg"); rewrite /= wp_value_inv'. *)
-    iNext.
-    iDestruct "Hψ" as (d1 σ s [Hlookup ->]) "#Hψ1v".
-    (*
-    iDestruct "Hva" as (Hclvas d Hl ψ) "#[Hlψ [#HLψ #HψU]]". cbn in Hl.
-    Transparent dm_to_type.
-    iDestruct "Hlψ" as (s' σ' ?) "Hs2"; simplify_eq.
-    objLookupDet => {Hl}.*)
-    rewrite (oStampSelR_unfold _ _ _ UF _ _ _) [_ (oStampSelRec _ _ _ _ _)]/olty_car/=.
-
-    iDestruct "Hψ1v" as (_) "[Hs1 [HUF Hstamp]]".
-
-    iEval (rewrite /olty_car/=).
-    rewrite /applyUF/=.
-    iApply (UF_contractive_equivI2 with "HUF").
-    iModIntro.
-    iClear "Hg Hs1 HUF Hstamp". (* iClear "Hs2 HLψ HψU". *)
-    iModIntro.
-    iIntros (args w).
-    rewrite /oTSelRec1. rewrite [_ (ho_closed_olty _)] /olty_car/=.
-    iSplit.
-    - iIntros "Hψ". iSplit; first by iApply olty_vclosed. eauto.
-    - iDestruct 1 as (Hclw d σ' s' [Hl ->]) "H". by objLookupDet.
-  Qed.
+  Qed. *)
 
   Definition oDTMemUp l τ1 UF `{Contractive UF}: dlty Σ := Dlty l
     (λ ρ d,
-      ∃ σ s, ⌜d = dtysem σ s ⌝ ∧
-      (* □ (∀ args ρ v, oStampSelR s σ 0 UF args ρ v →
-          applyUF UF (oStampSelR s σ 0 UF) args ρ v) *)
-      □ (∀ args ρ v, τ1 args ρ v → oStampSelR s σ 0 UF args ρ v))%I.
+      ∃ ψ, (d ↗n[ 0 ] ψ) ∧
+      □ ((∀ v, τ1 vnil ρ v → oDSelUF d 0 UF vnil ρ v) ∧
+         (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ τ1 vnil ρ v → ▷ ψ vnil ids v)))%I.
 
-  Definition oTTMemUp l τ1 UF `{Contractive UF} := lift_dinterp_vl (oDTMemUp l τ1 UF).
+  Definition oTTMemUp l τ1 UF `{Contractive UF} :=
+    lift_dinterp_vl (oDTMemUp l τ1 UF).
 
-  Lemma Sub_SelUp Γ L UF `{Contractive UF} va l i:
-    Γ ⊨ tv va : oTTMemUp l L UF, i -∗
-    Γ ⊨ [L, i] <: [oTSelRec1 (pv va) l 0 UF, i].
-  Proof.
-    iIntros "#[% #Hva] !>" (ρ v Hclv) "#Hg #HvL".
-    iSpecialize ("Hva" with "Hg"). rewrite /= wp_value_inv'.
-    iNext.
-    iDestruct "Hva" as (Hclvas d Hl σ s ->) "#HLϕ". cbn in Hl.
-    iSpecialize ("HLϕ" with "HvL").
-    iEval (rewrite /olty_car/=). eauto 6.
-  Qed.
-
-  Lemma Sub_TTMemUp Γ L UF `{Contractive UF} l i:
+  Lemma Sub_TTMemUp Γ L UF l i `{Contractive UF}:
     Γ ⊨ [oTTMemUp l L UF, i] <: [oTTMem l L oTop, i].
   Proof.
     rewrite /= /olty_car/= /vopen/= /dlty_car/=.
     iIntros "!>" (ρ v Hclv) "#Hg [$ H] /= !>".
-    iDestruct "H" as (d Hlook ψ) "[Hl [#HLψ _]]".
+    iDestruct "H" as (d Hlook ψ) "#[Hψ #[_ HLψ]]".
     repeat (iExists _; iSplit => //).
     iModIntro; iSplitL; eauto.
   Qed.
+    (* iIntros (w Hclw) "HL".
+    iSpecialize ("HLψ" $! vnil w).
+    rewrite /olty_car/=.
+    iDestruct ("HLψ" with "HL") as (s σ) "[>% #H] {HLψ}"; subst.
+
+    rewrite (oSSelR_unfold _ _ 0 UF _ _ _).
+    rewrite /olty_car/=/applyUF.
+  Abort. *)
+
+
+  Lemma Sub_SelUp Γ L UF `{Contractive UF} va l i:
+    Γ ⊨ tv va : oTTMemUp l L UF, i -∗
+    Γ ⊨ [L, i] <: [oTSelUF va l 0 UF, i].
+  Proof.
+    iIntros "#[% #Hva] !>" (ρ v Hclv) "#Hg #HvL".
+    iSpecialize ("Hva" with "Hg"). rewrite /= wp_value_inv'.
+    iNext.
+    iDestruct "Hva" as (Hclvas d Hl ψ) "[_ #[HLU HLψ]]". cbn in Hl.
+    iSpecialize ("HLU" with "HvL"). by iExists d; iSplit.
+  Qed.
+
+  Lemma D_TypUp Γ T L UF `{!Contractive UF} s σ l:
+    Γ ⊨ [T, 0] <: [oApplyUF UF T, 0] -∗
+    Γ ⊨ [L, 0] <: [T, 0] -∗
+    (s, σ) ↝[ length Γ ] T -∗
+    Γ ⊨d{ l := dtysem σ s } : oDTMemUp l L UF.
+  Proof.
+    iIntros "#HTU #HLT #[% Hs] /="; repeat iSplit; [auto using fv_dtysem..|].
+    iIntros "!>" (ρ) "#Hg". iDestruct "Hs" as (φ) "[Hγ Heq]".
+    rewrite /dlty_car /=.
+    iExists _; iSplit. by iApply dm_to_type_intro.
+    (* rewrite [olty_car (_ _)]/olty_car /=. *)
+    (* rewrite [(_ _) _]/olty_car /=. *)
+    (* rewrite olty_equivI; repeat setoid_rewrite discrete_fun_equivI. *)
+    iModIntro; iSplit;
+    iIntros (v); last iIntros (Hclv); iIntros "#HL".
+    - iAssert (⌜nclosed_vl v 0⌝)%I as %Hclv.
+      by rewrite olty_vclosed.
+      iDestruct ("HLT" $! ρ v Hclv with "Hg HL") as "{HLT} #HLT".
+      iExists _, s. iSplit => //.
+      iLöb as "IH".
+      iEval (rewrite (oSSelR_unfold _ _ 0 UF _ _ _) /olty_car/=).
+      iSplit.
+      + iSpecialize ("HTU" $! ρ v Hclv with "Hg HLT").
+        iEval (rewrite /olty_car/=) in "HTU".
+        iEval (rewrite /olty_car/=).
+        iApply (UF_contractive_equivI2 with "HTU").
+        admit. (* FAIL! *)
+      (* iExists _.
+      iExists (oSSelR s σ _ UF).
+      iSplit. admit. *)
+      + iExists _. iFrame "Hγ". iNext.
+        Fail iRewrite "Heq".
+        iEval (rewrite olty_equivI /olty_car/=).
+        admit.
+    - iNext.
+      rewrite olty_equivI; repeat setoid_rewrite discrete_fun_equivI.
+      iSpecialize ("Heq" $! vnil (to_subst ρ) v).
+      iPoseProof (internal_eq_iff with "Heq") as "Heq'".
+      iEval (rewrite /hoEnvD_inst/=/olty_car/=).
+      iEval (rewrite /hoEnvD_inst/=/olty_car/=) in "Heq'".
+      iEval (asimpl). iApply "Heq'".
+      by iApply "HLT".
+    Admitted.
+(*
+      About internal_eq_iff.
+        iSpecialize ("Heq'" $! vnil (ids: env) v).
+        rewrite /olty_car/=. /hoEnvD_inst/=. asimpl.
+        rewrite /flip_
+        iRewrite "Heq'". *)
+
+    (* iClear "HLT HTU Hg". *)
+      (* iNext.
+      iRewrite ("Heq" $! vnil (to_subst ρ) v).
+      rewrite /olty_car/=. asimpl. iExact "HL".
+      (* + iNext. iIntros.
+        unshelve iPoseProof (f_equiv (λ x, x.|[to_subst ρ]) with "Heq") as "Heq' {Heq}".
+        apply _. admit.
+        rewrite olty_equivI; repeat setoid_rewrite discrete_fun_equivI.
+        iSpecialize ("Heq'" $! args (ids: env) v0).
+        iRewrite "Heq'". *)
+
+
+      iExists T.|[to_subst ρ]. iSplit.
+      + iExists _. iFrame "Hγ". iNext.
+        (* Fail iRewrite "Heq". *)
+        admit.
+      + iNext. iIntros.
+        unshelve iPoseProof (f_equiv (λ x, x.|[to_subst ρ]) with "Heq") as "Heq' {Heq}".
+        apply _. admit.
+        rewrite olty_equivI; repeat setoid_rewrite discrete_fun_equivI.
+        iSpecialize ("Heq'" $! args (ids: env) v0).
+        iRewrite "Heq'".
+
+      asimpl.
+      rewrite /flip_hoEnvD_inst/hoEnvD_inst/=. asimpl.
+      iRewrite ("Heq" $! vnil (to_subst ρ) v) in "HLT".
+      rewrite /olty_car /=. asimpl. iExact "HLT".
+    - iApply "HTU" => //. iClear "HLT HTU Hg".
+      iNext.
+      iRewrite ("Heq" $! vnil (to_subst ρ) v).
+      rewrite /olty_car/=. asimpl. iExact "HL".
+
+    - iDestruct ("HLT" $! ρ v Hclv with "Hg HL") as "{HLT HTU HL} HLT".
+      iNext.
+      iRewrite ("Heq" $! vnil (to_subst ρ) v) in "HLT".
+      rewrite /olty_car /=. asimpl. iExact "HLT".
+    - iApply "HTU" => //. iClear "HLT HTU Hg".
+      iNext.
+      iRewrite ("Heq" $! vnil (to_subst ρ) v).
+      rewrite /olty_car/=. asimpl. iExact "HL".
+  Qed. *)
 
 (*
   Program Definition oTSelRec p l i
