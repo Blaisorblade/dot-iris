@@ -19,10 +19,10 @@ Judgments for typing, subtyping, path and definition typing.
 Inductive typed Γ : tm → ty → Prop :=
 (** First, elimination forms *)
 (** Dependent application; only allowed if the argument is a value . *)
-| Appv_typed e1 v2 T1 T2:
-    Γ ⊢ₜ e1: TAll T1 T2 →                        Γ ⊢ₜ tv v2 : T1 →
+| Appv_typed e1 x2 T1 T2:
+    Γ ⊢ₜ e1: TAll T1 T2 →                        Γ ⊢ₜ tv (var_vl x2) : T1 →
     (*────────────────────────────────────────────────────────────*)
-    Γ ⊢ₜ tapp e1 (tv v2) : T2.|[v2/]
+    Γ ⊢ₜ tapp e1 (tv (var_vl x2)) : T2.|[(var_vl x2)/]
 (** Non-dependent application; allowed for any argument. *)
 | App_typed e1 e2 T1 T2:
     Γ ⊢ₜ e1: TAll T1 T2.|[ren (+1)] →      Γ ⊢ₜ e2 : T1 →
@@ -32,10 +32,10 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ ⊢ₜ e : TVMem l T →
     (*─────────────────────────*)
     Γ ⊢ₜ tproj e l : T
-| TMuE_typed v T:
-    Γ ⊢ₜ tv v: TMu T →
+| TMuE_typed x T:
+    Γ ⊢ₜ tv (var_vl x): TMu T →
     (*──────────────────────*)
-    Γ ⊢ₜ tv v: T.|[v/]
+    Γ ⊢ₜ tv (var_vl x): T.|[(var_vl x)/]
 (** Introduction forms *)
 | Lam_typed e T1 T2:
     (* T1 :: Γ ⊢ₜ e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
@@ -48,10 +48,10 @@ Inductive typed Γ : tm → ty → Prop :=
     is_stamped_ty (S (length Γ)) getStampTable T →
     (*──────────────────────*)
     Γ ⊢ₜ tv (vobj ds): TMu T
-| TMuI_typed v T:
-    Γ ⊢ₜ tv v: T.|[v/] →
+| TMuI_typed x T:
+    Γ ⊢ₜ tv (var_vl x): T.|[(var_vl x)/] →
     (*──────────────────────*)
-    Γ ⊢ₜ tv v: TMu T
+    Γ ⊢ₜ tv (var_vl x): TMu T
 | Nat_typed n:
     Γ ⊢ₜ tv (vnat n): TNat
 
@@ -67,10 +67,10 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ ⊢ₜ iterate tskip i e : T2
 (* A bit surprising this is needed, but appears in the DOT papers, and this is
    only admissible if t has a type U that is a proper subtype of TAnd T1 T2. *)
-| TAndI_typed T1 T2 v:
-    Γ ⊢ₜ tv v : T1 →
-    Γ ⊢ₜ tv v : T2 →
-    Γ ⊢ₜ tv v : TAnd T1 T2
+| TAndI_typed T1 T2 x:
+    Γ ⊢ₜ tv (var_vl x) : T1 →
+    Γ ⊢ₜ tv (var_vl x) : T2 →
+    Γ ⊢ₜ tv (var_vl x) : TAnd T1 T2
 where "Γ ⊢ₜ e : T " := (typed Γ e T)
 with dms_typed Γ : ty → dms → ty → Prop :=
 | dnil_typed V : Γ |ds V ⊢ [] : TTop
@@ -94,9 +94,9 @@ with dm_typed Γ : ty → label → dm → ty → Prop :=
     Γ |d V ⊢{ l := dvl v } : TVMem l T
 where "Γ |d V ⊢{ l := d  } : T" := (dm_typed Γ V l d T)
 with path_typed Γ : path → ty → nat → Prop :=
-| pv_typed v T:
-    Γ ⊢ₜ tv v : T →
-    Γ ⊢ₚ pv v : T, 0
+| pv_typed x T:
+    Γ ⊢ₜ tv (var_vl x) : T →
+    Γ ⊢ₚ pv (var_vl x) : T, 0
 | pv_dlater p T i:
     Γ ⊢ₚ p : TLater T, i →
     Γ ⊢ₚ p : T, S i
