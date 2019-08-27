@@ -103,9 +103,9 @@ with path_typed Γ : path → ty → nat → Prop :=
 (* Mnemonic: Path from SELecting a Field *)
 | pself_typed p T i l:
     Γ ⊢ₚ p : TVMem l T, i →
-    Γ ⊢ₚ pself p l : T, i
+    Γ ⊢ₚ pself p l : T, S i
 | p_subs_typed p T1 T2 i j :
-    Γ ⊢ₜ T1, i <: T2, i + j → Γ ⊢ₚ p : T1, i →
+    Γ ⊢ₜ T1, 0 <: T2, j → Γ ⊢ₚ p : T1, i →
     (*───────────────────────────────*)
     Γ ⊢ₚ p : T2, i + j
 where "Γ ⊢ₚ p : T , i" := (path_typed Γ p T i)
@@ -164,12 +164,12 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Γ ⊢ₜ TOr T1 T2, i <: U, i
 
 (* Type selections *)
-| SelU_stp l L U p i:
-    Γ ⊢ₚ p : TTMem l L U, i →
-    Γ ⊢ₜ TSel p l, i <: iterate TLater (S (plength p)) U, i
+| SelU_stp l L U p i j:
+    Γ ⊢ₚ p : TTMem l L U, j →
+    Γ ⊢ₜ TSel p l, i <: iterate TLater (j + 1) U, i
 | LSel_stp l L U p i:
     Γ ⊢ₚ p : TTMem l L U, i →
-    Γ ⊢ₜ iterate TLater (S (plength p)) L, i <: TSel p l, i
+    Γ ⊢ₜ TLater L, i <: TSel p l, i
 
 (* TODO: figure out if the drugs I had when I wrote these rules were good or bad. *)
 (* | SelU_stp l L U p i j: *)
