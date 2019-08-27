@@ -247,7 +247,7 @@ Section logrel.
       And that forces using the same implication in the logical relation
       (unlike I did originally). *)
   Definition step_indexed_ivstp Γ T1 T2 i j: iProp Σ :=
-    (□∀ vs v, ⟦Γ⟧* vs → (▷^i ⟦T1⟧ (to_subst vs) v) → ▷^j ⟦T2⟧ (to_subst vs) v)%I.
+    (□∀ vs v, ⟦Γ⟧* vs → ▷^i ⟦T1⟧ (to_subst vs) v → ▷^j ⟦T2⟧ (to_subst vs) v)%I.
   Global Arguments step_indexed_ivstp /.
 
   Definition iptp Γ T p i: iProp Σ :=
@@ -284,9 +284,12 @@ Notation "Γ |L V" := (defCtxCons Γ V) (at level 60).
 Section logrel_lemmas.
   Context `{!dlangG Σ}.
 
+  Lemma iterate_TLater_later0 i T:
+    ⟦ iterate TLater i T ⟧ ≡ (λ ρ v, ▷^i ⟦ T ⟧ ρ v)%I.
+  Proof. move => ρ v. elim: i => [|i IHi] //. rewrite iterate_S /= IHi //. Qed.
   Lemma iterate_TLater_later i T ρ v:
     ⟦ iterate TLater i T ⟧ ρ v ≡ (▷^i ⟦ T ⟧ ρ v)%I.
-  Proof. elim: i => [|i IHi] //. rewrite iterate_S /= IHi //. Qed.
+  Proof. exact: iterate_TLater_later0. Qed.
 
   Lemma interp_env_len_agree Γ vs:
     ⟦ Γ ⟧* vs -∗ ⌜ length vs = length Γ ⌝.
@@ -323,4 +326,8 @@ Section logrel_lemmas.
     iApply ("Hsub2" with "[//] (Hsub1 [//] [//])").
   Qed.
 
+  Lemma Sub_Eq T U i j :
+    Γ ⊨ [T, i] <: [U, j] ⊣⊢
+    Γ ⊨ [iterate TLater i T, 0] <: [iterate TLater j U, 0].
+  Proof. by cbn; setoid_rewrite iterate_TLater_later. Qed.
 End logrel_lemmas.
