@@ -349,7 +349,7 @@ Qed.
 Theorem simulation_skeleton t1 t1' t2 σ σ' ts:
   same_skel_tm t1 t1' →
   prim_step t1 σ [] t2 σ' ts →
-  exists t2', prim_step t1' σ [] t2' σ' ts ∧ same_skel_tm t2 t2'.
+  ∃ t2', prim_step t1' σ [] t2' σ' ts ∧ same_skel_tm t2 t2'.
 Proof.
   move=> Hsk Hstep. simpl in *.
   inversion Hstep; subst; simpl in *.
