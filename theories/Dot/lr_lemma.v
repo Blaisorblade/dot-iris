@@ -22,14 +22,11 @@ Section Sec.
     (*───────────────────────────────*)
     Γ ⊨ iterate tskip i e : T2)%I.
   Proof.
-    iIntros "/= #[% #HeT1] #Hsub". move: H => Hcle.
-    iSplit; first by eauto using nclosed_tskip_i.
-    iIntros "!>" (vs) "#Hg".
+    iIntros "/= #HeT1 #Hsub !>" (vs) "#Hg".
     rewrite tskip_subst tskip_n_to_fill -wp_bind.
-    iApply (wp_wand_cl _ (⟦ T1 ⟧ (to_subst vs))) => //.
+    iApply wp_wand => //.
     - iApply ("HeT1" with "[//]").
-    - by rewrite -interp_env_cl_app.
-    - iIntros (v) "#HvT1 %".
+    - iIntros (v) "#HvT1".
       (* We can swap ▷^i with WP (tv v)! *)
       rewrite -tskip_n_to_fill -wp_pure_step_later // -wp_value.
       by iApply "Hsub".
@@ -40,7 +37,7 @@ Section Sec.
     (*──────────────────────*)
     Γ ⊨ tv (ids x) : T.|[ren (+x)].
   Proof.
-    iIntros (Hx) "/=". iSplit; eauto using lookup_fv. iIntros "!> * #Hg".
+    iIntros (Hx) "/= !> * #Hg".
     rewrite -wp_value' interp_env_lookup; by [].
   Qed.
 
@@ -63,18 +60,18 @@ Section Sec.
     (iterate TLater i T1 :: Γ ⊨ [T1, i] <: [T2, j] →
      Γ ⊨ [TMu T1, i] <: [TMu T2, j])%I.
   Proof.
-    iIntros "/= #Hstp !>" (vs v Hclv) "#Hg #HT1".
-    iApply ("Hstp" $! (v :: vs) v with "[#//] [# $Hg] [#//]").
+    iIntros "/= #Hstp !>" (vs v) "#Hg #HT1".
+    iApply ("Hstp" $! (v :: vs) v with "[# $Hg] [#//]").
     by rewrite iterate_TLater_later.
   Qed.
 
   (* Novel subtyping rules. Sub_Mu_1 and Sub_Mu_2 become (sort-of?)
   derivable. *)
   Lemma Sub_Mu_A T i: (Γ ⊨ [TMu T.|[ren (+1)], i] <: [T, i])%I.
-  Proof. iIntros "!>" (vs v Hcl) "**". by rewrite (interp_TMu_ren T vs v). Qed.
+  Proof. iIntros "!>" (vs v) "**". by rewrite (interp_TMu_ren T vs v). Qed.
 
   Lemma Sub_Mu_B T i: (Γ ⊨ [T, i] <: [TMu T.|[ren (+1)], i])%I.
-  Proof. iIntros "!>" (vs v Hcl) "**". by rewrite (interp_TMu_ren T vs v). Qed.
+  Proof. iIntros "!>" (vs v) "**". by rewrite (interp_TMu_ren T vs v). Qed.
 
   (*
      Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂
@@ -104,7 +101,7 @@ Section Sec.
    *)
   Lemma TMu_equiv T v: (Γ ⊨ tv v : TMu T) ≡ (Γ ⊨ tv v : T.|[v/]).
   Proof.
-    iSplit; iIntros "/= #[% #Htp]"; iFrame "%"; iIntros "!>" (vs) "Hg";
+    iSplit; iIntros "/= #Htp !>" (vs) "Hg";
     iDestruct (wp_value_inv with "(Htp Hg)") as "{Htp} Hgoal";
     rewrite -wp_value (interp_subst_closed T v (v.[to_subst vs])); done.
   Qed.
@@ -121,8 +118,8 @@ Section Sec.
     (*────────────────────────────────────────────────────────────*)
      Γ ⊨ tapp e1 e2 : T2)%I.
   Proof.
-    iIntros "/= [% #He1] #[% Hv2]". iSplit; eauto using fv_tapp. iIntros "!>" (vs) "#HG".
-    smart_wp_bind (AppLCtx (e2.|[_])) v "#[_ Hr]" "He1".
+    iIntros "/= #He1 #Hv2 !>" (vs) "#HG".
+    smart_wp_bind (AppLCtx (e2.|[_])) v "#Hr" "He1".
     smart_wp_bind (AppRCtx v) w "#Hw" "Hv2".
     iDestruct "Hr" as (t ->) "#Hv".
     rewrite -wp_pure_step_later // -wp_mono /=; first by iApply "Hv".
@@ -135,9 +132,8 @@ Section Sec.
     (*────────────────────────────────────────────────────────────*)
      Γ ⊨ tapp e1 (tv v2) : T2.|[v2/])%I.
   Proof.
-    iIntros "/= [% #He1] [% #Hv2Arg]". move: H H0 => Hcle1 Hclv2. iSplit; eauto using fv_tapp. iIntros " !> * #HG".
-    move: Hclv2 => /fv_of_val_inv Hclv2.
-    smart_wp_bind (AppLCtx (tv v2.[_])) v "[_ #Hr] {He1}" ("He1" with "[#//]").
+    iIntros "/= #He1 #Hv2Arg !> * #HG".
+    smart_wp_bind (AppLCtx (tv v2.[_])) v "#Hr {He1}" ("He1" with "[#//]").
     iDestruct "Hr" as (t ->) "#HvFun".
     rewrite -wp_pure_step_later; last done. iNext.
     iApply wp_wand.
@@ -155,16 +151,8 @@ Section Sec.
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2)%I.
   Proof.
-    iIntros "/= #[% #HeT]". move: H => Hcle.
-    iSplit; eauto using fv_of_val, fv_vabs.
-    iIntros " !>" (vs) "#HG".
-    rewrite -wp_value'.
-    iSplit.
-    {
-      apply fv_vabs in Hcle.
-      by iApply (interp_env_cl_app_vl (vabs e) Hcle).
-    }
-    iExists _; iSplitL; first done.
+    iIntros "/= #HeT !>" (vs) "#HG".
+    rewrite -wp_value'. iExists _; iSplitL; first done.
     iIntros "!> !>" (v) "#Hv /=".
     iSpecialize ("HeT" $! (v :: vs) with "[$HG]").
     by rewrite (interp_weaken_one v T1 vs v).
@@ -178,8 +166,8 @@ Section Sec.
     (*─────────────────────────*)
     Γ ⊨ tproj e l : T)%I.
   Proof.
-    iIntros "#[% #HE] /=". iSplit; auto using fv_tproj. iIntros " !>" (vs) "#HG".
-    smart_wp_bind (ProjCtx l) v "#[% Hv] {HE}" "HE".
+    iIntros "#HE /= !>" (vs) "#HG".
+    smart_wp_bind (ProjCtx l) v "#Hv {HE}" "HE".
     iDestruct "Hv" as (? Hl vmem ->) "Hv".
     rewrite -wp_pure_step_later // -wp_value. by [].
   Qed.

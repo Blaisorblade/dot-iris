@@ -15,15 +15,12 @@ Section Sec.
   Lemma TAll_Later_Swap0 Γ T U `{SwapProp (iPropSI Σ)}:
     Γ ⊨ [TAll (TLater T) U, 0] <: [TLater (TAll T U), 0].
   Proof.
-    iIntros "!>" (ρ v Hclv) "_ /= #[_ #HvTU]". iFrame (Hclv).
+    iIntros "!>" (ρ v) "_ /= #HvTU".
     iDestruct "HvTU" as (t ->) "#HvTU".
     iExists t; iSplit => //. iNext.
     iIntros (w) "!>".
     rewrite -mlater_impl.
     iIntros "#HwT".
-    iApply (strip_pure_laterN_impl 1 (nclosed_vl w 0)); first last.
-      by iApply interp_v_closed.
-    iIntros (Hclw).
     by iApply ("HvTU" with "[# $HwT]").
   Qed.
 
@@ -42,26 +39,23 @@ Section Sec.
   Lemma TAll_Later_Swap `{SwapProp (iPropSI Σ)} Γ T U i:
     Γ ⊨ [TAll (TLater T) (TLater U), i] <: [TLater (TAll T U), i].
   Proof.
-    iIntros "!>" (ρ v Hclv) "_ /= [_ #HvTU]". iFrame (Hclv). iNext i.
+    iIntros "!>" (ρ v) "_ /= #HvTU". iNext i.
     iDestruct "HvTU" as (t ->) "#HvTU".
     iExists t; iSplit => //.
     iNext.
     iIntros (w); rewrite -mlater_impl; iIntros "!> #HwT".
-    iApply (strip_pure_laterN_impl 1 (nclosed_vl w 0)); first last.
-      by iApply interp_v_closed.
-    iIntros (Hclw).
     rewrite -(wp_later_swap _ (⟦ _ ⟧ _)).
     iApply (wp_wand with "(HvTU [# $HwT //])").
-    by iIntros (v) "[_ $]".
+    by iIntros (v) "$".
   Qed.
 
   Lemma TVMem_Later_Swap Γ l T i:
     Γ ⊨ [TVMem l (TLater T), i] <: [TLater (TVMem l T), i].
   Proof.
-    iIntros "!>" (ρ v Hclv) "_ /= #[_ #HvT]". iFrame (Hclv). iNext i.
+    iIntros "!>" (ρ v) "_ /= #HvT". iNext i.
     iDestruct "HvT" as (d Hlook) "#HvT".
     iExists (d); (iSplit; try iSplitL) => //.
-    iDestruct "HvT" as (vmem ->) "[_ HvT]".
+    iDestruct "HvT" as (vmem ->) "HvT".
     iExists (vmem); by iSplit.
   Qed.
 
@@ -104,8 +98,8 @@ Section Sec.
     ⟦ TAnd (TLater T1) (TLater T2) ⟧ ρ v.
   Proof.
     iSplit.
-    iIntros "/= [$ [??]]"; eauto.
-    iIntros "/= [[$?] [_?]]"; eauto.
+    iIntros "/= [??]"; eauto.
+    iIntros "/= [? ?]"; eauto.
   Qed.
 
   Lemma selfIntersect Γ T U i j:
@@ -128,39 +122,37 @@ Section Sec.
   Qed.
 
   Lemma Distr_TLaterN_And T1 T2 j ρ v:
-    nclosed_vl v 0 →
     ⟦ iterate TLater j (TAnd T1 T2) ⟧ ρ v ⊣⊢
     ⟦ TAnd (iterate TLater j T1) (iterate TLater j T2) ⟧ ρ v.
   Proof.
-    intro Hclv.
-    rewrite /= !iterate_TLater_later //=.
+    rewrite /= !iterate_TLater_later /=.
     iSplit; iIntros "/= [??]"; iSplit; by [].
   Qed.
 
   Lemma sub_rewrite_2 Γ T U1 U2 i:
-    (∀ ρ v, nclosed_vl v 0 → ⟦ U1 ⟧ ρ v ⊣⊢ ⟦ U2 ⟧ ρ v) →
+    (∀ ρ v, ⟦ U1 ⟧ ρ v ⊣⊢ ⟦ U2 ⟧ ρ v) →
     Γ ⊨ [ T, i ] <: [ U1, i ] ⊣⊢
     Γ ⊨ [ T, i ] <: [ U2, i ].
   Proof.
-    iIntros (Heq); iSplit; iIntros "/= #H !>" (ρ v Hcl) "#Hg #HT";
+    iIntros (Heq); iSplit; iIntros "/= #H !>" (ρ v) "#Hg #HT";
       [rewrite -Heq //|rewrite Heq //]; by iApply "H".
   Qed.
 
   Lemma sub_rewrite_1 Γ T1 T2 U i:
-    (∀ ρ v, nclosed_vl v 0 → ⟦ T1 ⟧ ρ v ⊣⊢ ⟦ T2 ⟧ ρ v) →
+    (∀ ρ v, ⟦ T1 ⟧ ρ v ⊣⊢ ⟦ T2 ⟧ ρ v) →
     Γ ⊨ [ T1, i ] <: [ U, i ] ⊣⊢
     Γ ⊨ [ T2, i ] <: [ U, i ].
   Proof.
-    iIntros (Heq); iSplit; iIntros "/= #H !>" (ρ v Hcl) "#Hg #HT";
+    iIntros (Heq); iSplit; iIntros "/= #H !>" (ρ v) "#Hg #HT";
       [rewrite -Heq //|rewrite Heq //]; by iApply "H".
   Qed.
 
   Lemma eq_to_bisub Γ T1 T2 i:
-    (∀ ρ v, nclosed_vl v 0 → ⟦ T1 ⟧ ρ v ⊣⊢ ⟦ T2 ⟧ ρ v) → True ⊢
+    (∀ ρ v, ⟦ T1 ⟧ ρ v ⊣⊢ ⟦ T2 ⟧ ρ v) → True ⊢
     Γ ⊨ [ T1, i ] <: [ T2, i ] ∗
     Γ ⊨ [ T2, i ] <: [ T1, i ].
   Proof.
-    iIntros (Heq) "_"; iSplit; iIntros "/= !>" (ρ v Hcl) "#Hg #HT";
+    iIntros (Heq) "_"; iSplit; iIntros "/= !>" (ρ v) "#Hg #HT";
       [rewrite -Heq //|rewrite Heq //]; by iApply "H".
   Qed.
 
@@ -201,71 +193,54 @@ Section Sec.
   (* Exercise: do this with only *syntactic* typing rules. *)
 
   (** Core definitions for singleton types. ⟦ w.type ⟧ ρ v *)
-  Definition sem_singleton w ρ v : iProp Σ := (⌜ w.[to_subst ρ] = v ∧ nclosed_vl v 0 ⌝)%I.
+  Definition sem_singleton w ρ v : iProp Σ := (⌜ w.[to_subst ρ] = v ⌝)%I.
   Arguments sem_singleton /.
 
   (* Core typing lemmas, sketches. TODO: make the above into a type, and add all
      the plumbing. *)
-  Lemma self_sem_singleton ρ v: cl_ρ ρ → nclosed_vl v 0 → sem_singleton v ρ v.
-  Proof.
-    iIntros (Hclρ Hclv) "/= !%"; split => //. by apply closed_subst_vl_id.
-  Qed.
+  Lemma self_sem_singleton ρ v: sem_singleton v ρ v.[to_subst ρ].
+  Proof. by iIntros "!%". Qed.
 
   Lemma other_sem_singleton ρ w v v':
-    (sem_singleton w ρ v →
+    (sem_singleton w ρ v.[to_subst ρ] →
     sem_singleton w ρ v' ↔ sem_singleton v ρ v')%I.
-  Proof.
-    iIntros ((Hv & Hclv)) "/="; iSplit; iIntros ((Hv1 & Hclv')) "!%"; split => //;
-    by [> rewrite closed_subst_vl_id // -Hv -Hv1 | rewrite Hv -Hv1 closed_subst_vl_id ].
-  Qed.
+  Proof. iIntros (Hv) "/="; iSplit; iIntros (Hv1) "!%"; by simplify_eq. Qed.
 
-  Lemma tskip_self_sem_singleton ρ v: cl_ρ ρ → nclosed_vl v 0 →
-    WP (tskip (tv v)) {{ v, sem_singleton v ρ v }}%I.
-  Proof.
-    iIntros (Hclρ Hclv) "/=".
-    iApply wp_pure_step_later => //; iApply wp_value.
-    iIntros "!%"; split => //. by apply closed_subst_vl_id.
-  Qed.
+  Lemma tskip_self_sem_singleton ρ v:
+    WP (tskip (tv v)) {{ v, sem_singleton v ρ v.[to_subst ρ] }}%I.
+  Proof. rewrite -wp_pure_step_later // -wp_value. by iIntros "!%". Qed.
 
   Lemma tskip_other_sem_singleton ρ w v v':
     sem_singleton w ρ v -∗
-    WP (tskip (tv v)) {{ v', sem_singleton w ρ v' }}%I.
+    WP (tskip (tv v)) {{ sem_singleton w ρ }}%I.
   Proof.
-    iIntros (H); iApply wp_pure_step_later => //; iApply wp_value. by iIntros "!%".
+    iIntros (H); rewrite -wp_pure_step_later // -wp_value'. by iIntros "!%".
   Qed.
 
-  Definition sem_psingleton p ρ v : iProp Σ := (□path_wp p.|[ρ] (λ w, ⌜ w = v ∧ nclosed_vl v 0 ⌝ ))%I.
+  Definition sem_psingleton p ρ v : iProp Σ := (□path_wp p.|[ρ] (λ w, ⌜ w = v ⌝ ))%I.
   Global Arguments sem_psingleton /.
 
   Lemma psingletons_equiv w ρ v: sem_singleton w ρ v ⊣⊢ sem_psingleton (pv w) (to_subst ρ) v.
   Proof. iSplit; iIntros "#H /="; iApply "H". Qed.
 
-  Lemma self_sem_psingleton p ρ v : ▷^(plength p) ⌜ nclosed_vl v 0 ⌝ -∗
+  Lemma self_sem_psingleton p ρ v :
     path_wp p.|[ρ] (λ w, ⌜ w = v ⌝) -∗ path_wp p.|[ρ] (sem_psingleton p ρ).
   Proof.
-    iIntros "#Hcl #Heq /=".
-    iEval rewrite path_wp_eq plength_subst_inv. iExists v; iFrame "Heq".
-    iNext; iIntros "!>"; iDestruct "Hcl" as %Hcl.
-    iEval rewrite path_wp_eq plength_subst_inv. eauto.
+    iIntros "#Heq /=".
+    iEval rewrite path_wp_eq plength_subst_inv. by iExists v; iFrame "Heq".
   Qed.
 
   Lemma T_self_sem_psingleton Γ p T i :
     (Γ ⊨p p : T , i) -∗
     (* (Γ ⊨p p : sem_psingleton p , i) *)
-    (⌜ nclosed p (length Γ) ⌝ ∗
-      □∀ vs, ⟦Γ⟧* vs →
+    (□∀ vs, ⟦Γ⟧* vs →
       ▷^i path_wp (p.|[to_subst vs])
       (λ v, sem_psingleton p (to_subst vs) v)).
   Proof.
-    iDestruct 1 as (Hclp) "#Hp". iFrame (Hclp).
-    iIntros "!>" (vs) "#Hg".
+    iIntros "#Hp !>" (vs) "#Hg".
     iSpecialize ("Hp" with "Hg"); iNext i.
     rewrite !path_wp_eq plength_subst_inv.
-    iDestruct "Hp" as (v) "(Heq & Hcl)".
-    iExists v; iFrame "Heq".
-    iNext; iIntros "!>".
-    rewrite interp_v_closed; iDestruct "Hcl" as %Hcl.
-    iEval rewrite path_wp_eq plength_subst_inv. eauto.
+    iDestruct "Hp" as (v) "(Heq & _)". by iExists v; iFrame "Heq".
   Qed.
 
   (* Lemma nsteps_ind_r_weak `(R : relation A) (P : nat → A → A → Prop)
@@ -298,12 +273,11 @@ Section Sec.
     path_wp p (λ w, ⌜ w = v ⌝ : iProp Σ)%I.
   Admitted.
   Lemma self_sem_psingleton3 p i v:
-    nclosed_vl v 0 → PureExec True i (path2tm p) (tv v) →
+    PureExec True i (path2tm p) (tv v) →
     path_wp p (sem_psingleton p ids).
   Proof.
-    iIntros (Hcl Hexec) "/=".
+    iIntros (Hexec) "/=".
     rewrite hsubst_id !path_wp_eq. iExists v.
-    iDestruct (path_wp_exec2 Hexec) as "#H". iFrame "H".
-    iIntros "!> !>". iEval rewrite path_wp_eq. eauto.
+    iDestruct (path_wp_exec2 Hexec) as "#$".
   Qed.
 End Sec.

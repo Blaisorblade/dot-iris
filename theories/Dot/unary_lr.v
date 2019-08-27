@@ -64,12 +64,12 @@ Section logrel.
   Definition def_interp_tmem interp1 interp2 : envPred dm Σ :=
     λ ρ d,
     (∃ ψ, (d ↗ ψ) ∗
-       □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ interp1 ρ v → ▷ □ ψ v) ∗
-          (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ ψ v → ▷ interp2 ρ v)))%I.
+       □ ((∀ v, ▷ interp1 ρ v → ▷ □ ψ v) ∗
+          (∀ v, ▷ □ ψ v → ▷ interp2 ρ v)))%I.
   Global Arguments def_interp_tmem /.
 
   Definition lift_dinterp_vl l (dinterp: envPred dm Σ): envD Σ :=
-    λ ρ v, (⌜ nclosed_vl v 0 ⌝ ∗ ∃ d, ⌜v @ l ↘ d⌝ ∧ dinterp ρ d)%I.
+    λ ρ v, (∃ d, ⌜v @ l ↘ d⌝ ∧ dinterp ρ d)%I.
   Global Arguments lift_dinterp_vl /.
 
   Definition interp_vmem l interp : envD Σ :=
@@ -93,13 +93,13 @@ Section logrel.
   Global Arguments interp_or /.
 
   Definition interp_later interp : envD Σ :=
-    λ ρ v, (⌜ nclosed_vl v 0 ⌝ ∗ ▷ interp ρ v) % I.
+    λ ρ v, (▷ interp ρ v) % I.
   Global Arguments interp_later /.
 
   Definition interp_nat : envD Σ := λ ρ v, (∃ n, ⌜v = vnat n⌝) %I.
   Global Arguments interp_nat /.
 
-  Definition interp_top : envD Σ := λ ρ v, ⌜ nclosed_vl v 0 ⌝%I.
+  Definition interp_top : envD Σ := λ ρ v, True%I.
   Global Arguments interp_top /.
 
   Definition interp_bot : envD Σ := λ ρ v, False%I.
@@ -118,9 +118,8 @@ Section logrel.
    *)
   Definition interp_forall interp1 interp2 : envD Σ :=
     λ ρ v,
-    (⌜ nclosed_vl v 0 ⌝ ∗
-       ∃ t, ⌜ v = vabs t ⌝ ∗
-       □ ▷ ∀ w, interp1 ρ w → interp_expr interp2 (w .: ρ) t.|[w/])%I.
+    (∃ t, ⌜ v = vabs t ⌝ ∗
+     □ ▷ ∀ w, interp1 ρ w → interp_expr interp2 (w .: ρ) t.|[w/])%I.
   Global Arguments interp_forall /.
 
   Definition interp_mu interp : envD Σ :=
@@ -128,7 +127,7 @@ Section logrel.
   Global Arguments interp_mu /.
 
   Definition interp_sel p (l: label) : envD Σ :=
-    λ ρ v, (⌜ nclosed_vl v 0 ⌝ ∧ path_wp p.|[ρ]
+    λ ρ v, (path_wp p.|[ρ]
       (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ψ ∧ ▷ □ ψ v))%I.
   Global Arguments interp_sel /.
 
@@ -184,13 +183,13 @@ Section logrel.
     λ ρ ds, (interp1 ρ ds ∧ interp2 ρ ds)%I.
 
   Definition lift_dinterp_dms T : envPred dms Σ := λ ρ ds, (∃ l d,
-    ⌜ dms_lookup l ds = Some d ∧ nclosed ds 0 ⌝
+    ⌜ dms_lookup l ds = Some d ⌝
     ∧ def_interp T l ρ d)%I.
 
   Fixpoint defs_interp T : envPred dms Σ :=
     match T with
     | TAnd T1 T2 => defs_interp_and (defs_interp T1) (defs_interp T2)
-    | TTop => λ ρ ds, ⌜ nclosed ds 0 ⌝
+    | TTop => λ ρ ds, True
     | _ => lift_dinterp_dms T
     end % I.
 
@@ -218,14 +217,14 @@ Section logrel.
   (** Definitions for semantic (definition) (sub)typing *)
   (** Since [⟦Γ⟧* vs] might be impossible, we must require closedness explicitly. *)
   Definition idtp Γ T l d : iProp Σ :=
-    (⌜ nclosed d (length Γ) ⌝ ∗ □∀ vs, ⟦Γ⟧* vs → def_interp T l (to_subst vs) d.|[to_subst vs])%I.
+    (□∀ vs, ⟦Γ⟧* vs → def_interp T l (to_subst vs) d.|[to_subst vs])%I.
   Global Arguments idtp /.
 
   Definition idstp Γ T ds : iProp Σ :=
-    (⌜ nclosed ds (length Γ) ⌝ ∗ □∀ vs, ⟦Γ⟧* vs → defs_interp T (to_subst vs) ds.|[to_subst vs])%I.
+    (□∀ vs, ⟦Γ⟧* vs → defs_interp T (to_subst vs) ds.|[to_subst vs])%I.
   Global Arguments idstp /.
 
-  Definition ietp Γ T e : iProp Σ := (⌜ nclosed e (length Γ) ⌝ ∗ □∀ vs, ⟦Γ⟧* vs → ⟦T⟧ₑ (to_subst vs) (e.|[to_subst vs]))%I.
+  Definition ietp Γ T e : iProp Σ := (□∀ vs, ⟦Γ⟧* vs → ⟦T⟧ₑ (to_subst vs) (e.|[to_subst vs]))%I.
   Global Arguments ietp /.
 
   (** Indexed Subtyping. Defined on closed values. We must require closedness
@@ -248,13 +247,12 @@ Section logrel.
       And that forces using the same implication in the logical relation
       (unlike I did originally). *)
   Definition step_indexed_ivstp Γ T1 T2 i j: iProp Σ :=
-    (□∀ vs v, ⌜ nclosed_vl v 0 ⌝ → ⟦Γ⟧* vs → (▷^i ⟦T1⟧ (to_subst vs) v) → ▷^j ⟦T2⟧ (to_subst vs) v)%I.
+    (□∀ vs v, ⟦Γ⟧* vs → (▷^i ⟦T1⟧ (to_subst vs) v) → ▷^j ⟦T2⟧ (to_subst vs) v)%I.
   Global Arguments step_indexed_ivstp /.
 
   Definition iptp Γ T p i: iProp Σ :=
-    (⌜ nclosed p (length Γ) ⌝ ∗
-      □∀ vs, ⟦Γ⟧* vs →
-      ▷^i path_wp (p.|[to_subst vs]) (λ v, ⟦T⟧ (to_subst vs) v))%I.
+    (□∀ vs, ⟦Γ⟧* vs →
+     ▷^i path_wp (p.|[to_subst vs]) (λ v, ⟦T⟧ (to_subst vs) v))%I.
   Global Arguments iptp /.
 
   Global Instance idtp_persistent Γ T l d: Persistent (idtp Γ T l d) := _.
@@ -286,30 +284,9 @@ Notation "Γ |L V" := (defCtxCons Γ V) (at level 60).
 Section logrel_lemmas.
   Context `{!dlangG Σ}.
 
-  Lemma idtp_closed Γ T l d: Γ ⊨d{ l := d } : T -∗ ⌜ nclosed d (length Γ) ⌝.
-  Proof. iIntros "[$ _]". Qed.
-
-  Lemma idstp_closed Γ T ds: Γ ⊨ds ds : T -∗ ⌜ nclosed ds (length Γ) ⌝.
-  Proof. iIntros "[$ _]". Qed.
-
-  Lemma ietp_closed Γ T e: Γ ⊨ e : T -∗ ⌜ nclosed e (length Γ) ⌝.
-  Proof. iIntros "[$ _]". Qed.
-
   Lemma iterate_TLater_later i T ρ v:
-    nclosed_vl v 0 →
     ⟦ iterate TLater i T ⟧ ρ v ≡ (▷^i ⟦ T ⟧ ρ v)%I.
-  Proof.
-    elim: i => [|i IHi] // => Hcl. rewrite iterate_S /= IHi //.
-    iSplit; by [iIntros "#[_ $]" | iIntros "$"].
-  Qed.
-
-  Lemma interp_v_closed T w ρ: ⟦ T ⟧ ρ w -∗ ⌜ nclosed_vl w 0 ⌝.
-  Proof.
-    move: ρ; induction T => ρ /=;
-      try by [iPureIntro | iIntros "[$ _]"];
-      rewrite ?IHT1 ?IHT2 ?IHT; iPureIntro.
-    all: by [intuition idtac | move => [n ->]].
-  Qed.
+  Proof. elim: i => [|i IHi] //. rewrite iterate_S /= IHi //. Qed.
 
   Lemma interp_env_len_agree Γ vs:
     ⟦ Γ ⟧* vs -∗ ⌜ length vs = length Γ ⌝.
@@ -318,55 +295,9 @@ Section logrel_lemmas.
     rewrite IHΓ. by iIntros "[-> _] !%".
   Qed.
 
-  Lemma interp_env_ρ_closed Γ vs: ⟦ Γ ⟧* vs -∗ ⌜ cl_ρ vs ⌝.
-  Proof.
-    elim: Γ vs => [|τ Γ IHΓ] [|v vs] //=; try by iPureIntro.
-    rewrite interp_v_closed IHΓ; iPureIntro. intuition.
-  Qed.
-
   Lemma interp_env_props Γ vs:
-    ⟦ Γ ⟧* vs -∗ ⌜ cl_ρ vs ∧ length vs = length Γ ⌝.
-  Proof.
-    iIntros "#HG".
-    iDestruct (interp_env_ρ_closed with "HG") as %?.
-    iDestruct (interp_env_len_agree with "HG") as %?.
-    by iPureIntro.
-  Qed.
-
-  Lemma interp_env_cl_ρ {Γ vs}:
-    ⟦ Γ ⟧* vs -∗ ⌜ nclosed_sub (length Γ) 0 (to_subst vs) ⌝.
-  Proof.
-    elim: Γ vs => [|T Γ IHΓ] vs /=; first by iIntros "!%" (???); lia.
-    case: vs => [|v vs]; last rewrite interp_v_closed IHΓ; iIntros "!% //".
-    move => [Hclvs Hclv] [//|i /lt_S_n Hle /=].
-    apply Hclvs, Hle.
-  Qed.
-
-  Lemma interp_env_cl_app `{Sort X} (x : X) {Γ vs} :
-    nclosed x (length Γ) →
-    ⟦ Γ ⟧* vs -∗ ⌜ nclosed x.|[to_subst vs] 0 ⌝.
-  Proof.
-    rewrite interp_env_cl_ρ. iIntros "!% /=".
-    eauto using nclosed_sub_app.
-  Qed.
-
-  Lemma interp_env_cl_app_vl v {Γ vs}: nclosed_vl v (length Γ) →
-     ⟦ Γ ⟧* vs -∗ ⌜ nclosed_vl v.[to_subst vs] 0 ⌝.
-  Proof.
-    rewrite interp_env_cl_ρ. iIntros "!% /=".
-    eauto using nclosed_sub_app_vl.
-  Qed.
-
-  Lemma interp_env_ρ_fv Γ vs: ⟦ Γ ⟧* vs -∗ ⌜ nclosed vs 0 ⌝.
-  Proof.
-    rewrite interp_env_ρ_closed. iIntros "!%". exact: cl_ρ_fv.
-  Qed.
-
-  Lemma interp_env_to_subst_closed Γ vs x: x < length vs → ⟦ Γ ⟧* vs -∗ ⌜ nclosed_vl (to_subst vs x) 0 ⌝%I.
-  Proof.
-    rewrite interp_env_ρ_closed. iIntros "!%" (??).
-    by apply nclosed_σ_sub_equiv.
-  Qed.
+    ⟦ Γ ⟧* vs -∗ ⌜ length vs = length Γ ⌝.
+  Proof. exact: interp_env_len_agree. Qed.
 
   Lemma interp_env_lookup Γ vs T x:
     Γ !! x = Some T →
@@ -380,9 +311,6 @@ Section logrel_lemmas.
       iApply (IHΓ vs x Hx with "Hg").
   Qed.
 
-  Lemma ietp_closed_vl Γ T v: Γ ⊨ tv v : T -∗ ⌜ nclosed_vl v (length Γ) ⌝.
-  Proof. rewrite ietp_closed; iIntros "!%"; exact: fv_of_val_inv. Qed.
-
   Context {Γ}.
   Lemma Sub_Refl T i : Γ ⊨ [T, i] <: [T, i].
   Proof. by iIntros "/= !> **". Qed.
@@ -391,8 +319,8 @@ Section logrel_lemmas.
                                       Γ ⊨ [T2, i2] <: [T3, i3] -∗
                                       Γ ⊨ [T1, i1] <: [T3, i3].
   Proof.
-    iIntros "#Hsub1 #Hsub2 /= !> * % #Hg #HT".
-    iApply ("Hsub2" with "[//] [//] (Hsub1 [//] [//] [//])").
+    iIntros "#Hsub1 #Hsub2 /= !> * #Hg #HT".
+    iApply ("Hsub2" with "[//] (Hsub1 [//] [//])").
   Qed.
 
 End logrel_lemmas.

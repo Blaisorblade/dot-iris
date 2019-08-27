@@ -22,28 +22,27 @@ Section ex.
   Proof.
     iIntros; repeat (repeat iExists _; repeat iSplit; try done).
     by iApply dm_to_type_intro.
-    iModIntro; repeat iSplit; iIntros (w Hcl). by iIntros ">[]".
+    iModIntro; repeat iSplit; iIntros (w). by iIntros ">[]".
     iMod 1 as %[n ->]. eauto.
   Qed.
 
   (** Yes, v has a valid type member. *)
   Lemma vHasA0: Hs -∗ ⟦ TTMem "A" TBot TNat ⟧ ids v.
   Proof.
-    iIntros "#Hs"; iSplit => //; iExists _; iSplit; by [eauto | iApply sHasA].
+    iIntros "#Hs"; iExists _; iSplit; by [eauto | iApply sHasA].
   Qed.
 
   (* Generic useful lemmas — not needed for fundamental theorem,
      but very useful for examples. *)
-  Lemma ietp_value T v: nclosed_vl v 0 → ⟦ T ⟧ ids v -∗ [] ⊨ tv v : T.
+  Lemma ietp_value T v: ⟦ T ⟧ ids v -∗ [] ⊨ tv v : T.
   Proof.
-    iIntros (?) "#H /="; iSplit; first by auto using fv_of_val.
-    iIntros "!>" (?->).
+    iIntros "#H /= !>" (? ->).
     rewrite -wp_value' to_subst_nil subst_id. iApply "H".
   Qed.
 
   Lemma ietp_value_inv T v: [] ⊨ tv v : T -∗ ⟦ T ⟧ ids v.
   Proof.
-    iIntros "/= [% H]".
+    iIntros "/= H".
     iDestruct ("H" $! [] with "[//]") as "H".
     by rewrite wp_value_inv' subst_id.
   Qed.
@@ -72,7 +71,7 @@ Section ex.
     iApply TAnd_I; first last.
     - iApply (T_Sub _ _ _ _ 0); last by iApply Sub_Top.
       by iApply vHasA0'.
-    - rewrite -ietp_value /=; last done; iSplit => //.
+    - rewrite -ietp_value /=.
       have Hev2: even (vnat 2). by exists 1.
       repeat (repeat iExists _; repeat iSplit);
         by [|iApply dm_to_type_intro].
@@ -94,7 +93,7 @@ Section ex.
           (TAnd (TVMem "n" (TSel (pv (ids 0)) "A")) TTop)) ⟧ ids v.
   Proof.
     iIntros "#Hs".
-    iDestruct (T_New_I [] _ with "[]") as "[% #H]"; first last.
+    iDestruct (T_New_I [] _ with "[]") as "#H"; first last.
     iSpecialize ("H" $! [] with "[#//]").
     rewrite to_subst_nil hsubst_id /interp_expr wp_value_inv'.
     iApply "H".
@@ -103,16 +102,15 @@ Section ex.
 
       (* iApply D_Typ => //.
       admit. admit. cbn. iSplit => //. iExists _; iSplit => //. *)
-      iSplit => //=; iModIntro.
+      iModIntro.
       iIntros ([|v ρ]) "/= #H". done.
-      iDestruct "H" as "[-> [% _]]".
+      iDestruct "H" as "[-> _]".
       iSplit => //. by iApply sHasA.
     - iApply DCons_I => //; last by iApply DNil_I.
       iApply TVMem_I.
-      iSplit => //=.
-      iIntros "!>" ([|v ρ]) "/= #H". done.
-      iDestruct "H" as "[-> [[% HA] [[% HB] _]]]".
-      rewrite -wp_value'; iSplit => //.
+      iIntros "!>" ([|v ρ]) "/= #H /=". done.
+      iDestruct "H" as "[-> [HA [HB _]]]".
+      rewrite -wp_value'.
       iDestruct "HA" as (dA HlA φ) "[Hlφ HA]".
       iDestruct "HB" as (dB HlB w) "HB".
       iExists φ, dA; repeat iSplit => //.
