@@ -4,7 +4,9 @@ From D.DSub Require Import unary_lr typeExtractionSyn.
 
 Set Implicit Arguments.
 
-Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx) (g: stys) (n: nat) (s: stamp).
+Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx) (n: nat) (s: stamp).
+Notation sγmap := (gmap stamp gname).
+Implicit Types (g : stys) (sγ : sγmap).
 
 Section interp_equiv.
   Context `{!dlangG Σ}.
@@ -86,73 +88,57 @@ Section interp_equiv.
       rewrite !(interp_subst_ids T1 _ _). by move->. *)
   Qed.
 
-  Lemma alloc_sp T: (|==> ∃ γ, γ ⤇ ty_interp T)%I.
-  Proof. exact: saved_ho_sem_type_alloc. Qed.
-
-  Lemma transferOne_base_inv gs s T:
-      gs !! s = None → (allGs gs ==∗ ∃ gs', allGs gs' ∗ s ↝ ⟦ T ⟧ ∗ ⌜ gdom gs' ≡ gdom gs ∪ {[s]} ⌝)%I.
-  Proof.
-    iIntros (HsFresh) "Hown /=".
-    iMod (alloc_sp T) as (γ) "#Hγ".
-    iMod (gen_iheap_alloc _ s γ with "Hown") as "[H1 H2]" => //.
-    iModIntro. iExists (<[s:=γ]> gs). iFrame. iSplitL.
-    - iExists γ. by iFrame.
-    - by rewrite dom_insert union_comm.
-  Qed.
-
   (* To give a definitive version of wellMapped, we need stampHeap to be stored in a resource. Here it is: *)
   Definition wellMapped g : iProp Σ :=
-    (□∀ s T,
-        ⌜ g !! s = Some T⌝ → ∃ φ, s ↝ φ ∧ ⌜ ⟦ T ⟧ = φ ⌝)%I.
-  Instance: Persistent (wellMapped g).
-  Proof. apply _. Qed.
+    (□∀ s T, ⌜ g !! s = Some T⌝ → s ↝ ⟦ T ⟧)%I.
+  Instance wellMapped_persistent g: Persistent (wellMapped g) := _.
+  Global Arguments wellMapped: simpl never.
 
-  (** We can transfer one mapping from [g] into Iris resources. Note that [gs ⊆
-      gs'] in the outpu might not be ultimately needed; that's enforced indirectly
-      by both wellMapped and by invariants. *)
-  Lemma transferOne gs g s T:
-      gs !! s = None → (wellMapped g → allGs gs ==∗ ∃ gs', wellMapped (<[s := T]> g) ∧ allGs gs' ∧ ⌜gdom gs' ≡ gdom gs ∪ {[s]}⌝)%I.
+  (** We can transfer one mapping from [g] into Iris resources. *)
+  Lemma transferOne sγ g s T :
+    sγ !! s = None → allGs sγ ∧ wellMapped g ==∗
+    ∃ sγ', ⌜gdom sγ' ≡ {[s]} ∪ gdom sγ⌝ ∧ allGs sγ' ∧ wellMapped (<[s := T]> g).
   Proof.
-    iIntros (HsFresh) "#Hg Hown /=".
-    iMod (transferOne_base_inv gs s T HsFresh with "Hown") as (gs') "(Hgs & #Hmaps & #Hdom)".
-    iExists gs'; iModIntro; iFrame "Hgs".
-    iSplit =>//.
-    iIntros (s' T' Hlook) "!>".
-    destruct (decide (s = s')) as [<-|Hne].
-    - iExists (⟦ T ⟧).
-      suff <-: T = T' by iSplit. rewrite lookup_insert in Hlook; by injection Hlook.
-    - rewrite lookup_insert_ne //= in Hlook. by iApply "Hg".
+    iIntros (HsFresh) "[Hallsγ #Hwmg]".
+    iMod (saved_ho_sem_type_alloc 0 (vopen (ty_interp T))) as (γ) "Hγ".
+    iMod (gen_iheap_alloc _ _ γ HsFresh with "Hallsγ") as "[Hallsγ Hs]".
+    iExists (<[s:=γ]> sγ); iModIntro; iFrame; iSplit. by rewrite dom_insert.
+    iAssert (s ↝ ⟦ T ⟧)%I as "#Hmaps {Hγ Hs}". iExists γ. by iFrame.
+    iIntros (s' T' Hlook) "!>". destruct (decide (s' = s)) as [->|Hne].
+    - suff ->: T' = T by []. move: Hlook. by rewrite lookup_insert => -[->].
+    - rewrite lookup_insert_ne // in Hlook. by iApply "Hwmg".
   Qed.
 
-  Lemma transfer' g gs: (∀ s, s ∈ gdom g → gs !! s = None) →
-                       (allGs gs ==∗ ∃ gs', wellMapped g ∧ allGs gs' ∧ ⌜gdom gs' ≡ gdom gs ∪ gdom g⌝).
+  Notation freshMappings g sγ := (∀ s, s ∈ gdom g → sγ !! s = None).
+
+  Lemma freshMappings_split s T g sγ :
+    freshMappings (<[s:=T]> g) sγ → sγ !! s = None ∧ freshMappings g sγ.
+  Proof.
+    intros Hdom; split => [|s' Hs']; apply Hdom;
+    rewrite dom_insert; set_solver.
+  Qed.
+
+  Lemma transfer' g sγ : freshMappings g sγ → allGs sγ ==∗
+    ∃ sγ', ⌜gdom sγ' ≡ gdom g ∪ gdom sγ⌝ ∧ allGs sγ' ∧ wellMapped g.
   Proof.
     elim g using map_ind.
-    - iIntros "/=" (H) "Hgs !>". iExists gs. repeat iSplit => //.
+    - iIntros "/=" (H) "Hallsγ !>". iExists sγ; iFrame; iSplit.
+      + by rewrite dom_empty left_id.
       + by iIntros (???).
-      + iPureIntro. rewrite dom_empty. set_solver.
-    - move=> {g} /=. iIntros (s T g Hs IH Hdom) "Hallgs".
-      setoid_rewrite dom_insert in Hdom.
-      iPoseProof (IH with "Hallgs") as "IH".
-      { move=> s' Hs'. apply Hdom. set_solver. }
-      iMod "IH" as (gs') "[Hwm [Hgs %]]". move: H => Hgs'.
-
-      iPoseProof (transferOne gs' g s T) as "HH".
-      + cut (s ∉ dom (gset stamp) gs').
-        * move=> Hsgs. by eapply not_elem_of_dom.
-        * rewrite Hgs'. apply not_elem_of_union.
-          split; eapply not_elem_of_dom =>//. apply Hdom. set_solver.
-      + iMod ("HH" with "Hwm Hgs") as (gs'') "[H1 [H2 %]]". move: H => /= Hgs''.
-        iExists gs''. iFrame; iPureIntro.
-        (* code I quoted in https://gitlab.mpi-sws.org/iris/stdpp/issues/29 *)
-        (* set_solver very slow, so: *)
-        rewrite Hgs'' Hgs' dom_insert. by set_solver-.
-        (* by rewrite -union_assoc [dom _ _ ∪ {[_]}]union_comm. *)
+    - move => /= {g} s T g Hsg IH /freshMappings_split [Hssγ Hdom]. iIntros "Hallsγ".
+      iMod (IH Hdom with "Hallsγ") as (sγ' Hsγ') "Hown".
+      iMod (transferOne sγ' g s T with "Hown") as (sγ'' Hsγ'') "Hown".
+      + eapply (not_elem_of_dom (D := gset stamp)).
+        rewrite Hsγ' not_elem_of_union !not_elem_of_dom; by split.
+      + iExists sγ''; iFrame; iIntros "!%".
+        by rewrite Hsγ'' Hsγ' dom_insert union_assoc.
   Qed.
 
-  Lemma transfer g gs: (∀ s, s ∈ gdom g → gs !! s = None) →
-                       (allGs gs ==∗ wellMapped g)%I.
+  Lemma transfer g sγ : freshMappings g sγ → allGs sγ ==∗ wellMapped g.
   Proof.
-    iIntros (Hs) "H". by iMod (transfer' gs Hs with "H") as (gs') "[H ?]".
+    iIntros (Hs) "H". by iMod (transfer' sγ Hs with "H") as (sγ' ?) "[_ $]".
   Qed.
+
+  Lemma transfer_empty g : allGs ∅ ==∗ wellMapped g.
+  Proof. exact: transfer. Qed.
 End interp_equiv.
