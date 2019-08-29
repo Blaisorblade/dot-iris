@@ -105,7 +105,8 @@ with path_typed Γ : path → ty → nat → Prop :=
     Γ ⊢ₚ p : TVMem l T, i →
     Γ ⊢ₚ pself p l : T, i
 | p_subs_typed p T1 T2 i j :
-    Γ ⊢ₜ T1, i <: T2, i + j → Γ ⊢ₚ p : T1, i →
+    Γ ⊢ₜ T1, i <: T2, i + j →
+    Γ ⊢ₚ p : T1, i →
     (*───────────────────────────────*)
     Γ ⊢ₚ p : T2, i + j
 where "Γ ⊢ₚ p : T , i" := (path_typed Γ p T i)
@@ -115,7 +116,9 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     is_stamped_ty (length Γ) getStampTable T →
     Γ ⊢ₜ T, i <: T, i
 | Trans_stp i1 i2 i3 T1 T2 T3:
-    Γ ⊢ₜ T1, i1 <: T2, i2 → Γ ⊢ₜ T2, i2 <: T3, i3 → Γ ⊢ₜ T1, i1 <: T3, i3
+    Γ ⊢ₜ T1, i1 <: T2, i2 →
+    Γ ⊢ₜ T2, i2 <: T3, i3 →
+    Γ ⊢ₜ T1, i1 <: T3, i3
 | TLaterL_stp i T:
     is_stamped_ty (length Γ) getStampTable T →
     Γ ⊢ₜ TLater T, i <: T, S i
