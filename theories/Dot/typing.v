@@ -263,6 +263,7 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
   Lemma stamped_path_subject Γ p T i:
     Γ ⊢ₚ p : T, i → is_stamped_path (length Γ) getStampTable p.
   Proof. unmut_lemma (stamped_mut_subject Γ). Qed.
+  Local Hint Resolve stamped_exp_subject stamped_path_subject.
 
   Scheme typed_mut_ind := Induction for typed Sort Prop
   with   dms_typed_mut_ind := Induction for dms_typed Sort Prop
@@ -280,10 +281,10 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
     is_stamped_ty (S i) g (T.|[ren (+1)]).
   Proof. intros; unmut_lemma (@is_stamped_ren_ty i T g). Qed.
 
-  Local Hint Resolve stamped_path_subject
+  Local Hint Resolve
     is_stamped_ren_ty_1
     is_stamped_sub_one is_stamped_sub_one_rev
-    nclosed_sub_inv_ty_one
+    nclosed_sub_inv_ty_one nclosed_ren_inv_ty_one
     is_stamped_nclosed_ty.
 
   Inductive stamped_ctx g: ctx → Prop :=
@@ -325,7 +326,13 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
   Proof.
     elim: i => [|//i IHi]; rewrite ?iterate_0 ?iterate_S //; auto.
   Qed.
-  Local Hint Resolve is_stamped_TLater_n.
+
+  Lemma is_stamped_tv_inv {n v}:
+    is_stamped_tm n getStampTable (tv v) →
+    is_stamped_vl n getStampTable v.
+  Proof. by inversion 1. Qed.
+  Local Hint Resolve is_stamped_TLater_n
+    is_stamped_tv_inv.
 
   Lemma stamped_mut_types Γ :
     (∀ e T, Γ ⊢ₜ e : T → ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (length Γ) getStampTable T) ∧
@@ -348,29 +355,20 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
           is_stamped_ty (length Γ) getStampTable T)
         (P3 := λ Γ T1 i1 T2 i2 _, ∀ (Hctx: stamped_ctx getStampTable Γ),
                is_stamped_ty (length Γ) getStampTable T1 ∧ is_stamped_ty (length Γ) getStampTable T2); clear Γ.
-    all: intros; cbn in *; ev; try solve [ eauto ].
-    all: try solve [try specialize (H Hctx); try specialize (H0 Hctx); ev;
-      with_is_stamped inverse; eauto; constructor; cbn; eauto].
-    - move: (H Hctx). inversion 1. simplify_eq/=.
-      apply stamped_exp_subject in t0. inverse t0.
-      by eapply is_stamped_sub_one.
-    - move: (H Hctx). inversion 1. simplify_eq/=.
-      eapply is_stamped_sub_rev_ty => //.
-      by eapply nclosed_ren_inv_ty_one, is_stamped_nclosed_ty.
-    - move: (H Hctx). inversion 1. simplify_eq/=.
-      apply stamped_exp_subject in t. inverse t.
-      by eapply is_stamped_sub_one.
+    all: intros; cbn in *; ev; try solve [ eauto using is_stamped_ren_ty_1 ].
+    all: try specialize (H Hctx); try specialize (H0 Hctx); ev.
+    all: try solve [with_is_stamped inverse; eauto; constructor; cbn; eauto].
+    - inverse H. eauto.
+    - inverse H. eapply is_stamped_sub_rev_ty => //. eauto.
     - by apply stamped_lookup.
     - have Hctx': stamped_ctx getStampTable (TLater V :: Γ). by eauto.
       move: (H Hctx') (H0 Hctx'). intuition.
     - have Hctx': stamped_ctx getStampTable (iterate TLater i T1 :: Γ).
       by eauto.
       move: (H Hctx'); intuition.
-    - constructor; eauto. eapply is_stamped_ren_ty_1 in f; eauto.
-    - constructor; eauto. eapply is_stamped_ren_ty_1 in f; eauto.
     - have Hctx': stamped_ctx getStampTable (iterate TLater (S i) T2.|[ren (+1)] :: Γ).
       by eauto.
-      move: (H Hctx) (H0 Hctx'). intuition.
+      move: (H0 Hctx'). intuition.
   Qed.
 End syntyping.
 
