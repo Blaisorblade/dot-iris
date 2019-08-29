@@ -130,9 +130,9 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 | TSucc_stp T i:
     is_stamped_ty (length Γ) getStampTable T →
     Γ ⊢ₜ T, i <: T, S i
-| TMono_stp T1 T2 i:
-    Γ ⊢ₜ T1, i <: T2, i →
-    Γ ⊢ₜ T1, S i <: T2, S i
+| TMono_stp T1 T2 i j:
+    Γ ⊢ₜ T1, i <: T2, j →
+    Γ ⊢ₜ T1, S i <: T2, S j
 
 (* "Logical" connectives *)
 | Top_stp i T :
@@ -149,10 +149,10 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     is_stamped_ty (length Γ) getStampTable T1 →
     is_stamped_ty (length Γ) getStampTable T2 →
     Γ ⊢ₜ TAnd T1 T2, i <: T2, i
-| TAnd_stp T U1 U2 i:
-    Γ ⊢ₜ T, i <: U1, i →
-    Γ ⊢ₜ T, i <: U2, i →
-    Γ ⊢ₜ T, i <: TAnd U1 U2, i
+| TAnd_stp T U1 U2 i j:
+    Γ ⊢ₜ T, i <: U1, j →
+    Γ ⊢ₜ T, i <: U2, j →
+    Γ ⊢ₜ T, i <: TAnd U1 U2, j
 | TOr1_stp T1 T2 i:
     is_stamped_ty (length Γ) getStampTable T1 →
     is_stamped_ty (length Γ) getStampTable T2 →
@@ -161,10 +161,10 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     is_stamped_ty (length Γ) getStampTable T1 →
     is_stamped_ty (length Γ) getStampTable T2 →
     Γ ⊢ₜ T2, i <: TOr T1 T2, i
-| TOr_stp T1 T2 U i:
-    Γ ⊢ₜ T1, i <: U, i →
-    Γ ⊢ₜ T2, i <: U, i →
-    Γ ⊢ₜ TOr T1 T2, i <: U, i
+| TOr_stp T1 T2 U i j:
+    Γ ⊢ₜ T1, i <: U, j →
+    Γ ⊢ₜ T2, i <: U, j →
+    Γ ⊢ₜ TOr T1 T2, i <: U, j
 
 (* Type selections *)
 | SelU_stp l L U p i:
@@ -197,9 +197,9 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 (* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types.
  "Cov" stands for covariance, "Con" for contravariance. *)
 (* Needed? Maybe drop later instead? *)
-| TLaterCov_stp T1 T2 i:
-    Γ ⊢ₜ T1, S i <: T2, S i →
-    Γ ⊢ₜ TLater T1, i <: TLater T2, i
+| TLaterCov_stp T1 T2 i j:
+    Γ ⊢ₜ T1, S i <: T2, S j →
+    Γ ⊢ₜ TLater T1, i <: TLater T2, j
 | TAllConCov_stp T1 T2 U1 U2 i:
     Γ ⊢ₜ T2, S i <: T1, S i →
     iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊢ₜ U1, S i <: U2, S i →

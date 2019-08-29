@@ -84,9 +84,9 @@ Section Sec.
     (Γ ⊨ [T, i] <: [T, S i])%I.
   Proof. by iIntros "!> **". Qed.
 
-  Lemma Sub_Later_Sub T1 T2 i:
-    Γ ⊨ [T1, S i] <: [T2, S i] -∗
-    Γ ⊨ [TLater T1, i] <: [TLater T2, i].
+  Lemma Sub_Later_Sub T1 T2 i j:
+    Γ ⊨ [T1, S i] <: [T2, S j] -∗
+    Γ ⊨ [TLater T1, i] <: [TLater T2, j].
   Proof.
     iIntros "/= #Hsub !>" (ρ v) "#Hg #HT1".
     iSpecialize ("Hsub" $! _ v with "Hg").
