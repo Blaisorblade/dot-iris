@@ -114,11 +114,6 @@ Proof.
   (* simple apply TLaterR_stp. *)
   (* simple apply Nat_typed. *)
 
-  assert (∀ Γ, Γ ⊢ₜ TNat, 0 <: TLater TNat, 0). {
-    (* eauto 3. (* Avoid longer routes.*) *)
-    intro.
-    eapply Trans_stp; by [apply TSucc_stp | apply TLaterR_stp].
-  }
   (* Help proof search: Avoid trying TMuI_typed, that's1 slow. *)
   apply VObj_typed; first constructor; naive_solver.
 Qed.

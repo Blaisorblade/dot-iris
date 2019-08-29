@@ -84,6 +84,10 @@ Section Sec.
     (Γ ⊨ [T, i] <: [T, S i])%I.
   Proof. by iIntros "!> **". Qed.
 
+  Lemma Sub_Add_Later T i :
+    (Γ ⊨ [T, i] <: [TLater T, i])%I.
+  Proof. by iIntros "!> ** !> /=". Qed.
+
   Lemma Sub_Later_Sub T1 T2 i j:
     Γ ⊨ [T1, S i] <: [T2, S j] -∗
     Γ ⊨ [TLater T1, i] <: [TLater T2, j].
@@ -99,12 +103,12 @@ Section Sec.
   Proof. by iIntros "/= !>" (ρ v) "#HG #HT !>". Qed.
 
   Lemma Sub_Later T i :
-    (Γ ⊨ [T, S i] <: [TLater T, i])%I.
-  Proof. iIntros "/= !> ** !>". naive_solver. Qed.
+    Γ ⊨ [T, S i] <: [TLater T, i].
+  Proof. by iIntros "/= !> ** !>". Qed.
 
   Lemma Sub_Index_Incr T U i j:
-    (Γ ⊨ [T, i] <: [U, j] →
-     Γ ⊨ [T, S i] <: [U, S j])%I.
+    Γ ⊨ [T, i] <: [U, j] -∗
+    Γ ⊨ [T, S i] <: [U, S j].
   Proof. iIntros "/= #Hsub !> ** !>". by iApply "Hsub". Qed.
 
   Lemma And1_Sub T1 T2 i: Γ ⊨ [TAnd T1 T2, i] <: [T1, i].

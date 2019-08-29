@@ -127,9 +127,9 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Γ ⊢ₜ T, S i <: TLater T, i
 
 (* "Structural" rules about indexes *)
-| TSucc_stp T i:
+| TAddLater_stp T i:
     is_stamped_ty (length Γ) getStampTable T →
-    Γ ⊢ₜ T, i <: T, S i
+    Γ ⊢ₜ T, i <: TLater T, i
 | TMono_stp T1 T2 i j:
     Γ ⊢ₜ T1, i <: T2, j →
     Γ ⊢ₜ T1, S i <: T2, S j
@@ -201,16 +201,16 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Γ ⊢ₜ T1, S i <: T2, S j →
     Γ ⊢ₜ TLater T1, i <: TLater T2, j
 | TAllConCov_stp T1 T2 U1 U2 i:
-    Γ ⊢ₜ T2, S i <: T1, S i →
-    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊢ₜ U1, S i <: U2, S i →
+    Γ ⊢ₜ TLater T2, i <: TLater T1, i →
+    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊢ₜ TLater U1, i <: TLater U2, i →
     is_stamped_ty (length Γ) getStampTable T2 →
     Γ ⊢ₜ TAll T1 U1, i <: TAll T2 U2, i
 | TVMemCov_stp T1 T2 i l:
-    Γ ⊢ₜ T1, S i <: T2, S i →
+    Γ ⊢ₜ TLater T1, i <: TLater T2, i →
     Γ ⊢ₜ TVMem l T1, i <: TVMem l T2, i
 | TTMemConCov_stp L1 L2 U1 U2 i l:
-    Γ ⊢ₜ L2, S i <: L1, S i →
-    Γ ⊢ₜ U1, S i <: U2, S i →
+    Γ ⊢ₜ TLater L2, i <: TLater L1, i →
+    Γ ⊢ₜ TLater U1, i <: TLater U2, i →
     Γ ⊢ₜ TTMem l L1 U1, i <: TTMem l L2 U2, i
   (* Is it true that for covariant F, F[A ∧ B] = F[A] ∧ F[B]?
     Dotty assumes that, tho DOT didn't capture it.
@@ -375,7 +375,7 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
       move: (H Hctx'); intuition.
     - have Hctx': stamped_ctx getStampTable (iterate TLater (S i) T2.|[ren (+1)] :: Γ).
       by eauto.
-      move: (H0 Hctx'). intuition.
+      move: (H0 Hctx'). intuition idtac; econstructor; cbn; eauto.
   Qed.
 End syntyping.
 

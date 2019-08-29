@@ -19,38 +19,37 @@ Section swap_based_typing_lemmas.
   Context `{hasStampTable: stampTable}.
 
   Lemma Sub_TAllConCov T1 T2 U1 U2 i:
-    Γ ⊨ [ T2, S i ] <: [ T1, S i ] -∗
-    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨ [ U1, S i ] <: [ U2, S i ] -∗
+    Γ ⊨ [ TLater T2, i ] <: [ TLater T1, i ] -∗
+    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨ [ TLater U1, i ] <: [ TLater U2, i ] -∗
     Γ ⊨ [ TAll T1 U1, i ] <: [ TAll T2 U2, i ].
   Proof.
     rewrite iterate_S /=.
     iIntros "#HsubT #HsubU /= !>" (ρ v) "#Hg #HT1".
     iDestruct "HT1" as (t) "#[Heq #HT1]". iExists t; iSplit => //.
     iIntros (w).
-    rewrite -!mlaterN_pers -mlater_impl -mlaterN_impl !swap_later.
+    rewrite -!mlaterN_pers -mlater_impl -mlaterN_impl.
     iIntros "!> #HwT2".
     iSpecialize ("HsubT" $! ρ w with "Hg HwT2").
-    iAssert (□ ▷ ▷^i (∀ v0, ⟦ U1 ⟧ (w .: to_subst ρ) v0 →
+    iAssert (□ ▷^i ▷ (∀ v0, ⟦ U1 ⟧ (w .: to_subst ρ) v0 →
         ⟦ U2 ⟧ (w .: to_subst ρ) v0))%I as "{HsubU} #HsubU". {
-      iIntros (u) "!>"; rewrite -!mlaterN_impl -mlater_impl.
+      iIntros (u) "!>". iEval rewrite -mlater_impl -!mlaterN_impl.
       iApply ("HsubU" $! (w :: ρ) u with "[# $Hg]").
-      rewrite iterate_TLater_later.
+      iEval rewrite iterate_TLater_later -swap_later.
       by iApply interp_weaken_one.
     }
-    iNext 1; iNext i. iApply wp_wand.
-    - iApply "HT1". by iApply "HsubT".
+    iNext i; iNext 1. iApply wp_wand.
+    - iApply "HT1". iApply "HsubT".
     - iIntros (u) "#HuU1". by iApply "HsubU".
   Qed.
 
   Lemma Sub_TTMem_Variant L1 L2 U1 U2 i l:
-    Γ ⊨ [L2, S i] <: [L1, S i] -∗
-    Γ ⊨ [U1, S i] <: [U2, S i] -∗
+    Γ ⊨ [TLater L2, i] <: [TLater L1, i] -∗
+    Γ ⊨ [TLater U1, i] <: [TLater U2, i] -∗
     Γ ⊨ [TTMem l L1 U1, i] <: [TTMem l L2 U2, i].
   Proof.
     iIntros "#IHT #IHT1 /= !>" (ρ v) "#Hg #HT1".
     iDestruct "HT1" as (d) "[Hl2 H]".
     iDestruct "H" as (φ) "#[Hφl [HLφ #HφU]]".
-    setoid_rewrite <- later_laterN.
     setoid_rewrite mlaterN_impl.
     iExists d; repeat iSplit => //.
     iExists φ; repeat iSplitL => //;
@@ -64,20 +63,19 @@ Section swap_based_typing_lemmas.
   Qed.
 
   Lemma Sub_TVMem_Variant' T1 T2 i j l:
-    Γ ⊨ [T1, S i] <: [T2, S (j + i)] -∗
+    Γ ⊨ [TLater T1, i] <: [TLater T2, (j + i)] -∗
     Γ ⊨ [TVMem l T1, i] <: [TVMem l T2, j + i].
   Proof.
-    iIntros "#IHT /= !>" (ρ v) "#Hg #HT1". rewrite laterN_plus.
+    iIntros "#IHT /= !>" (ρ v) "#Hg #HT1". setoid_rewrite laterN_plus.
     iDestruct "HT1" as (d) "#[Hdl #HT1]".
     iExists d; repeat iSplit => //.
     iDestruct "HT1" as (vmem) "[Heq HvT1]".
     iExists vmem; repeat iSplit => //.
-    rewrite !swap_later -laterN_plus.
     iIntros. by iApply "IHT".
   Qed.
 
   Lemma Sub_TVMem_Variant T1 T2 i l:
-    Γ ⊨ [T1, S i] <: [T2, S i] -∗
+    Γ ⊨ [TLater T1, i] <: [TLater T2, i] -∗
     Γ ⊨ [TVMem l T1, i] <: [TVMem l T2, i].
   Proof.
     iApply (Sub_TVMem_Variant' _ _ _ 0).
@@ -114,7 +112,7 @@ Section fundamental.
       + by iApply Sub_Trans.
       + by iApply Later_Sub.
       + by iApply Sub_Later.
-      + by iApply Sub_Mono.
+      + by iApply Sub_Add_Later.
       + by iApply Sub_Index_Incr.
       + by iApply Sub_Top.
       + by iApply Bot_Sub.
