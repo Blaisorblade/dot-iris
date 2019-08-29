@@ -85,8 +85,8 @@ with dm_typed Γ : ty → label → dm → ty → Prop :=
 | dty_typed V l L T U s σ:
     T ~[ S (length Γ) ] (getStampTable, (s, σ)) →
     Forall (is_stamped_vl (S (length Γ)) getStampTable) σ →
-    TLater V :: Γ |⊢ₜ L, 1 <: T, 1 →
-    TLater V :: Γ |⊢ₜ T, 1 <: U, 1 →
+    TLater V :: Γ |⊢ₜ TLater L, 0 <: TLater T, 0 →
+    TLater V :: Γ |⊢ₜ TLater T, 0 <: TLater U, 0 →
     Γ |d V |⊢{ l := dtysem σ s } : TTMem l L U
 | dvl_typed V l v T:
     V :: Γ |⊢ₜ tv v : T →

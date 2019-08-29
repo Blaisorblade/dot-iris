@@ -176,8 +176,8 @@ Section typing_type_member_defs.
     Γ ⊨d dtysem σ s : TTMem l L U.
     *)
   Lemma D_Typ Γ T L U s σ l:
-    Γ ⊨ [T, 1] <: [U, 1] -∗
-    Γ ⊨ [L, 1] <: [T, 1] -∗
+    Γ ⊨ [TLater T, 0] <: [TLater U, 0] -∗
+    Γ ⊨ [TLater L, 0] <: [TLater T, 0] -∗
     (s, σ) ↝[ length Γ ] ⟦ T ⟧ -∗
     Γ ⊨d{ l := dtysem σ s } : TTMem l L U.
   Proof.

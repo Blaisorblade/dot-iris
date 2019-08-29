@@ -86,8 +86,8 @@ with dm_typed Γ : ty → label → dm → ty → Prop :=
 | dty_typed V l L T U s σ:
     T ~[ S (length Γ) ] (getStampTable, (s, σ)) →
     Forall (is_stamped_vl (S (length Γ)) getStampTable) σ →
-    TLater V :: Γ ⊢ₜ L, 1 <: T, 1 →
-    TLater V :: Γ ⊢ₜ T, 1 <: U, 1 →
+    TLater V :: Γ ⊢ₜ TLater L, 0 <: TLater T, 0 →
+    TLater V :: Γ ⊢ₜ TLater T, 0 <: TLater U, 0 →
     Γ |d V ⊢{ l := dtysem σ s } : TTMem l L U
 | dvl_typed V l v T:
     V :: Γ ⊢ₜ tv v : T →
@@ -334,7 +334,11 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
     is_stamped_tm n getStampTable (tv v) →
     is_stamped_vl n getStampTable v.
   Proof. by inversion 1. Qed.
-  Local Hint Resolve is_stamped_TLater_n
+  Lemma is_stamped_TLater_inv {n T}:
+    is_stamped_ty n getStampTable (TLater T) →
+    is_stamped_ty n getStampTable T.
+  Proof. by inversion 1. Qed.
+  Local Hint Resolve is_stamped_TLater_n is_stamped_TLater_inv
     is_stamped_tv_inv.
 
   Lemma stamped_mut_types Γ :
