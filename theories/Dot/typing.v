@@ -319,13 +319,13 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
       eapply (@is_stamped_ren_ty_1 (length Γ) (T.|[ren (+x)]) g), IHx; eauto.
   Qed.
 
-  Lemma is_stamped_TLater {i n T}:
+  Lemma is_stamped_TLater_n {i n T}:
     is_stamped_ty n getStampTable T →
     is_stamped_ty n getStampTable (iterate TLater i T).
   Proof.
     elim: i => [|//i IHi]; rewrite ?iterate_0 ?iterate_S //; auto.
   Qed.
-  Local Hint Resolve is_stamped_TLater.
+  Local Hint Resolve is_stamped_TLater_n.
 
   Lemma stamped_mut_types Γ :
     (∀ e T, Γ ⊢ₜ e : T → ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (length Γ) getStampTable T) ∧
@@ -351,27 +351,26 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
     all: intros; cbn in *; ev; try solve [ eauto ].
     all: try solve [try specialize (H Hctx); try specialize (H0 Hctx); ev;
       with_is_stamped inverse; eauto; constructor; cbn; eauto].
-    - specialize (H Hctx). inverse H. cbn in *.
+    - move: (H Hctx). inversion 1. simplify_eq/=.
       apply stamped_exp_subject in t0. inverse t0.
       by eapply is_stamped_sub_one.
-    - specialize (H Hctx). inverse H. cbn in *.
+    - move: (H Hctx). inversion 1. simplify_eq/=.
       eapply is_stamped_sub_rev_ty => //.
       by eapply nclosed_ren_inv_ty_one, is_stamped_nclosed_ty.
-    - apply stamped_exp_subject in t. inverse t.
-      specialize (H Hctx). inverse H.
+    - move: (H Hctx). inversion 1. simplify_eq/=.
+      apply stamped_exp_subject in t. inverse t.
       by eapply is_stamped_sub_one.
     - by apply stamped_lookup.
     - have Hctx': stamped_ctx getStampTable (TLater V :: Γ). by eauto.
-      specialize (H Hctx'); specialize (H0 Hctx'); intuition.
+      move: (H Hctx') (H0 Hctx'). intuition.
     - have Hctx': stamped_ctx getStampTable (iterate TLater i T1 :: Γ).
       by eauto.
-      specialize (H Hctx'); intuition.
+      move: (H Hctx'); intuition.
     - constructor; eauto. eapply is_stamped_ren_ty_1 in f; eauto.
     - constructor; eauto. eapply is_stamped_ren_ty_1 in f; eauto.
     - have Hctx': stamped_ctx getStampTable (iterate TLater (S i) T2.|[ren (+1)] :: Γ).
       by eauto.
-      specialize (H Hctx); specialize (H0 Hctx').
-      intuition.
+      move: (H Hctx) (H0 Hctx'). intuition.
   Qed.
 End syntyping.
 
