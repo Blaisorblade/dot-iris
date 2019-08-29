@@ -118,10 +118,10 @@ Section Sec.
   (*   ⟦TAnd T1 T2⟧ ρ v. *)
   (* Proof. iIntros; by iSplit. Qed. *)
 
-  Lemma Sub_And S T1 T2 i j:
-    Γ ⊨ [S, i] <: [T1, j] -∗
-    Γ ⊨ [S, i] <: [T2, j] -∗
-    Γ ⊨ [S, i] <: [TAnd T1 T2, j].
+  Lemma Sub_And T U1 U2 i j:
+    Γ ⊨ [T, i] <: [U1, j] -∗
+    Γ ⊨ [T, i] <: [U2, j] -∗
+    Γ ⊨ [T, i] <: [TAnd U1 U2, j].
   Proof.
     iIntros "/= #H1 #H2 !> * #? ?".
     by iSplit; [iApply "H1" | iApply "H2"].
@@ -132,10 +132,10 @@ Section Sec.
   Lemma Sub_Or2 T1 T2 i: Γ ⊨ [T2, i] <: [TOr T1 T2, i].
   Proof. by iIntros "/= !> * _ ? !>"; eauto. Qed.
 
-  Lemma Or_Sub S T1 T2 i j:
-    Γ ⊨ [T1, i] <: [S, j] -∗
-    Γ ⊨ [T2, i] <: [S, j] -∗
-    Γ ⊨ [TOr T1 T2, i] <: [S, j].
+  Lemma Or_Sub T1 T2 U i j:
+    Γ ⊨ [T1, i] <: [U, j] -∗
+    Γ ⊨ [T2, i] <: [U, j] -∗
+    Γ ⊨ [TOr T1 T2, i] <: [U, j].
   Proof. iIntros "/= #H1 #H2 !> * #Hg #[HT1 | HT2]"; by [iApply "H1" | iApply "H2"]. Qed.
 
   Lemma Sub_Top T i:

@@ -148,10 +148,10 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     is_stamped_ty (length Γ) getStampTable T1 →
     is_stamped_ty (length Γ) getStampTable T2 →
     Γ |⊢ₜ TAnd T1 T2, i <: T2, i
-| TAnd_stp T1 T2 U i:
-    Γ |⊢ₜ U, i <: T1, i →
-    Γ |⊢ₜ U, i <: T2, i →
-    Γ |⊢ₜ U, i <: TAnd T1 T2, i
+| TAnd_stp T U1 U2 i:
+    Γ |⊢ₜ T, i <: U1, i →
+    Γ |⊢ₜ T, i <: U2, i →
+    Γ |⊢ₜ T, i <: TAnd U1 U2, i
 | TOr1_stp T1 T2 i:
     is_stamped_ty (length Γ) getStampTable T1 →
     is_stamped_ty (length Γ) getStampTable T2 →
