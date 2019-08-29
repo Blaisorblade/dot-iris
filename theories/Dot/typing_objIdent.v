@@ -239,7 +239,7 @@ where "Γ |⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
     path_typed_mut_ind, subtype_mut_ind.
 
   Hint Constructors typed dms_typed dm_typed path_typed subtype.
-  Lemma stamped_mut_subject Γ:
+  Lemma typing_obj_ident_to_typing Γ:
     (∀ e T, Γ |⊢ₜ e : T → Γ ⊢ₜ e : T) ∧
     (∀ V ds T, Γ |ds V |⊢ ds : T → Γ |ds V ⊢ ds : T) ∧
     (∀ V l d T, Γ |d V |⊢{ l := d } : T → Γ |d V ⊢{ l := d } : T) ∧
