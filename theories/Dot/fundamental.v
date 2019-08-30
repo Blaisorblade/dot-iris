@@ -15,8 +15,28 @@ Ltac iDestrConjs :=
                         end).
 
 Section swap_based_typing_lemmas.
-  Context `{!dlangG Σ} `{!SwapProp (iPropSI Σ)} {Γ}.
-  Context `{hasStampTable: stampTable}.
+  Context `{!dlangG Σ} {Γ}.
+
+  Lemma Sub_TVMem_Variant' T1 T2 i j l:
+    Γ ⊨ [TLater T1, i] <: [TLater T2, (j + i)] -∗
+    Γ ⊨ [TVMem l T1, i] <: [TVMem l T2, j + i].
+  Proof.
+    iIntros "#IHT /= !>" (ρ v) "#Hg #HT1". setoid_rewrite laterN_plus.
+    iDestruct "HT1" as (d) "#[Hdl #HT1]".
+    iExists d; repeat iSplit => //.
+    iDestruct "HT1" as (vmem) "[Heq HvT1]".
+    iExists vmem; repeat iSplit => //.
+    iIntros. by iApply "IHT".
+  Qed.
+
+  Lemma Sub_TVMem_Variant T1 T2 i l:
+    Γ ⊨ [TLater T1, i] <: [TLater T2, i] -∗
+    Γ ⊨ [TVMem l T1, i] <: [TVMem l T2, i].
+  Proof.
+    iApply (Sub_TVMem_Variant' _ _ _ 0).
+  Qed.
+
+  Context `{!SwapProp (iPropSI Σ)}.
 
   Lemma Sub_TAllConCov T1 T2 U1 U2 i:
     Γ ⊨ [ TLater T2, i ] <: [ TLater T1, i ] -∗
@@ -60,25 +80,6 @@ Section swap_based_typing_lemmas.
       iNext; iIntros.
     - iApply "HLφ" => //. by iApply "IHT".
     - iApply "IHT1". by iApply "HφU".
-  Qed.
-
-  Lemma Sub_TVMem_Variant' T1 T2 i j l:
-    Γ ⊨ [TLater T1, i] <: [TLater T2, (j + i)] -∗
-    Γ ⊨ [TVMem l T1, i] <: [TVMem l T2, j + i].
-  Proof.
-    iIntros "#IHT /= !>" (ρ v) "#Hg #HT1". setoid_rewrite laterN_plus.
-    iDestruct "HT1" as (d) "#[Hdl #HT1]".
-    iExists d; repeat iSplit => //.
-    iDestruct "HT1" as (vmem) "[Heq HvT1]".
-    iExists vmem; repeat iSplit => //.
-    iIntros. by iApply "IHT".
-  Qed.
-
-  Lemma Sub_TVMem_Variant T1 T2 i l:
-    Γ ⊨ [TLater T1, i] <: [TLater T2, i] -∗
-    Γ ⊨ [TVMem l T1, i] <: [TVMem l T2, i].
-  Proof.
-    iApply (Sub_TVMem_Variant' _ _ _ 0).
   Qed.
 End swap_based_typing_lemmas.
 
