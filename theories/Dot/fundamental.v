@@ -14,6 +14,12 @@ Ltac iDestrConjs :=
                           iDestruct H as "[#HA #HB]"
                         end).
 
+Lemma forall_swap `{BiAffine PROP} {A} (P : PROP) `{!Persistent P} (Ψ : A → PROP) :
+  (P → ∀ a, Ψ a)%I ⊣⊢ (∀ a, P → Ψ a)%I.
+Proof.
+  iSplit; [iIntros "H" (a) "P"|iIntros "H P" (a)]; iApply ("H" with "P").
+Qed.
+
 Section swap_based_typing_lemmas.
   Context `{!dlangG Σ} {Γ}.
 
@@ -50,13 +56,10 @@ Section swap_based_typing_lemmas.
     rewrite -!mlaterN_pers -mlater_impl -mlaterN_impl.
     iIntros "!> #HwT2".
     iSpecialize ("HsubT" $! ρ w with "Hg HwT2").
-    iAssert (□ ▷^i ▷ (∀ v0, ⟦ U1 ⟧ (w .: to_subst ρ) v0 →
-        ⟦ U2 ⟧ (w .: to_subst ρ) v0))%I as "{HsubU} #HsubU". {
-      iIntros (u) "!>". iEval rewrite -mlater_impl -!mlaterN_impl.
-      iApply ("HsubU" $! (w :: ρ) u with "[# $Hg]").
-      iEval rewrite iterate_TLater_later -swap_later.
-      by iApply interp_weaken_one.
-    }
+    iSpecialize ("HsubU" $! (w :: ρ)); iEval (rewrite -forall_swap) in "HsubU".
+    iSpecialize ("HsubU" with "[# $Hg]").
+    by rewrite iterate_TLater_later -swap_later; iApply interp_weaken_one.
+    setoid_rewrite mlaterN_impl; setoid_rewrite mlater_impl.
     iNext i; iNext 1. iApply wp_wand.
     - iApply "HT1". iApply "HsubT".
     - iIntros (u) "#HuU1". by iApply "HsubU".
@@ -100,14 +103,12 @@ Section fundamental.
     wellMapped getStampTable -∗ Γ ⊨p p : T, i.
   Proof.
     - iIntros "#Hm"; iInduction HT as [] "IHT".
-      + iApply D_Typ;
-        last by iApply extraction_to_leadsto_envD_equiv.
-        by iApply fundamental_subtype.
-        by iApply fundamental_subtype.
+      + iApply D_Typ; by [> iApply fundamental_subtype .. |
+          iApply extraction_to_leadsto_envD_equiv].
       + iApply TVMem_I. by iApply fundamental_typed.
     - iIntros "#Hm"; iInduction HT as [] "IHT".
       + by iApply DNil_I.
-      + iApply DCons_I => //. by iApply fundamental_dm_typed.
+      + iApply DCons_I; by [|iApply fundamental_dm_typed].
     - iIntros "#Hm"; iInduction HT as [] "IHT".
       + by iApply Sub_Refl.
       + by iApply Sub_Trans.
@@ -141,23 +142,17 @@ Section fundamental.
       + by iApply T_Mem_E.
       + by iApply TMu_E.
       + by iApply T_Forall_I.
-      + iApply T_New_I.
-        by iApply fundamental_dms_typed.
+      + iApply T_New_I. by iApply fundamental_dms_typed.
       + by iApply TMu_I.
       + by iApply T_Nat_I.
       + by iApply T_Var.
-      + iApply T_Sub => //.
-        by iApply fundamental_subtype.
+      + iApply T_Sub; by [|iApply fundamental_subtype].
       + by iApply TAnd_I.
-    - iIntros "#Hm".
-      iInduction HT as [] "IHT";
-        try iSpecialize ("IHT" with "[#//]").
-        + iApply P_Val.
-          by iApply fundamental_typed.
-        + by iApply P_DLater.
-        + by iApply P_Mem_E.
-        + iApply P_Sub => //.
-          by iApply fundamental_subtype.
+    - iIntros "#Hm"; iInduction HT as [] "IHT".
+      + iApply P_Val. by iApply fundamental_typed.
+      + by iApply P_DLater.
+      + by iApply P_Mem_E.
+      + iApply P_Sub; by [|iApply fundamental_subtype].
   Qed.
 
   Lemma fundamental_typed_upd Γ e T (HT: Γ ⊢ₜ e : T): (allGs ∅ -∗ |==> Γ ⊨ e : T)%I.
