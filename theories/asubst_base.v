@@ -27,6 +27,9 @@ Fixpoint to_subst (ρ : vls) : var → vl :=
   | [] => ids
   | v :: ρ => v .: to_subst ρ
   end.
+(* Tighter precedence than [>>], which has level 56. *)
+Notation "∞ ρ" := (to_subst ρ) (at level 50).
+
 Definition subst_sigma (σ : vls) (ρ : vls) := σ.|[to_subst ρ].
 
 Lemma to_subst_nil : to_subst [] = ids.
