@@ -14,6 +14,7 @@ Record Traversal {travStateT: Type} :=
     varP: travStateT → nat → Prop;
     vtyP: travStateT → ty → Prop;
     vstampP: travStateT → vls → stamp → Prop;
+    tselP: travStateT → vl → Prop;
   }.
 
 Global Arguments Traversal _: clear implicits.
@@ -61,6 +62,7 @@ Section fold.
       forall_traversal_ty ts (TTMem T1 T2)
   | trav_TSel ts v:
       forall_traversal_vl ts v →
+      trav.(tselP) ts v →
       forall_traversal_ty ts (TSel v)
   | trav_TNat ts: forall_traversal_ty ts TNat
     .
@@ -70,6 +72,7 @@ Global Arguments upS /.
 Global Arguments varP /.
 Global Arguments vtyP /.
 Global Arguments vstampP /.
+Global Arguments tselP /.
 
 Global Hint Constructors forall_traversal_vl forall_traversal_ty forall_traversal_tm.
 End Trav1.
@@ -92,4 +95,3 @@ Definition fold_tmemc: (ty → Prop) → (vls → Prop) → tmemc → Prop :=
   | inl T => tyP T
   | inr (vs, s) => vlsP vs
   end.
-

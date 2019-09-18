@@ -10,12 +10,19 @@ Implicit Types
          (T: ty) (v: vl) (e: tm) (p: path) (d: dm) (ds: dms) (vs: vls)
          (Γ : ctx) (g: stys) (n: nat).
 
+Fixpoint path_root (p : path): vl :=
+  match p with
+  | pv v => v
+  | pself p _ => path_root p
+  end.
+
 Definition is_unstamped_trav: Traversal unit :=
   {|
     upS := id;
     varP := λ _ n, True;
     dtysynP := λ _ T, True;
     dtysemP := λ _ vs s, False;
+    tselP := λ s p, ∃ x, path_root p = var_vl x;
   |}.
 
 Definition is_stamped_trav: Traversal (nat * stys) :=
@@ -24,6 +31,7 @@ Definition is_stamped_trav: Traversal (nat * stys) :=
     varP := λ '(n, g) i, i < n;
     dtysynP := λ ts T, False;
     dtysemP := λ '(n, g) vs s, ∃ T', g !! s = Some T' ∧ nclosed T' (length vs);
+    tselP := λ ts p, True;
   |}.
 
 Notation is_unstamped_tm := (forall_traversal_tm is_unstamped_trav ()).

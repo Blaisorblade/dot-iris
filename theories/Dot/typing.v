@@ -364,7 +364,7 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
                is_stamped_ty (length Γ) getStampTable T1 ∧ is_stamped_ty (length Γ) getStampTable T2); clear Γ.
     all: intros; cbn in *; ev; try solve [ eauto using is_stamped_ren_ty_1 ].
     all: try specialize (H Hctx); try specialize (H0 Hctx); ev.
-    all: try solve [with_is_stamped inverse; eauto; constructor; cbn; eauto].
+    all: try solve [with_is_stamped inverse; eauto; repeat constructor; cbn; eauto].
     - inverse H. eauto.
     - inverse H. eapply is_stamped_sub_rev_ty => //. eauto.
     - by apply stamped_lookup.
