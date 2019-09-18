@@ -64,26 +64,25 @@ Section interp_equiv.
     T ~[ m ] (g, (s1, σ1)) →
     T.|[to_subst ξ] ~[ n ] (g, (s2, σ2)) →
     length ξ = m →
-    nclosed_σ ξ n →
     ∃ T1 T2, g !! s1 = Some T1 ∧ g !! s2 = Some T2 ∧
     ⟦ T1 ⟧ [ to_subst σ1.|[to_subst ξ] ] ≡ ⟦ T2 ⟧ [ to_subst σ2 ].
   Proof.
-    intros (T1 & -> & <- & Hclσ1 & HclT1) (T2 & -> & Heq2 & Hclσ2 & HclT2) Hlenξ Hclξ.
+    intros (T1 & -> & <- & Hclσ1 & HclT1) (T2 & -> & Heq2 & Hclσ2 & HclT2) Hlenξ.
     exists T1, T2; split_and! => // ρ v /=.
     rewrite (interp_subst_ids T1 _ _) (interp_subst_ids T2 _ _). f_equiv.
     have: T1.|[to_subst σ1.|[to_subst ξ]] = T2.|[to_subst σ2].
-    - by rewrite Heq2 (subst_compose HclT1 _ Hclσ1 _ Hclξ).
+    - by rewrite Heq2 (subst_compose _ _ HclT1).
     - move => /(f_equal (λ T, T.|[ρ])). by asimpl.
     (* Reusing envD_equiv_infsubst takes more work than proving it from scratch! *)
     (* Restart.
-    intros Hext1 Hext2 Hlen Hclξ.
+    intros Hext1 Hext2 Hlen.
     destruct (envD_equiv_infsubst Hext1 Hext2) as (T1 & T2 & Hgs1 & Hgs2 & Heq).
     destruct Hext1 as (T1' & Hgs1' & Heq1 & Hclσ1 & HclT1).
     have ?: T1' = T1 by simplify_eq. subst. simplify_eq.
     exists T1, T2; split_and! => // ρ v /=.
     move: (Heq ρ v) => /= <- {Heq}.
     have: T1.|[to_subst σ1.|[to_subst ξ]] = T1.|[to_subst σ1 >> to_subst ξ].
-    - rewrite (subst_compose HclT1 _ Hclσ1 _ Hclξ) //. by asimpl.
+    - rewrite (subst_compose _ _ HclT1) //. by asimpl.
     - move => /(f_equal (λ T, T.|[ρ])). asimpl.
       rewrite !(interp_subst_ids T1 _ _). by move->. *)
   Qed.

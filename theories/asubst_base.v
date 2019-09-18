@@ -403,23 +403,18 @@ Proof. elim: xs => /= [//|x xs IHxs] /fv_cons_inv [Hclx Hclxs]. auto. Qed.
 Lemma nclosed_xs_eq_nclosed n xs: nclosed_xs xs n ↔ nclosed xs n.
 Proof. split; eauto using Forall_to_closed_xs, closed_xs_to_Forall. Qed.
 
-Lemma inf_subst_compose x σ ξ n1 n2 n3 :
-  nclosed x n1 →
-  length σ = n1 → nclosed_σ σ n2 →
-  nclosed_sub n2 n3 ξ →
+Lemma inf_subst_compose x σ ξ n :
+  nclosed x n → length σ = n →
   x.|[to_subst σ.|[ξ]] = x.|[to_subst σ].|[ξ].
-Proof. intros Hclx <- Hclσ Hclξ; asimpl. apply Hclx, to_subst_compose. Qed.
+Proof. intros Hclx <-; asimpl. apply Hclx, to_subst_compose. Qed.
 
-Lemma subst_compose x σ ξ n1 n2 n3:
-  nclosed x n1 →
-  length σ = n1 → nclosed_σ σ n2 →
-  length ξ = n2 → nclosed_σ ξ n3 →
+Lemma subst_compose x σ ξ n:
+  nclosed x n → length σ = n →
   x.|[to_subst σ.|[to_subst ξ]] = x.|[to_subst σ].|[to_subst ξ].
-Proof. intros; subst; eapply inf_subst_compose; eauto. Qed.
+Proof. intros; eapply inf_subst_compose; eauto. Qed.
 
-Lemma subst_compose_idsσ x n m ξ:
+Lemma subst_compose_idsσ x n ξ:
   nclosed x n →
-  nclosed_σ ξ m →
   length ξ = n →
   x.|[to_subst (idsσ n).|[to_subst ξ]] = x.|[to_subst (idsσ n)].|[to_subst ξ].
 Proof. intros; eauto using subst_compose. Qed.
