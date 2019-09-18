@@ -59,9 +59,9 @@ Section logrel_binding_lemmas.
     nclosed T (length σ) →
     ⟦ T.|[to_subst σ] ⟧ sb v ≡ ⟦ T ⟧ (to_subst σ.|[sb]) v.
   Proof.
-    rewrite interp_subst_commute_gen => HclT.
+    rewrite interp_subst_commute_gen => HclT. symmetry.
     apply (interp_closed HclT).
-    apply eq_n_s_symm, to_subst_compose.
+    apply to_subst_compose.
   Qed.
 
   Lemma interp_subst_closed T v w ρ:
