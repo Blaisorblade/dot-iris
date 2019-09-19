@@ -82,7 +82,7 @@ Section interp_equiv.
     exists T1, T2; split_and! => // ρ v /=.
     move: (Heq ρ v) => /= <- {Heq}.
     have: T1.|[to_subst σ1.|[to_subst ξ]] = T1.|[to_subst σ1 >> to_subst ξ].
-    - rewrite (subst_compose _ _ HclT1) //. by asimpl.
+    - rewrite (subst_compose _ _ HclT1) //. autosubst.
     - move => /(f_equal (λ T, T.|[ρ])). asimpl.
       rewrite !(interp_subst_ids T1 _ _). by move->. *)
   Qed.

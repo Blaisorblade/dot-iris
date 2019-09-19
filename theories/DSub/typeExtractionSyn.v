@@ -156,7 +156,7 @@ Lemma extract_inf_subst_commute g g' g'' T ξ n m s1 σ1 s2 σ2:
 Proof.
   rewrite /extract => HclT Hclξ Hext1 Hext2. split; first eauto.
   exists T, T.|[ξ]; split_and!; eauto.
-  simplify_eq; rewrite (inf_subst_compose _ _ HclT) //.
+  simplify_eq; rewrite (subst_compose _ _ HclT) //.
   rewrite !closed_subst_idsρ //. exact: nclosed_sub_app.
 Qed.
 

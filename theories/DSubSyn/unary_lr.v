@@ -213,40 +213,36 @@ Section logrel_part2.
   Proof. revert v ρ; induction T => w ρ; unfold_interp; try apply _. Qed.
 
   (* XXX here we needn't add a variable to the scope of its own type. But that won't hurt. *)
-  Fixpoint interp_env (Γ : ctx) (vs : vls) : iProp Σ :=
+  Fixpoint interp_env (Γ : ctx) (ρ : var → vl) : iProp Σ :=
     match Γ with
-    | nil => ⌜vs = nil⌝
-    | T :: Γ' =>
-      match vs with
-      | nil => False
-      | v :: vs => interp_env Γ' vs ∗ ⟦ T ⟧ (v .: to_subst vs) v
-      end
+    | T :: Γ' => interp_env Γ' ((+1) >>> ρ) ∗ ⟦ T ⟧ ρ (ρ 0)
+    | nil => True
     end%I.
 
   Notation "⟦ Γ ⟧*" := (interp_env Γ).
 
-  Global Instance interp_env_persistent Γ vs :
-    Persistent (⟦ Γ ⟧* vs).
-  Proof. elim: Γ vs => [|τ Γ IHΓ] [|v vs]; apply _. Qed.
+  Global Instance interp_env_persistent Γ ρ :
+    Persistent (⟦ Γ ⟧* ρ).
+  Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
 
   Definition ietp Γ T e : iProp Σ :=
-    (□∀ vs, ⟦Γ⟧* vs → ⟦T⟧ₑ (to_subst vs) (e.|[to_subst vs]))%I.
+    (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ₑ ρ (e.|[ρ]))%I.
   Global Arguments ietp /.
   Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 
   Definition step_indexed_ietp Γ T e i: iProp Σ :=
-    (□∀ vs, ⟦Γ⟧* vs → ▷^i ⟦T⟧ₑ (to_subst vs) (e.|[to_subst vs]))%I.
+    (□∀ ρ, ⟦Γ⟧* ρ → ▷^i ⟦T⟧ₑ ρ (e.|[ρ]))%I.
   Global Arguments step_indexed_ietp /.
   Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
 
   (** Indexed Subtyping. Defined on closed values. We must require closedness
       explicitly, since closedness now does not follow from being well-typed later. *)
   Definition step_indexed_ivstp Γ T1 T2 i j: iProp Σ :=
-    (□∀ vs v, ⟦Γ⟧* vs → (▷^i ⟦T1⟧ (to_subst vs) v) → ▷^j ⟦T2⟧ (to_subst vs) v)%I.
+    (□∀ ρ v, ⟦Γ⟧* ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
   Global Arguments step_indexed_ivstp /.
 
   Definition delayed_ivstp Γ T1 T2 i: iProp Σ :=
-    (□ ∀ vs, ⟦Γ⟧*vs → ▷^i ∀v, ⟦T1⟧ (to_subst vs) v → ⟦T2⟧ (to_subst vs) v)%I.
+    (□ ∀ ρ, ⟦Γ⟧*ρ → ▷^i ∀v, ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
   Global Arguments delayed_ivstp /.
 
   Global Instance ietp_persistent Γ T e : Persistent (ietp Γ T e) := _.
@@ -281,16 +277,16 @@ Section logrel_lemmas.
     iInduction i as [|i] "IHi". by iApply "H". iExact "IHi".
   Qed.
 
-  Lemma interp_env_lookup Γ vs T x:
+  Lemma interp_env_lookup Γ ρ T x:
     Γ !! x = Some T →
-    ⟦ Γ ⟧* vs -∗ ⟦ T.|[ren (+x)] ⟧ (to_subst vs) (to_subst vs x).
+    ⟦ Γ ⟧* ρ -∗ ⟦ T.|[ren (+x)] ⟧ ρ (ρ x).
   Proof.
-    elim: Γ vs x => [//|τ' Γ' IHΓ] [|v vs] x Hx /=. by iIntros "[]".
+    elim: Γ ρ x => [//|τ' Γ' IHΓ] ρ x Hx /=.
     iDestruct 1 as "[Hg Hv]". move: x Hx => [ [->] | x Hx] /=.
     - rewrite hsubst_id. by [].
     - rewrite hrenS.
-      iApply (interp_weaken_one v (T.|[ren (+x)]) vs).
-      iApply (IHΓ vs x Hx with "Hg").
+      iApply (interp_weaken_one (T.|[ren (+x)])).
+      iApply (IHΓ ((+1) >>> ρ) x Hx with "Hg").
   Qed.
 
   Context {Γ}.

@@ -28,11 +28,11 @@ Section swap_based_typing_lemmas.
     rewrite -!mlaterN_pers -mlater_impl -mlaterN_impl !swap_later.
     iIntros "!> #HwT2".
     iSpecialize ("HsubT" with "HwT2").
-    iAssert (□ ▷ ▷^i (∀ v0, ⟦ U1 ⟧ (w .: to_subst ρ) v0 →
-        ⟦ U2 ⟧ (w .: to_subst ρ) v0))%I as "{HsubU} #HsubU". {
+    iAssert (□ ▷ ▷^i (∀ v0, ⟦ U1 ⟧ (w .: ρ) v0 →
+        ⟦ U2 ⟧ (w .: ρ) v0))%I as "{HsubU} #HsubU". {
       iIntros (v0); rewrite -!mlaterN_impl -mlater_impl.
       iIntros "!> #HUv0".
-      iApply ("HsubU" $! (w :: ρ) v0 with "[# $Hg] HUv0").
+      iApply ("HsubU" $! (w .: ρ) v0 with "[# $Hg] HUv0").
       unfold_interp; rewrite iterate_TLater_later.
       by iApply interp_weaken_one.
     }
@@ -54,7 +54,7 @@ Section swap_based_typing_lemmas.
     rewrite -!mlaterN_pers -!laterN_later/= -!mlaterN_impl -!mlater_impl.
     iIntros "!> #HwT2".
     iSpecialize ("HsubT" with "Hg").
-    iSpecialize ("HsubU" $! (w :: ρ) with "[# $Hg]"). {
+    iSpecialize ("HsubU" $! (w .: ρ) with "[# $Hg]"). {
       unfold_interp. rewrite iterate_TLater_later.
       by iApply interp_weaken_one.
     }

@@ -90,8 +90,7 @@ Section Sec.
     V :: Γ ⊨ tv v : T -∗
     Γ |L V ⊨d{ l := dvl v } : TVMem l T.
   Proof.
-    iIntros "/= #Hv !>" ([|w vs]); first by iIntros.
-    iIntros "[#Hg #Hw]".
+    iIntros "/= #Hv !>" (ρ) "[#Hg #Hw]".
     iSplit => //; iExists _; iSplit => //.
     iNext. iApply wp_value_inv'; iApply "Hv"; by iSplit.
   Qed.
@@ -109,9 +108,9 @@ Section Sec.
   Proof.
     iIntros "/= #Hds !>" (vs) "#Hg /=". rewrite -wp_value'.
     iLöb as "IH".
-    iApply lift_dsinterp_dms_vl_commute;
-      rewrite // norm_selfSubst -to_subst_cons.
-    iApply ("Hds" $! (vobj _ :: vs)); by iFrame "IH Hg".
+    iApply lift_dsinterp_dms_vl_commute.
+    rewrite norm_selfSubst.
+    iApply ("Hds" $! (vobj _ .: vs)); by iFrame "IH Hg".
   Qed.
 
   Lemma DNil_I : Γ ⊨ds [] : TTop.

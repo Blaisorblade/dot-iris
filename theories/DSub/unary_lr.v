@@ -44,9 +44,9 @@ Section logrel.
 
   Definition interp_tmem interp1 interp2 : envD Σ :=
     λ ρ v,
-    (⌜ nclosed_vl v 0 ⌝ ∗  ∃ φ, (v ↗ φ) ∗
-       □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ interp1 ρ v → ▷ □ φ v) ∗
-          (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ φ v → ▷ interp2 ρ v) ∗
+    (∃ φ, (v ↗ φ) ∗
+       □ ((∀ v, ▷ interp1 ρ v → ▷ □ φ v) ∗
+          (∀ v, ▷ □ φ v → ▷ interp2 ρ v) ∗
           (∀ v, interp1 ρ v → interp2 ρ v)))%I.
   Global Arguments interp_tmem /.
 
@@ -57,17 +57,15 @@ Section logrel.
   Definition interp_nat : envD Σ := λ ρ v, (∃ n, ⌜v = vnat n⌝) %I.
   Global Arguments interp_nat /.
 
-  Definition interp_top : envD Σ := λ ρ v, ⌜ nclosed_vl v 0 ⌝%I.
+  Definition interp_top : envD Σ := λ ρ v, True%I.
   Global Arguments interp_top /.
 
   Definition interp_bot : envD Σ := λ ρ v, False%I.
   Global Arguments interp_bot /.
 
-  (* XXX Paolo: This definition is correct but non-expansive; I suspect we might
-      need to readd later here, but also to do the beta-reduction in place, to
-      make it contractive (similarly to what's useful for equi-recursive types).
-      However, I am not totally sure and might be wrong; it'd be good to
-      write an example where this makes a difference.
+  (* XXX Paolo: This definition is correct but non-expansive, instead of
+      contractive, unlike other logical relations here.
+      It'd be good to write an example where this makes a difference.
       I think that would be something like
       nu x. { T = TNat; U = x.T -> x.T }:
       mu (x: {T <: TNat; U <: x.T -> TNat}).
@@ -77,7 +75,7 @@ Section logrel.
     *)
   Definition interp_forall interp1 interp2 : envD Σ :=
     λ ρ v,
-    (⌜ nclosed_vl v 0 ⌝ ∗ □ ∀ w, interp1 ρ w -∗ interp_expr interp2 (w .: ρ) (tapp (tv v) (tv w)))%I.
+    (□ ∀ w, interp1 ρ w -∗ interp_expr interp2 (w .: ρ) (tapp (tv v) (tv w)))%I.
   Global Arguments interp_forall /.
 
   Definition interp_selA w interpL interpU : envD Σ :=
@@ -87,7 +85,7 @@ Section logrel.
   Global Arguments interp_selA /.
 
   Definition interp_later interp : envD Σ :=
-    λ ρ v, (⌜ nclosed_vl v 0 ⌝ ∗ ▷ interp ρ v) % I.
+    λ ρ v, (▷ interp ρ v) % I.
   Global Arguments interp_later /.
 
   Definition interp_sel w : envD Σ :=
@@ -120,41 +118,32 @@ Section logrel.
   Proof. revert v ρ; induction T => w ρ /=; try apply _. Qed.
 
   (* XXX here we needn't add a variable to the scope of its own type. But that won't hurt. *)
-  Fixpoint interp_env (Γ : ctx) (vs : vls) : iProp Σ :=
+  Fixpoint interp_env (Γ : ctx) (ρ : var → vl) : iProp Σ :=
     match Γ with
-    | nil => ⌜vs = nil⌝
-    | T :: Γ' =>
-      match vs with
-      | nil => False
-      | v :: vs => interp_env Γ' vs ∗ ⟦ T ⟧ (v .: to_subst vs) v
-      end
+    | T :: Γ' => interp_env Γ' ((+1) >>> ρ) ∗ ⟦ T ⟧ ρ (ρ 0)
+    | nil => True
     end%I.
 
   Notation "⟦ Γ ⟧*" := (interp_env Γ).
 
-  Global Instance interp_env_persistent Γ vs :
-    Persistent (⟦ Γ ⟧* vs).
-  Proof. elim: Γ vs => [|τ Γ IHΓ] [|v vs]; apply _. Qed.
+  Global Instance interp_env_persistent Γ ρ :
+    Persistent (⟦ Γ ⟧* ρ).
+  Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
 
-  Definition ietp Γ T e : iProp Σ := (⌜ nclosed e (length Γ) ⌝ ∗ □∀ vs, ⟦Γ⟧* vs → ⟦T⟧ₑ (to_subst vs) (e.|[to_subst vs]))%I.
+  Definition ietp Γ T e : iProp Σ :=
+    (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ₑ ρ (e.|[ρ]))%I.
   Global Arguments ietp /.
   Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 
-  Lemma ietp_closed Γ T e: Γ ⊨ e : T -∗ ⌜ nclosed e (length Γ) ⌝.
-  Proof. iIntros "[$ _]". Qed.
-
   Definition step_indexed_ietp Γ T e i: iProp Σ :=
-    (⌜ nclosed e (length Γ) ⌝ ∗ □∀ vs, ⟦Γ⟧* vs → ▷^i ⟦T⟧ₑ (to_subst vs) (e.|[to_subst vs]))%I.
+    (□∀ ρ, ⟦Γ⟧* ρ → ▷^i ⟦T⟧ₑ ρ (e.|[ρ]))%I.
   Global Arguments step_indexed_ietp /.
   Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
-
-  Lemma step_indexed_ietp_closed Γ T e i: Γ ⊨ e : T, i -∗ ⌜ nclosed e (length Γ) ⌝.
-  Proof. iIntros "[$ _]". Qed.
 
   (** Indexed Subtyping. Defined on closed values. We must require closedness
       explicitly, since closedness now does not follow from being well-typed later. *)
   Definition step_indexed_ivstp Γ T1 T2 i j: iProp Σ :=
-    (□∀ vs v, ⌜ nclosed_vl v 0 ⌝ → ⟦Γ⟧* vs → (▷^i ⟦T1⟧ (to_subst vs) v) → ▷^j ⟦T2⟧ (to_subst vs) v)%I.
+    (□∀ ρ v, ⟦Γ⟧* ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
   Global Arguments step_indexed_ivstp /.
 
   Global Instance ietp_persistent Γ T e : Persistent (ietp Γ T e) := _.
@@ -175,60 +164,29 @@ Notation "Γ '⊨' '[' T1 ',' i ']' '<:' '[' T2 ',' j ']'" := (step_indexed_ivst
 Section logrel_lemmas.
   Context `{!dlangG Σ}.
 
-  (* Lemma iterate_TLater_later i T ρ v: *)
-  (*   nclosed_vl v 0 → *)
-  (*   ⟦ iterate TLater i T ⟧ ρ v ≡ (▷^i ⟦ T ⟧ ρ v)%I. *)
-  (* Proof. *)
-  (*   elim: i => [|i IHi] // => Hcl. rewrite iterate_S /= IHi //. *)
-  (*   iSplit; by [iIntros "#[_ $]" | iIntros "$"]. *)
-  (* Qed. *)
-
-
+  Lemma iterate_TLater_later i T ρ v:
+    ⟦ iterate TLater i T ⟧ ρ v ≡ (▷^i ⟦ T ⟧ ρ v)%I.
+  Proof.
+    elim: i => [|i IHi] //.
+    rewrite iterate_S /=; rewrite IHi //.
+  Qed.
 
   Lemma semantic_typing_uniform_step_index Γ T e i:
     Γ ⊨ e : T -∗ Γ ⊨ e : T,i.
   Proof.
-    iIntros "[$ #H] !>" (ρ) "#HΓ".
+    iIntros "#H !>" (ρ) "#HΓ".
     iInduction i as [|i] "IHi". by iApply "H". iExact "IHi".
   Qed.
 
-  Lemma interp_v_closed T w ρ: ⟦ T ⟧ ρ w -∗ ⌜ nclosed_vl w 0 ⌝.
-  Proof.
-    move: ρ; induction T => ρ /=;
-      try by [iPureIntro | iIntros "[$ _]"].
-    - iPureIntro. by move => [n ->].
-  Qed.
-
-  Lemma interp_env_ρ_closed Γ vs: ⟦ Γ ⟧* vs -∗ ⌜ cl_ρ vs ⌝.
-  Proof.
-    elim: Γ vs => [|τ Γ IHΓ] [|v vs] //=; try by iPureIntro.
-    rewrite interp_v_closed IHΓ; iPureIntro. intuition.
-  Qed.
-
-  Lemma interp_env_ρ_fv Γ vs: ⟦ Γ ⟧* vs -∗ ⌜ nclosed vs 0 ⌝.
-  Proof.
-    rewrite interp_env_ρ_closed. iIntros "!%". exact: cl_ρ_fv.
-  Qed.
-
-  Lemma interp_env_to_subst_closed Γ vs x: x < length vs → ⟦ Γ ⟧* vs -∗ ⌜ nclosed_vl (to_subst vs x) 0 ⌝%I.
-  Proof.
-    rewrite interp_env_ρ_closed. iIntros "!%" (??).
-    by apply nclosed_σ_sub_equiv.
-  Qed.
-
-  Lemma interp_env_lookup Γ vs T x:
+  Lemma interp_env_lookup Γ ρ T x:
     Γ !! x = Some T →
-    ⟦ Γ ⟧* vs -∗ ⟦ T.|[ren (+x)] ⟧ (to_subst vs) (to_subst vs x).
+    ⟦ Γ ⟧* ρ -∗ ⟦ T.|[ren (+x)] ⟧ ρ (ρ x).
   Proof.
-    elim: Γ vs x => [//|τ' Γ' IHΓ] [|v vs] x Hx /=. by iIntros "[]".
+    elim: Γ ρ x => [//|τ' Γ' IHΓ] ρ x Hx /=.
     iDestruct 1 as "[Hg Hv]". move: x Hx => [ [->] | x Hx] /=.
     - rewrite hsubst_id. by [].
     - rewrite hrenS.
-      iApply (interp_weaken_one v (T.|[ren (+x)]) vs).
-      iApply (IHΓ vs x Hx with "Hg").
+      iApply (interp_weaken_one (T.|[ren (+x)])).
+      iApply (IHΓ ((+1) >>> ρ) x Hx with "Hg").
   Qed.
-
-  Lemma ietp_closed_vl Γ T v: Γ ⊨ tv v : T -∗ ⌜ nclosed_vl v (length Γ) ⌝.
-  Proof. rewrite ietp_closed; iIntros "!%"; exact: fv_of_val_inv. Qed.
-
 End logrel_lemmas.

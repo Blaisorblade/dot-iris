@@ -43,7 +43,7 @@ Section Sec.
     smart_wp_bind (AppRCtx v) w "#Hw" "Hv2".
     unfold_interp. iDestruct "Hr" as (t ->) "#Hv".
     rewrite -wp_pure_step_later // -wp_mono /=; first by iApply "Hv".
-    iIntros (v); by rewrite (interp_weaken_one w T2 vs v).
+    iIntros (v). by rewrite (interp_weaken_one T2 _ v).
   Qed.
 
   Lemma T_Forall_Ex e1 v2 T1 T2:
@@ -59,7 +59,7 @@ Section Sec.
     iApply wp_wand.
     - iApply "HvFun". rewrite -wp_value_inv'. by iApply "Hv2Arg".
     - iIntros (v).
-      rewrite (interp_subst_closed T2 v2 v); auto.
+      rewrite (interp_subst_one T2 v2 v); auto.
   Qed.
 
   Lemma T_Forall_I T1 T2 e:
@@ -70,10 +70,10 @@ Section Sec.
     iIntros "/= #HeT !>" (vs) "#HG".
     rewrite -wp_value'; unfold_interp.
     iExists _; iSplit => //.
-    iIntros "!> !>" (v) "#Hv". iSpecialize ("HeT" $! (v :: vs)).
-    rewrite (interp_weaken_one v T1 _ v) /=.
+    iIntros "!> !>" (v) "#Hv". iSpecialize ("HeT" $! (v .: vs)).
+    rewrite (interp_weaken_one T1 _ v) /=.
     (* Faster than 'asimpl'. *)
-    locAsimpl' (e.|[up (to_subst vs)].|[v/]).
+    locAsimpl' (e.|[up vs].|[v/]).
     by iApply ("HeT" with "[$HG//]").
   Qed.
 

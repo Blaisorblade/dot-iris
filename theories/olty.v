@@ -165,11 +165,6 @@ Section olty_ofe.
     = φ args (to_subst (ρ1 ++ ρ3)).
   Proof. rewrite /hsubst_hoEnvD /hsubst to_subst_weaken //. Qed.
 
-  Lemma hoEnvD_subst_up ρ1 ρ2 v φ args :
-    φ.|[upn (length ρ1) (v.[ren (+length ρ2)] .: ids)] args (to_subst (ρ1 ++ ρ2))
-    ≡ φ args (to_subst (ρ1 ++ v :: ρ2)).
-  Proof. rewrite /hsubst_hoEnvD /hsubst to_subst_up //. Qed.
-
   Lemma olty_weaken ρ1 ρ2 ρ3 τ args :
     τ.|[upn (length ρ1) (ren (+ length ρ2))] args (to_subst (ρ1 ++ ρ2 ++ ρ3))
     = τ args (to_subst (ρ1 ++ ρ3)).
@@ -186,15 +181,6 @@ Section olty_ofe.
   Lemma olty_weaken_one v τ ρ args :
     oApp τ.|[ren (+1)] args (v .: to_subst ρ) ≡ τ args (to_subst ρ).
   Proof. by rewrite (olty_weaken [] [v]). Qed.
-
-  Lemma olty_subst_up ρ1 ρ2 v τ args :
-    oApp τ.|[upn (length ρ1) (v.[ren (+length ρ2)] .: ids)] args (to_subst (ρ1 ++ ρ2))
-    ≡ τ args (to_subst (ρ1 ++ v :: ρ2)).
-  Proof.
-    (* rewrite /hsubst_olty /hsubst_hoEnvD /hsubst /= to_subst_up //. *)
-    rewrite [@hsubst _ _ hsubst_olty]/hsubst /hsubst_olty /=.
-    exact: hoEnvD_subst_up.
-  Qed.
 End olty_ofe.
 
 Notation oClose φ := (olty_car φ vnil : envD _).

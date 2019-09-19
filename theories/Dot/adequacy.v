@@ -11,7 +11,7 @@ Theorem adequacy Σ `{HdlangG: dlangPreG Σ} `{SwapProp (iPropSI Σ)} e e' thp �
 Proof.
   intros Hlog; eapply (adequacy _).
   iIntros (??) "Hs"; iDestruct (Hlog with "Hs") as ">#H".
-  by iSpecialize ("H" $! [] with "[#//]"); rewrite hsubst_id.
+  by iSpecialize ("H" $! ids with "[#//]"); rewrite hsubst_id.
 Qed.
 
 (* Instead of still assuming semantic typing, here we should assume syntactic

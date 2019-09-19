@@ -27,29 +27,29 @@ Section ex.
   Qed.
 
   (** Yes, v has a valid type member. *)
-  Lemma vHasA0: Hs -∗ ⟦ TTMem "A" TBot TNat ⟧ ids v.
+  Lemma vHasA0: Hs -∗ ∀ ρ, ⟦ TTMem "A" TBot TNat ⟧ ρ v.[ρ].
   Proof.
-    iIntros "#Hs"; iExists _; iSplit; by [eauto | iApply sHasA].
+    iIntros "#Hs" (ρ); iExists _; iSplit; by [eauto | iApply sHasA].
   Qed.
 
   (* Generic useful lemmas — not needed for fundamental theorem,
      but very useful for examples. *)
-  Lemma ietp_value T v: ⟦ T ⟧ ids v -∗ [] ⊨ tv v : T.
+  Lemma ietp_value T v: (∀ ρ, ⟦ T ⟧ ρ v.[ρ]) -∗ [] ⊨ tv v : T.
   Proof.
-    iIntros "#H /= !>" (? ->).
-    rewrite -wp_value' to_subst_nil subst_id. iApply "H".
+    iIntros "#H /= !>" (? _).
+    rewrite -wp_value'. iApply "H".
   Qed.
 
-  Lemma ietp_value_inv T v: [] ⊨ tv v : T -∗ ⟦ T ⟧ ids v.
+  Lemma ietp_value_inv T v: [] ⊨ tv v : T -∗ ∀ ρ, ⟦ T ⟧ ρ v.[ρ].
   Proof.
-    iIntros "/= H".
-    iDestruct ("H" $! [] with "[//]") as "H".
-    by rewrite wp_value_inv' subst_id.
+    iIntros "/= H" (ρ).
+    iSpecialize ("H" $! ρ with "[//]").
+    by rewrite wp_value_inv'.
   Qed.
 
   Lemma vHasA0': Hs -∗ [] ⊨ tv v : TTMem "A" TBot TNat.
   Proof.
-    rewrite -ietp_value; by [iApply vHasA0|].
+    rewrite -ietp_value. iApply vHasA0.
   Qed.
 
   (* This works. Crucially, we use TMu_I to introduce the object type.
@@ -60,10 +60,10 @@ Section ex.
      XXX: also, maybe this *could* be done with T_New_I with
      a precise type? That'd be a more correct derivation.
    *)
-  Lemma vHasA1: Hs -∗
+  Lemma vHasA1: Hs -∗ ∀ ρ,
     ⟦ TMu (TAnd
           (TTMem "A" TBot TNat)
-          (TAnd (TVMem "n" (TSel (pv (ids 0)) "A")) TTop)) ⟧ ids v.
+          (TAnd (TVMem "n" (TSel (pv (ids 0)) "A")) TTop)) ⟧ ρ v.[ρ].
   Proof.
     rewrite -ietp_value_inv -(TMu_I [] _ v).
     iIntros "#Hs".
@@ -73,6 +73,7 @@ Section ex.
       by iApply vHasA0'.
     - rewrite -ietp_value /=.
       have Hev2: even (vnat 2). by exists 1.
+      iIntros (_).
       repeat (repeat iExists _; repeat iSplit);
         by [|iApply dm_to_type_intro].
   Qed.
@@ -94,8 +95,8 @@ Section ex.
   Proof.
     iIntros "#Hs".
     iDestruct (T_New_I [] _ with "[]") as "#H"; first last.
-    iSpecialize ("H" $! [] with "[#//]").
-    rewrite to_subst_nil hsubst_id /interp_expr wp_value_inv'.
+    iSpecialize ("H" $! ids with "[#//]").
+    rewrite hsubst_id /interp_expr wp_value_inv'.
     iApply "H".
     iApply DCons_I => //.
     - (* Can't finish with D_Typ, this is only for syntactic types: *)
@@ -103,20 +104,18 @@ Section ex.
       (* iApply D_Typ => //.
       admit. admit. cbn. iSplit => //. iExists _; iSplit => //. *)
       iModIntro.
-      iIntros ([|v ρ]) "/= #H". done.
-      iDestruct "H" as "[-> _]".
+      iIntros (ρ) "/= #_".
       iSplit => //. by iApply sHasA.
     - iApply DCons_I => //; last by iApply DNil_I.
       iApply TVMem_I.
-      iIntros "!>" ([|v ρ]) "/= #H /=". done.
-      iDestruct "H" as "[-> [HA [HB _]]]".
+      iIntros "!>" (ρ) "/= #H /=".
+      iDestruct "H" as "[_ [HA [HB _]]]".
       rewrite -wp_value'.
       iDestruct "HA" as (dA HlA φ) "[Hlφ HA]".
       iDestruct "HB" as (dB HlB w) "HB".
       iExists φ, dA; repeat iSplit => //.
-      (* This will fail, since we don't know what v is and what
+      (* Stuck, since we don't know what [ρ 0] is and what
       "A" points to. *)
-      Fail unfold v.
- Abort.
+  Abort.
 End ex.
 End example.

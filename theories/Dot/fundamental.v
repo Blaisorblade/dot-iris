@@ -56,7 +56,7 @@ Section swap_based_typing_lemmas.
     rewrite -!mlaterN_pers -mlater_impl -mlaterN_impl.
     iIntros "!> #HwT2".
     iSpecialize ("HsubT" $! ρ w with "Hg HwT2").
-    iSpecialize ("HsubU" $! (w :: ρ)); iEval (rewrite -forall_swap) in "HsubU".
+    iSpecialize ("HsubU" $! (w .: ρ)); iEval (rewrite -forall_swap) in "HsubU".
     iSpecialize ("HsubU" with "[# $Hg]").
     by rewrite iterate_TLater_later -swap_later; iApply interp_weaken_one.
     setoid_rewrite mlaterN_impl; setoid_rewrite mlater_impl.

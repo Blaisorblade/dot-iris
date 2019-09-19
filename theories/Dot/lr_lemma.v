@@ -47,8 +47,8 @@ Section Sec.
      Γ ⊨ mu x: T <: T    Γ ⊨ T <: mu(x: T)
   *)
 
-  Lemma interp_TMu_ren T ρ v: ⟦ TMu T.|[ren (+1)] ⟧ (to_subst ρ) v ≡ ⟦ T ⟧ (to_subst ρ) v.
-  Proof. by rewrite /= (interp_weaken_one v T ρ v). Qed.
+  Lemma interp_TMu_ren T ρ v: ⟦ TMu T.|[ren (+1)] ⟧ ρ v ≡ ⟦ T ⟧ ρ v.
+  Proof. by rewrite /= (interp_weaken_one T (_ .: ρ) v). Qed.
 
   (*
      Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂ᶻ
@@ -61,7 +61,7 @@ Section Sec.
      Γ ⊨ [TMu T1, i] <: [TMu T2, j])%I.
   Proof.
     iIntros "/= #Hstp !>" (vs v) "#Hg #HT1".
-    iApply ("Hstp" $! (v :: vs) v with "[# $Hg] [#//]").
+    iApply ("Hstp" $! (v .: vs) v with "[# $Hg] [#//]").
     by rewrite iterate_TLater_later.
   Qed.
 
@@ -103,7 +103,7 @@ Section Sec.
   Proof.
     iSplit; iIntros "/= #Htp !>" (vs) "Hg";
     iDestruct (wp_value_inv with "(Htp Hg)") as "{Htp} Hgoal";
-    rewrite -wp_value (interp_subst_closed T v (v.[to_subst vs])); done.
+    rewrite -wp_value (interp_subst_one T v (v.[vs])); done.
   Qed.
 
   Lemma TMu_I T v: Γ ⊨ tv v : T.|[v/] -∗ Γ ⊨ tv v : TMu T.
@@ -123,7 +123,7 @@ Section Sec.
     smart_wp_bind (AppRCtx v) w "#Hw" "Hv2".
     iDestruct "Hr" as (t ->) "#Hv".
     rewrite -wp_pure_step_later // -wp_mono /=; first by iApply "Hv".
-    iIntros (v); by rewrite (interp_weaken_one w T2 vs v).
+    iIntros (v); by rewrite (interp_weaken_one T2 _ v).
   Qed.
 
   Lemma T_Forall_Ex e1 v2 T1 T2:
@@ -139,7 +139,7 @@ Section Sec.
     iApply wp_wand.
     - iApply "HvFun". rewrite -wp_value_inv'. by iApply "Hv2Arg".
     - iIntros (v) "{HG HvFun Hv2Arg} H".
-      rewrite (interp_subst_closed T2 v2 v) //.
+      rewrite (interp_subst_one T2 v2 v) //.
   Qed.
 
   (** Restricting this to index 0 appears necessary: it seems we can't swap [▷^i
@@ -154,11 +154,11 @@ Section Sec.
     iIntros "/= #HeT !>" (vs) "#HG".
     rewrite -wp_value'. iExists _; iSplitL; first done.
     iIntros "!> !>" (v) "#Hv /=".
-    iSpecialize ("HeT" $! (v :: vs) with "[$HG]").
-    by rewrite (interp_weaken_one v T1 vs v).
+    iSpecialize ("HeT" $! (v .: vs) with "[$HG]").
+    by rewrite (interp_weaken_one T1 _ v).
     (* time locAsimpl. (* 10x faster than asimpl. *) *)
     (* 20x faster than asimpl. *)
-    by cbn; locAsimpl' (e.|[_].|[_]).
+    by locAsimpl' (e.|[_].|[_]).
   Qed.
 
   Lemma T_Mem_E e T l:

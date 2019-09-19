@@ -53,10 +53,6 @@ Module Type SortsSig (Import V : ValuesSig).
     upn (length ρ1) (ren (+length ρ2)) >> to_subst (ρ1 ++ ρ2 ++ ρ3) =
     to_subst (ρ1 ++ ρ3).
 
-  Parameter to_subst_up : ∀ ρ1 ρ2 v,
-    upn (length ρ1) (v.[ren (+length ρ2)] .: ids) >> to_subst (ρ1 ++ ρ2) =
-    to_subst (ρ1 ++ v :: ρ2).
-
   Definition nclosed_sub n m s :=
     ∀ i, i < n → nclosed_vl (s i) m.
   Parameter compose_sub_closed : ∀ s s1 s2 i j,

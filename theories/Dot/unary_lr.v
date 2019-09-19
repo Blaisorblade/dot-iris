@@ -196,35 +196,31 @@ Section logrel.
   Global Instance defs_interp_persistent T ρ ds : Persistent (defs_interp T ρ ds).
   Proof. induction T; try apply _. Qed.
 
-  Fixpoint interp_env (Γ : ctx) (vs : vls) : iProp Σ :=
+  Fixpoint interp_env (Γ : ctx) (ρ : var → vl) : iProp Σ :=
     match Γ with
-    | nil => ⌜vs = nil⌝
-    | T :: Γ' =>
-      match vs with
-      | nil => False
-      | v :: vs => interp_env Γ' vs ∗ ⟦ T ⟧ (v .: to_subst vs) v
-      end
+    | T :: Γ' => interp_env Γ' ((+1) >>> ρ) ∗ ⟦ T ⟧ ρ (ρ 0)
+    | nil => True
     end%I.
 
   Notation "⟦ Γ ⟧*" := (interp_env Γ).
 
-  Global Instance interp_env_persistent Γ vs :
-    Persistent (⟦ Γ ⟧* vs).
-  Proof. elim: Γ vs => [|τ Γ IHΓ] [|v vs]; apply _. Qed.
+  Global Instance interp_env_persistent Γ ρ :
+    Persistent (⟦ Γ ⟧* ρ).
+  Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
 
   Definition defCtxCons Γ V := TLater V :: Γ.
 
   (** Definitions for semantic (definition) (sub)typing *)
-  (** Since [⟦Γ⟧* vs] might be impossible, we must require closedness explicitly. *)
   Definition idtp Γ T l d : iProp Σ :=
-    (□∀ vs, ⟦Γ⟧* vs → def_interp T l (to_subst vs) d.|[to_subst vs])%I.
+    (□∀ ρ, ⟦Γ⟧* ρ → def_interp T l ρ d.|[ρ])%I.
   Global Arguments idtp /.
 
   Definition idstp Γ T ds : iProp Σ :=
-    (□∀ vs, ⟦Γ⟧* vs → defs_interp T (to_subst vs) ds.|[to_subst vs])%I.
+    (□∀ ρ, ⟦Γ⟧* ρ → defs_interp T ρ ds.|[ρ])%I.
   Global Arguments idstp /.
 
-  Definition ietp Γ T e : iProp Σ := (□∀ vs, ⟦Γ⟧* vs → ⟦T⟧ₑ (to_subst vs) (e.|[to_subst vs]))%I.
+  Definition ietp Γ T e : iProp Σ :=
+    (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ₑ ρ (e.|[ρ]))%I.
   Global Arguments ietp /.
 
   (** Indexed Subtyping. Defined on closed values. We must require closedness
@@ -238,21 +234,21 @@ Section logrel.
       It seems easier, in subtyping judgment, to use the weaker choice: that is,
       just delay individual types via (Γ ⊨ TLater T <: TLater U), that is
 
-      (□∀ v vs, ⟦Γ⟧* vs → ▷ ⟦T1⟧ vs v → ▷ ⟦T2⟧ vs v),
+      (□∀ v ρ, ⟦Γ⟧* ρ → ▷ ⟦T1⟧ ρ v → ▷ ⟦T2⟧ ρ v),
 
       instead of instead of introducing some notation to write
 
-      (□∀ v vs, ⟦Γ⟧* vs → ▷ (⟦T1⟧ vs v → ⟦T2⟧ vs v)).
+      (□∀ v ρ, ⟦Γ⟧* ρ → ▷ (⟦T1⟧ ρ v → ⟦T2⟧ ρ v)).
 
       And that forces using the same implication in the logical relation
       (unlike I did originally). *)
   Definition step_indexed_ivstp Γ T1 T2 i j: iProp Σ :=
-    (□∀ vs v, ⟦Γ⟧* vs → ▷^i ⟦T1⟧ (to_subst vs) v → ▷^j ⟦T2⟧ (to_subst vs) v)%I.
+    (□∀ ρ v, ⟦Γ⟧* ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
   Global Arguments step_indexed_ivstp /.
 
   Definition iptp Γ T p i: iProp Σ :=
-    (□∀ vs, ⟦Γ⟧* vs →
-     ▷^i path_wp (p.|[to_subst vs]) (λ v, ⟦T⟧ (to_subst vs) v))%I.
+    (□∀ ρ, ⟦Γ⟧* ρ →
+     ▷^i path_wp (p.|[ρ]) (λ v, ⟦T⟧ ρ v))%I.
   Global Arguments iptp /.
 
   Global Instance idtp_persistent Γ T l d: Persistent (idtp Γ T l d) := _.
@@ -291,16 +287,16 @@ Section logrel_lemmas.
     ⟦ iterate TLater i T ⟧ ρ v ≡ (▷^i ⟦ T ⟧ ρ v)%I.
   Proof. exact: iterate_TLater_later0. Qed.
 
-  Lemma interp_env_lookup Γ vs T x:
+  Lemma interp_env_lookup Γ ρ T x:
     Γ !! x = Some T →
-    ⟦ Γ ⟧* vs -∗ ⟦ T.|[ren (+x)] ⟧ (to_subst vs) (to_subst vs x).
+    ⟦ Γ ⟧* ρ -∗ ⟦ T.|[ren (+x)] ⟧ ρ (ρ x).
   Proof.
-    elim: Γ vs x => [//|τ' Γ' IHΓ] [|v vs] x Hx /=. by iIntros "[]".
+    elim: Γ ρ x => [//|τ' Γ' IHΓ] ρ x Hx /=.
     iDestruct 1 as "[Hg Hv]". move: x Hx => [ [->] | x Hx] /=.
     - rewrite hsubst_id. by [].
     - rewrite hrenS.
-      iApply (interp_weaken_one v (T.|[ren (+x)]) vs).
-      iApply (IHΓ vs x Hx with "Hg").
+      iApply (interp_weaken_one (T.|[ren (+x)])).
+      iApply (IHΓ ((+1) >>> ρ) x Hx with "Hg").
   Qed.
 
   Context {Γ}.

@@ -255,6 +255,7 @@ Hint Resolve length_idsσ.
 Lemma rename_to_subst σ1 σ2 : (+length σ1) >>> to_subst (σ1 ++ σ2) = to_subst σ2.
 Proof. induction σ1; by asimpl. Qed.
 
+(* Dead. *)
 Lemma undo_to_subst σ : (+length σ) >>> to_subst σ = ids.
 Proof.
   move: (rename_to_subst σ []) => Hgoal. by do [rewrite app_nil_r; asimpl] in Hgoal.
@@ -265,6 +266,7 @@ Lemma to_subst_weaken σ1 σ2 σ3:
   to_subst (σ1 ++ σ3).
 Proof. induction σ1; asimpl; rewrite ?rename_to_subst ? IHσ1 //. Qed.
 
+(* Dead. *)
 Lemma to_subst_up σ1 σ2 v:
   upn (length σ1) (v.[ren (+length σ2)] .: ids) >> to_subst (σ1 ++ σ2) =
   to_subst (σ1 ++ v :: σ2).
@@ -404,20 +406,14 @@ Proof. elim: xs => /= [//|x xs IHxs] /fv_cons_inv [Hclx Hclxs]. auto. Qed.
 Lemma nclosed_xs_eq_nclosed n xs: nclosed_xs xs n ↔ nclosed xs n.
 Proof. split; eauto using Forall_to_closed_xs, closed_xs_to_Forall. Qed.
 
-Lemma inf_subst_compose x σ ξ n :
+Lemma subst_compose x σ ξ n :
   nclosed x n → length σ = n →
   x.|[to_subst σ.|[ξ]] = x.|[to_subst σ].|[ξ].
 Proof. intros Hclx <-; asimpl. apply Hclx, to_subst_compose. Qed.
 
-Lemma subst_compose x σ ξ n:
-  nclosed x n → length σ = n →
-  x.|[to_subst σ.|[to_subst ξ]] = x.|[to_subst σ].|[to_subst ξ].
-Proof. intros; eapply inf_subst_compose; eauto. Qed.
-
 Lemma subst_compose_idsσ x n ξ:
   nclosed x n →
-  length ξ = n →
-  x.|[to_subst (idsσ n).|[to_subst ξ]] = x.|[to_subst (idsσ n)].|[to_subst ξ].
+  x.|[to_subst (idsσ n).|[ξ]] = x.|[to_subst (idsσ n)].|[ξ].
 Proof. intros; eauto using subst_compose. Qed.
 End sort_lemmas.
 Hint Resolve @subst_compose @subst_compose_idsσ.
