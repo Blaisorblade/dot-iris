@@ -291,17 +291,6 @@ Section logrel_lemmas.
     ⟦ iterate TLater i T ⟧ ρ v ≡ (▷^i ⟦ T ⟧ ρ v)%I.
   Proof. exact: iterate_TLater_later0. Qed.
 
-  Lemma interp_env_len_agree Γ vs:
-    ⟦ Γ ⟧* vs -∗ ⌜ length vs = length Γ ⌝.
-  Proof.
-    elim: Γ vs => [|τ Γ IHΓ] [|v vs] //=; try by iPureIntro.
-    rewrite IHΓ. by iIntros "[-> _] !%".
-  Qed.
-
-  Lemma interp_env_props Γ vs:
-    ⟦ Γ ⟧* vs -∗ ⌜ length vs = length Γ ⌝.
-  Proof. exact: interp_env_len_agree. Qed.
-
   Lemma interp_env_lookup Γ vs T x:
     Γ !! x = Some T →
     ⟦ Γ ⟧* vs -∗ ⟦ T.|[ren (+x)] ⟧ (to_subst vs) (to_subst vs x).

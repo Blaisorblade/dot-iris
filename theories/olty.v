@@ -210,8 +210,8 @@ Section olty_ofe_2.
     | nil => True
     end%I.
 
-  Global Instance env_oltyped_persistent (Γ : sCtx) vs: Persistent (env_oltyped Γ vs).
-  Proof. elim: Γ vs => [|τ Γ IHΓ] vs /=; apply _. Qed.
+  Global Instance env_oltyped_persistent (Γ : sCtx) ρ: Persistent (env_oltyped Γ ρ).
+  Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
 
   Lemma env_oltyped_cl_ρ Γ ρ :
     env_oltyped Γ ρ -∗ ⌜ nclosed_sub (length Γ) 0 ρ ⌝.
@@ -262,26 +262,10 @@ Section olty_ofe_2.
     ⌜ nclosed_vl v (length Γ) ⌝ → ⌜ nclosed_vl v.[to_subst ρ] 0 ⌝.
   Proof. rewrite env_oltyped_transl env_oltyped_cl_app_vl //. Qed.
 
-  Lemma interp_env_len_agree Γ ρ:
-    ⟦ Γ ⟧* ρ -∗ ⌜ length ρ = length Γ ⌝.
-  Proof.
-    elim: Γ ρ => [|τ Γ IHΓ] [|v ρ] //=; try by iIntros "!%".
-    rewrite IHΓ. by iIntros "[-> _] !%".
-  Qed.
-
   Lemma interp_env_ρ_closed Γ ρ: ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ⌝.
   Proof.
     elim: Γ ρ => [|τ Γ IHΓ] [|v ρ] //=; try by iIntros "!%".
     rewrite IHΓ olty_vclosed. iIntros "!%". intuition.
-  Qed.
-
-  Lemma interp_env_props Γ ρ:
-    ⟦ Γ ⟧* ρ -∗ ⌜ cl_ρ ρ ∧ length ρ = length Γ ⌝.
-  Proof.
-    iIntros "#HG".
-    iDestruct (interp_env_ρ_closed with "HG") as %?.
-    iDestruct (interp_env_len_agree with "HG") as %?.
-    by iIntros "!%".
   Qed.
 
   Lemma interp_env_lookup Γ ρ (τ : olty Σ 0) x:

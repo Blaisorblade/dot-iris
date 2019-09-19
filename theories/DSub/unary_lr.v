@@ -199,26 +199,10 @@ Section logrel_lemmas.
     - iPureIntro. by move => [n ->].
   Qed.
 
-  Lemma interp_env_len_agree Γ vs:
-    ⟦ Γ ⟧* vs -∗ ⌜ length vs = length Γ ⌝.
-  Proof.
-    elim: Γ vs => [|τ Γ IHΓ] [|v vs] //=; try by iPureIntro.
-    rewrite IHΓ. by iIntros "[-> _] !%".
-  Qed.
-
   Lemma interp_env_ρ_closed Γ vs: ⟦ Γ ⟧* vs -∗ ⌜ cl_ρ vs ⌝.
   Proof.
     elim: Γ vs => [|τ Γ IHΓ] [|v vs] //=; try by iPureIntro.
     rewrite interp_v_closed IHΓ; iPureIntro. intuition.
-  Qed.
-
-  Lemma interp_env_props Γ vs:
-    ⟦ Γ ⟧* vs -∗ ⌜ cl_ρ vs ∧ length vs = length Γ ⌝.
-  Proof.
-    iIntros "#HG".
-    iDestruct (interp_env_ρ_closed with "HG") as %?.
-    iDestruct (interp_env_len_agree with "HG") as %?.
-    by iPureIntro.
   Qed.
 
   Lemma interp_env_ρ_fv Γ vs: ⟦ Γ ⟧* vs -∗ ⌜ nclosed vs 0 ⌝.

@@ -242,18 +242,18 @@ Section Sec.
   Context `{HdotG: dlangG Σ} {i : nat}.
   Implicit Types (φ : hoEnvD Σ i) (τ : olty Σ i).
 
-  Definition envD_equiv n φ1 φ2 : iProp Σ :=
-    (∀ args ρ v, ⌜ length ρ = n ⌝ → ⌜ cl_ρ ρ ⌝ →
-      φ1 args (to_subst ρ) v ≡ φ2 args (to_subst ρ) v)%I.
+  Definition envD_equiv φ1 φ2 : iProp Σ :=
+    (∀ args ρ v,
+      φ1 args ρ v ≡ φ2 args ρ v)%I.
 
   Definition leadsto_envD_equiv (sσ : extractedTy) n φ : iProp Σ :=
     let '(s, σ) := sσ in
     (⌜nclosed_σ σ n⌝ ∧ ∃ (φ' : hoEnvD Σ i), s ↝n[ i ] φ' ∗
-      envD_equiv n φ (λ args ρ, φ' args (to_subst σ.|[ρ])))%I.
+      envD_equiv φ (λ args ρ, φ' args (to_subst σ.|[ρ])))%I.
   Arguments leadsto_envD_equiv /.
 End Sec.
 
-Notation "φ1 ≈[  n  ] φ2" := (envD_equiv n φ1 φ2) (at level 70).
+Notation "φ1 ≈ φ2" := (envD_equiv φ1 φ2) (at level 70).
 Notation "sσ ↝[  n  ] φ" := (leadsto_envD_equiv sσ n φ) (at level 20).
 
 Section Sec2.
@@ -267,18 +267,16 @@ Section Sec2.
   Proof.
     iIntros "#HTU #HLT #[% Hs] /="; repeat iSplit; [auto using fv_dtysem..|].
     iIntros "!>" (ρ) "#Hg /=".
-    iDestruct (interp_env_props with "Hg") as %[Hclp Hlen]; rewrite <- Hlen in *.
-    (* iDestruct (env_oltyped_fin_cl_ρ with "Hg") as %Hclp. *)
     iDestruct "Hs" as (φ) "[Hγ Hγφ]".
     rewrite /dlty_car /=.
     iExists (hoEnvD_inst (σ.|[to_subst ρ]) φ); iSplit.
     by iApply dm_to_type_intro.
     rewrite /envD_equiv.
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL"; rewrite later_intuitionistically.
-    - iIntros "!>". iApply (internal_eq_iff with "(Hγφ [#//] [#//])").
+    - iIntros "!>". iApply (internal_eq_iff with "Hγφ").
       by iApply "HLT".
     - iApply "HTU" => //.
-      by iApply (internal_eq_iff with "(Hγφ [#//] [#//])").
+      by iApply (internal_eq_iff with "Hγφ").
   Qed.
 
   Lemma D_Typ_Concr Γ (τ : olty Σ 0) s σ l:
