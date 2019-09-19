@@ -215,7 +215,7 @@ Section logrel_part2.
   (* XXX here we needn't add a variable to the scope of its own type. But that won't hurt. *)
   Fixpoint interp_env (Γ : ctx) (ρ : var → vl) : iProp Σ :=
     match Γ with
-    | T :: Γ' => interp_env Γ' ((+1) >>> ρ) ∗ ⟦ T ⟧ ρ (ρ 0)
+    | T :: Γ' => interp_env Γ' (stail ρ) ∗ ⟦ T ⟧ ρ (shead ρ)
     | nil => True
     end%I.
 
