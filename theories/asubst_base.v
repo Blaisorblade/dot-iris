@@ -89,13 +89,13 @@ Proof. intros. by apply fv_cons, fv_pair. Qed.
     Dealing with binders in nclosed "inverse" lemmas requires more infrastructure than for "direct" lemmas.
     See fv_vabs_inv_manual for an explanation. *)
 
-Definition stail ρ := ren (+1) >> ρ.
+Definition stail ρ := (+1) >>> ρ.
 Definition shead ρ := ρ 0.
 
 Lemma eq_n_s_tails {n ρ1 ρ2} : eq_n_s ρ1 ρ2 (S n) → eq_n_s (stail ρ1) (stail ρ2) n.
 Proof.
   move => /= HsEq x Hl.
-  rewrite /stail /= !id_subst.
+  rewrite /stail /=.
   apply HsEq. lia.
 Qed.
 
@@ -107,11 +107,11 @@ Lemma eq_cons v sb1 sb2 n : eq_n_s sb1 sb2 n → eq_n_s (v .: sb1) (v .: sb2) (S
 Proof. move => Heqs [//|x] /lt_S_n /Heqs //. Qed.
 
 Lemma decomp_s_vl v s : v.[s] = v.[up (stail s)].[shead s/].
-Proof. by rewrite /stail /shead; asimpl. Qed.
+Proof. rewrite /stail /shead. autosubst. Qed.
 
 Lemma decomp_s `{Sort X} (x : X) s :
   x.|[s] = x.|[up (stail s)].|[shead s/].
-Proof. rewrite /stail /shead. by asimpl. Qed.
+Proof. rewrite /stail /shead. autosubst. Qed.
 
 (** Rewrite thesis with equalities learned from injection, if possible *)
 Ltac rewritePremises := let H := fresh "H" in repeat (move => H; rewrite ?H {H}).
@@ -440,7 +440,7 @@ Lemma fv_pair_inv a x n : nclosed (a, x) n → nclosed x n.
 Proof. solve_inv_fv_congruence. Qed.
 
 Lemma fv_cons_pair_inv_head a x xs n : nclosed ((a, x) :: xs) n → nclosed x n.
-Proof. move /(@fv_cons_inv_head (A*X)). solve_inv_fv_congruence. Qed.
+Proof. move /(@fv_cons_inv_head (A * X)). solve_inv_fv_congruence. Qed.
 
 Lemma fv_cons_pair_inv_tail a x xs n: nclosed ((a, x) :: xs) n → nclosed xs n.
 Proof. apply fv_cons_inv_tail. Qed.
