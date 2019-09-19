@@ -21,7 +21,7 @@ Section path_wp.
       *)
   Fixpoint path_wp p φ: iProp Σ :=
     match p with
-    | pself p l => path_wp p (λ vp, ∃ vq, ⌜ vp @ l ↘ dvl vq ⌝ ∧ ▷ φ vq)
+    | pself p l => path_wp p (λ v, ∃ w, ⌜ v @ l ↘ dvl w ⌝ ∧ ▷ φ w)
     | pv vp => φ vp
     end%I.
 
