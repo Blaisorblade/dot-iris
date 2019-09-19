@@ -81,7 +81,7 @@ Lemma extraction_inf_subst g n T s σ m σ':
   T.|[σ'] ~[ m ] (g, (s, σ.|[σ'])).
 Proof.
   intros (T' & Hlook & <- & Hclσ & HclT') Hclσ' => /=. rewrite map_length.
-  exists T'; repeat split => //.
+  exists T'; split_and! => //.
   - asimpl. apply HclT', to_subst_compose.
   - exact: nclosed_σ_compose.
 Qed.
