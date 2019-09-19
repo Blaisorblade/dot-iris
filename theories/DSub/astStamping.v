@@ -13,12 +13,7 @@ Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx) (g: stys) (n: nat).
 (** Here we do not unstamp types from the map, and we can't: unstamping the map
     recursively might not be terminate. We need an unstamped map, which is
     what's produced in the first pass.
-
-    Stamping a term is a terminating structural recursion; it's less obvious
-    that unstamping is terminating, as it follows pointes and it's not clear
-    what would prevent cycles.
-    Using a relational formulation of stamping, as done originally by Léo, would
-    avoid this problem. We could make it an inductive relation if preferred.
+    However, this problem disappears because paths are just source variables, not values.
  *)
 Definition unstamp_vstamp g vs s := (from_option vty (vstamp vs s) (g !! s)).[to_subst vs].
 Arguments unstamp_vstamp /.
@@ -69,12 +64,12 @@ Lemma exists_stamped_vty T n g: is_unstamped_vl (vty T) → nclosed_vl (vty T) n
 (* Lemma exists_stamped_vty T n g: is_unstamped_ty T → nclosed T n → ∃ v' g', stamps_vl n (vty T) g' v' ∧ g ⊆ g'. *)
 Proof.
   intros Hus Hcl.
-  pose proof (ex_fresh_stamp_strong g T) as [s []].
-  exists (vstamp (idsσ n) s); rewrite /=; asimpl.
-  exists (<[s:=T]> g).
-  have HclT: nclosed T n. by move: Hcl; solve_inv_fv_congruence.
-  repeat (econstructor; rewrite ?lookup_insert ?closed_subst_idsρ ?length_idsσ /=) => //.
-  eapply is_stamped_idsσ; lia.
+  destruct (extract g n T) as (g' & s & σ) eqn:Heq.
+  exists (vstamp σ s), g'; rewrite /extract in Heq; simplify_eq.
+  have HclT: nclosed T n. by solve_inv_fv_congruence_h Hcl.
+  split_and!; [| | constructor|];
+    rewrite /= ?lookup_insert /= ?closed_subst_idsρ ?length_idsσ //;
+    eauto using is_stamped_idsσ.
 Qed.
 
 Lemma exists_stamped_vstamp vs s n g: is_unstamped_vl (vstamp vs s) → nclosed_vl (vstamp vs s) n → { v' & { g' | stamps_vl n (vstamp vs s) g' v' ∧ g ⊆ g' } }.
