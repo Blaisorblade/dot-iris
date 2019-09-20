@@ -256,7 +256,8 @@ with
 path_rename_Lemma (ξ : var → var) p :
   rename ξ p = p.|[ren ξ].
 Proof.
-  all: destruct 0; rewrite /= ?up_upren_internal; f_equal => //; finish_lists l x.
+  all: [> destruct v | destruct t | destruct d | destruct T | destruct p].
+  all: rewrite /= ?up_upren_internal; f_equal => //; finish_lists l x.
 Qed.
 
 Lemma vl_ids_Lemma v : v.[ids] = v
@@ -269,7 +270,8 @@ ty_ids_Lemma T : T.|[ids] = T
 with
 path_ids_Lemma p : p.|[ids] = p.
 Proof.
-  all: destruct 0; rewrite /= ?up_id_internal; f_equal => //; finish_lists l x.
+  all: [> destruct v | destruct t | destruct d | destruct T | destruct p].
+  all: rewrite /= ?up_id_internal; f_equal => //; finish_lists l x.
 Qed.
 
 Lemma vl_comp_rename_Lemma (ξ : var → var) (σ : var → vl) v :
@@ -287,7 +289,8 @@ with
 path_comp_rename_Lemma (ξ : var → var) (σ : var → vl) p :
   (rename ξ p).|[σ] = p.|[ξ >>> σ].
 Proof.
-  all: destruct 0; rewrite /= 1? up_comp_ren_subst; f_equal => //; finish_lists l x.
+  all: [> destruct v | destruct t | destruct d | destruct T | destruct p].
+  all: rewrite /= 1? up_comp_ren_subst; f_equal => //; finish_lists l x.
 Qed.
 
 Lemma vl_rename_comp_Lemma (σ : var → vl) (ξ : var → var) v :
@@ -305,7 +308,8 @@ with
 path_rename_comp_Lemma (σ : var → vl) (ξ : var → var) p :
   rename ξ p.|[σ] = p.|[σ >>> rename ξ].
 Proof.
-  all: destruct 0; rewrite /= ? up_comp_subst_ren_internal; f_equal => //;
+  all: [> destruct v | destruct t | destruct d | destruct T | destruct p].
+  all: rewrite /= ? up_comp_subst_ren_internal; f_equal => //;
     auto using vl_rename_Lemma, vl_comp_rename_Lemma; finish_lists l x.
 Qed.
 
@@ -319,7 +323,8 @@ ty_comp_Lemma (σ τ : var → vl) T : T.|[σ].|[τ] = T.|[σ >> τ]
 with
 path_comp_Lemma (σ τ : var → vl) p : p.|[σ].|[τ] = p.|[σ >> τ].
 Proof.
-  all: destruct 0; rewrite /= ? up_comp_internal; f_equal;
+  all: [> destruct v | destruct t | destruct d | destruct T | destruct p].
+  all: rewrite /= ? up_comp_internal; f_equal;
     auto using vl_rename_comp_Lemma, vl_comp_rename_Lemma; finish_lists l x.
 Qed.
 
@@ -561,7 +566,8 @@ Section syntax_mut_rect.
     (* Automation risk producing circular proofs that call right away the lemma we're proving.
        Instead we want to apply one of the [case_] arguments to perform an
        inductive step, and only then call ourselves recursively. *)
-    all: destruct 0;
+    all: [> destruct t | destruct v | destruct d | destruct p | destruct T].
+    all:
       try match goal with
       (* Warning: add other arities as needed. *)
       | Hstep : context [?P (?c _ _ _ _)] |- ?P (?c _ _ _ _) => apply Hstep; trivial
@@ -729,8 +735,8 @@ Section syntax_mut_ind_closed.
     (* Automation risk producing circular proofs that call right away the lemma we're proving.
        Instead we want to apply one of the [case_] arguments to perform an
        inductive step, and only then call ourselves recursively. *)
-    all: destruct 0; intro Hcl.
-    all: let byEapply p := efeed p using (fun q => apply q) by (eauto 2; eauto 1 with fv)
+    all: [> destruct t | destruct v | destruct d | destruct p | destruct T].
+    all: intro Hcl; let byEapply p := efeed p using (fun q => apply q) by (eauto 2; eauto 1 with fv)
     in
       match goal with
       (* Warning: add other arities as needed. *)
