@@ -36,11 +36,11 @@ Section nclosed_prim_step.
   Notation nclosed_ectx K n := (Forall (λ Ki, nclosed_ectx_item Ki n) K).
 
   Lemma nclosed_fill_item_inv_t Ki t n: nclosed (fill_item Ki t) n → nclosed t n.
-  Proof. case: Ki => [e2|v1] /=; solve_inv_fv_congruence. Qed.
+  Proof. case: Ki => [e2|v1|] /=; solve_inv_fv_congruence. Qed.
   Hint Resolve nclosed_fill_item_inv_t.
 
   Lemma nclosed_fill_item_inv_Ki Ki t n: nclosed (fill_item Ki t) n → nclosed_ectx_item Ki n.
-  Proof. case: Ki => [e2|v1] Hcl /=; constructor; solve_inv_fv_congruence_h Hcl. Qed.
+  Proof. case: Ki => [e2|v1|] Hcl /=; constructor; solve_inv_fv_congruence_h Hcl. Qed.
   Hint Resolve nclosed_fill_item_inv_Ki.
 
   Lemma nclosed_fill_inv_t K t n: nclosed (fill K t) n → nclosed t n.
@@ -53,7 +53,7 @@ Section nclosed_prim_step.
 
   Lemma nclosed_fill_item Ki t n: nclosed t n → nclosed_ectx_item Ki n → nclosed (fill_item Ki t) n.
   Proof.
-    case: Ki => [e2|v1] /= Hclt HclKi; inverse HclKi; solve_fv_congruence.
+    case: Ki => [e2|v1|] /= Hclt HclKi; inverse HclKi; solve_fv_congruence.
   Qed.
   Hint Resolve nclosed_fill_item.
 
