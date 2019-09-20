@@ -1,10 +1,10 @@
 opam-version: "2.0"
 name: "dot-iris-builddep"
-maintainer: []
+maintainer: "Paolo G. Giarrusso"
 authors: []
 homepage: []
 bug-reports: []
-synopsis: []
+synopsis: "Dependencies for mechanization of gDOT in Iris"
 build: []
 install: []
 remove: []
