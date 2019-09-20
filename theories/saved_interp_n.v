@@ -9,9 +9,9 @@ Notation savedPred3Σ A B C := (savedPredΣ (A * B * C)).
 Section saved_pred3.
   Context {A B C : Type}.
   Context `{!savedPred3G Σ A B C}.
-  Implicit Type (Φ : A -d> B -d> C -d> iProp Σ).
+  Implicit Type (Φ : A -d> B -d> C -d> iPropO Σ).
 
-  Definition curryC Φ : A * B * C -d> iProp Σ := (λ '(a, b, c), Φ a b c).
+  Definition curryC Φ : A * B * C -d> iPropO Σ := (λ '(a, b, c), Φ a b c).
 
   Definition saved_pred3_own (γ : gname) Φ :=
     saved_pred_own γ (curryC Φ).

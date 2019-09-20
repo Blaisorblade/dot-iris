@@ -40,13 +40,13 @@ Notation ctx := (list (ty 0)).
 Notation "⟦ T ⟧" := (oty_interp T).
 
 Definition oty_interp_env (Γ : ctx) : sCtx := map oty_interp Γ.
-Definition env_typed (Γ : ctx) : vls -d> iProp Σ := env_oltyped_fin (oty_interp_env Γ).
+Definition env_typed (Γ : ctx) : vls -d> iPropO Σ := env_oltyped_fin (oty_interp_env Γ).
 
 Global Instance env_typed_persistent' `{OTyInterp ty Σ} Γ vs : Persistent (env_typed Γ vs) := env_oltyped_fin_persistent _ _.
 
-Definition judgment Σ s : Type := option s * (env -d> option s -d> iProp Σ).
-Definition nosubj_judgment Σ : Type := env -d> iProp Σ.
-Definition subj_judgment Σ s : Type := s * (env -d> s -d> iProp Σ).
+Definition judgment Σ s : Type := option s * (env -d> option s -d> iPropO Σ).
+Definition nosubj_judgment Σ : Type := env -d> iPropO Σ.
+Definition subj_judgment Σ s : Type := s * (env -d> s -d> iPropO Σ).
 Program Definition subj_judgment_to_judgment {Σ s} : subj_judgment Σ s → judgment Σ s :=
   λ '(x, φ), (Some x, λ ρ, from_option (φ ρ) False)%I.
 
@@ -105,7 +105,7 @@ Include OLtyJudgements VlSorts operational.
 
 Record dlty Σ := Dlty {
   dlty_label : label;
-  dlty_car : ((var → vl) -d> dm -d> iProp Σ);
+  dlty_car : ((var → vl) -d> dm -d> iPropO Σ);
   dlty_persistent ρ d :> Persistent (dlty_car ρ d);
 }.
 Global Arguments Dlty {_} _%I _ {_}.
@@ -123,7 +123,7 @@ Section SemTypes.
   Context `{HdotG: dlangG Σ}.
 
   Implicit Types (τ : olty Σ 0).
-   (* (ψ : vl -d> iProp Σ) (φ : envD Σ)  *)
+   (* (ψ : vl -d> iPropO Σ) (φ : envD Σ)  *)
 
   Program Definition lift_dinterp_vl (T : dlty Σ): olty Σ 0 :=
     closed_olty (λ ρ v, (∃ d, ⌜v @ dlty_label T ↘ d⌝ ∧ dlty_car T ρ d)%I).

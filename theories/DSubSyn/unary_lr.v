@@ -39,10 +39,10 @@ Unset Program Cases.
 Section logrel.
   Context `{!dsubSynG Σ}.
 
-  Notation D := (vl -d> iProp Σ).
+  Notation D := (vl -d> iPropO Σ).
   Implicit Types (interp : envD Σ) (φ : D).
 
-  Program Definition interp_expr : envD Σ -n> (var → vl) -d> tm -d> iProp Σ :=
+  Program Definition interp_expr : envD Σ -n> (var → vl) -d> tm -d> iPropO Σ :=
     λne interp, λ ρ t, WP t {{ interp ρ }} %I.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_expr /.
@@ -80,7 +80,7 @@ Section logrel.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_forall /.
 
-  Program Definition vl_has_semtype : (ty -d> envD Σ) -n> vl -d> D -n> iProp Σ :=
+  Program Definition vl_has_semtype : (ty -d> envD Σ) -n> vl -d> D -n> iPropO Σ :=
     λne rinterp, λ v, λne φ,
     (∃ T, ⌜ v = vty T ⌝ ∧ ∀ w, ▷ (φ w ≡ rinterp T ids w))%I.
   Solve All Obligations with solve_proper_ho.

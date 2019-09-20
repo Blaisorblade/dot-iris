@@ -42,13 +42,13 @@ Module Type ValueTSig. Parameter vl : Type. End ValueTSig.
 Module Type SavedInterpDep (Import V : ValueTSig).
 
 Definition env := var -> vl.
-Notation envPred s Σ := (env -d> s -d> iProp Σ).
+Notation envPred s Σ := (env -d> s -d> iPropO Σ).
 Definition hoEnvPred s Σ n := vec vl n -d> envPred s Σ.
 Definition hoEnvPredO s Σ : ofeT := sigTO (hoEnvPred s Σ).
 Definition hoEnvPredOF s : oFunctor := { n & vec vl n -d> env -d> s -d> ▶ ∙ }.
-Definition packedHoEnvPred s Σ : ofeT := hoEnvPredOF s (iProp Σ) _.
+Definition packedHoEnvPred s Σ : ofeT := hoEnvPredOF s (iPropO Σ) _.
 
-Definition hoD Σ n := vec vl n -d> vl -d> iProp Σ.
+Definition hoD Σ n := vec vl n -d> vl -d> iPropO Σ.
 Notation hoEnvD := (hoEnvPred vl).
 Notation envD Σ := (envPred vl Σ).
 Definition packedHoEnvD Σ := packedHoEnvPred vl Σ.
@@ -62,7 +62,7 @@ Section saved_ho_sem_type.
   Implicit Types (Ψ : packedHoEnvPred s Σ).
 
   Definition packedHoEnvPred_eq : packedHoEnvPred s Σ =
-    sigTO (λ n, vec vl n -d> env -d> s -d> laterO (iProp Σ)) := reflexivity _.
+    sigTO (λ n, vec vl n -d> env -d> s -d> laterO (iPropO Σ)) := reflexivity _.
 
   Definition packedHoEnvPred_arity : packedHoEnvPred s Σ -n> natO := λne x, projT1 x.
 

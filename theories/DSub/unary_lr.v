@@ -31,7 +31,7 @@ Unset Program Cases.
 Section logrel.
   Context `{!dlangG Σ}.
 
-  Notation D := (vl -d> iProp Σ).
+  Notation D := (vl -d> iPropO Σ).
   Implicit Types (interp : envD Σ) (φ : D).
 
   (* XXX this is wrong unless we translate, and here I want for now to switch to having no translation.
@@ -50,7 +50,7 @@ Section logrel.
           (∀ v, interp1 ρ v → interp2 ρ v)))%I.
   Global Arguments interp_tmem /.
 
-  Definition interp_expr interp : (var -> vl) -d> tm -d> iProp Σ :=
+  Definition interp_expr interp : (var -> vl) -d> tm -d> iPropO Σ :=
     λ ρ t, WP t {{ interp ρ }} %I.
   Global Arguments interp_expr /.
 

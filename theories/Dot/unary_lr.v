@@ -31,7 +31,7 @@ Unset Program Cases.
 Section logrel.
   Context `{!dlangG Σ}.
 
-  Notation D := (vl -d> iProp Σ).
+  Notation D := (vl -d> iPropO Σ).
   Implicit Types (interp φ : envD Σ) (ψ : D).
 
   Definition def_interp_vmem interp : envPred dm Σ :=

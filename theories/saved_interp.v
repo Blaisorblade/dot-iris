@@ -9,9 +9,9 @@ Notation savedInterpΣ A B := (savedPredΣ (A * B)).
 Section saved_interp.
   Context {A B : Type}.
   Context `{!savedInterpG Σ A B}.
-  Implicit Type (Φ : A -d> B -d> iProp Σ).
+  Implicit Type (Φ : A -d> B -d> iPropO Σ).
 
-  Definition curryC Φ : A * B -d> iProp Σ := (λ '(a, b), Φ a b).
+  Definition curryC Φ : A * B -d> iPropO Σ := (λ '(a, b), Φ a b).
 
   Definition saved_interp_own (γ : gname) Φ :=
     saved_pred_own γ (curryC Φ).

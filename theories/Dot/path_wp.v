@@ -8,7 +8,7 @@ Implicit Types
 
 Section path_wp.
   Context `{HdlangG: dlangG Σ}.
-  Implicit Types (φ : vl -d> iProp Σ).
+  Implicit Types (φ : vl -d> iPropO Σ).
 
   (** A simplified variant of weakest preconditions for path evaluation.
       The difference is that path evaluation is completely pure, and
@@ -144,14 +144,6 @@ Section path_wp.
     | pv v => tv v
     | pself p l => tproj (path2tm p) l
     end.
-
-  (* Until stdpp upgrade; upstreamed in
-     https://gitlab.mpi-sws.org/iris/stdpp/merge_requests/87
-   *)
-  Fail Check nsteps_once_inv.
-  Lemma nsteps_once_inv `(R : relation A) x y :
-    relations.nsteps R 1 x y → R x y.
-  Proof. inversion 1 as [|???? Hhead Htail]; inversion Htail; by subst. Qed.
 
   Lemma path_wp_exec p v :
     path_wp p (λ w, ⌜ w = v ⌝) ⊢ ▷^(plength p) ⌜ PureExec True (plength p) (path2tm p) (tv v) ⌝.

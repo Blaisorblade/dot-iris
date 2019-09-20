@@ -12,7 +12,7 @@ Section saved_pred3_use.
   Context {vl : Type} {Σ : gFunctors}.
 
   Definition env := var → vl.
-  Notation envD Σ := (env -d> vl -d> iProp Σ).
+  Notation envD Σ := (env -d> vl -d> iPropO Σ).
   Notation hoEnvD Σ := (list vl -d> envD Σ).
   Implicit Types (Φ : hoEnvD Σ) (n : nat).
   Definition eFalse : envD Σ := λ ρ v, False%I.
@@ -40,7 +40,7 @@ Module Type HoSemTypes (Import VS : VlSortsFullSig) (Import LWP : LiftWp VS).
 Include OLty VS LWP.
 (* XXX Good names? *)
 Notation iPred T Σ := (T → iProp Σ).
-Notation iPredO T Σ := (T -d> iProp Σ).
+Notation iPredO T Σ := (T -d> iPropO Σ).
 
 Section saved_ho_sem_type_extra.
   (* Context `{!savedHoSemTypeG Σ}. *)
@@ -51,7 +51,7 @@ Section saved_ho_sem_type_extra.
   (** ** Accessing saved HO predicates. *)
   Definition packedHoEnvD_arity : packedHoEnvD Σ -n> natO := packedHoEnvPred_arity.
 
-  Program Definition unNext: laterO (iProp Σ) -n> iProp Σ :=
+  Program Definition unNext: laterO (iPropO Σ) -n> iPropO Σ :=
     λne φ, (▷ later_car φ)%I.
   Next Obligation. solve_contractive. Qed.
 
