@@ -329,7 +329,7 @@ Lemma same_skel_obj_lookup v v' w l:
 Proof.
   intros Hv [ds [-> Hl]]. case: v' Hv => // ds' Hv.
   have [w' [Hl' Hw]]: ∃ w', dms_lookup l (selfSubst ds') = Some (dvl w') ∧ same_skel_vl w w'.
-  by eauto using same_skel_dms_selfSubst, same_skel_dms_index_gen.
+  eapply (@same_skel_dms_index_gen (selfSubst ds)); by [|apply same_skel_dms_selfSubst].
   exists w'; split; by [|exists ds'].
 Qed.
 
