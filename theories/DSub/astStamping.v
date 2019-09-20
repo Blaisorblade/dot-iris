@@ -72,6 +72,18 @@ Proof.
     eauto using is_stamped_idsσ.
 Qed.
 
+(** Unstamped types are already stamped, because they can't contain type
+    definitions to stamp. *)
+Lemma unstamped_stamped_type T g n:
+  is_unstamped_ty T →
+  nclosed T n →
+  is_stamped_ty n g T.
+Proof.
+  move => Hus; move: n. induction T => n Hcl; inverse Hus; cbn in *; constructor => //=.
+  all: try by (eapply IHT || eapply IHT1 || eapply IHT2; eauto 2; auto with fv).
+  ev; simplify_eq; constructor. rewrite /= -nclosed_vl_ids_equiv. auto with fv.
+Qed.
+
 Lemma exists_stamped_vstamp vs s n g: is_unstamped_vl (vstamp vs s) → nclosed_vl (vstamp vs s) n → { v' & { g' | stamps_vl n (vstamp vs s) g' v' ∧ g ⊆ g' } }.
 Proof. intro H. exfalso. by inversion H. Qed.
 
