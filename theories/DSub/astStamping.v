@@ -60,16 +60,34 @@ Notation stamps_ty n T__u g T__s := (unstamp_ty g T__s = T__u ∧ is_unstamped_t
 (* Proof. pose proof (stamped_idsσ_ren g m n (+0)) as H. by asimpl in H. Qed. *)
 
 (* Core cases of existence of translations. *)
-Lemma exists_stamped_vty T n g: is_unstamped_vl (vty T) → nclosed_vl (vty T) n → { v' & { g' | stamps_vl n (vty T) g' v' ∧ g ⊆ g' } }.
-(* Lemma exists_stamped_vty T n g: is_unstamped_ty T → nclosed T n → ∃ v' g', stamps_vl n (vty T) g' v' ∧ g ⊆ g'. *)
+Definition stamp_vty g n T :=
+  let '(g', (s, σ)) := (extract g n T) in
+  (vstamp σ s, g').
+
+Lemma stamp_vty_spec {T n} g:
+  is_unstamped_vl (vty T) → nclosed T n →
+  let '(g', (s, σ)) := (extract g n T) in
+  let v' := (vstamp σ s) in
+  stamps_vl n (vty T) g' v' ∧ g ⊆ g' ∧
+    T ~[ n ] (g', (s, σ)).
 Proof.
   intros Hus Hcl.
+  have Hext: T ~[ n ] (extract g n T). by apply extract_spec.
   destruct (extract g n T) as (g' & s & σ) eqn:Heq.
-  exists (vstamp σ s), g'; rewrite /extract in Heq; simplify_eq.
-  have HclT: nclosed T n. by solve_inv_fv_congruence_h Hcl.
-  split_and!; [| | constructor|];
+  rewrite /extract in Heq; simplify_eq.
+  split_and!; [| | constructor| | trivial ];
     rewrite /= ?lookup_insert /= ?closed_subst_idsρ ?length_idsσ //;
     eauto using is_stamped_idsσ.
+Qed.
+
+Lemma exists_stamped_vty T n g:
+  is_unstamped_vl (vty T) → nclosed_vl (vty T) n →
+  { v' & { g' | stamps_vl n (vty T) g' v' ∧ g ⊆ g' } }.
+Proof.
+  intros Hus Hclv. destruct (stamp_vty g n T) as (v', g') eqn:?.
+  have HclT: nclosed T n. by solve_inv_fv_congruence_h Hclv.
+  edestruct (stamp_vty_spec g Hus HclT); cbn in *.
+  exists v', g'; simplify_eq; eauto.
 Qed.
 
 (** Unstamped types are already stamped, because they can't contain type
@@ -83,6 +101,21 @@ Proof.
   all: try by (eapply IHT || eapply IHT1 || eapply IHT2; eauto 2; auto with fv).
   ev; simplify_eq; constructor. rewrite /= -nclosed_vl_ids_equiv. auto with fv.
 Qed.
+
+Lemma var_stamps_to_self1 g x v: unstamp_vl g v = var_vl x → v = var_vl x.
+Proof. case: v => //= σ s. move: (g!!s) => [T|] /= Heq; simplify_eq. Qed.
+
+Lemma var_stamps_to_self n g x v: stamps_vl n (var_vl x) g v → v = var_vl x.
+Proof. move=> [Heq _]. exact: var_stamps_to_self1. Qed.
+
+Lemma stamps_tm_skip n g i e e':
+  stamps_tm n e g e' →
+  stamps_tm n (iterate tskip i e) g (iterate tskip i e').
+Proof.
+  move => [Heq [Hus Hs]]. elim: i => [//|] i [IHeq [IHus IHs]].
+  rewrite !iterate_S /=. split_and!; by [constructor| f_equiv].
+Qed.
+Hint Resolve stamps_tm_skip.
 
 Lemma exists_stamped_vstamp vs s n g: is_unstamped_vl (vstamp vs s) → nclosed_vl (vstamp vs s) n → { v' & { g' | stamps_vl n (vstamp vs s) g' v' ∧ g ⊆ g' } }.
 Proof. intro H. exfalso. by inversion H. Qed.

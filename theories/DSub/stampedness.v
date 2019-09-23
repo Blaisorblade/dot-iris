@@ -309,3 +309,8 @@ Proof.
   have Hs: is_stamped_sub i (S i) g (ren (+1)). by apply is_stamped_ren_shift; lia.
   split; intros; by [ eapply is_stamped_sub_ty | eapply is_stamped_sub_rev_ty].
 Qed.
+
+Lemma is_stamped_tm_skip i T g n e:
+  is_stamped_tm i g e →
+  is_stamped_tm i g (iterate tskip n e).
+Proof. elim: n e => [//|n IHn] e Hs. constructor; exact: IHn. Qed.
