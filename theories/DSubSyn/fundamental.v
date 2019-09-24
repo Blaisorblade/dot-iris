@@ -121,7 +121,6 @@ Section Fundamental.
         by iApply fundamental_subtype.
       + iApply T_Vty_abs_I => //;
         by iApply fundamental_subtype.
-      + by iApply T_Vty_I.
     Qed.
 End Fundamental.
 

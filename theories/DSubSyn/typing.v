@@ -38,8 +38,6 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ ⊢ₜ T, 1 <: U, 1 →
     Γ ⊢ₜ L, 1 <: T, 1 →
     Γ ⊢ₜ tv (vty T) : TTMem L U
-| Vty_typed T L U :
-    Γ ⊢ₜ tv (vty T) : TTMem T T
 (* A bit surprising this is needed, but appears in the DOT papers, and this is
    only admissible if t has a type U that is a proper subtype of TAnd T1 T2. *)
 where "Γ ⊢ₜ e : T " := (typed Γ e T)
@@ -89,3 +87,7 @@ subtype Γ : ty → nat → ty → nat → Prop :=
     Γ ⊢ₜ U1, S i <: U2, S i →
     Γ ⊢ₜ TTMem L1 U1, i <: TTMem L2 U2, i
 where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
+
+Lemma Vty_typed Γ T L U :
+    Γ ⊢ₜ tv (vty T) : TTMem T T.
+Proof. apply (Vty_abs_typed Γ T); apply Refl_stp. Qed.
