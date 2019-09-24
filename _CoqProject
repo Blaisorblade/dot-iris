@@ -31,9 +31,11 @@ theories/DSub/operational.v
 theories/DSub/step_fv.v
 theories/DSub/unary_lr.v
 theories/DSub/closed_subst.v
+theories/DSub/typing.v
 theories/DSubSyn/lr_lemma.v
 theories/DSubSyn/unary_lr.v
 theories/DSubSyn/typing.v
+theories/DSubSyn/typing_objIdent.v
 theories/DSubSyn/fundamental.v
 theories/Dot/syn.v
 theories/Dot/typing.v

@@ -1,3 +1,6 @@
+(**
+  An (unstamped) typing judgment for DSub, allowing arbitrary values in paths.
+*)
 From D Require Import tactics.
 From D.DSub Require Export syn.
 
