@@ -43,13 +43,11 @@ Notation "'μ' Ts " := (TMu Ts) (at level 20, Ts at next level).
 Notation "'type' l >: L <: U" := (TTMem l L U) (at level 20, l, L, U at level 10).
 Notation "'val' l : T" := (TVMem l T) (at level 20, l, T at level 10).
 
-Definition σ1 : vls := [].
-Definition s1 : positive := 1.
-Arguments σ1 /.
+Notation σ1 := ([] : vls).
+Notation s1 := (1 % positive).
 
-Definition σ2 : vls := [].
-Definition s2 : positive := 2.
-Arguments σ2 /.
+Notation σ2 := ([] : vls).
+Notation s2 := (2 % positive).
 
 Check ν {@ val "a" = vnat 0 }.
 
@@ -84,17 +82,38 @@ Hint Constructors typed subtype dms_typed dm_typed path_typed.
 Remove Hints Trans_stp.
 Hint Extern 10 => try_once Trans_stp.
 
+Hint Extern 5 => try_once is_stamped_mono_ty.
+Hint Extern 0 (dms_hasnt _ _) => done.
+
+Hint Immediate Nat.lt_0_succ.
+Section examples_lemmas.
+(* From D Require Import typeExtraction *)
+Context `{hasStampTable: stampTable}.
+
+Lemma Subs_typed_nocoerce T1 T2 {Γ e} :
+  Γ ⊢ₜ e : T1 →
+  Γ ⊢ₜ T1, 0 <: T2, 0 →
+  Γ ⊢ₜ e : T2.
+Proof. rewrite -(iterate_0 tskip e). eauto. Qed.
+Hint Resolve Subs_typed_nocoerce.
+
+Lemma is_stamped_pvar i n : i < n → is_stamped_path n getStampTable (pv (var_vl i)).
+Proof. eauto. Qed.
+Lemma is_stamped_pvars i n l : i < n → is_stamped_ty n getStampTable (pv (var_vl i) @; l).
+Proof. eauto using is_stamped_pvar. Qed.
+End examples_lemmas.
+
+Hint Resolve is_stamped_pvar is_stamped_pvars.
+
 Section examples.
 (* From D Require Import typeExtraction *)
 Context `{hasStampTable: stampTable}.
+
 Example ex0 e Γ T:
   Γ ⊢ₜ e : T →
   is_stamped_ty (length Γ) getStampTable T →
   Γ ⊢ₜ e : TTop.
-Proof.
-  intro HeT. change e with (iterate tskip 0 e).
-  econstructor; first apply Top_stp; eassumption.
-Qed.
+Proof. intros. apply (Subs_typed_nocoerce T TTop); eauto. Qed.
 
 (* XXX Redeclaring notation so that it picks new scopes. Once it picks new
    scopes, the pretty-printer can use overloaded notation in its arguments.
@@ -125,11 +144,11 @@ Example ex2 Γ T
   Γ ⊢ₜ tv (ν {@ type "A" = (σ1 ; s1) } ) :
     TMu (TAnd (TTMem "A" TBot TTop) TTop).
 Proof.
-  apply VObj_typed; eauto.
-  econstructor => //=.
   have Hst: is_stamped_ty (S (length Γ)) getStampTable (pv (var_vl 0) @; "B").
-  by eauto with lia.
-  eapply dty_typed => //; eauto.
+  by auto 2.
+  apply VObj_typed; last eauto. (* Avoid trying TMuI_typed, that's slow. *)
+  eapply dcons_typed; trivial.
+  eapply dty_typed; eauto 3.
 Qed.
 
 (* Try out fixpoints. *)
@@ -141,13 +160,11 @@ Example ex3 Γ T
   Γ ⊢ₜ tv (ν {@ type "A" = (σ1 ; s1) } ) :
     F3 (F3 (TSel (pv (var_vl 0)) "A")).
 Proof.
-  have Hstp: is_stamped_ty (S (S (length Γ))) getStampTable (pv (var_vl 0) @; "A").
-  by eauto with lia.
   have Hst: is_stamped_ty (S (length Γ)) getStampTable (F3 (pv (var_vl 0) @; "A")).
-  by constructor; eauto.
+  by constructor; cbn; eauto.
   apply VObj_typed; last eauto. (* Avoid trying TMuI_typed, that's slow. *)
-  econstructor => //=.
-  eapply dty_typed; naive_solver.
+  eapply dcons_typed; trivial.
+  eapply dty_typed; eauto 3.
 Qed.
 
 (* Example ex3' Γ T: *)
