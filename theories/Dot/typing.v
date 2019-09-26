@@ -83,7 +83,7 @@ with dms_typed Γ : ty → dms → ty → Prop :=
     Γ |ds V ⊢ (l, d) :: ds : TAnd T1 T2
 where "Γ |ds V ⊢ ds : T" := (dms_typed Γ V ds T)
 with dm_typed Γ : ty → label → dm → ty → Prop :=
-| dty_typed V l L T U s σ:
+| dty_typed T V l L U s σ:
     T ~[ S (length Γ) ] (getStampTable, (s, σ)) →
     Forall (is_stamped_vl (S (length Γ)) getStampTable) σ →
     TLater V :: Γ ⊢ₜ TLater L, 0 <: TLater T, 0 →
@@ -232,6 +232,9 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     is_stamped_ty (length Γ) getStampTable U2 →
     Γ ⊢ₜ TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
 where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
+
+(* For e.g. typing examples. *)
+Global Arguments dty_typed {_ _}.
 
   Scheme exp_typed_mut_ind := Induction for typed Sort Prop
   with   exp_dms_typed_mut_ind := Induction for dms_typed Sort Prop

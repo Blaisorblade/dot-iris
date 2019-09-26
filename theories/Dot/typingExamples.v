@@ -168,6 +168,29 @@ Proof.
   eapply dty_typed; eauto 3.
 Qed.
 
+(* new {
+  val subSys1 : { type A <: Int } = new { type A = Int }
+  val subSys2 : { type B } = new { type B = String }
+} *)
+Definition systemVal := tv (ν
+  {@
+    val "subSys1" = ν {@ type "A" = (σ1; s1) } ;
+    val "subSys2" = ν {@ type "B" = (σ2; s2) } }).
+Example motivEx Γ (String : ty)
+  (HsString: is_stamped_ty (2 + length Γ) getStampTable String)
+  (Hs1: TNat ~[ 2 + length Γ ] (getStampTable, (s1, σ1)))
+  (Hs2: String ~[ 2 + length Γ ] (getStampTable, (s2, σ2))):
+  Γ ⊢ₜ systemVal :
+    μ {@
+      val "subSys1" : μ {@ type "A" >: ⊥ <: TNat};
+      val "subSys2" : μ {@ type "B" >: ⊥ <: ⊤}}.
+Proof.
+  apply VObj_typed; last by repeat constructor.
+  eapply dcons_typed; repeat constructor;
+    [ apply (dty_typed TNat) |
+      apply (dty_typed String) ]; auto 3.
+Qed.
+
 (* Example ex3' Γ T: *)
 (*   Γ ⊢ₜ tv (vobj [dtysyn (TSel (pv (var_vl 0)) 0)]) : *)
 (*     F3 (F3 (TSel (pv (var_vl 0)) 0)). *)
