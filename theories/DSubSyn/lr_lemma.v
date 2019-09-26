@@ -113,10 +113,6 @@ Section Sec.
     - by iApply "HTU".
   Qed.
 
-  Lemma T_Vty_I T L U :
-    Γ ⊨ tv (vty T) : TTMem T T.
-  Proof. iIntros; iApply T_Vty_abs_I; by rewrite -Sub_Refl. Qed.
-
   Lemma DT_Vty_abs_I T L U :
     Γ ⊨[1] T <: U -∗
     Γ ⊨[1] L <: T -∗
@@ -131,10 +127,6 @@ Section Sec.
     - iIntros "!>"; by iApply "HLT".
     - by iApply "HTU".
   Qed.
-
-  Lemma DT_Vty_I T L U :
-    Γ ⊨ tv (vty T) : TTMem T T.
-  Proof. iIntros; iApply DT_Vty_abs_I => //; by iApply DSub_Refl. Qed.
 
   Lemma Sub_Sel L U va i:
     Γ ⊨ tv va : TTMem L U, i -∗

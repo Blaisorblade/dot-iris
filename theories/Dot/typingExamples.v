@@ -81,6 +81,8 @@ Check (var_vl 0 @ "A" @ "B" @; "C").
 From D.Dot Require Import typing.
 
 Hint Constructors typed subtype dms_typed dm_typed path_typed.
+Remove Hints Trans_stp.
+Hint Extern 10 => try_once Trans_stp.
 
 Section examples.
 (* From D Require Import typeExtraction *)

@@ -75,6 +75,11 @@ Global Arguments vstampP /.
 Global Arguments tselP /.
 
 Global Hint Constructors forall_traversal_vl forall_traversal_ty forall_traversal_tm.
+
+Global Hint Extern 0 (varP _ _ _) => cbn.
+Global Hint Extern 0 (vtyP _ _ _) => cbn.
+Global Hint Extern 0 (vstampP _ _ _) => cbn.
+Global Hint Extern 0 (tselP _ _ _) => cbn.
 End Trav1.
 
 Definition tmemc: Type := ty + vls * stamp.
