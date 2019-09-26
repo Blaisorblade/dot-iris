@@ -30,7 +30,8 @@ Notation "'type' l = ( σ ; s )" := (l, dtysem σ s) (at level 20, l at level 10
 (** Notation for object types. *)
 Bind Scope ty_scope with ty.
 Open Scope ty_scope.
-(* Notation "⊤" := TTop : ty_scope. *)
+Notation "⊤" := TTop : ty_scope.
+Notation "⊥" := TBot : ty_scope.
 Notation " {@ } " := TTop (format "{@ }") : ty_scope.
 Notation " {@ T1 } " := ( TAnd T1 {@} ) (format "{@  T1  }"): ty_scope.
 Notation " {@ T1 ; T2 ; .. ; Tn } " := (TAnd T1 (TAnd T2 .. (TAnd Tn {@})..))
