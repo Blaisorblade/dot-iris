@@ -105,6 +105,9 @@ Proof. eauto using is_stamped_pvar. Qed.
 End examples_lemmas.
 
 Hint Resolve is_stamped_pvar is_stamped_pvars.
+(* Deterministic crush. *)
+Ltac dcrush := repeat constructor.
+Ltac by_dcrush := by dcrush.
 
 Section examples.
 (* From D Require Import typeExtraction *)
@@ -114,7 +117,7 @@ Example ex0 e Γ T:
   Γ ⊢ₜ e : T →
   is_stamped_ty (length Γ) getStampTable T →
   Γ ⊢ₜ e : TTop.
-Proof. intros. apply (Subs_typed_nocoerce T TTop); eauto. Qed.
+Proof. intros. apply (Subs_typed_nocoerce T TTop); by_dcrush. Qed.
 
 (* XXX Redeclaring notation so that it picks new scopes. Once it picks new
    scopes, the pretty-printer can use overloaded notation in its arguments.
@@ -137,19 +140,19 @@ Proof.
   (* simple apply Nat_typed. *)
 
   (* Help proof search: Avoid trying TMuI_typed, that's1 slow. *)
-  apply VObj_typed; first constructor; naive_solver.
+  apply VObj_typed; by_dcrush.
 Qed.
 
 Example ex2 Γ T
-  (Hs: (TSel (pv (var_vl 0)) "B") ~[ 1 + length Γ ] (getStampTable, (s1, σ1))):
+  (Hs: (pv (var_vl 0) @; "B") ~[ 1 + length Γ ] (getStampTable, (s1, σ1))):
   Γ ⊢ₜ tv (ν {@ type "A" = (σ1 ; s1) } ) :
     TMu (TAnd (TTMem "A" TBot TTop) TTop).
 Proof.
   have Hst: is_stamped_ty (1 + length Γ) getStampTable (pv (var_vl 0) @; "B").
   by auto 2.
-  apply VObj_typed; last eauto. (* Avoid trying TMuI_typed, that's slow. *)
+  apply VObj_typed; last by_dcrush. (* Avoid trying TMuI_typed, that's slow. *)
   eapply dcons_typed; trivial.
-  eapply dty_typed; eauto 3.
+  eapply (dty_typed (pv (var_vl 0) @; "B")); eauto 3.
 Qed.
 
 (* Try out fixpoints. *)
@@ -157,7 +160,7 @@ Definition F3 T :=
   TMu (TAnd (TTMem "A" T T) TTop).
 
 Example ex3 Γ T
-  (Hs: (F3 (TSel (pv (var_vl 0)) "A")) ~[ 1 + length Γ ] (getStampTable, (s1, σ1))):
+  (Hs: F3 (pv (var_vl 0) @; "A") ~[ 1 + length Γ ] (getStampTable, (s1, σ1))):
   Γ ⊢ₜ tv (ν {@ type "A" = (σ1 ; s1) } ) :
     F3 (F3 (TSel (pv (var_vl 0)) "A")).
 Proof.
@@ -165,7 +168,7 @@ Proof.
   by constructor; cbn; eauto.
   apply VObj_typed; last eauto. (* Avoid trying TMuI_typed, that's slow. *)
   eapply dcons_typed; trivial.
-  eapply dty_typed; eauto 3.
+  eapply (dty_typed (F3 (pv (var_vl 0) @; "A"))); eauto 3.
 Qed.
 
 (* new {
@@ -185,10 +188,10 @@ Example motivEx Γ (String : ty)
       val "subSys1" : μ {@ type "A" >: ⊥ <: TNat};
       val "subSys2" : μ {@ type "B" >: ⊥ <: ⊤}}.
 Proof.
-  apply VObj_typed; last by repeat constructor.
-  eapply dcons_typed; repeat constructor;
-    [ apply (dty_typed TNat) |
-      apply (dty_typed String) ]; auto 3.
+  apply VObj_typed; last by_dcrush.
+  eapply dcons_typed; dcrush.
+  all: [> apply (dty_typed TNat) |
+    apply (dty_typed String) ]; by_dcrush.
 Qed.
 
 (* Example ex3' Γ T: *)
