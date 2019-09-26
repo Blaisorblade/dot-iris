@@ -233,8 +233,8 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Γ ⊢ₜ TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
 where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
 
-(* For e.g. typing examples. *)
-Global Arguments dty_typed {_ _}.
+  (* Make [T] first argument: Hide Γ for e.g. typing examples. *)
+  Global Arguments dty_typed {Γ} T _ _ _ _ _ _ _ _ _ _ : assert.
 
   Scheme exp_typed_mut_ind := Induction for typed Sort Prop
   with   exp_dms_typed_mut_ind := Induction for dms_typed Sort Prop
