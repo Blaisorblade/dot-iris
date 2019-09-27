@@ -133,24 +133,8 @@ Module Type LiftWp (Import VS : VlSortsSig).
       repeat setoid_rewrite discrete_fun_equivI.
       iIntros (??) "/=". iExact "Hgoal".
     Qed.
-
-    Lemma stamp_σ_to_otype_agree_dep {σ s n1 n2 φ1 φ2} args ρ v :
-      s ↝n[ σ , n1 ] φ1 -∗ s ↝n[ σ , n2 ] φ2 -∗ ∃ Heq : n1 = n2,
-        ▷ ((rew [hoEnvD Σ] Heq in φ1) args ρ v ≡ φ2 args ρ v).
-    Proof.
-      iIntros "H1 H2".
-      iDestruct (stamp_σ_to_otype_agree_dep_abs with "H1 H2") as (->) "Hgoal".
-      iExists eq_refl; cbn; iNext.
-      by repeat setoid_rewrite discrete_fun_equivI.
-    Qed.
-
-    Lemma stamp_σ_to_otype_agree {σ s n φ1 φ2} args ρ v :
-      s ↝n[ σ , n ] φ1 -∗ s ↝n[ σ , n ] φ2 -∗ ▷ (φ1 args ρ v ≡ φ2 args ρ v).
-    Proof.
-      iIntros "Hs1 Hs2".
-      iDestruct (stamp_σ_to_otype_agree_dep args ρ v with "Hs1 Hs2") as (Heq) "H".
-      by rewrite (proof_irrel Heq eq_refl) /=.
-    Qed.
+    (* stamp_σ_to_otype_agree_dep and
+    stamp_σ_to_otype_agree could be copy-pasted if needed. *)
 
     Lemma stamp_σ_to_type_agree_dep_abs {σ s n1 n2 ψ1 ψ2} :
       s ↗n[ σ , n1 ] ψ1 -∗ s ↗n[ σ , n2 ] ψ2 -∗ ∃ Heq : n1 = n2,
