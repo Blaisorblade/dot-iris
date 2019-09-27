@@ -1,5 +1,6 @@
 From iris.proofmode Require Import tactics.
 From iris.base_logic Require Import lib.saved_prop.
+From stdpp Require Import vector.
 From D Require Import prelude iris_prelude.
 
 Import EqNotations.
@@ -9,26 +10,28 @@ Unset Program Cases.
 Notation "{ x  &  P }" := (sigTOF (λ x, P%OF)) : oFunctor_scope.
 Notation "{ x : A &  P }" := (@sigTOF A%type (λ x, P%OF)) : oFunctor_scope.
 
-Definition vec vl n := fin n → vl.
-
 Section vec.
   Context {vl : Type} {n : nat} {A : ofeT}.
   (* vector operations, on a functional representation of vectors. *)
-  Definition vcons (v : vl) (args: vec vl n) : fin (S n) → vl :=
-    λ i,
-      match i in fin (S n0) with
-      | Fin.F1 => λ _, v
-      | Fin.FS i' => λ args', args' i'
-      end args.
+  Definition vcons (v : vl) (args: vec vl n) : vec vl (S n) := vector.vcons v args.
 
-  Definition vnil : vec vl 0 := Fin.case0 _.
-  Definition vhead (args: vec vl (S n)) : vl := args Fin.F1.
-  Definition vtail (args: vec vl (S n)) : fin n → vl :=
-    λ i, args (Fin.FS i).
+  Definition vnil : vec vl 0 := vector.vnil.
+  Definition vhead (args: vec vl (S n)) : vl := args !!! 0.
+  Definition vtail (args: vec vl (S n)) : vec vl n :=
+    Vector.caseS (λ n _, vec vl n) (λ h n t, t) args.
+
+  Lemma vec_vnil (v : vec vl 0) : v = vnil.
+  Proof. by apply vec_0_inv with (P := λ v, v = vnil). Qed.
 
   (* Manipulation of higher-order semantic types. *)
   Definition vclose (Φ : vec vl 0 -d> A): A := Φ vnil.
   Definition vopen (Φ : A) : vec vl 0 -d> A := λ args, Φ.
+
+  Lemma vopen_vclose_inv (φ : vec vl 0 -d> A) : vopen (vclose φ) = φ.
+  Proof.
+    apply FunctionalExtensionality.functional_extensionality_dep => x.
+    by rewrite /vopen /vclose (vec_vnil x).
+  Qed.
 
   Definition vcurry (Φ : vec vl (S n) -d> A) : vl -d> vec vl n -d> A :=
     λ v args, Φ (vcons v args).
@@ -36,6 +39,14 @@ Section vec.
   Definition vuncurry (Φ : vl -d> vec vl n -d> A) : vec vl (S n) -d> A :=
     λ args, Φ (vhead args) (vtail args).
 End vec.
+
+Definition vec_fold {A} {P : nat → Type}
+  (base : P 0) (step : ∀ {n}, A → P n → P (S n)) : ∀ n, vec A n → P n :=
+  fix rec n :=
+    match n with
+    | 0 =>   λ argTs, base
+    | S n => λ argTs, step (vhead argTs) (rec n (vtail argTs))
+    end%I.
 
 Module Type ValueTSig. Parameter vl : Type. End ValueTSig.
 

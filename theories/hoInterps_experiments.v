@@ -75,23 +75,6 @@ Section saved_ho_sem_type_extra.
     unpack Ψ2 a b c.
   Proof. exact: unpack_ne. Qed.
 
-  (** ** More utilities on my vectors. *)
-  (* XXX Bad idea to use functions rather than vectors? *)
-  Lemma vec_vnil {A} (v : vec A 0) : v = vnil.
-  Proof.
-    apply FunctionalExtensionality.functional_extensionality => f0.
-    (* inversion x. *)
-    move : (vnil f0) => a. by case E : 0 / f0 v.
-  Qed.
-
-  Definition vec_fold {A} {P : nat → Type}
-    (base : P 0) (step : ∀ {n}, A → P n → P (S n)) : ∀ n, vec A n → P n :=
-    fix rec n :=
-      match n with
-      | 0 =>   λ argTs, base
-      | S n => λ argTs, step (vhead argTs) (rec n (vtail argTs))
-      end%I.
-
   (** The semantics of a kind includes a predicate on types, and a subtype predicate.
    *)
   (* XXX make these non-expansive. *)
