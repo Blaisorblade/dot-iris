@@ -221,6 +221,77 @@ Proof.
   eapply (dty_typed (F3 (p0 @; "A"))); eauto 3.
 Qed.
 
+(********************)
+(** SMALL EXAMPLES **)
+(* (Ones we could start describing in text). *)
+(********************)
+
+(**
+  First example from "The Essence of Dependent Object Types". Original code:
+
+  trait Keys {
+    type Key
+    def key(data: String): Key
+  }
+
+  object HashKeys extends Keys { type Key = Int
+    def key(s: String) = s.hashCode
+  }
+*)
+
+(* This stands for type [String] in that example. *)
+Notation HashableString := (μ {@ val "hashCode" : TAll TUnit TNat }).
+Definition KeysT : ty := μ {@
+  type "Key" >: ⊥ <: ⊤;
+  val "key": TAll HashableString (p1 @; "Key")
+}.
+Definition hashKeys : vl := ν {@
+  type "Key" = (σ1; s1);
+  val "key" = vabs (tapp (tproj (tv x0) "hashCode") tUnit)
+}.
+(* To typecheck the object body, we first typecheck it with a tighter type,
+    and then widen it. *)
+Definition KeysT' := μ {@
+  type "Key" >: TNat <: ⊤;
+  val "key": TAll HashableString (p1 @; "Key")
+}.
+(* IDEA for our work: use [(type "Key" >: TNat <: ⊤) ⩓ (type "Key" >: ⊥ <: ⊤)]. *)
+
+Example hashKeys_typed Γ
+  (Hs1: TNat ~[ 1 + length Γ ] (getStampTable, (s1, σ1))) :
+  Γ ⊢ₜ tv hashKeys : KeysT.
+Proof.
+  cut (Γ ⊢ₜ tv hashKeys : KeysT').
+  { intros H.
+    apply (Subs_typed_nocoerce KeysT'); first done.
+    constructor; stcrush.
+    apply TAnd_stp; last eapply TAnd2_stp; stcrush.
+    eapply Trans_stp.
+    - eapply TAnd1_stp; stcrush.
+    - by_dcrush.
+  }
+  apply VObj_typed; cbn.
+  eapply dcons_typed; dcrush; cbn.
+  - apply (dty_typed TNat); by_dcrush.
+  - apply (App_typed _ _ _ TUnit); first last.
+    + by eapply (Subs_typed_nocoerce TNat); eauto 2.
+    + dcrush; cbn.
+      pose (T0 := μ {@ val "hashCode" : TAll {@} TNat }).
+      have Htp: ∀ Γ', T0 :: Γ' ⊢ₜ tv x0 : val "hashCode" : TAll {@} TNat. {
+        intros. eapply Subs_typed_nocoerce.
+        eapply TMuE_typed'; by [exact: Var_typed'|].
+        by eapply TAnd1_stp; stcrush.
+      }
+      apply (Subs_typed_nocoerce (val "hashCode" : TAll {@} TNat)). exact: Htp.
+      dcrush.
+      apply Trans_stp with (T2 := iterate TLater 1 TNat) (i2 := 0); first eauto.
+      eapply LSel_stp with (p := pv (ids 2)) (U := ⊤%ty).
+      dcrush.
+      eapply Subs_typed_nocoerce; first by eapply Var_typed'.
+      eapply TAnd1_stp; stcrush.
+  - stcrush.
+Qed.
+
 (* new {
   val subSys1 : { type A <: Int } = new { type A = Int }
   val subSys2 : { type B } = new { type B = String }
