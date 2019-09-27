@@ -54,6 +54,7 @@ Section logrel.
     d = dtysem σ s → s ↝ φ -∗ d ↗ φ (to_subst σ).
   Proof.
     iIntros. iExists s, σ. iFrame "%".
+    rewrite -{2}(hsubst_id σ).
     by iApply stamp_σ_to_type_intro.
   Qed.
 

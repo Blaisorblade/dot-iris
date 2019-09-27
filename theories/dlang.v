@@ -63,11 +63,16 @@ Module Type LiftWp (Import VS : VlSortsSig).
     s n (φ : hoEnvD Σ n) := (∃ γ, (s ↦ γ) ∗ γ ⤇n[ n ] φ)%I.
   Notation "s ↝n[ n  ] φ" := (stamp_to_type_n s n φ) (at level 20) : bi_scope.
 
-  Program Definition hoEnvD_inst {i Σ} σ : hoEnvD Σ i -n> hoD Σ i := λne φ, λ args, φ args (to_subst σ).
+  Program Definition hoEnvD_subst {i Σ} σ : hoEnvD Σ i -n> hoEnvD Σ i := λne φ, λ args ρ, φ args (to_subst σ.|[ρ]).
+  Next Obligation. move => i Σ σ n x y Heq args ρ. exact: Heq. Qed.
+  Program Definition hoEnvD_inst {i Σ} σ : hoEnvD Σ i -n> hoD Σ i := λne φ, λ args, hoEnvD_subst σ φ args ids.
   Next Obligation. move => i Σ σ n x y Heq args. exact: Heq. Qed.
 
+  Definition stamp_σ_to_otype_n `{!dlangG Σ} s σ n (φ : hoEnvD Σ n) : iProp Σ :=
+    (∃ φ' : hoEnvD Σ n, s ↝n[ n ] φ' ∗ ▷ (φ ≡ hoEnvD_subst σ φ'))%I.
+  Notation "s ↝n[  σ , n  ] φ" := (stamp_σ_to_otype_n s σ n φ) (at level 20).
   Definition stamp_σ_to_type_n `{!dlangG Σ} s σ n (ψ : hoD Σ n) : iProp Σ :=
-    (∃ φ : hoEnvD Σ n, s ↝n[ n ] φ ∗ ▷ (ψ ≡ hoEnvD_inst σ φ))%I.
+    (∃ φ : hoEnvD Σ n, s ↝n[ σ, n ] φ ∗ ▷ (ψ ≡ λ args, φ args ids))%I.
   Notation "s ↗n[ σ , n  ] ψ" := (stamp_σ_to_type_n s σ n ψ) (at level 20): bi_scope.
 
   Notation "γ ⤇ φ" := (γ ⤇n[ 0 ] vopen φ) (at level 20).
@@ -82,6 +87,8 @@ Module Type LiftWp (Import VS : VlSortsSig).
 
     Global Instance: Persistent (s ↝n[ n ] φ) := _.
 
+    Global Instance: Contractive (stamp_σ_to_otype_n s σ i).
+    Proof. rewrite /stamp_σ_to_otype_n. solve_contractive_ho. Qed.
     Global Instance: Contractive (stamp_σ_to_type_n s σ i).
     Proof. rewrite /stamp_σ_to_type_n. solve_contractive_ho. Qed.
 
@@ -115,16 +122,48 @@ Module Type LiftWp (Import VS : VlSortsSig).
     Qed.
     (* Global Opaque stamp_to_type_n. *)
 
-    Lemma stamp_σ_to_type_agree_dep_abs {σ s n1 n2 ψ1 ψ2} :
-      s ↗n[ σ , n1 ] ψ1 -∗ s ↗n[ σ , n2 ] ψ2 -∗ ∃ Heq : n1 = n2,
-        ▷ ((rew [hoD Σ] Heq in ψ1) ≡ ψ2).
+    Lemma stamp_σ_to_otype_agree_dep_abs {σ s n1 n2 φ1 φ2} :
+      s ↝n[ σ , n1 ] φ1 -∗ s ↝n[ σ , n2 ] φ2 -∗ ∃ Heq : n1 = n2,
+        ▷ ((rew [hoEnvD Σ] Heq in φ1) ≡ φ2).
     Proof.
-      iDestruct 1 as (φ1) "[Hsg1 Heq1]"; iDestruct 1 as (φ2) "[Hsg2 Heq2]".
+      iDestruct 1 as (φ1') "[Hsg1 Heq1]"; iDestruct 1 as (φ2') "[Hsg2 Heq2]".
       iDestruct (stamp_to_type_agree_dep_abs with "Hsg1 Hsg2") as (->) "Hgoal".
       iExists eq_refl. iNext.
       iEval (cbn) in "Hgoal"; iEval (cbn). iRewrite "Heq1"; iRewrite "Heq2".
       repeat setoid_rewrite discrete_fun_equivI.
       iIntros (??) "/=". iExact "Hgoal".
+    Qed.
+
+    Lemma stamp_σ_to_otype_agree_dep {σ s n1 n2 φ1 φ2} args ρ v :
+      s ↝n[ σ , n1 ] φ1 -∗ s ↝n[ σ , n2 ] φ2 -∗ ∃ Heq : n1 = n2,
+        ▷ ((rew [hoEnvD Σ] Heq in φ1) args ρ v ≡ φ2 args ρ v).
+    Proof.
+      iIntros "H1 H2".
+      iDestruct (stamp_σ_to_otype_agree_dep_abs with "H1 H2") as (->) "Hgoal".
+      iExists eq_refl; cbn; iNext.
+      by repeat setoid_rewrite discrete_fun_equivI.
+    Qed.
+
+    Lemma stamp_σ_to_otype_agree {σ s n φ1 φ2} args ρ v :
+      s ↝n[ σ , n ] φ1 -∗ s ↝n[ σ , n ] φ2 -∗ ▷ (φ1 args ρ v ≡ φ2 args ρ v).
+    Proof.
+      iIntros "Hs1 Hs2".
+      iDestruct (stamp_σ_to_otype_agree_dep args ρ v with "Hs1 Hs2") as (Heq) "H".
+      by rewrite (proof_irrel Heq eq_refl) /=.
+    Qed.
+
+    Lemma stamp_σ_to_type_agree_dep_abs {σ s n1 n2 ψ1 ψ2} :
+      s ↗n[ σ , n1 ] ψ1 -∗ s ↗n[ σ , n2 ] ψ2 -∗ ∃ Heq : n1 = n2,
+        ▷ ((rew [hoD Σ] Heq in ψ1) ≡ ψ2).
+    Proof.
+      iDestruct 1 as (φ1) "[Hsg1 Heq1]"; iDestruct 1 as (φ2) "[Hsg2 Heq2]".
+      iDestruct (stamp_σ_to_otype_agree_dep_abs with "Hsg1 Hsg2") as (->) "Hgoal".
+      iExists eq_refl. iNext.
+      iEval (cbn) in "Hgoal"; iEval (cbn).
+      repeat setoid_rewrite discrete_fun_equivI.
+      iIntros (args v) "/=".
+      iRewrite ("Heq1" $! args v); iRewrite ("Heq2" $! args v).
+      iExact "Hgoal".
     Qed.
 
     Lemma stamp_σ_to_type_agree_dep {σ s n1 n2 ψ1 ψ2} args v :
@@ -145,13 +184,23 @@ Module Type LiftWp (Import VS : VlSortsSig).
       by rewrite (proof_irrel Heq eq_refl) /=.
     Qed.
 
-    Lemma stamp_σ_to_type_intro s σ n (φ : hoEnvD Σ n) :
-      s ↝n[ n ] φ -∗ s ↗n[ σ , n ] hoEnvD_inst σ φ.
+    Lemma stamp_σ_to_otype_intro s σ n (φ : hoEnvD Σ n) :
+      s ↝n[ n ] φ -∗ s ↝n[ σ , n ] hoEnvD_subst σ φ.
     Proof. rewrite /stamp_σ_to_type_n. iIntros; iExists φ; auto. Qed.
 
+    Lemma stamp_σ_to_type_intro s σ n (φ : hoEnvD Σ n) :
+      s ↝n[ n ] φ -∗ s ↗n[ σ , n ] hoEnvD_inst σ φ.
+    Proof.
+      rewrite /stamp_σ_to_type_n.
+      iIntros; iExists (hoEnvD_subst σ φ); iSplit; last done.
+      by iApply stamp_σ_to_otype_intro.
+    Qed.
+
+    Global Instance stamp_σ_to_otype_persistent σ s n ψ : Persistent (s ↝n[ σ , n ] ψ) := _.
     Global Instance stamp_σ_to_type_persistent σ s n ψ : Persistent (s ↗n[ σ , n ] ψ) := _.
   End mapsto.
 
+  Global Opaque stamp_σ_to_otype_n.
   Global Opaque stamp_σ_to_type_n.
 
   Module dlang_adequacy.

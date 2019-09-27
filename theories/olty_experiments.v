@@ -271,7 +271,7 @@ Section Sec2.
     rewrite /dlty_car /=.
     iExists (hoEnvD_inst (σ.|[to_subst ρ]) φ); iSplit.
     by iApply dm_to_type_intro.
-    rewrite /envD_equiv.
+    rewrite /envD_equiv /= hsubst_id.
     iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL"; rewrite later_intuitionistically.
     - iIntros "!>". iApply (internal_eq_iff with "Hγφ").
       by iApply "HLT".

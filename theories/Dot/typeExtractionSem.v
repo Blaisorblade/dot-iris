@@ -1,6 +1,7 @@
 From stdpp Require Import gmap.
 From iris.proofmode Require Import tactics.
 From D.Dot Require Import unary_lr typeExtractionSyn.
+From Coq Require FunctionalExtensionality.
 
 Set Implicit Arguments.
 
@@ -75,19 +76,15 @@ Section typing_type_member_defs.
      since the former is what we need to prove [D_Typ] below.
      Not sure that's still true if we change dm_to_type,
     but quite possibly yes.. *)
-    (* use interp_extractedTy? *)
-  Definition leadsto_envD_equiv s σ (φ : envD Σ) : iProp Σ :=
-    (∃ (φ' : envD Σ),
-      ⌜φ ≡ (λ ρ, φ' (to_subst σ.|[ρ]))⌝ ∗ s ↝ φ')%I.
-  Arguments leadsto_envD_equiv /.
-  Notation "s ↝[  σ  ] φ" := (leadsto_envD_equiv s σ φ) (at level 20).
+  Notation "s ↝[  σ  ] φ" := (stamp_σ_to_otype_n s σ 0 (vopen φ)) (at level 20).
+  Transparent stamp_σ_to_otype_n.
 
   Lemma extraction_to_leadsto_envD_equiv T g s σ n: T ~[ n ] (g, (s, σ)) →
     wellMapped g -∗ s ↝[ σ ] ty_interp T.
   Proof.
     move => [T'] [Hl] [<- [_ /is_stamped_nclosed_ty HclT]] /=.
-    iIntros "Hm". iExists (ty_interp T'). iSplitR; [|by iApply "Hm"].
-    iIntros "!%" (ρ v). exact: interp_subst_commute.
+    iIntros "Hm". iExists (vopen (ty_interp T')). iSplitL; [by iApply "Hm"|].
+    iIntros "!%" (args ρ v). exact: interp_subst_commute.
   Qed.
 
   (** XXX In fact, this lemma should be provable for any φ,
@@ -99,6 +96,7 @@ Section typing_type_member_defs.
     (s, σ) ↝[ length Γ ] φ -∗
     Γ ⊨d dtysem σ s : TTMem l L U.
     *)
+
   Lemma D_Typ Γ T L U s σ l:
     Γ ⊨ [TLater T, 0] <: [TLater U, 0] -∗
     Γ ⊨ [TLater L, 0] <: [TLater T, 0] -∗
@@ -106,12 +104,18 @@ Section typing_type_member_defs.
     Γ ⊨d{ l := dtysem σ s } : TTMem l L U.
   Proof.
     iIntros "#HTU #HLT #Hs /= !>" (ρ) "#Hg".
-    iDestruct "Hs" as (φ Hγφ) "Hγ"; iSplit => //=.
-    iExists (φ _); iSplit. by iApply (dm_to_type_intro with "Hγ").
+    iDestruct "Hs" as (φ) "[Hγ Hγφ]"; iSplit => //=.
+    iExists (φ vnil (to_subst σ.|[ρ])); iSplit.
+    by iClear "Hγφ"; rewrite -(vopen_vclose_inv φ);
+      iApply (dm_to_type_intro with "Hγ").
+    repeat setoid_rewrite discrete_fun_equivI.
     iModIntro; repeat iSplitL; iIntros (v) "#HL";
+      iSpecialize ("Hγφ" $! vnil ρ v);
       rewrite later_intuitionistically.
-    - iIntros "!>". iApply Hγφ. by iApply "HLT".
-    - iApply "HTU" => //. by iApply Hγφ.
+    - iIntros "!>". iApply (internal_eq_iff with "Hγφ").
+      by iApply "HLT".
+    - iApply "HTU" => //.
+      by iApply (internal_eq_iff with "Hγφ").
   Qed.
 
   Lemma D_Typ_Concr Γ T s σ l:
