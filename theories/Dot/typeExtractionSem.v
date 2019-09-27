@@ -150,17 +150,16 @@ Section typing_type_member_defs.
      Not sure that's still true if we change dm_to_type,
     but quite possibly yes.. *)
     (* use interp_extractedTy? *)
-  Definition leadsto_envD_equiv (sσ: extractedTy) n (φ : envD Σ) : iProp Σ :=
-    let '(s, σ) := sσ in
+  Definition leadsto_envD_equiv s σ (φ : envD Σ) : iProp Σ :=
     (∃ (φ' : envD Σ),
       ⌜φ ≡ (λ ρ, φ' (to_subst σ.|[ρ]))⌝ ∗ s ↝ φ')%I.
   Arguments leadsto_envD_equiv /.
-  Notation "sσ ↝[  n  ] φ" := (leadsto_envD_equiv sσ n φ) (at level 20).
+  Notation "s ↝[  σ  ] φ" := (leadsto_envD_equiv s σ φ) (at level 20).
 
-  Lemma extraction_to_leadsto_envD_equiv T g sσ n: T ~[ n ] (g, sσ) →
-    wellMapped g -∗ sσ ↝[ n ] ty_interp T.
+  Lemma extraction_to_leadsto_envD_equiv T g s σ n: T ~[ n ] (g, (s, σ)) →
+    wellMapped g -∗ s ↝[ σ ] ty_interp T.
   Proof.
-    move: sσ => [s σ] [T'] [Hl] [<- [_ HclT]] /=.
+    move => [T'] [Hl] [<- [_ HclT]] /=.
     iIntros "Hm". iExists (ty_interp T'). iSplitR; [|by iApply "Hm"].
     iIntros "!%" (ρ v). exact: interp_subst_commute.
   Qed.
@@ -177,7 +176,7 @@ Section typing_type_member_defs.
   Lemma D_Typ Γ T L U s σ l:
     Γ ⊨ [TLater T, 0] <: [TLater U, 0] -∗
     Γ ⊨ [TLater L, 0] <: [TLater T, 0] -∗
-    (s, σ) ↝[ length Γ ] ⟦ T ⟧ -∗
+    s ↝[ σ ] ⟦ T ⟧ -∗
     Γ ⊨d{ l := dtysem σ s } : TTMem l L U.
   Proof.
     iIntros "#HTU #HLT #Hs /= !>" (ρ) "#Hg".
@@ -190,7 +189,7 @@ Section typing_type_member_defs.
   Qed.
 
   Lemma D_Typ_Concr Γ T s σ l:
-    (s, σ) ↝[ length Γ ] ⟦ T ⟧ -∗
+    s ↝[ σ ] ⟦ T ⟧ -∗
     Γ ⊨d{ l := dtysem σ s } : TTMem l T T.
   Proof. iIntros "#Hs"; iApply D_Typ => //; iApply Sub_Refl. Qed.
 End typing_type_member_defs.
