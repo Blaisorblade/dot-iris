@@ -27,9 +27,9 @@ Notation " {@ x ; y ; .. ; z } " := (cons x (cons y .. (cons z nil) ..)) (format
 Close Scope dms_scope.
 Arguments vobj _%dms_scope.
 
-Notation "'ν' ds " := (vobj ds) (at level 20, ds at next level).
-Notation "'val' l = v" := (l, dvl v) (at level 20, l at level 10).
-Notation "'type' l = ( σ ; s )" := (l, dtysem σ s) (at level 20, l at level 10).
+Notation "'ν' ds " := (vobj ds) (at level 60, ds at next level).
+Notation "'val' l = v" := (l, dvl v) (at level 60, l at level 50).
+Notation "'type' l = ( σ ; s )" := (l, dtysem σ s) (at level 60, l at level 50).
 
 (** Notation for object types. *)
 Bind Scope ty_scope with ty.
@@ -45,9 +45,9 @@ Notation " {@ T1 ; T2 ; .. ; Tn } " := (TAnd T1 (TAnd T2 .. (TAnd Tn {@})..))
 Close Scope ty_scope.
 Delimit Scope ty_scope with ty.
 
-Notation "'μ' Ts " := (TMu Ts) (at level 20, Ts at next level).
-Notation "'type' l >: L <: U" := (TTMem l L U) (at level 20, l, L, U at level 10).
-Notation "'val' l : T" := (TVMem l T) (at level 20, l, T at level 10).
+Notation "'μ' Ts " := (TMu Ts) (at level 60, Ts at next level).
+Notation "'type' l >: L <: U" := (TTMem l L U) (at level 60, l, L, U at level 50).
+Notation "'val' l : T" := (TVMem l T) (at level 60, l, T at level 50).
 
 Notation σ1 := ([] : vls).
 Notation s1 := (1 % positive).
