@@ -222,9 +222,12 @@ Qed.
     def key(data: String): Key
   }
 
-  object HashKeys extends Keys { type Key = Int
+  object HashKeys extends Keys {
+    type Key = Int
     def key(s: String) = s.hashCode
   }
+
+  Note we upcast Int to this.Key; as expected, no later is needed.
 *)
 
 (* This stands for type [String] in that example. *)
