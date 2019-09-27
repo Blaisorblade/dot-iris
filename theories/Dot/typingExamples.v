@@ -177,19 +177,7 @@ Local Notation "Γ ⊢ds ds : T"  := (dms_typed Γ ds T) (at level 74, ds, T at 
 Example ex1 Γ n T:
   Γ ⊢ₜ tv (ν {@ val "a" = vnat n}) : μ {@ val "a" : TNat }.
 Proof.
-
-  (* (* info eauto: *) *)
-  (* simple eapply dcons_typed. *)
-  (* simple apply dnil_typed. *)
-  (* (*external*) reflexivity. *)
-  (* simple apply dvl_typed. *)
-  (* simple eapply Subs_typed. *)
-  (* simple eapply Trans_stp. *)
-  (* simple apply TSucc_stp. *)
-  (* simple apply TLaterR_stp. *)
-  (* simple apply Nat_typed. *)
-
-  (* Help proof search: Avoid trying TMuI_typed, that's1 slow. *)
+  (* Help proof search: Avoid trying TMuI_typed, that's slow. *)
   apply VObj_typed; by_dcrush.
 Qed.
 
@@ -293,8 +281,8 @@ Proof.
 Qed.
 
 (* new {
-  val subSys1 : { type A <: Int } = new { type A = Int }
-  val subSys2 : { type B } = new { type B = String }
+  val subSys1 : { z => type A <: Int } = new { type A = Int }
+  val subSys2 : { z => type B } = new { type B = String }
 } *)
 Definition systemVal := tv (ν
   {@
