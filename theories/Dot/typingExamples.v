@@ -5,9 +5,13 @@ I am also experimenting with notations, but beware the current definitions are p
 From D Require Import tactics.
 From D.Dot Require Import syn.
 From stdpp Require Import strings.
+From D.Dot Require Import traversals.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
+(****************)
+(** NOTATIONS  **)
+(****************)
 
 (** First, let's maybe start defining some nicer notation. I have little clue what I'm doing tho.
     *)
@@ -39,6 +43,7 @@ Notation " {@ T1 ; T2 ; .. ; Tn } " := (TAnd T1 (TAnd T2 .. (TAnd Tn {@})..))
 (* Notation " {@ T1 ; .. ; T2 ; Tn } " := (TAnd (TAnd .. (TAnd {@} T1) .. T2) Tn) *)
 (*                                          (format "{@  T1  ;  ..  ;  T2  ;  Tn  }"): ty_scope. *)
 Close Scope ty_scope.
+Delimit Scope ty_scope with ty.
 
 Notation "'μ' Ts " := (TMu Ts) (at level 20, Ts at next level).
 Notation "'type' l >: L <: U" := (TTMem l L U) (at level 20, l, L, U at level 10).
@@ -65,19 +70,48 @@ Check ν {@ val "a" = vnat 0 ; type "A" = (σ1 ; s1) }.
 
 (* Notation "v @ l1 @ .. @ l2 ; l" := (TSel (pself .. (pself (pv v) l1) .. l2) l) *)
 (*                                      (format "v  @  l1  @  ..  @  l2  ;  l", at level 69, l1, l2 at level 60). *)
-(* Check (TSel (pself (pself (pv (var_vl 0)) 1) 2) 3). *)
-(* Check (var_vl 0 @ 1 @ 2 ; 3). *)
+(* Check (TSel (pself (pself p0 1) 2) 3). *)
+(* Check (x0 @ 1 @ 2 ; 3). *)
 
 Notation "v @ l1 @ .. @ l2" := (pself .. (pself (pv v) l1) .. l2)
                                      (format "v  @  l1  @  ..  @  l2", at level 69, l1, l2 at level 60).
 
 Notation "p @; l" := (TSel p l) (at level 71).
-Check (pv (var_vl 0) @; "A").
-Check (pself (pself (pv (var_vl 0)) "A") "B" @; "C").
-Check (var_vl 0 @ "A").
-Check (var_vl 0 @ "A" @ "B" @; "C").
+Notation x0 := (var_vl 0).
+Notation x1 := (var_vl 1).
+Notation p0 := (pv x0).
+Notation p1 := (pv x1).
 
+Check (p0 @; "A").
+Check (pself (pself p0 "A") "B" @; "C").
+Check (x0 @ "A").
+Check (x0 @ "A" @ "B" @; "C").
+
+Notation TUnit := (⊤ % ty : ty).
+Notation tUnit := (tv (vnat 0) : tm).
+
+(****************)
+(** AUTOMATION **)
+(****************)
 From D.Dot Require Import typing.
+
+(* Deterministic crush. *)
+Ltac dcrush := repeat constructor.
+Ltac by_dcrush := by dcrush.
+
+Import Trav1.
+
+Ltac stcrush := try ((progress repeat
+  match goal with
+  | |- forall_traversal_tm   _ _ _ => constructor
+  | |- forall_traversal_vl   _ _ _ => constructor
+  | |- forall_traversal_dm   _ _ _ => constructor
+  | |- forall_traversal_path _ _ _ => constructor
+  | |- forall_traversal_ty   _ _ _ => constructor
+  end); eauto).
+
+
+Local Hint Extern 10 (_ ≤ _) => lia : core.
 
 Hint Constructors typed subtype dms_typed dm_typed path_typed.
 Remove Hints Trans_stp.
@@ -87,9 +121,24 @@ Hint Extern 5 => try_once is_stamped_mono_ty.
 Hint Extern 0 (dms_hasnt _ _) => done.
 
 Hint Immediate Nat.lt_0_succ.
+
 Section examples_lemmas.
 (* From D Require Import typeExtraction *)
 Context `{hasStampTable: stampTable}.
+
+Lemma Var_typed' Γ x T1 T2 :
+  Γ !! x = Some T1 →
+  T2 = T1.|[ren (+x)] →
+  (*──────────────────────*)
+  Γ ⊢ₜ tv (var_vl x) : T2 .
+Proof. intros; subst; by_dcrush. Qed.
+
+Lemma TMuE_typed' Γ v T1 T2:
+  Γ ⊢ₜ tv v: TMu T1 →
+  T2 = T1.|[v/] →
+  (*──────────────────────*)
+  Γ ⊢ₜ tv v: T2.
+Proof. intros; subst; auto. Qed.
 
 Lemma Subs_typed_nocoerce T1 T2 {Γ e} :
   Γ ⊢ₜ e : T1 →
@@ -105,13 +154,14 @@ Proof. eauto using is_stamped_pvar. Qed.
 End examples_lemmas.
 
 Hint Resolve is_stamped_pvar is_stamped_pvars.
-(* Deterministic crush. *)
-Ltac dcrush := repeat constructor.
-Ltac by_dcrush := by dcrush.
 
 Section examples.
 (* From D Require Import typeExtraction *)
 Context `{hasStampTable: stampTable}.
+
+(********************)
+(** MICRO-EXAMPLES **)
+(********************)
 
 Example ex0 e Γ T:
   Γ ⊢ₜ e : T →
@@ -144,15 +194,15 @@ Proof.
 Qed.
 
 Example ex2 Γ T
-  (Hs: (pv (var_vl 0) @; "B") ~[ 1 + length Γ ] (getStampTable, (s1, σ1))):
+  (Hs: (p0 @; "B") ~[ 1 + length Γ ] (getStampTable, (s1, σ1))):
   Γ ⊢ₜ tv (ν {@ type "A" = (σ1 ; s1) } ) :
     TMu (TAnd (TTMem "A" TBot TTop) TTop).
 Proof.
-  have Hst: is_stamped_ty (1 + length Γ) getStampTable (pv (var_vl 0) @; "B").
+  have Hst: is_stamped_ty (1 + length Γ) getStampTable (p0 @; "B").
   by auto 2.
   apply VObj_typed; last by_dcrush. (* Avoid trying TMuI_typed, that's slow. *)
   eapply dcons_typed; trivial.
-  eapply (dty_typed (pv (var_vl 0) @; "B")); eauto 3.
+  eapply (dty_typed (p0 @; "B")); eauto 3.
 Qed.
 
 (* Try out fixpoints. *)
@@ -160,15 +210,15 @@ Definition F3 T :=
   TMu (TAnd (TTMem "A" T T) TTop).
 
 Example ex3 Γ T
-  (Hs: F3 (pv (var_vl 0) @; "A") ~[ 1 + length Γ ] (getStampTable, (s1, σ1))):
+  (Hs: F3 (p0 @; "A") ~[ 1 + length Γ ] (getStampTable, (s1, σ1))):
   Γ ⊢ₜ tv (ν {@ type "A" = (σ1 ; s1) } ) :
-    F3 (F3 (TSel (pv (var_vl 0)) "A")).
+    F3 (F3 (TSel p0 "A")).
 Proof.
-  have Hst: is_stamped_ty (1 + length Γ) getStampTable (F3 (pv (var_vl 0) @; "A")).
+  have Hst: is_stamped_ty (1 + length Γ) getStampTable (F3 (p0 @; "A")).
   by constructor; cbn; eauto.
   apply VObj_typed; last eauto. (* Avoid trying TMuI_typed, that's slow. *)
   eapply dcons_typed; trivial.
-  eapply (dty_typed (F3 (pv (var_vl 0) @; "A"))); eauto 3.
+  eapply (dty_typed (F3 (p0 @; "A"))); eauto 3.
 Qed.
 
 (* new {
@@ -179,6 +229,7 @@ Definition systemVal := tv (ν
   {@
     val "subSys1" = ν {@ type "A" = (σ1; s1) } ;
     val "subSys2" = ν {@ type "B" = (σ2; s2) } }).
+
 Example motivEx Γ (String : ty)
   (HsString: is_stamped_ty (2 + length Γ) getStampTable String)
   (Hs1: TNat ~[ 2 + length Γ ] (getStampTable, (s1, σ1)))
