@@ -182,7 +182,7 @@ Example ex2 Γ T
     TMu (TAnd (TTMem "A" TBot TTop) TTop).
 Proof.
   have Hst: is_stamped_ty (1 + length Γ) getStampTable (p0 @; "B").
-  by auto 2.
+  by stcrush.
   apply VObj_typed; last by_dcrush. (* Avoid trying TMuI_typed, that's slow. *)
   eapply dcons_typed; trivial.
   eapply (dty_typed (p0 @; "B")); eauto 3.
@@ -198,7 +198,7 @@ Example ex3 Γ T
     F3 (F3 (TSel p0 "A")).
 Proof.
   have Hst: is_stamped_ty (1 + length Γ) getStampTable (F3 (p0 @; "A")).
-  by constructor; cbn; eauto.
+  by stcrush.
   apply VObj_typed; last eauto. (* Avoid trying TMuI_typed, that's slow. *)
   eapply dcons_typed; trivial.
   eapply (dty_typed (F3 (p0 @; "A"))); eauto 3.
