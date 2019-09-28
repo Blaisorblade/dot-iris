@@ -5,21 +5,6 @@ From D.Dot Require Import lr_lemma lr_lemmasDefs lr_lemma_nobinding lr_lemmasTSe
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 
-(* Should use fresh names. *)
-Ltac iDestrConjs :=
-  iMatchHyp (fun H P => match P with
-                        | (_ ∧ _)%I =>
-                          iDestruct H as "[#HA #HB]"
-                        | (_ ∗ _)%I =>
-                          iDestruct H as "[#HA #HB]"
-                        end).
-
-Lemma forall_swap `{BiAffine PROP} {A} (P : PROP) `{!Persistent P} (Ψ : A → PROP) :
-  (P → ∀ a, Ψ a)%I ⊣⊢ (∀ a, P → Ψ a)%I.
-Proof.
-  iSplit; [iIntros "H" (a) "P"|iIntros "H P" (a)]; iApply ("H" with "P").
-Qed.
-
 Section swap_based_typing_lemmas.
   Context `{!dlangG Σ} {Γ}.
 
@@ -90,7 +75,6 @@ Section fundamental.
   Context `{!dlangG Σ} `{!SwapProp (iPropSI Σ)}.
   Context `{hasStampTable: stampTable}.
 
-  (* XXX these statements point out we need to realign the typing judgemnts. *)
   Lemma fundamental_dm_typed Γ V l d T (HT: Γ |d V ⊢{ l := d } : T):
     wellMapped getStampTable -∗ Γ |L V ⊨d{ l := d } : T with
   fundamental_dms_typed Γ V ds T (HT: Γ |ds V ⊢ ds : T):
@@ -155,7 +139,8 @@ Section fundamental.
       + iApply P_Sub; by [|iApply fundamental_subtype].
   Qed.
 
-  Lemma fundamental_typed_upd Γ e T (HT: Γ ⊢ₜ e : T): (allGs ∅ -∗ |==> Γ ⊨ e : T)%I.
+  Lemma fundamental_typed_upd Γ e T :
+    Γ ⊢ₜ e : T → allGs ∅ -∗ |==> Γ ⊨ e : T.
   Proof.
     iIntros. iApply fundamental_typed => //. by iApply transfer_empty.
   Qed.
@@ -167,7 +152,7 @@ End fundamental.
 Import dlang_adequacy.
 
 Theorem adequacy Σ `{HdlangG: dlangPreG Σ} `{SwapProp (iPropSI Σ)} e e' thp σ σ' T:
-  (forall `{dlangG Σ} `{SwapProp (iPropSI Σ)}, allGs ∅ ⊢ |==> [] ⊨ e : T) →
+  (forall `{!dlangG Σ} `{!SwapProp (iPropSI Σ)}, allGs ∅ ⊢ |==> [] ⊨ e : T) →
   rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
   is_Some (to_val e') ∨ reducible e' σ'.
 Proof.
@@ -180,8 +165,8 @@ Qed.
     typing and use the fundamental lemma. But otherwise this follows the general
     instantiation pattern, from e.g.
     https://gitlab.mpi-sws.org/iris/examples/blob/a89dc12821b63eeb9b831d21629ac55ebd601f38/theories/logrel/F_mu_ref/soundness.v#L29-39. *)
-Corollary type_soundness e e' thp σ σ' T `{stampTable}:
-  ([] ⊢ₜ e : T) →
+Corollary type_soundness e e' thp σ σ' T `{!stampTable}:
+  [] ⊢ₜ e : T →
   rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
   is_Some (to_val e') ∨ reducible e' σ'.
 Proof.

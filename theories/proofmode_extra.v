@@ -1,6 +1,12 @@
 From iris.proofmode Require Import tactics.
 Import bi.
 
+Lemma forall_swap `{BiAffine PROP} {A} (P : PROP) `{!Persistent P} (Ψ : A → PROP) :
+  (P → ∀ a, Ψ a)%I ⊣⊢ (∀ a, P → Ψ a)%I.
+Proof.
+  iSplit; [iIntros "H" (a) "P"|iIntros "H P" (a)]; iApply ("H" with "P").
+Qed.
+
 Module Tests1.
   Section Succeed.
     Context {PROP : sbi}.

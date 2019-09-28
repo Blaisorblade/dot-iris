@@ -1,5 +1,3 @@
-From stdpp Require Import list.
-From D Require Import tactics.
 From D.Dot Require Import syn.
 
 Set Primitive Projections.
