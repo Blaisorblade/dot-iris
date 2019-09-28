@@ -1,6 +1,6 @@
 From stdpp Require Import list.
 From D Require Import tactics.
-From D.DSub Require Import syn operational.
+From D.DSub Require Import syn.
 
 Set Primitive Projections.
 Set Implicit Arguments.
