@@ -1,75 +1,9 @@
 From iris.proofmode Require Import tactics.
 From D Require Import swap_later_impl.
-From D.Dot Require Import unary_lr typing typeExtractionSem synLemmas.
+From D.Dot Require Import unary_lr typing typeExtractionSem.
 From D.Dot Require Import lr_lemma lr_lemmasDefs lr_lemma_nobinding lr_lemmasTSel.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
-
-Section swap_based_typing_lemmas.
-  Context `{!dlangG Σ} {Γ}.
-
-  Lemma Sub_TVMem_Variant' T1 T2 i j l:
-    Γ ⊨ [TLater T1, i] <: [TLater T2, (j + i)] -∗
-    Γ ⊨ [TVMem l T1, i] <: [TVMem l T2, j + i].
-  Proof.
-    iIntros "#IHT /= !>" (ρ v) "#Hg #HT1". setoid_rewrite laterN_plus.
-    iDestruct "HT1" as (d) "#[Hdl #HT1]".
-    iExists d; repeat iSplit => //.
-    iDestruct "HT1" as (vmem) "[Heq HvT1]".
-    iExists vmem; repeat iSplit => //.
-    iIntros. by iApply "IHT".
-  Qed.
-
-  Lemma Sub_TVMem_Variant T1 T2 i l:
-    Γ ⊨ [TLater T1, i] <: [TLater T2, i] -∗
-    Γ ⊨ [TVMem l T1, i] <: [TVMem l T2, i].
-  Proof.
-    iApply (Sub_TVMem_Variant' _ _ _ 0).
-  Qed.
-
-  Context `{!SwapProp (iPropSI Σ)}.
-
-  Lemma Sub_TAllConCov T1 T2 U1 U2 i:
-    Γ ⊨ [ TLater T2, i ] <: [ TLater T1, i ] -∗
-    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨ [ TLater U1, i ] <: [ TLater U2, i ] -∗
-    Γ ⊨ [ TAll T1 U1, i ] <: [ TAll T2 U2, i ].
-  Proof.
-    rewrite iterate_S /=.
-    iIntros "#HsubT #HsubU /= !>" (ρ v) "#Hg #HT1".
-    iDestruct "HT1" as (t) "#[Heq #HT1]". iExists t; iSplit => //.
-    iIntros (w).
-    rewrite -!mlaterN_pers -mlater_impl -mlaterN_impl.
-    iIntros "!> #HwT2".
-    iSpecialize ("HsubT" $! ρ w with "Hg HwT2").
-    iSpecialize ("HsubU" $! (w .: ρ)); iEval (rewrite -forall_swap) in "HsubU".
-    iSpecialize ("HsubU" with "[# $Hg]").
-    by rewrite iterate_TLater_later -swap_later; iApply interp_weaken_one.
-    setoid_rewrite mlaterN_impl; setoid_rewrite mlater_impl.
-    iNext i; iNext 1. iApply wp_wand.
-    - iApply "HT1". iApply "HsubT".
-    - iIntros (u) "#HuU1". by iApply "HsubU".
-  Qed.
-
-  Lemma Sub_TTMem_Variant L1 L2 U1 U2 i l:
-    Γ ⊨ [TLater L2, i] <: [TLater L1, i] -∗
-    Γ ⊨ [TLater U1, i] <: [TLater U2, i] -∗
-    Γ ⊨ [TTMem l L1 U1, i] <: [TTMem l L2 U2, i].
-  Proof.
-    iIntros "#IHT #IHT1 /= !>" (ρ v) "#Hg #HT1".
-    iDestruct "HT1" as (d) "[Hl2 H]".
-    iDestruct "H" as (φ) "#[Hφl [HLφ #HφU]]".
-    setoid_rewrite mlaterN_impl.
-    iExists d; repeat iSplit => //.
-    iExists φ; repeat iSplitL => //;
-      rewrite -!mlaterN_pers;
-      iIntros "!>" (w);
-      iSpecialize ("IHT" $! ρ w with "Hg");
-      iSpecialize ("IHT1" $! ρ w with "Hg");
-      iNext; iIntros.
-    - iApply "HLφ" => //. by iApply "IHT".
-    - iApply "IHT1". by iApply "HφU".
-  Qed.
-End swap_based_typing_lemmas.
 
 Section fundamental.
   Context `{!dlangG Σ} `{!SwapProp (iPropSI Σ)}.
