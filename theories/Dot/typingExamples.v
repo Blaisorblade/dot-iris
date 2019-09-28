@@ -6,7 +6,6 @@ From stdpp Require Import strings.
 
 From D Require Import tactics.
 From D.Dot Require Import syn.
-From D.Dot Require Import traversals.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
@@ -93,7 +92,7 @@ Notation tUnit := (tv (vnat 0) : tm).
 (****************)
 (** AUTOMATION **)
 (****************)
-From D.Dot Require Import typing.
+From D.Dot Require Import typing traversals stampedness.
 
 (* Deterministic crush. *)
 Ltac dcrush := repeat constructor.

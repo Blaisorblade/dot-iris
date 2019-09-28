@@ -1,5 +1,5 @@
-From D Require Import tactics.
-From D.Dot Require Export syn typeExtractionSyn stampedness closed_subst synLemmas.
+From D.Dot Require Export syn stampingDefsCore.
+(* typeExtractionSyn stampedness closed_subst synLemmas. *)
 
 Reserved Notation "Γ ⊢ₜ e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ ⊢ₚ p : T , i" (at level 74, p, T, i at next level).
@@ -8,8 +8,6 @@ Reserved Notation "Γ |ds V ⊢ ds : T" (at level 74, ds, T, V at next level).
 Reserved Notation "Γ ⊢ₜ T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
 
 Implicit Types (L T U V : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty) (g : stys).
-
-Class stampTable := getStampTable : stys.
 
 Section syntyping.
   Context `{hasStampTable: stampTable}.
@@ -235,6 +233,18 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
 
   (* Make [T] first argument: Hide Γ for e.g. typing examples. *)
   Global Arguments dty_typed {Γ} T _ _ _ _ _ _ _ _ _ _ : assert.
+End syntyping.
+
+Notation "Γ ⊢ₜ e : T " := (typed Γ e T).
+Notation "Γ |ds V ⊢ ds : T" := (dms_typed Γ V ds T).
+Notation "Γ |d V ⊢{ l := d  } : T" := (dm_typed Γ V l d T).
+Notation "Γ ⊢ₚ p : T , i" := (path_typed Γ p T i).
+Notation "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
+
+From D Require Import tactics.
+From D.Dot Require Import typeExtractionSyn stampedness closed_subst synLemmas.
+Section syntyping_lemmas.
+  Context `{hasStampTable: stampTable}.
 
   Scheme exp_typed_mut_ind := Induction for typed Sort Prop
   with   exp_dms_typed_mut_ind := Induction for dms_typed Sort Prop
@@ -244,6 +254,16 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
 
   Combined Scheme exp_typing_mut_ind from exp_typed_mut_ind, exp_dms_typed_mut_ind,
     exp_dm_typed_mut_ind, exp_path_typed_mut_ind.
+
+  Scheme typed_mut_ind := Induction for typed Sort Prop
+  with   dms_typed_mut_ind := Induction for dms_typed Sort Prop
+  with   dm_typed_mut_ind := Induction for dm_typed Sort Prop
+  with   path_typed_mut_ind := Induction for path_typed Sort Prop
+  with   subtype_mut_ind := Induction for subtype Sort Prop.
+
+  Combined Scheme typing_mut_ind from typed_mut_ind, dms_typed_mut_ind, dm_typed_mut_ind,
+    path_typed_mut_ind, subtype_mut_ind.
+
 
   Hint Constructors Forall.
   Lemma stamped_mut_subject Γ:
@@ -270,15 +290,6 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
     Γ ⊢ₚ p : T, i → is_stamped_path (length Γ) getStampTable p.
   Proof. unmut_lemma (stamped_mut_subject Γ). Qed.
   Local Hint Resolve stamped_exp_subject stamped_path_subject.
-
-  Scheme typed_mut_ind := Induction for typed Sort Prop
-  with   dms_typed_mut_ind := Induction for dms_typed Sort Prop
-  with   dm_typed_mut_ind := Induction for dm_typed Sort Prop
-  with   path_typed_mut_ind := Induction for path_typed Sort Prop
-  with   subtype_mut_ind := Induction for subtype Sort Prop.
-
-  Combined Scheme typing_mut_ind from typed_mut_ind, dms_typed_mut_ind, dm_typed_mut_ind,
-    path_typed_mut_ind, subtype_mut_ind.
 
   (* The reverse direction slows proof search and isn't used anyway? *)
   Lemma is_stamped_ren_ty_1 i T g:
@@ -380,10 +391,4 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
       by eauto.
       move: (H0 Hctx'). intuition idtac; econstructor; cbn; eauto.
   Qed.
-End syntyping.
-
-Notation "Γ ⊢ₜ e : T " := (typed Γ e T).
-Notation "Γ |ds V ⊢ ds : T" := (dms_typed Γ V ds T).
-Notation "Γ |d V ⊢{ l := d  } : T" := (dm_typed Γ V l d T).
-Notation "Γ ⊢ₚ p : T , i" := (path_typed Γ p T i).
-Notation "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
+End syntyping_lemmas.

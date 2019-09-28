@@ -1,50 +1,12 @@
 (** Define purely syntactically whether a term is stamped or not. *)
 From stdpp Require Import gmap list.
-From D.Dot Require Import operational synLemmas traversals typeExtractionSyn.
+From D.Dot Require Import operational synLemmas traversals stampingDefsCore.
 
-Import Trav1.
-Set Primitive Projections.
 Set Implicit Arguments.
 
 Implicit Types
          (T: ty) (v: vl) (e: tm) (p: path) (d: dm) (ds: dms) (vs: vls)
          (Γ : ctx) (g: stys) (n: nat).
-
-Fixpoint path_root (p : path): vl :=
-  match p with
-  | pv v => v
-  | pself p _ => path_root p
-  end.
-
-Definition is_unstamped_trav: Traversal unit :=
-  {|
-    upS := id;
-    varP := λ _ n, True;
-    dtysynP := λ _ T, True;
-    dtysemP := λ _ vs s, False;
-    tselP := λ s p, ∃ x, path_root p = var_vl x;
-  |}.
-
-Definition is_stamped_trav: Traversal (nat * stys) :=
-  {|
-    upS := λ '(n, g), (S n, g);
-    varP := λ '(n, g) i, i < n;
-    dtysynP := λ ts T, False;
-    dtysemP := λ '(n, g) vs s, ∃ T', g !! s = Some T' ∧ nclosed T' (length vs);
-    tselP := λ ts p, True;
-  |}.
-
-Notation is_unstamped_tm := (forall_traversal_tm is_unstamped_trav ()).
-Notation is_unstamped_vl := (forall_traversal_vl is_unstamped_trav ()).
-Notation is_unstamped_dm := (forall_traversal_dm is_unstamped_trav ()).
-Notation is_unstamped_path := (forall_traversal_path is_unstamped_trav ()).
-Notation is_unstamped_ty := (forall_traversal_ty is_unstamped_trav ()).
-
-Notation is_stamped_tm n g := (forall_traversal_tm is_stamped_trav (n, g)).
-Notation is_stamped_vl n g := (forall_traversal_vl is_stamped_trav (n, g)).
-Notation is_stamped_dm n g := (forall_traversal_dm is_stamped_trav (n, g)).
-Notation is_stamped_path n g := (forall_traversal_path is_stamped_trav (n, g)).
-Notation is_stamped_ty n g := (forall_traversal_ty is_stamped_trav (n, g)).
 
 Lemma is_stamped_idsσ_ren g m n j: j + n <= m → Forall (is_stamped_vl m g) (idsσ n).|[ren (+j)].
 Proof.
