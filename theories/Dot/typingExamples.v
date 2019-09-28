@@ -43,6 +43,9 @@ Notation " {@ T1 ; T2 ; .. ; Tn } " := (TAnd T1 (TAnd T2 .. (TAnd Tn {@})..))
 (*                                          (format "{@  T1  ;  ..  ;  T2  ;  Tn  }"): ty_scope. *)
 Close Scope ty_scope.
 Delimit Scope ty_scope with ty.
+
+Check {@ TNat ; TNat ; TNat } % ty.
+
 Notation "'ℕ'" := TNat  (only parsing) : ty_scope.
 Notation "'𝐍'" := TNat : ty_scope.
 
@@ -66,6 +69,7 @@ Check ν {@ type "A" = (σ1 ; s1) }.
 Check ν {@ val "a" = vnat 0; type "A" = (σ1 ; s1) }.
 Check μ {@ type "A" >: TNat <: TTop }.
 Check μ {@ val "a" : TNat }.
+Check μ {@ type "A" >: TNat <: TTop ; val "a" : TNat ; val "b" : TNat }.
 
 Check vobj {@}.
 Check ν {@ }.
@@ -171,7 +175,7 @@ Context `{hasStampTable: stampTable}.
 Example ex0 e Γ T:
   Γ ⊢ₜ e : T →
   is_stamped_ty (length Γ) getStampTable T →
-  Γ ⊢ₜ e : TTop.
+  Γ ⊢ₜ e : ⊤.
 Proof. intros. apply (Subs_typed_nocoerce T TTop); by_dcrush. Qed.
 
 Example ex1 Γ n T:
