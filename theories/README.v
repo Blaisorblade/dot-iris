@@ -80,10 +80,6 @@ From D.Dot Require lr_lemma (* ... *).
 (**
 Finally, we prove the fundamental lemma: syntactially well-typed terms are
 semantically well-typed, and similarly for subtyping, etc.
-*)
-From D.Dot Require fundamental.
-
-(**
 And by adequacy, semantically well-typed terms are safe.
 *)
-From D.Dot Require adequacy.
+From D.Dot Require fundamental.
