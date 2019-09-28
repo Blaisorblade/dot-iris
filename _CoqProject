@@ -51,6 +51,7 @@ theories/Dot/synLemmas.v
 theories/Dot/step_fv.v
 theories/Dot/skeleton.v
 theories/Dot/stampingDefsCore.v
+theories/Dot/typingProofs.v
 theories/Dot/rules.v
 theories/Dot/adequacy.v
 theories/Dot/fundamental.v
