@@ -314,4 +314,25 @@ Proof.
     apply (dty_typed String) ]; by_dcrush.
 Qed.
 
+(* Uh, we can unfold recursive types during construction! Does that allow
+us to encode mutual recursion? Write this up. *)
+Definition systemValT' := μ {@
+  val "subSys1" : type "A" >: ⊥ <: TNat;
+  val "subSys2" : type "B" >: ⊥ <: ⊤}.
+Example motivEx1 (Hs1: systemValTDef1) (Hs2: systemValTDef2)
+  (HsString: is_stamped_ty (2 + length Γ) getStampTable String):
+  Γ ⊢ₜ systemVal : systemValT'.
+Proof.
+  apply VObj_typed; last by_dcrush.
+  eapply dcons_typed; dcrush.
+  - apply (Subs_typed_nocoerce (μ {@ type "A" >: ⊥ <: TNat})); dcrush.
+    + apply (dty_typed TNat); by_dcrush.
+    + eapply Trans_stp;
+      [eapply (Mu_stp _ ({@ type "A" >: ⊥ <: TNat })%ty 0)|]; by_dcrush.
+  - apply (Subs_typed_nocoerce (μ {@ type "B" >: ⊥ <: ⊤})); dcrush.
+    + apply (dty_typed String); by_dcrush.
+    + eapply Trans_stp;
+      [eapply (Mu_stp _ ({@ type "B" >: ⊥ <: ⊤ })%ty 0)|]; by_dcrush.
+Qed.
+
 End examples.
