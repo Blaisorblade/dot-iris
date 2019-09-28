@@ -43,6 +43,12 @@ Notation " {@ T1 ; T2 ; .. ; Tn } " := (TAnd T1 (TAnd T2 .. (TAnd Tn {@})..))
 (*                                          (format "{@  T1  ;  ..  ;  T2  ;  Tn  }"): ty_scope. *)
 Close Scope ty_scope.
 Delimit Scope ty_scope with ty.
+Notation "'ℕ'" := TNat  (only parsing) : ty_scope.
+Notation "'𝐍'" := TNat : ty_scope.
+
+Notation "'▸'" := TLater : ty_scope.
+Notation "'∀' T ',' U" := (TAll T U) (at level 49) : ty_scope.
+(* Notation "'∀' '(' T ')' U" := (TAll T U) (at level 60). *)
 
 Notation "'μ' Ts " := (TMu Ts) (at level 60, Ts at next level).
 Notation "'type' l >: L <: U" := (TTMem l L U) (at level 60, l, L, U at level 50).
@@ -250,50 +256,57 @@ Proof.
   { intros H.
     apply (Subs_typed_nocoerce KeysT'); first done.
     constructor; stcrush.
+
     apply TAnd_stp; last eapply TAnd2_stp; stcrush.
     eapply Trans_stp.
     - eapply TAnd1_stp; stcrush.
     - by_dcrush.
   }
-  apply VObj_typed; cbn.
+  apply VObj_typed; cbn; last stcrush.
   eapply dcons_typed; dcrush; cbn.
-  - apply (dty_typed TNat); by_dcrush.
-  - apply (App_typed _ _ _ TUnit); first last.
-    + by eapply (Subs_typed_nocoerce TNat); eauto 2.
-    + dcrush; cbn.
-      pose (T0 := μ {@ val "hashCode" : TAll {@} TNat }).
-      have Htp: ∀ Γ', T0 :: Γ' ⊢ₜ tv x0 : val "hashCode" : TAll {@} TNat. {
-        intros. eapply Subs_typed_nocoerce.
-        eapply TMuE_typed'; by [exact: Var_typed'|].
-        by eapply TAnd1_stp; stcrush.
-      }
-      apply (Subs_typed_nocoerce (val "hashCode" : TAll {@} TNat)). exact: Htp.
-      dcrush.
-      apply Trans_stp with (T2 := iterate TLater 1 TNat) (i2 := 0); first eauto.
-      eapply LSel_stp with (p := pv (ids 2)) (U := ⊤%ty).
-      dcrush.
-      eapply Subs_typed_nocoerce; first by eapply Var_typed'.
-      eapply TAnd1_stp; stcrush.
-  - stcrush.
+  by apply (dty_typed TNat); by_dcrush.
+  apply (App_typed _ _ _ TUnit); first last.
+  - eapply (Subs_typed_nocoerce TNat); eauto 2.
+  - dcrush; cbn.
+
+    pose (T0 := μ {@ val "hashCode" : TAll ⊤ 𝐍 }).
+    have Htp: ∀ Γ', T0 :: Γ' ⊢ₜ tv x0 : val "hashCode" : ∀ ⊤, TNat. {
+      intros. eapply Subs_typed_nocoerce.
+      eapply TMuE_typed'; by [exact: Var_typed'|].
+      by eapply TAnd1_stp; stcrush.
+    }
+    apply (Subs_typed_nocoerce (val "hashCode" : ∀ ⊤, 𝐍)). exact: Htp.
+    dcrush.
+    apply (Trans_stp _ 0 (iterate TLater 1 TNat)); first eauto.
+    eapply (LSel_stp _ (pv (ids 2)) ⊤).
+    dcrush.
+    eapply Subs_typed_nocoerce; first by eapply Var_typed'.
+    eapply TAnd1_stp; stcrush.
 Qed.
 
 (* new {
   val subSys1 : { z => type A <: Int } = new { type A = Int }
   val subSys2 : { z => type B } = new { type B = String }
 } *)
-Definition systemVal := tv (ν
-  {@
-    val "subSys1" = ν {@ type "A" = (σ1; s1) } ;
-    val "subSys2" = ν {@ type "B" = (σ2; s2) } }).
+Context Γ (String : ty).
 
-Example motivEx Γ (String : ty)
-  (HsString: is_stamped_ty (2 + length Γ) getStampTable String)
-  (Hs1: TNat ~[ 2 + length Γ ] (getStampTable, (s1, σ1)))
-  (Hs2: String ~[ 2 + length Γ ] (getStampTable, (s2, σ2))):
-  Γ ⊢ₜ systemVal :
-    μ {@
-      val "subSys1" : μ {@ type "A" >: ⊥ <: TNat};
-      val "subSys2" : μ {@ type "B" >: ⊥ <: ⊤}}.
+(* Term *)
+Definition systemVal := tv (ν {@
+  val "subSys1" = ν {@ type "A" = (σ1; s1) } ;
+  val "subSys2" = ν {@ type "B" = (σ2; s2) } }).
+Definition systemValTDef1 :=
+  TNat ~[ 2 + length Γ ] (getStampTable, (s1, σ1)).
+Definition systemValTDef2 :=
+  String ~[ 2 + length Γ ] (getStampTable, (s2, σ2)).
+
+(* Type *)
+Definition systemValT := μ {@
+  val "subSys1" : μ {@ type "A" >: ⊥ <: TNat};
+  val "subSys2" : μ {@ type "B" >: ⊥ <: ⊤}}.
+
+Example motivEx (Hs1: systemValTDef1) (Hs2: systemValTDef2)
+  (HsString: is_stamped_ty (2 + length Γ) getStampTable String):
+  Γ ⊢ₜ systemVal : systemValT.
 Proof.
   apply VObj_typed; last by_dcrush.
   eapply dcons_typed; dcrush.
