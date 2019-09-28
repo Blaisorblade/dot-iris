@@ -19,7 +19,7 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 (* Beware that "Bind Scope" just presets the scope of arguments for *new* definitions. *)
 
 (** Notation for object values. *)
-Bind Scope dms_scope with dms.
+
 Open Scope dms_scope.
 Notation " {@ } " := (@nil (string * dm)) (format "{@ }") : dms_scope.
 Notation " {@ x } " := ( x :: {@} ) (format "{@  x  }"): dms_scope.
@@ -32,7 +32,6 @@ Notation "'val' l = v" := (l, dvl v) (at level 60, l at level 50).
 Notation "'type' l = ( σ ; s )" := (l, dtysem σ s) (at level 60, l at level 50).
 
 (** Notation for object types. *)
-Bind Scope ty_scope with ty.
 Open Scope ty_scope.
 Notation "⊤" := TTop : ty_scope.
 Notation "⊥" := TBot : ty_scope.
@@ -168,11 +167,6 @@ Example ex0 e Γ T:
   is_stamped_ty (length Γ) getStampTable T →
   Γ ⊢ₜ e : TTop.
 Proof. intros. apply (Subs_typed_nocoerce T TTop); by_dcrush. Qed.
-
-(* XXX Redeclaring notation so that it picks new scopes. Once it picks new
-   scopes, the pretty-printer can use overloaded notation in its arguments.
-   Instead, declare scopes before typing notation. *)
-Local Notation "Γ ⊢ds ds : T"  := (dms_typed Γ ds T) (at level 74, ds, T at next level).
 
 Example ex1 Γ n T:
   Γ ⊢ₜ tv (ν {@ val "a" = vnat n}) : μ {@ val "a" : TNat }.

@@ -45,6 +45,9 @@ Definition vls := list vl.
 Definition dms := list (label * dm).
 Definition ctx := list ty.
 
+Bind Scope dms_scope with dms.
+Bind Scope ty_scope with ty.
+
 Implicit Types
          (T : ty) (v : vl) (t : tm) (d : dm) (ds : dms) (p : path)
          (Γ : ctx) (vs : vls) (l : label).
