@@ -1,6 +1,6 @@
 (** Define purely syntactically whether a term is stamped or not. *)
 From stdpp Require Import gmap list.
-From D.Dot Require Import operational synLemmas traversals stampingDefsCore.
+From D.Dot Require Import syn synLemmas traversals stampingDefsCore.
 
 Set Implicit Arguments.
 
