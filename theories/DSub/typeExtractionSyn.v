@@ -114,11 +114,11 @@ Proof. intros; subst; eauto. Qed.
 Hint Resolve extract_subst_spec.
 
 Lemma extraction_mono T g g' s σ n:
-  g ⊆ g' →
   T ~[ n ] (g, (s, σ)) →
+  g ⊆ g' →
   T ~[ n ] (g', (s, σ)).
 Proof.
-  cbn. intros Hg (T' & Hlook & Heq & ?).
+  cbn. intros (T' & Hlook & Heq & ?) Hg.
   exists T'; repeat split => //. by eapply map_subseteq_spec.
 Qed.
 Hint Extern 5 (_ ~[ _ ] (_, _)) => try_once extraction_mono.
