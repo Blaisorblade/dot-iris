@@ -279,4 +279,89 @@ Proof.
     eapply Var_typed_sub; by [|tcrush].
 Qed.
 
+(* AND = λ a b. a b False. *)
+Definition packBoolean := ν {@ type "A" = ( σ1; s1 ) }.
+Lemma packBooleanTyp0 Γ (Hst : boolImplTDef1) :
+  Γ ⊢ₜ tv packBoolean : type "A" >: IFT <: IFT.
+Proof.
+  apply (Subs_typed_nocoerce (μ {@ type "A" >: IFT <: IFT })).
+  apply VObj_typed; tcrush.
+  eapply (dty_typed IFT); tcrush.
+  eapply Trans_stp; first apply (Mu_stp _ ({@ type "A" >: IFT <: IFT }));
+   tcrush.
+Qed.
+
+Lemma packBooleanTyp Γ (Hst : boolImplTDef1) :
+  Γ ⊢ₜ tv packBoolean : type "A" >: ⊥ <: ⊤.
+Proof.
+  apply (Subs_typed_nocoerce (type "A" >: IFT <: IFT)).
+  exact: packBooleanTyp0. tcrush.
+Qed.
+
+Definition iftAnd false : vl := vabs (vabs'
+  (tapp (tapp (tapp (tv x1) (tv packBoolean)) (tv x0)) false)).
+
+Lemma packBooleanLB Γ (Hst : boolImplTDef1) i :
+  Γ ⊢ₜ ▶ IFT, i <: (pv packBoolean @; "A"), i.
+Proof.
+  apply AddIB_stp, (LSel_stp _ (pv _) IFT).
+  tcrush. exact: packBooleanTyp0.
+Qed.
+
+Lemma packBooleanUB Γ (Hst : boolImplTDef1) i :
+  Γ ⊢ₜ (pv packBoolean @; "A"), i <: ▶ IFT, i.
+Proof. eapply AddIB_stp, SelU_stp; tcrush. exact: packBooleanTyp0. Qed.
+
+(* XXX better statement *)
+Lemma extr_dtysem_stamped {g s m} σ T n :
+  T ~[ n ] (g, (s, σ)) →
+  m = length σ →
+  ∃ T' : ty, g !! s = Some T' ∧ nclosed T' m.
+Proof.
+  intros Hst ->. by rewrite /= /extraction in Hst |- *; ev; eauto 3.
+Qed.
+
+Example iftAndTyp Γ (Hst : boolImplTDef1):
+  Γ ⊢ₜ tv (iftAnd (tv iftFalse)) : TAll IFT (TAll IFT (▶IFT)).
+Proof.
+  unfold boolImplTDef1 in *; rewrite /iftAnd /vabs'.
+  tcrush.
+  econstructor. 2: eapply iftFalseTyp.
+  econstructor. 2: exact: Var_typed'.
+  rewrite lift0 hsubst_id /= -/IFT.
+  eapply Subs_typed_nocoerce. {
+    eapply Appv_typed'. 2: by apply: packBooleanTyp; eauto.
+    exact: Var_typed'.
+    by cbv; rewrite -/IFT.
+  }
+  rewrite -/packBoolean.
+  (* XXX better statement *)
+  have ?: ∃ T' : ty, getStampTable !! 1%positive = Some T' ∧ nclosed T' 0.
+  exact: extr_dtysem_stamped.
+
+  apply TAllConCov_stp; stcrush.
+  { eapply Trans_stp. apply: packBooleanLB. by eauto 4. tcrush. }
+  apply TLaterCov_stp, TAllConCov_stp; stcrush.
+  - eapply Trans_stp.
+    apply: packBooleanLB. by cbn; eauto 3.
+    tcrush.
+  - eapply TLaterCov_stp, Trans_stp.
+    apply: packBooleanUB. by cbn; eauto 3.
+    tcrush.
+Qed.
+
+(* Eta-expand to drop the later. *)
+Example iftAndTyp' Γ (Hst : boolImplTDef1):
+  Γ ⊢ₜ vabs' (vabs'
+    (tskip
+      (tapp (tapp (tv (iftAnd (tv iftFalse))) (tv x1)) (tv x0)))) :
+    TAll IFT (TAll IFT IFT).
+Proof.
+  tcrush; rewrite -(iterate_S tskip 0).
+  eapply (Subs_typed _ _ (▶IFT)); first tcrush.
+  eapply App_typed; last exact: Var_typed';
+    eapply App_typed; last exact: Var_typed'; rewrite /= -/IFT.
+  apply iftAndTyp; eauto.
+Qed.
+
 End examples.
