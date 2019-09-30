@@ -56,7 +56,9 @@ Check {@ TNat ; TNat ; TNat } % ty.
 Notation "'ℕ'" := TNat  (only parsing) : ty_scope.
 Notation "'𝐍'" := TNat : ty_scope.
 
-Notation "'▸'" := TLater : ty_scope.
+Notation "'▶'" := TLater : ty_scope.
+(* Level taken from Iris. *)
+Notation "'▶' T" := (TLater T) (at level 20, right associativity) : ty_scope.
 
 (* Do not use, too many conflicts. *)
 Notation "'∀' T ',' U" := (TAll T U) (at level 49, only printing) : ty_scope.
