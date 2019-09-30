@@ -23,7 +23,12 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 Open Scope dms_scope.
 Notation " {@ } " := (@nil (string * dm)) (format "{@ }") : dms_scope.
 Notation " {@ x } " := ( x :: {@} ) (format "{@  x  }"): dms_scope.
-Notation " {@ x ; y ; .. ; z } " := (cons x (cons y .. (cons z nil) ..)) (format "{@  x ;  y ;  .. ;  z  }"): dms_scope.
+Notation " {@ x ; y ; .. ; z } " :=
+  (cons x (cons y .. (cons z nil) ..))
+  (* (format "{@  x ;  y ;  .. ;  z  }") *)
+  (format "'[v' {@  '[' x ']' ;  '/' y ;  '/' .. ;  '/' z } ']'")
+  : dms_scope.
+
 Close Scope dms_scope.
 Arguments vobj _%dms_scope.
 
@@ -35,10 +40,12 @@ Notation "'type' l = ( σ ; s )" := (l, dtysem σ s) (at level 60, l at level 50
 Open Scope ty_scope.
 Notation "⊤" := TTop : ty_scope.
 Notation "⊥" := TBot : ty_scope.
-Notation " {@ } " := TTop (format "{@ }") : ty_scope.
-Notation " {@ T1 } " := ( TAnd T1 {@} ) (format "{@  T1  }"): ty_scope.
-Notation " {@ T1 ; T2 ; .. ; Tn } " := (TAnd T1 (TAnd T2 .. (TAnd Tn {@})..))
-                                       (format "{@  T1  ;  T2  ;  ..  ;  Tn  }") : ty_scope.
+(* Notation " {@ } " := TTop (format "{@ }") : ty_scope. *)
+Notation " {@ T1 } " := ( TAnd T1 ⊤ ) (format "{@  T1  }"): ty_scope.
+Notation " {@ T1 ; T2 ; .. ; Tn } " :=
+  (TAnd T1 (TAnd T2 .. (TAnd Tn ⊤)..))
+  (* (format "'[v' {@  '[' T1 ']'  ;   T2  ;   ..  ;   Tn } ']'") : ty_scope. *)
+  (format "'[v' {@  '[' T1 ']'  ;  '/' T2  ;  '/' ..  ;  '/' Tn } ']'") : ty_scope.
 (* Notation " {@ T1 ; .. ; T2 ; Tn } " := (TAnd (TAnd .. (TAnd {@} T1) .. T2) Tn) *)
 (*                                          (format "{@  T1  ;  ..  ;  T2  ;  Tn  }"): ty_scope. *)
 Close Scope ty_scope.
@@ -53,9 +60,11 @@ Notation "'▸'" := TLater : ty_scope.
 Notation "'∀' T ',' U" := (TAll T U) (at level 49) : ty_scope.
 (* Notation "'∀' '(' T ')' U" := (TAll T U) (at level 60). *)
 
-Notation "'μ' Ts " := (TMu Ts) (at level 60, Ts at next level).
-Notation "'type' l >: L <: U" := (TTMem l L U) (at level 60, l, L, U at level 50).
-Notation "'val' l : T" := (TVMem l T) (at level 60, l, T at level 50).
+Notation "'μ' Ts " := (TMu Ts) (at level 50, Ts at next level).
+Notation "'type' l >: L <: U" := (TTMem l L U) (at level 60, l, L, U at level 50) : ty_scope.
+Notation "'val' l : T" :=
+  (TVMem l T)
+  (at level 60, l, T at level 50, format "'[' 'val'  l  :  T  ']' '/'") : ty_scope.
 
 Notation σ1 := ([] : vls).
 Notation s1 := (1 % positive).

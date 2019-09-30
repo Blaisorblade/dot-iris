@@ -1,10 +1,17 @@
 From D.Dot Require Export syn stampingDefsCore.
 (* typeExtractionSyn stampedness closed_subst synLemmas. *)
 
-Reserved Notation "Γ ⊢ₜ e : T" (at level 74, e, T at next level).
+Reserved Notation "Γ ⊢ₜ e : T"
+  (at level 74, e, T at next level,
+  format "'[' '[' Γ ']'  '/' ⊢ₜ  '[' e ']'  :  '[' T ']' ']'").
 Reserved Notation "Γ ⊢ₚ p : T , i" (at level 74, p, T, i at next level).
-Reserved Notation "Γ |d V ⊢{ l := d  } : T" (at level 74, l, d, T, V at next level).
-Reserved Notation "Γ |ds V ⊢ ds : T" (at level 74, ds, T, V at next level).
+Reserved Notation "Γ |d V ⊢{ l := d } : T "
+(* Reserved Notation "Γ |d V ⊢{ l := d  } : T " *)
+  (at level 74, l, d, T, V at next level,
+   format "'[' '[' Γ  |d  V  ']' '/' '[' ⊢{  l  :=  d  } ']' :  '[' T ']' ']'").
+Reserved Notation "Γ |ds V ⊢ ds : T"
+  (at level 74, ds, T, V at next level,
+  format "'[' '[' Γ  |ds  V  ']' '/' ⊢  '[' ds ']'  :  T ']'" ).
 Reserved Notation "Γ ⊢ₜ T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
 
 Implicit Types (L T U V : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty) (g : stys).
