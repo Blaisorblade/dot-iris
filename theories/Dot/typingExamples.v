@@ -125,6 +125,16 @@ Notation tUnit := (tv (vnat 0) : tm).
 (****************)
 From D.Dot Require Import typing traversals stampedness.
 
+Lemma extraction_weaken m n T gsσ :
+  T ~[ n ] gsσ → n < m → T ~[ m ] gsσ.
+Proof.
+  move: gsσ => [g [s σ]] /= [T' ?] Hle; ev.
+  exists T'; split_and!; eauto using nclosed_σ_mono.
+Qed.
+
+(* Keep this hint local for performance *)
+Local Hint Extern 5 => try_once extraction_weaken.
+
 (* Deterministic crush. *)
 Ltac dcrush := repeat constructor.
 Ltac by_dcrush := by dcrush.
