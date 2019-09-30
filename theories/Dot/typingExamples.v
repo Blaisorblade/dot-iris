@@ -188,4 +188,95 @@ Proof.
 Qed.
 End StringExamples.
 
+(* Sec. 5 of WadlerFest DOT.
+IFTFun ≡ { if: ∀(x: {A: ⊥..⊤})∀(t: x.A)∀(f: x.A): x.A }
+IFT ≡ { if: IFTFun }
+
+let boolImpl =
+ν (b: { Boolean: IFT..IFT } ∧ { true: IFT } ∧ { false: IFT })
+{ Boolean = IFT } ∧
+{ true = λ(x: {A: ⊥..⊤})λ(t: x.A)λ(f: x.A)t } ∧ { false = λ(x: {A: ⊥..⊤})λ(t: x.A)λ(f: x.A)f }
+
+In fact, that code doesn't typecheck as given, and we fix it by setting.
+
+IFT ≡ IFTFun
+ *)
+Definition IFT : ty :=
+  TAll (type "A" >: ⊥ <: ⊤)
+    (TAll (p0 @; "A") (TAll (p1 @; "A") (p2 @; "A"))).
+(* Definition IFT : ty := {@ val "if" : IFTFun }. *)
+Definition vabs' x := tv (vabs x).
+
+Definition iftTrue := vabs (vabs' (vabs' (tv x1))).
+Definition iftFalse := vabs (vabs' (vabs' (tv x0))).
+
+Example iftTrueTyp Γ : Γ ⊢ₜ tv iftTrue : IFT.
+Proof. tcrush. exact: Var_typed'. Qed.
+Example iftFalseTyp Γ : Γ ⊢ₜ tv iftFalse : IFT.
+Proof. tcrush. exact: Var_typed'. Qed.
+
+Definition boolImplTDef1 :=
+  IFT ~[ 0 ] (getStampTable, (s1, σ1)).
+Arguments boolImplTDef1 /.
+
+Definition boolImpl :=
+  ν {@
+    type "Boolean" = ( σ1; s1 );
+    val "true" = iftTrue;
+    val "false" = iftFalse
+  }.
+(* This type makes "Boolean" nominal by abstracting it. *)
+Definition boolImplT : ty :=
+  μ {@
+    type "Boolean" >: ⊥ <: IFT;
+    val "true" : (p0 @; "Boolean");
+    val "false" : (p0 @; "Boolean")
+  }.
+
+Definition boolImplTConcr : ty :=
+  μ {@
+    type "Boolean" >: IFT <: IFT;
+    val "true" : IFT;
+    val "false" : IFT
+  }.
+Example boolImplTyp Γ (Hst : boolImplTDef1):
+  Γ ⊢ₜ tv boolImpl : boolImplT.
+Proof.
+  apply (Subs_typed_nocoerce boolImplTConcr).
+  tcrush; by [apply (dty_typed IFT); tcrush| exact: Var_typed'].
+  tcrush.
+  - eapply Trans_stp; first apply TAnd1_stp; tcrush.
+  - eapply Trans_stp; first apply TAnd2_stp; tcrush.
+    eapply Trans_stp; first apply TAnd1_stp; tcrush.
+    eapply LSel_stp'; tcrush.
+    eapply Var_typed_sub; by [|tcrush].
+  - eapply Trans_stp; first apply TAnd2_stp; tcrush.
+    eapply Trans_stp; first apply TAnd2_stp; tcrush.
+    eapply Trans_stp; first apply TAnd1_stp; tcrush.
+    eapply LSel_stp'; tcrush.
+    eapply Var_typed_sub; by [|tcrush].
+Qed.
+
+(* We can also use subtyping on the individual members to type this example. *)
+Definition boolImplT0 : ty :=
+  μ {@
+    type "Boolean" >: IFT <: IFT;
+    val "true" : (p0 @; "Boolean");
+    val "false" : (p0 @; "Boolean")
+  }.
+
+Example boolImplTypAlt Γ (Hst : boolImplTDef1):
+  Γ ⊢ₜ tv boolImpl : boolImplT.
+Proof.
+  apply (Subs_typed_nocoerce boolImplT0);
+    last (tcrush; eapply Trans_stp; first apply TAnd1_stp; tcrush).
+  tcrush; first (by (apply (dty_typed IFT); tcrush)).
+  - eapply (Subs_typed_nocoerce); first apply iftTrueTyp.
+    eapply LSel_stp'; tcrush.
+    eapply Var_typed_sub; by [|tcrush].
+  - eapply (Subs_typed_nocoerce); first apply iftFalseTyp.
+    eapply LSel_stp'; tcrush.
+    eapply Var_typed_sub; by [|tcrush].
+Qed.
+
 End examples.
