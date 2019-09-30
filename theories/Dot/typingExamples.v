@@ -127,6 +127,9 @@ Notation tUnit := (tv (vnat 0) : tm).
 (****************)
 From D.Dot Require Import typing traversals stampedness.
 
+(* Prevent simplification from unfolding it, basically unconditionally. *)
+Arguments extraction : simpl never.
+
 Lemma extraction_weaken m n T gsσ :
   T ~[ n ] gsσ → n < m → T ~[ m ] gsσ.
 Proof.
@@ -149,6 +152,7 @@ Ltac stconstructor := match goal with
   | |- forall_traversal_dm   _ _ _ => constructor
   | |- forall_traversal_path _ _ _ => constructor
   | |- forall_traversal_ty   _ _ _ => constructor
+  | |- Forall _ _ => constructor
   end.
 Ltac typconstructor := match goal with
   | |- typed _ _ _ => constructor
@@ -175,6 +179,13 @@ Hint Immediate Nat.lt_0_succ.
 Section examples_lemmas.
 (* From D Require Import typeExtraction *)
 Context `{hasStampTable: stampTable}.
+
+Lemma Appv_typed' T2 {Γ e1 v2 T1 T3} :
+    Γ ⊢ₜ e1: TAll T1 T2 →                        Γ ⊢ₜ tv v2 : T1 →
+    T3 = T2.|[v2/] →
+    (*────────────────────────────────────────────────────────────*)
+    Γ ⊢ₜ tapp e1 (tv v2) : T3.
+Proof. intros; subst; by econstructor. Qed.
 
 Lemma Var_typed' Γ x T1 T2 :
   Γ !! x = Some T1 →
@@ -215,13 +226,29 @@ Proof.
   eapply Trans_stp; first exact: TAddLater_stp; tcrush.
 Qed.
 
+Lemma AddI_stp Γ T i (Hst: (is_stamped_ty (length Γ) getStampTable) T) :
+  Γ ⊢ₜ T, 0 <: T, i.
+Proof.
+  elim: i => [|n IHn]; first tcrush.
+  eapply Trans_stp; first apply IHn.
+  eapply Trans_stp; [exact: TAddLater_stp | tcrush].
+Qed.
+
+Lemma AddIB_stp Γ T U i:
+  Γ ⊢ₜ T, 0 <: U, 0 →
+  Γ ⊢ₜ T, i <: U, i.
+Proof.
+  move => Hstp; elim: i => [|n IHn]; first tcrush.
+  exact: TMono_stp.
+Qed.
+
 Lemma is_stamped_pvar i n : i < n → is_stamped_path n getStampTable (pv (var_vl i)).
 Proof. eauto. Qed.
 Lemma is_stamped_pvars i n l : i < n → is_stamped_ty n getStampTable (pv (var_vl i) @; l).
 Proof. eauto using is_stamped_pvar. Qed.
 End examples_lemmas.
 
-Hint Resolve is_stamped_pvar is_stamped_pvars.
+Hint Resolve is_stamped_pvar is_stamped_pvars Subs_typed_nocoerce.
 
 Section examples.
 (* From D Require Import typeExtraction *)
