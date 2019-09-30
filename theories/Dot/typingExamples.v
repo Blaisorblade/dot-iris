@@ -157,7 +157,7 @@ Ltac typconstructor := match goal with
   end.
 Ltac stcrush := try ((progress repeat stconstructor); eauto).
 (** [tcrush] is the safest automation around. *)
-Ltac tcrush := repeat typconstructor; stcrush; try done.
+Ltac tcrush := repeat typconstructor; stcrush; try solve [done | try_once extraction_weaken ; eauto].
 
 Local Hint Extern 10 (_ ≤ _) => lia : core.
 
@@ -202,10 +202,10 @@ Lemma Var_typed_sub Γ x T1 T2 :
   Γ ⊢ₜ tv (var_vl x) : T2.
 Proof. intros; eapply Subs_typed_nocoerce; by [exact: Var_typed|]. Qed.
 
-Lemma LSel_stp' Γ' U {p l L i}:
-  (is_stamped_ty (length Γ') getStampTable) L →
-  Γ' ⊢ₚ p : TTMem l L U, i →
-  Γ' ⊢ₜ L, i <: TSel p l, i.
+Lemma LSel_stp' Γ U {p l L i}:
+  (is_stamped_ty (length Γ) getStampTable) L →
+  Γ ⊢ₚ p : TTMem l L U, i →
+  Γ ⊢ₜ L, i <: TSel p l, i.
 Proof.
   intros.
   eapply Trans_stp; last exact: (LSel_stp _ p).
@@ -243,7 +243,7 @@ Proof.
 Qed.
 
 Example ex2 Γ T
-  (Hs: (p0 @; "B") ~[ 1 + length Γ ] (getStampTable, (s1, σ1))):
+  (Hs: (p0 @; "B") ~[ 0 ] (getStampTable, (s1, σ1))):
   Γ ⊢ₜ tv (ν {@ type "A" = (σ1 ; s1) } ) :
     TMu (TAnd (TTMem "A" TBot TTop) TTop).
 Proof.
@@ -259,7 +259,7 @@ Definition F3 T :=
   TMu (TAnd (TTMem "A" T T) TTop).
 
 Example ex3 Γ T
-  (Hs: F3 (p0 @; "A") ~[ 1 + length Γ ] (getStampTable, (s1, σ1))):
+  (Hs: F3 (p0 @; "A") ~[ 0 ] (getStampTable, (s1, σ1))):
   Γ ⊢ₜ tv (ν {@ type "A" = (σ1 ; s1) } ) :
     F3 (F3 (TSel p0 "A")).
 Proof.
@@ -310,7 +310,7 @@ Definition KeysT' := μ {@
 (* IDEA for our work: use [(type "Key" >: TNat <: ⊤) ⩓ (type "Key" >: ⊥ <: ⊤)]. *)
 
 Example hashKeys_typed Γ
-  (Hs1: TNat ~[ 1 + length Γ ] (getStampTable, (s1, σ1))) :
+  (Hs1: TNat ~[ 0 ] (getStampTable, (s1, σ1))) :
   Γ ⊢ₜ tv hashKeys : KeysT.
 Proof.
   cut (Γ ⊢ₜ tv hashKeys : KeysT').
@@ -344,23 +344,23 @@ Qed.
   val subSys1 : { z => type A <: Int } = new { type A = Int }
   val subSys2 : { z => type B } = new { type B = String }
 } *)
-Context Γ (String : ty).
+Context (String : ty).
 
 (* Term *)
 Definition systemVal := tv (ν {@
   val "subSys1" = ν {@ type "A" = (σ1; s1) } ;
   val "subSys2" = ν {@ type "B" = (σ2; s2) } }).
 Definition systemValTDef1 :=
-  TNat ~[ 2 + length Γ ] (getStampTable, (s1, σ1)).
+  TNat ~[ 0 ] (getStampTable, (s1, σ1)).
 Definition systemValTDef2 :=
-  String ~[ 2 + length Γ ] (getStampTable, (s2, σ2)).
+  String ~[ 0 ] (getStampTable, (s2, σ2)).
 
 (* Type *)
 Definition systemValT := μ {@
   val "subSys1" : μ {@ type "A" >: ⊥ <: TNat};
   val "subSys2" : μ {@ type "B" >: ⊥ <: ⊤}}.
 
-Example motivEx (Hs1: systemValTDef1) (Hs2: systemValTDef2)
+Example motivEx Γ (Hs1: systemValTDef1) (Hs2: systemValTDef2)
   (HsString: is_stamped_ty (2 + length Γ) getStampTable String):
   Γ ⊢ₜ systemVal : systemValT.
 Proof.
@@ -374,7 +374,7 @@ us to encode mutual recursion? Write this up. *)
 Definition systemValT' := μ {@
   val "subSys1" : type "A" >: ⊥ <: TNat;
   val "subSys2" : type "B" >: ⊥ <: ⊤}.
-Example motivEx1 (Hs1: systemValTDef1) (Hs2: systemValTDef2)
+Example motivEx1 Γ (Hs1: systemValTDef1) (Hs2: systemValTDef2)
   (HsString: is_stamped_ty (2 + length Γ) getStampTable String):
   Γ ⊢ₜ systemVal : systemValT'.
 Proof.
