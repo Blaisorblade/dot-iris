@@ -67,7 +67,7 @@ Notation "'∀' T ',' U" := (TAll T U) (at level 49, only printing) : ty_scope.
   (at level 30, format "'∀'  '(' T ')'   U") : ty_scope. *)
 
 Notation "'μ' Ts " := (TMu Ts) (at level 50, Ts at next level).
-Notation "'type' l >: L <: U" := (TTMem l L U) (at level 60, l, L, U at level 50) : ty_scope.
+Notation "'type' l >: L <: U" := (TTMem l L U) (at level 60, l at level 50, L, U at level 70) : ty_scope.
 Notation "'val' l : T" :=
   (TVMem l T)
   (at level 60, l, T at level 50, format "'[' 'val'  l  :  T  ']' '/'") : ty_scope.
@@ -100,7 +100,7 @@ Check ν {@ val "a" = vnat 0 ; type "A" = (σ1 ; s1) }.
 Notation "v @ l1 @ .. @ l2" := (pself .. (pself (pv v) l1) .. l2)
                                      (format "v  @  l1  @  ..  @  l2", at level 69, l1, l2 at level 60).
 
-Notation "p @; l" := (TSel p l) (at level 71).
+Notation "p @; l" := (TSel p l) (at level 69).
 Notation x0 := (var_vl 0).
 Notation x1 := (var_vl 1).
 Notation x2 := (var_vl 2).
@@ -181,10 +181,10 @@ Section examples_lemmas.
 Context `{hasStampTable: stampTable}.
 
 Lemma Appv_typed' T2 {Γ e1 v2 T1 T3} :
-    Γ ⊢ₜ e1: TAll T1 T2 →                        Γ ⊢ₜ tv v2 : T1 →
-    T3 = T2.|[v2/] →
-    (*────────────────────────────────────────────────────────────*)
-    Γ ⊢ₜ tapp e1 (tv v2) : T3.
+  Γ ⊢ₜ e1: TAll T1 T2 →                        Γ ⊢ₜ tv v2 : T1 →
+  T3 = T2.|[v2/] →
+  (*────────────────────────────────────────────────────────────*)
+  Γ ⊢ₜ tapp e1 (tv v2) : T3.
 Proof. intros; subst; by econstructor. Qed.
 
 Lemma Var_typed' Γ x T1 T2 :
