@@ -131,7 +131,7 @@ From D.Dot Require Import typing traversals stampedness.
 Arguments extraction : simpl never.
 
 Lemma extraction_weaken m n T gsσ :
-  T ~[ n ] gsσ → n < m → T ~[ m ] gsσ.
+  T ~[ n ] gsσ → n <= m → T ~[ m ] gsσ.
 Proof.
   move: gsσ => [g [s σ]] /= [T' ?] Hle; ev.
   exists T'; split_and!; eauto using nclosed_σ_mono.

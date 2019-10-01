@@ -23,7 +23,7 @@ Global Arguments eq_n_s /.
 Lemma eq_n_s_symm ρ1 ρ2 n : eq_n_s ρ1 ρ2 n → eq_n_s ρ2 ρ1 n.
 Proof. move => Heqs x ?. symmetry. exact: Heqs. Qed.
 
-Lemma eq_n_s_mon n m {s1 s2}: eq_n_s s1 s2 m → n < m → eq_n_s s1 s2 n.
+Lemma eq_n_s_mon n m {s1 s2}: eq_n_s s1 s2 m → n <= m → eq_n_s s1 s2 n.
 Proof. rewrite /eq_n_s => HsEq Hnm i Hl. apply HsEq; lia. Qed.
 
 Fixpoint to_subst σ : var → vl :=
@@ -420,18 +420,18 @@ Lemma subst_compose_idsσ x n ξ:
 Proof. intros; eauto using subst_compose. Qed.
 
 Lemma nclosed_mono x n m:
-  nclosed x n → n < m → nclosed x m.
+  nclosed x n → n <= m → nclosed x m.
 Proof. move => Hcl Hle s1 s2 Hseq. by eapply Hcl, eq_n_s_mon. Qed.
 
 Lemma nclosed_vl_mono v n m:
-  nclosed_vl v n → n < m → nclosed_vl v m.
+  nclosed_vl v n → n <= m → nclosed_vl v m.
 Proof. move => Hcl Hle s1 s2 Hseq. by eapply Hcl, eq_n_s_mon. Qed.
 
 End sort_lemmas.
 Hint Resolve @subst_compose @subst_compose_idsσ.
 
 Lemma nclosed_σ_mono σ n m :
-  nclosed_σ σ n → n < m → nclosed_σ σ m.
+  nclosed_σ σ n → n <= m → nclosed_σ σ m.
 Proof.
   intros; eapply closed_vls_to_Forall, nclosed_mono;
     by [ apply Forall_to_closed_vls |].
