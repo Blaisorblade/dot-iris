@@ -60,6 +60,7 @@ theories/Dot/lr_lemma.v
 theories/Dot/lr_lemmasTSel.v
 theories/Dot/lr_lemmasDefs.v
 theories/Dot/typingExamples.v
+theories/Dot/typingExInfra.v
 theories/Dot/experiments.v
 theories/Dot/noRussell.v
 theories/Dot/closed_subst.v
