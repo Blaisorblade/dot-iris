@@ -281,7 +281,10 @@ Qed.
 
 (* AND = λ a b. a b False. *)
 Definition packBoolean := ν {@ type "A" = ( σ1; s1 ) }.
-Lemma packBooleanTyp0 Γ (Hst : boolImplTDef1) :
+
+Definition boolImplTDef2 :=
+  IFT ~[ 0 ] (getStampTable, (s1, σ1)).
+Lemma packBooleanTyp0 Γ (Hst : boolImplTDef2) :
   Γ ⊢ₜ tv packBoolean : type "A" >: IFT <: IFT.
 Proof.
   apply (Subs_typed_nocoerce (μ {@ type "A" >: IFT <: IFT })).
@@ -291,7 +294,7 @@ Proof.
    tcrush.
 Qed.
 
-Lemma packBooleanTyp Γ (Hst : boolImplTDef1) :
+Lemma packBooleanTyp Γ (Hst : boolImplTDef2) :
   Γ ⊢ₜ tv packBoolean : type "A" >: ⊥ <: ⊤.
 Proof.
   apply (Subs_typed_nocoerce (type "A" >: IFT <: IFT)).
@@ -301,14 +304,14 @@ Qed.
 Definition iftAnd false : vl := vabs (vabs'
   (tapp (tapp (tapp (tv x1) (tv packBoolean)) (tv x0)) false)).
 
-Lemma packBooleanLB Γ (Hst : boolImplTDef1) i :
+Lemma packBooleanLB Γ (Hst : boolImplTDef2) i :
   Γ ⊢ₜ ▶ IFT, i <: (pv packBoolean @; "A"), i.
 Proof.
   apply AddIB_stp, (LSel_stp _ (pv _) IFT).
   tcrush. exact: packBooleanTyp0.
 Qed.
 
-Lemma packBooleanUB Γ (Hst : boolImplTDef1) i :
+Lemma packBooleanUB Γ (Hst : boolImplTDef2) i :
   Γ ⊢ₜ (pv packBoolean @; "A"), i <: ▶ IFT, i.
 Proof. eapply AddIB_stp, SelU_stp; tcrush. exact: packBooleanTyp0. Qed.
 
@@ -321,12 +324,13 @@ Proof.
   intros Hst ->. by rewrite /= /extraction in Hst |- *; ev; eauto 3.
 Qed.
 
-Example iftAndTyp Γ (Hst : boolImplTDef1):
-  Γ ⊢ₜ tv (iftAnd (tv iftFalse)) : TAll IFT (TAll IFT (▶IFT)).
+Example iftAndTyp Γ (Hst : boolImplTDef2) falseTm
+  (HfalseTm : ∀ T1 T2, T1 :: T2 :: Γ ⊢ₜ falseTm : IFT):
+  Γ ⊢ₜ tv (iftAnd falseTm) : TAll IFT (TAll IFT (▶IFT)).
 Proof.
   unfold boolImplTDef1 in *; rewrite /iftAnd /vabs'.
   tcrush.
-  econstructor. 2: eapply iftFalseTyp.
+  econstructor. 2: exact: HfalseTm.
   econstructor. 2: exact: Var_typed'.
   rewrite lift0 hsubst_id /= -/IFT.
   eapply Subs_typed_nocoerce. {
@@ -351,17 +355,124 @@ Proof.
 Qed.
 
 (* Eta-expand to drop the later. *)
-Example iftAndTyp' Γ (Hst : boolImplTDef1):
-  Γ ⊢ₜ vabs' (vabs'
+Definition etaExpAnd false := vabs (vabs'
     (tskip
-      (tapp (tapp (tv (iftAnd (tv iftFalse))) (tv x1)) (tv x0)))) :
+      (tapp (tapp (tv (iftAnd false)) (tv x1)) (tv x0)))).
+Example iftAndTyp' Γ (Hst : boolImplTDef2):
+  Γ ⊢ₜ tv (etaExpAnd (tv iftFalse)) :
     TAll IFT (TAll IFT IFT).
 Proof.
   tcrush; rewrite -(iterate_S tskip 0).
   eapply (Subs_typed _ _ (▶IFT)); first tcrush.
   eapply App_typed; last exact: Var_typed';
     eapply App_typed; last exact: Var_typed'; rewrite /= -/IFT.
-  apply iftAndTyp; eauto.
+  apply iftAndTyp; eauto. intros; exact: iftFalseTyp.
 Qed.
+
+Definition boolImplV2 :=
+  ν {@
+    type "Boolean" = ( σ1; s1 );
+    val "true" = iftTrue;
+    val "false" = iftFalse;
+    (* One eta-expansion isn't enough? *)
+    val "and" = etaExpAnd (tproj (tv x4) "false")
+  }.
+
+Definition boolImplV2T : ty :=
+  μ {@
+    type "Boolean" >: ⊥ <: IFT;
+    val "true" : (p0 @; "Boolean");
+    val "false" : (p0 @; "Boolean");
+    val "and" : TAll (p0 @; "Boolean") (TAll (p1 @; "Boolean") (p2 @; "Boolean"))
+  }.
+
+Definition boolImplV2TMoreConcrBody : ty :=
+  {@
+    type "Boolean" >: IFT <: IFT;
+    val "true" : IFT;
+    val "false" : IFT;
+    val "and" : TAll IFT (TAll IFT IFT)
+  }.
+
+Definition boolImplV2TConcrBody : ty :=
+  {@
+    type "Boolean" >: IFT <: IFT;
+    val "true" : IFT;
+    val "false" : IFT;
+    val "and" : TAll (p0 @; "Boolean") (TAll (p1 @; "Boolean") (p2 @; "Boolean"))
+    (* val "and" : TAll IFT (TAll IFT IFT) *)
+  }.
+Definition boolImplTDef2' :=
+  (p0 @; "Boolean") ~[ 0 ] (getStampTable, (s2, σ2)).
+Example boolImplV2Typ Γ
+  (Hst1 : boolImplTDef1) (Hst2 : boolImplTDef2):
+  Γ ⊢ₜ tv boolImplV2 : boolImplV2T.
+Proof.
+  apply (Subs_typed_nocoerce (μ boolImplV2TMoreConcrBody)).
+  - tcrush; try by [apply (dty_typed IFT); tcrush| exact: Var_typed'].
+    rewrite /= -/IFT.
+    Abort.
+
+
+Example boolImplV2Typ2 Γ
+  (Hst1 : boolImplTDef1) (Hst2 : boolImplTDef2):
+  Γ ⊢ₜ tv boolImplV2 : boolImplV2T.
+Proof.
+  apply (Subs_typed_nocoerce (μ boolImplV2TConcrBody)).
+  - tcrush; try by [apply (dty_typed IFT); tcrush| exact: Var_typed'].
+    rewrite /= -/IFT.
+    tcrush; rewrite -(iterate_S tskip 0).
+    eapply (Subs_typed _ _ (▶▶IFT)); first tcrush.
+    eapply Trans_stp; first apply TLaterL_stp; tcrush.
+    eapply (LSel_stp _ p2); tcrush.
+    eapply Var_typed_sub; by [|tcrush].
+    eapply App_typed; last exact: Var_typed';
+      eapply App_typed; last exact: Var_typed'; rewrite /= -/IFT.
+    tcrush.
+    econstructor. 2: {
+      tcrush; apply: Var_typed_sub => //.
+      rewrite /= /up /= -/boolImplV2TConcrBody -/IFT
+        -/p0 -/p1 -/p2 -/p3 -/p4 -/p5.
+      eapply Trans_stp; first apply TAnd2_stp; tcrush.
+      eapply Trans_stp; first apply TAnd2_stp; tcrush.
+    }
+    econstructor; last exact: Var_typed'.
+    rewrite /= /up/= -/p0 -/IFT.
+    Abort.
+(*
+  { eapply Trans_stp. apply: packBooleanLB. by eauto 4. tcrush. }
+    (* Maybe we should pass p0.Boolean, not IFT, as type argument in iftAnd, but then we must patch iftAndTyp! *)
+    econstructor. apply: Var_typed_sub => //=.
+    rewrite /= -/IFT.
+    eapply Trans_stp; first apply TAnd2_stp; tcrush.
+    eapply Trans_stp; first apply TAnd2_stp; tcrush.
+
+  - have ?: boolImplV2TConcrBody :: Γ ⊢ₜ IFT, 0 <: p0 @; "Boolean", 0.
+    eapply LSel_stp'; tcrush.
+    eapply Var_typed_sub; by [|tcrush].
+
+    tcrush; rewrite iterate_0.
+  + eapply Trans_stp; first apply TAnd1_stp; tcrush.
+  + eapply Trans_stp; first apply TAnd2_stp; tcrush.
+    eapply Trans_stp; first apply TAnd1_stp; tcrush.
+  + eapply Trans_stp; first apply TAnd2_stp; tcrush.
+    eapply Trans_stp; first apply TAnd2_stp; tcrush.
+    eapply Trans_stp; first apply TAnd1_stp; tcrush.
+  + eapply Trans_stp; first apply TAnd2_stp; tcrush.
+    eapply Trans_stp; first apply TAnd2_stp; tcrush.
+    eapply Trans_stp; first apply TAnd2_stp; tcrush.
+    eapply Trans_stp; first apply TAnd1_stp; stcrush.
+    tcrush; rewrite ?iterate_S ?iterate_0 /= -/IFT.
+Abort. *)
+    (*
+    eapply Trans_stp.
+    * eapply SelU_stp; tcrush; apply: Var_typed_sub => //.
+      rewrite /= -/IFT.
+      eapply Trans_stp; first apply TAnd1_stp; tcrush.
+    * rewrite /iterate /=.
+
+    cbn.
+    apply SelU_stp.
+    *)
 
 End examples.
