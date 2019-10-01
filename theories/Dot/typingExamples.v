@@ -279,6 +279,81 @@ Proof.
     eapply Var_typed_sub; by [|tcrush].
 Qed.
 
+(* NOT = λ b. b false true.
+Notation s3 := (3 % positive).
+Notation σ3 := (idsσ 2).
+Definition packBooleanAbs := ν {@ type "A" = ( σ3; s3 ) }.
+Definition packBooleanAbs2p0Boolean :=
+  p1 @; "Boolean" ~[ 2 ] (getStampTable, (s3, σ3)).
+Require Import D.Dot.synLemmas.
+(* Check the sizes! *)
+Lemma boolImplTDef2BooleanValid :
+  getStampTable !! s3 = Some (p1 @; "Boolean") →
+  packBooleanAbs2p0Boolean.
+Proof.
+  exists (p1 @; "Boolean"); split_and!; cbn; eauto 3;
+    first apply /closed_vls_to_Forall;
+    solve_fv_congruence.
+  (* apply /fv_TSel /fv_pv /nclosed_vl_ids_equiv. lia. *)
+Qed.
+
+Definition typeEq l T := (type l >: T <: T) % ty.
+Definition aIsBool := typeEq "A" (p0 @; "Boolean").
+
+Lemma packBooleanTyp0 Γ (Hst : packBooleanAbs2p0Boolean) T :
+  T :: Γ ⊢ₜ tv packBooleanAbs : aIsBool.
+Proof.
+  rewrite /packBooleanAbs2p0Boolean.
+  apply (Subs_typed_nocoerce (μ {@ typeEq "A" (p1 @; "Boolean")})).
+  - apply VObj_typed; tcrush.
+    apply (dty_typed (p1 @; "Boolean")); cbn; tcrush.
+  - eapply Trans_stp; first apply (Mu_stp _ ({@ typeEq "A" (p0 @; "Boolean")}));
+    tcrush.
+Qed.
+
+Lemma foo Γ (Hst : packBooleanAbs2p0Boolean) :
+  ∃ U, IFT :: Γ ⊢ₜ tapp (tv x0) (tv packBooleanAbs) : U.
+Proof.
+  eexists; eapply Appv_typed'; cbn; [exact: Var_typed' | | ].
+  eapply Subs_typed_nocoerce; first exact: packBooleanTyp0.
+  tcrush.
+  done.
+Qed.
+
+Lemma bar Γ (Hst : packBooleanAbs2p0Boolean) :
+  aIsBool.|[ren (+1)] :: IFT :: Γ ⊢ₜ tapp (tv x1) (tv x0) : TAll (p0 @; "A") (TAll (p1 @; "A") (p2 @; "A")).
+Proof.
+  eapply Appv_typed'; cbn; [exact: Var_typed' | | done ].
+  eapply Subs_typed_nocoerce; first exact: Var_typed'.
+  tcrush.
+Qed.
+
+Lemma baz Γ T:
+  aIsBool.|[ren (+1)] :: T :: Γ ⊢ₜ p0 @; "A" , 0 <: p1 @; "Boolean" , 1.
+Proof.
+  eapply Trans_stp; [eapply SelU_stp|apply TLaterL_stp]; tcrush.
+  exact: Var_typed'.
+Qed.
+Definition mtm := tapp (vabs' (tapp (tv x1) (tv x0))) (tv packBooleanAbs).
+Example foos Γ (Hst : packBooleanAbs2p0Boolean) :
+  IFT :: Γ ⊢ₜ mtm : TAll (p0 @; "A") (TAll (p1 @; "A") (p2 @; "A")).
+Proof.
+  apply: App_typed; last exact: packBooleanTyp0.
+  apply Lam_typed. tcrush.
+  eapply Appv_typed'; [exact: Var_typed' | |  ].
+  all: rewrite /=/up/=/ids/ids_vl.
+  rewrite /=.
+  eapply Subs_typed_nocoerce; first exact: Var_typed'.
+  tcrush.
+  done.
+  (* apply: Appv_typed'. apply Lam_typed; last exact: bar; tcrush.
+  exact: packBooleanTyp0. *)
+  aIsBool :: IFT :: Γ ⊢ₜ tapp (tv x1) (tv x0) : TAll (p0 @; "A") (TAll (p1 @; "A") (p2 @; "A")).
+
+  tcrush.
+  apply
+  tcrush. *)
+
 (* AND = λ a b. a b False. *)
 Definition packBoolean := ν {@ type "A" = ( σ1; s1 ) }.
 
