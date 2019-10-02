@@ -176,6 +176,8 @@ Hint Extern 0 (dms_hasnt _ _) => done.
 
 Hint Immediate Nat.lt_0_succ.
 
+Definition typeEq l T := (type l >: T <: T) % ty.
+
 (*******************)
 (** DERIVED RULES **)
 (*******************)
@@ -250,6 +252,96 @@ Lemma is_stamped_pvar i n : i < n → is_stamped_path n getStampTable (pv (var_v
 Proof. eauto. Qed.
 Lemma is_stamped_pvars i n l : i < n → is_stamped_ty n getStampTable (pv (var_vl i) @; l).
 Proof. eauto using is_stamped_pvar. Qed.
+
+Definition vabs' x := tv (vabs x).
+Definition lett t u := tapp (vabs' u) t.
+Lemma Let_typed Γ t u T U :
+  Γ ⊢ₜ t : T →
+  T.|[ren (+1)] :: Γ ⊢ₜ u : U.|[ren (+1)] →
+  (is_stamped_ty (length Γ) getStampTable) T →
+  Γ ⊢ₜ lett t u : U.
+Proof. move=> Ht Hu HsT. apply /App_typed /Ht /Lam_typed /Hu /HsT. Qed.
+
+Lemma is_stamped_ren1_ty i T g:
+  is_stamped_ty i g T ->
+  is_stamped_ty (S i) g (T.|[ren (+1)]).
+Proof. apply is_stamped_sub_ty, is_stamped_ren_shift; lia. Qed.
+
+Definition packTV n s := (ν {@ type "A" = (idsσ (S n); s)}).
+
+Lemma pack_extraction s T n :
+  nclosed T n →
+  getStampTable !! s = Some T →
+  T ~[ n ] (getStampTable, (s, idsσ n)).
+Proof. move => Hcl Hl; exists T. by rewrite length_idsσ closed_subst_idsρ. Qed.
+
+Lemma packTV_typed s T Γ :
+  is_stamped_ty (length Γ) getStampTable T →
+  getStampTable !! s = Some T.|[ren (+1)] →
+  Γ ⊢ₜ tv (packTV (length Γ) s) : (typeEq "A" T).
+Proof.
+  move => HsT1.
+  move: (HsT1) (HsT1) => /is_stamped_ren1_ty HsT2 /is_stamped_nclosed_ty Hcl Hlp.
+  apply (Subs_typed_nocoerce (μ {@ typeEq "A" T.|[ren (+1)] })).
+  - apply VObj_typed; tcrush.
+    eapply (dty_typed T.|[ren (+1)]); cbn; tcrush; last exact: is_stamped_idsσ_ren.
+    apply pack_extraction => //. eapply nclosed_sub_app, Hcl; auto.
+  - eapply Trans_stp; first apply (Mu_stp _ ({@ typeEq "A" T })); tcrush.
+Qed.
+
+Lemma typeApp_typed s Γ T U V t :
+  Γ ⊢ₜ t : TAll (type "A" >: ⊥ <: ⊤) U →
+  (** This subtyping premise is needed to perform "avoidance", as in compilers
+    for ML and Scala: that is, producing a type [V] that does not refer to
+    variables bound by let in the expression. *)
+  (∀ L, typeEq "A" T.|[ren (+2)] :: L :: Γ ⊢ₜ U.|[up (ren (+1))], 0 <: V.|[ren (+2)], 0) →
+  is_stamped_ty (length Γ) getStampTable T →
+  is_stamped_ty (S (length Γ)) getStampTable U →
+  getStampTable !! s = Some T.|[ren (+2)] →
+  Γ ⊢ₜ lett t (lett (tv (packTV (S (length Γ)) s)) (tapp (tv x1) (tv x0))) : V.
+Proof.
+  move => Ht Hsub HsT1 HsU1 Hl; move: (HsT1) => /is_stamped_ren1_ty HsT2.
+  move: (HsT2) => /is_stamped_ren1_ty HsT3.
+  rewrite -hrenS in HsT3; rewrite hrenS in Hl.
+  eapply Let_typed; [exact: Ht| |tcrush].
+  eapply Let_typed; [by apply packTV_typed, Hl| |tcrush].
+  rewrite /= -!hrenS -/(typeEq _ _).
+
+  apply /Subs_typed_nocoerce /Hsub.
+
+  eapply Appv_typed'; first exact: Var_typed'.
+  apply: Var_typed_sub; repeat tcrush; rewrite /= hsubst_id //.
+  rewrite !hsubst_comp; f_equal. autosubst.
+Qed.
+
+(* Testcase. *)
+Definition IFTBody := (TAll (p0 @; "A") (TAll (p1 @; "A") (p2 @; "A"))).
+
+Lemma subIFT i Γ T:
+  is_stamped_ty (length Γ) getStampTable T.|[ren (+i)] →
+  (typeEq "A" T.|[ren (+1+i)]) :: Γ ⊢ₜ IFTBody, 0 <:
+    TAll T.|[ren (+1+i)] (TAll T.|[ren (+2+i)] (▶ T.|[ren (+3+i)])), 0.
+Proof.
+  rewrite /= -/IFTBody => HsT1.
+  move: (HsT1) => /is_stamped_ren1_ty HsT2; rewrite -hrenS in HsT2.
+  move: (HsT2) => /is_stamped_ren1_ty HsT3; rewrite -hrenS in HsT3.
+  tcrush; rewrite ?iterate_S ?iterate_0 /=;
+    first [apply: LSel_stp' | apply: SelU_stp]; tcrush; apply: Var_typed';
+    rewrite ?hsubst_id //; by [| autosubst].
+Qed.
+
+Lemma tAppIFT_typed Γ T t s :
+  is_stamped_ty (length Γ) getStampTable T →
+  getStampTable !! s = Some T.|[ren (+2)] →
+  Γ ⊢ₜ t : TAll (type "A" >: ⊥ <: ⊤) IFTBody →
+  Γ ⊢ₜ lett t (lett (tv (packTV (S (length Γ)) s)) (tapp (tv x1) (tv x0))) :
+    TAll T (TAll T.|[ren (+1)] (▶ T.|[ren (+2)])).
+Proof.
+  move => HsT1 Hl Ht; move: (HsT1) => /is_stamped_ren1_ty HsT2.
+  intros; eapply typeApp_typed => //; tcrush.
+  intros; asimpl. exact: (subIFT 1).
+Qed.
+
 End examples_lemmas.
 
 Hint Resolve is_stamped_pvar is_stamped_pvars Subs_typed_nocoerce.
