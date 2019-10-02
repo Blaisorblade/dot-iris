@@ -39,58 +39,58 @@ Ltac with_is_stamped tac :=
 
 Lemma is_stamped_weaken_mut g:
   (∀ e__s m n,
-      m <= n →
       is_stamped_tm m g e__s →
+      m <= n →
       is_stamped_tm n g e__s) ∧
   (∀ v__s m n,
-      m <= n →
       is_stamped_vl m g v__s →
+      m <= n →
       is_stamped_vl n g v__s) ∧
   (∀ d__s m n,
-      m <= n →
       is_stamped_dm m g d__s →
+      m <= n →
       is_stamped_dm n g d__s) ∧
   (∀ p__s m n,
-      m <= n →
       is_stamped_path m g p__s →
+      m <= n →
       is_stamped_path n g p__s) ∧
   (∀ T__s m n,
-      m <= n →
       is_stamped_ty m g T__s →
+      m <= n →
       is_stamped_ty n g T__s).
 Proof.
   apply syntax_mut_ind;
     try by [ intros; with_is_stamped inverse; constructor; cbn in *; eauto].
   by intros; with_is_stamped inverse; constructor; cbn in *; lia.
   all: intros * IH1 IH2 **; with_is_stamped inverse; constructor; cbn in *;
-        try done || (first [eapply IH1|eapply IH2]; last done; lia).
-  decompose_Forall; eapply H4; last done; lia.
-  decompose_Forall; eapply H3; last done; lia.
+        try done || (first [eapply IH1|eapply IH2]; first done; lia).
+  decompose_Forall; eapply H4; first done; lia.
+  decompose_Forall; eapply H3; first done; lia.
 Qed.
 
 Lemma is_stamped_weaken_tm g e__s m n:
-  m <= n →
   is_stamped_tm m g e__s →
+  m <= n →
   is_stamped_tm n g e__s.
 Proof. unmut_lemma (is_stamped_weaken_mut g). Qed.
 Lemma is_stamped_weaken_vl g v__s m n:
-  m <= n →
   is_stamped_vl m g v__s →
+  m <= n →
   is_stamped_vl n g v__s.
 Proof. unmut_lemma (is_stamped_weaken_mut g). Qed.
 Lemma is_stamped_weaken_dm g d__s m n:
-    m <= n →
-    is_stamped_dm m g d__s →
-    is_stamped_dm n g d__s.
+  is_stamped_dm m g d__s →
+  m <= n →
+  is_stamped_dm n g d__s.
 Proof. unmut_lemma (is_stamped_weaken_mut g). Qed.
 Lemma is_stamped_weaken_path g p__s m n:
-  m <= n →
   is_stamped_path m g p__s →
+  m <= n →
   is_stamped_path n g p__s.
 Proof. unmut_lemma (is_stamped_weaken_mut g). Qed.
 Lemma is_stamped_weaken_ty g T__s m n:
-  m <= n →
   is_stamped_ty m g T__s →
+  m <= n →
   is_stamped_ty n g T__s.
 Proof. unmut_lemma (is_stamped_weaken_mut g). Qed.
 
