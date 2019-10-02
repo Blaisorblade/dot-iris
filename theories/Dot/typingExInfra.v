@@ -298,6 +298,9 @@ Proof.
   - eapply Trans_stp; first apply (Mu_stp _ ({@ typeEq "A" T })); tcrush.
 Qed.
 
+Definition tApp Γ t s :=
+  lett t (lett (tv (packTV (S (length Γ)) s)) (tapp (tv x1) (tv x0))).
+
 Lemma typeApp_typed s Γ T U V t :
   Γ ⊢ₜ t : TAll (type "A" >: ⊥ <: ⊤) U →
   (** This subtyping premise is needed to perform "avoidance", as in compilers
@@ -307,7 +310,7 @@ Lemma typeApp_typed s Γ T U V t :
   is_stamped_ty (length Γ) getStampTable T →
   is_stamped_ty (S (length Γ)) getStampTable U →
   getStampTable !! s = Some T.|[ren (+2)] →
-  Γ ⊢ₜ lett t (lett (tv (packTV (S (length Γ)) s)) (tapp (tv x1) (tv x0))) : V.
+  Γ ⊢ₜ tApp Γ t s : V.
 Proof.
   move => Ht Hsub HsT1 HsU1 Hl; move: (HsT1) => /is_stamped_ren1_ty HsT2.
   move: (HsT2) => /is_stamped_ren1_ty HsT3.
@@ -325,6 +328,8 @@ Qed.
 
 (* Testcase. *)
 Definition IFTBody := (TAll (p0 @; "A") (TAll (p1 @; "A") (p2 @; "A"))).
+Definition IFT : ty :=
+  TAll (type "A" >: ⊥ <: ⊤) IFTBody.
 
 Lemma subIFT i Γ T:
   is_stamped_ty (length Γ) getStampTable T.|[ren (+i)] →
@@ -342,8 +347,8 @@ Qed.
 Lemma tAppIFT_typed Γ T t s :
   is_stamped_ty (length Γ) getStampTable T →
   getStampTable !! s = Some T.|[ren (+2)] →
-  Γ ⊢ₜ t : TAll (type "A" >: ⊥ <: ⊤) IFTBody →
-  Γ ⊢ₜ lett t (lett (tv (packTV (S (length Γ)) s)) (tapp (tv x1) (tv x0))) :
+  Γ ⊢ₜ t : IFT →
+  Γ ⊢ₜ tApp Γ t s :
     TAll T (TAll T.|[ren (+1)] (▶ T.|[ren (+2)])).
 Proof.
   move => HsT1 Hl Ht; move: (HsT1) => /is_stamped_ren1_ty HsT2.
