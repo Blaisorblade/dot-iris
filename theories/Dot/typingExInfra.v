@@ -137,8 +137,21 @@ Proof.
   exists T'; split_and!; eauto using nclosed_σ_mono.
 Qed.
 
-(* Keep this hint local for performance *)
+(* While other lemmas allow to produce a suitable stamp table, for examples it makes more sense to have a generic one. *)
+Lemma pack_extraction g s T n σ :
+  g !! s = Some T →
+  nclosed T n →
+  σ = idsσ n →
+  T ~[ n ] (g, (s, σ)).
+Proof. move => Hcl Hl ->; exists T. by rewrite length_idsσ closed_subst_idsρ. Qed.
+
+Hint Extern 5 (nclosed _ _) => by solve_fv_congruence : fvc.
+Hint Resolve pack_extraction : fvc.
+Ltac by_extcrush := by auto with fvc.
+
+(* For performance, keep these hints local to examples *)
 Hint Extern 5 => try_once extraction_weaken.
+Hint Extern 5 (is_stamped_ty _ _ _) => try_once is_stamped_weaken_ty.
 
 (* Deterministic crush. *)
 Ltac dcrush := repeat constructor.
@@ -163,7 +176,9 @@ Ltac typconstructor := match goal with
   end.
 Ltac stcrush := try ((progress repeat stconstructor); eauto).
 (** [tcrush] is the safest automation around. *)
-Ltac tcrush := repeat typconstructor; stcrush; try solve [done | try_once extraction_weaken ; eauto].
+Ltac tcrush := repeat typconstructor; stcrush; try solve [ done |
+  try_once extraction_weaken; eauto |
+  try_once is_stamped_weaken_ty; eauto ].
 
 Hint Extern 10 (_ ≤ _) => lia : core.
 
@@ -268,12 +283,6 @@ Lemma is_stamped_ren1_ty i T g:
 Proof. apply is_stamped_sub_ty, is_stamped_ren_shift; lia. Qed.
 
 Definition packTV n s := (ν {@ type "A" = (idsσ (S n); s)}).
-
-Lemma pack_extraction s T n :
-  nclosed T n →
-  getStampTable !! s = Some T →
-  T ~[ n ] (getStampTable, (s, idsσ n)).
-Proof. move => Hcl Hl; exists T. by rewrite length_idsσ closed_subst_idsρ. Qed.
 
 Lemma packTV_typed s T Γ :
   is_stamped_ty (length Γ) getStampTable T →
