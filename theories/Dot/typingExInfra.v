@@ -193,6 +193,33 @@ Hint Immediate Nat.lt_0_succ.
 
 Definition typeEq l T := (type l >: T <: T) % ty.
 
+(********************)
+(** BINDING LEMMAS **)
+(********************)
+
+Lemma scompA a b c : a >> b >> c = a >> (b >> c).
+Proof. by rewrite /scomp/= -!subst_compX. Qed.
+
+Lemma ren_ren_comp i j : ren (+i) >> ren (+j) = ren (+j + i).
+Proof. autosubst. Qed.
+
+Lemma ren_upn_gen i j k : ren (+i + j) >> upn i (ren (+k)) = ren (+i + j + k).
+Proof.
+  induction k. rewrite up_id_n; autosubst.
+  replace (i + j + S k) with (S (i + j + k)) by lia.
+  rewrite (renS_comp (i + j + k)) -IHk -ren_ren_comp.
+  rewrite !(scompA _ _ (upn _ _)) !up_liftn.
+  autosubst.
+Qed.
+
+Lemma hren_upn_gen i j k T : T.|[ren (+i + j)].|[upn i (ren (+k))] = T.|[ren (+i + j + k)].
+Proof. by rewrite !hsubst_comp ren_upn_gen. Qed.
+
+Lemma hren_upn i T : T.|[ren (+i)].|[upn i (ren (+1))] = T.|[ren (+S i)].
+Proof.
+  move: (ren_upn_gen i 0 1). by rewrite plusnS !plusnO hsubst_comp =>->.
+Qed.
+
 (*******************)
 (** DERIVED RULES **)
 (*******************)
@@ -354,6 +381,106 @@ Proof.
   move => HsT1 Hl Ht; move: (HsT1) => /is_stamped_ren1_ty HsT2.
   intros; eapply typeApp_typed => //; tcrush.
   intros; asimpl. exact: (subIFT 1).
+Qed.
+
+Definition iftCoerce t :=
+  lett t (vabs' (vabs' (tskip (tapp (tapp (tv x2) (tv x1)) (tv x0))))).
+
+Lemma coerce_tAppIFT Γ t T :
+  is_stamped_ty (length Γ) getStampTable T →
+  Γ ⊢ₜ t : TAll T (TAll T.|[ren (+1)] (▶ T.|[ren (+2)])) →
+  Γ ⊢ₜ iftCoerce t : TAll T (TAll T.|[ren (+1)] T.|[ren (+2)]).
+Proof.
+  move => HsT1 Ht.
+  move: (HsT1) => /is_stamped_ren1_ty HsT2.
+  move: (HsT2) => /is_stamped_ren1_ty; rewrite -hrenS => HsT3.
+  move: (HsT3) => /is_stamped_ren1_ty; rewrite -hrenS => HsT4.
+  eapply Let_typed; [exact: Ht| |tcrush].
+  rewrite /= !(hren_upn_gen 1) (hren_upn_gen 2) /=.
+  tcrush; rewrite -!hrenS -(iterate_S tskip 0).
+  eapply (Subs_typed _ _ (▶T.|[_])); first tcrush.
+  eapply App_typed; last exact: Var_typed';
+    eapply App_typed; last exact: Var_typed'.
+  apply: Var_typed' => //.
+  rewrite /= !(hren_upn 1) (hren_upn_gen 1) (hren_upn_gen 2)
+    !hsubst_comp !ren_ren_comp /=. done.
+Qed.
+
+Lemma tAppIFT_coerced_typed Γ T t s :
+  is_stamped_ty (length Γ) getStampTable T →
+  getStampTable !! s = Some T.|[ren (+2)] →
+  Γ ⊢ₜ t : IFT →
+  Γ ⊢ₜ iftCoerce (tApp Γ t s) :
+    TAll T (TAll T.|[ren (+1)] T.|[ren (+2)]).
+Proof. intros. by apply /coerce_tAppIFT /tAppIFT_typed. Qed.
+
+Definition p0Bool := (p0 @; "Boolean").
+Lemma p0BoolStamped: is_stamped_ty 1 getStampTable p0Bool.
+Proof. tcrush. Qed.
+Hint Resolve p0BoolStamped.
+
+Lemma IFTStamped: is_stamped_ty 0 getStampTable IFT.
+Proof. tcrush. Qed.
+Hint Resolve IFTStamped.
+
+Lemma tAppIFT_coerced_typed_IFT Γ t s :
+  getStampTable !! s = Some IFT →
+  Γ ⊢ₜ t : IFT →
+  Γ ⊢ₜ iftCoerce (tApp Γ t s) :
+    TAll IFT (TAll IFT IFT).
+Proof. intros. apply tAppIFT_coerced_typed; eauto 2. Qed.
+
+Hint Extern 5 (is_stamped_ty _ _ _) => cbn.
+Definition IFTp0 := TAll p0Bool (TAll p0Bool.|[ren (+1)] (p0Bool.|[ren (+2)])).
+
+Lemma tAppIFT_coerced_typed_p0Boolean Γ T t s :
+  getStampTable !! s = Some p0Bool.|[ren (+2)] →
+  T :: Γ ⊢ₜ t : IFT →
+  T :: Γ ⊢ₜ iftCoerce (tApp (T :: Γ) t s) :
+    TAll p0Bool (TAll p0Bool.|[ren (+1)] p0Bool.|[ren (+2)]).
+Proof. intros. apply tAppIFT_coerced_typed; eauto 3. Qed.
+
+Definition iftTrue := vabs (vabs' (vabs' (tv x1))).
+Definition iftFalse := vabs (vabs' (vabs' (tv x0))).
+
+Example iftTrueTyp Γ : Γ ⊢ₜ tv iftTrue : IFT.
+Proof. tcrush. exact: Var_typed'. Qed.
+Example iftFalseTyp Γ : Γ ⊢ₜ tv iftFalse : IFT.
+Proof. tcrush. exact: Var_typed'. Qed.
+
+Definition iftNot Γ t s :=
+  tapp (tapp
+      (iftCoerce (tApp Γ t s))
+    (tv iftFalse))
+  (tv iftTrue).
+
+Lemma iftNotTyp Γ T t s :
+  getStampTable !! s = Some IFT →
+  Γ ⊢ₜ t : IFT →
+  Γ ⊢ₜ iftNot Γ t s : IFT.
+Proof.
+  intros.
+  eapply App_typed; last exact: iftTrueTyp.
+  eapply App_typed; last exact: iftFalseTyp.
+  exact: tAppIFT_coerced_typed_IFT.
+Qed.
+
+Definition iftAnd Γ t1 t2 s :=
+  tapp (tapp
+      (iftCoerce (tApp Γ t1 s))
+    t2)
+  (tv iftFalse).
+
+Lemma iftAndTyp Γ T t1 t2 s :
+  getStampTable !! s = Some IFT →
+  Γ ⊢ₜ t1 : IFT →
+  Γ ⊢ₜ t2 : IFT →
+  Γ ⊢ₜ iftAnd Γ t1 t2 s : IFT.
+Proof.
+  intros Hs Ht1 Ht2.
+  eapply App_typed; last exact: iftFalseTyp.
+  eapply App_typed; last exact: Ht2.
+  exact: tAppIFT_coerced_typed_IFT.
 Qed.
 
 End examples_lemmas.
