@@ -31,10 +31,12 @@ Proof.
 Qed.
 
 Example ex2 Γ T
-  (Hs: (p0 @; "B") ~[ 0 ] (getStampTable, (s1, σ1))):
-  Γ ⊢ₜ tv (ν {@ type "A" = (σ1 ; s1) } ) :
+  (Hg: getStampTable !! s1 = Some (p0 @; "B")):
+  Γ ⊢ₜ tv (ν {@ type "A" = (idsσ 1 ; s1) } ) :
     TMu (TAnd (TTMem "A" TBot TTop) TTop).
 Proof.
+  have Hs: (p0 @; "B") ~[ 1 ] (getStampTable, (s1, idsσ 1)).
+  by_extcrush.
   have Hst: is_stamped_ty (1 + length Γ) getStampTable (p0 @; "B").
   by tcrush.
   apply VObj_typed; last tcrush. (* Avoid trying TMuI_typed, that's slow. *)
@@ -47,10 +49,12 @@ Definition F3 T :=
   TMu (TAnd (TTMem "A" T T) TTop).
 
 Example ex3 Γ T
-  (Hs: F3 (p0 @; "A") ~[ 0 ] (getStampTable, (s1, σ1))):
+  (Hg: getStampTable !! s1 = Some (F3 (p0 @; "A"))):
   Γ ⊢ₜ tv (ν {@ type "A" = (σ1 ; s1) } ) :
     F3 (F3 (TSel p0 "A")).
 Proof.
+  have Hs: F3 (p0 @; "A") ~[ 0 ] (getStampTable, (s1, σ1)).
+  by_extcrush.
   have Hst: is_stamped_ty (1 + length Γ) getStampTable (F3 (p0 @; "A")).
   by stcrush.
   apply VObj_typed; last tcrush. (* Avoid trying TMuI_typed, that's slow. *)
@@ -89,6 +93,11 @@ Definition hashKeys : vl := ν {@
   type "Key" = (σ1; s1);
   val "key" = vabs (tapp (tproj (tv x0) "hashCode") tUnit)
 }.
+Definition s1_is_tnat :=
+  TNat ~[ 0 ] (getStampTable, (s1, σ1)).
+Lemma get_s1_is_tnat : getStampTable !! s1 = Some TNat → s1_is_tnat.
+Proof. intros; red. by_extcrush. Qed.
+
 (* To typecheck the object body, we first typecheck it with a tighter type,
     and then widen it. *)
 Definition KeysT' := μ {@
@@ -97,8 +106,7 @@ Definition KeysT' := μ {@
 }.
 (* IDEA for our work: use [(type "Key" >: TNat <: ⊤) ⩓ (type "Key" >: ⊥ <: ⊤)]. *)
 
-Example hashKeys_typed Γ
-  (Hs1: TNat ~[ 0 ] (getStampTable, (s1, σ1))) :
+Example hashKeys_typed Γ (Hs1 : s1_is_tnat):
   Γ ⊢ₜ tv hashKeys : KeysT.
 Proof.
   cut (Γ ⊢ₜ tv hashKeys : KeysT').
@@ -128,28 +136,29 @@ Proof.
   eapply Var_typed_sub; by [|tcrush].
 Qed.
 
+Section StringExamples.
 (* new {
   val subSys1 : { z => type A <: Int } = new { type A = Int }
   val subSys2 : { z => type B } = new { type B = String }
 } *)
-Context (String : ty).
+Context (String : ty) (HclString : nclosed String 0).
 
 (* Term *)
 Definition systemVal := tv (ν {@
   val "subSys1" = ν {@ type "A" = (σ1; s1) } ;
   val "subSys2" = ν {@ type "B" = (σ2; s2) } }).
-Definition systemValTDef1 :=
-  TNat ~[ 0 ] (getStampTable, (s1, σ1)).
-Definition systemValTDef2 :=
+Definition s2_is_String :=
   String ~[ 0 ] (getStampTable, (s2, σ2)).
+Lemma get_s2_is_String : getStampTable !! s2 = Some String → s2_is_String.
+Proof. intros; red. by_extcrush. Qed.
 
 (* Type *)
 Definition systemValT := μ {@
   val "subSys1" : μ {@ type "A" >: ⊥ <: TNat};
   val "subSys2" : μ {@ type "B" >: ⊥ <: ⊤}}.
 
-Example motivEx Γ (Hs1: systemValTDef1) (Hs2: systemValTDef2)
-  (HsString: is_stamped_ty (2 + length Γ) getStampTable String):
+Example motivEx Γ (Hs1: s1_is_tnat) (Hs2: s2_is_String)
+  (HsString: is_stamped_ty 0 getStampTable String):
   Γ ⊢ₜ systemVal : systemValT.
 Proof.
   apply VObj_typed; last by tcrush.
@@ -162,8 +171,8 @@ us to encode mutual recursion? Write this up. *)
 Definition systemValT' := μ {@
   val "subSys1" : type "A" >: ⊥ <: TNat;
   val "subSys2" : type "B" >: ⊥ <: ⊤}.
-Example motivEx1 Γ (Hs1: systemValTDef1) (Hs2: systemValTDef2)
-  (HsString: is_stamped_ty (2 + length Γ) getStampTable String):
+Example motivEx1 Γ (Hs1: s1_is_tnat) (Hs2: s2_is_String)
+  (HsString: is_stamped_ty 0 getStampTable String):
   Γ ⊢ₜ systemVal : systemValT'.
 Proof.
   apply VObj_typed; last tcrush.
@@ -177,5 +186,6 @@ Proof.
     + eapply Trans_stp;
       [eapply (Mu_stp _ ({@ type "B" >: ⊥ <: ⊤ })%ty 0)|]; tcrush.
 Qed.
+End StringExamples.
 
 End examples.
