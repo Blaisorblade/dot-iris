@@ -165,8 +165,23 @@ Section logrel.
     match T with
     | TTMem _ L U => def_interp_tmem (⟦ L ⟧) (⟦ U ⟧) ρ d
     | TVMem _ T' => def_interp_vmem (⟦ T' ⟧) ρ d
+    | TAnd T U => def_interp_base T ρ d ∧ def_interp_base U ρ d
     | _ => False
     end%I.
+
+  Fixpoint label_of_ty T : option label :=
+    match T with
+    | TTMem l _ _ => Some l
+    | TVMem l _ => Some l
+    | TAnd T U =>
+      let lt := label_of_ty T in
+      let lu := label_of_ty U in
+      match decide (lt = lu) with
+      | left _ => lt
+      | right _ => None
+      end
+    | _ => None
+    end.
 
   Definition def_interp (T : ty) l : envPred dm Σ :=
     λ ρ d,
@@ -174,7 +189,7 @@ Section logrel.
 
   Global Instance def_interp_base_persistent T ρ d :
     Persistent (def_interp_base T ρ d).
-  Proof. destruct T; try apply _. Qed.
+  Proof. induction T; try apply _. Qed.
 
   Global Instance def_interp_persistent T l ρ d :
     Persistent (def_interp T l ρ d) := _.

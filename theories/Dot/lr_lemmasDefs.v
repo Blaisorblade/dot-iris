@@ -25,6 +25,11 @@ Proof.
   rewrite /dms_hasnt /= => Hlds Hl; by case_decide; simplify_eq.
 Qed.
 
+Lemma label_of_ty_tand_split T1 T2 l :
+  label_of_ty (TAnd T1 T2) = Some l →
+  label_of_ty T1 = Some l ∧ label_of_ty T2 = Some l.
+Proof. move => /= *. case_match; split; by [| congruence]. Qed.
+
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
@@ -86,7 +91,7 @@ Section Sec.
   Local Arguments def_interp_vmem: simpl never.
 
   (** Lemmas about definition typing. *)
-  Lemma TVMem_I (V: ty) T v l:
+  Lemma TVMem_I V T v l:
     V :: Γ ⊨ tv v : T -∗
     Γ |L V ⊨ { l := dvl v } : TVMem l T.
   Proof.
@@ -113,8 +118,41 @@ Section Sec.
     iApply ("Hds" $! (vobj _ .: ρ)); by iFrame "IH Hg".
   Qed.
 
+  Lemma DTAnd_I V T U d l:
+    Γ |L V ⊨ { l := d } : T -∗
+    Γ |L V ⊨ { l := d } : U -∗
+    Γ |L V ⊨ { l := d } : TAnd T U.
+  Proof.
+    iIntros "/= #HT #HU !>" (ρ) "[#Hg #Hw]".
+    iDestruct ("HT" with "[#$Hg $Hw]") as (HlT) "{HT} HT".
+    iDestruct ("HU" with "[#$Hg $Hw]") as (HlU) "{HU} HU".
+    rewrite /def_interp/= HlT HlU/=. case_match=>//.
+    by iFrame "#".
+  Qed.
+
   Lemma DNil_I : Γ ⊨ds [] : TTop.
   Proof. by iIntros "!> **". Qed.
+
+  Lemma def_interp_tand_split {T1 T2 l ρ d}:
+    def_interp (TAnd T1 T2) l ρ d -∗
+    def_interp T1 l ρ d ∗
+    def_interp T2 l ρ d.
+  Proof.
+    rewrite /def_interp/=; iDestruct 1 as
+      ([Hl1 Hl2]%label_of_ty_tand_split) "#[H1 H2]"; auto.
+  Qed.
+
+  Lemma def2defs_interp {T l ρ d ds}
+    (Hl : label_of_ty T = Some l):
+    def_interp T l ρ d -∗
+    defs_interp T ρ ((l, d) :: ds).
+  Proof.
+    iIntros "#HT".
+    iInduction T as [] "IHT"; simplify_eq; try iApply (def2defs_head with "HT").
+    move: Hl => /label_of_ty_tand_split [Hl1 Hl2].
+    iDestruct (def_interp_tand_split with "HT") as "[HT1 HT2]".
+    cbn; iSplit; by [iApply "IHT"|iApply "IHT1"].
+  Qed.
 
   Lemma DCons_I d ds l T1 T2:
     dms_hasnt ds l →
@@ -123,8 +161,8 @@ Section Sec.
   Proof.
     iIntros (Hlds) "#HT1 #HT2 !>". iIntros (ρ) "#Hg /=".
     iSpecialize ("HT1" with "Hg"). iPoseProof "HT1" as (Hl) "_".
-    iSplit.
-    - destruct T1; simplify_eq; iApply (def2defs_head with "HT1").
-    - iApply (defs_interp_mono with "(HT2 Hg)"); by [apply dms_hasnt_map_mono | eapply nclosed_sub_app].
+    iSplit; first by iApply def2defs_interp.
+    iApply (defs_interp_mono with "(HT2 Hg)");
+      by [apply dms_hasnt_map_mono | eapply nclosed_sub_app].
   Qed.
 End Sec.

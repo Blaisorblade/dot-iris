@@ -96,6 +96,10 @@ with dm_typed Γ : ty → label → dm → ty → Prop :=
 | dvl_typed V l v T:
     V :: Γ ⊢ₜ tv v : T →
     Γ |d V ⊢{ l := dvl v } : TVMem l T
+| dand_typed V l d T U:
+    Γ |d V ⊢{ l := d } : T →
+    Γ |d V ⊢{ l := d } : U →
+    Γ |d V ⊢{ l := d } : TAnd T U
 where "Γ |d V ⊢{ l := d  } : T" := (dm_typed Γ V l d T)
 with path_typed Γ : path → ty → nat → Prop :=
 | pv_typed v T:
