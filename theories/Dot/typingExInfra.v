@@ -198,6 +198,7 @@ Hint Extern 5 => try_once is_stamped_mono_ty.
 Hint Extern 0 (dms_hasnt _ _) => done.
 
 Hint Immediate Nat.lt_0_succ.
+Hint Resolve is_stamped_idsσ_ren.
 
 Definition typeEq l T := (type l >: T <: T) % ty.
 
@@ -317,21 +318,55 @@ Lemma is_stamped_ren1_ty i T g:
   is_stamped_ty (S i) g (T.|[ren (+1)]).
 Proof. apply is_stamped_sub_ty, is_stamped_ren_shift; lia. Qed.
 
-Definition packTV n s := (ν {@ type "A" = (idsσ (S n); s)}).
+(* Note how we must weaken the type (or its environment) to account for the
+   self-variable of the created object. *)
+Definition packTV n s := (ν {@ type "A" = ((idsσ n).|[ren (+1)]; s)}).
+
+Lemma packTV_typed' s T n Γ :
+  getStampTable !! s = Some T →
+  is_stamped_ty n getStampTable T →
+  n <= length Γ →
+  Γ ⊢ₜ tv (packTV n s) : typeEq "A" T.
+Proof.
+  move => Hlp HsT1 Hle; move: (Hle) (HsT1) => /le_n_S Hles /is_stamped_ren1_ty HsT2.
+  move: (is_stamped_nclosed_ty HsT1) => Hcl.
+  apply (Subs_typed_nocoerce (μ {@ typeEq "A" T.|[ren (+1)] }));
+    last (eapply Trans_stp; first apply (Mu_stp _ ({@ typeEq "A" T })); tcrush).
+  apply VObj_typed; tcrush.
+  apply (dty_typed T.|[ren (+1)]); tcrush; last auto.
+  apply /(@extraction_inf_subst _ (length _)); auto.
+  by apply /extraction_weaken /Hle /pack_extraction.
+Qed.
 
 Lemma packTV_typed s T Γ :
+  getStampTable !! s = Some T →
   is_stamped_ty (length Γ) getStampTable T →
-  getStampTable !! s = Some T.|[ren (+1)] →
-  Γ ⊢ₜ tv (packTV (length Γ) s) : (typeEq "A" T).
-Proof.
-  move => HsT1.
-  move: (HsT1) (HsT1) => /is_stamped_ren1_ty HsT2 /is_stamped_nclosed_ty Hcl Hlp.
-  apply (Subs_typed_nocoerce (μ {@ typeEq "A" T.|[ren (+1)] })).
-  - apply VObj_typed; tcrush.
-    eapply (dty_typed T.|[ren (+1)]); cbn; tcrush; last exact: is_stamped_idsσ_ren.
-    apply pack_extraction => //. eapply nclosed_sub_app, Hcl; auto.
-  - eapply Trans_stp; first apply (Mu_stp _ ({@ typeEq "A" T })); tcrush.
-Qed.
+  Γ ⊢ₜ tv (packTV (length Γ) s) : typeEq "A" T.
+Proof. intros; exact: packTV_typed'. Qed.
+
+Lemma val_LB T U Γ i v :
+  Γ ⊢ₜ tv v : type "A" >: T <: U →
+  Γ ⊢ₜ ▶ T, i <: (pv v @; "A"), i.
+Proof. intros; apply /AddIB_stp /(LSel_stp _ (pv _)); tcrush. Qed.
+
+Lemma packTV_LB s T n Γ i :
+  getStampTable !! s = Some T →
+  is_stamped_ty n getStampTable T →
+  n <= length Γ →
+  Γ ⊢ₜ ▶ T, i <: (pv (packTV n s) @; "A"), i.
+Proof. intros; by apply /val_LB /packTV_typed'. Qed.
+
+Lemma val_UB T L Γ i v :
+  Γ ⊢ₜ tv v : type "A" >: L <: T →
+  Γ ⊢ₜ (pv v @; "A"), i <: ▶ T, i.
+Proof. intros; eapply AddIB_stp, SelU_stp; tcrush. Qed.
+
+Lemma packTV_UB s T n Γ i :
+  is_stamped_ty n getStampTable T →
+  getStampTable !! s = Some T →
+  n <= length Γ →
+  Γ ⊢ₜ (pv (packTV n s) @; "A"), i <: ▶ T, i.
+Proof. intros; by apply /val_UB /packTV_typed'. Qed.
 
 Definition tApp Γ t s :=
   lett t (lett (tv (packTV (S (length Γ)) s)) (tapp (tv x1) (tv x0))).
@@ -344,14 +379,14 @@ Lemma typeApp_typed s Γ T U V t :
   (∀ L, typeEq "A" T.|[ren (+2)] :: L :: Γ ⊢ₜ U.|[up (ren (+1))], 0 <: V.|[ren (+2)], 0) →
   is_stamped_ty (length Γ) getStampTable T →
   is_stamped_ty (S (length Γ)) getStampTable U →
-  getStampTable !! s = Some T.|[ren (+2)] →
+  getStampTable !! s = Some T.|[ren (+1)] →
   Γ ⊢ₜ tApp Γ t s : V.
 Proof.
   move => Ht Hsub HsT1 HsU1 Hl; move: (HsT1) => /is_stamped_ren1_ty HsT2.
   move: (HsT2) => /is_stamped_ren1_ty HsT3.
-  rewrite -hrenS in HsT3; rewrite hrenS in Hl.
+  rewrite -hrenS in HsT3.
   eapply Let_typed; [exact: Ht| |tcrush].
-  eapply Let_typed; [by apply packTV_typed, Hl| |tcrush].
+  eapply Let_typed; [by apply packTV_typed| |tcrush].
   rewrite /= -!hrenS -/(typeEq _ _).
 
   apply /Subs_typed_nocoerce /Hsub.
@@ -359,136 +394,6 @@ Proof.
   eapply Appv_typed'; first exact: Var_typed'.
   apply: Var_typed_sub; repeat tcrush; rewrite /= hsubst_id //.
   rewrite !hsubst_comp; f_equal. autosubst.
-Qed.
-
-(* Testcase. *)
-Definition IFTBody := (TAll (p0 @; "A") (TAll (p1 @; "A") (p2 @; "A"))).
-Definition IFT : ty :=
-  TAll (type "A" >: ⊥ <: ⊤) IFTBody.
-
-Lemma subIFT i Γ T:
-  is_stamped_ty (length Γ) getStampTable T.|[ren (+i)] →
-  (typeEq "A" T.|[ren (+1+i)]) :: Γ ⊢ₜ IFTBody, 0 <:
-    TAll T.|[ren (+1+i)] (TAll T.|[ren (+2+i)] (▶ T.|[ren (+3+i)])), 0.
-Proof.
-  rewrite /= -/IFTBody => HsT1.
-  move: (HsT1) => /is_stamped_ren1_ty HsT2; rewrite -hrenS in HsT2.
-  move: (HsT2) => /is_stamped_ren1_ty HsT3; rewrite -hrenS in HsT3.
-  tcrush; rewrite ?iterate_S ?iterate_0 /=;
-    first [apply: LSel_stp' | apply: SelU_stp]; tcrush; apply: Var_typed';
-    rewrite ?hsubst_id //; by [| autosubst].
-Qed.
-
-Lemma tAppIFT_typed Γ T t s :
-  is_stamped_ty (length Γ) getStampTable T →
-  getStampTable !! s = Some T.|[ren (+2)] →
-  Γ ⊢ₜ t : IFT →
-  Γ ⊢ₜ tApp Γ t s :
-    TAll T (TAll T.|[ren (+1)] (▶ T.|[ren (+2)])).
-Proof.
-  move => HsT1 Hl Ht; move: (HsT1) => /is_stamped_ren1_ty HsT2.
-  intros; eapply typeApp_typed => //; tcrush.
-  intros; asimpl. exact: (subIFT 1).
-Qed.
-
-Definition iftCoerce t :=
-  lett t (vabs' (vabs' (tskip (tapp (tapp (tv x2) (tv x1)) (tv x0))))).
-
-Lemma coerce_tAppIFT Γ t T :
-  is_stamped_ty (length Γ) getStampTable T →
-  Γ ⊢ₜ t : TAll T (TAll T.|[ren (+1)] (▶ T.|[ren (+2)])) →
-  Γ ⊢ₜ iftCoerce t : TAll T (TAll T.|[ren (+1)] T.|[ren (+2)]).
-Proof.
-  move => HsT1 Ht.
-  move: (HsT1) => /is_stamped_ren1_ty HsT2.
-  move: (HsT2) => /is_stamped_ren1_ty; rewrite -hrenS => HsT3.
-  move: (HsT3) => /is_stamped_ren1_ty; rewrite -hrenS => HsT4.
-  eapply Let_typed; [exact: Ht| |tcrush].
-  rewrite /= !(hren_upn_gen 1) (hren_upn_gen 2) /=.
-  tcrush; rewrite -!hrenS -(iterate_S tskip 0).
-  eapply (Subs_typed _ _ (▶T.|[_])); first tcrush.
-  eapply App_typed; last exact: Var_typed';
-    eapply App_typed; last exact: Var_typed'.
-  apply: Var_typed' => //.
-  rewrite /= !(hren_upn 1) (hren_upn_gen 1) (hren_upn_gen 2)
-    !hsubst_comp !ren_ren_comp /=. done.
-Qed.
-
-Lemma tAppIFT_coerced_typed Γ T t s :
-  is_stamped_ty (length Γ) getStampTable T →
-  getStampTable !! s = Some T.|[ren (+2)] →
-  Γ ⊢ₜ t : IFT →
-  Γ ⊢ₜ iftCoerce (tApp Γ t s) :
-    TAll T (TAll T.|[ren (+1)] T.|[ren (+2)]).
-Proof. intros. by apply /coerce_tAppIFT /tAppIFT_typed. Qed.
-
-Definition p0Bool := (p0 @; "Boolean").
-Lemma p0BoolStamped: is_stamped_ty 1 getStampTable p0Bool.
-Proof. tcrush. Qed.
-Hint Resolve p0BoolStamped.
-
-Lemma IFTStamped: is_stamped_ty 0 getStampTable IFT.
-Proof. tcrush. Qed.
-Hint Resolve IFTStamped.
-
-Lemma tAppIFT_coerced_typed_IFT Γ t s :
-  getStampTable !! s = Some IFT →
-  Γ ⊢ₜ t : IFT →
-  Γ ⊢ₜ iftCoerce (tApp Γ t s) :
-    TAll IFT (TAll IFT IFT).
-Proof. intros. apply tAppIFT_coerced_typed; eauto 2. Qed.
-
-Hint Extern 5 (is_stamped_ty _ _ _) => cbn.
-Definition IFTp0 := TAll p0Bool (TAll p0Bool.|[ren (+1)] (p0Bool.|[ren (+2)])).
-
-Lemma tAppIFT_coerced_typed_p0Boolean Γ T t s :
-  getStampTable !! s = Some p0Bool.|[ren (+2)] →
-  T :: Γ ⊢ₜ t : IFT →
-  T :: Γ ⊢ₜ iftCoerce (tApp (T :: Γ) t s) :
-    TAll p0Bool (TAll p0Bool.|[ren (+1)] p0Bool.|[ren (+2)]).
-Proof. intros. apply tAppIFT_coerced_typed; eauto 3. Qed.
-
-Definition iftTrue := vabs (vabs' (vabs' (tv x1))).
-Definition iftFalse := vabs (vabs' (vabs' (tv x0))).
-
-Example iftTrueTyp Γ : Γ ⊢ₜ tv iftTrue : IFT.
-Proof. tcrush. exact: Var_typed'. Qed.
-Example iftFalseTyp Γ : Γ ⊢ₜ tv iftFalse : IFT.
-Proof. tcrush. exact: Var_typed'. Qed.
-
-Definition iftNot Γ t s :=
-  tapp (tapp
-      (iftCoerce (tApp Γ t s))
-    (tv iftFalse))
-  (tv iftTrue).
-
-Lemma iftNotTyp Γ T t s :
-  getStampTable !! s = Some IFT →
-  Γ ⊢ₜ t : IFT →
-  Γ ⊢ₜ iftNot Γ t s : IFT.
-Proof.
-  intros.
-  eapply App_typed; last exact: iftTrueTyp.
-  eapply App_typed; last exact: iftFalseTyp.
-  exact: tAppIFT_coerced_typed_IFT.
-Qed.
-
-Definition iftAnd Γ t1 t2 s :=
-  tapp (tapp
-      (iftCoerce (tApp Γ t1 s))
-    t2)
-  (tv iftFalse).
-
-Lemma iftAndTyp Γ T t1 t2 s :
-  getStampTable !! s = Some IFT →
-  Γ ⊢ₜ t1 : IFT →
-  Γ ⊢ₜ t2 : IFT →
-  Γ ⊢ₜ iftAnd Γ t1 t2 s : IFT.
-Proof.
-  intros Hs Ht1 Ht2.
-  eapply App_typed; last exact: iftFalseTyp.
-  eapply App_typed; last exact: Ht2.
-  exact: tAppIFT_coerced_typed_IFT.
 Qed.
 
 End examples_lemmas.
