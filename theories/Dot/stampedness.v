@@ -14,6 +14,7 @@ Definition is_stamped_sub n m g s :=
   ∀ i, i < n → is_stamped_vl m g (s i).
 Notation is_stamped_ren n m g r := (is_stamped_sub n m g (ren r)).
 
+Notation is_stamped_σ2 n g σ := (is_stamped_sub (length σ) n g (to_subst σ%list)).
 Notation is_stamped_σ n g σ := (Forall (is_stamped_vl n g) σ).
 
 Lemma is_stamped_idsσ_ren g m n j: j + n <= m → is_stamped_σ m g (idsσ n).|[ren (+j)].
@@ -105,6 +106,12 @@ Lemma is_stamped_weaken_σ g σ m n:
   is_stamped_σ n g σ.
 Proof. intros; decompose_Forall. exact: is_stamped_weaken_vl. Qed.
 
+Lemma is_stamped_weaken_σ2 g σ m n:
+  is_stamped_σ2 m g σ →
+  m <= n →
+  is_stamped_σ2 n g σ.
+Proof. intros Hst Hle i Hle'. apply: is_stamped_weaken_vl; auto. Qed.
+
 Lemma is_stamped_mono_tm g1 g2 n e__s:
   g1 ⊆ g2 →
   is_stamped_tm n g1 e__s →
@@ -152,6 +159,12 @@ Proof. intros; decompose_Forall. exact: is_stamped_mono_vl. Qed.
 
 Hint Extern 5 (is_stamped_ty _ _ _) => try_once is_stamped_mono_ty.
 Hint Extern 5 (is_stamped_σ _ _ _) => try_once is_stamped_mono_σ.
+
+Lemma is_stamped_mono_σ2 g1 g2 n σ:
+  g1 ⊆ g2 →
+  is_stamped_σ2 n g1 σ →
+  is_stamped_σ2 n g2 σ.
+Proof. intros Hle Hst i Hle'. apply /is_stamped_mono_vl/Hst; auto. Qed.
 
 Lemma is_stamped_ren_shift n m j g:
   m >= j + n → is_stamped_ren n m g (+j).
@@ -271,6 +284,10 @@ Lemma is_stamped_nclosed_sub n m g ξ :
   is_stamped_sub n m g ξ → nclosed_sub n m ξ.
 Proof. move => Hst i Hle. apply /is_stamped_nclosed_vl /Hst/Hle. Qed.
 
+Lemma is_stamped_nclosed_σ2 σ g i:
+  is_stamped_σ2 i g σ →
+  nclosed_sub (length σ) i (to_subst σ).
+Proof. exact: is_stamped_nclosed_sub. Qed.
 
 Lemma is_stamped_sub_mut:
   (∀ t g s i j,
