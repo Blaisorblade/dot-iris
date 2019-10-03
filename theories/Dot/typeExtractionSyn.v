@@ -3,7 +3,7 @@ From stdpp Require Import gmap fin_map_dom.
 
 From D Require Import tactics.
 From D.Dot Require Import syn synLemmas.
-From D.Dot Require Export stampingDefsCore.
+From D.Dot Require Export stampingDefsCore stampedness.
 
 Set Implicit Arguments.
 
@@ -35,37 +35,45 @@ Qed.
 Lemma extraction_closed g n T s σ:
   T ~[ n ] (g, (s, σ)) →
   nclosed T n.
-Proof. intros (T' & Hlook & <- & Hclσ & HclT'). exact: fv_to_subst. Qed.
+Proof. intros (T' & Hlook & <- & Hclσ & HclT'). apply: fv_to_subst; eauto. Qed.
 
-Lemma extract_spec g n T: nclosed T n ↔ T ~[ n ] (extract g n T).
+Lemma extract_spec g n T: is_stamped_ty n g T → T ~[ n ] (extract g n T).
 Proof.
-  split; last exact: extraction_closed.
-  exists T. by rewrite lookup_insert closed_subst_idsρ ?length_idsσ.
+  have Hle: g ⊆ <[fresh_stamp g := T]> g by eauto.
+  exists T. rewrite lookup_insert closed_subst_idsρ ?length_idsσ;
+  split_and?; eauto.
 Qed.
-Hint Resolve -> extract_spec.
+Hint Resolve extract_spec.
+
+Lemma extract_spec_rev g g' s σ n T:
+  (g', (s, σ)) = (extract g n T) →
+  T ~[ n ] (g', (s, σ)) → is_stamped_ty n g' T.
+Proof.
+  move => -[-> -> ->] [T']; rewrite length_idsσ lookup_insert => -[[->]]. int.
+Qed.
 
 Lemma extraction_inf_subst g n T s σ m σ':
   T ~[ n ] (g, (s, σ)) →
-  nclosed_sub n m σ' →
+  is_stamped_sub n m g σ' →
   T.|[σ'] ~[ m ] (g, (s, σ.|[σ'])).
 Proof.
   intros (T' & Hlook & <- & Hclσ & HclT') Hclσ' => /=. rewrite map_length.
   exists T'; split_and! => //.
-  - asimpl. apply HclT', to_subst_compose.
-  - exact: nclosed_σ_compose.
+  - asimpl. apply (is_stamped_nclosed_ty HclT'), to_subst_compose.
+  - exact: is_stamped_sub_σ.
 Qed.
 Hint Resolve extraction_inf_subst.
 
 Lemma extraction_subst g n T s σ m σ':
   T ~[ n ] (g, (s, σ)) →
-  length σ' = n → nclosed_σ σ' m →
+  length σ' = n → is_stamped_σ m g σ' →
   T.|[to_subst σ'] ~[ m ] (g, (s, σ.|[to_subst σ'])).
 Proof. intros; subst; eauto. Qed.
 Hint Resolve extraction_subst.
 
 Lemma extract_inf_subst_spec g g' n T s σ m σ':
-  nclosed T n →
-  nclosed_sub n m σ' →
+  is_stamped_ty n g T →
+  is_stamped_sub n m g' σ' →
   (g', (s, σ)) = extract g n T →
   T.|[σ'] ~[ m ] (g', (s, σ.|[σ'])).
 Proof.
@@ -75,8 +83,8 @@ Qed.
 Local Hint Resolve extract_inf_subst_spec.
 
 Lemma extract_subst_spec g g' n T s σ m σ':
-  nclosed T n →
-  length σ' = n → nclosed_σ σ' m →
+  is_stamped_ty n g T →
+  length σ' = n → is_stamped_σ m g' σ' →
   (g', (s, σ)) = extract g n T →
   T.|[to_subst σ'] ~[ m ] (g', (s, σ.|[to_subst σ'])).
 Proof. intros; subst; eauto. Qed.
@@ -87,8 +95,8 @@ Lemma extraction_mono T g g' s σ n:
   g ⊆ g' →
   T ~[ n ] (g', (s, σ)).
 Proof.
-  cbn. intros (T' & Hlook & Heq & ?) Hg.
-  exists T'; repeat split => //. by eapply map_subseteq_spec.
+  cbn. intros (T' & Hlook & Heq & ? & ?) Hg.
+  exists T'; split_and!; eauto. by eapply map_subseteq_spec.
 Qed.
 Hint Extern 5 (_ ~[ _ ] (_, _)) => try_once extraction_mono.
 
@@ -113,8 +121,8 @@ Lemma extraction_lookup g s σ n T:
 Proof. naive_solver. Qed.
 
 Lemma extract_inf_subst_commute g g' g'' T ξ n m s1 σ1 s2 σ2:
-  nclosed T n →
-  nclosed_sub n m ξ →
+  is_stamped_ty n g T →
+  is_stamped_sub n m g' ξ →
   (g', (s1, σ1)) = extract g n T →
   (g'', (s2, σ2)) = extract g' m (T.|[ξ]) →
   T.|[ξ] ~[ m ] (g'', (s1, σ1.|[ξ])) ∧
@@ -123,15 +131,17 @@ Lemma extract_inf_subst_commute g g' g'' T ξ n m s1 σ1 s2 σ2:
     g'' !! s2 = Some T2 ∧
     T1.|[to_subst σ1.|[ξ]] = T2.|[to_subst σ2].
 Proof.
-  rewrite /extract => HclT Hclξ Hext1 Hext2. split; first eauto.
+  rewrite /extract => HstT Hstξ Hext1 Hext2. split; first eauto.
   exists T, T.|[ξ]; split_and!; eauto.
+  move: (is_stamped_nclosed_ty HstT) => HclT.
+  move: (is_stamped_nclosed_sub Hstξ) => Hclξ.
   simplify_eq; rewrite (subst_compose _ _ HclT) //.
   rewrite !closed_subst_idsρ //. exact: nclosed_sub_app.
 Qed.
 
 Lemma extract_subst_commute g g' g'' T ξ n m s1 σ1 s2 σ2:
-  nclosed T n →
-  nclosed_σ ξ m →
+  is_stamped_ty n g T →
+  is_stamped_σ m g' ξ →
   length ξ = n →
   (g', (s1, σ1)) = extract g n T →
   (g'', (s2, σ2)) = extract g' m (T.|[to_subst ξ]) →

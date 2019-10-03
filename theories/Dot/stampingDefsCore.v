@@ -20,14 +20,15 @@ Fixpoint path_root (p : path): vl :=
   | pself p _ => path_root p
   end.
 
-Notation valid_stamp g vs s := (∃ T', g !! s = Some T' ∧ nclosed T' (length vs)).
+Notation valid_stamp g g' n' vs s T' :=
+  (g !! s = Some T' ∧ g' = g ∧ n' = length vs).
 
 Definition is_unstamped_trav: Traversal unit :=
   {|
     upS := id;
     varP := λ _ n, True;
     dtysynP := λ _ T, True;
-    dtysemP := λ _ vs s, False;
+    dtysemP := λ _ vs s T' ts', False;
     tselP := λ s p, ∃ x, path_root p = var_vl x;
   |}.
 
@@ -36,7 +37,7 @@ Definition is_stamped_trav: Traversal (nat * stys) :=
     upS := λ '(n, g), (S n, g);
     varP := λ '(n, g) i, i < n;
     dtysynP := λ ts T, False;
-    dtysemP := λ '(n, g) vs s, valid_stamp g vs s;
+    dtysemP := λ '(n, g) vs s T' '(n', g'), valid_stamp g g' n' vs s T';
     tselP := λ ts p, True;
   |}.
 
@@ -79,5 +80,6 @@ Definition extract g n T: stys * extractedTy :=
 
 Definition extraction n T : (stys * extractedTy) → Prop :=
   λ '(g, (s, σ)),
-  ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T ∧ nclosed_σ σ n ∧ nclosed T' (length σ).
+  ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T ∧
+    Forall (is_stamped_vl n g) σ ∧ is_stamped_ty (length σ) g T'.
 Notation "T ~[ n  ] gsσ" := (extraction n T gsσ) (at level 70).

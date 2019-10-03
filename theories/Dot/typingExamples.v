@@ -141,7 +141,7 @@ Section StringExamples.
   val subSys1 : { z => type A <: Int } = new { type A = Int }
   val subSys2 : { z => type B } = new { type B = String }
 } *)
-Context (String : ty) (HclString : nclosed String 0).
+Context (String : ty) (HclString : is_stamped_ty 0 getStampTable String).
 
 (* Term *)
 Definition systemVal := tv (ν {@
@@ -328,8 +328,8 @@ Proof.
     exact: Var_typed'.
     by change IFTBody.|[_] with IFTBody.
   }
-  have Hs: valid_stamp getStampTable σ1 s1.
-  by apply /extr_dtysem_stamped /get_s1_is_ift.
+  have Hs: is_stamped_dm 0 getStampTable (dtysem σ1 s1).
+  apply /extr_dtysem_stamped; by [apply: get_s1_is_ift|].
 
   apply TAllConCov_stp; stcrush.
   { eapply Trans_stp. exact: packBooleanLB. tcrush. }
