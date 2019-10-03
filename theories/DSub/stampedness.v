@@ -102,16 +102,9 @@ Lemma is_stamped_mono_ty g1 g2 n T__s:
   is_stamped_ty n g2 T__s.
 Proof. unmut_lemma is_stamped_mono_mut. Qed.
 
-(* XXX Still used? *)
-Lemma is_stamped_vstamp_mono g1 g2 n s vs:
-  g1 ⊆ g2 →
-  is_stamped_vl n g1 (vstamp vs s) →
-  is_stamped_vl n g2 (vstamp vs s).
-Proof. apply is_stamped_mono_vl. Qed.
-
 Definition is_stamped_sub n m g s :=
   ∀ i, i < n → is_stamped_vl m g (s i).
-Definition is_stamped_ren n m g r := is_stamped_sub n m g (ren r).
+Notation is_stamped_ren n m g r := (is_stamped_sub n m g (ren r)).
 
 Lemma is_stamped_ren_shift n m j g:
   m >= j + n → is_stamped_ren n m g (+j).

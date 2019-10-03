@@ -153,10 +153,6 @@ Proof. move => Hcl Hl ->; exists T. by rewrite length_idsσ closed_subst_idsρ. 
 (* Prevent simplification from unfolding it, basically unconditionally. *)
 Arguments extraction : simpl never.
 
-Hint Extern 5 (nclosed _ _) => by solve_fv_congruence : fvc.
-Hint Resolve pack_extraction : fvc.
-Ltac by_extcrush := by auto with fvc.
-
 (* For performance, keep these hints local to examples *)
 Hint Extern 5 => try_once extraction_weaken.
 Hint Extern 5 (is_stamped_ty _ _ _) => try_once is_stamped_weaken_ty.
@@ -185,8 +181,13 @@ Ltac typconstructor := match goal with
 Ltac stcrush := try ((progress repeat stconstructor); eauto).
 (** [tcrush] is the safest automation around. *)
 Ltac tcrush := repeat typconstructor; stcrush; try solve [ done |
-  try_once extraction_weaken; eauto |
-  try_once is_stamped_weaken_ty; eauto ].
+  first [
+    try_once extraction_weaken |
+    try_once is_stamped_weaken_ty ]; eauto ].
+
+Hint Extern 5 (nclosed _ _) => by solve_fv_congruence : fvc.
+Hint Resolve pack_extraction : fvc.
+Ltac by_extcrush := by auto with fvc.
 
 Hint Extern 10 (_ ≤ _) => lia : core.
 

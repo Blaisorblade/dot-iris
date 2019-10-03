@@ -21,6 +21,7 @@ Global Arguments Traversal _: clear implicits.
 
 Section fold.
   Context `(trav: Traversal travStateT).
+  Implicit Types (ts: travStateT) (s: stamp).
 
   Inductive forall_traversal_vl: travStateT → vl → Prop :=
   | trav_var_vl ts i: trav.(varP) ts i → forall_traversal_vl ts (var_vl i)
