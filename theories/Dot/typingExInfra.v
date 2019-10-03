@@ -121,14 +121,16 @@ Check (x0 @ "A" @ "B" @; "C").
 Notation TUnit := (⊤ % ty : ty).
 Notation tUnit := (tv (vnat 0) : tm).
 
-(****************)
-(** AUTOMATION **)
-(****************)
+(***************)
+(** WEAKENING **)
+(***************)
 From D.Dot Require Export typing.
-From D.Dot Require Import traversals stampedness.
+From D.Dot Require Import traversals stampedness typeExtractionSyn.
 
-(* Prevent simplification from unfolding it, basically unconditionally. *)
-Arguments extraction : simpl never.
+Lemma extr_dtysem_stamped {g s} σ T n :
+  T ~[ n ] (g, (s, σ)) →
+  valid_stamp g σ s.
+Proof. intros Hst. by rewrite /= /extraction in Hst |- *; ev; eauto 3. Qed.
 
 Lemma extraction_weaken m n T gsσ :
   T ~[ n ] gsσ → n <= m → T ~[ m ] gsσ.
@@ -144,6 +146,12 @@ Lemma pack_extraction g s T n σ :
   σ = idsσ n →
   T ~[ n ] (g, (s, σ)).
 Proof. move => Hcl Hl ->; exists T. by rewrite length_idsσ closed_subst_idsρ. Qed.
+
+(****************)
+(** AUTOMATION **)
+(****************)
+(* Prevent simplification from unfolding it, basically unconditionally. *)
+Arguments extraction : simpl never.
 
 Hint Extern 5 (nclosed _ _) => by solve_fv_congruence : fvc.
 Hint Resolve pack_extraction : fvc.

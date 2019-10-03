@@ -19,6 +19,7 @@ Fixpoint path_root (p : path): vl :=
   | pv v => v
   | pself p _ => path_root p
   end.
+Notation valid_stamp g vs s := (∃ T', g !! s = Some T' ∧ nclosed T' (length vs)).
 
 Definition is_unstamped_trav: Traversal unit :=
   {|
@@ -34,7 +35,7 @@ Definition is_stamped_trav: Traversal (nat * stys) :=
     upS := λ '(n, g), (S n, g);
     varP := λ '(n, g) i, i < n;
     dtysynP := λ ts T, False;
-    dtysemP := λ '(n, g) vs s, ∃ T', g !! s = Some T' ∧ nclosed T' (length vs);
+    dtysemP := λ '(n, g) vs s, valid_stamp g vs s;
     tselP := λ ts p, True;
   |}.
 
