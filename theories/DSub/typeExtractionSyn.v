@@ -3,16 +3,11 @@ From stdpp Require Import gmap fin_map_dom.
 
 From D Require Import tactics.
 From D.DSub Require Import syn synLemmas.
+From D.DSub Require Export stampingDefsCore.
 
 Set Implicit Arguments.
 
-Notation stys := (gmap stamp ty).
-
 Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx) (g: stys) (n: nat) (s: stamp).
-
-Notation gdom g := (dom (gset stamp) g).
-
-Definition fresh_stamp {X} (g: gmap stamp X): stamp := fresh (dom (gset stamp) g).
 
 Lemma fresh_stamp_spec {X} (g: gmap stamp X) : fresh_stamp g ∉ gdom g.
 Proof. apply is_fresh. Qed.
@@ -36,32 +31,6 @@ Proof.
   pose proof (ex_fresh_stamp_strong g T) as [s []].
   exists s; split =>//=. by apply subseteq_dom.
 Qed.
-
-(** Next, we define "extraction", which is the core of stamping.
-    Extraction (as defined by [extraction]) is a relation, stable under
-    substitution, between a type and its extracted form.
-
-    An extracted type is basically a stamp pointing into a table, where types
-    are allocated. However, we cannot substitute into such opaque pointers
-    directly, so how can we ensure stability under substitution?
-    To this end, extracted types also contain an environment on which
-    substitution can act.
-    The function [extract] extracts types by allocating them into a table and
-    creating an initial environment.
- *)
-Definition extractedTy: Type := stamp * vls.
-Definition extractionResult: Type := stys * extractedTy.
-
-Implicit Types (sσ: extractedTy) (gsσ: extractionResult).
-
-Definition extract g n T: stys * extractedTy :=
-  let s := fresh_stamp g
-  in (<[s := T]> g, (s, idsσ n)).
-
-Definition extraction n T : (stys * extractedTy) → Prop :=
-  λ '(g, (s, σ)),
-  ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T ∧ nclosed_σ σ n ∧ nclosed T' (length σ).
-Notation "T ~[ n  ] gsσ" := (extraction n T gsσ) (at level 70).
 
 Lemma extraction_closed g n T s σ:
   T ~[ n ] (g, (s, σ)) →

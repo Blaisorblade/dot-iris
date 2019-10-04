@@ -1,6 +1,7 @@
 (** Define purely syntactically whether a term is stamped or not. *)
 From stdpp Require Import gmap list.
-From D.Dot Require Import syn synLemmas traversals stampingDefsCore.
+From D.Dot Require Import syn synLemmas traversals.
+From D.Dot Require Export stampingDefsCore.
 
 Set Implicit Arguments.
 
@@ -257,10 +258,19 @@ Proof.
   - apply fv_dtysem. decompose_Forall. by eauto.
 Qed.
 
+Lemma is_stamped_nclosed_vl v g i:
+  is_stamped_vl i g v →
+  nclosed_vl v i.
+Proof. unmut_lemma (is_stamped_nclosed_mut g). Qed.
 Lemma is_stamped_nclosed_ty T g i:
   is_stamped_ty i g T →
   nclosed T i.
 Proof. unmut_lemma (is_stamped_nclosed_mut g). Qed.
+
+Lemma is_stamped_nclosed_sub i j g s: is_stamped_sub i j g s → nclosed_sub i j s.
+Proof.
+  move => /= Hs x Hx. eapply is_stamped_nclosed_vl, (Hs x Hx).
+Qed.
 
 Lemma is_stamped_sub_mut:
   (∀ t g s i j,
@@ -371,7 +381,6 @@ Lemma is_stamped_sub_rev_vl g v s i j:
   is_stamped_vl j g (v.[s]) →
   is_stamped_vl i g v.
 Proof. unmut_lemma (is_stamped_sub_rev_mut g). Qed.
-
 Lemma is_stamped_sub_rev_ty g T s i j:
   nclosed T i →
   is_stamped_ty j g (T.|[s]) →

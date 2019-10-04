@@ -5,12 +5,11 @@
   [stamp_typing_mut].
 *)
 From D Require Import tactics.
-From D.DSub Require Export syn typeExtractionSyn stampedness astStamping traversals.
+From D.DSub Require Export syn.
+From D.DSub Require Import stampingDefsCore astStamping.
 From D.DSubSyn Require Import typing_objIdent.
 
 Implicit Types (L T U V : ty) (v : vl) (e : tm) (Γ : ctx).
-
-Class stampTable := getStampTable : stys.
 
 Section syntyping.
   Context `(hasStampTable: stampTable).

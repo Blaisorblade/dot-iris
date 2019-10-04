@@ -1,39 +1,14 @@
 (** Define "stamping" (what we used to call translation) in a purely syntactic
     way, without involving Iris. *)
 From stdpp Require Import gmap list.
-From D.DSub Require Import syn synLemmas traversals typeExtractionSyn.
+From D.DSub Require Import syn synLemmas traversals.
+From D.DSub Require Export stampingDefsCore.
 
 Import Trav1.
 Set Primitive Projections.
 Set Implicit Arguments.
 
 Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx) (g: stys) (n: nat).
-
-Definition is_unstamped_trav: Traversal unit :=
-  {|
-    upS := id;
-    varP := λ s n, True;
-    vtyP := λ s T, True;
-    vstampP := λ s vs s, False;
-    tselP := λ s v, ∃ x, v = var_vl x;
-  |}.
-
-Definition is_stamped_trav: Traversal (nat * stys) :=
-  {|
-    upS := λ '(n, g), (S n, g);
-    varP := λ '(n, g) i, i < n;
-    vtyP := λ ts T, False;
-    vstampP := λ '(n, g) vs s, ∃ T', g !! s = Some T' ∧ nclosed T' (length vs);
-    tselP := λ ts v, True;
-  |}.
-
-Notation is_unstamped_tm := (forall_traversal_tm is_unstamped_trav ()).
-Notation is_unstamped_vl := (forall_traversal_vl is_unstamped_trav ()).
-Notation is_unstamped_ty := (forall_traversal_ty is_unstamped_trav ()).
-
-Notation is_stamped_tm n g := (forall_traversal_tm is_stamped_trav (n, g)).
-Notation is_stamped_vl n g := (forall_traversal_vl is_stamped_trav (n, g)).
-Notation is_stamped_ty n g := (forall_traversal_ty is_stamped_trav (n, g)).
 
 Lemma is_stamped_idsσ_ren g m n j: j + n <= m → Forall (is_stamped_vl m g) (idsσ n).|[ren (+j)].
 Proof.
@@ -44,8 +19,6 @@ Qed.
 
 Lemma is_stamped_idsσ g m n: n <= m → Forall (is_stamped_vl m g) (idsσ n).
 Proof. pose proof (@is_stamped_idsσ_ren g m n 0) as H. asimpl in H. exact: H. Qed.
-
-Hint Constructors forall_traversal_vl forall_traversal_ty forall_traversal_tm.
 
 Lemma not_stamped_vty g n T:
   ¬ (is_stamped_vl n g (vty T)).
@@ -188,7 +161,6 @@ Lemma is_stamped_nclosed_vl v g i:
   is_stamped_vl i g v →
   nclosed_vl v i.
 Proof. unmut_lemma (is_stamped_nclosed_mut g). Qed.
-
 Lemma is_stamped_nclosed_ty T g i:
   is_stamped_ty i g T →
   nclosed T i.
@@ -281,7 +253,6 @@ Lemma is_stamped_sub_rev_vl g v s i j:
   is_stamped_vl j g (v.[s]) →
   is_stamped_vl i g v.
 Proof. unmut_lemma (is_stamped_sub_rev_mut g). Qed.
-
 Lemma is_stamped_sub_rev_ty g T s i j:
   nclosed T i →
   is_stamped_ty j g (T.|[s]) →
