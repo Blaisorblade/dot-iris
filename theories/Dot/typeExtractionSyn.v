@@ -72,7 +72,7 @@ Proof.
   intros * HclT Hclσ Heq.
   eapply extraction_inf_subst => //. rewrite Heq. auto.
 Qed.
-Hint Resolve extract_inf_subst_spec.
+Local Hint Resolve extract_inf_subst_spec.
 
 Lemma extract_subst_spec g g' n T s σ m σ':
   nclosed T n →
