@@ -108,6 +108,7 @@ Global Arguments dtysynP /.
 Global Arguments dtysemP /.
 Global Arguments tselP /.
 
+Notation forall_traversal_dms trav ts ds := (Forall (forall_traversal_dm trav ts) (map snd ds)).
 Global Hint Constructors forall_traversal_vl forall_traversal_tm forall_traversal_dm
      forall_traversal_path forall_traversal_ty.
 

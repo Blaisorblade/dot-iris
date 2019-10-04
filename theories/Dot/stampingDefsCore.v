@@ -44,12 +44,14 @@ Definition is_stamped_trav: Traversal (nat * stys) :=
 Notation is_unstamped_tm := (forall_traversal_tm is_unstamped_trav ()).
 Notation is_unstamped_vl := (forall_traversal_vl is_unstamped_trav ()).
 Notation is_unstamped_dm := (forall_traversal_dm is_unstamped_trav ()).
+Notation is_unstamped_dms ds := (forall_traversal_dms is_unstamped_trav () ds).
 Notation is_unstamped_path := (forall_traversal_path is_unstamped_trav ()).
 Notation is_unstamped_ty := (forall_traversal_ty is_unstamped_trav ()).
 
 Notation is_stamped_tm n g := (forall_traversal_tm is_stamped_trav (n, g)).
 Notation is_stamped_vl n g := (forall_traversal_vl is_stamped_trav (n, g)).
 Notation is_stamped_dm n g := (forall_traversal_dm is_stamped_trav (n, g)).
+Notation is_stamped_dms n g ds := (forall_traversal_dms is_stamped_trav (n, g) ds).
 Notation is_stamped_path n g := (forall_traversal_path is_stamped_trav (n, g)).
 Notation is_stamped_ty n g := (forall_traversal_ty is_stamped_trav (n, g)).
 

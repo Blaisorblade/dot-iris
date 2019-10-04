@@ -62,12 +62,14 @@ unstamp_ty g (T: ty): ty :=
   | TNat => T
   end.
 
+Definition unstamp_dms g ds := map (mapsnd (unstamp_dm g)) ds.
 (** XXX this formulation might be inconvenient: storing the correct n in the map might be preferable. *)
 Definition is_stamped_gmap g: Prop := ∀ s T, g !! s = Some T → ∃ n, is_stamped_ty n g T.
 
 Notation stamps_tm n e__u g e__s := (unstamp_tm g e__s = e__u ∧ is_unstamped_tm e__u ∧ is_stamped_tm n g e__s).
 Notation stamps_vl n v__u g v__s := (unstamp_vl g v__s = v__u ∧ is_unstamped_vl v__u ∧ is_stamped_vl n g v__s).
 Notation stamps_dm n d__u g d__s := (unstamp_dm g d__s = d__u ∧ is_unstamped_dm d__u ∧ is_stamped_dm n g d__s).
+Notation stamps_dms n d__u g d__s := (unstamp_dms g d__s%list = d__u%list ∧ is_unstamped_dms d__u ∧ is_stamped_dms n g d__s).
 Notation stamps_path n p__u g p__s := (unstamp_path g p__s = p__u ∧ is_unstamped_path p__u ∧ is_stamped_path n g p__s).
 Delimit Scope ty_scope with ty.
 Notation stamps_ty n T__u g T__s := (unstamp_ty g T__s = T__u % ty ∧ is_unstamped_ty T__u ∧ is_stamped_ty n g T__s).
@@ -139,6 +141,18 @@ Proof. by case: v. Qed.
 
 Lemma var_stamps_to_self n g x v: stamps_vl n (var_vl x) g v → v = var_vl x.
 Proof. move=> [Heq _]. exact: var_stamps_to_self1. Qed.
+
+Lemma path_stamps_to_self1 g p_s p_u x: unstamp_path g p_s = p_u → path_root p_u = var_vl x → p_s = p_u.
+Proof.
+  elim: p_s p_u => /= [v_s|p_s IHp l] [] *;
+    simplify_eq/=; f_equal; eauto using var_stamps_to_self1.
+Qed.
+
+Lemma unstamp_dms_hasnt ds ds' l g: dms_hasnt ds l → unstamp_dms g ds' = ds → dms_hasnt ds' l.
+Proof.
+  rewrite /dms_hasnt; elim: ds ds' => [| [s d] ds IH] [|[s' d'] ds'] // *.
+  by simplify_eq/=; case_match; eauto.
+Qed.
 
 Lemma stamps_tm_skip n g i e e':
   stamps_tm n e g e' →
