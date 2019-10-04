@@ -44,6 +44,47 @@ Ltac with_is_stamped tac :=
     | H: is_stamped_vl _ _ _ |- _ => tac H
   end.
 
+Lemma is_stamped_weaken_mut g:
+  (∀ e__s m n,
+      is_stamped_tm m g e__s →
+      m <= n →
+      is_stamped_tm n g e__s) ∧
+  (∀ v__s m n,
+      is_stamped_vl m g v__s →
+      m <= n →
+      is_stamped_vl n g v__s) ∧
+  (∀ T__s m n,
+      is_stamped_ty m g T__s →
+      m <= n →
+      is_stamped_ty n g T__s).
+Proof.
+  apply syntax_mut_ind;
+    by [intros; with_is_stamped inverse; econstructor;
+      decompose_Forall; eauto with lia].
+Qed.
+
+Lemma is_stamped_weaken_tm g e__s m n:
+  is_stamped_tm m g e__s →
+  m <= n →
+  is_stamped_tm n g e__s.
+Proof. unmut_lemma (is_stamped_weaken_mut g). Qed.
+Lemma is_stamped_weaken_vl g v__s m n:
+  is_stamped_vl m g v__s →
+  m <= n →
+  is_stamped_vl n g v__s.
+Proof. unmut_lemma (is_stamped_weaken_mut g). Qed.
+Lemma is_stamped_weaken_ty g T__s m n:
+  is_stamped_ty m g T__s →
+  m <= n →
+  is_stamped_ty n g T__s.
+Proof. unmut_lemma (is_stamped_weaken_mut g). Qed.
+
+Lemma is_stamped_weaken_σ g σ m n:
+  is_stamped_σ m g σ →
+  m <= n →
+  is_stamped_σ n g σ.
+Proof. intros; decompose_Forall. exact: is_stamped_weaken_vl. Qed.
+
 Lemma is_stamped_mono_tm g1 g2 n e__s:
   g1 ⊆ g2 →
   is_stamped_tm n g1 e__s →

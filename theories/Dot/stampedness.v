@@ -69,12 +69,8 @@ Lemma is_stamped_weaken_mut g:
       is_stamped_ty n g T__s).
 Proof.
   apply syntax_mut_ind;
-    try by [ intros; with_is_stamped inverse; constructor; cbn in *; eauto].
-  by intros; with_is_stamped inverse; constructor; cbn in *; lia.
-  all: intros * IH1 IH2 **; with_is_stamped inverse; econstructor; cbn in *;
-        try done || (first [eapply IH1|eapply IH2]; first done; lia).
-  decompose_Forall; eapply H4; first done; lia.
-  decompose_Forall; eapply H4; first done; lia.
+    by [intros; with_is_stamped inverse; econstructor;
+      decompose_Forall; eauto with lia].
 Qed.
 
 Lemma is_stamped_weaken_tm g e__s m n:
