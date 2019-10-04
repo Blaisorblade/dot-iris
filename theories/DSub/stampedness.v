@@ -10,15 +10,22 @@ Set Implicit Arguments.
 
 Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx) (g: stys) (n: nat).
 
-Lemma is_stamped_idsσ_ren g m n j: j + n <= m → Forall (is_stamped_vl m g) (idsσ n).|[ren (+j)].
+Definition is_stamped_sub n m g s :=
+  ∀ i, i < n → is_stamped_vl m g (s i).
+Notation is_stamped_ren n m g r := (is_stamped_sub n m g (ren r)).
+
+Notation is_stamped_σ n g σ := (Forall (is_stamped_vl n g) σ).
+
+Lemma is_stamped_idsσ_ren g m n j: j + n <= m → is_stamped_σ m g (idsσ n).|[ren (+j)].
 Proof.
   elim: n m j => [|n IHn] m j Ijm //=.
   repeat constructor => //=; first lia.
   asimpl; apply IHn; lia.
 Qed.
 
-Lemma is_stamped_idsσ g m n: n <= m → Forall (is_stamped_vl m g) (idsσ n).
+Lemma is_stamped_idsσ g m n: n <= m → is_stamped_σ m g (idsσ n).
 Proof. pose proof (@is_stamped_idsσ_ren g m n 0) as H. asimpl in H. exact: H. Qed.
+Hint Resolve is_stamped_idsσ.
 
 Lemma not_stamped_vty g n T:
   ¬ (is_stamped_vl n g (vty T)).
@@ -65,9 +72,14 @@ Proof.
     by [| apply: (is_stamped_mono_vl _ _ _ _ Hleg Hv)].
 Qed.
 
-Definition is_stamped_sub n m g s :=
-  ∀ i, i < n → is_stamped_vl m g (s i).
-Notation is_stamped_ren n m g r := (is_stamped_sub n m g (ren r)).
+Lemma is_stamped_mono_σ g1 g2 n σ:
+  g1 ⊆ g2 →
+  is_stamped_σ n g1 σ →
+  is_stamped_σ n g2 σ.
+Proof. intros; decompose_Forall. exact: is_stamped_mono_vl. Qed.
+
+Hint Extern 5 (is_stamped_ty _ _ _) => try_once is_stamped_mono_ty.
+Hint Extern 5 (is_stamped_σ _ _ _) => try_once is_stamped_mono_σ.
 
 Lemma is_stamped_ren_shift n m j g:
   m >= j + n → is_stamped_ren n m g (+j).
@@ -157,10 +169,16 @@ Lemma is_stamped_nclosed_ty T g i:
   nclosed T i.
 Proof. unmut_lemma (is_stamped_nclosed_mut g). Qed.
 
-Lemma is_stamped_nclosed_sub i j g s: is_stamped_sub i j g s → nclosed_sub i j s.
-Proof.
-  move => /= Hs x Hx. eapply is_stamped_nclosed_vl, (Hs x Hx).
-Qed.
+Lemma is_stamped_nclosed_σ σ g i:
+  is_stamped_σ i g σ →
+  nclosed_σ σ i.
+Proof. intros; decompose_Forall. exact: is_stamped_nclosed_vl. Qed.
+Hint Resolve is_stamped_nclosed_ty is_stamped_nclosed_σ.
+
+Lemma is_stamped_nclosed_sub n m g ξ :
+  is_stamped_sub n m g ξ → nclosed_sub n m ξ.
+Proof. move => Hst i Hle. apply /is_stamped_nclosed_vl /Hst/Hle. Qed.
+
 
 Lemma is_stamped_sub_mut:
   (∀ t g s i j,
@@ -196,9 +214,34 @@ Lemma is_stamped_sub_ty T g s m n:
   is_stamped_ty m g T.|[s].
 Proof. unmut_lemma is_stamped_sub_mut. Qed.
 
+Lemma is_stamped_sub_σ σ g s m n:
+  is_stamped_sub n m g s →
+  is_stamped_σ n g σ →
+  is_stamped_σ m g σ.|[s].
+Proof.
+  intros; rewrite Forall_fmap. decompose_Forall. exact: is_stamped_sub_vl.
+Qed.
+
 Lemma is_stamped_vl_ids g i j: i < j → is_stamped_vl j g (ids i).
 Proof. rewrite /ids /ids_vl; by constructor. Qed.
 Hint Resolve is_stamped_vl_ids.
+
+Lemma is_stamped_sub_stail i j v sb g:
+  is_stamped_sub (S i) j g (v .: sb) →
+  is_stamped_sub i j g sb.
+Proof. move => Hs k Hle. apply (Hs (S k)), lt_n_S, Hle. Qed.
+
+Lemma is_stamped_sub_equiv {σ g i} :
+  is_stamped_σ i g σ ↔ is_stamped_sub (length σ) i g (to_subst σ).
+Proof.
+  split; elim: σ => [//| /= v σ IHσ] Hcl/=.
+  - by move => ??; lia.
+  - inverse Hcl. move => [//|j /lt_S_n] /=. exact: IHσ.
+  - constructor. by apply (Hcl 0); lia.
+    eapply IHσ, is_stamped_sub_stail, Hcl.
+Qed.
+Hint Resolve -> is_stamped_sub_equiv.
+
 
 Lemma is_stamped_sub_single n v g:
   is_stamped_vl n g v →

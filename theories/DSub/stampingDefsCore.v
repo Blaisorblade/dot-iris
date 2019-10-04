@@ -68,5 +68,6 @@ Definition extract g n T: stys * extractedTy :=
 
 Definition extraction n T : (stys * extractedTy) → Prop :=
   λ '(g, (s, σ)),
-  ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T ∧ nclosed_σ σ n ∧ nclosed T' (length σ).
+  ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T ∧
+    Forall (is_stamped_vl n g) σ ∧ is_stamped_ty (length σ) g T'.
 Notation "T ~[ n  ] gsσ" := (extraction n T gsσ) (at level 70).

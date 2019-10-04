@@ -86,10 +86,11 @@ Lemma stamp_vty_spec {T n} g:
     T ~[ n ] (g', (s, σ)).
 Proof.
   intros Hus Hcl.
-  have Hext: T ~[ n ] (extract g n T). by apply extract_spec.
+  inverse Hus.
+  have Hext: T ~[ n ] (extract g n T)
+    by apply /extract_spec /unstamped_stamped_type.
   destruct (extract g n T) as (g' & s & σ) eqn:Heq.
   rewrite /extract in Heq; simplify_eq.
-  inverse Hus.
   split_and!; try eapply trav_vstamp with (T' := T) (ts' := (n, <[fresh_stamp g := T]> g));
     rewrite /= ?lookup_insert //= ?closed_subst_idsρ ?length_idsσ //;
     eauto using is_stamped_idsσ, unstamped_stamped_type.
