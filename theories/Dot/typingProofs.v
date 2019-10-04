@@ -56,8 +56,10 @@ Section syntyping_lemmas.
   Local Hint Resolve
     is_stamped_ren_ty_1
     is_stamped_sub_one is_stamped_sub_one_rev
-    nclosed_sub_inv_ty_one nclosed_ren_inv_ty_one
     is_stamped_nclosed_ty.
+
+  Hint Extern 5 (nclosed _ _) => try_once nclosed_ren_inv_ty_one.
+  Hint Extern 5 => try_once nclosed_sub_inv_ty_one.
 
   Inductive stamped_ctx g: ctx → Prop :=
   | stamped_nil : stamped_ctx g []
@@ -107,8 +109,16 @@ Section syntyping_lemmas.
     is_stamped_ty n getStampTable (TLater T) →
     is_stamped_ty n getStampTable T.
   Proof. by inversion 1. Qed.
-  Local Hint Resolve is_stamped_TLater_n is_stamped_TLater_inv
-    is_stamped_tv_inv.
+
+  Local Hint Resolve is_stamped_tv_inv is_stamped_TLater_n.
+  Local Hint Extern 5 (is_stamped_ty _ _ _) => try_once is_stamped_TLater_inv.
+
+  Ltac with_is_stamped_inverse :=
+    match goal with
+      | H: is_stamped_ty _ _ ?T |- _ =>
+        (* inversion yields many goals if [T] is a variable *)
+        try (is_var T; fail 1); inverse H
+    end.
 
   Lemma stamped_mut_types Γ :
     (∀ e T, Γ ⊢ₜ e : T → ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (length Γ) getStampTable T) ∧
@@ -133,9 +143,9 @@ Section syntyping_lemmas.
                is_stamped_ty (length Γ) getStampTable T1 ∧ is_stamped_ty (length Γ) getStampTable T2); clear Γ.
     all: intros; cbn in *; ev; try solve [ eauto using is_stamped_ren_ty_1 ].
     all: try specialize (H Hctx); try specialize (H0 Hctx); ev.
-    all: try solve [with_is_stamped inverse; eauto; repeat constructor; cbn; eauto].
-    - inverse H. eauto.
+    all: try solve [try with_is_stamped_inverse; repeat constructor; cbn; eauto 4].
     - inverse H. eapply is_stamped_sub_rev_ty => //. eauto.
+    - repeat constructor; cbn; eauto.
     - by apply stamped_lookup.
     - have Hctx': stamped_ctx getStampTable (TLater V :: Γ). by eauto.
       move: (H Hctx') (H0 Hctx'). intuition.
@@ -144,6 +154,6 @@ Section syntyping_lemmas.
       move: (H Hctx'); intuition.
     - have Hctx': stamped_ctx getStampTable (iterate TLater (S i) T2.|[ren (+1)] :: Γ).
       by eauto.
-      move: (H0 Hctx'). intuition idtac; econstructor; cbn; eauto.
+      move: (H0 Hctx'). intros; ev; repeat econstructor; cbn; eauto.
   Qed.
 End syntyping_lemmas.
