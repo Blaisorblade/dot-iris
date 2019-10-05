@@ -126,7 +126,7 @@ Hint Constructors subtype typed.
 Remove Hints Trans_stp.
 Hint Extern 10 => try_once Trans_stp.
 
-Lemma stamped_typing_mono Γ (g g' : stys) (Hle: g ⊆ g'):
+Lemma stamped_typing_mono_mut Γ (g g' : stys) (Hle: g ⊆ g'):
   (∀ e T, Γ s⊢ₜ[ g ] e : T → Γ s⊢ₜ[ g' ] e : T) ∧
   (∀ T1 i1 T2 i2, Γ s⊢ₜ[ g ] T1, i1 <: T2, i2 → Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2).
 Proof.
@@ -137,10 +137,10 @@ Proof.
 Qed.
 Lemma stamped_typed_mono Γ (g g' : stys) (Hle: g ⊆ g') e T:
   Γ s⊢ₜ[ g ] e : T → Γ s⊢ₜ[ g' ] e : T.
-Proof. unmut_lemma (stamped_typing_mono Γ g g'). Qed.
+Proof. unmut_lemma (stamped_typing_mono_mut Γ g g'). Qed.
 Lemma stamped_subtype_mono Γ (g g' : stys) (Hle: g ⊆ g') T1 i1 T2 i2:
   Γ s⊢ₜ[ g ] T1, i1 <: T2, i2 → Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2.
-Proof. unmut_lemma (stamped_typing_mono Γ g g'). Qed.
+Proof. unmut_lemma (stamped_typing_mono_mut Γ g g'). Qed.
 
 Hint Extern 5 => try_once stamped_typed_mono.
 Hint Extern 5 => try_once stamped_subtype_mono.

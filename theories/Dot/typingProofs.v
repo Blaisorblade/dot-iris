@@ -48,10 +48,9 @@ Section syntyping_lemmas.
 
   (* The reverse direction slows proof search and isn't used anyway? *)
   Lemma is_stamped_ren_ty_1 i T g:
-    nclosed T i →
     is_stamped_ty i g T ->
     is_stamped_ty (S i) g (T.|[ren (+1)]).
-  Proof. intros; unmut_lemma (@is_stamped_ren_ty i T g). Qed.
+  Proof. intros Ht. eapply is_stamped_sub_ty, Ht. auto. Qed.
 
   Local Hint Resolve
     is_stamped_ren_ty_1
@@ -145,7 +144,6 @@ Section syntyping_lemmas.
     all: try specialize (H Hctx); try specialize (H0 Hctx); ev.
     all: try solve [try with_is_stamped_inverse; repeat constructor; cbn; eauto 4].
     - inverse H. eapply is_stamped_sub_rev_ty => //. eauto.
-    - repeat constructor; cbn; eauto.
     - by apply stamped_lookup.
     - have Hctx': stamped_ctx getStampTable (TLater V :: Γ). by eauto.
       move: (H Hctx') (H0 Hctx'). intuition.

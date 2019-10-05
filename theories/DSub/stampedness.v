@@ -152,8 +152,8 @@ Lemma is_stamped_nclosed_mut g:
 Proof.
   apply syntax_mut_ind; intros; with_is_stamped inverse => //;
     cbn in *; ev;
-    try by move => s1 s2 Hseq /=; f_equal;
-      try eapply H; try eapply H0; eauto using eq_up.
+    try by move => s1 s2 Hseq; f_equal/=;
+      try first [eapply H|eapply H0]; eauto using eq_up.
   apply fv_vstamp. decompose_Forall. by eauto.
 Qed.
 

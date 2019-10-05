@@ -211,12 +211,14 @@ Proof.
                 smartRecurse t1 t__s1 g1 g2;
                 smartRecurse t2 t__s2 g2 g3;
                 ev; exists (c t__s1 t__s2), g3; inversion Hus; cbn;
-                pick_stamps_unstamp_mono t1 ltac:(fun L => erewrite (L _ g2 g3 _ t1) => //);
-                  by simplify_order; repeat constructor; f_equal; try done; pick_is_stamped_mono t__s1 ltac:(fun L => eapply (L g2))]
+                pick_stamps_unstamp_mono t1
+                  ltac:(fun L => erewrite (L _ g2 g3 _ t1) => //);
+                simplify_order; repeat constructor; f_equal;
+                by [| pick_is_stamped_mono t__s1 ltac:(fun L => eapply (L g2))]]
       | ?c ?t1 =>
         try solve [smartRecurse t1 t__s1 g1 g2; ev; exists (c t__s1), g2;
-                    inverse Hus; repeat constructor => //=; by f_equal]
+                    inverse Hus; repeat constructor; by [|f_equal/=]]
       end
     end.
-  all: exists t__u, g1; subst; repeat constructor => //=; eauto using nclosed_var_lt.
+  all: exists t__u, g1; subst; repeat constructor; eauto using nclosed_var_lt.
 Qed.

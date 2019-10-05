@@ -247,3 +247,21 @@ Notation "Γ |ds V ⊢ ds : T" := (dms_typed Γ V ds T).
 Notation "Γ |d V ⊢{ l := d  } : T" := (dm_typed Γ V l d T).
 Notation "Γ ⊢ₚ p : T , i" := (path_typed Γ p T i).
 Notation "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
+
+Scheme exp_stamped_typed_mut_ind := Induction for typed Sort Prop
+with   exp_stamped_dms_typed_mut_ind := Induction for dms_typed Sort Prop
+with   exp_stamped_dm_typed_mut_ind := Induction for dm_typed Sort Prop
+with   exp_stamped_path_typed_mut_ind := Induction for path_typed Sort Prop.
+(* with   subtype_mut_ind := Induction for subtype Sort Prop. *)
+
+Combined Scheme exp_stamped_typing_mut_ind from exp_stamped_typed_mut_ind, exp_stamped_dms_typed_mut_ind,
+  exp_stamped_dm_typed_mut_ind, exp_stamped_path_typed_mut_ind.
+
+Scheme stamped_typed_mut_ind := Induction for typed Sort Prop
+with   stamped_dms_typed_mut_ind := Induction for dms_typed Sort Prop
+with   stamped_dm_typed_mut_ind := Induction for dm_typed Sort Prop
+with   stamped_path_typed_mut_ind := Induction for path_typed Sort Prop
+with   stamped_subtype_mut_ind := Induction for subtype Sort Prop.
+
+Combined Scheme stamped_typing_mut_ind from stamped_typed_mut_ind, stamped_dms_typed_mut_ind,
+  stamped_dm_typed_mut_ind, stamped_path_typed_mut_ind, stamped_subtype_mut_ind.
