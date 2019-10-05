@@ -2,7 +2,7 @@
     way, without involving Iris. *)
 From stdpp Require Import gmap.
 From D Require Import tactics.
-From D.Dot Require Import syn synLemmas typeExtractionSyn stampedness.
+From D.Dot Require Import syn synLemmas typeExtractionSyn stampedness skeleton.
 
 Set Implicit Arguments.
 
@@ -73,6 +73,35 @@ Notation stamps_dms n d__u g d__s := (unstamp_dms g d__s%list = d__u%list ∧ is
 Notation stamps_path n p__u g p__s := (unstamp_path g p__s = p__u ∧ is_unstamped_path p__u ∧ is_stamped_path n g p__s).
 Delimit Scope ty_scope with ty.
 Notation stamps_ty n T__u g T__s := (unstamp_ty g T__s = T__u % ty ∧ is_unstamped_ty T__u ∧ is_stamped_ty n g T__s).
+
+Definition unstamp_same_skel_tm_def e g : Prop := ∀ e_s,
+  unstamp_tm   g e_s = e → same_skel_tm e e_s.
+Definition unstamp_same_skel_vl_def v g : Prop := ∀ v_s,
+  unstamp_vl   g v_s = v → same_skel_vl v v_s.
+Definition unstamp_same_skel_dm_def d g : Prop := ∀ d_s,
+  unstamp_dm   g d_s = d → same_skel_dm d d_s.
+Definition unstamp_same_skel_path_def p g : Prop := ∀ p_s,
+  unstamp_path g p_s = p → same_skel_path p p_s.
+Definition unstamp_same_skel_ty_def T g : Prop := ∀ T_s,
+  unstamp_ty   g T_s = T → same_skel_ty T T_s.
+
+Lemma unstamp_same_skel_mut g :
+  (∀ t, unstamp_same_skel_tm_def t g) ∧
+  (∀ v, unstamp_same_skel_vl_def v g) ∧
+  (∀ d, unstamp_same_skel_dm_def d g) ∧
+  (∀ p, unstamp_same_skel_path_def p g) ∧
+  (∀ T, unstamp_same_skel_ty_def T g).
+Proof.
+  apply syntax_mut_ind; intros ** E; destruct E =>//=; hnf in *;
+    intros; simplify_eq/=; intuition.
+  - elim: l H => [//|[a d] ds IHds].
+    rewrite Forall_cons /unstamp_same_skel_dm_def /= => -[Hd1 Hds1].
+    split_and!; eauto. exact: IHds.
+  - revert dependent g => g; by case: (g !! s).
+Qed.
+
+Lemma unstamp_same_skel_tm e e_s g: unstamp_tm g e_s = e → same_skel_tm e e_s.
+Proof. apply unstamp_same_skel_mut. Qed.
 
 (* Unused. *)
 (* Lemma stamped_idsσ g m n: Forall (is_stamped_vl m g) (idsσ n). *)
