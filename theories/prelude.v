@@ -4,6 +4,10 @@ From iris.algebra Require Export base.
 From Autosubst Require Export Autosubst.
 From D Require Export tactics.
 
+(* Fixed version of stdpp's. *)
+Tactic Notation "efeed" "pose" "proof" constr(H) "as" intropattern(H') :=
+  efeed H using (fun p => pose proof p as H').
+
 (*
   If [prelude] and [Program] are imported after Iris modules,
   side effects from [iris.algebra.base] and [stdpp.base], including
