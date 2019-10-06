@@ -20,14 +20,15 @@ Fixpoint path_root (p : path): vl :=
   | pself p _ => path_root p
   end.
 
-Notation valid_stamp g vs s := (∃ T', g !! s = Some T' ∧ nclosed T' (length vs)).
+Notation valid_stamp g g' n' vs s T' :=
+  (g !! s = Some T' ∧ g' = g ∧ n' = length vs).
 
 Definition is_unstamped_trav: Traversal unit :=
   {|
     upS := id;
     varP := λ _ n, True;
     dtysynP := λ _ T, True;
-    dtysemP := λ _ vs s, False;
+    dtysemP := λ _ vs s T' ts', False;
     tselP := λ s p, ∃ x, path_root p = var_vl x;
   |}.
 
@@ -36,19 +37,21 @@ Definition is_stamped_trav: Traversal (nat * stys) :=
     upS := λ '(n, g), (S n, g);
     varP := λ '(n, g) i, i < n;
     dtysynP := λ ts T, False;
-    dtysemP := λ '(n, g) vs s, valid_stamp g vs s;
+    dtysemP := λ '(n, g) vs s T' '(n', g'), valid_stamp g g' n' vs s T';
     tselP := λ ts p, True;
   |}.
 
 Notation is_unstamped_tm := (forall_traversal_tm is_unstamped_trav ()).
 Notation is_unstamped_vl := (forall_traversal_vl is_unstamped_trav ()).
 Notation is_unstamped_dm := (forall_traversal_dm is_unstamped_trav ()).
+Notation is_unstamped_dms ds := (forall_traversal_dms is_unstamped_trav () ds).
 Notation is_unstamped_path := (forall_traversal_path is_unstamped_trav ()).
 Notation is_unstamped_ty := (forall_traversal_ty is_unstamped_trav ()).
 
 Notation is_stamped_tm n g := (forall_traversal_tm is_stamped_trav (n, g)).
 Notation is_stamped_vl n g := (forall_traversal_vl is_stamped_trav (n, g)).
 Notation is_stamped_dm n g := (forall_traversal_dm is_stamped_trav (n, g)).
+Notation is_stamped_dms n g ds := (forall_traversal_dms is_stamped_trav (n, g) ds).
 Notation is_stamped_path n g := (forall_traversal_path is_stamped_trav (n, g)).
 Notation is_stamped_ty n g := (forall_traversal_ty is_stamped_trav (n, g)).
 
@@ -79,5 +82,6 @@ Definition extract g n T: stys * extractedTy :=
 
 Definition extraction n T : (stys * extractedTy) → Prop :=
   λ '(g, (s, σ)),
-  ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T ∧ nclosed_σ σ n ∧ nclosed T' (length σ).
+  ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T ∧
+    Forall (is_stamped_vl n g) σ ∧ is_stamped_ty (length σ) g T'.
 Notation "T ~[ n  ] gsσ" := (extraction n T gsσ) (at level 70).

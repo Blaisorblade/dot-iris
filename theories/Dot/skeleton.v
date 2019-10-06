@@ -351,10 +351,104 @@ Theorem simulation_skeleton t1 t1' t2 σ σ' ts:
   prim_step t1 σ [] t2 σ' ts →
   ∃ t2', prim_step t1' σ [] t2' σ' ts ∧ same_skel_tm t2 t2'.
 Proof.
-  move=> Hsk Hstep. simpl in *.
-  inversion Hstep; subst; simpl in *.
-  apply same_skel_fill in Hsk as [Ks' [e' [Hfill [Hskel Hsklsit]]]]; simpl in *.
+  move=> Hsk Hstep; inversion Hstep; simplify_eq/=.
+  apply same_skel_fill in Hsk as [Ks' [e' [Hfill [Hskel Hsklsit]]]].
   eapply simulation_skeleton_head in H1 as [e'' [Hhs Hskk]]; last by eauto.
-  exists (fill Ks' e''). subst.
-  split; [econstructor; eauto | by apply same_skel_fill_item].
+  exists (fill Ks' e'').
+  split; [econstructor; eauto | exact: same_skel_fill_item].
+Qed.
+
+Set Implicit Arguments.
+
+Definition same_skel_tm_symm_def e1 : Prop := ∀ e2,
+  same_skel_tm e1 e2 → same_skel_tm e2 e1.
+Definition same_skel_vl_symm_def v1 : Prop := ∀ v2,
+  same_skel_vl v1 v2 → same_skel_vl v2 v1.
+Definition same_skel_dm_symm_def d1 : Prop := ∀ d2,
+  same_skel_dm d1 d2 → same_skel_dm d2 d1.
+Definition same_skel_path_symm_def p1 : Prop := ∀ p2,
+  same_skel_path p1 p2 → same_skel_path p2 p1.
+Definition same_skel_ty_symm_def T1 : Prop := ∀ T2,
+  same_skel_ty T1 T2 → same_skel_ty T2 T1.
+
+Lemma same_skel_symm :
+  (∀ t, same_skel_tm_symm_def t) ∧ (∀ v, same_skel_vl_symm_def v) ∧
+  (∀ d, same_skel_dm_symm_def d) ∧ (∀ p, same_skel_path_symm_def p) ∧
+  (∀ T, same_skel_ty_symm_def T).
+Proof.
+  apply syntax_mut_ind; intros ** E; destruct E =>//=; hnf in *; intuition.
+  generalize dependent ds; elim: l => [|[l2 d2] ds2 IHds2] [|[l1 d1] ds1] //.
+  rewrite Forall_cons; naive_solver.
+Qed.
+
+Lemma same_skel_symm_tm e1 e2: same_skel_tm e1 e2 → same_skel_tm e2 e1.
+Proof. apply same_skel_symm. Qed.
+
+Lemma step_inversion (t1 : tm) thp σ σ' κ :
+  step ([t1], σ) κ (thp, σ') →
+  ∃ t2, thp = [t2] ∧ κ = [] ∧ prim_step t1 σ [] t2 σ' [].
+Proof.
+  destruct 1 as [????? t0 ??? Hstep]; destruct t0 as [|?[]]; try naive_solver.
+  generalize dependent thp => -[|x[|a b]];
+    inversion Hstep as [????? Hhstep]; inversion Hhstep; naive_solver.
+Qed.
+
+Lemma step_inversion' (t1 t2: tm) thp σ σ' κ :
+  step ([t1], σ) κ (thp, σ') → t2 ∈ thp →
+  thp = [t2] ∧ κ = [] ∧ prim_step t1 σ [] t2 σ' [].
+Proof.
+  move => /step_inversion [t2' [-> [->]]].
+  rewrite elem_of_list_singleton. naive_solver.
+Qed.
+
+Lemma erased_step_prim (t1 t2: tm) thp σ σ' :
+  erased_step ([t1], σ) (thp, σ') ∧ t2 ∈ thp ↔
+  prim_step t1 σ [] t2 σ' [] ∧ thp = [t2].
+Proof. split.
+  - move => [[os Hstep] Hin]; move: (step_inversion' Hstep Hin); naive_solver.
+  - move => [Hstep ->]. split; last constructor; exists [].
+    by eapply @step_atomic with (t1 := []) (t2 := []).
+Qed.
+
+Theorem simulation_skeleton_erased_step {t1 t1' t2 σ σ' thp} :
+  same_skel_tm t1 t1' →
+  erased_step ([t1], σ) (thp, σ') ∧ t2 ∈ thp →
+  ∃ t2' thp', (erased_step ([t1'], σ) (thp', σ') ∧ t2' ∈ thp') ∧
+    same_skel_tm t2 t2'.
+Proof.
+  setoid_rewrite erased_step_prim; intros Hskel [Hstep ->].
+  efeed pose proof simulation_skeleton as (t2' & ? & ?) => //.
+  by exists t2', [t2'].
+Qed.
+
+Theorem simulation_skeleton_erased_steps {t1 t1' t2 σ σ' thp} :
+  same_skel_tm t1 t1' →
+  rtc erased_step ([t1], σ) (thp, σ') → t2 ∈ thp →
+  ∃ t2', rtc erased_step ([t1'], σ) ([t2'], σ') ∧ same_skel_tm t2 t2'.
+Proof.
+  intros Hst Hsteps; revert t1' Hst; dependent induction Hsteps; intros ??.
+  by rewrite elem_of_list_singleton => ->;
+    exists t1'; split_and!; try constructor; eauto.
+  intros Hin; destruct y as [l σ'']; have ?: σ'' = σ by destruct σ, σ''.
+  subst. move: H (H) => [k Hstep] Hestep.
+  move: (step_inversion Hstep) => [ti ?]; destruct_and!; simplify_eq.
+  pose proof (simulation_skeleton_erased_step Hst
+    (conj Hestep (elem_of_list_here _ _))) as (ti' & thpi'&(Hestep'&Hti')&?).
+  efeed pose proof IHHsteps as (t2' &?&?) => //.
+  exists t2'; split_and! => //.
+  suff ?: thpi' = [ti'] by subst; eapply rtc_l with (y := ([ti'], _)).
+  move: Hestep' => [k' Hstep'].
+  move: (step_inversion Hstep') Hti' => [ti'' [-> _]].
+  rewrite elem_of_list_singleton; naive_solver.
+Qed.
+
+Lemma same_skel_reducible e e_s σ:
+  same_skel_tm e e_s → reducible e_s σ → reducible e σ.
+Proof.
+  intros Hskel%same_skel_symm_tm (k&e'&σ'&efs&Hstep).
+  efeed pose proof step_inversion as [t2 Hinv]; first
+    by eapply @step_atomic with (t1 := []) (t2 := []).
+  destruct_and!; simplify_eq/=.
+  efeed pose proof simulation_skeleton as (e' & ? & ?) => //.
+  exists [], e'; eauto.
 Qed.

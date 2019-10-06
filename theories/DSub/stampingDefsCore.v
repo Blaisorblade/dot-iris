@@ -12,14 +12,15 @@ Set Implicit Arguments.
 
 Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx) (vs: vls) (g: stys) (n: nat).
 
-Notation valid_stamp g vs s := (∃ T', g !! s = Some T' ∧ nclosed T' (length vs)).
+Notation valid_stamp g g' n' vs s T' :=
+  (g !! s = Some T' ∧ g' = g ∧ n' = length vs).
 
 Definition is_unstamped_trav: Traversal unit :=
   {|
     upS := id;
     varP := λ s n, True;
     vtyP := λ s T, True;
-    vstampP := λ s vs s, False;
+    vstampP := λ ts vs s T' ts', False;
     tselP := λ s v, ∃ x, v = var_vl x;
   |}.
 
@@ -28,7 +29,7 @@ Definition is_stamped_trav: Traversal (nat * stys) :=
     upS := λ '(n, g), (S n, g);
     varP := λ '(n, g) i, i < n;
     vtyP := λ ts T, False;
-    vstampP := λ '(n, g) vs s, valid_stamp g vs s;
+    vstampP := λ '(n, g) vs s T' '(n', g'), valid_stamp g g' n' vs s T';
     tselP := λ ts v, True;
   |}.
 
@@ -67,5 +68,6 @@ Definition extract g n T: stys * extractedTy :=
 
 Definition extraction n T : (stys * extractedTy) → Prop :=
   λ '(g, (s, σ)),
-  ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T ∧ nclosed_σ σ n ∧ nclosed T' (length σ).
+  ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T ∧
+    Forall (is_stamped_vl n g) σ ∧ is_stamped_ty (length σ) g T'.
 Notation "T ~[ n  ] gsσ" := (extraction n T gsσ) (at level 70).

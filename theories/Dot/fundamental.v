@@ -1,9 +1,11 @@
 From iris.proofmode Require Import tactics.
 From D Require Import swap_later_impl.
-From D.Dot Require Import unary_lr typing typeExtractionSem.
+From D.Dot Require Import unary_lr typing typeExtractionSem typing_unstamped.
 From D.Dot Require Import lr_lemma lr_lemmasDefs lr_lemma_nobinding lr_lemmasTSel.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
+
+Set Implicit Arguments.
 
 Section fundamental.
   Context `{!dlangG Σ} `{!SwapProp (iPropSI Σ)}.
@@ -95,15 +97,42 @@ Proof.
   by iSpecialize ("H" $! ids with "[#//]"); rewrite hsubst_id.
 Qed.
 
+Definition safe e :=
+  ∀ e' thp σ σ', rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
+    is_Some (to_val e') ∨ reducible e' σ'.
+
 (** Instead of still assuming semantic typing, here we should assume syntactic
     typing and use the fundamental lemma. But otherwise this follows the general
     instantiation pattern, from e.g.
     https://gitlab.mpi-sws.org/iris/examples/blob/a89dc12821b63eeb9b831d21629ac55ebd601f38/theories/logrel/F_mu_ref/soundness.v#L29-39. *)
-Corollary type_soundness e e' thp σ σ' T `{!stampTable}:
-  [] ⊢ₜ e : T →
-  rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
-  is_Some (to_val e') ∨ reducible e' σ'.
+Corollary type_soundness_stamped e T `{!stampTable}:
+  [] ⊢ₜ e : T → safe e.
 Proof.
-  intros; eapply (adequacy dlangΣ) => // *.
+  intros HuT????; apply: (@adequacy dlangΣ _ _) => // *.
   by iApply fundamental_typed_upd.
+Qed.
+
+From D.Dot Require Import astStamping typingStamping skeleton.
+
+Lemma safe_same_skel e e_s:
+  same_skel_tm e e_s → safe e_s → safe e.
+Proof.
+  rewrite /safe; intros Hst Hsafe ???? Hred Hin.
+  pose proof (simulation_skeleton_erased_steps Hst Hred Hin)
+    as (e_s' & Hst_s & Hskel').
+  efeed pose proof Hsafe as [|];
+    [apply Hst_s|apply elem_of_list_here|left|right].
+  - destruct e_s', e'; naive_solver.
+  - exact: same_skel_reducible.
+Qed.
+
+Lemma safe_stamp n e g e_s:
+  stamps_tm n e g e_s → safe e_s → safe e.
+Proof. move => [/unstamp_same_skel_tm Hs _] Hsafe. exact: safe_same_skel. Qed.
+
+Theorem type_soundness e T :
+  [] u⊢ₜ e : T → safe e.
+Proof.
+  intros HuT. destruct (stamp_typed HuT ∅) as (e_s & g & HsT & ? & Hs).
+  eapply (safe_stamp Hs), type_soundness_stamped, HsT.
 Qed.

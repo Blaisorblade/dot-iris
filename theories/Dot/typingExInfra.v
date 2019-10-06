@@ -127,25 +127,35 @@ Notation tUnit := (tv (vnat 0) : tm).
 From D.Dot Require Export typing.
 From D.Dot Require Import traversals stampedness typeExtractionSyn.
 
+Notation valid_stamp g g' n' vs s T' :=
+  (g !! s = Some T' ∧ g' = g ∧ n' = length vs).
+
 Lemma extr_dtysem_stamped {g s} σ T n :
   T ~[ n ] (g, (s, σ)) →
-  valid_stamp g σ s.
-Proof. intros Hst. by rewrite /= /extraction in Hst |- *; ev; eauto 3. Qed.
+  is_stamped_σ n g σ →
+  is_stamped_dm n g (dtysem σ s).
+Proof.
+  rewrite /= /extraction => -[T' [Hg [Hs [Hclσ HstT']]]].
+  by apply @Trav1.trav_dtysem with (T' := T') (ts' := (length σ, g)).
+Qed.
 
 Lemma extraction_weaken m n T gsσ :
   T ~[ n ] gsσ → n <= m → T ~[ m ] gsσ.
 Proof.
   move: gsσ => [g [s σ]] /= [T' ?] Hle; ev.
-  exists T'; split_and!; eauto using nclosed_σ_mono.
+  exists T'; split_and!; eauto using is_stamped_weaken_σ.
 Qed.
 
 (* While other lemmas allow to produce a suitable stamp table, for examples it makes more sense to have a generic one. *)
 Lemma pack_extraction g s T n σ :
   g !! s = Some T →
-  nclosed T n →
+  is_stamped_ty n g T →
   σ = idsσ n →
   T ~[ n ] (g, (s, σ)).
-Proof. move => Hcl Hl ->; exists T. by rewrite length_idsσ closed_subst_idsρ. Qed.
+Proof.
+  move => Hcl Hl ->; exists T; move: (is_stamped_nclosed_ty Hl) => Hst.
+  rewrite length_idsσ closed_subst_idsρ; auto.
+Qed.
 
 (****************)
 (** AUTOMATION **)
@@ -156,6 +166,7 @@ Arguments extraction : simpl never.
 (* For performance, keep these hints local to examples *)
 Hint Extern 5 => try_once extraction_weaken.
 Hint Extern 5 (is_stamped_ty _ _ _) => try_once is_stamped_weaken_ty.
+Hint Extern 5 (is_stamped_dm _ _ _) => try_once is_stamped_weaken_dm.
 
 (* Deterministic crush. *)
 Ltac dcrush := repeat constructor.
@@ -183,10 +194,12 @@ Ltac stcrush := try ((progress repeat stconstructor); eauto).
 Ltac tcrush := repeat typconstructor; stcrush; try solve [ done |
   first [
     try_once extraction_weaken |
+    try_once is_stamped_weaken_dm |
     try_once is_stamped_weaken_ty ]; eauto ].
 
 Hint Extern 5 (nclosed _ _) => by solve_fv_congruence : fvc.
 Hint Resolve pack_extraction : fvc.
+Hint Extern 5 (is_stamped_ty _ _ _) => tcrush : fvc.
 Ltac by_extcrush := by auto with fvc.
 
 Hint Extern 10 (_ ≤ _) => lia : core.
@@ -334,9 +347,9 @@ Proof.
   apply (Subs_typed_nocoerce (μ {@ typeEq "A" T.|[ren (+1)] }));
     last (eapply Trans_stp; first apply (Mu_stp _ ({@ typeEq "A" T })); tcrush).
   apply VObj_typed; tcrush.
-  apply (dty_typed T.|[ren (+1)]); tcrush; last auto.
-  apply /(@extraction_inf_subst _ (length _)); auto.
-  by apply /extraction_weaken /Hle /pack_extraction.
+  apply (dty_typed T.|[ren (+1)]); auto 2; tcrush.
+  apply /(@extraction_inf_subst _ (length _)); auto 3;
+    by apply /extraction_weaken /Hle /pack_extraction.
 Qed.
 
 Lemma packTV_typed s T Γ :

@@ -41,6 +41,7 @@ theories/DSubSyn/fundamental.v
 theories/Dot/syn.v
 theories/Dot/typing.v
 theories/Dot/typing_objIdent.v
+theories/Dot/typing_unstamped.v
 theories/Dot/path_wp.v
 theories/Dot/examples.v
 theories/Dot/typeExtractionSyn.v
@@ -51,8 +52,10 @@ theories/Dot/operational.v
 theories/Dot/synLemmas.v
 theories/Dot/step_fv.v
 theories/Dot/skeleton.v
+theories/Dot/astStamping.v
 theories/Dot/stampingDefsCore.v
 theories/Dot/typingProofs.v
+theories/Dot/typingStamping.v
 theories/Dot/rules.v
 theories/Dot/fundamental.v
 theories/Dot/unary_lr.v

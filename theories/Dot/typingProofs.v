@@ -1,24 +1,9 @@
-From D.Dot Require Import typing typeExtractionSyn stampedness closed_subst synLemmas.
+From D.Dot Require Import typing typeExtractionSyn traversals stampedness closed_subst.
+
+Set Implicit Arguments.
+
 Section syntyping_lemmas.
   Context `{hasStampTable: stampTable}.
-
-  Scheme exp_typed_mut_ind := Induction for typed Sort Prop
-  with   exp_dms_typed_mut_ind := Induction for dms_typed Sort Prop
-  with   exp_dm_typed_mut_ind := Induction for dm_typed Sort Prop
-  with   exp_path_typed_mut_ind := Induction for path_typed Sort Prop.
-  (* with   subtype_mut_ind := Induction for subtype Sort Prop. *)
-
-  Combined Scheme exp_typing_mut_ind from exp_typed_mut_ind, exp_dms_typed_mut_ind,
-    exp_dm_typed_mut_ind, exp_path_typed_mut_ind.
-
-  Scheme typed_mut_ind := Induction for typed Sort Prop
-  with   dms_typed_mut_ind := Induction for dms_typed Sort Prop
-  with   dm_typed_mut_ind := Induction for dm_typed Sort Prop
-  with   path_typed_mut_ind := Induction for path_typed Sort Prop
-  with   subtype_mut_ind := Induction for subtype Sort Prop.
-
-  Combined Scheme typing_mut_ind from typed_mut_ind, dms_typed_mut_ind, dm_typed_mut_ind,
-    path_typed_mut_ind, subtype_mut_ind.
 
   Hint Constructors Forall.
   Lemma stamped_mut_subject Γ:
@@ -27,7 +12,7 @@ Section syntyping_lemmas.
     (∀ V l d T, Γ |d V ⊢{ l := d } : T → is_stamped_dm (S (length Γ)) getStampTable d) ∧
     (∀ p T i, Γ ⊢ₚ p : T, i → is_stamped_path (length Γ) getStampTable p).
   Proof.
-    eapply exp_typing_mut_ind with
+    eapply exp_stamped_typing_mut_ind with
         (P := λ Γ e T _, is_stamped_tm (length Γ) getStampTable e)
         (P0 := λ Γ V ds T _, Forall (is_stamped_dm (S (length Γ)) getStampTable) (map snd ds))
         (P1 := λ Γ V l d T _, is_stamped_dm (S (length Γ)) getStampTable d)
@@ -35,7 +20,8 @@ Section syntyping_lemmas.
         cbn; intros; try by (with_is_stamped inverse + idtac); eauto.
     - repeat constructor => //=. by eapply lookup_lt_Some.
     - intros; elim: i {s} => [|i IHi]; rewrite /= ?iterate_0 ?iterate_S //; eauto.
-    - intros; ev. constructor; naive_solver.
+    - move: e => [T' ?]; ev. by apply @Trav1.trav_dtysem with
+        (T' := T') (ts' := (length σ, getStampTable)).
   Qed.
 
   Lemma stamped_exp_subject Γ e T: Γ ⊢ₜ e : T →
@@ -129,7 +115,7 @@ Section syntyping_lemmas.
     (∀ T1 i1 T2 i2, Γ ⊢ₜ T1, i1 <: T2, i2 → ∀ (Hctx: stamped_ctx getStampTable Γ),
       is_stamped_ty (length Γ) getStampTable T1 ∧ is_stamped_ty (length Γ) getStampTable T2).
   Proof.
-    eapply typing_mut_ind with
+    eapply stamped_typing_mut_ind with
         (P := λ Γ e T _, ∀ (Hctx: stamped_ctx getStampTable Γ),
           is_stamped_ty (length Γ) getStampTable T)
         (P0 := λ Γ V ds T _, ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (S (length Γ)) getStampTable V →

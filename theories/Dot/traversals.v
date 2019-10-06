@@ -13,7 +13,7 @@ Record Traversal {travStateT: Type} :=
     upS: travStateT → travStateT;
     varP: travStateT → nat → Prop;
     dtysynP: travStateT → ty → Prop;
-    dtysemP: travStateT → vls → stamp → Prop;
+    dtysemP: travStateT → vls → stamp → ty → travStateT → Prop;
     tselP: travStateT → path → Prop;
   }.
 
@@ -52,8 +52,9 @@ Section fold.
       forall_traversal_ty ts T →
       trav.(dtysynP) ts T →
       forall_traversal_dm ts (dtysyn T)
-  | trav_dtysem ts vs s:
-      trav.(dtysemP) ts vs s →
+  | trav_dtysem ts vs s T' ts':
+      trav.(dtysemP) ts vs s T' ts' →
+      forall_traversal_ty ts' T' →
       Forall (forall_traversal_vl ts) vs →
       forall_traversal_dm ts (dtysem vs s)
   with
@@ -107,6 +108,7 @@ Global Arguments dtysynP /.
 Global Arguments dtysemP /.
 Global Arguments tselP /.
 
+Notation forall_traversal_dms trav ts ds := (Forall (forall_traversal_dm trav ts) (map snd ds)).
 Global Hint Constructors forall_traversal_vl forall_traversal_tm forall_traversal_dm
      forall_traversal_path forall_traversal_ty.
 
