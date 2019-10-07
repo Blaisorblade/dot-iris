@@ -90,7 +90,7 @@ with dms_typed Γ : ty → dms → ty → Prop :=
     Γ |ds V u⊢ (l, d) :: ds : TAnd T1 T2
 where "Γ |ds V u⊢ ds : T" := (dms_typed Γ V ds T)
 with dm_typed Γ : ty → label → dm → ty → Prop :=
-| dty_typed V l L T U:
+| dty_typed T V l L U:
     nclosed T (S (length Γ)) →
     is_unstamped_ty T →
     TLater V :: Γ u⊢ₜ TLater L, 0 <: TLater T, 0 →
@@ -123,7 +123,7 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     is_unstamped_ty T →
     nclosed T (length Γ) →
     Γ u⊢ₜ T, i <: T, i
-| Trans_stp i1 i2 i3 T1 T2 T3:
+| Trans_stp i2 T2 {i1 i3 T1 T3}:
     Γ u⊢ₜ T1, i1 <: T2, i2 →
     Γ u⊢ₜ T2, i2 <: T3, i3 →
     Γ u⊢ₜ T1, i1 <: T3, i3
@@ -188,10 +188,10 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Γ u⊢ₜ TOr T1 T2, i <: U, j
 
 (* Type selections *)
-| SelU_stp l L U p i:
+| SelU_stp p L {l U i}:
     Γ u⊢ₚ p : TTMem l L U, i →
     Γ u⊢ₜ TSel p l, i <: iterate TLater (S (plength p)) U, i
-| LSel_stp l L U p i:
+| LSel_stp p U {l L i}:
     Γ u⊢ₚ p : TTMem l L U, i →
     Γ u⊢ₜ iterate TLater (S (plength p)) L, i <: TSel p l, i
 
@@ -265,6 +265,9 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     nclosed U2 (length Γ) →
     Γ u⊢ₜ TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
 where "Γ u⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
+
+(* Make [T] first argument: Hide Γ for e.g. typing examples. *)
+Global Arguments dty_typed {Γ} T _ _ _ _ _ _ _ _ : assert.
 
 Scheme unstamped_typed_mut_ind := Induction for typed Sort Prop
 with   unstamped_dms_typed_mut_ind := Induction for dms_typed Sort Prop
