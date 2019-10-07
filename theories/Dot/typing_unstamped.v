@@ -282,22 +282,3 @@ Hint Extern 10 => try_once Trans_stp.
 Lemma unstamped_path_root_is_var Γ p T i:
   Γ u⊢ₚ p : T, i → ∃ x, path_root p = var_vl x.
 Proof. by elim; intros; cbn; eauto 2. Qed.
-(*
-Section syntyping.
-  Context `{hasStampTable: stampTable}.
-  Lemma typing_obj_ident_to_typing Γ:
-    (∀ e T, Γ u⊢ₜ e : T → Γ ⊢ₜ e : T) ∧
-    (∀ V ds T, Γ |ds V u⊢ ds : T → Γ |ds V ⊢ ds : T) ∧
-    (∀ V l d T, Γ |d V u⊢{ l := d } : T → Γ |d V ⊢{ l := d } : T) ∧
-    (∀ p T i, Γ u⊢ₚ p : T, i → Γ ⊢ₚ p : T, i) ∧
-    (∀ T1 i1 T2 i2, Γ u⊢ₜ T1, i1 <: T2, i2 → Γ ⊢ₜ T1, i1 <: T2, i2).
-  Proof.
-    eapply typing_mut_ind with
-        (P := λ Γ e T _, Γ ⊢ₜ e : T)
-        (P0 := λ Γ V ds T _, Γ |ds V ⊢ ds : T)
-        (P1 := λ Γ V l d T _, Γ |d V ⊢{ l := d } : T)
-        (P2 := λ Γ p T i _, Γ ⊢ₚ p : T, i)
-        (P3 := λ Γ T1 i1 T2 i2 _, Γ ⊢ₜ T1, i1 <: T2, i2); clear Γ;
-      try solve [econstructor; eauto].
-  Qed.
-End syntyping. *)

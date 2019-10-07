@@ -99,7 +99,8 @@ subtype Γ : ty → nat → ty → nat → Prop :=
     Γ s⊢ₜ TTMem L1 U1, i <: TTMem L2 U2, i
 where "Γ s⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
 
-Lemma stamp_typing_v1 Γ:
+(* Just to show this doesn't work as easily. *)
+(* Lemma stamp_typing_v1 Γ:
   (∀ e T, Γ u⊢ₜ e : T → Γ s⊢ₜ e : T) ∧
   (∀ T1 i1 T2 i2, Γ u⊢ₜ T1, i1 <: T2, i2 → Γ s⊢ₜ T1, i1 <: T2, i2).
 Proof.
@@ -107,7 +108,7 @@ Proof.
       (P := λ Γ e T _, Γ s⊢ₜ e : T)
       (P0 := λ Γ T1 i1 T2 i2 _, Γ s⊢ₜ T1, i1 <: T2, i2); clear Γ;
     try solve [econstructor; eauto].
-Abort.
+Abort. *)
 
 Lemma Vty_typed Γ T L U σ s :
     T ~[ length Γ ] (getStampTable, (s, σ)) →

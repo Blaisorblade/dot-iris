@@ -1,5 +1,6 @@
 From D Require Import tactics.
-From D.Dot Require Export syn typing.
+From D.Dot Require Export syn.
+From D.Dot Require Import typing.
 
 (* The typing judgement comes from [s/⊢/|⊢/] over [typing.v], and restricting most values to variables (except in object definitions). *)
 Reserved Notation "Γ |⊢ₜ e : T" (at level 74, e, T at next level).
@@ -82,7 +83,7 @@ with dms_typed Γ : ty → dms → ty → Prop :=
     Γ |ds V |⊢ (l, d) :: ds : TAnd T1 T2
 where "Γ |ds V |⊢ ds : T" := (dms_typed Γ V ds T)
 with dm_typed Γ : ty → label → dm → ty → Prop :=
-| dty_typed V l L T U s σ:
+| dty_typed T V l L U s σ:
     T ~[ S (length Γ) ] (getStampTable, (s, σ)) →
     Forall (is_stamped_vl (S (length Γ)) getStampTable) σ →
     TLater V :: Γ |⊢ₜ TLater L, 0 <: TLater T, 0 →
@@ -114,7 +115,7 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 | Refl_stp i T :
     is_stamped_ty (length Γ) getStampTable T →
     Γ |⊢ₜ T, i <: T, i
-| Trans_stp i1 i2 i3 T1 T2 T3:
+| Trans_stp i2 T2 {i1 i3 T1 T3}:
     Γ |⊢ₜ T1, i1 <: T2, i2 →
     Γ |⊢ₜ T2, i2 <: T3, i3 →
     Γ |⊢ₜ T1, i1 <: T3, i3
@@ -166,10 +167,10 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Γ |⊢ₜ TOr T1 T2, i <: U, j
 
 (* Type selections *)
-| SelU_stp l L U p i:
+| SelU_stp p L {l U i}:
     Γ |⊢ₚ p : TTMem l L U, i →
     Γ |⊢ₜ TSel p l, i <: iterate TLater (S (plength p)) U, i
-| LSel_stp l L U p i:
+| LSel_stp p U {l L i}:
     Γ |⊢ₚ p : TTMem l L U, i →
     Γ |⊢ₜ iterate TLater (S (plength p)) L, i <: TSel p l, i
 
