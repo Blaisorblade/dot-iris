@@ -23,16 +23,16 @@ Section fundamental.
   fundamental_path_typed Γ p T i (HT : Γ ⊢ₚ p : T, i):
     wellMapped getStampTable -∗ Γ ⊨p p : T, i.
   Proof.
-    - iIntros "#Hm"; iInduction HT as [] "IHT".
+    - iIntros "#Hm"; induction HT.
       + iApply D_Typ; by [> iApply fundamental_subtype .. |
           iApply extraction_to_leadsto_envD_equiv].
       + iApply TVMem_I. by iApply fundamental_typed.
-    - iIntros "#Hm"; iInduction HT as [] "IHT".
+    - iIntros "#Hm"; induction HT.
       + by iApply DNil_I.
       + iApply DCons_I; by [|iApply fundamental_dm_typed].
-    - iIntros "#Hm"; iInduction HT as [] "IHT".
+    - iIntros "#Hm"; induction HT.
       + by iApply Sub_Refl.
-      + by iApply Sub_Trans.
+      + by iApply Sub_Trans; [apply IHHT1|apply IHHT2].
       + by iApply Later_Sub.
       + by iApply Sub_Later.
       + by iApply Sub_Add_Later.
@@ -57,9 +57,9 @@ Section fundamental.
       + iApply Sub_TAll_Cov_Distr.
       + iApply Sub_TVMem_Cov_Distr.
       + iApply Sub_TTMem_Cov_Distr.
-    - iIntros "#Hm"; iInduction HT as [] "IHT".
-      + by iApply T_Forall_Ex.
-      + by iApply T_Forall_E.
+    - iIntros "#Hm"; induction HT.
+      + by iApply T_Forall_Ex; [apply IHHT1|apply IHHT2].
+      + by iApply T_Forall_E; [apply IHHT1|apply IHHT2].
       + by iApply T_Mem_E.
       + by iApply TMu_E.
       + by iApply T_Forall_I.
@@ -67,9 +67,9 @@ Section fundamental.
       + by iApply TMu_I.
       + by iApply T_Nat_I.
       + by iApply T_Var.
-      + iApply T_Sub; by [|iApply fundamental_subtype].
+      + iApply T_Sub; by [apply IHHT|iApply (fundamental_subtype with "Hm")].
       + by iApply TAnd_I.
-    - iIntros "#Hm"; iInduction HT as [] "IHT".
+    - iIntros "#Hm"; induction HT.
       + iApply P_Val. by iApply fundamental_typed.
       + by iApply P_DLater.
       + by iApply P_Mem_E.
