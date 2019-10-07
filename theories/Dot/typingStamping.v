@@ -102,7 +102,7 @@ Section syntyping_stamping_lemmas.
     (∀ T1 i1 T2 i2, Γ u⊢ₜ T1, i1 <: T2, i2 →
       ∀ (g : stys), ∃ (g' : stys), Γ ⊢ₜ[ g' ] T1, i1 <: T2, i2 ∧ g ⊆ g').
   Proof.
-    eapply typing_mut_ind with
+    eapply unstamped_typing_mut_ind with
       (P := λ Γ e T _, ∀ g, ∃ e' (g' : stys),
         Γ ⊢ₜ[ g' ] e' : T ∧ g ⊆ g' ∧ stamps_tm (length Γ) e g' e')
       (P0 := λ Γ V ds T _, ∀ g, ∃ ds' (g' : stys),

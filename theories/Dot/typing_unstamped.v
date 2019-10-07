@@ -266,14 +266,14 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Γ u⊢ₜ TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
 where "Γ u⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
 
-Scheme typed_mut_ind := Induction for typed Sort Prop
-with   dms_typed_mut_ind := Induction for dms_typed Sort Prop
-with   dm_typed_mut_ind := Induction for dm_typed Sort Prop
-with   path_typed_mut_ind := Induction for path_typed Sort Prop
-with   subtype_mut_ind := Induction for subtype Sort Prop.
+Scheme unstamped_typed_mut_ind := Induction for typed Sort Prop
+with   unstamped_dms_typed_mut_ind := Induction for dms_typed Sort Prop
+with   unstamped_dm_typed_mut_ind := Induction for dm_typed Sort Prop
+with   unstamped_path_typed_mut_ind := Induction for path_typed Sort Prop
+with   unstamped_subtype_mut_ind := Induction for subtype Sort Prop.
 
-Combined Scheme typing_mut_ind from typed_mut_ind, dms_typed_mut_ind, dm_typed_mut_ind,
-  path_typed_mut_ind, subtype_mut_ind.
+Combined Scheme unstamped_typing_mut_ind from unstamped_typed_mut_ind, unstamped_dms_typed_mut_ind, unstamped_dm_typed_mut_ind,
+  unstamped_path_typed_mut_ind, unstamped_subtype_mut_ind.
 
 Hint Constructors typed dms_typed dm_typed path_typed subtype.
 Remove Hints Trans_stp.

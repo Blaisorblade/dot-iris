@@ -232,35 +232,6 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     is_stamped_ty (length Γ) getStampTable U2 →
     Γ |⊢ₜ TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
 where "Γ |⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
-
-  Scheme typed_mut_ind := Induction for typed Sort Prop
-  with   dms_typed_mut_ind := Induction for dms_typed Sort Prop
-  with   dm_typed_mut_ind := Induction for dm_typed Sort Prop
-  with   path_typed_mut_ind := Induction for path_typed Sort Prop
-  with   subtype_mut_ind := Induction for subtype Sort Prop.
-
-  Combined Scheme typing_mut_ind from typed_mut_ind, dms_typed_mut_ind, dm_typed_mut_ind,
-    path_typed_mut_ind, subtype_mut_ind.
-
-  Hint Constructors typed dms_typed dm_typed path_typed subtype.
-  Remove Hints Trans_stp.
-  Hint Extern 10 => try_once Trans_stp.
-
-  Lemma typing_obj_ident_to_typing Γ:
-    (∀ e T, Γ |⊢ₜ e : T → Γ ⊢ₜ e : T) ∧
-    (∀ V ds T, Γ |ds V |⊢ ds : T → Γ |ds V ⊢ ds : T) ∧
-    (∀ V l d T, Γ |d V |⊢{ l := d } : T → Γ |d V ⊢{ l := d } : T) ∧
-    (∀ p T i, Γ |⊢ₚ p : T, i → Γ ⊢ₚ p : T, i) ∧
-    (∀ T1 i1 T2 i2, Γ |⊢ₜ T1, i1 <: T2, i2 → Γ ⊢ₜ T1, i1 <: T2, i2).
-  Proof.
-    eapply typing_mut_ind with
-        (P := λ Γ e T _, Γ ⊢ₜ e : T)
-        (P0 := λ Γ V ds T _, Γ |ds V ⊢ ds : T)
-        (P1 := λ Γ V l d T _, Γ |d V ⊢{ l := d } : T)
-        (P2 := λ Γ p T i _, Γ ⊢ₚ p : T, i)
-        (P3 := λ Γ T1 i1 T2 i2 _, Γ ⊢ₜ T1, i1 <: T2, i2); clear Γ;
-      solve [econstructor; eauto].
-  Qed.
 End syntyping.
 
 Notation "Γ |⊢ₜ e : T " := (typed Γ e T).
@@ -268,3 +239,59 @@ Notation "Γ |ds V |⊢ ds : T" := (dms_typed Γ V ds T).
 Notation "Γ |d V |⊢{ l := d  } : T" := (dm_typed Γ V l d T).
 Notation "Γ |⊢ₚ p : T , i" := (path_typed Γ p T i).
 Notation "Γ |⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
+
+Scheme exp_stamped_objIdent_typed_mut_ind := Induction for typed Sort Prop
+with   exp_stamped_objIdent_dms_typed_mut_ind := Induction for dms_typed Sort Prop
+with   exp_stamped_objIdent_dm_typed_mut_ind := Induction for dm_typed Sort Prop
+with   exp_stamped_objIdent_path_typed_mut_ind := Induction for path_typed Sort Prop.
+(* with   subtype_mut_ind := Induction for subtype Sort Prop. *)
+
+Combined Scheme exp_stamped_objIdent_typing_mut_ind from exp_stamped_objIdent_typed_mut_ind, exp_stamped_objIdent_dms_typed_mut_ind,
+  exp_stamped_objIdent_dm_typed_mut_ind, exp_stamped_objIdent_path_typed_mut_ind.
+
+Scheme stamped_objIdent_typed_mut_ind := Induction for typed Sort Prop
+with   stamped_objIdent_dms_typed_mut_ind := Induction for dms_typed Sort Prop
+with   stamped_objIdent_dm_typed_mut_ind := Induction for dm_typed Sort Prop
+with   stamped_objIdent_path_typed_mut_ind := Induction for path_typed Sort Prop
+with   stamped_objIdent_subtype_mut_ind := Induction for subtype Sort Prop.
+
+Combined Scheme stamped_objIdent_typing_mut_ind from stamped_objIdent_typed_mut_ind, stamped_objIdent_dms_typed_mut_ind,
+  stamped_objIdent_dm_typed_mut_ind, stamped_objIdent_path_typed_mut_ind, stamped_objIdent_subtype_mut_ind.
+
+
+  (* Scheme typed_mut_ind := Induction for typed Sort Prop
+  with   dms_typed_mut_ind := Induction for dms_typed Sort Prop
+  with   dm_typed_mut_ind := Induction for dm_typed Sort Prop
+  with   path_typed_mut_ind := Induction for path_typed Sort Prop
+  with   subtype_mut_ind := Induction for subtype Sort Prop.
+
+  Combined Scheme typing_mut_ind from typed_mut_ind, dms_typed_mut_ind, dm_typed_mut_ind,
+    path_typed_mut_ind, subtype_mut_ind. *)
+
+Hint Constructors typed dms_typed dm_typed path_typed subtype.
+Remove Hints Trans_stp.
+Hint Extern 10 => try_once Trans_stp.
+
+Section syntyping_lemmas.
+  Context `{hasStampTable: stampTable}.
+
+  Lemma typing_obj_ident_to_typing_mut Γ:
+    (∀ e T, Γ |⊢ₜ e : T → Γ ⊢ₜ e : T) ∧
+    (∀ V ds T, Γ |ds V |⊢ ds : T → Γ |ds V ⊢ ds : T) ∧
+    (∀ V l d T, Γ |d V |⊢{ l := d } : T → Γ |d V ⊢{ l := d } : T) ∧
+    (∀ p T i, Γ |⊢ₚ p : T, i → Γ ⊢ₚ p : T, i) ∧
+    (∀ T1 i1 T2 i2, Γ |⊢ₜ T1, i1 <: T2, i2 → Γ ⊢ₜ T1, i1 <: T2, i2).
+  Proof.
+    eapply stamped_objIdent_typing_mut_ind with
+        (P := λ Γ e T _, Γ ⊢ₜ e : T)
+        (P0 := λ Γ V ds T _, Γ |ds V ⊢ ds : T)
+        (P1 := λ Γ V l d T _, Γ |d V ⊢{ l := d } : T)
+        (P2 := λ Γ p T i _, Γ ⊢ₚ p : T, i)
+        (P3 := λ Γ T1 i1 T2 i2 _, Γ ⊢ₜ T1, i1 <: T2, i2); clear Γ;
+      solve [econstructor; eauto].
+  Qed.
+
+  Lemma typing_obj_ident_to_typing Γ e T:
+    Γ |⊢ₜ e : T → Γ ⊢ₜ e : T.
+  Proof. apply typing_obj_ident_to_typing_mut. Qed.
+End syntyping_lemmas.
