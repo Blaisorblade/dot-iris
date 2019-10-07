@@ -171,14 +171,17 @@ Module Type LiftWp (Import VS : VlSortsSig).
     Qed.
     Import adequacy.
 
+    Definition safe e :=
+      ∀ e' thp σ σ', rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
+        is_Some (to_val e') ∨ reducible (Λ := dlang_lang) e' σ'.
+
     Theorem adequacy Σ `{Sort (expr Λ)}
       `{HdlangG: dlangPreG Σ} `{SwapProp (iPropSI Σ)}
-      (Φ : dlangG Σ → val dlang_lang → iProp Σ) e e' thp σ σ':
+      (Φ : dlangG Σ → val dlang_lang → iProp Σ) e :
       (forall {Hdlang: dlangG Σ} `{SwapProp (iPropSI Σ)}, allGs ∅ ⊢ |==> □ WP e {{ Φ Hdlang }} ) →
-      rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
-      is_Some (to_val e') ∨ reducible e' σ'.
+      safe e.
     Proof.
-      intros Hlog ??. cut (adequate NotStuck e σ (λ _ _, True)); first (move => [_ ?]; by eauto).
+      intros Hlog ???*; cut (adequate NotStuck e σ (λ _ _, True)); first (move => [_ ?]; by eauto).
       eapply (wp_adequacy Σ) => /=.
       iMod (gen_iheap_init (L := stamp) ∅) as (g) "Hgs".
       set (DLangΣ := DLangG Σ _ g).

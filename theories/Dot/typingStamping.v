@@ -235,16 +235,15 @@ Section syntyping_stamping_lemmas.
   Proof. apply (stamp_objIdent_typing_mut Γ). Qed.
 
   Arguments typing.typed: clear implicits.
-  Reserved Notation "Γ ⊢ₜ[ g  ] e : T"
+  Notation "Γ ⊢ₜ[ g  ] e : T" := (typing.typed g Γ e T)
     (at level 74, e, T at next level).
-  Notation "Γ ⊢ₜ[ g  ] e : T " := (typing.typed g Γ e T).
 
   Lemma stamp_typed Γ e T: Γ u⊢ₜ e : T →
-    ∀ (g : stys), ∃ e' (g' : stys),
-    Γ ⊢ₜ[ g' ] e' : T ∧ g ⊆ g' ∧ stamps_tm (length Γ) e g' e'.
+    ∃ e' (g : stys),
+    Γ ⊢ₜ[ g ] e' : T ∧ stamps_tm (length Γ) e g e'.
   Proof.
-    move => /stamp_objIdent_typed HobjI g.
-    move: (HobjI g) => {HobjI} [e' [g' [/typing_obj_ident_to_typing HobjI H]]].
+    move => /stamp_objIdent_typed HobjI.
+    case (HobjI ∅) as (e' & g' & HobjI'%typing_obj_ident_to_typing & ? & ?).
     by exists e', g'.
   Qed.
 End syntyping_stamping_lemmas.
