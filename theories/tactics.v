@@ -25,7 +25,7 @@ Ltac better_case_match :=
   match goal with
   | H : context [ match ?x with _ => _ end ] , H1 : _ = ?x |- _ =>
     rewrite <- H1 in H
-  | H : context [ match ?x with _ => _ end ] , H1 : ?x _ |- _ =>
+  | H : context [ match ?x with _ => _ end ] , H1 : ?x = _ |- _ =>
     rewrite H1 in H
   | H : context [ match ?x with _ => _ end ] |- _ =>
     destruct x eqn:?
