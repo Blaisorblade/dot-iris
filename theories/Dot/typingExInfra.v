@@ -279,6 +279,26 @@ Lemma Subs_typed_nocoerce T1 T2 {Γ e} :
 Proof. rewrite -(iterate_0 tskip e). eauto. Qed.
 Hint Resolve Subs_typed_nocoerce.
 
+Lemma Sub_later_shift {Γ T1 T2 i j}
+  (Hs1: is_stamped_ty (length Γ) getStampTable T1)
+  (Hs2: is_stamped_ty (length Γ) getStampTable T2)
+  (Hsub: Γ ⊢ₜ T1, S i <: T2, S j):
+  Γ ⊢ₜ TLater T1, i <: TLater T2, j.
+Proof.
+  eapply Trans_stp; first exact: TLaterL_stp.
+  by eapply Trans_stp, TLaterR_stp.
+Qed.
+
+Lemma Sub_later_shift_inv {Γ T1 T2 i j}
+  (Hs1: is_stamped_ty (length Γ) getStampTable T1)
+  (Hs2: is_stamped_ty (length Γ) getStampTable T2)
+  (Hsub: Γ ⊢ₜ TLater T1, i <: TLater T2, j):
+  Γ ⊢ₜ T1, S i <: T2, S j.
+Proof.
+  eapply Trans_stp; first exact: TLaterR_stp.
+  by eapply Trans_stp, TLaterL_stp.
+Qed.
+
 Lemma Var_typed_sub Γ x T1 T2 :
   Γ !! x = Some T1 →
   Γ ⊢ₜ T1.|[ren (+x)], 0 <: T2, 0 →
