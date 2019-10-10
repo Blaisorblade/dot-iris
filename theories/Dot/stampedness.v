@@ -18,9 +18,10 @@ Notation is_stamped_σ n g σ := (Forall (is_stamped_vl n g) σ).
 
 Lemma is_stamped_idsσ_ren g m n j: j + n <= m → is_stamped_σ m g (idsσ n).|[ren (+j)].
 Proof.
-  elim: n m j => [|n IHn] m j Ijm //=.
+  elim: n m j => [/=|n IHn] m j Ijm //.
+  cbn; rewrite (hren_upn_gen 0 1 j) /= plusnO.
   repeat constructor => //=; first lia.
-  asimpl; apply IHn; lia.
+  apply IHn; lia.
 Qed.
 
 Lemma is_stamped_idsσ g m n: n <= m → is_stamped_σ m g (idsσ n).

@@ -353,15 +353,39 @@ Proof.
   case_match; rewrite /= !nclosed_vl_ids_equiv; omega.
 Qed.
 
+(* Rewrite lemmas to be faster than asimpl: *)
+Lemma renS_comp n : ren (+S n) = ren (+n) >> ren (+1).
+Proof. rewrite /ren/scomp. fsimpl. by rewrite (id_scompX ((+1) >>> ids)). Qed.
+
+Lemma scompA a b c : a >> b >> c = a >> (b >> c).
+Proof. by rewrite /scomp/= -!subst_compX. Qed.
+
+Lemma ren_ren_comp i j : ren (+i) >> ren (+j) = ren (+j + i).
+Proof. autosubst. Qed.
+
+Lemma ren_upn_gen i j k : ren (+i + j) >> upn i (ren (+k)) = ren (+i + j + k).
+Proof.
+  induction k. rewrite up_id_n; autosubst.
+  replace (i + j + S k) with (S (i + j + k)) by lia.
+  rewrite (renS_comp (i + j + k)) -IHk -ren_ren_comp.
+  rewrite !(scompA _ _ (upn _ _)) !up_liftn.
+  autosubst.
+Qed.
+
 Section sort_lemmas.
 Context `{_HsX: Sort X}.
 Implicit Types (x : X) (Γ : list X).
 
-Lemma renS_comp n : ren (+S n) = ren (+n) >> ren (+1).
-Proof. rewrite /ren/scomp. fsimpl. by rewrite (id_scompX ((+1) >>> ids)). Qed.
-
 Lemma hrenS x n : x.|[ren (+S n)] = x.|[ren (+n)].|[ren (+1)].
 Proof. rewrite hsubst_comp renS_comp. by []. Qed.
+
+Lemma hren_upn_gen i j k x : x.|[ren (+i + j)].|[upn i (ren (+k))] = x.|[ren (+i + j + k)].
+Proof. by rewrite !hsubst_comp ren_upn_gen. Qed.
+
+Lemma hren_upn i x : x.|[ren (+i)].|[upn i (ren (+1))] = x.|[ren (+S i)].
+Proof.
+  move: (ren_upn_gen i 0 1). by rewrite plusnS !plusnO hsubst_comp =>->.
+Qed.
 
 Lemma closed_subst_idsρ x n :
   nclosed x n → x.|[to_subst (idsσ n)] = x.

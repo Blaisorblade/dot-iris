@@ -216,33 +216,6 @@ Hint Resolve is_stamped_idsσ_ren.
 
 Definition typeEq l T := (type l >: T <: T) % ty.
 
-(********************)
-(** BINDING LEMMAS **)
-(********************)
-
-Lemma scompA a b c : a >> b >> c = a >> (b >> c).
-Proof. by rewrite /scomp/= -!subst_compX. Qed.
-
-Lemma ren_ren_comp i j : ren (+i) >> ren (+j) = ren (+j + i).
-Proof. autosubst. Qed.
-
-Lemma ren_upn_gen i j k : ren (+i + j) >> upn i (ren (+k)) = ren (+i + j + k).
-Proof.
-  induction k. rewrite up_id_n; autosubst.
-  replace (i + j + S k) with (S (i + j + k)) by lia.
-  rewrite (renS_comp (i + j + k)) -IHk -ren_ren_comp.
-  rewrite !(scompA _ _ (upn _ _)) !up_liftn.
-  autosubst.
-Qed.
-
-Lemma hren_upn_gen i j k T : T.|[ren (+i + j)].|[upn i (ren (+k))] = T.|[ren (+i + j + k)].
-Proof. by rewrite !hsubst_comp ren_upn_gen. Qed.
-
-Lemma hren_upn i T : T.|[ren (+i)].|[upn i (ren (+1))] = T.|[ren (+S i)].
-Proof.
-  move: (ren_upn_gen i 0 1). by rewrite plusnS !plusnO hsubst_comp =>->.
-Qed.
-
 (*******************)
 (** DERIVED RULES **)
 (*******************)
