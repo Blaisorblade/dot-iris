@@ -247,7 +247,6 @@ Section Sec.
     (Prefl : ∀ x, P 0 x x) (Pstep : ∀ x y z n, relations.nsteps R n x y → R y z → P n x y → P (S n) x z) :
     ∀ x z n, relations.nsteps R n x z → P n x z.
   Proof.
-  Admitted.
     cut (∀ y z m n, relations.nsteps R n y z → ∀ x, relations.nsteps R m x y → P m x y → P (m + n) x z).
     admit.
     (* { eauto using relations.nsteps_0. } *)
@@ -263,15 +262,11 @@ Section Sec.
     elim: p => [v|p IHp l] /=; asimpl.
     by iIntros (Hcl%fv_pv_inv) "!> !%".
 
-    iIntros (Hcl%fv_pself_inv). *)
-    (* induction p. *)
-  Lemma fv_pself_inv p l n: nclosed (pself p l) n → nclosed p n.
-  Proof. solve_inv_fv_congruence. Qed.
+    iIntros (Hcl%fv_pself_inv).
 
   Lemma path_wp_exec2 {p v m} :
     PureExec True m (path2tm p) (tv v) →
     path_wp p (λ w, ⌜ w = v ⌝ : iProp Σ)%I.
-  Admitted.
   Lemma self_sem_psingleton3 p i v:
     PureExec True i (path2tm p) (tv v) →
     path_wp p (sem_psingleton p ids).
@@ -279,5 +274,5 @@ Section Sec.
     iIntros (Hexec) "/=".
     rewrite hsubst_id !path_wp_eq. iExists v.
     iDestruct (path_wp_exec2 Hexec) as "#$".
-  Qed.
+  Qed. *)
 End Sec.

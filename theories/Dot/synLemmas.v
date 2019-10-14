@@ -118,6 +118,9 @@ Proof. solve_inv_fv_congruence. Qed.
 Lemma fv_TSel_inv p l n: nclosed (TSel p l) n → nclosed p n.
 Proof. solve_inv_fv_congruence. Qed.
 
+Lemma fv_pself_inv p l n: nclosed (pself p l) n → nclosed p n.
+Proof. solve_inv_fv_congruence. Qed.
+
 Lemma nclosed_tskip_i e n i:
   nclosed e n →
   nclosed (iterate tskip i e) n.
