@@ -285,3 +285,7 @@ Hint Extern 10 => try_once Trans_stp.
 Lemma unstamped_path_root_is_var Γ p T i:
   Γ u⊢ₚ p : T, i → ∃ x, path_root p = var_vl x.
 Proof. by elim; intros; cbn; eauto 2. Qed.
+
+Lemma dtysem_not_utyped Γ V l d T :
+  Γ |d V u⊢{ l := d } : T → ∀ σ s, d ≠ dtysem σ s.
+Proof. by case. Qed.

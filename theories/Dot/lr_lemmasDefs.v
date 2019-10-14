@@ -63,8 +63,8 @@ Section Sec.
     lift_dinterp_dms T ρ ds -∗
     lift_dinterp_dms T ρ ((l, d) :: ds).
   Proof.
-    iIntros (?) "#HT"; iDestruct "HT" as (l' d' ?) "#H".
-    iExists l', d'; iSplit; auto.
+    intros ?. iDestruct 1 as (l' d' ?) "#H".
+    iExists l', d'. iSplit; auto.
   Qed.
 
   Lemma defs_interp_mono T l ρ d ds:
