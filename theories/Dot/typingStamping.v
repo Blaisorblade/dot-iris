@@ -188,7 +188,7 @@ Section syntyping_stamping_lemmas.
     have Husv: is_unstamped_dm (dtysyn T) by auto.
     destruct (extract g2 (S (length Γ)) T) as [g3 [s σ]] eqn:Heqo.
     move: Heqo => [Heqg3 Heqs Heqσ].
-    have {Heqσ} Heqσ: σ = idsσ (S (length Γ)) by naive_solver.
+    have {Heqσ} -Heqσ: σ = idsσ (S (length Γ)) by naive_solver.
     destruct (stamp_dtysyn_spec g2 Husv HclT); destruct_and!.
     have ?: g2 ⊆ g3 by simplify_eq. lte g g1 g2; lte g g2 g3; lte g1 g2 g3.
     exists (dtysem σ s), g3; simplify_eq; split_and!;
