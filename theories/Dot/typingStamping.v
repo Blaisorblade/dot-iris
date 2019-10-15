@@ -179,7 +179,7 @@ Section syntyping_stamping_lemmas.
     move: IHs2 => /(.$ g1) [ds' [g2 ?]]; ev; lte g g1 g2.
     have ?: unstamp_dm g2 d' = d by naive_solver.
     exists ((l, d') :: ds'), g2; cbn.
-    split_and!; eauto using unstamp_dms_hasnt with f_equal.
+    split_and!; eauto 4 using unstamp_dms_hasnt.
 
     (* The core and most interesting case! Stamping dtysyn! *)
   - intros * HclT Hus Hu1 IHs1 Hu2 IHs2 g.
@@ -191,8 +191,10 @@ Section syntyping_stamping_lemmas.
     have {Heqσ} Heqσ: σ = idsσ (S (length Γ)) by naive_solver.
     destruct (stamp_dtysyn_spec g2 Husv HclT); destruct_and!.
     have ?: g2 ⊆ g3 by simplify_eq. lte g g1 g2; lte g g2 g3; lte g1 g2 g3.
-    exists (dtysem σ s), g3; cbn.
-    simplify_eq; split_and!; eauto with f_equal.
+    exists (dtysem σ s), g3; simplify_eq; split_and!;
+      first eapply (typing_objIdent.dty_typed _ T); auto 2; [
+        exact: (stamped_objIdent_subtype_mono _ Hts1)|
+        exact: (stamped_objIdent_subtype_mono _ Hts2)].
   - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [e1' [g1 ?]]; destruct_and!.
     have [v' ?]: ∃ v', e1' = tv v' by destruct e1'; naive_solver.
