@@ -1,5 +1,5 @@
-(* Must be loaded first, so that other modules can reset some flags. *)
-Require Import Equations.Equations.
+(* (* Must be loaded first, so that other modules can reset some flags. *)
+Require Import Equations.Equations. *)
 From iris.proofmode Require Import tactics.
 From iris.base_logic Require Import lib.saved_prop.
 From D Require Import iris_prelude saved_interp_n.
@@ -255,13 +255,13 @@ Section sec.
   Next Obligation. intros. congruence. Defined.
   (* Derive Signature NoConfusion Subterm EqDec for kind. *)
 
-  Derive Signature for kind.
+  (* Derive Signature for kind.
   Equations sem_eq {n} : kind Σ n → skind Σ n :=
     sem_eq (kintv φ1 φ2) := skintv φ1 φ2;
     sem_eq (kpi n φ1 k') := skpi φ1 (sem_eq k').
 
   Lemma unfold_sem_kintv φ1 φ2: sem_eq (kintv φ1 φ2) = skintv φ1 φ2.
-  Proof. by simp sem_eq. Qed.
+  Proof. by simp sem_eq. Qed. *)
 End sec.
 End HoGenExperimnents.
 
