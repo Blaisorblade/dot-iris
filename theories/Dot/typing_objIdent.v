@@ -268,9 +268,9 @@ Combined Scheme stamped_objIdent_typing_mut_ind from stamped_objIdent_typed_mut_
   Combined Scheme typing_mut_ind from typed_mut_ind, dms_typed_mut_ind, dm_typed_mut_ind,
     path_typed_mut_ind, subtype_mut_ind. *)
 
-Hint Constructors typed dms_typed dm_typed path_typed subtype.
-Remove Hints Trans_stp.
-Hint Extern 10 => try_once Trans_stp.
+Hint Constructors typed dms_typed dm_typed path_typed subtype : core.
+Remove Hints Trans_stp : core.
+Hint Extern 10 => try_once Trans_stp : core.
 
 Section syntyping_lemmas.
   Context `{hasStampTable: stampTable}.

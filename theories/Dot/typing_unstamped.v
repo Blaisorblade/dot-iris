@@ -278,9 +278,9 @@ with   unstamped_subtype_mut_ind := Induction for subtype Sort Prop.
 Combined Scheme unstamped_typing_mut_ind from unstamped_typed_mut_ind, unstamped_dms_typed_mut_ind, unstamped_dm_typed_mut_ind,
   unstamped_path_typed_mut_ind, unstamped_subtype_mut_ind.
 
-Hint Constructors typed dms_typed dm_typed path_typed subtype.
-Remove Hints Trans_stp.
-Hint Extern 10 => try_once Trans_stp.
+Hint Constructors typed dms_typed dm_typed path_typed subtype : core.
+Remove Hints Trans_stp : core.
+Hint Extern 10 => try_once Trans_stp : core.
 
 Lemma unstamped_path_root_is_var Γ p T i:
   Γ u⊢ₚ p : T, i → ∃ x, path_root p = var_vl x.

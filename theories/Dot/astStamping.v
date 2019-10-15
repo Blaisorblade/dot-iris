@@ -190,7 +190,7 @@ Proof.
   move => [Heq [Hus Hs]]. elim: i => [//|] i [IHeq [IHus IHs]].
   rewrite !iterate_S /=. split_and!; by [constructor| f_equiv].
 Qed.
-Hint Resolve stamps_tm_skip.
+Hint Resolve stamps_tm_skip : core.
 
 Lemma exists_stamped_dtysem vs s n g: is_unstamped_dm (dtysem vs s) → nclosed (dtysem vs s) n → { v' & { g' | stamps_dm n (dtysem vs s) g' v' ∧ g ⊆ g' } }.
 Proof. intro H. exfalso. by inversion H. Qed.

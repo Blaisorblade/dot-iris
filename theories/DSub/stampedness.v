@@ -25,7 +25,7 @@ Qed.
 
 Lemma is_stamped_idsσ g m n: n <= m → is_stamped_σ m g (idsσ n).
 Proof. pose proof (@is_stamped_idsσ_ren g m n 0) as H. asimpl in H. exact: H. Qed.
-Hint Resolve is_stamped_idsσ.
+Hint Resolve is_stamped_idsσ : core.
 
 Lemma not_stamped_vty g n T:
   ¬ (is_stamped_vl n g (vty T)).
@@ -119,8 +119,8 @@ Lemma is_stamped_mono_σ g1 g2 n σ:
   is_stamped_σ n g2 σ.
 Proof. intros; decompose_Forall. exact: is_stamped_mono_vl. Qed.
 
-Hint Extern 5 (is_stamped_ty _ _ _) => try_once is_stamped_mono_ty.
-Hint Extern 5 (is_stamped_σ _ _ _) => try_once is_stamped_mono_σ.
+Hint Extern 5 (is_stamped_ty _ _ _) => try_once is_stamped_mono_ty : core.
+Hint Extern 5 (is_stamped_σ _ _ _) => try_once is_stamped_mono_σ : core.
 
 Lemma is_stamped_ren_shift n m j g:
   m >= j + n → is_stamped_ren n m g (+j).
@@ -136,7 +136,7 @@ Proof.
   specialize (Hr i Hi'); inverse Hr.
   constructor; cbn in *; by lia.
 Qed.
-Hint Resolve is_stamped_ren_up is_stamped_ren_shift.
+Hint Resolve is_stamped_ren_up is_stamped_ren_shift : core.
 
 From D.DSub Require Import closed_subst.
 
@@ -181,7 +181,7 @@ Proof.
   move => Hs [|i] Hi //=. by constructor => /=; lia.
   eapply is_stamped_ren_vl; eauto with lia.
 Qed.
-Hint Resolve is_stamped_sub_up.
+Hint Resolve is_stamped_sub_up : core.
 
 Lemma is_stamped_nclosed_mut g:
   (∀ t i,
@@ -214,7 +214,7 @@ Lemma is_stamped_nclosed_σ σ g i:
   is_stamped_σ i g σ →
   nclosed_σ σ i.
 Proof. intros; decompose_Forall. exact: is_stamped_nclosed_vl. Qed.
-Hint Resolve is_stamped_nclosed_ty is_stamped_nclosed_σ.
+Hint Resolve is_stamped_nclosed_ty is_stamped_nclosed_σ : core.
 
 Lemma is_stamped_nclosed_sub n m g ξ :
   is_stamped_sub n m g ξ → nclosed_sub n m ξ.
@@ -265,7 +265,7 @@ Qed.
 
 Lemma is_stamped_vl_ids g i j: i < j → is_stamped_vl j g (ids i).
 Proof. rewrite /ids /ids_vl; by constructor. Qed.
-Hint Resolve is_stamped_vl_ids.
+Hint Resolve is_stamped_vl_ids : core.
 
 Lemma is_stamped_sub_stail i j v sb g:
   is_stamped_sub (S i) j g (v .: sb) →
@@ -281,7 +281,7 @@ Proof.
   - constructor. by apply (Hcl 0); lia.
     eapply IHσ, is_stamped_sub_stail, Hcl.
 Qed.
-Hint Resolve -> is_stamped_sub_equiv.
+Hint Resolve -> is_stamped_sub_equiv : core.
 
 
 Lemma is_stamped_sub_single n v g:

@@ -13,10 +13,10 @@ Section lang_rules.
        inversion H; subst; clear H
     end; try (repeat split; congruence).
 
-  Local Hint Extern 0 (head_reducible _ _) => eexists _, _, _, _; simpl.
+  Local Hint Extern 0 (head_reducible _ _) => eexists _, _, _, _; simpl : core.
 
-  Local Hint Constructors head_step.
-  Local Hint Resolve to_of_val.
+  Local Hint Constructors head_step : core.
+  Local Hint Resolve to_of_val : core.
 
   Local Ltac solve_exec_safe := intros; subst; do 3 eexists; econstructor; eauto.
   Local Ltac solve_exec_puredet := simpl; intros; by inv_head_step.

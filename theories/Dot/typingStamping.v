@@ -5,9 +5,9 @@ Set Implicit Arguments.
 
 Section syntyping_stamping_lemmas.
 
-  Hint Constructors typed subtype dms_typed dm_typed path_typed.
-  Remove Hints Trans_stp.
-  Hint Extern 10 => try_once Trans_stp.
+  Hint Constructors typed subtype dms_typed dm_typed path_typed : core.
+  Remove Hints Trans_stp : core.
+  Hint Extern 10 => try_once Trans_stp : core.
 
   Arguments typed: clear implicits.
   Arguments dms_typed: clear implicits.
@@ -65,18 +65,18 @@ Section syntyping_stamping_lemmas.
     ∀ p T i, Γ |⊢ₚ[ g ] p : T, i → Γ |⊢ₚ[ g' ] p : T, i.
   Proof. by apply (@stamped_objIdent_typing_mono_mut Γ g g'). Qed.
 
-  Hint Extern 5 => try_once stamped_objIdent_typed_mono.
-  Hint Extern 5 => try_once stamped_objIdent_dms_typed_mono.
-  Hint Extern 5 => try_once stamped_objIdent_dm_typed_mono.
-  Hint Extern 5 => try_once stamped_objIdent_path_typed_mono.
-  Hint Extern 5 => try_once stamped_objIdent_subtype_mono.
+  Hint Extern 5 => try_once stamped_objIdent_typed_mono : core.
+  Hint Extern 5 => try_once stamped_objIdent_dms_typed_mono : core.
+  Hint Extern 5 => try_once stamped_objIdent_dm_typed_mono : core.
+  Hint Extern 5 => try_once stamped_objIdent_path_typed_mono : core.
+  Hint Extern 5 => try_once stamped_objIdent_subtype_mono : core.
 
-  Hint Extern 5 => try_once is_stamped_mono_tm.
-  Hint Extern 5 => try_once stamps_unstamp_mono_tm.
-  Hint Extern 5 => try_once is_stamped_mono_dm.
-  Hint Extern 5 => try_once stamps_unstamp_mono_dm.
+  Hint Extern 5 => try_once is_stamped_mono_tm : core.
+  Hint Extern 5 => try_once stamps_unstamp_mono_tm : core.
+  Hint Extern 5 => try_once is_stamped_mono_dm : core.
+  Hint Extern 5 => try_once stamps_unstamp_mono_dm : core.
 
-  Hint Resolve unstamped_stamped_type var_stamps_to_self1 path_stamps_to_self1.
+  Hint Resolve unstamped_stamped_type var_stamps_to_self1 path_stamps_to_self1 : core.
   Hint Extern 998 (_ = _) => f_equal : core.
 
   Local Ltac lte g g1 g2 := have ?: g ⊆ g2 by trans g1.

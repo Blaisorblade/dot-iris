@@ -164,9 +164,9 @@ Qed.
 Arguments extraction : simpl never.
 
 (* For performance, keep these hints local to examples *)
-Hint Extern 5 => try_once extraction_weaken.
-Hint Extern 5 (is_stamped_ty _ _ _) => try_once is_stamped_weaken_ty.
-Hint Extern 5 (is_stamped_dm _ _ _) => try_once is_stamped_weaken_dm.
+Hint Extern 5 => try_once extraction_weaken : core.
+Hint Extern 5 (is_stamped_ty _ _ _) => try_once is_stamped_weaken_ty : core.
+Hint Extern 5 (is_stamped_dm _ _ _) => try_once is_stamped_weaken_dm : core.
 
 (* Deterministic crush. *)
 Ltac dcrush := repeat constructor.
@@ -204,15 +204,15 @@ Ltac by_extcrush := by auto with fvc.
 
 Hint Extern 10 (_ ≤ _) => lia : core.
 
-Hint Constructors typed subtype dms_typed dm_typed path_typed.
-Remove Hints Trans_stp.
-Hint Extern 10 => try_once Trans_stp.
+Hint Constructors typed subtype dms_typed dm_typed path_typed : core.
+Remove Hints Trans_stp : core.
+Hint Extern 10 => try_once Trans_stp : core.
 
-Hint Extern 5 => try_once is_stamped_mono_ty.
-Hint Extern 0 (dms_hasnt _ _) => done.
+Hint Extern 5 => try_once is_stamped_mono_ty : core.
+Hint Extern 0 (dms_hasnt _ _) => done : core.
 
-Hint Immediate Nat.lt_0_succ.
-Hint Resolve is_stamped_idsσ_ren.
+Hint Immediate Nat.lt_0_succ : core.
+Hint Resolve is_stamped_idsσ_ren : core.
 
 Definition typeEq l T := (type l >: T <: T) % ty.
 
@@ -250,7 +250,7 @@ Lemma Subs_typed_nocoerce T1 T2 {Γ e} :
   Γ ⊢ₜ T1, 0 <: T2, 0 →
   Γ ⊢ₜ e : T2.
 Proof. rewrite -(iterate_0 tskip e). eauto. Qed.
-Hint Resolve Subs_typed_nocoerce.
+Hint Resolve Subs_typed_nocoerce : core.
 
 Lemma Sub_later_shift {Γ T1 T2 i j}
   (Hs1: is_stamped_ty (length Γ) getStampTable T1)
@@ -405,4 +405,4 @@ Qed.
 
 End examples_lemmas.
 
-Hint Resolve is_stamped_pvar is_stamped_pvars Subs_typed_nocoerce.
+Hint Resolve is_stamped_pvar is_stamped_pvars Subs_typed_nocoerce : core.

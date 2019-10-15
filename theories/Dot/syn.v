@@ -369,7 +369,7 @@ Definition selfSubst ds: dms := ds.|[vobj ds/].
 
 Definition objLookup v (l: label) d: Prop :=
   ∃ ds, v = vobj ds ∧ (dms_lookup l (selfSubst ds)) = Some d.
-Hint Unfold objLookup.
+Hint Unfold objLookup : core.
 
 (* Precedence: tighter than negation and conjunction *)
 Notation "v @ l ↘ d" := (objLookup v l d) (at level 74).

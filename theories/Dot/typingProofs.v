@@ -5,7 +5,7 @@ Set Implicit Arguments.
 Section syntyping_lemmas.
   Context `{hasStampTable: stampTable}.
 
-  Hint Constructors Forall.
+  Hint Constructors Forall : core.
   Lemma stamped_mut_subject Γ:
     (∀ e  T, Γ ⊢ₜ e : T → is_stamped_tm (length Γ) getStampTable e) ∧
     (∀ V ds T, Γ |ds V ⊢ ds : T → Forall (is_stamped_dm (S (length Γ)) getStampTable) (map snd ds)) ∧
@@ -30,7 +30,7 @@ Section syntyping_lemmas.
   Lemma stamped_path_subject Γ p T i:
     Γ ⊢ₚ p : T, i → is_stamped_path (length Γ) getStampTable p.
   Proof. apply (stamped_mut_subject Γ). Qed.
-  Local Hint Resolve stamped_exp_subject stamped_path_subject.
+  Local Hint Resolve stamped_exp_subject stamped_path_subject : core.
 
   (* The reverse direction slows proof search and isn't used anyway? *)
   Lemma is_stamped_ren_ty_1 i T g:
@@ -43,8 +43,8 @@ Section syntyping_lemmas.
     is_stamped_sub_one is_stamped_sub_one_rev
     is_stamped_nclosed_ty.
 
-  Hint Extern 5 (nclosed _ _) => try_once nclosed_ren_inv_ty_one.
-  Hint Extern 5 => try_once nclosed_sub_inv_ty_one.
+  Hint Extern 5 (nclosed _ _) => try_once nclosed_ren_inv_ty_one : core.
+  Hint Extern 5 => try_once nclosed_sub_inv_ty_one : core.
 
   Inductive stamped_ctx g: ctx → Prop :=
   | stamped_nil : stamped_ctx g []
@@ -52,7 +52,7 @@ Section syntyping_lemmas.
     stamped_ctx g Γ →
     is_stamped_ty (S (length Γ)) g T →
     stamped_ctx g (T :: Γ).
-  Hint Constructors stamped_ctx.
+  Hint Constructors stamped_ctx : core.
 
   Lemma stamped_nclosed_lookup Γ x T g:
     stamped_ctx g Γ →
@@ -65,7 +65,7 @@ Section syntyping_lemmas.
       eapply nclosed_sub_app; last by eapply IHΓ.
       eapply nclosed_ren_shift; lia.
   Qed.
-  Local Hint Resolve stamped_nclosed_lookup.
+  Local Hint Resolve stamped_nclosed_lookup : core.
 
   Lemma stamped_lookup Γ x T g:
     stamped_ctx g Γ →
@@ -95,8 +95,8 @@ Section syntyping_lemmas.
     is_stamped_ty n getStampTable T.
   Proof. by inversion 1. Qed.
 
-  Local Hint Resolve is_stamped_tv_inv is_stamped_TLater_n.
-  Local Hint Extern 5 (is_stamped_ty _ _ _) => try_once is_stamped_TLater_inv.
+  Local Hint Resolve is_stamped_tv_inv is_stamped_TLater_n : core.
+  Local Hint Extern 5 (is_stamped_ty _ _ _) => try_once is_stamped_TLater_inv : core.
 
   Ltac with_is_stamped_inverse :=
     match goal with

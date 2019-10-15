@@ -17,8 +17,8 @@ Ltac ev := repeat match goal with
 (** Tactic to split a lemma proven by mutual induction into its pieces. *)
 Ltac unmut_lemma H := destruct H; ev; eauto.
 
-Hint Constructors option.
-Hint Constructors list.
+Hint Constructors option : core.
+Hint Constructors list : core.
 
 (** Support writing external hints for lemmas that must not be applied twice for a goal. *)
 (* The usedLemma and un_usedLemma marker is taken from Crush.v (where they were called done and un_done). *)

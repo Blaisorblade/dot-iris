@@ -206,7 +206,7 @@ Definition IFT : ty :=
   TAll (type "A" >: ⊥ <: ⊤) IFTBody.
 Lemma IFTStamped: is_stamped_ty 0 getStampTable IFT.
 Proof. tcrush. Qed.
-Hint Resolve IFTStamped.
+Hint Resolve IFTStamped : core.
 
 (* Definition IFT : ty := {@ val "if" : IFTFun }. *)
 
@@ -224,12 +224,12 @@ Definition s1_is_ift_ext := IFT ~[ 0 ] (getStampTable, (s1, σ1)).
 
 Lemma get_s1_is_ift : s1_is_ift → s1_is_ift_ext.
 Proof. intros; red. by_extcrush. Qed.
-Hint Resolve get_s1_is_ift.
+Hint Resolve get_s1_is_ift : core.
 
 Definition p0Bool := (p0 @; "Boolean").
 Lemma p0BoolStamped: is_stamped_ty 1 getStampTable p0Bool.
 Proof. tcrush. Qed.
-Hint Resolve p0BoolStamped.
+Hint Resolve p0BoolStamped : core.
 
 Definition boolImpl :=
   ν {@
@@ -421,7 +421,7 @@ Lemma tAppIFT_coerced_typed_IFT Γ t s :
     TAll IFT (TAll IFT IFT).
 Proof. intros. apply tAppIFT_coerced_typed; eauto 2. Qed.
 
-Hint Extern 5 (is_stamped_ty _ _ _) => cbn.
+Hint Extern 5 (is_stamped_ty _ _ _) => cbn : core.
 Definition IFTp0 := TAll p0Bool (TAll p0Bool.|[ren (+1)] (p0Bool.|[ren (+2)])).
 
 Lemma tAppIFT_coerced_typed_p0Boolean Γ T t s :

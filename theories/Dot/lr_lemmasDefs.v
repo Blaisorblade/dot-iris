@@ -28,7 +28,7 @@ Qed.
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
-  Local Hint Resolve fv_dms_cons fv_of_val fv_vobj fv_dvl dms_lookup_head dms_lookup_mono.
+  Local Hint Resolve fv_dms_cons fv_of_val fv_vobj fv_dvl dms_lookup_head dms_lookup_mono : core.
 
   Lemma lift_dinterp_dms_vl_commute T ds ρ l:
     label_of_ty T = Some l →

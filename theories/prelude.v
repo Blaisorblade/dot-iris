@@ -136,7 +136,7 @@ End Autosubst_Lemmas.
 
 Inductive ForallT {A : Type} (P : A → Type) : list A → Type :=
     ForallT_nil : ForallT P [] | ForallT_cons : ∀ (x : A) (l : list A), P x → ForallT P l → ForallT P (x :: l).
-Hint Constructors ForallT.
+Hint Constructors ForallT : core.
 
 (** To be able to reuse lemmas on Forall, show that ForallT is equivalent to Forall for predicates in Prop.
     The proof is a bit subtler than you'd think because it can't look into Prop

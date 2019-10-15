@@ -112,10 +112,10 @@ Notation forall_traversal_dms trav ts ds := (Forall (forall_traversal_dm trav ts
 Global Hint Constructors forall_traversal_vl forall_traversal_tm forall_traversal_dm
      forall_traversal_path forall_traversal_ty.
 
-Global Hint Extern 0 (varP _ _ _) => cbn.
-Global Hint Extern 0 (dtysynP _ _ _) => cbn.
-Global Hint Extern 0 (dtysemP _ _ _) => cbn.
-Global Hint Extern 0 (tselP _ _ _) => cbn.
+Global Hint Extern 0 (varP _ _ _) => cbn : core.
+Global Hint Extern 0 (dtysynP _ _ _) => cbn : core.
+Global Hint Extern 0 (dtysemP _ _ _) => cbn : core.
+Global Hint Extern 0 (tselP _ _ _) => cbn : core.
 End Trav1.
 
 Definition tmemc: Type := ty + vls * stamp.

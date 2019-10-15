@@ -105,9 +105,9 @@ with   subtype_mut_ind := Induction for subtype Sort Prop.
 
 Combined Scheme typing_mut_ind from typed_mut_ind, subtype_mut_ind.
 
-Hint Constructors typed subtype.
-Remove Hints Trans_stp.
-Hint Extern 10 => try_once Trans_stp.
+Hint Constructors typed subtype : core.
+Remove Hints Trans_stp : core.
+Hint Extern 10 => try_once Trans_stp : core.
 
 Lemma typing_obj_ident_to_typing Γ:
   (∀ e T, Γ u⊢ₜ e : T → Γ ⊢ₜ e : T) ∧

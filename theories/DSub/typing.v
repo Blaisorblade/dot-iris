@@ -123,9 +123,9 @@ Scheme stamped_typed_mut_ind := Induction for typed Sort Prop
 with   stamped_subtype_mut_ind := Induction for subtype Sort Prop.
 Combined Scheme stamped_typing_mut_ind from stamped_typed_mut_ind, stamped_subtype_mut_ind.
 
-Hint Constructors subtype typed.
-Remove Hints Trans_stp.
-Hint Extern 10 => try_once Trans_stp.
+Hint Constructors subtype typed : core.
+Remove Hints Trans_stp : core.
+Hint Extern 10 => try_once Trans_stp : core.
 
 Lemma stamped_typing_mono_mut Γ (g g' : stys) (Hle: g ⊆ g'):
   (∀ e T, Γ s⊢ₜ[ g ] e : T → Γ s⊢ₜ[ g' ] e : T) ∧
@@ -143,11 +143,11 @@ Lemma stamped_subtype_mono Γ (g g' : stys) (Hle: g ⊆ g') T1 i1 T2 i2:
   Γ s⊢ₜ[ g ] T1, i1 <: T2, i2 → Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2.
 Proof. by apply (stamped_typing_mono_mut Γ g g'). Qed.
 
-Hint Extern 5 => try_once stamped_typed_mono.
-Hint Extern 5 => try_once stamped_subtype_mono.
+Hint Extern 5 => try_once stamped_typed_mono : core.
+Hint Extern 5 => try_once stamped_subtype_mono : core.
 
-Hint Extern 5 => try_once stamps_unstamp_mono_tm.
-Hint Extern 5 => try_once is_stamped_mono_tm.
+Hint Extern 5 => try_once stamps_unstamp_mono_tm : core.
+Hint Extern 5 => try_once is_stamped_mono_tm : core.
 
 Lemma stamp_typing_mut Γ :
   (∀ e T, Γ u⊢ₜ e : T → ∀ (g : stys), ∃ (e' : tm) (g' : stys),

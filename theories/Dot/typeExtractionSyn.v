@@ -11,14 +11,14 @@ Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx) (g: stys) (n: nat) (s: stamp).
 
 Lemma fresh_stamp_spec {X} (g: gmap stamp X) : fresh_stamp g ∉ gdom g.
 Proof. apply is_fresh. Qed.
-Hint Resolve fresh_stamp_spec.
+Hint Resolve fresh_stamp_spec : core.
 
 Lemma ex_fresh_stamp {X} (g: gmap stamp X): { s | s ∉ gdom g }.
 Proof. exists (fresh_stamp g). by apply fresh_stamp_spec. Qed.
 
 Lemma insert_grow g s T: s ∉ gdom g → g ⊆ <[s:=T]> g.
 Proof. intro Hfresh. eapply insert_subseteq, not_elem_of_dom, Hfresh. Qed.
-Hint Resolve insert_grow.
+Hint Resolve insert_grow : core.
 
 Lemma ex_fresh_stamp_strong g T: { s | s ∉ gdom g ∧ g ⊆ <[s := T]> g }.
 Proof.
@@ -43,7 +43,7 @@ Proof.
   exists T. rewrite lookup_insert closed_subst_idsρ ?length_idsσ;
   split_and?; eauto.
 Qed.
-Hint Resolve extract_spec.
+Hint Resolve extract_spec : core.
 
 Lemma extract_spec_rev g g' s σ n T:
   (g', (s, σ)) = (extract g n T) →
@@ -62,14 +62,14 @@ Proof.
   - asimpl. apply (is_stamped_nclosed_ty HclT'), to_subst_compose.
   - exact: is_stamped_sub_σ.
 Qed.
-Hint Resolve extraction_inf_subst.
+Hint Resolve extraction_inf_subst : core.
 
 Lemma extraction_subst g n T s σ m σ':
   T ~[ n ] (g, (s, σ)) →
   length σ' = n → is_stamped_σ m g σ' →
   T.|[to_subst σ'] ~[ m ] (g, (s, σ.|[to_subst σ'])).
 Proof. intros; subst; eauto. Qed.
-Hint Resolve extraction_subst.
+Hint Resolve extraction_subst : core.
 
 Lemma extract_inf_subst_spec g g' n T s σ m σ':
   is_stamped_ty n g T →
@@ -80,7 +80,7 @@ Proof.
   intros * HclT Hclσ Heq.
   eapply extraction_inf_subst => //. rewrite Heq. auto.
 Qed.
-Local Hint Resolve extract_inf_subst_spec.
+Local Hint Resolve extract_inf_subst_spec : core.
 
 Lemma extract_subst_spec g g' n T s σ m σ':
   is_stamped_ty n g T →
@@ -88,7 +88,7 @@ Lemma extract_subst_spec g g' n T s σ m σ':
   (g', (s, σ)) = extract g n T →
   T.|[to_subst σ'] ~[ m ] (g', (s, σ.|[to_subst σ'])).
 Proof. intros; subst; eauto. Qed.
-Hint Resolve extract_subst_spec.
+Hint Resolve extract_subst_spec : core.
 
 Lemma extraction_mono T g g' s σ n:
   T ~[ n ] (g, (s, σ)) →
@@ -98,23 +98,23 @@ Proof.
   cbn. intros (T' & Hlook & Heq & ? & ?) Hg.
   exists T'; split_and!; eauto. by eapply map_subseteq_spec.
 Qed.
-Hint Extern 5 (_ ~[ _ ] (_, _)) => try_once extraction_mono.
+Hint Extern 5 (_ ~[ _ ] (_, _)) => try_once extraction_mono : core.
 
 Lemma extract_spec_growg g n T g' sσ:
   (g', sσ) = extract g n T → g ⊆ g'.
 Proof. move => [-> _]. apply insert_grow, fresh_stamp_spec. Qed.
-Hint Resolve extract_spec_growg.
+Hint Resolve extract_spec_growg : core.
 
 Lemma lookup_mono g g' s T:
   g !! s = Some T → g ⊆ g' →
   g' !! s = Some T.
 Proof. move => Hlook /(_ s). rewrite Hlook /= => H. by case_match; subst. Qed.
-Hint Extern 5 (_ !! _ = Some _) => try_once lookup_mono.
+Hint Extern 5 (_ !! _ = Some _) => try_once lookup_mono : core.
 
 Lemma extract_lookup g g' s σ n T:
   (g', (s, σ)) = extract g n T → g' !! s = Some T.
 Proof. move => [-> -> _]. by rewrite lookup_insert. Qed.
-Hint Resolve extract_lookup.
+Hint Resolve extract_lookup : core.
 
 Lemma extraction_lookup g s σ n T:
   T ~[ n ] (g, (s, σ)) → ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T.
