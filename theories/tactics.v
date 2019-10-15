@@ -51,4 +51,4 @@ Tactic Notation "nosplit" tactic3(tac) := tac; let n := numgoals in guard n = 1.
 
 (* Example. *)
 (* Definition injectHyps_marker := 0. *)
-(* Hint Extern 5 => try_once_tac injectHyps_marker injectHyps. *)
+(* Hint Extern 5 => try_once_tac injectHyps_marker injectHyps : core. *)
