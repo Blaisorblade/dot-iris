@@ -110,7 +110,7 @@ Global Arguments tselP /.
 
 Notation forall_traversal_dms trav ts ds := (Forall (forall_traversal_dm trav ts) (map snd ds)).
 Global Hint Constructors forall_traversal_vl forall_traversal_tm forall_traversal_dm
-     forall_traversal_path forall_traversal_ty.
+     forall_traversal_path forall_traversal_ty : core.
 
 Global Hint Extern 0 (varP _ _ _) => cbn : core.
 Global Hint Extern 0 (dtysynP _ _ _) => cbn : core.
@@ -245,7 +245,7 @@ Section fold.
 End fold.
 
 Global Hint Constructors forall_traversal_vl forall_traversal_tm forall_traversal_dm
-     forall_traversal_path forall_traversal_ty.
+     forall_traversal_path forall_traversal_ty : core.
 End Trav2.
 
 Module Trav2_recursive.

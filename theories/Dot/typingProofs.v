@@ -41,7 +41,7 @@ Section syntyping_lemmas.
   Local Hint Resolve
     is_stamped_ren_ty_1
     is_stamped_sub_one is_stamped_sub_one_rev
-    is_stamped_nclosed_ty.
+    is_stamped_nclosed_ty : core.
 
   Hint Extern 5 (nclosed _ _) => try_once nclosed_ren_inv_ty_one : core.
   Hint Extern 5 => try_once nclosed_sub_inv_ty_one : core.

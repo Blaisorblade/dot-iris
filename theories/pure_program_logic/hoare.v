@@ -5,7 +5,7 @@ Set Default Proof Using "Type".
 Definition ht `{irisG Λ Σ} (s : stuckness) (E : coPset) (P : iProp Σ)
     (e : expr Λ) (Φ : val Λ → iProp Σ) : iProp Σ :=
   (□ (P -∗ WP e @ s; E {{ Φ }}))%I.
-Instance: Params (@ht) 5.
+Instance: Params (@ht) 5 := {}.
 
 Notation "{{ P } } e @ s ; E {{ Φ } }" := (ht s E P%I e%E Φ%I)
   (at level 20, P, e, Φ at level 200,

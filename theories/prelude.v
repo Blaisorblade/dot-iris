@@ -5,7 +5,7 @@ From Autosubst Require Export Autosubst.
 From D Require Export tactics.
 
 (* Fixed version of stdpp's. *)
-Tactic Notation "efeed" "pose" "proof" constr(H) "as" intropattern(H') :=
+Tactic Notation "efeed" "pose" "proof" constr(H) "as" simple_intropattern(H') :=
   efeed H using (fun p => pose proof p as H').
 
 (*
@@ -96,11 +96,11 @@ Section subst_instances.
 End subst_instances.
 Definition list_pair_hsubst_fold {A} `{HSubst vl X} sb (xs: list (A * X)): map (mapsnd (hsubst sb)) xs = hsubst sb xs := eq_refl.
 
-Global Hint Rewrite @vls_subst_fold @list_hsubst_fold : autosubst.
+Hint Rewrite @vls_subst_fold @list_hsubst_fold : autosubst.
 (* The hints in the previous line are needed; for the next ones, that's less clear. *)
-Global Hint Rewrite @pair_rename_fold @pair_hsubst_fold : autosubst.
-Global Hint Rewrite @list_rename_fold @list_hsubst_fold : autosubst.
-Global Hint Rewrite @list_pair_rename_fold @list_pair_hsubst_fold : autosubst.
+Hint Rewrite @pair_rename_fold @pair_hsubst_fold : autosubst.
+Hint Rewrite @list_rename_fold @list_hsubst_fold : autosubst.
+Hint Rewrite @list_pair_rename_fold @list_pair_hsubst_fold : autosubst.
 
 (* Now type inference solves HSubst vl ? by infering HSubst vl ty infers unspecified asts to be [path]s. *)
 (* Goal ∀ s x, x.|[s] = x. *)
