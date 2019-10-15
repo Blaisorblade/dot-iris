@@ -139,7 +139,7 @@ Proof.
   iApply wp_wand; by [iApply "Hlog" | auto].
 Qed.
 
-Instance dsubSynG_empty: dsubSynG #[].
+Instance dsubSynG_empty: dsubSynG #[] := {}.
 
 Corollary type_soundness e e' thp σ σ' T:
   ([] ⊢ₜ e : T) →

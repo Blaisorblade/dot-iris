@@ -241,7 +241,7 @@ Section olty_ofe_2.
   Lemma env_oltyped_fin_cl_app `{Sort X} (x : X) Γ ρ:
     ⟦ Γ ⟧* ρ -∗
     ⌜ nclosed x (length Γ) ⌝ → ⌜ nclosed x.|[to_subst ρ] 0 ⌝.
-  Proof. rewrite env_oltyped_transl env_oltyped_cl_app //. Qed.
+  Proof. rewrite env_oltyped_transl (env_oltyped_cl_app x) //. Qed.
 
   Lemma env_oltyped_fin_cl_app_vl v Γ ρ:
     ⟦ Γ ⟧* ρ -∗
