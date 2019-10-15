@@ -10,6 +10,6 @@ install: []
 remove: []
 depends: [
   "coq" { = "8.8.2" }
-  "coq-iris" { = "dev.2019-09-20.0.b958d569" }
+  "coq-iris" { = "dev.2019-10-14.0.1f83451a" }
   "coq-autosubst" { = "dev.coq86" }
 ]
