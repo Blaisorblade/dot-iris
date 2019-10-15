@@ -159,16 +159,16 @@ Qed.
 Lemma stamps_unstamp_mono_tm e__s g1 g2 n e__u: g1 ⊆ g2 →
                                     stamps_tm n e__u g1 e__s →
                                     unstamp_tm g2 e__s = e__u.
-Proof. unmut_lemma stamps_unstamp_mono_mut. Qed.
+Proof. apply stamps_unstamp_mono_mut. Qed.
 
 Lemma stamps_unstamp_mono_vl (v__s: vl) g1 g2 n v__u : g1 ⊆ g2 →
                                   stamps_vl n v__u g1 v__s →
                                   unstamp_vl g2 v__s = v__u.
-Proof. unmut_lemma stamps_unstamp_mono_mut. Qed.
+Proof. apply stamps_unstamp_mono_mut. Qed.
 Lemma stamps_unstamp_mono_ty T__s g1 g2 n T__u : g1 ⊆ g2 →
                                   stamps_ty n T__u g1 T__s →
                                   unstamp_ty g2 T__s = T__u.
-Proof. unmut_lemma stamps_unstamp_mono_mut. Qed.
+Proof. apply stamps_unstamp_mono_mut. Qed.
 
 Ltac pick_lemma lty ltm lvl trm tac :=
   let L := match type of trm with | ty => lty | tm => ltm | vl_ => lvl end

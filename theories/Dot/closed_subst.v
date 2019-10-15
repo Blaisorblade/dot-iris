@@ -72,7 +72,7 @@ Proof.
 Qed.
 
 Lemma nclosed_sub_inv_ty T v n j: j <= n → nclosed T.|[upn j (v .: ids)] n → nclosed T (S n).
-Proof. unmut_lemma (nclosed_sub_inv_mut v). Qed.
+Proof. apply (nclosed_sub_inv_mut v). Qed.
 
 Lemma nclosed_sub_inv_ty_one T v n: nclosed T.|[v/] n → nclosed T (S n).
 Proof. apply nclosed_sub_inv_ty with (j := 0); lia. Qed.
@@ -146,7 +146,7 @@ Qed.
 Lemma nclosed_ren_inv_ty T i j k:
     nclosed (T.|[upn k (ren (+j))]) (i + j + k) →
     nclosed T (i + k).
-Proof. unmut_lemma (nclosed_ren_rev_mut i j). Qed.
+Proof. apply (nclosed_ren_rev_mut i j). Qed.
 
 Lemma nclosed_ren_inv_ty_one T i: nclosed T.|[ren (+1)] (S i) → nclosed T i.
 Proof.

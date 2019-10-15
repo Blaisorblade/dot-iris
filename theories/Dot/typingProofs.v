@@ -26,10 +26,10 @@ Section syntyping_lemmas.
 
   Lemma stamped_exp_subject Γ e T: Γ ⊢ₜ e : T →
     is_stamped_tm (length Γ) getStampTable e.
-  Proof. unmut_lemma (stamped_mut_subject Γ). Qed.
+  Proof. apply (stamped_mut_subject Γ). Qed.
   Lemma stamped_path_subject Γ p T i:
     Γ ⊢ₚ p : T, i → is_stamped_path (length Γ) getStampTable p.
-  Proof. unmut_lemma (stamped_mut_subject Γ). Qed.
+  Proof. apply (stamped_mut_subject Γ). Qed.
   Local Hint Resolve stamped_exp_subject stamped_path_subject.
 
   (* The reverse direction slows proof search and isn't used anyway? *)

@@ -78,27 +78,27 @@ Lemma is_stamped_weaken_tm g e__s m n:
   is_stamped_tm m g e__s →
   m <= n →
   is_stamped_tm n g e__s.
-Proof. unmut_lemma (is_stamped_weaken_mut g). Qed.
+Proof. apply (is_stamped_weaken_mut g). Qed.
 Lemma is_stamped_weaken_vl g v__s m n:
   is_stamped_vl m g v__s →
   m <= n →
   is_stamped_vl n g v__s.
-Proof. unmut_lemma (is_stamped_weaken_mut g). Qed.
+Proof. apply (is_stamped_weaken_mut g). Qed.
 Lemma is_stamped_weaken_dm g d__s m n:
   is_stamped_dm m g d__s →
   m <= n →
   is_stamped_dm n g d__s.
-Proof. unmut_lemma (is_stamped_weaken_mut g). Qed.
+Proof. apply (is_stamped_weaken_mut g). Qed.
 Lemma is_stamped_weaken_path g p__s m n:
   is_stamped_path m g p__s →
   m <= n →
   is_stamped_path n g p__s.
-Proof. unmut_lemma (is_stamped_weaken_mut g). Qed.
+Proof. apply (is_stamped_weaken_mut g). Qed.
 Lemma is_stamped_weaken_ty g T__s m n:
   is_stamped_ty m g T__s →
   m <= n →
   is_stamped_ty n g T__s.
-Proof. unmut_lemma (is_stamped_weaken_mut g). Qed.
+Proof. apply (is_stamped_weaken_mut g). Qed.
 
 Lemma is_stamped_weaken_σ g σ m n:
   is_stamped_σ m g σ →
@@ -214,7 +214,7 @@ Lemma is_stamped_ren_vl: ∀ v g r i j,
   is_stamped_ren i j g r →
   is_stamped_vl i g v →
   is_stamped_vl j g (rename r v).
-Proof. unmut_lemma is_stamped_ren_mut. Qed.
+Proof. apply is_stamped_ren_mut. Qed.
 
 Lemma is_stamped_sub_up n m g s:
   is_stamped_sub n m g s →
@@ -256,11 +256,11 @@ Qed.
 Lemma is_stamped_nclosed_vl v g i:
   is_stamped_vl i g v →
   nclosed_vl v i.
-Proof. unmut_lemma (is_stamped_nclosed_mut g). Qed.
+Proof. apply (is_stamped_nclosed_mut g). Qed.
 Lemma is_stamped_nclosed_ty T g i:
   is_stamped_ty i g T →
   nclosed T i.
-Proof. unmut_lemma (is_stamped_nclosed_mut g). Qed.
+Proof. apply (is_stamped_nclosed_mut g). Qed.
 
 Lemma is_stamped_nclosed_σ σ g i:
   is_stamped_σ i g σ →
@@ -311,12 +311,12 @@ Lemma is_stamped_sub_vl v g s m n:
   is_stamped_sub n m g s →
   is_stamped_vl n g v →
   is_stamped_vl m g v.[s].
-Proof. unmut_lemma is_stamped_sub_mut. Qed.
+Proof. apply is_stamped_sub_mut. Qed.
 Lemma is_stamped_sub_ty T g s m n:
   is_stamped_sub n m g s →
   is_stamped_ty n g T →
   is_stamped_ty m g T.|[s].
-Proof. unmut_lemma is_stamped_sub_mut. Qed.
+Proof. apply is_stamped_sub_mut. Qed.
 
 Lemma is_stamped_sub_σ σ g s m n:
   is_stamped_sub n m g s →
