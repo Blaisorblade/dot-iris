@@ -138,10 +138,10 @@ Proof.
 Qed.
 Lemma stamped_typed_mono Γ (g g' : stys) (Hle: g ⊆ g') e T:
   Γ s⊢ₜ[ g ] e : T → Γ s⊢ₜ[ g' ] e : T.
-Proof. unmut_lemma (stamped_typing_mono_mut Γ g g'). Qed.
+Proof. by apply (stamped_typing_mono_mut Γ g g'). Qed.
 Lemma stamped_subtype_mono Γ (g g' : stys) (Hle: g ⊆ g') T1 i1 T2 i2:
   Γ s⊢ₜ[ g ] T1, i1 <: T2, i2 → Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2.
-Proof. unmut_lemma (stamped_typing_mono_mut Γ g g'). Qed.
+Proof. by apply (stamped_typing_mono_mut Γ g g'). Qed.
 
 Hint Extern 5 => try_once stamped_typed_mono.
 Hint Extern 5 => try_once stamped_subtype_mono.

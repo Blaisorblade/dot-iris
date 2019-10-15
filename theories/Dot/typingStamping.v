@@ -50,20 +50,20 @@ Section syntyping_stamping_lemmas.
   Qed.
   Lemma stamped_objIdent_typed_mono Γ (g g' : stys) (Hle: g ⊆ g') e T:
     Γ |⊢ₜ[ g ] e : T → Γ |⊢ₜ[ g' ] e : T.
-  Proof. apply (@stamped_objIdent_typing_mono_mut Γ g g'). Qed.
+  Proof. by apply (@stamped_objIdent_typing_mono_mut Γ g g'). Qed.
   Lemma stamped_objIdent_subtype_mono Γ (g g' : stys) (Hle: g ⊆ g') T1 i1 T2 i2:
     Γ |⊢ₜ[ g ] T1, i1 <: T2, i2 → Γ |⊢ₜ[ g' ] T1, i1 <: T2, i2.
-  Proof. apply (@stamped_objIdent_typing_mono_mut Γ g g'). Qed.
+  Proof. by apply (@stamped_objIdent_typing_mono_mut Γ g g'). Qed.
 
   Lemma stamped_objIdent_dms_typed_mono Γ (g g' : stys) (Hle: g ⊆ g'):
     ∀ V ds T, Γ |ds V |⊢[ g ] ds : T → Γ |ds V |⊢[ g' ] ds : T.
-  Proof. unmut_lemma (@stamped_objIdent_typing_mono_mut Γ g g'). Qed.
+  Proof. by apply (@stamped_objIdent_typing_mono_mut Γ g g'). Qed.
   Lemma stamped_objIdent_dm_typed_mono Γ (g g' : stys) (Hle: g ⊆ g'):
     ∀ V l d T, Γ |d V |⊢[ g ]{ l := d } : T → Γ |d V |⊢[ g' ]{ l := d } : T.
-  Proof. unmut_lemma (@stamped_objIdent_typing_mono_mut Γ g g'). Qed.
+  Proof. by apply (@stamped_objIdent_typing_mono_mut Γ g g'). Qed.
   Lemma stamped_objIdent_path_typed_mono Γ (g g' : stys) (Hle: g ⊆ g'):
     ∀ p T i, Γ |⊢ₚ[ g ] p : T, i → Γ |⊢ₚ[ g' ] p : T, i.
-  Proof. unmut_lemma (@stamped_objIdent_typing_mono_mut Γ g g'). Qed.
+  Proof. by apply (@stamped_objIdent_typing_mono_mut Γ g g'). Qed.
 
   Hint Extern 5 => try_once stamped_objIdent_typed_mono.
   Hint Extern 5 => try_once stamped_objIdent_dms_typed_mono.
