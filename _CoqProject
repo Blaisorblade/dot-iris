@@ -1,5 +1,11 @@
 -Q theories D
 -arg -w -arg -notation-overridden,-redundant-canonical-projection,-several-object-files
+# change_no_check does not exist yet in 8.9.
+-arg -w -arg -convert_concl_no_check
+# "Declare Scope" does not exist yet in 8.9.
+-arg -w -arg -undeclared-scope
+# We have ambiguous paths and so far it is not even clear what they are (https://gitlab.mpi-sws.org/iris/iris/issues/240).
+-arg -w -arg -ambiguous-paths
 
 theories/README.v
 theories/tactics.v
