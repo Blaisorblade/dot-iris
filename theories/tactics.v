@@ -17,36 +17,6 @@ Ltac ev := repeat match goal with
 (** Tactic to split a lemma proven by mutual induction into its pieces. *)
 Ltac unmut_lemma H := destruct H; ev; eauto.
 
-(* Avoid case distinctions when we know the right case from the hypotheses.
-   Otherwise, we end up with branches where the context says that ?x = A and ?x
-   = B, with A and B incompatible, and must use discriminate to remove those
-   branches. *)
-Ltac better_case_match :=
-  match goal with
-  | H : context [ match ?x with _ => _ end ] , H1 : _ = ?x |- _ =>
-    rewrite <- H1 in H
-  | H : context [ match ?x with _ => _ end ] , H1 : ?x = _ |- _ =>
-    rewrite H1 in H
-  | H : context [ match ?x with _ => _ end ] |- _ =>
-    destruct x eqn:?
-
-  | H1 : _ = ?x |- context [ match ?x with _ => _ end ] =>
-    rewrite <- H1
-  | H1 : ?x = _ |- context [ match ?x with _ => _ end ] =>
-    rewrite H1
-  | |- context [ match ?x with _ => _ end ] =>
-    destruct x eqn:?
-  end.
-
-(* To use with repeat fequalSafe in automation.
-   Unlike f_equal, won't try to prove a = b = c + d by a = c and b = d --- such
-   equalities are omega's job. *)
-Ltac fequalSafe :=
-  match goal with
-  | [ |- Some _ = Some _ ] => f_equal
-  | [ |- (_, _) = (_, _) ] => f_equal
-  end.
-
 Hint Constructors option.
 Hint Constructors list.
 
