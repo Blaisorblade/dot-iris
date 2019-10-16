@@ -67,10 +67,10 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ |⊢ₜ iterate tskip i e : T2
 (* A bit surprising this is needed, but appears in the DOT papers, and this is
    only admissible if t has a type U that is a proper subtype of TAnd T1 T2. *)
-| TAndI_typed T1 T2 x:
-    Γ |⊢ₜ tv (var_vl x) : T1 →
-    Γ |⊢ₜ tv (var_vl x) : T2 →
-    Γ |⊢ₜ tv (var_vl x) : TAnd T1 T2
+| TAndI_typed T1 T2 v:
+    Γ |⊢ₜ tv v : T1 →
+    Γ |⊢ₜ tv v : T2 →
+    Γ |⊢ₜ tv v : TAnd T1 T2
 where "Γ |⊢ₜ e : T " := (typed Γ e T)
 with dms_typed Γ : ty → dms → ty → Prop :=
 | dnil_typed V : Γ |ds V |⊢ [] : TTop
