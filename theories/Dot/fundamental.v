@@ -92,7 +92,7 @@ Definition safe e :=
     is_Some (to_val e') ∨ reducible e' σ'.
 
 Theorem adequacy Σ `{HdlangG: dlangPreG Σ} `{SwapProp (iPropSI Σ)} e T:
-  (∀ `{!dlangG Σ} `{!SwapProp (iPropSI Σ)}, allGs ∅ ⊢ |==> [] ⊨ e : T) →
+  (∀ `{!dlangG Σ} `{!SwapProp (iPropSI Σ)}, allGs ∅ ==∗ [] ⊨ e : T) →
   safe e.
 Proof.
   intros Hlog ?*; eapply (adequacy _).
@@ -100,10 +100,6 @@ Proof.
   by iSpecialize ("Ht" $! ids with "[#// ]"); rewrite hsubst_id.
 Qed.
 
-(** Instead of still assuming semantic typing, here we should assume syntactic
-    typing and use the fundamental lemma. But otherwise this follows the general
-    instantiation pattern, from e.g.
-    https://gitlab.mpi-sws.org/iris/examples/blob/a89dc12821b63eeb9b831d21629ac55ebd601f38/theories/logrel/F_mu_ref/soundness.v#L29-39. *)
 Corollary type_soundness_stamped e T `{!stampTable}:
   [] ⊢ₜ e : T → safe e.
 Proof.
