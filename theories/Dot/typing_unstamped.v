@@ -93,6 +93,11 @@ with dm_typed Γ : ty → label → dm → ty → Prop :=
     TLater V :: Γ u⊢ₜ TLater L, 0 <: TLater T, 0 →
     TLater V :: Γ u⊢ₜ TLater T, 0 <: TLater U, 0 →
     Γ |d V u⊢{ l := dtysyn T } : TTMem l L U
+| dty_typed_and T V l L U T1:
+    Γ |d V u⊢{ l := dtysyn T } : T1 →
+    TLater V :: Γ u⊢ₜ TLater L, 0 <: TLater T, 0 →
+    TLater V :: Γ u⊢ₜ TLater T, 0 <: TLater U, 0 →
+    Γ |d V u⊢{ l := dtysyn T } : TAnd T1 (TTMem l L U)
 | dvl_typed V l v T:
     V :: Γ u⊢ₜ tv v : T →
     Γ |d V u⊢{ l := dvl v } : TVMem l T

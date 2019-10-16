@@ -195,6 +195,29 @@ Section syntyping_stamping_lemmas.
       first eapply (typing_objIdent.dty_typed _ T); auto 2; [
         exact: (stamped_objIdent_subtype_mono _ Hts1)|
         exact: (stamped_objIdent_subtype_mono _ Hts2)].
+
+    (* To deal with multiple typing declarations, we combine
+      [typing_objIdent.dand_typed] and [typing_objIdent.dty_typed].
+      We don't support [dand_typed] because we'd have to stamp the definition
+      twice, and the two results wouldn't agree, while with [dty_typed_and]
+      we only stamp the definition once. Moreover, [dty_typed_and] covers
+      the most interesting cases of [dand_typed]. *)
+  - intros * Hu1 IHs1 Hu2 IHs2 Hu3 IHs3 g.
+    move: IHs1 => /(.$ g) [d' [g1 ?]];
+    move: IHs2 => /(.$ g1) [g2 [Hts1 Hle1]];
+    move: IHs3 => /(.$ g2) [g3 [Hts2 Hle2 ]]; ev.
+    nosplit (destruct d' as [|σ s|]; with_is_stamped inverse;
+      simplify_eq/= => //).
+    lte g1 g2 g3; lte g g1 g3.
+    have Hext: T ~[ S (length Γ) ] (g1, (s, σ)). {
+      ev; destruct (g1 !! s) as [T''|] eqn:?; first exists T'';
+      naive_solver.
+    }
+    have {Hext}Hext1: T ~[ S (length Γ) ] (g3, (s, σ)) by eauto 2.
+
+    exists (dtysem σ s), g3; split_and!; [|eauto 4..];
+      constructor; last eapply (typing_objIdent.dty_typed _ T); by [
+      apply (stamped_objIdent_subtype_mono _ Hts1) | eauto 2].
   - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [e1' [g1 ?]]; destruct_and!.
     have [v' ?]: ∃ v', e1' = tv v' by destruct e1'; naive_solver.
