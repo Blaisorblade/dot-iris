@@ -10,10 +10,10 @@ Section Sec.
   Context `{HdlangG: dlangG Σ} Γ.
 
   Lemma T_Sub e T1 T2 i:
-    (Γ ⊨ e : T1 →
-    Γ ⊨ [T1, 0] <: [T2, i] →
+    Γ ⊨ e : T1 -∗
+    Γ ⊨ [T1, 0] <: [T2, i] -∗
     (*───────────────────────────────*)
-    Γ ⊨ iterate tskip i e : T2)%I.
+    Γ ⊨ iterate tskip i e : T2.
   Proof.
     iIntros "/= #HeT1 #Hsub !>" (vs) "#Hg".
     rewrite tskip_subst tskip_n_to_fill -wp_bind.
@@ -50,8 +50,8 @@ Section Sec.
   *)
   (* Notation "◁ n T ▷" := (iterate TLater n T). *)
   Lemma Sub_Mu_X T1 T2 i j:
-    (iterate TLater i T1 :: Γ ⊨ [T1, i] <: [T2, j] →
-     Γ ⊨ [TMu T1, i] <: [TMu T2, j])%I.
+    iterate TLater i T1 :: Γ ⊨ [T1, i] <: [T2, j] -∗
+    Γ ⊨ [TMu T1, i] <: [TMu T2, j].
   Proof.
     iIntros "/= #Hstp !>" (vs v) "#Hg #HT1".
     iApply ("Hstp" $! (v .: vs) v with "[# $Hg] [#//]").
@@ -73,8 +73,8 @@ Section Sec.
   *)
   (* Sort-of-show this rule is derivable from Sub_Mu_X and Sub_Mu_A. *)
   Lemma Sub_Mu_1 T1 T2 i j:
-    (iterate TLater i T1 :: Γ ⊨ [T1, i] <: [T2.|[ren (+1)], j] →
-     Γ ⊨ [TMu T1, i] <: [T2, j])%I.
+    iterate TLater i T1 :: Γ ⊨ [T1, i] <: [T2.|[ren (+1)], j] -∗
+    Γ ⊨ [TMu T1, i] <: [T2, j].
   Proof. iIntros "Hstp"; iApply (Sub_Trans with "[-] []"). by iApply Sub_Mu_X. iApply Sub_Mu_A. Qed.
   (*
      Γ, z: T₁ᶻ ⊨ T₁ <: T₂ᶻ
@@ -83,8 +83,8 @@ Section Sec.
   *)
 
   Lemma Sub_Mu_2 T1 T2 i j:
-    (iterate TLater i T1.|[ren (+1)] :: Γ ⊨ [T1.|[ren (+1)], i] <: [T2, j] →
-    Γ ⊨ [T1, i] <: [TMu T2, j])%I.
+    iterate TLater i T1.|[ren (+1)] :: Γ ⊨ [T1.|[ren (+1)], i] <: [T2, j] -∗
+    Γ ⊨ [T1, i] <: [TMu T2, j]%I.
   Proof. iIntros "Hstp"; iApply (Sub_Trans with "[] [-]"). iApply Sub_Mu_B. by iApply Sub_Mu_X. Qed.
 
   (*
@@ -106,10 +106,10 @@ Section Sec.
   Proof. by rewrite TMu_equiv. Qed.
 
   Lemma T_Forall_E e1 e2 T1 T2:
-    (Γ ⊨ e1 : TAll T1 T2.|[ren (+1)] →
-     Γ ⊨ e2 : T1 →
+    Γ ⊨ e1 : TAll T1 T2.|[ren (+1)] -∗
+    Γ ⊨ e2 : T1 -∗
     (*────────────────────────────────────────────────────────────*)
-     Γ ⊨ tapp e1 e2 : T2)%I.
+    Γ ⊨ tapp e1 e2 : T2.
   Proof.
     iIntros "/= #He1 #Hv2 !>" (vs) "#HG".
     smart_wp_bind (AppLCtx (e2.|[_])) v "#Hr" "He1".
@@ -120,10 +120,10 @@ Section Sec.
   Qed.
 
   Lemma T_Forall_Ex e1 v2 T1 T2:
-    (Γ ⊨ e1: TAll T1 T2 →
-     Γ ⊨ tv v2 : T1 →
+    Γ ⊨ e1: TAll T1 T2 -∗
+    Γ ⊨ tv v2 : T1 -∗
     (*────────────────────────────────────────────────────────────*)
-     Γ ⊨ tapp e1 (tv v2) : T2.|[v2/])%I.
+    Γ ⊨ tapp e1 (tv v2) : T2.|[v2/].
   Proof.
     iIntros "/= #He1 #Hv2Arg !> * #HG".
     smart_wp_bind (AppLCtx (tv v2.[_])) v "#Hr {He1}" ("He1" with "[#//]").
@@ -140,9 +140,9 @@ Section Sec.
       We'd need this swap, and then [iIntros (v)], to specialize the hypothesis
       and drop the [▷^i] modality.*)
   Lemma T_Forall_I T1 T2 e:
-    (T1.|[ren (+1)] :: Γ ⊨ e : T2 →
+    T1.|[ren (+1)] :: Γ ⊨ e : T2 -∗
     (*─────────────────────────*)
-    Γ ⊨ tv (vabs e) : TAll T1 T2)%I.
+    Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.
     iIntros "/= #HeT !>" (vs) "#HG".
     rewrite -wp_value'. iExists _; iSplitL; first done.
@@ -155,9 +155,9 @@ Section Sec.
   Qed.
 
   Lemma T_Mem_E e T l:
-    (Γ ⊨ e : TVMem l T →
+    Γ ⊨ e : TVMem l T -∗
     (*─────────────────────────*)
-    Γ ⊨ tproj e l : T)%I.
+    Γ ⊨ tproj e l : T.
   Proof.
     iIntros "#HE /= !>" (vs) "#HG".
     smart_wp_bind (ProjCtx l) v "#Hv {HE}" "HE".
