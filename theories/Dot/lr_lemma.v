@@ -201,13 +201,13 @@ Section swap_based_typing_lemmas.
     iIntros "#HsubT #HsubU /= !>" (ρ v) "#Hg #HT1".
     iDestruct "HT1" as (t) "#[Heq #HT1]". iExists t; iSplit => //.
     iIntros (w).
-    rewrite -!mlaterN_pers -mlater_impl -mlaterN_impl.
+    rewrite -!mlaterN_pers -mlater_wand -mlaterN_wand.
     iIntros "!> #HwT2".
     iSpecialize ("HsubT" $! ρ w with "Hg HwT2").
-    iSpecialize ("HsubU" $! (w .: ρ)); iEval (rewrite -forall_swap) in "HsubU".
+    iSpecialize ("HsubU" $! (w .: ρ)); iEval (rewrite -forall_swap_wand) in "HsubU".
     iSpecialize ("HsubU" with "[# $Hg]").
     by rewrite iterate_TLater_later -swap_later; iApply interp_weaken_one.
-    setoid_rewrite mlaterN_impl; setoid_rewrite mlater_impl.
+    setoid_rewrite mlaterN_wand; setoid_rewrite mlater_wand.
     iNext i; iNext 1. iApply wp_wand.
     - iApply "HT1". iApply "HsubT".
     - iIntros (u) "#HuU1". by iApply "HsubU".
@@ -221,7 +221,7 @@ Section swap_based_typing_lemmas.
     iIntros "#IHT #IHT1 /= !>" (ρ v) "#Hg #HT1".
     iDestruct "HT1" as (d) "[Hl2 H]".
     iDestruct "H" as (φ) "#[Hφl [HLφ #HφU]]".
-    setoid_rewrite mlaterN_impl.
+    setoid_rewrite mlaterN_wand.
     iExists d; repeat iSplit => //.
     iExists φ; repeat iSplitL => //;
       rewrite -!mlaterN_pers;

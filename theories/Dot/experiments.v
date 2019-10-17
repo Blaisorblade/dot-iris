@@ -19,7 +19,7 @@ Section Sec.
     iDestruct "HvTU" as (t ->) "#HvTU".
     iExists t; iSplit => //. iNext.
     iIntros (w) "!>".
-    rewrite -mlater_impl.
+    rewrite -mlater_wand.
     iIntros "#HwT".
     by iApply ("HvTU" with "[# $HwT]").
   Qed.
@@ -43,7 +43,7 @@ Section Sec.
     iDestruct "HvTU" as (t ->) "#HvTU".
     iExists t; iSplit => //.
     iNext.
-    iIntros (w); rewrite -mlater_impl; iIntros "!> #HwT".
+    iIntros (w); rewrite -mlater_wand; iIntros "!> #HwT".
     rewrite -(wp_later_swap _ (⟦ _ ⟧ _)).
     iApply (wp_wand with "(HvTU [# $HwT //])").
     by iIntros (v) "$".

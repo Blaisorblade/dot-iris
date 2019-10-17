@@ -39,7 +39,7 @@ Section logrel.
   Global Arguments def_interp_vmem /.
 
   Definition dm_to_type d ψ : iProp Σ :=
-    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∗ s ↗[ σ ] ψ)%I.
+    ∃ s σ, ⌜ d = dtysem σ s ⌝ ∗ s ↗[ σ ] ψ.
   Notation "d ↗ ψ" := (dm_to_type d ψ) (at level 20).
   Global Instance dm_to_type_persistent d ψ: Persistent (d ↗ ψ) := _.
 
@@ -64,8 +64,8 @@ Section logrel.
   Definition def_interp_tmem interp1 interp2 : envPred dm Σ :=
     λ ρ d,
     (∃ ψ, (d ↗ ψ) ∗
-       □ ((∀ v, ▷ interp1 ρ v → ▷ □ ψ v) ∗
-          (∀ v, ▷ □ ψ v → ▷ interp2 ρ v)))%I.
+       □ ((∀ v, ▷ interp1 ρ v -∗ ▷ □ ψ v) ∗
+          (∀ v, ▷ □ ψ v -∗ ▷ interp2 ρ v)))%I.
   Global Arguments def_interp_tmem /.
 
   Definition lift_dinterp_vl l (dinterp: envPred dm Σ): envD Σ :=
@@ -119,7 +119,7 @@ Section logrel.
   Definition interp_forall interp1 interp2 : envD Σ :=
     λ ρ v,
     (∃ t, ⌜ v = vabs t ⌝ ∗
-     □ ▷ ∀ w, interp1 ρ w → interp_expr interp2 (w .: ρ) t.|[w/])%I.
+     □ ▷ ∀ w, interp1 ρ w -∗ interp_expr interp2 (w .: ρ) t.|[w/])%I.
   Global Arguments interp_forall /.
 
   Definition interp_mu interp : envD Σ :=
@@ -212,15 +212,15 @@ Section logrel.
 
   (** Definitions for semantic (definition) (sub)typing *)
   Definition idtp Γ T l d : iProp Σ :=
-    (□∀ ρ, ⟦Γ⟧* ρ → def_interp T l ρ d.|[ρ])%I.
+    □∀ ρ, ⟦Γ⟧* ρ -∗ def_interp T l ρ d.|[ρ].
   Global Arguments idtp /.
 
   Definition idstp Γ T ds : iProp Σ :=
-    (□∀ ρ, ⟦Γ⟧* ρ → defs_interp T ρ ds.|[ρ])%I.
+    □∀ ρ, ⟦Γ⟧* ρ -∗ defs_interp T ρ ds.|[ρ].
   Global Arguments idstp /.
 
   Definition ietp Γ T e : iProp Σ :=
-    (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ₑ ρ (e.|[ρ]))%I.
+    □∀ ρ, ⟦Γ⟧* ρ -∗ ⟦T⟧ₑ ρ (e.|[ρ]).
   Global Arguments ietp /.
 
   (** Indexed Subtyping. Defined on closed values. We must require closedness
@@ -243,12 +243,13 @@ Section logrel.
       And that forces using the same implication in the logical relation
       (unlike I did originally). *)
   Definition step_indexed_ivstp Γ T1 T2 i j: iProp Σ :=
-    (□∀ ρ v, ⟦Γ⟧* ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
+    □∀ ρ v, ⟦Γ⟧* ρ -∗ ▷^i ⟦T1⟧ ρ v -∗ ▷^j ⟦T2⟧ ρ v.
+
   Global Arguments step_indexed_ivstp /.
 
   Definition iptp Γ T p i: iProp Σ :=
-    (□∀ ρ, ⟦Γ⟧* ρ →
-     ▷^i path_wp (p.|[ρ]) (λ v, ⟦T⟧ ρ v))%I.
+    □∀ ρ, ⟦Γ⟧* ρ -∗
+     ▷^i path_wp (p.|[ρ]) (λ v, ⟦T⟧ ρ v).
   Global Arguments iptp /.
 
   Global Instance idtp_persistent Γ T l d: Persistent (idtp Γ T l d) := _.
@@ -296,7 +297,7 @@ Section logrel_lemmas.
     - rewrite hsubst_id. by [].
     - rewrite hrenS.
       iApply (interp_weaken_one (T.|[ren (+x)])).
-      iApply (IHΓ ((+1) >>> ρ) x Hx with "Hg").
+      iApply (IHΓ (stail ρ) x Hx with "Hg").
   Qed.
 
   Context {Γ}.
