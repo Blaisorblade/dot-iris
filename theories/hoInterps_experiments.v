@@ -118,12 +118,10 @@ Section saved_ho_sem_type_extra.
   Qed.
 
   Program Definition ocurry {n} (Φ : olty Σ (S n)) : vl -d> oltyO Σ n :=
-    λ v, Olty (λ args, vcurry (oApp Φ) v args) _.
-  Next Obligation. rewrite /vclosed /vcurry => *. by rewrite olty_vclosed. Qed.
+    λ v, Olty (λ args, vcurry (oApp Φ) v args).
 
   Program Definition ouncurry {n} (Φ : vl -d> oltyO Σ n) : olty Σ (S n) :=
-    Olty (λ args, vuncurry (λ v, oApp (Φ v)) args) _.
-  Next Obligation. rewrite /vclosed /vuncurry => *. by rewrite olty_vclosed. Qed.
+    Olty (λ args, vuncurry (λ v, oApp (Φ v)) args).
 
   Definition oclose (φ : olty Σ 0) : env → iPred vl Σ := φ vnil.
 
@@ -153,7 +151,7 @@ Section saved_ho_sem_type_extra.
     Sfkind (skintv φ1 φ2) kind_star_subtype.
   (* Next Obligation.  move=>????? Heq. f_equiv. exact: Heq. solve_proper_ho. *)
 
-  Definition oLaterN {n} i (τ : olty Σ n) := ho_closed_olty (eLater i τ).
+  Definition oLaterN {n} i (τ : olty Σ n) := Olty (eLater i τ).
   Definition skLaterN {n} i (K : skind Σ n) : skind Σ n :=
     λ ρ φ, K ρ (oLaterN i φ).
   Definition sfLaterN {n} i (K : sfkind Σ n) : sfkind Σ n :=
@@ -281,7 +279,7 @@ Section sec.
   Global Arguments dm_to_type: simpl never.
 
   (* Definition def_interp_tmem {n} : skind Σ n → envPred dm Σ :=
-    λ K ρ d, (∃ φ, d.|[ρ] ↗n[ n ] φ ∧ K ρ (ho_closed_olty φ))%I.
+    λ K ρ d, (∃ φ, d.|[ρ] ↗n[ n ] φ ∧ K ρ (Olty φ))%I.
   Definition def_interp_tmem_spec (φ1 φ2 : hoD Σ 0) : envPred dm Σ :=
     def_interp_tmem (sktmem φ1 φ2). *)
 End sec.

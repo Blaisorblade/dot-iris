@@ -25,10 +25,6 @@ Implicit Types (Σ : gFunctors).
 Module Type OLty_judge (Import VS: VlSortsFullSig) (Import LVS : LiftWp VS).
 Include OLty VS LVS.
 
-Class Closeable s := nclosed_s : s → nat → Prop.
-Instance closeable_sort s `{Sort s} : Closeable s := nclosed.
-Instance closeable_vl : Closeable vl := nclosed_vl.
-
 Implicit Types (v: vl) (vs : vls) (ρ : env).
 
 Section judgments.
@@ -40,61 +36,60 @@ Notation ctx := (list (ty 0)).
 Notation "⟦ T ⟧" := (oty_interp T).
 
 Definition oty_interp_env (Γ : ctx) : sCtx := map oty_interp Γ.
-Definition env_typed (Γ : ctx) : vls -d> iPropO Σ := env_oltyped_fin (oty_interp_env Γ).
+Definition env_typed (Γ : ctx) : env -d> iPropO Σ := env_oltyped (oty_interp_env Γ).
 
-Global Instance env_typed_persistent' `{OTyInterp ty Σ} Γ vs : Persistent (env_typed Γ vs) := env_oltyped_fin_persistent _ _.
+Global Instance env_typed_persistent' `{OTyInterp ty Σ} Γ ρ : Persistent (env_typed Γ ρ) :=
+  env_oltyped_persistent _ _.
 
-Definition judgment Σ s : Type := option s * (env -d> option s -d> iPropO Σ).
+Definition judgment Σ : Type := env -d> iPropO Σ.
 Definition nosubj_judgment Σ : Type := env -d> iPropO Σ.
 Definition subj_judgment Σ s : Type := s * (env -d> s -d> iPropO Σ).
-Program Definition subj_judgment_to_judgment {Σ s} : subj_judgment Σ s → judgment Σ s :=
-  λ '(x, φ), (Some x, λ ρ, from_option (φ ρ) False)%I.
+Program Definition subj_judgment_to_judgment {Σ s} : subj_judgment Σ s → judgment Σ :=
+  λ '(x, φ) ρ, φ ρ x.
 
-Definition judgment_holds `{Closeable s} (Γ : sCtx) (J : judgment Σ s): iProp Σ :=
-  (⌜ from_option (flip nclosed_s (length Γ)) True (fst J) ⌝ ∧ □∀ vs, env_oltyped_fin Γ vs → (snd J) (to_subst vs) (fst J))%I.
+Definition judgment_holds (Γ : sCtx) (J : judgment Σ): iProp Σ :=
+  □∀ ρ, env_oltyped Γ ρ → J ρ.
 Notation "Γ ⊨ J" := (judgment_holds Γ J) (at level 74, J at next level).
 Global Arguments judgment_holds /.
 
-Program Definition ivtp τ v : judgment Σ vl := subj_judgment_to_judgment (v, oClose τ).
+Program Definition ivtp τ v : judgment Σ := subj_judgment_to_judgment (v, oClose τ).
 Global Arguments ivtp /.
 
 (* DOT/D<: judgments are indexed by [⋅]. *)
 Notation "v v⋅: τ" := (ivtp τ v) (at level 73).
 Local Definition test_judge_me Γ v τ := Γ ⊨ v v⋅: τ.
 
-Context `{Closeable tm}.
-Definition ittp τ t : judgment Σ tm := subj_judgment_to_judgment (t, interp_expr τ).
+Definition ittp τ t : judgment Σ := subj_judgment_to_judgment (t, interp_expr τ).
 Global Arguments ittp /.
 
 (* DOT/D<: judgments are indexed by [⋅]. *)
 Notation "t t⋅: τ" := (ittp τ t) (at level 73).
 Definition test_judge_me2 Γ t τ := Γ ⊨ t t⋅: τ.
-(* Choosing vl is arbitrary. *)
-Program Definition nosubj_judgment_to_judgment {Σ} : nosubj_judgment Σ → judgment Σ vl :=
-  λ φ, (None, λ ρ _, φ ρ).
+Program Definition nosubj_judgment_to_judgment {Σ} : nosubj_judgment Σ → judgment Σ := λ φ, φ.
 
-Definition ivstp τ1 τ2 : nosubj_judgment Σ := (λ ρ, ∀ v, ⌜ nclosed_vl v 0 ⌝ → oClose τ1 ρ v → oClose τ2 ρ v)%I.
+Definition ivstp τ1 τ2 : nosubj_judgment Σ := (λ ρ, ∀ v, oClose τ1 ρ v → oClose τ2 ρ v)%I.
 Program Definition step_indexed_ivstp τ1 i1 τ2 i2 := nosubj_judgment_to_judgment (Σ := Σ)
-  (λ ρ, ∀ v, ⌜ nclosed_vl v 0 ⌝ → (▷^i1 oClose τ1 ρ v) → ▷^i2 oClose τ2 ρ v)%I.
+  (λ ρ, ∀ v, ▷^i1 oClose τ1 ρ v → ▷^i2 oClose τ2 ρ v)%I.
 Notation "[ τ1 , i1 ] <: [ τ2 , i2 ]" := (step_indexed_ivstp τ1 i1 τ2 i2) (at level 73).
 
 Lemma equiv_vstp Γ τ1 τ2 i1 i2: Γ ⊨ [τ1 , i1] <: [τ2 , i2] ⊣⊢
-    (□∀ vs v, ⌜ nclosed_vl v 0 ⌝ → env_oltyped_fin Γ vs → (▷^i1 oClose τ1 (to_subst vs) v) → ▷^i2 oClose τ2 (to_subst vs) v)%I.
+    (□∀ ρ v, env_oltyped Γ ρ → ▷^i1 oClose τ1 ρ v → ▷^i2 oClose τ2 ρ v)%I.
 Proof.
-  iSplit; [iIntros "#[_ H] /= !>" (???) "#?" |
-    iIntros "#H"; iSplit; first done; iIntros "!>" (?) "#? /="; iIntros (??)].
-  all: by iApply "H".
+  iSplit; [iIntros "#H /= !>" (??) "#Hg" |
+    iIntros "#H !>" (?) "#Hg /="; iIntros (?)].
+  all: iApply ("H" with "Hg").
 Qed.
 
 Lemma andstp1 Γ τ1 τ2 i : Γ ⊨ [oAnd τ1 τ2 , i] <: [τ1 , i].
 Proof.
-  rewrite equiv_vstp /=. by iIntros "!>" (???) "#Hg #[? ?]".
+  rewrite equiv_vstp /=. by iIntros "!>" (??) "#Hg #[? ?]".
 Qed.
 End judgments.
 
 End OLty_judge.
 
-From D.Dot Require Import syn synLemmas operational rules typeExtractionSyn path_wp.
+From D.Dot Require Import syn synLemmas operational rules typeExtractionSyn path_wp typeExtractionSem.
+From D.Dot Require unary_lr.
 
 Implicit Types
          (v: vl) (e: tm) (d: dm) (ds: dms) (p : path).
@@ -105,7 +100,7 @@ Include OLtyJudgements VlSorts operational.
 
 Record dlty Σ := Dlty {
   dlty_label : label;
-  dlty_car : ((var → vl) -d> dm -d> iPropO Σ);
+  dlty_car : env -d> dm -d> iPropO Σ;
   dlty_persistent ρ d :> Persistent (dlty_car ρ d);
 }.
 Global Arguments Dlty {_} _%I _ {_}.
@@ -114,8 +109,8 @@ Global Arguments dlty_label {_} _ /.
 Global Existing Instance dlty_persistent.
 
 Definition idtp `{dlangG Σ} Γ l (φ : dlty Σ) d : iProp Σ :=
-  (⌜ nclosed d (length Γ) ⌝ ∧ ⌜ l = dlty_label φ ⌝ ∧
-    □∀ ρ, ⟦Γ⟧* ρ → dlty_car φ (to_subst ρ) d.|[to_subst ρ])%I.
+  (⌜ l = dlty_label φ ⌝ ∧
+    □∀ ρ, ⟦Γ⟧* ρ → dlty_car φ ρ d.|[ρ])%I.
 Global Arguments idtp /.
 Notation "Γ ⊨d{ l := d  } : T" := (idtp Γ l T d) (at level 64, d, l, T at next level).
 
@@ -126,7 +121,7 @@ Section SemTypes.
    (* (ψ : vl -d> iPropO Σ) (φ : envD Σ)  *)
 
   Program Definition lift_dinterp_vl (T : dlty Σ): olty Σ 0 :=
-    closed_olty (λ ρ v, (∃ d, ⌜v @ dlty_label T ↘ d⌝ ∧ dlty_car T ρ d)%I).
+    olty0 (λ ρ v, (∃ d, ⌜v @ dlty_label T ↘ d⌝ ∧ dlty_car T ρ d)%I).
 
   Definition dm_to_type d i (ψ : hoD Σ i) : iProp Σ :=
     (∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ , i ] ψ)%I.
@@ -153,8 +148,8 @@ Section SemTypes.
   Definition oDTMem l τ1 τ2 : dlty Σ := Dlty l
     (λ ρ d,
     ∃ ψ, (d ↗n[ 0 ] ψ) ∧
-       □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ τ1 vnil ρ v → ▷ □ ψ vnil v) ∧
-          (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ ψ vnil v → ▷ τ2 vnil ρ v)))%I.
+       □ ((∀ v, ▷ τ1 vnil ρ v → ▷ □ ψ vnil v) ∧
+          (∀ v, ▷ □ ψ vnil v → ▷ τ2 vnil ρ v)))%I.
 
   Definition oTTMem l τ1 τ2 :=
     lift_dinterp_vl (oDTMem l τ1 τ2).
@@ -169,17 +164,17 @@ Section SemTypes.
   Next Obligation. rewrite /vclosed=>*. by rewrite interp_vclosed. Qed. *)
 
   Definition oTSel p (l : label) :=
-    closed_olty (λ ρ v, path_wp p.|[ρ]
+    olty0 (λ ρ v, path_wp p.|[ρ]
       (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗n[ 0 ] ψ ∧ ▷ □ ψ vnil v))%I.
 
   Lemma Sub_Sel Γ L U va l i:
     Γ ⊨ tv va : oTTMem l L U, i -∗
     Γ ⊨ [oLater L, i] <: [oTSel (pv va) l, i].
   Proof.
-    iIntros "#[% #Hva] !>" (ρ v Hclv) "#Hg #[_ HvL]". iFrame (Hclv).
+    iIntros "#Hva !>" (ρ v) "#Hg #HvL".
     iSpecialize ("Hva" with "Hg"). rewrite /= wp_value_inv'.
     iNext.
-    iDestruct "Hva" as (Hclvas' d Hl ψ) "#[Hlψ [#HLψ #HψU]]".
+    iDestruct "Hva" as (d Hl ψ) "#[Hlψ [#HLψ #HψU]]".
     iExists ψ, d; repeat iSplit => //. by iApply "HLψ".
   Qed.
 
@@ -187,19 +182,19 @@ Section SemTypes.
     Γ ⊨ tv va : oTTMem l L U, i -∗
     Γ ⊨ [oTSel (pv va) l, i] <: [oLater U, i].
   Proof.
-    iIntros "#[% #Hva] !>" (ρ v Hclv) "#Hg [$ #Hψ]". move: H => Hclva.
+    iIntros "#Hva !>" (ρ v) "#Hg #Hψ".
     iSpecialize ("Hva" with "Hg"); rewrite /= wp_value_inv'.
     iNext.
-    iDestruct "Hva" as (Hclvas d Hl ψ) "#[Hlψ [#HLψ #HψU]]".
+    iDestruct "Hva" as (d Hl ψ) "#[Hlψ [#HLψ #HψU]]".
     iDestruct "Hψ" as (ψ1 d1 Hva) "[Hγ #Hψ1v]".
-    objLookupDet; subst. iDestruct (dm_to_type_agree d _ _ _ vnil v with "Hlψ Hγ") as "#Hag".
+    objLookupDet. iDestruct (dm_to_type_agree d _ _ _ vnil v with "Hlψ Hγ") as "#Hag".
     iApply "HψU" => //. iNext. by iRewrite "Hag".
   Qed.
 
 (*
   (* Alternative (and failed) definition. *)
   Program Definition sem_sel p (l : label) :=
-    closed_olty (λ ρ v, path_wp p.|[ρ]
+    olty0 (λ ρ v, path_wp p.|[ρ]
       (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ψ ∧ □ ψ v)%I).
 
   Lemma Sub_Sel2 Γ L U va l i:
@@ -242,45 +237,44 @@ Section Sec.
   Context `{HdotG: dlangG Σ} {i : nat}.
   Implicit Types (φ : hoEnvD Σ i) (τ : olty Σ i).
 
-  Definition envD_equiv φ1 φ2 : iProp Σ :=
-    (∀ args ρ v,
-      φ1 args ρ v ≡ φ2 args ρ v)%I.
-
-  Definition leadsto_envD_equiv (sσ : extractedTy) n φ : iProp Σ :=
-    let '(s, σ) := sσ in
-    (⌜nclosed_σ σ n⌝ ∧ ∃ (φ' : hoEnvD Σ i), s ↝n[ i ] φ' ∧
-      envD_equiv φ (λ args ρ, φ' args (to_subst σ.|[ρ])))%I.
+  Definition leadsto_envD_equiv s σ (φ : hoEnvD Σ i) : iProp Σ :=
+    (∃ (φ' : hoEnvD Σ i),
+      ⌜φ ≡ (λ args ρ, φ' args (to_subst σ.|[ρ]))⌝ ∧ s ↝n[ i ] φ')%I.
   Arguments leadsto_envD_equiv /.
 End Sec.
 
-Notation "φ1 ≈ φ2" := (envD_equiv φ1 φ2) (at level 70).
-Notation "sσ ↝[  n  ] φ" := (leadsto_envD_equiv sσ n φ) (at level 20).
+Notation "s ↝[  σ  ] φ" := (leadsto_envD_equiv s σ φ) (at level 20).
 
 Section Sec2.
   Context `{HdotG: dlangG Σ}.
 
+  Lemma extraction_to_leadsto_envD_equiv T g s σ n: T ~[ n ] (g, (s, σ)) →
+    wellMapped g -∗ s ↝[ σ ] vopen (ty_interp T).
+  Proof.
+    move => [T'] [Hl] [<- [_ /is_stamped_nclosed_ty HclT]].
+    iIntros "Hm". iExists (vopen (ty_interp T')). iSplitR; [|by iApply "Hm"].
+    iIntros "!%" (args ρ v). exact: unary_lr.interp_subst_commute.
+  Qed.
+
   Lemma D_Typ Γ T L U s σ l :
     Γ ⊨ [T, 1] <: [U, 1] -∗
     Γ ⊨ [L, 1] <: [T, 1] -∗
-    (s, σ) ↝[ length Γ ] T -∗
+    s ↝[ σ ] T -∗
     Γ ⊨d{ l := dtysem σ s } : oDTMem l L U.
   Proof.
-    iIntros "#HTU #HLT #[% Hs] /="; repeat iSplit; [auto using fv_dtysem..|].
+    iIntros "#HTU #HLT #Hs /="; iSplit => //.
     iIntros "!>" (ρ) "#Hg /=".
-    iDestruct "Hs" as (φ) "[Hγ Hγφ]".
+    iDestruct "Hs" as (φ Hγφ) "Hγ".
     rewrite /dlty_car /=.
-    iExists (hoEnvD_inst (σ.|[to_subst ρ]) φ); iSplit.
+    iExists (hoEnvD_inst (σ.|[ρ]) φ); iSplit.
     by iApply dm_to_type_intro.
-    rewrite /envD_equiv.
-    iModIntro; repeat iSplitL; iIntros (v Hclv) "#HL"; rewrite later_intuitionistically.
-    - iIntros "!>". iApply (internal_eq_iff with "Hγφ").
-      by iApply "HLT".
-    - iApply "HTU" => //.
-      by iApply (internal_eq_iff with "Hγφ").
+    iModIntro; repeat iSplitL; iIntros (v) "#HL"; rewrite later_intuitionistically.
+    - iIntros "!>". iApply Hγφ. by iApply "HLT".
+    - iApply "HTU" => //. by iApply Hγφ.
   Qed.
 
   Lemma D_Typ_Concr Γ (τ : olty Σ 0) s σ l:
-    (s, σ) ↝[ length Γ ] τ -∗
+    s ↝[ σ ] τ -∗
     Γ ⊨d{ l := dtysem σ s } : oDTMem l τ τ.
   Proof. iIntros "#Hs"; iApply D_Typ; by [| iIntros "!> **"]. Qed.
 End Sec2.
