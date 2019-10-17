@@ -192,7 +192,7 @@ Section olty_ofe_2.
 
   Fixpoint env_oltyped (Γ : sCtx) (ρ : var → vl) : iProp Σ :=
     match Γ with
-    | φ :: Γ' => env_oltyped Γ' (stail ρ) ∗ oClose φ ρ (ρ 0)
+    | φ :: Γ' => env_oltyped Γ' (stail ρ) ∧ oClose φ ρ (ρ 0)
     | nil => True
     end%I.
 
@@ -218,7 +218,7 @@ Section olty_ofe_2.
 
   Fixpoint env_oltyped_fin (Γ : sCtx) vs : iProp Σ :=
     match Γ, vs with
-    | φ :: Γ', v :: vs => env_oltyped_fin Γ' vs ∗ oClose φ (v .: to_subst vs) v
+    | φ :: Γ', v :: vs => env_oltyped_fin Γ' vs ∧ oClose φ (v .: to_subst vs) v
     | nil, nil => True
     | _, _ => False
     end%I.
@@ -267,7 +267,7 @@ Section olty_ofe_2.
   Qed.
 
   Program Definition ho_closed_olty {i} (φ : hoEnvD Σ i) `{∀ args ρ v, Persistent (φ args ρ v)} : olty Σ i :=
-    Olty (λ args ρ v, ⌜ nclosed_vl v 0 ⌝ ∗ φ args ρ v)%I _.
+    Olty (λ args ρ v, ⌜ nclosed_vl v 0 ⌝ ∧ φ args ρ v)%I _.
   Next Obligation. iIntros (??????) "[$_]". Qed.
 
   Definition closed_olty (φ : envD Σ)`{∀ ρ v, Persistent (φ ρ v)} : olty Σ 0 :=
@@ -319,12 +319,12 @@ Section judgments.
       ⟦Γ⟧*ρ → (▷^i oClose τ1 (to_subst ρ) v) → ▷^j oClose τ2 (to_subst ρ) v)%I.
   Global Arguments step_indexed_ivstp /.
 
-  Definition ietp Γ τ e : iProp Σ := (⌜ nclosed e (length Γ) ⌝ ∗
+  Definition ietp Γ τ e : iProp Σ := (⌜ nclosed e (length Γ) ⌝ ∧
     □∀ ρ, ⟦Γ⟧* ρ → interp_expr τ (to_subst ρ) (e.|[to_subst ρ]))%I.
   Global Arguments ietp /.
 
   Definition step_indexed_ietp Γ τ e i: iProp Σ :=
-    (⌜ nclosed e (length Γ) ⌝ ∗ □∀ ρ, ⟦Γ⟧* ρ →
+    (⌜ nclosed e (length Γ) ⌝ ∧ □∀ ρ, ⟦Γ⟧* ρ →
       interp_expr (eLater i τ) (to_subst ρ) (e.|[to_subst ρ]))%I.
   Global Arguments step_indexed_ietp /.
 

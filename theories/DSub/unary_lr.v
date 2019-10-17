@@ -37,16 +37,16 @@ Section logrel.
   (* XXX this is wrong unless we translate, and here I want for now to switch to having no translation.
      Tho maybe let's do one thing at a time. *)
   Definition dm_to_type v (ψ : D) : iProp Σ :=
-    (∃ s σ, ⌜ v = vstamp σ s ⌝ ∗ s ↗[ σ ] ψ)%I.
+    (∃ s σ, ⌜ v = vstamp σ s ⌝ ∧ s ↗[ σ ] ψ)%I.
   Notation "v ↗ φ" := (dm_to_type v φ) (at level 20).
   Global Instance dm_to_type_persistent d τ: Persistent (d ↗ τ) := _.
   Global Opaque dm_to_type.
 
   Definition interp_tmem interp1 interp2 : envD Σ :=
     λ ρ v,
-    (∃ φ, (v ↗ φ) ∗
-       □ ((∀ v, ▷ interp1 ρ v → ▷ □ φ v) ∗
-          (∀ v, ▷ □ φ v → ▷ interp2 ρ v) ∗
+    (∃ φ, (v ↗ φ) ∧
+       □ ((∀ v, ▷ interp1 ρ v → ▷ □ φ v) ∧
+          (∀ v, ▷ □ φ v → ▷ interp2 ρ v) ∧
           (∀ v, interp1 ρ v → interp2 ρ v)))%I.
   Global Arguments interp_tmem /.
 
@@ -120,7 +120,7 @@ Section logrel.
   (* XXX here we needn't add a variable to the scope of its own type. But that won't hurt. *)
   Fixpoint interp_env (Γ : ctx) (ρ : var → vl) : iProp Σ :=
     match Γ with
-    | T :: Γ' => interp_env Γ' (stail ρ) ∗ ⟦ T ⟧ ρ (shead ρ)
+    | T :: Γ' => interp_env Γ' (stail ρ) ∧ ⟦ T ⟧ ρ (shead ρ)
     | nil => True
     end%I.
 

@@ -146,9 +146,9 @@ Section saved_ho_sem_type_extra.
 
   (* The point of Sandro's kind syntax is to use this only at kind 0. *)
   (* Definition sktmem {n} (φ1 φ2 : hoD Σ n) φ :=
-    (subtype n 1 1 φ1 φ ∗ subtype n 1 1 φ φ)%I. *)
+    (subtype n 1 1 φ1 φ ∧ subtype n 1 1 φ φ)%I. *)
   Definition skintv (φ1 φ2 : olty Σ 0) : skind Σ 0 := λ ρ φ,
-    (subtype ρ φ1 φ ∗ subtype ρ φ φ2)%I.
+    (subtype ρ φ1 φ ∧ subtype ρ φ φ2)%I.
   Definition sintv (φ1 φ2 : olty Σ 0) : sfkind Σ 0 :=
     Sfkind (skintv φ1 φ2) kind_star_subtype.
   (* Next Obligation.  move=>????? Heq. f_equiv. exact: Heq. solve_proper_ho. *)
@@ -276,12 +276,12 @@ Section sec.
   (* Implicit Types (interp : envD Σ) (φ : D). *)
 
   Definition dm_to_type (d : dm) n (ψ : hoD Σ n) : iProp Σ :=
-    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∗ s ↗n[ σ, n ] ψ)%I.
+    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ, n ] ψ)%I.
   Notation "d ↗n[ n ] φ" := (dm_to_type d n φ) (at level 20).
   Global Arguments dm_to_type: simpl never.
 
   (* Definition def_interp_tmem {n} : skind Σ n → envPred dm Σ :=
-    λ K ρ d, (∃ φ, d.|[ρ] ↗n[ n ] φ ∗ K ρ (ho_closed_olty φ))%I.
+    λ K ρ d, (∃ φ, d.|[ρ] ↗n[ n ] φ ∧ K ρ (ho_closed_olty φ))%I.
   Definition def_interp_tmem_spec (φ1 φ2 : hoD Σ 0) : envPred dm Σ :=
     def_interp_tmem (sktmem φ1 φ2). *)
 End sec.

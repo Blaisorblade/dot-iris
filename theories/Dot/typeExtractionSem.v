@@ -78,7 +78,7 @@ Section typing_type_member_defs.
     (* use interp_extractedTy? *)
   Definition leadsto_envD_equiv s σ (φ : envD Σ) : iProp Σ :=
     (∃ (φ' : envD Σ),
-      ⌜φ ≡ (λ ρ, φ' (to_subst σ.|[ρ]))⌝ ∗ s ↝ φ')%I.
+      ⌜φ ≡ (λ ρ, φ' (to_subst σ.|[ρ]))⌝ ∧ s ↝ φ')%I.
   Arguments leadsto_envD_equiv /.
   Notation "s ↝[  σ  ] φ" := (leadsto_envD_equiv s σ φ) (at level 20).
 

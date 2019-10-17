@@ -75,7 +75,7 @@ Section logrel.
 
   Program Definition interp_forall: envD Σ -n> envD Σ -n> envD Σ :=
     λne interp1 interp2, λ ρ v,
-    (∃ t, ⌜ v = vabs t ⌝ ∗
+    (∃ t, ⌜ v = vabs t ⌝ ∧
       □ ▷ ∀ w, interp1 ρ w → interp_expr interp2 (w .: ρ) t.|[w/])%I.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_forall /.
@@ -104,8 +104,8 @@ Section logrel.
   Program Definition interp_tmem :
     (ty -d> envD Σ) -n> envD Σ -n> envD Σ -n> envD Σ :=
     λne rinterp interpL interpU, λ ρ v,
-    (∃ φ, [ rinterp ] v ↗ φ ∗
-       □ ((∀ v, ▷ interpL ρ v → ▷ □ φ v) ∗
+    (∃ φ, [ rinterp ] v ↗ φ ∧
+       □ ((∀ v, ▷ interpL ρ v → ▷ □ φ v) ∧
           (∀ v, ▷ □ φ v → ▷ interpU ρ v)))%I.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_tmem /.
@@ -215,7 +215,7 @@ Section logrel_part2.
   (* XXX here we needn't add a variable to the scope of its own type. But that won't hurt. *)
   Fixpoint interp_env (Γ : ctx) (ρ : var → vl) : iProp Σ :=
     match Γ with
-    | T :: Γ' => interp_env Γ' (stail ρ) ∗ ⟦ T ⟧ ρ (shead ρ)
+    | T :: Γ' => interp_env Γ' (stail ρ) ∧ ⟦ T ⟧ ρ (shead ρ)
     | nil => True
     end%I.
 

@@ -51,7 +51,7 @@ Program Definition subj_judgment_to_judgment {Σ s} : subj_judgment Σ s → jud
   λ '(x, φ), (Some x, λ ρ, from_option (φ ρ) False)%I.
 
 Definition judgment_holds `{Closeable s} (Γ : sCtx) (J : judgment Σ s): iProp Σ :=
-  (⌜ from_option (flip nclosed_s (length Γ)) True (fst J) ⌝ ∗ □∀ vs, env_oltyped_fin Γ vs → (snd J) (to_subst vs) (fst J))%I.
+  (⌜ from_option (flip nclosed_s (length Γ)) True (fst J) ⌝ ∧ □∀ vs, env_oltyped_fin Γ vs → (snd J) (to_subst vs) (fst J))%I.
 Notation "Γ ⊨ J" := (judgment_holds Γ J) (at level 74, J at next level).
 Global Arguments judgment_holds /.
 
@@ -114,7 +114,7 @@ Global Arguments dlty_label {_} _ /.
 Global Existing Instance dlty_persistent.
 
 Definition idtp `{dlangG Σ} Γ l (φ : dlty Σ) d : iProp Σ :=
-  (⌜ nclosed d (length Γ) ⌝ ∧ ⌜ l = dlty_label φ ⌝ ∗
+  (⌜ nclosed d (length Γ) ⌝ ∧ ⌜ l = dlty_label φ ⌝ ∧
     □∀ ρ, ⟦Γ⟧* ρ → dlty_car φ (to_subst ρ) d.|[to_subst ρ])%I.
 Global Arguments idtp /.
 Notation "Γ ⊨d{ l := d  } : T" := (idtp Γ l T d) (at level 64, d, l, T at next level).
@@ -129,7 +129,7 @@ Section SemTypes.
     closed_olty (λ ρ v, (∃ d, ⌜v @ dlty_label T ↘ d⌝ ∧ dlty_car T ρ d)%I).
 
   Definition dm_to_type d i (ψ : hoD Σ i) : iProp Σ :=
-    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∗ s ↗n[ σ , i ] ψ)%I.
+    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ , i ] ψ)%I.
   Notation "d ↗n[ i  ] ψ" := (dm_to_type d i ψ) (at level 20).
   Global Instance dm_to_type_persistent d i ψ: Persistent (d ↗n[ i ] ψ) := _.
 
@@ -152,8 +152,8 @@ Section SemTypes.
   (* Rewrite using (higher) semantic kinds! *)
   Definition oDTMem l τ1 τ2 : dlty Σ := Dlty l
     (λ ρ d,
-    ∃ ψ, (d ↗n[ 0 ] ψ) ∗
-       □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ τ1 vnil ρ v → ▷ □ ψ vnil v) ∗
+    ∃ ψ, (d ↗n[ 0 ] ψ) ∧
+       □ ((∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ τ1 vnil ρ v → ▷ □ ψ vnil v) ∧
           (∀ v, ⌜ nclosed_vl v 0 ⌝ → ▷ □ ψ vnil v → ▷ τ2 vnil ρ v)))%I.
 
   Definition oTTMem l τ1 τ2 :=
@@ -248,7 +248,7 @@ Section Sec.
 
   Definition leadsto_envD_equiv (sσ : extractedTy) n φ : iProp Σ :=
     let '(s, σ) := sσ in
-    (⌜nclosed_σ σ n⌝ ∧ ∃ (φ' : hoEnvD Σ i), s ↝n[ i ] φ' ∗
+    (⌜nclosed_σ σ n⌝ ∧ ∃ (φ' : hoEnvD Σ i), s ↝n[ i ] φ' ∧
       envD_equiv φ (λ args ρ, φ' args (to_subst σ.|[ρ])))%I.
   Arguments leadsto_envD_equiv /.
 End Sec.

@@ -39,7 +39,7 @@ Section logrel.
   Global Arguments def_interp_vmem /.
 
   Definition dm_to_type d ψ : iProp Σ :=
-    ∃ s σ, ⌜ d = dtysem σ s ⌝ ∗ s ↗[ σ ] ψ.
+    ∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗[ σ ] ψ.
   Notation "d ↗ ψ" := (dm_to_type d ψ) (at level 20).
   Global Instance dm_to_type_persistent d ψ: Persistent (d ↗ ψ) := _.
 
@@ -58,13 +58,13 @@ Section logrel.
   Qed.
 
   Definition dm_to_type_eq d ψ : dm_to_type d ψ =
-    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∗ s ↗[ σ ] ψ)%I := eq_refl.
+    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗[ σ ] ψ)%I := eq_refl.
   Global Opaque dm_to_type.
 
   Definition def_interp_tmem interp1 interp2 : envPred dm Σ :=
     λ ρ d,
-    (∃ ψ, (d ↗ ψ) ∗
-       □ ((∀ v, ▷ interp1 ρ v -∗ ▷ □ ψ v) ∗
+    (∃ ψ, (d ↗ ψ) ∧
+       □ ((∀ v, ▷ interp1 ρ v -∗ ▷ □ ψ v) ∧
           (∀ v, ▷ □ ψ v -∗ ▷ interp2 ρ v)))%I.
   Global Arguments def_interp_tmem /.
 
@@ -118,7 +118,7 @@ Section logrel.
    *)
   Definition interp_forall interp1 interp2 : envD Σ :=
     λ ρ v,
-    (∃ t, ⌜ v = vabs t ⌝ ∗
+    (∃ t, ⌜ v = vabs t ⌝ ∧
      □ ▷ ∀ w, interp1 ρ w -∗ interp_expr interp2 (w .: ρ) t.|[w/])%I.
   Global Arguments interp_forall /.
 
@@ -198,7 +198,7 @@ Section logrel.
 
   Fixpoint interp_env (Γ : ctx) (ρ : var → vl) : iProp Σ :=
     match Γ with
-    | T :: Γ' => interp_env Γ' (stail ρ) ∗ ⟦ T ⟧ ρ (shead ρ)
+    | T :: Γ' => interp_env Γ' (stail ρ) ∧ ⟦ T ⟧ ρ (shead ρ)
     | nil => True
     end%I.
 

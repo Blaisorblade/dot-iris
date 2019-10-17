@@ -149,7 +149,7 @@ Section Sec.
 
   Lemma eq_to_bisub Γ T1 T2 i:
     (∀ ρ v, ⟦ T1 ⟧ ρ v ⊣⊢ ⟦ T2 ⟧ ρ v) → True ⊢
-    Γ ⊨ [ T1, i ] <: [ T2, i ] ∗
+    Γ ⊨ [ T1, i ] <: [ T2, i ] ∧
     Γ ⊨ [ T2, i ] <: [ T1, i ].
   Proof.
     iIntros (Heq) "_"; iSplit; iIntros "/= !>" (ρ v) "#Hg #HT";
