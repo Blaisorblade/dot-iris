@@ -192,7 +192,7 @@ Section olty_ofe_2.
 
   Fixpoint env_oltyped (Γ : sCtx) (ρ : var → vl) : iProp Σ :=
     match Γ with
-    | φ :: Γ' => env_oltyped Γ' ((+1) >>> ρ) ∗ oClose φ ρ (ρ 0)
+    | φ :: Γ' => env_oltyped Γ' (stail ρ) ∗ oClose φ ρ (ρ 0)
     | nil => True
     end%I.
 
