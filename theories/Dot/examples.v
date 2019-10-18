@@ -99,9 +99,9 @@ Section ex.
     rewrite hsubst_id /interp_expr wp_value_inv'.
     iApply "H".
     iApply DCons_I => //.
-    - (* Can't finish with D_Typ, this is only for syntactic types: *)
+    - (* Can't finish with D_Typ_Abs, this is only for syntactic types: *)
 
-      (* iApply D_Typ => //.
+      (* iApply D_Typ_Abs => //.
       admit. admit. cbn. iSplit => //. iExists _; iSplit => //. *)
       iModIntro.
       iIntros (ρ) "/= #_".

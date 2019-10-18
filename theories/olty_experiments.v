@@ -256,7 +256,7 @@ Section Sec2.
     iIntros "!%" (args ρ v). exact: unary_lr.interp_subst_commute.
   Qed.
 
-  Lemma D_Typ Γ T L U s σ l :
+  Lemma D_Typ_Abs Γ T L U s σ l :
     Γ ⊨ [T, 1] <: [U, 1] -∗
     Γ ⊨ [L, 1] <: [T, 1] -∗
     s ↝[ σ ] T -∗
@@ -273,9 +273,9 @@ Section Sec2.
     - iApply "HTU" => //. by iApply Hγφ.
   Qed.
 
-  Lemma D_Typ_Concr Γ (τ : olty Σ 0) s σ l:
+  Lemma D_Typ Γ (τ : olty Σ 0) s σ l:
     s ↝[ σ ] τ -∗
     Γ ⊨d{ l := dtysem σ s } : oDTMem l τ τ.
-  Proof. iIntros "#Hs"; iApply D_Typ; by [| iIntros "!> **"]. Qed.
+  Proof. iIntros "#Hs"; iApply D_Typ_Abs; by [| iIntros "!> **"]. Qed.
 End Sec2.
 End SemTypes.

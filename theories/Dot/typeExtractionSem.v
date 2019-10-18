@@ -72,7 +72,7 @@ Section typing_type_member_defs.
   Context `{!dlangG Σ}.
 
   (* Beware: here we must use [to_subst σ.|[ρ]], not [to_subst σ >> ρ],
-     since the former is what we need to prove [D_Typ] below.
+     since the former is what we need to prove [D_Typ_Abs] below.
      Not sure that's still true if we change dm_to_type,
     but quite possibly yes.. *)
     (* use interp_extractedTy? *)
@@ -99,7 +99,7 @@ Section typing_type_member_defs.
     (s, σ) ↝[ length Γ ] φ -∗
     Γ ⊨d dtysem σ s : TTMem l L U.
     *)
-  Lemma D_Typ Γ T L U s σ l:
+  Lemma D_Typ_Abs Γ T L U s σ l:
     Γ ⊨ [TLater T, 0] <: [TLater U, 0] -∗
     Γ ⊨ [TLater L, 0] <: [TLater T, 0] -∗
     s ↝[ σ ] ⟦ T ⟧ -∗
@@ -114,8 +114,8 @@ Section typing_type_member_defs.
     - iApply "HTU" => //. by iApply Hγφ.
   Qed.
 
-  Lemma D_Typ_Concr Γ T s σ l:
+  Lemma D_Typ Γ T s σ l:
     s ↝[ σ ] ⟦ T ⟧ -∗
     Γ ⊨d{ l := dtysem σ s } : TTMem l T T.
-  Proof. iIntros "#Hs"; iApply D_Typ => //; iApply Sub_Refl. Qed.
+  Proof. iIntros "#Hs"; iApply D_Typ_Abs => //; iApply Sub_Refl. Qed.
 End typing_type_member_defs.
