@@ -134,13 +134,6 @@ Proof.
   move: Huns. by rewrite /= Hlook1 Hlook2.
 Qed.
 
-Ltac with_is_unstamped tac :=
-  match goal with
-    | H: is_unstamped_ty _ |- _ => tac H
-    | H: is_unstamped_tm _ |- _ => tac H
-    | H: is_unstamped_vl _ |- _ => tac H
-  end.
-
 Lemma stamps_unstamp_mono_mut:
   (∀ e__s g1 g2 n e__u, g1 ⊆ g2 →
                     stamps_tm n e__u g1 e__s →

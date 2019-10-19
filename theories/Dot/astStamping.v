@@ -111,15 +111,6 @@ Definition stamp_dtysyn g n T :=
   let '(g', (s, σ)) := (extract g n T) in
   (dtysem σ s, g').
 
-Ltac with_is_unstamped tac :=
-  match goal with
-    | H: is_unstamped_ty   _ |- _ => tac H
-    | H: is_unstamped_tm   _ |- _ => tac H
-    | H: is_unstamped_dm   _ |- _ => tac H
-    | H: is_unstamped_path _ |- _ => tac H
-    | H: is_unstamped_vl   _ |- _ => tac H
-  end.
-
 (** Unstamped types are already stamped, because they can't contain type
     definitions to stamp. *)
 Lemma unstamped_stamped_type T g n:
