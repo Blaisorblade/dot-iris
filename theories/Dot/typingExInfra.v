@@ -126,9 +126,6 @@ Notation tUnit := (tv (vnat 0) : tm).
 From D.Dot Require Export typing.
 From D.Dot Require Import traversals stampedness typeExtractionSyn.
 
-Notation valid_stamp g g' n' vs s T' :=
-  (g !! s = Some T' ∧ g' = g ∧ n' = length vs).
-
 Lemma extr_dtysem_stamped {g s} σ T n :
   T ~[ n ] (g, (s, σ)) →
   is_stamped_σ n g σ →
