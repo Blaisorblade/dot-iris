@@ -276,7 +276,7 @@ Lemma Var_typed_sub Γ x T1 T2 :
 Proof. intros; eapply Subs_typed_nocoerce; by [exact: Var_typed|]. Qed.
 
 Lemma LSel_stp' Γ U {p l L i}:
-  (is_stamped_ty (length Γ) getStampTable) L →
+  is_stamped_ty (length Γ) getStampTable L →
   Γ ⊢ₚ p : TTMem l L U, i →
   Γ ⊢ₜ L, i <: TSel p l, i.
 Proof.
@@ -286,7 +286,7 @@ Proof.
   eapply Trans_stp; first exact: TAddLater_stp; tcrush.
 Qed.
 
-Lemma AddI_stp Γ T i (Hst: (is_stamped_ty (length Γ) getStampTable) T) :
+Lemma AddI_stp Γ T i (Hst: is_stamped_ty (length Γ) getStampTable T) :
   Γ ⊢ₜ T, 0 <: T, i.
 Proof.
   elim: i => [|n IHn]; first tcrush.
@@ -312,7 +312,7 @@ Definition lett t u := tapp (vabs' u) t.
 Lemma Let_typed Γ t u T U :
   Γ ⊢ₜ t : T →
   T.|[ren (+1)] :: Γ ⊢ₜ u : U.|[ren (+1)] →
-  (is_stamped_ty (length Γ) getStampTable) T →
+  is_stamped_ty (length Γ) getStampTable T →
   Γ ⊢ₜ lett t u : U.
 Proof. move=> Ht Hu HsT. apply /App_typed /Ht /Lam_typed /Hu /HsT. Qed.
 
