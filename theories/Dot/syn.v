@@ -47,6 +47,8 @@ Definition ctx := list ty.
 
 Bind Scope dms_scope with dms.
 Bind Scope ty_scope with ty.
+Delimit Scope ty_scope with ty.
+Delimit Scope dms_scope with dms.
 
 Implicit Types
          (T : ty) (v : vl) (t : tm) (d : dm) (ds : dms) (p : path)

@@ -48,7 +48,6 @@ Notation " {@ T1 ; T2 ; .. ; Tn } " :=
 (* Notation " {@ T1 ; .. ; T2 ; Tn } " := (TAnd (TAnd .. (TAnd {@} T1) .. T2) Tn) *)
 (*                                          (format "{@  T1  ;  ..  ;  T2  ;  Tn  }"): ty_scope. *)
 Close Scope ty_scope.
-Delimit Scope ty_scope with ty.
 
 Check {@ TNat ; TNat ; TNat } % ty.
 

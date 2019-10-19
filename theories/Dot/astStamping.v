@@ -71,7 +71,6 @@ Notation stamps_vl n v__u g v__s := (unstamp_vl g v__s = v__u ∧ is_unstamped_v
 Notation stamps_dm n d__u g d__s := (unstamp_dm g d__s = d__u ∧ is_unstamped_dm d__u ∧ is_stamped_dm n g d__s).
 Notation stamps_dms n d__u g d__s := (unstamp_dms g d__s%list = d__u%list ∧ is_unstamped_dms d__u ∧ is_stamped_dms n g d__s).
 Notation stamps_path n p__u g p__s := (unstamp_path g p__s = p__u ∧ is_unstamped_path p__u ∧ is_stamped_path n g p__s).
-Delimit Scope ty_scope with ty.
 Notation stamps_ty n T__u g T__s := (unstamp_ty g T__s = T__u % ty ∧ is_unstamped_ty T__u ∧ is_stamped_ty n g T__s).
 
 Definition unstamp_same_skel_tm_def e g : Prop := ∀ e_s,
