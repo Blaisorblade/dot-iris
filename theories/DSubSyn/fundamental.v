@@ -125,26 +125,25 @@ Section Fundamental.
 End Fundamental.
 
 From D.pure_program_logic Require Import adequacy.
+Import dlang_adequacy.
 
-Theorem adequacy Σ `{HdsubG: dsubSynG Σ} `{!SwapProp (iPropSI Σ)} e e' thp σ σ' T:
-  (forall `{dsubSynG Σ} `{SwapProp (iPropSI Σ)}, True ⊢ [] ⊨ e : T) →
-  rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
-  is_Some (to_val e') ∨ reducible e' σ'.
+Theorem adequacy Σ `{HdsubG: dsubSynG Σ} `{!SwapProp (iPropSI Σ)} e T:
+  (∀ `(dsubSynG Σ) `(SwapProp (iPropSI Σ)), [] ⊨ e : T) →
+  safe e.
 Proof.
-  intros Hlog ??. cut (adequate NotStuck e σ (λ _ _, True)); first (intros [_ ?]; eauto).
+  intros Htyp ???*. cut (adequate NotStuck e σ (λ _ _, True)); first (intros [_ ?]; eauto).
   eapply (wp_adequacy Σ) => /=.
   iIntros (?) "!>". iExists (λ _ _, True%I); iSplit=> //.
-  iPoseProof (Hlog with "[//]") as "#Hlog".
-  iEval (replace e with (e.|[to_subst []]) by by asimpl).
-  iApply wp_wand; by [iApply "Hlog" | auto].
+  iPoseProof (Htyp _ _) as "#Htyp".
+  iSpecialize ("Htyp" $! ids with "[//]"); rewrite hsubst_id /=.
+  iApply (wp_wand with "Htyp"); by iIntros.
 Qed.
 
 Instance dsubSynG_empty: dsubSynG #[] := {}.
 
-Corollary type_soundness e e' thp σ σ' T:
-  ([] ⊢ₜ e : T) →
-  rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
-  is_Some (to_val e') ∨ reducible e' σ'.
+Corollary type_soundness e T:
+  [] ⊢ₜ e : T →
+  safe e.
 Proof.
   intros; eapply (adequacy #[]) => //; iIntros.
   by iApply fundamental_typed.

@@ -175,19 +175,18 @@ Module Type LiftWp (Import VS : VlSortsSig).
       ∀ e' thp σ σ', rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
         is_Some (to_val e') ∨ reducible (Λ := dlang_lang) e' σ'.
 
-    Theorem adequacy Σ `{Sort (expr Λ)}
-      `{HdlangG: dlangPreG Σ} `{SwapProp (iPropSI Σ)}
+    Theorem adequacy Σ `{dlangPreG Σ} `{SwapProp (iPropSI Σ)}
       (Φ : dlangG Σ → val dlang_lang → iProp Σ) e :
-      (forall {Hdlang: dlangG Σ} `{SwapProp (iPropSI Σ)}, allGs ∅ ⊢ |==> □ WP e {{ Φ Hdlang }} ) →
-      safe e.
+      (∀ (Hdlang: dlangG Σ) `(SwapProp (iPropSI Σ)),
+        allGs ∅ ==∗ WP e {{ Φ Hdlang }}) → safe e.
     Proof.
-      intros Hlog ???*; cut (adequate NotStuck e σ (λ _ _, True)); first (move => [_ ?]; by eauto).
+      intros Hwp ???*; cut (adequate NotStuck e σ (λ _ _, True)); first (move => [_ ?]; by eauto).
       eapply (wp_adequacy Σ) => /=.
       iMod (gen_iheap_init (L := stamp) ∅) as (g) "Hgs".
       set (DLangΣ := DLangG Σ _ g).
-      iMod (Hlog _ with "Hgs") as "#Hlog".
+      iMod (Hwp DLangΣ with "Hgs") as "Hwp".
       iIntros (?) "!>". iExists (λ _ _, True%I); iSplit=> //.
-      iApply wp_wand; by [iApply "Hlog" | auto].
+      iApply (wp_wand with "Hwp"); by iIntros.
     Qed.
   End dlang_adequacy.
 End LiftWp.

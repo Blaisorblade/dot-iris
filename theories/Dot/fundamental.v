@@ -87,17 +87,13 @@ End fundamental.
 
 Import dlang_adequacy.
 
-Definition safe e :=
-  ∀ e' thp σ σ', rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
-    is_Some (to_val e') ∨ reducible e' σ'.
-
 Theorem adequacy Σ `{HdlangG: dlangPreG Σ} `{SwapProp (iPropSI Σ)} e T:
-  (∀ `{!dlangG Σ} `{!SwapProp (iPropSI Σ)}, allGs ∅ ==∗ [] ⊨ e : T) →
+  (∀ `(dlangG Σ) `(!SwapProp (iPropSI Σ)), allGs ∅ ==∗ [] ⊨ e : T) →
   safe e.
 Proof.
   intros Hlog ?*; eapply (adequacy _).
-  iIntros (??) "Hs". iDestruct (Hlog with "Hs") as ">#Ht".
-  by iSpecialize ("Ht" $! ids with "[#// ]"); rewrite hsubst_id.
+  iIntros (??) "Hs". iDestruct (Hlog with "Hs") as ">#Htyp".
+  by iSpecialize ("Htyp" $! ids with "[#//]"); rewrite hsubst_id.
 Qed.
 
 Corollary type_soundness_stamped e T `{!stampTable}:
