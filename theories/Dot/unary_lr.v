@@ -264,15 +264,15 @@ Notation "⟦ Γ ⟧*" := (interp_env Γ).
 Notation "⟦ T ⟧ₑ" := (interp_expr ⟦ T ⟧).
 
 (** Single-definition typing *)
-Notation "Γ ⊨d{ l := d  } : T" := (idtp Γ T l d) (at level 64, d, l, T at next level).
+Notation "Γ ⊨d{ l := d  } : T" := (idtp Γ T l d) (at level 74, d, l, T at next level).
 (** Multi-definition typing *)
 Notation "Γ ⊨ds ds : T" := (idstp Γ T ds) (at level 74, ds, T at next level).
 (** Expression typing *)
 Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 
-Notation "Γ ⊨p p : T , i" := (iptp Γ T p i) (at level 74, p, T at next level).
+Notation "Γ ⊨p p : T , i" := (iptp Γ T p i) (at level 74, p, T, i at next level).
 
-Notation "Γ ⊨ [ T1 , i ]  <: [ T2 , j ]" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
+Notation "Γ ⊨ [ T1 , i ]  <: [ T2 , j ]" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2, i, j at next level).
 
 (** Context extension for use with definition typing, as in
     [Γ |L V ⊨d d : T] and [Γ |L V ⊨ds ds : T]. *)
