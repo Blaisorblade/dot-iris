@@ -193,9 +193,9 @@ Section swap_based_typing_lemmas.
   Context `{!SwapProp (iPropSI Σ)}.
 
   Lemma Sub_TAllConCov T1 T2 U1 U2 i:
-    Γ ⊨ TLater T2, i  <: TLater T1, i  -∗
-    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨ TLater U1, i  <: TLater U2, i  -∗
-    Γ ⊨ TAll T1 U1, i  <: TAll T2 U2, i .
+    Γ ⊨ TLater T2, i <: TLater T1, i -∗
+    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨ TLater U1, i <: TLater U2, i -∗
+    Γ ⊨ TAll T1 U1, i <: TAll T2 U2, i .
   Proof.
     rewrite iterate_S /=.
     iIntros "#HsubT #HsubU /= !>" (ρ v) "#Hg #HT1".

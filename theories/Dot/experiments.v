@@ -75,7 +75,7 @@ Section Sec.
 
   (** Rename. *)
   Lemma iterate_Sub_Mono Γ T i j:
-    Γ ⊨ T, i  <: T, j + i.
+    Γ ⊨ T, i <: T, j + i.
   Proof.
     iInduction j as [] "IHj".
     - iApply Sub_Refl.
@@ -103,16 +103,16 @@ Section Sec.
   Qed.
 
   Lemma selfIntersect Γ T U i j:
-    Γ ⊨ T, i  <: U, j + i  -∗
-    Γ ⊨ T, i  <: TAnd U T, j + i .
+    Γ ⊨ T, i <: U, j + i -∗
+    Γ ⊨ T, i <: TAnd U T, j + i .
   Proof.
     iIntros "H"; iApply (Sub_And with "[H//] []").
     iApply iterate_Sub_Mono.
   Qed.
 
   Lemma selfIntersectLater Γ T U i:
-    Γ ⊨ T, i  <: TLater U, i  -∗
-    Γ ⊨ T, i  <: TLater (TAnd T U), i .
+    Γ ⊨ T, i <: TLater U, i -∗
+    Γ ⊨ T, i <: TLater (TAnd T U), i .
   Proof.
     iIntros "H"; iSimpl; setoid_rewrite Distr_TLater_And.
     iApply (Sub_And with "[] H").
@@ -131,8 +131,8 @@ Section Sec.
 
   Lemma sub_rewrite_2 Γ T U1 U2 i:
     (∀ ρ v, ⟦ U1 ⟧ ρ v ⊣⊢ ⟦ U2 ⟧ ρ v) →
-    Γ ⊨ T, i  <: U1, i  ⊣⊢
-    Γ ⊨ T, i  <: U2, i .
+    Γ ⊨ T, i <: U1, i ⊣⊢
+    Γ ⊨ T, i <: U2, i .
   Proof.
     iIntros (Heq); iSplit; iIntros "/= #H !>" (ρ v) "#Hg #HT";
       [rewrite -Heq //|rewrite Heq //]; by iApply "H".
@@ -140,8 +140,8 @@ Section Sec.
 
   Lemma sub_rewrite_1 Γ T1 T2 U i:
     (∀ ρ v, ⟦ T1 ⟧ ρ v ⊣⊢ ⟦ T2 ⟧ ρ v) →
-    Γ ⊨ T1, i  <: U, i  ⊣⊢
-    Γ ⊨ T2, i  <: U, i .
+    Γ ⊨ T1, i <: U, i ⊣⊢
+    Γ ⊨ T2, i <: U, i .
   Proof.
     iIntros (Heq); iSplit; iIntros "/= #H !>" (ρ v) "#Hg #HT";
       [rewrite -Heq //|rewrite Heq //]; by iApply "H".
@@ -149,16 +149,16 @@ Section Sec.
 
   Lemma eq_to_bisub Γ T1 T2 i:
     (∀ ρ v, ⟦ T1 ⟧ ρ v ⊣⊢ ⟦ T2 ⟧ ρ v) → True ⊢
-    Γ ⊨ T1, i  <: T2, i  ∧
-    Γ ⊨ T2, i  <: T1, i .
+    Γ ⊨ T1, i <: T2, i ∧
+    Γ ⊨ T2, i <: T1, i .
   Proof.
     iIntros (Heq) "_"; iSplit; iIntros "/= !>" (ρ v) "#Hg #HT";
       [rewrite -Heq //|rewrite Heq //]; by iApply "H".
   Qed.
 
   Lemma selfIntersectLaterN Γ T U i j:
-    Γ ⊨ T, i  <: iterate TLater j U, i  -∗
-    Γ ⊨ T, i  <: iterate TLater j (TAnd T U), i .
+    Γ ⊨ T, i <: iterate TLater j U, i -∗
+    Γ ⊨ T, i <: iterate TLater j (TAnd T U), i .
   Proof.
     iIntros "H".
     setoid_rewrite (sub_rewrite_2 Γ T _ _ i (Distr_TLaterN_And T U j)).
