@@ -44,6 +44,7 @@ theories/DSubSyn/unary_lr.v
 theories/DSubSyn/typing.v
 theories/DSubSyn/typing_objIdent.v
 theories/DSubSyn/fundamental.v
+theories/Dot/exampleInfra.v
 theories/Dot/syn.v
 theories/Dot/typing.v
 theories/Dot/typing_objIdent.v
