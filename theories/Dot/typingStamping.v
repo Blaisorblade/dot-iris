@@ -17,16 +17,16 @@ Section syntyping_stamping_lemmas.
 
   Reserved Notation "Γ |⊢ₜ[ g  ] e : T"
     (at level 74, e, T at next level).
-  Reserved Notation "Γ |ds V |⊢[ g  ] ds : T"
+  Reserved Notation "Γ |L V |⊢[ g  ] ds : T"
     (at level 74, ds, T, V at next level).
-  Reserved Notation "Γ |d V |⊢[ g  ]{ l := d  } : T "
+  Reserved Notation "Γ |L V |⊢[ g  ]{ l := d  } : T "
     (at level 74, l, d, T, V at next level).
   Reserved Notation "Γ |⊢ₚ[ g  ] p : T , i" (at level 74, p, T, i at next level).
   Reserved Notation "Γ |⊢ₜ[ g  ] T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
 
   Notation "Γ |⊢ₜ[ g  ] e : T " := (typed g Γ e T).
-  Notation "Γ |ds V |⊢[ g  ] ds : T" := (dms_typed g Γ V ds T).
-  Notation "Γ |d V |⊢[ g  ]{ l := d  } : T" := (dm_typed g Γ V l d T).
+  Notation "Γ |L V |⊢[ g  ] ds : T" := (dms_typed g Γ V ds T).
+  Notation "Γ |L V |⊢[ g  ]{ l := d  } : T" := (dm_typed g Γ V l d T).
   Notation "Γ |⊢ₚ[ g  ] p : T , i" := (path_typed g Γ p T i).
   Notation "Γ |⊢ₜ[ g  ] T1 , i1 <: T2 , i2" := (subtype g Γ T1 i1 T2 i2).
 
@@ -35,15 +35,15 @@ Section syntyping_stamping_lemmas.
 
   Lemma stamped_objIdent_typing_mono_mut Γ (g g' : stys) (Hle: g ⊆ g'):
     (∀ e T, Γ |⊢ₜ[ g ] e : T → Γ |⊢ₜ[ g' ] e : T) ∧
-    (∀ V ds T, Γ |ds V |⊢[ g ] ds : T → Γ |ds V |⊢[ g' ] ds : T) ∧
-    (∀ V l d T, Γ |d V |⊢[ g ]{ l := d } : T → Γ |d V |⊢[ g' ]{ l := d } : T) ∧
+    (∀ V ds T, Γ |L V |⊢[ g ] ds : T → Γ |L V |⊢[ g' ] ds : T) ∧
+    (∀ V l d T, Γ |L V |⊢[ g ]{ l := d } : T → Γ |L V |⊢[ g' ]{ l := d } : T) ∧
     (∀ p T i, Γ |⊢ₚ[ g ] p : T, i → Γ |⊢ₚ[ g' ] p : T, i) ∧
     (∀ T1 i1 T2 i2, Γ |⊢ₜ[ g ] T1, i1 <: T2, i2 → Γ |⊢ₜ[ g' ] T1, i1 <: T2, i2).
   Proof.
     eapply stamped_objIdent_typing_mut_ind with
         (P := λ Γ e T _, Γ |⊢ₜ[ g' ] e : T)
-        (P0 := λ Γ V ds T _, Γ |ds V |⊢[ g' ] ds : T)
-        (P1 := λ Γ V l d T _, Γ |d V |⊢[ g' ]{ l := d } : T)
+        (P0 := λ Γ V ds T _, Γ |L V |⊢[ g' ] ds : T)
+        (P1 := λ Γ V l d T _, Γ |L V |⊢[ g' ]{ l := d } : T)
         (P2 := λ Γ p T i _, Γ |⊢ₚ[ g' ] p : T, i)
         (P3 := λ Γ T1 i1 T2 i2 _, Γ |⊢ₜ[ g' ] T1, i1 <: T2, i2);
     clear Γ; intros; naive_solver.
@@ -56,10 +56,10 @@ Section syntyping_stamping_lemmas.
   Proof. by apply (@stamped_objIdent_typing_mono_mut Γ g g'). Qed.
 
   Lemma stamped_objIdent_dms_typed_mono Γ (g g' : stys) (Hle: g ⊆ g'):
-    ∀ V ds T, Γ |ds V |⊢[ g ] ds : T → Γ |ds V |⊢[ g' ] ds : T.
+    ∀ V ds T, Γ |L V |⊢[ g ] ds : T → Γ |L V |⊢[ g' ] ds : T.
   Proof. by apply (@stamped_objIdent_typing_mono_mut Γ g g'). Qed.
   Lemma stamped_objIdent_dm_typed_mono Γ (g g' : stys) (Hle: g ⊆ g'):
-    ∀ V l d T, Γ |d V |⊢[ g ]{ l := d } : T → Γ |d V |⊢[ g' ]{ l := d } : T.
+    ∀ V l d T, Γ |L V |⊢[ g ]{ l := d } : T → Γ |L V |⊢[ g' ]{ l := d } : T.
   Proof. by apply (@stamped_objIdent_typing_mono_mut Γ g g'). Qed.
   Lemma stamped_objIdent_path_typed_mono Γ (g g' : stys) (Hle: g ⊆ g'):
     ∀ p T i, Γ |⊢ₚ[ g ] p : T, i → Γ |⊢ₚ[ g' ] p : T, i.
@@ -88,12 +88,12 @@ Section syntyping_stamping_lemmas.
     (∀ e T, Γ u⊢ₜ e : T →
       ∀ (g : stys), ∃ e' (g' : stys),
       Γ |⊢ₜ[ g' ] e' : T ∧ g ⊆ g' ∧ stamps_tm (length Γ) e g' e') ∧
-    (∀ V ds T, Γ |ds V u⊢ ds : T →
+    (∀ V ds T, Γ |L V u⊢ ds : T →
       ∀ (g : stys), ∃ ds' (g' : stys),
-      Γ |ds V |⊢[ g' ] ds' : T ∧ g ⊆ g' ∧ stamps_dms (S (length Γ)) ds g' ds') ∧
-    (∀ V l d T, Γ |d V u⊢{ l := d } : T →
+      Γ |L V |⊢[ g' ] ds' : T ∧ g ⊆ g' ∧ stamps_dms (S (length Γ)) ds g' ds') ∧
+    (∀ V l d T, Γ |L V u⊢{ l := d } : T →
       ∀ (g : stys), ∃ d' (g' : stys),
-      Γ |d V |⊢[ g' ]{ l := d' } : T
+      Γ |L V |⊢[ g' ]{ l := d' } : T
         ∧ g ⊆ g' ∧ stamps_dm (S (length Γ)) d g' d') ∧
     (∀ p T i, Γ u⊢ₚ p : T, i →
       ∀ (g : stys), ∃ p' (g' : stys),
@@ -106,9 +106,9 @@ Section syntyping_stamping_lemmas.
       (P := λ Γ e T _, ∀ g, ∃ e' (g' : stys),
         Γ |⊢ₜ[ g' ] e' : T ∧ g ⊆ g' ∧ stamps_tm (length Γ) e g' e')
       (P0 := λ Γ V ds T _, ∀ g, ∃ ds' (g' : stys),
-        Γ |ds V |⊢[ g' ] ds' : T ∧ g ⊆ g' ∧ stamps_dms (S (length Γ)) ds g' ds')
+        Γ |L V |⊢[ g' ] ds' : T ∧ g ⊆ g' ∧ stamps_dms (S (length Γ)) ds g' ds')
       (P1 := λ Γ V l d T _, ∀ (g : stys), ∃ d' (g' : stys),
-        Γ |d V |⊢[ g' ]{ l := d' } : T ∧ g ⊆ g' ∧
+        Γ |L V |⊢[ g' ]{ l := d' } : T ∧ g ⊆ g' ∧
         stamps_dm (S (length Γ)) d g' d')
       (P2 := λ Γ p T i _, ∀ (g : stys), ∃ p' (g' : stys),
         Γ |⊢ₚ[ g' ] p' : T, i ∧ g ⊆ g' ∧ stamps_path (length Γ) p g' p')

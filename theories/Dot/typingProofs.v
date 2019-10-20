@@ -8,8 +8,8 @@ Section syntyping_lemmas.
   Hint Constructors Forall : core.
   Lemma stamped_mut_subject Γ:
     (∀ e  T, Γ ⊢ₜ e : T → is_stamped_tm (length Γ) getStampTable e) ∧
-    (∀ V ds T, Γ |ds V ⊢ ds : T → Forall (is_stamped_dm (S (length Γ)) getStampTable) (map snd ds)) ∧
-    (∀ V l d T, Γ |d V ⊢{ l := d } : T → is_stamped_dm (S (length Γ)) getStampTable d) ∧
+    (∀ V ds T, Γ |L V ⊢ ds : T → Forall (is_stamped_dm (S (length Γ)) getStampTable) (map snd ds)) ∧
+    (∀ V l d T, Γ |L V ⊢{ l := d } : T → is_stamped_dm (S (length Γ)) getStampTable d) ∧
     (∀ p T i, Γ ⊢ₚ p : T, i → is_stamped_path (length Γ) getStampTable p).
   Proof.
     eapply exp_stamped_typing_mut_ind with
@@ -107,9 +107,9 @@ Section syntyping_lemmas.
 
   Lemma stamped_mut_types Γ :
     (∀ e T, Γ ⊢ₜ e : T → ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (length Γ) getStampTable T) ∧
-    (∀ V ds T, Γ |ds V ⊢ ds : T → ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (S (length Γ)) getStampTable V →
+    (∀ V ds T, Γ |L V ⊢ ds : T → ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (S (length Γ)) getStampTable V →
       is_stamped_ty (S (length Γ)) getStampTable T) ∧
-    (∀ V l d T, Γ |d V ⊢{ l := d } : T → ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (S (length Γ)) getStampTable V →
+    (∀ V l d T, Γ |L V ⊢{ l := d } : T → ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (S (length Γ)) getStampTable V →
       is_stamped_ty (S (length Γ)) getStampTable T) ∧
     (∀ p T i, Γ ⊢ₚ p : T , i → ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (length Γ) getStampTable T) ∧
     (∀ T1 i1 T2 i2, Γ ⊢ₜ T1, i1 <: T2, i2 → ∀ (Hctx: stamped_ctx getStampTable Γ),

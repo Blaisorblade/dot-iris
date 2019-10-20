@@ -12,8 +12,8 @@ Set Implicit Arguments.
 (* The typing judgement comes from [s/⊢/u⊢/] over [Dot/typing_objIdent.v], and dropping stamping. *)
 Reserved Notation "Γ u⊢ₜ e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ u⊢ₚ p : T , i" (at level 74, p, T, i at next level).
-Reserved Notation "Γ |d V u⊢{ l := d  } : T" (at level 74, l, d, T, V at next level).
-Reserved Notation "Γ |ds V u⊢ ds : T" (at level 74, ds, T, V at next level).
+Reserved Notation "Γ |L V u⊢{ l := d  } : T" (at level 74, l, d, T, V at next level).
+Reserved Notation "Γ |L V u⊢ ds : T" (at level 74, ds, T, V at next level).
 Reserved Notation "Γ u⊢ₜ T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
 
 Implicit Types (L T U V : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
@@ -49,7 +49,7 @@ Inductive typed Γ : tm → ty → Prop :=
     (*─────────────────────────*)
     Γ u⊢ₜ tv (vabs e) : TAll T1 T2
 | VObj_typed ds T:
-    Γ |ds T u⊢ ds: T →
+    Γ |L T u⊢ ds: T →
     is_unstamped_ty (S (length Γ)) T →
     (*──────────────────────*)
     Γ u⊢ₜ tv (vobj ds): TMu T
@@ -78,25 +78,25 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ u⊢ₜ tv (var_vl x) : TAnd T1 T2
 where "Γ u⊢ₜ e : T " := (typed Γ e T)
 with dms_typed Γ : ty → dms → ty → Prop :=
-| dnil_typed V : Γ |ds V u⊢ [] : TTop
+| dnil_typed V : Γ |L V u⊢ [] : TTop
 (* This demands definitions and members to be defined in aligned lists. *)
 | dcons_typed V l d ds T1 T2:
-    Γ |d V u⊢{ l := d } : T1 →
-    Γ |ds V u⊢ ds : T2 →
+    Γ |L V u⊢{ l := d } : T1 →
+    Γ |L V u⊢ ds : T2 →
     dms_hasnt ds l →
     (*──────────────────────*)
-    Γ |ds V u⊢ (l, d) :: ds : TAnd T1 T2
-where "Γ |ds V u⊢ ds : T" := (dms_typed Γ V ds T)
+    Γ |L V u⊢ (l, d) :: ds : TAnd T1 T2
+where "Γ |L V u⊢ ds : T" := (dms_typed Γ V ds T)
 with dm_typed Γ : ty → label → dm → ty → Prop :=
 | dty_typed T V l L U:
     is_unstamped_ty (S (length Γ)) T →
     TLater V :: Γ u⊢ₜ TLater L, 0 <: TLater T, 0 →
     TLater V :: Γ u⊢ₜ TLater T, 0 <: TLater U, 0 →
-    Γ |d V u⊢{ l := dtysyn T } : TTMem l L U
+    Γ |L V u⊢{ l := dtysyn T } : TTMem l L U
 | dvl_typed V l v T:
     V :: Γ u⊢ₜ tv v : T →
-    Γ |d V u⊢{ l := dvl v } : TVMem l T
-where "Γ |d V u⊢{ l := d  } : T" := (dm_typed Γ V l d T)
+    Γ |L V u⊢{ l := dvl v } : TVMem l T
+where "Γ |L V u⊢{ l := d  } : T" := (dm_typed Γ V l d T)
 with path_typed Γ : path → ty → nat → Prop :=
 | pv_typed x T:
     Γ u⊢ₜ tv (var_vl x) : T →
@@ -258,5 +258,5 @@ Lemma unstamped_path_root_is_var Γ p T i:
 Proof. by elim; intros; cbn; eauto 2. Qed.
 
 Lemma dtysem_not_utyped Γ V l d T :
-  Γ |d V u⊢{ l := d } : T → ∀ σ s, d ≠ dtysem σ s.
+  Γ |L V u⊢{ l := d } : T → ∀ σ s, d ≠ dtysem σ s.
 Proof. by case. Qed.

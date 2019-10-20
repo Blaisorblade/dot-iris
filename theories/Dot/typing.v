@@ -4,13 +4,13 @@ Reserved Notation "Γ ⊢ₜ e : T"
   (at level 74, e, T at next level,
   format "'[' '[' Γ ']'  '/' ⊢ₜ  '[' e ']'  :  '[' T ']' ']'").
 Reserved Notation "Γ ⊢ₚ p : T , i" (at level 74, p, T, i at next level).
-Reserved Notation "Γ |d V ⊢{ l := d } : T "
-(* Reserved Notation "Γ |d V ⊢{ l := d  } : T " *)
+Reserved Notation "Γ |L V ⊢{ l := d } : T "
+(* Reserved Notation "Γ |L V ⊢{ l := d  } : T " *)
   (at level 74, l, d, T, V at next level,
-   format "'[' '[' Γ  |d  V  ']' '/' '[' ⊢{  l  :=  d  } ']' :  '[' T ']' ']'").
-Reserved Notation "Γ |ds V ⊢ ds : T"
+   format "'[' '[' Γ  |L  V  ']' '/' '[' ⊢{  l  :=  d  } ']' :  '[' T ']' ']'").
+Reserved Notation "Γ |L V ⊢ ds : T"
   (at level 74, ds, T, V at next level,
-  format "'[' '[' Γ  |ds  V  ']' '/' ⊢  '[' ds ']'  :  T ']'" ).
+  format "'[' '[' Γ  |L  V  ']' '/' ⊢  '[' ds ']'  :  T ']'" ).
 Reserved Notation "Γ ⊢ₜ T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
 
 Implicit Types (L T U V : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty) (g : stys).
@@ -48,7 +48,7 @@ Inductive typed Γ : tm → ty → Prop :=
     (*─────────────────────────*)
     Γ ⊢ₜ tv (vabs e) : TAll T1 T2
 | VObj_typed ds T:
-    Γ |ds T ⊢ ds: T →
+    Γ |L T ⊢ ds: T →
     is_stamped_ty (S (length Γ)) getStampTable T →
     (*──────────────────────*)
     Γ ⊢ₜ tv (vobj ds): TMu T
@@ -77,26 +77,26 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ ⊢ₜ tv v : TAnd T1 T2
 where "Γ ⊢ₜ e : T " := (typed Γ e T)
 with dms_typed Γ : ty → dms → ty → Prop :=
-| dnil_typed V : Γ |ds V ⊢ [] : TTop
+| dnil_typed V : Γ |L V ⊢ [] : TTop
 (* This demands definitions and members to be defined in aligned lists. *)
 | dcons_typed V l d ds T1 T2:
-    Γ |d V ⊢{ l := d } : T1 →
-    Γ |ds V ⊢ ds : T2 →
+    Γ |L V ⊢{ l := d } : T1 →
+    Γ |L V ⊢ ds : T2 →
     dms_hasnt ds l →
     (*──────────────────────*)
-    Γ |ds V ⊢ (l, d) :: ds : TAnd T1 T2
-where "Γ |ds V ⊢ ds : T" := (dms_typed Γ V ds T)
+    Γ |L V ⊢ (l, d) :: ds : TAnd T1 T2
+where "Γ |L V ⊢ ds : T" := (dms_typed Γ V ds T)
 with dm_typed Γ : ty → label → dm → ty → Prop :=
 | dty_typed T V l L U s σ:
     T ~[ S (length Γ) ] (getStampTable, (s, σ)) →
     Forall (is_stamped_vl (S (length Γ)) getStampTable) σ →
     TLater V :: Γ ⊢ₜ TLater L, 0 <: TLater T, 0 →
     TLater V :: Γ ⊢ₜ TLater T, 0 <: TLater U, 0 →
-    Γ |d V ⊢{ l := dtysem σ s } : TTMem l L U
+    Γ |L V ⊢{ l := dtysem σ s } : TTMem l L U
 | dvl_typed V l v T:
     V :: Γ ⊢ₜ tv v : T →
-    Γ |d V ⊢{ l := dvl v } : TVMem l T
-where "Γ |d V ⊢{ l := d  } : T" := (dm_typed Γ V l d T)
+    Γ |L V ⊢{ l := dvl v } : TVMem l T
+where "Γ |L V ⊢{ l := d  } : T" := (dm_typed Γ V l d T)
 with path_typed Γ : path → ty → nat → Prop :=
 | pv_typed v T:
     Γ ⊢ₜ tv v : T →
@@ -242,8 +242,8 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
 End syntyping.
 
 Notation "Γ ⊢ₜ e : T " := (typed Γ e T).
-Notation "Γ |ds V ⊢ ds : T" := (dms_typed Γ V ds T).
-Notation "Γ |d V ⊢{ l := d  } : T" := (dm_typed Γ V l d T).
+Notation "Γ |L V ⊢ ds : T" := (dms_typed Γ V ds T).
+Notation "Γ |L V ⊢{ l := d  } : T" := (dm_typed Γ V l d T).
 Notation "Γ ⊢ₚ p : T , i" := (path_typed Γ p T i).
 Notation "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
 
