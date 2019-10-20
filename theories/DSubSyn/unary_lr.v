@@ -290,12 +290,12 @@ Section logrel_lemmas.
   Qed.
 
   Context {Γ}.
-  Lemma Sub_Refl T i : Γ ⊨ [T, i] <: [T, i].
+  Lemma Sub_Refl T i : Γ ⊨ T, i <: T, i.
   Proof. by iIntros "/= !> **". Qed.
 
-  Lemma Sub_Trans T1 T2 T3 i1 i2 i3 : Γ ⊨ [T1, i1] <: [T2, i2] -∗
-                                      Γ ⊨ [T2, i2] <: [T3, i3] -∗
-                                      Γ ⊨ [T1, i1] <: [T3, i3].
+  Lemma Sub_Trans T1 T2 T3 i1 i2 i3 : Γ ⊨ T1, i1 <: T2, i2 -∗
+                                      Γ ⊨ T2, i2 <: T3, i3 -∗
+                                      Γ ⊨ T1, i1 <: T3, i3.
   Proof.
     iIntros "#Hsub1 #Hsub2 /= !> * #Hg #HT".
     iApply ("Hsub2" with "Hg (Hsub1 Hg [//])").

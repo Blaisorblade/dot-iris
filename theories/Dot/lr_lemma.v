@@ -11,7 +11,7 @@ Section Sec.
 
   Lemma T_Sub e T1 T2 i:
     Γ ⊨ e : T1 -∗
-    Γ ⊨ [T1, 0] <: [T2, i] -∗
+    Γ ⊨ T1, 0 <: T2, i -∗
     (*───────────────────────────────*)
     Γ ⊨ iterate tskip i e : T2.
   Proof.
@@ -50,8 +50,8 @@ Section Sec.
   *)
   (* Notation "◁ n T ▷" := (iterate TLater n T). *)
   Lemma Sub_Mu_X T1 T2 i j:
-    iterate TLater i T1 :: Γ ⊨ [T1, i] <: [T2, j] -∗
-    Γ ⊨ [TMu T1, i] <: [TMu T2, j].
+    iterate TLater i T1 :: Γ ⊨ T1, i <: T2, j -∗
+    Γ ⊨ TMu T1, i <: TMu T2, j.
   Proof.
     iIntros "/= #Hstp !>" (vs v) "#Hg #HT1".
     iApply ("Hstp" $! (v .: vs) v with "[# $Hg] [#//]").
@@ -60,10 +60,10 @@ Section Sec.
 
   (* Novel subtyping rules. Sub_Mu_1 and Sub_Mu_2 become (sort-of?)
   derivable. *)
-  Lemma Sub_Mu_A T i: Γ ⊨ [TMu T.|[ren (+1)], i] <: [T, i].
+  Lemma Sub_Mu_A T i: Γ ⊨ TMu T.|[ren (+1)], i <: T, i.
   Proof. iIntros "!>" (vs v) "**". by rewrite (interp_TMu_ren T vs v). Qed.
 
-  Lemma Sub_Mu_B T i: Γ ⊨ [T, i] <: [TMu T.|[ren (+1)], i].
+  Lemma Sub_Mu_B T i: Γ ⊨ T, i <: TMu T.|[ren (+1)], i.
   Proof. iIntros "!>" (vs v) "**". by rewrite (interp_TMu_ren T vs v). Qed.
 
   (*
@@ -73,8 +73,8 @@ Section Sec.
   *)
   (* Sort-of-show this rule is derivable from Sub_Mu_X and Sub_Mu_A. *)
   Lemma Sub_Mu_1 T1 T2 i j:
-    iterate TLater i T1 :: Γ ⊨ [T1, i] <: [T2.|[ren (+1)], j] -∗
-    Γ ⊨ [TMu T1, i] <: [T2, j].
+    iterate TLater i T1 :: Γ ⊨ T1, i <: T2.|[ren (+1)], j -∗
+    Γ ⊨ TMu T1, i <: T2, j.
   Proof. iIntros "Hstp"; iApply (Sub_Trans with "[-] []"). by iApply Sub_Mu_X. iApply Sub_Mu_A. Qed.
   (*
      Γ, z: T₁ᶻ ⊨ T₁ <: T₂ᶻ
@@ -83,8 +83,8 @@ Section Sec.
   *)
 
   Lemma Sub_Mu_2 T1 T2 i j:
-    iterate TLater i T1.|[ren (+1)] :: Γ ⊨ [T1.|[ren (+1)], i] <: [T2, j] -∗
-    Γ ⊨ [T1, i] <: [TMu T2, j].
+    iterate TLater i T1.|[ren (+1)] :: Γ ⊨ T1.|[ren (+1)], i <: T2, j -∗
+    Γ ⊨ T1, i <: TMu T2, j.
   Proof. iIntros "Hstp"; iApply (Sub_Trans with "[] [-]"). iApply Sub_Mu_B. by iApply Sub_Mu_X. Qed.
 
   (*
@@ -172,8 +172,8 @@ Section swap_based_typing_lemmas.
   Context `{!dlangG Σ} {Γ}.
 
   Lemma Sub_TVMem_Variant' T1 T2 i j l:
-    Γ ⊨ [TLater T1, i] <: [TLater T2, j + i] -∗
-    Γ ⊨ [TVMem l T1, i] <: [TVMem l T2, j + i].
+    Γ ⊨ TLater T1, i <: TLater T2, j + i -∗
+    Γ ⊨ TVMem l T1, i <: TVMem l T2, j + i.
   Proof.
     iIntros "#IHT /= !>" (ρ v) "#Hg #HT1". setoid_rewrite laterN_plus.
     iDestruct "HT1" as (d) "#[Hdl #HT1]".
@@ -184,8 +184,8 @@ Section swap_based_typing_lemmas.
   Qed.
 
   Lemma Sub_TVMem_Variant T1 T2 i l:
-    Γ ⊨ [TLater T1, i] <: [TLater T2, i] -∗
-    Γ ⊨ [TVMem l T1, i] <: [TVMem l T2, i].
+    Γ ⊨ TLater T1, i <: TLater T2, i -∗
+    Γ ⊨ TVMem l T1, i <: TVMem l T2, i.
   Proof.
     iApply (Sub_TVMem_Variant' _ _ _ 0).
   Qed.
@@ -193,9 +193,9 @@ Section swap_based_typing_lemmas.
   Context `{!SwapProp (iPropSI Σ)}.
 
   Lemma Sub_TAllConCov T1 T2 U1 U2 i:
-    Γ ⊨ [ TLater T2, i ] <: [ TLater T1, i ] -∗
-    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨ [ TLater U1, i ] <: [ TLater U2, i ] -∗
-    Γ ⊨ [ TAll T1 U1, i ] <: [ TAll T2 U2, i ].
+    Γ ⊨ TLater T2, i  <: TLater T1, i  -∗
+    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨ TLater U1, i  <: TLater U2, i  -∗
+    Γ ⊨ TAll T1 U1, i  <: TAll T2 U2, i .
   Proof.
     rewrite iterate_S /=.
     iIntros "#HsubT #HsubU /= !>" (ρ v) "#Hg #HT1".
@@ -214,9 +214,9 @@ Section swap_based_typing_lemmas.
   Qed.
 
   Lemma Sub_TTMem_Variant L1 L2 U1 U2 i l:
-    Γ ⊨ [TLater L2, i] <: [TLater L1, i] -∗
-    Γ ⊨ [TLater U1, i] <: [TLater U2, i] -∗
-    Γ ⊨ [TTMem l L1 U1, i] <: [TTMem l L2 U2, i].
+    Γ ⊨ TLater L2, i <: TLater L1, i -∗
+    Γ ⊨ TLater U1, i <: TLater U2, i -∗
+    Γ ⊨ TTMem l L1 U1, i <: TTMem l L2 U2, i.
   Proof.
     iIntros "#IHT #IHT1 /= !>" (ρ v) "#Hg #HT1".
     iDestruct "HT1" as (d) "[Hl2 H]".

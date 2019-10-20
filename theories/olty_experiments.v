@@ -72,7 +72,7 @@ Program Definition step_indexed_ivstp τ1 i1 τ2 i2 := nosubj_judgment_to_judgme
   (λ ρ, ∀ v, ▷^i1 oClose τ1 ρ v → ▷^i2 oClose τ2 ρ v)%I.
 Notation "τ1 , i1 <: τ2 , i2" := (step_indexed_ivstp τ1 i1 τ2 i2) (at level 73, τ2, i1, i2 at next level).
 
-Lemma equiv_vstp Γ τ1 τ2 i1 i2: Γ ⊨ [τ1 , i1] <: [τ2 , i2] ⊣⊢
+Lemma equiv_vstp Γ τ1 τ2 i1 i2: Γ ⊨ τ1 , i1 <: τ2 , i2 ⊣⊢
     (□∀ ρ v, env_oltyped Γ ρ → ▷^i1 oClose τ1 ρ v → ▷^i2 oClose τ2 ρ v)%I.
 Proof.
   iSplit; [iIntros "#H /= !>" (??) "#Hg" |
@@ -80,7 +80,7 @@ Proof.
   all: iApply ("H" with "Hg").
 Qed.
 
-Lemma andstp1 Γ τ1 τ2 i : Γ ⊨ [oAnd τ1 τ2 , i] <: [τ1 , i].
+Lemma andstp1 Γ τ1 τ2 i : Γ ⊨ oAnd τ1 τ2 , i <: τ1 , i.
 Proof.
   rewrite equiv_vstp /=. by iIntros "!>" (??) "#Hg #[? ?]".
 Qed.
@@ -169,7 +169,7 @@ Section SemTypes.
 
   Lemma Sub_Sel Γ L U va l i:
     Γ ⊨ tv va : oTTMem l L U, i -∗
-    Γ ⊨ [oLater L, i] <: [oTSel (pv va) l, i].
+    Γ ⊨ oLater L, i <: oTSel (pv va) l, i.
   Proof.
     iIntros "#Hva !>" (ρ v) "#Hg #HvL".
     iSpecialize ("Hva" with "Hg"). rewrite /= wp_value_inv'.
@@ -180,7 +180,7 @@ Section SemTypes.
 
   Lemma Sel_Sub Γ L U va l i:
     Γ ⊨ tv va : oTTMem l L U, i -∗
-    Γ ⊨ [oTSel (pv va) l, i] <: [oLater U, i].
+    Γ ⊨ oTSel (pv va) l, i <: oLater U, i.
   Proof.
     iIntros "#Hva !>" (ρ v) "#Hg #Hψ".
     iSpecialize ("Hva" with "Hg"); rewrite /= wp_value_inv'.
@@ -199,7 +199,7 @@ Section SemTypes.
 
   Lemma Sub_Sel2 Γ L U va l i:
     Γ ⊨ tv va : oTTMem l L U, i -∗
-    Γ ⊨ [oLater L, i] <: [oLater (sem_sel (pv va) l), i].
+    Γ ⊨ oLater L, i <: oLater (sem_sel (pv va) l), i.
   Proof.
     iIntros "/= #[% #Hva] !>" (ρ v Hclv) "#Hg #[_ HvL]". move: H => Hclva. iFrame (Hclv).
     iSpecialize ("Hva" with "Hg"); rewrite wp_value_inv'.
@@ -213,7 +213,7 @@ Section SemTypes.
 
   Lemma Sel_Sub2_Failed Γ L U va l i:
     Γ ⊨ tv va : oTTMem l L U, i -∗
-    Γ ⊨ [oLater ((sem_sel (pv va) l)), i] <: [oLater U, i].
+    Γ ⊨ oLater ((sem_sel (pv va) l)), i <: oLater U, i.
   Proof.
     iIntros "/= #[% #Hva] !>" (ρ v Hclv) "#Hg #[$ #[_ Hψ]]".
     iSpecialize ("Hva" with "Hg"); rewrite wp_value_inv'.
@@ -257,8 +257,8 @@ Section Sec2.
   Qed.
 
   Lemma D_Typ_Abs Γ T L U s σ l :
-    Γ ⊨ [T, 1] <: [U, 1] -∗
-    Γ ⊨ [L, 1] <: [T, 1] -∗
+    Γ ⊨ T, 1 <: U, 1 -∗
+    Γ ⊨ L, 1 <: T, 1 -∗
     s ↝[ σ ] T -∗
     Γ ⊨ { l := dtysem σ s } : oDTMem l L U.
   Proof.

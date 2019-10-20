@@ -262,10 +262,10 @@ Section typing.
     iIntros "/= !>" (ρ) "#Hg". rewrite hsubst_of_val -wp_value' interp_env_lookup // id_subst. by [].
   Qed.
 
-  Lemma andstp1 Γ τ1 τ2 i : Γ ⊨ [oAnd τ1 τ2 , i] <: [τ1 , i].
+  Lemma andstp1 Γ τ1 τ2 i : Γ ⊨ oAnd τ1 τ2 , i <: τ1 , i.
   Proof. iIntros "!>" (??) "#Hg #[$ _]". Qed.
 
-  Lemma andstp2 Γ τ1 τ2 i : Γ ⊨ [oAnd τ1 τ2 , i] <: [τ2 , i].
+  Lemma andstp2 Γ τ1 τ2 i : Γ ⊨ oAnd τ1 τ2 , i <: τ2 , i.
   Proof. iIntros "!>" (??) "#Hg #[_ $]". Qed.
 End typing.
 

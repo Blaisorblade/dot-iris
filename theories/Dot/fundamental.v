@@ -17,7 +17,7 @@ Section fundamental.
   fundamental_dms_typed Γ V ds T (HT: Γ |ds V ⊢ ds : T):
     wellMapped getStampTable -∗ Γ |L V ⊨ds ds : T with
   fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2):
-    wellMapped getStampTable -∗ Γ ⊨ [T1, i1] <: [T2, i2] with
+    wellMapped getStampTable -∗ Γ ⊨ T1, i1 <: T2, i2 with
   fundamental_typed Γ e T (HT: Γ ⊢ₜ e : T):
     wellMapped getStampTable -∗ Γ ⊨ e : T with
   fundamental_path_typed Γ p T i (HT : Γ ⊢ₚ p : T, i):
