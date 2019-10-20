@@ -44,6 +44,7 @@ theories/DSubSyn/unary_lr.v
 theories/DSubSyn/typing.v
 theories/DSubSyn/typing_objIdent.v
 theories/DSubSyn/fundamental.v
+theories/Dot/exampleInfra.v
 theories/Dot/syn.v
 theories/Dot/typing.v
 theories/Dot/typing_objIdent.v
@@ -54,6 +55,7 @@ theories/Dot/typeExtractionSyn.v
 theories/Dot/typeExtractionSem.v
 theories/Dot/traversals.v
 theories/Dot/stampedness_binding.v
+theories/Dot/unstampedness_binding.v
 theories/Dot/operational.v
 theories/Dot/synLemmas.v
 theories/Dot/step_fv.v
@@ -70,6 +72,7 @@ theories/Dot/lr_lemma.v
 theories/Dot/lr_lemmasTSel.v
 theories/Dot/lr_lemmasDefs.v
 theories/Dot/typingExamples.v
+theories/Dot/typingExamplesUnst.v
 theories/Dot/typingExInfra.v
 theories/Dot/experiments.v
 theories/Dot/noRussell.v

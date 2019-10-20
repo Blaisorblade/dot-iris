@@ -147,10 +147,10 @@ Section syntyping_stamping_lemmas.
     exists (tv (var_vl x)), g1.
     suff ?: e1' = tv (var_vl x) by naive_solver.
     destruct e1'; naive_solver.
-  - intros * Hus1 Hcl Hu1 IHs1 g.
+  - intros * Hus1 Hu1 IHs1 g.
     move: IHs1 => /(.$ g) [e' [g1 ?]].
     exists (tv (vabs e')), g1. naive_solver.
-  - intros * Huds1 IHs1 Hus1 Hcl g.
+  - intros * Huds1 IHs1 Hus1 g.
     move: IHs1 => /(.$ g) [ds' [g1 ?]].
     exists (tv (vobj ds')), g1; naive_solver.
   - intros * Hu1 IHs1 g.
@@ -182,14 +182,14 @@ Section syntyping_stamping_lemmas.
     split_and!; eauto 4 using unstamp_dms_hasnt.
 
     (* The core and most interesting case! Stamping dtysyn! *)
-  - intros * HclT Hus Hu1 IHs1 Hu2 IHs2 g.
+  - intros * Hus Hu1 IHs1 Hu2 IHs2 g.
     move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]];
     move: IHs2 => /(.$ g1) [g2 [Hts2 Hle2 ]].
-    have Husv: is_unstamped_dm (dtysyn T) by auto.
+    have Husv: is_unstamped_dm (S (length Γ)) (dtysyn T) by auto.
     destruct (extract g2 (S (length Γ)) T) as [g3 [s σ]] eqn:Heqo.
     move: Heqo => [Heqg3 Heqs Heqσ].
     have {Heqσ} -Heqσ: σ = idsσ (S (length Γ)) by naive_solver.
-    destruct (stamp_dtysyn_spec g2 Husv HclT); destruct_and!.
+    destruct (stamp_dtysyn_spec g2 Husv); destruct_and!.
     have ?: g2 ⊆ g3 by simplify_eq. lte g g1 g2; lte g g2 g3; lte g1 g2 g3.
     exists (dtysem σ s), g3; simplify_eq; split_and!;
       first eapply (typing_objIdent.dty_typed _ T); auto 2; [
@@ -203,6 +203,7 @@ Section syntyping_stamping_lemmas.
   - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [e1' [g1 ?]]; ev.
     destruct e1' as [v'| | |] => //. with_is_stamped inverse.
+    with_is_unstamped inverse.
     exists (pv (var_vl x)), g1.
     have ?: v' = var_vl x; naive_solver.
   - intros * Hu1 IHs1 g.
@@ -225,7 +226,7 @@ Section syntyping_stamping_lemmas.
     move: IHs1 => /(.$ g) /= [p1' [g1 ?]]; ev.
     exists g1. suff ?: p1' = p by naive_solver.
     move: (unstamped_path_root_is_var Hu1). naive_solver.
-  - intros * Hu1 IHs1 Hu2 IHs2 Hus2 Hcl g.
+  - intros * Hu1 IHs1 Hu2 IHs2 Hus2 g.
     move: IHs1 => /(.$ g) [g1 ?].
     move: IHs2 => /(.$ g1) [g2 ?]; ev; lte g g1 g2.
     exists g2; eauto.

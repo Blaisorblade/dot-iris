@@ -421,7 +421,6 @@ Lemma tAppIFT_coerced_typed_IFT Γ t s :
     TAll IFT (TAll IFT IFT).
 Proof. intros. apply tAppIFT_coerced_typed; eauto 2. Qed.
 
-Hint Extern 5 (is_stamped_ty _ _ _) => cbn : core.
 Definition IFTp0 := TAll p0Bool (TAll p0Bool.|[ren (+1)] (p0Bool.|[ren (+2)])).
 
 Lemma tAppIFT_coerced_typed_p0Boolean Γ T t s :

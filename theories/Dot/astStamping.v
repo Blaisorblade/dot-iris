@@ -2,7 +2,7 @@
     way, without involving Iris. *)
 From stdpp Require Import gmap.
 From D Require Import tactics.
-From D.Dot Require Import syn synLemmas typeExtractionSyn stampingDefsCore skeleton.
+From D.Dot Require Import syn synLemmas typeExtractionSyn stampingDefsCore skeleton unstampedness_binding.
 
 Set Implicit Arguments.
 
@@ -71,12 +71,12 @@ Definition unstamp_dms g ds := map (mapsnd (unstamp_dm g)) ds.
 (** XXX this formulation might be inconvenient: storing the correct n in the map might be preferable. *)
 Definition is_stamped_gmap g: Prop := ∀ s T, g !! s = Some T → ∃ n, is_stamped_ty n g T.
 
-Notation stamps_tm n e__u g e__s := (unstamp_tm g e__s = e__u ∧ is_unstamped_tm e__u ∧ is_stamped_tm n g e__s).
-Notation stamps_vl n v__u g v__s := (unstamp_vl g v__s = v__u ∧ is_unstamped_vl v__u ∧ is_stamped_vl n g v__s).
-Notation stamps_dm n d__u g d__s := (unstamp_dm g d__s = d__u ∧ is_unstamped_dm d__u ∧ is_stamped_dm n g d__s).
-Notation stamps_dms n d__u g d__s := (unstamp_dms g d__s%list = d__u%list ∧ is_unstamped_dms d__u ∧ is_stamped_dms n g d__s).
-Notation stamps_path n p__u g p__s := (unstamp_path g p__s = p__u ∧ is_unstamped_path p__u ∧ is_stamped_path n g p__s).
-Notation stamps_ty n T__u g T__s := (unstamp_ty g T__s = T__u % ty ∧ is_unstamped_ty T__u ∧ is_stamped_ty n g T__s).
+Notation stamps_tm n e__u g e__s := (unstamp_tm g e__s = e__u ∧ is_unstamped_tm n e__u ∧ is_stamped_tm n g e__s).
+Notation stamps_vl n v__u g v__s := (unstamp_vl g v__s = v__u ∧ is_unstamped_vl n v__u ∧ is_stamped_vl n g v__s).
+Notation stamps_dm n d__u g d__s := (unstamp_dm g d__s = d__u ∧ is_unstamped_dm n d__u ∧ is_stamped_dm n g d__s).
+Notation stamps_dms n d__u g d__s := (unstamp_dms g d__s%list = d__u%list ∧ is_unstamped_dms n d__u ∧ is_stamped_dms n g d__s).
+Notation stamps_path n p__u g p__s := (unstamp_path g p__s = p__u ∧ is_unstamped_path n p__u ∧ is_stamped_path n g p__s).
+Notation stamps_ty n T__u g T__s := (unstamp_ty g T__s = T__u % ty ∧ is_unstamped_ty n T__u ∧ is_stamped_ty n g T__s).
 
 Definition unstamp_same_skel_tm_def e g : Prop := ∀ e_s,
   unstamp_tm   g e_s = e → same_skel_tm e e_s.
@@ -118,29 +118,33 @@ Definition stamp_dtysyn g n T :=
 
 (** Unstamped types are already stamped, because they can't contain type
     definitions to stamp. *)
+Lemma unstamped_stamped_path p g n:
+  (∃ x, path_root p = var_vl x) →
+  is_unstamped_path n p → is_stamped_path n g p.
+Proof.
+  intros Heq Hus; induction p; ev; simplify_eq/=;
+    repeat with_is_unstamped ltac:(fun H => nosplit inverse H; clear H); eauto.
+Qed.
+
 Lemma unstamped_stamped_type T g n:
-  is_unstamped_ty T →
-  nclosed T n →
+  is_unstamped_ty n T →
   is_stamped_ty n g T.
 Proof.
-  move => Hus; move: n. induction T => n Hcl; inverse Hus; cbn in *; constructor => //=.
-  all: try by (eapply IHT || eapply IHT1 || eapply IHT2; eauto 2; auto with fv).
-  clear Hus; induction p.
-  - ev; cbn in *; simplify_eq. repeat constructor. rewrite /= -nclosed_vl_ids_equiv. auto with fv.
-  - with_is_unstamped inverse; cbn in *; constructor; cbn in *; ev; apply IHp; eauto with fv.
+  move: n. induction T => n Hus; inverse Hus; constructor;
+    try by [|eapply IHT || eapply IHT1 || eapply IHT2; auto 2; auto with fv].
+  exact: unstamped_stamped_path.
 Qed.
 Arguments extraction: simpl never.
 Import traversals.Trav1.
 
 Lemma stamp_dtysyn_spec {T n} g:
-  is_unstamped_dm (dtysyn T) → nclosed T n →
+  is_unstamped_dm n (dtysyn T) →
   let '(g', (s, σ)) := (extract g n T) in
   let v' := (dtysem σ s) in
   stamps_dm n (dtysyn T) g' v' ∧ g ⊆ g' ∧
     T ~[ n ] (g', (s, σ)).
 Proof.
-  intros Hus Hcl.
-  inverse Hus.
+  intros Hus; inverse Hus.
   have Hext: T ~[ n ] (extract g n T)
     by apply /extract_spec /unstamped_stamped_type.
   destruct (extract g n T) as (g' & s & σ) eqn:Heq.
@@ -151,12 +155,12 @@ Proof.
 Qed.
 
 Lemma exists_stamped_dtysyn T n g:
-  is_unstamped_dm (dtysyn T) → nclosed (dtysyn T) n →
+  is_unstamped_dm n (dtysyn T) →
   { v' & { g' | stamps_dm n (dtysyn T) g' v' ∧ g ⊆ g' } }.
 Proof.
-  intros Hus Hclv. destruct (stamp_dtysyn g n T) as (v', g') eqn:?.
-  have HclT: nclosed T n. by solve_inv_fv_congruence_h Hclv.
-  edestruct (stamp_dtysyn_spec g Hus HclT); cbn in *.
+  intros Hus. destruct (stamp_dtysyn g n T) as (v', g') eqn:?. cbn in Heqp.
+  have HclT: nclosed T n. by inverse Hus; auto with fv.
+  edestruct (stamp_dtysyn_spec g Hus).
   exists v', g'; simplify_eq; eauto.
 Qed.
 
@@ -187,8 +191,8 @@ Proof.
 Qed.
 Hint Resolve stamps_tm_skip : core.
 
-Lemma exists_stamped_dtysem vs s n g: is_unstamped_dm (dtysem vs s) → nclosed (dtysem vs s) n → { v' & { g' | stamps_dm n (dtysem vs s) g' v' ∧ g ⊆ g' } }.
-Proof. intro H. exfalso. by inversion H. Qed.
+Lemma exists_stamped_dtysem vs s n g: is_unstamped_dm n (dtysem vs s) → { v' & { g' | stamps_dm n (dtysem vs s) g' v' ∧ g ⊆ g' } }.
+Proof. intros H. exfalso. by inversion H. Qed.
 
 Lemma stamps_unstamp_dtysem_mono g1 g2 n v__u vs s:
   g1 ⊆ g2 →
