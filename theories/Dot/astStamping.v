@@ -190,7 +190,7 @@ Hint Resolve stamps_tm_skip : core.
 Lemma exists_stamped_dtysem vs s n g: is_unstamped_dm (dtysem vs s) → nclosed (dtysem vs s) n → { v' & { g' | stamps_dm n (dtysem vs s) g' v' ∧ g ⊆ g' } }.
 Proof. intro H. exfalso. by inversion H. Qed.
 
-Lemma stamps_unstamp_vstamp_mono g1 g2 n v__u vs s:
+Lemma stamps_unstamp_dtysem_mono g1 g2 n v__u vs s:
   g1 ⊆ g2 →
   stamps_dm n v__u g1 (dtysem vs s) →
   unstamp_dm g2 (dtysem vs s) = v__u.
@@ -226,7 +226,7 @@ Lemma stamps_unstamp_mono_mut:
                     stamps_ty n T__u g1 T__s →
                     unstamp_ty g2 T__s = T__u).
 Proof.
-  apply syntax_mut_ind; intros; ev; try (exact: stamps_unstamp_vstamp_mono);
+  apply syntax_mut_ind; intros; ev; try (exact: stamps_unstamp_dtysem_mono);
     with_is_stamped inverse; with_is_unstamped inverse;
     try naive_solver eauto with f_equal.
   f_equal/=; apply Forall2_eq_to_eqmap.
