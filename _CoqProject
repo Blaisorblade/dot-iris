@@ -55,6 +55,7 @@ theories/Dot/typeExtractionSyn.v
 theories/Dot/typeExtractionSem.v
 theories/Dot/traversals.v
 theories/Dot/stampedness_binding.v
+theories/Dot/unstampedness_binding.v
 theories/Dot/operational.v
 theories/Dot/synLemmas.v
 theories/Dot/step_fv.v

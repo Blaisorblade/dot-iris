@@ -24,10 +24,10 @@ Fixpoint path_root (p : path): vl :=
 Notation valid_stamp g g' n' vs s T' :=
   (g !! s = Some T' ∧ g' = g ∧ n' = length vs).
 
-Definition is_unstamped_trav: Traversal unit :=
+Definition is_unstamped_trav: Traversal nat :=
   {|
-    upS := id;
-    varP := λ _ n, True;
+    upS := S;
+    varP := λ n i, i < n;
     dtysynP := λ _ T, True;
     dtysemP := λ _ vs s T' ts', False;
     tselP := λ s p, ∃ x, path_root p = var_vl x;
@@ -42,13 +42,14 @@ Definition is_stamped_trav: Traversal (nat * stys) :=
     tselP := λ ts p, True;
   |}.
 
-Notation is_unstamped_tm := (forall_traversal_tm is_unstamped_trav ()).
-Notation is_unstamped_vl := (forall_traversal_vl is_unstamped_trav ()).
-Notation is_unstamped_dm := (forall_traversal_dm is_unstamped_trav ()).
-Notation is_unstamped_path := (forall_traversal_path is_unstamped_trav ()).
-Notation is_unstamped_ty := (forall_traversal_ty is_unstamped_trav ()).
+Notation is_unstamped_tm n := (forall_traversal_tm is_unstamped_trav n).
+Notation is_unstamped_vl n := (forall_traversal_vl is_unstamped_trav n).
+Notation is_unstamped_dm n := (forall_traversal_dm is_unstamped_trav n).
+Notation is_unstamped_path n := (forall_traversal_path is_unstamped_trav n).
+Notation is_unstamped_ty n := (forall_traversal_ty is_unstamped_trav n).
 
-Notation is_unstamped_dms ds := (forall_traversal_dms is_unstamped_trav () ds).
+Notation is_unstamped_dms n ds := (forall_traversal_dms is_unstamped_trav n ds).
+Notation is_unstamped_σ n σ := (Forall (is_unstamped_vl n) σ).
 
 Notation is_stamped_tm n g := (forall_traversal_tm is_stamped_trav (n, g)).
 Notation is_stamped_vl n g := (forall_traversal_vl is_stamped_trav (n, g)).
@@ -92,11 +93,11 @@ Notation "T ~[ n  ] gsσ" := (extraction n T gsσ) (at level 70).
 
 Ltac with_is_unstamped tac :=
   match goal with
-    | H: is_unstamped_ty   _ |- _ => tac H
-    | H: is_unstamped_tm   _ |- _ => tac H
-    | H: is_unstamped_dm   _ |- _ => tac H
-    | H: is_unstamped_path _ |- _ => tac H
-    | H: is_unstamped_vl   _ |- _ => tac H
+    | H: is_unstamped_ty   _ _ |- _ => tac H
+    | H: is_unstamped_tm   _ _ |- _ => tac H
+    | H: is_unstamped_dm   _ _ |- _ => tac H
+    | H: is_unstamped_path _ _ |- _ => tac H
+    | H: is_unstamped_vl   _ _ |- _ => tac H
   end.
 
 Ltac with_is_stamped tac :=

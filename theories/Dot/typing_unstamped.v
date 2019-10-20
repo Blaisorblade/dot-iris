@@ -44,15 +44,13 @@ Inductive typed Γ : tm → ty → Prop :=
 (** Introduction forms *)
 | Lam_typed e T1 T2:
     (* T1 :: Γ u⊢ₜ e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
-    is_unstamped_ty T1 →
-    nclosed T1 (length Γ) →
+    is_unstamped_ty (length Γ) T1 →
     T1.|[ren (+1)] :: Γ u⊢ₜ e : T2 →
     (*─────────────────────────*)
     Γ u⊢ₜ tv (vabs e) : TAll T1 T2
 | VObj_typed ds T:
     Γ |ds T u⊢ ds: T →
-    is_unstamped_ty T →
-    nclosed T (S (length Γ)) →
+    is_unstamped_ty (S (length Γ)) T →
     (*──────────────────────*)
     Γ u⊢ₜ tv (vobj ds): TMu T
 | TMuI_typed x T:
@@ -91,8 +89,7 @@ with dms_typed Γ : ty → dms → ty → Prop :=
 where "Γ |ds V u⊢ ds : T" := (dms_typed Γ V ds T)
 with dm_typed Γ : ty → label → dm → ty → Prop :=
 | dty_typed T V l L U:
-    nclosed T (S (length Γ)) →
-    is_unstamped_ty T →
+    is_unstamped_ty (S (length Γ)) T →
     TLater V :: Γ u⊢ₜ TLater L, 0 <: TLater T, 0 →
     TLater V :: Γ u⊢ₜ TLater T, 0 <: TLater U, 0 →
     Γ |d V u⊢{ l := dtysyn T } : TTMem l L U
@@ -120,26 +117,22 @@ where "Γ u⊢ₚ p : T , i" := (path_typed Γ p T i)
 (* Γ u⊢ₜ T1, i1 <: T2, i2 means that TLater^i1 T1 <: TLater^i2 T2. *)
 with subtype Γ : ty → nat → ty → nat → Prop :=
 | Refl_stp i T :
-    is_unstamped_ty T →
-    nclosed T (length Γ) →
+    is_unstamped_ty (length Γ) T →
     Γ u⊢ₜ T, i <: T, i
 | Trans_stp i2 T2 {i1 i3 T1 T3}:
     Γ u⊢ₜ T1, i1 <: T2, i2 →
     Γ u⊢ₜ T2, i2 <: T3, i3 →
     Γ u⊢ₜ T1, i1 <: T3, i3
 | TLaterL_stp i T:
-    is_unstamped_ty T →
-    nclosed T (length Γ) →
+    is_unstamped_ty (length Γ) T →
     Γ u⊢ₜ TLater T, i <: T, S i
 | TLaterR_stp i T:
-    is_unstamped_ty T →
-    nclosed T (length Γ) →
+    is_unstamped_ty (length Γ) T →
     Γ u⊢ₜ T, S i <: TLater T, i
 
 (* "Structural" rules about indexes *)
 | TAddLater_stp T i:
-    is_unstamped_ty T →
-    nclosed T (length Γ) →
+    is_unstamped_ty (length Γ) T →
     Γ u⊢ₜ T, i <: TLater T, i
 | TMono_stp T1 T2 i j:
     Γ u⊢ₜ T1, i <: T2, j →
@@ -147,40 +140,30 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 
 (* "Logical" connectives *)
 | Top_stp i T :
-    is_unstamped_ty T →
-    nclosed T (length Γ) →
+    is_unstamped_ty (length Γ) T →
     Γ u⊢ₜ T, i <: TTop, i
 | Bot_stp i T :
-    is_unstamped_ty T →
-    nclosed T (length Γ) →
+    is_unstamped_ty (length Γ) T →
     Γ u⊢ₜ TBot, i <: T, i
 | TAnd1_stp T1 T2 i:
-    is_unstamped_ty T1 →
-    is_unstamped_ty T2 →
-    nclosed T1 (length Γ) →
-    nclosed T2 (length Γ) →
+    is_unstamped_ty (length Γ) T1 →
+    is_unstamped_ty (length Γ) T2 →
     Γ u⊢ₜ TAnd T1 T2, i <: T1, i
 | TAnd2_stp T1 T2 i:
-    is_unstamped_ty T1 →
-    is_unstamped_ty T2 →
-    nclosed T1 (length Γ) →
-    nclosed T2 (length Γ) →
+    is_unstamped_ty (length Γ) T1 →
+    is_unstamped_ty (length Γ) T2 →
     Γ u⊢ₜ TAnd T1 T2, i <: T2, i
 | TAnd_stp T U1 U2 i j:
     Γ u⊢ₜ T, i <: U1, j →
     Γ u⊢ₜ T, i <: U2, j →
     Γ u⊢ₜ T, i <: TAnd U1 U2, j
 | TOr1_stp T1 T2 i:
-    is_unstamped_ty T1 →
-    is_unstamped_ty T2 →
-    nclosed T1 (length Γ) →
-    nclosed T2 (length Γ) →
+    is_unstamped_ty (length Γ) T1 →
+    is_unstamped_ty (length Γ) T2 →
     Γ u⊢ₜ T1, i <: TOr T1 T2, i
 | TOr2_stp T1 T2 i:
-    is_unstamped_ty T1 →
-    is_unstamped_ty T2 →
-    nclosed T1 (length Γ) →
-    nclosed T2 (length Γ) →
+    is_unstamped_ty (length Γ) T1 →
+    is_unstamped_ty (length Γ) T2 →
     Γ u⊢ₜ T2, i <: TOr T1 T2, i
 | TOr_stp T1 T2 U i j:
     Γ u⊢ₜ T1, i <: U, j →
@@ -206,16 +189,13 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 (* Subtyping for recursive types. Congruence, and opening in both directions. *)
 | Mu_stp_mu T1 T2 i:
     (iterate TLater i T1 :: Γ) u⊢ₜ T1, i <: T2, i →
-    is_unstamped_ty T1 →
-    nclosed T1 (S (length Γ)) →
+    is_unstamped_ty (S (length Γ)) T1 →
     Γ u⊢ₜ TMu T1, i <: TMu T2, i
 | Mu_stp T i:
-    is_unstamped_ty T →
-    nclosed T (length Γ) →
+    is_unstamped_ty (length Γ) T →
     Γ u⊢ₜ TMu T.|[ren (+1)], i <: T, i
 | Stp_mu T i:
-    is_unstamped_ty T →
-    nclosed T (length Γ) →
+    is_unstamped_ty (length Γ) T →
     Γ u⊢ₜ T, i <: TMu T.|[ren (+1)], i
 
 (* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types.
@@ -227,8 +207,7 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 | TAllConCov_stp T1 T2 U1 U2 i:
     Γ u⊢ₜ TLater T2, i <: TLater T1, i →
     iterate TLater (S i) T2.|[ren (+1)] :: Γ u⊢ₜ TLater U1, i <: TLater U2, i →
-    is_unstamped_ty T2 →
-    nclosed T2 (length Γ) →
+    is_unstamped_ty (length Γ) T2 →
     Γ u⊢ₜ TAll T1 U1, i <: TAll T2 U2, i
 | TVMemCov_stp T1 T2 i l:
     Γ u⊢ₜ TLater T1, i <: TLater T2, i →
@@ -243,31 +222,23 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Let's prove F[A] ∧ F[B] <: F[A ∧ B] in the model.
     *)
 | TAllDistr_stp T U1 U2 i:
-    is_unstamped_ty T →
-    is_unstamped_ty U1 →
-    is_unstamped_ty U2 →
-    nclosed T (length Γ) →
-    nclosed U1 (S (length Γ)) →
-    nclosed U2 (S (length Γ)) →
+    is_unstamped_ty (length Γ) T →
+    is_unstamped_ty (S (length Γ)) U1 →
+    is_unstamped_ty (S (length Γ)) U2 →
     Γ u⊢ₜ TAnd (TAll T U1) (TAll T U2), i <: TAll T (TAnd U1 U2), i
 | TVMemDistr_stp l T1 T2 i:
-    is_unstamped_ty T1 →
-    is_unstamped_ty T2 →
-    nclosed T1 (length Γ) →
-    nclosed T2 (length Γ) →
+    is_unstamped_ty (length Γ) T1 →
+    is_unstamped_ty (length Γ) T2 →
     Γ u⊢ₜ TAnd (TVMem l T1) (TVMem l T2), i <: TVMem l (TAnd T1 T2), i
 | TTMemDistr_strp l L U1 U2 i:
-    is_unstamped_ty L →
-    is_unstamped_ty U1 →
-    is_unstamped_ty U2 →
-    nclosed L (length Γ) →
-    nclosed U1 (length Γ) →
-    nclosed U2 (length Γ) →
+    is_unstamped_ty (length Γ) L →
+    is_unstamped_ty (length Γ) U1 →
+    is_unstamped_ty (length Γ) U2 →
     Γ u⊢ₜ TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
 where "Γ u⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
 
 (* Make [T] first argument: Hide Γ for e.g. typing examples. *)
-Global Arguments dty_typed {Γ} T _ _ _ _ _ _ _ _ : assert.
+Global Arguments dty_typed {Γ} T _ _ _ _ _ _ _ : assert.
 
 Scheme unstamped_typed_mut_ind := Induction for typed Sort Prop
 with   unstamped_dms_typed_mut_ind := Induction for dms_typed Sort Prop
