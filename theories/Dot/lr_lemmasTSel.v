@@ -7,7 +7,7 @@ Section Sec.
   Context `{HdlangG: dlangG Σ} Γ.
 
   Lemma Sub_Sel_Path L U p l i:
-    Γ ⊨p p : TTMem l L U, i -∗
+    Γ ⊨ p : TTMem l L U, i -∗
     Γ ⊨ iterate TLater (S (plength p)) L, i <: TSel p l, i.
   Proof.
     rewrite iterate_S.
@@ -25,7 +25,7 @@ Section Sec.
   Qed.
 
   Lemma Sel_Sub_Path L U p l i:
-    Γ ⊨p p : TTMem l L U, i -∗
+    Γ ⊨ p : TTMem l L U, i -∗
     Γ ⊨ TSel p l, i <: iterate TLater (S (plength p)) U, i.
   Proof.
     rewrite iterate_S.
@@ -47,16 +47,16 @@ Section Sec.
 
   Lemma P_Val v T:
     Γ ⊨ tv v : T -∗
-    Γ ⊨p pv v : T, 0.
+    Γ ⊨ pv v : T, 0.
   Proof.
     iIntros "/= #Hp !>" (ρ) "#Hg".
     iSpecialize ("Hp" with "Hg"); rewrite wp_value_inv'. by [].
   Qed.
 
   Lemma P_Mem_E p T l i:
-    Γ ⊨p p : TVMem l T, i -∗
+    Γ ⊨ p : TVMem l T, i -∗
     (*─────────────────────────*)
-    Γ ⊨p pself p l : T, i.
+    Γ ⊨ pself p l : T, i.
   Proof.
     iIntros "#HE !>" (ρ) "#HG /=".
     iApply (path_wp_wand with "(HE HG)"); iNext i.
@@ -68,8 +68,8 @@ Section Sec.
      needed of path_wp hold simply by computation. *)
 
   Lemma P_DLater p T i :
-    Γ ⊨p p : TLater T, i -∗
-    Γ ⊨p p : T, S i.
+    Γ ⊨ p : TLater T, i -∗
+    Γ ⊨ p : T, S i.
   Proof.
     iIntros "/= #Hp !>" (ρ) "#Hg".
     rewrite -swap_later -path_wp_later_swap.
@@ -78,10 +78,10 @@ Section Sec.
   Qed.
 
   Lemma P_Sub p T1 T2 i j:
-    Γ ⊨p p : T1, i -∗
+    Γ ⊨ p : T1, i -∗
     Γ ⊨ T1, i <: T2, i + j -∗
     (*───────────────────────────────*)
-    Γ ⊨p p : T2, i + j.
+    Γ ⊨ p : T2, i + j.
   Proof.
     iIntros "/= * #HpT1 #Hsub !> * #Hg".
     iSpecialize ("HpT1" with "Hg").
