@@ -186,7 +186,7 @@ Proof.
     by decompose_Forall; eauto.
 Qed.
 
-Lemma is_stamped_ren_vl: ∀ v g r i j,
+Lemma is_stamped_ren_vl v g r i j:
   is_stamped_ren i j g r →
   is_stamped_vl i g v →
   is_stamped_vl j g (rename r v).
@@ -285,8 +285,17 @@ Lemma is_stamped_sub_one n T v g:
   is_stamped_vl n g v →
   is_stamped_ty n g (T.|[v/]).
 Proof.
-  intros; eapply is_stamped_sub_ty => //; by apply is_stamped_sub_single.
+  intros; eapply is_stamped_sub_ty => //. exact: is_stamped_sub_single.
 Qed.
+
+Lemma is_stamped_ren1 i g : is_stamped_ren i (S i) g (+1).
+Proof. apply is_stamped_ren_shift; auto. Qed.
+Hint Resolve is_stamped_ren1 : core.
+
+Lemma is_stamped_ren1_ty i T g:
+  is_stamped_ty i g T ->
+  is_stamped_ty (S i) g (T.|[ren (+1)]).
+Proof. exact: is_stamped_sub_ty. Qed.
 
 Lemma is_stamped_sub_rev_mut g:
   (∀ e i,
@@ -354,6 +363,5 @@ Lemma is_stamped_ren_ty i T g:
   is_stamped_ty i g T <->
   is_stamped_ty (S i) g (T.|[ren (+1)]).
 Proof.
-  have Hs: is_stamped_sub i (S i) g (ren (+1)). by apply is_stamped_ren_shift; lia.
-  split; intros; by [ eapply is_stamped_sub_ty | eapply is_stamped_sub_rev_ty].
+  split; [ exact: is_stamped_sub_ty | exact: is_stamped_sub_rev_ty ].
 Qed.

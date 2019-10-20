@@ -316,11 +316,6 @@ Lemma Let_typed Γ t u T U :
   Γ ⊢ₜ lett t u : U.
 Proof. move=> Ht Hu HsT. apply /App_typed /Ht /Lam_typed /Hu /HsT. Qed.
 
-Lemma is_stamped_ren1_ty i T g:
-  is_stamped_ty i g T ->
-  is_stamped_ty (S i) g (T.|[ren (+1)]).
-Proof. apply is_stamped_sub_ty, is_stamped_ren_shift; lia. Qed.
-
 (* Note how we must weaken the type (or its environment) to account for the
    self-variable of the created object. *)
 Definition packTV n s := (ν {@ type "A" = ((idsσ n).|[ren (+1)]; s)}).
