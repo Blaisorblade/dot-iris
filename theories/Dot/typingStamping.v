@@ -1,4 +1,4 @@
-From D.Dot Require Import typing_objIdent stampedness astStamping.
+From D.Dot Require Import typing_objIdent stampingDefsCore astStamping.
 From D.Dot Require typing_unstamped.
 
 Set Implicit Arguments.

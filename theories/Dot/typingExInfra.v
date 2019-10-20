@@ -124,7 +124,7 @@ Notation tUnit := (tv (vnat 0) : tm).
 (** WEAKENING **)
 (***************)
 From D.Dot Require Export typing.
-From D.Dot Require Import traversals stampedness typeExtractionSyn.
+From D.Dot Require Import traversals stampingDefsCore typeExtractionSyn.
 
 Lemma extr_dtysem_stamped {g s} σ T n :
   T ~[ n ] (g, (s, σ)) →

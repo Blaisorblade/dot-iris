@@ -1,5 +1,4 @@
 From D.Dot Require Export syn stampingDefsCore.
-(* typeExtractionSyn stampedness closed_subst synLemmas. *)
 
 Reserved Notation "Γ ⊢ₜ e : T"
   (at level 74, e, T at next level,

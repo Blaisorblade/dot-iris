@@ -5,7 +5,7 @@
   allows arbitrary values in types.
 *)
 From D Require Import tactics.
-From D.DSub Require Export syn stampedness.
+From D.DSub Require Export syn stampingDefsCore.
 From D.DSubSyn Require Export typing.
 
 Reserved Notation "Γ u⊢ₜ e : T" (at level 74, e, T at next level).

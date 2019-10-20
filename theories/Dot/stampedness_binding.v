@@ -1,34 +1,17 @@
-(** Define "stamping" (what we used to call translation) in a purely syntactic
-    way, without involving Iris. *)
-From stdpp Require Import gmap list.
-From D.DSub Require Import syn synLemmas traversals.
-From D.DSub Require Export stampingDefsCore.
-
+(** Lemmas relating is_stamped with binding and substitution. *)
+From D.Dot Require Import syn synLemmas traversals.
+From D.Dot Require Export stampingDefsCore.
 Import Trav1.
-Set Primitive Projections.
+
 Set Implicit Arguments.
 
-Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx) (g: stys) (n: nat).
-
-Ltac with_is_unstamped tac :=
-  match goal with
-    | H: is_unstamped_ty _ |- _ => tac H
-    | H: is_unstamped_tm _ |- _ => tac H
-    | H: is_unstamped_vl _ |- _ => tac H
-  end.
-
-Ltac with_is_stamped tac :=
-  match goal with
-    | H: is_stamped_ty _ _ _ |- _ => tac H
-    | H: is_stamped_tm _ _ _ |- _ => tac H
-    | H: is_stamped_vl _ _ _ |- _ => tac H
-  end.
+Implicit Types
+         (T: ty) (v: vl) (e: tm) (p: path) (d: dm) (ds: dms) (vs: vls)
+         (Γ : ctx) (g: stys) (n: nat).
 
 Definition is_stamped_sub n m g s :=
   ∀ i, i < n → is_stamped_vl m g (s i).
 Notation is_stamped_ren n m g r := (is_stamped_sub n m g (ren r)).
-
-Notation is_stamped_σ n g σ := (Forall (is_stamped_vl n g) σ).
 
 Lemma is_stamped_nclosed_mut g:
   (∀ t i,
@@ -37,6 +20,12 @@ Lemma is_stamped_nclosed_mut g:
   (∀ v i,
     is_stamped_vl i g v →
     nclosed_vl v i) ∧
+  (∀ d i,
+    is_stamped_dm i g d →
+    nclosed d i) ∧
+  (∀ p i,
+    is_stamped_path i g p →
+    nclosed p i) ∧
   (∀ T i,
     is_stamped_ty i g T →
     nclosed T i).
@@ -44,7 +33,11 @@ Proof.
   apply syntax_mut_ind; intros; with_is_stamped inverse => //; ev;
     try by move => s1 s2 Hseq; f_equal/=;
       try first [eapply H|eapply H0]; eauto using eq_up.
-  - apply fv_vstamp. decompose_Forall. by eauto.
+  - apply fv_vobj, nclosed_axs_to_nclosed.
+    generalize dependent ds => ds.
+    rewrite !Forall_fmap => *.
+    decompose_Forall; case_match; subst. eauto.
+  - apply fv_dtysem. decompose_Forall. by eauto.
 Qed.
 
 Lemma is_stamped_nclosed_vl v g i:
@@ -75,6 +68,14 @@ Lemma is_stamped_weaken_mut g:
       is_stamped_vl m g v__s →
       m <= n →
       is_stamped_vl n g v__s) ∧
+  (∀ d__s m n,
+      is_stamped_dm m g d__s →
+      m <= n →
+      is_stamped_dm n g d__s) ∧
+  (∀ p__s m n,
+      is_stamped_path m g p__s →
+      m <= n →
+      is_stamped_path n g p__s) ∧
   (∀ T__s m n,
       is_stamped_ty m g T__s →
       m <= n →
@@ -94,6 +95,16 @@ Lemma is_stamped_weaken_vl g v__s m n:
   is_stamped_vl m g v__s →
   m <= n →
   is_stamped_vl n g v__s.
+Proof. apply (is_stamped_weaken_mut g). Qed.
+Lemma is_stamped_weaken_dm g d__s m n:
+  is_stamped_dm m g d__s →
+  m <= n →
+  is_stamped_dm n g d__s.
+Proof. apply (is_stamped_weaken_mut g). Qed.
+Lemma is_stamped_weaken_path g p__s m n:
+  is_stamped_path m g p__s →
+  m <= n →
+  is_stamped_path n g p__s.
 Proof. apply (is_stamped_weaken_mut g). Qed.
 Lemma is_stamped_weaken_ty g T__s m n:
   is_stamped_ty m g T__s →
@@ -119,53 +130,6 @@ Lemma is_stamped_idsσ g m n: n <= m → is_stamped_σ m g (idsσ n).
 Proof. pose proof (@is_stamped_idsσ_ren g m n 0) as H. asimpl in H. exact: H. Qed.
 Hint Resolve is_stamped_idsσ : core.
 
-Lemma not_stamped_vty g n T:
-  ¬ (is_stamped_vl n g (vty T)).
-Proof. by inversion 1. Qed.
-
-Lemma is_stamped_vty_mono g1 g2 n T:
-  g1 ⊆ g2 →
-  is_stamped_vl n g1 (vty T) →
-  is_stamped_vl n g2 (vty T).
-Proof. intros; exfalso. by eapply not_stamped_vty. Qed.
-
-Lemma is_stamped_mono_tm g1 g2 n e__s:
-  g1 ⊆ g2 →
-  is_stamped_tm n g1 e__s →
-  is_stamped_tm n g2 e__s
-with is_stamped_mono_vl g1 g2 n v__s:
-  g1 ⊆ g2 →
-  is_stamped_vl n g1 v__s →
-  is_stamped_vl n g2 v__s
-with is_stamped_mono_ty g1 g2 n T__s:
-  g1 ⊆ g2 →
-  is_stamped_ty n g1 T__s →
-  is_stamped_ty n g2 T__s.
-Proof.
-  all: intros Hleg Hst; dependent induction Hst.
-  all: try solve [constructor;
-    by [| exact: (is_stamped_mono_tm _ _ _ _ Hleg)
-        | exact: (is_stamped_mono_vl _ _ _ _ Hleg)
-        | exact: (is_stamped_mono_ty _ _ _ _ Hleg)]].
-
-  - move: ts' H H0 H1 => /= [l g0] [Hgs [-> Heq]] HstT Hstvs.
-    eapply @trav_vstamp with (T' := T') (ts' := (length vs, g2)) => //=.
-    split_and!; by [|eapply map_subseteq_spec].
-    subst l; exact: (is_stamped_mono_ty _ _ _ _ Hleg).
-    (* Termination checking requires here a nested induction. *)
-    elim: Hstvs {Heq} => [|v vs' Hv H IHHstvs]; constructor;
-      by [| apply: (is_stamped_mono_vl _ _ _ _ Hleg Hv)].
-Qed.
-
-Lemma is_stamped_mono_σ g1 g2 n σ:
-  g1 ⊆ g2 →
-  is_stamped_σ n g1 σ →
-  is_stamped_σ n g2 σ.
-Proof. intros; decompose_Forall. exact: is_stamped_mono_vl. Qed.
-
-Hint Extern 5 (is_stamped_ty _ _ _) => try_once is_stamped_mono_ty : core.
-Hint Extern 5 (is_stamped_σ _ _ _) => try_once is_stamped_mono_σ : core.
-
 Lemma is_stamped_ren_shift n m j g:
   m >= j + n → is_stamped_ren n m g (+j).
 Proof. constructor => //=; lia. Qed.
@@ -182,7 +146,7 @@ Proof.
 Qed.
 Hint Resolve is_stamped_ren_up is_stamped_ren_shift : core.
 
-From D.DSub Require Import closed_subst.
+From D.Dot Require Import closed_subst.
 
 Lemma is_stamped_nclosed_ren i j g r: is_stamped_ren i j g r → nclosed_ren i j r.
 Proof.
@@ -198,6 +162,14 @@ Lemma is_stamped_ren_mut:
     is_stamped_ren i j g r →
     is_stamped_vl i g v →
     is_stamped_vl j g (rename r v)) ∧
+  (∀ d g r i j,
+    is_stamped_ren i j g r →
+    is_stamped_dm i g d →
+    is_stamped_dm j g (rename r d)) ∧
+  (∀ p g r i j,
+    is_stamped_ren i j g r →
+    is_stamped_path i g p →
+    is_stamped_path j g (rename r p)) ∧
   (∀ T g r i j,
     is_stamped_ren i j g r →
     is_stamped_ty i g T →
@@ -206,7 +178,9 @@ Proof.
   apply syntax_mut_ind; intros; with_is_stamped ltac:(fun H => inversion_clear H);
     cbn in *; try by [constructor; cbn; eauto].
   - eauto.
-  - eapply @trav_vstamp with (ts' := ts') (T' := T'); ev; subst;
+  - constructor; rewrite list_pair_swap_snd_rename Forall_fmap;
+      by decompose_Forall; eauto.
+  - eapply @trav_dtysem with (ts' := ts') (T' := T'); ev; subst;
       rewrite //= ?map_length ?Forall_fmap.
     by split_and!.
     by decompose_Forall; eauto.
@@ -236,15 +210,26 @@ Lemma is_stamped_sub_mut:
     is_stamped_sub i j g s →
     is_stamped_vl i g v →
     is_stamped_vl j g v.[s]) ∧
+  (∀ d g s i j,
+    is_stamped_sub i j g s →
+    is_stamped_dm i g d →
+    is_stamped_dm j g d.|[s]) ∧
+  (∀ p g s i j,
+    is_stamped_sub i j g s →
+    is_stamped_path i g p →
+    is_stamped_path j g p.|[s]) ∧
   (∀ T g s i j,
     is_stamped_sub i j g s →
     is_stamped_ty i g T →
     is_stamped_ty j g T.|[s]).
 Proof.
   apply syntax_mut_ind; intros; with_is_stamped ltac:(fun H => inversion_clear H);
-    cbn in *; try by [constructor; cbn; eauto].
-  - eauto.
-  - eapply @trav_vstamp with (ts' := ts') (T' := T'); ev; subst;
+    cbn in *; try by [constructor; cbn; eauto]; eauto.
+  - constructor => /=.
+    repeat rewrite ->Forall_fmap in *; rewrite !Forall_fmap.
+    decompose_Forall.
+    unfold snd in *; case_match; subst; cbn; eauto.
+  - eapply @trav_dtysem with (ts' := ts') (T' := T'); ev; subst;
       rewrite //= ?map_length ?Forall_fmap.
     by split_and!.
     by decompose_Forall; eauto.
@@ -314,6 +299,16 @@ Lemma is_stamped_sub_rev_mut g:
     ∀ s j,
     is_stamped_vl j g (v.[s]) →
     is_stamped_vl i g v) ∧
+  (∀ d i,
+    nclosed d i →
+    ∀ s j,
+    is_stamped_dm j g (d.|[s]) →
+    is_stamped_dm i g d) ∧
+  (∀ p i,
+    nclosed p i →
+    ∀ s j,
+    is_stamped_path j g (p.|[s]) →
+    is_stamped_path i g p) ∧
   (∀ T i,
     nclosed T i →
     ∀ s j,
@@ -324,9 +319,14 @@ Proof.
     try by with_is_stamped inverse; ev;
     constructor => /=; eauto using eq_up with lia.
   - auto using nclosed_var_lt.
+  - with_is_stamped inverse; cbn in *; ev.
+    unfold hsubst, list_hsubst in *.
+    constructor => /=.
+    rewrite ->?@Forall_fmap in *.
+    decompose_Forall. destruct x; cbn in *. eauto.
   - with_is_stamped inverse; cbn in *.
     unfold hsubst, list_hsubst in *; rewrite -> @Forall_fmap in *.
-    eapply @trav_vstamp with (ts' := ts') (T' := T'); ev; subst => //=;
+    eapply @trav_dtysem with (ts' := ts') (T' := T'); ev; subst => //=;
       rewrite //= ?map_length.
     by split_and!.
     by decompose_Forall; eauto.
@@ -357,8 +357,3 @@ Proof.
   have Hs: is_stamped_sub i (S i) g (ren (+1)). by apply is_stamped_ren_shift; lia.
   split; intros; by [ eapply is_stamped_sub_ty | eapply is_stamped_sub_rev_ty].
 Qed.
-
-Lemma is_stamped_tm_skip i T g n e:
-  is_stamped_tm i g e →
-  is_stamped_tm i g (iterate tskip n e).
-Proof. elim: n e => [//|n IHn] e Hs. constructor; exact: IHn. Qed.

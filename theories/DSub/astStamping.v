@@ -2,13 +2,17 @@
     way, without involving Iris. *)
 From stdpp Require Import gmap.
 From D Require Import tactics.
-From D.DSub Require Import syn synLemmas typeExtractionSyn stampedness.
+From D.DSub Require Import syn synLemmas typeExtractionSyn stampingDefsCore.
 
 Set Implicit Arguments.
 
 Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx) (g: stys) (n: nat).
 
-(* XXX taking a function would be more flexible; but is that needed? *)
+Lemma is_stamped_tm_skip i T g n e:
+  is_stamped_tm i g e →
+  is_stamped_tm i g (iterate tskip n e).
+Proof. elim: n e => [//|n IHn] e Hs. constructor; exact: IHn. Qed.
+
 (** Here we do not unstamp types from the map, and we can't: unstamping the map
     recursively might not be terminate. We need an unstamped map, which is
     what's produced in the first pass.
@@ -139,14 +143,15 @@ Lemma stamps_unstamp_mono_mut:
                     stamps_tm n e__u g1 e__s →
                     unstamp_tm g2 e__s = e__u) ∧
   (∀ v__s g1 g2 n v__u, g1 ⊆ g2 →
-                   stamps_vl n v__u g1 v__s →
-                   unstamp_vl g2 v__s = v__u) ∧
+                    stamps_vl n v__u g1 v__s →
+                    unstamp_vl g2 v__s = v__u) ∧
   (∀ T__s g1 g2 n T__u, g1 ⊆ g2 →
                     stamps_ty n T__u g1 T__s →
                     unstamp_ty g2 T__s = T__u).
 Proof.
-  apply syntax_mut_ind; intros; ev; try (by eapply stamps_unstamp_vstamp_mono);
-    cbn in *; with_is_stamped inverse; with_is_unstamped inverse; f_equal; eauto.
+  apply syntax_mut_ind; intros; ev; try (exact: stamps_unstamp_vstamp_mono);
+    with_is_stamped inverse; with_is_unstamped inverse;
+    naive_solver eauto with f_equal.
 Qed.
 
 Lemma stamps_unstamp_mono_tm e__s g1 g2 n e__u: g1 ⊆ g2 →

@@ -2,13 +2,18 @@
     way, without involving Iris. *)
 From stdpp Require Import gmap.
 From D Require Import tactics.
-From D.Dot Require Import syn synLemmas typeExtractionSyn stampedness skeleton.
+From D.Dot Require Import syn synLemmas typeExtractionSyn stampingDefsCore skeleton.
 
 Set Implicit Arguments.
 
 Implicit Types
          (T: ty) (v: vl) (e: tm) (p: path) (d: dm) (ds: dms) (vs: vls)
          (Γ : ctx) (g: stys) (n: nat).
+
+Lemma is_stamped_tm_skip i T g n e:
+  is_stamped_tm i g e →
+  is_stamped_tm i g (iterate tskip n e).
+Proof. elim: n e => [//|n IHn] e Hs. constructor; exact: IHn. Qed.
 
 (** Here we do not unstamp types from the map, and we can't: unstamping the map
     recursively might not be terminate. We need an unstamped map, which is
@@ -91,8 +96,8 @@ Lemma unstamp_same_skel_mut g :
   (∀ p, unstamp_same_skel_path_def p g) ∧
   (∀ T, unstamp_same_skel_ty_def T g).
 Proof.
-  apply syntax_mut_ind; intros ** E; destruct E =>//=; hnf in *;
-    intros; simplify_eq/=; intuition.
+  apply syntax_mut_ind; intros ** E ?; destruct E;
+    simplify_eq/=; intuition auto.
   - elim: l H => [//|[a d] ds IHds].
     rewrite Forall_cons /unstamp_same_skel_dm_def /= => -[Hd1 Hds1].
     split_and!; eauto. exact: IHds.

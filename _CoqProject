@@ -31,7 +31,7 @@ theories/DSub/typeExtractionSyn.v
 theories/DSub/typeExtractionSem.v
 theories/DSub/traversals.v
 theories/DSub/rules.v
-theories/DSub/stampedness.v
+theories/DSub/stampedness_binding.v
 theories/DSub/astStamping.v
 theories/DSub/synLemmas.v
 theories/DSub/operational.v
@@ -53,7 +53,7 @@ theories/Dot/examples.v
 theories/Dot/typeExtractionSyn.v
 theories/Dot/typeExtractionSem.v
 theories/Dot/traversals.v
-theories/Dot/stampedness.v
+theories/Dot/stampedness_binding.v
 theories/Dot/operational.v
 theories/Dot/synLemmas.v
 theories/Dot/step_fv.v

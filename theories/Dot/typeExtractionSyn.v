@@ -3,7 +3,7 @@ From stdpp Require Import gmap fin_map_dom.
 
 From D Require Import tactics.
 From D.Dot Require Import syn synLemmas.
-From D.Dot Require Export stampingDefsCore stampedness.
+From D.Dot Require Export stampingDefsCore stampedness_binding.
 
 Set Implicit Arguments.
 

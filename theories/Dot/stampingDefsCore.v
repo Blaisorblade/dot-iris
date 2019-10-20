@@ -1,5 +1,6 @@
+(** Define "stamping" in a purely syntactic
+    way, without involving Iris. *)
 From stdpp Require Import gmap.
-
 From D.Dot Require Import syn traversals.
 
 Set Implicit Arguments.
@@ -44,16 +45,19 @@ Definition is_stamped_trav: Traversal (nat * stys) :=
 Notation is_unstamped_tm := (forall_traversal_tm is_unstamped_trav ()).
 Notation is_unstamped_vl := (forall_traversal_vl is_unstamped_trav ()).
 Notation is_unstamped_dm := (forall_traversal_dm is_unstamped_trav ()).
-Notation is_unstamped_dms ds := (forall_traversal_dms is_unstamped_trav () ds).
 Notation is_unstamped_path := (forall_traversal_path is_unstamped_trav ()).
 Notation is_unstamped_ty := (forall_traversal_ty is_unstamped_trav ()).
+
+Notation is_unstamped_dms ds := (forall_traversal_dms is_unstamped_trav () ds).
 
 Notation is_stamped_tm n g := (forall_traversal_tm is_stamped_trav (n, g)).
 Notation is_stamped_vl n g := (forall_traversal_vl is_stamped_trav (n, g)).
 Notation is_stamped_dm n g := (forall_traversal_dm is_stamped_trav (n, g)).
-Notation is_stamped_dms n g ds := (forall_traversal_dms is_stamped_trav (n, g) ds).
 Notation is_stamped_path n g := (forall_traversal_path is_stamped_trav (n, g)).
 Notation is_stamped_ty n g := (forall_traversal_ty is_stamped_trav (n, g)).
+
+Notation is_stamped_dms n g ds := (forall_traversal_dms is_stamped_trav (n, g) ds).
+Notation is_stamped_σ n g σ := (Forall (is_stamped_vl n g) σ).
 
 (** Next, we define "extraction", which is the core of stamping.
     Extraction (as defined by [extraction]) is a relation, stable under
@@ -85,3 +89,80 @@ Definition extraction n T : (stys * extractedTy) → Prop :=
   ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T ∧
     Forall (is_stamped_vl n g) σ ∧ is_stamped_ty (length σ) g T'.
 Notation "T ~[ n  ] gsσ" := (extraction n T gsσ) (at level 70).
+
+Ltac with_is_unstamped tac :=
+  match goal with
+    | H: is_unstamped_ty   _ |- _ => tac H
+    | H: is_unstamped_tm   _ |- _ => tac H
+    | H: is_unstamped_dm   _ |- _ => tac H
+    | H: is_unstamped_path _ |- _ => tac H
+    | H: is_unstamped_vl   _ |- _ => tac H
+  end.
+
+Ltac with_is_stamped tac :=
+  match goal with
+    | H: is_stamped_ty _ _ _ |- _ => tac H
+    | H: is_stamped_tm _ _ _ |- _ => tac H
+    | H: is_stamped_vl _ _ _ |- _ => tac H
+    | H: is_stamped_dm _ _ _ |- _ => tac H
+    | H: is_stamped_path _ _ _ |- _ => tac H
+  end.
+
+(** * Stamping is monotone wrt stamp table extension. *)
+Lemma not_stamped_dtysyn g n T:
+  ¬ (is_stamped_dm n g (dtysyn T)).
+Proof. by inversion 1. Qed.
+
+Lemma is_stamped_dtysyn_mono g1 g2 n T:
+  g1 ⊆ g2 →
+  is_stamped_dm n g1 (dtysyn T) →
+  is_stamped_dm n g2 (dtysyn T).
+Proof. intros; exfalso. by eapply not_stamped_dtysyn. Qed.
+
+Lemma is_stamped_mono_tm g1 g2 n e__s:
+  g1 ⊆ g2 →
+  is_stamped_tm n g1 e__s →
+  is_stamped_tm n g2 e__s
+with is_stamped_mono_vl g1 g2 n v__s:
+  g1 ⊆ g2 →
+  is_stamped_vl n g1 v__s →
+  is_stamped_vl n g2 v__s
+with is_stamped_mono_dm g1 g2 n d__s:
+  g1 ⊆ g2 →
+  is_stamped_dm n g1 d__s →
+  is_stamped_dm n g2 d__s
+with is_stamped_mono_path g1 g2 n p__s:
+  g1 ⊆ g2 →
+  is_stamped_path n g1 p__s →
+  is_stamped_path n g2 p__s
+with is_stamped_mono_ty g1 g2 n T__s:
+  g1 ⊆ g2 →
+  is_stamped_ty n g1 T__s →
+  is_stamped_ty n g2 T__s.
+Proof.
+  all: intros Hleg Hst; dependent induction Hst.
+  all: try solve [constructor;
+    by [| exact: (is_stamped_mono_tm   _ _ _ _ Hleg)
+        | exact: (is_stamped_mono_vl   _ _ _ _ Hleg)
+        | exact: (is_stamped_mono_dm   _ _ _ _ Hleg)
+        | exact: (is_stamped_mono_path _ _ _ _ Hleg)
+        | exact: (is_stamped_mono_ty   _ _ _ _ Hleg)]].
+  - constructor; elim: H => [|d ds' Hd H IH]; constructor;
+     by [|exact: is_stamped_mono_dm].
+  - move: ts' H H0 H1 => /= [l g0] [Hgs [-> Heq]] HstT Hstvs.
+    eapply @trav_dtysem with (T' := T') (ts' := (length vs, g2)).
+    split_and!; by [|eapply map_subseteq_spec].
+    subst l; exact: (is_stamped_mono_ty _ _ _ _ Hleg).
+    (* Termination checking requires here a nested induction. *)
+    elim: Hstvs {Heq} => [|v vs' Hv H IHHstvs]; constructor;
+      by [| apply: (is_stamped_mono_vl _ _ _ _ Hleg Hv)].
+Qed.
+
+Lemma is_stamped_mono_σ g1 g2 n σ:
+  g1 ⊆ g2 →
+  is_stamped_σ n g1 σ →
+  is_stamped_σ n g2 σ.
+Proof. intros; decompose_Forall. exact: is_stamped_mono_vl. Qed.
+
+Hint Extern 5 (is_stamped_ty _ _ _) => try_once is_stamped_mono_ty : core.
+Hint Extern 5 (is_stamped_σ _ _ _) => try_once is_stamped_mono_σ : core.
