@@ -264,7 +264,7 @@ Notation "⟦ Γ ⟧*" := (interp_env Γ).
 Notation "⟦ T ⟧ₑ" := (interp_expr ⟦ T ⟧).
 
 (** Single-definition typing *)
-Notation "Γ ⊨d{ l := d  } : T" := (idtp Γ T l d) (at level 74, d, l, T at next level).
+Notation "Γ ⊨ { l := d  } : T" := (idtp Γ T l d) (at level 74, d, l, T at next level).
 (** Multi-definition typing *)
 Notation "Γ ⊨ds ds : T" := (idstp Γ T ds) (at level 74, ds, T at next level).
 (** Expression typing *)

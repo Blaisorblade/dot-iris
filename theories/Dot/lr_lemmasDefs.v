@@ -88,7 +88,7 @@ Section Sec.
   (** Lemmas about definition typing. *)
   Lemma TVMem_I (V: ty) T v l:
     V :: Γ ⊨ tv v : T -∗
-    Γ |L V ⊨d{ l := dvl v } : TVMem l T.
+    Γ |L V ⊨ { l := dvl v } : TVMem l T.
   Proof.
     iIntros "/= #Hv !>" (ρ) "[#Hg #Hw]".
     iSplit => //; iExists _; iSplit => //.
@@ -118,7 +118,7 @@ Section Sec.
 
   Lemma DCons_I d ds l T1 T2:
     dms_hasnt ds l →
-    Γ ⊨d{ l := d } : T1 -∗ Γ ⊨ds ds : T2 -∗
+    Γ ⊨ { l := d } : T1 -∗ Γ ⊨ds ds : T2 -∗
     Γ ⊨ds (l, d) :: ds : TAnd T1 T2.
   Proof.
     iIntros (Hlds) "#HT1 #HT2 !>". iIntros (ρ) "#Hg /=".

@@ -13,7 +13,7 @@ Section fundamental.
   Context `{hasStampTable: stampTable}.
 
   Lemma fundamental_dm_typed Γ V l d T (HT: Γ |d V ⊢{ l := d } : T):
-    wellMapped getStampTable -∗ Γ |L V ⊨d{ l := d } : T with
+    wellMapped getStampTable -∗ Γ |L V ⊨ { l := d } : T with
   fundamental_dms_typed Γ V ds T (HT: Γ |ds V ⊢ ds : T):
     wellMapped getStampTable -∗ Γ |L V ⊨ds ds : T with
   fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2):

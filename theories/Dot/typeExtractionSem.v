@@ -103,7 +103,7 @@ Section typing_type_member_defs.
     Γ ⊨ [TLater T, 0] <: [TLater U, 0] -∗
     Γ ⊨ [TLater L, 0] <: [TLater T, 0] -∗
     s ↝[ σ ] ⟦ T ⟧ -∗
-    Γ ⊨d{ l := dtysem σ s } : TTMem l L U.
+    Γ ⊨ { l := dtysem σ s } : TTMem l L U.
   Proof.
     iIntros "#HTU #HLT #Hs /= !>" (ρ) "#Hg".
     iDestruct "Hs" as (φ Hγφ) "Hγ"; iSplit => //=.
@@ -116,6 +116,6 @@ Section typing_type_member_defs.
 
   Lemma D_Typ Γ T s σ l:
     s ↝[ σ ] ⟦ T ⟧ -∗
-    Γ ⊨d{ l := dtysem σ s } : TTMem l T T.
+    Γ ⊨ { l := dtysem σ s } : TTMem l T T.
   Proof. iIntros "#Hs"; iApply D_Typ_Abs => //; iApply Sub_Refl. Qed.
 End typing_type_member_defs.

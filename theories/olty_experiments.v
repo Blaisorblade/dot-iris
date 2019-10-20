@@ -112,7 +112,7 @@ Definition idtp `{dlangG Σ} Γ l (φ : dlty Σ) d : iProp Σ :=
   (⌜ l = dlty_label φ ⌝ ∧
     □∀ ρ, ⟦Γ⟧* ρ → dlty_car φ ρ d.|[ρ])%I.
 Global Arguments idtp /.
-Notation "Γ ⊨d{ l := d  } : T" := (idtp Γ l T d) (at level 64, d, l, T at next level).
+Notation "Γ ⊨ { l := d  } : T" := (idtp Γ l T d) (at level 64, d, l, T at next level).
 
 Section SemTypes.
   Context `{HdotG: dlangG Σ}.
@@ -260,7 +260,7 @@ Section Sec2.
     Γ ⊨ [T, 1] <: [U, 1] -∗
     Γ ⊨ [L, 1] <: [T, 1] -∗
     s ↝[ σ ] T -∗
-    Γ ⊨d{ l := dtysem σ s } : oDTMem l L U.
+    Γ ⊨ { l := dtysem σ s } : oDTMem l L U.
   Proof.
     iIntros "#HTU #HLT #Hs /="; iSplit => //.
     iIntros "!>" (ρ) "#Hg /=".
@@ -275,7 +275,7 @@ Section Sec2.
 
   Lemma D_Typ Γ (τ : olty Σ 0) s σ l:
     s ↝[ σ ] τ -∗
-    Γ ⊨d{ l := dtysem σ s } : oDTMem l τ τ.
+    Γ ⊨ { l := dtysem σ s } : oDTMem l τ τ.
   Proof. iIntros "#Hs"; iApply D_Typ_Abs; by [| iIntros "!> **"]. Qed.
 End Sec2.
 End SemTypes.
