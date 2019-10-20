@@ -231,11 +231,11 @@ Section Sec.
   Qed.
 
   Lemma T_self_sem_psingleton Γ p T i :
-    (Γ ⊨p p : T , i) -∗
-    (* (Γ ⊨p p : sem_psingleton p , i) *)
-    (□∀ ρ, ⟦Γ⟧* ρ →
+    Γ ⊨p p : T , i -∗
+    (* Γ ⊨p p : sem_psingleton p , i *)
+    □∀ ρ, ⟦Γ⟧* ρ →
       ▷^i path_wp (p.|[ρ])
-      (λ v, sem_psingleton p ρ v)).
+      (λ v, sem_psingleton p ρ v).
   Proof.
     iIntros "#Hp !>" (vs) "#Hg".
     iSpecialize ("Hp" with "Hg"); iNext i.
