@@ -242,7 +242,7 @@ End judgments.
 
 Notation "Γ ⊨ e : τ" := (ietp Γ τ e) (at level 74, e, τ at next level).
 Notation "Γ ⊨ e : τ , i" := (step_indexed_ietp Γ τ e i) (at level 74, e, τ at next level).
-Notation "Γ ⊨ [ τ1 , i ]  <: [ τ2 , j ]" := (step_indexed_ivstp Γ τ1 τ2 i j) (at level 74, τ1, τ2, i, j at next level).
+Notation "Γ ⊨ T1 , i <: T2 , j " := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2, i, j at next level).
 
 Section typing.
   Context `{dlangG Σ}.
@@ -262,10 +262,10 @@ Section typing.
     iIntros "/= !>" (ρ) "#Hg". rewrite hsubst_of_val -wp_value' interp_env_lookup // id_subst. by [].
   Qed.
 
-  Lemma andstp1 Γ τ1 τ2 i : Γ ⊨ [oAnd τ1 τ2 , i] <: [τ1 , i].
+  Lemma andstp1 Γ τ1 τ2 i : Γ ⊨ oAnd τ1 τ2 , i <: τ1 , i.
   Proof. iIntros "!>" (??) "#Hg #[$ _]". Qed.
 
-  Lemma andstp2 Γ τ1 τ2 i : Γ ⊨ [oAnd τ1 τ2 , i] <: [τ2 , i].
+  Lemma andstp2 Γ τ1 τ2 i : Γ ⊨ oAnd τ1 τ2 , i <: τ2 , i.
   Proof. iIntros "!>" (??) "#Hg #[_ $]". Qed.
 End typing.
 

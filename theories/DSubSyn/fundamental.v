@@ -15,9 +15,9 @@ Section swap_based_typing_lemmas.
   Context `{!dsubSynG Σ} `{!SwapProp (iPropSI Σ)} {Γ}.
 
   Lemma Sub_TAllConCov T1 T2 U1 U2 i:
-    Γ ⊨ [ T2, S i ] <: [ T1, S i ] -∗
-    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨ [ U1, S i ] <: [ U2, S i ] -∗
-    Γ ⊨ [ TAll T1 U1, i ] <: [ TAll T2 U2, i ].
+    Γ ⊨ T2, S i <: T1, S i -∗
+    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨ U1, S i <: U2, S i -∗
+    Γ ⊨ TAll T1 U1, i <: TAll T2 U2, i .
   Proof.
     rewrite iterate_S /=.
     iIntros "#HsubT #HsubU /= !>" (ρ v) "#Hg".
@@ -64,9 +64,9 @@ Section swap_based_typing_lemmas.
   Qed.
 
   Lemma Sub_TTMem_Variant L1 L2 U1 U2 i:
-    Γ ⊨ [L2, S i] <: [L1, S i] -∗
-    Γ ⊨ [U1, S i] <: [U2, S i] -∗
-    Γ ⊨ [TTMem L1 U1, i] <: [TTMem L2 U2, i].
+    Γ ⊨ L2, S i <: L1, S i -∗
+    Γ ⊨ U1, S i <: U2, S i -∗
+    Γ ⊨ TTMem L1 U1, i <: TTMem L2 U2, i.
   Proof.
     iIntros "#IHT #IHT1 /= !>" (ρ v) "#Hg".
     unfold_interp.
@@ -90,7 +90,7 @@ Section Fundamental.
   Context `{!dsubSynG Σ} `{!SwapProp (iPropSI Σ)}.
 
   Lemma fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2):
-    Γ ⊨ [T1, i1] <: [T2, i2]
+    Γ ⊨ T1, i1 <: T2, i2
   with
   fundamental_typed Γ e T (HT: Γ ⊢ₜ e : T):
     Γ ⊨ e : T.

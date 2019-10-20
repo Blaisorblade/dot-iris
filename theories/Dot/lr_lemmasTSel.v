@@ -8,7 +8,7 @@ Section Sec.
 
   Lemma Sub_Sel_Path L U p l i:
     Γ ⊨p p : TTMem l L U, i -∗
-    Γ ⊨ [iterate TLater (S (plength p)) L, i] <: [TSel p l, i].
+    Γ ⊨ iterate TLater (S (plength p)) L, i <: TSel p l, i.
   Proof.
     rewrite iterate_S.
     iIntros "/= #Hp !>" (ρ v) "#Hg #Hφ /=".
@@ -26,7 +26,7 @@ Section Sec.
 
   Lemma Sel_Sub_Path L U p l i:
     Γ ⊨p p : TTMem l L U, i -∗
-    Γ ⊨ [TSel p l, i] <: [iterate TLater (S (plength p)) U, i].
+    Γ ⊨ TSel p l, i <: iterate TLater (S (plength p)) U, i.
   Proof.
     rewrite iterate_S.
     iIntros "/= #Hp !>" (ρ v) "#Hg #Hφ /=".
@@ -79,7 +79,7 @@ Section Sec.
 
   Lemma P_Sub p T1 T2 i j:
     Γ ⊨p p : T1, i -∗
-    Γ ⊨ [T1, i] <: [T2, i + j] -∗
+    Γ ⊨ T1, i <: T2, i + j -∗
     (*───────────────────────────────*)
     Γ ⊨p p : T2, i + j.
   Proof.

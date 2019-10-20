@@ -13,7 +13,7 @@ Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
   Lemma TAll_Later_Swap0 Γ T U `{SwapProp (iPropSI Σ)}:
-    Γ ⊨ [TAll (TLater T) U, 0] <: [TLater (TAll T U), 0].
+    Γ ⊨ TAll (TLater T) U, 0 <: TLater (TAll T U), 0.
   Proof.
     iIntros "!>" (ρ v) "_ /= #HvTU".
     iDestruct "HvTU" as (t ->) "#HvTU".
@@ -37,7 +37,7 @@ Section Sec.
   (** Stronger version of TAll_Later_Swap0, needs wp_later_swap, which
       might not extend to stronger WPs?*)
   Lemma TAll_Later_Swap `{SwapProp (iPropSI Σ)} Γ T U i:
-    Γ ⊨ [TAll (TLater T) (TLater U), i] <: [TLater (TAll T U), i].
+    Γ ⊨ TAll (TLater T) (TLater U), i <: TLater (TAll T U), i.
   Proof.
     iIntros "!>" (ρ v) "_ /= #HvTU". iNext i.
     iDestruct "HvTU" as (t ->) "#HvTU".
@@ -50,7 +50,7 @@ Section Sec.
   Qed.
 
   Lemma TVMem_Later_Swap Γ l T i:
-    Γ ⊨ [TVMem l (TLater T), i] <: [TLater (TVMem l T), i].
+    Γ ⊨ TVMem l (TLater T), i <: TLater (TVMem l T), i.
   Proof.
     iIntros "!>" (ρ v) "_ /= #HvT". iNext i.
     iDestruct "HvT" as (d Hlook) "#HvT".
@@ -75,7 +75,7 @@ Section Sec.
 
   (** Rename. *)
   Lemma iterate_Sub_Mono Γ T i j:
-    Γ ⊨ [ T, i ] <: [T, j + i].
+    Γ ⊨ T, i <: T, j + i.
   Proof.
     iInduction j as [] "IHj".
     - iApply Sub_Refl.
@@ -84,7 +84,7 @@ Section Sec.
   Qed.
 
   Lemma iterate_Sub_Later Γ T i j:
-    Γ ⊨ [T, j + i] <: [iterate TLater j T, i].
+    Γ ⊨ T, j + i <: iterate TLater j T, i.
   Proof.
       iInduction j as [] "IHj" forall (T).
     - iApply Sub_Refl.
@@ -103,16 +103,16 @@ Section Sec.
   Qed.
 
   Lemma selfIntersect Γ T U i j:
-    Γ ⊨ [ T, i ] <: [ U, j + i ] -∗
-    Γ ⊨ [ T, i ] <: [ TAnd U T, j + i ].
+    Γ ⊨ T, i <: U, j + i -∗
+    Γ ⊨ T, i <: TAnd U T, j + i .
   Proof.
     iIntros "H"; iApply (Sub_And with "[H//] []").
     iApply iterate_Sub_Mono.
   Qed.
 
   Lemma selfIntersectLater Γ T U i:
-    Γ ⊨ [ T, i ] <: [ TLater U, i ] -∗
-    Γ ⊨ [ T, i ] <: [ TLater (TAnd T U), i ].
+    Γ ⊨ T, i <: TLater U, i -∗
+    Γ ⊨ T, i <: TLater (TAnd T U), i .
   Proof.
     iIntros "H"; iSimpl; setoid_rewrite Distr_TLater_And.
     iApply (Sub_And with "[] H").
@@ -131,8 +131,8 @@ Section Sec.
 
   Lemma sub_rewrite_2 Γ T U1 U2 i:
     (∀ ρ v, ⟦ U1 ⟧ ρ v ⊣⊢ ⟦ U2 ⟧ ρ v) →
-    Γ ⊨ [ T, i ] <: [ U1, i ] ⊣⊢
-    Γ ⊨ [ T, i ] <: [ U2, i ].
+    Γ ⊨ T, i <: U1, i ⊣⊢
+    Γ ⊨ T, i <: U2, i .
   Proof.
     iIntros (Heq); iSplit; iIntros "/= #H !>" (ρ v) "#Hg #HT";
       [rewrite -Heq //|rewrite Heq //]; by iApply "H".
@@ -140,8 +140,8 @@ Section Sec.
 
   Lemma sub_rewrite_1 Γ T1 T2 U i:
     (∀ ρ v, ⟦ T1 ⟧ ρ v ⊣⊢ ⟦ T2 ⟧ ρ v) →
-    Γ ⊨ [ T1, i ] <: [ U, i ] ⊣⊢
-    Γ ⊨ [ T2, i ] <: [ U, i ].
+    Γ ⊨ T1, i <: U, i ⊣⊢
+    Γ ⊨ T2, i <: U, i .
   Proof.
     iIntros (Heq); iSplit; iIntros "/= #H !>" (ρ v) "#Hg #HT";
       [rewrite -Heq //|rewrite Heq //]; by iApply "H".
@@ -149,16 +149,16 @@ Section Sec.
 
   Lemma eq_to_bisub Γ T1 T2 i:
     (∀ ρ v, ⟦ T1 ⟧ ρ v ⊣⊢ ⟦ T2 ⟧ ρ v) → True ⊢
-    Γ ⊨ [ T1, i ] <: [ T2, i ] ∧
-    Γ ⊨ [ T2, i ] <: [ T1, i ].
+    Γ ⊨ T1, i <: T2, i ∧
+    Γ ⊨ T2, i <: T1, i .
   Proof.
     iIntros (Heq) "_"; iSplit; iIntros "/= !>" (ρ v) "#Hg #HT";
       [rewrite -Heq //|rewrite Heq //]; by iApply "H".
   Qed.
 
   Lemma selfIntersectLaterN Γ T U i j:
-    Γ ⊨ [ T, i ] <: [ iterate TLater j U, i ] -∗
-    Γ ⊨ [ T, i ] <: [ iterate TLater j (TAnd T U), i ].
+    Γ ⊨ T, i <: iterate TLater j U, i -∗
+    Γ ⊨ T, i <: iterate TLater j (TAnd T U), i .
   Proof.
     iIntros "H".
     setoid_rewrite (sub_rewrite_2 Γ T _ _ i (Distr_TLaterN_And T U j)).
@@ -169,7 +169,7 @@ Section Sec.
   Qed.
 
   Lemma iterate_Later_Sub Γ T i j:
-    Γ ⊨ [iterate TLater j T, i] <: [T, i + j].
+    Γ ⊨ iterate TLater j T, i <: T, i + j.
   Proof.
       iInduction j as [] "IHj" forall (T); rewrite ?plusnO ?iterate_Sr ?plusnS.
     - iApply Sub_Refl.
@@ -180,7 +180,7 @@ Section Sec.
 
   (* The point is, ensuring this works with T being a singleton type :-) *)
   Lemma dropLaters Γ e T U i:
-    Γ ⊨ e : T -∗ Γ ⊨ [T, 0] <: [iterate TLater i U, 0] -∗
+    Γ ⊨ e : T -∗ Γ ⊨ T, 0 <: iterate TLater i U, 0 -∗
     Γ ⊨ iterate tskip i e : TAnd T U.
   Proof.
     iIntros "HeT Hsub".

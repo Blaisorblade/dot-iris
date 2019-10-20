@@ -264,7 +264,7 @@ Notation "⟦ Γ ⟧*" := (interp_env Γ).
 Notation "⟦ T ⟧ₑ" := (interp_expr ⟦ T ⟧).
 
 (** Single-definition typing *)
-Notation "Γ ⊨d{ l := d  } : T" := (idtp Γ T l d) (at level 74, d, l, T at next level).
+Notation "Γ ⊨ { l := d  } : T" := (idtp Γ T l d) (at level 74, d, l, T at next level).
 (** Multi-definition typing *)
 Notation "Γ ⊨ds ds : T" := (idstp Γ T ds) (at level 74, ds, T at next level).
 (** Expression typing *)
@@ -272,7 +272,7 @@ Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 
 Notation "Γ ⊨p p : T , i" := (iptp Γ T p i) (at level 74, p, T, i at next level).
 
-Notation "Γ ⊨ [ T1 , i ]  <: [ T2 , j ]" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2, i, j at next level).
+Notation "Γ ⊨ T1 , i <: T2 , j " := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2, i, j at next level).
 
 (** Context extension for use with definition typing, as in
     [Γ |L V ⊨d d : T] and [Γ |L V ⊨ds ds : T]. *)
@@ -301,19 +301,19 @@ Section logrel_lemmas.
   Qed.
 
   Context {Γ}.
-  Lemma Sub_Refl T i : Γ ⊨ [T, i] <: [T, i].
+  Lemma Sub_Refl T i : Γ ⊨ T, i <: T, i.
   Proof. by iIntros "/= !> **". Qed.
 
-  Lemma Sub_Trans T1 T2 T3 i1 i2 i3 : Γ ⊨ [T1, i1] <: [T2, i2] -∗
-                                      Γ ⊨ [T2, i2] <: [T3, i3] -∗
-                                      Γ ⊨ [T1, i1] <: [T3, i3].
+  Lemma Sub_Trans T1 T2 T3 i1 i2 i3 : Γ ⊨ T1, i1 <: T2, i2 -∗
+                                      Γ ⊨ T2, i2 <: T3, i3 -∗
+                                      Γ ⊨ T1, i1 <: T3, i3.
   Proof.
     iIntros "#Hsub1 #Hsub2 /= !> * #Hg #HT".
     iApply ("Hsub2" with "[//] (Hsub1 [//] [//])").
   Qed.
 
   Lemma Sub_Eq T U i j :
-    Γ ⊨ [T, i] <: [U, j] ⊣⊢
-    Γ ⊨ [iterate TLater i T, 0] <: [iterate TLater j U, 0].
+    Γ ⊨ T, i <: U, j ⊣⊢
+    Γ ⊨ iterate TLater i T, 0 <: iterate TLater j U, 0.
   Proof. by cbn; setoid_rewrite iterate_TLater_later. Qed.
 End logrel_lemmas.

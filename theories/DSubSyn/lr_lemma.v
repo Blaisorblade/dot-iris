@@ -69,7 +69,7 @@ Section Sec.
 
   Lemma T_Sub e T1 T2 i:
     Γ ⊨ e : T1 -∗
-    Γ ⊨ [T1, 0] <: [T2, i] -∗
+    Γ ⊨ T1, 0 <: T2, i -∗
     (*───────────────────────────────*)
     Γ ⊨ iterate tskip i e : T2.
   Proof.
@@ -100,8 +100,8 @@ Section Sec.
   Qed.
 
   Lemma T_Vty_abs_I T L U :
-    Γ ⊨ [T, 1] <: [U, 1] -∗
-    Γ ⊨ [L, 1] <: [T, 1] -∗
+    Γ ⊨ T, 1 <: U, 1 -∗
+    Γ ⊨ L, 1 <: T, 1 -∗
     Γ ⊨ tv (vty T) : TTMem L U.
   Proof.
     iIntros "#HTU #HLT /= !>" (vs) "#HG".
@@ -130,7 +130,7 @@ Section Sec.
 
   Lemma Sub_Sel L U va i:
     Γ ⊨ tv va : TTMem L U, i -∗
-    Γ ⊨ [L, S i] <: [TSel va, i].
+    Γ ⊨ L, S i <: TSel va, i.
   Proof.
     iIntros "/= #Hva !>" (vs v) "#Hg #HvL".
     iSpecialize ("Hva" with "Hg"). iNext.
@@ -155,7 +155,7 @@ Section Sec.
 
   Lemma Sel_Sub L U va i:
     Γ ⊨ tv va : TTMem L U, i -∗
-    Γ ⊨ [TSel va, i] <: [U, S i].
+    Γ ⊨ TSel va, i <: U, S i.
   Proof.
     iIntros "/= #Hva !>" (vs v) "#Hg #Hφ".
     iSpecialize ("Hva" with "Hg").
@@ -175,8 +175,8 @@ Section Sec.
   Qed.
 
   Lemma Sub_Index_Incr T U i j:
-    Γ ⊨ [T, i] <: [U, j] -∗
-    Γ ⊨ [T, S i] <: [U, S j].
+    Γ ⊨ T, i <: U, j -∗
+    Γ ⊨ T, S i <: U, S j.
   Proof. iIntros "/= #Hsub !> ** !>". by iApply "Hsub". Qed.
 
   Lemma DSub_TTMem_Variant L1 L2 U1 U2 i:
@@ -195,7 +195,7 @@ Section Sec.
   Qed.
 
   Lemma Sub_Top T i:
-    Γ ⊨ [T, i] <: [TTop, i].
+    Γ ⊨ T, i <: TTop, i.
   Proof. by iIntros "!> **"; unfold_interp. Qed.
 
   Lemma DSub_Top T i:
@@ -205,7 +205,7 @@ Section Sec.
   Qed.
 
   Lemma Bot_Sub T i:
-    Γ ⊨ [TBot, i] <: [T, i].
+    Γ ⊨ TBot, i <: T, i.
   Proof. by iIntros "!> ** !>"; unfold_interp. Qed.
 
   Lemma DBot_Sub T i:

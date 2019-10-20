@@ -94,16 +94,16 @@ Section typing_type_member_defs.
       not just ⟦ T ⟧, but we haven't actually defined the
       necessary notation to state it:
   Lemma D_Typ_Sem Γ L U s σ l φ:
-    Γ ⊨ [φ, 1] <: [U, 1] -∗
-    Γ ⊨ [L, 1] <: [φ, 1] -∗
+    Γ ⊨ φ, 1 <: U, 1 -∗
+    Γ ⊨ L, 1 <: φ, 1 -∗
     (s, σ) ↝[ length Γ ] φ -∗
     Γ ⊨d dtysem σ s : TTMem l L U.
     *)
   Lemma D_Typ_Abs Γ T L U s σ l:
-    Γ ⊨ [TLater T, 0] <: [TLater U, 0] -∗
-    Γ ⊨ [TLater L, 0] <: [TLater T, 0] -∗
+    Γ ⊨ TLater T, 0 <: TLater U, 0 -∗
+    Γ ⊨ TLater L, 0 <: TLater T, 0 -∗
     s ↝[ σ ] ⟦ T ⟧ -∗
-    Γ ⊨d{ l := dtysem σ s } : TTMem l L U.
+    Γ ⊨ { l := dtysem σ s } : TTMem l L U.
   Proof.
     iIntros "#HTU #HLT #Hs /= !>" (ρ) "#Hg".
     iDestruct "Hs" as (φ Hγφ) "Hγ"; iSplit => //=.
@@ -116,6 +116,6 @@ Section typing_type_member_defs.
 
   Lemma D_Typ Γ T s σ l:
     s ↝[ σ ] ⟦ T ⟧ -∗
-    Γ ⊨d{ l := dtysem σ s } : TTMem l T T.
+    Γ ⊨ { l := dtysem σ s } : TTMem l T T.
   Proof. iIntros "#Hs"; iApply D_Typ_Abs => //; iApply Sub_Refl. Qed.
 End typing_type_member_defs.
