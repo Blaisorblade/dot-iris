@@ -193,7 +193,7 @@ Section Sec.
   (* Exercise: do this with only *syntactic* typing rules. *)
 
   (** Core definitions for singleton types. ⟦ w.type ⟧ ρ v *)
-  Definition sem_singleton w ρ v : iProp Σ := (⌜ w.[to_subst ρ] = v ⌝)%I.
+  Definition sem_singleton w ρ v : iProp Σ := ⌜ w.[to_subst ρ] = v ⌝.
   Arguments sem_singleton /.
 
   (* Core typing lemmas, sketches. TODO: make the above into a type, and add all
@@ -212,12 +212,12 @@ Section Sec.
 
   Lemma tskip_other_sem_singleton ρ w v v':
     sem_singleton w ρ v -∗
-    WP (tskip (tv v)) {{ sem_singleton w ρ }}%I.
+    WP (tskip (tv v)) {{ sem_singleton w ρ }}.
   Proof.
     iIntros (H); rewrite -wp_pure_step_later // -wp_value'. by iIntros "!%".
   Qed.
 
-  Definition sem_psingleton p ρ v : iProp Σ := (□path_wp p.|[ρ] (λ w, ⌜ w = v ⌝ ))%I.
+  Definition sem_psingleton p ρ v : iProp Σ := □path_wp p.|[ρ] (λ w, ⌜ w = v ⌝ )%I.
   Global Arguments sem_psingleton /.
 
   Lemma psingletons_equiv w ρ v: sem_singleton w ρ v ⊣⊢ sem_psingleton (pv w) (to_subst ρ) v.

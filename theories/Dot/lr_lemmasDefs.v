@@ -118,8 +118,8 @@ Section Sec.
 
   Lemma DCons_I d ds l T1 T2:
     dms_hasnt ds l →
-    Γ  ⊨d{ l := d } : T1 -∗ Γ  ⊨ds ds : T2 -∗
-    Γ  ⊨ds (l, d) :: ds : TAnd T1 T2.
+    Γ ⊨d{ l := d } : T1 -∗ Γ ⊨ds ds : T2 -∗
+    Γ ⊨ds (l, d) :: ds : TAnd T1 T2.
   Proof.
     iIntros (Hlds) "#HT1 #HT2 !>". iIntros (ρ) "#Hg /=".
     iSpecialize ("HT1" with "Hg"). iPoseProof "HT1" as (Hl) "_".

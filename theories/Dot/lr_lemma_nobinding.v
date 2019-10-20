@@ -81,11 +81,11 @@ Section Sec.
   Qed.
 
   Lemma Sub_Mono T i :
-    (Γ ⊨ [T, i] <: [T, S i])%I.
+    Γ ⊨ [T, i] <: [T, S i].
   Proof. by iIntros "!> **". Qed.
 
   Lemma Sub_Add_Later T i :
-    (Γ ⊨ [T, i] <: [TLater T, i])%I.
+    Γ ⊨ [T, i] <: [TLater T, i].
   Proof. by iIntros "!> ** !> /=". Qed.
 
   Lemma Sub_Later_Sub T1 T2 i j:
@@ -99,7 +99,7 @@ Section Sec.
   Qed.
 
   Lemma Later_Sub T i :
-    (Γ ⊨ [TLater T, i] <: [T, S i])%I.
+    Γ ⊨ [TLater T, i] <: [T, S i].
   Proof. by iIntros "/= !>" (ρ v) "#HG #HT !>". Qed.
 
   Lemma Sub_Later T i :
