@@ -7,8 +7,6 @@ Import stamp_transfer.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 
-Set Implicit Arguments.
-
 Section fundamental.
   Context `{!dlangG Σ} `{!SwapProp (iPropSI Σ)}.
   Context `{hasStampTable: stampTable}.
@@ -76,34 +74,29 @@ Section fundamental.
       + by iApply P_Mem_E.
       + iApply P_Sub; by [|iApply fundamental_subtype].
   Qed.
-
-  Lemma fundamental_typed_upd Γ e T :
-    Γ ⊢ₜ e : T → allGs ∅ ==∗ Γ ⊨ e : T.
-  Proof.
-    iIntros (HuT) "?". iApply (fundamental_typed HuT). by iApply transfer_empty.
-  Qed.
 End fundamental.
 
 (** Adequacy of our logical relation: semantically well-typed terms are safe. *)
 
 Import dlang_adequacy.
 
-Theorem adequacy Σ `{HdlangG: dlangPreG Σ} `{SwapProp (iPropSI Σ)} e T:
-  (∀ `(dlangG Σ) `(!SwapProp (iPropSI Σ)), allGs ∅ ==∗ [] ⊨ e : T) →
+Theorem adequacy Σ `{HdlangG: dlangPreG Σ} `{SwapProp (iPropSI Σ)} e g T:
+  (∀ `(dlangG Σ) `(!SwapProp (iPropSI Σ)), wellMapped g -∗ [] ⊨ e : T) →
   safe e.
 Proof.
   intros Hlog ?*; eapply (adequacy _).
-  iIntros (??) "Hs". iDestruct (Hlog with "Hs") as ">#Htyp".
+  iIntros (??) "Hs". iMod (transfer_empty g with "Hs") as "Hs".
+  iDestruct (Hlog with "Hs") as "#Htyp".
   by iSpecialize ("Htyp" $! ids with "[#//]"); rewrite hsubst_id.
 Qed.
 
 Corollary type_soundness_stamped e T `{!stampTable}:
   [] ⊢ₜ e : T → safe e.
 Proof.
-  intros; apply: (@adequacy dlangΣ _ _)=>*. exact: fundamental_typed_upd.
+  intros; apply: (adequacy dlangΣ) => *. exact: fundamental_typed.
 Qed.
 
-Lemma safe_same_skel e e_s:
+Lemma safe_same_skel {e e_s}:
   same_skel_tm e e_s → safe e_s → safe e.
 Proof.
   rewrite /safe; intros Hst Hsafe * Hred Hin.
@@ -114,7 +107,7 @@ Proof.
   - exact: same_skel_reducible.
 Qed.
 
-Lemma safe_stamp n e g e_s:
+Lemma safe_stamp {n e g e_s}:
   stamps_tm n e g e_s → safe e_s → safe e.
 Proof. move => [/unstamp_same_skel_tm Hs _] Hsafe. exact: safe_same_skel. Qed.
 
