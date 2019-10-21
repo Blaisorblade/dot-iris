@@ -11,14 +11,12 @@ From D.DSubSyn Require Import typing_objIdent.
 
 Set Implicit Arguments.
 
-Implicit Types (L T U V : ty) (v : vl) (e : tm) (Γ : ctx).
+Implicit Types (L T U V : ty) (v : vl) (e : tm) (Γ : ctx) (g : stys).
 
-Section syntyping.
-  Context `(hasStampTable: stampTable).
-  Reserved Notation "Γ s⊢ₜ[ g ] e : T" (at level 74, e, T at next level).
-  Reserved Notation "Γ s⊢ₜ[ g ] T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
+Reserved Notation "Γ s⊢ₜ[ g  ] e : T" (at level 74, e, T at next level).
+Reserved Notation "Γ s⊢ₜ[ g  ] T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
 
-Inductive typed Γ : tm → ty → Prop :=
+Inductive typed Γ g : tm → ty → Prop :=
 | Appv_typed e1 v2 T1 T2:
     Γ s⊢ₜ[ g ] e1: TAll T1 T2 →                        Γ s⊢ₜ[ g ] tv v2 : T1 →
     (*────────────────────────────────────────────────────────────*)
@@ -47,15 +45,15 @@ Inductive typed Γ : tm → ty → Prop :=
     (*───────────────────────────────*)
     Γ s⊢ₜ[ g ] iterate tskip i e : T2
 | Vty_abs_typed T L U σ s :
-    T ~[ length Γ ] (getStampTable, (s, σ)) →
+    T ~[ length Γ ] (g, (s, σ)) →
     Γ s⊢ₜ[ g ] T, 1 <: U, 1 →
     Γ s⊢ₜ[ g ] L, 1 <: T, 1 →
     Γ s⊢ₜ[ g ] tv (vstamp σ s) : TTMem L U
 (* A bit surprising this is needed, but appears in the DOT papers, and this is
    only admissible if t has a type U that is a proper subtype of TAnd T1 T2. *)
-where "Γ s⊢ₜ[ g ] e : T " := (typed Γ e T)
+where "Γ s⊢ₜ[ g ] e : T " := (typed Γ g e T)
 with
-subtype Γ : ty → nat → ty → nat → Prop :=
+subtype Γ g : ty → nat → ty → nat → Prop :=
 | Refl_stp i T :
     Γ s⊢ₜ[ g ] T, i <: T, i
 
@@ -99,7 +97,7 @@ subtype Γ : ty → nat → ty → nat → Prop :=
     Γ s⊢ₜ[ g ] L2, S i <: L1, S i →
     Γ s⊢ₜ[ g ] U1, S i <: U2, S i →
     Γ s⊢ₜ[ g ] TTMem L1 U1, i <: TTMem L2 U2, i
-where "Γ s⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
+where "Γ s⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ g T1 i1 T2 i2).
 
 (* Just to show this doesn't work as easily. *)
 (* Lemma stamp_typing_v1 Γ:
@@ -112,14 +110,10 @@ Proof.
     try solve [econstructor; eauto].
 Abort. *)
 
-Lemma Vty_typed Γ T L U σ s :
-    T ~[ length Γ ] (getStampTable, (s, σ)) →
+Lemma Vty_typed Γ g T L U σ s :
+    T ~[ length Γ ] (g, (s, σ)) →
     Γ s⊢ₜ[ g ] tv (vstamp σ s) : TTMem T T.
 Proof. intros H. apply (Vty_abs_typed (T := T)); auto using Refl_stp. Qed.
-End syntyping.
-
-Notation "Γ s⊢ₜ[ g  ] e : T" := (typed g Γ e T) (at level 74, e, T at next level).
-Notation "Γ s⊢ₜ[ g  ] T1 , i1 <: T2 , i2" := (subtype g Γ T1 i1 T2 i2) (at level 74, T1, T2, i1, i2 at next level).
 
 Scheme stamped_typed_mut_ind := Induction for typed Sort Prop
 with   stamped_subtype_mut_ind := Induction for subtype Sort Prop.
@@ -129,21 +123,21 @@ Hint Constructors subtype typed : core.
 Remove Hints Trans_stp : core.
 Hint Extern 10 => try_once Trans_stp : core.
 
-Lemma stamped_typing_mono_mut Γ (g g' : stys) (Hle: g ⊆ g'):
-  (∀ e T, Γ s⊢ₜ[ g ] e : T → Γ s⊢ₜ[ g' ] e : T) ∧
-  (∀ T1 i1 T2 i2, Γ s⊢ₜ[ g ] T1, i1 <: T2, i2 → Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2).
+Lemma stamped_typing_mono_mut Γ g:
+  (∀ e T, Γ s⊢ₜ[ g ] e : T → ∀ g' (Hle: g ⊆ g'), Γ s⊢ₜ[ g' ] e : T) ∧
+  (∀ T1 i1 T2 i2, Γ s⊢ₜ[ g ] T1, i1 <: T2, i2 → ∀ g' (Hle: g ⊆ g'), Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2).
 Proof.
   eapply stamped_typing_mut_ind with
-      (P := λ Γ e T _, Γ s⊢ₜ[ g' ] e : T)
-      (P0 := λ Γ T1 i1 T2 i2 _, Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2);
-  clear Γ; intros; ev; by eauto.
+      (P := λ Γ g e T _, ∀ g' (Hle: g ⊆ g'), Γ s⊢ₜ[ g' ] e : T)
+      (P0 := λ Γ g T1 i1 T2 i2 _, ∀ g' (Hle: g ⊆ g'), Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2);
+  clear Γ; intros; ev; try by eauto.
 Qed.
 Lemma stamped_typed_mono Γ (g g' : stys) (Hle: g ⊆ g') e T:
   Γ s⊢ₜ[ g ] e : T → Γ s⊢ₜ[ g' ] e : T.
-Proof. by apply (stamped_typing_mono_mut Γ Hle). Qed.
+Proof. unmut_lemma (stamped_typing_mono_mut Γ g). Qed.
 Lemma stamped_subtype_mono Γ (g g' : stys) (Hle: g ⊆ g') T1 i1 T2 i2:
   Γ s⊢ₜ[ g ] T1, i1 <: T2, i2 → Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2.
-Proof. by apply (stamped_typing_mono_mut Γ Hle). Qed.
+Proof. unmut_lemma (stamped_typing_mono_mut Γ g). Qed.
 
 Hint Extern 5 => try_once stamped_typed_mono : core.
 Hint Extern 5 => try_once stamped_subtype_mono : core.
