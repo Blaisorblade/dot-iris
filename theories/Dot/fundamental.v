@@ -3,6 +3,7 @@ From D Require Import swap_later_impl.
 From D.Dot Require Import unary_lr typing typeExtractionSem typing_unstamped
   lr_lemma lr_lemmasDefs lr_lemma_nobinding lr_lemmasTSel
   astStamping typingStamping skeleton.
+Import stamp_transfer.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 

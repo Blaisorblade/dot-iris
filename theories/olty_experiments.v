@@ -248,6 +248,7 @@ Notation "s ↝[  σ  ] φ" := (leadsto_envD_equiv s σ φ) (at level 20).
 Section Sec2.
   Context `{HdotG: dlangG Σ}.
 
+  Import stamp_transfer.
   Lemma extraction_to_leadsto_envD_equiv T g s σ n: T ~[ n ] (g, (s, σ)) →
     wellMapped g -∗ s ↝[ σ ] vopen (ty_interp T).
   Proof.
