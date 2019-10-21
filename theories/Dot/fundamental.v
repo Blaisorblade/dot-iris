@@ -7,20 +7,29 @@ Import stamp_transfer.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 
+(** Single-definition typing *)
+Notation "Γ ⊨[ g  ] { l := d  } : T" := (wellMapped g -∗ idtp Γ T l d)%I (at level 74, d, l, T at next level).
+(** Multi-definition typing *)
+Notation "Γ ⊨[ g  ]ds ds : T" := (wellMapped g -∗ idstp Γ T ds)%I (at level 74, ds, T at next level).
+(** Expression typing *)
+Notation "Γ ⊨[ g  ] e : T" := (wellMapped g -∗ ietp Γ T e)%I (at level 74, e, T at next level).
+Notation "Γ ⊨[ g  ]p p : T , i" := (wellMapped g -∗ iptp Γ T p i)%I (at level 74, p, T, i at next level).
+Notation "Γ ⊨[ g  ] T1 , i <: T2 , j" := (wellMapped g -∗ step_indexed_ivstp Γ T1 T2 i j)%I (at level 74, T1, T2, i, j at next level).
+
 Section fundamental.
   Context `{!dlangG Σ} `{!SwapProp (iPropSI Σ)}.
   Context `{hasStampTable: stampTable}.
 
   Lemma fundamental_dm_typed Γ V l d T (HT: Γ |d V ⊢{ l := d } : T):
-    wellMapped getStampTable -∗ Γ |L V ⊨ { l := d } : T with
+    Γ |L V ⊨[ getStampTable ] { l := d } : T with
   fundamental_dms_typed Γ V ds T (HT: Γ |ds V ⊢ ds : T):
-    wellMapped getStampTable -∗ Γ |L V ⊨ds ds : T with
+    Γ |L V ⊨[ getStampTable ]ds ds : T with
   fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2):
-    wellMapped getStampTable -∗ Γ ⊨ T1, i1 <: T2, i2 with
+    Γ ⊨[ getStampTable ] T1, i1 <: T2, i2 with
   fundamental_typed Γ e T (HT: Γ ⊢ₜ e : T):
-    wellMapped getStampTable -∗ Γ ⊨ e : T with
+    Γ ⊨[ getStampTable ] e : T with
   fundamental_path_typed Γ p T i (HT : Γ ⊢ₚ p : T, i):
-    wellMapped getStampTable -∗ Γ ⊨p p : T, i.
+    Γ ⊨[ getStampTable ]p p : T, i.
   Proof.
     - iIntros "#Hm"; induction HT.
       + iApply D_Typ_Abs; by [> iApply fundamental_subtype .. |
@@ -81,7 +90,7 @@ End fundamental.
 Import dlang_adequacy.
 
 Theorem adequacy Σ `{HdlangG: dlangPreG Σ} `{SwapProp (iPropSI Σ)} e g T:
-  (∀ `(dlangG Σ) `(!SwapProp (iPropSI Σ)), wellMapped g -∗ [] ⊨ e : T) →
+  (∀ `{dlangG Σ} `(!SwapProp (iPropSI Σ)), [] ⊨[ g ] e : T) →
   safe e.
 Proof.
   intros Hlog ?*; eapply (adequacy _).
