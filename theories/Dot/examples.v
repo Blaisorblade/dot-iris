@@ -1,6 +1,6 @@
 From iris.proofmode Require Import tactics.
 From D.Dot Require Import unary_lr
-  lr_lemma lr_lemma_nobinding lr_lemmasDefs typeExtractionSem.
+  lr_lemma lr_lemma_nobinding lr_lemmasDefs.
 
 (** XXX Not currently using olty. *)
 Module example.
@@ -47,11 +47,13 @@ Section ex.
     by rewrite wp_value_inv'.
   Qed.
 
-  Lemma vHasA0': Hs -∗ [] ⊨ tv v : TTMem "A" TBot TNat.
-  Proof.
-    rewrite -ietp_value. iApply vHasA0.
-  Qed.
+  Lemma vHasA0typ: Hs -∗ [] ⊨ tv v : TTMem "A" TBot TNat.
+  Proof. rewrite -ietp_value. iApply vHasA0. Qed.
 
+  Definition vTyp1 :=
+    TMu (TAnd
+          (TTMem "A" TBot TNat)
+          (TAnd (TVMem "n" (TSel (pv (ids 0)) "A")) TTop)).
   (* This works. Crucially, we use TMu_I to introduce the object type.
      This way, we can inline the object in the type selection.
      This cannot be done using T_New_I directly.
@@ -60,23 +62,23 @@ Section ex.
      XXX: also, maybe this *could* be done with T_New_I with
      a precise type? That'd be a more correct derivation.
    *)
-  Lemma vHasA1: Hs -∗ ∀ ρ,
-    ⟦ TMu (TAnd
-          (TTMem "A" TBot TNat)
-          (TAnd (TVMem "n" (TSel (pv (ids 0)) "A")) TTop)) ⟧ ρ v.[ρ].
+  Lemma vHasA1: Hs -∗ ∀ ρ, ⟦ vTyp1 ⟧ ρ v.[ρ].
   Proof.
     rewrite -ietp_value_inv -(TMu_I [] _ v).
     iIntros "#Hs".
-    iApply TAnd_I; first by [iApply vHasA0'].
+    iApply TAnd_I; first by [iApply vHasA0typ].
     iApply TAnd_I; first last.
     - iApply (T_Sub _ _ _ _ 0); last by iApply Sub_Top.
-      by iApply vHasA0'.
+      by iApply vHasA0typ.
     - rewrite -ietp_value /=.
       have Hev2: even (vnat 2). by exists 1.
       iIntros (_).
       repeat (repeat iExists _; repeat iSplit);
         by [|iApply dm_to_type_intro].
   Qed.
+
+  Lemma vHasA1t : Hs -∗ [] ⊨ tv v : vTyp1.
+  Proof. rewrite -ietp_value. iApply vHasA1. Qed.
 
   (*
     A different approach would be to type the object using T_New_I
@@ -88,10 +90,7 @@ Section ex.
     is overly abstract when we try proving that [this.n : this.A];
     see concretely below.
   *)
-  Lemma vHasA1': Hs -∗
-    ⟦ TMu (TAnd
-          (TTMem "A" TBot TNat)
-          (TAnd (TVMem "n" (TSel (pv (ids 0)) "A")) TTop)) ⟧ ids v.
+  Lemma vHasA1': Hs -∗ ⟦ vTyp1 ⟧ ids v.
   Proof.
     iIntros "#Hs".
     iDestruct (T_New_I [] _ with "[]") as "#H"; first last.
