@@ -12,15 +12,15 @@ Section fundamental.
   Context `{hasStampTable: stampTable}.
 
   Lemma fundamental_dm_typed Γ V l d T (HT: Γ |d V ⊢{ l := d } : T):
-    wellMapped getStampTable -∗ Γ |L V ⊨ { l := d } : T with
+    wellMappedφ ⟦ getStampTable ⟧g -∗ Γ |L V ⊨ { l := d } : T with
   fundamental_dms_typed Γ V ds T (HT: Γ |ds V ⊢ ds : T):
-    wellMapped getStampTable -∗ Γ |L V ⊨ds ds : T with
+    wellMappedφ ⟦ getStampTable ⟧g -∗ Γ |L V ⊨ds ds : T with
   fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2):
-    wellMapped getStampTable -∗ Γ ⊨ T1, i1 <: T2, i2 with
+    wellMappedφ ⟦ getStampTable ⟧g -∗ Γ ⊨ T1, i1 <: T2, i2 with
   fundamental_typed Γ e T (HT: Γ ⊢ₜ e : T):
-    wellMapped getStampTable -∗ Γ ⊨ e : T with
+    wellMappedφ ⟦ getStampTable ⟧g -∗ Γ ⊨ e : T with
   fundamental_path_typed Γ p T i (HT : Γ ⊢ₚ p : T, i):
-    wellMapped getStampTable -∗ Γ ⊨p p : T, i.
+    wellMappedφ ⟦ getStampTable ⟧g -∗ Γ ⊨p p : T, i.
   Proof.
     - iIntros "#Hm"; induction HT.
       + iApply D_Typ_Abs; by [> iApply fundamental_subtype .. |
@@ -81,13 +81,11 @@ End fundamental.
 Import dlang_adequacy.
 
 Theorem adequacy Σ `{HdlangG: dlangPreG Σ} `{SwapProp (iPropSI Σ)} e g T:
-  (∀ `(dlangG Σ) `(!SwapProp (iPropSI Σ)), wellMapped g -∗ [] ⊨ e : T) →
+  (∀ `{dlangG Σ} `(!SwapProp (iPropSI Σ)), wellMappedφ ⟦ g ⟧g -∗ [] ⊨ e : T) →
   safe e.
 Proof.
-  intros Hlog ?*; eapply (adequacy _).
-  iIntros (??) "Hs". iMod (transfer_empty g with "Hs") as "Hs".
-  iDestruct (Hlog with "Hs") as "#Htyp".
-  by iSpecialize ("Htyp" $! ids with "[#//]"); rewrite hsubst_id.
+  intros Hlog ?*; eapply (adequacySem _).
+  iIntros (??) "Hs"; iApply Hlog. by iApply transfer_empty.
 Qed.
 
 Corollary type_soundness_stamped e T `{!stampTable}:
