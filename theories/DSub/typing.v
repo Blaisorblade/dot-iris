@@ -9,6 +9,8 @@ From D.DSub Require Export syn.
 From D.DSub Require Import stampingDefsCore astStamping.
 From D.DSubSyn Require Import typing_objIdent.
 
+Set Implicit Arguments.
+
 Implicit Types (L T U V : ty) (v : vl) (e : tm) (Γ : ctx).
 
 Section syntyping.
@@ -113,7 +115,7 @@ Abort. *)
 Lemma Vty_typed Γ T L U σ s :
     T ~[ length Γ ] (getStampTable, (s, σ)) →
     Γ s⊢ₜ tv (vstamp σ s) : TTMem T T.
-Proof. intros H. apply (Vty_abs_typed Γ T); auto using Refl_stp. Qed.
+Proof. intros H. apply (Vty_abs_typed (T := T)); auto using Refl_stp. Qed.
 End syntyping.
 
 Notation "Γ s⊢ₜ[ g  ] e : T" := (typed g Γ e T) (at level 74, e, T at next level).
@@ -138,10 +140,10 @@ Proof.
 Qed.
 Lemma stamped_typed_mono Γ (g g' : stys) (Hle: g ⊆ g') e T:
   Γ s⊢ₜ[ g ] e : T → Γ s⊢ₜ[ g' ] e : T.
-Proof. by apply (stamped_typing_mono_mut Γ g g'). Qed.
+Proof. by apply (stamped_typing_mono_mut Γ Hle). Qed.
 Lemma stamped_subtype_mono Γ (g g' : stys) (Hle: g ⊆ g') T1 i1 T2 i2:
   Γ s⊢ₜ[ g ] T1, i1 <: T2, i2 → Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2.
-Proof. by apply (stamped_typing_mono_mut Γ g g'). Qed.
+Proof. by apply (stamped_typing_mono_mut Γ Hle). Qed.
 
 Hint Extern 5 => try_once stamped_typed_mono : core.
 Hint Extern 5 => try_once stamped_subtype_mono : core.
