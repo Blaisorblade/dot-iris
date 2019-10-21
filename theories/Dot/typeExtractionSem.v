@@ -21,6 +21,7 @@ Section typing_type_member_defs.
   Notation "s ↝[  σ  ] φ" := (leadsto_envD_equiv s σ φ) (at level 20).
 
   Import stamp_transfer.
+
   Lemma extraction_to_leadsto_envD_equiv T g s σ n: T ~[ n ] (g, (s, σ)) →
     wellMapped g -∗ s ↝[ σ ] ty_interp T.
   Proof.
