@@ -251,11 +251,12 @@ Section Sec2.
   Import stamp_transfer.
 
   Lemma extraction_to_leadsto_envD_equiv T g s σ n: T ~[ n ] (g, (s, σ)) →
-    wellMapped g -∗ s ↝[ σ ] vopen (ty_interp T).
+    wellMappedφ ⟦ g ⟧g -∗ s ↝[ σ ] vopen (ty_interp T).
   Proof.
     move => [T'] [Hl] [<- [_ /is_stamped_nclosed_ty HclT]].
-    iIntros "Hm". iExists (vopen (ty_interp T')). iSplitR; [|by iApply "Hm"].
-    iIntros "!%" (args ρ v). exact: unary_lr.interp_subst_commute.
+    iIntros "Hm". iExists (vopen (ty_interp T')). iSplitR.
+    - iIntros "!%" (args ρ v). exact: unary_lr.interp_subst_commute.
+    - iApply "Hm". by rewrite lookup_fmap Hl.
   Qed.
 
   Lemma D_Typ_Abs Γ T L U s σ l :

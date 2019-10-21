@@ -26,6 +26,20 @@ Section ex.
     sγ !! s = None → allGs sγ ==∗ Hs.
   Proof. exact (alloc ieven). Qed.
 
+  (* Experiments using fancier infrastructure: *)
+  Lemma allocHsGen sγ:
+    sγ !! s = None → allGs sγ ==∗ Hs.
+  Proof.
+    iIntros (Hl) "H"; iApply (transfer (<[s:=ieven]> ∅) with "H") => [s'|];
+      rewrite ?lookup_insert ?dom_insert ?dom_empty //. set_solver.
+  Qed.
+
+  Lemma allocHs1: allGs ∅ ==∗ Hs.
+  Proof.
+    iIntros "H"; iApply (transfer_empty (<[s:=ieven]> ∅) with "H").
+    by rewrite lookup_insert.
+  Qed.
+
   (** Under Iris assumption [Hs], [v.A] points to [ieven].
       We assume [Hs] throughout the rest of the section. *)
   Definition v := vobj [("A", dtysem [] s); ("n", dvl (vnat 2))].

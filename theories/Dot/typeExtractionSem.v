@@ -23,11 +23,12 @@ Section typing_type_member_defs.
   Import stamp_transfer.
 
   Lemma extraction_to_leadsto_envD_equiv T g s σ n: T ~[ n ] (g, (s, σ)) →
-    wellMapped g -∗ s ↝[ σ ] ty_interp T.
+    wellMappedφ ⟦ g ⟧g -∗ s ↝[ σ ] ty_interp T.
   Proof.
     move => [T'] [Hl] [<- [_ /is_stamped_nclosed_ty HclT]].
-    iIntros "Hm". iExists (ty_interp T'). iSplitR; [|by iApply "Hm"].
-    iIntros "!%" (ρ v). exact: interp_subst_commute.
+    iIntros "Hm". iExists (ty_interp T'). iSplitR.
+    - iIntros "!%" (ρ v). exact: interp_subst_commute.
+    - iApply "Hm". by rewrite lookup_fmap Hl.
   Qed.
 
   (** XXX In fact, this lemma should be provable for any φ,
