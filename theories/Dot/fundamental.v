@@ -81,13 +81,11 @@ End fundamental.
 Import dlang_adequacy.
 
 Theorem adequacy Σ `{HdlangG: dlangPreG Σ} `{SwapProp (iPropSI Σ)} e g T:
-  (∀ `(dlangG Σ) `(!SwapProp (iPropSI Σ)), wellMapped g -∗ [] ⊨ e : T) →
+  (∀ `{dlangG Σ} `(!SwapProp (iPropSI Σ)), wellMapped g -∗ [] ⊨ e : T) →
   safe e.
 Proof.
-  intros Hlog ?*; eapply (adequacy _).
-  iIntros (??) "Hs". iMod (transfer_empty g with "Hs") as "Hs".
-  iDestruct (Hlog with "Hs") as "#Htyp".
-  by iSpecialize ("Htyp" $! ids with "[#//]"); rewrite hsubst_id.
+  intros Hlog ?*; eapply (adequacySem _).
+  iIntros (??) "Hs"; iApply Hlog. by iApply (transfer_empty g).
 Qed.
 
 Corollary type_soundness_stamped e T `{!stampTable}:

@@ -317,3 +317,15 @@ Section logrel_lemmas.
     Γ ⊨ iterate TLater i T, 0 <: iterate TLater j U, 0.
   Proof. by cbn; setoid_rewrite iterate_TLater_later. Qed.
 End logrel_lemmas.
+
+From D Require Import swap_later_impl.
+Import dlang_adequacy.
+
+Theorem adequacySem Σ `{HdlangG: dlangPreG Σ} `{SwapProp (iPropSI Σ)} e T:
+  (∀ `{dlangG Σ} `(!SwapProp (iPropSI Σ)), allGs ∅ ==∗ [] ⊨ e : T) →
+  safe e.
+Proof.
+  intros Hlog ?*; eapply (adequacy _).
+  iIntros (??) "Hs". iDestruct (Hlog with "Hs") as ">#Htyp".
+  by iSpecialize ("Htyp" $! ids with "[#//]"); rewrite hsubst_id.
+Qed.
