@@ -7,6 +7,14 @@ Module example.
 Section ex.
   Context `{HdlangG: dlangG Σ}.
 
+  Import stamp_transfer.
+
+  Lemma alloc {s sγ} (φ : envD Σ) : sγ !! s = None → allGs sγ ==∗ s ↝ φ.
+  Proof.
+    iIntros (Hs) "Hsγ".
+    by iMod (stamp_to_type_alloc φ Hs with "Hsγ") as (?) "[_ [_ $]]".
+  Qed.
+
   Definition even v := ∃ n, v = vnat (2 * n).
   Definition ieven: envD Σ := λ ρ v, (⌜ even v ⌝) %I.
   Instance evenP ρ v: Persistent (ieven ρ v) := _.
@@ -14,6 +22,10 @@ Section ex.
   Context (s: stamp).
 
   Definition Hs := (s ↝ ieven)%I.
+  Lemma allocHs sγ:
+    sγ !! s = None → allGs sγ ==∗ Hs.
+  Proof. exact (alloc ieven). Qed.
+
   (** Under Iris assumption [Hs], [v.A] points to [ieven].
       We assume [Hs] throughout the rest of the section. *)
   Definition v := vobj [("A", dtysem [] s); ("n", dvl (vnat 2))].
@@ -116,5 +128,12 @@ Section ex.
       (* Stuck, since we don't know what [ρ 0] is and what
       "A" points to. *)
   Abort.
+
+  Lemma vHasA1TypAd : allGs ∅ ==∗ [] ⊨ tv v : vTyp1.
+  Proof. rewrite -ietp_value allocHs //; iIntros. by iApply vHasA1. Qed.
 End ex.
+
+Import dlang_adequacy swap_later_impl.
+Lemma vSafe: safe (tv (v 1%positive)).
+Proof. eapply (adequacySem dlangΣ)=>*; apply vHasA1TypAd. Qed.
 End example.

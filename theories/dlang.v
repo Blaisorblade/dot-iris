@@ -214,17 +214,26 @@ Module Type LiftWp (Import VS : VlSortsSig).
         rewrite dom_insert; set_solver.
       Qed.
 
+      Lemma stamp_to_type_alloc {sγ s} (φ : envD Σ) :
+        sγ !! s = None → allGs sγ ==∗
+        ∃ sγ', ⌜gdom sγ' ≡ {[s]} ∪ gdom sγ⌝ ∧ allGs sγ' ∧ s ↝ φ.
+      Proof.
+        iIntros (HsFresh) "Hallsγ".
+        iMod (saved_ho_sem_type_alloc 0 (vopen φ)) as (γ) "Hγ".
+        iMod (gen_iheap_alloc _ _ γ HsFresh with "Hallsγ") as "[Hallsγ Hs]".
+        iModIntro; iExists (<[s:=γ]> sγ); rewrite dom_insert.
+        repeat iSplit; last iExists γ; by iFrame.
+      Qed.
+
       (** We can transfer one mapping from [g] into Iris resources. *)
       Lemma transferOne sγ g s T :
         sγ !! s = None → allGs sγ ∧ wellMapped g ==∗
         ∃ sγ', ⌜gdom sγ' ≡ {[s]} ∪ gdom sγ⌝ ∧ allGs sγ' ∧ wellMapped (<[s := T]> g).
       Proof.
         iIntros (HsFresh) "[Hallsγ #Hwmg]".
-        iMod (saved_ho_sem_type_alloc 0 (vopen (ty_interp T))) as (γ) "Hγ".
-        iMod (gen_iheap_alloc _ _ γ HsFresh with "Hallsγ") as "[Hallsγ Hs]".
-        iExists (<[s:=γ]> sγ); iModIntro; iFrame; iSplit. by rewrite dom_insert.
-        iAssert (s ↝ ⟦ T ⟧)%I as "#Hmaps {Hγ Hs}". iExists γ. by iFrame.
-        iIntros (s' T' Hlook) "!>". destruct (decide (s' = s)) as [->|Hne].
+        iMod (stamp_to_type_alloc (ty_interp T) HsFresh with "Hallsγ") as (sγ' Hl) "[Hgs #Hs]".
+        iExists (sγ'); iFrame (Hl) "Hgs"; iIntros "!>" (s' T' Hlook) "!>".
+        destruct (decide (s' = s)) as [->|Hne].
         - suff ->: T' = T by []. move: Hlook. by rewrite lookup_insert => -[->].
         - rewrite lookup_insert_ne // in Hlook. by iApply "Hwmg".
       Qed.
