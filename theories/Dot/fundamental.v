@@ -7,20 +7,29 @@ Import stamp_transfer.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 
+(** Single-definition typing *)
+Notation "Γ ⊨[ gφ  ] { l := d  } : T" := (wellMappedφ gφ -∗ idtp Γ T l d)%I (at level 74, d, l, T at next level).
+(** Multi-definition typing *)
+Notation "Γ ⊨[ gφ  ]ds ds : T" := (wellMappedφ gφ -∗ idstp Γ T ds)%I (at level 74, ds, T at next level).
+(** Expression typing *)
+Notation "Γ ⊨[ gφ  ] e : T" := (wellMappedφ gφ -∗ ietp Γ T e)%I (at level 74, e, T at next level).
+Notation "Γ ⊨[ gφ  ]p p : T , i" := (wellMappedφ gφ -∗ iptp Γ T p i)%I (at level 74, p, T, i at next level).
+Notation "Γ ⊨[ gφ  ] T1 , i <: T2 , j" := (wellMappedφ gφ -∗ step_indexed_ivstp Γ T1 T2 i j)%I (at level 74, T1, T2, i, j at next level).
+
 Section fundamental.
   Context `{!dlangG Σ} `{!SwapProp (iPropSI Σ)}.
   Context `{hasStampTable: stampTable}.
 
   Lemma fundamental_dm_typed Γ V l d T (HT: Γ |d V ⊢{ l := d } : T):
-    wellMappedφ ⟦ getStampTable ⟧g -∗ Γ |L V ⊨ { l := d } : T with
+    Γ |L V ⊨[ ⟦ getStampTable ⟧g ] { l := d } : T with
   fundamental_dms_typed Γ V ds T (HT: Γ |ds V ⊢ ds : T):
-    wellMappedφ ⟦ getStampTable ⟧g -∗ Γ |L V ⊨ds ds : T with
+    Γ |L V ⊨[ ⟦ getStampTable ⟧g ]ds ds : T with
   fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2):
-    wellMappedφ ⟦ getStampTable ⟧g -∗ Γ ⊨ T1, i1 <: T2, i2 with
+    Γ ⊨[ ⟦ getStampTable ⟧g ] T1, i1 <: T2, i2 with
   fundamental_typed Γ e T (HT: Γ ⊢ₜ e : T):
-    wellMappedφ ⟦ getStampTable ⟧g -∗ Γ ⊨ e : T with
+    Γ ⊨[ ⟦ getStampTable ⟧g ] e : T with
   fundamental_path_typed Γ p T i (HT : Γ ⊢ₚ p : T, i):
-    wellMappedφ ⟦ getStampTable ⟧g -∗ Γ ⊨p p : T, i.
+    Γ ⊨[ ⟦ getStampTable ⟧g ]p p : T, i.
   Proof.
     - iIntros "#Hm"; induction HT.
       + iApply D_Typ_Abs; by [> iApply fundamental_subtype .. |
@@ -81,7 +90,7 @@ End fundamental.
 Import dlang_adequacy.
 
 Theorem adequacy Σ `{HdlangG: dlangPreG Σ} `{SwapProp (iPropSI Σ)} e g T:
-  (∀ `{dlangG Σ} `(!SwapProp (iPropSI Σ)), wellMappedφ ⟦ g ⟧g -∗ [] ⊨ e : T) →
+  (∀ `{dlangG Σ} `(!SwapProp (iPropSI Σ)), [] ⊨[ ⟦ g ⟧g ] e : T) →
   safe e.
 Proof.
   intros Hlog ?*; eapply (adequacySem _).
