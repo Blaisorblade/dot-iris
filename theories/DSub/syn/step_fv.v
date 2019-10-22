@@ -1,5 +1,5 @@
 From D Require Import tactics.
-From D.DSub Require Import operational synLemmas.
+From D.DSub Require Import syn synLemmas.
 From iris.program_logic Require Import ectx_language.
 
 Set Implicit Arguments.
