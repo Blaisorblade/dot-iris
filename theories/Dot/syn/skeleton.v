@@ -2,7 +2,6 @@
     following Sec. 3.5 of the PDF. *)
 From iris.program_logic Require Import
      ectx_lifting ectx_language ectxi_language.
-From D Require Import prelude tactics.
 From D.Dot Require Import syn traversals.
 
 Import Trav2.

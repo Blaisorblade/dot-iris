@@ -1,9 +1,8 @@
 (**
-Lemmas on SynFuncs.v needed for proofs on the operational semantics.
+Binding lemmas about D<:.
 To reduce compile times, unary_lr should not depend on this file.
 This file should load as little Iris code as possible, to reduce compile times.
  *)
-From D Require Import tactics.
 From D.DSub Require Import syn.
 
 Implicit Types
