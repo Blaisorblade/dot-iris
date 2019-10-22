@@ -312,7 +312,7 @@ Proof. rewrite -ty_rename_Lemma. apply is_unstamped_ren_mut. Qed.
 
 Lemma is_unstamped_ren1 i : is_unstamped_ren i (S i) (+1).
 Proof. apply is_unstamped_ren_shift; lia. Qed.
-Hint Resolve is_unstamped_ren1.
+Hint Resolve is_unstamped_ren1 : core.
 
 Lemma is_unstamped_ren1_ty i T:
   is_unstamped_ty i T ->
