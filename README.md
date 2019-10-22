@@ -4,40 +4,48 @@
 
 Code is not perfectly modularized, but here is a rough layout of the various files.
 
+* `theories/Dot`: guarded DOT. Complete.
+* `theories/DSub`: guarded D<:, incomplete, used for prototyping.
+* `theories/DSubSyn`: guarded D<:, where type members are represented by
+  storing syntactic types in values, and interpreting them recursively. Used for
+  prototyping but mostly complete. Shares code from `theories/DSub`.
 * `theories/`: General infrastructure.
-  - tactics.v: misc homegrown Ltac automation
-* `theories/DSub`: (guarded) D<:
-* `theories/DSubSyn`: (guarded) D<:, where type members are represented by
-  storing syntactic types in values, and interpreting them recursively.
+* `theories/pure_program_logic`: define a "pure" variant of Iris's weakest
+  precondition.
+* `theories/iris_extra`: Additional Iris infrastructure.
+  - `dlang.v`: instantiate Iris with a language setup for our proofs
 
-In each folder:
-* Syntax:
-  - `*syn*`.v: SYNtax, based on dotsyn_orig.v
-  - synLemmas.v: (SYNtactic Lemmas): lemmas about syntax and binding.
-* Operational semantics
-  - operational.v: instantiate Iris with DOT operational semantics
-  - rules.v: lemmas about WP and this language's semantics.
-
-* Unary logical relation:
-  - `unary_lr.v`: definition of logical relation
-* (Sub)typing lemmas about unary logical relation:
-  - lr_lemmasDefs.v: lemmas about DEFinition typing
-  - lr_lemmasTSel.v: lemmas about TSel (type selection)
-  - lr_lemma_nobinding.v: various typing lemmas, not requiring `synLemmas.v`.
-  - lr_lemma.v: other misc typing lemmas
-  - fundamental.v: prove fundamental theorem
-  - adequacy.v: relating semantic typing and runtime safety, using Iris WP
+Inside the `Dot` folder:
+* `syn`: syntax
+  - `syn.v`: definition of the basic SYNtax, and instantiate Iris with DOT
+    operational semantics.
+  - `synLemmas.v`: (SYNtactic Lemmas): lemmas about syntax and binding.
+  - `rules.v`: lemmas about this language's semantics.
+  - `operational.v`: instantiate shared Iris setup from `dlang.v`
+* `lr`: logical relation, semantic typing, compatibility lemmas
+  - `unary_lr.v`: definition of unary logical relation
+  Compatibility lemmas:
+  - `lr_lemmasDefs.v: lemmas about DEFinition typing
+  - `lr_lemmasTSel.v: lemmas about TSel (type selection)
+  - `lr_lemma_nobinding.v: various typing lemmas, not requiring `synLemmas.v`.
+  - `lr_lemma.v: other misc typing lemmas
+* `stamping`: definitions and lemmas about stamping
+* `typing`: syntactic typing and auxiliary lemmas about it
+  - `typingStamping.v`: prove stamping of typing derivations
+* `examples`: various gDOT snippets
+* `fundamental.v`: prove fundamental theorem, adequacy and type safety.
+  - adequacy: relating semantic typing and runtime safety, using Iris WP
     adequacy, and showing the choice of `Σ : gFunctors` is consistent.
-* Support
+* `misc`: misc stuff, not used elsewhere
   - experiments.v: various (typing) lemmas that might or might not be useful
 
 ## Installation
 ### Iris version
 
-Install the Iris version specified in opam, for instance via
+Install the Iris version specified in `opam`, for instance via
 `opam install coq-iris.<insert version here>`.
 
-### To use glorious opam 2.0
+### To use opam 2.0
 
 One can use opam 2.0 to create a local switch, that is, a local version of iris
 and of coq that will only be used when one is inside this directory. _The first
