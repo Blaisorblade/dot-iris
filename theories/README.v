@@ -4,8 +4,7 @@ We are modeling multiple languages of the D* family, including (variants of)
 both D<:> and DOT, and higher-kinded variants of both.
 Our modifications are significant, and we will motivate them in upcoming work.
 
-BEWARE: This document is currently an (unfinished) ROADMAP; most of this
-has been carried out or is a work-in-progress.
+BEWARE: This document is currently unfinished and not in sync with the development.
 *)
 
 (** * Preliminaries. *)
@@ -28,14 +27,6 @@ some support for:
 *)
 
 From D Require asubst_intf asubst_base.
-
-(** ** Semantic types, judgments, etc.
-As usual in Iris, semantic types are persistent Iris predicates on values.
-Since D* syntactic types can contain variables ranging on values, semantic types take a value substitution as argument.
-Using Autosubst 1, we define substitution on semantic types by precomposition:
-[ τ.|[s] = λ ρ, τ (ρ >> s) ].
-*)
-From D Require olty.
 
 (** ** Stamping *)
 (** Objects contain IDs (called stamps) pointing to semantic types; as a sanity check, we prove that stamps cannot affect execution. *)

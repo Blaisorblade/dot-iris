@@ -1,5 +1,10 @@
+(** ** Semantic types, judgments, etc.
+As usual in Iris, semantic types are persistent Iris predicates on values.
+Since D* syntactic types can contain variables ranging on values, semantic types take a value substitution as argument.
+Using Autosubst 1, we define substitution on semantic types by precomposition:
+[ τ.|[s] = λ ρ, τ (ρ >> s) ].
+*)
 From D Require Import iris_prelude asubst_base asubst_intf dlang.
-(* From D.pure_program_logic Require Import lifting. *)
 From iris.proofmode Require Import tactics.
 From iris.program_logic Require Import language.
 From D.pure_program_logic Require Import lifting adequacy.
