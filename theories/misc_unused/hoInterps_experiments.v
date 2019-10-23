@@ -263,11 +263,11 @@ Section sec.
 End sec.
 End HoGenExperimnents.
 
-From D.Dot Require syn operational.
+From D.Dot Require syn dlang_inst.
 
 Module dot_experiments.
-Import syn operational.
-Include HoSemTypes VlSorts operational.
+Import syn dlang_inst.
+Include HoSemTypes VlSorts dlang_inst.
 
 Section sec.
   Context `{!savedHoSemTypeG Σ} `{!dlangG Σ} `{TyInterp ty Σ}.

@@ -1,6 +1,6 @@
 From iris.proofmode Require Import tactics.
 From D Require Import iris_prelude.
-From D.Dot Require Import operational synLemmas rules.
+From D.Dot Require Import dlang_inst synLemmas rules.
 
 Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)

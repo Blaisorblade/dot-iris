@@ -88,7 +88,7 @@ End judgments.
 
 End OLty_judge.
 
-From D.Dot Require Import syn synLemmas operational rules typeExtractionSyn path_wp typeExtractionSem.
+From D.Dot Require Import syn synLemmas dlang_inst rules typeExtractionSyn path_wp typeExtractionSem.
 From D.Dot Require unary_lr.
 
 Implicit Types
@@ -96,7 +96,7 @@ Implicit Types
 
 Module SemTypes.
 
-Include OLtyJudgements VlSorts operational.
+Include OLtyJudgements VlSorts dlang_inst.
 
 Record dlty Σ := Dlty {
   dlty_label : label;

@@ -21,8 +21,8 @@ Inside the `Dot` folder:
     operational semantics.
   - `synLemmas.v`: (SYNtactic Lemmas): lemmas about syntax and binding.
   - `rules.v`: lemmas about this language's semantics.
-  - `operational.v`: instantiate shared Iris setup from `dlang.v`
 * `lr`: logical relation, semantic typing, compatibility lemmas
+  - `dlang_inst.v`: instantiate shared Iris setup from `dlang.v`
   - `unary_lr.v`: definition of unary logical relation
   Compatibility lemmas:
   - `lr_lemmasDefs.v: lemmas about DEFinition typing

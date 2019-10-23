@@ -2,7 +2,7 @@ From iris.proofmode Require Import tactics.
 From D.pure_program_logic Require Import lifting.
 
 From D Require Import proofmode_extra.
-From D.Dot Require Import operational step_fv.
+From D.Dot Require Import dlang_inst step_fv.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 Section Sec.

@@ -1,9 +1,9 @@
 From iris.proofmode Require Import tactics.
 From D Require Export iris_prelude.
 From D Require Import ty_interp_subst_lemmas.
-From D.Dot Require Export operational path_wp.
+From D.Dot Require Export dlang_inst path_wp.
 
-Include TyInterpLemmas VlSorts operational.
+Include TyInterpLemmas VlSorts dlang_inst.
 
 (** Deduce types from variable names, like on paper, for readability and to help
     type inference for some overloaded operations (e.g. substitution). *)
