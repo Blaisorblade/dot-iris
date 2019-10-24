@@ -89,18 +89,18 @@ End fundamental.
 
 Import dlang_adequacy.
 
-Theorem adequacy Σ `{HdlangG: dlangPreG Σ} `{SwapProp (iPropSI Σ)} e g T:
+Theorem adequacy_mapped_semtyping Σ `{HdlangG: dlangPreG Σ} `{SwapProp (iPropSI Σ)} e g T:
   (∀ `{dlangG Σ} `(!SwapProp (iPropSI Σ)), [] ⊨[ ⟦ g ⟧g ] e : T) →
   safe e.
 Proof.
-  intros Hlog ?*; eapply (adequacySem _).
+  intros Hlog ?*; eapply (adequacy_dot_sem _).
   iIntros (??) "Hs"; iApply Hlog. by iApply transfer_empty.
 Qed.
 
 Corollary type_soundness_stamped e T `{!stampTable}:
   [] ⊢ₜ e : T → safe e.
 Proof.
-  intros; apply: (adequacy dlangΣ) => *. exact: fundamental_typed.
+  intros; apply: (adequacy_mapped_semtyping dlangΣ) => *. exact: fundamental_typed.
 Qed.
 
 Lemma safe_same_skel {e e_s}:

@@ -4,11 +4,11 @@ From D.DSub Require Import unary_lr.
 
 Import dlang_adequacy.
 
-Theorem adequacy Σ `{HdlangG: dlangPreG Σ} `{SwapProp (iPropSI Σ)} e T:
+Theorem adequacy_dsub_sem Σ `{HdlangG: dlangPreG Σ} `{SwapProp (iPropSI Σ)} e T:
   (∀ `(dlangG Σ) `(!SwapProp (iPropSI Σ)), [] ⊨ e : T) →
   safe e.
 Proof.
-  intros Hlog ?*. eapply (adequacy _).
+  intros Hlog ?*. eapply (adequacy_dlang _).
   iIntros (??) "Hs". iDestruct Hlog as "#Htyp".
   by iSpecialize ("Htyp" $! ids with "[#//]"); rewrite hsubst_id.
 Qed.
@@ -21,7 +21,7 @@ Corollary almost_type_soundness e T:
   (∀ `(dlangG Σ) `(!SwapProp (iPropSI Σ)), [] ⊨ e : T) →
   safe e.
 Proof.
-  intros; eapply (adequacy dlangΣ) => //.
+  intros; eapply (adequacy_dsub_sem dlangΣ) => //.
   exact: H.
   (* by apply fundamental. *)
 Qed.
