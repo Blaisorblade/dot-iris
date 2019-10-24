@@ -14,8 +14,8 @@ Notation allGs sγ := (gen_iheap_ctx (L := stamp) sγ).
 
 Section mapsto_stamp_gname.
   Context `{gen_iheapG stamp gname Σ}.
-  Global Instance: Persistent (s ↦ γ) := _.
-  Global Instance: Timeless (s ↦ γ) := _.
+  Global Instance stampMapsToPersist: Persistent (s ↦ γ) := _.
+  Global Instance stampMapsToTimeless: Timeless (s ↦ γ) := _.
 End mapsto_stamp_gname.
 End mapsto.
 
