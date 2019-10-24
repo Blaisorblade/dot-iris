@@ -30,13 +30,14 @@ Section ex.
   Lemma allocHsGen sγ:
     sγ !! s = None → allGs sγ ==∗ Hs.
   Proof.
-    iIntros (Hl) "H"; iApply (transfer (<[s:=ieven]> ∅) with "H") => [s'|];
-      rewrite ?lookup_insert ?dom_insert ?dom_empty //. set_solver.
+    iIntros (Hl) "H". iApply wellMappedφ_apply;
+      last iApply (transfer (<[s:=ieven]> ∅) with "H") => s';
+      rewrite ?lookup_insert ?dom_insert ?dom_empty //; set_solver.
   Qed.
 
   Lemma allocHs1: allGs ∅ ==∗ Hs.
   Proof.
-    iIntros "H"; iApply (transfer_empty (<[s:=ieven]> ∅) with "H").
+    iIntros "H";  iApply wellMappedφ_apply; last iApply (transfer_empty (<[s:=ieven]> ∅) with "H").
     by rewrite lookup_insert.
   Qed.
 

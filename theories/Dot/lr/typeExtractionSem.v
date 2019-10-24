@@ -28,7 +28,7 @@ Section typing_type_member_defs.
     move => [T'] [Hl] [<- [_ /is_stamped_nclosed_ty HclT]].
     iIntros "Hm". iExists (ty_interp T'). iSplitR.
     - iIntros "!%" (ρ v). exact: interp_subst_commute.
-    - iApply "Hm". by rewrite lookup_fmap Hl.
+    - iApply (wellMappedφ_apply with "Hm"). by rewrite lookup_fmap Hl.
   Qed.
 
   (** XXX In fact, this lemma should be provable for any φ,

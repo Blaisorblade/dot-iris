@@ -211,9 +211,11 @@ Module Type LiftWp (Import VS : VlSortsSig).
       Implicit Types (gφ : gmap stamp (envD Σ)).
 
       Definition wellMappedφ gφ : iProp Σ :=
-        (□∀ s φ, ⌜ gφ !! s = Some φ⌝ → s ↝ φ)%I.
-      Instance wellMappedφ_persistent gφ: Persistent (wellMappedφ gφ) := _.
-      Global Arguments wellMappedφ: simpl never.
+        (□∀ s φ (Hl : gφ !! s = Some φ), s ↝ φ)%I.
+      Global Instance wellMappedφ_persistent gφ: Persistent (wellMappedφ gφ) := _.
+
+      Lemma wellMappedφ_empty : wellMappedφ ∅. Proof. by iIntros (???). Qed.
+
       Lemma wellMappedφ_insert gφ s φ :
         wellMappedφ gφ -∗ s ↝ φ -∗ wellMappedφ (<[s:=φ]> gφ).
       Proof.
@@ -221,6 +223,11 @@ Module Type LiftWp (Import VS : VlSortsSig).
           rewrite (lookup_insert, lookup_insert_ne) => ?;
           simplify_eq; by [> iApply "Hs" | iApply "Hwmg"].
       Qed.
+
+      Lemma wellMappedφ_apply s φ gφ : gφ !! s = Some φ → wellMappedφ gφ -∗ (s ↝ φ)%I.
+      Proof. iIntros (Hl) "#Hm"; iApply ("Hm" $! _ _ Hl). Qed.
+
+      Global Opaque wellMappedφ.
 
       Lemma stamp_to_type_alloc {sγ s} (φ : envD Σ) :
         sγ !! s = None → allGs sγ ==∗
@@ -239,7 +246,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
         elim gφ using map_ind.
         - iIntros "/=" (H) "Hallsγ !>". iExists sγ; iFrame; iSplit.
           + by rewrite dom_empty left_id.
-          + by iIntros (???).
+          + by iApply wellMappedφ_empty.
         - iIntros (s φ gφ' Hsg IH [Hssγ Hdom]%freshMappings_split) "Hown".
           iMod (IH Hdom with "Hown") as (sγ' Hsγ') "[Hallsγ #Hwmg]".
           iMod (stamp_to_type_alloc (s := s) φ with "Hallsγ") as (sγ'' Hsγ'') "[Hgs #Hs]".
