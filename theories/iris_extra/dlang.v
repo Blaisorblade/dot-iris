@@ -214,6 +214,13 @@ Module Type LiftWp (Import VS : VlSortsSig).
         (□∀ s φ, ⌜ gφ !! s = Some φ⌝ → s ↝ φ)%I.
       Instance wellMappedφ_persistent gφ: Persistent (wellMappedφ gφ) := _.
       Global Arguments wellMappedφ: simpl never.
+      Lemma wellMappedφ_insert gφ s φ :
+        wellMappedφ gφ -∗ s ↝ φ -∗ wellMappedφ (<[s:=φ]> gφ).
+      Proof.
+        iIntros "#Hwmg #Hs !>" (s' φ' Hl). case: (decide (s' = s)) Hl => [->|?];
+          rewrite (lookup_insert, lookup_insert_ne) => ?;
+          simplify_eq; by [> iApply "Hs" | iApply "Hwmg"].
+      Qed.
 
       Lemma stamp_to_type_alloc {sγ s} (φ : envD Σ) :
         sγ !! s = None → allGs sγ ==∗
@@ -226,19 +233,6 @@ Module Type LiftWp (Import VS : VlSortsSig).
         repeat iSplit; last iExists γ; by iFrame.
       Qed.
 
-      (** We can transfer one mapping from [gφ] into Iris resources. *)
-      Lemma transferOne sγ gφ s φ :
-        sγ !! s = None → allGs sγ ∧ wellMappedφ gφ ==∗
-        ∃ sγ', ⌜gdom sγ' ≡ {[s]} ∪ gdom sγ⌝ ∧ allGs sγ' ∧ wellMappedφ (<[s := φ]> gφ).
-      Proof.
-        iIntros (HsFresh) "[Hallsγ #Hwmg]".
-        iMod (stamp_to_type_alloc φ HsFresh with "Hallsγ") as (sγ' Hl) "[Hgs #Hs]".
-        iExists (sγ'); iFrame (Hl) "Hgs"; iIntros "!>" (s' φ' Hlook) "!>".
-        destruct (decide (s' = s)) as [->|Hne];
-          rewrite ?lookup_insert ?lookup_insert_ne in Hlook;
-          by [> simplify_eq | iApply "Hwmg" |].
-      Qed.
-
       Lemma transfer' {gφ} sγ : freshMappings gφ sγ → allGs sγ ==∗
         ∃ sγ', ⌜gdom sγ' ≡ gdom gφ ∪ gdom sγ⌝ ∧ allGs sγ' ∧ wellMappedφ gφ.
       Proof.
@@ -246,18 +240,19 @@ Module Type LiftWp (Import VS : VlSortsSig).
         - iIntros "/=" (H) "Hallsγ !>". iExists sγ; iFrame; iSplit.
           + by rewrite dom_empty left_id.
           + by iIntros (???).
-        - iIntros (s φ gφ' Hsg IH [Hssγ Hdom]%freshMappings_split) "Hallsγ".
-          iMod (IH Hdom with "Hallsγ") as (sγ' Hsγ') "Hown".
-          iMod (transferOne sγ' gφ' s φ with "Hown") as (sγ'' Hsγ'') "Hown".
+        - iIntros (s φ gφ' Hsg IH [Hssγ Hdom]%freshMappings_split) "Hown".
+          iMod (IH Hdom with "Hown") as (sγ' Hsγ') "[Hallsγ #Hwmg]".
+          iMod (stamp_to_type_alloc (s := s) φ with "Hallsγ") as (sγ'' Hsγ'') "[Hgs #Hs]".
           + eapply (not_elem_of_dom (D := gset stamp)).
-            rewrite Hsγ' not_elem_of_union !not_elem_of_dom; by split.
-          + iExists sγ''; iFrame; iIntros "!%".
-            by rewrite Hsγ'' Hsγ' dom_insert union_assoc.
+            by rewrite Hsγ' not_elem_of_union !not_elem_of_dom.
+          + iModIntro; iExists sγ''; iFrame "Hgs"; iSplit.
+            by iIntros "!%"; rewrite Hsγ'' Hsγ' dom_insert union_assoc.
+            by iApply wellMappedφ_insert.
       Qed.
 
       Lemma transfer gφ sγ : freshMappings gφ sγ → allGs sγ ==∗ wellMappedφ gφ.
       Proof.
-        iIntros (Hs) "H". by iMod (transfer' sγ Hs with "H") as (sγ' ?) "[_ $]".
+        iIntros (Hs) "H". by iMod (transfer' sγ Hs with "H") as (sγ' _) "[_ $]".
       Qed.
 
       Lemma transfer_empty gφ : allGs ∅ ==∗ wellMappedφ gφ.
