@@ -122,6 +122,7 @@ Lemma val_UB T L Γ i x :
   Γ u⊢ₜ (pv (ids x) @; "A"), i <: ▶ T, i.
 Proof. intros; eapply AddIB_stp, SelU_stp; tcrush. Qed.
 
+(* These rules from storeless typing must be encoded somehow via variables. *)
 (* Lemma packTV_LB T n Γ i :
   is_unstamped_ty n T →
   n <= length Γ →
@@ -133,3 +134,42 @@ Proof. intros; apply /val_LB /packTV_typed'. Qed. *)
   n <= length Γ →
   Γ u⊢ₜ (pv (packTV T) @; "A"), i <: ▶ T, i.
 Proof. intros; by apply /val_UB /packTV_typed'. Qed. *)
+
+Lemma Dty_typed Γ T V l:
+    is_unstamped_ty (S (length Γ)) T →
+    Γ |d V u⊢{ l := dtysyn T } : TTMem l T T.
+Proof. intros. apply dty_typed; tcrush. Qed.
+
+(* We can derive rules Bind1 and Bind2 (the latter only conjectured) from
+  "Type Soundness for Dependent Object Types (DOT)", Rompf and Amin, OOPSLA '16. *)
+Lemma Bind1 Γ T1 T2 i:
+  is_unstamped_ty (S (length Γ)) T1 → is_unstamped_ty (length Γ) T2 →
+  iterate TLater i T1 :: Γ u⊢ₜ T1, i <: T2.|[ren (+1)], i →
+  Γ u⊢ₜ μ T1, i <: T2, i.
+Proof.
+  intros Hus1 Hus2 Hsub.
+  eapply Trans_stp; first exact: (Mu_stp_mu Hsub).
+  exact: Mu_stp.
+Qed.
+
+Lemma Bind2 Γ T1 T2 i:
+  is_unstamped_ty (length Γ) T1 → is_unstamped_ty (S (length Γ)) T2 →
+  iterate TLater i T1.|[ren (+1)] :: Γ u⊢ₜ T1.|[ren (+1)], i <: T2, i →
+  Γ u⊢ₜ T1, i <: μ T2, i.
+Proof.
+  intros Hus1 Hus2 Hsub; move: (Hus1) => /is_unstamped_ren1_ty Hus1'.
+  eapply Trans_stp; last exact: (Mu_stp_mu Hsub).
+  exact: Stp_mu.
+Qed.
+
+Lemma Bind1' Γ T1 T2:
+  is_unstamped_ty (S (length Γ)) T1 → is_unstamped_ty (length Γ) T2 →
+  T1 :: Γ u⊢ₜ T1, 0 <: T2.|[ren (+1)], 0 →
+  Γ u⊢ₜ μ T1, 0 <: T2, 0.
+Proof. intros; exact: Bind1. Qed.
+
+Lemma Bind2' Γ T1 T2:
+  is_unstamped_ty (length Γ) T1 → is_unstamped_ty (S (length Γ)) T2 →
+  T1.|[ren (+1)] :: Γ u⊢ₜ T1.|[ren (+1)], 0 <: T2, 0 →
+  Γ u⊢ₜ T1, 0 <: μ T2, 0.
+Proof. intros; exact: Bind2. Qed.
