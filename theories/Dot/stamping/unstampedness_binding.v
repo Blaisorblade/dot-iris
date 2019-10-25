@@ -389,5 +389,5 @@ Lemma is_unstamped_ren_ty i T:
   is_unstamped_ty i T <->
   is_unstamped_ty (S i) (T.|[ren (+1)]).
 Proof.
-  split; [ exact: is_unstamped_sub_ren_ty | exact: is_unstamped_sub_rev_ty ].
+  split; [ exact: is_unstamped_ren1_ty | exact: is_unstamped_sub_rev_ty ].
 Qed.
