@@ -136,8 +136,8 @@ Proof. intros; apply /val_LB /packTV_typed'. Qed. *)
 Proof. intros; by apply /val_UB /packTV_typed'. Qed. *)
 
 Lemma Dty_typed Γ T V l:
-    is_unstamped_ty (S (length Γ)) T →
-    Γ |d V u⊢{ l := dtysyn T } : TTMem l T T.
+  is_unstamped_ty (S (length Γ)) T →
+  Γ |d V u⊢{ l := dtysyn T } : TTMem l T T.
 Proof. intros. apply dty_typed; tcrush. Qed.
 
 (* We can derive rules Bind1 and Bind2 (the latter only conjectured) from
@@ -173,3 +173,16 @@ Lemma Bind2' Γ T1 T2:
   T1.|[ren (+1)] :: Γ u⊢ₜ T1.|[ren (+1)], 0 <: T2, 0 →
   Γ u⊢ₜ T1, 0 <: μ T2, 0.
 Proof. intros; exact: Bind2. Qed.
+
+(* Simplified package introduction, for talk. *)
+Notation "'type' l = T  " := (l, dtysyn T) (at level 60, l at level 50).
+Lemma BindSpec Γ (L T U : ty):
+  is_unstamped_ty (S (length Γ)) T →
+  is_unstamped_ty (S (length Γ)) L → is_unstamped_ty (S (length Γ)) U →
+  {@ type "A" >: T <: T }%ty :: Γ u⊢ₜ L, 0 <: T, 0 →
+  {@ type "A" >: T <: T }%ty :: Γ u⊢ₜ T, 0 <: U, 0 →
+  Γ u⊢ₜ tv (ν {@ type "A" = T }) : μ {@ type "A" >: L <: U }.
+Proof.
+  intros; eapply Subs_typed_nocoerce; tcrush; rewrite iterate_0.
+  eapply Trans_stp; first apply TAnd1_stp; tcrush.
+Qed.
