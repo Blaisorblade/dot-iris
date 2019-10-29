@@ -162,12 +162,6 @@ Section Sec.
     rewrite -wp_pure_step_later // -wp_value. by [].
   Qed.
 
-
-End Sec.
-
-Section swap_based_typing_lemmas.
-  Context `{!dlangG Σ} {Γ}.
-
   Lemma Sub_TVMem_Variant' T1 T2 i j l:
     Γ ⊨ TLater T1, i <: TLater T2, j + i -∗
     Γ ⊨ TVMem l T1, i <: TVMem l T2, j + i.
@@ -186,8 +180,10 @@ Section swap_based_typing_lemmas.
   Proof.
     iApply (Sub_TVMem_Variant' _ _ _ 0).
   Qed.
+End Sec.
 
-  Context `{!SwapProp (iPropSI Σ)}.
+Section swap_based_typing_lemmas.
+  Context `{!dlangG Σ} {Γ} `{!SwapProp (iPropSI Σ)}.
 
   Lemma Sub_TAllConCov T1 T2 U1 U2 i:
     Γ ⊨ TLater T2, i <: TLater T1, i -∗
