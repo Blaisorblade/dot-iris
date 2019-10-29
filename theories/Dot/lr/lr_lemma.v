@@ -146,12 +146,9 @@ Section Sec.
   Proof.
     iIntros "/= #HeT !>" (vs) "#HG".
     rewrite -wp_value'. iExists _; iSplitL; first done.
-    iIntros "!> !>" (v) "#Hv /=".
-    iSpecialize ("HeT" $! (v .: vs) with "[$HG]").
+    iIntros "!> !>" (v) "#Hv"; rewrite -(decomp_s e (v .: vs)).
+    iApply ("HeT" $! (v .: vs) with "[$HG]").
     by rewrite (interp_weaken_one T1 _ v).
-    (* time locAsimpl. (* 10x faster than asimpl. *) *)
-    (* 20x faster than asimpl. *)
-    by locAsimpl' (e.|[_].|[_]).
   Qed.
 
   Lemma T_Mem_E e T l:

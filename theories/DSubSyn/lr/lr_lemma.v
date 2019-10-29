@@ -58,13 +58,10 @@ Section Sec.
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.
     iIntros "/= #HeT !>" (vs) "#HG".
-    rewrite -wp_value'; unfold_interp.
-    iExists _; iSplit => //.
-    iIntros "!> !>" (v) "#Hv". iSpecialize ("HeT" $! (v .: vs)).
-    rewrite (interp_weaken_one T1 _ v) /=.
-    (* Faster than 'asimpl'. *)
-    locAsimpl' (e.|[up vs].|[v/]).
-    by iApply ("HeT" with "[$HG//]").
+    rewrite -wp_value'; unfold_interp. iExists _; iSplit; first done.
+    iIntros "!> !>" (v) "#Hv"; rewrite -(decomp_s e (v .: vs)).
+    iApply ("HeT" $! (v .: vs) with "[$HG]").
+    by rewrite (interp_weaken_one T1 _ v).
   Qed.
 
   Lemma T_Sub e T1 T2 i:
