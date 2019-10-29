@@ -22,7 +22,6 @@ Proof.
   apply VObj_typed; tcrush.
 Qed.
 
-Notation "'type' l = T  " := (l, dtysyn T) (at level 60, l at level 50).
 Example ex2 Γ T :
   Γ u⊢ₜ tv (ν {@ type "A" = p0 @; "B" } ) : TMu (TAnd (TTMem "A" TBot TTop) TTop).
 Proof. apply VObj_typed; tcrush. Qed.

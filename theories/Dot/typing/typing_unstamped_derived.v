@@ -175,7 +175,6 @@ Lemma Bind2' Γ T1 T2:
 Proof. intros; exact: Bind2. Qed.
 
 (* Simplified package introduction, for talk. *)
-Notation "'type' l = T  " := (l, dtysyn T) (at level 60, l at level 50).
 Lemma BindSpec Γ (L T U : ty):
   is_unstamped_ty (S (length Γ)) T →
   is_unstamped_ty (S (length Γ)) L → is_unstamped_ty (S (length Γ)) U →
