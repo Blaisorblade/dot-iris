@@ -82,3 +82,5 @@ theories/pure_program_logic/weakestpre.v
 theories/pure_program_logic/hoare.v
 theories/pure_program_logic/lifting.v
 theories/pure_program_logic/adequacy.v
+theories/HkDot/syn/syn.v
+theories/HkDot/syn/types.v
