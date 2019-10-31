@@ -83,4 +83,7 @@ theories/pure_program_logic/hoare.v
 theories/pure_program_logic/lifting.v
 theories/pure_program_logic/adequacy.v
 theories/HkDot/syn/syn.v
+theories/HkDot/syn/rules.v
+theories/HkDot/syn/synLemmas.v
 theories/HkDot/syn/types.v
+theories/HkDot/lr/dlang_inst.v
