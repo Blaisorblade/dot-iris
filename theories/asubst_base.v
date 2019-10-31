@@ -95,6 +95,9 @@ Proof. intros. by apply fv_cons, fv_pair. Qed.
 Definition stail ρ := (+1) >>> ρ.
 Definition shead ρ := ρ 0.
 
+Lemma shead_eq v ρ: shead (v .: ρ) = v. Proof. done. Qed.
+Lemma stail_eq v ρ: stail (v .: ρ) = ρ. Proof. done. Qed.
+
 Lemma eq_n_s_tails {n ρ1 ρ2} : eq_n_s ρ1 ρ2 (S n) → eq_n_s (stail ρ1) (stail ρ2) n.
 Proof.
   move => /= HsEq x Hl.
