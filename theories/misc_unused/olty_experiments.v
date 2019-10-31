@@ -2,7 +2,7 @@ From D Require Import iris_prelude asubst_base asubst_intf dlang.
 From iris.program_logic Require Import language.
 From iris.proofmode Require Import tactics.
 From D.pure_program_logic Require Import lifting adequacy.
-From D Require Import gen_iheap saved_interp olty dlang.
+From D Require Import gen_iheap saved_interp lty dlang.
 
 Implicit Types (Σ : gFunctors).
 
