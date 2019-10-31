@@ -78,22 +78,20 @@ Section olty_ofe.
 
   Program Definition pack φ := Olty (λ args ρ v, □ φ args ρ v)%I.
 
-  Lemma persistently_id (P : iProp Σ) `{!Persistent P}: □P ⊣⊢ P.
-  (* Proof. by iSplit; iIntros. Qed. *)
-  Proof. apply: intuitionistic_intuitionistically. Qed.
-
   Lemma olty_car_pack_id φ `{∀ args ρ v, Persistent (φ args ρ v)} :
     oApp (pack φ) ≡ φ.
-  Proof.
-    move => ??? /=.
-    apply: intuitionistic_intuitionistically.
-  Qed.
+  Proof. intros ???. apply: intuitionistic_intuitionistically. Qed.
 
   Lemma pack_olty_car_id τ : pack (olty_car τ) ≡ τ.
   Proof.
     move: τ => [τ Hp] args ρ v; rewrite /olty_car/=.
     apply: intuitionistic_intuitionistically.
   Qed.
+End olty_ofe.
+
+Section olty_subst.
+  Context `{Σ : gFunctors} {i : nat}.
+  Implicit Types (φ : hoEnvD Σ i) (τ : olty Σ i).
 
   Global Instance ids_hoEnvD : Ids (hoEnvD Σ i) := λ _, inhabitant.
   Global Instance rename_hoEnvD : Rename (hoEnvD Σ i) :=
@@ -103,7 +101,7 @@ Section olty_ofe.
 
   Ltac renLemmas_hoEnvD :=
     hnf; rewrite /hsubst /hsubst_hoEnvD => /= *;
-    do 2 (apply FunctionalExtensionality.functional_extensionality_dep => ?); by asimpl.
+    do 2 (apply FunctionalExtensionality.functional_extensionality_dep => ?); autosubst.
 
   Global Instance HSubstLemmas_hoEnvD : HSubstLemmas vl (hoEnvD Σ i).
   Proof. split => //; renLemmas_hoEnvD. Qed.
@@ -120,16 +118,16 @@ Section olty_ofe.
   Qed.
 
   Global Instance ids_olty : Ids (olty Σ i) := λ _, inhabitant.
-  Global Program Instance rename_olty : Rename (olty Σ i) :=
+  Global Instance rename_olty : Rename (olty Σ i) :=
     λ r τ, Olty (rename r (olty_car τ)).
-  Global Program Instance hsubst_olty : HSubst vl (olty Σ i) :=
+  Global Instance hsubst_olty : HSubst vl (olty Σ i) :=
     λ sb τ, Olty (olty_car τ).|[sb].
 
   Global Instance hsubstLemmas_olty : HSubstLemmas vl (olty Σ i).
   Proof.
-    split=> [s|??|?? s]; apply olty_eq => //; case: s => [φ?];
-    rewrite /hsubst /hsubst_olty /olty_car.
-    all: trivial using hsubst_id, id_hsubst, hsubst_comp.
+    split => [T|//|s1 s2 T]; apply olty_eq; case: T => [φ?];
+      rewrite /hsubst /hsubst_olty /olty_car.
+    all: by rewrite ?hsubst_id -?hsubst_comp.
   Qed.
 
   Lemma olty_subst_compose_ind τ args ρ1 ρ2 v: τ.|[ρ1] args ρ2 v ⊣⊢ τ args (ρ1 >> ρ2) v.
@@ -146,36 +144,24 @@ Section olty_ofe.
   Lemma olty_subst_one τ v w args ρ:
     oApp τ.|[v/] args ρ w ≡ oApp τ args (v.[ρ] .: ρ) w.
   Proof. apply olty_subst_compose. autosubst. Qed.
-
-
-(* Global Instance rename_olty2 : Rename (olty Σ i) :=
-    λ r τ, Olty (λ ρ, τ (r >>> ρ)) (λ ρ, olty_vclosed τ _).
-  Global Instance hsubst_olty2 : HSubst vl (olty Σ i) :=
-    λ sb τ, Olty (λ ρ, τ (sb >> ρ)) (λ ρ, olty_vclosed τ _).
-  Global Instance HSubstLemmas_olty2 : HSubstLemmas vl (olty Σ i).
-  Proof.
-    split=> [s|??|?? s]; apply olty_eq => //; case: s => [φ??];
-    (apply functional_extensionality_dep => ?);
-    rewrite /hsubst /hsubst_olty2 /olty_car /=.
-    all: by asimpl.
-  Qed. *)
-End olty_ofe.
+End olty_subst.
 
 Notation oClose φ := (olty_car φ vnil : envD _).
+
+Definition sCtx Σ := list (olty Σ 0).
+
+Fixpoint env_oltyped {Σ} (Γ : sCtx Σ) (ρ : var → vl) : iProp Σ :=
+  match Γ with
+  | φ :: Γ' => env_oltyped Γ' (stail ρ) ∧ oClose φ ρ (shead ρ)
+  | nil => True
+  end%I.
+Notation "⟦ Γ ⟧*" := (env_oltyped Γ).
+
 Section olty_ofe_2.
   Context `{Σ : gFunctors} {i : nat}.
   Implicit Types (φ : hoEnvD Σ i) (τ : olty Σ i).
 
-  Definition sCtx := list (olty Σ 0).
-
-  Fixpoint env_oltyped (Γ : sCtx) (ρ : var → vl) : iProp Σ :=
-    match Γ with
-    | φ :: Γ' => env_oltyped Γ' (stail ρ) ∧ oClose φ ρ (ρ 0)
-    | nil => True
-    end%I.
-  Notation "⟦ Γ ⟧*" := (env_oltyped Γ).
-
-  Global Instance env_oltyped_persistent (Γ : sCtx) ρ: Persistent (env_oltyped Γ ρ).
+  Global Instance env_oltyped_persistent (Γ : sCtx Σ) ρ: Persistent (⟦ Γ ⟧* ρ).
   Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
 
   Lemma interp_env_lookup Γ ρ (τ : olty Σ 0) x:
@@ -196,21 +182,27 @@ Section olty_ofe_2.
   (** We can define once and for all basic "logical" types: top, bottom, and, or, later and μ. *)
   Definition oTop : olty Σ i := Olty (λ args ρ v, True)%I.
 
-  Program Definition oBot : olty Σ i := Olty (λ args ρ v, False)%I.
+  Definition oBot : olty Σ i := Olty (λ args ρ v, False)%I.
 
-  Program Definition oAnd τ1 τ2 : olty Σ i := Olty (λ args ρ v, τ1 args ρ v ∧ τ2 args ρ v)%I.
+  Definition oAnd τ1 τ2 : olty Σ i := Olty (λ args ρ v, τ1 args ρ v ∧ τ2 args ρ v)%I.
 
-  Program Definition oOr τ1 τ2 : olty Σ i := Olty (λ args ρ v, τ1 args ρ v ∨ τ2 args ρ v)%I.
+  Definition oOr τ1 τ2 : olty Σ i := Olty (λ args ρ v, τ1 args ρ v ∨ τ2 args ρ v)%I.
 
   Definition eLater n (φ : hoEnvD Σ i) : hoEnvD Σ i := (λ args ρ v, ▷^n φ args ρ v)%I.
   Definition oLater τ := Olty (eLater 1 τ).
 
-  Program Definition ho_oMu {i} (τ : olty Σ i) : olty Σ i := Olty (λ args ρ v, τ args (v .: ρ) v).
+  Lemma oLater_eq τ args ρ v : oLater τ args ρ v = (▷ τ args ρ v)%I.
+  Proof. done. Qed.
+
+  Definition ho_oMu {i} (τ : olty Σ i) : olty Σ i := Olty (λ args ρ v, τ args (v .: ρ) v).
 
   Definition oMu (τ : olty Σ 0) : olty Σ 0 := ho_oMu τ.
 
+  Lemma ho_oMu_eq (τ : olty Σ i) args ρ v : ho_oMu τ args ρ v = τ args (v .: ρ) v.
+  Proof. done. Qed.
+
   Lemma interp_TMu_ren (T : olty Σ i) args ρ v: ho_oMu T.|[ren (+1)] args ρ v ≡ T args ρ v.
-  Proof. rewrite [_ (ho_oMu _)]/olty_car /= (olty_weaken_one T args _ v). by []. Qed.
+  Proof. rewrite ho_oMu_eq (olty_weaken_one T args _ v) stail_eq. by []. Qed.
 
   Definition interp_expr `{dlangG Σ} (φ : hoEnvD Σ 0) : envPred tm Σ :=
     λ ρ t, WP t {{ vclose φ ρ }} %I.
@@ -220,7 +212,6 @@ Section olty_ofe_2.
     olty0 (λ ρ v, ∃ ψ, s ↗[ σ ] ψ ∧ ▷ □ ψ v)%I.
 End olty_ofe_2.
 
-Notation "⟦ Γ ⟧*" := (env_oltyped Γ).
 Arguments oltyO : clear implicits.
 End OLty.
 
@@ -254,9 +245,9 @@ Section typing.
   Implicit Types (τ : olty Σ 0).
 
   Lemma iterate_TLater_later i τ ρ v:
-    oClose (iterate oLater i τ) ρ v ≡ (vclose (eLater i τ) ρ v).
+    oClose (iterate oLater i τ) ρ v ≡ vclose (eLater i τ) ρ v.
   Proof.
-    elim: i => [|i IHi] //. rewrite iterate_S [_ ρ]/olty_car/= /eLater IHi//.
+    elim: i => [//|i IHi]. by rewrite iterate_S oLater_eq IHi.
   Qed.
 
   Lemma T_Var Γ x τ
@@ -264,7 +255,8 @@ Section typing.
     (*──────────────────────*)
     Γ ⊨ of_val (ids x) : τ.|[ren (+x)].
   Proof.
-    iIntros "/= !>" (ρ) "#Hg". rewrite hsubst_of_val -wp_value' interp_env_lookup // id_subst. by [].
+    iIntros "/= !>" (ρ) "#Hg"; rewrite hsubst_of_val -wp_value'.
+    by rewrite interp_env_lookup // id_subst.
   Qed.
 
   Lemma andstp1 Γ τ1 τ2 i : Γ ⊨ oAnd τ1 τ2 , i <: τ1 , i.

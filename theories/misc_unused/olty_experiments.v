@@ -35,7 +35,7 @@ Notation ctx := (list (ty 0)).
 
 Notation "⟦ T ⟧" := (oty_interp T).
 
-Definition oty_interp_env (Γ : ctx) : sCtx := map oty_interp Γ.
+Definition oty_interp_env (Γ : ctx) : sCtx Σ := map oty_interp Γ.
 Definition env_typed (Γ : ctx) : env -d> iPropO Σ := env_oltyped (oty_interp_env Γ).
 
 Global Instance env_typed_persistent' `{OTyInterp ty Σ} Γ ρ : Persistent (env_typed Γ ρ) :=
@@ -47,7 +47,7 @@ Definition subj_judgment Σ s : Type := s * (env -d> s -d> iPropO Σ).
 Program Definition subj_judgment_to_judgment {Σ s} : subj_judgment Σ s → judgment Σ :=
   λ '(x, φ) ρ, φ ρ x.
 
-Definition judgment_holds (Γ : sCtx) (J : judgment Σ): iProp Σ :=
+Definition judgment_holds (Γ : sCtx Σ) (J : judgment Σ): iProp Σ :=
   □∀ ρ, env_oltyped Γ ρ → J ρ.
 Notation "Γ ⊨ J" := (judgment_holds Γ J) (at level 74, J at next level).
 Global Arguments judgment_holds /.
