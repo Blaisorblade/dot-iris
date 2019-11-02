@@ -117,8 +117,9 @@ Proof.
     eapply Trans_stp; first apply TAnd1_stp; tcrush.
   }
   apply VObj_typed; cbn; last by tcrush.
-  eapply dcons_typed; tcrush.
+  apply dcons_typed; first tcrush; last done.
   by apply (dty_typed TNat); tcrush.
+  apply dcons_typed; first apply dvabs_typed; tcrush.
   cbn; apply (App_typed _ _ _ TUnit);
     last eapply (Subs_typed_nocoerce TNat); tcrush.
   tcrush; cbn.
