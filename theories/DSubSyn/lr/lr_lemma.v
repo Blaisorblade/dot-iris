@@ -104,7 +104,7 @@ Section Sec.
     iIntros "#HTU #HLT /= !>" (vs) "#HG".
     rewrite -wp_value; unfold_interp.
     iExists _; iSplit. by iExists _.
-    iModIntro; repeat iSplitL; iIntros (v) "#H";
+    iModIntro; repeat iSplit; iIntros (v) "#H";
       rewrite later_intuitionistically -(interp_subst_ids _ _ _).
     - iIntros "!>"; by iApply "HLT".
     - by iApply "HTU".
@@ -119,7 +119,7 @@ Section Sec.
     iIntros "#HTU #HLT /= !>" (ρ) "#HG".
     rewrite -wp_value; unfold_interp.
     iExists _; iSplit. by iExists _.
-    iModIntro; repeat iSplitL; iIntros (v) "#H";
+    iModIntro; repeat iSplit; iIntros (v) "#H";
       rewrite later_intuitionistically -(interp_subst_ids _ _ _).
     - iIntros "!>"; by iApply "HLT".
     - by iApply "HTU".

@@ -145,7 +145,7 @@ Section Sec.
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.
     iIntros "/= #HeT !>" (vs) "#HG".
-    rewrite -wp_value'. iExists _; iSplitL; first done.
+    rewrite -wp_value'. iExists _; iSplit; first done.
     iIntros "!> !>" (v) "#Hv"; rewrite -(decomp_s e (v .: vs)).
     iApply ("HeT" $! (v .: vs) with "[$HG]").
     by rewrite (interp_weaken_one T1 _ v).

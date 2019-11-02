@@ -53,7 +53,7 @@ Section Sec.
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.
     iIntros "/= #HeT !>" (vs) "#HG".
-    rewrite -wp_value'. iExists _; iSplitL; first done.
+    rewrite -wp_value'. iExists _; iSplit; first done.
     iIntros "!>" (v); rewrite -(decomp_s e (v .: vs)).
     rewrite -wand_later; iIntros "#Hv".
     (* iApply (wp_later_swap _ (⟦ T2 ⟧ (v .: vs))).
@@ -83,7 +83,7 @@ Section Sec.
   Proof.
     iIntros "!>" (ρ v) "_ /= #HvT". iNext i.
     iDestruct "HvT" as (d Hlook) "#HvT".
-    iExists (d); (iSplit; try iSplitL) => //.
+    iExists (d); (iSplit; try iSplit) => //.
     iDestruct "HvT" as (vmem ->) "HvT".
     iExists (vmem); by iSplit.
   Qed.

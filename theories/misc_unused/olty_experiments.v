@@ -271,7 +271,7 @@ Section Sec2.
     rewrite /dlty_car /=.
     iExists (hoEnvD_inst (σ.|[ρ]) φ); iSplit.
     by iApply dm_to_type_intro.
-    iModIntro; repeat iSplitL; iIntros (v) "#HL"; rewrite later_intuitionistically.
+    iModIntro; repeat iSplit; iIntros (v) "#HL"; rewrite later_intuitionistically.
     - iIntros "!>". iApply Hγφ. by iApply "HLT".
     - iApply "HTU" => //. by iApply Hγφ.
   Qed.

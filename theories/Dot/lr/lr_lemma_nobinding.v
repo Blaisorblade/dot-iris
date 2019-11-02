@@ -64,7 +64,7 @@ Section Sec.
     objLookupDet.
     iExists d; repeat iSplit => //.
     iExists φ; repeat iSplit => //.
-    iModIntro; iSplitL; iIntros (w) "Hw".
+    iModIntro; iSplit; iIntros (w) "Hw".
     - by iApply "HLφ1".
     - iDestruct (dm_to_type_agree d _ _ w with "Hsφ1 Hsφ2") as "#Hag {Hsφ1 Hsφ2 HLφ1}".
       iSplit; [iApply "HφU1" | iApply "HφU2"] => //.

@@ -49,7 +49,7 @@ Section typing_type_member_defs.
     iIntros "#HTU #HLT #Hs /= !>" (ρ) "#Hg".
     iDestruct "Hs" as (φ Hγφ) "Hγ"; iSplit => //=.
     iExists (φ _); iSplit. by iApply (dm_to_type_intro with "Hγ").
-    iModIntro; repeat iSplitL; iIntros (v) "#HL";
+    iModIntro; repeat iSplit; iIntros (v) "#HL";
       rewrite later_intuitionistically.
     - iIntros "!>". iApply Hγφ. by iApply "HLT".
     - iApply "HTU" => //. by iApply Hγφ.
