@@ -12,7 +12,7 @@ Implicit Types
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
-  Lemma T_Forall_I' Γ T1 T2 e `{SwapProp (iPropSI Σ)}:
+  Lemma T_Forall_I' Γ T1 T2 e:
     TLater T1.|[ren (+1)] :: Γ ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
@@ -20,7 +20,7 @@ Section Sec.
     iIntros "/= #HeT !>" (vs) "#HG".
     rewrite -wp_value'. iExists _; iSplitL; first done.
     iIntros "!>" (v); rewrite -(decomp_s _ (v .: vs)).
-    rewrite -wand_later; iIntros "#Hv".
+    iIntros "!> #Hv".
     iApply ("HeT" $! (v .: vs) with "[$HG]").
     by rewrite (interp_weaken_one T1 _ v).
   Qed.
