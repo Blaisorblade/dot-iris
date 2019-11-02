@@ -12,19 +12,6 @@ Implicit Types
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
-  Lemma T_Forall_I' Γ T1 T2 e:
-    TLater T1.|[ren (+1)] :: Γ ⊨ e : T2 -∗
-    (*─────────────────────────*)
-    Γ ⊨ tv (vabs e) : TAll T1 T2.
-  Proof.
-    iIntros "/= #HeT !>" (vs) "#HG".
-    rewrite -wp_value'. iExists _; iSplit; first done.
-    iIntros "!>" (v); rewrite -(decomp_s _ (v .: vs)).
-    iIntros "!> #Hv".
-    iApply ("HeT" $! (v .: vs) with "[$HG]").
-    by rewrite (interp_weaken_one T1 _ v).
-  Qed.
-
   Lemma TAll_Later_Swap0 Γ T U `{SwapPropI Σ}:
     Γ ⊨ TAll (TLater T) U, 0 <: TLater (TAll T U), 0.
   Proof.
@@ -35,47 +22,6 @@ Section Sec.
     rewrite -mlater_wand.
     iIntros "#HwT".
     by iApply ("HvTU" with "[# $HwT]").
-  Qed.
-
-  Lemma wp_later_swap t Φ: WP t {{ v, ▷ Φ v }} ⊢ ▷ WP t {{ v, Φ v }}.
-  Proof.
-    iLöb as "IH" forall (t Φ).
-    iEval (rewrite !wp_unfold /wp_pre /=).
-    case: (to_val t) => [v|]. by eauto.
-    iIntros "H" (σ1 κ κs n _); iDestruct ("H" $! σ1 κ κs n with "[#//]") as "[$ H]".
-    iIntros (e2 σ2 efs Hstep); iDestruct ("H" $! e2 σ2 efs Hstep) as "[$ [H $]]".
-    iApply ("IH" with "H").
-  Qed.
-
-  Lemma T_Forall_I'' Γ T1 T2 e `{SwapPropI Σ}:
-    TLater T1.|[ren (+1)] :: Γ ⊨ e : TLater T2 -∗
-    (*─────────────────────────*)
-    Γ ⊨ tv (vabs e) : TAll T1 T2.
-  Proof.
-    iIntros "/= #HeT !>" (vs) "#HG".
-    rewrite -wp_value'. iExists _; iSplit; first done.
-    iIntros "!>" (v); rewrite -(decomp_s e (v .: vs)).
-    rewrite -wand_later; iIntros "#Hv".
-    (* iApply (wp_later_swap _ (⟦ T2 ⟧ (v .: vs))).
-    iApply ("HeT" $! (v .: vs) with "[$HG]"). *)
-    iSpecialize ("HeT" $! (v .: vs) with "[$HG]").
-    by rewrite (interp_weaken_one T1 _ v).
-    iApply (wp_later_swap with "HeT").
-  Qed.
-
-  (** Stronger version of TAll_Later_Swap0, needs wp_later_swap, which
-      might not extend to stronger WPs?*)
-  Lemma TAll_Later_Swap `{SwapPropI Σ} Γ T U i:
-    Γ ⊨ TAll (TLater T) (TLater U), i <: TLater (TAll T U), i.
-  Proof.
-    iIntros "!>" (ρ v) "_ /= #HvTU". iNext i.
-    iDestruct "HvTU" as (t ->) "#HvTU".
-    iExists t; iSplit => //.
-    iNext.
-    iIntros (w); rewrite -mlater_wand; iIntros "!> #HwT".
-    rewrite -(wp_later_swap _ (⟦ _ ⟧ _)).
-    iApply (wp_wand with "(HvTU [# $HwT //])").
-    by iIntros (v) "$".
   Qed.
 
   Lemma TVMem_Later_Swap Γ l T i:

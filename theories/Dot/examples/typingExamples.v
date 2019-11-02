@@ -242,8 +242,8 @@ Definition boolImpl :=
 Definition boolImplT : ty :=
   μ {@
     type "Boolean" >: ⊥ <: IFT;
-    val "true" : p0Bool;
-    val "false" : p0Bool
+    val "true" : TLater p0Bool;
+    val "false" : TLater p0Bool
   }.
 
 Definition boolImplTConcr : ty :=
@@ -252,56 +252,76 @@ Definition boolImplTConcr : ty :=
     val "true" : IFT;
     val "false" : IFT
   }.
+
+Example SubIFT_LaterP0Bool Γ : TLater {@
+    typeEq "Boolean" IFT;
+    val "true" : TLater p0Bool;
+    val "false" : TLater p0Bool
+  } :: Γ ⊢ₜ IFT, 0 <: ▶ p0Bool, 0.
+Proof.
+  eapply Trans_stp; first (apply (AddI_stp _ _ 2); tcrush).
+  eapply Trans_stp; first (apply TLaterR_stp; tcrush).
+  eapply Trans_stp; last (apply TLaterR_stp; tcrush).
+  eapply LSel_stp. tcrush.
+  eapply Var_typed_sub; by [|tcrush].
+Qed.
+
+Example SubIFT_LaterP0Bool' Γ : {@
+    typeEq "Boolean" IFT;
+    val "true" : IFT;
+    val "false" : IFT
+  }%ty :: Γ ⊢ₜ IFT, 0 <: ▶ p0Bool, 0.
+Proof.
+  eapply Trans_stp; last (apply TLaterR_stp; tcrush).
+  eapply Trans_stp; first (apply (AddI_stp _ _ 2); tcrush).
+  eapply Trans_stp; first (apply TLaterR_stp; tcrush).
+  eapply LSel_stp. tcrush.
+  eapply Var_typed_sub. by [|tcrush].
+  eapply Trans_stp; last apply TAddLater_stp; tcrush.
+Qed.
+
 Example boolImplTyp Γ (Hst : s1_is_ift_ext):
   Γ ⊢ₜ tv boolImpl : boolImplT.
 Proof.
   apply (Subs_typed_nocoerce boolImplTConcr).
   tcrush; by [apply (dty_typed IFT); tcrush| exact: Var_typed'].
-  tcrush.
+  tcrush; rewrite iterate_0.
   - eapply Trans_stp; first apply TAnd1_stp; tcrush.
   - eapply Trans_stp; first apply TAnd2_stp; tcrush.
     eapply Trans_stp; first apply TAnd1_stp; tcrush.
-    eapply LSel_stp'; tcrush.
-    eapply Var_typed_sub; by [|tcrush].
+    apply SubIFT_LaterP0Bool'.
   - eapply Trans_stp; first apply TAnd2_stp; tcrush.
     eapply Trans_stp; first apply TAnd2_stp; tcrush.
     eapply Trans_stp; first apply TAnd1_stp; tcrush.
-    eapply LSel_stp'; tcrush.
-    eapply Var_typed_sub; by [|tcrush].
+    apply SubIFT_LaterP0Bool'.
 Qed.
 
 (* We can also use subtyping on the individual members to type this example. *)
 Definition boolImplT0 : ty :=
   μ {@
     typeEq "Boolean" IFT;
-    val "true" : p0Bool;
-    val "false" : p0Bool
+    val "true" : TLater p0Bool;
+    val "false" : TLater p0Bool
   }.
 
-Lemma dvabs_sub_typed V T1 T2 e l:
-    is_stamped_ty (S (length Γ)) getStampTable T1 →
-    T1.|[ren (+1)] :: V :: Γ ⊢ₜ e : T2 →
-    Γ |d V ⊢{ l := dvl (vabs e) } : TVMem l (TAll T1 T2)
+Lemma dvabs_sub_typed {Γ} V T1 T2 e l L:
+  T1.|[ren (+1)] :: V :: Γ ⊢ₜ e : T2 →
+  TLater V :: Γ ⊢ₜ TAll T1 T2, 0 <: L, 0 →
+  is_stamped_ty (S (length Γ)) getStampTable T1 →
+  Γ |d V ⊢{ l := dvl (vabs e) } : TVMem l L.
+Admitted.
 
 Example boolImplTypAlt Γ (Hst : s1_is_ift_ext):
   Γ ⊢ₜ tv boolImpl : boolImplT.
 Proof.
   apply (Subs_typed_nocoerce boolImplT0);
     last (tcrush; eapply Trans_stp; first apply TAnd1_stp; tcrush).
-  tcrush; first (by (apply (dty_typed IFT); tcrush)).
+  (* tcrush; first (by (apply (dty_typed IFT); tcrush)). *)
   typconstructor; last tcrush.
 
-  apply dcons_typed; first apply dvabs_typed; tcrush.
-  apply dcons_typed; [apply (dty_typed IFT); tcrush | | done].
-  apply dcons_typed; first apply dvabs_typed. tcrush.
-  apply dcons_typed;
-  tcrush
-  - eapply (Subs_typed_nocoerce); first apply iftTrueTyp.
-    eapply LSel_stp'; tcrush.
-    eapply Var_typed_sub; by [|tcrush].
-  - eapply (Subs_typed_nocoerce); first apply iftFalseTyp.
-    eapply LSel_stp'; tcrush.
-    eapply Var_typed_sub; by [|tcrush].
+  apply dcons_typed; [apply (dty_typed IFT); tcrush | | done]; tcrush.
+  - eapply Subs_typed_nocoerce; [apply iftTrueTyp|apply SubIFT_LaterP0Bool].
+  - eapply Subs_typed_nocoerce; [apply iftFalseTyp|apply SubIFT_LaterP0Bool].
 Qed.
 
 (* AND = λ a b. a b False. *)

@@ -103,42 +103,7 @@ Section Sec.
     iApply wp_value_inv'; iApply "Hv"; by iSplit.
   Qed.
 
-  Lemma T_Forall_I' V T1 T2 e:
-    T1.|[ren (+1)] :: V :: Γ ⊨ e : T2 -∗
-    (*─────────────────────────*)
-    TLater V :: Γ ⊨ tv (vabs e) : TAll T1 T2.
-  Proof.
-    iIntros "/= #HeT !>" (vs) "#[HG HV]".
-    rewrite -wp_value'. iExists _; iSplit; first done.
-    iIntros "!>" (v); rewrite -(decomp_s _ (v .: vs)).
-    iIntros "!> #Hv".
-    iApply ("HeT" $! (v .: vs)); rewrite (interp_weaken_one T1 _ v) stail_eq.
-    by iFrame "#".
-  Qed.
-
   Lemma TVMem_All_I V T1 T2 e l:
-    T1.|[ren (+1)] :: V :: Γ ⊨ e : T2 -∗
-    Γ |L V ⊨ { l := dvl (vabs e) } : TVMem l (TAll T1 T2).
-  Proof.
-    iIntros "/= #He !>" (ρ) "#Hg".
-    iSplit => //; iExists (vabs _); iSplit => //.
-    iApply wp_value_inv'.
-    iApply (T_Forall_I' with "He [$Hg]").
-  Qed.
-
-  Lemma TVMem_All_I' V T1 T2 e l L:
-    T1.|[ren (+1)] :: V :: Γ ⊨ e : T2 -∗
-    TLater V :: Γ  ⊨ TAll T1 T2, 0 <: L, 0 -∗
-    Γ |L V ⊨ { l := dvl (vabs e) } : TVMem l L.
-  Proof.
-    iIntros "#He #Hsub !>" (ρ); iEval (simpl); iIntros "#Hg".
-    iSplit => //; iExists (vabs _); iSplit => //.
-    iApply ("Hsub" with "Hg").
-    iApply wp_value_inv'.
-    iApply (T_Forall_I' with "He Hg").
-  Qed.
-
-  Lemma TVMem_All_I_v1 V T1 T2 e l:
     T1.|[ren (+1)] :: V :: Γ ⊨ e : T2 -∗
     Γ |L V ⊨ { l := dvl (vabs e) } : TVMem l (TAll T1 T2).
   Proof.
