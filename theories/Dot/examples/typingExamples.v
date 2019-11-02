@@ -278,19 +278,24 @@ Definition boolImplT0 : ty :=
     val "false" : p0Bool
   }.
 
+Lemma dvabs_sub_typed V T1 T2 e l:
+    is_stamped_ty (S (length Γ)) getStampTable T1 →
+    T1.|[ren (+1)] :: V :: Γ ⊢ₜ e : T2 →
+    Γ |d V ⊢{ l := dvl (vabs e) } : TVMem l (TAll T1 T2)
+
 Example boolImplTypAlt Γ (Hst : s1_is_ift_ext):
   Γ ⊢ₜ tv boolImpl : boolImplT.
 Proof.
   apply (Subs_typed_nocoerce boolImplT0);
     last (tcrush; eapply Trans_stp; first apply TAnd1_stp; tcrush).
   tcrush; first (by (apply (dty_typed IFT); tcrush)).
-  (* typconstructor; last tcrush.
+  typconstructor; last tcrush.
 
   apply dcons_typed; first apply dvabs_typed; tcrush.
   apply dcons_typed; [apply (dty_typed IFT); tcrush | | done].
   apply dcons_typed; first apply dvabs_typed. tcrush.
   apply dcons_typed;
-  tcrush *)
+  tcrush
   - eapply (Subs_typed_nocoerce); first apply iftTrueTyp.
     eapply LSel_stp'; tcrush.
     eapply Var_typed_sub; by [|tcrush].
