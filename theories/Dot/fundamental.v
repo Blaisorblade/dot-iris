@@ -17,7 +17,7 @@ Notation "Γ ⊨[ gφ  ]p p : T , i" := (wellMappedφ gφ -∗ iptp Γ T p i)%I 
 Notation "Γ ⊨[ gφ  ] T1 , i <: T2 , j" := (wellMappedφ gφ -∗ step_indexed_ivstp Γ T1 T2 i j)%I (at level 74, T1, T2, i, j at next level).
 
 Section fundamental.
-  Context `{!dlangG Σ} `{!SwapProp (iPropSI Σ)}.
+  Context `{!dlangG Σ} `{!SwapPropI Σ}.
   Context `{hasStampTable: stampTable}.
 
   Lemma fundamental_dm_typed Γ V l d T (HT: Γ |d V ⊢{ l := d } : T):
@@ -89,8 +89,8 @@ End fundamental.
 
 Import dlang_adequacy.
 
-Theorem adequacy_mapped_semtyping Σ `{HdlangG: dlangPreG Σ} `{SwapProp (iPropSI Σ)} e g T:
-  (∀ `{dlangG Σ} `(!SwapProp (iPropSI Σ)), [] ⊨[ ⟦ g ⟧g ] e : T) →
+Theorem adequacy_mapped_semtyping Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e g T:
+  (∀ `{dlangG Σ} `(!SwapPropI Σ), [] ⊨[ ⟦ g ⟧g ] e : T) →
   safe e.
 Proof.
   intros Hlog ?*; eapply (adequacy_dot_sem _).

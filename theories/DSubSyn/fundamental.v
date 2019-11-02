@@ -12,7 +12,7 @@ From D.DSubSyn Require Import unary_lr lr_lemma.
 Implicit Types (L T U: ty) (v: vl) (e: tm) (Γ : ctx).
 
 Section swap_based_typing_lemmas.
-  Context `{!dsubSynG Σ} `{!SwapProp (iPropSI Σ)} {Γ}.
+  Context `{!dsubSynG Σ} `{!SwapPropI Σ} {Γ}.
 
   Lemma Sub_TAllConCov T1 T2 U1 U2 i:
     Γ ⊨ T2, S i <: T1, S i -∗
@@ -87,7 +87,7 @@ End swap_based_typing_lemmas.
 From D.DSubSyn Require Import typing.
 
 Section Fundamental.
-  Context `{!dsubSynG Σ} `{!SwapProp (iPropSI Σ)}.
+  Context `{!dsubSynG Σ} `{!SwapPropI Σ}.
 
   Lemma fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2):
     Γ ⊨ T1, i1 <: T2, i2
@@ -127,8 +127,8 @@ End Fundamental.
 From D.pure_program_logic Require Import adequacy.
 Import dlang_adequacy.
 
-Theorem adequacy Σ `{HdsubG: dsubSynG Σ} `{!SwapProp (iPropSI Σ)} e T:
-  (∀ `(dsubSynG Σ) `(SwapProp (iPropSI Σ)), [] ⊨ e : T) →
+Theorem adequacy Σ `{HdsubG: dsubSynG Σ} `{!SwapPropI Σ} e T:
+  (∀ `(dsubSynG Σ) `(SwapPropI Σ), [] ⊨ e : T) →
   safe e.
 Proof.
   intros Htyp ???*. cut (adequate NotStuck e σ (λ _ _, True)); first (intros [_ ?]; eauto).

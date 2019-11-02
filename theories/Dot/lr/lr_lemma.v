@@ -183,7 +183,7 @@ Section Sec.
 End Sec.
 
 Section swap_based_typing_lemmas.
-  Context `{!dlangG Σ} {Γ} `{!SwapProp (iPropSI Σ)}.
+  Context `{!dlangG Σ} {Γ} `{!SwapPropI Σ}.
 
   Lemma Sub_TAllConCov T1 T2 U1 U2 i:
     Γ ⊨ TLater T2, i <: TLater T1, i -∗

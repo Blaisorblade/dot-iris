@@ -3,11 +3,14 @@ From iris.base_logic Require Import lib.iprop (* For gname *)
      lib.saved_prop.
 From iris.algebra Require Import agree excl gmap auth.
 
-Import uPred.
-
+(** * Interface to Swap laws for any [sbi]. *)
 Class SwapProp (PROP: sbi) := {
   impl_later : ∀ (P Q: PROP), (▷ P → ▷ Q) ⊢ ▷ (P → Q);
   wand_later: ∀ (P Q: PROP), (▷ P -∗ ▷ Q) ⊢ ▷ (P -∗ Q)
+}.
+
+Class SwapBUpd (PROP: sbi) `(BUpd PROP) := {
+  later_bupd_commute: ∀(P:PROP), (|==> ▷ P) ⊣⊢ ▷ |==> P
 }.
 
 Lemma impl_laterN n `{SwapProp PROP} (P Q: PROP) : (▷^n P → ▷^n Q) ⊢ ▷^n (P → Q).
@@ -15,6 +18,12 @@ Proof. elim: n => [//|n IHn]. by rewrite impl_later IHn. Qed.
 
 Lemma wand_laterN n `{SwapProp PROP} (P Q: PROP) : (▷^n P -∗ ▷^n Q) ⊢ ▷^n (P -∗ Q).
 Proof. elim: n => [//|n IHn]. by rewrite wand_later IHn. Qed.
+
+Lemma laterN_bupd_commute n `{SwapBUpd PROP} (P: PROP) : (▷^n |==> P) ⊣⊢ |==> ▷^n P.
+Proof. elim: n => [//|n IHn]. by rewrite later_bupd_commute /= IHn. Qed.
+
+(** Derived swap laws, for uniform predicates. *)
+Import uPred.
 
 Section derived_swap_lemmas.
   Context `{M : ucmraT}.
@@ -35,12 +44,7 @@ Section derived_swap_lemmas.
   Proof. iSplit. iApply wand_laterN. iApply laterN_wand. Qed.
 End derived_swap_lemmas.
 
-Class SwapBUpd (PROP: sbi) `(BUpd PROP) := {
-  later_bupd_commute: ∀(P:PROP), (|==> ▷ P) ⊣⊢ ▷ |==> P
-}.
-
-Lemma laterN_bupd_commute n `{SwapBUpd PROP} (P: PROP) : (▷^n |==> P) ⊣⊢ |==> ▷^n P.
-Proof. elim: n => [//|n IHn]. by rewrite later_bupd_commute /= IHn. Qed.
+(** * Implementation of swap laws for uniform predicates. *)
 
 Class CmraSwappable (M : cmraT) := {
   (* TODO cmra_extend should really be cmra_extend_sep. *)
@@ -230,3 +234,5 @@ From iris.base_logic Require Import gen_heap.
 Instance CmraSwappable_savedInterp Σ A B: CmraSwappable (savedInterpΣ A B Fin.F1 (iPrePropO Σ) _) := Swappable_agreeR.
 Instance CmraSwappable_gen_iheap Σ `{Countable A} B: CmraSwappable (gen_iheapΣ A B Fin.F1 (iPrePropO Σ) _) := Swappable_discrete _.
 Instance CmraSwappable_gen_heap Σ `{Countable A} B: CmraSwappable (gen_heapΣ A B Fin.F1 (iPrePropO Σ) _) := Swappable_discrete _.
+
+Notation SwapPropI Σ := (SwapProp (iPropSI Σ)).

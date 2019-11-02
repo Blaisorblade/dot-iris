@@ -177,9 +177,9 @@ Module Type LiftWp (Import VS : VlSortsSig).
       ∀ e' thp σ σ', rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
         is_Some (to_val e') ∨ reducible (Λ := dlang_lang) e' σ'.
 
-    Theorem adequacy_dlang Σ `{dlangPreG Σ} `{SwapProp (iPropSI Σ)}
+    Theorem adequacy_dlang Σ `{dlangPreG Σ} `{SwapPropI Σ}
       (Φ : dlangG Σ → val dlang_lang → iProp Σ) e :
-      (∀ (Hdlang: dlangG Σ) `(SwapProp (iPropSI Σ)),
+      (∀ (Hdlang: dlangG Σ) `(SwapPropI Σ),
         allGs ∅ ==∗ WP e {{ Φ Hdlang }}) → safe e.
     Proof.
       intros Hwp ???*; cut (adequate NotStuck e σ (λ _ _, True)); first (move => [_ ?]; by eauto).

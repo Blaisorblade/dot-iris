@@ -321,8 +321,8 @@ End logrel_lemmas.
 From D Require Import swap_later_impl.
 Import dlang_adequacy.
 
-Theorem adequacy_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapProp (iPropSI Σ)} e T:
-  (∀ `{dlangG Σ} `(!SwapProp (iPropSI Σ)), allGs ∅ ==∗ [] ⊨ e : T) →
+Theorem adequacy_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e T:
+  (∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T) →
   safe e.
 Proof.
   intros Hlog ?*; eapply (adequacy_dlang _).

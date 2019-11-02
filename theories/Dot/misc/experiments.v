@@ -18,14 +18,14 @@ Section Sec.
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.
     iIntros "/= #HeT !>" (vs) "#HG".
-    rewrite -wp_value'. iExists _; iSplitL; first done.
+    rewrite -wp_value'. iExists _; iSplit; first done.
     iIntros "!>" (v); rewrite -(decomp_s _ (v .: vs)).
     iIntros "!> #Hv".
     iApply ("HeT" $! (v .: vs) with "[$HG]").
     by rewrite (interp_weaken_one T1 _ v).
   Qed.
 
-  Lemma TAll_Later_Swap0 Γ T U `{SwapProp (iPropSI Σ)}:
+  Lemma TAll_Later_Swap0 Γ T U `{SwapPropI Σ}:
     Γ ⊨ TAll (TLater T) U, 0 <: TLater (TAll T U), 0.
   Proof.
     iIntros "!>" (ρ v) "_ /= #HvTU".
@@ -47,7 +47,7 @@ Section Sec.
     iApply ("IH" with "H").
   Qed.
 
-  Lemma T_Forall_I'' Γ T1 T2 e `{SwapProp (iPropSI Σ)}:
+  Lemma T_Forall_I'' Γ T1 T2 e `{SwapPropI Σ}:
     TLater T1.|[ren (+1)] :: Γ ⊨ e : TLater T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
@@ -65,7 +65,7 @@ Section Sec.
 
   (** Stronger version of TAll_Later_Swap0, needs wp_later_swap, which
       might not extend to stronger WPs?*)
-  Lemma TAll_Later_Swap `{SwapProp (iPropSI Σ)} Γ T U i:
+  Lemma TAll_Later_Swap `{SwapPropI Σ} Γ T U i:
     Γ ⊨ TAll (TLater T) (TLater U), i <: TLater (TAll T U), i.
   Proof.
     iIntros "!>" (ρ v) "_ /= #HvTU". iNext i.
