@@ -1,7 +1,7 @@
 From iris.proofmode Require Import tactics.
 From D.Dot Require Import unary_lr synLemmas rules.
 
-Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
+Implicit Types (L T U V: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 
 Lemma norm_selfSubst ds s: selfSubst ds.|[up s] = ds.|[(vobj ds).[s] .: s].
 Proof. by rewrite /selfSubst /=; asimpl. Qed.
@@ -86,7 +86,7 @@ Section Sec.
   Local Arguments def_interp_vmem: simpl never.
 
   (** Lemmas about definition typing. *)
-  Lemma TVMem_I (V: ty) T v l:
+  Lemma TVMem_I V T v l:
     V :: Γ ⊨ tv v : T -∗
     Γ |L V ⊨ { l := dvl v } : TVMem l T.
   Proof.
