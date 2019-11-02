@@ -126,6 +126,18 @@ Section Sec.
     iApply (T_Forall_I' with "He [$Hg]").
   Qed.
 
+  Lemma TVMem_All_I' V T1 T2 e l L:
+    T1.|[ren (+1)] :: V :: Γ ⊨ e : T2 -∗
+    TLater V :: Γ  ⊨ TAll T1 T2, 0 <: L, 0 -∗
+    Γ |L V ⊨ { l := dvl (vabs e) } : TVMem l L.
+  Proof.
+    iIntros "#He #Hsub !>" (ρ); iEval (simpl); iIntros "#Hg".
+    iSplit => //; iExists (vabs _); iSplit => //.
+    iApply ("Hsub" with "Hg").
+    iApply wp_value_inv'.
+    iApply (T_Forall_I' with "He Hg").
+  Qed.
+
   Lemma TVMem_All_I_v1 V T1 T2 e l:
     T1.|[ren (+1)] :: V :: Γ ⊨ e : T2 -∗
     Γ |L V ⊨ { l := dvl (vabs e) } : TVMem l (TAll T1 T2).
