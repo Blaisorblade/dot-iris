@@ -222,35 +222,34 @@ Section Sec.
   (* Exercise: do this with only *syntactic* typing rules. *)
 
   (** Core definitions for singleton types. ⟦ w.type ⟧ ρ v *)
-  Definition sem_singleton w ρ v : iProp Σ := ⌜ w.[to_subst ρ] = v ⌝.
+  Definition sem_singleton w ρ v : iProp Σ := ⌜ w.[ρ] = v ⌝.
   Arguments sem_singleton /.
 
   (* Core typing lemmas, sketches. TODO: make the above into a type, and add all
      the plumbing. *)
-  Lemma self_sem_singleton ρ v: sem_singleton v ρ v.[to_subst ρ].
+  Lemma self_sem_singleton ρ v: sem_singleton v ρ v.[ρ].
   Proof. by iIntros "!%". Qed.
 
   Lemma other_sem_singleton ρ w v v':
-    (sem_singleton w ρ v.[to_subst ρ] →
+    (sem_singleton w ρ v.[ρ] →
     sem_singleton w ρ v' ↔ sem_singleton v ρ v')%I.
   Proof. iIntros (Hv) "/="; iSplit; iIntros (Hv1) "!%"; by simplify_eq. Qed.
 
   Lemma tskip_self_sem_singleton ρ v:
-    WP (tskip (tv v)) {{ v, sem_singleton v ρ v.[to_subst ρ] }}%I.
-  Proof. rewrite -wp_pure_step_later // -wp_value. by iIntros "!%". Qed.
+    WP (tskip (tv v.[ρ])) {{ w, sem_singleton v ρ w }}%I.
+  Proof. rewrite -wp_pure_step_later // -wp_value /=. by iIntros "!%". Qed.
 
   Lemma tskip_other_sem_singleton ρ w v v':
     sem_singleton w ρ v -∗
     WP (tskip (tv v)) {{ sem_singleton w ρ }}.
-  Proof.
-    iIntros (H); rewrite -wp_pure_step_later // -wp_value'. by iIntros "!%".
-  Qed.
+  Proof. iIntros (H); rewrite -wp_pure_step_later // -wp_value' //=. Qed.
 
-  Definition sem_psingleton p ρ v : iProp Σ := □path_wp p.|[ρ] (λ w, ⌜ w = v ⌝ )%I.
+  Definition sem_psingleton p ρ v : iProp Σ := path_wp p.|[ρ] (λ w, ⌜ w = v ⌝ )%I.
   Global Arguments sem_psingleton /.
+  Global Instance: Persistent (sem_psingleton p ρ v) := _.
 
-  Lemma psingletons_equiv w ρ v: sem_singleton w ρ v ⊣⊢ sem_psingleton (pv w) (to_subst ρ) v.
-  Proof. iSplit; iIntros "#H /="; iApply "H". Qed.
+  Lemma psingletons_equiv w ρ v: sem_singleton w ρ v ⊣⊢ sem_psingleton (pv w) ρ v.
+  Proof. done. Qed.
 
   Lemma self_sem_psingleton p ρ v :
     path_wp p.|[ρ] (λ w, ⌜ w = v ⌝) -∗ path_wp p.|[ρ] (sem_psingleton p ρ).
