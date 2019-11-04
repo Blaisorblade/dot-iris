@@ -201,6 +201,9 @@ Section syntyping_stamping_lemmas.
     simplify_eq/=; with_is_stamped inverse; with_is_unstamped inverse.
     exists (dvl v'), g1; naive_solver.
   - intros * Hu1 IHs1 g.
+    move: IHs1 => /(.$ g) /= [e1' [g1 ?]]; destruct_and!.
+    exists (dvl (vabs e1')), g1; naive_solver.
+  - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [e1' [g1 ?]]; ev.
     destruct e1' as [v'| | |] => //. with_is_stamped inverse.
     with_is_unstamped inverse.

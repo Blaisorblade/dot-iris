@@ -96,6 +96,9 @@ with dm_typed Γ : ty → label → dm → ty → Prop :=
 | dvl_typed V l v T:
     TLater V :: Γ ⊢ₜ tv v : T →
     Γ |d V ⊢{ l := dvl v } : TVMem l T
+| dvabs_typed V T1 T2 e l:
+    T1.|[ren (+1)] :: V :: Γ ⊢ₜ e : T2 →
+    Γ |d V ⊢{ l := dvl (vabs e) } : TVMem l (TAll T1 T2)
 where "Γ |d V ⊢{ l := d  } : T" := (dm_typed Γ V l d T)
 with path_typed Γ : path → ty → nat → Prop :=
 | pv_typed v T:
