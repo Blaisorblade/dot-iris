@@ -78,6 +78,14 @@ Section Sec.
     iDestruct "HT" as "[HT1 HT2]"; iSplit; by [>iApply "IHT"|iApply "IHT1"].
   Qed.
 
+  Lemma def_interp_tvmem_eq l T v ρ:
+    def_interp (TVMem l T) l ρ (dvl v) ⊣⊢
+    ▷ ⟦ T ⟧ ρ v.
+  Proof.
+    iSplit. by iDestruct 1 as (_ vmem [= ->]) "$".
+    iIntros "H"; iSplit; first done; iExists v. by auto.
+  Qed.
+
   Context Γ.
 
   Local Arguments lift_dinterp_vl: simpl never.
@@ -91,7 +99,7 @@ Section Sec.
     Γ |L V ⊨ { l := dvl v } : TVMem l T.
   Proof.
     iIntros "/= #Hv !>" (ρ) "[#Hg #Hw]".
-    iSplit => //; iExists _; iSplit => //.
+    iApply def_interp_tvmem_eq.
     iNext. iApply wp_value_inv'; iApply "Hv"; by iSplit.
   Qed.
 
