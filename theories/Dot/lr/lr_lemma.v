@@ -15,13 +15,13 @@ Section Sec.
     (*───────────────────────────────*)
     Γ ⊨ iterate tskip i e : T2.
   Proof.
-    iIntros "/= #HeT1 #Hsub !>" (vs) "#Hg".
-    rewrite tskip_subst tskip_n_to_fill -wp_bind.
+    iIntros "/= #HeT1 #Hsub !>" (ρ) "#Hg".
+    rewrite tskip_subst -wp_bind.
     iApply wp_wand => //.
     - iApply ("HeT1" with "[//]").
     - iIntros (v) "#HvT1".
       (* We can swap ▷^i with WP (tv v)! *)
-      rewrite -tskip_n_to_fill -wp_pure_step_later // -wp_value.
+      rewrite -wp_pure_step_later // -wp_value.
       by iApply "Hsub".
   Qed.
 

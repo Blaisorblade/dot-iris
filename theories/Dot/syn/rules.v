@@ -1,5 +1,6 @@
 From iris.program_logic Require Import language ectx_language.
 From D.Dot Require Import syn.
+Import asubst_base.
 
 Implicit Types e : tm.
 
@@ -57,3 +58,10 @@ End lang_rules.
 
 Lemma tskip_n_to_fill i e: iterate tskip i e = fill (repeat SkipCtx i) e.
 Proof. elim: i e => [|i IHi] e //; by rewrite ?iterate_0 ?iterate_Sr /= -IHi. Qed.
+
+Instance ctx_iterate_tskip i: LanguageCtx (iterate tskip i).
+Proof.
+  rewrite -Proper_LanguageCtx; first last.
+  symmetry; exact: tskip_n_to_fill.
+  apply _.
+Qed.
