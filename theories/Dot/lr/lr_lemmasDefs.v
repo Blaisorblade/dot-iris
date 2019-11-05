@@ -1,5 +1,5 @@
 From iris.proofmode Require Import tactics.
-From D.Dot Require Import unary_lr synLemmas rules.
+From D.Dot Require Import unary_lr.
 
 Implicit Types (L T U V: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 
@@ -28,7 +28,7 @@ Qed.
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
-  Local Hint Resolve fv_dms_cons fv_of_val fv_vobj fv_dvl dms_lookup_head dms_lookup_mono : core.
+  Local Hint Resolve dms_lookup_head dms_lookup_mono : core.
 
   Lemma lift_dinterp_dms_vl_commute T ds ρ l:
     label_of_ty T = Some l →
