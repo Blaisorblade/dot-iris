@@ -2,6 +2,7 @@ From iris.program_logic Require Import language.
 From D Require Import prelude asubst_intf.
 
 Module Type Sorts (Import V : ValuesSig) <: SortsSig V.
+Include SortsSig V.
 
 Class Sort (s : Type)
   {inh_s : Inhabited s}
@@ -17,6 +18,8 @@ Global Instance sort_list_pair_snd `{Sort X} `{Inhabited A} : Sort (list (A * X)
 Implicit Types (v w : vl) (vs σ : vls) (i j k n : nat)
   (r : nat → nat) (ρ : var → vl).
 
+Definition subst_sigma σ vs := σ.|[to_subst vs].
+
 Definition eq_n_s ρ1 ρ2 n := ∀ x, x < n → ρ1 x = ρ2 x.
 Global Arguments eq_n_s /.
 
@@ -25,22 +28,6 @@ Proof. move => Heqs x ?. symmetry. exact: Heqs. Qed.
 
 Lemma eq_n_s_mon n m {s1 s2}: eq_n_s s1 s2 m → n <= m → eq_n_s s1 s2 n.
 Proof. rewrite /eq_n_s => HsEq Hnm i Hl. apply HsEq; lia. Qed.
-
-Fixpoint to_subst σ : var → vl :=
-  match σ with
-  | [] => ids
-  | v :: σ => v .: to_subst σ
-  end.
-(* Tighter precedence than [>>], which has level 56. *)
-Notation "∞ σ" := (to_subst σ) (at level 50).
-
-Definition subst_sigma σ vs := σ.|[to_subst vs].
-
-Lemma to_subst_nil : to_subst [] = ids.
-Proof. trivial. Qed.
-
-Lemma to_subst_cons v σ : to_subst (v :: σ) = v .: to_subst σ.
-Proof. trivial. Qed.
 
 Definition push_var (σ : vls) : vls := ids 0 :: σ.|[ren (+1)].
 Arguments push_var /.

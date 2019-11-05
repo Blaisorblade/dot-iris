@@ -28,43 +28,18 @@ Module Type ValuesSig.
 End ValuesSig.
 
 Module Type SortsSig (Import V : ValuesSig).
-  Class Sort (s : Type)
-    {inh_s : Inhabited s}
-    {ids_s : Ids s} {ren_s : Rename s} {hsubst_vl_s : HSubst vl s}
-    {hsubst_lemmas_vl_s : HSubstLemmas vl s} := {}.
+  Fixpoint to_subst σ : var → vl :=
+    match σ with
+    | [] => ids
+    | v :: σ => v .: to_subst σ
+    end.
+  (* Tighter precedence than [>>], which has level 56. *)
+  Notation "∞ σ" := (to_subst σ) (at level 50).
 
-  Instance sort_tm : Sort tm := {}.
+  Definition to_subst_nil : to_subst [] = ids := reflexivity _.
 
-  Definition eq_n_s (s1 s2 : var → vl) n := ∀ x, x < n → s1 x = s2 x.
-  Global Arguments eq_n_s /.
-
-  Definition nclosed_vl (v : vl) n :=
-    ∀ s1 s2, eq_n_s s1 s2 n → v.[s1] = v.[s2].
-
-  Definition nclosed `{HSubst vl X} (x : X) n :=
-    ∀ s1 s2, eq_n_s s1 s2 n → x.|[s1] = x.|[s2].
-
-  Definition to_subst (ρ : vls) : var → vl := foldr (λ v s, v .: s) ids ρ.
-  Parameter to_subst_nil : to_subst [] = ids.
-
-  Parameter to_subst_cons : ∀ v ρ, to_subst (v :: ρ) = v .: to_subst ρ.
-
-  Parameter to_subst_weaken : ∀ ρ1 ρ2 ρ3,
-    upn (length ρ1) (ren (+length ρ2)) >> to_subst (ρ1 ++ ρ2 ++ ρ3) =
-    to_subst (ρ1 ++ ρ3).
-
-  Definition nclosed_sub n m s :=
-    ∀ i, i < n → nclosed_vl (s i) m.
-  Parameter compose_sub_closed : ∀ s s1 s2 i j,
-    nclosed_sub i j s → eq_n_s s1 s2 j → eq_n_s (s >> s1) (s >> s2) i.
-
-  Parameter nclosed_sub_app_vl : ∀ v s i j,
-    nclosed_sub i j s →
-    nclosed_vl v i → nclosed_vl v.[s] j.
-
-  Parameter nclosed_sub_app : ∀ `{Ids X} `{HSubst vl X} `{!HSubstLemmas vl X} (x : X) s i j,
-    nclosed_sub i j s →
-    nclosed x i → nclosed x.|[s] j.
+  Definition to_subst_cons v σ : to_subst (v :: σ) = v .: to_subst σ :=
+    reflexivity _.
 End SortsSig.
 
 Module Type VlSortsSig := ValuesSig <+ SortsSig.
