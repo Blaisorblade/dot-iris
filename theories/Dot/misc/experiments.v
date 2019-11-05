@@ -104,7 +104,7 @@ Section Sec.
 
   Lemma TVMem_Sub Γ V T1 T2 v l:
     Γ |L V ⊨ { l := dvl v } : TVMem l T1 -∗
-    Γ |L V ⊨ T1, 1 <: T2, 1 -∗
+    Γ |L V ⊨ T1, 0 <: T2, 0 -∗
     Γ |L V ⊨ { l := dvl v } : TVMem l T2.
   Proof.
     iIntros "/= #Hv #Hsub !>" (ρ) "#Hg"; iApply def_interp_tvmem_eq.
@@ -265,7 +265,7 @@ Section Sec.
     path_wp p.|[ρ] (λ w, ⌜ w = v ⌝) -∗ path_wp p.|[ρ] (sem_psingleton p ρ).
   Proof.
     iIntros "#Heq /=".
-    iEval rewrite path_wp_eq plength_subst_inv. by iExists v; iFrame "Heq".
+    iEval rewrite path_wp_eq. by iExists v; iFrame "Heq".
   Qed.
 
   Lemma T_self_sem_psingleton Γ p T i :
@@ -277,7 +277,7 @@ Section Sec.
   Proof.
     iIntros "#Hp !>" (vs) "#Hg".
     iSpecialize ("Hp" with "Hg"); iNext i.
-    rewrite !path_wp_eq plength_subst_inv.
+    rewrite !path_wp_eq.
     iDestruct "Hp" as (v) "(Heq & _)". by iExists v; iFrame "Heq".
   Qed.
 

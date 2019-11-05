@@ -25,14 +25,14 @@ Section path_wp.
       *)
   Fixpoint path_wp p φ: iProp Σ :=
     match p with
-    | pself p l => path_wp p (λ v, ∃ w, ⌜ v @ l ↘ dvl w ⌝ ∧ ▷ φ w)
+    | pself p l => path_wp p (λ v, ∃ w, ⌜ v @ l ↘ dvl w ⌝ ∧ φ w)
     | pv vp => φ vp
     end%I.
 
   Global Instance path_wp_ne p : NonExpansive (path_wp p).
   Proof.
     elim: p => [w|p IHp l] n x y Heq /=. done.
-    f_equiv => vp. f_equiv => vq. f_equiv. f_equiv. exact: Heq.
+    f_equiv => vp. f_equiv => vq. f_equiv. exact: Heq.
   Qed.
 
   Global Instance path_wp_persistent φ p:
@@ -41,13 +41,12 @@ Section path_wp.
 
   Lemma strong_path_wp_wand φ1 φ2 p:
     path_wp p φ1 -∗
-    ▷^(plength p) (∀ v, φ1 v -∗ φ2 v) -∗
+    (∀ v, φ1 v -∗ φ2 v) -∗
     path_wp p φ2.
   Proof.
     elim: p φ1 φ2 => /= [v|p IHp l] ??; iIntros "H1 Hwand";
       first by iApply "Hwand".
     iApply (IHp with "H1").
-    iNext.
     iIntros (v) "H"; iDestruct "H" as (vq Hl) "?".
     iExists vq; iFrame (Hl). by iApply "Hwand".
   Qed.
@@ -58,11 +57,11 @@ Section path_wp.
     path_wp p φ2.
   Proof.
     iIntros "Hp1 Hwand".
-    iApply (strong_path_wp_wand with "Hp1"); by iNext.
+    by iApply (strong_path_wp_wand with "Hp1").
   Qed.
 
   Lemma path_wp_eq p φ :
-    path_wp p φ ⊣⊢ ∃ v, path_wp p (λ w, ⌜ w = v ⌝) ∧ ▷^(plength p) φ v.
+    path_wp p φ ⊣⊢ ∃ v, path_wp p (λ w, ⌜ w = v ⌝) ∧ φ v.
   Proof.
     elim: p φ => [ v | p IHp l ] φ /=; iSplit; iIntros "H".
     - auto.
@@ -70,8 +69,8 @@ Section path_wp.
     - rewrite IHp.
       iDestruct "H" as (v) "[Hp Hw]".
       iDestruct "Hw" as (w) "[Hl Hw]".
-      iExists w; iSplit; last by iNext.
-      iApply (strong_path_wp_wand with "Hp").
+      iExists w; iSplit; last by [].
+      iApply (path_wp_wand with "Hp").
       iIntros (? ->); iExists w. by iSplit.
     - setoid_rewrite IHp.
       iDestruct "H" as (w) "[Hp Hw]".
@@ -79,13 +78,13 @@ Section path_wp.
       iExists v; iSplit; first done.
       iDestruct "Hl" as (w') "[Hl Heqw]".
       iExists w'; iSplit; first done.
-      iNext; iNext; by iDestruct "Heqw" as %->.
+      by iDestruct "Heqw" as %->.
   Qed.
 
   Lemma path_wp_det p v1 v2:
     path_wp p (λ w, ⌜ w = v1 ⌝) -∗
     path_wp p (λ w, ⌜ w = v2 ⌝) -∗
-    ▷^(plength p) ⌜ v1 = v2 ⌝: iProp Σ.
+    ⌜ v1 = v2 ⌝: iProp Σ.
   Proof.
     elim: p v1 v2 => [v /=| p /= IHp l //] v1 v2;
       first by iIntros (<- <-).
@@ -94,11 +93,10 @@ Section path_wp.
     iDestruct "H1" as (w1) "[H1 Hl1]".
     iDestruct "H2" as (w2) "[H2 Hl2]".
     iDestruct (IHp with "H1 H2") as "Heq".
-    rewrite -swap_later; iNext (plength p).
     iDestruct "Heq" as %<-.
     iDestruct "Hl1" as (vq1 Hl1) "Heq1".
     iDestruct "Hl2" as (vq2 Hl2) "Heq2".
-    iNext. objLookupDet. iDestruct "Heq1" as %->. by [].
+    objLookupDet. iDestruct "Heq1" as %->. by [].
   Qed.
 
   Lemma path_wp_later_swap p φ:

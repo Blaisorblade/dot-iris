@@ -80,7 +80,7 @@ Section Sec.
 
   Lemma def_interp_tvmem_eq l T v ρ:
     def_interp (TVMem l T) l ρ (dvl v) ⊣⊢
-    ▷ ⟦ T ⟧ ρ v.
+    ⟦ T ⟧ ρ v.
   Proof.
     iSplit. by iDestruct 1 as (_ vmem [= ->]) "$".
     iIntros "H"; iSplit; first done; iExists v. by auto.
@@ -95,12 +95,12 @@ Section Sec.
 
   (** Lemmas about definition typing. *)
   Lemma TVMem_I V T v l:
-    V :: Γ ⊨ tv v : T -∗
+    TLater V :: Γ ⊨ tv v : T -∗
     Γ |L V ⊨ { l := dvl v } : TVMem l T.
   Proof.
     iIntros "/= #Hv !>" (ρ) "[#Hg #Hw]".
     iApply def_interp_tvmem_eq.
-    iNext. iApply wp_value_inv'; iApply "Hv"; by iSplit.
+    iApply wp_value_inv'; iApply "Hv"; by iSplit.
   Qed.
 
   (* Check that Löb induction works as expected for proving introduction of

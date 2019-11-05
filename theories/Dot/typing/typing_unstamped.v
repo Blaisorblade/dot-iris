@@ -94,7 +94,7 @@ with dm_typed Γ : ty → label → dm → ty → Prop :=
     TLater V :: Γ u⊢ₜ TLater T, 0 <: TLater U, 0 →
     Γ |d V u⊢{ l := dtysyn T } : TTMem l L U
 | dvl_typed V l v T:
-    V :: Γ u⊢ₜ tv v : T →
+    TLater V :: Γ u⊢ₜ tv v : T →
     Γ |d V u⊢{ l := dvl v } : TVMem l T
 where "Γ |d V u⊢{ l := d  } : T" := (dm_typed Γ V l d T)
 with path_typed Γ : path → ty → nat → Prop :=
@@ -173,10 +173,10 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 (* Type selections *)
 | SelU_stp p L {l U i}:
     Γ u⊢ₚ p : TTMem l L U, i →
-    Γ u⊢ₜ TSel p l, i <: iterate TLater (S (plength p)) U, i
+    Γ u⊢ₜ TSel p l, i <: TLater U, i
 | LSel_stp p U {l L i}:
     Γ u⊢ₚ p : TTMem l L U, i →
-    Γ u⊢ₜ iterate TLater (S (plength p)) L, i <: TSel p l, i
+    Γ u⊢ₜ TLater L, i <: TSel p l, i
 
 (* TODO: figure out if the drugs I had when I wrote these rules were good or bad. *)
 (* | SelU_stp l L U p i j: *)
@@ -210,7 +210,7 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     is_unstamped_ty (length Γ) T2 →
     Γ u⊢ₜ TAll T1 U1, i <: TAll T2 U2, i
 | TVMemCov_stp T1 T2 i l:
-    Γ u⊢ₜ TLater T1, i <: TLater T2, i →
+    Γ u⊢ₜ T1, i <: T2, i →
     Γ u⊢ₜ TVMem l T1, i <: TVMem l T2, i
 | TTMemConCov_stp L1 L2 U1 U2 i l:
     Γ u⊢ₜ TLater L2, i <: TLater L1, i →
