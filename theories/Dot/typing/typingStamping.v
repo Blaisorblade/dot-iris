@@ -184,7 +184,7 @@ Section syntyping_stamping_lemmas.
     (* The core and most interesting case! Stamping dtysyn! *)
   - intros * Hus Hu1 IHs1 Hu2 IHs2 g.
     move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]];
-    move: IHs2 => /(.$ g1) [g2 [Hts2 Hle2 ]].
+    move: IHs2 => /(.$ g1) [g2 [Hts2 Hle2]].
     have Husv: is_unstamped_dm (S (length Γ)) (dtysyn T) by auto.
     destruct (extract g2 (S (length Γ)) T) as [g3 [s σ]] eqn:Heqo.
     move: Heqo => [Heqg3 Heqs Heqσ].
