@@ -6,6 +6,10 @@ Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
          (Γ : ctx) (ρ : vls).
 
+Lemma plength_subst_inv p s :
+  plength p.|[s] = plength p.
+Proof. by elim: p => [v| p /= ->]. Qed.
+
 Section path_wp.
   Context `{HdlangG: dlangG Σ}.
   Implicit Types (φ : vl -d> iPropO Σ).

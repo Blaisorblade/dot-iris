@@ -150,7 +150,3 @@ Qed.
 
 Lemma nclosed_lookup' {w l d n}: w @ l ↘ d → nclosed_vl w n → nclosed d n.
 Proof. move => [ds [->]] Hl /fv_vobj_inv /nclosed_selfSubst. exact: nclosed_lookup. Qed.
-
-Lemma plength_subst_inv p s :
-  plength p.|[s] = plength p.
-Proof. by elim: p => [v| p /= ->]. Qed.
