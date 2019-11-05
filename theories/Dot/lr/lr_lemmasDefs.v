@@ -80,7 +80,7 @@ Section Sec.
 
   Lemma def_interp_tvmem_eq l T v ρ:
     def_interp (TVMem l T) l ρ (dvl v) ⊣⊢
-    ▷ ⟦ T ⟧ ρ v.
+    ⟦ T ⟧ ρ v.
   Proof.
     iSplit. by iDestruct 1 as (_ vmem [= ->]) "$".
     iIntros "H"; iSplit; first done; iExists v. by auto.
@@ -95,22 +95,34 @@ Section Sec.
 
   (** Lemmas about definition typing. *)
   Lemma TVMem_I V T v l:
-    V :: Γ ⊨ tv v : T -∗
+    TLater V :: Γ ⊨ tv v : T -∗
     Γ |L V ⊨ { l := dvl v } : TVMem l T.
   Proof.
     iIntros "/= #Hv !>" (ρ) "[#Hg #Hw]".
     iApply def_interp_tvmem_eq.
-    iNext. iApply wp_value_inv'; iApply "Hv"; by iSplit.
+    iApply wp_value_inv'; iApply "Hv"; by iSplit.
   Qed.
 
   Lemma TVMem_Sub V T1 T2 v l:
-    Γ |L V ⊨ T1, 1 <: T2, 1 -∗
+    Γ |L V ⊨ T1, 0 <: T2, 0 -∗
     Γ |L V ⊨ { l := dvl v } : TVMem l T1 -∗
     Γ |L V ⊨ { l := dvl v } : TVMem l T2.
   Proof.
     iIntros "/= #Hsub #Hv !>" (ρ) "#Hg"; iApply def_interp_tvmem_eq.
     iApply ("Hsub" with "Hg").
     iApply def_interp_tvmem_eq. by iApply "Hv".
+  Qed.
+
+  Lemma TVMem_All_I V T1 T2 e l:
+    T1.|[ren (+1)] :: V :: Γ ⊨ e : T2 -∗
+    Γ |L V ⊨ { l := dvl (vabs e) } : TVMem l (TAll T1 T2).
+  Proof.
+    iIntros "/= #He !>" (ρ) "[#Hg #Hv]".
+    iApply def_interp_tvmem_eq.
+    iExists (e.|[_]); iSplit; first done.
+    iIntros "!>!>" (w) "#Hw"; rewrite -(decomp_s _ (w .: ρ)).
+    iApply "He".
+    rewrite (interp_weaken_one T1 _ w) stail_eq. by iFrame "#".
   Qed.
 
   (* Check that Löb induction works as expected for proving introduction of

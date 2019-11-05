@@ -75,6 +75,7 @@ Section syntyping_stamping_lemmas.
   Hint Extern 5 => try_once stamps_unstamp_mono_tm : core.
   Hint Extern 5 => try_once is_stamped_mono_dm : core.
   Hint Extern 5 => try_once stamps_unstamp_mono_dm : core.
+  (* Hint Extern 5 => try_once stamps_unstamp_mono_vl : core. *)
 
   Hint Resolve unstamped_stamped_type var_stamps_to_self1 path_stamps_to_self1 : core.
   Hint Extern 998 (_ = _) => f_equal : core.
@@ -195,6 +196,9 @@ Section syntyping_stamping_lemmas.
       first eapply (typing_objIdent.dty_typed _ T); auto 2; [
         exact: (stamped_objIdent_subtype_mono _ Hts1)|
         exact: (stamped_objIdent_subtype_mono _ Hts2)].
+  - intros * Hus1 Hu1 IHs1 g.
+    move: IHs1 => /(.$ g) /= [e1' [g1 ?]]; destruct_and!.
+    exists (dvl (vabs e1')), g1; naive_solver.
   - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [e1' [g1 ?]]; destruct_and!.
     have [v' ?]: ∃ v', e1' = tv v' by destruct e1'; naive_solver.

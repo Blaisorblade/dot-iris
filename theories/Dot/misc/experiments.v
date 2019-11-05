@@ -12,19 +12,6 @@ Implicit Types
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
-  Lemma T_Forall_I' Γ T1 T2 e:
-    TLater T1.|[ren (+1)] :: Γ ⊨ e : T2 -∗
-    (*─────────────────────────*)
-    Γ ⊨ tv (vabs e) : TAll T1 T2.
-  Proof.
-    iIntros "/= #HeT !>" (vs) "#HG".
-    rewrite -wp_value'. iExists _; iSplit; first done.
-    iIntros "!>" (v); rewrite -(decomp_s _ (v .: vs)).
-    iIntros "!> #Hv".
-    iApply ("HeT" $! (v .: vs) with "[$HG]").
-    by rewrite (interp_weaken_one T1 _ v).
-  Qed.
-
   Lemma TAll_Later_Swap0 Γ T U `{SwapPropI Σ}:
     Γ ⊨ TAll (TLater T) U, 0 <: TLater (TAll T U), 0.
   Proof.
@@ -255,7 +242,7 @@ Section Sec.
     path_wp p.|[ρ] (λ w, ⌜ w = v ⌝) -∗ path_wp p.|[ρ] (sem_psingleton p ρ).
   Proof.
     iIntros "#Heq /=".
-    iEval rewrite path_wp_eq plength_subst_inv. by iExists v; iFrame "Heq".
+    iEval rewrite path_wp_eq. by iExists v; iFrame "Heq".
   Qed.
 
   Lemma T_self_sem_psingleton Γ p T i :
@@ -267,7 +254,7 @@ Section Sec.
   Proof.
     iIntros "#Hp !>" (vs) "#Hg".
     iSpecialize ("Hp" with "Hg"); iNext i.
-    rewrite !path_wp_eq plength_subst_inv.
+    rewrite !path_wp_eq.
     iDestruct "Hp" as (v) "(Heq & _)". by iExists v; iFrame "Heq".
   Qed.
 

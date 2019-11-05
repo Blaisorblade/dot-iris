@@ -143,6 +143,6 @@ Section Sec.
     Γ |L V ⊨ { l := dvl (vabs e) } : TVMem l (TAll T1 T2).
   Proof.
     iIntros "HeT"; iApply TVMem_I.
-    iApply (T_Forall_I with "HeT").
+    iApply (T_Forall_I_strange with "HeT"). (* Maybe inline *)
   Qed.
 End Sec.

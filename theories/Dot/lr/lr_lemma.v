@@ -158,7 +158,7 @@ Section Sec.
   Qed.
 
   Lemma Sub_TVMem_Variant' T1 T2 i j l:
-    Γ ⊨ TLater T1, i <: TLater T2, j + i -∗
+    Γ ⊨ T1, i <: T2, j + i -∗
     Γ ⊨ TVMem l T1, i <: TVMem l T2, j + i.
   Proof.
     iIntros "#Hsub /= !>" (ρ v) "#Hg #HT1". setoid_rewrite laterN_plus.
@@ -170,7 +170,7 @@ Section Sec.
   Qed.
 
   Lemma Sub_TVMem_Variant T1 T2 i l:
-    Γ ⊨ TLater T1, i <: TLater T2, i -∗
+    Γ ⊨ T1, i <: T2, i -∗
     Γ ⊨ TVMem l T1, i <: TVMem l T2, i.
   Proof. iApply (Sub_TVMem_Variant' _ _ _ 0). Qed.
 End Sec.
