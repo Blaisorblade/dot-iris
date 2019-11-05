@@ -117,9 +117,8 @@ Proof.
     eapply Trans_stp; first apply TAnd1_stp; tcrush.
   }
   apply VObj_typed; cbn; last by tcrush.
-  apply dcons_typed; first tcrush; last done.
+  apply dcons_typed; tcrush.
   by apply (dty_typed TNat); tcrush.
-  apply dcons_typed; first apply dvabs_typed; tcrush.
   cbn; apply (App_typed _ _ _ TUnit);
     last eapply (Subs_typed_nocoerce TNat); tcrush.
   tcrush; cbn.
@@ -318,7 +317,7 @@ Lemma dvabs_sub_typed {Γ} V T1 T2 e l L:
 Proof.
   intros He Hsub Hs.
   eapply dvl_sub_typed; last apply Hsub.
-  eapply dvabs_typed; tcrush.
+  tcrush.
 Qed.
 
 Example boolImplTypAlt Γ (Hst : s1_is_ift_ext):
@@ -326,10 +325,7 @@ Example boolImplTypAlt Γ (Hst : s1_is_ift_ext):
 Proof.
   apply (Subs_typed_nocoerce boolImplT0);
     last (tcrush; eapply Trans_stp; first apply TAnd1_stp; tcrush).
-  (* tcrush; first (by (apply (dty_typed IFT); tcrush)). *)
-  typconstructor; last tcrush.
-
-  apply dcons_typed; [apply (dty_typed IFT); tcrush | | done]; tcrush.
+  tcrush; first (by (apply (dty_typed IFT); tcrush)).
   - eapply Subs_typed_nocoerce; [apply iftTrueTyp|apply SubIFT_LaterP0Bool].
   - eapply Subs_typed_nocoerce; [apply iftFalseTyp|apply SubIFT_LaterP0Bool].
 Qed.

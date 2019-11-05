@@ -93,13 +93,13 @@ with dm_typed Γ : ty → label → dm → ty → Prop :=
     TLater V :: Γ ⊢ₜ TLater L, 0 <: TLater T, 0 →
     TLater V :: Γ ⊢ₜ TLater T, 0 <: TLater U, 0 →
     Γ |d V ⊢{ l := dtysem σ s } : TTMem l L U
-| dvl_typed V l v T:
-    TLater V :: Γ ⊢ₜ tv v : T →
-    Γ |d V ⊢{ l := dvl v } : TVMem l T
 | dvabs_typed V T1 T2 e l:
     is_stamped_ty (S (length Γ)) getStampTable T1 →
     T1.|[ren (+1)] :: V :: Γ ⊢ₜ e : T2 →
     Γ |d V ⊢{ l := dvl (vabs e) } : TVMem l (TAll T1 T2)
+| dvl_typed V l v T:
+    TLater V :: Γ ⊢ₜ tv v : T →
+    Γ |d V ⊢{ l := dvl v } : TVMem l T
 where "Γ |d V ⊢{ l := d  } : T" := (dm_typed Γ V l d T)
 with path_typed Γ : path → ty → nat → Prop :=
 | pv_typed v T:
