@@ -39,9 +39,8 @@ Proof.
   by_extcrush.
   have Hst: is_stamped_ty (1 + length Γ) getStampTable (p0 @; "B").
   by tcrush.
-  apply VObj_typed; last tcrush. (* Avoid trying TMuI_typed, that's slow. *)
-  eapply dcons_typed; trivial.
-  eapply (dty_typed (p0 @; "B")); tcrush.
+  apply VObj_typed; tcrush. (* Avoid trying TMuI_typed, that's slow. *)
+  apply (dty_typed (p0 @; "B")); tcrush.
 Qed.
 
 (* Try out fixpoints. *)
@@ -57,9 +56,8 @@ Proof.
   by_extcrush.
   have Hst: is_stamped_ty (1 + length Γ) getStampTable (F3 (p0 @; "A")).
   by stcrush.
-  apply VObj_typed; last tcrush. (* Avoid trying TMuI_typed, that's slow. *)
-  eapply dcons_typed; trivial.
-  eapply (dty_typed (F3 (p0 @; "A"))); by tcrush.
+  apply VObj_typed; tcrush. (* Avoid trying TMuI_typed, that's slow. *)
+  apply (dty_typed (F3 (p0 @; "A"))); by tcrush.
 Qed.
 
 (********************)
@@ -116,8 +114,7 @@ Proof.
     tcrush.
     eapply Trans_stp; first apply TAnd1_stp; tcrush.
   }
-  apply VObj_typed; cbn; last by tcrush.
-  eapply dcons_typed; tcrush.
+  apply VObj_typed; tcrush.
   by apply (dty_typed TNat); tcrush.
   cbn; apply (App_typed _ _ _ TUnit);
     last eapply (Subs_typed_nocoerce TNat); tcrush.
@@ -161,8 +158,7 @@ Example motivEx Γ (Hs1: s1_is_tnat) (Hs2: s2_is_String)
   (HsString: is_stamped_ty 0 getStampTable String):
   Γ ⊢ₜ systemVal : systemValT.
 Proof.
-  apply VObj_typed; last by tcrush.
-  eapply dcons_typed; tcrush.
+  apply VObj_typed; tcrush.
   all: [> apply (dty_typed TNat) | apply (dty_typed String) ]; tcrush.
 Qed.
 
@@ -175,8 +171,7 @@ Example motivEx1 Γ (Hs1: s1_is_tnat) (Hs2: s2_is_String)
   (HsString: is_stamped_ty 0 getStampTable String):
   Γ ⊢ₜ systemVal : systemValT'.
 Proof.
-  apply VObj_typed; last tcrush.
-  eapply dcons_typed; tcrush.
+  apply VObj_typed; tcrush.
   - apply (Subs_typed_nocoerce (μ {@ type "A" >: ⊥ <: TNat})); tcrush.
     + apply (dty_typed TNat); tcrush.
     + eapply Trans_stp;
