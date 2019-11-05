@@ -9,62 +9,86 @@ Implicit Types
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
-  Definition unTLater T : ty := match T with TLater T' => T' | _ => T end.
-  Lemma unTLater_to T ρ v : ⟦ unTLater T ⟧ ρ v -∗ ⟦ T ⟧ ρ v.
-  Proof. case: T => //= T. by auto. Qed.
-  Lemma TLater_unTLater_to T ρ v : ⟦ T ⟧ ρ v -∗ ⟦ TLater (unTLater T) ⟧ ρ v.
-  Proof. destruct T; iIntros "$". Qed.
+  (** * When is a context weaker than another? *)
+  (* Likely, this should be an iProp. *)
+  Definition ctx_sub Γ1 Γ2 : Prop := ∀ ρ, ⟦ Γ2 ⟧* ρ -∗ ⟦ Γ1 ⟧* ρ.
 
-  Lemma TLater_unTLater_to_TLater T ρ v :
-    ⟦ TLater (unTLater T) ⟧ ρ v -∗ ⟦ TLater T ⟧ ρ v.
-  Proof. destruct T; iIntros "$". Qed.
-
-  Lemma map_env f g Γ ρ (Hweak : (∀ T ρ v, ⟦ f T ⟧ ρ v -∗ ⟦ g T ⟧ ρ v)):
-    ⟦ f <$> Γ ⟧* ρ -∗ ⟦ g <$> Γ ⟧* ρ.
-  Proof.
-    elim: Γ ρ => [//| T Γ IH] ρ; cbn. rewrite (Hweak T).
-    iIntros "[HG $]". by iApply IH.
-  Qed.
-
-  Lemma env_map_TLater Γ ρ : ⟦ Γ ⟧* ρ -∗ ⟦ TLater <$> Γ ⟧* ρ.
-  Proof. rewrite -{1}(list_fmap_id Γ); apply map_env => /=. auto. Qed.
-
-  Lemma env_map_TLater_unTLater Γ ρ :
-    ⟦ Γ ⟧* ρ -∗ ⟦ TLater <$> (unTLater <$> Γ) ⟧* ρ.
-  Proof.
-    rewrite -{1}(list_fmap_id Γ) -list_fmap_compose; apply map_env.
-    apply TLater_unTLater_to.
-  Qed.
-
-  Lemma env_map_TLater_unTLater_TLater Γ ρ :
-    ⟦ TLater <$> (unTLater <$> Γ) ⟧* ρ -∗ ⟦ TLater <$> Γ ⟧* ρ.
-  Proof.
-    rewrite -list_fmap_compose; apply (map_env (TLater ∘ unTLater) TLater).
-    apply TLater_unTLater_to_TLater.
-  Qed.
-
-  Lemma map_unTLater_env Γ ρ : ⟦ unTLater <$> Γ ⟧* ρ -∗ ⟦ Γ ⟧* ρ.
-  Proof.
-    rewrite -{2}(list_fmap_id Γ); apply map_env.
-    apply unTLater_to.
-  Qed.
-
+  (** * Basic lemmas about [ctx_sub]. *)
   (* TODO: Make this into a structural typing rule? *)
-  Lemma ietp_weaken_ctx {T e} Γ1 Γ2 (Hweak : ∀ ρ, ⟦ Γ2 ⟧* ρ -∗ ⟦ Γ1 ⟧* ρ):
+
+  (** Typing is contravariant in [Γ]. *)
+  Lemma ietp_weaken_ctx {T e} Γ1 Γ2 (Hweak : ctx_sub Γ1 Γ2):
     Γ1 ⊨ e : T -∗ Γ2 ⊨ e : T.
   Proof. iIntros "#HT1 !>" (ρ) "#HG". iApply "HT1". by iApply Hweak. Qed.
 
-  Lemma T_later_unlater_ctx Γ T e:
+  (** The strength ordering of contexts lifts the strength ordering of types. *)
+  Lemma env_lift_sub f g {Γ} (Hweak: ∀ T ρ v, ⟦ f T ⟧ ρ v -∗ ⟦ g T ⟧ ρ v):
+    ctx_sub (g <$> Γ) (f <$> Γ).
+  Proof.
+    elim: Γ => [//| T Γ IH] ρ. cbn; rewrite (Hweak T).
+    iIntros "[HG $]". by iApply IH.
+  Qed.
+
+  Lemma env_lift_sub' f g Γ {Γ1 Γ2}:
+    Γ1 = g <$> Γ → Γ2 = f <$> Γ →
+    (∀ T ρ v, ⟦ f T ⟧ ρ v -∗ ⟦ g T ⟧ ρ v) →
+    ctx_sub Γ1 Γ2.
+  Proof. move => -> -> Hweak. exact: env_lift_sub. Qed.
+
+  (** A left inverse of TLater. Sometimes written ⊲. *)
+  Definition unTLater T : ty := match T with TLater T' => T' | _ => T end.
+
+  Definition unTLater_TLater T: unTLater (TLater T) = T := reflexivity _.
+  Global Instance: Cancel (=) unTLater TLater. Proof. exact: unTLater_TLater. Qed.
+
+  (** Ordering of logical strength:
+      unTLater T <: T <: TLater (unTLater T) <: TLater T. *)
+
+  Lemma unTLater_sub T ρ v : ⟦ unTLater T ⟧ ρ v -∗ ⟦ T ⟧ ρ v.
+  Proof. case: T => //= T. by auto. Qed.
+
+  Lemma TLater_unTLater_sub T ρ v : ⟦ T ⟧ ρ v -∗ ⟦ TLater (unTLater T) ⟧ ρ v.
+  Proof. destruct T; iIntros "$". Qed.
+
+  Lemma TLater_unTLater_sub_TLater T ρ v :
+    ⟦ TLater (unTLater T) ⟧ ρ v -∗ ⟦ TLater T ⟧ ρ v.
+  Proof. destruct T; iIntros "$". Qed.
+
+  (** Lift the above ordering to environments. *)
+  Lemma TLater_ctx_sub Γ : ctx_sub (TLater <$> Γ) Γ.
+  Proof. apply (env_lift_sub' id TLater Γ); rewrite ?list_fmap_id; auto. Qed.
+
+  Lemma TLater_unTLater_ctx_sub Γ : ctx_sub (TLater <$> (unTLater <$> Γ)) Γ.
+  Proof.
+    rewrite -list_fmap_compose.
+    apply (env_lift_sub' id (TLater ∘ unTLater) Γ), TLater_unTLater_sub;
+      by rewrite ?list_fmap_id.
+  Qed.
+
+  Lemma TLater_unTLater_TLater_ctx_sub Γ :
+    ctx_sub (TLater <$> Γ) (TLater <$> (unTLater <$> Γ)).
+  Proof.
+    rewrite -list_fmap_compose.
+    apply env_lift_sub, TLater_unTLater_sub_TLater.
+  Qed.
+
+  Lemma ctx_sub_unTLater Γ : ctx_sub Γ (unTLater <$> Γ).
+  Proof.
+    apply (env_lift_sub' unTLater id Γ), unTLater_sub;
+      by rewrite ?list_fmap_id.
+  Qed.
+
+  (* Lemma T_later_unlater_ctx Γ T e:
     TLater <$> (unTLater <$> Γ) ⊨ e : T -∗
     (*─────────────────────────*)
     Γ ⊨ e : T.
-  Proof. iApply ietp_weaken_ctx. apply env_map_TLater_unTLater. Qed.
+  Proof. iApply ietp_weaken_ctx. apply TLater_unTLater_ctx_sub. Qed. *)
 
-  Lemma T_later_ctx_v1 Γ V T e:
+  (* Lemma T_later_ctx_v1 Γ V T e:
     TLater <$> (V :: Γ) ⊨ e : T -∗
     (*─────────────────────────*)
     TLater V :: Γ ⊨ e : T.
-  Proof. iApply ietp_weaken_ctx => ρ. by rewrite /= (env_map_TLater Γ). Qed.
+  Proof. iApply ietp_weaken_ctx => ρ. by rewrite /= (TLater_ctx_sub Γ). Qed. *)
 
   (*XXX : move away from here. Avoid auto-dropping box (and unfolding) when introducing ietp persistently. *)
   Instance: IntoPersistent false (ietp Γ T e) (ietp Γ T e) | 0 := _.
@@ -73,30 +97,20 @@ Section Sec.
     TLater <$> (V :: Γ) ⊨ e : T -∗
     (*─────────────────────────*)
     TLater V :: Γ ⊨ e : T.
-  Proof.
-    (* iIntros "#HeT". iApply T_later_unlater_ctx.
-    iApply (ietp_weaken_ctx with "HeT") => ρ.
-    by rewrite /= (env_map_TLater_unTLater_TLater Γ).
-    Restart. *)
+  Proof. iApply ietp_weaken_ctx => ρ; cbn. by rewrite (TLater_ctx_sub Γ). Qed.
 
-    iApply ietp_weaken_ctx => ρ.
-    (* cbn; rewrite (env_map_TLater Γ). *)
-    rewrite (env_map_TLater_unTLater (_ :: Γ)).
-    by cbn; rewrite (env_map_TLater_unTLater_TLater Γ).
-  Qed.
-
-  (* Lemma map_unTLater_env_strong Γ ρ : ⟦ unTLater <$> Γ ⟧* ρ ⊢ ▷ ⟦ Γ ⟧* ρ.
+  (* Lemma ctx_sub_unTLater_strong Γ ρ : ⟦ unTLater <$> Γ ⟧* ρ ⊢ ▷ ⟦ Γ ⟧* ρ.
   Proof.
     elim: Γ ρ => [| T Γ IH] ρ. by auto.
-    cbn; rewrite IH unTLater_to. iIntros "[$ $]".
+    cbn; rewrite IH unTLater_sub. iIntros "[$ $]".
   Qed. *)
-  Lemma map_unTLater_env_strong_v2 Γ ρ : ⟦ Γ ⟧* ρ ⊢ ▷ ⟦ unTLater <$> Γ ⟧* ρ.
+  Lemma env_TLater_commute Γ ρ : ⟦ TLater <$> Γ ⟧* ρ ⊢ ▷ ⟦ Γ ⟧* ρ.
   Proof.
-    elim: Γ ρ => [| T Γ IH] ρ. by auto.
-    cbn. rewrite IH TLater_unTLater_to. iIntros "[$ $]".
+    elim: Γ ρ => [| T Γ IH] ρ; cbn. by auto.
+    rewrite IH later_and; iIntros "$".
   Qed.
 
-  Lemma T_Forall_I_Good {Γ} T1 T2 e:
+  Lemma T_Forall_I_Strong {Γ} T1 T2 e:
     T1.|[ren (+1)] :: (unTLater <$> Γ) ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
@@ -104,8 +118,9 @@ Section Sec.
     iIntros "#HeT !>" (ρ) "#HG /=".
     rewrite -wp_value'. iExists _; iSplit; first done.
     iIntros "!>" (v); rewrite -(decomp_s _ (v .: ρ)).
-    rewrite (map_unTLater_env_strong_v2 Γ).
-    iIntros "!> #Hv".
+    (* Factor ⪭ out of [⟦ Γ ⟧* ρ] before [iNext]. *)
+    rewrite TLater_unTLater_ctx_sub env_TLater_commute. iNext.
+    iIntros "#Hv".
     iApply ("HeT" $! (v .: ρ) with "[$HG]").
     by rewrite (interp_weaken_one T1 _ v) stail_eq.
   Qed.
@@ -117,10 +132,9 @@ Section Sec.
     (*─────────────────────────*)
     TLater V :: Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.
-    iIntros "HeT".
-    iApply T_Forall_I_Good.
+    iIntros "HeT". iApply T_Forall_I_Strong.
     iApply (ietp_weaken_ctx with "HeT") => ρ.
-    by rewrite /= map_unTLater_env.
+    by rewrite /= ctx_sub_unTLater.
   Qed.
 
   Lemma T_Forall_I' T1 T2 e:
@@ -129,19 +143,9 @@ Section Sec.
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.
     iIntros "HeT".
-    iApply T_Forall_I_Good.
+    iApply T_Forall_I_Strong.
     iApply (ietp_weaken_ctx with "HeT") => ρ.
-    rewrite /= map_unTLater_env. iIntros "[$ $]".
-  Qed.
-
-  Lemma TVMem_Sub V T1 T2 v l:
-    Γ |L V ⊨ { l := dvl v } : TVMem l T1 -∗
-    Γ |L V ⊨ T1, 0 <: T2, 0 -∗
-    Γ |L V ⊨ { l := dvl v } : TVMem l T2.
-  Proof.
-    iIntros "/= #Hv #Hsub !>" (ρ) "#Hg"; iApply def_interp_tvmem_eq.
-    iApply ("Hsub" with "Hg").
-    iApply def_interp_tvmem_eq. by iApply "Hv".
+    rewrite /= ctx_sub_unTLater. iIntros "[$ $]".
   Qed.
 
   Lemma TVMem_All_I_derived V T1 T2 e l:
@@ -158,8 +162,7 @@ Section Sec.
   Proof.
     iIntros "He Hsub".
     iApply (TVMem_Sub with "[He] Hsub").
-    iApply TVMem_I.
-    iApply (T_Forall_I_strange with "He").
+    by iApply TVMem_All_I_derived.
   Qed.
 
   Lemma wp_later_swap t Φ: WP t {{ v, ▷ Φ v }} ⊢ ▷ WP t {{ v, Φ v }}.
@@ -181,6 +184,7 @@ Section Sec.
     rewrite -wp_value'. iExists _; iSplitL; first done.
     iIntros "!>" (v); rewrite -(decomp_s e (v .: vs)).
     rewrite -wand_later; iIntros "#Hv".
+
     (* iApply (wp_later_swap _ (⟦ T2 ⟧ (v .: vs))).
     iApply ("HeT" $! (v .: vs) with "[$HG]"). *)
     iSpecialize ("HeT" $! (v .: vs) with "[$HG]").
