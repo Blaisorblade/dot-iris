@@ -75,10 +75,11 @@ theories/Dot/lr/lr_lemmasDefs.v
 theories/Dot/examples/typingExamples.v
 theories/Dot/examples/typingExamplesUnst.v
 theories/Dot/examples/typingExInfra.v
-theories/Dot/misc/experiments.v
 theories/Dot/examples/noRussell.v
 theories/Dot/syn/closed_subst.v
 theories/pure_program_logic/weakestpre.v
 theories/pure_program_logic/hoare.v
 theories/pure_program_logic/lifting.v
 theories/pure_program_logic/adequacy.v
+theories/Dot/misc/experiments.v
+theories/Dot/misc/misc_dead.v
