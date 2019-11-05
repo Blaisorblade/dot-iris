@@ -304,12 +304,22 @@ Definition boolImplT0 : ty :=
     val "false" : TLater p0Bool
   }.
 
+Lemma dvl_sub_typed {Γ} V T1 T2 v l:
+  Γ |d V ⊢{ l := dvl v } : TVMem l T1 →
+  TLater V :: Γ ⊢ₜ T1, 0 <: T2, 0 →
+  Γ |d V ⊢{ l := dvl v } : TVMem l T2.
+Admitted.
+
 Lemma dvabs_sub_typed {Γ} V T1 T2 e l L:
   T1.|[ren (+1)] :: V :: Γ ⊢ₜ e : T2 →
   TLater V :: Γ ⊢ₜ TAll T1 T2, 0 <: L, 0 →
   is_stamped_ty (S (length Γ)) getStampTable T1 →
   Γ |d V ⊢{ l := dvl (vabs e) } : TVMem l L.
-Admitted.
+Proof.
+  intros He Hsub Hs.
+  eapply dvl_sub_typed; last apply Hsub.
+  eapply dvabs_typed; tcrush.
+Qed.
 
 Example boolImplTypAlt Γ (Hst : s1_is_ift_ext):
   Γ ⊢ₜ tv boolImpl : boolImplT.
