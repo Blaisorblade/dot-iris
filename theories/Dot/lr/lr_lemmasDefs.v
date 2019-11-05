@@ -103,6 +103,18 @@ Section Sec.
     iApply wp_value_inv'; iApply "Hv"; by iSplit.
   Qed.
 
+  Lemma TVMem_All_I V T1 T2 e l:
+    T1.|[ren (+1)] :: V :: Γ ⊨ e : T2 -∗
+    Γ |L V ⊨ { l := dvl (vabs e) } : TVMem l (TAll T1 T2).
+  Proof.
+    iIntros "/= #He !>" (ρ) "[#Hg #Hv]".
+    iApply def_interp_tvmem_eq.
+    iExists (e.|[_]); iSplit; first done.
+    iIntros "!>!>" (w) "#Hw"; rewrite -(decomp_s _ (w .: ρ)).
+    iApply "He".
+    rewrite (interp_weaken_one T1 _ w) stail_eq. by iFrame "#".
+  Qed.
+
   (* Check that Löb induction works as expected for proving introduction of
    * objects. Using Löb induction works easily.
    *
