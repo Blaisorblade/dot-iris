@@ -17,12 +17,11 @@ Section Sec.
   Proof.
     iIntros "/= #HeT1 #Hsub !>" (ρ) "#Hg".
     rewrite tskip_subst -wp_bind.
-    iApply wp_wand => //.
-    - iApply ("HeT1" with "[//]").
-    - iIntros (v) "#HvT1".
-      (* We can swap ▷^i with WP (tv v)! *)
-      rewrite -wp_pure_step_later // -wp_value.
-      by iApply "Hsub".
+    iApply (wp_wand with "(HeT1 Hg)").
+    iIntros (v) "#HvT1".
+    (* We can swap ▷^i with WP (tv v)! *)
+    rewrite -wp_pure_step_later // -wp_value.
+    by iApply "Hsub".
   Qed.
 
   Lemma T_Var x T:
