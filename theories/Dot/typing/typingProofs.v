@@ -136,6 +136,8 @@ Section syntyping_lemmas.
     - have Hctx': stamped_ctx getStampTable (T1.|[ren (+1)] :: V :: Γ).
       by eauto.
       move: (H Hctx'); intuition.
+    - have Hctx': stamped_ctx getStampTable (TLater V :: Γ). by eauto.
+      move: (H Hctx'); intuition.
     - have Hctx': stamped_ctx getStampTable (iterate TLater i T1 :: Γ).
       by eauto.
       move: (H Hctx'); intuition.

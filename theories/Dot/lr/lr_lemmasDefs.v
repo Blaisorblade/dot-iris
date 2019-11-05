@@ -103,6 +103,16 @@ Section Sec.
     iApply wp_value_inv'; iApply "Hv"; by iSplit.
   Qed.
 
+  Lemma TVMem_Sub V T1 T2 v l:
+    Γ |L V ⊨ { l := dvl v } : TVMem l T1 -∗
+    Γ |L V ⊨ T1, 0 <: T2, 0 -∗
+    Γ |L V ⊨ { l := dvl v } : TVMem l T2.
+  Proof.
+    iIntros "/= #Hv #Hsub !>" (ρ) "#Hg"; iApply def_interp_tvmem_eq.
+    iApply ("Hsub" with "Hg").
+    iApply def_interp_tvmem_eq. by iApply "Hv".
+  Qed.
+
   Lemma TVMem_All_I V T1 T2 e l:
     T1.|[ren (+1)] :: V :: Γ ⊨ e : T2 -∗
     Γ |L V ⊨ { l := dvl (vabs e) } : TVMem l (TAll T1 T2).
