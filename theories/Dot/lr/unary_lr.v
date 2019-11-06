@@ -35,7 +35,7 @@ Section logrel.
   Implicit Types (interp φ : envD Σ) (ψ : D).
 
   Definition def_interp_vmem interp : envPred dm Σ :=
-    λ ρ d, (∃ vmem, ⌜d = dvl vmem⌝ ∧ ▷ interp ρ vmem)%I.
+    λ ρ d, (∃ vmem, ⌜d = dvl vmem⌝ ∧ interp ρ vmem)%I.
   Global Arguments def_interp_vmem /.
 
   Definition dm_to_type d ψ : iProp Σ :=
@@ -296,7 +296,7 @@ Section logrel_lemmas.
 
   Lemma def_interp_tvmem_eq l T v ρ:
     def_interp (TVMem l T) l ρ (dvl v) ⊣⊢
-    ▷ ⟦ T ⟧ ρ v.
+    ⟦ T ⟧ ρ v.
   Proof.
     iSplit. by iDestruct 1 as (_ vmem [= ->]) "$".
     iIntros "H"; iSplit; first done; iExists v. by auto.

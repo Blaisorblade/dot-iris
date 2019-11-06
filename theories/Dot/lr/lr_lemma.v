@@ -117,12 +117,23 @@ Section LambdaIntros.
 
   (** Lemmas about definition typing. *)
   Lemma TVMem_I {Γ} V T v l:
-    V :: Γ ⊨ tv v : T -∗
+    TLater V :: Γ ⊨ tv v : T -∗
     Γ |L V ⊨ { l := dvl v } : TVMem l T.
   Proof.
     iIntros "/= #Hv !>" (ρ) "[#Hg #Hw]".
     rewrite def_interp_tvmem_eq.
-    iNext. iApply wp_value_inv'; iApply "Hv"; by iSplit.
+    iApply wp_value_inv'; iApply "Hv"; by iSplit.
+  Qed.
+
+  Lemma TVMem_All_I {Γ} V T1 T2 e l:
+    T1.|[ren (+1)] :: V :: Γ ⊨ e : T2 -∗
+    Γ |L V ⊨ { l := dvl (vabs e) } : TVMem l (TAll T1 T2).
+  Proof.
+    iIntros "HeT"; iApply TVMem_I.
+    (* Compared to [T_Forall_I], we must strip the later from [TLater V]. *)
+    iApply T_Forall_I_Strong;
+      iApply (ietp_weaken_ctx with "HeT") => ρ.
+    by rewrite /= ctx_sub_unTLater.
   Qed.
 End LambdaIntros.
 
@@ -266,7 +277,7 @@ Section Sec.
   Qed.
 
   Lemma Sub_TVMem_Variant' T1 T2 i j l:
-    Γ ⊨ TLater T1, i <: TLater T2, j + i -∗
+    Γ ⊨ T1, i <: T2, j + i -∗
     Γ ⊨ TVMem l T1, i <: TVMem l T2, j + i.
   Proof.
     iIntros "#Hsub /= !>" (ρ v) "#Hg #HT1". setoid_rewrite laterN_plus.
@@ -278,7 +289,7 @@ Section Sec.
   Qed.
 
   Lemma Sub_TVMem_Variant T1 T2 i l:
-    Γ ⊨ TLater T1, i <: TLater T2, i -∗
+    Γ ⊨ T1, i <: T2, i -∗
     Γ ⊨ TVMem l T1, i <: TVMem l T2, i.
   Proof. iApply (Sub_TVMem_Variant' _ _ _ 0). Qed.
 End Sec.

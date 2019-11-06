@@ -134,13 +134,14 @@ Section ex.
       iSplit => //. by iApply sHasA.
     - iApply DCons_I => //; last by iApply DNil_I.
       iApply TVMem_I.
-      iIntros "!>" (ρ) "/= #H /=".
-      iDestruct "H" as "[_ [HA [HB _]]]".
+      iIntros "!>" (ρ) "/="; iDestruct 1 as "[_ [HA [HB _]]]".
       rewrite -wp_value'.
-      iDestruct "HA" as (dA HlA φ) "[Hlφ HA]".
-      iDestruct "HB" as (dB HlB w) "HB".
-      iExists φ, dA; repeat iSplit => //.
-      (* Stuck, since we don't know what [ρ 0] is and what
+      iDestruct "HA" as (dA) "[HlA HA]".
+      iDestruct "HA" as (φ) "[Hlφ HA]".
+      iDestruct "HB" as (dB) "[HlB HB]".
+      iDestruct "HB" as (w) "HB".
+      iExists φ, dA; repeat iSplit => //; try iNext.
+      (* Last case is stuck, since we don't know what [ρ 0] is and what
       "A" points to. *)
   Abort.
 
