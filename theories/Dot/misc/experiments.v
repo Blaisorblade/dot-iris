@@ -12,6 +12,23 @@ Implicit Types
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
+  Lemma T_later_ctx Γ V T e:
+    TLater <$> (V :: Γ) ⊨ e : T -∗
+    (*─────────────────────────*)
+    TLater V :: Γ ⊨ e : T.
+  Proof. iApply ietp_weaken_ctx => ρ; cbn. by rewrite (TLater_ctx_sub Γ). Qed.
+
+
+  Lemma T_Forall_I' {Γ} T1 T2 e:
+    TLater T1.|[ren (+1)] :: Γ ⊨ e : T2 -∗
+    (*─────────────────────────*)
+    Γ ⊨ tv (vabs e) : TAll T1 T2.
+  Proof.
+    iIntros "HeT"; iApply T_Forall_I;
+      iApply (ietp_weaken_ctx with "HeT").
+    iIntros (ρ) "[$ $]".
+  Qed.
+
   Lemma TAll_Later_Swap0 Γ T U `{SwapPropI Σ}:
     Γ ⊨ TAll (TLater T) U, 0 <: TLater (TAll T U), 0.
   Proof.

@@ -288,6 +288,14 @@ Section logrel_lemmas.
     ⟦ iterate TLater i T ⟧ ρ v ≡ (▷^i ⟦ T ⟧ ρ v)%I.
   Proof. exact: iterate_TLater_later0. Qed.
 
+  Lemma def_interp_tvmem_eq l T v ρ:
+    def_interp (TVMem l T) l ρ (dvl v) ⊣⊢
+    ⟦ T ⟧ ρ v.
+  Proof.
+    iSplit. by iDestruct 1 as (_ vmem [= ->]) "$".
+    iIntros "H"; iSplit; first done; iExists v. by auto.
+  Qed.
+
   Lemma interp_env_lookup Γ ρ T x:
     Γ !! x = Some T →
     ⟦ Γ ⟧* ρ -∗ ⟦ T.|[ren (+x)] ⟧ ρ (ρ x).
