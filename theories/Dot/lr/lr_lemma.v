@@ -134,10 +134,6 @@ Section Sec.
       rewrite (interp_subst_one T2 v2 v) //.
   Qed.
 
-  (** Restricting this to index 0 appears necessary: it seems we can't swap [▷^i
-      (∀ v, P v)] to [∀ v, ▷^i (P v)] (at least, tactics don't do this swap).
-      We'd need this swap, and then [iIntros (v)], to specialize the hypothesis
-      and drop the [▷^i] modality.*)
   Lemma T_Forall_I T1 T2 e:
     T1.|[ren (+1)] :: Γ ⊨ e : T2 -∗
     (*─────────────────────────*)
