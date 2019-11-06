@@ -109,16 +109,6 @@ Section Sec.
     iSpecialize ("IH" with "H").
   Abort.
 
-  Lemma TVMem_Sub Γ V T1 T2 v l:
-    Γ |L V ⊨ { l := dvl v } : TVMem l T1 -∗
-    Γ |L V ⊨ T1, 1 <: T2, 1 -∗
-    Γ |L V ⊨ { l := dvl v } : TVMem l T2.
-  Proof.
-    iIntros "/= #Hv #Hsub !>" (ρ) "#Hg"; iApply def_interp_tvmem_eq.
-    iApply ("Hsub" with "Hg").
-    iApply def_interp_tvmem_eq. by iApply "Hv".
-  Qed.
-
   (** Rename. *)
   Lemma iterate_Sub_Mono Γ T i j:
     Γ ⊨ T, i <: T, j + i.

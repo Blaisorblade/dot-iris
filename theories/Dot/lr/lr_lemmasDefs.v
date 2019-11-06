@@ -85,6 +85,16 @@ Section Sec.
   Local Arguments def_interp_tmem: simpl never.
   Local Arguments def_interp_vmem: simpl never.
 
+  Lemma TVMem_Sub V T1 T2 v l:
+    Γ |L V ⊨ T1, 1 <: T2, 1 -∗
+    Γ |L V ⊨ { l := dvl v } : TVMem l T1 -∗
+    Γ |L V ⊨ { l := dvl v } : TVMem l T2.
+  Proof.
+    iIntros "/= #Hsub #Hv !>" (ρ) "#Hg"; iApply def_interp_tvmem_eq.
+    iApply ("Hsub" with "Hg").
+    iApply def_interp_tvmem_eq. by iApply "Hv".
+  Qed.
+
   (* Check that Löb induction works as expected for proving introduction of
    * objects. Using Löb induction works easily.
    *

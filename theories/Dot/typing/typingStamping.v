@@ -200,6 +200,17 @@ Section syntyping_stamping_lemmas.
     have [v' ?]: ∃ v', e1' = tv v' by destruct e1'; naive_solver.
     simplify_eq/=; with_is_stamped inverse; with_is_unstamped inverse.
     exists (dvl v'), g1; naive_solver.
+  - intros * Hu1 IHs1 Hu2 IHs2 g.
+    (* Here and for standard subsumption, by stamping the subtyping
+      derivation before typing, we needn't use monotonicity on [Hs],
+      which holds but would require extra boilerplate. *)
+    move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]].
+    move: IHs2 => /(.$ g1) [d' [g2 [Hts2 [Hle2 Hs]]]]; lte g g1 g2.
+    have [v' Heq]: ∃ v', d' = dvl v'. {
+      case: d' {Hts2} Hs => /= [^~s]; rewrite /from_option => -[?[??]];
+        try case_match; simplify_eq; eauto 2.
+    }
+    exists d', g2; subst d'; split_and!; ev; eauto 3.
   - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [e1' [g1 ?]]; ev.
     destruct e1' as [v'| | |] => //. with_is_stamped inverse.
