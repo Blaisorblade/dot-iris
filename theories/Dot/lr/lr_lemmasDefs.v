@@ -4,7 +4,7 @@ From D.Dot Require Import unary_lr.
 Implicit Types (L T U V: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 
 Lemma norm_selfSubst ds s: selfSubst ds.|[up s] = ds.|[(vobj ds).[s] .: s].
-Proof. by rewrite /selfSubst /=; asimpl. Qed.
+Proof. by rewrite /selfSubst -(decomp_s _ (_ .: s)). Qed.
 
 Lemma dms_hasnt_map_mono ds l f:
   dms_hasnt ds l →
@@ -44,9 +44,9 @@ Section Sec.
     defs_interp T ρ (selfSubst ds) -∗
     interp T ρ (vobj ds).
   Proof.
-    iIntros "#H".
+    iIntros "H".
     iInduction T as [] "IHT"; cbn;
-      try by [|iDestruct "H" as (???) "[_[]]"].
+      try iDestruct "H" as (???) "[_[]]"; first done.
     - iDestruct "H" as "[#H1 #H2]".
       by iSplit; [> iApply "IHT"| iApply "IHT1"].
     - by rewrite (lift_dinterp_dms_vl_commute (TVMem _ _)).
@@ -72,9 +72,9 @@ Section Sec.
     defs_interp T ρ ds -∗
     defs_interp T ρ ((l, d) :: ds).
   Proof.
-    iIntros (Hlds) "#HT".
+    iIntros (Hlds) "HT".
     iInduction T as [] "IHT" => //=;
-      try by [iDestruct "HT" as (???) "?" | iApply lift_dinterp_dms_mono | auto].
+      try by [iDestruct "HT" as (???) "?" | iApply lift_dinterp_dms_mono].
     iDestruct "HT" as "[HT1 HT2]"; iSplit; by [>iApply "IHT"|iApply "IHT1"].
   Qed.
 
