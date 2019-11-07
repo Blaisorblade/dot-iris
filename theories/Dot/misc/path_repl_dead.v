@@ -10,6 +10,75 @@ Implicit Types
 Implicit Types (Pv : vl → Prop).
 Set Nested Proofs Allowed.
 
+Definition psubst_path p q : path → path := fix F r :=
+  match (decide (r = p)) with
+  | left _ => q
+  | _ =>
+    match r with
+    | pv _ => r (* XXX no, values can contain paths! OTOH, pDOT path replacement doesn't do this. *)
+    | pself r' l => pself (F r') l
+    end
+  end.
+Notation "r .p[ p := q  ]" := (psubst_path p q r) (at level 65).
+
+Lemma psubst_path_id p q : q .p[ p := p ] = q.
+Proof. elim: q => /= *; case_decide; by f_equal. Qed.
+
+Lemma psubst_path_self p q: p .p[ p := q ] = q.
+Proof. case: p => /= *; by rewrite decide_True. Qed.
+
+(** Lemma [psubst_path_id_implies] requires [path_repl_longer], which
+requires a diversion to prove.
+I'm not sure going through sizes is the shortest proof, but that's the
+obvious way on paper, and works well in Coq too. *)
+Section psubst_path_id_implies_lemmas.
+  Definition append_ls p (ls : list label) : path := foldr (flip pself) p ls.
+
+  Fixpoint path_size p := match p with
+    | pv _ => 0
+    | pself p _ => 1 + path_size p
+    end.
+
+  Lemma occurs_in_path_repl {p1 p2 p q} :
+    p1 ~pp[ p := q ] p2 →
+    ∃ ls, append_ls p ls = p1.
+  Proof.
+    elim => [|p1' p2' l' Hr [ls' IHr]];
+      [ exists [] | exists (l' :: ls')]; by simplify_eq.
+  Qed.
+
+  Lemma path_size_append p ls :
+    path_size (append_ls p ls) = length ls + path_size p.
+  Proof. by elim: ls => /= [| _ ls ->]. Qed.
+
+  Lemma paths_well_founded {ls1 ls2 p q l} :
+    append_ls q (l :: ls1) = p →
+    ~append_ls p ls2 = q.
+  Proof.
+    move => /(f_equal path_size) Heq1 /(f_equal path_size) Heq2.
+    move: Heq1 Heq2. rewrite !path_size_append /=. lia.
+  Qed.
+
+  Lemma path_repl_longer ls {p p1 p2 q l} :
+    p1 ~pp[ p := q ] p2 →
+    ~append_ls p1 (l :: ls) = p.
+  Proof.
+    move => /occurs_in_path_repl [ls' Hr] Happ.
+    exact: paths_well_founded.
+  Qed.
+End psubst_path_id_implies_lemmas.
+
+(* Path replacement implies that path substitution agrees. *)
+Lemma psubst_path_id_implies p1 p2 p q :
+  p1 ~pp[ p := q ] p2 →
+  p1 .p[ p := q ] = p2.
+Proof.
+  move => Hr.
+  elim: Hr => [|p1' p2' l Hr IHr] /=. exact: psubst_path_self.
+  case_decide as Hdec => //; last by rewrite -IHr.
+  exfalso. exact: (path_repl_longer []).
+Qed.
+
 (* Useful ???*)
 Lemma psubst_path_eq p q r: psubst_path p q r =
   match (decide (r = p)) with

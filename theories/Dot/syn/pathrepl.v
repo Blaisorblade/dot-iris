@@ -244,24 +244,6 @@ Section path_repl.
   Proof. intros ?%alias_paths_equiv. intuition. Qed.
 End path_repl.
 
-Definition psubst_path p q : path → path := fix F r :=
-  match (decide (r = p)) with
-  | left _ => q
-  | _ =>
-    match r with
-    | pv _ => r (* XXX no, values can contain paths! OTOH, pDOT path replacement doesn't do this. *)
-    | pself r' l => pself (F r') l
-    end
-  end.
-Notation "r .p[ p := q  ]" := (psubst_path p q r) (at level 65).
-
-Lemma psubst_path_id p q : q .p[ p := p ] = q.
-Proof. elim: q => /= *; case_decide; by f_equal. Qed.
-
-Lemma psubst_path_self p q: p .p[ p := q ] = q.
-Proof. case: p => /= *; by rewrite decide_True. Qed.
-
-(* Alternative *)
 Reserved Notation "p1 ~pp[ p := q  ] p2" (at level 70).
 Inductive path_path_repl (p q : path) : path → path → Prop :=
 | path_path_repl_base : p ~pp[ p := q ] q
@@ -269,6 +251,10 @@ Inductive path_path_repl (p q : path) : path → path → Prop :=
   p1 ~pp[ p := q ] p2 →
   pself p1 l ~pp[ p := q ] pself p2 l
 where "p1 ~pp[ p := q  ] p2" := (path_path_repl p q p1 p2) .
+
+Lemma psubst_path_id p1 p2 p : p1 ~pp[ p := p ] p2 → p1 = p2.
+Proof. by elim; intros; simplify_eq/=. Qed.
+
 
 Reserved Notation "T1 ~p[ p := q  ] T2" (at level 70).
 
@@ -306,12 +292,16 @@ Inductive ty_path_repl (p q : path) : ty → ty → Prop :=
 | ty_path_repl_TTMem2 T1 T2 U l :
   T1 ~p[ p := q ] T2 →
   TTMem l U T1 ~p[ p := q ] TTMem l U T2
-| ty_path_repl_TSel r l :
-  TSel r l ~p[ p := q ] TSel (r .p[ p := q ]) l
+| ty_path_repl_TSel p1 p2 l :
+  p1 ~pp[ p := q ] p2 →
+  TSel p1 l ~p[ p := q ] TSel p2 l
 where "T1 ~p[ p := q  ] T2" := (ty_path_repl p q T1 T2) .
 
 Lemma ty_path_repl_id p T1 T2 : T1 ~p[ p := p ] T2 → T1 = T2.
-Proof. intros Hr; dependent induction Hr; by rewrite // ?IHHr // psubst_path_id. Qed.
+Proof.
+  intros Hr; dependent induction Hr; rewrite // ?IHHr //.
+  f_equiv; exact: psubst_path_id.
+Qed.
 
 Section path_repl_2.
   Context `{dlangG Σ}.
@@ -371,7 +361,7 @@ Section path_repl_2.
   Proof.
     move => Hrew; move: v ρ.
     induction Hrew => v ρ He /=; properness;
-      by [|exact: path_replacement_equiv|iApply IHHrew; rewrite ?alias_path_pure_weaken].
+      by [|exact: path_replacement_equiv_alt|iApply IHHrew; rewrite ?alias_path_pure_weaken].
   Qed.
 
   Lemma rewrite_ty_path_repl' p q T1 T2 ρ v:
