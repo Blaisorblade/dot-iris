@@ -16,6 +16,18 @@ Definition psubst_path p q : path → path := fix F r :=
   end.
 Notation "r .p[ p := q  ]" := (psubst_path p q r).
 
+(* Useful ???*)
+Lemma psubst_path_eq p q r: psubst_path p q r =
+  match (decide (r = p)) with
+  | left _ => q
+  | _ =>
+    match r with
+    | pv _ => r
+    | pself r' l => pself (psubst_path p q r') l
+    end
+  end.
+Proof. by case: r. Qed.
+
 Reserved Notation "T1 ~p[ p := q  ] T2" (at level 70).
 Inductive ty_path_repl (p q : path) : ty → ty → Prop :=
 | ty_path_repl_TAnd1 T1 T2 U :
@@ -71,6 +83,7 @@ From iris.proofmode Require Import tactics.
 
 Section foo.
   Context `{dlangG Σ}.
+  Implicit Types (φ: vl → iProp Σ).
 
   Lemma exists_equivI {A} {PROP: sbi} (φ1 φ2 : A -d> PROP) :
     (∀ x, φ1 x ≡ φ2 x) ⊢@{PROP}
@@ -104,27 +117,106 @@ Section foo.
     P1 ≡ P2 ⊢@{PROP} (P1 ∧ Q) ≡ (P2 ∧ Q).
   Proof. apply (@f_equiv _ _ _ (λ P, P ∧ Q)%I). solve_proper. Qed.
 
+(*
+  Lemma and_equivI {PROP : sbi} (P1 P2 Q1 Q2 : PROP) :
+    P1 ≡ P2 ⊢@{PROP} Q1 ≡ Q2 -∗
+    (P1 ∧ Q1) ≡ (P2 ∧ Q2).
+  Proof.
+  Admitted. *)
+
   Lemma wand2_equivI {PROP : sbi} (P1 P2 Q : PROP) :
     P1 ≡ P2 ⊢@{PROP} (P1 -∗ Q) ≡ (P2 -∗ Q).
   Proof. apply (@f_equiv _ _ _ (λ P, P -∗ Q)%I). solve_proper. Qed.
 
-  Lemma rewrite_tsel_psubst p l ρ v vr:
-    path_wp p.|[ρ] (λ w : vl, ⌜w = vr.[ρ]⌝) -∗
-    ⟦ TSel p l ⟧ ρ v -∗ ⟦ TSel (pv vr) l ⟧ ρ v.
+  Ltac iProperness :=
+    repeat first
+    [ rewrite -!f_equiv
+    | rewrite -exists_equivI; iIntros
+    | rewrite -forall_equivI; iIntros
+    | rewrite -wp_equivI; iIntros
+    | progress rewrite -?and2_equivI -?wand2_equivI -?or2_equivI
+    ].
+
+
+  Lemma path_wp_swap p u :
+    path_wp p (λ w, ⌜u = w⌝) ⊣⊢@{iPropI Σ}
+    path_wp p (λ w, ⌜w = u⌝).
+  Proof. iSplit; iIntros "H"; iApply (path_wp_wand with "H"); auto. Qed.
+
+  Definition alias_paths p q ρ : iProp Σ :=
+    path_wp p.|[ρ] (λ vp, path_wp q.|[ρ] (λ vq, ⌜vp = vq⌝))%I.
+
+  Lemma alias_paths_refl_vl v ρ :
+    alias_paths (pv v) (pv v) ρ.
+  Proof. by iIntros "!%". Qed.
+
+  Lemma alias_paths_eq p q ρ:
+    alias_paths p q ρ ⊣⊢
+    ∃ v,
+      path_wp p.|[ρ] (λ vp : vl, ⌜vp = v⌝) ∧
+      path_wp q.|[ρ] (λ vq : vl, ⌜vq = v⌝).
   Proof.
-    iIntros "Hp /="; iEval (rewrite path_wp_eq).
-    iDestruct 1 as (vr') "[Hp' H]"; iDestruct "H" as (ψ d Hl) "H".
-    iDestruct (path_wp_det with "Hp Hp'") as %<-; iClear "Hp Hp'".
-    iExists ψ, d. iFrame (Hl) "H".
+    rewrite /= /alias_paths !path_wp_eq; iSplit; iDestruct 1 as (vp) "[Hp Hq]".
+    rewrite (path_wp_swap q.|[_]). eauto.
+    rewrite -(path_wp_swap q.|[_]). eauto.
   Qed.
 
-  Lemma rewrite_tsel_psubst' p l ρ v vr :
+  Lemma alias_paths_symm p q ρ :
+    alias_paths p q ρ -∗ alias_paths q p ρ.
+  Proof. rewrite !alias_paths_eq. iDestruct 1 as (vp) "[Hp Hq]". eauto. Qed.
+
+  Lemma simpl_alias_1 p vr ρ :
+     alias_paths p (pv vr) ρ ⊣⊢ path_wp p.|[ρ] (λ w : vl, ⌜w = vr.[ρ]⌝) .
+  Proof. done. Qed.
+
+  Lemma simpl_alias_2 p vr ρ :
+     alias_paths (pv vr) p ρ ⊣⊢ path_wp p.|[ρ] (λ w : vl, ⌜w = vr.[ρ]⌝) .
+  Proof. exact: path_wp_swap. Qed.
+
+  Set Nested Proofs Allowed.
+
+  Lemma alias_paths_equiv p q ρ:
+    alias_paths p q ρ ⊣⊢
+    (∃ u, path_wp p.|[ρ] (λ vp : vl, ⌜vp = u⌝)) ∧ ∀ φ, path_wp p.|[ρ] φ ≡ path_wp q.|[ρ] φ.
+  Proof.
+    rewrite alias_paths_eq; iSplit.
+    - iDestruct 1 as (v) "#[Hp Hq]".
+      iSplit; first by [auto]; iIntros (φ).
+      iEval (rewrite !path_wp_eq -exists_equivI); iIntros (w).
+      iApply prop_ext; iModIntro; iSplit; iIntros "[H $]";
+        [ iDestruct (path_wp_det with "Hp H") as %<- |
+          iDestruct (path_wp_det with "Hq H") as %<- ]; iFrame "#".
+    - iIntros "[Hterm Heq]". iDestruct "Hterm" as (u) "#Hp". iExists u.
+      iFrame "Hp".
+      by iRewrite -("Heq" $! (λ vp : vl, ⌜vp = u⌝))%I.
+  Qed.
+
+  Lemma alias_paths_elim_eq φ p q ρ:
+    alias_paths p q ρ -∗
+    path_wp p.|[ρ] φ ≡ path_wp q.|[ρ] φ.
+  Proof. rewrite alias_paths_equiv. iDestruct 1 as "[_ Heq]". iApply "Heq". Qed.
+
+  Lemma alias_paths_elim_wand p q ρ φ:
+    alias_paths p q ρ -∗
+    path_wp p.|[ρ] φ -∗ path_wp q.|[ρ] φ.
+  Proof.
+    rewrite (alias_paths_elim_eq φ). iIntros "Heq"; iRewrite "Heq"; auto.
+  Qed.
+(*
+  Lemma rewrite_tsel_psubst_v0_bad p q l ρ v:
+    alias_paths p q ρ -∗
+    ⟦ TSel p l ⟧ ρ v -∗ ⟦ TSel q l ⟧ ρ v.
+  Proof. apply alias_paths_elim_wand. Qed.
+
+  Lemma rewrite_tsel_psubst_v1_bad p l ρ v vr :
     path_wp p.|[ρ] (λ w : vl, ⌜w = vr.[ρ]⌝) -∗
     ⟦ TSel p l ⟧ ρ v -∗ ⟦ TSel (p .p[ p := pv vr ]) l ⟧ ρ v.
-  Proof. rewrite psubst_path_self. exact: rewrite_tsel_psubst. Qed.
+  Proof.
+    rewrite psubst_path_self -simpl_alias_1. exact: rewrite_tsel_psubst_v0_bad.
+  Qed. *)
 
   (* Argh, we must also replace by longer paths :-( *)
-  Lemma path_replacement_equiv_plain {p vr ρ} q (φ : vl → iProp Σ):
+  Lemma path_replacement_equiv_plain_special {p vr ρ} q (φ : vl → iProp Σ):
     path_wp p.|[ρ] (λ w, ⌜ w = vr.[ρ] ⌝) ⊢@{iPropI Σ}
     path_wp q.|[ρ] φ ≡ path_wp (q .p[p := pv vr]).|[ρ] φ.
   Proof.
@@ -143,40 +235,105 @@ Section foo.
   Lemma rewrite_tsel_psubst2 p q l ρ v vr:
     path_wp p.|[ρ] (λ w, ⌜ w = vr.[ρ] ⌝) ⊢@{iPropI Σ}
     ⟦ TSel q l ⟧ ρ v ≡ ⟦ TSel (q .p[ p := pv vr ]) l ⟧ ρ v.
-  Proof. exact: path_replacement_equiv_plain. Qed.
+  Proof. exact: path_replacement_equiv_plain_special. Qed.
+
+  (* That's false. *)
+  (* Lemma path_replacement_equiv_0 {p r ρ} q:
+    alias_paths p r ρ ⊢@{iPropI Σ}
+    alias_paths q (q .p[p := r]) ρ.
+  Proof.
+    elim: q => [w | q IHq l] /=; case_decide; simplify_eq/=.
+    - by iIntros.
+    - rewrite -alias_paths_refl_vl. by iIntros.
+    - by iIntros.
+    - rewrite /= IHq !alias_paths_eq /=.
+      iDestruct 1 as (vr) "#[Hq Hqr]".
+      (* We don't know that [pself q l] terminates! *)
+  Abort. *)
+
+  Lemma path_replacement_equiv_plain {p r ρ} q (φ : vl → iProp Σ):
+    alias_paths p r ρ ⊢@{iPropI Σ}
+    path_wp q.|[ρ] φ ≡ path_wp (q .p[p := r]).|[ρ] φ.
+  Proof.
+    (* rewrite psubst_path_eq; case_decide.
+    - simplify_eq.
+      rewrite alias_paths_equiv. iDestruct 1 as "[_ H]". iApply "H".
+    -
+      elim: q φ {H0} => [w | q IHq l] φ /=. by iIntros.
+    Restart. *)
+    (* iIntros.
+    iApply (alias_paths_elim_eq φ). by iApply path_replacement_equiv_0. *)
+    (* apply (alias_paths_elim_eq φ q r). *)
+    (* Restart. *)
+    elim: q φ => [w | q IHq l] φ /=;
+     case_decide; simplify_eq/=.
+    - apply (alias_paths_elim_eq φ (pv w) r).
+      (* iIntros "#Hap".
+      iApply prop_ext; iModIntro; iSplit; iIntros "H".
+      + rewrite alias_paths_eq /=; iDestruct "Hap" as (v ->) "#Hrv".
+        iApply (path_wp_wand with "Hrv"). by iIntros (u ->).
+      + rewrite path_wp_eq simpl_alias_2.
+        iDestruct "H" as (v) "[#Hp H]".
+        iDestruct (path_wp_det with "Hap Hp") as %<-. iFrame. *)
+    - iIntros. done.
+    - rewrite /= !path_wp_eq alias_paths_eq /=.
+      iDestruct 1 as (vr) "[Hq' #Hr]".
+      iDestruct (path_wp_eq with "Hq'") as (vq) "#[Hq A]";
+        iDestruct "A" as %(? & Hl & ->).
+      iApply prop_ext; iModIntro; iSplit.
+      + iDestruct 1 as (vq') "[Hq' A]"; iDestruct "A" as (vr' Hl') "Hφ".
+        iDestruct (path_wp_det with "Hq Hq'") as %<-; iClear "Hq Hq'".
+        by objLookupDet; eauto.
+      + iDestruct 1 as (vr') "[Hr' Hφ]".
+        iDestruct (path_wp_det with "Hr Hr'") as %<-; iClear "Hr'".
+        eauto.
+    - iIntros. by iApply IHq.
+  Qed.
+    (* -
+
+      rewrite -alias_paths_eq/=.
+    -
+      iApply prop_ext; iModIntro; iSplit; iIntros "H".
+      iApply (path_wp_wand with "Hrv"). by iIntros (u ->).
+      iApply path_wp_wand.
+    - by iIntros (->).
+    - by iIntros "_".
+    - rewrite !path_wp_eq.
+      iDestruct 1 as (v1) "#[Hq A]"; iDestruct "A" as %(v1' &Hl & ->).
+      iApply prop_ext; iModIntro; iSplit; last iIntros "Hφ"; eauto.
+      iDestruct 1 as (v2) "[Hq' A]"; iDestruct "A" as (v2' Hl') "Hφ".
+      iDestruct (path_wp_det with "Hq Hq'") as %->; iClear "Hq Hq'".
+      by objLookupDet.
+    - iApply IHq.
+  Qed. *)
+
+  (* Restart.
+    elim: q φ => [w | q IHq l'] φ;
+      rewrite psubst_path_eq /=; case_decide; simplify_eq/= => //.
+    admit.
+    by iIntros "_". *)
+
+
+    (* elim: q H0. *)
+
+
 
   Lemma path_replacement_equiv p q vr ρ (φ : vl → iProp Σ):
     □path_wp p.|[ρ] (λ w, ⌜ w = vr.[ρ] ⌝) ⊢@{iPropI Σ}
     □(path_wp q.|[ρ] φ ∗-∗ path_wp (q .p[p := pv vr]).|[ρ] φ).
   Proof.
     iIntros "#H !>".
-    iRewrite -(path_replacement_equiv_plain q φ with "H").
+    iRewrite -(path_replacement_equiv_plain_special q φ with "H").
     by rewrite -wand_iff_refl.
   Qed.
 
-(*
-  Lemma and_equivI {PROP : sbi} (P1 P2 Q1 Q2 : PROP) :
-    P1 ≡ P2 ⊢@{PROP} Q1 ≡ Q2 -∗
-    (P1 ∧ Q1) ≡ (P2 ∧ Q2).
-  Proof.
-  Admitted. *)
-  Ltac iProperness :=
-    repeat first
-    [ rewrite -!f_equiv
-    | rewrite -exists_equivI; iIntros
-    | rewrite -forall_equivI; iIntros
-    | rewrite -wp_equivI; iIntros
-    | progress rewrite -?and2_equivI -?wand2_equivI -?or2_equivI
-    ].
-
-
-  Lemma rewrite_ty_path_repl_plain p T1 T2 ρ v vr:
+  Lemma rewrite_ty_path_repl_plain_special p T1 T2 ρ v vr:
     T1 ~p[ p := pv vr ] T2 →
     path_wp p.|[ρ] (λ w, ⌜ w = vr.[ρ] ⌝) ⊢@{iPropI Σ} (* p : vr.type *)
     ⟦ T1 ⟧ ρ v ≡ ⟦ T2 ⟧ ρ v.
   Proof.
     move HE: (pv vr) => q; move => Hrew; move: v ρ vr HE.
-    Time induction Hrew => v ρ vr HE; subst q; last apply path_replacement_equiv_plain;
+    Time induction Hrew => v ρ vr HE; subst q; last apply path_replacement_equiv_plain_special;
       iIntros "/= #H"; iProperness;
       try by [iApply IHHrew; rewrite // hsubst_comp subst_comp ren_scons].
   Qed.
