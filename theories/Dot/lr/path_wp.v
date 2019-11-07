@@ -39,16 +39,12 @@ Section path_wp.
     (∀ v, Persistent (φ v)) → Persistent (path_wp p φ).
   Proof. elim: p φ => *; apply _. Qed.
 
-  Lemma strong_path_wp_wand φ1 φ2 p:
-    path_wp p φ1 -∗
-    (∀ v, φ1 v -∗ φ2 v) -∗
-    path_wp p φ2.
+  Global Instance Proper_pwp: Proper ((=) ==> pointwise_relation _ (≡) ==> (≡)) path_wp.
   Proof.
-    elim: p φ1 φ2 => /= [v|p IHp l] ??; iIntros "H1 Hwand";
-      first by iApply "Hwand".
-    iApply (IHp with "H1").
-    iIntros (v) "H"; iDestruct "H" as (vq Hl) "?".
-    iExists vq; iFrame (Hl). by iApply "Hwand".
+    (* The induction works best in this shape, but this instance is best kept local. *)
+    have Proper_pwp_2: ∀ p, Proper (pointwise_relation _ (≡) ==> (≡)) (path_wp p).
+    elim; solve_proper.
+    solve_proper.
   Qed.
 
   Lemma path_wp_wand φ1 φ2 p:
@@ -56,8 +52,11 @@ Section path_wp.
     (∀ v, φ1 v -∗ φ2 v) -∗
     path_wp p φ2.
   Proof.
-    iIntros "Hp1 Hwand".
-    by iApply (strong_path_wp_wand with "Hp1").
+    elim: p φ1 φ2 => /= [v|p IHp l] ??; iIntros "H1 Hwand";
+      first by iApply "Hwand".
+    iApply (IHp with "H1").
+    iIntros (v); iDestruct 1 as (vq Hl) "?".
+    iExists vq; iFrame (Hl). by iApply "Hwand".
   Qed.
 
   Lemma path_wp_eq p φ :
@@ -76,9 +75,7 @@ Section path_wp.
       iDestruct "H" as (w) "[Hp Hw]".
       iDestruct "Hp" as (v) "[Hp Hl]".
       iExists v; iSplit; first done.
-      iDestruct "Hl" as (w') "[Hl Heqw]".
-      iExists w'; iSplit; first done.
-      by iDestruct "Heqw" as %->.
+      iDestruct "Hl" as %(w' & Hl & ->). auto.
   Qed.
 
   Lemma path_wp_det p v1 v2:
@@ -89,14 +86,12 @@ Section path_wp.
     elim: p v1 v2 => [v /=| p /= IHp l //] v1 v2;
       first by iIntros (<- <-).
     rewrite !path_wp_eq.
-    iIntros "H1 H2".
-    iDestruct "H1" as (w1) "[H1 Hl1]".
-    iDestruct "H2" as (w2) "[H2 Hl2]".
-    iDestruct (IHp with "H1 H2") as "Heq".
-    iDestruct "Heq" as %<-.
-    iDestruct "Hl1" as (vq1 Hl1) "Heq1".
-    iDestruct "Hl2" as (vq2 Hl2) "Heq2".
-    objLookupDet. iDestruct "Heq1" as %->. by [].
+    iDestruct 1 as (w1) "[H1 Hl1]".
+    iDestruct 1 as (w2) "[H2 Hl2]".
+    iDestruct (IHp with "H1 H2") as %<-.
+    iDestruct "Hl1" as %(vq1 & Hl1 & ->).
+    iDestruct "Hl2" as %(vq2 & Hl2 & ->).
+    objLookupDet. by [].
   Qed.
 
   Lemma path_wp_later_swap p φ:
