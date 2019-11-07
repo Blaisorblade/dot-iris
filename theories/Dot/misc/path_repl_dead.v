@@ -41,30 +41,22 @@ Section psubst_path_id_implies_lemmas.
 
   Lemma occurs_in_path_repl {p1 p2 p q} :
     p1 ~pp[ p := q ] p2 →
-    ∃ ls, append_ls p ls = p1.
+    ∃ n, n + path_size p = path_size p1.
   Proof.
-    elim => [|p1' p2' l' Hr [ls' IHr]];
-      [ exists [] | exists (l' :: ls')]; by simplify_eq.
+    elim => [|p1' p2' l Hr [n IHr]];
+      [ by exists 0 | exists (S n); by rewrite /= IHr].
   Qed.
 
   Lemma path_size_append p ls :
     path_size (append_ls p ls) = length ls + path_size p.
   Proof. by elim: ls => /= [| _ ls ->]. Qed.
 
-  Lemma paths_well_founded {ls1 ls2 p q l} :
-    append_ls q (l :: ls1) = p →
-    ~append_ls p ls2 = q.
-  Proof.
-    move => /(f_equal path_size) Heq1 /(f_equal path_size) Heq2.
-    move: Heq1 Heq2. rewrite !path_size_append /=. lia.
-  Qed.
-
   Lemma path_repl_longer ls {p p1 p2 q l} :
     p1 ~pp[ p := q ] p2 →
     ~append_ls p1 (l :: ls) = p.
   Proof.
-    move => /occurs_in_path_repl [ls' Hr] Happ.
-    exact: paths_well_founded.
+    move => /occurs_in_path_repl [ls' Hr] /(f_equal path_size).
+    rewrite /= path_size_append. lia.
   Qed.
 End psubst_path_id_implies_lemmas.
 
@@ -78,6 +70,32 @@ Proof.
   case_decide as Hdec => //; last by rewrite -IHr.
   exfalso. exact: (path_repl_longer []).
 Qed.
+
+Section psubst_path_id_implies_lemmas_extras.
+  Lemma occurs_in_path_repl_append {p1 p2 p q} :
+    p1 ~pp[ p := q ] p2 →
+    ∃ ls, append_ls p ls = p1.
+  Proof.
+    elim => [|p1' p2' l' Hr [ls' IHr]];
+      [ exists [] | exists (l' :: ls')]; by simplify_eq.
+  Qed.
+
+  Lemma paths_well_founded {ls1 ls2 p q l} :
+    append_ls q (l :: ls1) = p →
+    ~append_ls p ls2 = q.
+  Proof.
+    move => /(f_equal path_size) Heq1 /(f_equal path_size) Heq2.
+    move: Heq1 Heq2. rewrite !path_size_append /=. lia.
+  Qed.
+
+  Lemma path_repl_longer2 ls {p p1 p2 q l} :
+    p1 ~pp[ p := q ] p2 →
+    ~append_ls p1 (l :: ls) = p.
+  Proof.
+    move => /occurs_in_path_repl_append [ls' Hr] Happ.
+    exact: paths_well_founded.
+  Qed.
+End psubst_path_id_implies_lemmas_extras.
 
 (* Useful ???*)
 Lemma psubst_path_eq p q r: psubst_path p q r =
@@ -125,11 +143,42 @@ Section path_repl.
     path_wp p.|[ρ] φ -∗ path_wp q.|[ρ] φ.
   Proof. iIntros (->%(alias_paths_elim_wand φ)) "$". Qed.
 
+  (** Beware: we can do path replacement *before* substitution,
+      even tho substitution and path replacement don't commute nicely.
+
+      As a special case, we get the less surprising:
+      [alias_paths_pure p r ids → path_wp q φ ≡ path_wp (q .p[p := r]) φ].
+
+      But we do need the general form. *)
+  Lemma path_replacement_equiv_alt {p r ρ} q (φ : vl → iProp Σ):
+    alias_paths_pure p r ρ →
+    path_wp q.|[ρ] φ ≡ path_wp (q .p[p := r]).|[ρ] φ.
+  Proof.
+    elim: q φ => [w | q IHq l] φ /=; case_decide.
+    - simplify_eq. apply (alias_paths_elim_eq φ (pv w) r).
+    - done.
+    - simplify_eq.
+      rewrite /= !path_wp_eq alias_paths_pure_eq /=.
+      destruct 1 as (vr & (vq & Hq & w & Hl & ->)%path_wp_pure_eq & Hr).
+      iSplit.
+      + iDestruct 1 as (vq' Hq' vr' Hl') "Hφ".
+        rewrite (path_wp_pure_det Hq' Hq) in Hl'.
+        objLookupDet. eauto.
+      + iDestruct 1 as (vr' Hr') "Hφ".
+        rewrite (path_wp_pure_det Hr' Hr).
+        eauto.
+    - exact: IHq.
+  Qed.
+
+  Lemma path_replacement_equiv_alt' {p r ρ} q (φ : vl → iProp Σ):
+    alias_paths p r ρ ⊢
+    path_wp q.|[ρ] φ ≡ path_wp (q .p[p := r]).|[ρ] φ.
+  Proof. iIntros (?) "!%". exact: path_replacement_equiv_alt. Qed.
 
   Lemma rewrite_tsel_psubst2 p q l ρ v r:
     alias_paths p r ρ ⊢
     ⟦ TSel q l ⟧ ρ v ≡ ⟦ TSel (q .p[ p := r ]) l ⟧ ρ v.
-  Proof. exact: path_replacement_equiv'. Qed.
+  Proof. exact: path_replacement_equiv_alt'. Qed.
 
   (* That's false, as we don't know that q terminates from the hyp. *)
   (* Lemma path_replacement_equiv_0 {p r ρ} q:

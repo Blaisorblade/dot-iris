@@ -60,11 +60,9 @@ Lemma path_wp_pure_det {p v1 v2}:
   path_wp_pure p (λ w, w = v2) →
   v1 = v2.
 Proof.
-  elim: p v1 v2 => [v /=| p /= IHp l //] v1 v2;
-    first by intros <- <-.
-  rewrite !path_wp_pure_eq.
-  destruct 1 as (w1 & Hp1 & ?); destruct 1 as (w2 & Hp2 & ?); ev; simplify_eq.
-  pose proof (IHp _ _ Hp1 Hp2) as <-.
+  elim: p v1 v2 => [v /=| p /= IHp l //] v1 v2; first by intros <- <-.
+  rewrite !path_wp_pure_eq; intros (w1 & Hp1 & ?) (w2 & Hp2 & ?);
+    move: (IHp _ _ Hp1 Hp2) => ?; ev; simplify_eq.
   by objLookupDet.
 Qed.
 
@@ -318,27 +316,7 @@ Section path_repl_2.
       [alias_paths_pure p r ids → path_wp q φ ≡ path_wp (q .p[p := r]) φ].
 
       But we do need the general form. *)
-  Lemma path_replacement_equiv {p r ρ} q (φ : vl → iProp Σ):
-    alias_paths_pure p r ρ →
-    path_wp q.|[ρ] φ ≡ path_wp (q .p[p := r]).|[ρ] φ.
-  Proof.
-    elim: q φ => [w | q IHq l] φ /=; case_decide.
-    - simplify_eq. apply (alias_paths_elim_eq φ (pv w) r).
-    - done.
-    - simplify_eq.
-      rewrite /= !path_wp_eq alias_paths_pure_eq /=.
-      destruct 1 as (vr & (vq & Hq & w & Hl & ->)%path_wp_pure_eq & Hr).
-      iSplit.
-      + iDestruct 1 as (vq' Hq' vr' Hl') "Hφ".
-        rewrite (path_wp_pure_det Hq' Hq) in Hl'.
-        objLookupDet. eauto.
-      + iDestruct 1 as (vr' Hr') "Hφ".
-        rewrite (path_wp_pure_det Hr' Hr).
-        eauto.
-    - exact: IHq.
-  Qed.
-
-  Lemma path_replacement_equiv_alt {p r ρ} q q' (φ : vl → iProp Σ):
+  Lemma path_replacement_equiv {p r ρ} q q' (φ : vl → iProp Σ):
     q ~pp[ p := r ] q' →
     alias_paths_pure p r ρ →
     path_wp q.|[ρ] φ ≡ path_wp q'.|[ρ] φ.
@@ -349,24 +327,19 @@ Section path_repl_2.
     apply IHrepl.
   Qed.
 
-  Lemma path_replacement_equiv' {p r ρ} q (φ : vl → iProp Σ):
-    alias_paths p r ρ ⊢
-    path_wp q.|[ρ] φ ≡ path_wp (q .p[p := r]).|[ρ] φ.
-  Proof. iIntros (?) "!%". exact: path_replacement_equiv. Qed.
-
   Lemma rewrite_ty_path_repl p q T1 T2 ρ v:
     T1 ~p[ p := q ] T2 →
-    alias_paths_pure p q ρ →
+    alias_paths_pure p q ρ → (* p : q.type *)
     ⟦ T1 ⟧ ρ v ≡ ⟦ T2 ⟧ ρ v.
   Proof.
     move => Hrew; move: v ρ.
     induction Hrew => v ρ He /=; properness;
-      by [|exact: path_replacement_equiv_alt|iApply IHHrew; rewrite ?alias_path_pure_weaken].
+      by [|exact: path_replacement_equiv|iApply IHHrew; rewrite ?alias_path_pure_weaken].
   Qed.
 
   Lemma rewrite_ty_path_repl' p q T1 T2 ρ v:
     T1 ~p[ p := q ] T2 →
-    alias_paths p q ρ ⊢ (* p : q.type *)
+    alias_paths p q ρ ⊢
     ⟦ T1 ⟧ ρ v ≡ ⟦ T2 ⟧ ρ v.
   Proof. iIntros "!%". exact: rewrite_ty_path_repl. Qed.
 
