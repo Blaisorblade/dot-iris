@@ -117,4 +117,12 @@ Section path_wp.
     elim: i => [// | i /= <-].
     rewrite path_wp_later_swap. by [].
   Qed.
+
+  Global Instance Plain_path_wp p φ (H : (∀ v, Plain (φ v))) :
+    Plain (path_wp p φ).
+  Proof.
+    elim: p φ H => /= [//|p IHp l] φ H; rewrite path_wp_eq /Plain.
+    iDestruct 1 as (v) "#[Heq H]"; iDestruct "H" as (w Hl) "#H".
+    iModIntro. repeat (iExists _; iSplit => //).
+  Qed.
 End path_wp.

@@ -248,6 +248,7 @@ Section Sec.
     WP (tskip (tv v)) {{ sem_singleton w ρ }}.
   Proof. iIntros (H); rewrite -wp_pure_step_later // -wp_value' //=. Qed.
 
+  (* v : p.type *)
   Definition sem_psingleton p ρ v : iProp Σ := path_wp p.|[ρ] (λ w, ⌜ w = v ⌝ )%I.
   Global Arguments sem_psingleton /.
   Global Instance: Persistent (sem_psingleton p ρ v) := _.
