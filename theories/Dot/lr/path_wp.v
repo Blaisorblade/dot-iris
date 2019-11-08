@@ -4,7 +4,61 @@ From D.Dot Require Import dlang_inst.
 
 Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
-         (Γ : ctx) (ρ : vls).
+         (Γ : ctx) (ρ : vls) (Pv : vl → Prop).
+
+Fixpoint path_wp_pure p Pv : Prop :=
+  match p with
+  | pself p l => path_wp_pure p (λ v, ∃ w, v @ l ↘ dvl w ∧ Pv w)
+  | pv vp => Pv vp
+  end.
+
+Global Instance Proper_pwp_pure: Proper ((=) ==> pointwise_relation _ iff ==> iff) path_wp_pure.
+Proof.
+  (* The induction works best in this shape, but this instance is best kept local. *)
+  have Proper_pwp_2: ∀ p, Proper (pointwise_relation _ iff ==> iff) (path_wp_pure p).
+  elim; solve_proper.
+  solve_proper.
+Qed.
+
+Lemma path_wp_pure_wand {Pv1 Pv2 p}:
+  path_wp_pure p Pv1 →
+  (∀ v, Pv1 v → Pv2 v) →
+  path_wp_pure p Pv2.
+Proof.
+  elim: p Pv1 Pv2 => /= [v|p IHp l] Pv1 Pv2 Hp Hwand;
+    first by apply Hwand.
+  apply: (IHp _ _ Hp) => {IHp Hp} v [vq [??]].
+  eauto.
+Qed.
+
+Lemma path_wp_pure_eq p Pv :
+  path_wp_pure p Pv ↔ ∃ v, path_wp_pure p (λ w, w = v) ∧ Pv v.
+Proof.
+  elim: p Pv => [ v | p IHp l ] Pv /=; split.
+  - eauto.
+  - by destruct 1 as (w & <- & ?).
+  - rewrite IHp; intros (v & Hp & w & ?&?).
+    eexists w; split; last by [].
+    apply (path_wp_pure_wand Hp).
+    intros v' ->; exists w; eauto.
+  - setoid_rewrite IHp; intros; ev; subst; eauto.
+Qed.
+
+Lemma path_wp_pure_det {p v1 v2}:
+  path_wp_pure p (λ w, w = v1) →
+  path_wp_pure p (λ w, w = v2) →
+  v1 = v2.
+Proof.
+  elim: p v1 v2 => [v /=| p /= IHp l //] v1 v2; first by intros <- <-.
+  rewrite !path_wp_pure_eq; intros (w1 & Hp1 & ?) (w2 & Hp2 & ?);
+    move: (IHp _ _ Hp1 Hp2) => ?; ev; simplify_eq.
+  by objLookupDet.
+Qed.
+
+Lemma path_wp_pure_swap p u :
+  path_wp_pure p (λ w, u = w) ↔
+  path_wp_pure p (λ w, w = u).
+Proof. split => Hp; exact: path_wp_pure_wand. Qed.
 
 Lemma plength_subst_inv p s :
   plength p.|[s] = plength p.
@@ -13,6 +67,7 @@ Proof. by elim: p => [v| p /= ->]. Qed.
 Section path_wp.
   Context `{HdlangG: dlangG Σ}.
   Implicit Types (φ : vl -d> iPropO Σ).
+  Notation path_wp_purel p Pv := (⌜path_wp_pure p Pv⌝%I : iProp Σ).
 
   (** A simplified variant of weakest preconditions for path evaluation.
       The difference is that path evaluation is completely pure, and
@@ -47,6 +102,30 @@ Section path_wp.
     solve_proper.
   Qed.
 
+  Lemma path_wp_pureable p Pv:
+    path_wp p (λ v, ⌜Pv v⌝) ⊣⊢ path_wp_purel p Pv.
+  Proof.
+    elim: p Pv => /= [//|p IHp l] Pv.
+    by rewrite -{}IHp; f_equiv => v; iIntros "!% /=".
+  Qed.
+
+  Global Instance path_wp_pureableI p Pv :
+    IntoPure (path_wp p (λ v, ⌜Pv v⌝))%I (path_wp_pure p Pv).
+  Proof. by rewrite /IntoPure path_wp_pureable. Qed.
+  Global Instance path_wp_pureableF p Pv :
+    FromPure false (path_wp p (λ v, ⌜Pv v⌝))%I (path_wp_pure p Pv).
+  Proof. by rewrite /FromPure/= path_wp_pureable. Qed.
+
+  Lemma path_wp_det p v1 v2:
+    path_wp p (λ w, ⌜ w = v1 ⌝) -∗
+    path_wp p (λ w, ⌜ w = v2 ⌝) -∗
+    ⌜ v1 = v2 ⌝: iProp Σ.
+  Proof. iIntros "!%". exact: path_wp_pure_det. Qed.
+
+  Lemma path_wp_swap p u :
+    path_wp p (λ w, ⌜u = w⌝) ⊣⊢ path_wp p (λ w, ⌜w = u⌝).
+  Proof. iIntros "!%". by rewrite /= path_wp_pure_swap. Qed.
+
   Lemma path_wp_wand φ1 φ2 p:
     path_wp p φ1 -∗
     (∀ v, φ1 v -∗ φ2 v) -∗
@@ -76,22 +155,6 @@ Section path_wp.
       iDestruct "Hp" as (v) "[Hp Hl]".
       iExists v; iSplit; first done.
       iDestruct "Hl" as %(w' & Hl & ->). auto.
-  Qed.
-
-  Lemma path_wp_det p v1 v2:
-    path_wp p (λ w, ⌜ w = v1 ⌝) -∗
-    path_wp p (λ w, ⌜ w = v2 ⌝) -∗
-    ⌜ v1 = v2 ⌝: iProp Σ.
-  Proof.
-    elim: p v1 v2 => [v /=| p /= IHp l //] v1 v2;
-      first by iIntros (<- <-).
-    rewrite !path_wp_eq.
-    iDestruct 1 as (w1) "[H1 Hl1]".
-    iDestruct 1 as (w2) "[H2 Hl2]".
-    iDestruct (IHp with "H1 H2") as %<-.
-    iDestruct "Hl1" as %(vq1 & Hl1 & ->).
-    iDestruct "Hl2" as %(vq2 & Hl2 & ->).
-    objLookupDet. by [].
   Qed.
 
   Lemma path_wp_later_swap p φ:
