@@ -8,51 +8,40 @@ Implicit Types
          (Γ : ctx) (vs : vls) (l : label) (Pv : vl → Prop).
 Set Nested Proofs Allowed.
 
-Lemma ren_scons v ρ : ren (+1) >> v .: ρ = ρ.
+Definition alias_paths p q :=
+  path_wp_pure p (λ vp, path_wp_pure q (λ vq, vp = vq)).
+
+Lemma alias_paths_pv_eq_1 p vr :
+  alias_paths p (pv vr) ↔ path_wp_pure p (λ w, w = vr).
 Proof. done. Qed.
 
-(* XXX Unclear why is the substitution built-in. But beware of dropping that, as substitution and path replacement don't swap. *)
-Definition alias_paths p q ρ :=
-  path_wp_pure p.|[ρ] (λ vp, path_wp_pure q.|[ρ] (λ vq, vp = vq)).
-
-Lemma alias_paths_pv_eq_1 p vr ρ :
-  alias_paths p (pv vr) ρ ↔ path_wp_pure p.|[ρ] (λ w, w = vr.[ρ]).
-Proof. done. Qed.
-
-Lemma alias_paths_pv_eq_2 p vr ρ :
-  alias_paths (pv vr) p ρ ↔ path_wp_pure p.|[ρ] (λ w, w = vr.[ρ]).
+Lemma alias_paths_pv_eq_2 p vr :
+  alias_paths (pv vr) p ↔ path_wp_pure p (λ w, w = vr).
 Proof. by rewrite -path_wp_pure_swap. Qed.
 
-Lemma alias_paths_weaken p q ρ v:
-  alias_paths p.|[ren (+1)] q.|[ren (+1)] (v .: ρ) =
-  alias_paths p q ρ.
-Proof.
-  by rewrite /alias_paths; f_equiv; rewrite hsubst_comp ren_scons.
-Qed.
-
-Lemma alias_paths_refl_vl v ρ :
-  alias_paths (pv v) (pv v) ρ.
+Lemma alias_paths_refl_vl v :
+  alias_paths (pv v) (pv v).
 Proof. done. Qed.
 
-Lemma alias_paths_sameres p q ρ:
-  alias_paths p q ρ ↔
+Lemma alias_paths_sameres p q:
+  alias_paths p q ↔
   ∃ v,
-    path_wp_pure p.|[ρ] (λ vp, vp = v) ∧
-    path_wp_pure q.|[ρ] (λ vq, vq = v).
+    path_wp_pure p (λ vp, vp = v) ∧
+    path_wp_pure q (λ vq, vq = v).
 Proof.
-  rewrite /= /alias_paths !path_wp_pure_eq. split => -[vp];
-    [ rewrite (path_wp_pure_swap q.|[_]) |
-      rewrite -(path_wp_pure_swap q.|[_]) ]; eauto.
+  rewrite /alias_paths !path_wp_pure_eq. split => -[vp];
+    [ rewrite (path_wp_pure_swap q) |
+      rewrite -(path_wp_pure_swap q) ]; eauto.
 Qed.
 
-Lemma alias_paths_symm p q ρ :
-  alias_paths p q ρ → alias_paths q p ρ.
+Lemma alias_paths_symm p q :
+  alias_paths p q → alias_paths q p.
 Proof. rewrite !alias_paths_sameres. intros; ev; eauto. Qed.
 
-Lemma alias_paths_equiv_pure p q ρ:
-  alias_paths p q ρ ↔
-    (∃ u, path_wp_pure p.|[ρ] (λ vp, vp = u)) ∧
-    ∀ Pv, path_wp_pure p.|[ρ] Pv ↔ path_wp_pure q.|[ρ] Pv.
+Lemma alias_paths_equiv_pure p q:
+  alias_paths p q ↔
+    (∃ u, path_wp_pure p (λ vp, vp = u)) ∧
+    ∀ Pv, path_wp_pure p Pv ↔ path_wp_pure q Pv.
 Proof.
   rewrite alias_paths_sameres; split.
   - destruct 1 as (v & Hp & Hq).
@@ -126,20 +115,17 @@ Qed.
 (* XXX For Iris *)
 Hint Extern 1 (environments.envs_entails _ (_ ∗-∗ _)) => iSplit : core.
 
-Definition alias_pathsI {Σ} p q ρ : iProp Σ := ⌜alias_paths p q ρ⌝.
-
 Section path_repl.
   Context `{dlangG Σ}.
   Implicit Types (φ: vl → iProp Σ).
 
   Notation path_wp p φ := (@path_wp Σ p φ).
-  Notation alias_pathsI p q ρ := (@alias_pathsI Σ p q ρ).
 
   (* Not provable through pure props for impure [φ]. *)
-  Lemma alias_paths_samepwp p q ρ:
-    alias_paths p q ρ ↔
-      (∃ u, path_wp_pure p.|[ρ] (λ vp, vp = u)) ∧
-      ∀ φ, path_wp p.|[ρ] φ ≡ path_wp q.|[ρ] φ.
+  Lemma alias_paths_samepwp p q:
+    alias_paths p q ↔
+      (∃ u, path_wp_pure p (λ vp, vp = u)) ∧
+      ∀ φ, path_wp p φ ≡ path_wp q φ.
   Proof.
     rewrite alias_paths_sameres; split.
     - destruct 1 as (v & Hp & Hq).
@@ -154,41 +140,126 @@ Section path_repl.
       iRevert (Hp). by rewrite -!path_wp_pureable Heq.
   Qed.
 
-  Lemma alias_paths_elim_eq φ p q ρ:
-    alias_paths p q ρ →
-    path_wp p.|[ρ] φ ≡ path_wp q.|[ρ] φ.
+  Lemma alias_paths_elim_eq φ p q:
+    alias_paths p q →
+    path_wp p φ ≡ path_wp q φ.
   Proof. intros ?%alias_paths_samepwp. intuition. Qed.
 
   (** Beware: we can do path replacement *before* substitution,
       even tho substitution and path replacement don't commute nicely.
 
       As a special case, we get the less surprising:
-      [alias_paths p r ids → path_wp q φ ≡ path_wp (q .p[p := r]) φ].
+      [alias_paths_subst p r ids → path_wp q φ ≡ path_wp (q .p[p := r]) φ].
 
       But we do need the general form. *)
-  Lemma path_replacement_equiv {p r ρ} q q' (φ : vl → iProp Σ):
-    q ~pp[ p := r ] q' →
-    alias_paths p r ρ →
-    path_wp q.|[ρ] φ ≡ path_wp q'.|[ρ] φ.
+  Lemma path_replacement_equiv {p q ρ} p1 p2 (φ : vl → iProp Σ):
+    p1 ~pp[ p := q ] p2 →
+    alias_paths p.|[ρ] q.|[ρ] →
+    path_wp p1.|[ρ] φ ≡ path_wp p2.|[ρ] φ.
   Proof.
     move => Hrepl.
-    elim: Hrepl φ => [| p1 p2 l Hrepl IHrepl] φ /=.
+    elim: Hrepl φ => [| p1' p2' l Hrepl IHrepl] φ /=.
     exact: alias_paths_elim_eq.
     apply IHrepl.
   Qed.
 
-  Lemma rewrite_ty_path_repl p q T1 T2 ρ v:
+  Lemma rewrite_ty_path_repl {p q T1 T2 ρ v}:
     T1 ~p[ p := q ] T2 →
-    alias_paths p q ρ → (* p : q.type *)
+    alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
     ⟦ T1 ⟧ ρ v ≡ ⟦ T2 ⟧ ρ v.
   Proof.
     move => Hrew; move: v ρ.
     induction Hrew => v ρ He /=; properness;
-      by [|exact: path_replacement_equiv|iApply IHHrew; rewrite ?alias_paths_weaken].
+      by [|exact: path_replacement_equiv|iApply IHHrew; rewrite ?hsubst_comp].
   Qed.
 
-  (* Lemma TMu_E Γ T v: Γ ⊨ tv v : TMu T -∗ Γ ⊨ tv v : T.|[ids 0/] .p [.
-  Proof. by rewrite TMu_equiv. Qed.
+
+From D.Dot Require Import lr_lemma.
+  (* Is this the hardest lemma? Is this one I need? *)
+  Lemma TMu_E_real_bad Γ T T' p ρ v :
+    alias_paths p.|[ρ] (pv v.[ρ]) →
+    T.|[v/] ~p[ pv v := p ] T' →
+    path_wp p.|[ρ] (⟦ TMu T ⟧ ρ) -∗ path_wp p.|[ρ] (⟦ T' ⟧ ρ).
+  Proof.
+    intros Heq0 Hrepl.
+    rewrite !path_wp_eq.
+    iDestruct 1 as (w Heq) "Hp"; iExists w; iFrame (Heq).
+    have ?: w = v.[ρ]. exact: path_wp_pure_det.
+    subst.
+    have Hal: alias_paths p.|[ρ] (pv v.[ρ]). apply Heq.
+    (* have Hal2: alias_paths p.|[ρ] (pv v).|[ρ]. admit. *)
+    (* cbn. iPoseProof (rewrite_ty_path_repl with "Hp") as "Hp'". *)
+    iApply (rewrite_ty_path_repl Hrepl).
+    exact: alias_paths_symm.
+    by rewrite interp_subst_one.
+  Qed.
+
+  Let Ts := TAnd (TAnd (TSel (pv (ids 0)) "A") (TSel (pv (ids 1)) "B"))
+      (TSel (pv (ids 2)) "B").
+  Let HclTs : nclosed Ts 3. solve_fv_congruence. Qed.
+  Eval cbv in Ts.|[ids (1 + 1)/].
+
+  Lemma ren_scons v ρ : ren (+1) >> v .: ρ = ρ.
+  Proof. done. Qed.
+
+  Lemma TMu_E_p Γ T T' p i :
+    T ~p[ pv (ids 0) := p.|[ren (+1)] ] T'.|[ren (+1)] →
+    Γ ⊨p p : TMu T, i -∗ Γ ⊨p p : T', i.
+  Proof.
+    intros Hrepl.
+    iIntros "#Hp !>" (ρ) "Hg /="; iSpecialize ("Hp" with "Hg"); iNext.
+    rewrite !path_wp_eq.
+    iDestruct "Hp" as (v Heq) "Hp"; iExists v; iFrame (Heq).
+    rewrite -(interp_weaken_one T' (v .: ρ) _).
+    rewrite -(rewrite_ty_path_repl Hrepl).
+    done.
+    rewrite /= hsubst_comp ?ren_scons /=. exact: alias_paths_symm.
+  Qed.
+
+  Lemma TMu_I_p Γ T T' p i :
+    T ~p[ pv (ids 0) := p.|[ren (+1)] ] T'.|[ren (+1)] →
+    Γ ⊨p p : T', i -∗ Γ ⊨p p : TMu T, i.
+  Proof.
+    intros Hrepl.
+    iIntros "#Hp !>" (ρ) "Hg /="; iSpecialize ("Hp" with "Hg"); iNext.
+    rewrite !path_wp_eq.
+    iDestruct "Hp" as (v Heq) "Hp"; iExists v; iFrame (Heq).
+    rewrite -(interp_weaken_one T' (v .: ρ) _).
+    rewrite -(rewrite_ty_path_repl Hrepl).
+    done.
+    rewrite /= hsubst_comp ?ren_scons /=. exact: alias_paths_symm.
+  Qed.
+
+(*
+    have Hal: alias_paths (pv v) p.|[ρ]. apply alias_paths_symm. exact Heq.
+    by apply alias_paths_symm in Hal.
+    rewrite interp_subst_one /=.
+    rewrite interp_subst_one /=.
+    admit.
+  Qed. *)
+
+  Lemma TMu_E_bad Γ T T' p i :
+    nclosed p (length Γ) →
+    nclosed T (1 + length Γ) →
+    T.|[ids (1 + length Γ)/] ~p[ pv (ids (1 + length Γ)) := p ] T' →
+    Γ ⊨p p : TMu T, i -∗ Γ ⊨p p : TMu T', i.
+  Proof.
+    intros Hclp HclT Hrepl.
+    iIntros "#Hp !>" (ρ) "Hg"; iSpecialize ("Hp" with "Hg"); iNext.
+    rewrite !path_wp_eq.
+    iDestruct "Hp" as (v Heq) "Hp"; iExists v; iFrame (Heq).
+    have Hal: alias_paths p.|[ρ] (pv v). exact Heq.
+    (* iApply interp_weaken_one. *)
+    (* rewrite interp_subst_compose_ind. asimpl. *)
+    (* Check (rewrite_ty_path_repl Hrepl). *)
+    cbn.
+    rewrite -(rewrite_ty_path_repl Hrepl).
+    rewrite interp_subst_one /=.
+    (* iApply "Hp". *)
+    asimpl.
+    (* rewrite interp_subst_one /=.
+    admit. *)
+  Admitted.
 
   Lemma TMu_I Γ T v: Γ ⊨ tv v : T.|[v/] -∗ Γ ⊨ tv v : TMu T.
   Proof. by rewrite TMu_equiv. Qed. *)

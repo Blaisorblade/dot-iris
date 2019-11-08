@@ -156,11 +156,22 @@ Lemma psubst_path_eq p q r: psubst_path p q r =
   end.
 Proof. by case: r. Qed.
 
+(* No reason for bundling subst any more. *)
+Notation alias_paths_subst p q ρ := (alias_paths p.|[ρ] q.|[ρ]).
+
+Lemma alias_paths_weaken p q ρ v:
+  alias_paths_subst p.|[ren (+1)] q.|[ren (+1)] (v .: ρ) =
+  alias_paths_subst p q ρ.
+Proof. by rewrite !hsubst_comp ren_scons. Qed.
+
+Definition alias_pathsI {Σ} p q : iProp Σ := ⌜alias_paths p q⌝.
+Definition alias_paths_substI {Σ} p q ρ : iProp Σ := ⌜alias_paths_subst p q ρ⌝.
 Section path_repl.
   Context `{dlangG Σ}.
   Implicit Types (φ: vl → iProp Σ).
 
-  Notation alias_pathsI p q ρ := (@alias_pathsI Σ p q ρ).
+  Notation alias_pathsI p q := (@alias_pathsI Σ p q).
+  Notation alias_paths_substI p q ρ := (@alias_paths_substI Σ p q ρ).
 (*
   Lemma and_equivI {PROP : sbi} (P1 P2 Q1 Q2 : PROP) :
     P1 ≡ P2 ⊢@{PROP} Q1 ≡ Q2 -∗
@@ -168,36 +179,36 @@ Section path_repl.
   Proof.
   Admitted. *)
 
-  Lemma alias_pathsI_symm p q ρ :
-    alias_pathsI p q ρ -∗ alias_pathsI q p ρ.
+  Lemma alias_paths_substI_symm p q :
+    alias_pathsI p q -∗ alias_pathsI q p.
   Proof. iIntros "!%". exact: alias_paths_symm. Qed.
 
-  Lemma alias_pathsI_elim_eq' φ p q ρ:
-    alias_pathsI p q ρ ⊢
-    ⌜path_wp p.|[ρ] φ ≡ path_wp q.|[ρ] φ⌝.
+  Lemma alias_paths_substI_elim_eq' φ p q:
+    alias_pathsI p q ⊢
+    ⌜path_wp p φ ≡ path_wp q φ⌝.
   Proof. iIntros "!%". apply alias_paths_elim_eq. Qed.
 
-  Lemma alias_paths_elim_wand φ p q ρ:
-    alias_paths p q ρ →
-    path_wp p.|[ρ] φ ⊢ path_wp q.|[ρ] φ.
+  Lemma alias_paths_subst_elim_wand φ p q:
+    alias_paths p q →
+    path_wp p φ ⊢ path_wp q φ.
   Proof. iIntros (->%(alias_paths_elim_eq φ)) "$". Qed.
 
-  Lemma alias_paths_elim_wand' φ p q ρ:
-    alias_pathsI p q ρ ⊢
-    path_wp p.|[ρ] φ -∗ path_wp q.|[ρ] φ.
-  Proof. iIntros (->%(alias_paths_elim_wand φ)) "$". Qed.
+  Lemma alias_paths_subst_elim_wand' φ p q:
+    alias_pathsI p q ⊢
+    path_wp p φ -∗ path_wp q φ.
+  Proof. iIntros (->%(alias_paths_subst_elim_wand φ)) "$". Qed.
 
-  Lemma alias_pathsI_eq p q ρ:
-    alias_pathsI p q ρ ⊣⊢
+  Lemma alias_paths_substI_eq p q:
+    alias_pathsI p q ⊣⊢
     ∃ v,
-      path_wp p.|[ρ] (λ vp : vl, ⌜vp = v⌝) ∧
-      path_wp q.|[ρ] (λ vq : vl, ⌜vq = v⌝).
+      path_wp p (λ vp : vl, ⌜vp = v⌝) ∧
+      path_wp q (λ vq : vl, ⌜vq = v⌝).
   Proof. iIntros "!%". apply alias_paths_sameres. Qed.
 
-  Lemma alias_paths_samepwp' p q ρ:
-    alias_pathsI p q ρ ⊣⊢
-      (∃ u, path_wp p.|[ρ] (λ vp, ⌜vp = u⌝)) ∧
-      ∀ φ, ⌜path_wp p.|[ρ] φ ≡ path_wp q.|[ρ] φ⌝.
+  Lemma alias_paths_subst_samepwp' p q:
+    alias_pathsI p q ⊣⊢
+      (∃ u, path_wp p (λ vp, ⌜vp = u⌝)) ∧
+      ∀ φ, ⌜path_wp p φ ≡ path_wp q φ⌝.
   Proof. iIntros "!%". apply alias_paths_samepwp. Qed.
 
 
@@ -205,15 +216,15 @@ Section path_repl.
       even tho substitution and path replacement don't commute nicely.
 
       As a special case, we get the less surprising:
-      [alias_paths_pure p r ids → path_wp q φ ≡ path_wp (q .p[p := r]) φ].
+      [alias_paths_subst_pure p r ids → path_wp q φ ≡ path_wp (q .p[p := r]) φ].
 
       But we do need the general form. *)
   Lemma path_replacement_equiv_alt {p r ρ} q (φ : vl → iProp Σ):
-    alias_paths p r ρ →
+    alias_paths_subst p r ρ →
     path_wp q.|[ρ] φ ≡ path_wp (q .p[p := r]).|[ρ] φ.
   Proof.
     elim: q φ => [w | q IHq l] φ /=; case_decide.
-    - simplify_eq. apply (alias_paths_elim_eq φ (pv w) r).
+    - simplify_eq. apply (alias_paths_elim_eq φ (pv w.[ρ]) r.|[ρ]).
     - done.
     - simplify_eq.
       rewrite /= !path_wp_eq alias_paths_sameres /=.
@@ -229,40 +240,40 @@ Section path_repl.
   Qed.
 
   Lemma path_replacement_equiv_alt' {p r ρ} q (φ : vl → iProp Σ):
-    alias_pathsI p r ρ ⊢
+    alias_paths_substI p r ρ ⊢
     path_wp q.|[ρ] φ ≡ path_wp (q .p[p := r]).|[ρ] φ.
   Proof. iIntros (?) "!%". exact: path_replacement_equiv_alt. Qed.
 
   Lemma rewrite_tsel_psubst2 p q l ρ v r:
-    alias_pathsI p r ρ ⊢
+    alias_paths_substI p r ρ ⊢
     ⟦ TSel q l ⟧ ρ v ≡ ⟦ TSel (q .p[ p := r ]) l ⟧ ρ v.
   Proof. exact: path_replacement_equiv_alt'. Qed.
 
 
   (* That's false, as we don't know that q terminates from the hyp. *)
   (* Lemma path_replacement_equiv_0 {p r ρ} q:
-    alias_paths p r ρ ⊢@{iPropI Σ}
-    alias_paths q (q .p[p := r]) ρ.
+    alias_paths_subst p r ρ ⊢@{iPropI Σ}
+    alias_paths_subst q (q .p[p := r]) ρ.
   Proof.
     elim: q => [w | q IHq l] /=; case_decide; simplify_eq/=.
     - by iIntros.
-    - rewrite -alias_paths_refl_vl. by iIntros.
+    - rewrite -alias_paths_subst_refl_vl. by iIntros.
     - by iIntros.
-    - rewrite /= IHq !alias_paths_sameres /=.
+    - rewrite /= IHq !alias_paths_subst_sameres /=.
       iDestruct 1 as (vr) "#[Hq Hqr]".
       (* We don't know that [pself q l] terminates! *)
   Abort. *)
 
   (* Lemma rewrite_ty_path_repl'_slow p q T1 T2 ρ v:
     T1 ~p[ p := q ] T2 →
-    ⌜alias_paths_pure p q ρ⌝ ⊢@{iPropI Σ} (* p : q.type *)
+    ⌜alias_paths_subst_pure p q ρ⌝ ⊢@{iPropI Σ} (* p : q.type *)
     ⟦ T1 ⟧ ρ v ≡ ⟦ T2 ⟧ ρ v.
   Proof.
     move => Hrew; move: v ρ.
     induction Hrew => v ρ;
       iIntros "/= #H"; iProperness; last
       iApply path_replacement_equiv';
-      try by [|iApply IHHrew; rewrite ?alias_paths_weaken].
+      try by [|iApply IHHrew; rewrite ?alias_paths_subst_weaken].
   Qed. *)
 
 
@@ -344,7 +355,7 @@ Section path_repl.
 
   Lemma rewrite_ty_path_repl' p q T1 T2 ρ v:
     T1 ~p[ p := q ] T2 →
-    alias_pathsI p q ρ ⊢
+    alias_paths_substI p q ρ ⊢
     ⟦ T1 ⟧ ρ v ≡ ⟦ T2 ⟧ ρ v.
   Proof. iIntros "!%". exact: rewrite_ty_path_repl. Qed.
 End path_repl.
