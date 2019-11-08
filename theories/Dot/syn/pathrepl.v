@@ -108,6 +108,9 @@ Inductive ty_path_repl (p q : path) : ty → ty → Prop :=
   TSel p1 l ~p[ p := q ] TSel p2 l
 where "T1 ~p[ p := q  ] T2" := (ty_path_repl p q T1 T2) .
 
+Definition ty_path_repl_rtc p q := rtc (ty_path_repl p q).
+Notation "T1 ~p[ p := q  ]* T2" := (ty_path_repl_rtc p q T1 T2) (at level 70).
+
 Lemma ty_path_repl_id p T1 T2 : T1 ~p[ p := p ] T2 → T1 = T2.
 Proof.
   intros Hr; dependent induction Hr; rewrite // ?IHHr //.
@@ -175,12 +178,25 @@ Section path_repl.
       by [|exact: path_replacement_equiv|iApply IHHrew; rewrite ?hsubst_comp].
   Qed.
 
-  (* Is this the hardest lemma? Is this one I need? *)
+  Lemma rewrite_ty_path_repl_rtc {p q T1 T2 ρ v}:
+    T1 ~p[ p := q ]* T2 →
+    alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
+    ⟦ T1 ⟧ ρ v ≡ ⟦ T2 ⟧ ρ v.
+  Proof.
+    move => Hr Hal.
+    elim: Hr => [//|T T' T'' Hr Hrs IHr].
+    by rewrite (rewrite_ty_path_repl Hr Hal) IHr.
+  Qed.
+
   Lemma ren_scons v ρ : ren (+1) >> v .: ρ = ρ.
   Proof. done. Qed.
 
+  (** Define substitution of [pv (ids 0)] by [p] in terms of the
+      transitive closure of path replacement.
+      Here it's crucial to use the transitive closure of path replacement
+      to substitute all occurrences. *)
   Definition psubst_one T p T' :=
-    T ~p[ pv (ids 0) := p.|[ren (+1)] ] T'.|[ren (+1)].
+    T ~p[ pv (ids 0) := p.|[ren (+1)] ]* T'.|[ren (+1)].
   Notation "T .p[ p /]~ T'" := (psubst_one T p T') (at level 65).
 
   Lemma psubst_one_repl {T T' p v w ρ}:
@@ -190,7 +206,7 @@ Section path_repl.
   Proof.
     intros Hrepl Hal.
     rewrite -(interp_weaken_one T' (v .: ρ) _)
-      -(rewrite_ty_path_repl Hrepl) // hsubst_comp ren_scons /=.
+      -(rewrite_ty_path_repl_rtc Hrepl) // hsubst_comp ren_scons /=.
     exact: alias_paths_symm.
   Qed.
 
