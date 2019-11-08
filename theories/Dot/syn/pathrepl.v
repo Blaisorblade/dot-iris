@@ -2,7 +2,6 @@ From iris.proofmode Require Import tactics.
 
 From D.Dot.syn Require Import syn.
 From D.Dot.lr Require Import unary_lr.
-From D.Dot Require Import lr_lemma misc_dead.
 From iris.program_logic Require Import ectx_language.
 From D.pure_program_logic Require Import lifting.
 
@@ -217,9 +216,6 @@ Section path_repl.
     by rewrite (psubst_one_repl Hrepl).
   Qed.
 
-  Lemma path2tm_subst p ρ: (path2tm p).|[ρ] = path2tm p.|[ρ].
-  Proof. by elim: p => /= [//|p -> l]. Qed.
-
   Lemma T_Forall_Ex_p Γ e1 p2 T1 T2 T2':
     T2 .p[ p2 /]~ T2' →
     Γ ⊨ e1: TAll T1 T2 -∗
@@ -233,7 +229,7 @@ Section path_repl.
     iDestruct "Hr" as (t ->) "#HvFun".
     iSpecialize ("Hp2" with "Hg").
     iDestruct (path_wp_eq with "Hp2") as (pw Hpwp) "Hp2'".
-    iDestruct (path_wp_exec $! Hpwp) as %Hex.
+    move: (Hpwp) => /path_wp_exec_pure Hex.
     iApply (wp_bind (fill [AppRCtx _])).
     rewrite path2tm_subst -wp_pure_step_later // -wp_value plength_subst_inv /=.
     rewrite -wp_pure_step_later; last done. iNext; iNext.

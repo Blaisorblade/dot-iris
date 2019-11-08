@@ -1,11 +1,26 @@
 From iris.proofmode Require Import tactics.
 From D Require Import iris_prelude.
-From D.Dot Require Import dlang_inst.
+From D.Dot Require Import dlang_inst rules.
 
 Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
-         (Γ : ctx) (ρ : vls) (Pv : vl → Prop).
+         (Γ : ctx) (ρ : env) (Pv : vl → Prop).
 
+(* Auxiliary. *)
+Lemma plength_subst_inv p s :
+  plength p.|[s] = plength p.
+Proof. by elim: p => [v| p /= ->]. Qed.
+
+Fixpoint path2tm p: tm :=
+  match p with
+  | pv v => tv v
+  | pself p l => tproj (path2tm p) l
+  end.
+
+Lemma path2tm_subst p ρ: (path2tm p).|[ρ] = path2tm p.|[ρ].
+Proof. by elim: p => /= [//|p -> l]. Qed.
+
+(** * Pure path weakest precondition. *)
 Fixpoint path_wp_pure p Pv : Prop :=
   match p with
   | pself p l => path_wp_pure p (λ v, ∃ w, v @ l ↘ dvl w ∧ Pv w)
@@ -59,10 +74,6 @@ Lemma path_wp_pure_swap p u :
   path_wp_pure p (λ w, u = w) ↔
   path_wp_pure p (λ w, w = u).
 Proof. split => Hp; exact: path_wp_pure_wand. Qed.
-
-Lemma plength_subst_inv p s :
-  plength p.|[s] = plength p.
-Proof. by elim: p => [v| p /= ->]. Qed.
 
 Section path_wp.
   Context `{HdlangG: dlangG Σ}.
@@ -183,4 +194,22 @@ Section path_wp.
     iDestruct 1 as (v) "#[Heq H]"; iDestruct "H" as (w Hl) "#H".
     iModIntro. repeat (iExists _; iSplit => //).
   Qed.
+
+  Lemma path_wp_exec_pure p v :
+    path_wp_pure p (λ v0 : vl, v0 = v)
+    → PureExec True (plength p) (path2tm p) (tv v).
+  Proof.
+    elim: p v => [w|p IHp l] v; rewrite /PureExec/=.
+    by intros -> _; constructor.
+    rewrite path_wp_pure_eq; intros (vp & Hp & vq & Hlook & ->) _.
+    move: (IHp _ Hp) => Hpure.
+    eapply nsteps_r.
+    - by apply (pure_step_nsteps_ctx (fill_item (ProjCtx l))), Hpure.
+    - apply nsteps_once_inv, pure_tproj, Hlook.
+  Qed.
+
+  Lemma path_wp_exec p v :
+    path_wp p (λ w, ⌜ w = v ⌝) ⊢@{iPropI Σ}
+    ⌜ PureExec True (plength p) (path2tm p) (tv v) ⌝.
+  Proof. iIntros "!%". apply path_wp_exec_pure. Qed.
 End path_wp.
