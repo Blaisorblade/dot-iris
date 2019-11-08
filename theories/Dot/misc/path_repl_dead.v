@@ -74,11 +74,11 @@ Proof. elim: q => /= *; case_decide; by f_equal. Qed.
 Lemma psubst_path_self p q: p .p[ p := q ] = q.
 Proof. case: p => /= *; by rewrite decide_True. Qed.
 
-(** Lemma [psubst_path_id_implies] requires [path_repl_longer], which
+(** Lemma [psubst_path_implies] requires [path_repl_longer], which
 requires a diversion to prove.
 I'm not sure going through sizes is the shortest proof, but that's the
 obvious way on paper, and works well in Coq too. *)
-Section psubst_path_id_implies_lemmas.
+Section psubst_path_implies_lemmas.
   Definition append_ls p (ls : list label) : path := foldr (flip pself) p ls.
 
   Fixpoint path_size p := match p with
@@ -105,10 +105,10 @@ Section psubst_path_id_implies_lemmas.
     move => /occurs_in_path_repl [ls' Hr] /(f_equal path_size).
     rewrite /= path_size_append. lia.
   Qed.
-End psubst_path_id_implies_lemmas.
+End psubst_path_implies_lemmas.
 
-(* Path replacement implies that path substitution agrees. *)
-Lemma psubst_path_id_implies p1 p2 p q :
+(** Path substitution agrees with path replacement. *)
+Lemma psubst_path_implies p1 p2 p q :
   p1 ~pp[ p := q ] p2 →
   p1 .p[ p := q ] = p2.
 Proof.
@@ -118,7 +118,29 @@ Proof.
   exfalso. exact: (path_repl_longer []).
 Qed.
 
-Section psubst_path_id_implies_lemmas_extras.
+Definition path_path_repl_rtc p q := rtc (path_path_repl p q).
+Notation "p1 ~pp[ p := q  ]* p2" := (path_path_repl_rtc p q p1 p2) (at level 70).
+
+Lemma path_path_repl_self_rtc p q p1 p2 l :
+  p1 ~pp[ p := q ]* p2 →
+  pself p1 l ~pp[ p := q ]* pself p2 l.
+Proof.
+  elim => [//| p1' p2' p3' Hrepl H IHrepl].
+  by eapply rtc_l, IHrepl; constructor.
+Qed.
+
+(** The Kleene start of path replacement agrees with path substitution. *)
+Lemma psubst_path_implies_rev p1 p2 p q :
+  p1 .p[ p := q ] = p2 →
+  p1 ~pp[ p := q ]* p2.
+Proof.
+  move => <- {p2}.
+  elim: p1 => [v|p1 IHp1 l] /=; case_decide as Hdec;
+    [|done| |exact: path_path_repl_self_rtc];
+  rewrite Hdec; apply rtc_once; constructor.
+Qed.
+
+Section psubst_path_implies_lemmas_extras.
   Lemma occurs_in_path_repl_append {p1 p2 p q} :
     p1 ~pp[ p := q ] p2 →
     ∃ ls, append_ls p ls = p1.
@@ -142,7 +164,7 @@ Section psubst_path_id_implies_lemmas_extras.
     move => /occurs_in_path_repl_append [ls' Hr] Happ.
     exact: paths_well_founded.
   Qed.
-End psubst_path_id_implies_lemmas_extras.
+End psubst_path_implies_lemmas_extras.
 
 (* Useful ???*)
 Lemma psubst_path_eq p q r: psubst_path p q r =
