@@ -358,4 +358,50 @@ Section path_repl.
     alias_paths_substI p q ρ ⊢
     ⟦ T1 ⟧ ρ v ≡ ⟦ T2 ⟧ ρ v.
   Proof. iIntros "!%". exact: rewrite_ty_path_repl. Qed.
+
+  Lemma TMu_E_bad Γ T T' p i :
+    nclosed p (length Γ) →
+    nclosed T (1 + length Γ) →
+    T.|[ids (1 + length Γ)/] ~p[ pv (ids (1 + length Γ)) := p ] T' →
+    Γ ⊨p p : TMu T, i -∗ Γ ⊨p p : TMu T', i.
+  Proof.
+    intros Hclp HclT Hrepl.
+    iIntros "#Hp !>" (ρ) "Hg"; iSpecialize ("Hp" with "Hg"); iNext.
+    rewrite !path_wp_eq.
+    iDestruct "Hp" as (v Heq) "Hp"; iExists v; iFrame (Heq).
+    have Hal: alias_paths p.|[ρ] (pv v). exact Heq.
+    (* iApply interp_weaken_one. *)
+    (* rewrite interp_subst_compose_ind. asimpl. *)
+    (* Check (rewrite_ty_path_repl Hrepl). *)
+    cbn.
+    rewrite -(rewrite_ty_path_repl Hrepl).
+    rewrite interp_subst_one /=.
+    (* iApply "Hp". *)
+    asimpl.
+    (* rewrite interp_subst_one /=.
+    admit. *)
+  Abort.
+
+  Lemma TMu_E_real_bad Γ T T' p ρ v :
+    alias_paths p.|[ρ] (pv v.[ρ]) →
+    T.|[v/] ~p[ pv v := p ] T' →
+    path_wp p.|[ρ] (⟦ TMu T ⟧ ρ) -∗ path_wp p.|[ρ] (⟦ T' ⟧ ρ).
+  Proof.
+    intros Heq0 Hrepl.
+    rewrite !path_wp_eq.
+    iDestruct 1 as (w Heq) "Hp"; iExists w; iFrame (Heq).
+    have ?: w = v.[ρ]. exact: path_wp_pure_det.
+    subst.
+    have Hal: alias_paths p.|[ρ] (pv v.[ρ]). apply Heq.
+    (* have Hal2: alias_paths p.|[ρ] (pv v).|[ρ]. admit. *)
+    (* cbn. iPoseProof (rewrite_ty_path_repl with "Hp") as "Hp'". *)
+    iApply (rewrite_ty_path_repl Hrepl).
+    exact: alias_paths_symm.
+    by rewrite interp_subst_one.
+  Qed.
+
+  Let Ts := TAnd (TAnd (TSel (pv (ids 0)) "A") (TSel (pv (ids 1)) "B"))
+      (TSel (pv (ids 2)) "B").
+  Let HclTs : nclosed Ts 3. solve_fv_congruence. Qed.
+  (* Eval cbv in Ts.|[ids (1 + 1)/]. *)
 End path_repl.

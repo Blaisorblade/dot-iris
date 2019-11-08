@@ -2,6 +2,9 @@ From iris.proofmode Require Import tactics.
 
 From D.Dot.syn Require Import syn.
 From D.Dot.lr Require Import unary_lr.
+From D.Dot Require Import lr_lemma misc_dead.
+From iris.program_logic Require Import ectx_language.
+From D.pure_program_logic Require Import lifting.
 
 Implicit Types
          (T : ty) (v w : vl) (t : tm) (d : dm) (ds : dms) (p q : path)
@@ -173,95 +176,69 @@ Section path_repl.
       by [|exact: path_replacement_equiv|iApply IHHrew; rewrite ?hsubst_comp].
   Qed.
 
-
-From D.Dot Require Import lr_lemma.
   (* Is this the hardest lemma? Is this one I need? *)
-  Lemma TMu_E_real_bad Γ T T' p ρ v :
-    alias_paths p.|[ρ] (pv v.[ρ]) →
-    T.|[v/] ~p[ pv v := p ] T' →
-    path_wp p.|[ρ] (⟦ TMu T ⟧ ρ) -∗ path_wp p.|[ρ] (⟦ T' ⟧ ρ).
-  Proof.
-    intros Heq0 Hrepl.
-    rewrite !path_wp_eq.
-    iDestruct 1 as (w Heq) "Hp"; iExists w; iFrame (Heq).
-    have ?: w = v.[ρ]. exact: path_wp_pure_det.
-    subst.
-    have Hal: alias_paths p.|[ρ] (pv v.[ρ]). apply Heq.
-    (* have Hal2: alias_paths p.|[ρ] (pv v).|[ρ]. admit. *)
-    (* cbn. iPoseProof (rewrite_ty_path_repl with "Hp") as "Hp'". *)
-    iApply (rewrite_ty_path_repl Hrepl).
-    exact: alias_paths_symm.
-    by rewrite interp_subst_one.
-  Qed.
-
-  Let Ts := TAnd (TAnd (TSel (pv (ids 0)) "A") (TSel (pv (ids 1)) "B"))
-      (TSel (pv (ids 2)) "B").
-  Let HclTs : nclosed Ts 3. solve_fv_congruence. Qed.
-  Eval cbv in Ts.|[ids (1 + 1)/].
-
   Lemma ren_scons v ρ : ren (+1) >> v .: ρ = ρ.
   Proof. done. Qed.
 
+  Definition psubst_one T p T' :=
+    T ~p[ pv (ids 0) := p.|[ren (+1)] ] T'.|[ren (+1)].
+  Notation "T .p[ p /]~ T'" := (psubst_one T p T') (at level 65).
+
+  Lemma psubst_one_repl {T T' p v w ρ}:
+    T .p[ p /]~ T' →
+    alias_paths p.|[ρ] (pv v) →
+    ⟦ T ⟧ (v .: ρ) w ≡ ⟦ T' ⟧ ρ w.
+  Proof.
+    intros Hrepl Hal.
+    rewrite -(interp_weaken_one T' (v .: ρ) _)
+      -(rewrite_ty_path_repl Hrepl) // hsubst_comp ren_scons /=.
+    exact: alias_paths_symm.
+  Qed.
+
   Lemma TMu_E_p Γ T T' p i :
-    T ~p[ pv (ids 0) := p.|[ren (+1)] ] T'.|[ren (+1)] →
+    T .p[ p /]~ T' →
     Γ ⊨p p : TMu T, i -∗ Γ ⊨p p : T', i.
   Proof.
     intros Hrepl.
     iIntros "#Hp !>" (ρ) "Hg /="; iSpecialize ("Hp" with "Hg"); iNext.
     rewrite !path_wp_eq.
     iDestruct "Hp" as (v Heq) "Hp"; iExists v; iFrame (Heq).
-    rewrite -(interp_weaken_one T' (v .: ρ) _).
-    rewrite -(rewrite_ty_path_repl Hrepl).
-    done.
-    rewrite /= hsubst_comp ?ren_scons /=. exact: alias_paths_symm.
+    by rewrite (psubst_one_repl Hrepl).
   Qed.
 
   Lemma TMu_I_p Γ T T' p i :
-    T ~p[ pv (ids 0) := p.|[ren (+1)] ] T'.|[ren (+1)] →
+    T .p[ p /]~ T' →
     Γ ⊨p p : T', i -∗ Γ ⊨p p : TMu T, i.
   Proof.
     intros Hrepl.
     iIntros "#Hp !>" (ρ) "Hg /="; iSpecialize ("Hp" with "Hg"); iNext.
     rewrite !path_wp_eq.
     iDestruct "Hp" as (v Heq) "Hp"; iExists v; iFrame (Heq).
-    rewrite -(interp_weaken_one T' (v .: ρ) _).
-    rewrite -(rewrite_ty_path_repl Hrepl).
-    done.
-    rewrite /= hsubst_comp ?ren_scons /=. exact: alias_paths_symm.
+    by rewrite (psubst_one_repl Hrepl).
   Qed.
 
-(*
-    have Hal: alias_paths (pv v) p.|[ρ]. apply alias_paths_symm. exact Heq.
-    by apply alias_paths_symm in Hal.
-    rewrite interp_subst_one /=.
-    rewrite interp_subst_one /=.
-    admit.
-  Qed. *)
+  Lemma path2tm_subst p ρ: (path2tm p).|[ρ] = path2tm p.|[ρ].
+  Proof. by elim: p => /= [//|p -> l]. Qed.
 
-  Lemma TMu_E_bad Γ T T' p i :
-    nclosed p (length Γ) →
-    nclosed T (1 + length Γ) →
-    T.|[ids (1 + length Γ)/] ~p[ pv (ids (1 + length Γ)) := p ] T' →
-    Γ ⊨p p : TMu T, i -∗ Γ ⊨p p : TMu T', i.
+  Lemma T_Forall_Ex_p Γ e1 p2 T1 T2 T2':
+    T2 .p[ p2 /]~ T2' →
+    Γ ⊨ e1: TAll T1 T2 -∗
+    Γ ⊨p p2 : T1, 0 -∗
+    (*────────────────────────────────────────────────────────────*)
+    Γ ⊨ tapp e1 (path2tm p2) : T2'.
   Proof.
-    intros Hclp HclT Hrepl.
-    iIntros "#Hp !>" (ρ) "Hg"; iSpecialize ("Hp" with "Hg"); iNext.
-    rewrite !path_wp_eq.
-    iDestruct "Hp" as (v Heq) "Hp"; iExists v; iFrame (Heq).
-    have Hal: alias_paths p.|[ρ] (pv v). exact Heq.
-    (* iApply interp_weaken_one. *)
-    (* rewrite interp_subst_compose_ind. asimpl. *)
-    (* Check (rewrite_ty_path_repl Hrepl). *)
-    cbn.
-    rewrite -(rewrite_ty_path_repl Hrepl).
-    rewrite interp_subst_one /=.
-    (* iApply "Hp". *)
-    asimpl.
-    (* rewrite interp_subst_one /=.
-    admit. *)
-  Admitted.
-
-  Lemma TMu_I Γ T v: Γ ⊨ tv v : T.|[v/] -∗ Γ ⊨ tv v : TMu T.
-  Proof. by rewrite TMu_equiv. Qed. *)
-
+    intros Hrepl.
+    iIntros "#He1 #Hp2 !>" (ρ) "#Hg /=".
+    smart_wp_bind (AppLCtx _) v "#Hr {He1}" ("He1" with "Hg").
+    iDestruct "Hr" as (t ->) "#HvFun".
+    iSpecialize ("Hp2" with "Hg").
+    iDestruct (path_wp_eq with "Hp2") as (pw Hpwp) "Hp2'".
+    iDestruct (path_wp_exec $! Hpwp) as %Hex.
+    iApply (wp_bind (fill [AppRCtx _])).
+    rewrite path2tm_subst -wp_pure_step_later // -wp_value plength_subst_inv /=.
+    rewrite -wp_pure_step_later; last done. iNext; iNext.
+    iApply wp_wand; first by iApply "HvFun".
+    iIntros (v) "{Hg HvFun} #Hres".
+    by rewrite (psubst_one_repl Hrepl).
+  Qed.
 End path_repl.
