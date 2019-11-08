@@ -113,9 +113,9 @@ Lemma psubst_path_implies p1 p2 p q :
   p1 .p[ p := q ] = p2.
 Proof.
   move => Hr.
-  elim: Hr => [|p1' p2' l Hr IHr] /=. exact: psubst_path_self.
+  elim: Hr => [|p1' p2' l Hr IHr] /=; first exact: psubst_path_self.
   case_decide as Hdec => //; last by rewrite -IHr.
-  exfalso. exact: (path_repl_longer []).
+  exfalso; exact: (path_repl_longer []).
 Qed.
 
 Definition path_path_repl_rtc p q := rtc (path_path_repl p q).
@@ -129,8 +129,9 @@ Proof.
   by eapply rtc_l, IHrepl; constructor.
 Qed.
 
-(** The Kleene start of path replacement agrees with path substitution. *)
-Lemma psubst_path_implies_rev p1 p2 p q :
+(** The Kleene start of path replacement agrees with path substitution.
+  In fact, there can be only 0 or 1 steps anyway. *)
+Lemma psubst_path_rtc_implies_rev p1 p2 p q :
   p1 .p[ p := q ] = p2 →
   p1 ~pp[ p := q ]* p2.
 Proof.
@@ -139,6 +140,64 @@ Proof.
     [|done| |exact: path_path_repl_self_rtc];
   rewrite Hdec; apply rtc_once; constructor.
 Qed.
+
+(**
+https://en.wikipedia.org/wiki/Idempotence#Idempotent_functions *)
+Definition IdempotentUnary {A} (f: A → A) := ∀ x, f (f x) = f x.
+
+Goal ~(∀ p q, IdempotentUnary (psubst_path p q)).
+Proof.
+  move => Hpsubst_path_idempotent.
+  set p0 := pv (ids 0).
+  move: (Hpsubst_path_idempotent p0 (pself p0 "A") p0).
+  by repeat (simplify_eq/=; case_decide).
+Qed.
+
+(* Lemma psubst_path_idempotent p q: Idempotent (psubst_path p q).
+Proof.
+  (* elim => [v|p1 IHp1 l]/=. case_decide as Hdec.
+  rewrite -Hdec.
+   simplify_eq/=. try case_decide; simplify_eq/= => //.
+  admit.
+  admit.
+  next.
+  move => p1. *)
+Admitted. *)
+
+(* Lemma replacing_again_wont_save_you p q p1 p2:
+  p1 ≠ p2 →
+  p1 .p[ p := q ] ≠ p2 → ~ p1 ~pp[ p := q ]* p2.
+Proof.
+  move => Hne Hne2 Hr.
+  elim: Hr Hne Hne2 => [//|p1' p2' {}p2 Hh Ht IHr] Hne Hne2.
+  move: (Hh) => /psubst_path_implies Hq1.
+  simplify_eq.
+  apply IHr => //.
+  by rewrite psubst_path_idempotent.
+Qed. *)
+
+  (* inversion Hrepl as [|? q1 ? Hh Ht]; simplify_eq.
+  move: (Hh) => /psubst_path_implies Hq1.
+  inversion Ht as [|? q2 ? Hh' Ht' Heq1 Heq2]; first simplify_eq.
+  move: (Hh') => /psubst_path_implies Hq2.
+  have ?: q1 = q2. simplify_eq. by rewrite psubst_path_idempotent.
+  simplify_eq.
+
+  induction Hrepl.
+  rewrite/Decision.
+  elim => [v//| p1' p2' p3' Hrepl H IHrepl].
+  by eapply rtc_l, IHrepl; constructor.
+Admitted. *)
+
+(* Lemma psubst_path_rtc_dec p1 p2 p q :
+  Decision (p1 ~pp[ p := q ]* p2).
+Proof.
+  case: (decide (p1 = p2)) => [->|Hne]; first by left; constructor.
+  case: (decide (p1 .p[ p := q ] = p2)) => [<-|Hne2];
+    first by left; exact: psubst_path_rtc_implies_rev.
+  right => Hrepl. exact: replacing_again_wont_save_you.
+Qed. *)
+
 
 Section psubst_path_implies_lemmas_extras.
   Lemma occurs_in_path_repl_append {p1 p2 p q} :

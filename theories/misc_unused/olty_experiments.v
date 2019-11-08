@@ -108,11 +108,19 @@ Global Arguments dlty_car {_} _ _ _ : simpl never.
 Global Arguments dlty_label {_} _ /.
 Global Existing Instance dlty_persistent.
 
-Definition idtp `{dlangG Σ} Γ l (φ : dlty Σ) d : iProp Σ :=
+Definition idtp `{!dlangG Σ} Γ l (φ : dlty Σ) d : iProp Σ :=
   (⌜ l = dlty_label φ ⌝ ∧
     □∀ ρ, ⟦Γ⟧* ρ → dlty_car φ ρ d.|[ρ])%I.
 Global Arguments idtp /.
 Notation "Γ ⊨ { l := d  } : T" := (idtp Γ l T d) (at level 64, d, l, T at next level).
+
+Notation oClose2 τ ρ v := (τ vnil ρ v).
+
+Definition iptp `{!dlangG Σ} Γ (τ : olty Σ 0) p i: iProp Σ :=
+  □∀ ρ, ⟦Γ⟧* ρ -∗
+    ▷^i path_wp (p.|[ρ]) (λ v, oClose2 τ ρ v).
+
+Notation "Γ ⊨p p : τ , i" := (iptp Γ τ p i) (at level 74, p, τ, i at next level).
 
 Section SemTypes.
   Context `{HdotG: dlangG Σ}.

@@ -1,13 +1,16 @@
 From iris.proofmode Require Import tactics.
 
+From D Require Import iris_prelude.
+From D Require iris_prelude lty olty_experiments.
 From D.Dot.syn Require Import syn.
-From D.Dot.lr Require Import unary_lr.
+From D.Dot.lr Require Import path_wp dlang_inst.
+From D.Dot.lr Require unary_lr.
 From iris.program_logic Require Import ectx_language.
 From D.pure_program_logic Require Import lifting.
 
 Implicit Types
          (T : ty) (v w : vl) (t : tm) (d : dm) (ds : dms) (p q : path)
-         (Γ : ctx) (vs : vls) (l : label) (Pv : vl → Prop).
+         (vs : vls) (l : label) (Pv : vl → Prop).
 Set Nested Proofs Allowed.
 
 Definition alias_paths p q :=
@@ -17,9 +20,17 @@ Lemma alias_paths_pv_eq_1 p vr :
   alias_paths p (pv vr) ↔ path_wp_pure p (λ w, w = vr).
 Proof. done. Qed.
 
+Hint Extern 1 (path_wp_pure _ _) => by apply path_wp_pure_swap : core.
+
 Lemma alias_paths_pv_eq_2 p vr :
   alias_paths (pv vr) p ↔ path_wp_pure p (λ w, w = vr).
 Proof. by rewrite -path_wp_pure_swap. Qed.
+
+Lemma alias_path_self p v :
+  alias_paths p (pv v) → alias_paths p p.
+Proof.
+  rewrite alias_paths_pv_eq_1 /alias_paths !path_wp_pure_eq; naive_solver.
+Qed.
 
 Lemma alias_paths_refl_vl v :
   alias_paths (pv v) (pv v).
@@ -30,15 +41,11 @@ Lemma alias_paths_sameres p q:
   ∃ v,
     path_wp_pure p (λ vp, vp = v) ∧
     path_wp_pure q (λ vq, vq = v).
-Proof.
-  rewrite /alias_paths !path_wp_pure_eq. split => -[vp];
-    [ rewrite (path_wp_pure_swap q) |
-      rewrite -(path_wp_pure_swap q) ]; eauto.
-Qed.
+Proof. rewrite /alias_paths !path_wp_pure_eq; naive_solver. Qed.
 
 Lemma alias_paths_symm p q :
   alias_paths p q → alias_paths q p.
-Proof. rewrite !alias_paths_sameres. intros; ev; eauto. Qed.
+Proof. rewrite !alias_paths_sameres. naive_solver. Qed.
 
 Lemma alias_paths_equiv_pure p q:
   alias_paths p q ↔
@@ -168,6 +175,10 @@ Section path_repl.
     apply IHrepl.
   Qed.
 
+  Section with_unary_lr.
+  Import unary_lr.
+  Implicit Types (Γ : ctx).
+
   Lemma rewrite_ty_path_repl {p q T1 T2 ρ v}:
     T1 ~p[ p := q ] T2 →
     alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
@@ -253,4 +264,55 @@ Section path_repl.
     iIntros (v) "{Hg HvFun} #Hres".
     by rewrite (psubst_one_repl Hrepl).
   Qed.
+  End with_unary_lr.
+
+  Section with_lty.
+  Import lty olty_experiments SemTypes.
+  Lemma rewrite_ty_path_repl_tsel {p q p1 l p2 ρ v}:
+    p1 ~pp[ p := q ] p2 →
+    alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
+    oClose (oTSel p1 l) ρ v ≡ oClose (oTSel p2 l) ρ v.
+  Proof. exact: path_replacement_equiv. Qed.
+  Implicit Types (Γ : sCtx Σ) (τ : olty Σ 0).
+
+  (* Definition alias_pathsI {Σ} p q : iProp Σ := ⌜alias_paths p q⌝. *)
+  Definition alias_pathsI p q : iProp Σ := ⌜alias_paths p q⌝.
+  Definition oPsing p : olty Σ 0 :=
+    olty0 (λ ρ v, alias_pathsI p.|[ρ] (pv v)).
+
+  Lemma sem_psingleton_eq_1 p ρ v : oClose2 (oPsing p) ρ v ≡ ⌜ path_wp_pure p.|[ρ] (λ w, w = v) ⌝%I.
+  Proof. done. Qed.
+
+  (*
+    If we used oClose, [rewrite sem_psingleton_eq_1] would fail and
+    only [rewrite /= sem_psingleton_eq_1] would work. *)
+  Lemma sem_psingleton_eq_2 p ρ v : oClose2 (oPsing p) ρ v ≡ path_wp p.|[ρ] (λ w, ⌜ w = v ⌝ )%I.
+  Proof. by rewrite sem_psingleton_eq_1 path_wp_pureable. Qed.
+
+  Lemma alias_paths_simpl p q :
+    path_wp_pure p (λ v, alias_paths q (pv v)) ↔
+    alias_paths p q.
+  Proof.
+    by setoid_rewrite alias_paths_pv_eq_1; setoid_rewrite <-path_wp_pure_swap;
+      rewrite -/(alias_paths p q).
+  Qed.
+
+  Lemma aliasing Γ p q ρ :
+    Γ ⊨p p : oPsing q, 0 -∗
+    ⟦ Γ ⟧* ρ -∗ alias_pathsI p.|[ρ] q.|[ρ].
+  Proof.
+    iIntros "#Hep #Hg"; iDestruct ("Hep" with "Hg") as %Hep; iIntros "!%".
+    by apply alias_paths_simpl.
+  Qed.
+
+  Lemma self_singleton Γ τ p :
+    Γ ⊨p p : τ, 0 -∗
+    Γ ⊨p p : oPsing p, 0.
+  Proof.
+    iIntros "#Hep !>" (ρ) "#Hg".
+    iDestruct (path_wp_eq with "(Hep Hg)") as (v Hpv) "_ {Hep Hg}".
+    iIntros "!%". by eapply alias_paths_simpl, alias_path_self.
+  Qed.
+
+  End with_lty.
 End path_repl.
