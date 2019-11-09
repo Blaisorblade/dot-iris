@@ -10,6 +10,29 @@ Implicit Types
 Implicit Types (Pv : vl → Prop).
 Set Nested Proofs Allowed.
 
+Notation shift T := T.|[ren (+1)].
+Notation unshifts T := { T' | T = shift T' }.
+
+Notation unshift T := T.|[ren pred].
+
+Lemma shift_unshift T: T.|[ren (+1)].|[ren pred] = T.
+Proof. by rewrite hsubst_comp hsubst_id. Qed.
+Lemma decide_unshift_proof {T} : T ≠ shift (unshift T) → unshifts T → False.
+Proof. move => Hne [T' Hn]. apply: Hne. by rewrite Hn shift_unshift. Qed.
+
+Definition decide_unshift T : unshifts T + (unshifts T → False) :=
+  match decide (T = shift (unshift T)) with
+  | left Heq => inl (unshift T ↾ Heq)
+  | right Hne => inr (decide_unshift_proof Hne)
+  end.
+Print decide_unshift.
+
+(* Definition unshift_opt (T : ty) : option ty :=
+  if decide (T = (unshiftB T).|[ren (+1)])
+  then Some (unshiftB T)
+  else None. *)
+Instance decide_unshift T : Decision ({ T' | T'.|[ren (+1)] = T }).
+
 Section equivI_utils.
   Context `{dlangG Σ}.
 
