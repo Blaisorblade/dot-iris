@@ -25,13 +25,15 @@ Definition decide_unshift T : unshifts T + (unshifts T → False) :=
   | left Heq => inl (unshift T ↾ Heq)
   | right Hne => inr (decide_unshift_proof Hne)
   end.
-Print decide_unshift.
+Instance decision_unshift T : Decision (∃ T', T = shift T').
+Proof.
+  destruct (decide_unshift T) as [[T' Heq]|Hne]; [left|right]; naive_solver.
+Qed.
 
 (* Definition unshift_opt (T : ty) : option ty :=
   if decide (T = (unshiftB T).|[ren (+1)])
   then Some (unshiftB T)
   else None. *)
-Instance decide_unshift T : Decision ({ T' | T'.|[ren (+1)] = T }).
 
 Section equivI_utils.
   Context `{dlangG Σ}.
@@ -176,16 +178,79 @@ Proof.
   by repeat (simplify_eq/=; case_decide).
 Qed.
 
-(* Lemma psubst_path_idempotent p q: Idempotent (psubst_path p q).
+Lemma psubst_one_shift_id q r : shift r .p[ pv (ids 0) := q ] = shift r.
 Proof.
-  (* elim => [v|p1 IHp1 l]/=. case_decide as Hdec.
-  rewrite -Hdec.
-   simplify_eq/=. try case_decide; simplify_eq/= => //.
-  admit.
-  admit.
-  next.
-  move => p1. *)
-Admitted. *)
+  elim: r => /= [v|r -> l]; case_decide => //; destruct v; simplify_eq.
+Qed.
+
+Lemma psubst_path_pv_idempotent v q
+  (Heq : psubst_path (pv v) q q = q):
+  IdempotentUnary (psubst_path (pv v) q).
+Proof.
+  elim => [vr|r' IHq l] //=; case_decide; simplify_eq/=;
+    try case_decide; by f_equal.
+Qed.
+
+Lemma psubst_path_one_idempotent q:
+  IdempotentUnary (psubst_path (pv (ids 0)) (shift q)).
+Proof. apply psubst_path_pv_idempotent, psubst_one_shift_id. Qed.
+
+(**
+  Never even remotely true. One thing substitutes away, another substitutes
+  in the same conrtext. Pick carefully! *)
+(* Lemma equiv p q r r':
+  shift r' = psubst_path (pv (ids 0)) (shift q) r →
+  r' = psubst_path (pv (ids 0)) q r.
+Proof.
+  elim: r => /= [v|r IHr l]; case_decide.
+  (* rewrite shift_unshift. *)
+  by rewrite hsubst_comp hsubst_id. *)
+
+Lemma psubst_path_idempotent: ∀ p q,
+  psubst_path p q q = q →
+  IdempotentUnary (psubst_path p q).
+Proof.
+  move => p q Heq r.
+  elim E: r => [v|r' IHq l] //=; case_decide as Hdec0; simplify_eq/= => //;
+    case_decide as Hdec1; simplify_eq; f_equal => //.
+  rewrite Hdec1.
+  exfalso.
+  apply Hdec0. rewrite -Hdec1. f_equal. rewrite -Heq.
+Abort.
+
+Section  psubst_path_idempotent_counterexample.
+Variable l : string.
+Let q := pv (ids 0).
+Let p := pself q l.
+Let r := p.
+Let r' := pself r l.
+Ltac check := cbv; repeat (case_match; cbn); naive_solver.
+(* rewrite /r/p/q/=; repeat (case_decide; cbn); naive_solver. *)
+
+Goal q .p[ p := q ] = q.
+Proof. check. Qed.
+
+Goal pself r l ≠ p.
+Proof. check. Qed.
+Goal pself (r .p[ p := q ]) l = p.
+Proof. check. Qed.
+Goal psubst_path p q q = q.
+Proof. check. Qed.
+
+Goal (r .p[ p := q ]) .p[ p := q ] = r .p[ p := q ].
+Proof. check. Qed.
+
+Goal ~r' .p[ p := q ] .p[ p := q ] = r' .p[ p := q ].
+Proof. check. Qed.
+
+Goal ~IdempotentUnary (psubst_path p q).
+Proof. move => /(_ r'); check. Qed.
+
+Lemma not_psubst_path_idempotent: ~∀ p q,
+  psubst_path p q q = q →
+  IdempotentUnary (psubst_path p q).
+Proof. move => /(_ p q _ r'). check. Qed.
+End psubst_path_idempotent_counterexample.
 
 (* Lemma replacing_again_wont_save_you p q p1 p2:
   p1 ≠ p2 →
