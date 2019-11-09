@@ -47,22 +47,6 @@ Lemma alias_paths_symm p q :
   alias_paths p q → alias_paths q p.
 Proof. rewrite !alias_paths_sameres. naive_solver. Qed.
 
-Lemma alias_paths_equiv_pure p q:
-  alias_paths p q ↔
-    (∃ u, path_wp_pure p (λ vp, vp = u)) ∧
-    ∀ Pv, path_wp_pure p Pv ↔ path_wp_pure q Pv.
-Proof.
-  rewrite alias_paths_sameres; split.
-  - destruct 1 as (v & Hp & Hq).
-    split. by eauto. intros Pv.
-    rewrite !path_wp_pure_eq.
-    f_equiv => w; split => -[Hr];
-      [ rewrite -(path_wp_pure_det Hp Hr)
-      | rewrite -(path_wp_pure_det Hq Hr)]; auto.
-  - intros [[u Hp] Heq]. exists u.
-    split; by [|rewrite -Heq].
-Qed.
-
 Reserved Notation "p1 ~pp[ p := q  ] p2" (at level 70).
 Inductive path_path_repl (p q : path) : path → path → Prop :=
 | path_path_repl_base : p ~pp[ p := q ] q

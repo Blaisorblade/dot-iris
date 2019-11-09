@@ -245,6 +245,22 @@ Lemma alias_paths_weaken p q ρ v:
   alias_paths_subst p q ρ.
 Proof. by rewrite !hsubst_comp ren_scons. Qed.
 
+Lemma alias_paths_equiv_pure p q:
+  alias_paths p q ↔
+    (∃ u, path_wp_pure p (λ vp, vp = u)) ∧
+    ∀ Pv, path_wp_pure p Pv ↔ path_wp_pure q Pv.
+Proof.
+  rewrite alias_paths_sameres; split.
+  - destruct 1 as (v & Hp & Hq).
+    split. by eauto. intros Pv.
+    rewrite !path_wp_pure_eq.
+    f_equiv => w; split => -[Hr];
+      [ rewrite -(path_wp_pure_det Hp Hr)
+      | rewrite -(path_wp_pure_det Hq Hr)]; auto.
+  - intros [[u Hp] Heq]. exists u.
+    split; by [|rewrite -Heq].
+Qed.
+
 Definition alias_pathsI {Σ} p q : iProp Σ := ⌜alias_paths p q⌝.
 Definition alias_paths_substI {Σ} p q ρ : iProp Σ := ⌜alias_paths_subst p q ρ⌝.
 Section path_repl.
