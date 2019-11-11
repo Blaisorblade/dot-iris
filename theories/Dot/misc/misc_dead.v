@@ -86,20 +86,6 @@ Section path_wp.
     path_wp p φ ⊢ ∃ v, path_wp p (λ w, ⌜ w = v ⌝) ∧ φ v.
   Proof. by rewrite path_wp_eq. Qed.
 
-  Lemma path_wp_exec p v :
-    path_wp p (λ w, ⌜ w = v ⌝) ⊢@{iPropI Σ}
-    ⌜ PureExec True (plength p) (path2tm p) (tv v) ⌝.
-  Proof.
-    iInduction p as [w|] "IHp" forall (v); rewrite /PureExec/=.
-    - iIntros (-> _). by iIntros "!%"; constructor.
-    - iIntros "#Hp" (_). iDestruct (path_wp_eq with "Hp") as (vp) "{Hp}(Hp&Hs)".
-      iSpecialize ("IHp" with "Hp"). iClear "Hp".
-      iDestruct "IHp" as %Hpure. iDestruct "Hs" as (vq Hlook) "->".
-      iIntros "!%". eapply nsteps_r.
-      + by apply (pure_step_nsteps_ctx (fill_item (ProjCtx l))), Hpure.
-      + apply nsteps_once_inv, pure_tproj, Hlook.
-  Qed.
-
   Lemma path_wp_adequacy p φ :
     path_wp p φ ⊢ (∃ v, ⌜ PureExec True (plength p) (path2tm p) (tv v) ⌝ ∧ φ v).
   Proof. rewrite path_wp_timeless_len. by setoid_rewrite path_wp_exec. Qed.
