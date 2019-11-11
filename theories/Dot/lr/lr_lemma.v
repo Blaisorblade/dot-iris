@@ -265,16 +265,6 @@ Section Sec.
       rewrite (interp_subst_one T2 v2 v) //.
   Qed.
 
-  Lemma T_Mem_E e T l:
-    Γ ⊨ e : TVMem l T -∗
-    (*─────────────────────────*)
-    Γ ⊨ tproj e l : T.
-  Proof.
-    iIntros "#HE /= !>" (vs) "#HG".
-    smart_wp_bind (ProjCtx l) v "#Hv {HE}" "HE".
-    iDestruct "Hv" as (? Hl vmem ->) "Hv".
-    rewrite -wp_pure_step_later // -wp_value. by [].
-  Qed.
 
   Lemma Sub_TVMem_Variant' T1 T2 i j l:
     Γ ⊨ T1, i <: T2, j + i -∗
@@ -292,6 +282,30 @@ Section Sec.
     Γ ⊨ T1, i <: T2, i -∗
     Γ ⊨ TVMem l T1, i <: TVMem l T2, i.
   Proof. iApply (Sub_TVMem_Variant' _ _ _ 0). Qed.
+
+  (* Stronger variant of T_Mem_E. *)
+  Lemma T_Mem_E' e T l:
+    Γ ⊨ e : TVMem l (TLater T) -∗
+    (*─────────────────────────*)
+    Γ ⊨ tproj e l : T.
+  Proof.
+    iIntros "#HE /= !>" (ρ) "#HG".
+    smart_wp_bind (ProjCtx l) v "#Hv {HE}" "HE".
+    iDestruct "Hv" as (? Hl vmem ->) "Hv".
+    rewrite -wp_pure_step_later // -wp_value. by [].
+  Qed.
+
+  Lemma T_Mem_E e T l:
+    Γ ⊨ e : TVMem l T -∗
+    (*─────────────────────────*)
+    Γ ⊨ tproj e l : T.
+  Proof.
+    rewrite -T_Mem_E'. iIntros "HE"; iApply (T_Sub e _ _ 0 with "HE").
+    rewrite -Sub_TVMem_Variant.
+    (* iApply Sub_Add_Later. *)
+    by iIntros "!> ** !> /=".
+  Qed.
+
 End Sec.
 
 Section swap_based_typing_lemmas.
