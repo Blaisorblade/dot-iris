@@ -25,6 +25,31 @@ Section Sec.
     TLater V :: Γ ⊨ e : T.
   Proof. iApply ietp_weaken_ctx => ρ; cbn. by rewrite (TLater_ctx_sub Γ). Qed.
 
+  (*
+    Adapted from pDOT, not needed here, and we get an extra later :-|, tho it
+    matches [T_Mem_E']. *)
+  Lemma T_Mem_I Γ e T l:
+    Γ ⊨ tproj e l : T -∗
+    (*─────────────────────────*)
+    Γ ⊨ e : TVMem l (TLater T).
+  Proof.
+    iIntros "#HE /= !>" (ρ) "HG".
+    iSpecialize ("HE" with "HG").
+    rewrite (wp_bind_inv (fill [ProjCtx l])) /= /lang.of_val.
+    iApply (wp_wand with "HE"); iIntros "/=" (v) "HE".
+    rewrite wp_unfold /wp_pre/=.
+    remember (tproj (tv v) l) as v'.
+    iDestruct ("HE" $! () [] [] 0 with "[//]") as (Hs) "HE".
+    have {Hs} [w [Hhr Hl]]: ∃ w, head_step v' () [] (tv w) () [] ∧ v @ l ↘ dvl w. {
+      have Hhr: head_reducible v' ().
+        apply prim_head_reducible, ectxi_language_sub_redexes_are_values;
+          by [|move => -[]/= *; simplify_eq/=; eauto].
+      destruct Hhr as ([] & e2 & [] & efs & Hhr'); last now inversion Hhr'.
+      inversion Hhr' as [|??? w Hl|]; simplify_eq/=. eauto.
+    }
+    iDestruct ("HE" with "[%]") as "(_ & ? & _)"; first exact: head_prim_step.
+    rewrite wp_value_inv'. eauto.
+  Qed.
 
   Lemma T_Forall_I' {Γ} T1 T2 e:
     TLater T1.|[ren (+1)] :: Γ ⊨ e : T2 -∗
@@ -255,6 +280,7 @@ Section Sec.
     WP (tskip (tv v)) {{ sem_singleton w ρ }}.
   Proof. iIntros (H); rewrite -wp_pure_step_later // -wp_value' //=. Qed.
 
+  (* v : p.type *)
   Definition sem_psingleton p ρ v : iProp Σ := path_wp p.|[ρ] (λ w, ⌜ w = v ⌝ )%I.
   Global Arguments sem_psingleton /.
   Global Instance: Persistent (sem_psingleton p ρ v) := _.
