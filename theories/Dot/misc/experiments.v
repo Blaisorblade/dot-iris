@@ -2,8 +2,9 @@ From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language ectx_language ectxi_language.
 From iris.proofmode Require Import tactics.
 From D Require Import swap_later_impl.
-From D.Dot Require Import unary_lr synLemmas rules
-  lr_lemma lr_lemma_nobinding lr_lemmasDefs.
+From D.Dot Require Import synLemmas rules.
+From D.Dot.lr Require Import unary_lr
+  lr_lemma lr_lemma_nobinding lr_lemmasDefs path_repl.
 
 Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
@@ -26,7 +27,7 @@ Section Sec.
   Proof. iApply ietp_weaken_ctx => ρ; cbn. by rewrite (TLater_ctx_sub Γ). Qed.
 
   (*
-    Adapted from pDOT, not needed here, and we get an extra later :-|, tho it
+    Variant of [PT_Mem_I]: not needed here, and we get an extra later :-|, tho it
     matches [T_Mem_E']. *)
   Lemma T_Mem_I Γ e T l:
     Γ ⊨ tproj e l : T -∗
@@ -72,6 +73,25 @@ Section Sec.
     iIntros "#HwT".
     by iApply ("HvTU" with "[# $HwT]").
   Qed.
+
+  Lemma iptp2ietp' i Γ T p :
+    Γ ⊨p p : iterate TLater i T, 0 -∗
+    Γ ⊨ iterate tskip i (path2tm p) : T.
+  Proof.
+    rewrite iptp2ietp.
+    iIntros "Hp". iApply (T_Sub with "Hp").
+    iIntros "!> **"; by rewrite iterate_TLater_later.
+  Qed.
+
+  (* It doesn't work, modulo maybe except-n. *)
+  Lemma iptp2ietp'' Γ T p i :
+    Γ ⊨p p : T, i -∗
+    Γ ⊨ path2tm p : iterate TLater i T.
+  Proof.
+    iIntros "#Hep !>" (ρ) "#Hg /="; rewrite path2tm_subst.
+    iApply wp_wand. iPoseProof (path_wp_to_wp with "(Hep Hg)") as "?".
+    (* We're stuck here. *)
+  Abort.
 
   Lemma wp_later_swap t Φ: WP t {{ v, ▷ Φ v }} ⊢ ▷ WP t {{ v, Φ v }}.
   Proof.
