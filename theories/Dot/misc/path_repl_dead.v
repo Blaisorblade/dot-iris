@@ -450,7 +450,7 @@ Section path_repl.
   Abort. *)
 
   (* Lemma rewrite_ty_path_repl'_slow p q T1 T2 ρ v:
-    T1 ~p[ p := q ] T2 →
+    T1 ~Tp[ p := q ] T2 →
     ⌜alias_paths_subst_pure p q ρ⌝ ⊢@{iPropI Σ} (* p : q.type *)
     ⟦ T1 ⟧ ρ v ≡ ⟦ T2 ⟧ ρ v.
   Proof.
@@ -505,7 +505,7 @@ Section path_repl.
   Proof. exact: path_replacement_equiv_special. Qed. *)
 
   (* Lemma rewrite_ty_path_repl p T1 T2 ρ v vr:
-    T1 ~p[ p := pv vr ] T2 →
+    T1 ~Tp[ p := pv vr ] T2 →
     path_wp p.|[ρ] (λ w, ⌜ w = vr.[ρ] ⌝) ⊢@{iPropI Σ}
     □(⟦ T1 ⟧ ρ v ∗-∗ ⟦ T2 ⟧ ρ v).
   Proof.
@@ -539,7 +539,7 @@ Section path_repl.
   rewrite decide_False; simplify_eq/=. done. naive_solver. congruence. *)
 
   Lemma rewrite_ty_path_repl' p q T1 T2 ρ v:
-    T1 ~p[ p := q ] T2 →
+    T1 ~Tp[ p := q ] T2 →
     alias_paths_substI p q ρ ⊢
     ⟦ T1 ⟧ ρ v ≡ ⟦ T2 ⟧ ρ v.
   Proof. iIntros "!%". exact: rewrite_ty_path_repl. Qed.
@@ -547,7 +547,7 @@ Section path_repl.
   Lemma TMu_E_bad Γ T T' p i :
     nclosed p (length Γ) →
     nclosed T (1 + length Γ) →
-    T.|[ids (1 + length Γ)/] ~p[ pv (ids (1 + length Γ)) := p ] T' →
+    T.|[ids (1 + length Γ)/] ~Tp[ pv (ids (1 + length Γ)) := p ] T' →
     Γ ⊨p p : TMu T, i -∗ Γ ⊨p p : TMu T', i.
   Proof.
     intros Hclp HclT Hrepl.
@@ -569,7 +569,7 @@ Section path_repl.
 
   Lemma TMu_E_real_bad Γ T T' p ρ v :
     alias_paths p.|[ρ] (pv v.[ρ]) →
-    T.|[v/] ~p[ pv v := p ] T' →
+    T.|[v/] ~Tp[ pv v := p ] T' →
     path_wp p.|[ρ] (⟦ TMu T ⟧ ρ) -∗ path_wp p.|[ρ] (⟦ T' ⟧ ρ).
   Proof.
     intros Heq0 Hrepl.

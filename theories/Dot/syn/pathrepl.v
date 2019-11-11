@@ -11,7 +11,6 @@ From D.pure_program_logic Require Import lifting.
 Implicit Types
          (T : ty) (v w : vl) (t : tm) (d : dm) (ds : dms) (p q : path)
          (vs : vls) (l : label) (Pv : vl → Prop).
-Set Nested Proofs Allowed.
 
 Definition alias_paths p q :=
   path_wp_pure p (λ vp, path_wp_pure q (λ vq, vp = vq)).
@@ -58,7 +57,7 @@ where "p1 ~pp[ p := q  ] p2" := (path_path_repl p q p1 p2) .
 Lemma psubst_path_id p1 p2 p : p1 ~pp[ p := p ] p2 → p1 = p2.
 Proof. by elim; intros; simplify_eq/=. Qed.
 
-Reserved Notation "T1 ~p[ p := q  ] T2" (at level 70).
+Reserved Notation "T1 ~Tp[ p := q  ] T2" (at level 70).
 
 (*
   This does only one replacement, as path replacement in the pDOT paper.
@@ -73,47 +72,47 @@ Reserved Notation "T1 ~p[ p := q  ] T2" (at level 70).
 *)
 Inductive ty_path_repl (p q : path) : ty → ty → Prop :=
 | ty_path_repl_TAnd1 T1 T2 U :
-  T1 ~p[ p := q ] T2 →
-  TAnd T1 U ~p[ p := q ] TAnd T2 U
+  T1 ~Tp[ p := q ] T2 →
+  TAnd T1 U ~Tp[ p := q ] TAnd T2 U
 | ty_path_repl_TAnd2 T1 T2 U :
-  T1 ~p[ p := q ] T2 →
-  TAnd U T1 ~p[ p := q ] TAnd U T2
+  T1 ~Tp[ p := q ] T2 →
+  TAnd U T1 ~Tp[ p := q ] TAnd U T2
 | ty_path_repl_TOr1 T1 T2 U :
-  T1 ~p[ p := q ] T2 →
-  TOr T1 U ~p[ p := q ] TOr T2 U
+  T1 ~Tp[ p := q ] T2 →
+  TOr T1 U ~Tp[ p := q ] TOr T2 U
 | ty_path_repl_TOr2 T1 T2 U :
-  T1 ~p[ p := q ] T2 →
-  TOr U T1 ~p[ p := q ] TOr U T2
+  T1 ~Tp[ p := q ] T2 →
+  TOr U T1 ~Tp[ p := q ] TOr U T2
 | ty_path_repl_TLater T1 T2 :
-  T1 ~p[ p := q ] T2 →
-  TLater T1 ~p[ p := q ] TLater T2
+  T1 ~Tp[ p := q ] T2 →
+  TLater T1 ~Tp[ p := q ] TLater T2
 | ty_path_repl_TAll1 T1 T2 U :
-  T1 ~p[ p := q ] T2 →
-  TAll T1 U ~p[ p := q ] TAll T2 U
+  T1 ~Tp[ p := q ] T2 →
+  TAll T1 U ~Tp[ p := q ] TAll T2 U
 | ty_path_repl_TAll2 T1 T2 U :
-  T1 ~p[ p.|[ren (+1)] := q.|[ren (+1)] ] T2 →
-  TAll U T1 ~p[ p := q ] TAll U T2
+  T1 ~Tp[ p.|[ren (+1)] := q.|[ren (+1)] ] T2 →
+  TAll U T1 ~Tp[ p := q ] TAll U T2
 | ty_path_repl_TMu T1 T2 :
-  T1 ~p[ p.|[ren (+1)] := q.|[ren (+1)] ] T2 →
-  TMu T1 ~p[ p := q ] TMu T2
+  T1 ~Tp[ p.|[ren (+1)] := q.|[ren (+1)] ] T2 →
+  TMu T1 ~Tp[ p := q ] TMu T2
 | ty_path_repl_TVMem T1 T2 l :
-  T1 ~p[ p := q ] T2 →
-  TVMem l T1 ~p[ p := q ] TVMem l T2
+  T1 ~Tp[ p := q ] T2 →
+  TVMem l T1 ~Tp[ p := q ] TVMem l T2
 | ty_path_repl_TTMem1 T1 T2 U l :
-  T1 ~p[ p := q ] T2 →
-  TTMem l T1 U ~p[ p := q ] TTMem l T2 U
+  T1 ~Tp[ p := q ] T2 →
+  TTMem l T1 U ~Tp[ p := q ] TTMem l T2 U
 | ty_path_repl_TTMem2 T1 T2 U l :
-  T1 ~p[ p := q ] T2 →
-  TTMem l U T1 ~p[ p := q ] TTMem l U T2
+  T1 ~Tp[ p := q ] T2 →
+  TTMem l U T1 ~Tp[ p := q ] TTMem l U T2
 | ty_path_repl_TSel p1 p2 l :
   p1 ~pp[ p := q ] p2 →
-  TSel p1 l ~p[ p := q ] TSel p2 l
-where "T1 ~p[ p := q  ] T2" := (ty_path_repl p q T1 T2) .
+  TSel p1 l ~Tp[ p := q ] TSel p2 l
+where "T1 ~Tp[ p := q  ] T2" := (ty_path_repl p q T1 T2) .
 
 Definition ty_path_repl_rtc p q := rtc (ty_path_repl p q).
-Notation "T1 ~p[ p := q  ]* T2" := (ty_path_repl_rtc p q T1 T2) (at level 70).
+Notation "T1 ~Tp[ p := q  ]* T2" := (ty_path_repl_rtc p q T1 T2) (at level 70).
 
-Lemma ty_path_repl_id p T1 T2 : T1 ~p[ p := p ] T2 → T1 = T2.
+Lemma ty_path_repl_id p T1 T2 : T1 ~Tp[ p := p ] T2 → T1 = T2.
 Proof.
   intros Hr; dependent induction Hr; rewrite // ?IHHr //.
   f_equiv; exact: psubst_path_id.
@@ -175,7 +174,7 @@ Section path_repl.
   Implicit Types (Γ : ctx).
 
   Lemma rewrite_ty_path_repl {p q T1 T2 ρ v}:
-    T1 ~p[ p := q ] T2 →
+    T1 ~Tp[ p := q ] T2 →
     alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
     ⟦ T1 ⟧ ρ v ≡ ⟦ T2 ⟧ ρ v.
   Proof.
@@ -185,7 +184,7 @@ Section path_repl.
   Qed.
 
   Lemma rewrite_ty_path_repl_rtc {p q T1 T2 ρ v}:
-    T1 ~p[ p := q ]* T2 →
+    T1 ~Tp[ p := q ]* T2 →
     alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
     ⟦ T1 ⟧ ρ v ≡ ⟦ T2 ⟧ ρ v.
   Proof.
@@ -202,11 +201,11 @@ Section path_repl.
       Here it's crucial to use the transitive closure of path replacement
       to substitute all occurrences. *)
   Definition psubst_one T p T' :=
-    T ~p[ pv (ids 0) := p.|[ren (+1)] ]* T'.|[ren (+1)].
-  Notation "T .p[ p /]~ T'" := (psubst_one T p T') (at level 65).
+    T ~Tp[ pv (ids 0) := p.|[ren (+1)] ]* T'.|[ren (+1)].
+  Notation "T .Tp[ p /]~ T'" := (psubst_one T p T') (at level 65).
 
   Lemma psubst_one_repl {T T' p v w ρ}:
-    T .p[ p /]~ T' →
+    T .Tp[ p /]~ T' →
     alias_paths p.|[ρ] (pv v) →
     ⟦ T ⟧ (v .: ρ) w ≡ ⟦ T' ⟧ ρ w.
   Proof.
@@ -217,7 +216,7 @@ Section path_repl.
   Qed.
 
   Lemma TMu_E_p Γ T T' p i :
-    T .p[ p /]~ T' →
+    T .Tp[ p /]~ T' →
     Γ ⊨p p : TMu T, i -∗ Γ ⊨p p : T', i.
   Proof.
     intros Hrepl.
@@ -228,7 +227,7 @@ Section path_repl.
   Qed.
 
   Lemma TMu_I_p Γ T T' p i :
-    T .p[ p /]~ T' →
+    T .Tp[ p /]~ T' →
     Γ ⊨p p : T', i -∗ Γ ⊨p p : TMu T, i.
   Proof.
     intros Hrepl.
@@ -239,7 +238,7 @@ Section path_repl.
   Qed.
 
   Lemma T_Forall_Ex_p Γ e1 p2 T1 T2 T2':
-    T2 .p[ p2 /]~ T2' →
+    T2 .Tp[ p2 /]~ T2' →
     Γ ⊨ e1: TAll T1 T2 -∗
     Γ ⊨p p2 : T1, 0 -∗
     (*────────────────────────────────────────────────────────────*)
