@@ -130,10 +130,10 @@ Section Sec.
     Γ ⊨ L, S i <: TSel va, i.
   Proof.
     iIntros "/= #Hva !>" (vs v) "#Hg #HvL".
-    iSpecialize ("Hva" with "Hg"). iNext.
+    iSpecialize ("Hva" with "Hg"). iNext i.
     rewrite wp_value_inv'; unfold_interp.
     iDestruct "Hva" as (φ) "#[H1 #[HLφ HφU]]".
-    iDestruct "H1" as (T Heq) "Hφ".
+    iDestruct "H1" as (T) "[>% Hφ]".
     iExists φ; iSplit. naive_solver. by iApply "HLφ".
   Qed.
 
@@ -146,7 +146,7 @@ Section Sec.
     iIntros (v) " #HvL".
     rewrite wp_value_inv'; unfold_interp.
     iDestruct "Hva" as (φ) "#[H1 #[HLφ HφU]]".
-    iDestruct "H1" as (T Heq) "Hφ".
+    iDestruct "H1" as (T) "[>% Hφ]".
     iExists φ; iSplit. naive_solver. by iApply "HLφ".
   Qed.
 

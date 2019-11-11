@@ -82,29 +82,26 @@ Section logrel.
 
   Program Definition vl_has_semtype : (ty -d> envD Σ) -n> vl -d> D -n> iPropO Σ :=
     λne rinterp, λ v, λne φ,
-    (∃ T, ⌜ v = vty T ⌝ ∧ ∀ w, ▷ (φ w ≡ rinterp T ids w))%I.
+    (∃ T, ⌜ v = vty T ⌝ ∧ ∀ w, (φ w ≡ rinterp T ids w))%I.
   Solve All Obligations with solve_proper_ho.
   Global Arguments vl_has_semtype /.
   Notation "[ rinterp ] v ↗ φ" := (vl_has_semtype rinterp v φ) (at level 20).
 
   Lemma vl_has_semtype_agree rinterp v (φ1 φ2 : D):
-    ([ rinterp ] v ↗ φ1 →
-     [ rinterp ] v ↗ φ2 →
+    (▷ [ rinterp ] v ↗ φ1 →
+     ▷ [ rinterp ] v ↗ φ2 →
      ∀ w, ▷ (φ1 w ≡ φ2 w))%I.
   Proof.
     iIntros "/= #H1 #H2" (w).
-    iDestruct "H1" as (T1 ->) "#Heq1"; iDestruct "H2" as (T ?) "#Heq2"; simplify_eq.
+    iDestruct "H1" as (T1) "[>% #Heq1]". iDestruct "H2" as (T) "[>% #Heq2]"; simplify_eq.
     iNext.
     by iRewrite ("Heq1" $! w); iRewrite ("Heq2" $! w).
   Qed.
 
-  Global Instance vl_has_semtype_contractive : Contractive vl_has_semtype.
-  Proof. solve_contractive_ho. Qed.
-
   Program Definition interp_tmem :
     (ty -d> envD Σ) -n> envD Σ -n> envD Σ -n> envD Σ :=
     λne rinterp interpL interpU, λ ρ v,
-    (∃ φ, [ rinterp ] v ↗ φ ∧
+    (∃ φ, ▷ [ rinterp ] v ↗ φ ∧
        □ ((∀ v, ▷ interpL ρ v → ▷ □ φ v) ∧
           (∀ v, ▷ □ φ v → ▷ interpU ρ v)))%I.
   Solve All Obligations with solve_proper_ho.
@@ -115,7 +112,7 @@ Section logrel.
 
   Program Definition interp_sel: (ty -d> envD Σ) -n> vl -d> envD Σ :=
     λne rinterp, λ w ρ v,
-    (∃ ϕ, [rinterp] w.[ρ] ↗ ϕ ∧ ▷ □ ϕ v)%I.
+    (▷ ∃ ϕ, [rinterp] w.[ρ] ↗ ϕ ∧ □ ϕ v)%I.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_sel /.
   Global Instance interp_sel_contractive : Contractive interp_sel.
