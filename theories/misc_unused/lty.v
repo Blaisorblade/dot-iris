@@ -175,7 +175,7 @@ Section olty_subst.
   Proof. apply olty_subst_compose. autosubst. Qed.
 End olty_subst.
 
-Notation oClose φ := (olty_car φ vnil : envD _).
+Notation oClose τ := (τ vnil).
 
 Definition sCtx Σ := list (olty Σ 0).
 
