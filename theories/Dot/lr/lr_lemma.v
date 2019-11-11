@@ -6,6 +6,33 @@ From D Require Import swap_later_impl.
 From D.Dot Require Import rules synLemmas unary_lr.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
+
+Section LambdaIntros.
+  Context `{HdlangG: dlangG Σ}.
+
+  Lemma T_Forall_I {Γ} T1 T2 e:
+    T1.|[ren (+1)] :: Γ ⊨ e : T2 -∗
+    (*─────────────────────────*)
+    Γ ⊨ tv (vabs e) : TAll T1 T2.
+  Proof.
+    iIntros "/= #HeT !>" (vs) "#HG".
+    rewrite -wp_value'. iExists _; iSplit; first done.
+    iIntros "!> !>" (v) "#Hv"; rewrite -(decomp_s e (v .: vs)).
+    iApply ("HeT" $! (v .: vs) with "[$HG]").
+    by rewrite (interp_weaken_one T1 _ v).
+  Qed.
+
+  (** Lemmas about definition typing. *)
+  Lemma TVMem_I {Γ} V T v l:
+    V :: Γ ⊨ tv v : T -∗
+    Γ |L V ⊨ { l := dvl v } : TVMem l T.
+  Proof.
+    iIntros "/= #Hv !>" (ρ) "[#Hg #Hw]".
+    iApply def_interp_tvmem_eq.
+    iNext. iApply wp_value_inv'; iApply "Hv"; by iSplit.
+  Qed.
+End LambdaIntros.
+
 Section Sec.
   Context `{HdlangG: dlangG Σ} Γ.
 
@@ -132,18 +159,6 @@ Section Sec.
     - iApply "HvFun". rewrite -wp_value_inv'. by iApply "Hv2Arg".
     - iIntros (v) "{HG HvFun Hv2Arg} H".
       rewrite (interp_subst_one T2 v2 v) //.
-  Qed.
-
-  Lemma T_Forall_I T1 T2 e:
-    T1.|[ren (+1)] :: Γ ⊨ e : T2 -∗
-    (*─────────────────────────*)
-    Γ ⊨ tv (vabs e) : TAll T1 T2.
-  Proof.
-    iIntros "/= #HeT !>" (vs) "#HG".
-    rewrite -wp_value'. iExists _; iSplit; first done.
-    iIntros "!> !>" (v) "#Hv"; rewrite -(decomp_s e (v .: vs)).
-    iApply ("HeT" $! (v .: vs) with "[$HG]").
-    by rewrite (interp_weaken_one T1 _ v).
   Qed.
 
   Lemma T_Mem_E e T l:

@@ -78,30 +78,12 @@ Section Sec.
     iDestruct "HT" as "[HT1 HT2]"; iSplit; by [>iApply "IHT"|iApply "IHT1"].
   Qed.
 
-  Lemma def_interp_tvmem_eq l T v ρ:
-    def_interp (TVMem l T) l ρ (dvl v) ⊣⊢
-    ▷ ⟦ T ⟧ ρ v.
-  Proof.
-    iSplit. by iDestruct 1 as (_ vmem [= ->]) "$".
-    iIntros "H"; iSplit; first done; iExists v. by auto.
-  Qed.
-
   Context Γ.
 
   Local Arguments lift_dinterp_vl: simpl never.
   Local Arguments lift_dinterp_dms: simpl never.
   Local Arguments def_interp_tmem: simpl never.
   Local Arguments def_interp_vmem: simpl never.
-
-  (** Lemmas about definition typing. *)
-  Lemma TVMem_I V T v l:
-    V :: Γ ⊨ tv v : T -∗
-    Γ |L V ⊨ { l := dvl v } : TVMem l T.
-  Proof.
-    iIntros "/= #Hv !>" (ρ) "[#Hg #Hw]".
-    iApply def_interp_tvmem_eq.
-    iNext. iApply wp_value_inv'; iApply "Hv"; by iSplit.
-  Qed.
 
   (* Check that Löb induction works as expected for proving introduction of
    * objects. Using Löb induction works easily.
