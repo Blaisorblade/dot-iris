@@ -69,24 +69,14 @@ Section path_wp.
   Implicit Types (φ : vl -d> iPropO Σ).
 
   Lemma path_wp_cl n p v:
-    path_wp p (λ w, ⌜ w = v ⌝) ⊢@{iPropI Σ}
-    ⌜ nclosed p n → nclosed_vl v n ⌝.
+    path_wp_pure p (eq v) →
+    nclosed p n → nclosed_vl v n.
   Proof.
     elim: p v => /= [w|p IHp l] v.
-    - iIntros "!%" (->). exact: fv_pv_inv.
-    - rewrite path_wp_eq; setoid_rewrite IHp.
-      iDestruct 1 as (w) "[Hpwp H]".
-      iDestruct "Hpwp" as %Himpl.
-      iDestruct "H" as (? Hl) "->". iIntros "!%" (Hclps).
+    - intros ->. exact: fv_pv_inv.
+    - rewrite path_wp_pure_eq.
+      intros (w & Hpwp & _ & Hl & <-) Hclps.
       enough (nclosed (dvl v) n). by eauto with fv.
-      eapply nclosed_lookup', Himpl; eauto with fv.
+      eapply nclosed_lookup', IHp; eauto with fv.
   Qed.
-
-  Lemma path_wp_timeless_len φ p:
-    path_wp p φ ⊢ ∃ v, path_wp p (λ w, ⌜ w = v ⌝) ∧ φ v.
-  Proof. by rewrite path_wp_eq. Qed.
-
-  Lemma path_wp_adequacy p φ :
-    path_wp p φ ⊢ (∃ v, ⌜ PureExec True (plength p) (path2tm p) (tv v) ⌝ ∧ φ v).
-  Proof. rewrite path_wp_timeless_len. by setoid_rewrite path_wp_exec. Qed.
 End path_wp.

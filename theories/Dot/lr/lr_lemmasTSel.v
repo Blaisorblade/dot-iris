@@ -27,11 +27,9 @@ Section Sec.
     iSpecialize ("Hp" with "Hg").
     iNext i.
     rewrite !path_wp_eq.
-    iDestruct "Hp" as (w) "[Hw Hp]".
-    iDestruct "Hφ" as (w') "[Hw' Hφ]".
-    iDestruct (path_wp_det with "Hw Hw'") as "<-".
-    iDestruct "Hp" as (d Hl φ) "#[Hlφ [_ #HφU]]".
-    iDestruct "Hφ" as (φ1 d1 Hva) "[Hγ #HΦ1v]".
+    iDestruct "Hp" as (w Hw d Hl φ) "#[Hlφ [_ #HφU]]".
+    iDestruct "Hφ" as (w' Hw' φ1 d1 Hl') "[Hγ #HΦ1v]".
+    rewrite -(path_wp_pure_det Hw Hw') {Hw Hw'} in Hl'.
     objLookupDet.
     iDestruct (dm_to_type_agree d _ _ v with "Hlφ Hγ") as "#Hag".
     iApply "HφU" => //. iNext. by iRewrite "Hag".
@@ -52,9 +50,8 @@ Section Sec.
   Proof.
     iIntros "#HE !>" (ρ) "HG /=".
     iApply (path_wp_wand with "(HE HG)"); iNext i.
-    iIntros (v) "{HE} #Hv".
-    iDestruct "Hv" as (d Hl vmem ->) "Hv".
-    iExists vmem. iSplit; eauto.
+    iIntros (v); iDestruct 1 as (d Hl vmem ->) "Hv {HE}".
+    iExists vmem. eauto.
   Qed.
   (* In the above proof, in contrast with T_Mem_E, lots of the lemmas
      needed of path_wp hold simply by computation. *)

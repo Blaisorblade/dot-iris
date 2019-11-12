@@ -281,7 +281,7 @@ Section Sec.
   Proof. iIntros (H); rewrite -wp_pure_step_later // -wp_value' //=. Qed.
 
   (* v : p.type *)
-  Definition sem_psingleton p ρ v : iProp Σ := path_wp p.|[ρ] (λ w, ⌜ w = v ⌝ )%I.
+  (* Definition sem_psingleton p ρ v : iProp Σ := path_wp p.|[ρ] (λ w, ⌜ w = v ⌝ )%I.
   Global Arguments sem_psingleton /.
   Global Instance: Persistent (sem_psingleton p ρ v) := _.
 
@@ -289,10 +289,10 @@ Section Sec.
   Proof. done. Qed.
 
   Lemma self_sem_psingleton p ρ v :
-    path_wp p.|[ρ] (λ w, ⌜ w = v ⌝) -∗ path_wp p.|[ρ] (sem_psingleton p ρ).
+    path_wp p.|[ρ] (λ w, ⌜ v = w ⌝) -∗ path_wp p.|[ρ] (sem_psingleton p ρ).
   Proof.
-    iIntros "#Heq /=".
-    iEval rewrite path_wp_eq. by iExists v; iFrame "Heq".
+    iIntros (Heq) "/=".
+    iEval rewrite path_wp_eq. iExists v; iFrame (Heq). iIntros "!%".
   Qed.
 
   Lemma T_self_sem_psingleton Γ p T i :
@@ -306,7 +306,7 @@ Section Sec.
     iSpecialize ("Hp" with "Hg"); iNext i.
     rewrite !path_wp_eq.
     iDestruct "Hp" as (v) "(Heq & _)". by iExists v; iFrame "Heq".
-  Qed.
+  Qed. *)
 
   (* Lemma nsteps_ind_r_weak `(R : relation A) (P : nat → A → A → Prop)
     (Prefl : ∀ x, P 0 x x) (Pstep : ∀ x y z n, relations.nsteps R n x y → R y z → P n x y → P (S n) x z) :

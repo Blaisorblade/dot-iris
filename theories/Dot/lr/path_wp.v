@@ -1,6 +1,7 @@
 From iris.proofmode Require Import tactics.
 From D Require Import iris_prelude.
 From D.Dot Require Import dlang_inst rules.
+From D.pure_program_logic Require Import lifting.
 
 Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
@@ -41,7 +42,7 @@ Proof.
 Qed.
 
 Lemma path_wp_pure_eq p Pv :
-  path_wp_pure p Pv ↔ ∃ v, path_wp_pure p (λ w, w = v) ∧ Pv v.
+  path_wp_pure p Pv ↔ ∃ v, path_wp_pure p (eq v) ∧ Pv v.
 Proof.
   elim: p Pv => [ v | p IHp l ] Pv /=; split.
   - eauto.
@@ -54,8 +55,8 @@ Proof.
 Qed.
 
 Lemma path_wp_pure_det {p v1 v2}:
-  path_wp_pure p (λ w, w = v1) →
-  path_wp_pure p (λ w, w = v2) →
+  path_wp_pure p (eq v1) →
+  path_wp_pure p (eq v2) →
   v1 = v2.
 Proof.
   elim: p v1 v2 => [v /=| p /= IHp l //] v1 v2; first by intros <- <-.
@@ -64,15 +65,15 @@ Proof.
   by objLookupDet.
 Qed.
 
-Lemma path_wp_pure_swap p u :
-  path_wp_pure p (λ w, u = w) ↔
-  path_wp_pure p (λ w, w = u).
+Lemma path_wp_pure_swap p w :
+  path_wp_pure p (λ v, v = w) ↔
+  path_wp_pure p (eq w).
 Proof. split => Hp; exact: path_wp_pure_wand. Qed.
 
 Section path_wp.
   Context `{HdlangG: dlangG Σ}.
   Implicit Types (φ : vl -d> iPropO Σ).
-  Notation path_wp_purel p Pv := (⌜path_wp_pure p Pv⌝%I : iProp Σ).
+  Notation path_wp_purel p Pv := (⌜path_wp_pure p Pv⌝ : iProp Σ)%I.
 
   (** A simplified variant of weakest preconditions for path evaluation.
       The difference is that path evaluation is completely pure, and
@@ -114,23 +115,6 @@ Section path_wp.
     by rewrite -{}IHp; f_equiv => v; iIntros "!% /=".
   Qed.
 
-  Global Instance path_wp_pureableI p Pv :
-    IntoPure (path_wp p (λ v, ⌜Pv v⌝))%I (path_wp_pure p Pv).
-  Proof. by rewrite /IntoPure path_wp_pureable. Qed.
-  Global Instance path_wp_pureableF p Pv :
-    FromPure false (path_wp p (λ v, ⌜Pv v⌝))%I (path_wp_pure p Pv).
-  Proof. by rewrite /FromPure/= path_wp_pureable. Qed.
-
-  Lemma path_wp_det p v1 v2:
-    path_wp p (λ w, ⌜ w = v1 ⌝) -∗
-    path_wp p (λ w, ⌜ w = v2 ⌝) -∗
-    ⌜ v1 = v2 ⌝: iProp Σ.
-  Proof. iIntros "!%". exact: path_wp_pure_det. Qed.
-
-  Lemma path_wp_swap p u :
-    path_wp p (λ w, ⌜u = w⌝) ⊣⊢ path_wp p (λ w, ⌜w = u⌝).
-  Proof. iIntros "!%". by rewrite /= path_wp_pure_swap. Qed.
-
   Lemma path_wp_wand φ1 φ2 p:
     path_wp p φ1 -∗
     (∀ v, φ1 v -∗ φ2 v) -∗
@@ -143,23 +127,51 @@ Section path_wp.
     iExists vq; iFrame (Hl). by iApply "Hwand".
   Qed.
 
+  Global Instance path_wp_pureableI p φ Pv :
+    (∀ v, IntoPure (φ v) (Pv v)) →
+    IntoPure (path_wp p φ)%I (path_wp_pure p Pv).
+  Proof.
+    rewrite /IntoPure -path_wp_pureable. iIntros (Hw) "Hp".
+    iApply (path_wp_wand with "Hp"). iIntros (v). iApply Hw.
+  Qed.
+  Global Instance path_wp_pureableF p φ Pv b :
+    (∀ v, FromPure b (φ v) (Pv v)) →
+    FromPure false (path_wp p φ)%I (path_wp_pure p Pv).
+  Proof.
+    rewrite /FromPure/= -path_wp_pureable. iIntros (Hw) "Hp".
+    iApply (path_wp_wand with "Hp"). iIntros (v Hpv). iApply Hw.
+    by case: b {Hw} => /=; iIntros "!%".
+  Qed.
+
+  Lemma path_wp_det p v1 v2:
+    path_wp p (λ w, ⌜ v1 = w ⌝) -∗
+    path_wp p (λ w, ⌜ v2 = w ⌝) -∗
+    ⌜ v1 = v2 ⌝: iProp Σ.
+  Proof. iIntros "!%". exact: path_wp_pure_det. Qed.
+
+  Lemma path_wp_swap p u :
+    path_wp p (λ w, ⌜w = u⌝) ⊣⊢ path_wp p (λ w, ⌜u = w⌝).
+  Proof. iIntros "!%". by rewrite /= path_wp_pure_swap. Qed.
+  Instance: IntoPure
+    (path_wp p (λ v0 : vl, ∃ w0 : vl_, ⌜v0 @ l ↘ dvl w0⌝ ∧ ⌜w = w0⌝))%I
+    (path_wp_pure p (λ v0 : vl, ∃ w0 : vl_, v0 @ l ↘ dvl w0 ∧ w = w0)) := _.
+  Instance: FromPure false
+    (path_wp p (λ v0 : vl, ∃ w0 : vl_, ⌜v0 @ l ↘ dvl w0⌝ ∧ ⌜w = w0⌝))%I
+    (path_wp_pure p (λ v0 : vl, ∃ w0 : vl_, v0 @ l ↘ dvl w0 ∧ w = w0)) := _.
+
   Lemma path_wp_eq p φ :
-    path_wp p φ ⊣⊢ ∃ v, path_wp p (λ w, ⌜ w = v ⌝) ∧ φ v.
+    path_wp p φ ⊣⊢ ∃ v, ⌜ path_wp_pure p (eq v) ⌝ ∧ φ v.
   Proof.
     elim: p φ => [ v | p IHp l ] φ /=; iSplit; iIntros "H".
     - auto.
     - by iDestruct "H" as (w <-) "H".
     - rewrite IHp.
-      iDestruct "H" as (v) "[Hp Hw]".
-      iDestruct "Hw" as (w) "[Hl Hw]".
+      iDestruct "H" as (v Hp w Hl) "Hw".
       iExists w; iSplit; last by [].
-      iApply (path_wp_wand with "Hp").
-      iIntros (? ->); iExists w. by iSplit.
-    - setoid_rewrite IHp.
-      iDestruct "H" as (w) "[Hp Hw]".
-      iDestruct "Hp" as (v) "[Hp Hl]".
-      iExists v; iSplit; first done.
-      iDestruct "Hl" as %(w' & Hl & ->). auto.
+      iIntros "!%". apply: path_wp_pure_wand; naive_solver.
+    - setoid_rewrite IHp; setoid_rewrite path_wp_pure_eq.
+      iDestruct "H" as (w [v Hp]) "Hw".
+      iExists v; iSplit; naive_solver eauto.
   Qed.
 
   Lemma path_wp_later_swap p φ:
@@ -167,11 +179,8 @@ Section path_wp.
   Proof.
     elim: p φ => [v // | p IHp l /=] φ.
     rewrite -IHp.
-    iIntros "H".
-    iApply (path_wp_wand with "H").
-    iIntros (v) "H".
-    iDestruct "H" as (w) "H"; iExists w.
-    iDestruct "H" as "[$ $]".
+    iIntros "H"; iApply (path_wp_wand with "H").
+    by iIntros (v) "H !>".
   Qed.
 
   Lemma path_wp_laterN_swap p φ i:
@@ -190,7 +199,7 @@ Section path_wp.
   Qed.
 
   Lemma path_wp_exec_pure p v :
-    path_wp_pure p (λ v0 : vl, v0 = v)
+    path_wp_pure p (eq v)
     → PureExec True (plength p) (path2tm p) (tv v).
   Proof.
     elim: p v => [w|p IHp l] v; rewrite /PureExec/=.
@@ -203,9 +212,24 @@ Section path_wp.
   Qed.
 
   Lemma path_wp_exec p v :
-    path_wp p (λ w, ⌜ w = v ⌝) ⊢@{iPropI Σ}
+    path_wp p (λ w, ⌜ v = w ⌝) ⊢@{iPropI Σ}
     ⌜ PureExec True (plength p) (path2tm p) (tv v) ⌝.
   Proof. iIntros "!%". apply path_wp_exec_pure. Qed.
+
+  Lemma path_wp_adequacy p φ :
+    path_wp p φ ⊢ (∃ v, ⌜ PureExec True (plength p) (path2tm p) (tv v) ⌝ ∧ φ v).
+  Proof.
+    rewrite path_wp_eq. setoid_rewrite <-path_wp_exec.
+    iDestruct 1 as (v Hcl) "H". eauto.
+  Qed.
+
+  Lemma path_wp_to_wp p φ :
+    path_wp p (λ v : vl, φ v) -∗
+    WP (path2tm p) {{ v, φ v }}.
+  Proof.
+    rewrite path_wp_adequacy; iDestruct 1 as (v Hex) "H".
+    by rewrite -wp_pure_step_later // -wp_value.
+  Qed.
 
   Global Instance path_wp_timeless p Pv: Timeless (path_wp p (λ v, ⌜Pv v⌝))%I.
   Proof. rewrite path_wp_pureable. apply _. Qed.
