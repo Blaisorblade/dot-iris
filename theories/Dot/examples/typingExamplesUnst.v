@@ -145,7 +145,15 @@ Definition fromPDotPaperTypesTBody : ty := {@
   val "AnyType" : TLater (p0 @; "Type");
   val "newTypeRef" : TAll (p1 @ "symbols" @; "Symbol") (p1 @; "TypeRef")
 }.
-Definition fromPDotPaperTypesT := μ fromPDotPaperTypesTBody.
+
+Definition fromPDotPaperAbsTypesTBody : ty := {@
+  type "Type" >: TBot <: TTop;
+  type "TypeRef" >: TBot <: TAnd (p0 @; "Type") {@
+    val "symb" : p1 @ "symbols" @; "Symbol"
+  };
+  val "AnyType" : TLater (p0 @; "Type");
+  val "newTypeRef" : TAll (p1 @ "symbols" @; "Symbol") (p1 @; "TypeRef")
+}.
 
 Definition fromPDotPaperTypesV : vl := ν {@
   type "Type" = TTop;
@@ -165,13 +173,24 @@ Definition fromPDotPaperSymbolsTBody : ty := {@
   }%ty;
   val "newSymbol" : TAll (p1 @ "types" @; "Type") (TAll HashableString (p2 @; "Symbol"))
 }.
-Definition fromPDotPaperSymbolsT := μ fromPDotPaperSymbolsTBody.
+
+Definition fromPDotPaperAbsSymbolsTBody : ty := {@
+  type "Symbol" >: TBot <: {@
+    val "tpe" : p1 @ "types" @; "Type";
+    val "name" : HashableString
+  };
+  val "newSymbol" : TAll (p1 @ "types" @; "Type") (TAll HashableString (p2 @; "Symbol"))
+}.
 
 Definition fromPDotPaperTBody : ty := {@
-  val "types" : fromPDotPaperTypesT;
-  val "symbols" : fromPDotPaperSymbolsT
+  val "types" : μ fromPDotPaperTypesTBody;
+  val "symbols" : μ fromPDotPaperSymbolsTBody
 }.
-Definition fromPDotPaperT : ty := μ fromPDotPaperTBody.
+
+Definition fromPDotPaperAbsTBody : ty := {@
+  val "types" : μ fromPDotPaperAbsTypesTBody;
+  val "symbols" : μ fromPDotPaperAbsSymbolsTBody
+}.
 
 Definition fromPDotPaperSymbolsV : vl := ν {@
   type "Symbol" = {@
@@ -188,7 +207,10 @@ Definition fromPDotPaper : vl := ν {@
   val "types" = fromPDotPaperTypesV;
   val "symbols" = fromPDotPaperSymbolsV
 }.
-Example fromPDotPaperTypesTyp : TLater fromPDotPaperTBody :: [] u⊢ₜ tv fromPDotPaperTypesV : fromPDotPaperTypesT.
+
+Example fromPDotPaperTypesTyp :
+  TLater fromPDotPaperAbsTBody :: [] u⊢ₜ
+    tv fromPDotPaperTypesV : μ fromPDotPaperTypesTBody.
 Proof.
   tcrush.
   - eapply (Subs_typed_nocoerce TNat); first tcrush.
@@ -211,7 +233,24 @@ Proof.
         apply: Var_typed_sub; [ tcrush .. ].
 Qed.
 
-Example fromPDotPaperSymbolsTyp : TLater fromPDotPaperTBody :: [] u⊢ₜ tv fromPDotPaperSymbolsV : fromPDotPaperSymbolsT.
+Example fromPDotPaperTypesAbsTyp :
+  TLater fromPDotPaperAbsTBody :: [] u⊢ₜ
+    tv fromPDotPaperTypesV : μ fromPDotPaperAbsTypesTBody.
+Proof.
+  eapply Subs_typed_nocoerce; first exact: fromPDotPaperTypesTyp; tcrush.
+  - eapply Trans_stp; first apply TAnd1_stp; tcrush.
+  - eapply Trans_stp; first apply TAnd2_stp; tcrush.
+    eapply Trans_stp; first apply TAnd1_stp; tcrush.
+  - eapply Trans_stp; first apply TAnd2_stp; tcrush.
+    eapply Trans_stp; first apply TAnd2_stp; tcrush.
+  - eapply Trans_stp; first apply TAnd2_stp; tcrush.
+    eapply Trans_stp; first apply TAnd2_stp; tcrush.
+    eapply Trans_stp; first apply TAnd2_stp; tcrush.
+Qed.
+
+Example fromPDotPaperSymbolsTyp :
+  TLater fromPDotPaperAbsTBody :: [] u⊢ₜ
+    tv fromPDotPaperSymbolsV : μ fromPDotPaperSymbolsTBody.
 Proof.
   tcrush.
   - eapply (Subs_typed_nocoerce) => /=.
@@ -226,29 +265,17 @@ Proof.
         eapply Trans_stp; first apply TAnd2_stp; tcrush.
 Qed.
 
-Example fromPDotPaperTyp : [] u⊢ₜ tv fromPDotPaper : fromPDotPaperT.
+Example fromPDotPaperSymbolsAbsTyp :
+  TLater fromPDotPaperAbsTBody :: [] u⊢ₜ
+    tv fromPDotPaperSymbolsV : μ fromPDotPaperAbsSymbolsTBody.
 Proof.
-  pose proof fromPDotPaperTypesTyp.
-  pose proof fromPDotPaperSymbolsTyp.
-  repeat first [done | typconstructor | stcrush].
+  eapply Subs_typed_nocoerce; first exact: fromPDotPaperSymbolsTyp; tcrush.
+  eapply Trans_stp; first apply TAnd1_stp; tcrush.
 Qed.
 
-(* Next step: get to the next type: *)
-
-Definition fromPDotPaperTyAbs : ty := μ {@
-  val "types" : μ {@
-    type "Type" >: TBot <: TTop;
-    type "TypeRef" >: TBot <: TAnd (p0 @; "Type") {@
-      val "symb" : p1 @ "symbols" @; "Symbol"
-    };
-    val "AnyType" : p0 @; "Type";
-    val "newTypeRef" : TAll (p1 @ "symbols" @; "Symbol") (p1 @; "TypeRef")
-  };
-  val "symbols" : μ {@
-    type "Symbol" >: TBot <: {@
-      val "tpe" : p1 @ "types" @; "Type";
-      val "name" : HashableString
-    };
-    val "newSymbol" : TAll (p1 @ "types" @; "Type") (p1 @; "Symbol")
-  }
-}.
+Example fromPDotPaperTyp : [] u⊢ₜ tv fromPDotPaper : μ fromPDotPaperAbsTBody.
+Proof.
+  pose proof fromPDotPaperTypesAbsTyp.
+  pose proof fromPDotPaperSymbolsAbsTyp.
+  repeat first [done | typconstructor | stcrush].
+Qed.
