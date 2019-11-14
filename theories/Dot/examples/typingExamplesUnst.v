@@ -123,3 +123,132 @@ Proof.
   apply: Var_typed_sub; repeat tcrush; rewrite /= hsubst_id //.
   rewrite !hsubst_comp; f_equal. autosubst.
 Qed.
+
+Lemma Mu_stp' {Γ T T' i}:
+  T' = T.|[ren (+1)] →
+  is_unstamped_ty (length Γ) T →
+  Γ u⊢ₜ TMu T', i <: T, i.
+Proof. intros; subst. auto. Qed.
+
+Ltac hideCtx :=
+  match goal with
+  |- ?Γ' u⊢ₜ _, _ <: _, _ => set Γ := Γ'
+  end.
+
+(* FromPDotPaper *)
+
+Definition fromPDotPaperTypesTBody : ty := {@
+  typeEq "Type" TTop;
+  typeEq "TypeRef" $ TAnd (p0 @; "Type") {@
+    val "symb" : p1 @ "symbols" @; "Symbol"
+  };
+  val "AnyType" : TLater (p0 @; "Type");
+  val "newTypeRef" : TAll (p1 @ "symbols" @; "Symbol") (p1 @; "TypeRef")
+}.
+Definition fromPDotPaperTypesT := μ fromPDotPaperTypesTBody.
+
+Definition fromPDotPaperTypesV : vl := ν {@
+  type "Type" = TTop;
+  type "TypeRef" = TAnd (p0 @; "Type") {@
+    val "symb" : p1 @ "symbols" @; "Symbol"
+  };
+  val "AnyType" = vnat 0 ; (* ν {@}; *)
+  val "newTypeRef" = (vabs $ tv $ ν {@
+    val "symb" = x1
+  })
+}.
+
+Definition fromPDotPaperSymbolsTBody : ty := {@
+  typeEq "Symbol" $ {@
+    val "tpe" : p1 @ "types" @; "Type";
+    val "name" : HashableString
+  }%ty;
+  val "newSymbol" : TAll (p1 @ "types" @; "Type") (TAll HashableString (p2 @; "Symbol"))
+}.
+Definition fromPDotPaperSymbolsT := μ fromPDotPaperSymbolsTBody.
+
+Definition fromPDotPaperTBody : ty := {@
+  val "types" : fromPDotPaperTypesT;
+  val "symbols" : fromPDotPaperSymbolsT
+}.
+Definition fromPDotPaperT : ty := μ fromPDotPaperTBody.
+
+Definition fromPDotPaperSymbolsV : vl := ν {@
+  type "Symbol" = {@
+    val "tpe" : p1 @ "types" @; "Type";
+    val "name" : HashableString
+  };
+  val "newSymbol" = (vabs $ tv $ vabs $ tv $ ν {@
+    val "tpe" = x2;
+    val "name" = x1
+  })
+}.
+
+Definition fromPDotPaper : vl := ν {@
+  val "types" = fromPDotPaperTypesV;
+  val "symbols" = fromPDotPaperSymbolsV
+}.
+Example fromPDotPaperTypesTyp : TLater fromPDotPaperTBody :: [] u⊢ₜ tv fromPDotPaperTypesV : fromPDotPaperTypesT.
+Proof.
+  tcrush.
+  - eapply (Subs_typed_nocoerce TNat); first tcrush.
+    eapply (Trans_stp (T2 := TTop) (i2 := 0)); tcrush.
+    eapply (Trans_stp (i2 := 1)); [exact: AddI_stp | ].
+    eapply Trans_stp; last (apply TLaterR_stp; tcrush).
+    eapply (LSel_stp' _ ⊤); tcrush.
+    eapply Var_typed_sub; [ done | apply Sub_later_shift; cbn; tcrush].
+  - eapply (Subs_typed_nocoerce) => /=.
+    + repeat first [exact: Var_typed' | typconstructor | tcrush].
+    + hideCtx.
+      eapply Trans_stp; first last.
+      eapply LSel_stp'; first last.
+      * constructor; eapply Var_typed_sub => //=.
+        eapply Trans_stp; first apply TAnd2_stp; tcrush.
+      * tcrush.
+      * tcrush; last apply Bind1; tcrush.
+        eapply (Trans_stp (T2 := ⊤)); tcrush.
+        eapply LSel_stp'; tcrush.
+        apply: Var_typed_sub; [ tcrush .. ].
+Qed.
+
+Example fromPDotPaperSymbolsTyp : TLater fromPDotPaperTBody :: [] u⊢ₜ tv fromPDotPaperSymbolsV : fromPDotPaperSymbolsT.
+Proof.
+  tcrush.
+  - eapply (Subs_typed_nocoerce) => /=.
+    + repeat first [exact: Var_typed' | typconstructor | tcrush].
+    + hideCtx.
+      eapply Trans_stp; first last.
+      eapply LSel_stp'; first last.
+      * constructor; eapply Var_typed_sub => //=.
+        tcrush.
+      * tcrush.
+      * tcrush; apply Bind1; tcrush.
+        eapply Trans_stp; first apply TAnd2_stp; tcrush.
+Qed.
+
+Example fromPDotPaperTyp : [] u⊢ₜ tv fromPDotPaper : fromPDotPaperT.
+Proof.
+  pose proof fromPDotPaperTypesTyp.
+  pose proof fromPDotPaperSymbolsTyp.
+  repeat first [done | typconstructor | stcrush].
+Qed.
+
+(* Next step: get to the next type: *)
+
+Definition fromPDotPaperTyAbs : ty := μ {@
+  val "types" : μ {@
+    type "Type" >: TBot <: TTop;
+    type "TypeRef" >: TBot <: TAnd (p0 @; "Type") {@
+      val "symb" : p1 @ "symbols" @; "Symbol"
+    };
+    val "AnyType" : p0 @; "Type";
+    val "newTypeRef" : TAll (p1 @ "symbols" @; "Symbol") (p1 @; "TypeRef")
+  };
+  val "symbols" : μ {@
+    type "Symbol" >: TBot <: {@
+      val "tpe" : p1 @ "types" @; "Type";
+      val "name" : HashableString
+    };
+    val "newSymbol" : TAll (p1 @ "types" @; "Type") (p1 @; "Symbol")
+  }
+}.
