@@ -279,3 +279,59 @@ Proof.
   pose proof fromPDotPaperSymbolsAbsTyp.
   repeat first [done | typconstructor | stcrush].
 Qed.
+
+Definition getAnyTypeT : ty :=
+  TAll (μ fromPDotPaperAbsTBody) (p0 @ "types" @; "Type").
+Definition getAnyType : vl := vabs (tskip (tproj (tproj (tv x0) "types") "AnyType")).
+
+Ltac simplSubst := rewrite /= /up/= /ids/ids_vl/=.
+From D.Dot.syn Require Import path_repl.
+From D.Dot.lr Require Import path_wp.
+
+Definition fromPDotPaperAbsTypesTBodySubst : ty := {@
+  type "Type" >: TBot <: TTop;
+  type "TypeRef" >: TBot <: TAnd (p0 @ "types" @; "Type") {@
+    val "symb" : p0 @ "symbols" @; "Symbol"
+  };
+  val "AnyType" : TLater (p0 @ "types" @; "Type");
+  val "newTypeRef" : TAll (p0 @ "symbols" @; "Symbol") (p1 @ "types" @; "TypeRef")
+}.
+
+Lemma fromPDotPSubst: fromPDotPaperAbsTypesTBody .Tp[ (p0 @ "types") /]~ fromPDotPaperAbsTypesTBodySubst.
+Proof.
+  apply psubst_ty_rtc_sufficient.
+  by rewrite /= !(decide_True _ _ (eq_refl _)) !decide_False.
+Qed.
+
+Example getAnyTypeFunTyp Γ : Γ u⊢ₜ tv getAnyType : getAnyTypeT.
+Proof.
+  rewrite /getAnyType -(iterate_S tskip 0); tcrush.
+  eapply (Subs_typed (T1 := TLater (p0 @ "types" @; "Type"))); tcrush.
+  set Γ' := (μ fromPDotPaperAbsTBody).|[ren (+1)] :: Γ.
+  have Hpx: Γ' u⊢ₚ p0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0.
+    by tcrush; eapply Subs_typed_nocoerce;
+      [by eapply TMuE_typed, Var_typed' | tcrush].
+  have HpxSubst: Γ' u⊢ₚ p0 @ "types" : fromPDotPaperAbsTypesTBodySubst, 0.
+    by eapply p_mu_e_typed; [apply fromPDotPSubst|tcrush|].
+  eapply (Path_typed (p := p0)), pself_inv_typed, (p_subs_typed (i := 0)), HpxSubst.
+  eapply Trans_stp; first apply TAnd2_stp; tcrush.
+  eapply Trans_stp; first apply TAnd2_stp; tcrush.
+Qed.
+
+Example getAnyTypeTyp0 :
+  [μ fromPDotPaperAbsTBody] u⊢ₜ
+    tapp (tv getAnyType) (tv x0) : p0 @ "types" @; "Type".
+Proof. eapply Appv_typed'; by [exact: getAnyTypeFunTyp|exact: Var_typed'|]. Qed.
+(*
+lett (tv fromPDotPaper) (tapp (tv getAnyType) x0) : (pv fromPDotPaper @ "types" @; "Type").
+Example getAnyTypeTyp : [] u⊢ₜ lett (tv fromPDotPaper) (tapp (tv getAnyType) x0) : (pv fromPDotPaper @ "types" @; "Type").
+Proof.
+  eapply (App_path_typed (pv _)); [| eapply getAnyTypeFunTyp|].
+
+Example getAnyTypeTyp : [] u⊢ₜ tapp (tv getAnyType) (tv fromPDotPaper) : (pv fromPDotPaper @ "types" @; "Type").
+Proof.
+  eapply (App_path_typed (pv _)); [| eapply getAnyTypeFunTyp|].
+Let_typed
+  2: apply (Path_typed (pv fromPDotPaper)). fromPDotPaperTyp. ;
+  (* Wanted: application of functions to paths;  *)
+Abort. *)
