@@ -97,10 +97,10 @@ Check ν {@ val "a" = vnat 0 ; type "A" = (σ1 ; s1) }.
 (* Check (TSel (pself (pself p0 1) 2) 3). *)
 (* Check (x0 @ 1 @ 2 ; 3). *)
 
-Notation "v @ l1 @ .. @ l2" := (pself .. (pself (pv v) l1) .. l2)
-                                     (format "v  @  l1  @  ..  @  l2", at level 69, l1, l2 at level 60).
+Notation "v @ l1 @ .. @ l2" := (pself .. (pself v l1) .. l2)
+                                     (format "v  @  l1  @  ..  @  l2", at level 49, l1, l2 at level 40).
 
-Notation "p @; l" := (TSel p l) (at level 69).
+Notation "p @; l" := (TSel p l) (at level 49).
 Notation x0 := (var_vl 0).
 Notation x1 := (var_vl 1).
 Notation x2 := (var_vl 2).
@@ -116,8 +116,9 @@ Notation p5 := (pv x5).
 
 Check (p0 @; "A").
 Check (pself (pself p0 "A") "B" @; "C").
-Check (x0 @ "A").
-Check (x0 @ "A" @ "B" @; "C").
+Check (p0 @ "A").
+Check (p0 @ "A" @ "B" @; "C").
+Check (val "symb" : p0 @ "symbols" @; "Symbol")%ty.
 
 Notation TUnit := (⊤ % ty : ty).
 Notation tUnit := (tv (vnat 0) : tm).
