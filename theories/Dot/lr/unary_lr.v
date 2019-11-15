@@ -131,6 +131,10 @@ Section logrel.
       (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ψ ∧ ▷ □ ψ v))%I.
   Global Arguments interp_sel /.
 
+  Definition interp_sing p : envD Σ :=
+    λ ρ v, ⌜alias_paths p.|[ρ] (pv v)⌝%I.
+  Global Arguments interp_sing /.
+
   Global Instance interp : TyInterp ty Σ := fix interp (T : ty) : envD Σ :=
     let _ := interp : TyInterp ty Σ in
     match T with
@@ -145,6 +149,7 @@ Section logrel.
     | TAll T1 T2 => interp_forall (⟦ T1 ⟧) (⟦ T2 ⟧)
     | TMu T => interp_mu (⟦ T ⟧)
     | TSel p l => interp_sel p l
+    | TSing p => interp_sing p
     end % I.
 
   Global Instance interp_lemmas: TyInterpLemmas ty Σ.

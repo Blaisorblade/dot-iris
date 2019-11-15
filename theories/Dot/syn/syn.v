@@ -37,7 +37,8 @@ Inductive tm : Type :=
   | TVMem : label -> ty -> ty
   | TTMem : label -> ty -> ty -> ty
   | TSel : path -> label -> ty
-  | TNat : ty.
+  | TNat : ty
+  | TSing : path -> ty.
 
 Definition vl := vl_.
 
@@ -143,6 +144,7 @@ ty_rename (sb : var → var) T : ty :=
   | TTMem l T1 T2 => TTMem l (rename sb T1) (rename sb T2)
   | TSel p l => TSel (rename sb p) l
   | TNat => TNat
+  | TSing p => TSing (rename sb p)
   end
 with
 path_rename (sb : var → var) p : path :=
@@ -204,6 +206,7 @@ ty_hsubst (sb : var → vl) T : ty :=
   | TVMem l T => TVMem l (hsubst sb T)
   | TTMem l T1 T2 => TTMem l (hsubst sb T1) (hsubst sb T2)
   | TSel p l => TSel (hsubst sb p) l
+  | TSing p => TSing (hsubst sb p)
   | TNat => TNat
   end
 with
@@ -559,6 +562,7 @@ Section syntax_mut_rect.
   Variable step_TVMem : ∀ l T1, Pty T1 → Pty (TVMem l T1).
   Variable step_TTMem : ∀ l T1 T2, Pty T1 → Pty T2 → Pty (TTMem l T1 T2).
   Variable step_TSel : ∀ p1 l, Ppt p1 → Pty (TSel p1 l).
+  Variable step_TSing : ∀ p1, Ppt p1 → Pty (TSing p1).
   Variable step_TNat : Pty TNat.
 
   Fixpoint tm_mut_rect t : Ptm t
@@ -629,6 +633,7 @@ Section syntax_mut_ind.
   Variable step_TVMem : ∀ l T1, Pty T1 → Pty (TVMem l T1).
   Variable step_TTMem : ∀ l T1 T2, Pty T1 → Pty T2 → Pty (TTMem l T1 T2).
   Variable step_TSel : ∀ p1 l, Ppt p1 → Pty (TSel p1 l).
+  Variable step_TSing : ∀ p1, Ppt p1 → Pty (TSing p1).
   Variable step_TNat : Pty TNat.
 
   Lemma syntax_mut_ind : (∀ t, Ptm t) ∧ (∀ v, Pvl v) ∧ (∀ d, Pdm d) ∧ (∀ p, Ppt p) ∧ (∀ T, Pty T).
@@ -726,6 +731,9 @@ Section syntax_mut_ind_closed.
   Variable step_TSel : ∀ n p1 l,
       nclosed p1 n → nclosed (TSel p1 l) n →
       Ppt p1 n → Pty (TSel p1 l) n.
+  Variable step_TSing : ∀ n p1,
+      nclosed p1 n → nclosed (TSing p1) n →
+      Ppt p1 n → Pty (TSing p1) n.
   Variable step_TNat : ∀ n,
       nclosed TNat n →
       Pty TNat n.

@@ -36,6 +36,7 @@ Proof.
     | l T1 IH1
     | l T1 T2 IH1 IH2
     | p1 l IH1
+    | p1 IH1
     ] i j Hle Hcl.
   - by eapply fv_of_val, IH1, fv_of_val_inv.
   - eapply fv_tapp; [> eapply IH1 | eapply IH2]; eauto with fv.
@@ -69,6 +70,7 @@ Proof.
       [> eapply IH1 | eapply IH2];
       eauto with fv lia.
   - eapply fv_TSel, IH1; eauto with fv.
+  - eapply fv_TSing, IH1; eauto with fv.
 Qed.
 
 Lemma nclosed_sub_inv_ty T v n j: j <= n → nclosed T.|[upn j (v .: ids)] n → nclosed T (S n).
@@ -107,6 +109,7 @@ Proof.
     | l T1 IH1
     | l T1 T2 IH1 IH2
     | p1 l IH1
+    | p1 IH1
     ] k Hcl /=.
   - by eapply fv_of_val, IH1, fv_of_val_inv.
   - eapply fv_tapp; [> eapply IH1 | eapply IH2]; eauto with fv.
@@ -141,6 +144,7 @@ Proof.
       [> eapply IH1 | eapply IH2];
       eauto with fv lia.
   - eapply fv_TSel, IH1; eauto with fv.
+  - eapply fv_TSing, IH1; eauto with fv.
 Qed.
 
 Lemma nclosed_ren_inv_ty T i j k:

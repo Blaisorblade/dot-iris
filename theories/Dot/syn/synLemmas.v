@@ -72,6 +72,9 @@ Proof. solve_fv_congruence. Qed.
 Lemma fv_TSel p l n: nclosed p n → nclosed (TSel p l) n.
 Proof. solve_fv_congruence. Qed.
 
+Lemma fv_TSing p n: nclosed p n → nclosed (TSing p) n.
+Proof. solve_fv_congruence. Qed.
+
 Definition fv_dms_cons : ∀ l d ds n, nclosed ds n → nclosed d n → nclosed ((l, d) :: ds) n := fv_pair_cons.
 
 Lemma fv_dtysem σ s n: nclosed_σ σ n → nclosed (dtysem σ s) n.
