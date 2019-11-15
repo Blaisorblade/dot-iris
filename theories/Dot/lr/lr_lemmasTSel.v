@@ -11,7 +11,7 @@ Section Sec.
     Γ ⊨ iterate TLater (S (plength p)) L, i <: TSel p l, i.
   Proof.
     rewrite iterate_S.
-    iIntros "/= #Hp !>" (ρ v) "#Hg #Hφ /=".
+    iIntros "/= #Hp !>" (ρ v) "Hg Hφ /=".
     iSpecialize ("Hp" with "Hg").
     iNext i.
 
@@ -19,7 +19,7 @@ Section Sec.
       strong_path_wp_wand plength_subst_inv -swap_later.
     iApply "Hp".
     iNext (plength p); iIntros (w).
-    iDestruct 1 as (d Hl φ) "{Hp} #(Hlφ & #HLφ & #HφU)".
+    iDestruct 1 as (d Hl φ) "#(Hlφ & #HLφ & #HφU)".
     iExists φ, d; repeat iSplit => //.
     by iApply "HLφ".
   Qed.
@@ -29,13 +29,13 @@ Section Sec.
     Γ ⊨ TSel p l, i <: iterate TLater (S (plength p)) U, i.
   Proof.
     rewrite iterate_S.
-    iIntros "/= #Hp !>" (ρ v) "#Hg #Hφ /=".
+    iIntros "/= #Hp !>" (ρ v) "Hg Hφ /=".
     iSpecialize ("Hp" with "Hg").
     iNext i.
     rewrite iterate_TLater_later !path_wp_eq.
     iDestruct "Hp" as (w) "[Hw Hp]".
     iDestruct "Hφ" as (w') "[Hw' Hφ]".
-    iDestruct (path_wp_det with "Hw Hw'") as "{Hw Hw'} Heqw".
+    iDestruct (path_wp_det with "Hw Hw'") as "Heqw".
     rewrite !plength_subst_inv -swap_later; iNext (plength p).
     iDestruct "Heqw" as %<-.
     iDestruct "Hp" as (d Hl φ) "#[Hlφ [_ #HφU]]".
@@ -49,7 +49,7 @@ Section Sec.
     Γ ⊨ tv v : T -∗
     Γ ⊨p pv v : T, 0.
   Proof.
-    iIntros "/= #Hp !>" (ρ) "#Hg".
+    iIntros "/= #Hp !>" (ρ) "Hg".
     iSpecialize ("Hp" with "Hg"); rewrite wp_value_inv'. by [].
   Qed.
 
@@ -58,7 +58,7 @@ Section Sec.
     (*─────────────────────────*)
     Γ ⊨p pself p l : T, i.
   Proof.
-    iIntros "#HE !>" (ρ) "#HG /=".
+    iIntros "#HE !>" (ρ) "HG /=".
     iApply (path_wp_wand with "(HE HG)"); iNext i.
     iIntros (v) "{HE} #Hv".
     iDestruct "Hv" as (d Hl vmem ->) "Hv".
@@ -71,7 +71,7 @@ Section Sec.
     Γ ⊨p p : TLater T, i -∗
     Γ ⊨p p : T, S i.
   Proof.
-    iIntros "/= #Hp !>" (ρ) "#Hg".
+    iIntros "/= #Hp !>" (ρ) "Hg".
     rewrite -swap_later -path_wp_later_swap.
     iApply (path_wp_wand with "(Hp Hg)"); iNext i.
     by iIntros (v) "$".
