@@ -70,6 +70,12 @@ Fixpoint plength p : nat :=
   | pself p _ => S (plength p)
   end.
 
+Fixpoint path2tm p: tm :=
+  match p with
+  | pv v => tv v
+  | pself p l => tproj (path2tm p) l
+  end.
+
 Definition dms_has ds l d := dms_lookup l ds = Some d.
 Definition dms_hasnt ds l := dms_lookup l ds = None.
 
@@ -379,7 +385,7 @@ Ltac simplOpen ds :=
     inversion H as (ds & -> & _)
   end.
 
-(** Determinacy of obj_opens_to. *)
+(** Determinacy of [objLookup]. *)
 Lemma objLookupDet v l d1 d2: v @ l ↘ d1 -> v @ l ↘ d2 -> d1 = d2.
 Proof. rewrite /objLookup => *; ev. by simplify_eq. Qed.
 Ltac objLookupDet :=

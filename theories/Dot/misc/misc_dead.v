@@ -91,12 +91,6 @@ Section path_wp.
     iDestruct (timeless_timelessN with "Hv") as "[H | H]"; eauto.
   Qed.
 
-  Fixpoint path2tm p: tm :=
-    match p with
-    | pv v => tv v
-    | pself p l => tproj (path2tm p) l
-    end.
-
   Lemma path_wp_exec p v :
     path_wp p (λ w, ⌜ w = v ⌝) ⊢@{iPropI Σ} ▷^(plength p) ⌜ PureExec True (plength p) (path2tm p) (tv v) ⌝.
   Proof.
