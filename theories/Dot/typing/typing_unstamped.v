@@ -5,7 +5,8 @@
   [stamp_typing_mut].
 *)
 From D Require Import tactics.
-From D.Dot Require Export syn stampingDefsCore.
+From D.Dot.syn Require Export syn path_repl.
+From D.Dot.stamping Require Export stampingDefsCore.
 
 Set Implicit Arguments.
 
@@ -28,6 +29,14 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ u⊢ₜ e1: TAll T1 T2 →                        Γ u⊢ₜ tv (var_vl x2) : T1 →
     (*────────────────────────────────────────────────────────────*)
     Γ u⊢ₜ tapp e1 (tv (var_vl x2)) : T2.|[(var_vl x2)/]
+
+| App_path_typed p2 e1 T1 T2 T2':
+    T2 .Tp[ p2 /]~ T2' →
+    is_unstamped_ty (length Γ) T2' →
+    Γ u⊢ₜ e1: TAll T1 T2 →
+    Γ u⊢ₚ p2 : T1, 0 →
+    (*────────────────────────────────────────────────────────────*)
+    Γ u⊢ₜ tapp e1 (path2tm p2) : T2'
 (** Non-dependent application; allowed for any argument. *)
 | App_typed e1 e2 T1 T2:
     Γ u⊢ₜ e1: TAll T1 T2.|[ren (+1)] →      Γ u⊢ₜ e2 : T1 →
@@ -70,6 +79,10 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ u⊢ₜ T1, 0 <: T2, i → Γ u⊢ₜ e : T1 →
     (*───────────────────────────────*)
     Γ u⊢ₜ iterate tskip i e : T2
+| Path_typed p T :
+    Γ u⊢ₚ p : T, 0 →
+    (*───────────────────────────────*)
+    Γ u⊢ₜ path2tm p : T
 (* A bit surprising this is needed, but appears in the DOT papers, and this is
    only admissible if t has a type U that is a proper subtype of TAnd T1 T2. *)
 | TAndI_typed T1 T2 x:
@@ -121,6 +134,39 @@ with path_typed Γ : path → ty → nat → Prop :=
     Γ u⊢ₚ p : T1, i →
     (*───────────────────────────────*)
     Γ u⊢ₚ p : T2, i + j
+| p_mu_i_typed p T {T' i} :
+    T .Tp[ p /]~ T' →
+    is_unstamped_ty (S (length Γ)) T →
+    Γ u⊢ₚ p : T', i →
+    Γ u⊢ₚ p : TMu T, i
+| p_mu_e_typed p T {T' i} :
+    T .Tp[ p /]~ T' →
+    is_unstamped_ty (length Γ) T' →
+    Γ u⊢ₚ p : TMu T, i →
+    Γ u⊢ₚ p : T', i
+| pself_inv_typed p T i l:
+    Γ u⊢ₚ pself p l : T, i →
+    (*─────────────────────────*)
+    Γ u⊢ₚ p : TVMem l T, i
+| pand_typed p T1 T2 i:
+    Γ u⊢ₚ p : T1, i →
+    Γ u⊢ₚ p : T2, i →
+    Γ u⊢ₚ p : TAnd T1 T2, i
+| psingleton_refl_typed T p i :
+    Γ u⊢ₚ p : T, i →
+    Γ u⊢ₚ p : TSing p, i
+| psingleton_sym_typed p q i:
+    Γ u⊢ₚ p : TSing q, i →
+    is_unstamped_path (length Γ) q →
+    Γ u⊢ₚ q : TSing p, i
+| psingleton_trans p q r i:
+    Γ u⊢ₚ p : TSing q, i →
+    Γ u⊢ₚ q : TSing r, i →
+    Γ u⊢ₚ p : TSing r, i
+| psingleton_elim T p q l i:
+    Γ u⊢ₚ p : TSing q, i →
+    Γ u⊢ₚ pself q l : T, i →
+    Γ u⊢ₚ pself p l : TSing (pself q l), i
 where "Γ u⊢ₚ p : T , i" := (path_typed Γ p T i)
 (* Γ u⊢ₜ T1, i1 <: T2, i2 means that TLater^i1 T1 <: TLater^i2 T2. *)
 with subtype Γ : ty → nat → ty → nat → Prop :=
@@ -185,6 +231,12 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 | LSel_stp p U {l L i}:
     Γ u⊢ₚ p : TTMem l L U, i →
     Γ u⊢ₜ TLater L, i <: TSel p l, i
+| PSub_singleton_stp p q {i T1 T2}:
+    T1 ~Tp[ p := q ]* T2 →
+    is_unstamped_ty (length Γ) T1 →
+    is_unstamped_ty (length Γ) T2 →
+    Γ u⊢ₚ p : TSing q, i →
+    Γ u⊢ₜ T1, i <: T2, i
 
 (* TODO: figure out if the drugs I had when I wrote these rules were good or bad. *)
 (* | SelU_stp l L U p i j: *)
@@ -263,7 +315,7 @@ Hint Extern 10 => try_once Trans_stp : core.
 
 Lemma unstamped_path_root_is_var Γ p T i:
   Γ u⊢ₚ p : T, i → ∃ x, path_root p = var_vl x.
-Proof. by elim; intros; cbn; eauto 2. Qed.
+Proof. by elim; intros; cbn; eauto 2 using is_unstamped_path_root. Qed.
 
 Lemma dtysem_not_utyped Γ V l d T :
   Γ |d V u⊢{ l := d } : T → ∀ σ s, d ≠ dtysem σ s.

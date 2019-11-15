@@ -17,7 +17,8 @@ Section syntyping_lemmas.
         (P0 := λ Γ V ds T _, Forall (is_stamped_dm (S (length Γ)) getStampTable) (map snd ds))
         (P1 := λ Γ V l d T _, is_stamped_dm (S (length Γ)) getStampTable d)
         (P2 := λ Γ p T i _, is_stamped_path (length Γ) getStampTable p);
-        cbn; intros; try by (with_is_stamped inverse + idtac); eauto.
+        cbn; intros; try by (with_is_stamped inverse + idtac);
+          eauto using is_stamped_path2tm.
     - repeat constructor => //=. by eapply lookup_lt_Some.
     - intros; elim: i {s} => [|i IHi]; rewrite /= ?iterate_0 ?iterate_S //; eauto.
     - move: e => [T' ?]; ev. by apply @Trav1.trav_dtysem with
