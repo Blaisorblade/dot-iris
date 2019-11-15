@@ -167,3 +167,13 @@ Proof. intros; decompose_Forall. exact: is_stamped_mono_vl. Qed.
 
 Hint Extern 5 (is_stamped_ty _ _ _) => try_once is_stamped_mono_ty : core.
 Hint Extern 5 (is_stamped_σ _ _ _) => try_once is_stamped_mono_σ : core.
+
+Lemma is_stamped_path2tm n g p :
+  is_stamped_path n g p →
+  is_stamped_tm n g (path2tm p).
+Proof. elim: p => /= [v|p IHp l] Hp; inversion Hp; auto. Qed.
+
+Lemma is_unstamped_path2tm n p :
+  is_unstamped_path n p →
+  is_unstamped_tm n (path2tm p).
+Proof. elim: p => /= [v|p IHp l] Hp; inversion Hp; auto. Qed.

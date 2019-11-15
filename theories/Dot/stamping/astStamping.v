@@ -107,6 +107,11 @@ Qed.
 Lemma unstamp_same_skel_tm e e_s g: unstamp_tm g e_s = e → same_skel_tm e e_s.
 Proof. apply unstamp_same_skel_mut. Qed.
 
+Lemma unstamp_path2tm g p :
+  unstamp_path g p = p →
+  unstamp_tm g (path2tm p) = path2tm p.
+Proof. elim: p => /= [v|p IHp l] [?]; f_equal; auto. Qed.
+
 (* Unused. *)
 (* Lemma stamped_idsσ g m n: Forall (is_stamped_vl m g) (idsσ n). *)
 (* Proof. pose proof (stamped_idsσ_ren g m n (+0)) as H. by asimpl in H. Qed. *)
