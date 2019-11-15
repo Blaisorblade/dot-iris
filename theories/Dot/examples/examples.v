@@ -126,9 +126,9 @@ Section ex.
     iApply "H".
     iApply DCons_I => //.
     - (* Can't finish with D_Typ_Abs, this is only for syntactic types: *)
-
-      (* iApply D_Typ_Abs => //.
-      admit. admit. cbn. iSplit => //. iExists _; iSplit => //. *)
+      (* From D.Dot Require Import typeExtractionSem.
+      iApply D_Typ_Abs => //; first last.
+      iExists _; iSplit => //=.  (* Here we need a syntactic type matching [ieven]. *) *)
       iModIntro.
       iIntros (ρ) "/= #_".
       iSplit => //. by iApply sHasA.

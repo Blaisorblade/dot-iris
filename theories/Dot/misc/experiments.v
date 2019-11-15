@@ -105,8 +105,8 @@ Section Sec.
     iSplit. iApply (timeless with "Hr").
     iIntros (e2 σ2 efs Hstep); iDestruct ("H" $! e2 σ2 efs Hstep) as "[_ [H H2]]".
     iSplit => //. iSplitR "H2"; first last.
-    iApply (timeless with "H2"). admit.
-    iSpecialize ("IH" with "H").
+    unshelve (iApply (timeless with "H2")); first last.
+    2: iSpecialize ("IH" with "H").
   Abort.
 
   (** Rename. *)
@@ -282,14 +282,13 @@ Section Sec.
     (Prefl : ∀ x, P 0 x x) (Pstep : ∀ x y z n, relations.nsteps R n x y → R y z → P n x y → P (S n) x z) :
     ∀ x z n, relations.nsteps R n x z → P n x z.
   Proof.
-    cut (∀ y z m n, relations.nsteps R n y z → ∀ x, relations.nsteps R m x y → P m x y → P (m + n) x z).
-    admit.
+    cut (∀ y z m n, relations.nsteps R n y z → ∀ x, relations.nsteps R m x y → P m x y → P (m + n) x z); first last.
     (* { eauto using relations.nsteps_0. } *)
     Search _ (_ + S _ = S (_ + _)).
     induction 1; rewrite /= ?Nat.add_0_r; eauto using nsteps_trans, nsteps_r.
     intros. eapply Pstep. [apply H1|..]. nsteps_r.
-  Qed.
-  *)
+  Abort. *)
+
 
   (* Lemma self_sem_psingleton p:
     nclosed p 0 → path_wp p (sem_psingleton p []).
