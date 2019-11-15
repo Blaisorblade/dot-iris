@@ -54,13 +54,6 @@ Implicit Types
          (T : ty) (v : vl) (t : tm) (d : dm) (ds : dms) (p : path)
          (Γ : ctx) (vs : vls) (l : label).
 
-Definition label_of_ty T : option label :=
-  match T with
-  | TTMem l _ _ => Some l
-  | TVMem l _ => Some l
-  | _ => None
-  end.
-
 Fixpoint dms_lookup l ds : option dm :=
   match ds with
   | [] => None

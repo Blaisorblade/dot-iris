@@ -168,6 +168,13 @@ Section logrel.
     | _ => False
     end%I.
 
+  Definition label_of_ty T : option label :=
+    match T with
+    | TTMem l _ _ => Some l
+    | TVMem l _ => Some l
+    | _ => None
+    end.
+
   Definition def_interp (T : ty) l : envPred dm Σ :=
     λ ρ d,
     (⌜ label_of_ty T = Some l ⌝ ∧ def_interp_base T ρ d)%I.
