@@ -70,10 +70,77 @@ Lemma path_wp_pure_swap p w :
   path_wp_pure p (eq w).
 Proof. split => Hp; exact: path_wp_pure_wand. Qed.
 
+Definition alias_paths p q :=
+  path_wp_pure q (λ vp, path_wp_pure p (eq vp)).
+
+Lemma alias_paths_pv_eq_1 p vr :
+  alias_paths p (pv vr) ↔ path_wp_pure p (eq vr).
+Proof. done. Qed.
+
+Hint Extern 1 (path_wp_pure _ _) => by apply path_wp_pure_swap : core.
+
+Lemma alias_paths_pv_eq_2 p vr :
+  alias_paths (pv vr) p ↔ path_wp_pure p (eq vr).
+Proof. by rewrite -path_wp_pure_swap. Qed.
+
+Lemma alias_paths_self p v :
+  alias_paths p (pv v) → alias_paths p p.
+Proof.
+  rewrite alias_paths_pv_eq_1 /alias_paths !path_wp_pure_eq; naive_solver.
+Qed.
+
+Lemma alias_paths_refl_vl v :
+  alias_paths (pv v) (pv v).
+Proof. done. Qed.
+
+Lemma alias_paths_sameres p q:
+  alias_paths p q ↔
+  ∃ v,
+    path_wp_pure p (eq v) ∧
+    path_wp_pure q (eq v).
+Proof. rewrite /alias_paths !path_wp_pure_eq; naive_solver. Qed.
+
+Lemma alias_paths_symm p q :
+  alias_paths p q ↔ alias_paths q p.
+Proof. rewrite !alias_paths_sameres. naive_solver. Qed.
+Lemma alias_paths_symm' p q :
+  alias_paths p q → alias_paths q p.
+Proof. apply alias_paths_symm. Qed.
+
+Lemma alias_paths_trans p q r :
+  alias_paths p q → alias_paths q r → alias_paths p r.
+Proof.
+  rewrite !alias_paths_sameres => -[v [Hpv Hqv]] [w [Hqw Hrw]].
+  have Heq: v = w by exact: path_wp_pure_det. simplify_eq; eauto.
+Qed.
+
+(* XXX For Iris *)
+Hint Extern 1 (environments.envs_entails _ (_ ∗-∗ _)) => iSplit : core.
+
+Lemma alias_paths_samepwp_pure p q:
+  alias_paths p q ↔
+    (∃ u, path_wp_pure p (eq u)) ∧
+    ∀ Pv, path_wp_pure p Pv ↔ path_wp_pure q Pv.
+Proof.
+  rewrite alias_paths_sameres; split.
+  - destruct 1 as (v & Hp & Hq).
+    split. by eauto. intros Pv.
+    rewrite !path_wp_pure_eq.
+    f_equiv => w; split => -[Hr];
+      [ rewrite -(path_wp_pure_det Hp Hr)
+      | rewrite -(path_wp_pure_det Hq Hr)]; auto.
+  - intros [[u Hp] Heq]. exists u.
+    split; by [|rewrite -Heq].
+Qed.
+
+Lemma alias_paths_elim_eq_pure Pv {p q}:
+  alias_paths p q →
+  path_wp_pure p Pv ↔ path_wp_pure q Pv.
+Proof. move => /alias_paths_samepwp_pure [_]. apply. Qed.
+
 Section path_wp.
   Context `{HdlangG: dlangG Σ}.
   Implicit Types (φ : vl -d> iPropO Σ).
-  Notation path_wp_purel p Pv := (⌜path_wp_pure p Pv⌝ : iProp Σ)%I.
 
   (** A simplified variant of weakest preconditions for path evaluation.
       The difference is that path evaluation is completely pure, and
@@ -109,7 +176,7 @@ Section path_wp.
   Qed.
 
   Lemma path_wp_pureable p Pv:
-    path_wp p (λ v, ⌜Pv v⌝) ⊣⊢ path_wp_purel p Pv.
+    path_wp p (λ v, ⌜Pv v⌝) ⊣⊢ ⌜path_wp_pure p Pv⌝.
   Proof.
     elim: p Pv => /= [//|p IHp l] Pv.
     by rewrite -{}IHp; f_equiv => v; iIntros "!% /=".
