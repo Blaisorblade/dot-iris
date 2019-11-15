@@ -150,8 +150,7 @@ Section logrel.
   Global Instance interp_lemmas: TyInterpLemmas ty Σ.
   Proof.
     split; induction T => sb1 sb2 w /=;
-      properness; rewrite /= ?scons_up_swap; trivial.
-    f_equiv; autosubst.
+      properness; rewrite /= ?scons_up_swap ?hsubst_comp; trivial.
   Qed.
 
   Notation "⟦ T ⟧ₑ" := (interp_expr ⟦ T ⟧).
