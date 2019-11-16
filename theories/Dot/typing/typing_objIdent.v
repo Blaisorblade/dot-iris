@@ -89,11 +89,15 @@ with dm_typed Γ : ty → label → dm → ty → Prop :=
     TLater V :: Γ |⊢ₜ TLater L, 0 <: TLater T, 0 →
     TLater V :: Γ |⊢ₜ TLater T, 0 <: TLater U, 0 →
     Γ |d V |⊢{ l := dtysem σ s } : TTMem l L U
+| dvabs_typed V T1 T2 e l:
+    is_stamped_ty (S (length Γ)) getStampTable T1 →
+    T1.|[ren (+1)] :: V :: Γ |⊢ₜ e : T2 →
+    Γ |d V |⊢{ l := dvl (vabs e) } : TVMem l (TAll T1 T2)
 | dvl_typed V l v T:
-    V :: Γ |⊢ₜ tv v : T →
+    TLater V :: Γ |⊢ₜ tv v : T →
     Γ |d V |⊢{ l := dvl v } : TVMem l T
 | dvl_sub_typed V T1 T2 v l:
-    TLater V :: Γ |⊢ₜ T1, 1 <: T2, 1 →
+    TLater V :: Γ |⊢ₜ T1, 0 <: T2, 0 →
     Γ |d V |⊢{ l := dvl v } : TVMem l T1 →
     Γ |d V |⊢{ l := dvl v } : TVMem l T2
 where "Γ |d V |⊢{ l := d  } : T" := (dm_typed Γ V l d T)
@@ -173,10 +177,10 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 (* Type selections *)
 | SelU_stp p L {l U i}:
     Γ |⊢ₚ p : TTMem l L U, i →
-    Γ |⊢ₜ TSel p l, i <: iterate TLater (S (plength p)) U, i
+    Γ |⊢ₜ TSel p l, i <: TLater U, i
 | LSel_stp p U {l L i}:
     Γ |⊢ₚ p : TTMem l L U, i →
-    Γ |⊢ₜ iterate TLater (S (plength p)) L, i <: TSel p l, i
+    Γ |⊢ₜ TLater L, i <: TSel p l, i
 
 (* TODO: figure out if the drugs I had when I wrote these rules were good or bad. *)
 (* | SelU_stp l L U p i j: *)
@@ -210,7 +214,7 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     is_stamped_ty (length Γ) getStampTable T2 →
     Γ |⊢ₜ TAll T1 U1, i <: TAll T2 U2, i
 | TVMemCov_stp T1 T2 i l:
-    Γ |⊢ₜ TLater T1, i <: TLater T2, i →
+    Γ |⊢ₜ T1, i <: T2, i →
     Γ |⊢ₜ TVMem l T1, i <: TVMem l T2, i
 | TTMemConCov_stp L1 L2 U1 U2 i l:
     Γ |⊢ₜ TLater L2, i <: TLater L1, i →

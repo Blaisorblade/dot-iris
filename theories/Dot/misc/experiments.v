@@ -19,17 +19,46 @@ End ProofModeTry.
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
-  Lemma T_Forall_I' Γ T1 T2 e:
+  Lemma T_later_ctx Γ V T e:
+    TLater <$> (V :: Γ) ⊨ e : T -∗
+    (*─────────────────────────*)
+    TLater V :: Γ ⊨ e : T.
+  Proof. iApply ietp_weaken_ctx => ρ; cbn. by rewrite (TLater_ctx_sub Γ). Qed.
+
+  (*
+    Adapted from pDOT, not needed here, and we get an extra later :-|, tho it
+    matches [T_Mem_E']. *)
+  Lemma T_Mem_I Γ e T l:
+    Γ ⊨ tproj e l : T -∗
+    (*─────────────────────────*)
+    Γ ⊨ e : TVMem l (TLater T).
+  Proof.
+    iIntros "#HE /= !>" (ρ) "HG".
+    iSpecialize ("HE" with "HG").
+    rewrite (wp_bind_inv (fill [ProjCtx l])) /= /lang.of_val.
+    iApply (wp_wand with "HE"); iIntros "/=" (v) "HE".
+    rewrite wp_unfold /wp_pre/=.
+    remember (tproj (tv v) l) as v'.
+    iDestruct ("HE" $! () [] [] 0 with "[//]") as (Hs) "HE".
+    have {Hs} [w [Hhr Hl]]: ∃ w, head_step v' () [] (tv w) () [] ∧ v @ l ↘ dvl w. {
+      have Hhr: head_reducible v' ().
+        apply prim_head_reducible, ectxi_language_sub_redexes_are_values;
+          by [|move => -[]/= *; simplify_eq/=; eauto].
+      destruct Hhr as ([] & e2 & [] & efs & Hhr'); last now inversion Hhr'.
+      inversion Hhr' as [|??? w Hl|]; simplify_eq/=. eauto.
+    }
+    iDestruct ("HE" with "[%]") as "(_ & ? & _)"; first exact: head_prim_step.
+    rewrite wp_value_inv'. eauto.
+  Qed.
+
+  Lemma T_Forall_I' {Γ} T1 T2 e:
     TLater T1.|[ren (+1)] :: Γ ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.
-    iIntros "/= #HeT !>" (vs) "#HG".
-    rewrite -wp_value'. iExists _; iSplit; first done.
-    iIntros "!>" (v); rewrite -(decomp_s _ (v .: vs)).
-    iIntros "!> #Hv".
-    iApply ("HeT" $! (v .: vs) with "[$HG]").
-    by rewrite (interp_weaken_one T1 _ v).
+    iIntros "HeT"; iApply T_Forall_I;
+      iApply (ietp_weaken_ctx with "HeT").
+    iIntros (ρ) "[$ $]".
   Qed.
 
   Lemma TAll_Later_Swap0 Γ T U `{SwapPropI Σ}:
@@ -251,7 +280,8 @@ Section Sec.
     WP (tskip (tv v)) {{ sem_singleton w ρ }}.
   Proof. iIntros (H); rewrite -wp_pure_step_later // -wp_value' //=. Qed.
 
-  Definition sem_psingleton p ρ v : iProp Σ := path_wp p.|[ρ] (λ w, ⌜ w = v ⌝ )%I.
+  (* v : p.type *)
+  (* Definition sem_psingleton p ρ v : iProp Σ := path_wp p.|[ρ] (λ w, ⌜ w = v ⌝ )%I.
   Global Arguments sem_psingleton /.
   Global Instance: Persistent (sem_psingleton p ρ v) := _.
 
@@ -259,10 +289,10 @@ Section Sec.
   Proof. done. Qed.
 
   Lemma self_sem_psingleton p ρ v :
-    path_wp p.|[ρ] (λ w, ⌜ w = v ⌝) -∗ path_wp p.|[ρ] (sem_psingleton p ρ).
+    path_wp p.|[ρ] (λ w, ⌜ v = w ⌝) -∗ path_wp p.|[ρ] (sem_psingleton p ρ).
   Proof.
-    iIntros "#Heq /=".
-    iEval rewrite path_wp_eq plength_subst_inv. by iExists v; iFrame "Heq".
+    iIntros (Heq) "/=".
+    iEval rewrite path_wp_eq. iExists v; iFrame (Heq). iIntros "!%".
   Qed.
 
   Lemma T_self_sem_psingleton Γ p T i :
@@ -274,9 +304,9 @@ Section Sec.
   Proof.
     iIntros "#Hp !>" (vs) "#Hg".
     iSpecialize ("Hp" with "Hg"); iNext i.
-    rewrite !path_wp_eq plength_subst_inv.
+    rewrite !path_wp_eq.
     iDestruct "Hp" as (v) "(Heq & _)". by iExists v; iFrame "Heq".
-  Qed.
+  Qed. *)
 
   (* Lemma nsteps_ind_r_weak `(R : relation A) (P : nat → A → A → Prop)
     (Prefl : ∀ x, P 0 x x) (Pstep : ∀ x y z n, relations.nsteps R n x y → R y z → P n x y → P (S n) x z) :

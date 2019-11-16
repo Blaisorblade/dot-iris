@@ -86,7 +86,7 @@ Section Sec.
   Local Arguments def_interp_vmem: simpl never.
 
   Lemma TVMem_Sub V T1 T2 v l:
-    Γ |L V ⊨ T1, 1 <: T2, 1 -∗
+    Γ |L V ⊨ T1, 0 <: T2, 0 -∗
     Γ |L V ⊨ { l := dvl v } : TVMem l T1 -∗
     Γ |L V ⊨ { l := dvl v } : TVMem l T2.
   Proof.

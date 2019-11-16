@@ -64,6 +64,7 @@ unstamp_ty g (T: ty): ty :=
   | TTMem l T1 T2 => TTMem l (unstamp_ty g T1) (unstamp_ty g T2)
   | TVMem l T => TVMem l (unstamp_ty g T)
   | TSel p l => TSel (unstamp_path g p) l
+  | TSing p => TSing (unstamp_path g p)
   | TNat => T
   end.
 
@@ -139,8 +140,8 @@ Lemma unstamped_stamped_type T g n:
   is_stamped_ty n g T.
 Proof.
   move: n. induction T => n Hus; inverse Hus; constructor;
-    try by [|eapply IHT || eapply IHT1 || eapply IHT2; auto 2; auto with fv].
-  exact: unstamped_stamped_path.
+    try by [|eapply IHT || eapply IHT1 || eapply IHT2; auto 2; auto with fv];
+    exact: unstamped_stamped_path.
 Qed.
 
 Lemma unstamped_stamps_self_mut:

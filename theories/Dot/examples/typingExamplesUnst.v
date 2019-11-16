@@ -123,3 +123,159 @@ Proof.
   apply: Var_typed_sub; repeat tcrush; rewrite /= hsubst_id //.
   rewrite !hsubst_comp; f_equal. autosubst.
 Qed.
+
+Lemma Mu_stp' {Γ T T' i}:
+  T' = T.|[ren (+1)] →
+  is_unstamped_ty (length Γ) T →
+  Γ u⊢ₜ TMu T', i <: T, i.
+Proof. intros; subst. auto. Qed.
+
+Ltac hideCtx :=
+  match goal with
+  |- ?Γ' u⊢ₜ _, _ <: _, _ => set Γ := Γ'
+  end.
+
+(* FromPDotPaper *)
+
+Definition fromPDotPaperTypesTBody : ty := {@
+  typeEq "Type" TTop;
+  typeEq "TypeRef" $ TAnd (p0 @; "Type") {@
+    val "symb" : p1 @ "symbols" @; "Symbol"
+  };
+  val "AnyType" : TLater (p0 @; "Type");
+  val "newTypeRef" : TAll (p1 @ "symbols" @; "Symbol") (p1 @; "TypeRef")
+}.
+
+Definition fromPDotPaperAbsTypesTBody : ty := {@
+  type "Type" >: TBot <: TTop;
+  type "TypeRef" >: TBot <: TAnd (p0 @; "Type") {@
+    val "symb" : p1 @ "symbols" @; "Symbol"
+  };
+  val "AnyType" : TLater (p0 @; "Type");
+  val "newTypeRef" : TAll (p1 @ "symbols" @; "Symbol") (p1 @; "TypeRef")
+}.
+
+Definition fromPDotPaperTypesV : vl := ν {@
+  type "Type" = TTop;
+  type "TypeRef" = TAnd (p0 @; "Type") {@
+    val "symb" : p1 @ "symbols" @; "Symbol"
+  };
+  val "AnyType" = vnat 0 ; (* ν {@}; *)
+  val "newTypeRef" = (vabs $ tv $ ν {@
+    val "symb" = x1
+  })
+}.
+
+Definition fromPDotPaperSymbolsTBody : ty := {@
+  typeEq "Symbol" $ {@
+    val "tpe" : p1 @ "types" @; "Type";
+    val "name" : HashableString
+  }%ty;
+  val "newSymbol" : TAll (p1 @ "types" @; "Type") (TAll HashableString (p2 @; "Symbol"))
+}.
+
+Definition fromPDotPaperAbsSymbolsTBody : ty := {@
+  type "Symbol" >: TBot <: {@
+    val "tpe" : p1 @ "types" @; "Type";
+    val "name" : HashableString
+  };
+  val "newSymbol" : TAll (p1 @ "types" @; "Type") (TAll HashableString (p2 @; "Symbol"))
+}.
+
+Definition fromPDotPaperTBody : ty := {@
+  val "types" : μ fromPDotPaperTypesTBody;
+  val "symbols" : μ fromPDotPaperSymbolsTBody
+}.
+
+Definition fromPDotPaperAbsTBody : ty := {@
+  val "types" : μ fromPDotPaperAbsTypesTBody;
+  val "symbols" : μ fromPDotPaperAbsSymbolsTBody
+}.
+
+Definition fromPDotPaperSymbolsV : vl := ν {@
+  type "Symbol" = {@
+    val "tpe" : p1 @ "types" @; "Type";
+    val "name" : HashableString
+  };
+  val "newSymbol" = (vabs $ tv $ vabs $ tv $ ν {@
+    val "tpe" = x2;
+    val "name" = x1
+  })
+}.
+
+Definition fromPDotPaper : vl := ν {@
+  val "types" = fromPDotPaperTypesV;
+  val "symbols" = fromPDotPaperSymbolsV
+}.
+
+Example fromPDotPaperTypesTyp :
+  TLater fromPDotPaperAbsTBody :: [] u⊢ₜ
+    tv fromPDotPaperTypesV : μ fromPDotPaperTypesTBody.
+Proof.
+  tcrush.
+  - eapply (Subs_typed_nocoerce TNat); first tcrush.
+    eapply (Trans_stp (T2 := TTop) (i2 := 0)); tcrush.
+    eapply (Trans_stp (i2 := 1)); [exact: AddI_stp | ].
+    eapply Trans_stp; last (apply TLaterR_stp; tcrush).
+    eapply (LSel_stp' _ ⊤); tcrush.
+    eapply Var_typed_sub; [ done | apply Sub_later_shift; cbn; tcrush].
+  - eapply (Subs_typed_nocoerce) => /=.
+    + repeat first [exact: Var_typed' | typconstructor | tcrush].
+    + hideCtx.
+      eapply Trans_stp; first last.
+      eapply LSel_stp'; first last.
+      * constructor; eapply Var_typed_sub => //=.
+        eapply Trans_stp; first apply TAnd2_stp; tcrush.
+      * tcrush.
+      * tcrush; last apply Bind1; tcrush.
+        eapply (Trans_stp (T2 := ⊤)); tcrush.
+        eapply LSel_stp'; tcrush.
+        apply: Var_typed_sub; [ tcrush .. ].
+Qed.
+
+Example fromPDotPaperTypesAbsTyp :
+  TLater fromPDotPaperAbsTBody :: [] u⊢ₜ
+    tv fromPDotPaperTypesV : μ fromPDotPaperAbsTypesTBody.
+Proof.
+  eapply Subs_typed_nocoerce; first exact: fromPDotPaperTypesTyp; tcrush.
+  - eapply Trans_stp; first apply TAnd1_stp; tcrush.
+  - eapply Trans_stp; first apply TAnd2_stp; tcrush.
+    eapply Trans_stp; first apply TAnd1_stp; tcrush.
+  - eapply Trans_stp; first apply TAnd2_stp; tcrush.
+    eapply Trans_stp; first apply TAnd2_stp; tcrush.
+  - eapply Trans_stp; first apply TAnd2_stp; tcrush.
+    eapply Trans_stp; first apply TAnd2_stp; tcrush.
+    eapply Trans_stp; first apply TAnd2_stp; tcrush.
+Qed.
+
+Example fromPDotPaperSymbolsTyp :
+  TLater fromPDotPaperAbsTBody :: [] u⊢ₜ
+    tv fromPDotPaperSymbolsV : μ fromPDotPaperSymbolsTBody.
+Proof.
+  tcrush.
+  - eapply (Subs_typed_nocoerce) => /=.
+    + repeat first [exact: Var_typed' | typconstructor | tcrush].
+    + hideCtx.
+      eapply Trans_stp; first last.
+      eapply LSel_stp'; first last.
+      * constructor; eapply Var_typed_sub => //=.
+        tcrush.
+      * tcrush.
+      * tcrush; apply Bind1; tcrush.
+        eapply Trans_stp; first apply TAnd2_stp; tcrush.
+Qed.
+
+Example fromPDotPaperSymbolsAbsTyp :
+  TLater fromPDotPaperAbsTBody :: [] u⊢ₜ
+    tv fromPDotPaperSymbolsV : μ fromPDotPaperAbsSymbolsTBody.
+Proof.
+  eapply Subs_typed_nocoerce; first exact: fromPDotPaperSymbolsTyp; tcrush.
+  eapply Trans_stp; first apply TAnd1_stp; tcrush.
+Qed.
+
+Example fromPDotPaperTyp : [] u⊢ₜ tv fromPDotPaper : μ fromPDotPaperAbsTBody.
+Proof.
+  pose proof fromPDotPaperTypesAbsTyp.
+  pose proof fromPDotPaperSymbolsAbsTyp.
+  repeat first [done | typconstructor | stcrush].
+Qed.

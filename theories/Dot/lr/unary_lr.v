@@ -35,7 +35,7 @@ Section logrel.
   Implicit Types (interp φ : envD Σ) (ψ : D).
 
   Definition def_interp_vmem interp : envPred dm Σ :=
-    λ ρ d, (∃ vmem, ⌜d = dvl vmem⌝ ∧ ▷ interp ρ vmem)%I.
+    λ ρ d, (∃ vmem, ⌜d = dvl vmem⌝ ∧ interp ρ vmem)%I.
   Global Arguments def_interp_vmem /.
 
   Definition dm_to_type d ψ : iProp Σ :=
@@ -131,6 +131,10 @@ Section logrel.
       (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ψ ∧ ▷ □ ψ v))%I.
   Global Arguments interp_sel /.
 
+  Definition interp_sing p : envD Σ :=
+    λ ρ v, ⌜alias_paths p.|[ρ] (pv v)⌝%I.
+  Global Arguments interp_sing /.
+
   Global Instance interp : TyInterp ty Σ := fix interp (T : ty) : envD Σ :=
     let _ := interp : TyInterp ty Σ in
     match T with
@@ -145,6 +149,7 @@ Section logrel.
     | TAll T1 T2 => interp_forall (⟦ T1 ⟧) (⟦ T2 ⟧)
     | TMu T => interp_mu (⟦ T ⟧)
     | TSel p l => interp_sel p l
+    | TSing p => interp_sing p
     end % I.
 
   Global Instance interp_lemmas: TyInterpLemmas ty Σ.
@@ -296,7 +301,7 @@ Section logrel_lemmas.
 
   Lemma def_interp_tvmem_eq l T v ρ:
     def_interp (TVMem l T) l ρ (dvl v) ⊣⊢
-    ▷ ⟦ T ⟧ ρ v.
+    ⟦ T ⟧ ρ v.
   Proof.
     iSplit. by iDestruct 1 as (_ vmem [= ->]) "$".
     iIntros "H"; iSplit; first done; iExists v. by auto.

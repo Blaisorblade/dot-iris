@@ -84,6 +84,7 @@ Fixpoint same_skel_ty (T1 T2: ty): Prop :=
     l1 = l2 ∧ same_skel_ty T11 T21 ∧ same_skel_ty T12 T22
   | (TSel p1 l1, TSel p2 l2) => same_skel_path p1 p2 ∧ l1 = l2
   | (TNat, TNat) => True
+  | (TSing p1, TSing p2) => same_skel_path p1 p2
   | _ => False
   end.
 

@@ -98,6 +98,9 @@ Section fold.
   | trav_TSel ts p l:
       forall_traversal_path ts p →
       forall_traversal_ty ts (TSel p l)
+  | trav_TSing ts p:
+      forall_traversal_path ts p →
+      forall_traversal_ty ts (TSing p)
   | trav_TNat ts: forall_traversal_ty ts TNat
     .
 End fold.
@@ -236,6 +239,9 @@ Section fold.
   | trav_TSel ts p1 p2 l:
       forall_traversal_path ts p1 p2 →
       forall_traversal_ty ts (TSel p1 l) (TSel p2 l)
+  | trav_TSing ts p1 p2:
+      forall_traversal_path ts p1 p2 →
+      forall_traversal_ty ts (TSing p1) (TSing p2)
   | trav_TNat ts: forall_traversal_ty ts TNat TNat.
 
   Definition forall_traversal_dms: travStateT → dms → dms → Prop :=
@@ -315,6 +321,7 @@ Section fold.
     | (TTMem l1 T11 T12, TTMem l2 T21 T22) =>
       l1 = l2 ∧ forall_traversal_ty ts T11 T21 ∧ forall_traversal_ty ts T12 T22
     | (TSel p1 l1, TSel p2 l2) => forall_traversal_path ts p1 p2 ∧ l1 = l2
+    | (TSing p1, TSing p2) => forall_traversal_path ts p1 p2
     | (TNat, TNat) => True
     | _ => False
     end.

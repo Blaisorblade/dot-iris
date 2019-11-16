@@ -82,12 +82,7 @@ Lemma LSel_stp' Γ U {p l L i}:
   is_unstamped_ty (length Γ) L →
   Γ u⊢ₚ p : TTMem l L U, i →
   Γ u⊢ₜ L, i <: TSel p l, i.
-Proof.
-  intros.
-  eapply Trans_stp; last exact: (@LSel_stp _ p).
-  induction (plength p); rewrite /= ?iterate_0 ?iterate_S; tcrush.
-  eapply Trans_stp; first exact: TAddLater_stp; tcrush.
-Qed.
+Proof. intros; eapply Trans_stp; last exact: (@LSel_stp _ p); tcrush. Qed.
 
 Lemma AddI_stp Γ T i (Hst: is_unstamped_ty (length Γ) T) :
   Γ u⊢ₜ T, 0 <: T, i.
