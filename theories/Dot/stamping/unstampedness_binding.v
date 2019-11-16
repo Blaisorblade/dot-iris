@@ -158,15 +158,10 @@ Proof.
   move => /= Hr x Hx. specialize (Hr x Hx); inverse Hr. exact: nclosed_vl_ids.
 Qed.
 
-Lemma is_unstamped_ren_varpath p r i j:
-  is_unstamped_ren i j r →
-  is_unstamped_path i p →
-  (∃ x : var, path_root p = var_vl x) →
-  ∃ x : var, path_root (rename r p) = var_vl x.
-Proof.
-  intros; induction p as [[]|]; ev; simplify_eq/=;
-  with_is_unstamped inverse; eauto.
-Qed.
+Lemma is_unstamped_ren_var v r:
+  (∃ x : var, v = var_vl x) →
+  ∃ x : var, rename r v = var_vl x.
+Proof. naive_solver. Qed.
 
 Lemma is_unstamped_ren_mut:
   (∀ t r i j,
@@ -191,7 +186,7 @@ Lemma is_unstamped_ren_mut:
     is_unstamped_ty j (rename r T)).
 Proof.
   apply syntax_mut_ind; intros; with_is_unstamped ltac:(fun H => inversion_clear H);
-    cbn in *; try by [|eauto using is_unstamped_ren_varpath].
+    cbn in *; try by [|eauto using is_unstamped_ren_var].
   - constructor; rewrite list_pair_swap_snd_rename Forall_fmap;
       by decompose_Forall; eauto.
 Qed.
@@ -320,14 +315,10 @@ Lemma is_unstamped_ren1_ty i T:
 Proof. exact: is_unstamped_sub_ren_ty. Qed.
 
 
-Lemma is_unstamped_sub_rev_varpath p s i:
-  is_unstamped_path i p.|[s] →
-  (∃ x : var, path_root p.|[s] = var_vl x) →
-  ∃ x : var, path_root p = var_vl x.
-Proof.
-  intros Hup [x ?]; induction p as [[]|]; simplify_eq/=;
-    with_is_unstamped inverse; eauto.
-Qed.
+Lemma is_unstamped_sub_rev_var v s:
+  (∃ x : var, v.[s] = var_vl x) →
+  ∃ x : var, v = var_vl x.
+Proof. intros [x ?]; destruct v; simplify_eq; eauto. Qed.
 
 Lemma is_unstamped_sub_rev_mut:
   (∀ e i,
@@ -359,7 +350,7 @@ Proof.
   apply nclosed_syntax_mut_ind => /=; intros;
     with_is_unstamped ltac:(fun H => try nosplit (inverse H)); ev;
     try by [| constructor;
-      eauto 3 using eq_up, is_unstamped_sub_rev_varpath with lia].
+      eauto 3 using eq_up, is_unstamped_sub_rev_var with lia].
   - auto using nclosed_var_lt.
   - unfold hsubst, list_hsubst in *.
     constructor => /=.

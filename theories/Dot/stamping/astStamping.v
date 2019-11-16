@@ -121,14 +121,17 @@ Definition stamp_dtysyn g n T :=
   let '(g', (s, σ)) := (extract g n T) in
   (dtysem σ s, g').
 
+Lemma unstamped_stamped_var n g x :
+  is_unstamped_vl n (var_vl x) → is_stamped_vl n g (var_vl x).
+Proof. inversion_clear 1; auto. Qed.
+
 (** Unstamped types are already stamped, because they can't contain type
     definitions to stamp. *)
 Lemma unstamped_stamped_path p g n:
-  (∃ x, path_root p = var_vl x) →
   is_unstamped_path n p → is_stamped_path n g p.
 Proof.
-  intros Heq Hus; induction p; ev; simplify_eq/=;
-    repeat with_is_unstamped ltac:(fun H => nosplit inverse H; clear H); eauto.
+  intros Hus; induction p; repeat with_is_unstamped ltac:(fun H => nosplit inverse H; clear H);
+    naive_solver eauto using unstamped_stamped_var.
 Qed.
 
 Lemma unstamped_stamped_type T g n:

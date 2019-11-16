@@ -30,7 +30,7 @@ Definition is_unstamped_trav: Traversal nat :=
     varP := λ n i, i < n;
     dtysynP := λ _ T, True;
     dtysemP := λ _ vs s T' ts', False;
-    pathP := λ s p, ∃ x, path_root p = var_vl x;
+    pathRootP := λ _ v, ∃ x, v = var_vl x;
   |}.
 
 Definition is_stamped_trav: Traversal (nat * stys) :=
@@ -39,7 +39,7 @@ Definition is_stamped_trav: Traversal (nat * stys) :=
     varP := λ '(n, g) i, i < n;
     dtysynP := λ ts T, False;
     dtysemP := λ '(n, g) vs s T' '(n', g'), valid_stamp g g' n' vs s T';
-    pathP := λ ts p, True;
+    pathRootP := λ ts v, True;
   |}.
 
 Notation is_unstamped_tm n := (forall_traversal_tm is_unstamped_trav n).
@@ -108,6 +108,10 @@ Ltac with_is_stamped tac :=
     | H: is_stamped_dm _ _ _ |- _ => tac H
     | H: is_stamped_path _ _ _ |- _ => tac H
   end.
+
+Lemma is_unstamped_path_root n p :
+  is_unstamped_path n p → ∃ x, path_root p = var_vl x.
+Proof. elim p => /= *; with_is_unstamped inverse; auto 2. Qed.
 
 (** * Stamping is monotone wrt stamp table extension. *)
 Lemma not_stamped_dtysyn g n T:
