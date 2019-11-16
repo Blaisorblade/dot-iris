@@ -142,6 +142,26 @@ Proof.
     try by [|eapply IHT || eapply IHT1 || eapply IHT2; auto 2; auto with fv].
   exact: unstamped_stamped_path.
 Qed.
+
+Lemma unstamped_stamps_self_mut:
+  (∀ t g n, is_unstamped_tm n t → unstamp_tm g t = t) ∧
+  (∀ v g n, is_unstamped_vl n v → unstamp_vl g v = v) ∧
+  (∀ d g n, is_unstamped_dm n d → unstamp_dm g d = d) ∧
+  (∀ p g n, is_unstamped_path n p → unstamp_path g p = p) ∧
+  (∀ T g n, is_unstamped_ty n T → unstamp_ty g T = T).
+Proof.
+  apply syntax_mut_ind;
+  try by intros; with_is_unstamped inverse; simplify_eq/=; f_equal; eauto 2; by destruct (g !! s).
+  elim => [//|[l d] ds /= IHds] IH g n Hus. inverse IH.
+  have [Hd Hds]: is_unstamped_dm (S n) d ∧ is_unstamped_dms (S n) ds.
+  by inversion Hus as [ | | | ?? Hds]; simplify_eq/=; inverse Hds.
+  einjection IHds => // *; repeat f_equal; eauto 2.
+Qed.
+
+Lemma unstamped_stamps_self_path g n p: is_unstamped_path n p →
+  unstamp_path g p = p.
+Proof. apply unstamped_stamps_self_mut. Qed.
+
 Arguments extraction: simpl never.
 Import traversals.Trav1.
 
@@ -183,6 +203,12 @@ Proof.
   elim: p_s p_u => /= [v_s|p_s IHp l] [] *;
     simplify_eq/=; f_equal; eauto using var_stamps_to_self1.
 Qed.
+
+(* Lemma path_stamps_to_self2 g n p_s p_u: is_unstamped_path n p_u → unstamp_path g p_s = p_u → p_s = p_u.
+Proof.
+  elim: p_s p_u => /= [v_s|p_s IHp l] [] *; with_is_unstamped inverse; cbn in *; ev;
+    simplify_eq/=; f_equal; eauto using var_stamps_to_self1.
+Qed. *)
 
 Lemma unstamp_dms_hasnt ds ds' l g: dms_hasnt ds l → unstamp_dms g ds' = ds → dms_hasnt ds' l.
 Proof.
