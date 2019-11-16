@@ -14,7 +14,7 @@ Record Traversal {travStateT: Type} :=
     varP: travStateT → nat → Prop;
     dtysynP: travStateT → ty → Prop;
     dtysemP: travStateT → vls → stamp → ty → travStateT → Prop;
-    tselP: travStateT → path → Prop;
+    pathP: travStateT → path → Prop;
   }.
 
 Global Arguments Traversal _: clear implicits.
@@ -96,7 +96,7 @@ Section fold.
       forall_traversal_ty ts (TTMem l T1 T2)
   | trav_TSel ts p l:
       forall_traversal_path ts p →
-      trav.(tselP) ts p →
+      trav.(pathP) ts p →
       forall_traversal_ty ts (TSel p l)
   | trav_TNat ts: forall_traversal_ty ts TNat
     .
@@ -106,7 +106,7 @@ Global Arguments upS /.
 Global Arguments varP /.
 Global Arguments dtysynP /.
 Global Arguments dtysemP /.
-Global Arguments tselP /.
+Global Arguments pathP /.
 
 Notation forall_traversal_dms trav ts ds := (Forall (forall_traversal_dm trav ts) (map snd ds)).
 Global Hint Constructors forall_traversal_vl forall_traversal_tm forall_traversal_dm
@@ -115,7 +115,7 @@ Global Hint Constructors forall_traversal_vl forall_traversal_tm forall_traversa
 Global Hint Extern 0 (varP _ _ _) => cbn : core.
 Global Hint Extern 0 (dtysynP _ _ _) => cbn : core.
 Global Hint Extern 0 (dtysemP _ _ _) => cbn : core.
-Global Hint Extern 0 (tselP _ _ _) => cbn : core.
+Global Hint Extern 0 (pathP _ _ _) => cbn : core.
 End Trav1.
 
 Definition tmemc: Type := ty + vls * stamp.

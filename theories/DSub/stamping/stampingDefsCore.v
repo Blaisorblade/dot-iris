@@ -22,7 +22,7 @@ Definition is_unstamped_trav: Traversal unit :=
     varP := λ s n, True;
     vtyP := λ s T, True;
     vstampP := λ ts vs s T' ts', False;
-    tselP := λ s v, ∃ x, v = var_vl x;
+    pathP := λ s v, ∃ x, v = var_vl x;
   |}.
 
 Definition is_stamped_trav: Traversal (nat * stys) :=
@@ -31,7 +31,7 @@ Definition is_stamped_trav: Traversal (nat * stys) :=
     varP := λ '(n, g) i, i < n;
     vtyP := λ ts T, False;
     vstampP := λ '(n, g) vs s T' '(n', g'), valid_stamp g g' n' vs s T';
-    tselP := λ ts v, True;
+    pathP := λ ts v, True;
   |}.
 
 Notation is_unstamped_tm := (forall_traversal_tm is_unstamped_trav ()).
