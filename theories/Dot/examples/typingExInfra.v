@@ -76,8 +76,6 @@ Hint Constructors typed subtype dms_typed dm_typed path_typed : core.
 Remove Hints Trans_stp : core.
 Hint Extern 10 => try_once Trans_stp : core.
 
-Hint Extern 5 => try_once is_stamped_mono_ty : core.
-
 Hint Resolve is_stamped_idsσ_ren : core.
 
 (*******************)
