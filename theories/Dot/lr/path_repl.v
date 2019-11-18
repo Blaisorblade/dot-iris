@@ -4,7 +4,7 @@ From D Require Import iris_prelude.
 From D Require lty olty_experiments.
 From D.Dot.syn Require Import syn path_repl rules synLemmas.
 From D.Dot.lr Require Import path_wp dlang_inst.
-From D.Dot.lr Require unary_lr lr_lemma.
+From D.Dot.lr Require unary_lr lr_lemma (* XXX *) lr_lemmasTSel.
 From iris.program_logic Require Import ectx_language.
 From D.pure_program_logic Require Import lifting.
 
@@ -68,7 +68,7 @@ Section path_repl.
   Definition alias_pathsI p q : iProp Σ := ⌜alias_paths p q⌝.
 
   Section with_unary_lr.
-  Import unary_lr lr_lemma.
+  Import unary_lr lr_lemma lr_lemmasTSel.
   Implicit Types (Γ : ctx).
 
   Lemma rewrite_path_path_repl {p q p1 p2 ρ v}:
@@ -230,6 +230,28 @@ Section path_repl.
     iIntros "#Hep !>" (ρ) "#Hg /="; rewrite path2tm_subst.
     by iApply (path_wp_to_wp with "(Hep Hg)").
   Qed.
+  (** Non-pDOT rules start: *)
+
+  Lemma singleton_self_sub Γ p T i :
+    Γ ⊨p p : T, i -∗
+    Γ ⊨ TSing p, i <: T, i.
+  Proof.
+    iIntros "#Hp !>" (ρ v) "Hg /= Heq".
+    iSpecialize ("Hp" with "Hg"). iNext i.
+    by iDestruct "Heq" as %->%(alias_paths_elim_eq (⟦ T ⟧ ρ)).
+  Qed.
+
+  Lemma singleton_sym_sub Γ p q T i:
+    Γ ⊨p p : T, i -∗ (* Just to ensure [p] terminates and [TSing p] isn't empty. *)
+    Γ ⊨ TSing p, i <: TSing q, i -∗
+    Γ ⊨ TSing q, i <: TSing p, i.
+  Proof.
+    iIntros "#Hp #Hps !>" (ρ v) "#Hg /= Heq".
+    iDestruct (path_wp_eq with "(Hp Hg)") as (w) "[Hpw _] {Hp}".
+    iSpecialize ("Hps" $! _ w with "Hg Hpw"); iNext i; rewrite !alias_paths_pv_eq_1.
+    iDestruct "Hps" as %Hqw; iDestruct "Hpw" as %Hpw; iDestruct "Heq" as %Hqv; iIntros "!%".
+    by rewrite (path_wp_pure_det Hqv Hqw).
+  Qed.
 
   (* Not too useful. *)
   (* Lemma singleton_self_skip Γ τ p i :
@@ -241,14 +263,32 @@ Section path_repl.
     by iIntros "!> * _ $".
   Qed. *)
 
+  Lemma singleton_self_inv Γ p q i :
+    Γ ⊨p p : TSing q, i -∗
+    Γ ⊨p q : TTop, i.
+  Proof.
+    iIntros "#Hpq !>" (ρ) "#Hg /=".
+    iDestruct (singleton_aliasing with "Hpq Hg") as "Hal {Hpq Hg}".
+    iNext i. iDestruct "Hal" as %(v & _ & Hqv)%alias_paths_sameres. iIntros "!%".
+    by apply (path_wp_pure_wand Hqv).
+  Qed.
+
+  (* Thanks to the rules above, this non-pDOT rule becomes derivable. *)
   Lemma singleton_sym Γ p q i:
     Γ ⊨p p : TSing q, i -∗
     Γ ⊨p q : TSing p, i.
   Proof.
-    iIntros "#Hep !>" (ρ) "#Hg".
-    iDestruct (singleton_aliasing with "Hep Hg") as "Hal". iNext i. iDestruct "Hal" as %Hal.
-    iIntros "!%". by eapply alias_paths_simpl, alias_paths_symm.
+    iIntros "#Hpq". iEval (rewrite -(plusnO i)).
+    iApply (P_Sub _ _ _ _ i 0); rewrite ?plusnO; first last.
+    iApply (singleton_sym_sub with "Hpq"). iApply (singleton_self_sub with "Hpq").
+    iApply singleton_self.
+    iApply (singleton_self_inv with "Hpq").
+    (* Restart.
+    iIntros "#Hpq !>" (ρ) "#Hg".
+    iDestruct (singleton_aliasing with "Hpq Hg") as "Hal". iNext i. iDestruct "Hal" as %Hal.
+    iIntros "!%". by eapply alias_paths_simpl, alias_paths_symm. *)
   Qed.
+  (** Non-pDOT rules end. *)
 
   Lemma singleton_trans Γ p q r i:
     Γ ⊨p p : TSing q, i -∗
