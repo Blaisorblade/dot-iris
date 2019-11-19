@@ -78,19 +78,19 @@ Notation s1 := (1 % positive).
 Notation σ2 := ([] : vls).
 Notation s2 := (2 % positive).
 
-Check ν {@ val "a" = vnat 0 }.
+Check ν {@ val "a" = pv (vnat 0) }.
 
 Check ν {@ type "A" = (σ1 ; s1) }.
-Check ν {@ val "a" = vnat 0; type "A" = (σ1 ; s1) }.
+Check ν {@ val "a" = pv (vnat 0); type "A" = (σ1 ; s1) }.
 Check μ {@ type "A" >: TNat <: TTop }.
 Check μ {@ val "a" : TNat }.
 Check μ {@ type "A" >: TNat <: TTop ; val "a" : TNat ; val "b" : TNat }.
 
 Check vobj {@}.
 Check ν {@ }.
-Check ν {@ val "a" = vnat 0 }.
-Check ν {@ val "a" = vnat 0 ; val "b" = vnat 1 }.
-Check ν {@ val "a" = vnat 0 ; type "A" = (σ1 ; s1) }.
+Check ν {@ val "a" = pv (vnat 0) }.
+Check ν {@ val "a" = pv (vnat 0) ; val "b" = pv (vnat 1) }.
+Check ν {@ val "a" = pv (vnat 0) ; type "A" = (σ1 ; s1) }.
 
 (* Notation "v @ l1 @ .. @ l2 ; l" := (TSel (pself .. (pself (pv v) l1) .. l2) l) *)
 (*                                      (format "v  @  l1  @  ..  @  l2  ;  l", at level 69, l1, l2 at level 60). *)

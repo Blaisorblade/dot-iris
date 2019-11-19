@@ -18,7 +18,7 @@ Proof. by elim: p => /= [//|p -> l]. Qed.
 (** * Pure path weakest precondition. *)
 Fixpoint path_wp_pure p Pv : Prop :=
   match p with
-  | pself p l => path_wp_pure p (λ v, ∃ w, v @ l ↘ dvl w ∧ Pv w)
+  | pself p l => path_wp_pure p (λ v, ∃ p, v @ l ↘ dvl p ∧ path_wp_pure p Pv)
   | pv vp => Pv vp
   end.
 
