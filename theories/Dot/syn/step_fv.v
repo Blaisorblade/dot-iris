@@ -11,16 +11,23 @@ Section nclosed_prim_step.
     nclosed t1.|[v2/] n.
   Proof. move => Hcl. apply nclosed_subst; eauto with fv. Qed.
 
-  Lemma nclosed_proj v l w n:
-    v @ l ↘ dvl w →
+Lemma nclosed_path2tm p n :
+  nclosed p n →
+  nclosed (path2tm p) n.
+Proof.
+  elim: p => [v|p IHp l] /=;
+  eauto using fv_of_val, fv_pv_inv, fv_pself_inv, fv_tproj.
+Qed.
+
+  Lemma nclosed_proj v l p n:
+    v @ l ↘ dvl p →
     nclosed (tproj (tv v) l) n →
-    nclosed (tv w) n.
+    nclosed (path2tm p) n.
   Proof.
     move => Hl Hcl.
-    assert (Hclt1: nclosed_vl v n) by eauto with fv.
-    apply fv_of_val.
-    enough (nclosed (dvl w) n) by eauto with fv.
-    exact: nclosed_lookup'.
+    apply nclosed_path2tm.
+    enough (nclosed (dvl p) n) by eauto with fv.
+    apply (nclosed_lookup' Hl). eauto with fv.
   Qed.
 
   Theorem nclosed_head_step t1 t2 σ σ' ts κ n:

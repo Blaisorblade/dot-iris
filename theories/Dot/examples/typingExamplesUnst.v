@@ -16,7 +16,7 @@ Example ex0 e Γ T:
 Proof. intros. apply (Subs_typed_nocoerce T TTop); tcrush. Qed.
 
 Example ex1 Γ n T:
-  Γ u⊢ₜ tv (ν {@ val "a" = vnat n}) : μ {@ val "a" : TNat }.
+  Γ u⊢ₜ tv (ν {@ val "a" = pv (vnat n)}) : μ {@ val "a" : TNat }.
 Proof.
   (* Help proof search: Avoid trying TMuI_typed, that's slow. *)
   apply VObj_typed; tcrush.
@@ -179,9 +179,9 @@ Definition fromPDotPaperTypesV : vl := ν {@
   type "TypeRef" = TAnd (p0 @; "Type") {@
     val "symb" : p1 @ "symbols" @; "Symbol"
   };
-  val "AnyType" = vnat 0 ; (* ν {@}; *)
-  val "newTypeRef" = (vabs $ tv $ ν {@
-    val "symb" = x1
+  val "AnyType" = pv (vnat 0) ; (* ν {@}; *)
+  val "newTypeRef" = pv (vabs $ tv $ ν {@
+    val "symb" = pv x1
   })
 }.
 

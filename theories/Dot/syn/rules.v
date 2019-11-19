@@ -35,8 +35,8 @@ Section lang_rules.
     PureExec True 1 (tapp (tv (vabs e1)) (tv v2)) e1.|[v2 /].
   Proof. solve_pure_exec. Qed.
 
-  Global Instance pure_tproj l v w :
-    PureExec (v @ l ↘ dvl w) 1 (tproj (tv v) l) (tv w).
+  Global Instance pure_tproj l v p :
+    PureExec (v @ l ↘ dvl p) 1 (tproj (tv v) l) (path2tm p).
   Proof. solve_pure_exec. Qed.
 
   Global Instance pure_tskip v:

@@ -50,7 +50,7 @@ same_skel_vl (v1 v2: vl) {struct v1} : Prop :=
 with
 same_skel_dm (d1 d2: dm) {struct d1} : Prop :=
   match (d1, d2) with
-  | (dvl v1, dvl v2) => same_skel_vl v1 v2
+  | (dvl p1, dvl p2) => same_skel_path p1 p2
   | (dvl _, _) => False
   | (_, dvl _) => False
     (* Only nontrivial cases. Could be replaced by a catchall. *)
@@ -58,8 +58,8 @@ same_skel_dm (d1 d2: dm) {struct d1} : Prop :=
   | (dtysyn _, dtysem _ _) => True
   | (dtysem _ _, dtysyn _) => True
   | (dtysem _ _, dtysem _ _) => True
-  end.
-Fixpoint same_skel_path (p1 p2: path): Prop :=
+  end
+with same_skel_path (p1 p2: path): Prop :=
   match (p1, p2) with
   | (pv v1, pv v2) => same_skel_vl v1 v2
   | (pself p1 l1, pself p2 l2) => same_skel_path p1 p2 ∧ l1 = l2
@@ -305,7 +305,7 @@ Qed.
 Lemma same_skel_dms_index_gen {ds ds' v l}:
   same_skel_dms ds ds' →
   dms_lookup l ds = Some (dvl v) →
-  exists v', dms_lookup l ds' = Some (dvl v') ∧ same_skel_vl v v'.
+  exists v', dms_lookup l ds' = Some (dvl v') ∧ same_skel_path v v'.
 Proof.
   revert ds' l v.
   induction ds as [|[lbl d] ds]; intros ds' l v Hds Hlu; simpl in *; first done.
@@ -322,15 +322,19 @@ Proof.
     simpl; destruct decide; intuition auto.
 Qed.
 
-Lemma same_skel_obj_lookup v v' w l:
+Lemma same_skel_path2tm p p' :
+  same_skel_path p p' → same_skel_tm (path2tm p) (path2tm p').
+Proof. elim: p p' => [v|p IHp l] [v'|p' l'] //=. naive_solver. Qed.
+
+Lemma same_skel_obj_lookup v v' p l:
   same_skel_vl v v' →
-  v @ l ↘ dvl w →
-  ∃ w', v' @ l ↘ dvl w' ∧ same_skel_vl w w'.
+  v @ l ↘ dvl p →
+  ∃ p', v' @ l ↘ dvl p' ∧ same_skel_tm (path2tm p) (path2tm p').
 Proof.
   intros Hv [ds [-> Hl]]. case: v' Hv => // ds' Hv.
-  have [w' [Hl' Hw]]: ∃ w', dms_lookup l (selfSubst ds') = Some (dvl w') ∧ same_skel_vl w w'.
+  have [p' [Hl' /same_skel_path2tm Hp]]: ∃ p', dms_lookup l (selfSubst ds') = Some (dvl p') ∧ same_skel_path p p'.
   eapply (@same_skel_dms_index_gen (selfSubst ds)); by [|apply same_skel_dms_selfSubst].
-  exists w'; split; by [|exists ds'].
+  exists p'; split; by [|exists ds'].
 Qed.
 
 Lemma simulation_skeleton_head t1' t1 t2 σ σ' ts:
