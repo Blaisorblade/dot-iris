@@ -24,7 +24,7 @@ Example ex0 e Γ T:
 Proof. intros. apply (Subs_typed_nocoerce T TTop); tcrush. Qed.
 
 Example ex1 Γ n T:
-  Γ v⊢ₜ[ g ] tv (ν {@ val "a" = vnat n}) : μ {@ val "a" : TNat }.
+  Γ v⊢ₜ[ g ] tv (ν {@ val "a" = pv (vnat n)}) : μ {@ val "a" : TNat }.
 Proof.
   (* Help proof search: Avoid trying TMuI_typed, that's slow. *)
   apply VObj_typed; tcrush.

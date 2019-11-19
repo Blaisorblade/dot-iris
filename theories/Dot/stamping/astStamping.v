@@ -46,7 +46,7 @@ unstamp_dm g (d: dm): dm :=
   match d with
   | dtysem vs s => unstamp_vstamp g vs s
   | dtysyn T => dtysyn (unstamp_ty g T)
-  | dvl v => dvl (unstamp_vl g v)
+  | dvl v => dvl (unstamp_path g v)
   end
 with
 unstamp_path g (p: path): path :=

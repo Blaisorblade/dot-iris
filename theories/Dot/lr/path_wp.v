@@ -19,18 +19,42 @@ Proof. by elim: p => [v| p /= ->]. Qed.
 Lemma path2tm_subst p ρ: (path2tm p).|[ρ] = path2tm p.|[ρ].
 Proof. by elim: p => /= [//|p -> l]. Qed.
 
+Inductive path_wp_pure : path → (vl → Prop) → Prop :=
+| pwp_pv vp Pv : Pv vp → path_wp_pure (pv vp) Pv
+| pwp_pself p vp q l Pv : path_wp_pure p (eq vp) → vp @ l ↘ dvl q → path_wp_pure q Pv →
+  path_wp_pure (pself p l) Pv .
+Local Hint Constructors path_wp_pure : core.
+
+Lemma path_wp_pure_inv_pv Pv v : path_wp_pure (pv v) Pv ↔ Pv v.
+Proof. split; by [inversion_clear 1 | auto]. Qed.
+
+Lemma path_wp_pure_inv_pself Pv p l : path_wp_pure (pself p l) Pv →
+  ∃ vp q, path_wp_pure p (eq vp) ∧ vp @ l ↘ dvl q ∧ path_wp_pure q Pv ∧
+  path_wp_pure (pself p l) Pv.
+Proof. inversion_clear 1; naive_solver. Qed.
+ (* exists vp, q. by econstructor. *)
+ (* exists vp, q. eauto. apply H4.
+ exists vp, (pself p l). eauto. apply H4.
+ eexists _, _. intros. apply H4. Unshelve. apply vp.
+ Qed.
+ info_eauto. exists vp, q. by econstructor. *)
+
 (** * Pure path weakest precondition. *)
-Fixpoint path_wp_pure p Pv : Prop :=
+(* Fixpoint path_wp_pure p Pv {struct p} : Prop :=
   match p with
-  | pself p l => path_wp_pure p (λ v, ∃ w, v @ l ↘ dvl w ∧ Pv w)
+  | pself p l =>
+  ∃ vp q, path_wp_pure p (eq vp) → vp @ l ↘ dvl q → path_wp_pure q Pv →
+  path_wp_pure (pself p l) Pv
+  (* path_wp_pure p (λ v, ∃ p, v @ l ↘ dvl p ∧ path_wp_pure p Pv) *)
   | pv vp => Pv vp
-  end.
+  end. *)
 
 Global Instance Proper_pwp_pure: Proper ((=) ==> pointwise_relation _ iff ==> iff) path_wp_pure.
 Proof.
   (* The induction works best in this shape, but this instance is best kept local. *)
   have Proper_pwp_2: ∀ p, Proper (pointwise_relation _ iff ==> iff) (path_wp_pure p).
-  elim; solve_proper.
+  by rewrite /pointwise_relation => p P1 P2 HPeq; split;
+    induction 1; naive_solver.
   solve_proper.
 Qed.
 
@@ -38,24 +62,21 @@ Lemma path_wp_pure_wand {Pv1 Pv2 p}:
   path_wp_pure p Pv1 →
   (∀ v, Pv1 v → Pv2 v) →
   path_wp_pure p Pv2.
-Proof.
+Proof. elim; eauto. Qed.
+(* elim => [v Pv Hpv| p' vp q l Pv Hpv IHp' Hl Hq IHq] Hwand; eauto. *)
+  (* by constructor; apply Hwand.
   elim: p Pv1 Pv2 => /= [v|p IHp l] Pv1 Pv2 Hp Hwand;
     first by apply Hwand.
   apply: (IHp _ _ Hp) => {IHp Hp} v [vq [??]].
   eauto.
-Qed.
+Qed. *)
 
 Lemma path_wp_pure_eq p Pv :
   path_wp_pure p Pv ↔ ∃ v, path_wp_pure p (eq v) ∧ Pv v.
 Proof.
-  elim: p Pv => [ v | p IHp l ] Pv /=; split.
-  - eauto.
-  - by destruct 1 as (w & <- & ?).
-  - rewrite IHp; intros (v & Hp & w & ?&?).
-    eexists w; split; last by [].
-    apply (path_wp_pure_wand Hp).
-    intros v' ->; exists w; eauto.
-  - setoid_rewrite IHp; intros; ev; subst; eauto.
+  split.
+  - elim; naive_solver.
+  - move => [v [Hpeq HPv]]. dependent induction Hpeq; naive_solver.
 Qed.
 
 Lemma path_wp_pure_det {p v1 v2}:
@@ -63,10 +84,12 @@ Lemma path_wp_pure_det {p v1 v2}:
   path_wp_pure p (eq v2) →
   v1 = v2.
 Proof.
-  elim: p v1 v2 => [v /=| p /= IHp l //] v1 v2; first by intros <- <-.
-  rewrite !path_wp_pure_eq; intros (w1 & Hp1 & ?) (w2 & Hp2 & ?);
-    move: (IHp _ _ Hp1 Hp2) => ?; ev; simplify_eq.
-  by objLookupDet.
+  move => Hp1 Hp2; move: v2 Hp2; induction Hp1; intros; inverse Hp2; first naive_solver.
+  lazymatch goal with H1 : ?vp @ l ↘ dvl ?q, H2 : ?vp0 @ l ↘ dvl ?q0 |- _ =>
+    (suff ?: q = q0 by subst; auto);
+    (suff ?: vp = vp0 by subst; objLookupDet);
+    auto
+  end.
 Qed.
 
 Lemma path_wp_pure_swap p w :
@@ -89,16 +112,20 @@ Qed.
 
 Definition alias_paths p q :=
   path_wp_pure q (λ vp, path_wp_pure p (eq vp)).
+Hint Unfold alias_paths : core.
 
 Lemma alias_paths_pv_eq_1 p vr :
   alias_paths p (pv vr) ↔ path_wp_pure p (eq vr).
-Proof. done. Qed.
+Proof. rewrite /alias_paths. by setoid_rewrite path_wp_pure_inv_pv. Qed.
 
 Hint Extern 1 (path_wp_pure _ _) => by apply path_wp_pure_swap : core.
 
 Lemma alias_paths_pv_eq_2 p vr :
   alias_paths (pv vr) p ↔ path_wp_pure p (eq vr).
-Proof. by rewrite -path_wp_pure_swap. Qed.
+Proof.
+  rewrite /alias_paths -path_wp_pure_swap.
+  by setoid_rewrite path_wp_pure_inv_pv.
+Qed.
 
 Lemma alias_paths_self p v :
   alias_paths p (pv v) → alias_paths p p.
@@ -108,7 +135,7 @@ Qed.
 
 Lemma alias_paths_refl_vl v :
   alias_paths (pv v) (pv v).
-Proof. done. Qed.
+Proof. eauto. Qed.
 
 Lemma alias_paths_sameres p q:
   alias_paths p q ↔

@@ -47,7 +47,7 @@ Section logrel.
   Implicit Types (interp φ : envD Σ) (ψ : D).
 
   Definition def_interp_vmem interp : envPred dm Σ :=
-    λ ρ d, (∃ vmem, ⌜d = dvl vmem⌝ ∧ interp ρ vmem)%I.
+    λ ρ d, (∃ vmem, ⌜d = dvl vmem⌝ ∧ path_wp vmem (interp ρ))%I.
   Global Arguments def_interp_vmem /.
 
   Definition dm_to_type d ψ : iProp Σ :=

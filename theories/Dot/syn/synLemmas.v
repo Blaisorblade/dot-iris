@@ -36,7 +36,7 @@ Proof. solve_fv_congruence. Qed.
 Lemma fv_vabs e n: nclosed e (S n) → nclosed_vl (vabs e) n.
 Proof. solve_fv_congruence. Qed.
 
-Lemma fv_dvl v n: nclosed_vl v n → nclosed (dvl v) n.
+Lemma fv_dvl p n: nclosed p n → nclosed (dvl p) n.
 Proof. solve_fv_congruence. Qed.
 
 Lemma fv_dtysyn T n: nclosed T n → nclosed (dtysyn T) n.
