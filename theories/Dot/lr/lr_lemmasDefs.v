@@ -54,7 +54,7 @@ Proof.
 Qed.
 
 Lemma path_includes_self ds ρ : wf_ds ds → path_includes (pv (ids 0)) (vobj ds.|[up ρ] .: ρ) ds.
-Proof. eexists; split_and!; by [| rewrite up_sub_compose|apply wf_ds_sub]. Qed.
+Proof. constructor; eexists; split_and!; by [| rewrite up_sub_compose|apply wf_ds_sub]. Qed.
 
 Lemma path_includes_split p ρ l d ds :
   path_includes p ρ ((l, d) :: ds) →
@@ -79,9 +79,9 @@ Proof.
   by eapply elem_of_list_In, (in_map fst ds (_,_)), elem_of_list_In.
 Qed.
 
-Lemma dms_lookup_sublist l v ds :
-  wf_ds ds → [(l, dvl v)] `sublist_of` ds →
-  dms_lookup l ds = Some (dvl v).
+Lemma dms_lookup_sublist l p ds :
+  wf_ds ds → [(l, dvl p)] `sublist_of` ds →
+  dms_lookup l ds = Some (dvl p).
 Proof.
   rewrite sublist_cons_l; intros Hwf ?; ev; simplify_eq/=.
   apply dms_has_in_eq; [done|].
@@ -89,11 +89,12 @@ Proof.
 Qed.
 
 Lemma path_includes_field_aliases p ρ l v :
-  path_includes p ρ [(l, dvl v)] →
+  path_includes p ρ [(l, dvl (pv v))] →
   alias_paths (pself p.|[ρ] l) (pv v.[ρ]).
 Proof.
   rewrite /path_includes/alias_paths/= !path_wp_pure_eq;
-    intros (w & Hwp & ds & -> & Hsub & Hwf'); repeat (eexists; split => //).
+    intros (w & Hwp & ds & -> & Hsub & Hwf').
+    repeat (econstructor; split_and?; try by [|constructor]).
   apply dms_lookup_sublist, Hsub. exact: wf_ds_sub.
 Qed.
 
@@ -158,10 +159,10 @@ Section Sec.
   (** This lemma is equivalent to pDOT's (Def-New). *)
   Lemma D_New_Mem_I Γ T l ds:
     TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ ⊨ds ds : T -∗
-    Γ ⊨ { l := dvl (vobj ds) } : TVMem l (TMu T).
+    Γ ⊨ { l := dvl (pv (vobj ds)) } : TVMem l (TMu T).
   Proof.
     iDestruct 1 as (Hwf) "#Hds"; iIntros "!>" (ρ Hpid) "#Hg /=".
-    rewrite def_interp_tvmem_eq /=.
+    rewrite def_interp_tvmem_eq path_wp_pv /=.
     iLöb as "IH".
     iApply lift_dsinterp_dms_vl_commute.
     rewrite norm_selfSubst.
@@ -175,7 +176,7 @@ Section Sec.
 
   Lemma D_New_Mem_I' Γ V T l ds:
     (TLater V :: Γ) |L TAnd T (TSing (pself (pv (ids 1)) l)) ⊨ds ds : T -∗
-    Γ |L V ⊨ { l := dvl (vobj ds) } : TVMem l (TMu T).
+    Γ |L V ⊨ { l := dvl (pv (vobj ds)) } : TVMem l (TMu T).
   Proof.
     iIntros "#H"; iApply D_New_Mem_I.
     iDestruct "H" as (Hwf) "#Hds". iFrame (Hwf).
@@ -185,14 +186,16 @@ Section Sec.
 
   Context Γ.
 
-  Lemma D_TVMem_Sub V T1 T2 v l:
+  Lemma D_TVMem_Sub V T1 T2 p l:
     Γ |L V ⊨ T1, 0 <: T2, 0 -∗
-    Γ |L V ⊨ { l := dvl v } : TVMem l T1 -∗
-    Γ |L V ⊨ { l := dvl v } : TVMem l T2.
+    Γ |L V ⊨ { l := dvl p } : TVMem l T1 -∗
+    Γ |L V ⊨ { l := dvl p } : TVMem l T2.
   Proof.
-    iIntros "/= #Hsub #Hv !>" (ρ Hpid) "#Hg"; iApply def_interp_tvmem_eq.
-    iApply ("Hsub" with "Hg").
-    iApply def_interp_tvmem_eq. by iApply "Hv".
+    iIntros "/= #Hsub #Hv !>" (ρ Hpid) "#Hg".
+    iSpecialize ("Hv" $! ρ Hpid with "Hg").
+    rewrite !def_interp_tvmem_eq.
+    iApply (path_wp_wand with "Hv"); iIntros.
+    by iApply ("Hsub" with "Hg").
   Qed.
 
   (* Check that Löb induction works as expected for proving introduction of

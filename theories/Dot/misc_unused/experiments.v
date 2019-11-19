@@ -251,9 +251,8 @@ Section Sec.
     TLater V :: Γ ⊨ e : T.
   Proof. iApply ietp_weaken_ctx => ρ; cbn. by rewrite (TLater_ctx_sub Γ). Qed.
 
-  (*
-    Variant of [PT_Mem_I]: not needed here, and we get an extra later :-|, tho it
-    matches [T_Mem_E']. *)
+  (* Variant of [PT_Mem_I]: not needed here, and we get an extra later :-|, tho it
+  matches [T_Mem_E']. Fails now that we allow path members. *)
   Lemma T_Mem_I Γ e T l:
     Γ ⊨ tproj e l : T -∗
     (*─────────────────────────*)
@@ -266,16 +265,20 @@ Section Sec.
     rewrite wp_unfold /wp_pre/=.
     remember (tproj (tv v) l) as v'.
     iDestruct ("HE" $! () [] [] 0 with "[//]") as (Hs) "HE".
-    have {Hs} [w [Hhr Hl]]: ∃ w, head_step v' () [] (tv w) () [] ∧ v @ l ↘ dvl w. {
+    have {Hs} [p [Hhr Hl]]: ∃ p, head_step v' () [] (path2tm p) () [] ∧ v @ l ↘ dvl p. {
       have Hhr: head_reducible v' ().
         apply prim_head_reducible, ectxi_language_sub_redexes_are_values;
           by [|move => -[]/= *; simplify_eq/=; eauto].
       destruct Hhr as ([] & e2 & [] & efs & Hhr'); last now inversion Hhr'.
       inversion Hhr'; simplify_eq/=. eauto.
     }
+    simplify_eq/=.
     iDestruct ("HE" with "[%]") as "(_ & ? & _)"; first exact: head_prim_step.
+    do 2 (iExists _; iSplit => //).
+    (* rewrite path_wp_to_wp.
     rewrite wp_value_inv'. eauto.
-  Qed.
+  Qed. *)
+  Abort.
 
   Lemma T_Forall_I' {Γ} T1 T2 e:
     TLater T1.|[ren (+1)] :: Γ ⊨ e : T2 -∗
@@ -368,8 +371,9 @@ Section Sec.
     iIntros "!>" (ρ v) "_ /= #HvT". iNext i.
     iDestruct "HvT" as (d Hlook) "#HvT".
     iExists (d); (iSplit; try iSplit) => //.
-    iDestruct "HvT" as (vmem ->) "HvT".
-    iExists (vmem); by iSplit.
+    iDestruct "HvT" as (pmem ->) "HvT".
+    rewrite path_wp_later_swap.
+    iExists (pmem); by iSplit.
   Qed.
 
   (* This would be surprising without ◇, and fails even with it. *)

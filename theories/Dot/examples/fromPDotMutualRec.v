@@ -36,16 +36,16 @@ From D.Dot Require Import hoas. *)
 Definition fromPDotPaperTypesV : vl := ν {@
   type "Type" = TTop;
   type "TypeTop" = TTop;
-  val "newTypeTop" = (vabs $ tv $ ν {@ });
+  val "newTypeTop" = pv (vabs $ tv $ ν {@ });
   type "TypeRef" = TAnd (p0 @; "Type") typeRefTBody;
-  val "AnyType" = ν {@ };
-  val "newTypeRef" = (vabs $
+  val "AnyType" = pv (ν {@ });
+  val "newTypeRef" = pv (vabs $
     (* lett (hclose (hassert (tv (vnat 0)))) $
     tv $ ν {@
       val "symb" = x2
     }) *)
     tv $ ν {@
-      val "symb" = x1
+      val "symb" = pv x1
     })
 }.
 
@@ -80,15 +80,15 @@ Definition fromPDotPaperSymbolsV : vl := ν {@
     val "tpe" : p1 @ "types" @; "Type";
     val "name" : HashableString
   };
-  val "newSymbol" = (vabs $ tv $ vabs $ tv $ ν {@
-    val "tpe" = x2;
-    val "name" = x1
+  val "newSymbol" = pv (vabs $ tv $ vabs $ tv $ ν {@
+    val "tpe" = pv x2;
+    val "name" = pv x1
   })
 }.
 
 Definition fromPDotPaper : vl := ν {@
-  val "types" = fromPDotPaperTypesV;
-  val "symbols" = fromPDotPaperSymbolsV
+  val "types" = pv fromPDotPaperTypesV;
+  val "symbols" = pv fromPDotPaperSymbolsV
 }.
 
 Example fromPDotPaperTypesTyp :

@@ -120,22 +120,29 @@ Section LambdaIntros.
     Γ ⊨p pv v : T, 0.
   Proof.
     iIntros "/= #Hp !>" (ρ) "Hg".
-    iSpecialize ("Hp" with "Hg"); rewrite wp_value_inv'. by [].
+    iSpecialize ("Hp" with "Hg"); rewrite wp_value_inv'.
+    by rewrite path_wp_pv.
+  Qed.
+
+  (** Lemmas about definition typing. *)
+  Lemma D_Path_TVMem_I {Γ} V T p l:
+    TLater V :: Γ ⊨p p : T, 0 -∗
+    Γ |L V ⊨ { l := dvl p } : TVMem l T.
+  Proof.
+    iIntros "/= #Hv !>" (ρ Hpid) "[#Hg #Hw]".
+    rewrite def_interp_tvmem_eq.
+    iApply ("Hv" with "[]"); by iSplit.
   Qed.
 
   (** Lemmas about definition typing. *)
   Lemma D_TVMem_I {Γ} V T v l:
     TLater V :: Γ ⊨ tv v : T -∗
-    Γ |L V ⊨ { l := dvl v } : TVMem l T.
-  Proof.
-    iIntros "/= #Hv !>" (ρ Hpid) "[#Hg #Hw]".
-    rewrite def_interp_tvmem_eq.
-    iApply wp_value_inv'; iApply ("Hv" with "[]"); by iSplit.
-  Qed.
+    Γ |L V ⊨ { l := dvl (pv v) } : TVMem l T.
+  Proof. by rewrite -D_Path_TVMem_I -P_Val. Qed.
 
   Lemma D_TVMem_All_I {Γ} V T1 T2 e l:
     T1.|[ren (+1)] :: V :: Γ ⊨ e : T2 -∗
-    Γ |L V ⊨ { l := dvl (vabs e) } : TVMem l (TAll T1 T2).
+    Γ |L V ⊨ { l := dvl (pv (vabs e)) } : TVMem l (TAll T1 T2).
   Proof.
     iIntros "HeT"; iApply D_TVMem_I.
     (* Compared to [T_Forall_I], we must strip the later from [TLater V]. *)
@@ -284,8 +291,9 @@ Section Sec.
     iIntros "#Hsub /= !>" (ρ v) "#Hg #HT1". setoid_rewrite laterN_plus.
     iDestruct "HT1" as (d) "#[Hdl #HT1]".
     iExists d; repeat iSplit => //.
-    iDestruct "HT1" as (vmem) "[Heq HvT1]".
-    iExists vmem; repeat iSplit => //.
+    iDestruct "HT1" as (pmem) "[Heq HvT1]".
+    iExists pmem; repeat iSplit => //; rewrite !path_wp_eq.
+    iDestruct "HvT1" as (w) "[Hv HvT1]"; iExists w; iFrame "Hv".
     by iApply "Hsub".
   Qed.
 
@@ -302,8 +310,8 @@ Section Sec.
   Proof.
     iIntros "#HE /= !>" (ρ) "#HG !>".
     smart_wp_bind (ProjCtx l) v "#Hv {HE}" ("HE" with "[]").
-    iDestruct "Hv" as (? Hl vmem ->) "Hv".
-    rewrite -wp_pure_step_later // -wp_value. by [].
+    iDestruct "Hv" as (? Hl pmem ->) "Hv".
+    rewrite -wp_pure_step_later //= path_wp_later_swap path_wp_to_wp. by [].
   Qed.
 
   Lemma T_Mem_E e T l:

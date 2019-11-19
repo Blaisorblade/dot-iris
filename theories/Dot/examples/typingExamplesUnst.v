@@ -17,7 +17,7 @@ Example ex0 e Γ T:
 Proof. intros. apply (Subs_typed_nocoerce T TTop); tcrush. Qed.
 
 Example ex1 Γ n T:
-  Γ u⊢ₜ tv (ν {@ val "a" = vnat n}) : μ {@ val "a" : TNat }.
+  Γ u⊢ₜ tv (ν {@ val "a" = pv (vnat n)}) : μ {@ val "a" : TNat }.
 Proof.
   (* Help proof search: Avoid trying TMuI_typed, that's slow. *)
   apply VObj_typed; tcrush.
@@ -41,7 +41,7 @@ Definition KeysT : ty := μ {@
 }.
 Definition hashKeys : vl := ν {@
   type "Key" = TNat;
-  val "key" = vabs (tapp (tproj (tv x0) "hashCode") tUnit)
+  val "key" = pv (vabs (tapp (tproj (tv x0) "hashCode") tUnit))
 }.
 
 Definition KeysTConcr := μ {@

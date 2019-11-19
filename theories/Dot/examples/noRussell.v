@@ -38,8 +38,10 @@ Section Russell.
 
   Lemma later_not_UAU: Hs ⊢ uAu v -∗ ▷ False.
   Proof.
-    iIntros "Hs #HuauV". rewrite /Hs /v.
-    iPoseProof "HuauV" as (ψ d Hl) "[Hs1 Hvav]".
+    iIntros "Hs #HuauV".
+    iPoseProof "HuauV" as "HuauV'".
+    iEval (rewrite /Hs /v /uAu /= path_wp_pv) in "HuauV'".
+    iDestruct "HuauV'" as (ψ d Hl) "[Hs1 Hvav]".
     have Hdeq: d = dtysem [] s. by move: Hl => /= [ds [[<- /=] ?]]; simplify_eq.
     iAssert (d ↗ russell_p ids) as "#Hs2". by iApply (dm_to_type_intro with "Hs").
     iPoseProof (dm_to_type_agree d _ _ v with "Hs1 Hs2") as "#Hag".
@@ -53,10 +55,11 @@ Section Russell.
   Proof.
     iIntros "#Hs"; iSplit.
     - iIntros "#HnotVAV /=".
+      rewrite /uAu/=!path_wp_pv.
       iExists (russell_p ids), (dtysem [] s).
       repeat iSplit; first by eauto.
       + by iApply (dm_to_type_intro with "Hs").
-      + iIntros "!>!>!>". iApply "HnotVAV".
+      + iIntros "!>!>!>". rewrite /uAu/= path_wp_pv. iApply "HnotVAV".
     - iIntros "#Hvav".
       by iDestruct (later_not_UAU with "Hs Hvav") as "#>[]".
   Qed.

@@ -41,9 +41,10 @@ Section Sec.
     Γ ⊨p pself p l : T, i.
   Proof.
     iIntros "#HE !>" (ρ) "HG /=".
-    iApply (path_wp_wand with "(HE HG)"); iNext i.
-    iIntros (v); iDestruct 1 as (d Hl vmem ->) "Hv {HE}".
-    iExists vmem. eauto.
+    iSpecialize ("HE" with "HG"); iNext i.
+    rewrite path_wp_eq path_wp_pself.
+    iDestruct "HE" as (vp Hpv d Hlook pmem ->) "H".
+    iExists vp, pmem; eauto.
   Qed.
   (* In the above proof, in contrast with T_Mem_E, lots of the lemmas
      needed of path_wp hold simply by computation. *)

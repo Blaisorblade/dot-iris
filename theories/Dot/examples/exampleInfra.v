@@ -104,7 +104,7 @@ Notation tUnit := (tv (vnat 0) : tm).
 
 End DBNotation.
 
-Check ν {@ val "a" = vnat 0 }.
+Check ν {@ val "a" = pv (vnat 0) }.
 
 Check μ {@ type "A" >: TNat <: TTop }.
 Check μ {@ val "a" : TNat }.
@@ -112,8 +112,8 @@ Check μ {@ type "A" >: TNat <: TTop ; val "a" : TNat ; val "b" : TNat }.
 
 Check vobj {@}.
 Check ν {@ }.
-Check ν {@ val "a" = vnat 0 }.
-Check ν {@ val "a" = vnat 0 ; val "b" = vnat 1 }.
+Check ν {@ val "a" = pv (vnat 0) }.
+Check ν {@ val "a" = pv (vnat 0) ; val "b" = pv (vnat 1) }.
 
 Check (p0 @; "A").
 Check (pself (pself p0 "A") "B" @; "C").

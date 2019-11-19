@@ -58,9 +58,9 @@ Section fold.
       forall_traversal_tm ts (tif t1 t2 t3)
   with
   forall_traversal_dm: travStateT → dm → Prop :=
-  | trav_dvl ts v:
-      forall_traversal_vl ts v →
-      forall_traversal_dm ts (dvl v)
+  | trav_dvl ts p:
+      forall_traversal_path ts p →
+      forall_traversal_dm ts (dvl p)
   | trav_dtysyn ts T:
       forall_traversal_ty ts T →
       trav.(dtysynP) ts T →
@@ -214,9 +214,9 @@ Section fold.
       forall_traversal_tm ts (tif t1 t2 t3) (tif u1 u2 u3)
   with
   forall_traversal_dm: travStateT → dm → dm → Prop :=
-  | trav_dvl ts v1 v2:
-      forall_traversal_vl ts v1 v2 →
-      forall_traversal_dm ts (dvl v1) (dvl v2)
+  | trav_dvl ts p1 p2:
+      forall_traversal_path ts p1 p2 →
+      forall_traversal_dm ts (dvl p1) (dvl p2)
   | trav_dty ts tm1 tm2:
       (* forall_traversal_ty ts T → *)
       trav.(dtyP) ts tm1 tm2 →
@@ -324,13 +324,14 @@ Section fold.
   with
   forall_traversal_dm (ts : travStateT) (d1 d2: dm) {struct d1} : Prop :=
     match (d1, d2) with
-    | (dvl v1, dvl v2) => forall_traversal_vl ts v1 v2
+    | (dvl p1, dvl p2) => forall_traversal_path ts p1 p2
     | (dvl _, _) => False
     | (_, dvl _) => False
     | (_, _) =>
       default False (f ← trav.(dtyP) ts <$> (dm2tmemc d1); f <$> (dm2tmemc d2))
-    end.
-  Fixpoint forall_traversal_path (ts : travStateT) (p1 p2: path): Prop :=
+    end
+  with
+  forall_traversal_path (ts : travStateT) (p1 p2: path): Prop :=
     match (p1, p2) with
     | (pv v1, pv v2) => forall_traversal_vl ts v1 v2
     | (pself p1 l1, pself p2 l2) => forall_traversal_path ts p1 p2 ∧ l1 = l2

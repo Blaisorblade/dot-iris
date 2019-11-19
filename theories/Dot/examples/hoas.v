@@ -98,7 +98,7 @@ Definition hvobj : (hterm vl → hdms) → hterm vl := λ ds,
 
 Definition hdtysyn : hterm ty → hterm dm := liftA1 dtysyn.
 (* Not sure about [hdtysem], and not needed. *)
-Definition hdvl : hterm vl → hterm dm := liftA1 dvl.
+Definition hdvl : hterm path → hterm dm := liftA1 dvl.
 
 Definition hpv : hterm vl → hterm path := liftA1 pv.
 Definition hpself : hterm path → label → nat → path := Eval cbv in λ p l, liftA2 pself p (pureS l).
