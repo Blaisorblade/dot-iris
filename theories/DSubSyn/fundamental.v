@@ -89,39 +89,35 @@ From D.DSubSyn Require Import typing.
 Section Fundamental.
   Context `{!dsubSynG Σ} `{!SwapPropI Σ}.
 
-  Lemma fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2):
-    Γ ⊨ T1, i1 <: T2, i2
-  with
-  fundamental_typed Γ e T (HT: Γ ⊢ₜ e : T):
-    Γ ⊨ e : T.
+  Lemma fundamental_typing_mut Γ:
+    (∀ e T (HT: Γ ⊢ₜ e : T), Γ ⊨ e : T) ∧
+    (∀ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2), Γ ⊨ T1, i1 <: T2, i2).
   Proof.
-    - iInduction HT as [] "IHT".
-      + by iApply Sub_Refl.
-      + by iApply Sub_Trans.
-      + by iIntros "!> **".
-      (* + by iApply Sub_Later.
-      + by iApply Sub_Mono. *)
-      + by iApply Sub_Index_Incr.
-      + by iApply Sub_Top.
-      + by iApply Bot_Sub.
-      + iApply Sel_Sub. by iApply fundamental_typed.
-      + iApply Sub_Sel. by iApply fundamental_typed.
-      + by iApply Sub_TAllConCov.
-      + by iApply Sub_TTMem_Variant.
-    - iInduction HT as [] "IHT".
-      + by iApply T_Forall_Ex.
-      + by iApply T_Forall_E.
-      + by iApply T_Forall_I.
-      (* + iApply T_New_I.
-        by iApply fundamental_dms_typed.
-      + by iApply TMu_I. *)
-      + by iApply T_Nat_I.
-      + by iApply T_Var.
-      + iApply T_Sub => //.
-        by iApply fundamental_subtype.
-      + iApply T_Vty_abs_I => //;
-        by iApply fundamental_subtype.
+    apply typing_mut_ind with
+        (P := λ Γ e T _, Γ ⊨ e : T)
+        (P0 := λ Γ T1 i1 T2 i2 _, Γ ⊨ T1, i1 <: T2, i2); clear Γ; intros.
+      - iApply T_Forall_Ex; [iApply H | iApply H0].
+      - iApply T_Forall_E; [iApply H | iApply H0].
+      - iApply T_Forall_I; iApply H.
+      - by iApply T_Nat_I.
+      - by iApply T_Var.
+      - iApply T_Sub; [iApply H0 | iApply H].
+      - iApply T_Vty_abs_I; [iApply H | iApply H0].
+      - by iApply Sub_Refl.
+      - iApply Sub_Trans; [iApply H | iApply H0].
+      - by iIntros "!> **".
+      - iApply Sub_Index_Incr. iApply H.
+      - by iApply Sub_Top.
+      - by iApply Bot_Sub.
+      - iApply Sel_Sub. iApply H.
+      - iApply Sub_Sel. iApply H.
+      - iApply Sub_TAllConCov; [iApply H | iApply H0].
+      - iApply Sub_TTMem_Variant; [iApply H | iApply H0].
     Qed.
+
+  Lemma fundamental_typed Γ e T (HT: Γ ⊢ₜ e : T) : Γ ⊨ e : T.
+  Proof. destruct (fundamental_typing_mut Γ) as [H _]; apply H, HT. Qed.
+
 End Fundamental.
 
 From D.pure_program_logic Require Import adequacy.

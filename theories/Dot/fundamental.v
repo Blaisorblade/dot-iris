@@ -21,82 +21,91 @@ Section fundamental.
   Context `{!dlangG Σ} `{!SwapPropI Σ}.
   Context `{hasStampTable: stampTable}.
 
-  Fixpoint fundamental_dm_typed Γ V l d T (HT: Γ |d V ⊢{ l := d } : T) { struct HT }:
-    Γ |L V ⊨[ ⟦ getStampTable ⟧g ] { l := d } : T with
-  fundamental_dms_typed Γ V ds T (HT: Γ |ds V ⊢ ds : T) { struct HT }:
-    Γ |L V ⊨[ ⟦ getStampTable ⟧g ]ds ds : T with
-  fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2) { struct HT }:
-    Γ ⊨[ ⟦ getStampTable ⟧g ] T1, i1 <: T2, i2 with
-  fundamental_typed Γ e T (HT: Γ ⊢ₜ e : T) { struct HT }:
-    Γ ⊨[ ⟦ getStampTable ⟧g ] e : T with
-  fundamental_path_typed Γ p T i (HT : Γ ⊢ₚ p : T, i) { struct HT }:
-    Γ ⊨[ ⟦ getStampTable ⟧g ]p p : T, i.
+  Lemma fundamental_typing_mut Γ:
+    (∀ e T, Γ ⊢ₜ e : T → Γ ⊨[ ⟦ getStampTable ⟧g ] e : T) ∧
+    (∀ V ds T, Γ |ds V ⊢ ds : T →
+    Γ |L V ⊨[ ⟦ getStampTable ⟧g ]ds ds : T) ∧
+    (∀ V l d T, Γ |d V ⊢{ l := d } : T →
+      Γ |L V ⊨[ ⟦ getStampTable ⟧g ] { l := d } : T) ∧
+    (∀ p T i, Γ ⊢ₚ p : T , i → Γ ⊨[ ⟦ getStampTable ⟧g ]p p : T, i) ∧
+    (∀ T1 i1 T2 i2, Γ ⊢ₜ T1, i1 <: T2, i2 → Γ ⊨[ ⟦ getStampTable ⟧g ] T1, i1 <: T2, i2).
   Proof.
-    - iIntros "#Hm"; induction HT.
-      + iApply D_Typ_Abs; by [> iApply fundamental_subtype .. |
-          iApply extraction_to_leadsto_envD_equiv].
-      + iApply TVMem_All_I. by iApply fundamental_typed.
-      + iApply TVMem_I. by iApply fundamental_typed.
-      + iApply TVMem_Sub; by [> iApply fundamental_subtype|].
-    - iIntros "#Hm"; induction HT.
-      + by iApply DNil_I.
-      + iApply DCons_I; by [|iApply fundamental_dm_typed].
-    - iIntros "#Hm"; induction HT.
-      + by iApply Sub_Refl.
-      + by iApply Sub_Trans; [apply IHHT1|apply IHHT2].
-      + by iApply Later_Sub.
-      + by iApply Sub_Later.
-      + by iApply Sub_Add_Later.
-      + by iApply Sub_Index_Incr.
-      + by iApply Sub_Top.
-      + by iApply Bot_Sub.
-      + by iApply And1_Sub.
-      + by iApply And2_Sub.
-      + by iApply Sub_And.
-      + by iApply Sub_Or1.
-      + by iApply Sub_Or2.
-      + by iApply Or_Sub.
-      + iApply Sel_Sub_Path. by iApply fundamental_path_typed.
-      + iApply Sub_Sel_Path. by iApply fundamental_path_typed.
-      + by iApply Sub_singleton; [|iApply fundamental_path_typed].
-      + by iApply Sub_Mu_X.
-      + iApply Sub_Mu_A.
-      + iApply Sub_Mu_B.
-      + by iApply Sub_Later_Sub.
-      + by iApply Sub_TAllConCov.
-      + by iApply Sub_TVMem_Variant.
-      + by iApply Sub_TTMem_Variant.
-      + iApply Sub_TAll_Cov_Distr.
-      + iApply Sub_TVMem_Cov_Distr.
-      + iApply Sub_TTMem_Cov_Distr.
-    - iIntros "#Hm"; induction HT.
-      + by iApply T_Forall_Ex; [apply IHHT1|apply IHHT2].
-      + by iApply T_Forall_Ex_p; [|apply IHHT|iApply fundamental_path_typed].
-      + by iApply T_Forall_E; [apply IHHT1|apply IHHT2].
-      + by iApply T_Mem_E.
-      + by iApply TMu_E.
-      + by iApply T_Forall_I.
-      + iApply T_New_I. by iApply fundamental_dms_typed.
-      + by iApply TMu_I.
-      + by iApply T_Nat_I.
-      + by iApply T_Var.
-      + by iApply T_Sub; [apply IHHT|iApply fundamental_subtype].
-      + iApply P_To_E. by iApply fundamental_path_typed.
-      + by iApply TAnd_I.
-    - iIntros "#Hm"; induction HT.
-      + iApply P_Val. by iApply fundamental_typed.
-      + by iApply P_DLater.
-      + by iApply P_Mem_E.
-      + by iApply P_Sub; [|iApply fundamental_subtype].
-      + by iApply TMu_I_p; [|apply IHHT].
-      + by iApply TMu_E_p; [|apply IHHT].
-      + by iApply PT_Mem_I.
-      + by iApply PTAnd_I; [apply IHHT1|apply IHHT2].
-      + by iApply singleton_self.
-      + by iApply singleton_sym.
-      + by iApply singleton_trans; [apply IHHT1|apply IHHT2].
-      + by iApply singleton_elim; [apply IHHT1|apply IHHT2].
+    apply stamped_typing_mut_ind with
+        (P := λ Γ e T _, Γ ⊨[ ⟦ getStampTable ⟧g ] e : T)
+        (P0 := λ Γ V ds T _, Γ |L V ⊨[ ⟦ getStampTable ⟧g ]ds ds : T)
+        (P1 := λ Γ V l d T _, Γ |L V ⊨[ ⟦ getStampTable ⟧g ] { l := d } : T)
+        (P2 := λ Γ p T i _, Γ ⊨[ ⟦ getStampTable ⟧g ]p p : T, i)
+        (P3 := λ Γ T1 i1 T2 i2 _, Γ ⊨[ ⟦ getStampTable ⟧g ] T1, i1 <: T2, i2);
+        clear Γ; intros; iIntros "#Hm".
+
+    - iApply T_Forall_Ex; by [> iApply H|iApply H0].
+    - iApply T_Forall_Ex_p; by [>|iApply H | iApply H0].
+    - iApply T_Forall_E; by [>iApply H|iApply H0].
+    - iApply T_Mem_E. by iApply H.
+    - iApply TMu_E. by iApply H.
+    - iApply T_Forall_I. by iApply H.
+    - iApply T_New_I. by iApply H.
+    - iApply TMu_I. by iApply H.
+    - iApply T_Nat_I.
+    - by iApply T_Var.
+    - iApply T_Sub; by [> iApply H0|iApply H].
+    - iApply P_To_E. by iApply H.
+    - iApply TAnd_I; by [> iApply H|iApply H0].
+
+    - by iApply DNil_I.
+    - iApply DCons_I; by [> | iApply H | iApply H0].
+
+    - iApply D_Typ_Abs; by [> iApply H0 | iApply H |
+        iApply extraction_to_leadsto_envD_equiv].
+    - iApply TVMem_All_I. by iApply H.
+    - iApply TVMem_I. by iApply H.
+    - iApply TVMem_Sub; by [> iApply H|iApply H0].
+
+    - iApply P_Val. by iApply H.
+    - iApply P_DLater. by iApply H.
+    - iApply P_Mem_E. by iApply H.
+    - iApply P_Sub; by [> iApply H0|iApply H].
+    - iApply TMu_I_p; by [>|iApply H].
+    - iApply TMu_E_p; by [>|iApply H].
+    - iApply PT_Mem_I. by iApply H.
+    - iApply PTAnd_I; by [> iApply H|iApply H0].
+    - iApply singleton_self. by iApply H.
+    - iApply singleton_sym. by iApply H.
+    - iApply singleton_trans; by [>iApply H|iApply H0].
+    - iApply singleton_elim; by [>iApply H|iApply H0].
+
+    - by iApply Sub_Refl.
+    - by iApply Sub_Trans; [iApply H|iApply H0].
+    - by iApply Later_Sub.
+    - by iApply Sub_Later.
+    - by iApply Sub_Add_Later.
+    - iApply Sub_Index_Incr. by iApply H.
+    - by iApply Sub_Top.
+    - by iApply Bot_Sub.
+    - by iApply And1_Sub.
+    - by iApply And2_Sub.
+    - iApply Sub_And; by [> iApply H|iApply H0].
+    - by iApply Sub_Or1.
+    - by iApply Sub_Or2.
+    - iApply Or_Sub; by [> iApply H|iApply H0].
+    - iApply Sel_Sub_Path. by iApply H.
+    - iApply Sub_Sel_Path. by iApply H.
+    - iApply Sub_singleton; by [> |iApply H].
+    - iApply Sub_Mu_X. by iApply H.
+    - iApply Sub_Mu_A.
+    - iApply Sub_Mu_B.
+    - iApply Sub_Later_Sub. by iApply H.
+    - iApply Sub_TAllConCov; by [> iApply H|iApply H0].
+    - iApply Sub_TVMem_Variant. by iApply H.
+    - iApply Sub_TTMem_Variant; by [> iApply H|iApply H0].
+    - iApply Sub_TAll_Cov_Distr.
+    - iApply Sub_TVMem_Cov_Distr.
+    - iApply Sub_TTMem_Cov_Distr.
   Qed.
+
+  Lemma fundamental_typed Γ e T (HT: Γ ⊢ₜ e : T) :
+    Γ ⊨[ ⟦ getStampTable ⟧g ] e : T.
+  Proof. destruct (fundamental_typing_mut Γ) as [H _]; apply H, HT. Qed.
 End fundamental.
 
 (** Adequacy of our logical relation: semantically well-typed terms are safe. *)
