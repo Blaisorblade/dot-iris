@@ -21,15 +21,15 @@ Section fundamental.
   Context `{!dlangG Σ} `{!SwapPropI Σ}.
   Context `{hasStampTable: stampTable}.
 
-  Lemma fundamental_dm_typed Γ V l d T (HT: Γ |d V ⊢{ l := d } : T):
+  Fixpoint fundamental_dm_typed Γ V l d T (HT: Γ |d V ⊢{ l := d } : T) { struct HT }:
     Γ |L V ⊨[ ⟦ getStampTable ⟧g ] { l := d } : T with
-  fundamental_dms_typed Γ V ds T (HT: Γ |ds V ⊢ ds : T):
+  fundamental_dms_typed Γ V ds T (HT: Γ |ds V ⊢ ds : T) { struct HT }:
     Γ |L V ⊨[ ⟦ getStampTable ⟧g ]ds ds : T with
-  fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2):
+  fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2) { struct HT }:
     Γ ⊨[ ⟦ getStampTable ⟧g ] T1, i1 <: T2, i2 with
-  fundamental_typed Γ e T (HT: Γ ⊢ₜ e : T):
+  fundamental_typed Γ e T (HT: Γ ⊢ₜ e : T) { struct HT }:
     Γ ⊨[ ⟦ getStampTable ⟧g ] e : T with
-  fundamental_path_typed Γ p T i (HT : Γ ⊢ₚ p : T, i):
+  fundamental_path_typed Γ p T i (HT : Γ ⊢ₚ p : T, i) { struct HT }:
     Γ ⊨[ ⟦ getStampTable ⟧g ]p p : T, i.
   Proof.
     - iIntros "#Hm"; induction HT.
