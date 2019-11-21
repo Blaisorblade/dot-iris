@@ -1,4 +1,5 @@
-From D.Dot Require Export syn stampingDefsCore.
+From D.Dot.syn Require Export syn path_repl.
+From D.Dot.stamping Require Export stampingDefsCore.
 
 Reserved Notation "Γ ⊢ₜ e : T"
   (at level 74, e, T at next level,
@@ -27,6 +28,14 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ ⊢ₜ e1: TAll T1 T2 →                        Γ ⊢ₜ tv v2 : T1 →
     (*────────────────────────────────────────────────────────────*)
     Γ ⊢ₜ tapp e1 (tv v2) : T2.|[v2/]
+
+| App_path_typed p2 e1 T1 T2 T2':
+    T2 .Tp[ p2 /]~ T2' →
+    is_stamped_ty (length Γ) getStampTable T2' →
+    Γ ⊢ₜ e1: TAll T1 T2 →
+    Γ ⊢ₚ p2 : T1, 0 →
+    (*────────────────────────────────────────────────────────────*)
+    Γ ⊢ₜ tapp e1 (path2tm p2) : T2'
 (** Non-dependent application; allowed for any argument. *)
 | App_typed e1 e2 T1 T2:
     Γ ⊢ₜ e1: TAll T1 T2.|[ren (+1)] →      Γ ⊢ₜ e2 : T1 →
@@ -69,6 +78,10 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ ⊢ₜ T1, 0 <: T2, i → Γ ⊢ₜ e : T1 →
     (*───────────────────────────────*)
     Γ ⊢ₜ iterate tskip i e : T2
+| Path_typed p T :
+    Γ ⊢ₚ p : T, 0 →
+    (*───────────────────────────────*)
+    Γ ⊢ₜ path2tm p : T
 (* A bit surprising this is needed, but appears in the DOT papers, and this is
    only admissible if t has a type U that is a proper subtype of TAnd T1 T2. *)
 | TAndI_typed T1 T2 v:
@@ -121,6 +134,39 @@ with path_typed Γ : path → ty → nat → Prop :=
     Γ ⊢ₚ p : T1, i →
     (*───────────────────────────────*)
     Γ ⊢ₚ p : T2, i + j
+| p_mu_i_typed p T {T' i} :
+    T .Tp[ p /]~ T' →
+    is_stamped_ty (S (length Γ)) getStampTable T →
+    Γ ⊢ₚ p : T', i →
+    Γ ⊢ₚ p : TMu T, i
+| p_mu_e_typed p T {T' i} :
+    T .Tp[ p /]~ T' →
+    is_stamped_ty (length Γ) getStampTable T' →
+    Γ ⊢ₚ p : TMu T, i →
+    Γ ⊢ₚ p : T', i
+| pself_inv_typed p T i l:
+    Γ ⊢ₚ pself p l : T, i →
+    (*─────────────────────────*)
+    Γ ⊢ₚ p : TVMem l T, i
+| pand_typed p T1 T2 i:
+    Γ ⊢ₚ p : T1, i →
+    Γ ⊢ₚ p : T2, i →
+    Γ ⊢ₚ p : TAnd T1 T2, i
+| psingleton_refl_typed T p i :
+    Γ ⊢ₚ p : T, i →
+    Γ ⊢ₚ p : TSing p, i
+| psingleton_sym_typed p q i:
+    Γ ⊢ₚ p : TSing q, i →
+    is_stamped_path (length Γ) getStampTable q →
+    Γ ⊢ₚ q : TSing p, i
+| psingleton_trans p q r i:
+    Γ ⊢ₚ p : TSing q, i →
+    Γ ⊢ₚ q : TSing r, i →
+    Γ ⊢ₚ p : TSing r, i
+| psingleton_elim T p q l i:
+    Γ ⊢ₚ p : TSing q, i →
+    Γ ⊢ₚ pself q l : T, i →
+    Γ ⊢ₚ pself p l : TSing (pself q l), i
 where "Γ ⊢ₚ p : T , i" := (path_typed Γ p T i)
 (* Γ ⊢ₜ T1, i1 <: T2, i2 means that TLater^i1 T1 <: TLater^i2 T2. *)
 with subtype Γ : ty → nat → ty → nat → Prop :=
@@ -185,6 +231,12 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 | LSel_stp p U {l L i}:
     Γ ⊢ₚ p : TTMem l L U, i →
     Γ ⊢ₜ TLater L, i <: TSel p l, i
+| PSub_singleton_stp p q {i T1 T2}:
+    T1 ~Tp[ p := q ]* T2 →
+    is_stamped_ty (length Γ) getStampTable T1 →
+    is_stamped_ty (length Γ) getStampTable T2 →
+    Γ ⊢ₚ p : TSing q, i →
+    Γ ⊢ₜ T1, i <: T2, i
 
 (* TODO: figure out if the drugs I had when I wrote these rules were good or bad. *)
 (* | SelU_stp l L U p i j: *)

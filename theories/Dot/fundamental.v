@@ -3,6 +3,7 @@ From D Require Import swap_later_impl.
 From D.Dot Require Import unary_lr typing typeExtractionSem typing_unstamped
   lr_lemma lr_lemmasDefs lr_lemma_nobinding lr_lemmasTSel
   astStamping typingStamping skeleton.
+From D.Dot.lr Require Import path_repl.
 Import stamp_transfer.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
@@ -57,6 +58,7 @@ Section fundamental.
       + by iApply Or_Sub.
       + iApply Sel_Sub_Path. by iApply fundamental_path_typed.
       + iApply Sub_Sel_Path. by iApply fundamental_path_typed.
+      + by iApply Sub_singleton; [|iApply fundamental_path_typed].
       + by iApply Sub_Mu_X.
       + iApply Sub_Mu_A.
       + iApply Sub_Mu_B.
@@ -69,6 +71,7 @@ Section fundamental.
       + iApply Sub_TTMem_Cov_Distr.
     - iIntros "#Hm"; induction HT.
       + by iApply T_Forall_Ex; [apply IHHT1|apply IHHT2].
+      + by iApply T_Forall_Ex_p; [|apply IHHT|iApply fundamental_path_typed].
       + by iApply T_Forall_E; [apply IHHT1|apply IHHT2].
       + by iApply T_Mem_E.
       + by iApply TMu_E.
@@ -77,13 +80,22 @@ Section fundamental.
       + by iApply TMu_I.
       + by iApply T_Nat_I.
       + by iApply T_Var.
-      + iApply T_Sub; by [apply IHHT|iApply (fundamental_subtype with "Hm")].
+      + by iApply T_Sub; [apply IHHT|iApply fundamental_subtype].
+      + iApply P_To_E. by iApply fundamental_path_typed.
       + by iApply TAnd_I.
     - iIntros "#Hm"; induction HT.
       + iApply P_Val. by iApply fundamental_typed.
       + by iApply P_DLater.
       + by iApply P_Mem_E.
-      + iApply P_Sub; by [|iApply fundamental_subtype].
+      + by iApply P_Sub; [|iApply fundamental_subtype].
+      + by iApply TMu_I_p; [|apply IHHT].
+      + by iApply TMu_E_p; [|apply IHHT].
+      + by iApply PT_Mem_I.
+      + by iApply PTAnd_I; [apply IHHT1|apply IHHT2].
+      + by iApply singleton_self.
+      + by iApply singleton_sym.
+      + by iApply singleton_trans; [apply IHHT1|apply IHHT2].
+      + by iApply singleton_elim; [apply IHHT1|apply IHHT2].
   Qed.
 End fundamental.
 
