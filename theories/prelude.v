@@ -3,6 +3,11 @@ From Coq.Program Require Export Program.
 From iris.algebra Require Export base.
 From Autosubst Require Export Autosubst.
 From D Require Export tactics.
+From iris.program_logic Require Import language.
+
+Definition safe {Λ} (e : expr Λ) :=
+  ∀ e' thp σ σ', rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
+    is_Some (to_val e') ∨ reducible (Λ := Λ) e' σ'.
 
 (* Fixed version of stdpp's. *)
 Tactic Notation "efeed" "pose" "proof" constr(H) "as" simple_intropattern(H') :=
