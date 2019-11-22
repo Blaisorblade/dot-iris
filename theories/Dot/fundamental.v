@@ -107,19 +107,24 @@ Theorem adequacy_mapped_semtyping Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e 
   (∀ `{dlangG Σ} `(!SwapPropI Σ), [] ⊨[ ⟦ g ⟧g ] e : T) →
   safe e.
 Proof.
-  intros Hlog ?*; eapply (adequacy_dot_sem _).
+  intros Hlog ?*; eapply (adequacy_dot_sem Σ e T).
   iIntros (??) "Hs"; iApply Hlog. by iApply transfer_empty.
 Qed.
 
 Corollary type_soundness_storeless e T `{!stampTable}:
   [] ⊢ₜ e : T → safe e.
 Proof.
-  intros; apply: (adequacy_mapped_semtyping dlangΣ) => *. exact: fundamental_typed.
+  intros HsT.
+  apply: (adequacy_mapped_semtyping dlangΣ e getStampTable T); intros.
+  apply fundamental_typed, HsT.
 Qed.
 
-Theorem type_soundness e T :
+(** The overall proof of type soundness, as outlined in Sec. 5 of the paper. *)
+Corollary type_soundness e T :
   [] u⊢ₜ e : T → safe e.
 Proof.
   intros (e_s & g & HsT & Hs)%stamp_typed.
-  eapply Hs, type_soundness_storeless, HsT.
+  apply Hs.
+  apply (adequacy_mapped_semtyping dlangΣ e_s g T); intros.
+  apply fundamental_typed, HsT.
 Qed.
