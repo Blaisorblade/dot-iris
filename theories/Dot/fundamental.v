@@ -111,7 +111,7 @@ Proof.
   iIntros (??) "Hs"; iApply Hlog. by iApply transfer_empty.
 Qed.
 
-Corollary type_soundness_stamped e T `{!stampTable}:
+Corollary type_soundness_storeless e T `{!stampTable}:
   [] ⊢ₜ e : T → safe e.
 Proof.
   intros; apply: (adequacy_mapped_semtyping dlangΣ) => *. exact: fundamental_typed.
@@ -121,5 +121,5 @@ Theorem type_soundness e T :
   [] u⊢ₜ e : T → safe e.
 Proof.
   intros (e_s & g & HsT & Hs)%stamp_typed.
-  eapply Hs, type_soundness_stamped, HsT.
+  eapply Hs, type_soundness_storeless, HsT.
 Qed.
