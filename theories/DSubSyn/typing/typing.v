@@ -93,3 +93,8 @@ where "Γ ⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
 Lemma Vty_typed Γ T L U :
     Γ ⊢ₜ tv (vty T) : TTMem T T.
 Proof. apply (Vty_abs_typed Γ T); apply Refl_stp. Qed.
+
+Scheme typed_mut_ind := Induction for typed Sort Prop
+with   subtype_mut_ind := Induction for subtype Sort Prop.
+
+Combined Scheme typing_mut_ind from typed_mut_ind, subtype_mut_ind.
