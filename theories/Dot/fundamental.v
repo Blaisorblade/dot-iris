@@ -117,24 +117,9 @@ Proof.
   intros; apply: (adequacy_mapped_semtyping dlangΣ) => *. exact: fundamental_typed.
 Qed.
 
-Lemma safe_same_skel {e e_s}:
-  same_skel_tm e e_s → safe e_s → safe e.
-Proof.
-  rewrite /safe; intros Hst Hsafe * Hred Hin.
-  destruct (simulation_skeleton_erased_steps Hst Hred Hin)
-    as (e_s' & Hst_s & Hskel').
-  edestruct Hsafe; [apply Hst_s|apply elem_of_list_here|left|right].
-  - destruct e_s', e'; naive_solver.
-  - exact: same_skel_reducible.
-Qed.
-
-Lemma safe_stamp {n e g e_s}:
-  stamps_tm n e g e_s → safe e_s → safe e.
-Proof. move => [/unstamp_same_skel_tm Hs _] Hsafe. exact: safe_same_skel. Qed.
-
 Theorem type_soundness e T :
   [] u⊢ₜ e : T → safe e.
 Proof.
   intros (e_s & g & HsT & Hs)%stamp_typed.
-  eapply (safe_stamp Hs), type_soundness_stamped, HsT.
+  eapply Hs, type_soundness_stamped, HsT.
 Qed.

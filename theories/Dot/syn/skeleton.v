@@ -452,3 +452,14 @@ Proof.
   efeed pose proof simulation_skeleton as (e' & ? & ?) => //.
   exists [], e'; eauto.
 Qed.
+
+Lemma safe_same_skel {e e_s}:
+  same_skel_tm e e_s → safe e_s → safe e.
+Proof.
+  rewrite /safe; intros Hst Hsafe * Hred Hin.
+  destruct (simulation_skeleton_erased_steps Hst Hred Hin)
+    as (e_s' & Hst_s & Hskel').
+  edestruct Hsafe; [apply Hst_s|apply elem_of_list_here|left|right].
+  - destruct e_s', e'; naive_solver.
+  - exact: same_skel_reducible.
+Qed.

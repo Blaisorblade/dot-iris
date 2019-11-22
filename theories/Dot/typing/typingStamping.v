@@ -1,4 +1,4 @@
-From D.Dot Require Import typing_objIdent stampingDefsCore astStamping.
+From D.Dot Require Import typing_objIdent stampingDefsCore astStamping skeleton.
 From D.Dot Require typing_unstamped.
 
 Set Implicit Arguments.
@@ -321,12 +321,16 @@ Hint Extern 5 (is_stamped_path _ _ _) => try_once is_stamped_mono_path : core.
   Notation "Γ ⊢ₜ[ g  ] e : T" := (typing.typed g Γ e T)
     (at level 74, e, T at next level).
 
+  Lemma safe_stamp {n e g e_s}:
+    stamps_tm n e g e_s → safe e_s → safe e.
+  Proof. move => [/unstamp_same_skel_tm Hs _] Hsafe. exact: safe_same_skel. Qed.
+
   Lemma stamp_typed Γ e T: Γ u⊢ₜ e : T →
     ∃ e' (g : stys),
-    Γ ⊢ₜ[ g ] e' : T ∧ stamps_tm (length Γ) e g e'.
+    Γ ⊢ₜ[ g ] e' : T ∧ (safe e' → safe e).
   Proof.
     move => /stamp_objIdent_typed HobjI.
     case (HobjI ∅) as (e' & g' & HobjI'%typing_obj_ident_to_typing & ? & ?).
-    by exists e', g'.
+    exists e', g'; split; first done. exact: safe_stamp.
   Qed.
 End syntyping_stamping_lemmas.
