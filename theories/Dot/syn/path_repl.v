@@ -1,4 +1,6 @@
+From stdpp Require Import relations.
 From D.Dot.syn Require Import syn.
+
 Implicit Types
          (T : ty) (v w : vl) (t : tm) (d : dm) (ds : dms) (p q : path)
          (l : label).
@@ -127,13 +129,34 @@ Fixpoint psubst_ty p q T : ty := match T with
 end
 where "T .T[ p := q  ]" := (psubst_ty p q T).
 
-Section decide_psubst.
-  Local Hint Constructors rtc path_path_repl ty_path_repl : core.
+Section closure.
+  Context `{RA : relation A} `{RB : relation B} `{RC : relation C}.
 
+  Local Hint Constructors rtc : core.
+
+  (** Congruence lemma for transitive closure. Binary variant of [rtc_congruence]. *)
+
+  Lemma rtc_congruence2 (f : A → B → C) a1 a2 b1 b2 :
+    (∀ a1 a2 b, RA a1 a2 → RC (f a1 b) (f a2 b)) →
+    (∀ a b1 b2, RB b1 b2 → RC (f a b1) (f a b2)) →
+    rtc RA a1 a2 → rtc RB b1 b2 →
+    rtc RC (f a1 b1) (f a2 b2).
+  Proof. induction 3; induction 1; eauto. Qed.
+End closure.
+
+Section decide_psubst.
+  Local Hint Constructors path_path_repl ty_path_repl : core.
+
+  (** Instances of [rtc_congruence] where inference needs help. *)
   Lemma path_path_repl_self_rtc p q p1 p2 l :
     p1 ~pp[ p := q ]* p2 →
     pself p1 l ~pp[ p := q ]* pself p2 l.
-  Proof. induction 1; eauto. Qed.
+  Proof. apply rtc_congruence with (f := (λ p, pself p l)); auto. Qed.
+
+  Lemma ty_path_repl_TSel_rtc p1 q1 p q l :
+    p1 ~pp[ p := q ]* q1 →
+    TSel p1 l ~Tp[ p := q ]* TSel q1 l.
+  Proof. apply rtc_congruence with (f := (λ p, TSel p l)); auto. Qed.
 
   (** The Kleene start of path replacement agrees with path substitution.
     In fact, there can be only 0 or 1 steps anyway. *)
@@ -147,58 +170,12 @@ Section decide_psubst.
     rewrite Hdec; apply rtc_once; constructor.
   Qed.
 
-  (* Congruence lemmas for transitive closures. The unary versions should be instances of stdpp's [rtc_closure]. *)
-  Lemma path_ty_path_repl_rtc_congruence p1 q1 p q f :
-    (∀ p1 q1, p1 ~pp[ p := q ] q1 → f p1 ~Tp[ p := q ] f q1) →
-    p1 ~pp[ p := q ]* q1 → f p1 ~Tp[ p := q ]* f q1.
-  Proof. induction 2; eauto. Qed.
-
-  Lemma ty_path_repl_rtc_congruence_gen T1 U1 p q fT fP :
-    (∀ T1 U1, T1 ~Tp[ fP p := fP q ] U1 → fT T1 ~Tp[ p := q ] fT U1) →
-    T1 ~Tp[ fP p := fP q ]* U1 → fT T1 ~Tp[ p := q ]* fT U1.
-  Proof. induction 2; eauto. Qed.
-
-  Lemma ty_path_repl_rtc_congruence T1 U1 p q f :
-    (∀ T1 U1, T1 ~Tp[ p := q ] U1 → f T1 ~Tp[ p := q ] f U1) →
-    T1 ~Tp[ p := q ]* U1 → f T1 ~Tp[ p := q ]* f U1.
-  Proof. apply ty_path_repl_rtc_congruence_gen with (fP := id). Qed.
-
-  Lemma ty_path_repl_rtc_congruence2_gen T1 T2 U1 U2 p q fT fP1 fP2 :
-    (∀ T1 T2 U, T1 ~Tp[ fP1 p := fP1 q ] T2 → fT T1 U ~Tp[ p := q ] fT T2 U) →
-    (∀ T1 T2 U, T1 ~Tp[ fP2 p := fP2 q ] T2 → fT U T1 ~Tp[ p := q ] fT U T2) →
-    T1 ~Tp[ fP1 p := fP1 q ]* U1 → T2 ~Tp[ fP2 p := fP2 q ]* U2 →
-    fT T1 T2 ~Tp[ p := q ]* fT U1 U2.
-  Proof. induction 3; induction 1; eauto. Qed.
-
-  Lemma ty_path_repl_rtc_congruence2 T1 T2 U1 U2 p q fT :
-    (∀ T1 T2 U, T1 ~Tp[ p := q ] T2 → fT T1 U ~Tp[ p := q ] fT T2 U) →
-    (∀ T1 T2 U, T1 ~Tp[ p := q ] T2 → fT U T1 ~Tp[ p := q ] fT U T2) →
-    T1 ~Tp[ p := q ]* U1 → T2 ~Tp[ p := q ]* U2 →
-    fT T1 T2 ~Tp[ p := q ]* fT U1 U2.
-  Proof.
-    apply ty_path_repl_rtc_congruence2_gen with (fP1 := id) (fP2 := id).
-  Qed.
-
-  Lemma ty_path_repl_TAll_rtc T1 T2 U1 U2 p q :
-    T1 ~Tp[ p := q ]* U1 → T2 ~Tp[ shift p := shift q ]* U2 →
-    TAll T1 T2 ~Tp[ p := q ]* TAll U1 U2.
-  Proof. apply ty_path_repl_rtc_congruence2_gen with (fP1 := id); auto. Qed.
-
-  Lemma ty_path_repl_TSel_rtc p1 q1 p q l :
-    p1 ~pp[ p := q ]* q1 →
-    TSel p1 l ~Tp[ p := q ]* TSel q1 l.
-  Proof.
-    apply path_ty_path_repl_rtc_congruence with (f := (λ p, TSel p l)); auto.
-  Qed.
-
   Lemma psubst_ty_rtc_sufficient T1 T2 p q :
     T1 .T[ p := q ] = T2 →
     T1 ~Tp[ p := q ]* T2.
   Proof.
-    move => <- {T2}; move: p q.
-    induction T1; intros; simpl; eauto using
-      psubst_path_rtc_sufficient, path_ty_path_repl_rtc_congruence,
-      ty_path_repl_rtc_congruence, ty_path_repl_rtc_congruence2,ty_path_repl_rtc_congruence_gen,
-      ty_path_repl_TAll_rtc, ty_path_repl_TSel_rtc.
+    intros <-; move: p q.
+    induction T1; intros; simpl; eauto using rtc_congruence, rtc_congruence2,
+      ty_path_repl_TSel_rtc, psubst_path_rtc_sufficient, rtc_refl.
   Qed.
 End decide_psubst.
