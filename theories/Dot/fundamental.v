@@ -21,15 +21,15 @@ Section fundamental.
   Context `{!dlangG Σ} `{!SwapPropI Σ}.
   Context `{hasStampTable: stampTable}.
 
-  Fixpoint fundamental_dm_typed Γ V l d T (HT: Γ |d V ⊢{ l := d } : T) { struct HT }:
+  Fixpoint fundamental_dm_typed Γ V l d T (HT: Γ |d V ⊢[ g ]{ l := d } : T) { struct HT }:
     Γ |L V ⊨[ ⟦ getStampTable ⟧g ] { l := d } : T with
-  fundamental_dms_typed Γ V ds T (HT: Γ |ds V ⊢ ds : T) { struct HT }:
+  fundamental_dms_typed Γ V ds T (HT: Γ |ds V ⊢[ g ] ds : T) { struct HT }:
     Γ |L V ⊨[ ⟦ getStampTable ⟧g ]ds ds : T with
-  fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2) { struct HT }:
+  fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ[ g ] T1, i1 <: T2, i2) { struct HT }:
     Γ ⊨[ ⟦ getStampTable ⟧g ] T1, i1 <: T2, i2 with
-  fundamental_typed Γ e T (HT: Γ ⊢ₜ e : T) { struct HT }:
+  fundamental_typed Γ e T (HT: Γ ⊢ₜ[ g ] e : T) { struct HT }:
     Γ ⊨[ ⟦ getStampTable ⟧g ] e : T with
-  fundamental_path_typed Γ p T i (HT : Γ ⊢ₚ p : T, i) { struct HT }:
+  fundamental_path_typed Γ p T i (HT : Γ ⊢ₚ[ g ] p : T, i) { struct HT }:
     Γ ⊨[ ⟦ getStampTable ⟧g ]p p : T, i.
   Proof.
     - iIntros "#Hm"; induction HT.
@@ -112,7 +112,7 @@ Proof.
 Qed.
 
 Corollary type_soundness_storeless e T `{!stampTable}:
-  [] ⊢ₜ e : T → safe e.
+  [] ⊢ₜ[ g ] e : T → safe e.
 Proof.
   intros HsT.
   apply: (adequacy_mapped_semtyping dlangΣ e getStampTable T); intros.
