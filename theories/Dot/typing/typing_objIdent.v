@@ -2,21 +2,19 @@ From D Require Import tactics.
 From D.Dot Require Export syn.
 From D.Dot Require Import typing.
 
-(* The typing judgement comes from [s/⊢[ g ]/|⊢[ g ]/] over [typing.v], and restricting most values to variables (except in object definitions). *)
-Reserved Notation "Γ |⊢ₜ[ g ] e : T" (at level 74, e, T at next level).
-Reserved Notation "Γ |⊢ₚ[ g ] p : T , i" (at level 74, p, T, i at next level).
-Reserved Notation "Γ |d V |⊢[ g ]{ l := d  } : T" (at level 74, l, d, T, V at next level).
-Reserved Notation "Γ |ds V |⊢[ g ] ds : T" (at level 74, ds, T, V at next level).
-Reserved Notation "Γ |⊢ₜ[ g ] T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
-
 Implicit Types (L T U V : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty) (g : stys).
 
-Section syntyping.
-  Context `{hasStampTable: stampTable}.
+(* The typing judgement comes from [s/⊢/|⊢typing.v], and restricting most values to variables (except in object definitions). *)
+Reserved Notation "Γ |⊢ₜ[ g  ] e : T" (at level 74, e, T at next level).
+Reserved Notation "Γ |ds V |⊢[ g  ] ds : T" (at level 74, ds, T, V at next level).
+Reserved Notation "Γ |d V |⊢[ g  ]{ l := d  } : T " (at level 74, l, d, T, V at next level).
+Reserved Notation "Γ |⊢ₚ[ g  ] p : T , i" (at level 74, p, T, i at next level).
+Reserved Notation "Γ |⊢ₜ[ g  ] T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
+
 (**
 Judgments for typing, subtyping, path and definition typing.
 *)
-Inductive typed Γ : tm → ty → Prop :=
+Inductive typed Γ g : tm → ty → Prop :=
 (** First, elimination forms *)
 (** Dependent application; only allowed if the argument is a value . *)
 | Appv_typed e1 x2 T1 T2:
@@ -26,7 +24,7 @@ Inductive typed Γ : tm → ty → Prop :=
 
 | App_path_typed p2 e1 T1 T2 T2':
     T2 .Tp[ p2 /]~ T2' →
-    is_stamped_ty (length Γ) getStampTable T2' →
+    is_stamped_ty (length Γ) g T2' →
     Γ |⊢ₜ[ g ] e1: TAll T1 T2 →
     Γ |⊢ₚ[ g ] p2 : T1, 0 →
     (*────────────────────────────────────────────────────────────*)
@@ -47,13 +45,13 @@ Inductive typed Γ : tm → ty → Prop :=
 (** Introduction forms *)
 | Lam_typed e T1 T2:
     (* T1 :: Γ |⊢ₜ[ g ] e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
-    is_stamped_ty (length Γ) getStampTable T1 →
+    is_stamped_ty (length Γ) g T1 →
     T1.|[ren (+1)] :: Γ |⊢ₜ[ g ] e : T2 →
     (*─────────────────────────*)
     Γ |⊢ₜ[ g ] tv (vabs e) : TAll T1 T2
 | VObj_typed ds T:
     Γ |ds T |⊢[ g ] ds: T →
-    is_stamped_ty (S (length Γ)) getStampTable T →
+    is_stamped_ty (S (length Γ)) g T →
     (*──────────────────────*)
     Γ |⊢ₜ[ g ] tv (vobj ds): TMu T
 | TMuI_typed x T:
@@ -83,8 +81,8 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ |⊢ₜ[ g ] tv (var_vl x) : T1 →
     Γ |⊢ₜ[ g ] tv (var_vl x) : T2 →
     Γ |⊢ₜ[ g ] tv (var_vl x) : TAnd T1 T2
-where "Γ |⊢ₜ[ g ] e : T " := (typed Γ e T)
-with dms_typed Γ : ty → dms → ty → Prop :=
+where "Γ |⊢ₜ[ g ] e : T " := (typed Γ g e T)
+with dms_typed Γ g : ty → dms → ty → Prop :=
 | dnil_typed V : Γ |ds V |⊢[ g ] [] : TTop
 (* This demands definitions and members to be defined in aligned lists. *)
 | dcons_typed V l d ds T1 T2:
@@ -93,16 +91,16 @@ with dms_typed Γ : ty → dms → ty → Prop :=
     dms_hasnt ds l →
     (*──────────────────────*)
     Γ |ds V |⊢[ g ] (l, d) :: ds : TAnd T1 T2
-where "Γ |ds V |⊢[ g ] ds : T" := (dms_typed Γ V ds T)
-with dm_typed Γ : ty → label → dm → ty → Prop :=
+where "Γ |ds V |⊢[ g ] ds : T" := (dms_typed Γ g V ds T)
+with dm_typed Γ g : ty → label → dm → ty → Prop :=
 | dty_typed T V l L U s σ:
-    T ~[ S (length Γ) ] (getStampTable, (s, σ)) →
-    Forall (is_stamped_vl (S (length Γ)) getStampTable) σ →
+    T ~[ S (length Γ) ] (g, (s, σ)) →
+    Forall (is_stamped_vl (S (length Γ)) g) σ →
     TLater V :: Γ |⊢ₜ[ g ] TLater L, 0 <: TLater T, 0 →
     TLater V :: Γ |⊢ₜ[ g ] TLater T, 0 <: TLater U, 0 →
     Γ |d V |⊢[ g ]{ l := dtysem σ s } : TTMem l L U
 | dvabs_typed V T1 T2 e l:
-    is_stamped_ty (S (length Γ)) getStampTable T1 →
+    is_stamped_ty (S (length Γ)) g T1 →
     T1.|[ren (+1)] :: V :: Γ |⊢ₜ[ g ] e : T2 →
     Γ |d V |⊢[ g ]{ l := dvl (vabs e) } : TVMem l (TAll T1 T2)
 | dvl_typed V l v T:
@@ -112,8 +110,8 @@ with dm_typed Γ : ty → label → dm → ty → Prop :=
     TLater V :: Γ |⊢ₜ[ g ] T1, 0 <: T2, 0 →
     Γ |d V |⊢[ g ]{ l := dvl v } : TVMem l T1 →
     Γ |d V |⊢[ g ]{ l := dvl v } : TVMem l T2
-where "Γ |d V |⊢[ g ]{ l := d  } : T" := (dm_typed Γ V l d T)
-with path_typed Γ : path → ty → nat → Prop :=
+where "Γ |d V |⊢[ g ]{ l := d  } : T" := (dm_typed Γ g V l d T)
+with path_typed Γ g : path → ty → nat → Prop :=
 | pv_typed x T:
     Γ |⊢ₜ[ g ] tv (var_vl x) : T →
     Γ |⊢ₚ[ g ] pv (var_vl x) : T, 0
@@ -131,12 +129,12 @@ with path_typed Γ : path → ty → nat → Prop :=
     Γ |⊢ₚ[ g ] p : T2, i + j
 | p_mu_i_typed p T {T' i} :
     T .Tp[ p /]~ T' →
-    is_stamped_ty (S (length Γ)) getStampTable T →
+    is_stamped_ty (S (length Γ)) g T →
     Γ |⊢ₚ[ g ] p : T', i →
     Γ |⊢ₚ[ g ] p : TMu T, i
 | p_mu_e_typed p T {T' i} :
     T .Tp[ p /]~ T' →
-    is_stamped_ty (length Γ) getStampTable T' →
+    is_stamped_ty (length Γ) g T' →
     Γ |⊢ₚ[ g ] p : TMu T, i →
     Γ |⊢ₚ[ g ] p : T', i
 | pself_inv_typed p T i l:
@@ -152,7 +150,7 @@ with path_typed Γ : path → ty → nat → Prop :=
     Γ |⊢ₚ[ g ] p : TSing p, i
 | psingleton_sym_typed p q i:
     Γ |⊢ₚ[ g ] p : TSing q, i →
-    is_stamped_path (length Γ) getStampTable q →
+    is_stamped_path (length Γ) g q →
     Γ |⊢ₚ[ g ] q : TSing p, i
 | psingleton_trans p q T i:
     Γ |⊢ₚ[ g ] p : TSing q, i →
@@ -162,26 +160,26 @@ with path_typed Γ : path → ty → nat → Prop :=
     Γ |⊢ₚ[ g ] p : TSing q, i →
     Γ |⊢ₚ[ g ] pself q l : T, i →
     Γ |⊢ₚ[ g ] pself p l : TSing (pself q l), i
-where "Γ |⊢ₚ[ g ] p : T , i" := (path_typed Γ p T i)
+where "Γ |⊢ₚ[ g ] p : T , i" := (path_typed Γ g p T i)
 (* Γ |⊢ₜ[ g ] T1, i1 <: T2, i2 means that TLater^i1 T1 <: TLater^i2 T2. *)
-with subtype Γ : ty → nat → ty → nat → Prop :=
+with subtype Γ g : ty → nat → ty → nat → Prop :=
 | Refl_stp i T :
-    is_stamped_ty (length Γ) getStampTable T →
+    is_stamped_ty (length Γ) g T →
     Γ |⊢ₜ[ g ] T, i <: T, i
 | Trans_stp i2 T2 {i1 i3 T1 T3}:
     Γ |⊢ₜ[ g ] T1, i1 <: T2, i2 →
     Γ |⊢ₜ[ g ] T2, i2 <: T3, i3 →
     Γ |⊢ₜ[ g ] T1, i1 <: T3, i3
 | TLaterL_stp i T:
-    is_stamped_ty (length Γ) getStampTable T →
+    is_stamped_ty (length Γ) g T →
     Γ |⊢ₜ[ g ] TLater T, i <: T, S i
 | TLaterR_stp i T:
-    is_stamped_ty (length Γ) getStampTable T →
+    is_stamped_ty (length Γ) g T →
     Γ |⊢ₜ[ g ] T, S i <: TLater T, i
 
 (* "Structural" rules about indexes *)
 | TAddLater_stp T i:
-    is_stamped_ty (length Γ) getStampTable T →
+    is_stamped_ty (length Γ) g T →
     Γ |⊢ₜ[ g ] T, i <: TLater T, i
 | TMono_stp T1 T2 i j:
     Γ |⊢ₜ[ g ] T1, i <: T2, j →
@@ -189,30 +187,30 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 
 (* "Logical" connectives *)
 | Top_stp i T :
-    is_stamped_ty (length Γ) getStampTable T →
+    is_stamped_ty (length Γ) g T →
     Γ |⊢ₜ[ g ] T, i <: TTop, i
 | Bot_stp i T :
-    is_stamped_ty (length Γ) getStampTable T →
+    is_stamped_ty (length Γ) g T →
     Γ |⊢ₜ[ g ] TBot, i <: T, i
 | TAnd1_stp T1 T2 i:
-    is_stamped_ty (length Γ) getStampTable T1 →
-    is_stamped_ty (length Γ) getStampTable T2 →
+    is_stamped_ty (length Γ) g T1 →
+    is_stamped_ty (length Γ) g T2 →
     Γ |⊢ₜ[ g ] TAnd T1 T2, i <: T1, i
 | TAnd2_stp T1 T2 i:
-    is_stamped_ty (length Γ) getStampTable T1 →
-    is_stamped_ty (length Γ) getStampTable T2 →
+    is_stamped_ty (length Γ) g T1 →
+    is_stamped_ty (length Γ) g T2 →
     Γ |⊢ₜ[ g ] TAnd T1 T2, i <: T2, i
 | TAnd_stp T U1 U2 i j:
     Γ |⊢ₜ[ g ] T, i <: U1, j →
     Γ |⊢ₜ[ g ] T, i <: U2, j →
     Γ |⊢ₜ[ g ] T, i <: TAnd U1 U2, j
 | TOr1_stp T1 T2 i:
-    is_stamped_ty (length Γ) getStampTable T1 →
-    is_stamped_ty (length Γ) getStampTable T2 →
+    is_stamped_ty (length Γ) g T1 →
+    is_stamped_ty (length Γ) g T2 →
     Γ |⊢ₜ[ g ] T1, i <: TOr T1 T2, i
 | TOr2_stp T1 T2 i:
-    is_stamped_ty (length Γ) getStampTable T1 →
-    is_stamped_ty (length Γ) getStampTable T2 →
+    is_stamped_ty (length Γ) g T1 →
+    is_stamped_ty (length Γ) g T2 →
     Γ |⊢ₜ[ g ] T2, i <: TOr T1 T2, i
 | TOr_stp T1 T2 U i j:
     Γ |⊢ₜ[ g ] T1, i <: U, j →
@@ -228,8 +226,8 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Γ |⊢ₜ[ g ] TLater L, i <: TSel p l, i
 | PSub_singleton_stp p q {i T1 T2}:
     T1 ~Tp[ p := q ]* T2 →
-    is_stamped_ty (length Γ) getStampTable T1 →
-    is_stamped_ty (length Γ) getStampTable T2 →
+    is_stamped_ty (length Γ) g T1 →
+    is_stamped_ty (length Γ) g T2 →
     Γ |⊢ₚ[ g ] p : TSing q, i →
     Γ |⊢ₜ[ g ] T1, i <: T2, i
 
@@ -244,13 +242,13 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 (* Subtyping for recursive types. Congruence, and opening in both directions. *)
 | Mu_stp_mu T1 T2 i:
     (iterate TLater i T1 :: Γ) |⊢ₜ[ g ] T1, i <: T2, i →
-    is_stamped_ty (S (length Γ)) getStampTable T1 →
+    is_stamped_ty (S (length Γ)) g T1 →
     Γ |⊢ₜ[ g ] TMu T1, i <: TMu T2, i
 | Mu_stp T i:
-    is_stamped_ty (length Γ) getStampTable T →
+    is_stamped_ty (length Γ) g T →
     Γ |⊢ₜ[ g ] TMu T.|[ren (+1)], i <: T, i
 | Stp_mu T i:
-    is_stamped_ty (length Γ) getStampTable T →
+    is_stamped_ty (length Γ) g T →
     Γ |⊢ₜ[ g ] T, i <: TMu T.|[ren (+1)], i
 
 (* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types.
@@ -262,7 +260,7 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 | TAllConCov_stp T1 T2 U1 U2 i:
     Γ |⊢ₜ[ g ] TLater T2, i <: TLater T1, i →
     iterate TLater (S i) T2.|[ren (+1)] :: Γ |⊢ₜ[ g ] TLater U1, i <: TLater U2, i →
-    is_stamped_ty (length Γ) getStampTable T2 →
+    is_stamped_ty (length Γ) g T2 →
     Γ |⊢ₜ[ g ] TAll T1 U1, i <: TAll T2 U2, i
 | TVMemCov_stp T1 T2 i l:
     Γ |⊢ₜ[ g ] T1, i <: T2, i →
@@ -277,27 +275,20 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Let's prove F[A] ∧ F[B] <: F[A ∧ B] in the model.
     *)
 | TAllDistr_stp T U1 U2 i:
-    is_stamped_ty (length Γ) getStampTable T →
-    is_stamped_ty (S (length Γ)) getStampTable U1 →
-    is_stamped_ty (S (length Γ)) getStampTable U2 →
+    is_stamped_ty (length Γ) g T →
+    is_stamped_ty (S (length Γ)) g U1 →
+    is_stamped_ty (S (length Γ)) g U2 →
     Γ |⊢ₜ[ g ] TAnd (TAll T U1) (TAll T U2), i <: TAll T (TAnd U1 U2), i
 | TVMemDistr_stp l T1 T2 i:
-    is_stamped_ty (length Γ) getStampTable T1 →
-    is_stamped_ty (length Γ) getStampTable T2 →
+    is_stamped_ty (length Γ) g T1 →
+    is_stamped_ty (length Γ) g T2 →
     Γ |⊢ₜ[ g ] TAnd (TVMem l T1) (TVMem l T2), i <: TVMem l (TAnd T1 T2), i
 | TTMemDistr_strp l L U1 U2 i:
-    is_stamped_ty (length Γ) getStampTable L →
-    is_stamped_ty (length Γ) getStampTable U1 →
-    is_stamped_ty (length Γ) getStampTable U2 →
+    is_stamped_ty (length Γ) g L →
+    is_stamped_ty (length Γ) g U1 →
+    is_stamped_ty (length Γ) g U2 →
     Γ |⊢ₜ[ g ] TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
-where "Γ |⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
-End syntyping.
-
-Notation "Γ |⊢ₜ[ g ] e : T " := (typed Γ e T).
-Notation "Γ |ds V |⊢[ g ] ds : T" := (dms_typed Γ V ds T).
-Notation "Γ |d V |⊢[ g ]{ l := d  } : T" := (dm_typed Γ V l d T).
-Notation "Γ |⊢ₚ[ g ] p : T , i" := (path_typed Γ p T i).
-Notation "Γ |⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
+where "Γ |⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ g T1 i1 T2 i2).
 
 Scheme exp_stamped_objIdent_typed_mut_ind := Induction for typed Sort Prop
 with   exp_stamped_objIdent_dms_typed_mut_ind := Induction for dms_typed Sort Prop
@@ -332,9 +323,7 @@ Remove Hints Trans_stp : core.
 Hint Extern 10 => try_once Trans_stp : core.
 
 Section syntyping_lemmas.
-  Context `{hasStampTable: stampTable}.
-
-  Lemma typing_obj_ident_to_typing_mut Γ:
+  Lemma typing_obj_ident_to_typing_mut Γ g:
     (∀ e T, Γ |⊢ₜ[ g ] e : T → Γ ⊢ₜ[ g ] e : T) ∧
     (∀ V ds T, Γ |ds V |⊢[ g ] ds : T → Γ |ds V ⊢[ g ] ds : T) ∧
     (∀ V l d T, Γ |d V |⊢[ g ]{ l := d } : T → Γ |d V ⊢[ g ]{ l := d } : T) ∧
@@ -342,15 +331,14 @@ Section syntyping_lemmas.
     (∀ T1 i1 T2 i2, Γ |⊢ₜ[ g ] T1, i1 <: T2, i2 → Γ ⊢ₜ[ g ] T1, i1 <: T2, i2).
   Proof.
     eapply stamped_objIdent_typing_mut_ind with
-        (P := λ Γ e T _, Γ ⊢ₜ[ g ] e : T)
-        (P0 := λ Γ V ds T _, Γ |ds V ⊢[ g ] ds : T)
-        (P1 := λ Γ V l d T _, Γ |d V ⊢[ g ]{ l := d } : T)
-        (P2 := λ Γ p T i _, Γ ⊢ₚ[ g ] p : T, i)
-        (P3 := λ Γ T1 i1 T2 i2 _, Γ ⊢ₜ[ g ] T1, i1 <: T2, i2); clear Γ;
+        (P := λ Γ g e T _, Γ ⊢ₜ[ g ] e : T)
+        (P0 := λ Γ g V ds T _, Γ |ds V ⊢[ g ] ds : T)
+        (P1 := λ Γ g V l d T _, Γ |d V ⊢[ g ]{ l := d } : T)
+        (P2 := λ Γ g p T i _, Γ ⊢ₚ[ g ] p : T, i)
+        (P3 := λ Γ g T1 i1 T2 i2 _, Γ ⊢ₜ[ g ] T1, i1 <: T2, i2); clear Γ g;
       solve [econstructor; eauto].
   Qed.
-
-  Lemma typing_obj_ident_to_typing Γ e T:
+  Lemma typing_obj_ident_to_typing Γ g e T:
     Γ |⊢ₜ[ g ] e : T → Γ ⊢ₜ[ g ] e : T.
   Proof. apply typing_obj_ident_to_typing_mut. Qed.
 End syntyping_lemmas.

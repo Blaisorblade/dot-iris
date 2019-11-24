@@ -54,11 +54,11 @@ Hint Extern 5 (is_stamped_dm _ _ _) => try_once is_stamped_weaken_dm : core.
 Hint Extern 5 (is_stamped_ty _ _ _) => cbn : core.
 
 Ltac typconstructor := match goal with
-  | |- typed _ _ _ => constructor
-  | |- dms_typed _ _ _ _ => constructor
-  | |- dm_typed _ _ _ _ _ => constructor
-  | |- path_typed _ _ _ _ => constructor
-  | |- subtype _ _ _ _ _ => constructor
+  | |- typed _ _ _ _ => constructor
+  | |- dms_typed _ _ _ _ _ => constructor
+  | |- dm_typed _ _ _ _ _ _ => constructor
+  | |- path_typed _ _ _ _ _ => constructor
+  | |- subtype _ _ _ _ _ _ => constructor
   end.
 (** [tcrush] is the safest automation around. *)
 Ltac tcrush := repeat typconstructor; stcrush; try solve [ done |
@@ -83,8 +83,7 @@ Hint Resolve is_stamped_idsσ_ren : core.
 (*******************)
 
 Section examples_lemmas.
-(* From D Require Import typeExtraction *)
-Context `{hasStampTable: stampTable}.
+Context {g : stys}.
 
 Lemma Appv_typed' T2 {Γ e1 v2 T1 T3} :
   Γ ⊢ₜ[ g ] e1: TAll T1 T2 →                        Γ ⊢ₜ[ g ] tv v2 : T1 →
@@ -115,8 +114,8 @@ Proof. rewrite -(iterate_0 tskip e). eauto. Qed.
 Hint Resolve Subs_typed_nocoerce : core.
 
 Lemma Sub_later_shift {Γ T1 T2 i j}
-  (Hs1: is_stamped_ty (length Γ) getStampTable T1)
-  (Hs2: is_stamped_ty (length Γ) getStampTable T2)
+  (Hs1: is_stamped_ty (length Γ) g T1)
+  (Hs2: is_stamped_ty (length Γ) g T2)
   (Hsub: Γ ⊢ₜ[ g ] T1, S i <: T2, S j):
   Γ ⊢ₜ[ g ] TLater T1, i <: TLater T2, j.
 Proof.
@@ -125,8 +124,8 @@ Proof.
 Qed.
 
 Lemma Sub_later_shift_inv {Γ T1 T2 i j}
-  (Hs1: is_stamped_ty (length Γ) getStampTable T1)
-  (Hs2: is_stamped_ty (length Γ) getStampTable T2)
+  (Hs1: is_stamped_ty (length Γ) g T1)
+  (Hs2: is_stamped_ty (length Γ) g T2)
   (Hsub: Γ ⊢ₜ[ g ] TLater T1, i <: TLater T2, j):
   Γ ⊢ₜ[ g ] T1, S i <: T2, S j.
 Proof.
@@ -142,12 +141,12 @@ Lemma Var_typed_sub Γ x T1 T2 :
 Proof. intros; eapply Subs_typed_nocoerce; by [exact: Var_typed|]. Qed.
 
 Lemma LSel_stp' Γ U {p l L i}:
-  is_stamped_ty (length Γ) getStampTable L →
+  is_stamped_ty (length Γ) g L →
   Γ ⊢ₚ[ g ] p : TTMem l L U, i →
   Γ ⊢ₜ[ g ] L, i <: TSel p l, i.
-Proof. intros; eapply Trans_stp; last exact: (LSel_stp _ p); tcrush. Qed.
+Proof. intros; eapply Trans_stp; last exact: (LSel_stp _ _ p); tcrush. Qed.
 
-Lemma AddI_stp Γ T i (Hst: is_stamped_ty (length Γ) getStampTable T) :
+Lemma AddI_stp Γ T i (Hst: is_stamped_ty (length Γ) g T) :
   Γ ⊢ₜ[ g ] T, 0 <: T, i.
 Proof.
   elim: i => [|n IHn]; first tcrush.
@@ -163,15 +162,15 @@ Proof.
   exact: TMono_stp.
 Qed.
 
-Lemma is_stamped_pvar i n : i < n → is_stamped_path n getStampTable (pv (var_vl i)).
+Lemma is_stamped_pvar i n : i < n → is_stamped_path n g (pv (var_vl i)).
 Proof. eauto. Qed.
-Lemma is_stamped_pvars i n l : i < n → is_stamped_ty n getStampTable (pv (var_vl i) @; l).
+Lemma is_stamped_pvars i n l : i < n → is_stamped_ty n g (pv (var_vl i) @; l).
 Proof. eauto using is_stamped_pvar. Qed.
 
 Lemma Let_typed Γ t u T U :
   Γ ⊢ₜ[ g ] t : T →
   T.|[ren (+1)] :: Γ ⊢ₜ[ g ] u : U.|[ren (+1)] →
-  is_stamped_ty (length Γ) getStampTable T →
+  is_stamped_ty (length Γ) g T →
   Γ ⊢ₜ[ g ] lett t u : U.
 Proof. move=> Ht Hu HsT. apply /App_typed /Ht /Lam_typed /Hu /HsT. Qed.
 
@@ -180,15 +179,15 @@ Proof. move=> Ht Hu HsT. apply /App_typed /Ht /Lam_typed /Hu /HsT. Qed.
 Definition packTV n s := (ν {@ type "A" = ((idsσ n).|[ren (+1)]; s)}).
 
 Lemma packTV_typed' s T n Γ :
-  getStampTable !! s = Some T →
-  is_stamped_ty n getStampTable T →
+  g !! s = Some T →
+  is_stamped_ty n g T →
   n <= length Γ →
   Γ ⊢ₜ[ g ] tv (packTV n s) : typeEq "A" T.
 Proof.
   move => Hlp HsT1 Hle; move: (Hle) (HsT1) => /le_n_S Hles /is_stamped_ren1_ty HsT2.
   move: (is_stamped_nclosed_ty HsT1) => Hcl.
   apply (Subs_typed_nocoerce (μ {@ typeEq "A" T.|[ren (+1)] }));
-    last (eapply Trans_stp; first apply (Mu_stp _ ({@ typeEq "A" T })); tcrush).
+    last (eapply Trans_stp; first apply (Mu_stp _ _ ({@ typeEq "A" T })); tcrush).
   apply VObj_typed; tcrush.
   apply (dty_typed T.|[ren (+1)]); auto 2; tcrush.
   apply /(@extraction_inf_subst _ (length _)); auto 3;
@@ -196,19 +195,19 @@ Proof.
 Qed.
 
 Lemma packTV_typed s T Γ :
-  getStampTable !! s = Some T →
-  is_stamped_ty (length Γ) getStampTable T →
+  g !! s = Some T →
+  is_stamped_ty (length Γ) g T →
   Γ ⊢ₜ[ g ] tv (packTV (length Γ) s) : typeEq "A" T.
 Proof. intros; exact: packTV_typed'. Qed.
 
 Lemma val_LB T U Γ i v :
   Γ ⊢ₜ[ g ] tv v : type "A" >: T <: U →
   Γ ⊢ₜ[ g ] ▶ T, i <: (pv v @; "A"), i.
-Proof. intros; apply /AddIB_stp /(LSel_stp _ (pv _)); tcrush. Qed.
+Proof. intros; apply /AddIB_stp /(LSel_stp _ _ (pv _)); tcrush. Qed.
 
 Lemma packTV_LB s T n Γ i :
-  getStampTable !! s = Some T →
-  is_stamped_ty n getStampTable T →
+  g !! s = Some T →
+  is_stamped_ty n g T →
   n <= length Γ →
   Γ ⊢ₜ[ g ] ▶ T, i <: (pv (packTV n s) @; "A"), i.
 Proof. intros; by apply /val_LB /packTV_typed'. Qed.
@@ -219,8 +218,8 @@ Lemma val_UB T L Γ i v :
 Proof. intros; eapply AddIB_stp, SelU_stp; tcrush. Qed.
 
 Lemma packTV_UB s T n Γ i :
-  is_stamped_ty n getStampTable T →
-  getStampTable !! s = Some T →
+  is_stamped_ty n g T →
+  g !! s = Some T →
   n <= length Γ →
   Γ ⊢ₜ[ g ] (pv (packTV n s) @; "A"), i <: ▶ T, i.
 Proof. intros; by apply /val_UB /packTV_typed'. Qed.
@@ -234,9 +233,9 @@ Lemma typeApp_typed s Γ T U V t :
     for ML and Scala: that is, producing a type [V] that does not refer to
     variables bound by let in the expression. *)
   (∀ L, typeEq "A" T.|[ren (+2)] :: L :: Γ ⊢ₜ[ g ] U.|[up (ren (+1))], 0 <: V.|[ren (+2)], 0) →
-  is_stamped_ty (length Γ) getStampTable T →
-  is_stamped_ty (S (length Γ)) getStampTable U →
-  getStampTable !! s = Some T.|[ren (+1)] →
+  is_stamped_ty (length Γ) g T →
+  is_stamped_ty (S (length Γ)) g U →
+  g !! s = Some T.|[ren (+1)] →
   Γ ⊢ₜ[ g ] tApp Γ t s : V.
 Proof.
   move => Ht Hsub HsT1 HsU1 Hl; move: (HsT1) => /is_stamped_ren1_ty HsT2.
