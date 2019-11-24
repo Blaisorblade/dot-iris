@@ -114,9 +114,6 @@ Proof.
   have Heq: v = w by exact: path_wp_pure_det. simplify_eq; eauto.
 Qed.
 
-(* XXX For Iris *)
-Hint Extern 1 (environments.envs_entails _ (_ ∗-∗ _)) => iSplit : core.
-
 Lemma alias_paths_samepwp_pure p q:
   alias_paths p q ↔
     (∃ u, path_wp_pure p (eq u)) ∧
