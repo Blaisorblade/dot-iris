@@ -3,34 +3,33 @@ From D.Dot Require Import typing typeExtractionSyn traversals stampedness_bindin
 Set Implicit Arguments.
 
 Section syntyping_lemmas.
-  Context `{hasStampTable: stampTable}.
 
   Hint Constructors Forall : core.
-  Lemma stamped_mut_subject Γ:
-    (∀ e  T, Γ ⊢ₜ e : T → is_stamped_tm (length Γ) getStampTable e) ∧
-    (∀ V ds T, Γ |ds V ⊢ ds : T → Forall (is_stamped_dm (S (length Γ)) getStampTable) (map snd ds)) ∧
-    (∀ V l d T, Γ |d V ⊢{ l := d } : T → is_stamped_dm (S (length Γ)) getStampTable d) ∧
-    (∀ p T i, Γ ⊢ₚ p : T, i → is_stamped_path (length Γ) getStampTable p).
+  Lemma stamped_mut_subject Γ g :
+    (∀ e T, Γ ⊢ₜ[ g ] e : T → is_stamped_tm (length Γ) g e) ∧
+    (∀ V ds T, Γ |ds V ⊢[ g ] ds : T → Forall (is_stamped_dm (S (length Γ)) g) (map snd ds)) ∧
+    (∀ V l d T, Γ |d V ⊢[ g ]{ l := d } : T → is_stamped_dm (S (length Γ)) g d) ∧
+    (∀ p T i, Γ ⊢ₚ[ g ] p : T, i → is_stamped_path (length Γ) g p).
   Proof.
     eapply exp_stamped_typing_mut_ind with
-        (P := λ Γ e T _, is_stamped_tm (length Γ) getStampTable e)
-        (P0 := λ Γ V ds T _, Forall (is_stamped_dm (S (length Γ)) getStampTable) (map snd ds))
-        (P1 := λ Γ V l d T _, is_stamped_dm (S (length Γ)) getStampTable d)
-        (P2 := λ Γ p T i _, is_stamped_path (length Γ) getStampTable p);
+        (P := λ Γ g e T _, is_stamped_tm (length Γ) g e)
+        (P0 := λ Γ g V ds T _, Forall (is_stamped_dm (S (length Γ)) g) (map snd ds))
+        (P1 := λ Γ g V l d T _, is_stamped_dm (S (length Γ)) g d)
+        (P2 := λ Γ g p T i _, is_stamped_path (length Γ) g p); clear Γ g;
         cbn; intros; try by (with_is_stamped inverse + idtac);
           eauto using is_stamped_path2tm.
     - repeat constructor => //=. by eapply lookup_lt_Some.
     - intros; elim: i {s} => [|i IHi]; rewrite /= ?iterate_0 ?iterate_S //; eauto.
     - move: e => [T' ?]; ev. by apply @Trav1.trav_dtysem with
-        (T' := T') (ts' := (length σ, getStampTable)).
+        (T' := T') (ts' := (length σ, g)).
   Qed.
 
-  Lemma stamped_exp_subject Γ e T: Γ ⊢ₜ e : T →
-    is_stamped_tm (length Γ) getStampTable e.
-  Proof. apply (stamped_mut_subject Γ). Qed.
-  Lemma stamped_path_subject Γ p T i:
-    Γ ⊢ₚ p : T, i → is_stamped_path (length Γ) getStampTable p.
-  Proof. apply (stamped_mut_subject Γ). Qed.
+  Lemma stamped_exp_subject Γ g e T: Γ ⊢ₜ[ g ] e : T →
+    is_stamped_tm (length Γ) g e.
+  Proof. apply stamped_mut_subject. Qed.
+  Lemma stamped_path_subject Γ g p T i:
+    Γ ⊢ₚ[ g ] p : T, i → is_stamped_path (length Γ) g p.
+  Proof. apply stamped_mut_subject. Qed.
   Local Hint Resolve stamped_exp_subject stamped_path_subject : core.
 
   (* The reverse direction slows proof search and isn't used anyway? *)
@@ -80,20 +79,20 @@ Section syntyping_lemmas.
       eapply (@is_stamped_ren_ty_1 (length Γ) (T.|[ren (+x)]) g), IHx; eauto.
   Qed.
 
-  Lemma is_stamped_TLater_n {i n T}:
-    is_stamped_ty n getStampTable T →
-    is_stamped_ty n getStampTable (iterate TLater i T).
+  Lemma is_stamped_TLater_n {i n T g}:
+    is_stamped_ty n g T →
+    is_stamped_ty n g (iterate TLater i T).
   Proof.
     elim: i => [|//i IHi]; rewrite ?iterate_0 ?iterate_S //; auto.
   Qed.
 
-  Lemma is_stamped_tv_inv {n v}:
-    is_stamped_tm n getStampTable (tv v) →
-    is_stamped_vl n getStampTable v.
+  Lemma is_stamped_tv_inv {n v g}:
+    is_stamped_tm n g (tv v) →
+    is_stamped_vl n g v.
   Proof. by inversion 1. Qed.
-  Lemma is_stamped_TLater_inv {n T}:
-    is_stamped_ty n getStampTable (TLater T) →
-    is_stamped_ty n getStampTable T.
+  Lemma is_stamped_TLater_inv {n T g}:
+    is_stamped_ty n g (TLater T) →
+    is_stamped_ty n g T.
   Proof. by inversion 1. Qed.
 
   Local Hint Resolve is_stamped_tv_inv is_stamped_TLater_n : core.
@@ -106,43 +105,43 @@ Section syntyping_lemmas.
         try (is_var T; fail 1); inverse H
     end.
 
-  Lemma stamped_mut_types Γ :
-    (∀ e T, Γ ⊢ₜ e : T → ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (length Γ) getStampTable T) ∧
-    (∀ V ds T, Γ |ds V ⊢ ds : T → ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (S (length Γ)) getStampTable V →
-      is_stamped_ty (S (length Γ)) getStampTable T) ∧
-    (∀ V l d T, Γ |d V ⊢{ l := d } : T → ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (S (length Γ)) getStampTable V →
-      is_stamped_ty (S (length Γ)) getStampTable T) ∧
-    (∀ p T i, Γ ⊢ₚ p : T , i → ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (length Γ) getStampTable T) ∧
-    (∀ T1 i1 T2 i2, Γ ⊢ₜ T1, i1 <: T2, i2 → ∀ (Hctx: stamped_ctx getStampTable Γ),
-      is_stamped_ty (length Γ) getStampTable T1 ∧ is_stamped_ty (length Γ) getStampTable T2).
+  Lemma stamped_mut_types Γ g :
+    (∀ e T, Γ ⊢ₜ[ g ] e : T → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T) ∧
+    (∀ V ds T, Γ |ds V ⊢[ g ] ds : T → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (S (length Γ)) g V →
+      is_stamped_ty (S (length Γ)) g T) ∧
+    (∀ V l d T, Γ |d V ⊢[ g ]{ l := d } : T → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (S (length Γ)) g V →
+      is_stamped_ty (S (length Γ)) g T) ∧
+    (∀ p T i, Γ ⊢ₚ[ g ] p : T , i → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T) ∧
+    (∀ T1 i1 T2 i2, Γ ⊢ₜ[ g ] T1, i1 <: T2, i2 → ∀ (Hctx: stamped_ctx g Γ),
+      is_stamped_ty (length Γ) g T1 ∧ is_stamped_ty (length Γ) g T2).
   Proof.
     eapply stamped_typing_mut_ind with
-        (P := λ Γ e T _, ∀ (Hctx: stamped_ctx getStampTable Γ),
-          is_stamped_ty (length Γ) getStampTable T)
-        (P0 := λ Γ V ds T _, ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (S (length Γ)) getStampTable V →
-          is_stamped_ty (S (length Γ)) getStampTable T)
-        (P1 := λ Γ V l d T _, ∀ (Hctx: stamped_ctx getStampTable Γ), is_stamped_ty (S (length Γ)) getStampTable V →
-          is_stamped_ty (S (length Γ)) getStampTable T)
-        (P2 := λ Γ p T i _, ∀ (Hctx: stamped_ctx getStampTable Γ),
-          is_stamped_ty (length Γ) getStampTable T)
-        (P3 := λ Γ T1 i1 T2 i2 _, ∀ (Hctx: stamped_ctx getStampTable Γ),
-               is_stamped_ty (length Γ) getStampTable T1 ∧ is_stamped_ty (length Γ) getStampTable T2); clear Γ.
+        (P := λ Γ g e T _, ∀ (Hctx: stamped_ctx g Γ),
+          is_stamped_ty (length Γ) g T)
+        (P0 := λ Γ g V ds T _, ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (S (length Γ)) g V →
+          is_stamped_ty (S (length Γ)) g T)
+        (P1 := λ Γ g V l d T _, ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (S (length Γ)) g V →
+          is_stamped_ty (S (length Γ)) g T)
+        (P2 := λ Γ g p T i _, ∀ (Hctx: stamped_ctx g Γ),
+          is_stamped_ty (length Γ) g T)
+        (P3 := λ Γ g T1 i1 T2 i2 _, ∀ (Hctx: stamped_ctx g Γ),
+               is_stamped_ty (length Γ) g T1 ∧ is_stamped_ty (length Γ) g T2); clear Γ g.
     all: intros; cbn in *; ev; try solve [ eauto using is_stamped_ren_ty_1 ].
     all: try specialize (H Hctx); try specialize (H0 Hctx); ev.
     all: try solve [try with_is_stamped_inverse; repeat constructor; cbn; eauto 4].
     - inverse H. eapply is_stamped_sub_rev_ty => //. eauto.
     - by apply stamped_lookup.
-    - have Hctx': stamped_ctx getStampTable (TLater V :: Γ). by eauto.
+    - have Hctx': stamped_ctx g (TLater V :: Γ). by eauto.
       move: (H Hctx') (H0 Hctx'). intuition.
-    - have Hctx': stamped_ctx getStampTable (T1.|[ren (+1)] :: V :: Γ).
+    - have Hctx': stamped_ctx g (T1.|[ren (+1)] :: V :: Γ).
       by eauto.
       move: (H Hctx'); intuition.
-    - have Hctx': stamped_ctx getStampTable (TLater V :: Γ). by eauto.
+    - have Hctx': stamped_ctx g (TLater V :: Γ). by eauto.
       move: (H Hctx'); intuition.
-    - have Hctx': stamped_ctx getStampTable (iterate TLater i T1 :: Γ).
+    - have Hctx': stamped_ctx g (iterate TLater i T1 :: Γ).
       by eauto.
       move: (H Hctx'); intuition.
-    - have Hctx': stamped_ctx getStampTable (iterate TLater (S i) T2.|[ren (+1)] :: Γ).
+    - have Hctx': stamped_ctx g (iterate TLater (S i) T2.|[ren (+1)] :: Γ).
       by eauto.
       move: (H0 Hctx'). intros; ev; repeat econstructor; cbn; eauto.
   Qed.

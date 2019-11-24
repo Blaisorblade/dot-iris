@@ -6,7 +6,6 @@ From D.DSub Require Import syn traversals.
 Set Implicit Arguments.
 
 Notation stys := (gmap stamp ty).
-Class stampTable := getStampTable : stys.
 
 Import Trav1.
 Set Implicit Arguments.
