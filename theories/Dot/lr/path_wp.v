@@ -95,6 +95,7 @@ Proof. split => Hp; exact: path_wp_pure_wand. Qed.
 
 Definition alias_paths p q :=
   path_wp_pure q (λ vp, path_wp_pure p (eq vp)).
+Hint Unfold alias_paths : core.
 
 Lemma alias_paths_pv_eq_1 p vr :
   alias_paths p (pv vr) ↔ path_wp_pure p (eq vr).
@@ -107,7 +108,7 @@ Lemma alias_paths_pv_eq_2 p vr :
 Proof.
   rewrite /alias_paths -path_wp_pure_swap.
   by setoid_rewrite path_wp_pure_inv_pv.
-(* Qed. *)
+Qed.
 
 Lemma alias_paths_self p v :
   alias_paths p (pv v) → alias_paths p p.
@@ -117,7 +118,7 @@ Qed.
 
 Lemma alias_paths_refl_vl v :
   alias_paths (pv v) (pv v).
-Proof. done. Qed.
+Proof. eauto. Qed.
 
 Lemma alias_paths_sameres p q:
   alias_paths p q ↔
