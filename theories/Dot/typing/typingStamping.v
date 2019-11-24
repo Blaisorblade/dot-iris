@@ -287,10 +287,24 @@ Section syntyping_stamping_lemmas.
     have ?: p1' = p by [naive_solver]; subst p1'.
     exists g1. repeat constructor => //.
     eapply typing_objIdent.PSub_singleton_stp; eauto 2.
-  - intros * Hu1 IHs1 Hu2 IHs2 Hus2 g.
-    move: IHs1 => /(.$ g) [g1 ?].
+  - intros * Hu1 IHs1 Hu2 IHs2 g.
+    move: IHs1 => /(.$ g) [p1' [g1 ?]].
     move: IHs2 => /(.$ g1) [g2 ?]; ev; lte g g1 g2.
-    exists g2; eauto.
+    move: (unstamped_path_root_is_var Hu1) => Hp1.
+    have ?: p1' = p by [naive_solver]; subst p1'.
+    exists g2; split_and! => //.
+    by apply (typing_objIdent.PSym_singleton_stp _ _ T); eauto 2.
+  - intros * Hu1 IHs1 g.
+    move: IHs1 => /(.$ g) [p1' [g1 ?]]; ev.
+    move: (unstamped_path_root_is_var Hu1) => Hp1.
+    have ?: p1' = p by [naive_solver]; subst p1'.
+    exists g1; split_and! => //.
+    by apply typing_objIdent.PSelf_singleton_stp.
+  - intros * Hu1 IHs1 Hu2 IHs2 Hus g.
+    move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]];
+    move: IHs2 => /(.$ g1) [g2 [Hts2 Hle2]]; lte g g1 g2.
+    exists g2; split_and! => //.
+    apply typing_objIdent.TAllConCov_stp; eauto 2.
   Qed.
 
   Lemma stamp_objIdent_typed Γ e T: Γ u⊢ₜ e : T →

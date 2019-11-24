@@ -272,22 +272,6 @@ Section path_repl.
     iNext i. iDestruct "Hal" as %(v & _ & Hqv)%alias_paths_sameres. iIntros "!%".
     by apply (path_wp_pure_wand Hqv).
   Qed.
-
-  (* Thanks to the rules above, this non-pDOT rule becomes derivable. *)
-  Lemma singleton_sym Γ p q i:
-    Γ ⊨p p : TSing q, i -∗
-    Γ ⊨p q : TSing p, i.
-  Proof.
-    iIntros "#Hpq". iEval (rewrite -(plusnO i)).
-    iApply (P_Sub _ _ _ _ i 0); rewrite ?plusnO; first last.
-    iApply (singleton_sym_sub with "Hpq"). iApply (singleton_self_sub with "Hpq").
-    iApply singleton_self.
-    iApply (singleton_self_inv with "Hpq").
-    (* Restart.
-    iIntros "#Hpq !>" (ρ) "#Hg".
-    iDestruct (singleton_aliasing with "Hpq Hg") as "Hal". iNext i. iDestruct "Hal" as %Hal.
-    iIntros "!%". by eapply alias_paths_simpl, alias_paths_symm. *)
-  Qed.
   (** Non-pDOT rules end. *)
 
   Lemma singleton_trans Γ p q T i:
@@ -316,22 +300,15 @@ Section path_repl.
     rewrite (alias_paths_elim_eq_pure _ Hal). auto.
   Qed.
 
-  Lemma Sub_singleton {Γ i p q T1 T2}:
-    T1 ~Tp[ p := q ]* T2 →
+  Lemma Sub_singleton {Γ i p q T1 T2} (Hr : T1 ~Tp[ p := q ]* T2):
     Γ ⊨p p : TSing q, i -∗
     Γ ⊨ T1, i <: T2, i.
   Proof.
-    intros Hr.
     iIntros "#Hal !>" (ρ v) "#Hg HT1". iSpecialize ("Hal" with "Hg"). iNext i.
     iDestruct "Hal" as %Hal%alias_paths_simpl.
     iApply (rewrite_ty_path_repl_rtc Hr Hal with "HT1").
   Qed.
 
-  Lemma Sub_singleton_inv {Γ i p q T1 T2}:
-    T1 ~Tp[ p := q ]* T2 →
-    Γ ⊨p q : TSing p, i -∗
-    Γ ⊨ T1, i <: T2, i.
-  Proof. rewrite singleton_sym. apply Sub_singleton. Qed.
   End with_unary_lr.
 End path_repl.
 

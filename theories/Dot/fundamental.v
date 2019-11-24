@@ -58,6 +58,8 @@ Section fundamental.
       + iApply Sel_Sub_Path. by iApply fundamental_path_typed.
       + iApply Sub_Sel_Path. by iApply fundamental_path_typed.
       + by iApply Sub_singleton; [|iApply fundamental_path_typed].
+      + by iApply singleton_sym_sub; [iApply fundamental_path_typed|apply IHHT].
+      + iApply singleton_self_sub. by iApply fundamental_path_typed.
       + by iApply Sub_Mu_X.
       + iApply Sub_Mu_A.
       + iApply Sub_Mu_B.
@@ -92,7 +94,7 @@ Section fundamental.
       + by iApply PT_Mem_I.
       + by iApply PTAnd_I; [apply IHHT1|apply IHHT2].
       + by iApply singleton_self.
-      + by iApply singleton_sym.
+      + by iApply singleton_self_inv.
       + by iApply singleton_trans; [apply IHHT1|apply IHHT2].
       + by iApply singleton_elim; [apply IHHT1|apply IHHT2].
   Qed.

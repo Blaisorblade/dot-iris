@@ -180,3 +180,24 @@ Proof.
   intros; eapply Subs_typed_nocoerce; tcrush; rewrite iterate_0.
   eapply Trans_stp; first apply TAnd1_stp; tcrush.
 Qed.
+
+Lemma psingleton_sym_typed Γ p q i:
+  is_unstamped_path (length Γ) q →
+  Γ u⊢ₚ p : TSing q, i →
+  Γ u⊢ₚ q : TSing p, i.
+Proof.
+  intros Hus Hpq. rewrite -(plusnO i).
+  eapply p_subs_typed; rewrite ?plusnO.
+  eapply (PSym_singleton_stp Hpq). by apply PSelf_singleton_stp, Hpq.
+  eapply psingleton_refl_typed.
+  by apply (psingleton_inv_typed Hpq).
+Qed.
+
+Lemma PSub_singleton_stp_inv {Γ i p q T1 T2}:
+  T1 ~Tp[ p := q ]* T2 →
+  is_unstamped_ty (length Γ) T1 →
+  is_unstamped_ty (length Γ) T2 →
+  is_unstamped_path (length Γ) p →
+  Γ u⊢ₚ q : TSing p, i →
+  Γ u⊢ₜ T1, i <: T2, i.
+Proof. intros. by eapply PSub_singleton_stp, psingleton_sym_typed. Qed.

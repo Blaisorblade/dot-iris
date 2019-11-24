@@ -155,10 +155,10 @@ with path_typed Γ : path → ty → nat → Prop :=
 | psingleton_refl_typed T p i :
     Γ u⊢ₚ p : T, i →
     Γ u⊢ₚ p : TSing p, i
-| psingleton_sym_typed p q i:
+| psingleton_inv_typed p q i:
     Γ u⊢ₚ p : TSing q, i →
     is_unstamped_path (length Γ) q →
-    Γ u⊢ₚ q : TSing p, i
+    Γ u⊢ₚ q : TTop, i
 | psingleton_trans p q T i:
     Γ u⊢ₚ p : TSing q, i →
     Γ u⊢ₚ q : T, i →
@@ -237,6 +237,13 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     is_unstamped_ty (length Γ) T2 →
     Γ u⊢ₚ p : TSing q, i →
     Γ u⊢ₜ T1, i <: T2, i
+| PSym_singleton_stp T {p q i}:
+    Γ u⊢ₚ p : T, i →
+    Γ u⊢ₜ TSing p, i <: TSing q, i →
+    Γ u⊢ₜ TSing q, i <: TSing p, i
+| PSelf_singleton_stp {p T i} :
+    Γ u⊢ₚ p : T, i →
+    Γ u⊢ₜ TSing p, i <: T, i
 
 (* TODO: figure out if the drugs I had when I wrote these rules were good or bad. *)
 (* | SelU_stp l L U p i j: *)
