@@ -158,8 +158,8 @@ Section decide_psubst.
     TSel p1 l ~Tp[ p := q ]* TSel q1 l.
   Proof. apply rtc_congruence with (f := (λ p, TSel p l)); auto. Qed.
 
-  (** The Kleene start of path replacement agrees with path substitution.
-    In fact, there can be only 0 or 1 steps anyway. *)
+  (** The reflexive, transitive closure of path replacement agrees with path
+  substitution. In fact, there can be only 0 or 1 steps anyway. *)
   Lemma psubst_path_rtc_sufficient p1 q1 p q :
     p1 .p[ p := q ] = q1 →
     p1 ~pp[ p := q ]* q1.
