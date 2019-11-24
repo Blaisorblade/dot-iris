@@ -290,16 +290,16 @@ Section path_repl.
   Qed.
   (** Non-pDOT rules end. *)
 
-  Lemma singleton_trans Γ p q r i:
+  Lemma singleton_trans Γ p q T i:
     Γ ⊨p p : TSing q, i -∗
-    Γ ⊨p q : TSing r, i -∗
-    Γ ⊨p p : TSing r, i.
+    Γ ⊨p q : T, i -∗
+    Γ ⊨p p : T, i.
   Proof.
     iIntros "#Hep #Heq !>" (ρ) "#Hg".
-    iDestruct (singleton_aliasing with "Hep Hg") as "Hal1".
-    iDestruct (singleton_aliasing with "Heq Hg") as "Hal2".
-    iNext i. iDestruct "Hal1" as %Hal1. iDestruct "Hal2" as %Hal2.
-    iIntros "!%". by eapply alias_paths_simpl, alias_paths_trans.
+    iDestruct (singleton_aliasing with "Hep Hg") as "Hal1 {Hep}".
+    iSpecialize ("Heq" with "Hg").
+    iNext i. iDestruct "Hal1" as %Hal1.
+    by rewrite -alias_paths_elim_eq.
   Qed.
 
   Lemma singleton_elim Γ T p q l i:

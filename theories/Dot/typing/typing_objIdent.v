@@ -154,10 +154,10 @@ with path_typed Γ : path → ty → nat → Prop :=
     Γ |⊢ₚ p : TSing q, i →
     is_stamped_path (length Γ) getStampTable q →
     Γ |⊢ₚ q : TSing p, i
-| psingleton_trans p q r i:
+| psingleton_trans p q T i:
     Γ |⊢ₚ p : TSing q, i →
-    Γ |⊢ₚ q : TSing r, i →
-    Γ |⊢ₚ p : TSing r, i
+    Γ |⊢ₚ q : T, i →
+    Γ |⊢ₚ p : T, i
 | psingleton_elim T p q l i:
     Γ |⊢ₚ p : TSing q, i →
     Γ |⊢ₚ pself q l : T, i →
