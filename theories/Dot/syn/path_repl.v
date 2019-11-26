@@ -34,7 +34,7 @@ Reserved Notation "T1 ~Tp[ p := q  ] T2" (at level 70).
   are fine.
   However, substitution can be sound in contexts where path replacements aren't sound.
 
-  Still, psubst_one uses path replacement with *disjoints* paths!
+  Still, path_repl_one uses path replacement with *disjoints* paths!
 *)
 Inductive ty_path_repl (p q : path) : ty → ty → Prop :=
 | ty_path_repl_TAnd1 T1 T2 U :
@@ -91,9 +91,9 @@ Qed.
     transitive closure of path replacement.
     Here it's crucial to use the transitive closure of path replacement
     to substitute all occurrences. *)
-Definition psubst_one T p T' :=
+Definition path_repl_one T p T' :=
   T ~Tp[ pv (ids 0) := shift p ]* shift T'.
-Notation "T .Tp[ p /]~ T'" := (psubst_one T p T') (at level 65).
+Notation "T .Tp[ p /]~ T'" := (path_repl_one T p T') (at level 65).
 
 Reserved Notation "r .p[ p := q  ]" (at level 65).
 Fixpoint psubst_path p q r : path := match (decide (r = p)) with
