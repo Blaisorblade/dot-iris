@@ -116,6 +116,77 @@ Section path_repl.
       // hsubst_comp ren_scons /= alias_paths_symm //.
   Qed.
 
+  Lemma singleton_aliasing Γ p q ρ i :
+    Γ ⊨p p : TSing q, i -∗
+    ⟦ Γ ⟧* ρ -∗ ▷^i alias_pathsI p.|[ρ] q.|[ρ].
+  Proof.
+    iIntros "#Hep #Hg". iSpecialize ("Hep" with "Hg").
+    iNext i; iDestruct "Hep" as %Hep; iIntros "!%".
+    by apply alias_paths_simpl.
+  Qed.
+
+  (** Non-pDOT rules start: *)
+
+  Lemma singleton_self Γ T p i :
+    Γ ⊨p p : T, i -∗
+    Γ ⊨p p : TSing p, i.
+  Proof.
+    iIntros "#Hep !>" (ρ) "Hg". iSpecialize ("Hep" with "Hg"). iNext.
+    iDestruct (path_wp_eq with "Hep") as (v Hpv) "_".
+    iIntros "!%". by eapply alias_paths_simpl, alias_paths_self.
+  Qed.
+
+  Lemma singleton_self_sub Γ p T i :
+    Γ ⊨p p : T, i -∗
+    Γ ⊨ TSing p, i <: T, i.
+  Proof.
+    iIntros "#Hp !>" (ρ v) "Hg /= Heq".
+    iSpecialize ("Hp" with "Hg"). iNext i.
+    by iDestruct "Heq" as %->%(alias_paths_elim_eq (⟦ T ⟧ ρ)).
+  Qed.
+
+  Lemma singleton_sym_sub Γ p q T i:
+    Γ ⊨p p : T, i -∗ (* Just to ensure [p] terminates and [TSing p] isn't empty. *)
+    Γ ⊨ TSing p, i <: TSing q, i -∗
+    Γ ⊨ TSing q, i <: TSing p, i.
+  Proof.
+    iIntros "#Hp #Hps !>" (ρ v) "#Hg /= Heq".
+    iDestruct (path_wp_eq with "(Hp Hg)") as (w) "[Hpw _] {Hp}".
+    iSpecialize ("Hps" $! _ w with "Hg Hpw"); iNext i; rewrite !alias_paths_pv_eq_1.
+    iDestruct "Hps" as %Hqw; iDestruct "Hpw" as %Hpw; iDestruct "Heq" as %Hqv; iIntros "!%".
+    by rewrite (path_wp_pure_det Hqv Hqw).
+  Qed.
+
+  (* Not too useful. *)
+  (* Lemma singleton_self_skip Γ τ p i :
+    Γ ⊨p p : T, 0 -∗
+    Γ ⊨ iterate tskip i (path2tm p) : TSing p.
+  Proof.
+    rewrite singleton_self iptp2ietp.
+    iIntros "Hp". iApply (T_Sub with "Hp").
+    by iIntros "!> * _ $".
+  Qed. *)
+
+  Lemma singleton_self_inv Γ p q i :
+    Γ ⊨p p : TSing q, i -∗
+    Γ ⊨p q : TTop, i.
+  Proof.
+    iIntros "#Hpq !>" (ρ) "#Hg /=".
+    iDestruct (singleton_aliasing with "Hpq Hg") as "Hal {Hpq Hg}".
+    iNext i. iDestruct "Hal" as %(v & _ & Hqv)%alias_paths_sameres. iIntros "!%".
+    by apply (path_wp_pure_wand Hqv).
+  Qed.
+  (** Non-pDOT rules end. *)
+
+  Lemma Sub_singleton {Γ i p q T1 T2} (Hr : T1 ~Tp[ p := q ]* T2):
+    Γ ⊨p p : TSing q, i -∗
+    Γ ⊨ T1, i <: T2, i.
+  Proof.
+    iIntros "#Hal !>" (ρ v) "#Hg HT1". iSpecialize ("Hal" with "Hg"). iNext i.
+    iDestruct "Hal" as %Hal%alias_paths_simpl.
+    iApply (rewrite_ty_path_repl_rtc Hr Hal with "HT1").
+  Qed.
+
   Lemma TMu_E_p Γ T T' p i :
     T .Tp[ p /]~ T' →
     Γ ⊨p p : TMu T, i -∗ Γ ⊨p p : T', i.
@@ -206,73 +277,12 @@ Section path_repl.
     iExists _; iFrame (Hpv). eauto.
   Qed.
 
-  Lemma singleton_aliasing Γ p q ρ i :
-    Γ ⊨p p : TSing q, i -∗
-    ⟦ Γ ⟧* ρ -∗ ▷^i alias_pathsI p.|[ρ] q.|[ρ].
-  Proof.
-    iIntros "#Hep #Hg". iSpecialize ("Hep" with "Hg").
-    iNext i; iDestruct "Hep" as %Hep; iIntros "!%".
-    by apply alias_paths_simpl.
-  Qed.
-
-  Lemma singleton_self Γ T p i :
-    Γ ⊨p p : T, i -∗
-    Γ ⊨p p : TSing p, i.
-  Proof.
-    iIntros "#Hep !>" (ρ) "Hg". iSpecialize ("Hep" with "Hg"). iNext.
-    iDestruct (path_wp_eq with "Hep") as (v Hpv) "_".
-    iIntros "!%". by eapply alias_paths_simpl, alias_paths_self.
-  Qed.
-
   Lemma iptp2ietp Γ T p :
     Γ ⊨p p : T, 0 -∗ Γ ⊨ path2tm p : T.
   Proof.
     iIntros "#Hep !>" (ρ) "#Hg /="; rewrite path2tm_subst.
     by iApply (path_wp_to_wp with "(Hep Hg)").
   Qed.
-  (** Non-pDOT rules start: *)
-
-  Lemma singleton_self_sub Γ p T i :
-    Γ ⊨p p : T, i -∗
-    Γ ⊨ TSing p, i <: T, i.
-  Proof.
-    iIntros "#Hp !>" (ρ v) "Hg /= Heq".
-    iSpecialize ("Hp" with "Hg"). iNext i.
-    by iDestruct "Heq" as %->%(alias_paths_elim_eq (⟦ T ⟧ ρ)).
-  Qed.
-
-  Lemma singleton_sym_sub Γ p q T i:
-    Γ ⊨p p : T, i -∗ (* Just to ensure [p] terminates and [TSing p] isn't empty. *)
-    Γ ⊨ TSing p, i <: TSing q, i -∗
-    Γ ⊨ TSing q, i <: TSing p, i.
-  Proof.
-    iIntros "#Hp #Hps !>" (ρ v) "#Hg /= Heq".
-    iDestruct (path_wp_eq with "(Hp Hg)") as (w) "[Hpw _] {Hp}".
-    iSpecialize ("Hps" $! _ w with "Hg Hpw"); iNext i; rewrite !alias_paths_pv_eq_1.
-    iDestruct "Hps" as %Hqw; iDestruct "Hpw" as %Hpw; iDestruct "Heq" as %Hqv; iIntros "!%".
-    by rewrite (path_wp_pure_det Hqv Hqw).
-  Qed.
-
-  (* Not too useful. *)
-  (* Lemma singleton_self_skip Γ τ p i :
-    Γ ⊨p p : T, 0 -∗
-    Γ ⊨ iterate tskip i (path2tm p) : TSing p.
-  Proof.
-    rewrite singleton_self iptp2ietp.
-    iIntros "Hp". iApply (T_Sub with "Hp").
-    by iIntros "!> * _ $".
-  Qed. *)
-
-  Lemma singleton_self_inv Γ p q i :
-    Γ ⊨p p : TSing q, i -∗
-    Γ ⊨p q : TTop, i.
-  Proof.
-    iIntros "#Hpq !>" (ρ) "#Hg /=".
-    iDestruct (singleton_aliasing with "Hpq Hg") as "Hal {Hpq Hg}".
-    iNext i. iDestruct "Hal" as %(v & _ & Hqv)%alias_paths_sameres. iIntros "!%".
-    by apply (path_wp_pure_wand Hqv).
-  Qed.
-  (** Non-pDOT rules end. *)
 
   Lemma singleton_trans Γ p q T i:
     Γ ⊨p p : TSing q, i -∗
@@ -299,16 +309,6 @@ Section path_repl.
     iIntros "!% /=". exists vql.
     rewrite (alias_paths_elim_eq_pure _ Hal). auto.
   Qed.
-
-  Lemma Sub_singleton {Γ i p q T1 T2} (Hr : T1 ~Tp[ p := q ]* T2):
-    Γ ⊨p p : TSing q, i -∗
-    Γ ⊨ T1, i <: T2, i.
-  Proof.
-    iIntros "#Hal !>" (ρ v) "#Hg HT1". iSpecialize ("Hal" with "Hg"). iNext i.
-    iDestruct "Hal" as %Hal%alias_paths_simpl.
-    iApply (rewrite_ty_path_repl_rtc Hr Hal with "HT1").
-  Qed.
-
   End with_unary_lr.
 End path_repl.
 
