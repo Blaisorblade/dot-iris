@@ -89,8 +89,8 @@ Section path_repl.
   Proof.
     move => Hrew; move: v ρ.
     induction Hrew => v ρ He /=; properness;
-      by [|exact: path_replacement_equiv|iApply IHHrew; rewrite ?hsubst_comp|
-        exact: rewrite_path_path_repl].
+      by [ exact: path_replacement_equiv | exact: rewrite_path_path_repl
+         | apply IHHrew; rewrite ?hsubst_comp | ].
   Qed.
 
   Lemma rewrite_ty_path_repl_rtc {p q T1 T2 ρ v}:
@@ -99,8 +99,8 @@ Section path_repl.
     ⟦ T1 ⟧ ρ v ≡ ⟦ T2 ⟧ ρ v.
   Proof.
     move => Hr Hal.
-    elim: Hr => [//|T T' T'' Hr Hrs IHr].
-    by rewrite (rewrite_ty_path_repl Hr Hal) IHr.
+    elim: Hr => [//|T {}T1 {}T2 Hr _ <-].
+    apply (rewrite_ty_path_repl Hr Hal).
   Qed.
 
   Lemma ren_scons v ρ : ren (+1) >> v .: ρ = ρ.
@@ -179,7 +179,7 @@ Section path_repl.
     iDestruct "HT1" as (v Hpwp) "HT1".
     iDestruct "HT2" as (v' Hpwp') "HT2".
     rewrite (path_wp_pure_det Hpwp' Hpwp) {Hpwp' v'}.
-    eauto.
+    iExists _; iFrame (Hpwp) "#".
   Qed.
 
   Lemma TAnd_I_pDOT Γ p T1 T2:
