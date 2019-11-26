@@ -349,7 +349,7 @@ Section path_repl.
     path_wp q.|[ρ] φ ≡ path_wp (q .p[p := r]).|[ρ] φ.
   Proof.
     elim: q φ => [w | q IHq l] φ /=; case_decide.
-    - simplify_eq. apply (alias_paths_elim_eq φ (pv w.[ρ]) r.|[ρ]).
+    - simplify_eq. apply (@alias_paths_elim_eq _ φ (pv w.[ρ]) r.|[ρ]).
     - done.
     - simplify_eq.
       rewrite /= !path_wp_eq alias_paths_sameres /=.
