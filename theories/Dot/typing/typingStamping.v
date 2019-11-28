@@ -244,7 +244,8 @@ Section syntyping_stamping_lemmas.
   - intros * Hu1 IHs1 Hus1 g.
     move: IHs1 => /(.$ g) [p1' [g1 ?]]; ev.
     exists q, g1. move: (unstamped_path_root_is_var Hu1) => ?.
-    suff ?: p1' = p; naive_solver.
+    have ?: p1' = p by naive_solver.
+    split_and!; first eapply typing_objIdent.psingleton_inv_typed; naive_solver.
   - intros * Hu1 IHs1 Hu2 IHs2 g.
     move: IHs1 => /(.$ g) [p1' [g1 ?]];
     move: IHs2 => /(.$ g1) [q1' [g2 ?]]; ev; lte g g1 g2.
