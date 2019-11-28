@@ -270,21 +270,6 @@ Section path_repl.
     iApply (wp_and with "(HT1 Hg) (HT2 Hg)").
   Qed.
 
-  Lemma PTAnd_I Γ p T1 T2 i:
-    Γ ⊨p p : T1, i -∗
-    Γ ⊨p p : T2, i -∗
-    Γ ⊨p p : TAnd T1 T2, i.
-  Proof.
-    iIntros "#HT1 #HT2 /= !>" (ρ) "#Hg".
-    iSpecialize ("HT1" with "Hg").
-    iSpecialize ("HT2" with "Hg"). iNext i.
-    rewrite !path_wp_eq.
-    iDestruct "HT1" as (v Hpwp) "HT1".
-    iDestruct "HT2" as (v' Hpwp') "HT2".
-    rewrite (path_wp_pure_det Hpwp' Hpwp) {Hpwp' v'}.
-    iExists _; iFrame (Hpwp) "#".
-  Qed.
-
   Lemma TAnd_I_pDOT Γ p T1 T2:
     Γ ⊨ path2tm p : T1 -∗
     Γ ⊨ path2tm p : T2 -∗

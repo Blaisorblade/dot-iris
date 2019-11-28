@@ -164,12 +164,6 @@ Section syntyping_stamping_lemmas.
   - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [p1' [g1 ?]]; ev.
     exists (path2tm p1'), g1; naive_solver.
-  - intros * Hu1 IHs1 Hu2 IHs2 g.
-    move: IHs1 => /(.$ g) [e1' [g1 ?]];
-    move: IHs2 => /(.$ g1) [e2' [g2 ?]]; ev; lte g g1 g2.
-    exists (tv (var_vl x)), g2.
-    suff [? ?]: e1' = tv (var_vl x) ∧ e2' = tv (var_vl x) by naive_solver.
-    split; [destruct e1'| destruct e2']; naive_solver.
   - intros; exists [], g; naive_solver.
   - intros * Hu1 IHs1 Hu2 IHs2 ? g.
     move: IHs1 => /(.$ g) [d' [g1 ?]].
@@ -243,11 +237,6 @@ Section syntyping_stamping_lemmas.
     have ?: p1' = pself p l by naive_solver; subst p1'.
     with_is_unstamped inverse; with_is_stamped inverse.
     exists p, g1. naive_solver.
-  - intros * Hu1 IHs1 Hu2 IHs2 g.
-    move: IHs1 => /(.$ g) [p1' [g1 ?]];
-    move: IHs2 => /(.$ g1) [p2' [g2 ?]]; ev; lte g g1 g2.
-    exists p1', g2. move: (unstamped_path_root_is_var Hu1) => ?.
-    suff: p1' = p ∧ p2' = p; naive_solver.
   - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) [p1' [g1 ?]]; ev.
     exists p1', g1. move: (unstamped_path_root_is_var Hu1) => ?.

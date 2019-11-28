@@ -83,7 +83,6 @@ Section fundamental.
       + by iApply T_Var.
       + by iApply T_Sub; [apply IHHT|iApply fundamental_subtype].
       + iApply P_To_E. by iApply fundamental_path_typed.
-      + by iApply TAnd_I.
     - iIntros "#Hm"; induction HT.
       + iApply P_Val. by iApply fundamental_typed.
       + by iApply P_DLater.
@@ -92,7 +91,6 @@ Section fundamental.
       + by iApply TMu_I_p; [|apply IHHT].
       + by iApply TMu_E_p; [|apply IHHT].
       + by iApply PT_Mem_I.
-      + by iApply PTAnd_I; [apply IHHT1|apply IHHT2].
       + by iApply singleton_self.
       + by iApply singleton_self_inv.
       + by iApply singleton_trans; [apply IHHT1|apply IHHT2].

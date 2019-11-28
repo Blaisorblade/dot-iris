@@ -83,12 +83,6 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ u⊢ₚ p : T, 0 →
     (*───────────────────────────────*)
     Γ u⊢ₜ path2tm p : T
-(* A bit surprising this is needed, but appears in the DOT papers, and this is
-   only admissible if t has a type U that is a proper subtype of TAnd T1 T2. *)
-| TAndI_typed T1 T2 x:
-    Γ u⊢ₜ tv (var_vl x) : T1 →
-    Γ u⊢ₜ tv (var_vl x) : T2 →
-    Γ u⊢ₜ tv (var_vl x) : TAnd T1 T2
 where "Γ u⊢ₜ e : T " := (typed Γ e T)
 with dms_typed Γ : ty → dms → ty → Prop :=
 | dnil_typed V : Γ |ds V u⊢ [] : TTop
@@ -148,10 +142,6 @@ with path_typed Γ : path → ty → nat → Prop :=
     Γ u⊢ₚ pself p l : T, i →
     (*─────────────────────────*)
     Γ u⊢ₚ p : TVMem l T, i
-| pand_typed p T1 T2 i:
-    Γ u⊢ₚ p : T1, i →
-    Γ u⊢ₚ p : T2, i →
-    Γ u⊢ₚ p : TAnd T1 T2, i
 | psingleton_refl_typed T p i :
     Γ u⊢ₚ p : T, i →
     Γ u⊢ₚ p : TSing p, i
