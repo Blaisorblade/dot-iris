@@ -261,21 +261,6 @@ Section path_repl.
     by rewrite (psubst_one_repl Hrepl).
   Qed.
 
-  Lemma TAnd_I_expr Γ e T1 T2:
-    Γ ⊨ e : T1 -∗
-    Γ ⊨ e : T2 -∗
-    Γ ⊨ e : TAnd T1 T2.
-  Proof.
-    iIntros "#HT1 #HT2 /= !>" (ρ) "#Hg".
-    iApply (wp_and with "(HT1 Hg) (HT2 Hg)").
-  Qed.
-
-  Lemma TAnd_I_pDOT Γ p T1 T2:
-    Γ ⊨ path2tm p : T1 -∗
-    Γ ⊨ path2tm p : T2 -∗
-    Γ ⊨ path2tm p : TAnd T1 T2.
-  Proof. apply TAnd_I_expr. Qed.
-
   Lemma P_To_E Γ T p :
     Γ ⊨p p : T, 0 -∗ Γ ⊨ path2tm p : T.
   Proof.
