@@ -4,4 +4,8 @@ Differences between our paper (and technical appendix) and our Coq development.
   `args : vec n vl` for some `n`. We always set `n = 0` to ignore this, but our
   implementation has additional flexibility.
 
-
+- Compared to the paper, and even to the appendix, we also describe a
+  "storeless" typing judgment, a strict generalization of stamped typing.
+  Storeless typing generalizes some rules of stamped typing to allow arbitrary
+  values in paths, and not just variables. This is not at all necessary to our
+  proof technique, but it simply allows typing more programs.
