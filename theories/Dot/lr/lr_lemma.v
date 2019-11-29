@@ -99,8 +99,8 @@ Section LambdaIntros.
     rewrite -wp_value'. iExists _; iSplit; first done.
     iIntros "!>" (v); rewrite -(decomp_s _ (v .: ρ)).
     (* Factor ⪭ out of [⟦ Γ ⟧* ρ] before [iNext]. *)
-    rewrite TLater_unTLater_ctx_sub env_TLater_commute. iNext.
-    iIntros "#Hv".
+    rewrite TLater_unTLater_ctx_sub env_TLater_commute.
+    iIntros "#Hv". iNext.
     iApply ("HeT" $! (v .: ρ) with "[$HG]").
     by rewrite (interp_weaken_one T1 _ v) stail_eq.
   Qed.
@@ -258,9 +258,12 @@ Section Sec.
     iIntros "/= #He1 #Hv2Arg !> * #HG".
     smart_wp_bind (AppLCtx (tv v2.[_])) v "#Hr {He1}" ("He1" with "[#//]").
     iDestruct "Hr" as (t ->) "#HvFun".
-    rewrite -wp_pure_step_later; last done. iNext.
-    iApply wp_wand.
-    - iApply "HvFun". rewrite -wp_value_inv'. by iApply "Hv2Arg".
+    rewrite -wp_pure_step_later; last done.
+    iSpecialize ("HvFun" with "[#]"). {
+      rewrite -wp_value_inv'. by iApply "Hv2Arg".
+    }
+    iNext. iApply wp_wand.
+    - iApply "HvFun".
     - iIntros (v) "{HG HvFun Hv2Arg} H".
       rewrite (interp_subst_one T2 v2 v) //.
   Qed.
@@ -320,7 +323,7 @@ Section swap_based_typing_lemmas.
     iIntros "#HsubT #HsubU /= !>" (ρ v) "#Hg #HT1".
     iDestruct "HT1" as (t) "#[Heq #HT1]". iExists t; iSplit => //.
     iIntros (w).
-    rewrite -!mlaterN_pers -mlater_wand -mlaterN_wand.
+    rewrite -!mlaterN_pers -mlaterN_wand.
     iIntros "!> #HwT2".
     iSpecialize ("HsubT" $! ρ w with "Hg HwT2").
     iSpecialize ("HsubU" $! (w .: ρ)); iEval (rewrite -forall_swap_wand) in "HsubU".

@@ -17,7 +17,10 @@ Section Sec.
     iIntros "/= !>" (ρ v) "#Hg [#H1 #H2]". iNext.
     iDestruct "H1" as (t ?) "#H1"; iDestruct "H2" as (t' ->) "#H2"; simplify_eq.
     iExists _; iSplit => //.
-    iIntros "!>!>" (w) "#HT".
+    iIntros "!>" (w) "#HT".
+    iSpecialize ("H1" with "HT").
+    iSpecialize ("H2" with "HT").
+    iNext.
     (* Oh. Dreaded conjunction rule. Tho could we use a version
     for separating conjunction? *)
     iApply wp_and. by iApply "H1". by iApply "H2".

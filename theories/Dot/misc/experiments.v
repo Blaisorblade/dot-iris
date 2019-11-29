@@ -69,7 +69,6 @@ Section Sec.
     iDestruct "HvTU" as (t ->) "#HvTU".
     iExists t; iSplit => //. iNext.
     iIntros (w) "!>".
-    rewrite -mlater_wand.
     iIntros "#HwT".
     by iApply ("HvTU" with "[# $HwT]").
   Qed.
@@ -103,7 +102,7 @@ Section Sec.
     iApply ("IH" with "H").
   Qed.
 
-  Lemma T_Forall_I'' Γ T1 T2 e `{SwapPropI Σ}:
+  Lemma T_Forall_I'' Γ T1 T2 e :
     TLater T1.|[ren (+1)] :: Γ ⊨ e : TLater T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
@@ -111,7 +110,7 @@ Section Sec.
     iIntros "/= #HeT !>" (vs) "#HG".
     rewrite -wp_value'. iExists _; iSplit; first done.
     iIntros "!>" (v); rewrite -(decomp_s e (v .: vs)).
-    rewrite -wand_later; iIntros "#Hv".
+    iIntros "#Hv".
     (* iApply (wp_later_swap _ (⟦ T2 ⟧ (v .: vs))).
     iApply ("HeT" $! (v .: vs) with "[$HG]"). *)
     iSpecialize ("HeT" $! (v .: vs) with "[$HG]").
@@ -127,11 +126,16 @@ Section Sec.
     iIntros "!>" (ρ v) "_ /= #HvTU". iNext i.
     iDestruct "HvTU" as (t ->) "#HvTU".
     iExists t; iSplit => //.
-    iNext.
-    iIntros (w); rewrite -mlater_wand; iIntros "!> #HwT".
+    rewrite -mlater_pers. iModIntro (□ _)%I.
+    iIntros (w). iSpecialize ("HvTU" $! w).
     rewrite -(wp_later_swap _ (⟦ _ ⟧ _)).
+    rewrite -wand_later.
+    (* Either: *)
+    (* done. *)
+    (* Or keep the old but more flexible code: *)
+    iIntros "#HwT".
     iApply (wp_wand with "(HvTU [# $HwT //])").
-    by iIntros (v) "$".
+    by iIntros "!>" (v) "$".
   Qed.
 
   Lemma TVMem_Later_Swap Γ l T i:
