@@ -107,13 +107,14 @@ Section Sec.
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.
-    iIntros "/= #HeT !>" (vs) "#HG".
+    iIntros "/= #HeT !>" (ρ) "#HG".
     rewrite -wp_value'. iExists _; iSplit; first done.
-    iIntros "!>" (v); rewrite -(decomp_s e (v .: vs)).
-    iIntros "#Hv".
+    iIntros "!>" (v) "#Hv".
+    (* Factor ⪭ out of [⟦ Γ ⟧* ρ] before [iNext]. *)
+    rewrite -wp_pure_step_later // -(decomp_s _ (v .: ρ)).
     (* iApply (wp_later_swap _ (⟦ T2 ⟧ (v .: vs))).
     iApply ("HeT" $! (v .: vs) with "[$HG]"). *)
-    iSpecialize ("HeT" $! (v .: vs) with "[$HG]").
+    iSpecialize ("HeT" $! (v .: ρ) with "[$HG]").
     by rewrite (interp_weaken_one T1 _ v).
     iApply (wp_later_swap with "HeT").
   Qed.
@@ -128,14 +129,14 @@ Section Sec.
     iExists t; iSplit => //.
     rewrite -mlater_pers. iModIntro (□ _)%I.
     iIntros (w). iSpecialize ("HvTU" $! w).
-    rewrite -(wp_later_swap _ (⟦ _ ⟧ _)).
     rewrite -impl_later.
+    rewrite -(wp_later_swap _ (⟦ _ ⟧ _)).
     (* Either: *)
     (* done. *)
     (* Or keep the old but more flexible code: *)
     iIntros "#HwT".
     iApply (wp_wand with "(HvTU [# $HwT //])").
-    by iIntros "!>" (v) "$".
+    by iIntros (v) "$".
   Qed.
 
   Lemma TVMem_Later_Swap Γ l T i:

@@ -97,10 +97,11 @@ Section LambdaIntros.
   Proof.
     iIntros "#HeT !>" (ρ) "#HG /=".
     rewrite -wp_value'. iExists _; iSplit; first done.
-    iIntros "!>" (v); rewrite -(decomp_s _ (v .: ρ)).
+    iIntros "!>" (v) "#Hv".
     (* Factor ⪭ out of [⟦ Γ ⟧* ρ] before [iNext]. *)
     rewrite TLater_unTLater_ctx_sub env_TLater_commute.
-    iIntros "#Hv". iNext.
+    rewrite -wp_pure_step_later // -(decomp_s _ (v .: ρ)).
+    iNext.
     iApply ("HeT" $! (v .: ρ) with "[$HG]").
     by rewrite (interp_weaken_one T1 _ v) stail_eq.
   Qed.
@@ -245,7 +246,7 @@ Section Sec.
     smart_wp_bind (AppLCtx (e2.|[_])) v "#Hr" "He1".
     smart_wp_bind (AppRCtx v) w "#Hw" "Hv2".
     iDestruct "Hr" as (t ->) "#Hv".
-    rewrite -wp_pure_step_later // -wp_mono /=; first by iApply "Hv".
+    rewrite -wp_mono /=; first by iApply "Hv".
     iIntros (v); by rewrite (interp_weaken_one T2 _ v).
   Qed.
 
@@ -258,11 +259,10 @@ Section Sec.
     iIntros "/= #He1 #Hv2Arg !> * #HG".
     smart_wp_bind (AppLCtx (tv v2.[_])) v "#Hr {He1}" ("He1" with "[#//]").
     iDestruct "Hr" as (t ->) "#HvFun".
-    rewrite -wp_pure_step_later; last done.
     iSpecialize ("HvFun" with "[#]"). {
       rewrite -wp_value_inv'. by iApply "Hv2Arg".
     }
-    iNext. iApply wp_wand.
+    iApply wp_wand.
     - iApply "HvFun".
     - iIntros (v) "{HG HvFun Hv2Arg} H".
       rewrite (interp_subst_one T2 v2 v) //.
@@ -325,14 +325,16 @@ Section swap_based_typing_lemmas.
     iIntros (w).
     rewrite -!mlaterN_pers -mlaterN_impl.
     iIntros "!> #HwT2".
-    iSpecialize ("HsubT" $! ρ w with "Hg HwT2").
+    iSpecialize ("HT1" $! w with "(HsubT Hg HwT2)"); iClear "HsubT Heq".
     iSpecialize ("HsubU" $! (w .: ρ)); iEval (rewrite -forall_swap_impl) in "HsubU".
     iSpecialize ("HsubU" with "[# $Hg]").
     by rewrite iterate_TLater_later -swap_later; iApply interp_weaken_one.
+    iClear "HwT2 Hg".
     setoid_rewrite mlaterN_impl; setoid_rewrite mlater_impl.
-    iNext i; iNext 1. iApply wp_wand.
-    - iApply "HT1". iApply "HsubT".
-    - iIntros (u) "#HuU1". by iApply "HsubU".
+    iNext i.
+    iApply (wp_wand_later with "HT1").
+    iIntros (?); rewrite -mlater_wand; iIntros "#H".
+    iApply ("HsubU" with "H").
   Qed.
 
   Lemma Sub_TTMem_Variant L1 L2 U1 U2 i l:

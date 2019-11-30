@@ -119,7 +119,7 @@ Section logrel.
   Definition interp_forall interp1 interp2 : envD Σ :=
     λ ρ v,
     (∃ t, ⌜ v = vabs t ⌝ ∧
-     □ ∀ w, ▷ interp1 ρ w → ▷ interp_expr interp2 (w .: ρ) t.|[w/])%I.
+     □ ∀ w, ▷ interp1 ρ w → interp_expr interp2 (w .: ρ) (tapp (tv (vabs t)) (tv w)))%I.
   Global Arguments interp_forall /.
 
   Definition interp_mu interp : envD Σ :=

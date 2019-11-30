@@ -256,10 +256,8 @@ Section path_repl.
     iDestruct (path_wp_to_wp _ (λ v, ⌜ pw = v ⌝)%I with "[%//]") as "Hpeq".
     iApply (wp_bind (fill [AppRCtx _])). rewrite path2tm_subst.
     iApply (wp_wand with "Hpeq"); iIntros (? <-) "/= {Hpeq}".
-    rewrite -wp_pure_step_later; last done.
     iSpecialize ("HvFun" with "Hpw").
-    iNext.
-    iApply (wp_wand with "HvFun"); iIntros (v) "{HvFun Hpw} Hres".
+    iApply (wp_wand with "HvFun"); iIntros "/=" (v) "{HvFun Hpw} Hres".
     by rewrite (psubst_one_repl Hrepl).
   Qed.
 
