@@ -32,7 +32,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
   Class TyInterp ty Σ :=
     ty_interp : ty -> envD Σ.
   Notation "⟦ T ⟧" := (ty_interp T).
-  Notation "⟦ g ⟧g" := (ty_interp <$> (g : gmap stamp _)).
+  Notation "⟦ g ⟧g" := (fmap (M := gmap stamp) ty_interp g).
 
   (* Also appears in Autosubst.*)
   Global Arguments ty_interp {_ _ _} !_ /.
