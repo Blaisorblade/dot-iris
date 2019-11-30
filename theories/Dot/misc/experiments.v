@@ -129,7 +129,7 @@ Section Sec.
     rewrite -mlater_pers. iModIntro (□ _)%I.
     iIntros (w). iSpecialize ("HvTU" $! w).
     rewrite -(wp_later_swap _ (⟦ _ ⟧ _)).
-    rewrite -wand_later.
+    rewrite -impl_later.
     (* Either: *)
     (* done. *)
     (* Or keep the old but more flexible code: *)
