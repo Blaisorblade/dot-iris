@@ -100,30 +100,43 @@ End fundamental.
 
 (** Adequacy of our logical relation: semantically well-typed terms are safe. *)
 
-Import dlang_adequacy.
+Import dlang_adequacy adequacy.
 
-Theorem adequacy_mapped_semtyping Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e g T:
-  (∀ `{dlangG Σ} `(!SwapPropI Σ), [] ⊨[ ⟦ g ⟧g ] e : T) →
-  safe e.
+(** *)
+Theorem adequacy_mapped_semtyping Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e g Ψ T
+  (Himpl : ∀ (Hdlang: dlangG Σ) v, ⟦ T ⟧ ids v -∗ ⌜Ψ v⌝)
+  (Hlog : ∀ `{dlangG Σ} `(!SwapPropI Σ), [] ⊨[ ⟦ g ⟧g ] e : T):
+  ∀ σ, adequate NotStuck e σ (λ v _, Ψ v).
 Proof.
-  intros Hlog ?*; eapply (adequacy_dot_sem Σ e T).
-  iIntros (??) "Hs"; iApply Hlog. by iApply transfer_empty.
+  eapply (adequacy_dot_sem Σ e _ T Himpl).
+  iIntros (??) "Hs"; iApply Hlog. iApply (transfer_empty with "Hs").
 Qed.
 
-Corollary type_soundness_storeless e T g:
-  [] ⊢ₜ[ g ] e : T → safe e.
+(** *)
+Corollary safety_mapped_semtyping Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e g T
+  (Hlog : ∀ `{dlangG Σ} `(!SwapPropI Σ), [] ⊨[ ⟦ g ⟧g ] e : T):
+  safe e.
 Proof.
-  intros HsT.
-  apply: (adequacy_mapped_semtyping dlangΣ e g T); intros.
-  apply fundamental_typed, HsT.
+  eapply adequate_safe, (adequacy_mapped_semtyping _ e g _ T), Hlog;
+    naive_solver.
 Qed.
 
 (** The overall proof of type soundness, as outlined in Sec. 5 of the paper. *)
+(** Combination of Thm 5.4 and 5.5, to give soundness of stamped typing.
+In fact, we use the even more general storeless typing. *)
+Corollary type_soundness_storeless {e T g}
+  (HsT: [] ⊢ₜ[ g ] e : T): safe e.
+Proof.
+  apply: (safety_mapped_semtyping dlangΣ e g T); intros.
+  apply fundamental_typed, HsT.
+Qed.
+
+(** Theorem 5.2: Type soundness for gDOT. *)
 Corollary type_soundness e T :
   [] u⊢ₜ e : T → safe e.
 Proof.
+  (* Apply 5.3: Translation of typing derivations. *)
   intros (e_s & g & HsT & Hs)%stamp_typed.
   apply Hs.
-  apply (adequacy_mapped_semtyping dlangΣ e_s g T); intros.
-  apply fundamental_typed, HsT.
+  apply (type_soundness_storeless HsT).
 Qed.

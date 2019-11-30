@@ -173,19 +173,31 @@ Module Type LiftWp (Import VS : VlSortsSig).
     Qed.
     Import adequacy.
 
-    Theorem adequacy_dlang Σ `{dlangPreG Σ} `{SwapPropI Σ}
-      (Φ : dlangG Σ → val dlang_lang → iProp Σ) e :
-      (∀ (Hdlang: dlangG Σ) `(SwapPropI Σ),
-        allGs ∅ ==∗ WP e {{ Φ Hdlang }}) → safe e.
+    Lemma adequate_safe (e : expr dlang_lang) :
+      (∀ σ, adequate NotStuck e σ (λ _ _, True)) → safe e.
+    Proof. intros Had ?? σ**. by eapply (Had σ). Qed.
+
+    Theorem adequacy_dlang Σ `{dlangPreG Σ} `{SwapPropI Σ} e
+      (Φ : dlangG Σ → val dlang_lang → iProp Σ)
+      (Ψ : val dlang_lang → Prop)
+      (Himpl : ∀ (Hdlang: dlangG Σ) v, Φ Hdlang v -∗ ⌜Ψ v⌝)
+      (Hwp : ∀ (Hdlang: dlangG Σ) `(SwapPropI Σ), allGs ∅ ==∗ WP e {{ v, Φ Hdlang v }}) :
+      ∀ σ, adequate NotStuck e σ (λ v _, Ψ v).
     Proof.
-      intros Hwp ???*; cut (adequate NotStuck e σ (λ _ _, True)); first (move => [_ ?]; by eauto).
-      eapply (wp_adequacy Σ) => /=.
-      iMod (gen_iheap_init (L := stamp) ∅) as (g) "Hgs".
-      set (DLangΣ := DLangG Σ _ g).
+      intros σ; apply (wp_adequacy Σ) => /= ?.
+      iMod (gen_iheap_init (L := stamp) ∅) as (hG) "Hgs".
+      set (DLangΣ := DLangG Σ _ hG).
       iMod (Hwp DLangΣ with "Hgs") as "Hwp".
-      iIntros (?) "!>". iExists (λ _ _, True%I); iSplit=> //.
-      iApply (wp_wand with "Hwp"); by iIntros.
+      iIntros "!>"; iExists (λ _ _, True)%I; iFrame (I).
+      iApply (wp_wand with "Hwp"). iIntros (v); iApply Himpl.
     Qed.
+
+    Corollary safety_dlang Σ `{dlangPreG Σ} `{SwapPropI Σ}
+      (Φ : dlangG Σ → val dlang_lang → iProp Σ) e
+      (Hwp : ∀ (Hdlang: dlangG Σ) `(SwapPropI Σ),
+        allGs ∅ ==∗ WP e {{ Φ Hdlang }}):
+      safe e.
+    Proof. apply adequate_safe, (adequacy_dlang _ e Φ), Hwp; naive_solver. Qed.
   End dlang_adequacy.
 
   Module stamp_transfer.

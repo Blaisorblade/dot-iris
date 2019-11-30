@@ -338,13 +338,19 @@ Section logrel_lemmas.
 End logrel_lemmas.
 
 From D Require Import swap_later_impl.
-Import dlang_adequacy.
+Import dlang_adequacy adequacy.
 
-Theorem adequacy_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e T:
-  (∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T) →
-  safe e.
+Theorem adequacy_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e Ψ T
+  (Himpl : ∀ (Hdlang: dlangG Σ) v, ⟦ T ⟧ ids v -∗ ⌜Ψ v⌝)
+  (Hlog : ∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T):
+  ∀ σ, adequate NotStuck e σ (λ v _, Ψ v).
 Proof.
-  intros Hlog ?*; eapply (adequacy_dlang _).
-  iIntros (??) "Hs". iDestruct (Hlog with "Hs") as ">#Htyp".
-  by iSpecialize ("Htyp" $! ids with "[#//]"); rewrite hsubst_id.
+  eapply (adequacy_dlang _); [apply Himpl | iIntros (??) "Hgs"].
+  iMod (Hlog with "Hgs") as "Htyp".
+  by iEval rewrite -(hsubst_id e); iApply ("Htyp" $! ids).
 Qed.
+
+Corollary safety_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e T
+  (Hwp : ∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T):
+  safe e.
+Proof. apply adequate_safe, (adequacy_dot_sem _ e _ T), Hwp; naive_solver. Qed.

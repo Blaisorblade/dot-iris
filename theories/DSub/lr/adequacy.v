@@ -8,7 +8,7 @@ Theorem adequacy_dsub_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e T:
   (∀ `(dlangG Σ) `(!SwapPropI Σ), [] ⊨ e : T) →
   safe e.
 Proof.
-  intros Hlog ?*. eapply (adequacy_dlang _).
+  intros Hlog ?*. eapply (safety_dlang _).
   iIntros (??) "Hs". iDestruct Hlog as "#Htyp".
   by iSpecialize ("Htyp" $! ids with "[#//]"); rewrite hsubst_id.
 Qed.

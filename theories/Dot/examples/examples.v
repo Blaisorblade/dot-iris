@@ -151,5 +151,5 @@ End ex.
 
 Import dlang_adequacy swap_later_impl.
 Lemma vSafe: safe (tv (v 1%positive)).
-Proof. eapply (adequacy_dot_sem dlangΣ)=>*; apply vHasA1TypAd. Qed.
+Proof. eapply (safety_dot_sem dlangΣ)=>*; apply vHasA1TypAd. Qed.
 End example.
