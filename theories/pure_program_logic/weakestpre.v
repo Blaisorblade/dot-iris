@@ -78,6 +78,13 @@ Global Instance wp_proper s E e :
 Proof.
   by intros Φ Φ' ?; apply equiv_dist=>n; apply wp_ne=>v; apply equiv_dist.
 Qed.
+Global Instance wp_contractive s E e n :
+  TCEq (to_val e) None →
+  Proper (pointwise_relation _ (dist_later n) ==> dist n) (wp (PROP:=iProp Σ) s E e).
+Proof.
+  intros He Φ Ψ HΦ. rewrite !wp_unfold /wp_pre He.
+  by repeat (f_contractive || f_equiv).
+Qed.
 
 Lemma wp_value' s E Φ v : Φ v ⊢ WP of_val v @ s; E {{ Φ }}.
 Proof. iIntros "HΦ". rewrite wp_unfold /wp_pre to_of_val. auto. Qed.
