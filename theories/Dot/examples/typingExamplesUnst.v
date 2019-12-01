@@ -97,10 +97,10 @@ Lemma packTV_typed T Γ :
   Γ u⊢ₜ tv (packTV T) : typeEq "A" T.
 Proof. intros; exact: packTV_typed'. Qed.
 
-Definition tApp t T :=
+Definition tyApp t T :=
   lett t (lett (tv (packTV (shift T))) (tapp (tv x1) (tv x0))).
 
-Lemma typeApp_typed Γ T U V t :
+Lemma tyApp_typed Γ T U V t :
   Γ u⊢ₜ t : TAll (type "A" >: ⊥ <: ⊤) U →
   (** This subtyping premise is needed to perform "avoidance", as in compilers
     for ML and Scala: that is, producing a type [V] that does not refer to
@@ -108,7 +108,7 @@ Lemma typeApp_typed Γ T U V t :
   (∀ L, typeEq "A" T.|[ren (+2)] :: L :: Γ u⊢ₜ U.|[up (ren (+1))], 0 <: V.|[ren (+2)], 0) →
   is_unstamped_ty (length Γ) T →
   is_unstamped_ty (S (length Γ)) U →
-  Γ u⊢ₜ tApp t T : V.
+  Γ u⊢ₜ tyApp t T : V.
 Proof.
   move => Ht Hsub HsT1 HsU1; move: (HsT1) => /is_unstamped_ren1_ty HsT2.
   move: (HsT2) => /is_unstamped_ren1_ty HsT3.
@@ -476,14 +476,14 @@ Proof.
     rewrite ?hsubst_id //; by [| autosubst].
 Qed.
 
-Lemma tAppIFT_typed Γ T t :
+Lemma tyAppIFT_typed Γ T t :
   is_unstamped_ty (length Γ) T →
   Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ tApp t T:
+  Γ u⊢ₜ tyApp t T:
     TAll T (TAll (shift T) (▶ T.|[ren (+2)])).
 Proof.
   move => HsT1 Ht; move: (HsT1) => /is_unstamped_ren1_ty HsT2.
-  intros; eapply typeApp_typed => //; tcrush.
+  intros; eapply tyApp_typed => //; tcrush.
   intros; asimpl. exact: (subIFT 1).
 Qed.
 
@@ -513,22 +513,22 @@ Proof.
     !hsubst_comp !ren_ren_comp /=. done.
 Qed.
 
-Lemma iftCoerce_tAppIFT_typed Γ T t :
+Lemma iftCoerce_tyAppIFT_typed Γ T t :
   is_unstamped_ty (length Γ) T →
   Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ iftCoerce (tApp t T) :
+  Γ u⊢ₜ iftCoerce (tyApp t T) :
     TAll T (TAll (shift T) T.|[ren (+2)]).
-Proof. intros. by apply /iftCoerce_typed /tAppIFT_typed. Qed.
+Proof. intros. by apply /iftCoerce_typed /tyAppIFT_typed. Qed.
 
-Lemma iftCoerce_tAppIFT_typed_IFT Γ t :
+Lemma iftCoerce_tyAppIFT_typed_IFT Γ t :
   Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ iftCoerce (tApp t IFT) :
+  Γ u⊢ₜ iftCoerce (tyApp t IFT) :
     TAll IFT (TAll IFT IFT).
-Proof. intros. apply iftCoerce_tAppIFT_typed; tcrush. Qed.
+Proof. intros. apply iftCoerce_tyAppIFT_typed; tcrush. Qed.
 
 Definition iftNotBody t T true false :=
   tapp (tapp
-      (iftCoerce (tApp t T))
+      (iftCoerce (tyApp t T))
     false)
   true.
 
@@ -540,7 +540,7 @@ Proof.
   intros.
   eapply App_typed; last exact: iftTrueTyp.
   eapply App_typed; last exact: iftFalseTyp.
-  exact: iftCoerce_tAppIFT_typed_IFT.
+  exact: iftCoerce_tyAppIFT_typed_IFT.
 Qed.
 
 (* We'd want NOT = λ a. a False True. *)
@@ -553,7 +553,7 @@ Proof. apply Lam_typed; first stcrush. apply iftNotBodyTyp. exact: Var_typed'. Q
 (* AND = λ a b. a b False. *)
 Definition iftAndBody t1 t2 T false :=
   tapp (tapp
-      (iftCoerce (tApp t1 T))
+      (iftCoerce (tyApp t1 T))
     t2)
   false.
 
@@ -565,7 +565,7 @@ Proof.
   intros Ht1 Ht2.
   eapply App_typed; last exact: iftFalseTyp.
   eapply App_typed; last exact: Ht2.
-  exact: iftCoerce_tAppIFT_typed_IFT.
+  exact: iftCoerce_tyAppIFT_typed_IFT.
 Qed.
 
 Lemma iftAndTyp Γ T :
@@ -650,8 +650,8 @@ Proof. intros. apply /iftCoerce_typed /iftAndTyp2; tcrush. Qed.
 
 Definition IFTp0 := TAll p0Bool (TAll (shift p0Bool) (p0Bool.|[ren (+2)])).
 
-Lemma iftCoerce_tAppIFT_typed_p0Boolean Γ T t :
+Lemma iftCoerce_tyAppIFT_typed_p0Boolean Γ T t :
   T :: Γ u⊢ₜ t : IFT →
-  T :: Γ u⊢ₜ iftCoerce (tApp t p0Bool) :
+  T :: Γ u⊢ₜ iftCoerce (tyApp t p0Bool) :
     TAll p0Bool (TAll (shift p0Bool) p0Bool.|[ren (+2)]).
-Proof. intros. apply iftCoerce_tAppIFT_typed; tcrush. Qed.
+Proof. intros. apply iftCoerce_tyAppIFT_typed; tcrush. Qed.
