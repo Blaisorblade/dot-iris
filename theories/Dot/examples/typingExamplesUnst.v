@@ -542,6 +542,23 @@ Proof.
 Qed.
 
 (* AND = λ a b. a b False. *)
+Definition iftAndBody Γ t1 t2 T :=
+  tapp (tapp
+      (iftCoerce (tApp Γ t1 T))
+    t2)
+  (tv iftFalse).
+
+Lemma iftAndBodyTyp Γ T t1 t2 :
+  Γ u⊢ₜ t1 : IFT →
+  Γ u⊢ₜ t2 : IFT →
+  Γ u⊢ₜ iftAndBody Γ t1 t2 IFT : IFT.
+Proof.
+  intros Ht1 Ht2.
+  eapply App_typed; last exact: iftFalseTyp.
+  eapply App_typed; last exact: Ht2.
+  exact: tAppIFT_coerced_typed_IFT.
+Qed.
+
 Definition packBoolean := packTV IFT.
 Lemma packBooleanTyp0 Γ :
   Γ u⊢ₜ tv packBoolean : typeEq "A" IFT.
@@ -625,20 +642,3 @@ Lemma tAppIFT_coerced_typed_p0Boolean Γ T t :
   T :: Γ u⊢ₜ iftCoerce (tApp (T :: Γ) t p0Bool) :
     TAll p0Bool (TAll (shift p0Bool) p0Bool.|[ren (+2)]).
 Proof. intros. apply tAppIFT_coerced_typed; eauto 3. tcrush. Qed.
-
-Definition iftAnd2 Γ t1 t2 s :=
-  tapp (tapp
-      (iftCoerce (tApp Γ t1 s))
-    t2)
-  (tv iftFalse).
-
-Lemma iftAndTyp2 Γ T t1 t2 :
-  Γ u⊢ₜ t1 : IFT →
-  Γ u⊢ₜ t2 : IFT →
-  Γ u⊢ₜ iftAnd2 Γ t1 t2 IFT : IFT.
-Proof.
-  intros Ht1 Ht2.
-  eapply App_typed; last exact: iftFalseTyp.
-  eapply App_typed; last exact: Ht2.
-  exact: tAppIFT_coerced_typed_IFT.
-Qed.
