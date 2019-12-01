@@ -79,7 +79,7 @@ Qed.
 
 (* Note how we must weaken the type (or its environment) to account for the
    self-variable of the created object. *)
-Definition packTV T := (ν {@ type "A" = T.|[ren (+1)] }).
+Definition packTV T := (ν {@ type "A" = shift T }).
 
 Lemma packTV_typed' T n Γ :
   is_unstamped_ty n T →
@@ -87,7 +87,7 @@ Lemma packTV_typed' T n Γ :
   Γ u⊢ₜ tv (packTV T) : typeEq "A" T.
 Proof.
   move => HsT1 Hle; move: (Hle) (HsT1) => /le_n_S Hles /is_unstamped_ren1_ty HsT2.
-  apply (Subs_typed_nocoerce (μ {@ typeEq "A" T.|[ren (+1)] }));
+  apply (Subs_typed_nocoerce (μ {@ typeEq "A" (shift T) }));
     last (eapply Trans_stp; first apply (@Mu_stp _ ({@ typeEq "A" T })); tcrush).
   apply VObj_typed; tcrush.
 Qed.
@@ -108,7 +108,7 @@ Lemma typeApp_typed Γ T U V t :
   (∀ L, typeEq "A" T.|[ren (+2)] :: L :: Γ u⊢ₜ U.|[up (ren (+1))], 0 <: V.|[ren (+2)], 0) →
   is_unstamped_ty (length Γ) T →
   is_unstamped_ty (S (length Γ)) U →
-  Γ u⊢ₜ tApp Γ t T.|[ren (+1)] : V.
+  Γ u⊢ₜ tApp Γ t (shift T) : V.
 Proof.
   move => Ht Hsub HsT1 HsU1; move: (HsT1) => /is_unstamped_ren1_ty HsT2.
   move: (HsT2) => /is_unstamped_ren1_ty HsT3.
@@ -125,7 +125,7 @@ Proof.
 Qed.
 
 Lemma Mu_stp' {Γ T T' i}:
-  T' = T.|[ren (+1)] →
+  T' = shift T →
   is_unstamped_ty (length Γ) T →
   Γ u⊢ₜ TMu T', i <: T, i.
 Proof. intros; subst. auto. Qed.
@@ -306,7 +306,7 @@ Example getAnyTypeFunTyp Γ : Γ u⊢ₜ tv getAnyType : getAnyTypeT.
 Proof.
   rewrite /getAnyType -(iterate_S tskip 0); tcrush.
   eapply (Subs_typed (T1 := TLater (p0 @ "types" @; "Type"))); tcrush.
-  set Γ' := (μ fromPDotPaperAbsTBody).|[ren (+1)] :: Γ.
+  set Γ' := shift (μ fromPDotPaperAbsTBody) :: Γ.
   have Hpx: Γ' u⊢ₚ p0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0.
     by tcrush; eapply Subs_typed_nocoerce;
       [by eapply TMuE_typed, Var_typed' | tcrush].
@@ -442,7 +442,7 @@ Definition boolImplT0 : ty :=
   }.
 
 Lemma dvabs_sub_typed {Γ} V T1 T2 e l L:
-  T1.|[ren (+1)] :: V :: Γ u⊢ₜ e : T2 →
+  shift T1 :: V :: Γ u⊢ₜ e : T2 →
   TLater V :: Γ u⊢ₜ TAll T1 T2, 0 <: L, 0 →
   is_unstamped_ty (S (length Γ)) T1 →
   Γ |d V u⊢{ l := dvl (vabs e) } : TVMem l L.
@@ -479,8 +479,8 @@ Qed.
 Lemma tAppIFT_typed Γ T t :
   is_unstamped_ty (length Γ) T →
   Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ tApp Γ t T.|[ren (+1)]:
-    TAll T (TAll T.|[ren (+1)] (▶ T.|[ren (+2)])).
+  Γ u⊢ₜ tApp Γ t (shift T):
+    TAll T (TAll (shift T) (▶ T.|[ren (+2)])).
 Proof.
   move => HsT1 Ht; move: (HsT1) => /is_unstamped_ren1_ty HsT2.
   intros; eapply typeApp_typed => //; tcrush.
@@ -493,8 +493,8 @@ Definition iftCoerce t :=
 
 Lemma coerce_tAppIFT Γ t T :
   is_unstamped_ty (length Γ) T →
-  Γ u⊢ₜ t : TAll T (TAll T.|[ren (+1)] (▶ T.|[ren (+2)])) →
-  Γ u⊢ₜ iftCoerce t : TAll T (TAll T.|[ren (+1)] T.|[ren (+2)]).
+  Γ u⊢ₜ t : TAll T (TAll (shift T) (▶ T.|[ren (+2)])) →
+  Γ u⊢ₜ iftCoerce t : TAll T (TAll (shift T) T.|[ren (+2)]).
 Proof.
   move => HsT1 Ht.
   move: (HsT1) => /is_unstamped_ren1_ty HsT2.
@@ -514,13 +514,13 @@ Qed.
 Lemma tAppIFT_coerced_typed Γ T t :
   is_unstamped_ty (length Γ) T →
   Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ iftCoerce (tApp Γ t T.|[ren (+1)]) :
-    TAll T (TAll T.|[ren (+1)] T.|[ren (+2)]).
+  Γ u⊢ₜ iftCoerce (tApp Γ t (shift T)) :
+    TAll T (TAll (shift T) T.|[ren (+2)]).
 Proof. intros. by apply /coerce_tAppIFT /tAppIFT_typed. Qed.
 
 Lemma tAppIFT_coerced_typed_IFT Γ t :
   Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ iftCoerce (tApp Γ t IFT.|[ren (+1)]) :
+  Γ u⊢ₜ iftCoerce (tApp Γ t (shift IFT)) :
     TAll IFT (TAll IFT IFT).
 Proof. intros. apply tAppIFT_coerced_typed; eauto 2. tcrush. Qed.
 
@@ -618,12 +618,12 @@ Example iftAndTyp'2 Γ :
   Γ u⊢ₜ iftCoerce (tv (iftAnd (tv iftFalse))) : TAll IFT (TAll IFT IFT).
 Proof. intros. apply /coerce_tAppIFT /iftAndTyp; tcrush. Qed.
 
-Definition IFTp0 := TAll p0Bool (TAll p0Bool.|[ren (+1)] (p0Bool.|[ren (+2)])).
+Definition IFTp0 := TAll p0Bool (TAll (shift p0Bool) (p0Bool.|[ren (+2)])).
 
 Lemma tAppIFT_coerced_typed_p0Boolean Γ T t :
   T :: Γ u⊢ₜ t : IFT →
-  T :: Γ u⊢ₜ iftCoerce (tApp (T :: Γ) t p0Bool.|[ren (+1)]) :
-    TAll p0Bool (TAll p0Bool.|[ren (+1)] p0Bool.|[ren (+2)]).
+  T :: Γ u⊢ₜ iftCoerce (tApp (T :: Γ) t (shift p0Bool)) :
+    TAll p0Bool (TAll (shift p0Bool) p0Bool.|[ren (+2)]).
 Proof. intros. apply tAppIFT_coerced_typed; eauto 3. tcrush. Qed.
 
 Definition iftAnd2 Γ t1 t2 s :=
