@@ -286,7 +286,6 @@ Definition getAnyType : vl := vabs (tskip (tproj (tproj (tv x0) "types") "AnyTyp
 
 Ltac simplSubst := rewrite /= /up/= /ids/ids_vl/=.
 From D.Dot.syn Require Import path_repl.
-From D.Dot.lr Require Import path_wp.
 
 Definition fromPDotPaperAbsTypesTBodySubst : ty := {@
   type "Type" >: TBot <: TTop;
