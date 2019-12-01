@@ -463,6 +463,85 @@ Proof.
   - eapply Subs_typed_nocoerce; [apply iftFalseTyp|apply SubIFT_LaterP0Bool].
 Qed.
 
+(* Utilities needed for not. *)
+Lemma subIFT i Γ T:
+  is_unstamped_ty (length Γ) T.|[ren (+i)] →
+  (typeEq "A" T.|[ren (+1+i)]) :: Γ u⊢ₜ IFTBody, 0 <:
+    TAll T.|[ren (+1+i)] (TAll T.|[ren (+2+i)] (▶ T.|[ren (+3+i)])), 0.
+Proof.
+  rewrite /= -/IFTBody => HsT1.
+  move: (HsT1) => /is_unstamped_ren1_ty HsT2; rewrite -hrenS in HsT2.
+  move: (HsT2) => /is_unstamped_ren1_ty HsT3; rewrite -hrenS in HsT3.
+  tcrush; rewrite ?iterate_S ?iterate_0 /=;
+    first [apply: LSel_stp' | apply: SelU_stp]; tcrush; apply: Var_typed';
+    rewrite ?hsubst_id //; by [| autosubst].
+Qed.
+
+Lemma tAppIFT_typed Γ T t :
+  is_unstamped_ty (length Γ) T →
+  Γ u⊢ₜ t : IFT →
+  Γ u⊢ₜ tApp Γ t T.|[ren (+1)]:
+    TAll T (TAll T.|[ren (+1)] (▶ T.|[ren (+2)])).
+Proof.
+  move => HsT1 Ht; move: (HsT1) => /is_unstamped_ren1_ty HsT2.
+  intros; eapply typeApp_typed => //; tcrush.
+  intros; asimpl. exact: (subIFT 1).
+Qed.
+
+(** Adds a skip needed for booleans. *)
+Definition iftCoerce t :=
+  lett t (vabs' (vabs' (tskip (tapp (tapp (tv x2) (tv x1)) (tv x0))))).
+
+Lemma coerce_tAppIFT Γ t T :
+  is_unstamped_ty (length Γ) T →
+  Γ u⊢ₜ t : TAll T (TAll T.|[ren (+1)] (▶ T.|[ren (+2)])) →
+  Γ u⊢ₜ iftCoerce t : TAll T (TAll T.|[ren (+1)] T.|[ren (+2)]).
+Proof.
+  move => HsT1 Ht.
+  move: (HsT1) => /is_unstamped_ren1_ty HsT2.
+  move: (HsT2) => /is_unstamped_ren1_ty; rewrite -hrenS => HsT3.
+  move: (HsT3) => /is_unstamped_ren1_ty; rewrite -hrenS => HsT4.
+  eapply Let_typed; [exact: Ht| |tcrush].
+  rewrite /= !(hren_upn_gen 1) (hren_upn_gen 2) /=.
+  tcrush; rewrite -!hrenS -(iterate_S tskip 0).
+  eapply (Subs_typed (T1 := ▶T.|[_])); first tcrush.
+  eapply App_typed; last exact: Var_typed';
+    eapply App_typed; last exact: Var_typed'.
+  apply: Var_typed' => //.
+  rewrite /= !(hren_upn 1) (hren_upn_gen 1) (hren_upn_gen 2)
+    !hsubst_comp !ren_ren_comp /=. done.
+Qed.
+
+Lemma tAppIFT_coerced_typed Γ T t :
+  is_unstamped_ty (length Γ) T →
+  Γ u⊢ₜ t : IFT →
+  Γ u⊢ₜ iftCoerce (tApp Γ t T.|[ren (+1)]) :
+    TAll T (TAll T.|[ren (+1)] T.|[ren (+2)]).
+Proof. intros. by apply /coerce_tAppIFT /tAppIFT_typed. Qed.
+
+Lemma tAppIFT_coerced_typed_IFT Γ t :
+  Γ u⊢ₜ t : IFT →
+  Γ u⊢ₜ iftCoerce (tApp Γ t IFT.|[ren (+1)]) :
+    TAll IFT (TAll IFT IFT).
+Proof. intros. apply tAppIFT_coerced_typed; eauto 2. tcrush. Qed.
+
+(* NOT = λ a. a False True. *)
+Definition iftNot Γ t T :=
+  tapp (tapp
+      (iftCoerce (tApp Γ t T))
+    (tv iftFalse))
+  (tv iftTrue).
+
+Lemma iftNotTyp Γ T t :
+  Γ u⊢ₜ t : IFT →
+  Γ u⊢ₜ iftNot Γ t IFT : IFT.
+Proof.
+  intros.
+  eapply App_typed; last exact: iftTrueTyp.
+  eapply App_typed; last exact: iftFalseTyp.
+  exact: tAppIFT_coerced_typed_IFT.
+Qed.
+
 (* AND = λ a b. a b False. *)
 Definition packBoolean := packTV IFT.
 Lemma packBooleanTyp0 Γ :
@@ -536,69 +615,9 @@ Proof.
   apply iftAndTyp; eauto.
 Qed.
 
-Definition iftCoerce t :=
-  lett t (vabs' (vabs' (tskip (tapp (tapp (tv x2) (tv x1)) (tv x0))))).
-
-Lemma coerce_tAppIFT Γ t T :
-  is_unstamped_ty (length Γ) T →
-  Γ u⊢ₜ t : TAll T (TAll T.|[ren (+1)] (▶ T.|[ren (+2)])) →
-  Γ u⊢ₜ iftCoerce t : TAll T (TAll T.|[ren (+1)] T.|[ren (+2)]).
-Proof.
-  move => HsT1 Ht.
-  move: (HsT1) => /is_unstamped_ren1_ty HsT2.
-  move: (HsT2) => /is_unstamped_ren1_ty; rewrite -hrenS => HsT3.
-  move: (HsT3) => /is_unstamped_ren1_ty; rewrite -hrenS => HsT4.
-  eapply Let_typed; [exact: Ht| |tcrush].
-  rewrite /= !(hren_upn_gen 1) (hren_upn_gen 2) /=.
-  tcrush; rewrite -!hrenS -(iterate_S tskip 0).
-  eapply (Subs_typed (T1 := ▶T.|[_])); first tcrush.
-  eapply App_typed; last exact: Var_typed';
-    eapply App_typed; last exact: Var_typed'.
-  apply: Var_typed' => //.
-  rewrite /= !(hren_upn 1) (hren_upn_gen 1) (hren_upn_gen 2)
-    !hsubst_comp !ren_ren_comp /=. done.
-Qed.
-
 Example iftAndTyp'2 Γ :
   Γ u⊢ₜ iftCoerce (tv (iftAnd (tv iftFalse))) : TAll IFT (TAll IFT IFT).
 Proof. intros. apply /coerce_tAppIFT /iftAndTyp; tcrush. Qed.
-
-Lemma subIFT i Γ T:
-  is_unstamped_ty (length Γ) T.|[ren (+i)] →
-  (typeEq "A" T.|[ren (+1+i)]) :: Γ u⊢ₜ IFTBody, 0 <:
-    TAll T.|[ren (+1+i)] (TAll T.|[ren (+2+i)] (▶ T.|[ren (+3+i)])), 0.
-Proof.
-  rewrite /= -/IFTBody => HsT1.
-  move: (HsT1) => /is_unstamped_ren1_ty HsT2; rewrite -hrenS in HsT2.
-  move: (HsT2) => /is_unstamped_ren1_ty HsT3; rewrite -hrenS in HsT3.
-  tcrush; rewrite ?iterate_S ?iterate_0 /=;
-    first [apply: LSel_stp' | apply: SelU_stp]; tcrush; apply: Var_typed';
-    rewrite ?hsubst_id //; by [| autosubst].
-Qed.
-
-Lemma tAppIFT_typed Γ T t :
-  is_unstamped_ty (length Γ) T →
-  Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ tApp Γ t T.|[ren (+1)]:
-    TAll T (TAll T.|[ren (+1)] (▶ T.|[ren (+2)])).
-Proof.
-  move => HsT1 Ht; move: (HsT1) => /is_unstamped_ren1_ty HsT2.
-  intros; eapply typeApp_typed => //; tcrush.
-  intros; asimpl. exact: (subIFT 1).
-Qed.
-
-Lemma tAppIFT_coerced_typed Γ T t :
-  is_unstamped_ty (length Γ) T →
-  Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ iftCoerce (tApp Γ t T.|[ren (+1)]) :
-    TAll T (TAll T.|[ren (+1)] T.|[ren (+2)]).
-Proof. intros. by apply /coerce_tAppIFT /tAppIFT_typed. Qed.
-
-Lemma tAppIFT_coerced_typed_IFT Γ t :
-  Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ iftCoerce (tApp Γ t IFT.|[ren (+1)]) :
-    TAll IFT (TAll IFT IFT).
-Proof. intros. apply tAppIFT_coerced_typed; eauto 2. tcrush. Qed.
 
 Definition IFTp0 := TAll p0Bool (TAll p0Bool.|[ren (+1)] (p0Bool.|[ren (+2)])).
 
@@ -607,22 +626,6 @@ Lemma tAppIFT_coerced_typed_p0Boolean Γ T t :
   T :: Γ u⊢ₜ iftCoerce (tApp (T :: Γ) t p0Bool.|[ren (+1)]) :
     TAll p0Bool (TAll p0Bool.|[ren (+1)] p0Bool.|[ren (+2)]).
 Proof. intros. apply tAppIFT_coerced_typed; eauto 3. tcrush. Qed.
-
-Definition iftNot Γ t s :=
-  tapp (tapp
-      (iftCoerce (tApp Γ t s))
-    (tv iftFalse))
-  (tv iftTrue).
-
-Lemma iftNotTyp Γ T t :
-  Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ iftNot Γ t IFT : IFT.
-Proof.
-  intros.
-  eapply App_typed; last exact: iftTrueTyp.
-  eapply App_typed; last exact: iftFalseTyp.
-  exact: tAppIFT_coerced_typed_IFT.
-Qed.
 
 Definition iftAnd2 Γ t1 t2 s :=
   tapp (tapp
