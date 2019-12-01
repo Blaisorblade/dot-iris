@@ -525,15 +525,15 @@ Lemma tAppIFT_coerced_typed_IFT Γ t :
 Proof. intros. apply tAppIFT_coerced_typed; eauto 2. tcrush. Qed.
 
 (* NOT = λ a. a False True. *)
-Definition iftNot t T :=
+Definition iftNotBody t T :=
   tapp (tapp
       (iftCoerce (tApp t T))
     (tv iftFalse))
   (tv iftTrue).
 
-Lemma iftNotTyp Γ T t :
+Lemma iftNotBodyTyp Γ T t :
   Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ iftNot t IFT : IFT.
+  Γ u⊢ₜ iftNotBody t IFT : IFT.
 Proof.
   intros.
   eapply App_typed; last exact: iftTrueTyp.
