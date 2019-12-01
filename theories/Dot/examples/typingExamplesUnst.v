@@ -488,6 +488,8 @@ Proof.
 Qed.
 
 (** Adds a skip needed for booleans. *)
+(* Beware: we could inline the [lett t], but then we'd need to use a weakening lemma
+to prove [coerce_tAppIFT]. *)
 Definition iftCoerce t :=
   lett t (vabs' (vabs' (tskip (tapp (tapp (tv x2) (tv x1)) (tv x0))))).
 
@@ -522,8 +524,9 @@ Lemma tAppIFT_coerced_typed_IFT Γ t :
   Γ u⊢ₜ t : IFT →
   Γ u⊢ₜ iftCoerce (tApp t IFT) :
     TAll IFT (TAll IFT IFT).
-Proof. intros. apply tAppIFT_coerced_typed; eauto 2. tcrush. Qed.
+Proof. intros. apply tAppIFT_coerced_typed; tcrush. Qed.
 
+(* XXX Beware that false and true are inlined here. *)
 (* NOT = λ a. a False True. *)
 Definition iftNotBody t T :=
   tapp (tapp
@@ -531,7 +534,7 @@ Definition iftNotBody t T :=
     (tv iftFalse))
   (tv iftTrue).
 
-Lemma iftNotBodyTyp Γ T t :
+Lemma iftNotBodyTyp Γ t :
   Γ u⊢ₜ t : IFT →
   Γ u⊢ₜ iftNotBody t IFT : IFT.
 Proof.
@@ -541,6 +544,10 @@ Proof.
   exact: tAppIFT_coerced_typed_IFT.
 Qed.
 
+Lemma iftNotTyp Γ T :
+  Γ u⊢ₜ vabs' (iftNotBody (tv x0) IFT) : TAll IFT IFT.
+Proof. apply Lam_typed; first stcrush. apply iftNotBodyTyp. exact: Var_typed'. Qed.
+
 (* AND = λ a b. a b False. *)
 Definition iftAndBody t1 t2 T :=
   tapp (tapp
@@ -548,7 +555,7 @@ Definition iftAndBody t1 t2 T :=
     t2)
   (tv iftFalse).
 
-Lemma iftAndBodyTyp Γ T t1 t2 :
+Lemma iftAndBodyTyp Γ t1 t2 :
   Γ u⊢ₜ t1 : IFT →
   Γ u⊢ₜ t2 : IFT →
   Γ u⊢ₜ iftAndBody t1 t2 IFT : IFT.
@@ -558,6 +565,10 @@ Proof.
   eapply App_typed; last exact: Ht2.
   exact: tAppIFT_coerced_typed_IFT.
 Qed.
+
+Lemma iftAndTyp Γ T :
+  Γ u⊢ₜ vabs' (vabs' (iftAndBody (tv x1) (tv x0) IFT)) : TAll IFT (TAll IFT IFT).
+Proof. tcrush. apply iftAndBodyTyp; exact: Var_typed'. Qed.
 
 Definition packBoolean := packTV IFT.
 Lemma packBooleanTyp0 Γ :
