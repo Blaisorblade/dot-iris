@@ -98,7 +98,7 @@ Lemma packTV_typed T Γ :
 Proof. intros; exact: packTV_typed'. Qed.
 
 Definition tApp Γ t T :=
-  lett t (lett (tv (packTV T)) (tapp (tv x1) (tv x0))).
+  lett t (lett (tv (packTV (shift T))) (tapp (tv x1) (tv x0))).
 
 Lemma typeApp_typed Γ T U V t :
   Γ u⊢ₜ t : TAll (type "A" >: ⊥ <: ⊤) U →
@@ -108,7 +108,7 @@ Lemma typeApp_typed Γ T U V t :
   (∀ L, typeEq "A" T.|[ren (+2)] :: L :: Γ u⊢ₜ U.|[up (ren (+1))], 0 <: V.|[ren (+2)], 0) →
   is_unstamped_ty (length Γ) T →
   is_unstamped_ty (S (length Γ)) U →
-  Γ u⊢ₜ tApp Γ t (shift T) : V.
+  Γ u⊢ₜ tApp Γ t T : V.
 Proof.
   move => Ht Hsub HsT1 HsU1; move: (HsT1) => /is_unstamped_ren1_ty HsT2.
   move: (HsT2) => /is_unstamped_ren1_ty HsT3.
@@ -479,7 +479,7 @@ Qed.
 Lemma tAppIFT_typed Γ T t :
   is_unstamped_ty (length Γ) T →
   Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ tApp Γ t (shift T):
+  Γ u⊢ₜ tApp Γ t T:
     TAll T (TAll (shift T) (▶ T.|[ren (+2)])).
 Proof.
   move => HsT1 Ht; move: (HsT1) => /is_unstamped_ren1_ty HsT2.
@@ -514,13 +514,13 @@ Qed.
 Lemma tAppIFT_coerced_typed Γ T t :
   is_unstamped_ty (length Γ) T →
   Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ iftCoerce (tApp Γ t (shift T)) :
+  Γ u⊢ₜ iftCoerce (tApp Γ t T) :
     TAll T (TAll (shift T) T.|[ren (+2)]).
 Proof. intros. by apply /coerce_tAppIFT /tAppIFT_typed. Qed.
 
 Lemma tAppIFT_coerced_typed_IFT Γ t :
   Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ iftCoerce (tApp Γ t (shift IFT)) :
+  Γ u⊢ₜ iftCoerce (tApp Γ t IFT) :
     TAll IFT (TAll IFT IFT).
 Proof. intros. apply tAppIFT_coerced_typed; eauto 2. tcrush. Qed.
 
@@ -622,7 +622,7 @@ Definition IFTp0 := TAll p0Bool (TAll (shift p0Bool) (p0Bool.|[ren (+2)])).
 
 Lemma tAppIFT_coerced_typed_p0Boolean Γ T t :
   T :: Γ u⊢ₜ t : IFT →
-  T :: Γ u⊢ₜ iftCoerce (tApp (T :: Γ) t (shift p0Bool)) :
+  T :: Γ u⊢ₜ iftCoerce (tApp (T :: Γ) t p0Bool) :
     TAll p0Bool (TAll (shift p0Bool) p0Bool.|[ren (+2)]).
 Proof. intros. apply tAppIFT_coerced_typed; eauto 3. tcrush. Qed.
 
