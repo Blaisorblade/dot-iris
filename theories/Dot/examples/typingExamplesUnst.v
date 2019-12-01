@@ -598,7 +598,7 @@ let bool = boolImpl :
 Definition iftAnd false : vl := vabs (vabs'
   (lett (tv packBoolean) (tapp (tapp (tapp (tv x2) (tv x0)) (tv x1)) false))).
 
-Example iftAndTyp Γ :
+Example iftAndTyp2 Γ :
   Γ u⊢ₜ tv (iftAnd (tv iftFalse)) : TAll IFT (TAll IFT (▶IFT)).
 Proof.
   rewrite /iftAnd /vabs'.
@@ -629,7 +629,7 @@ Qed.
 
 (* Eta-expand to drop the later. *)
 
-Example iftAndTyp'1 Γ :
+Example iftAndTyp2'1 Γ :
   Γ u⊢ₜ vabs' (vabs'
     (tskip
       (tapp (tapp (tv (iftAnd (tv iftFalse))) (tv x1)) (tv x0)))) :
@@ -639,12 +639,12 @@ Proof.
   eapply (Subs_typed (T1 := ▶IFT)); first tcrush.
   eapply App_typed; last exact: Var_typed';
     eapply App_typed; last exact: Var_typed'; rewrite /= -/IFT.
-  apply iftAndTyp; eauto.
+  apply iftAndTyp2; eauto.
 Qed.
 
-Example iftAndTyp'2 Γ :
+Example iftAndTyp2'2 Γ :
   Γ u⊢ₜ iftCoerce (tv (iftAnd (tv iftFalse))) : TAll IFT (TAll IFT IFT).
-Proof. intros. apply /iftCoerce_typed /iftAndTyp; tcrush. Qed.
+Proof. intros. apply /iftCoerce_typed /iftAndTyp2; tcrush. Qed.
 
 Definition IFTp0 := TAll p0Bool (TAll (shift p0Bool) (p0Bool.|[ren (+2)])).
 
