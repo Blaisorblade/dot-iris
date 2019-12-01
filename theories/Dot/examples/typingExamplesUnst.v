@@ -573,81 +573,11 @@ Lemma iftAndTyp Γ T :
   Γ u⊢ₜ vabs' (vabs' (iftAndBody (tv x1) (tv x0) IFT (tv iftFalse))) : TAll IFT (TAll IFT IFT).
 Proof. tcrush. apply iftAndBodyTyp; exact: Var_typed'. Qed.
 
-Definition packBoolean := packTV IFT.
-Lemma packBooleanTyp0 Γ :
-  Γ u⊢ₜ tv packBoolean : typeEq "A" IFT.
-Proof. eapply (packTV_typed' IFT); eauto 1. tcrush. Qed.
-
-Lemma packBooleanTyp Γ :
-  Γ u⊢ₜ tv packBoolean : type "A" >: ⊥ <: ⊤.
-Proof.
-  apply (Subs_typed_nocoerce (typeEq "A" IFT)); last tcrush.
-  exact: packBooleanTyp0.
-Qed.
-
-Lemma packBooleanLB Γ i :
-  typeEq "A" IFT :: Γ u⊢ₜ ▶ IFT, i <: p0 @; "A", i.
-Proof. apply /val_LB. exact: Var_typed'. Qed.
-
-Lemma packBooleanUB Γ i :
-  typeEq "A" IFT :: Γ u⊢ₜ p0 @; "A", i <: ▶ IFT, i.
-Proof. apply /val_UB. exact: Var_typed'. Qed.
-
 (*
 let bool = boolImpl :
   μ { Boolean: IFT..IFT; true : b.Boolean; false : b.Boolean;
       and : p.Boolean → p.Boolean → p.Boolean }
 *)
-Definition iftAnd false : vl := vabs (vabs'
-  (lett (tv packBoolean) (tapp (tapp (tapp (tv x2) (tv x0)) (tv x1)) false))).
-
-Example iftAndTyp2 Γ :
-  Γ u⊢ₜ tv (iftAnd (tv iftFalse)) : TAll IFT (TAll IFT (▶IFT)).
-Proof.
-  rewrite /iftAnd /vabs'.
-  tcrush.
-  eapply Let_typed; first apply packBooleanTyp0.
-  2: tcrush.
-  eapply App_typed; last exact: iftFalseTyp.
-  eapply App_typed; last exact: Var_typed'.
-  rewrite /= -/IFT -/(typeEq "A" IFT).
-  eapply Subs_typed_nocoerce. {
-    eapply Appv_typed'; first exact: Var_typed'.
-    rewrite /= -/IFT.
-    2: by change IFTBody.|[_] with IFTBody.
-    apply: Var_typed_sub; by [|tcrush].
-  }
-
-  apply TAllConCov_stp; stcrush.
-  { eapply Trans_stp. exact: packBooleanLB. tcrush. }
-  apply TLaterCov_stp, TAllConCov_stp; stcrush.
-  - rewrite /= -/IFT. asimpl.
-    eapply Trans_stp.
-    eapply (val_LB _ _ _ _ 1); exact: Var_typed'.
-    tcrush.
-  - eapply TLaterCov_stp, Trans_stp.
-    eapply val_UB. exact: Var_typed'.
-    tcrush.
-Qed.
-
-(* Eta-expand to drop the later. *)
-
-Example iftAndTyp2'1 Γ :
-  Γ u⊢ₜ vabs' (vabs'
-    (tskip
-      (tapp (tapp (tv (iftAnd (tv iftFalse))) (tv x1)) (tv x0)))) :
-    TAll IFT (TAll IFT IFT).
-Proof.
-  tcrush; rewrite -(iterate_S tskip 0).
-  eapply (Subs_typed (T1 := ▶IFT)); first tcrush.
-  eapply App_typed; last exact: Var_typed';
-    eapply App_typed; last exact: Var_typed'; rewrite /= -/IFT.
-  apply iftAndTyp2; eauto.
-Qed.
-
-Example iftAndTyp2'2 Γ :
-  Γ u⊢ₜ iftCoerce (tv (iftAnd (tv iftFalse))) : TAll IFT (TAll IFT IFT).
-Proof. intros. apply /iftCoerce_typed /iftAndTyp2; tcrush. Qed.
 
 Definition IFTp0 := TAll p0Bool (TAll (shift p0Bool) (p0Bool.|[ren (+2)])).
 
