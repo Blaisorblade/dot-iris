@@ -34,10 +34,13 @@ Example ex3 Γ T:
   Γ u⊢ₜ tv (ν {@ type "A" = F3 (p0 @; "A") } ) : F3 (F3 (TSel p0 "A")).
 Proof. apply VObj_typed; tcrush. Qed.
 
-Notation HashableString := (μ {@ val "hashCode" : TAll TUnit TNat }).
+Notation tparam A := (type A >: ⊥ <: ⊤)%ty.
+Notation "S → T" := (TAll S%ty (shift T%ty)) : ty_scope.
+
+Notation HashableString := (μ {@ val "hashCode" : (TUnit → TNat) }).
 Definition KeysT : ty := μ {@
   type "Key" >: ⊥ <: ⊤;
-  val "key": TAll HashableString (p1 @; "Key")
+  val "key": (HashableString → p0 @; "Key")
 }.
 Definition hashKeys : vl := ν {@
   type "Key" = TNat;
@@ -46,8 +49,9 @@ Definition hashKeys : vl := ν {@
 
 Definition KeysT' := μ {@
   type "Key" >: TNat <: ⊤;
-  val "key": TAll HashableString (p1 @; "Key")
+  val "key": (HashableString → p0 @; "Key")
 }.
+
 
 (* IDEA for our work: use [(type "Key" >: TNat <: ⊤) ⩓ (type "Key" >: ⊥ <: ⊤)]. *)
 Example hashKeys_typed Γ:
@@ -64,14 +68,14 @@ Proof.
   cbn; apply App_typed with (T1 := TUnit);
     last eapply (Subs_typed_nocoerce TNat); tcrush; cbn.
 
-  pose (T0 := μ {@ val "hashCode" : TAll ⊤ 𝐍 }).
+  pose (T0 := μ {@ val "hashCode" : (⊤ → 𝐍) }).
 
-  have Htp: ∀ Γ', T0 :: Γ' u⊢ₜ tv x0 : val "hashCode" : TAll ⊤ TNat. {
+  have Htp: ∀ Γ', T0 :: Γ' u⊢ₜ tv x0 : val "hashCode" : (⊤ → TNat). {
     intros. eapply Subs_typed_nocoerce.
     eapply TMuE_typed'; by [exact: Var_typed'|].
     by apply TAnd1_stp; tcrush.
   }
-  apply (Subs_typed_nocoerce (val "hashCode" : TAll ⊤ 𝐍)). exact: Htp.
+  apply (Subs_typed_nocoerce (val "hashCode" : (⊤ → 𝐍))). exact: Htp.
   tcrush.
   eapply LSel_stp'; tcrush.
   eapply Var_typed_sub; by [|tcrush].
@@ -101,7 +105,7 @@ Definition tyApp t T :=
   lett t (lett (tv (packTV (shift T))) (tapp (tv x1) (tv x0))).
 
 Lemma tyApp_typed Γ T U V t :
-  Γ u⊢ₜ t : TAll (type "A" >: ⊥ <: ⊤) U →
+  Γ u⊢ₜ t : TAll (tparam "A") U →
   (** This subtyping premise is needed to perform "avoidance", as in compilers
     for ML and Scala: that is, producing a type [V] that does not refer to
     variables bound by let in the expression. *)
@@ -127,7 +131,7 @@ Qed.
 Lemma Mu_stp' {Γ T T' i}:
   T' = shift T →
   is_unstamped_ty (length Γ) T →
-  Γ u⊢ₜ TMu T', i <: T, i.
+  Γ u⊢ₜ μ T', i <: T, i.
 Proof. intros; subst. auto. Qed.
 
 Ltac hideCtx :=
@@ -288,12 +292,12 @@ Ltac simplSubst := rewrite /= /up/= /ids/ids_vl/=.
 From D.Dot.syn Require Import path_repl.
 
 Definition fromPDotPaperAbsTypesTBodySubst : ty := {@
-  type "Type" >: TBot <: TTop;
-  type "TypeRef" >: TBot <: TAnd (p0 @ "types" @; "Type") {@
+  type "Type" >: ⊥ <: ⊤;
+  type "TypeRef" >: ⊥ <: TAnd (p0 @ "types" @; "Type") {@
     val "symb" : p0 @ "symbols" @; "Symbol"
   };
   val "AnyType" : TLater (p0 @ "types" @; "Type");
-  val "newTypeRef" : TAll (p0 @ "symbols" @; "Symbol") (p1 @ "types" @; "TypeRef")
+  val "newTypeRef" : (p0 @ "symbols" @; "Symbol" → p0 @ "types" @; "TypeRef")
 }.
 
 Lemma fromPDotPSubst: fromPDotPaperAbsTypesTBody .Tp[ (p0 @ "types") /]~ fromPDotPaperAbsTypesTBodySubst.
@@ -349,9 +353,9 @@ In fact, that code doesn't typecheck as given, and we fix it by setting.
 IFT ≡ IFTFun
 let bool = boolImpl : μ { Boolean: IFT..IFT; true : b.Boolean; false : b.Boolean }
  *)
-Definition IFTBody := (TAll (p0 @; "A") (TAll (p1 @; "A") (p2 @; "A"))).
+Definition IFTBody : ty := p0 @; "A" → p0 @; "A" → p0 @; "A".
 Definition IFT : ty :=
-  TAll (type "A" >: ⊥ <: ⊤) IFTBody.
+  TAll (tparam "A") IFTBody.
 
 (* Definition IFT : ty := {@ val "if" : IFTFun }. *)
 
@@ -479,8 +483,7 @@ Qed.
 Lemma tyAppIFT_typed Γ T t :
   is_unstamped_ty (length Γ) T →
   Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ tyApp t T:
-    TAll T (TAll (shift T) (▶ T.|[ren (+2)])).
+  Γ u⊢ₜ tyApp t T: (T → T → ▶ T).
 Proof.
   move => HsT1 Ht; move: (HsT1) => /is_unstamped_ren1_ty HsT2.
   intros; eapply tyApp_typed => //; last stcrush.
@@ -496,14 +499,14 @@ Definition iftCoerce t :=
 
 Lemma iftCoerce_typed Γ t T :
   is_unstamped_ty (length Γ) T →
-  Γ u⊢ₜ t : TAll T (TAll (shift T) (▶ T.|[ren (+2)])) →
-  Γ u⊢ₜ iftCoerce t : TAll T (TAll (shift T) T.|[ren (+2)]).
+  Γ u⊢ₜ t: (T → T → ▶ T) →
+  Γ u⊢ₜ iftCoerce t : (T → T → T).
 Proof.
   move => HsT1 Ht.
   move: (HsT1) => /is_unstamped_ren1_ty HsT2.
   move: (HsT2) => /is_unstamped_ren1_ty; rewrite -hrenS => HsT3.
   move: (HsT3) => /is_unstamped_ren1_ty; rewrite -hrenS => HsT4.
-  eapply Let_typed; [exact: Ht| |tcrush].
+  eapply Let_typed; [exact: Ht| |rewrite /= !(hren_upn 1); tcrush].
   rewrite /= !(hren_upn_gen 1) (hren_upn_gen 2) /=.
   tcrush; rewrite -!hrenS -(iterate_S tskip 0).
   eapply (Subs_typed (T1 := ▶T.|[_])); first tcrush.
@@ -517,14 +520,12 @@ Qed.
 Lemma iftCoerce_tyAppIFT_typed Γ T t :
   is_unstamped_ty (length Γ) T →
   Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ iftCoerce (tyApp t T) :
-    TAll T (TAll (shift T) T.|[ren (+2)]).
+  Γ u⊢ₜ iftCoerce (tyApp t T) : (T → T → T).
 Proof. intros. by apply /iftCoerce_typed /tyAppIFT_typed. Qed.
 
 Lemma iftCoerce_tyAppIFT_typed_IFT Γ t :
   Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ iftCoerce (tyApp t IFT) :
-    TAll IFT (TAll IFT IFT).
+  Γ u⊢ₜ iftCoerce (tyApp t IFT) : (IFT → IFT → IFT).
 Proof. intros. apply iftCoerce_tyAppIFT_typed; tcrush. Qed.
 
 Definition iftNotBody t T true false :=
@@ -570,7 +571,7 @@ Proof.
 Qed.
 
 Lemma iftAndTyp Γ T :
-  Γ u⊢ₜ vabs' (vabs' (iftAndBody (tv x1) (tv x0) IFT (tv iftFalse))) : TAll IFT (TAll IFT IFT).
+  Γ u⊢ₜ vabs' (vabs' (iftAndBody (tv x1) (tv x0) IFT (tv iftFalse))) : (IFT → IFT → IFT).
 Proof. tcrush. apply iftAndBodyTyp; exact: Var_typed'. Qed.
 
 (*
