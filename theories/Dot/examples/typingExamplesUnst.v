@@ -483,8 +483,9 @@ Lemma tyAppIFT_typed Γ T t :
     TAll T (TAll (shift T) (▶ T.|[ren (+2)])).
 Proof.
   move => HsT1 Ht; move: (HsT1) => /is_unstamped_ren1_ty HsT2.
-  intros; eapply tyApp_typed => //; tcrush.
-  intros; asimpl. exact: (subIFT 1).
+  intros; eapply tyApp_typed => //; last stcrush.
+  intros; rewrite /= !(hren_upn_gen 1) !(hren_upn_gen 2) /up /=.
+  exact: (subIFT 1).
 Qed.
 
 (** Adds a skip needed for booleans. *)
