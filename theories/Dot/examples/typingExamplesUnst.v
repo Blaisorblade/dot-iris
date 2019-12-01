@@ -526,17 +526,16 @@ Lemma iftCoerce_tAppIFT_typed_IFT Γ t :
     TAll IFT (TAll IFT IFT).
 Proof. intros. apply iftCoerce_tAppIFT_typed; tcrush. Qed.
 
-(* XXX Beware that false and true are inlined here. *)
-(* NOT = λ a. a False True. *)
-Definition iftNotBody t T :=
+Definition iftNotBody t T true false :=
   tapp (tapp
       (iftCoerce (tApp t T))
-    (tv iftFalse))
-  (tv iftTrue).
+    false)
+  true.
 
+(* XXX Beware that false and true are inlined here. *)
 Lemma iftNotBodyTyp Γ t :
   Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ iftNotBody t IFT : IFT.
+  Γ u⊢ₜ iftNotBody t IFT (tv iftTrue) (tv iftFalse) : IFT.
 Proof.
   intros.
   eapply App_typed; last exact: iftTrueTyp.
@@ -544,21 +543,24 @@ Proof.
   exact: iftCoerce_tAppIFT_typed_IFT.
 Qed.
 
+(* We'd want NOT = λ a. a False True. *)
+(* This is NOT0 = λ a. a (λ t f. f) (λ t f. t). *)
+Definition iftNot0 := vabs' (iftNotBody (tv x0) IFT (tv iftTrue) (tv iftFalse)).
 Lemma iftNotTyp Γ T :
-  Γ u⊢ₜ vabs' (iftNotBody (tv x0) IFT) : TAll IFT IFT.
+  Γ u⊢ₜ iftNot0 : TAll IFT IFT.
 Proof. apply Lam_typed; first stcrush. apply iftNotBodyTyp. exact: Var_typed'. Qed.
 
 (* AND = λ a b. a b False. *)
-Definition iftAndBody t1 t2 T :=
+Definition iftAndBody t1 t2 T false :=
   tapp (tapp
       (iftCoerce (tApp t1 T))
     t2)
-  (tv iftFalse).
+  false.
 
 Lemma iftAndBodyTyp Γ t1 t2 :
   Γ u⊢ₜ t1 : IFT →
   Γ u⊢ₜ t2 : IFT →
-  Γ u⊢ₜ iftAndBody t1 t2 IFT : IFT.
+  Γ u⊢ₜ iftAndBody t1 t2 IFT (tv iftFalse) : IFT.
 Proof.
   intros Ht1 Ht2.
   eapply App_typed; last exact: iftFalseTyp.
@@ -567,7 +569,7 @@ Proof.
 Qed.
 
 Lemma iftAndTyp Γ T :
-  Γ u⊢ₜ vabs' (vabs' (iftAndBody (tv x1) (tv x0) IFT)) : TAll IFT (TAll IFT IFT).
+  Γ u⊢ₜ vabs' (vabs' (iftAndBody (tv x1) (tv x0) IFT (tv iftFalse))) : TAll IFT (TAll IFT IFT).
 Proof. tcrush. apply iftAndBodyTyp; exact: Var_typed'. Qed.
 
 Definition packBoolean := packTV IFT.
@@ -652,4 +654,4 @@ Lemma iftCoerce_tAppIFT_typed_p0Boolean Γ T t :
   T :: Γ u⊢ₜ t : IFT →
   T :: Γ u⊢ₜ iftCoerce (tApp t p0Bool) :
     TAll p0Bool (TAll (shift p0Bool) p0Bool.|[ren (+2)]).
-Proof. intros. apply iftCoerce_tAppIFT_typed; eauto 3. tcrush. Qed.
+Proof. intros. apply iftCoerce_tAppIFT_typed; tcrush. Qed.
