@@ -489,11 +489,11 @@ Qed.
 
 (** Adds a skip needed for booleans. *)
 (* Beware: we could inline the [lett t], but then we'd need to use a weakening lemma
-to prove [coerce_tAppIFT]. *)
+to prove [iftCoerce_typed]. *)
 Definition iftCoerce t :=
   lett t (vabs' (vabs' (tskip (tapp (tapp (tv x2) (tv x1)) (tv x0))))).
 
-Lemma coerce_tAppIFT Γ t T :
+Lemma iftCoerce_typed Γ t T :
   is_unstamped_ty (length Γ) T →
   Γ u⊢ₜ t : TAll T (TAll (shift T) (▶ T.|[ren (+2)])) →
   Γ u⊢ₜ iftCoerce t : TAll T (TAll (shift T) T.|[ren (+2)]).
@@ -513,18 +513,18 @@ Proof.
     !hsubst_comp !ren_ren_comp /=. done.
 Qed.
 
-Lemma tAppIFT_coerced_typed Γ T t :
+Lemma iftCoerce_tAppIFT_typed Γ T t :
   is_unstamped_ty (length Γ) T →
   Γ u⊢ₜ t : IFT →
   Γ u⊢ₜ iftCoerce (tApp t T) :
     TAll T (TAll (shift T) T.|[ren (+2)]).
-Proof. intros. by apply /coerce_tAppIFT /tAppIFT_typed. Qed.
+Proof. intros. by apply /iftCoerce_typed /tAppIFT_typed. Qed.
 
-Lemma tAppIFT_coerced_typed_IFT Γ t :
+Lemma iftCoerce_tAppIFT_typed_IFT Γ t :
   Γ u⊢ₜ t : IFT →
   Γ u⊢ₜ iftCoerce (tApp t IFT) :
     TAll IFT (TAll IFT IFT).
-Proof. intros. apply tAppIFT_coerced_typed; tcrush. Qed.
+Proof. intros. apply iftCoerce_tAppIFT_typed; tcrush. Qed.
 
 (* XXX Beware that false and true are inlined here. *)
 (* NOT = λ a. a False True. *)
@@ -541,7 +541,7 @@ Proof.
   intros.
   eapply App_typed; last exact: iftTrueTyp.
   eapply App_typed; last exact: iftFalseTyp.
-  exact: tAppIFT_coerced_typed_IFT.
+  exact: iftCoerce_tAppIFT_typed_IFT.
 Qed.
 
 Lemma iftNotTyp Γ T :
@@ -563,7 +563,7 @@ Proof.
   intros Ht1 Ht2.
   eapply App_typed; last exact: iftFalseTyp.
   eapply App_typed; last exact: Ht2.
-  exact: tAppIFT_coerced_typed_IFT.
+  exact: iftCoerce_tAppIFT_typed_IFT.
 Qed.
 
 Lemma iftAndTyp Γ T :
@@ -644,12 +644,12 @@ Qed.
 
 Example iftAndTyp'2 Γ :
   Γ u⊢ₜ iftCoerce (tv (iftAnd (tv iftFalse))) : TAll IFT (TAll IFT IFT).
-Proof. intros. apply /coerce_tAppIFT /iftAndTyp; tcrush. Qed.
+Proof. intros. apply /iftCoerce_typed /iftAndTyp; tcrush. Qed.
 
 Definition IFTp0 := TAll p0Bool (TAll (shift p0Bool) (p0Bool.|[ren (+2)])).
 
-Lemma tAppIFT_coerced_typed_p0Boolean Γ T t :
+Lemma iftCoerce_tAppIFT_typed_p0Boolean Γ T t :
   T :: Γ u⊢ₜ t : IFT →
   T :: Γ u⊢ₜ iftCoerce (tApp t p0Bool) :
     TAll p0Bool (TAll (shift p0Bool) p0Bool.|[ren (+2)]).
-Proof. intros. apply tAppIFT_coerced_typed; eauto 3. tcrush. Qed.
+Proof. intros. apply iftCoerce_tAppIFT_typed; eauto 3. tcrush. Qed.
