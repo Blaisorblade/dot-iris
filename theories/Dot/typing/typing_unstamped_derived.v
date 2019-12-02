@@ -18,7 +18,7 @@ Ltac typconstructor := match goal with
   | |- subtype _ _ _ _ _ => constructor
   end.
 
-Ltac tcrush := repeat typconstructor; stcrush; try solve [ done |
+Ltac tcrush := repeat first [ fast_done | typconstructor | stcrush ] ; try solve [
   first [
     try_once is_unstamped_weaken_dm |
     try_once is_unstamped_weaken_ty ]; eauto ].

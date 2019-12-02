@@ -287,7 +287,7 @@ Example fromPDotPaperTyp : [] u⊢ₜ tv fromPDotPaper : μ fromPDotPaperAbsTBod
 Proof.
   pose proof fromPDotPaperTypesAbsTyp.
   pose proof fromPDotPaperSymbolsAbsTyp.
-  repeat first [done | typconstructor | stcrush].
+  tcrush.
 Qed.
 
 Definition getAnyTypeT : ty :=
