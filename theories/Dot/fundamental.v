@@ -102,7 +102,9 @@ End fundamental.
 
 Import dlang_adequacy adequacy.
 
-(** *)
+(** Adequacy of semantic typing: not only are semantically well-typed expressions safe,
+but any result value they produce also satisfies any properties that follow from their
+semantic type. *)
 Theorem adequacy_mapped_semtyping Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e g Ψ T
   (Himpl : ∀ (Hdlang: dlangG Σ) v, ⟦ T ⟧ ids v -∗ ⌜Ψ v⌝)
   (Hlog : ∀ `{dlangG Σ} `(!SwapPropI Σ), [] ⊨[ ⟦ g ⟧g ] e : T):
@@ -112,7 +114,7 @@ Proof.
   iIntros (??) "Hs"; iApply Hlog. iApply (transfer_empty with "Hs").
 Qed.
 
-(** *)
+(** Theorem 5.5: safety of semantic typing. Corollary of [adequacy_mapped_semtyping]. *)
 Corollary safety_mapped_semtyping Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e g T
   (Hlog : ∀ `{dlangG Σ} `(!SwapPropI Σ), [] ⊨[ ⟦ g ⟧g ] e : T):
   safe e.
