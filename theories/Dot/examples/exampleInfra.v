@@ -55,7 +55,7 @@ Notation "'𝐍'" := TNat : ty_scope.
 
 Notation "'▶'" := TLater : ty_scope.
 (* Level taken from Iris. *)
-Notation "'▶' T" := (TLater T) (at level 20, right associativity) : ty_scope.
+Notation "'▶' T" := (TLater T) (at level 49, right associativity) : ty_scope.
 
 (* Do not use, too many conflicts. *)
 Notation "'∀' T ',' U" := (TAll T U) (at level 49, only printing) : ty_scope.
@@ -97,9 +97,9 @@ Check ν {@ val "a" = vnat 0 ; type "A" = (σ1 ; s1) }.
 (* Check (x0 @ 1 @ 2 ; 3). *)
 
 Notation "v @ l1 @ .. @ l2" := (pself .. (pself v l1) .. l2)
-                                     (format "v  @  l1  @  ..  @  l2", at level 49, l1, l2 at level 40).
+                                     (format "v  @  l1  @  ..  @  l2", at level 48, l1, l2 at level 40).
 
-Notation "p @; l" := (TSel p l) (at level 49).
+Notation "p @; l" := (TSel p l) (at level 48).
 Notation x0 := (var_vl 0).
 Notation x1 := (var_vl 1).
 Notation x2 := (var_vl 2).

@@ -35,12 +35,12 @@ Example ex3 Γ T:
 Proof. apply VObj_typed; tcrush. Qed.
 
 Notation tparam A := (type A >: ⊥ <: ⊤)%ty.
-Notation "S → T" := (TAll S%ty (shift T%ty)) : ty_scope.
+Notation "S →: T" := (TAll S%ty (shift T%ty)) (at level 49, T at level 98, right associativity) : ty_scope.
 
-Notation HashableString := (μ {@ val "hashCode" : (TUnit → TNat) }).
+Notation HashableString := (μ {@ val "hashCode" : TUnit →: TNat }).
 Definition KeysT : ty := μ {@
   type "Key" >: ⊥ <: ⊤;
-  val "key": (HashableString → p0 @; "Key")
+  val "key": HashableString →: p0 @; "Key"
 }.
 Definition hashKeys : vl := ν {@
   type "Key" = TNat;
@@ -49,7 +49,7 @@ Definition hashKeys : vl := ν {@
 
 Definition KeysT' := μ {@
   type "Key" >: TNat <: ⊤;
-  val "key": (HashableString → p0 @; "Key")
+  val "key" : HashableString →: p0 @; "Key"
 }.
 
 Ltac asideLaters :=
@@ -77,14 +77,14 @@ Proof.
   cbn; apply App_typed with (T1 := TUnit);
     last eapply (Subs_typed_nocoerce TNat); tcrush; cbn.
 
-  pose (T0 := μ {@ val "hashCode" : (⊤ → 𝐍) }).
+  pose (T0 := μ {@ val "hashCode" : ⊤ →: 𝐍 }).
 
-  have Htp: ∀ Γ', T0 :: Γ' u⊢ₜ tv x0 : val "hashCode" : (⊤ → TNat). {
+  have Htp: ∀ Γ', T0 :: Γ' u⊢ₜ tv x0 : val "hashCode" : ⊤ →: TNat. {
     intros. eapply Subs_typed_nocoerce.
     eapply TMuE_typed'; by [var|].
     by apply TAnd1_stp; tcrush.
   }
-  apply (Subs_typed_nocoerce (val "hashCode" : (⊤ → 𝐍))). exact: Htp.
+  apply (Subs_typed_nocoerce (val "hashCode" : ⊤ →: 𝐍)). exact: Htp.
   tcrush.
   eapply LSel_stp'; tcrush.
   varsub; tcrush.
@@ -162,7 +162,7 @@ Definition fromPDotPaperTypesTBody : ty := {@
     val "symb" : p1 @ "symbols" @; "Symbol"
   };
   val "AnyType" : TLater (p0 @; "Type");
-  val "newTypeRef" : TAll (p1 @ "symbols" @; "Symbol") (p1 @; "TypeRef")
+  val "newTypeRef" : p1 @ "symbols" @; "Symbol" →: p0 @; "TypeRef"
 }.
 
 Definition fromPDotPaperAbsTypesTBody : ty := {@
@@ -171,7 +171,7 @@ Definition fromPDotPaperAbsTypesTBody : ty := {@
     val "symb" : p1 @ "symbols" @; "Symbol"
   };
   val "AnyType" : TLater (p0 @; "Type");
-  val "newTypeRef" : TAll (p1 @ "symbols" @; "Symbol") (p1 @; "TypeRef")
+  val "newTypeRef" : p1 @ "symbols" @; "Symbol" →: p0 @; "TypeRef"
 }.
 
 Definition fromPDotPaperTypesV : vl := ν {@
@@ -190,7 +190,7 @@ Definition fromPDotPaperSymbolsTBody : ty := {@
     val "tpe" : p1 @ "types" @; "Type";
     val "name" : HashableString
   }%ty;
-  val "newSymbol" : TAll (p1 @ "types" @; "Type") (TAll HashableString (p2 @; "Symbol"))
+  val "newSymbol" : p1 @ "types" @; "Type" →: HashableString →: p0 @; "Symbol"
 }.
 
 Definition fromPDotPaperAbsSymbolsTBody : ty := {@
@@ -198,7 +198,7 @@ Definition fromPDotPaperAbsSymbolsTBody : ty := {@
     val "tpe" : p1 @ "types" @; "Type";
     val "name" : HashableString
   };
-  val "newSymbol" : TAll (p1 @ "types" @; "Type") (TAll HashableString (p2 @; "Symbol"))
+  val "newSymbol" : p1 @ "types" @; "Type" →: HashableString →: p0 @; "Symbol"
 }.
 
 Definition fromPDotPaperTBody : ty := {@
@@ -303,7 +303,7 @@ Definition fromPDotPaperAbsTypesTBodySubst : ty := {@
     val "symb" : p0 @ "symbols" @; "Symbol"
   };
   val "AnyType" : TLater (p0 @ "types" @; "Type");
-  val "newTypeRef" : (p0 @ "symbols" @; "Symbol" → p0 @ "types" @; "TypeRef")
+  val "newTypeRef" : p0 @ "symbols" @; "Symbol" →: p0 @ "types" @; "TypeRef"
 }.
 
 Lemma fromPDotPSubst: fromPDotPaperAbsTypesTBody .Tp[ (p0 @ "types") /]~ fromPDotPaperAbsTypesTBodySubst.
@@ -358,7 +358,7 @@ In fact, that code doesn't typecheck as given, and we fix it by setting.
 IFT ≡ IFTFun
 let bool = boolImpl : μ { Boolean: IFT..IFT; true : b.Boolean; false : b.Boolean }
  *)
-Definition IFTBody : ty := p0 @; "A" → p0 @; "A" → p0 @; "A".
+Definition IFTBody : ty := p0 @; "A" →: p0 @; "A" →: p0 @; "A".
 Definition IFT : ty :=
   TAll (tparam "A") IFTBody.
 
@@ -412,8 +412,8 @@ Proof. eapply Trans_stp; first exact: SubIFT_P0Bool. tcrush. Qed.
 
 Example SubIFT_LaterP0Bool Γ : (▶ {@
     typeEq "Boolean" IFT;
-    val "true" : TLater p0Bool;
-    val "false" : TLater p0Bool
+    val "true" : ▶ p0Bool;
+    val "false" : ▶ p0Bool
   })%ty :: Γ u⊢ₜ IFT, 0 <: ▶ p0Bool, 0.
 Proof.
   asideLaters.
@@ -486,7 +486,7 @@ Qed.
 Lemma tyAppIFT_typed Γ T t :
   is_unstamped_ty (length Γ) T →
   Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ tyApp t T: (T → T → ▶ T).
+  Γ u⊢ₜ tyApp t T : T →: T →: ▶ T.
 Proof.
   move => HsT1 Ht; move: (HsT1) => /is_unstamped_ren1_ty HsT2.
   intros; eapply tyApp_typed => //; last stcrush.
@@ -502,8 +502,8 @@ Definition iftCoerce t :=
 
 Lemma iftCoerce_typed Γ t T :
   is_unstamped_ty (length Γ) T →
-  Γ u⊢ₜ t: (T → T → ▶ T) →
-  Γ u⊢ₜ iftCoerce t : (T → T → T).
+  Γ u⊢ₜ t: T →: T →: ▶ T →
+  Γ u⊢ₜ iftCoerce t : T →: T →: T.
 Proof.
   move => HsT1 Ht.
   move: (HsT1) => /is_unstamped_ren1_ty HsT2.
@@ -522,12 +522,12 @@ Qed.
 Lemma iftCoerce_tyAppIFT_typed Γ T t :
   is_unstamped_ty (length Γ) T →
   Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ iftCoerce (tyApp t T) : (T → T → T).
+  Γ u⊢ₜ iftCoerce (tyApp t T) : T →: T →: T.
 Proof. intros. by apply /iftCoerce_typed /tyAppIFT_typed. Qed.
 
 Lemma iftCoerce_tyAppIFT_typed_IFT Γ t :
   Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ iftCoerce (tyApp t IFT) : (IFT → IFT → IFT).
+  Γ u⊢ₜ iftCoerce (tyApp t IFT) : IFT →: IFT →: IFT.
 Proof. intros. apply iftCoerce_tyAppIFT_typed; tcrush. Qed.
 
 Definition iftNotBody t T true false :=
@@ -573,21 +573,20 @@ Proof.
 Qed.
 
 Lemma iftAndTyp Γ T :
-  Γ u⊢ₜ vabs' (vabs' (iftAndBody (tv x1) (tv x0) IFT (tv iftFalse))) : (IFT → IFT → IFT).
+  Γ u⊢ₜ vabs' (vabs' (iftAndBody (tv x1) (tv x0) IFT (tv iftFalse))) : IFT →: IFT →: IFT.
 Proof. tcrush. apply iftAndBodyTyp; var. Qed.
 
 (*
 let bool = boolImpl :
   μ { Boolean: IFT..IFT; true : b.Boolean; false : b.Boolean;
-      and : p.Boolean → p.Boolean → p.Boolean }
+      and : p.Boolean →: p.Boolean →: p.Boolean }
 *)
 
-Definition IFTp0 := TAll p0Bool (TAll (shift p0Bool) (p0Bool.|[ren (+2)])).
+Definition IFTp0 : ty := p0Bool →: p0Bool →: p0Bool.
 
 Lemma iftCoerce_tyAppIFT_typed_p0Boolean Γ T t :
   T :: Γ u⊢ₜ t : IFT →
-  T :: Γ u⊢ₜ iftCoerce (tyApp t p0Bool) :
-    TAll p0Bool (TAll (shift p0Bool) p0Bool.|[ren (+2)]).
+  T :: Γ u⊢ₜ iftCoerce (tyApp t p0Bool) : p0Bool →: p0Bool →: p0Bool.
 Proof. intros. apply iftCoerce_tyAppIFT_typed; tcrush. Qed.
 
 (*
@@ -600,10 +599,11 @@ Proof. intros. apply iftCoerce_tyAppIFT_typed; tcrush. Qed.
   }
 *)
 
-Definition optionT : ty := μ {@
+Definition optionT : ty := μ {@ (* self => *)
   tparam "T";
   val "isEmpty" : IFT;
-  val "pmatch" : TAll (tparam "U") (p0 @; "U" → ((p1 @; "T" → p0 @; "U") → p0 @; "U"))
+  val "pmatch" : TAll (tparam "U") (p0 @; "U" →: (p1 @; "T" →: p0 @; "U") →: p0 @; "U")
+  (* ∀ x : {type U}, x.U → (self.T -> x.U) -> x.U *)
 }.
 (*
   type None = Option { type T = Nothing }
@@ -614,10 +614,10 @@ Definition optionT : ty := μ {@
   }
 *)
 Definition noneT0 := TAnd optionT ({@ typeEq "T" ⊥}).
-Definition noneT : ty := μ {@
+Definition noneT : ty := μ {@ (* self => *)
   typeEq "T" ⊥;
   val "isEmpty" : IFT;
-  val "pmatch" : TAll (tparam "U") (p0 @; "U" → ((p1 @; "T" → p0 @; "U") → p0 @; "U"))
+  val "pmatch" : TAll (tparam "U") (p0 @; "U" →: (p1 @; "T" →: p0 @; "U") →: p0 @; "U")
 }.
 Definition mkNone : vl := ν {@
   type "T" = ⊥;
@@ -645,13 +645,13 @@ Qed.
   }
 *)
 
-Definition someT T : ty := μ {@
+Definition someT T : ty := μ {@ (* self => *)
   typeEq "T" (shift T);
   val "isEmpty" : IFT;
-  val "pmatch" : TAll (tparam "U") (p0 @; "U" → ((p1 @; "T" → p0 @; "U") → p0 @; "U"));
-  val "get" : ▶ (p0 @; "T")
+  val "pmatch" : TAll (tparam "U") (p0 @; "U" →: (p1 @; "T" →: p0 @; "U") →: p0 @; "U");
+  val "get" : ▶ p0 @; "T"
 }.
-Definition mkSomeT : ty := TAll (tparam "A") (p0 @; "A" → someT (p0 @; "A")).
+Definition mkSomeT : ty := TAll (tparam "A") (p0 @; "A" →: someT (p0 @; "A")).
 Definition mkSome : tm := vabs' $ vabs' $ tv $ ν {@
   type "T" = p2 @; "A";
   val "isEmpty" = iftFalse;
