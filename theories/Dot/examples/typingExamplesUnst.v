@@ -754,9 +754,9 @@ Eval cbv in consTConcr2 p0.
 
 Definition listTBodyGen L U := μ {@ (* self => *)
   type "A" >: shift L <: shift U;
-  val "isEmpty" : ⊤ →: p1 @; "Boolean"; (* bool.Boolean *)
+  val "isEmpty" : ⊤ →: p2 @; "Boolean"; (* bool.Boolean *)
   val "head" : ⊤ →: p0 @; "A"; (* self.A *)
-  val "tail" : ⊤ →: TAnd (p0 @; "List") (type "A" >: ⊥ <: p0 @; "A" )
+  val "tail" : ⊤ →: TAnd (p1 @; "List") (type "A" >: ⊥ <: p0 @; "A" )
 }.
 
 Definition listTBody := Eval hnf in listTBodyGen ⊥ ⊤.
@@ -766,8 +766,8 @@ Definition nilTConcr : ty := listTBodyGen ⊥ ⊥.
 Definition nilT := TAnd listTBody (typeEq "A" ⊥).
 (* XXX reorder *)
 Definition listTConcrBody : ty := {@ (* sci => *)
-  typeEq "List" $ shift listTBody; (* [shift] is for [sci] *)
-  val "nil" : shift nilT;
+  typeEq "List" $ listTBody; (* [shift] is for [sci] *)
+  val "nil" : nilT;
   val "cons" : consTConcr2 p0
 }.
 Definition listTConcr : ty := μ listTConcrBody.
@@ -779,14 +779,14 @@ Definition nilV : vl := ν {@ (* self => *)
   val "tail" = vabs loopTm
 }.
 
-Example nilTyp : (▶ listTConcrBody)%ty :: Γ' u⊢ₜ shift (tv nilV) : shift nilT.
+Example nilTyp : (▶ listTConcrBody)%ty :: Γ' u⊢ₜ shift (tv nilV) : nilT.
 Proof.
-  apply (Subs_typed_nocoerce (shift nilTConcr)).
+  cbv.
+  apply (Subs_typed_nocoerce nilTConcr).
   - evar (T : ty).
     have := trueTyp [⊤; T; ▶ listTConcrBody]%ty.
     have := loopTyp (⊤ :: T :: ▶ listTConcrBody :: Γ')%ty.
     rewrite {}/T/= => Ht Hl. cbv.
-    (* tcrush. *)
     tcrush; apply (Subs_typed_nocoerce ⊥); tcrush.
   - tcrush.
     lThis.
@@ -839,7 +839,8 @@ Proof.
   }
   eapply LSel_stp'; tcrush. varsub. tcrush. lThis.
   by lThis.
-  repeat lNext.
+Qed.
+  (* repeat lNext.
   repeat lNext.
   cbn. simplSubst.
   rewrite !iterate_0.
@@ -851,31 +852,41 @@ Proof.
   cbv; hideCtx.
   eapply LSel_stp'; stcrush. *)
   (* varsub. *)
-Admitted.
+Admitted. *)
 
 
 Notation shiftV v := v.[ren (+1)].
 Definition listV : vl := ν {@ (* sci => *)
-  type "List" = shift listTBody; (* [shift] is for [sci] *)
+  type "List" = listTBody; (* [shift] is for [sci] *)
   val "nil" = shiftV nilV;
   val "cons" = shiftV consV
 }.
 
 Definition listT : ty := μ {@ (* sci => *)
-  type "List" >: ⊥ <: shift listTBody; (* [shift] is for [sci] *)
-  val "nil" : shift nilT;
+  type "List" >: ⊥ <: listTBody; (* [shift] is for [sci] *)
+  val "nil" : nilT;
   val "cons" : consT p0
 }.
 
 Example listTypConcr : Γ' u⊢ₜ tv listV : listTConcr.
-Admitted.
+Proof.
+  have := nilTyp.
+  move => *.
+  apply VObj_typed; stcrush.
+  typconstructor; [ tcrush | | tcrush].
+  typconstructor; [ tcrush | | tcrush].
+  have := consTyp => *.
+  typconstructor; [ | tcrush | tcrush].
+  by apply dvl_typed.
+Qed.
 
 Example listTyp : Γ' u⊢ₜ tv listV : listT.
 Proof.
   have := listTypConcr.
   have := consTSub.
-  have := consTyp.
-  have := nilTyp => *.
+  (* have := consTyp. *)
+  (* have := nilTyp. *)
+  move => *.
   (* evar (U : ty); have := nilTyp U; rewrite {}/U => Ht. *)
 
   apply (Subs_typed_nocoerce listTConcr); tcrush.
