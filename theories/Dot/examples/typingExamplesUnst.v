@@ -134,9 +134,15 @@ Lemma Mu_stp' {Γ T T' i}:
   Γ u⊢ₜ μ T', i <: T, i.
 Proof. intros; subst. auto. Qed.
 
+Ltac hideCtx' Γ :=
+  let x := fresh "Γ" in set x := Γ.
 Ltac hideCtx :=
   match goal with
-  |- ?Γ' u⊢ₜ _, _ <: _, _ => set Γ := Γ'
+  | |- ?Γ u⊢ₜ _ : _ => hideCtx' Γ
+  | |- ?Γ u⊢ₜ _, _ <: _, _ => hideCtx' Γ
+  | |- ?Γ u⊢ₚ _ : _, _  => hideCtx' Γ
+  | |- ?Γ |d _ u⊢{ _ := _  } : _ => hideCtx' Γ
+  | |- ?Γ |ds _ u⊢ _ : _ => hideCtx' Γ
   end.
 
 (* FromPDotPaper *)
