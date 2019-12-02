@@ -738,9 +738,9 @@ Eval cbv in (listTBodyGen ⊥ (p1 @; "T")).|[ids 1 .: ids 0 .: ids]. *)
 
 Definition listTBodyGen2 L U := μ {@ (* self => *)
   type "A" >: shift L <: shift U;
-  val "isEmpty" : ⊤ →: p3 @; "Boolean"; (* bool.Boolean *)
+  val "isEmpty" : ⊤ →: p2 @; "Boolean"; (* bool.Boolean *)
   val "head" : ⊤ →: p0 @; "A"; (* self.A *)
-  val "tail" : ⊤ →: TAnd (p2 @; "List") (type "A" >: ⊥ <: p0 @; "A" )
+  val "tail" : ⊤ →: TAnd (p1 @; "List") (type "A" >: ⊥ <: p0 @; "A" )
 }.
 Definition consTResConcr2 U : ty := listTBodyGen2 U U.
 
@@ -748,8 +748,7 @@ Definition consTConcr2 sci : ty :=
   TAll (tparam "T")
     (p0 @; "T" →:
     TAnd (shift sci @; "List") (type "A" >: ⊥ <: p0 @; "T") →:
-    (consTResConcr2 (p0 @; "T"))).
-    (* shift (consTResConcr2 (p1 @; "T")).|[ids 1 .: ids 0 .: ids]). *)
+    (consTResConcr2 (p2 @; "T")).|[ids 1 .: ids 2 .: ids 0 .: ids]).
 
 Eval cbv in consTConcr2 p0.
 
