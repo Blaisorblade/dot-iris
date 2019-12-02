@@ -51,7 +51,6 @@ Close Scope ty_scope.
 
 Check {@ TNat ; TNat ; TNat } % ty.
 
-Notation "'ℕ'" := TNat  (only parsing) : ty_scope.
 Notation "'𝐍'" := TNat : ty_scope.
 
 Notation "'▶'" := TLater : ty_scope.
