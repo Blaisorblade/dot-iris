@@ -321,21 +321,21 @@ Hint Extern 10 => try_once Trans_stp : core.
 
 Section syntyping_lemmas.
   Lemma typing_obj_ident_to_typing_mut Γ g:
-    (∀ e T, Γ |⊢ₜ[ g ] e : T → Γ ⊢ₜ[ g ] e : T) ∧
-    (∀ V ds T, Γ |ds V |⊢[ g ] ds : T → Γ |ds V ⊢[ g ] ds : T) ∧
-    (∀ V l d T, Γ |d V |⊢[ g ]{ l := d } : T → Γ |d V ⊢[ g ]{ l := d } : T) ∧
-    (∀ p T i, Γ |⊢ₚ[ g ] p : T, i → Γ ⊢ₚ[ g ] p : T, i) ∧
-    (∀ T1 i1 T2 i2, Γ |⊢ₜ[ g ] T1, i1 <: T2, i2 → Γ ⊢ₜ[ g ] T1, i1 <: T2, i2).
+    (∀ e T, Γ |⊢ₜ[ g ] e : T → Γ v⊢ₜ[ g ] e : T) ∧
+    (∀ V ds T, Γ |ds V |⊢[ g ] ds : T → Γ |ds V v⊢[ g ] ds : T) ∧
+    (∀ V l d T, Γ |d V |⊢[ g ]{ l := d } : T → Γ |d V v⊢[ g ]{ l := d } : T) ∧
+    (∀ p T i, Γ |⊢ₚ[ g ] p : T, i → Γ v⊢ₚ[ g ] p : T, i) ∧
+    (∀ T1 i1 T2 i2, Γ |⊢ₜ[ g ] T1, i1 <: T2, i2 → Γ v⊢ₜ[ g ] T1, i1 <: T2, i2).
   Proof.
     eapply stamped_objIdent_typing_mut_ind with
-        (P := λ Γ g e T _, Γ ⊢ₜ[ g ] e : T)
-        (P0 := λ Γ g V ds T _, Γ |ds V ⊢[ g ] ds : T)
-        (P1 := λ Γ g V l d T _, Γ |d V ⊢[ g ]{ l := d } : T)
-        (P2 := λ Γ g p T i _, Γ ⊢ₚ[ g ] p : T, i)
-        (P3 := λ Γ g T1 i1 T2 i2 _, Γ ⊢ₜ[ g ] T1, i1 <: T2, i2); clear Γ g;
+        (P := λ Γ g e T _, Γ v⊢ₜ[ g ] e : T)
+        (P0 := λ Γ g V ds T _, Γ |ds V v⊢[ g ] ds : T)
+        (P1 := λ Γ g V l d T _, Γ |d V v⊢[ g ]{ l := d } : T)
+        (P2 := λ Γ g p T i _, Γ v⊢ₚ[ g ] p : T, i)
+        (P3 := λ Γ g T1 i1 T2 i2 _, Γ v⊢ₜ[ g ] T1, i1 <: T2, i2); clear Γ g;
       solve [econstructor; eauto].
   Qed.
   Lemma typing_obj_ident_to_typing Γ g e T:
-    Γ |⊢ₜ[ g ] e : T → Γ ⊢ₜ[ g ] e : T.
+    Γ |⊢ₜ[ g ] e : T → Γ v⊢ₜ[ g ] e : T.
   Proof. apply typing_obj_ident_to_typing_mut. Qed.
 End syntyping_lemmas.

@@ -20,15 +20,15 @@ Notation "Γ ⊨[ gφ  ] T1 , i <: T2 , j" := (wellMappedφ gφ → step_indexed
 Section fundamental.
   Context `{!dlangG Σ} `{!SwapPropI Σ}.
 
-  Fixpoint fundamental_dm_typed Γ g V l d T (HT: Γ |d V ⊢[ g ]{ l := d } : T) { struct HT }:
+  Fixpoint fundamental_dm_typed Γ g V l d T (HT: Γ |d V v⊢[ g ]{ l := d } : T) { struct HT }:
     Γ |L V ⊨[ ⟦ g ⟧g ] { l := d } : T with
-  fundamental_dms_typed Γ g V ds T (HT: Γ |ds V ⊢[ g ] ds : T) { struct HT }:
+  fundamental_dms_typed Γ g V ds T (HT: Γ |ds V v⊢[ g ] ds : T) { struct HT }:
     Γ |L V ⊨[ ⟦ g ⟧g ]ds ds : T with
-  fundamental_subtype Γ g T1 i1 T2 i2 (HT: Γ ⊢ₜ[ g ] T1, i1 <: T2, i2) { struct HT }:
+  fundamental_subtype Γ g T1 i1 T2 i2 (HT: Γ v⊢ₜ[ g ] T1, i1 <: T2, i2) { struct HT }:
     Γ ⊨[ ⟦ g ⟧g ] T1, i1 <: T2, i2 with
-  fundamental_typed Γ g e T (HT: Γ ⊢ₜ[ g ] e : T) { struct HT }:
+  fundamental_typed Γ g e T (HT: Γ v⊢ₜ[ g ] e : T) { struct HT }:
     Γ ⊨[ ⟦ g ⟧g ] e : T with
-  fundamental_path_typed Γ g p T i (HT : Γ ⊢ₚ[ g ] p : T, i) { struct HT }:
+  fundamental_path_typed Γ g p T i (HT : Γ v⊢ₚ[ g ] p : T, i) { struct HT }:
     Γ ⊨[ ⟦ g ⟧g ]p p : T, i.
   Proof.
     - iIntros "#Hm"; induction HT.
@@ -125,7 +125,7 @@ Qed.
 (** Combination of Thm 5.4 and 5.5, to give soundness of stamped typing.
 In fact, we use the even more general storeless typing. *)
 Corollary type_soundness_storeless {e T g}
-  (HsT: [] ⊢ₜ[ g ] e : T): safe e.
+  (HsT: [] v⊢ₜ[ g ] e : T): safe e.
 Proof.
   apply: (safety_mapped_semtyping dlangΣ e g T); intros.
   apply fundamental_typed, HsT.

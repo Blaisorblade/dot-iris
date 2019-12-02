@@ -308,7 +308,7 @@ Section syntyping_stamping_lemmas.
 
   Lemma stamp_typed Γ e T: Γ u⊢ₜ e : T →
     ∃ e' (g : stys),
-    Γ ⊢ₜ[ g ] e' : T ∧ (safe e' → safe e).
+    Γ v⊢ₜ[ g ] e' : T ∧ (safe e' → safe e).
   Proof.
     move => /stamp_objIdent_typed HobjI.
     case (HobjI ∅) as (e' & g' & HobjI'%typing_obj_ident_to_typing & ? & ?).

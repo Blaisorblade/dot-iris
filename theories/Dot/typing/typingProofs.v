@@ -6,10 +6,10 @@ Section syntyping_lemmas.
 
   Hint Constructors Forall : core.
   Lemma stamped_mut_subject Γ g :
-    (∀ e T, Γ ⊢ₜ[ g ] e : T → is_stamped_tm (length Γ) g e) ∧
-    (∀ V ds T, Γ |ds V ⊢[ g ] ds : T → Forall (is_stamped_dm (S (length Γ)) g) (map snd ds)) ∧
-    (∀ V l d T, Γ |d V ⊢[ g ]{ l := d } : T → is_stamped_dm (S (length Γ)) g d) ∧
-    (∀ p T i, Γ ⊢ₚ[ g ] p : T, i → is_stamped_path (length Γ) g p).
+    (∀ e T, Γ v⊢ₜ[ g ] e : T → is_stamped_tm (length Γ) g e) ∧
+    (∀ V ds T, Γ |ds V v⊢[ g ] ds : T → Forall (is_stamped_dm (S (length Γ)) g) (map snd ds)) ∧
+    (∀ V l d T, Γ |d V v⊢[ g ]{ l := d } : T → is_stamped_dm (S (length Γ)) g d) ∧
+    (∀ p T i, Γ v⊢ₚ[ g ] p : T, i → is_stamped_path (length Γ) g p).
   Proof.
     eapply exp_stamped_typing_mut_ind with
         (P := λ Γ g e T _, is_stamped_tm (length Γ) g e)
@@ -24,11 +24,11 @@ Section syntyping_lemmas.
         (T' := T') (ts' := (length σ, g)).
   Qed.
 
-  Lemma stamped_exp_subject Γ g e T: Γ ⊢ₜ[ g ] e : T →
+  Lemma stamped_exp_subject Γ g e T: Γ v⊢ₜ[ g ] e : T →
     is_stamped_tm (length Γ) g e.
   Proof. apply stamped_mut_subject. Qed.
   Lemma stamped_path_subject Γ g p T i:
-    Γ ⊢ₚ[ g ] p : T, i → is_stamped_path (length Γ) g p.
+    Γ v⊢ₚ[ g ] p : T, i → is_stamped_path (length Γ) g p.
   Proof. apply stamped_mut_subject. Qed.
   Local Hint Resolve stamped_exp_subject stamped_path_subject : core.
 
@@ -106,13 +106,13 @@ Section syntyping_lemmas.
     end.
 
   Lemma stamped_mut_types Γ g :
-    (∀ e T, Γ ⊢ₜ[ g ] e : T → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T) ∧
-    (∀ V ds T, Γ |ds V ⊢[ g ] ds : T → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (S (length Γ)) g V →
+    (∀ e T, Γ v⊢ₜ[ g ] e : T → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T) ∧
+    (∀ V ds T, Γ |ds V v⊢[ g ] ds : T → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (S (length Γ)) g V →
       is_stamped_ty (S (length Γ)) g T) ∧
-    (∀ V l d T, Γ |d V ⊢[ g ]{ l := d } : T → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (S (length Γ)) g V →
+    (∀ V l d T, Γ |d V v⊢[ g ]{ l := d } : T → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (S (length Γ)) g V →
       is_stamped_ty (S (length Γ)) g T) ∧
-    (∀ p T i, Γ ⊢ₚ[ g ] p : T , i → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T) ∧
-    (∀ T1 i1 T2 i2, Γ ⊢ₜ[ g ] T1, i1 <: T2, i2 → ∀ (Hctx: stamped_ctx g Γ),
+    (∀ p T i, Γ v⊢ₚ[ g ] p : T , i → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T) ∧
+    (∀ T1 i1 T2 i2, Γ v⊢ₜ[ g ] T1, i1 <: T2, i2 → ∀ (Hctx: stamped_ctx g Γ),
       is_stamped_ty (length Γ) g T1 ∧ is_stamped_ty (length Γ) g T2).
   Proof.
     eapply stamped_typing_mut_ind with
