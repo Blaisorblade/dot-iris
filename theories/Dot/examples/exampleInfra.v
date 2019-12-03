@@ -8,8 +8,6 @@ From D.Dot Require Import syn.
 From D.Dot.syn Require Import path_repl.
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
-Notation shiftV v := v.[ren (+1)].
-
 (****************)
 (** NOTATIONS  **)
 (****************)

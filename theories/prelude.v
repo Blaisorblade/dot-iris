@@ -32,6 +32,12 @@ Ltac locAsimpl :=
   end.
 
 Definition stamp := positive.
+
+Notation shift chi := chi.|[ren (+1)].
+Notation shiftV v := v.[ren (+1)].
+Notation shiftN n chi := chi.|[ren (+n)].
+Notation shiftVN n v := v.[ren (+n)].
+
 (* Not an instance because it should *not* be used automatically. *)
 Definition inh_ids `{Inhabited X}: Ids X := λ _, inhabitant.
 Instance list_ids {X}: Ids (list X) := inh_ids.

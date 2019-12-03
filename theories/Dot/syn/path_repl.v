@@ -5,7 +5,6 @@ Implicit Types
          (T : ty) (v w : vl) (t : tm) (d : dm) (ds : dms) (p q : path)
          (l : label).
 
-Notation shift T := T.|[ren (+1)].
 Notation unshift T := T.|[ren pred].
 
 Reserved Notation "p1 ~pp[ p := q  ] p2" (at level 70).
