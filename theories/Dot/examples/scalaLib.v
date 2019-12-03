@@ -126,3 +126,89 @@ Proof.
     lThis.
     apply SubIFT_LaterP0Bool'.
 Qed.
+
+(*
+  Encoding Option. Beware I'm using raw Church-encoded booleans, simply
+    because it's easier.
+  type Option = {
+    type T
+    val isEmpty: Boolean
+    val pmatch: [U] => U => (T => U) => U
+  }
+*)
+
+Definition optionT : ty := μ {@ (* self => *)
+  tparam "T";
+  val "isEmpty" : IFT;
+  val "pmatch" : TAll (tparam "U") (p0 @; "U" →: (p1 @; "T" →: p0 @; "U") →: p0 @; "U")
+  (* ∀ x : {type U}, x.U → (self.T -> x.U) -> x.U *)
+}.
+(*
+  type None = Option { type T = Nothing }
+  def mkNone[T]: None = new {
+    type T = Nothing
+    val isEmpty = true
+    val pmatch: [U] => U => (T => U) => U = [U] => (none: U) => (some: T => U) => none
+  }
+*)
+Definition noneT0 := TAnd optionT ({@ typeEq "T" ⊥}).
+Definition noneT : ty := μ {@ (* self => *)
+  typeEq "T" ⊥;
+  val "isEmpty" : IFT;
+  val "pmatch" : TAll (tparam "U") (p0 @; "U" →: (p1 @; "T" →: p0 @; "U") →: p0 @; "U")
+}.
+Definition mkNone : vl := ν {@
+  type "T" = ⊥;
+  val "isEmpty" = iftTrue;
+  val "pmatch" = vabs (vabs' (vabs' (tv x1)))
+}.
+
+Example noneTyp Γ :
+  Γ u⊢ₜ tv mkNone : noneT.
+Proof.
+  (* apply VObj_typed; last stcrush.
+  apply dcons_typed; [tcrush| |tcrush].
+  apply dcons_typed; [eauto using iftTrueTyp| |tcrush]. *)
+  tcrush; var.
+Qed.
+
+(*
+  //type Some = Option & { self => val get: self.T }
+  type Some = Option & { type T; val get: T }
+  def mkSome[S](t: S): Some { type T = S } = new {
+    type T = S
+    val isEmpty = false
+    val get = t
+    val pmatch: [U] => U => (T => U) => U = [U] => (none: U) => (some: T => U) => some(get)
+  }
+*)
+
+Definition someT T : ty := μ {@ (* self => *)
+  typeEq "T" (shift T);
+  val "isEmpty" : IFT;
+  val "pmatch" : TAll (tparam "U") (p0 @; "U" →: (p1 @; "T" →: p0 @; "U") →: p0 @; "U");
+  val "get" : ▶ p0 @; "T"
+}.
+Definition mkSomeT : ty := TAll (tparam "A") (p0 @; "A" →: someT (p0 @; "A")).
+Definition mkSome : tm := vabs' $ vabs' $ tv $ ν {@
+  type "T" = p2 @; "A";
+  val "isEmpty" = iftFalse;
+  val "pmatch" = vabs (vabs' (vabs' (tapp (tv x0) (tskip (tproj (tv x3) "get")))));
+  val "get" = x1
+}.
+
+Example mkSomeTyp Γ :
+  Γ u⊢ₜ mkSome : mkSomeT.
+Proof.
+  tcrush; first var; cbv; hideCtx.
+  - eapply App_typed; first var.
+    rewrite -(iterate_S tskip 0);
+      apply (Subs_typed (T1 := (▶ (p3 @; "T"))%ty)); tcrush.
+    varsub.
+    repeat lNext.
+  - varsub.
+    eapply Trans_stp; first (apply TAddLater_stp; tcrush).
+    asideLaters.
+    eapply LSel_stp'; tcrush.
+    varsub; tcrush.
+Qed.
