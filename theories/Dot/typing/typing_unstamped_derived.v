@@ -232,3 +232,67 @@ Proof.
   eapply p_subs_typed, psingleton_refl_typed, Hp1; rewrite ?plusnO.
   constructor; exact: PSelf_singleton_stp.
 Qed.
+
+Lemma Mu_stp' {Γ T T' i}:
+  T' = shift T →
+  is_unstamped_ty (length Γ) T →
+  Γ u⊢ₜ μ T', i <: T, i.
+Proof. intros; subst. auto. Qed.
+
+Lemma dvabs_sub_typed {Γ} V T1 T2 e l L:
+  shift T1 :: V :: Γ u⊢ₜ e : T2 →
+  TLater V :: Γ u⊢ₜ TAll T1 T2, 0 <: L, 0 →
+  is_unstamped_ty (S (length Γ)) T1 →
+  Γ |d V u⊢{ l := dvl (vabs e) } : TVMem l L.
+Proof.
+  intros He Hsub Hs.
+  eapply dvl_sub_typed; first apply Hsub.
+  tcrush.
+Qed.
+
+(* Note how we must weaken the type (or its environment) to account for the
+   self-variable of the created object. *)
+Definition packTV T := (ν {@ type "A" = shift T }).
+
+Lemma packTV_typed' T n Γ :
+  is_unstamped_ty n T →
+  n <= length Γ →
+  Γ u⊢ₜ tv (packTV T) : typeEq "A" T.
+Proof.
+  move => HsT1 Hle; move: (Hle) (HsT1) => /le_n_S Hles /is_unstamped_ren1_ty HsT2.
+  apply (Subs_typed_nocoerce (μ {@ typeEq "A" (shift T) }));
+    last (eapply Trans_stp; first apply (@Mu_stp _ ({@ typeEq "A" T })); tcrush).
+  apply VObj_typed; tcrush.
+Qed.
+
+Lemma packTV_typed T Γ :
+  is_unstamped_ty (length Γ) T →
+  Γ u⊢ₜ tv (packTV T) : typeEq "A" T.
+Proof. intros; exact: packTV_typed'. Qed.
+
+Definition tyApp t T :=
+  lett t (lett (tv (packTV (shift T))) (tapp (tv x1) (tv x0))).
+
+Lemma tyApp_typed Γ T U V t :
+  Γ u⊢ₜ t : TAll (tparam "A") U →
+  (** This subtyping premise is needed to perform "avoidance", as in compilers
+    for ML and Scala: that is, producing a type [V] that does not refer to
+    variables bound by let in the expression. *)
+  (∀ L, typeEq "A" T.|[ren (+2)] :: L :: Γ u⊢ₜ U.|[up (ren (+1))], 0 <: V.|[ren (+2)], 0) →
+  is_unstamped_ty (length Γ) T →
+  is_unstamped_ty (S (length Γ)) U →
+  Γ u⊢ₜ tyApp t T : V.
+Proof.
+  move => Ht Hsub HsT1 HsU1; move: (HsT1) => /is_unstamped_ren1_ty HsT2.
+  move: (HsT2) => /is_unstamped_ren1_ty HsT3.
+  rewrite -hrenS in HsT3.
+  eapply Let_typed; [exact: Ht| |tcrush].
+  eapply Let_typed; [by apply packTV_typed| |tcrush].
+  rewrite /= -!hrenS -/(typeEq _ _).
+
+  apply /Subs_typed_nocoerce /Hsub.
+
+  eapply Appv_typed'; first var.
+  apply: Var_typed_sub; repeat tcrush; rewrite /= hsubst_id //.
+  rewrite !hsubst_comp; f_equal. autosubst.
+Qed.
