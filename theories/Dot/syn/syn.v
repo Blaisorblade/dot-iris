@@ -239,7 +239,7 @@ Proof.
             apply @prod_eq_dec ||
             apply @list_eq_dec ||
             apply nat_eq_dec || apply positive_eq_dec || apply string_eq_dec); auto.
-Qed.
+Defined.
 
 Instance vl_eq_dec' : EqDecision vl := vl_eq_dec.
 Instance tm_eq_dec' : EqDecision tm := tm_eq_dec.

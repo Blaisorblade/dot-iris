@@ -134,15 +134,14 @@ Qed.
 
 Lemma psubst_one_shift_id q r : shift r .p[ pv (ids 0) := q ] = shift r.
 Proof.
-  elim: r => /= [v|r -> l]; case_decide => //; destruct v; simplify_eq.
+  elim: r => /= [v|r -> //]; case_decide => //; destruct v; simplify_eq.
 Qed.
 
 Lemma psubst_path_pv_idempotent v q
   (Heq : psubst_path (pv v) q q = q):
   IdempotentUnary (psubst_path (pv v) q).
 Proof.
-  elim => [vr|r' IHq l] //=; case_decide; simplify_eq/=;
-    try case_decide; by f_equal.
+  elim => [vr|r' IHq l] /=; repeat (case_decide; simplify_eq/=); by f_equal.
 Qed.
 
 Lemma psubst_path_one_idempotent q:
@@ -172,7 +171,8 @@ Lemma psubst_one_base_unshifts_path q p :
 Proof.
   intros [v' Hu].
   exists (unshift (q .p[ pv (ids 0) := shift p])).
-  move: p Hu; induction q => p //=; case_decide; rewrite ?shift_unshift_p // => Hp.
+  move: p Hu; induction q => p //=; try case_decide;
+    rewrite ?shift_unshift_p // => Hp.
   - by rewrite Hp /= !subst_comp.
   - by rewrite (IHq p Hp) /= shift_unshift_p.
 Qed.
@@ -226,7 +226,7 @@ Let q := pv (ids 0).
 Let p := pself q l.
 Let r := p.
 Let r' := pself r l.
-Ltac check := cbv; repeat (case_match; cbn); naive_solver.
+Ltac check := cbn; repeat (case_decide; simplify_eq/=); try done.
 (* rewrite /r/p/q/=; repeat (case_decide; cbn); naive_solver. *)
 
 Goal q .p[ p := q ] = q.
@@ -242,16 +242,16 @@ Proof. check. Qed.
 Goal (r .p[ p := q ]) .p[ p := q ] = r .p[ p := q ].
 Proof. check. Qed.
 
-Goal ~r' .p[ p := q ] .p[ p := q ] = r' .p[ p := q ].
+Lemma foo : r' .p[ p := q ] .p[ p := q ] ≠ r' .p[ p := q ].
 Proof. check. Qed.
 
 Goal ~IdempotentUnary (psubst_path p q).
-Proof. move => /(_ r'); check. Qed.
+Proof. move => /(_ r'). apply foo. Qed.
 
 Lemma not_psubst_path_idempotent: ~∀ p q,
   psubst_path p q q = q →
   IdempotentUnary (psubst_path p q).
-Proof. move => /(_ p q _ r'). check. Qed.
+Proof. move => /(_ p q _ r'). check. eauto. Qed.
 End psubst_path_idempotent_counterexample.
 
 (* Lemma replacing_again_wont_save_you p q p1 p2:

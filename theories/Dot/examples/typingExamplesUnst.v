@@ -230,10 +230,7 @@ Definition fromPDotPaperAbsTypesTBodySubst : ty := {@
 }.
 
 Lemma fromPDotPSubst: fromPDotPaperAbsTypesTBody .Tp[ (p0 @ "types") /]~ fromPDotPaperAbsTypesTBodySubst.
-Proof.
-  apply psubst_ty_rtc_sufficient.
-  by rewrite /= !(decide_True _ _ (eq_refl _)) !decide_False.
-Qed.
+Proof. exact: psubst_ty_rtc_sufficient. Qed.
 
 Example getAnyTypeFunTyp Γ : Γ u⊢ₜ tv getAnyType : getAnyTypeT.
 Proof.
