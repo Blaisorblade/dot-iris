@@ -6,18 +6,15 @@ From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
-Section listLib.
-
 Definition trueTm := tskip (tproj (tv x0) "true").
 Definition falseTm := tskip (tproj (tv x0) "false").
 
-Context Γ.
 (* bool : boolImplT *)
-Let Γ' := boolImplT :: Γ.
+(* Let Γ' := boolImplT :: Γ. *)
 
-Lemma trueTyp Γ'' : Γ'' ++ Γ' u⊢ₜ trueTm.|[ren (+length Γ'')] : p0.|[ren (+length Γ'')] @; "Boolean".
+Lemma trueTyp Γ Γ'' : Γ'' ++ boolImplT :: Γ u⊢ₜ trueTm.|[ren (+length Γ'')] : p0.|[ren (+length Γ'')] @; "Boolean".
 Proof.
-  have ?: length Γ'' < length (Γ'' ++ Γ') by rewrite app_length /Γ'/=; lia.
+  have ?: length Γ'' < length (Γ'' ++ boolImplT :: Γ) by rewrite app_length /=; lia.
   rewrite /trueTm /= -(iterate_S tskip 0).
   apply (Subs_typed (T1 := ▶ pv (ids (length Γ'')) @; "Boolean"));
     rewrite plusnO; tcrush.
@@ -26,9 +23,9 @@ Proof.
   - repeat lNext.
 Qed.
 
-Lemma falseTyp Γ'' : Γ'' ++ Γ' u⊢ₜ falseTm.|[ren (+length Γ'')] : p0.|[ren (+length Γ'')] @; "Boolean".
+Lemma falseTyp Γ Γ'' : Γ'' ++ boolImplT :: Γ u⊢ₜ falseTm.|[ren (+length Γ'')] : p0.|[ren (+length Γ'')] @; "Boolean".
 Proof.
-  have ?: length Γ'' < length (Γ'' ++ Γ') by rewrite app_length /Γ'/=; lia.
+  have ?: length Γ'' < length (Γ'' ++ boolImplT :: Γ) by rewrite app_length /=; lia.
   rewrite /falseTm /= -(iterate_S tskip 0).
   apply (Subs_typed (T1 := ▶ pv (ids (length Γ'')) @; "Boolean"));
     rewrite plusnO; tcrush.
@@ -110,12 +107,12 @@ Definition listTConcr : ty := μ listTConcrBody.
 
 Definition nilTConcr : ty := listTBodyGen ⊥ ⊥.
 
-Example nilTyp : (▶ listTConcrBody)%ty :: Γ' u⊢ₜ shift (tv nilV) : nilT p0.
+Example nilTyp Γ : (▶ listTConcrBody)%ty :: boolImplT :: Γ u⊢ₜ shift (tv nilV) : nilT p0.
 Proof.
   apply (Subs_typed_nocoerce nilTConcr).
   - evar (T : ty).
-    have := trueTyp [⊤; T; ▶ listTConcrBody]%ty.
-    have := loopTyp (⊤ :: T :: ▶ listTConcrBody :: Γ')%ty.
+    have := trueTyp Γ [⊤; T; ▶ listTConcrBody]%ty.
+    have := loopTyp (⊤ :: T :: ▶ listTConcrBody :: boolImplT :: Γ)%ty.
     rewrite {}/T/= => Ht Hl.
     tcrush; apply (Subs_typed_nocoerce ⊥); tcrush.
   - tcrush; last (apply Bind1; tcrush).
@@ -126,16 +123,16 @@ Proof.
     lThis. lThis.
 Qed.
 
-Example consTyp :
-  (▶ listTConcrBody)%ty :: Γ' u⊢ₜ shift (tv consV) : consTConcr p0.
+Example consTyp Γ :
+  (▶ listTConcrBody)%ty :: boolImplT :: Γ u⊢ₜ shift (tv consV) : consTConcr p0.
 Proof.
-  epose proof falseTyp [_; _; _; _; _; _] as Ht; cbn in Ht.
+  epose proof falseTyp Γ [_; _; _; _; _; _] as Ht; cbn in Ht.
   tcrush; clear Ht; first by varsub; eapply (LSel_stp' _ (p4 @; "T")); tcrush; varsub; lThis.
-  hideCtx. varsub. cbn. tcrush. lNext.
+  hideCtx. varsub. tcrush. lNext.
   eapply LSel_stp'; tcrush. varsub. lThis.
 Qed.
 
-Lemma consTSub : listTConcrBody :: Γ' u⊢ₜ consTConcr p0, 0 <: consT p0, 0.
+Lemma consTSub Γ : listTConcrBody :: boolImplT :: Γ u⊢ₜ consTConcr p0, 0 <: consT p0, 0.
 Proof.
   tcrush; rewrite !iterate_S !iterate_0; hideCtx.
   eapply LSel_stp'; tcrush. varsub. tcrush. lThis.
@@ -143,25 +140,24 @@ Proof.
   apply Bind1; stcrush. by lThis.
 Qed.
 
-Example listTypConcr : Γ' u⊢ₜ tv listV : listTConcr.
+Example listTypConcr Γ : boolImplT :: Γ u⊢ₜ tv listV : listTConcr.
 Proof.
-  have := nilTyp => *.
+  have Hn := nilTyp Γ.
   (* Without the call to [dvl_typed], Coq would (smartly) default to [dvabs_typed] *)
-  have := consTyp => /(dvl_typed "cons") *.
+  have := consTyp Γ => /(dvl_typed "cons") Hc.
   tcrush.
 Qed.
 
-Example listTyp : Γ' u⊢ₜ tv listV : listT.
+Example listTyp Γ : boolImplT :: Γ u⊢ₜ tv listV : listT.
 Proof.
-  have Hv := listTypConcr.
-  have Hsub := consTSub.
+  have Hv := listTypConcr Γ.
+  have Hsub := consTSub Γ.
   apply (Subs_typed_nocoerce listTConcr); tcrush.
   lThis.
   lNext.
   do 2 lNext; lThis.
 Qed.
 
-End listLib.
 
 (** Link lists with booleans. *)
 
