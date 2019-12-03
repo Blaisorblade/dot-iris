@@ -75,7 +75,7 @@ Definition listV : vl := ν {@ (* sci => *)
   val "cons" = shiftV consV
 }.
 
-Definition nilT := TAnd listTBody (typeEq "A" ⊥).
+Definition nilT sci := TAnd (▶ sci @; "List") (typeEq "A" ⊥).
 
 (** ∀(x: {A})∀(hd: x.A)∀(tl: sci.List∧{A <: x.A})sci.List∧{A <: x.A} *)
 Definition consT sci : ty :=
@@ -86,7 +86,7 @@ Definition consT sci : ty :=
 
 Definition listT : ty := μ {@ (* sci => *)
   type "List" >: ⊥ <: listTBody; (* [shift] is for [sci] *)
-  val "nil" : nilT;
+  val "nil" : nilT p0;
   val "cons" : consT p0
 }.
 
@@ -102,7 +102,7 @@ Definition consTConcr sci : ty :=
       (* (consTResConcr (p2 @; "T")).|[∞ [ids 1 ; ids 2 ; ids 0]]). *)
 Definition listTConcrBody : ty := {@ (* sci => *)
   typeEq "List" $ listTBody; (* [shift] is for [sci] *)
-  val "nil" : nilT;
+  val "nil" : nilT p0;
   val "cons" : consTConcr p0
 }.
 
@@ -110,7 +110,7 @@ Definition listTConcr : ty := μ listTConcrBody.
 
 Definition nilTConcr : ty := listTBodyGen ⊥ ⊥.
 
-Example nilTyp : (▶ listTConcrBody)%ty :: Γ' u⊢ₜ shift (tv nilV) : nilT.
+Example nilTyp : (▶ listTConcrBody)%ty :: Γ' u⊢ₜ shift (tv nilV) : nilT p0.
 Proof.
   apply (Subs_typed_nocoerce nilTConcr).
   - evar (T : ty).
@@ -118,9 +118,12 @@ Proof.
     have := loopTyp (⊤ :: T :: ▶ listTConcrBody :: Γ')%ty.
     rewrite {}/T/= => Ht Hl.
     tcrush; apply (Subs_typed_nocoerce ⊥); tcrush.
-  - tcrush.
-    lThis.
-    apply Bind1; tcrush.
+  - tcrush; last (apply Bind1; tcrush).
+    eapply Trans_stp; first eapply TAddLater_stp; stcrush.
+    asideLaters.
+    eapply LSel_stp'; tcrush. varsub.
+    asideLaters.
+    lThis. lThis.
 Qed.
 
 Example consTyp :
@@ -159,3 +162,20 @@ Proof.
 Qed.
 
 End listLib.
+
+(** Link lists with booleans. *)
+
+
+Definition clListV' body := lett (tv boolImpl) $ lett (tv listV) body.
+Example clListTyp' Γ T body
+  (Ht : shift listT :: boolImplT :: Γ u⊢ₜ body : shift (shift T)) :
+  Γ u⊢ₜ clListV' body : T.
+Proof.
+  eapply Let_typed; first apply boolImplTyp.
+  eapply Let_typed; first apply listTyp.
+  all: tcrush.
+Qed.
+
+Example clListTypNat Γ :
+  Γ u⊢ₜ clListV' (tv (vnat 1)) : 𝐍.
+Proof. apply clListTyp'. tcrush. Qed.
