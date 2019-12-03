@@ -5,7 +5,10 @@ From stdpp Require Import strings.
 From D Require Import tactics.
 From D.Dot Require Import syn.
 
+From D.Dot.syn Require Import path_repl.
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
+
+Notation shiftV v := v.[ren (+1)].
 
 (****************)
 (** NOTATIONS  **)
@@ -51,12 +54,11 @@ Close Scope ty_scope.
 
 Check {@ TNat ; TNat ; TNat } % ty.
 
-Notation "'ℕ'" := TNat  (only parsing) : ty_scope.
 Notation "'𝐍'" := TNat : ty_scope.
 
 Notation "'▶'" := TLater : ty_scope.
 (* Level taken from Iris. *)
-Notation "'▶' T" := (TLater T) (at level 20, right associativity) : ty_scope.
+Notation "'▶' T" := (TLater T) (at level 49, right associativity) : ty_scope.
 
 (* Do not use, too many conflicts. *)
 Notation "'∀' T ',' U" := (TAll T U) (at level 49, only printing) : ty_scope.
@@ -70,6 +72,9 @@ Notation "'val' l : T" :=
   (TVMem l T)
   (at level 60, l, T at level 50, format "'[' 'val'  l  :  T  ']' '/'") : ty_scope.
 
+Notation "S →: T" := (TAll S%ty (shift T%ty)) (at level 49, T at level 98, right associativity) : ty_scope.
+
+Notation tparam A := (type A >: ⊥ <: ⊤)%ty.
 Definition typeEq l T := (type l >: T <: T) % ty.
 
 Notation σ1 := ([] : vls).
@@ -98,9 +103,9 @@ Check ν {@ val "a" = vnat 0 ; type "A" = (σ1 ; s1) }.
 (* Check (x0 @ 1 @ 2 ; 3). *)
 
 Notation "v @ l1 @ .. @ l2" := (pself .. (pself v l1) .. l2)
-                                     (format "v  @  l1  @  ..  @  l2", at level 49, l1, l2 at level 40).
+                                     (format "v  @  l1  @  ..  @  l2", at level 48, l1, l2 at level 40).
 
-Notation "p @; l" := (TSel p l) (at level 49).
+Notation "p @; l" := (TSel p l) (at level 48).
 Notation x0 := (var_vl 0).
 Notation x1 := (var_vl 1).
 Notation x2 := (var_vl 2).
