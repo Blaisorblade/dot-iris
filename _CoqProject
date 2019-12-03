@@ -48,6 +48,8 @@ theories/DSubSyn/lr/unary_lr.v
 theories/DSubSyn/typing/typing.v
 theories/DSubSyn/typing/typing_objIdent.v
 theories/DSubSyn/fundamental.v
+theories/Dot/examples/scalaLib.v
+theories/Dot/examples/list.v
 theories/Dot/examples/exampleInfra.v
 theories/Dot/syn/syn.v
 theories/Dot/typing/typing.v
