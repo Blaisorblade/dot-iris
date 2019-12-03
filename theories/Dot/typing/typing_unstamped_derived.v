@@ -19,8 +19,9 @@ Ltac typconstructor := match goal with
   end.
 
 (* Ltac tcrush := repeat first [ fast_done | typconstructor | stcrush ]. *)
+Ltac tcrush := repeat first [ eassumption | reflexivity | typconstructor | stcrush ].
 
-Ltac tcrush := repeat first [ fast_done | typconstructor | stcrush ] ; try solve [
+Ltac wtcrush := repeat first [ fast_done | typconstructor | stcrush ] ; try solve [
   first [
     try_once is_unstamped_weaken_dm |
     try_once is_unstamped_weaken_ty ]; eauto ].
@@ -261,8 +262,8 @@ Lemma packTV_typed' T n Γ :
 Proof.
   move => HsT1 Hle; move: (Hle) (HsT1) => /le_n_S Hles /is_unstamped_ren1_ty HsT2.
   apply (Subs_typed_nocoerce (μ {@ typeEq "A" (shift T) }));
-    last (eapply Trans_stp; first apply (@Mu_stp _ ({@ typeEq "A" T })); tcrush).
-  apply VObj_typed; tcrush.
+    last (eapply Trans_stp; first apply (@Mu_stp _ ({@ typeEq "A" T })); wtcrush).
+  apply VObj_typed; wtcrush.
 Qed.
 
 Lemma packTV_typed T Γ :
