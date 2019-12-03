@@ -161,6 +161,14 @@ Qed.
 
 (** Link lists with booleans. *)
 
+(* Naive attempt; this fails avoidance. *)
+(*
+Definition clListV := lett (tv boolImpl) (tv listV).
+Example clListTyp Γ : Γ u⊢ₜ clListV : listT.
+  eapply Let_typed. apply boolImplTyp.
+  Fail change (shift listT) with (listT).
+  Fail apply listTyp.
+Abort. *)
 
 Definition clListV' body := lett (tv boolImpl) $ lett (tv listV) body.
 Example clListTyp' Γ T body
@@ -175,3 +183,5 @@ Qed.
 Example clListTypNat Γ :
   Γ u⊢ₜ clListV' (tv (vnat 1)) : 𝐍.
 Proof. apply clListTyp'. tcrush. Qed.
+
+(* Try recursive linking? *)
