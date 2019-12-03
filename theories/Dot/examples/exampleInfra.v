@@ -5,7 +5,10 @@ From stdpp Require Import strings.
 From D Require Import tactics.
 From D.Dot Require Import syn.
 
+From D.Dot.syn Require Import path_repl.
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
+
+Notation shiftV v := v.[ren (+1)].
 
 (****************)
 (** NOTATIONS  **)
@@ -69,6 +72,9 @@ Notation "'val' l : T" :=
   (TVMem l T)
   (at level 60, l, T at level 50, format "'[' 'val'  l  :  T  ']' '/'") : ty_scope.
 
+Notation "S →: T" := (TAll S%ty (shift T%ty)) (at level 49, T at level 98, right associativity) : ty_scope.
+
+Notation tparam A := (type A >: ⊥ <: ⊤)%ty.
 Definition typeEq l T := (type l >: T <: T) % ty.
 
 Notation σ1 := ([] : vls).

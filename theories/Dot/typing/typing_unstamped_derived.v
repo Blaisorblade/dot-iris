@@ -18,10 +18,39 @@ Ltac typconstructor := match goal with
   | |- subtype _ _ _ _ _ => constructor
   end.
 
+(* Ltac tcrush := repeat first [ fast_done | typconstructor | stcrush ]. *)
+
 Ltac tcrush := repeat first [ fast_done | typconstructor | stcrush ] ; try solve [
   first [
     try_once is_unstamped_weaken_dm |
     try_once is_unstamped_weaken_ty ]; eauto ].
+
+Ltac asideLaters :=
+  repeat first
+    [eapply Trans_stp; last (apply TLaterR_stp; tcrush)|
+    eapply Trans_stp; first (apply TLaterL_stp; tcrush)].
+
+Ltac lNext := eapply Trans_stp; first apply TAnd2_stp; tcrush.
+Ltac lThis := eapply Trans_stp; first apply TAnd1_stp; tcrush.
+
+Ltac hideCtx' Γ :=
+  let x := fresh "Γ" in set x := Γ.
+Ltac hideCtx :=
+  match goal with
+  | |- ?Γ u⊢ₜ _ : _ => hideCtx' Γ
+  | |- ?Γ u⊢ₜ _, _ <: _, _ => hideCtx' Γ
+  | |- ?Γ u⊢ₚ _ : _, _  => hideCtx' Γ
+  | |- ?Γ |d _ u⊢{ _ := _  } : _ => hideCtx' Γ
+  | |- ?Γ |ds _ u⊢ _ : _ => hideCtx' Γ
+  end.
+
+Lemma Var_typed' Γ x T1 T2 :
+  Γ !! x = Some T1 →
+  T2 = T1.|[ren (+x)] →
+  (*──────────────────────*)
+  Γ u⊢ₜ tv (var_vl x) : T2.
+Proof. intros; subst; tcrush. Qed.
+Ltac var := exact: Var_typed'.
 
 Lemma Subs_typed_nocoerce T1 T2 {Γ e} :
   Γ u⊢ₜ e : T1 →
@@ -30,19 +59,21 @@ Lemma Subs_typed_nocoerce T1 T2 {Γ e} :
 Proof. rewrite -(iterate_0 tskip e). eauto. Qed.
 Hint Resolve Subs_typed_nocoerce : core.
 
+Lemma Var_typed_sub Γ x T1 T2 :
+  Γ !! x = Some T1 →
+  Γ u⊢ₜ T1.|[ren (+x)], 0 <: T2, 0 →
+  (*──────────────────────*)
+  Γ u⊢ₜ tv (var_vl x) : T2.
+Proof. by intros; eapply Subs_typed_nocoerce; [var|]. Qed.
+
+Ltac varsub := eapply Var_typed_sub; first done.
+
 Lemma Appv_typed' T2 {Γ e1 x2 T1 T3} :
   Γ u⊢ₜ e1: TAll T1 T2 →                        Γ u⊢ₜ tv (ids x2) : T1 →
   T3 = T2.|[ids x2/] →
   (*────────────────────────────────────────────────────────────*)
   Γ u⊢ₜ tapp e1 (tv (ids x2)) : T3.
 Proof. intros; subst; by econstructor. Qed.
-
-Lemma Var_typed' Γ x T1 T2 :
-  Γ !! x = Some T1 →
-  T2 = T1.|[ren (+x)] →
-  (*──────────────────────*)
-  Γ u⊢ₜ tv (var_vl x) : T2.
-Proof. intros; subst; tcrush. Qed.
 
 Lemma TMuE_typed' Γ x T1 T2:
   Γ u⊢ₜ tv (ids x): μ T1 →
@@ -56,10 +87,7 @@ Lemma Sub_later_shift {Γ T1 T2 i j}
   (Hs2: is_unstamped_ty (length Γ) T2)
   (Hsub: Γ u⊢ₜ T1, S i <: T2, S j):
   Γ u⊢ₜ TLater T1, i <: TLater T2, j.
-Proof.
-  eapply Trans_stp; first exact: TLaterL_stp.
-  by eapply Trans_stp, TLaterR_stp.
-Qed.
+Proof. by asideLaters. Qed.
 
 Lemma Sub_later_shift_inv {Γ T1 T2 i j}
   (Hs1: is_unstamped_ty (length Γ) T1)
@@ -70,13 +98,6 @@ Proof.
   eapply Trans_stp; first exact: TLaterR_stp.
   by eapply Trans_stp, TLaterL_stp.
 Qed.
-
-Lemma Var_typed_sub Γ x T1 T2 :
-  Γ !! x = Some T1 →
-  Γ u⊢ₜ T1.|[ren (+x)], 0 <: T2, 0 →
-  (*──────────────────────*)
-  Γ u⊢ₜ tv (var_vl x) : T2.
-Proof. intros; eapply Subs_typed_nocoerce; by [exact: Var_typed|]. Qed.
 
 Lemma LSel_stp' Γ U {p l L i}:
   is_unstamped_ty (length Γ) L →
@@ -105,16 +126,16 @@ Lemma Let_typed Γ t u T U :
   T.|[ren (+1)] :: Γ u⊢ₜ u : U.|[ren (+1)] →
   is_unstamped_ty (length Γ) T →
   Γ u⊢ₜ lett t u : U.
-Proof. move=> Ht Hu HsT. apply /App_typed /Ht /Lam_typed /Hu /HsT. Qed.
+Proof. move => Ht Hu HsT. apply /App_typed /Ht /Lam_typed /Hu /HsT. Qed.
 
-Lemma val_LB T U Γ i x :
-  Γ u⊢ₜ tv (ids x) : type "A" >: T <: U →
-  Γ u⊢ₜ ▶ T, i <: (pv (ids x) @; "A"), i.
+Lemma val_LB T U Γ i x l :
+  Γ u⊢ₜ tv (ids x) : type l >: T <: U →
+  Γ u⊢ₜ ▶ T, i <: (pv (ids x) @; l), i.
 Proof. intros; apply /AddIB_stp /(@LSel_stp _ (pv _)); tcrush. Qed.
 
-Lemma val_UB T L Γ i x :
-  Γ u⊢ₜ tv (ids x) : type "A" >: L <: T →
-  Γ u⊢ₜ (pv (ids x) @; "A"), i <: ▶ T, i.
+Lemma val_UB T L Γ i x l :
+  Γ u⊢ₜ tv (ids x) : type l >: L <: T →
+  Γ u⊢ₜ (pv (ids x) @; l), i <: ▶ T, i.
 Proof. intros; eapply AddIB_stp, SelU_stp; tcrush. Qed.
 
 (* These rules from storeless typing must be encoded somehow via variables. *)
@@ -133,7 +154,7 @@ Proof. intros; by apply /val_UB /packTV_typed'. Qed. *)
 Lemma Dty_typed Γ T V l:
   is_unstamped_ty (S (length Γ)) T →
   Γ |d V u⊢{ l := dtysyn T } : TTMem l T T.
-Proof. intros. apply dty_typed; tcrush. Qed.
+Proof. intros. tcrush. Qed.
 
 (* We can derive rules Bind1 and Bind2 (the latter only conjectured) from
   "Type Soundness for Dependent Object Types (DOT)", Rompf and Amin, OOPSLA '16. *)

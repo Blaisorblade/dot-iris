@@ -34,9 +34,6 @@ Example ex3 Γ T:
   Γ u⊢ₜ tv (ν {@ type "A" = F3 (p0 @; "A") } ) : F3 (F3 (TSel p0 "A")).
 Proof. apply VObj_typed; tcrush. Qed.
 
-Notation tparam A := (type A >: ⊥ <: ⊤)%ty.
-Notation "S →: T" := (TAll S%ty (shift T%ty)) (at level 49, T at level 98, right associativity) : ty_scope.
-
 Notation HashableString := (μ {@ val "hashCode" : TUnit →: TNat }).
 Definition KeysT : ty := μ {@
   type "Key" >: ⊥ <: ⊤;
@@ -51,16 +48,6 @@ Definition KeysT' := μ {@
   type "Key" >: TNat <: ⊤;
   val "key" : HashableString →: p0 @; "Key"
 }.
-
-Ltac asideLaters :=
-  repeat first
-    [eapply Trans_stp; last (apply TLaterR_stp; tcrush)|
-    eapply Trans_stp; first (apply TLaterL_stp; tcrush)].
-
-Ltac lNext := eapply Trans_stp; first apply TAnd2_stp; tcrush.
-Ltac lThis := eapply Trans_stp; first apply TAnd1_stp; tcrush.
-Ltac var := exact: Var_typed'.
-Ltac varsub := eapply Var_typed_sub; first done.
 
 (* IDEA for our work: use [(type "Key" >: TNat <: ⊤) ⩓ (type "Key" >: ⊥ <: ⊤)]. *)
 Example hashKeys_typed Γ:
@@ -142,17 +129,6 @@ Lemma Mu_stp' {Γ T T' i}:
   is_unstamped_ty (length Γ) T →
   Γ u⊢ₜ μ T', i <: T, i.
 Proof. intros; subst. auto. Qed.
-
-Ltac hideCtx' Γ :=
-  let x := fresh "Γ" in set x := Γ.
-Ltac hideCtx :=
-  match goal with
-  | |- ?Γ u⊢ₜ _ : _ => hideCtx' Γ
-  | |- ?Γ u⊢ₜ _, _ <: _, _ => hideCtx' Γ
-  | |- ?Γ u⊢ₚ _ : _, _  => hideCtx' Γ
-  | |- ?Γ |d _ u⊢{ _ := _  } : _ => hideCtx' Γ
-  | |- ?Γ |ds _ u⊢ _ : _ => hideCtx' Γ
-  end.
 
 (* FromPDotPaper *)
 
@@ -697,8 +673,6 @@ Proof.
   apply (App_typed (T1 := ⊤)); tcrush.
   apply (Subs_typed_nocoerce 𝐍); tcrush.
 Qed.
-
-Notation shiftV v := v.[ren (+1)].
 
 Section listLib.
 
