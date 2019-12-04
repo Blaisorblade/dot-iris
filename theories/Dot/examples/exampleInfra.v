@@ -33,7 +33,6 @@ Arguments vobj _%dms_scope.
 
 Notation "'ν' ds " := (vobj ds) (at level 60, ds at next level).
 Notation "'val' l = v" := (l, dvl v) (at level 60, l at level 50).
-Notation "'type' l = ( σ ; s )" := (l, dtysem σ s) (at level 60, l at level 50).
 Notation "'type' l = T  " := (l, dtysyn T) (at level 60, l at level 50).
 
 (** Notation for object types. *)
@@ -72,19 +71,20 @@ Notation "'val' l : T" :=
 
 Notation "S →: T" := (TAll S%ty (shift T%ty)) (at level 49, T at level 98, right associativity) : ty_scope.
 
+(* Notation "v @ l1 @ .. @ l2 ; l" := (TSel (pself .. (pself (pv v) l1) .. l2) l) *)
+(*                                      (format "v  @  l1  @  ..  @  l2  ;  l", at level 69, l1, l2 at level 60). *)
+(* Check (TSel (pself (pself p0 1) 2) 3). *)
+(* Check (x0 @ 1 @ 2 ; 3). *)
+
+Notation "p @; l" := (TSel p l) (at level 48).
+Notation "v @ l1 @ .. @ l2" := (pself .. (pself v l1) .. l2)
+                                     (format "v  @  l1  @  ..  @  l2", at level 48, l1, l2 at level 40).
+
 Notation tparam A := (type A >: ⊥ <: ⊤)%ty.
 Definition typeEq l T := (type l >: T <: T) % ty.
 
-Notation σ1 := ([] : vls).
-Notation s1 := (1 % positive).
-
-Notation σ2 := ([] : vls).
-Notation s2 := (2 % positive).
-
 Check ν {@ val "a" = vnat 0 }.
 
-Check ν {@ type "A" = (σ1 ; s1) }.
-Check ν {@ val "a" = vnat 0; type "A" = (σ1 ; s1) }.
 Check μ {@ type "A" >: TNat <: TTop }.
 Check μ {@ val "a" : TNat }.
 Check μ {@ type "A" >: TNat <: TTop ; val "a" : TNat ; val "b" : TNat }.
@@ -93,17 +93,7 @@ Check vobj {@}.
 Check ν {@ }.
 Check ν {@ val "a" = vnat 0 }.
 Check ν {@ val "a" = vnat 0 ; val "b" = vnat 1 }.
-Check ν {@ val "a" = vnat 0 ; type "A" = (σ1 ; s1) }.
 
-(* Notation "v @ l1 @ .. @ l2 ; l" := (TSel (pself .. (pself (pv v) l1) .. l2) l) *)
-(*                                      (format "v  @  l1  @  ..  @  l2  ;  l", at level 69, l1, l2 at level 60). *)
-(* Check (TSel (pself (pself p0 1) 2) 3). *)
-(* Check (x0 @ 1 @ 2 ; 3). *)
-
-Notation "v @ l1 @ .. @ l2" := (pself .. (pself v l1) .. l2)
-                                     (format "v  @  l1  @  ..  @  l2", at level 48, l1, l2 at level 40).
-
-Notation "p @; l" := (TSel p l) (at level 48).
 Notation x0 := (var_vl 0).
 Notation x1 := (var_vl 1).
 Notation x2 := (var_vl 2).

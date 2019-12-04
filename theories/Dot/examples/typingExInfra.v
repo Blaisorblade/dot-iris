@@ -9,6 +9,22 @@ From D.Dot Require Export typing exampleInfra.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
+(**********************)
+(** STAMPED NOTATION **)
+(**********************)
+
+Notation σ1 := ([] : vls).
+Notation s1 := (1 % positive).
+
+Notation σ2 := ([] : vls).
+Notation s2 := (2 % positive).
+
+Notation "'type' l = ( σ ; s )" := (l, dtysem σ s) (at level 60, l at level 50).
+
+Check ν {@ type "A" = (σ1 ; s1) }.
+Check ν {@ val "a" = vnat 0; type "A" = (σ1 ; s1) }.
+Check ν {@ val "a" = vnat 0 ; type "A" = (σ1 ; s1) }.
+
 (***************)
 (** WEAKENING **)
 (***************)
