@@ -288,7 +288,7 @@ Section path_wp.
   Qed.
 
   Lemma path_wp_to_wp p φ :
-    path_wp p (λ v : vl, φ v) -∗
+    path_wp p (λ v, φ v) -∗
     WP (path2tm p) {{ v, φ v }}.
   Proof.
     rewrite path_wp_adequacy; iDestruct 1 as (v Hex) "H".
