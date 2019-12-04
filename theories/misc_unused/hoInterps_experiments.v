@@ -7,11 +7,10 @@ From D Require Import saved_interp_dep asubst_intf dlang.
 From Coq Require FunctionalExtensionality.
 Import EqNotations.
 
-Module try1.
+Module try1 (Import VS : VlSortsSig).
 Section saved_pred3_use.
-  Context {vl : Type} {Σ : gFunctors}.
+  Context {Σ : gFunctors}.
 
-  Definition env := var → vl.
   Notation envD Σ := (env -d> vl -d> iPropO Σ).
   Notation hoEnvD Σ := (list vl -d> envD Σ).
   Implicit Types (Φ : hoEnvD Σ) (n : nat).

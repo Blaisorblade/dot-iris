@@ -1,7 +1,7 @@
 From iris.proofmode Require Import tactics.
 From iris.base_logic Require Import lib.saved_prop.
 From stdpp Require Import vector.
-From D Require Import prelude iris_prelude.
+From D Require Import prelude iris_prelude asubst_intf.
 
 Import EqNotations.
 Unset Program Cases.
@@ -48,11 +48,8 @@ Definition vec_fold {A} {P : nat → Type}
     | S n => λ argTs, step (vhead argTs) (rec n (vtail argTs))
     end%I.
 
-Module Type ValueTSig. Parameter vl : Type. End ValueTSig.
+Module Type SavedInterpDep (Import V : VlSortsSig).
 
-Module Type SavedInterpDep (Import V : ValueTSig).
-
-Definition env := var -> vl.
 Notation envPred s Σ := (env -d> s -d> iPropO Σ).
 Definition hoEnvPred s Σ n := vec vl n -d> envPred s Σ.
 Definition hoEnvPredO s Σ : ofeT := sigTO (hoEnvPred s Σ).

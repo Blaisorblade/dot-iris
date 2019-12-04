@@ -3,10 +3,14 @@
 From iris.program_logic Require Import language.
 From D Require Import prelude.
 
+(** Parameters that each language must implement. This is not [Include]d, so
+any definitions here must be repeated in each language definition. *)
 Module Type ValuesSig.
   Parameter dlang_lang : language.
+
   Definition vl : Type := val dlang_lang.
   Definition vls := list vl.
+
   Declare Instance inh_vl : Inhabited vl.
   Declare Instance ids_vl : Ids vl.
   Declare Instance inj_ids : Inj (=) (=@{vl}) ids.
@@ -27,7 +31,11 @@ Module Type ValuesSig.
   Parameter hsubst_of_val : ∀ (v : vl) s, (of_val v).|[s] = of_val (v.[s]).
 End ValuesSig.
 
+(** These definitions are [Include]d in each language, and available without
+importing [asubst_base] and modules defined in there. *)
 Module Type SortsSig (Import V : ValuesSig).
+  Definition env := var -> vl.
+
   Fixpoint to_subst σ : var → vl :=
     match σ with
     | [] => ids
