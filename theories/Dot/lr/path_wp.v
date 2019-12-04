@@ -216,12 +216,6 @@ Section path_wp.
   Lemma path_wp_swap p u :
     path_wp p (λ w, ⌜w = u⌝) ⊣⊢ path_wp p (λ w, ⌜u = w⌝).
   Proof. iIntros "!%". by rewrite /= path_wp_pure_swap. Qed.
-  Instance: IntoPure
-    (path_wp p (λ v0 : vl, ∃ w0 : vl_, ⌜v0 @ l ↘ dvl w0⌝ ∧ ⌜w = w0⌝))%I
-    (path_wp_pure p (λ v0 : vl, ∃ w0 : vl_, v0 @ l ↘ dvl w0 ∧ w = w0)) := _.
-  Instance: FromPure false
-    (path_wp p (λ v0 : vl, ∃ w0 : vl_, ⌜v0 @ l ↘ dvl w0⌝ ∧ ⌜w = w0⌝))%I
-    (path_wp_pure p (λ v0 : vl, ∃ w0 : vl_, v0 @ l ↘ dvl w0 ∧ w = w0)) := _.
 
   Lemma path_wp_eq p φ :
     path_wp p φ ⊣⊢ ∃ v, ⌜ path_wp_pure p (eq v) ⌝ ∧ φ v.
