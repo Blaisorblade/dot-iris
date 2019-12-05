@@ -283,36 +283,36 @@ Qed.
 
 (* Note how we must weaken the type (or its environment) to account for the
    self-variable of the created object. *)
-Definition packTV T := (ν {@ type "A" = shift T }).
+Definition packTV l T := (ν {@ type l = shift T }).
 
-Lemma packTV_typed' T n Γ :
+Lemma packTV_typed' T n Γ l :
   is_unstamped_ty n T →
   n <= length Γ →
-  Γ u⊢ₜ tv (packTV T) : typeEq "A" T.
+  Γ u⊢ₜ tv (packTV l T) : typeEq l T.
 Proof.
   move => HsT1 Hle; move: (Hle) (HsT1) => /le_n_S Hles /is_unstamped_ren1_ty HsT2.
-  apply (Subs_typed_nocoerce (μ {@ typeEq "A" (shift T) }));
-    last (ettrans; first apply (@Mu_stp _ ({@ typeEq "A" T })); wtcrush).
+  apply (Subs_typed_nocoerce (μ {@ typeEq l (shift T) }));
+    last (ettrans; first apply (@Mu_stp _ ({@ typeEq l T })); wtcrush).
   apply VObj_typed; wtcrush.
 Qed.
 
-Lemma packTV_typed T Γ :
+Lemma packTV_typed T Γ l :
   is_unstamped_ty (length Γ) T →
-  Γ u⊢ₜ tv (packTV T) : typeEq "A" T.
+  Γ u⊢ₜ tv (packTV l T) : typeEq l T.
 Proof. intros; exact: packTV_typed'. Qed.
 
-Definition tyApp t T :=
-  lett t (lett (tv (packTV (shift T))) (tapp (tv x1) (tv x0))).
+Definition tyApp l t T :=
+  lett t (lett (tv (packTV l (shift T))) (tapp (tv x1) (tv x0))).
 
-Lemma tyApp_typed Γ T U V t :
-  Γ u⊢ₜ t : TAll (tparam "A") U →
+Lemma tyApp_typed Γ T U V t l :
+  Γ u⊢ₜ t : TAll (tparam l) U →
   (** This subtyping premise is needed to perform "avoidance", as in compilers
     for ML and Scala: that is, producing a type [V] that does not refer to
     variables bound by let in the expression. *)
-  (∀ L, typeEq "A" T.|[ren (+2)] :: L :: Γ u⊢ₜ U.|[up (ren (+1))], 0 <: V.|[ren (+2)], 0) →
+  (∀ L, typeEq l T.|[ren (+2)] :: L :: Γ u⊢ₜ U.|[up (ren (+1))], 0 <: V.|[ren (+2)], 0) →
   is_unstamped_ty (length Γ) T →
   is_unstamped_ty (S (length Γ)) U →
-  Γ u⊢ₜ tyApp t T : V.
+  Γ u⊢ₜ tyApp l t T : V.
 Proof.
   move => Ht Hsub HuT1 HuU1.
   eapply Let_typed; [exact: Ht| |tcrush].
