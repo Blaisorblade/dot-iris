@@ -12,6 +12,7 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 (** NOTATIONS  **)
 (****************)
 
+Module Import DBNotation.
 (** First, let's maybe start defining some nicer notation. I have little clue what I'm doing tho.
     *)
 
@@ -81,7 +82,26 @@ Notation "v @ l1 @ .. @ l2" := (pself .. (pself v l1) .. l2)
                                      (format "v  @  l1  @  ..  @  l2", at level 48, l1, l2 at level 40).
 
 Notation tparam A := (type A >: ⊥ <: ⊤)%ty.
-Definition typeEq l T := (type l >: T <: T) % ty.
+Definition typeEq l T : ty := type l >: T <: T.
+
+Notation x0 := (var_vl 0).
+Notation x1 := (var_vl 1).
+Notation x2 := (var_vl 2).
+Notation x3 := (var_vl 3).
+Notation x4 := (var_vl 4).
+Notation x5 := (var_vl 5).
+
+Notation p0 := (pv x0).
+Notation p1 := (pv x1).
+Notation p2 := (pv x2).
+Notation p3 := (pv x3).
+Notation p4 := (pv x4).
+Notation p5 := (pv x5).
+
+Notation TUnit := (⊤ % ty : ty).
+Notation tUnit := (tv (vnat 0) : tm).
+
+End DBNotation.
 
 Check ν {@ val "a" = vnat 0 }.
 
@@ -94,27 +114,11 @@ Check ν {@ }.
 Check ν {@ val "a" = vnat 0 }.
 Check ν {@ val "a" = vnat 0 ; val "b" = vnat 1 }.
 
-Notation x0 := (var_vl 0).
-Notation x1 := (var_vl 1).
-Notation x2 := (var_vl 2).
-Notation x3 := (var_vl 3).
-Notation x4 := (var_vl 4).
-Notation x5 := (var_vl 5).
-Notation p0 := (pv x0).
-Notation p1 := (pv x1).
-Notation p2 := (pv x2).
-Notation p3 := (pv x3).
-Notation p4 := (pv x4).
-Notation p5 := (pv x5).
-
 Check (p0 @; "A").
 Check (pself (pself p0 "A") "B" @; "C").
 Check (p0 @ "A").
 Check (p0 @ "A" @ "B" @; "C").
 Check (val "symb" : p0 @ "symbols" @; "Symbol")%ty.
-
-Notation TUnit := (⊤ % ty : ty).
-Notation tUnit := (tv (vnat 0) : tm).
 
 (****************)
 (** AUTOMATION **)
