@@ -2,6 +2,7 @@ From stdpp Require Import strings.
 From D Require Import tactics.
 From D.Dot Require Import syn synLemmas exampleInfra typing_unstamped.
 From D.Dot Require Import unstampedness_binding.
+Import DBNotation.
 
 Lemma is_unstamped_pvar i n : i < n → is_unstamped_path n (pv (var_vl i)).
 Proof. eauto. Qed.
