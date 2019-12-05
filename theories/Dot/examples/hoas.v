@@ -222,7 +222,7 @@ Notation "'type' l >: L <: U" := (hTTMem l L U) (at level 60, l at level 50, L, 
 Notation "'val' l : T" := (hTVMem l T)
   (at level 60, l, T at level 50, format "'[' 'val'  l  :  T  ']' '/'") : ty_scope.
 
-Notation "S →: T" := (hTAll S (λ _ , T)) (at level 49, T at level 98, right associativity) : ty_scope.
+Notation "S →: T" := (hTAll S (λT _ , T)) (at level 49, T at level 98, right associativity) : ty_scope.
 
 Notation "p @; l" := (hTSel p l) (at level 48).
 Notation "v @ l1 @ .. @ l2" := (hpself .. (hpself v l1) .. l2)
