@@ -249,4 +249,146 @@ Example clListTypNat3 Γ :
   Γ u⊢ₜ hclose (clListV'2 hheadCons): hclose 𝐍.
 Proof. apply clListTyp'2, hheadConsTypFake. Qed.
 
+Example hheadConsTyp Γ :
+  hclose (hlistT hx1) :: boolImplT :: Γ u⊢ₜ (hheadCons (hxm 1) (hxm 2)) 2 : hclose 𝐍.
+Proof.
+  match goal with
+    |- ?Γ u⊢ₜ _ : _ =>
+    have HL : Γ u⊢ₜ tv (ids 0): hclose (hlistModTBody hx1 hx0) by apply: TMuE_typed'; first var
+  end.
+
+  tcrush.
+  Import hterm_lifting.
+  Arguments hlistTBody /.
+  Arguments hconsT /.
+  (* rewrite /hlistT ![hclose _]/= /liftBind. *)
+
+  eapply (Subs_typed (i := 1) (T1 := hclose (▶ 𝐍))). tcrush.
+  eapply (App_typed (T1 := hclose ⊤)); last (eapply Subs_typed_nocoerce; tcrush).
+  tcrush.
+(* (hp1 @; "A"). *)
+  apply (Subs_typed_nocoerce (hclose (hlistTBodyGen hx1 hx0 ⊥ 𝐍))); first last.
+  (* apply (Subs_typed (T1 := hclose (hlistTBodyGen hx1 hx0 ⊥ 𝐍))). *)
+  (* cbv. hideCtx. *)
+  {
+    (* ttrans; last apply TLaterL_stp; stcrush. *)
+    apply Bind1; tcrush.
+    do 2 lNext.
+    lThis.
+    (* eapply Trans_stp; first apply TAnd1_stp; stcrush.
+    (* Import DBNotation.
+    cbv. *)
+    (* asideLaters. *)
+    tcrush. *)
+    eapply SelU_stp. tcrush. varsub.
+    lThis.
+  }
+  hideCtx.
+  (* have ? : Γ0 u⊢ₜ tv (ids 0): hclose (hlistT hx1) by var. *)
+
+  have Ht: shiftN 1 (hclose (hlistT hx0)) :: boolImplT :: Γ u⊢ₜ
+    (htyApp "T" (htv (hxm 2) @: "cons") 𝐍 $: htv (hvnat 0) $: htv (hxm 2) @: "nil") 2 :
+    hclose (hTAnd (hpx 0 @; "List") (type "A" >: ⊥ <: ▶ 𝐍)).
+  eapply (App_typed (T1 := hclose (hnilT hx0))); first last. {
+    tcrush.
+    (* eapply TMuE_typed' with (T1 := hclose (val "nil" : hTAnd (▶ hp0 @; "List") (type "A" >: ⊥ <: ⊥))); last done.
+    varsub. apply Mu_stp_mu; tcrush.
+    lNext. *)
+    eapply Subs_typed_nocoerce; [ exact: HL | lNext ].
+  }
+
+  eapply (App_typed (T1 := hclose 𝐍)); last tcrush. {
+  (* Perform avoidance on the type application. Argh. *)
+  eapply (tyApp_typed) with (T := hclose 𝐍)
+    (U := shiftN 1 (TAll (hclose (hp0 @; "T")) ((TAll (hclose (hnilT hx1))
+      (hclose (hTAnd (hp0 @; "List") (type "A" >: ⊥ <: ▶ 𝐍))))))).
+    3,4: intros; tcrush.
+    1: intros; tcrush.
+    all: intros; tcrush.
+    eapply Subs_typed_nocoerce; first exact: HL.
+    lNext.
+    lNext. {
+    Import DBNotation.
+    lThis; cbv.
+    }
+    cbv.
+
+    Import DBNotation. hideCtx.
+    ttrans; first apply TAnd1_stp; stcrush.
+    cbv.
+    tcrush.
+    lThis.
+    (* typconstructor.
+    typconstructor. *)
+    Timeout 1 asimpl.
+    cbv.
+     first eapply App_typed; first last. {
+    }
+    - eapply (tyApp_typed) with (T := hclose 𝐍).
+    cbv.
+  cbv.
+  Import DBNotation.
+  hideCtx.
+
+
+  (* apply (Subs_typed_nocoerce (TAnd (TSel (pv (ids 0)) "List") (TTMem "A" TBot TNat))). *)
+  rewrite [htskip _ _]/= -(iterate_S tskip 0).
+
+  apply (Subs_typed (T1 := (TSel (pv (ids 0)) "List"))).
+  (* apply (Subs_typed (T1 := TAnd (TSel (pv (ids 0)) "List") (TTMem "A" TBot TNat))). *)
+  tcrush.
+  {
+    eapply Trans_stp.
+    {
+      (* Argh. XXX *)
+      eapply SelU_stp with (L := hclose ⊥%ty) (U := hclose (hlistTBody (hx 1) (λ _, var_vl 2))%ty); tcrush.
+      eapply TMuE_typed' with (T1 := hclose (type "List" >: ⊥ <: (hlistTBody hx2 hx0))%ty); last done.
+      varsub; apply Mu_stp_mu; tcrush.
+    }
+    Import DBNotation.
+    lazy.
+    asideLaters.
+    apply Bind1; stcrush.
+    do 2 lNext.
+    lThis.
+    cbv.
+    hideCtx.
+
+    lNext.
+    time cbv.
+    tcrush.
+  (* rewrite /hlistT. ![hclose _]/= /liftBind. *)
+    cbv.
+    first eapply Var_typed_sub. done.
+    rewrite hsubst_id /=.
+    3: done.
+    by [rewrite lookup_app_r ?Nat.sub_diag|].
+    varsub.
+    eapply TMuE_typed'.
+    last done.
+    lazy.
+    varsub.
+    lazy.
+    apply Bind1; stcrush.
+    rewrite iterate_0.
+    lazy.
+    lThis.
+    asideLaters.
+    eapply AddI_stp. hvar_vl.
+    hideCtx.
+
+    3: lThis. stcrush.
+  lNext.
+  eapply (Subs_typed_nocoerce (TSel (ids 0) "List")); first last.
+  eapply App_typed; tcrush.
+
+  2: {
+    varsub.
+  }
+  econstructor.
+  tcrush.
+Print hbody.
+
+
+
 (* Try recursive linking? *)
