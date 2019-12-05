@@ -87,11 +87,14 @@ Definition hconsT sci : hty :=
     (hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv x @; "T")) →:
     hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv x @; "T").
 
-Definition hlistT bool : hty := μ: sci, {@
+Definition hlistModTBody bool sci : hty := {@
   type "List" >: ⊥ <: hlistTBody bool sci;
   val "nil" : hnilT sci;
   val "cons" : hconsT sci
 }.
+Definition hlistModT bool : hty := μ: sci, hlistModTBody bool sci.
+(* XXX deprecated. *)
+Definition hlistT := hlistModT.
 
 Definition hconsTResConcr bool sci U := hlistTBodyGen bool sci U U.
 
@@ -182,6 +185,11 @@ Arguments hvabs' /.
 Arguments hlett /.
 (* Notation "hlett: x := t in u" := (htapp (λ: x, u) t) (at level 200). *)
 
+Infix "$:" := htapp (at level 68, left associativity).
+Definition hpackTV l T := ν: self, {@ type l = T }.
+Definition htyApp l t T :=
+  hlett t (λ x, hlett (htv (hpackTV l T)) (λ a, htv x $: htv a)).
+
 (* Try1, working well? *)
 Definition clListV' body := hlett (htv (pureS boolImpl)) (λ bool, hlett (htv (hlistV bool)) (λ list, pureS body)).
 Example clListTyp' Γ (T : ty) body
@@ -210,7 +218,7 @@ Definition clListV'2 body := hlett (htv (pureS boolImpl)) (λ bool, hlett (htv (
 (* Definition clListV' body := hlett: bool := (htv (pureS boolImpl)), hlett (htv (hlistV bool)) body. *)
 Example clListTyp'2 Γ (T : ty) body
   (* (Ht : hclose (hlistT hx1) :: boolImplT :: Γ u⊢ₜ hclose (body hx1 hx0) : shift (shift T)) : *)
-  (Ht : shift (hclose (hlistT hx0)) :: boolImplT :: Γ u⊢ₜ (body (hxm 1) (hxm 2)) 2 : shift (shift T)) :
+  (Ht : hclose (hlistT hx1) :: boolImplT :: Γ u⊢ₜ (body (hxm 1) (hxm 2)) 2 : shift (shift T)) :
   (* (Ht : shift (hclose (hlistT hx0)) :: boolImplT :: Γ u⊢ₜ hclose (body (hx (-1)) (hx (-2)) 2 : shift (shift T)) : *)
   Γ u⊢ₜ hclose (clListV'2 body) : T.
 Proof.
@@ -222,5 +230,23 @@ Qed.
 Example clListTypNat2 Γ :
   Γ u⊢ₜ hclose (clListV'2 (λ _ _, htv (hvnat 1))) : hclose 𝐍.
 Proof. apply clListTyp'2. tcrush. Qed.
+
+Notation "a @: b" := (htproj a b) (at level 59, b at next level).
+Definition hheadCons (bool list : hvl) :=
+  htskip (htproj (htskip
+    (htyApp "T" (htv list @: "cons") 𝐍
+      $: htv (hvnat 0)
+      $: (htv list @: "nil"))) "head" $: htv (hvnat 0)).
+(* Invoking a method from an abstract type (here, [list @; "List"] needs a skip. *)
+
+Ltac ttrans := eapply Trans_stp.
+
+Example hheadConsTypFake Γ :
+  hclose (hlistT hx1) :: boolImplT :: Γ u⊢ₜ (hheadCons (hxm 1) (hxm 2)) 2 : hclose 𝐍.
+Admitted.
+
+Example clListTypNat3 Γ :
+  Γ u⊢ₜ hclose (clListV'2 hheadCons): hclose 𝐍.
+Proof. apply clListTyp'2, hheadConsTypFake. Qed.
 
 (* Try recursive linking? *)
