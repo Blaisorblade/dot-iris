@@ -275,23 +275,6 @@ Proof.
   eapply (App_typed (T1 := hclose ⊤)); last (eapply Subs_typed_nocoerce; tcrush).
   tcrush.
 (* (hp1 @; "A"). *)
-  apply (Subs_typed_nocoerce (hclose (hlistTBodyGen hx1 hx0 ⊥ (▶ 𝐍)))); first last.
-  (* apply (Subs_typed (T1 := hclose (hlistTBodyGen hx1 hx0 ⊥ 𝐍))). *)
-  (* cbv. hideCtx. *)
-  {
-    (* ttrans; last apply TLaterL_stp; stcrush. *)
-    apply Bind1; tcrush.
-    do 2 lNext.
-    lThis.
-    (* eapply Trans_stp; first apply TAnd1_stp; stcrush.
-    (* Import DBNotation.
-    cbv. *)
-    (* asideLaters. *)
-    tcrush. *)
-    eapply SelU_stp. tcrush. varsub.
-    lThis.
-  }
-
   have Hnil:
     hclose (hlistT hx1) :: boolImplT :: Γ u⊢ₜ (htv (hxm 2) @: "nil") 2
     : hclose (hnilT hx0).
@@ -326,10 +309,30 @@ Proof.
     by lNext.
     lNext; by eapply SelU_stp; tcrush; var.
   }
+
+  (* Optional? *)
+  apply (Subs_typed_nocoerce (hclose (hlistTBodyGen hx1 hx0 ⊥ (▶ 𝐍)))); first last.
+  (* apply (Subs_typed (T1 := hclose (hlistTBodyGen hx1 hx0 ⊥ 𝐍))). *)
+  (* cbv. hideCtx. *)
+  {
+    (* ttrans; last apply TLaterL_stp; stcrush. *)
+    apply Bind1; tcrush.
+    do 2 lNext.
+    lThis.
+    (* eapply Trans_stp; first apply TAnd1_stp; stcrush.
+    (* Import DBNotation.
+    cbv. *)
+    (* asideLaters. *)
+    tcrush. *)
+    eapply SelU_stp. tcrush. varsub.
+    lThis.
+  }
+
   cbv; hideCtx.
   Import DBNotation.
   (* apply TMuI_typed. *)
   rewrite /= -(iterate_S tskip 0).
+
   eapply Subs_typed, Ht.
 
   (* eapply TAnd_stp. *)
