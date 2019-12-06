@@ -66,8 +66,10 @@ Notation hty   := (hterm ty).
 
 Notation hdms  := (list (label * hterm dm)).
 
-Bind Scope ty_scope with hty.
-Bind Scope dms_scope with hdms.
+Bind Scope hty_scope with hty.
+Bind Scope hdms_scope with hdms.
+Delimit Scope hty_scope with HT.
+Delimit Scope hdms_scope with HD.
 
 Instance ids_hvl : Ids hvl := λ x, (* [x]: input to the substitution. *)
   (* Resulting [vl]. *)
@@ -111,8 +113,8 @@ Definition hTAll : hterm ty → (hterm vl → hterm ty) → hterm ty := λ T U i
   liftBind (TAll (T i)) U i.
 
 Eval cbv -[plus minus] in hTAll.
-Goal hTAll = λ T U i, (TAll (T i) (U (λ x, var_vl (x - S i)) (S i)))%ty. done. Abort.
-(* Goal hTAll = λ T U i, (∀ (T i), U (λ x, var_vl (x - S i)) (S i))%ty. done. Abort. *)
+Goal hTAll = λ T U i, (TAll (T i) (U (λ x, var_vl (x - S i)) (S i))). done. Abort.
+(* Goal hTAll = λ T U i, (∀ (T i), U (λ x, var_vl (x - S i)) (S i)). done. Abort. *)
 
 Definition hTMu : (hterm vl → hterm ty) → hterm ty := liftBind TMu.
 Definition hTVMem : label → hterm ty → hterm ty := λ l, liftA1 (TVMem l).
@@ -121,9 +123,9 @@ Definition hTSel : hterm path → label → nat → ty := Eval cbv in λ p l, li
 Definition hTNat : hterm ty := liftA0 TNat.
 Definition hTSing : hterm path → hterm ty := liftA1 TSing.
 
-Arguments hvobj _%dms.
-Arguments hTAll _%ty _%ty.
-Arguments hTMu _%ty.
+Arguments hvobj _%HD.
+Arguments hTAll _%HT _%HT.
+Arguments hTMu _%HT.
 
 Arguments htv /.
 Arguments htapp /.
@@ -163,27 +165,27 @@ End tests1.
 Module Import hoasNotation.
 Export syn.
 (* Notations. *)
-Open Scope dms_scope.
-Notation " {@ } " := (@nil (string * hterm dm)) (format "{@ }") : dms_scope.
-Notation " {@ x } " := ( x :: {@} ) (format "{@  x  }"): dms_scope.
+Open Scope hdms_scope.
+Notation " {@ } " := (@nil (string * hterm dm)) (format "{@ }") : hdms_scope.
+Notation " {@ x } " := ( x :: {@} ) (format "{@  x  }"): hdms_scope.
 Notation " {@ x ; y ; .. ; z } " :=
   (cons x (cons y .. (cons z nil) ..))
   (* (format "{@  x ;  y ;  .. ;  z  }") *)
   (format "'[v' {@  '[' x ']' ;  '/' y ;  '/' .. ;  '/' z } ']'")
-  : dms_scope.
+  : hdms_scope.
 
-Close Scope dms_scope.
-Arguments hvobj _%dms_scope.
+Close Scope hdms_scope.
+Arguments hvobj _%hdms_scope.
 
-(* Useful for writing functions whose body is in scope [%ty]. *)
-Notation "'λT' x .. y , t" := (fun x => .. (fun y => t%ty) ..)
+(* Useful for writing functions whose body is in scope [%HT]. *)
+Notation "'λT' x .. y , t" := (fun x => .. (fun y => t%HT) ..)
   (at level 200, x binder, y binder, right associativity, only parsing,
-  format "'[  ' '[  ' 'λT'  x  ..  y ']' ,  '/' t ']'") : ty_scope.
+  format "'[  ' '[  ' 'λT'  x  ..  y ']' ,  '/' t ']'") : hty_scope.
 
-(* Useful for writing functions whose body is in scope [%dms]. *)
-Notation "'λD' x .. y , t" := (fun x => .. (fun y => t%dms) ..)
+(* Useful for writing functions whose body is in scope [%HD]. *)
+Notation "'λD' x .. y , t" := (fun x => .. (fun y => t%HD) ..)
   (at level 200, x binder, y binder, right associativity, only parsing,
-  format "'[  ' '[  ' 'λD'  x  ..  y ']' ,  '/' t ']'") : dms_scope.
+  format "'[  ' '[  ' 'λD'  x  ..  y ']' ,  '/' t ']'") : hdms_scope.
 
 Notation "'λ:' x , t" := (hvabs (fun x => t))
   (at level 200, right associativity,
@@ -199,36 +201,36 @@ Notation "'val' l = v" := (l, hdvl v) (at level 60, l at level 50).
 Notation "'type' l = T  " := (l, hdtysyn T) (at level 60, l at level 50).
 
 (** Notation for object types. *)
-Open Scope ty_scope.
-Notation "⊤" := hTTop : ty_scope.
-Notation "⊥" := hTBot : ty_scope.
-Notation " {@ T1 } " := ( hTAnd T1 ⊤ ) (format "{@  T1  }"): ty_scope.
+Open Scope hty_scope.
+Notation "⊤" := hTTop : hty_scope.
+Notation "⊥" := hTBot : hty_scope.
+Notation " {@ T1 } " := ( hTAnd T1 ⊤ ) (format "{@  T1  }"): hty_scope.
 Notation " {@ T1 ; T2 ; .. ; Tn } " :=
   (hTAnd T1 (hTAnd T2 .. (hTAnd Tn ⊤)..))
-  (* (format "'[v' {@  '[' T1 ']'  ;   T2  ;   ..  ;   Tn } ']'") : ty_scope. *)
-  (format "'[v' {@  '[' T1 ']'  ;  '/' T2  ;  '/' ..  ;  '/' Tn } ']'") : ty_scope.
-Close Scope ty_scope.
+  (* (format "'[v' {@  '[' T1 ']'  ;   T2  ;   ..  ;   Tn } ']'") : hty_scope. *)
+  (format "'[v' {@  '[' T1 ']'  ;  '/' T2  ;  '/' ..  ;  '/' Tn } ']'") : hty_scope.
+Close Scope hty_scope.
 
-Notation "'𝐍'" := hTNat : ty_scope.
+Notation "'𝐍'" := hTNat : hty_scope.
 
-Notation "'▶'" := hTLater : ty_scope.
+Notation "'▶'" := hTLater : hty_scope.
 (* Level taken from Iris. *)
-Notation "'▶' T" := (hTLater T) (at level 49, right associativity) : ty_scope.
+Notation "'▶' T" := (hTLater T) (at level 49, right associativity) : hty_scope.
 
 Notation "'∀:' x : T , U" := (hTAll T (λT x, U)) (at level 48, x, T at level 98, U at level 98).
 Notation "'μ' Ts" := (hTMu Ts) (at level 50, Ts at next level).
 Notation "'μ:' x , Ts" := (hTMu (λT x, Ts)) (at level 50, Ts at next level).
-Notation "'type' l >: L <: U" := (hTTMem l L U) (at level 60, l at level 50, L, U at level 70) : ty_scope.
+Notation "'type' l >: L <: U" := (hTTMem l L U) (at level 60, l at level 50, L, U at level 70) : hty_scope.
 Notation "'val' l : T" := (hTVMem l T)
-  (at level 60, l, T at level 50, format "'[' 'val'  l  :  T  ']' '/'") : ty_scope.
+  (at level 60, l, T at level 50, format "'[' 'val'  l  :  T  ']' '/'") : hty_scope.
 
-Notation "S →: T" := (hTAll S (λT _ , T)) (at level 49, T at level 98, right associativity) : ty_scope.
+Notation "S →: T" := (hTAll S (λT _ , T)) (at level 49, T at level 98, right associativity) : hty_scope.
 
 Notation "p @; l" := (hTSel p l) (at level 48).
 Notation "v @ l1 @ .. @ l2" := (hpself .. (hpself v l1) .. l2)
                                      (format "v  @  l1  @  ..  @  l2", at level 48, l1, l2 at level 40).
-Notation tparam A := (type A >: ⊥ <: ⊤)%ty.
-Definition typeEq l T := (type l >: T <: T) % ty.
+Notation tparam A := (type A >: ⊥ <: ⊤)%HT.
+Definition typeEq l T := (type l >: T <: T) %HT.
 
 Notation hx := hvar_vl.
 
@@ -253,7 +255,7 @@ End hoasNotation.
 
 
 Module tests.
-Eval cbv in hclose {@ hTNat ; hTNat ; hTNat } % ty.
+Eval cbv in hclose {@ hTNat ; hTNat ; hTNat } %HT.
 
 Definition ex := hclose $ hTAll hTNat (λ x, hTMu (λ y, hTAnd (hTSing (hpv x)) (hTSing (hpv y)))).
 
@@ -274,7 +276,7 @@ Definition listTBodyGen bool sci L U : hterm ty := μ λT self, {@
 
 Definition consTResConcr bool sci U := listTBodyGen bool sci U U.
 
- (* : ty_scope. *)
+ (* : hty_scope. *)
 Definition consTConcr bool sci : hterm ty :=
   ∀: x : tparam "T",
     hpv x @; "T" →:
@@ -292,7 +294,7 @@ Definition consTConcr' bool sci : hterm ty :=
   hTAll (tparam "T") (λT x,
     (hpv x @; "T" →:
       hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv x @; "T") →:
-      (consTResConcr bool sci (hpv x @; "T"))))%ty.
+      (consTResConcr bool sci (hpv x @; "T"))))%HT.
 
 Goal consTConcr' = consTConcr. done. Qed.
 

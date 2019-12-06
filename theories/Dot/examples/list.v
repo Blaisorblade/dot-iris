@@ -5,7 +5,7 @@ From D.Dot Require Import syn unstampedness_binding.
 From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived.
 From D.Dot.examples Require Import exampleInfra scalaLib hoas.
 
-(* Import DBNotation. *)
+Import DBNotation.
 Import hoasNotation.
 
 Implicit Types (L T U: hty) (Γ : list ty).
@@ -22,7 +22,7 @@ Lemma trueTyp Γ Γ'' : Γ'' ++ boolImplT :: Γ u⊢ₜ
 Proof.
   have ?: length Γ'' < length (Γ'' ++ boolImplT :: Γ) by rewrite app_length /=; lia.
   rewrite /htrueTm/= -(iterate_S tskip 0).
-  apply (Subs_typed (T1 := hclose (▶ hpx (length Γ'') @; "Boolean"))%ty);
+  apply (Subs_typed (T1 := hclose (▶ hpx (length Γ'') @; "Boolean"))%HT);
     rewrite /= plusnO; tcrush.
     eapply Subs_typed_nocoerce.
   - eapply TMuE_typed'; first eapply Var_typed'; by [rewrite lookup_app_r ?Nat.sub_diag|].
@@ -126,8 +126,8 @@ Proof.
   apply (Subs_typed_nocoerce $ hclose $ hnilTConcr hx1 hx0).
   - evar (T : ty).
     set L :=  hclose (▶ hlistTConcrBody hx1 hx0).
-    have := trueTyp Γ [hclose ⊤; T; L]%ty.
-    have := loopTyp (hclose ⊤ :: T :: L :: boolImplT :: Γ)%ty.
+    have := trueTyp Γ [hclose ⊤; T; L]%HT.
+    have := loopTyp (hclose ⊤ :: T :: L :: boolImplT :: Γ)%HT.
     rewrite {}/T/= => Ht Hl.
     tcrush; apply (Subs_typed_nocoerce (hclose ⊥)); cbn; tcrush.
   - tcrush; last (apply Bind1; tcrush).
@@ -353,7 +353,7 @@ Proof.
   (* Not the right road, I think. *)
   (* apply (Subs_typed_nocoerce (hclose (hlistTBodyGen hx1 hx0 ⊥ (▶ 𝐍)))), Hsub42. *)
   eapply (Subs_typed (i := 1)), Ht.
-  set U := (type "A" >: ⊥ <: ▶ 𝐍)%ty.
+  set U := (type "A" >: ⊥ <: ▶ 𝐍)%HT.
   have Hsub2 : Γ' u⊢ₜ
     hclose (hTAnd (hp0 @; "List") U), 0 <:
     hclose (hTAnd (▶ (hlistTBody hx1 hx0)) U), 0 by tcrush; lThis.
@@ -455,8 +455,8 @@ Abort.
     eapply Trans_stp.
     {
       (* Argh. XXX *)
-      eapply SelU_stp with (L := hclose ⊥%ty) (U := hclose (hlistTBody (hx 1) (λ _, var_vl 2))%ty); tcrush.
-      eapply TMuE_typed' with (T1 := hclose (type "List" >: ⊥ <: (hlistTBody hx2 hx0))%ty); last done.
+      eapply SelU_stp with (L := hclose ⊥%HT) (U := hclose (hlistTBody (hx 1) (λ _, var_vl 2))%HT); tcrush.
+      eapply TMuE_typed' with (T1 := hclose (type "List" >: ⊥ <: (hlistTBody hx2 hx0))%HT); last done.
       varsub; apply Mu_stp_mu; tcrush.
     }
     Import DBNotation.
