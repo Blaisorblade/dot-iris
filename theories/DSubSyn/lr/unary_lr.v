@@ -57,7 +57,7 @@ Section logrel.
   Global Arguments interp_bot /.
 
   Program Definition interp_later: envD Σ -n> envD Σ :=
-    λne interp, λ ρ v, (▷ interp ρ v) % I.
+    λne interp, λ ρ v, (▷ interp ρ v)%I.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_later /.
 

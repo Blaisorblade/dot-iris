@@ -85,7 +85,7 @@ Section logrel.
   Global Arguments interp_selA /.
 
   Definition interp_later interp : envD Σ :=
-    λ ρ v, (▷ interp ρ v) % I.
+    λ ρ v, (▷ interp ρ v)%I.
   Global Arguments interp_later /.
 
   Definition interp_sel w : envD Σ :=
@@ -102,7 +102,7 @@ Section logrel.
     | TNat => interp_nat
     | TAll T1 T2 => interp_forall (⟦ T1 ⟧) (⟦ T2 ⟧)
     | TSel w => interp_sel w
-    end % I.
+    end%I.
 
   Global Instance interp_lemmas: TyInterpLemmas ty Σ.
   Proof.

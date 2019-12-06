@@ -14,10 +14,10 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 (**********************)
 
 Notation σ1 := ([] : vls).
-Notation s1 := (1 % positive).
+Notation s1 := (1 %positive).
 
 Notation σ2 := ([] : vls).
-Notation s2 := (2 % positive).
+Notation s2 := (2 %positive).
 
 Notation "'type' l = ( σ ; s )" := (l, dtysem σ s) (at level 60, l at level 50).
 

@@ -81,22 +81,22 @@ Section logrel.
   Global Arguments interp_tmem /.
 
   Definition interp_expr interp : envPred tm Σ :=
-    λ ρ t, WP t {{ interp ρ }} %I.
+    λ ρ t, WP t {{ interp ρ }}%I.
   Global Arguments interp_expr /.
 
   Definition interp_and interp1 interp2 : envD Σ :=
-    λ ρ v, (interp1 ρ v ∧ interp2 ρ v) %I.
+    λ ρ v, (interp1 ρ v ∧ interp2 ρ v)%I.
   Global Arguments interp_and /.
 
   Definition interp_or interp1 interp2 : envD Σ :=
-    λ ρ v, (interp1 ρ v ∨ interp2 ρ v) %I.
+    λ ρ v, (interp1 ρ v ∨ interp2 ρ v)%I.
   Global Arguments interp_or /.
 
   Definition interp_later interp : envD Σ :=
-    λ ρ v, (▷ interp ρ v) % I.
+    λ ρ v, (▷ interp ρ v)%I.
   Global Arguments interp_later /.
 
-  Definition interp_nat : envD Σ := λ ρ v, (∃ n, ⌜v = vnat n⌝) %I.
+  Definition interp_nat : envD Σ := λ ρ v, (∃ n, ⌜v = vnat n⌝)%I.
   Global Arguments interp_nat /.
 
   Definition interp_top : envD Σ := λ ρ v, True%I.
@@ -150,7 +150,7 @@ Section logrel.
     | TMu T => interp_mu (⟦ T ⟧)
     | TSel p l => interp_sel p l
     | TSing p => interp_sing p
-    end % I.
+    end%I.
 
   Global Instance interp_lemmas: TyInterpLemmas ty Σ.
   Proof.
@@ -202,7 +202,7 @@ Section logrel.
     | TAnd T1 T2 => defs_interp_and (defs_interp T1) (defs_interp T2)
     | TTop => λ ρ ds, True
     | _ => lift_dinterp_dms T
-    end % I.
+    end%I.
 
   Global Instance defs_interp_persistent T ρ ds : Persistent (defs_interp T ρ ds).
   Proof. induction T; try apply _. Qed.

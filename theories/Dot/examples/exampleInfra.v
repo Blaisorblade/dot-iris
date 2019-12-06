@@ -49,7 +49,7 @@ Notation " {@ T1 ; T2 ; .. ; Tn } " :=
 (*                                          (format "{@  T1  ;  ..  ;  T2  ;  Tn  }"): ty_scope. *)
 Close Scope ty_scope.
 
-Check {@ TNat ; TNat ; TNat } % ty.
+Check {@ TNat ; TNat ; TNat }%ty.
 
 Notation "'𝐍'" := TNat : ty_scope.
 
@@ -81,7 +81,7 @@ Notation "v @ l1 @ .. @ l2" := (pself .. (pself v l1) .. l2)
                                      (format "v  @  l1  @  ..  @  l2", at level 48, l1, l2 at level 40).
 
 Notation tparam A := (type A >: ⊥ <: ⊤)%ty.
-Definition typeEq l T := (type l >: T <: T) % ty.
+Definition typeEq l T := (type l >: T <: T)%ty.
 
 Check ν {@ val "a" = vnat 0 }.
 
@@ -113,7 +113,7 @@ Check (p0 @ "A").
 Check (p0 @ "A" @ "B" @; "C").
 Check (val "symb" : p0 @ "symbols" @; "Symbol")%ty.
 
-Notation TUnit := (⊤ % ty : ty).
+Notation TUnit := (⊤%ty : ty).
 Notation tUnit := (tv (vnat 0) : tm).
 
 (****************)
