@@ -78,6 +78,12 @@ Definition hlistV bool : hvl := ν: self, {@
   val "cons" = hconsV bool
 }.
 
+(** This ▶ Later is needed because
+- [hnilT] types a value member "nil" (which can't use skips), and
+- this value member has abstract type [sci @; "List"], and
+- when we initialize "nil", [sci] has type [▶(type "List" >: ... <: ...], so
+  we can't deduce anything about [sci@;"List"], only something about
+  [▶(sci@; "List")]. *)
 Definition hnilT sci := hTAnd (▶ hpv sci @; "List") (typeEq "A" ⊥).
 
 (** ∀(x: {A})∀(hd: x.A)∀(tl: sci.List∧{A <: x.A})sci.List∧{A <: x.A} *)
@@ -233,10 +239,10 @@ Proof. apply clListTyp'2. tcrush. Qed.
 
 Notation "a @: b" := (htproj a b) (at level 59, b at next level).
 Definition hheadCons (bool list : hvl) :=
-  htskip (htproj (htskip
+  htskip (htskip (htproj (htskip
     (htyApp "T" (htv list @: "cons") 𝐍
       $: htv (hvnat 0)
-      $: (htv list @: "nil"))) "head" $: htv (hvnat 0)).
+      $: (htskip (htv list @: "nil")))) "head" $: htv (hvnat 0))).
 (* Invoking a method from an abstract type (here, [list @; "List"] needs a skip. *)
 
 Ltac ttrans := eapply Trans_stp.
@@ -263,11 +269,13 @@ Proof.
   Arguments hconsT /.
   (* rewrite /hlistT ![hclose _]/= /liftBind. *)
 
-  eapply (Subs_typed (i := 1) (T1 := hclose (▶ 𝐍))). tcrush.
+  (* The result of "head" has one more later than the list. *)
+  eapply (Subs_typed (i := 2) (T1 := hclose (▶ (▶ 𝐍)))).
+  asideLaters. tcrush.
   eapply (App_typed (T1 := hclose ⊤)); last (eapply Subs_typed_nocoerce; tcrush).
   tcrush.
 (* (hp1 @; "A"). *)
-  apply (Subs_typed_nocoerce (hclose (hlistTBodyGen hx1 hx0 ⊥ 𝐍))); first last.
+  apply (Subs_typed_nocoerce (hclose (hlistTBodyGen hx1 hx0 ⊥ (▶ 𝐍)))); first last.
   (* apply (Subs_typed (T1 := hclose (hlistTBodyGen hx1 hx0 ⊥ 𝐍))). *)
   (* cbv. hideCtx. *)
   {
@@ -283,23 +291,68 @@ Proof.
     eapply SelU_stp. tcrush. varsub.
     lThis.
   }
-  hideCtx.
-  (* have ? : Γ0 u⊢ₜ tv (ids 0): hclose (hlistT hx1) by var. *)
 
-  have Ht: shiftN 1 (hclose (hlistT hx0)) :: boolImplT :: Γ u⊢ₜ
-    (htyApp "T" (htv (hxm 2) @: "cons") 𝐍 $: htv (hvnat 0) $: htv (hxm 2) @: "nil") 2 :
-    hclose (hTAnd (hpx 0 @; "List") (type "A" >: ⊥ <: ▶ 𝐍)).
-  eapply (App_typed (T1 := hclose (hnilT hx0))); first last. {
+  have Hnil:
+    hclose (hlistT hx1) :: boolImplT :: Γ u⊢ₜ (htv (hxm 2) @: "nil") 2
+    : hclose (hnilT hx0).
+    by tcrush; eapply Subs_typed_nocoerce; [ exact: HL | lNext ].
+  have Hsnil:
+    hclose (hlistT hx1) :: boolImplT :: Γ u⊢ₜ htskip (htv (hxm 2) @: "nil") 2
+    : hclose $ hTAnd (hp0 @; "List") (typeEq "A" ⊥). {
+    eapply (Subs_typed (i := 1)), Hnil.
+    by tcrush; [lThis | lNext; apply AddI_stp; tcrush].
+  }
+  have Hcons:
+      hclose (hlistT hx1) :: boolImplT :: Γ u⊢ₜ (htv (hxm 2) @: "cons") 2
+      : hclose $ hconsT hx0. {
     tcrush.
-    (* eapply TMuE_typed' with (T1 := hclose (val "nil" : hTAnd (▶ hp0 @; "List") (type "A" >: ⊥ <: ⊥))); last done.
-    varsub. apply Mu_stp_mu; tcrush.
-    lNext. *)
-    eapply Subs_typed_nocoerce; [ exact: HL | lNext ].
+    eapply Subs_typed_nocoerce; first done.
+    by repeat lNext.
   }
 
-  eapply (App_typed (T1 := hclose 𝐍)); last tcrush. {
-  (* Perform avoidance on the type application. Argh. *)
-  eapply (tyApp_typed) with (T := hclose 𝐍)
+  (* hideCtx. *)
+  (* have ? : Γ0 u⊢ₜ tv (ids 0): hclose (hlistT hx1) by var. *)
+
+  (* Here we produce a list of later nats, since we produce a list of p.A where p is the
+  "type" argument and p : { A <: Nat} so p.A <: ▶ Nat. *)
+  have Ht: (hclose (hlistT hx1)) :: boolImplT :: Γ u⊢ₜ
+    (htyApp "T" (htv (hxm 2) @: "cons") 𝐍 $: htv (hvnat 0) $: htskip (htv (hxm 2) @: "nil")) 2 :
+    hclose (hTAnd (hpx 0 @; "List") (type "A" >: ⊥ <: ▶ 𝐍)). {
+    eapply App_typed, Hsnil.
+    eapply (App_typed (T1 := hclose 𝐍)); last tcrush.
+    (* Perform avoidance on the type application. Argh. *)
+    eapply (tyApp_typed) with (T := hclose 𝐍); first done; intros; tcrush.
+    by eapply LSel_stp'; tcrush; var.
+    by lNext.
+    lNext; by eapply SelU_stp; tcrush; var.
+  }
+  cbv; hideCtx.
+  Import DBNotation.
+  (* apply TMuI_typed. *)
+  rewrite /= -(iterate_S tskip 0).
+  eapply Subs_typed, Ht.
+
+  (* eapply TAnd_stp. *)
+  (* *)
+  eapply Trans_stp with (i2 := 1); first apply AddI_stp; tcrush.
+  eapply Bind2; tcrush; [lThis..].
+  (* Checks up to hear. *)
+  eapply SelU_stp.
+  lNext.
+  lThis.
+  eapply TAnd_stp.
+    apply TAnd2_stp.
+
+
+
+
+  evar (T: ty).
+    Import DBNotation.
+    cbv.
+    hideCtx.
+
+
+  done.
     (U := shiftN 1 (TAll (hclose (hp0 @; "T")) ((TAll (hclose (hnilT hx1))
       (hclose (hTAnd (hp0 @; "List") (type "A" >: ⊥ <: ▶ 𝐍))))))).
     3,4: intros; tcrush.
