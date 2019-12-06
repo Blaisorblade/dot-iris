@@ -142,9 +142,27 @@ Example consTyp Γ : hclose (▶ hlistTConcrBody hx1 hx0) :: boolImplT :: Γ u�
   hclose (htv (hconsV hx1)) : hclose (hconsTConcr hx1 hx0).
 Proof.
   epose proof falseTyp Γ [_; _; _; _; _; _] as Ht; cbn in Ht.
-  tcrush; clear Ht; first by varsub; eapply (LSel_stp' _ (hclose (hp4 @; "T"))); tcrush; varsub; lThis.
-  hideCtx. varsub. tcrush. lNext.
-  eapply LSel_stp'; tcrush. varsub. lThis.
+  tcrush; clear Ht.
+  (** Typecheck returned head: *)
+  by varsub; eapply (LSel_stp' _ (hclose (hp4 @; "T"))); tcrush; varsub; lThis.
+  (**
+    Typecheck returned tail. Recall [cons] starts with
+
+      [λ: x, λ:: hd tl, htv $ ν: self, ...].
+
+    Hence, [x.A] is the type argument to [cons], and [tl] has type
+    [List & {A = x.A}].
+
+    Since [cons] constructs a new object, [hconsTConcr] types it against
+    a *copy* of the list body, whose element type [self.A] is a copy of [x.A]. *)
+  (** Hence, we must show that [tl] has type [List & {A = self.A}]. *)
+  (** It suffices to show that [List & {A = x.A} <: List & {A = self.A}]: *)
+  varsub.
+  (** It suffices to show that [x.A <: self.A]: *)
+  tcrush; lNext.
+
+  (** We do it using [LSel_stp'] on [self.A], and looking up [A] on [self]'s type. *)
+  eapply LSel_stp'; tcrush. varsub; lThis.
 Qed.
 
 Lemma consTSub Γ : hclose (hlistTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
@@ -237,6 +255,8 @@ Example clListTypNat2 Γ :
   Γ u⊢ₜ hclose (clListV'2 (λ _ _, htv (hvnat 1))) : hclose 𝐍.
 Proof. apply clListTyp'2. tcrush. Qed.
 
+(** XXX: try recursive linking? Probably not. *)
+
 Notation "a @: b" := (htproj a b) (at level 59, b at next level).
 Definition hheadCons (bool list : hvl) :=
   htskip (htskip (htproj (htskip
@@ -260,8 +280,9 @@ Example hheadConsTyp Γ :
 Proof.
   match goal with
     |- ?Γ u⊢ₜ _ : _ =>
-    have HL : Γ u⊢ₜ tv (ids 0): hclose (hlistModTBody hx1 hx0) by apply: TMuE_typed'; first var
+    set Γ' := Γ
   end.
+  have HL : Γ' u⊢ₜ tv (ids 0): hclose (hlistModTBody hx1 hx0) by apply: TMuE_typed'; first var.
 
   tcrush.
   Import hterm_lifting.
@@ -275,19 +296,14 @@ Proof.
   eapply (App_typed (T1 := hclose ⊤)); last (eapply Subs_typed_nocoerce; tcrush).
   tcrush.
 (* (hp1 @; "A"). *)
-  have Hnil:
-    hclose (hlistT hx1) :: boolImplT :: Γ u⊢ₜ (htv (hxm 2) @: "nil") 2
-    : hclose (hnilT hx0).
+  have Hnil: Γ' u⊢ₜ (htv (hxm 2) @: "nil") 2 : hclose (hnilT hx0).
     by tcrush; eapply Subs_typed_nocoerce; [ exact: HL | lNext ].
-  have Hsnil:
-    hclose (hlistT hx1) :: boolImplT :: Γ u⊢ₜ htskip (htv (hxm 2) @: "nil") 2
+  have Hsnil: Γ' u⊢ₜ htskip (htv (hxm 2) @: "nil") 2
     : hclose $ hTAnd (hp0 @; "List") (typeEq "A" ⊥). {
     eapply (Subs_typed (i := 1)), Hnil.
     by tcrush; [lThis | lNext; apply AddI_stp; tcrush].
   }
-  have Hcons:
-      hclose (hlistT hx1) :: boolImplT :: Γ u⊢ₜ (htv (hxm 2) @: "cons") 2
-      : hclose $ hconsT hx0. {
+  have Hcons: Γ' u⊢ₜ (htv (hxm 2) @: "cons") 2 : hclose $ hconsT hx0. {
     tcrush.
     eapply Subs_typed_nocoerce; first done.
     by repeat lNext.
@@ -298,8 +314,9 @@ Proof.
 
   (* Here we produce a list of later nats, since we produce a list of p.A where p is the
   "type" argument and p : { A <: Nat} so p.A <: ▶ Nat. *)
-  have Ht: (hclose (hlistT hx1)) :: boolImplT :: Γ u⊢ₜ
-    (htyApp "T" (htv (hxm 2) @: "cons") 𝐍 $: htv (hvnat 0) $: htskip (htv (hxm 2) @: "nil")) 2 :
+  have Ht: Γ' u⊢ₜ (htyApp "T" (htv (hxm 2) @: "cons") 𝐍
+      $: htv (hvnat 0)
+      $: htskip (htv (hxm 2) @: "nil")) 2 :
     hclose (hTAnd (hpx 0 @; "List") (type "A" >: ⊥ <: ▶ 𝐍)). {
     eapply App_typed, Hsnil.
     eapply (App_typed (T1 := hclose 𝐍)); last tcrush.
@@ -310,30 +327,71 @@ Proof.
     lNext; by eapply SelU_stp; tcrush; var.
   }
 
-  (* Optional? *)
-  apply (Subs_typed_nocoerce (hclose (hlistTBodyGen hx1 hx0 ⊥ (▶ 𝐍)))); first last.
-  (* apply (Subs_typed (T1 := hclose (hlistTBodyGen hx1 hx0 ⊥ 𝐍))). *)
-  (* cbv. hideCtx. *)
-  {
-    (* ttrans; last apply TLaterL_stp; stcrush. *)
+  (**** GOAL: *****)
+    (* Γ' u⊢ₜ htskip
+          (htyApp "T" (htv (hxm 2) @: "cons") 𝐍 $: htv (hvnat 0) $:
+          htskip (htv (hxm 2) @: "nil")) 2
+    : TVMem "head" (TAll (hclose ⊤) (shiftN 1 (hclose (▶ ▶ 𝐍)))). *)
+
+  have Hsub42 : Γ' u⊢ₜ hclose (hlistTBodyGen hx1 hx0 ⊥ (▶ 𝐍)), 0 <:
+      TVMem "head" (TAll (hclose ⊤) (shiftN 1 (hclose (▶ ▶ 𝐍)))), 0. {
     apply Bind1; tcrush.
     do 2 lNext.
     lThis.
-    (* eapply Trans_stp; first apply TAnd1_stp; stcrush.
-    (* Import DBNotation.
-    cbv. *)
-    (* asideLaters. *)
-    tcrush. *)
     eapply SelU_stp. tcrush. varsub.
     lThis.
   }
 
+  have Hsub1 : Γ'
+      u⊢ₜ hclose(hp0 @; "List"), 0 <: hclose (▶ (hlistTBody hx1 hx0)), 0. {
+    eapply SelU_stp.
+    tcrush.
+    eapply Subs_typed_nocoerce; first exact HL.
+    lThis.
+  }
+
+  (* Not the right road, I think. *)
+  (* apply (Subs_typed_nocoerce (hclose (hlistTBodyGen hx1 hx0 ⊥ (▶ 𝐍)))), Hsub42. *)
+  eapply (Subs_typed (i := 1)), Ht.
+  set U := (type "A" >: ⊥ <: ▶ 𝐍)%ty.
+  have Hsub2 : Γ' u⊢ₜ
+    hclose (hTAnd (hp0 @; "List") U), 0 <:
+    hclose (hTAnd (▶ (hlistTBody hx1 hx0)) U), 0 by tcrush; lThis.
+  have Hsub3 : Γ' u⊢ₜ
+    hclose (hTAnd (hp0 @; "List") U), 0 <:
+    hclose (hTAnd (▶ (hlistTBody hx1 hx0)) (▶ U)), 0. {
+    (* tcrush; [lThis | lNext]. *)
+    ttrans; [exact: Hsub2|tcrush; lNext].
+  }
+
+  ttrans; first exact: Hsub3.
+  Fail progress (asideLaters; tcrush).
+  (******)
+  (* We seem stuck here. The problem is that *we* wrote
+  x.List & { A <: Nat }, and that's <: (▶ ListBody) & { A <: Nat }, and we have no
+  rule to deal with that Later *in the syntax* *yet*.
+  But we know that (▶ ListBody) & { A <: Nat } <: (▶ ListBody) & ▶ { A <: Nat }.
+  Next, [Distr_TLater_And] gets us to
+  (▶ (ListBody & { A <: Nat }), and we're back in business!
+   *)
+
+  (** We know this is semantically sound, thanks to [Distr_TLater_And]. TODO: add a syntactic typing rule. *)
+  have Hsub4 : Γ' u⊢ₜ
+    hclose (hTAnd (▶ (hlistTBody hx1 hx0)) (▶ U)), 0 <:
+    hclose (▶ (hTAnd (hlistTBody hx1 hx0) U)), 0. admit.
+
+  ttrans; first exact: Hsub4.
+  progress asideLaters.
+
+  eapply Trans_stp with (i2 := 1); last apply TMono_stp, Hsub42.
+  rewrite /hlistTBody /hlistTBodyGen.
+Abort.
+  (* ttrans.
+  (******)
+
   cbv; hideCtx.
   Import DBNotation.
   (* apply TMuI_typed. *)
-  rewrite /= -(iterate_S tskip 0).
-
-  eapply Subs_typed, Ht.
 
   (* eapply TAnd_stp. *)
   (* *)
@@ -443,8 +501,4 @@ Proof.
   }
   econstructor.
   tcrush.
-Print hbody.
-
-
-
-(* Try recursive linking? *)
+Print hbody. *)
