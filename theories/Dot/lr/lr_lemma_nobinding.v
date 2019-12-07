@@ -6,15 +6,6 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 Section Sec.
   Context `{HdlangG: dlangG Σ} Γ.
 
-  Lemma Distr_TLater_And T1 T2 ρ v:
-    ⟦ TLater (TAnd T1 T2) ⟧ ρ v ⊣⊢
-    ⟦ TAnd (TLater T1) (TLater T2) ⟧ ρ v.
-  Proof. iSplit; iIntros "/= [$ $]". Qed.
-
-  Lemma Sub_Distr_TLater_And T1 T2 i :
-    Γ ⊨ TAnd (TLater T1) (TLater T2), i <: TLater (TAnd T1 T2), i.
-  Proof. iIntros "!>" (ρ v) "Hg H"; by rewrite Distr_TLater_And. Qed.
-
   (* Is it true that for covariant F, F[A ∧ B] = F[A] ∧ F[B]?
     Dotty assumes that, tho DOT didn't capture it.
     F[A ∧ B] <: F[A] ∧ F[B] is provable by covariance.

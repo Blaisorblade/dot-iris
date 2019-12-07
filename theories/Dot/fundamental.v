@@ -70,7 +70,6 @@ Section fundamental.
       + iApply Sub_TAll_Cov_Distr.
       + iApply Sub_TVMem_Cov_Distr.
       + iApply Sub_TTMem_Cov_Distr.
-      + iApply Sub_Distr_TLater_And.
     - iIntros "#Hm"; induction HT.
       + by iApply T_Forall_Ex; [apply IHHT1|apply IHHT2].
       + by iApply T_Forall_Ex_p; [|apply IHHT|iApply fundamental_path_typed].

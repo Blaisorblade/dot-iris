@@ -292,10 +292,6 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     is_unstamped_ty (length Γ) U1 →
     is_unstamped_ty (length Γ) U2 →
     Γ u⊢ₜ TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
-| TDistr_TLater_And_stp T1 T2 i :
-    is_unstamped_ty (length Γ) T1 →
-    is_unstamped_ty (length Γ) T2 →
-    Γ u⊢ₜ TAnd (TLater T1) (TLater T2), i <: TLater (TAnd T1 T2), i
 where "Γ u⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
 
 (* Make [T] first argument: Hide Γ for e.g. typing examples. *)
