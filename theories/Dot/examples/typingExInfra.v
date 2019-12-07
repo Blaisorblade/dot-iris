@@ -94,6 +94,8 @@ Hint Extern 10 => try_once Trans_stp : core.
 
 Hint Resolve is_stamped_idsσ_ren : core.
 
+Ltac ettrans := eapply Trans_stp.
+
 (*******************)
 (** DERIVED RULES **)
 (*******************)

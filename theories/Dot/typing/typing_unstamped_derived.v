@@ -26,6 +26,8 @@ Ltac wtcrush := repeat first [ fast_done | typconstructor | stcrush ] ; try solv
     try_once is_unstamped_weaken_dm |
     try_once is_unstamped_weaken_ty ]; eauto ].
 
+Ltac ettrans := eapply Trans_stp.
+
 Ltac asideLaters :=
   repeat first
     [eapply Trans_stp; last (apply TLaterR_stp; tcrush)|
