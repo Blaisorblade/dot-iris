@@ -1,6 +1,6 @@
 From stdpp Require Import strings.
 From D Require Import tactics.
-From D.Dot Require Import syn exampleInfra typing_unstamped.
+From D.Dot Require Import syn synLemmas exampleInfra typing_unstamped.
 From D.Dot Require Import unstampedness_binding.
 
 Lemma is_unstamped_pvar i n : i < n → is_unstamped_path n (pv (var_vl i)).
@@ -21,9 +21,14 @@ Ltac typconstructor := match goal with
 (* Ltac tcrush := repeat first [ fast_done | typconstructor | stcrush ]. *)
 Ltac tcrush := repeat first [ eassumption | reflexivity | typconstructor | stcrush ].
 
+Lemma is_unstamped_TLater_n i {n T}:
+  is_unstamped_ty n T →
+  is_unstamped_ty n (iterate TLater i T).
+Proof. elim: i => [|//i IHi]; rewrite ?iterate_0 ?iterate_S //; auto. Qed.
+
 Ltac wtcrush := repeat first [ fast_done | typconstructor | stcrush ] ; try solve [
   first [
-    by auto 2 using is_unstamped_ren1_ty, is_unstamped_ren1_path |
+    by eauto 3 using is_unstamped_TLater_n, is_unstamped_ren1_ty, is_unstamped_ren1_path |
     try_once is_unstamped_weaken_dm |
     try_once is_unstamped_weaken_ty |
     try_once is_unstamped_weaken_path ]; eauto].
@@ -344,3 +349,81 @@ Proof.
   - apply (IHj (TLater T)); stcrush.
   - exact: TLaterL_stp.
 Qed.
+
+(* This can be useful when [T] is a singleton type. *)
+Lemma dropLaters Γ e T U i:
+  Γ u⊢ₜ e : T →
+  Γ u⊢ₜ T, 0 <: iterate TLater i U, 0 →
+  is_unstamped_ty (length Γ) T →
+  is_unstamped_ty (length Γ) U →
+  Γ u⊢ₜ iterate tskip i e : TAnd T U.
+Proof.
+  intros HeT Hsub HuT HuU.
+  eapply Subs_typed, HeT => {HeT}.
+  typconstructor; [exact: AddI_stp|] => {HuT}.
+  ettrans; [apply: Hsub|] => {Hsub}.
+  have := (TLaterLN_stp 0 i HuU); rewrite plusnO; exact.
+Qed.
+
+(**
+  Like [let: x := e1 in e2], but dropping [i] laters from [e1]'s type while
+  preserving its identity by adding a singleton type. See
+*)
+Definition deLater e1 i e2 := lett e1 (lett (iterate tskip i (tv x0)) e2).
+
+Lemma deLaterSingV0 {Γ} p i e T U:
+  Γ u⊢ₚ p : TSing p, 0 →
+  shift (TSing p) :: Γ u⊢ₜ shift (TSing p), 0 <: iterate TLater i T, 0 →
+  TAnd (TSing (shiftN 2 p)) (shift T) :: TSing (shift p) :: Γ u⊢ₜ e : shiftN 2 U →
+  is_unstamped_ty (length Γ) T →
+  is_unstamped_path (length Γ) p →
+  Γ u⊢ₜ deLater (path2tm p) i e : U.
+Proof.
+  intros HpT1 Hsub HeU HuT Hup.
+  apply Let_typed with (T := TSing p); tcrush.
+  apply Let_typed with (T := TAnd (shift (TSing p)) T); rewrite /= -?hrenS; wtcrush.
+  apply dropLaters; [ var | .. ]; rewrite /= -?hrenS; wtcrush.
+Qed.
+
+(** More general version of [deLaterSingV0]. Not sure if too general or useful. *)
+Lemma deLaterSingV1 {Γ} p i e T1 T2 U:
+  Γ u⊢ₚ p : T1, 0 →
+  shift (TAnd (TSing p) T1) :: Γ u⊢ₜ shift T1, 0 <: iterate TLater i T2, 0 →
+  TAnd (TAnd (TSing (shiftN 2 p)) (shiftN 2 T1)) (shift T2) ::
+    TAnd (TSing (shift p)) (shift T1) :: Γ u⊢ₜ e : shiftN 2 U →
+  is_unstamped_ty (length Γ) T1 →
+  is_unstamped_ty (length Γ) T2 →
+  is_unstamped_path (length Γ) p →
+  Γ u⊢ₜ deLater (path2tm p) i e : U.
+Proof.
+  intros HpT1 Hsub HeU HuT1 HuT2 Hup.
+  apply Let_typed with (T := TAnd (TSing p) T1); tcrush.
+  by apply pand_typed, HpT1; eapply psingleton_refl_typed, HpT1.
+  apply Let_typed with (T := TAnd (shift (TAnd (TSing p) T1)) T2); rewrite /= -?hrenS; wtcrush.
+  apply dropLaters; [ var | lNext | ..]; rewrite /= -?hrenS; wtcrush.
+Qed.
+
+(** Best version of [deLaterSing]. *)
+Lemma deLaterSing {Γ} p i e T1 U:
+  Γ u⊢ₚ p : iterate TLater i T1, 0 →
+  TAnd (TSing (shiftN 2 p)) (shiftN 2 T1) ::
+    TAnd (TSing (shift p)) (iterate TLater i (shift T1)) :: Γ u⊢ₜ e : shiftN 2 U →
+  is_unstamped_ty (length Γ) T1 →
+  is_unstamped_path (length Γ) p →
+  Γ u⊢ₜ deLater (path2tm p) i e : U.
+Proof.
+  intros HpT1 HeU HuT1 Hup.
+  apply Let_typed with (T := TAnd (TSing p) (iterate TLater i T1)); wtcrush.
+  by apply pand_typed, HpT1; eapply psingleton_refl_typed, HpT1.
+  apply Let_typed with (T := TAnd (TSing (shift p)) (shift T1));
+    rewrite /= -?hrenS ?TLater_subst; wtcrush.
+  eapply Subs_typed; last var; tcrush; [lThis|lNext]; wtcrush.
+  by apply: AddI_stp; wtcrush.
+  rewrite -{3}(plusnO i). apply TLaterLN_stp; wtcrush.
+Qed.
+
+Lemma selfIntersect Γ T U i j:
+  is_unstamped_ty (length Γ) T →
+  Γ u⊢ₜ T, i <: U, j + i →
+  Γ u⊢ₜ T, i <: TAnd U T, j + i .
+Proof. intros; tcrush. exact: AddIJ_stp. Qed.
