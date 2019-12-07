@@ -451,9 +451,9 @@ Proof.
     [| apply TOr1_stp | | apply TOr2_stp]; tcrush.
 Qed.
 
+(** Inverse of [TDistr_TLater_Or_stp]. *)
 Lemma TDistr_TLater_Or_stp_inv Γ (T1 T2: ty) i :
   is_unstamped_ty (length Γ) T1 →
   is_unstamped_ty (length Γ) T2 →
-  (* Γ u⊢ₜ TLater (TOr T1 T2), i <: TOr (TLater T1) (TLater T2), i. *)
   Γ u⊢ₜ TOr (TLater T1) (TLater T2), i <: TLater (TOr T1 T2), i.
 Proof. intros; tcrush. Qed.
