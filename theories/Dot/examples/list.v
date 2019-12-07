@@ -116,7 +116,7 @@ Proof.
     rewrite {}/T/= => Ht Hl.
     tcrush; apply (Subs_typed_nocoerce ⊥); tcrush.
   - tcrush; last (apply Bind1; tcrush).
-    eapply Trans_stp; first eapply TAddLater_stp; stcrush.
+    ettrans; first eapply TAddLater_stp; stcrush.
     asideLaters.
     eapply LSel_stp'; tcrush. varsub.
     asideLaters.

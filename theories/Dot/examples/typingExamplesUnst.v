@@ -163,7 +163,7 @@ Proof.
     varsub; apply Sub_later_shift; tcrush.
   - eapply (Subs_typed_nocoerce) => /=; hideCtx.
     + repeat first [var | typconstructor | tcrush].
-    + eapply Trans_stp; first last.
+    + ettrans; first last.
       eapply LSel_stp'; first last.
       * constructor; varsub.
         lNext.
@@ -191,7 +191,7 @@ Proof.
   tcrush.
   - eapply (Subs_typed_nocoerce) => /=; hideCtx.
     + repeat first [var | typconstructor | tcrush].
-    + eapply Trans_stp; first last.
+    + ettrans; first last.
       eapply LSel_stp'; first last.
       * constructor; varsub; tcrush.
       * tcrush.

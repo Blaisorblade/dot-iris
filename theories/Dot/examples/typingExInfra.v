@@ -137,7 +137,7 @@ Lemma Sub_later_shift {Γ T1 T2 i j}
   (Hsub: Γ v⊢ₜ[ g ] T1, S i <: T2, S j):
   Γ v⊢ₜ[ g ] TLater T1, i <: TLater T2, j.
 Proof.
-  eapply Trans_stp; first exact: TLaterL_stp.
+  ettrans; first exact: TLaterL_stp.
   by eapply Trans_stp, TLaterR_stp.
 Qed.
 
@@ -147,7 +147,7 @@ Lemma Sub_later_shift_inv {Γ T1 T2 i j}
   (Hsub: Γ v⊢ₜ[ g ] TLater T1, i <: TLater T2, j):
   Γ v⊢ₜ[ g ] T1, S i <: T2, S j.
 Proof.
-  eapply Trans_stp; first exact: TLaterR_stp.
+  ettrans; first exact: TLaterR_stp.
   by eapply Trans_stp, TLaterL_stp.
 Qed.
 
@@ -162,14 +162,14 @@ Lemma LSel_stp' Γ U {p l L i}:
   is_stamped_ty (length Γ) g L →
   Γ v⊢ₚ[ g ] p : TTMem l L U, i →
   Γ v⊢ₜ[ g ] L, i <: TSel p l, i.
-Proof. intros; eapply Trans_stp; last exact: (LSel_stp _ _ p); tcrush. Qed.
+Proof. intros; ettrans; last exact: (LSel_stp _ _ p); tcrush. Qed.
 
 Lemma AddI_stp Γ T i (Hst: is_stamped_ty (length Γ) g T) :
   Γ v⊢ₜ[ g ] T, 0 <: T, i.
 Proof.
   elim: i => [|n IHn]; first tcrush.
-  eapply Trans_stp; first apply IHn.
-  eapply Trans_stp; [exact: TAddLater_stp | tcrush].
+  ettrans; first apply IHn.
+  ettrans; [exact: TAddLater_stp | tcrush].
 Qed.
 
 Lemma AddIB_stp Γ T U i:
@@ -205,7 +205,7 @@ Proof.
   move => Hlp HsT1 Hle; move: (Hle) (HsT1) => /le_n_S Hles /is_stamped_ren1_ty HsT2.
   move: (is_stamped_nclosed_ty HsT1) => Hcl.
   apply (Subs_typed_nocoerce (μ {@ typeEq "A" T.|[ren (+1)] }));
-    last (eapply Trans_stp; first apply (Mu_stp _ _ ({@ typeEq "A" T })); tcrush).
+    last (ettrans; first apply (Mu_stp _ _ ({@ typeEq "A" T })); tcrush).
   apply VObj_typed; tcrush.
   apply (dty_typed T.|[ren (+1)]); auto 2; tcrush.
   apply /(@extraction_inf_subst _ (length _)); auto 3;

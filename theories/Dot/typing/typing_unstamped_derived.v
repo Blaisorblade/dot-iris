@@ -30,11 +30,11 @@ Ltac ettrans := eapply Trans_stp.
 
 Ltac asideLaters :=
   repeat first
-    [eapply Trans_stp; last (apply TLaterR_stp; tcrush)|
-    eapply Trans_stp; first (apply TLaterL_stp; tcrush)].
+    [ettrans; last (apply TLaterR_stp; tcrush)|
+    ettrans; first (apply TLaterL_stp; tcrush)].
 
-Ltac lNext := eapply Trans_stp; first apply TAnd2_stp; tcrush.
-Ltac lThis := eapply Trans_stp; first apply TAnd1_stp; tcrush.
+Ltac lNext := ettrans; first apply TAnd2_stp; tcrush.
+Ltac lThis := ettrans; first apply TAnd1_stp; tcrush.
 
 Ltac hideCtx' Γ :=
   let x := fresh "Γ" in set x := Γ.
@@ -98,22 +98,22 @@ Lemma Sub_later_shift_inv {Γ T1 T2 i j}
   (Hsub: Γ u⊢ₜ TLater T1, i <: TLater T2, j):
   Γ u⊢ₜ T1, S i <: T2, S j.
 Proof.
-  eapply Trans_stp; first exact: TLaterR_stp.
-  by eapply Trans_stp, TLaterL_stp.
+  ettrans; first exact: TLaterR_stp.
+  by ettrans; last eapply TLaterL_stp.
 Qed.
 
 Lemma LSel_stp' Γ U {p l L i}:
   is_unstamped_ty (length Γ) L →
   Γ u⊢ₚ p : TTMem l L U, i →
   Γ u⊢ₜ L, i <: TSel p l, i.
-Proof. intros; eapply Trans_stp; last exact: (@LSel_stp _ p); tcrush. Qed.
+Proof. intros; ettrans; last exact: (@LSel_stp _ p); tcrush. Qed.
 
 Lemma AddI_stp Γ T i (Hst: is_unstamped_ty (length Γ) T) :
   Γ u⊢ₜ T, 0 <: T, i.
 Proof.
   elim: i => [|n IHn]; first tcrush.
-  eapply Trans_stp; first apply IHn.
-  eapply Trans_stp; [exact: TAddLater_stp | tcrush].
+  ettrans; first apply IHn.
+  ettrans; [exact: TAddLater_stp | tcrush].
 Qed.
 
 Lemma AddIB_stp Γ T U i:
@@ -167,7 +167,7 @@ Lemma Bind1 Γ T1 T2 i:
   Γ u⊢ₜ μ T1, i <: T2, i.
 Proof.
   intros Hus1 Hus2 Hsub.
-  eapply Trans_stp; first exact: (Mu_stp_mu Hsub).
+  ettrans; first exact: (Mu_stp_mu Hsub).
   exact: Mu_stp.
 Qed.
 
@@ -177,7 +177,7 @@ Lemma Bind2 Γ T1 T2 i:
   Γ u⊢ₜ T1, i <: μ T2, i.
 Proof.
   intros Hus1 Hus2 Hsub; move: (Hus1) => /is_unstamped_ren1_ty Hus1'.
-  eapply Trans_stp; last exact: (Mu_stp_mu Hsub).
+  ettrans; last exact: (Mu_stp_mu Hsub).
   exact: Stp_mu.
 Qed.
 
@@ -202,7 +202,7 @@ Lemma BindSpec Γ (L T U : ty):
   Γ u⊢ₜ tv (ν {@ type "A" = T }) : μ {@ type "A" >: L <: U }.
 Proof.
   intros; eapply Subs_typed_nocoerce; tcrush; rewrite iterate_0.
-  eapply Trans_stp; first apply TAnd1_stp; tcrush.
+  ettrans; first apply TAnd1_stp; tcrush.
 Qed.
 
 Lemma psingleton_sym_typed Γ p q i:
@@ -264,7 +264,7 @@ Lemma packTV_typed' T n Γ :
 Proof.
   move => HsT1 Hle; move: (Hle) (HsT1) => /le_n_S Hles /is_unstamped_ren1_ty HsT2.
   apply (Subs_typed_nocoerce (μ {@ typeEq "A" (shift T) }));
-    last (eapply Trans_stp; first apply (@Mu_stp _ ({@ typeEq "A" T })); wtcrush).
+    last (ettrans; first apply (@Mu_stp _ ({@ typeEq "A" T })); wtcrush).
   apply VObj_typed; wtcrush.
 Qed.
 

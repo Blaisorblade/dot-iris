@@ -112,7 +112,7 @@ Proof.
     apply (Subs_typed_nocoerce KeysT'); first done.
     apply Mu_stp_mu; last stcrush.
     tcrush.
-    eapply Trans_stp; first apply TAnd1_stp; tcrush.
+    ettrans; first apply TAnd1_stp; tcrush.
   }
   apply VObj_typed; tcrush.
   by apply (dty_typed TNat); tcrush.
@@ -174,11 +174,11 @@ Proof.
   apply VObj_typed; tcrush.
   - apply (Subs_typed_nocoerce (μ {@ type "A" >: ⊥ <: TNat})); tcrush.
     + apply (dty_typed TNat); tcrush.
-    + eapply Trans_stp;
+    + ettrans;
       [eapply (Mu_stp _ _ ({@ type "A" >: ⊥ <: TNat })%ty 0)|]; tcrush.
   - apply (Subs_typed_nocoerce (μ {@ type "B" >: ⊥ <: ⊤})); tcrush.
     + apply (dty_typed String); tcrush.
-    + eapply Trans_stp;
+    + ettrans;
       [eapply (Mu_stp _ _ ({@ type "B" >: ⊥ <: ⊤ })%ty 0)|]; tcrush.
 Qed.
 End StringExamples.
@@ -253,9 +253,9 @@ Example SubIFT_LaterP0Bool Γ : TLater {@
     val "false" : TLater p0Bool
   } :: Γ v⊢ₜ[ g ] IFT, 0 <: ▶ p0Bool, 0.
 Proof.
-  eapply Trans_stp; first (apply (AddI_stp _ _ 2); tcrush).
-  eapply Trans_stp; first (apply TLaterR_stp; tcrush).
-  eapply Trans_stp; last (apply TLaterR_stp; tcrush).
+  ettrans; first (apply (AddI_stp _ _ 2); tcrush).
+  ettrans; first (apply TLaterR_stp; tcrush).
+  ettrans; last (apply TLaterR_stp; tcrush).
   eapply LSel_stp. tcrush.
   eapply Var_typed_sub; by [|tcrush].
 Qed.
@@ -266,12 +266,12 @@ Example SubIFT_LaterP0Bool' Γ : {@
     val "false" : IFT
   }%ty :: Γ v⊢ₜ[ g ] IFT, 0 <: ▶ p0Bool, 0.
 Proof.
-  eapply Trans_stp; last (apply TLaterR_stp; tcrush).
-  eapply Trans_stp; first (apply (AddI_stp _ _ 2); tcrush).
-  eapply Trans_stp; first (apply TLaterR_stp; tcrush).
+  ettrans; last (apply TLaterR_stp; tcrush).
+  ettrans; first (apply (AddI_stp _ _ 2); tcrush).
+  ettrans; first (apply TLaterR_stp; tcrush).
   eapply LSel_stp. tcrush.
   eapply Var_typed_sub. by [|tcrush].
-  eapply Trans_stp; last apply TAddLater_stp; tcrush.
+  ettrans; last apply TAddLater_stp; tcrush.
 Qed.
 
 Example boolImplTyp Γ (Hst : s1_is_ift_ext):
@@ -280,13 +280,13 @@ Proof.
   apply (Subs_typed_nocoerce boolImplTConcr).
   tcrush; by [apply (dty_typed IFT); tcrush| exact: Var_typed'].
   tcrush; rewrite iterate_0.
-  - eapply Trans_stp; first apply TAnd1_stp; tcrush.
-  - eapply Trans_stp; first apply TAnd2_stp; tcrush.
-    eapply Trans_stp; first apply TAnd1_stp; tcrush.
+  - ettrans; first apply TAnd1_stp; tcrush.
+  - ettrans; first apply TAnd2_stp; tcrush.
+    ettrans; first apply TAnd1_stp; tcrush.
     apply SubIFT_LaterP0Bool'.
-  - eapply Trans_stp; first apply TAnd2_stp; tcrush.
-    eapply Trans_stp; first apply TAnd2_stp; tcrush.
-    eapply Trans_stp; first apply TAnd1_stp; tcrush.
+  - ettrans; first apply TAnd2_stp; tcrush.
+    ettrans; first apply TAnd2_stp; tcrush.
+    ettrans; first apply TAnd1_stp; tcrush.
     apply SubIFT_LaterP0Bool'.
 Qed.
 
@@ -313,7 +313,7 @@ Example boolImplTypAlt Γ (Hst : s1_is_ift_ext):
   Γ v⊢ₜ[ g ] tv boolImpl : boolImplT.
 Proof.
   apply (Subs_typed_nocoerce boolImplT0);
-    last (tcrush; eapply Trans_stp; first apply TAnd1_stp; tcrush).
+    last (tcrush; ettrans; first apply TAnd1_stp; tcrush).
   tcrush; first (by (apply (dty_typed IFT); tcrush)).
   - eapply Subs_typed_nocoerce; [apply iftTrueTyp|apply SubIFT_LaterP0Bool].
   - eapply Subs_typed_nocoerce; [apply iftFalseTyp|apply SubIFT_LaterP0Bool].
@@ -360,9 +360,9 @@ Proof.
   apply /extr_dtysem_stamped; by [apply: get_s1_is_ift|].
 
   apply TAllConCov_stp; stcrush.
-  { eapply Trans_stp. exact: packBooleanLB. tcrush. }
+  { ettrans. exact: packBooleanLB. tcrush. }
   apply TLaterCov_stp, TAllConCov_stp; stcrush.
-  - eapply Trans_stp. exact: packBooleanLB. tcrush.
+  - ettrans. exact: packBooleanLB. tcrush.
   - eapply TLaterCov_stp, Trans_stp.
     exact: packBooleanUB. tcrush.
 Qed.
