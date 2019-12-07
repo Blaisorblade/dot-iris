@@ -55,7 +55,14 @@ Lemma Var_typed' Γ x T1 T2 :
   (*──────────────────────*)
   Γ u⊢ₜ tv (var_vl x) : T2.
 Proof. intros; subst; tcrush. Qed.
-Ltac var := exact: Var_typed'.
+
+Lemma Var0_typed Γ T :
+  Γ !! 0 = Some T →
+  (*──────────────────────*)
+  Γ u⊢ₜ tv (var_vl 0) : T.
+Proof. intros; eapply Var_typed'; by rewrite ?hsubst_id. Qed.
+
+Ltac var := exact: Var0_typed || exact: Var_typed'.
 
 Lemma Subs_typed_nocoerce T1 T2 {Γ e} :
   Γ u⊢ₜ e : T1 →
@@ -71,7 +78,14 @@ Lemma Var_typed_sub Γ x T1 T2 :
   Γ u⊢ₜ tv (var_vl x) : T2.
 Proof. by intros; eapply Subs_typed_nocoerce; [var|]. Qed.
 
-Ltac varsub := eapply Var_typed_sub; first done.
+Lemma Var0_typed_sub Γ T1 T2 :
+  Γ !! 0 = Some T1 →
+  Γ u⊢ₜ T1, 0 <: T2, 0 →
+  (*──────────────────────*)
+  Γ u⊢ₜ tv (var_vl 0) : T2.
+Proof. intros. by eapply Var_typed_sub; [| rewrite ?hsubst_id]. Qed.
+
+Ltac varsub := (eapply Var0_typed_sub || eapply Var_typed_sub); first done.
 
 Lemma Appv_typed' T2 {Γ e1 x2 T1 T3} :
   Γ u⊢ₜ e1: TAll T1 T2 →                        Γ u⊢ₜ tv (ids x2) : T1 →
