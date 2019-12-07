@@ -276,14 +276,6 @@ Definition hheadCons (bool list : hvl) :=
 
 Ltac ttrans := eapply Trans_stp.
 
-Example hheadConsTypFake Γ :
-  hclose (hlistT hx1) :: boolImplT :: Γ u⊢ₜ (hheadCons (hxm 1) (hxm 2)) 2 : hclose 𝐍.
-Admitted.
-
-Example clListTypNat3 Γ :
-  Γ u⊢ₜ hclose (clListV'2 hheadCons): hclose 𝐍.
-Proof. apply clListTyp'2, hheadConsTypFake. Qed.
-
 Definition anfBind t := lett t (tv x0).
 Lemma AnfBind_typed Γ t (T U: ty) :
   Γ u⊢ₜ t : T →
@@ -313,19 +305,11 @@ Proof.
   end.
   have HL : Γ' u⊢ₜ tv (ids 0): hclose (hlistModTBody hx1 hx0) by apply: TMuE_typed'; first var.
 
-  Fail progress tcrush.
-  Import hterm_lifting.
-  Arguments hlistTBody /.
-  Arguments hconsT /.
-  (* rewrite /hlistT ![hclose _]/= /liftBind. *)
-
   (* The result of "head" has one more later than the list. *)
   eapply (Subs_typed (i := 2) (T1 := hclose (▶ (▶ 𝐍)))).
   asideLaters. tcrush.
-  eapply (App_typed (T1 := hclose ⊤)); last (eapply Subs_typed_nocoerce; tcrush).
-  tcrush.
-(* (hp1 @; "A"). *)
-  have Hnil: Γ' u⊢ₜ (htv (hxm 2) @: "nil") 2 : hclose (hnilT hx0).
+  eapply (App_typed (T1 := hclose ⊤)); last (eapply Subs_typed_nocoerce); tcrush.
+  have Hnil: Γ' u⊢ₜ (htv (hxm 2) @: "nil") 2 : hclose (hnilT hx0)
     by tcrush; eapply Subs_typed_nocoerce; [ exact: HL | lNext ].
   have Hsnil: Γ' u⊢ₜ htskip (htv (hxm 2) @: "nil") 2
     : hclose $ hTAnd (hp0 @; "List") (typeEq "A" ⊥). {
@@ -338,58 +322,20 @@ Proof.
     by repeat lNext.
   }
 
-  (* hideCtx. *)
-  (* have ? : Γ0 u⊢ₜ tv (ids 0): hclose (hlistT hx1) by var. *)
-
   (* Here we produce a list of later nats, since we produce a list of p.A where p is the
   "type" argument and p : { A <: Nat} so p.A <: ▶ Nat. *)
-  set consed := (htyApp "T" (htv (hxm 2) @: "cons") 𝐍
-      $: htv (hvnat 0)
-      $: htskip (htv (hxm 2) @: "nil")).
-  have Ht: Γ' u⊢ₜ consed 2 :
-    hclose (hTAnd (hpx 0 @; "List") (type "A" >: ⊥ <: ▶ 𝐍)). {
-    eapply App_typed, Hsnil.
-    eapply (App_typed (T1 := hclose 𝐍)); last tcrush.
-    (* Perform avoidance on the type application. Argh. *)
-    eapply (tyApp_typed) with (T := hclose 𝐍); first done; intros; tcrush.
-    by eapply LSel_stp'; tcrush; var.
-    by lNext.
-    lNext; by eapply SelU_stp; tcrush; var.
+  set U := (type "A" >: ⊥ <: ▶ 𝐍)%HT.
+  set V := (hclose (hTAnd (hlistTBody hx1 hx0) U)).
+  apply AnfBind_typed with (T := hclose ((hTAnd (hlistTBody hx1 hx0) U)));
+    stcrush; first last.
+  {
+    eapply Subs_typed_nocoerce; first
+      eapply TMuE_typed' with (T1 := hclose (val "head" : ⊤ →: hp0 @; "A"));
+      [ | done | tcrush ].
+      - by varsub; asideLaters; lThis; repeat lNext.
+      - by apply (SelU_stp (L := hclose ⊥)); tcrush; varsub; asideLaters; lNext.
   }
-
-  (**** GOAL: *****)
-    (* Γ' u⊢ₜ htskip
-          (htyApp "T" (htv (hxm 2) @: "cons") 𝐍 $: htv (hvnat 0) $:
-          htskip (htv (hxm 2) @: "nil")) 2
-    : TVMem "head" (TAll (hclose ⊤) (shiftN 1 (hclose (▶ ▶ 𝐍)))). *)
-
-  have Hsub42 : Γ' u⊢ₜ hclose (hlistTBodyGen hx1 hx0 ⊥ (▶ 𝐍)), 0 <:
-      TVMem "head" (TAll (hclose ⊤) (shiftN 1 (hclose (▶ ▶ 𝐍)))), 0. {
-    apply Bind1; tcrush.
-    do 2 lNext.
-    lThis.
-    eapply SelU_stp. tcrush. varsub.
-    lThis.
-  }
-
-  have Hsub1 : Γ'
-      u⊢ₜ hclose(hp0 @; "List"), 0 <: hclose (▶ (hlistTBody hx1 hx0)), 0. {
-    eapply SelU_stp.
-    tcrush.
-    eapply Subs_typed_nocoerce; first exact HL.
-    lThis.
-  }
-  move: Ht.
-  set U := (type "A" >: ⊥ <: ▶ 𝐍)%HT => Ht.
-  have Hsub2 : Γ' u⊢ₜ
-    hclose (hTAnd (hp0 @; "List") U), 0 <:
-    hclose (hTAnd (▶ (hlistTBody hx1 hx0)) U), 0 by tcrush; lThis.
-  have Hsub3 : Γ' u⊢ₜ
-    hclose (hTAnd (hp0 @; "List") U), 0 <:
-    hclose (hTAnd (▶ (hlistTBody hx1 hx0)) (▶ U)), 0. {
-    (* tcrush; [lThis | lNext]. *)
-    ttrans; [exact: Hsub2|tcrush; lNext].
-  }
+  eapply (Subs_typed (i := 1) (T1 := hclose (hTAnd (hp0 @; "List") U))).
   (******)
   (* We seem stuck here. The problem is that *we* wrote
   x.List & { A <: Nat }, and that's <: (▶ ListBody) & { A <: Nat }, and we have no
@@ -398,35 +344,27 @@ Proof.
   Next, [Distr_TLater_And] gets us to
   (▶ (ListBody & { A <: Nat }), and we're back in business!
    *)
+  {
+    ttrans; last apply TLaterL_stp; stcrush.
+    ttrans; last exact: Distr_TLater_And_2.
+    tcrush; [lThis | lNext].
+    eapply SelU_stp; tcrush.
+    eapply Subs_typed_nocoerce; first exact HL.
+    lThis.
+  }
 
-  have Hsub4 : Γ' u⊢ₜ
-    hclose (hTAnd (▶ (hlistTBody hx1 hx0)) (▶ U)), 0 <:
-    hclose (▶ (hTAnd (hlistTBody hx1 hx0) U)), 0 by exact: Distr_TLater_And_2.
+  eapply App_typed, Hsnil.
+  eapply (App_typed (T1 := hclose 𝐍)); last tcrush.
+  (* Perform avoidance on the type application. *)
+  eapply tyApp_typed with (T := hclose 𝐍); first done; intros; tcrush.
+  by eapply LSel_stp'; tcrush; var.
+  by lNext.
+  lNext; by eapply SelU_stp; tcrush; var.
+Qed.
 
-  move: (Ht) => /Subs_typed_nocoerce /(_ Hsub3) Ht'.
-  move: Ht' => /Subs_typed_nocoerce /(_ Hsub4) Ht'.
-  have Ht'': Γ' u⊢ₜ htskip (consed) 2 :
-    hclose ((hTAnd (hlistTBody hx1 hx0) U))
-  by eapply (Subs_typed (i := 1)), Ht'; tcrush.
-
-
-  eapply AnfBind_typed; [apply Ht''| | stcrush].
-  change (shiftN 1 (hclose (hTAnd (hlistTBody hx1 hx0) U))) with
-    (hclose (hTAnd (hlistTBody hx2 hx1) U)).
-  set V := (hclose (hTAnd (hlistTBody hx2 hx1) U)).
-
-  have Hsubxget1: V :: Γ' u⊢ₜ tv x0 :
-    hclose (μ: self, val "head" : ⊤ →: hpv self @; "A")
-    by varsub; asideLaters; lThis; repeat lNext.
-
-  have Hsubxget2: V :: Γ' u⊢ₜ tv x0 : hclose (val "head" : ⊤ →: hp0 @; "A") by
-    eapply TMuE_typed' with (T1 := hclose (val "head" : ⊤ →: hp0 @; "A"));
-    [apply Hsubxget1|].
-  eapply Subs_typed_nocoerce.
-  apply Hsubxget2.
-  tcrush.
-    by apply (SelU_stp (L := hclose ⊥)); tcrush; varsub; asideLaters; lNext.
-Time Qed.
+Example clListTypNat3 Γ :
+  Γ u⊢ₜ hclose (clListV'2 hheadCons): hclose 𝐍.
+Proof. apply clListTyp'2, hheadConsTyp. Qed.
 
     (* Unshelve.
   eapply HsubxA.
