@@ -274,8 +274,6 @@ Definition hheadCons (bool list : hvl) :=
       $: (htskip (htv list @: "nil"))))) "head" $: htv (hvnat 0))).
 (* Invoking a method from an abstract type (here, [list @; "List"] needs a skip. *)
 
-Ltac ttrans := eapply Trans_stp.
-
 Definition anfBind t := lett t (tv x0).
 Lemma AnfBind_typed Γ t (T U: ty) :
   Γ u⊢ₜ t : T →
@@ -345,8 +343,8 @@ Proof.
   (▶ (ListBody & { A <: Nat }), and we're back in business!
    *)
   {
-    ttrans; last apply TLaterL_stp; stcrush.
-    ttrans; last exact: Distr_TLater_And_2.
+    ettrans; last apply TLaterL_stp; stcrush.
+    ettrans; last exact: Distr_TLater_And_2.
     tcrush; [lThis | lNext].
     eapply SelU_stp; tcrush.
     eapply Subs_typed_nocoerce; first exact HL.
