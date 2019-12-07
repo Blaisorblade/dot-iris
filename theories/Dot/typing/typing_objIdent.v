@@ -285,6 +285,10 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     is_stamped_ty (length Γ) g U1 →
     is_stamped_ty (length Γ) g U2 →
     Γ s⊢ₜ[ g ] TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
+| TDistr_TLater_And_stp T1 T2 i :
+    is_stamped_ty (length Γ) g T1 →
+    is_stamped_ty (length Γ) g T2 →
+    Γ s⊢ₜ[ g ] TAnd (TLater T1) (TLater T2), i <: TLater (TAnd T1 T2), i
 where "Γ s⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ g T1 i1 T2 i2).
 
 Scheme exp_stamped_objIdent_typed_mut_ind := Induction for typed Sort Prop
