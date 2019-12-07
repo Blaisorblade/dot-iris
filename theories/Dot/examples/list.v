@@ -268,7 +268,7 @@ Proof. apply clListTyp'2. tcrush. Qed.
 
 Notation "a @: b" := (htproj a b) (at level 59, b at next level).
 Definition hheadCons (bool list : hvl) :=
-  htskip (htskip (htproj (htskip (hAnfBind
+  htskip (htskip (htproj (hAnfBind (htskip
     (htyApp "T" (htv list @: "cons") 𝐍
       $: htv (hvnat 0)
       $: (htskip (htv list @: "nil"))))) "head" $: htv (hvnat 0))).
@@ -291,6 +291,18 @@ Lemma AnfBind_typed Γ t (T U: ty) :
   is_unstamped_ty (length Γ) T →
   Γ u⊢ₜ anfBind t : U.
 Proof. intros; eapply Let_typed; eauto. Qed.
+
+(** We know this is semantically sound, thanks to [Distr_TLater_And]. *)
+(* TODO: add a syntactic typing rule. *)
+Lemma Distr_TLater_And_1 Γ (T1 T2: ty) i :
+  is_unstamped_ty (length Γ) T1 →
+  is_unstamped_ty (length Γ) T2 →
+  Γ u⊢ₜ TLater (TAnd T1 T2), i <: TAnd (TLater T1) (TLater T2), i.
+Proof. intros; tcrush. Qed.
+Lemma Distr_TLater_And_2 Γ (T1 T2: ty) i :
+  Γ u⊢ₜ TAnd (TLater T1) (TLater T2), i <: TLater (TAnd T1 T2), i.
+Proof.
+Admitted.
 
 Example hheadConsTyp Γ :
   hclose (hlistT hx1) :: boolImplT :: Γ u⊢ₜ (hheadCons (hxm 1) (hxm 2)) 2 : hclose 𝐍.
@@ -387,30 +399,41 @@ Proof.
   (▶ (ListBody & { A <: Nat }), and we're back in business!
    *)
 
-  (** We know this is semantically sound, thanks to [Distr_TLater_And]. TODO: add a syntactic typing rule. *)
   have Hsub4 : Γ' u⊢ₜ
     hclose (hTAnd (▶ (hlistTBody hx1 hx0)) (▶ U)), 0 <:
-    hclose (▶ (hTAnd (hlistTBody hx1 hx0) U)), 0. admit.
+    hclose (▶ (hTAnd (hlistTBody hx1 hx0) U)), 0 by exact: Distr_TLater_And_2.
 
   move: (Ht) => /Subs_typed_nocoerce /(_ Hsub3) Ht'.
   move: Ht' => /Subs_typed_nocoerce /(_ Hsub4) Ht'.
+  have Ht'': Γ' u⊢ₜ htskip (consed) 2 :
+    hclose ((hTAnd (hlistTBody hx1 hx0) U))
+  by eapply (Subs_typed (i := 1)), Ht'; tcrush.
 
-  eapply (Subs_typed (i := 1)). apply TLaterL_stp; stcrush.
-  eapply AnfBind_typed; [apply Ht' | | stcrush].
-  change (shiftN 1 (hclose (▶ hTAnd (hlistTBody hx1 hx0) U))) with
-  (hclose (▶ hTAnd (hlistTBody hx2 hx1) U)).
-  set V := (hclose (▶ hTAnd (hlistTBody hx2 hx1) U)).
-  have HsubxA: V :: Γ' u⊢ₜ hclose (hp0 @; "A"), 1 <: ▶ ▶ 𝐍, 1
-    by apply (SelU_stp (L := hclose ⊥)); tcrush; varsub; asideLaters; lNext.
+
+  eapply AnfBind_typed; [apply Ht''| | stcrush].
+  change (shiftN 1 (hclose (hTAnd (hlistTBody hx1 hx0) U))) with
+    (hclose (hTAnd (hlistTBody hx2 hx1) U)).
+  set V := (hclose (hTAnd (hlistTBody hx2 hx1) U)).
 
   have Hsubxget1: V :: Γ' u⊢ₜ tv x0 :
-    hclose (▶ μ: self, val "head" : ⊤ →: hpv self @; "A")
+    hclose (μ: self, val "head" : ⊤ →: hpv self @; "A")
     by varsub; asideLaters; lThis; repeat lNext.
 
-  have Hsubxget2: V :: Γ' u⊢ₚ p0 :
-    hclose (μ: self, val "head" : ⊤ →: hpv self @; "A"), 1.
-    by varsub; asideLaters; lThis; repeat lNext.
+  have Hsubxget2: V :: Γ' u⊢ₜ tv x0 : hclose (val "head" : ⊤ →: hp0 @; "A") by
+    eapply TMuE_typed' with (T1 := hclose (val "head" : ⊤ →: hp0 @; "A"));
+    [apply Hsubxget1|].
+  eapply Subs_typed_nocoerce.
+  apply Hsubxget2.
+  tcrush.
+    by apply (SelU_stp (L := hclose ⊥)); tcrush; varsub; asideLaters; lNext.
+Time Qed.
 
+    (* Unshelve.
+  eapply HsubxA.
+
+  eapply (Path_typed (p := p0)).
+  eapply pand_typed.
+  typconstructor.
 
   have Hsubxget: V :: Γ' u⊢ₜ tv x0 :
     hclose (▶ val "head" : ⊤ →: ▶ hp0 @; "A").
@@ -420,9 +443,7 @@ Proof.
   cbv.
 
 
-  eapply (Path_typed (p := p0)), (p_subs_typed (i := 0) 0).
   asideLaters.
-  apply pand_typed.
   (* XXX: TMuE_typed should be for *path* typing, even for variables and plain substitution. *)
   eapply TMuE_typed'. var.
 
@@ -441,7 +462,7 @@ Proof.
   rewrite /hlistTBody /hlistTBodyGen.
   norm.
   (* We need to let-bind the result, so that we can use And-introduction (which is admissible after all, for paths). *)
-Abort.
+Abort. *)
   (* ttrans.
   (******)
 
