@@ -124,13 +124,19 @@ Lemma LSel_stp' Γ U {p l L i}:
   Γ u⊢ₜ L, i <: TSel p l, i.
 Proof. intros; ettrans; last exact: (@LSel_stp _ p); tcrush. Qed.
 
-Lemma AddI_stp Γ T i (Hst: is_unstamped_ty (length Γ) T) :
-  Γ u⊢ₜ T, 0 <: T, i.
+(** * Manipulating laters, basics. *)
+
+Lemma AddIJ_stp {Γ T} i j (Hst: is_unstamped_ty (length Γ) T) :
+  Γ u⊢ₜ T, j <: T, i + j.
 Proof.
   elim: i => [|n IHn]; first tcrush.
   ettrans; first apply IHn.
   ettrans; [exact: TAddLater_stp | tcrush].
 Qed.
+
+Lemma AddI_stp Γ T i (Hst: is_unstamped_ty (length Γ) T) :
+  Γ u⊢ₜ T, 0 <: T, i.
+Proof. rewrite -(plusnO i). by apply (AddIJ_stp i 0). Qed.
 
 Lemma AddIB_stp Γ T U i:
   Γ u⊢ₜ T, 0 <: U, 0 →
@@ -139,6 +145,8 @@ Proof.
   move => Hstp; elim: i => [|n IHn]; first tcrush.
   exact: TMono_stp.
 Qed.
+
+(** * Derived constructions. *)
 
 Lemma Let_typed Γ t u T U :
   Γ u⊢ₜ t : T →
@@ -312,4 +320,27 @@ Proof.
   move: (HuT1) => /is_unstamped_ren1_ty /is_unstamped_ren1_ty;
     rewrite -hrenS => HuT3.
   varsub; tcrush; rewrite !hsubst_comp; f_equal. autosubst.
+Qed.
+
+(** * Manipulating laters, more.
+
+ *)
+Lemma TLaterRN_stp Γ T i j:
+  is_unstamped_ty (length Γ) T →
+  Γ u⊢ₜ T, j + i <: iterate TLater j T, i.
+Proof.
+  elim: j T => /= [|j IHj] T HuT; rewrite ?iterate_0; tcrush.
+  ettrans; rewrite ?iterate_Sr /=.
+  - exact: TLaterR_stp.
+  - apply (IHj (TLater T)); stcrush.
+Qed.
+
+Lemma TLaterLN_stp {Γ T} i j :
+  is_unstamped_ty (length Γ) T →
+  Γ u⊢ₜ iterate TLater j T, i <: T, j + i.
+Proof.
+  elim: j T => /= [|j IHj] T HuT; rewrite ?iterate_0; tcrush.
+  ettrans; rewrite ?iterate_Sr /=.
+  - apply (IHj (TLater T)); stcrush.
+  - exact: TLaterL_stp.
 Qed.
