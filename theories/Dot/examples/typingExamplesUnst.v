@@ -6,6 +6,7 @@ From stdpp Require Import strings.
 From D Require Import tactics.
 From D.Dot Require Import syn exampleInfra unstampedness_binding scalaLib.
 From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived.
+Import DBNotation.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
