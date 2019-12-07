@@ -23,8 +23,10 @@ Ltac tcrush := repeat first [ eassumption | reflexivity | typconstructor | stcru
 
 Ltac wtcrush := repeat first [ fast_done | typconstructor | stcrush ] ; try solve [
   first [
+    by auto 2 using is_unstamped_ren1_ty, is_unstamped_ren1_path |
     try_once is_unstamped_weaken_dm |
-    try_once is_unstamped_weaken_ty ]; eauto ].
+    try_once is_unstamped_weaken_ty |
+    try_once is_unstamped_weaken_path ]; eauto].
 
 Ltac ettrans := eapply Trans_stp.
 
@@ -176,9 +178,8 @@ Lemma Bind2 Γ T1 T2 i:
   iterate TLater i T1.|[ren (+1)] :: Γ u⊢ₜ T1.|[ren (+1)], i <: T2, i →
   Γ u⊢ₜ T1, i <: μ T2, i.
 Proof.
-  intros Hus1 Hus2 Hsub; move: (Hus1) => /is_unstamped_ren1_ty Hus1'.
-  ettrans; last exact: (Mu_stp_mu Hsub).
-  exact: Stp_mu.
+  intros Hus1 Hus2 Hsub.
+  ettrans; last apply (Mu_stp_mu Hsub); [exact: Stp_mu | wtcrush].
 Qed.
 
 Lemma Bind1' Γ T1 T2:
@@ -286,16 +287,15 @@ Lemma tyApp_typed Γ T U V t :
   is_unstamped_ty (S (length Γ)) U →
   Γ u⊢ₜ tyApp t T : V.
 Proof.
-  move => Ht Hsub HsT1 HsU1; move: (HsT1) => /is_unstamped_ren1_ty HsT2.
-  move: (HsT2) => /is_unstamped_ren1_ty HsT3.
-  rewrite -hrenS in HsT3.
+  move => Ht Hsub HuT1 HuU1.
   eapply Let_typed; [exact: Ht| |tcrush].
-  eapply Let_typed; [by apply packTV_typed| |tcrush].
+  eapply Let_typed; [apply packTV_typed| |]; wtcrush.
   rewrite /= -!hrenS -/(typeEq _ _).
 
   apply /Subs_typed_nocoerce /Hsub.
 
   eapply Appv_typed'; first var.
-  apply: Var_typed_sub; repeat tcrush; rewrite /= hsubst_id //.
-  rewrite !hsubst_comp; f_equal. autosubst.
+  move: (HuT1) => /is_unstamped_ren1_ty /is_unstamped_ren1_ty;
+    rewrite -hrenS => HuT3.
+  varsub; tcrush; rewrite !hsubst_comp; f_equal. autosubst.
 Qed.

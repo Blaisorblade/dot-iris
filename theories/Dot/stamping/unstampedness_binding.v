@@ -301,9 +301,14 @@ Proof. move => Hv [|i] Hin /=; eauto with lia. Qed.
 
 Lemma is_unstamped_sub_ren_ty T r i j:
   is_unstamped_ren i j r →
-  is_unstamped_ty i T →
-  is_unstamped_ty j T.|[ren r].
+  is_unstamped_ty i T → is_unstamped_ty j T.|[ren r].
 Proof. rewrite -ty_rename_Lemma. apply is_unstamped_ren_mut. Qed.
+
+Lemma is_unstamped_sub_ren_path p r i j:
+  is_unstamped_ren i j r →
+  is_unstamped_path i p → is_unstamped_path j p.|[ren r].
+Proof. rewrite -path_rename_Lemma. apply is_unstamped_ren_mut. Qed.
+
 
 Lemma is_unstamped_ren1 i : is_unstamped_ren i (S i) (+1).
 Proof. apply is_unstamped_ren_shift; lia. Qed.
@@ -313,6 +318,11 @@ Lemma is_unstamped_ren1_ty i T:
   is_unstamped_ty i T ->
   is_unstamped_ty (S i) (T.|[ren (+1)]).
 Proof. exact: is_unstamped_sub_ren_ty. Qed.
+
+Lemma is_unstamped_ren1_path i p:
+  is_unstamped_path i p ->
+  is_unstamped_path (S i) (shift p).
+Proof. exact: is_unstamped_sub_ren_path. Qed.
 
 
 Lemma is_unstamped_sub_rev_var v s:
