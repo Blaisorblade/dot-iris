@@ -428,3 +428,10 @@ Lemma selfIntersect Γ T U i j:
   Γ u⊢ₜ T, i <: U, j + i →
   Γ u⊢ₜ T, i <: TAnd U T, j + i .
 Proof. intros; tcrush. exact: AddIJ_stp. Qed.
+
+(** Inverse of [TDistr_TLater_And_stp]. *)
+Lemma TDistr_TLater_And_stp_inv Γ (T1 T2: ty) i :
+  is_unstamped_ty (length Γ) T1 →
+  is_unstamped_ty (length Γ) T2 →
+  Γ u⊢ₜ TLater (TAnd T1 T2), i <: TAnd (TLater T1) (TLater T2), i.
+Proof. intros; tcrush. Qed.

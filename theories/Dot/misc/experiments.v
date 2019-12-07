@@ -182,15 +182,6 @@ Section Sec.
       + iApply ("IHj" $! (TLater T)).
   Qed.
 
-  Lemma Distr_TLater_And T1 T2 ρ v:
-    ⟦ TLater (TAnd T1 T2) ⟧ ρ v ⊣⊢
-    ⟦ TAnd (TLater T1) (TLater T2) ⟧ ρ v.
-  Proof.
-    iSplit.
-    iIntros "/= [??]"; eauto.
-    iIntros "/= [? ?]"; eauto.
-  Qed.
-
   Lemma selfIntersect Γ T U i j:
     Γ ⊨ T, i <: U, j + i -∗
     Γ ⊨ T, i <: TAnd U T, j + i .
