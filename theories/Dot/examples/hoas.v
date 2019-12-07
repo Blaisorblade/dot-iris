@@ -112,10 +112,6 @@ Definition hTAll : hterm ty → (hterm vl → hterm ty) → hterm ty := λ T U i
   (* liftBind (liftA1 TAll T i) U i. *)
   liftBind (TAll (T i)) U i.
 
-Eval cbv -[plus minus] in hTAll.
-Goal hTAll = λ T U i, (TAll (T i) (U (λ x, var_vl (x - S i)) (S i))). done. Abort.
-(* Goal hTAll = λ T U i, (∀ (T i), U (λ x, var_vl (x - S i)) (S i)). done. Abort. *)
-
 Definition hTMu : (hterm vl → hterm ty) → hterm ty := liftBind TMu.
 Definition hTVMem : label → hterm ty → hterm ty := λ l, liftA1 (TVMem l).
 Definition hTTMem : label → hterm ty → hterm ty → hterm ty := λ l, liftA2 (TTMem l).
@@ -154,14 +150,6 @@ Arguments hTSing /.
 
 End syn.
 
-Module tests1.
-(** * First test *)
-(* Definition ex := hclose $ hTAll (liftA0 TNat) (λ x, hTMu (λ y, pureS $ TAnd (TSing (pv x)) (TSing (pv y)))). *)
-(* ∀ (x : TNat), μ y, x.type ∧ x.type *)
-Definition ex := hclose $ hTAll hTNat (λ x, hTMu (λ y, hTAnd (hTSing (hpv x)) (hTSing (hpv y)))).
-Eval cbv in ex.
-End tests1.
-
 Module Import hoasNotation.
 Export syn.
 (* Notations. *)
@@ -175,7 +163,6 @@ Notation " {@ x ; y ; .. ; z } " :=
   : hdms_scope.
 
 Close Scope hdms_scope.
-Arguments hvobj _%hdms_scope.
 
 (* Useful for writing functions whose body is in scope [%HT]. *)
 Notation "'λT' x .. y , t" := (fun x => .. (fun y => t%HT) ..)
@@ -255,55 +242,32 @@ End hoasNotation.
 
 
 Module tests.
+(** * First test *)
+
+(* ∀ (x : TNat), μ y, x.type ∧ x.type *)
+Definition ex0 := hclose $ hTAll hTNat (λ x, hTMu (λ y, hTAnd (hTSing (hpv x)) (hTSing (hpv y)))).
+Eval cbv in ex0.
+
+Eval cbv -[plus minus] in hTAll.
+Goal hTAll = λ T U i, (TAll (T i) (U (λ x, var_vl (x - S i)) (S i))). done. Abort.
+(* Goal hTAll = λ T U i, (∀ (T i), U (λ x, var_vl (x - S i)) (S i)). done. Abort. *)
+
 Eval cbv in hclose {@ hTNat ; hTNat ; hTNat } %HT.
 
-Definition ex := hclose $ hTAll hTNat (λ x, hTMu (λ y, hTAnd (hTSing (hpv x)) (hTSing (hpv y)))).
+Definition ex := hclose $ ∀: x : hTNat, hTMu (λ y, hTAnd (hTSing (hpv x)) (hTSing (hpv y))).
+Goal ex = ex0. done. Abort.
 
 Definition ex2 := hclose (λ: f, htv f).
 Eval cbv in ex2.
 Goal ex2 = vabs (tv DBNotation.x0). done. Qed.
 Definition ex3 := hclose (λ:: f x, htapp (htv f) (htv x)).
 Eval cbv in ex3.
-Goal ex3 = tv (vabs (tv (vabs (tapp (tv DBNotation.x1) (tv DBNotation.x0))))). done. Qed.
-
-(** * Second, real, test *)
-Definition listTBodyGen bool sci L U : hterm ty := μ λT self, {@
-  type "A" >: L <: U;
-  val "isEmpty" : ⊤ →: hpv bool @; "Boolean"; (* bool.Boolean *)
-  val "head" : ⊤ →: hpv self @; "A"; (* self.A *)
-  val "tail" : ⊤ →: hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv self @; "A" )
-}.
-
-Definition consTResConcr bool sci U := listTBodyGen bool sci U U.
-
- (* : hty_scope. *)
-Definition consTConcr bool sci : hterm ty :=
-  ∀: x : tparam "T",
-    hpv x @; "T" →:
-      hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv x @; "T") →:
-      (consTResConcr bool sci (hpv x @; "T")).
-
-(* Notation "'∀:' T ',' U" := (hTAll T U) (at level 49, T at level 98, U at level 98).
-Definition consTConcr bool sci : hterm ty :=
-  ∀: tparam "T", (λT x,
-    (hpv x @; "T" →:
-      hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv x @; "T") →:
-      (consTResConcr bool sci (hpv x @; "T")))). *)
-
-Definition consTConcr' bool sci : hterm ty :=
-  hTAll (tparam "T") (λT x,
-    (hpv x @; "T" →:
-      hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv x @; "T") →:
-      (consTResConcr bool sci (hpv x @; "T"))))%HT.
-
-Goal consTConcr' = consTConcr. done. Qed.
+Goal ex3 = tv (vabs (tv (vabs (tapp (tv DBNotation.x1) (tv DBNotation.x0))))). done. Abort.
 
 (* Notation "∀: x .. y , P" := (hTAll x, .. (hTAll y, P) ..)
   (at level 200, x binder, y binder, right associativity,
   format "'[  ' '[  ' ∀:  x  ..  y ']' ,  '/' P ']'") : type_scope. *)
 
-
-Eval cbv in hclose $ consTConcr hx1 hx0.
 
 End tests.
 
