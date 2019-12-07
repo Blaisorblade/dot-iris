@@ -377,6 +377,11 @@ Proof.
   move: (ren_upn_gen i 0 1). by rewrite plusnS !plusnO hsubst_comp =>->.
 Qed.
 
+Lemma cons_subst i x s (c : X → X)
+  (Hsub: ∀ y, (c y).|[s] = c y.|[s]):
+  (iterate c i x).|[s] = iterate c i x.|[s].
+Proof. elim: i => [|i IHi]; by rewrite ?iterate_0 ?iterate_S //= Hsub IHi. Qed.
+
 Lemma closed_subst_idsρ x n :
   nclosed x n → x.|[to_subst (idsσ n)] = x.
 Proof. intro Hcl. rewrite (Hcl _ ids (@idsσ_eq_ids n)). by asimpl. Qed.

@@ -133,7 +133,10 @@ Proof.
 Qed.
 
 Lemma tskip_subst i e s: (iterate tskip i e).|[s] = iterate tskip i e.|[s].
-Proof. elim: i => [|i IHi]; by rewrite ?iterate_0 ?iterate_S //= IHi. Qed.
+Proof. exact: cons_subst. Qed.
+
+Lemma TLater_subst i T s: (iterate TLater i T).|[s] = iterate TLater i T.|[s].
+Proof. exact: cons_subst. Qed.
 
 Lemma fv_head l d ds n: nclosed ((l, d) :: ds) n → nclosed d n.
 Proof. exact: fv_cons_pair_inv_head. Qed.
