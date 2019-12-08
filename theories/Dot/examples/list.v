@@ -195,7 +195,7 @@ Proof.
 Qed.
 
 
-(** Link lists with booleans. *)
+(** * Link lists with booleans. *)
 
 (* Naive attempt; this fails avoidance. *)
 (*
@@ -205,28 +205,14 @@ Example clListTyp Γ : Γ u⊢ₜ clListV : listT.
   Fail change (shift listT) with (listT).
   Fail apply listTyp.
 Abort. *)
-Definition hvabs' x := htv (hvabs x).
-Definition hlett t u := htapp (hvabs' u) t.
-Arguments hvabs' /.
-Arguments hlett /.
-Notation "hlett: x := t in: u" := (htapp (λ:: x, u) t) (at level 80).
 
-Infix "$:" := htapp (at level 68, left associativity).
-Definition hpackTV l T := ν: self, {@ type l = T }.
-Definition htyApp l t T :=
-  hlett: x := t in:
-  hlett: a := htv (hpackTV l T) in:
-    htv x $: htv a.
-Definition hAnfBind t := hlett: x := t in: htv x.
-
-(* Try1, working well? *)
-Definition clListV'0 body :=
+Definition hclListV' (hbody : hvl → hvl → htm) :=
   hlett: bool := htv (pureS boolImpl) in:
   hlett: list := htv (hlistModV bool) in:
-    body bool list.
+    hbody bool list.
 
-Definition clListV' body := clListV'0 (λ _ _, pureS body).
-Definition clListV'2 := clListV'0.
+(** Have [clListV'] take an open de BruijN [tm]. *)
+Definition clListV' (body : tm) := hclListV' (λ _ _, pureS body).
 
 Example clListTyp' Γ (T : ty) body
   (Ht : shift (hclose (hlistModT hx0)) :: boolImplT :: Γ u⊢ₜ body : shift (shift T)) :
@@ -241,18 +227,16 @@ Example clListTypNat Γ :
   Γ u⊢ₜ hclose (clListV' (hclose (htv (hvnat 1)))) : hclose 𝐍.
 Proof. apply clListTyp'. tcrush. Qed.
 
-
-
-(* Try2. Try taking a HOAS body. Works less well. *)
-
 (* Argh. Variable by de Bruijn level. Not good. *)
 Definition hxm i : hvl := λ j, var_vl (j - i).
 Goal hxm = λ i, ren (λ j, j - i). done. Abort.
 
-(* Definition clListV' body := hlett: bool := (htv (pureS boolImpl)), hlett (htv (hlistModV bool)) body. *)
-Example clListTyp'2 Γ (T : ty) body
-  (Ht : hclose (hlistModT hx1) :: boolImplT :: Γ u⊢ₜ (body (hxm 1) (hxm 2)) 2 : shift (shift T)) :
-  Γ u⊢ₜ hclose (clListV'2 body) : T.
+(** This typing lemma generalizes over an arbitrary body [hbody], taken as open HOAS terms. To close it,
+we must turn it into a concrete term exactly as [hclListV'] would, which exposes implementation details
+I'd rather not. *)
+Example clListTyp'2 Γ (T : ty) hbody
+  (Ht : hclose (hlistModT hx1) :: boolImplT :: Γ u⊢ₜ hbody (hxm 1) (hxm 2) 2 : shift (shift T)) :
+  Γ u⊢ₜ hclose (hclListV' hbody) : T.
 Proof.
   eapply Let_typed; first apply boolImplTyp.
   eapply Let_typed; first apply listTyp.
@@ -260,26 +244,19 @@ Proof.
 Qed.
 
 Example clListTypNat2 Γ :
-  Γ u⊢ₜ hclose (clListV'2 (λ _ _, htv (hvnat 1))) : hclose 𝐍.
+  Γ u⊢ₜ hclose (hclListV' (λ _ _, htv (hvnat 1))) : hclose 𝐍.
 Proof. apply clListTyp'2. tcrush. Qed.
 
 (** XXX: try recursive linking? Probably not. *)
 
-Notation "a @: b" := (htproj a b) (at level 59, b at next level).
+(** * Link lists with booleans and with a client using the list API. *)
+
 Definition hheadCons (bool list : hvl) :=
   htskip (htskip (htproj (hAnfBind (htskip
     (htyApp "T" (htv list @: "cons") 𝐍
       $: htv (hvnat 0)
       $: (htskip (htv list @: "nil"))))) "head" $: htv (hvnat 0))).
 (* Invoking a method from an abstract type (here, [list @; "List"] needs a skip. *)
-
-Definition anfBind t := lett t (tv x0).
-Lemma AnfBind_typed Γ t (T U: ty) :
-  Γ u⊢ₜ t : T →
-  shift T :: Γ u⊢ₜ tv x0 : shift U →
-  is_unstamped_ty (length Γ) T →
-  Γ u⊢ₜ anfBind t : U.
-Proof. intros; eapply Let_typed; eauto. Qed.
 
 Example hheadConsTyp Γ :
   hclose (hlistModT hx1) :: boolImplT :: Γ u⊢ₜ (hheadCons (hxm 1) (hxm 2)) 2 : hclose 𝐍.
@@ -348,5 +325,5 @@ Proof.
 Qed.
 
 Example clListTypNat3 Γ :
-  Γ u⊢ₜ hclose (clListV'2 hheadCons): hclose 𝐍.
+  Γ u⊢ₜ hclose (hclListV' hheadCons) : hclose 𝐍.
 Proof. apply clListTyp'2, hheadConsTyp. Qed.

@@ -457,3 +457,12 @@ Lemma TDistr_TLater_Or_stp_inv Γ (T1 T2: ty) i :
   is_unstamped_ty (length Γ) T2 →
   Γ u⊢ₜ TOr (TLater T1) (TLater T2), i <: TLater (TOr T1 T2), i.
 Proof. intros; tcrush. Qed.
+
+Definition anfBind t := lett t (tv x0).
+
+Lemma AnfBind_typed Γ t (T U: ty) :
+  Γ u⊢ₜ t : T →
+  shift T :: Γ u⊢ₜ tv x0 : shift U →
+  is_unstamped_ty (length Γ) T →
+  Γ u⊢ₜ anfBind t : U.
+Proof. intros; eapply Let_typed; eauto. Qed.
