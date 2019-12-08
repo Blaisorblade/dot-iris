@@ -105,22 +105,22 @@ Definition hconsTConcr bool sci : hterm ty :=
       hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv x @; "T") →:
       (hconsTResConcr bool sci (hpv x @; "T")).
 
-Definition hlistTConcrBody bool sci : hty := {@
+Definition hlistModTConcrBody bool sci : hty := {@
   typeEq "List" $ hlistT bool sci;
   val "nil" : hnilT sci;
   val "cons" : hconsTConcr bool sci
 }.
 
-Definition hlistTConcr bool : hty := μ: sci, hlistTConcrBody bool sci.
+Definition hlistModTConcr bool : hty := μ: sci, hlistModTConcrBody bool sci.
 
 Definition hnilTConcr bool sci : hty := hlistTGen bool sci ⊥ ⊥.
 
-Example nilTyp Γ : hclose (▶ hlistTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
+Example nilTyp Γ : hclose (▶ hlistModTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
   hclose (htv (hnilV hx1)) : hclose (hnilT hx0).
 Proof.
   apply (Subs_typed_nocoerce $ hclose $ hnilTConcr hx1 hx0).
   - evar (T : ty).
-    set L :=  hclose (▶ hlistTConcrBody hx1 hx0).
+    set L :=  hclose (▶ hlistModTConcrBody hx1 hx0).
     have := trueTyp Γ [hclose ⊤; T; L].
     have := loopTyp (hclose ⊤ :: T :: L :: boolImplT :: Γ).
     rewrite {}/T/= => Ht Hl.
@@ -133,7 +133,7 @@ Proof.
     lThis. lThis.
 Qed.
 
-Example consTyp Γ : hclose (▶ hlistTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
+Example consTyp Γ : hclose (▶ hlistModTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
   hclose (htv (hconsV hx1)) : hclose (hconsTConcr hx1 hx0).
 Proof.
   epose proof falseTyp Γ [_; _; _; _; _; _] as Ht; cbn in Ht.
@@ -161,7 +161,7 @@ Proof.
 Qed.
 
 Ltac norm := cbv; hideCtx.
-Lemma consTSub Γ : hclose (hlistTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
+Lemma consTSub Γ : hclose (hlistModTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
   hclose (hconsTConcr hx1 hx0), 0 <: hclose (hconsT hx0), 0.
 Proof.
   tcrush; rewrite !iterate_S !iterate_0; hideCtx.
@@ -169,7 +169,7 @@ Proof.
   apply Bind1; tcrush; by lThis.
 Qed.
 
-Example listTypConcr Γ : boolImplT :: Γ u⊢ₜ hclose (htv (hlistV hx0)) : hclose (hlistTConcr hx0).
+Example listTypConcr Γ : boolImplT :: Γ u⊢ₜ hclose (htv (hlistV hx0)) : hclose (hlistModTConcr hx0).
 Proof.
   have Hn := nilTyp Γ.
   (* Without the call to [dvl_typed], Coq would (smartly) default to [dvabs_typed] *)
