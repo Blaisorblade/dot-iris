@@ -20,8 +20,7 @@ Lemma trueTyp Γ Γ'' : Γ'' ++ boolImplT :: Γ u⊢ₜ
   hclose (htrueTm (hx (length Γ''))) : hclose (hpx (length Γ'') @; "Boolean").
 Proof.
   have ?: length Γ'' < length (Γ'' ++ boolImplT :: Γ) by rewrite app_length /=; lia.
-  rewrite /htrueTm/= -(iterate_S tskip 0).
-  apply (Subs_typed (T1 := hclose (▶ hpx (length Γ'') @; "Boolean")));
+  apply (Subs_typed (i := 1) (T1 := hclose (▶ hpx (length Γ'') @; "Boolean")));
     rewrite /= plusnO; tcrush.
     eapply Subs_typed_nocoerce.
   - eapply TMuE_typed'; first eapply Var_typed'; by [rewrite lookup_app_r ?Nat.sub_diag|].
@@ -32,18 +31,53 @@ Lemma falseTyp Γ Γ'' : Γ'' ++ boolImplT :: Γ u⊢ₜ
   hclose (hfalseTm (hx (length Γ''))) : hclose (hpx (length Γ'') @; "Boolean").
 Proof.
   have ?: length Γ'' < length (Γ'' ++ boolImplT :: Γ) by rewrite app_length /=; lia.
-  rewrite /hfalseTm /= -(iterate_S tskip 0).
-  apply (Subs_typed (T1 := hclose (▶ hpx (length Γ'') @; "Boolean")));
+  apply (Subs_typed (i := 1) (T1 := hclose (▶ hpx (length Γ'') @; "Boolean")));
     rewrite /= plusnO; tcrush.
   eapply Subs_typed_nocoerce.
   - eapply TMuE_typed'; first eapply Var_typed'; by [rewrite lookup_app_r ?Nat.sub_diag|].
-  -
-    (* Optional tactic, just for seeing what happens: *)
+  - (* Optional tactic, just for seeing what happens: *)
     lNext; rewrite -(decomp_s _ (ids _ .: ren _)) /=.
     (* Needed: *)
     repeat lNext.
 Qed.
 
+(** * Interface of the list module. *)
+
+Definition hlistTGen bool sci L U : hty := μ: self, {@
+  type "A" >: L <: U;
+  val "isEmpty" : ⊤ →: hpv bool @; "Boolean";
+  val "head" : ⊤ →: hpv self @; "A";
+  val "tail" : ⊤ →: hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv self @; "A" )
+}.
+
+(** ** The list type itself. *)
+Definition hlistT bool sci := hlistTGen bool sci ⊥ ⊤.
+
+(** This ▶ Later is needed because
+- [hnilT] types a value member "nil" (which can't use skips), and
+- this value member has abstract type [sci @; "List"], and
+- when we initialize "nil", [sci] has type [▶(type "List" >: ... <: ...], so
+  we can't deduce anything about [sci@;"List"], only something about
+  [▶(sci@; "List")]. *)
+Definition hnilT sci := hTAnd (▶ hpv sci @; "List") (typeEq "A" ⊥).
+
+(** ∀(x: {A})∀(hd: x.A)∀(tl: sci.List∧{A <: x.A})sci.List∧{A <: x.A} *)
+Definition hconsT sci : hty :=
+  ∀: x : (tparam "T"),
+    hpv x @; "T" →:
+    (hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv x @; "T")) →:
+    hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv x @; "T").
+
+(** mod stands for module. *)
+Definition hlistModTBody bool sci : hty := {@
+  type "List" >: ⊥ <: hlistT bool sci;
+  val "nil" : hnilT sci;
+  val "cons" : hconsT sci
+}.
+Definition hlistModT bool : hty := μ: sci, hlistModTBody bool sci.
+
+
+(** * Implementation of the list module. *)
 Definition hnilV bool : hvl := ν: self, {@
   type "A" = ⊥;
   val "isEmpty" = λ: _, htrueTm bool;
@@ -62,46 +96,15 @@ Program Definition hconsV bool : hvl :=
     val "tail" = λ: _, htv tl
   }.
 
-Definition hlistTBodyGen bool sci (L U : hty) : hty := μ: self, {@
-  type "A" >: L <: U;
-  val "isEmpty" : ⊤ →: hpv bool @; "Boolean";
-  val "head" : ⊤ →: hpv self @; "A";
-  val "tail" : ⊤ →: hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv self @; "A" )
-}.
-
-Definition hlistTBody bool sci := hlistTBodyGen bool sci ⊥ ⊤.
-
-Definition hlistV bool : hvl := ν: self, {@
-  type "List" = hlistTBody bool self;
+Definition hlistModV bool : hvl := ν: self, {@
+  type "List" = hlistT bool self;
   val "nil" = hnilV bool;
   val "cons" = hconsV bool
 }.
 
-(** This ▶ Later is needed because
-- [hnilT] types a value member "nil" (which can't use skips), and
-- this value member has abstract type [sci @; "List"], and
-- when we initialize "nil", [sci] has type [▶(type "List" >: ... <: ...], so
-  we can't deduce anything about [sci@;"List"], only something about
-  [▶(sci@; "List")]. *)
-Definition hnilT sci := hTAnd (▶ hpv sci @; "List") (typeEq "A" ⊥).
 
-(** ∀(x: {A})∀(hd: x.A)∀(tl: sci.List∧{A <: x.A})sci.List∧{A <: x.A} *)
-Definition hconsT sci : hty :=
-  ∀: x : (tparam "T"),
-    hpv x @; "T" →:
-    (hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv x @; "T")) →:
-    hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv x @; "T").
-
-Definition hlistModTBody bool sci : hty := {@
-  type "List" >: ⊥ <: hlistTBody bool sci;
-  val "nil" : hnilT sci;
-  val "cons" : hconsT sci
-}.
-Definition hlistModT bool : hty := μ: sci, hlistModTBody bool sci.
-(* XXX deprecated. *)
-Definition hlistT := hlistModT.
-
-Definition hconsTResConcr bool sci U := hlistTBodyGen bool sci U U.
+(** * Auxiliary types, needed in derivations of typing judgments. *)
+Definition hconsTResConcr bool sci U := hlistTGen bool sci U U.
 
 Definition hconsTConcr bool sci : hterm ty :=
   ∀: x: tparam "T",
@@ -109,22 +112,22 @@ Definition hconsTConcr bool sci : hterm ty :=
       hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv x @; "T") →:
       (hconsTResConcr bool sci (hpv x @; "T")).
 
-Definition hlistTConcrBody bool sci : hty := {@
-  typeEq "List" $ hlistTBody bool sci;
+Definition hlistModTConcrBody bool sci : hty := {@
+  typeEq "List" $ hlistT bool sci;
   val "nil" : hnilT sci;
   val "cons" : hconsTConcr bool sci
 }.
 
-Definition hlistTConcr bool : hty := μ: sci, hlistTConcrBody bool sci.
+Definition hlistModTConcr bool : hty := μ: sci, hlistModTConcrBody bool sci.
 
-Definition hnilTConcr bool sci : hty := hlistTBodyGen bool sci ⊥ ⊥.
+(** * Proofs that [hlistModV] has type [hlistModT]. *)
 
-Example nilTyp Γ : hclose (▶ hlistTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
+Example nilTyp Γ : hclose (▶ hlistModTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
   hclose (htv (hnilV hx1)) : hclose (hnilT hx0).
 Proof.
-  apply (Subs_typed_nocoerce $ hclose $ hnilTConcr hx1 hx0).
+  apply (Subs_typed_nocoerce $ hclose $ hlistTGen hx1 hx0 ⊥ ⊥ ).
   - evar (T : ty).
-    set L :=  hclose (▶ hlistTConcrBody hx1 hx0).
+    set L :=  hclose (▶ hlistModTConcrBody hx1 hx0).
     have := trueTyp Γ [hclose ⊤; T; L].
     have := loopTyp (hclose ⊤ :: T :: L :: boolImplT :: Γ).
     rewrite {}/T/= => Ht Hl.
@@ -137,7 +140,7 @@ Proof.
     lThis. lThis.
 Qed.
 
-Example consTyp Γ : hclose (▶ hlistTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
+Example consTyp Γ : hclose (▶ hlistModTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
   hclose (htv (hconsV hx1)) : hclose (hconsTConcr hx1 hx0).
 Proof.
   epose proof falseTyp Γ [_; _; _; _; _; _] as Ht; cbn in Ht.
@@ -165,7 +168,7 @@ Proof.
 Qed.
 
 Ltac norm := cbv; hideCtx.
-Lemma consTSub Γ : hclose (hlistTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
+Lemma consTSub Γ : hclose (hlistModTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
   hclose (hconsTConcr hx1 hx0), 0 <: hclose (hconsT hx0), 0.
 Proof.
   tcrush; rewrite !iterate_S !iterate_0; hideCtx.
@@ -173,7 +176,7 @@ Proof.
   apply Bind1; tcrush; by lThis.
 Qed.
 
-Example listTypConcr Γ : boolImplT :: Γ u⊢ₜ hclose (htv (hlistV hx0)) : hclose (hlistTConcr hx0).
+Example listTypConcr Γ : boolImplT :: Γ u⊢ₜ hclose (htv (hlistModV hx0)) : hclose (hlistModTConcr hx0).
 Proof.
   have Hn := nilTyp Γ.
   (* Without the call to [dvl_typed], Coq would (smartly) default to [dvabs_typed] *)
@@ -181,7 +184,7 @@ Proof.
   tcrush.
 Qed.
 
-Example listTyp Γ : boolImplT :: Γ u⊢ₜ hclose (htv (hlistV hx0)) : hclose (hlistT hx0).
+Example listTyp Γ : boolImplT :: Γ u⊢ₜ hclose (htv (hlistModV hx0)) : hclose (hlistModT hx0).
 Proof.
   have Hv := listTypConcr Γ.
   have Hsub := consTSub Γ.
@@ -192,7 +195,7 @@ Proof.
 Qed.
 
 
-(** Link lists with booleans. *)
+(** * Link lists with booleans. *)
 
 (* Naive attempt; this fails avoidance. *)
 (*
@@ -202,31 +205,17 @@ Example clListTyp Γ : Γ u⊢ₜ clListV : listT.
   Fail change (shift listT) with (listT).
   Fail apply listTyp.
 Abort. *)
-Definition hvabs' x := htv (hvabs x).
-Definition hlett t u := htapp (hvabs' u) t.
-Arguments hvabs' /.
-Arguments hlett /.
-Notation "hlett: x := t in: u" := (htapp (λ:: x, u) t) (at level 80).
 
-Infix "$:" := htapp (at level 68, left associativity).
-Definition hpackTV l T := ν: self, {@ type l = T }.
-Definition htyApp l t T :=
-  hlett: x := t in:
-  hlett: a := htv (hpackTV l T) in:
-    htv x $: htv a.
-Definition hAnfBind t := hlett: x := t in: htv x.
-
-(* Try1, working well? *)
-Definition clListV'0 body :=
+Definition hclListV' (hbody : hvl → hvl → htm) :=
   hlett: bool := htv (pureS boolImpl) in:
-  hlett: list := htv (hlistV bool) in:
-    body bool list.
+  hlett: list := htv (hlistModV bool) in:
+    hbody bool list.
 
-Definition clListV' body := clListV'0 (λ _ _, pureS body).
-Definition clListV'2 := clListV'0.
+(** Have [clListV'] take an open de BruijN [tm]. *)
+Definition clListV' (body : tm) := hclListV' (λ _ _, pureS body).
 
 Example clListTyp' Γ (T : ty) body
-  (Ht : shift (hclose (hlistT hx0)) :: boolImplT :: Γ u⊢ₜ body : shift (shift T)) :
+  (Ht : shift (hclose (hlistModT hx0)) :: boolImplT :: Γ u⊢ₜ body : shift (shift T)) :
   Γ u⊢ₜ hclose (clListV' body) : T.
 Proof.
   eapply Let_typed; first apply boolImplTyp.
@@ -238,21 +227,16 @@ Example clListTypNat Γ :
   Γ u⊢ₜ hclose (clListV' (hclose (htv (hvnat 1)))) : hclose 𝐍.
 Proof. apply clListTyp'. tcrush. Qed.
 
-
-
-(* Try2. Try taking a HOAS body. Works less well. *)
-
 (* Argh. Variable by de Bruijn level. Not good. *)
 Definition hxm i : hvl := λ j, var_vl (j - i).
-Definition hxm' i : hvl := ren (λ j, j - i).
-Goal hxm = hxm'. done. Qed.
+Goal hxm = λ i, ren (λ j, j - i). done. Abort.
 
-(* Definition clListV' body := hlett: bool := (htv (pureS boolImpl)), hlett (htv (hlistV bool)) body. *)
-Example clListTyp'2 Γ (T : ty) body
-  (* (Ht : hclose (hlistT hx1) :: boolImplT :: Γ u⊢ₜ hclose (body hx1 hx0) : shift (shift T)) : *)
-  (Ht : hclose (hlistT hx1) :: boolImplT :: Γ u⊢ₜ (body (hxm 1) (hxm 2)) 2 : shift (shift T)) :
-  (* (Ht : shift (hclose (hlistT hx0)) :: boolImplT :: Γ u⊢ₜ hclose (body (hx (-1)) (hx (-2)) 2 : shift (shift T)) : *)
-  Γ u⊢ₜ hclose (clListV'2 body) : T.
+(** This typing lemma generalizes over an arbitrary body [hbody], taken as open HOAS terms. To close it,
+we must turn it into a concrete term exactly as [hclListV'] would, which exposes implementation details
+I'd rather not. *)
+Example clListTyp'2 Γ (T : ty) hbody
+  (Ht : hclose (hlistModT hx1) :: boolImplT :: Γ u⊢ₜ hbody (hxm 1) (hxm 2) 2 : shift (shift T)) :
+  Γ u⊢ₜ hclose (hclListV' hbody) : T.
 Proof.
   eapply Let_typed; first apply boolImplTyp.
   eapply Let_typed; first apply listTyp.
@@ -260,12 +244,13 @@ Proof.
 Qed.
 
 Example clListTypNat2 Γ :
-  Γ u⊢ₜ hclose (clListV'2 (λ _ _, htv (hvnat 1))) : hclose 𝐍.
+  Γ u⊢ₜ hclose (hclListV' (λ _ _, htv (hvnat 1))) : hclose 𝐍.
 Proof. apply clListTyp'2. tcrush. Qed.
 
 (** XXX: try recursive linking? Probably not. *)
 
-Notation "a @: b" := (htproj a b) (at level 59, b at next level).
+(** * Link lists with booleans and with a client using the list API. *)
+
 Definition hheadCons (bool list : hvl) :=
   htskip (htskip (htproj (hAnfBind (htskip
     (htyApp "T" (htv list @: "cons") 𝐍
@@ -273,16 +258,8 @@ Definition hheadCons (bool list : hvl) :=
       $: (htskip (htv list @: "nil"))))) "head" $: htv (hvnat 0))).
 (* Invoking a method from an abstract type (here, [list @; "List"] needs a skip. *)
 
-Definition anfBind t := lett t (tv x0).
-Lemma AnfBind_typed Γ t (T U: ty) :
-  Γ u⊢ₜ t : T →
-  shift T :: Γ u⊢ₜ tv x0 : shift U →
-  is_unstamped_ty (length Γ) T →
-  Γ u⊢ₜ anfBind t : U.
-Proof. intros; eapply Let_typed; eauto. Qed.
-
 Example hheadConsTyp Γ :
-  hclose (hlistT hx1) :: boolImplT :: Γ u⊢ₜ (hheadCons (hxm 1) (hxm 2)) 2 : hclose 𝐍.
+  hclose (hlistModT hx1) :: boolImplT :: Γ u⊢ₜ (hheadCons (hxm 1) (hxm 2)) 2 : hclose 𝐍.
 Proof.
   match goal with
     |- ?Γ u⊢ₜ _ : _ =>
@@ -310,8 +287,8 @@ Proof.
   (* Here we produce a list of later nats, since we produce a list of p.A where p is the
   "type" argument and p : { A <: Nat} so p.A <: ▶ Nat. *)
   set U := (type "A" >: ⊥ <: ▶ 𝐍)%HT.
-  set V := (hclose (hTAnd (hlistTBody hx1 hx0) U)).
-  apply AnfBind_typed with (T := hclose ((hTAnd (hlistTBody hx1 hx0) U)));
+  set V := (hclose (hTAnd (hlistT hx1 hx0) U)).
+  apply AnfBind_typed with (T := hclose ((hTAnd (hlistT hx1 hx0) U)));
     stcrush; first last.
   {
     eapply Subs_typed_nocoerce; first
@@ -348,5 +325,5 @@ Proof.
 Qed.
 
 Example clListTypNat3 Γ :
-  Γ u⊢ₜ hclose (clListV'2 hheadCons): hclose 𝐍.
+  Γ u⊢ₜ hclose (hclListV' hheadCons) : hclose 𝐍.
 Proof. apply clListTyp'2, hheadConsTyp. Qed.

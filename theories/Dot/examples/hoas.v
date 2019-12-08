@@ -238,6 +238,25 @@ Notation hp4 := (hpx 4).
 Notation hp5 := (hpx 5).
 Notation hp6 := (hpx 6).
 
+(** Additional syntactic sugar, in HOAS version *)
+Definition hvabs' x := htv (hvabs x).
+Arguments hvabs' /.
+
+Definition hlett t u := htapp (hvabs' u) t.
+Arguments hlett /.
+Notation "hlett: x := t in: u" := (htapp (λ:: x, u) t) (at level 80).
+
+Infix "$:" := htapp (at level 68, left associativity).
+Notation "a @: b" := (htproj a b) (at level 59, b at next level).
+
+Definition hpackTV l T := ν: self, {@ type l = T }.
+Definition htyApp l t T :=
+  hlett: x := t in:
+  hlett: a := htv (hpackTV l T) in:
+    htv x $: htv a.
+
+Definition hAnfBind t := hlett: x := t in: htv x.
+
 End hoasNotation.
 
 
