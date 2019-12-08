@@ -20,8 +20,7 @@ Lemma trueTyp Γ Γ'' : Γ'' ++ boolImplT :: Γ u⊢ₜ
   hclose (htrueTm (hx (length Γ''))) : hclose (hpx (length Γ'') @; "Boolean").
 Proof.
   have ?: length Γ'' < length (Γ'' ++ boolImplT :: Γ) by rewrite app_length /=; lia.
-  rewrite /htrueTm/= -(iterate_S tskip 0).
-  apply (Subs_typed (T1 := hclose (▶ hpx (length Γ'') @; "Boolean")));
+  apply (Subs_typed (i := 1) (T1 := hclose (▶ hpx (length Γ'') @; "Boolean")));
     rewrite /= plusnO; tcrush.
     eapply Subs_typed_nocoerce.
   - eapply TMuE_typed'; first eapply Var_typed'; by [rewrite lookup_app_r ?Nat.sub_diag|].
@@ -32,13 +31,11 @@ Lemma falseTyp Γ Γ'' : Γ'' ++ boolImplT :: Γ u⊢ₜ
   hclose (hfalseTm (hx (length Γ''))) : hclose (hpx (length Γ'') @; "Boolean").
 Proof.
   have ?: length Γ'' < length (Γ'' ++ boolImplT :: Γ) by rewrite app_length /=; lia.
-  rewrite /hfalseTm /= -(iterate_S tskip 0).
-  apply (Subs_typed (T1 := hclose (▶ hpx (length Γ'') @; "Boolean")));
+  apply (Subs_typed (i := 1) (T1 := hclose (▶ hpx (length Γ'') @; "Boolean")));
     rewrite /= plusnO; tcrush.
   eapply Subs_typed_nocoerce.
   - eapply TMuE_typed'; first eapply Var_typed'; by [rewrite lookup_app_r ?Nat.sub_diag|].
-  -
-    (* Optional tactic, just for seeing what happens: *)
+  - (* Optional tactic, just for seeing what happens: *)
     lNext; rewrite -(decomp_s _ (ids _ .: ren _)) /=.
     (* Needed: *)
     repeat lNext.
@@ -244,14 +241,11 @@ Proof. apply clListTyp'. tcrush. Qed.
 
 (* Argh. Variable by de Bruijn level. Not good. *)
 Definition hxm i : hvl := λ j, var_vl (j - i).
-Definition hxm' i : hvl := ren (λ j, j - i).
-Goal hxm = hxm'. done. Qed.
+Goal hxm = λ i, ren (λ j, j - i). done. Abort.
 
 (* Definition clListV' body := hlett: bool := (htv (pureS boolImpl)), hlett (htv (hlistV bool)) body. *)
 Example clListTyp'2 Γ (T : ty) body
-  (* (Ht : hclose (hlistT hx1) :: boolImplT :: Γ u⊢ₜ hclose (body hx1 hx0) : shift (shift T)) : *)
   (Ht : hclose (hlistT hx1) :: boolImplT :: Γ u⊢ₜ (body (hxm 1) (hxm 2)) 2 : shift (shift T)) :
-  (* (Ht : shift (hclose (hlistT hx0)) :: boolImplT :: Γ u⊢ₜ hclose (body (hx (-1)) (hx (-2)) 2 : shift (shift T)) : *)
   Γ u⊢ₜ hclose (clListV'2 body) : T.
 Proof.
   eapply Let_typed; first apply boolImplTyp.
