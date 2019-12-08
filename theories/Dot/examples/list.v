@@ -68,7 +68,7 @@ Definition hlistTGen bool sci L U : hty := μ: self, {@
 
 Definition hlistT bool sci := hlistTGen bool sci ⊥ ⊤.
 
-Definition hlistV bool : hvl := ν: self, {@
+Definition hlistModV bool : hvl := ν: self, {@
   type "List" = hlistT bool self;
   val "nil" = hnilV bool;
   val "cons" = hconsV bool
@@ -167,7 +167,7 @@ Proof.
   apply Bind1; tcrush; by lThis.
 Qed.
 
-Example listTypConcr Γ : boolImplT :: Γ u⊢ₜ hclose (htv (hlistV hx0)) : hclose (hlistModTConcr hx0).
+Example listTypConcr Γ : boolImplT :: Γ u⊢ₜ hclose (htv (hlistModV hx0)) : hclose (hlistModTConcr hx0).
 Proof.
   have Hn := nilTyp Γ.
   (* Without the call to [dvl_typed], Coq would (smartly) default to [dvabs_typed] *)
@@ -175,7 +175,7 @@ Proof.
   tcrush.
 Qed.
 
-Example listTyp Γ : boolImplT :: Γ u⊢ₜ hclose (htv (hlistV hx0)) : hclose (hlistModT hx0).
+Example listTyp Γ : boolImplT :: Γ u⊢ₜ hclose (htv (hlistModV hx0)) : hclose (hlistModT hx0).
 Proof.
   have Hv := listTypConcr Γ.
   have Hsub := consTSub Γ.
@@ -213,7 +213,7 @@ Definition hAnfBind t := hlett: x := t in: htv x.
 (* Try1, working well? *)
 Definition clListV'0 body :=
   hlett: bool := htv (pureS boolImpl) in:
-  hlett: list := htv (hlistV bool) in:
+  hlett: list := htv (hlistModV bool) in:
     body bool list.
 
 Definition clListV' body := clListV'0 (λ _ _, pureS body).
@@ -240,7 +240,7 @@ Proof. apply clListTyp'. tcrush. Qed.
 Definition hxm i : hvl := λ j, var_vl (j - i).
 Goal hxm = λ i, ren (λ j, j - i). done. Abort.
 
-(* Definition clListV' body := hlett: bool := (htv (pureS boolImpl)), hlett (htv (hlistV bool)) body. *)
+(* Definition clListV' body := hlett: bool := (htv (pureS boolImpl)), hlett (htv (hlistModV bool)) body. *)
 Example clListTyp'2 Γ (T : ty) body
   (Ht : hclose (hlistModT hx1) :: boolImplT :: Γ u⊢ₜ (body (hxm 1) (hxm 2)) 2 : shift (shift T)) :
   Γ u⊢ₜ hclose (clListV'2 body) : T.
