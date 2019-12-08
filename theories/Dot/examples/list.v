@@ -113,12 +113,10 @@ Definition hlistModTConcrBody bool sci : hty := {@
 
 Definition hlistModTConcr bool : hty := μ: sci, hlistModTConcrBody bool sci.
 
-Definition hnilTConcr bool sci : hty := hlistTGen bool sci ⊥ ⊥.
-
 Example nilTyp Γ : hclose (▶ hlistModTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
   hclose (htv (hnilV hx1)) : hclose (hnilT hx0).
 Proof.
-  apply (Subs_typed_nocoerce $ hclose $ hnilTConcr hx1 hx0).
+  apply (Subs_typed_nocoerce $ hclose $ hlistTGen hx1 hx0 ⊥ ⊥ ).
   - evar (T : ty).
     set L :=  hclose (▶ hlistModTConcrBody hx1 hx0).
     have := trueTyp Γ [hclose ⊤; T; L].
