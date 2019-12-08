@@ -59,17 +59,17 @@ Program Definition hconsV bool : hvl :=
     val "tail" = λ: _, htv tl
   }.
 
-Definition hlistTBodyGen bool sci (L U : hty) : hty := μ: self, {@
+Definition hlistTGen bool sci L U : hty := μ: self, {@
   type "A" >: L <: U;
   val "isEmpty" : ⊤ →: hpv bool @; "Boolean";
   val "head" : ⊤ →: hpv self @; "A";
   val "tail" : ⊤ →: hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv self @; "A" )
 }.
 
-Definition hlistTBody bool sci := hlistTBodyGen bool sci ⊥ ⊤.
+Definition hlistT bool sci := hlistTGen bool sci ⊥ ⊤.
 
 Definition hlistV bool : hvl := ν: self, {@
-  type "List" = hlistTBody bool self;
+  type "List" = hlistT bool self;
   val "nil" = hnilV bool;
   val "cons" = hconsV bool
 }.
@@ -91,13 +91,13 @@ Definition hconsT sci : hty :=
 
 (** mod stands for module. *)
 Definition hlistModTBody bool sci : hty := {@
-  type "List" >: ⊥ <: hlistTBody bool sci;
+  type "List" >: ⊥ <: hlistT bool sci;
   val "nil" : hnilT sci;
   val "cons" : hconsT sci
 }.
 Definition hlistModT bool : hty := μ: sci, hlistModTBody bool sci.
 
-Definition hconsTResConcr bool sci U := hlistTBodyGen bool sci U U.
+Definition hconsTResConcr bool sci U := hlistTGen bool sci U U.
 
 Definition hconsTConcr bool sci : hterm ty :=
   ∀: x: tparam "T",
@@ -106,14 +106,14 @@ Definition hconsTConcr bool sci : hterm ty :=
       (hconsTResConcr bool sci (hpv x @; "T")).
 
 Definition hlistTConcrBody bool sci : hty := {@
-  typeEq "List" $ hlistTBody bool sci;
+  typeEq "List" $ hlistT bool sci;
   val "nil" : hnilT sci;
   val "cons" : hconsTConcr bool sci
 }.
 
 Definition hlistTConcr bool : hty := μ: sci, hlistTConcrBody bool sci.
 
-Definition hnilTConcr bool sci : hty := hlistTBodyGen bool sci ⊥ ⊥.
+Definition hnilTConcr bool sci : hty := hlistTGen bool sci ⊥ ⊥.
 
 Example nilTyp Γ : hclose (▶ hlistTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
   hclose (htv (hnilV hx1)) : hclose (hnilT hx0).
@@ -303,8 +303,8 @@ Proof.
   (* Here we produce a list of later nats, since we produce a list of p.A where p is the
   "type" argument and p : { A <: Nat} so p.A <: ▶ Nat. *)
   set U := (type "A" >: ⊥ <: ▶ 𝐍)%HT.
-  set V := (hclose (hTAnd (hlistTBody hx1 hx0) U)).
-  apply AnfBind_typed with (T := hclose ((hTAnd (hlistTBody hx1 hx0) U)));
+  set V := (hclose (hTAnd (hlistT hx1 hx0) U)).
+  apply AnfBind_typed with (T := hclose ((hTAnd (hlistT hx1 hx0) U)));
     stcrush; first last.
   {
     eapply Subs_typed_nocoerce; first
