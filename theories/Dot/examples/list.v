@@ -89,14 +89,13 @@ Definition hconsT sci : hty :=
     (hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv x @; "T")) →:
     hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv x @; "T").
 
+(** mod stands for module. *)
 Definition hlistModTBody bool sci : hty := {@
   type "List" >: ⊥ <: hlistTBody bool sci;
   val "nil" : hnilT sci;
   val "cons" : hconsT sci
 }.
 Definition hlistModT bool : hty := μ: sci, hlistModTBody bool sci.
-(* XXX deprecated. *)
-Definition hlistT := hlistModT.
 
 Definition hconsTResConcr bool sci U := hlistTBodyGen bool sci U U.
 
@@ -178,7 +177,7 @@ Proof.
   tcrush.
 Qed.
 
-Example listTyp Γ : boolImplT :: Γ u⊢ₜ hclose (htv (hlistV hx0)) : hclose (hlistT hx0).
+Example listTyp Γ : boolImplT :: Γ u⊢ₜ hclose (htv (hlistV hx0)) : hclose (hlistModT hx0).
 Proof.
   have Hv := listTypConcr Γ.
   have Hsub := consTSub Γ.
@@ -223,7 +222,7 @@ Definition clListV' body := clListV'0 (λ _ _, pureS body).
 Definition clListV'2 := clListV'0.
 
 Example clListTyp' Γ (T : ty) body
-  (Ht : shift (hclose (hlistT hx0)) :: boolImplT :: Γ u⊢ₜ body : shift (shift T)) :
+  (Ht : shift (hclose (hlistModT hx0)) :: boolImplT :: Γ u⊢ₜ body : shift (shift T)) :
   Γ u⊢ₜ hclose (clListV' body) : T.
 Proof.
   eapply Let_typed; first apply boolImplTyp.
@@ -245,7 +244,7 @@ Goal hxm = λ i, ren (λ j, j - i). done. Abort.
 
 (* Definition clListV' body := hlett: bool := (htv (pureS boolImpl)), hlett (htv (hlistV bool)) body. *)
 Example clListTyp'2 Γ (T : ty) body
-  (Ht : hclose (hlistT hx1) :: boolImplT :: Γ u⊢ₜ (body (hxm 1) (hxm 2)) 2 : shift (shift T)) :
+  (Ht : hclose (hlistModT hx1) :: boolImplT :: Γ u⊢ₜ (body (hxm 1) (hxm 2)) 2 : shift (shift T)) :
   Γ u⊢ₜ hclose (clListV'2 body) : T.
 Proof.
   eapply Let_typed; first apply boolImplTyp.
@@ -276,7 +275,7 @@ Lemma AnfBind_typed Γ t (T U: ty) :
 Proof. intros; eapply Let_typed; eauto. Qed.
 
 Example hheadConsTyp Γ :
-  hclose (hlistT hx1) :: boolImplT :: Γ u⊢ₜ (hheadCons (hxm 1) (hxm 2)) 2 : hclose 𝐍.
+  hclose (hlistModT hx1) :: boolImplT :: Γ u⊢ₜ (hheadCons (hxm 1) (hxm 2)) 2 : hclose 𝐍.
 Proof.
   match goal with
     |- ?Γ u⊢ₜ _ : _ =>
