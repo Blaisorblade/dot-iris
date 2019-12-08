@@ -41,23 +41,7 @@ Proof.
     repeat lNext.
 Qed.
 
-Definition hnilV bool : hvl := ν: self, {@
-  type "A" = ⊥;
-  val "isEmpty" = λ: _, htrueTm bool;
-  val "head" = λ: _, pureS loopTm;
-  val "tail" = λ: _, pureS loopTm
-}.
-
-(*
-  λ(x: {A})λ(hd: x.A)λ(tl: sci.List∧{A <: x.A}) let result = ν(self) {
-    A = x.A; isEmpty = bool.false; head = hd; tail = tl } in result *)
-Program Definition hconsV bool : hvl :=
-  λ: x, λ:: hd tl, htv $ ν: self, {@
-    type "A" = hpv x @; "T";
-    val "isEmpty" = λ: _, hfalseTm bool;
-    val "head" = λ: _, htv hd;
-    val "tail" = λ: _, htv tl
-  }.
+(** * Interface of the list module. *)
 
 Definition hlistTGen bool sci L U : hty := μ: self, {@
   type "A" >: L <: U;
@@ -66,13 +50,8 @@ Definition hlistTGen bool sci L U : hty := μ: self, {@
   val "tail" : ⊤ →: hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv self @; "A" )
 }.
 
+(** ** The list type itself. *)
 Definition hlistT bool sci := hlistTGen bool sci ⊥ ⊤.
-
-Definition hlistModV bool : hvl := ν: self, {@
-  type "List" = hlistT bool self;
-  val "nil" = hnilV bool;
-  val "cons" = hconsV bool
-}.
 
 (** This ▶ Later is needed because
 - [hnilT] types a value member "nil" (which can't use skips), and
@@ -97,6 +76,34 @@ Definition hlistModTBody bool sci : hty := {@
 }.
 Definition hlistModT bool : hty := μ: sci, hlistModTBody bool sci.
 
+
+(** * Implementation of the list module. *)
+Definition hnilV bool : hvl := ν: self, {@
+  type "A" = ⊥;
+  val "isEmpty" = λ: _, htrueTm bool;
+  val "head" = λ: _, pureS loopTm;
+  val "tail" = λ: _, pureS loopTm
+}.
+
+(*
+  λ(x: {A})λ(hd: x.A)λ(tl: sci.List∧{A <: x.A}) let result = ν(self) {
+    A = x.A; isEmpty = bool.false; head = hd; tail = tl } in result *)
+Program Definition hconsV bool : hvl :=
+  λ: x, λ:: hd tl, htv $ ν: self, {@
+    type "A" = hpv x @; "T";
+    val "isEmpty" = λ: _, hfalseTm bool;
+    val "head" = λ: _, htv hd;
+    val "tail" = λ: _, htv tl
+  }.
+
+Definition hlistModV bool : hvl := ν: self, {@
+  type "List" = hlistT bool self;
+  val "nil" = hnilV bool;
+  val "cons" = hconsV bool
+}.
+
+
+(** * Auxiliary types, needed in derivations of typing judgments. *)
 Definition hconsTResConcr bool sci U := hlistTGen bool sci U U.
 
 Definition hconsTConcr bool sci : hterm ty :=
@@ -112,6 +119,8 @@ Definition hlistModTConcrBody bool sci : hty := {@
 }.
 
 Definition hlistModTConcr bool : hty := μ: sci, hlistModTConcrBody bool sci.
+
+(** * Proofs that [hlistModV] has type [hlistModT]. *)
 
 Example nilTyp Γ : hclose (▶ hlistModTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
   hclose (htv (hnilV hx1)) : hclose (hnilT hx0).
