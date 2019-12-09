@@ -53,6 +53,9 @@ theories/Dot/examples/scalaLib.v
 theories/Dot/examples/list.v
 theories/Dot/examples/exampleInfra.v
 theories/Dot/examples/fromPDotMutualRec.v
+theories/Dot/examples/typingExamples.v
+theories/Dot/examples/typingExamplesUnst.v
+theories/Dot/examples/typingExInfra.v
 theories/Dot/syn/syn.v
 theories/Dot/typing/typing.v
 theories/Dot/typing/typing_objIdent.v
@@ -60,6 +63,7 @@ theories/Dot/typing/typing_unstamped.v
 theories/Dot/typing/typing_unstamped_derived.v
 theories/Dot/lr/path_wp.v
 theories/Dot/examples/examples.v
+theories/Dot/examples/noRussell.v
 theories/Dot/stamping/typeExtractionSyn.v
 theories/Dot/lr/typeExtractionSem.v
 theories/Dot/syn/traversals.v
@@ -80,10 +84,6 @@ theories/Dot/lr/lr_lemma_nobinding.v
 theories/Dot/lr/lr_lemma.v
 theories/Dot/lr/lr_lemmasTSel.v
 theories/Dot/lr/lr_lemmasDefs.v
-theories/Dot/examples/typingExamples.v
-theories/Dot/examples/typingExamplesUnst.v
-theories/Dot/examples/typingExInfra.v
-theories/Dot/examples/noRussell.v
 theories/Dot/syn/closed_subst.v
 theories/pure_program_logic/weakestpre.v
 theories/pure_program_logic/hoare.v
