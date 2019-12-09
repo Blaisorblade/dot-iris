@@ -138,9 +138,11 @@ Proof.
     apply SubIFT_LaterP0Bool'.
 Qed.
 
+Module Export option.
 (*
   Encoding Option. Beware I'm using raw Church-encoded booleans, simply
     because it's easier.
+  However, we do export Option as an abstract type.
   type Option = {
     type T
     val isEmpty: Boolean
@@ -148,39 +150,48 @@ Qed.
   }
 *)
 
-Definition optionT : ty := μ {@ (* self => *)
-  tparam "T";
-  val "isEmpty" : IFT;
-  val "pmatch" : TAll (tparam "U") (p0 @; "U" →: (p1 @; "T" →: p0 @; "U") →: p0 @; "U")
+Import hoasNotation.
+
+Definition hpmatchT self := ∀: x : tparam "U", hpv x @; "U" →: (hpv self @; "T" →: hpv x @; "U") →: hpv x @; "U".
+Definition hoptionTGen (L U : hty) := μ: self, {@
+  type "T" >: L <: U;
+  val "isEmpty" : hIFT;
+  val "pmatch" : hpmatchT self
   (* ∀ x : {type U}, x.U → (self.T -> x.U) -> x.U *)
 }.
+
+Definition hoptionT := hoptionTGen ⊥ ⊤.
+Definition optionT := hclose hoptionT.
+
 (*
   type None = Option { type T = Nothing }
-  def mkNone[T]: None = new {
+  val noneV: None = new {
     type T = Nothing
     val isEmpty = true
-    val pmatch: [U] => U => (T => U) => U = [U] => (none: U) => (some: T => U) => none
+    val pmatch: [U] => U => (Nothing => U) => U = [U] => (none: U) => (some: T => U) => none
   }
 *)
-Definition noneT0 := TAnd optionT ({@ typeEq "T" ⊥}).
-Definition noneT : ty := μ {@ (* self => *)
-  typeEq "T" ⊥;
-  val "isEmpty" : IFT;
-  val "pmatch" : TAll (tparam "U") (p0 @; "U" →: (p1 @; "T" →: p0 @; "U") →: p0 @; "U")
-}.
-Definition mkNone : vl := ν {@
+Definition hnoneT := hTAnd hoptionT ({@ typeEq "T" ⊥}).
+Definition hnoneTConcr := hoptionTGen ⊥ ⊥.
+Definition noneT := hclose hnoneT.
+
+Definition hnoneV := ν: _, {@
   type "T" = ⊥;
-  val "isEmpty" = iftTrue;
-  val "pmatch" = vabs (vabs' (vabs' (tv x1)))
+  val "isEmpty" = hiftTrue;
+  val "pmatch" = λ: x, λ:: none some, htv none
 }.
+Definition noneV := hclose hnoneV.
 
 Example noneTyp Γ :
-  Γ u⊢ₜ tv mkNone : noneT.
+  Γ u⊢ₜ tv noneV : noneT.
 Proof.
   (* apply VObj_typed; last stcrush.
   apply dcons_typed; [tcrush| |tcrush].
   apply dcons_typed; [eauto using iftTrueTyp| |tcrush]. *)
+  apply (Subs_typed_nocoerce (hclose hnoneTConcr)).
   tcrush; var.
+  tcrush; first lThis.
+  apply Bind1; tcrush.
 Qed.
 
 (*
@@ -194,27 +205,28 @@ Qed.
   }
 *)
 
-Definition someT T : ty := μ {@ (* self => *)
-  typeEq "T" (shift T);
-  val "isEmpty" : IFT;
-  val "pmatch" : TAll (tparam "U") (p0 @; "U" →: (p1 @; "T" →: p0 @; "U") →: p0 @; "U");
-  val "get" : ▶ p0 @; "T"
+Definition hsomeT hT : hty := μ: self, {@
+  typeEq "T" hT;
+  val "isEmpty" : hIFT;
+  val "pmatch" : hpmatchT self;
+  val "get" : ▶ hpv self @; "T"
 }.
-Definition mkSomeT : ty := TAll (tparam "A") (p0 @; "A" →: someT (p0 @; "A")).
-Definition mkSome : tm := vabs' $ vabs' $ tv $ ν {@
-  type "T" = p2 @; "A";
-  val "isEmpty" = iftFalse;
-  val "pmatch" = vabs (vabs' (vabs' (tapp (tv x0) (tskip (tproj (tv x3) "get")))));
-  val "get" = x1
+Definition hmkSomeT : hty := ∀: x: tparam "A", (hpv x @; "A" →: hsomeT (hpv x @; "A")).
+Definition hmkSome : hvl := λ: x, λ:: content, htv $ ν: self, {@
+  type "T" = hpv x @; "A";
+  val "isEmpty" = hiftFalse;
+  val "pmatch" = λ: x, λ:: none some, htv some $: htskip (htv self @: "get");
+  val "get" = content
 }.
+Definition mkSomeT := hclose hmkSomeT.
+Definition mkSome := hclose hmkSome.
 
 Example mkSomeTyp Γ :
-  Γ u⊢ₜ mkSome : mkSomeT.
+  Γ u⊢ₜ tv mkSome : mkSomeT.
 Proof.
   tcrush; first var; cbv; hideCtx.
   - eapply App_typed; first var.
-    rewrite -(iterate_S tskip 0);
-      apply (Subs_typed (T1 := (▶ (p3 @; "T"))%ty)); tcrush.
+    apply (Subs_typed (i := 1) (T1 := hclose (▶ (hp3 @; "T"))%HT)); tcrush.
     varsub.
     repeat lNext.
   - varsub.
@@ -223,3 +235,32 @@ Proof.
     eapply LSel_stp'; tcrush.
     varsub; tcrush.
 Qed.
+
+Definition hoptionModV := ν: self, {@
+  type "Option" = hoptionT;
+  val "none" = hnoneV;
+  val "mkSome" = hmkSome
+}.
+
+Definition hoptionModTConcrBody : hty := {@
+  typeEq "Option" hoptionT;
+  val "none" : hnoneT;
+  val "mkSome" : hmkSomeT
+}.
+
+Definition hoptionModT := μ: self, {@
+  type "Option" >: ⊥ <: hoptionT;
+  val "none" : hnoneT;
+  val "mkSome" : hmkSomeT
+}.
+
+Example optionModTyp Γ :
+  Γ u⊢ₜ hclose (htv hoptionModV) : hclose hoptionModT.
+Proof.
+  set U := hclose (▶ hoptionModTConcrBody).
+  have Hn := noneTyp (U :: Γ).
+  have := mkSomeTyp (U :: Γ) => /(dvl_typed "mkSome") Hs.
+  apply (Subs_typed_nocoerce (hclose (μ: _, hoptionModTConcrBody))); tcrush; lThis.
+Qed.
+
+End option.
