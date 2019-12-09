@@ -81,8 +81,8 @@ Definition hlistModT bool : hty := μ: sci, hlistModTBody bool sci.
 Definition hnilV bool : hvl := ν: self, {@
   type "A" = ⊥;
   val "isEmpty" = λ: _, htrueTm bool;
-  val "head" = λ: _, pureS loopTm;
-  val "tail" = λ: _, pureS loopTm
+  val "head" = λ: _, hloopTm;
+  val "tail" = λ: _, hloopTm
 }.
 
 (*

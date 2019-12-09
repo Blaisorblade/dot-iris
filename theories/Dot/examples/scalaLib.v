@@ -1,35 +1,38 @@
 From stdpp Require Import strings.
 
 From D Require Import tactics.
-From D.Dot Require Import syn exampleInfra unstampedness_binding.
+From D.Dot Require Import syn exampleInfra unstampedness_binding hoas.
 From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived.
 Import DBNotation.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
+Module Export loop.
+Import hoasNotation.
 (** * Infinite loops *)
-Definition loopDefV : vl := ν {@ (* self => *)
-  val "loop" = vabs (tapp (tproj (tv x1) "loop") (tv x0))
+Definition hloopDefV : hvl := ν: self, {@
+  val "loop" = λ: v, htv self @: "loop" $: htv v
   (* λ v, self.loop v. *)
 }.
-Definition loopDefTConcr : ty := μ {@ val "loop" : ⊤ →: ⊥ }.
-Definition loopDefT : ty := val "loop" : ⊤ →: ⊥.
-Example loopDefTyp Γ : Γ u⊢ₜ tv loopDefV : loopDefT.
+Definition hloopDefT : hty := val "loop" : ⊤ →: ⊥.
+Definition hloopDefTConcr : hty := μ: _, {@ hloopDefT }.
+Example loopDefTyp Γ : Γ u⊢ₜ hclose (htv hloopDefV) : hclose hloopDefT.
 Proof.
-  apply (Subs_typed_nocoerce loopDefTConcr).
+  apply (Subs_typed_nocoerce (hclose hloopDefTConcr)).
   - tcrush; cbv.
     eapply App_typed; last var. tcrush.
-    varsub. cbv. lThis.
+    varsub; cbv. lThis.
   - apply Bind1; tcrush.
 Qed.
 
-Definition loopTm := tapp (tproj (tv loopDefV) "loop") (tv (vnat 0)).
-Example loopTyp Γ : Γ u⊢ₜ loopTm : ⊥.
+Definition hloopTm : htm := htv hloopDefV @: "loop" $: htv (hvnat 0).
+Example loopTyp Γ : Γ u⊢ₜ hclose hloopTm : ⊥.
 Proof.
   pose proof loopDefTyp Γ.
   apply (App_typed (T1 := ⊤)); tcrush.
   apply (Subs_typed_nocoerce 𝐍); tcrush.
 Qed.
+End loop.
 
 (** * Booleans, Church-encoded. *)
 (** Sec. 5 of WadlerFest DOT.
@@ -46,14 +49,21 @@ In fact, that code doesn't typecheck as given, and we fix it by setting.
 IFT ≡ IFTFun
 let bool = boolImpl : μ { Boolean: IFT..IFT; true : b.Boolean; false : b.Boolean }
  *)
-Definition IFTBody : ty := p0 @; "A" →: p0 @; "A" →: p0 @; "A".
-Definition IFT : ty :=
-  TAll (tparam "A") IFTBody.
+Module Export hBool.
+Import hoasNotation.
+Definition hIFTBody x : hty := hpv x @; "A" →: hpv x @; "A" →: hpv x @; "A".
+Definition IFTBody := hclose $ hIFTBody hx0.
+Definition hIFT : hty :=
+  ∀: x : tparam "A", hIFTBody x.
+Definition IFT := hclose hIFT.
 
-(* Definition IFT : ty := {@ val "if" : IFTFun }. *)
+(* Definition hIFT : hty := {@ val "if" : hIFTFun }. *)
 
-Definition iftTrue := vabs (vabs' (vabs' (tv x1))).
-Definition iftFalse := vabs (vabs' (vabs' (tv x0))).
+Definition hiftTrue : hvl := λ: x, λ:: t f, htv t.
+Definition hiftFalse : hvl := λ: x, λ:: t f, htv f.
+Definition iftTrue := hclose hiftTrue.
+Definition iftFalse := hclose hiftFalse.
+End hBool.
 
 Example iftTrueTyp Γ : Γ u⊢ₜ tv iftTrue : IFT.
 Proof. tcrush. var. Qed.
