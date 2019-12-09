@@ -35,7 +35,6 @@ Example ex3 Γ T:
   Γ u⊢ₜ tv (ν {@ type "A" = F3 (p0 @; "A") } ) : F3 (F3 (TSel p0 "A")).
 Proof. apply VObj_typed; tcrush. Qed.
 
-Notation HashableString := (μ {@ val "hashCode" : TUnit →: TNat }).
 Definition KeysT : ty := μ {@
   type "Key" >: ⊥ <: ⊤;
   val "key": HashableString →: p0 @; "Key"

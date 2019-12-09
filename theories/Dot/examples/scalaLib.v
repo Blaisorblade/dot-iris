@@ -7,6 +7,8 @@ Import DBNotation.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
+Notation HashableString := (μ {@ val "hashCode" : TUnit →: TNat }).
+
 Module Export loop.
 Import hoasNotation.
 (** * Infinite loops *)
