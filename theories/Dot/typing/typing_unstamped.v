@@ -10,14 +10,14 @@ From D.Dot.stamping Require Export stampingDefsCore.
 
 Set Implicit Arguments.
 
+Implicit Types (L T U V : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
+
 (* The typing judgement comes from [s/⊢/u⊢/] over [Dot/typing_objIdent.v], and dropping stamping. *)
 Reserved Notation "Γ u⊢ₜ e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ u⊢ₚ p : T , i" (at level 74, p, T, i at next level).
 Reserved Notation "Γ |d V u⊢{ l := d  } : T" (at level 74, l, d, T, V at next level).
 Reserved Notation "Γ |ds V u⊢ ds : T" (at level 74, ds, T, V at next level).
 Reserved Notation "Γ u⊢ₜ T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
-
-Implicit Types (L T U V : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
 
 (**
 Judgments for typing, subtyping, path and definition typing.

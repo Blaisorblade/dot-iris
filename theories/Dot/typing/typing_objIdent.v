@@ -2,7 +2,8 @@ From D Require Import tactics.
 From D.Dot Require Export syn.
 From D.Dot Require Import typing.
 
-Implicit Types (L T U V : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty) (g : stys).
+Implicit Types (L T U V : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
+Implicit Types (g : stys).
 
 (* The typing judgement comes from [s/⊢/s⊢typing.v], and restricting most values to variables (except in object definitions). *)
 Reserved Notation "Γ s⊢ₜ[ g  ] e : T" (at level 74, e, T at next level).

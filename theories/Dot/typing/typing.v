@@ -1,6 +1,9 @@
 From D.Dot.syn Require Export syn path_repl.
 From D.Dot.stamping Require Export stampingDefsCore.
 
+Implicit Types (L T U V : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
+Implicit Types (g : stys).
+
 Reserved Notation "Γ v⊢ₜ[ g ] e : T"
   (at level 74, e, T at next level,
   format "'[' '[' Γ ']'  '/' v⊢ₜ[  g  ]  '[' e ']'  :  '[' T ']' ']'").
@@ -13,8 +16,6 @@ Reserved Notation "Γ |ds V v⊢[ g ] ds : T"
   (at level 74, ds, T, V at next level,
   format "'[' '[' Γ  |ds  V  ']' '/' v⊢[  g  ]  '[' ds ']'  :  T ']'" ).
 Reserved Notation "Γ v⊢ₜ[ g  ] T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
-
-Implicit Types (L T U V : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty) (g : stys).
 
 (**
 Judgments for typing, subtyping, path and definition typing.
