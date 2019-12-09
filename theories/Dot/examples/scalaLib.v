@@ -39,7 +39,7 @@ End loop.
 IFTFun ≡ { if: ∀(x: {A: ⊥..⊤})∀(t: x.A)∀(f: x.A): x.A }
 IFT ≡ { if: IFTFun }
 
-let boolImpl =
+let boolImplV =
 ν (b: { Boolean: IFT..IFT } ∧ { true: IFT } ∧ { false: IFT })
 { Boolean = IFT } ∧
 { true = λ(x: {A: ⊥..⊤})λ(t: x.A)λ(f: x.A)t } ∧ { false = λ(x: {A: ⊥..⊤})λ(t: x.A)λ(f: x.A)f }
@@ -47,7 +47,7 @@ let boolImpl =
 In fact, that code doesn't typecheck as given, and we fix it by setting.
 
 IFT ≡ IFTFun
-let bool = boolImpl : μ { Boolean: IFT..IFT; true : b.Boolean; false : b.Boolean }
+let bool = boolImplV : μ { Boolean: IFT..IFT; true : b.Boolean; false : b.Boolean }
  *)
 Module Export hBool.
 Import hoasNotation.
@@ -70,7 +70,7 @@ Proof. tcrush. var. Qed.
 Example iftFalseTyp Γ : Γ u⊢ₜ tv iftFalse : IFT.
 Proof. tcrush. var. Qed.
 
-Definition boolImpl :=
+Definition boolImplV :=
   ν {@
     type "Boolean" = IFT;
     val "true" = iftTrue;
@@ -121,11 +121,11 @@ Proof.
 Qed.
 
 Example boolImplTypConcr Γ :
-  Γ u⊢ₜ tv boolImpl : boolImplTConcr.
+  Γ u⊢ₜ tv boolImplV : boolImplTConcr.
 Proof. tcrush; by [apply (dty_typed IFT); tcrush | var]. Qed.
 
 Example boolImplTyp Γ :
-  Γ u⊢ₜ tv boolImpl : boolImplT.
+  Γ u⊢ₜ tv boolImplV : boolImplT.
 Proof.
   apply (Subs_typed_nocoerce boolImplTConcr); first by apply boolImplTypConcr.
   tcrush; rewrite iterate_0.

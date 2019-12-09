@@ -199,7 +199,7 @@ Qed.
 
 (* Naive attempt; this fails avoidance. *)
 (*
-Definition clListV := lett (tv boolImpl) (tv listV).
+Definition clListV := lett (tv boolImplV) (tv listV).
 Example clListTyp Γ : Γ u⊢ₜ clListV : listT.
   eapply Let_typed. apply boolImplTyp.
   Fail change (shift listT) with (listT).
@@ -207,7 +207,7 @@ Example clListTyp Γ : Γ u⊢ₜ clListV : listT.
 Abort. *)
 
 Definition hclListV' (hbody : hvl → hvl → htm) :=
-  hlett: bool := htv (pureS boolImpl) in:
+  hlett: bool := htv (pureS boolImplV) in:
   hlett: list := htv (hlistModV bool) in:
     hbody bool list.
 

@@ -187,7 +187,7 @@ End StringExamples.
 IFTFun ≡ { if: ∀(x: {A: ⊥..⊤})∀(t: x.A)∀(f: x.A): x.A }
 IFT ≡ { if: IFTFun }
 
-let boolImpl =
+let boolImplV =
 ν (b: { Boolean: IFT..IFT } ∧ { true: IFT } ∧ { false: IFT })
 { Boolean = IFT } ∧
 { true = λ(x: {A: ⊥..⊤})λ(t: x.A)λ(f: x.A)t } ∧ { false = λ(x: {A: ⊥..⊤})λ(t: x.A)λ(f: x.A)f }
@@ -226,7 +226,7 @@ Lemma p0BoolStamped: is_stamped_ty 1 g p0Bool.
 Proof. tcrush. Qed.
 Hint Resolve p0BoolStamped : core.
 
-Definition boolImpl :=
+Definition boolImplV :=
   ν {@
     type "Boolean" = ( σ1; s1 );
     val "true" = iftTrue;
@@ -275,7 +275,7 @@ Proof.
 Qed.
 
 Example boolImplTyp Γ (Hst : s1_is_ift_ext):
-  Γ v⊢ₜ[ g ] tv boolImpl : boolImplT.
+  Γ v⊢ₜ[ g ] tv boolImplV : boolImplT.
 Proof.
   apply (Subs_typed_nocoerce boolImplTConcr).
   tcrush; by [apply (dty_typed IFT); tcrush| exact: Var_typed'].
@@ -310,7 +310,7 @@ Proof.
 Qed.
 
 Example boolImplTypAlt Γ (Hst : s1_is_ift_ext):
-  Γ v⊢ₜ[ g ] tv boolImpl : boolImplT.
+  Γ v⊢ₜ[ g ] tv boolImplV : boolImplT.
 Proof.
   apply (Subs_typed_nocoerce boolImplT0);
     last (tcrush; ettrans; first apply TAnd1_stp; tcrush).

@@ -274,7 +274,7 @@ Definition boolImplT0 : ty :=
   }.
 
 Example boolImplTypAlt Γ :
-  Γ u⊢ₜ tv boolImpl : boolImplT.
+  Γ u⊢ₜ tv boolImplV : boolImplT.
 Proof.
   apply (Subs_typed_nocoerce boolImplT0);
     last (tcrush; lThis).
@@ -391,7 +391,7 @@ Lemma iftAndTyp Γ T :
 Proof. tcrush. apply iftAndBodyTyp; var. Qed.
 
 (*
-let bool = boolImpl :
+let bool = boolImplV :
   μ { Boolean: IFT..IFT; true : b.Boolean; false : b.Boolean;
       and : p.Boolean →: p.Boolean →: p.Boolean }
 *)
