@@ -152,12 +152,12 @@ Module Export option.
 
 Import hoasNotation.
 
+(* ∀ x : {type U}, x.U → (self.T -> x.U) -> x.U *)
 Definition hpmatchT self := ∀: x : tparam "U", hpv x @; "U" →: (hpv self @; "T" →: hpv x @; "U") →: hpv x @; "U".
 Definition hoptionTGen (L U : hty) := μ: self, {@
   type "T" >: L <: U;
   val "isEmpty" : hIFT;
   val "pmatch" : hpmatchT self
-  (* ∀ x : {type U}, x.U → (self.T -> x.U) -> x.U *)
 }.
 
 Definition hoptionT := hoptionTGen ⊥ ⊤.
@@ -171,7 +171,7 @@ Definition optionT := hclose hoptionT.
     val pmatch: [U] => U => (Nothing => U) => U = [U] => (none: U) => (some: T => U) => none
   }
 *)
-Definition hnoneT := hTAnd hoptionT ({@ typeEq "T" ⊥}).
+Definition hnoneT := hTAnd hoptionT {@ typeEq "T" ⊥}.
 Definition hnoneTConcr := hoptionTGen ⊥ ⊥.
 Definition noneT := hclose hnoneT.
 
@@ -205,13 +205,22 @@ Qed.
   }
 *)
 
-Definition hsomeT hT : hty := μ: self, {@
+Definition hsomeTConcr hT : hty := μ: self, {@
   typeEq "T" hT;
   val "isEmpty" : hIFT;
   val "pmatch" : hpmatchT self;
   val "get" : ▶ hpv self @; "T"
 }.
-Definition hmkSomeT : hty := ∀: x: tparam "A", (hpv x @; "A" →: hsomeT (hpv x @; "A")).
+
+(** Behold here [(optionT & (μ self, val get: ▶ self @; "T")) & { type T = hT } ]. *)
+Definition hsomeT hT : hty :=
+  hTAnd (hTAnd hoptionT (μ: self, val "get" : ▶ hpv self @; "T"))
+    {@ typeEq "T" hT}.
+
+Definition hmkSomeTGen res : hty := ∀: x: tparam "A", (hpv x @; "A" →: res (hpv x @; "A")).
+Definition hmkSomeTConcr : hty := hmkSomeTGen hsomeTConcr.
+Definition hmkSomeT : hty := hmkSomeTGen hsomeT.
+
 Definition hmkSome : hvl := λ: x, λ:: content, htv $ ν: self, {@
   type "T" = hpv x @; "A";
   val "isEmpty" = hiftFalse;
@@ -224,6 +233,7 @@ Definition mkSome := hclose hmkSome.
 Example mkSomeTyp Γ :
   Γ u⊢ₜ tv mkSome : mkSomeT.
 Proof.
+  apply (Subs_typed_nocoerce (hclose hmkSomeTConcr)).
   tcrush; first var; cbv; hideCtx.
   - eapply App_typed; first var.
     apply (Subs_typed (i := 1) (T1 := hclose (▶ (hp3 @; "T"))%HT)); tcrush.
@@ -234,6 +244,10 @@ Proof.
     asideLaters.
     eapply LSel_stp'; tcrush.
     varsub; tcrush.
+  - (** Show that [hmkSomeTConcr <: mkSomeT]. This involves multiple
+    fixpoints on both sides, but goes through without much effort. *)
+    tcrush; first lThis; repeat lNext.
+    apply Bind1; tcrush.
 Qed.
 
 Definition hoptionModV := ν: self, {@
@@ -259,6 +273,7 @@ Example optionModTyp Γ :
 Proof.
   set U := hclose (▶ hoptionModTConcrBody).
   have Hn := noneTyp (U :: Γ).
+  (* Without the call to [dvl_typed], Coq would (smartly) default to [dvabs_typed] *)
   have := mkSomeTyp (U :: Γ) => /(dvl_typed "mkSome") Hs.
   apply (Subs_typed_nocoerce (hclose (μ: _, hoptionModTConcrBody))); tcrush; lThis.
 Qed.
