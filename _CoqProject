@@ -52,6 +52,7 @@ theories/Dot/examples/hoas.v
 theories/Dot/examples/scalaLib.v
 theories/Dot/examples/list.v
 theories/Dot/examples/exampleInfra.v
+theories/Dot/examples/fromPDotMutualRec.v
 theories/Dot/syn/syn.v
 theories/Dot/typing/typing.v
 theories/Dot/typing/typing_objIdent.v
