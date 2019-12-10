@@ -9,29 +9,27 @@ Import DBNotation.
 
 (** FromPDotPaper *)
 
+Definition typeRefTBody : ty := {@
+  val "symb" : p1 @ "symbols" @; "Symbol"
+}.
+
 Definition fromPDotPaperTypesTBody : ty := {@
   typeEq "Type" TTop;
-  typeEq "TypeRef" $ TAnd (p0 @; "Type") {@
-    val "symb" : p1 @ "symbols" @; "Symbol"
-  };
+  typeEq "TypeRef" $ TAnd (p0 @; "Type") typeRefTBody;
   val "AnyType" : TLater (p0 @; "Type");
   val "newTypeRef" : p1 @ "symbols" @; "Symbol" →: p0 @; "TypeRef"
 }.
 
 Definition fromPDotPaperAbsTypesTBody : ty := {@
   type "Type" >: TBot <: TTop;
-  type "TypeRef" >: TBot <: TAnd (p0 @; "Type") {@
-    val "symb" : p1 @ "symbols" @; "Symbol"
-  };
+  type "TypeRef" >: TBot <: TAnd (p0 @; "Type") typeRefTBody;
   val "AnyType" : TLater (p0 @; "Type");
   val "newTypeRef" : p1 @ "symbols" @; "Symbol" →: p0 @; "TypeRef"
 }.
 
 Definition fromPDotPaperTypesV : vl := ν {@
   type "Type" = TTop;
-  type "TypeRef" = TAnd (p0 @; "Type") {@
-    val "symb" : p1 @ "symbols" @; "Symbol"
-  };
+  type "TypeRef" = TAnd (p0 @; "Type") typeRefTBody;
   val "AnyType" = vnat 0 ; (* ν {@}; *)
   val "newTypeRef" = (vabs $ tv $ ν {@
     val "symb" = x1
