@@ -21,13 +21,21 @@ def loopTm : Nothing = loopDefV.loop(0)
 
 // Accurate translation:
 //type IFT = (x : { type A }) => (t : x.A) => (f : x.A) => x.A
-// Adapted to Dotty, to avoid bug:
-type IFT = (x : { type A }) => x.A => x.A => x.A
+// Adapted to Dotty, to avoid first bug:
+// type IFT = (x : { type B }) => x.B => x.B => x.B
+
+// val iftTrue : IFT =
+//   x => t => f => t
+// val iftFalse : IFT =
+//   x => t => f => f
+
+// Adapted to Dotty, to avoid second bug (https://github.com/lampepfl/dotty/issues/7711):
+type IFT = [A] => A => A => A
 
 val iftTrue : IFT =
-  x => t => f => t
+  [A] => (t : A) => (f : A) => t
 val iftFalse : IFT =
-  x => t => f => f
+  [A] => (t : A) => (f : A) => f
 
 // What we typechecked in Coq.
 object boolImplV {
