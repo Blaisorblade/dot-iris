@@ -44,7 +44,7 @@ Definition hashKeys : vl := ν {@
   val "key" = vabs (tapp (tproj (tv x0) "hashCode") tUnit)
 }.
 
-Definition KeysT' := μ {@
+Definition KeysTConcr := μ {@
   type "Key" >: TNat <: ⊤;
   val "key" : HashableString →: p0 @; "Key"
 }.
@@ -53,25 +53,17 @@ Definition KeysT' := μ {@
 Example hashKeys_typed Γ:
   Γ u⊢ₜ tv hashKeys : KeysT.
 Proof.
-  cut (Γ u⊢ₜ tv hashKeys : KeysT').
-  { intros H.
-    apply (Subs_typed_nocoerce KeysT'); first done.
+  apply (Subs_typed_nocoerce KeysTConcr); first last. {
     apply Mu_stp_mu; last stcrush.
     tcrush.
     lThis.
   }
-  apply VObj_typed; tcrush.
-  cbn; apply App_typed with (T1 := TUnit);
-    last eapply (Subs_typed_nocoerce TNat); tcrush; cbn.
+  tcrush.
+  apply App_typed with (T1 := TUnit);
+    last eapply (Subs_typed_nocoerce TNat); tcrush.
 
-  pose (T0 := μ {@ val "hashCode" : ⊤ →: 𝐍 }).
-
-  have Htp: ∀ Γ', T0 :: Γ' u⊢ₜ tv x0 : val "hashCode" : ⊤ →: TNat. {
-    intros. eapply Subs_typed_nocoerce.
-    eapply TMuE_typed'; by [var|].
-    by apply TAnd1_stp; tcrush.
-  }
-  apply (Subs_typed_nocoerce (val "hashCode" : ⊤ →: 𝐍)). exact: Htp.
+  apply (Subs_typed_nocoerce (val "hashCode" : ⊤ →: 𝐍)).
+  by eapply Subs_typed_nocoerce; [eapply TMuE_typed'; by [var|] | tcrush].
   tcrush.
   eapply LSel_stp'; tcrush.
   varsub; tcrush.
