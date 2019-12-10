@@ -458,6 +458,19 @@ Lemma TDistr_TLater_Or_stp_inv Γ T1 T2 i :
   Γ u⊢ₜ TOr (TLater T1) (TLater T2), i <: TLater (TOr T1 T2), i.
 Proof. intros; tcrush. Qed.
 
+(** TLater swaps with TMu, part 1. *)
+Lemma TDistr_TLater_Mu_stp Γ T i :
+  is_unstamped_ty (S (length Γ)) T →
+  Γ u⊢ₜ TLater (TMu T), i <: TMu (TLater T), i.
+Proof. intros; asideLaters; tcrush. Qed.
+
+(** TLater swaps with TMu, part 2. *)
+Lemma TDistr_TLater_Mu_stp_inv Γ T i :
+  is_unstamped_ty (S (length Γ)) T →
+  Γ u⊢ₜ TMu (TLater T), i <: TLater (TMu T), i.
+Proof. intros; asideLaters; tcrush. Qed.
+
+
 Definition anfBind t := lett t (tv x0).
 
 Lemma AnfBind_typed Γ t (T U: ty) :
