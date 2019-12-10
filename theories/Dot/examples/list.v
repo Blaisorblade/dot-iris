@@ -250,8 +250,7 @@ Proof. apply clListTyp'2. tcrush. Qed.
 (** XXX: try recursive linking? Probably not. *)
 
 (** * Link lists with booleans and with a client using the list API. *)
-
-Definition hheadCons (bool list : hvl) :=
+Definition hheadCons (list : hvl) :=
   htskip (htskip (htproj (hAnfBind (htskip
     (htyApp "T" (htv list @: "cons") 𝐍
       $: htv (hvnat 0)
@@ -259,7 +258,7 @@ Definition hheadCons (bool list : hvl) :=
 (* Invoking a method from an abstract type (here, [list @; "List"] needs a skip. *)
 
 Example hheadConsTyp Γ :
-  hclose (hlistModT hx1) :: boolImplT :: Γ u⊢ₜ (hheadCons (hxm 1) (hxm 2)) 2 : hclose 𝐍.
+  hclose (hlistModT hx1) :: boolImplT :: Γ u⊢ₜ (hheadCons (hxm 2)) 2 : hclose 𝐍.
 Proof.
   match goal with
     |- ?Γ u⊢ₜ _ : _ =>
@@ -325,5 +324,5 @@ Proof.
 Qed.
 
 Example clListTypNat3 Γ :
-  Γ u⊢ₜ hclose (hclListV' hheadCons) : hclose 𝐍.
+  Γ u⊢ₜ hclose (hclListV' (λ bool, hheadCons)) : hclose 𝐍.
 Proof. apply clListTyp'2, hheadConsTyp. Qed.
