@@ -244,10 +244,10 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 (*     Γ u⊢ₜ L, S (i + j) <: TSel p l, j *)
 
 (* Subtyping for recursive types. Congruence, and opening in both directions. *)
-| Mu_stp_mu T1 T2 i:
-    (iterate TLater i T1 :: Γ) u⊢ₜ T1, i <: T2, i →
+| Mu_stp_mu T1 T2 i j:
+    (iterate TLater i T1 :: Γ) u⊢ₜ T1, i <: T2, j →
     is_unstamped_ty (S (length Γ)) T1 →
-    Γ u⊢ₜ TMu T1, i <: TMu T2, i
+    Γ u⊢ₜ TMu T1, i <: TMu T2, j
 | Mu_stp T i:
     is_unstamped_ty (length Γ) T →
     Γ u⊢ₜ TMu T.|[ren (+1)], i <: T, i
