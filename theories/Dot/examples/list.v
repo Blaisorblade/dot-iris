@@ -43,6 +43,7 @@ Qed.
 
 (** * Interface of the list module. *)
 
+(* [sci] stands for [scala.collection.immutable], following the example in WadlerFest DOT. *)
 Definition hlistTGen bool sci L U : hty := μ: self, {@
   type "A" >: L <: U;
   val "isEmpty" : ⊤ →: hpv bool @; "Boolean";
@@ -251,10 +252,10 @@ Proof. apply clListTyp'2. tcrush. Qed.
 
 (** * Link lists with booleans and with a client using the list API. *)
 Definition hheadCons (list : hvl) :=
-  htskip (htskip (htproj (hAnfBind (htskip
+  htskip (htskip ((hAnfBind (htskip
     (htyApp "T" (htv list @: "cons") 𝐍
       $: htv (hvnat 0)
-      $: (htskip (htv list @: "nil"))))) "head" $: htv (hvnat 0))).
+      $: (htskip (htv list @: "nil"))))) @: "head" $: htv (hvnat 0))).
 (* Invoking a method from an abstract type (here, [list @; "List"] needs a skip. *)
 
 Example hheadConsTyp Γ :

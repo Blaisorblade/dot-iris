@@ -38,16 +38,16 @@ val iftFalse : IFT =
   [A] => (t : A) => (f : A) => f
 
 // What we typechecked in Coq.
-object boolImplV {
+object boolImplV0 {
   type Boolean = IFT
   val bTrue : Later[Boolean] = upcast(iftTrue)
   val bFalse : Later[Boolean] = upcast(iftFalse)
 }
-val boolImplV0 : {
+val boolImplV : {
   type Boolean <: IFT
   val bTrue : Later[Boolean]
   val bFalse : Later[Boolean]
-} = boolImplV
+} = boolImplV0
 
 /////////////////////
 // Option type.
