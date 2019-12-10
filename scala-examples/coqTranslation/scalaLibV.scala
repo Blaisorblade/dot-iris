@@ -32,8 +32,8 @@ val iftFalse : IFT =
 // What we typechecked in Coq.
 object boolImplV {
   type Boolean = IFT
-  val bTrue : Later[Boolean] = iftTrue
-  val bFalse : Later[Boolean] = iftFalse
+  val bTrue : Later[Boolean] = upcast(iftTrue)
+  val bFalse : Later[Boolean] = upcast(iftFalse)
 }
 val boolImplV0 : {
   type Boolean <: IFT
@@ -71,6 +71,6 @@ val mkSome : ( x : { type A } ) => x.A => SomeT & { type T = x.A } =
     type T = x.A
     val isEmpty = iftFalse
     val pmatch =
-      x => none => some => some(skip(content))
+      x => none => some => some(skip(upcast(content)))
     val get = content
   }

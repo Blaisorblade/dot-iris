@@ -2,8 +2,15 @@ package typing_unstamped_derivedV
 import reflect.Selectable.reflectiveSelectable
 
 // We use this here to simulate skips in the code.
-def skip[A](x: A): A = x
-type Later[A] = A
+object LaterUtils {
+  opaque type Later[A] = A
+  def skip[A](x: Later[A]): x.type & A = x
+
+  // Beware that upcast might not correspond to an upcast in gDOT (which is not
+  // part of the term syntax anyway)
+  def upcast[A](x: A): x.type & Later[A] = x
+}
+export LaterUtils._
 
 /**
   * Vaguely approximate the [tyApp] Coq metaprogram as a Scala function.
