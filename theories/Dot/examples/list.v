@@ -287,8 +287,7 @@ Proof.
   "type" argument and p : { A <: Nat} so p.A <: ▶ Nat. *)
   set U := (type "A" >: ⊥ <: ▶ 𝐍)%HT.
   set V := (hclose (hTAnd (hlistT hx1 hx0) U)).
-  apply AnfBind_typed with (T := hclose ((hTAnd (hlistT hx1 hx0) U)));
-    stcrush; first last.
+  apply AnfBind_typed with (T := V); stcrush; first last.
   {
     eapply Subs_typed_nocoerce; first
       eapply TMuE_typed' with (T1 := hclose (val "head" : ⊤ →: hp0 @; "A"));
@@ -307,7 +306,7 @@ Proof.
    *)
   {
     ettrans; last apply TLaterL_stp; stcrush.
-    ettrans; [|apply: TDistr_TLater_And_stp; tcrush].
+    ettrans; [|apply: TDistr_TLater_And_stp; stcrush].
     tcrush; [lThis | lNext].
     eapply SelU_stp; tcrush.
     eapply Subs_typed_nocoerce; first exact HL.
@@ -317,7 +316,7 @@ Proof.
   eapply App_typed, Hsnil.
   eapply (App_typed (T1 := hclose 𝐍)); last tcrush.
   (* Perform avoidance on the type application. *)
-  eapply tyApp_typed with (T := hclose 𝐍); first done; intros; tcrush.
+  eapply tyApp_typed with (T := hclose 𝐍); first done; intros; tcrush; cbv -[Γ'].
   by eapply LSel_stp'; tcrush; var.
   by lNext.
   lNext; by eapply SelU_stp; tcrush; var.
