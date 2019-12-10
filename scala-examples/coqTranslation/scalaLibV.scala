@@ -5,7 +5,7 @@ import typing_unstamped_derivedV._
 
 type Nat = Int // Hack
 
-type HashableString = { val hashCode : () => Nat }
+type HashableString = { val hashCode_ : () => Nat }
 // Notation HashableString := (μ {@ val "hashCode" : TUnit →: TNat }).
 
 object loopDefV { self =>
