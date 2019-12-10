@@ -429,20 +429,20 @@ Lemma selfIntersect Γ T U i j:
   Γ u⊢ₜ T, i <: TAnd U T, j + i .
 Proof. intros; tcrush. exact: AddIJ_stp. Qed.
 
-Lemma TDistr_TLater_And_stp Γ (T1 T2: ty) i :
+Lemma TDistr_TLater_And_stp Γ T1 T2 i :
   is_unstamped_ty (length Γ) T1 →
   is_unstamped_ty (length Γ) T2 →
   Γ u⊢ₜ TAnd (TLater T1) (TLater T2), i <: TLater (TAnd T1 T2), i.
 Proof. intros; asideLaters; typconstructor; [lThis|lNext]. Qed.
 
 (** Inverse of [TDistr_TLater_And_stp]. *)
-Lemma TDistr_TLater_And_stp_inv Γ (T1 T2: ty) i :
+Lemma TDistr_TLater_And_stp_inv Γ T1 T2 i :
   is_unstamped_ty (length Γ) T1 →
   is_unstamped_ty (length Γ) T2 →
   Γ u⊢ₜ TLater (TAnd T1 T2), i <: TAnd (TLater T1) (TLater T2), i.
 Proof. intros; tcrush. Qed.
 
-Lemma TDistr_TLater_Or_stp Γ (T1 T2: ty) i :
+Lemma TDistr_TLater_Or_stp Γ T1 T2 i :
   is_unstamped_ty (length Γ) T1 →
   is_unstamped_ty (length Γ) T2 →
   Γ u⊢ₜ TLater (TOr T1 T2), i <: TOr (TLater T1) (TLater T2), i.
@@ -452,7 +452,7 @@ Proof.
 Qed.
 
 (** Inverse of [TDistr_TLater_Or_stp]. *)
-Lemma TDistr_TLater_Or_stp_inv Γ (T1 T2: ty) i :
+Lemma TDistr_TLater_Or_stp_inv Γ T1 T2 i :
   is_unstamped_ty (length Γ) T1 →
   is_unstamped_ty (length Γ) T2 →
   Γ u⊢ₜ TOr (TLater T1) (TLater T2), i <: TLater (TOr T1 T2), i.
