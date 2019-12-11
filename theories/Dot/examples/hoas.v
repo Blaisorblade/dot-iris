@@ -250,7 +250,7 @@ Infix "$:" := htapp (at level 68, left associativity).
 Notation "a @: b" := (htproj a b) (at level 59, b at next level).
 
 Definition hpackTV l T := ν: self, {@ type l = T }.
-Definition htyApp l t T :=
+Definition htyApp t l T :=
   hlett: x := t in:
   hlett: a := htv (hpackTV l T) in:
     htv x $: htv a.

@@ -302,7 +302,7 @@ Lemma packTV_typed T Γ l :
   Γ u⊢ₜ tv (packTV l T) : typeEq l T.
 Proof. intros; exact: packTV_typed'. Qed.
 
-Definition tyApp l t T :=
+Definition tyApp t l T :=
   lett t (lett (tv (packTV l (shift T))) (tapp (tv x1) (tv x0))).
 
 Lemma tyApp_typed Γ T U V t l :
@@ -313,7 +313,7 @@ Lemma tyApp_typed Γ T U V t l :
   (∀ L, typeEq l T.|[ren (+2)] :: L :: Γ u⊢ₜ U.|[up (ren (+1))], 0 <: V.|[ren (+2)], 0) →
   is_unstamped_ty (length Γ) T →
   is_unstamped_ty (S (length Γ)) U →
-  Γ u⊢ₜ tyApp l t T : V.
+  Γ u⊢ₜ tyApp t l T : V.
 Proof.
   move => Ht Hsub HuT1 HuU1.
   eapply Let_typed; [exact: Ht| |tcrush].

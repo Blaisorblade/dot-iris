@@ -104,7 +104,7 @@ Qed.
 Lemma tyAppIFT_typed Γ T t :
   is_unstamped_ty (length Γ) T →
   Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ tyApp "A" t T : T →: T →: ▶ T.
+  Γ u⊢ₜ tyApp t "A" T : T →: T →: ▶ T.
 Proof.
   move => HsT1 Ht; move: (HsT1) => /is_unstamped_ren1_ty HsT2.
   intros; eapply tyApp_typed => //; last stcrush.
@@ -140,17 +140,17 @@ Qed.
 Lemma iftCoerce_tyAppIFT_typed Γ T t :
   is_unstamped_ty (length Γ) T →
   Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ iftCoerce (tyApp "A" t T) : T →: T →: T.
+  Γ u⊢ₜ iftCoerce (tyApp t "A" T) : T →: T →: T.
 Proof. intros. by apply /iftCoerce_typed /tyAppIFT_typed. Qed.
 
 Lemma iftCoerce_tyAppIFT_typed_IFT Γ t :
   Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ iftCoerce (tyApp "A" t IFT) : IFT →: IFT →: IFT.
+  Γ u⊢ₜ iftCoerce (tyApp t "A" IFT) : IFT →: IFT →: IFT.
 Proof. intros. apply iftCoerce_tyAppIFT_typed; tcrush. Qed.
 
 Definition iftNotBody t T true false :=
   tapp (tapp
-      (iftCoerce (tyApp "A" t T))
+      (iftCoerce (tyApp t "A" T))
     false)
   true.
 
@@ -175,7 +175,7 @@ Proof. apply Lam_typed; first stcrush. apply iftNotBodyTyp. var. Qed.
 (* AND = λ a b. a b False. *)
 Definition iftAndBody t1 t2 T false :=
   tapp (tapp
-      (iftCoerce (tyApp "A" t1 T))
+      (iftCoerce (tyApp t1 "A" T))
     t2)
   false.
 
@@ -204,5 +204,5 @@ Definition IFTp0 : ty := p0Bool →: p0Bool →: p0Bool.
 
 Lemma iftCoerce_tyAppIFT_typed_p0Boolean Γ T t :
   T :: Γ u⊢ₜ t : IFT →
-  T :: Γ u⊢ₜ iftCoerce (tyApp "A" t p0Bool) : p0Bool →: p0Bool →: p0Bool.
+  T :: Γ u⊢ₜ iftCoerce (tyApp t "A" p0Bool) : p0Bool →: p0Bool →: p0Bool.
 Proof. intros. apply iftCoerce_tyAppIFT_typed; tcrush. Qed.

@@ -254,7 +254,7 @@ Proof. apply clListTyp'2. tcrush. Qed.
 Definition hheadCons (list : hvl) :=
   htskip $ htskip (
     (hAnfBind $ htskip
-      (htyApp "T" (htv list @: "cons") 𝐍
+      (htyApp (htv list @: "cons") "T" 𝐍
         $: htv (hvnat 0)
         $: htskip (htv list @: "nil")))
     @: "head" $: htv (hvnat 0)).
