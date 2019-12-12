@@ -140,6 +140,50 @@ Proof.
     apply SubIFT_LaterP0Bool'.
 Qed.
 
+Module Export hBoolSing.
+Import hoasNotation.
+Definition hIFTGenT hres : hty :=
+  ∀: x : tparam "A", ∀: t : hpv x @; "A", ∀: f: hpv x @; "A", hres t f.
+
+Definition hIFTFalseT : hty := hIFTGenT (λ t f, hTSing (hpv f)).
+Definition hIFTTrueT : hty := hIFTGenT (λ t f, hTSing (hpv t)).
+
+Example iftTrueSingTyp Γ : Γ u⊢ₜ tv iftTrue : hclose hIFTTrueT.
+Proof.
+  tcrush; cbv.
+  eapply (Path_typed (p := pv _)), psingleton_refl_typed.
+  typconstructor; var.
+Qed.
+
+Example iftFalseSingTyp Γ : Γ u⊢ₜ tv iftFalse : hclose hIFTFalseT.
+Proof.
+  tcrush; cbv.
+  eapply (Path_typed (p := pv _)), psingleton_refl_typed.
+  typconstructor; var.
+Qed.
+
+Lemma hIFTTrueTSub Γ : Γ u⊢ₜ hclose hIFTTrueT, 0 <: hclose hIFT, 0.
+Proof.
+  typconstructor; stcrush; first tcrush.
+  asideLaters. cbv.
+  apply TAllConCov_stp; [by tcrush | asideLaters | by stcrush].
+  apply TAllConCov_stp; [by tcrush | asideLaters | by stcrush].
+  apply PSelf_singleton_stp; tcrush.
+  varsub; tcrush.
+Qed.
+
+Lemma hIFTFalseTSub Γ : Γ u⊢ₜ hclose hIFTFalseT, 0 <: hclose hIFT, 0.
+Proof.
+  typconstructor; stcrush; first tcrush.
+  asideLaters. cbv.
+  apply TAllConCov_stp; [by tcrush | asideLaters | by stcrush].
+  apply TAllConCov_stp; [by tcrush | asideLaters | by stcrush].
+  apply PSelf_singleton_stp; tcrush.
+  varsub; tcrush.
+Qed.
+
+End hBoolSing.
+
 Module Export option.
 (*
   Encoding Option. Beware I'm using raw Church-encoded booleans, simply
