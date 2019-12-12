@@ -221,6 +221,13 @@ Definition hnoneT := hTAnd hoptionT {@ typeEq "T" ⊥}.
 Definition hnoneTConcr := hoptionTGen ⊥ ⊥.
 Definition noneT := hclose hnoneT.
 
+Definition hnoneSingTBody self : hty := {@
+  typeEq "T" ⊥;
+  val "isEmpty" : hIFTTrueT;
+  val "pmatch" : hpmatchT self
+}.
+Definition hnoneSingT := μ: self, hnoneSingTBody self.
+
 Definition hnoneV := ν: _, {@
   type "T" = ⊥;
   val "isEmpty" = hiftTrue;
@@ -228,16 +235,35 @@ Definition hnoneV := ν: _, {@
 }.
 Definition noneV := hclose hnoneV.
 
+Example noneTypStronger Γ :
+  Γ u⊢ₜ tv noneV : hclose hnoneSingT.
+Proof.
+  have := iftTrueSingTyp (hclose (▶: hnoneSingTBody hx0) :: Γ) => /(dvl_typed "isEmpty") ?.
+  tcrush; var.
+Qed.
+
+Example hnoneSingTConcrSub Γ :
+  Γ u⊢ₜ hclose hnoneSingT, 0 <: hclose hnoneTConcr, 0.
+Proof.
+  tcrush; [lNext | by repeat lNext].
+  ettrans; first apply TAnd1_stp; stcrush.
+  typconstructor.
+  apply hIFTTrueTSub.
+Qed.
+
+Example hnoneSingTSub Γ :
+  Γ u⊢ₜ hclose hnoneTConcr, 0 <: noneT, 0.
+Proof. by tcrush; [ lThis | apply Bind1; tcrush ]. Qed.
+
 Example noneTyp Γ :
   Γ u⊢ₜ tv noneV : noneT.
 Proof.
   (* apply VObj_typed; last stcrush.
   apply dcons_typed; [tcrush| |tcrush].
   apply dcons_typed; [eauto using iftTrueTyp| |tcrush]. *)
-  apply (Subs_typed_nocoerce (hclose hnoneTConcr)).
-  tcrush; var.
-  tcrush; first lThis.
-  apply Bind1; tcrush.
+  apply (Subs_typed_nocoerce (hclose hnoneSingT)).
+  apply noneTypStronger.
+  ettrans; [apply hnoneSingTConcrSub | apply hnoneSingTSub].
 Qed.
 
 (*
