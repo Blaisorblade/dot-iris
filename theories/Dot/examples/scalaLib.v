@@ -326,16 +326,19 @@ Proof.
   eapply Subs_typed_nocoerce, hmkSomeSingTSub.
   apply mkSomeTypStronger.
 Qed.
+
+Definition hoptionTSing := hTOr hnoneSingT (hsomeSingT ⊥ ⊤).
+
 Definition hoptionModV := ν: self, {@
-  type "Option" = hoptionT;
+  type "Option" = hoptionTSing;
   val "none" = hnoneV;
   val "mkSome" = hmkSome
 }.
 
 Definition hoptionModTConcrBody : hty := {@
-  typeEq "Option" hoptionT;
-  val "none" : hnoneT;
-  val "mkSome" : hmkSomeT
+  typeEq "Option" hoptionTSing;
+  val "none" : hnoneSingT;
+  val "mkSome" : hmkSomeTSing
 }.
 
 Definition hoptionModT := μ: self, {@
@@ -344,14 +347,44 @@ Definition hoptionModT := μ: self, {@
   val "mkSome" : hmkSomeT
 }.
 
+Example hsomeSingTSub Γ L U :
+  is_unstamped_ty (length Γ) L →
+  is_unstamped_ty (length Γ) U →
+  Γ u⊢ₜ hclose (hsomeSingT (pureS (shift L)) (pureS (shift U))), 0 <: hclose (hsomeT (pureS L) (pureS U)), 0.
+Proof.
+  intros.
+  have ?: is_unstamped_ty (S (length Γ)) (shift L) by wtcrush.
+  have ?: is_unstamped_ty (S (length Γ)) (shift U) by wtcrush.
+  evar (Γ' : ctx); have := hIFTFalseTSub Γ'; rewrite {}/Γ' => Hf.
+  mltcrush.
+Qed.
+
+Example optionTSingSub Γ :
+  Γ u⊢ₜ hclose hoptionTSing, 0 <: hclose hoptionT, 0.
+Proof.
+  (* evar (Γ' : ctx).
+  have := hnoneSingTSub Γ'.
+  have := hmkSomeSingTSub Γ'; rewrite {}/Γ' => ??. *)
+  typconstructor.
+  ettrans; first apply hnoneSingTSub; tcrush.
+  ettrans; first apply (hsomeSingTSub _ ⊥ ⊤); cbv; tcrush.
+  lThis.
+Qed.
+
 Example optionModTyp Γ :
   Γ u⊢ₜ hclose (htv hoptionModV) : hclose hoptionModT.
 Proof.
   set U := hclose (▶: hoptionModTConcrBody).
-  have Hn := noneTyp (U :: Γ).
-  (* Without the call to [dvl_typed], Coq would (smartly) default to [dvabs_typed] *)
-  have := mkSomeTyp (U :: Γ) => /(dvl_typed "mkSome") Hs.
-  apply (Subs_typed_nocoerce (hclose (μ: _, hoptionModTConcrBody))); mltcrush.
+  have Hn := noneTypStronger (U :: Γ).
+
+  have := mkSomeTypStronger (U :: Γ) => /(dvl_typed "mkSome") Hs.
+
+  evar (Γ' : ctx).
+  have : Γ' u⊢ₜ hclose hoptionTSing, 1 <: hclose hoptionT, 1
+    by apply TMono_stp, optionTSingSub.
+  have := hnoneSingTSub Γ'.
+  have := hmkSomeSingTSub Γ'; rewrite {}/Γ' => Hsub1 Hsub2 Hsub3.
+  apply (Subs_typed_nocoerce (hclose (μ: _, hoptionModTConcrBody))); ltcrush.
 Qed.
 
 End option.
