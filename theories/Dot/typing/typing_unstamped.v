@@ -174,13 +174,10 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     is_unstamped_ty (length Γ) T →
     Γ u⊢ₜ T, S i <: TLater T, i
 
-(* "Structural" rules about indexes *)
+(* "Structural" rule about indexes *)
 | TAddLater_stp T i:
     is_unstamped_ty (length Γ) T →
     Γ u⊢ₜ T, i <: TLater T, i
-| TMono_stp T1 T2 i j:
-    Γ u⊢ₜ T1, i <: T2, j →
-    Γ u⊢ₜ T1, S i <: T2, S j
 
 (* "Logical" connectives *)
 | Top_stp i T :
@@ -292,6 +289,11 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     is_unstamped_ty (length Γ) U1 →
     is_unstamped_ty (length Γ) U2 →
     Γ u⊢ₜ TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
+
+(* "Structural" rule about indexes. Only try last. *)
+| TMono_stp T1 T2 i j:
+    Γ u⊢ₜ T1, i <: T2, j →
+    Γ u⊢ₜ T1, S i <: T2, S j
 where "Γ u⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
 
 (* Make [T] first argument: Hide Γ for e.g. typing examples. *)

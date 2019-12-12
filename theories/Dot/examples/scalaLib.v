@@ -163,24 +163,10 @@ Proof.
 Qed.
 
 Lemma hIFTTrueTSub Γ : Γ u⊢ₜ hclose hIFTTrueT, 0 <: hclose hIFT, 0.
-Proof.
-  typconstructor; stcrush; first tcrush.
-  asideLaters. cbv.
-  apply TAllConCov_stp; [by tcrush | asideLaters | by stcrush].
-  apply TAllConCov_stp; [by tcrush | asideLaters | by stcrush].
-  apply PSelf_singleton_stp; tcrush.
-  varsub; tcrush.
-Qed.
+Proof. tcrush; varsub; tcrush. Qed.
 
 Lemma hIFTFalseTSub Γ : Γ u⊢ₜ hclose hIFTFalseT, 0 <: hclose hIFT, 0.
-Proof.
-  typconstructor; stcrush; first tcrush.
-  asideLaters. cbv.
-  apply TAllConCov_stp; [by tcrush | asideLaters | by stcrush].
-  apply TAllConCov_stp; [by tcrush | asideLaters | by stcrush].
-  apply PSelf_singleton_stp; tcrush.
-  varsub; tcrush.
-Qed.
+Proof. tcrush; varsub; tcrush. Qed.
 
 End hBoolSing.
 
