@@ -255,19 +255,27 @@ Qed.
   }
 *)
 
-Definition hsomeTConcr hT : hty := μ: self, {@
-  typeEq "T" hT;
+Definition hsomeSingT hL hU : hty := μ: self, {@
+  type "T" >: hL <: hU;
+  val "isEmpty" : hIFTFalseT;
+  val "pmatch" : hpmatchT self;
+  val "get" : ▶: hpv self @; "T"
+}.
+
+Definition hsomeTConcr hL hU : hty := μ: self, {@
+  type "T" >: hL <: hU;
   val "isEmpty" : hIFT;
   val "pmatch" : hpmatchT self;
   val "get" : ▶: hpv self @; "T"
 }.
 
 (** Behold here [(optionT & (μ self, val get: ▶: self @; "T")) & { type T = hT } ]. *)
-Definition hsomeT hT : hty :=
+Definition hsomeT hL hU : hty :=
   hTAnd (hTAnd hoptionT (μ: self, val "get" : ▶: hpv self @; "T"))
-    {@ typeEq "T" hT}.
+    (type "T" >: hL <: hU).
 
-Definition hmkSomeTGen res : hty := ∀: x: tparam "A", (hpv x @; "A" →: res (hpv x @; "A")).
+Definition hmkSomeTGen res : hty := ∀: x: tparam "A", (hpv x @; "A" →: res (hpv x @; "A") (hpv x @; "A")).
+Definition hmkSomeTSing : hty := hmkSomeTGen hsomeSingT.
 Definition hmkSomeTConcr : hty := hmkSomeTGen hsomeTConcr.
 Definition hmkSomeT : hty := hmkSomeTGen hsomeT.
 
@@ -280,11 +288,12 @@ Definition hmkSome : hvl := λ: x, λ:: content, htv $ ν: self, {@
 Definition mkSomeT := hclose hmkSomeT.
 Definition mkSome := hclose hmkSome.
 
-Example mkSomeTyp Γ :
-  Γ u⊢ₜ tv mkSome : mkSomeT.
+Example mkSomeTypStronger Γ :
+  Γ u⊢ₜ tv mkSome : hclose hmkSomeTSing.
 Proof.
-  apply (Subs_typed_nocoerce (hclose hmkSomeTConcr)).
-  tcrush; first var; cbv; hideCtx.
+  evar (Γ' : ctx).
+  have := iftFalseSingTyp Γ' => /(dvl_typed "isEmpty"); rewrite /Γ' => Hf.
+  tcrush; cbv.
   - eapply App_typed; first var.
     apply (Subs_typed (i := 1) (T1 := hclose (▶: (hp3 @; "T"))%HT)); tcrush.
     varsub; ltcrush.
@@ -293,12 +302,34 @@ Proof.
     asideLaters.
     eapply LSel_stp'; tcrush.
     varsub; tcrush.
-  - (** Show that [hmkSomeTConcr <: mkSomeT]. This involves multiple
-    fixpoints on both sides, but goes through without much effort. *)
-    tcrush; first lThis; repeat lNext.
-    apply Bind1; tcrush.
 Qed.
 
+Example hmkSomeSingTConcrSub Γ :
+  Γ u⊢ₜ hclose hmkSomeTSing, 0 <: hclose hmkSomeTConcr, 0.
+Proof.
+  evar (Γ' : ctx); have := hIFTFalseTSub Γ'; rewrite /Γ' => Hf.
+  tcrush; lNext; [lThis | lNext; lThis | repeat lNext ].
+Qed.
+Example hmkSomeConcrTSub Γ :
+  Γ u⊢ₜ hclose hmkSomeTConcr, 0 <: mkSomeT, 0.
+Proof.
+  (** This involves multiple fixpoints on both sides, but goes through
+  without much effort. *)
+  tcrush; first lThis; repeat lNext.
+  apply Bind1; tcrush.
+Qed.
+Example hmkSomeSingTSub Γ :
+  Γ u⊢ₜ hclose hmkSomeTSing, 0 <: mkSomeT, 0.
+Proof.
+  ettrans; [apply hmkSomeSingTConcrSub | apply hmkSomeConcrTSub].
+Qed.
+
+Example mkSomeTyp Γ :
+  Γ u⊢ₜ tv mkSome : mkSomeT.
+Proof.
+  eapply (Subs_typed_nocoerce (hclose hmkSomeTSing)), hmkSomeSingTSub.
+  apply mkSomeTypStronger.
+Qed.
 Definition hoptionModV := ν: self, {@
   type "Option" = hoptionT;
   val "none" = hnoneV;
