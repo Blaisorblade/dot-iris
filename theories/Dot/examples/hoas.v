@@ -215,6 +215,10 @@ Notation "S →: T" := (hTAll S (λT _ , T)) (at level 49, T at level 98, right 
 Notation "p @; l" := (hTSel p l) (at level 48).
 Notation "v @ l1 @ .. @ l2" := (hpself .. (hpself v l1) .. l2)
                                      (format "v  @  l1  @  ..  @  l2", at level 48, l1, l2 at level 40).
+Notation "a @: b" := (htproj a b) (at level 59, b at next level).
+
+Infix "$:" := htapp (at level 68, left associativity).
+
 Notation tparam A := (type A >: ⊥ <: ⊤)%HT.
 Definition typeEq l T := (type l >: T <: T) %HT.
 
@@ -244,9 +248,6 @@ Arguments hvabs' /.
 Definition hlett t u := htapp (hvabs' u) t.
 Arguments hlett /.
 Notation "hlett: x := t in: u" := (htapp (λ:: x, u) t) (at level 80).
-
-Infix "$:" := htapp (at level 68, left associativity).
-Notation "a @: b" := (htproj a b) (at level 59, b at next level).
 
 Definition hpackTV l T := ν: self, {@ type l = T }.
 Definition htyApp t l T :=

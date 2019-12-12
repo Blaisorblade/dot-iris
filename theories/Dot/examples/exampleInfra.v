@@ -58,11 +58,9 @@ Notation "▶:" := TLater : ty_scope.
 (* Level taken from Iris. *)
 Notation "▶: T" := (TLater T) (at level 49, right associativity) : ty_scope.
 
+Notation "'∀:' T , U" := (TAll T U) (at level 48, T at level 98, U at level 98).
 (* Do not use, too many conflicts. *)
 Notation "'∀' T ',' U" := (TAll T U) (at level 49, only printing) : ty_scope.
-(* Notation "'∀' '(' T ')' U" := (TAll T U) (at level 60). *)
-(* Notation "'∀' '(' T ')' U" := (TAll T U)
-  (at level 30, format "'∀'  '(' T ')'   U") : ty_scope. *)
 
 Notation "'μ' Ts " := (TMu Ts) (at level 50, Ts at next level).
 Notation "'type' l >: L <: U" := (TTMem l L U) (at level 60, l at level 50, L, U at level 70) : ty_scope.
@@ -80,6 +78,9 @@ Notation "S →: T" := (TAll S%ty (shift T%ty)) (at level 49, T at level 98, rig
 Notation "p @; l" := (TSel p l) (at level 48).
 Notation "v @ l1 @ .. @ l2" := (pself .. (pself v l1) .. l2)
                                      (format "v  @  l1  @  ..  @  l2", at level 48, l1, l2 at level 40).
+Notation "a @: b" := (tproj a b) (at level 59, b at next level).
+
+Infix "$:" := tapp (at level 68, left associativity).
 
 Notation tparam A := (type A >: ⊥ <: ⊤)%ty.
 Definition typeEq l T : ty := type l >: T <: T.
