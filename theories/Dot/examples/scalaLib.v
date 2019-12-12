@@ -107,14 +107,14 @@ Example SubIFT_LaterP0Bool' Γ : {@
     typeEq "Boolean" IFT;
     val "true" : IFT;
     val "false" : IFT
-  }%ty :: Γ u⊢ₜ IFT, 0 <: ▶ p0Bool, 0.
+  }%ty :: Γ u⊢ₜ IFT, 0 <: ▶: p0Bool, 0.
 Proof. ettrans; first exact: SubIFT_P0Bool. tcrush. Qed.
 
-Example SubIFT_LaterP0Bool Γ : (▶ {@
+Example SubIFT_LaterP0Bool Γ : (▶: {@
     typeEq "Boolean" IFT;
-    val "true" : ▶ p0Bool;
-    val "false" : ▶ p0Bool
-  })%ty :: Γ u⊢ₜ IFT, 0 <: ▶ p0Bool, 0.
+    val "true" : ▶: p0Bool;
+    val "false" : ▶: p0Bool
+  })%ty :: Γ u⊢ₜ IFT, 0 <: ▶: p0Bool, 0.
 Proof.
   asideLaters.
   ettrans; first (apply (AddI_stp _ _ 1); tcrush).
@@ -211,12 +211,12 @@ Definition hsomeTConcr hT : hty := μ: self, {@
   typeEq "T" hT;
   val "isEmpty" : hIFT;
   val "pmatch" : hpmatchT self;
-  val "get" : ▶ hpv self @; "T"
+  val "get" : ▶: hpv self @; "T"
 }.
 
-(** Behold here [(optionT & (μ self, val get: ▶ self @; "T")) & { type T = hT } ]. *)
+(** Behold here [(optionT & (μ self, val get: ▶: self @; "T")) & { type T = hT } ]. *)
 Definition hsomeT hT : hty :=
-  hTAnd (hTAnd hoptionT (μ: self, val "get" : ▶ hpv self @; "T"))
+  hTAnd (hTAnd hoptionT (μ: self, val "get" : ▶: hpv self @; "T"))
     {@ typeEq "T" hT}.
 
 Definition hmkSomeTGen res : hty := ∀: x: tparam "A", (hpv x @; "A" →: res (hpv x @; "A")).
@@ -238,7 +238,7 @@ Proof.
   apply (Subs_typed_nocoerce (hclose hmkSomeTConcr)).
   tcrush; first var; cbv; hideCtx.
   - eapply App_typed; first var.
-    apply (Subs_typed (i := 1) (T1 := hclose (▶ (hp3 @; "T"))%HT)); tcrush.
+    apply (Subs_typed (i := 1) (T1 := hclose (▶: (hp3 @; "T"))%HT)); tcrush.
     varsub.
     repeat lNext.
   - varsub.
@@ -273,7 +273,7 @@ Definition hoptionModT := μ: self, {@
 Example optionModTyp Γ :
   Γ u⊢ₜ hclose (htv hoptionModV) : hclose hoptionModT.
 Proof.
-  set U := hclose (▶ hoptionModTConcrBody).
+  set U := hclose (▶: hoptionModTConcrBody).
   have Hn := noneTyp (U :: Γ).
   (* Without the call to [dvl_typed], Coq would (smartly) default to [dvabs_typed] *)
   have := mkSomeTyp (U :: Γ) => /(dvl_typed "mkSome") Hs.

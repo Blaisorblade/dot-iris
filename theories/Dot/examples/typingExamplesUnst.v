@@ -91,7 +91,7 @@ Qed.
 Lemma subIFT i Γ T:
   is_unstamped_ty (length Γ) T.|[ren (+i)] →
   (typeEq "A" T.|[ren (+1+i)]) :: Γ u⊢ₜ IFTBody, 0 <:
-    TAll T.|[ren (+1+i)] (TAll T.|[ren (+2+i)] (▶ T.|[ren (+3+i)])), 0.
+    TAll T.|[ren (+1+i)] (TAll T.|[ren (+2+i)] (▶: T.|[ren (+3+i)])), 0.
 Proof.
   rewrite /= -/IFTBody => HsT1.
   move: (HsT1) => /is_unstamped_ren1_ty HsT2; rewrite -hrenS in HsT2.
@@ -104,7 +104,7 @@ Qed.
 Lemma tyAppIFT_typed Γ T t :
   is_unstamped_ty (length Γ) T →
   Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ tyApp t "A" T : T →: T →: ▶ T.
+  Γ u⊢ₜ tyApp t "A" T : T →: T →: ▶: T.
 Proof.
   move => HsT1 Ht; move: (HsT1) => /is_unstamped_ren1_ty HsT2.
   intros; eapply tyApp_typed => //; last stcrush.
@@ -120,7 +120,7 @@ Definition iftCoerce t :=
 
 Lemma iftCoerce_typed Γ t T :
   is_unstamped_ty (length Γ) T →
-  Γ u⊢ₜ t: T →: T →: ▶ T →
+  Γ u⊢ₜ t: T →: T →: ▶: T →
   Γ u⊢ₜ iftCoerce t : T →: T →: T.
 Proof.
   move => HsT1 Ht.
@@ -130,7 +130,7 @@ Proof.
   eapply Let_typed; [exact: Ht| |rewrite /= !(hren_upn 1); tcrush].
   rewrite /= !(hren_upn_gen 1) (hren_upn_gen 2) /=.
   tcrush; rewrite -!hrenS -(iterate_S tskip 0).
-  eapply (Subs_typed (T1 := ▶T.|[_])); first tcrush.
+  eapply (Subs_typed (T1 := ▶:T.|[_])); first tcrush.
   repeat (eapply App_typed; last var).
   apply: Var_typed' => //.
   rewrite /= !(hren_upn 1) (hren_upn_gen 1) (hren_upn_gen 2)

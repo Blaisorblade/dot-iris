@@ -163,25 +163,25 @@ Proof. move => Ht Hu HsT. apply /App_typed /Ht /Lam_typed /Hu /HsT. Qed.
 
 Lemma val_LB T U Γ i x l :
   Γ u⊢ₜ tv (ids x) : type l >: T <: U →
-  Γ u⊢ₜ ▶ T, i <: (pv (ids x) @; l), i.
+  Γ u⊢ₜ ▶: T, i <: (pv (ids x) @; l), i.
 Proof. intros; apply /AddIB_stp /(@LSel_stp _ (pv _)); tcrush. Qed.
 
 Lemma val_UB T L Γ i x l :
   Γ u⊢ₜ tv (ids x) : type l >: L <: T →
-  Γ u⊢ₜ (pv (ids x) @; l), i <: ▶ T, i.
+  Γ u⊢ₜ (pv (ids x) @; l), i <: ▶: T, i.
 Proof. intros; eapply AddIB_stp, SelU_stp; tcrush. Qed.
 
 (* These rules from storeless typing must be encoded somehow via variables. *)
 (* Lemma packTV_LB T n Γ i :
   is_unstamped_ty n T →
   n <= length Γ →
-  Γ u⊢ₜ ▶ T, i <: (pv (packTV T) @; "A"), i.
+  Γ u⊢ₜ ▶: T, i <: (pv (packTV T) @; "A"), i.
 Proof. intros; apply /val_LB /packTV_typed'. Qed. *)
 
 (* Lemma packTV_UB T n Γ i :
   is_unstamped_ty n T →
   n <= length Γ →
-  Γ u⊢ₜ (pv (packTV T) @; "A"), i <: ▶ T, i.
+  Γ u⊢ₜ (pv (packTV T) @; "A"), i <: ▶: T, i.
 Proof. intros; by apply /val_UB /packTV_typed'. Qed. *)
 
 Lemma Dty_typed Γ T V l:

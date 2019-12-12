@@ -200,9 +200,8 @@ Close Scope hty_scope.
 
 Notation "'𝐍'" := hTNat : hty_scope.
 
-Notation "'▶'" := hTLater : hty_scope.
-(* Level taken from Iris. *)
-Notation "'▶' T" := (hTLater T) (at level 49, right associativity) : hty_scope.
+Notation "▶:" := hTLater : hty_scope.
+Notation "▶: T" := (hTLater T) (at level 49, right associativity) : hty_scope.
 
 Notation "'∀:' x : T , U" := (hTAll T (λT x, U)) (at level 48, x, T at level 98, U at level 98).
 Notation "'μ' Ts" := (hTMu Ts) (at level 50, Ts at next level).

@@ -251,7 +251,7 @@ Example SubIFT_LaterP0Bool Γ : TLater {@
     typeEq "Boolean" IFT;
     val "true" : TLater p0Bool;
     val "false" : TLater p0Bool
-  } :: Γ v⊢ₜ[ g ] IFT, 0 <: ▶ p0Bool, 0.
+  } :: Γ v⊢ₜ[ g ] IFT, 0 <: ▶: p0Bool, 0.
 Proof.
   ettrans; first (apply (AddI_stp _ _ 2); tcrush).
   ettrans; first (apply TLaterR_stp; tcrush).
@@ -264,7 +264,7 @@ Example SubIFT_LaterP0Bool' Γ : {@
     typeEq "Boolean" IFT;
     val "true" : IFT;
     val "false" : IFT
-  }%ty :: Γ v⊢ₜ[ g ] IFT, 0 <: ▶ p0Bool, 0.
+  }%ty :: Γ v⊢ₜ[ g ] IFT, 0 <: ▶: p0Bool, 0.
 Proof.
   ettrans; last (apply TLaterR_stp; tcrush).
   ettrans; first (apply (AddI_stp _ _ 2); tcrush).
@@ -333,18 +333,18 @@ Proof.
 Qed.
 
 Lemma packBooleanLB Γ (Hst : s1_is_ift) i :
-  Γ v⊢ₜ[ g ] ▶ IFT, i <: (pv packBoolean @; "A"), i.
+  Γ v⊢ₜ[ g ] ▶: IFT, i <: (pv packBoolean @; "A"), i.
 Proof. by apply /val_LB /packBooleanTyp0. Qed.
 
 Lemma packBooleanUB Γ (Hst : s1_is_ift) i :
-  Γ v⊢ₜ[ g ] (pv packBoolean @; "A"), i <: ▶ IFT, i.
+  Γ v⊢ₜ[ g ] (pv packBoolean @; "A"), i <: ▶: IFT, i.
 Proof. by apply /val_UB /packBooleanTyp0. Qed.
 
 Definition iftAnd false : vl := vabs (vabs'
   (tapp (tapp (tapp (tv x1) (tv packBoolean)) (tv x0)) false)).
 
 Example iftAndTyp Γ (Hst : s1_is_ift):
-  Γ v⊢ₜ[ g ] tv (iftAnd (tv iftFalse)) : TAll IFT (TAll IFT (▶IFT)).
+  Γ v⊢ₜ[ g ] tv (iftAnd (tv iftFalse)) : TAll IFT (TAll IFT (▶:IFT)).
 Proof.
   unfold s1_is_ift in *; rewrite /iftAnd /vabs'.
   tcrush.
@@ -376,7 +376,7 @@ Example iftAndTyp'1 Γ (Hst : s1_is_ift):
     TAll IFT (TAll IFT IFT).
 Proof.
   tcrush; rewrite -(iterate_S tskip 0).
-  eapply (Subs_typed _ _ _ (▶IFT)); first tcrush.
+  eapply (Subs_typed _ _ _ (▶:IFT)); first tcrush.
   eapply App_typed; last exact: Var_typed';
     eapply App_typed; last exact: Var_typed'; rewrite /= -/IFT.
   apply iftAndTyp; eauto.
@@ -387,7 +387,7 @@ Definition iftCoerce t :=
 
 Lemma coerce_tAppIFT Γ t T :
   is_stamped_ty (length Γ) g T →
-  Γ v⊢ₜ[ g ] t : TAll T (TAll T.|[ren (+1)] (▶ T.|[ren (+2)])) →
+  Γ v⊢ₜ[ g ] t : TAll T (TAll T.|[ren (+1)] (▶: T.|[ren (+2)])) →
   Γ v⊢ₜ[ g ] iftCoerce t : TAll T (TAll T.|[ren (+1)] T.|[ren (+2)]).
 Proof.
   move => HsT1 Ht.
@@ -397,7 +397,7 @@ Proof.
   eapply Let_typed; [exact: Ht| |tcrush].
   rewrite /= !(hren_upn_gen 1) (hren_upn_gen 2) /=.
   tcrush; rewrite -!hrenS -(iterate_S tskip 0).
-  eapply (Subs_typed _ _ _ (▶T.|[_])); first tcrush.
+  eapply (Subs_typed _ _ _ (▶:T.|[_])); first tcrush.
   eapply App_typed; last exact: Var_typed';
     eapply App_typed; last exact: Var_typed'.
   apply: Var_typed' => //.
@@ -412,7 +412,7 @@ Proof. intros. apply /coerce_tAppIFT /iftAndTyp; tcrush. Qed.
 Lemma subIFT i Γ T:
   is_stamped_ty (length Γ) g T.|[ren (+i)] →
   (typeEq "A" T.|[ren (+1+i)]) :: Γ v⊢ₜ[ g ] IFTBody, 0 <:
-    TAll T.|[ren (+1+i)] (TAll T.|[ren (+2+i)] (▶ T.|[ren (+3+i)])), 0.
+    TAll T.|[ren (+1+i)] (TAll T.|[ren (+2+i)] (▶: T.|[ren (+3+i)])), 0.
 Proof.
   rewrite /= -/IFTBody => HsT1.
   move: (HsT1) => /is_stamped_ren1_ty HsT2; rewrite -hrenS in HsT2.
@@ -427,7 +427,7 @@ Lemma tAppIFT_typed Γ T t s :
   g !! s = Some T.|[ren (+1)] →
   Γ v⊢ₜ[ g ] t : IFT →
   Γ v⊢ₜ[ g ] tApp Γ t s :
-    TAll T (TAll T.|[ren (+1)] (▶ T.|[ren (+2)])).
+    TAll T (TAll T.|[ren (+1)] (▶: T.|[ren (+2)])).
 Proof.
   move => HsT1 Hl Ht; move: (HsT1) => /is_stamped_ren1_ty HsT2.
   intros; eapply typeApp_typed => //; tcrush.

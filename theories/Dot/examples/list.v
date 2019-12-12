@@ -20,7 +20,7 @@ Lemma trueTyp Γ Γ'' : Γ'' ++ boolImplT :: Γ u⊢ₜ
   hclose (htrueTm (hx (length Γ''))) : hclose (hpx (length Γ'') @; "Boolean").
 Proof.
   have ?: length Γ'' < length (Γ'' ++ boolImplT :: Γ) by rewrite app_length /=; lia.
-  apply (Subs_typed (i := 1) (T1 := hclose (▶ hpx (length Γ'') @; "Boolean")));
+  apply (Subs_typed (i := 1) (T1 := hclose (▶: hpx (length Γ'') @; "Boolean")));
     rewrite /= plusnO; tcrush.
     eapply Subs_typed_nocoerce.
   - eapply TMuE_typed'; first eapply Var_typed'; by [rewrite lookup_app_r ?Nat.sub_diag|].
@@ -31,7 +31,7 @@ Lemma falseTyp Γ Γ'' : Γ'' ++ boolImplT :: Γ u⊢ₜ
   hclose (hfalseTm (hx (length Γ''))) : hclose (hpx (length Γ'') @; "Boolean").
 Proof.
   have ?: length Γ'' < length (Γ'' ++ boolImplT :: Γ) by rewrite app_length /=; lia.
-  apply (Subs_typed (i := 1) (T1 := hclose (▶ hpx (length Γ'') @; "Boolean")));
+  apply (Subs_typed (i := 1) (T1 := hclose (▶: hpx (length Γ'') @; "Boolean")));
     rewrite /= plusnO; tcrush.
   eapply Subs_typed_nocoerce.
   - eapply TMuE_typed'; first eapply Var_typed'; by [rewrite lookup_app_r ?Nat.sub_diag|].
@@ -54,13 +54,13 @@ Definition hlistTGen bool sci L U : hty := μ: self, {@
 (** ** The list type itself. *)
 Definition hlistT bool sci := hlistTGen bool sci ⊥ ⊤.
 
-(** This ▶ Later is needed because
+(** This ▶: Later is needed because
 - [hnilT] types a value member "nil" (which can't use skips), and
 - this value member has abstract type [sci @; "List"], and
-- when we initialize "nil", [sci] has type [▶(type "List" >: ... <: ...], so
+- when we initialize "nil", [sci] has type [▶:(type "List" >: ... <: ...], so
   we can't deduce anything about [sci@;"List"], only something about
-  [▶(sci@; "List")]. *)
-Definition hnilT sci := hTAnd (▶ hpv sci @; "List") (typeEq "A" ⊥).
+  [▶:(sci@; "List")]. *)
+Definition hnilT sci := hTAnd (▶: hpv sci @; "List") (typeEq "A" ⊥).
 
 (** ∀(x: {A})∀(hd: x.A)∀(tl: sci.List∧{A <: x.A})sci.List∧{A <: x.A} *)
 Definition hconsT sci : hty :=
@@ -123,12 +123,12 @@ Definition hlistModTConcr bool : hty := μ: sci, hlistModTConcrBody bool sci.
 
 (** * Proofs that [hlistModV] has type [hlistModT]. *)
 
-Example nilTyp Γ : hclose (▶ hlistModTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
+Example nilTyp Γ : hclose (▶: hlistModTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
   hclose (htv (hnilV hx1)) : hclose (hnilT hx0).
 Proof.
   apply (Subs_typed_nocoerce $ hclose $ hlistTGen hx1 hx0 ⊥ ⊥ ).
   - evar (T : ty).
-    set L :=  hclose (▶ hlistModTConcrBody hx1 hx0).
+    set L :=  hclose (▶: hlistModTConcrBody hx1 hx0).
     have := trueTyp Γ [hclose ⊤; T; L].
     have := loopTyp (hclose ⊤ :: T :: L :: boolImplT :: Γ).
     rewrite {}/T/= => Ht Hl.
@@ -141,7 +141,7 @@ Proof.
     lThis. lThis.
 Qed.
 
-Example consTyp Γ : hclose (▶ hlistModTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
+Example consTyp Γ : hclose (▶: hlistModTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
   hclose (htv (hconsV hx1)) : hclose (hconsTConcr hx1 hx0).
 Proof.
   epose proof falseTyp Γ [_; _; _; _; _; _] as Ht; cbn in Ht.
@@ -270,7 +270,7 @@ Proof.
   have HL : Γ' u⊢ₜ tv (ids 0): hclose (hlistModTBody hx1 hx0) by apply: TMuE_typed'; first var.
 
   (* The result of "head" has one more later than the list. *)
-  eapply (Subs_typed (i := 2) (T1 := hclose (▶ (▶ 𝐍)))).
+  eapply (Subs_typed (i := 2) (T1 := hclose (▶: (▶: 𝐍)))).
   asideLaters. tcrush.
   eapply (App_typed (T1 := hclose ⊤)); last (eapply Subs_typed_nocoerce); tcrush.
   have Hnil: Γ' u⊢ₜ (htv (hxm 2) @: "nil") 2 : hclose (hnilT hx0)
@@ -287,8 +287,8 @@ Proof.
   }
 
   (* Here we produce a list of later nats, since we produce a list of p.A where p is the
-  "type" argument and p : { A <: Nat} so p.A <: ▶ Nat. *)
-  set U := (type "A" >: ⊥ <: ▶ 𝐍)%HT.
+  "type" argument and p : { A <: Nat} so p.A <: ▶: Nat. *)
+  set U := (type "A" >: ⊥ <: ▶: 𝐍)%HT.
   set V := (hclose (hTAnd (hlistT hx1 hx0) U)).
   apply AnfBind_typed with (T := V); stcrush; first last.
   {
@@ -301,11 +301,11 @@ Proof.
   eapply (Subs_typed (i := 1) (T1 := hclose (hTAnd (hp0 @; "List") U))).
   (******)
   (* We seem stuck here. The problem is that *we* wrote
-  x.List & { A <: Nat }, and that's <: (▶ ListBody) & { A <: Nat }, and we have no
+  x.List & { A <: Nat }, and that's <: (▶: ListBody) & { A <: Nat }, and we have no
   rule to deal with that Later *in the syntax* *yet*.
-  But we know that (▶ ListBody) & { A <: Nat } <: (▶ ListBody) & ▶ { A <: Nat }.
+  But we know that (▶: ListBody) & { A <: Nat } <: (▶: ListBody) & ▶: { A <: Nat }.
   Next, [Distr_TLater_And] gets us to
-  (▶ (ListBody & { A <: Nat }), and we're back in business!
+  (▶: (ListBody & { A <: Nat }), and we're back in business!
    *)
   {
     ettrans; last apply TLaterL_stp; stcrush.

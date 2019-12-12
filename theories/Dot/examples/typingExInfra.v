@@ -221,26 +221,26 @@ Proof. intros; exact: packTV_typed'. Qed.
 
 Lemma val_LB T U Γ i v :
   Γ v⊢ₜ[ g ] tv v : type "A" >: T <: U →
-  Γ v⊢ₜ[ g ] ▶ T, i <: (pv v @; "A"), i.
+  Γ v⊢ₜ[ g ] ▶: T, i <: (pv v @; "A"), i.
 Proof. intros; apply /AddIB_stp /(LSel_stp _ _ (pv _)); tcrush. Qed.
 
 Lemma packTV_LB s T n Γ i :
   g !! s = Some T →
   is_stamped_ty n g T →
   n <= length Γ →
-  Γ v⊢ₜ[ g ] ▶ T, i <: (pv (packTV n s) @; "A"), i.
+  Γ v⊢ₜ[ g ] ▶: T, i <: (pv (packTV n s) @; "A"), i.
 Proof. intros; by apply /val_LB /packTV_typed'. Qed.
 
 Lemma val_UB T L Γ i v :
   Γ v⊢ₜ[ g ] tv v : type "A" >: L <: T →
-  Γ v⊢ₜ[ g ] (pv v @; "A"), i <: ▶ T, i.
+  Γ v⊢ₜ[ g ] (pv v @; "A"), i <: ▶: T, i.
 Proof. intros; eapply AddIB_stp, SelU_stp; tcrush. Qed.
 
 Lemma packTV_UB s T n Γ i :
   is_stamped_ty n g T →
   g !! s = Some T →
   n <= length Γ →
-  Γ v⊢ₜ[ g ] (pv (packTV n s) @; "A"), i <: ▶ T, i.
+  Γ v⊢ₜ[ g ] (pv (packTV n s) @; "A"), i <: ▶: T, i.
 Proof. intros; by apply /val_UB /packTV_typed'. Qed.
 
 Definition tApp Γ t s :=
