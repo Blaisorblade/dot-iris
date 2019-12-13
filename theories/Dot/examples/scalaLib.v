@@ -310,14 +310,12 @@ Proof.
   evar (Γ' : ctx); have := hIFTFalseTSub Γ'; rewrite /Γ' => Hf.
   tcrush; lNext; [lThis | lNext; lThis | repeat lNext ].
 Qed.
+
+(** This involves multiple fixpoints on both sides, but goes through
+without much effort. *)
 Example hmkSomeConcrTSub Γ :
   Γ u⊢ₜ hclose hmkSomeTConcr, 0 <: mkSomeT, 0.
-Proof.
-  (** This involves multiple fixpoints on both sides, but goes through
-  without much effort. *)
-  tcrush; first lThis; repeat lNext.
-  apply Bind1; tcrush.
-Qed.
+Proof. mltcrush. Qed.
 Example hmkSomeSingTSub Γ :
   Γ u⊢ₜ hclose hmkSomeTSing, 0 <: mkSomeT, 0.
 Proof.
@@ -355,7 +353,7 @@ Proof.
   have Hn := noneTyp (U :: Γ).
   (* Without the call to [dvl_typed], Coq would (smartly) default to [dvabs_typed] *)
   have := mkSomeTyp (U :: Γ) => /(dvl_typed "mkSome") Hs.
-  apply (Subs_typed_nocoerce (hclose (μ: _, hoptionModTConcrBody))); tcrush; lThis.
+  apply (Subs_typed_nocoerce (hclose (μ: _, hoptionModTConcrBody))); mltcrush.
 Qed.
 
 End option.
