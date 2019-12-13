@@ -44,6 +44,31 @@ Ltac asideLaters :=
 Ltac lNext := ettrans; first apply TAnd2_stp; tcrush.
 Ltac lThis := ettrans; first apply TAnd1_stp; tcrush.
 
+
+(* Copy of the one from unary_lr. Maybe move again back elsewhere. *)
+Definition label_of_ty T : option label :=
+  match T with
+  | TTMem l _ _ => Some l
+  | TVMem l _ => Some l
+  | _ => None
+  end.
+
+Ltac lookup :=
+  lazymatch goal with
+  | |- _ u⊢ₜ ?T1, _ <: ?T2, _ =>
+    let T1' := eval hnf in T1 in
+    match T1' with
+    | (TAnd ?T11 ?T12) =>
+      (* first [unify (label_of_ty T11) (label_of_ty T2); lThis | lNext] *)
+      let ls := eval cbv in (label_of_ty T11, label_of_ty T2) in
+      match ls with
+      | (Some ?l1, Some ?l1) => lThis
+      | (Some ?l1, Some ?l2) => lNext
+      end
+    end
+  end.
+Ltac ltcrush := tcrush; repeat lookup.
+
 Ltac hideCtx' Γ :=
   let x := fresh "Γ" in set x := Γ.
 Ltac hideCtx :=
@@ -222,6 +247,8 @@ Lemma Bind2' Γ T1 T2:
   Γ u⊢ₜ T1, 0 <: μ T2, 0.
 Proof. intros; exact: Bind2. Qed.
 
+Ltac mltcrush := tcrush; try ((apply Bind1' || apply Bind1); tcrush); repeat lookup.
+
 (* Simplified package introduction, for talk. *)
 Lemma BindSpec Γ (L T U : ty):
   is_unstamped_ty (S (length Γ)) T →
@@ -231,7 +258,7 @@ Lemma BindSpec Γ (L T U : ty):
   Γ u⊢ₜ tv (ν {@ type "A" = T }) : μ {@ type "A" >: L <: U }.
 Proof.
   intros; eapply Subs_typed_nocoerce; tcrush; rewrite iterate_0.
-  ettrans; first apply TAnd1_stp; tcrush.
+  ltcrush.
 Qed.
 
 Lemma psingleton_sym_typed Γ p q i:
@@ -323,8 +350,8 @@ Proof.
   apply /Subs_typed_nocoerce /Hsub.
 
   eapply Appv_typed'; first var.
-  move: (HuT1) => /is_unstamped_ren1_ty /is_unstamped_ren1_ty;
-    rewrite -hrenS => HuT3.
+  have HuT3 : is_unstamped_ty (S (S (length Γ))) (shiftN 2 T)
+    by rewrite hrenS; wtcrush.
   varsub; tcrush; rewrite !hsubst_comp; f_equal. autosubst.
 Qed.
 
@@ -335,8 +362,8 @@ Lemma TLaterRN_stp Γ T i j:
   is_unstamped_ty (length Γ) T →
   Γ u⊢ₜ T, j + i <: iterate TLater j T, i.
 Proof.
-  elim: j T => /= [|j IHj] T HuT; rewrite ?iterate_0; tcrush.
-  ettrans; rewrite ?iterate_Sr /=.
+  elim: j T => /= [|j IHj] T HuT; rewrite ?iterate_0 ?iterate_Sr /=; tcrush.
+  ettrans.
   - exact: TLaterR_stp.
   - apply (IHj (TLater T)); stcrush.
 Qed.
@@ -345,8 +372,8 @@ Lemma TLaterLN_stp {Γ T} i j :
   is_unstamped_ty (length Γ) T →
   Γ u⊢ₜ iterate TLater j T, i <: T, j + i.
 Proof.
-  elim: j T => /= [|j IHj] T HuT; rewrite ?iterate_0; tcrush.
-  ettrans; rewrite ?iterate_Sr /=.
+  elim: j T => /= [|j IHj] T HuT; rewrite ?iterate_0 ?iterate_Sr /=; tcrush.
+  ettrans.
   - apply (IHj (TLater T)); stcrush.
   - exact: TLaterL_stp.
 Qed.
@@ -433,7 +460,7 @@ Lemma TDistr_TLater_And_stp Γ T1 T2 i :
   is_unstamped_ty (length Γ) T1 →
   is_unstamped_ty (length Γ) T2 →
   Γ u⊢ₜ TAnd (TLater T1) (TLater T2), i <: TLater (TAnd T1 T2), i.
-Proof. intros; asideLaters; typconstructor; [lThis|lNext]. Qed.
+Proof. intros; asideLaters; tcrush; [lThis|lNext]. Qed.
 
 (** Inverse of [TDistr_TLater_And_stp]. *)
 Lemma TDistr_TLater_And_stp_inv Γ T1 T2 i :

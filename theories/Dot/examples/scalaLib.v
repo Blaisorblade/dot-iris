@@ -20,11 +20,9 @@ Definition hloopDefT : hty := val "loop" : ⊤ →: ⊥.
 Definition hloopDefTConcr : hty := μ: _, {@ hloopDefT }.
 Example loopDefTyp Γ : Γ u⊢ₜ hclose (htv hloopDefV) : hclose hloopDefT.
 Proof.
-  apply (Subs_typed_nocoerce (hclose hloopDefTConcr)).
-  - tcrush; cbv.
-    eapply App_typed; last var. tcrush.
-    varsub; cbv. lThis.
-  - apply Bind1; tcrush.
+  apply (Subs_typed_nocoerce (hclose hloopDefTConcr)); mltcrush; cbv.
+  eapply App_typed; last var.
+  tcrush; varsub; lookup.
 Qed.
 
 Definition hloopTm : htm := htv hloopDefV @: "loop" $: htv (hvnat 0).
@@ -130,14 +128,7 @@ Example boolImplTyp Γ :
   Γ u⊢ₜ tv boolImplV : boolImplT.
 Proof.
   apply (Subs_typed_nocoerce boolImplTConcr); first by apply boolImplTypConcr.
-  tcrush; rewrite iterate_0.
-  - lThis.
-  - lNext.
-    lThis.
-    apply SubIFT_LaterP0Bool'.
-  - do 2 lNext.
-    lThis.
-    apply SubIFT_LaterP0Bool'.
+  tcrush; rewrite iterate_0; ltcrush; apply SubIFT_LaterP0Bool'.
 Qed.
 
 Module Export hBoolSing.
@@ -235,12 +226,12 @@ Example hnoneSingTConcrSub Γ :
   Γ u⊢ₜ hclose hnoneSingT, 0 <: hclose hnoneTConcr, 0.
 Proof.
   have ? := hIFTTrueTSub (hclose (hnoneSingTBody hx0) :: Γ).
-  tcrush; lNext; [ by lThis | by repeat lNext].
+  mltcrush.
 Qed.
 
 Example hnoneConcrTSub Γ :
   Γ u⊢ₜ hclose hnoneTConcr, 0 <: noneT, 0.
-Proof. by tcrush; [ lThis | apply Bind1; tcrush ]. Qed.
+Proof. mltcrush. Qed.
 
 Example hnoneSingTSub Γ :
   Γ u⊢ₜ hclose hnoneSingT, 0 <: noneT, 0.
@@ -296,8 +287,7 @@ Proof.
   tcrush; first var; cbv; hideCtx.
   - eapply App_typed; first var.
     apply (Subs_typed (i := 1) (T1 := hclose (▶: (hp3 @; "T"))%HT)); tcrush.
-    varsub.
-    repeat lNext.
+    varsub; ltcrush.
   - varsub.
     ettrans; first (apply TAddLater_stp; tcrush).
     asideLaters.

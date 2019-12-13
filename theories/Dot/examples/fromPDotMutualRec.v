@@ -106,10 +106,7 @@ Example fromPDotPaperTypesAbsTyp :
   TLater fromPDotPaperAbsTBody :: [] u⊢ₜ
     tv fromPDotPaperTypesV : μ fromPDotPaperAbsTypesTBody.
 Proof.
-  eapply Subs_typed_nocoerce; first exact: fromPDotPaperTypesTyp; tcrush.
-  lThis.
-  lNext; lThis.
-  all: repeat lNext.
+  eapply Subs_typed_nocoerce; first exact: fromPDotPaperTypesTyp; ltcrush.
 Qed.
 
 Example fromPDotPaperSymbolsTyp :
@@ -123,7 +120,7 @@ Proof.
       eapply LSel_stp'; first last.
       * constructor; varsub; tcrush.
       * tcrush.
-      * tcrush; apply Bind1; tcrush. repeat lNext.
+      * mltcrush.
 Qed.
 
 Example fromPDotPaperSymbolsAbsTyp :

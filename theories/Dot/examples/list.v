@@ -24,7 +24,7 @@ Proof.
     rewrite /= plusnO; tcrush.
     eapply Subs_typed_nocoerce.
   - eapply TMuE_typed'; first eapply Var_typed'; by [rewrite lookup_app_r ?Nat.sub_diag|].
-  - repeat lNext.
+  - ltcrush.
 Qed.
 
 Lemma falseTyp Γ Γ'' : Γ'' ++ boolImplT :: Γ u⊢ₜ
@@ -35,10 +35,7 @@ Proof.
     rewrite /= plusnO; tcrush.
   eapply Subs_typed_nocoerce.
   - eapply TMuE_typed'; first eapply Var_typed'; by [rewrite lookup_app_r ?Nat.sub_diag|].
-  - (* Optional tactic, just for seeing what happens: *)
-    lNext; rewrite -(decomp_s _ (ids _ .: ren _)) /=.
-    (* Needed: *)
-    repeat lNext.
+  - ltcrush.
 Qed.
 
 (** * Interface of the list module. *)
@@ -133,12 +130,12 @@ Proof.
     have := loopTyp (hclose ⊤ :: T :: L :: boolImplT :: Γ).
     rewrite {}/T/= => Ht Hl.
     tcrush; apply (Subs_typed_nocoerce (hclose ⊥)); cbn; tcrush.
-  - tcrush; last (apply Bind1; tcrush).
+  - tcrush; last mltcrush.
     ettrans; first eapply TAddLater_stp; stcrush.
     asideLaters.
     eapply LSel_stp'; tcrush. varsub.
     asideLaters.
-    lThis. lThis.
+    ltcrush.
 Qed.
 
 Example consTyp Γ : hclose (▶: hlistModTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
@@ -147,7 +144,7 @@ Proof.
   epose proof falseTyp Γ [_; _; _; _; _; _] as Ht; cbn in Ht.
   tcrush; clear Ht.
   (** Typecheck returned head: *)
-  by varsub; eapply (LSel_stp' _ (hclose (hp4 @; "T"))); tcrush; varsub; lThis.
+  by varsub; eapply (LSel_stp' _ (hclose (hp4 @; "T"))); tcrush; varsub; ltcrush.
   (**
     Typecheck returned tail. Recall [cons] starts with
 
@@ -165,16 +162,15 @@ Proof.
   tcrush; lNext.
 
   (** We do it using [LSel_stp'] on [self.A], and looking up [A] on [self]'s type. *)
-  eapply LSel_stp'; tcrush. varsub; lThis.
+  eapply LSel_stp'; ltcrush. varsub; ltcrush.
 Qed.
 
 Ltac norm := cbv; hideCtx.
 Lemma consTSub Γ : hclose (hlistModTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
   hclose (hconsTConcr hx1 hx0), 0 <: hclose (hconsT hx0), 0.
 Proof.
-  tcrush; rewrite !iterate_S !iterate_0; hideCtx.
-  eapply LSel_stp'; tcrush; varsub; by lThis; lThis.
-  apply Bind1; tcrush; by lThis.
+  tcrush; rewrite !iterate_S !iterate_0; hideCtx; last mltcrush.
+  eapply LSel_stp'; tcrush; varsub; by ltcrush.
 Qed.
 
 Example listTypConcr Γ : boolImplT :: Γ u⊢ₜ hclose (htv (hlistModV hx0)) : hclose (hlistModTConcr hx0).
@@ -189,10 +185,7 @@ Example listTyp Γ : boolImplT :: Γ u⊢ₜ hclose (htv (hlistModV hx0)) : hclo
 Proof.
   have Hv := listTypConcr Γ.
   have Hsub := consTSub Γ.
-  eapply Subs_typed_nocoerce; first exact Hv; tcrush.
-  lThis.
-  lNext.
-  do 2 lNext; lThis.
+  eapply Subs_typed_nocoerce; first exact Hv; ltcrush.
 Qed.
 
 
@@ -274,7 +267,7 @@ Proof.
   asideLaters. tcrush.
   eapply (App_typed (T1 := hclose ⊤)); last (eapply Subs_typed_nocoerce); tcrush.
   have Hnil: Γ' u⊢ₜ (htv (hxm 2) @: "nil") 2 : hclose (hnilT hx0)
-    by tcrush; eapply Subs_typed_nocoerce; [ exact: HL | lNext ].
+    by tcrush; eapply Subs_typed_nocoerce; ltcrush.
   have Hsnil: Γ' u⊢ₜ htskip (htv (hxm 2) @: "nil") 2
     : hclose $ hTAnd (hp0 @; "List") (typeEq "A" ⊥). {
     eapply (Subs_typed (i := 1)), Hnil.
@@ -282,8 +275,7 @@ Proof.
   }
   have Hcons: Γ' u⊢ₜ (htv (hxm 2) @: "cons") 2 : hclose $ hconsT hx0. {
     tcrush.
-    eapply Subs_typed_nocoerce; first done.
-    by repeat lNext.
+    eapply Subs_typed_nocoerce; by [| ltcrush].
   }
 
   (* Here we produce a list of later nats, since we produce a list of p.A where p is the
@@ -295,8 +287,8 @@ Proof.
     eapply Subs_typed_nocoerce; first
       eapply TMuE_typed' with (T1 := hclose (val "head" : ⊤ →: hp0 @; "A"));
       [ | done | tcrush ].
-      - by varsub; asideLaters; lThis; repeat lNext.
-      - by apply (SelU_stp (L := hclose ⊥)); tcrush; varsub; asideLaters; lNext.
+      - varsub; asideLaters; lThis; ltcrush.
+      - by apply (SelU_stp (L := hclose ⊥)); tcrush; varsub; ltcrush.
   }
   eapply (Subs_typed (i := 1) (T1 := hclose (hTAnd (hp0 @; "List") U))).
   (******)
@@ -312,14 +304,13 @@ Proof.
     ettrans; [|apply: TDistr_TLater_And_stp; stcrush].
     tcrush; [lThis | lNext].
     eapply SelU_stp; tcrush.
-    eapply Subs_typed_nocoerce; first exact HL.
-    lThis.
+    eapply Subs_typed_nocoerce; ltcrush.
   }
 
   eapply App_typed, Hsnil.
   eapply (App_typed (T1 := hclose 𝐍)); last tcrush.
   (* Perform avoidance on the type application. *)
-  eapply tyApp_typed with (T := hclose 𝐍); first done; intros; tcrush; cbv -[Γ'].
+  eapply tyApp_typed with (T := hclose 𝐍); first done; intros; ltcrush; cbv -[Γ'].
   by eapply LSel_stp'; tcrush; var.
   by lNext.
   lNext; by eapply SelU_stp; tcrush; var.
