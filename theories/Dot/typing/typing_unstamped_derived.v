@@ -59,12 +59,12 @@ Ltac lookup :=
     let T1' := eval hnf in T1 in
     match T1' with
     | (TAnd ?T11 ?T12) =>
-      first [unify (label_of_ty T11) (label_of_ty T2); lThis | lNext]
-      (* let ls := eval hnf in (label_of_ty T11, label_of_ty T2) in
+      (* first [unify (label_of_ty T11) (label_of_ty T2); lThis | lNext] *)
+      let ls := eval cbv in (label_of_ty T11, label_of_ty T2) in
       match ls with
       | (Some ?l1, Some ?l1) => lThis
       | (Some ?l1, Some ?l2) => lNext
-      end *)
+      end
     end
   end.
 Ltac ltcrush := tcrush; repeat lookup.
@@ -445,7 +445,7 @@ Proof.
   by apply pand_typed, HpT1; eapply psingleton_refl_typed, HpT1.
   apply Let_typed with (T := TAnd (TSing (shift p)) (shift T1));
     rewrite /= -?hrenS ?TLater_subst; wtcrush.
-  eapply Subs_typed; last var; ltcrush; wtcrush.
+  eapply Subs_typed; last var; tcrush; [lThis|lNext]; wtcrush.
   by apply: AddI_stp; wtcrush.
   rewrite -{3}(plusnO i). apply TLaterLN_stp; wtcrush.
 Qed.
