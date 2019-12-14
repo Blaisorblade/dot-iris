@@ -183,9 +183,6 @@ Definition hoptionTGen (L U : hty) := μ: self, {@
   val "pmatch" : hpmatchT self
 }.
 
-Definition hoptionT := hoptionTGen ⊥ ⊤.
-Definition optionT := hclose hoptionT.
-
 (*
   type None = Option { type T = Nothing }
   val noneV: None = new {
@@ -194,10 +191,6 @@ Definition optionT := hclose hoptionT.
     val pmatch: [U] => U => (Nothing => U) => U = [U] => (none: U) => (some: T => U) => none
   }
 *)
-Definition hnoneT := hTAnd hoptionT {@ typeEq "T" ⊥}.
-Definition hnoneTConcr := hoptionTGen ⊥ ⊥.
-Definition noneT := hclose hnoneT.
-
 Definition hnoneSingTBody self : hty := {@
   typeEq "T" ⊥;
   val "isEmpty" : hIFTTrueT;
@@ -222,6 +215,86 @@ Proof.
   tcrush; var.
 Qed.
 
+(*
+  //type Some = Option & { self => val get: self.T }
+  type Some = Option & { type T; val get: T }
+  def mkSome[S](t: S): Some { type T = S } = new {
+    type T = S
+    val isEmpty = false
+    val get = t
+    val pmatch: [U] => U => (T => U) => U = [U] => (none: U) => (some: T => U) => some(get)
+  }
+*)
+
+Definition hsomeSingT hL hU : hty := μ: self, {@
+  type "T" >: hL <: hU;
+  val "isEmpty" : hIFTFalseT;
+  val "pmatch" : hpmatchT self;
+  val "get" : ▶: hpv self @; "T"
+}.
+
+Definition hmkSomeTGen res : hty := ∀: x: tparam "A", (hpv x @; "A" →: res (hpv x @; "A") (hpv x @; "A")).
+
+Definition hmkSomeTSing : hty := hmkSomeTGen hsomeSingT.
+
+Definition hmkSome : hvl := λ: x, λ:: content, htv $ ν: self, {@
+  type "T" = hpv x @; "A";
+  val "isEmpty" = hiftFalse;
+  val "pmatch" = λ: x, λ:: none some, htv some $: htskip (htv self @: "get");
+  val "get" = content
+}.
+Definition mkSome := hclose hmkSome.
+
+Example mkSomeTypStronger Γ :
+  Γ u⊢ₜ tv mkSome : hclose hmkSomeTSing.
+Proof.
+  evar (Γ' : ctx).
+  have := iftFalseSingTyp Γ' => /(dvl_typed "isEmpty"); rewrite /Γ' => Hf.
+  tcrush; cbv.
+  - eapply App_typed; first var.
+    apply (Subs_typed (i := 1) (T1 := hclose (▶: (hp3 @; "T"))%HT)); tcrush.
+    varsub; ltcrush.
+  - varsub.
+    ettrans; first (apply TAddLater_stp; tcrush).
+    asideLaters.
+    eapply LSel_stp'; tcrush.
+    varsub; tcrush.
+Qed.
+
+Definition hoptionTSing := hTOr hnoneSingT (hsomeSingT ⊥ ⊤).
+
+Definition hoptionModTConcrBody : hty := {@
+  typeEq "Option" hoptionTSing;
+  val "none" : hnoneSingT;
+  val "mkSome" : hmkSomeTSing
+}.
+
+Definition hoptionModV := ν: self, {@
+  type "Option" = hoptionTSing;
+  val "none" = hnoneV;
+  val "mkSome" = hmkSome
+}.
+
+(** Rather precise type for [hoptionModV]. *)
+Example optionModConcrTyp Γ :
+  Γ u⊢ₜ hclose (htv hoptionModV) : hclose (μ: _, hoptionModTConcrBody).
+Proof.
+  set U := hclose (▶: hoptionModTConcrBody).
+  have := noneTypStronger (U :: Γ).
+  have := mkSomeTypStronger (U :: Γ) => /(dvl_typed "mkSome") Hs Hn.
+  ltcrush.
+Qed.
+
+(** Define interface for [hoptionModV]. To rewrite to have abstraction. *)
+
+Definition hoptionT := hoptionTGen ⊥ ⊤.
+Definition optionT := hclose hoptionT.
+
+Definition hnoneTConcr := hoptionTGen ⊥ ⊥.
+Definition hnoneT := hTAnd hoptionT {@ typeEq "T" ⊥}.
+Definition noneT := hclose hnoneT.
+
+
 Example hnoneSingTConcrSub Γ :
   Γ u⊢ₜ hclose hnoneSingT, 0 <: hclose hnoneTConcr, 0.
 Proof.
@@ -244,23 +317,14 @@ Proof.
   apply noneTypStronger.
 Qed.
 
-(*
-  //type Some = Option & { self => val get: self.T }
-  type Some = Option & { type T; val get: T }
-  def mkSome[S](t: S): Some { type T = S } = new {
-    type T = S
-    val isEmpty = false
-    val get = t
-    val pmatch: [U] => U => (T => U) => U = [U] => (none: U) => (some: T => U) => some(get)
-  }
-*)
 
-Definition hsomeSingT hL hU : hty := μ: self, {@
-  type "T" >: hL <: hU;
-  val "isEmpty" : hIFTFalseT;
-  val "pmatch" : hpmatchT self;
-  val "get" : ▶: hpv self @; "T"
-}.
+(** Behold here [(optionT & (μ self, val get: ▶: self @; "T")) & { type T = hT } ]. *)
+Definition hsomeT hL hU : hty :=
+  hTAnd (hTAnd hoptionT (μ: self, val "get" : ▶: hpv self @; "T"))
+    (type "T" >: hL <: hU).
+Definition hmkSomeT : hty := hmkSomeTGen hsomeT.
+
+Definition mkSomeT := hclose hmkSomeT.
 
 Definition hsomeTConcr hL hU : hty := μ: self, {@
   type "T" >: hL <: hU;
@@ -268,41 +332,7 @@ Definition hsomeTConcr hL hU : hty := μ: self, {@
   val "pmatch" : hpmatchT self;
   val "get" : ▶: hpv self @; "T"
 }.
-
-(** Behold here [(optionT & (μ self, val get: ▶: self @; "T")) & { type T = hT } ]. *)
-Definition hsomeT hL hU : hty :=
-  hTAnd (hTAnd hoptionT (μ: self, val "get" : ▶: hpv self @; "T"))
-    (type "T" >: hL <: hU).
-
-Definition hmkSomeTGen res : hty := ∀: x: tparam "A", (hpv x @; "A" →: res (hpv x @; "A") (hpv x @; "A")).
-Definition hmkSomeTSing : hty := hmkSomeTGen hsomeSingT.
 Definition hmkSomeTConcr : hty := hmkSomeTGen hsomeTConcr.
-Definition hmkSomeT : hty := hmkSomeTGen hsomeT.
-
-Definition hmkSome : hvl := λ: x, λ:: content, htv $ ν: self, {@
-  type "T" = hpv x @; "A";
-  val "isEmpty" = hiftFalse;
-  val "pmatch" = λ: x, λ:: none some, htv some $: htskip (htv self @: "get");
-  val "get" = content
-}.
-Definition mkSomeT := hclose hmkSomeT.
-Definition mkSome := hclose hmkSome.
-
-Example mkSomeTypStronger Γ :
-  Γ u⊢ₜ tv mkSome : hclose hmkSomeTSing.
-Proof.
-  evar (Γ' : ctx).
-  have := iftFalseSingTyp Γ' => /(dvl_typed "isEmpty"); rewrite /Γ' => Hf.
-  tcrush; cbv.
-  - eapply App_typed; first var.
-    apply (Subs_typed (i := 1) (T1 := hclose (▶: (hp3 @; "T"))%HT)); tcrush.
-    varsub; ltcrush.
-  - varsub.
-    ettrans; first (apply TAddLater_stp; tcrush).
-    asideLaters.
-    eapply LSel_stp'; tcrush.
-    varsub; tcrush.
-Qed.
 
 Example hmkSomeSingTConcrSub Γ :
   Γ u⊢ₜ hclose hmkSomeTSing, 0 <: hclose hmkSomeTConcr, 0.
@@ -319,27 +349,6 @@ Proof. mltcrush. Qed.
 Example hmkSomeSingTSub Γ :
   Γ u⊢ₜ hclose hmkSomeTSing, 0 <: mkSomeT, 0.
 Proof. ettrans; [apply hmkSomeSingTConcrSub | apply hmkSomeConcrTSub]. Qed.
-
-Example mkSomeTyp Γ :
-  Γ u⊢ₜ tv mkSome : mkSomeT.
-Proof.
-  eapply Subs_typed_nocoerce, hmkSomeSingTSub.
-  apply mkSomeTypStronger.
-Qed.
-
-Definition hoptionTSing := hTOr hnoneSingT (hsomeSingT ⊥ ⊤).
-
-Definition hoptionModV := ν: self, {@
-  type "Option" = hoptionTSing;
-  val "none" = hnoneV;
-  val "mkSome" = hmkSome
-}.
-
-Definition hoptionModTConcrBody : hty := {@
-  typeEq "Option" hoptionTSing;
-  val "none" : hnoneSingT;
-  val "mkSome" : hmkSomeTSing
-}.
 
 Definition hoptionModT := μ: self, {@
   type "Option" >: ⊥ <: hoptionT;
@@ -362,29 +371,40 @@ Qed.
 Example optionTSingSub Γ :
   Γ u⊢ₜ hclose hoptionTSing, 0 <: hclose hoptionT, 0.
 Proof.
-  (* evar (Γ' : ctx).
-  have := hnoneSingTSub Γ'.
-  have := hmkSomeSingTSub Γ'; rewrite {}/Γ' => ??. *)
   typconstructor.
   ettrans; first apply hnoneSingTSub; tcrush.
   ettrans; first apply (hsomeSingTSub _ ⊥ ⊤); cbv; tcrush.
   lThis.
 Qed.
 
-Example optionModTyp Γ :
-  Γ u⊢ₜ hclose (htv hoptionModV) : hclose hoptionModT.
+Definition hoptionModTInv : hty := {@
+  type "Option" >: ⊥ <: hoptionTSing;
+  val "none" : hnoneT;
+  val "mkSome" : hmkSomeT
+}.
+
+
+Example optionModIntTyp Γ :
+  Γ u⊢ₜ hclose (htv hoptionModV) : hclose (μ: _, hoptionModTInv).
 Proof.
-  set U := hclose (▶: hoptionModTConcrBody).
-  have Hn := noneTypStronger (U :: Γ).
-
-  have := mkSomeTypStronger (U :: Γ) => /(dvl_typed "mkSome") Hs.
-
   evar (Γ' : ctx).
   have : Γ' u⊢ₜ hclose hoptionTSing, 1 <: hclose hoptionT, 1
     by apply TMono_stp, optionTSingSub.
   have := hnoneSingTSub Γ'.
   have := hmkSomeSingTSub Γ'; rewrite {}/Γ' => Hsub1 Hsub2 Hsub3.
-  apply (Subs_typed_nocoerce (hclose (μ: _, hoptionModTConcrBody))); ltcrush.
+  apply (Subs_typed_nocoerce (hclose (μ: _, hoptionModTConcrBody))); first apply optionModConcrTyp.
+  ltcrush.
+Qed.
+
+Example optionModTyp Γ :
+  Γ u⊢ₜ hclose (htv hoptionModV) : hclose hoptionModT.
+Proof.
+  eapply Subs_typed_nocoerce; first apply optionModIntTyp.
+  evar (Γ' : ctx).
+  have : Γ' u⊢ₜ hclose hoptionTSing, 1 <: hclose hoptionT, 1
+    by apply TMono_stp, optionTSingSub.
+  rewrite {}/Γ' => Hsub.
+  ltcrush.
 Qed.
 
 End option.
