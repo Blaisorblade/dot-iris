@@ -290,121 +290,48 @@ Qed.
 Definition hoptionT := hoptionTGen ⊥ ⊤.
 Definition optionT := hclose hoptionT.
 
-Definition hnoneTConcr := hoptionTGen ⊥ ⊥.
-Definition hnoneT := hTAnd hoptionT {@ typeEq "T" ⊥}.
-Definition noneT := hclose hnoneT.
-
-
-Example hnoneSingTConcrSub Γ :
-  Γ u⊢ₜ hclose hnoneSingT, 0 <: hclose hnoneTConcr, 0.
-Proof.
-  have ? := hIFTTrueTSub (hclose (hnoneSingTBody hx0) :: Γ).
-  mltcrush.
-Qed.
-
-Example hnoneConcrTSub Γ :
-  Γ u⊢ₜ hclose hnoneTConcr, 0 <: noneT, 0.
-Proof. mltcrush. Qed.
-
-Example hnoneSingTSub Γ :
-  Γ u⊢ₜ hclose hnoneSingT, 0 <: noneT, 0.
-Proof. ettrans; [apply hnoneSingTConcrSub | apply hnoneConcrTSub]. Qed.
-
-Example noneTyp Γ :
-  Γ u⊢ₜ tv noneV : noneT.
-Proof.
-  apply (Subs_typed_nocoerce (hclose hnoneSingT)), hnoneSingTSub.
-  apply noneTypStronger.
-Qed.
-
+Definition hnoneT self := hTAnd (hpv self @; "Option") {@ typeEq "T" ⊥}.
 
 (** Behold here [(optionT & (μ self, val get: ▶: self @; "T")) & { type T = hT } ]. *)
-Definition hsomeT hL hU : hty :=
-  hTAnd (hTAnd hoptionT (μ: self, val "get" : ▶: hpv self @; "T"))
+Definition hsomeT self hL hU : hty :=
+  hTAnd (hTAnd (hpv self @; "Option") (μ: self, val "get" : ▶: hpv self @; "T"))
     (type "T" >: hL <: hU).
-Definition hmkSomeT : hty := hmkSomeTGen hsomeT.
+Definition hmkSomeT self : hty := hmkSomeTGen (hsomeT self).
 
-Definition mkSomeT := hclose hmkSomeT.
-
-Definition hsomeTConcr hL hU : hty := μ: self, {@
-  type "T" >: hL <: hU;
-  val "isEmpty" : hIFT;
-  val "pmatch" : hpmatchT self;
-  val "get" : ▶: hpv self @; "T"
+Definition hoptionModTInvBody self : hty := {@
+  type "Option" >: ⊥ <: hoptionTSing;
+  val "none" : hnoneT self;
+  val "mkSome" : hmkSomeT self
 }.
-Definition hmkSomeTConcr : hty := hmkSomeTGen hsomeTConcr.
 
-Example hmkSomeSingTConcrSub Γ :
-  Γ u⊢ₜ hclose hmkSomeTSing, 0 <: hclose hmkSomeTConcr, 0.
+Example optionModInvTyp Γ :
+  Γ u⊢ₜ hclose (htv hoptionModV) : hclose (μ: self, hoptionModTInvBody self).
 Proof.
-  evar (Γ' : ctx); have := hIFTFalseTSub Γ'; rewrite /Γ' => Hf.
-  tcrush; lNext; ltcrush.
+  eapply Subs_typed_nocoerce; first apply optionModConcrTyp.
+  ltcrush; rewrite iterate_0.
+  all: try (eapply LSel_stp'; ltcrush; varsub; ltcrush).
+  all: try (ettrans; last eapply TOr2_stp); mltcrush.
 Qed.
-
-(** This involves multiple fixpoints on both sides, but goes through
-without much effort. *)
-Example hmkSomeConcrTSub Γ :
-  Γ u⊢ₜ hclose hmkSomeTConcr, 0 <: mkSomeT, 0.
-Proof. mltcrush. Qed.
-Example hmkSomeSingTSub Γ :
-  Γ u⊢ₜ hclose hmkSomeTSing, 0 <: mkSomeT, 0.
-Proof. ettrans; [apply hmkSomeSingTConcrSub | apply hmkSomeConcrTSub]. Qed.
 
 Definition hoptionModT := μ: self, {@
   type "Option" >: ⊥ <: hoptionT;
-  val "none" : hnoneT;
-  val "mkSome" : hmkSomeT
+  val "none" : hnoneT self;
+  val "mkSome" : hmkSomeT self
 }.
 
-Example hsomeSingTSub Γ L U :
-  is_unstamped_ty (length Γ) L →
-  is_unstamped_ty (length Γ) U →
-  Γ u⊢ₜ hclose (hsomeSingT (pureS (shift L)) (pureS (shift U))), 0 <: hclose (hsomeT (pureS L) (pureS U)), 0.
+Ltac prepare_lemma L H :=
+  let Γ' := fresh "Γ" in
+  evar (Γ' : ctx); have := L Γ'; rewrite {}/Γ' => H.
+
+Example optionModTypSub Γ :
+  Γ u⊢ₜ hclose (μ: self, hoptionModTInvBody self), 0 <: hclose hoptionModT, 0.
 Proof.
-  intros.
-  have ?: is_unstamped_ty (S (length Γ)) (shift L) by wtcrush.
-  have ?: is_unstamped_ty (S (length Γ)) (shift U) by wtcrush.
-  evar (Γ' : ctx); have := hIFTFalseTSub Γ'; rewrite {}/Γ' => Hf.
-  mltcrush.
-Qed.
-
-Example optionTSingSub Γ :
-  Γ u⊢ₜ hclose hoptionTSing, 0 <: hclose hoptionT, 0.
-Proof.
-  typconstructor.
-  ettrans; first apply hnoneSingTSub; tcrush.
-  ettrans; first apply (hsomeSingTSub _ ⊥ ⊤); cbv; tcrush.
-  lThis.
-Qed.
-
-Definition hoptionModTInv : hty := {@
-  type "Option" >: ⊥ <: hoptionTSing;
-  val "none" : hnoneT;
-  val "mkSome" : hmkSomeT
-}.
-
-
-Example optionModIntTyp Γ :
-  Γ u⊢ₜ hclose (htv hoptionModV) : hclose (μ: _, hoptionModTInv).
-Proof.
-  evar (Γ' : ctx).
-  have : Γ' u⊢ₜ hclose hoptionTSing, 1 <: hclose hoptionT, 1
-    by apply TMono_stp, optionTSingSub.
-  have := hnoneSingTSub Γ'.
-  have := hmkSomeSingTSub Γ'; rewrite {}/Γ' => Hsub1 Hsub2 Hsub3.
-  apply (Subs_typed_nocoerce (hclose (μ: _, hoptionModTConcrBody))); first apply optionModConcrTyp.
+  prepare_lemma hIFTFalseTSub Hf; prepare_lemma hIFTTrueTSub Ht.
   ltcrush.
 Qed.
 
 Example optionModTyp Γ :
   Γ u⊢ₜ hclose (htv hoptionModV) : hclose hoptionModT.
-Proof.
-  eapply Subs_typed_nocoerce; first apply optionModIntTyp.
-  evar (Γ' : ctx).
-  have : Γ' u⊢ₜ hclose hoptionTSing, 1 <: hclose hoptionT, 1
-    by apply TMono_stp, optionTSingSub.
-  rewrite {}/Γ' => Hsub.
-  ltcrush.
-Qed.
+Proof. eapply Subs_typed_nocoerce, optionModTypSub; apply optionModInvTyp. Qed.
 
 End option.
