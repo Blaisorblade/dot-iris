@@ -261,13 +261,22 @@ Proof.
   ltcrush.
 Qed.
 
+Lemma p_subs_typed' {Γ p T1 T2 i} :
+  Γ u⊢ₜ T1, i <: T2, i →
+  Γ u⊢ₚ p : T1, i →
+  (*───────────────────────────────*)
+  Γ u⊢ₚ p : T2, i.
+Proof.
+  intros; rewrite -(plusnO i).
+  by eapply p_subs_typed; rewrite ?plusnO.
+Qed.
+
 Lemma psingleton_sym_typed Γ p q i:
   is_unstamped_path (length Γ) q →
   Γ u⊢ₚ p : TSing q, i →
   Γ u⊢ₚ q : TSing p, i.
 Proof.
-  intros Hus Hpq. rewrite -(plusnO i).
-  eapply p_subs_typed; rewrite ?plusnO.
+  intros Hus Hpq. eapply p_subs_typed'.
   eapply (PSym_singleton_stp Hpq). by apply PSelf_singleton_stp, Hpq.
   eapply psingleton_refl_typed.
   by apply (psingleton_inv_typed Hpq).
@@ -287,8 +296,7 @@ Lemma pand_typed {Γ p T1 T2 i}:
   Γ u⊢ₚ p : T2, i →
   Γ u⊢ₚ p : TAnd T1 T2, i.
 Proof.
-  move => Hp1 Hp2; rewrite -(plusnO i).
-  eapply p_subs_typed, psingleton_refl_typed, Hp1; rewrite ?plusnO.
+  intros Hp1 Hp2. eapply p_subs_typed', psingleton_refl_typed, Hp1.
   constructor; exact: PSelf_singleton_stp.
 Qed.
 
