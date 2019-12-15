@@ -2,7 +2,7 @@ From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language ectx_language ectxi_language.
 From iris.proofmode Require Import tactics.
 From D Require Import swap_later_impl.
-From D.Dot Require Import synLemmas rules.
+From D.Dot.syn Require Import synLemmas rules path_repl.
 From D.Dot.lr Require Import unary_lr
   lr_lemma lr_lemma_nobinding lr_lemmasDefs path_repl.
 
@@ -16,6 +16,26 @@ Section ProofModeTry.
   Instance: IntoPersistent false (ietp Γ T e) (ietp Γ T e) | 0 := _.
 
 End ProofModeTry.
+
+
+(** These typing lemmas can be derived syntactically.
+ But I had written semantic proofs first, and they might help. *)
+Section AlsoSyntactically.
+  Context `{HdlangG: dlangG Σ}.
+
+  (* Also derivable syntactically. *)
+  Lemma singleton_Mu_1 {Γ p T i T'} (Hrepl : T .Tp[ p /]~ T') :
+    Γ ⊨p p : TMu T, i -∗
+    Γ ⊨ TSing p, i <: T', i.
+  Proof. rewrite (TMu_E_p Hrepl). apply singleton_self_sub. Qed.
+
+  Lemma singleton_Mu_2 {Γ p T i T'} (Hrepl : T .Tp[ p /]~ T') :
+    Γ ⊨p p : T', i -∗
+    Γ ⊨ TSing p, i <: TMu T, i.
+  Proof. rewrite (TMu_I_p Hrepl). apply singleton_self_sub. Qed.
+
+End AlsoSyntactically.
+
 
 Section Sec.
   Context `{HdlangG: dlangG Σ}.

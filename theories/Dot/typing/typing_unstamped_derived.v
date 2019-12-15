@@ -505,6 +505,37 @@ Lemma TDistr_TLater_Mu_stp_inv Γ T i :
   Γ u⊢ₜ TMu (TLater T), i <: TLater (TMu T), i.
 Proof. intros; asideLaters; tcrush. Qed.
 
+(** Show that [singleton_Mu_[12]] and [p_mu_[ie]_typed] are interderivable. *)
+Lemma singleton_Mu_1 {Γ p T i T'} (Hrepl : T .Tp[ p /]~ T') :
+  Γ u⊢ₚ p : TMu T, i →
+  is_unstamped_ty (length Γ) T' →
+  Γ u⊢ₜ TSing p, i <: T', i.
+Proof. intros Hp Hu; apply PSelf_singleton_stp, (p_mu_e_typed Hrepl Hu Hp). Qed.
+
+Lemma singleton_Mu_2 {Γ p T i T'} (Hrepl : T .Tp[ p /]~ T') :
+  Γ u⊢ₚ p : T', i →
+  is_unstamped_ty (S (length Γ)) T →
+  Γ u⊢ₜ TSing p, i <: TMu T, i.
+Proof. intros Hp Hu; apply PSelf_singleton_stp, (p_mu_i_typed Hrepl Hu Hp). Qed.
+
+(* Avoid automation, to ensure we don't use [p_mu_e_typed] to show them. *)
+Lemma p_mu_e_typed' {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
+  Γ u⊢ₚ p : TMu T, i →
+  is_unstamped_ty (length Γ) T' →
+  Γ u⊢ₚ p : T', i.
+Proof.
+  intros Hp Hu. eapply p_subs_typed', (psingleton_refl_typed Hp).
+  apply (singleton_Mu_1 Hrepl Hp Hu).
+Qed.
+
+Lemma p_mu_i_typed' {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
+  Γ u⊢ₚ p : T', i →
+  is_unstamped_ty (S (length Γ)) T →
+  Γ u⊢ₚ p : TMu T, i.
+Proof.
+  intros Hp Hu. eapply p_subs_typed', (psingleton_refl_typed Hp).
+  apply (singleton_Mu_2 Hrepl Hp Hu).
+Qed.
 
 Definition anfBind t := lett t (tv x0).
 

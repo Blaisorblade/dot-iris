@@ -177,25 +177,6 @@ Section path_repl.
     by apply (path_wp_pure_wand Hqv).
   Qed.
 
-  (* Not yet in the syntactic type system *)
-  Lemma singleton_Mu_1 {Γ p T i T'} (Hrepl : T .Tp[ p /]~ T') :
-    Γ ⊨p p : TMu T, i -∗
-    Γ ⊨ TSing p, i <: T', i.
-  Proof.
-    iIntros "#Hp !>" (ρ v) "Hg /= Heq".
-    iSpecialize ("Hp" with "Hg"); iNext i; iDestruct "Heq" as %Heq.
-    by rewrite (alias_paths_elim_eq _ Heq) /= (psubst_one_repl Hrepl Heq).
-  Qed.
-
-  Lemma singleton_Mu_2 {Γ p T i T'} (Hrepl : T .Tp[ p /]~ T') :
-    Γ ⊨p p : T', i -∗
-    Γ ⊨ TSing p, i <: TMu T, i.
-  Proof.
-    iIntros "#Hp !>" (ρ v) "Hg /= Heq".
-    iSpecialize ("Hp" with "Hg"); iNext i; iDestruct "Heq" as %Heq.
-    by rewrite (alias_paths_elim_eq _ Heq) /= (psubst_one_repl Hrepl Heq).
-  Qed.
-
   (** Non-pDOT rules end. *)
 
   Lemma Sub_singleton {Γ i p q T1 T2} (Hrepl : T1 ~Tp[ p := q ]* T2):
@@ -207,15 +188,6 @@ Section path_repl.
     iApply (rewrite_ty_path_repl_rtc Hrepl Hal with "HT1").
   Qed.
 
-  Lemma TMu_E_p' {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
-    Γ ⊨p p : TMu T, i -∗ Γ ⊨p p : T', i.
-  Proof.
-    iIntros "#Hp"; rewrite -(plusnO i).
-    iApply P_Sub; rewrite ?plusnO.
-    iApply (singleton_self with "Hp").
-    iApply (singleton_Mu_1 Hrepl with "Hp").
-  Qed.
-
   Lemma TMu_E_p {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : TMu T, i -∗ Γ ⊨p p : T', i.
   Proof.
@@ -223,15 +195,6 @@ Section path_repl.
     rewrite !path_wp_eq.
     iDestruct "Hp" as (v Heq) "Hp"; iExists v; iFrame (Heq).
     by rewrite (psubst_one_repl Hrepl).
-  Qed.
-
-  Lemma TMu_I_p' {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
-    Γ ⊨p p : T', i -∗ Γ ⊨p p : TMu T, i.
-  Proof.
-    iIntros "#Hp"; rewrite -(plusnO i).
-    iApply P_Sub; rewrite ?plusnO.
-    iApply (singleton_self with "Hp").
-    iApply (singleton_Mu_2 Hrepl with "Hp").
   Qed.
 
   Lemma TMu_I_p {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
