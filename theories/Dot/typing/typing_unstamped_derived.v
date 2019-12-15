@@ -537,6 +537,34 @@ Proof.
   apply (singleton_Mu_2 Hrepl Hp Hu).
 Qed.
 
+(**
+Show soundness of subtyping for recursive types in the Dotty compiler — just cases in subtype checking.
+
+The first case is in
+https://github.com/lampepfl/dotty/blob/0.20.0-RC1/compiler/src/dotty/tools/dotc/core/TypeComparer.scala#L550-L552
+And that matches Mu_stp_mu.
+
+https://github.com/lampepfl/dotty/blob/0.20.0-RC1/compiler/src/dotty/tools/dotc/core/TypeComparer.scala#L554-L557
+We formalize that as the derived rule below.
+
+The action of [fixRecs] depends on the type [T1] of [p].
+Hence, here we we assume the action of [fixRecs] has already been carried out:
+to do that, one must unfold top-level recursive types in the type of [p],
+as allowed through [T_Mu_E_p], rules for intersection types and intersection introduction.
+On the other hand, this derived rule handles the substitution in [T2] directly.
+*)
+Lemma singleton_Mu_dotty1 {Γ p i T1' T2 T2'}
+  (Hrepl2 : T2 .Tp[ p /]~ T2'):
+  Γ u⊢ₜ T1', i <: T2', i →
+  Γ u⊢ₚ p : T1', i →
+  is_unstamped_ty (S (length Γ)) T2 →
+  Γ u⊢ₜ TSing p, i <: TMu T2, i.
+Proof.
+  intros Hsub Hp Hu.
+  apply (singleton_Mu_2 Hrepl2), Hu.
+  apply (p_subs_typed' Hsub Hp).
+Qed.
+
 Definition anfBind t := lett t (tv x0).
 
 Lemma AnfBind_typed Γ t (T U: ty) :

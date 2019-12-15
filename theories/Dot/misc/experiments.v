@@ -4,7 +4,7 @@ From iris.proofmode Require Import tactics.
 From D Require Import swap_later_impl.
 From D.Dot.syn Require Import synLemmas rules path_repl.
 From D.Dot.lr Require Import unary_lr
-  lr_lemma lr_lemma_nobinding lr_lemmasDefs path_repl.
+  lr_lemma lr_lemmasTSel lr_lemma_nobinding lr_lemmasDefs path_repl.
 
 Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
@@ -33,6 +33,24 @@ Section AlsoSyntactically.
     Γ ⊨p p : T', i -∗
     Γ ⊨ TSing p, i <: TMu T, i.
   Proof. rewrite (TMu_I_p Hrepl). apply singleton_self_sub. Qed.
+
+  (** Semantic version of derived rule [singleton_Mu_dotty1]. *)
+  Lemma singleton_Mu_dotty1 {Γ p i T1 T2 T1' T2'}
+    (Hrepl2 : T2 .Tp[ p /]~ T2'):
+    Γ ⊨ T1, i <: T2', i -∗
+    Γ ⊨p p : T1, i -∗
+    Γ ⊨ TSing p, i <: TMu T2, i.
+  Proof.
+    (* iIntros "#Hsub #Hp !>" (ρ v) "#Hg /= #Heq".
+    iSpecialize ("Hp" with "Hg").
+    iSpecialize ("Hsub" $! ρ v with "[#$Hg] [#]");
+      iNext i; iDestruct "Heq" as %Heq;
+      rewrite (alias_paths_elim_eq _ Heq) // -(psubst_one_repl Hrepl2) //.
+    Restart. *)
+    iIntros "Hsub Hp".
+    iApply (singleton_Mu_2 Hrepl2).
+    iApply (P_Sub' with "Hp Hsub").
+  Qed.
 
 End AlsoSyntactically.
 

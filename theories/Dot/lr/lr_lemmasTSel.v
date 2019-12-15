@@ -78,4 +78,11 @@ Section Sec.
     iDestruct "HpT1" as (v) "Hpv"; iExists v; iDestruct "Hpv" as "[$ HpT1] {Hpv}".
     by iApply "Hsub".
   Qed.
+
+  Lemma P_Sub' p T1 T2 i:
+    Γ ⊨p p : T1, i -∗
+    Γ ⊨ T1, i <: T2, i -∗
+    (*───────────────────────────────*)
+    Γ ⊨p p : T2, i.
+  Proof. have := P_Sub p T1 T2 i 0. by rewrite (plusnO i). Qed.
 End Sec.
