@@ -95,7 +95,7 @@ Section LambdaIntros.
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.
-    iIntros "#HeT !>" (ρ) "#HG /=".
+    iIntros "#HeT !>" (ρ) "#HG /= !>".
     rewrite -wp_value'. iExists _; iSplit; first done.
     iIntros "!>" (v); rewrite -(decomp_s _ (v .: ρ)).
     (* Factor ⪭ out of [⟦ Γ ⟧* ρ] before [iNext]. *)
@@ -122,7 +122,7 @@ Section LambdaIntros.
   Proof.
     iIntros "/= #Hv !>" (ρ) "[#Hg #Hw]".
     rewrite def_interp_tvmem_eq.
-    iApply wp_value_inv'; iApply "Hv"; by iSplit.
+    iApply wp_value_inv'; iApply ("Hv" with "[]"); by iSplit.
   Qed.
 
   Lemma TVMem_All_I {Γ} V T1 T2 e l:
@@ -146,7 +146,7 @@ Section Sec.
     (*───────────────────────────────*)
     Γ ⊨ iterate tskip i e : T2.
   Proof.
-    iIntros "/= #HeT1 #Hsub !>" (ρ) "#Hg".
+    iIntros "/= #HeT1 #Hsub !>" (ρ) "#Hg !>".
     rewrite tskip_subst -wp_bind.
     iApply (wp_wand with "(HeT1 Hg)").
     iIntros (v) "#HvT1".
@@ -224,7 +224,7 @@ Section Sec.
    *)
   Lemma TMu_equiv T v: (Γ ⊨ tv v : TMu T) ≡ (Γ ⊨ tv v : T.|[v/]).
   Proof.
-    iSplit; iIntros "/= #Htp !>" (vs) "Hg";
+    iSplit; iIntros "/= #Htp !>" (vs) "#Hg !>";
     iDestruct (wp_value_inv with "(Htp Hg)") as "{Htp} Hgoal";
     rewrite -wp_value (interp_subst_one T v (v.[vs])); done.
   Qed.
@@ -241,11 +241,11 @@ Section Sec.
     (*────────────────────────────────────────────────────────────*)
     Γ ⊨ tapp e1 e2 : T2.
   Proof.
-    iIntros "/= #He1 #Hv2 !>" (vs) "#HG".
-    smart_wp_bind (AppLCtx (e2.|[_])) v "#Hr" "He1".
-    smart_wp_bind (AppRCtx v) w "#Hw" "Hv2".
+    iIntros "/= #He1 #Hv2 !>" (vs) "#HG !>".
+    smart_wp_bind (AppLCtx (e2.|[_])) v "#Hr" ("He1" with "[]").
+    smart_wp_bind (AppRCtx v) w "#Hw" ("Hv2" with "[]").
     iDestruct "Hr" as (t ->) "#Hv".
-    rewrite -wp_pure_step_later // -wp_mono /=; first by iApply "Hv".
+    rewrite -wp_pure_step_later // -wp_mono /=; first by iSpecialize ("Hv" with "Hw"); iNext.
     iIntros (v); by rewrite (interp_weaken_one T2 _ v).
   Qed.
 
@@ -255,12 +255,12 @@ Section Sec.
     (*────────────────────────────────────────────────────────────*)
     Γ ⊨ tapp e1 (tv v2) : T2.|[v2/].
   Proof.
-    iIntros "/= #He1 #Hv2Arg !> * #HG".
+    iIntros "/= #He1 #Hv2Arg !> * #HG !>".
     smart_wp_bind (AppLCtx (tv v2.[_])) v "#Hr {He1}" ("He1" with "[#//]").
     iDestruct "Hr" as (t ->) "#HvFun".
     rewrite -wp_pure_step_later; last done.
     iSpecialize ("HvFun" with "[#]"). {
-      rewrite -wp_value_inv'. by iApply "Hv2Arg".
+      rewrite -wp_value_inv'. by iApply ("Hv2Arg" with "[]").
     }
     iNext. iApply wp_wand.
     - iApply "HvFun".
@@ -292,8 +292,8 @@ Section Sec.
     (*─────────────────────────*)
     Γ ⊨ tproj e l : T.
   Proof.
-    iIntros "#HE /= !>" (ρ) "#HG".
-    smart_wp_bind (ProjCtx l) v "#Hv {HE}" "HE".
+    iIntros "#HE /= !>" (ρ) "#HG !>".
+    smart_wp_bind (ProjCtx l) v "#Hv {HE}" ("HE" with "[]").
     iDestruct "Hv" as (? Hl vmem ->) "Hv".
     rewrite -wp_pure_step_later // -wp_value. by [].
   Qed.
@@ -330,8 +330,8 @@ Section swap_based_typing_lemmas.
     iSpecialize ("HsubU" with "[# $Hg]").
     by rewrite iterate_TLater_later -swap_later; iApply interp_weaken_one.
     setoid_rewrite mlaterN_impl; setoid_rewrite mlater_impl.
-    iNext i; iNext 1. iApply wp_wand.
-    - iApply "HT1". iApply "HsubT".
+    iNext i; iNext 1. iModIntro. iApply wp_wand.
+    - iApply ("HT1" with "[]"). iApply "HsubT".
     - iIntros (u) "#HuU1". by iApply "HsubU".
   Qed.
 

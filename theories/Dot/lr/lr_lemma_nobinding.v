@@ -20,7 +20,7 @@ Section Sec.
     iIntros "!>" (w) "#HT".
     iSpecialize ("H1" with "HT").
     iSpecialize ("H2" with "HT").
-    iNext.
+    iNext. iModIntro.
     (* Oh. Dreaded conjunction rule. Tho could we use a version
     for separating conjunction? *)
     iApply wp_and. by iApply "H1". by iApply "H2".

@@ -72,10 +72,10 @@ Section Sec.
     (*─────────────────────────*)
     Γ ⊨ e : TVMem l (TLater T).
   Proof.
-    iIntros "#HE /= !>" (ρ) "HG".
+    iIntros "#HE /= !>" (ρ) "#HG !>".
     iSpecialize ("HE" with "HG").
     rewrite (wp_bind_inv (fill [ProjCtx l])) /= /lang.of_val.
-    iApply (wp_wand with "HE"); iIntros "/=" (v) "HE".
+    iApply (wp_wand with "HE"); iIntros "/=" (v) "{HE}HE".
     rewrite wp_unfold /wp_pre/=.
     remember (tproj (tv v) l) as v'.
     iDestruct ("HE" $! () [] [] 0 with "[//]") as (Hs) "HE".
@@ -125,7 +125,7 @@ Section Sec.
     Γ ⊨p p : T, i -∗
     Γ ⊨ path2tm p : iterate TLater i T.
   Proof.
-    iIntros "#Hep !>" (ρ) "#Hg /="; rewrite path2tm_subst.
+    iIntros "#Hep !>" (ρ) "#Hg /= !>"; rewrite path2tm_subst.
     iApply wp_wand. iPoseProof (path_wp_to_wp with "(Hep Hg)") as "?".
     (* We're stuck here. *)
   Abort.
@@ -145,15 +145,16 @@ Section Sec.
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.
-    iIntros "/= #HeT !>" (vs) "#HG".
+    iIntros "/= #HeT !>" (vs) "#HG !>".
     rewrite -wp_value'. iExists _; iSplit; first done.
     iIntros "!>" (v); rewrite -(decomp_s e (v .: vs)).
     iIntros "#Hv".
     (* iApply (wp_later_swap _ (⟦ T2 ⟧ (v .: vs))).
     iApply ("HeT" $! (v .: vs) with "[$HG]"). *)
-    iSpecialize ("HeT" $! (v .: vs) with "[$HG]").
+    iSpecialize ("HeT" $! (v .: vs) with "[#$HG]").
     by rewrite (interp_weaken_one T1 _ v).
-    iApply (wp_later_swap with "HeT").
+    by rewrite wp_later_swap; iNext.
+    (* by iDestruct (wp_later_swap with "HeT") as "{HeT} HeT"; iNext. *)
   Qed.
 
   (** Stronger version of TAll_Later_Swap0, needs wp_later_swap, which
@@ -166,14 +167,13 @@ Section Sec.
     iExists t; iSplit => //.
     rewrite -mlater_pers. iModIntro (□ _)%I.
     iIntros (w). iSpecialize ("HvTU" $! w).
-    rewrite -(wp_later_swap _ (⟦ _ ⟧ _)).
-    rewrite -impl_later.
+    rewrite !later_intuitionistically -(wp_later_swap _ (⟦ _ ⟧ _)).
+    rewrite -impl_later later_intuitionistically.
     (* Either: *)
     (* done. *)
     (* Or keep the old but more flexible code: *)
     iIntros "#HwT".
-    iApply (wp_wand with "(HvTU [# $HwT //])").
-    by iIntros "!>" (v) "$".
+    iApply ("HvTU" with "HwT").
   Qed.
 
   Lemma TVMem_Later_Swap Γ l T i:

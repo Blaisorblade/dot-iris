@@ -248,7 +248,7 @@ Section path_repl.
     (*────────────────────────────────────────────────────────────*)
     Γ ⊨ tapp e1 (path2tm p2) : T2'.
   Proof.
-    iIntros "#He1 #Hp2 !>" (ρ) "#Hg /=".
+    iIntros "#He1 #Hp2 !>" (ρ) "#Hg /= !>".
     smart_wp_bind (AppLCtx _) v "#Hr {He1}" ("He1" with "Hg").
     iDestruct "Hr" as (t ->) "#HvFun".
     iDestruct (path_wp_eq with "(Hp2 Hg)") as (pw Hpwp) "{Hp2 Hg} Hpw".

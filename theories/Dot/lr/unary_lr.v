@@ -81,7 +81,7 @@ Section logrel.
   Global Arguments interp_tmem /.
 
   Definition interp_expr interp : envPred tm Σ :=
-    λ ρ t, WP t {{ interp ρ }}%I.
+    λ ρ t, (□ WP t {{ interp ρ }})%I.
   Global Arguments interp_expr /.
 
   Definition interp_and interp1 interp2 : envD Σ :=
@@ -346,8 +346,8 @@ Theorem adequacy_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e Ψ T
   ∀ σ, adequate NotStuck e σ (λ v _, Ψ v).
 Proof.
   eapply (adequacy_dlang _); [apply Himpl | iIntros (??) "Hgs"].
-  iMod (Hlog with "Hgs") as "Htyp".
-  by iEval rewrite -(hsubst_id e); iApply ("Htyp" $! ids).
+  iMod (Hlog with "Hgs") as "#Htyp".
+  iEval rewrite -(hsubst_id e). iApply ("Htyp" $! ids with "[//]").
 Qed.
 
 Corollary safety_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e T

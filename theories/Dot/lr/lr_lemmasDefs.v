@@ -106,7 +106,7 @@ Section Sec.
      Γ |L T ⊨ds ds : T -∗
      Γ ⊨ tv (vobj ds) : TMu T.
   Proof.
-    iIntros "/= #Hds !>" (ρ) "#Hg /=". rewrite -wp_value'.
+    iIntros "/= #Hds !>" (ρ) "#Hg /= !>". rewrite -wp_value'.
     iLöb as "IH".
     iApply lift_dsinterp_dms_vl_commute.
     rewrite norm_selfSubst.
