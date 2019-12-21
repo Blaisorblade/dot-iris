@@ -1,5 +1,7 @@
 From D.Dot.syn Require Export syn path_repl.
 From D.Dot.stamping Require Export stampingDefsCore.
+From D.Dot.lr Require Import unary_lr.
+From D Require Import swap_later_impl.
 
 Implicit Types (L T U V : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
 Implicit Types (g : stys).
@@ -81,6 +83,11 @@ Inductive typed Γ g : tm → ty → Prop :=
     Γ v⊢ₚ[ g ] p : T, 0 →
     (*───────────────────────────────*)
     Γ v⊢ₜ[ g ] path2tm p : T
+| Sem_typed e T :
+    is_stamped_ty (length Γ) g T →
+    is_stamped_tm (length Γ) g e →
+    (∀ `{!dlangG Σ} `{!SwapPropI Σ}, Γ ⊨[ ⟦ g ⟧g ] e : T) →
+    Γ v⊢ₜ[ g ] e : T
 where "Γ v⊢ₜ[ g ] e : T " := (typed Γ g e T)
 with dms_typed Γ g : ty → dms → ty → Prop :=
 | dnil_typed V : Γ |ds V v⊢[ g ] [] : TTop
@@ -156,6 +163,11 @@ with path_typed Γ g : path → ty → nat → Prop :=
     Γ v⊢ₚ[ g ] p : TSing q, i →
     Γ v⊢ₚ[ g ] pself q l : T, i →
     Γ v⊢ₚ[ g ] pself p l : TSing (pself q l), i
+| sem_ptyped p T i :
+    is_stamped_ty (length Γ) g T →
+    is_stamped_path (length Γ) g p →
+    (∀ `{!dlangG Σ} `{!SwapPropI Σ}, Γ ⊨p[ ⟦ g ⟧g ] p : T, i) →
+    Γ v⊢ₚ[ g ] p : T, i
 where "Γ v⊢ₚ[ g ] p : T , i" := (path_typed Γ g p T i)
 (* Γ v⊢ₜ[ g ] T1, i1 <: T2, i2 means that TLater^i1 T1 <: TLater^i2 T2. *)
 with subtype Γ g : ty → nat → ty → nat → Prop :=
@@ -291,6 +303,11 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     is_stamped_ty (length Γ) g U1 →
     is_stamped_ty (length Γ) g U2 →
     Γ v⊢ₜ[ g ] TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
+| Sem_stp T1 T2 i1 i2 :
+    is_stamped_ty (length Γ) g T1 →
+    is_stamped_ty (length Γ) g T2 →
+    (∀ `{!dlangG Σ} `{!SwapPropI Σ}, Γ ⊨[ ⟦ g ⟧g ] T1, i1 <: T2, i2) →
+    Γ v⊢ₜ[ g ] T1, i1 <: T2, i2
 where "Γ v⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ g T1 i1 T2 i2).
 
 (* Make [T] first argument: Hide [Γ] and [g] for e.g. typing examples. *)
