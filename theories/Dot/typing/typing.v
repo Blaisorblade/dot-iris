@@ -286,7 +286,7 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     is_stamped_ty (length Γ) g T1 →
     is_stamped_ty (length Γ) g T2 →
     Γ v⊢ₜ[ g ] TAnd (TVMem l T1) (TVMem l T2), i <: TVMem l (TAnd T1 T2), i
-| TTMemDistr_strp l L U1 U2 i:
+| TTMemDistr_stp l L U1 U2 i:
     is_stamped_ty (length Γ) g L →
     is_stamped_ty (length Γ) g U1 →
     is_stamped_ty (length Γ) g U2 →
