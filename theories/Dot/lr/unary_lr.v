@@ -289,6 +289,16 @@ Notation "Γ ⊨ T1 , i <: T2 , j " := (step_indexed_ivstp Γ T1 T2 i j) (at lev
     [Γ |L V ⊨d d : T] and [Γ |L V ⊨ds ds : T]. *)
 Notation "Γ |L V" := (defCtxCons Γ V) (at level 60).
 
+Import stamp_transfer.
+(** Single-definition typing *)
+Notation "Γ ⊨[ gφ  ] { l := d  } : T" := (wellMappedφ gφ → idtp Γ T l d)%I (at level 74, d, l, T at next level).
+(** Multi-definition typing *)
+Notation "Γ ⊨ds[ gφ  ] ds : T" := (wellMappedφ gφ → idstp Γ T ds)%I (at level 74, ds, T at next level).
+(** Expression typing *)
+Notation "Γ ⊨[ gφ  ] e : T" := (wellMappedφ gφ → ietp Γ T e)%I (at level 74, e, T at next level).
+Notation "Γ ⊨p[ gφ  ] p : T , i" := (wellMappedφ gφ → iptp Γ T p i)%I (at level 74, p, T, i at next level).
+Notation "Γ ⊨[ gφ  ] T1 , i <: T2 , j" := (wellMappedφ gφ → step_indexed_ivstp Γ T1 T2 i j)%I (at level 74, T1, T2, i, j at next level).
+
 Section logrel_lemmas.
   Context `{!dlangG Σ}.
 

@@ -8,28 +8,19 @@ Import stamp_transfer.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 
-(** Single-definition typing *)
-Notation "Γ ⊨[ gφ  ] { l := d  } : T" := (wellMappedφ gφ → idtp Γ T l d)%I (at level 74, d, l, T at next level).
-(** Multi-definition typing *)
-Notation "Γ ⊨[ gφ  ]ds ds : T" := (wellMappedφ gφ → idstp Γ T ds)%I (at level 74, ds, T at next level).
-(** Expression typing *)
-Notation "Γ ⊨[ gφ  ] e : T" := (wellMappedφ gφ → ietp Γ T e)%I (at level 74, e, T at next level).
-Notation "Γ ⊨[ gφ  ]p p : T , i" := (wellMappedφ gφ → iptp Γ T p i)%I (at level 74, p, T, i at next level).
-Notation "Γ ⊨[ gφ  ] T1 , i <: T2 , j" := (wellMappedφ gφ → step_indexed_ivstp Γ T1 T2 i j)%I (at level 74, T1, T2, i, j at next level).
-
 Section fundamental.
   Context `{!dlangG Σ} `{!SwapPropI Σ}.
 
   Fixpoint fundamental_dm_typed Γ g V l d T (HT: Γ |d V v⊢[ g ]{ l := d } : T) { struct HT }:
     Γ |L V ⊨[ ⟦ g ⟧g ] { l := d } : T with
   fundamental_dms_typed Γ g V ds T (HT: Γ |ds V v⊢[ g ] ds : T) { struct HT }:
-    Γ |L V ⊨[ ⟦ g ⟧g ]ds ds : T with
+    Γ |L V ⊨ds[ ⟦ g ⟧g ] ds : T with
   fundamental_subtype Γ g T1 i1 T2 i2 (HT: Γ v⊢ₜ[ g ] T1, i1 <: T2, i2) { struct HT }:
     Γ ⊨[ ⟦ g ⟧g ] T1, i1 <: T2, i2 with
   fundamental_typed Γ g e T (HT: Γ v⊢ₜ[ g ] e : T) { struct HT }:
     Γ ⊨[ ⟦ g ⟧g ] e : T with
   fundamental_path_typed Γ g p T i (HT : Γ v⊢ₚ[ g ] p : T, i) { struct HT }:
-    Γ ⊨[ ⟦ g ⟧g ]p p : T, i.
+    Γ ⊨p[ ⟦ g ⟧g ] p : T, i.
   Proof.
     - iIntros "#Hm"; induction HT.
       + iApply D_Typ_Abs; by [> iApply fundamental_subtype .. |
