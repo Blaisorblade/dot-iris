@@ -201,7 +201,9 @@ Section syntyping_stamping_lemmas.
     move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]].
     move: IHs2 => /(.$ g1) [d' [g2 [Hts2 [Hle2 Hs]]]]; lte g g1 g2.
     have [v' Heq]: ∃ v', d' = dvl v'. {
-      case: d' {Hts2} Hs => /= [^~s]; rewrite /from_option => -[?[??]];
+      move => {Hts2}.
+      move: Hs.
+      destruct d'; rewrite /= /from_option => -[?[??]];
         try case_match; simplify_eq; eauto 2.
     }
     exists d', g2; subst d'; split_and!; ev; eauto 3.
