@@ -96,9 +96,9 @@ Import dlang_adequacy adequacy.
 (** Adequacy of semantic typing: not only are semantically well-typed expressions safe,
 but any result value they produce also satisfies any properties that follow from their
 semantic type. *)
-Theorem adequacy_mapped_semtyping Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e g Ψ T
-  (Himpl : ∀ (Hdlang: dlangG Σ) v, ⟦ T ⟧ ids v -∗ ⌜Ψ v⌝)
-  (Hlog : ∀ `{dlangG Σ} `(!SwapPropI Σ), [] ⊨[ ⟦ g ⟧g ] e : T):
+Theorem adequacy_mapped_semtyping Σ `{!dlangPreG Σ} `{!SwapPropI Σ} e g Ψ T
+  (Himpl : ∀ `(!dlangG Σ) v, ⟦ T ⟧ ids v -∗ ⌜Ψ v⌝)
+  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), [] ⊨[ ⟦ g ⟧g ] e : T):
   ∀ σ, adequate NotStuck e σ (λ v _, Ψ v).
 Proof.
   eapply (adequacy_dot_sem Σ e _ T Himpl).
@@ -106,8 +106,8 @@ Proof.
 Qed.
 
 (** Theorem 5.5: safety of semantic typing. Corollary of [adequacy_mapped_semtyping]. *)
-Corollary safety_mapped_semtyping Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e g T
-  (Hlog : ∀ `{dlangG Σ} `(!SwapPropI Σ), [] ⊨[ ⟦ g ⟧g ] e : T):
+Corollary safety_mapped_semtyping Σ `{!dlangPreG Σ} `{!SwapPropI Σ} e g T
+  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), [] ⊨[ ⟦ g ⟧g ] e : T):
   safe e.
 Proof.
   eapply adequate_safe, (adequacy_mapped_semtyping _ e g _ T), Hlog;

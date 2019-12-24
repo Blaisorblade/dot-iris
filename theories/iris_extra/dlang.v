@@ -177,11 +177,13 @@ Module Type LiftWp (Import VS : VlSortsSig).
       (∀ σ, adequate NotStuck e σ (λ _ _, True)) → safe e.
     Proof. intros Had ?? σ**. by eapply (Had σ). Qed.
 
+    (* [Himpl] only takes explicit arguments because Coq doesn't support
+    implicit ones. *)
     Theorem adequacy_dlang Σ `{dlangPreG Σ} `{SwapPropI Σ} e
       (Φ : dlangG Σ → val dlang_lang → iProp Σ)
       (Ψ : val dlang_lang → Prop)
-      (Himpl : ∀ (Hdlang: dlangG Σ) v, Φ Hdlang v -∗ ⌜Ψ v⌝)
-      (Hwp : ∀ (Hdlang: dlangG Σ) `(SwapPropI Σ), allGs ∅ ==∗ WP e {{ v, Φ Hdlang v }}) :
+      (Himpl : ∀ (Hdlang : dlangG Σ) v, Φ Hdlang v -∗ ⌜Ψ v⌝)
+      (Hwp : ∀ (Hdlang : dlangG Σ) `(!SwapPropI Σ), allGs ∅ ==∗ WP e {{ v, Φ Hdlang v }}) :
       ∀ σ, adequate NotStuck e σ (λ v _, Ψ v).
     Proof.
       intros σ; apply (wp_adequacy Σ) => /= ?.
@@ -194,10 +196,10 @@ Module Type LiftWp (Import VS : VlSortsSig).
 
     Corollary safety_dlang Σ `{dlangPreG Σ} `{SwapPropI Σ}
       (Φ : dlangG Σ → val dlang_lang → iProp Σ) e
-      (Hwp : ∀ (Hdlang: dlangG Σ) `(SwapPropI Σ),
+      (Hwp : ∀ (Hdlang : dlangG Σ) `(!SwapPropI Σ),
         allGs ∅ ==∗ WP e {{ Φ Hdlang }}):
       safe e.
-    Proof. apply adequate_safe, (adequacy_dlang _ e Φ), Hwp; naive_solver. Qed.
+    Proof. apply adequate_safe, (adequacy_dlang Σ e Φ), Hwp; naive_solver. Qed.
   End dlang_adequacy.
 
   Module stamp_transfer.
