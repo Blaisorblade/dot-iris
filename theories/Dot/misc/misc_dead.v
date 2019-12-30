@@ -46,10 +46,68 @@ Section wp_extra.
   Qed.
 End wp_extra.
 
-From D.Dot Require Import dlang_inst path_wp rules synLemmas step_fv.
+From iris.program_logic Require Import ectxi_language.
+From D.Dot Require Import syn dlang_inst path_wp rules synLemmas step_fv.
 Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
-         (Γ : ctx) (ρ : vls).
+         (Γ : ctx) (ρ : env).
+
+Instance: HSubst vl ectx_item := λ ρ K,
+  match K with
+  | AppLCtx e2 => AppLCtx e2.|[ρ]
+  | AppRCtx v1 => AppRCtx v1.[ρ]
+  | ProjCtx l => ProjCtx l
+  | SkipCtx => SkipCtx
+  end.
+
+Lemma fill_item_subst K e ρ :
+  (fill_item K e).|[ρ] = fill_item K.|[ρ] e.|[ρ].
+Proof. by case: K. Qed.
+
+Lemma subst_app (Ks1 Ks2 : list ectx_item) ρ:
+  (Ks1 ++ Ks2).|[ρ] =
+  Ks1.|[ρ] ++ Ks2.|[ρ].
+Proof. elim: Ks1 => [//|K Ks1 IH]; cbn; by rewrite IH. Qed.
+
+Lemma fill_subst K e ρ :
+  (fill K e).|[ρ] = fill K.|[ρ] e.|[ρ].
+Proof.
+  induction K using rev_ind => //.
+  rewrite subst_app !fill_app fill_item_subst !IHK //.
+Qed.
+(*
+Instance: LanguageCtx (λ e, (fill Ks e).|[ρ]).
+Proof.
+  Import rules syn asubst_base.
+  intros.
+  rewrite -Proper_LanguageCtx; first last.
+  intro.
+  by rewrite fill_subst.
+  apply _.
+Abort. *)
+
+Lemma dms_lookup_subst l ds w ρ :
+  dms_lookup l (selfSubst ds) = Some (dvl w) →
+  dms_lookup l (selfSubst ds.|[up ρ]) = Some (dvl w.[ρ]).
+Proof.
+  rewrite /selfSubst (subst_swap _ _ (vobj ds)).
+  move: (vobj ds) => v0.
+  elim: ds ρ => [|[l' d'] ds IHds] ρ //; cbn => Hl.
+  case_decide; simplify_eq/=; rewrite ?IHds // Hl //.
+Qed.
+
+Lemma head_step_subst e1 σ1 κ e2 σ2 efs ρ:
+  head_step e1 σ1 κ e2 σ2 efs → head_step e1.|[ρ] σ1 κ e2.|[ρ] σ2 efs.
+Proof.
+  elim => //; intros *; eauto using head_step.
+  - have <-: t1.|[up ρ].|[v2.[ρ]/] = t1.|[v2/].|[ρ].
+    by rewrite subst_swap.
+    by constructor.
+  - intros [ds [-> Hl]].
+    constructor.
+    eexists ds.|[up ρ]; split => //.
+    exact: dms_lookup_subst.
+Qed.
 
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
