@@ -99,12 +99,42 @@ Proof. rewrite /shead => /= HsEq. exact: HsEq. Qed.
 Lemma eq_cons v sb1 sb2 n : eq_n_s sb1 sb2 n → eq_n_s (v .: sb1) (v .: sb2) (S n).
 Proof. move => Heqs [//|x] /lt_S_n /Heqs //. Qed.
 
+(* Reverse-engineered from autosubst output for speed. *)
+Lemma scons_up_swap a sb1 sb2 : a .: sb1 >> sb2 = up sb1 >> a .: sb2.
+Proof.
+  rewrite upX /ren /scomp scons_comp;
+    fsimpl; rewrite subst_compX; by fsimpl; rewrite id_scompX id_subst.
+Qed.
+
+Lemma up_sub_compose_base ρ v : up ρ >> v .: ids = v .: ρ.
+Proof. by rewrite -scons_up_swap /scomp subst_idX. Qed.
+
+Lemma subst_swap_base v ρ : v.[ρ] .: ρ = (v .: ids) >> ρ.
+Proof.
+  rewrite /scomp scons_comp. (* Actual swap *)
+  by rewrite id_scompX. (* Cleanup *)
+Qed.
+
+Lemma subst_swap_vl v ρ w : v.[up ρ].[w.[ρ]/] = v.[w/].[ρ].
+Proof. by rewrite !subst_comp up_sub_compose_base subst_swap_base. Qed.
+
+Lemma subst_swap `{Sort X} (x: X) ρ v : x.|[up ρ].|[v.[ρ]/] = x.|[v/].|[ρ].
+Proof. by rewrite !hsubst_comp up_sub_compose_base subst_swap_base. Qed.
+
+
+Lemma up_sub_compose_vl ρ v w : v.[up ρ].[w/] = v.[w .: ρ].
+Proof. by rewrite subst_comp up_sub_compose_base. Qed.
+
 Lemma decomp_s_vl v s : v.[s] = v.[up (stail s)].[shead s/].
-Proof. rewrite /stail /shead. autosubst. Qed.
+Proof. rewrite /stail /shead up_sub_compose_vl. by fsimpl. Qed.
+
+
+Lemma up_sub_compose `{Sort X} (x : X) ρ v : x.|[up ρ].|[v/] = x.|[v .: ρ].
+Proof. by rewrite hsubst_comp up_sub_compose_base. Qed.
 
 Lemma decomp_s `{Sort X} (x : X) s :
   x.|[s] = x.|[up (stail s)].|[shead s/].
-Proof. rewrite /stail /shead. autosubst. Qed.
+Proof. rewrite /stail /shead up_sub_compose. by fsimpl. Qed.
 
 (** Rewrite thesis with equalities learned from injection, if possible *)
 Ltac rewritePremises := let H := fresh "H" in repeat (move => H; rewrite ?H {H}).
@@ -139,9 +169,6 @@ Ltac solve_inv_fv_congruence_auto :=
 Hint Extern 10 => solve_inv_fv_congruence_auto : fv.
 
 Set Implicit Arguments.
-
-Lemma scons_up_swap a sb1 sb2 : a .: sb1 >> sb2 = up sb1 >> a .: sb2.
-Proof. autosubst. Qed.
 
 Definition nclosed_sub n m s :=
   ∀ i, i < n → nclosed_vl (s i) m.
