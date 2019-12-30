@@ -97,10 +97,10 @@ Section LambdaIntros.
   Proof.
     iIntros "#HeT !>" (ρ) "#HG /= !>".
     rewrite -wp_value'. iExists _; iSplit; first done.
-    iIntros "!>" (v); rewrite -(decomp_s _ (v .: ρ)).
+    iIntros "!>" (v) "#Hv"; rewrite up_sub_compose.
     (* Factor ⪭ out of [⟦ Γ ⟧* ρ] before [iNext]. *)
     rewrite TLater_unTLater_ctx_sub env_TLater_commute.
-    iIntros "#Hv". iNext.
+    iNext.
     iApply ("HeT" $! (v .: ρ) with "[$HG]").
     by rewrite (interp_weaken_one T1 _ v) stail_eq.
   Qed.

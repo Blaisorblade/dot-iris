@@ -59,7 +59,7 @@ Section Sec.
   Proof.
     iIntros "/= #HeT !>" (vs) "#HG".
     rewrite -wp_value'; unfold_interp. iExists _; iSplit; first done.
-    iIntros "!> !>" (v) "#Hv"; rewrite -(decomp_s e (v .: vs)).
+    iIntros "!> !>" (v) "#Hv"; rewrite up_sub_compose.
     iApply ("HeT" $! (v .: vs) with "[$HG]").
     by rewrite (interp_weaken_one T1 _ v).
   Qed.

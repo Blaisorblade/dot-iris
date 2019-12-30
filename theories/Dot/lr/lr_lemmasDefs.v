@@ -4,7 +4,7 @@ From D.Dot Require Import unary_lr.
 Implicit Types (L T U V: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 
 Lemma norm_selfSubst ds s: selfSubst ds.|[up s] = ds.|[(vobj ds).[s] .: s].
-Proof. by rewrite /selfSubst -(decomp_s _ (_ .: s)). Qed.
+Proof. by rewrite /selfSubst up_sub_compose. Qed.
 
 Lemma dms_hasnt_map_mono ds l f:
   dms_hasnt ds l →

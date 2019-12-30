@@ -147,8 +147,7 @@ Section Sec.
   Proof.
     iIntros "/= #HeT !>" (vs) "#HG !>".
     rewrite -wp_value'. iExists _; iSplit; first done.
-    iIntros "!>" (v); rewrite -(decomp_s e (v .: vs)).
-    iIntros "#Hv".
+    iIntros "!>" (v) "#Hv"; rewrite up_sub_compose.
     (* iApply (wp_later_swap _ (⟦ T2 ⟧ (v .: vs))).
     iApply ("HeT" $! (v .: vs) with "[$HG]"). *)
     iSpecialize ("HeT" $! (v .: vs) with "[#$HG]").
