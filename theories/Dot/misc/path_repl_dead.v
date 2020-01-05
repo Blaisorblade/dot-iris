@@ -177,7 +177,7 @@ Proof.
   - by rewrite (IHq p Hp) /= shift_unshift_p.
 Qed.
 
-Lemma psubst_one_base_unshifts T p: unshifts (psubst_one_base T p).
+(* Lemma psubst_one_base_unshifts T p: unshifts (psubst_one_base T p).
 Proof.
   exists (unshift (psubst_one_base T p)).
   rewrite /psubst_one_base.
@@ -195,7 +195,7 @@ Proof.
   move: (psubst_one_base_unshifts T1 p) => [T' Hrew] <-.
   rewrite Hrew shift_unshift.
   apply psubst_ty_rtc_sufficient, Hrew.
-Qed.
+Qed. *)
 
 (**
   Never even remotely true. One thing substitutes away, another substitutes
