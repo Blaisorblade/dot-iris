@@ -1,4 +1,4 @@
-From D.Dot Require Import typing typeExtractionSyn traversals stampedness_binding closed_subst.
+From D.Dot Require Import typing_storeless typeExtractionSyn traversals stampedness_binding closed_subst.
 
 Set Implicit Arguments.
 

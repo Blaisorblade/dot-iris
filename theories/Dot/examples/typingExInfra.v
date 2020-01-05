@@ -5,7 +5,7 @@ From stdpp Require Import strings.
 
 From D Require Import tactics.
 From D.Dot Require Import syn.
-From D.Dot Require Export typing exampleInfra.
+From D.Dot Require Export typing_storeless exampleInfra.
 Export DBNotation.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).

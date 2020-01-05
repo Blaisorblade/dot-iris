@@ -42,10 +42,10 @@ theories/DSub/lr/dlang_inst.v
 theories/DSub/syn/step_fv.v
 theories/DSub/lr/unary_lr.v
 theories/DSub/syn/closed_subst.v
-theories/DSub/typing/typing.v
+theories/DSub/typing/typing_storeless.v
 theories/DSubSyn/lr/lr_lemma.v
 theories/DSubSyn/lr/unary_lr.v
-theories/DSubSyn/typing/typing.v
+theories/DSubSyn/typing/typing_storeless.v
 theories/DSubSyn/typing/typing_objIdent.v
 theories/DSubSyn/fundamental.v
 theories/Dot/examples/hoas.v
@@ -57,7 +57,7 @@ theories/Dot/examples/typingExamples.v
 theories/Dot/examples/typingExamplesUnst.v
 theories/Dot/examples/typingExInfra.v
 theories/Dot/syn/syn.v
-theories/Dot/typing/typing.v
+theories/Dot/typing/typing_storeless.v
 theories/Dot/typing/typing_stamped.v
 theories/Dot/typing/typing_unstamped.v
 theories/Dot/typing/typing_unstamped_derived.v

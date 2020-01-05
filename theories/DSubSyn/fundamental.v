@@ -84,7 +84,7 @@ Section swap_based_typing_lemmas.
   Qed.
 End swap_based_typing_lemmas.
 
-From D.DSubSyn Require Import typing.
+From D.DSubSyn Require Import typing_storeless.
 
 Section Fundamental.
   Context `{!dsubSynG Σ} `{!SwapPropI Σ}.

@@ -40,7 +40,7 @@ We formalize (part of) the translation process, externally to Iris.
 Typing derivations then are defined relative to a stamp-type mapping,
 which we call a stamp table.
 *)
-From D.Dot Require typeExtractionSyn typing.
+From D.Dot Require typeExtractionSyn typing_stamped.
 
 (**
 Semantic typing does not depend on a map from stamps to syntactic types

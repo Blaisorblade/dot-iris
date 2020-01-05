@@ -1,11 +1,11 @@
 From D Require Import tactics.
 From D.Dot Require Export syn.
-From D.Dot Require Import typing.
+From D.Dot Require Import typing_storeless.
 
 Implicit Types (L T U V : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
 Implicit Types (g : stys).
 
-(* The typing judgement comes from [s/⊢/s⊢typing.v], and restricting most values to variables (except in object definitions). *)
+(* The typing judgement comes from [s/⊢/s⊢] in [typing_storeless.v], and restricting most values to variables (except in object definitions). *)
 Reserved Notation "Γ s⊢ₜ[ g  ] e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ |ds V s⊢[ g  ] ds : T" (at level 74, ds, T, V at next level).
 Reserved Notation "Γ |d V s⊢[ g  ]{ l := d  } : T " (at level 74, l, d, T, V at next level).

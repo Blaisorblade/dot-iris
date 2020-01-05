@@ -5,7 +5,7 @@ Set Implicit Arguments.
 
 Section syntyping_stamping_lemmas.
 
-  Import typing_unstamped typing.
+  Import typing_unstamped typing_storeless.
 
   Hint Constructors typing_stamped.typed typing_stamped.subtype typing_stamped.dms_typed typing_stamped.dm_typed typing_stamped.path_typed : core.
   Remove Hints typing_stamped.Trans_stp : core.
