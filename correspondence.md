@@ -20,6 +20,8 @@
   `args : vec n vl` for some `n`. We always set `n = 0` to ignore this, but our
   implementation has additional flexibility.
 
+- Our mechanization extends gDOT with a type of naturals and with natural literals.
+
 - Compared to the paper, and even to the appendix, we describe (in
   `theories/Dot/typing/typing.v`) an additional "storeless" typing judgment, a
   strict generalization of stamped typing.
