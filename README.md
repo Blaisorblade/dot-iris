@@ -1,5 +1,11 @@
 # Type Soundness for DOT via logical relations
 
+Mechanization accompanying the paper "Scala's Lost Steps: Soundness for
+Dependent Object Types with Step-Indexed Logical Relations and Iris".
+
+The mapping between the paper and this mechanization is described in
+`./correspondence.md`.
+
 ## File Layout
 
 Code is not perfectly modularized, but here is a rough layout of the various files.
