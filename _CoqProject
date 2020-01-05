@@ -58,7 +58,7 @@ theories/Dot/examples/typingExamplesUnst.v
 theories/Dot/examples/typingExInfra.v
 theories/Dot/syn/syn.v
 theories/Dot/typing/typing.v
-theories/Dot/typing/typing_objIdent.v
+theories/Dot/typing/typing_stamped.v
 theories/Dot/typing/typing_unstamped.v
 theories/Dot/typing/typing_unstamped_derived.v
 theories/Dot/lr/path_wp.v

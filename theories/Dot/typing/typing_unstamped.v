@@ -12,7 +12,7 @@ Set Implicit Arguments.
 
 Implicit Types (L T U V : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
 
-(* The typing judgement comes from [s/⊢/u⊢/] over [Dot/typing_objIdent.v], and dropping stamping. *)
+(* The typing judgement comes from [s/⊢/u⊢/] over [Dot/typing_stamped.v], and dropping stamping. *)
 Reserved Notation "Γ u⊢ₜ e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ u⊢ₚ p : T , i" (at level 74, p, T, i at next level).
 Reserved Notation "Γ |d V u⊢{ l := d  } : T" (at level 74, l, d, T, V at next level).

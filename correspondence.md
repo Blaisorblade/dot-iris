@@ -3,7 +3,7 @@
 Most gDOT definitions
 - gDOT syntax and operational semantics are defined in `theories/Dot/syn/syn.v`.
 - Unstamped typing is defined in `theories/Dot/typing/typing_unstamped.v`.
-- Stamped typing is defined in `theories/Dot/typing/typing_objIdent.v`.
+- Stamped typing is defined in `theories/Dot/typing/typing_stamped.v`.
 
 - Derived rule (<:-Later-Shift) is called Sub_later_shift in Coq.
 
