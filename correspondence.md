@@ -6,6 +6,8 @@
 
 - Derived rule `(<:-Later-Shift)` is called `Sub_later_shift` in Coq.
 
+- Typing rule `(D-Typ-Abs-Better)` is derived as `dty_typed_intermediate`.
+
 ## Differences between our paper (and technical appendix) and our Coq development.
 
 - Unlike in the appendix, our saved predicates support an additional argument

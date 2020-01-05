@@ -155,6 +155,14 @@ Lemma LSel_stp' Γ U {p l L i}:
   Γ u⊢ₜ L, i <: TSel p l, i.
 Proof. intros; ettrans; last exact: (@LSel_stp _ p); tcrush. Qed.
 
+(* Worse than dty_typed, but shown in the paper. *)
+Lemma dty_typed_intermediate Γ T V l L U:
+  is_unstamped_ty (S (length Γ)) T →
+  TLater V :: Γ u⊢ₜ L, 0 <: T, 0 →
+  TLater V :: Γ u⊢ₜ T, 0 <: U, 0 →
+  Γ |d V u⊢{ l := dtysyn T } : TTMem l L U.
+Proof. intros; apply dty_typed; tcrush. Qed.
+
 (** * Manipulating laters, basics. *)
 
 Lemma AddIJ_stp {Γ T} i j (Hst: is_unstamped_ty (length Γ) T) :
