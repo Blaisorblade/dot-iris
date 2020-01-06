@@ -10,6 +10,11 @@
 
 ## Differences between our paper (and technical appendix) and our Coq development.
 
+- While in the paper unstamped and stamped DOT are represented using disjoint
+  syntaxes, in Coq there is a single syntax, together with predicates
+  `is_unstamped_?` and `is_stamped_?`, characterizing whether some AST is
+  unstamped or stamped.
+
 - Beyond `(T-μ-Iₚ)`, `(T-μ-Eₚ)` and `(T-∀-Eₚ)`, our development uses versions
   restricted to variables `(T-μ-I)`, `(T-μ-E)` and `(T-∀-E)` as separate rules.
   The latter should be derivable, but we define path substitution separately,
