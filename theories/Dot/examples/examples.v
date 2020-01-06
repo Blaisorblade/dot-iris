@@ -12,7 +12,7 @@ Section ex.
   Lemma alloc {s sγ} (φ : envD Σ) : sγ !! s = None → allGs sγ ==∗ s ↝ φ.
   Proof.
     iIntros (Hs) "Hsγ".
-    by iMod (stamp_to_type_alloc φ Hs with "Hsγ") as (?) "[_ [_ $]]".
+    by iMod (leadsto_alloc φ Hs with "Hsγ") as (?) "[_ [_ $]]".
   Qed.
 
   Definition even v := ∃ n, v = vnat (2 * n).

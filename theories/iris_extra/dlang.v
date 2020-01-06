@@ -61,9 +61,9 @@ Module Type LiftWp (Import VS : VlSortsSig).
     iApply (wp_wand with "[-]"); [iApply Hp; trivial|]; cbn;
     iIntros (v) Hv.
 
-  Definition stamp_to_type_n `{!dlangG Σ}
+  Definition leadsto_n `{!dlangG Σ}
     s n (φ : hoEnvD Σ n) := (∃ γ, s ↦ γ ∧ γ ⤇n[ n ] φ)%I.
-  Notation "s ↝n[ n  ] φ" := (stamp_to_type_n s n φ) (at level 20) : bi_scope.
+  Notation "s ↝n[ n  ] φ" := (leadsto_n s n φ) (at level 20) : bi_scope.
 
   Program Definition hoEnvD_inst {i Σ} σ : hoEnvD Σ i -n> hoD Σ i := λne φ, λ args, φ args (to_subst σ).
   Next Obligation. move => i Σ σ n x y Heq args. exact: Heq. Qed.
@@ -79,7 +79,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
   Section mapsto.
     Context `{!dlangG Σ}.
 
-    Global Instance: Contractive (stamp_to_type_n s n).
+    Global Instance: Contractive (leadsto_n s n).
     Proof. solve_contractive. Qed.
 
     Global Instance: Persistent (s ↝n[ n ] φ) := _.
@@ -88,7 +88,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
     Proof. rewrite /stamp_σ_to_type_n. solve_contractive_ho. Qed.
 
     Import EqNotations.
-    Lemma stamp_to_type_agree_dep_abs {s n1 n2 φ1 φ2} :
+    Lemma leadsto_agree_dep_abs {s n1 n2 φ1 φ2} :
       s ↝n[ n1 ] φ1 -∗ s ↝n[ n2 ] φ2 -∗ ∃ Heq : n1 = n2,
         ▷ ((rew [hoEnvD Σ] Heq in φ1) ≡ φ2).
     Proof.
@@ -98,31 +98,31 @@ Module Type LiftWp (Import VS : VlSortsSig).
       by iExists eq_refl.
     Qed.
 
-    Lemma stamp_to_type_agree_dep {s n1 n2 φ1 φ2} args ρ v :
+    Lemma leadsto_agree_dep {s n1 n2 φ1 φ2} args ρ v :
       s ↝n[ n1 ] φ1 -∗ s ↝n[ n2 ] φ2 -∗ ∃ Heq : n1 = n2,
         ▷ ((rew [hoEnvD Σ] Heq in φ1) args ρ v ≡ φ2 args ρ v).
     Proof.
       iIntros "Hsg1 Hsg2".
-      iDestruct (stamp_to_type_agree_dep_abs with "Hsg1 Hsg2") as (->) "Hgoal".
+      iDestruct (leadsto_agree_dep_abs with "Hsg1 Hsg2") as (->) "Hgoal".
       iExists eq_refl; cbn. iNext.
       by repeat setoid_rewrite bi.discrete_fun_equivI.
     Qed.
 
-    Lemma stamp_to_type_agree {s n φ1 φ2} args ρ v :
+    Lemma leadsto_agree {s n φ1 φ2} args ρ v :
       s ↝n[ n ] φ1 -∗ s ↝n[ n ] φ2 -∗ ▷ (φ1 args ρ v ≡ φ2 args ρ v).
     Proof.
       iIntros "Hs1 Hs2".
-      iDestruct (stamp_to_type_agree_dep args ρ v with "Hs1 Hs2") as (Heq) "Hgoal".
+      iDestruct (leadsto_agree_dep args ρ v with "Hs1 Hs2") as (Heq) "Hgoal".
       by rewrite (proof_irrel Heq eq_refl) /=.
     Qed.
-    (* Global Opaque stamp_to_type_n. *)
+    (* Global Opaque leadsto_n. *)
 
     Lemma stamp_σ_to_type_agree_dep_abs {σ s n1 n2 ψ1 ψ2} :
       s ↗n[ σ , n1 ] ψ1 -∗ s ↗n[ σ , n2 ] ψ2 -∗ ∃ Heq : n1 = n2,
         ▷ ((rew [hoD Σ] Heq in ψ1) ≡ ψ2).
     Proof.
       iDestruct 1 as (φ1) "[Hsg1 Heq1]"; iDestruct 1 as (φ2) "[Hsg2 Heq2]".
-      iDestruct (stamp_to_type_agree_dep_abs with "Hsg1 Hsg2") as (->) "Hgoal".
+      iDestruct (leadsto_agree_dep_abs with "Hsg1 Hsg2") as (->) "Hgoal".
       iExists eq_refl. iNext.
       iEval (cbn) in "Hgoal"; iEval (cbn). iRewrite "Heq1"; iRewrite "Heq2".
       repeat setoid_rewrite discrete_fun_equivI.
@@ -239,7 +239,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
 
       Global Opaque wellMappedφ.
 
-      Lemma stamp_to_type_alloc {sγ s} (φ : envD Σ) :
+      Lemma leadsto_alloc {sγ s} (φ : envD Σ) :
         sγ !! s = None → allGs sγ ==∗
         ∃ sγ', ⌜gdom sγ' ≡ {[s]} ∪ gdom sγ⌝ ∧ allGs sγ' ∧ s ↝ φ.
       Proof.
@@ -259,7 +259,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
           + by iApply wellMappedφ_empty.
         - iIntros (s φ gφ' Hsg IH [Hssγ Hdom]%freshMappings_split) "Hown".
           iMod (IH Hdom with "Hown") as (sγ' Hsγ') "[Hallsγ #Hwmg]".
-          iMod (stamp_to_type_alloc (s := s) φ with "Hallsγ") as (sγ'' Hsγ'') "[Hgs #Hs]".
+          iMod (leadsto_alloc (s := s) φ with "Hallsγ") as (sγ'' Hsγ'') "[Hgs #Hs]".
           + eapply (not_elem_of_dom (D := gset stamp)).
             by rewrite Hsγ' not_elem_of_union !not_elem_of_dom.
           + iModIntro; iExists sγ''; iFrame "Hgs"; iSplit.
