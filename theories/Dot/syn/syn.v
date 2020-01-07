@@ -408,9 +408,9 @@ Definition to_val (t: tm) : option vl :=
 Definition of_val: vl -> tm := tv.
 
 Inductive ectx_item :=
-| AppLCtx (e2: tm)
-| AppRCtx (v1: vl)
-| ProjCtx (l: label)
+| AppLCtx (e2 : tm)
+| AppRCtx (v1 : vl)
+| ProjCtx (l : label)
 | SkipCtx.
 
 Definition fill_item (Ki : ectx_item) (e : tm) : tm :=
@@ -426,12 +426,12 @@ Definition observation := unit.
 
 Inductive head_step : tm -> state -> list observation -> tm -> state -> list tm -> Prop :=
 | st_beta t1 v2 σ:
-    head_step (tapp (tv (vabs t1)) (tv v2)) σ [] (t1.|[v2/]) σ []
+  head_step (tapp (tv (vabs t1)) (tv v2)) σ [] (t1.|[v2/]) σ []
 | st_proj v l σ w:
-    v @ l ↘ dvl w →
-    head_step (tproj (tv v) l) σ [] (tv w) σ []
+  v @ l ↘ dvl w →
+  head_step (tproj (tv v) l) σ [] (tv w) σ []
 | st_skip v σ:
-    head_step (tskip (tv v)) σ [] (tv v) σ [].
+  head_step (tskip (tv v)) σ [] (tv v) σ [].
 
 Lemma of_to_val e v : to_val e = Some v → of_val v = e.
 Proof.
