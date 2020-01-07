@@ -234,11 +234,9 @@ ty_eq_dec T1 T2 : Decision (T1 = T2)
 with
 path_eq_dec p1 p2 : Decision (p1 = p2).
 Proof.
-   all: rewrite /Decision; decide equality;
-       try repeat (apply vl_eq_dec || apply tm_eq_dec || apply ty_eq_dec || apply path_eq_dec ||
-            apply @prod_eq_dec ||
-            apply @list_eq_dec ||
-            apply nat_eq_dec || apply positive_eq_dec || apply string_eq_dec); auto.
+  all: have vl_eq_dec' : EqDecision vl := vl_eq_dec;
+    have dm_eq_dec' : EqDecision dm := dm_eq_dec;
+    rewrite /Decision; decide equality; apply: decide.
 Defined.
 
 Instance vl_eq_dec' : EqDecision vl := vl_eq_dec.
