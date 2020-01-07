@@ -16,33 +16,33 @@ Section ex.
     by iMod (leadsto_alloc φ Hs with "Hsγ") as (?) "[_ [_ $]]".
   Qed.
 
-  Definition even v := ∃ n, v = vnat (2 * n).
-  Definition ieven: envD Σ := λ ρ v, (⌜ even v ⌝) %I.
-  Instance evenP ρ v: Persistent (ieven ρ v) := _.
+  Definition pos v := ∃ n, v = vnat n ∧ n > 0.
+  Definition ipos: envD Σ := λ ρ v, (⌜ pos v ⌝) %I.
+  Instance posP ρ v: Persistent (ipos ρ v) := _.
 
   Context (s: stamp).
 
-  Definition Hs := (s ↝ ieven)%I.
+  Definition Hs := (s ↝ ipos)%I.
   Lemma allocHs sγ:
     sγ !! s = None → allGs sγ ==∗ Hs.
-  Proof. exact (alloc ieven). Qed.
+  Proof. exact (alloc ipos). Qed.
 
   (* Experiments using fancier infrastructure: *)
   Lemma allocHsGen sγ:
     sγ !! s = None → allGs sγ ==∗ Hs.
   Proof.
     iIntros (Hl) "H". iApply wellMappedφ_apply;
-      last iApply (transfer (<[s:=ieven]> ∅) with "H") => s';
+      last iApply (transfer (<[s:=ipos]> ∅) with "H") => s';
       rewrite ?lookup_insert ?dom_insert ?dom_empty //; set_solver.
   Qed.
 
   Lemma allocHs1: allGs ∅ ==∗ Hs.
   Proof.
-    iIntros "H";  iApply wellMappedφ_apply; last iApply (transfer_empty (<[s:=ieven]> ∅) with "H").
+    iIntros "H"; iApply wellMappedφ_apply; last iApply (transfer_empty (<[s:=ipos]> ∅) with "H").
     by rewrite lookup_insert.
   Qed.
 
-  (** Under Iris assumption [Hs], [v.A] points to [ieven].
+  (** Under Iris assumption [Hs], [v.A] points to [ipos].
       We assume [Hs] throughout the rest of the section. *)
   Import DBNotation.
   From D.Dot Require Import typingExInfra.
@@ -57,7 +57,7 @@ Section ex.
     iIntros; repeat (repeat iExists _; repeat iSplit; try done).
     by iApply dm_to_type_intro.
     iModIntro; repeat iSplit; iIntros (w). by iIntros ">[]".
-    iMod 1 as %[n ->]. eauto.
+    iMod 1 as %(n & -> & ?). eauto.
   Qed.
 
   (** Yes, v has a valid type member. *)
@@ -106,7 +106,7 @@ Section ex.
     - iApply (T_Sub _ _ _ _ 0); last by iApply Sub_Top.
       by iApply vHasA0typ.
     - rewrite -ietp_value /=.
-      have Hev2: even (vnat 2). by exists 1.
+      have Hev2: pos (vnat 2) by rewrite /pos; eauto.
       iIntros (_).
       repeat (repeat iExists _; repeat iSplit);
         by [|iApply dm_to_type_intro].
@@ -120,7 +120,7 @@ Section ex.
 
   (*
     A different approach would be to type the object using T_New_I
-    with an object type [U] with member [TTMem "A" ieven ieven].
+    with an object type [U] with member [TTMem "A" ipos ipos].
     We could then upcast the object. But type U is not syntactic,
     so we can't express this yet using the existing typing
     lemmas.
@@ -139,7 +139,7 @@ Section ex.
     - (* Can't finish with D_Typ_Abs, this is only for syntactic types: *)
       (* From D.Dot Require Import typeExtractionSem.
       iApply D_Typ_Abs => //; first last.
-      iExists _; iSplit => //=.  (* Here we need a syntactic type matching [ieven]. *) *)
+      iExists _; iSplit => //=.  (* Here we need a syntactic type matching [ipos]. *) *)
       iModIntro.
       iIntros (ρ) "/= #_".
       iSplit => //. by iApply sHasA.
