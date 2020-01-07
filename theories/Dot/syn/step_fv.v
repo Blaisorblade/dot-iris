@@ -23,13 +23,36 @@ Section nclosed_prim_step.
     exact: nclosed_lookup'.
   Qed.
 
+  Lemma nclosed_un_op_eval u v w n :
+    un_op_eval u v = Some w →
+    nclosed (tun u (tv v)) n →
+    nclosed (tv w) n.
+  Proof.
+    rewrite /un_op_eval => Hev Hcl; apply fv_of_val.
+    assert (Hclt1: nclosed_vl v n) by eauto with fv.
+    by repeat (case_match; simplify_eq).
+  Qed.
+
+  Lemma nclosed_bin_op_eval b v1 v2 w n :
+    bin_op_eval b v1 v2 = Some w →
+    nclosed (tbin b (tv v1) (tv v2)) n →
+    nclosed (tv w) n.
+  Proof.
+    move => Hev Hcl; apply fv_of_val.
+    assert (Hclt1: nclosed_vl v1 n) by eauto with fv.
+    assert (Hclt2: nclosed_vl v2 n) by eauto with fv.
+    unfold bin_op_eval, bin_op_eval_nat, bin_op_eval_bool in *.
+    by repeat (case_match; simplify_eq).
+  Qed.
+
   Theorem nclosed_head_step t1 t2 σ σ' ts κ n:
     head_step t1 σ κ t2 σ' ts →
     nclosed t1 n →
     nclosed t2 n.
   Proof.
-    move => Hst Hcl; destruct Hst; by [>
+    move => Hst Hcl; destruct Hst; by [
       exact (nclosed_beta Hcl) | eapply nclosed_proj |
+      eapply nclosed_un_op_eval | eapply nclosed_bin_op_eval |
       solve_inv_fv_congruence_h Hcl ].
   Qed.
 
@@ -45,7 +68,11 @@ Section nclosed_prim_step.
   | ClAppLCtx t2 n: nclosed t2 n → nclosed_ectx_item (AppLCtx t2) n
   | ClAppRCtx v1 n: nclosed_vl v1 n → nclosed_ectx_item (AppRCtx v1) n
   | ClProjCtx l n: nclosed_ectx_item (ProjCtx l) n
-  | ClSkipCtx n: nclosed_ectx_item SkipCtx n.
+  | ClSkipCtx n: nclosed_ectx_item SkipCtx n
+  | ClUnCtx u n : nclosed_ectx_item (UnCtx u) n
+  | ClBinLCtx b t2 n: nclosed t2 n → nclosed_ectx_item (BinLCtx b t2) n
+  | ClBinRCtx b v1 n: nclosed_vl v1 n → nclosed_ectx_item (BinRCtx b v1) n
+  | ClIfCtx t1 t2 n : nclosed t1 n → nclosed t2 n → nclosed_ectx_item (IfCtx t1 t2) n.
   Hint Constructors nclosed_ectx_item : core.
 
   Notation nclosed_ectx K n := (Forall (λ Ki, nclosed_ectx_item Ki n) K).

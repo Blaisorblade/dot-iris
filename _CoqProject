@@ -82,6 +82,7 @@ theories/Dot/fundamental.v
 theories/Dot/lr/unary_lr.v
 theories/Dot/lr/lr_lemmasNoBinding.v
 theories/Dot/lr/lr_lemmas.v
+theories/Dot/lr/lr_lemmasPrim.v
 theories/Dot/lr/lr_lemmasTSel.v
 theories/Dot/lr/lr_lemmasDefs.v
 theories/Dot/syn/closed_subst.v

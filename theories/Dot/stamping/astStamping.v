@@ -29,13 +29,16 @@ Fixpoint unstamp_tm g (t: tm): tm :=
   | tapp t1 t2 => tapp (unstamp_tm g t1) (unstamp_tm g t2)
   | tskip t => tskip (unstamp_tm g t)
   | tproj t l => tproj (unstamp_tm g t) l
+  | tun u t => tun u (unstamp_tm g t)
+  | tbin b t1 t2 => tbin b (unstamp_tm g t1) (unstamp_tm g t2)
+  | tif t1 t2 t3 => tif (unstamp_tm g t1) (unstamp_tm g t2) (unstamp_tm g t3)
   end
 with
 unstamp_vl g (v: vl): vl :=
   match v with
   | vobj ds => vobj (map (mapsnd (unstamp_dm g)) ds)
   | vabs t => vabs (unstamp_tm g t)
-  | vnat _ => v
+  | vlit _ => v
   | var_vl _ => v
   end
 with
@@ -65,7 +68,7 @@ unstamp_ty g (T: ty): ty :=
   | TVMem l T => TVMem l (unstamp_ty g T)
   | TSel p l => TSel (unstamp_path g p) l
   | TSing p => TSing (unstamp_path g p)
-  | TNat => T
+  | TPrim _ => T
   end.
 
 Definition unstamp_dms g ds := map (mapsnd (unstamp_dm g)) ds.

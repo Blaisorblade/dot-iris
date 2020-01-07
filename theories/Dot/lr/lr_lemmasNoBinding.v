@@ -152,7 +152,4 @@ Section Sec.
   Lemma Bot_Sub T i:
     Γ ⊨ TBot, i <: T, i.
   Proof. by iIntros "/= !> ** !>". Qed.
-
-  Lemma T_Nat_I n: Γ ⊨ tv (vnat n): TNat.
-  Proof. iIntros "!> * _ /="; rewrite -wp_value; eauto. Qed.
 End Sec.

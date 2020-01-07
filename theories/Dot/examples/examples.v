@@ -53,10 +53,11 @@ Section ex.
 
   Lemma sHasA : Hs -∗ def_interp_tmem ⟦ TBot ⟧ ⟦ TNat ⟧ ids (dtysem [] s).
   Proof.
-    iIntros; repeat (repeat iExists _; repeat iSplit; try done).
+    iIntros; cbn; repeat (repeat iExists _; repeat iSplit; try done).
     by iApply dm_to_type_intro.
     iModIntro; repeat iSplit; iIntros (w). by iIntros ">[]".
-    iMod 1 as %(n & -> & ?). eauto.
+    iMod 1 as %(n & -> & ?). iPureIntro.
+    rewrite /pure_interp_prim /prim_evals_to /=. eauto.
   Qed.
 
   (** Yes, v has a valid type member. *)

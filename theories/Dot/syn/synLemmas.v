@@ -21,6 +21,15 @@ Proof. solve_fv_congruence. Qed.
 Lemma fv_tapp e1 e2 n: nclosed e1 n → nclosed e2 n → nclosed (tapp e1 e2) n.
 Proof. solve_fv_congruence. Qed.
 
+Lemma fv_tun u e n: nclosed e n → nclosed (tun u e) n.
+Proof. solve_fv_congruence. Qed.
+
+Lemma fv_tbin b e1 e2 n: nclosed e1 n → nclosed e2 n → nclosed (tbin b e1 e2) n.
+Proof. solve_fv_congruence. Qed.
+
+Lemma fv_tif e1 e2 e3 n: nclosed e1 n → nclosed e2 n → nclosed e3 n → nclosed (tif e1 e2 e3) n.
+Proof. solve_fv_congruence. Qed.
+
 Lemma fv_vobj ds n: nclosed ds (S n) → nclosed_vl (vobj ds) n.
 Proof. solve_fv_congruence. Qed.
 

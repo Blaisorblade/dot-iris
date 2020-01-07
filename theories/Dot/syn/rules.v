@@ -43,6 +43,22 @@ Section lang_rules.
     PureExec True 1 (tskip (tv v)) (tv v).
   Proof. solve_pure_exec. Qed.
 
+  Global Instance pure_tif_true t1 t2:
+    PureExec True 1 (tif (tv $ vbool true) t1 t2) t1.
+  Proof. solve_pure_exec. Qed.
+
+  Global Instance pure_tif_false t1 t2:
+    PureExec True 1 (tif (tv $ vbool false) t1 t2) t2.
+  Proof. solve_pure_exec. Qed.
+
+  Global Instance pure_unop u v v' :
+    PureExec (un_op_eval u v = Some v') 1 (tun u (tv v)) (tv v').
+  Proof. solve_pure_exec. Qed.
+
+  Global Instance pure_binop b v1 v2 v' :
+    PureExec (bin_op_eval b v1 v2 = Some v') 1 (tbin b (tv v1) (tv v2)) (tv v').
+  Proof. solve_pure_exec. Qed.
+
   Global Instance pure_tskip_iter v i:
     PureExec True i (iterate tskip i (tv v)) (tv v).
   Proof.

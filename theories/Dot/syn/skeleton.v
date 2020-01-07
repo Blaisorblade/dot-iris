@@ -28,6 +28,12 @@ Fixpoint same_skel_tm (t1 t2: tm) {struct t1} : Prop :=
     same_skel_tm t1 t2 ∧ l1 = l2
   | (tskip t1, tskip t2) =>
     same_skel_tm t1 t2
+  | (tun u1 t1, tun u2 t2) =>
+    u1 = u2 ∧ same_skel_tm t1 t2
+  | (tbin b1 t11 t12, tbin b2 t21 t22) =>
+    b1 = b2 ∧ same_skel_tm t11 t21 ∧ same_skel_tm t12 t22
+  | (tif t11 t12 t13, tif t21 t22 t23) =>
+    same_skel_tm t11 t21 ∧ same_skel_tm t12 t22 ∧ same_skel_tm t13 t23
   | _ => False
   end
 with
@@ -44,7 +50,7 @@ same_skel_vl (v1 v2: vl) {struct v1} : Prop :=
         | _ => False
         end
     in same_skel_dms ds1 ds2
-  | (vnat n1, vnat n2) => n1 = n2
+  | (vlit l1, vlit l2) => l1 = l2
   | _ => False
   end
 with
@@ -83,7 +89,7 @@ Fixpoint same_skel_ty (T1 T2: ty): Prop :=
   | (TTMem l1 T11 T12, TTMem l2 T21 T22) =>
     l1 = l2 ∧ same_skel_ty T11 T21 ∧ same_skel_ty T12 T22
   | (TSel p1 l1, TSel p2 l2) => same_skel_path p1 p2 ∧ l1 = l2
-  | (TNat, TNat) => True
+  | (TPrim b1, TPrim b2) => b1 = b2
   | (TSing p1, TSing p2) => same_skel_path p1 p2
   | _ => False
   end.
@@ -94,6 +100,10 @@ Fixpoint same_skel_ectx K K' :=
   | AppRCtx v1, AppRCtx v1' => same_skel_vl v1 v1'
   | ProjCtx l, ProjCtx l' => l = l'
   | SkipCtx, SkipCtx => True
+  | UnCtx u, UnCtx u' => u = u'
+  | BinLCtx b e2, BinLCtx b' e2' => b = b' ∧ same_skel_tm e2 e2'
+  | BinRCtx b v1, BinRCtx b' v1' => b = b' ∧ same_skel_vl v1 v1'
+  | IfCtx e1 e2, IfCtx e1' e2' => same_skel_tm e1 e1' ∧ same_skel_tm e2 e2'
   | _, _ => False
   end.
 
@@ -140,6 +150,31 @@ Proof.
     exists (Ks' ++ [SkipCtx]), e'.
     rewrite fill_app /=; repeat split; trivial.
     apply same_skel_list_ectx_app; simpl; auto.
+  - destruct HKe as [<- HKe].
+    apply IHKs in HKe.
+    destruct HKe as (Ks' & e' & -> & He' & HKs').
+    exists (Ks' ++ [UnCtx u]), e'.
+    rewrite fill_app /=; repeat split; trivial.
+    apply same_skel_list_ectx_app; simpl; auto.
+  - destruct HKe as [<- [HKe Ht']].
+    apply IHKs in HKe.
+    destruct HKe as (Ks' & e' & -> & He' & HKs').
+    exists (Ks' ++ [BinLCtx b t'2]), e'.
+    rewrite fill_app /=; repeat split; trivial.
+    apply same_skel_list_ectx_app; simpl; auto.
+  - destruct HKe as [<- [Ht' HKe]].
+    destruct t'1; try done.
+    apply IHKs in HKe.
+    destruct HKe as (Ks' & e' & -> & He' & HKs').
+    exists (Ks' ++ [BinRCtx b v]), e'.
+    rewrite fill_app /=; repeat split; trivial.
+    apply same_skel_list_ectx_app; simpl; auto.
+  - destruct HKe as [HKe [Ht' Ht'']].
+    apply IHKs in HKe.
+    destruct HKe as (Ks' & e' & -> & He' & HKs').
+    exists (Ks' ++ [IfCtx t'2 t'3]), e'.
+    rewrite fill_app /=; repeat split; trivial.
+    apply same_skel_list_ectx_app; simpl; auto.
 Qed.
 
 Lemma same_skel_fill_item Ks Ks' e e':
@@ -154,7 +189,7 @@ Proof.
     intros (Ks'' & Ks3 & HKs &
             (z & ? & ? & ->%Forall2_nil_inv_l & ->)%Forall2_cons_inv_l & ->)
            %List.Forall2_app_inv_l; simpl in *;
-      destruct z; try done; rewrite fill_app /=; auto.
+      destruct z; try done; rewrite fill_app /=; intuition auto.
 Qed.
 
 Definition same_skel_tm_up_ren_def t : Prop :=
@@ -333,17 +368,39 @@ Proof.
   exists w'; split; by [|exists ds'].
 Qed.
 
+Lemma same_skel_un_op_eval u v v' w:
+  same_skel_vl v v' →
+  un_op_eval u v = Some w →
+  ∃ w', un_op_eval u v' = Some w' ∧ same_skel_vl w w'.
+Proof. intros; destruct u, v, v' => //=; case_match; naive_solver. Qed.
+
+Lemma same_skel_bin_op_eval b v1 v1' v2 v2' w:
+  same_skel_vl v1 v1' →
+  same_skel_vl v2 v2' →
+  bin_op_eval b v1 v2 = Some w →
+  ∃ w', bin_op_eval b v1' v2' = Some w' ∧ same_skel_vl w w'.
+Proof.
+  intros; destruct v1, v1' => //=; destruct v2, v2' => //=; simplify_eq/=;
+    repeat (case_match; try done); simplify_eq/=;
+    destruct b; simplify_eq/=; try case_decide; try case_match; try naive_solver.
+Qed.
+
+Hint Constructors head_step : core.
 Lemma simulation_skeleton_head t1' t1 t2 σ σ' ts:
   same_skel_tm t1 t1' →
   head_step t1 σ [] t2 σ' ts →
   exists t2', head_step t1' σ [] t2' σ' ts ∧ same_skel_tm t2 t2'.
 Proof.
-  move=> Hsk Hhs. inversion Hhs; subst; simpl in *.
-  - repeat (case_match; intuition auto; simplify_eq).
-    eexists; split; eauto using head_step, same_skel_tm_subst.
-  - repeat (case_match; intuition auto; simplify_eq).
-    edestruct same_skel_obj_lookup as [? [? ?]]; eauto using head_step.
-  - repeat (case_match; intuition eauto using head_step).
+  move=> Hsk Hhs. inversion Hhs; subst; clear Hhs; simpl in *.
+  5: {
+    destruct t1' as [| | | | | b' |]; intuition.
+    subst b'; repeat (case_match => //).
+    edestruct (same_skel_bin_op_eval b v1); intuition eauto.
+  }
+  all: repeat (case_match; int; simplify_eq/=; try done); eauto.
+  - intuition eauto using same_skel_tm_subst.
+  - edestruct same_skel_obj_lookup; naive_solver.
+  - ev; simplify_eq; edestruct same_skel_un_op_eval; naive_solver.
 Qed.
 
 Theorem simulation_skeleton t1 t1' t2 σ σ' ts:

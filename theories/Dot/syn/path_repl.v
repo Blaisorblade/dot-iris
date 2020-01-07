@@ -123,7 +123,7 @@ Fixpoint psubst_ty p q T : ty := match T with
 | TVMem l T1 => TVMem l (T1 .T[ p := q ])
 | TTMem l T1 T2 => TTMem l (T1 .T[ p := q ]) (T2 .T[ p := q ])
 | TSel r l => TSel (r .p[ p := q ]) l
-| TNat => TNat
+| TPrim _ => T
 | TSing r => TSing (r .p[ p := q ])
 end
 where "T .T[ p := q  ]" := (psubst_ty p q T).
