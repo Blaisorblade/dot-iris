@@ -1,6 +1,7 @@
 From iris.proofmode Require Import tactics.
 From D.Dot Require Import unary_lr
   lr_lemma lr_lemma_nobinding lr_lemmasDefs.
+From D.Dot Require Import exampleInfra.
 
 (** XXX Not currently using olty. *)
 Module example.
@@ -43,7 +44,13 @@ Section ex.
 
   (** Under Iris assumption [Hs], [v.A] points to [ieven].
       We assume [Hs] throughout the rest of the section. *)
-  Definition v := vobj [("A", dtysem [] s); ("n", dvl (vnat 2))].
+  Import DBNotation.
+  From D.Dot Require Import typingExInfra.
+
+  Definition v := ν {@
+    type "A" = ([]; s);
+	  val "n" = vnat 2
+  }.
 
   Lemma sHasA : Hs -∗ def_interp_tmem ⟦ TBot ⟧ ⟦ TNat ⟧ ids (dtysem [] s).
   Proof.
@@ -77,10 +84,11 @@ Section ex.
   Lemma vHasA0typ: Hs -∗ [] ⊨ tv v : TTMem "A" TBot TNat.
   Proof. rewrite -ietp_value. iApply vHasA0. Qed.
 
-  Definition vTyp1 :=
-    TMu (TAnd
-          (TTMem "A" TBot TNat)
-          (TAnd (TVMem "n" (TSel (pv (ids 0)) "A")) TTop)).
+  Definition vTyp1 := μ {@
+    type "A" >: ⊥ <: 𝐍;
+    val "n" : p0 @; "A"
+  }.
+
   (* This works. Crucially, we use TMu_I to introduce the object type.
      This way, we can inline the object in the type selection.
      This cannot be done using T_New_I directly.
@@ -106,6 +114,9 @@ Section ex.
 
   Lemma vHasA1t : Hs -∗ [] ⊨ tv v : vTyp1.
   Proof. rewrite -ietp_value. iApply vHasA1. Qed.
+
+  Lemma vHasA1TypAd : allGs ∅ ==∗ [] ⊨ tv v : vTyp1.
+  Proof. rewrite -ietp_value allocHs //; iIntros. by iApply vHasA1. Qed.
 
   (*
     A different approach would be to type the object using T_New_I
@@ -145,8 +156,6 @@ Section ex.
       "A" points to. *)
   Abort.
 
-  Lemma vHasA1TypAd : allGs ∅ ==∗ [] ⊨ tv v : vTyp1.
-  Proof. rewrite -ietp_value allocHs //; iIntros. by iApply vHasA1. Qed.
 End ex.
 
 Import dlang_adequacy swap_later_impl.
