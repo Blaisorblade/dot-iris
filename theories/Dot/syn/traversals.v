@@ -177,9 +177,9 @@ Section fold.
       forall_traversal_vl ts v1 v2 →
       forall_traversal_tm ts (tv v1) (tv v2)
   | trav_tapp ts t1 t2 u1 u2:
-      forall_traversal_tm ts t1 t2 →
-      forall_traversal_tm ts u1 u2 →
-      forall_traversal_tm ts (tapp t1 u1) (tapp t2 u2)
+      forall_traversal_tm ts t1 u1 →
+      forall_traversal_tm ts t2 u2 →
+      forall_traversal_tm ts (tapp t1 t2) (tapp u1 u2)
   | trav_tproj ts t1 t2 l:
       forall_traversal_tm ts t1 t2 →
       forall_traversal_tm ts (tproj t1 l) (tproj t2 l)
@@ -212,30 +212,30 @@ Section fold.
   | trav_TTop ts: forall_traversal_ty ts TTop TTop
   | trav_TBot ts: forall_traversal_ty ts TBot TBot
   | trav_TAnd ts T1 T2 U1 U2:
-      forall_traversal_ty ts T1 T2 →
-      forall_traversal_ty ts U1 U2 →
-      forall_traversal_ty ts (TAnd T1 U1) (TAnd T2 U2)
+      forall_traversal_ty ts T1 U1 →
+      forall_traversal_ty ts T2 U2 →
+      forall_traversal_ty ts (TAnd T1 T2) (TAnd U1 U2)
   | trav_TOr ts T1 T2 U1 U2:
-      forall_traversal_ty ts T1 T2 →
-      forall_traversal_ty ts U1 U2 →
-      forall_traversal_ty ts (TOr T1 U1) (TOr T2 U2)
-  | trav_TLater ts T1 T2:
-      forall_traversal_ty ts T1 T2 →
-      forall_traversal_ty ts (TLater T1) (TLater T2)
+      forall_traversal_ty ts T1 U1 →
+      forall_traversal_ty ts T2 U2 →
+      forall_traversal_ty ts (TOr T1 T2) (TOr U1 U2)
+  | trav_TLater ts T1 U1:
+      forall_traversal_ty ts T1 U1 →
+      forall_traversal_ty ts (TLater T1) (TLater U1)
   | trav_TAll ts T1 T2 U1 U2:
-      forall_traversal_ty ts T1 T2 →
-      forall_traversal_ty (trav.(upS) ts) U1 U2 →
-      forall_traversal_ty ts (TAll T1 U1) (TAll T2 U2)
-  | trav_TMu ts T1 T2:
-      forall_traversal_ty (trav.(upS) ts) T1 T2 →
-      forall_traversal_ty ts (TMu T1) (TMu T2)
-  | trav_TVMem ts l T1 T2:
-      forall_traversal_ty ts T1 T2 →
-      forall_traversal_ty ts (TVMem l T1) (TVMem l T2)
+      forall_traversal_ty ts T1 U1 →
+      forall_traversal_ty (trav.(upS) ts) T2 U2 →
+      forall_traversal_ty ts (TAll T1 T2) (TAll U1 U2)
+  | trav_TMu ts T1 U1:
+      forall_traversal_ty (trav.(upS) ts) T1 U1 →
+      forall_traversal_ty ts (TMu T1) (TMu U1)
+  | trav_TVMem ts l T1 U1:
+      forall_traversal_ty ts T1 U1 →
+      forall_traversal_ty ts (TVMem l T1) (TVMem l U1)
   | trav_TTMem ts l T1 T2 U1 U2:
-      forall_traversal_ty ts T1 T2 →
-      forall_traversal_ty ts U1 U2 →
-      forall_traversal_ty ts (TTMem l T1 U1) (TTMem l T2 U2)
+      forall_traversal_ty ts T1 U1 →
+      forall_traversal_ty ts T2 U2 →
+      forall_traversal_ty ts (TTMem l T1 T2) (TTMem l U1 U2)
   | trav_TSel ts p1 p2 l:
       forall_traversal_path ts p1 p2 →
       forall_traversal_ty ts (TSel p1 l) (TSel p2 l)
