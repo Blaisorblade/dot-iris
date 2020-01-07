@@ -11,6 +11,11 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 Section fundamental.
   Context `{!dlangG Σ} `{!SwapPropI Σ}.
 
+  Local Ltac by_reflect :=
+    match goal with
+    | H : context [wellMappedφ] |- _ => by iApply H
+    end.
+
   Fixpoint fundamental_dm_typed Γ g V l d T (HT: Γ |d V v⊢[ g ]{ l := d } : T) { struct HT }:
     Γ |L V ⊨[ ⟦ g ⟧g ] { l := d } : T with
   fundamental_dms_typed Γ g V ds T (HT: Γ |ds V v⊢[ g ] ds : T) { struct HT }:
@@ -61,6 +66,7 @@ Section fundamental.
       + iApply Sub_TAll_Cov_Distr.
       + iApply Sub_TVMem_Cov_Distr.
       + iApply Sub_TTMem_Cov_Distr.
+      + by_reflect.
     - iIntros "#Hm"; induction HT.
       + by iApply T_Forall_Ex; [apply IHHT1|apply IHHT2].
       + by iApply T_Forall_Ex_p; [|apply IHHT|iApply fundamental_path_typed].
@@ -74,6 +80,7 @@ Section fundamental.
       + by iApply T_Var.
       + by iApply T_Sub; [apply IHHT|iApply fundamental_subtype].
       + iApply P_To_E. by iApply fundamental_path_typed.
+      + by_reflect.
     - iIntros "#Hm"; induction HT.
       + iApply P_Val. by iApply fundamental_typed.
       + by iApply P_DLater.
@@ -86,6 +93,7 @@ Section fundamental.
       + by iApply singleton_self_inv.
       + by iApply singleton_trans; [apply IHHT1|apply IHHT2].
       + by iApply singleton_elim; [apply IHHT1|apply IHHT2].
+      + by_reflect.
   Qed.
 End fundamental.
 
