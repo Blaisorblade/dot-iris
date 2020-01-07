@@ -28,14 +28,16 @@ Section nclosed_prim_step.
     nclosed t1 n →
     nclosed t2 n.
   Proof.
-    move => Hst Hcl; destruct Hst as [t1 v2| |t]; by [> exact (nclosed_beta Hcl) | eapply nclosed_proj | solve_inv_fv_congruence_h Hcl ].
+    move => Hst Hcl; destruct Hst; by [>
+      exact (nclosed_beta Hcl) | eapply nclosed_proj |
+      solve_inv_fv_congruence_h Hcl ].
   Qed.
 
   Theorem nclosed_head_step_efs t1 t2 σ σ' ts κ n:
     head_step t1 σ κ t2 σ' ts →
     nclosed t1 n →
     Forall (flip nclosed n) ts.
-  Proof. move => Hst Hcl; by destruct Hst as [t1 v2| |t]. Qed.
+  Proof. move => Hst Hcl; by destruct Hst. Qed.
 
   Hint Resolve nclosed_head_step nclosed_head_step_efs : core.
 
@@ -49,11 +51,11 @@ Section nclosed_prim_step.
   Notation nclosed_ectx K n := (Forall (λ Ki, nclosed_ectx_item Ki n) K).
 
   Lemma nclosed_fill_item_inv_t Ki t n: nclosed (fill_item Ki t) n → nclosed t n.
-  Proof. case: Ki => [e2|v1|l|] /=; solve_inv_fv_congruence. Qed.
+  Proof. destruct Ki => /=; solve_inv_fv_congruence. Qed.
   Hint Resolve nclosed_fill_item_inv_t : core.
 
   Lemma nclosed_fill_item_inv_Ki Ki t n: nclosed (fill_item Ki t) n → nclosed_ectx_item Ki n.
-  Proof. case: Ki => [e2|v1|l|] Hcl /=; constructor; solve_inv_fv_congruence_h Hcl. Qed.
+  Proof. destruct Ki => Hcl /=; constructor; solve_inv_fv_congruence_h Hcl. Qed.
   Hint Resolve nclosed_fill_item_inv_Ki : core.
 
   Lemma nclosed_fill_inv_t K t n: nclosed (fill K t) n → nclosed t n.
@@ -65,9 +67,7 @@ Section nclosed_prim_step.
   Hint Resolve nclosed_fill_inv_K : core.
 
   Lemma nclosed_fill_item Ki t n: nclosed t n → nclosed_ectx_item Ki n → nclosed (fill_item Ki t) n.
-  Proof.
-    case: Ki => [e2|v1|l|] /= Hclt HclKi; inverse HclKi; solve_fv_congruence.
-  Qed.
+  Proof. destruct Ki => /= Hclt HclKi; inverse HclKi; solve_fv_congruence. Qed.
   Hint Resolve nclosed_fill_item : core.
 
   Lemma nclosed_fill K t n: nclosed t n → nclosed_ectx K n → nclosed (fill K t) n.
