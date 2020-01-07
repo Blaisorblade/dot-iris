@@ -84,7 +84,7 @@ Section Sec.
         apply prim_head_reducible, ectxi_language_sub_redexes_are_values;
           by [|move => -[]/= *; simplify_eq/=; eauto].
       destruct Hhr as ([] & e2 & [] & efs & Hhr'); last now inversion Hhr'.
-      inversion Hhr' as [|??? w Hl|]; simplify_eq/=. eauto.
+      inversion Hhr'; simplify_eq/=. eauto.
     }
     iDestruct ("HE" with "[%]") as "(_ & ? & _)"; first exact: head_prim_step.
     rewrite wp_value_inv'. eauto.
