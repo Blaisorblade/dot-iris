@@ -418,7 +418,7 @@ Definition fill_item (Ki : ectx_item) (e : tm) : tm :=
   | AppLCtx e2 => tapp e e2
   | AppRCtx v1 => tapp (tv v1) e
   | ProjCtx l => tproj e l
-  | TSkipCtx => tskip e
+  | SkipCtx => tskip e
   end.
 
 Definition state := unit.
