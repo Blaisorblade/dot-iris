@@ -1,6 +1,6 @@
 From iris.proofmode Require Import tactics.
 From D.Dot Require Import unary_lr
-  lr_lemma lr_lemma_nobinding lr_lemmasDefs.
+  lr_lemmas lr_lemmasNoBinding lr_lemmasDefs.
 From D.Dot Require Import exampleInfra typingExInfra.
 
 (** XXX Not currently using olty. *)

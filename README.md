@@ -33,8 +33,8 @@ Inside the `Dot` folder:
   Compatibility lemmas:
   - `lr_lemmasDefs.v: lemmas about DEFinition typing
   - `lr_lemmasTSel.v: lemmas about TSel (type selection)
-  - `lr_lemma_nobinding.v: various typing lemmas, not requiring `synLemmas.v`.
-  - `lr_lemma.v: other misc typing lemmas
+  - `lr_lemmasNoBinding.v: various typing lemmas, not requiring `synLemmas.v`.
+  - `lr_lemmas.v: other misc typing lemmas
 * `stamping`: definitions and lemmas about stamping
 * `typing`: syntactic typing and auxiliary lemmas about it
   - `typingStamping.v`: prove stamping of typing derivations

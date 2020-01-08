@@ -7,7 +7,7 @@
  *)
 From iris.proofmode Require Import tactics.
 From D Require Import proofmode_extra swap_later_impl.
-From D.DSubSyn Require Import unary_lr lr_lemma.
+From D.DSubSyn Require Import unary_lr lr_lemmas.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (Γ : ctx).
 

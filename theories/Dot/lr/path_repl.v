@@ -4,7 +4,7 @@ From D Require Import iris_prelude.
 From D Require lty olty_experiments.
 From D.Dot.syn Require Import syn path_repl rules synLemmas.
 From D.Dot.lr Require Import path_wp dlang_inst.
-From D.Dot.lr Require unary_lr lr_lemma (* XXX *) lr_lemmasTSel.
+From D.Dot.lr Require unary_lr lr_lemmas (* XXX *) lr_lemmasTSel.
 From iris.program_logic Require Import ectx_language.
 From D.pure_program_logic Require Import lifting.
 
@@ -68,7 +68,7 @@ Section path_repl.
   Definition alias_pathsI p q : iProp Σ := ⌜alias_paths p q⌝.
 
   Section with_unary_lr.
-  Import unary_lr lr_lemma lr_lemmasTSel.
+  Import unary_lr lr_lemmas lr_lemmasTSel.
   Implicit Types (Γ : ctx).
 
   Lemma rewrite_path_path_repl {p q p1 p2 ρ v}:

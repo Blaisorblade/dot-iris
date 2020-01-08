@@ -4,7 +4,7 @@ From iris.proofmode Require Import tactics.
 From D Require Import swap_later_impl.
 From D.Dot.syn Require Import synLemmas rules path_repl.
 From D.Dot.lr Require Import unary_lr
-  lr_lemma lr_lemmasTSel lr_lemma_nobinding lr_lemmasDefs path_repl.
+  lr_lemmas lr_lemmasTSel lr_lemmasNoBinding lr_lemmasDefs path_repl.
 
 Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)

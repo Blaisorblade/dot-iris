@@ -43,7 +43,7 @@ theories/DSub/syn/step_fv.v
 theories/DSub/lr/unary_lr.v
 theories/DSub/syn/closed_subst.v
 theories/DSub/typing/typing_storeless.v
-theories/DSubSyn/lr/lr_lemma.v
+theories/DSubSyn/lr/lr_lemmas.v
 theories/DSubSyn/lr/unary_lr.v
 theories/DSubSyn/typing/typing_storeless.v
 theories/DSubSyn/typing/typing_objIdent.v
@@ -80,8 +80,8 @@ theories/Dot/typing/typingStamping.v
 theories/Dot/syn/rules.v
 theories/Dot/fundamental.v
 theories/Dot/lr/unary_lr.v
-theories/Dot/lr/lr_lemma_nobinding.v
-theories/Dot/lr/lr_lemma.v
+theories/Dot/lr/lr_lemmasNoBinding.v
+theories/Dot/lr/lr_lemmas.v
 theories/Dot/lr/lr_lemmasTSel.v
 theories/Dot/lr/lr_lemmasDefs.v
 theories/Dot/syn/closed_subst.v

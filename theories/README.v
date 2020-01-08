@@ -66,7 +66,7 @@ From D.Dot Require typeExtractionSem.
 For each language, we (will) prove typing lemmas purely semantically.
 *)
 
-From D.Dot Require lr_lemma (* ... *).
+From D.Dot Require lr_lemmas (* ... *).
 
 (**
 Finally, we prove the fundamental lemma: syntactially well-typed terms are
