@@ -182,10 +182,7 @@ Proof.
   exists (unshift (psubst_one_base T p)).
   rewrite /psubst_one_base.
   move: p; induction T => p0 /=; f_equal; eauto.
-  admit.
-  admit.
-  all: edestruct (psubst_one_base_unshifts_path p p0) as [r ->]; [admit|by rewrite shift_unshift_p].
-Admitted.
+Abort.
 
 Lemma psubst_one_sufficient T1 T2 p q :
   psubst_one T1 p = T2 →
@@ -266,19 +263,6 @@ Proof.
   by rewrite psubst_path_idempotent.
 Qed. *)
 
-  (* inversion Hrepl as [|? q1 ? Hh Ht]; simplify_eq.
-  move: (Hh) => /psubst_path_implies Hq1.
-  inversion Ht as [|? q2 ? Hh' Ht' Heq1 Heq2]; first simplify_eq.
-  move: (Hh') => /psubst_path_implies Hq2.
-  have ?: q1 = q2. simplify_eq. by rewrite psubst_path_idempotent.
-  simplify_eq.
-
-  induction Hrepl.
-  rewrite/Decision.
-  elim => [v//| p1' p2' p3' Hrepl H IHrepl].
-  by eapply rtc_l, IHrepl; constructor.
-Admitted. *)
-
 (* Lemma psubst_path_rtc_dec p1 p2 p q :
   Decision (p1 ~pp[ p := q ]* p2).
 Proof.
@@ -343,12 +327,6 @@ Section path_repl.
 
   Notation alias_pathsI p q := (@alias_pathsI Σ p q).
   Notation alias_paths_substI p q ρ := (@alias_paths_substI Σ p q ρ).
-(*
-  Lemma and_equivI {PROP : sbi} (P1 P2 Q1 Q2 : PROP) :
-    P1 ≡ P2 ⊢@{PROP} Q1 ≡ Q2 -∗
-    (P1 ∧ Q1) ≡ (P2 ∧ Q2).
-  Proof.
-  Admitted. *)
 
   Lemma alias_paths_substI_symm p q :
     alias_pathsI p q -∗ alias_pathsI q p.
