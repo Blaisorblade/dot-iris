@@ -9,14 +9,22 @@ Module VlSorts <: VlSortsFullSig.
 
 Definition label := string.
 
+Inductive base_lit : Set := lnat (n : nat) | lbool (b : bool).
+Inductive un_op : Set := unot.
+Inductive bin_op : Set := bplus | bminus | btimes | bdiv | blt | ble | beq.
+Inductive base_ty : Set := tnat | tbool.
+
 Inductive tm : Type :=
   | tv : vl_ -> tm
   | tapp : tm -> tm -> tm
   | tproj : tm -> label -> tm
   | tskip : tm -> tm
+  | tun : un_op -> tm -> tm
+  | tbin : bin_op -> tm -> tm -> tm
+  | tif : tm -> tm -> tm -> tm
  with vl_ : Type :=
   | var_vl : var -> vl_
-  | vnat : nat -> vl_
+  | vlit : base_lit -> vl_
   | vabs : tm -> vl_
   | vobj : list (label * dm) -> vl_
  with dm : Type :=
@@ -37,10 +45,15 @@ Inductive tm : Type :=
   | TVMem : label -> ty -> ty
   | TTMem : label -> ty -> ty -> ty
   | TSel : path -> label -> ty
-  | TNat : ty
+  | TPrim : base_ty -> ty
   | TSing : path -> ty.
 
 Definition vl := vl_.
+(* Shortcuts. *)
+Notation TNat := (TPrim tnat).
+Notation TBool := (TPrim tbool).
+Notation vnat n := (vlit $ lnat n).
+Notation vbool b := (vlit $ lbool b).
 
 Definition vls := list vl.
 Definition dms := list (label * dm).
@@ -81,7 +94,8 @@ Definition dms_has ds l d := dms_lookup l ds = Some d.
 Definition dms_hasnt ds l := dms_lookup l ds = None.
 
 Instance inh_ty : Inhabited ty := populate TNat.
-Instance inh_vl : Inhabited vl := populate (vnat 0).
+Instance inh_base_lit : Inhabited base_lit := populate (lnat 0).
+Instance inh_vl : Inhabited vl := populate (vlit inhabitant).
 Instance inh_dm : Inhabited dm := populate (dvl inhabitant).
 Instance inh_pth : Inhabited path := populate (pv inhabitant).
 Instance inh_tm : Inhabited tm := populate (tv inhabitant).
@@ -107,6 +121,9 @@ Fixpoint tm_rename (sb : var → var) t : tm :=
   | tapp t1 t2 => tapp (rename sb t1) (rename sb t2)
   | tproj t l => (tproj (rename sb t) l)
   | tskip t => tskip (rename sb t)
+  | tun u t => tun u (rename sb t)
+  | tbin b t1 t2 => tbin b (rename sb t1) (rename sb t2)
+  | tif t1 t2 t3 => tif (rename sb t1) (rename sb t2) (rename sb t3)
   end
 with
 vl_rename (sb : var → var) v : vl :=
@@ -115,7 +132,7 @@ vl_rename (sb : var → var) v : vl :=
   let c := dm_rename : Rename dm in
   match v with
   | var_vl x => var_vl (sb x)
-  | vnat n => vnat n
+  | vlit _ => v
   | vabs t => vabs (rename (upren sb) t)
   | vobj d => vobj (rename (upren sb) d)
   end
@@ -143,7 +160,7 @@ ty_rename (sb : var → var) T : ty :=
   | TVMem l T => TVMem l (rename sb T)
   | TTMem l T1 T2 => TTMem l (rename sb T1) (rename sb T2)
   | TSel p l => TSel (rename sb p) l
-  | TNat => TNat
+  | TPrim _ => T
   | TSing p => TSing (rename sb p)
   end
 with
@@ -171,6 +188,9 @@ Fixpoint tm_hsubst (sb : var → vl) t : tm :=
   | tapp t1 t2 => tapp (hsubst sb t1) (hsubst sb t2)
   | tproj t l => (tproj (hsubst sb t) l)
   | tskip t => tskip (hsubst sb t)
+  | tun u t => tun u (hsubst sb t)
+  | tbin b t1 t2 => tbin b (hsubst sb t1) (hsubst sb t2)
+  | tif t1 t2 t3 => tif (hsubst sb t1) (hsubst sb t2) (hsubst sb t3)
   end
 with
 vl_subst (sb : var → vl) v : vl :=
@@ -178,7 +198,7 @@ vl_subst (sb : var → vl) v : vl :=
   let b := dm_hsubst : HSubst vl dm in
   match v with
   | var_vl x => sb x
-  | vnat n => vnat n
+  | vlit _ => v
   | vabs t => vabs (hsubst (up sb) t)
   | vobj d => vobj (hsubst (up sb) d)
   end
@@ -207,7 +227,7 @@ ty_hsubst (sb : var → vl) T : ty :=
   | TTMem l T1 T2 => TTMem l (hsubst sb T1) (hsubst sb T2)
   | TSel p l => TSel (hsubst sb p) l
   | TSing p => TSing (hsubst sb p)
-  | TNat => TNat
+  | TPrim _ => T
   end
 with
 path_hsubst (sb : var → vl) p : path :=
@@ -224,6 +244,18 @@ Instance hsubst_ty : HSubst vl ty := ty_hsubst.
 Instance hsubst_dm : HSubst vl dm := dm_hsubst.
 Instance hsubst_pth : HSubst vl path := path_hsubst.
 
+Instance base_lit_eq_dec : EqDecision base_lit.
+Proof. solve_decision. Defined.
+
+Instance un_op_eq_dec : EqDecision un_op.
+Proof. solve_decision. Defined.
+
+Instance bin_op_eq_dec : EqDecision bin_op.
+Proof. solve_decision. Defined.
+
+Instance base_ty_eq_dec : EqDecision base_ty.
+Proof. solve_decision. Defined.
+
 Lemma vl_eq_dec v1 v2 : Decision (v1 = v2)
 with
 tm_eq_dec t1 t2 : Decision (t1 = t2)
@@ -236,7 +268,7 @@ path_eq_dec p1 p2 : Decision (p1 = p2).
 Proof.
   all: have vl_eq_dec' : EqDecision vl := vl_eq_dec;
     have dm_eq_dec' : EqDecision dm := dm_eq_dec;
-    rewrite /Decision; decide equality; apply: decide.
+    rewrite /Decision; decide equality; solve_decision.
 Defined.
 
 Instance vl_eq_dec' : EqDecision vl := vl_eq_dec.
@@ -411,7 +443,11 @@ Inductive ectx_item :=
 | AppLCtx (e2 : tm)
 | AppRCtx (v1 : vl)
 | ProjCtx (l : label)
-| SkipCtx.
+| SkipCtx
+| UnCtx (u : un_op)
+| BinLCtx (b : bin_op) (e2 : tm)
+| BinRCtx (b : bin_op) (v1 : vl)
+| IfCtx (e1 e2 : tm).
 
 Definition fill_item (Ki : ectx_item) (e : tm) : tm :=
   match Ki with
@@ -419,10 +455,52 @@ Definition fill_item (Ki : ectx_item) (e : tm) : tm :=
   | AppRCtx v1 => tapp (tv v1) e
   | ProjCtx l => tproj e l
   | SkipCtx => tskip e
+  | UnCtx u => tun u e
+  | BinLCtx b e2 => tbin b e e2
+  | BinRCtx b v1 => tbin b (tv v1) e
+  | IfCtx e1 e2 => tif e e1 e2
   end.
 
 Definition state := unit.
 Definition observation := unit.
+
+Definition un_op_eval (u : un_op) (v1 : vl) : option vl :=
+  match u, v1 with
+  | unot, vlit (lbool b) => Some (vlit (lbool (negb b)))
+  | _, _ => None
+  end.
+
+Definition bin_op_eval_bool (b : bin_op) (b1 b2 : bool) : option vl :=
+  match b with
+  | beq => Some $ vlit $ lbool $ bool_decide (b1 = b2)
+  | _ => None
+  end.
+
+Definition bin_op_eval_nat (b : bin_op) (n1 n2 : nat) : option vl :=
+  match b with
+  | bplus => Some $ vlit $ lnat $ n1 + n2
+  | bminus =>
+    if bool_decide (n2 ≤ n1) then
+      Some $ vlit $ lnat $ n1 - n2
+    else
+      None
+  | btimes => Some $ vlit $ lnat $ n1 - n2
+  | bdiv =>
+    match n2 with
+    | 0 => None
+    | _ => Some $ vlit $ lnat $ n1 / n2
+    end
+  | blt => Some $ vlit $ lbool $ bool_decide (n1 < n2)
+  | ble => Some $ vlit $ lbool $ bool_decide (n1 ≤ n2)
+  | beq => Some $ vlit $ lbool $ bool_decide (n1 = n2)
+  end.
+
+Definition bin_op_eval (b : bin_op) (v1 v2 : vl) : option vl :=
+  match v1, v2 with
+  | vlit (lnat n1), vlit (lnat n2) => bin_op_eval_nat b n1 n2
+  | vlit (lbool b1), vlit (lbool b2) => bin_op_eval_bool b b1 b2
+  | _, _ => None
+  end.
 
 Inductive head_step : tm -> state -> list observation -> tm -> state -> list tm -> Prop :=
 | st_beta t1 v2 σ:
@@ -431,7 +509,17 @@ Inductive head_step : tm -> state -> list observation -> tm -> state -> list tm 
   v @ l ↘ dvl w →
   head_step (tproj (tv v) l) σ [] (tv w) σ []
 | st_skip v σ:
-  head_step (tskip (tv v)) σ [] (tv v) σ [].
+  head_step (tskip (tv v)) σ [] (tv v) σ []
+| st_un u v1 v σ:
+  un_op_eval u v1 = Some v →
+  head_step (tun u (tv v1)) σ [] (tv v) σ []
+| st_bin b v1 v2 v σ:
+  bin_op_eval b v1 v2 = Some v →
+  head_step (tbin b (tv v1) (tv v2)) σ [] (tv v) σ []
+| st_iftrue e1 e2 σ:
+  head_step (tif (tv $ vlit $ lbool true) e1 e2) σ [] e1 σ []
+| st_iffalse e1 e2 σ:
+  head_step (tif (tv $ vlit $ lbool false) e1 e2) σ [] e2 σ [].
 
 Lemma of_to_val e v : to_val e = Some v → of_val v = e.
 Proof.
@@ -537,8 +625,11 @@ Section syntax_mut_rect.
   Variable step_tapp : ∀ t1 t2, Ptm t1 → Ptm t2 → Ptm (tapp t1 t2).
   Variable step_tproj : ∀ t1 l, Ptm t1 → Ptm (tproj t1 l).
   Variable step_tskip : ∀ t1, Ptm t1 → Ptm (tskip t1).
+  Variable step_tun : ∀ u t1, Ptm t1 → Ptm (tun u t1).
+  Variable step_tbin : ∀ b t1 t2, Ptm t1 → Ptm t2 → Ptm (tbin b t1 t2).
+  Variable step_tif : ∀ t1 t2 t3, Ptm t1 → Ptm t2 → Ptm t3 → Ptm (tif t1 t2 t3).
   Variable step_var_vl : ∀ i, Pvl (var_vl i).
-  Variable step_vnat : ∀ n, Pvl (vnat n).
+  Variable step_vlit : ∀ l, Pvl (vlit l).
   Variable step_vabs : ∀ t1, Ptm t1 → Pvl (vabs t1).
   (* Original: *)
   (* Variable step_vobj : ∀ l, Pvl (vobj l). *)
@@ -561,7 +652,7 @@ Section syntax_mut_rect.
   Variable step_TTMem : ∀ l T1 T2, Pty T1 → Pty T2 → Pty (TTMem l T1 T2).
   Variable step_TSel : ∀ p1 l, Ppt p1 → Pty (TSel p1 l).
   Variable step_TSing : ∀ p1, Ppt p1 → Pty (TSing p1).
-  Variable step_TNat : Pty TNat.
+  Variable step_TPrim : ∀ b, Pty (TPrim b).
 
   Fixpoint tm_mut_rect t : Ptm t
   with vl_mut_rect v : Pvl v
@@ -608,8 +699,11 @@ Section syntax_mut_ind.
   Variable step_tapp : ∀ t1 t2, Ptm t1 → Ptm t2 → Ptm (tapp t1 t2).
   Variable step_tproj : ∀ t1 l, Ptm t1 → Ptm (tproj t1 l).
   Variable step_tskip : ∀ t1, Ptm t1 → Ptm (tskip t1).
+  Variable step_tun : ∀ u t1, Ptm t1 → Ptm (tun u t1).
+  Variable step_tbin : ∀ b t1 t2, Ptm t1 → Ptm t2 → Ptm (tbin b t1 t2).
+  Variable step_tif : ∀ t1 t2 t3, Ptm t1 → Ptm t2 → Ptm t3 → Ptm (tif t1 t2 t3).
   Variable step_var_vl : ∀ i, Pvl (var_vl i).
-  Variable step_vnat : ∀ n, Pvl (vnat n).
+  Variable step_vlit : ∀ l, Pvl (vlit l).
   Variable step_vabs : ∀ t1, Ptm t1 → Pvl (vabs t1).
   (* Original: *)
   (* Variable step_vobj : ∀ l, Pvl (vobj l). *)
@@ -632,7 +726,7 @@ Section syntax_mut_ind.
   Variable step_TTMem : ∀ l T1 T2, Pty T1 → Pty T2 → Pty (TTMem l T1 T2).
   Variable step_TSel : ∀ p1 l, Ppt p1 → Pty (TSel p1 l).
   Variable step_TSing : ∀ p1, Ppt p1 → Pty (TSing p1).
-  Variable step_TNat : Pty TNat.
+  Variable step_TPrim : ∀ b, Pty (TPrim b).
 
   Lemma syntax_mut_ind : (∀ t, Ptm t) ∧ (∀ v, Pvl v) ∧ (∀ d, Pdm d) ∧ (∀ p, Ppt p) ∧ (∀ T, Pty T).
   Proof.
@@ -666,11 +760,20 @@ Section syntax_mut_ind_closed.
   Variable step_tskip : ∀ n t1,
       nclosed t1 n → nclosed (tskip t1) n →
       Ptm t1 n → Ptm (tskip t1) n.
+  Variable step_tun : ∀ n u t1,
+      nclosed t1 n → nclosed (tun u t1) n →
+      Ptm t1 n → Ptm (tun u t1) n.
+  Variable step_tbin : ∀ n b t1 t2,
+      nclosed t1 n → nclosed t2 n → nclosed (tbin b t1 t2) n →
+      Ptm t1 n → Ptm t2 n → Ptm (tbin b t1 t2) n.
+  Variable step_tif : ∀ n t1 t2 t3,
+      nclosed t1 n → nclosed t2 n → nclosed t3 n → nclosed (tif t1 t2 t3) n →
+      Ptm t1 n → Ptm t2 n → Ptm t3 n → Ptm (tif t1 t2 t3) n.
 
   Variable step_var_vl : ∀ n i,
       nclosed_vl (var_vl i) n → Pvl (var_vl i) n.
-  Variable step_vnat : ∀ n m,
-      nclosed_vl (vnat m) n → Pvl (vnat m) n.
+  Variable step_vlit : ∀ n l,
+      nclosed_vl (vlit l) n → Pvl (vlit l) n.
   Variable step_vabs : ∀ n t1,
       nclosed t1 (S n) →
       nclosed_vl (vabs t1) n →
@@ -732,9 +835,9 @@ Section syntax_mut_ind_closed.
   Variable step_TSing : ∀ n p1,
       nclosed p1 n → nclosed (TSing p1) n →
       Ppt p1 n → Pty (TSing p1) n.
-  Variable step_TNat : ∀ n,
-      nclosed TNat n →
-      Pty TNat n.
+  Variable step_TPrim : ∀ n b,
+      nclosed (TPrim b) n →
+      Pty (TPrim b) n.
 
   Fixpoint nclosed_tm_mut_ind n t : nclosed t n → Ptm t n
   with     nclosed_vl_mut_ind n v : nclosed_vl v n → Pvl v n

@@ -4,7 +4,7 @@ Set Primitive Projections.
 Set Implicit Arguments.
 
 Implicit Types
-         (S T U: ty) (v: vl) (e t u: tm) (p: path) (d: dm) (ds: dms) (vs: vls)
+         (S T U: ty) (v: vl) (e t: tm) (p: path) (d: dm) (ds: dms) (vs: vls)
          (Γ : ctx) (n: nat).
 
 Module Trav1.
@@ -27,7 +27,7 @@ Section fold.
   | trav_var_vl ts i: trav.(varP) ts i → forall_traversal_vl ts (var_vl i)
   | trav_vabs ts t: forall_traversal_tm (trav.(upS) ts) t →
                     forall_traversal_vl ts (vabs t)
-  | trav_vnat ts n: forall_traversal_vl ts (vnat n)
+  | trav_vlit ts l: forall_traversal_vl ts (vlit l)
   | trav_vobj ts ds : Forall (forall_traversal_dm (trav.(upS) ts)) (map snd ds) →
                       forall_traversal_vl ts (vobj ds)
   with
@@ -43,6 +43,18 @@ Section fold.
   | trav_tskip ts t:
       forall_traversal_tm ts t →
       forall_traversal_tm ts (tskip t)
+  | trav_tun ts u t:
+      forall_traversal_tm ts t →
+      forall_traversal_tm ts (tun u t)
+  | trav_tbin ts b t1 t2:
+      forall_traversal_tm ts t1 →
+      forall_traversal_tm ts t2 →
+      forall_traversal_tm ts (tbin b t1 t2)
+  | trav_tif ts t1 t2 t3:
+      forall_traversal_tm ts t1 →
+      forall_traversal_tm ts t2 →
+      forall_traversal_tm ts t3 →
+      forall_traversal_tm ts (tif t1 t2 t3)
   with
   forall_traversal_dm: travStateT → dm → Prop :=
   | trav_dvl ts v:
@@ -101,7 +113,7 @@ Section fold.
   | trav_TSing ts p:
       forall_traversal_path ts p →
       forall_traversal_ty ts (TSing p)
-  | trav_TNat ts: forall_traversal_ty ts TNat
+  | trav_TPrim ts b: forall_traversal_ty ts (TPrim b)
     .
 End fold.
 
@@ -166,7 +178,7 @@ Section fold.
   | trav_vabs ts t1 t2:
       forall_traversal_tm (trav.(upS) ts) t1 t2 →
       forall_traversal_vl ts (vabs t1) (vabs t2)
-  | trav_vnat ts n: forall_traversal_vl ts (vnat n) (vnat n)
+  | trav_vlit ts l: forall_traversal_vl ts (vlit l) (vlit l)
   | trav_vobj ts ds1 ds2:
       Forall2 (=) (map fst ds1) (map fst ds2) →
       Forall2 (forall_traversal_dm (trav.(upS) ts)) (map snd ds1) (map snd ds2) →
@@ -186,6 +198,18 @@ Section fold.
   | trav_tskip ts t1 t2:
       forall_traversal_tm ts t1 t2 →
       forall_traversal_tm ts (tskip t1) (tskip t2)
+  | trav_tun ts u t1 t2:
+      forall_traversal_tm ts t1 t2 →
+      forall_traversal_tm ts (tun u t1) (tun u t2)
+  | trav_tbin ts b t1 t2 u1 u2:
+      forall_traversal_tm ts t1 t2 →
+      forall_traversal_tm ts u1 u2 →
+      forall_traversal_tm ts (tbin b t1 t2) (tbin b u1 u2)
+  | trav_tif ts t1 t2 t3 u1 u2 u3:
+      forall_traversal_tm ts t1 u1 →
+      forall_traversal_tm ts t2 u2 →
+      forall_traversal_tm ts t3 u3 →
+      forall_traversal_tm ts (tif t1 t2 t3) (tif u1 u2 u3)
   with
   forall_traversal_dm: travStateT → dm → dm → Prop :=
   | trav_dvl ts v1 v2:
@@ -242,7 +266,7 @@ Section fold.
   | trav_TSing ts p1 p2:
       forall_traversal_path ts p1 p2 →
       forall_traversal_ty ts (TSing p1) (TSing p2)
-  | trav_TNat ts: forall_traversal_ty ts TNat TNat.
+  | trav_TPrim ts b: forall_traversal_ty ts (TPrim b) (TPrim b).
 
   Definition forall_traversal_dms: travStateT → dms → dms → Prop :=
     λ ts ds1 ds2,
@@ -269,6 +293,13 @@ Section fold.
       forall_traversal_tm ts t1 t2 ∧ l1 = l2
     | (tskip t1, tskip t2) =>
       forall_traversal_tm ts t1 t2
+    | (tun u1 t1, tun u2 t2) =>
+      u1 = u2 ∧ forall_traversal_tm ts t1 t2
+    | (tbin b1 t11 t12, tbin b2 t21 t22) =>
+      b1 = b2 ∧ forall_traversal_tm ts t11 t21 ∧ forall_traversal_tm ts t12 t22
+    | (tif t11 t12 t13, tif t21 t22 t23) =>
+      forall_traversal_tm ts t11 t21 ∧ forall_traversal_tm ts t12 t22 ∧
+        forall_traversal_tm ts t13 t23
     | _ => False
     end
   with
@@ -285,7 +316,7 @@ Section fold.
           | _ => False
           end
       in forall_traversal_dms (trav.(upS) ts) ds1 ds2
-    | (vnat n1, vnat n2) => n1 = n2
+    | (vlit l1, vlit l2) => l1 = l2
     | _ => False
     end
   with
@@ -322,7 +353,7 @@ Section fold.
       l1 = l2 ∧ forall_traversal_ty ts T11 T21 ∧ forall_traversal_ty ts T12 T22
     | (TSel p1 l1, TSel p2 l2) => forall_traversal_path ts p1 p2 ∧ l1 = l2
     | (TSing p1, TSing p2) => forall_traversal_path ts p1 p2
-    | (TNat, TNat) => True
+    | (TPrim b1, TPrim b2) => b1 = b2
     | _ => False
     end.
 End fold.

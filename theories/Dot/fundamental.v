@@ -1,7 +1,7 @@
 From iris.proofmode Require Import tactics.
 From D Require Import swap_later_impl.
 From D.Dot Require Import unary_lr typing_storeless typeExtractionSem typing_unstamped
-  lr_lemmas lr_lemmasDefs lr_lemmasNoBinding lr_lemmasTSel
+  lr_lemmas lr_lemmasDefs lr_lemmasNoBinding lr_lemmasTSel lr_lemmasPrim
   astStamping typingStamping skeleton.
 From D.Dot.lr Require Import path_repl.
 Import stamp_transfer.

@@ -209,7 +209,7 @@ Section syntyping_stamping_lemmas.
     exists d', g2; subst d'; split_and!; ev; eauto 3.
   - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [e1' [g1 ?]]; ev.
-    destruct e1' as [v'| | |] => //. with_is_stamped inverse.
+    destruct e1' as [v'| | | | | |] => //. with_is_stamped inverse.
     with_is_unstamped inverse.
     exists (pv (var_vl x)), g1.
     have ?: v' = var_vl x; naive_solver.

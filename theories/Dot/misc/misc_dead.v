@@ -56,8 +56,12 @@ Instance: HSubst vl ectx_item := λ ρ K,
   match K with
   | AppLCtx e2 => AppLCtx e2.|[ρ]
   | AppRCtx v1 => AppRCtx v1.[ρ]
-  | ProjCtx l => ProjCtx l
-  | SkipCtx => SkipCtx
+  | ProjCtx l => K
+  | SkipCtx => K
+  | UnCtx u => K
+  | BinLCtx b e2 => BinLCtx b e2.|[ρ]
+  | BinRCtx b v1 => BinRCtx b v1.[ρ]
+  | IfCtx e1 e2 => IfCtx e1.|[ρ] e2.|[ρ]
   end.
 
 Lemma fill_item_subst K e ρ :
@@ -107,6 +111,12 @@ Proof.
     constructor.
     eexists ds.|[up ρ]; split => //.
     exact: dms_lookup_subst.
+  - intros Hev; constructor; move: Hev.
+    rewrite /un_op_eval => Hev.
+    by repeat (case_match => //; simplify_eq/=).
+  - intros Hev; constructor; move: Hev.
+    rewrite /bin_op_eval /bin_op_eval_nat /bin_op_eval_bool => Hev.
+    by repeat (case_match => //; simplify_eq/=).
 Qed.
 
 Section Sec.

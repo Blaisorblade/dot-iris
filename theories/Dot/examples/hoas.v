@@ -87,8 +87,9 @@ Definition htskip : hterm tm → hterm tm := liftA1 tskip.
 Definition hvar_vl : var → hterm vl := ids_hvl.
 Goal hvar_vl = λ n i, var_vl (n + i). done. Abort.
 
-Definition hvnat : nat → hterm vl := λ n, liftA1 vnat (pureS n).
-Goal hvnat = λ n, liftA0 (vnat n). done. Abort.
+Definition hvlit : base_lit → hterm vl := λ l, liftA1 vlit (pureS l).
+Notation hvnat n := (hvlit $ lnat n).
+Goal ∀ n, hvnat n = liftA0 (vnat n). done. Abort.
 
 Definition hvabs : (hterm vl → hterm tm) → hterm vl := liftBind vabs.
 
@@ -128,7 +129,7 @@ Arguments htapp /.
 Arguments htproj /.
 Arguments htskip /.
 Arguments hvar_vl /.
-Arguments hvnat /.
+Arguments hvlit /.
 Arguments hvabs /.
 Arguments hvobj /.
 Arguments hdtysyn /.

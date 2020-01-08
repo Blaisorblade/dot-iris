@@ -96,8 +96,22 @@ Section logrel.
     λ ρ v, (▷ interp ρ v)%I.
   Global Arguments interp_later /.
 
-  Definition interp_nat : envD Σ := λ ρ v, (∃ n, ⌜v = vnat n⌝)%I.
-  Global Arguments interp_nat /.
+  Definition prim_sem (B : base_ty) :=
+    match B with
+    | tbool => bool
+    | tnat => nat
+    end.
+
+  Definition prim_evals_to (B : base_ty) (v : vl) : prim_sem B → Prop :=
+    match B return prim_sem B → Prop with
+    | tbool => λ l, v = vlit $ lbool l
+    | tnat  => λ l, v = vlit $ lnat l
+    end.
+
+  Definition pure_interp_prim B v := ∃ l : prim_sem B, prim_evals_to B v l.
+
+  Definition interp_prim b : envD Σ := λ ρ v, ⌜pure_interp_prim b v⌝%I.
+  Global Arguments interp_prim /.
 
   Definition interp_top : envD Σ := λ ρ v, True%I.
   Global Arguments interp_top /.
@@ -143,7 +157,7 @@ Section logrel.
     | TAnd T1 T2 => interp_and (⟦ T1 ⟧) (⟦ T2 ⟧)
     | TOr T1 T2 => interp_or (⟦ T1 ⟧) (⟦ T2 ⟧)
     | TLater T => interp_later (⟦ T ⟧)
-    | TNat => interp_nat
+    | TPrim b => interp_prim b
     | TTop => interp_top
     | TBot => interp_bot
     | TAll T1 T2 => interp_forall (⟦ T1 ⟧) (⟦ T2 ⟧)

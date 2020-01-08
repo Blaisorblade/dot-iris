@@ -32,7 +32,7 @@ Lemma is_stamped_nclosed_mut g:
 Proof.
   apply syntax_mut_ind; intros; with_is_stamped inverse => //; ev;
     try by move => s1 s2 Hseq; f_equal/=;
-      try first [eapply H|eapply H0]; eauto using eq_up.
+      try first [eapply H|eapply H0|eapply H1]; eauto using eq_up.
   - apply fv_vobj, nclosed_axs_to_nclosed.
     generalize dependent ds => ds.
     rewrite !Forall_fmap => *.

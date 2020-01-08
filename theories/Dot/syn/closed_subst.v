@@ -25,6 +25,7 @@ Lemma nclosed_sub_inv_mut w:
 Proof.
   apply syntax_mut_ind => //=
     [v1 IH1 | t1 t2 IH1 IH2 | t1 l IH1 | t1 IH1
+    | u t1 IH1 | b t1 t2 IH1 IH2 | t1 t2 t3 IH1 IH2 IH3
     | x | t1 IH1 | ds IHds
     | T1 IH1 | vs s IHvs | v1 IH1
     | v1 IH1 | p1 l IH1
@@ -42,6 +43,9 @@ Proof.
   - eapply fv_tapp; [> eapply IH1 | eapply IH2]; eauto with fv.
   - eapply fv_tproj, IH1; eauto with fv.
   - eapply fv_tskip, IH1; eauto with fv.
+  - eapply fv_tun, IH1; eauto with fv.
+  - eapply fv_tbin; [> eapply IH1 | eapply IH2]; eauto with fv.
+  - eapply fv_tif; [> eapply IH1 | eapply IH2 | eapply IH3 ]; eauto with fv.
   - apply (nclosed_sub_inv_var w j (k := 0)); asimpl; by [lia|].
   - eapply fv_vabs, (IH1 (S i) (S j)), fv_vabs_inv, Hcl; lia.
   - eapply fv_vobj. move: Hcl => /fv_vobj_inv. rewrite -!nclosed_axs_to_nclosed.
@@ -98,6 +102,7 @@ Lemma nclosed_ren_rev_mut i j:
 Proof.
   apply syntax_mut_ind => //
     [v1 IH1 | t1 t2 IH1 IH2 | t1 l IH1 | t1 IH1
+    | u t1 IH1 | b t1 t2 IH1 IH2 | t1 t2 t3 IH1 IH2 IH3
     | x | t1 IH1 | ds IHds
     | T1 IH1 | vs s IHvs | v1 IH1
     | v1 IH1 | p1 l IH1
@@ -115,6 +120,9 @@ Proof.
   - eapply fv_tapp; [> eapply IH1 | eapply IH2]; eauto with fv.
   - eapply fv_tproj, IH1; eauto with fv.
   - eapply fv_tskip, IH1; eauto with fv.
+  - eapply fv_tun, IH1; eauto with fv.
+  - eapply fv_tbin; [> eapply IH1 | eapply IH2]; eauto with fv.
+  - eapply fv_tif; [> eapply IH1 | eapply IH2 | eapply IH3 ]; eauto with fv.
   - exact: nclosed_ren_rev_var.
   - specialize (IH1 (S k)); rewrite ?plusnS in IH1.
     eapply fv_vabs, IH1, fv_vabs_inv, Hcl.

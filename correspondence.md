@@ -25,7 +25,9 @@
   `args : vec n vl` for some `n`. We always set `n = 0` to ignore this, but our
   implementation has additional flexibility.
 
-- Our mechanization extends gDOT with a type of naturals and with natural literals.
+- Our mechanization extends gDOT with some primitives, such as booleans and
+  naturals, with some associated operations, even tho all of those are
+  encodable.
 
 - Compared to the paper, and even to the appendix, we describe (in
   `theories/Dot/typing/typing.v`) an additional "storeless" typing judgment, a
