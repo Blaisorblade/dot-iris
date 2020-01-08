@@ -43,7 +43,7 @@ Inside the `Dot` folder:
   - adequacy: relating semantic typing and runtime safety, using Iris WP
     adequacy, and showing the choice of `Σ : gFunctors` is consistent.
 * `misc`: misc stuff, not used elsewhere
-  - experiments.v: various (typing) lemmas that might or might not be useful
+  - experiments.v: various experimental (typing) lemmas
 
 ## Installation
 ### Iris version
