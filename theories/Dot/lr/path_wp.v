@@ -70,6 +70,19 @@ Lemma path_wp_pure_swap p w :
   path_wp_pure p (eq w).
 Proof. split => Hp; exact: path_wp_pure_wand. Qed.
 
+Lemma path_wp_exec_pure p v :
+  path_wp_pure p (eq v)
+  → PureExec True (plength p) (path2tm p) (tv v).
+Proof.
+  elim: p v => [w|p IHp l] v; rewrite /PureExec/=.
+  by intros -> _; constructor.
+  rewrite path_wp_pure_eq; intros (vp & Hp & vq & Hlook & ->) _.
+  move: (IHp _ Hp) => Hpure.
+  eapply nsteps_r.
+  - by apply (pure_step_nsteps_ctx (fill_item (ProjCtx l))), Hpure.
+  - apply nsteps_once_inv, pure_tproj, Hlook.
+Qed.
+
 Definition alias_paths p q :=
   path_wp_pure q (λ vp, path_wp_pure p (eq vp)).
 
@@ -256,26 +269,13 @@ Section path_wp.
     iModIntro. repeat (iExists _; iSplit => //).
   Qed.
 
-  Lemma path_wp_exec_pure p v :
-    path_wp_pure p (eq v)
-    → PureExec True (plength p) (path2tm p) (tv v).
-  Proof.
-    elim: p v => [w|p IHp l] v; rewrite /PureExec/=.
-    by intros -> _; constructor.
-    rewrite path_wp_pure_eq; intros (vp & Hp & vq & Hlook & ->) _.
-    move: (IHp _ Hp) => Hpure.
-    eapply nsteps_r.
-    - by apply (pure_step_nsteps_ctx (fill_item (ProjCtx l))), Hpure.
-    - apply nsteps_once_inv, pure_tproj, Hlook.
-  Qed.
-
   Lemma path_wp_exec p v :
     path_wp p (λ w, ⌜ v = w ⌝) ⊢@{iPropI Σ}
     ⌜ PureExec True (plength p) (path2tm p) (tv v) ⌝.
   Proof. iIntros "!%". apply path_wp_exec_pure. Qed.
 
-  Lemma path_wp_adequacy p φ :
-    path_wp p φ ⊢ (∃ v, ⌜ PureExec True (plength p) (path2tm p) (tv v) ⌝ ∧ φ v).
+  Lemma path_wp_pure_exec p φ :
+    path_wp p φ ⊢ ∃ v, ⌜ PureExec True (plength p) (path2tm p) (tv v) ⌝ ∧ φ v.
   Proof.
     rewrite path_wp_eq. setoid_rewrite <-path_wp_exec.
     iDestruct 1 as (v Hcl) "H". eauto.
@@ -285,7 +285,7 @@ Section path_wp.
     path_wp p (λ v, φ v) -∗
     WP (path2tm p) {{ v, φ v }}.
   Proof.
-    rewrite path_wp_adequacy; iDestruct 1 as (v Hex) "H".
+    rewrite path_wp_pure_exec; iDestruct 1 as (v Hex) "H".
     by rewrite -wp_pure_step_later // -wp_value.
   Qed.
 
