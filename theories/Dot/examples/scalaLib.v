@@ -25,12 +25,15 @@ Proof.
   tcrush; varsub; lookup.
 Qed.
 
-Definition hloopTm : htm := htv hloopDefV @: "loop" $: htv (hvnat 0).
+Definition hloopFunTm : htm := htv hloopDefV @: "loop".
+Example loopFunTyp Γ : Γ u⊢ₜ hclose hloopFunTm : hclose ⊤ →: ⊥.
+Proof. have ? := loopDefTyp Γ; tcrush. Qed.
+
+Definition hloopTm : htm := hloopFunTm $: htv (hvnat 0).
 Example loopTyp Γ : Γ u⊢ₜ hclose hloopTm : ⊥.
 Proof.
-  pose proof loopDefTyp Γ.
-  apply (App_typed (T1 := ⊤)); tcrush.
-  apply (Subs_typed_nocoerce 𝐍); tcrush.
+  have ? := loopFunTyp Γ; apply (App_typed (T1 := ⊤)), (Subs_typed_nocoerce 𝐍);
+    tcrush.
 Qed.
 End loop.
 
@@ -158,6 +161,56 @@ Proof. tcrush; varsub; tcrush. Qed.
 
 Lemma hIFTFalseTSub Γ : Γ u⊢ₜ hclose hIFTFalseT, 0 <: hclose hIFT, 0.
 Proof. tcrush; varsub; tcrush. Qed.
+
+Import DBNotation.
+
+Module AssertPlain.
+Definition assertBody e : tm :=
+  tskip (tyApp e "A" (⊤ →: ⊤) $: tv x1 $: tv x0).
+
+Import hoasNotation.
+
+Definition hassertFun e :=
+  hlett: hsucc := htv (λ: x, htv x) in:
+  hlett: hfail := hloopFunTm in:
+  pureS (assertBody e).
+
+Definition hassert e :=
+  hassertFun e $: htv (hvnat 0).
+
+Lemma hassertBodyTyp Γ e :
+  Γ u⊢ₜ e : hclose hIFT →
+  Γ u⊢ₜ tv x0 : ⊤ →: ⊤ →
+  Γ u⊢ₜ tv x1 : ⊤ →: ⊤ →
+  Γ u⊢ₜ assertBody e : ⊤ →: ⊤.
+Proof.
+  rewrite /assertBody => /= He Hx0 Hx1.
+  have Hty: Γ u⊢ₜ tyApp e "A" (⊤ →: ⊤) :
+    hclose (⊤ →: ⊤) →: (⊤ →: ⊤) →: ▶: (⊤ →: ⊤).
+  by eapply tyApp_typed; first apply He; intros; cbv; tcrush;
+    [eapply LSel_stp'..|eapply SelU_stp]; tcrush; var.
+
+  move: Hty => /Appv_typed /(_ Hx1) /Appv_typed /(_ Hx0) /= Hty.
+  eapply (Subs_typed (i := 1)), Hty. tcrush.
+Qed.
+
+Lemma hassertFunTyp Γ e
+  (Hty : ((⊤ →: ⊤) :: (⊤ →: ⊤) :: Γ)%ty u⊢ₜ e : hclose hIFT) :
+  Γ u⊢ₜ hclose (hassertFun e) : ⊤ →: ⊤.
+Proof.
+  apply Let_typed with (T := (⊤ →: ⊤)%ty); tcrush; first var.
+  apply Let_typed with (T := (⊤ →: ⊤)%ty); stcrush.
+  by eapply Subs_typed_nocoerce; first apply loopFunTyp; tcrush.
+  by apply hassertBodyTyp; tcrush; var.
+Qed.
+
+Lemma hassertTyp Γ e
+  (Ht : ((⊤ →: ⊤) :: (⊤ →: ⊤) :: Γ)%ty u⊢ₜ e : hclose hIFT):
+  Γ u⊢ₜ hclose (hassert e) : ⊤.
+Proof.
+  eapply App_typed, Subs_typed_nocoerce; first exact: hassertFunTyp; tcrush.
+Qed.
+End AssertPlain.
 
 End hBoolSing.
 
