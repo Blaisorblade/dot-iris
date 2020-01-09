@@ -1,6 +1,20 @@
 package Sec1
 import reflect.Selectable.reflectiveSelectable
 
+object pcore {
+  object types {
+    class Type
+    // In DOT, to make classes nominal, they become abstract types
+    class TypeRef(val symb: symbols.Symbol) extends Type
+  }
+  object symbols {
+    class Symbol(val tpe: types.Type)
+    // Encapsulation violation, and type error in Scala:
+    // val fakeTypeRef : types.TypeRef =
+    //   new { val symb = new Symbol(new types.Type()) }
+  }
+}
+
 // val pcore = new {
 //   val types = new {
 //     class Type
@@ -80,22 +94,24 @@ object options3 {
   }
 }
 
-object pcore {
-  import options1._
-  object types {
-    class Type
-    class TypeInt(val bitcount: Int) extends Type
-    // In DOT, to make classes nominal, they become abstract types
-    class TypeRef(val symb: pcore.symbols.Symbol) extends Type {
-      assert(!symb.tpe.isEmpty)
+object old {
+  object pcore {
+    import options1._
+    object types {
+      class Type
+      class TypeInt(val bitcount: Int) extends Type
+      // In DOT, to make classes nominal, they become abstract types
+      class TypeRef(val symb: pcore.symbols.Symbol) extends Type {
+        assert(!symb.tpe.isEmpty)
+      }
+      val getTypeFromTypeRef = (t: TypeRef) =>
+        t.symb.tpe.pmatch(new TypeInt(8))(x => x)
+      val getTypeFromTypeRefUnsafe = (t: TypeRef) =>
+        // relies on TypeRef invariant; only semantically well-typed.
+        t.symb.tpe.asInstanceOf[Some[pcore.types.Type]].get
     }
-    val getTypeFromTypeRef = (t: TypeRef) =>
-      t.symb.tpe.pmatch(new TypeInt(8))(x => x)
-    val getTypeFromTypeRefUnsafe = (t: TypeRef) =>
-      // relies on TypeRef invariant; only semantically well-typed.
-      t.symb.tpe.asInstanceOf[Some[pcore.types.Type]].get
-  }
-  object symbols {
-    class Symbol(val tpe: Option[pcore.types.Type], val id: Int)
+    object symbols {
+      class Symbol(val tpe: Option[pcore.types.Type], val id: Int)
+    }
   }
 }
