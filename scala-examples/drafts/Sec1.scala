@@ -1,19 +1,105 @@
 package Sec1
 import reflect.Selectable.reflectiveSelectable
 
+// val pcore = new {
+//   val types = new {
+//     class Type
+//     class TypeTop extends Type
+//     // In DOT, to make classes nominal, they become abstract types
+//     class TypeRef(val symb: pcore.symbols.Symbol) extends Type {
+//       assert(!symb.tpe.isEmpty)
+//     }
+//   }
+//   val symbols = new {
+//     class Symbol(val tpe: Option[pcore.types.Type], val id: Int)
+//     // Encapsulation violation, and type error in Scala (but not pDOT)
+//     val fakeTypeRef : types.TypeRef =
+//       new { val symb = newSymbol(None(), 0) }
+//   }
+// }
+
+// object Foo {
+//   val pcore : { pcore =>
+//     val types : {
+//       type Type
+//       type TypeTop         <: Type
+//       val  newTypeTop       : () => Type
+//       type TypeRef         <: Type & { val symb: pcore.symbols.Symbol }
+//       val  newTypeRef       : pcore.symbols.Symbol => TypeRef
+//     }
+//     val symbols : {
+//       type Symbol          <: {
+//         val tpe : Option & { type A = pcore.types.Type }
+//         val id  : Int
+//       }
+//       val newSymbol         : Option & { type A = pcore.types.Type } => Int => Symbol
+//     }
+//   } = new {
+//     val types : {
+//       type Type
+//       type TypeTop         <: Type
+//       val  newTypeTop       : () => Type
+//       type TypeRef         <: Type & { val symb: pcore.symbols.Symbol }
+//       val  newTypeRef       : pcore.symbols.Symbol => TypeRef
+//     } = new {
+//       type Type             = Any
+//       type TypeTop          = Any
+//       val  newTypeTop       = new {}
+//       type TypeRef          = Type & { val symb: pcore.symbols.Symbol }
+//       val newTypeRef        = s => {
+//         assert(!s.tpe.isEmpty)
+//         new { val symb = s }
+//       }
+//     }
+//     val symbols : {
+//       type Symbol          <: {
+//         val tpe : Option & { type A = pcore.types.Type }
+//         val id  : Int
+//       }
+//       val newSymbol         : Option & { type A = pcore.types.Type } => Int => Symbol
+//     } = new {
+//       type Symbol           = {
+//         val tpe : Option & { type A = pcore.types.Type }
+//         val id  : Int
+//       }
+//       val newSymbol         = _tpe => _id => new { val tpe = _tpe; val id = _id }
+//     }
+//   }
+// }
+
+
+
 object pcore {
   object types {
     class Type
+    class TypeTop extends Type
     // In DOT, to make classes nominal, they become abstract types
-    class TypeRef(val symb: symbols.Symbol) extends Type
+    class TypeRef(val symb: symbols.Symbol) extends Type {
+      assert(!symb.tpe.isEmpty)
+    }
   }
   object symbols {
-    class Symbol(val tpe: types.Type)
-    // Encapsulation violation, and type error in Scala:
+    class Symbol(val tpe: Option[types.Type], val id: Int)
+    // Encapsulation violation, and type error in Scala (but not pDOT)
     // val fakeTypeRef : types.TypeRef =
-    //   new { val symb = new Symbol(new types.Type()) }
+    //   new { val symb = new Symbol(None, 0) }
   }
 }
+
+
+// object pcore {
+//   object types {
+//     class Type
+//     // In DOT, to make classes nominal, they become abstract types
+//     class TypeRef(val symb: symbols.Symbol) extends Type
+//   }
+//   object symbols {
+//     class Symbol(val tpe: types.Type)
+//     // Encapsulation violation, and type error in Scala:
+//     // val fakeTypeRef : types.TypeRef =
+//     //   new { val symb = new Symbol(new types.Type()) }
+//   }
+// }
 
 // val pcore = new {
 //   val types = new {
