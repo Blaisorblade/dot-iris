@@ -89,7 +89,9 @@ End judgments.
 End OLty_judge.
 
 From D.Dot Require Import syn synLemmas dlang_inst rules typeExtractionSyn path_wp typeExtractionSem.
+From D.Dot.syn Require Import path_repl.
 From D.Dot Require unary_lr.
+From D.Dot.lr Require path_repl.
 
 Implicit Types
          (v: vl) (e: tm) (d: dm) (ds: dms) (p : path).
@@ -287,4 +289,114 @@ Section Sec2.
     Γ ⊨ { l := dtysem σ s } : oDTMem l τ τ.
   Proof. iIntros "#Hs"; iApply D_Typ_Abs; by [| iIntros "!> **"]. Qed.
 End Sec2.
+
+Section with_lty.
+  Context `{dlangG Σ}.
+  Import path_repl.
+  Implicit Types (φ: vl → iProp Σ).
+  (** We don't have yet singleton types in the syntax: so add them as a semantic type
+    and prove lemmas about them. Annoyingly, we can't talk about path replacement on
+    semantic types. *)
+
+  Lemma rewrite_ty_path_repl_tsel {p q p1 l p2 ρ v}:
+    p1 ~pp[ p := q ] p2 →
+    alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
+    oClose (oTSel p1 l) ρ v ≡ oClose (oTSel p2 l) ρ v.
+  Proof. exact: path_replacement_equiv. Qed.
+  Implicit Types (Γ : sCtx Σ) (τ : olty Σ 0).
+
+  Definition oPsing p : olty Σ 0 :=
+    olty0 (λ ρ v, alias_pathsI p.|[ρ] (pv v)).
+
+  Lemma sem_psingleton_eq_1 p ρ v : oClose (oPsing p) ρ v ≡ ⌜ path_wp_pure p.|[ρ] (eq v) ⌝%I.
+  Proof. done. Qed.
+
+  Lemma sem_psingleton_eq_2 p ρ v : oClose (oPsing p) ρ v ≡ path_wp p.|[ρ] (λ w, ⌜ v = w ⌝ )%I.
+  Proof. by rewrite sem_psingleton_eq_1 path_wp_pureable. Qed.
+
+  Lemma singleton_aliasing Γ p q ρ i :
+    Γ ⊨p p : oPsing q, i -∗
+    ⟦ Γ ⟧* ρ -∗ ▷^i alias_pathsI p.|[ρ] q.|[ρ].
+  Proof.
+    iIntros "#Hep #Hg". iSpecialize ("Hep" with "Hg").
+    iNext i; iDestruct "Hep" as %Hep; iIntros "!%".
+    by apply alias_paths_simpl.
+  Qed.
+
+  Lemma singleton_self Γ τ p i :
+    Γ ⊨p p : τ, i -∗
+    Γ ⊨p p : oPsing p, i.
+  Proof.
+    iIntros "#Hep !>" (ρ) "Hg". iSpecialize ("Hep" with "Hg"). iNext.
+    iDestruct (path_wp_eq with "Hep") as (v Hpv) "_".
+    iIntros "!%". by eapply alias_paths_simpl, alias_paths_self.
+  Qed.
+
+  Lemma iptp2ietp Γ τ p :
+    Γ ⊨p p : τ, 0 -∗ Γ ⊨ path2tm p : τ.
+  Proof.
+    iIntros "#Hep !>" (ρ) "#Hg /="; rewrite path2tm_subst.
+    by iApply (path_wp_to_wp with "(Hep Hg)").
+  Qed.
+
+  Lemma T_Sub Γ e (T1 T2 : olty Σ 0) i:
+    Γ ⊨ e : T1 -∗
+    Γ ⊨ T1, 0 <: T2, i -∗
+    (*───────────────────────────────*)
+    Γ ⊨ iterate tskip i e : T2.
+  Proof.
+    iIntros "/= #HeT1 #Hsub !>" (ρ) "#Hg".
+    rewrite tskip_subst -wp_bind.
+    iApply (wp_wand with "(HeT1 Hg)").
+    iIntros (v) "#HvT1".
+    (* We can swap ▷^i with WP (tv v)! *)
+    rewrite -wp_pure_step_later // -wp_value.
+    by iApply "Hsub".
+  Qed.
+
+  (* XXX Generalize? *)
+  Lemma singleton_self_skip Γ τ p i :
+    Γ ⊨p p : τ, 0 -∗
+    Γ ⊨ iterate tskip i (path2tm p) : oPsing p.
+  Proof.
+    rewrite singleton_self iptp2ietp.
+    iIntros "Hp". iApply (T_Sub with "Hp").
+    by iIntros "!> * _ $".
+  Qed.
+
+  Lemma singleton_sym Γ p q i:
+    Γ ⊨p p : oPsing q, i -∗
+    Γ ⊨p q : oPsing p, i.
+  Proof.
+    iIntros "#Hep !>" (ρ) "#Hg".
+    iDestruct (singleton_aliasing with "Hep Hg") as "Hal". iNext i. iDestruct "Hal" as %Hal.
+    iIntros "!%". by eapply alias_paths_simpl, alias_paths_symm.
+  Qed.
+
+  Lemma singleton_trans Γ p q r i:
+    Γ ⊨p p : oPsing q, i -∗
+    Γ ⊨p q : oPsing r, i -∗
+    Γ ⊨p p : oPsing r, i.
+  Proof.
+    iIntros "#Hep #Heq !>" (ρ) "#Hg".
+    iDestruct (singleton_aliasing with "Hep Hg") as "Hal1".
+    iDestruct (singleton_aliasing with "Heq Hg") as "Hal2".
+    iNext i. iDestruct "Hal1" as %Hal1. iDestruct "Hal2" as %Hal2.
+    iIntros "!%". by eapply alias_paths_simpl, alias_paths_trans.
+  Qed.
+
+  Lemma singleton_elim Γ τ p q l i:
+    Γ ⊨p p : oPsing q, i -∗
+    Γ ⊨p pself q l : τ, i -∗
+    Γ ⊨p pself p l : oPsing (pself q l), i.
+  Proof.
+    iIntros "#Hep #HqlT !>" (ρ) "#Hg".
+    iDestruct (singleton_aliasing with "Hep Hg") as "Hal {Hep}".
+    iSpecialize ("HqlT" with "Hg").
+    rewrite !path_wp_eq /=.
+    iNext i. iDestruct "Hal" as %Hal. iDestruct "HqlT" as (vql Hql) "_".
+    iIntros "!% /=". exists vql.
+    rewrite (alias_paths_elim_eq_pure _ Hal). auto.
+  Qed.
+  End with_lty.
 End SemTypes.
