@@ -13,7 +13,7 @@ Section ProofModeTry.
   Context `{HdlangG: dlangG Σ}.
 
   (*XXX : move away from here. Avoid auto-dropping box (and unfolding) when introducing ietp persistently. *)
-  Instance: IntoPersistent false (ietp Γ T e) (ietp Γ T e) | 0 := _.
+  Global Instance: IntoPersistent false (ietp Γ T e) (ietp Γ T e) | 0 := _.
 
 End ProofModeTry.
 
@@ -54,6 +54,201 @@ Section AlsoSyntactically.
 
 End AlsoSyntactically.
 
+
+From D.Dot Require exampleInfra typingExInfra.
+From D.Dot Require fundamental typingStamping.
+From D.Dot.examples Require scalaLib.
+
+Section Example.
+  Context `{HdlangG: dlangG Σ} `{SwapPropI Σ}.
+  Import exampleInfra typingExInfra fundamental typingStamping scalaLib.
+
+  Lemma OrSplit Γ e1 e2 A B C :
+    Γ ⊨ e1 : TOr A B -∗
+    shift A :: Γ ⊨ e2 : shift C -∗
+    shift B :: Γ ⊨ e2 : shift C -∗
+    Γ ⊨ lett e1 e2 : C.
+  Proof.
+    iIntros "He #HA #HB".
+    iApply (T_Forall_E with "[] He").
+    iApply T_Forall_I.
+    iSimpl; iIntros "!>" (ρ) "#[Hg [H|H]] !>";
+      [iApply ("HA" with "[]") | iApply ("HB" with "[]")];
+      iFrame "Hg H".
+  Qed.
+
+  Definition iftFalse := (∀: tparam "A", (∀: p0 @; "A", (∀: p1 @; "A", TSing p0)))%ty.
+  Definition s0 := 1%positive.
+  Definition g0 s T : stys := <[ s := T ]>∅.
+
+  Import stamp_transfer astStamping.
+
+  Lemma wellMappedφ_g0 s T:
+    s ↝ ⟦ T ⟧ -∗
+    wellMappedφ (⟦ g0 s T ⟧g).
+  Proof.
+    iIntros "Hs"; rewrite fmap_insert.
+    iApply (wellMappedφ_insert with "[] Hs"); iApply wellMappedφ_empty.
+  Qed.
+
+  Definition applyE e v1 v2 := e $: tv (packTV 0 s0) $: tv v1 $: tv v2.
+
+  (* XXX "only empty context" won't be enough :-( *)
+  Example foo1 Γ s T (Hcl : nclosed T 0) :
+    s ↝ ⟦ T ⟧ -∗
+    (* Γ ⊨ tv (packTV (length Γ) s) : typeEq "A" T. *)
+    [] ⊨ tv (packTV 0 s) : typeEq "A" T.
+  Proof.
+    iIntros "#Hs !>" (ρ) "#_ /= !>".
+    rewrite -wp_value'.
+    iExists (dtysem [] s); iSplit; first eauto.
+    iExists (⟦ T ⟧ ids); iSplit; first by iApply (dm_to_type_intro _ _ []).
+    iModIntro; iSplit; iIntros (v) "#H !>";
+      by rewrite (interp_subst_ids T ρ v) (closed_subst_id _ Hcl).
+  Qed.
+
+  (* XXX use more semantic typing. *)
+  Example packTV_semTyped Γ s T (Hu: is_unstamped_ty (length Γ) T):
+    s ↝ ⟦ T ⟧ -∗
+    Γ ⊨ tv (packTV (length Γ) s) : typeEq "A" T.
+    (* Γ ⊨ tv (packTV (length Γ) s) : type "A" >: ⊥ <: T. *)
+  Proof.
+    (* iIntros "#Hs !>" (ρ) "#Hg /=".
+    rewrite -wp_value'.
+    iExists (dtysem _ s); iSplit; first eauto.
+    iExists (⟦ T ⟧ ρ); iSplit.
+    rewrite hsubst_comp.
+    Transparent dm_to_type stamp_σ_to_type_n.
+    iExists s, _; iSplit; first done.
+    iExists (λ _, ⟦ T ⟧); iSplit; first done.
+    iPureIntro; rewrite /= /vopen => _ v.
+    asimpl.
+    From D.Dot Require unstampedness_binding.
+    have ?: nclosed T (length Γ) by eauto.
+    by rewrite -interp_subst_commute ?length_idsσ ?closed_subst_idsρ.
+    eauto 10.
+    Restart. *)
+    iIntros "#Hs".
+    (* iAssert (wellMappedφ (⟦ <[ s := T ]>∅ ⟧g)) as "#Hw". *)
+    iApply fundamental_typed; last by iApply (wellMappedφ_g0 with "Hs").
+    have Hst: is_stamped_ty (length Γ) (<[s:=T]> ∅) T.
+    exact: unstamped_stamped_type.
+    (* eapply Subs_typed_nocoerce. *)
+    eapply packTV_typed'; rewrite //= ?lookup_insert //.
+    (* tcrush. *)
+  Qed.
+    (* Unshelve.
+    done.
+    apply typing_obj_ident_to_typing.
+
+    rewrite -(iterate_0 tskip (tv _)).
+    iApply (T_Sub _ _ ((μ {@ typeEq "A" T.|[ren (+1)] }))); first last.
+    iApply Sub_Mu_1; rewrite iterate_0.
+    iApply Sub_Trans. iApply
+    iApply T_New_I.
+  Qed. *)
+
+  Example foo Γ e v1 v2:
+    s0 ↝ ⟦ ⊤%ty ⟧ -∗
+    [] ⊨ e : iftFalse -∗
+    [] ⊨ tv v1 : TTop -∗
+    [] ⊨ tv v2 : TTop -∗
+    [] ⊨ applyE e v1 v2 : TSing (pv v2).
+  Proof.
+    rewrite /iftFalse.
+    iIntros "#Hs #He #Hv1 #Hv2".
+    iAssert ([] ⊨ ⊤, 0 <: pv (packTV 0 s0) @; "A", 0) as "#Hsub". {
+      iApply Sub_Trans.
+      iApply Sub_Add_Later.
+      iApply Sub_Sel_Path.
+      iApply P_Val.
+      iApply (packTV_semTyped with "Hs"); stcrush.
+    }
+    iApply (T_Forall_Ex _ _ v2 (pv (packTV 0 s0) @; "A") (TSing p0)); first last.
+    iApply (T_Sub _ _ _ _ 0 with "Hv2 Hsub").
+    iApply T_Forall_E; first last.
+    iApply (T_Sub _ _ _ _ 0 with "Hv1 Hsub").
+    Timeout 1 iApply (T_Forall_Ex [] e (packTV 0 s0) with "He").
+    iApply (T_Sub _ _ (typeEq "A" ⊤) _ 0).
+    iApply (packTV_semTyped [] with "Hs"); stcrush.
+    iApply (fundamental_subtype _ ∅); last iApply wellMappedφ_empty.
+    tcrush.
+  Qed.
+
+  Example foosyn Γ e v1 v2:
+    let g := g0 s0 ⊤ in
+    Γ v⊢ₜ[ g ] e : iftFalse →
+    Γ v⊢ₜ[ g ] tv v1 : TTop →
+    Γ v⊢ₜ[ g ] tv v2 : TTop →
+    Γ v⊢ₜ[ g ] applyE e v1 v2 : TSing (pv v2).
+  Proof.
+    move => /= He Hv1 Hv2.
+    have Hp: Γ v⊢ₜ[ g0 s0 ⊤ ] tv (packTV 0 s0) : typeEq "A" ⊤.
+      by apply: packTV_typed'; [| |lia].
+    have Hsub : Γ v⊢ₜ[ g0 s0 ⊤ ] ⊤, 0 <: pv (packTV 0 s0) @; "A", 0
+      by eapply LSel_stp'; tcrush.
+    apply (Appv_typed _ _ _ v2 (pv (packTV 0 s0) @; "A") (TSing p0)); first last.
+    by eapply Subs_typed_nocoerce, Hsub.
+    eapply App_typed; first last.
+    by eapply Subs_typed_nocoerce, Hsub.
+    apply (Appv_typed _ _ e (packTV 0 s0) _ _ He).
+    eapply Subs_typed_nocoerce; [ apply Hp | tcrush ].
+  Qed.
+
+  Example foosem Γ e v1 v2:
+    let g := g0 s0 ⊤ in
+    [] v⊢ₜ[ g ] e : iftFalse →
+    [] v⊢ₜ[ g ] tv v1 : TTop →
+    [] v⊢ₜ[ g ] tv v2 : TTop →
+    s0 ↝ ⟦ ⊤%ty ⟧ -∗
+    [] ⊨ applyE e v1 v2 : TSing (pv v2).
+  Proof.
+    intros g; subst g.
+    iIntros (He Hv1 Hv2) "#Hs".
+    iApply fundamental_typed; last by iApply (wellMappedφ_g0 with "Hs").
+    exact: foosyn.
+  Qed.
+(* lett (hclose (htv hloopDefV @: "loop")) *)
+  Example barsyn e v1 Γ T :
+    is_unstamped_ty (S (length Γ)) T →
+    T :: Γ v⊢ₜ[ g0 s0 ⊤ ] e : Example.iftFalse →
+    T :: Γ v⊢ₜ[ g0 s0 ⊤ ] tv v1 : ⊤ →
+    T :: Γ v⊢ₜ[ g0 s0 ⊤ ] applyE e v1 x0 : TSing (pv x0).
+  Proof.
+    intros; apply foosyn => //.
+    eapply Var_typed_sub; [ done | tcrush]. cbn.
+    apply unstamped_stamped_type.
+    by rewrite hsubst_id.
+  Qed.
+
+  (* Example foo Γ e v1 v2:
+    s0 ↝ ⟦ ⊤%ty ⟧ -∗
+    [] ⊨ e : iftFalse -∗
+    WP applyE e v1 v2 {{v, ⌜ v = v2 ⌝}}.
+  Proof.
+    rewrite /iftFalse.
+    iIntros "#Hs #H". iSpecialize ("H" $! ids with "[#//]").
+    rewrite hsubst_id.
+    iApply (wp_bind (fill [(AppLCtx _)])).
+    iApply (wp_bind (fill [(AppLCtx _)])).
+    smart_wp_bind (AppLCtx _) v "{H} #Hr" "H".
+    iDestruct "Hr" as (t ->) "#Hr".
+    iApply (wp_bind (fill [(AppRCtx _)])).
+    iPoseProof (packTV_semTyped [] s0 ⊤ with "Hs") as "#Hp"; first done.
+    rewrite -wp_value'.
+    rewrite -wp_pure_step_later //=.
+    iSpecialize ("Hp" $! ids with "[#//]").
+    rewrite wp_value_inv'.
+    iSpecialize ("Hr" $! (packTV 0 s0) with "Hp").
+    iNext.
+    iApply (wp_wand with "Hr"); iIntros "/=" (v).
+    iDestruct 1 as (t1 ->) "#H1".
+    iSpecialize ("H1" $! v1).
+
+    smart_wp_bind (AppRCtx _) v "#Hr2" "Hr".
+    iApply (wp_bind (fill [(AppLCtx _)])).
+    smart_wp_bind (AppRCtx _) v "#Hr" "H". *)
+End Example.
 
 Section Sec.
   Context `{HdlangG: dlangG Σ}.

@@ -212,6 +212,79 @@ Proof.
 Qed.
 End AssertPlain.
 
+Module AssertSingletons.
+
+Definition assertBody e : tm :=
+  tyApp e "A" ⊤ $: tv x1 $: tv x0.
+
+Import hoasNotation.
+Definition hassertFun e :=
+  hlett: hsucc := htv (λ: x, htv x) in:
+  hlett: hfail := hloopFunTm in:
+  pureS (assertBody e).
+
+Definition hassert e :=
+  hassertFun e $: htv (hvnat 0).
+
+Lemma hassertBodyFalseTyp Γ e :
+  Γ u⊢ₜ e : hclose hIFTFalseT →
+  Γ u⊢ₜ tv x0 : ⊤ →
+  Γ u⊢ₜ tv x1 : ⊤ →
+  Γ u⊢ₜ assertBody e : TSing (pv x0).
+Proof.
+  move => /= He Hx0 Hx1.
+  have Hty: Γ u⊢ₜ tyApp e "A" ⊤ :
+    hclose (∀: t : ⊤, ∀: f: ⊤, hTSing (hpv f)).
+  by eapply tyApp_typed; first apply He; intros; tcrush;
+    eapply LSel_stp'; tcrush; var.
+  rewrite /assertBody.
+  by move: Hty => /Appv_typed /(_ Hx1) /Appv_typed /(_ Hx0) /=.
+Qed.
+
+Lemma hassertBodyTrueTyp Γ e :
+  Γ u⊢ₜ e : hclose hIFTTrueT →
+  Γ u⊢ₜ tv x1 : ⊤ →
+  Γ u⊢ₜ tv x0 : ⊤ →
+  Γ u⊢ₜ assertBody e : TSing (pv x1).
+Proof.
+  move => /= He Hx1 Hx0.
+  have Hty: Γ u⊢ₜ tyApp e "A" ⊤ :
+    hclose (∀: t : ⊤, ∀: f: ⊤, hTSing (hpv t)).
+  by eapply tyApp_typed; first apply He; intros; tcrush;
+    eapply LSel_stp'; tcrush; var.
+  rewrite /assertBody.
+  by move: Hty => /Appv_typed /(_ Hx1) /Appv_typed /(_ Hx0) /=.
+Qed.
+
+Lemma hassertFunTrueTyp Γ e :
+  (⊤ :: ⊤ :: Γ)%ty u⊢ₜ e : hclose hIFTTrueT →
+  Γ u⊢ₜ hclose (hassertFun e) : ⊤.
+Proof.
+  move => /hassertBodyTrueTyp He.
+  apply Let_typed with (T := ⊤%ty); stcrush. {
+    apply (Subs_typed_nocoerce (⊤ →: ⊤)); tcrush; var.
+  }
+  apply Let_typed with (T := ⊤%ty); stcrush. {
+    eapply Subs_typed_nocoerce; first apply loopFunTyp; tcrush.
+  }
+  eapply Subs_typed_nocoerce; first apply He; tcrush; var.
+Qed.
+
+Lemma hassertFunFalseTyp Γ e :
+  (⊤ :: ⊤ :: Γ)%ty u⊢ₜ e : hclose hIFTFalseT →
+  Γ u⊢ₜ hclose (hassertFun e) : ⊤.
+Proof.
+  move => /hassertBodyFalseTyp He.
+  apply Let_typed with (T := ⊤%ty); stcrush. {
+    apply (Subs_typed_nocoerce (⊤ →: ⊤)); tcrush; var.
+  }
+  apply Let_typed with (T := ⊤%ty); stcrush. {
+    eapply Subs_typed_nocoerce; first apply loopFunTyp; tcrush.
+  }
+  eapply Subs_typed_nocoerce; first apply He; tcrush; var.
+Qed.
+End AssertSingletons.
+
 End hBoolSing.
 
 Module Export option.
