@@ -42,7 +42,7 @@ Inside the `Dot` folder:
 * `fundamental.v`: prove fundamental theorem, adequacy and type safety.
   - adequacy: relating semantic typing and runtime safety, using Iris WP
     adequacy, and showing the choice of `Σ : gFunctors` is consistent.
-* `misc`: misc stuff, not used elsewhere
+* `misc_unused`: misc stuff, not used elsewhere
   - experiments.v: various experimental (typing) lemmas
 
 ## Installation
