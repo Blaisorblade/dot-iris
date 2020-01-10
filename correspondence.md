@@ -1,8 +1,10 @@
+All file paths in this file are relative to the `theories/` folder.
+
 # Correspondence between paper and Coq dev
 
-- gDOT syntax and operational semantics are defined in `theories/Dot/syn/syn.v`.
-- Unstamped typing is defined in `theories/Dot/typing/typing_unstamped.v`.
-- Stamped typing is defined in `theories/Dot/typing/typing_stamped.v`.
+- gDOT syntax and operational semantics are defined in `Dot/syn/syn.v`.
+- Unstamped typing is defined in `Dot/typing/typing_unstamped.v`.
+- Stamped typing is defined in `Dot/typing/typing_stamped.v`.
 
 - Derived rule `(<:-Later-Shift)` is called `Sub_later_shift` in Coq.
 
@@ -30,7 +32,7 @@
   encodable.
 
 - Compared to the paper, and even to the appendix, we describe (in
-  `theories/Dot/typing/typing.v`) an additional "storeless" typing judgment, a
+  `Dot/typing/typing.v`) an additional "storeless" typing judgment, a
   strict generalization of stamped typing.
   Storeless typing generalizes some rules of stamped typing to allow arbitrary
   values in paths, and not just variables. This is not at all necessary to our
