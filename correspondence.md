@@ -32,7 +32,7 @@ All file paths in this file are relative to the `theories/` folder.
   encodable.
 
 - Compared to the paper, and even to the appendix, we describe (in
-  `Dot/typing/typing.v`) an additional "storeless" typing judgment, a
+  `Dot/typing/typing_storeless.v`) an additional "storeless" typing judgment, a
   strict generalization of stamped typing.
   Storeless typing generalizes some rules of stamped typing to allow arbitrary
   values in paths, and not just variables. This is not at all necessary to our
