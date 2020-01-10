@@ -94,4 +94,4 @@ theories/Dot/misc/experiments.v
 theories/Dot/misc/misc_dead.v
 theories/Dot/syn/path_repl.v
 theories/Dot/lr/path_repl.v
-theories/Dot/misc/path_repl_dead.v
+theories/Dot/misc/path_repl_misc.v
