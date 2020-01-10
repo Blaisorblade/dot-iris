@@ -10,6 +10,13 @@ All file paths in this file are relative to the `theories/` folder.
 
 - Typing rule `(D-Typ-Abs-Better)` is derived as `dty_typed_intermediate`.
 
+- The fundamental theorem and type soundness for gDOT, are proven in
+  `Dot/fundamental.v`.
+  - Translation of typing derivations is proved in
+    `Dot/typing/typingStamping.v`.
+
+- Examples are in `Dot/examples/`.
+
 - For the code sizes reported in Sec. 6, see `codesize.md`.
 
 ## Differences between our paper (and technical appendix) and our Coq development.
