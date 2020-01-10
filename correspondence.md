@@ -10,6 +10,8 @@ All file paths in this file are relative to the `theories/` folder.
 
 - Typing rule `(D-Typ-Abs-Better)` is derived as `dty_typed_intermediate`.
 
+- For the code sizes reported in Sec. 6, see `codesize.md`.
+
 ## Differences between our paper (and technical appendix) and our Coq development.
 
 - While in the paper unstamped and stamped DOT are represented using disjoint
