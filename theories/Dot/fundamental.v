@@ -95,6 +95,14 @@ Section fundamental.
       + by iApply singleton_elim; [apply IHHT1|apply IHHT2].
       + by_reflect.
   Qed.
+
+  Lemma ipwp_terminates {p T i}:
+    [] ⊨p p : T , i ⊢ ▷^i ⌜ terminates (path2tm p) ⌝.
+  Proof.
+    iIntros "#H".
+    iSpecialize ("H" $! ids with "[//]"); rewrite hsubst_id.
+    iApply (path_wp_terminates with "H").
+  Qed.
 End fundamental.
 
 (** Adequacy of our logical relation: semantically well-typed terms are safe. *)
@@ -140,4 +148,35 @@ Proof.
   intros (e_s & g & HsT & Hs)%stamp_typed.
   apply Hs.
   apply (type_soundness_storeless HsT).
+Qed.
+
+(** Normalization for gDOT paths. *)
+Lemma ipwp_gs_adequacy Σ `{dlangPreG Σ} `{SwapPropI Σ} g p T i
+  (Hwp : ∀ (Hdlang : dlangG Σ) `(!SwapPropI Σ), [] ⊨p[ ⟦ g ⟧g ] p : T , i):
+  terminates (path2tm p).
+Proof.
+  eapply (@soundness (iResUR Σ) _ i).
+  apply (bupd_plain_soundness _).
+  iMod (gen_iheap_init (L := stamp) ∅) as (hG) "Hgs".
+  set (DLangΣ := DLangG Σ _ hG).
+  iMod (@transfer_empty _ DLangΣ ⟦ g ⟧g with "Hgs") as "Hgs".
+  iApply ipwp_terminates.
+  iApply (Hwp DLangΣ with "Hgs").
+Qed.
+
+Lemma path_normalization_storeless {g p T i}
+  (Ht : [] v⊢ₚ[ g ] p : T, i) :
+  terminates (path2tm p).
+Proof.
+  eapply (ipwp_gs_adequacy dlangΣ); intros.
+  apply fundamental_path_typed, Ht.
+Qed.
+
+Corollary path_normalization p T i :
+  [] u⊢ₚ p : T, i → terminates (path2tm p).
+Proof.
+  (* Apply 5.3: Translation of typing derivations. *)
+  intros (e_s & g & HsT & Hs)%stamp_path_typed.
+  apply Hs.
+  apply (path_normalization_storeless HsT).
 Qed.

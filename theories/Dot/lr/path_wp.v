@@ -8,6 +8,10 @@ Implicit Types
          (Γ : ctx) (ρ : env) (Pv : vl → Prop).
 
 (* Auxiliary. *)
+
+Lemma PureExec_to_terminates n φ e v : PureExec φ n e (tv v) → φ → terminates e.
+Proof. intros HP Hφ. exists v. eapply nsteps_rtc, HP, Hφ. Qed.
+
 Lemma plength_subst_inv p s :
   plength p.|[s] = plength p.
 Proof. by elim: p => [v| p /= ->]. Qed.
@@ -291,4 +295,11 @@ Section path_wp.
 
   Global Instance path_wp_timeless p Pv: Timeless (path_wp p (λ v, ⌜Pv v⌝))%I.
   Proof. rewrite path_wp_pureable. apply _. Qed.
+
+  Lemma path_wp_terminates p φ :
+    path_wp p φ ⊢ ⌜ terminates (path2tm p) ⌝.
+  Proof.
+    rewrite path_wp_pure_exec; iDestruct 1 as (v Hp) "_"; iIntros "!%".
+    exact: PureExec_to_terminates.
+  Qed.
 End path_wp.
