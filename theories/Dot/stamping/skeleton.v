@@ -543,11 +543,11 @@ Qed.
 Lemma safe_same_skel {e e_s}:
   same_skel_tm e e_s → safe e_s → safe e.
 Proof.
-  rewrite /safe; intros Hskel Hsafe * Hred Hin.
+  rewrite /safe => Hskel Hsafe e' > Hred Hin.
   destruct (simulation_skeleton_erased_steps Hskel Hred Hin)
     as (e_s' & Hst_s & Hskel').
   edestruct Hsafe as [Hs|Hs]; [apply Hst_s|apply elem_of_list_here|left|right].
   - destruct e_s'; try by case (is_Some_None Hs).
-    destruct e'; naive_solver.
+    destruct e' => //; naive_solver.
   - eapply same_skel_reducible, Hs; exact: same_skel_symm_tm.
 Qed.
