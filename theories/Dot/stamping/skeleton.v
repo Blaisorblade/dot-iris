@@ -612,7 +612,7 @@ Qed.
 Lemma terminates_same_skel {e e_s}:
   same_skel_tm e e_s → terminates e_s → terminates e.
 Proof.
-  rewrite /terminates /=. intros Hst%same_skel_symm_tm [v Hsteps].
+  rewrite /terminates /= => /same_skel_symm_tm Hst [v Hsteps].
   have [/= e' [? ?]] := simulation_skeleton_pure_steps Hst Hsteps.
   destruct e'; naive_solver.
 Qed.
