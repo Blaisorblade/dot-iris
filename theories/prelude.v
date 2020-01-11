@@ -9,6 +9,10 @@ Definition safe {Λ} (e : expr Λ) :=
   ∀ e' thp σ σ', rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
     is_Some (to_val e') ∨ reducible (Λ := Λ) e' σ'.
 
+(** This defines, in fact, pure and deterministic termination. *)
+Definition terminates {Λ} (e : expr Λ) :=
+  ∃ v : val Λ, rtc pure_step e (of_val v).
+
 (* Fixed version of stdpp's. *)
 Tactic Notation "efeed" "pose" "proof" constr(H) "as" simple_intropattern(H') :=
   efeed H using (fun p => pose proof p as H').
