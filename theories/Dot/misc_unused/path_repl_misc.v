@@ -140,12 +140,12 @@ Qed.
 
 (** This lemma shows that functional path substitution function implies
 relational path substitution (the main one we use). *)
-Lemma psubst_one_implies n T p T'
-  (Hu : is_unstamped_ty n T) :
+Lemma psubst_one_implies n T p T' :
+  is_unstamped_ty n T →
   psubst_one T p = T' → T .Tp[ p /]~ T'.
 Proof.
-  have := psubst_one_base_unshifts p Hu.
-  case; rewrite /psubst_one /psubst_one_base => T'' Hw Heq.
+  move => /(psubst_one_base_unshifts p) [].
+  rewrite /psubst_one /psubst_one_base => T'' Hw Heq.
   rewrite -Heq. apply psubst_ty_rtc_sufficient.
   by rewrite Hw shift_unshift.
 Qed.
