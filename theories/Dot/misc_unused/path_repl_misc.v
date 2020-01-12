@@ -4,6 +4,7 @@ From Coq.ssr Require Import ssrbool.
 From D.Dot Require Import syn syn.path_repl.
 From D.Dot Require Import stampingDefsCore.
 
+Set Implicit Arguments.
 Implicit Types (Pv : vl → Prop).
 Set Nested Proofs Allowed.
 
@@ -132,9 +133,9 @@ Qed.
 Lemma psubst_one_base_unshifts {n T} p:
   is_unstamped_ty n T → psubst_one_works T p.
 Proof.
-  exists (unshift (psubst_one_base T p)).
+  intros Hu; exists (unshift (psubst_one_base T p)).
   rewrite /psubst_one_base.
-  have := psubst_one_base_unshifts_gen 0 n T p.
+  have := psubst_one_base_unshifts_gen 0 p Hu.
   by rewrite /unshiftsN /psubst_one_ty_gen ?iterate_S !iterate_0 => ->.
 Qed.
 
@@ -194,7 +195,7 @@ Section psubst_path_implies_lemmas.
     path_size (append_ls p ls) = length ls + path_size p.
   Proof. by elim: ls => /= [| _ ls ->]. Qed.
 
-  Lemma path_repl_longer ls {p p1 p2 q l} :
+  Lemma path_repl_longer {ls p p1 p2 q l} :
     p1 ~pp[ p := q ] p2 →
     ~append_ls p1 (l :: ls) = p.
   Proof.
@@ -211,7 +212,7 @@ Proof.
   move => Hr.
   elim: Hr => [|p1' p2' l Hr IHr] /=; first exact: psubst_path_self.
   case_decide as Hdec => //; last by rewrite -IHr.
-  exfalso; exact: (path_repl_longer []).
+  exfalso; exact: (path_repl_longer (ls := [])).
 Qed.
 
 Goal ~(∀ p q, IdempotentUnary (psubst_path p q)).
