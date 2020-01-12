@@ -1,8 +1,21 @@
 From iris.proofmode Require Import tactics.
+From Coq.ssr Require ssrbool.
 
-From D.Dot.syn Require Import syn path_repl.
+From D.Dot Require Import syn syn.path_repl.
+From D.Dot Require Import stampingDefsCore.
+
+Implicit Types (Pv : vl → Prop).
+Set Nested Proofs Allowed.
 
 Notation unshifts T := (∃ T', T = shift T').
+Notation unshifts_vl v := (∃ v', v = shiftV v').
+Notation unshiftV v := v.[ren pred].
+
+Lemma shift_unshift `{Sort X} (x : X): unshift (shift x) = x.
+Proof. by rewrite hsubst_comp hsubst_id. Qed.
+
+Lemma shift_unshift_vl v: unshiftV (shiftV v) = v.
+Proof. by rewrite subst_comp subst_id. Qed.
 
 Implicit Types
          (T : ty) (v w : vl) (t : tm) (d : dm) (ds : dms) (p q : path)
@@ -13,22 +26,147 @@ Definition psubst_one T p := (unshift (psubst_one_base T p)).
 
 Definition psubst_one_works T p := (unshifts (psubst_one_base T p)).
 
-Implicit Types (Pv : vl → Prop).
-Set Nested Proofs Allowed.
+Definition unshiftsN `{Sort X} i (x : X) := x.|[upn i (ren pred)].|[upn i (ren (+1))] = x.
+Definition unshiftsN_vl i v := v.[upn i (ren pred)].[upn i (ren (+1))] = v.
 
-Lemma shift_unshift `{Sort X} (x : X): unshift (shift x) = x.
-Proof. by rewrite hsubst_comp hsubst_id. Qed.
+Definition unshifts_vl_equiv v : unshiftsN_vl 0 v ↔ unshifts_vl v.
+Proof.
+  rewrite /unshiftsN_vl !iterate_0; split.
+  by exists (unshiftV v).
+  by destruct 1; simplify_eq; rewrite shift_unshift_vl.
+Qed.
+
+Definition unshifts_equiv `{Sort X} (x : X) : unshiftsN 0 x ↔ unshifts x.
+Proof.
+  rewrite /unshiftsN !iterate_0; split.
+  by exists (unshift x).
+  by destruct 1; simplify_eq; rewrite shift_unshift.
+Qed.
+
+Notation upn_mp1 i x := (upn i (ren (pred >>> (+1))) x).
+Lemma ren_const_1 i :  upn_mp1 (S i) i = var_vl i.
+Proof. elim: i => // i IHi. by rewrite iterate_S /up/= -/up IHi. Qed.
+
+(* Some testing for lemma [ren_const]. Seems very true. *)
+(* Definition ns := Eval cbv in seq 0 50.
+Definition test_ren_const i x := (bool_decide (i = x ∨ upn_mp1 i x = var_vl x)).
+Time Eval vm_compute in bool_decide (true = foldr (&&) true $ ns ≫= (λ n, map (test_ren_const n) ns)). *)
+
+Lemma ren_const x i : x ≠ i → upn_mp1 i x = var_vl x.
+Proof.
+  (* elim: x i => [|x IH] i Hne //=.
+  by elim: i Hne.
+  rewrite (IH i). *)
+
+  (* inverse H.
+  cbn in *.
+  clear H Hu. *)
+  (* elim: x Hne => [|x IH] Hne //=. rewrite (iterate_0, iterate_S). *)
+  elim: i x => [|i IHi] x Hne //=; rewrite ?iterate_0.
+  by cbv; case_match.
+  (* destruct_decide (decide (x = i)) as Hne'; simplify_eq; first exact: ren_const_1. *)
+  induction x => //.
+  rewrite iterate_S /up /= -/up (IHi x) //.
+  Import ssrbool.
+  by move: Hne => /Nat.eqb_spec /= /Nat.eqb_spec.
+Qed.
+  (* rewrite iterate_S.
+  rewrite  -(IH x Hne') {IH}.
+  induction x. by destruct i.
+  have {}Hne: x ≠ i by naive_solver.
+  rewrite /up /= -/up.
+  asimpl.
+
+  asimpl.
+  clear IH Hne.
+  elim: i => // i IHi.
+  by rewrite iterate_S /up/= -/up IHi.
+  Print up.
+  rewrite -(IH (S x)).
+  set y : vl := (upn_mp1 (S i) x).
+  red in y; fold @iterate in y.
+  rewrite ->iterate_S in y.
+*)
+
+Lemma unstamped_val_unshifts_0 v n : is_unstamped_path n (pv v) → v ≠ ids 0 → unshifts_vl v.
+Proof.
+  move E: (pv v) => p Hu Hne; destruct Hu as [? w _ [i ?]|]; simplify_eq/=.
+  have {}Hne: i ≠ 0 by naive_solver.
+  exists (var_vl (i - 1)); f_equal/=; unfold var in *; lia.
+Qed.
+
+Lemma unstamped_val_unshifts v i n : is_unstamped_path n (pv v) → v ≠ ids i → unshiftsN_vl i v.
+Proof.
+  move E: (pv v) => p Hu Hne; destruct Hu as [? w _ [j ?]|]; simplify_eq/=.
+  have {}Hne: j ≠ i by naive_solver.
+  rewrite /unshiftsN_vl subst_comp up_comp_n.
+  exact: ren_const.
+Qed.
+
+Lemma is_unstamped_path_root n p :
+  is_unstamped_path n p →
+  is_unstamped_path n (pv (path_root p)).
+Proof. elim: p => //=; intros; with_is_unstamped inverse; eauto. Qed.
+
+Lemma unstamped_path_unshifts_n p i n : path_root p ≠ ids i → is_unstamped_path n p → unshiftsN_vl i (path_root p).
+Proof. intros Hne Hu%is_unstamped_path_root. exact: unstamped_val_unshifts. Qed.
+
+Lemma unstamped_path_unshifts p n : path_root p ≠ ids 0 → is_unstamped_path n p → unshifts_vl (path_root p).
+Proof. rewrite -unshifts_vl_equiv; apply unstamped_path_unshifts_n. Qed.
+
+Definition psubst_one_path_gen i q p :=
+  q .p[ pv (ids i) := iterate (λ p, shift p) (S i) p ].
+Definition psubst_one_ty_gen i T p :=
+  T .T[ pv (ids i) := iterate (λ p, shift p) (S i) p ].
+
+(** False, without assumptions on stamping: we must assume that
+  [unshiftsN_vl i (path_root p).], and branch on whether path_root is ids i or not. *)
+Lemma psubst_one_path_gen_unshifts_gen i q p : unshiftsN i (psubst_one_path_gen i q p).
+Proof.
+  move: p i; induction q => p i //; last
+    by rewrite /psubst_one_path_gen /unshiftsN in IHq |- *; f_equal/=; eauto.
+  hnf; cbn.
+  case_decide; simplify_eq/=.
+  admit.
+  rewrite iterate_S hsubst_comp up_comp_n.
+
+  (* apply unstamped_path_unshifts_n.
+  rewrite shift_unshift.
+  apply shift_unshift_p.
+    rewrite ?shift_unshift //.
+  - by rewrite Hp /= !subst_comp.
+  - by rewrite (IHq p Hp) /= shift_unshift.
+Qed. *)
+Admitted.
+
+Lemma psubst_one_base_unshifts_gen i T p : unshiftsN i (psubst_one_ty_gen i T p).
+Proof.
+  rewrite /psubst_one_ty_gen /unshiftsN.
+  move: p i; induction T => p0 i; f_equal/=; rewrite -?iterate_S;
+    eauto; exact: psubst_one_path_gen_unshifts_gen.
+Qed.
+
+Lemma psubst_one_base_unshifts T p: psubst_one_works T p.
+Proof.
+  exists (unshift (psubst_one_base T p)).
+  rewrite /psubst_one_base.
+  have := psubst_one_base_unshifts_gen 0 T p.
+  by rewrite /unshiftsN /psubst_one_ty_gen ?iterate_S !iterate_0 => ->.
+Qed.
 
 (** This lemma shows that functional path substitution function implies
-relational path substitution (the main one we use), but
-assuming [psubst_one_works T p]. *)
-Lemma subst_equivalent_almost T p T' : psubst_one_works T p →
+relational path substitution (the main one we use). *)
+Lemma psubst_one_implies T p T' :
   psubst_one T p = T' → T .Tp[ p /]~ T'.
 Proof.
+  have := psubst_one_base_unshifts T p.
   case; rewrite /psubst_one /psubst_one_base => T'' Hw Heq.
   rewrite -Heq. apply psubst_ty_rtc_sufficient.
   by rewrite Hw shift_unshift.
 Qed.
+
+
+Definition IdempotentUnary {A} (f: A → A) := ∀ x, f (f x) = f x.
 
 Lemma decide_unshift_proof {T} : T ≠ shift (unshift T) → unshifts T → False.
 Proof. move => Hne [T' Hn]. apply: Hne. by rewrite Hn shift_unshift. Qed.
@@ -91,7 +229,6 @@ Proof.
 Qed.
 (**
 https://en.wikipedia.org/wiki/Idempotence#Idempotent_functions *)
-Definition IdempotentUnary {A} (f: A → A) := ∀ x, f (f x) = f x.
 
 Goal ~(∀ p q, IdempotentUnary (psubst_path p q)).
 Proof.
@@ -117,65 +254,6 @@ Lemma psubst_path_one_idempotent q:
   IdempotentUnary (psubst_path (pv (ids 0)) (shift q)).
 Proof. apply psubst_path_pv_idempotent, psubst_one_shift_id. Qed.
 
-From D.Dot Require Import stampingDefsCore.
-
-Definition unshiftsN `{Sort X} i (x : X) := x.|[upn i (ren pred)].|[upn i (ren (+1))] = x.
-Definition unshiftsN_vl i v := v.[upn i (ren pred)].[upn i (ren (+1))] = v.
-
-Definition psubst_one_path_gen i q p :=
-  q .p[ pv (ids i) := iterate (λ p, shift p) (S i) p ].
-Definition psubst_one_ty_gen i T p :=
-  T .T[ pv (ids i) := iterate (λ p, shift p) (S i) p ].
-
-Lemma ren_const x i : x ≠ i → upn i (ren (pred >>> (+1))) x = var_vl x.
-Proof.
-  (* inverse H.
-  cbn in *.
-  clear H Hu. *)
-  (* elim: x Hne => [|x IH] Hne //=. rewrite (iterate_0, iterate_S). *)
-  elim: i => [|i IH] Hne //=; rewrite ?iterate_0.
-  by cbv; case_match.
-  (* Search _ (upn _ (ren _)).
-  Print upren.
-  rewrite
-  cbv.
-  asimpl.
-  rewrite /ren /scomp.
-  fsimpl.
-  Search _ (_ >>> ids).
-  SearchAbout _ (ren _ >> ren _).
-  rewrite /ren.
-  About ren_ren_comp.
-  About ren_comp.
-  ren_comp.
-  About up_comp.
-  simpl; f_equal; unfold var in *.
-  simpl.
-  cbn.
-  lia.
-Qed. *)
-Admitted.
-
-Lemma unstamped_path_unshifts_n p i n : path_root p ≠ ids i → is_unstamped_path n p → unshiftsN_vl i (path_root p).
-Proof.
-  rewrite /unshiftsN_vl; change (ids i) with (var_vl i).
-  elim: p => [v|p IHp l] /= Hne Hu; inversion Hu as [??? [x ?]|]; subst; last by eauto.
-  have {}Hne: x ≠ i by naive_solver.
-  rewrite subst_comp up_comp_n.
-  exact: ren_const.
-Qed.
-
-Notation unshifts_vl v := (∃ v', v = v'.[ren (+1)]).
-
-Lemma unstamped_path_unshifts p n : path_root p ≠ ids 0 → is_unstamped_path n p → unshifts_vl (path_root p).
-Proof.
-  change (ids 0) with (var_vl 0).
-  elim: p => [v|p IHp l] /= Hne Hu; inversion Hu as [??? [x ?]|]; subst; last by eauto.
-  have {}Hne: x ≠ 0 by naive_solver.
-  exists (var_vl (x - 1)).
-  simpl; f_equal; unfold var in *. lia.
-Qed.
-
 Lemma psubst_one_base_unshifts_path q p :
   unshifts_vl (path_root q) →
   unshifts (q .p[ pv (ids 0) := shift p]).
@@ -188,38 +266,7 @@ Proof.
   - by rewrite (IHq p Hp) /= shift_unshift.
 Qed.
 
-Lemma psubst_one_path_gen_unshifts_gen i q p : unshiftsN i (psubst_one_path_gen i q p).
-Proof.
-  rewrite /psubst_one_path_gen /unshiftsN.
-  move: p i; induction q => p i //=; f_equal/=; last eauto.
-  case_decide; simplify_eq/=.
-  rewrite iterate_S hsubst_comp up_comp_n.
-  admit.
-
-f_equal.
-  rewrite subst_comp.
-  (* apply unstamped_path_unshifts_n.
-  rewrite shift_unshift.
-  apply shift_unshift_p.
-    rewrite ?shift_unshift //.
-  - by rewrite Hp /= !subst_comp.
-  - by rewrite (IHq p Hp) /= shift_unshift.
-Qed. *)
-Admitted.
-
-Lemma psubst_one_base_unshifts_gen i T p : unshiftsN i (psubst_one_ty_gen i T p).
-Proof.
-  rewrite /psubst_one_ty_gen /unshiftsN.
-  move: p i; induction T => p0 i; f_equal/=; rewrite -?iterate_S;
-    eauto; exact: psubst_one_path_gen_unshifts_gen.
-Qed.
-
-(*
-Lemma psubst_one_base_unshifts T p: unshifts (psubst_one_base T p).
-Proof.
-  exists (unshift (psubst_one_base T p)).
-  rewrite /psubst_one_base.
-  move: p; induction T => p0; try by [f_equal/=; eauto].
+  (* move: p; induction T => p0; try by [f_equal/=; eauto].
   f_equal/=; eauto.
 
   set T' := λ i, T .T[ pv (ids i) := iterate (λ T, shift T) (i+1) p0 ].
@@ -227,8 +274,9 @@ Proof.
   rewrite IHT1.
   SearchAbout (up _ >> up _).
   autosubst.
-Abort.
+Abort. *)
 
+(*
 Lemma psubst_one_sufficient T1 T2 p q :
   psubst_one T1 p = T2 →
   T1 .Tp[ p /]~ T2.
