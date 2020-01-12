@@ -1,5 +1,5 @@
 From iris.proofmode Require Import tactics.
-From Coq.ssr Require ssrbool.
+From Coq.ssr Require Import ssrbool.
 
 From D.Dot Require Import syn syn.path_repl.
 From D.Dot Require Import stampingDefsCore.
@@ -9,6 +9,7 @@ Set Nested Proofs Allowed.
 
 Notation unshifts T := (∃ T', T = shift T').
 Notation unshifts_vl v := (∃ v', v = shiftV v').
+Notation pred := Nat.pred.
 Notation unshiftV v := v.[ren pred].
 
 Lemma shift_unshift `{Sort X} (x : X): unshift (shift x) = x.
@@ -43,8 +44,8 @@ Proof.
   by destruct 1; simplify_eq; rewrite shift_unshift.
 Qed.
 
-Notation upn_mp1 i x := (upn i (ren (pred >>> (+1))) x).
-Lemma ren_const_1 i :  upn_mp1 (S i) i = var_vl i.
+Notation upn_mp1 i := (upn i (ren (pred >>> (+1)))).
+Lemma ren_const_1 i : upn_mp1 (S i) i = var_vl i.
 Proof. elim: i => // i IHi. by rewrite iterate_S /up/= -/up IHi. Qed.
 
 (* Some testing for lemma [ren_const]. Seems very true. *)
@@ -52,41 +53,16 @@ Proof. elim: i => // i IHi. by rewrite iterate_S /up/= -/up IHi. Qed.
 Definition test_ren_const i x := (bool_decide (i = x ∨ upn_mp1 i x = var_vl x)).
 Time Eval vm_compute in bool_decide (true = foldr (&&) true $ ns ≫= (λ n, map (test_ren_const n) ns)). *)
 
+Lemma up_reduce s x : (up s (S x) : vl) = shiftV (s x).
+Proof. autosubst. Qed.
+
 Lemma ren_const x i : x ≠ i → upn_mp1 i x = var_vl x.
 Proof.
-  (* elim: x i => [|x IH] i Hne //=.
-  by elim: i Hne.
-  rewrite (IH i). *)
-
-  (* inverse H.
-  cbn in *.
-  clear H Hu. *)
-  (* elim: x Hne => [|x IH] Hne //=. rewrite (iterate_0, iterate_S). *)
-  elim: i x => [|i IHi] x Hne //=; rewrite ?iterate_0.
-  by cbv; case_match.
-  (* destruct_decide (decide (x = i)) as Hne'; simplify_eq; first exact: ren_const_1. *)
-  induction x => //.
-  rewrite iterate_S /up /= -/up (IHi x) //.
-  Import ssrbool.
-  by move: Hne => /Nat.eqb_spec /= /Nat.eqb_spec.
+  move => /Nat.eqb_spec.
+  elim: i x => [|i IHi] x Hne //=; rewrite ?iterate_0; first by cbv; case_match.
+  case: x Hne => [//|x] Hne.
+  by rewrite iterate_S up_reduce (IHi x Hne).
 Qed.
-  (* rewrite iterate_S.
-  rewrite  -(IH x Hne') {IH}.
-  induction x. by destruct i.
-  have {}Hne: x ≠ i by naive_solver.
-  rewrite /up /= -/up.
-  asimpl.
-
-  asimpl.
-  clear IH Hne.
-  elim: i => // i IHi.
-  by rewrite iterate_S /up/= -/up IHi.
-  Print up.
-  rewrite -(IH (S x)).
-  set y : vl := (upn_mp1 (S i) x).
-  red in y; fold @iterate in y.
-  rewrite ->iterate_S in y.
-*)
 
 Lemma unstamped_val_unshifts_0 v n : is_unstamped_path n (pv v) → v ≠ ids 0 → unshifts_vl v.
 Proof.
