@@ -5,7 +5,7 @@
   [stamp_typing_mut].
 *)
 From D Require Import tactics.
-From D.Dot.syn Require Export syn path_repl.
+From D.Dot Require Export syn syn.path_repl path_repl_misc.
 From D.Dot.stamping Require Export stampingDefsCore.
 
 Set Implicit Arguments.
@@ -31,12 +31,12 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ u⊢ₜ tapp e1 (tv (var_vl x2)) : T2.|[(var_vl x2)/]
 
 | App_path_typed p2 e1 T1 T2 T2':
-    T2 .Tp[ p2 /]~ T2' →
-    is_unstamped_ty (length Γ) T2' →
+    is_unstamped_ty (S (length Γ)) T2 →
+    (* T2 .Tp[ p2 /]~ T2' → *)
     Γ u⊢ₜ e1: TAll T1 T2 →
     Γ u⊢ₚ p2 : T1, 0 →
     (*────────────────────────────────────────────────────────────*)
-    Γ u⊢ₜ tapp e1 (path2tm p2) : T2'
+    Γ u⊢ₜ tapp e1 (path2tm p2) : psubst_one T2 p2
 (** Non-dependent application; allowed for any argument. *)
 | App_typed e1 e2 T1 T2:
     Γ u⊢ₜ e1: TAll T1 T2.|[ren (+1)] →      Γ u⊢ₜ e2 : T1 →
