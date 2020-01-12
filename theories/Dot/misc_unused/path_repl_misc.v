@@ -2,7 +2,7 @@ From iris.proofmode Require Import tactics.
 From Coq.ssr Require Import ssrbool.
 
 From D.Dot Require Import syn syn.path_repl.
-From D.Dot Require Import stampingDefsCore.
+From D.Dot Require Import stampingDefsCore unstampedness_binding closed_subst.
 
 Set Implicit Arguments.
 Implicit Types (Pv : vl → Prop).
@@ -150,6 +150,42 @@ Proof.
   rewrite -Heq. apply psubst_ty_rtc_sufficient.
   by rewrite Hw shift_unshift.
 Qed.
+
+Lemma is_unstamped_path_subst_gen i n p q :
+  is_unstamped_path (S i + n) q →
+  is_unstamped_path n p →
+  is_unstamped_path (S i + n) (psubst_one_path_gen i q p).
+Proof.
+  rewrite /psubst_one_path_gen.
+  move: p i; induction q => p i Hu Hup //=; last by (constructor;
+    inverse Hu; simplify_eq/=; eauto).
+  case_decide; simplify_eq => //.
+  (* eauto 4 using is_unstamped_sub_ren_path, is_unstamped_weaken_path with lia. *)
+  eapply is_unstamped_sub_ren_path, Hup; eauto with lia.
+Qed.
+
+Lemma is_unstamped_ty_subst_gen i n T p :
+  is_unstamped_ty (S i + n) T →
+  is_unstamped_path n p →
+  is_unstamped_ty (S i + n) (psubst_one_ty_gen i T p).
+Proof.
+  rewrite /psubst_one_ty_gen /unshiftsN.
+  move: p i n; induction T => p0 i n Hu; f_equal/=; with_is_unstamped inverse;
+    constructor; rewrite -?hrenS -?iterate_S /=;
+    change (S (i + n)) with (S i + n); eauto; exact: is_unstamped_path_subst_gen.
+Qed.
+
+Lemma is_unstamped_ty_subst n T p :
+  is_unstamped_ty (S n) T →
+  is_unstamped_path n p →
+  is_unstamped_ty n (psubst_one T p).
+Proof.
+  intros HuT Hup; have /= := (is_unstamped_ty_subst_gen (i := 0) HuT Hup).
+  rewrite /psubst_one /psubst_one_ty_gen -/(psubst_one_base T p).
+  have [T' Heq] := (psubst_one_base_unshifts p HuT).
+  rewrite Heq shift_unshift. apply is_unstamped_ren_ty.
+Qed.
+
 
 (**
 https://en.wikipedia.org/wiki/Idempotence#Idempotent_functions *)
