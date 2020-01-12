@@ -70,6 +70,7 @@ Section syntyping_stamping_lemmas.
   Hint Resolve is_stamped_path2tm is_unstamped_path2tm unstamp_path2tm : core.
   Hint Resolve unstamped_stamped_path unstamped_stamps_self_path : core.
 
+  Hint Resolve psubst_one_implies is_unstamped_ty_subst : core.
   Lemma stamp_objIdent_typing_mut Γ :
     (∀ e T, Γ u⊢ₜ e : T →
       ∀ (g : stys), ∃ e' (g' : stys),
@@ -128,9 +129,9 @@ Section syntyping_stamping_lemmas.
     have ?: p2' = p2. move: (unstamped_path_root_is_var Hu2). naive_solver.
     subst p2'.
     exists (tapp e1' (path2tm p2)), g2.
-    have ?: T2 .Tp[ p2 /]~ psubst_one T2 p2 by exact: psubst_one_implies.
+    (* have ?: T2 .Tp[ p2 /]~ psubst_one T2 p2 by exact: psubst_one_implies.
     have ?: is_unstamped_ty (length Γ) (psubst_one T2 p2)
-      by eapply is_unstamped_ty_subst.
+      by eapply is_unstamped_ty_subst. *)
     split_and!; first eapply typing_stamped.App_path_typed; naive_solver eauto 4.
   - intros * Hu1 IHs1 Hu2 IHs2 g.
     move: IHs1 => /(.$ g) [e1' [g1 ?]];
