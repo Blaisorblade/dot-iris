@@ -1,6 +1,6 @@
 (** Lemmas relating is_unstamped with binding and substitution. *)
 From D.Dot Require Import syn synLemmas traversals.
-From D.Dot Require Export stampingDefsCore.
+From D.Dot Require Export stampingDefsCore closed_subst.
 Import Trav1.
 
 Set Implicit Arguments.
@@ -388,9 +388,11 @@ Lemma is_unstamped_sub_one_rev i T v:
 Proof. intros; by eapply is_unstamped_sub_rev_ty. Qed.
 
 Lemma is_unstamped_ren_ty i T:
-  nclosed T i →
   is_unstamped_ty i T <->
   is_unstamped_ty (S i) (T.|[ren (+1)]).
 Proof.
-  split; [ exact: is_unstamped_ren1_ty | exact: is_unstamped_sub_rev_ty ].
+  split; first exact: is_unstamped_ren1_ty.
+  intros Hu.
+  eapply is_unstamped_sub_rev_ty, Hu.
+  eapply nclosed_ren_inv_ty_one, is_unstamped_nclosed_ty, Hu.
 Qed.
