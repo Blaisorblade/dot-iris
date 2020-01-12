@@ -101,10 +101,12 @@ Lemma psubst_one_path_gen_unshifts_gen i q p : unshiftsN i (psubst_one_path_gen 
 Proof.
   move: p i; induction q => p i //; last
     by rewrite /psubst_one_path_gen /unshiftsN in IHq |- *; f_equal/=; eauto.
-  hnf; cbn.
-  case_decide; simplify_eq/=.
+  hnf; cbn. case_decide; simplify_eq/=.
+  rewrite hsubst_comp up_comp_n.
+  asimpl.
+  rewrite iterate_S.
+  asimpl.
   admit.
-  rewrite iterate_S hsubst_comp up_comp_n.
 
   (* apply unstamped_path_unshifts_n.
   rewrite shift_unshift.
