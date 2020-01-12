@@ -166,7 +166,8 @@ Proof.
     by tcrush; eapply Subs_typed_nocoerce;
       [by eapply TMuE_typed, Var_typed' | tcrush].
   have HpxSubst: Γ' u⊢ₚ p0 @ "types" : fromPDotPaperAbsTypesTBodySubst, 0.
-    by eapply p_mu_e_typed; [apply fromPDotPSubst|tcrush|].
+  by eapply (p_mu_e_typed (T := fromPDotPaperAbsTypesTBody)
+    (p := p0 @ "types")), Hpx; tcrush.
   eapply (Path_typed (p := p0)), pself_inv_typed, (p_subs_typed (i := 0)), HpxSubst.
   repeat lNext.
 Qed.

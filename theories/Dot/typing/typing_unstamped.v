@@ -30,14 +30,14 @@ Inductive typed Γ : tm → ty → Prop :=
     (*────────────────────────────────────────────────────────────*)
     Γ u⊢ₜ tapp e1 (tv (var_vl x2)) : T2.|[(var_vl x2)/]
 
-| App_path_typed p2 e1 T1 T2 T2':
+| App_path_typed p2 e1 T1 T2:
     is_unstamped_ty (S (length Γ)) T2 →
     is_unstamped_path (length Γ) p2 →
     (* T2 .Tp[ p2 /]~ T2' → *)
     Γ u⊢ₜ e1: TAll T1 T2 →
     Γ u⊢ₚ p2 : T1, 0 →
     (*────────────────────────────────────────────────────────────*)
-    Γ u⊢ₜ tapp e1 (path2tm p2) : psubst_one T2 p2
+    Γ u⊢ₜ tapp e1 (path2tm p2) : T2 .Tp[ p2 /]
 (** Non-dependent application; allowed for any argument. *)
 | App_typed e1 e2 T1 T2:
     Γ u⊢ₜ e1: TAll T1 T2.|[ren (+1)] →      Γ u⊢ₜ e2 : T1 →
@@ -129,16 +129,14 @@ with path_typed Γ : path → ty → nat → Prop :=
     Γ u⊢ₚ p : T1, i →
     (*───────────────────────────────*)
     Γ u⊢ₚ p : T2, i + j
-| p_mu_i_typed p T {T' i} :
-    T .Tp[ p /]~ T' →
+| p_mu_i_typed p T {i} :
     is_unstamped_ty (S (length Γ)) T →
-    Γ u⊢ₚ p : T', i →
+    Γ u⊢ₚ p : T .Tp[ p /], i →
     Γ u⊢ₚ p : TMu T, i
-| p_mu_e_typed p T {T' i} :
-    T .Tp[ p /]~ T' →
-    is_unstamped_ty (length Γ) T' →
+| p_mu_e_typed p T {i} :
+    is_unstamped_ty (S (length Γ)) T →
     Γ u⊢ₚ p : TMu T, i →
-    Γ u⊢ₚ p : T', i
+    Γ u⊢ₚ p : T .Tp[ p /], i
 | pself_inv_typed p T i l:
     Γ u⊢ₚ pself p l : T, i →
     (*─────────────────────────*)

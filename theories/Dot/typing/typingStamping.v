@@ -71,6 +71,13 @@ Section syntyping_stamping_lemmas.
   Hint Resolve unstamped_stamped_path unstamped_stamps_self_path : core.
 
   Hint Resolve psubst_one_implies is_unstamped_ty_subst : core.
+  (** These hints slow down proof search. *)
+  (** Not directed. *)
+  Remove Hints typing_stamped.psingleton_trans : core.
+  (** These cause cycles. *)
+  Remove Hints typing_stamped.p_mu_e_typed : core.
+  Remove Hints typing_stamped.p_mu_i_typed : core.
+
   Lemma stamp_objIdent_typing_mut Γ :
     (∀ e T, Γ u⊢ₜ e : T →
       ∀ (g : stys), ∃ e' (g' : stys),
@@ -122,7 +129,7 @@ Section syntyping_stamping_lemmas.
     (* Expressions that appear in types must stamp to themselves! *)
     suff ?: e2' = tv (var_vl x2) by naive_solver.
     destruct e2'; naive_solver.
-  - intros * Hps Hus1 Husp Hu1 IHs1 Hu2 IHs2 g.
+  - intros * Hus1 Husp Hu1 IHs1 Hu2 IHs2 g.
     move: IHs1 => /(.$ g) [e1' [g1 [IHs1 [Hle1 Hse1]]]];
     move: IHs2 => /(.$ g1) [p2' [g2 [IHs2 [Hle2 ?]]]]; lte g g1 g2.
     have Hse1': unstamp_tm g2 e1' = e1. by eapply stamps_unstamp_mono_tm, Hse1.
@@ -229,13 +236,15 @@ Section syntyping_stamping_lemmas.
     exists p1', g2.
     split_and! => //. eapply typing_stamped.p_subs_typed, IHs2.
     by eapply stamped_objIdent_subtype_mono, Hs1.
-  - intros * Hps Hus Hu1 IHs1 g.
+  - intros * Hus Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [p1' [g1 ?]]; ev.
-    exists p1', g1. suff ?: p1' = p by naive_solver.
+    exists p1', g1.
+    suff ?: p1' = p by split_and! => //; econstructor; naive_solver.
     move: (unstamped_path_root_is_var Hu1). naive_solver.
-  - intros * Hps Hus1 Hu1 IHs1 g.
+  - intros * Hus1 Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [p1' [g1 [IHs1 ?]]]; ev.
-    exists p1', g1. suff ?: p1' = p by naive_solver.
+    exists p1', g1.
+    suff ?: p1' = p by split_and! => //; econstructor; naive_solver.
     move: (unstamped_path_root_is_var Hu1). naive_solver.
   - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [p1' [g1 [IHs1 ?]]]; ev.

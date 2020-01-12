@@ -514,35 +514,35 @@ Lemma TDistr_TLater_Mu_stp_inv Γ T i :
 Proof. intros; asideLaters; tcrush. Qed.
 
 (** Show that [singleton_Mu_[12]] and [p_mu_[ie]_typed] are interderivable. *)
-Lemma singleton_Mu_1 {Γ p T i T'} (Hrepl : T .Tp[ p /]~ T') :
+Lemma singleton_Mu_1 {Γ p T i} :
   Γ u⊢ₚ p : TMu T, i →
-  is_unstamped_ty (length Γ) T' →
-  Γ u⊢ₜ TSing p, i <: T', i.
-Proof. intros Hp Hu; apply PSelf_singleton_stp, (p_mu_e_typed Hrepl Hu Hp). Qed.
+  is_unstamped_ty (S (length Γ)) T →
+  Γ u⊢ₜ TSing p, i <: T .Tp[ p /], i.
+Proof. intros Hp Hu; apply PSelf_singleton_stp, (p_mu_e_typed Hu Hp). Qed.
 
-Lemma singleton_Mu_2 {Γ p T i T'} (Hrepl : T .Tp[ p /]~ T') :
-  Γ u⊢ₚ p : T', i →
+Lemma singleton_Mu_2 {Γ p T i} :
+  Γ u⊢ₚ p : T .Tp[ p /], i →
   is_unstamped_ty (S (length Γ)) T →
   Γ u⊢ₜ TSing p, i <: TMu T, i.
-Proof. intros Hp Hu; apply PSelf_singleton_stp, (p_mu_i_typed Hrepl Hu Hp). Qed.
+Proof. intros Hp Hu; apply PSelf_singleton_stp, (p_mu_i_typed Hu Hp). Qed.
 
 (* Avoid automation, to ensure we don't use [p_mu_e_typed] to show them. *)
-Lemma p_mu_e_typed' {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
+Lemma p_mu_e_typed' {Γ T p i} :
   Γ u⊢ₚ p : TMu T, i →
-  is_unstamped_ty (length Γ) T' →
-  Γ u⊢ₚ p : T', i.
+  is_unstamped_ty (S (length Γ)) T →
+  Γ u⊢ₚ p : T .Tp[ p /], i.
 Proof.
   intros Hp Hu. eapply p_subs_typed', (psingleton_refl_typed Hp).
-  apply (singleton_Mu_1 Hrepl Hp Hu).
+  apply (singleton_Mu_1 Hp Hu).
 Qed.
 
-Lemma p_mu_i_typed' {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
-  Γ u⊢ₚ p : T', i →
+Lemma p_mu_i_typed' {Γ T p i} :
+  Γ u⊢ₚ p : T .Tp[ p /], i →
   is_unstamped_ty (S (length Γ)) T →
   Γ u⊢ₚ p : TMu T, i.
 Proof.
   intros Hp Hu. eapply p_subs_typed', (psingleton_refl_typed Hp).
-  apply (singleton_Mu_2 Hrepl Hp Hu).
+  apply (singleton_Mu_2 Hp Hu).
 Qed.
 
 (**
@@ -561,15 +561,14 @@ to do that, one must unfold top-level recursive types in the type of [p],
 as allowed through [T_Mu_E_p], rules for intersection types and intersection introduction.
 On the other hand, this derived rule handles the substitution in [T2] directly.
 *)
-Lemma singleton_Mu_dotty1 {Γ p i T1' T2 T2'}
-  (Hrepl2 : T2 .Tp[ p /]~ T2'):
-  Γ u⊢ₜ T1', i <: T2', i →
+Lemma singleton_Mu_dotty1 {Γ p i T1' T2} :
+  Γ u⊢ₜ T1', i <: T2 .Tp[ p /], i →
   Γ u⊢ₚ p : T1', i →
   is_unstamped_ty (S (length Γ)) T2 →
   Γ u⊢ₜ TSing p, i <: TMu T2, i.
 Proof.
   intros Hsub Hp Hu.
-  apply (singleton_Mu_2 Hrepl2), Hu.
+  apply singleton_Mu_2, Hu.
   apply (p_subs_typed' Hsub Hp).
 Qed.
 
