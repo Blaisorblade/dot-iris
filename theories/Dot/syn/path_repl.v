@@ -6,6 +6,7 @@ Implicit Types
          (l : label).
 
 Notation unshift T := T.|[ren pred].
+Notation unshiftV v := v.[ren pred].
 
 Reserved Notation "p1 ~pp[ p := q  ] p2" (at level 70).
 Inductive path_path_repl (p q : path) : path → path → Prop :=
@@ -178,3 +179,7 @@ Section decide_psubst.
       ty_path_repl_TSel_rtc, psubst_path_rtc_sufficient, rtc_refl.
   Qed.
 End decide_psubst.
+
+Definition psubst_one_base T p := T .T[ pv (ids 0) := shift p ].
+Definition psubst_one T p := unshift (psubst_one_base T p).
+Notation "T .Tp[ p /]" := (psubst_one T p) (at level 65).

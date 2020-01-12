@@ -1,30 +1,26 @@
 From iris.proofmode Require Import tactics.
-From Coq.ssr Require Import ssrbool.
-
 From D.Dot Require Import syn syn.path_repl.
 From D.Dot Require Import stampingDefsCore unstampedness_binding closed_subst.
 
-Set Implicit Arguments.
+Implicit Types
+         (T : ty) (v w : vl) (t : tm) (d : dm) (ds : dms) (p q : path)
+         (Γ : ctx) (vs : vls) (l : label).
 Implicit Types (Pv : vl → Prop).
+
+From Coq.ssr Require Import ssrbool.
+(** [ssrbool] shadows [pred], shadow it back. *)
+Notation pred := Nat.pred.
+Set Implicit Arguments.
 Set Nested Proofs Allowed.
 
-Notation unshifts T := (∃ T', T = shift T').
+Notation unshifts x := (∃ x', x = shift x').
 Notation unshifts_vl v := (∃ v', v = shiftV v').
-Notation pred := Nat.pred.
-Notation unshiftV v := v.[ren pred].
 
 Lemma shift_unshift `{Sort X} (x : X): unshift (shift x) = x.
 Proof. by rewrite hsubst_comp hsubst_id. Qed.
 
 Lemma shift_unshift_vl v: unshiftV (shiftV v) = v.
 Proof. by rewrite subst_comp subst_id. Qed.
-
-Implicit Types
-         (T : ty) (v w : vl) (t : tm) (d : dm) (ds : dms) (p q : path)
-         (Γ : ctx) (vs : vls) (l : label).
-
-Definition psubst_one_base T p := (T .T[ pv (ids 0) := shift p ]).
-Definition psubst_one T p := (unshift (psubst_one_base T p)).
 
 Definition psubst_one_works T p := (unshifts (psubst_one_base T p)).
 
