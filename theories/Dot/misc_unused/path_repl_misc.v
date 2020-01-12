@@ -80,16 +80,7 @@ Lemma unstamped_path_unshifts_n p i n :
   path_root p ≠ ids i → is_unstamped_path n p → unshiftsN_vl i (path_root p).
 Proof. intros Hne Hu%is_unstamped_path_root. exact: unstamped_val_unshifts. Qed.
 
-(* Lemma unstamped_path_unshifts p n :
-  path_root p ≠ ids 0 → is_unstamped_path n p → unshifts_vl (path_root p).
-Proof. rewrite -unshifts_vl_equiv; apply unstamped_path_unshifts_n. Qed. *)
-
-(* Unused for now; generalize? *)
-Lemma psubst_one_shift_id q r : shift r .p[ pv (ids 0) := q ] = shift r.
-Proof.
-  elim: r => /= [v|r -> //]; case_decide => //; destruct v; simplify_eq.
-Qed.
-
+(*
 (* Unused for now; generalize? *)
 Lemma psubst_one_base_unshifts_path q p :
   unshifts_vl (path_root q) →
@@ -101,7 +92,7 @@ Proof.
     rewrite ?shift_unshift // => Hp.
   - by rewrite Hp /= !subst_comp.
   - by rewrite (IHq p Hp) /= shift_unshift.
-Qed.
+Qed. *)
 
 
 Definition psubst_one_path_gen i q p :=
@@ -129,25 +120,6 @@ Proof.
   suff Hr: unshiftsN_vl i v by f_equal.
   exact: unstamped_val_unshifts.
 Qed.
-  (* rewrite Hr.
-
-  rewrite -{2}Hr !hsubst_comp.
-  rewrite !hsubst_comp !up_comp_n !ren_comp.
-  rewrite -!scompA !up_comp_n !ren_comp.
-
-  asimpl.
-
-
-  admit.
-  f_equal. *)
-
-  (* apply unstamped_path_unshifts_n.
-  rewrite shift_unshift.
-  apply shift_unshift_p.
-    rewrite ?shift_unshift //.
-  - by rewrite Hp /= !subst_comp.
-  - by rewrite (IHq p Hp) /= shift_unshift.
-Qed. *)
 
 Lemma psubst_one_base_unshifts_gen i n T p :
   is_unstamped_ty n T → unshiftsN i (psubst_one_ty_gen i T p).
@@ -178,6 +150,8 @@ Proof.
   by rewrite Hw shift_unshift.
 Qed.
 
+(**
+https://en.wikipedia.org/wiki/Idempotence#Idempotent_functions *)
 Definition IdempotentUnary {A} (f: A → A) := ∀ x, f (f x) = f x.
 
 Lemma decide_unshift_proof {T} : T ≠ shift (unshift T) → unshifts T → False.
@@ -239,8 +213,6 @@ Proof.
   case_decide as Hdec => //; last by rewrite -IHr.
   exfalso; exact: (path_repl_longer []).
 Qed.
-(**
-https://en.wikipedia.org/wiki/Idempotence#Idempotent_functions *)
 
 Goal ~(∀ p q, IdempotentUnary (psubst_path p q)).
 Proof.
@@ -256,6 +228,11 @@ Lemma psubst_path_pv_idempotent v q
   IdempotentUnary (psubst_path (pv v) q).
 Proof.
   elim => [vr|r' IHq l] /=; repeat (case_decide; simplify_eq/=); by f_equal.
+Qed.
+
+Lemma psubst_one_shift_id q r : shift r .p[ pv (ids 0) := q ] = shift r.
+Proof.
+  elim: r => /= [v|r -> //]; case_decide => //; destruct v; simplify_eq.
 Qed.
 
 Lemma psubst_path_one_idempotent q:
