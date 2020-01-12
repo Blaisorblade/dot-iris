@@ -32,6 +32,7 @@ Inductive typed Γ : tm → ty → Prop :=
 
 | App_path_typed p2 e1 T1 T2 T2':
     is_unstamped_ty (S (length Γ)) T2 →
+    is_unstamped_path (length Γ) p2 →
     (* T2 .Tp[ p2 /]~ T2' → *)
     Γ u⊢ₜ e1: TAll T1 T2 →
     Γ u⊢ₚ p2 : T1, 0 →

@@ -121,13 +121,16 @@ Section syntyping_stamping_lemmas.
     (* Expressions that appear in types must stamp to themselves! *)
     suff ?: e2' = tv (var_vl x2) by naive_solver.
     destruct e2'; naive_solver.
-  - intros * Hps Hus1 Hu1 IHs1 Hu2 IHs2 g.
+  - intros * Hps Hus1 Husp Hu1 IHs1 Hu2 IHs2 g.
     move: IHs1 => /(.$ g) [e1' [g1 [IHs1 [Hle1 Hse1]]]];
     move: IHs2 => /(.$ g1) [p2' [g2 [IHs2 [Hle2 ?]]]]; lte g g1 g2.
     have Hse1': unstamp_tm g2 e1' = e1. by eapply stamps_unstamp_mono_tm, Hse1.
     have ?: p2' = p2. move: (unstamped_path_root_is_var Hu2). naive_solver.
     subst p2'.
     exists (tapp e1' (path2tm p2)), g2.
+    have ?: T2 .Tp[ p2 /]~ psubst_one T2 p2 by exact: psubst_one_implies.
+    have ?: is_unstamped_ty (length Γ) (psubst_one T2 p2)
+      by eapply is_unstamped_ty_subst.
     split_and!; first eapply typing_stamped.App_path_typed; naive_solver eauto 4.
   - intros * Hu1 IHs1 Hu2 IHs2 g.
     move: IHs1 => /(.$ g) [e1' [g1 ?]];
