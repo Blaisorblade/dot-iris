@@ -217,11 +217,11 @@ Proof. check. Qed.
 Goal (r .p[ p := q ]) .p[ p := q ] = r .p[ p := q ].
 Proof. check. Qed.
 
-Lemma foo : r' .p[ p := q ] .p[ p := q ] ≠ r' .p[ p := q ].
+Lemma aux : r' .p[ p := q ] .p[ p := q ] ≠ r' .p[ p := q ].
 Proof. check. Qed.
 
 Goal ~IdempotentUnary (psubst_path p q).
-Proof. move => /(_ r'). apply foo. Qed.
+Proof. move => /(_ r'). apply aux. Qed.
 
 Lemma not_psubst_path_idempotent: ~∀ p q,
   psubst_path p q q = q →
@@ -288,3 +288,151 @@ Lemma psubst_path_eq p q r: psubst_path p q r =
     end
   end.
 Proof. by case: r. Qed.
+
+Lemma upn_app i v s :
+  upn i (v .: s) i = shiftVN i v.
+Proof.
+  elim: i => [|i IHi] //=.
+  by rewrite subst_id iterate_0.
+  by rewrite iterate_S up_reduce IHi -renS.
+Qed.
+
+Require Import ssrbool.
+
+Lemma upn_reduce i s x :
+  upn (S i) s (S x) =@{vl} shiftV (upn i s x).
+Proof. by rewrite iterate_S up_reduce. Qed.
+Lemma upn_app_ids_ne x i v :
+  x ≠ i → upn i ((v .: ids) >> ren (+1)) x = ids x.
+Proof.
+  move => /Nat.eqb_spec.
+  elim: i x => [|i IHi] x Hne //=. by rewrite iterate_0 /scons/=; case_match.
+  case: x Hne => /= [|x] Hne.
+  autosubst.
+  by rewrite upn_reduce IHi.
+Qed.
+Lemma ren_upn i v : v.[ren (+i)].[upn i (ren (+1))] = v.[ren (+S i)].
+Proof.
+  move: (ren_upn_gen i 0 1). by rewrite plusnS !plusnO subst_comp =>->.
+Qed.
+
+(* Definition psubst_one_path_gen i q p :=
+  q .p[ pv (ids i) := shiftN (S i) p ]. *)
+(* Lemma foo q p
+q .p[ pv (ids  *)
+Lemma psubst_subst_agree_path_gen p v i n :
+  is_unstamped_path n p →
+  (* psubst_one_path_gen i p (pv v) = shift p.|[ upn i (v .: ids) ]. *)
+  psubst_one_path_gen i p (pv v) = p.|[ upn i ((v .: ids) >> ren (+1)) ].
+Proof.
+  rewrite /psubst_one_path_gen; move: i.
+  induction p => i //=; f_equal/=; intros; with_is_unstamped inverse; last eauto with f_equal.
+  simpl in *; ev;
+  (* match goal with | H : ∃ x, ?v = var_vl x |- _ => destruct H as [x ?] end; simplify_eq/=. *)
+    case_decide; simplify_eq/=; f_equal.
+
+    by rewrite -up_comp_n /= upn_app ren_upn.
+    rewrite upn_app_ids_ne; naive_solver.
+  Qed.
+(*
+  have ?: x ≠ i by naive_solver. *)
+  (* Proof.
+  move => /Nat.eqb_spec.
+  elim: i x => [|i IHi] x Hne //=. by rewrite iterate_0 /scons; case_match.
+  case: x Hne => /= [|x] Hne.
+  rewrite /up/=.
+  by rewrite iterate_S up_reduce. (IHi x Hne).
+
+  Lemma upn_app_ids_ne x i v :
+    x ≠ i → shiftV (upn i (v .: ids) x) = ids x.
+  Proof.
+  move => /Nat.eqb_spec.
+  elim: i x => [|i IHi] x Hne //=. by rewrite iterate_0 /scons; case_match.
+  case: x Hne => /= [|x] Hne.
+  rewrite /up/=.
+  by rewrite iterate_S up_reduce. (IHi x Hne).
+
+    revert x; induction i => // x Hne. rewrite iterate_0. asimpl.
+    rewrite /scons. case_match => //.
+    rewrite iterate_S. up_reduce. asimpl.
+
+    revert i; induction x => i Hne //. *)
+
+
+  (* upn_app_ne x i v s :
+  x ≠ i → upn i (v .: s) x =
+  simplify_eq.
+  rewrite upn_app.
+  asimpl. *)
+
+(* Lemma psubst_subst_agree_path p v i n :
+  is_unstamped_path n p →
+  psubst_one_path_gen i p (pv v) = p.|[ upn i ((v .: ids) >> ren (+1)) ].
+Proof.
+  rewrite /psubst_one_path_gen; move: i.
+  induction p => i //=; f_equal/=; intros; with_is_unstamped inverse; last eauto with f_equal.
+  simpl in *; ev; simplify_eq/=.
+  asimpl.
+  case_decide; simplify_eq/=.
+  asimpl.
+Admitted. *)
+
+Lemma psubst_subst_agree_ty_gen T v i n :
+  is_unstamped_ty n T →
+  psubst_one_ty_gen i T (pv v) = T.|[ upn i ((v .: ids) >> ren (+1)) ].
+  (* shiftN i (T .|[ v /]). *)
+  (* T .T[ pv (ids i) := shiftN (S i) (pv v) ]  *)
+Proof.
+  rewrite /psubst_one_ty_gen; move: i n.
+  induction T => i n Hu //=; with_is_unstamped inverse; f_equal/=;
+  rewrite -?(renS, iterate_S); eauto; exact: psubst_subst_agree_path_gen.
+Qed.
+
+Definition psubst_one_path_base q p := q .p[ pv (ids 0) := shift p ].
+Definition psubst_one_path q p := unshift (psubst_one_path_base q p).
+Notation "q .pp[ p /]" := (psubst_one_path q p) (at level 65).
+
+Lemma psubst_subst_agree_path p n v
+  (Hu : is_unstamped_path n p) :
+  p .pp[ pv v /] = p .|[ v /].
+Proof.
+  have := psubst_subst_agree_path_gen v 0 Hu.
+  rewrite iterate_0 /psubst_one_path /psubst_one_path_base /psubst_one_path_gen => ->.
+  rewrite -(shift_unshift p.|[v/]); f_equal.
+  by rewrite hsubst_comp.
+Qed.
+
+Lemma psubst_subst_agree_ty T n v
+  (Hu : is_unstamped_ty n T) :
+  T .Tp[ pv v /] = T .|[ v /].
+Proof.
+  have := psubst_subst_agree_ty_gen v 0 Hu.
+  rewrite iterate_0 /psubst_one /psubst_one_base /psubst_one_ty_gen => ->.
+  rewrite -(shift_unshift T.|[v/]); f_equal.
+  by rewrite hsubst_comp.
+Qed.
+
+(* Lemma foo T v :
+  T.|[(v .: ids) >> ren (+1)] = shift T.|[v/].
+  (* T.|[(v .: ids) >> ren (+1)] = T. *)
+Proof. by rewrite hsubst_comp. Qed. *)
+  (* unfold scomp, ren.
+  pose proof (scons_comp v ids (subst (ren (+1)))) as H1.
+  rewrite H1 H2.
+
+  pose proof (id_scompX ((+1) >>> ids)) as H2.
+fold (scomp (v .: ids) (ren (+1))) (scomp (ids) (ren (+1))) in H1.
+rewrite H1.
+fsimpl in H2.
+unfold ren in H1.
+fold (scomp (ids) (ren (+1))) in H2.
+rewrite scons_comp.
+Time asimpl. skip. Qed.
+Print foo.
+
+  (* Time asimpl. *)
+  Time abstract by autosubst.
+Qed. *)
+
+(* Definition psubst_one_path_gen i q p :=
+  q .p[ pv (ids i) := shiftN (S i) p ]. *)
