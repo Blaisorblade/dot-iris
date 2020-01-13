@@ -28,9 +28,7 @@ All file paths in this file are relative to the `theories/` folder.
 
 - Beyond `(T-μ-Iₚ)`, `(T-μ-Eₚ)` and `(T-∀-Eₚ)`, our development uses versions
   restricted to variables `(T-μ-I)`, `(T-μ-E)` and `(T-∀-E)` as separate rules.
-  The latter should be derivable, but we define path substitution separately,
-  and we have not mechanized the necessary binding lemmas relating the two forms
-  of substitution.
+  However, the latter are derivable.
 
 - Unlike in the appendix, our saved predicates support an additional argument
   `args : vec n vl` for some `n`. We always set `n = 0` to ignore this, but our

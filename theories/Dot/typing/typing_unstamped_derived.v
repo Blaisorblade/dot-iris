@@ -580,3 +580,47 @@ Lemma AnfBind_typed Γ t (T U: ty) :
   is_unstamped_ty (length Γ) T →
   Γ u⊢ₜ anfBind t : U.
 Proof. intros; eapply Let_typed; eauto. Qed.
+
+From D.Dot Require Import path_repl_lemmas typingStamping.
+
+Lemma unstamped_subject_closed {Γ e T}
+  (Ht : Γ u⊢ₜ e : T) :
+  nclosed e (length Γ).
+Proof.
+  destruct (stamp_objIdent_typed Ht ∅); ev. exact: is_unstamped_nclosed_tm.
+Qed.
+
+Lemma var_typed_closed {Γ x T} : Γ u⊢ₜ tv (ids x) : T → x < length Γ.
+Proof. by move => /unstamped_subject_closed/fv_of_val_inv/nclosed_var_lt. Qed.
+
+Lemma Appv_typed_derived Γ e1 x2 T1 T2:
+  Γ u⊢ₜ e1: TAll T1 T2 →
+  Γ u⊢ₜ tv (var_vl x2) : T1 →
+  is_unstamped_ty (S (length Γ)) T2 →
+  (*────────────────────────────────────────────────────────────*)
+  Γ u⊢ₜ tapp e1 (tv (var_vl x2)) : T2.|[(var_vl x2)/].
+Proof.
+  intros He1 Hx2 Hu. have Hlx2 := var_typed_closed Hx2.
+  rewrite -(psubst_subst_agree_ty (n := S (length Γ))); tcrush.
+  eapply App_path_typed with (p2 := (pv (var_vl x2))); tcrush.
+Qed.
+
+Lemma TMuE_typed_derived Γ x T:
+  Γ u⊢ₜ tv (var_vl x): TMu T →
+  (*──────────────────────*)
+  is_unstamped_ty (S (length Γ)) T →
+  Γ u⊢ₜ tv (var_vl x): T.|[(var_vl x)/].
+Proof.
+  move => + Hu. rewrite -(psubst_subst_agree_ty (n := S (length Γ))) // => Hx.
+  by apply (Path_typed (p := pv (ids x))), p_mu_e_typed, pv_typed, Hx.
+Qed.
+
+Lemma TMuI_typed_derived Γ x T:
+  Γ u⊢ₜ tv (var_vl x): T.|[(var_vl x)/] →
+  (*──────────────────────*)
+  is_unstamped_ty (S (length Γ)) T →
+  Γ u⊢ₜ tv (var_vl x): TMu T.
+Proof.
+  move => + Hu. rewrite -(psubst_subst_agree_ty (n := S (length Γ))) // => Hx.
+  by apply (Path_typed (p := pv (ids x))), p_mu_i_typed, pv_typed, Hx.
+Qed.
