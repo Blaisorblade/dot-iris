@@ -26,10 +26,6 @@ All file paths in this file are relative to the `theories/` folder.
   `is_unstamped_?` and `is_stamped_?`, characterizing whether some AST is
   unstamped or stamped.
 
-- Beyond `(T-μ-Iₚ)`, `(T-μ-Eₚ)` and `(T-∀-Eₚ)`, our development uses versions
-  restricted to variables `(T-μ-I)`, `(T-μ-E)` and `(T-∀-E)` as separate rules.
-  However, the latter are derivable.
-
 - Unlike in the appendix, our saved predicates support an additional argument
   `args : vec n vl` for some `n`. We always set `n = 0` to ignore this, but our
   implementation has additional flexibility.

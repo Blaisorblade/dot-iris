@@ -178,20 +178,19 @@ Definition hassertFun e :=
 Definition hassert e :=
   hassertFun e $: htv (hvnat 0).
 
-Lemma hassertBodyTyp Γ e :
-  Γ u⊢ₜ e : hclose hIFT →
-  Γ u⊢ₜ tv x0 : ⊤ →: ⊤ →
-  Γ u⊢ₜ tv x1 : ⊤ →: ⊤ →
-  Γ u⊢ₜ assertBody e : ⊤ →: ⊤.
+Lemma hassertBodyTyp Γ e T :
+  T :: Γ u⊢ₜ e : hclose hIFT →
+  T :: Γ u⊢ₜ tv x0 : ⊤ →: ⊤ →
+  T :: Γ u⊢ₜ tv x1 : ⊤ →: ⊤ →
+  T :: Γ u⊢ₜ assertBody e : ⊤ →: ⊤.
 Proof.
   rewrite /assertBody => /= He Hx0 Hx1.
-  have Hty: Γ u⊢ₜ tyApp e "A" (⊤ →: ⊤) :
+  have Hty: T :: Γ u⊢ₜ tyApp e "A" (⊤ →: ⊤) :
     hclose (⊤ →: ⊤) →: (⊤ →: ⊤) →: ▶: (⊤ →: ⊤).
-  by eapply tyApp_typed; first apply He; intros; cbv; tcrush;
+  by eapply tyApp_typed; first apply He; intros; simpl; tcrush;
     [eapply LSel_stp'..|eapply SelU_stp]; tcrush; var.
-
-  move: Hty => /Appv_typed /(_ Hx1) /Appv_typed /(_ Hx0) /= Hty.
-  eapply (Subs_typed (i := 1)), Hty. tcrush.
+  move: Hty => /Appv_typed /(_ Hx1 _) /Appv_typed /(_ Hx0) /= Hty.
+  eapply (Subs_typed (i := 1)), Hty; tcrush.
 Qed.
 
 Lemma hassertFunTyp Γ e
@@ -226,34 +225,36 @@ Definition hassertFun e :=
 Definition hassert e :=
   hassertFun e $: htv (hvnat 0).
 
-Lemma hassertBodyFalseTyp Γ e :
-  Γ u⊢ₜ e : hclose hIFTFalseT →
-  Γ u⊢ₜ tv x0 : ⊤ →
-  Γ u⊢ₜ tv x1 : ⊤ →
-  Γ u⊢ₜ assertBody e : TSing (pv x0).
+Lemma hassertBodyFalseTyp Γ e T :
+  T :: Γ u⊢ₜ e : hclose hIFTFalseT →
+  T :: Γ u⊢ₜ tv x0 : ⊤ →
+  T :: Γ u⊢ₜ tv x1 : ⊤ →
+  T :: Γ u⊢ₜ assertBody e : TSing (pv x0).
 Proof.
   move => /= He Hx0 Hx1.
-  have Hty: Γ u⊢ₜ tyApp e "A" ⊤ :
+  have Hty: T :: Γ u⊢ₜ tyApp e "A" ⊤ :
     hclose (∀: t : ⊤, ∀: f: ⊤, hTSing (hpv f)).
   by eapply tyApp_typed; first apply He; intros; tcrush;
     eapply LSel_stp'; tcrush; var.
   rewrite /assertBody.
-  by move: Hty => /Appv_typed /(_ Hx1) /Appv_typed /(_ Hx0) /=.
+  move: Hty => /Appv_typed /(_ Hx1 _) /Appv_typed /(_ Hx0) /=.
+  apply; tcrush.
 Qed.
 
-Lemma hassertBodyTrueTyp Γ e :
-  Γ u⊢ₜ e : hclose hIFTTrueT →
-  Γ u⊢ₜ tv x1 : ⊤ →
-  Γ u⊢ₜ tv x0 : ⊤ →
-  Γ u⊢ₜ assertBody e : TSing (pv x1).
+Lemma hassertBodyTrueTyp Γ e T U :
+  T :: U :: Γ u⊢ₜ e : hclose hIFTTrueT →
+  T :: U :: Γ u⊢ₜ tv x1 : ⊤ →
+  T :: U :: Γ u⊢ₜ tv x0 : ⊤ →
+  T :: U :: Γ u⊢ₜ assertBody e : TSing (pv x1).
 Proof.
   move => /= He Hx1 Hx0.
-  have Hty: Γ u⊢ₜ tyApp e "A" ⊤ :
+  have Hty: T :: U :: Γ u⊢ₜ tyApp e "A" ⊤ :
     hclose (∀: t : ⊤, ∀: f: ⊤, hTSing (hpv t)).
   by eapply tyApp_typed; first apply He; intros; tcrush;
     eapply LSel_stp'; tcrush; var.
   rewrite /assertBody.
-  by move: Hty => /Appv_typed /(_ Hx1) /Appv_typed /(_ Hx0) /=.
+  move: Hty => /Appv_typed /(_ Hx1 _) /Appv_typed /(_ Hx0) /=.
+  apply; tcrush.
 Qed.
 
 Lemma hassertFunTrueTyp Γ e :

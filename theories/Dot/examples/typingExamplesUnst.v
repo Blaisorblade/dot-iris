@@ -63,7 +63,7 @@ Proof.
     last eapply (Subs_typed_nocoerce TNat); tcrush.
 
   apply (Subs_typed_nocoerce (val "hashCode" : ⊤ →: 𝐍)).
-  by eapply Subs_typed_nocoerce; [eapply TMuE_typed'; by [var|] | tcrush].
+  by eapply Subs_typed_nocoerce; [eapply TMuE_typed'; by [var||stcrush] | tcrush].
   tcrush.
   eapply LSel_stp'; tcrush.
   varsub; tcrush.

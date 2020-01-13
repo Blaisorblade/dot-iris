@@ -123,13 +123,13 @@ Section syntyping_stamping_lemmas.
     all: try solve [intros * Hu1 IHs1 **; move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]]; exists g1; split_and!; eauto 3].
     all: try solve [intros; exists g; split_and!; auto 3].
 
-  - intros * Hu1 IHs1 Hu2 IHs2 g.
+  (* - intros * Hu1 IHs1 Hu2 IHs2 g.
     move: IHs1 => /(.$ g) [e1' [g1 ?]];
     move: IHs2 => /(.$ g1) [e2' [g2 ?]]; ev; lte g g1 g2.
     exists (tapp e1' (tv (var_vl x2))), g2.
     (* Expressions that appear in types must stamp to themselves! *)
     suff ?: e2' = tv (var_vl x2) by naive_solver.
-    destruct e2'; naive_solver.
+    destruct e2'; naive_solver. *)
   - intros * Hus1 Husp Hu1 IHs1 Hu2 IHs2 g.
     move: IHs1 => /(.$ g) [e1' [g1 [IHs1 [Hle1 Hse1]]]];
     move: IHs2 => /(.$ g1) [p2' [g2 [IHs2 [Hle2 ?]]]]; lte g g1 g2.
@@ -148,22 +148,22 @@ Section syntyping_stamping_lemmas.
   - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) [e1' [g1 ?]].
     exists (tproj e1' l), g1; naive_solver.
-  - intros * Hu1 IHs1 g.
+  (* - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) [e1' [g1 ?]].
     exists (tv (var_vl x)), g1.
     suff ?: e1' = tv (var_vl x) by naive_solver.
-    destruct e1'; naive_solver.
+    destruct e1'; naive_solver. *)
   - intros * Hus1 Hu1 IHs1 g.
     move: IHs1 => /(.$ g) [e' [g1 ?]].
     exists (tv (vabs e')), g1. naive_solver.
   - intros * Huds1 IHs1 Hus1 g.
     move: IHs1 => /(.$ g) [ds' [g1 ?]].
     exists (tv (vobj ds')), g1; naive_solver.
-  - intros * Hu1 IHs1 g.
+  (* - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) [e1' [g1 ?]].
     exists (tv (var_vl x)), g1.
     suff ?: e1' = tv (var_vl x) by naive_solver.
-    destruct e1'; naive_solver.
+    destruct e1'; naive_solver. *)
   - intros. exists (tv (vnat n)), g; naive_solver.
   - intros.
     have ? : x < length Γ by exact: lookup_lt_Some.
