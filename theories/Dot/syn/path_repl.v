@@ -180,6 +180,10 @@ Section decide_psubst.
   Qed.
 End decide_psubst.
 
+Definition psubst_one_path_base q p := q .p[ pv (ids 0) := shift p ].
+Definition psubst_one_path q p := unshift (psubst_one_path_base q p).
+Notation "q .pp[ p /]" := (psubst_one_path q p) (at level 65).
+
 Definition psubst_one_base T p := T .T[ pv (ids 0) := shift p ].
 Definition psubst_one T p := unshift (psubst_one_base T p).
 Notation "T .Tp[ p /]" := (psubst_one T p) (at level 65).

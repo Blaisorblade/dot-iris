@@ -129,3 +129,71 @@ Proof.
   have [T' ->] := (psubst_one_base_unshifts p HuT).
   rewrite shift_unshift. apply is_unstamped_ren_ty.
 Qed.
+
+Lemma upn_app i v s :
+  upn i (v .: s) i = shiftVN i v.
+Proof.
+  elim: i => [|i IHi] //=.
+  by rewrite subst_id iterate_0.
+  by rewrite iterate_S up_reduce IHi -renS.
+Qed.
+
+Lemma upn_reduce i s x :
+  upn (S i) s (S x) =@{vl} shiftV (upn i s x).
+Proof. by rewrite iterate_S up_reduce. Qed.
+
+Lemma upn_app_ids_ne x i v :
+  x ≠ i → upn i ((v .: ids) >> ren (+1)) x = ids x.
+Proof.
+  move => /Nat.eqb_spec.
+  elim: i x => [|i IHi] x Hne //=. by rewrite iterate_0 /scons/=; case_match.
+  case: x Hne => /= [|x] Hne.
+  autosubst.
+  by rewrite upn_reduce IHi.
+Qed.
+
+(* relative of [hren_upn] *)
+Lemma ren_upn i v : v.[ren (+i)].[upn i (ren (+1))] = v.[ren (+S i)].
+Proof.
+  move: (ren_upn_gen i 0 1). by rewrite plusnS !plusnO subst_comp =>->.
+Qed.
+
+Lemma psubst_subst_agree_path_gen p v i n :
+  is_unstamped_path n p →
+  psubst_one_path_gen i p (pv v) = p.|[ upn i ((v .: ids) >> ren (+1)) ].
+Proof.
+  rewrite /psubst_one_path_gen; move: i.
+  induction p => i //=; f_equal/=; intros; with_is_unstamped inverse; last eauto with f_equal.
+  simpl in *; ev; case_decide; simplify_eq/=; f_equal.
+  by rewrite -up_comp_n /= upn_app ren_upn.
+  by rewrite upn_app_ids_ne; naive_solver.
+Qed.
+
+Lemma psubst_subst_agree_ty_gen T v i n :
+  is_unstamped_ty n T →
+  psubst_one_ty_gen i T (pv v) = T.|[ upn i ((v .: ids) >> ren (+1)) ].
+Proof.
+  rewrite /psubst_one_ty_gen; move: i n.
+  induction T => i n Hu //=; with_is_unstamped inverse; f_equal/=;
+  rewrite -?(renS, iterate_S); eauto; exact: psubst_subst_agree_path_gen.
+Qed.
+
+Lemma psubst_subst_agree_path p n v
+  (Hu : is_unstamped_path n p) :
+  p .pp[ pv v /] = p .|[ v /].
+Proof.
+  have := psubst_subst_agree_path_gen v 0 Hu.
+  rewrite iterate_0 /psubst_one_path /psubst_one_path_base /psubst_one_path_gen => ->.
+  rewrite -(shift_unshift p.|[v/]); f_equal.
+  by rewrite hsubst_comp.
+Qed.
+
+Lemma psubst_subst_agree_ty T n v
+  (Hu : is_unstamped_ty n T) :
+  T .Tp[ pv v /] = T .|[ v /].
+Proof.
+  have := psubst_subst_agree_ty_gen v 0 Hu.
+  rewrite iterate_0 /psubst_one /psubst_one_base /psubst_one_ty_gen => ->.
+  rewrite -(shift_unshift T.|[v/]); f_equal.
+  by rewrite hsubst_comp.
+Qed.
