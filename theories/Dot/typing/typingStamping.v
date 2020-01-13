@@ -137,8 +137,8 @@ Section syntyping_stamping_lemmas.
     have ?: p2' = p2. move: (unstamped_path_root_is_var Hu2). naive_solver.
     subst p2'.
     exists (tapp e1' (path2tm p2)), g2.
-    (* have ?: T2 .Tp[ p2 /]~ psubst_one T2 p2 by exact: psubst_one_implies.
-    have ?: is_unstamped_ty (length Γ) (psubst_one T2 p2)
+    (* have ?: T2 .Tp[ p2 /]~ psubst_one_ty T2 p2 by exact: psubst_one_implies.
+    have ?: is_unstamped_ty (length Γ) (psubst_one_ty T2 p2)
       by eapply is_unstamped_ty_subst. *)
     split_and!; first eapply typing_stamped.App_path_typed; naive_solver eauto 4.
   - intros * Hu1 IHs1 Hu2 IHs2 g.

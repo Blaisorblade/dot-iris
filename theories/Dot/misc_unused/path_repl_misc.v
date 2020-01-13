@@ -163,10 +163,10 @@ Abort. *)
 
 (*
 Lemma psubst_one_sufficient T1 T2 p q :
-  psubst_one T1 p = T2 →
+  psubst_one_ty T1 p = T2 →
   T1 .Tp[ p /]~ T2.
 Proof.
-  rewrite /psubst_one.
+  rewrite /psubst_one_ty.
   move: (psubst_one_base_unshifts T1 p) => [T' Hrew] <-.
   rewrite Hrew shift_unshift.
   apply psubst_ty_rtc_sufficient, Hrew.

@@ -75,10 +75,10 @@ Qed.
 Notation unshifts x := (∃ x', x = shift x').
 
 Lemma psubst_one_base_unshifts {n T} p:
-  is_unstamped_ty n T → unshifts (psubst_one_base T p).
+  is_unstamped_ty n T → unshifts (psubst_one_ty_base T p).
 Proof.
-  intros Hu; exists (unshift (psubst_one_base T p)).
-  rewrite /psubst_one_base.
+  intros Hu; exists (unshift (psubst_one_ty_base T p)).
+  rewrite /psubst_one_ty_base.
   have := psubst_one_base_unshifts_gen 0 p Hu.
   by rewrite /unshiftsN /psubst_one_ty_gen ?iterate_S !iterate_0 => ->.
 Qed.
@@ -87,10 +87,10 @@ Qed.
 relational path substitution (the main one we use). *)
 Lemma psubst_one_implies n T p T' :
   is_unstamped_ty n T →
-  psubst_one T p = T' → T .Tp[ p /]~ T'.
+  psubst_one_ty T p = T' → T .Tp[ p /]~ T'.
 Proof.
   move => /(psubst_one_base_unshifts p) [T''].
-  rewrite /psubst_one /psubst_one_base => Hw <-.
+  rewrite /psubst_one_ty /psubst_one_ty_base => Hw <-.
   apply psubst_ty_rtc_sufficient.
   by rewrite Hw shift_unshift.
 Qed.
@@ -122,10 +122,10 @@ Qed.
 Lemma is_unstamped_ty_subst n T p :
   is_unstamped_ty (S n) T →
   is_unstamped_path n p →
-  is_unstamped_ty n (psubst_one T p).
+  is_unstamped_ty n (psubst_one_ty T p).
 Proof.
   intros HuT Hup; have /= := (is_unstamped_ty_subst_gen (i := 0) HuT Hup).
-  rewrite /psubst_one /psubst_one_ty_gen -/(psubst_one_base T p).
+  rewrite /psubst_one_ty /psubst_one_ty_gen -/(psubst_one_ty_base T p).
   have [T' ->] := (psubst_one_base_unshifts p HuT).
   rewrite shift_unshift. apply is_unstamped_ren_ty.
 Qed.
@@ -193,7 +193,7 @@ Lemma psubst_subst_agree_ty T n v
   T .Tp[ pv v /] = T .|[ v /].
 Proof.
   have := psubst_subst_agree_ty_gen v 0 Hu.
-  rewrite iterate_0 /psubst_one /psubst_one_base /psubst_one_ty_gen => ->.
+  rewrite iterate_0 /psubst_one_ty /psubst_one_ty_base /psubst_one_ty_gen => ->.
   rewrite -(shift_unshift T.|[v/]); f_equal.
   by rewrite hsubst_comp.
 Qed.
