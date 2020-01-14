@@ -28,6 +28,75 @@ Proof.
   rewrite /dms_hasnt /= => Hlds Hl; by case_decide; simplify_eq.
 Qed.
 
+Lemma dms_hasnt_notin_eq l ds : dms_hasnt ds l ↔ l ∉ map fst ds.
+Proof.
+  elim: ds => [|[l' d] ds] /=; first by split; [inversion 2|].
+  rewrite /dms_hasnt/= not_elem_of_cons => IHds. case_decide; naive_solver.
+Qed.
+
+Lemma ds_notin_subst l ds ρ :
+  l ∉ map fst ds →
+  l ∉ map fst ds.|[ρ].
+Proof.
+  (* elim: ds => [//|[l' d] ds IH]; cbn.
+  rewrite !not_elem_of_cons. naive_solver. *)
+  intros; by apply dms_hasnt_notin_eq, dms_hasnt_subst, dms_hasnt_notin_eq.
+Qed.
+
+Lemma wf_ds_nil : wf_ds ([] : dms). Proof. constructor. Qed.
+Hint Resolve wf_ds_nil : core.
+
+Lemma wf_ds_sub ds ρ : wf_ds ds → wf_ds ds.|[ρ].
+Proof.
+  elim: ds => [//=|[l d] ds IH]; cbn.
+  inversion_clear 1; constructor; last by eauto.
+  exact: ds_notin_subst.
+Qed.
+
+Lemma path_includes_self ds ρ : wf_ds ds → path_includes (pv (ids 0)) (vobj ds.|[up ρ] .: ρ) ds.
+Proof. eexists; split_and!; by [| rewrite up_sub_compose|apply wf_ds_sub]. Qed.
+
+Lemma path_includes_split p ρ l d ds :
+  path_includes p ρ ((l, d) :: ds) →
+  path_includes p ρ [(l, d)] ∧
+  path_includes p ρ ds.
+Proof.
+  rewrite /path_includes !path_wp_pure_eq; cbn.
+  intros (v & Hpw & ds' & -> & ((k1 & k2 & Hpid' & Hpids)%sublist_cons_l & Hno)).
+  repeat (split_and! => //; try eexists); rewrite Hpid'.
+  by apply sublist_inserts_l, sublist_skip, sublist_nil_l.
+  by apply sublist_inserts_l, sublist_cons, Hpids.
+Qed.
+
+Lemma dms_has_in_eq l d ds : wf_ds ds →
+  dms_has ds l d ↔ (l, d) ∈ ds.
+Proof.
+  rewrite /dms_has; elim: ds => [Hwf|[l' d'] ds IH /= /NoDup_cons [Hni Hwf]];
+    first by split; [|inversion 1].
+  rewrite elem_of_cons; case_decide; last naive_solver; split; first naive_solver.
+  destruct 1; simplify_eq/=; try naive_solver.
+  destruct Hni.
+  by eapply elem_of_list_In, (in_map fst ds (_,_)), elem_of_list_In.
+Qed.
+
+Lemma dms_lookup_sublist l v ds :
+  wf_ds ds → [(l, dvl v)] `sublist_of` ds →
+  dms_lookup l ds = Some (dvl v).
+Proof.
+  rewrite sublist_cons_l; intros Hwf ?; ev; simplify_eq/=.
+  apply dms_has_in_eq; [done|].
+  rewrite elem_of_app elem_of_cons. naive_solver.
+Qed.
+
+Lemma path_includes_field_aliases p ρ l v :
+  path_includes p ρ [(l, dvl v)] →
+  alias_paths (pself p.|[ρ] l) (pv v.[ρ]).
+Proof.
+  rewrite /path_includes/alias_paths/= !path_wp_pure_eq;
+    intros (w & Hwp & ds & -> & Hsub & Hwf'); repeat (eexists; split => //).
+  apply dms_lookup_sublist, Hsub. exact: wf_ds_sub.
+Qed.
+
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
@@ -93,7 +162,7 @@ Section Sec.
     Γ |L V ⊨ { l := dvl v } : TVMem l T1 -∗
     Γ |L V ⊨ { l := dvl v } : TVMem l T2.
   Proof.
-    iIntros "/= #Hsub #Hv !>" (ρ) "#Hg"; iApply def_interp_tvmem_eq.
+    iIntros "/= #Hsub #Hv !>" (ρ Hpid) "#Hg"; iApply def_interp_tvmem_eq.
     iApply ("Hsub" with "Hg").
     iApply def_interp_tvmem_eq. by iApply "Hv".
   Qed.
@@ -109,25 +178,31 @@ Section Sec.
      Γ |L T ⊨ds ds : T -∗
      Γ ⊨ tv (vobj ds) : TMu T.
   Proof.
-    iIntros "/= #Hds !>" (ρ) "#Hg /= !>". rewrite -wp_value'.
+    iDestruct 1 as (Hwf) "#Hds"; iIntros "!>" (ρ) "#Hg /= !>".
+    rewrite -wp_value'.
     iLöb as "IH".
     iApply lift_dsinterp_dms_vl_commute.
     rewrite norm_selfSubst.
-    iApply ("Hds" $! (vobj _ .: ρ)); by iFrame "IH Hg".
+    have Hs := path_includes_self ds ρ Hwf.
+    iApply ("Hds" $! (vobj _ .: ρ) Hs). by iFrame "IH Hg".
   Qed.
 
   Lemma DNil_I : Γ ⊨ds [] : TTop.
-  Proof. by iIntros "!> **". Qed.
+  Proof. by iSplit; last iIntros "!> **". Qed.
 
   Lemma DCons_I d ds l T1 T2:
     dms_hasnt ds l →
     Γ ⊨ { l := d } : T1 -∗ Γ ⊨ds ds : T2 -∗
     Γ ⊨ds (l, d) :: ds : TAnd T1 T2.
   Proof.
-    iIntros (Hlds) "#HT1 #HT2 !>". iIntros (ρ) "#Hg /=".
-    iSpecialize ("HT1" with "Hg"). iPoseProof "HT1" as (Hl) "_".
-    iSplit.
+    iIntros (Hlds) "#HT1 [% #HT2]"; iSplit.
+    by iIntros "!%"; cbn; constructor => //; by rewrite -dms_hasnt_notin_eq.
+    iIntros "!>" (ρ [Hpid Hpids]%path_includes_split) "#Hg"; cbn.
+    iSpecialize ("HT1" $! _  Hpid with "Hg"). iPoseProof "HT1" as (Hl) "_".
+    iDestruct ("HT2" $! _  Hpids with "Hg") as "{HT2} HT2".
+    repeat iSplit.
     - destruct T1; simplify_eq; iApply (def2defs_head with "HT1").
-    - iApply (defs_interp_mono with "(HT2 Hg)"); by [apply dms_hasnt_subst | eapply nclosed_sub_app].
+    - iApply (defs_interp_mono with "HT2"); by [apply dms_hasnt_subst | eapply nclosed_sub_app].
+  Qed.
   Qed.
 End Sec.

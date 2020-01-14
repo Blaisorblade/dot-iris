@@ -46,7 +46,7 @@ Section typing_type_member_defs.
     s ↝[ σ ] ⟦ T ⟧ -∗
     Γ ⊨ { l := dtysem σ s } : TTMem l L U.
   Proof.
-    iIntros "#HTU #HLT #Hs /= !>" (ρ) "#Hg".
+    iIntros "#HTU #HLT #Hs /= !>" (ρ Hpid) "#Hg".
     iDestruct "Hs" as (φ Hγφ) "Hγ"; iSplit => //=.
     iExists (φ _); iSplit. by iApply (dm_to_type_intro with "Hγ").
     iModIntro; repeat iSplit; iIntros (v) "#HL";

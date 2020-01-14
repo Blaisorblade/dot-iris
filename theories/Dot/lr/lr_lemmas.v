@@ -120,7 +120,7 @@ Section LambdaIntros.
     TLater V :: Γ ⊨ tv v : T -∗
     Γ |L V ⊨ { l := dvl v } : TVMem l T.
   Proof.
-    iIntros "/= #Hv !>" (ρ) "[#Hg #Hw]".
+    iIntros "/= #Hv !>" (ρ Hpid) "[#Hg #Hw]".
     rewrite def_interp_tvmem_eq.
     iApply wp_value_inv'; iApply ("Hv" with "[]"); by iSplit.
   Qed.

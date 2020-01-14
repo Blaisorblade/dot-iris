@@ -141,7 +141,7 @@ Section ex.
       iApply D_Typ_Abs => //; first last.
       iExists _; iSplit => //=.  (* Here we need a syntactic type matching [ipos]. *) *)
       iModIntro.
-      iIntros (ρ) "/= #_".
+      iIntros (ρ Hpid) "/= #_".
       iSplit => //. by iApply sHasA.
     - iApply DCons_I => //; last by iApply DNil_I.
       iApply D_TVMem_I.
