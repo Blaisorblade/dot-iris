@@ -99,7 +99,7 @@ Section NestIdentity.
     - iApply "HTU" => //. by iApply Hγφ.
   Qed.
 
-  Lemma TVMem_I {Γ} V T v l:
+  Lemma D_TVMem_I {Γ} V T v l:
     TLater V :: Γ ⊨ tv v : T -∗
     Γ |L V ⊨ { l := dvl v } : TVMem l T.
   Proof.
@@ -108,11 +108,11 @@ Section NestIdentity.
     iApply wp_value_inv'; iApply ("Hv" with "[]"); by iSplit.
   Qed.
 
-  Lemma TVMem_All_I {Γ} V T1 T2 e l:
+  Lemma D_TVMem_All_I {Γ} V T1 T2 e l:
     T1.|[ren (+1)] :: V :: Γ ⊨ e : T2 -∗
     Γ |L V ⊨ { l := dvl (vabs e) } : TVMem l (TAll T1 T2).
   Proof.
-    iIntros "HeT"; iApply TVMem_I.
+    iIntros "HeT"; iApply D_TVMem_I.
     (* Compared to [T_Forall_I], we must strip the later from [TLater V]. *)
     iApply T_Forall_I_Strong;
       iApply (ietp_weaken_ctx with "HeT") => ρ.
@@ -121,7 +121,7 @@ Section NestIdentity.
 
   Context Γ.
 
-  Lemma TVMem_Sub V T1 T2 v l:
+  Lemma D_TVMem_Sub V T1 T2 v l:
     Γ |L V ⊨ T1, 0 <: T2, 0 -∗
     Γ |L V ⊨ { l := dvl v } : TVMem l T1 -∗
     Γ |L V ⊨ { l := dvl v } : TVMem l T2.
@@ -193,7 +193,7 @@ Section NestIdentity.
   Qed.
 
   (** This lemma is equivalent to pDOT's (Def-New). *)
-  Lemma DT_New_Mem_I T l ds:
+  Lemma D_New_Mem_I T l ds:
     TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ ⊨ds ds : T -∗
     Γ ⊨ { l := dvl (vobj ds) } : TVMem l (TMu T).
   Proof.
