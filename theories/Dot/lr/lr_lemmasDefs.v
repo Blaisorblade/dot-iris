@@ -204,5 +204,22 @@ Section Sec.
     - destruct T1; simplify_eq; iApply (def2defs_head with "HT1").
     - iApply (defs_interp_mono with "HT2"); by [apply dms_hasnt_subst | eapply nclosed_sub_app].
   Qed.
+
+  (** This lemma is equivalent to pDOT's (Def-New). *)
+  Lemma D_New_Mem_I T l ds:
+    TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ ⊨ds ds : T -∗
+    Γ ⊨ { l := dvl (vobj ds) } : TVMem l (TMu T).
+  Proof.
+    iDestruct 1 as (Hwf) "#Hds"; iIntros "!>" (ρ Hpid) "#Hg /=".
+    rewrite def_interp_tvmem_eq /=.
+    iLöb as "IH".
+    iApply lift_dsinterp_dms_vl_commute.
+    rewrite norm_selfSubst.
+    have Hs := path_includes_self ds ρ Hwf.
+    iApply ("Hds" $! (vobj _ .: ρ) Hs with "[$IH $Hg]"); iIntros "!%".
+    (* rewrite shead_eq /=. *)
+    apply (path_includes_field_aliases (pv (var_vl 0)) ρ l (vobj ds) Hpid).
+    (* move: Hpid; apply path_includes_field_aliases. *)
+    (* exact: (path_includes_field_aliases (pv (var_vl 0)) ρ _ (vobj ds)). *)
   Qed.
 End Sec.
