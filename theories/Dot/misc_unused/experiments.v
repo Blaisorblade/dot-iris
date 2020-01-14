@@ -126,6 +126,39 @@ Section NestIdentity.
     iApply ("Hds" $! (vobj _ .: ρ) Hs). by iFrame "IH Hg".
   Qed.
 
+  Definition wf_ds ds := NoDup (map fst ds).
+
+  Lemma dms_lookup_sublist l ds ds' : wf_ds ds' →
+    [(l, dvl (vobj ds))] `sublist_of` ds' →
+    dms_lookup l ds' = Some (dvl (vobj ds)).
+  Proof.
+    rewrite sublist_cons_l. intros Hwf (k1 & k2 & -> & _).
+    have: dms_hasnt k1 l. admit.
+    rewrite /dms_hasnt => Hk1.
+    (* eapply dms_lookup_mono. *)
+  Admitted.
+  Lemma shift_reduce `{Sort X} (x : X) v ρ : (shift x).|[v .: ρ] = x.|[ρ].
+  Proof. by rewrite hsubst_comp. Qed.
+
+  Lemma DT_New_Mem_I T l p ds:
+    TAnd (TLater T) (TSing (shift (pself p l))) :: Γ ⊨[ pv (ids 0) ]ds ds : T -∗
+    Γ ⊨[ p ] { l := dvl (vobj ds) } : TVMem l (TMu T).
+  Proof.
+    iIntros "#Hds !>" (ρ Hpid) "#Hg /=".
+    rewrite def_interp_tvmem_eq /=.
+    iLöb as "IH".
+    iApply lift_dsinterp_dms_vl_commute.
+    rewrite norm_selfSubst.
+    have Hs := path_includes_self ds ρ.
+    iApply ("Hds" $! (vobj _ .: ρ) Hs). iFrame "Hg IH".
+    iIntros "!%".
+    move: Hpid. rewrite /path_includes shead_eq /alias_paths /= !path_wp_pure_eq shift_reduce.
+    intros (v & Hwp & ds' & -> & Hsub).
+    repeat (eexists; split => //).
+    have ?: wf_ds (selfSubst ds') by admit.
+    exact: dms_lookup_sublist.
+    (* naive_solver. *)
+  Admitted.
 End NestIdentity.
 
 (** These typing lemmas can be derived syntactically.
