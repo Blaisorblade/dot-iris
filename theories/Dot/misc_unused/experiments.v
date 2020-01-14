@@ -64,29 +64,29 @@ Notation "s ↝[  σ  ] φ" := (leadsto_envD_equiv s σ φ) (at level 20).
 Section NestIdentity.
   Context `{HdlangG: dlangG Σ}.
 
-  Definition idtp p Γ T l d : iProp Σ :=
-    □∀ ρ, ⌜path_includes p ρ [(l, d)] ⌝ → ⟦Γ⟧* ρ → def_interp T l ρ d.|[ρ].
+  Definition idtp Γ T l d : iProp Σ :=
+    □∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)] ⌝ → ⟦Γ⟧* ρ → def_interp T l ρ d.|[ρ].
   Global Arguments idtp /.
 
-  Definition idstp p Γ T ds : iProp Σ :=
-    ⌜wf_ds ds⌝ ∧ □∀ ρ, ⌜path_includes p ρ ds ⌝ → ⟦Γ⟧* ρ → defs_interp T ρ ds.|[ρ].
+  Definition idstp Γ T ds : iProp Σ :=
+    ⌜wf_ds ds⌝ ∧ □∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → ⟦Γ⟧* ρ → defs_interp T ρ ds.|[ρ].
   Global Arguments idstp /.
 
   Local Notation IntoPersistent' P := (IntoPersistent false P P).
-  Global Instance idtp_persistent p Γ T l d: IntoPersistent' (idtp p Γ T l d) | 0 := _.
-  Global Instance idstp_persistent p Γ T ds: IntoPersistent' (idstp p Γ T ds) | 0 := _.
+  Global Instance idtp_persistent Γ T l d: IntoPersistent' (idtp Γ T l d) | 0 := _.
+  Global Instance idstp_persistent Γ T ds: IntoPersistent' (idstp Γ T ds) | 0 := _.
 
   (** Single-definition typing *)
-  Notation "Γ ⊨[ p ] {  l := d  } : T" := (idtp p Γ T l d) (at level 74, d, l, T at next level).
+  Notation "Γ ⊨ { l := d  } : T" := (idtp Γ T l d) (at level 74, d, l, T at next level).
   (** Multi-definition typing *)
-  Notation "Γ ⊨[ p ]ds ds : T" := (idstp p Γ T ds) (at level 74, ds, T at next level).
+  Notation "Γ ⊨ds ds : T" := (idstp Γ T ds) (at level 74, ds, T at next level).
 
 
-  Lemma D_Typ_Abs Γ T L U s σ l p :
+  Lemma D_Typ_Abs Γ T L U s σ l :
     Γ ⊨ TLater T, 0 <: TLater U, 0 -∗
     Γ ⊨ TLater L, 0 <: TLater T, 0 -∗
     s ↝[ σ ] ⟦ T ⟧ -∗
-    Γ ⊨[ p ] { l := dtysem σ s } : TTMem l L U.
+    Γ ⊨ { l := dtysem σ s } : TTMem l L U.
   Proof.
     iIntros "#HTU #HLT #Hs /= !>" (ρ Hpid) "#Hg".
     iDestruct "Hs" as (φ Hγφ) "Hγ"; iSplit => //=.
@@ -97,18 +97,18 @@ Section NestIdentity.
     - iApply "HTU" => //. by iApply Hγφ.
   Qed.
 
-  Lemma TVMem_I {Γ} V T v l p:
+  Lemma TVMem_I {Γ} V T v l:
     TLater V :: Γ ⊨ tv v : T -∗
-    Γ |L V ⊨[ p ] { l := dvl v } : TVMem l T.
+    Γ |L V ⊨ { l := dvl v } : TVMem l T.
   Proof.
     iIntros "/= #Hv !>" (ρ Hpid) "[#Hg #Hw]".
     rewrite def_interp_tvmem_eq.
     iApply wp_value_inv'; iApply ("Hv" with "[]"); by iSplit.
   Qed.
 
-  Lemma TVMem_All_I {Γ} V T1 T2 e l p:
+  Lemma TVMem_All_I {Γ} V T1 T2 e l:
     T1.|[ren (+1)] :: V :: Γ ⊨ e : T2 -∗
-    Γ |L V ⊨[ p ] { l := dvl (vabs e) } : TVMem l (TAll T1 T2).
+    Γ |L V ⊨ { l := dvl (vabs e) } : TVMem l (TAll T1 T2).
   Proof.
     iIntros "HeT"; iApply TVMem_I.
     (* Compared to [T_Forall_I], we must strip the later from [TLater V]. *)
@@ -119,23 +119,23 @@ Section NestIdentity.
 
   Context Γ.
 
-  Lemma TVMem_Sub V T1 T2 v l p:
+  Lemma TVMem_Sub V T1 T2 v l:
     Γ |L V ⊨ T1, 0 <: T2, 0 -∗
-    Γ |L V ⊨[ p ] { l := dvl v } : TVMem l T1 -∗
-    Γ |L V ⊨[ p ] { l := dvl v } : TVMem l T2.
+    Γ |L V ⊨ { l := dvl v } : TVMem l T1 -∗
+    Γ |L V ⊨ { l := dvl v } : TVMem l T2.
   Proof.
     iIntros "/= #Hsub #Hv !>" (ρ Hpid) "#Hg"; iApply def_interp_tvmem_eq.
     iApply ("Hsub" with "Hg").
     iApply def_interp_tvmem_eq. by iApply "Hv".
   Qed.
 
-  Lemma DNil_I p : Γ ⊨[ p ]ds [] : TTop.
+  Lemma DNil_I p : Γ ⊨ds [] : TTop.
   Proof. by iSplit; last iIntros "!> **". Qed.
 
   Lemma DCons_I p d ds l T1 T2:
     dms_hasnt ds l →
-    Γ ⊨[ p ] { l := d } : T1 -∗ Γ ⊨[ p ]ds ds : T2 -∗
-    Γ ⊨[ p ]ds (l, d) :: ds : TAnd T1 T2.
+    Γ ⊨ { l := d } : T1 -∗ Γ ⊨ds ds : T2 -∗
+    Γ ⊨ds (l, d) :: ds : TAnd T1 T2.
   Proof.
     iIntros (Hlds) "#HT1 [% #HT2]".
     iSplit.
@@ -149,7 +149,7 @@ Section NestIdentity.
   Qed.
 
   Lemma T_New_I T ds:
-     Γ |L T ⊨[ pv (ids 0) ]ds ds : T -∗
+     Γ |L T ⊨ds ds : T -∗
      Γ ⊨ tv (vobj ds) : TMu T.
   Proof.
     iDestruct 1 as (Hwf) "#Hds".
@@ -181,9 +181,9 @@ Section NestIdentity.
     rewrite elem_of_app elem_of_cons. naive_solver.
   Qed.
 
-  Lemma path_includes_field_aliases p l v ρ :
-    path_includes p ρ [(l, dvl v)]
-    → alias_paths (pself p.|[ρ] l) (pv v.[ρ]).
+  Lemma path_includes_field_aliases p ρ l v :
+    path_includes p ρ [(l, dvl v)] →
+    alias_paths (pself p.|[ρ] l) (pv v.[ρ]).
   Proof.
     rewrite /path_includes/alias_paths/= !path_wp_pure_eq;
       intros (w & Hwp & ds & -> & Hsub & Hwf'); repeat (eexists; split => //).
@@ -191,9 +191,9 @@ Section NestIdentity.
   Qed.
 
   (** This lemma is equivalent to pDOT's (Def-New). *)
-  Lemma DT_New_Mem_I T l p ds:
-    TAnd (TLater T) (TSing (shift (pself p l))) :: Γ ⊨[ pv (ids 0) ]ds ds : T -∗
-    Γ ⊨[ p ] { l := dvl (vobj ds) } : TVMem l (TMu T).
+  Lemma DT_New_Mem_I T l ds:
+    TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ ⊨ds ds : T -∗
+    Γ ⊨ { l := dvl (vobj ds) } : TVMem l (TMu T).
   Proof.
     iDestruct 1 as (Hwf) "#Hds".
     iIntros "!>" (ρ Hpid) "#Hg /=".
@@ -203,8 +203,10 @@ Section NestIdentity.
     rewrite norm_selfSubst.
     have Hs := path_includes_self ds ρ Hwf.
     iApply ("Hds" $! (vobj _ .: ρ) Hs with "[$IH $Hg]"); iIntros "!%".
-    move: Hpid; rewrite shift_reduce shead_eq.
-    exact: path_includes_field_aliases.
+    (* rewrite shead_eq /=. *)
+    apply (path_includes_field_aliases (pv (var_vl 0)) ρ l (vobj ds) Hpid).
+    (* move: Hpid; apply path_includes_field_aliases. *)
+    (* exact: (path_includes_field_aliases (pv (var_vl 0)) ρ _ (vobj ds)). *)
   Qed.
 End NestIdentity.
 
