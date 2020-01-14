@@ -110,6 +110,10 @@ with dm_typed Γ g : ty → label → dm → ty → Prop :=
     is_stamped_ty (S (length Γ)) g T1 →
     T1.|[ren (+1)] :: V :: Γ v⊢ₜ[ g ] e : T2 →
     Γ |d V v⊢[ g ]{ l := dvl (vabs e) } : TVMem l (TAll T1 T2)
+| dnew_typed V l T ds:
+    TLater V :: Γ |ds TAnd T (TSing (pself (pv (ids 1)) l)) v⊢[ g ] ds : T →
+    is_stamped_ty (S (S (length Γ))) g T →
+    Γ |d V v⊢[ g ]{ l := dvl (vobj ds) } : TVMem l (TMu T)
 | dvl_typed V l v T:
     TLater V :: Γ v⊢ₜ[ g ] tv v : T →
     Γ |d V v⊢[ g ]{ l := dvl v } : TVMem l T

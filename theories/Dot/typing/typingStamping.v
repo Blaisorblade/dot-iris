@@ -201,6 +201,9 @@ Section syntyping_stamping_lemmas.
   - intros * Hus1 Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [e1' [g1 ?]]; destruct_and!.
     exists (dvl (vabs e1')), g1; naive_solver.
+  - intros * Hus1 IHs1 Hu1 g.
+    move: IHs1 => /(.$ g) /= [ds' [g1 ?]]; destruct_and!.
+    exists (dvl (vobj ds')), g1; naive_solver.
   - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [e1' [g1 ?]]; destruct_and!.
     have [v' ?]: ∃ v', e1' = tv v' by destruct e1'; naive_solver.

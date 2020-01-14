@@ -150,12 +150,40 @@ Section Sec.
     iDestruct "HT" as "[HT1 HT2]"; iSplit; by [>iApply "IHT"|iApply "IHT1"].
   Qed.
 
-  Context Γ.
-
   Local Arguments lift_dinterp_vl: simpl never.
   Local Arguments lift_dinterp_dms: simpl never.
   Local Arguments def_interp_tmem: simpl never.
   Local Arguments def_interp_vmem: simpl never.
+
+  (** This lemma is equivalent to pDOT's (Def-New). *)
+  Lemma D_New_Mem_I Γ T l ds:
+    TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ ⊨ds ds : T -∗
+    Γ ⊨ { l := dvl (vobj ds) } : TVMem l (TMu T).
+  Proof.
+    iDestruct 1 as (Hwf) "#Hds"; iIntros "!>" (ρ Hpid) "#Hg /=".
+    rewrite def_interp_tvmem_eq /=.
+    iLöb as "IH".
+    iApply lift_dsinterp_dms_vl_commute.
+    rewrite norm_selfSubst.
+    have Hs := path_includes_self ds ρ Hwf.
+    iApply ("Hds" $! (vobj _ .: ρ) Hs with "[$IH $Hg]"); iIntros "!%".
+    (* rewrite shead_eq /=. *)
+    apply (path_includes_field_aliases (pv (var_vl 0)) ρ l (vobj ds) Hpid).
+    (* move: Hpid; apply path_includes_field_aliases. *)
+    (* exact: (path_includes_field_aliases (pv (var_vl 0)) ρ _ (vobj ds)). *)
+  Qed.
+
+  Lemma D_New_Mem_I' Γ V T l ds:
+    (TLater V :: Γ) |L TAnd T (TSing (pself (pv (ids 1)) l)) ⊨ds ds : T -∗
+    Γ |L V ⊨ { l := dvl (vobj ds) } : TVMem l (TMu T).
+  Proof.
+    iIntros "#H"; iApply D_New_Mem_I.
+    iDestruct "H" as (Hwf) "#Hds". iFrame (Hwf).
+    iIntros "!>" (ρ Hpid) "/= #[[??] [??]]".
+    iApply ("Hds" with "[//] [$]").
+  Qed.
+
+  Context Γ.
 
   Lemma D_TVMem_Sub V T1 T2 v l:
     Γ |L V ⊨ T1, 0 <: T2, 0 -∗
@@ -203,23 +231,5 @@ Section Sec.
     repeat iSplit.
     - destruct T1; simplify_eq; iApply (def2defs_head with "HT1").
     - iApply (defs_interp_mono with "HT2"); by [apply dms_hasnt_subst | eapply nclosed_sub_app].
-  Qed.
-
-  (** This lemma is equivalent to pDOT's (Def-New). *)
-  Lemma D_New_Mem_I T l ds:
-    TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ ⊨ds ds : T -∗
-    Γ ⊨ { l := dvl (vobj ds) } : TVMem l (TMu T).
-  Proof.
-    iDestruct 1 as (Hwf) "#Hds"; iIntros "!>" (ρ Hpid) "#Hg /=".
-    rewrite def_interp_tvmem_eq /=.
-    iLöb as "IH".
-    iApply lift_dsinterp_dms_vl_commute.
-    rewrite norm_selfSubst.
-    have Hs := path_includes_self ds ρ Hwf.
-    iApply ("Hds" $! (vobj _ .: ρ) Hs with "[$IH $Hg]"); iIntros "!%".
-    (* rewrite shead_eq /=. *)
-    apply (path_includes_field_aliases (pv (var_vl 0)) ρ l (vobj ds) Hpid).
-    (* move: Hpid; apply path_includes_field_aliases. *)
-    (* exact: (path_includes_field_aliases (pv (var_vl 0)) ρ _ (vobj ds)). *)
   Qed.
 End Sec.
