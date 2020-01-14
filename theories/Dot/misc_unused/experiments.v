@@ -10,6 +10,11 @@ Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
          (Γ : ctx).
 
+Notation wf_ds ds := (NoDup (map fst ds)).
+
+Definition path_includes p ρ ds :=
+  path_wp_pure p.|[ρ] (λ w, ∃ ds', w = vobj ds' ∧ ds.|[ρ] `sublist_of` ds'.|[w/] ∧ wf_ds ds').
+
 Lemma shift_reduce_vl v w ρ : (shiftV v).[w .: ρ] = v.[ρ].
 Proof. by rewrite subst_comp. Qed.
 Lemma shift_reduce `{Sort X} (x : X) w ρ : (shift x).|[w .: ρ] = x.|[ρ].
@@ -29,11 +34,6 @@ Proof.
   rewrite !not_elem_of_cons. naive_solver. *)
   intros; by apply dms_hasnt_notin_eq, dms_hasnt_subst, dms_hasnt_notin_eq.
 Qed.
-
-Notation wf_ds ds := (NoDup (map fst ds)).
-
-Definition path_includes p ρ ds :=
-  path_wp_pure p.|[ρ] (λ w, ∃ ds', w = vobj ds' ∧ ds.|[ρ] `sublist_of` ds'.|[w/] ∧ wf_ds ds').
 
 Lemma wf_ds_nil : wf_ds ([] : dms). Proof. constructor. Qed.
 Hint Resolve wf_ds_nil : core.
@@ -67,7 +67,7 @@ Proof.
     first by split; [|inversion 1].
   rewrite elem_of_cons; case_decide; last naive_solver; split; first naive_solver.
   destruct 1; simplify_eq/=; try naive_solver.
-  exfalso; apply Hni.
+  destruct Hni.
   by eapply elem_of_list_In, (in_map fst ds (_,_)), elem_of_list_In.
 Qed.
 
