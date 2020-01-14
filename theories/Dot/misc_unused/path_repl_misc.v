@@ -1,18 +1,71 @@
 From iris.proofmode Require Import tactics.
-
-From D.Dot.syn Require Import syn path_repl.
-
-Notation unshifts T := (∃ T', T = shift T').
+From D.Dot Require Import syn syn.path_repl path_repl_lemmas.
+From D.Dot Require Import stampingDefsCore unstampedness_binding closed_subst.
 
 Implicit Types
          (T : ty) (v w : vl) (t : tm) (d : dm) (ds : dms) (p q : path)
          (Γ : ctx) (vs : vls) (l : label).
 
-Implicit Types (Pv : vl → Prop).
+Set Implicit Arguments.
 Set Nested Proofs Allowed.
 
-Lemma shift_unshift T: unshift (shift T) = T.
-Proof. by rewrite hsubst_comp hsubst_id. Qed.
+Notation unshifts x := (∃ x', x = shift x').
+Notation unshifts_vl v := (∃ v', v = shiftV v').
+
+Lemma shift_unshift_vl v: unshiftV (shiftV v) = v.
+Proof. by rewrite subst_comp subst_id. Qed.
+
+Definition unshifts_vl_equiv v : unshiftsN_vl 0 v ↔ unshifts_vl v.
+Proof.
+  rewrite /unshiftsN_vl !iterate_0; split.
+  by exists (unshiftV v).
+  by destruct 1; simplify_eq; rewrite shift_unshift_vl.
+Qed.
+
+Definition unshifts_equiv `{Sort X} (x : X) : unshiftsN 0 x ↔ unshifts x.
+Proof.
+  rewrite /unshiftsN !iterate_0; split.
+  by exists (unshift x).
+  by destruct 1; simplify_eq; rewrite shift_unshift.
+Qed.
+
+Lemma ren_comp r s : ren r >> ren s = ren (r >>> s).
+Proof. done. Qed.
+
+
+(* Lemma unstamped_val_unshifts_0 v n :
+  is_unstamped_path n (pv v) → v ≠ ids 0 → unshifts_vl v.
+Proof. rewrite -unshifts_vl_equiv; apply unstamped_val_unshifts. Qed. *)
+
+Lemma is_unstamped_path_root n p :
+  is_unstamped_path n p →
+  is_unstamped_path n (pv (path_root p)).
+Proof. elim: p => //=; intros; with_is_unstamped inverse; eauto. Qed.
+
+Lemma unstamped_path_unshifts_n p i n :
+  path_root p ≠ ids i → is_unstamped_path n p → unshiftsN_vl i (path_root p).
+Proof. intros Hne Hu%is_unstamped_path_root. exact: unstamped_val_unshifts. Qed.
+
+(*
+(* Unused for now; generalize? *)
+Lemma psubst_one_base_unshifts_path q p :
+  unshifts_vl (path_root q) →
+  unshifts (q .p[ pv (ids 0) := shift p]).
+Proof.
+  intros [v' Hu].
+  exists (unshift (q .p[ pv (ids 0) := shift p])).
+  move: p Hu; induction q => p //=; try case_decide;
+    rewrite ?shift_unshift // => Hp.
+  - by rewrite Hp /= !subst_comp.
+  - by rewrite (IHq p Hp) /= shift_unshift.
+Qed. *)
+
+
+
+(**
+https://en.wikipedia.org/wiki/Idempotence#Idempotent_functions *)
+Definition IdempotentUnary {A} (f: A → A) := ∀ x, f (f x) = f x.
+
 Lemma decide_unshift_proof {T} : T ≠ shift (unshift T) → unshifts T → False.
 Proof. move => Hne [T' Hn]. apply: Hne. by rewrite Hn shift_unshift. Qed.
 
@@ -53,7 +106,7 @@ Section psubst_path_implies_lemmas.
     path_size (append_ls p ls) = length ls + path_size p.
   Proof. by elim: ls => /= [| _ ls ->]. Qed.
 
-  Lemma path_repl_longer ls {p p1 p2 q l} :
+  Lemma path_repl_longer {ls p p1 p2 q l} :
     p1 ~pp[ p := q ] p2 →
     ~append_ls p1 (l :: ls) = p.
   Proof.
@@ -70,11 +123,8 @@ Proof.
   move => Hr.
   elim: Hr => [|p1' p2' l Hr IHr] /=; first exact: psubst_path_self.
   case_decide as Hdec => //; last by rewrite -IHr.
-  exfalso; exact: (path_repl_longer []).
+  exfalso; exact: (path_repl_longer (ls := [])).
 Qed.
-(**
-https://en.wikipedia.org/wiki/Idempotence#Idempotent_functions *)
-Definition IdempotentUnary {A} (f: A → A) := ∀ x, f (f x) = f x.
 
 Goal ~(∀ p q, IdempotentUnary (psubst_path p q)).
 Proof.
@@ -84,10 +134,6 @@ Proof.
   by repeat (simplify_eq/=; case_decide).
 Qed.
 
-Lemma psubst_one_shift_id q r : shift r .p[ pv (ids 0) := q ] = shift r.
-Proof.
-  elim: r => /= [v|r -> //]; case_decide => //; destruct v; simplify_eq.
-Qed.
 
 Lemma psubst_path_pv_idempotent v q
   (Heq : psubst_path (pv v) q q = q):
@@ -96,51 +142,31 @@ Proof.
   elim => [vr|r' IHq l] /=; repeat (case_decide; simplify_eq/=); by f_equal.
 Qed.
 
+Lemma psubst_one_shift_id q r : shift r .p[ pv (ids 0) := q ] = shift r.
+Proof.
+  elim: r => /= [v|r -> //]; case_decide => //; destruct v; simplify_eq.
+Qed.
+
 Lemma psubst_path_one_idempotent q:
   IdempotentUnary (psubst_path (pv (ids 0)) (shift q)).
 Proof. apply psubst_path_pv_idempotent, psubst_one_shift_id. Qed.
 
-Definition psubst_one_base T p := (T .T[ pv (ids 0) := shift p ]).
-Definition psubst_one_works T p := (unshifts (psubst_one_base T p)).
-Definition psubst_one T p := (unshift (psubst_one_base T p)).
+  (* move: p; induction T => p0; try by [f_equal/=; eauto].
+  f_equal/=; eauto.
 
-Lemma shift_unshift_p p: unshift (shift p) = p.
-Proof. by rewrite hsubst_comp hsubst_id. Qed.
-From D.Dot Require Import stampingDefsCore.
+  set T' := λ i, T .T[ pv (ids i) := iterate (λ T, shift T) (i+1) p0 ].
+  rewrite !hsubst_comp up_comp.
+  rewrite IHT1.
+  SearchAbout (up _ >> up _).
+  autosubst.
+Abort. *)
 
-Notation unshifts_vl v := (∃ v', v = v'.[ren (+1)]).
-Lemma unstamped_path_unshifts p n : path_root p ≠ ids 0 → is_unstamped_path n p → unshifts_vl (path_root p).
-Proof.
-  change (ids 0) with (var_vl 0).
-  elim: p => [v|p IHp l] /= Hne Hu; inversion Hu as [??? [x ?]|]; subst; last by eauto.
-  have {}Hne: x ≠ 0 by naive_solver.
-  exists (var_vl (x - 1)). simpl; f_equal; unfold var in *. lia.
-Qed.
-
-Lemma psubst_one_base_unshifts_path q p :
-  unshifts_vl (path_root q) →
-  unshifts (q .p[ pv (ids 0) := shift p]).
-Proof.
-  intros [v' Hu].
-  exists (unshift (q .p[ pv (ids 0) := shift p])).
-  move: p Hu; induction q => p //=; try case_decide;
-    rewrite ?shift_unshift_p // => Hp.
-  - by rewrite Hp /= !subst_comp.
-  - by rewrite (IHq p Hp) /= shift_unshift_p.
-Qed.
-
-(* Lemma psubst_one_base_unshifts T p: unshifts (psubst_one_base T p).
-Proof.
-  exists (unshift (psubst_one_base T p)).
-  rewrite /psubst_one_base.
-  move: p; induction T => p0 /=; f_equal; eauto.
-Abort.
-
+(*
 Lemma psubst_one_sufficient T1 T2 p q :
-  psubst_one T1 p = T2 →
+  psubst_one_ty T1 p = T2 →
   T1 .Tp[ p /]~ T2.
 Proof.
-  rewrite /psubst_one.
+  rewrite /psubst_one_ty.
   move: (psubst_one_base_unshifts T1 p) => [T' Hrew] <-.
   rewrite Hrew shift_unshift.
   apply psubst_ty_rtc_sufficient, Hrew.
@@ -191,11 +217,11 @@ Proof. check. Qed.
 Goal (r .p[ p := q ]) .p[ p := q ] = r .p[ p := q ].
 Proof. check. Qed.
 
-Lemma foo : r' .p[ p := q ] .p[ p := q ] ≠ r' .p[ p := q ].
+Lemma aux : r' .p[ p := q ] .p[ p := q ] ≠ r' .p[ p := q ].
 Proof. check. Qed.
 
 Goal ~IdempotentUnary (psubst_path p q).
-Proof. move => /(_ r'). apply foo. Qed.
+Proof. move => /(_ r'). apply aux. Qed.
 
 Lemma not_psubst_path_idempotent: ~∀ p q,
   psubst_path p q q = q →
