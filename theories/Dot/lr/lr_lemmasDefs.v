@@ -6,13 +6,16 @@ Implicit Types (L T U V: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 Lemma norm_selfSubst ds s: selfSubst ds.|[up s] = ds.|[(vobj ds).[s] .: s].
 Proof. by rewrite /selfSubst up_sub_compose. Qed.
 
-Lemma dms_hasnt_map_mono ds l f:
+Lemma dms_hasnt_map ds l f:
   dms_hasnt ds l →
   dms_hasnt (map (mapsnd f) ds) l.
 Proof.
   elim: ds => //; rewrite /dms_hasnt/mapsnd/= => [[l' d] ds IHds H].
   by case_decide; eauto 2.
 Qed.
+
+Lemma dms_hasnt_subst l ds ρ : dms_hasnt ds l → dms_hasnt ds.|[ρ] l.
+Proof. apply dms_hasnt_map. Qed.
 
 Lemma dms_lookup_head l d ds: dms_lookup l ((l, d) :: ds) = Some d.
 Proof. by cbn; case_decide. Qed.
@@ -125,6 +128,6 @@ Section Sec.
     iSpecialize ("HT1" with "Hg"). iPoseProof "HT1" as (Hl) "_".
     iSplit.
     - destruct T1; simplify_eq; iApply (def2defs_head with "HT1").
-    - iApply (defs_interp_mono with "(HT2 Hg)"); by [apply dms_hasnt_map_mono | eapply nclosed_sub_app].
+    - iApply (defs_interp_mono with "(HT2 Hg)"); by [apply dms_hasnt_subst | eapply nclosed_sub_app].
   Qed.
 End Sec.
