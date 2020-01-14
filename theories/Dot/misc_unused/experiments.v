@@ -10,7 +10,9 @@ Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
          (Γ : ctx).
 
-Lemma shift_reduce `{Sort X} (x : X) v ρ : (shift x).|[v .: ρ] = x.|[ρ].
+Lemma shift_reduce_vl v w ρ : (shiftV v).[w .: ρ] = v.[ρ].
+Proof. by rewrite subst_comp. Qed.
+Lemma shift_reduce `{Sort X} (x : X) w ρ : (shift x).|[w .: ρ] = x.|[ρ].
 Proof. by rewrite hsubst_comp. Qed.
 
 Lemma dms_hasnt_notin_eq l ds : dms_hasnt ds l ↔ l ∉ map fst ds.
@@ -30,6 +32,9 @@ Qed.
 
 Notation wf_ds ds := (NoDup (map fst ds)).
 
+Definition path_includes p ρ ds :=
+  path_wp_pure p.|[ρ] (λ w, ∃ ds', w = vobj ds' ∧ ds.|[ρ] `sublist_of` ds'.|[w/] ∧ wf_ds ds').
+
 Lemma wf_ds_nil : wf_ds ([] : dms). Proof. constructor. Qed.
 Hint Resolve wf_ds_nil : core.
 
@@ -39,9 +44,6 @@ Proof.
   inversion_clear 1; constructor; last by eauto.
   exact: ds_notin_subst.
 Qed.
-
-Definition path_includes p ρ ds :=
-  path_wp_pure p.|[ρ] (λ w, ∃ ds', w = vobj ds' ∧ ds.|[ρ] `sublist_of` ds'.|[w/] ∧ wf_ds ds').
 
 Lemma path_includes_self ds ρ : wf_ds ds → path_includes (pv (ids 0)) (vobj ds.|[up ρ] .: ρ) ds.
 Proof. eexists; split_and!; by [| rewrite up_sub_compose|apply wf_ds_sub]. Qed.
