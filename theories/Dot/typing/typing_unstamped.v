@@ -92,13 +92,13 @@ with dm_typed Γ : ty → label → dm → ty → Prop :=
     is_unstamped_ty (S (length Γ)) T1 →
     T1.|[ren (+1)] :: V :: Γ u⊢ₜ e : T2 →
     Γ |d V u⊢{ l := dvl (vabs e) } : TVMem l (TAll T1 T2)
+| dvl_typed V l v T:
+    TLater V :: Γ u⊢ₜ tv v : T →
+    Γ |d V u⊢{ l := dvl v } : TVMem l T
 | dnew_typed V l T ds:
     TLater V :: Γ |ds TAnd T (TSing (pself (pv (ids 1)) l)) u⊢ ds : T →
     is_unstamped_ty (S (S (length Γ))) T →
     Γ |d V u⊢{ l := dvl (vobj ds) } : TVMem l (TMu T)
-| dvl_typed V l v T:
-    TLater V :: Γ u⊢ₜ tv v : T →
-    Γ |d V u⊢{ l := dvl v } : TVMem l T
 | dvl_sub_typed V T1 T2 v l:
     TLater V :: Γ u⊢ₜ T1, 0 <: T2, 0 →
     Γ |d V u⊢{ l := dvl v } : TVMem l T1 →
