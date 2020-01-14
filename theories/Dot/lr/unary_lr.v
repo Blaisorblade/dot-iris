@@ -277,11 +277,14 @@ Section logrel.
      ▷^i path_wp p.|[ρ] (λ v, ⟦T⟧ ρ v).
   Global Arguments iptp /.
 
-  Global Instance idtp_persistent Γ T l d: Persistent (idtp Γ T l d) := _.
-  Global Instance idstp_persistent Γ T ds: Persistent (idstp Γ T ds) := _.
-  Global Instance ietp_persistent Γ T e : Persistent (ietp Γ T e) := _.
-  Global Instance step_indexed_ivstp_persistent Γ T1 T2 i j : Persistent (step_indexed_ivstp Γ T1 T2 i j) := _.
-  Global Instance iptp_persistent Γ T p i : Persistent (iptp Γ T p i) := _.
+  Local Notation IntoPersistent' P := (IntoPersistent false P P).
+
+  (* Avoid auto-dropping box (and unfolding) when introducing judgments persistently. *)
+  Global Instance idtp_persistent Γ T l d: IntoPersistent' (idtp Γ T l d) | 0 := _.
+  Global Instance idstp_persistent Γ T ds: IntoPersistent' (idstp Γ T ds) | 0 := _.
+  Global Instance ietp_persistent Γ T e : IntoPersistent' (ietp Γ T e) | 0 := _.
+  Global Instance step_indexed_ivstp_persistent Γ T1 T2 i j : IntoPersistent' (step_indexed_ivstp Γ T1 T2 i j) | 0 := _.
+  Global Instance iptp_persistent Γ T p i : IntoPersistent' (iptp Γ T p i) | 0 := _.
 End logrel.
 
 Notation "d ↗ ψ" := (dm_to_type d ψ) (at level 20).
@@ -345,13 +348,13 @@ Section logrel_lemmas.
 
   Context {Γ}.
   Lemma Sub_Refl T i : Γ ⊨ T, i <: T, i.
-  Proof. by iIntros "/= !> **". Qed.
+  Proof. by iIntros "!> **". Qed.
 
   Lemma Sub_Trans T1 T2 T3 i1 i2 i3 : Γ ⊨ T1, i1 <: T2, i2 -∗
                                       Γ ⊨ T2, i2 <: T3, i3 -∗
                                       Γ ⊨ T1, i1 <: T3, i3.
   Proof.
-    iIntros "#Hsub1 #Hsub2 /= !> * #Hg #HT".
+    iIntros "#Hsub1 #Hsub2 !> * #Hg #HT".
     iApply ("Hsub2" with "[//] (Hsub1 [//] [//])").
   Qed.
 

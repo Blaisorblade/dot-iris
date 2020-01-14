@@ -9,14 +9,6 @@ From D.Dot.lr Require Import unary_lr
 Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
          (Γ : ctx).
-Section ProofModeTry.
-  Context `{HdlangG: dlangG Σ}.
-
-  (*XXX : move away from here. Avoid auto-dropping box (and unfolding) when introducing ietp persistently. *)
-  Global Instance: IntoPersistent false (ietp Γ T e) (ietp Γ T e) | 0 := _.
-
-End ProofModeTry.
-
 
 (** These typing lemmas can be derived syntactically.
  But I had written semantic proofs first, and they might help. *)
