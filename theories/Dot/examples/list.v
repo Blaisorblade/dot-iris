@@ -23,7 +23,7 @@ Proof.
   apply (Subs_typed (i := 1) (T1 := hclose (▶: hpx (length Γ'') @; "Boolean")));
     rewrite /= plusnO; tcrush.
     eapply Subs_typed_nocoerce.
-  - eapply TMuE_typed'; first eapply Var_typed'; by [rewrite lookup_app_r ?Nat.sub_diag|].
+  - eapply TMuE_typed'; first eapply Var_typed'; try by [rewrite lookup_app_r ?Nat.sub_diag|]; stcrush.
   - ltcrush.
 Qed.
 
@@ -34,7 +34,7 @@ Proof.
   apply (Subs_typed (i := 1) (T1 := hclose (▶: hpx (length Γ'') @; "Boolean")));
     rewrite /= plusnO; tcrush.
   eapply Subs_typed_nocoerce.
-  - eapply TMuE_typed'; first eapply Var_typed'; by [rewrite lookup_app_r ?Nat.sub_diag|].
+  - eapply TMuE_typed'; first eapply Var_typed'; try by [rewrite lookup_app_r ?Nat.sub_diag|]; stcrush.
   - ltcrush.
 Qed.
 
@@ -260,7 +260,7 @@ Proof.
     |- ?Γ u⊢ₜ _ : _ =>
     set Γ' := Γ
   end.
-  have HL : Γ' u⊢ₜ tv (ids 0): hclose (hlistModTBody hx1 hx0) by apply: TMuE_typed'; first var.
+  have HL : Γ' u⊢ₜ tv (ids 0): hclose (hlistModTBody hx1 hx0) by apply: TMuE_typed'; first var; stcrush.
 
   (* The result of "head" has one more later than the list. *)
   eapply (Subs_typed (i := 2) (T1 := hclose (▶: (▶: 𝐍)))).
@@ -286,7 +286,7 @@ Proof.
   {
     eapply Subs_typed_nocoerce; first
       eapply TMuE_typed' with (T1 := hclose (val "head" : ⊤ →: hp0 @; "A"));
-      [ | done | tcrush ].
+      [ | done | tcrush ..].
       - varsub; asideLaters; lThis; ltcrush.
       - by apply (SelU_stp (L := hclose ⊥)); tcrush; varsub; ltcrush.
   }

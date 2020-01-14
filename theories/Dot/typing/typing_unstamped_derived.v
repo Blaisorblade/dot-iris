@@ -2,6 +2,7 @@ From stdpp Require Import strings.
 From D Require Import tactics.
 From D.Dot Require Import syn synLemmas exampleInfra typing_unstamped.
 From D.Dot Require Import unstampedness_binding.
+From D.Dot Require Import path_repl_lemmas typingStamping.
 Import DBNotation.
 
 Lemma is_unstamped_pvar i n : i < n → is_unstamped_path n (pv (var_vl i)).
@@ -10,6 +11,15 @@ Hint Resolve is_unstamped_pvar : core.
 Lemma is_unstamped_pvars i n l : i < n → is_unstamped_ty n (pv (var_vl i) @; l).
 Proof. eauto. Qed.
 Hint Resolve is_unstamped_pvars : core.
+Lemma unstamped_subject_closed {Γ e T}
+  (Ht : Γ u⊢ₜ e : T) :
+  nclosed e (length Γ).
+Proof.
+  destruct (stamp_objIdent_typed Ht ∅); ev. exact: is_unstamped_nclosed_tm.
+Qed.
+
+Lemma var_typed_closed {Γ x T} : Γ u⊢ₜ tv (ids x) : T → x < length Γ.
+Proof. by move => /unstamped_subject_closed/fv_of_val_inv/nclosed_var_lt. Qed.
 
 Ltac typconstructor := match goal with
   | |- typed _ _ _ => constructor
@@ -21,6 +31,43 @@ Ltac typconstructor := match goal with
 
 (* Ltac tcrush := repeat first [ fast_done | typconstructor | stcrush ]. *)
 Ltac tcrush := repeat first [ eassumption | reflexivity | typconstructor | stcrush ].
+
+Lemma Appv_typed Γ e1 x2 T1 T2:
+  Γ u⊢ₜ e1: TAll T1 T2 →
+  Γ u⊢ₜ tv (var_vl x2) : T1 →
+  is_unstamped_ty (S (length Γ)) T2 →
+  (*────────────────────────────────────────────────────────────*)
+  Γ u⊢ₜ tapp e1 (tv (var_vl x2)) : T2.|[(var_vl x2)/].
+Proof.
+  intros He1 Hx2 Hu. have Hlx2 := var_typed_closed Hx2.
+  rewrite -(psubst_subst_agree_ty (n := S (length Γ))); tcrush.
+  eapply App_path_typed with (p2 := (pv (var_vl x2))); tcrush.
+Qed.
+
+Lemma TMuE_typed Γ x T:
+  Γ u⊢ₜ tv (var_vl x): TMu T →
+  (*──────────────────────*)
+  is_unstamped_ty (S (length Γ)) T →
+  Γ u⊢ₜ tv (var_vl x): T.|[(var_vl x)/].
+Proof.
+  move => + Hu. rewrite -(psubst_subst_agree_ty (n := S (length Γ))) // => Hx.
+  by apply (Path_typed (p := pv (ids x))), p_mu_e_typed, pv_typed, Hx.
+Qed.
+
+Lemma TMuI_typed Γ x T:
+  Γ u⊢ₜ tv (var_vl x): T.|[(var_vl x)/] →
+  (*──────────────────────*)
+  is_unstamped_ty (S (length Γ)) T →
+  Γ u⊢ₜ tv (var_vl x): TMu T.
+Proof.
+  move => + Hu. rewrite -(psubst_subst_agree_ty (n := S (length Γ))) // => Hx.
+  by apply (Path_typed (p := pv (ids x))), p_mu_i_typed, pv_typed, Hx.
+Qed.
+
+Ltac tcrush ::=
+  repeat first [ eassumption | reflexivity |
+  apply TMuI_typed | apply TMuE_typed |
+  typconstructor | stcrush ].
 
 Lemma is_unstamped_TLater_n i {n T}:
   is_unstamped_ty n T →
@@ -121,16 +168,18 @@ Ltac varsub := (eapply Var0_typed_sub || eapply Var_typed_sub); first done.
 Lemma Appv_typed' T2 {Γ e1 x2 T1 T3} :
   Γ u⊢ₜ e1: TAll T1 T2 →                        Γ u⊢ₜ tv (ids x2) : T1 →
   T3 = T2.|[ids x2/] →
+  is_unstamped_ty (S (length Γ)) T2 →
   (*────────────────────────────────────────────────────────────*)
   Γ u⊢ₜ tapp e1 (tv (ids x2)) : T3.
-Proof. intros; subst; by econstructor. Qed.
+Proof. intros; subst; exact: Appv_typed. Qed.
 
 Lemma TMuE_typed' Γ x T1 T2:
   Γ u⊢ₜ tv (ids x): μ T1 →
   T2 = T1.|[ids x/] →
+  is_unstamped_ty (S (length Γ)) T1 →
   (*──────────────────────*)
   Γ u⊢ₜ tv (ids x): T2.
-Proof. intros; subst; auto. Qed.
+Proof. intros; subst; tcrush. Qed.
 
 Lemma Sub_later_shift {Γ T1 T2 i j}
   (Hs1: is_unstamped_ty (length Γ) T1)
@@ -359,7 +408,7 @@ Lemma tyApp_typed Γ T U V t l :
   Γ u⊢ₜ tyApp t l T : V.
 Proof.
   move => Ht Hsub HuT1 HuU1.
-  eapply Let_typed; [exact: Ht| |tcrush].
+  eapply Let_typed; [exact: Ht| |wtcrush].
   eapply Let_typed; [apply packTV_typed| |]; wtcrush.
   rewrite /= -!hrenS -/(typeEq _ _).
 
@@ -369,6 +418,9 @@ Proof.
   have HuT3 : is_unstamped_ty (S (S (length Γ))) (shiftN 2 T)
     by rewrite hrenS; wtcrush.
   varsub; tcrush; rewrite !hsubst_comp; f_equal. autosubst.
+  asimpl.
+  eapply is_unstamped_sub_ren_ty, HuU1.
+  by move => [|i] Hi //=; [constructor => /=| eauto].
 Qed.
 
 (** * Manipulating laters, more.
@@ -514,35 +566,35 @@ Lemma TDistr_TLater_Mu_stp_inv Γ T i :
 Proof. intros; asideLaters; tcrush. Qed.
 
 (** Show that [singleton_Mu_[12]] and [p_mu_[ie]_typed] are interderivable. *)
-Lemma singleton_Mu_1 {Γ p T i T'} (Hrepl : T .Tp[ p /]~ T') :
+Lemma singleton_Mu_1 {Γ p T i} :
   Γ u⊢ₚ p : TMu T, i →
-  is_unstamped_ty (length Γ) T' →
-  Γ u⊢ₜ TSing p, i <: T', i.
-Proof. intros Hp Hu; apply PSelf_singleton_stp, (p_mu_e_typed Hrepl Hu Hp). Qed.
+  is_unstamped_ty (S (length Γ)) T →
+  Γ u⊢ₜ TSing p, i <: T .Tp[ p /], i.
+Proof. intros Hp Hu; apply PSelf_singleton_stp, (p_mu_e_typed Hu Hp). Qed.
 
-Lemma singleton_Mu_2 {Γ p T i T'} (Hrepl : T .Tp[ p /]~ T') :
-  Γ u⊢ₚ p : T', i →
+Lemma singleton_Mu_2 {Γ p T i} :
+  Γ u⊢ₚ p : T .Tp[ p /], i →
   is_unstamped_ty (S (length Γ)) T →
   Γ u⊢ₜ TSing p, i <: TMu T, i.
-Proof. intros Hp Hu; apply PSelf_singleton_stp, (p_mu_i_typed Hrepl Hu Hp). Qed.
+Proof. intros Hp Hu; apply PSelf_singleton_stp, (p_mu_i_typed Hu Hp). Qed.
 
 (* Avoid automation, to ensure we don't use [p_mu_e_typed] to show them. *)
-Lemma p_mu_e_typed' {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
+Lemma p_mu_e_typed' {Γ T p i} :
   Γ u⊢ₚ p : TMu T, i →
-  is_unstamped_ty (length Γ) T' →
-  Γ u⊢ₚ p : T', i.
+  is_unstamped_ty (S (length Γ)) T →
+  Γ u⊢ₚ p : T .Tp[ p /], i.
 Proof.
   intros Hp Hu. eapply p_subs_typed', (psingleton_refl_typed Hp).
-  apply (singleton_Mu_1 Hrepl Hp Hu).
+  apply (singleton_Mu_1 Hp Hu).
 Qed.
 
-Lemma p_mu_i_typed' {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
-  Γ u⊢ₚ p : T', i →
+Lemma p_mu_i_typed' {Γ T p i} :
+  Γ u⊢ₚ p : T .Tp[ p /], i →
   is_unstamped_ty (S (length Γ)) T →
   Γ u⊢ₚ p : TMu T, i.
 Proof.
   intros Hp Hu. eapply p_subs_typed', (psingleton_refl_typed Hp).
-  apply (singleton_Mu_2 Hrepl Hp Hu).
+  apply (singleton_Mu_2 Hp Hu).
 Qed.
 
 (**
@@ -561,15 +613,14 @@ to do that, one must unfold top-level recursive types in the type of [p],
 as allowed through [T_Mu_E_p], rules for intersection types and intersection introduction.
 On the other hand, this derived rule handles the substitution in [T2] directly.
 *)
-Lemma singleton_Mu_dotty1 {Γ p i T1' T2 T2'}
-  (Hrepl2 : T2 .Tp[ p /]~ T2'):
-  Γ u⊢ₜ T1', i <: T2', i →
+Lemma singleton_Mu_dotty1 {Γ p i T1' T2} :
+  Γ u⊢ₜ T1', i <: T2 .Tp[ p /], i →
   Γ u⊢ₚ p : T1', i →
   is_unstamped_ty (S (length Γ)) T2 →
   Γ u⊢ₜ TSing p, i <: TMu T2, i.
 Proof.
   intros Hsub Hp Hu.
-  apply (singleton_Mu_2 Hrepl2), Hu.
+  apply singleton_Mu_2, Hu.
   apply (p_subs_typed' Hsub Hp).
 Qed.
 

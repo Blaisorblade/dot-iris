@@ -24,19 +24,15 @@ Judgments for typing, subtyping, path and definition typing.
 *)
 Inductive typed Γ : tm → ty → Prop :=
 (** First, elimination forms *)
-(** Dependent application; only allowed if the argument is a value . *)
-| Appv_typed e1 x2 T1 T2:
-    Γ u⊢ₜ e1: TAll T1 T2 →                        Γ u⊢ₜ tv (var_vl x2) : T1 →
-    (*────────────────────────────────────────────────────────────*)
-    Γ u⊢ₜ tapp e1 (tv (var_vl x2)) : T2.|[(var_vl x2)/]
-
-| App_path_typed p2 e1 T1 T2 T2':
-    T2 .Tp[ p2 /]~ T2' →
-    is_unstamped_ty (length Γ) T2' →
+(** Dependent application; only allowed if the argument is a path. *)
+| App_path_typed p2 e1 T1 T2:
+    is_unstamped_ty (S (length Γ)) T2 →
+    is_unstamped_path (length Γ) p2 →
+    (* T2 .Tp[ p2 /]~ T2' → *)
     Γ u⊢ₜ e1: TAll T1 T2 →
     Γ u⊢ₚ p2 : T1, 0 →
     (*────────────────────────────────────────────────────────────*)
-    Γ u⊢ₜ tapp e1 (path2tm p2) : T2'
+    Γ u⊢ₜ tapp e1 (path2tm p2) : T2 .Tp[ p2 /]
 (** Non-dependent application; allowed for any argument. *)
 | App_typed e1 e2 T1 T2:
     Γ u⊢ₜ e1: TAll T1 T2.|[ren (+1)] →      Γ u⊢ₜ e2 : T1 →
@@ -46,10 +42,6 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ u⊢ₜ e : TVMem l T →
     (*─────────────────────────*)
     Γ u⊢ₜ tproj e l : T
-| TMuE_typed x T:
-    Γ u⊢ₜ tv (var_vl x): TMu T →
-    (*──────────────────────*)
-    Γ u⊢ₜ tv (var_vl x): T.|[(var_vl x)/]
 (** Introduction forms *)
 | Lam_typed e T1 T2:
     (* T1 :: Γ u⊢ₜ e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
@@ -62,10 +54,6 @@ Inductive typed Γ : tm → ty → Prop :=
     is_unstamped_ty (S (length Γ)) T →
     (*──────────────────────*)
     Γ u⊢ₜ tv (vobj ds): TMu T
-| TMuI_typed x T:
-    Γ u⊢ₜ tv (var_vl x): T.|[(var_vl x)/] →
-    (*──────────────────────*)
-    Γ u⊢ₜ tv (var_vl x): TMu T
 | Nat_typed n:
     Γ u⊢ₜ tv (vnat n): TNat
 
@@ -128,16 +116,14 @@ with path_typed Γ : path → ty → nat → Prop :=
     Γ u⊢ₚ p : T1, i →
     (*───────────────────────────────*)
     Γ u⊢ₚ p : T2, i + j
-| p_mu_i_typed p T {T' i} :
-    T .Tp[ p /]~ T' →
+| p_mu_i_typed p T {i} :
     is_unstamped_ty (S (length Γ)) T →
-    Γ u⊢ₚ p : T', i →
+    Γ u⊢ₚ p : T .Tp[ p /], i →
     Γ u⊢ₚ p : TMu T, i
-| p_mu_e_typed p T {T' i} :
-    T .Tp[ p /]~ T' →
-    is_unstamped_ty (length Γ) T' →
+| p_mu_e_typed p T {i} :
+    is_unstamped_ty (S (length Γ)) T →
     Γ u⊢ₚ p : TMu T, i →
-    Γ u⊢ₚ p : T', i
+    Γ u⊢ₚ p : T .Tp[ p /], i
 | pself_inv_typed p T i l:
     Γ u⊢ₚ pself p l : T, i →
     (*─────────────────────────*)
