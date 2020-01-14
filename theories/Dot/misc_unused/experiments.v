@@ -10,6 +10,124 @@ Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
          (Γ : ctx).
 
+Definition path_includes p ρ ds :=
+  path_wp_pure p.|[ρ] (λ w, ∃ ds', w = vobj ds' ∧ ds.|[ρ] `sublist_of` ds'.|[w/]).
+
+Lemma path_includes_self ds ρ : path_includes (pv (ids 0)) (vobj ds.|[up ρ] .: ρ) ds.
+Proof. eexists; split; by [| rewrite up_sub_compose]. Qed.
+
+Lemma path_includes_split p ρ l d ds :
+  path_includes p ρ ((l, d) :: ds) →
+  path_includes p ρ [(l, d)] ∧
+  path_includes p ρ ds.
+Proof.
+  rewrite /path_includes !path_wp_pure_eq; cbn.
+  intros (v & Hpw & ds' & -> & (k1 & k2 & Hpid' & Hpids)%sublist_cons_l).
+  split; exists (vobj ds'); split => //; exists ds'; split => //; rewrite Hpid'.
+  by apply sublist_inserts_l, sublist_skip, sublist_nil_l.
+  by apply sublist_inserts_l, sublist_cons, Hpids.
+Qed.
+
+Section NestIdentity.
+  Context `{HdlangG: dlangG Σ}.
+
+  Definition idtp p Γ T l d : iProp Σ :=
+    □∀ ρ, ⌜path_includes p ρ [(l, d)] ⌝ → ⟦Γ⟧* ρ → def_interp T l ρ d.|[ρ].
+  Global Arguments idtp /.
+
+  Definition idstp p Γ T ds : iProp Σ :=
+    □∀ ρ, ⌜path_includes p ρ ds ⌝ → ⟦Γ⟧* ρ → defs_interp T ρ ds.|[ρ].
+  Global Arguments idstp /.
+
+  Local Notation IntoPersistent' P := (IntoPersistent false P P).
+  Global Instance idtp_persistent p Γ T l d: IntoPersistent' (idtp p Γ T l d) | 0 := _.
+  Global Instance idstp_persistent p Γ T ds: IntoPersistent' (idstp p Γ T ds) | 0 := _.
+
+  (** Single-definition typing *)
+  Notation "Γ ⊨[ p ] {  l := d  } : T" := (idtp p Γ T l d) (at level 74, d, l, T at next level).
+  (** Multi-definition typing *)
+  Notation "Γ ⊨[ p ]ds ds : T" := (idstp p Γ T ds) (at level 74, ds, T at next level).
+
+  From D.Dot.lr Require Import typeExtractionSem.
+  Notation "s ↝[  σ  ] φ" := (leadsto_envD_equiv s σ φ) (at level 20).
+
+  Lemma D_Typ_Abs Γ T L U s σ l p :
+    Γ ⊨ TLater T, 0 <: TLater U, 0 -∗
+    Γ ⊨ TLater L, 0 <: TLater T, 0 -∗
+    s ↝[ σ ] ⟦ T ⟧ -∗
+    Γ ⊨[ p ] { l := dtysem σ s } : TTMem l L U.
+  Proof.
+    iIntros "#HTU #HLT #Hs /= !>" (ρ Hpid) "#Hg".
+    iDestruct "Hs" as (φ Hγφ) "Hγ"; iSplit => //=.
+    iExists (φ _); iSplit. by iApply (dm_to_type_intro with "Hγ").
+    iModIntro; repeat iSplit; iIntros (v) "#HL";
+      rewrite later_intuitionistically.
+    - iIntros "!>". iApply Hγφ. by iApply "HLT".
+    - iApply "HTU" => //. by iApply Hγφ.
+  Qed.
+
+  Lemma TVMem_I {Γ} V T v l p:
+    TLater V :: Γ ⊨ tv v : T -∗
+    Γ |L V ⊨[ p ] { l := dvl v } : TVMem l T.
+  Proof.
+    iIntros "/= #Hv !>" (ρ Hpid) "[#Hg #Hw]".
+    rewrite def_interp_tvmem_eq.
+    iApply wp_value_inv'; iApply ("Hv" with "[]"); by iSplit.
+  Qed.
+
+  Lemma TVMem_All_I {Γ} V T1 T2 e l p:
+    T1.|[ren (+1)] :: V :: Γ ⊨ e : T2 -∗
+    Γ |L V ⊨[ p ] { l := dvl (vabs e) } : TVMem l (TAll T1 T2).
+  Proof.
+    iIntros "HeT"; iApply TVMem_I.
+    (* Compared to [T_Forall_I], we must strip the later from [TLater V]. *)
+    iApply T_Forall_I_Strong;
+      iApply (ietp_weaken_ctx with "HeT") => ρ.
+    by rewrite /= ctx_sub_unTLater.
+  Qed.
+
+  Context Γ.
+
+  Lemma TVMem_Sub V T1 T2 v l p:
+    Γ |L V ⊨ T1, 0 <: T2, 0 -∗
+    Γ |L V ⊨[ p ] { l := dvl v } : TVMem l T1 -∗
+    Γ |L V ⊨[ p ] { l := dvl v } : TVMem l T2.
+  Proof.
+    iIntros "/= #Hsub #Hv !>" (ρ Hpid) "#Hg"; iApply def_interp_tvmem_eq.
+    iApply ("Hsub" with "Hg").
+    iApply def_interp_tvmem_eq. by iApply "Hv".
+  Qed.
+
+  Lemma DNil_I p : Γ ⊨[ p ]ds [] : TTop.
+  Proof. by iIntros "!> **". Qed.
+
+  Lemma DCons_I p d ds l T1 T2:
+    dms_hasnt ds l →
+    Γ ⊨[ p ] { l := d } : T1 -∗ Γ ⊨[ p ]ds ds : T2 -∗
+    Γ ⊨[ p ]ds (l, d) :: ds : TAnd T1 T2.
+  Proof.
+    iIntros (Hlds) "#HT1 #HT2 !>". iIntros (ρ [Hpid Hpids]%path_includes_split) "#Hg /=".
+    iSpecialize ("HT1" $! _  Hpid with "Hg"). iPoseProof "HT1" as (Hl) "_".
+    iSpecialize ("HT2" $! _  Hpids with "Hg").
+    iSplit.
+    - destruct T1; simplify_eq; iApply (def2defs_head with "HT1").
+    - iApply (defs_interp_mono with "HT2"); by [apply dms_hasnt_map_mono | eapply nclosed_sub_app].
+  Qed.
+
+  Lemma T_New_I T ds:
+     Γ |L T ⊨[ pv (ids 0) ]ds ds : T -∗
+     Γ ⊨ tv (vobj ds) : TMu T.
+  Proof.
+    iIntros "/= #Hds !>" (ρ) "#Hg /= !>". rewrite -wp_value'.
+    iLöb as "IH".
+    iApply lift_dsinterp_dms_vl_commute.
+    rewrite norm_selfSubst.
+    have Hs := path_includes_self ds ρ.
+    iApply ("Hds" $! (vobj _ .: ρ) Hs). by iFrame "IH Hg".
+  Qed.
+
+End NestIdentity.
+
 (** These typing lemmas can be derived syntactically.
  But I had written semantic proofs first, and they might help. *)
 Section AlsoSyntactically.
