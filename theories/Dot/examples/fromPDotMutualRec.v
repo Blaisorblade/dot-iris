@@ -162,11 +162,12 @@ Proof.
   rewrite /getAnyType -(iterate_S tskip 0); tcrush.
   eapply (Subs_typed (T1 := TLater (p0 @ "types" @; "Type"))); tcrush.
   set Γ' := shift (μ fromPDotPaperAbsTBody) :: Γ.
-  have Hpx: Γ' u⊢ₚ p0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0.
+  have Hpx: Γ' u⊢ₚ p0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0
     by tcrush; eapply Subs_typed_nocoerce;
-      [by eapply TMuE_typed, Var_typed' | tcrush].
+      [ by eapply TMuE_typed; first var; stcrush | tcrush].
   have HpxSubst: Γ' u⊢ₚ p0 @ "types" : fromPDotPaperAbsTypesTBodySubst, 0.
-    by eapply p_mu_e_typed; [apply fromPDotPSubst|tcrush|].
+  by eapply (p_mu_e_typed (T := fromPDotPaperAbsTypesTBody)
+    (p := p0 @ "types")), Hpx; tcrush.
   eapply (Path_typed (p := p0)), pself_inv_typed, (p_subs_typed (i := 0)), HpxSubst.
   repeat lNext.
 Qed.
@@ -174,7 +175,7 @@ Qed.
 Example getAnyTypeTyp0 :
   [μ fromPDotPaperAbsTBody] u⊢ₜ
     tapp (tv getAnyType) (tv x0) : p0 @ "types" @; "Type".
-Proof. eapply Appv_typed'; by [exact: getAnyTypeFunTyp|var|]. Qed.
+Proof. eapply Appv_typed'; [exact: getAnyTypeFunTyp|var|tcrush..]. Qed.
 (*
 lett (tv fromPDotPaper) (tapp (tv getAnyType) x0) : (pv fromPDotPaper @ "types" @; "Type").
 Example getAnyTypeTyp : [] u⊢ₜ lett (tv fromPDotPaper) (tapp (tv getAnyType) x0) : (pv fromPDotPaper @ "types" @; "Type").

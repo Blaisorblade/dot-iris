@@ -17,12 +17,7 @@ Judgments for typing, subtyping, path and definition typing.
 *)
 Inductive typed Γ g : tm → ty → Prop :=
 (** First, elimination forms *)
-(** Dependent application; only allowed if the argument is a value . *)
-| Appv_typed e1 x2 T1 T2:
-    Γ s⊢ₜ[ g ] e1: TAll T1 T2 →                        Γ s⊢ₜ[ g ] tv (var_vl x2) : T1 →
-    (*────────────────────────────────────────────────────────────*)
-    Γ s⊢ₜ[ g ] tapp e1 (tv (var_vl x2)) : T2.|[(var_vl x2)/]
-
+(** Dependent application; only allowed if the argument is a path. *)
 | App_path_typed p2 e1 T1 T2 T2':
     T2 .Tp[ p2 /]~ T2' →
     is_stamped_ty (length Γ) g T2' →
@@ -39,10 +34,6 @@ Inductive typed Γ g : tm → ty → Prop :=
     Γ s⊢ₜ[ g ] e : TVMem l T →
     (*─────────────────────────*)
     Γ s⊢ₜ[ g ] tproj e l : T
-| TMuE_typed x T:
-    Γ s⊢ₜ[ g ] tv (var_vl x): TMu T →
-    (*──────────────────────*)
-    Γ s⊢ₜ[ g ] tv (var_vl x): T.|[(var_vl x)/]
 (** Introduction forms *)
 | Lam_typed e T1 T2:
     (* T1 :: Γ s⊢ₜ[ g ] e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
@@ -55,10 +46,6 @@ Inductive typed Γ g : tm → ty → Prop :=
     is_stamped_ty (S (length Γ)) g T →
     (*──────────────────────*)
     Γ s⊢ₜ[ g ] tv (vobj ds): TMu T
-| TMuI_typed x T:
-    Γ s⊢ₜ[ g ] tv (var_vl x): T.|[(var_vl x)/] →
-    (*──────────────────────*)
-    Γ s⊢ₜ[ g ] tv (var_vl x): TMu T
 | Nat_typed n:
     Γ s⊢ₜ[ g ] tv (vnat n): TNat
 
