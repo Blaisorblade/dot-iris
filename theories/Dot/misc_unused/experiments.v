@@ -10,11 +10,41 @@ Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
          (Γ : ctx).
 
-Definition path_includes p ρ ds :=
-  path_wp_pure p.|[ρ] (λ w, ∃ ds', w = vobj ds' ∧ ds.|[ρ] `sublist_of` ds'.|[w/]).
+Lemma shift_reduce `{Sort X} (x : X) v ρ : (shift x).|[v .: ρ] = x.|[ρ].
+Proof. by rewrite hsubst_comp. Qed.
 
-Lemma path_includes_self ds ρ : path_includes (pv (ids 0)) (vobj ds.|[up ρ] .: ρ) ds.
-Proof. eexists; split; by [| rewrite up_sub_compose]. Qed.
+Lemma dms_hasnt_notin_eq l ds : dms_hasnt ds l ↔ l ∉ map fst ds.
+Proof.
+  elim: ds => [|[l' d] ds] /=; first by split; [inversion 2|].
+  rewrite /dms_hasnt/= not_elem_of_cons => IHds. case_decide; naive_solver.
+Qed.
+
+Lemma ds_notin_subst l ds ρ :
+  l ∉ map fst ds →
+  l ∉ map fst ds.|[ρ].
+Proof.
+  (* elim: ds => [//|[l' d] ds IH]; cbn.
+  rewrite !not_elem_of_cons. naive_solver. *)
+  intros; by apply dms_hasnt_notin_eq, dms_hasnt_subst, dms_hasnt_notin_eq.
+Qed.
+
+Notation wf_ds ds := (NoDup (map fst ds)).
+
+Lemma wf_ds_nil : wf_ds ([] : dms). Proof. constructor. Qed.
+Hint Resolve wf_ds_nil : core.
+
+Lemma wf_ds_sub ds ρ : wf_ds ds → wf_ds ds.|[ρ].
+Proof.
+  elim: ds => [//=|[l d] ds IH]; cbn.
+  inversion_clear 1; constructor; last by eauto.
+  exact: ds_notin_subst.
+Qed.
+
+Definition path_includes p ρ ds :=
+  path_wp_pure p.|[ρ] (λ w, ∃ ds', w = vobj ds' ∧ ds.|[ρ] `sublist_of` ds'.|[w/] ∧ wf_ds ds').
+
+Lemma path_includes_self ds ρ : wf_ds ds → path_includes (pv (ids 0)) (vobj ds.|[up ρ] .: ρ) ds.
+Proof. eexists; split_and!; by [| rewrite up_sub_compose|apply wf_ds_sub]. Qed.
 
 Lemma path_includes_split p ρ l d ds :
   path_includes p ρ ((l, d) :: ds) →
@@ -22,11 +52,14 @@ Lemma path_includes_split p ρ l d ds :
   path_includes p ρ ds.
 Proof.
   rewrite /path_includes !path_wp_pure_eq; cbn.
-  intros (v & Hpw & ds' & -> & (k1 & k2 & Hpid' & Hpids)%sublist_cons_l).
-  split; exists (vobj ds'); split => //; exists ds'; split => //; rewrite Hpid'.
+  intros (v & Hpw & ds' & -> & ((k1 & k2 & Hpid' & Hpids)%sublist_cons_l & Hno)).
+  repeat (split_and! => //; try eexists); rewrite Hpid'.
   by apply sublist_inserts_l, sublist_skip, sublist_nil_l.
   by apply sublist_inserts_l, sublist_cons, Hpids.
 Qed.
+From D.Dot.lr Require Import typeExtractionSem.
+(* XXX *)
+Notation "s ↝[  σ  ] φ" := (leadsto_envD_equiv s σ φ) (at level 20).
 
 Section NestIdentity.
   Context `{HdlangG: dlangG Σ}.
@@ -36,7 +69,7 @@ Section NestIdentity.
   Global Arguments idtp /.
 
   Definition idstp p Γ T ds : iProp Σ :=
-    □∀ ρ, ⌜path_includes p ρ ds ⌝ → ⟦Γ⟧* ρ → defs_interp T ρ ds.|[ρ].
+    ⌜wf_ds ds⌝ ∧ □∀ ρ, ⌜path_includes p ρ ds ⌝ → ⟦Γ⟧* ρ → defs_interp T ρ ds.|[ρ].
   Global Arguments idstp /.
 
   Local Notation IntoPersistent' P := (IntoPersistent false P P).
@@ -48,8 +81,6 @@ Section NestIdentity.
   (** Multi-definition typing *)
   Notation "Γ ⊨[ p ]ds ds : T" := (idstp p Γ T ds) (at level 74, ds, T at next level).
 
-  From D.Dot.lr Require Import typeExtractionSem.
-  Notation "s ↝[  σ  ] φ" := (leadsto_envD_equiv s σ φ) (at level 20).
 
   Lemma D_Typ_Abs Γ T L U s σ l p :
     Γ ⊨ TLater T, 0 <: TLater U, 0 -∗
@@ -99,66 +130,82 @@ Section NestIdentity.
   Qed.
 
   Lemma DNil_I p : Γ ⊨[ p ]ds [] : TTop.
-  Proof. by iIntros "!> **". Qed.
+  Proof. by iSplit; last iIntros "!> **". Qed.
 
   Lemma DCons_I p d ds l T1 T2:
     dms_hasnt ds l →
     Γ ⊨[ p ] { l := d } : T1 -∗ Γ ⊨[ p ]ds ds : T2 -∗
     Γ ⊨[ p ]ds (l, d) :: ds : TAnd T1 T2.
   Proof.
-    iIntros (Hlds) "#HT1 #HT2 !>". iIntros (ρ [Hpid Hpids]%path_includes_split) "#Hg /=".
-    iSpecialize ("HT1" $! _  Hpid with "Hg"). iPoseProof "HT1" as (Hl) "_".
-    iSpecialize ("HT2" $! _  Hpids with "Hg").
+    iIntros (Hlds) "#HT1 [% #HT2]".
     iSplit.
+    by iIntros "!%"; cbn; constructor => //; by rewrite -dms_hasnt_notin_eq.
+    iIntros "!>" (ρ [Hpid Hpids]%path_includes_split) "#Hg"; cbn.
+    iSpecialize ("HT1" $! _  Hpid with "Hg"). iPoseProof "HT1" as (Hl) "_".
+    iDestruct ("HT2" $! _  Hpids with "Hg") as "{HT2} HT2".
+    repeat iSplit.
     - destruct T1; simplify_eq; iApply (def2defs_head with "HT1").
-    - iApply (defs_interp_mono with "HT2"); by [apply dms_hasnt_map_mono | eapply nclosed_sub_app].
+    - iApply (defs_interp_mono with "HT2"); by [apply dms_hasnt_subst | eapply nclosed_sub_app].
   Qed.
 
   Lemma T_New_I T ds:
      Γ |L T ⊨[ pv (ids 0) ]ds ds : T -∗
      Γ ⊨ tv (vobj ds) : TMu T.
   Proof.
-    iIntros "/= #Hds !>" (ρ) "#Hg /= !>". rewrite -wp_value'.
+    iDestruct 1 as (Hwf) "#Hds".
+    iIntros "!>" (ρ) "#Hg /= !>". rewrite -wp_value'.
     iLöb as "IH".
     iApply lift_dsinterp_dms_vl_commute.
     rewrite norm_selfSubst.
-    have Hs := path_includes_self ds ρ.
+    have Hs := path_includes_self ds ρ Hwf.
     iApply ("Hds" $! (vobj _ .: ρ) Hs). by iFrame "IH Hg".
   Qed.
 
-  Definition wf_ds ds := NoDup (map fst ds).
-
-  Lemma dms_lookup_sublist l ds ds' : wf_ds ds' →
-    [(l, dvl (vobj ds))] `sublist_of` ds' →
-    dms_lookup l ds' = Some (dvl (vobj ds)).
+  Lemma dms_has_in_eq l d ds : wf_ds ds →
+    dms_has ds l d ↔ (l, d) ∈ ds.
   Proof.
-    rewrite sublist_cons_l. intros Hwf (k1 & k2 & -> & _).
-    have: dms_hasnt k1 l. admit.
-    rewrite /dms_hasnt => Hk1.
-    (* eapply dms_lookup_mono. *)
-  Admitted.
-  Lemma shift_reduce `{Sort X} (x : X) v ρ : (shift x).|[v .: ρ] = x.|[ρ].
-  Proof. by rewrite hsubst_comp. Qed.
+    rewrite /dms_has; elim: ds => [Hwf|[l' d'] ds IH /= /NoDup_cons [Hni Hwf]];
+      first by split; [|inversion 1].
+    rewrite elem_of_cons; case_decide; last naive_solver; split; first naive_solver.
+    destruct 1; simplify_eq/=; try naive_solver.
+    exfalso; apply Hni.
+    by eapply elem_of_list_In, (in_map fst ds (_,_)), elem_of_list_In.
+  Qed.
 
+  Lemma dms_lookup_sublist l v ds :
+    wf_ds ds → [(l, dvl v)] `sublist_of` ds →
+    dms_lookup l ds = Some (dvl v).
+  Proof.
+    rewrite sublist_cons_l; intros Hwf ?; ev; simplify_eq/=.
+    apply dms_has_in_eq; [done|].
+    rewrite elem_of_app elem_of_cons. naive_solver.
+  Qed.
+
+  Lemma path_includes_field_aliases p l v ρ :
+    path_includes p ρ [(l, dvl v)]
+    → alias_paths (pself p.|[ρ] l) (pv v.[ρ]).
+  Proof.
+    rewrite /path_includes/alias_paths/= !path_wp_pure_eq;
+      intros (w & Hwp & ds & -> & Hsub & Hwf'); repeat (eexists; split => //).
+    apply dms_lookup_sublist, Hsub. exact: wf_ds_sub.
+  Qed.
+
+  (** This lemma is equivalent to pDOT's (Def-New). *)
   Lemma DT_New_Mem_I T l p ds:
     TAnd (TLater T) (TSing (shift (pself p l))) :: Γ ⊨[ pv (ids 0) ]ds ds : T -∗
     Γ ⊨[ p ] { l := dvl (vobj ds) } : TVMem l (TMu T).
   Proof.
-    iIntros "#Hds !>" (ρ Hpid) "#Hg /=".
+    iDestruct 1 as (Hwf) "#Hds".
+    iIntros "!>" (ρ Hpid) "#Hg /=".
     rewrite def_interp_tvmem_eq /=.
     iLöb as "IH".
     iApply lift_dsinterp_dms_vl_commute.
     rewrite norm_selfSubst.
-    have Hs := path_includes_self ds ρ.
-    iApply ("Hds" $! (vobj _ .: ρ) Hs). iFrame "Hg IH".
-    iIntros "!%".
-    move: Hpid. rewrite /path_includes shead_eq /alias_paths /= !path_wp_pure_eq shift_reduce.
-    intros (v & Hwp & ds' & -> & Hsub).
-    repeat (eexists; split => //).
-    have ?: wf_ds (selfSubst ds') by admit.
-    exact: dms_lookup_sublist.
-    (* naive_solver. *)
-  Admitted.
+    have Hs := path_includes_self ds ρ Hwf.
+    iApply ("Hds" $! (vobj _ .: ρ) Hs with "[$IH $Hg]"); iIntros "!%".
+    move: Hpid; rewrite shift_reduce shead_eq.
+    exact: path_includes_field_aliases.
+  Qed.
 End NestIdentity.
 
 (** These typing lemmas can be derived syntactically.
