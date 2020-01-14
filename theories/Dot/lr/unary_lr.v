@@ -28,6 +28,13 @@ Implicit Types
    its handling of coercions. *)
 Unset Program Cases.
 
+Definition label_of_ty T : option label :=
+  match T with
+  | TTMem l _ _ => Some l
+  | TVMem l _ => Some l
+  | _ => None
+  end.
+
 Section logrel.
   Context `{!dlangG Σ}.
 
@@ -185,13 +192,6 @@ Section logrel.
     | TVMem _ T' => def_interp_vmem (⟦ T' ⟧) ρ d
     | _ => False
     end%I.
-
-  Definition label_of_ty T : option label :=
-    match T with
-    | TTMem l _ _ => Some l
-    | TVMem l _ => Some l
-    | _ => None
-    end.
 
   Definition def_interp (T : ty) l : envPred dm Σ :=
     λ ρ d,
