@@ -116,7 +116,7 @@ Section LambdaIntros.
   Qed.
 
   (** Lemmas about definition typing. *)
-  Lemma TVMem_I {Γ} V T v l:
+  Lemma D_TVMem_I {Γ} V T v l:
     TLater V :: Γ ⊨ tv v : T -∗
     Γ |L V ⊨ { l := dvl v } : TVMem l T.
   Proof.
@@ -125,11 +125,11 @@ Section LambdaIntros.
     iApply wp_value_inv'; iApply ("Hv" with "[]"); by iSplit.
   Qed.
 
-  Lemma TVMem_All_I {Γ} V T1 T2 e l:
+  Lemma D_TVMem_All_I {Γ} V T1 T2 e l:
     T1.|[ren (+1)] :: V :: Γ ⊨ e : T2 -∗
     Γ |L V ⊨ { l := dvl (vabs e) } : TVMem l (TAll T1 T2).
   Proof.
-    iIntros "HeT"; iApply TVMem_I.
+    iIntros "HeT"; iApply D_TVMem_I.
     (* Compared to [T_Forall_I], we must strip the later from [TLater V]. *)
     iApply T_Forall_I_Strong;
       iApply (ietp_weaken_ctx with "HeT") => ρ.

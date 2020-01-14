@@ -144,7 +144,7 @@ Section ex.
       iIntros (ρ) "/= #_".
       iSplit => //. by iApply sHasA.
     - iApply DCons_I => //; last by iApply DNil_I.
-      iApply TVMem_I.
+      iApply D_TVMem_I.
       iIntros "!>" (ρ) "/="; iDestruct 1 as "[_ [HA [HB _]]]".
       rewrite -wp_value'.
       iDestruct "HA" as (dA) "[HlA HA]".
