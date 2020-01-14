@@ -59,6 +59,36 @@ Proof.
   by apply sublist_inserts_l, sublist_skip, sublist_nil_l.
   by apply sublist_inserts_l, sublist_cons, Hpids.
 Qed.
+
+Lemma dms_has_in_eq l d ds : wf_ds ds →
+  dms_has ds l d ↔ (l, d) ∈ ds.
+Proof.
+  rewrite /dms_has; elim: ds => [Hwf|[l' d'] ds IH /= /NoDup_cons [Hni Hwf]];
+    first by split; [|inversion 1].
+  rewrite elem_of_cons; case_decide; last naive_solver; split; first naive_solver.
+  destruct 1; simplify_eq/=; try naive_solver.
+  exfalso; apply Hni.
+  by eapply elem_of_list_In, (in_map fst ds (_,_)), elem_of_list_In.
+Qed.
+
+Lemma dms_lookup_sublist l v ds :
+  wf_ds ds → [(l, dvl v)] `sublist_of` ds →
+  dms_lookup l ds = Some (dvl v).
+Proof.
+  rewrite sublist_cons_l; intros Hwf ?; ev; simplify_eq/=.
+  apply dms_has_in_eq; [done|].
+  rewrite elem_of_app elem_of_cons. naive_solver.
+Qed.
+
+Lemma path_includes_field_aliases p ρ l v :
+  path_includes p ρ [(l, dvl v)] →
+  alias_paths (pself p.|[ρ] l) (pv v.[ρ]).
+Proof.
+  rewrite /path_includes/alias_paths/= !path_wp_pure_eq;
+    intros (w & Hwp & ds & -> & Hsub & Hwf'); repeat (eexists; split => //).
+  apply dms_lookup_sublist, Hsub. exact: wf_ds_sub.
+Qed.
+
 From D.Dot.lr Require Import typeExtractionSem.
 (* XXX *)
 Notation "s ↝[  σ  ] φ" := (leadsto_envD_equiv s σ φ) (at level 20).
@@ -161,35 +191,6 @@ Section NestIdentity.
     rewrite norm_selfSubst.
     have Hs := path_includes_self ds ρ Hwf.
     iApply ("Hds" $! (vobj _ .: ρ) Hs). by iFrame "IH Hg".
-  Qed.
-
-  Lemma dms_has_in_eq l d ds : wf_ds ds →
-    dms_has ds l d ↔ (l, d) ∈ ds.
-  Proof.
-    rewrite /dms_has; elim: ds => [Hwf|[l' d'] ds IH /= /NoDup_cons [Hni Hwf]];
-      first by split; [|inversion 1].
-    rewrite elem_of_cons; case_decide; last naive_solver; split; first naive_solver.
-    destruct 1; simplify_eq/=; try naive_solver.
-    exfalso; apply Hni.
-    by eapply elem_of_list_In, (in_map fst ds (_,_)), elem_of_list_In.
-  Qed.
-
-  Lemma dms_lookup_sublist l v ds :
-    wf_ds ds → [(l, dvl v)] `sublist_of` ds →
-    dms_lookup l ds = Some (dvl v).
-  Proof.
-    rewrite sublist_cons_l; intros Hwf ?; ev; simplify_eq/=.
-    apply dms_has_in_eq; [done|].
-    rewrite elem_of_app elem_of_cons. naive_solver.
-  Qed.
-
-  Lemma path_includes_field_aliases p ρ l v :
-    path_includes p ρ [(l, dvl v)] →
-    alias_paths (pself p.|[ρ] l) (pv v.[ρ]).
-  Proof.
-    rewrite /path_includes/alias_paths/= !path_wp_pure_eq;
-      intros (w & Hwp & ds & -> & Hsub & Hwf'); repeat (eexists; split => //).
-    apply dms_lookup_sublist, Hsub. exact: wf_ds_sub.
   Qed.
 
   (** This lemma is equivalent to pDOT's (Def-New). *)
