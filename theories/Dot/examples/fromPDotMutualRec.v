@@ -15,6 +15,8 @@ Definition typeRefTBody : ty := {@
 
 Definition fromPDotPaperTypesTBody : ty := {@
   typeEq "Type" TTop;
+  typeEq "TypeTop" TTop;
+  val "newTypeTop" : TTop →: p0 @; "TypeTop";
   typeEq "TypeRef" $ TAnd (p0 @; "Type") typeRefTBody;
   val "AnyType" : TLater (p0 @; "Type");
   val "newTypeRef" : p1 @ "symbols" @; "Symbol" →: p0 @; "TypeRef"
@@ -22,18 +24,29 @@ Definition fromPDotPaperTypesTBody : ty := {@
 
 Definition fromPDotPaperAbsTypesTBody : ty := {@
   type "Type" >: TBot <: TTop;
+  type "TypeTop" >: TBot <: p0 @; "Type";
+  val "newTypeTop" : TTop →: p0 @; "TypeTop";
   type "TypeRef" >: TBot <: TAnd (p0 @; "Type") typeRefTBody;
   val "AnyType" : TLater (p0 @; "Type");
   val "newTypeRef" : p1 @ "symbols" @; "Symbol" →: p0 @; "TypeRef"
 }.
 
+(* Import AssertPlain.
+From D.Dot Require Import hoas. *)
 Definition fromPDotPaperTypesV : vl := ν {@
   type "Type" = TTop;
+  type "TypeTop" = TTop;
+  val "newTypeTop" = (vabs $ tv $ ν {@ });
   type "TypeRef" = TAnd (p0 @; "Type") typeRefTBody;
-  val "AnyType" = vnat 0 ; (* ν {@}; *)
-  val "newTypeRef" = (vabs $ tv $ ν {@
-    val "symb" = x1
-  })
+  val "AnyType" = ν {@ };
+  val "newTypeRef" = (vabs $
+    (* lett (hclose (hassert (tv (vnat 0)))) $
+    tv $ ν {@
+      val "symb" = x2
+    }) *)
+    tv $ ν {@
+      val "symb" = x1
+    })
 }.
 
 Definition fromPDotPaperSymbolsTBody : ty := {@
@@ -83,7 +96,11 @@ Example fromPDotPaperTypesTyp :
     tv fromPDotPaperTypesV : μ fromPDotPaperTypesTBody.
 Proof.
   tcrush.
-  - eapply (Subs_typed_nocoerce TNat); first tcrush.
+  - eapply (Subs_typed_nocoerce) => /=; hideCtx.
+    + repeat first [var | typconstructor | tcrush].
+    + apply (Trans_stp (T2 := ⊤) (i2 := 0)); first tcrush.
+      eapply LSel_stp'; last (tcrush; varsub); ltcrush.
+  - eapply (Subs_typed_nocoerce (TMu ⊤)); first tcrush.
     eapply (Trans_stp (T2 := TTop) (i2 := 0)); tcrush.
     eapply (Trans_stp (i2 := 1)); [exact: AddI_stp | ].
     asideLaters.
@@ -94,7 +111,7 @@ Proof.
     + ettrans; first last.
       eapply LSel_stp'; first last.
       * constructor; varsub.
-        lNext.
+        ltcrush.
       * tcrush.
       * tcrush; last apply Bind1; tcrush.
         eapply (Trans_stp (T2 := ⊤)); tcrush.
@@ -107,6 +124,8 @@ Example fromPDotPaperTypesAbsTyp :
     tv fromPDotPaperTypesV : μ fromPDotPaperAbsTypesTBody.
 Proof.
   eapply Subs_typed_nocoerce; first exact: fromPDotPaperTypesTyp; ltcrush.
+  eapply LSel_stp'; tcrush.
+  varsub; tcrush.
 Qed.
 
 Example fromPDotPaperSymbolsTyp :
@@ -147,6 +166,8 @@ From D.Dot.syn Require Import path_repl.
 
 Definition fromPDotPaperAbsTypesTBodySubst : ty := {@
   type "Type" >: ⊥ <: ⊤;
+  type "TypeTop" >: TBot <: p0 @ "types" @; "Type";
+  val "newTypeTop" : TTop →: p0 @ "types" @; "TypeTop";
   type "TypeRef" >: ⊥ <: TAnd (p0 @ "types" @; "Type") {@
     val "symb" : p0 @ "symbols" @; "Symbol"
   };
