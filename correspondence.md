@@ -45,8 +45,3 @@ All file paths in this file are relative to the `theories/` folder.
   `sem_ptyped` and `Sem_stp`, such that semantic typing implies storeless
   semantic typing. That's just a convenience to prove semantic typing more
   easily, as syntactic typing supports better automation.
-
-- The paper regards path substitution as a function. In Coq, we define it as a
-  relation instead (`path_repl_one` in `Dot/syn/path_repl.v`), to reuse proofs
-  about path replacement; we want to switch to defining path substitution as a
-  function, but we haven't yet mechanized proofs for such a version.
