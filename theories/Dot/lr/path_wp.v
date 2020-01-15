@@ -75,8 +75,8 @@ Lemma path_wp_pure_swap p w :
 Proof. split => Hp; exact: path_wp_pure_wand. Qed.
 
 Lemma path_wp_exec_pure p v :
-  path_wp_pure p (eq v)
-  → PureExec True (plength p) (path2tm p) (tv v).
+  path_wp_pure p (eq v) →
+  PureExec True (plength p) (path2tm p) (tv v).
 Proof.
   elim: p v => [w|p IHp l] v; rewrite /PureExec/=.
   by intros -> _; constructor.
