@@ -99,15 +99,16 @@ Proof. split => Hp; exact: path_wp_pure_wand. Qed.
 
 Lemma path_wp_exec_pure p v :
   path_wp_pure p (eq v) →
-  PureExec True (plength p) (path2tm p) (tv v).
+  ∃ n, PureExec True n (path2tm p) (tv v).
 Proof.
-  elim: p v => [w|p IHp l] v; rewrite /PureExec/=.
-  by intros -> _; constructor.
-  rewrite path_wp_pure_eq; intros (vp & Hp & vq & Hlook & ->) _.
-  move: (IHp _ Hp) => Hpure.
-  eapply nsteps_r.
-  - by apply (pure_step_nsteps_ctx (fill_item (ProjCtx l))), Hpure.
-  - apply nsteps_once_inv, pure_tproj, Hlook.
+  move HE: (eq v) => P Hp; move: v HE; induction Hp; intros; simplify_eq.
+  by exists 0; constructor.
+  have [m /(_ I) Hs1] := IHHp1 _ eq_refl.
+  have [n /(_ I) Hs2] := IHHp2 _ eq_refl.
+  exists (S m + n) => _ /=.
+  eapply (nsteps_trans (S m)), Hs2; eapply nsteps_r.
+  by apply (pure_step_nsteps_ctx (fill_item (ProjCtx l))), Hs1.
+  by apply nsteps_once_inv, pure_tproj.
 Qed.
 
 Definition alias_paths p q :=
@@ -179,10 +180,67 @@ Lemma alias_paths_elim_eq_pure Pv {p q}:
   path_wp_pure p Pv ↔ path_wp_pure q Pv.
 Proof. move => /alias_paths_samepwp_pure [_]. apply. Qed.
 
-Section path_wp.
-  Context `{HdlangG: dlangG Σ}.
-  Implicit Types (φ : vl -d> iPropO Σ).
+From D.misc_unused Require Import lty.
+Include OLty VlSorts dlang_inst.
 
+From iris.bi Require Import fixpoint big_op.
+(* From iris.proofmode Require Import tactics.
+From iris.program_logic Require Export weakestpre. *)
+Set Default Proof Using "Type".
+Import uPred.
+
+Canonical Structure pathO := leibnizO path.
+
+Section path_wp_pre.
+  Context {Σ : gFunctors}.
+  Implicit Types (φ : lty Σ).
+
+  (** The definition of total weakest preconditions is very similar to the
+  definition of normal (i.e. partial) weakest precondition, with the exception
+  that there is no later modality. Hence, instead of taking a Banach's fixpoint,
+  we take a least fixpoint. *)
+  Definition ltyeq vp : lty Σ := Lty (λ v, ⌜ vp = v ⌝)%I.
+  Definition path_wp_pre (path_wp : pathO → lty Σ → iProp Σ) p φ : iProp Σ :=
+    match p with
+    | pv vp => φ vp
+    | pself p l => ∃ vp q, ⌜ vp @ l ↘ dvl q ⌝ ∧
+        path_wp p (ltyeq vp) ∗ path_wp q φ
+    end%I.
+  (* Instance: (∀ p φ, Persistent (path_wp p φ)) → Persistent (path_wp_pre path_wp p φ).
+  Proof. intros; destruct p; apply _. Qed. *)
+
+  Lemma path_wp_pre_mono (wp1 wp2 : path → lty Σ → iProp Σ) :
+    ((□ ∀ p Φ, wp1 p Φ -∗ wp2 p Φ) →
+    ∀ p Φ, path_wp_pre wp1 p Φ -∗ path_wp_pre wp2 p Φ)%I.
+  Proof.
+    iIntros "#H"; iIntros (p1 Φ). rewrite /path_wp_pre /=.
+    destruct (p1) as [v|]; first by iIntros.
+    iDestruct 1 as (vp q Hlook) "[Hp Hq]".
+    iExists vp, q. iFrame (Hlook).
+    iSplitL "Hp"; by iApply "H".
+  Qed.
+
+  (* Uncurry [path_wp_pre] and equip its type with an OFE structure *)
+  Definition path_wp_pre' :
+    (prodO pathO (ltyO Σ) → iPropO Σ) →
+    (prodO pathO (ltyO Σ) → iPropO Σ) := curry ∘ path_wp_pre ∘ uncurry.
+End path_wp_pre.
+
+Local Instance path_wp_pre_mono' {Σ}: BiMonoPred (@path_wp_pre' Σ).
+Proof.
+  constructor.
+  - iIntros (wp1 wp2) "#H". iIntros ([p Φ]); iRevert (p Φ).
+    iApply path_wp_pre_mono. iIntros "!>" (p Φ). iApply ("H" $! (p,Φ)).
+  - intros wp Hwp n [p1 Φ1] [p2 Φ2] [?%leibniz_equiv Heq]; simplify_eq/=.
+    rewrite /uncurry /path_wp_pre; repeat (apply Heq || f_equiv || done).
+Qed.
+
+Definition path_wp_def {Σ} p φ : iProp Σ := bi_least_fixpoint path_wp_pre' (p, φ).
+Definition path_wp_aux {Σ} : seal (@path_wp_def Σ). by eexists. Qed.
+Definition path_wp {Σ} := (@path_wp_aux Σ).(unseal).
+Definition path_wp_eq {Σ} : path_wp = @path_wp_def Σ := path_wp_aux.(seal_eq).
+
+Section path_wp.
   (** A simplified variant of weakest preconditions for path evaluation.
       The difference is that path evaluation is completely pure, and
       postconditions must hold now, not after updating resources.
