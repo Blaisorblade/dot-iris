@@ -26,8 +26,8 @@ Inductive typed Γ : tm → ty → Prop :=
 (** First, elimination forms *)
 (** Dependent application; only allowed if the argument is a path. *)
 | App_path_typed p2 e1 T1 T2:
-    is_unstamped_ty (S (length Γ)) T2 →
-    is_unstamped_path (length Γ) p2 →
+    is_unstamped_ty' (S (length Γ)) T2 →
+    is_unstamped_path' (length Γ) p2 →
     (* T2 .Tp[ p2 /]~ T2' → *)
     Γ u⊢ₜ e1: TAll T1 T2 →
     Γ u⊢ₚ p2 : T1, 0 →
@@ -45,13 +45,13 @@ Inductive typed Γ : tm → ty → Prop :=
 (** Introduction forms *)
 | Lam_typed e T1 T2:
     (* T1 :: Γ u⊢ₜ e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
-    is_unstamped_ty (length Γ) T1 →
+    is_unstamped_ty' (length Γ) T1 →
     T1.|[ren (+1)] :: Γ u⊢ₜ e : T2 →
     (*─────────────────────────*)
     Γ u⊢ₜ tv (vabs e) : TAll T1 T2
 | VObj_typed ds T:
     Γ |ds T u⊢ ds: T →
-    is_unstamped_ty (S (length Γ)) T →
+    is_unstamped_ty' (S (length Γ)) T →
     (*──────────────────────*)
     Γ u⊢ₜ tv (vobj ds): TMu T
 | Nat_typed n:
@@ -84,12 +84,12 @@ with dms_typed Γ : ty → dms → ty → Prop :=
 where "Γ |ds V u⊢ ds : T" := (dms_typed Γ V ds T)
 with dm_typed Γ : ty → label → dm → ty → Prop :=
 | dty_typed T V l L U:
-    is_unstamped_ty (S (length Γ)) T →
+    is_unstamped_ty' (S (length Γ)) T →
     TLater V :: Γ u⊢ₜ TLater L, 0 <: TLater T, 0 →
     TLater V :: Γ u⊢ₜ TLater T, 0 <: TLater U, 0 →
     Γ |d V u⊢{ l := dtysyn T } : TTMem l L U
 | dvabs_typed V T1 T2 e l:
-    is_unstamped_ty (S (length Γ)) T1 →
+    is_unstamped_ty' (S (length Γ)) T1 →
     T1.|[ren (+1)] :: V :: Γ u⊢ₜ e : T2 →
     Γ |d V u⊢{ l := dvl (vabs e) } : TVMem l (TAll T1 T2)
 | dvl_typed V l v T:
@@ -97,7 +97,7 @@ with dm_typed Γ : ty → label → dm → ty → Prop :=
     Γ |d V u⊢{ l := dvl v } : TVMem l T
 | dnew_typed V l T ds:
     TLater V :: Γ |ds TAnd T (TSing (pself (pv (ids 1)) l)) u⊢ ds : T →
-    is_unstamped_ty (S (S (length Γ))) T →
+    is_unstamped_ty' (S (S (length Γ))) T →
     Γ |d V u⊢{ l := dvl (vobj ds) } : TVMem l (TMu T)
 | dvl_sub_typed V T1 T2 v l:
     TLater V :: Γ u⊢ₜ T1, 0 <: T2, 0 →
@@ -121,11 +121,11 @@ with path_typed Γ : path → ty → nat → Prop :=
     (*───────────────────────────────*)
     Γ u⊢ₚ p : T2, i + j
 | p_mu_i_typed p T {i} :
-    is_unstamped_ty (S (length Γ)) T →
+    is_unstamped_ty' (S (length Γ)) T →
     Γ u⊢ₚ p : T .Tp[ p /], i →
     Γ u⊢ₚ p : TMu T, i
 | p_mu_e_typed p T {i} :
-    is_unstamped_ty (S (length Γ)) T →
+    is_unstamped_ty' (S (length Γ)) T →
     Γ u⊢ₚ p : TMu T, i →
     Γ u⊢ₚ p : T .Tp[ p /], i
 | pself_inv_typed p T i l:
@@ -137,7 +137,7 @@ with path_typed Γ : path → ty → nat → Prop :=
     Γ u⊢ₚ p : TSing p, i
 | psingleton_inv_typed p q i:
     Γ u⊢ₚ p : TSing q, i →
-    is_unstamped_path (length Γ) q →
+    is_unstamped_path' (length Γ) q →
     Γ u⊢ₚ q : TTop, i
 | psingleton_trans p q T i:
     Γ u⊢ₚ p : TSing q, i →
@@ -151,50 +151,50 @@ where "Γ u⊢ₚ p : T , i" := (path_typed Γ p T i)
 (* Γ u⊢ₜ T1, i1 <: T2, i2 means that TLater^i1 T1 <: TLater^i2 T2. *)
 with subtype Γ : ty → nat → ty → nat → Prop :=
 | Refl_stp i T :
-    is_unstamped_ty (length Γ) T →
+    is_unstamped_ty' (length Γ) T →
     Γ u⊢ₜ T, i <: T, i
 | Trans_stp i2 T2 {i1 i3 T1 T3}:
     Γ u⊢ₜ T1, i1 <: T2, i2 →
     Γ u⊢ₜ T2, i2 <: T3, i3 →
     Γ u⊢ₜ T1, i1 <: T3, i3
 | TLaterL_stp i T:
-    is_unstamped_ty (length Γ) T →
+    is_unstamped_ty' (length Γ) T →
     Γ u⊢ₜ TLater T, i <: T, S i
 | TLaterR_stp i T:
-    is_unstamped_ty (length Γ) T →
+    is_unstamped_ty' (length Γ) T →
     Γ u⊢ₜ T, S i <: TLater T, i
 
 (* "Structural" rule about indexes *)
 | TAddLater_stp T i:
-    is_unstamped_ty (length Γ) T →
+    is_unstamped_ty' (length Γ) T →
     Γ u⊢ₜ T, i <: TLater T, i
 
 (* "Logical" connectives *)
 | Top_stp i T :
-    is_unstamped_ty (length Γ) T →
+    is_unstamped_ty' (length Γ) T →
     Γ u⊢ₜ T, i <: TTop, i
 | Bot_stp i T :
-    is_unstamped_ty (length Γ) T →
+    is_unstamped_ty' (length Γ) T →
     Γ u⊢ₜ TBot, i <: T, i
 | TAnd1_stp T1 T2 i:
-    is_unstamped_ty (length Γ) T1 →
-    is_unstamped_ty (length Γ) T2 →
+    is_unstamped_ty' (length Γ) T1 →
+    is_unstamped_ty' (length Γ) T2 →
     Γ u⊢ₜ TAnd T1 T2, i <: T1, i
 | TAnd2_stp T1 T2 i:
-    is_unstamped_ty (length Γ) T1 →
-    is_unstamped_ty (length Γ) T2 →
+    is_unstamped_ty' (length Γ) T1 →
+    is_unstamped_ty' (length Γ) T2 →
     Γ u⊢ₜ TAnd T1 T2, i <: T2, i
 | TAnd_stp T U1 U2 i j:
     Γ u⊢ₜ T, i <: U1, j →
     Γ u⊢ₜ T, i <: U2, j →
     Γ u⊢ₜ T, i <: TAnd U1 U2, j
 | TOr1_stp T1 T2 i:
-    is_unstamped_ty (length Γ) T1 →
-    is_unstamped_ty (length Γ) T2 →
+    is_unstamped_ty' (length Γ) T1 →
+    is_unstamped_ty' (length Γ) T2 →
     Γ u⊢ₜ T1, i <: TOr T1 T2, i
 | TOr2_stp T1 T2 i:
-    is_unstamped_ty (length Γ) T1 →
-    is_unstamped_ty (length Γ) T2 →
+    is_unstamped_ty' (length Γ) T1 →
+    is_unstamped_ty' (length Γ) T2 →
     Γ u⊢ₜ T2, i <: TOr T1 T2, i
 | TOr_stp T1 T2 U i j:
     Γ u⊢ₜ T1, i <: U, j →
@@ -210,8 +210,8 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Γ u⊢ₜ TLater L, i <: TSel p l, i
 | PSub_singleton_stp p q {i T1 T2}:
     T1 ~Tp[ p := q ]* T2 →
-    is_unstamped_ty (length Γ) T1 →
-    is_unstamped_ty (length Γ) T2 →
+    is_unstamped_ty' (length Γ) T1 →
+    is_unstamped_ty' (length Γ) T2 →
     Γ u⊢ₚ p : TSing q, i →
     Γ u⊢ₜ T1, i <: T2, i
 | PSym_singleton_stp T {p q i}:
@@ -233,13 +233,13 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 (* Subtyping for recursive types. Congruence, and opening in both directions. *)
 | Mu_stp_mu T1 T2 i j:
     (iterate TLater i T1 :: Γ) u⊢ₜ T1, i <: T2, j →
-    is_unstamped_ty (S (length Γ)) T1 →
+    is_unstamped_ty' (S (length Γ)) T1 →
     Γ u⊢ₜ TMu T1, i <: TMu T2, j
 | Mu_stp T i:
-    is_unstamped_ty (length Γ) T →
+    is_unstamped_ty' (length Γ) T →
     Γ u⊢ₜ TMu T.|[ren (+1)], i <: T, i
 | Stp_mu T i:
-    is_unstamped_ty (length Γ) T →
+    is_unstamped_ty' (length Γ) T →
     Γ u⊢ₜ T, i <: TMu T.|[ren (+1)], i
 
 (* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types.
@@ -251,7 +251,7 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 | TAllConCov_stp T1 T2 U1 U2 i:
     Γ u⊢ₜ TLater T2, i <: TLater T1, i →
     iterate TLater (S i) T2.|[ren (+1)] :: Γ u⊢ₜ TLater U1, i <: TLater U2, i →
-    is_unstamped_ty (length Γ) T2 →
+    is_unstamped_ty' (length Γ) T2 →
     Γ u⊢ₜ TAll T1 U1, i <: TAll T2 U2, i
 | TVMemCov_stp T1 T2 i l:
     Γ u⊢ₜ T1, i <: T2, i →
@@ -266,18 +266,18 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Let's prove F[A] ∧ F[B] <: F[A ∧ B] in the model.
     *)
 | TAllDistr_stp T U1 U2 i:
-    is_unstamped_ty (length Γ) T →
-    is_unstamped_ty (S (length Γ)) U1 →
-    is_unstamped_ty (S (length Γ)) U2 →
+    is_unstamped_ty' (length Γ) T →
+    is_unstamped_ty' (S (length Γ)) U1 →
+    is_unstamped_ty' (S (length Γ)) U2 →
     Γ u⊢ₜ TAnd (TAll T U1) (TAll T U2), i <: TAll T (TAnd U1 U2), i
 | TVMemDistr_stp l T1 T2 i:
-    is_unstamped_ty (length Γ) T1 →
-    is_unstamped_ty (length Γ) T2 →
+    is_unstamped_ty' (length Γ) T1 →
+    is_unstamped_ty' (length Γ) T2 →
     Γ u⊢ₜ TAnd (TVMem l T1) (TVMem l T2), i <: TVMem l (TAnd T1 T2), i
 | TTMemDistr_stp l L U1 U2 i:
-    is_unstamped_ty (length Γ) L →
-    is_unstamped_ty (length Γ) U1 →
-    is_unstamped_ty (length Γ) U2 →
+    is_unstamped_ty' (length Γ) L →
+    is_unstamped_ty' (length Γ) U1 →
+    is_unstamped_ty' (length Γ) U2 →
     Γ u⊢ₜ TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
 
 (* "Structural" rule about indexes. Only try last. *)

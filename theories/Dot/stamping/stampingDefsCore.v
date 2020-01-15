@@ -23,32 +23,36 @@ Fixpoint path_root (p : path): vl :=
 Notation valid_stamp g g' n' vs s T' :=
   (g !! s = Some T' ∧ g' = g ∧ n' = length vs).
 
-Definition is_unstamped_trav: Traversal nat :=
+Inductive IsInType := InType | OutType.
+
+Definition is_unstamped_trav: Traversal (nat * IsInType) :=
   {|
-    upS := S;
-    varP := λ n i, i < n;
+    upS := λ '(n, b), (S n, b);
+    intoTypeS := λ '(n, _), (n, InType);
+    varP := λ '(n, b) i, i < n;
     dtysynP := λ _ T, True;
     dtysemP := λ _ vs s T' ts', False;
-    pathRootP := λ _ v, ∃ x, v = var_vl x;
+    pathRootP := λ '(n, b) v, b = OutType ∨ ∃ x, v = var_vl x;
   |}.
 
 Definition is_stamped_trav: Traversal (nat * stys) :=
   {|
     upS := λ '(n, g), (S n, g);
+    intoTypeS := λ ts, ts;
     varP := λ '(n, g) i, i < n;
     dtysynP := λ ts T, False;
     dtysemP := λ '(n, g) vs s T' '(n', g'), valid_stamp g g' n' vs s T';
     pathRootP := λ ts v, True;
   |}.
 
-Notation is_unstamped_tm n := (forall_traversal_tm is_unstamped_trav n).
-Notation is_unstamped_vl n := (forall_traversal_vl is_unstamped_trav n).
-Notation is_unstamped_dm n := (forall_traversal_dm is_unstamped_trav n).
-Notation is_unstamped_path n := (forall_traversal_path is_unstamped_trav n).
-Notation is_unstamped_ty n := (forall_traversal_ty is_unstamped_trav n).
+Notation is_unstamped_tm n b := (forall_traversal_tm is_unstamped_trav (n, b)).
+Notation is_unstamped_vl n b := (forall_traversal_vl is_unstamped_trav (n, b)).
+Notation is_unstamped_dm n b := (forall_traversal_dm is_unstamped_trav (n, b)).
+Notation is_unstamped_path n b := (forall_traversal_path is_unstamped_trav (n, b)).
+Notation is_unstamped_ty n b := (forall_traversal_ty is_unstamped_trav (n, b)).
 
-Notation is_unstamped_dms n ds := (forall_traversal_dms is_unstamped_trav n ds).
-Notation is_unstamped_σ n σ := (Forall (is_unstamped_vl n) σ).
+Notation is_unstamped_dms n b ds := (forall_traversal_dms is_unstamped_trav (n, b) ds).
+Notation is_unstamped_σ n b := (Forall (is_unstamped_vl n b)).
 
 Notation is_stamped_tm n g := (forall_traversal_tm is_stamped_trav (n, g)).
 Notation is_stamped_vl n g := (forall_traversal_vl is_stamped_trav (n, g)).
@@ -59,6 +63,14 @@ Notation is_stamped_ty n g := (forall_traversal_ty is_stamped_trav (n, g)).
 Notation is_stamped_dms n g ds := (forall_traversal_dms is_stamped_trav (n, g) ds).
 Notation is_stamped_σ n g σ := (Forall (is_stamped_vl n g) σ).
 
+(* To aid migration *)
+Notation is_unstamped_path' n := (is_unstamped_path n InType).
+Notation is_unstamped_ty' n := (is_unstamped_ty n InType).
+
+(* Of any use? *)
+(* Notation is_unstamped_tm' n := (is_unstamped_tm n OutType). *)
+Notation is_unstamped_dm' n := (is_unstamped_dm n OutType).
+Notation is_unstamped_dms' n ds := (is_unstamped_dms n OutType ds).
 (** Next, we define "extraction", which is the core of stamping.
     Extraction (as defined by [extraction]) is a relation, stable under
     substitution, between a type and its extracted form.
@@ -92,11 +104,11 @@ Notation "T ~[ n  ] gsσ" := (extraction n T gsσ) (at level 70).
 
 Ltac with_is_unstamped tac :=
   match goal with
-    | H: is_unstamped_ty   _ _ |- _ => tac H
-    | H: is_unstamped_tm   _ _ |- _ => tac H
-    | H: is_unstamped_dm   _ _ |- _ => tac H
-    | H: is_unstamped_path _ _ |- _ => tac H
-    | H: is_unstamped_vl   _ _ |- _ => tac H
+    | H: is_unstamped_ty   _ _ _ |- _ => tac H
+    | H: is_unstamped_tm   _ _ _ |- _ => tac H
+    | H: is_unstamped_dm   _ _ _ |- _ => tac H
+    | H: is_unstamped_path _ _ _ |- _ => tac H
+    | H: is_unstamped_vl   _ _ _ |- _ => tac H
   end.
 
 Ltac with_is_stamped tac :=
@@ -109,8 +121,8 @@ Ltac with_is_stamped tac :=
   end.
 
 Lemma is_unstamped_path_root n p :
-  is_unstamped_path n p → ∃ x, path_root p = var_vl x.
-Proof. elim p => /= *; with_is_unstamped inverse; auto 2. Qed.
+  is_unstamped_path n InType p → ∃ x, path_root p = var_vl x.
+Proof. elim p => /= *; with_is_unstamped inverse; naive_solver. Qed.
 
 (** * Stamping is monotone wrt stamp table extension. *)
 Lemma not_stamped_dtysyn g n T:
@@ -176,7 +188,14 @@ Lemma is_stamped_path2tm n g p :
   is_stamped_tm n g (path2tm p).
 Proof. elim: p => /= [v|p IHp l] Hp; inversion Hp; auto. Qed.
 
-Lemma is_unstamped_path2tm n p :
-  is_unstamped_path n p →
-  is_unstamped_tm n (path2tm p).
+Lemma is_unstamped_path2tm n b p :
+  is_unstamped_path n b p →
+  is_unstamped_tm n b (path2tm p).
 Proof. elim: p => /= [v|p IHp l] Hp; inversion Hp; auto. Qed.
+
+Tactic Notation "destruct_or" "?" :=
+  repeat match goal with
+  | H : _ ∨ _ |- _ => destruct H
+  | H : Is_true (_ || _) |- _ => apply orb_True in H; destruct H
+  end.
+Tactic Notation "destruct_or" "!" := progress destruct_or?.
