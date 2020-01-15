@@ -28,6 +28,11 @@ Implicit Types
    its handling of coercions. *)
 Unset Program Cases.
 
+Notation wf_ds ds := (NoDup (map fst ds)).
+
+Definition path_includes p ρ ds :=
+  path_wp_pure p.|[ρ] (λ w, ∃ ds', w = vobj ds' ∧ ds.|[ρ] `sublist_of` ds'.|[w/] ∧ wf_ds ds').
+
 Definition label_of_ty T : option label :=
   match T with
   | TTMem l _ _ => Some l
@@ -237,11 +242,11 @@ Section logrel.
 
   (** Definitions for semantic (definition) (sub)typing *)
   Definition idtp Γ T l d : iProp Σ :=
-    □∀ ρ, ⟦Γ⟧* ρ → def_interp T l ρ d.|[ρ].
+    □∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)] ⌝ → ⟦Γ⟧* ρ → def_interp T l ρ d.|[ρ].
   Global Arguments idtp /.
 
   Definition idstp Γ T ds : iProp Σ :=
-    □∀ ρ, ⟦Γ⟧* ρ → defs_interp T ρ ds.|[ρ].
+    ⌜wf_ds ds⌝ ∧ □∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → ⟦Γ⟧* ρ → defs_interp T ρ ds.|[ρ].
   Global Arguments idstp /.
 
   Definition ietp Γ T e : iProp Σ :=
