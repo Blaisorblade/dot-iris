@@ -3,8 +3,8 @@ All file paths in this file are relative to the `theories/` folder.
 # Correspondence between paper and Coq dev
 
 - gDOT syntax and operational semantics are defined in `Dot/syn/syn.v`.
-- Unstamped typing is defined in `Dot/typing/typing_unstamped.v`.
-- Stamped typing is defined in `Dot/typing/typing_stamped.v`.
+  - Unstamped typing is defined in `Dot/typing/typing_unstamped.v`.
+  - Stamped typing is defined in `Dot/typing/typing_stamped.v`.
 
 - Derived rule `(<:-Later-Shift)` is called `Sub_later_shift` in Coq.
 
