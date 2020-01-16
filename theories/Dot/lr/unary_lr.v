@@ -181,7 +181,7 @@ Section logrel.
   Global Instance interp_lemmas: TyInterpLemmas ty Σ.
   Proof.
     split; induction T => sb1 sb2 w /=;
-      properness; rewrite /= ?scons_up_swap ?hsubst_comp; trivial.
+      properness; rewrite /= ?scons_up_swap ?hsubst_comp; trivial; by f_equiv => ?.
   Qed.
 
   Notation "⟦ T ⟧ₑ" := (interp_expr ⟦ T ⟧).
@@ -331,12 +331,12 @@ Section logrel_lemmas.
     ⟦ iterate TLater i T ⟧ ρ v ≡ (▷^i ⟦ T ⟧ ρ v)%I.
   Proof. exact: iterate_TLater_later0. Qed.
 
-  Lemma def_interp_tvmem_eq l T v ρ:
-    def_interp (TVMem l T) l ρ (dvl v) ⊣⊢
-    ⟦ T ⟧ ρ v.
+  Lemma def_interp_tvmem_eq l T p ρ:
+    def_interp (TVMem l T) l ρ (dvl p) ⊣⊢
+    path_wp p (⟦ T ⟧ ρ).
   Proof.
     iSplit. by iDestruct 1 as (_ vmem [= ->]) "$".
-    iIntros "H"; iSplit; first done; iExists v. by auto.
+    iIntros "H"; iSplit; first done; iExists p. by auto.
   Qed.
 
   Lemma interp_env_lookup Γ ρ T x:
