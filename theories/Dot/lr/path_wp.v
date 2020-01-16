@@ -221,12 +221,12 @@ Definition path_wp_aux {Σ} : seal (@path_wp_def Σ). by eexists. Qed.
 Section path_wp.
   Context {Σ : gFunctors}.
   Definition path_wp := (@path_wp_aux Σ).(unseal).
-  Definition path_wp_eq : path_wp = @path_wp_def Σ := path_wp_aux.(seal_eq).
+  Definition path_wp_unseal : path_wp = @path_wp_def Σ := path_wp_aux.(seal_eq).
 
   Implicit Types (φ Φ : vl -d> iPropO Σ).
 
   Lemma path_wp_unfold p Φ : path_wp p Φ ⊣⊢ path_wp_pre path_wp p Φ.
-  Proof. by rewrite path_wp_eq /path_wp_def least_fixpoint_unfold. Qed.
+  Proof. by rewrite path_wp_unseal /path_wp_def least_fixpoint_unfold. Qed.
 
   Lemma path_wp_pv v φ : path_wp (pv v) φ ⊣⊢ φ v.
   Proof. by rewrite path_wp_unfold. Qed.
@@ -235,12 +235,12 @@ Section path_wp.
   Proof. by rewrite path_wp_unfold. Qed.
 
   (* XXX specialize this principle. *)
-  Lemma path_wp_ind Ψ :
-    (∀ n p, Proper (pointwise_relation _ (dist n) ==> dist n) (Ψ p)) →
+  Lemma path_wp_ind' Ψ
+    (HΨ : ∀ n p, Proper (pointwise_relation _ (dist n) ==> dist n) (Ψ p)):
     (□ (∀ p Φ, path_wp_pre (λ p Φ, Ψ p Φ ∧ path_wp p Φ) p Φ -∗ Ψ p Φ) →
     ∀ p Φ, path_wp p Φ -∗ Ψ p Φ)%I.
   Proof.
-    iIntros (HΨ). iIntros "#IH" (p Φ) "H". rewrite path_wp_eq.
+    iIntros "#IH" (p Φ) "H". rewrite path_wp_unseal.
     set (Ψ' := curry Ψ : prodO pathO (vl -d> iPropO Σ) → iPropO Σ).
     have ?: NonExpansive Ψ'.
     { intros n [p1 Φ1] [p2 Φ2] [?%leibniz_equiv ?]; simplify_eq/=. by apply HΨ. }
@@ -248,10 +248,20 @@ Section path_wp.
     iIntros "!#" ([? ?]) "H". by iApply "IH".
   Qed.
 
+  Lemma path_wp_ind Ψ
+    (Hprop : ∀ n p, Proper (pointwise_relation _ (dist n) ==> dist n) (Ψ p)):
+    ((∀ v Φ, □ (Φ v -∗ Ψ (pv v) Φ)) →
+     (∀ p l Φ, □ (path_wp_pre (λ p Φ, Ψ p Φ ∧ path_wp p Φ) (pself p l) Φ -∗ Ψ (pself p l) Φ)) →
+     ∀ p Φ, path_wp p Φ -∗ Ψ p Φ)%I.
+  Proof.
+    iIntros "#Hpv #Hpself" (p Φ) "Hp". iApply (path_wp_ind' with "[] Hp").
+    iIntros "!>" ([|?p l]); iIntros; by [iApply "Hpv"| iApply "Hpself"].
+  Qed.
+
   Global Instance path_wp_ne p n :
     Proper (pointwise_relation _ (dist n) ==> dist n) (path_wp p).
   Proof.
-    intros Φ1 Φ2 HΦ. rewrite !path_wp_eq. by apply least_fixpoint_ne, pair_ne, HΦ.
+    intros Φ1 Φ2 HΦ. rewrite !path_wp_unseal. by apply least_fixpoint_ne, pair_ne, HΦ.
   Qed.
   Global Instance path_wp_ne' p : NonExpansive (path_wp p).
   Proof. solve_proper. Qed.
@@ -270,9 +280,8 @@ Section path_wp.
     iAssert (∀ v, φ v -∗ <pers> φ v)%I as "Hv". by iIntros; iApply Hφ.
     clear Hφ; iIntros "H"; iRevert (p φ) "H Hv".
 
-    iApply path_wp_ind; first solve_proper.
-
-    iIntros "!>" ([v|p l] Φ); rewrite /path_wp_pre path_wp_unfold /=.
+    iApply path_wp_ind; first solve_proper; iIntros;
+      rewrite /path_wp_pre path_wp_unfold /=; iModIntro.
     by iIntros "Hv HP"; iApply "HP".
     iDestruct 1 as (vp q Hlook) "[[IHeq _] [IHpw _]]"; iIntros "HP".
     iApply persistently_exist; iExists vp.
@@ -301,9 +310,7 @@ Section path_wp.
       by simplify_eq.
       clear HE.
       iIntros "H"; iRevert (Pv) "HE"; iRevert (p φ) "H".
-      iApply path_wp_ind; first solve_proper.
-
-      iIntros "!>" ([v|p l] Φ); rewrite /path_wp_pre /=.
+      iApply path_wp_ind; first solve_proper; iIntros; iModIntro.
       + iIntros "Hv" (Pv) "Heq"; rewrite bi.discrete_fun_equivI /=.
         iRewrite ("Heq" $! v) in "Hv". iDestruct "Hv" as %Hv. auto.
       + iDestruct 1 as (vp q Hlook) "[[IHp _] [IHq _]]"; iIntros (Pv) "Heq".
@@ -318,11 +325,13 @@ Section path_wp.
     (∀ v, φ1 v -∗ φ2 v) -∗
     path_wp p φ2.
   Proof.
-    elim: p φ1 φ2 => /= [v|p IHp l] ??; iIntros "H1 Hwand";
-      first by iApply "Hwand".
-    iApply (IHp with "H1").
-    iIntros (v); iDestruct 1 as (vq Hl) "?".
-    iExists vq; iFrame (Hl). by iApply "Hwand".
+    iIntros "H1". iRevert (φ2). iRevert (p φ1) "H1".
+    iApply path_wp_ind; first solve_proper; rewrite /path_wp_pre /=; iIntros; iModIntro.
+    by iIntros "H1" (Φ2) "Hwand"; rewrite path_wp_unfold/=; iApply "Hwand".
+    iDestruct 1 as (vp q Hlook) "[[IHp Hp] IHq]"; iIntros (Φ2) "Hwand".
+    iEval (rewrite path_wp_unfold /=).
+    iExists vp, q; iFrame (Hlook) "Hp".
+    iApply ("IHq" with "Hwand").
   Qed.
 
   Global Instance path_wp_pureableI p φ Pv :
@@ -354,25 +363,42 @@ Section path_wp.
   Lemma path_wp_eq p φ :
     path_wp p φ ⊣⊢ ∃ v, ⌜ path_wp_pure p (eq v) ⌝ ∧ φ v.
   Proof.
-    elim: p φ => [ v | p IHp l ] φ /=; iSplit; iIntros "H".
-    - auto.
-    - by iDestruct "H" as (w <-) "H".
-    - rewrite IHp.
-      iDestruct "H" as (v Hp w Hl) "Hw".
-      iExists w; iSplit; last by [].
-      iIntros "!%". apply: path_wp_pure_wand; naive_solver.
-    - setoid_rewrite IHp; setoid_rewrite path_wp_pure_eq.
-      iDestruct "H" as (w [v Hp]) "Hw".
-      iExists v; iSplit; naive_solver eauto.
+    apply (anti_symm _).
+    - iRevert (p φ); iApply path_wp_ind; first solve_proper;
+      rewrite /path_wp_pre /=; iIntros; iModIntro.
+      + by iIntros "H"; iExists v; eauto.
+      + iDestruct 1 as (vp q Hlook) "[[IHp _] [IHq _]]".
+        iDestruct "IHp" as %(? & Hp & <-).
+        iDestruct "IHq" as (vq Hq) "H".
+        iExists vq; eauto.
+    - iDestruct 1 as (v Hwp) "H".
+      move: Hwp; move HE: (eq v) => φ' Hwp.
+      iInduction Hwp as [|] "IH"; simplify_eq/=;
+        iEval (rewrite path_wp_unfold /=); first done.
+      iExists _, _; repeat iSplit => //.
+      by iApply "IH1".
   Qed.
 
   Lemma path_wp_later_swap p φ:
     path_wp p (λ v, ▷ φ v) ⊢ ▷ path_wp p (λ v, φ v).
   Proof.
-    elim: p φ => [v // | p IHp l /=] φ.
-    rewrite -IHp.
-    iIntros "H"; iApply (path_wp_wand with "H").
-    by iIntros (v) "H !>".
+    iIntros "HP".
+    move HE: (λ v, ▷ φ v)%I => Φ.
+    iAssert ((Φ : vl -d> iPropO Σ) ≡ (λ v, ▷ φ v))%I as "HE".
+    by simplify_eq.
+    clear HE.
+    iRevert (p Φ) "HP HE".
+
+    iApply path_wp_ind; first solve_proper;
+      rewrite /path_wp_pre /=; iIntros; iModIntro.
+    - iIntros "HP Heq"; rewrite bi.discrete_fun_equivI path_wp_unfold /=.
+      by iRewrite ("Heq" $! v) in "HP".
+    - iDestruct 1 as (vp q Hlook) "[[IHp Hp] [IHq _]]".
+      iIntros "Heq".
+      iEval rewrite path_wp_unfold; rewrite !bi.discrete_fun_equivI /=.
+      iExists vp, q; repeat iSplit => //.
+      by iApply "IHq".
+      (* Why no more [path_wp_wand]? *)
   Qed.
 
   Lemma path_wp_laterN_swap p φ i:
@@ -382,31 +408,32 @@ Section path_wp.
     rewrite path_wp_later_swap. by [].
   Qed.
 
-  Global Instance Plain_path_wp p φ (H : (∀ v, Plain (φ v))) :
+  (* Global Instance Plain_path_wp p φ (H : (∀ v, Plain (φ v))) :
     Plain (path_wp p φ).
   Proof.
     elim: p φ H => /= [//|p IHp l] φ H; rewrite path_wp_eq /Plain.
     iDestruct 1 as (v) "#[Heq H]"; iDestruct "H" as (w Hl) "#H".
     iModIntro. repeat (iExists _; iSplit => //).
-  Qed.
+  Qed. *)
 
   Lemma path_wp_exec p v :
     path_wp p (λ w, ⌜ v = w ⌝) ⊢@{iPropI Σ}
-    ⌜ PureExec True (plength p) (path2tm p) (tv v) ⌝.
+    ⌜ ∃ n, PureExec True n (path2tm p) (tv v) ⌝.
   Proof. iIntros "!%". apply path_wp_exec_pure. Qed.
 
   Lemma path_wp_pure_exec p φ :
-    path_wp p φ ⊢ ∃ v, ⌜ PureExec True (plength p) (path2tm p) (tv v) ⌝ ∧ φ v.
+    path_wp p φ ⊢ ∃ v, ⌜ ∃ n, PureExec True n (path2tm p) (tv v) ⌝ ∧ φ v.
   Proof.
     rewrite path_wp_eq. setoid_rewrite <-path_wp_exec.
     iDestruct 1 as (v Hcl) "H". eauto.
   Qed.
 
+  Context {Hdlang : dlangG Σ}.
   Lemma path_wp_to_wp p φ :
     path_wp p (λ v, φ v) -∗
     WP (path2tm p) {{ v, φ v }}.
   Proof.
-    rewrite path_wp_pure_exec; iDestruct 1 as (v Hex) "H".
+    rewrite path_wp_pure_exec; iDestruct 1 as (v [n Hex]) "H".
     by rewrite -wp_pure_step_later // -wp_value.
   Qed.
 
@@ -416,7 +443,7 @@ Section path_wp.
   Lemma path_wp_terminates p φ :
     path_wp p φ ⊢ ⌜ terminates (path2tm p) ⌝.
   Proof.
-    rewrite path_wp_pure_exec; iDestruct 1 as (v Hp) "_"; iIntros "!%".
+    rewrite path_wp_pure_exec; iDestruct 1 as (v [n Hp]) "_"; iIntros "!%".
     exact: PureExec_to_terminates.
   Qed.
 End path_wp.
