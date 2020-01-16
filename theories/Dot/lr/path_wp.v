@@ -97,7 +97,6 @@ Qed.
 
 Definition alias_paths p q :=
   path_wp_pure q (λ vp, path_wp_pure p (eq vp)).
-Hint Unfold alias_paths : core.
 
 Lemma alias_paths_pv_eq_1 p vr :
   alias_paths p (pv vr) ↔ path_wp_pure p (eq vr).
@@ -120,7 +119,7 @@ Qed.
 
 Lemma alias_paths_refl_vl v :
   alias_paths (pv v) (pv v).
-Proof. eauto. Qed.
+Proof. hnf; eauto. Qed.
 
 Lemma alias_paths_sameres p q:
   alias_paths p q ↔
