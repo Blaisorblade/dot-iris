@@ -632,3 +632,11 @@ Lemma AnfBind_typed Γ t (T U: ty) :
   is_unstamped_ty (length Γ) T →
   Γ u⊢ₜ anfBind t : U.
 Proof. intros; eapply Let_typed; eauto. Qed.
+
+Lemma pDOT_Def_Path_derived Γ V l x T
+  (Hx : TLater V :: Γ u⊢ₜ tv (var_vl x) : T) :
+  Γ |d V u⊢{ l := dvl (ids x) } : TVMem l (TSing (pv (ids x))).
+Proof.
+  eapply dvl_typed, (Path_typed (p := pv _)), (psingleton_refl_typed (T := T)),
+    pv_typed, Hx.
+Qed.
