@@ -76,12 +76,13 @@ Proof. split => Hp; exact: path_wp_pure_wand. Qed.
 
 Lemma path_wp_exec_pure p v :
   path_wp_pure p (eq v) →
-  PureExec True (plength p) (path2tm p) (tv v).
+  ∃ n, PureExec True n (path2tm p) (tv v).
 Proof.
   elim: p v => [w|p IHp l] v; rewrite /PureExec/=.
-  by intros -> _; constructor.
-  rewrite path_wp_pure_eq; intros (vp & Hp & vq & Hlook & ->) _.
-  move: (IHp _ Hp) => Hpure.
+  by intros ->; eexists; constructor.
+  rewrite path_wp_pure_eq; intros (vp & Hp & vq & Hlook & ->).
+  move: (IHp _ Hp) => [n Hpure].
+  exists (S n) => _.
   eapply nsteps_r.
   - by apply (pure_step_nsteps_ctx (fill_item (ProjCtx l))), Hpure.
   - apply nsteps_once_inv, pure_tproj, Hlook.
@@ -153,7 +154,7 @@ Lemma alias_paths_elim_eq_pure Pv {p q}:
 Proof. move => /alias_paths_samepwp_pure [_]. apply. Qed.
 
 Section path_wp.
-  Context `{HdlangG: dlangG Σ}.
+  Context {Σ : gFunctors}.
   Implicit Types (φ : vl -d> iPropO Σ).
 
   (** A simplified variant of weakest preconditions for path evaluation.
@@ -265,31 +266,24 @@ Section path_wp.
     rewrite path_wp_later_swap. by [].
   Qed.
 
-  Global Instance Plain_path_wp p φ (H : (∀ v, Plain (φ v))) :
-    Plain (path_wp p φ).
-  Proof.
-    elim: p φ H => /= [//|p IHp l] φ H; rewrite path_wp_eq /Plain.
-    iDestruct 1 as (v) "#[Heq H]"; iDestruct "H" as (w Hl) "#H".
-    iModIntro. repeat (iExists _; iSplit => //).
-  Qed.
-
   Lemma path_wp_exec p v :
     path_wp p (λ w, ⌜ v = w ⌝) ⊢@{iPropI Σ}
-    ⌜ PureExec True (plength p) (path2tm p) (tv v) ⌝.
+    ⌜ ∃ n, PureExec True n (path2tm p) (tv v) ⌝.
   Proof. iIntros "!%". apply path_wp_exec_pure. Qed.
 
   Lemma path_wp_pure_exec p φ :
-    path_wp p φ ⊢ ∃ v, ⌜ PureExec True (plength p) (path2tm p) (tv v) ⌝ ∧ φ v.
+    path_wp p φ ⊢ ∃ v, ⌜ ∃ n, PureExec True n (path2tm p) (tv v) ⌝ ∧ φ v.
   Proof.
     rewrite path_wp_eq. setoid_rewrite <-path_wp_exec.
     iDestruct 1 as (v Hcl) "H". eauto.
   Qed.
 
+  Context {Hdlang : dlangG Σ}.
   Lemma path_wp_to_wp p φ :
     path_wp p (λ v, φ v) -∗
     WP (path2tm p) {{ v, φ v }}.
   Proof.
-    rewrite path_wp_pure_exec; iDestruct 1 as (v Hex) "H".
+    rewrite path_wp_pure_exec; iDestruct 1 as (v [n Hex]) "H".
     by rewrite -wp_pure_step_later // -wp_value.
   Qed.
 
@@ -299,7 +293,7 @@ Section path_wp.
   Lemma path_wp_terminates p φ :
     path_wp p φ ⊢ ⌜ terminates (path2tm p) ⌝.
   Proof.
-    rewrite path_wp_pure_exec; iDestruct 1 as (v Hp) "_"; iIntros "!%".
+    rewrite path_wp_pure_exec; iDestruct 1 as (v [n Hp]) "_"; iIntros "!%".
     exact: PureExec_to_terminates.
   Qed.
 End path_wp.
