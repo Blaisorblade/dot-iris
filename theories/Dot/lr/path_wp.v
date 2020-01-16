@@ -19,6 +19,13 @@ Proof. by elim: p => [v| p /= ->]. Qed.
 Lemma path2tm_subst p ρ: (path2tm p).|[ρ] = path2tm p.|[ρ].
 Proof. by elim: p => /= [//|p -> l]. Qed.
 
+(** A simplified variant of weakest preconditions for path evaluation.
+The difference is that path evaluation is completely pure, and
+postconditions must hold now, not after updating resources.
+vp ("Value from Path") and vq range over results of evaluating paths.
+Below, we define a version internal to Iris, following Iris's total weakest
+precondition. *)
+
 Inductive path_wp_pure : path → (vl → Prop) → Prop :=
 | pwp_pv vp Pv : Pv vp → path_wp_pure (pv vp) Pv
 | pwp_pself p vp q l Pv : path_wp_pure p (eq vp) → vp @ l ↘ dvl q → path_wp_pure q Pv →
@@ -179,8 +186,8 @@ Section path_wp_pre.
     | pself p l => ∃ vp q, ⌜ vp @ l ↘ dvl q ⌝ ∧
         path_wp p (λ v, ⌜ vp = v ⌝) ∗ path_wp q φ
     end%I.
-  (* Instance: (∀ p φ, Persistent (path_wp p φ)) → Persistent (path_wp_pre path_wp p φ).
-  Proof. intros; destruct p; apply _. Qed. *)
+  Instance: (∀ v, Persistent (φ v)) → (∀ p φ, Persistent (path_wp p φ)) → Persistent (path_wp_pre path_wp p φ).
+  Proof. intros; destruct p; apply _. Qed.
 
   Lemma path_wp_pre_mono (wp1 wp2 : path → (vl -d> iPropO Σ) → iProp Σ) :
     ((□ ∀ p Φ, wp1 p Φ -∗ wp2 p Φ) →
@@ -210,48 +217,100 @@ Qed.
 
 Definition path_wp_def {Σ} p φ : iProp Σ := bi_least_fixpoint path_wp_pre' (p, φ).
 Definition path_wp_aux {Σ} : seal (@path_wp_def Σ). by eexists. Qed.
-Definition path_wp {Σ} := (@path_wp_aux Σ).(unseal).
-Definition path_wp_eq {Σ} : path_wp = @path_wp_def Σ := path_wp_aux.(seal_eq).
 
 Section path_wp.
-  (** A simplified variant of weakest preconditions for path evaluation.
-      The difference is that path evaluation is completely pure, and
-      postconditions must hold now, not after updating resources.
-      vp ("Value from Path") and vq range over results of evaluating paths.
+  Context {Σ : gFunctors}.
+  Definition path_wp := (@path_wp_aux Σ).(unseal).
+  Definition path_wp_eq : path_wp = @path_wp_def Σ := path_wp_aux.(seal_eq).
 
-      Path evaluation was initially more complex; now that we got to this
-      version, I wonder whether we can just use the standard Iris WP, but I am
-      not sure if that would work.
-      *)
-  Fixpoint path_wp p φ: iProp Σ :=
-    match p with
-    | pself p l => path_wp p (λ v, ∃ w, ⌜ v @ l ↘ dvl w ⌝ ∧ φ w)
-    | pv vp => φ vp
-    end%I.
+  Implicit Types (φ Φ : vl -d> iPropO Σ).
 
-  Global Instance path_wp_ne p : NonExpansive (path_wp p).
+  Lemma path_wp_unfold p Φ : path_wp p Φ ⊣⊢ path_wp_pre path_wp p Φ.
+  Proof. by rewrite path_wp_eq /path_wp_def least_fixpoint_unfold. Qed.
+
+  Lemma path_wp_pv v φ : path_wp (pv v) φ ⊣⊢ φ v.
+  Proof. by rewrite path_wp_unfold. Qed.
+  Lemma path_wp_pself p l φ : path_wp (pself p l) φ ⊣⊢ ∃ vp q, ⌜ vp @ l ↘ dvl q ⌝ ∧
+        path_wp p (λ v, ⌜ vp = v ⌝) ∗ path_wp q φ.
+  Proof. by rewrite path_wp_unfold. Qed.
+
+  (* XXX specialize this principle. *)
+  Lemma path_wp_ind Ψ :
+    (∀ n p, Proper (pointwise_relation _ (dist n) ==> dist n) (Ψ p)) →
+    (□ (∀ p Φ, path_wp_pre (λ p Φ, Ψ p Φ ∧ path_wp p Φ) p Φ -∗ Ψ p Φ) →
+    ∀ p Φ, path_wp p Φ -∗ Ψ p Φ)%I.
   Proof.
-    elim: p => [w|p IHp l] n x y Heq /=. done.
-    f_equiv => vp. f_equiv => vq. f_equiv. exact: Heq.
+    iIntros (HΨ). iIntros "#IH" (p Φ) "H". rewrite path_wp_eq.
+    set (Ψ' := curry Ψ : prodO pathO (vl -d> iPropO Σ) → iPropO Σ).
+    have ?: NonExpansive Ψ'.
+    { intros n [p1 Φ1] [p2 Φ2] [?%leibniz_equiv ?]; simplify_eq/=. by apply HΨ. }
+    iApply (least_fixpoint_strong_ind _ Ψ' with "[] H").
+    iIntros "!#" ([? ?]) "H". by iApply "IH".
+  Qed.
+
+  Global Instance path_wp_ne p n :
+    Proper (pointwise_relation _ (dist n) ==> dist n) (path_wp p).
+  Proof.
+    intros Φ1 Φ2 HΦ. rewrite !path_wp_eq. by apply least_fixpoint_ne, pair_ne, HΦ.
+  Qed.
+  Global Instance path_wp_ne' p : NonExpansive (path_wp p).
+  Proof. solve_proper. Qed.
+
+  Global Instance path_wp_proper p :
+    Proper (pointwise_relation _ (≡) ==> (≡)) (path_wp p).
+  Proof.
+    by intros Φ Φ' ?; apply equiv_dist=>n; apply path_wp_ne=>v; apply equiv_dist.
   Qed.
 
   Global Instance path_wp_persistent φ p:
     (∀ v, Persistent (φ v)) → Persistent (path_wp p φ).
-  Proof. elim: p φ => *; apply _. Qed.
+  Proof.
+    rewrite /Persistent => Hφ.
+    (* Make Hφ internal, or the required non-expansiveness will be false. *)
+    iAssert (∀ v, φ v -∗ <pers> φ v)%I as "Hv". by iIntros; iApply Hφ.
+    clear Hφ; iIntros "H"; iRevert (p φ) "H Hv".
+
+    iApply path_wp_ind; first solve_proper.
+
+    iIntros "!>" ([v|p l] Φ); rewrite /path_wp_pre path_wp_unfold /=.
+    by iIntros "Hv HP"; iApply "HP".
+    iDestruct 1 as (vp q Hlook) "[[IHeq _] [IHpw _]]"; iIntros "HP".
+    iApply persistently_exist; iExists vp.
+    iApply persistently_exist; iExists q.
+    iApply persistently_and; iSplit; first by eauto.
+    iApply persistently_sep; iSplit;
+      [iApply "IHeq"; eauto | iApply ("IHpw" with "HP")].
+  Qed.
 
   Global Instance Proper_pwp: Proper ((=) ==> pointwise_relation _ (≡) ==> (≡)) path_wp.
   Proof.
     (* The induction works best in this shape, but this instance is best kept local. *)
     have Proper_pwp_2: ∀ p, Proper (pointwise_relation _ (≡) ==> (≡)) (path_wp p).
-    elim; solve_proper.
+    by apply _.
     solve_proper.
   Qed.
+  (* XXX Needed: constructors! *)
 
   Lemma path_wp_pureable p Pv:
     path_wp p (λ v, ⌜Pv v⌝) ⊣⊢ ⌜path_wp_pure p Pv⌝.
   Proof.
-    elim: p Pv => /= [//|p IHp l] Pv.
-    by rewrite -{}IHp; f_equiv => v; iIntros "!% /=".
+    apply (anti_symm _).
+    - move HE: (λ v : vl, ⌜Pv v⌝)%I => φ.
+      (* Internalize HE to ensure properness. *)
+      iAssert ((φ : vl -d> iPropO Σ) ≡ (λ v : vl, ⌜Pv v⌝))%I as "HE".
+      by simplify_eq.
+      clear HE.
+      iIntros "H"; iRevert (Pv) "HE"; iRevert (p φ) "H".
+      iApply path_wp_ind; first solve_proper.
+
+      iIntros "!>" ([v|p l] Φ); rewrite /path_wp_pre /=.
+      + iIntros "Hv" (Pv) "Heq"; rewrite bi.discrete_fun_equivI /=.
+        iRewrite ("Heq" $! v) in "Hv". iDestruct "Hv" as %Hv. auto.
+      + iDestruct 1 as (vp q Hlook) "[[IHp _] [IHq _]]"; iIntros (Pv) "Heq".
+        iDestruct ("IHq" with "Heq") as %Hq.
+        iDestruct ("IHp" with "[//]") as %Hp.
+        eauto.
+    - iIntros (Hp); iInduction Hp as [] "IH"; iEval (rewrite path_wp_unfold /=); eauto.
   Qed.
 
   Lemma path_wp_wand φ1 φ2 p:
