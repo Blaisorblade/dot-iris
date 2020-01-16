@@ -180,36 +180,32 @@ Lemma alias_paths_elim_eq_pure Pv {p q}:
   path_wp_pure p Pv ↔ path_wp_pure q Pv.
 Proof. move => /alias_paths_samepwp_pure [_]. apply. Qed.
 
-From D.misc_unused Require Import lty.
-Include OLty VlSorts dlang_inst.
-
 From iris.bi Require Import fixpoint big_op.
-(* From iris.proofmode Require Import tactics.
-From iris.program_logic Require Export weakestpre. *)
+(* From iris.program_logic Require Export weakestpre. *)
 Set Default Proof Using "Type".
 Import uPred.
 
 Canonical Structure pathO := leibnizO path.
+Canonical Structure vlO := leibnizO vl.
 
 Section path_wp_pre.
   Context {Σ : gFunctors}.
-  Implicit Types (φ : lty Σ).
+  Implicit Types (φ : vl -d> iPropO Σ).
 
   (** The definition of total weakest preconditions is very similar to the
   definition of normal (i.e. partial) weakest precondition, with the exception
   that there is no later modality. Hence, instead of taking a Banach's fixpoint,
   we take a least fixpoint. *)
-  Definition ltyeq vp : lty Σ := Lty (λ v, ⌜ vp = v ⌝)%I.
-  Definition path_wp_pre (path_wp : pathO → lty Σ → iProp Σ) p φ : iProp Σ :=
+  Definition path_wp_pre (path_wp : pathO → (vl -d> iPropO Σ) → iProp Σ) p φ : iProp Σ :=
     match p with
     | pv vp => φ vp
     | pself p l => ∃ vp q, ⌜ vp @ l ↘ dvl q ⌝ ∧
-        path_wp p (ltyeq vp) ∗ path_wp q φ
+        path_wp p (λ v, ⌜ vp = v ⌝) ∗ path_wp q φ
     end%I.
   (* Instance: (∀ p φ, Persistent (path_wp p φ)) → Persistent (path_wp_pre path_wp p φ).
   Proof. intros; destruct p; apply _. Qed. *)
 
-  Lemma path_wp_pre_mono (wp1 wp2 : path → lty Σ → iProp Σ) :
+  Lemma path_wp_pre_mono (wp1 wp2 : path → (vl -d> iPropO Σ) → iProp Σ) :
     ((□ ∀ p Φ, wp1 p Φ -∗ wp2 p Φ) →
     ∀ p Φ, path_wp_pre wp1 p Φ -∗ path_wp_pre wp2 p Φ)%I.
   Proof.
@@ -222,8 +218,8 @@ Section path_wp_pre.
 
   (* Uncurry [path_wp_pre] and equip its type with an OFE structure *)
   Definition path_wp_pre' :
-    (prodO pathO (ltyO Σ) → iPropO Σ) →
-    (prodO pathO (ltyO Σ) → iPropO Σ) := curry ∘ path_wp_pre ∘ uncurry.
+    (prodO pathO (vl -d> iPropO Σ) → iPropO Σ) →
+    (prodO pathO (vl -d> iPropO Σ) → iPropO Σ) := curry ∘ path_wp_pre ∘ uncurry.
 End path_wp_pre.
 
 Local Instance path_wp_pre_mono' {Σ}: BiMonoPred (@path_wp_pre' Σ).
