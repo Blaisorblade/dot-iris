@@ -233,7 +233,7 @@ Section path_wp.
         path_wp p (λ v, ⌜ vp = v ⌝) ∗ path_wp q φ.
   Proof. by rewrite path_wp_unfold. Qed.
 
-  (* XXX specialize this principle. *)
+  (* General induction principle on path_wp. *)
   Lemma path_wp_ind' Ψ
     (HΨ : ∀ n p, Proper (pointwise_relation _ (dist n) ==> dist n) (Ψ p)):
     (□ (∀ p Φ, path_wp_pre (λ p Φ, Ψ p Φ ∧ path_wp p Φ) p Φ -∗ Ψ p Φ) →
@@ -247,6 +247,7 @@ Section path_wp.
     iIntros "!#" ([? ?]) "H". by iApply "IH".
   Qed.
 
+  (* Specialized induction principle on path_wp. *)
   Lemma path_wp_ind Ψ
     (Hprop : ∀ n p, Proper (pointwise_relation _ (dist n) ==> dist n) (Ψ p)):
     ((∀ v Φ, □ (Φ v -∗ Ψ (pv v) Φ)) →
@@ -297,7 +298,6 @@ Section path_wp.
     by apply _.
     solve_proper.
   Qed.
-  (* XXX Needed: constructors! *)
 
   Lemma path_wp_pureable p Pv:
     path_wp p (λ v, ⌜Pv v⌝) ⊣⊢ ⌜path_wp_pure p Pv⌝.
