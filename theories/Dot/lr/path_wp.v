@@ -32,22 +32,6 @@ Lemma path_wp_pure_inv_pself Pv p l : path_wp_pure (pself p l) Pv →
   ∃ vp q, path_wp_pure p (eq vp) ∧ vp @ l ↘ dvl q ∧ path_wp_pure q Pv ∧
   path_wp_pure (pself p l) Pv.
 Proof. inversion_clear 1; naive_solver. Qed.
- (* exists vp, q. by econstructor. *)
- (* exists vp, q. eauto. apply H4.
- exists vp, (pself p l). eauto. apply H4.
- eexists _, _. intros. apply H4. Unshelve. apply vp.
- Qed.
- info_eauto. exists vp, q. by econstructor. *)
-
-(** * Pure path weakest precondition. *)
-(* Fixpoint path_wp_pure p Pv {struct p} : Prop :=
-  match p with
-  | pself p l =>
-  ∃ vp q, path_wp_pure p (eq vp) → vp @ l ↘ dvl q → path_wp_pure q Pv →
-  path_wp_pure (pself p l) Pv
-  (* path_wp_pure p (λ v, ∃ p, v @ l ↘ dvl p ∧ path_wp_pure p Pv) *)
-  | pv vp => Pv vp
-  end. *)
 
 Global Instance Proper_pwp_pure: Proper ((=) ==> pointwise_relation _ iff ==> iff) path_wp_pure.
 Proof.
@@ -63,13 +47,6 @@ Lemma path_wp_pure_wand {Pv1 Pv2 p}:
   (∀ v, Pv1 v → Pv2 v) →
   path_wp_pure p Pv2.
 Proof. elim; eauto. Qed.
-(* elim => [v Pv Hpv| p' vp q l Pv Hpv IHp' Hl Hq IHq] Hwand; eauto. *)
-  (* by constructor; apply Hwand.
-  elim: p Pv1 Pv2 => /= [v|p IHp l] Pv1 Pv2 Hp Hwand;
-    first by apply Hwand.
-  apply: (IHp _ _ Hp) => {IHp Hp} v [vq [??]].
-  eauto.
-Qed. *)
 
 Lemma path_wp_pure_eq p Pv :
   path_wp_pure p Pv ↔ ∃ v, path_wp_pure p (eq v) ∧ Pv v.
