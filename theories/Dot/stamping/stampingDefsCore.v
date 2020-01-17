@@ -188,10 +188,8 @@ Lemma is_stamped_path2tm n g p :
   is_stamped_tm n g (path2tm p).
 Proof. elim: p => /= [v|p IHp l] Hp; inversion Hp; auto. Qed.
 
-Lemma is_unstamped_path2tm n b p :
-  is_unstamped_path n b p →
-  is_unstamped_tm n b (path2tm p).
-Proof. elim: p => /= [v|p IHp l] Hp; inversion Hp; auto. Qed.
+Ltac inverse_once H := nosplit (try_once_tac H (inverse H)).
+Ltac inverse_is_unstamped := (repeat with_is_unstamped inverse_once); un_usedLemma.
 
 Tactic Notation "destruct_or" "?" :=
   repeat match goal with

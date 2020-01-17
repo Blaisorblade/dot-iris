@@ -4,9 +4,6 @@ From D.Dot Require typing_unstamped.
 
 Set Implicit Arguments.
 
-Ltac inverse_once H := nosplit (try_once_tac H (inverse H)).
-Ltac inverse_is_unstamped := (repeat with_is_unstamped inverse_once); un_usedLemma.
-
 Definition is_unstamped_to_OutType_tm_def e : Prop := ∀ n b,
   is_unstamped_tm   n b e → is_unstamped_tm n OutType e.
 Definition is_unstamped_to_OutType_vl_def v : Prop := ∀ n b,
@@ -42,6 +39,11 @@ Lemma is_unstamped_tm2OutType n b t :
   is_unstamped_tm n b t →
   is_unstamped_tm n OutType t.
 Proof. apply is_unstamped_to_OutType_mut. Qed.
+
+Lemma is_unstamped_path2tm n b p :
+  is_unstamped_path n b p →
+  is_unstamped_tm n b (path2tm p).
+Proof. elim: p => /= [v|p IHp l] Hp; inversion Hp; auto. Qed.
 
 Lemma is_unstamped_path2tm' n b p :
   is_unstamped_path n b p →
