@@ -115,6 +115,14 @@ Section LambdaIntros.
     by rewrite /= ctx_sub_unTLater.
   Qed.
 
+  Lemma P_Val {Γ} v T:
+    Γ ⊨ tv v : T -∗
+    Γ ⊨p pv v : T, 0.
+  Proof.
+    iIntros "/= #Hp !>" (ρ) "Hg".
+    iSpecialize ("Hp" with "Hg"); rewrite wp_value_inv'. by [].
+  Qed.
+
   (** Lemmas about definition typing. *)
   Lemma D_TVMem_I {Γ} V T v l:
     TLater V :: Γ ⊨ tv v : T -∗

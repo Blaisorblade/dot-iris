@@ -35,14 +35,6 @@ Section Sec.
     iApply "HφU" => //. iNext. by iRewrite "Hag".
   Qed.
 
-  Lemma P_Val v T:
-    Γ ⊨ tv v : T -∗
-    Γ ⊨p pv v : T, 0.
-  Proof.
-    iIntros "/= #Hp !>" (ρ) "Hg".
-    iSpecialize ("Hp" with "Hg"); rewrite wp_value_inv'. by [].
-  Qed.
-
   Lemma P_Mem_E p T l i:
     Γ ⊨p p : TVMem l T, i -∗
     (*─────────────────────────*)
