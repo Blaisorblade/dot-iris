@@ -58,7 +58,7 @@ Proof.
     move: Hcl => /fv_dtysem_inv.
     rewrite /= Forall_fmap => Hcl.
     decompose_Forall; eauto.
-  - eapply fv_dvl, IH1; eauto with fv.
+  - eapply fv_dpt, IH1; eauto with fv.
   - eapply fv_pv, IH1; eauto with fv.
   - eapply fv_pself, IH1; eauto with fv.
   - eapply fv_TAnd; [> eapply IH1 | eapply IH2]; eauto with fv.
@@ -136,7 +136,7 @@ Proof.
     move: Hcl => /fv_dtysem_inv.
     rewrite /= Forall_fmap => Hcl.
     decompose_Forall; eauto.
-  - eapply fv_dvl, IH1; eauto with fv.
+  - eapply fv_dpt, IH1; eauto with fv.
   - eapply fv_pv, IH1; eauto with fv.
   - eapply fv_pself, IH1; eauto with fv.
   - eapply fv_TAnd; [> eapply IH1 | eapply IH2]; eauto with fv.

@@ -20,13 +20,13 @@ Section nclosed_prim_step.
   Qed.
 
   Lemma nclosed_proj v l p n:
-    v @ l ↘ dvl p →
+    v @ l ↘ dpt p →
     nclosed (tproj (tv v) l) n →
     nclosed (path2tm p) n.
   Proof.
     move => Hl Hcl.
     apply nclosed_path2tm.
-    enough (nclosed (dvl p) n) by eauto with fv.
+    enough (nclosed (dpt p) n) by eauto with fv.
     apply (nclosed_lookup' Hl). eauto with fv.
   Qed.
 

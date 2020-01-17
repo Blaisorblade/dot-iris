@@ -265,7 +265,7 @@ Section Sec.
     rewrite wp_unfold /wp_pre/=.
     remember (tproj (tv v) l) as v'.
     iDestruct ("HE" $! () [] [] 0 with "[//]") as (Hs) "HE".
-    have {Hs} [p [Hhr Hl]]: ∃ p, head_step v' () [] (path2tm p) () [] ∧ v @ l ↘ dvl p. {
+    have {Hs} [p [Hhr Hl]]: ∃ p, head_step v' () [] (path2tm p) () [] ∧ v @ l ↘ dpt p. {
       have Hhr: head_reducible v' ().
         apply prim_head_reducible, ectxi_language_sub_redexes_are_values;
           by [|move => -[]/= *; simplify_eq/=; eauto].

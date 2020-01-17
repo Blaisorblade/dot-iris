@@ -302,10 +302,10 @@ Lemma dvabs_sub_typed {Γ} V T1 T2 e l L:
   T1.|[ren (+1)] :: V :: Γ v⊢ₜ[ g ] e : T2 →
   TLater V :: Γ v⊢ₜ[ g ] TAll T1 T2, 0 <: L, 0 →
   is_stamped_ty (S (length Γ)) g T1 →
-  Γ |d V v⊢[ g ]{ l := dvl (pv (vabs e)) } : TVMem l L.
+  Γ |d V v⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l L.
 Proof.
   intros He Hsub Hs.
-  eapply dvl_sub_typed; first apply Hsub.
+  eapply dpt_sub_typed; first apply Hsub.
   tcrush.
 Qed.
 

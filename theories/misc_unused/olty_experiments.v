@@ -163,7 +163,7 @@ Section SemTypes.
     lift_dinterp_vl (oDTMem l τ1 τ2).
 
   Definition oDVMem l τ : dlty Σ := Dlty l
-    (λ ρ d, ∃ pmem, ⌜d = dvl pmem⌝ ∧ path_wp pmem (oClose τ ρ))%I.
+    (λ ρ d, ∃ pmem, ⌜d = dpt pmem⌝ ∧ path_wp pmem (oClose τ ρ))%I.
 
   Definition oTVMem l τ :=
     lift_dinterp_vl (oDVMem l τ).

@@ -336,7 +336,7 @@ Example noneTypStronger Γ :
   Γ u⊢ₜ tv noneV : hclose hnoneSingT.
 Proof.
   have := iftTrueSingTyp (hclose (▶: hnoneSingTBody hx0) :: Γ) =>
-    /(dvl_typed "isEmpty") ?.
+    /(dpt_pv_typed "isEmpty") ?.
   (* apply VObj_typed; last stcrush.
   apply dcons_typed; [tcrush| |tcrush].
   apply dcons_typed; [eauto | |tcrush]. *)
@@ -377,7 +377,7 @@ Example mkSomeTypStronger Γ :
   Γ u⊢ₜ tv mkSome : hclose hmkSomeTSing.
 Proof.
   evar (Γ' : ctx).
-  have := iftFalseSingTyp Γ' => /(dvl_typed "isEmpty"); rewrite /Γ' => Hf.
+  have := iftFalseSingTyp Γ' => /(dpt_pv_typed "isEmpty"); rewrite /Γ' => Hf.
   tcrush; cbv.
   - eapply App_typed; first var.
     apply (Subs_typed (i := 1) (T1 := hclose (▶: (hp3 @; "T"))%HT)); tcrush.
@@ -409,7 +409,7 @@ Example optionModConcrTyp Γ :
 Proof.
   set U := hclose (▶: hoptionModTConcrBody).
   have := noneTypStronger (U :: Γ).
-  have := mkSomeTypStronger (U :: Γ) => /(dvl_typed "mkSome") Hs Hn.
+  have := mkSomeTypStronger (U :: Γ) => /(dpt_pv_typed "mkSome") Hs Hn.
   ltcrush.
 Qed.
 

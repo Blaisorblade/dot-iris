@@ -28,7 +28,7 @@ precondition. *)
 
 Inductive path_wp_pure : path → (vl → Prop) → Prop :=
 | pwp_pv vp Pv : Pv vp → path_wp_pure (pv vp) Pv
-| pwp_pself p vp q l Pv : path_wp_pure p (eq vp) → vp @ l ↘ dvl q → path_wp_pure q Pv →
+| pwp_pself p vp q l Pv : path_wp_pure p (eq vp) → vp @ l ↘ dpt q → path_wp_pure q Pv →
   path_wp_pure (pself p l) Pv .
 Local Hint Constructors path_wp_pure : core.
 
@@ -36,7 +36,7 @@ Lemma path_wp_pure_inv_pv Pv v : path_wp_pure (pv v) Pv ↔ Pv v.
 Proof. split; by [inversion_clear 1 | auto]. Qed.
 
 Lemma path_wp_pure_inv_pself Pv p l : path_wp_pure (pself p l) Pv →
-  ∃ vp q, path_wp_pure p (eq vp) ∧ vp @ l ↘ dvl q ∧ path_wp_pure q Pv ∧
+  ∃ vp q, path_wp_pure p (eq vp) ∧ vp @ l ↘ dpt q ∧ path_wp_pure q Pv ∧
   path_wp_pure (pself p l) Pv.
 Proof. inversion_clear 1; naive_solver. Qed.
 
@@ -69,7 +69,7 @@ Lemma path_wp_pure_det {p v1 v2}:
   v1 = v2.
 Proof.
   move => Hp1 Hp2; move: v2 Hp2; induction Hp1; intros; inverse Hp2; first naive_solver.
-  lazymatch goal with H1 : ?vp @ l ↘ dvl ?q, H2 : ?vp0 @ l ↘ dvl ?q0 |- _ =>
+  lazymatch goal with H1 : ?vp @ l ↘ dpt ?q, H2 : ?vp0 @ l ↘ dpt ?q0 |- _ =>
     (suff ?: q = q0 by subst; auto);
     (suff ?: vp = vp0 by subst; objLookupDet);
     auto
@@ -182,7 +182,7 @@ Section path_wp_pre.
   Definition path_wp_pre (path_wp : pathO → (vl -d> iPropO Σ) → iProp Σ) p φ : iProp Σ :=
     match p with
     | pv vp => φ vp
-    | pself p l => ∃ vp q, ⌜ vp @ l ↘ dvl q ⌝ ∧
+    | pself p l => ∃ vp q, ⌜ vp @ l ↘ dpt q ⌝ ∧
         path_wp p (λ v, ⌜ vp = v ⌝) ∗ path_wp q φ
     end%I.
   Instance: (∀ v, Persistent (φ v)) → (∀ p φ, Persistent (path_wp p φ)) → Persistent (path_wp_pre path_wp p φ).
@@ -229,7 +229,7 @@ Section path_wp.
 
   Lemma path_wp_pv v φ : path_wp (pv v) φ ⊣⊢ φ v.
   Proof. by rewrite path_wp_unfold. Qed.
-  Lemma path_wp_pself p l φ : path_wp (pself p l) φ ⊣⊢ ∃ vp q, ⌜ vp @ l ↘ dvl q ⌝ ∧
+  Lemma path_wp_pself p l φ : path_wp (pself p l) φ ⊣⊢ ∃ vp q, ⌜ vp @ l ↘ dpt q ⌝ ∧
         path_wp p (λ v, ⌜ vp = v ⌝) ∗ path_wp q φ.
   Proof. by rewrite path_wp_unfold. Qed.
 

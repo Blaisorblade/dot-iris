@@ -30,7 +30,7 @@ Inductive tm : Type :=
  with dm : Type :=
   | dtysyn : ty -> dm
   | dtysem : list vl_ -> stamp -> dm
-  | dvl : path -> dm
+  | dpt : path -> dm
  with path : Type :=
   | pv : vl_ -> path
   | pself : path -> label -> path
@@ -97,7 +97,7 @@ Instance inh_ty : Inhabited ty := populate TNat.
 Instance inh_base_lit : Inhabited base_lit := populate (lnat 0).
 Instance inh_vl : Inhabited vl := populate (vlit inhabitant).
 Instance inh_pth : Inhabited path := populate (pv inhabitant).
-Instance inh_dm : Inhabited dm := populate (dvl inhabitant).
+Instance inh_dm : Inhabited dm := populate (dpt inhabitant).
 Instance inh_tm : Inhabited tm := populate (tv inhabitant).
 
 Instance ids_vl : Ids vl := var_vl.
@@ -144,7 +144,7 @@ dm_rename (sb : var → var) d : dm :=
   match d with
   | dtysyn ty => dtysyn (rename sb ty)
   | dtysem lv γ => dtysem (rename sb lv) γ
-  | dvl p => dvl (rename sb p)
+  | dpt p => dpt (rename sb p)
   end
 with
 ty_rename (sb : var → var) T : ty :=
@@ -211,7 +211,7 @@ dm_hsubst (sb : var → vl) d : dm :=
   match d with
   | dtysyn ty => dtysyn (hsubst sb ty)
   | dtysem lv γ => dtysem (hsubst sb lv) γ
-  | dvl p => dvl (hsubst sb p)
+  | dpt p => dpt (hsubst sb p)
   end
 with
 ty_hsubst (sb : var → vl) T : ty :=
@@ -508,7 +508,7 @@ Inductive head_step : tm -> state -> list observation -> tm -> state -> list tm 
 | st_beta t1 v2 σ:
   head_step (tapp (tv (vabs t1)) (tv v2)) σ [] (t1.|[v2/]) σ []
 | st_proj v l σ p:
-  v @ l ↘ dvl p →
+  v @ l ↘ dpt p →
   head_step (tproj (tv v) l) σ [] (path2tm p) σ []
 | st_skip v σ:
   head_step (tskip (tv v)) σ [] (tv v) σ []
@@ -641,7 +641,7 @@ Section syntax_mut_rect.
   (* Original: *)
   (* Variable step_dtysem : ∀ vsl g, Pdm (dtysem vs g). *)
   Variable step_dtysem : ∀ vs s, ForallT Pvl vs → Pdm (dtysem vs s).
-  Variable step_dvl : ∀ p1, Ppt p1 → Pdm (dvl p1).
+  Variable step_dpt : ∀ p1, Ppt p1 → Pdm (dpt p1).
   Variable step_pv : ∀ v1, Pvl v1 → Ppt (pv v1).
   Variable step_psefl : ∀ p1 l, Ppt p1 → Ppt (pself p1 l).
   Variable step_TTop : Pty TTop.
@@ -715,7 +715,7 @@ Section syntax_mut_ind.
   (* Original: *)
   (* Variable step_dtysem : ∀ vsl g, Pdm (dtysem vs g). *)
   Variable step_dtysem : ∀ vs s, Forall Pvl vs → Pdm (dtysem vs s).
-  Variable step_dvl : ∀ p1, Ppt p1 → Pdm (dvl p1).
+  Variable step_dpt : ∀ p1, Ppt p1 → Pdm (dpt p1).
   Variable step_pv : ∀ v1, Pvl v1 → Ppt (pv v1).
   Variable step_psefl : ∀ p1 l, Ppt p1 → Ppt (pself p1 l).
   Variable step_TTop : Pty TTop.
@@ -793,9 +793,9 @@ Section syntax_mut_ind_closed.
   Variable step_dtysem : ∀ n vs s,
       nclosed vs n → nclosed (dtysem vs s) n →
       Forall (flip Pvl n) vs → Pdm (dtysem vs s) n.
-  Variable step_dvl : ∀ n p1,
-      nclosed p1 n → nclosed (dvl p1) n →
-      Ppt p1 n → Pdm (dvl p1) n.
+  Variable step_dpt : ∀ n p1,
+      nclosed p1 n → nclosed (dpt p1) n →
+      Ppt p1 n → Pdm (dpt p1) n.
 
   Variable step_pv : ∀ n v1,
       nclosed_vl v1 n → nclosed (pv v1) n →

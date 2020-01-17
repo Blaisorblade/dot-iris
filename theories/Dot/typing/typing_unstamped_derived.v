@@ -367,10 +367,10 @@ Lemma dvabs_sub_typed {Γ} V T1 T2 e l L:
   shift T1 :: V :: Γ u⊢ₜ e : T2 →
   TLater V :: Γ u⊢ₜ TAll T1 T2, 0 <: L, 0 →
   is_unstamped_ty' (S (length Γ)) T1 →
-  Γ |d V u⊢{ l := dvl (pv (vabs e)) } : TVMem l L.
+  Γ |d V u⊢{ l := dpt (pv (vabs e)) } : TVMem l L.
 Proof.
   intros He Hsub Hs.
-  eapply dvl_sub_typed; first apply Hsub.
+  eapply dpt_sub_typed; first apply Hsub.
   tcrush.
 Qed.
 
@@ -636,5 +636,5 @@ Proof. intros; eapply Let_typed; eauto. Qed.
 Lemma pDOT_Def_Path_derived Γ V l p T
   (Hx : TLater V :: Γ u⊢ₚ p : T, 0)
   (Hu : is_unstamped_path (S (length Γ)) AlsoNonVars p) :
-  Γ |d V u⊢{ l := dvl p } : TVMem l (TSing p).
+  Γ |d V u⊢{ l := dpt p } : TVMem l (TSing p).
 Proof. eapply dpath_typed, Hu. apply (psingleton_refl_typed (T := T)), Hx. Qed.

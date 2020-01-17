@@ -33,7 +33,7 @@ Close Scope dms_scope.
 Arguments vobj _%dms_scope.
 
 Notation "'ν' ds " := (vobj ds) (at level 60, ds at next level).
-Notation "'val' l = v" := (l, dvl v) (at level 60, l at level 50).
+Notation "'val' l = v" := (l, dpt v) (at level 60, l at level 50).
 Notation "'type' l = T  " := (l, dtysyn T) (at level 60, l at level 50).
 
 (** Notation for object types. *)

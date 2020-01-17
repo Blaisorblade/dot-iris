@@ -80,8 +80,8 @@ Proof.
 Qed.
 
 Lemma dms_lookup_sublist l p ds :
-  wf_ds ds → [(l, dvl p)] `sublist_of` ds →
-  dms_lookup l ds = Some (dvl p).
+  wf_ds ds → [(l, dpt p)] `sublist_of` ds →
+  dms_lookup l ds = Some (dpt p).
 Proof.
   rewrite sublist_cons_l; intros Hwf ?; ev; simplify_eq/=.
   apply dms_has_in_eq; [done|].
@@ -89,7 +89,7 @@ Proof.
 Qed.
 
 Lemma path_includes_field_aliases p ρ l v :
-  path_includes p ρ [(l, dvl (pv v))] →
+  path_includes p ρ [(l, dpt (pv v))] →
   alias_paths (pself p.|[ρ] l) (pv v.[ρ]).
 Proof.
   rewrite /path_includes/alias_paths/= !path_wp_pure_eq;
@@ -159,7 +159,7 @@ Section Sec.
   (** This lemma is equivalent to pDOT's (Def-New). *)
   Lemma D_New_Mem_I Γ T l ds:
     TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ ⊨ds ds : T -∗
-    Γ ⊨ { l := dvl (pv (vobj ds)) } : TVMem l (TMu T).
+    Γ ⊨ { l := dpt (pv (vobj ds)) } : TVMem l (TMu T).
   Proof.
     iDestruct 1 as (Hwf) "#Hds"; iIntros "!>" (ρ Hpid) "#Hg /=".
     rewrite def_interp_tvmem_eq path_wp_pv /=.
@@ -176,7 +176,7 @@ Section Sec.
 
   Lemma D_New_Mem_I' Γ V T l ds:
     (TLater V :: Γ) |L TAnd T (TSing (pself (pv (ids 1)) l)) ⊨ds ds : T -∗
-    Γ |L V ⊨ { l := dvl (pv (vobj ds)) } : TVMem l (TMu T).
+    Γ |L V ⊨ { l := dpt (pv (vobj ds)) } : TVMem l (TMu T).
   Proof.
     iIntros "#H"; iApply D_New_Mem_I.
     iDestruct "H" as (Hwf) "#Hds". iFrame (Hwf).
@@ -188,8 +188,8 @@ Section Sec.
 
   Lemma D_TVMem_Sub V T1 T2 p l:
     Γ |L V ⊨ T1, 0 <: T2, 0 -∗
-    Γ |L V ⊨ { l := dvl p } : TVMem l T1 -∗
-    Γ |L V ⊨ { l := dvl p } : TVMem l T2.
+    Γ |L V ⊨ { l := dpt p } : TVMem l T1 -∗
+    Γ |L V ⊨ { l := dpt p } : TVMem l T2.
   Proof.
     iIntros "/= #Hsub #Hv !>" (ρ Hpid) "#Hg".
     iSpecialize ("Hv" $! ρ Hpid with "Hg").
