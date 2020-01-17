@@ -136,7 +136,7 @@ Section path_wp.
   Context `{HdlangG: dlangG Σ}.
   Implicit Types (φ : vl -d> iPropO Σ).
 
-  Lemma path_wp_cl n p v:
+  (* Lemma path_wp_cl n p v:
     path_wp_pure p (eq v) →
     nclosed p n → nclosed_vl v n.
   Proof.
@@ -146,7 +146,7 @@ Section path_wp.
       intros (w & Hpwp & _ & Hl & <-) Hclps.
       enough (nclosed (dvl v) n). by eauto with fv.
       eapply nclosed_lookup', IHp; eauto with fv.
-  Qed.
+  Qed. *)
 End path_wp.
 
 From D.Dot.lr Require Import unary_lr path_wp path_repl.
@@ -255,7 +255,7 @@ Section path_repl.
       [alias_paths_subst_pure p r ids → path_wp q φ ≡ path_wp (q .p[p := r]) φ].
 
       But we do need the general form. *)
-  Lemma path_replacement_equiv_alt {p r ρ} q (φ : vl → iProp Σ):
+  (* Lemma path_replacement_equiv_alt {p r ρ} q (φ : vl → iProp Σ):
     alias_paths_subst p r ρ →
     path_wp q.|[ρ] φ ≡ path_wp (q .p[p := r]).|[ρ] φ.
   Proof.
@@ -283,7 +283,7 @@ Section path_repl.
   Lemma rewrite_tsel_psubst2 p q l ρ v r:
     alias_paths_substI p r ρ ⊢
     ⟦ TSel q l ⟧ ρ v ≡ ⟦ TSel (q .p[ p := r ]) l ⟧ ρ v.
-  Proof. exact: path_replacement_equiv_alt'. Qed.
+  Proof. exact: path_replacement_equiv_alt'. Qed. *)
 
 
   (* That's false, as we don't know that q terminates from the hyp. *)
