@@ -237,7 +237,7 @@ Section syntyping_stamping_lemmas.
     move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]];
     move: IHs2 => /(.$ g1) [g2 [Hts2 Hle2]].
 
-    have Husv: is_unstamped_dm' (S (length Γ)) (dtysyn T) by eauto.
+    have Husv: is_unstamped_dm (S (length Γ)) OutType (dtysyn T) by eauto.
     destruct (extract g2 (S (length Γ)) T) as [g3 [s σ]] eqn:Heqo.
     move: Heqo => [Heqg3 Heqs Heqσ].
     have {Heqσ} -Heqσ: σ = idsσ (S (length Γ)) by naive_solver.

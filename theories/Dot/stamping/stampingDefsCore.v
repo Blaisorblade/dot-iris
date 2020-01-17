@@ -67,10 +67,6 @@ Notation is_stamped_σ n g σ := (Forall (is_stamped_vl n g) σ).
 Notation is_unstamped_path' n := (is_unstamped_path n InType).
 Notation is_unstamped_ty' n := (is_unstamped_ty n InType).
 
-(* Of any use? *)
-(* Notation is_unstamped_tm' n := (is_unstamped_tm n OutType). *)
-Notation is_unstamped_dm' n := (is_unstamped_dm n OutType).
-Notation is_unstamped_dms' n ds := (is_unstamped_dms n OutType ds).
 (** Next, we define "extraction", which is the core of stamping.
     Extraction (as defined by [extraction]) is a relation, stable under
     substitution, between a type and its extracted form.
