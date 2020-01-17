@@ -27,27 +27,27 @@ Proof.
 Qed.
 
 Lemma is_unstamped_ty2OutType n b T :
-  is_unstamped_ty n b T →
-  is_unstamped_ty n OutType T.
+  is_unstamped_ty n b T → is_unstamped_ty n OutType T.
+Proof. apply is_unstamped_to_OutType_mut. Qed.
+
+Lemma is_unstamped_path2OutType n b p :
+  is_unstamped_path n b p → is_unstamped_path n OutType p.
+Proof. apply is_unstamped_to_OutType_mut. Qed.
+
+Lemma is_unstamped_tm2OutType n b t :
+  is_unstamped_tm n b t → is_unstamped_tm n OutType t.
 Proof. apply is_unstamped_to_OutType_mut. Qed.
 
 Lemma is_unstamped_var2InType n x :
   is_unstamped_vl n OutType (var_vl x) → is_unstamped_vl n InType (var_vl x).
 Proof. intros; inverse_is_unstamped; eauto. Qed.
 
-Lemma is_unstamped_tm2OutType n b t :
-  is_unstamped_tm n b t →
-  is_unstamped_tm n OutType t.
-Proof. apply is_unstamped_to_OutType_mut. Qed.
-
 Lemma is_unstamped_path2tm n b p :
-  is_unstamped_path n b p →
-  is_unstamped_tm n b (path2tm p).
+  is_unstamped_path n b p → is_unstamped_tm n b (path2tm p).
 Proof. elim: p => /= [v|p IHp l] Hp; inversion Hp; auto. Qed.
 
 Lemma is_unstamped_path2tm' n b p :
-  is_unstamped_path n b p →
-  is_unstamped_tm n OutType (path2tm p).
+  is_unstamped_path n b p → is_unstamped_tm n OutType (path2tm p).
 Proof. intros. by eapply is_unstamped_tm2OutType, is_unstamped_path2tm. Qed.
 
 Section syntyping_stamping_lemmas.
