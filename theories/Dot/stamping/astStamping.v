@@ -75,12 +75,12 @@ Definition unstamp_dms g ds := map (mapsnd (unstamp_dm g)) ds.
 (** XXX this formulation might be inconvenient: storing the correct n in the map might be preferable. *)
 Definition is_stamped_gmap g: Prop := ∀ s T, g !! s = Some T → ∃ n, is_stamped_ty n g T.
 
-Notation stamps_tm n e__u g e__s := (unstamp_tm g e__s = e__u ∧ is_unstamped_tm n e__u ∧ is_stamped_tm n g e__s).
-Notation stamps_vl n v__u g v__s := (unstamp_vl g v__s = v__u ∧ is_unstamped_vl n v__u ∧ is_stamped_vl n g v__s).
-Notation stamps_dm n d__u g d__s := (unstamp_dm g d__s = d__u ∧ is_unstamped_dm n d__u ∧ is_stamped_dm n g d__s).
-Notation stamps_dms n d__u g d__s := (unstamp_dms g d__s%list = d__u%list ∧ is_unstamped_dms n d__u ∧ is_stamped_dms n g d__s).
-Notation stamps_path n p__u g p__s := (unstamp_path g p__s = p__u ∧ is_unstamped_path n p__u ∧ is_stamped_path n g p__s).
-Notation stamps_ty n T__u g T__s := (unstamp_ty g T__s = T__u%ty ∧ is_unstamped_ty n T__u ∧ is_stamped_ty n g T__s).
+Notation stamps_tm   n b e__u g e__s := (unstamp_tm   g e__s      = e__u      ∧ is_unstamped_tm   n b e__u ∧ is_stamped_tm   n g e__s).
+Notation stamps_vl   n b v__u g v__s := (unstamp_vl   g v__s      = v__u      ∧ is_unstamped_vl   n b v__u ∧ is_stamped_vl   n g v__s).
+Notation stamps_dm   n b d__u g d__s := (unstamp_dm   g d__s      = d__u      ∧ is_unstamped_dm   n b d__u ∧ is_stamped_dm   n g d__s).
+Notation stamps_dms  n b d__u g d__s := (unstamp_dms  g d__s%list = d__u%list ∧ is_unstamped_dms  n b d__u ∧ is_stamped_dms  n g d__s).
+Notation stamps_path n b p__u g p__s := (unstamp_path g p__s      = p__u      ∧ is_unstamped_path n b p__u ∧ is_stamped_path n g p__s).
+Notation stamps_ty   n b T__u g T__s := (unstamp_ty   g T__s      = T__u%ty   ∧ is_unstamped_ty   n b T__u ∧ is_stamped_ty   n g T__s).
 
 Definition unstamp_same_skel_tm_def e g : Prop := ∀ e_s,
   unstamp_tm   g e_s = e → same_skel_tm e e_s.
@@ -125,21 +125,21 @@ Definition stamp_dtysyn g n T :=
   let '(g', (s, σ)) := (extract g n T) in
   (dtysem σ s, g').
 
-Lemma unstamped_stamped_var n g x :
-  is_unstamped_vl n (var_vl x) → is_stamped_vl n g (var_vl x).
+Lemma unstamped_stamped_var n b g x :
+  is_unstamped_vl n b (var_vl x) → is_stamped_vl n g (var_vl x).
 Proof. inversion_clear 1; auto. Qed.
 
 (** Unstamped types are already stamped, because they can't contain type
     definitions to stamp. *)
 Lemma unstamped_stamped_path p g n:
-  is_unstamped_path n p → is_stamped_path n g p.
+  is_unstamped_path' n p → is_stamped_path n g p.
 Proof.
   intros Hus; induction p; repeat with_is_unstamped ltac:(fun H => nosplit inverse H; clear H);
     naive_solver eauto using unstamped_stamped_var.
 Qed.
 
-Lemma unstamped_stamped_type T g n:
-  is_unstamped_ty n T →
+Lemma unstamped_stamped_type T g n b:
+  is_unstamped_ty n b T →
   is_stamped_ty n g T.
 Proof.
   move: n. induction T => n Hus; inverse Hus; constructor;
@@ -148,32 +148,32 @@ Proof.
 Qed.
 
 Lemma unstamped_stamps_self_mut:
-  (∀ t g n, is_unstamped_tm n t → unstamp_tm g t = t) ∧
-  (∀ v g n, is_unstamped_vl n v → unstamp_vl g v = v) ∧
-  (∀ d g n, is_unstamped_dm n d → unstamp_dm g d = d) ∧
-  (∀ p g n, is_unstamped_path n p → unstamp_path g p = p) ∧
-  (∀ T g n, is_unstamped_ty n T → unstamp_ty g T = T).
+  (∀ t g n b, is_unstamped_tm   n b t → unstamp_tm g t = t) ∧
+  (∀ v g n b, is_unstamped_vl   n b v → unstamp_vl g v = v) ∧
+  (∀ d g n b, is_unstamped_dm   n b d → unstamp_dm g d = d) ∧
+  (∀ p g n b, is_unstamped_path n b p → unstamp_path g p = p) ∧
+  (∀ T g n b, is_unstamped_ty   n b T → unstamp_ty g T = T).
 Proof.
   apply syntax_mut_ind;
   try by intros; with_is_unstamped inverse; simplify_eq/=; f_equal; eauto 2; by destruct (g !! s).
-  elim => [//|[l d] ds /= IHds] IH g n Hus. inverse IH.
-  have [Hd Hds]: is_unstamped_dm (S n) d ∧ is_unstamped_dms (S n) ds.
+  elim => [//|[l d] ds /= IHds] IH g n b Hus. inverse IH.
+  have [Hd Hds]: is_unstamped_dm (S n) b d ∧ is_unstamped_dms (S n) b ds.
   by inversion Hus as [ | | | ?? Hds]; simplify_eq/=; inverse Hds.
   einjection IHds => // *; repeat f_equal; eauto 2.
 Qed.
 
-Lemma unstamped_stamps_self_path g n p: is_unstamped_path n p →
+Lemma unstamped_stamps_self_path g n b p: is_unstamped_path n b p →
   unstamp_path g p = p.
 Proof. apply unstamped_stamps_self_mut. Qed.
 
 Arguments extraction: simpl never.
 Import traversals.Trav1.
 
-Lemma stamp_dtysyn_spec {T n} g:
-  is_unstamped_dm n (dtysyn T) →
+Lemma stamp_dtysyn_spec {T n} g b:
+  is_unstamped_dm n b (dtysyn T) →
   let '(g', (s, σ)) := (extract g n T) in
   let v' := (dtysem σ s) in
-  stamps_dm n (dtysyn T) g' v' ∧ g ⊆ g' ∧
+  stamps_dm n b (dtysyn T) g' v' ∧ g ⊆ g' ∧
     T ~[ n ] (g', (s, σ)).
 Proof.
   intros Hus; inverse Hus.
@@ -186,12 +186,12 @@ Proof.
     eauto using is_stamped_idsσ, unstamped_stamped_type.
 Qed.
 
-Lemma exists_stamped_dtysyn T n g:
-  is_unstamped_dm n (dtysyn T) →
-  { v' & { g' | stamps_dm n (dtysyn T) g' v' ∧ g ⊆ g' } }.
+Lemma exists_stamped_dtysyn T n g b:
+  is_unstamped_dm n b (dtysyn T) →
+  { v' & { g' | stamps_dm n b (dtysyn T) g' v' ∧ g ⊆ g' } }.
 Proof.
   intros Hus. destruct (stamp_dtysyn g n T) as (v', g') eqn:?. cbn in Heqp.
-  have HclT: nclosed T n. by inverse Hus; auto with fv.
+  have HclT: nclosed T n. by inverse Hus; eauto.
   edestruct (stamp_dtysyn_spec g Hus).
   exists v', g'; simplify_eq; eauto.
 Qed.
@@ -199,7 +199,7 @@ Qed.
 Lemma var_stamps_to_self1 g x v: unstamp_vl g v = var_vl x → v = var_vl x.
 Proof. by case: v. Qed.
 
-Lemma var_stamps_to_self n g x v: stamps_vl n (var_vl x) g v → v = var_vl x.
+Lemma var_stamps_to_self n g x v b: stamps_vl n b (var_vl x) g v → v = var_vl x.
 Proof. move=> [Heq _]. exact: var_stamps_to_self1. Qed.
 
 Lemma path_stamps_to_self1 g p_s p_u x: unstamp_path g p_s = p_u → path_root p_u = var_vl x → p_s = p_u.
@@ -220,21 +220,21 @@ Proof.
   by simplify_eq/=; case_match; eauto.
 Qed.
 
-Lemma stamps_tm_skip n g i e e':
-  stamps_tm n e g e' →
-  stamps_tm n (iterate tskip i e) g (iterate tskip i e').
+Lemma stamps_tm_skip n g i e e' b:
+  stamps_tm n b e g e' →
+  stamps_tm n b (iterate tskip i e) g (iterate tskip i e').
 Proof.
   move => [Heq [Hus Hs]]. elim: i => [//|] i [IHeq [IHus IHs]].
   rewrite !iterate_S /=. split_and!; by [constructor| f_equiv].
 Qed.
 Hint Resolve stamps_tm_skip : core.
 
-Lemma exists_stamped_dtysem vs s n g: is_unstamped_dm n (dtysem vs s) → { v' & { g' | stamps_dm n (dtysem vs s) g' v' ∧ g ⊆ g' } }.
+Lemma exists_stamped_dtysem vs s n g b: is_unstamped_dm n b (dtysem vs s) → { v' & { g' | stamps_dm n b (dtysem vs s) g' v' ∧ g ⊆ g' } }.
 Proof. intros H. exfalso. by inversion H. Qed.
 
-Lemma stamps_unstamp_dtysem_mono g1 g2 n v__u vs s:
+Lemma stamps_unstamp_dtysem_mono g1 g2 n v__u vs s b:
   g1 ⊆ g2 →
-  stamps_dm n v__u g1 (dtysem vs s) →
+  stamps_dm n b v__u g1 (dtysem vs s) →
   unstamp_dm g2 (dtysem vs s) = v__u.
 Proof.
   intros Hg (Huns & _ & Hs).
@@ -252,20 +252,20 @@ Proof.
 Qed.
 
 Lemma stamps_unstamp_mono_mut:
-  (∀ e__s g1 g2 n e__u, g1 ⊆ g2 →
-                    stamps_tm n e__u g1 e__s →
+  (∀ e__s g1 g2 n e__u b, g1 ⊆ g2 →
+                    stamps_tm n b e__u g1 e__s →
                     unstamp_tm g2 e__s = e__u) ∧
-  (∀ v__s g1 g2 n v__u, g1 ⊆ g2 →
-                    stamps_vl n v__u g1 v__s →
+  (∀ v__s g1 g2 n v__u b, g1 ⊆ g2 →
+                    stamps_vl n b v__u g1 v__s →
                     unstamp_vl g2 v__s = v__u) ∧
-  (∀ d__s g1 g2 n d__u, g1 ⊆ g2 →
-                    stamps_dm n d__u g1 d__s →
+  (∀ d__s g1 g2 n d__u b, g1 ⊆ g2 →
+                    stamps_dm n b d__u g1 d__s →
                     unstamp_dm g2 d__s = d__u) ∧
-  (∀ p__s g1 g2 n p__u, g1 ⊆ g2 →
-                    stamps_path n p__u g1 p__s →
+  (∀ p__s g1 g2 n p__u b, g1 ⊆ g2 →
+                    stamps_path n b p__u g1 p__s →
                     unstamp_path g2 p__s = p__u) ∧
-  (∀ T__s g1 g2 n T__u, g1 ⊆ g2 →
-                    stamps_ty n T__u g1 T__s →
+  (∀ T__s g1 g2 n T__u b, g1 ⊆ g2 →
+                    stamps_ty n b T__u g1 T__s →
                     unstamp_ty g2 T__s = T__u).
 Proof.
   apply syntax_mut_ind; intros; ev; try (exact: stamps_unstamp_dtysem_mono);
@@ -278,25 +278,24 @@ Proof.
   naive_solver eauto with f_equal.
 Qed.
 
-Lemma stamps_unstamp_mono_tm e__s g1 g2 n e__u: g1 ⊆ g2 →
-                                    stamps_tm n e__u g1 e__s →
+Lemma stamps_unstamp_mono_tm e__s g1 g2 n e__u b: g1 ⊆ g2 →
+                                    stamps_tm n b e__u g1 e__s →
                                     unstamp_tm g2 e__s = e__u.
 Proof. apply stamps_unstamp_mono_mut. Qed.
-Lemma stamps_unstamp_mono_vl (v__s: vl) g1 g2 n v__u : g1 ⊆ g2 →
-                                  stamps_vl n v__u g1 v__s →
+Lemma stamps_unstamp_mono_vl v__s g1 g2 n v__u  b: g1 ⊆ g2 →
+                                  stamps_vl n b v__u g1 v__s →
                                   unstamp_vl g2 v__s = v__u.
 Proof. apply stamps_unstamp_mono_mut. Qed.
-Lemma stamps_unstamp_mono_dm d__s g1 g2 n d__u: g1 ⊆ g2 →
-                                    stamps_dm n d__u g1 d__s →
+Lemma stamps_unstamp_mono_dm d__s g1 g2 n d__u b: g1 ⊆ g2 →
+                                    stamps_dm n b d__u g1 d__s →
                                     unstamp_dm g2 d__s = d__u.
 Proof. apply stamps_unstamp_mono_mut. Qed.
-Lemma stamps_unstamp_mono_path p__s g1 g2 n p__u: g1 ⊆ g2 →
-                                    stamps_path n p__u g1 p__s →
+Lemma stamps_unstamp_mono_path p__s g1 g2 n p__u b: g1 ⊆ g2 →
+                                    stamps_path n b p__u g1 p__s →
                                     unstamp_path g2 p__s = p__u.
 Proof. apply stamps_unstamp_mono_mut. Qed.
-
-Lemma stamps_unstamp_mono_ty T__s g1 g2 n T__u : g1 ⊆ g2 →
-                                  stamps_ty n T__u g1 T__s →
+Lemma stamps_unstamp_mono_ty T__s g1 g2 n T__u b: g1 ⊆ g2 →
+                                  stamps_ty n b T__u g1 T__s →
                                   unstamp_ty g2 T__s = T__u.
 Proof. apply stamps_unstamp_mono_mut. Qed.
 

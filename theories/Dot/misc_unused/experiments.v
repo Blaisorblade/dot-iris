@@ -100,7 +100,7 @@ Section Example.
   Qed.
 
   (* XXX use more semantic typing. *)
-  Example packTV_semTyped Γ s T (Hu: is_unstamped_ty (length Γ) T):
+  Example packTV_semTyped Γ s T (Hu: is_unstamped_ty' (length Γ) T):
     s ↝ ⟦ T ⟧ -∗
     Γ ⊨ tv (packTV (length Γ) s) : typeEq "A" T.
     (* Γ ⊨ tv (packTV (length Γ) s) : type "A" >: ⊥ <: T. *)
@@ -202,14 +202,14 @@ Section Example.
   Qed.
 (* lett (hclose (htv hloopDefV @: "loop")) *)
   Example barsyn e v1 Γ T :
-    is_unstamped_ty (S (length Γ)) T →
+    is_unstamped_ty' (S (length Γ)) T →
     T :: Γ v⊢ₜ[ g0 s0 ⊤ ] e : Example.iftFalse →
     T :: Γ v⊢ₜ[ g0 s0 ⊤ ] tv v1 : ⊤ →
     T :: Γ v⊢ₜ[ g0 s0 ⊤ ] applyE e v1 x0 : TSing (pv x0).
   Proof.
     intros; apply foosyn => //.
     eapply Var_typed_sub; [ done | tcrush]. cbn.
-    apply unstamped_stamped_type.
+    eapply unstamped_stamped_type.
     by rewrite hsubst_id.
   Qed.
 

@@ -12,7 +12,7 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
 Example ex0 e Γ T:
   Γ u⊢ₜ e : T →
-  is_unstamped_ty (length Γ) T →
+  is_unstamped_ty' (length Γ) T →
   Γ u⊢ₜ e : ⊤.
 Proof. intros. apply (Subs_typed_nocoerce T TTop); tcrush. Qed.
 
@@ -89,7 +89,7 @@ Qed.
 
 (* Utilities needed for not. *)
 Lemma subIFT i Γ T:
-  is_unstamped_ty (length Γ) T.|[ren (+i)] →
+  is_unstamped_ty' (length Γ) T.|[ren (+i)] →
   (typeEq "A" T.|[ren (+1+i)]) :: Γ u⊢ₜ IFTBody, 0 <:
     TAll T.|[ren (+1+i)] (TAll T.|[ren (+2+i)] (▶: T.|[ren (+3+i)])), 0.
 Proof.
@@ -102,7 +102,7 @@ Proof.
 Qed.
 
 Lemma tyAppIFT_typed Γ T t :
-  is_unstamped_ty (length Γ) T →
+  is_unstamped_ty' (length Γ) T →
   Γ u⊢ₜ t : IFT →
   Γ u⊢ₜ tyApp t "A" T : T →: T →: ▶: T.
 Proof.
@@ -119,7 +119,7 @@ Definition iftCoerce t :=
   lett t (vabs' (vabs' (tskip (tapp (tapp (tv x2) (tv x1)) (tv x0))))).
 
 Lemma iftCoerce_typed Γ t T :
-  is_unstamped_ty (length Γ) T →
+  is_unstamped_ty' (length Γ) T →
   Γ u⊢ₜ t: T →: T →: ▶: T →
   Γ u⊢ₜ iftCoerce t : T →: T →: T.
 Proof.
@@ -138,7 +138,7 @@ Proof.
 Qed.
 
 Lemma iftCoerce_tyAppIFT_typed Γ T t :
-  is_unstamped_ty (length Γ) T →
+  is_unstamped_ty' (length Γ) T →
   Γ u⊢ₜ t : IFT →
   Γ u⊢ₜ iftCoerce (tyApp t "A" T) : T →: T →: T.
 Proof. intros. by apply /iftCoerce_typed /tyAppIFT_typed. Qed.

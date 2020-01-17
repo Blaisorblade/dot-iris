@@ -34,16 +34,16 @@ Proof. done. Qed.
 
 
 (* Lemma unstamped_val_unshifts_0 v n :
-  is_unstamped_path n (pv v) → v ≠ ids 0 → unshifts_vl v.
+  is_unstamped_path' n (pv v) → v ≠ ids 0 → unshifts_vl v.
 Proof. rewrite -unshifts_vl_equiv; apply unstamped_val_unshifts. Qed. *)
 
 Lemma is_unstamped_path_root n p :
-  is_unstamped_path n p →
-  is_unstamped_path n (pv (path_root p)).
+  is_unstamped_path' n p →
+  is_unstamped_path' n (pv (path_root p)).
 Proof. elim: p => //=; intros; with_is_unstamped inverse; eauto. Qed.
 
 Lemma unstamped_path_unshifts_n p i n :
-  path_root p ≠ ids i → is_unstamped_path n p → unshiftsN_vl i (path_root p).
+  path_root p ≠ ids i → is_unstamped_path' n p → unshiftsN_vl i (path_root p).
 Proof. intros Hne Hu%is_unstamped_path_root. exact: unstamped_val_unshifts. Qed.
 
 (*

@@ -39,9 +39,11 @@ Proof.
 Qed.
 
 Lemma unstamped_val_unshifts v i n :
-  is_unstamped_path n (pv v) → v ≠ ids i → unshiftsN_vl i v.
+  is_unstamped_path' n (pv v) → v ≠ ids i → unshiftsN_vl i v.
 Proof.
-  move E: (pv v) => p Hu Hne; destruct Hu as [? w _ [j ?]|]; simplify_eq/=.
+  move E: (pv v) => p. move E': (n, InType) => I Hu Hne.
+  destruct Hu as [? w _ Hs|]; simplify_eq/=.
+  destruct Hs as [|[j ?]]; simplify_eq/=.
   have {}Hne: j ≠ i by naive_solver.
   rewrite /unshiftsN_vl subst_comp up_comp_n.
   exact: ren_const.
@@ -53,7 +55,7 @@ Definition psubst_one_ty_gen i T p :=
   T .T[ pv (ids i) := shiftN (S i) p ].
 
 Lemma psubst_one_path_gen_unshifts_gen i n q p :
-  is_unstamped_path n q →
+  is_unstamped_path' n q →
   unshiftsN i (psubst_one_path_gen i q p).
 Proof.
   move: p i; induction q => p i Hu //; last by inverse Hu;
@@ -65,7 +67,7 @@ Proof.
 Qed.
 
 Lemma psubst_one_base_unshifts_gen i n T p :
-  is_unstamped_ty n T → unshiftsN i (psubst_one_ty_gen i T p).
+  is_unstamped_ty' n T → unshiftsN i (psubst_one_ty_gen i T p).
 Proof.
   rewrite /psubst_one_ty_gen /unshiftsN.
   move: p i n; induction T => p0 i n Hu; f_equal/=; with_is_unstamped inverse;
@@ -75,7 +77,7 @@ Qed.
 Notation unshifts x := (∃ x', x = shift x').
 
 Lemma psubst_one_base_unshifts {n T} p:
-  is_unstamped_ty n T → unshifts (psubst_one_ty_base T p).
+  is_unstamped_ty' n T → unshifts (psubst_one_ty_base T p).
 Proof.
   intros Hu; exists (unshift (psubst_one_ty_base T p)).
   rewrite /psubst_one_ty_base.
@@ -86,7 +88,7 @@ Qed.
 (** This lemma shows that functional path substitution function implies
 relational path substitution (the main one we use). *)
 Lemma psubst_one_implies n T p T' :
-  is_unstamped_ty n T →
+  is_unstamped_ty' n T →
   psubst_one_ty T p = T' → T .Tp[ p /]~ T'.
 Proof.
   move => /(psubst_one_base_unshifts p) [T''].
@@ -96,9 +98,9 @@ Proof.
 Qed.
 
 Lemma is_unstamped_path_subst_gen i n p q :
-  is_unstamped_path (S i + n) q →
-  is_unstamped_path n p →
-  is_unstamped_path (S i + n) (psubst_one_path_gen i q p).
+  is_unstamped_path' (S i + n) q →
+  is_unstamped_path' n p →
+  is_unstamped_path' (S i + n) (psubst_one_path_gen i q p).
 Proof.
   rewrite /psubst_one_path_gen.
   move: p i; induction q => p i Hu Hup //=; last by (constructor;
@@ -109,9 +111,9 @@ Proof.
 Qed.
 
 Lemma is_unstamped_ty_subst_gen i n T p :
-  is_unstamped_ty (S i + n) T →
-  is_unstamped_path n p →
-  is_unstamped_ty (S i + n) (psubst_one_ty_gen i T p).
+  is_unstamped_ty' (S i + n) T →
+  is_unstamped_path' n p →
+  is_unstamped_ty' (S i + n) (psubst_one_ty_gen i T p).
 Proof.
   rewrite /psubst_one_ty_gen /unshiftsN.
   move: p i n; induction T => p0 i n Hu; f_equal/=; with_is_unstamped inverse;
@@ -120,9 +122,9 @@ Proof.
 Qed.
 
 Lemma is_unstamped_ty_subst n T p :
-  is_unstamped_ty (S n) T →
-  is_unstamped_path n p →
-  is_unstamped_ty n (psubst_one_ty T p).
+  is_unstamped_ty' (S n) T →
+  is_unstamped_path' n p →
+  is_unstamped_ty' n (psubst_one_ty T p).
 Proof.
   intros HuT Hup; have /= := (is_unstamped_ty_subst_gen (i := 0) HuT Hup).
   rewrite /psubst_one_ty /psubst_one_ty_gen -/(psubst_one_ty_base T p).
@@ -159,18 +161,18 @@ Proof.
 Qed.
 
 Lemma psubst_subst_agree_path_gen p v i n :
-  is_unstamped_path n p →
+  is_unstamped_path' n p →
   psubst_one_path_gen i p (pv v) = p.|[ upn i ((v .: ids) >> ren (+1)) ].
 Proof.
   rewrite /psubst_one_path_gen; move: i.
   induction p => i //=; f_equal/=; intros; with_is_unstamped inverse; last eauto with f_equal.
-  simpl in *; ev; case_decide; simplify_eq/=; f_equal.
+  simpl in *; destruct_or!; try done; ev; case_decide; simplify_eq/=; f_equal.
   by rewrite -up_comp_n /= upn_app ren_upn.
-  by rewrite upn_app_ids_ne; naive_solver.
+  rewrite upn_app_ids_ne; naive_solver.
 Qed.
 
 Lemma psubst_subst_agree_ty_gen T v i n :
-  is_unstamped_ty n T →
+  is_unstamped_ty' n T →
   psubst_one_ty_gen i T (pv v) = T.|[ upn i ((v .: ids) >> ren (+1)) ].
 Proof.
   rewrite /psubst_one_ty_gen; move: i n.
@@ -179,7 +181,7 @@ Proof.
 Qed.
 
 Lemma psubst_subst_agree_path p n v
-  (Hu : is_unstamped_path n p) :
+  (Hu : is_unstamped_path' n p) :
   p .pp[ pv v /] = p .|[ v /].
 Proof.
   have := psubst_subst_agree_path_gen v 0 Hu.
@@ -189,7 +191,7 @@ Proof.
 Qed.
 
 Lemma psubst_subst_agree_ty T n v
-  (Hu : is_unstamped_ty n T) :
+  (Hu : is_unstamped_ty' n T) :
   T .Tp[ pv v /] = T .|[ v /].
 Proof.
   have := psubst_subst_agree_ty_gen v 0 Hu.

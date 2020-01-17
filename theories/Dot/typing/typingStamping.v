@@ -4,7 +4,57 @@ From D.Dot Require typing_unstamped.
 
 Set Implicit Arguments.
 
+Ltac inverse_once H := nosplit (try_once_tac H (inverse H)).
+Ltac inverse_is_unstamped := (repeat with_is_unstamped inverse_once); un_usedLemma.
+
+Definition is_unstamped_to_OutType_tm_def e : Prop := ∀ n b,
+  is_unstamped_tm   n b e → is_unstamped_tm n OutType e.
+Definition is_unstamped_to_OutType_vl_def v : Prop := ∀ n b,
+  is_unstamped_vl   n b v → is_unstamped_vl n OutType v.
+Definition is_unstamped_to_OutType_dm_def d : Prop := ∀ n b,
+  is_unstamped_dm   n b d → is_unstamped_dm n OutType d.
+Definition is_unstamped_to_OutType_path_def p : Prop := ∀ n b,
+  is_unstamped_path n b p → is_unstamped_path n OutType p.
+Definition is_unstamped_to_OutType_ty_def T : Prop := ∀ n b,
+  is_unstamped_ty   n b T → is_unstamped_ty n OutType T.
+
+Lemma is_unstamped_to_OutType_mut :
+  (∀ t, is_unstamped_to_OutType_tm_def t) ∧
+  (∀ v, is_unstamped_to_OutType_vl_def v) ∧
+  (∀ d, is_unstamped_to_OutType_dm_def d) ∧
+  (∀ p, is_unstamped_to_OutType_path_def p) ∧
+  (∀ T, is_unstamped_to_OutType_ty_def T).
+Proof.
+  apply syntax_mut_ind; intros ** ? **; with_is_unstamped inverse;
+    (constructor || done); decompose_Forall; eauto 2.
+Qed.
+
+Lemma is_unstamped_ty2OutType n b T :
+  is_unstamped_ty n b T →
+  is_unstamped_ty n OutType T.
+Proof. apply is_unstamped_to_OutType_mut. Qed.
+
+Lemma is_unstamped_var2InType n x :
+  is_unstamped_vl n OutType (var_vl x) → is_unstamped_vl n InType (var_vl x).
+Proof. intros; inverse_is_unstamped; eauto. Qed.
+
+Lemma is_unstamped_tm2OutType n b t :
+  is_unstamped_tm n b t →
+  is_unstamped_tm n OutType t.
+Proof. apply is_unstamped_to_OutType_mut. Qed.
+
+Lemma is_unstamped_path2tm' n b p :
+  is_unstamped_path n b p →
+  is_unstamped_tm n OutType (path2tm p).
+Proof. intros. by eapply is_unstamped_tm2OutType, is_unstamped_path2tm. Qed.
+
 Section syntyping_stamping_lemmas.
+  Hint Extern 5 (is_unstamped_ty _ OutType _) =>
+    try_once is_unstamped_ty2OutType : core.
+
+  Hint Resolve is_unstamped_path2tm' : core.
+
+  Hint Immediate is_unstamped_var2InType : core.
 
   Import typing_unstamped typing_storeless.
 
@@ -78,35 +128,39 @@ Section syntyping_stamping_lemmas.
   (** These cause cycles. *)
   Remove Hints typing_stamped.p_mu_e_typed : core.
   Remove Hints typing_stamped.p_mu_i_typed : core.
+  Notation stamps_tm'   n e__u g e__s := (stamps_tm   n OutType e__u g e__s).
+  Notation stamps_dm'   n d__u g d__s := (stamps_dm   n OutType d__u g d__s).
+  Notation stamps_dms'  n d__u g d__s := (stamps_dms  n OutType d__u g d__s).
+  Notation stamps_path' n p__u g p__s := (stamps_path n InType  p__u g p__s).
 
   Lemma stamp_objIdent_typing_mut Γ :
     (∀ e T, Γ u⊢ₜ e : T →
       ∀ (g : stys), ∃ e' (g' : stys),
-      Γ s⊢ₜ[ g' ] e' : T ∧ g ⊆ g' ∧ stamps_tm (length Γ) e g' e') ∧
+      Γ s⊢ₜ[ g' ] e' : T ∧ g ⊆ g' ∧ stamps_tm' (length Γ) e g' e') ∧
     (∀ V ds T, Γ |ds V u⊢ ds : T →
       ∀ (g : stys), ∃ ds' (g' : stys),
-      Γ |ds V s⊢[ g' ] ds' : T ∧ g ⊆ g' ∧ stamps_dms (S (length Γ)) ds g' ds') ∧
+      Γ |ds V s⊢[ g' ] ds' : T ∧ g ⊆ g' ∧ stamps_dms' (S (length Γ)) ds g' ds') ∧
     (∀ V l d T, Γ |d V u⊢{ l := d } : T →
       ∀ (g : stys), ∃ d' (g' : stys),
       Γ |d V s⊢[ g' ]{ l := d' } : T
-        ∧ g ⊆ g' ∧ stamps_dm (S (length Γ)) d g' d') ∧
+        ∧ g ⊆ g' ∧ stamps_dm' (S (length Γ)) d g' d') ∧
     (∀ p T i, Γ u⊢ₚ p : T, i →
       ∀ (g : stys), ∃ p' (g' : stys),
       Γ s⊢ₚ[ g' ] p' : T, i
-        ∧ g ⊆ g' ∧ stamps_path (length Γ) p g' p') ∧
+        ∧ g ⊆ g' ∧ stamps_path' (length Γ) p g' p') ∧
     (∀ T1 i1 T2 i2, Γ u⊢ₜ T1, i1 <: T2, i2 →
       ∀ (g : stys), ∃ (g' : stys), Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2 ∧ g ⊆ g').
   Proof.
     eapply unstamped_typing_mut_ind with
       (P := λ Γ e T _, ∀ g, ∃ e' (g' : stys),
-        Γ s⊢ₜ[ g' ] e' : T ∧ g ⊆ g' ∧ stamps_tm (length Γ) e g' e')
+        Γ s⊢ₜ[ g' ] e' : T ∧ g ⊆ g' ∧ stamps_tm' (length Γ) e g' e')
       (P0 := λ Γ V ds T _, ∀ g, ∃ ds' (g' : stys),
-        Γ |ds V s⊢[ g' ] ds' : T ∧ g ⊆ g' ∧ stamps_dms (S (length Γ)) ds g' ds')
+        Γ |ds V s⊢[ g' ] ds' : T ∧ g ⊆ g' ∧ stamps_dms' (S (length Γ)) ds g' ds')
       (P1 := λ Γ V l d T _, ∀ (g : stys), ∃ d' (g' : stys),
         Γ |d V s⊢[ g' ]{ l := d' } : T ∧ g ⊆ g' ∧
-        stamps_dm (S (length Γ)) d g' d')
+        stamps_dm' (S (length Γ)) d g' d')
       (P2 := λ Γ p T i _, ∀ (g : stys), ∃ p' (g' : stys),
-        Γ s⊢ₚ[ g' ] p' : T, i ∧ g ⊆ g' ∧ stamps_path (length Γ) p g' p')
+        Γ s⊢ₚ[ g' ] p' : T, i ∧ g ⊆ g' ∧ stamps_path' (length Γ) p g' p')
       (P3 := λ Γ T1 i1 T2 i2 _, ∀ (g : stys), ∃ (g' : stys),
         Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2 ∧ g ⊆ g');
        clear Γ.
@@ -119,9 +173,11 @@ Section syntyping_stamping_lemmas.
     (* Specialize IHs1 (with [/(.$ g]) and split the result. Ditto IHs2. *)
       move: IHs1 => /(.$ g) [g1 [IHs1 Hle1]];
       move: IHs2 => /(.$ g1) [g2 [IHs2 Hle2]]; ev; lte g g1 g2;
-      exists g2; split_and!; eauto 3].
-    all: try solve [intros * Hu1 IHs1 **; move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]]; exists g1; split_and!; eauto 3].
-    all: try solve [intros; exists g; split_and!; auto 3].
+      exists g2; split_and!; try fast_done; eauto 3].
+    all: try solve [intros * Hu1 IHs1 **;
+      move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]]; exists g1; split_and!;
+      try fast_done; constructor; eauto 2].
+    all: try solve [intros; exists g; split_and!; try fast_done; constructor; eauto 2].
 
   - intros * Hus1 Husp Hu1 IHs1 Hu2 IHs2 g.
     move: IHs1 => /(.$ g) [e1' [g1 [IHs1 [Hle1 Hse1]]]];
@@ -134,6 +190,7 @@ Section syntyping_stamping_lemmas.
     have ?: is_unstamped_ty (length Γ) (psubst_one_ty T2 p2)
       by eapply is_unstamped_ty_subst. *)
     split_and!; first eapply typing_stamped.App_path_typed; naive_solver eauto 4.
+
   - intros * Hu1 IHs1 Hu2 IHs2 g.
     move: IHs1 => /(.$ g) [e1' [g1 ?]];
     move: IHs2 => /(.$ g1) [e2' [g2 ?]]; ev; lte g g1 g2.
@@ -171,7 +228,8 @@ Section syntyping_stamping_lemmas.
   - intros * Hus Hu1 IHs1 Hu2 IHs2 g.
     move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]];
     move: IHs2 => /(.$ g1) [g2 [Hts2 Hle2]].
-    have Husv: is_unstamped_dm (S (length Γ)) (dtysyn T) by auto.
+
+    have Husv: is_unstamped_dm' (S (length Γ)) (dtysyn T) by eauto.
     destruct (extract g2 (S (length Γ)) T) as [g3 [s σ]] eqn:Heqo.
     move: Heqo => [Heqg3 Heqs Heqσ].
     have {Heqσ} -Heqσ: σ = idsσ (S (length Γ)) by naive_solver.
@@ -301,20 +359,20 @@ Section syntyping_stamping_lemmas.
 
   Lemma stamp_objIdent_typed Γ e T: Γ u⊢ₜ e : T →
     ∀ (g : stys), ∃ e' (g' : stys),
-    Γ s⊢ₜ[ g' ] e' : T ∧ g ⊆ g' ∧ stamps_tm (length Γ) e g' e'.
+    Γ s⊢ₜ[ g' ] e' : T ∧ g ⊆ g' ∧ stamps_tm' (length Γ) e g' e'.
   Proof. apply (stamp_objIdent_typing_mut Γ). Qed.
 
   Lemma stamp_objIdent_path_typed Γ p T i: Γ u⊢ₚ p : T, i →
     ∀ (g : stys), ∃ p' (g' : stys),
-    Γ s⊢ₚ[ g' ] p' : T, i ∧ g ⊆ g' ∧ stamps_path (length Γ) p g' p'.
+    Γ s⊢ₚ[ g' ] p' : T, i ∧ g ⊆ g' ∧ stamps_path' (length Γ) p g' p'.
   Proof. apply (stamp_objIdent_typing_mut Γ). Qed.
 
   Lemma safe_stamp {n e g e_s}:
-    stamps_tm n e g e_s → safe e_s → safe e.
+    stamps_tm' n e g e_s → safe e_s → safe e.
   Proof. move => [/unstamp_same_skel_tm Hs _] Hsafe. exact: safe_same_skel. Qed.
 
   Lemma terminates_stamp {n e g e_s}:
-    stamps_tm n e g e_s → terminates e_s → terminates e.
+    stamps_tm' n e g e_s → terminates e_s → terminates e.
   Proof. move => [/unstamp_same_skel_tm Hs _] Hsafe. exact: terminates_same_skel. Qed.
 
   Lemma stamp_typed Γ e T: Γ u⊢ₜ e : T →
@@ -327,7 +385,7 @@ Section syntyping_stamping_lemmas.
   Qed.
 
   Lemma stamps_path2tm n p g p' :
-    stamps_path n p g p' → stamps_tm n (path2tm p) g (path2tm p').
+    stamps_path' n p g p' → stamps_tm' n (path2tm p) g (path2tm p').
   Proof.
     intros; destruct_and!; induction p; destruct p'; with_is_stamped inverse;
       with_is_unstamped inverse; split_and! => //; eauto.
