@@ -58,7 +58,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
 
   Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
     iApply (wp_bind (fill[ctx]));
-    iApply (wp_wand with "[-]"); [iApply Hp; trivial|]; cbn;
+    iApply (wp_wand with "[-]"); [iApply Hp; trivial|]; simpl;
     iIntros (v) Hv.
 
   Definition leadsto_n `{!dlangG Σ}
