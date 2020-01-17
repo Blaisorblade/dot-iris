@@ -41,7 +41,7 @@ Qed.
 Lemma unstamped_val_unshifts v i n :
   is_unstamped_path' n (pv v) → v ≠ ids i → unshiftsN_vl i v.
 Proof.
-  move E: (pv v) => p. move E': (n, InType) => I Hu Hne.
+  move E: (pv v) => p. move E': (n, OnlyVars) => I Hu Hne.
   destruct Hu as [? w _ Hs|]; simplify_eq/=.
   destruct Hs as [|[j ?]]; simplify_eq/=.
   have {}Hne: j ≠ i by naive_solver.

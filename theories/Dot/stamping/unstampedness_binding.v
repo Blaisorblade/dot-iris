@@ -165,12 +165,12 @@ Lemma is_unstamped_ren_var v r:
   ∃ x : var, rename r v = var_vl x.
 Proof. naive_solver. Qed.
 
-Lemma is_unstamped_var_InType i j b :
-  is_unstamped_vl i b (ids j) → is_unstamped_vl i InType (ids j).
+Lemma is_unstamped_var_OnlyVars i j b :
+  is_unstamped_vl i b (ids j) → is_unstamped_vl i OnlyVars (ids j).
 Proof. inversion 1; by constructor. Qed.
-Lemma is_unstamped_ren_InType i j b r :
-  is_unstamped_ren i j b r → is_unstamped_ren i j InType r.
-Proof. intros Hu ?**. by eapply is_unstamped_var_InType, Hu. Qed.
+Lemma is_unstamped_ren_OnlyVars i j b r :
+  is_unstamped_ren i j b r → is_unstamped_ren i j OnlyVars r.
+Proof. intros Hu ?**. by eapply is_unstamped_var_OnlyVars, Hu. Qed.
 
 Hint Extern 0 (forall_traversal_tm _ _ _)   => progress cbn : core.
 Hint Extern 0 (forall_traversal_vl _ _ _)   => progress cbn : core.
@@ -201,7 +201,7 @@ Lemma is_unstamped_ren_mut:
     is_unstamped_ty j b (rename r T)).
 Proof.
   apply syntax_mut_ind; intros; with_is_unstamped ltac:(fun H => inversion_clear H);
-    cbn in *; try by [|naive_solver eauto using is_unstamped_ren_var, is_unstamped_ren_InType].
+    cbn in *; try by [|naive_solver eauto using is_unstamped_ren_var, is_unstamped_ren_OnlyVars].
   - constructor; rewrite list_pair_swap_snd_rename Forall_fmap;
       by decompose_Forall; eauto.
 Qed.

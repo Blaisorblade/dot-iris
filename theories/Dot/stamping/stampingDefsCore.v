@@ -23,22 +23,22 @@ Fixpoint path_root (p : path): vl :=
 Notation valid_stamp g g' n' vs s T' :=
   (g !! s = Some T' ∧ g' = g ∧ n' = length vs).
 
-Inductive IsInType := InType | OutType.
+Inductive AllowNonVars := OnlyVars | AlsoNonVars.
 
-Definition is_unstamped_trav: Traversal (nat * IsInType) :=
+Definition is_unstamped_trav: Traversal (nat * AllowNonVars) :=
   {|
     upS := λ '(n, b), (S n, b);
-    intoTypeS := λ '(n, _), (n, InType);
+    underPathElimS := λ '(n, _), (n, OnlyVars);
     varP := λ '(n, b) i, i < n;
     dtysynP := λ _ T, True;
     dtysemP := λ _ vs s T' ts', False;
-    pathRootP := λ '(n, b) v, b = OutType ∨ ∃ x, v = var_vl x;
+    pathRootP := λ '(n, b) v, b = AlsoNonVars ∨ ∃ x, v = var_vl x;
   |}.
 
 Definition is_stamped_trav: Traversal (nat * stys) :=
   {|
     upS := λ '(n, g), (S n, g);
-    intoTypeS := λ ts, ts;
+    underPathElimS := λ ts, ts;
     varP := λ '(n, g) i, i < n;
     dtysynP := λ ts T, False;
     dtysemP := λ '(n, g) vs s T' '(n', g'), valid_stamp g g' n' vs s T';
@@ -64,8 +64,8 @@ Notation is_stamped_dms n g ds := (forall_traversal_dms is_stamped_trav (n, g) d
 Notation is_stamped_σ n g σ := (Forall (is_stamped_vl n g) σ).
 
 (* To aid migration *)
-Notation is_unstamped_path' n := (is_unstamped_path n InType).
-Notation is_unstamped_ty' n := (is_unstamped_ty n InType).
+Notation is_unstamped_path' n := (is_unstamped_path n OnlyVars).
+Notation is_unstamped_ty' n := (is_unstamped_ty n OnlyVars).
 
 (** Next, we define "extraction", which is the core of stamping.
     Extraction (as defined by [extraction]) is a relation, stable under
@@ -117,7 +117,7 @@ Ltac with_is_stamped tac :=
   end.
 
 Lemma is_unstamped_path_root n p :
-  is_unstamped_path n InType p → ∃ x, path_root p = var_vl x.
+  is_unstamped_path n OnlyVars p → ∃ x, path_root p = var_vl x.
 Proof. elim p => /= *; with_is_unstamped inverse; naive_solver. Qed.
 
 (** * Stamping is monotone wrt stamp table extension. *)

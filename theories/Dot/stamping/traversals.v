@@ -11,7 +11,7 @@ Module Trav1.
 Record Traversal {travStateT: Type} :=
   {
     upS: travStateT → travStateT;
-    intoTypeS: travStateT → travStateT;
+    underPathElimS: travStateT → travStateT;
     varP: travStateT → nat → Prop;
     dtysynP: travStateT → ty → Prop;
     dtysemP: travStateT → vls → stamp → ty → travStateT → Prop;
@@ -77,7 +77,7 @@ Section fold.
     trav.(pathRootP) ts v →
     forall_traversal_path ts (pv v)
   | trav_pself ts p l:
-    forall_traversal_path (trav.(intoTypeS) ts) p →
+    forall_traversal_path (trav.(underPathElimS) ts) p →
     forall_traversal_path ts (pself p l)
   with
   forall_traversal_ty: travStateT → ty → Prop :=
@@ -109,10 +109,10 @@ Section fold.
       forall_traversal_ty ts T2 →
       forall_traversal_ty ts (TTMem l T1 T2)
   | trav_TSel ts p l:
-      forall_traversal_path (trav.(intoTypeS) ts) p →
+      forall_traversal_path (trav.(underPathElimS) ts) p →
       forall_traversal_ty ts (TSel p l)
   | trav_TSing ts p:
-      forall_traversal_path (trav.(intoTypeS) ts) p →
+      forall_traversal_path (trav.(underPathElimS) ts) p →
       forall_traversal_ty ts (TSing p)
   | trav_TPrim ts b: forall_traversal_ty ts (TPrim b)
     .

@@ -4,62 +4,62 @@ From D.Dot Require typing_unstamped.
 
 Set Implicit Arguments.
 
-Definition is_unstamped_to_OutType_tm_def e : Prop := ∀ n b,
-  is_unstamped_tm   n b e → is_unstamped_tm n OutType e.
-Definition is_unstamped_to_OutType_vl_def v : Prop := ∀ n b,
-  is_unstamped_vl   n b v → is_unstamped_vl n OutType v.
-Definition is_unstamped_to_OutType_dm_def d : Prop := ∀ n b,
-  is_unstamped_dm   n b d → is_unstamped_dm n OutType d.
-Definition is_unstamped_to_OutType_path_def p : Prop := ∀ n b,
-  is_unstamped_path n b p → is_unstamped_path n OutType p.
-Definition is_unstamped_to_OutType_ty_def T : Prop := ∀ n b,
-  is_unstamped_ty   n b T → is_unstamped_ty n OutType T.
+Definition is_unstamped_to_AlsoNonVars_tm_def e : Prop := ∀ n b,
+  is_unstamped_tm   n b e → is_unstamped_tm n AlsoNonVars e.
+Definition is_unstamped_to_AlsoNonVars_vl_def v : Prop := ∀ n b,
+  is_unstamped_vl   n b v → is_unstamped_vl n AlsoNonVars v.
+Definition is_unstamped_to_AlsoNonVars_dm_def d : Prop := ∀ n b,
+  is_unstamped_dm   n b d → is_unstamped_dm n AlsoNonVars d.
+Definition is_unstamped_to_AlsoNonVars_path_def p : Prop := ∀ n b,
+  is_unstamped_path n b p → is_unstamped_path n AlsoNonVars p.
+Definition is_unstamped_to_AlsoNonVars_ty_def T : Prop := ∀ n b,
+  is_unstamped_ty   n b T → is_unstamped_ty n AlsoNonVars T.
 
-Lemma is_unstamped_to_OutType_mut :
-  (∀ t, is_unstamped_to_OutType_tm_def t) ∧
-  (∀ v, is_unstamped_to_OutType_vl_def v) ∧
-  (∀ d, is_unstamped_to_OutType_dm_def d) ∧
-  (∀ p, is_unstamped_to_OutType_path_def p) ∧
-  (∀ T, is_unstamped_to_OutType_ty_def T).
+Lemma is_unstamped_to_AlsoNonVars_mut :
+  (∀ t, is_unstamped_to_AlsoNonVars_tm_def t) ∧
+  (∀ v, is_unstamped_to_AlsoNonVars_vl_def v) ∧
+  (∀ d, is_unstamped_to_AlsoNonVars_dm_def d) ∧
+  (∀ p, is_unstamped_to_AlsoNonVars_path_def p) ∧
+  (∀ T, is_unstamped_to_AlsoNonVars_ty_def T).
 Proof.
   apply syntax_mut_ind; intros ** ? **; with_is_unstamped inverse;
     (constructor || done); decompose_Forall; eauto 2.
 Qed.
 
-Lemma is_unstamped_ty2OutType n b T :
-  is_unstamped_ty n b T → is_unstamped_ty n OutType T.
-Proof. apply is_unstamped_to_OutType_mut. Qed.
+Lemma is_unstamped_ty2AlsoNonVars n b T :
+  is_unstamped_ty n b T → is_unstamped_ty n AlsoNonVars T.
+Proof. apply is_unstamped_to_AlsoNonVars_mut. Qed.
 
-Lemma is_unstamped_path2OutType n b p :
-  is_unstamped_path n b p → is_unstamped_path n OutType p.
-Proof. apply is_unstamped_to_OutType_mut. Qed.
+Lemma is_unstamped_path2AlsoNonVars n b p :
+  is_unstamped_path n b p → is_unstamped_path n AlsoNonVars p.
+Proof. apply is_unstamped_to_AlsoNonVars_mut. Qed.
 
-Lemma is_unstamped_tm2OutType n b t :
-  is_unstamped_tm n b t → is_unstamped_tm n OutType t.
-Proof. apply is_unstamped_to_OutType_mut. Qed.
+Lemma is_unstamped_tm2AlsoNonVars n b t :
+  is_unstamped_tm n b t → is_unstamped_tm n AlsoNonVars t.
+Proof. apply is_unstamped_to_AlsoNonVars_mut. Qed.
 
-Lemma is_unstamped_var2InType n x :
-  is_unstamped_vl n OutType (var_vl x) → is_unstamped_vl n InType (var_vl x).
+Lemma is_unstamped_var2OnlyVars n x :
+  is_unstamped_vl n AlsoNonVars (var_vl x) → is_unstamped_vl n OnlyVars (var_vl x).
 Proof. intros; inverse_is_unstamped; eauto. Qed.
 
 Lemma is_unstamped_path2tm n b p :
   is_unstamped_path n b p → is_unstamped_tm n b (path2tm p).
 Proof.
   elim: p b => /= [v|p IHp l] b Hp; inversion Hp; simplify_eq/=; eauto.
-  constructor; apply IHp. by destruct b; [| exact: is_unstamped_path2OutType].
+  constructor; apply IHp. by destruct b; [| exact: is_unstamped_path2AlsoNonVars].
 Qed.
 
 Lemma is_unstamped_path2tm' n b p :
-  is_unstamped_path n b p → is_unstamped_tm n OutType (path2tm p).
-Proof. intros. by eapply is_unstamped_tm2OutType, is_unstamped_path2tm. Qed.
+  is_unstamped_path n b p → is_unstamped_tm n AlsoNonVars (path2tm p).
+Proof. intros. by eapply is_unstamped_tm2AlsoNonVars, is_unstamped_path2tm. Qed.
 
 Section syntyping_stamping_lemmas.
-  Hint Extern 5 (is_unstamped_ty _ OutType _) =>
-    try_once is_unstamped_ty2OutType : core.
+  Hint Extern 5 (is_unstamped_ty _ AlsoNonVars _) =>
+    try_once is_unstamped_ty2AlsoNonVars : core.
 
   Hint Resolve is_unstamped_path2tm' : core.
 
-  Hint Immediate is_unstamped_var2InType : core.
+  Hint Immediate is_unstamped_var2OnlyVars : core.
 
   Import typing_unstamped typing_storeless.
 
@@ -133,10 +133,10 @@ Section syntyping_stamping_lemmas.
   (** These cause cycles. *)
   Remove Hints typing_stamped.p_mu_e_typed : core.
   Remove Hints typing_stamped.p_mu_i_typed : core.
-  Notation stamps_tm'   n e__u g e__s := (stamps_tm   n OutType e__u g e__s).
-  Notation stamps_dm'   n d__u g d__s := (stamps_dm   n OutType d__u g d__s).
-  Notation stamps_dms'  n d__u g d__s := (stamps_dms  n OutType d__u g d__s).
-  Notation stamps_path' n p__u g p__s := (stamps_path n InType  p__u g p__s).
+  Notation stamps_tm'   n e__u g e__s := (stamps_tm   n AlsoNonVars e__u g e__s).
+  Notation stamps_dm'   n d__u g d__s := (stamps_dm   n AlsoNonVars d__u g d__s).
+  Notation stamps_dms'  n d__u g d__s := (stamps_dms  n AlsoNonVars d__u g d__s).
+  Notation stamps_path' n p__u g p__s := (stamps_path n OnlyVars  p__u g p__s).
 
   Lemma stamp_objIdent_typing_mut Γ :
     (∀ e T, Γ u⊢ₜ e : T →
@@ -237,7 +237,7 @@ Section syntyping_stamping_lemmas.
     move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]];
     move: IHs2 => /(.$ g1) [g2 [Hts2 Hle2]].
 
-    have Husv: is_unstamped_dm (S (length Γ)) OutType (dtysyn T) by eauto.
+    have Husv: is_unstamped_dm (S (length Γ)) AlsoNonVars (dtysyn T) by eauto.
     destruct (extract g2 (S (length Γ)) T) as [g3 [s σ]] eqn:Heqo.
     move: Heqo => [Heqg3 Heqs Heqσ].
     have {Heqσ} -Heqσ: σ = idsσ (S (length Γ)) by naive_solver.
@@ -326,7 +326,7 @@ Section syntyping_stamping_lemmas.
     move: (unstamped_path_root_is_var Hu1) => Hp1.
     move: (unstamped_path_root_is_var Hu2) => Hp2.
     (* Automation can prove [is_unstamped_path (length Γ) ?b (pself p l)]
-    with [?b: IsInType], but cannot constrain [?b] and shelves it; instead, prove it explicitly: *)
+    with [?b: AllowNonVars], but cannot constrain [?b] and shelves it; instead, prove it explicitly: *)
     have Hus1: is_unstamped_path' (length Γ) (pself p l) by eauto.
     have [??]: p1' = p ∧ ql1' = pself q l by [naive_solver]; subst p1' ql1'.
     exists (pself p l), g2; split_and!;
