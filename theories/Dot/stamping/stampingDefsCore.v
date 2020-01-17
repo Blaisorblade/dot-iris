@@ -23,6 +23,12 @@ Fixpoint path_root (p : path): vl :=
 Notation valid_stamp g g' n' vs s T' :=
   (g !! s = Some T' ∧ g' = g ∧ n' = length vs).
 
+(** Proposition [is_unstamped_path n OnlyVars p] implies that [p] is an
+unstamped path in the strict sense defined in the paper; in particular, it's
+also a stamped path.
+Instead, [is_unstamped_path n AllowNonVars p] implies that [p] can be a
+generic stable term. *)
+
 Inductive AllowNonVars := OnlyVars | AlsoNonVars.
 
 Definition is_unstamped_trav: Traversal (nat * AllowNonVars) :=
