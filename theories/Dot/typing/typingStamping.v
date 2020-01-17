@@ -179,6 +179,9 @@ Section syntyping_stamping_lemmas.
       try fast_done; constructor; eauto 2].
     all: try solve [intros; exists g; split_and!; try fast_done; constructor; eauto 2].
 
+  (* In hyp names, [Hus] are for [is_unstamped_ty], [Husp] for
+  [is_unstamped_path], [Hu] for unstamped typing, [IHs] for the induction
+  hyps about stamped typing, [Hle] for [g? ⊆ g?], [Hpr] for path replacement. *)
   - intros * Hus1 Husp Hu1 IHs1 Hu2 IHs2 g.
     move: IHs1 => /(.$ g) [e1' [g1 [IHs1 [Hle1 Hse1]]]];
     move: IHs2 => /(.$ g1) [p2' [g2 [IHs2 [Hle2 ?]]]]; lte g g1 g2.
@@ -247,7 +250,7 @@ Section syntyping_stamping_lemmas.
     have [v' ?]: ∃ v', e1' = tv v' by destruct e1'; naive_solver.
     simplify_eq/=; with_is_stamped inverse; with_is_unstamped inverse.
     exists (dvl v'), g1; naive_solver.
-  - intros * Hus1 IHs1 Hu1 g.
+  - intros * Hu1 IHs1 Hus1 g.
     move: IHs1 => /(.$ g) /= [ds' [g1 ?]]; destruct_and!.
     exists (dvl (vobj ds')), g1; naive_solver.
   - intros * Hu1 IHs1 Hu2 IHs2 g.
@@ -257,16 +260,14 @@ Section syntyping_stamping_lemmas.
     move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]].
     move: IHs2 => /(.$ g1) [d' [g2 [Hts2 [Hle2 Hs]]]]; lte g g1 g2.
     have [v' Heq]: ∃ v', d' = dvl v'. {
-      move => {Hts2}.
-      move: Hs.
-      destruct d'; rewrite /= /from_option => -[?[??]];
+      move: Hs => {Hts2}; destruct d'; rewrite /= /from_option => -[?[??]];
         try case_match; simplify_eq; eauto 2.
     }
     exists d', g2; subst d'; split_and!; ev; eauto 3.
   - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [e1' [g1 ?]]; ev.
-    destruct e1' as [v'| | | | | |] => //. with_is_stamped inverse.
-    with_is_unstamped inverse.
+    destruct e1' as [v'| | | | | |] => //.
+    with_is_stamped inverse; with_is_unstamped inverse.
     exists (pv (var_vl x)), g1.
     have ?: v' = var_vl x; naive_solver.
   - intros * Hu1 IHs1 g.
@@ -278,10 +279,10 @@ Section syntyping_stamping_lemmas.
   - intros * Hu1 IHs1 Hu2 IHs2 g.
     move: IHs1 => /(.$ g) [g1 [Hs1 ?]].
     move: IHs2 => /(.$ g1) [p1' [g2 [IHs2 ?]]]; ev; lte g g1 g2.
-    exists p1', g2.
-    split_and! => //. eapply typing_stamped.p_subs_typed, IHs2.
+    exists p1', g2; split_and! => //.
+    eapply typing_stamped.p_subs_typed, IHs2.
     by eapply stamped_objIdent_subtype_mono, Hs1.
-  - intros * Hus Hu1 IHs1 g.
+  - intros * Hus1 Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [p1' [g1 ?]]; ev.
     exists p1', g1.
     suff ?: p1' = p by split_and! => //; econstructor; naive_solver.
@@ -331,7 +332,7 @@ Section syntyping_stamping_lemmas.
     move: IHs1 => /(.$ g) /= [p1' [g1 ?]]; ev.
     exists g1. suff ?: p1' = p by naive_solver.
     move: (unstamped_path_root_is_var Hu1). naive_solver.
-  - intros * Hps Hus1 Hus2 Hu1 IHs1 g.
+  - intros * Hpr Hus1 Hus2 Hu1 IHs1 g.
     move: IHs1 => /(.$ g) [p1' [g1 ?]]; ev.
     move: (unstamped_path_root_is_var Hu1) => Hp1.
     have ?: p1' = p by [naive_solver]; subst p1'.
@@ -348,9 +349,8 @@ Section syntyping_stamping_lemmas.
     move: IHs1 => /(.$ g) [p1' [g1 ?]]; ev.
     move: (unstamped_path_root_is_var Hu1) => Hp1.
     have ?: p1' = p by [naive_solver]; subst p1'.
-    exists g1; split_and! => //.
-    by apply typing_stamped.PSelf_singleton_stp.
-  - intros * Hu1 IHs1 Hu2 IHs2 Hus g.
+    exists g1; split_and! => //. exact: typing_stamped.PSelf_singleton_stp.
+  - intros * Hu1 IHs1 Hu2 IHs2 Hus1 g.
     move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]];
     move: IHs2 => /(.$ g1) [g2 [Hts2 Hle2]]; lte g g1 g2.
     exists g2; split_and! => //.
