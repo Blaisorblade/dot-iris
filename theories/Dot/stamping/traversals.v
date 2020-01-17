@@ -77,7 +77,9 @@ Section fold.
     trav.(pathRootP) ts v →
     forall_traversal_path ts (pv v)
   | trav_pself ts p l:
-    forall_traversal_path ts p →
+    (* [intoTypeS] needs renaming; but this ensures that, in unstamped
+    syntax, we can only have variables under [pself]. *)
+    forall_traversal_path (trav.(intoTypeS) ts) p →
     forall_traversal_path ts (pself p l)
   with
   forall_traversal_ty: travStateT → ty → Prop :=

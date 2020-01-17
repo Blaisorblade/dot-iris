@@ -44,7 +44,10 @@ Proof. intros; inverse_is_unstamped; eauto. Qed.
 
 Lemma is_unstamped_path2tm n b p :
   is_unstamped_path n b p → is_unstamped_tm n b (path2tm p).
-Proof. elim: p => /= [v|p IHp l] Hp; inversion Hp; auto. Qed.
+Proof.
+  elim: p b => /= [v|p IHp l] b Hp; inversion Hp; simplify_eq/=; eauto.
+  constructor; apply IHp. by destruct b; [| exact: is_unstamped_path2OutType].
+Qed.
 
 Lemma is_unstamped_path2tm' n b p :
   is_unstamped_path n b p → is_unstamped_tm n OutType (path2tm p).
@@ -322,6 +325,9 @@ Section syntyping_stamping_lemmas.
     move: IHs2 => /(.$ g1) [ql1' [g2 ?]]; ev; lte g g1 g2.
     move: (unstamped_path_root_is_var Hu1) => Hp1.
     move: (unstamped_path_root_is_var Hu2) => Hp2.
+    (* Automation can prove [is_unstamped_path (length Γ) ?b (pself p l)]
+    with [?b: IsInType], but cannot constrain [?b] and shelves it; instead, prove it explicitly: *)
+    have Hus1: is_unstamped_path' (length Γ) (pself p l) by eauto.
     have [??]: p1' = p ∧ ql1' = pself q l by [naive_solver]; subst p1' ql1'.
     exists (pself p l), g2; split_and!;
       first eapply typing_stamped.psingleton_elim;
