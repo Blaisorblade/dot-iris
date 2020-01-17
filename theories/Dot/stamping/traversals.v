@@ -129,10 +129,10 @@ Global Hint Constructors forall_traversal_vl forall_traversal_tm forall_traversa
      forall_traversal_path forall_traversal_ty : core.
 
 (* No such Hint Extern for [upS] since it can't be the head of a goal. *)
-Global Hint Extern 0 (varP _ _ _) => cbn : core.
-Global Hint Extern 0 (dtysynP _ _ _) => cbn : core.
-Global Hint Extern 0 (dtysemP _ _ _) => cbn : core.
-Global Hint Extern 0 (pathRootP _ _ _) => cbn : core.
+Global Hint Extern 0 (varP _ _ _)      => progress cbn : core.
+Global Hint Extern 0 (dtysynP _ _ _)   => progress cbn : core.
+Global Hint Extern 0 (dtysemP _ _ _)   => progress cbn : core.
+Global Hint Extern 0 (pathRootP _ _ _) => progress cbn : core.
 End Trav1.
 
 Definition tmemc: Type := ty + vls * stamp.
