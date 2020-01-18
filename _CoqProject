@@ -22,6 +22,7 @@ theories/iris_extra/iris_prelude.v
 theories/asubst_base.v
 theories/asubst_intf.v
 theories/iris_extra/dlang.v
+theories/misc_unused/piProp.v
 theories/iris_extra/gen_iheap.v
 theories/iris_extra/saved_interp.v
 theories/iris_extra/saved_interp_dep.v
