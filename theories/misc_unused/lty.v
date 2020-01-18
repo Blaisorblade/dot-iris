@@ -205,7 +205,7 @@ Section olty_ofe_2.
       iApply (IHΓ (stail ρ) x Hx with "Hg").
   Qed.
 
-  Definition olty0 (φ : envD Σ)`{∀ ρ v, Persistent (φ ρ v)} : olty Σ 0 :=
+  Definition olty0 (φ : envD Σ) `{∀ ρ v, Persistent (φ ρ v)} : olty Σ 0 :=
     Olty (vopen φ).
 
   (** We can define once and for all basic "logical" types: top, bottom, and, or, later and μ. *)
