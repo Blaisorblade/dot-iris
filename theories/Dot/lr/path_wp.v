@@ -400,25 +400,12 @@ Section path_wp.
     - iDestruct 1 as (v Hv) "[H|H]"; eauto.
   Qed.
 
-  Lemma path_wp_later_swap p φ:
+  (* Persistency isn't strictly needed, but simplifies the proof. *)
+  Lemma path_wp_later_swap p φ `{PersistentP φ}:
     path_wp p (λ v, ▷ φ v) ⊢ ▷ path_wp p (λ v, φ v).
-  Proof.
-    iIntros "HP".
-    move HE: (λ v, ▷ φ v)%I => Φ.
-    iAssert ((Φ : vl -d> iPropO Σ) ≡ (λ v, ▷ φ v))%I as "HE".
-    by simplify_eq.
-    clear HE; iRevert "HP HE"; path_wp_ind p Φ.
-    - iIntros "HP Heq"; rewrite bi.discrete_fun_equivI /=.
-      by iRewrite ("Heq" $! v) in "HP".
-    - iDestruct 1 as (vp q Hlook) "[[IHp Hp] [#IHq _]]"; iIntros "#Heq".
-      iEval rewrite path_wp_unfold; rewrite !bi.discrete_fun_equivI /=.
-      iExists vp, q; repeat iSplit => //.
-      rewrite -mlater_pers; iModIntro (□_)%I.
-      by iApply "IHq".
-      (* Why no more [path_wp_wand]? *)
-  Qed.
+  Proof. rewrite !path_wp_eq. by iDestruct 1 as (v Hp) "H"; eauto. Qed.
 
-  Lemma path_wp_laterN_swap p φ i:
+  Lemma path_wp_laterN_swap p φ i `{PersistentP φ}:
     path_wp p (λ v, ▷^i φ v) ⊢ ▷^i path_wp p (λ v, φ v).
   Proof.
     elim: i => [// | i /= <-].
