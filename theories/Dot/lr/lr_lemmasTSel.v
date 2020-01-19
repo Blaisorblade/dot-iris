@@ -10,10 +10,10 @@ Section Sec.
     Γ ⊨p p : TTMem l L U, i -∗
     Γ ⊨ TLater L, i <: TSel p l, i.
   Proof.
-    iIntros "/= #Hp !>" (ρ v) "Hg Hφ /=".
+    iIntros "/= #Hp !>" (ρ v) "Hg #Hφ /=".
     iSpecialize ("Hp" with "Hg").
     iApply (path_wp_wand with "Hp").
-    iIntros "!>" (w).
+    iIntros "!> !>" (w).
     iDestruct 1 as (d Hl φ) "#(Hlφ & #HLφ & #HφU)".
     iExists φ, d; repeat iSplit => //.
     by iApply "HLφ".
@@ -43,7 +43,7 @@ Section Sec.
     iIntros "#HE !>" (ρ) "HG /=".
     iSpecialize ("HE" with "HG"); iNext i.
     rewrite path_wp_eq path_wp_pself.
-    iDestruct "HE" as (vp Hpv d Hlook pmem ->) "H".
+    iDestruct "HE" as (vp Hpv d Hlook pmem ->) "#H".
     iExists vp, pmem; eauto.
   Qed.
   (* In the above proof, in contrast with T_Mem_E, lots of the lemmas
@@ -56,7 +56,7 @@ Section Sec.
     iIntros "/= #Hp !>" (ρ) "Hg".
     rewrite -swap_later -path_wp_later_swap.
     iApply (path_wp_wand with "(Hp Hg)"); iNext i.
-    by iIntros (v) "$".
+    by iIntros (v) "!> $".
   Qed.
 
   Lemma P_Sub p T1 T2 i j:
