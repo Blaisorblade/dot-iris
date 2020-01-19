@@ -17,6 +17,14 @@ Definition terminates {Λ} (e : expr Λ) :=
 Tactic Notation "efeed" "pose" "proof" constr(H) "as" simple_intropattern(H') :=
   efeed H using (fun p => pose proof p as H').
 
+(* Inspired by stdpp's [destruct_and?/!]. *)
+Tactic Notation "destruct_or" "?" :=
+  repeat match goal with
+  | H : _ ∨ _ |- _ => destruct H
+  | H : Is_true (_ || _) |- _ => apply orb_True in H; destruct H
+  end.
+Tactic Notation "destruct_or" "!" := progress destruct_or?.
+
 (*
   If [prelude] and [Program] are imported after Iris modules,
   side effects from [iris.algebra.base] and [stdpp.base], including

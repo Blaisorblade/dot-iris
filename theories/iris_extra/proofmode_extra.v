@@ -96,6 +96,15 @@ Section proofmode_extra.
   Qed.
 End proofmode_extra.
 
+From iris.base_logic Require Import bi.
+Section derived_swap_lemmas.
+  Context `{M : ucmraT}.
+  Lemma mlater_pers (P: uPred M) : □ ▷ P ⊣⊢ ▷ □ P.
+  Proof. iSplit; by iIntros "#? !>!>". Qed.
+  Lemma mlaterN_pers (P: uPred M) i : □ ▷^i P ⊣⊢ ▷^i □ P.
+  Proof. iSplit; by iIntros "#? !>!>". Qed.
+End derived_swap_lemmas.
+
 From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language.
 

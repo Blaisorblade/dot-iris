@@ -14,7 +14,8 @@ Ltac ev := repeat match goal with
                     | p : _ * _ |- _ => destruct p
                   end.
 
-(** Tactic to split a lemma proven by mutual induction into its pieces. *)
+(** Tactic to split a lemma proven by mutual induction into its pieces;
+useful even when [apply] fails. *)
 Ltac unmut_lemma H := destruct H; ev; eauto.
 
 Hint Constructors option : core.

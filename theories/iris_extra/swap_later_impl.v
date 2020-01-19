@@ -26,13 +26,7 @@ Proof. elim: n => [//|n IHn]. by rewrite later_bupd_commute /= IHn. Qed.
 Import uPred.
 
 Section derived_swap_lemmas.
-  Context `{M : ucmraT}.
-  Lemma mlater_pers (P: uPred M) : □ ▷ P ⊣⊢ ▷ □ P.
-  Proof. iSplit; by iIntros "#? !>!>". Qed.
-  Lemma mlaterN_pers (P: uPred M) i : □ ▷^i P ⊣⊢ ▷^i □ P.
-  Proof. iSplit; by iIntros "#? !>!>". Qed.
-
-  Context `{!SwapProp (uPredSI M)}.
+  Context `{M : ucmraT} `{!SwapProp (uPredSI M)}.
   Lemma mlater_impl (P Q: uPred M) : (▷ P → ▷ Q) ⊣⊢ ▷ (P → Q).
   Proof. iSplit. iApply impl_later. iApply later_impl. Qed.
   Lemma mlaterN_impl (P Q: uPred M) i : (▷^i P → ▷^i Q) ⊣⊢ ▷^i (P → Q).

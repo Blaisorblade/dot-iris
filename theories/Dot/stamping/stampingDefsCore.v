@@ -122,6 +122,9 @@ Ltac with_is_stamped tac :=
     | H: is_stamped_path _ _ _ |- _ => tac H
   end.
 
+Ltac inverse_once H := nosplit (try_once_tac H (inverse H)).
+Ltac inverse_is_unstamped := (repeat with_is_unstamped inverse_once); un_usedLemma.
+
 Lemma is_unstamped_path_root n p :
   is_unstamped_path n OnlyVars p → ∃ x, path_root p = var_vl x.
 Proof. elim p => /= *; with_is_unstamped inverse; naive_solver. Qed.
@@ -189,13 +192,3 @@ Lemma is_stamped_path2tm n g p :
   is_stamped_path n g p →
   is_stamped_tm n g (path2tm p).
 Proof. elim: p => /= [v|p IHp l] Hp; inversion Hp; auto. Qed.
-
-Ltac inverse_once H := nosplit (try_once_tac H (inverse H)).
-Ltac inverse_is_unstamped := (repeat with_is_unstamped inverse_once); un_usedLemma.
-
-Tactic Notation "destruct_or" "?" :=
-  repeat match goal with
-  | H : _ ∨ _ |- _ => destruct H
-  | H : Is_true (_ || _) |- _ => apply orb_True in H; destruct H
-  end.
-Tactic Notation "destruct_or" "!" := progress destruct_or?.
