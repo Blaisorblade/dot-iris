@@ -65,7 +65,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
     s n (φ : hoEnvD Σ n) := (∃ γ, s ↦ γ ∧ γ ⤇n[ n ] φ)%I.
   Notation "s ↝n[ n  ] φ" := (leadsto_n s n φ) (at level 20) : bi_scope.
 
-  Program Definition hoEnvD_inst {i Σ} σ : hoEnvD Σ i -n> hoD Σ i := λne φ, λ args, φ args (to_subst σ).
+  Program Definition hoEnvD_inst {i Σ} σ : hoEnvD Σ i -n> hoD Σ i := λne φ, λ args, φ args (∞ σ).
   Next Obligation. move => i Σ σ n x y Heq args. exact: Heq. Qed.
 
   Definition stamp_σ_to_type_n `{!dlangG Σ} s σ n (ψ : hoD Σ n) : iProp Σ :=

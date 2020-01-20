@@ -67,7 +67,7 @@ Hint Resolve extraction_inf_subst : core.
 Lemma extraction_subst g n T s σ m σ':
   T ~[ n ] (g, (s, σ)) →
   length σ' = n → is_stamped_σ m g σ' →
-  T.|[to_subst σ'] ~[ m ] (g, (s, σ.|[to_subst σ'])).
+  T.|[∞ σ'] ~[ m ] (g, (s, σ.|[∞ σ'])).
 Proof. intros; subst; eauto. Qed.
 Hint Resolve extraction_subst : core.
 
@@ -86,7 +86,7 @@ Lemma extract_subst_spec g g' n T s σ m σ':
   is_stamped_ty n g T →
   length σ' = n → is_stamped_σ m g' σ' →
   (g', (s, σ)) = extract g n T →
-  T.|[to_subst σ'] ~[ m ] (g', (s, σ.|[to_subst σ'])).
+  T.|[∞ σ'] ~[ m ] (g', (s, σ.|[∞ σ'])).
 Proof. intros; subst; eauto. Qed.
 Hint Resolve extract_subst_spec : core.
 
@@ -117,7 +117,7 @@ Proof. move => [-> -> _]. by rewrite lookup_insert. Qed.
 Hint Resolve extract_lookup : core.
 
 Lemma extraction_lookup g s σ n T:
-  T ~[ n ] (g, (s, σ)) → ∃ T', g !! s = Some T' ∧ T'.|[to_subst σ] = T.
+  T ~[ n ] (g, (s, σ)) → ∃ T', g !! s = Some T' ∧ T'.|[∞ σ] = T.
 Proof. naive_solver. Qed.
 
 Lemma extract_inf_subst_commute g g' g'' T ξ n m s1 σ1 s2 σ2:
@@ -129,7 +129,7 @@ Lemma extract_inf_subst_commute g g' g'' T ξ n m s1 σ1 s2 σ2:
   ∃ T1 T2,
     g'' !! s1 = Some T1 ∧
     g'' !! s2 = Some T2 ∧
-    T1.|[to_subst σ1.|[ξ]] = T2.|[to_subst σ2].
+    T1.|[∞ σ1.|[ξ]] = T2.|[∞ σ2].
 Proof.
   rewrite /extract => HstT Hstξ Hext1 Hext2. split; first eauto.
   exists T, T.|[ξ]; split_and!; eauto.
@@ -144,10 +144,10 @@ Lemma extract_subst_commute g g' g'' T ξ n m s1 σ1 s2 σ2:
   is_stamped_σ m g' ξ →
   length ξ = n →
   (g', (s1, σ1)) = extract g n T →
-  (g'', (s2, σ2)) = extract g' m (T.|[to_subst ξ]) →
-  T.|[to_subst ξ] ~[ m ] (g'', (s1, σ1.|[to_subst ξ])) ∧
+  (g'', (s2, σ2)) = extract g' m (T.|[∞ ξ]) →
+  T.|[∞ ξ] ~[ m ] (g'', (s1, σ1.|[∞ ξ])) ∧
   ∃ T1 T2,
     g'' !! s1 = Some T1 ∧
     g'' !! s2 = Some T2 ∧
-    T1.|[to_subst σ1.|[to_subst ξ]] = T2.|[to_subst σ2].
+    T1.|[∞ σ1.|[∞ ξ]] = T2.|[∞ σ2].
 Proof. intros; subst; eapply extract_inf_subst_commute; eauto. Qed.

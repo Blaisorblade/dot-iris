@@ -20,7 +20,7 @@ Proof. elim: n e => [//|n IHn] e Hs. constructor; exact: IHn. Qed.
     what's produced in the first pass.
     However, this problem disappears because paths are just source variables, not values.
  *)
-Definition unstamp_vstamp g vs s := (from_option dtysyn (dtysem vs s) (g !! s)).|[to_subst vs].
+Definition unstamp_vstamp g vs s := (from_option dtysyn (dtysem vs s) (g !! s)).|[∞ vs].
 Arguments unstamp_vstamp /.
 
 Fixpoint unstamp_tm g (t: tm): tm :=

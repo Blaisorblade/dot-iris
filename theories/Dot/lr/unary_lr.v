@@ -63,7 +63,7 @@ Section logrel.
   Qed.
 
   Lemma dm_to_type_intro d s σ φ :
-    d = dtysem σ s → s ↝ φ -∗ d ↗ φ (to_subst σ).
+    d = dtysem σ s → s ↝ φ -∗ d ↗ φ (∞ σ).
   Proof.
     iIntros. iExists s, σ. iFrame "%".
     by iApply stamp_σ_to_type_intro.

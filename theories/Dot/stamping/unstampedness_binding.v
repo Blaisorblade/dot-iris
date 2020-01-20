@@ -298,7 +298,7 @@ Lemma is_unstamped_sub_stail i j v sb b:
 Proof. move => Hs k Hle. apply (Hs (S k)), lt_n_S, Hle. Qed.
 
 Lemma is_unstamped_sub_equiv {σ i b} :
-  is_unstamped_σ i b σ ↔ is_unstamped_sub (length σ) i b (to_subst σ).
+  is_unstamped_σ i b σ ↔ is_unstamped_sub (length σ) i b (∞ σ).
 Proof.
   split; elim: σ => [//| /= v σ IHσ] Hcl/=.
   - by move => ??; lia.

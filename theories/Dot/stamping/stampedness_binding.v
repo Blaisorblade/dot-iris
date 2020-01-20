@@ -264,7 +264,7 @@ Lemma is_stamped_sub_stail i j v sb g:
 Proof. move => Hs k Hle. apply (Hs (S k)), lt_n_S, Hle. Qed.
 
 Lemma is_stamped_sub_equiv {σ g i} :
-  is_stamped_σ i g σ ↔ is_stamped_sub (length σ) i g (to_subst σ).
+  is_stamped_σ i g σ ↔ is_stamped_sub (length σ) i g (∞ σ).
 Proof.
   split; elim: σ => [//| /= v σ IHσ] Hcl/=.
   - by move => ??; lia.

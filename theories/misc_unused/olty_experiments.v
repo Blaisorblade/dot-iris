@@ -12,7 +12,7 @@ Implicit Types (Σ : gFunctors).
     + However, we need to define substitution on semantic types.
       And figure out corresponding lemmas.
       Crucially, we must have (⟦ T ⟧).|[σ] ≡ ⟦ T.|[σ] ⟧.
-      We might have already proven that, for to_subst.
+      We might have already proven that, for ∞.
   - Redefining judgments will let us... do what?
     Prove theorems about judgments? What is that good for?
     - Stating the lemmas without mentioning Γ?
@@ -254,7 +254,7 @@ Section Sec.
 
   Definition leadsto_envD_equiv s σ (φ : hoEnvD Σ i) : iProp Σ :=
     (∃ (φ' : hoEnvD Σ i),
-      ⌜φ ≡ (λ args ρ, φ' args (to_subst σ.|[ρ]))⌝ ∧ s ↝n[ i ] φ')%I.
+      ⌜φ ≡ (λ args ρ, φ' args (∞ σ.|[ρ]))⌝ ∧ s ↝n[ i ] φ')%I.
   Arguments leadsto_envD_equiv /.
 End Sec.
 

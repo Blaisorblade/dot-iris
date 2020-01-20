@@ -9,14 +9,14 @@ Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx) (n: nat) (s: stamp) (g : stys)
 Section typing_type_member_defs.
   Context `{!dlangG Σ}.
 
-  (* Beware: here we must use [to_subst σ.|[ρ]], not [to_subst σ >> ρ],
+  (* Beware: here we must use [∞ σ.|[ρ]], not [∞ σ >> ρ],
      since the former is what we need to prove [D_Typ_Abs] below.
      Not sure that's still true if we change dm_to_type,
     but quite possibly yes.. *)
     (* use interp_extractedTy? *)
   Definition leadsto_envD_equiv s σ (φ : envD Σ) : iProp Σ :=
     (∃ (φ' : envD Σ),
-      ⌜φ ≡ (λ ρ, φ' (to_subst σ.|[ρ]))⌝ ∧ s ↝ φ')%I.
+      ⌜φ ≡ (λ ρ, φ' (∞ σ.|[ρ]))⌝ ∧ s ↝ φ')%I.
   Arguments leadsto_envD_equiv /.
   Notation "s ↝[  σ  ] φ" := (leadsto_envD_equiv s σ φ) (at level 20).
 

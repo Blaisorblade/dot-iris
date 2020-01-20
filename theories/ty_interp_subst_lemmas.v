@@ -32,9 +32,9 @@ Section logrel_binding_lemmas.
 
   (**
     We have, unconditionally, that
-    ⟦ T.|[to_subst σ] ⟧ ρ = ⟦ T ⟧ (to_subst σ >> ρ).
+    ⟦ T.|[∞ σ] ⟧ ρ = ⟦ T ⟧ (∞ σ >> ρ).
 
-    But [to_subst σ >> ρ] and [to_subst σ.|[ρ]] are only equal for
+    But [∞ σ >> ρ] and [∞ σ.|[ρ]] are only equal for
     [length σ] entries.
   *)
   Lemma interp_subst_commute T σ ρ v (HclT : nclosed T (length σ)) :

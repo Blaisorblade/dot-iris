@@ -18,7 +18,7 @@ Global Instance sort_list_pair_snd `{Sort X} `{Inhabited A} : Sort (list (A * X)
 Implicit Types (v w : vl) (vs σ : vls) (i j k n : nat)
   (r : nat → nat) (ρ : var → vl).
 
-Definition subst_sigma σ vs := σ.|[to_subst vs].
+Definition subst_sigma σ vs := σ.|[∞ vs].
 
 Definition eq_n_s ρ1 ρ2 n := ∀ x, x < n → ρ1 x = ρ2 x.
 Global Arguments eq_n_s /.
@@ -245,7 +245,7 @@ Lemma nclosed_sub_stail i j v s:
   nclosed_sub i j s.
 Proof. move => /nclosed_sub_scons_inv [//]. Qed.
 
-Lemma nclosed_σ_sub_equiv {σ i} : nclosed_σ σ i ↔ nclosed_sub (length σ) i (to_subst σ).
+Lemma nclosed_σ_sub_equiv {σ i} : nclosed_σ σ i ↔ nclosed_sub (length σ) i (∞ σ).
 Proof.
   split; elim: σ => [//| /= v σ IHσ] Hcl ; [|].
   - inverse Hcl. move => [//|j /lt_S_n] /=. exact: IHσ.
@@ -272,43 +272,43 @@ Lemma length_idsσ n: length (idsσ n) = n.
 Proof. move: (length_idsσr n (+0)) => Hgoal. by asimpl in Hgoal. Qed.
 Hint Resolve length_idsσ : core.
 
-Lemma rename_to_subst σ1 σ2 : (+length σ1) >>> to_subst (σ1 ++ σ2) = to_subst σ2.
+Lemma rename_to_subst σ1 σ2 : (+length σ1) >>> ∞ (σ1 ++ σ2) = ∞ σ2.
 Proof. induction σ1; by asimpl. Qed.
 
 (* Dead. *)
-Lemma undo_to_subst σ : (+length σ) >>> to_subst σ = ids.
+Lemma undo_to_subst σ : (+length σ) >>> ∞ σ = ids.
 Proof.
   move: (rename_to_subst σ []) => Hgoal. by do [rewrite app_nil_r; asimpl] in Hgoal.
 Qed.
 
 Lemma to_subst_weaken σ1 σ2 σ3:
-  upn (length σ1) (ren (+length σ2)) >> to_subst (σ1 ++ σ2 ++ σ3) =
-  to_subst (σ1 ++ σ3).
+  upn (length σ1) (ren (+length σ2)) >> ∞ (σ1 ++ σ2 ++ σ3) =
+  ∞ (σ1 ++ σ3).
 Proof. induction σ1; asimpl; rewrite ?rename_to_subst ? IHσ1 //. Qed.
 
 (* Dead. *)
 Lemma to_subst_up σ1 σ2 v:
-  upn (length σ1) (v.[ren (+length σ2)] .: ids) >> to_subst (σ1 ++ σ2) =
-  to_subst (σ1 ++ v :: σ2).
+  upn (length σ1) (v.[ren (+length σ2)] .: ids) >> ∞ (σ1 ++ σ2) =
+  ∞ (σ1 ++ v :: σ2).
 Proof. induction σ1; asimpl; rewrite ?undo_to_subst ?subst_id ?IHσ1 //. Qed.
 
 Lemma fv_to_subst_vl v σ n:
   nclosed_vl v (length σ) → nclosed_σ σ n →
-  nclosed_vl (v.[to_subst σ]) n.
+  nclosed_vl (v.[∞ σ]) n.
 Proof. eauto using nclosed_sub_app_vl. Qed.
 
-(** Let's prove that [nclosed x n → x.|[to_subst (idsσ n)] = x], and ditto for values. *)
+(** Let's prove that [nclosed x n → x.|[∞ (idsσ n)] = x], and ditto for values. *)
 Section to_subst_idsσ_is_id.
   Lemma to_subst_map_commute_aux f n i r: i < n →
-    to_subst (map f (idsσ n).|[ren r]) i = f (to_subst (idsσ n).|[ren r] i).
+    (∞ (map f (idsσ n).|[ren r])) i = f ((∞ (idsσ n).|[ren r]) i).
   Proof.
     elim: n r i => [|n IHn] r [//|i] Hle; try lia. asimpl. apply: IHn. lia.
   Qed.
 
-  Lemma to_subst_map_commute f n i: i < n → to_subst (map f (idsσ n)) i = f (to_subst (idsσ n) i).
+  Lemma to_subst_map_commute f n i: i < n → (∞ (map f (idsσ n))) i = f ((∞ (idsσ n)) i).
   Proof. move: (@to_subst_map_commute_aux f n i (+0)) => Hgoal. by asimpl in Hgoal. Qed.
 
-  Lemma idsσ_eq_ids n: eq_n_s (to_subst (idsσ n)) ids n.
+  Lemma idsσ_eq_ids n: eq_n_s (∞ (idsσ n)) ids n.
   Proof.
     elim: n => [|n IHn] [|i] // /lt_S_n Hle.
     rewrite /= to_subst_map_commute // IHn // id_subst //.
@@ -341,7 +341,7 @@ Proof. move => ????; rewrite /= !id_subst. eauto using lookup_lt_Some. Qed.
 Definition cl_ρ_fv: ∀ σ, cl_ρ σ → nclosed σ 0 := @Forall_to_closed_vls 0.
 
 Lemma to_subst_compose σ ρ:
-  eq_n_s (to_subst σ.|[ρ]) (to_subst σ >> ρ) (length σ).
+  eq_n_s (∞ σ.|[ρ]) (∞ σ >> ρ) (length σ).
 Proof.
   elim: σ => /= [|v σ IHσ] i Hin; first lia; asimpl.
   case: i Hin => [//|i] /lt_S_n Hin /=. exact: IHσ.
@@ -410,7 +410,7 @@ Lemma cons_subst i x s (c : X → X)
 Proof. elim: i => [|i IHi]; by rewrite ?iterate_0 ?iterate_S //= Hsub IHi. Qed.
 
 Lemma closed_subst_idsρ x n :
-  nclosed x n → x.|[to_subst (idsσ n)] = x.
+  nclosed x n → x.|[∞ (idsσ n)] = x.
 Proof. intro Hcl. rewrite (Hcl _ ids (@idsσ_eq_ids n)). by asimpl. Qed.
 
 Lemma nclosed_sub_app x s i j :
@@ -423,7 +423,7 @@ Proof. intro Hcl. rewrite (Hcl ρ ids) // hsubst_id //. Qed.
 
 Lemma fv_to_subst x σ n:
   nclosed x (length σ) → nclosed_σ σ n →
-  nclosed (x.|[to_subst σ]) n.
+  nclosed (x.|[∞ σ]) n.
 Proof. eauto using nclosed_sub_app. Qed.
 
 Lemma fv_cons_inv_head_v v vs n : nclosed (v :: vs) n → nclosed_vl v n.
@@ -457,12 +457,12 @@ Proof. split; eauto using Forall_to_closed_xs, closed_xs_to_Forall. Qed.
 
 Lemma subst_compose x σ ξ n :
   nclosed x n → length σ = n →
-  x.|[to_subst σ.|[ξ]] = x.|[to_subst σ].|[ξ].
+  x.|[∞ σ.|[ξ]] = x.|[∞ σ].|[ξ].
 Proof. intros Hclx <-; asimpl. apply Hclx, to_subst_compose. Qed.
 
 Lemma subst_compose_idsσ x n ξ:
   nclosed x n →
-  x.|[to_subst (idsσ n).|[ξ]] = x.|[to_subst (idsσ n)].|[ξ].
+  x.|[∞ (idsσ n).|[ξ]] = x.|[∞ (idsσ n)].|[ξ].
 Proof. intros; eauto using subst_compose. Qed.
 
 Lemma nclosed_mono x n m:
@@ -493,7 +493,7 @@ Qed.
 
 Lemma nclosed_σ_to_subst ξ σ n:
   nclosed_σ ξ (length σ) → nclosed_σ σ n →
-  nclosed_σ (ξ.|[to_subst σ]) n.
+  nclosed_σ (ξ.|[∞ σ]) n.
 Proof. intros. eapply nclosed_σ_compose; eauto. Qed.
 Hint Resolve nclosed_σ_to_subst : core.
 

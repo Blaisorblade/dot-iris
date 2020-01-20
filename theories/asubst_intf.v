@@ -44,9 +44,9 @@ Module Type SortsSig (Import V : ValuesSig).
   (* Tighter precedence than [>>], which has level 56. *)
   Notation "∞ σ" := (to_subst σ) (at level 50).
 
-  Definition to_subst_nil : to_subst [] = ids := reflexivity _.
+  Definition to_subst_nil : ∞ [] = ids := reflexivity _.
 
-  Definition to_subst_cons v σ : to_subst (v :: σ) = v .: to_subst σ :=
+  Definition to_subst_cons v σ : ∞ (v :: σ) = v .: ∞ σ :=
     reflexivity _.
 End SortsSig.
 
