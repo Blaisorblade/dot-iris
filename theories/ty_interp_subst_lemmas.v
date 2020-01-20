@@ -37,13 +37,12 @@ Section logrel_binding_lemmas.
     But [to_subst σ >> ρ] and [to_subst σ.|[ρ]] are only equal for
     [length σ] entries.
   *)
-  Lemma interp_subst_commute T σ ρ v:
-    nclosed T (length σ) →
+  Lemma interp_subst_commute T σ ρ v (HclT : nclosed T (length σ)) :
     ⟦ T.|[∞ σ] ⟧ ρ v ≡ ⟦ T ⟧ (∞ σ.|[ρ]) v.
   Proof.
-    move => HclT. rewrite interp_subst_compose_ind.
-    rewrite (interp_subst_ids T (∞ _) v) (interp_subst_ids T (_ >> _) v).
-    rewrite (subst_compose _ _ HclT) //. f_equiv; autosubst.
+    rewrite interp_subst_compose_ind !(interp_subst_ids T _ _) -hsubst_comp.
+    (* *The* step requiring [HclT]. *)
+    by rewrite (subst_compose _ _ HclT).
   Qed.
 End logrel_binding_lemmas.
 End TyInterpLemmas.
