@@ -78,9 +78,9 @@ Definition hlistModT bool : hty := μ: sci, hlistModTBody bool sci.
 (** * Implementation of the list module. *)
 Definition hnilV bool : hvl := ν: self, {@
   type "A" = ⊥;
-  val "isEmpty" = λ: _, htrueTm bool;
-  val "head" = λ: _, hloopTm;
-  val "tail" = λ: _, hloopTm
+  val "isEmpty" = hpv (λ: _, htrueTm bool);
+  val "head" = hpv (λ: _, hloopTm);
+  val "tail" = hpv (λ: _, hloopTm)
 }.
 
 (*
@@ -89,15 +89,15 @@ Definition hnilV bool : hvl := ν: self, {@
 Program Definition hconsV bool : hvl :=
   λ: x, λ:: hd tl, htv $ ν: self, {@
     type "A" = hpv x @; "T";
-    val "isEmpty" = λ: _, hfalseTm bool;
-    val "head" = λ: _, htv hd;
-    val "tail" = λ: _, htv tl
+    val "isEmpty" = hpv (λ: _, hfalseTm bool);
+    val "head" =    hpv (λ: _, htv hd);
+    val "tail" =    hpv (λ: _, htv tl)
   }.
 
 Definition hlistModV bool : hvl := ν: self, {@
   type "List" = hlistT bool self;
-  val "nil" = hnilV bool;
-  val "cons" = hconsV bool
+  val "nil"  = hpv (hnilV bool);
+  val "cons" = hpv (hconsV bool)
 }.
 
 
@@ -176,8 +176,8 @@ Qed.
 Example listTypConcr Γ : boolImplT :: Γ u⊢ₜ hclose (htv (hlistModV hx0)) : hclose (hlistModTConcr hx0).
 Proof.
   have Hn := nilTyp Γ.
-  (* Without the call to [dvl_typed], Coq would (smartly) default to [dvabs_typed] *)
-  have := consTyp Γ => /(dvl_typed "cons") Hc /=.
+  (* Without the call to [dpt_pv_typed], Coq would (smartly) default to [dvabs_typed] *)
+  have := consTyp Γ => /(dpt_pv_typed "cons") Hc /=.
   tcrush.
 Qed.
 

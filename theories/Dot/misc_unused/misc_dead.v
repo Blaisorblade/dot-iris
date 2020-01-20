@@ -90,9 +90,9 @@ Proof.
   apply _.
 Abort. *)
 
-Lemma dms_lookup_subst l ds w ρ :
-  dms_lookup l (selfSubst ds) = Some (dvl w) →
-  dms_lookup l (selfSubst ds.|[up ρ]) = Some (dvl w.[ρ]).
+Lemma dms_lookup_subst l ds p ρ :
+  dms_lookup l (selfSubst ds) = Some (dpt p) →
+  dms_lookup l (selfSubst ds.|[up ρ]) = Some (dpt p.|[ρ]).
 Proof.
   rewrite /selfSubst (subst_swap _ _ (vobj ds)).
   move: (vobj ds) => v0.
@@ -107,7 +107,7 @@ Proof.
   - have <-: t1.|[up ρ].|[v2.[ρ]/] = t1.|[v2/].|[ρ].
     by rewrite subst_swap.
     by constructor.
-  - intros [ds [-> Hl]].
+  - intros [ds [-> Hl]]; rewrite path2tm_subst.
     constructor.
     eexists ds.|[up ρ]; split => //.
     exact: dms_lookup_subst.
@@ -144,7 +144,7 @@ Section path_wp.
     - intros ->. exact: fv_pv_inv.
     - rewrite path_wp_pure_eq.
       intros (w & Hpwp & _ & Hl & <-) Hclps.
-      enough (nclosed (dvl v) n). by eauto with fv.
+      enough (nclosed (dpt v) n). by eauto with fv.
       eapply nclosed_lookup', IHp; eauto with fv.
   Qed. *)
 End path_wp.

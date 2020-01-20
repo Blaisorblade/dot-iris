@@ -24,7 +24,7 @@ Example ex0 e Γ T:
 Proof. intros. apply (Subs_typed_nocoerce T TTop); tcrush. Qed.
 
 Example ex1 Γ n T:
-  Γ v⊢ₜ[ g ] tv (ν {@ val "a" = vnat n}) : μ {@ val "a" : TNat }.
+  Γ v⊢ₜ[ g ] tv (ν {@ val "a" = pv (vnat n)}) : μ {@ val "a" : TNat }.
 Proof.
   (* Help proof search: Avoid trying TMuI_typed, that's slow. *)
   apply VObj_typed; tcrush.
@@ -89,7 +89,7 @@ Definition KeysT : ty := μ {@
 }.
 Definition hashKeys : vl := ν {@
   type "Key" = (σ1; s1);
-  val "key" = vabs (tapp (tproj (tv x0) "hashCode") tUnit)
+  val "key" = pv (vabs (tapp (tproj (tv x0) "hashCode") tUnit))
 }.
 Definition s1_is_tnat :=
   TNat ~[ 0 ] (g, (s1, σ1)).
@@ -142,8 +142,8 @@ Context (String : ty) (HclString : is_stamped_ty 0 g String).
 
 (* Term *)
 Definition systemVal := tv (ν {@
-  val "subSys1" = ν {@ type "A" = (σ1; s1) } ;
-  val "subSys2" = ν {@ type "B" = (σ2; s2) } }).
+  val "subSys1" = pv (ν {@ type "A" = (σ1; s1) }) ;
+  val "subSys2" = pv (ν {@ type "B" = (σ2; s2) }) }).
 Definition s2_is_String :=
   String ~[ 0 ] (g, (s2, σ2)).
 Lemma get_s2_is_String : g !! s2 = Some String → s2_is_String.
@@ -229,8 +229,8 @@ Hint Resolve p0BoolStamped : core.
 Definition boolImplV :=
   ν {@
     type "Boolean" = ( σ1; s1 );
-    val "true" = iftTrue;
-    val "false" = iftFalse
+    val "true" = pv iftTrue;
+    val "false" = pv iftFalse
   }.
 (* This type makes "Boolean" nominal by abstracting it. *)
 Definition boolImplT : ty :=
@@ -302,10 +302,10 @@ Lemma dvabs_sub_typed {Γ} V T1 T2 e l L:
   T1.|[ren (+1)] :: V :: Γ v⊢ₜ[ g ] e : T2 →
   TLater V :: Γ v⊢ₜ[ g ] TAll T1 T2, 0 <: L, 0 →
   is_stamped_ty (S (length Γ)) g T1 →
-  Γ |d V v⊢[ g ]{ l := dvl (vabs e) } : TVMem l L.
+  Γ |d V v⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l L.
 Proof.
   intros He Hsub Hs.
-  eapply dvl_sub_typed; first apply Hsub.
+  eapply dpt_sub_typed; first apply Hsub.
   tcrush.
 Qed.
 

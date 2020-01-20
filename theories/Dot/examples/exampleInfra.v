@@ -33,7 +33,7 @@ Close Scope dms_scope.
 Arguments vobj _%dms_scope.
 
 Notation "'ν' ds " := (vobj ds) (at level 60, ds at next level).
-Notation "'val' l = v" := (l, dvl v) (at level 60, l at level 50).
+Notation "'val' l = v" := (l, dpt v) (at level 60, l at level 50).
 Notation "'type' l = T  " := (l, dtysyn T) (at level 60, l at level 50).
 
 (** Notation for object types. *)
@@ -104,7 +104,7 @@ Notation tUnit := (tv (vnat 0) : tm).
 
 End DBNotation.
 
-Check ν {@ val "a" = vnat 0 }.
+Check ν {@ val "a" = pv (vnat 0) }.
 
 Check μ {@ type "A" >: TNat <: TTop }.
 Check μ {@ val "a" : TNat }.
@@ -112,8 +112,8 @@ Check μ {@ type "A" >: TNat <: TTop ; val "a" : TNat ; val "b" : TNat }.
 
 Check vobj {@}.
 Check ν {@ }.
-Check ν {@ val "a" = vnat 0 }.
-Check ν {@ val "a" = vnat 0 ; val "b" = vnat 1 }.
+Check ν {@ val "a" = pv (vnat 0) }.
+Check ν {@ val "a" = pv (vnat 0) ; val "b" = pv (vnat 1) }.
 
 Check (p0 @; "A").
 Check (pself (pself p0 "A") "B" @; "C").

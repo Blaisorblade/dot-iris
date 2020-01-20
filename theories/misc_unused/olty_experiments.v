@@ -163,7 +163,7 @@ Section SemTypes.
     lift_dinterp_vl (oDTMem l τ1 τ2).
 
   Definition oDVMem l τ : dlty Σ := Dlty l
-    (λ ρ d, ∃ vmem, ⌜d = dvl vmem⌝ ∧ ▷ oClose τ ρ vmem)%I.
+    (λ ρ d, ∃ pmem, ⌜d = dpt pmem⌝ ∧ path_wp pmem (oClose τ ρ))%I.
 
   Definition oTVMem l τ :=
     lift_dinterp_vl (oDVMem l τ).
@@ -175,6 +175,11 @@ Section SemTypes.
     olty0 (λ ρ v, path_wp p.|[ρ]
       (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗n[ 0 ] ψ ∧ ▷ □ ψ vnil v))%I.
 
+  Lemma oTSel_pv w (l : label) args ρ v :
+    oTSel (pv w) l args ρ v ≡
+      (∃ ψ d, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n[ 0 ] ψ ∧ ▷ □ ψ vnil v)%I.
+  Proof. by rewrite /lty_car/= /vopen path_wp_pv. Qed.
+
   Lemma Sub_Sel Γ L U va l i:
     Γ ⊨ tv va : oTTMem l L U, i -∗
     Γ ⊨ oLater L, i <: oTSel (pv va) l, i.
@@ -183,6 +188,7 @@ Section SemTypes.
     iSpecialize ("Hva" with "Hg"). rewrite /= wp_value_inv'.
     iNext.
     iDestruct "Hva" as (d Hl ψ) "#[Hlψ [#HLψ #HψU]]".
+    rewrite oTSel_pv.
     iExists ψ, d; repeat iSplit => //. by iApply "HLψ".
   Qed.
 
@@ -194,6 +200,7 @@ Section SemTypes.
     iSpecialize ("Hva" with "Hg"); rewrite /= wp_value_inv'.
     iNext.
     iDestruct "Hva" as (d Hl ψ) "#[Hlψ [#HLψ #HψU]]".
+    rewrite oTSel_pv.
     iDestruct "Hψ" as (ψ1 d1 Hva) "[Hγ #Hψ1v]".
     objLookupDet. iDestruct (dm_to_type_agree d _ _ _ vnil v with "Hlψ Hγ") as "#Hag".
     iApply "HψU" => //. iNext. by iRewrite "Hag".
@@ -309,7 +316,7 @@ Section with_lty.
     olty0 (λ ρ v, alias_pathsI p.|[ρ] (pv v)).
 
   Lemma sem_psingleton_eq_1 p ρ v : oClose (oPsing p) ρ v ≡ ⌜ path_wp_pure p.|[ρ] (eq v) ⌝%I.
-  Proof. done. Qed.
+  Proof. by rewrite /lty_car/=/vopen /alias_pathsI alias_paths_pv_eq_1. Qed.
 
   Lemma sem_psingleton_eq_2 p ρ v : oClose (oPsing p) ρ v ≡ path_wp p.|[ρ] (λ w, ⌜ v = w ⌝ )%I.
   Proof. by rewrite sem_psingleton_eq_1 path_wp_pureable. Qed.
@@ -329,7 +336,7 @@ Section with_lty.
   Proof.
     iIntros "#Hep !>" (ρ) "Hg". iSpecialize ("Hep" with "Hg"). iNext.
     iDestruct (path_wp_eq with "Hep") as (v Hpv) "_".
-    iIntros "!%". by eapply alias_paths_simpl, alias_paths_self.
+    iIntros "!%". by eapply alias_paths_simpl, alias_paths_self, alias_paths_pv_eq_1.
   Qed.
 
   Lemma iptp2ietp Γ τ p :
@@ -395,8 +402,8 @@ Section with_lty.
     iSpecialize ("HqlT" with "Hg").
     rewrite !path_wp_eq /=.
     iNext i. iDestruct "Hal" as %Hal. iDestruct "HqlT" as (vql Hql) "_".
-    iIntros "!% /=". exists vql.
-    rewrite (alias_paths_elim_eq_pure _ Hal). auto.
+    iIntros "!% /="; setoid_rewrite alias_paths_pv_eq_1.
+    by eapply alias_paths_sameres, alias_paths_pself.
   Qed.
   End with_lty.
 End SemTypes.

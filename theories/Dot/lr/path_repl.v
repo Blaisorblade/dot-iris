@@ -40,6 +40,16 @@ Section path_repl.
     path_wp p φ ≡ path_wp q φ.
   Proof. intros ?%alias_paths_samepwp. intuition. Qed.
 
+  Lemma alias_paths_pself {p q l w} :
+    path_wp_pure (pself q l) (eq w) →
+    alias_paths p q →
+    alias_paths (pself p l) (pself q l).
+  Proof.
+    intros Hql Hal; inverse Hql; econstructor; eauto.
+    rewrite path_wp_pure_eq; exists w; split => //; econstructor; eauto.
+    by rewrite (alias_paths_elim_eq_pure _ Hal).
+  Qed.
+
   (** Beware: we can do path replacement *before* substitution,
       even tho substitution and path replacement don't commute nicely.
 
@@ -55,13 +65,14 @@ Section path_repl.
     move => Hrepl.
     elim: Hrepl φ => [| p1' p2' l Hrepl IHrepl] φ /=.
     exact: alias_paths_elim_eq.
-    apply IHrepl.
+    rewrite !path_wp_pself /= => Hal.
+    properness => //. exact: IHrepl.
   Qed.
 
   Lemma alias_paths_simpl {p q} :
     path_wp_pure p (λ v, alias_paths q (pv v)) ↔
     alias_paths p q.
-  Proof. apply alias_paths_symm. Qed.
+  Proof. setoid_rewrite alias_paths_pv_eq_1. apply alias_paths_symm. Qed.
 
   Definition alias_pathsI p q : iProp Σ := ⌜alias_paths p q⌝.
 
@@ -87,7 +98,7 @@ Section path_repl.
     move => Hrew; move: v ρ.
     induction Hrew => v ρ He /=; properness;
       by [ exact: path_replacement_equiv | exact: rewrite_path_path_repl
-         | apply IHHrew; rewrite ?hsubst_comp | ].
+         | apply IHHrew; rewrite ?hsubst_comp | | f_equiv => ?; exact: IHHrew].
   Qed.
 
   Lemma rewrite_ty_path_repl_rtc {p q T1 T2 ρ v}:
@@ -130,7 +141,7 @@ Section path_repl.
   Proof.
     iIntros "#Hep !>" (ρ) "Hg". iSpecialize ("Hep" with "Hg"). iNext.
     iDestruct (path_wp_eq with "Hep") as (v Hpv) "_".
-    iIntros "!%". by eapply alias_paths_simpl, alias_paths_self.
+    iIntros "!%". by eapply alias_paths_simpl, alias_paths_self, alias_paths_pv_eq_1.
   Qed.
 
   Lemma singleton_self_sub Γ p T i :
@@ -139,7 +150,8 @@ Section path_repl.
   Proof.
     iIntros "#Hp !>" (ρ v) "Hg /= Heq".
     iSpecialize ("Hp" with "Hg"); iNext i.
-    by iDestruct "Heq" as %->%(alias_paths_elim_eq (⟦ T ⟧ ρ)).
+    iDestruct "Heq" as %->%(alias_paths_elim_eq (⟦ T ⟧ ρ)).
+    by rewrite path_wp_pv.
   Qed.
 
   Lemma singleton_sym_sub Γ p q T i:
@@ -149,6 +161,7 @@ Section path_repl.
   Proof.
     iIntros "#Hp #Hps !>" (ρ v) "#Hg /= Heq".
     iDestruct (path_wp_eq with "(Hp Hg)") as (w) "[Hpw _] {Hp}".
+    rewrite -alias_paths_pv_eq_1.
     iSpecialize ("Hps" $! _ w with "Hg Hpw"); iNext i; rewrite !alias_paths_pv_eq_1.
     iDestruct "Hps" as %Hqw; iDestruct "Hpw" as %Hpw; iDestruct "Heq" as %Hqv; iIntros "!%".
     by rewrite (path_wp_pure_det Hqv Hqw).
@@ -191,7 +204,7 @@ Section path_repl.
     iIntros "#Hp !>" (ρ) "Hg /="; iSpecialize ("Hp" with "Hg"); iNext.
     rewrite !path_wp_eq.
     iDestruct "Hp" as (v Heq) "Hp"; iExists v; iFrame (Heq).
-    by rewrite (psubst_one_repl Hrepl).
+    by rewrite (psubst_one_repl Hrepl) ?alias_paths_pv_eq_1.
   Qed.
 
   Lemma TMu_I_p {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
@@ -200,7 +213,7 @@ Section path_repl.
     iIntros "#Hp !>" (ρ) "Hg /="; iSpecialize ("Hp" with "Hg"); iNext.
     rewrite !path_wp_eq.
     iDestruct "Hp" as (v Heq) "Hp"; iExists v; iFrame (Heq).
-    by rewrite (psubst_one_repl Hrepl).
+    by rewrite (psubst_one_repl Hrepl) ?alias_paths_pv_eq_1.
   Qed.
 
   (** For https://github.com/lampepfl/dotty/blob/85962b19ddf4f1909189bf07b40f9a05849f9bbf/compiler/src/dotty/tools/dotc/core/TypeComparer.scala#L553. *)
@@ -219,7 +232,7 @@ Section path_repl.
     iSpecialize ("Hp" with "Hg").
     iAssert (▷^i ⟦ T1 ⟧ (v .: ρ) v)%I as "#HT1".
     by iNext i; iDestruct "Heq" as %Heq;
-      rewrite (alias_paths_elim_eq _ Heq).
+      rewrite (alias_paths_elim_eq _ Heq) path_wp_pv.
     iApply ("Hsub" $! (v .: ρ) v with "[$Hg] HT1").
     rewrite iterate_TLater_later /= hsubst_comp. iFrame "Heq HT1".
   Qed.
@@ -236,7 +249,7 @@ Section path_repl.
     iSpecialize ("Hsub" $! ρ v with "[#$Hg] [#]");
       iNext i; iDestruct "Heq" as %Heq;
       rewrite -(psubst_one_repl Hrepl1, psubst_one_repl Hrepl2) //
-        (alias_paths_elim_eq _ Heq) //.
+        (alias_paths_elim_eq _ Heq) path_wp_pv //.
   Qed.
 
   Lemma T_Forall_Ex_p Γ e1 p2 T1 T2 T2' (Hrepl : T2 .Tp[ p2 /]~ T2') :
@@ -256,7 +269,7 @@ Section path_repl.
     iSpecialize ("HvFun" with "Hpw").
     iNext.
     iApply (wp_wand with "HvFun"); iIntros (v) "{HvFun Hpw} Hres".
-    by rewrite (psubst_one_repl Hrepl).
+    by rewrite (psubst_one_repl Hrepl) ?alias_paths_pv_eq_1.
   Qed.
 
   Lemma P_To_E Γ T p :
@@ -273,7 +286,8 @@ Section path_repl.
     Γ ⊨p p : TVMem l T, i.
   Proof.
     iIntros "#HE /= !>" (ρ) "#HG"; iSpecialize ("HE" with "HG"); iNext i.
-    rewrite !path_wp_eq; iDestruct "HE" as (v Hpv w Hvw) "Htw {HG}".
+    rewrite path_wp_pself !path_wp_eq;
+      iDestruct "HE" as (v q Hlook Hpv) "Htw {HG}".
     iExists _; iFrame (Hpv). eauto.
   Qed.
 
@@ -305,8 +319,8 @@ Section path_repl.
     iDestruct (singleton_aliasing with "Hep Hg") as "Hal {Hep Hg}".
     rewrite !path_wp_eq /=.
     iNext i. iDestruct "Hal" as %Hal. iDestruct "HqlT" as (vql Hql) "_".
-    iIntros "!% /=". exists vql.
-    rewrite (alias_paths_elim_eq_pure _ Hal). by split; apply Hql.
+    iIntros "!% /="; setoid_rewrite alias_paths_pv_eq_1.
+    by eapply alias_paths_sameres, alias_paths_pself.
   Qed.
   End with_unary_lr.
 End path_repl.

@@ -30,15 +30,17 @@ Section Sec.
     Γ ⊨ TAnd (TVMem l T1) (TVMem l T2), i <: TVMem l (TAnd T1 T2), i.
   Proof.
     iIntros "/= !>" (ρ v) "#Hg [#H1 H2]". iNext.
-    iDestruct "H1" as (d? vmem?) "#H1"; iDestruct "H2" as (d'? vmem'?) "#H2". objLookupDet.
+    iDestruct "H1" as (d? pmem?) "#H1"; iDestruct "H2" as (d'? pmem'?) "#H2". objLookupDet.
     repeat (iExists _; repeat iSplit => //).
+    by iApply path_wp_and; auto.
   Qed.
 
   Lemma Sub_TVMem_Cov_Distr_2 l T1 T2 i:
     Γ ⊨ TVMem l (TAnd T1 T2), i <: TAnd (TVMem l T1) (TVMem l T2), i.
   Proof.
     iIntros "/= !>" (ρ v) "#Hg #H". iNext.
-    iDestruct "H" as (d? vmem?) "#[H1 H2]".
+    iDestruct "H" as (d? pmem Hlook) "H".
+    rewrite -path_wp_and; iDestruct "H" as "[H1 H2]".
     iSplit; repeat (iExists _; repeat iSplit => //).
   Qed.
 
@@ -47,15 +49,16 @@ Section Sec.
     Γ ⊨ TOr (TVMem l T1) (TVMem l T2), i <: TVMem l (TOr T1 T2), i.
   Proof.
     iIntros "/= !>" (ρ v) "#Hg [#H| #H]"; iNext;
-    iDestruct "H" as (d? vmem?) "#H";
-    repeat (iExists _; repeat iSplit => //); by [iLeft | iRight].
+      iDestruct "H" as (d? pmem?) "#H"; repeat (iExists _; repeat iSplit => //);
+      rewrite -path_wp_or; by [iLeft | iRight].
   Qed.
 
   Lemma Sub_TVMem_Cov_Distr_Or_2 l T1 T2 i:
     Γ ⊨ TVMem l (TOr T1 T2), i <: TOr (TVMem l T1) (TVMem l T2), i.
   Proof.
     iIntros "/= !>" (ρ v) "#Hg #H". iNext.
-    iDestruct "H" as (d? vmem?) "#[H | H]"; [> iLeft | iRight];
+    iDestruct "H" as (d? pmem?) "#H"; rewrite -path_wp_or.
+    iDestruct "H" as "#[H | H]"; [> iLeft | iRight];
       repeat (iExists _; repeat iSplit => //).
   Qed.
 

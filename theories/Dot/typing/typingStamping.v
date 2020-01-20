@@ -59,7 +59,7 @@ Section syntyping_stamping_lemmas.
 
   Hint Resolve is_unstamped_path2tm' : core.
 
-  Hint Immediate is_unstamped_var2OnlyVars : core.
+  Hint Immediate is_unstamped_var2OnlyVars is_unstamped_path2AlsoNonVars : core.
 
   Import typing_unstamped typing_storeless.
 
@@ -249,22 +249,28 @@ Section syntyping_stamping_lemmas.
         exact: (stamped_objIdent_subtype_mono _ Hts2)].
   - intros * Hus1 Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [e1' [g1 ?]]; destruct_and!.
-    exists (dvl (vabs e1')), g1; naive_solver.
+    exists (dpt (pv (vabs e1'))), g1; split_and!;
+      repeat constructor; naive_solver.
   - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [e1' [g1 ?]]; destruct_and!.
     have [v' ?]: ∃ v', e1' = tv v' by destruct e1'; naive_solver.
     simplify_eq/=; with_is_stamped inverse; with_is_unstamped inverse.
-    exists (dvl v'), g1; naive_solver.
+    exists (dpt (pv v')), g1; naive_solver.
+  - intros * Hu1 IHs1 Hus1 g.
+    move: IHs1 => /(.$ g) /= [p1' [g1 ?]]; destruct_and!.
+    exists (dpt p1'), g1; naive_solver.
   - intros * Hu1 IHs1 Hus1 g.
     move: IHs1 => /(.$ g) /= [ds' [g1 ?]]; destruct_and!.
-    exists (dvl (vobj ds')), g1; naive_solver.
+    exists (dpt (pv (vobj ds'))), g1; split_and!; cbn;
+      try eapply typing_stamped.dnew_typed; eauto 2;
+      repeat constructor; eauto with f_equal.
   - intros * Hu1 IHs1 Hu2 IHs2 g.
     (* Here and for standard subsumption, by stamping the subtyping
       derivation before typing, we needn't use monotonicity on [Hs],
       which holds but would require extra boilerplate. *)
     move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]].
     move: IHs2 => /(.$ g1) [d' [g2 [Hts2 [Hle2 Hs]]]]; lte g g1 g2.
-    have [v' Heq]: ∃ v', d' = dvl v'. {
+    have [p' Heq]: ∃ p', d' = dpt p'. {
       move: Hs => {Hts2}; destruct d'; rewrite /= /from_option => -[?[??]];
         try case_match; simplify_eq; eauto 2.
     }

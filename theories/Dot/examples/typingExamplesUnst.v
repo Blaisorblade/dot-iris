@@ -4,11 +4,12 @@ WIP examples constructing _unstamped_ syntactic typing derivations.
 From stdpp Require Import strings.
 
 From D Require Import tactics.
-From D.Dot Require Import syn exampleInfra unstampedness_binding scalaLib.
+From D.Dot Require Import syn exampleInfra unstampedness_binding hoas scalaLib.
 From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived.
-Import DBNotation.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
+
+Import DBNotation.
 
 Example ex0 e Γ T:
   Γ u⊢ₜ e : T →
@@ -17,7 +18,7 @@ Example ex0 e Γ T:
 Proof. intros. apply (Subs_typed_nocoerce T TTop); tcrush. Qed.
 
 Example ex1 Γ n T:
-  Γ u⊢ₜ tv (ν {@ val "a" = vnat n}) : μ {@ val "a" : TNat }.
+  Γ u⊢ₜ tv (ν {@ val "a" = pv (vnat n)}) : μ {@ val "a" : TNat }.
 Proof.
   (* Help proof search: Avoid trying TMuI_typed, that's slow. *)
   apply VObj_typed; tcrush.
@@ -41,7 +42,7 @@ Definition KeysT : ty := μ {@
 }.
 Definition hashKeys : vl := ν {@
   type "Key" = TNat;
-  val "key" = vabs (tapp (tproj (tv x0) "hashCode") tUnit)
+  val "key" = pv (vabs (tapp (tproj (tv x0) "hashCode") tUnit))
 }.
 
 Definition KeysTConcr := μ {@
@@ -206,3 +207,20 @@ Lemma iftCoerce_tyAppIFT_typed_p0Boolean Γ T t :
   T :: Γ u⊢ₜ t : IFT →
   T :: Γ u⊢ₜ iftCoerce (tyApp t "A" p0Bool) : p0Bool →: p0Bool →: p0Bool.
 Proof. intros. apply iftCoerce_tyAppIFT_typed; tcrush. Qed.
+
+Import hoasNotation.
+
+(* Not typeable *)
+Definition hcircular_init : hvl := ν: x, {@
+  val "v" = hpv x @ "v"
+}.
+
+Lemma circular_init_typed Γ : Γ u⊢ₜ hclose (htv hcircular_init) : hclose (μ: x, {@ val "v" : ⊤}).
+Proof. tcrush; cbv; hideCtx. varsub. asideLaters. ltcrush. Abort.
+
+Definition hcircular_init2 : hvl := ν: x, {@
+  val "v" = hpv x
+}.
+
+Lemma circular_init_typed Γ : Γ u⊢ₜ hclose (htv hcircular_init2) : hclose (μ: x, {@ val "v" : ⊤}).
+Proof. tcrush; cbv; hideCtx. varsub. ltcrush. Qed.

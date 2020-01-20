@@ -32,6 +32,7 @@ Section fundamental.
           iApply extraction_to_leadsto_envD_equiv].
       + iApply D_TVMem_All_I. by iApply fundamental_typed.
       + iApply D_TVMem_I. by iApply fundamental_typed.
+      + iApply D_Path_TVMem_I. by iApply fundamental_path_typed.
       + iApply D_New_Mem_I'. by iApply fundamental_dms_typed.
       + iApply D_TVMem_Sub; by [> iApply fundamental_subtype|].
     - iIntros "#Hm"; induction HT.

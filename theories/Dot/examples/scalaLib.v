@@ -13,7 +13,7 @@ Module Export loop.
 Import hoasNotation.
 (** * Infinite loops *)
 Definition hloopDefV : hvl := ν: self, {@
-  val "loop" = λ: v, htv self @: "loop" $: htv v
+  val "loop" = hpv (λ: v, htv self @: "loop" $: htv v)
   (* λ v, self.loop v. *)
 }.
 Definition hloopDefT : hty := val "loop" : ⊤ →: ⊥.
@@ -76,8 +76,8 @@ Proof. tcrush. var. Qed.
 Definition boolImplV :=
   ν {@
     type "Boolean" = IFT;
-    val "true" = iftTrue;
-    val "false" = iftFalse
+    val "true" = pv iftTrue;
+    val "false" = pv iftFalse
   }.
 
 Definition boolImplTConcr : ty :=
@@ -327,15 +327,16 @@ Definition hnoneSingT := μ: self, hnoneSingTBody self.
 
 Definition hnoneV := ν: _, {@
   type "T" = ⊥;
-  val "isEmpty" = hiftTrue;
-  val "pmatch" = λ: x, λ:: none some, htv none
+  val "isEmpty" = hpv hiftTrue;
+  val "pmatch" = hpv (λ: x, λ:: none some, htv none)
 }.
 Definition noneV := hclose hnoneV.
 
 Example noneTypStronger Γ :
   Γ u⊢ₜ tv noneV : hclose hnoneSingT.
 Proof.
-  have := iftTrueSingTyp (hclose (▶: hnoneSingTBody hx0) :: Γ) => /(dvl_typed "isEmpty") ?.
+  have := iftTrueSingTyp (hclose (▶: hnoneSingTBody hx0) :: Γ) =>
+    /(dpt_pv_typed "isEmpty") ?.
   (* apply VObj_typed; last stcrush.
   apply dcons_typed; [tcrush| |tcrush].
   apply dcons_typed; [eauto | |tcrush]. *)
@@ -366,9 +367,9 @@ Definition hmkSomeTSing : hty := hmkSomeTGen hsomeSingT.
 
 Definition hmkSome : hvl := λ: x, λ:: content, htv $ ν: self, {@
   type "T" = hpv x @; "A";
-  val "isEmpty" = hiftFalse;
-  val "pmatch" = λ: x, λ:: none some, htv some $: htskip (htv self @: "get");
-  val "get" = content
+  val "isEmpty" = hpv hiftFalse;
+  val "pmatch" = hpv (λ: x, λ:: none some, htv some $: htskip (htv self @: "get"));
+  val "get" = hpv content
 }.
 Definition mkSome := hclose hmkSome.
 
@@ -376,7 +377,7 @@ Example mkSomeTypStronger Γ :
   Γ u⊢ₜ tv mkSome : hclose hmkSomeTSing.
 Proof.
   evar (Γ' : ctx).
-  have := iftFalseSingTyp Γ' => /(dvl_typed "isEmpty"); rewrite /Γ' => Hf.
+  have := iftFalseSingTyp Γ' => /(dpt_pv_typed "isEmpty"); rewrite /Γ' => Hf.
   tcrush; cbv.
   - eapply App_typed; first var.
     apply (Subs_typed (i := 1) (T1 := hclose (▶: (hp3 @; "T"))%HT)); tcrush.
@@ -398,8 +399,8 @@ Definition hoptionModTConcrBody : hty := {@
 
 Definition hoptionModV := ν: self, {@
   type "Option" = hoptionTSing;
-  val "none" = hnoneV;
-  val "mkSome" = hmkSome
+  val "none" = hpv hnoneV;
+  val "mkSome" = hpv hmkSome
 }.
 
 (** Rather precise type for [hoptionModV]. *)
@@ -408,7 +409,7 @@ Example optionModConcrTyp Γ :
 Proof.
   set U := hclose (▶: hoptionModTConcrBody).
   have := noneTypStronger (U :: Γ).
-  have := mkSomeTypStronger (U :: Γ) => /(dvl_typed "mkSome") Hs Hn.
+  have := mkSomeTypStronger (U :: Γ) => /(dpt_pv_typed "mkSome") Hs Hn.
   ltcrush.
 Qed.
 

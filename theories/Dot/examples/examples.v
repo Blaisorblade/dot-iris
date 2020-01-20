@@ -48,7 +48,7 @@ Section ex.
 
   Definition v := ν {@
     type "A" = ([]; s);
-	  val "n" = vnat 2
+	  val "n" = pv (vnat 2)
   }.
 
   Lemma sHasA : Hs -∗ def_interp_tmem ⟦ TBot ⟧ ⟦ TNat ⟧ ids (dtysem [] s).
@@ -108,8 +108,9 @@ Section ex.
     - rewrite -ietp_value /=.
       have Hev2: pos (vnat 2) by rewrite /pos; eauto.
       iIntros (_).
-      repeat (repeat iExists _; repeat iSplit);
-        by [|iApply dm_to_type_intro].
+
+      repeat (repeat iExists _; repeat iSplit; rewrite ?path_wp_pv //);
+        try by [|iApply dm_to_type_intro].
   Qed.
 
   Lemma vHasA1t : Hs -∗ [] ⊨ tv v : vTyp1.
@@ -144,14 +145,14 @@ Section ex.
       iIntros (ρ Hpid) "/= #_".
       iSplit => //. by iApply sHasA.
     - iApply DCons_I => //; last by iApply DNil_I.
-      iApply D_TVMem_I.
+      iApply D_Path_TVMem_I.
       iIntros "!>" (ρ) "/="; iDestruct 1 as "[_ [HA [HB _]]]".
-      rewrite -wp_value'.
       iDestruct "HA" as (dA) "[HlA HA]".
       iDestruct "HA" as (φ) "[Hlφ HA]".
       iDestruct "HB" as (dB) "[HlB HB]".
       iDestruct "HB" as (w) "HB".
-      iExists φ, dA; repeat iSplit => //; try iNext.
+      rewrite !path_wp_pv.
+      iExists φ, dA; repeat iSplit => //; try iNext => //.
       (* Last case is stuck, since we don't know what [ρ 0] is and what
       "A" points to. *)
   Abort.

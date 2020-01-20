@@ -98,7 +98,7 @@ Definition hvobj : (hterm vl → hdms) → hterm vl := λ ds,
 
 Definition hdtysyn : hterm ty → hterm dm := liftA1 dtysyn.
 (* Not sure about [hdtysem], and not needed. *)
-Definition hdvl : hterm vl → hterm dm := liftA1 dvl.
+Definition hdpt : hterm path → hterm dm := liftA1 dpt.
 
 Definition hpv : hterm vl → hterm path := liftA1 pv.
 Definition hpself : hterm path → label → nat → path := Eval cbv in λ p l, liftA2 pself p (pureS l).
@@ -133,7 +133,7 @@ Arguments hvlit /.
 Arguments hvabs /.
 Arguments hvobj /.
 Arguments hdtysyn /.
-Arguments hdvl /.
+Arguments hdpt /.
 Arguments hpv /.
 Arguments hpself /.
 Arguments hTTop /.
@@ -185,7 +185,7 @@ Notation "'λ::' x .. y , t" := (htv (hvabs (fun x => .. (htv (hvabs (fun y => t
 
 Notation "'ν' ds " := (hvobj ds) (at level 60, ds at next level).
 Notation "'ν:' x , ds " := (hvobj (λD x, ds)) (at level 60, ds at next level).
-Notation "'val' l = v" := (l, hdvl v) (at level 60, l at level 50).
+Notation "'val' l = v" := (l, hdpt v) (at level 60, l at level 50).
 Notation "'type' l = T  " := (l, hdtysyn T) (at level 60, l at level 50).
 
 (** Notation for object types. *)
