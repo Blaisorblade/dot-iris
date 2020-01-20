@@ -8,13 +8,9 @@ The mapping between the paper and this mechanization is described in
 
 ## File Layout
 
-Code is not perfectly modularized, but here is a rough layout of the various files.
+Here is a rough layout of the various files.
 
 * `theories/Dot`: guarded DOT. Complete.
-* `theories/DSub`: guarded D<:, incomplete, used for prototyping.
-* `theories/DSubSyn`: guarded D<:, where type members are represented by
-  storing syntactic types in values, and interpreting them recursively. Used for
-  prototyping but mostly complete. Shares code from `theories/DSub`.
 * `theories/`: General infrastructure.
 * `theories/pure_program_logic`: define a "pure" variant of Iris's weakest
   precondition.
@@ -26,24 +22,21 @@ Inside the `Dot` folder:
   - `syn.v`: definition of the basic SYNtax, and instantiate Iris with DOT
     operational semantics.
   - `synLemmas.v`: (SYNtactic Lemmas): lemmas about syntax and binding.
-  - `rules.v`: lemmas about this language's semantics.
+  - `rules.v`: lemmas about this language's operational semantics.
 * `lr`: logical relation, semantic typing, compatibility lemmas
-  - `dlang_inst.v`: instantiate shared Iris setup from `dlang.v`
-  - `unary_lr.v`: definition of unary logical relation
+  - `path_wp.v`: define path weakest precondition;
+  - `dlang_inst.v`: instantiate shared Iris setup from `dlang.v`;
+  - `unary_lr.v`: definition of unary logical relation.
   Compatibility lemmas:
-  - `lr_lemmasDefs.v: lemmas about DEFinition typing
-  - `lr_lemmasTSel.v: lemmas about TSel (type selection)
-  - `lr_lemmasNoBinding.v: various typing lemmas, not requiring `synLemmas.v`.
-  - `lr_lemmas.v: other misc typing lemmas
-* `stamping`: definitions and lemmas about stamping
+  - `lr_lemmasDefs.v`: lemmas about DEFinition typing;
+  - `lr_lemmasTSel.v`: lemmas about TSel (type selection);
+  - `lr_lemmasNoBinding.v`: various typing lemmas, not requiring `synLemmas.v`;
+  - `lr_lemmas.v`: other misc typing lemmas.
+* `stamping`: definitions and lemmas about stamping.
 * `typing`: syntactic typing and auxiliary lemmas about it
-  - `typingStamping.v`: prove stamping of typing derivations
-* `examples`: various gDOT snippets
+  - `typingStamping.v`: prove stamping of typing derivations.
+* `examples`: various gDOT snippets.
 * `fundamental.v`: prove fundamental theorem, adequacy and type safety.
-  - adequacy: relating semantic typing and runtime safety, using Iris WP
-    adequacy, and showing the choice of `Σ : gFunctors` is consistent.
-* `misc_unused`: misc stuff, not used elsewhere
-  - experiments.v: various experimental (typing) lemmas
 
 ## Installation
 ### Iris version
@@ -96,8 +89,6 @@ coq-iris`, `opam uninstall dot-iris`, `opam uninstall .`, or such.
 After updating deps, you will need to do a clean build, so `make clean` and then
 `make`.
 
-### Bumping Iris
+## Development/Additional docs (not relevant to paper)
 
-Find the version name on top of
-https://gitlab.mpi-sws.org/iris/opam/commits/master/packages/coq-iris, then
-modify `opam`, *commit*, and reinstall with `opam install .`
+See `development.md`.
