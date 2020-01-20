@@ -219,20 +219,20 @@ Section path_repl.
     alias_pathsI p q -∗ alias_pathsI q p.
   Proof. iIntros "!%". exact: alias_paths_symm'. Qed.
 
-  Lemma alias_paths_substI_elim_eq' φ p q:
+  Lemma alias_paths_substI_elim_eq' φ p q `{PersistentP φ}:
     alias_pathsI p q ⊢
     ⌜path_wp p φ ≡ path_wp q φ⌝.
-  Proof. iIntros "!%". apply alias_paths_elim_eq. Qed.
+  Proof. iIntros "!%". apply: alias_paths_elim_eq. Qed.
 
-  Lemma alias_paths_subst_elim_wand φ p q:
+  Lemma alias_paths_subst_elim_wand {φ p q} `(PersistentP φ):
     alias_paths p q →
     path_wp p φ ⊢ path_wp q φ.
   Proof. iIntros (->%(alias_paths_elim_eq φ)) "$". Qed.
 
-  Lemma alias_paths_subst_elim_wand' φ p q:
+  Lemma alias_paths_subst_elim_wand' φ p q `{PersistentP φ}:
     alias_pathsI p q ⊢
     path_wp p φ -∗ path_wp q φ.
-  Proof. iIntros (->%(alias_paths_subst_elim_wand φ)) "$". Qed.
+  Proof. iIntros (Hal) "H". by rewrite (alias_paths_subst_elim_wand _ Hal). Qed.
 
   Lemma alias_paths_substI_eq p q:
     alias_pathsI p q ⊣⊢
@@ -244,7 +244,7 @@ Section path_repl.
   Lemma alias_paths_subst_samepwp' p q:
     alias_pathsI p q ⊣⊢
       (∃ u, path_wp p (λ vp, ⌜u = vp⌝)) ∧
-      ∀ φ, ⌜path_wp p φ ≡ path_wp q φ⌝.
+      ∀ φ, ⌜PersistentP φ → path_wp p φ ≡ path_wp q φ⌝.
   Proof. iIntros "!%". apply alias_paths_samepwp. Qed.
 
 

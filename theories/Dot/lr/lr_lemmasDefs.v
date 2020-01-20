@@ -194,7 +194,7 @@ Section Sec.
     iIntros "/= #Hsub #Hv !>" (ρ Hpid) "#Hg".
     iSpecialize ("Hv" $! ρ Hpid with "Hg").
     rewrite !def_interp_tvmem_eq.
-    iApply (path_wp_wand with "Hv"); iIntros.
+    iApply (path_wp_wand with "Hv"); iIntros "!> **".
     by iApply ("Hsub" with "Hg").
   Qed.
 

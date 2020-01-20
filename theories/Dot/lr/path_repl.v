@@ -20,11 +20,11 @@ Section path_repl.
   Lemma alias_paths_samepwp p q:
     alias_paths p q ↔
       (∃ u, path_wp_pure p (eq u)) ∧
-      ∀ φ, path_wp p φ ≡ path_wp q φ.
+      ∀ φ, PersistentP φ → path_wp p φ ≡ path_wp q φ.
   Proof.
     rewrite alias_paths_sameres; split.
     - destruct 1 as (v & Hp & Hq).
-      split; first by [eauto]; intros φ.
+      split; first by [eauto]; intros φ Hφ.
       rewrite !path_wp_eq. f_equiv => w.
       do 2 f_equiv.
       split => Hr; [ rewrite -(path_wp_pure_det Hp Hr)
@@ -35,7 +35,7 @@ Section path_repl.
       iRevert (Hp). by rewrite -!path_wp_pureable Heq.
   Qed.
 
-  Lemma alias_paths_elim_eq φ {p q}:
+  Lemma alias_paths_elim_eq φ {p q} `{PersistentP φ}:
     alias_paths p q →
     path_wp p φ ≡ path_wp q φ.
   Proof. intros ?%alias_paths_samepwp. intuition. Qed.
@@ -57,13 +57,13 @@ Section path_repl.
       [alias_paths_subst p r ids → path_wp q φ ≡ path_wp (q .p[p := r]) φ].
 
       But we do need the general form. *)
-  Lemma path_replacement_equiv {p q ρ} p1 p2 (φ : vl → iProp Σ):
+  Lemma path_replacement_equiv {p q ρ} p1 p2 φ {Hφ : PersistentP φ}:
     p1 ~pp[ p := q ] p2 →
     alias_paths p.|[ρ] q.|[ρ] →
     path_wp p1.|[ρ] φ ≡ path_wp p2.|[ρ] φ.
   Proof.
     move => Hrepl.
-    elim: Hrepl φ => [| p1' p2' l Hrepl IHrepl] φ /=.
+    elim: Hrepl φ Hφ => [| p1' p2' l Hrepl IHrepl] φ Hφ /=.
     exact: alias_paths_elim_eq.
     rewrite !path_wp_pself /= => Hal.
     properness => //. exact: IHrepl.
@@ -306,7 +306,7 @@ Section path_repl.
     iIntros "#Hep #Heq !>" (ρ) "#Hg".
     iDestruct (singleton_aliasing with "Hep Hg") as "Hal1 {Hep}".
     iSpecialize ("Heq" with "Hg"). iNext i.
-    by iDestruct "Hal1" as %->%(alias_paths_elim_eq _).
+    by iDestruct "Hal1" as %->%(alias_paths_elim_eq (⟦ _ ⟧ _)).
   Qed.
 
   Lemma singleton_elim Γ T p q l i:
