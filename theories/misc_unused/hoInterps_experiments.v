@@ -26,7 +26,7 @@ Section saved_pred3_use.
     end%I.
   Definition vclose : hoEnvND Σ → envD Σ := λ '(n, Φ), Φ [].
   Definition vuncurry n (Φ : vl → hoEnvD Σ) : hoEnvND Σ :=
-    (n + 1, λ args,
+    (S n, λ args,
       match args with
       | w :: args => Φ w args
       | [] => eFalse
@@ -35,6 +35,59 @@ End saved_pred3_use.
 End try1.
 
 From D Require Import saved_interp_dep olty asubst_base.
+
+(* *)
+Module simple.
+Module Type HoSemTypes (Import VS : VlSortsFullSig) (Import LWP : LiftWp VS).
+Include OLty VS LWP.
+Section saved_dep_use.
+  Context {Σ : gFunctors}.
+  Notation hoEnvND Σ := (sigTO (hoEnvD Σ)).
+  Implicit Types (Φ : hoEnvND Σ) (n : nat).
+  Definition eFalse : envD Σ := λ ρ v, False%I.
+
+  Unset Program Cases.
+  Program Definition vcurry : hoEnvND Σ → vl → hoEnvND Σ := λ '(existT n φ),
+    match n with
+    | 0 => λ _ _, existT 0 (λ _, eFalse)
+    | S m => λ φ a, existT m (λ args : vec vl m, φ (vcons a args))
+    end φ.
+  Definition vclose : hoEnvND Σ → envD Σ := λ '(existT n φ),
+    match n with
+    | 0 => λ φ, φ vnil
+    | S n => λ _, eFalse
+    end φ.
+  Program Definition vuncurry' : {n & vl → hoEnvD Σ n} → hoEnvND Σ := λ '(existT n φ),
+    existT (S n) (λ args, φ (vhead args) (vtail args)).
+  Program Definition vuncurry n : (vl → hoEnvND Σ) → hoEnvND Σ := λ φ,
+    existT (S n) (λ args,
+      let '(existT m φ') := φ (vhead args) in
+      match decide (m = n) with
+      | left Heq => φ' (rew <- [vec vl] Heq in vtail args)
+      | right _ => eFalse
+      end).
+  Lemma vec_eta {A n} (args : vec A (S n)) : vcons (vhead args) (vtail args) = args.
+  Proof. by dependent destruction args. Qed.
+
+  Lemma vcurry_vuncurry n (φ : hoEnvD Σ (S n)) : vuncurry n (vcurry (existT (S n) φ)) = existT (S n) φ.
+  Proof.
+    rewrite /vuncurry; cbn; destruct n; f_equiv;
+      apply FunctionalExtensionality.functional_extensionality_dep => args;
+      by rewrite (decide_left (P := (_ = _)) eq_refl) vec_eta.
+  Qed.
+
+  Lemma vuncurry_vcurry n (φ : vl → hoEnvD Σ n) :
+    vcurry (vuncurry n (λ v, existT n (φ v))) = (λ v, existT n (φ v)).
+  Proof.
+    apply FunctionalExtensionality.functional_extensionality_dep => v.
+    cbn; f_equiv.
+    apply FunctionalExtensionality.functional_extensionality_dep => args /=.
+    by rewrite (decide_left (P := (_ = _)) eq_refl).
+  Qed.
+End saved_dep_use.
+End HoSemTypes.
+End simple.
+
 Module Type HoSemTypes (Import VS : VlSortsFullSig) (Import LWP : LiftWp VS).
 Include OLty VS LWP.
 (* XXX Good names? *)
