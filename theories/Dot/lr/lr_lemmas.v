@@ -125,19 +125,19 @@ Section LambdaIntros.
   Qed.
 
   (** Lemmas about definition typing. *)
-  Lemma D_Path_TVMem_I {Γ} V T p l:
-    TLater V :: Γ ⊨p p : T, 0 -∗
-    Γ |L V ⊨ { l := dpt p } : TVMem l T.
+  Lemma D_Path_TVMem_I {Γ} T p l:
+    Γ ⊨p p : T, 0 -∗
+    Γ ⊨ { l := dpt p } : TVMem l T.
   Proof.
-    iIntros "/= #Hv !>" (ρ Hpid) "[#Hg #Hw]".
+    iIntros "/= #Hv !>" (ρ Hpid) "#Hg".
     rewrite def_interp_tvmem_eq.
-    iApply ("Hv" with "[]"); by iSplit.
+    iApply ("Hv" with "Hg").
   Qed.
 
   (** Lemmas about definition typing. *)
-  Lemma D_TVMem_I {Γ} V T v l:
-    TLater V :: Γ ⊨ tv v : T -∗
-    Γ |L V ⊨ { l := dpt (pv v) } : TVMem l T.
+  Lemma D_TVMem_I {Γ} T v l:
+    Γ ⊨ tv v : T -∗
+    Γ ⊨ { l := dpt (pv v) } : TVMem l T.
   Proof. by rewrite -D_Path_TVMem_I -P_Val. Qed.
 
   Lemma D_TVMem_All_I {Γ} V T1 T2 e l:
