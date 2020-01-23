@@ -2,14 +2,14 @@ From D Require Import tactics.
 From D.Dot.syn Require Export syn.
 From D.Dot Require Import typing_storeless.
 
-Implicit Types (L T U V : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
+Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
 Implicit Types (g : stys).
 
 (* The typing judgement comes from [s/⊢/s⊢] in [typing_storeless.v], and restricting most values to variables (except in object definitions). *)
 Reserved Notation "Γ s⊢ₜ[ g  ] e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ s⊢ₚ[ g  ] p : T , i" (at level 74, p, T, i at next level).
-Reserved Notation "Γ |d V s⊢[ g  ]{ l := d  } : T " (at level 74, l, d, T, V at next level).
-Reserved Notation "Γ |ds V s⊢[ g  ] ds : T" (at level 74, ds, T, V at next level).
+Reserved Notation "Γ s⊢[ g  ]{ l := d  } : T " (at level 74, l, d, T at next level).
+Reserved Notation "Γ s⊢ds[ g  ] ds : T" (at level 74, ds, T at next level).
 Reserved Notation "Γ s⊢ₜ[ g  ] T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
 
 (**
@@ -42,7 +42,7 @@ Inductive typed Γ g : tm → ty → Prop :=
     (*─────────────────────────*)
     Γ s⊢ₜ[ g ] tv (vabs e) : TAll T1 T2
 | VObj_typed ds T:
-    Γ |ds T s⊢[ g ] ds: T →
+    Γ |L T s⊢ds[ g ] ds: T →
     is_stamped_ty (S (length Γ)) g T →
     (*──────────────────────*)
     Γ s⊢ₜ[ g ] tv (vobj ds): TMu T
@@ -64,42 +64,43 @@ Inductive typed Γ g : tm → ty → Prop :=
     (*───────────────────────────────*)
     Γ s⊢ₜ[ g ] path2tm p : T
 where "Γ s⊢ₜ[ g ] e : T " := (typed Γ g e T)
-with dms_typed Γ g : ty → dms → ty → Prop :=
-| dnil_typed V : Γ |ds V s⊢[ g ] [] : TTop
+with dms_typed Γ g : dms → ty → Prop :=
+| dnil_typed : Γ s⊢ds[ g ] [] : TTop
 (* This demands definitions and members to be defined in aligned lists. *)
-| dcons_typed V l d ds T1 T2:
-    Γ |d V s⊢[ g ]{ l := d } : T1 →
-    Γ |ds V s⊢[ g ] ds : T2 →
+| dcons_typed l d ds T1 T2:
+    Γ s⊢[ g ]{ l := d } : T1 →
+    Γ s⊢ds[ g ] ds : T2 →
     dms_hasnt ds l →
     (*──────────────────────*)
-    Γ |ds V s⊢[ g ] (l, d) :: ds : TAnd T1 T2
-where "Γ |ds V s⊢[ g ] ds : T" := (dms_typed Γ g V ds T)
-with dm_typed Γ g : ty → label → dm → ty → Prop :=
-| dty_typed T V l L U s σ:
-    T ~[ S (length Γ) ] (g, (s, σ)) →
-    Forall (is_stamped_vl (S (length Γ)) g) σ →
-    TLater V :: Γ s⊢ₜ[ g ] TLater L, 0 <: TLater T, 0 →
-    TLater V :: Γ s⊢ₜ[ g ] TLater T, 0 <: TLater U, 0 →
-    Γ |d V s⊢[ g ]{ l := dtysem σ s } : TTMem l L U
-| dvabs_typed V T1 T2 e l:
-    is_stamped_ty (S (length Γ)) g T1 →
-    shift T1 :: V :: Γ s⊢ₜ[ g ] e : T2 →
-    Γ |d V s⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2)
-| dpt_pv_typed V l v T:
-    TLater V :: Γ s⊢ₜ[ g ] tv v : T →
-    Γ |d V s⊢[ g ]{ l := dpt (pv v) } : TVMem l T
-| dpath_typed V l p T:
-    TLater V :: Γ s⊢ₚ[ g ] p : T, 0 →
-    Γ |d V s⊢[ g ]{ l := dpt p } : TVMem l T
-| dnew_typed V l T ds:
-    TLater V :: Γ |ds TAnd T (TSing (pself (pv (ids 1)) l)) s⊢[ g ] ds : T →
-    is_stamped_ty (S (S (length Γ))) g T →
-    Γ |d V s⊢[ g ]{ l := dpt (pv (vobj ds)) } : TVMem l (TMu T)
-| dpt_sub_typed V T1 T2 p l:
-    TLater V :: Γ s⊢ₜ[ g ] T1, 0 <: T2, 0 →
-    Γ |d V s⊢[ g ]{ l := dpt p } : TVMem l T1 →
-    Γ |d V s⊢[ g ]{ l := dpt p } : TVMem l T2
-where "Γ |d V s⊢[ g ]{ l := d  } : T" := (dm_typed Γ g V l d T)
+    Γ s⊢ds[ g ] (l, d) :: ds : TAnd T1 T2
+where "Γ s⊢ds[ g ] ds : T" := (dms_typed Γ g ds T)
+with dm_typed Γ g : label → dm → ty → Prop :=
+| dty_typed T l L U s σ:
+    T ~[ length Γ ] (g, (s, σ)) →
+    is_stamped_σ (length Γ) g σ →
+    Γ s⊢ₜ[ g ] TLater L, 0 <: TLater T, 0 →
+    Γ s⊢ₜ[ g ] TLater T, 0 <: TLater U, 0 →
+    Γ s⊢[ g ]{ l := dtysem σ s } : TTMem l L U
+| dvabs_typed Γ' V T1 T2 e l:
+    is_stamped_ty (length Γ) g T1 →
+    shift T1 :: V :: Γ' s⊢ₜ[ g ] e : T2 →
+    Γ = Γ' |L V →
+    Γ s⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2)
+| dpt_pv_typed l v T:
+    Γ s⊢ₜ[ g ] tv v : T →
+    Γ s⊢[ g ]{ l := dpt (pv v) } : TVMem l T
+| dpath_typed l p T:
+    Γ s⊢ₚ[ g ] p : T, 0 →
+    Γ s⊢[ g ]{ l := dpt p } : TVMem l T
+| dnew_typed l T ds:
+    TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ s⊢ds[ g ] ds : T →
+    is_stamped_ty (S (length Γ)) g T →
+    Γ s⊢[ g ]{ l := dpt (pv (vobj ds)) } : TVMem l (TMu T)
+| dpt_sub_typed T1 T2 p l:
+    Γ s⊢ₜ[ g ] T1, 0 <: T2, 0 →
+    Γ s⊢[ g ]{ l := dpt p } : TVMem l T1 →
+    Γ s⊢[ g ]{ l := dpt p } : TVMem l T2
+where "Γ s⊢[ g ]{ l := d  } : T" := (dm_typed Γ g l d T)
 with path_typed Γ g : path → ty → nat → Prop :=
 | pv_typed x T:
     Γ s⊢ₜ[ g ] tv (var_vl x) : T →
@@ -314,12 +315,17 @@ Hint Constructors typed dms_typed dm_typed path_typed subtype : core.
 Remove Hints Trans_stp : core.
 Hint Extern 10 => try_once Trans_stp : core.
 
+Lemma dvabs_typed' Γ V T1 T2 e l g:
+  is_stamped_ty (S (length Γ)) g T1 →
+  shift T1 :: V :: Γ s⊢ₜ[ g ] e : T2 →
+  Γ |L V s⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
+Proof. intros; exact: dvabs_typed. Qed.
 
 Ltac typconstructor :=
   match goal with
   | |- typed _ _ _ _ => constructor
-  | |- dms_typed _ _ _ _ _ => constructor
-  | |- dm_typed _ _ _ _ _ _ => constructor
+  | |- dms_typed _ _ _ _ => constructor
+  | |- dm_typed _ _ _ _ _ => first [apply dvabs_typed' | constructor]
   | |- path_typed _ _ _ _ _ => constructor
   | |- subtype _ _ _ _ _ _ => constructor
   end.
@@ -327,15 +333,15 @@ Ltac typconstructor :=
 Section syntyping_lemmas.
   Lemma typing_obj_ident_to_typing_mut Γ g:
     (∀ e T, Γ s⊢ₜ[ g ] e : T → Γ v⊢ₜ[ g ] e : T) ∧
-    (∀ V ds T, Γ |ds V s⊢[ g ] ds : T → Γ |ds V v⊢[ g ] ds : T) ∧
-    (∀ V l d T, Γ |d V s⊢[ g ]{ l := d } : T → Γ |d V v⊢[ g ]{ l := d } : T) ∧
+    (∀ ds T, Γ s⊢ds[ g ] ds : T → Γ v⊢ds[ g ] ds : T) ∧
+    (∀ l d T, Γ s⊢[ g ]{ l := d } : T → Γ v⊢[ g ]{ l := d } : T) ∧
     (∀ p T i, Γ s⊢ₚ[ g ] p : T, i → Γ v⊢ₚ[ g ] p : T, i) ∧
     (∀ T1 i1 T2 i2, Γ s⊢ₜ[ g ] T1, i1 <: T2, i2 → Γ v⊢ₜ[ g ] T1, i1 <: T2, i2).
   Proof.
     eapply stamped_objIdent_typing_mut_ind with
         (P := λ Γ g e T _, Γ v⊢ₜ[ g ] e : T)
-        (P0 := λ Γ g V ds T _, Γ |ds V v⊢[ g ] ds : T)
-        (P1 := λ Γ g V l d T _, Γ |d V v⊢[ g ]{ l := d } : T)
+        (P0 := λ Γ g ds T _, Γ v⊢ds[ g ] ds : T)
+        (P1 := λ Γ g l d T _, Γ v⊢[ g ]{ l := d } : T)
         (P2 := λ Γ g p T i _, Γ v⊢ₚ[ g ] p : T, i)
         (P3 := λ Γ g T1 i1 T2 i2 _, Γ v⊢ₜ[ g ] T1, i1 <: T2, i2); clear Γ g;
       solve [econstructor; eauto].

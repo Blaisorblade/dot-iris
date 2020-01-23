@@ -40,7 +40,7 @@ Proof.
   have Hst: is_stamped_ty (1 + length Γ) g (p0 @; "B").
   by tcrush.
   apply VObj_typed; tcrush. (* Avoid trying TMuI_typed, that's slow. *)
-  apply (dty_typed (p0 @; "B")); by wtcrush.
+  apply (dty_typed (p0 @; "B")); cbn; by wtcrush.
 Qed.
 
 (* Try out fixpoints. *)
@@ -302,7 +302,7 @@ Lemma dvabs_sub_typed {Γ} V T1 T2 e l L:
   shift T1 :: V :: Γ v⊢ₜ[ g ] e : T2 →
   TLater V :: Γ v⊢ₜ[ g ] TAll T1 T2, 0 <: L, 0 →
   is_stamped_ty (S (length Γ)) g T1 →
-  Γ |d V v⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l L.
+  Γ |L V v⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l L.
 Proof.
   intros He Hsub Hs.
   eapply dpt_sub_typed; first apply Hsub.

@@ -16,10 +16,10 @@ Section fundamental.
     | H : context [wellMappedφ] |- _ => by iApply H
     end.
 
-  Fixpoint fundamental_dm_typed Γ g V l d T (HT: Γ |d V v⊢[ g ]{ l := d } : T) { struct HT }:
-    Γ |L V ⊨[ ⟦ g ⟧g ] { l := d } : T with
-  fundamental_dms_typed Γ g V ds T (HT: Γ |ds V v⊢[ g ] ds : T) { struct HT }:
-    Γ |L V ⊨ds[ ⟦ g ⟧g ] ds : T with
+  Fixpoint fundamental_dm_typed Γ g l d T (HT: Γ v⊢[ g ]{ l := d } : T) { struct HT }:
+    Γ ⊨[ ⟦ g ⟧g ] { l := d } : T with
+  fundamental_dms_typed Γ g ds T (HT: Γ v⊢ds[ g ] ds : T) { struct HT }:
+    Γ ⊨ds[ ⟦ g ⟧g ] ds : T with
   fundamental_subtype Γ g T1 i1 T2 i2 (HT: Γ v⊢ₜ[ g ] T1, i1 <: T2, i2) { struct HT }:
     Γ ⊨[ ⟦ g ⟧g ] T1, i1 <: T2, i2 with
   fundamental_typed Γ g e T (HT: Γ v⊢ₜ[ g ] e : T) { struct HT }:
@@ -30,10 +30,10 @@ Section fundamental.
     - iIntros "#Hm"; induction HT.
       + iApply D_Typ_Abs; by [> iApply fundamental_subtype .. |
           iApply extraction_to_leadsto_envD_equiv].
-      + iApply D_TVMem_All_I. by iApply fundamental_typed.
+      + subst; iApply D_TVMem_All_I. by iApply fundamental_typed.
       + iApply D_TVMem_I. by iApply fundamental_typed.
       + iApply D_Path_TVMem_I. by iApply fundamental_path_typed.
-      + iApply D_New_Mem_I'. by iApply fundamental_dms_typed.
+      + iApply D_New_Mem_I. by iApply fundamental_dms_typed.
       + iApply D_TVMem_Sub; by [> iApply fundamental_subtype|].
     - iIntros "#Hm"; induction HT.
       + by iApply DNil_I.

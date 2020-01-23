@@ -5,20 +5,20 @@ From D Require Import swap_later_impl. *)
 
 Set Implicit Arguments.
 
-Implicit Types (L T U V : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
+Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
 Implicit Types (g : stys).
 
 Reserved Notation "Γ v⊢ₜ[ g ] e : T"
   (at level 74, e, T at next level,
   format "'[' '[' Γ ']'  '/' v⊢ₜ[  g  ]  '[' e ']'  :  '[' T ']' ']'").
 Reserved Notation "Γ v⊢ₚ[ g  ] p : T , i" (at level 74, p, T, i at next level).
-Reserved Notation "Γ |d V v⊢[ g ]{ l := d } : T "
-(* Reserved Notation "Γ |d V v⊢[ g  ]{ l := d  } : T " *)
-  (at level 74, l, d, T, V at next level,
-   format "'[' '[' Γ  |d  V  ']' '/' '[' v⊢[  g  ]{  l  :=  d  } ']' :  '[' T ']' ']'").
-Reserved Notation "Γ |ds V v⊢[ g ] ds : T"
-  (at level 74, ds, T, V at next level,
-  format "'[' '[' Γ  |ds  V  ']' '/' v⊢[  g  ]  '[' ds ']'  :  T ']'" ).
+Reserved Notation "Γ v⊢[ g ]{ l := d } : T "
+(* Reserved Notation "Γ v⊢[ g  ]{ l := d  } : T " *)
+  (at level 74, l, d, T at next level,
+   format "'[' '[' Γ  ']' '/' '[' v⊢[  g  ]{  l  :=  d  } ']' :  '[' T ']' ']'").
+Reserved Notation "Γ v⊢ds[ g ] ds : T"
+  (at level 74, ds, T at next level,
+  format "'[' '[' Γ  ']' '/' v⊢ds[  g  ]  '[' ds ']'  :  T ']'" ).
 Reserved Notation "Γ v⊢ₜ[ g  ] T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
 
 (**
@@ -60,7 +60,7 @@ Inductive typed Γ g : tm → ty → Prop :=
     (*─────────────────────────*)
     Γ v⊢ₜ[ g ] tv (vabs e) : TAll T1 T2
 | VObj_typed ds T:
-    Γ |ds T v⊢[ g ] ds: T →
+    Γ |L T v⊢ds[ g ] ds: T →
     is_stamped_ty (S (length Γ)) g T →
     (*──────────────────────*)
     Γ v⊢ₜ[ g ] tv (vobj ds): TMu T
@@ -91,42 +91,43 @@ Inductive typed Γ g : tm → ty → Prop :=
     (∀ `{!dlangG Σ} `{!SwapPropI Σ}, Γ ⊨[ ⟦ g ⟧g ] e : T) →
     Γ v⊢ₜ[ g ] e : T *)
 where "Γ v⊢ₜ[ g ] e : T " := (typed Γ g e T)
-with dms_typed Γ g : ty → dms → ty → Prop :=
-| dnil_typed V : Γ |ds V v⊢[ g ] [] : TTop
+with dms_typed Γ g : dms → ty → Prop :=
+| dnil_typed : Γ v⊢ds[ g ] [] : TTop
 (* This demands definitions and members to be defined in aligned lists. *)
-| dcons_typed V l d ds T1 T2:
-    Γ |d V v⊢[ g ]{ l := d } : T1 →
-    Γ |ds V v⊢[ g ] ds : T2 →
+| dcons_typed l d ds T1 T2:
+    Γ v⊢[ g ]{ l := d } : T1 →
+    Γ v⊢ds[ g ] ds : T2 →
     dms_hasnt ds l →
     (*──────────────────────*)
-    Γ |ds V v⊢[ g ] (l, d) :: ds : TAnd T1 T2
-where "Γ |ds V v⊢[ g ] ds : T" := (dms_typed Γ g V ds T)
-with dm_typed Γ g : ty → label → dm → ty → Prop :=
-| dty_typed T V l L U s σ:
-    T ~[ S (length Γ) ] (g, (s, σ)) →
-    Forall (is_stamped_vl (S (length Γ)) g) σ →
-    TLater V :: Γ v⊢ₜ[ g ] TLater L, 0 <: TLater T, 0 →
-    TLater V :: Γ v⊢ₜ[ g ] TLater T, 0 <: TLater U, 0 →
-    Γ |d V v⊢[ g ]{ l := dtysem σ s } : TTMem l L U
-| dvabs_typed V T1 T2 e l:
-    is_stamped_ty (S (length Γ)) g T1 →
-    shift T1 :: V :: Γ v⊢ₜ[ g ] e : T2 →
-    Γ |d V v⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2)
-| dpt_pv_typed V l v T:
-    TLater V :: Γ v⊢ₜ[ g ] tv v : T →
-    Γ |d V v⊢[ g ]{ l := dpt (pv v) } : TVMem l T
-| dpath_typed V l p T:
-    TLater V :: Γ v⊢ₚ[ g ] p : T, 0 →
-    Γ |d V v⊢[ g ]{ l := dpt p } : TVMem l T
-| dnew_typed V l T ds:
-    TLater V :: Γ |ds TAnd T (TSing (pself (pv (ids 1)) l)) v⊢[ g ] ds : T →
-    is_stamped_ty (S (S (length Γ))) g T →
-    Γ |d V v⊢[ g ]{ l := dpt (pv (vobj ds)) } : TVMem l (TMu T)
-| dpt_sub_typed V T1 T2 p l:
-    TLater V :: Γ v⊢ₜ[ g ] T1, 0 <: T2, 0 →
-    Γ |d V v⊢[ g ]{ l := dpt p } : TVMem l T1 →
-    Γ |d V v⊢[ g ]{ l := dpt p } : TVMem l T2
-where "Γ |d V v⊢[ g ]{ l := d  } : T" := (dm_typed Γ g V l d T)
+    Γ v⊢ds[ g ] (l, d) :: ds : TAnd T1 T2
+where "Γ v⊢ds[ g ] ds : T" := (dms_typed Γ g ds T)
+with dm_typed Γ g : label → dm → ty → Prop :=
+| dty_typed T l L U s σ:
+    T ~[ length Γ ] (g, (s, σ)) →
+    is_stamped_σ (length Γ) g σ →
+    Γ v⊢ₜ[ g ] TLater L, 0 <: TLater T, 0 →
+    Γ v⊢ₜ[ g ] TLater T, 0 <: TLater U, 0 →
+    Γ v⊢[ g ]{ l := dtysem σ s } : TTMem l L U
+| dvabs_typed Γ' V T1 T2 e l:
+    is_stamped_ty (length Γ) g T1 →
+    shift T1 :: V :: Γ' v⊢ₜ[ g ] e : T2 →
+    Γ = Γ' |L V →
+    Γ v⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2)
+| dpt_pv_typed l v T:
+    Γ v⊢ₜ[ g ] tv v : T →
+    Γ v⊢[ g ]{ l := dpt (pv v) } : TVMem l T
+| dpath_typed l p T:
+    Γ v⊢ₚ[ g ] p : T, 0 →
+    Γ v⊢[ g ]{ l := dpt p } : TVMem l T
+| dnew_typed l T ds:
+    TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ v⊢ds[ g ] ds : T →
+    is_stamped_ty (S (length Γ)) g T →
+    Γ v⊢[ g ]{ l := dpt (pv (vobj ds)) } : TVMem l (TMu T)
+| dpt_sub_typed T1 T2 p l:
+    Γ v⊢ₜ[ g ] T1, 0 <: T2, 0 →
+    Γ v⊢[ g ]{ l := dpt p } : TVMem l T1 →
+    Γ v⊢[ g ]{ l := dpt p } : TVMem l T2
+where "Γ v⊢[ g ]{ l := d  } : T" := (dm_typed Γ g l d T)
 with path_typed Γ g : path → ty → nat → Prop :=
 | pv_typed v T:
     Γ v⊢ₜ[ g ] tv v : T →
@@ -320,7 +321,7 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
 where "Γ v⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ g T1 i1 T2 i2).
 
 (* Make [T] first argument: Hide [Γ] and [g] for e.g. typing examples. *)
-Global Arguments dty_typed {Γ g} T _ _ _ _ _ _ _ _ _ _ : assert.
+Global Arguments dty_typed {Γ g} T _ _ _ _ _ _ _ _ _ : assert.
 
 Scheme exp_stamped_typed_mut_ind := Induction for typed Sort Prop
 with   exp_stamped_dms_typed_mut_ind := Induction for dms_typed Sort Prop
@@ -340,6 +341,12 @@ with   stamped_subtype_mut_ind := Induction for subtype Sort Prop.
 Combined Scheme stamped_typing_mut_ind from stamped_typed_mut_ind, stamped_dms_typed_mut_ind,
   stamped_dm_typed_mut_ind, stamped_path_typed_mut_ind, stamped_subtype_mut_ind.
 
+Lemma dvabs_typed' Γ V T1 T2 e l g:
+  is_stamped_ty (S (length Γ)) g T1 →
+  shift T1 :: V :: Γ v⊢ₜ[ g ] e : T2 →
+  Γ |L V v⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
+Proof. intros; exact: dvabs_typed. Qed.
+
 Ltac typconstructor_check :=
   lazymatch goal with
   (* | |- context [ dlang_inst.dlangG ] => fail "Only applicable rule is reflection" *)
@@ -348,8 +355,8 @@ Ltac typconstructor_check :=
 Ltac typconstructor :=
   match goal with
   | |- typed _ _ _ _ => constructor
-  | |- dms_typed _ _ _ _ _ => constructor
-  | |- dm_typed _ _ _ _ _ _ => constructor
+  | |- dms_typed _ _ _ _ => constructor
+  | |- dm_typed _ _ _ _ _ => first [apply dvabs_typed' | constructor]
   | |- path_typed _ _ _ _ _ => constructor
   | |- subtype _ _ _ _ _ _ => constructor
   end; typconstructor_check.
