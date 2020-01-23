@@ -214,7 +214,7 @@ Proof.
   apply (Subs_typed_nocoerce (μ {@ typeEq "A" T.|[ren (+1)] }));
     last (ettrans; first apply (Mu_stp _ _ ({@ typeEq "A" T })); tcrush).
   apply VObj_typed; tcrush.
-  apply (dty_typed T.|[ren (+1)]); auto 2; tcrush.
+  apply (dty_typed (shift T)); auto 2; tcrush.
   apply /(@extraction_inf_subst _ (length _)); auto 3;
     by apply /extraction_weaken /Hle /pack_extraction.
 Qed.
