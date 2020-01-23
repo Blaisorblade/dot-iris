@@ -180,8 +180,8 @@ Section Sec.
   Proof.
     iIntros "#H"; iApply D_New_Mem_I.
     iDestruct "H" as (Hwf) "#Hds". iFrame (Hwf).
-    iIntros "!>" (ρ Hpid) "/= #[[??] [??]]".
-    iApply ("Hds" with "[//] [$]").
+    iIntros "!>" (ρ Hpid) "/= #[[Hg Hv] [Ht Hal]]".
+    iApply ("Hds" $! ρ Hpid with "[$Hg $Hv $Ht $Hal]").
   Qed.
 
   Context Γ.
