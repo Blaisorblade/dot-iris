@@ -1,3 +1,4 @@
+From D Require Import prelude.
 From D.Dot Require Import typing_storeless typeExtractionSyn traversals stampedness_binding closed_subst.
 
 Set Implicit Arguments.
@@ -35,7 +36,7 @@ Section syntyping_lemmas.
   (* The reverse direction slows proof search and isn't used anyway? *)
   Lemma is_stamped_ren_ty_1 i T g:
     is_stamped_ty i g T ->
-    is_stamped_ty (S i) g (T.|[ren (+1)]).
+    is_stamped_ty (S i) g (shift T).
   Proof. intros Ht. eapply is_stamped_sub_ty, Ht. auto. Qed.
 
   Local Hint Resolve
@@ -57,34 +58,28 @@ Section syntyping_lemmas.
   Lemma stamped_nclosed_lookup Γ x T g:
     stamped_ctx g Γ →
     Γ !! x = Some T →
-    nclosed T.|[ren (+x)] (length Γ).
+    nclosed (shiftN x T) (length Γ).
   Proof.
     elim: Γ T x => // U Γ IHΓ T [Hs [<-]|x Hs Hl] /=; inverse Hs.
-    - asimpl; eauto.
-    - have ->: T.|[ren (+S x)] = T.|[ren (+x)].|[ren (+1)]. by asimpl.
-      eapply nclosed_sub_app; last by eapply IHΓ.
-      eapply nclosed_ren_shift; lia.
+    - rewrite hsubst_id; eauto.
+    - rewrite hrenS; eapply nclosed_sub_app, IHΓ; auto.
   Qed.
   Local Hint Resolve stamped_nclosed_lookup : core.
 
   Lemma stamped_lookup Γ x T g:
-    stamped_ctx g Γ →
-    Γ !! x = Some T →
-    is_stamped_ty (length Γ) g T.|[ren (+x)].
+    stamped_ctx g Γ → Γ !! x = Some T →
+    is_stamped_ty (length Γ) g (shiftN x T).
   Proof.
-    elim: x Γ => /= [|x IHx] [|U Γ] /= Hctx Hl; asimpl; try discriminate.
-    - simplify_eq. by inverse Hctx.
-    - replace (T.|[ren (+S x)]) with (T.|[ren (+x)].|[ren (+1)]); last by asimpl.
-      have HstΓ: stamped_ctx g Γ. by inverse Hctx.
-      eapply (@is_stamped_ren_ty_1 (length Γ) (T.|[ren (+x)]) g), IHx; eauto.
+    elim: x Γ => /= [|x IHx] [|U Γ] /= Hctx Hl; inverse Hctx; simplify_eq.
+    - by rewrite hsubst_id.
+    - rewrite hrenS.
+      apply (@is_stamped_ren_ty_1 (length Γ) (shiftN x T) g), IHx; eauto.
   Qed.
 
   Lemma is_stamped_TLater_n {i n T g}:
     is_stamped_ty n g T →
     is_stamped_ty n g (iterate TLater i T).
-  Proof.
-    elim: i => [|//i IHi]; rewrite ?iterate_0 ?iterate_S //; auto.
-  Qed.
+  Proof. elim: i => [|//i IHi]; rewrite ?iterate_0 ?iterate_S //; auto. Qed.
 
   Lemma is_stamped_tv_inv {n v g}:
     is_stamped_tm n g (tv v) →
@@ -98,12 +93,9 @@ Section syntyping_lemmas.
   Local Hint Resolve is_stamped_tv_inv is_stamped_TLater_n : core.
   Local Hint Extern 5 (is_stamped_ty _ _ _) => try_once is_stamped_TLater_inv : core.
 
-  Ltac with_is_stamped_inverse :=
-    match goal with
-      | H: is_stamped_ty _ _ ?T |- _ =>
-        (* inversion yields many goals if [T] is a variable *)
-        try (is_var T; fail 1); inverse H
-    end.
+  (* XXX reusable. *)
+  Hint Extern 0 (Trav1.forall_traversal_ty _ _ _)   => progress cbn : core.
+  Hint Extern 0 (Trav1.forall_traversal_path _ _ _)   => progress cbn : core.
 
   Lemma stamped_mut_types Γ g :
     (∀ e T, Γ v⊢ₜ[ g ] e : T → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T) ∧
@@ -126,23 +118,12 @@ Section syntyping_lemmas.
           is_stamped_ty (length Γ) g T)
         (P3 := λ Γ g T1 i1 T2 i2 _, ∀ (Hctx: stamped_ctx g Γ),
                is_stamped_ty (length Γ) g T1 ∧ is_stamped_ty (length Γ) g T2); clear Γ g.
-    all: intros; cbn in *; ev; try solve [ eauto using is_stamped_ren_ty_1 ].
-    all: try specialize (H Hctx); try specialize (H0 Hctx); ev.
-    all: try solve [try with_is_stamped_inverse; repeat constructor; cbn; eauto 4].
-    - inverse H. eapply is_stamped_sub_rev_ty => //. eauto.
-    - by apply stamped_lookup.
-    - have Hctx': stamped_ctx g (TLater V :: Γ). by eauto.
-      move: (H Hctx') (H0 Hctx'). intuition.
-    - have Hctx': stamped_ctx g (T1.|[ren (+1)] :: V :: Γ).
-      by eauto.
-      move: (H Hctx'); intuition.
-    - have Hctx': stamped_ctx g (TLater V :: Γ). by eauto.
-      move: (H Hctx'); intuition.
-    - have Hctx': stamped_ctx g (iterate TLater i T1 :: Γ).
-      by eauto.
-      move: (H Hctx'); intuition.
-    - have Hctx': stamped_ctx g (iterate TLater (S i) T2.|[ren (+1)] :: Γ).
-      by eauto.
-      move: (H0 Hctx'). intros; ev; repeat econstructor; cbn; eauto.
+    all: intros; cbn in *;
+      try (efeed pose proof H ; [by eauto | ev; clear H ]);
+      try (efeed pose proof H0; [by eauto | ev; clear H0]);
+      repeat constructor; cbn; eauto 2;
+      inverse_is_stamped; eauto.
+    eapply is_stamped_sub_rev_ty; eauto.
+    exact: stamped_lookup.
   Qed.
 End syntyping_lemmas.
