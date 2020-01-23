@@ -238,8 +238,6 @@ Section logrel.
     Persistent (⟦ Γ ⟧* ρ).
   Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
 
-  Definition defCtxCons Γ V := TLater V :: Γ.
-
   (** Definitions for semantic (definition) (sub)typing *)
   Definition idtp Γ T l d : iProp Σ :=
     □∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)] ⌝ → ⟦Γ⟧* ρ → def_interp T l ρ d.|[ρ].
@@ -306,10 +304,6 @@ Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 Notation "Γ ⊨p p : T , i" := (iptp Γ T p i) (at level 74, p, T, i at next level).
 
 Notation "Γ ⊨ T1 , i <: T2 , j " := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2, i, j at next level).
-
-(** Context extension for use with definition typing, as in
-    [Γ |L V ⊨d d : T] and [Γ |L V ⊨ds ds : T]. *)
-Notation "Γ |L V" := (defCtxCons Γ V) (at level 60).
 
 Import stamp_transfer.
 (** Single-definition typing *)

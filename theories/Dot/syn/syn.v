@@ -68,6 +68,11 @@ Implicit Types
          (T : ty) (v : vl) (t : tm) (d : dm) (ds : dms) (p : path)
          (Γ : ctx) (vs : vls) (l : label).
 
+(** Context extension for use with definition typing, as in
+    [Γ |L V ⊨d d : T] and [Γ |L V ⊨ds ds : T]. *)
+Definition defCtxCons Γ V := TLater V :: Γ.
+Notation "Γ |L V" := (defCtxCons Γ V) (at level 60).
+
 Fixpoint dms_lookup l ds : option dm :=
   match ds with
   | [] => None
