@@ -21,14 +21,6 @@ Qed.
 Lemma var_typed_closed {Γ x T} : Γ u⊢ₜ tv (ids x) : T → x < length Γ.
 Proof. by move => /unstamped_subject_closed/fv_of_val_inv/nclosed_var_lt. Qed.
 
-Ltac typconstructor := match goal with
-  | |- typed _ _ _ => constructor
-  | |- dms_typed _ _ _ _ => constructor
-  | |- dm_typed _ _ _ _ _ => constructor
-  | |- path_typed _ _ _ _ => constructor
-  | |- subtype _ _ _ _ _ => constructor
-  end.
-
 (* Ltac tcrush := repeat first [ fast_done | typconstructor | stcrush ]. *)
 Ltac tcrush := repeat first [ eassumption | reflexivity | typconstructor | stcrush ].
 

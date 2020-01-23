@@ -314,6 +314,16 @@ Hint Constructors typed dms_typed dm_typed path_typed subtype : core.
 Remove Hints Trans_stp : core.
 Hint Extern 10 => try_once Trans_stp : core.
 
+
+Ltac typconstructor :=
+  match goal with
+  | |- typed _ _ _ _ => constructor
+  | |- dms_typed _ _ _ _ _ => constructor
+  | |- dm_typed _ _ _ _ _ _ => constructor
+  | |- path_typed _ _ _ _ _ => constructor
+  | |- subtype _ _ _ _ _ _ => constructor
+  end.
+
 Section syntyping_lemmas.
   Lemma typing_obj_ident_to_typing_mut Γ g:
     (∀ e T, Γ s⊢ₜ[ g ] e : T → Γ v⊢ₜ[ g ] e : T) ∧
