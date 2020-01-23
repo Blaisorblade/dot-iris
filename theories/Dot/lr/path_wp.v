@@ -13,10 +13,6 @@ Implicit Types
 Lemma PureExec_to_terminates n φ e v : PureExec φ n e (tv v) → φ → terminates e.
 Proof. intros HP Hφ. exists v. eapply nsteps_rtc, HP, Hφ. Qed.
 
-Lemma plength_subst_inv p s :
-  plength p.|[s] = plength p.
-Proof. by elim: p => [v| p /= ->]. Qed.
-
 Lemma path2tm_subst p ρ: (path2tm p).|[ρ] = path2tm p.|[ρ].
 Proof. by elim: p => /= [//|p -> l]. Qed.
 

@@ -52,6 +52,16 @@ Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
          (Γ : ctx) (ρ : env).
 
+Fixpoint plength p : nat :=
+  match p with
+  | pv _ => 0
+  | pself p _ => S (plength p)
+  end.
+
+Lemma plength_subst_inv p s :
+  plength p.|[s] = plength p.
+Proof. by elim: p => [v| p /= ->]. Qed.
+
 Instance: HSubst vl ectx_item := λ ρ K,
   match K with
   | AppLCtx e2 => AppLCtx e2.|[ρ]
