@@ -313,3 +313,11 @@ Proof. by elim; intros; cbn; eauto 2 using is_unstamped_path_root. Qed.
 Lemma dtysem_not_utyped Γ V l d T :
   Γ |d V u⊢{ l := d } : T → ∀ σ s, d ≠ dtysem σ s.
 Proof. by case. Qed.
+
+Ltac typconstructor := match goal with
+  | |- typed _ _ _ => constructor
+  | |- dms_typed _ _ _ _ => constructor
+  | |- dm_typed _ _ _ _ _ => constructor
+  | |- path_typed _ _ _ _ => constructor
+  | |- subtype _ _ _ _ _ => constructor
+  end.

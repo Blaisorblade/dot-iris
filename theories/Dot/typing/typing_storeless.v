@@ -337,3 +337,17 @@ with   stamped_subtype_mut_ind := Induction for subtype Sort Prop.
 
 Combined Scheme stamped_typing_mut_ind from stamped_typed_mut_ind, stamped_dms_typed_mut_ind,
   stamped_dm_typed_mut_ind, stamped_path_typed_mut_ind, stamped_subtype_mut_ind.
+
+Ltac typconstructor_check :=
+  lazymatch goal with
+  | |- context [ dlang_inst.dlangG ] => fail "Only applicable rule is reflection"
+  | _ => idtac
+  end.
+Ltac typconstructor :=
+  match goal with
+  | |- typed _ _ _ _ => constructor
+  | |- dms_typed _ _ _ _ _ => constructor
+  | |- dm_typed _ _ _ _ _ _ => constructor
+  | |- path_typed _ _ _ _ _ => constructor
+  | |- subtype _ _ _ _ _ _ => constructor
+  end; typconstructor_check.

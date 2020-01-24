@@ -7,9 +7,9 @@ Implicit Types (g : stys).
 
 (* The typing judgement comes from [s/⊢/s⊢] in [typing_storeless.v], and restricting most values to variables (except in object definitions). *)
 Reserved Notation "Γ s⊢ₜ[ g  ] e : T" (at level 74, e, T at next level).
-Reserved Notation "Γ |ds V s⊢[ g  ] ds : T" (at level 74, ds, T, V at next level).
-Reserved Notation "Γ |d V s⊢[ g  ]{ l := d  } : T " (at level 74, l, d, T, V at next level).
 Reserved Notation "Γ s⊢ₚ[ g  ] p : T , i" (at level 74, p, T, i at next level).
+Reserved Notation "Γ |d V s⊢[ g  ]{ l := d  } : T " (at level 74, l, d, T, V at next level).
+Reserved Notation "Γ |ds V s⊢[ g  ] ds : T" (at level 74, ds, T, V at next level).
 Reserved Notation "Γ s⊢ₜ[ g  ] T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
 
 (**
@@ -313,6 +313,16 @@ Combined Scheme stamped_objIdent_typing_mut_ind from stamped_objIdent_typed_mut_
 Hint Constructors typed dms_typed dm_typed path_typed subtype : core.
 Remove Hints Trans_stp : core.
 Hint Extern 10 => try_once Trans_stp : core.
+
+
+Ltac typconstructor :=
+  match goal with
+  | |- typed _ _ _ _ => constructor
+  | |- dms_typed _ _ _ _ _ => constructor
+  | |- dm_typed _ _ _ _ _ _ => constructor
+  | |- path_typed _ _ _ _ _ => constructor
+  | |- subtype _ _ _ _ _ _ => constructor
+  end.
 
 Section syntyping_lemmas.
   Lemma typing_obj_ident_to_typing_mut Γ g:

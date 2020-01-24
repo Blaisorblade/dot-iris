@@ -186,10 +186,10 @@ Section Sec.
 
   Context Γ.
 
-  Lemma D_TVMem_Sub V T1 T2 p l:
-    Γ |L V ⊨ T1, 0 <: T2, 0 -∗
-    Γ |L V ⊨ { l := dpt p } : TVMem l T1 -∗
-    Γ |L V ⊨ { l := dpt p } : TVMem l T2.
+  Lemma D_TVMem_Sub T1 T2 p l:
+    Γ ⊨ T1, 0 <: T2, 0 -∗
+    Γ ⊨ { l := dpt p } : TVMem l T1 -∗
+    Γ ⊨ { l := dpt p } : TVMem l T2.
   Proof.
     iIntros "/= #Hsub #Hv !>" (ρ Hpid) "#Hg".
     iSpecialize ("Hv" $! ρ Hpid with "Hg").

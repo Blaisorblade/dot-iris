@@ -70,19 +70,6 @@ Hint Extern 5 (is_stamped_ty _ _ _) => try_once is_stamped_weaken_ty : core.
 Hint Extern 5 (is_stamped_dm _ _ _) => try_once is_stamped_weaken_dm : core.
 Hint Extern 5 (is_stamped_ty _ _ _) => progress cbn : core.
 
-Ltac typconstructor_check :=
-  lazymatch goal with
-  | |- context [ dlang_inst.dlangG ] => fail "Only applicable rule is reflection"
-  | _ => idtac
-  end.
-Ltac typconstructor := match goal with
-  | |- typed _ _ _ _ => constructor
-  | |- dms_typed _ _ _ _ _ => constructor
-  | |- dm_typed _ _ _ _ _ _ => constructor
-  | |- path_typed _ _ _ _ _ => constructor
-  | |- subtype _ _ _ _ _ _ => constructor
-  end; typconstructor_check.
-
 (** [tcrush] is the safest automation around. *)
 Ltac tcrush := repeat typconstructor; stcrush; try solve [ done |
   first [
@@ -214,7 +201,7 @@ Proof.
   apply (Subs_typed_nocoerce (μ {@ typeEq "A" T.|[ren (+1)] }));
     last (ettrans; first apply (Mu_stp _ _ ({@ typeEq "A" T })); tcrush).
   apply VObj_typed; tcrush.
-  apply (dty_typed T.|[ren (+1)]); auto 2; tcrush.
+  apply (dty_typed (shift T)); auto 2; tcrush.
   apply /(@extraction_inf_subst _ (length _)); auto 3;
     by apply /extraction_weaken /Hle /pack_extraction.
 Qed.
