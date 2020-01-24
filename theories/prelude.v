@@ -49,8 +49,8 @@ Notation shiftN n chi := chi.|[ren (+n)].
 Notation shiftVN n v := v.[ren (+n)].
 
 (* Define these afterwards, so they're used in preference when printing *)
-Notation shift chi := chi.|[ren (+1)].
-Notation shiftV v := v.[ren (+1)].
+Notation shift chi := (shiftN 1 chi).
+Notation shiftV v := (shiftVN 1 v).
 
 (* Not an instance because it should *not* be used automatically. *)
 Definition inh_ids `{Inhabited X}: Ids X := λ _, inhabitant.
