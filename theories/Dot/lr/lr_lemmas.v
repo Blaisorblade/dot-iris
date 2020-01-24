@@ -149,12 +149,17 @@ Section LambdaIntros.
     Γ ⊨ { l := dpt (pv v) } : TVMem l T.
   Proof. by rewrite -D_Path_TVMem_I -P_Val. Qed.
 
+  Lemma D_TVMem_All_I_Strong {Γ} T1 T2 e l:
+    shift T1 :: (unTLater <$> Γ) ⊨ e : T2 -∗
+    Γ ⊨ { l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
+  Proof. by rewrite -D_TVMem_I -T_Forall_I_Strong. Qed.
+
   Lemma D_TVMem_All_I {Γ} V T1 T2 e l:
     T1.|[ren (+1)] :: V :: Γ ⊨ e : T2 -∗
     Γ |L V ⊨ { l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
   Proof.
-    rewrite -D_TVMem_I -T_Forall_I_Strong fmap_cons.
-    (* Compared to [T_Forall_I], we must strip the later from [TLater V]. *)
+    (* Compared to [T_Forall_I], we must strip later also from [TLater V]. *)
+    rewrite -D_TVMem_All_I_Strong fmap_cons.
     by rewrite (ctx_sub_unTLater Γ).
   Qed.
 End LambdaIntros.
