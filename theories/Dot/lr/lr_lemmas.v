@@ -23,6 +23,12 @@ Section CtxSub.
     Γ2 ⊨ e : T -∗ Γ1 ⊨ e : T.
   Proof. iIntros "#HT1 !>" (ρ) "#HG". iApply "HT1". by iApply Hweak. Qed.
 
+  Lemma env_TLater_commute Γ ρ : ⟦ TLater <$> Γ ⟧* ρ ⊣⊢ ▷ ⟦ Γ ⟧* ρ.
+  Proof.
+    elim: Γ ρ => [| T Γ IH] ρ; cbn; [|rewrite IH later_and];
+      iSplit; by [iIntros "$" | iIntros "_"].
+  Qed.
+
   (** The strength ordering of contexts lifts the strength ordering of types. *)
   Lemma env_lift_sub f g {Γ} (Hweak: ∀ T ρ v, ⟦ f T ⟧ ρ v -∗ ⟦ g T ⟧ ρ v):
     f <$> Γ <:* g <$> Γ.
@@ -57,6 +63,12 @@ Section CtxSub.
   Proof. destruct T; iIntros "$". Qed.
 
   (** Lift the above ordering to environments. *)
+  Lemma ctx_sub_unTLater Γ : unTLater <$> Γ <:* Γ.
+  Proof.
+    apply (env_lift_sub' unTLater id Γ), unTLater_sub;
+      by rewrite ?list_fmap_id.
+  Qed.
+
   Lemma TLater_ctx_sub Γ : Γ <:* TLater <$> Γ.
   Proof. apply (env_lift_sub' id TLater Γ); rewrite ?list_fmap_id; auto. Qed.
 
@@ -72,18 +84,6 @@ Section CtxSub.
   Proof.
     rewrite -list_fmap_compose.
     apply env_lift_sub, TLater_unTLater_sub_TLater.
-  Qed.
-
-  Lemma ctx_sub_unTLater Γ : unTLater <$> Γ <:* Γ.
-  Proof.
-    apply (env_lift_sub' unTLater id Γ), unTLater_sub;
-      by rewrite ?list_fmap_id.
-  Qed.
-
-  Lemma env_TLater_commute Γ ρ : ⟦ TLater <$> Γ ⟧* ρ ⊣⊢ ▷ ⟦ Γ ⟧* ρ.
-  Proof.
-    elim: Γ ρ => [| T Γ IH] ρ; cbn; [|rewrite IH later_and];
-      iSplit; by [iIntros "$" | iIntros "_"].
   Qed.
 End CtxSub.
 
