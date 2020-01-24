@@ -201,7 +201,7 @@ Section olty_ofe_2.
   Lemma ho_oMu_eq (τ : olty Σ i) args ρ v : ho_oMu τ args ρ v = τ args (v .: ρ) v.
   Proof. done. Qed.
 
-  Lemma interp_TMu_ren (T : olty Σ i) args ρ v: ho_oMu T.|[ren (+1)] args ρ v ≡ T args ρ v.
+  Lemma interp_TMu_ren (T : olty Σ i) args ρ v: ho_oMu (shift T) args ρ v ≡ T args ρ v.
   Proof. rewrite ho_oMu_eq (olty_weaken_one T args _ v) stail_eq. by []. Qed.
 
   Definition interp_expr `{dlangG Σ} (φ : hoEnvD Σ 0) : envPred tm Σ :=

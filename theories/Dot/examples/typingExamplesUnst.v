@@ -90,7 +90,7 @@ Qed.
 
 (* Utilities needed for not. *)
 Lemma subIFT i Γ T:
-  is_unstamped_ty' (length Γ) T.|[ren (+i)] →
+  is_unstamped_ty' (length Γ) (shiftN i T) →
   (typeEq "A" T.|[ren (+1+i)]) :: Γ u⊢ₜ IFTBody, 0 <:
     TAll T.|[ren (+1+i)] (TAll T.|[ren (+2+i)] (▶: T.|[ren (+3+i)])), 0.
 Proof.

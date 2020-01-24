@@ -106,7 +106,7 @@ Section LambdaIntros.
   Context `{HdlangG: dlangG Σ}.
 
   Lemma T_Forall_I_Strong {Γ} T1 T2 e:
-    T1.|[ren (+1)] :: (unTLater <$> Γ) ⊨ e : T2 -∗
+    (shift T1) :: (unTLater <$> Γ) ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.
@@ -121,7 +121,7 @@ Section LambdaIntros.
   Qed.
 
   Lemma T_Forall_I {Γ} T1 T2 e:
-    T1.|[ren (+1)] :: Γ ⊨ e : T2 -∗
+    (shift T1) :: Γ ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof. by rewrite -T_Forall_I_Strong (ctx_sub_unTLater Γ). Qed.
@@ -157,7 +157,7 @@ Section LambdaIntros.
   Proof. by rewrite -D_TVMem_I -T_Forall_I_Strong. Qed.
 
   Lemma D_TVMem_All_I {Γ} V T1 T2 e l:
-    T1.|[ren (+1)] :: V :: Γ ⊨ e : T2 -∗
+    (shift T1) :: V :: Γ ⊨ e : T2 -∗
     Γ |L V ⊨ { l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
   Proof.
     (* Compared to [T_Forall_I], we must strip later also from [TLater V]. *)
@@ -187,7 +187,7 @@ Section Sec.
   Lemma T_Var x T:
     Γ !! x = Some T →
     (*──────────────────────*)
-    Γ ⊨ tv (ids x) : T.|[ren (+x)].
+    Γ ⊨ tv (ids x) : (shiftN x T).
   Proof.
     iIntros (Hx) "/= !> * #Hg".
     rewrite -wp_value' interp_env_lookup; by [].
@@ -199,7 +199,7 @@ Section Sec.
      Γ ⊨ mu x: T <: T    Γ ⊨ T <: mu(x: T)
   *)
 
-  Lemma interp_TMu_ren T ρ v: ⟦ TMu T.|[ren (+1)] ⟧ ρ v ≡ ⟦ T ⟧ ρ v.
+  Lemma interp_TMu_ren T ρ v: ⟦ TMu (shift T) ⟧ ρ v ≡ ⟦ T ⟧ ρ v.
   Proof. by rewrite /= (interp_weaken_one T (_ .: ρ) v). Qed.
 
   (*
@@ -219,10 +219,10 @@ Section Sec.
 
   (* Novel subtyping rules. Sub_Mu_1 and Sub_Mu_2 become (sort-of?)
   derivable. *)
-  Lemma Sub_Mu_A T i: Γ ⊨ TMu T.|[ren (+1)], i <: T, i.
+  Lemma Sub_Mu_A T i: Γ ⊨ TMu (shift T), i <: T, i.
   Proof. iIntros "!>" (vs v) "**". by rewrite (interp_TMu_ren T vs v). Qed.
 
-  Lemma Sub_Mu_B T i: Γ ⊨ T, i <: TMu T.|[ren (+1)], i.
+  Lemma Sub_Mu_B T i: Γ ⊨ T, i <: TMu (shift T), i.
   Proof. iIntros "!>" (vs v) "**". by rewrite (interp_TMu_ren T vs v). Qed.
 
   (*
@@ -232,7 +232,7 @@ Section Sec.
   *)
   (* Sort-of-show this rule is derivable from Sub_Mu_X and Sub_Mu_A. *)
   Lemma Sub_Mu_1 T1 T2 i j:
-    iterate TLater i T1 :: Γ ⊨ T1, i <: T2.|[ren (+1)], j -∗
+    iterate TLater i T1 :: Γ ⊨ T1, i <: (shift T2), j -∗
     Γ ⊨ TMu T1, i <: T2, j.
   Proof. iIntros "Hstp"; iApply (Sub_Trans with "[-] []"). by iApply Sub_Mu_X. iApply Sub_Mu_A. Qed.
   (*
@@ -242,7 +242,7 @@ Section Sec.
   *)
 
   Lemma Sub_Mu_2 T1 T2 i j:
-    iterate TLater i T1.|[ren (+1)] :: Γ ⊨ T1.|[ren (+1)], i <: T2, j -∗
+    iterate TLater i (shift T1) :: Γ ⊨ (shift T1), i <: T2, j -∗
     Γ ⊨ T1, i <: TMu T2, j.
   Proof. iIntros "Hstp"; iApply (Sub_Trans with "[] [-]"). iApply Sub_Mu_B. by iApply Sub_Mu_X. Qed.
 
@@ -265,7 +265,7 @@ Section Sec.
   Proof. by rewrite TMu_equiv. Qed.
 
   Lemma T_Forall_E e1 e2 T1 T2:
-    Γ ⊨ e1 : TAll T1 T2.|[ren (+1)] -∗
+    Γ ⊨ e1 : TAll T1 (shift T2) -∗
     Γ ⊨ e2 : T1 -∗
     (*────────────────────────────────────────────────────────────*)
     Γ ⊨ tapp e1 e2 : T2.
@@ -346,7 +346,7 @@ Section swap_based_typing_lemmas.
 
   Lemma Sub_TAllConCov T1 T2 U1 U2 i:
     Γ ⊨ TLater T2, i <: TLater T1, i -∗
-    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨ TLater U1, i <: TLater U2, i -∗
+    iterate TLater (S i) (shift T2) :: Γ ⊨ TLater U1, i <: TLater U2, i -∗
     Γ ⊨ TAll T1 U1, i <: TAll T2 U2, i.
   Proof.
     rewrite iterate_S /=.

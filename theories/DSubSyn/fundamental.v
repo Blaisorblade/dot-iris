@@ -16,7 +16,7 @@ Section swap_based_typing_lemmas.
 
   Lemma Sub_TAllConCov T1 T2 U1 U2 i:
     Γ ⊨ T2, S i <: T1, S i -∗
-    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨ U1, S i <: U2, S i -∗
+    iterate TLater (S i) (shift T2) :: Γ ⊨ U1, S i <: U2, S i -∗
     Γ ⊨ TAll T1 U1, i <: TAll T2 U2, i .
   Proof.
     rewrite iterate_S /=.
@@ -43,7 +43,7 @@ Section swap_based_typing_lemmas.
 
   Lemma DSub_TAll_ConCov T1 T2 U1 U2 i:
     Γ ⊨[S i] T2 <: T1 -∗
-    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊨[S i] U1 <: U2 -∗
+    iterate TLater (S i) (shift T2) :: Γ ⊨[S i] U1 <: U2 -∗
     Γ ⊨[i] TAll T1 U1 <: TAll T2 U2.
   Proof.
     rewrite iterate_S /=.

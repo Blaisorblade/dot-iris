@@ -211,7 +211,7 @@ Ltac iProperness :=
 Notation alias_paths_subst p q ρ := (alias_paths p.|[ρ] q.|[ρ]).
 
 Lemma alias_paths_weaken p q ρ v:
-  alias_paths_subst p.|[ren (+1)] q.|[ren (+1)] (v .: ρ) =
+  alias_paths_subst (shift p) (shift q) (v .: ρ) =
   alias_paths_subst p q ρ.
 Proof. by rewrite !hsubst_comp ren_scons. Qed.
 

@@ -84,7 +84,7 @@ Lemma nclosed_ren_inv_ty T i j k:
     nclosed T (i + k).
 Proof. apply (nclosed_ren_rev_mut i j). Qed.
 
-Lemma nclosed_ren_inv_ty_one T i: nclosed T.|[ren (+1)] (S i) → nclosed T i.
+Lemma nclosed_ren_inv_ty_one T i: nclosed (shift T) (S i) → nclosed T i.
 Proof.
   pose proof (nclosed_ren_inv_ty T i 1 0) as H.
   asimpl in H; eauto.

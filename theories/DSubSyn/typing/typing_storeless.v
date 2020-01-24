@@ -15,12 +15,12 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ ⊢ₜ tapp e1 (tv v2) : T2.|[v2/]
 (** Non-dependent application; allowed for any argument. *)
 | App_typed e1 e2 T1 T2:
-    Γ ⊢ₜ e1: TAll T1 T2.|[ren (+1)] →      Γ ⊢ₜ e2 : T1 →
+    Γ ⊢ₜ e1: TAll T1 (shift T2) →      Γ ⊢ₜ e2 : T1 →
     (*────────────────────────────────────────────────────────────*)
     Γ ⊢ₜ tapp e1 e2 : T2
 | Lam_typed e T1 T2:
     (* T1 :: Γ ⊢ₜ e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
-    T1.|[ren (+1)] :: Γ ⊢ₜ e : T2 →
+    (shift T1) :: Γ ⊢ₜ e : T2 →
     (*─────────────────────────*)
     Γ ⊢ₜ tv (vabs e) : TAll T1 T2
 | Nat_typed n:
@@ -31,7 +31,7 @@ Inductive typed Γ : tm → ty → Prop :=
     (* After looking up in Γ, we must weaken T for the variables on top of x. *)
     Γ !! x = Some T →
     (*──────────────────────*)
-    Γ ⊢ₜ tv (var_vl x) : T.|[ren (+x)]
+    Γ ⊢ₜ tv (var_vl x) : (shiftN x T)
 | Subs_typed e T1 T2 i :
     Γ ⊢ₜ T1, 0 <: T2, i → Γ ⊢ₜ e : T1 →
     (*───────────────────────────────*)
@@ -82,7 +82,7 @@ subtype Γ : ty → nat → ty → nat → Prop :=
 | TAllConCov_stp T1 T2 U1 U2 i:
     (* "Tight" premises. *)
     Γ ⊢ₜ T2, S i <: T1, S i →
-    iterate TLater (S i) T2.|[ren (+1)] :: Γ ⊢ₜ U1, S i <: U2, S i →
+    iterate TLater (S i) (shift T2) :: Γ ⊢ₜ U1, S i <: U2, S i →
     Γ ⊢ₜ TAll T1 U1, i <: TAll T2 U2, i
 | TTMemConCov_stp L1 L2 U1 U2 i:
     Γ ⊢ₜ L2, S i <: L1, S i →
