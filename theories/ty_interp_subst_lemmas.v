@@ -20,7 +20,7 @@ Section logrel_binding_lemmas.
   Proof. move=> <- v. exact: interp_subst_compose_ind. Qed.
 
   Lemma interp_weaken_one τ ρ:
-     ⟦ τ.|[ren (+1)] ⟧ ρ ≡ ⟦ τ ⟧ (stail ρ).
+     ⟦ shift τ ⟧ ρ ≡ ⟦ τ ⟧ (stail ρ).
   Proof. apply interp_subst_compose. autosubst. Qed.
 
   Lemma interp_subst_one T v w ρ:

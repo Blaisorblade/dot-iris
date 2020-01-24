@@ -88,7 +88,7 @@ Lemma is_stamped_weaken_σ g σ m n:
   is_stamped_σ n g σ.
 Proof. intros; decompose_Forall. exact: is_stamped_weaken_vl. Qed.
 
-Lemma is_stamped_idsσ_ren g m n j: j + n <= m → is_stamped_σ m g (idsσ n).|[ren (+j)].
+Lemma is_stamped_idsσ_ren g m n j: j + n <= m → is_stamped_σ m g (shiftN j (idsσ n)).
 Proof.
   elim: n m j => [//=|n IHn] m j Ijm.
   cbn; rewrite (hren_upn_gen 0 1 j) /= plusnO.

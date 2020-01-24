@@ -188,7 +188,7 @@ Proof. move=> Ht Hu HsT. apply /App_typed /Ht /Lam_typed /Hu /HsT. Qed.
 
 (* Note how we must weaken the type (or its environment) to account for the
    self-variable of the created object. *)
-Definition packTV n s := (ν {@ type "A" = ((idsσ n).|[ren (+1)]; s)}).
+Definition packTV n s := (ν {@ type "A" = (shift (idsσ n); s)}).
 
 Lemma packTV_typed' s T n Γ :
   g !! s = Some T →

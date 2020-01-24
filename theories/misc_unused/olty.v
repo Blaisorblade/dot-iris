@@ -139,7 +139,7 @@ Section olty_subst.
   Proof. by move=> <-. Qed.
 
   Lemma olty_weaken_one τ args ρ:
-     oApp τ.|[ren (+1)] args ρ ≡ oApp τ args (stail ρ).
+     oApp (shift τ) args ρ ≡ oApp τ args (stail ρ).
   Proof. apply olty_subst_compose. autosubst. Qed.
 
   Lemma olty_subst_one τ v w args ρ:
@@ -167,13 +167,13 @@ Section olty_ofe_2.
 
   Lemma interp_env_lookup Γ ρ (τ : olty Σ 0) x:
     Γ !! x = Some τ →
-    ⟦ Γ ⟧* ρ -∗ oClose τ.|[ren (+x)] ρ (ρ x).
+    ⟦ Γ ⟧* ρ -∗ oClose (shiftN x τ) ρ (ρ x).
   Proof.
     elim: Γ ρ x => [//|τ' Γ' IHΓ] ρ x Hx /=.
     iDestruct 1 as "[Hg Hv]". move: x Hx => [ [->] | x Hx] /=.
     - rewrite hsubst_id. by [].
     - rewrite hrenS.
-      iApply (olty_weaken_one (τ.|[ren (+x)])).
+      iApply (olty_weaken_one (shiftN x τ)).
       iApply (IHΓ (stail ρ) x Hx with "Hg").
   Qed.
 
@@ -254,7 +254,7 @@ Section typing.
   Lemma T_Var Γ x τ
     (Hx : Γ !! x = Some τ):
     (*──────────────────────*)
-    Γ ⊨ of_val (ids x) : τ.|[ren (+x)].
+    Γ ⊨ of_val (ids x) : shiftN x τ.
   Proof.
     iIntros "/= !>" (ρ) "#Hg"; rewrite hsubst_of_val -wp_value'.
     by rewrite interp_env_lookup // id_subst.
