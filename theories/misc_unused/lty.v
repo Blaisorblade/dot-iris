@@ -10,6 +10,7 @@ From iris.program_logic Require Import language.
 From D.pure_program_logic Require Import lifting adequacy.
 
 From Coq Require ProofIrrelevance FunctionalExtensionality.
+Import prelude.
 
 Module Type OLty (Import VS: VlSortsFullSig) (Import LVS : LiftWp VS).
 
