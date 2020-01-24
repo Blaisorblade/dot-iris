@@ -58,6 +58,7 @@ Section CtxSub.
   Lemma TLater_unTLater_sub T ρ v : ⟦ T ⟧ ρ v -∗ ⟦ TLater (unTLater T) ⟧ ρ v.
   Proof. destruct T; iIntros "$". Qed.
 
+  (* Unused *)
   Lemma TLater_unTLater_sub_TLater T ρ v :
     ⟦ TLater (unTLater T) ⟧ ρ v -∗ ⟦ TLater T ⟧ ρ v.
   Proof. destruct T; iIntros "$". Qed.
@@ -79,6 +80,7 @@ Section CtxSub.
       by rewrite ?list_fmap_id.
   Qed.
 
+  (* Unused *)
   Lemma TLater_unTLater_TLater_ctx_sub Γ :
     TLater <$> (unTLater <$> Γ) <:* TLater <$> Γ.
   Proof.
