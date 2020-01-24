@@ -154,12 +154,6 @@ Proof.
   by rewrite upn_reduce IHi.
 Qed.
 
-(* relative of [hren_upn] *)
-Lemma ren_upn i v : v.[ren (+i)].[upn i (ren (+1))] = v.[ren (+S i)].
-Proof.
-  move: (ren_upn_gen i 0 1). by rewrite plusnS !plusnO subst_comp =>->.
-Qed.
-
 Lemma psubst_subst_agree_path_gen p v i n :
   is_unstamped_path' n p →
   psubst_one_path_gen i p (pv v) = p.|[ upn i ((v .: ids) >> ren (+1)) ].

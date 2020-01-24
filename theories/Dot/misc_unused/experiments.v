@@ -134,7 +134,7 @@ Section Example.
     apply typing_obj_ident_to_typing.
 
     rewrite -(iterate_0 tskip (tv _)).
-    iApply (T_Sub _ _ ((μ {@ typeEq "A" T.|[ren (+1)] }))); first last.
+    iApply (T_Sub _ _ ((μ {@ typeEq "A" (shift T) }))); first last.
     iApply Sub_Mu_1; rewrite iterate_0.
     iApply Sub_Trans. iApply
     iApply T_New_I.
@@ -291,7 +291,7 @@ Section Sec.
   Abort.
 
   Lemma T_Forall_I' {Γ} T1 T2 e:
-    TLater T1.|[ren (+1)] :: Γ ⊨ e : T2 -∗
+    TLater (shift T1) :: Γ ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof. rewrite -T_Forall_I. f_equiv. iIntros (ρ) "[$ $]". Qed.
@@ -337,7 +337,7 @@ Section Sec.
   Qed.
 
   Lemma T_Forall_I'' Γ T1 T2 e :
-    TLater T1.|[ren (+1)] :: Γ ⊨ e : TLater T2 -∗
+    TLater (shift T1) :: Γ ⊨ e : TLater T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.

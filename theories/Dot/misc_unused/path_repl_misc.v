@@ -78,7 +78,7 @@ Instance decision_unshift T : Decision (∃ T', T = shift T').
 Proof. by destruct (decide_unshift T) as [Heq|Hne]; [left|right]. Qed.
 
 (* Definition unshift_opt (T : ty) : option ty :=
-  if decide (T = (unshiftB T).|[ren (+1)])
+  if decide (T = shift (unshiftB T))
   then Some (unshiftB T)
   else None. *)
 

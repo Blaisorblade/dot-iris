@@ -10,6 +10,7 @@ From iris.program_logic Require Import language.
 From D.pure_program_logic Require Import lifting adequacy.
 
 From Coq Require ProofIrrelevance FunctionalExtensionality.
+Import prelude.
 
 Module Type OLty (Import VS: VlSortsFullSig) (Import LVS : LiftWp VS).
 
@@ -138,7 +139,7 @@ Section olty_subst.
   Proof. by move=> <-. Qed.
 
   Lemma olty_weaken_one τ args ρ:
-     oApp τ.|[ren (+1)] args ρ ≡ oApp τ args (stail ρ).
+     oApp (shift τ) args ρ ≡ oApp τ args (stail ρ).
   Proof. apply olty_subst_compose. autosubst. Qed.
 
   Lemma olty_subst_one τ v w args ρ:
@@ -166,13 +167,13 @@ Section olty_ofe_2.
 
   Lemma interp_env_lookup Γ ρ (τ : olty Σ 0) x:
     Γ !! x = Some τ →
-    ⟦ Γ ⟧* ρ -∗ oClose τ.|[ren (+x)] ρ (ρ x).
+    ⟦ Γ ⟧* ρ -∗ oClose (shiftN x τ) ρ (ρ x).
   Proof.
     elim: Γ ρ x => [//|τ' Γ' IHΓ] ρ x Hx /=.
     iDestruct 1 as "[Hg Hv]". move: x Hx => [ [->] | x Hx] /=.
     - rewrite hsubst_id. by [].
     - rewrite hrenS.
-      iApply (olty_weaken_one (τ.|[ren (+x)])).
+      iApply (olty_weaken_one (shiftN x τ)).
       iApply (IHΓ (stail ρ) x Hx with "Hg").
   Qed.
 
@@ -201,7 +202,7 @@ Section olty_ofe_2.
   Lemma ho_oMu_eq (τ : olty Σ i) args ρ v : ho_oMu τ args ρ v = τ args (v .: ρ) v.
   Proof. done. Qed.
 
-  Lemma interp_TMu_ren (T : olty Σ i) args ρ v: ho_oMu T.|[ren (+1)] args ρ v ≡ T args ρ v.
+  Lemma interp_TMu_ren (T : olty Σ i) args ρ v: ho_oMu (shift T) args ρ v ≡ T args ρ v.
   Proof. rewrite ho_oMu_eq (olty_weaken_one T args _ v) stail_eq. by []. Qed.
 
   Definition interp_expr `{dlangG Σ} (φ : hoEnvD Σ 0) : envPred tm Σ :=
@@ -253,7 +254,7 @@ Section typing.
   Lemma T_Var Γ x τ
     (Hx : Γ !! x = Some τ):
     (*──────────────────────*)
-    Γ ⊨ of_val (ids x) : τ.|[ren (+x)].
+    Γ ⊨ of_val (ids x) : shiftN x τ.
   Proof.
     iIntros "/= !>" (ρ) "#Hg"; rewrite hsubst_of_val -wp_value'.
     by rewrite interp_env_lookup // id_subst.

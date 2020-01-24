@@ -36,7 +36,7 @@ def tyApp[T, C[_], R >: C[T]](f : (x : { type A }) => C[x.A]): R = {
 //   (** This subtyping premise is needed to perform "avoidance", as in compilers
 //     for ML and Scala: that is, producing a type [V] that does not refer to
 //     variables bound by let in the expression. *)
-//   (∀ L, typeEq l T.|[ren (+2)] :: L :: Γ u⊢ₜ U.|[up (ren (+1))], 0 <: V.|[ren (+2)], 0) →
+//   (∀ L, typeEq l (shiftN 2 T) :: L :: Γ u⊢ₜ U.|[up (ren (+1))], 0 <: shiftN 2 V, 0) →
 //   is_unstamped_ty (length Γ) T →
 //   is_unstamped_ty (S (length Γ)) U →
 //   Γ u⊢ₜ tyApp l t T : V.

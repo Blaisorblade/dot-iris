@@ -39,7 +39,7 @@ Inductive typed Γ g : tm → ty → Prop :=
     Γ v⊢ₜ[ g ] tapp e1 (path2tm p2) : T2'
 (** Non-dependent application; allowed for any argument. *)
 | App_typed e1 e2 T1 T2:
-    Γ v⊢ₜ[ g ] e1: TAll T1 T2.|[ren (+1)] →      Γ v⊢ₜ[ g ] e2 : T1 →
+    Γ v⊢ₜ[ g ] e1: TAll T1 (shift T2) →      Γ v⊢ₜ[ g ] e2 : T1 →
     (*────────────────────────────────────────────────────────────*)
     Γ v⊢ₜ[ g ] tapp e1 e2 : T2
 | Proj_typed e T l:
@@ -54,7 +54,7 @@ Inductive typed Γ g : tm → ty → Prop :=
 | Lam_typed e T1 T2:
     (* T1 :: Γ v⊢ₜ[ g ] e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
     is_stamped_ty (length Γ) g T1 →
-    T1.|[ren (+1)] :: Γ v⊢ₜ[ g ] e : T2 →
+    shift T1 :: Γ v⊢ₜ[ g ] e : T2 →
     (*─────────────────────────*)
     Γ v⊢ₜ[ g ] tv (vabs e) : TAll T1 T2
 | VObj_typed ds T:
@@ -74,7 +74,7 @@ Inductive typed Γ g : tm → ty → Prop :=
     (* After looking up in Γ, we must weaken T for the variables on top of x. *)
     Γ !! x = Some T →
     (*──────────────────────*)
-    Γ v⊢ₜ[ g ] tv (var_vl x) : T.|[ren (+x)]
+    Γ v⊢ₜ[ g ] tv (var_vl x) : shiftN x T
 | Subs_typed e T1 T2 i :
     Γ v⊢ₜ[ g ] T1, 0 <: T2, i → Γ v⊢ₜ[ g ] e : T1 →
     (*───────────────────────────────*)
@@ -108,7 +108,7 @@ with dm_typed Γ g : ty → label → dm → ty → Prop :=
     Γ |d V v⊢[ g ]{ l := dtysem σ s } : TTMem l L U
 | dvabs_typed V T1 T2 e l:
     is_stamped_ty (S (length Γ)) g T1 →
-    T1.|[ren (+1)] :: V :: Γ v⊢ₜ[ g ] e : T2 →
+    shift T1 :: V :: Γ v⊢ₜ[ g ] e : T2 →
     Γ |d V v⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2)
 | dpt_pv_typed V l v T:
     TLater V :: Γ v⊢ₜ[ g ] tv v : T →
@@ -268,10 +268,10 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     Γ v⊢ₜ[ g ] TMu T1, i <: TMu T2, j
 | Mu_stp T i:
     is_stamped_ty (length Γ) g T →
-    Γ v⊢ₜ[ g ] TMu T.|[ren (+1)], i <: T, i
+    Γ v⊢ₜ[ g ] TMu (shift T), i <: T, i
 | Stp_mu T i:
     is_stamped_ty (length Γ) g T →
-    Γ v⊢ₜ[ g ] T, i <: TMu T.|[ren (+1)], i
+    Γ v⊢ₜ[ g ] T, i <: TMu (shift T), i
 
 (* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types.
  "Cov" stands for covariance, "Con" for contravariance. *)
@@ -281,7 +281,7 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     Γ v⊢ₜ[ g ] TLater T1, i <: TLater T2, j
 | TAllConCov_stp T1 T2 U1 U2 i:
     Γ v⊢ₜ[ g ] TLater T2, i <: TLater T1, i →
-    iterate TLater (S i) T2.|[ren (+1)] :: Γ v⊢ₜ[ g ] TLater U1, i <: TLater U2, i →
+    iterate TLater (S i) (shift T2) :: Γ v⊢ₜ[ g ] TLater U1, i <: TLater U2, i →
     is_stamped_ty (length Γ) g T2 →
     Γ v⊢ₜ[ g ] TAll T1 U1, i <: TAll T2 U2, i
 | TVMemCov_stp T1 T2 i l:

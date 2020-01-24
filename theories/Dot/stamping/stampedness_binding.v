@@ -118,7 +118,7 @@ Lemma is_stamped_weaken_σ g σ m n:
   is_stamped_σ n g σ.
 Proof. intros; decompose_Forall. exact: is_stamped_weaken_vl. Qed.
 
-Lemma is_stamped_idsσ_ren g m n j: j + n <= m → is_stamped_σ m g (idsσ n).|[ren (+j)].
+Lemma is_stamped_idsσ_ren g m n j: j + n <= m → is_stamped_σ m g (shiftN j (idsσ n)).
 Proof.
   elim: n m j => [//=|n IHn] m j Ijm.
   cbn; rewrite (hren_upn_gen 0 1 j) /= plusnO.
@@ -294,7 +294,7 @@ Hint Resolve is_stamped_ren1 : core.
 
 Lemma is_stamped_ren1_ty i T g:
   is_stamped_ty i g T ->
-  is_stamped_ty (S i) g (T.|[ren (+1)]).
+  is_stamped_ty (S i) g (shift T).
 Proof. exact: is_stamped_sub_ty. Qed.
 
 Lemma is_stamped_sub_rev_mut g:
@@ -361,7 +361,7 @@ Proof. intros; by eapply is_stamped_sub_rev_ty. Qed.
 Lemma is_stamped_ren_ty i T g:
   nclosed T i →
   is_stamped_ty i g T <->
-  is_stamped_ty (S i) g (T.|[ren (+1)]).
+  is_stamped_ty (S i) g (shift T).
 Proof.
   split; [ exact: is_stamped_sub_ty | exact: is_stamped_sub_rev_ty ].
 Qed.

@@ -29,7 +29,7 @@ Proof. move => Heqs x ?. symmetry. exact: Heqs. Qed.
 Lemma eq_n_s_mon n m {s1 s2}: eq_n_s s1 s2 m → n <= m → eq_n_s s1 s2 n.
 Proof. rewrite /eq_n_s => HsEq Hnm i Hl. apply HsEq; lia. Qed.
 
-Definition push_var (σ : vls) : vls := ids 0 :: σ.|[ren (+1)].
+Definition push_var (σ : vls) : vls := ids 0 :: shift σ.
 Arguments push_var /.
 
 (** Create an identity environment of the given length. *)
@@ -318,7 +318,7 @@ End to_subst_idsσ_is_id.
 Lemma fv_vls_cons v vs n: nclosed vs n → nclosed_vl v n → nclosed (v :: vs) n.
 Proof. solve_fv_congruence. Qed.
 
-Lemma nclosed_idsσr n i: nclosed_σ (idsσ n).|[ren (+i)] (i + n).
+Lemma nclosed_idsσr n i: nclosed_σ (shiftN i (idsσ n)) (i + n).
 Proof.
   elim: n i => [|n IHn] i //=.
   constructor; asimpl; [rewrite nclosed_vl_ids_equiv; lia | apply (IHn (S i)) ].
@@ -393,16 +393,21 @@ Section sort_lemmas.
 Context `{_HsX: Sort X}.
 Implicit Types (x : X) (Γ : list X).
 
-Lemma hrenS x n : x.|[ren (+S n)] = x.|[ren (+n)].|[ren (+1)].
-Proof. rewrite hsubst_comp renS_comp. by []. Qed.
-
-Lemma hren_upn_gen i j k x : x.|[ren (+i + j)].|[upn i (ren (+k))] = x.|[ren (+i + j + k)].
-Proof. by rewrite !hsubst_comp ren_upn_gen. Qed.
+Lemma ren_upn i v : v.[ren (+i)].[upn i (ren (+1))] = v.[ren (+S i)].
+Proof.
+  move: (ren_upn_gen i 0 1). by rewrite plusnS !plusnO subst_comp =>->.
+Qed.
 
 Lemma hren_upn i x : x.|[ren (+i)].|[upn i (ren (+1))] = x.|[ren (+S i)].
 Proof.
   move: (ren_upn_gen i 0 1). by rewrite plusnS !plusnO hsubst_comp =>->.
 Qed.
+
+Lemma hrenS x n : shiftN (S n) x = shift (shiftN n x).
+Proof. rewrite hsubst_comp renS_comp. by []. Qed.
+
+Lemma hren_upn_gen i j k x : x.|[ren (+i + j)].|[upn i (ren (+k))] = x.|[ren (+i + j + k)].
+Proof. by rewrite !hsubst_comp ren_upn_gen. Qed.
 
 Lemma cons_subst i x s (c : X → X)
   (Hsub: ∀ y, (c y).|[s] = c y.|[s]):

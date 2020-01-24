@@ -299,7 +299,7 @@ Definition boolImplT0 : ty :=
   }.
 
 Lemma dvabs_sub_typed {Γ} V T1 T2 e l L:
-  T1.|[ren (+1)] :: V :: Γ v⊢ₜ[ g ] e : T2 →
+  shift T1 :: V :: Γ v⊢ₜ[ g ] e : T2 →
   TLater V :: Γ v⊢ₜ[ g ] TAll T1 T2, 0 <: L, 0 →
   is_stamped_ty (S (length Γ)) g T1 →
   Γ |d V v⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l L.
@@ -387,8 +387,8 @@ Definition iftCoerce t :=
 
 Lemma coerce_tAppIFT Γ t T :
   is_stamped_ty (length Γ) g T →
-  Γ v⊢ₜ[ g ] t : TAll T (TAll T.|[ren (+1)] (▶: T.|[ren (+2)])) →
-  Γ v⊢ₜ[ g ] iftCoerce t : TAll T (TAll T.|[ren (+1)] T.|[ren (+2)]).
+  Γ v⊢ₜ[ g ] t : TAll T (TAll (shift T) (▶: shiftN 2 T)) →
+  Γ v⊢ₜ[ g ] iftCoerce t : TAll T (TAll (shift T) (shiftN 2 T)).
 Proof.
   move => HsT1 Ht.
   move: (HsT1) => /is_stamped_ren1_ty HsT2.
@@ -410,7 +410,7 @@ Example iftAndTyp'2 Γ (Hst : s1_is_ift):
 Proof. intros. apply /coerce_tAppIFT /iftAndTyp; tcrush. Qed.
 
 Lemma subIFT i Γ T:
-  is_stamped_ty (length Γ) g T.|[ren (+i)] →
+  is_stamped_ty (length Γ) g (shiftN i T) →
   (typeEq "A" T.|[ren (+1+i)]) :: Γ v⊢ₜ[ g ] IFTBody, 0 <:
     TAll T.|[ren (+1+i)] (TAll T.|[ren (+2+i)] (▶: T.|[ren (+3+i)])), 0.
 Proof.
@@ -424,10 +424,10 @@ Qed.
 
 Lemma tAppIFT_typed Γ T t s :
   is_stamped_ty (length Γ) g T →
-  g !! s = Some T.|[ren (+1)] →
+  g !! s = Some (shift T) →
   Γ v⊢ₜ[ g ] t : IFT →
   Γ v⊢ₜ[ g ] tApp Γ t s :
-    TAll T (TAll T.|[ren (+1)] (▶: T.|[ren (+2)])).
+    TAll T (TAll (shift T) (▶: shiftN 2 T)).
 Proof.
   move => HsT1 Hl Ht; move: (HsT1) => /is_stamped_ren1_ty HsT2.
   intros; eapply typeApp_typed => //; tcrush.
@@ -436,10 +436,10 @@ Qed.
 
 Lemma tAppIFT_coerced_typed Γ T t s :
   is_stamped_ty (length Γ) g T →
-  g !! s = Some T.|[ren (+1)] →
+  g !! s = Some (shift T) →
   Γ v⊢ₜ[ g ] t : IFT →
   Γ v⊢ₜ[ g ] iftCoerce (tApp Γ t s) :
-    TAll T (TAll T.|[ren (+1)] T.|[ren (+2)]).
+    TAll T (TAll (shift T) (shiftN 2 T)).
 Proof. intros. by apply /coerce_tAppIFT /tAppIFT_typed. Qed.
 
 Lemma tAppIFT_coerced_typed_IFT Γ t s :
@@ -449,13 +449,13 @@ Lemma tAppIFT_coerced_typed_IFT Γ t s :
     TAll IFT (TAll IFT IFT).
 Proof. intros. apply tAppIFT_coerced_typed; eauto 2. Qed.
 
-Definition IFTp0 := TAll p0Bool (TAll p0Bool.|[ren (+1)] (p0Bool.|[ren (+2)])).
+Definition IFTp0 := TAll p0Bool (TAll (shift p0Bool) ((shiftN 2 p0Bool))).
 
 Lemma tAppIFT_coerced_typed_p0Boolean Γ T t s :
-  g !! s = Some p0Bool.|[ren (+1)] →
+  g !! s = Some (shift p0Bool) →
   T :: Γ v⊢ₜ[ g ] t : IFT →
   T :: Γ v⊢ₜ[ g ] iftCoerce (tApp (T :: Γ) t s) :
-    TAll p0Bool (TAll p0Bool.|[ren (+1)] p0Bool.|[ren (+2)]).
+    TAll p0Bool (TAll (shift p0Bool) (shiftN 2 p0Bool)).
 Proof. intros. apply tAppIFT_coerced_typed; eauto 3. Qed.
 
 Definition iftNot Γ t s :=

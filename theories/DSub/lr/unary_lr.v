@@ -180,13 +180,13 @@ Section logrel_lemmas.
 
   Lemma interp_env_lookup Γ ρ T x:
     Γ !! x = Some T →
-    ⟦ Γ ⟧* ρ -∗ ⟦ T.|[ren (+x)] ⟧ ρ (ρ x).
+    ⟦ Γ ⟧* ρ -∗ ⟦ (shiftN x T) ⟧ ρ (ρ x).
   Proof.
     elim: Γ ρ x => [//|τ' Γ' IHΓ] ρ x Hx /=.
     iDestruct 1 as "[Hg Hv]". move: x Hx => [ [->] | x Hx] /=.
     - rewrite hsubst_id. by [].
     - rewrite hrenS.
-      iApply (interp_weaken_one (T.|[ren (+x)])).
+      iApply (interp_weaken_one (shiftN x T)).
       iApply (IHΓ ((+1) >>> ρ) x Hx with "Hg").
   Qed.
 End logrel_lemmas.
