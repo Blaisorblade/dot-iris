@@ -42,6 +42,8 @@ Section CtxSub.
 
   Global Instance : Proper (ctx_sub ==> ctx_sub) (fmap TLater).
   Proof. intros xs ys Hl ?. by rewrite !env_TLater_commute (Hl _). Qed.
+  Global Instance : Proper (flip ctx_sub ==> flip ctx_sub) (fmap TLater).
+  Proof. intros xs ys Hl ?. by rewrite !env_TLater_commute (Hl _). Qed.
 
   (** The strength ordering of contexts lifts the strength ordering of types. *)
   Lemma env_lift_sub f g {Γ} (Hweak: ∀ T ρ v, ⟦ f T ⟧ ρ v -∗ ⟦ g T ⟧ ρ v):
