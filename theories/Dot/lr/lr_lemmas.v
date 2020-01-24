@@ -11,6 +11,7 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx) (ρ : en
 (* Likely, this should be an iProp. *)
 Definition ctx_sub `{HdlangG: dlangG Σ} Γ1 Γ2 : Prop := ∀ ρ, ⟦ Γ1 ⟧* ρ -∗ ⟦ Γ2 ⟧* ρ.
 Infix "<:*" := ctx_sub (at level 70).
+Typeclasses Opaque ctx_sub.
 
 Section CtxSub.
   Context `{HdlangG: dlangG Σ}.
@@ -18,16 +19,29 @@ Section CtxSub.
   (** * Basic lemmas about [ctx_sub]. *)
   (* TODO: Make this into a structural typing rule? *)
 
+  Global Instance: RewriteRelation ctx_sub := {}.
+  Global Instance: PreOrder ctx_sub.
+  Proof. split. by move => ??. by move => x y z H1 H2 ρ; rewrite (H1 _). Qed.
+
+  Global Instance Proper_cons_ctx_sub T : Proper (ctx_sub ==> ctx_sub) (cons T).
+  Proof. move => Γ1 Γ2 Hl ρ /=. by rewrite (Hl _). Qed.
+  Global Instance Proper_cons_ctx_sub_flip T : Proper (flip ctx_sub ==> flip ctx_sub) (cons T).
+  Proof. move => Γ1 Γ2 Hl ρ /=. by rewrite (Hl _). Qed.
+
   (** Typing is contravariant in [Γ]. *)
-  Lemma ietp_weaken_ctx {T e Γ1 Γ2} (Hweak : Γ1 <:* Γ2):
-    Γ2 ⊨ e : T -∗ Γ1 ⊨ e : T.
-  Proof. iIntros "#HT1 !>" (ρ) "#HG". iApply "HT1". by iApply Hweak. Qed.
+  Global Instance Proper_ietp : Proper (flip ctx_sub ==> (=) ==> (=) ==> (⊢)) ietp.
+  Proof. move => /= Γ1 Γ2 Hweak ??????; subst. by setoid_rewrite (Hweak _). Qed.
+  Global Instance Proper_ietp_flip : Proper (ctx_sub ==> (=) ==> (=) ==> flip (⊢)) ietp.
+  Proof. move => /= Γ1 Γ2 Hweak ??????; subst. by setoid_rewrite (Hweak _). Qed.
 
   Lemma env_TLater_commute Γ ρ : ⟦ TLater <$> Γ ⟧* ρ ⊣⊢ ▷ ⟦ Γ ⟧* ρ.
   Proof.
     elim: Γ ρ => [| T Γ IH] ρ; cbn; [|rewrite IH later_and];
       iSplit; by [iIntros "$" | iIntros "_"].
   Qed.
+
+  Global Instance : Proper (ctx_sub ==> ctx_sub) (fmap TLater).
+  Proof. intros xs ys Hl ?. by rewrite !env_TLater_commute (Hl _). Qed.
 
   (** The strength ordering of contexts lifts the strength ordering of types. *)
   Lemma env_lift_sub f g {Γ} (Hweak: ∀ T ρ v, ⟦ f T ⟧ ρ v -∗ ⟦ g T ⟧ ρ v):
@@ -61,7 +75,7 @@ Section CtxSub.
   (* Unused *)
   Lemma TLater_unTLater_sub_TLater T ρ v :
     ⟦ TLater (unTLater T) ⟧ ρ v -∗ ⟦ TLater T ⟧ ρ v.
-  Proof. destruct T; iIntros "$". Qed.
+  Proof. by rewrite /= unTLater_sub. Qed.
 
   (** Lift the above ordering to environments. *)
   Lemma ctx_sub_unTLater Γ : unTLater <$> Γ <:* Γ.
@@ -83,10 +97,7 @@ Section CtxSub.
   (* Unused *)
   Lemma TLater_unTLater_TLater_ctx_sub Γ :
     TLater <$> (unTLater <$> Γ) <:* TLater <$> Γ.
-  Proof.
-    rewrite -list_fmap_compose.
-    apply env_lift_sub, TLater_unTLater_sub_TLater.
-  Qed.
+  Proof. by rewrite ctx_sub_unTLater. Qed.
 End CtxSub.
 
 Section LambdaIntros.
@@ -101,7 +112,7 @@ Section LambdaIntros.
     rewrite -wp_value'. iExists _; iSplit; first done.
     iIntros "!>" (v) "#Hv"; rewrite up_sub_compose.
     (* Factor ⪭ out of [⟦ Γ ⟧* ρ] before [iNext]. *)
-    rewrite TLater_unTLater_ctx_sub env_TLater_commute.
+    rewrite (TLater_unTLater_ctx_sub _ _) env_TLater_commute.
     iNext.
     iApply ("HeT" $! (v .: ρ) with "[$HG]").
     by rewrite (interp_weaken_one T1 _ v) stail_eq.
@@ -111,11 +122,7 @@ Section LambdaIntros.
     T1.|[ren (+1)] :: Γ ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
-  Proof.
-    iIntros "HeT"; iApply T_Forall_I_Strong;
-      iApply (ietp_weaken_ctx with "HeT") => ρ.
-    by rewrite /= ctx_sub_unTLater.
-  Qed.
+  Proof. by rewrite -T_Forall_I_Strong (ctx_sub_unTLater Γ). Qed.
 
   Lemma P_Val {Γ} v T:
     Γ ⊨ tv v : T -∗
@@ -146,11 +153,9 @@ Section LambdaIntros.
     T1.|[ren (+1)] :: V :: Γ ⊨ e : T2 -∗
     Γ |L V ⊨ { l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
   Proof.
-    iIntros "HeT"; iApply D_TVMem_I.
+    rewrite -D_TVMem_I -T_Forall_I_Strong fmap_cons.
     (* Compared to [T_Forall_I], we must strip the later from [TLater V]. *)
-    iApply T_Forall_I_Strong;
-      iApply (ietp_weaken_ctx with "HeT") => ρ.
-    by rewrite /= ctx_sub_unTLater.
+    by rewrite (ctx_sub_unTLater Γ).
   Qed.
 End LambdaIntros.
 

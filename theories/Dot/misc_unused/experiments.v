@@ -245,11 +245,21 @@ End Example.
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
+  (* Subsumed by transitivity. *)
+  (* Global Instance: Proper (flip ctx_sub ==> ctx_sub ==> impl) ctx_sub.
+  Proof. rewrite /flip => x y H x0 y0 H1 H2. by rewrite -H1 H. (* trans x => //. by trans x0. *) Qed.
+  Global Instance: Proper (ctx_sub ==> flip ctx_sub ==> flip impl) ctx_sub.
+  Proof. rewrite /flip => x y H x0 y0 H1 H2. by rewrite H -H1. Qed. *)
+
   Lemma T_later_ctx Γ V T e:
     TLater <$> (V :: Γ) ⊨ e : T -∗
     (*─────────────────────────*)
     TLater V :: Γ ⊨ e : T.
-  Proof. iApply ietp_weaken_ctx => ρ; cbn. by rewrite (TLater_ctx_sub Γ). Qed.
+  Proof. by rewrite fmap_cons -(TLater_ctx_sub Γ). Qed.
+
+  Lemma ietp_weaken_ctx {T e Γ1 Γ2} (Hweak : Γ1 <:* Γ2):
+    Γ2 ⊨ e : T -∗ Γ1 ⊨ e : T.
+  Proof. by rewrite -Hweak. Qed.
 
   (* Variant of [PT_Mem_I]: not needed here, and we get an extra later :-|, tho it
   matches [T_Mem_E']. Fails now that we allow path members. *)
@@ -284,11 +294,7 @@ Section Sec.
     TLater T1.|[ren (+1)] :: Γ ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
-  Proof.
-    iIntros "HeT"; iApply T_Forall_I;
-      iApply (ietp_weaken_ctx with "HeT").
-    iIntros (ρ) "[$ $]".
-  Qed.
+  Proof. rewrite -T_Forall_I. f_equiv. iIntros (ρ) "[$ $]". Qed.
 
   Lemma TAll_Later_Swap0 Γ T U `{SwapPropI Σ}:
     Γ ⊨ TAll (TLater T) U, 0 <: TLater (TAll T U), 0.
