@@ -106,7 +106,7 @@ Proof. intros; subst; by econstructor. Qed.
 
 Lemma Var_typed' Γ x T1 T2 :
   Γ !! x = Some T1 →
-  T2 = (shiftN x T1) →
+  T2 = shiftN x T1 →
   (*──────────────────────*)
   Γ v⊢ₜ[ g ] tv (var_vl x) : T2.
 Proof. intros; subst; tcrush. Qed.
@@ -147,7 +147,7 @@ Qed.
 
 Lemma Var_typed_sub Γ x T1 T2 :
   Γ !! x = Some T1 →
-  Γ v⊢ₜ[ g ] (shiftN x T1), 0 <: T2, 0 →
+  Γ v⊢ₜ[ g ] shiftN x T1, 0 <: T2, 0 →
   (*──────────────────────*)
   Γ v⊢ₜ[ g ] tv (var_vl x) : T2.
 Proof. intros; eapply Subs_typed_nocoerce; by [exact: Var_typed|]. Qed.
@@ -181,7 +181,7 @@ Proof. eauto using is_stamped_pvar. Qed.
 
 Lemma Let_typed Γ t u T U :
   Γ v⊢ₜ[ g ] t : T →
-  (shift T) :: Γ v⊢ₜ[ g ] u : (shift U) →
+  shift T :: Γ v⊢ₜ[ g ] u : shift U →
   is_stamped_ty (length Γ) g T →
   Γ v⊢ₜ[ g ] lett t u : U.
 Proof. move=> Ht Hu HsT. apply /App_typed /Ht /Lam_typed /Hu /HsT. Qed.
@@ -244,7 +244,7 @@ Lemma typeApp_typed s Γ T U V t :
   (** This subtyping premise is needed to perform "avoidance", as in compilers
     for ML and Scala: that is, producing a type [V] that does not refer to
     variables bound by let in the expression. *)
-  (∀ L, typeEq "A" (shiftN 2 T) :: L :: Γ v⊢ₜ[ g ] U.|[up (ren (+1))], 0 <: (shiftN 2 V), 0) →
+  (∀ L, typeEq "A" (shiftN 2 T) :: L :: Γ v⊢ₜ[ g ] U.|[up (ren (+1))], 0 <: shiftN 2 V, 0) →
   is_stamped_ty (length Γ) g T →
   is_stamped_ty (S (length Γ)) g U →
   g !! s = Some (shift T) →

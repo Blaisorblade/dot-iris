@@ -16,7 +16,7 @@ Section Sec.
   Lemma T_Var x T:
     Γ !! x = Some T →
     (*──────────────────────*)
-    Γ ⊨ tv (var_vl x) : (shiftN x T).
+    Γ ⊨ tv (var_vl x) : shiftN x T.
   Proof.
     iIntros (Hx) "/= !> * #Hg".
     by rewrite -wp_value' interp_env_lookup.
@@ -53,7 +53,7 @@ Section Sec.
   Qed.
 
   Lemma T_Forall_I T1 T2 e:
-    (shift T1) :: Γ ⊨ e : T2 -∗
+    shift T1 :: Γ ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.

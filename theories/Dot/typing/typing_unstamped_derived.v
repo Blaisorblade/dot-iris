@@ -121,7 +121,7 @@ Ltac hideCtx :=
 
 Lemma Var_typed' Γ x T1 T2 :
   Γ !! x = Some T1 →
-  T2 = (shiftN x T1) →
+  T2 = shiftN x T1 →
   (*──────────────────────*)
   Γ u⊢ₜ tv (var_vl x) : T2.
 Proof. intros; subst; tcrush. Qed.
@@ -143,7 +143,7 @@ Hint Resolve Subs_typed_nocoerce : core.
 
 Lemma Var_typed_sub Γ x T1 T2 :
   Γ !! x = Some T1 →
-  Γ u⊢ₜ (shiftN x T1), 0 <: T2, 0 →
+  Γ u⊢ₜ shiftN x T1, 0 <: T2, 0 →
   (*──────────────────────*)
   Γ u⊢ₜ tv (var_vl x) : T2.
 Proof. by intros; eapply Subs_typed_nocoerce; [var|]. Qed.
@@ -230,7 +230,7 @@ Qed.
 
 Lemma Let_typed Γ t u T U :
   Γ u⊢ₜ t : T →
-  (shift T) :: Γ u⊢ₜ u : (shift U) →
+  shift T :: Γ u⊢ₜ u : shift U →
   is_unstamped_ty' (length Γ) T →
   Γ u⊢ₜ lett t u : U.
 Proof. move => Ht Hu HsT. apply /App_typed /Ht /Lam_typed /Hu /HsT. Qed.
@@ -267,7 +267,7 @@ Proof. intros. tcrush. Qed.
   "Type Soundness for Dependent Object Types (DOT)", Rompf and Amin, OOPSLA '16. *)
 Lemma Bind1 Γ T1 T2 i:
   is_unstamped_ty' (S (length Γ)) T1 → is_unstamped_ty' (length Γ) T2 →
-  iterate TLater i T1 :: Γ u⊢ₜ T1, i <: (shift T2), i →
+  iterate TLater i T1 :: Γ u⊢ₜ T1, i <: shift T2, i →
   Γ u⊢ₜ μ T1, i <: T2, i.
 Proof.
   intros Hus1 Hus2 Hsub.
@@ -277,7 +277,7 @@ Qed.
 
 Lemma Bind2 Γ T1 T2 i:
   is_unstamped_ty' (length Γ) T1 → is_unstamped_ty' (S (length Γ)) T2 →
-  iterate TLater i (shift T1) :: Γ u⊢ₜ (shift T1), i <: T2, i →
+  iterate TLater i (shift T1) :: Γ u⊢ₜ shift T1, i <: T2, i →
   Γ u⊢ₜ T1, i <: μ T2, i.
 Proof.
   intros Hus1 Hus2 Hsub.
@@ -286,13 +286,13 @@ Qed.
 
 Lemma Bind1' Γ T1 T2:
   is_unstamped_ty' (S (length Γ)) T1 → is_unstamped_ty' (length Γ) T2 →
-  T1 :: Γ u⊢ₜ T1, 0 <: (shift T2), 0 →
+  T1 :: Γ u⊢ₜ T1, 0 <: shift T2, 0 →
   Γ u⊢ₜ μ T1, 0 <: T2, 0.
 Proof. intros; exact: Bind1. Qed.
 
 Lemma Bind2' Γ T1 T2:
   is_unstamped_ty' (length Γ) T1 → is_unstamped_ty' (S (length Γ)) T2 →
-  (shift T1) :: Γ u⊢ₜ (shift T1), 0 <: T2, 0 →
+  shift T1 :: Γ u⊢ₜ shift T1, 0 <: T2, 0 →
   Γ u⊢ₜ T1, 0 <: μ T2, 0.
 Proof. intros; exact: Bind2. Qed.
 
@@ -394,7 +394,7 @@ Lemma tyApp_typed Γ T U V t l :
   (** This subtyping premise is needed to perform "avoidance", as in compilers
     for ML and Scala: that is, producing a type [V] that does not refer to
     variables bound by let in the expression. *)
-  (∀ L, typeEq l (shiftN 2 T) :: L :: Γ u⊢ₜ U.|[up (ren (+1))], 0 <: (shiftN 2 V), 0) →
+  (∀ L, typeEq l (shiftN 2 T) :: L :: Γ u⊢ₜ U.|[up (ren (+1))], 0 <: shiftN 2 V, 0) →
   is_unstamped_ty' (length Γ) T →
   is_unstamped_ty' (S (length Γ)) U →
   Γ u⊢ₜ tyApp t l T : V.

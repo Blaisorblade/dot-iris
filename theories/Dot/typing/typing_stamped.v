@@ -38,7 +38,7 @@ Inductive typed Γ g : tm → ty → Prop :=
 | Lam_typed e T1 T2:
     (* T1 :: Γ s⊢ₜ[ g ] e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
     is_stamped_ty (length Γ) g T1 →
-    (shift T1) :: Γ s⊢ₜ[ g ] e : T2 →
+    shift T1 :: Γ s⊢ₜ[ g ] e : T2 →
     (*─────────────────────────*)
     Γ s⊢ₜ[ g ] tv (vabs e) : TAll T1 T2
 | VObj_typed ds T:
@@ -54,7 +54,7 @@ Inductive typed Γ g : tm → ty → Prop :=
     (* After looking up in Γ, we must weaken T for the variables on top of x. *)
     Γ !! x = Some T →
     (*──────────────────────*)
-    Γ s⊢ₜ[ g ] tv (var_vl x) : (shiftN x T)
+    Γ s⊢ₜ[ g ] tv (var_vl x) : shiftN x T
 | Subs_typed e T1 T2 i :
     Γ s⊢ₜ[ g ] T1, 0 <: T2, i → Γ s⊢ₜ[ g ] e : T1 →
     (*───────────────────────────────*)
@@ -83,7 +83,7 @@ with dm_typed Γ g : ty → label → dm → ty → Prop :=
     Γ |d V s⊢[ g ]{ l := dtysem σ s } : TTMem l L U
 | dvabs_typed V T1 T2 e l:
     is_stamped_ty (S (length Γ)) g T1 →
-    (shift T1) :: V :: Γ s⊢ₜ[ g ] e : T2 →
+    shift T1 :: V :: Γ s⊢ₜ[ g ] e : T2 →
     Γ |d V s⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2)
 | dpt_pv_typed V l v T:
     TLater V :: Γ s⊢ₜ[ g ] tv v : T →

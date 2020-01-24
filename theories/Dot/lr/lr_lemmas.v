@@ -106,7 +106,7 @@ Section LambdaIntros.
   Context `{HdlangG: dlangG Σ}.
 
   Lemma T_Forall_I_Strong {Γ} T1 T2 e:
-    (shift T1) :: (unTLater <$> Γ) ⊨ e : T2 -∗
+    shift T1 :: (unTLater <$> Γ) ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.
@@ -121,7 +121,7 @@ Section LambdaIntros.
   Qed.
 
   Lemma T_Forall_I {Γ} T1 T2 e:
-    (shift T1) :: Γ ⊨ e : T2 -∗
+    shift T1 :: Γ ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof. by rewrite -T_Forall_I_Strong (ctx_sub_unTLater Γ). Qed.
@@ -157,7 +157,7 @@ Section LambdaIntros.
   Proof. by rewrite -D_TVMem_I -T_Forall_I_Strong. Qed.
 
   Lemma D_TVMem_All_I {Γ} V T1 T2 e l:
-    (shift T1) :: V :: Γ ⊨ e : T2 -∗
+    shift T1 :: V :: Γ ⊨ e : T2 -∗
     Γ |L V ⊨ { l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
   Proof.
     (* Compared to [T_Forall_I], we must strip later also from [TLater V]. *)
@@ -187,7 +187,7 @@ Section Sec.
   Lemma T_Var x T:
     Γ !! x = Some T →
     (*──────────────────────*)
-    Γ ⊨ tv (ids x) : (shiftN x T).
+    Γ ⊨ tv (ids x) : shiftN x T.
   Proof.
     iIntros (Hx) "/= !> * #Hg".
     rewrite -wp_value' interp_env_lookup; by [].
@@ -232,7 +232,7 @@ Section Sec.
   *)
   (* Sort-of-show this rule is derivable from Sub_Mu_X and Sub_Mu_A. *)
   Lemma Sub_Mu_1 T1 T2 i j:
-    iterate TLater i T1 :: Γ ⊨ T1, i <: (shift T2), j -∗
+    iterate TLater i T1 :: Γ ⊨ T1, i <: shift T2, j -∗
     Γ ⊨ TMu T1, i <: T2, j.
   Proof. iIntros "Hstp"; iApply (Sub_Trans with "[-] []"). by iApply Sub_Mu_X. iApply Sub_Mu_A. Qed.
   (*

@@ -299,7 +299,7 @@ Definition boolImplT0 : ty :=
   }.
 
 Lemma dvabs_sub_typed {Γ} V T1 T2 e l L:
-  (shift T1) :: V :: Γ v⊢ₜ[ g ] e : T2 →
+  shift T1 :: V :: Γ v⊢ₜ[ g ] e : T2 →
   TLater V :: Γ v⊢ₜ[ g ] TAll T1 T2, 0 <: L, 0 →
   is_stamped_ty (S (length Γ)) g T1 →
   Γ |d V v⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l L.
@@ -387,7 +387,7 @@ Definition iftCoerce t :=
 
 Lemma coerce_tAppIFT Γ t T :
   is_stamped_ty (length Γ) g T →
-  Γ v⊢ₜ[ g ] t : TAll T (TAll (shift T) (▶: (shiftN 2 T))) →
+  Γ v⊢ₜ[ g ] t : TAll T (TAll (shift T) (▶: shiftN 2 T)) →
   Γ v⊢ₜ[ g ] iftCoerce t : TAll T (TAll (shift T) (shiftN 2 T)).
 Proof.
   move => HsT1 Ht.
@@ -427,7 +427,7 @@ Lemma tAppIFT_typed Γ T t s :
   g !! s = Some (shift T) →
   Γ v⊢ₜ[ g ] t : IFT →
   Γ v⊢ₜ[ g ] tApp Γ t s :
-    TAll T (TAll (shift T) (▶: (shiftN 2 T))).
+    TAll T (TAll (shift T) (▶: shiftN 2 T)).
 Proof.
   move => HsT1 Hl Ht; move: (HsT1) => /is_stamped_ren1_ty HsT2.
   intros; eapply typeApp_typed => //; tcrush.

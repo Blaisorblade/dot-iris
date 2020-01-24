@@ -26,7 +26,7 @@ Inductive typed Γ : tm → ty → Prop :=
 | Lam_typed e T1 T2:
     (* T1 :: Γ u⊢ₜ e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
     is_unstamped_ty T1 →
-    (shift T1) :: Γ u⊢ₜ e : T2 →
+    shift T1 :: Γ u⊢ₜ e : T2 →
     (*─────────────────────────*)
     Γ u⊢ₜ tv (vabs e) : TAll T1 T2
 | Nat_typed n:
@@ -37,7 +37,7 @@ Inductive typed Γ : tm → ty → Prop :=
     (* After looking up in Γ, we must weaken T for the variables on top of x. *)
     Γ !! x = Some T →
     (*──────────────────────*)
-    Γ u⊢ₜ tv (var_vl x) : (shiftN x T)
+    Γ u⊢ₜ tv (var_vl x) : shiftN x T
 | Subs_typed e T1 T2 i :
     Γ u⊢ₜ T1, 0 <: T2, i → Γ u⊢ₜ e : T1 →
     (*───────────────────────────────*)
