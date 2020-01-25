@@ -179,11 +179,11 @@ Section Example.
       by apply: packTV_typed'; [| |lia].
     have Hsub : Γ v⊢ₜ[ g0 s0 ⊤ ] ⊤, 0 <: pv (packTV 0 s0) @; "A", 0
       by eapply LSel_stp'; tcrush.
-    apply (Appv_typed _ _ _ v2 (pv (packTV 0 s0) @; "A") (TSing p0)); first last.
+    apply (Appv_typed (T1 := pv (packTV 0 s0) @; "A") (T2 := TSing p0)); first last.
     by eapply Subs_typed_nocoerce, Hsub.
     eapply App_typed; first last.
     by eapply Subs_typed_nocoerce, Hsub.
-    apply (Appv_typed _ _ e (packTV 0 s0) _ _ He).
+    apply (Appv_typed (v2 := packTV 0 s0) He).
     eapply Subs_typed_nocoerce; [ apply Hp | tcrush ].
   Qed.
 

@@ -116,7 +116,7 @@ Proof.
   }
   apply VObj_typed; tcrush.
   by apply (dty_typed TNat); tcrush.
-  cbn; apply (App_typed _ _ _ _ TUnit);
+  cbn; apply (App_typed (T1 := TUnit));
     last eapply (Subs_typed_nocoerce TNat); tcrush.
   tcrush; cbn.
 
@@ -175,11 +175,11 @@ Proof.
   - apply (Subs_typed_nocoerce (μ {@ type "A" >: ⊥ <: TNat})); tcrush.
     + apply (dty_typed TNat); tcrush.
     + ettrans;
-      [eapply (Mu_stp _ _ ({@ type "A" >: ⊥ <: TNat })%ty 0)|]; tcrush.
+      [eapply (Mu_stp _ (T := {@ type "A" >: ⊥ <: TNat })%ty 0)|]; tcrush.
   - apply (Subs_typed_nocoerce (μ {@ type "B" >: ⊥ <: ⊤})); tcrush.
     + apply (dty_typed String); tcrush.
     + ettrans;
-      [eapply (Mu_stp _ _ ({@ type "B" >: ⊥ <: ⊤ })%ty 0)|]; tcrush.
+      [eapply (Mu_stp _ (T := {@ type "B" >: ⊥ <: ⊤ })%ty 0)|]; tcrush.
 Qed.
 End StringExamples.
 
@@ -376,7 +376,7 @@ Example iftAndTyp'1 Γ (Hst : s1_is_ift):
     TAll IFT (TAll IFT IFT).
 Proof.
   tcrush; rewrite -(iterate_S tskip 0).
-  eapply (Subs_typed _ _ _ (▶:IFT)); first tcrush.
+  eapply (Subs_typed (T1 := ▶:IFT)); first tcrush.
   eapply App_typed; last exact: Var_typed';
     eapply App_typed; last exact: Var_typed'; rewrite /= -/IFT.
   apply iftAndTyp; eauto.
@@ -397,7 +397,7 @@ Proof.
   eapply Let_typed; [exact: Ht| |tcrush].
   rewrite /= !(hren_upn_gen 1) (hren_upn_gen 2) /=.
   tcrush; rewrite -!hrenS -(iterate_S tskip 0).
-  eapply (Subs_typed _ _ _ (▶:T.|[_])); first tcrush.
+  eapply (Subs_typed (T1 := ▶:T.|[_])); first tcrush.
   eapply App_typed; last exact: Var_typed';
     eapply App_typed; last exact: Var_typed'.
   apply: Var_typed' => //.

@@ -156,7 +156,7 @@ Lemma LSel_stp' Γ U {p l L i}:
   is_stamped_ty (length Γ) g L →
   Γ v⊢ₚ[ g ] p : TTMem l L U, i →
   Γ v⊢ₜ[ g ] L, i <: TSel p l, i.
-Proof. intros; ettrans; last exact: (LSel_stp _ _ p); tcrush. Qed.
+Proof. intros; ettrans; last exact: (LSel_stp (p := p)); tcrush. Qed.
 
 Lemma AddI_stp Γ T i (Hst: is_stamped_ty (length Γ) g T) :
   Γ v⊢ₜ[ g ] T, 0 <: T, i.
@@ -199,7 +199,7 @@ Proof.
   move => Hlp HsT1 Hle; move: (Hle) (HsT1) => /le_n_S Hles /is_stamped_ren1_ty HsT2.
   move: (is_stamped_nclosed_ty HsT1) => Hcl.
   apply (Subs_typed_nocoerce (μ {@ typeEq "A" (shift T) }));
-    last (ettrans; first apply (Mu_stp _ _ ({@ typeEq "A" T })); tcrush).
+    last (ettrans; first apply (Mu_stp _ (T := {@ typeEq "A" T })); tcrush).
   apply VObj_typed; tcrush.
   apply (dty_typed (shift T)); auto 2; tcrush.
   apply /(@extraction_inf_subst _ (length _)); auto 3;
@@ -215,7 +215,7 @@ Proof. intros; exact: packTV_typed'. Qed.
 Lemma val_LB T U Γ i v :
   Γ v⊢ₜ[ g ] tv v : type "A" >: T <: U →
   Γ v⊢ₜ[ g ] ▶: T, i <: (pv v @; "A"), i.
-Proof. intros; apply /AddIB_stp /(LSel_stp _ _ (pv _)); tcrush. Qed.
+Proof. intros; apply /AddIB_stp /(LSel_stp (p := pv _)); tcrush. Qed.
 
 Lemma packTV_LB s T n Γ i :
   g !! s = Some T →
