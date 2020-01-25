@@ -40,6 +40,8 @@ Inductive ty_sub_syn : ty → ty → Prop :=
 | ty_sub_TLater_syn T : ⊢T T <: TLater T
 | ty_sub_TAnd_syn T1 T2 U1 U2 :
   ⊢T T1 <: U1 → ⊢T T2 <: U2 → ⊢T TAnd T1 T2 <: TAnd U1 U2
+| ty_sub_TOr_syn T1 T2 U1 U2 :
+  ⊢T T1 <: U1 → ⊢T T2 <: U2 → ⊢T TOr T1 T2 <: TOr U1 U2
 where "⊢T T1 <: T2" := (ty_sub_syn T1 T2).
 Hint Constructors ty_sub_syn : ctx_sub.
 
@@ -120,6 +122,11 @@ Section CtxSub.
   Global Instance : Proper (ty_sub ==> ty_sub ==> ty_sub) TAnd.
   Proof. intros x y Hl x' y' Hl' ??. by rewrite /= (Hl _ _) (Hl' _ _). Qed.
   Global Instance : Proper (flip ty_sub ==> flip ty_sub ==> flip ty_sub) TAnd.
+  Proof. solve_proper. Qed.
+
+  Global Instance : Proper (ty_sub ==> ty_sub ==> ty_sub) TOr.
+  Proof. intros x y Hl x' y' Hl' ??. by rewrite /= (Hl _ _) (Hl' _ _). Qed.
+  Global Instance : Proper (flip ty_sub ==> flip ty_sub ==> flip ty_sub) TOr.
   Proof. solve_proper. Qed.
 
   (** Ordering of logical strength:
