@@ -273,10 +273,10 @@ Section Sec.
     rewrite (wp_bind_inv (fill [ProjCtx l])) /= /lang.of_val.
     iApply (wp_wand with "HE"); iIntros "/=" (v) "{HE}HE".
     rewrite wp_unfold /wp_pre/=.
-    remember (tproj (tv v) l) as v'.
+    remember (tproj (tv v) l) as e'.
     iDestruct ("HE" $! () [] [] 0 with "[//]") as (Hs) "HE".
-    have {Hs} [p [Hhr Hl]]: ∃ p, head_step v' () [] (path2tm p) () [] ∧ v @ l ↘ dpt p. {
-      have Hhr: head_reducible v' ().
+    have {Hs} [p [Hhr Hl]]: ∃ p, head_step e' () [] (path2tm p) () [] ∧ v @ l ↘ dpt p. {
+      have Hhr: head_reducible e' ().
         apply prim_head_reducible, ectxi_language_sub_redexes_are_values;
           by [|move => -[]/= *; simplify_eq/=; eauto].
       destruct Hhr as ([] & e2 & [] & efs & Hhr'); last now inversion Hhr'.
