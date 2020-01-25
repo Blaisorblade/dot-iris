@@ -71,6 +71,18 @@ Inductive ctx_sub_syn : ctx → ctx → Prop :=
 where "⊢G Γ1 <:* Γ2" := (ctx_sub_syn Γ1 Γ2).
 Hint Constructors ctx_sub_syn : ctx_sub.
 
+Section flip_proper.
+  Context `{R : relation A} `{S : relation B} `{T : relation C} `{U : relation D}.
+  Global Instance flip_proper_2 `(!Proper (R ==> S) f) :
+    Proper (flip R ==> flip S) f.
+  Proof. solve_proper. Qed.
+  Global Instance flip_proper_3 `(!Proper (R ==> S ==> T) f) :
+    Proper (flip R ==> flip S ==> flip T) f.
+  Proof. solve_proper. Qed.
+  Global Instance flip_proper_4 `(!Proper (R ==> S ==> T ==> U) f) :
+    Proper (flip R ==> flip S ==> flip T ==> flip U) f.
+  Proof. solve_proper. Qed.
+End flip_proper.
 
 Section CtxSub.
   Context `{HdlangG: dlangG Σ}.
@@ -95,13 +107,14 @@ Section CtxSub.
   (** Typing is contravariant in [Γ]. *)
   Global Instance Proper_ietp : Proper (flip ctx_sub ==> (=) ==> (=) ==> (⊢)) ietp.
   Proof. move => /= Γ1 Γ2 Hweak ??????; subst. by setoid_rewrite (Hweak _). Qed.
-  Global Instance Proper_ietp_flip : Proper (ctx_sub ==> (=) ==> (=) ==> flip (⊢)) ietp.
-  Proof. move => /= Γ1 Γ2 Hweak ??????; subst. by setoid_rewrite (Hweak _). Qed.
+  Global Instance Proper_ietp_flip :
+    Proper (ctx_sub ==> flip (=) ==> flip (=) ==> flip (⊢)) ietp.
+  Proof. apply flip_proper_4, Proper_ietp. Qed.
 
-  Global Instance : Proper (ty_sub ==> ty_sub) TLater.
+  Global Instance Proper_TLater : Proper (ty_sub ==> ty_sub) TLater.
   Proof. intros x y Hl ??. by rewrite /= (Hl _ _). Qed.
-  Global Instance : Proper (flip ty_sub ==> flip ty_sub) TLater.
-  Proof. solve_proper. Qed.
+  Global Instance Proper_TLater_flip :
+    Proper (flip ty_sub ==> flip ty_sub) TLater := _.
 
   Lemma env_TLater_commute Γ ρ : ⟦ TLater <$> Γ ⟧* ρ ⊣⊢ ▷ ⟦ Γ ⟧* ρ.
   Proof.
@@ -109,10 +122,11 @@ Section CtxSub.
       iSplit; by [iIntros "$" | iIntros "_"].
   Qed.
 
-  Global Instance : Proper (ctx_sub ==> ctx_sub) (fmap TLater).
+  Global Instance Proper_fmap_TLater :
+    Proper (ctx_sub ==> ctx_sub) (fmap TLater).
   Proof. intros xs ys Hl ?. by rewrite !env_TLater_commute (Hl _). Qed.
-  Global Instance : Proper (flip ctx_sub ==> flip ctx_sub) (fmap TLater).
-  Proof. solve_proper. Qed.
+  Global Instance Proper_fmap_TLater_flip :
+    Proper (flip ctx_sub ==> flip ctx_sub) (fmap TLater) := _.
 
   (** The strength ordering of contexts lifts the strength ordering of types. *)
   Lemma env_lift_sub f g {Γ} (Hle: ∀ T, ⊨T f T <: g T):
@@ -125,15 +139,15 @@ Section CtxSub.
     ⊨G Γ1 <:* Γ2.
   Proof. move => -> -> Hweak. exact: env_lift_sub. Qed.
 
-  Global Instance : Proper (ty_sub ==> ty_sub ==> ty_sub) TAnd.
+  Global Instance Proper_TAnd : Proper (ty_sub ==> ty_sub ==> ty_sub) TAnd.
   Proof. intros x y Hl x' y' Hl' ??. by rewrite /= (Hl _ _) (Hl' _ _). Qed.
-  Global Instance : Proper (flip ty_sub ==> flip ty_sub ==> flip ty_sub) TAnd.
-  Proof. solve_proper. Qed.
+  Global Instance Proper_TAnd_flip :
+    Proper (flip ty_sub ==> flip ty_sub ==> flip ty_sub) TAnd := _.
 
-  Global Instance : Proper (ty_sub ==> ty_sub ==> ty_sub) TOr.
+  Global Instance Proper_TOr : Proper (ty_sub ==> ty_sub ==> ty_sub) TOr.
   Proof. intros x y Hl x' y' Hl' ??. by rewrite /= (Hl _ _) (Hl' _ _). Qed.
-  Global Instance : Proper (flip ty_sub ==> flip ty_sub ==> flip ty_sub) TOr.
-  Proof. solve_proper. Qed.
+  Global Instance Proper_TOr_flip :
+    Proper (flip ty_sub ==> flip ty_sub ==> flip ty_sub) TOr := _.
 
   (** Ordering of logical strength:
       unTLater T <: T <: TLater (unTLater T) <: TLater T. *)
