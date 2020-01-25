@@ -28,7 +28,12 @@ Hint Extern 998 => f_equiv : f_equiv.
 (* Global Instance: Params (@ietp) 2. *)
 
 (** A left inverse of TLater. Sometimes written ⊲. *)
-Definition unTLater T : ty := match T with | TLater T' => T' | _ => T end.
+(* Definition unTLater T : ty := match T with | TLater T' => T' | _ => T end. *)
+Fixpoint unTLater T : ty := match T with
+| TLater T' => T'
+| TAnd T1 T2 => TAnd (unTLater T1) (unTLater T2)
+| _ => T
+end.
 
 Definition unTLater_TLater T: unTLater (TLater T) = T := reflexivity _.
 Global Instance: Cancel (=) unTLater TLater. Proof. exact: unTLater_TLater. Qed.
@@ -131,12 +136,17 @@ Section CtxSub.
 
   (** Ordering of logical strength:
       unTLater T <: T <: TLater (unTLater T) <: TLater T. *)
-
   Lemma unTLater_ty_sub T : ⊨T unTLater T <: T.
-  Proof. case: T => //= T ??; by auto. Qed.
+  Proof.
+    elim: T => //= [T IHT T' IHT' | T _ ]. by f_equiv.
+    by intros ?; auto.
+  Qed.
 
   Lemma ty_sub_TLater_unTLater T : ⊨T T <: TLater (unTLater T).
-  Proof. destruct T => ??; iIntros "$". Qed.
+  Proof.
+    induction T; try by [iIntros (??) "$"].
+    by rewrite {1}IHT1 {1}IHT2 /=; iIntros (??) "[$ $]".
+  Qed.
 
   Lemma ty_sub_TLater T : ⊨T T <: TLater T.
   Proof. by intros ?; auto. Qed.
