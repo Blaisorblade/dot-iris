@@ -38,6 +38,8 @@ Inductive ty_sub_syn : ty → ty → Prop :=
 | ty_trans_sub_syn T1 T2 T3 : ⊢T T1 <: T2 → ⊢T T2 <: T3 → ⊢T T1 <: T3
 | unTLater_ty_sub_syn T : ⊢T unTLater T <: T
 | ty_sub_TLater_syn T : ⊢T T <: TLater T
+| ty_sub_TAnd_syn T1 T2 U1 U2 :
+  ⊢T T1 <: U1 → ⊢T T2 <: U2 → ⊢T TAnd T1 T2 <: TAnd U1 U2
 where "⊢T T1 <: T2" := (ty_sub_syn T1 T2).
 Hint Constructors ty_sub_syn : ctx_sub.
 
@@ -115,6 +117,11 @@ Section CtxSub.
     ⊨G Γ1 <:* Γ2.
   Proof. move => -> -> Hweak. exact: env_lift_sub. Qed.
 
+  Global Instance : Proper (ty_sub ==> ty_sub ==> ty_sub) TAnd.
+  Proof. intros x y Hl x' y' Hl' ??. by rewrite /= (Hl _ _) (Hl' _ _). Qed.
+  Global Instance : Proper (flip ty_sub ==> flip ty_sub ==> flip ty_sub) TAnd.
+  Proof. solve_proper. Qed.
+
   (** Ordering of logical strength:
       unTLater T <: T <: TLater (unTLater T) <: TLater T. *)
 
@@ -135,7 +142,7 @@ Section CtxSub.
   Proof. by rewrite unTLater_ty_sub. Qed.
 
   Lemma fundamental_ty_sub {T1 T2} : ⊢T T1 <: T2 → ⊨T T1 <: T2.
-  Proof. induction 1; auto with ctx_sub; by [|etrans]. Qed.
+  Proof. induction 1; auto with f_equiv ctx_sub; by [|etrans]. Qed.
   Hint Resolve fundamental_ty_sub : ctx_sub.
 
   (** Lift the above ordering to environments. *)
