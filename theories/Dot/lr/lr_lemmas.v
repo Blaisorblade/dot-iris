@@ -32,6 +32,7 @@ Hint Extern 998 => f_equiv : f_equiv.
 Fixpoint unTLater T : ty := match T with
 | TLater T' => T'
 | TAnd T1 T2 => TAnd (unTLater T1) (unTLater T2)
+| TOr T1 T2 => TOr (unTLater T1) (unTLater T2)
 | _ => T
 end.
 
@@ -137,15 +138,13 @@ Section CtxSub.
   (** Ordering of logical strength:
       unTLater T <: T <: TLater (unTLater T) <: TLater T. *)
   Lemma unTLater_ty_sub T : ⊨T unTLater T <: T.
-  Proof.
-    elim: T => //= [T IHT T' IHT' | T _ ]. by f_equiv.
-    by intros ?; auto.
-  Qed.
+  Proof. induction T => //=; by [ f_equiv | intros ?; auto ]. Qed.
 
   Lemma ty_sub_TLater_unTLater T : ⊨T T <: TLater (unTLater T).
   Proof.
-    induction T; try by [iIntros (??) "$"].
-    by rewrite {1}IHT1 {1}IHT2 /=; iIntros (??) "[$ $]".
+    induction T; try by [iIntros (??) "$"];
+      rewrite {1}IHT1 {1}IHT2 /=; intros ??;
+      [> iIntros "[$ $]" | iIntros "[$|$]"].
   Qed.
 
   Lemma ty_sub_TLater T : ⊨T T <: TLater T.
