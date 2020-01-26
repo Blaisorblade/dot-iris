@@ -36,13 +36,6 @@ Notation wf_ds ds := (NoDup (map fst ds)).
 Definition path_includes p ρ ds :=
   path_wp_pure p.|[ρ] (λ w, ∃ ds', w = vobj ds' ∧ ds.|[ρ] `sublist_of` ds'.|[w/] ∧ wf_ds ds').
 
-Definition label_of_ty T : option label :=
-  match T with
-  | TTMem l _ _ => Some l
-  | TVMem l _ => Some l
-  | _ => None
-  end.
-
 Section logrel.
   Context `{!dlangG Σ}.
 

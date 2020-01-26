@@ -92,14 +92,6 @@ Ltac ettrans := eapply Trans_stp.
 Ltac lNext := ettrans; first apply TAnd2_stp; tcrush.
 Ltac lThis := ettrans; first apply TAnd1_stp; tcrush.
 
-(* Copy of the one from unary_lr. Maybe move again back elsewhere. *)
-Definition label_of_ty T : option label :=
-  match T with
-  | TTMem l _ _ => Some l
-  | TVMem l _ => Some l
-  | _ => None
-  end.
-
 Ltac lookup :=
   lazymatch goal with
   | |- _ v⊢ₜ[ _ ] ?T1, _ <: ?T2, _ =>

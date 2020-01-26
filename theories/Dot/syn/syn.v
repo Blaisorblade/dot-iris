@@ -68,6 +68,14 @@ Implicit Types
          (T : ty) (v : vl) (t : tm) (d : dm) (ds : dms) (p : path)
          (Γ : ctx) (vs : vls) (l : label).
 
+(* Auxiliary definitions. *)
+Definition label_of_ty T : option label :=
+  match T with
+  | TTMem l _ _ => Some l
+  | TVMem l _ => Some l
+  | _ => None
+  end.
+
 (** Context extension for use with definition typing, as in
     [Γ |L V ⊨d d : T] and [Γ |L V ⊨ds ds : T]. *)
 Definition defCtxCons Γ V := TLater V :: Γ.
