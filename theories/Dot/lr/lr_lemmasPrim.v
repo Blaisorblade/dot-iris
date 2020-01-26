@@ -52,9 +52,9 @@ Section Sec.
   Lemma T_Bool_I b: Γ ⊨ tv (vlit $ lbool b): TPrim tbool.
   Proof. iIntros "!> * _ /="; rewrite -wp_value /pure_interp_prim /prim_evals_to; eauto. Qed.
 
-  Lemma wp_tun B1 Br u v
+  Lemma wp_un B1 Br u v
     (Hev1 : pure_interp_prim B1 v) (Hu : un_op_semtype u B1 Br) :
-    WP tun u (tv v) {{ w, ⌜pure_interp_prim Br w⌝ }}%I.
+    WP tun u (tv v) {{ w, ⌜un_op_eval u v = Some w ∧ pure_interp_prim Br w⌝ }}%I.
   Proof.
     destruct (Hu v) => //; ev.
     by rewrite -wp_pure_step_later // -wp_value'; auto.
@@ -66,13 +66,14 @@ Section Sec.
   Proof.
     iIntros "#He1 !>" (ρ) "#Hg !>".
     smart_wp_bind (UnCtx _) v1 "#Ha1" ("He1" with "Hg"); iClear "He1 Hg".
-    iDestruct "Ha1" as %Ha1. by iApply wp_tun.
+    iDestruct "Ha1" as %Ha1.
+    by iApply wp_wand; [iApply wp_un|iIntros (? [??])].
   Qed.
 
   Lemma wp_bin {b v1 v2 B1 B2 Br P} (Hu : bin_op_semtype b B1 B2 Br P) l1 l2
     (Hev1 : prim_evals_to B1 v1 l1) (Hev2 : prim_evals_to B2 v2 l2)
     (HP : P l1 l2) :
-    WP tbin b (tv v1) (tv v2) {{ w, ⌜pure_interp_prim Br w⌝ }}%I.
+    WP tbin b (tv v1) (tv v2) {{ w, ⌜bin_op_eval b v1 v2 = Some w ∧ pure_interp_prim Br w⌝ }}%I.
   Proof.
     edestruct (Hu v1 v2) => //; ev.
     by rewrite -wp_pure_step_later // -wp_value'; auto.
@@ -88,7 +89,7 @@ Section Sec.
     iDestruct "Ha1" as %Ha1.
     smart_wp_bind (BinRCtx _ _) v2 "#Ha2" ("He2" with "Hg"); iClear "He2".
     iDestruct "Ha2" as %Ha2; ev.
-    by iApply wp_bin.
+    by iApply wp_wand; [iApply wp_bin|iIntros (? [??])].
   Qed.
 
   Lemma T_Un' u e1 B1 Br (Hu : un_op_syntype u B1 Br) :
