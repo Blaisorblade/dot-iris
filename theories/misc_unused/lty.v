@@ -12,7 +12,7 @@ From D.pure_program_logic Require Import lifting adequacy.
 From Coq Require ProofIrrelevance FunctionalExtensionality.
 Import prelude.
 
-Module Type OLty (Import VS: VlSortsFullSig) (Import LVS : LiftWp VS).
+Module Type Lty (Import VS: VlSortsFullSig) (Import LVS : LiftWp VS).
 
 Section lty_limit_preserving.
   Context `{Σ : gFunctors}.
@@ -243,10 +243,10 @@ Section olty_ofe_2.
 End olty_ofe_2.
 
 Arguments ltyO : clear implicits.
-End OLty.
+End Lty.
 
-Module Type OLtyJudgements (Import VS: VlSortsFullSig) (Import LVS : LiftWp VS).
-Include OLty VS LVS.
+Module Type LtyJudgements (Import VS: VlSortsFullSig) (Import LVS : LiftWp VS).
+Include Lty VS LVS.
 Section judgments.
   Context `{dlangG Σ}.
   Implicit Types (τ : olty Σ 0).
@@ -296,4 +296,4 @@ Section typing.
   Proof. iIntros "!>" (??) "#Hg #[_ $]". Qed.
 End typing.
 
-End OLtyJudgements.
+End LtyJudgements.

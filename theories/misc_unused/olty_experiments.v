@@ -7,7 +7,7 @@ From D Require Import gen_iheap saved_interp lty dlang.
 Implicit Types (Σ : gFunctors).
 
 (*
-  - Redefining *existing judgments* on Olty will let us
+  - Redefining *existing judgments* on Lty will let us
     generalize current typing lemmas to be about semantic types.
     + However, we need to define substitution on semantic types.
       And figure out corresponding lemmas.
@@ -22,8 +22,8 @@ Implicit Types (Σ : gFunctors).
     while reusing as much as possible.
 *)
 
-Module Type OLty_judge (Import VS: VlSortsFullSig) (Import LVS : LiftWp VS).
-Include OLty VS LVS.
+Module Type Lty_judge (Import VS: VlSortsFullSig) (Import LVS : LiftWp VS).
+Include Lty VS LVS.
 
 Implicit Types (v: vl) (vs : vls) (ρ : env).
 
@@ -59,12 +59,12 @@ Global Arguments ivtp /.
 Notation "v v⋅: τ" := (ivtp τ v) (at level 73).
 Local Definition test_judge_me Γ v τ := Γ ⊨ v v⋅: τ.
 
-Definition ittp τ t : judgment Σ := subj_judgment_to_judgment (t, interp_expr τ).
-Global Arguments ittp /.
+Definition ietp τ t : judgment Σ := subj_judgment_to_judgment (t, interp_expr τ).
+Global Arguments ietp /.
 
 (* DOT/D<: judgments are indexed by [⋅]. *)
-Notation "t t⋅: τ" := (ittp τ t) (at level 73).
-Definition test_judge_me2 Γ t τ := Γ ⊨ t t⋅: τ.
+Notation "t ⋅: τ" := (ietp τ t) (at level 73).
+Definition test_judge_me2 Γ t τ := Γ ⊨ t ⋅: τ.
 Program Definition nosubj_judgment_to_judgment {Σ} : nosubj_judgment Σ → judgment Σ := λ φ, φ.
 
 Definition ivstp τ1 τ2 : nosubj_judgment Σ := (λ ρ, ∀ v, oClose τ1 ρ v → oClose τ2 ρ v)%I.
@@ -86,7 +86,7 @@ Proof.
 Qed.
 End judgments.
 
-End OLty_judge.
+End Lty_judge.
 
 From D.Dot Require Import syn synLemmas dlang_inst rules typeExtractionSyn path_wp typeExtractionSem.
 From D.Dot.syn Require Import path_repl.
@@ -98,7 +98,7 @@ Implicit Types
 
 Module SemTypes.
 
-Include OLtyJudgements VlSorts dlang_inst.
+Include LtyJudgements VlSorts dlang_inst.
 
 Record dlty Σ := Dlty {
   dlty_label : label;
@@ -312,17 +312,17 @@ Section with_lty.
   Proof. exact: path_replacement_equiv. Qed.
   Implicit Types (Γ : sCtx Σ) (τ : olty Σ 0).
 
-  Definition oPsing p : olty Σ 0 :=
+  Definition oPSing p : olty Σ 0 :=
     olty0 (λ ρ v, alias_pathsI p.|[ρ] (pv v)).
 
-  Lemma sem_psingleton_eq_1 p ρ v : oClose (oPsing p) ρ v ≡ ⌜ path_wp_pure p.|[ρ] (eq v) ⌝%I.
+  Lemma sem_psingleton_eq_1 p ρ v : oClose (oPSing p) ρ v ≡ ⌜ path_wp_pure p.|[ρ] (eq v) ⌝%I.
   Proof. by rewrite /lty_car/=/vopen /alias_pathsI alias_paths_pv_eq_1. Qed.
 
-  Lemma sem_psingleton_eq_2 p ρ v : oClose (oPsing p) ρ v ≡ path_wp p.|[ρ] (λ w, ⌜ v = w ⌝ )%I.
+  Lemma sem_psingleton_eq_2 p ρ v : oClose (oPSing p) ρ v ≡ path_wp p.|[ρ] (λ w, ⌜ v = w ⌝ )%I.
   Proof. by rewrite sem_psingleton_eq_1 path_wp_pureable. Qed.
 
   Lemma singleton_aliasing Γ p q ρ i :
-    Γ ⊨p p : oPsing q, i -∗
+    Γ ⊨p p : oPSing q, i -∗
     ⟦ Γ ⟧* ρ -∗ ▷^i alias_pathsI p.|[ρ] q.|[ρ].
   Proof.
     iIntros "#Hep #Hg". iSpecialize ("Hep" with "Hg").
@@ -332,7 +332,7 @@ Section with_lty.
 
   Lemma singleton_self Γ τ p i :
     Γ ⊨p p : τ, i -∗
-    Γ ⊨p p : oPsing p, i.
+    Γ ⊨p p : oPSing p, i.
   Proof.
     iIntros "#Hep !>" (ρ) "Hg". iSpecialize ("Hep" with "Hg"). iNext.
     iDestruct (path_wp_eq with "Hep") as (v Hpv) "_".
@@ -364,7 +364,7 @@ Section with_lty.
   (* XXX Generalize? *)
   Lemma singleton_self_skip Γ τ p i :
     Γ ⊨p p : τ, 0 -∗
-    Γ ⊨ iterate tskip i (path2tm p) : oPsing p.
+    Γ ⊨ iterate tskip i (path2tm p) : oPSing p.
   Proof.
     rewrite singleton_self iptp2ietp.
     iIntros "Hp". iApply (T_Sub with "Hp").
@@ -372,8 +372,8 @@ Section with_lty.
   Qed.
 
   Lemma singleton_sym Γ p q i:
-    Γ ⊨p p : oPsing q, i -∗
-    Γ ⊨p q : oPsing p, i.
+    Γ ⊨p p : oPSing q, i -∗
+    Γ ⊨p q : oPSing p, i.
   Proof.
     iIntros "#Hep !>" (ρ) "#Hg".
     iDestruct (singleton_aliasing with "Hep Hg") as "Hal". iNext i. iDestruct "Hal" as %Hal.
@@ -381,9 +381,9 @@ Section with_lty.
   Qed.
 
   Lemma singleton_trans Γ p q r i:
-    Γ ⊨p p : oPsing q, i -∗
-    Γ ⊨p q : oPsing r, i -∗
-    Γ ⊨p p : oPsing r, i.
+    Γ ⊨p p : oPSing q, i -∗
+    Γ ⊨p q : oPSing r, i -∗
+    Γ ⊨p p : oPSing r, i.
   Proof.
     iIntros "#Hep #Heq !>" (ρ) "#Hg".
     iDestruct (singleton_aliasing with "Hep Hg") as "Hal1".
@@ -393,9 +393,9 @@ Section with_lty.
   Qed.
 
   Lemma singleton_elim Γ τ p q l i:
-    Γ ⊨p p : oPsing q, i -∗
+    Γ ⊨p p : oPSing q, i -∗
     Γ ⊨p pself q l : τ, i -∗
-    Γ ⊨p pself p l : oPsing (pself q l), i.
+    Γ ⊨p pself p l : oPSing (pself q l), i.
   Proof.
     iIntros "#Hep #HqlT !>" (ρ) "#Hg".
     iDestruct (singleton_aliasing with "Hep Hg") as "Hal {Hep}".
