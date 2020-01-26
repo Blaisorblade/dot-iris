@@ -97,10 +97,10 @@ Section logrel.
     match T with
     | TTop => interp_top
     | TBot => interp_bot
-    | TLater T => interp_later (⟦ T ⟧)
-    | TTMem L U => interp_tmem (⟦ L ⟧) (⟦ U ⟧)
+    | TLater T => interp_later ⟦ T ⟧
+    | TTMem L U => interp_tmem ⟦ L ⟧ ⟦ U ⟧
     | TNat => interp_nat
-    | TAll T1 T2 => interp_forall (⟦ T1 ⟧) (⟦ T2 ⟧)
+    | TAll T1 T2 => interp_forall ⟦ T1 ⟧ ⟦ T2 ⟧
     | TSel w => interp_sel w
     end%I.
 

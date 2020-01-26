@@ -160,16 +160,16 @@ Section logrel.
   Global Instance interp : TyInterp ty Σ := fix interp (T : ty) : envD Σ :=
     let _ := interp : TyInterp ty Σ in
     match T with
-    | TTMem l L U => interp_tmem l (⟦ L ⟧) (⟦ U ⟧)
-    | TVMem l T' => interp_vmem l (⟦ T' ⟧)
-    | TAnd T1 T2 => interp_and (⟦ T1 ⟧) (⟦ T2 ⟧)
-    | TOr T1 T2 => interp_or (⟦ T1 ⟧) (⟦ T2 ⟧)
-    | TLater T => interp_later (⟦ T ⟧)
+    | TTMem l L U => interp_tmem l ⟦ L ⟧ ⟦ U ⟧
+    | TVMem l T' => interp_vmem l ⟦ T' ⟧
+    | TAnd T1 T2 => interp_and ⟦ T1 ⟧ ⟦ T2 ⟧
+    | TOr T1 T2 => interp_or ⟦ T1 ⟧ ⟦ T2 ⟧
+    | TLater T => interp_later ⟦ T ⟧
     | TPrim b => interp_prim b
     | TTop => interp_top
     | TBot => interp_bot
-    | TAll T1 T2 => interp_forall (⟦ T1 ⟧) (⟦ T2 ⟧)
-    | TMu T => interp_mu (⟦ T ⟧)
+    | TAll T1 T2 => interp_forall ⟦ T1 ⟧ ⟦ T2 ⟧
+    | TMu T => interp_mu ⟦ T ⟧
     | TSel p l => interp_sel p l
     | TSing p => interp_sing p
     end%I.
@@ -189,8 +189,8 @@ Section logrel.
   Fixpoint def_interp_base (T : ty) : envPred dm Σ :=
     λ ρ d,
     match T with
-    | TTMem _ L U => def_interp_tmem (⟦ L ⟧) (⟦ U ⟧) ρ d
-    | TVMem _ T' => def_interp_vmem (⟦ T' ⟧) ρ d
+    | TTMem _ L U => def_interp_tmem ⟦ L ⟧ ⟦ U ⟧ ρ d
+    | TVMem _ T' => def_interp_vmem ⟦ T' ⟧ ρ d
     | _ => False
     end%I.
 

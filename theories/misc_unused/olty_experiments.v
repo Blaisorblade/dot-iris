@@ -11,7 +11,7 @@ Implicit Types (Σ : gFunctors).
     generalize current typing lemmas to be about semantic types.
     + However, we need to define substitution on semantic types.
       And figure out corresponding lemmas.
-      Crucially, we must have (⟦ T ⟧).|[σ] ≡ ⟦ T.|[σ] ⟧.
+      Crucially, we must have ⟦ T ⟧.|[σ] ≡ ⟦ T.|[σ] ⟧.
       We might have already proven that, for ∞.
   - Redefining judgments will let us... do what?
     Prove theorems about judgments? What is that good for?
