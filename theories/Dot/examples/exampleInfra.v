@@ -13,6 +13,36 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 (****************)
 
 Module Import DBNotation.
+
+Coercion tv : vl_ >-> tm.
+Coercion vlit : base_lit >-> vl_.
+Coercion lnat : nat >-> base_lit.
+Coercion lbool : bool >-> base_lit.
+(* Definition vnat' n := vnat n.
+Coercion vnat' : nat >-> vl_. *)
+(* XXX rename *)
+Bind Scope expr_scope with tm.
+Delimit Scope expr_scope with E.
+
+Notation "()" := (vobj []) : expr_scope.
+(* Notation "- e" := (tun MinusUnOp e%E) : expr_scope. *)
+
+Notation "e1 + e2" := (tbin bplus e1%E e2%E) : expr_scope.
+Notation "e1 - e2" := (tbin bminus e1%E e2%E) : expr_scope.
+Notation "e1 * e2" := (tbin btimes e1%E e2%E) : expr_scope.
+Notation "e1 `div` e2" := (tbin bdiv e1%E e2%E) : expr_scope.
+(* Notation "e1 `rem` e2" := (tbin RemOp e1%E e2%E) : expr_scope. *)
+
+Notation "e1 ≤ e2" := (tbin ble e1%E e2%E) : expr_scope.
+Notation "e1 < e2" := (tbin blt e1%E e2%E) : expr_scope.
+Notation "e1 = e2" := (tbin beq e1%E e2%E) : expr_scope.
+Notation "e1 ≠ e2" := (tun unot (tbin beq e1%E e2%E)) : expr_scope.
+
+Notation "~ e" := (tun unot e%E) (at level 75, right associativity) : expr_scope.
+
+Notation "e1 > e2" := (e2%E < e1%E)%E : expr_scope.
+Notation "e1 ≥ e2" := (e2%E ≤ e1%E)%E : expr_scope.
+
 (** First, let's maybe start defining some nicer notation. I have little clue what I'm doing tho.
     *)
 

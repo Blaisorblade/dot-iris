@@ -2,7 +2,7 @@
 𝐍;
 𝐍}%ty
      : ty
-ν {@ val "a" = pv (vnat 0) }
+ν {@ val "a" = pv 0 }
      : vl_
 μ {@ type "A" >: 𝐍 <: ⊤ }
      : ty
@@ -18,10 +18,10 @@
      : vl_
 ν {@}
      : vl_
-ν {@ val "a" = pv (vnat 0) }
+ν {@ val "a" = pv 0 }
      : vl_
-ν {@ val "a" = pv (vnat 0);
-  val "b" = pv (vnat 1)}
+ν {@ val "a" = pv 0;
+  val "b" = pv 1}
      : vl_
 p0 @; "A"
      : ty
@@ -33,12 +33,20 @@ p0 @ "A"
      : ty
 (val "symb" : (p0 @ "symbols") @; "Symbol" )%ty
      : ty
+ta = λ v : tm, (v > 0)%E
+     : tm → tm
+
+Argument scope is [expr_scope]
+tb = λ v : tm, (v > 0)%E
+     : tm → tm
+
+Argument scope is [expr_scope]
 ν {@ type "A" = (σ2; 1%positive) }
      : vl_
-ν {@ val "a" = pv (vnat 0);
+ν {@ val "a" = pv 0;
   type "A" = (σ2; 1%positive)}
      : vl_
-ν {@ val "a" = pv (vnat 0);
+ν {@ val "a" = pv 0;
   type "A" = (σ2; 1%positive)}
      : vl_
      = TAll TNat (TMu (TAnd (TSing DBNotation.p1) (TSing DBNotation.p0)))

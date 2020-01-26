@@ -27,6 +27,12 @@ Check (p0 @ "A").
 Check (p0 @ "A" @ "B" @; "C").
 Check (val "symb" : p0 @ "symbols" @; "Symbol")%ty.
 
+Definition ta v := (0 < v)%E.
+Print ta.
+Definition tb v : tm := (v > 0)%E.
+Print tb.
+Definition tc v := (0 ≥ (v ≥ 0))%E.
+
 Module TestStamped.
 Import typingExInfra.
 Check ν {@ type "A" = (σ1 ; s1) }.
