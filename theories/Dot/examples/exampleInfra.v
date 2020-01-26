@@ -50,8 +50,6 @@ Notation " {@ T1 ; T2 ; .. ; Tn } " :=
 (*                                          (format "{@  T1  ;  ..  ;  T2  ;  Tn  }"): ty_scope. *)
 Close Scope ty_scope.
 
-Check {@ TNat ; TNat ; TNat }%ty.
-
 Notation "'𝐍'" := TNat : ty_scope.
 
 Notation "▶:" := TLater : ty_scope.
@@ -72,8 +70,6 @@ Notation "S →: T" := (TAll S%ty (shift T%ty)) (at level 49, T at level 98, rig
 
 (* Notation "v @ l1 @ .. @ l2 ; l" := (TSel (pself .. (pself (pv v) l1) .. l2) l) *)
 (*                                      (format "v  @  l1  @  ..  @  l2  ;  l", at level 69, l1, l2 at level 60). *)
-(* Check (TSel (pself (pself p0 1) 2) 3). *)
-(* Check (x0 @ 1 @ 2 ; 3). *)
 
 Notation "p @; l" := (TSel p l) (at level 48).
 Notation "v @ l1 @ .. @ l2" := (pself .. (pself v l1) .. l2)
@@ -103,23 +99,6 @@ Notation TUnit := (⊤%ty : ty).
 Notation tUnit := (tv (vnat 0) : tm).
 
 End DBNotation.
-
-Check ν {@ val "a" = pv (vnat 0) }.
-
-Check μ {@ type "A" >: TNat <: TTop }.
-Check μ {@ val "a" : TNat }.
-Check μ {@ type "A" >: TNat <: TTop ; val "a" : TNat ; val "b" : TNat }.
-
-Check vobj {@}.
-Check ν {@ }.
-Check ν {@ val "a" = pv (vnat 0) }.
-Check ν {@ val "a" = pv (vnat 0) ; val "b" = pv (vnat 1) }.
-
-Check (p0 @; "A").
-Check (pself (pself p0 "A") "B" @; "C").
-Check (p0 @ "A").
-Check (p0 @ "A" @ "B" @; "C").
-Check (val "symb" : p0 @ "symbols" @; "Symbol")%ty.
 
 (****************)
 (** AUTOMATION **)

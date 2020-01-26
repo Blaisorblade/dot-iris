@@ -85,11 +85,9 @@ Definition htproj : hterm tm → label → nat → tm := Eval cbv in λ t l, lif
 Definition htskip : hterm tm → hterm tm := liftA1 tskip.
 
 Definition hvar_vl : var → hterm vl := ids_hvl.
-Goal hvar_vl = λ n i, var_vl (n + i). done. Abort.
 
 Definition hvlit : base_lit → hterm vl := λ l, liftA1 vlit (pureS l).
 Notation hvnat n := (hvlit $ lnat n).
-Goal ∀ n, hvnat n = liftA0 (vnat n). done. Abort.
 
 Definition hvabs : (hterm vl → hterm tm) → hterm vl := liftBind vabs.
 
@@ -233,6 +231,10 @@ Notation hx4 := (hx 4).
 Notation hx5 := (hx 5).
 Notation hx6 := (hx 6).
 
+(** Denote a variable by de Bruijn level. Needed in some scenarios, but not
+recommended. *)
+Definition hxm i : hvl := λ j, var_vl (j - i).
+
 Notation hpx n := (hpv (hx n)).
 Notation hp0 := (hpx 0).
 Notation hp1 := (hpx 1).
@@ -258,37 +260,7 @@ Definition htyApp t l T :=
 
 Definition hAnfBind t := hlett: x := t in: htv x.
 
-End hoasNotation.
-
-
-Module tests.
-(** * First test *)
-
-(* ∀ (x : TNat), μ y, x.type ∧ x.type *)
-Definition ex0 := hclose $ hTAll hTNat (λ x, hTMu (λ y, hTAnd (hTSing (hpv x)) (hTSing (hpv y)))).
-Eval cbv in ex0.
-
-Eval cbv -[plus minus] in hTAll.
-Goal hTAll = λ T U i, (TAll (T i) (U (λ x, var_vl (x - S i)) (S i))). done. Abort.
-(* Goal hTAll = λ T U i, (∀ (T i), U (λ x, var_vl (x - S i)) (S i)). done. Abort. *)
-
-Eval cbv in hclose {@ hTNat ; hTNat ; hTNat } %HT.
-
-Definition ex := hclose $ ∀: x : hTNat, hTMu (λ y, hTAnd (hTSing (hpv x)) (hTSing (hpv y))).
-Goal ex = ex0. done. Abort.
-
-Definition ex2 := hclose (λ: f, htv f).
-Eval cbv in ex2.
-Goal ex2 = vabs (tv DBNotation.x0). done. Qed.
-Definition ex3 := hclose (λ:: f x, htapp (htv f) (htv x)).
-Eval cbv in ex3.
-Goal ex3 = tv (vabs (tv (vabs (tapp (tv DBNotation.x1) (tv DBNotation.x0))))). done. Abort.
-
 (* Notation "∀: x .. y , P" := (hTAll x, .. (hTAll y, P) ..)
   (at level 200, x binder, y binder, right associativity,
   format "'[  ' '[  ' ∀:  x  ..  y ']' ,  '/' P ']'") : type_scope. *)
-
-
-End tests.
-
-
+End hoasNotation.

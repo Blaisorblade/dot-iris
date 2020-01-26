@@ -221,10 +221,6 @@ Example clListTypNat Γ :
   Γ u⊢ₜ hclose (clListV' (hclose (htv (hvnat 1)))) : hclose 𝐍.
 Proof. apply clListTyp'. tcrush. Qed.
 
-(* Argh. Variable by de Bruijn level. Not good. *)
-Definition hxm i : hvl := λ j, var_vl (j - i).
-Goal hxm = λ i, ren (λ j, j - i). done. Abort.
-
 (** This typing lemma generalizes over an arbitrary body [hbody], taken as open HOAS terms. To close it,
 we must turn it into a concrete term exactly as [hclListV'] would, which exposes implementation details
 I'd rather not. *)

@@ -22,10 +22,6 @@ Notation s2 := (2 %positive).
 
 Notation "'type' l = ( σ ; s )" := (l, dtysem σ s) (at level 60, l at level 50).
 
-Check ν {@ type "A" = (σ1 ; s1) }.
-Check ν {@ val "a" = pv (vnat 0); type "A" = (σ1 ; s1) }.
-Check ν {@ val "a" = pv (vnat 0) ; type "A" = (σ1 ; s1) }.
-
 (***************)
 (** WEAKENING **)
 (***************)

@@ -1,0 +1,54 @@
+{@ 𝐍;
+𝐍;
+𝐍}%ty
+     : ty
+ν {@ val "a" = pv (vnat 0) }
+     : vl_
+μ {@ type "A" >: 𝐍 <: ⊤ }
+     : ty
+μ {@ val "a" : 𝐍  }
+     : ty
+μ {@ type "A" >: 𝐍 <: ⊤;
+  val "a" : 𝐍 
+  ;
+  val "b" : 𝐍 
+  }
+     : ty
+ν {@}
+     : vl_
+ν {@}
+     : vl_
+ν {@ val "a" = pv (vnat 0) }
+     : vl_
+ν {@ val "a" = pv (vnat 0);
+  val "b" = pv (vnat 1)}
+     : vl_
+p0 @; "A"
+     : ty
+(p0 @ "A" @ "B") @; "C"
+     : ty
+p0 @ "A"
+     : path
+(p0 @ "A" @ "B") @; "C"
+     : ty
+(val "symb" : (p0 @ "symbols") @; "Symbol" )%ty
+     : ty
+ν {@ type "A" = (σ2; 1%positive) }
+     : vl_
+ν {@ val "a" = pv (vnat 0);
+  type "A" = (σ2; 1%positive)}
+     : vl_
+ν {@ val "a" = pv (vnat 0);
+  type "A" = (σ2; 1%positive)}
+     : vl_
+     = TAll TNat (TMu (TAnd (TSing DBNotation.p1) (TSing DBNotation.p0)))
+     : ty
+     = λ (T : nat → ty) (U : (nat → vl_) → nat → ty) (i : nat),
+         TAll (T i) (U (λ x : nat, var_vl (x - S i)) (S i))
+     : hty → (hvl → hty) → hty
+     = TAnd TNat (TAnd TNat (TAnd TNat TTop))
+     : ty
+     = vabs (tv DBNotation.x0)
+     : vl
+     = tv (vabs (tv (vabs (tapp (tv DBNotation.x1) (tv DBNotation.x0)))))
+     : tm
