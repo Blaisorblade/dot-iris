@@ -255,11 +255,7 @@ Section Sec.
     TLater <$> (V :: Γ) ⊨ e : T -∗
     (*─────────────────────────*)
     TLater V :: Γ ⊨ e : T.
-  Proof. by rewrite fmap_cons -(TLater_ctx_sub Γ). Qed.
-
-  Lemma ietp_weaken_ctx {T e Γ1 Γ2} (Hweak : Γ1 <:* Γ2):
-    Γ2 ⊨ e : T -∗ Γ1 ⊨ e : T.
-  Proof. by rewrite -Hweak. Qed.
+  Proof. by rewrite fmap_cons -(ctx_sub_TLater Γ). Qed.
 
   (* Variant of [PT_Mem_I]: not needed here, and we get an extra later :-|, tho it
   matches [T_Mem_E']. Fails now that we allow path members. *)
@@ -290,11 +286,32 @@ Section Sec.
   Qed. *)
   Abort.
 
-  Lemma T_Forall_I' {Γ} T1 T2 e:
+  Lemma T_Forall_I1 {Γ} T1 T2 e:
     TLater (shift T1) :: Γ ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
-  Proof. rewrite -T_Forall_I. f_equiv. iIntros (ρ) "[$ $]". Qed.
+  (* Proof. rewrite -T_Forall_I. f_equiv. iIntros (ρ) "[$ $]". Qed. *)
+  Proof.
+    rewrite -T_Forall_I_Strong. ietp_weaken_ctx.
+    (* by rewrite -(unTLater_ctx_sub (TLater _ :: _)). *)
+    (* apply ietp_weaken_ctx_syn. *)
+    (* exact: (unTLater_ctx_sub_syn (TLater _ :: _)). *)
+  Qed.
+
+  Lemma T_Forall_I2 {Γ} T1 T2 e:
+    TLater (shift T1) :: Γ ⊨ e : T2 -∗
+    (*─────────────────────────*)
+    Γ ⊨ tv (vabs e) : TAll T1 T2.
+  Proof. rewrite -T_Forall_I. ietp_weaken_ctx. Qed.
+
+  Lemma T_Forall_I4 {Γ} T1 T2 e:
+    TLater (shift T1) :: Γ ⊨ e : T2 -∗
+    (*─────────────────────────*)
+    Γ ⊨ tv (vabs e) : TAll T1 T2.
+  Proof.
+    rewrite -T_Forall_I_Strong -(unTLater_ctx_sub (TLater _ :: _)).
+    by rewrite fmap_cons cancel.
+  Qed.
 
   Lemma TAll_Later_Swap0 Γ T U `{SwapPropI Σ}:
     Γ ⊨ TAll (TLater T) U, 0 <: TLater (TAll T U), 0.
