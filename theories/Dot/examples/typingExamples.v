@@ -40,7 +40,7 @@ Proof.
   have Hst: is_stamped_ty (1 + length Γ) g (p0 @; "B").
   by tcrush.
   apply VObj_typed; tcrush. (* Avoid trying TMuI_typed, that's slow. *)
-  apply (dty_typed (p0 @; "B")); tcrush.
+  apply (dty_typed (p0 @; "B")); by wtcrush.
 Qed.
 
 (* Try out fixpoints. *)
@@ -57,7 +57,7 @@ Proof.
   have Hst: is_stamped_ty (1 + length Γ) g (F3 (p0 @; "A")).
   by stcrush.
   apply VObj_typed; tcrush. (* Avoid trying TMuI_typed, that's slow. *)
-  apply (dty_typed (F3 (p0 @; "A"))); by tcrush.
+  apply (dty_typed (F3 (p0 @; "A"))); by wtcrush.
 Qed.
 
 (********************)
@@ -115,7 +115,7 @@ Proof.
     ettrans; first apply TAnd1_stp; tcrush.
   }
   apply VObj_typed; tcrush.
-  by apply (dty_typed TNat); tcrush.
+  by apply (dty_typed TNat); wtcrush.
   cbn; apply (App_typed (T1 := TUnit));
     last eapply (Subs_typed_nocoerce TNat); tcrush.
   tcrush; cbn.
@@ -159,7 +159,7 @@ Example motivEx Γ (Hs1: s1_is_tnat) (Hs2: s2_is_String)
   Γ v⊢ₜ[ g ] systemVal : systemValT.
 Proof.
   apply VObj_typed; tcrush.
-  all: [> apply (dty_typed TNat) | apply (dty_typed String) ]; tcrush.
+  all: [> apply (dty_typed TNat) | apply (dty_typed String) ]; wtcrush.
 Qed.
 
 (* Uh, we can unfold recursive types during construction! Does that allow
@@ -173,11 +173,11 @@ Example motivEx1 Γ (Hs1: s1_is_tnat) (Hs2: s2_is_String)
 Proof.
   apply VObj_typed; tcrush.
   - apply (Subs_typed_nocoerce (μ {@ type "A" >: ⊥ <: TNat})); tcrush.
-    + apply (dty_typed TNat); tcrush.
+    + apply (dty_typed TNat); wtcrush.
     + ettrans;
       [eapply (Mu_stp _ (T := {@ type "A" >: ⊥ <: TNat })%ty 0)|]; tcrush.
   - apply (Subs_typed_nocoerce (μ {@ type "B" >: ⊥ <: ⊤})); tcrush.
-    + apply (dty_typed String); tcrush.
+    + apply (dty_typed String); wtcrush.
     + ettrans;
       [eapply (Mu_stp _ (T := {@ type "B" >: ⊥ <: ⊤ })%ty 0)|]; tcrush.
 Qed.
@@ -278,7 +278,7 @@ Example boolImplTyp Γ (Hst : s1_is_ift_ext):
   Γ v⊢ₜ[ g ] tv boolImplV : boolImplT.
 Proof.
   apply (Subs_typed_nocoerce boolImplTConcr).
-  tcrush; by [apply (dty_typed IFT); tcrush| exact: Var_typed'].
+  tcrush; by [apply (dty_typed IFT); wtcrush| exact: Var_typed'].
   tcrush; rewrite iterate_0.
   - ettrans; first apply TAnd1_stp; tcrush.
   - ettrans; first apply TAnd2_stp; tcrush.
@@ -314,7 +314,7 @@ Example boolImplTypAlt Γ (Hst : s1_is_ift_ext):
 Proof.
   apply (Subs_typed_nocoerce boolImplT0);
     last (tcrush; ettrans; first apply TAnd1_stp; tcrush).
-  tcrush; first (by (apply (dty_typed IFT); tcrush)).
+  tcrush; first by apply (dty_typed IFT); wtcrush.
   - eapply Subs_typed_nocoerce; [apply iftTrueTyp|apply SubIFT_LaterP0Bool].
   - eapply Subs_typed_nocoerce; [apply iftFalseTyp|apply SubIFT_LaterP0Bool].
 Qed.
@@ -360,9 +360,9 @@ Proof.
   apply /extr_dtysem_stamped; by [apply: get_s1_is_ift|].
 
   apply TAllConCov_stp; stcrush.
-  { ettrans. exact: packBooleanLB. tcrush. }
+  { ettrans. exact: packBooleanLB. wtcrush. }
   apply TLaterCov_stp, TAllConCov_stp; stcrush.
-  - ettrans. exact: packBooleanLB. tcrush.
+  - ettrans. exact: packBooleanLB. wtcrush.
   - eapply TLaterCov_stp, Trans_stp.
     exact: packBooleanUB. tcrush.
 Qed.

@@ -67,8 +67,11 @@ Hint Extern 5 (is_stamped_dm _ _ _) => try_once is_stamped_weaken_dm : core.
 Hint Extern 5 (is_stamped_ty _ _ _) => progress cbn : core.
 
 (** [tcrush] is the safest automation around. *)
-Ltac tcrush := repeat typconstructor; stcrush; try solve [ done |
+Ltac tcrush := repeat first [ eassumption | reflexivity | typconstructor | stcrush ].
+Ltac wtcrush := repeat first [fast_done | typconstructor | stcrush]; try solve [ done |
   first [
+    (* by eauto 3 using is_stamped_TLater_n, is_stamped_ren1_ty, is_stamped_ren1_path *)
+    by eauto 3 using is_stamped_ren1_ty |
     try_once extraction_weaken |
     try_once is_stamped_weaken_dm |
     try_once is_stamped_weaken_ty ]; eauto ].
@@ -85,6 +88,33 @@ Hint Extern 10 => try_once Trans_stp : core.
 Hint Resolve is_stamped_idsσ_ren : core.
 
 Ltac ettrans := eapply Trans_stp.
+
+Ltac lNext := ettrans; first apply TAnd2_stp; tcrush.
+Ltac lThis := ettrans; first apply TAnd1_stp; tcrush.
+
+(* Copy of the one from unary_lr. Maybe move again back elsewhere. *)
+Definition label_of_ty T : option label :=
+  match T with
+  | TTMem l _ _ => Some l
+  | TVMem l _ => Some l
+  | _ => None
+  end.
+
+Ltac lookup :=
+  lazymatch goal with
+  | |- _ v⊢ₜ[ _ ] ?T1, _ <: ?T2, _ =>
+    let T1' := eval hnf in T1 in
+    match T1' with
+    | (TAnd ?T11 ?T12) =>
+      (* first [unify (label_of_ty T11) (label_of_ty T2); lThis | lNext] *)
+      let ls := eval cbv in (label_of_ty T11, label_of_ty T2) in
+      match ls with
+      | (Some ?l1, Some ?l1) => lThis
+      | (Some ?l1, Some ?l2) => lNext
+      end
+    end
+  end.
+Ltac ltcrush := tcrush; repeat lookup.
 
 (*******************)
 (** DERIVED RULES **)
@@ -107,12 +137,43 @@ Lemma Var_typed' Γ x T1 T2 :
   Γ v⊢ₜ[ g ] tv (var_vl x) : T2.
 Proof. intros; subst; tcrush. Qed.
 
+Lemma Var0_typed Γ T :
+  Γ !! 0 = Some T →
+  (*──────────────────────*)
+  Γ v⊢ₜ[ g ] tv (var_vl 0) : T.
+Proof. intros; eapply Var_typed'; by rewrite ?hsubst_id. Qed.
+
 Lemma TMuE_typed' Γ v T1 T2:
   Γ v⊢ₜ[ g ] tv v: TMu T1 →
   T2 = T1.|[v/] →
   (*──────────────────────*)
   Γ v⊢ₜ[ g ] tv v: T2.
 Proof. intros; subst; auto. Qed.
+
+Lemma Bind1 Γ T1 T2 i:
+  is_stamped_ty (S (length Γ)) g T1 → is_stamped_ty (length Γ) g T2 →
+  iterate TLater i T1 :: Γ v⊢ₜ[g] T1, i <: shift T2, i →
+  Γ v⊢ₜ[g] μ T1, i <: T2, i.
+Proof.
+  intros Hus1 Hus2 Hsub.
+  ettrans. exact: (Mu_stp_mu Hsub).
+  exact: Mu_stp.
+Qed.
+
+Lemma Bind2 Γ T1 T2 i:
+  is_stamped_ty (length Γ) g T1 → is_stamped_ty (S (length Γ)) g T2 →
+  iterate TLater i (shift T1) :: Γ v⊢ₜ[g] shift T1, i <: T2, i →
+  Γ v⊢ₜ[g] T1, i <: μ T2, i.
+Proof.
+  intros Hus1 Hus2 Hsub.
+  ettrans; last apply (Mu_stp_mu Hsub); [exact: Stp_mu | wtcrush].
+Qed.
+
+Lemma Bind1' Γ T1 T2:
+  is_stamped_ty (S (length Γ)) g T1 → is_stamped_ty (length Γ) g T2 →
+  T1 :: Γ v⊢ₜ[g] T1, 0 <: shift T2, 0 →
+  Γ v⊢ₜ[g] μ T1, 0 <: T2, 0.
+Proof. intros; exact: Bind1. Qed.
 
 Lemma Subs_typed_nocoerce T1 T2 {Γ e} :
   Γ v⊢ₜ[ g ] e : T1 →
@@ -147,6 +208,13 @@ Lemma Var_typed_sub Γ x T1 T2 :
   (*──────────────────────*)
   Γ v⊢ₜ[ g ] tv (var_vl x) : T2.
 Proof. intros; eapply Subs_typed_nocoerce; by [exact: Var_typed|]. Qed.
+
+Lemma Var0_typed_sub Γ T1 T2 :
+  Γ !! 0 = Some T1 →
+  Γ v⊢ₜ[ g ] T1, 0 <: T2, 0 →
+  (*──────────────────────*)
+  Γ v⊢ₜ[ g ] tv (var_vl 0) : T2.
+Proof. intros. by eapply Var_typed_sub; [| rewrite ?hsubst_id]. Qed.
 
 Lemma LSel_stp' Γ U {p l L i}:
   is_stamped_ty (length Γ) g L →
@@ -263,3 +331,7 @@ Qed.
 End examples_lemmas.
 
 Hint Resolve is_stamped_pvar is_stamped_pvars Subs_typed_nocoerce : core.
+
+Ltac var := exact: Var0_typed || exact: Var_typed'.
+Ltac varsub := (eapply Var0_typed_sub || eapply Var_typed_sub); first done.
+Ltac mltcrush := tcrush; try ((apply Bind1' || apply Bind1); tcrush); repeat lookup.
