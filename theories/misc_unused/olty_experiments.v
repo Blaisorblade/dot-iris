@@ -106,7 +106,7 @@ Record dlty Σ := Dlty {
   dlty_persistent ρ d :> Persistent (dlty_car ρ d);
 }.
 Global Arguments Dlty {_} _%I _ {_}.
-Global Arguments dlty_car {_} _ _ _ : simpl never.
+Global Arguments dlty_car {_} !_ _ _ /.
 Global Arguments dlty_label {_} _ /.
 Global Existing Instance dlty_persistent.
 
@@ -178,17 +178,16 @@ Section SemTypes.
   Lemma oTSel_pv w (l : label) args ρ v :
     oTSel (pv w) l args ρ v ≡
       (∃ ψ d, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n[ 0 ] ψ ∧ ▷ □ ψ vnil v)%I.
-  Proof. by rewrite /lty_car/= /vopen path_wp_pv. Qed.
+  Proof. by rewrite /= path_wp_pv. Qed.
 
   Lemma Sub_Sel Γ L U va l i:
     Γ ⊨ tv va : oTTMem l L U, i -∗
     Γ ⊨ oLater L, i <: oTSel (pv va) l, i.
   Proof.
     iIntros "#Hva !>" (ρ v) "#Hg #HvL".
-    iSpecialize ("Hva" with "Hg"). rewrite /= wp_value_inv'.
+    iSpecialize ("Hva" with "Hg"). rewrite /= wp_value_inv' path_wp_pv.
     iNext.
     iDestruct "Hva" as (d Hl ψ) "#[Hlψ [#HLψ #HψU]]".
-    rewrite oTSel_pv.
     iExists ψ, d; repeat iSplit => //. by iApply "HLψ".
   Qed.
 
@@ -197,10 +196,9 @@ Section SemTypes.
     Γ ⊨ oTSel (pv va) l, i <: oLater U, i.
   Proof.
     iIntros "#Hva !>" (ρ v) "#Hg #Hψ".
-    iSpecialize ("Hva" with "Hg"); rewrite /= wp_value_inv'.
+    iSpecialize ("Hva" with "Hg"); rewrite /= wp_value_inv' path_wp_pv.
     iNext.
     iDestruct "Hva" as (d Hl ψ) "#[Hlψ [#HLψ #HψU]]".
-    rewrite oTSel_pv.
     iDestruct "Hψ" as (ψ1 d1 Hva) "[Hγ #Hψ1v]".
     objLookupDet. iDestruct (dm_to_type_agree d _ _ _ vnil v with "Hlψ Hγ") as "#Hag".
     iApply "HψU" => //. iNext. by iRewrite "Hag".
@@ -316,7 +314,7 @@ Section with_lty.
     olty0 (λ ρ v, alias_pathsI p.|[ρ] (pv v)).
 
   Lemma sem_psingleton_eq_1 p ρ v : oClose (oPSing p) ρ v ≡ ⌜ path_wp_pure p.|[ρ] (eq v) ⌝%I.
-  Proof. by rewrite /lty_car/=/vopen /alias_pathsI alias_paths_pv_eq_1. Qed.
+  Proof. by rewrite /=/alias_pathsI alias_paths_pv_eq_1. Qed.
 
   Lemma sem_psingleton_eq_2 p ρ v : oClose (oPSing p) ρ v ≡ path_wp p.|[ρ] (λ w, ⌜ v = w ⌝ )%I.
   Proof. by rewrite sem_psingleton_eq_1 path_wp_pureable. Qed.

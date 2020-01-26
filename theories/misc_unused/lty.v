@@ -14,6 +14,9 @@ Import prelude.
 
 Module Type Lty (Import VS: VlSortsFullSig) (Import LVS : LiftWp VS).
 
+Global Arguments vopen /.
+Global Arguments vclose /.
+
 Section lty_limit_preserving.
   Context `{Σ : gFunctors}.
 
@@ -38,7 +41,7 @@ Record lty Σ := Lty {
   lty_persistent v : Persistent (lty_car v);
 }.
 Global Arguments Lty {_} _%I {_}.
-Global Arguments lty_car {_} _ _: simpl never.
+Global Arguments lty_car {_} !_ _ /.
 Bind Scope lty_scope with lty.
 Delimit Scope lty_scope with T.
 Global Existing Instance lty_persistent.
@@ -96,7 +99,7 @@ Section lty_ofe.
 
   Lemma pack_lty_car_id τ : pack (lty_car τ) ≡ τ.
   Proof.
-    move: τ => [τ Hp] v; rewrite /lty_car/=.
+    move: τ => [τ Hp] v /=.
     apply: intuitionistic_intuitionistically.
   Qed.
 
@@ -106,7 +109,7 @@ Section lty_ofe.
    *)
   Lemma lty_eq τ1 τ2: lty_car τ1 = lty_car τ2 → τ1 = τ2.
   Proof.
-    move: τ1 τ2 => [φ1 Hp1] [φ2 Hp2]. rewrite /lty_car /=.
+    move: τ1 τ2 => [φ1 Hp1] [φ2 Hp2]. rewrite /lty_car.
     intros ->. f_equal; exact: ProofIrrelevance.proof_irrelevance.
   Qed.
 End lty_ofe.
@@ -157,7 +160,7 @@ Section olty_subst.
   Global Instance hsubstLemmas_olty : HSubstLemmas vl (olty Σ i).
   Proof.
     split => [T|//|s1 s2 T]; apply olty_eq => args ρ v.
-    all: by rewrite /hsubst /hsubst_olty /lty_car/= ?hsubst_id -?hsubst_comp.
+    all: by rewrite /hsubst/= ?hsubst_id -?hsubst_comp.
   Qed.
 
   Lemma olty_subst_compose_ind τ args ρ1 ρ2 v: τ.|[ρ1] args ρ2 v ⊣⊢ τ args (ρ1 >> ρ2) v.
@@ -219,6 +222,7 @@ Section olty_ofe_2.
   Definition oOr τ1 τ2 : olty Σ i := Olty (λ args ρ v, τ1 args ρ v ∨ τ2 args ρ v)%I.
 
   Definition eLater n (φ : hoEnvD Σ i) : hoEnvD Σ i := (λ args ρ v, ▷^n φ args ρ v)%I.
+  Global Arguments eLater /.
   Definition oLater τ := Olty (eLater 1 τ).
 
   Lemma oLater_eq τ args ρ v : oLater τ args ρ v = (▷ τ args ρ v)%I.
@@ -276,9 +280,7 @@ Section typing.
 
   Lemma iterate_TLater_later i τ ρ v:
     oClose (iterate oLater i τ) ρ v ≡ vclose (eLater i τ) ρ v.
-  Proof.
-    elim: i => [//|i IHi]. by rewrite iterate_S oLater_eq IHi.
-  Qed.
+  Proof. elim: i => [//|i IHi]. by rewrite iterate_S /= IHi. Qed.
 
   Lemma T_Var Γ x τ
     (Hx : Γ !! x = Some τ):
