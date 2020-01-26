@@ -51,7 +51,7 @@ Section ex.
 	  val "n" = pv (vnat 2)
   }.
 
-  Lemma sHasA : Hs -∗ def_interp_tmem ⟦ TBot ⟧ ⟦ TNat ⟧ ids (dtysem [] s).
+  Lemma sHasA : Hs -∗ def_interp_tmem ⟦ ⊥ ⟧ ⟦ 𝐍 ⟧ ids (dtysem [] s).
   Proof.
     iIntros; cbn; repeat (repeat iExists _; repeat iSplit; try done).
     by iApply dm_to_type_intro.
@@ -61,7 +61,7 @@ Section ex.
   Qed.
 
   (** Yes, v has a valid type member. *)
-  Lemma vHasA0: Hs -∗ ∀ ρ, ⟦ TTMem "A" TBot TNat ⟧ ρ v.[ρ].
+  Lemma vHasA0: Hs -∗ ∀ ρ, ⟦ type "A" >: ⊥ <: TNat ⟧ ρ v.[ρ].
   Proof.
     iIntros "#Hs" (ρ); iExists _; iSplit; by [eauto | iApply sHasA].
   Qed.
@@ -81,7 +81,7 @@ Section ex.
     by rewrite wp_value_inv'.
   Qed.
 
-  Lemma vHasA0typ: Hs -∗ [] ⊨ tv v : TTMem "A" TBot TNat.
+  Lemma vHasA0typ: Hs -∗ [] ⊨ tv v : type "A" >: ⊥ <: 𝐍.
   Proof. rewrite -ietp_value. iApply vHasA0. Qed.
 
   Definition vTyp1 := μ {@
