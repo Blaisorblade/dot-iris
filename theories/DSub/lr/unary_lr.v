@@ -135,20 +135,20 @@ Section logrel.
   Global Arguments ietp /.
   Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 
-  Definition step_indexed_ietp Γ T e i: iProp Σ :=
+  Definition ietpi Γ T e i: iProp Σ :=
     (□∀ ρ, ⟦Γ⟧* ρ → ▷^i ⟦T⟧ₑ ρ (e.|[ρ]))%I.
-  Global Arguments step_indexed_ietp /.
-  Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
+  Global Arguments ietpi /.
+  Notation "Γ ⊨ e : T , i" := (ietpi Γ T e i) (at level 74, e, T at next level).
 
   (** Indexed Subtyping. Defined on closed values. We must require closedness
       explicitly, since closedness now does not follow from being well-typed later. *)
-  Definition step_indexed_ivstp Γ T1 T2 i j: iProp Σ :=
+  Definition istpi Γ T1 T2 i j: iProp Σ :=
     (□∀ ρ v, ⟦Γ⟧* ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
-  Global Arguments step_indexed_ivstp /.
+  Global Arguments istpi /.
 
   Global Instance ietp_persistent Γ T e : Persistent (ietp Γ T e) := _.
-  Global Instance step_indexed_ietp_persistent Γ T e i : Persistent (step_indexed_ietp Γ T e i) := _.
-  Global Instance step_indexed_ivstp_persistent Γ T1 T2 i j : Persistent (step_indexed_ivstp Γ T1 T2 i j) := _.
+  Global Instance ietpi_persistent Γ T e i : Persistent (ietpi Γ T e i) := _.
+  Global Instance istpi_persistent Γ T1 T2 i j : Persistent (istpi Γ T1 T2 i j) := _.
 End logrel.
 
 Notation "⟦ T ⟧ₑ" := (interp_expr ⟦ T ⟧).
@@ -157,9 +157,9 @@ Notation "⟦ Γ ⟧*" := (interp_env Γ).
 (** Expression typing *)
 Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 (** Indexed expression typing *)
-Notation "Γ ⊨ e : T , i" := (step_indexed_ietp Γ T e i) (at level 74, e, T at next level).
+Notation "Γ ⊨ e : T , i" := (ietpi Γ T e i) (at level 74, e, T at next level).
 
-Notation "Γ '⊨' '[' T1 ',' i ']' '<:' '[' T2 ',' j ']'" := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2 at next level).
+Notation "Γ '⊨' '[' T1 ',' i ']' '<:' '[' T2 ',' j ']'" := (istpi Γ T1 T2 i j) (at level 74, T1, T2 at next level).
 
 Section logrel_lemmas.
   Context `{!dlangG Σ}.

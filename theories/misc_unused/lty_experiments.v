@@ -68,9 +68,9 @@ Definition test_judge_me2 Γ t τ := Γ s⊨ t ⋅: τ.
 Program Definition nosubj_judgment_to_judgment {Σ} : nosubj_judgment Σ → judgment Σ := λ φ, φ.
 
 Definition ivstp τ1 τ2 : nosubj_judgment Σ := (λ ρ, ∀ v, oClose τ1 ρ v → oClose τ2 ρ v)%I.
-Program Definition step_indexed_ivstp τ1 i1 τ2 i2 := nosubj_judgment_to_judgment (Σ := Σ)
+Program Definition istpi τ1 i1 τ2 i2 := nosubj_judgment_to_judgment (Σ := Σ)
   (λ ρ, ∀ v, ▷^i1 oClose τ1 ρ v → ▷^i2 oClose τ2 ρ v)%I.
-Notation "τ1 , i1 <: τ2 , i2" := (step_indexed_ivstp τ1 i1 τ2 i2) (at level 73, τ2, i1, i2 at next level).
+Notation "τ1 , i1 <: τ2 , i2" := (istpi τ1 i1 τ2 i2) (at level 73, τ2, i1, i2 at next level).
 
 Lemma equiv_vstp Γ τ1 τ2 i1 i2: Γ s⊨ τ1 , i1 <: τ2 , i2 ⊣⊢
     (□∀ ρ v, env_oltyped Γ ρ → ▷^i1 oClose τ1 ρ v → ▷^i2 oClose τ2 ρ v)%I.

@@ -266,10 +266,10 @@ Section logrel.
 
       And that forces using the same implication in the logical relation
       (unlike I did originally). *)
-  Definition step_indexed_ivstp Γ T1 T2 i j: iProp Σ :=
+  Definition istpi Γ T1 T2 i j: iProp Σ :=
     □∀ ρ v, ⟦Γ⟧* ρ → ▷^i ⟦T1⟧ ρ v → ▷^j ⟦T2⟧ ρ v.
 
-  Global Arguments step_indexed_ivstp /.
+  Global Arguments istpi /.
 
   Definition iptp Γ T p i: iProp Σ :=
     □∀ ρ, ⟦Γ⟧* ρ →
@@ -282,7 +282,7 @@ Section logrel.
   Global Instance idtp_persistent Γ T l d: IntoPersistent' (idtp Γ T l d) | 0 := _.
   Global Instance idstp_persistent Γ T ds: IntoPersistent' (idstp Γ T ds) | 0 := _.
   Global Instance ietp_persistent Γ T e : IntoPersistent' (ietp Γ T e) | 0 := _.
-  Global Instance step_indexed_ivstp_persistent Γ T1 T2 i j : IntoPersistent' (step_indexed_ivstp Γ T1 T2 i j) | 0 := _.
+  Global Instance istpi_persistent Γ T1 T2 i j : IntoPersistent' (istpi Γ T1 T2 i j) | 0 := _.
   Global Instance iptp_persistent Γ T p i : IntoPersistent' (iptp Γ T p i) | 0 := _.
 End logrel.
 
@@ -299,7 +299,7 @@ Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 
 Notation "Γ ⊨p p : T , i" := (iptp Γ T p i) (at level 74, p, T, i at next level).
 
-Notation "Γ ⊨ T1 , i <: T2 , j " := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2, i, j at next level).
+Notation "Γ ⊨ T1 , i <: T2 , j " := (istpi Γ T1 T2 i j) (at level 74, T1, T2, i, j at next level).
 
 Import stamp_transfer.
 (** Single-definition typing *)
@@ -309,7 +309,7 @@ Notation "Γ ⊨ds[ gφ  ] ds : T" := (wellMappedφ gφ → idstp Γ T ds)%I (at
 (** Expression typing *)
 Notation "Γ ⊨[ gφ  ] e : T" := (wellMappedφ gφ → ietp Γ T e)%I (at level 74, e, T at next level).
 Notation "Γ ⊨p[ gφ  ] p : T , i" := (wellMappedφ gφ → iptp Γ T p i)%I (at level 74, p, T, i at next level).
-Notation "Γ ⊨[ gφ  ] T1 , i <: T2 , j" := (wellMappedφ gφ → step_indexed_ivstp Γ T1 T2 i j)%I (at level 74, T1, T2, i, j at next level).
+Notation "Γ ⊨[ gφ  ] T1 , i <: T2 , j" := (wellMappedφ gφ → istpi Γ T1 T2 i j)%I (at level 74, T1, T2, i, j at next level).
 
 Section logrel_lemmas.
   Context `{!dlangG Σ}.

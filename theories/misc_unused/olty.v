@@ -222,24 +222,24 @@ Section judgments.
   Context `{dlangG Σ}.
   Implicit Types (τ : olty Σ 0).
 
-  Definition step_indexed_ivstp Γ τ1 τ2 i j: iProp Σ :=
+  Definition istpi Γ τ1 τ2 i j: iProp Σ :=
     □∀ ρ v,
       ⟦Γ⟧*ρ → ▷^i oClose τ1 ρ v → ▷^j oClose τ2 ρ v.
-  Global Arguments step_indexed_ivstp /.
+  Global Arguments istpi /.
 
   Definition ietp Γ τ e : iProp Σ :=
     □∀ ρ, ⟦Γ⟧* ρ → interp_expr τ ρ (e.|[ρ]).
   Global Arguments ietp /.
 
-  Definition step_indexed_ietp Γ τ e i: iProp Σ :=
+  Definition ietpi Γ τ e i: iProp Σ :=
     □∀ ρ, ⟦Γ⟧* ρ → interp_expr (eLater i τ) ρ (e.|[ρ]).
-  Global Arguments step_indexed_ietp /.
+  Global Arguments ietpi /.
 
 End judgments.
 
 Notation "Γ ⊨ e : τ" := (ietp Γ τ e) (at level 74, e, τ at next level).
-Notation "Γ ⊨ e : τ , i" := (step_indexed_ietp Γ τ e i) (at level 74, e, τ at next level).
-Notation "Γ ⊨ T1 , i <: T2 , j " := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2, i, j at next level).
+Notation "Γ ⊨ e : τ , i" := (ietpi Γ τ e i) (at level 74, e, τ at next level).
+Notation "Γ ⊨ T1 , i <: T2 , j " := (istpi Γ T1 T2 i j) (at level 74, T1, T2, i, j at next level).
 
 Section typing.
   Context `{dlangG Σ}.
