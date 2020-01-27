@@ -16,7 +16,7 @@ Implicit Types (Σ : gFunctors).
   - Redefining judgments will let us... do what?
     Prove theorems about judgments? What is that good for?
     - Stating the lemmas without mentioning Γ?
-    - Using common notation [Γ ⊨ J] for judgments?
+    - Using common notation [Γ s⊨ J] for judgments?
     Neither seems so compelling.
   - What would be useful would be to prepare for HK-D<:
     while reusing as much as possible.
@@ -49,7 +49,7 @@ Program Definition subj_judgment_to_judgment {Σ s} : subj_judgment Σ s → jud
 
 Definition judgment_holds (Γ : sCtx Σ) (J : judgment Σ): iProp Σ :=
   □∀ ρ, env_oltyped Γ ρ → J ρ.
-Notation "Γ ⊨ J" := (judgment_holds Γ J) (at level 74, J at next level).
+Notation "Γ s⊨ J" := (judgment_holds Γ J) (at level 74, J at next level).
 Global Arguments judgment_holds /.
 
 Program Definition ivtp τ v : judgment Σ := subj_judgment_to_judgment (v, oClose τ).
@@ -57,14 +57,14 @@ Global Arguments ivtp /.
 
 (* DOT/D<: judgments are indexed by [⋅]. *)
 Notation "v v⋅: τ" := (ivtp τ v) (at level 73).
-Local Definition test_judge_me Γ v τ := Γ ⊨ v v⋅: τ.
+Local Definition test_judge_me Γ v τ := Γ s⊨ v v⋅: τ.
 
 Definition ietp τ t : judgment Σ := subj_judgment_to_judgment (t, interp_expr τ).
 Global Arguments ietp /.
 
 (* DOT/D<: judgments are indexed by [⋅]. *)
 Notation "t ⋅: τ" := (ietp τ t) (at level 73).
-Definition test_judge_me2 Γ t τ := Γ ⊨ t ⋅: τ.
+Definition test_judge_me2 Γ t τ := Γ s⊨ t ⋅: τ.
 Program Definition nosubj_judgment_to_judgment {Σ} : nosubj_judgment Σ → judgment Σ := λ φ, φ.
 
 Definition ivstp τ1 τ2 : nosubj_judgment Σ := (λ ρ, ∀ v, oClose τ1 ρ v → oClose τ2 ρ v)%I.
@@ -72,7 +72,7 @@ Program Definition step_indexed_ivstp τ1 i1 τ2 i2 := nosubj_judgment_to_judgme
   (λ ρ, ∀ v, ▷^i1 oClose τ1 ρ v → ▷^i2 oClose τ2 ρ v)%I.
 Notation "τ1 , i1 <: τ2 , i2" := (step_indexed_ivstp τ1 i1 τ2 i2) (at level 73, τ2, i1, i2 at next level).
 
-Lemma equiv_vstp Γ τ1 τ2 i1 i2: Γ ⊨ τ1 , i1 <: τ2 , i2 ⊣⊢
+Lemma equiv_vstp Γ τ1 τ2 i1 i2: Γ s⊨ τ1 , i1 <: τ2 , i2 ⊣⊢
     (□∀ ρ v, env_oltyped Γ ρ → ▷^i1 oClose τ1 ρ v → ▷^i2 oClose τ2 ρ v)%I.
 Proof.
   iSplit; [iIntros "#H /= !>" (??) "#Hg" |
@@ -80,7 +80,7 @@ Proof.
   all: iApply ("H" with "Hg").
 Qed.
 
-Lemma andstp1 Γ τ1 τ2 i : Γ ⊨ oAnd τ1 τ2 , i <: τ1 , i.
+Lemma andstp1 Γ τ1 τ2 i : Γ s⊨ oAnd τ1 τ2 , i <: τ1 , i.
 Proof.
   rewrite equiv_vstp /=. by iIntros "!>" (??) "#Hg #[? ?]".
 Qed.
@@ -112,15 +112,15 @@ Global Existing Instance dlty_persistent.
 
 Definition idtp `{!dlangG Σ} Γ l (φ : dlty Σ) d : iProp Σ :=
   (⌜ l = dlty_label φ ⌝ ∧
-    □∀ ρ, ⟦Γ⟧* ρ → dlty_car φ ρ d.|[ρ])%I.
+    □∀ ρ, s⟦Γ⟧* ρ → dlty_car φ ρ d.|[ρ])%I.
 Global Arguments idtp /.
-Notation "Γ ⊨ { l := d  } : T" := (idtp Γ l T d) (at level 64, d, l, T at next level).
+Notation "Γ s⊨ { l := d  } : T" := (idtp Γ l T d) (at level 64, d, l, T at next level).
 
 Definition iptp `{!dlangG Σ} Γ (τ : olty Σ 0) p i: iProp Σ :=
-  □∀ ρ, ⟦Γ⟧* ρ -∗
+  □∀ ρ, s⟦Γ⟧* ρ -∗
     ▷^i path_wp (p.|[ρ]) (λ v, oClose τ ρ v).
 
-Notation "Γ ⊨p p : τ , i" := (iptp Γ τ p i) (at level 74, p, τ, i at next level).
+Notation "Γ s⊨p p : τ , i" := (iptp Γ τ p i) (at level 74, p, τ, i at next level).
 
 Section SemTypes.
   Context `{HdotG: dlangG Σ}.
@@ -181,8 +181,8 @@ Section SemTypes.
   Proof. by rewrite /= path_wp_pv. Qed.
 
   Lemma Sub_Sel Γ L U va l i:
-    Γ ⊨ tv va : oTTMem l L U, i -∗
-    Γ ⊨ oLater L, i <: oTSel (pv va) l, i.
+    Γ s⊨ tv va : oTTMem l L U, i -∗
+    Γ s⊨ oLater L, i <: oTSel (pv va) l, i.
   Proof.
     iIntros "#Hva !>" (ρ v) "#Hg #HvL".
     iSpecialize ("Hva" with "Hg"). rewrite /= wp_value_inv' path_wp_pv.
@@ -192,8 +192,8 @@ Section SemTypes.
   Qed.
 
   Lemma Sel_Sub Γ L U va l i:
-    Γ ⊨ tv va : oTTMem l L U, i -∗
-    Γ ⊨ oTSel (pv va) l, i <: oLater U, i.
+    Γ s⊨ tv va : oTTMem l L U, i -∗
+    Γ s⊨ oTSel (pv va) l, i <: oLater U, i.
   Proof.
     iIntros "#Hva !>" (ρ v) "#Hg #Hψ".
     iSpecialize ("Hva" with "Hg"); rewrite /= wp_value_inv' path_wp_pv.
@@ -211,8 +211,8 @@ Section SemTypes.
       (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ψ ∧ □ ψ v)%I).
 
   Lemma Sub_Sel2 Γ L U va l i:
-    Γ ⊨ tv va : oTTMem l L U, i -∗
-    Γ ⊨ oLater L, i <: oLater (sem_sel (pv va) l), i.
+    Γ s⊨ tv va : oTTMem l L U, i -∗
+    Γ s⊨ oLater L, i <: oLater (sem_sel (pv va) l), i.
   Proof.
     iIntros "/= #[% #Hva] !>" (ρ v Hclv) "#Hg #[_ HvL]". move: H => Hclva. iFrame (Hclv).
     iSpecialize ("Hva" with "Hg"); rewrite wp_value_inv'.
@@ -225,8 +225,8 @@ Section SemTypes.
   Qed.
 
   Lemma Sel_Sub2_Failed Γ L U va l i:
-    Γ ⊨ tv va : oTTMem l L U, i -∗
-    Γ ⊨ oLater ((sem_sel (pv va) l)), i <: oLater U, i.
+    Γ s⊨ tv va : oTTMem l L U, i -∗
+    Γ s⊨ oLater ((sem_sel (pv va) l)), i <: oLater U, i.
   Proof.
     iIntros "/= #[% #Hva] !>" (ρ v Hclv) "#Hg #[$ #[_ Hψ]]".
     iSpecialize ("Hva" with "Hg"); rewrite wp_value_inv'.
@@ -273,10 +273,10 @@ Section Sec2.
   Qed.
 
   Lemma D_Typ_Abs Γ T L U s σ l :
-    Γ ⊨ T, 1 <: U, 1 -∗
-    Γ ⊨ L, 1 <: T, 1 -∗
+    Γ s⊨ T, 1 <: U, 1 -∗
+    Γ s⊨ L, 1 <: T, 1 -∗
     s ↝[ σ ] T -∗
-    Γ ⊨ { l := dtysem σ s } : oDTMem l L U.
+    Γ s⊨ { l := dtysem σ s } : oDTMem l L U.
   Proof.
     iIntros "#HTU #HLT #Hs /="; iSplit => //.
     iIntros "!>" (ρ) "#Hg /=".
@@ -291,7 +291,7 @@ Section Sec2.
 
   Lemma D_Typ Γ (τ : olty Σ 0) s σ l:
     s ↝[ σ ] τ -∗
-    Γ ⊨ { l := dtysem σ s } : oDTMem l τ τ.
+    Γ s⊨ { l := dtysem σ s } : oDTMem l τ τ.
   Proof. iIntros "#Hs"; iApply D_Typ_Abs; by [| iIntros "!> **"]. Qed.
 End Sec2.
 
@@ -320,8 +320,8 @@ Section with_lty.
   Proof. by rewrite sem_psingleton_eq_1 path_wp_pureable. Qed.
 
   Lemma singleton_aliasing Γ p q ρ i :
-    Γ ⊨p p : oPSing q, i -∗
-    ⟦ Γ ⟧* ρ -∗ ▷^i alias_pathsI p.|[ρ] q.|[ρ].
+    Γ s⊨p p : oPSing q, i -∗
+    s⟦ Γ ⟧* ρ -∗ ▷^i alias_pathsI p.|[ρ] q.|[ρ].
   Proof.
     iIntros "#Hep #Hg". iSpecialize ("Hep" with "Hg").
     iNext i; iDestruct "Hep" as %Hep; iIntros "!%".
@@ -329,8 +329,8 @@ Section with_lty.
   Qed.
 
   Lemma singleton_self Γ τ p i :
-    Γ ⊨p p : τ, i -∗
-    Γ ⊨p p : oPSing p, i.
+    Γ s⊨p p : τ, i -∗
+    Γ s⊨p p : oPSing p, i.
   Proof.
     iIntros "#Hep !>" (ρ) "Hg". iSpecialize ("Hep" with "Hg"). iNext.
     iDestruct (path_wp_eq with "Hep") as (v Hpv) "_".
@@ -338,17 +338,17 @@ Section with_lty.
   Qed.
 
   Lemma iptp2ietp Γ τ p :
-    Γ ⊨p p : τ, 0 -∗ Γ ⊨ path2tm p : τ.
+    Γ s⊨p p : τ, 0 -∗ Γ s⊨ path2tm p : τ.
   Proof.
     iIntros "#Hep !>" (ρ) "#Hg /="; rewrite path2tm_subst.
     by iApply (path_wp_to_wp with "(Hep Hg)").
   Qed.
 
   Lemma T_Sub Γ e (T1 T2 : olty Σ 0) i:
-    Γ ⊨ e : T1 -∗
-    Γ ⊨ T1, 0 <: T2, i -∗
+    Γ s⊨ e : T1 -∗
+    Γ s⊨ T1, 0 <: T2, i -∗
     (*───────────────────────────────*)
-    Γ ⊨ iterate tskip i e : T2.
+    Γ s⊨ iterate tskip i e : T2.
   Proof.
     iIntros "/= #HeT1 #Hsub !>" (ρ) "#Hg".
     rewrite tskip_subst -wp_bind.
@@ -361,8 +361,8 @@ Section with_lty.
 
   (* XXX Generalize? *)
   Lemma singleton_self_skip Γ τ p i :
-    Γ ⊨p p : τ, 0 -∗
-    Γ ⊨ iterate tskip i (path2tm p) : oPSing p.
+    Γ s⊨p p : τ, 0 -∗
+    Γ s⊨ iterate tskip i (path2tm p) : oPSing p.
   Proof.
     rewrite singleton_self iptp2ietp.
     iIntros "Hp". iApply (T_Sub with "Hp").
@@ -370,8 +370,8 @@ Section with_lty.
   Qed.
 
   Lemma singleton_sym Γ p q i:
-    Γ ⊨p p : oPSing q, i -∗
-    Γ ⊨p q : oPSing p, i.
+    Γ s⊨p p : oPSing q, i -∗
+    Γ s⊨p q : oPSing p, i.
   Proof.
     iIntros "#Hep !>" (ρ) "#Hg".
     iDestruct (singleton_aliasing with "Hep Hg") as "Hal". iNext i. iDestruct "Hal" as %Hal.
@@ -379,9 +379,9 @@ Section with_lty.
   Qed.
 
   Lemma singleton_trans Γ p q r i:
-    Γ ⊨p p : oPSing q, i -∗
-    Γ ⊨p q : oPSing r, i -∗
-    Γ ⊨p p : oPSing r, i.
+    Γ s⊨p p : oPSing q, i -∗
+    Γ s⊨p q : oPSing r, i -∗
+    Γ s⊨p p : oPSing r, i.
   Proof.
     iIntros "#Hep #Heq !>" (ρ) "#Hg".
     iDestruct (singleton_aliasing with "Hep Hg") as "Hal1".
@@ -391,9 +391,9 @@ Section with_lty.
   Qed.
 
   Lemma singleton_elim Γ τ p q l i:
-    Γ ⊨p p : oPSing q, i -∗
-    Γ ⊨p pself q l : τ, i -∗
-    Γ ⊨p pself p l : oPSing (pself q l), i.
+    Γ s⊨p p : oPSing q, i -∗
+    Γ s⊨p pself q l : τ, i -∗
+    Γ s⊨p pself p l : oPSing (pself q l), i.
   Proof.
     iIntros "#Hep #HqlT !>" (ρ) "#Hg".
     iDestruct (singleton_aliasing with "Hep Hg") as "Hal {Hep}".

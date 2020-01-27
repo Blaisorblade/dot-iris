@@ -15,7 +15,7 @@ theories/tactics.v
 theories/ty_interp_subst_lemmas.v
 theories/misc_unused/lty.v
 theories/misc_unused/olty.v
-theories/misc_unused/olty_experiments.v
+theories/misc_unused/lty_experiments.v
 theories/prelude.v
 theories/iris_extra/iris_prelude.v
 theories/asubst_base.v
