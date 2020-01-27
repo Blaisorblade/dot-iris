@@ -59,18 +59,18 @@ Global Arguments ivtp /.
 Notation "v v⋅: τ" := (ivtp τ v) (at level 73).
 Local Definition test_judge_me Γ v τ := Γ s⊨ v v⋅: τ.
 
-Definition ietp τ t : judgment Σ := subj_judgment_to_judgment (t, interp_expr τ).
-Global Arguments ietp /.
+Definition setp τ t : judgment Σ := subj_judgment_to_judgment (t, interp_expr τ).
+Global Arguments setp /.
 
 (* DOT/D<: judgments are indexed by [⋅]. *)
-Notation "t ⋅: τ" := (ietp τ t) (at level 73).
+Notation "t ⋅: τ" := (setp τ t) (at level 73).
 Definition test_judge_me2 Γ t τ := Γ s⊨ t ⋅: τ.
 Program Definition nosubj_judgment_to_judgment {Σ} : nosubj_judgment Σ → judgment Σ := λ φ, φ.
 
 Definition ivstp τ1 τ2 : nosubj_judgment Σ := (λ ρ, ∀ v, oClose τ1 ρ v → oClose τ2 ρ v)%I.
-Program Definition istpi τ1 i1 τ2 i2 := nosubj_judgment_to_judgment (Σ := Σ)
+Program Definition sstpi τ1 i1 τ2 i2 := nosubj_judgment_to_judgment (Σ := Σ)
   (λ ρ, ∀ v, ▷^i1 oClose τ1 ρ v → ▷^i2 oClose τ2 ρ v)%I.
-Notation "τ1 , i1 <: τ2 , i2" := (istpi τ1 i1 τ2 i2) (at level 73, τ2, i1, i2 at next level).
+Notation "τ1 , i1 <: τ2 , i2" := (sstpi τ1 i1 τ2 i2) (at level 73, τ2, i1, i2 at next level).
 
 Lemma equiv_vstp Γ τ1 τ2 i1 i2: Γ s⊨ τ1 , i1 <: τ2 , i2 ⊣⊢
     (□∀ ρ v, env_oltyped Γ ρ → ▷^i1 oClose τ1 ρ v → ▷^i2 oClose τ2 ρ v)%I.
@@ -110,17 +110,17 @@ Global Arguments dlty_car {_} !_ _ _ /.
 Global Arguments dlty_label {_} _ /.
 Global Existing Instance dlty_persistent.
 
-Definition idtp `{!dlangG Σ} Γ l (φ : dlty Σ) d : iProp Σ :=
+Definition sdtp `{!dlangG Σ} Γ l (φ : dlty Σ) d : iProp Σ :=
   (⌜ l = dlty_label φ ⌝ ∧
     □∀ ρ, s⟦Γ⟧* ρ → dlty_car φ ρ d.|[ρ])%I.
-Global Arguments idtp /.
-Notation "Γ s⊨ { l := d  } : T" := (idtp Γ l T d) (at level 64, d, l, T at next level).
+Global Arguments sdtp /.
+Notation "Γ s⊨ { l := d  } : T" := (sdtp Γ l T d) (at level 64, d, l, T at next level).
 
-Definition iptp `{!dlangG Σ} Γ (τ : olty Σ 0) p i: iProp Σ :=
+Definition sptp `{!dlangG Σ} Γ (τ : olty Σ 0) p i: iProp Σ :=
   □∀ ρ, s⟦Γ⟧* ρ -∗
     ▷^i path_wp (p.|[ρ]) (λ v, oClose τ ρ v).
 
-Notation "Γ s⊨p p : τ , i" := (iptp Γ τ p i) (at level 74, p, τ, i at next level).
+Notation "Γ s⊨p p : τ , i" := (sptp Γ τ p i) (at level 74, p, τ, i at next level).
 
 Section SemTypes.
   Context `{HdotG: dlangG Σ}.
@@ -337,7 +337,7 @@ Section with_lty.
     iIntros "!%". by eapply alias_paths_simpl, alias_paths_self, alias_paths_pv_eq_1.
   Qed.
 
-  Lemma iptp2ietp Γ τ p :
+  Lemma sptp2setp Γ τ p :
     Γ s⊨p p : τ, 0 -∗ Γ s⊨ path2tm p : τ.
   Proof.
     iIntros "#Hep !>" (ρ) "#Hg /="; rewrite path2tm_subst.
@@ -364,7 +364,7 @@ Section with_lty.
     Γ s⊨p p : τ, 0 -∗
     Γ s⊨ iterate tskip i (path2tm p) : oPSing p.
   Proof.
-    rewrite singleton_self iptp2ietp.
+    rewrite singleton_self sptp2setp.
     iIntros "Hp". iApply (T_Sub with "Hp").
     by iIntros "!> * _ $".
   Qed.
