@@ -12,12 +12,13 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 (** NOTATIONS  **)
 (****************)
 
-Module Import DBNotation.
-
 Coercion tv : vl_ >-> tm.
 Coercion vlit : base_lit >-> vl_.
 Coercion lnat : nat >-> base_lit.
 Coercion lbool : bool >-> base_lit.
+
+Module Import DBNotation.
+
 (* Definition vnat' n := vnat n.
 Coercion vnat' : nat >-> vl_. *)
 (* XXX rename *)

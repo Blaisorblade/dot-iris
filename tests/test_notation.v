@@ -45,6 +45,29 @@ Module hoasTests.
 
 Import hoasNotation hterm_lifting.
 
+Definition hanyToNothing : ty := hclose (⊤ →: ⊥).
+Print hanyToNothing.
+Definition hloopDefT : hty := val "loop" : ⊤ →: ⊥.
+Print hloopDefT.
+
+Definition lambda := λ: self, htv self @: "loop" $: htv self.
+Definition curriedLambda := λ: self v, htv self @: "loop" $: htv v.
+
+(* Confusing error message. It does make sense, but only once you figure it
+out. *)
+Implicit Type (v : vl).
+Fail Definition curriedLambda' := λ: self v, htv self @: "loop" $: htv v.
+Definition curriedLambda' := λ: self w, htv self @: "loop" $: htv w.
+
+
+(* Bind Scope hexpr_scope with htm htm'. *)
+
+Check (0 : htm).
+Check (1 < 2)%HE.
+Check (1 > 2)%HE.
+Check (1 ≥ 2)%HE.
+Check (1 > 0)%HE.
+
 Goal hvar_vl = λ n i, var_vl (n + i). done. Abort.
 Goal ∀ n, hvnat n = liftA0 (vnat n). done. Abort.
 Goal hxm = λ i, ren (λ j, j - i). done. Abort.

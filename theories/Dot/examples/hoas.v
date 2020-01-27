@@ -18,6 +18,22 @@ Global Arguments hclose /.
 Definition pureS {s1} : s1 → hterm s1 := λ x _, x.
 Global Arguments pureS /.
 
+Notation htm'   := (hterm tm).
+Notation hvl'   := (hterm vl).
+Notation hdm'   := (hterm dm).
+Notation hpath' := (hterm path).
+Notation hty'   := (hterm ty).
+Notation hdms'  := (list (label * hdm')).
+
+(** We can't set up coercions across [hterm A] and [hterm B], hence add
+definitions and identity coercions via [SubClass]. *)
+SubClass htm   := htm'.
+SubClass hvl   := hvl'.
+SubClass hdm   := hdm'.
+SubClass hpath := hpath'.
+SubClass hty   := hty'.
+SubClass hdms  := hdms'.
+
 (** Utilities to lift syntax to [hterm]s. *)
 Module Import hterm_lifting.
 Section lifting.
@@ -45,12 +61,12 @@ Global Arguments liftA1 /.
 Global Arguments liftA2 /.
 Global Arguments liftA3 /.
 
-Definition liftBind (con : s1 → s2) (f : hterm vl → hterm s1) : hterm s2 := λ i,
+Definition liftBind (con : s1 → s2) (f : hvl → hterm s1) : hterm s2 := λ i,
   let i' := S i in
   let v := ren (λ j, j - i') in
   con (f v i').
 
-Definition liftList : list (label * hterm dm) → hterm (list (label * dm)) := λ ds i, map (mapsnd (.$ i)) ds.
+Definition liftList : list (label * hdm) → hterm (list (label * dm)) := λ ds i, map (mapsnd (.$ i)) ds.
 
 (* Ever used? Likely not. *)
 (* Definition hshift : hterm s1 → hterm s1 := λ t i, t (S i). *)
@@ -58,18 +74,15 @@ End lifting.
 End hterm_lifting.
 
 (* Binders in our language: λ, ν, ∀, μ. *)
-Notation htm   := (hterm tm).
-Notation hvl   := (hterm vl).
-Notation hdm   := (hterm dm).
-Notation hpath := (hterm path).
-Notation hty   := (hterm ty).
 
-Notation hdms  := (list (label * hterm dm)).
-
-Bind Scope hty_scope with hty.
-Bind Scope hdms_scope with hdms.
+(** We bind also to [hty'] to support well combinators like [hclose]. *)
+Bind Scope hty_scope with hty hty'.
+Bind Scope hdms_scope with hdms hdms'.
+(* [htm'] here interferes: we can only bind one scope to [hterm]. Merge them!*)
+Bind Scope hexpr_scope with htm.
 Delimit Scope hty_scope with HT.
 Delimit Scope hdms_scope with HD.
+Delimit Scope hexpr_scope with HE.
 
 Instance ids_hvl : Ids hvl := λ x, (* [x]: input to the substitution. *)
   (* Resulting [vl]. *)
@@ -79,7 +92,7 @@ Global Arguments ids_hvl /.
 
 Module Import syn.
 
-Definition htv : hvl → htm := liftA1 tv.
+Coercion htv := liftA1 tv : hvl → htm.
 Definition htapp : htm → htm → htm := liftA2 tapp.
 Definition htproj : htm → label → nat → tm := Eval cbv in λ t l, liftA2 tproj t (pureS l).
 Definition htskip : htm → htm := liftA1 tskip.
@@ -89,7 +102,7 @@ Definition htbin : bin_op -> htm -> htm -> htm := λ b, liftA2 (tbin b).
 
 Definition hvar_vl : var → hvl := ids_hvl.
 
-Definition hvlit : base_lit → hvl := λ l, liftA1 vlit (pureS l).
+Coercion hvlit := (λ l, liftA1 vlit (pureS l)) : base_lit → hvl.
 Notation hvnat n := (hvlit $ lnat n).
 
 Definition hvabs : (hvl → htm) → hvl := liftBind vabs.
@@ -101,7 +114,7 @@ Definition hdtysyn : hty → hdm := liftA1 dtysyn.
 (* Not sure about [hdtysem], and not needed. *)
 Definition hdpt : hpath → hdm := liftA1 dpt.
 
-Definition hpv : hvl → hpath := liftA1 pv.
+Coercion hpv := liftA1 pv : hvl → hpath.
 Definition hpself : hpath → label → nat → path := Eval cbv in λ p l, liftA2 pself p (pureS l).
 
 Definition hTTop : hty := liftA0 TTop.
@@ -157,6 +170,24 @@ End syn.
 
 Module Import hoasNotation.
 Export syn.
+
+(* Primitive operations. *)
+Notation "e1 + e2" := (htbin bplus e1%HE e2%HE) : hexpr_scope.
+Notation "e1 - e2" := (htbin bminus e1%HE e2%HE) : hexpr_scope.
+Notation "e1 * e2" := (htbin btimes e1%HE e2%HE) : hexpr_scope.
+Notation "e1 `div` e2" := (htbin bdiv e1%HE e2%HE) : hexpr_scope.
+(* Notation "e1 `rem` e2" := (htbin RemOp e1%HE e2%HE) : hexpr_scope. *)
+
+Notation "e1 ≤ e2" := (htbin ble e1%HE e2%HE) : hexpr_scope.
+Notation "e1 < e2" := (htbin blt e1%HE e2%HE) : hexpr_scope.
+Notation "e1 = e2" := (htbin beq e1%HE e2%HE) : hexpr_scope.
+Notation "e1 ≠ e2" := (htun unot (htbin beq e1%HE e2%HE)) : hexpr_scope.
+
+Notation "~ e" := (htun unot e%HE) (at level 75, right associativity) : hexpr_scope.
+
+Notation "e1 > e2" := (e2%HE < e1%HE)%HE : hexpr_scope.
+Notation "e1 ≥ e2" := (e2%HE ≤ e1%HE)%HE : hexpr_scope.
+
 (* Notations. *)
 Open Scope hdms_scope.
 Notation " {@ } " := (@nil (string * hdm)) (format "{@ }") : hdms_scope.
@@ -179,11 +210,13 @@ Notation "'λD' x .. y , t" := (fun x => .. (fun y => t%HD) ..)
   (at level 200, x binder, y binder, right associativity, only parsing,
   format "'[  ' '[  ' 'λD'  x  ..  y ']' ,  '/' t ']'") : hdms_scope.
 
-Notation "'λ:' x , t" := (hvabs (fun x => t))
-  (at level 200, right associativity,
-  format "'[  ' '[  ' 'λ:'  x  ']' ,  '/' t ']'").
+(** Value lambda. Relies on inserting [htv] coercions in the output. *)
+Notation "'λ:' x .. y , t" := (hvabs (fun x => .. (hvabs (fun y => t%HE)) ..))
+  (at level 200, x binder, y binder, right associativity,
+  format "'[  ' '[  ' 'λ:'  x  ..  y ']' ,  '/' t ']'").
 
-Notation "'λ::' x .. y , t" := (htv (hvabs (fun x => .. (htv (hvabs (fun y => t))) ..)))
+(** Term lambda. Does not rely on coercions, and is more annoying. *)
+Notation "'λ::' x .. y , t" := (htv (hvabs (fun x => .. (htv (hvabs (fun y => t%HE))) ..)))
   (at level 200, x binder, y binder, right associativity,
   format "'[  ' '[  ' 'λ::'  x  ..  y ']' ,  '/' t ']'").
 

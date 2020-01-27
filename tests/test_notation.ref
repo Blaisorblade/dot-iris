@@ -49,6 +49,22 @@ Argument scope is [expr_scope]
 ν {@ val "a" = pv 0;
   type "A" = (σ2; 1%positive)}
      : vl_
+hanyToNothing = hclose (⊤ →: ⊥)
+     : ty
+hloopDefT = (val "loop" : ⊤ →: ⊥ )%HT
+     : hty
+The command has indeed failed with message:
+Found type "vl" where "hvl" was expected.
+0 : htm
+     : htm
+(2 > 1)%HE
+     : htm
+(1 > 2)%HE
+     : htm
+(1 ≥ 2)%HE
+     : htm
+(1 > 0)%HE
+     : htm
      = TAll TNat (TMu (TAnd (TSing DBNotation.p1) (TSing DBNotation.p0)))
      : ty
      = λ (T : nat → ty) (U : (nat → vl_) → nat → ty) (i : nat),
@@ -56,7 +72,7 @@ Argument scope is [expr_scope]
      : hty → (hvl → hty) → hty
      = TAnd TNat (TAnd TNat (TAnd TNat TTop))
      : ty
-     = vabs (tv DBNotation.x0)
+     = vabs DBNotation.x0
      : vl
-     = tv (vabs (tv (vabs (tapp (tv DBNotation.x1) (tv DBNotation.x0)))))
+     = tv (vabs (vabs (tapp DBNotation.x1 DBNotation.x0)))
      : tm

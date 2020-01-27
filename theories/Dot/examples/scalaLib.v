@@ -12,9 +12,10 @@ Notation HashableString := (μ {@ val "hashCode" : TUnit →: TNat }).
 Module Export loop.
 Import hoasNotation.
 (** * Infinite loops *)
+
 Definition hloopDefV : hvl := ν: self, {@
-  val "loop" = hpv (λ: v, htv self @: "loop" $: htv v)
-  (* λ v, self.loop v. *)
+  val "loop" = hpv (λ: w, self @: "loop" $: w)
+  (* λ w, self.loop w. *)
 }.
 Definition hloopDefT : hty := val "loop" : ⊤ →: ⊥.
 Definition hloopDefTConcr : hty := μ: _, {@ hloopDefT }.
