@@ -49,6 +49,7 @@ Inductive tm : Type :=
   | TSing : path -> ty.
 
 Definition vl := vl_.
+
 (* Shortcuts. *)
 Notation TNat := (TPrim tnat).
 Notation TBool := (TPrim tbool).
@@ -64,41 +65,13 @@ Bind Scope ty_scope with ty.
 Delimit Scope ty_scope with ty.
 Delimit Scope dms_scope with dms.
 
+(******************************************************************************)
+(** Substitution. *)
+(******************************************************************************)
+
 Implicit Types
          (T : ty) (v : vl) (t : tm) (d : dm) (ds : dms) (p : path)
          (Γ : ctx) (vs : vls) (l : label).
-
-(* Auxiliary definitions. *)
-Definition label_of_ty T : option label :=
-  match T with
-  | TTMem l _ _ => Some l
-  | TVMem l _ => Some l
-  | _ => None
-  end.
-
-(** Context extension for use with definition typing, as in
-    [Γ |L V ⊨d d : T] and [Γ |L V ⊨ds ds : T]. *)
-Definition defCtxCons Γ V := TLater V :: Γ.
-Notation "Γ |L V" := (defCtxCons Γ V) (at level 60).
-
-Fixpoint dms_lookup l ds : option dm :=
-  match ds with
-  | [] => None
-  | (l', d) :: ds =>
-    match (decide (l = l')) with
-    | left Heq => Some d
-    | right _ => dms_lookup l ds
-    end
-  end.
-
-Fixpoint path2tm p: tm :=
-  match p with
-  | pv v => tv v
-  | pself p l => tproj (path2tm p) l
-  end.
-
-Definition dms_has ds l d := dms_lookup l ds = Some d.
-Definition dms_hasnt ds l := dms_lookup l ds = None.
 
 Instance inh_ty : Inhabited ty := populate TNat.
 Instance inh_base_lit : Inhabited base_lit := populate (lnat 0).
@@ -406,6 +379,71 @@ Instance hsubst_lemmas_ctx : HSubstLemmas vl ctx := _.
 Instance inh_label : Inhabited label := _.
 Instance hsubst_lemmas_dms : HSubstLemmas vl dms := _.
 
+(******************************************************************************)
+(** Auxiliary definitions for operational semantics. *)
+(******************************************************************************)
+
+Fixpoint path2tm p: tm :=
+  match p with
+  | pv v => tv v
+  | pself p l => tproj (path2tm p) l
+  end.
+
+(******************************************************************************)
+(** Auxiliary definitions for operational semantics: primitives. *)
+(******************************************************************************)
+Definition un_op_eval (u : un_op) (v1 : vl) : option vl :=
+  match u, v1 with
+  | unot, vlit (lbool b) => Some (vlit (lbool (negb b)))
+  | _, _ => None
+  end.
+
+Definition bin_op_eval_bool (b : bin_op) (b1 b2 : bool) : option vl :=
+  match b with
+  | beq => Some $ vlit $ lbool $ bool_decide (b1 = b2)
+  | _ => None
+  end.
+
+Definition bin_op_eval_nat (b : bin_op) (n1 n2 : nat) : option vl :=
+  match b with
+  | bplus => Some $ vlit $ lnat $ n1 + n2
+  | bminus =>
+    if bool_decide (n2 ≤ n1) then
+      Some $ vlit $ lnat $ n1 - n2
+    else
+      None
+  | btimes => Some $ vlit $ lnat $ n1 - n2
+  | bdiv =>
+    match n2 with
+    | 0 => None
+    | _ => Some $ vlit $ lnat $ n1 / n2
+    end
+  | blt => Some $ vlit $ lbool $ bool_decide (n1 < n2)
+  | ble => Some $ vlit $ lbool $ bool_decide (n1 ≤ n2)
+  | beq => Some $ vlit $ lbool $ bool_decide (n1 = n2)
+  end.
+
+Definition bin_op_eval (b : bin_op) (v1 v2 : vl) : option vl :=
+  match v1, v2 with
+  | vlit (lnat n1), vlit (lnat n2) => bin_op_eval_nat b n1 n2
+  | vlit (lbool b1), vlit (lbool b2) => bin_op_eval_bool b b1 b2
+  | _, _ => None
+  end.
+
+(******************************************************************************)
+(** Auxiliary definitions for operational semantics: object lookup. *)
+(******************************************************************************)
+
+Fixpoint dms_lookup l ds : option dm :=
+  match ds with
+  | [] => None
+  | (l', d) :: ds =>
+    match (decide (l = l')) with
+    | left Heq => Some d
+    | right _ => dms_lookup l ds
+    end
+  end.
+
 (** Substitute object inside itself (to give semantics to the "self"
     variable). To use when descending under the [vobj] binder. *)
 Definition selfSubst ds: dms := ds.|[vobj ds/].
@@ -472,44 +510,6 @@ Definition fill_item (Ki : ectx_item) (e : tm) : tm :=
 
 Definition state := unit.
 Definition observation := unit.
-
-Definition un_op_eval (u : un_op) (v1 : vl) : option vl :=
-  match u, v1 with
-  | unot, vlit (lbool b) => Some (vlit (lbool (negb b)))
-  | _, _ => None
-  end.
-
-Definition bin_op_eval_bool (b : bin_op) (b1 b2 : bool) : option vl :=
-  match b with
-  | beq => Some $ vlit $ lbool $ bool_decide (b1 = b2)
-  | _ => None
-  end.
-
-Definition bin_op_eval_nat (b : bin_op) (n1 n2 : nat) : option vl :=
-  match b with
-  | bplus => Some $ vlit $ lnat $ n1 + n2
-  | bminus =>
-    if bool_decide (n2 ≤ n1) then
-      Some $ vlit $ lnat $ n1 - n2
-    else
-      None
-  | btimes => Some $ vlit $ lnat $ n1 - n2
-  | bdiv =>
-    match n2 with
-    | 0 => None
-    | _ => Some $ vlit $ lnat $ n1 / n2
-    end
-  | blt => Some $ vlit $ lbool $ bool_decide (n1 < n2)
-  | ble => Some $ vlit $ lbool $ bool_decide (n1 ≤ n2)
-  | beq => Some $ vlit $ lbool $ bool_decide (n1 = n2)
-  end.
-
-Definition bin_op_eval (b : bin_op) (v1 v2 : vl) : option vl :=
-  match v1, v2 with
-  | vlit (lnat n1), vlit (lnat n2) => bin_op_eval_nat b n1 n2
-  | vlit (lbool b1), vlit (lbool b2) => bin_op_eval_bool b b1 b2
-  | _, _ => None
-  end.
 
 Inductive head_step : tm -> state -> list observation -> tm -> state -> list tm -> Prop :=
 | st_beta t1 v2 σ:

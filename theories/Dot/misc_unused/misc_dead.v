@@ -47,7 +47,8 @@ Section wp_extra.
 End wp_extra.
 
 From iris.program_logic Require Import ectxi_language.
-From D.Dot Require Import syn dlang_inst path_wp rules synLemmas step_fv.
+From D.Dot Require Import syn dlang_inst path_wp rules synLemmas step_fv
+  lr_syn_aux.
 Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
          (Γ : ctx) (ρ : env).

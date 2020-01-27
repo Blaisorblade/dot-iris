@@ -88,7 +88,7 @@ End judgments.
 
 End Lty_judge.
 
-From D.Dot Require Import syn synLemmas dlang_inst rules typeExtractionSyn path_wp typeExtractionSem.
+From D.Dot Require Import syn lr_syn_aux dlang_inst rules typeExtractionSyn path_wp typeExtractionSem.
 From D.Dot.syn Require Import path_repl.
 From D.Dot Require unary_lr.
 From D.Dot.lr Require path_repl.

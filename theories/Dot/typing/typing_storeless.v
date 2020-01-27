@@ -1,4 +1,4 @@
-From D.Dot.syn Require Export syn path_repl.
+From D.Dot.syn Require Export syn path_repl lr_syn_aux.
 From D.Dot.stamping Require Export stampingDefsCore.
 From D.Dot.lr Require Import unary_lr.
 From D Require Import swap_later_impl.

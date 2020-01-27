@@ -5,7 +5,7 @@
   [stamp_typing_mut].
 *)
 From D Require Import tactics.
-From D.Dot.syn Require Export syn path_repl.
+From D.Dot.syn Require Export syn path_repl lr_syn_aux.
 From D.Dot.stamping Require Export stampingDefsCore.
 
 Set Implicit Arguments.

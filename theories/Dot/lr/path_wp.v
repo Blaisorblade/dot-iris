@@ -1,20 +1,12 @@
 From iris.proofmode Require Import tactics.
 From D Require Import iris_prelude.
 From D Require Import iris_extra.swap_later_impl.
-From D.Dot Require Import dlang_inst rules.
+From D.Dot Require Import dlang_inst rules lr_syn_aux.
 From D.pure_program_logic Require Import lifting.
 
 Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
          (Γ : ctx) (ρ : env) (Pv : vl → Prop).
-
-(* Auxiliary. *)
-
-Lemma PureExec_to_terminates n φ e v : PureExec φ n e (tv v) → φ → terminates e.
-Proof. intros HP Hφ. exists v. eapply nsteps_rtc, HP, Hφ. Qed.
-
-Lemma path2tm_subst p ρ: (path2tm p).|[ρ] = path2tm p.|[ρ].
-Proof. by elim: p => /= [//|p -> l]. Qed.
 
 (** A simplified variant of weakest preconditions for path evaluation.
 The difference is that path evaluation is completely pure, and
@@ -22,143 +14,6 @@ postconditions must hold now, not after updating resources.
 vp ("Value from Path") and vq range over results of evaluating paths.
 Below, we define a version internal to Iris, following Iris's total weakest
 precondition. *)
-
-Inductive path_wp_pure : path → (vl → Prop) → Prop :=
-| pwp_pv vp Pv : Pv vp → path_wp_pure (pv vp) Pv
-| pwp_pself p vp q l Pv : path_wp_pure p (eq vp) → vp @ l ↘ dpt q → path_wp_pure q Pv →
-  path_wp_pure (pself p l) Pv .
-Local Hint Constructors path_wp_pure : core.
-
-Lemma path_wp_pure_inv_pv Pv v : path_wp_pure (pv v) Pv ↔ Pv v.
-Proof. split; by [inversion_clear 1 | auto]. Qed.
-
-Lemma path_wp_pure_inv_pself Pv p l : path_wp_pure (pself p l) Pv →
-  ∃ vp q, path_wp_pure p (eq vp) ∧ vp @ l ↘ dpt q ∧ path_wp_pure q Pv ∧
-  path_wp_pure (pself p l) Pv.
-Proof. inversion_clear 1; naive_solver. Qed.
-
-Global Instance Proper_pwp_pure: Proper ((=) ==> pointwise_relation _ iff ==> iff) path_wp_pure.
-Proof.
-  (* The induction works best in this shape, but this instance is best kept local. *)
-  have Proper_pwp_2: ∀ p, Proper (pointwise_relation _ iff ==> iff) (path_wp_pure p).
-  by rewrite /pointwise_relation => p P1 P2 HPeq; split;
-    induction 1; naive_solver.
-  solve_proper.
-Qed.
-
-Lemma path_wp_pure_wand {Pv1 Pv2 p}:
-  path_wp_pure p Pv1 →
-  (∀ v, Pv1 v → Pv2 v) →
-  path_wp_pure p Pv2.
-Proof. elim; eauto. Qed.
-
-Lemma path_wp_pure_eq p Pv :
-  path_wp_pure p Pv ↔ ∃ v, path_wp_pure p (eq v) ∧ Pv v.
-Proof.
-  split.
-  - elim; naive_solver.
-  - move => [v [Hpeq HPv]]. dependent induction Hpeq; naive_solver.
-Qed.
-
-Lemma path_wp_pure_det {p v1 v2}:
-  path_wp_pure p (eq v1) →
-  path_wp_pure p (eq v2) →
-  v1 = v2.
-Proof.
-  move => Hp1 Hp2; move: v2 Hp2; induction Hp1; intros; inverse Hp2; first naive_solver.
-  lazymatch goal with H1 : ?vp @ l ↘ dpt ?q, H2 : ?vp0 @ l ↘ dpt ?q0 |- _ =>
-    (suff ?: q = q0 by subst; auto);
-    (suff ?: vp = vp0 by subst; objLookupDet);
-    auto
-  end.
-Qed.
-
-Lemma path_wp_pure_swap p w :
-  path_wp_pure p (λ v, v = w) ↔
-  path_wp_pure p (eq w).
-Proof. split => Hp; exact: path_wp_pure_wand. Qed.
-
-Lemma path_wp_exec_pure p v :
-  path_wp_pure p (eq v) →
-  ∃ n, PureExec True n (path2tm p) (tv v).
-Proof.
-  move HE: (eq v) => P Hp; move: v HE; induction Hp; intros; simplify_eq.
-  by exists 0; constructor.
-  have [m /(_ I) Hs1] := IHHp1 _ eq_refl.
-  have [n /(_ I) Hs2] := IHHp2 _ eq_refl.
-  exists (S m + n) => _ /=.
-  eapply (nsteps_trans (S m)), Hs2; eapply nsteps_r.
-  by apply (pure_step_nsteps_ctx (fill_item (ProjCtx l))), Hs1.
-  by apply nsteps_once_inv, pure_tproj.
-Qed.
-
-Definition alias_paths p q :=
-  path_wp_pure q (λ vp, path_wp_pure p (eq vp)).
-
-Lemma alias_paths_pv_eq_1 p vr :
-  alias_paths p (pv vr) ↔ path_wp_pure p (eq vr).
-Proof. rewrite /alias_paths. by setoid_rewrite path_wp_pure_inv_pv. Qed.
-
-Hint Extern 1 (path_wp_pure _ _) => by apply path_wp_pure_swap : core.
-
-Lemma alias_paths_pv_eq_2 p vr :
-  alias_paths (pv vr) p ↔ path_wp_pure p (eq vr).
-Proof.
-  rewrite /alias_paths -path_wp_pure_swap.
-  by setoid_rewrite path_wp_pure_inv_pv.
-Qed.
-
-Lemma alias_paths_self p v :
-  alias_paths p (pv v) → alias_paths p p.
-Proof.
-  rewrite alias_paths_pv_eq_1 /alias_paths !path_wp_pure_eq; naive_solver.
-Qed.
-
-Lemma alias_paths_refl_vl v :
-  alias_paths (pv v) (pv v).
-Proof. hnf; eauto. Qed.
-
-Lemma alias_paths_sameres p q:
-  alias_paths p q ↔
-  ∃ v,
-    path_wp_pure p (eq v) ∧
-    path_wp_pure q (eq v).
-Proof. rewrite /alias_paths !path_wp_pure_eq; naive_solver. Qed.
-
-Lemma alias_paths_symm p q :
-  alias_paths p q ↔ alias_paths q p.
-Proof. rewrite !alias_paths_sameres. naive_solver. Qed.
-Lemma alias_paths_symm' p q :
-  alias_paths p q → alias_paths q p.
-Proof. apply alias_paths_symm. Qed.
-
-Lemma alias_paths_trans p q r :
-  alias_paths p q → alias_paths q r → alias_paths p r.
-Proof.
-  rewrite !alias_paths_sameres => -[v [Hpv Hqv]] [w [Hqw Hrw]].
-  have Heq: v = w by exact: path_wp_pure_det. simplify_eq; eauto.
-Qed.
-
-Lemma alias_paths_samepwp_pure p q:
-  alias_paths p q ↔
-    (∃ u, path_wp_pure p (eq u)) ∧
-    ∀ Pv, path_wp_pure p Pv ↔ path_wp_pure q Pv.
-Proof.
-  rewrite alias_paths_sameres; split.
-  - destruct 1 as (v & Hp & Hq).
-    split. by eauto. intros Pv.
-    rewrite !path_wp_pure_eq.
-    f_equiv => w; split => -[Hr];
-      [ rewrite -(path_wp_pure_det Hp Hr)
-      | rewrite -(path_wp_pure_det Hq Hr)]; auto.
-  - intros [[u Hp] Heq]. exists u.
-    split; by [|rewrite -Heq].
-Qed.
-
-Lemma alias_paths_elim_eq_pure Pv {p q}:
-  alias_paths p q →
-  path_wp_pure p Pv ↔ path_wp_pure q Pv.
-Proof. move => /alias_paths_samepwp_pure [_]. apply. Qed.
 
 From iris.bi Require Import fixpoint big_op.
 (* From iris.program_logic Require Export weakestpre. *)
@@ -298,6 +153,8 @@ Section path_wp.
     solve_proper.
   Qed.
 
+  Local Hint Constructors path_wp_pure : core.
+
   Lemma path_wp_pureable p Pv:
     path_wp p (λ v, ⌜Pv v⌝) ⊣⊢ ⌜path_wp_pure p Pv⌝.
   Proof.
@@ -311,8 +168,7 @@ Section path_wp.
         iRewrite ("Heq" $! v) in "Hv". iDestruct "Hv" as %Hv. auto.
       + iDestruct 1 as (vp q Hlook) "[[IHp _] [IHq _]]"; iIntros (Pv) "Heq".
         iDestruct ("IHq" with "Heq") as %Hq.
-        iDestruct ("IHp" $! (eq vp) with "[//]") as %Hp.
-        eauto.
+        iDestruct ("IHp" $! (eq vp) with "[//]") as %Hp. eauto.
     - iIntros (Hp); iInduction Hp as [] "IH"; iEval (rewrite path_wp_unfold /=); eauto.
   Qed.
 

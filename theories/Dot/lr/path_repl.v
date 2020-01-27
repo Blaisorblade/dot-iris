@@ -1,7 +1,7 @@
 From iris.proofmode Require Import tactics.
 
 From D Require Import iris_prelude.
-From D.Dot.syn Require Import syn path_repl rules synLemmas.
+From D.Dot.syn Require Import syn path_repl rules.
 From D.Dot.lr Require Import path_wp dlang_inst unary_lr.
 From iris.program_logic Require Import ectx_language.
 From D.pure_program_logic Require Import lifting.

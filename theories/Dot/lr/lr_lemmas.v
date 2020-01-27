@@ -3,7 +3,7 @@ From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language.
 
 From D Require Import swap_later_impl.
-From D.Dot Require Import rules synLemmas unary_lr.
+From D.Dot Require Import rules unary_lr.
 
 Reserved Notation "⊢G Γ1 <:* Γ2" (at level 74, Γ1, Γ2 at next level).
 Reserved Notation "⊢T T1 <: T2" (at level 74, T1, T2 at next level).

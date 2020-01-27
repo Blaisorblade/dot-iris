@@ -94,3 +94,4 @@ theories/Dot/syn/path_repl.v
 theories/Dot/syn/path_repl_lemmas.v
 theories/Dot/lr/path_repl.v
 theories/Dot/misc_unused/path_repl_misc.v
+theories/Dot/syn/lr_syn_aux.v

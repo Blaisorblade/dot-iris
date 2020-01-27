@@ -1,5 +1,5 @@
 From iris.proofmode Require Import tactics.
-From D Require Export iris_prelude.
+From D Require Export iris_prelude lr_syn_aux.
 From D Require Import ty_interp_subst_lemmas.
 From D.Dot Require Export dlang_inst path_wp.
 
@@ -30,25 +30,6 @@ Implicit Types
 (* Use Program without its extended pattern-matching compiler; we only need
    its handling of coercions. *)
 Unset Program Cases.
-
-Notation wf_ds ds := (NoDup (map fst ds)).
-
-Definition path_includes p ρ ds :=
-  path_wp_pure p.|[ρ] (λ w, ∃ ds', w = vobj ds' ∧ ds.|[ρ] `sublist_of` ds'.|[w/] ∧ wf_ds ds').
-
-Definition prim_sem (B : base_ty) :=
-  match B with
-  | tbool => bool
-  | tnat => nat
-  end.
-
-Definition prim_evals_to (B : base_ty) (v : vl) : prim_sem B → Prop :=
-  match B return prim_sem B → Prop with
-  | tbool => λ l, v = vlit $ lbool l
-  | tnat  => λ l, v = vlit $ lnat l
-  end.
-
-Definition pure_interp_prim B v := ∃ l : prim_sem B, prim_evals_to B v l.
 
 Section logrel.
   Context `{!dlangG Σ}.

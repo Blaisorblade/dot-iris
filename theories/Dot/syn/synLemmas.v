@@ -141,12 +141,6 @@ Proof.
   move => Hcl; elim: i => [|i IHi]; rewrite ?iterate_0 ?iterate_S //; solve_fv_congruence.
 Qed.
 
-Lemma tskip_subst i e s: (iterate tskip i e).|[s] = iterate tskip i e.|[s].
-Proof. exact: cons_subst. Qed.
-
-Lemma TLater_subst i T s: (iterate TLater i T).|[s] = iterate TLater i T.|[s].
-Proof. exact: cons_subst. Qed.
-
 Lemma fv_head l d ds n: nclosed ((l, d) :: ds) n → nclosed d n.
 Proof. exact: fv_cons_pair_inv_head. Qed.
 
