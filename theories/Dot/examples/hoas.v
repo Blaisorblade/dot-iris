@@ -83,6 +83,9 @@ Definition htv : hvl → hterm tm := liftA1 tv.
 Definition htapp : hterm tm → hterm tm → hterm tm := liftA2 tapp.
 Definition htproj : hterm tm → label → nat → tm := Eval cbv in λ t l, liftA2 tproj t (pureS l).
 Definition htskip : hterm tm → hterm tm := liftA1 tskip.
+Definition htif : htm -> htm -> htm -> htm := liftA3 tif.
+Definition htun : un_op -> htm -> htm := λ u, liftA1 (tun u).
+Definition htbin : bin_op -> htm -> htm -> htm := λ b, liftA2 (tbin b).
 
 Definition hvar_vl : var → hterm vl := ids_hvl.
 
@@ -126,6 +129,9 @@ Arguments htv /.
 Arguments htapp /.
 Arguments htproj /.
 Arguments htskip /.
+Arguments htif /.
+Arguments htun /.
+Arguments htbin /.
 Arguments hvar_vl /.
 Arguments hvlit /.
 Arguments hvabs /.
