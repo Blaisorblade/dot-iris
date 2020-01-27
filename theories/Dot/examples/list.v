@@ -104,7 +104,7 @@ Definition hlistModV bool : hvl := ν: self, {@
 (** * Auxiliary types, needed in derivations of typing judgments. *)
 Definition hconsTResConcr bool sci U := hlistTGen bool sci U U.
 
-Definition hconsTConcr bool sci : hterm ty :=
+Definition hconsTConcr bool sci : hty :=
   ∀: x: tparam "T",
     hpv x @; "T" →:
       hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv x @; "T") →:

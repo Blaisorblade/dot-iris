@@ -79,47 +79,47 @@ Global Arguments ids_hvl /.
 
 Module Import syn.
 
-Definition htv : hvl → hterm tm := liftA1 tv.
-Definition htapp : hterm tm → hterm tm → hterm tm := liftA2 tapp.
-Definition htproj : hterm tm → label → nat → tm := Eval cbv in λ t l, liftA2 tproj t (pureS l).
-Definition htskip : hterm tm → hterm tm := liftA1 tskip.
+Definition htv : hvl → htm := liftA1 tv.
+Definition htapp : htm → htm → htm := liftA2 tapp.
+Definition htproj : htm → label → nat → tm := Eval cbv in λ t l, liftA2 tproj t (pureS l).
+Definition htskip : htm → htm := liftA1 tskip.
 Definition htif : htm -> htm -> htm -> htm := liftA3 tif.
 Definition htun : un_op -> htm -> htm := λ u, liftA1 (tun u).
 Definition htbin : bin_op -> htm -> htm -> htm := λ b, liftA2 (tbin b).
 
-Definition hvar_vl : var → hterm vl := ids_hvl.
+Definition hvar_vl : var → hvl := ids_hvl.
 
-Definition hvlit : base_lit → hterm vl := λ l, liftA1 vlit (pureS l).
+Definition hvlit : base_lit → hvl := λ l, liftA1 vlit (pureS l).
 Notation hvnat n := (hvlit $ lnat n).
 
-Definition hvabs : (hterm vl → hterm tm) → hterm vl := liftBind vabs.
+Definition hvabs : (hvl → htm) → hvl := liftBind vabs.
 
-Definition hvobj : (hterm vl → hdms) → hterm vl := λ ds,
+Definition hvobj : (hvl → hdms) → hvl := λ ds,
   liftBind vobj (liftList ∘ ds).
 
-Definition hdtysyn : hterm ty → hterm dm := liftA1 dtysyn.
+Definition hdtysyn : hty → hdm := liftA1 dtysyn.
 (* Not sure about [hdtysem], and not needed. *)
-Definition hdpt : hterm path → hterm dm := liftA1 dpt.
+Definition hdpt : hpath → hdm := liftA1 dpt.
 
-Definition hpv : hterm vl → hterm path := liftA1 pv.
-Definition hpself : hterm path → label → nat → path := Eval cbv in λ p l, liftA2 pself p (pureS l).
+Definition hpv : hvl → hpath := liftA1 pv.
+Definition hpself : hpath → label → nat → path := Eval cbv in λ p l, liftA2 pself p (pureS l).
 
-Definition hTTop : hterm ty := liftA0 TTop.
-Definition hTBot : hterm ty := liftA0 TBot.
-Definition hTAnd : hterm ty → hterm ty → hterm ty := liftA2 TAnd.
-Definition hTOr : hterm ty → hterm ty → hterm ty := liftA2 TOr.
-Definition hTLater : hterm ty → hterm ty := liftA1 TLater.
+Definition hTTop : hty := liftA0 TTop.
+Definition hTBot : hty := liftA0 TBot.
+Definition hTAnd : hty → hty → hty := liftA2 TAnd.
+Definition hTOr : hty → hty → hty := liftA2 TOr.
+Definition hTLater : hty → hty := liftA1 TLater.
 
-Definition hTAll : hterm ty → (hterm vl → hterm ty) → hterm ty := λ T U i,
+Definition hTAll : hty → (hvl → hty) → hty := λ T U i,
   (* liftBind (liftA1 TAll T i) U i. *)
   liftBind (TAll (T i)) U i.
 
-Definition hTMu : (hterm vl → hterm ty) → hterm ty := liftBind TMu.
-Definition hTVMem : label → hterm ty → hterm ty := λ l, liftA1 (TVMem l).
-Definition hTTMem : label → hterm ty → hterm ty → hterm ty := λ l, liftA2 (TTMem l).
-Definition hTSel : hterm path → label → nat → ty := Eval cbv in λ p l, liftA2 TSel p (pureS l).
-Definition hTNat : hterm ty := liftA0 TNat.
-Definition hTSing : hterm path → hterm ty := liftA1 TSing.
+Definition hTMu : (hvl → hty) → hty := liftBind TMu.
+Definition hTVMem : label → hty → hty := λ l, liftA1 (TVMem l).
+Definition hTTMem : label → hty → hty → hty := λ l, liftA2 (TTMem l).
+Definition hTSel : hpath → label → nat → ty := Eval cbv in λ p l, liftA2 TSel p (pureS l).
+Definition hTNat : hty := liftA0 TNat.
+Definition hTSing : hpath → hty := liftA1 TSing.
 
 Arguments hvobj _%HD.
 Arguments hTAll _%HT _%HT.
@@ -159,7 +159,7 @@ Module Import hoasNotation.
 Export syn.
 (* Notations. *)
 Open Scope hdms_scope.
-Notation " {@ } " := (@nil (string * hterm dm)) (format "{@ }") : hdms_scope.
+Notation " {@ } " := (@nil (string * hdm)) (format "{@ }") : hdms_scope.
 Notation " {@ x } " := ( x :: {@} ) (format "{@  x  }"): hdms_scope.
 Notation " {@ x ; y ; .. ; z } " :=
   (cons x (cons y .. (cons z nil) ..))
