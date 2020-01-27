@@ -33,8 +33,8 @@ Section lty_limit_preserving.
 End lty_limit_preserving.
 
 (**
-"Open Logical TYpes": persistent Iris predicates over environments
-and values. Adapted from
+"Logical TYpes": persistent Iris predicates over values.
+Adapted from
 https://gitlab.mpi-sws.org/iris/examples/blob/d4f4153920ea82617c7222aeeb00b6710d51ee03/theories/logrel_heaplang/ltyping.v#L5. *)
 Record lty Σ := Lty {
   lty_car :> vl → iProp Σ;
@@ -46,6 +46,7 @@ Bind Scope lty_scope with lty.
 Delimit Scope lty_scope with T.
 Global Existing Instance lty_persistent.
 
+(* "Open Logical TYpes": persistent Iris predicates over environments and values. *)
 Definition olty Σ i := vec vl i -> env -> lty Σ.
 
 (* Rename hoEnvD to hoEnv(D?)O. *)
@@ -203,18 +204,18 @@ Fixpoint env_oltyped {Σ} (Γ : sCtx Σ) (ρ : var → vl) : iProp Σ :=
   | φ :: Γ' => env_oltyped Γ' (stail ρ) ∧ oClose φ ρ (shead ρ)
   | nil => True
   end%I.
-Notation "⟦ Γ ⟧*" := (env_oltyped Γ).
+Notation "s⟦ Γ ⟧*" := (env_oltyped Γ).
 
 Section olty_ofe_2.
   Context `{Σ : gFunctors} {i : nat}.
   Implicit Types (φ : hoEnvD Σ i) (τ : olty Σ i).
 
-  Global Instance env_oltyped_persistent (Γ : sCtx Σ) ρ: Persistent (⟦ Γ ⟧* ρ).
+  Global Instance env_oltyped_persistent (Γ : sCtx Σ) ρ: Persistent (s⟦ Γ ⟧* ρ).
   Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
 
   Lemma interp_env_lookup Γ ρ (τ : olty Σ 0) x:
     Γ !! x = Some τ →
-    ⟦ Γ ⟧* ρ -∗ oClose (shiftN x τ) ρ (ρ x).
+    s⟦ Γ ⟧* ρ -∗ oClose (shiftN x τ) ρ (ρ x).
   Proof.
     elim: Γ ρ x => [//|τ' Γ' IHΓ] ρ x Hx /=.
     iDestruct 1 as "[Hg Hv]". move: x Hx => [ [->] | x Hx] /=.
@@ -272,22 +273,22 @@ Section judgments.
 
   Definition step_indexed_ivstp Γ τ1 τ2 i j: iProp Σ :=
     □∀ ρ v,
-      ⟦Γ⟧*ρ → ▷^i oClose τ1 ρ v → ▷^j oClose τ2 ρ v.
+      s⟦Γ⟧*ρ → ▷^i oClose τ1 ρ v → ▷^j oClose τ2 ρ v.
   Global Arguments step_indexed_ivstp /.
 
   Definition ietp Γ τ e : iProp Σ :=
-    □∀ ρ, ⟦Γ⟧* ρ → interp_expr τ ρ (e.|[ρ]).
+    □∀ ρ, s⟦Γ⟧* ρ → interp_expr τ ρ (e.|[ρ]).
   Global Arguments ietp /.
 
   Definition step_indexed_ietp Γ τ e i: iProp Σ :=
-    □∀ ρ, ⟦Γ⟧* ρ → interp_expr (eLater i τ) ρ (e.|[ρ]).
+    □∀ ρ, s⟦Γ⟧* ρ → interp_expr (eLater i τ) ρ (e.|[ρ]).
   Global Arguments step_indexed_ietp /.
 
 End judgments.
 
-Notation "Γ ⊨ e : τ" := (ietp Γ τ e) (at level 74, e, τ at next level).
-Notation "Γ ⊨ e : τ , i" := (step_indexed_ietp Γ τ e i) (at level 74, e, τ at next level).
-Notation "Γ ⊨ T1 , i <: T2 , j " := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2, i, j at next level).
+Notation "Γ s⊨ e : τ" := (ietp Γ τ e) (at level 74, e, τ at next level).
+Notation "Γ s⊨ e : τ , i" := (step_indexed_ietp Γ τ e i) (at level 74, e, τ at next level).
+Notation "Γ s⊨ T1 , i <: T2 , j " := (step_indexed_ivstp Γ T1 T2 i j) (at level 74, T1, T2, i, j at next level).
 
 Section typing.
   Context `{dlangG Σ}.
@@ -300,16 +301,16 @@ Section typing.
   Lemma T_Var Γ x τ
     (Hx : Γ !! x = Some τ):
     (*──────────────────────*)
-    Γ ⊨ of_val (ids x) : shiftN x τ.
+    Γ s⊨ of_val (ids x) : shiftN x τ.
   Proof.
     iIntros "/= !>" (ρ) "#Hg"; rewrite hsubst_of_val -wp_value'.
     by rewrite interp_env_lookup // id_subst.
   Qed.
 
-  Lemma andstp1 Γ τ1 τ2 i : Γ ⊨ oAnd τ1 τ2 , i <: τ1 , i.
+  Lemma andstp1 Γ τ1 τ2 i : Γ s⊨ oAnd τ1 τ2 , i <: τ1 , i.
   Proof. iIntros "!>" (??) "#Hg #[$ _]". Qed.
 
-  Lemma andstp2 Γ τ1 τ2 i : Γ ⊨ oAnd τ1 τ2 , i <: τ2 , i.
+  Lemma andstp2 Γ τ1 τ2 i : Γ s⊨ oAnd τ1 τ2 , i <: τ2 , i.
   Proof. iIntros "!>" (??) "#Hg #[_ $]". Qed.
 End typing.
 
