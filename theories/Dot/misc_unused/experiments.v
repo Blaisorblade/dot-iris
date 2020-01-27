@@ -46,6 +46,29 @@ Section AlsoSyntactically.
 
 End AlsoSyntactically.
 
+(* Additional typing lemmas that *)
+Section NotUsed.
+  Context `{HdlangG: dlangG Σ}.
+
+  (* An inverse of subsumption: subtyping is *equivalent* to convertibility
+  for values. *)
+  Lemma P_Skolem Γ T1 T2:
+    shift T1 :: Γ ⊨p pv (ids 0) : shift T2, 0 -∗
+    (*───────────────────────────────*)
+    Γ ⊨ T1, 0 <: T2, 0.
+  Proof.
+    iIntros "#Htyp !>" (ρ v) "#Hg #HvT1".
+    rewrite -(interp_weaken_one T2 (v .: ρ) v) -(interp_weaken_one T1 (v .: ρ) v).
+    iEval rewrite -path_wp_pv.
+    iApply ("Htyp" $! (v .: ρ) with "[$Hg $HvT1]").
+  Qed.
+
+  Lemma T_Skolem Γ T1 T2:
+    shift T1 :: Γ ⊨ tv (ids 0) : shift T2 -∗
+    (*───────────────────────────────*)
+    Γ ⊨ T1, 0 <: T2, 0.
+  Proof. by rewrite P_Val P_Skolem. Qed.
+End NotUsed.
 
 From D.Dot Require exampleInfra typingExInfra.
 From D.Dot Require fundamental typingStamping.
