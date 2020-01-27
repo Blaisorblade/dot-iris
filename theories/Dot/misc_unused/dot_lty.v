@@ -119,6 +119,11 @@ Section SemTypes.
     olty0 (λ ρ v, path_wp p.|[ρ]
       (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗n[ 0 ] ψ ∧ ▷ □ ψ vnil v))%I.
 
+  Definition oForall τ1 τ2 := olty0
+    (λI ρ v,
+    (∃ t, ⌜ v = vabs t ⌝ ∧
+     □ ∀ w, ▷ τ1 vnil ρ w → ▷ interp_expr τ2 (w .: ρ) t.|[w/])).
+
   Lemma oTSel_pv w (l : label) args ρ v :
     oTSel (pv w) l args ρ v ≡
       (∃ ψ d, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n[ 0 ] ψ ∧ ▷ □ ψ vnil v)%I.
