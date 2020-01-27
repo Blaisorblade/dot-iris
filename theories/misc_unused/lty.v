@@ -131,6 +131,21 @@ Section olty_subst.
   Global Instance HSubstLemmas_hoEnvD : HSubstLemmas vl (hoEnvD Σ i).
   Proof. split => //; renLemmas_hoEnvD. Qed.
 
+  Lemma hoEnvD_subst_compose_ind φ args ρ1 ρ2 v: φ.|[ρ1] args ρ2 v ⊣⊢ φ args (ρ1 >> ρ2) v.
+  Proof. done. Qed.
+
+  Lemma hoEnvD_subst_compose φ args ρ1 ρ2 ρ3 :
+    ρ1 >> ρ2 = ρ3 → φ.|[ρ1] args ρ2 ≡ φ args ρ3.
+  Proof. by move=> <-. Qed.
+
+  Lemma hoEnvD_weaken_one φ args ρ:
+     shift φ args ρ ≡ φ args (stail ρ).
+  Proof. apply hoEnvD_subst_compose. autosubst. Qed.
+
+  Lemma hoEnvD_subst_one φ v w args ρ:
+    φ.|[v/] args ρ w ≡ φ args (v.[ρ] .: ρ) w.
+  Proof. apply hoEnvD_subst_compose. autosubst. Qed.
+
   Definition Olty (olty_car : vec vl i → (var → vl) → vl → iProp Σ)
    `{∀ args ρ v, Persistent (olty_car args ρ v)}: olty Σ i :=
     λ args ρ, Lty (olty_car args ρ).
@@ -164,19 +179,19 @@ Section olty_subst.
   Qed.
 
   Lemma olty_subst_compose_ind τ args ρ1 ρ2 v: τ.|[ρ1] args ρ2 v ⊣⊢ τ args (ρ1 >> ρ2) v.
-  Proof. done. Qed.
+  Proof. apply hoEnvD_subst_compose_ind. Qed.
 
   Lemma olty_subst_compose τ args ρ1 ρ2 ρ3 :
     ρ1 >> ρ2 = ρ3 → τ.|[ρ1] args ρ2 ≡ τ args ρ3.
-  Proof. by move=> <-. Qed.
+  Proof. apply hoEnvD_subst_compose. Qed.
 
   Lemma olty_weaken_one τ args ρ:
      shift τ args ρ ≡ τ args (stail ρ).
-  Proof. apply olty_subst_compose. autosubst. Qed.
+  Proof. apply hoEnvD_weaken_one. Qed.
 
   Lemma olty_subst_one τ v w args ρ:
     τ.|[v/] args ρ w ≡ τ args (v.[ρ] .: ρ) w.
-  Proof. apply olty_subst_compose. autosubst. Qed.
+  Proof. apply hoEnvD_subst_one. Qed.
 End olty_subst.
 
 Notation oClose τ := (τ vnil).
@@ -236,7 +251,7 @@ Section olty_ofe_2.
   Proof. done. Qed.
 
   Lemma interp_TMu_ren (T : olty Σ i) args ρ v: ho_oMu (shift T) args ρ v ≡ T args ρ v.
-  Proof. rewrite ho_oMu_eq (olty_weaken_one T args _ v) stail_eq. by []. Qed.
+  Proof. rewrite /= (hoEnvD_weaken_one T args _ v) stail_eq. by []. Qed.
 
   Definition interp_expr `{dlangG Σ} (φ : hoEnvD Σ 0) : envPred tm Σ :=
     λ ρ t, WP t {{ vclose φ ρ }} %I.
