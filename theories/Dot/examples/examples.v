@@ -178,8 +178,11 @@ Arguments dlang_ectxi_lang : simpl never. *)
     iIntros "#Hs" (ρ); iExists _; iSplit; by [eauto | iApply sHasA].
   Qed.
 
-  Lemma posModVHasA0: Hs -∗ ∀ ρ, ⟦ type "Pos" >: ⊥ <: TNat ⟧ ρ posModV.[ρ].
-  Proof. iIntros "#Hs" (ρ); iExists _; iSplit; by [eauto | iApply sHasA]. Qed.
+  Lemma posModVHasAtyp: Hs -∗ [] ⊨ posModV : type "Pos" >: ⊥ <: TNat.
+  Proof.
+    rewrite -ietp_value; iIntros "#Hs" (ρ).
+    iExists _; iSplit; by [eauto | iApply sHasA].
+  Qed.
 
   Lemma vHasA0typ: Hs -∗ [] ⊨ tv v : type "A" >: ⊥ <: 𝐍.
   Proof. rewrite -ietp_value. iApply vHasA0. Qed.
@@ -217,7 +220,7 @@ Arguments dlang_ectxi_lang : simpl never. *)
   Proof.
     rewrite /posModT -(TMu_I [] _ posModV).
     iIntros "#Hs". cbn -[ietp].
-    iApply TAnd_I; first by rewrite -ietp_value -posModVHasA0.
+    iApply TAnd_I; first by rewrite -posModVHasAtyp.
     iApply TAnd_I; last iApply TAnd_I; last by
       iIntros "!> ** /="; rewrite -wp_value'.
     - valMember ρ; iExists _; iSplit; [done|].
