@@ -16,7 +16,7 @@ Notation "⟦ T ⟧" := (ty_interp T%ty).
 Implicit Types (Σ : gFunctors).
 Implicit Types
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
-         (vs : vls) (ρ : var → vl).
+         (vs : vls) (ρ : var → vl) (l : label).
 
 Module SemTypes.
 
@@ -24,13 +24,11 @@ Include LtyJudgements VlSorts dlang_inst.
 
 Record dlty Σ := Dlty {
   dlty_label : label;
-  dlty_car : env -d> dm -d> iPropO Σ;
-  dlty_persistent ρ d :> Persistent (dlty_car ρ d);
+  dlty_car :> env -> iPPred dm Σ;
 }.
-Global Arguments Dlty {_} _%I _ {_}.
-Global Arguments dlty_car {_} !_ _ _ /.
+Global Arguments Dlty {_} _%I _.
 Global Arguments dlty_label {_} _ /.
-Global Existing Instance dlty_persistent.
+Global Arguments dlty_car {_} !_ _ /.
 
 Local Notation IntoPersistent' P := (IntoPersistent false P P).
 
@@ -38,16 +36,18 @@ Section Defs.
   Context `{HdotG: dlangG Σ} {i : nat}.
   Implicit Types (φ : hoEnvD Σ i) (τ : olty Σ i).
   Implicit Types (T : olty Σ 0) (TD : dlty Σ).
+  Definition mkDlty l (φ : envPred dm Σ) `{∀ ρ d, Persistent (φ ρ d)} : dlty Σ :=
+    Dlty l (λ ρ, IPPred (φ ρ)).
 
   Definition lift_dlty (φ : dlty Σ) l : envPred dm Σ :=
-    λI ρ d, ⌜ dlty_label φ = l ⌝ ∧ dlty_car φ ρ d.
+    λI ρ d, ⌜ dlty_label φ = l ⌝ ∧ φ ρ d.
 
   (* Definition sdtp Γ l (φ : dlty Σ) d : iProp Σ :=
     □∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)] ⌝ → s⟦Γ⟧* ρ → lift_dlty φ l ρ d.|[ρ]. *)
 
   Definition sdtp Γ TD l d : iProp Σ :=
     (⌜ l = dlty_label TD ⌝ ∧
-      □∀ ρ, s⟦Γ⟧* ρ → dlty_car TD ρ d.|[ρ])%I.
+      □∀ ρ, s⟦Γ⟧* ρ → TD ρ d.|[ρ])%I.
   Global Arguments sdtp /.
 
   Definition sptp Γ T p i: iProp Σ :=
@@ -67,7 +67,7 @@ Section Defs.
     (∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ , i ] ψ)%I.
 End Defs.
 
-Notation "Γ s⊨ { l := d  } : T" := (sdtp Γ T l d) (at level 64, d, l, T at next level).
+Notation "Γ s⊨ {  l := d  } : T" := (sdtp Γ T l d) (at level 64, d, l, T at next level).
 Notation "Γ s⊨p p : τ , i" := (sptp Γ τ p i) (at level 74, p, τ, i at next level).
 Notation "s ↝[  σ  ] φ" := (leadsto_envD_equiv s σ φ) (at level 20).
 Notation "d ↗n[ i  ] ψ" := (dm_to_type d i ψ) (at level 20).
@@ -104,11 +104,11 @@ Section SemTypes.
   Implicit Types (τ : olty Σ 0).
    (* (ψ : vl -d> iPropO Σ) (φ : envD Σ)  *)
 
-  Program Definition lift_dinterp_vl (T : dlty Σ): olty Σ 0 :=
-    olty0 (λI ρ v, (∃ d, ⌜v @ dlty_label T ↘ d⌝ ∧ dlty_car T ρ d)).
+  Program Definition lift_dinterp_vl (TD : dlty Σ): olty Σ 0 :=
+    olty0 (λI ρ v, ∃ d, ⌜v @ dlty_label TD ↘ d⌝ ∧ TD ρ d).
 
   (* Rewrite using (higher) semantic kinds! *)
-  Definition oDTMem l τ1 τ2 : dlty Σ := Dlty l
+  Definition oDTMem l τ1 τ2 : dlty Σ := mkDlty l
     (λI ρ d,
     ∃ ψ, (d ↗n[ 0 ] ψ) ∧
        □ ((∀ v, ▷ τ1 vnil ρ v → ▷ □ ψ vnil v) ∧
@@ -117,17 +117,17 @@ Section SemTypes.
   Definition oTTMem l τ1 τ2 :=
     lift_dinterp_vl (oDTMem l τ1 τ2).
 
-  Definition oDVMem l τ : dlty Σ := Dlty l
+  Definition oDVMem l τ : dlty Σ := mkDlty l
     (λI ρ d, ∃ pmem, ⌜d = dpt pmem⌝ ∧ path_wp pmem (oClose τ ρ)).
 
   Definition oTVMem l τ :=
     lift_dinterp_vl (oDVMem l τ).
 
-  Definition oTSel p (l : label) :=
+  Definition oTSel p l :=
     olty0 (λI ρ v, path_wp p.|[ρ]
       (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗n[ 0 ] ψ ∧ ▷ □ ψ vnil v)).
 
-  Lemma oTSel_pv w (l : label) args ρ v :
+  Lemma oTSel_pv w l args ρ v :
     oTSel (pv w) l args ρ v ⊣⊢
       ∃ ψ d, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n[ 0 ] ψ ∧ ▷ □ ψ vnil v.
   Proof. by rewrite /= path_wp_pv. Qed.
@@ -192,14 +192,12 @@ Section SemTypes.
     match T with
     | TTMem l L U => oDTMem l p⟦ L ⟧ p⟦ U ⟧
     | TVMem l T' => oDVMem l p⟦ T' ⟧
-    | _ => Dlty "" (λI _ _, False)
+    | _ => mkDlty "" (λI _ _, False)
     end.
 
   Global Instance def_interp_persistent T ρ d :
-    Persistent (dlty_car (def_interp_base T) ρ d).
+    Persistent (def_interp_base T ρ d).
   Proof. destruct T; try apply _. Qed.
-
-  Implicit Types (l : label).
 
   Definition def_interp T l := lift_dlty (def_interp_base T) l.
 
@@ -316,7 +314,6 @@ Section SampleTypingLemmas.
     iIntros "#HTU #HLT #Hs /="; iSplit => //.
     iIntros "!>" (ρ) "#Hg /=".
     iDestruct "Hs" as (φ Hγφ) "Hγ".
-    rewrite /dlty_car /=.
     iExists (hoEnvD_inst (σ.|[ρ]) φ); iSplit.
     by iApply dm_to_type_intro.
     iModIntro; repeat iSplit; iIntros (v) "#HL"; rewrite later_intuitionistically.
