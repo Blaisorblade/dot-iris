@@ -68,7 +68,7 @@ Section fundamental.
       + iApply Sub_TAll_Cov_Distr.
       + iApply Sub_TVMem_Cov_Distr.
       + iApply Sub_TTMem_Cov_Distr.
-      + by_reflect.
+      (* + by_reflect. *)
     - iIntros "#Hm"; induction HT.
       + by iApply T_Forall_Ex; [apply IHHT1|apply IHHT2].
       + by iApply T_Forall_Ex_p; [|apply IHHT|iApply fundamental_path_typed].
@@ -82,7 +82,7 @@ Section fundamental.
       + by iApply T_Var.
       + by iApply T_Sub; [apply IHHT|iApply fundamental_subtype].
       + iApply P_To_E. by iApply fundamental_path_typed.
-      + by_reflect.
+      (* + by_reflect. *)
     - iIntros "#Hm"; induction HT.
       + iApply P_Val. by iApply fundamental_typed.
       + by iApply P_DLater.
@@ -95,7 +95,7 @@ Section fundamental.
       + by iApply singleton_self_inv.
       + by iApply singleton_trans; [apply IHHT1|apply IHHT2].
       + by iApply singleton_elim; [apply IHHT1|apply IHHT2].
-      + by_reflect.
+      (* + by_reflect. *)
   Qed.
 
   Lemma ipwp_terminates {p T i}:
