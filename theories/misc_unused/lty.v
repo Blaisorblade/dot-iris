@@ -5,6 +5,7 @@ Using Autosubst 1, we define substitution on semantic types by precomposition:
 [ τ.|[s] = λ ρ, τ (ρ >> s) ].
 *)
 From D Require Import iris_prelude asubst_base asubst_intf dlang.
+From iris.algebra Require Import list.
 From iris.proofmode Require Import tactics.
 From iris.program_logic Require Import language.
 From D.pure_program_logic Require Import lifting adequacy.
@@ -198,7 +199,7 @@ End olty_subst.
 
 Notation oClose τ := (τ vnil).
 
-Definition sCtx Σ := list (olty Σ 0).
+Definition sCtx Σ := listO (oltyO Σ 0).
 
 Fixpoint env_oltyped {Σ} (Γ : sCtx Σ) (ρ : var → vl) : iProp Σ :=
   match Γ with
