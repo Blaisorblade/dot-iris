@@ -350,6 +350,76 @@ Module ty_compat.
       def_interp (TVMem l T) l ρ (dpt p) ⊣⊢
       path_wp p (⟦ T ⟧ ρ).
     Proof. apply def_interp_tvmem_eq. Qed.
+
+    Lemma swap0 T σ args ρ v : p⟦ T.|[σ] ⟧ args ρ v ≡ (p⟦ T ⟧).|[σ] args ρ v.
+    Proof. apply persistent_ty_interp_lemmas.interp_subst_compose_ind. Qed.
+
+    (* NOPE *)
+    Global Instance equiv_olty {i}: Equiv (olty Σ i) := λ A B, ∀ args ρ, A args ρ ≡ B args ρ.
+
+    Lemma swap T σ : p⟦ T.|[σ] ⟧ ≡ (p⟦ T ⟧).|[σ].
+    Proof. intros ???; apply swap0. Qed.
+
+    Global Instance Proper_setp Γ : Proper ((≡) ==> (=) ==> (≡)) (setp Γ).
+    Proof. intros ?? Heq ???; simplify_eq/=. properness; [done|apply Heq]. Qed.
+    Global Instance Proper_setp_flip Γ : Proper (flip (≡) ==> flip (=) ==> flip (≡)) (setp Γ).
+    Proof. intros ?? Heq ???; simplify_eq/=. properness; [done|apply Heq]. Qed.
+
+    Lemma T_Var' Γ x τ
+      (Hx : Γ !! x = Some τ):
+      (*──────────────────────*)
+      Γ ⊨ of_val (ids x) : shiftN x τ.
+    Proof.
+      rewrite /ietp/=; iIntros "!>" (ρ) "#Hg".
+      iApply wp_wand; [|iIntros].
+      iApply (T_Var with "Hg"); by rewrite list_lookup_fmap Hx.
+      Fail by rewrite (swap τ (ren (+x))).
+      by rewrite (swap0 τ (ren (+x))).
+      Restart.
+      rewrite /ietp.
+
+    (* Lemma setp_wand Γ e τ1 τ2 : τ1 ≡ τ2 → Γ s⊨ e : τ1 -∗ Γ s⊨ e : τ2.
+    Admitted.
+      iApply setp_wand; first last. *)
+    Lemma setp_wand Γ e τ1 τ2 : Γ s⊨ e : τ1 -∗ ⌜ τ1 ≡ τ2 ⌝ → Γ s⊨ e : τ2.
+    Admitted.
+      iApply setp_wand.
+      iApply T_Var.
+      by rewrite list_lookup_fmap Hx.
+      iIntros (???).
+      by rewrite (swap0 τ (ren (+x))).
+    Qed.
+      (* symmetry.
+      iApply (swap0 τ (ren (+x))).
+      iIntros "!%".
+      (* intros???. *)
+      symmetry.
+      apply (swap τ (ren (+x))).
+      apply (swap τ (ren (+x))).
+      Check (swap τ (ren (+x))).
+
+      Fail rewrite (swap τ (ren (+x))).
+      have Hg : p⟦ Γ ⟧* s⊨ of_val (ids x) : shiftN x p⟦ τ ⟧. apply T_Var.
+      by rewrite list_lookup_fmap Hx.
+
+      rewrite (_: p⟦ Γ ⟧* s⊨ of_val (ids x) : p⟦ shiftN x τ ⟧ ⊣⊢ p⟦ Γ ⟧* s⊨ of_val (ids x) : shiftN x p⟦ τ ⟧) //.
+      Arguments setp: simpl never.
+      Fail rewrite (swap τ (ren (+x))).
+      (* apply Proper_setp => //. *)
+      f_equiv.
+      Fail rewrite (swap τ (ren (+x))).
+      apply (swap τ (ren (+x))).
+    Qed.
+      About swap.
+      Check (swap τ (ren (+x))).
+
+      have : Γ ⊨ of_val (ids x) : shiftN x τ ⊣⊢ p⟦ Γ ⟧* s⊨ of_val (ids x) : shiftN x p⟦ τ ⟧. apply T_Var.
+      have := T_Var p⟦ Γ ⟧* x p⟦ τ ⟧.
+      rewrite (swap τ (ren (+x))).
+      iIntros "!>" (ρ).
+      rewrite /= -wp_value.
+
+      Timeout 1 apply T_Var. *)
   End defs.
 End ty_compat.
 End SemTypes.
