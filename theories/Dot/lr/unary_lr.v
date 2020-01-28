@@ -3,10 +3,10 @@ From D Require Export iris_prelude lr_syn_aux.
 From D Require Import ty_interp_subst_lemmas.
 From D.Dot Require Export dlang_inst path_wp.
 
+Include TyInterpLemmas VlSorts dlang_inst.
+
 (** Override notation from [dlang] to specify scope. *)
 Notation "⟦ T ⟧" := (ty_interp T%ty).
-
-Include TyInterpLemmas VlSorts dlang_inst.
 
 (** Deduce types from variable names, like on paper, for readability and to help
     type inference for some overloaded operations (e.g. substitution). *)

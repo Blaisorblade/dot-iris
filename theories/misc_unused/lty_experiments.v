@@ -2,7 +2,7 @@ From D Require Import iris_prelude asubst_base asubst_intf dlang.
 From iris.program_logic Require Import language.
 From iris.proofmode Require Import tactics.
 From D.pure_program_logic Require Import lifting adequacy.
-From D Require Import gen_iheap saved_interp lty dlang.
+From D Require Import gen_iheap saved_interp lty dlang ty_interp_subst_lemmas.
 
 Implicit Types (Σ : gFunctors).
 
@@ -261,16 +261,18 @@ Notation "s ↝[  σ  ] φ" := (leadsto_envD_equiv s σ φ) (at level 20).
 Section Sec2.
   Context `{HdotG: dlangG Σ}.
 
-  Import stamp_transfer.
+  Section with_unary_lr.
+  Import stamp_transfer unary_lr.
 
   Lemma extraction_to_leadsto_envD_equiv T g s σ n: T ~[ n ] (g, (s, σ)) →
     wellMappedφ ⟦ g ⟧g -∗ s ↝[ σ ] vopen (ty_interp T).
   Proof.
     move => [T'] [Hl] [<- [_ /is_stamped_nclosed_ty HclT]].
     iIntros "Hm". iExists (vopen (ty_interp T')). iSplitR.
-    - iIntros "!%" (args ρ v). exact: unary_lr.interp_subst_commute.
+    - iIntros "!%" (args ρ v). exact: interp_subst_commute.
     - iApply (wellMappedφ_apply with "Hm"). by rewrite lookup_fmap Hl.
   Qed.
+  End with_unary_lr.
 
   Lemma D_Typ_Abs Γ T L U s σ l :
     Γ s⊨ T, 1 <: U, 1 -∗

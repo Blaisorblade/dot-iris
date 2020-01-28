@@ -29,14 +29,6 @@ Module Type LiftWp (Import VS : VlSortsSig).
 
   Instance InhEnvPred s Σ : Inhabited (envPred s Σ) := populate (λ _ _, False)%I.
 
-  Class TyInterp ty Σ :=
-    ty_interp : ty -> envD Σ.
-  Notation "⟦ T ⟧" := (ty_interp T).
-  Notation "⟦ g ⟧g" := (fmap (M := gmap stamp) ty_interp g).
-
-  (* Also appears in Autosubst.*)
-  Global Arguments ty_interp {_ _ _} !_ /.
-
   Class dlangG Σ := DLangG {
     dlangG_savior :> savedHoSemTypeG Σ;
     dlangG_interpNames :> gen_iheapG stamp gname Σ;

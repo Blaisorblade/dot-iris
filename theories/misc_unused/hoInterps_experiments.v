@@ -3,7 +3,7 @@ Require Import Equations.Equations. *)
 From iris.proofmode Require Import tactics.
 From iris.base_logic Require Import lib.saved_prop.
 From D Require Import iris_prelude saved_interp_n.
-From D Require Import saved_interp_dep asubst_intf dlang.
+From D Require Import saved_interp_dep asubst_intf dlang ty_interp_subst_lemmas.
 From Coq Require FunctionalExtensionality.
 Import EqNotations.
 
@@ -254,6 +254,7 @@ End HoSemTypes.
 
 Module Type HoGenExperimnents (Import VS : VlSortsFullSig) (Import LWP : LiftWp VS).
 Include HoSemTypes VS LWP.
+Include TyInterpLemmas VS LWP.
 Section sec.
   Context `{TyInterp ty Σ}.
 
@@ -321,6 +322,7 @@ From D.Dot Require syn dlang_inst.
 Module dot_experiments.
 Import syn dlang_inst.
 Include HoSemTypes VlSorts dlang_inst.
+Include TyInterpLemmas VlSorts dlang_inst.
 
 Section sec.
   Context `{!savedHoSemTypeG Σ} `{!dlangG Σ} `{TyInterp ty Σ}.

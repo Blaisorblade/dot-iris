@@ -3,6 +3,14 @@ From iris.proofmode Require Import tactics.
 
 Module Type TyInterpLemmas (Import VS : VlSortsFullSig) (Import LWP : LiftWp VS).
 
+Class TyInterp ty Σ :=
+  ty_interp : ty -> envD Σ.
+Notation "⟦ T ⟧" := (ty_interp T).
+Notation "⟦ g ⟧g" := (fmap (M := gmap stamp) ty_interp g).
+
+(* Also appears in Autosubst. *)
+Global Arguments ty_interp {_ _ _} !_ /.
+
 Class TyInterpLemmas ty Σ `{sort_ty : Sort ty} `{!TyInterp ty Σ} := {
   interp_subst_compose_ind T ρ1 ρ2 v:
     ⟦ T.|[ρ1] ⟧ ρ2 v ⊣⊢ ⟦ T ⟧ (ρ1 >> ρ2) v;
