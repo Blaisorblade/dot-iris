@@ -12,6 +12,7 @@
 -arg -w -arg -ambiguous-paths
 
 theories/tactics.v
+theories/proper.v
 theories/ty_interp_subst_lemmas.v
 theories/misc_unused/lty.v
 theories/misc_unused/lty_experiments.v

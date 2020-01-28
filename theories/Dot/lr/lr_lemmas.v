@@ -2,7 +2,7 @@ From iris.proofmode Require Import tactics.
 From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language.
 
-From D Require Import swap_later_impl.
+From D Require Import swap_later_impl proper.
 From D.Dot Require Import rules unary_lr.
 
 Reserved Notation "⊢G Γ1 <:* Γ2" (at level 74, Γ1, Γ2 at next level).
@@ -19,11 +19,6 @@ Typeclasses Opaque ty_sub.
 Definition ctx_sub `{HdlangG: dlangG Σ} Γ1 Γ2 : Prop := ∀ ρ, ⟦ Γ1 ⟧* ρ -∗ ⟦ Γ2 ⟧* ρ.
 Notation "⊨G Γ1 <:* Γ2" := (ctx_sub Γ1 Γ2) (at level 74, Γ1, Γ2 at next level).
 Typeclasses Opaque ctx_sub.
-
-(** Create an [f_equiv] database, inspired by stdpp's [f_equal] database. We
-don't restrict it to [(_ ≡ _)], because [f_equiv] can apply [Proper]
-instances to any relation. *)
-Hint Extern 998 => f_equiv : f_equiv.
 
 (* Global Instance: Params (@ietp) 2. *)
 
@@ -70,19 +65,6 @@ Inductive ctx_sub_syn : ctx → ctx → Prop :=
   ⊢G T1 :: Γ1 <:* T2 :: Γ2
 where "⊢G Γ1 <:* Γ2" := (ctx_sub_syn Γ1 Γ2).
 Hint Constructors ctx_sub_syn : ctx_sub.
-
-Section flip_proper.
-  Context `{R : relation A} `{S : relation B} `{T : relation C} `{U : relation D}.
-  Global Instance flip_proper_2 `(!Proper (R ==> S) f) :
-    Proper (flip R ==> flip S) f.
-  Proof. solve_proper. Qed.
-  Global Instance flip_proper_3 `(!Proper (R ==> S ==> T) f) :
-    Proper (flip R ==> flip S ==> flip T) f.
-  Proof. solve_proper. Qed.
-  Global Instance flip_proper_4 `(!Proper (R ==> S ==> T ==> U) f) :
-    Proper (flip R ==> flip S ==> flip T ==> flip U) f.
-  Proof. solve_proper. Qed.
-End flip_proper.
 
 Section CtxSub.
   Context `{HdlangG: dlangG Σ}.
