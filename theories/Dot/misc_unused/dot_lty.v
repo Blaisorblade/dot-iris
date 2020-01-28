@@ -13,6 +13,8 @@ Implicit Types
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
          (vs : vls) (ρ : var → vl) (l : label).
 
+Local Notation IntoPersistent' P := (IntoPersistent false P P).
+
 Module SemTypes.
 
 Include LtyJudgements VlSorts dlang_inst.
@@ -21,8 +23,12 @@ Import persistent_ty_interp_lemmas.
 
 (** Override notations to specify scope. *)
 Notation "p⟦ T ⟧" := (pty_interp T%ty).
+(* Notation "p⟦ Γ ⟧*" := (pty_interp <$> Γ). *)
+Notation "p⟦ Γ ⟧*" := (fmap (M := list) pty_interp Γ).
 
-Notation "p⟦ Γ ⟧*" := (pty_interp <$> Γ).
+Definition dslty Σ := env -> iPPred dms Σ.
+Definition dsltyO Σ := env -d> iPPredO dms Σ.
+Notation Dslty T := (λ ρ, IPPred (λI ds, T ρ ds)).
 
 Record dlty Σ := Dlty {
   dlty_label : label;
@@ -32,14 +38,24 @@ Global Arguments Dlty {_} _%I _.
 Global Arguments dlty_label {_} _ /.
 Global Arguments dlty_car {_} !_ _ /.
 
-Local Notation IntoPersistent' P := (IntoPersistent false P P).
+(* Forces inserting coercions to -d>. *)
+Notation dApp := (dlty_car : dlty _ → _ -d> _).
 
-Definition dslty Σ := env -> iPPred dms Σ.
-Notation Dslty T := (λ ρ, IPPred (λI ds, T ρ ds)).
+Canonical Structure labelO := leibnizO label.
+
+Section dlty_ofe.
+  Context {Σ}.
+  Let iso := (λ T : dlty Σ, (dApp T, dlty_label T)).
+  Instance dlty_equiv : Equiv (dlty Σ) := λ A B, iso A ≡ iso B.
+  Instance dlty_dist : Dist (dlty Σ) := λ n A B, iso A ≡{n}≡ iso B.
+  Lemma dlty_ofe_mixin : OfeMixin (dlty Σ).
+  Proof. exact: (iso_ofe_mixin iso). Qed.
+End dlty_ofe.
+Canonical Structure dltyO Σ := OfeT (dlty Σ) dlty_ofe_mixin.
 
 Section defs.
   Context `{HdotG: dlangG Σ}.
-  Implicit Types (T : olty Σ 0) (TD : dlty Σ).
+  Implicit Types (T : oltyO Σ 0) (TD : dlty Σ).
   Definition mkDlty l (φ : envPred dm Σ) `{∀ ρ d, Persistent (φ ρ d)} : dlty Σ :=
     Dlty l (λ ρ, IPPred (φ ρ)).
 
@@ -331,95 +347,90 @@ Section SampleTypingLemmas.
 End SampleTypingLemmas.
 
 Module ty_compat.
-  Include TyInterpLemmas VlSorts dlang_inst.
-  Notation "⟦ T ⟧" := (ty_interp T%ty).
 
-  Section defs.
-    Context `{HdotG: dlangG Σ}.
-    (* Wrap this into ty_interp to reuse lemmas. *)
-    Global Instance pto_ty_interp : TyInterp ty Σ := flip pty_interp vnil.
-    Global Instance interp_persistent T ρ v : Persistent (⟦ T ⟧ ρ v) := _.
+Include TyInterpLemmas VlSorts dlang_inst.
+Notation "⟦ T ⟧" := (ty_interp T%ty).
 
-    Global Arguments pto_ty_interp _ /.
-    Global Arguments ty_interp {_ _ _} _ /.
+Section defs.
+  Context `{HdotG: dlangG Σ}.
+  (* Wrap this into ty_interp to reuse lemmas. *)
+  Global Instance pto_ty_interp : TyInterp ty Σ := flip pty_interp vnil.
+  Global Instance interp_persistent T ρ v : Persistent (⟦ T ⟧ ρ v) := _.
 
-    Global Instance interp_lemmas: TyInterpLemmas ty Σ.
-    Proof. split => /= *; apply persistent_ty_interp_lemmas.interp_subst_compose_ind. Qed.
+  Global Arguments pto_ty_interp _ /.
+  Global Arguments ty_interp {_ _ _} _ /.
 
-    Lemma def_interp_tvmem_eq' l (T : ty) p ρ:
-      def_interp (TVMem l T) l ρ (dpt p) ⊣⊢
-      path_wp p (⟦ T ⟧ ρ).
-    Proof. apply def_interp_tvmem_eq. Qed.
+  Global Instance interp_lemmas: TyInterpLemmas ty Σ.
+  Proof. split => /= *; apply persistent_ty_interp_lemmas.interp_subst_compose_ind. Qed.
 
-    Lemma swap0 T σ args ρ v : p⟦ T.|[σ] ⟧ args ρ v ≡ (p⟦ T ⟧).|[σ] args ρ v.
-    Proof. apply persistent_ty_interp_lemmas.interp_subst_compose_ind. Qed.
+  Lemma def_interp_tvmem_eq' l (T : ty) p ρ:
+    def_interp (TVMem l T) l ρ (dpt p) ⊣⊢
+    path_wp p (⟦ T ⟧ ρ).
+  Proof. apply def_interp_tvmem_eq. Qed.
 
-    (* NOPE *)
-    Global Instance equiv_olty {i}: Equiv (olty Σ i) := λ A B, ∀ args ρ, A args ρ ≡ B args ρ.
+  (* Lemma swap0 T σ args ρ v : p⟦ T.|[σ] ⟧ args ρ v ≡ (p⟦ T ⟧).|[σ] args ρ v.
+  Proof. apply persistent_ty_interp_lemmas.interp_subst_compose_ind. Qed. *)
 
-    Lemma swap T σ : p⟦ T.|[σ] ⟧ ≡ (p⟦ T ⟧).|[σ].
-    Proof. intros ???; apply swap0. Qed.
+  Lemma pty_interp_subst T σ : p⟦ T.|[σ] ⟧ ≡ (p⟦ T ⟧).|[σ].
+  Proof. intros ???; apply persistent_ty_interp_lemmas.interp_subst_compose_ind. Qed.
 
-    Global Instance Proper_setp Γ : Proper ((≡) ==> (=) ==> (≡)) (setp Γ).
-    Proof. intros ?? Heq ???; simplify_eq/=. properness; [done|apply Heq]. Qed.
-    Global Instance Proper_setp_flip Γ : Proper (flip (≡) ==> flip (=) ==> flip (≡)) (setp Γ).
-    Proof. intros ?? Heq ???; simplify_eq/=. properness; [done|apply Heq]. Qed.
+  (* XXX drop *)
+Section flip_proper.
+Context `{R : relation A} `{S : relation B} `{T : relation C} `{U : relation D} `{V : relation E}.
+Global Instance flip_proper_2 `(!Proper (R ==> S) f) :
+  Proper (flip R ==> flip S) f.
+Proof. solve_proper. Qed.
+Global Instance flip_proper_3 `(!Proper (R ==> S ==> T) f) :
+  Proper (flip R ==> flip S ==> flip T) f.
+Proof. solve_proper. Qed.
+Global Instance flip_proper_4 `(!Proper (R ==> S ==> T ==> U) f) :
+  Proper (flip R ==> flip S ==> flip T ==> flip U) f.
+Proof. solve_proper. Qed.
+Global Instance flip_proper_5 `(!Proper (R ==> S ==> T ==> U ==> V) f) :
+  Proper (flip R ==> flip S ==> flip T ==> flip U ==> flip V) f.
+Proof. solve_proper. Qed.
+End flip_proper.
 
-    Lemma T_Var' Γ x τ
-      (Hx : Γ !! x = Some τ):
-      (*──────────────────────*)
-      Γ ⊨ of_val (ids x) : shiftN x τ.
-    Proof.
-      rewrite /ietp/=; iIntros "!>" (ρ) "#Hg".
-      iApply wp_wand; [|iIntros].
-      iApply (T_Var with "Hg"); by rewrite list_lookup_fmap Hx.
-      Fail by rewrite (swap τ (ren (+x))).
-      by rewrite (swap0 τ (ren (+x))).
-      Restart.
-      rewrite /ietp.
+Ltac properness :=
+repeat match goal with
+| |- (∃ _: _, _)%I ≡ (∃ _: _, _)%I => apply bi.exist_proper =>?
+| |- (∀ _: _, _)%I ≡ (∀ _: _, _)%I => apply bi.forall_proper =>?
+| |- (_ ∧ _)%I ≡ (_ ∧ _)%I => apply bi.and_proper
+| |- (_ ∨ _)%I ≡ (_ ∨ _)%I => apply bi.or_proper
+| |- (_ → _)%I ≡ (_ → _)%I => apply bi.impl_proper
+| |- (_ -∗ _)%I ≡ (_ -∗ _)%I => apply bi.wand_proper
+| |- (WP _ {{ _ }})%I ≡ (WP _ {{ _ }})%I => apply wp_proper =>?
+| |- (▷ _)%I ≡ (▷ _)%I => apply bi.later_proper
+| |- (▷^_ _)%I ≡ (▷^_ _)%I => apply bi.laterN_proper
+| |- (□ _)%I ≡ (□ _)%I => apply bi.intuitionistically_proper
+| |- (_ ∗ _)%I ≡ (_ ∗ _)%I => apply bi.sep_proper
+(* | |- (inv _ _)%I ≡ (inv _ _)%I => apply (contractive_proper _) *)
+end.
 
-    (* Lemma setp_wand Γ e τ1 τ2 : τ1 ≡ τ2 → Γ s⊨ e : τ1 -∗ Γ s⊨ e : τ2.
-    Admitted.
-      iApply setp_wand; first last. *)
-    Lemma setp_wand Γ e τ1 τ2 : Γ s⊨ e : τ1 -∗ ⌜ τ1 ≡ τ2 ⌝ → Γ s⊨ e : τ2.
-    Admitted.
-      iApply setp_wand.
-      iApply T_Var.
-      by rewrite list_lookup_fmap Hx.
-      iIntros (???).
-      by rewrite (swap0 τ (ren (+x))).
-    Qed.
-      (* symmetry.
-      iApply (swap0 τ (ren (+x))).
-      iIntros "!%".
-      (* intros???. *)
-      symmetry.
-      apply (swap τ (ren (+x))).
-      apply (swap τ (ren (+x))).
-      Check (swap τ (ren (+x))).
+  Global Instance Proper_setp Γ : Proper ((≡) ==> (=) ==> (≡)) (setp Γ).
+  Proof. intros ?? Heq ???; simplify_eq/=. properness; [done|apply Heq]. Qed.
+  Global Instance Proper_setp_flip Γ : Proper (flip (≡) ==> flip (=) ==> flip (≡)) (setp Γ).
+  Proof. apply: flip_proper_3. Qed.
+  Global Instance Proper_sstpi Γ : Proper ((≡) ==> (≡) ==> (=) ==> (=) ==> (≡)) (sstpi (Σ := Σ) Γ).
+  Proof.
+    intros ?? H1 ?? H2 ?** ?**; simplify_eq/=.
+    properness; [done|apply H1|apply H2].
+  Qed.
+  Global Instance Proper_sstpi_flip Γ : Proper ((≡) --> (≡) --> (=) --> (=) --> flip (≡)) (sstpi (Σ := Σ) Γ).
+  Proof. apply: flip_proper_5. Qed.
 
-      Fail rewrite (swap τ (ren (+x))).
-      have Hg : p⟦ Γ ⟧* s⊨ of_val (ids x) : shiftN x p⟦ τ ⟧. apply T_Var.
-      by rewrite list_lookup_fmap Hx.
+  Lemma T_Var' Γ x τ
+    (Hx : Γ !! x = Some τ):
+    (*──────────────────────*)
+    Γ ⊨ of_val (ids x) : shiftN x τ.
+  Proof.
+    rewrite /ietp pty_interp_subst. apply T_Var.
+    by rewrite list_lookup_fmap Hx.
+  Qed.
 
-      rewrite (_: p⟦ Γ ⟧* s⊨ of_val (ids x) : p⟦ shiftN x τ ⟧ ⊣⊢ p⟦ Γ ⟧* s⊨ of_val (ids x) : shiftN x p⟦ τ ⟧) //.
-      Arguments setp: simpl never.
-      Fail rewrite (swap τ (ren (+x))).
-      (* apply Proper_setp => //. *)
-      f_equiv.
-      Fail rewrite (swap τ (ren (+x))).
-      apply (swap τ (ren (+x))).
-    Qed.
-      About swap.
-      Check (swap τ (ren (+x))).
+  (* Lemma setp_wand Γ e τ1 τ2 : Γ s⊨ e : τ1 -∗ ⌜ τ1 ≡ τ2 ⌝ → Γ s⊨ e : τ2.
+  Admitted. *)
+End defs.
 
-      have : Γ ⊨ of_val (ids x) : shiftN x τ ⊣⊢ p⟦ Γ ⟧* s⊨ of_val (ids x) : shiftN x p⟦ τ ⟧. apply T_Var.
-      have := T_Var p⟦ Γ ⟧* x p⟦ τ ⟧.
-      rewrite (swap τ (ren (+x))).
-      iIntros "!>" (ρ).
-      rewrite /= -wp_value.
-
-      Timeout 1 apply T_Var. *)
-  End defs.
 End ty_compat.
 End SemTypes.
