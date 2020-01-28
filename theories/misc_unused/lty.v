@@ -268,7 +268,7 @@ Module Type LtyJudgements (Import VS: VlSortsFullSig) (Import LVS : LiftWp VS).
 Include Lty VS LVS.
 Section judgments.
   Context `{dlangG Σ}.
-  Implicit Types (τ : olty Σ 0).
+  Implicit Types (τ : oltyO Σ 0).
 
   Definition sstpi Γ τ1 τ2 i j: iProp Σ :=
     □∀ ρ v,

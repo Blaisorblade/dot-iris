@@ -8,7 +8,7 @@ Module Type PTyInterpLemmas (Import VS : VlSortsFullSig) (Import LWP : LiftWp VS
 Module persistent_ty_interp_lemmas.
 
 Class PTyInterp ty Σ :=
-  pty_interp : ty -> olty Σ 0.
+  pty_interp : ty -> oltyO Σ 0.
 Notation "p⟦ T ⟧" := (pty_interp T).
 Notation "p⟦ g ⟧g" := (fmap (M := gmap stamp) pty_interp g).
 
