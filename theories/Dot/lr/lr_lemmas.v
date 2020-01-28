@@ -12,7 +12,7 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx) (ρ : en
 
 (** * When is a context weaker than another? *)
 (* Likely, this should be an iProp. *)
-Definition ty_sub `{HdlangG: dlangG Σ} T1 T2 := ∀ ρ v, ⟦ T1 ⟧ ρ v -∗ ⟦ T2 ⟧ ρ v.
+Definition ty_sub `{HdlangG: dlangG Σ} T1 T2 := ∀ ρ v, p⟦ T1 ⟧ vnil ρ v -∗ p⟦ T2 ⟧ vnil ρ v.
 Notation "⊨T T1 <: T2" := (ty_sub T1 T2) (at level 74, T1, T2 at next level).
 Typeclasses Opaque ty_sub.
 
@@ -99,7 +99,7 @@ Section CtxSub.
   Proof. split. by move => ??. by move => x y z H1 H2 ρ; rewrite (H1 _). Qed.
 
   Global Instance Proper_cons_ctx_sub : Proper (ty_sub ==> ctx_sub ==> ctx_sub) cons.
-  Proof. move => T1 T2 HlT Γ1 Γ2 Hl ρ /=. by rewrite (HlT _) (Hl _). Qed.
+  Proof. move => T1 T2 HlT Γ1 Γ2 Hl ρ. cbn. by rewrite (Hl _) (HlT _). Qed.
 
   Global Instance Proper_cons_ctx_sub_flip : Proper (flip ty_sub ==> flip ctx_sub ==> flip ctx_sub) cons.
   Proof. solve_proper. Qed.

@@ -88,10 +88,8 @@ End judgments.
 
 End Lty_judge.
 
-From D.Dot Require Import syn synLemmas dlang_inst rules typeExtractionSyn path_wp typeExtractionSem.
+From D.Dot Require Import syn synLemmas dlang_inst rules typeExtractionSyn path_wp.
 From D.Dot.syn Require Import path_repl.
-From D.Dot Require unary_lr.
-From D.Dot.lr Require path_repl.
 
 Implicit Types
          (v: vl) (e: tm) (d: dm) (ds: dms) (p : path).
@@ -99,28 +97,6 @@ Implicit Types
 Module SemTypes.
 
 Include LtyJudgements VlSorts dlang_inst.
-
-Record dlty Σ := Dlty {
-  dlty_label : label;
-  dlty_car : env -d> dm -d> iPropO Σ;
-  dlty_persistent ρ d :> Persistent (dlty_car ρ d);
-}.
-Global Arguments Dlty {_} _%I _ {_}.
-Global Arguments dlty_car {_} !_ _ _ /.
-Global Arguments dlty_label {_} _ /.
-Global Existing Instance dlty_persistent.
-
-Definition idtp `{!dlangG Σ} Γ l (φ : dlty Σ) d : iProp Σ :=
-  (⌜ l = dlty_label φ ⌝ ∧
-    □∀ ρ, ⟦Γ⟧* ρ → dlty_car φ ρ d.|[ρ])%I.
-Global Arguments idtp /.
-Notation "Γ ⊨ { l := d  } : T" := (idtp Γ l T d) (at level 64, d, l, T at next level).
-
-Definition iptp `{!dlangG Σ} Γ (τ : olty Σ 0) p i: iProp Σ :=
-  □∀ ρ, ⟦Γ⟧* ρ -∗
-    ▷^i path_wp (p.|[ρ]) (λ v, oClose τ ρ v).
-
-Notation "Γ ⊨p p : τ , i" := (iptp Γ τ p i) (at level 74, p, τ, i at next level).
 
 Section SemTypes.
   Context `{HdotG: dlangG Σ}.
@@ -130,27 +106,6 @@ Section SemTypes.
 
   Program Definition lift_dinterp_vl (T : dlty Σ): olty Σ 0 :=
     olty0 (λ ρ v, (∃ d, ⌜v @ dlty_label T ↘ d⌝ ∧ dlty_car T ρ d)%I).
-
-  Definition dm_to_type d i (ψ : hoD Σ i) : iProp Σ :=
-    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ , i ] ψ)%I.
-  Notation "d ↗n[ i  ] ψ" := (dm_to_type d i ψ) (at level 20).
-  Global Instance dm_to_type_persistent d i ψ: Persistent (d ↗n[ i ] ψ) := _.
-
-  Lemma dm_to_type_agree d i ψ1 ψ2 args v : d ↗n[ i ] ψ1 -∗ d ↗n[ i ] ψ2 -∗ ▷ (ψ1 args v ≡ ψ2 args v).
-  Proof.
-    iDestruct 1 as (s σ ?) "#Hs1".
-    iDestruct 1 as (s' σ' ?) "#Hs2".
-    simplify_eq. by iApply (stamp_σ_to_type_agree args with "Hs1 Hs2").
-  Qed.
-
-  Lemma dm_to_type_intro d i s σ φ :
-    d = dtysem σ s → s ↝n[ i ] φ -∗ d ↗n[ i ] hoEnvD_inst σ φ.
-  Proof.
-    iIntros. iExists s, σ. iFrame "%".
-    by iApply stamp_σ_to_type_intro.
-  Qed.
-
-  Global Opaque dm_to_type.
 
   (* Rewrite using (higher) semantic kinds! *)
   Definition oDTMem l τ1 τ2 : dlty Σ := Dlty l
@@ -257,6 +212,8 @@ Section Sec.
 End Sec.
 
 Notation "s ↝[  σ  ] φ" := (leadsto_envD_equiv s σ φ) (at level 20).
+
+(* From D.Dot.lr Require unary_lr typeExtractionSem path_repl.
 
 Section Sec2.
   Context `{HdotG: dlangG Σ}.
@@ -403,5 +360,5 @@ Section with_lty.
     iIntros "!% /="; setoid_rewrite alias_paths_pv_eq_1.
     by eapply alias_paths_sameres, alias_paths_pself.
   Qed.
-  End with_lty.
+  End with_lty. *)
 End SemTypes.
