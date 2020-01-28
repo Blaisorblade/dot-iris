@@ -34,12 +34,12 @@ Section saved_pred3_use.
 End saved_pred3_use.
 End try1.
 
-From D Require Import saved_interp_dep olty asubst_base.
+From D Require Import saved_interp_dep lty asubst_base.
 
 (* *)
 Module simple.
 Module Type HoSemTypes (Import VS : VlSortsFullSig) (Import LWP : LiftWp VS).
-Include OLty VS LWP.
+Include Lty VS LWP.
 Section saved_dep_use.
   Context {Σ : gFunctors}.
   Notation hoEnvND Σ := (sigTO (hoEnvD Σ)).
@@ -89,7 +89,8 @@ End HoSemTypes.
 End simple.
 
 Module Type HoSemTypes (Import VS : VlSortsFullSig) (Import LWP : LiftWp VS).
-Include OLty VS LWP.
+Include Lty VS LWP.
+
 (* XXX Good names? *)
 Notation iPred T Σ := (T → iProp Σ).
 Notation iPredO T Σ := (T -d> iPropO Σ).
