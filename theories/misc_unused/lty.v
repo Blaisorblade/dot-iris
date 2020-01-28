@@ -12,93 +12,67 @@ From D.pure_program_logic Require Import lifting adequacy.
 From Coq Require ProofIrrelevance FunctionalExtensionality.
 Import prelude.
 
-Module Type Lty (Import VS: VlSortsFullSig) (Import LVS : LiftWp VS).
-
-Global Arguments vopen /.
-Global Arguments vclose /.
-
-Section lty_limit_preserving.
-  Context `{Σ : gFunctors}.
-
-  Definition hoEnvD_persistent (A : vl -d> iPropO Σ) := ∀ w, Persistent (A w).
-
-  Instance: LimitPreserving hoEnvD_persistent.
-  Proof.
-    apply limit_preserving_forall=> v.
-    apply bi.limit_preserving_Persistent => n f g Heq. exact: Heq.
-  Qed.
-
-  Definition restrict A := hoEnvD_persistent A.
-  Global Instance: LimitPreserving restrict := _.
-End lty_limit_preserving.
+Implicit Types (Σ : gFunctors).
 
 (**
 "Logical TYpes": persistent Iris predicates over values.
 Adapted from
 https://gitlab.mpi-sws.org/iris/examples/blob/d4f4153920ea82617c7222aeeb00b6710d51ee03/theories/logrel_heaplang/ltyping.v#L5. *)
-Record lty Σ := Lty {
-  lty_car :> vl → iProp Σ;
-  lty_persistent v : Persistent (lty_car v);
+
+Record iPPred vl Σ := IPPred {
+  iPPred_car :> vl → iProp Σ;
+  iPPred_persistent v : Persistent (iPPred_car v);
 }.
-Global Arguments Lty {_} _%I {_}.
-Global Arguments lty_car {_} !_ _ /.
-Bind Scope lty_scope with lty.
-Delimit Scope lty_scope with T.
-Global Existing Instance lty_persistent.
+Global Arguments IPPred {_ _} _%I {_}.
+Global Arguments iPPred_car {_ _} !_ _ /.
+Bind Scope iPPred_scope with iPPred.
+Delimit Scope iPPred_scope with T.
+Global Existing Instance iPPred_persistent.
 
-(* "Open Logical TYpes": persistent Iris predicates over environments and values. *)
-Definition olty Σ i := vec vl i -> env -> lty Σ.
+Section iPPred_ofe.
+  Context {vl : Type} {Σ}.
+  Notation vpred := (iPPred vl Σ).
+  Implicit Types (ψ : vl -d> iPropO Σ) (τ : vpred).
 
-(* Rename hoEnvD to hoEnv(D?)O. *)
-(* Definition hoEnv Σ i := vec vl i → (var → vl) → vl → iProp Σ. *)
-(* Definition olty_car {Σ i} : olty Σ i → vec vl i → (var → vl) → vl → iProp Σ := *)
-(* Definition olty_car {Σ i} : olty Σ i → hoEnv Σ i :=
-  λ τ args ρ v, lty_car (τ args ρ) v. *)
-Notation olty_car τ := (λ args ρ v, lty_car (τ args ρ) v).
+  (* Forces inserting coercions to -d>. *)
+  Notation lApp := (iPPred_car : iPPred _ _ → _ -d> _).
 
-(* Different from normal TyInterp. Better? *)
-Class OTyInterp (ty : nat → Type) Σ :=
-  oty_interp : ∀ {i}, ty i → olty Σ i.
-(* Forces inserting coercions to -d>. *)
-Notation oApp := (lty_car : lty _ → _ -d> _).
-(* Notation oApp2 := (lty_car : lty _ → _ → _ -d> _). *)
-(* Notation oApp := (lty_car : (_ -> env -> lty _) → _ → env → _ -d> iPropO _). *)
-(* Notation oApp := (lty_car : (_ -> env -> lty _) → _ → env → _ -d> iPropO _).
+  Definition pred_persistent (A : vl -d> iPropO Σ) := ∀ w, Persistent (A w).
 
-Local Definition testCoerce `(τ : vec vl i → env → lty Σ) := vclose (oApp τ). *)
+  Instance: LimitPreserving pred_persistent.
+  Proof.
+    apply limit_preserving_forall=> v.
+    apply bi.limit_preserving_Persistent => n f g Heq. exact: Heq.
+  Qed.
 
-Section lty_ofe.
-  Context `{Σ : gFunctors}.
-  Implicit Types (ψ : vl -d> iPropO Σ) (τ : lty Σ).
-
-  Instance lty_equiv : Equiv (lty Σ) := λ A B, oApp A ≡ B.
-  Instance lty_dist : Dist (lty Σ) := λ n A B, oApp A ≡{n}≡ B.
-  Lemma lty_ofe_mixin : OfeMixin (lty Σ).
-  Proof. by apply (iso_ofe_mixin oApp). Qed.
-  Canonical Structure ltyO := OfeT (lty Σ) lty_ofe_mixin.
+  Instance iPPred_equiv : Equiv vpred := λ A B, lApp A ≡ B.
+  Instance iPPred_dist : Dist vpred := λ n A B, lApp A ≡{n}≡ B.
+  Lemma iPPred_ofe_mixin : OfeMixin vpred.
+  Proof. by apply (iso_ofe_mixin lApp). Qed.
+  Canonical Structure iPPredO := OfeT vpred iPPred_ofe_mixin.
 
   (* Only needed to define Lty using Iris fixpoints (e.g. for normal recursive types). *)
-  Global Instance lty_cofe : Cofe ltyO.
+  Global Instance iPPred_cofe : Cofe iPPredO.
   Proof.
-    apply (iso_cofe_subtype' restrict Lty lty_car) => //.
+    apply (iso_cofe_subtype' pred_persistent IPPred iPPred_car) => //.
     - by move => [].
     - apply _.
   Qed.
 
-  Global Program Instance lty_inhabited : Inhabited (lty Σ) := populate (Lty (λ _, False)%I).
+  Global Program Instance iPPred_inhabited : Inhabited vpred := populate (IPPred (λ _, False)%I).
 
-  Global Instance lty_car_ne : NonExpansive oApp.
+  Global Instance iPPred_car_ne : NonExpansive lApp.
   Proof. intros n f g Heq. apply Heq. Qed.
-  Global Instance lty_car_proper : Proper ((≡) ==> (≡)) oApp.
-  Proof. apply ne_proper, lty_car_ne. Qed.
+  Global Instance iPPred_car_proper : Proper ((≡) ==> (≡)) lApp.
+  Proof. apply ne_proper, iPPred_car_ne. Qed.
 
-  Program Definition pack ψ := Lty (λ v, □ ψ v)%I.
+  Program Definition pack ψ := IPPred (λ v, □ ψ v)%I.
 
-  Lemma lty_car_pack_id ψ `{∀ v, Persistent (ψ v)} :
-    oApp (pack ψ) ≡ ψ.
+  Lemma iPPred_car_pack_id ψ `{∀ v, Persistent (ψ v)} :
+    lApp (pack ψ) ≡ ψ.
   Proof. intros ?. apply: intuitionistic_intuitionistically. Qed.
 
-  Lemma pack_lty_car_id τ : pack (lty_car τ) ≡ τ.
+  Lemma pack_iPPred_car_id τ : pack (iPPred_car τ) ≡ τ.
   Proof.
     move: τ => [τ Hp] v /=.
     apply: intuitionistic_intuitionistically.
@@ -108,12 +82,43 @@ Section lty_ofe.
     Since substitution lemmas don't use setoids,
     [HSubstLemmas vl (olty Σ i)] requires proof irrelevance.
    *)
-  Lemma lty_eq τ1 τ2: lty_car τ1 = lty_car τ2 → τ1 = τ2.
+  Lemma lty_eq τ1 τ2: iPPred_car τ1 = iPPred_car τ2 → τ1 = τ2.
   Proof.
-    move: τ1 τ2 => [φ1 Hp1] [φ2 Hp2]. rewrite /lty_car.
+    move: τ1 τ2 => [φ1 Hp1] [φ2 Hp2]. rewrite /iPPred_car.
     intros ->. f_equal; exact: ProofIrrelevance.proof_irrelevance.
   Qed.
-End lty_ofe.
+End iPPred_ofe.
+
+Global Arguments iPPredO : clear implicits.
+
+Module Type Lty (Import VS: VlSortsFullSig) (Import LVS : LiftWp VS).
+
+Notation lty Σ := (iPPred vl Σ).
+Notation ltyO Σ := (iPPredO vl Σ).
+Notation Lty := (IPPred (vl := vl)).
+Notation lty_car := (iPPred_car (vl := vl)) (only parsing).
+(* Forces inserting coercions to -d>. *)
+Notation lApp := (iPPred_car : lty _ → _ -d> _).
+
+Global Arguments vopen /.
+Global Arguments vclose /.
+
+(* "Open Logical TYpes": persistent Iris predicates over environments and values. *)
+Definition olty Σ i := vec vl i -> env -> lty Σ.
+Notation oltyO Σ n := (vec vl n -d> env -d> ltyO Σ).
+
+Notation olty_car τ := (λ args ρ v, lty_car (τ args ρ) v).
+Definition oApp {Σ i} : olty Σ i -> hoEnvD Σ i := λ φ, olty_car φ.
+
+(* Rename hoEnvD to hoEnv(D?)O. *)
+(* Definition hoEnv Σ i := vec vl i → (var → vl) → vl → iProp Σ. *)
+(* Definition oiPPred_car {Σ i} : olty Σ i → vec vl i → (var → vl) → vl → iProp Σ := *)
+(* Definition oiPPred_car {Σ i} : olty Σ i → hoEnv Σ i :=
+  λ τ args ρ v, lty_car (τ args ρ) v. *)
+
+(* Different from normal TyInterp. Better? *)
+Class OTyInterp (ty : nat → Type) Σ :=
+  oty_interp : ∀ {i}, ty i → olty Σ i.
 
 Section olty_subst.
   Context `{Σ : gFunctors} {i : nat}.
@@ -158,24 +163,20 @@ Section olty_subst.
     λ sb τ, Olty ((olty_car τ).|[sb]).
 
   Lemma olty_eq τ1 τ2:
-    (∀ args ρ v, olty_car τ1 args ρ v = olty_car τ2 args ρ v) →
+    (∀ args ρ, olty_car τ1 args ρ = olty_car τ2 args ρ) →
     τ1 = τ2.
-  Proof.
-    intros * Heq; f_ext => args; f_ext => ρ.
-    apply lty_eq; f_ext => v; apply Heq.
-  Qed.
+  Proof. intros * Heq; f_ext => args; f_ext => ρ. apply lty_eq, Heq. Qed.
 
   Lemma olty_eq' τ1 τ2: olty_car τ1 = olty_car τ2 → τ1 = τ2.
   Proof.
-    intros Heq; apply olty_eq => args ρ v.
-    apply (f_equal_dep _ _ v
-            (f_equal_dep _ _ ρ
-              (f_equal_dep _ _ args Heq))).
+    intros Heq; apply olty_eq => args ρ.
+    apply (f_equal_dep _ _ ρ
+              (f_equal_dep _ _ args Heq)).
   Qed.
 
   Global Instance hsubstLemmas_olty : HSubstLemmas vl (olty Σ i).
   Proof.
-    split => [T|//|s1 s2 T]; apply olty_eq => args ρ v.
+    split => [T|//|s1 s2 T]; apply olty_eq => args ρ; f_ext => v.
     all: by rewrite /hsubst/= ?hsubst_id -?hsubst_comp.
   Qed.
 
@@ -261,8 +262,6 @@ Section olty_ofe_2.
   Definition oTSel0 `{dlangG Σ} s σ :=
     olty0 (λ ρ v, ∃ ψ, s ↗[ σ ] ψ ∧ ▷ □ ψ v)%I.
 End olty_ofe_2.
-
-Arguments ltyO : clear implicits.
 End Lty.
 
 Module Type LtyJudgements (Import VS: VlSortsFullSig) (Import LVS : LiftWp VS).
