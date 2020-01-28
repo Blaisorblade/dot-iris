@@ -19,9 +19,9 @@ Ltac properness :=
   | |- (_ -∗ _)%I ≡ (_ -∗ _)%I => apply bi.wand_proper
   | |- (WP _ {{ _ }})%I ≡ (WP _ {{ _ }})%I => apply wp_proper =>?
   | |- (▷ _)%I ≡ (▷ _)%I => apply bi.later_proper
+  | |- (▷^_ _)%I ≡ (▷^_ _)%I => apply bi.laterN_proper
   | |- (□ _)%I ≡ (□ _)%I => apply bi.intuitionistically_proper
   | |- (_ ∗ _)%I ≡ (_ ∗ _)%I => apply bi.sep_proper
-  (* | |- (inv _ _)%I ≡ (inv _ _)%I => apply (contractive_proper _) *)
   end.
 
 Ltac solve_proper_alt :=
