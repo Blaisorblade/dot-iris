@@ -170,7 +170,7 @@ Section with_lty.
     (*───────────────────────────────*)
     Γ s⊨ iterate tskip i e : T2.
   Proof.
-    iIntros "/= #HeT1 #Hsub !>" (ρ) "#Hg".
+    iIntros "/= #HeT1 #Hsub !>" (ρ) "#Hg !>".
     rewrite tskip_subst -wp_bind.
     iApply (wp_wand with "(HeT1 Hg)").
     iIntros (v) "#HvT1".

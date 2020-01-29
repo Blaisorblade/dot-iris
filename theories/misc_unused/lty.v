@@ -13,6 +13,10 @@ From D.pure_program_logic Require Import lifting adequacy.
 From Coq Require ProofIrrelevance FunctionalExtensionality.
 Import prelude.
 
+Notation "'λI' x .. y , t" := (fun x => .. (fun y => t%I) ..)
+  (at level 200, x binder, y binder, right associativity, only parsing,
+  format "'[  ' '[  ' 'λI'  x  ..  y ']' ,  '/' t ']'") : function_scope.
+
 Implicit Types (Σ : gFunctors).
 
 (**
@@ -154,7 +158,7 @@ Section olty_subst.
   Proof. apply hoEnvD_subst_compose. autosubst. Qed.
 
   Definition Olty (olty_car : vec vl i → (var → vl) → vl → iProp Σ)
-   `{∀ args ρ v, Persistent (olty_car args ρ v)}: olty Σ i :=
+   `{∀ args ρ v, Persistent (olty_car args ρ v)}: oltyO Σ i :=
     λ args ρ, Lty (olty_car args ρ).
 
   Global Instance ids_olty : Ids (olty Σ i) := λ _, inhabitant.
@@ -210,7 +214,7 @@ Notation "s⟦ Γ ⟧*" := (env_oltyped Γ).
 
 Section olty_ofe_2.
   Context `{Σ : gFunctors} {i : nat}.
-  Implicit Types (φ : hoEnvD Σ i) (τ : olty Σ i).
+  Implicit Types (φ : hoEnvD Σ i) (τ : oltyO Σ i).
 
   Global Instance env_oltyped_persistent (Γ : sCtx Σ) ρ: Persistent (s⟦ Γ ⟧* ρ).
   Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
@@ -227,37 +231,37 @@ Section olty_ofe_2.
       iApply (IHΓ (stail ρ) x Hx with "Hg").
   Qed.
 
-  Definition olty0 (φ : envD Σ) `{∀ ρ v, Persistent (φ ρ v)} : olty Σ 0 :=
+  Definition olty0 (φ : envD Σ) `{∀ ρ v, Persistent (φ ρ v)} : oltyO Σ 0 :=
     Olty (vopen φ).
 
   (** We can define once and for all basic "logical" types: top, bottom, and, or, later and μ. *)
-  Definition oTop : olty Σ i := Olty (λ args ρ v, True)%I.
+  Definition oTop : oltyO Σ i := Olty (λ args ρ v, True)%I.
 
-  Definition oBot : olty Σ i := Olty (λ args ρ v, False)%I.
+  Definition oBot : oltyO Σ i := Olty (λ args ρ v, False)%I.
 
-  Definition oAnd τ1 τ2 : olty Σ i := Olty (λ args ρ v, τ1 args ρ v ∧ τ2 args ρ v)%I.
+  Definition oAnd τ1 τ2 : oltyO Σ i := Olty (λ args ρ v, τ1 args ρ v ∧ τ2 args ρ v)%I.
 
-  Definition oOr τ1 τ2 : olty Σ i := Olty (λ args ρ v, τ1 args ρ v ∨ τ2 args ρ v)%I.
+  Definition oOr τ1 τ2 : oltyO Σ i := Olty (λ args ρ v, τ1 args ρ v ∨ τ2 args ρ v)%I.
 
   Definition eLater n (φ : hoEnvD Σ i) : hoEnvD Σ i := (λ args ρ v, ▷^n φ args ρ v)%I.
   Global Arguments eLater /.
-  Definition oLater τ := Olty (eLater 1 τ).
+  Definition oLater τ : oltyO Σ i := Olty (eLater 1 τ).
 
   Lemma oLater_eq τ args ρ v : oLater τ args ρ v = (▷ τ args ρ v)%I.
   Proof. done. Qed.
 
-  Definition ho_oMu {i} (τ : olty Σ i) : olty Σ i := Olty (λ args ρ v, τ args (v .: ρ) v).
+  Definition ho_oMu {i} (τ : oltyO Σ i) : oltyO Σ i := Olty (λ args ρ v, τ args (v .: ρ) v).
 
-  Definition oMu (τ : olty Σ 0) : olty Σ 0 := ho_oMu τ.
+  Definition oMu (τ : oltyO Σ 0) : oltyO Σ 0 := ho_oMu τ.
 
-  Lemma ho_oMu_eq (τ : olty Σ i) args ρ v : ho_oMu τ args ρ v = τ args (v .: ρ) v.
+  Lemma ho_oMu_eq (τ : oltyO Σ i) args ρ v : ho_oMu τ args ρ v = τ args (v .: ρ) v.
   Proof. done. Qed.
 
-  Lemma interp_TMu_ren (T : olty Σ i) args ρ v: ho_oMu (shift T) args ρ v ≡ T args ρ v.
+  Lemma interp_TMu_ren (T : oltyO Σ i) args ρ v: ho_oMu (shift T) args ρ v ≡ T args ρ v.
   Proof. rewrite /= (hoEnvD_weaken_one T args _ v) stail_eq. by []. Qed.
 
   Definition interp_expr `{dlangG Σ} (φ : hoEnvD Σ 0) : envPred tm Σ :=
-    λ ρ t, WP t {{ vclose φ ρ }} %I.
+    λI ρ t, □ WP t {{ vclose φ ρ }}.
   Global Arguments interp_expr /.
 
   Definition oTSel0 `{dlangG Σ} s σ :=
@@ -292,7 +296,7 @@ Notation "Γ s⊨ T1 , i <: T2 , j " := (sstpi Γ T1 T2 i j) (at level 74, T1, T
 
 Section typing.
   Context `{dlangG Σ}.
-  Implicit Types (τ : olty Σ 0).
+  Implicit Types (τ : oltyO Σ 0).
 
   Lemma iterate_TLater_later i τ ρ v:
     oClose (iterate oLater i τ) ρ v ≡ vclose (eLater i τ) ρ v.
