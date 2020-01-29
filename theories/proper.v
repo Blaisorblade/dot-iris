@@ -68,33 +68,37 @@ Ltac f_equiv ::=
   try simple apply reflexivity.
 Tactic Notation "f_equiv" "/=" := csimpl in *; f_equiv.
 
+(* These helpers allow "flipping" [Proper] instances, as needed when [f] is
+an asymmetric relation. *)
+(* We don't make these helpers into instances, as they can cause loops in
+typeclass search. *)
 Section flip_proper.
 Context `{R1 : relation A} `{R2 : relation A2} `{R3 : relation A3}
   `{R4 : relation A4} `{R5 : relation A5} `{R6 : relation A6} `{R7 : relation A7}.
 
-Global Instance flip_proper_2 `(!Proper (R1 ==> R2) f) :
+Lemma flip_proper_2 `(!Proper (R1 ==> R2) f) :
   Proper (flip R1 ==> flip R2) f.
 Proof. solve_proper. Qed.
 
-Global Instance flip_proper_3 `(!Proper (R1 ==> R2 ==> R3) f) :
+Lemma flip_proper_3 `(!Proper (R1 ==> R2 ==> R3) f) :
   Proper (flip R1 ==> flip R2 ==> flip R3) f.
 Proof. solve_proper. Qed.
 
-Global Instance flip_proper_4 `(!Proper (R1 ==> R2 ==> R3 ==> R4) f) :
+Lemma flip_proper_4 `(!Proper (R1 ==> R2 ==> R3 ==> R4) f) :
   Proper (flip R1 ==> flip R2 ==> flip R3 ==> flip R4) f.
 Proof. solve_proper. Qed.
 
-Global Instance flip_proper_5 `(!Proper (R1 ==> R2 ==> R3 ==> R4 ==> R5) f) :
+Lemma flip_proper_5 `(!Proper (R1 ==> R2 ==> R3 ==> R4 ==> R5) f) :
   Proper (flip R1 ==> flip R2 ==> flip R3 ==> flip R4 ==> flip R5) f.
 Proof. solve_proper. Qed.
 
-Global Instance flip_proper_6
+Lemma flip_proper_6
   `(!Proper (R1 ==> R2 ==> R3 ==> R4 ==> R5 ==> R6) f) :
   Proper (flip R1 ==> flip R2 ==> flip R3 ==> flip R4 ==> flip R5 ==>
     flip R6) f.
 Proof. solve_proper. Qed.
 
-Global Instance flip_proper_7
+Lemma flip_proper_7
   `(!Proper (R1 ==> R2 ==> R3 ==> R4 ==> R5 ==> R6 ==> R7) f) :
   Proper (flip R1 ==> flip R2 ==> flip R3 ==> flip R4 ==> flip R5 ==>
     flip R6 ==> flip R7) f.

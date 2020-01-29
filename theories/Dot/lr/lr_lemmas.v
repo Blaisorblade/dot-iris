@@ -96,7 +96,8 @@ Section CtxSub.
   Global Instance Proper_TLater : Proper (ty_sub ==> ty_sub) TLater.
   Proof. intros x y Hl ??. by rewrite /= (Hl _ _). Qed.
   Global Instance Proper_TLater_flip :
-    Proper (flip ty_sub ==> flip ty_sub) TLater := _.
+    Proper (flip ty_sub ==> flip ty_sub) TLater.
+  Proof. apply: flip_proper_2. Qed.
 
   Lemma env_TLater_commute Γ ρ : ⟦ TLater <$> Γ ⟧* ρ ⊣⊢ ▷ ⟦ Γ ⟧* ρ.
   Proof.
@@ -108,7 +109,8 @@ Section CtxSub.
     Proper (ctx_sub ==> ctx_sub) (fmap TLater).
   Proof. intros xs ys Hl ?. by rewrite !env_TLater_commute (Hl _). Qed.
   Global Instance Proper_fmap_TLater_flip :
-    Proper (flip ctx_sub ==> flip ctx_sub) (fmap TLater) := _.
+    Proper (flip ctx_sub ==> flip ctx_sub) (fmap TLater).
+  Proof. apply: flip_proper_2. Qed.
 
   (** The strength ordering of contexts lifts the strength ordering of types. *)
   Lemma env_lift_sub f g {Γ} (Hle: ∀ T, ⊨T f T <: g T):
@@ -124,12 +126,14 @@ Section CtxSub.
   Global Instance Proper_TAnd : Proper (ty_sub ==> ty_sub ==> ty_sub) TAnd.
   Proof. intros x y Hl x' y' Hl' ??. by rewrite /= (Hl _ _) (Hl' _ _). Qed.
   Global Instance Proper_TAnd_flip :
-    Proper (flip ty_sub ==> flip ty_sub ==> flip ty_sub) TAnd := _.
+    Proper (flip ty_sub ==> flip ty_sub ==> flip ty_sub) TAnd.
+  Proof. apply: flip_proper_3. Qed.
 
   Global Instance Proper_TOr : Proper (ty_sub ==> ty_sub ==> ty_sub) TOr.
   Proof. intros x y Hl x' y' Hl' ??. by rewrite /= (Hl _ _) (Hl' _ _). Qed.
   Global Instance Proper_TOr_flip :
-    Proper (flip ty_sub ==> flip ty_sub ==> flip ty_sub) TOr := _.
+    Proper (flip ty_sub ==> flip ty_sub ==> flip ty_sub) TOr.
+  Proof. apply: flip_proper_3. Qed.
 
   (** Ordering of logical strength:
       unTLater T <: T <: TLater (unTLater T) <: TLater T. *)
