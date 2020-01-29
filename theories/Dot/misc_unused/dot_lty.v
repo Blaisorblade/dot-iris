@@ -16,7 +16,7 @@ Module SemTypes.
 
 Include LtyJudgements VlSorts dlang_inst.
 Include PTyInterpLemmas VlSorts dlang_inst.
-Import persistent_ty_interp_lemmas.
+Export persistent_ty_interp_lemmas.
 
 (** Override notations to specify scope. *)
 Notation "p⟦ T ⟧" := (pty_interp T%ty).
@@ -423,13 +423,16 @@ Section SampleTypingLemmas.
 
   Lemma pty_interp_subst (T : ty) σ : p⟦ T.|[σ] ⟧ ≡ (p⟦ T ⟧).|[σ].
   Proof. intros ???; apply interp_subst_compose_ind. Qed.
+
+  (* Lemma swap0 T σ args ρ v : p⟦ T.|[σ] ⟧ args ρ v ≡ (p⟦ T ⟧).|[σ] args ρ v.
+  Proof. apply interp_subst_compose_ind. Qed. *)
+
+  Lemma lift_olty_eq {i} {τ1 τ2 : oltyO Σ i} {args ρ v} :
+    τ1 ≡ τ2 → τ1 args ρ v ≡ τ2 args ρ v.
+  Proof. intros H. apply H. Qed.
 End SampleTypingLemmas.
 
-Module ty_compat.
-
-Include TyInterpLemmas VlSorts dlang_inst.
-Notation "⟦ T ⟧" := (ty_interp T%ty).
-
+(** * Proper instances. *)
 Ltac solve_proper_ho_equiv_core tac :=
   solve [repeat intro; cbn; repeat tac (); cbn in *;
   repeat match goal with H : _ ≡ _|- _ => apply H || rewrite H // end].
@@ -437,26 +440,24 @@ Ltac solve_proper_ho_equiv :=
   solve_proper_prepare; properness => //;
   solve_proper_ho_equiv_core ltac:(fun _ => idtac).
 
-Section defs.
+Module ty_compat.
+
+Section Propers.
   Context `{HdotG: dlangG Σ}.
 
-  (* Wrap this into ty_interp to reuse lemmas. *)
-  Global Instance pto_ty_interp : TyInterp ty Σ := flip pty_interp vnil.
-  Global Instance interp_persistent T ρ v : Persistent (⟦ T ⟧ ρ v) := _.
+  (** ** Operations *)
+  Global Instance Proper_oMu : Proper ((≡) ==> (≡)) (oMu (Σ := Σ)).
+  Proof. solve_proper_ho_equiv. Qed.
 
-  Global Arguments pto_ty_interp _ /.
-  Global Arguments ty_interp {_ _ _} _ /.
+  Global Instance Proper_oAll : Proper ((≡) ==> (≡) ==> (≡)) oAll.
+  Proof. solve_proper_ho_equiv. Qed.
 
-  Global Instance interp_lemmas: TyInterpLemmas ty Σ.
-  Proof. split => /= *; apply persistent_ty_interp_lemmas.interp_subst_compose_ind. Qed.
-
-  Lemma def_interp_tvmem_eq' l (T : ty) p ρ:
-    def_interp (TVMem l T) l ρ (dpt p) ⊣⊢
-    path_wp p (⟦ T ⟧ ρ).
-  Proof. apply def_interp_tvmem_eq. Qed.
-
-  (* Lemma swap0 T σ args ρ v : p⟦ T.|[σ] ⟧ args ρ v ≡ (p⟦ T ⟧).|[σ] args ρ v.
-  Proof. apply persistent_ty_interp_lemmas.interp_subst_compose_ind. Qed. *)
+  Global Instance: Proper ((≡) ==> (=) ==> (=) ==> (=) ==> (≡)) (lift_ldlty (Σ := Σ)).
+  Proof.
+    rewrite /lift_ldlty => -[l1 P1] [l2 P2] [/= Heq ?] ??? ??? ???; simplify_eq.
+    solve_proper_ho_equiv.
+    (* properness; [done|apply Heq]. *)
+  Qed.
 
   Global Instance Proper_env_oltyped : Proper ((≡) ==> (=) ==> (≡)) (env_oltyped (Σ := Σ)).
   Proof.
@@ -465,6 +466,7 @@ Section defs.
       /(Forall2_cons_inv _ _ _ _) [HT HG] ρ; f_equiv; [apply IHG1, HG|apply HT].
   Qed.
 
+  (** ** Judgments *)
   Global Instance Proper_sstpi :
     Proper ((≡) ==> (≡) ==> (≡) ==> (=) ==> (=) ==> (≡)) (sstpi (Σ := Σ)).
   Proof.
@@ -486,13 +488,6 @@ Section defs.
     Proper (flip (≡) ==> flip (≡) ==> flip (=) ==> flip (≡)) setp.
   Proof. apply: flip_proper_4. Qed.
 
-  Global Instance: Proper ((≡) ==> (=) ==> (=) ==> (=) ==> (≡)) (lift_ldlty (Σ := Σ)).
-  Proof.
-    rewrite /lift_ldlty => -[l1 P1] [l2 P2] [/= Heq ?] ??? ??? ???; simplify_eq.
-    solve_proper_ho_equiv.
-    (* properness; [done|apply Heq]. *)
-  Qed.
-
   Global Instance Proper_sdtp Γ : Proper ((≡) ==> (=) ==> (=) ==> (≡)) (sdtp Γ).
   Proof.
     solve_proper_ho_equiv.
@@ -501,10 +496,46 @@ Section defs.
   Global Instance Proper_sdtp_flip Γ : Proper (flip (≡) ==> flip (=) ==> flip (=) ==> flip (≡)) (sdtp (Σ := Σ) Γ).
   Proof. apply: flip_proper_4. Qed.
 
-  Global Instance Proper_oAll : Proper ((≡) ==> (≡) ==> (≡)) oAll.
-  Proof. solve_proper_ho_equiv. Qed.
+End Propers.
 
-  Lemma T_Var Γ x τ
+
+Include TyInterpLemmas VlSorts dlang_inst.
+Import ty_interp_lemmas.
+Notation "⟦ T ⟧" := (ty_interp T%ty).
+
+Section defs.
+  Context `{HdotG: dlangG Σ}.
+
+  (* Wrap this into ty_interp to reuse lemmas. *)
+  Global Instance pto_ty_interp : TyInterp ty Σ := flip pty_interp vnil.
+  Global Instance interp_persistent T ρ v : Persistent (⟦ T ⟧ ρ v) := _.
+
+  Global Arguments pto_ty_interp _ /.
+  Global Arguments ty_interp {_ _ _} _ /.
+
+  (* We don't expose the binding lemmas on this wrapper, only on the
+     underlying interface. *)
+  (* Global Instance interp_lemmas: TyInterpLemmas ty Σ.
+  Proof. split => /= *; apply persistent_ty_interp_lemmas.interp_subst_compose_ind. Qed. *)
+
+  Lemma def_interp_tvmem_eq' l (T : ty) p ρ:
+    def_interp (TVMem l T) l ρ (dpt p) ⊣⊢
+    path_wp p (⟦ T ⟧ ρ).
+  Proof. apply def_interp_tvmem_eq. Qed.
+
+  Lemma iterate_TLater_oLater i T:
+    p⟦iterate TLater i T⟧ ≡ iterate oLater i p⟦T⟧.
+  Proof. elim: i => [//|i IHi] ???. by rewrite !iterate_S /= (IHi _ _ _). Qed.
+
+  Lemma iterate_TLater_later T n args ρ v:
+    p⟦ iterate TLater n T ⟧ args ρ v ≡ (▷^n p⟦ T ⟧ args ρ v)%I.
+  Proof.
+    by rewrite (iterate_TLater_oLater n T _ _ _) s_iterate_TLater_later.
+  Qed.
+
+  Context {Γ : ctx}.
+
+  Lemma T_Var x τ
     (Hlook : Γ !! x = Some τ):
     (*──────────────────────*)
     Γ ⊨ of_val (ids x) : shiftN x τ.
@@ -513,25 +544,14 @@ Section defs.
     by rewrite list_lookup_fmap Hlook.
   Qed.
 
-  Lemma iterate_TLater_oLater i T:
-    p⟦iterate TLater i T⟧ ≡ iterate oLater i p⟦T⟧.
-  Proof. elim: i => [//|i IHi] ???. by rewrite !iterate_S /= (IHi _ _ _). Qed.
-
-  Lemma Sub_Mu_X Γ T1 T2 i j:
+  Lemma Sub_Mu_X T1 T2 i j:
     iterate TLater i T1 :: Γ ⊨ T1, i <: T2, j -∗
     Γ ⊨ TMu T1, i <: TMu T2, j.
   Proof.
     rewrite /istpi -sSub_Mu_X.
     by rewrite fmap_cons (iterate_TLater_oLater i T1).
   Qed.
-  Context {Γ : ctx}.
 
-  Lemma lift_olty_eq {i} {τ1 τ2 : oltyO Σ i} {args ρ v} :
-    τ1 ≡ τ2 → τ1 args ρ v ≡ τ2 args ρ v.
-  Proof. intros H. apply H. Qed.
-
-  Global Instance Proper_oMu : Proper ((≡) ==> (≡)) (oMu (Σ := Σ)).
-  Proof. solve_proper_ho_equiv. Qed.
   Lemma Sub_Mu_A T i: Γ ⊨ TMu (shift T), i <: T, i.
   Proof.
     rewrite /istpi.

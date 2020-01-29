@@ -46,7 +46,7 @@ Section path_repl.
     p⟦ T ⟧ vnil (v .: ρ) w ≡ p⟦ T' ⟧ vnil ρ w.
   Proof.
     intros Hrepl Hal.
-    rewrite -(persistent_ty_interp_lemmas.interp_weaken_one T' (v .: ρ) _) -(rewrite_ty_path_repl_rtc Hrepl)
+    rewrite -(interp_weaken_one T' (v .: ρ) _) -(rewrite_ty_path_repl_rtc Hrepl)
       // hsubst_comp ren_scons /= alias_paths_symm //.
   Qed.
 

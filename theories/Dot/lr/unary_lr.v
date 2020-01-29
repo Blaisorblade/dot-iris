@@ -2,7 +2,8 @@ From iris.proofmode Require Import tactics.
 From D Require Import iris_prelude.
 From D.Dot Require Export dlang_inst path_wp dot_lty.
 From D.Dot Require Import lr_syn_aux.
-Export SemTypes ty_compat.
+
+Export SemTypes.ty_compat SemTypes.
 
 (* Include TyInterpLemmas VlSorts dlang_inst. *)
 
@@ -269,14 +270,7 @@ Section logrel_lemmas.
     ⟦ iterate TLater i T ⟧ ρ v ≡ (▷^i ⟦ T ⟧ ρ v)%I.
   Proof. exact: iterate_TLater_later0. Qed. *)
 
-  Import lty.
-  Lemma iterate_TLater_later T n args ρ v:
-    p⟦ iterate TLater n T ⟧ args ρ v ≡ (▷^n p⟦ T ⟧ args ρ v)%I.
-  Proof.
-    by rewrite (iterate_TLater_oLater n T _ _ _) s_iterate_TLater_later.
-  Qed.
-
-  Lemma interp_env_lookup Γ ρ T x:
+  (* Lemma interp_env_lookup Γ ρ T x:
     Γ !! x = Some T →
     ⟦ Γ ⟧* ρ -∗ ⟦ (shiftN x T) ⟧ ρ (ρ x).
   Proof.
@@ -286,7 +280,7 @@ Section logrel_lemmas.
     - rewrite hrenS.
       iApply (interp_weaken_one (shiftN x T)).
       iApply (IHΓ (stail ρ) x Hx with "Hg").
-  Qed.
+  Qed. *)
 
   Context {Γ}.
   Lemma Sub_Refl T i : Γ ⊨ T, i <: T, i.

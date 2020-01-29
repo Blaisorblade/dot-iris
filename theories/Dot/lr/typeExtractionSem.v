@@ -29,7 +29,6 @@ Section typing_type_member_defs.
     - iApply (wellMappedφ_apply with "Hm"). by rewrite lookup_fmap Hl.
   Qed. *)
   Import stamp_transfer.
-  Import persistent_ty_interp_lemmas.
 
   Lemma extraction_to_leadsto_envD_equiv T g s σ n: T ~[ n ] (g, (s, σ)) →
     wellMappedφ ⟦ g ⟧g -∗ s ↝[ σ ] pty_interp T.

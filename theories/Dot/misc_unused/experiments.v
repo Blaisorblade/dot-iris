@@ -46,8 +46,6 @@ Section AlsoSyntactically.
 
 End AlsoSyntactically.
 
-Import persistent_ty_interp_lemmas.
-
 (* Additional typing lemmas that *)
 Section NotUsed.
   Context `{HdlangG: dlangG Σ}.

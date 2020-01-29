@@ -280,8 +280,6 @@ End CtxSub.
 Hint Resolve ietp_weaken_ctx_syn : ctx_sub.
 Ltac ietp_weaken_ctx := auto with ctx_sub.
 
-Import persistent_ty_interp_lemmas.
-
 Section LambdaIntros.
   Context `{HdlangG: dlangG Σ}.
 
