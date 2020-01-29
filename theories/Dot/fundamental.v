@@ -15,6 +15,7 @@ Section fundamental.
     match goal with
     | H : context [wellMappedφ] |- _ => by iApply H
     end.
+  Import ty_compat.
 
   Fixpoint fundamental_dm_typed Γ g l d T (HT: Γ v⊢[ g ]{ l := d } : T) { struct HT }:
     Γ ⊨[ ⟦ g ⟧g ] { l := d } : T with

@@ -5,12 +5,12 @@ From D Require Import lty.
 Module Type PTyInterpLemmas (Import VS : VlSortsFullSig) (Import LWP : LiftWp VS)
   (Import LJ : LtyJudgements VS LWP).
 
-Module persistent_ty_interp_lemmas.
-
 Class PTyInterp ty Σ :=
   pty_interp : ty -> oltyO Σ 0.
 Notation "p⟦ T ⟧" := (pty_interp T).
 Notation "p⟦ g ⟧g" := (fmap (M := gmap stamp) pty_interp g).
+
+Module persistent_ty_interp_lemmas.
 
 (* Also appears in Autosubst. *)
 Global Arguments pty_interp {_ _ _} !_ /.

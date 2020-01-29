@@ -1,19 +1,21 @@
 From iris.proofmode Require Import tactics.
-From D Require Export iris_prelude lr_syn_aux.
-From D Require Import ty_interp_subst_lemmas.
-From D.Dot Require Export dlang_inst path_wp.
+From D Require Import iris_prelude.
+From D.Dot Require Export dlang_inst path_wp dot_lty.
+From D.Dot Require Import lr_syn_aux.
+Export SemTypes ty_compat.
 
-Include TyInterpLemmas VlSorts dlang_inst.
-Export ty_interp_lemmas.
+(* Include TyInterpLemmas VlSorts dlang_inst. *)
 
 (** Override notation from [dlang] to specify scope. *)
-Notation "⟦ T ⟧" := (ty_interp T%ty).
+(* Notation "⟦ T ⟧" := (ty_interp T%ty). *)
 
 (** Deduce types from variable names, like on paper, for readability and to help
     type inference for some overloaded operations (e.g. substitution). *)
 Implicit Types
-         (L T U : ty) (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
-         (Γ : ctx) (vs : vls) (ρ : var → vl).
+         (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
+         (vs : vls) (ρ : var → vl).
+
+Implicit Types (L T U : ty) (Γ : ctx).
 
 (** The logical relation core is the [interp], interprets *open* types into
     predicates over *closed* values. Hence, [interp T ρ v] uses its argument [ρ]
@@ -38,39 +40,10 @@ Section logrel.
   Notation D := (vl -d> iPropO Σ).
   Implicit Types (interp φ : envD Σ) (ψ : D).
 
-  Definition def_interp_vmem interp : envPred dm Σ :=
+  (* Definition def_interp_vmem interp : envPred dm Σ :=
     λ ρ d, (∃ pmem, ⌜d = dpt pmem⌝ ∧ path_wp pmem (interp ρ))%I.
   Global Arguments def_interp_vmem /.
 
-  Definition dm_to_type d ψ : iProp Σ :=
-    ∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗[ σ ] ψ.
-  Notation "d ↗ ψ" := (dm_to_type d ψ) (at level 20).
-  Global Instance dm_to_type_persistent d ψ: Persistent (d ↗ ψ) := _.
-
-  Lemma dm_to_type_agree d ψ1 ψ2 v : d ↗ ψ1 -∗ d ↗ ψ2 -∗ ▷ (ψ1 v ≡ ψ2 v).
-  Proof.
-    iDestruct 1 as (s σ ?) "#Hs1".
-    iDestruct 1 as (s' σ' ?) "#Hs2".
-    simplify_eq. by iApply (stamp_σ_to_type_agree vnil with "Hs1 Hs2").
-  Qed.
-
-  Lemma dm_to_type_intro d s σ φ :
-    d = dtysem σ s → s ↝ φ -∗ d ↗ φ (∞ σ).
-  Proof.
-    iIntros. iExists s, σ. iFrame "%".
-    by iApply stamp_σ_to_type_intro.
-  Qed.
-
-  Definition dm_to_type_eq d ψ : dm_to_type d ψ =
-    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗[ σ ] ψ)%I := eq_refl.
-  Global Opaque dm_to_type.
-
-  Definition def_interp_tmem interp1 interp2 : envPred dm Σ :=
-    λ ρ d,
-    (∃ ψ, (d ↗ ψ) ∧
-       □ ((∀ v, ▷ interp1 ρ v → ▷ □ ψ v) ∧
-          (∀ v, ▷ □ ψ v → ▷ interp2 ρ v)))%I.
-  Global Arguments def_interp_tmem /.
 
   Definition lift_dinterp_vl l (dinterp: envPred dm Σ): envD Σ :=
     λ ρ v, (∃ d, ⌜v @ l ↘ d⌝ ∧ dinterp ρ d)%I.
@@ -79,14 +52,6 @@ Section logrel.
   Definition interp_vmem l interp : envD Σ :=
     lift_dinterp_vl l (def_interp_vmem interp).
   Global Arguments interp_vmem /.
-
-  Definition interp_tmem l interp1 interp2 : envD Σ :=
-    lift_dinterp_vl l (def_interp_tmem interp1 interp2).
-  Global Arguments interp_tmem /.
-
-  Definition interp_expr interp : envPred tm Σ :=
-    λ ρ t, (□ WP t {{ interp ρ }})%I.
-  Global Arguments interp_expr /.
 
   Definition interp_and interp1 interp2 : envD Σ :=
     λ ρ v, (interp1 ρ v ∧ interp2 ρ v)%I.
@@ -109,6 +74,10 @@ Section logrel.
   Definition interp_bot : envD Σ := λ ρ v, False%I.
   Global Arguments interp_bot /.
 
+  Definition interp_expr interp : envPred tm Σ :=
+    λ ρ t, (□ WP t {{ interp ρ }})%I.
+  Global Arguments interp_expr /.
+
   (* Paolo: This definition is contractive (similarly to what's useful for
      equi-recursive types).
      However, I am not sure we need this; it'd be good to
@@ -129,11 +98,6 @@ Section logrel.
   Definition interp_mu interp : envD Σ :=
     λ ρ v, interp (v .: ρ) v.
   Global Arguments interp_mu /.
-
-  Definition interp_sel p (l: label) : envD Σ :=
-    λ ρ v, (path_wp p.|[ρ]
-      (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ψ ∧ ▷ □ ψ v))%I.
-  Global Arguments interp_sel /.
 
   Definition interp_sing p : envD Σ :=
     λ ρ v, ⌜alias_paths p.|[ρ] (pv v)⌝%I.
@@ -160,15 +124,15 @@ Section logrel.
   Proof.
     split; induction T => sb1 sb2 w /=;
       properness; rewrite /= ?scons_up_swap ?hsubst_comp; trivial; by f_equiv => ?.
-  Qed.
+  Qed. *)
 
   Notation "⟦ T ⟧ₑ" := (interp_expr ⟦ T ⟧).
 
-  Global Instance interp_persistent T ρ v :
+  (* Global Instance interp_persistent T ρ v :
     Persistent (⟦ T ⟧ ρ v).
-  Proof. revert v ρ; induction T => w ρ /=; try apply _. Qed.
+  Proof. apply _. revert v ρ; induction T => w ρ /=; try apply _. Qed. *)
 
-  Fixpoint def_interp_base (T : ty) : envPred dm Σ :=
+  (* Fixpoint def_interp_base (T : ty) : envPred dm Σ :=
     λ ρ d,
     match T with
     | TTMem _ L U => def_interp_tmem ⟦ L ⟧ ⟦ U ⟧ ρ d
@@ -227,7 +191,7 @@ Section logrel.
 
   Definition ietp Γ T e : iProp Σ :=
     □∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ₑ ρ (e.|[ρ]).
-  Global Arguments ietp /.
+  Global Arguments ietp /. *)
 
   (** Indexed Subtyping. Defined on closed values. We must require closedness
       explicitly, since closedness now does not follow from being well-typed later. *)
@@ -248,7 +212,7 @@ Section logrel.
 
       And that forces using the same implication in the logical relation
       (unlike I did originally). *)
-  Definition istpi Γ T1 T2 i j: iProp Σ :=
+  (* Definition istpi Γ T1 T2 i j: iProp Σ :=
     □∀ ρ v, ⟦Γ⟧* ρ → ▷^i ⟦T1⟧ ρ v → ▷^j ⟦T2⟧ ρ v.
 
   Global Arguments istpi /.
@@ -258,20 +222,21 @@ Section logrel.
      ▷^i path_wp p.|[ρ] (λ v, ⟦T⟧ ρ v).
   Global Arguments iptp /.
 
-  Local Notation IntoPersistent' P := (IntoPersistent false P P).
+  Local Notation IntoPersistent' P := (IntoPersistent false P P). *)
 
   (* Avoid auto-dropping box (and unfolding) when introducing judgments persistently. *)
-  Global Instance idtp_persistent Γ T l d: IntoPersistent' (idtp Γ T l d) | 0 := _.
+  (* Global Instance idtp_persistent Γ T l d: IntoPersistent' (idtp Γ T l d) | 0 := _.
   Global Instance idstp_persistent Γ T ds: IntoPersistent' (idstp Γ T ds) | 0 := _.
   Global Instance ietp_persistent Γ T e : IntoPersistent' (ietp Γ T e) | 0 := _.
   Global Instance istpi_persistent Γ T1 T2 i j : IntoPersistent' (istpi Γ T1 T2 i j) | 0 := _.
-  Global Instance iptp_persistent Γ T p i : IntoPersistent' (iptp Γ T p i) | 0 := _.
+  Global Instance iptp_persistent Γ T p i : IntoPersistent' (iptp Γ T p i) | 0 := _. *)
 End logrel.
 
-Notation "d ↗ ψ" := (dm_to_type d ψ) (at level 20).
-Notation "⟦ Γ ⟧*" := (interp_env Γ).
-Notation "⟦ T ⟧ₑ" := (interp_expr ⟦ T ⟧).
+(* Notation "d ↗ ψ" := (dm_to_type d ψ) (at level 20). *)
+(* Notation "⟦ Γ ⟧*" := (interp_env Γ). *)
+(* Notation "⟦ T ⟧ₑ" := (interp_expr ⟦ T ⟧). *)
 
+(*
 (** Single-definition typing *)
 Notation "Γ ⊨ {  l := d  } : T" := (idtp Γ T l d) (at level 74, d, l, T at next level).
 (** Multi-definition typing *)
@@ -292,23 +257,23 @@ Notation "Γ ⊨ds[ gφ  ] ds : T" := (wellMappedφ gφ → idstp Γ T ds)%I (at
 Notation "Γ ⊨[ gφ  ] e : T" := (wellMappedφ gφ → ietp Γ T e)%I (at level 74, e, T at next level).
 Notation "Γ ⊨p[ gφ  ] p : T , i" := (wellMappedφ gφ → iptp Γ T p i)%I (at level 74, p, T, i at next level).
 Notation "Γ ⊨[ gφ  ] T1 , i <: T2 , j" := (wellMappedφ gφ → istpi Γ T1 T2 i j)%I (at level 74, T1, T2, i, j at next level).
+*)
 
 Section logrel_lemmas.
   Context `{!dlangG Σ}.
 
-  Lemma iterate_TLater_later0 i T:
+  (* Lemma iterate_TLater_later0 i T:
     ⟦ iterate TLater i T ⟧ ≡ (λ ρ v, ▷^i ⟦ T ⟧ ρ v)%I.
   Proof. move => ρ v. elim: i => [|i IHi] //. rewrite iterate_S /= IHi //. Qed.
   Lemma iterate_TLater_later i T ρ v:
     ⟦ iterate TLater i T ⟧ ρ v ≡ (▷^i ⟦ T ⟧ ρ v)%I.
-  Proof. exact: iterate_TLater_later0. Qed.
+  Proof. exact: iterate_TLater_later0. Qed. *)
 
-  Lemma def_interp_tvmem_eq l T p ρ:
-    def_interp (TVMem l T) l ρ (dpt p) ⊣⊢
-    path_wp p (⟦ T ⟧ ρ).
+  Import lty.
+  Lemma iterate_TLater_later i T ρ v:
+    p⟦ iterate TLater i T ⟧ vnil ρ v ≡ (▷^i p⟦ T ⟧ vnil ρ v)%I.
   Proof.
-    iSplit. by iDestruct 1 as (_ pmem [= ->]) "$".
-    iIntros "H"; iSplit; first done; iExists p. by auto.
+    by rewrite (iterate_TLater_oLater i T _ _ _) s_iterate_TLater_later.
   Qed.
 
   Lemma interp_env_lookup Γ ρ T x:
@@ -338,7 +303,7 @@ Section logrel_lemmas.
   Lemma Sub_Eq T U i j :
     Γ ⊨ T, i <: U, j ⊣⊢
     Γ ⊨ iterate TLater i T, 0 <: iterate TLater j U, 0.
-  Proof. by cbn; setoid_rewrite iterate_TLater_later. Qed.
+  Proof. by rewrite /istpi/=; setoid_rewrite iterate_TLater_later. Qed.
 End logrel_lemmas.
 
 From D Require Import swap_later_impl.

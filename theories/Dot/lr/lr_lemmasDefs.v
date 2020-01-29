@@ -1,29 +1,30 @@
 From iris.proofmode Require Import tactics.
 From D.Dot Require Import unary_lr.
 
-Implicit Types (L T U V: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
-
+Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
+(* (L T U V: ty) *)
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
   Local Hint Resolve dms_lookup_head dms_lookup_mono : core.
+  Local Arguments lift_dinterp_dms: simpl never.
 
   Lemma lift_dinterp_dms_vl_commute T ds ρ l:
     label_of_ty T = Some l →
-    lift_dinterp_dms T ρ (selfSubst ds) -∗
-    lift_dinterp_vl l (def_interp_base T) ρ (vobj ds).
+    lift_dinterp_dms d⟦T⟧ ρ (selfSubst ds) -∗
+    lift_dinterp_vl l d⟦T⟧ vnil ρ (vobj ds).
   Proof.
     rewrite /lift_dinterp_dms /=. iIntros (?).
-    iDestruct 1 as (?l d ?) "[% H]"; simplify_eq.
+    iDestruct 1 as (?l d ?) "[% H]"; simplify_eq/=.
     iExists d; iFrame. by iExists ds.
   Qed.
 
   Lemma lift_dsinterp_dms_vl_commute T ds ρ:
-    defs_interp T ρ (selfSubst ds) -∗
-    interp T ρ (vobj ds).
+    ds⟦T⟧ ρ (selfSubst ds) -∗
+    ⟦T⟧ ρ (vobj ds).
   Proof.
     iIntros "H".
-    iInduction T as [] "IHT"; cbn;
+    iInduction T as [] "IHT";
       try iDestruct "H" as (???) "[_[]]"; first done.
     - iDestruct "H" as "[#H1 #H2]".
       by iSplit; [> iApply "IHT"| iApply "IHT1"].
@@ -32,13 +33,13 @@ Section Sec.
   Qed.
 
   Lemma def2defs_head {T l ρ d ds}:
-    def_interp T l ρ d -∗
-    lift_dinterp_dms T ρ ((l, d) :: ds).
+    lift_ldlty d⟦T⟧ l ρ d -∗
+    lift_dinterp_dms d⟦T⟧ ρ ((l, d) :: ds).
   Proof. iIntros; iExists l, d. auto. Qed.
 
   Lemma lift_dinterp_dms_mono T l ρ d ds:
     dms_hasnt ds l →
-    lift_dinterp_dms T ρ ds -∗
+    lift_dinterp_dms (Σ := Σ) T ρ ds -∗
     lift_dinterp_dms T ρ ((l, d) :: ds).
   Proof.
     intros ?. iDestruct 1 as (l' d' ?) "#H".
@@ -52,21 +53,21 @@ Section Sec.
   Proof.
     iIntros (Hlds) "HT".
     iInduction T as [] "IHT" => //=;
-      try by [iDestruct "HT" as (???) "?" | iApply lift_dinterp_dms_mono].
+      try by [iDestruct "HT" as (????) "?" | iApply lift_dinterp_dms_mono].
     iDestruct "HT" as "[HT1 HT2]"; iSplit; by [>iApply "IHT"|iApply "IHT1"].
   Qed.
 
   Local Arguments lift_dinterp_vl: simpl never.
-  Local Arguments lift_dinterp_dms: simpl never.
-  Local Arguments def_interp_tmem: simpl never.
-  Local Arguments def_interp_vmem: simpl never.
+  (* Local Arguments ldlty_car: simpl never. *)
+  (* Local Arguments def_interp_tmem: simpl never.
+  Local Arguments def_interp_vmem: simpl never. *)
 
   (** This lemma is equivalent to pDOT's (Def-New). *)
   Lemma D_New_Mem_I Γ T l ds:
     TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ ⊨ds ds : T -∗
     Γ ⊨ { l := dpt (pv (vobj ds)) } : TVMem l (TMu T).
   Proof.
-    iDestruct 1 as (Hwf) "#Hds"; iIntros "!>" (ρ Hpid) "#Hg /=".
+    iDestruct 1 as (Hwf) "#Hds"; iIntros "!>" (ρ Hpid) "#Hg"; cbn.
     rewrite def_interp_tvmem_eq path_wp_pv /=.
     iLöb as "IH".
     iApply lift_dsinterp_dms_vl_commute.

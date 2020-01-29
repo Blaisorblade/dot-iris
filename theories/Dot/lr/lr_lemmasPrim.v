@@ -47,10 +47,10 @@ Section Sec.
   Context `{HdlangG: dlangG Σ} Γ.
 
   Lemma T_Nat_I n: Γ ⊨ tv (vnat n): TNat.
-  Proof. iIntros "!> * _ /="; rewrite -wp_value /pure_interp_prim /prim_evals_to; eauto. Qed.
+  Proof. iIntros "!> * _ /="; rewrite -wp_value /= /pure_interp_prim /prim_evals_to; eauto. Qed.
 
   Lemma T_Bool_I b: Γ ⊨ tv (vlit $ lbool b): TPrim tbool.
-  Proof. iIntros "!> * _ /="; rewrite -wp_value /pure_interp_prim /prim_evals_to; eauto. Qed.
+  Proof. iIntros "!> * _ /="; rewrite -wp_value /= /pure_interp_prim /prim_evals_to; eauto. Qed.
 
   Lemma wp_un B1 Br u v
     (Hev1 : pure_interp_prim B1 v) (Hu : un_op_semtype u B1 Br) :
@@ -84,7 +84,7 @@ Section Sec.
     Γ ⊨ e2 : TPrim B2 -∗
     Γ ⊨ tbin b e1 e2 : TPrim Br.
   Proof.
-    iIntros "#He1 #He2 !> /=" (ρ) "#Hg !>"; rewrite /pure_interp_prim.
+    iIntros "#He1 #He2 !> /=" (ρ) "#Hg !>". rewrite /oPrim/= /pure_interp_prim.
     smart_wp_bind (BinLCtx _ _) v1 "#Ha1" ("He1" with "Hg"); iClear "He1".
     iDestruct "Ha1" as %Ha1.
     smart_wp_bind (BinRCtx _ _) v2 "#Ha2" ("He2" with "Hg"); iClear "He2".

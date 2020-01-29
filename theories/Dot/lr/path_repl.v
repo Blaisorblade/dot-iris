@@ -22,7 +22,7 @@ Section path_repl.
   Lemma rewrite_ty_path_repl {p q T1 T2 ρ v}:
     T1 ~Tp[ p := q ] T2 →
     alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
-    ⟦ T1 ⟧ ρ v ≡ ⟦ T2 ⟧ ρ v.
+    p⟦ T1 ⟧ vnil ρ v ≡ p⟦ T2 ⟧ vnil ρ v.
   Proof.
     move => Hrew; move: v ρ.
     induction Hrew => v ρ He /=; properness;
@@ -33,7 +33,7 @@ Section path_repl.
   Lemma rewrite_ty_path_repl_rtc {p q T1 T2 ρ v}:
     T1 ~Tp[ p := q ]* T2 →
     alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
-    ⟦ T1 ⟧ ρ v ≡ ⟦ T2 ⟧ ρ v.
+    p⟦ T1 ⟧ vnil ρ v ≡ p⟦ T2 ⟧ vnil ρ v.
   Proof.
     move => Hr Hal.
     elim: Hr => [//|T {}T1 {}T2 Hr _ <-].
@@ -43,10 +43,10 @@ Section path_repl.
   Lemma psubst_one_repl {T T' p v w ρ}:
     T .Tp[ p /]~ T' →
     alias_paths p.|[ρ] (pv v) →
-    ⟦ T ⟧ (v .: ρ) w ≡ ⟦ T' ⟧ ρ w.
+    p⟦ T ⟧ vnil (v .: ρ) w ≡ p⟦ T' ⟧ vnil ρ w.
   Proof.
     intros Hrepl Hal.
-    rewrite -(interp_weaken_one T' (v .: ρ) _) -(rewrite_ty_path_repl_rtc Hrepl)
+    rewrite -(persistent_ty_interp_lemmas.interp_weaken_one T' (v .: ρ) _) -(rewrite_ty_path_repl_rtc Hrepl)
       // hsubst_comp ren_scons /= alias_paths_symm //.
   Qed.
 
@@ -213,7 +213,7 @@ Section path_repl.
   Proof.
     iIntros "#HE /= !>" (ρ) "#HG"; iSpecialize ("HE" with "HG"); iNext i.
     rewrite path_wp_pself !path_wp_eq;
-      iDestruct "HE" as (v q Hlook Hpv) "Htw {HG}".
+      iDestruct "HE" as (v q Hlook Hpv) "Htw {HG} /=".
     iExists _; iFrame (Hpv). eauto.
   Qed.
 
@@ -232,7 +232,7 @@ Section path_repl.
     iIntros "#Hep #Heq !>" (ρ) "#Hg".
     iDestruct (singleton_aliasing with "Hep Hg") as "Hal1 {Hep}".
     iSpecialize ("Heq" with "Hg"). iNext i.
-    by iDestruct "Hal1" as %->%(alias_paths_elim_eq (⟦ _ ⟧ _)).
+    by iDestruct "Hal1" as %->%(alias_paths_elim_eq (p⟦ _ ⟧ _ _)).
   Qed.
 
   Lemma singleton_elim Γ T p q l i:

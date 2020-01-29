@@ -72,7 +72,7 @@ Section Sec.
     iExists φ; repeat iSplit => //.
     iModIntro; iSplit; iIntros (w) "Hw".
     - by iApply "HLφ1".
-    - iDestruct (dm_to_type_agree d _ _ w with "Hsφ1 Hsφ2") as "#Hag {Hsφ1 Hsφ2 HLφ1}".
+    - iDestruct (dm_to_type_agree vnil w with "Hsφ1 Hsφ2") as "#Hag {Hsφ1 Hsφ2 HLφ1}".
       iSplit; [iApply "HφU1" | iApply "HφU2"] => //.
       iNext. by iRewrite -"Hag".
   Qed.
@@ -138,9 +138,9 @@ Section Sec.
   Qed.
 
   Lemma Sub_Or1 T1 T2 i: Γ ⊨ T1, i <: TOr T1 T2, i.
-  Proof. by iIntros "/= !> * _ ? !>"; eauto. Qed.
+  Proof. by iIntros "!> * _ ? !> /="; eauto. Qed.
   Lemma Sub_Or2 T1 T2 i: Γ ⊨ T2, i <: TOr T1 T2, i.
-  Proof. by iIntros "/= !> * _ ? !>"; eauto. Qed.
+  Proof. by iIntros "!> * _ ? !> /="; eauto. Qed.
 
   Lemma Or_Sub T1 T2 U i j:
     Γ ⊨ T1, i <: U, j -∗

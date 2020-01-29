@@ -118,7 +118,7 @@ Hint Resolve ctx_id_syn ctx_trans_sub_syn unTLater_ctx_sub_syn
 
 (** * When is a context weaker than another? *)
 (* Likely, this should be an iProp. *)
-Definition ty_sub `{HdlangG: dlangG Σ} T1 T2 := ∀ ρ v, ⟦ T1 ⟧ ρ v -∗ ⟦ T2 ⟧ ρ v.
+Definition ty_sub `{HdlangG: dlangG Σ} T1 T2 := ∀ ρ v, p⟦ T1 ⟧ vnil ρ v -∗ p⟦ T2 ⟧ vnil ρ v.
 Notation "⊨T T1 <: T2" := (ty_sub T1 T2) (at level 74, T1, T2 at next level).
 Typeclasses Opaque ty_sub.
 
@@ -141,14 +141,14 @@ Section CtxSub.
   Proof. split. by move => ??. by move => x y z H1 H2 ρ; rewrite (H1 _). Qed.
 
   Global Instance Proper_cons_ctx_sub : Proper (ty_sub ==> ctx_sub ==> ctx_sub) cons.
-  Proof. move => T1 T2 HlT Γ1 Γ2 Hl ρ /=. by rewrite (HlT _) (Hl _). Qed.
+  Proof. move => T1 T2 HlT Γ1 Γ2 Hl ρ. cbn. by rewrite (HlT _) (Hl _). Qed.
 
   Global Instance Proper_cons_ctx_sub_flip : Proper (flip ty_sub ==> flip ctx_sub ==> flip ctx_sub) cons.
   Proof. solve_proper. Qed.
 
   (** Typing is contravariant in [Γ]. *)
   Global Instance Proper_ietp : Proper (flip ctx_sub ==> (=) ==> (=) ==> (⊢)) ietp.
-  Proof. move => /= Γ1 Γ2 Hweak ??????; subst. by setoid_rewrite (Hweak _). Qed.
+  Proof. rewrite /ietp /= => Γ1 Γ2 Hweak ??????; subst. by setoid_rewrite (Hweak _). Qed.
   Global Instance Proper_ietp_flip :
     Proper (ctx_sub ==> flip (=) ==> flip (=) ==> flip (⊢)) ietp.
   Proof. apply flip_proper_4, Proper_ietp. Qed.
@@ -280,6 +280,8 @@ End CtxSub.
 Hint Resolve ietp_weaken_ctx_syn : ctx_sub.
 Ltac ietp_weaken_ctx := auto with ctx_sub.
 
+Import persistent_ty_interp_lemmas.
+
 Section LambdaIntros.
   Context `{HdlangG: dlangG Σ}.
 
@@ -311,7 +313,7 @@ Section LambdaIntros.
     Γ ⊨p pv v : T, 0.
   Proof.
     iIntros "/= #Hp !>" (ρ) "Hg".
-    iSpecialize ("Hp" with "Hg"); rewrite wp_value_inv'.
+    iSpecialize ("Hp" with "Hg"); rewrite /= wp_value_inv'.
     by rewrite path_wp_pv.
   Qed.
 
@@ -364,16 +366,7 @@ Section Sec.
     rewrite -wp_pure_step_later // -wp_value.
     by iApply "Hsub".
   Qed.
-
-  Lemma T_Var x T:
-    Γ !! x = Some T →
-    (*──────────────────────*)
-    Γ ⊨ tv (ids x) : shiftN x T.
-  Proof.
-    iIntros (Hx) "/= !> * #Hg".
-    rewrite -wp_value' interp_env_lookup; by [].
-  Qed.
-
+(*
   (*
      x ∉ fv T
      ----------------------------------------------- (<:)
@@ -443,7 +436,7 @@ Section Sec.
   Proof. by rewrite TMu_equiv. Qed.
 
   Lemma TMu_E T v: Γ ⊨ tv v : TMu T -∗ Γ ⊨ tv v : T.|[v/].
-  Proof. by rewrite TMu_equiv. Qed.
+  Proof. by rewrite TMu_equiv. Qed. *)
 
   Lemma T_Forall_E e1 e2 T1 T2:
     Γ ⊨ e1 : TAll T1 (shift T2) -∗

@@ -23,15 +23,15 @@ Section Sec.
     Γ ⊨p p : TTMem l L U, i -∗
     Γ ⊨ TSel p l, i <: TLater U, i.
   Proof.
-    iIntros "/= #Hp !>" (ρ v) "Hg Hφ".
+    iIntros " #Hp !>" (ρ v) "Hg Hφ".
     iSpecialize ("Hp" with "Hg").
     iNext i.
-    rewrite !path_wp_eq.
+    rewrite /= !path_wp_eq.
     iDestruct "Hp" as (w Hw d Hl φ) "#[Hlφ [_ #HφU]]".
     iDestruct "Hφ" as (w' Hw' φ1 d1 Hl') "[Hγ #HΦ1v]".
     rewrite -(path_wp_pure_det Hw Hw') {Hw Hw'} in Hl'.
     objLookupDet.
-    iDestruct (dm_to_type_agree d _ _ v with "Hlφ Hγ") as "#Hag".
+    iDestruct (dm_to_type_agree vnil v with "Hlφ Hγ") as "#Hag".
     iApply "HφU" => //. iNext. by iRewrite "Hag".
   Qed.
 

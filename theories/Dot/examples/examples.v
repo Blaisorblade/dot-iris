@@ -240,7 +240,7 @@ Arguments dlang_ectxi_lang : simpl never. *)
       iDestruct "Harg" as (Φ d [ds Hlook]) "[Hs1 #Harg]";
         have {d ds Hlook}->: d = dtysem [] s by naive_solver.
       iPoseProof (sToIpos with "Hs") as "Hs2/=".
-      iPoseProof (dm_to_type_agree _ _ _ w with "Hs1 Hs2") as "{Hs Hs1 Hs2} Heq".
+      iPoseProof (dm_to_type_agree _ w with "Hs1 Hs2") as "{Hs Hs1 Hs2} Heq".
       wp_bind (BinLCtx _ _); rewrite -wp_pure_step_later // -wp_value/=/lang.of_val.
       iNext. iRewrite "Heq" in "Harg"; iClear "Heq".
       by iApply wp_div_spec.
