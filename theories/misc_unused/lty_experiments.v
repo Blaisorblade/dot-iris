@@ -130,17 +130,14 @@ Section with_lty.
   Proof. exact: path_replacement_equiv. Qed.
   Implicit Types (Γ : sCtx Σ) (τ : olty Σ 0).
 
-  Definition oPSing p : olty Σ 0 :=
-    olty0 (λ ρ v, alias_pathsI p.|[ρ] (pv v)).
-
-  Lemma sem_psingleton_eq_1 p ρ v : oClose (oPSing p) ρ v ≡ ⌜ path_wp_pure p.|[ρ] (eq v) ⌝%I.
+  Lemma sem_psingleton_eq_1 p ρ v : oClose (oSing p) ρ v ≡ ⌜ path_wp_pure p.|[ρ] (eq v) ⌝%I.
   Proof. by rewrite /=/alias_pathsI alias_paths_pv_eq_1. Qed.
 
-  Lemma sem_psingleton_eq_2 p ρ v : oClose (oPSing p) ρ v ≡ path_wp p.|[ρ] (λ w, ⌜ v = w ⌝ )%I.
+  Lemma sem_psingleton_eq_2 p ρ v : oClose (oSing p) ρ v ≡ path_wp p.|[ρ] (λ w, ⌜ v = w ⌝ )%I.
   Proof. by rewrite sem_psingleton_eq_1 path_wp_pureable. Qed.
 
   Lemma singleton_aliasing Γ p q ρ i :
-    Γ s⊨p p : oPSing q, i -∗
+    Γ s⊨p p : oSing q, i -∗
     s⟦ Γ ⟧* ρ -∗ ▷^i alias_pathsI p.|[ρ] q.|[ρ].
   Proof.
     iIntros "#Hep #Hg". iSpecialize ("Hep" with "Hg").
@@ -150,7 +147,7 @@ Section with_lty.
 
   Lemma singleton_self Γ τ p i :
     Γ s⊨p p : τ, i -∗
-    Γ s⊨p p : oPSing p, i.
+    Γ s⊨p p : oSing p, i.
   Proof.
     iIntros "#Hep !>" (ρ) "Hg". iSpecialize ("Hep" with "Hg"). iNext.
     iDestruct (path_wp_eq with "Hep") as (v Hpv) "_".
@@ -182,7 +179,7 @@ Section with_lty.
   (* XXX Generalize? *)
   Lemma singleton_self_skip Γ τ p i :
     Γ s⊨p p : τ, 0 -∗
-    Γ s⊨ iterate tskip i (path2tm p) : oPSing p.
+    Γ s⊨ iterate tskip i (path2tm p) : oSing p.
   Proof.
     rewrite singleton_self sptp2setp.
     iIntros "Hp". iApply (T_Sub with "Hp").
@@ -190,8 +187,8 @@ Section with_lty.
   Qed.
 
   Lemma singleton_sym Γ p q i:
-    Γ s⊨p p : oPSing q, i -∗
-    Γ s⊨p q : oPSing p, i.
+    Γ s⊨p p : oSing q, i -∗
+    Γ s⊨p q : oSing p, i.
   Proof.
     iIntros "#Hep !>" (ρ) "#Hg".
     iDestruct (singleton_aliasing with "Hep Hg") as "Hal". iNext i. iDestruct "Hal" as %Hal.
@@ -199,9 +196,9 @@ Section with_lty.
   Qed.
 
   Lemma singleton_trans Γ p q r i:
-    Γ s⊨p p : oPSing q, i -∗
-    Γ s⊨p q : oPSing r, i -∗
-    Γ s⊨p p : oPSing r, i.
+    Γ s⊨p p : oSing q, i -∗
+    Γ s⊨p q : oSing r, i -∗
+    Γ s⊨p p : oSing r, i.
   Proof.
     iIntros "#Hep #Heq !>" (ρ) "#Hg".
     iDestruct (singleton_aliasing with "Hep Hg") as "Hal1".
@@ -211,9 +208,9 @@ Section with_lty.
   Qed.
 
   Lemma singleton_elim Γ τ p q l i:
-    Γ s⊨p p : oPSing q, i -∗
+    Γ s⊨p p : oSing q, i -∗
     Γ s⊨p pself q l : τ, i -∗
-    Γ s⊨p pself p l : oPSing (pself q l), i.
+    Γ s⊨p pself p l : oSing (pself q l), i.
   Proof.
     iIntros "#Hep #HqlT !>" (ρ) "#Hg".
     iDestruct (singleton_aliasing with "Hep Hg") as "Hal {Hep}".

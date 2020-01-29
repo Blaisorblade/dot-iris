@@ -154,8 +154,8 @@ Section SemTypes.
       ∃ ψ d, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n[ 0 ] ψ ∧ ▷ □ ψ vnil v.
   Proof. by rewrite /= path_wp_pv. Qed.
 
-  Definition oPSing p : olty Σ 0 :=
-    olty0 (λI ρ v, ⌜alias_paths p.|[ρ] (pv v)⌝).
+  Definition oSing p : olty Σ 0.
+  Proof using HdotG. exact (olty0 (λI ρ v, ⌜alias_paths p.|[ρ] (pv v)⌝)). Defined.
 
   (* Paolo: This definition is contractive (similarly to what's useful for
      equi-recursive types).
@@ -190,7 +190,7 @@ Section SemTypes.
     | TAll T1 T2 => oAll p⟦ T1 ⟧ p⟦ T2 ⟧
     | TMu T => oMu p⟦ T ⟧
     | TSel p l => oTSel p l
-    | TSing p => oPSing p
+    | TSing p => oSing p
     end.
   Global Instance pinterp_lemmas: PTyInterpLemmas ty Σ.
   Proof.
