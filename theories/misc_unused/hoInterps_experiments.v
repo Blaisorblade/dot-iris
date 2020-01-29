@@ -255,6 +255,7 @@ End HoSemTypes.
 Module Type HoGenExperimnents (Import VS : VlSortsFullSig) (Import LWP : LiftWp VS).
 Include HoSemTypes VS LWP.
 Include TyInterpLemmas VS LWP.
+Export ty_interp_lemmas.
 Section sec.
   Context `{TyInterp ty Σ}.
 
@@ -323,6 +324,7 @@ Module dot_experiments.
 Import syn dlang_inst.
 Include HoSemTypes VlSorts dlang_inst.
 Include TyInterpLemmas VlSorts dlang_inst.
+Export ty_interp_lemmas.
 
 Section sec.
   Context `{!savedHoSemTypeG Σ} `{!dlangG Σ} `{TyInterp ty Σ}.
