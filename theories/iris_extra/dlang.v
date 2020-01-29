@@ -64,7 +64,6 @@ Module Type LiftWp (Import VS : VlSortsSig).
     (∃ φ : hoEnvD Σ n, s ↝n[ n ] φ ∧ ▷ (ψ ≡ hoEnvD_inst σ φ))%I.
   Notation "s ↗n[ σ , n  ] ψ" := (stamp_σ_to_type_n s σ n ψ) (at level 20): bi_scope.
 
-  Notation "γ ⤇ φ" := (γ ⤇n[ 0 ] vopen φ) (at level 20).
   Notation "s ↝ φ" := (s ↝n[ 0 ] vopen φ)%I  (at level 20) : bi_scope.
   Notation "s ↗[ σ  ] ψ" := (s ↗n[ σ , 0 ] vopen ψ)%I (at level 20) : bi_scope.
 
