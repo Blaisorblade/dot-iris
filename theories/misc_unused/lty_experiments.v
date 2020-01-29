@@ -119,16 +119,32 @@ Section with_lty.
   Context `{dlangG Σ}.
   Import path_repl.
   Implicit Types (φ: vl → iProp Σ).
+
+  Implicit Types (Γ : sCtx Σ) (T τ : oltyO Σ 0).
+
+  Definition sem_path_repl_one T p T' : iProp Σ :=
+    T' ≡ olty0 (λI ρ v, path_wp p (λ w, T vnil (w .: ρ) v)).
+  Notation "T .sTp[ p /]~ T'" := (sem_path_repl_one T p T') (at level 65).
+
+  (* Define semantic T1 ~sTp[ p := q ] T2 as
+  alias_paths p.|[ρ] q.|[ρ] →
+  ⟦ T1 ⟧ ρ v ≡ ⟦ T2 ⟧ ρ v.
+  And relate the two versions of path_repl_one? *)
+
   (** We don't have yet singleton types in the syntax: so add them as a semantic type
     and prove lemmas about them. Annoyingly, we can't talk about path replacement on
     semantic types. *)
+  Lemma psubst_one_repl_sem τ {p1 p2 p q ρ}:
+    p1 ~pp[ p := q ] p2 →
+    alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
+    path_wp p1.|[ρ] (oClose τ ρ) ≡ path_wp p2.|[ρ] (oClose τ ρ).
+  Proof. apply: path_replacement_equiv. Qed.
 
   Lemma rewrite_ty_path_repl_tsel {p q p1 l p2 ρ v}:
     p1 ~pp[ p := q ] p2 →
     alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
     oClose (oTSel p1 l) ρ v ≡ oClose (oTSel p2 l) ρ v.
   Proof. exact: path_replacement_equiv. Qed.
-  Implicit Types (Γ : sCtx Σ) (τ : olty Σ 0).
 
   Lemma sem_psingleton_eq_1 p ρ v : oClose (oSing p) ρ v ≡ ⌜ path_wp_pure p.|[ρ] (eq v) ⌝%I.
   Proof. by rewrite /=/alias_pathsI alias_paths_pv_eq_1. Qed.
