@@ -57,7 +57,7 @@ Arguments dlang_ectxi_lang : simpl never. *)
 
   Import swap_later_impl.
   Context `{SwapPropI Σ}.
-  Lemma loopSemT: (WP hclose hloopTm {{ _, False }})%I.
+  Lemma loopSemT: WP hclose hloopTm {{ _, False }}%I.
   Proof.
     iDestruct (fundamental_typed _ _ _ _ (loopTyp []) with "[]") as "H".
     iApply wellMappedφ_empty.
@@ -187,10 +187,11 @@ Arguments dlang_ectxi_lang : simpl never. *)
   Lemma vHasA0typ: Hs -∗ [] ⊨ tv v : type "A" >: ⊥ <: 𝐍.
   Proof. rewrite -ietp_value. iApply vHasA0. Qed.
 
-  Definition vTyp1 := μ {@
+  Definition vTyp1Body : ty := {@
     type "A" >: ⊥ <: 𝐍;
     val "n" : p0 @; "A"
   }.
+  Definition vTyp1 := μ vTyp1Body.
 
   Lemma wp_div_spec (m : nat) w : ipos ids w -∗ WP m `div` w {{ ⟦ 𝐍 ⟧ ids }}.
   Proof. iDestruct 1 as %(n&?&?); simplify_eq. wp_bin. by iIntros "!%"; naive_solver. Qed.
@@ -294,7 +295,7 @@ Arguments dlang_ectxi_lang : simpl never. *)
   Lemma vHasA1': Hs -∗ ⟦ vTyp1 ⟧ ids v.
   Proof.
     iIntros "#Hs".
-    iDestruct (T_New_I [] _ with "[]") as "#H"; first last.
+    iDestruct (T_New_I [] vTyp1Body with "[]") as "#H"; first last.
     iSpecialize ("H" $! ids with "[#//]").
     rewrite hsubst_id /interp_expr wp_value_inv'.
     iApply "H".
