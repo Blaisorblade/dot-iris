@@ -98,8 +98,6 @@ Implicit Types
 
 Module SemTypes2.
 
-Import SemTypes.
-
 Section with_unary_lr.
   Context `{HdotG: dlangG Σ}.
 

@@ -12,8 +12,6 @@ Implicit Types
 
 Local Notation IntoPersistent' P := (IntoPersistent false P P).
 
-Module SemTypes.
-
 Include LtyJudgements VlSorts dlang_inst.
 Include PTyInterpLemmas VlSorts dlang_inst.
 Export persistent_ty_interp_lemmas.
@@ -440,8 +438,6 @@ Ltac solve_proper_ho_equiv :=
   solve_proper_prepare; properness => //;
   solve_proper_ho_equiv_core ltac:(fun _ => idtac).
 
-Module ty_compat.
-
 Section Propers.
   Context `{HdotG: dlangG Σ}.
 
@@ -500,7 +496,7 @@ End Propers.
 
 
 Include TyInterpLemmas VlSorts dlang_inst.
-Import ty_interp_lemmas.
+
 Notation "⟦ T ⟧" := (ty_interp T%ty).
 
 Section defs.
@@ -604,9 +600,7 @@ Section defs.
   Proof. rewrite /ietp (sT_Forall_Ex e1 v2). by rewrite (pty_interp_subst T2). Qed.
 End defs.
 
-End ty_compat.
-
-Import dlang_adequacy adequacy ty_compat.
+Import dlang_adequacy adequacy.
 Theorem s_adequacy_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e Ψ
   (τ : ∀ `{dlangG Σ}, olty Σ 0)
   (Himpl : ∀ (Hdlang: dlangG Σ) v, oClose τ ids v -∗ ⌜Ψ v⌝)
@@ -634,4 +628,3 @@ Corollary safety_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e T
   (Hwp : ∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T):
   safe e.
 Proof. exact: (s_safety_dot_sem Σ e (λ _, p⟦T⟧)). Qed.
-End SemTypes.

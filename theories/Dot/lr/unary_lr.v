@@ -3,10 +3,6 @@ From D Require Import iris_prelude.
 From D.Dot Require Export dlang_inst path_wp dot_lty.
 From D.Dot Require Import lr_syn_aux.
 
-Export SemTypes.ty_compat SemTypes.
-
-(* Include TyInterpLemmas VlSorts dlang_inst. *)
-
 (** Override notation from [dlang] to specify scope. *)
 (* Notation "⟦ T ⟧" := (ty_interp T%ty). *)
 
