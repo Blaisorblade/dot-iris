@@ -1,6 +1,7 @@
 From iris.proofmode Require Import tactics.
 From D Require Export iris_prelude proper.
-From D Require Import lty ty_interp_subst_lemmas pty_interp_subst_lemmas.
+From D Require Import lty ty_interp_subst_lemmas pty_interp_subst_lemmas
+  swap_later_impl.
 From D.Dot Require Import syn syn.path_repl dlang_inst path_wp lr_syn_aux.
 From D.pure_program_logic Require Import lifting.
 
@@ -557,7 +558,6 @@ End defs.
 
 End ty_compat.
 
-From D Require Import swap_later_impl.
 Import dlang_adequacy adequacy ty_compat.
 Theorem s_adequacy_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e Ψ
   (τ : ∀ `{dlangG Σ}, olty Σ 0)
