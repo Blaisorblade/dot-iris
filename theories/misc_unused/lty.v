@@ -219,7 +219,7 @@ Section olty_ofe_2.
   Global Instance env_oltyped_persistent (Γ : sCtx Σ) ρ: Persistent (s⟦ Γ ⟧* ρ).
   Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
 
-  Lemma interp_env_lookup Γ ρ (τ : olty Σ 0) x:
+  Lemma s_interp_env_lookup Γ ρ (τ : olty Σ 0) x:
     Γ !! x = Some τ →
     s⟦ Γ ⟧* ρ -∗ oClose (shiftN x τ) ρ (ρ x).
   Proof.
@@ -257,7 +257,7 @@ Section olty_ofe_2.
   Lemma ho_oMu_eq (τ : oltyO Σ i) args ρ v : ho_oMu τ args ρ v = τ args (v .: ρ) v.
   Proof. done. Qed.
 
-  Lemma interp_TMu_ren (T : oltyO Σ i) args ρ v: ho_oMu (shift T) args ρ v ≡ T args ρ v.
+  Lemma s_interp_TMu_ren (T : oltyO Σ i) args ρ v: ho_oMu (shift T) args ρ v ≡ T args ρ v.
   Proof. rewrite /= (hoEnvD_weaken_one T args _ v) stail_eq. by []. Qed.
 
   Definition interp_expr `{dlangG Σ} (φ : hoEnvD Σ 0) : envPred tm Σ :=
@@ -298,23 +298,23 @@ Section typing.
   Context `{dlangG Σ}.
   Implicit Types (τ : oltyO Σ 0).
 
-  Lemma iterate_TLater_later i τ ρ v:
+  Lemma s_iterate_TLater_later i τ ρ v:
     oClose (iterate oLater i τ) ρ v ≡ vclose (eLater i τ) ρ v.
   Proof. elim: i => [//|i IHi]. by rewrite iterate_S /= IHi. Qed.
 
-  Lemma T_Var Γ x τ
+  Lemma sT_Var Γ x τ
     (Hx : Γ !! x = Some τ):
     (*──────────────────────*)
     Γ s⊨ of_val (ids x) : shiftN x τ.
   Proof.
     iIntros "/= !>" (ρ) "#Hg"; rewrite hsubst_of_val -wp_value'.
-    by rewrite interp_env_lookup // id_subst.
+    by rewrite s_interp_env_lookup // id_subst.
   Qed.
 
-  Lemma andstp1 Γ τ1 τ2 i : Γ s⊨ oAnd τ1 τ2 , i <: τ1 , i.
+  Lemma sAnd1_Sub Γ τ1 τ2 i : Γ s⊨ oAnd τ1 τ2 , i <: τ1 , i.
   Proof. iIntros "!>" (??) "#Hg #[$ _]". Qed.
 
-  Lemma andstp2 Γ τ1 τ2 i : Γ s⊨ oAnd τ1 τ2 , i <: τ2 , i.
+  Lemma sAnd2_Sub Γ τ1 τ2 i : Γ s⊨ oAnd τ1 τ2 , i <: τ2 , i.
   Proof. iIntros "!>" (??) "#Hg #[_ $]". Qed.
 End typing.
 

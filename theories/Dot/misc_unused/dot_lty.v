@@ -353,14 +353,14 @@ Section SampleTypingLemmas.
   Proof.
     iIntros "/= #Hstp !>" (vs v) "#Hg #HT1".
     iApply ("Hstp" $! (v .: vs) v with "[# $Hg] [#//]").
-    by rewrite iterate_TLater_later.
+    by rewrite s_iterate_TLater_later.
   Qed.
 
   Lemma sSub_Mu_A T i: Γ s⊨ oMu (shift T), i <: T, i.
-  Proof. iIntros "!> **". by rewrite interp_TMu_ren. Qed.
+  Proof. iIntros "!> **". by rewrite s_interp_TMu_ren. Qed.
 
   Lemma sSub_Mu_B T i: Γ s⊨ T, i <: oMu (shift T), i.
-  Proof. iIntros "!> **". by rewrite interp_TMu_ren. Qed.
+  Proof. iIntros "!> **". by rewrite s_interp_TMu_ren. Qed.
 
   (*
      Γ ⊨ z: Tᶻ
@@ -501,13 +501,13 @@ Section defs.
   Global Instance Proper_oAll : Proper ((≡) ==> (≡) ==> (≡)) oAll.
   Proof. solve_proper_ho_equiv. Qed.
 
-  Lemma T_Var' Γ x τ
-    (Hx : Γ !! x = Some τ):
+  Lemma T_Var Γ x τ
+    (Hlook : Γ !! x = Some τ):
     (*──────────────────────*)
     Γ ⊨ of_val (ids x) : shiftN x τ.
   Proof.
-    rewrite /ietp (pty_interp_subst τ (ren (+x))). apply T_Var.
-    by rewrite list_lookup_fmap Hx.
+    rewrite /ietp (pty_interp_subst τ (ren (+x))). apply sT_Var.
+    by rewrite list_lookup_fmap Hlook.
   Qed.
 
   Lemma iterate_TLater_oLater i T:
