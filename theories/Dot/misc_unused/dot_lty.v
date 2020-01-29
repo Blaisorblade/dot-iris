@@ -556,4 +556,34 @@ Section defs.
 End defs.
 
 End ty_compat.
+
+From D Require Import swap_later_impl.
+Import dlang_adequacy adequacy ty_compat.
+Theorem s_adequacy_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e Ψ
+  (τ : ∀ `{dlangG Σ}, olty Σ 0)
+  (Himpl : ∀ (Hdlang: dlangG Σ) v, oClose τ ids v -∗ ⌜Ψ v⌝)
+  (Hlog : ∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] s⊨ e : τ):
+  ∀ σ, adequate NotStuck e σ (λ v _, Ψ v).
+Proof.
+  eapply (adequacy_dlang _); [apply Himpl | iIntros (??) "Hgs"].
+  iMod (Hlog with "Hgs") as "#Htyp".
+  iEval rewrite -(hsubst_id e). iApply ("Htyp" $! ids with "[//]").
+Qed.
+
+Theorem adequacy_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e Ψ T
+  (Himpl : ∀ (Hdlang: dlangG Σ) v, ⟦ T ⟧ ids v -∗ ⌜Ψ v⌝)
+  (Hlog : ∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T):
+  ∀ σ, adequate NotStuck e σ (λ v _, Ψ v).
+Proof. exact: (s_adequacy_dot_sem Σ e Ψ (λ _, p⟦T⟧)). Qed.
+
+Corollary s_safety_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e
+  (τ : ∀ `{dlangG Σ}, olty Σ 0)
+  (Hwp : ∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] s⊨ e : τ):
+  safe e.
+Proof. apply adequate_safe, (s_adequacy_dot_sem _ e _ τ), Hwp; naive_solver. Qed.
+
+Corollary safety_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e T
+  (Hwp : ∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T):
+  safe e.
+Proof. exact: (s_safety_dot_sem Σ e (λ _, p⟦T⟧)). Qed.
 End SemTypes.
