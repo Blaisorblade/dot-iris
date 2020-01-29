@@ -113,15 +113,15 @@ Arguments dlang_ectxi_lang : simpl never. *)
      but very useful for examples. *)
   Lemma ietp_value T v: (∀ ρ, ⟦ T ⟧ ρ v.[ρ]) -∗ [] ⊨ tv v : T.
   Proof.
-    iIntros "#H /= !>" (? _).
-    rewrite -wp_value'. iApply "H".
+    iIntros "#H !>" (? _).
+    rewrite /= -wp_value'. iApply "H".
   Qed.
 
   Lemma ietp_value_inv T v: [] ⊨ tv v : T -∗ ∀ ρ, ⟦ T ⟧ ρ v.[ρ].
   Proof.
     iIntros "/= H" (ρ).
     iSpecialize ("H" $! ρ with "[//]").
-    by rewrite wp_value_inv'.
+    by rewrite /= wp_value_inv'.
   Qed.
 
 
@@ -150,10 +150,10 @@ Arguments dlang_ectxi_lang : simpl never. *)
 	  val "n" = pv (vnat 2)
   }.
 
-  Lemma sToIpos : Hs -∗ dtysem [] s ↗ ipos (∞ []).
+  Lemma sToIpos : Hs -∗ dtysem [] s ↗n[ 0 ] vopen (ipos (∞ [])).
   Proof. by iApply dm_to_type_intro. Qed.
 
-  Lemma sHasA : Hs -∗ def_interp_tmem ⟦ ⊥ ⟧ ⟦ 𝐍 ⟧ ids (dtysem [] s).
+  Lemma sHasA : Hs -∗ oDTMem p⟦ ⊥ ⟧ p⟦ 𝐍 ⟧ ids (dtysem [] s).
   Proof.
     iIntros; cbn; repeat (repeat iExists _; repeat iSplit; try done).
     by iApply sToIpos.
@@ -163,7 +163,7 @@ Arguments dlang_ectxi_lang : simpl never. *)
   Qed.
 
   Lemma wp_mkPos :
-    interp_forall ⟦ 𝐍 ⟧ (λ ρ v, ⌜ ∃ n : nat, v = n ∧ n > 0 ⌝)%I ids (hclose hmkPosV).
+    oAll p⟦ 𝐍 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : nat, v = n ∧ n > 0 ⌝)) vnil ids (hclose hmkPosV).
   Proof.
     repeat (iExists _; iSplit => //).
     iIntros (w) "!>"; iMod 1 as %[n Hw]; iIntros "!> !>".
@@ -219,7 +219,7 @@ Arguments dlang_ectxi_lang : simpl never. *)
 
   Lemma posModVHasA: Hs -∗ [] ⊨ posModV : hclose posModT.
   Proof.
-    rewrite /posModT -(TMu_I [] _ posModV).
+    rewrite /posModT -(TMu_I _ posModV).
     iIntros "#Hs". cbn -[ietp].
     iApply TAnd_I; first by rewrite -posModVHasAtyp.
     iApply TAnd_I; last iApply TAnd_I; last by
@@ -240,7 +240,7 @@ Arguments dlang_ectxi_lang : simpl never. *)
       iDestruct "Harg" as (Φ d [ds Hlook]) "[Hs1 #Harg]";
         have {d ds Hlook}->: d = dtysem [] s by naive_solver.
       iPoseProof (sToIpos with "Hs") as "Hs2/=".
-      iPoseProof (dm_to_type_agree _ w with "Hs1 Hs2") as "{Hs Hs1 Hs2} Heq".
+      iPoseProof (dm_to_type_agree vnil w with "Hs1 Hs2") as "{Hs Hs1 Hs2} Heq".
       wp_bind (BinLCtx _ _); rewrite -wp_pure_step_later // -wp_value/=/lang.of_val.
       iNext. iRewrite "Heq" in "Harg"; iClear "Heq".
       by iApply wp_div_spec.
@@ -256,13 +256,13 @@ Arguments dlang_ectxi_lang : simpl never. *)
    *)
   Lemma vHasA1: Hs -∗ ∀ ρ, ⟦ vTyp1 ⟧ ρ v.[ρ].
   Proof.
-    rewrite -ietp_value_inv -(TMu_I [] _ v).
+    rewrite -ietp_value_inv -(TMu_I _ v).
     iIntros "#Hs".
     iApply TAnd_I; first by [iApply vHasA0typ].
     iApply TAnd_I; first last.
     - iApply (T_Sub _ _ _ _ 0); last by iApply Sub_Top.
       by iApply vHasA0typ.
-    - rewrite -ietp_value /=.
+    - rewrite -ietp_value /= /iPPred_car /=.
       have Hev2: pos (vnat 2) by rewrite /pos; eauto.
       iIntros (_).
 

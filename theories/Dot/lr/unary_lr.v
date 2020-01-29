@@ -270,10 +270,10 @@ Section logrel_lemmas.
   Proof. exact: iterate_TLater_later0. Qed. *)
 
   Import lty.
-  Lemma iterate_TLater_later i T ρ v:
-    p⟦ iterate TLater i T ⟧ vnil ρ v ≡ (▷^i p⟦ T ⟧ vnil ρ v)%I.
+  Lemma iterate_TLater_later T n args ρ v:
+    p⟦ iterate TLater n T ⟧ args ρ v ≡ (▷^n p⟦ T ⟧ args ρ v)%I.
   Proof.
-    by rewrite (iterate_TLater_oLater i T _ _ _) s_iterate_TLater_later.
+    by rewrite (iterate_TLater_oLater n T _ _ _) s_iterate_TLater_later.
   Qed.
 
   Lemma interp_env_lookup Γ ρ T x:

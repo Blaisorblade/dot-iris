@@ -46,6 +46,8 @@ Section AlsoSyntactically.
 
 End AlsoSyntactically.
 
+Import persistent_ty_interp_lemmas.
+
 (* Additional typing lemmas that *)
 Section NotUsed.
   Context `{HdlangG: dlangG Σ}.
@@ -110,14 +112,14 @@ Section Example.
 
   (* XXX "only empty context" won't be enough :-( *)
   Example foo1 Γ s T (Hcl : nclosed T 0) :
-    s ↝ ⟦ T ⟧ -∗
+    s ↝n[ 0 ] p⟦ T ⟧ -∗
     (* Γ ⊨ tv (packTV (length Γ) s) : typeEq "A" T. *)
     [] ⊨ tv (packTV 0 s) : typeEq "A" T.
   Proof.
     iIntros "#Hs !>" (ρ) "#_ /= !>".
     rewrite -wp_value'.
     iExists (dtysem [] s); iSplit; first eauto.
-    iExists (⟦ T ⟧ ids); iSplit; first by iApply (dm_to_type_intro _ _ []).
+    iExists (hoEnvD_inst [] p⟦ T ⟧); iSplit; first by iApply dm_to_type_intro.
     iModIntro; iSplit; iIntros (v) "#H !>";
       by rewrite (interp_subst_ids T ρ v) (closed_subst_id _ Hcl).
   Qed.
@@ -383,11 +385,11 @@ Section Sec.
   Proof.
     iIntros "/= #HeT !>" (vs) "#HG !>".
     rewrite -wp_value'. iExists _; iSplit; first done.
-    iIntros "!>" (v) "#Hv"; rewrite up_sub_compose.
+    iIntros "!>" (v) "#Hv"; rewrite up_sub_compose /=.
     (* iApply (wp_later_swap _ (⟦ T2 ⟧ (v .: vs))).
     iApply ("HeT" $! (v .: vs) with "[$HG]"). *)
     iSpecialize ("HeT" $! (v .: vs) with "[#$HG]").
-    by rewrite (interp_weaken_one T1 _ v).
+    by rewrite (interp_weaken_one _ _ _).
     by rewrite wp_later_swap; iNext.
     (* by iDestruct (wp_later_swap with "HeT") as "{HeT} HeT"; iNext. *)
   Qed.
@@ -402,7 +404,7 @@ Section Sec.
     iExists t; iSplit => //.
     rewrite -mlater_pers. iModIntro (□ _)%I.
     iIntros (w). iSpecialize ("HvTU" $! w).
-    rewrite !later_intuitionistically -(wp_later_swap _ (⟦ _ ⟧ _)).
+    rewrite !later_intuitionistically -(wp_later_swap _ (p⟦ _ ⟧ _ _)).
     rewrite -impl_later later_intuitionistically.
     (* Either: *)
     (* done. *)
@@ -456,9 +458,9 @@ Section Sec.
       + iApply ("IHj" $! (TLater T)).
   Qed.
 
-  Lemma Distr_TLater_And T1 T2 ρ v:
-    ⟦ TLater (TAnd T1 T2) ⟧ ρ v ⊣⊢
-    ⟦ TAnd (TLater T1) (TLater T2) ⟧ ρ v.
+  Lemma Distr_TLater_And T1 T2 args ρ v:
+    p⟦ TLater (TAnd T1 T2) ⟧ args ρ v ⊣⊢
+    p⟦ TAnd (TLater T1) (TLater T2) ⟧ args ρ v.
   Proof. iSplit; iIntros "/= [$ $]". Qed.
 
   Lemma selfIntersect Γ T U i j:
@@ -473,6 +475,7 @@ Section Sec.
     Γ ⊨ T, i <: TLater U, i -∗
     Γ ⊨ T, i <: TLater (TAnd T U), i .
   Proof.
+    rewrite /istpi.
     iIntros "H"; iSimpl; setoid_rewrite Distr_TLater_And.
     iApply (Sub_And with "[] H").
     iApply (Sub_Trans _ T _ _ (S i)).
@@ -480,16 +483,16 @@ Section Sec.
     - by iApply Sub_Later.
   Qed.
 
-  Lemma Distr_TLaterN_And T1 T2 j ρ v:
-    ⟦ iterate TLater j (TAnd T1 T2) ⟧ ρ v ⊣⊢
-    ⟦ TAnd (iterate TLater j T1) (iterate TLater j T2) ⟧ ρ v.
+  Lemma Distr_TLaterN_And T1 T2 j args ρ v:
+    p⟦ iterate TLater j (TAnd T1 T2) ⟧ args ρ v ⊣⊢
+    p⟦ TAnd (iterate TLater j T1) (iterate TLater j T2) ⟧ args ρ v.
   Proof.
     rewrite /= !iterate_TLater_later /=.
     iSplit; iIntros "/= [??]"; iSplit; by [].
   Qed.
 
   Lemma sub_rewrite_2 Γ T U1 U2 i:
-    (∀ ρ v, ⟦ U1 ⟧ ρ v ⊣⊢ ⟦ U2 ⟧ ρ v) →
+    (∀ args ρ v, p⟦ U1 ⟧ args ρ v ⊣⊢ p⟦ U2 ⟧ args ρ v) →
     Γ ⊨ T, i <: U1, i ⊣⊢
     Γ ⊨ T, i <: U2, i .
   Proof.
@@ -498,7 +501,7 @@ Section Sec.
   Qed.
 
   Lemma sub_rewrite_1 Γ T1 T2 U i:
-    (∀ ρ v, ⟦ T1 ⟧ ρ v ⊣⊢ ⟦ T2 ⟧ ρ v) →
+    (∀ args ρ v, p⟦ T1 ⟧ args ρ v ⊣⊢ p⟦ T2 ⟧ args ρ v) →
     Γ ⊨ T1, i <: U, i ⊣⊢
     Γ ⊨ T2, i <: U, i .
   Proof.
@@ -507,7 +510,7 @@ Section Sec.
   Qed.
 
   Lemma eq_to_bisub Γ T1 T2 i:
-    (∀ ρ v, ⟦ T1 ⟧ ρ v ⊣⊢ ⟦ T2 ⟧ ρ v) → True ⊢
+    (∀ args ρ v, p⟦ T1 ⟧ args ρ v ⊣⊢ p⟦ T2 ⟧ args ρ v) → True ⊢
     Γ ⊨ T1, i <: T2, i ∧
     Γ ⊨ T2, i <: T1, i .
   Proof.
