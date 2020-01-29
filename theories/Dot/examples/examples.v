@@ -111,19 +111,24 @@ Arguments dlang_ectxi_lang : simpl never. *)
 
   (* Generic useful lemmas — not needed for fundamental theorem,
      but very useful for examples. *)
-  Lemma ietp_value T v: (∀ ρ, ⟦ T ⟧ ρ v.[ρ]) -∗ [] ⊨ tv v : T.
+  Lemma setp_value (T : olty Σ 0) v: (∀ ρ, T vnil ρ v.[ρ]) -∗ [] s⊨ tv v : T.
   Proof.
     iIntros "#H !>" (? _).
     rewrite /= -wp_value'. iApply "H".
   Qed.
 
-  Lemma ietp_value_inv T v: [] ⊨ tv v : T -∗ ∀ ρ, ⟦ T ⟧ ρ v.[ρ].
+  Lemma setp_value_inv (T : olty Σ 0) v: [] s⊨ tv v : T -∗ ∀ ρ, T vnil ρ v.[ρ].
   Proof.
     iIntros "/= H" (ρ).
     iSpecialize ("H" $! ρ with "[//]").
     by rewrite /= wp_value_inv'.
   Qed.
 
+  Lemma ietp_value T v: (∀ ρ, ⟦ T ⟧ ρ v.[ρ]) -∗ [] ⊨ tv v : T.
+  Proof. apply setp_value. Qed.
+
+  Lemma ietp_value_inv T v: [] ⊨ tv v : T -∗ ∀ ρ, ⟦ T ⟧ ρ v.[ρ].
+  Proof. apply setp_value_inv. Qed.
 
   Import hoasNotation.
 
@@ -162,15 +167,32 @@ Arguments dlang_ectxi_lang : simpl never. *)
     rewrite /pure_interp_prim /prim_evals_to /=. eauto.
   Qed.
 
+  (* Argh, no semantic "unTLater" yet. *)
+  Lemma sT_Forall_I {Γ} T1 T2 e:
+    shift T1 :: Γ s⊨ e : T2 -∗
+    (*─────────────────────────*)
+    Γ s⊨ tv (vabs e) : oAll T1 T2.
+  Proof.
+    iIntros "#HeT !>" (ρ) "#HG /= !>".
+    rewrite -wp_value'. iExists _; iSplit; first done.
+    iIntros "!>" (v) "#Hv"; rewrite up_sub_compose.
+    (* Factor ⪭ out of [⟦ Γ ⟧* ρ] before [iNext]. *)
+    iNext.
+    iApply ("HeT" $! (v .: ρ) with "[$HG]").
+    by rewrite (hoEnvD_weaken_one (olty_car T1) _ _ _) stail_eq.
+  Qed.
+
+  Lemma ty_mkPos :
+    [] s⊨ hclose hmkPosV : oAll p⟦ 𝐍 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : nat, v = n ∧ n > 0 ⌝)).
+  Proof.
+    rewrite -sT_Forall_I /= /shead.
+    iIntros (ρ) "!> /=". iDestruct 1 as %(_ & n & Hw); simplify_eq/=; rewrite Hw.
+    iIntros "!>". iApply wp_wand; [iApply wp_if_ge | naive_solver].
+  Qed.
+
   Lemma wp_mkPos :
     oAll p⟦ 𝐍 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : nat, v = n ∧ n > 0 ⌝)) vnil ids (hclose hmkPosV).
-  Proof.
-    repeat (iExists _; iSplit => //).
-    iIntros (w) "!>"; iMod 1 as %[n Hw]; iIntros "!> !>".
-    simplify_eq/=.
-    iApply wp_wand; [iApply wp_if_ge | iIntros "!% /="].
-    naive_solver.
-  Qed.
+  Proof. iApply wp_value_inv'. iApply (ty_mkPos with "[//]"). Qed.
 
   (** Yes, v has a valid type member. *)
   Lemma vHasA0: Hs -∗ ∀ ρ, ⟦ type "A" >: ⊥ <: TNat ⟧ ρ v.[ρ].
