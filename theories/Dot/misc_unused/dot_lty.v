@@ -530,21 +530,26 @@ Section defs.
     τ1 ≡ τ2 → τ1 args ρ v ≡ τ2 args ρ v.
   Proof. intros H. apply H. Qed.
 
+  Global Instance Proper_oMu : Proper ((≡) ==> (≡)) (oMu (Σ := Σ)).
+  Proof. solve_proper_ho_equiv. Qed.
   Lemma Sub_Mu_A T i: Γ ⊨ TMu (shift T), i <: T, i.
   Proof.
     rewrite /istpi.
     cbn [pinterp pty_interp].
-    rewrite {1}(pty_interp_subst T (ren (+1))).
+    rewrite (pty_interp_subst T (ren (+1))).
     apply sSub_Mu_A.
-
     (* iIntros "!>" (vs v) "**".
     by rewrite /= (lift_olty_eq (pty_interp_subst _ _)). *)
   Qed.
 
   Lemma Sub_Mu_B T i: Γ ⊨ T, i <: TMu (shift T), i.
   Proof.
-    iIntros "!>" (vs v) "**".
-    by rewrite /= (lift_olty_eq (pty_interp_subst _ _)).
+    rewrite /istpi.
+    cbn [pinterp pty_interp].
+    rewrite (pty_interp_subst T (ren (+1))).
+    apply sSub_Mu_B.
+    (* iIntros "!>" (vs v) "**".
+    by rewrite /= (lift_olty_eq (pty_interp_subst _ _)). *)
   Qed.
 
   Lemma TMu_I T v: Γ ⊨ tv v : T.|[v/] -∗ Γ ⊨ tv v : TMu T.
