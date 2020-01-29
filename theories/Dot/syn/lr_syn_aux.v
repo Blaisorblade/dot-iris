@@ -165,6 +165,21 @@ Lemma alias_paths_elim_eq_pure Pv {p q}:
   path_wp_pure p Pv ↔ path_wp_pure q Pv.
 Proof. move => /alias_paths_samepwp_pure [_]. apply. Qed.
 
+Lemma alias_paths_pself {p q l w} :
+  path_wp_pure (pself q l) (eq w) →
+  alias_paths p q →
+  alias_paths (pself p l) (pself q l).
+Proof.
+  intros Hql Hal; inverse Hql; econstructor; eauto.
+  rewrite path_wp_pure_eq; exists w; split => //; econstructor; eauto.
+  by rewrite (alias_paths_elim_eq_pure _ Hal).
+Qed.
+
+Lemma alias_paths_simpl {p q} :
+  path_wp_pure p (λ v, alias_paths q (pv v)) ↔
+  alias_paths p q.
+Proof. setoid_rewrite alias_paths_pv_eq_1. apply alias_paths_symm. Qed.
+
 (******************************************************************************)
 (** For primitives. *)
 (******************************************************************************)

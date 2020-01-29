@@ -1,7 +1,7 @@
 From iris.proofmode Require Import tactics.
 From D Require Import iris_prelude.
 From D Require Import iris_extra.swap_later_impl.
-From D.Dot Require Import dlang_inst rules lr_syn_aux.
+From D.Dot Require Import dlang_inst rules lr_syn_aux syn.path_repl.
 From D.pure_program_logic Require Import lifting.
 
 Implicit Types
@@ -230,6 +230,62 @@ Section path_wp.
         iEval (rewrite path_wp_unfold /=); first done.
       iExists _, _; repeat iSplit => //.
       iModIntro; by iApply "IH1".
+  Qed.
+
+  (* Not provable through pure props for impure [φ]. *)
+  Lemma alias_paths_samepwp p q:
+    alias_paths p q ↔
+      (∃ u, path_wp_pure p (eq u)) ∧
+      ∀ φ, PersistentP φ → path_wp p φ ≡ path_wp q φ.
+  Proof.
+    rewrite alias_paths_sameres; split.
+    - destruct 1 as (v & Hp & Hq).
+      split; first by [eauto]; intros φ Hφ.
+      rewrite !path_wp_eq. f_equiv => w.
+      do 2 f_equiv.
+      split => Hr; [ rewrite -(path_wp_pure_det Hp Hr)
+        | rewrite -(path_wp_pure_det Hq Hr)]; auto.
+    - destruct 1 as ((u & Hp) & Heq). exists u; split; first done.
+      (* Yes, very weird. *)
+      apply (pure_soundness (M := iResUR Σ)).
+      iRevert (Hp). by rewrite -!path_wp_pureable Heq.
+  Qed.
+
+  Lemma alias_paths_elim_eq φ {p q} `{PersistentP φ}:
+    alias_paths p q →
+    path_wp p φ ≡ path_wp q φ.
+  Proof. intros ?%alias_paths_samepwp. intuition. Qed.
+
+  (** Beware: we can do path replacement *before* substitution,
+      even tho substitution and path replacement don't commute nicely.
+
+      As a special case, we get the less surprising:
+      [alias_paths_subst p r ids → path_wp q φ ≡ path_wp (q .p[p := r]) φ].
+
+      But we do need the general form. *)
+  Lemma path_replacement_equiv {p q ρ} p1 p2 φ {Hφ : PersistentP φ}:
+    p1 ~pp[ p := q ] p2 →
+    alias_paths p.|[ρ] q.|[ρ] →
+    path_wp p1.|[ρ] φ ≡ path_wp p2.|[ρ] φ.
+  Proof.
+    move => Hrepl.
+    elim: Hrepl φ Hφ => [| p1' p2' l Hrepl IHrepl] φ Hφ /=.
+    exact: alias_paths_elim_eq.
+    rewrite !path_wp_pself /= => Hal.
+    properness => //. exact: IHrepl.
+  Qed.
+
+  Definition alias_pathsI p q : iProp Σ := ⌜alias_paths p q⌝.
+
+  Lemma rewrite_path_path_repl {p q p1 p2 ρ v}:
+    p1 ~pp[ p := q ] p2 →
+    alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
+    ⌜alias_paths p1.|[ρ] (pv v)⌝%I ≡@{iProp Σ} ⌜alias_paths p2.|[ρ] (pv v)⌝%I.
+    (* alias_paths p1.|[ρ] (pv v) ↔ alias_paths p2.|[ρ] (pv v). *)
+  Proof.
+    intros Hrew Hal.
+    rewrite !alias_paths_pv_eq_1 -!path_wp_pureable.
+    exact: path_replacement_equiv.
   Qed.
 
   Lemma path_wp_and p Φ1 Φ2 `{PersistentP Φ1} `{PersistentP Φ2}:

@@ -543,6 +543,8 @@ Proof. intros Hclt ρ1 ρ2 Heqs. apply (inj of_val). rewrite -!hsubst_of_val. ex
 Lemma lookup_fv {X} {Γ : list X} {x} {T : X} : Γ !! x = Some T → nclosed (of_val (ids x : vl)) (length Γ).
 Proof. move => /lookup_ids_fv /fv_of_val //. Qed.
 
+Lemma ren_scons v ρ : ren (+1) >> v .: ρ = ρ.
+Proof. rewrite /ren/scomp; fsimpl; by rewrite (id_scompX (v .: ρ)). Qed.
 End Sorts.
 
 Module Type VlSortsFullSig <: VlSortsSig := ValuesSig <+ Sorts.
