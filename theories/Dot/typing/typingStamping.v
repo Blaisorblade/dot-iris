@@ -71,23 +71,30 @@ Section syntyping_stamping_lemmas.
 
   Hint Extern 5 (is_stamped_path _ _ _) => try_once is_stamped_mono_path : core.
 
+  Lemma stamped_objIdent_typing_mono_dvabs_typed Γ Γ' T1 T2 V e l g g' :
+    shift T1 :: V :: Γ' s⊢ₜ[ g' ] e : T2 →
+    is_stamped_ty (length Γ) g T1 → g ⊆ g' → Γ = Γ' |L V →
+    Γ s⊢[ g' ]{ l := dpt (pv (vabs e)) }: TVMem l (TAll T1 T2).
+  Proof. econstructor; eauto 2. Qed.
+
   Lemma stamped_objIdent_typing_mono_mut Γ g :
     (∀ e T, Γ s⊢ₜ[ g ] e : T → ∀ g' (Hle : g ⊆ g'), Γ s⊢ₜ[ g' ] e : T) ∧
-    (∀ V ds T, Γ |ds V s⊢[ g ] ds : T → ∀ g' (Hle : g ⊆ g'), Γ |ds V s⊢[ g' ] ds : T) ∧
-    (∀ V l d T, Γ |d V s⊢[ g ]{ l := d } : T → ∀ g' (Hle : g ⊆ g'), Γ |d V s⊢[ g' ]{ l := d } : T) ∧
+    (∀ ds T, Γ s⊢ds[ g ] ds : T → ∀ g' (Hle : g ⊆ g'), Γ s⊢ds[ g' ] ds : T) ∧
+    (∀ l d T, Γ s⊢[ g ]{ l := d } : T → ∀ g' (Hle : g ⊆ g'), Γ s⊢[ g' ]{ l := d } : T) ∧
     (∀ p T i, Γ s⊢ₚ[ g ] p : T, i → ∀ g' (Hle : g ⊆ g'), Γ s⊢ₚ[ g' ] p : T, i) ∧
     (∀ T1 i1 T2 i2, Γ s⊢ₜ[ g ] T1, i1 <: T2, i2 → ∀ g' (Hle : g ⊆ g'), Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2).
   Proof.
     eapply stamped_objIdent_typing_mut_ind with
         (P := λ Γ g e T _, ∀ g' (Hle : g ⊆ g'), Γ s⊢ₜ[ g' ] e : T)
-        (P0 := λ Γ g V ds T _, ∀ g' (Hle : g ⊆ g'), Γ |ds V s⊢[ g' ] ds : T)
-        (P1 := λ Γ g V l d T _, ∀ g' (Hle : g ⊆ g'), Γ |d V s⊢[ g' ]{ l := d } : T)
+        (P0 := λ Γ g ds T _, ∀ g' (Hle : g ⊆ g'), Γ s⊢ds[ g' ] ds : T)
+        (P1 := λ Γ g l d T _, ∀ g' (Hle : g ⊆ g'), Γ s⊢[ g' ]{ l := d } : T)
         (P2 := λ Γ g p T i _, ∀ g' (Hle : g ⊆ g'), Γ s⊢ₚ[ g' ] p : T, i)
         (P3 := λ Γ g T1 i1 T2 i2 _, ∀ g' (Hle : g ⊆ g'), Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2);
     clear Γ g; intros;
       repeat match goal with
       | H : forall g : stys, _ |- _ => specialize (H g' Hle)
-      end; eauto.
+      end; try exact: stamped_objIdent_typing_mono_dvabs_typed;
+      eauto 3; eauto.
   Qed.
   Lemma stamped_objIdent_typed_mono Γ (g g' : stys) (Hle: g ⊆ g') e T:
     Γ s⊢ₜ[ g ] e : T → Γ s⊢ₜ[ g' ] e : T.
@@ -97,10 +104,10 @@ Section syntyping_stamping_lemmas.
   Proof. unmut_lemma (stamped_objIdent_typing_mono_mut Γ g). Qed.
 
   Lemma stamped_objIdent_dms_typed_mono Γ (g g' : stys) (Hle: g ⊆ g'):
-    ∀ V ds T, Γ |ds V s⊢[ g ] ds : T → Γ |ds V s⊢[ g' ] ds : T.
+    ∀ ds T, Γ s⊢ds[ g ] ds : T → Γ s⊢ds[ g' ] ds : T.
   Proof. unmut_lemma (stamped_objIdent_typing_mono_mut Γ g). Qed.
   Lemma stamped_objIdent_dm_typed_mono Γ (g g' : stys) (Hle: g ⊆ g'):
-    ∀ V l d T, Γ |d V s⊢[ g ]{ l := d } : T → Γ |d V s⊢[ g' ]{ l := d } : T.
+    ∀ l d T, Γ s⊢[ g ]{ l := d } : T → Γ s⊢[ g' ]{ l := d } : T.
   Proof. unmut_lemma (stamped_objIdent_typing_mono_mut Γ g). Qed.
   Lemma stamped_objIdent_path_typed_mono Γ (g g' : stys) (Hle: g ⊆ g'):
     ∀ p T i, Γ s⊢ₚ[ g ] p : T, i → Γ s⊢ₚ[ g' ] p : T, i.
@@ -142,13 +149,13 @@ Section syntyping_stamping_lemmas.
     (∀ e T, Γ u⊢ₜ e : T →
       ∀ (g : stys), ∃ e' (g' : stys),
       Γ s⊢ₜ[ g' ] e' : T ∧ g ⊆ g' ∧ stamps_tm' (length Γ) e g' e') ∧
-    (∀ V ds T, Γ |ds V u⊢ ds : T →
+    (∀ ds T, Γ u⊢ds ds : T →
       ∀ (g : stys), ∃ ds' (g' : stys),
-      Γ |ds V s⊢[ g' ] ds' : T ∧ g ⊆ g' ∧ stamps_dms' (S (length Γ)) ds g' ds') ∧
-    (∀ V l d T, Γ |d V u⊢{ l := d } : T →
+      Γ s⊢ds[ g' ] ds' : T ∧ g ⊆ g' ∧ stamps_dms' (length Γ) ds g' ds') ∧
+    (∀ l d T, Γ u⊢{ l := d } : T →
       ∀ (g : stys), ∃ d' (g' : stys),
-      Γ |d V s⊢[ g' ]{ l := d' } : T
-        ∧ g ⊆ g' ∧ stamps_dm' (S (length Γ)) d g' d') ∧
+      Γ s⊢[ g' ]{ l := d' } : T
+        ∧ g ⊆ g' ∧ stamps_dm' (length Γ) d g' d') ∧
     (∀ p T i, Γ u⊢ₚ p : T, i →
       ∀ (g : stys), ∃ p' (g' : stys),
       Γ s⊢ₚ[ g' ] p' : T, i
@@ -159,11 +166,11 @@ Section syntyping_stamping_lemmas.
     eapply unstamped_typing_mut_ind with
       (P := λ Γ e T _, ∀ g, ∃ e' (g' : stys),
         Γ s⊢ₜ[ g' ] e' : T ∧ g ⊆ g' ∧ stamps_tm' (length Γ) e g' e')
-      (P0 := λ Γ V ds T _, ∀ g, ∃ ds' (g' : stys),
-        Γ |ds V s⊢[ g' ] ds' : T ∧ g ⊆ g' ∧ stamps_dms' (S (length Γ)) ds g' ds')
-      (P1 := λ Γ V l d T _, ∀ (g : stys), ∃ d' (g' : stys),
-        Γ |d V s⊢[ g' ]{ l := d' } : T ∧ g ⊆ g' ∧
-        stamps_dm' (S (length Γ)) d g' d')
+      (P0 := λ Γ ds T _, ∀ g, ∃ ds' (g' : stys),
+        Γ s⊢ds[ g' ] ds' : T ∧ g ⊆ g' ∧ stamps_dms' (length Γ) ds g' ds')
+      (P1 := λ Γ l d T _, ∀ (g : stys), ∃ d' (g' : stys),
+        Γ s⊢[ g' ]{ l := d' } : T ∧ g ⊆ g' ∧
+        stamps_dm' (length Γ) d g' d')
       (P2 := λ Γ p T i _, ∀ (g : stys), ∃ p' (g' : stys),
         Γ s⊢ₚ[ g' ] p' : T, i ∧ g ⊆ g' ∧ stamps_path' (length Γ) p g' p')
       (P3 := λ Γ T1 i1 T2 i2 _, ∀ (g : stys), ∃ (g' : stys),
@@ -237,20 +244,20 @@ Section syntyping_stamping_lemmas.
     move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]];
     move: IHs2 => /(.$ g1) [g2 [Hts2 Hle2]].
 
-    have Husv: is_unstamped_dm (S (length Γ)) AlsoNonVars (dtysyn T) by eauto.
-    destruct (extract g2 (S (length Γ)) T) as [g3 [s σ]] eqn:Heqo.
+    have Husv: is_unstamped_dm (length Γ) AlsoNonVars (dtysyn T) by eauto.
+    destruct (extract g2 (length Γ) T) as [g3 [s σ]] eqn:Heqo.
     move: Heqo => [Heqg3 Heqs Heqσ].
-    have {Heqσ} -Heqσ: σ = idsσ (S (length Γ)) by naive_solver.
+    have {Heqσ} -Heqσ: σ = idsσ (length Γ) by naive_solver.
     destruct (stamp_dtysyn_spec g2 Husv); destruct_and!.
     have ?: g2 ⊆ g3 by simplify_eq. lte g g1 g2; lte g g2 g3; lte g1 g2 g3.
     exists (dtysem σ s), g3; simplify_eq; split_and!;
       first eapply (typing_stamped.dty_typed _ _ T); auto 2; [
         exact: (stamped_objIdent_subtype_mono _ Hts1)|
         exact: (stamped_objIdent_subtype_mono _ Hts2)].
-  - intros * Hus1 Hu1 IHs1 g.
+  - intros * Hus1 Hu1 IHs1 Heq g; simplify_eq/=.
     move: IHs1 => /(.$ g) /= [e1' [g1 ?]]; destruct_and!.
     exists (dpt (pv (vabs e1'))), g1; split_and!;
-      repeat constructor; naive_solver.
+      repeat first [typing_stamped.typconstructor | constructor]; naive_solver.
   - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [e1' [g1 ?]]; destruct_and!.
     have [v' ?]: ∃ v', e1' = tv v' by destruct e1'; naive_solver.

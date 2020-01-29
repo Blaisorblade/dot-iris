@@ -106,8 +106,8 @@ Ltac hideCtx :=
   | |- ?Γ u⊢ₜ _ : _ => hideCtx' Γ
   | |- ?Γ u⊢ₜ _, _ <: _, _ => hideCtx' Γ
   | |- ?Γ u⊢ₚ _ : _, _  => hideCtx' Γ
-  | |- ?Γ |d _ u⊢{ _ := _  } : _ => hideCtx' Γ
-  | |- ?Γ |ds _ u⊢ _ : _ => hideCtx' Γ
+  | |- ?Γ u⊢{ _ := _  } : _ => hideCtx' Γ
+  | |- ?Γ u⊢ds _ : _ => hideCtx' Γ
   end.
 
 Lemma Var_typed' Γ x T1 T2 :
@@ -188,11 +188,11 @@ Lemma LSel_stp' Γ U {p l L i}:
 Proof. intros; ettrans; last exact: (@LSel_stp _ p); tcrush. Qed.
 
 (* Worse than dty_typed, but shown in the paper. *)
-Lemma dty_typed_intermediate Γ T V l L U:
-  is_unstamped_ty' (S (length Γ)) T →
-  TLater V :: Γ u⊢ₜ L, 0 <: T, 0 →
-  TLater V :: Γ u⊢ₜ T, 0 <: U, 0 →
-  Γ |d V u⊢{ l := dtysyn T } : TTMem l L U.
+Lemma dty_typed_intermediate Γ T l L U:
+  is_unstamped_ty' (length Γ) T →
+  Γ u⊢ₜ L, 0 <: T, 0 →
+  Γ u⊢ₜ T, 0 <: U, 0 →
+  Γ u⊢{ l := dtysyn T } : TTMem l L U.
 Proof. intros; apply dty_typed; tcrush. Qed.
 
 (** * Manipulating laters, basics. *)
@@ -249,9 +249,9 @@ Proof. intros; apply /val_LB /packTV_typed'. Qed. *)
   Γ u⊢ₜ (pv (packTV T) @; "A"), i <: ▶: T, i.
 Proof. intros; by apply /val_UB /packTV_typed'. Qed. *)
 
-Lemma Dty_typed Γ T V l:
-  is_unstamped_ty' (S (length Γ)) T →
-  Γ |d V u⊢{ l := dtysyn T } : TTMem l T T.
+Lemma Dty_typed Γ T l:
+  is_unstamped_ty' (length Γ) T →
+  Γ u⊢{ l := dtysyn T } : TTMem l T T.
 Proof. intros. tcrush. Qed.
 
 (* We can derive rules Bind1 and Bind2 (the latter only conjectured) from
@@ -350,7 +350,7 @@ Lemma dvabs_sub_typed {Γ} V T1 T2 e l L:
   shift T1 :: V :: Γ u⊢ₜ e : T2 →
   TLater V :: Γ u⊢ₜ TAll T1 T2, 0 <: L, 0 →
   is_unstamped_ty' (S (length Γ)) T1 →
-  Γ |d V u⊢{ l := dpt (pv (vabs e)) } : TVMem l L.
+  Γ |L V u⊢{ l := dpt (pv (vabs e)) } : TVMem l L.
 Proof.
   intros He Hsub Hs.
   eapply dpt_sub_typed; first apply Hsub.
@@ -616,8 +616,8 @@ Lemma AnfBind_typed Γ t (T U: ty) :
   Γ u⊢ₜ anfBind t : U.
 Proof. intros; eapply Let_typed; eauto. Qed.
 
-Lemma pDOT_Def_Path_derived Γ V l p T
-  (Hx : TLater V :: Γ u⊢ₚ p : T, 0)
-  (Hu : is_unstamped_path (S (length Γ)) AlsoNonVars p) :
-  Γ |d V u⊢{ l := dpt p } : TVMem l (TSing p).
+Lemma pDOT_Def_Path_derived Γ l p T
+  (Hx : Γ u⊢ₚ p : T, 0)
+  (Hu : is_unstamped_path (length Γ) AlsoNonVars p) :
+  Γ u⊢{ l := dpt p } : TVMem l (TSing p).
 Proof. eapply dpath_typed, Hu. apply (psingleton_refl_typed (T := T)), Hx. Qed.

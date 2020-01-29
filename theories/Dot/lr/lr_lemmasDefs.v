@@ -79,16 +79,6 @@ Section Sec.
     (* exact: (path_includes_field_aliases (pv (var_vl 0)) ρ _ (vobj ds)). *)
   Qed.
 
-  Lemma D_New_Mem_I' Γ V T l ds:
-    (TLater V :: Γ) |L TAnd T (TSing (pself (pv (ids 1)) l)) ⊨ds ds : T -∗
-    Γ |L V ⊨ { l := dpt (pv (vobj ds)) } : TVMem l (TMu T).
-  Proof.
-    iIntros "#H"; iApply D_New_Mem_I.
-    iDestruct "H" as (Hwf) "#Hds". iFrame (Hwf).
-    iIntros "!>" (ρ Hpid) "/= #[[Hg Hv] [Ht Hal]]".
-    iApply ("Hds" $! ρ Hpid with "[$Hg $Hv $Ht $Hal]").
-  Qed.
-
   Context Γ.
 
   Lemma D_TVMem_Sub T1 T2 p l:

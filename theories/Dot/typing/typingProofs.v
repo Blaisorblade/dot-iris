@@ -8,14 +8,14 @@ Section syntyping_lemmas.
   Hint Constructors Forall : core.
   Lemma stamped_mut_subject Γ g :
     (∀ e T, Γ v⊢ₜ[ g ] e : T → is_stamped_tm (length Γ) g e) ∧
-    (∀ V ds T, Γ |ds V v⊢[ g ] ds : T → Forall (is_stamped_dm (S (length Γ)) g) (map snd ds)) ∧
-    (∀ V l d T, Γ |d V v⊢[ g ]{ l := d } : T → is_stamped_dm (S (length Γ)) g d) ∧
+    (∀ ds T, Γ v⊢ds[ g ] ds : T → Forall (is_stamped_dm (length Γ) g) (map snd ds)) ∧
+    (∀ l d T, Γ v⊢[ g ]{ l := d } : T → is_stamped_dm (length Γ) g d) ∧
     (∀ p T i, Γ v⊢ₚ[ g ] p : T, i → is_stamped_path (length Γ) g p).
   Proof.
     eapply exp_stamped_typing_mut_ind with
         (P := λ Γ g e T _, is_stamped_tm (length Γ) g e)
-        (P0 := λ Γ g V ds T _, Forall (is_stamped_dm (S (length Γ)) g) (map snd ds))
-        (P1 := λ Γ g V l d T _, is_stamped_dm (S (length Γ)) g d)
+        (P0 := λ Γ g ds T _, Forall (is_stamped_dm (length Γ) g) (map snd ds))
+        (P1 := λ Γ g l d T _, is_stamped_dm (length Γ) g d)
         (P2 := λ Γ g p T i _, is_stamped_path (length Γ) g p); clear Γ g;
         cbn; intros; try by (with_is_stamped inverse + idtac);
           eauto using is_stamped_path2tm.
@@ -99,26 +99,20 @@ Section syntyping_lemmas.
 
   Lemma stamped_mut_types Γ g :
     (∀ e T, Γ v⊢ₜ[ g ] e : T → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T) ∧
-    (∀ V ds T, Γ |ds V v⊢[ g ] ds : T → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (S (length Γ)) g V →
-      is_stamped_ty (S (length Γ)) g T) ∧
-    (∀ V l d T, Γ |d V v⊢[ g ]{ l := d } : T → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (S (length Γ)) g V →
-      is_stamped_ty (S (length Γ)) g T) ∧
+    (∀ ds T, Γ v⊢ds[ g ] ds : T → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T) ∧
+    (∀ l d T, Γ v⊢[ g ]{ l := d } : T → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T) ∧
     (∀ p T i, Γ v⊢ₚ[ g ] p : T , i → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T) ∧
     (∀ T1 i1 T2 i2, Γ v⊢ₜ[ g ] T1, i1 <: T2, i2 → ∀ (Hctx: stamped_ctx g Γ),
       is_stamped_ty (length Γ) g T1 ∧ is_stamped_ty (length Γ) g T2).
   Proof.
     eapply stamped_typing_mut_ind with
-        (P := λ Γ g e T _, ∀ (Hctx: stamped_ctx g Γ),
-          is_stamped_ty (length Γ) g T)
-        (P0 := λ Γ g V ds T _, ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (S (length Γ)) g V →
-          is_stamped_ty (S (length Γ)) g T)
-        (P1 := λ Γ g V l d T _, ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (S (length Γ)) g V →
-          is_stamped_ty (S (length Γ)) g T)
-        (P2 := λ Γ g p T i _, ∀ (Hctx: stamped_ctx g Γ),
-          is_stamped_ty (length Γ) g T)
+        (P := λ Γ g e T _, ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T)
+        (P0 := λ Γ g ds T _, ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T)
+        (P1 := λ Γ g l d T _, ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T)
+        (P2 := λ Γ g p T i _, ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T)
         (P3 := λ Γ g T1 i1 T2 i2 _, ∀ (Hctx: stamped_ctx g Γ),
                is_stamped_ty (length Γ) g T1 ∧ is_stamped_ty (length Γ) g T2); clear Γ g.
-    all: intros; cbn in *;
+    all: intros; simplify_eq/=; try nosplit inverse Hctx;
       try (efeed pose proof H ; [by eauto | ev; clear H ]);
       try (efeed pose proof H0; [by eauto | ev; clear H0]);
       repeat constructor; cbn; eauto 2;

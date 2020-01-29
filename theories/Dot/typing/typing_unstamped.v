@@ -10,13 +10,13 @@ From D.Dot.stamping Require Export stampingDefsCore.
 
 Set Implicit Arguments.
 
-Implicit Types (L T U V : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
+Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
 
 (* The typing judgement comes from [s/⊢/u⊢/] over [Dot/typing_stamped.v], and dropping stamping. *)
 Reserved Notation "Γ u⊢ₜ e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ u⊢ₚ p : T , i" (at level 74, p, T, i at next level).
-Reserved Notation "Γ |d V u⊢{ l := d  } : T" (at level 74, l, d, T, V at next level).
-Reserved Notation "Γ |ds V u⊢ ds : T" (at level 74, ds, T, V at next level).
+Reserved Notation "Γ u⊢{ l := d  } : T" (at level 74, l, d, T at next level).
+Reserved Notation "Γ u⊢ds ds : T" (at level 74, ds, T at next level).
 Reserved Notation "Γ u⊢ₜ T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
 
 (**
@@ -50,7 +50,7 @@ Inductive typed Γ : tm → ty → Prop :=
     (*─────────────────────────*)
     Γ u⊢ₜ tv (vabs e) : TAll T1 T2
 | VObj_typed ds T:
-    Γ |ds T u⊢ ds: T →
+    Γ |L T u⊢ds ds: T →
     is_unstamped_ty' (S (length Γ)) T →
     (*──────────────────────*)
     Γ u⊢ₜ tv (vobj ds): TMu T
@@ -72,42 +72,43 @@ Inductive typed Γ : tm → ty → Prop :=
     (*───────────────────────────────*)
     Γ u⊢ₜ path2tm p : T
 where "Γ u⊢ₜ e : T " := (typed Γ e T)
-with dms_typed Γ : ty → dms → ty → Prop :=
-| dnil_typed V : Γ |ds V u⊢ [] : TTop
+with dms_typed Γ : dms → ty → Prop :=
+| dnil_typed : Γ u⊢ds [] : TTop
 (* This demands definitions and members to be defined in aligned lists. *)
-| dcons_typed V l d ds T1 T2:
-    Γ |d V u⊢{ l := d } : T1 →
-    Γ |ds V u⊢ ds : T2 →
+| dcons_typed l d ds T1 T2:
+    Γ u⊢{ l := d } : T1 →
+    Γ u⊢ds ds : T2 →
     dms_hasnt ds l →
     (*──────────────────────*)
-    Γ |ds V u⊢ (l, d) :: ds : TAnd T1 T2
-where "Γ |ds V u⊢ ds : T" := (dms_typed Γ V ds T)
-with dm_typed Γ : ty → label → dm → ty → Prop :=
-| dty_typed T V l L U:
+    Γ u⊢ds (l, d) :: ds : TAnd T1 T2
+where "Γ u⊢ds ds : T" := (dms_typed Γ ds T)
+with dm_typed Γ : label → dm → ty → Prop :=
+| dty_typed T l L U:
+    is_unstamped_ty' (length Γ) T →
+    Γ u⊢ₜ TLater L, 0 <: TLater T, 0 →
+    Γ u⊢ₜ TLater T, 0 <: TLater U, 0 →
+    Γ u⊢{ l := dtysyn T } : TTMem l L U
+| dvabs_typed Γ' V T1 T2 e l:
+    is_unstamped_ty' (length Γ) T1 →
+    shift T1 :: V :: Γ' u⊢ₜ e : T2 →
+    Γ = Γ' |L V →
+    Γ u⊢{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2)
+| dpt_pv_typed l v T:
+    Γ u⊢ₜ tv v : T →
+    Γ u⊢{ l := dpt (pv v) } : TVMem l T
+| dpath_typed l p T:
+    Γ u⊢ₚ p : T, 0 →
+    is_unstamped_path (length Γ) AlsoNonVars p →
+    Γ u⊢{ l := dpt p } : TVMem l T
+| dnew_typed l T ds:
+    TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ u⊢ds ds : T →
     is_unstamped_ty' (S (length Γ)) T →
-    TLater V :: Γ u⊢ₜ TLater L, 0 <: TLater T, 0 →
-    TLater V :: Γ u⊢ₜ TLater T, 0 <: TLater U, 0 →
-    Γ |d V u⊢{ l := dtysyn T } : TTMem l L U
-| dvabs_typed V T1 T2 e l:
-    is_unstamped_ty' (S (length Γ)) T1 →
-    shift T1 :: V :: Γ u⊢ₜ e : T2 →
-    Γ |d V u⊢{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2)
-| dpt_pv_typed V l v T:
-    TLater V :: Γ u⊢ₜ tv v : T →
-    Γ |d V u⊢{ l := dpt (pv v) } : TVMem l T
-| dpath_typed V l p T:
-    TLater V :: Γ u⊢ₚ p : T, 0 →
-    is_unstamped_path (S (length Γ)) AlsoNonVars p →
-    Γ |d V u⊢{ l := dpt p } : TVMem l T
-| dnew_typed V l T ds:
-    TLater V :: Γ |ds TAnd T (TSing (pself (pv (ids 1)) l)) u⊢ ds : T →
-    is_unstamped_ty' (S (S (length Γ))) T →
-    Γ |d V u⊢{ l := dpt (pv (vobj ds)) } : TVMem l (TMu T)
-| dpt_sub_typed V T1 T2 p l:
-    TLater V :: Γ u⊢ₜ T1, 0 <: T2, 0 →
-    Γ |d V u⊢{ l := dpt p } : TVMem l T1 →
-    Γ |d V u⊢{ l := dpt p } : TVMem l T2
-where "Γ |d V u⊢{ l := d  } : T" := (dm_typed Γ V l d T)
+    Γ u⊢{ l := dpt (pv (vobj ds)) } : TVMem l (TMu T)
+| dpt_sub_typed T1 T2 p l:
+    Γ u⊢ₜ T1, 0 <: T2, 0 →
+    Γ u⊢{ l := dpt p } : TVMem l T1 →
+    Γ u⊢{ l := dpt p } : TVMem l T2
+where "Γ u⊢{ l := d  } : T" := (dm_typed Γ l d T)
 with path_typed Γ : path → ty → nat → Prop :=
 | pv_typed x T:
     Γ u⊢ₜ tv (var_vl x) : T →
@@ -291,7 +292,7 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 where "Γ u⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
 
 (* Make [T] first argument: Hide Γ for e.g. typing examples. *)
-Global Arguments dty_typed {Γ} T _ _ _ _ _ _ _ : assert.
+Global Arguments dty_typed {Γ} T _ _ _ _ _ _ : assert.
 
 Scheme unstamped_typed_mut_ind := Induction for typed Sort Prop
 with   unstamped_dms_typed_mut_ind := Induction for dms_typed Sort Prop
@@ -310,14 +311,20 @@ Lemma unstamped_path_root_is_var Γ p T i:
   Γ u⊢ₚ p : T, i → ∃ x, path_root p = var_vl x.
 Proof. by elim; intros; cbn; eauto 2 using is_unstamped_path_root. Qed.
 
-Lemma dtysem_not_utyped Γ V l d T :
-  Γ |d V u⊢{ l := d } : T → ∀ σ s, d ≠ dtysem σ s.
+Lemma dtysem_not_utyped Γ l d T :
+  Γ u⊢{ l := d } : T → ∀ σ s, d ≠ dtysem σ s.
 Proof. by case. Qed.
+
+Lemma dvabs_typed' Γ V T1 T2 e l:
+  is_unstamped_ty' (S (length Γ)) T1 →
+  shift T1 :: V :: Γ u⊢ₜ e : T2 →
+  Γ |L V u⊢{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
+Proof. intros; exact: dvabs_typed. Qed.
 
 Ltac typconstructor := match goal with
   | |- typed _ _ _ => constructor
-  | |- dms_typed _ _ _ _ => constructor
-  | |- dm_typed _ _ _ _ _ => constructor
+  | |- dms_typed _ _ _ => constructor
+  | |- dm_typed _ _ _ _ => first [apply dvabs_typed' | constructor]
   | |- path_typed _ _ _ _ => constructor
   | |- subtype _ _ _ _ _ => constructor
   end.
