@@ -5,6 +5,8 @@ From iris.program_logic Require Import ectx_language language.
 From D.pure_program_logic Require adequacy.
 From D Require gen_iheap saved_interp_dep.
 
+Local Notation gdom g := (dom (gset stamp) g).
+
 Module mapsto.
 Export gen_iheap.
 Notation sγmap := (gmap stamp gname).
@@ -56,6 +58,8 @@ Module Type LiftWp (Import VS : VlSortsSig).
   Definition leadsto_n `{!dlangG Σ}
     s n (φ : hoEnvD Σ n) := (∃ γ, s ↦ γ ∧ γ ⤇n[ n ] φ)%I.
   Notation "s ↝n[ n  ] φ" := (leadsto_n s n φ) (at level 20) : bi_scope.
+  (* Backward compatibility. *)
+  Notation "s ↝ φ" := (s ↝n[ 0 ] vopen φ)%I  (at level 20) : bi_scope.
 
   Program Definition hoEnvD_inst {i Σ} σ : hoEnvD Σ i -n> hoD Σ i := λne φ, λ args, φ args (∞ σ).
   Next Obligation. move => i Σ σ n x y Heq args. exact: Heq. Qed.
@@ -63,9 +67,6 @@ Module Type LiftWp (Import VS : VlSortsSig).
   Definition stamp_σ_to_type_n `{!dlangG Σ} s σ n (ψ : hoD Σ n) : iProp Σ :=
     (∃ φ : hoEnvD Σ n, s ↝n[ n ] φ ∧ ▷ (ψ ≡ hoEnvD_inst σ φ))%I.
   Notation "s ↗n[ σ , n  ] ψ" := (stamp_σ_to_type_n s σ n ψ) (at level 20): bi_scope.
-
-  Notation "s ↝ φ" := (s ↝n[ 0 ] vopen φ)%I  (at level 20) : bi_scope.
-  Notation "s ↗[ σ  ] ψ" := (s ↗n[ σ , 0 ] vopen ψ)%I (at level 20) : bi_scope.
 
   Section mapsto.
     Context `{!dlangG Σ}.
@@ -106,7 +107,19 @@ Module Type LiftWp (Import VS : VlSortsSig).
       iDestruct (leadsto_agree_dep args ρ v with "Hs1 Hs2") as (Heq) "Hgoal".
       by rewrite (proof_irrel Heq eq_refl) /=.
     Qed.
-    (* Global Opaque leadsto_n. *)
+
+    Lemma leadsto_alloc {sγ s} (φ : envD Σ) :
+      sγ !! s = None → allGs sγ ==∗
+      ∃ sγ', ⌜gdom sγ' ≡ {[s]} ∪ gdom sγ⌝ ∧ allGs sγ' ∧ s ↝ φ.
+    Proof.
+      iIntros (HsFresh) "Hallsγ".
+      iMod (saved_ho_sem_type_alloc 0 (vopen φ)) as (γ) "Hγ".
+      iMod (gen_iheap_alloc _ _ γ HsFresh with "Hallsγ") as "[Hallsγ Hs]".
+      iModIntro; iExists (<[s:=γ]> sγ); rewrite dom_insert.
+      repeat iSplit; last iExists γ; by iFrame.
+    Qed.
+
+    Global Opaque leadsto_n.
 
     Lemma stamp_σ_to_type_agree_dep_abs {σ s n1 n2 ψ1 ψ2} :
       s ↗n[ σ , n1 ] ψ1 -∗ s ↗n[ σ , n2 ] ψ2 -∗ ∃ Heq : n1 = n2,
@@ -146,6 +159,69 @@ Module Type LiftWp (Import VS : VlSortsSig).
   End mapsto.
 
   Global Opaque stamp_σ_to_type_n.
+
+  Module stamp_transfer.
+    Notation sγmap := (gmap stamp gname).
+    Implicit Types (s: stamp) (sγ : sγmap).
+
+    Notation freshMappings g sγ := (∀ s, s ∈ gdom g → sγ !! s = None).
+
+    Lemma freshMappings_split (X : Type) (x : X) (g : gmap stamp X) s sγ :
+      freshMappings (<[s:=x]> g) sγ → sγ !! s = None ∧ freshMappings g sγ.
+    Proof.
+      intros Hdom; split => [|s' Hs']; apply Hdom;
+        rewrite dom_insert; set_solver.
+    Qed.
+
+    Section sem.
+      Context `{!dlangG Σ}.
+      Implicit Types (gφ : gmap stamp (envD Σ)).
+
+      Definition wellMappedφ gφ : iProp Σ :=
+        (□∀ s φ (Hl : gφ !! s = Some φ), s ↝ φ)%I.
+      Global Instance wellMappedφ_persistent gφ: Persistent (wellMappedφ gφ) := _.
+
+      Lemma wellMappedφ_empty : wellMappedφ ∅. Proof. by iIntros (???). Qed.
+
+      Lemma wellMappedφ_insert gφ s φ :
+        wellMappedφ gφ -∗ s ↝ φ -∗ wellMappedφ (<[s:=φ]> gφ).
+      Proof.
+        iIntros "#Hwmg #Hs !>" (s' φ' Hl). case: (decide (s' = s)) Hl => [->|?];
+          rewrite (lookup_insert, lookup_insert_ne) => ?;
+          simplify_eq; by [> iApply "Hs" | iApply "Hwmg"].
+      Qed.
+
+      Lemma wellMappedφ_apply s φ gφ : gφ !! s = Some φ → wellMappedφ gφ -∗ (s ↝ φ)%I.
+      Proof. iIntros (Hl) "#Hm"; iApply ("Hm" $! _ _ Hl). Qed.
+
+      Global Opaque wellMappedφ.
+
+      Lemma transfer' {gφ} sγ : freshMappings gφ sγ → allGs sγ ==∗
+        ∃ sγ', ⌜gdom sγ' ≡ gdom gφ ∪ gdom sγ⌝ ∧ allGs sγ' ∧ wellMappedφ gφ.
+      Proof.
+        elim gφ using map_ind.
+        - iIntros "/=" (H) "Hallsγ !>". iExists sγ; iFrame; iSplit.
+          + by rewrite dom_empty left_id.
+          + by iApply wellMappedφ_empty.
+        - iIntros (s φ gφ' Hsg IH [Hssγ Hdom]%freshMappings_split) "Hown".
+          iMod (IH Hdom with "Hown") as (sγ' Hsγ') "[Hallsγ #Hwmg]".
+          iMod (leadsto_alloc (s := s) φ with "Hallsγ") as (sγ'' Hsγ'') "[Hgs #Hs]".
+          + eapply (not_elem_of_dom (D := gset stamp)).
+            by rewrite Hsγ' not_elem_of_union !not_elem_of_dom.
+          + iModIntro; iExists sγ''; iFrame "Hgs"; iSplit.
+            by iIntros "!%"; rewrite Hsγ'' Hsγ' dom_insert union_assoc.
+            by iApply wellMappedφ_insert.
+      Qed.
+
+      Lemma transfer gφ sγ : freshMappings gφ sγ → allGs sγ ==∗ wellMappedφ gφ.
+      Proof.
+        iIntros (Hs) "H". by iMod (transfer' sγ Hs with "H") as (sγ' _) "[_ $]".
+      Qed.
+
+      Lemma transfer_empty gφ : allGs ∅ ==∗ wellMappedφ gφ.
+      Proof. exact: transfer. Qed.
+    End sem.
+  End stamp_transfer.
 
   Module dlang_adequacy.
     Class dlangPreG Σ := DLangPreG {
@@ -193,78 +269,6 @@ Module Type LiftWp (Import VS : VlSortsSig).
     Proof. apply adequate_safe, (adequacy_dlang Σ e Φ), Hwp; naive_solver. Qed.
   End dlang_adequacy.
 
-  Module stamp_transfer.
-    Notation sγmap := (gmap stamp gname).
-    Implicit Types (s: stamp) (sγ : sγmap).
-
-    Notation gdom g := (dom (gset stamp) g).
-    Notation freshMappings g sγ := (∀ s, s ∈ gdom g → sγ !! s = None).
-
-    Lemma freshMappings_split (X : Type) (x : X) (g : gmap stamp X) s sγ :
-      freshMappings (<[s:=x]> g) sγ → sγ !! s = None ∧ freshMappings g sγ.
-    Proof.
-      intros Hdom; split => [|s' Hs']; apply Hdom;
-        rewrite dom_insert; set_solver.
-    Qed.
-
-    Section sem.
-      Context `{!dlangG Σ}.
-      Implicit Types (gφ : gmap stamp (envD Σ)).
-
-      Definition wellMappedφ gφ : iProp Σ :=
-        (□∀ s φ (Hl : gφ !! s = Some φ), s ↝ φ)%I.
-      Global Instance wellMappedφ_persistent gφ: Persistent (wellMappedφ gφ) := _.
-
-      Lemma wellMappedφ_empty : wellMappedφ ∅. Proof. by iIntros (???). Qed.
-
-      Lemma wellMappedφ_insert gφ s φ :
-        wellMappedφ gφ -∗ s ↝ φ -∗ wellMappedφ (<[s:=φ]> gφ).
-      Proof.
-        iIntros "#Hwmg #Hs !>" (s' φ' Hl). case: (decide (s' = s)) Hl => [->|?];
-          rewrite (lookup_insert, lookup_insert_ne) => ?;
-          simplify_eq; by [> iApply "Hs" | iApply "Hwmg"].
-      Qed.
-
-      Lemma wellMappedφ_apply s φ gφ : gφ !! s = Some φ → wellMappedφ gφ -∗ (s ↝ φ)%I.
-      Proof. iIntros (Hl) "#Hm"; iApply ("Hm" $! _ _ Hl). Qed.
-
-      Global Opaque wellMappedφ.
-
-      Lemma leadsto_alloc {sγ s} (φ : envD Σ) :
-        sγ !! s = None → allGs sγ ==∗
-        ∃ sγ', ⌜gdom sγ' ≡ {[s]} ∪ gdom sγ⌝ ∧ allGs sγ' ∧ s ↝ φ.
-      Proof.
-        iIntros (HsFresh) "Hallsγ".
-        iMod (saved_ho_sem_type_alloc 0 (vopen φ)) as (γ) "Hγ".
-        iMod (gen_iheap_alloc _ _ γ HsFresh with "Hallsγ") as "[Hallsγ Hs]".
-        iModIntro; iExists (<[s:=γ]> sγ); rewrite dom_insert.
-        repeat iSplit; last iExists γ; by iFrame.
-      Qed.
-
-      Lemma transfer' {gφ} sγ : freshMappings gφ sγ → allGs sγ ==∗
-        ∃ sγ', ⌜gdom sγ' ≡ gdom gφ ∪ gdom sγ⌝ ∧ allGs sγ' ∧ wellMappedφ gφ.
-      Proof.
-        elim gφ using map_ind.
-        - iIntros "/=" (H) "Hallsγ !>". iExists sγ; iFrame; iSplit.
-          + by rewrite dom_empty left_id.
-          + by iApply wellMappedφ_empty.
-        - iIntros (s φ gφ' Hsg IH [Hssγ Hdom]%freshMappings_split) "Hown".
-          iMod (IH Hdom with "Hown") as (sγ' Hsγ') "[Hallsγ #Hwmg]".
-          iMod (leadsto_alloc (s := s) φ with "Hallsγ") as (sγ'' Hsγ'') "[Hgs #Hs]".
-          + eapply (not_elem_of_dom (D := gset stamp)).
-            by rewrite Hsγ' not_elem_of_union !not_elem_of_dom.
-          + iModIntro; iExists sγ''; iFrame "Hgs"; iSplit.
-            by iIntros "!%"; rewrite Hsγ'' Hsγ' dom_insert union_assoc.
-            by iApply wellMappedφ_insert.
-      Qed.
-
-      Lemma transfer gφ sγ : freshMappings gφ sγ → allGs sγ ==∗ wellMappedφ gφ.
-      Proof.
-        iIntros (Hs) "H". by iMod (transfer' sγ Hs with "H") as (sγ' _) "[_ $]".
-      Qed.
-
-      Lemma transfer_empty gφ : allGs ∅ ==∗ wellMappedφ gφ.
-      Proof. exact: transfer. Qed.
-    End sem.
-  End stamp_transfer.
+  (* Backward compatibility. *)
+  Notation "s ↗[ σ  ] ψ" := (s ↗n[ σ , 0 ] vopen ψ)%I (at level 20) : bi_scope.
 End LiftWp.
