@@ -52,11 +52,14 @@ Section saved_dep_use.
     | 0 => λ _ _, existT 0 (λ _, eFalse)
     | S m => λ φ a, existT m (λ args : vec vl m, φ (vcons a args))
     end φ.
+
   Definition vclose : hoEnvND Σ → envD Σ := λ '(existT n φ),
     match n with
     | 0 => λ φ, φ vnil
     | S n => λ _, eFalse
     end φ.
+  Lemma vclose_id φ : vclose (existT 0 φ) = φ vnil. Proof eq_refl.
+
   Program Definition vuncurry' : {n & vl → hoEnvD Σ n} → hoEnvND Σ := λ '(existT n φ),
     existT (S n) (λ args, φ (vhead args) (vtail args)).
   Program Definition vuncurry n : (vl → hoEnvND Σ) → hoEnvND Σ := λ φ,
