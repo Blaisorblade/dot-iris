@@ -240,7 +240,6 @@ Section SemTypes.
   Implicit Types (T : olty Σ 0) (Td : ldlty Σ) (Tds : dslty Σ).
 
   (* Avoid auto-dropping box (and unfolding) when introducing judgments persistently. *)
-  Local Notation IntoPersistent' P := (IntoPersistent false P P).
   Global Instance sdtp_persistent Γ Td l d: IntoPersistent' (sdtp Γ Td l d) | 0 := _.
   Global Instance sdstp_persistent Γ Tds ds: IntoPersistent' (sdstp Γ Tds ds) | 0 := _.
   Global Instance setp_persistent Γ T e : IntoPersistent' (setp Γ T e) | 0 := _.
@@ -394,7 +393,7 @@ Section SampleTypingLemmas.
       rewrite /= (hoEnvD_subst_one T2 v2 v) //.
   Qed.
 
-  Lemma pty_interp_subst (T : ty) σ : p⟦ T.|[σ] ⟧ ≡ (p⟦ T ⟧).|[σ].
+  Lemma pty_interp_subst (T : ty) σ : p⟦ T.|[σ] ⟧ ≡ p⟦ T ⟧.|[σ].
   Proof. intros ???; apply interp_subst_compose_ind. Qed.
 
   (* Lemma swap0 T σ args ρ v : p⟦ T.|[σ] ⟧ args ρ v ≡ (p⟦ T ⟧).|[σ] args ρ v.
@@ -402,7 +401,7 @@ Section SampleTypingLemmas.
 
   Lemma lift_olty_eq {i} {τ1 τ2 : oltyO Σ i} {args ρ v} :
     τ1 ≡ τ2 → τ1 args ρ v ≡ τ2 args ρ v.
-  Proof. intros H. apply H. Qed.
+  Proof. apply. Qed.
 End SampleTypingLemmas.
 
 (** * Proper instances. *)
