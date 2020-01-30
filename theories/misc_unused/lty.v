@@ -20,8 +20,8 @@ Notation "'λI' x .. y , t" := (fun x => .. (fun y => t%I) ..)
 Ltac ho_f_equiv :=
   first
     [ progress repeat match goal with
-      | H : _ ≡ _|- _ => (apply H || rewrite H //)
-      | H : _ ≡{_}≡ _ |- _ => (apply H || rewrite H //)
+      | H : _ ≡ _|- _ => (apply: H || rewrite H //)
+      | H : _ ≡{_}≡ _ |- _ => (apply: H || rewrite H //)
       end
     | f_equiv].
 
