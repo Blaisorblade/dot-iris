@@ -17,8 +17,8 @@ Include PTyInterpLemmas VlSorts dlang_inst.
 Export persistent_ty_interp_lemmas.
 
 (** Override notations to specify scope. *)
-Notation "p⟦ T ⟧" := (pty_interpO T%ty).
-Notation "p⟦ Γ ⟧*" := (fmap (M := list) pty_interpO Γ).
+Notation "V⟦ T ⟧" := (pty_interpO T%ty).
+Notation "V⟦ Γ ⟧*" := (fmap (M := list) pty_interpO Γ).
 
 Definition dlty Σ := env -> iPPred dm Σ.
 Definition dltyO Σ := env -d> iPPredO dm Σ.
@@ -176,16 +176,16 @@ Section SemTypes.
     fix pinterp (T : ty) : olty Σ 0 :=
     let _ := pinterp : PTyInterp ty Σ in
     match T with
-    | TTMem l L U => oTTMem l p⟦ L ⟧ p⟦ U ⟧
-    | TVMem l T' => oTVMem l p⟦ T' ⟧
-    | TAnd T1 T2 => oAnd p⟦ T1 ⟧ p⟦ T2 ⟧
-    | TOr T1 T2 => oOr p⟦ T1 ⟧ p⟦ T2 ⟧
-    | TLater T => oLater p⟦ T ⟧
+    | TTMem l L U => oTTMem l V⟦ L ⟧ V⟦ U ⟧
+    | TVMem l T' => oTVMem l V⟦ T' ⟧
+    | TAnd T1 T2 => oAnd V⟦ T1 ⟧ V⟦ T2 ⟧
+    | TOr T1 T2 => oOr V⟦ T1 ⟧ V⟦ T2 ⟧
+    | TLater T => oLater V⟦ T ⟧
     | TPrim b => oPrim b
     | TTop => oTop
     | TBot => oBot
-    | TAll T1 T2 => oAll p⟦ T1 ⟧ p⟦ T2 ⟧
-    | TMu T => oMu p⟦ T ⟧
+    | TAll T1 T2 => oAll V⟦ T1 ⟧ V⟦ T2 ⟧
+    | TMu T => oMu V⟦ T ⟧
     | TSel p l => oTSel p l
     | TSing p => oSing p
     end.
@@ -197,8 +197,8 @@ Section SemTypes.
 
   Fixpoint def_interp_base (T : ty) : dlty Σ :=
     match T with
-    | TTMem l L U => oDTMem p⟦ L ⟧ p⟦ U ⟧
-    | TVMem l T' => oDVMem p⟦ T' ⟧
+    | TTMem l L U => oDTMem V⟦ L ⟧ V⟦ U ⟧
+    | TVMem l T' => oDVMem V⟦ T' ⟧
     | _ => mkDlty (λI _ _, False)
     end.
   Notation "d*⟦ T ⟧" := (def_interp_base T).
@@ -225,11 +225,11 @@ Section SemTypes.
     end
   where "ds⟦ T ⟧" := (defs_interp T).
 
-  Definition idtp  Γ T l d     := sdtp  p⟦Γ⟧* ld⟦T⟧ l d.
-  Definition idstp Γ T ds      := sdstp p⟦Γ⟧* ds⟦T⟧ ds.
-  Definition ietp  Γ T e       := setp  p⟦Γ⟧* p⟦T⟧ e.
-  Definition istpi Γ T1 T2 i j := sstpi p⟦Γ⟧* p⟦T1⟧ p⟦T2⟧ i j.
-  Definition iptp  Γ T p i     := sptp  p⟦Γ⟧* p⟦T⟧ p i.
+  Definition idtp  Γ T l d     := sdtp  V⟦Γ⟧* ld⟦T⟧ l d.
+  Definition idstp Γ T ds      := sdstp V⟦Γ⟧* ds⟦T⟧ ds.
+  Definition ietp  Γ T e       := setp  V⟦Γ⟧* V⟦T⟧ e.
+  Definition istpi Γ T1 T2 i j := sstpi V⟦Γ⟧* V⟦T1⟧ V⟦T2⟧ i j.
+  Definition iptp  Γ T p i     := sptp  V⟦Γ⟧* V⟦T⟧ p i.
   (* Global Arguments idstp /. *)
 
   Global Instance idtp_persistent Γ T l d: IntoPersistent' (idtp Γ T l d) | 0 := _.
@@ -254,7 +254,7 @@ Notation "d[ l ]⟦ T ⟧" := (def_interp T l).
 Notation "ds⟦ T ⟧" := (defs_interp T).
 
 Notation "d ↗ ψ" := (dm_to_type 0 d ψ) (at level 20).
-Notation "⟦ Γ ⟧*" := s⟦ p⟦ Γ ⟧* ⟧*.
+Notation "⟦ Γ ⟧*" := s⟦ V⟦ Γ ⟧* ⟧*.
 
 (** Single-definition typing *)
 Notation "Γ ⊨ {  l := d  } : T" := (idtp Γ T l d) (at level 74, d, l, T at next level).
@@ -389,10 +389,10 @@ Section SampleTypingLemmas.
       rewrite /= (hoEnvD_subst_one T2 v2 v) //.
   Qed.
 
-  Lemma pty_interp_subst (T : ty) σ : p⟦ T.|[σ] ⟧ ≡ p⟦ T ⟧.|[σ].
+  Lemma pty_interp_subst (T : ty) σ : V⟦ T.|[σ] ⟧ ≡ V⟦ T ⟧.|[σ].
   Proof. intros ???; apply interp_subst_compose_ind. Qed.
 
-  (* Lemma swap0 T σ args ρ v : p⟦ T.|[σ] ⟧ args ρ v ≡ (p⟦ T ⟧).|[σ] args ρ v.
+  (* Lemma swap0 T σ args ρ v : V⟦ T.|[σ] ⟧ args ρ v ≡ (V⟦ T ⟧).|[σ] args ρ v.
   Proof. apply interp_subst_compose_ind. Qed. *)
 
   Lemma lift_olty_eq {i} {τ1 τ2 : oltyO Σ i} {args ρ v} :
@@ -476,11 +476,11 @@ Section defs.
   Proof. apply def_interp_tvmem_eq. Qed.
 
   Lemma iterate_TLater_oLater i T:
-    p⟦iterate TLater i T⟧ ≡ iterate oLater i p⟦T⟧.
+    V⟦iterate TLater i T⟧ ≡ iterate oLater i V⟦T⟧.
   Proof. elim: i => [//|i IHi] ???. by rewrite !iterate_S /= (IHi _ _ _). Qed.
 
   Lemma iterate_TLater_later T n args ρ v:
-    p⟦ iterate TLater n T ⟧ args ρ v ≡ (▷^n p⟦ T ⟧ args ρ v)%I.
+    V⟦ iterate TLater n T ⟧ args ρ v ≡ (▷^n V⟦ T ⟧ args ρ v)%I.
   Proof.
     by rewrite (iterate_TLater_oLater n T _ _ _) s_iterate_TLater_later.
   Qed.
@@ -572,7 +572,7 @@ Theorem adequacy_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e Ψ T
   (Himpl : ∀ (Hdlang: dlangG Σ) v, ⟦ T ⟧ ids v -∗ ⌜Ψ v⌝)
   (Hlog : ∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T):
   ∀ σ, adequate NotStuck e σ (λ v _, Ψ v).
-Proof. exact: (s_adequacy_dot_sem Σ e Ψ (λ _, p⟦T⟧)). Qed.
+Proof. exact: (s_adequacy_dot_sem Σ e Ψ (λ _, V⟦T⟧)). Qed.
 
 Corollary s_safety_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e
   (τ : ∀ `{dlangG Σ}, olty Σ 0)
@@ -583,4 +583,4 @@ Proof. apply adequate_safe, (s_adequacy_dot_sem _ e _ τ), Hwp; naive_solver. Qe
 Corollary safety_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e T
   (Hwp : ∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T):
   safe e.
-Proof. exact: (s_safety_dot_sem Σ e (λ _, p⟦T⟧)). Qed.
+Proof. exact: (s_safety_dot_sem Σ e (λ _, V⟦T⟧)). Qed.

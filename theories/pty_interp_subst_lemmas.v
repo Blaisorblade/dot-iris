@@ -7,7 +7,7 @@ Module Type PTyInterpLemmas (Import VS : VlSortsFullSig) (Import LWP : LiftWp VS
 
 Class PTyInterp ty Σ :=
   pty_interpO : ty -> oltyO Σ 0.
-Notation "p⟦ T ⟧" := (pty_interpO T).
+Notation "V⟦ T ⟧" := (pty_interpO T).
 
 (* Also appears in Autosubst. *)
 Global Arguments pty_interpO {_ _ _} !_ /.
@@ -20,7 +20,7 @@ Module persistent_ty_interp_lemmas.
 
 Class PTyInterpLemmas ty Σ `{sort_ty : Sort ty} `{!PTyInterp ty Σ} := {
   interp_subst_compose_ind T {args} ρ1 ρ2 v:
-    p⟦ T.|[ρ1] ⟧ args ρ2 v ⊣⊢ p⟦ T ⟧ args (ρ1 >> ρ2) v;
+    V⟦ T.|[ρ1] ⟧ args ρ2 v ⊣⊢ V⟦ T ⟧ args (ρ1 >> ρ2) v;
 }.
 
 (** * Lemmas about the logical relation itself. *)
@@ -31,29 +31,29 @@ Section logrel_binding_lemmas.
           (L T U: ty) (v: vl) (e: tm) (ρ : env).
 
   Lemma interp_subst_compose T {args} ρ1 ρ2 ρ3:
-    ρ1 >> ρ2 = ρ3 → p⟦ T.|[ρ1] ⟧ args ρ2 ≡ p⟦ T ⟧ args ρ3.
+    ρ1 >> ρ2 = ρ3 → V⟦ T.|[ρ1] ⟧ args ρ2 ≡ V⟦ T ⟧ args ρ3.
   Proof. move=> <- v. exact: interp_subst_compose_ind. Qed.
 
   Lemma interp_weaken_one τ ρ {args} :
-     p⟦ shift τ ⟧ args ρ ≡ p⟦ τ ⟧ args (stail ρ).
+     V⟦ shift τ ⟧ args ρ ≡ V⟦ τ ⟧ args (stail ρ).
   Proof. apply interp_subst_compose. autosubst. Qed.
 
   Lemma interp_subst_one T v w ρ {args} :
-    p⟦ T.|[v/] ⟧ args ρ w ≡ p⟦ T ⟧ args (v.[ρ] .: ρ) w.
+    V⟦ T.|[v/] ⟧ args ρ w ≡ V⟦ T ⟧ args (v.[ρ] .: ρ) w.
   Proof. apply interp_subst_compose. autosubst. Qed.
 
-  Lemma interp_subst_ids T ρ {args} : p⟦ T ⟧ args ρ ≡ p⟦ T.|[ρ] ⟧ args ids.
+  Lemma interp_subst_ids T ρ {args} : V⟦ T ⟧ args ρ ≡ V⟦ T.|[ρ] ⟧ args ids.
   Proof. symmetry. apply interp_subst_compose. autosubst. Qed.
 
   (**
     We have, unconditionally, that
-    p⟦ T.|[∞ σ] ⟧ args ρ = p⟦ T ⟧ args (∞ σ >> ρ).
+    V⟦ T.|[∞ σ] ⟧ args ρ = V⟦ T ⟧ args (∞ σ >> ρ).
 
     But [∞ σ >> ρ] and [∞ σ.|[ρ]] are only equal for
     [length σ] entries.
   *)
   Lemma interp_subst_commute T σ ρ v (HclT : nclosed T (length σ)) args :
-    p⟦ T.|[∞ σ] ⟧ args ρ v ≡ p⟦ T ⟧ args (∞ σ.|[ρ]) v.
+    V⟦ T.|[∞ σ] ⟧ args ρ v ≡ V⟦ T ⟧ args (∞ σ.|[ρ]) v.
   Proof.
     rewrite interp_subst_compose_ind !(interp_subst_ids T _ _) -hsubst_comp.
     (* *The* step requiring [HclT]. *)

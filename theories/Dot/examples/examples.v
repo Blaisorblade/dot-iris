@@ -158,7 +158,7 @@ Arguments dlang_ectxi_lang : simpl never. *)
   Lemma sToIpos : Hs -∗ dtysem [] s ↗n[ 0 ] hoEnvD_inst [] ipos.
   Proof. by iApply dm_to_type_intro. Qed.
 
-  Lemma sHasA : Hs -∗ oDTMem p⟦ ⊥ ⟧ p⟦ 𝐍 ⟧ ids (dtysem [] s).
+  Lemma sHasA : Hs -∗ oDTMem V⟦ ⊥ ⟧ V⟦ 𝐍 ⟧ ids (dtysem [] s).
   Proof.
     iIntros; cbn; repeat (repeat iExists _; repeat iSplit; try done).
     by iApply sToIpos.
@@ -183,7 +183,7 @@ Arguments dlang_ectxi_lang : simpl never. *)
   Qed.
 
   Lemma ty_mkPos :
-    [] s⊨ hclose hmkPosV : oAll p⟦ 𝐍 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : nat, v = n ∧ n > 0 ⌝)).
+    [] s⊨ hclose hmkPosV : oAll V⟦ 𝐍 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : nat, v = n ∧ n > 0 ⌝)).
   Proof.
     rewrite -sT_Forall_I /= /shead.
     iIntros (ρ) "!> /=". iDestruct 1 as %(_ & n & Hw); simplify_eq/=; rewrite Hw.
@@ -191,7 +191,7 @@ Arguments dlang_ectxi_lang : simpl never. *)
   Qed.
 
   Lemma wp_mkPos :
-    oAll p⟦ 𝐍 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : nat, v = n ∧ n > 0 ⌝)) vnil ids (hclose hmkPosV).
+    oAll V⟦ 𝐍 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : nat, v = n ∧ n > 0 ⌝)) vnil ids (hclose hmkPosV).
   Proof. iApply wp_value_inv'. iApply (ty_mkPos with "[//]"). Qed.
 
   (** Yes, v has a valid type member. *)

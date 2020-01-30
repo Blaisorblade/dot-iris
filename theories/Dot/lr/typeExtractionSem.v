@@ -58,12 +58,12 @@ Section typing_type_member_defs.
   Lemma D_Typ_Abs {Γ} T L U s σ l:
     Γ ⊨ TLater T, 0 <: TLater U, 0 -∗
     Γ ⊨ TLater L, 0 <: TLater T, 0 -∗
-    s ↝[ σ ] p⟦ T ⟧ -∗
+    s ↝[ σ ] V⟦ T ⟧ -∗
     Γ ⊨ { l := dtysem σ s } : TTMem l L U.
   Proof. apply sD_Typ_Abs. Qed.
 
   Lemma D_Typ {Γ} T s σ l:
-    s ↝[ σ ] p⟦ T ⟧ -∗
+    s ↝[ σ ] V⟦ T ⟧ -∗
     Γ ⊨ { l := dtysem σ s } : TTMem l T T.
   Proof. apply sD_Typ. Qed.
 End typing_type_member_defs.

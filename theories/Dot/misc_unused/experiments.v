@@ -99,7 +99,7 @@ Section Example.
   Import stamp_transfer astStamping.
 
   Lemma wellMappedφ_g0 s T:
-    s ↝n[ 0 ] p⟦ T ⟧ -∗
+    s ↝n[ 0 ] V⟦ T ⟧ -∗
     wellMappedφ (⟦ g0 s T ⟧g).
   Proof.
     iIntros "Hs"; rewrite fmap_insert.
@@ -110,21 +110,21 @@ Section Example.
 
   (* XXX "only empty context" won't be enough :-( *)
   Example foo1 Γ s T (Hcl : nclosed T 0) :
-    s ↝n[ 0 ] p⟦ T ⟧ -∗
+    s ↝n[ 0 ] V⟦ T ⟧ -∗
     (* Γ ⊨ tv (packTV (length Γ) s) : typeEq "A" T. *)
     [] ⊨ tv (packTV 0 s) : typeEq "A" T.
   Proof.
     iIntros "#Hs !>" (ρ) "#_ /= !>".
     rewrite -wp_value'.
     iExists (dtysem [] s); iSplit; first eauto.
-    iExists (hoEnvD_inst [] p⟦ T ⟧); iSplit; first by iApply dm_to_type_intro.
+    iExists (hoEnvD_inst [] V⟦ T ⟧); iSplit; first by iApply dm_to_type_intro.
     iModIntro; iSplit; iIntros (v) "#H !>";
       by rewrite (interp_subst_ids T ρ v) (closed_subst_id _ Hcl).
   Qed.
 
   (* XXX use more semantic typing. *)
   Example packTV_semTyped Γ s T (Hu: is_unstamped_ty' (length Γ) T):
-    s ↝n[ 0 ] p⟦ T ⟧ -∗
+    s ↝n[ 0 ] V⟦ T ⟧ -∗
     Γ ⊨ tv (packTV (length Γ) s) : typeEq "A" T.
     (* Γ ⊨ tv (packTV (length Γ) s) : type "A" >: ⊥ <: T. *)
   Proof.
@@ -164,7 +164,7 @@ Section Example.
   Qed. *)
 
   Example foo Γ e v1 v2:
-    s0 ↝n[ 0 ] p⟦ ⊤%ty ⟧ -∗
+    s0 ↝n[ 0 ] V⟦ ⊤%ty ⟧ -∗
     [] ⊨ e : iftFalse -∗
     [] ⊨ tv v1 : TTop -∗
     [] ⊨ tv v2 : TTop -∗
@@ -215,7 +215,7 @@ Section Example.
     [] v⊢ₜ[ g ] e : iftFalse →
     [] v⊢ₜ[ g ] tv v1 : TTop →
     [] v⊢ₜ[ g ] tv v2 : TTop →
-    s0 ↝n[ 0 ] p⟦ ⊤%ty ⟧ -∗
+    s0 ↝n[ 0 ] V⟦ ⊤%ty ⟧ -∗
     [] ⊨ applyE e v1 v2 : TSing (pv v2).
   Proof.
     intros g; subst g.
@@ -402,7 +402,7 @@ Section Sec.
     iExists t; iSplit => //.
     rewrite -mlater_pers. iModIntro (□ _)%I.
     iIntros (w). iSpecialize ("HvTU" $! w).
-    rewrite !later_intuitionistically -(wp_later_swap _ (p⟦ _ ⟧ _ _)).
+    rewrite !later_intuitionistically -(wp_later_swap _ (V⟦ _ ⟧ _ _)).
     rewrite -impl_later later_intuitionistically.
     (* Either: *)
     (* done. *)
@@ -457,8 +457,8 @@ Section Sec.
   Qed.
 
   Lemma Distr_TLater_And T1 T2 args ρ v:
-    p⟦ TLater (TAnd T1 T2) ⟧ args ρ v ⊣⊢
-    p⟦ TAnd (TLater T1) (TLater T2) ⟧ args ρ v.
+    V⟦ TLater (TAnd T1 T2) ⟧ args ρ v ⊣⊢
+    V⟦ TAnd (TLater T1) (TLater T2) ⟧ args ρ v.
   Proof. iSplit; iIntros "/= [$ $]". Qed.
 
   Lemma selfIntersect Γ T U i j:
@@ -482,15 +482,15 @@ Section Sec.
   Qed.
 
   Lemma Distr_TLaterN_And T1 T2 j args ρ v:
-    p⟦ iterate TLater j (TAnd T1 T2) ⟧ args ρ v ⊣⊢
-    p⟦ TAnd (iterate TLater j T1) (iterate TLater j T2) ⟧ args ρ v.
+    V⟦ iterate TLater j (TAnd T1 T2) ⟧ args ρ v ⊣⊢
+    V⟦ TAnd (iterate TLater j T1) (iterate TLater j T2) ⟧ args ρ v.
   Proof.
     rewrite /= !iterate_TLater_later /=.
     iSplit; iIntros "/= [??]"; iSplit; by [].
   Qed.
 
   Lemma sub_rewrite_2 Γ T U1 U2 i:
-    (∀ args ρ v, p⟦ U1 ⟧ args ρ v ⊣⊢ p⟦ U2 ⟧ args ρ v) →
+    (∀ args ρ v, V⟦ U1 ⟧ args ρ v ⊣⊢ V⟦ U2 ⟧ args ρ v) →
     Γ ⊨ T, i <: U1, i ⊣⊢
     Γ ⊨ T, i <: U2, i .
   Proof.
@@ -499,7 +499,7 @@ Section Sec.
   Qed.
 
   Lemma sub_rewrite_1 Γ T1 T2 U i:
-    (∀ args ρ v, p⟦ T1 ⟧ args ρ v ⊣⊢ p⟦ T2 ⟧ args ρ v) →
+    (∀ args ρ v, V⟦ T1 ⟧ args ρ v ⊣⊢ V⟦ T2 ⟧ args ρ v) →
     Γ ⊨ T1, i <: U, i ⊣⊢
     Γ ⊨ T2, i <: U, i .
   Proof.
@@ -508,7 +508,7 @@ Section Sec.
   Qed.
 
   Lemma eq_to_bisub Γ T1 T2 i:
-    (∀ args ρ v, p⟦ T1 ⟧ args ρ v ⊣⊢ p⟦ T2 ⟧ args ρ v) → True ⊢
+    (∀ args ρ v, V⟦ T1 ⟧ args ρ v ⊣⊢ V⟦ T2 ⟧ args ρ v) → True ⊢
     Γ ⊨ T1, i <: T2, i ∧
     Γ ⊨ T2, i <: T1, i .
   Proof.

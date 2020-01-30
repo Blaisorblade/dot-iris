@@ -120,7 +120,7 @@ Hint Resolve ctx_id_syn ctx_trans_sub_syn unTLater_ctx_sub_syn
 rules, we develop some infrastructure to allow "stripping" laters from the
 context. *)
 (* This is specialized to [vnil] because contexts only contain proper types anyway. *)
-Definition ty_sub `{HdlangG: dlangG Σ} T1 T2 := ∀ ρ v, p⟦ T1 ⟧ vnil ρ v -∗ p⟦ T2 ⟧ vnil ρ v.
+Definition ty_sub `{HdlangG: dlangG Σ} T1 T2 := ∀ ρ v, V⟦ T1 ⟧ vnil ρ v -∗ V⟦ T2 ⟧ vnil ρ v.
 Notation "⊨T T1 <: T2" := (ty_sub T1 T2) (at level 74, T1, T2 at next level).
 Typeclasses Opaque ty_sub.
 
