@@ -60,8 +60,8 @@ Section defs.
   (* Definition mkLDlty optl (φ : envPred dm Σ) `{∀ ρ d, Persistent (φ ρ d)} : ldlty Σ :=
     LDlty optl (λ ρ, IPPred (φ ρ)). *)
 
-  Definition lift_ldlty (φ : ldlty Σ) l : envPred dm Σ :=
-    λI ρ d, ⌜ ldlty_label φ = Some l ⌝ ∧ φ ρ d.
+  Definition lift_ldlty `{dlangG Σ} l ρ d (φ : ldlty Σ) : iProp Σ :=
+    ⌜ ldlty_label φ = Some l ⌝ ∧ φ ρ d.
 
   Definition dm_to_type d i (ψ : hoD Σ i) : iProp Σ :=
     (∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ , i ] ψ)%I.
@@ -70,22 +70,22 @@ End defs.
 (* Definition sdtp Γ TD l d : iProp Σ :=
   (⌜ l = ldlty_label TD ⌝ ∧
     □∀ ρ, s⟦Γ⟧* ρ → TD ρ d.|[ρ])%I. *)
-Definition sdtp `{HdotG: dlangG Σ} Γ (φ : ldltyO Σ) l d : iProp Σ :=
-  □∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)] ⌝ → s⟦Γ⟧* ρ → lift_ldlty φ l ρ d.|[ρ].
+Definition sdtp `{HdotG: dlangG Σ} l d  Γ (φ : ldltyO Σ): iProp Σ :=
+  □∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)] ⌝ → s⟦Γ⟧* ρ → lift_ldlty l ρ d.|[ρ] φ.
 Global Arguments sdtp /.
 
 (** Multi-definition typing *)
-Definition sdstp `{HdotG: dlangG Σ} Γ (T : dsltyO Σ) ds : iProp Σ :=
+Definition sdstp `{HdotG: dlangG Σ} ds Γ (T : dsltyO Σ) : iProp Σ :=
   ⌜wf_ds ds⌝ ∧ □∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → s⟦Γ⟧* ρ → T ρ ds.|[ρ].
 Global Arguments sdstp /.
 
-Definition sptp `{HdotG: dlangG Σ} Γ (T : oltyO Σ 0) p i: iProp Σ :=
+Definition sptp `{HdotG: dlangG Σ} p i Γ (T : oltyO Σ 0): iProp Σ :=
   □∀ ρ, s⟦Γ⟧* ρ -∗
     ▷^i path_wp (p.|[ρ]) (λ v, oClose T ρ v).
 Global Arguments sptp /.
 
-Notation "Γ s⊨ {  l := d  } : T" := (sdtp Γ T l d) (at level 64, d, l, T at next level).
-Notation "Γ s⊨p p : τ , i" := (sptp Γ τ p i) (at level 74, p, τ, i at next level).
+Notation "Γ s⊨ {  l := d  } : T" := (sdtp l d Γ T) (at level 64, d, l, T at next level).
+Notation "Γ s⊨p p : τ , i" := (sptp p i Γ τ) (at level 74, p, τ, i at next level).
 Notation "d ↗n[ i  ] ψ" := (dm_to_type d i ψ) (at level 20).
 
 Section dm_to_type.
@@ -162,8 +162,7 @@ Section SemTypes.
       ∃ ψ d, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n[ i ] ψ ∧ ▷ □ ψ args v.
   Proof. by rewrite /= path_wp_pv. Qed.
 
-  Definition oSing p : olty Σ 0.
-  Proof using HdotG. exact (olty0 (λI ρ v, ⌜alias_paths p.|[ρ] (pv v)⌝)). Defined.
+  Definition oSing `{dlangG Σ} p : olty Σ 0 := olty0 (λI ρ v, ⌜alias_paths p.|[ρ] (pv v)⌝).
 
   (* Paolo: This definition is contractive (similarly to what's useful for
      equi-recursive types).
@@ -218,14 +217,14 @@ Section SemTypes.
   Notation "d*⟦ T ⟧" := (def_interp_base T).
   Definition ldef_interp T := LDlty (label_of_ty T) d*⟦ T ⟧.
   Notation "ld⟦ T ⟧" := (ldef_interp T).
-  Definition def_interp T l := lift_ldlty ld⟦ T ⟧ l.
+  Definition def_interp T l ρ d := lift_ldlty l ρ d ld⟦ T ⟧.
   Notation "d[ l ]⟦ T ⟧" := (def_interp T l).
 
   Program Definition defs_interp_and (interp1 interp2 : dslty Σ) : dslty Σ :=
     Dslty (λI ρ ds, interp1 ρ ds ∧ interp2 ρ ds).
 
-  Definition lift_dinterp_dms (T : ldltyO Σ) : dsltyO Σ := Dslty (λI ρ ds,
-    ∃ l d, ⌜ dms_lookup l ds = Some d ⌝ ∧ lift_ldlty T l ρ d).
+  Definition lift_dinterp_dms `{dlangG Σ} (T : ldltyO Σ) : dsltyO Σ := Dslty (λI ρ ds,
+    ∃ l d, ⌜ dms_lookup l ds = Some d ⌝ ∧ lift_ldlty l ρ d T).
 
   Reserved Notation "ds⟦ T ⟧".
   Fixpoint defs_interp T : dslty Σ :=
@@ -236,11 +235,11 @@ Section SemTypes.
     end
   where "ds⟦ T ⟧" := (defs_interp T).
 
-  Definition idtp  Γ T l d     := sdtp  V⟦Γ⟧* ld⟦T⟧ l d.
-  Definition idstp Γ T ds      := sdstp V⟦Γ⟧* ds⟦T⟧ ds.
-  Definition ietp  Γ T e       := setp  V⟦Γ⟧* V⟦T⟧ e.
-  Definition istpi Γ T1 T2 i j := sstpi V⟦Γ⟧* V⟦T1⟧ V⟦T2⟧ i j.
-  Definition iptp  Γ T p i     := sptp  V⟦Γ⟧* V⟦T⟧ p i.
+  Definition idtp  Γ T l d     := sdtp l d  V⟦Γ⟧* ld⟦T⟧.
+  Definition idstp Γ T ds      := sdstp ds  V⟦Γ⟧* ds⟦T⟧.
+  Definition ietp  Γ T e       := setp e    V⟦Γ⟧* V⟦T⟧.
+  Definition istpi Γ T1 T2 i j := sstpi i j V⟦Γ⟧* V⟦T1⟧ V⟦T2⟧.
+  Definition iptp  Γ T p i     := sptp p i  V⟦Γ⟧* V⟦T⟧.
   (* Global Arguments idstp /. *)
 
   Global Instance idtp_persistent Γ T l d: IntoPersistent' (idtp Γ T l d) | 0 := _.
@@ -252,11 +251,11 @@ Section SemTypes.
   Implicit Types (T : olty Σ 0) (Td : ldlty Σ) (Tds : dslty Σ).
 
   (* Avoid auto-dropping box (and unfolding) when introducing judgments persistently. *)
-  Global Instance sdtp_persistent Γ Td l d: IntoPersistent' (sdtp Γ Td l d) | 0 := _.
-  Global Instance sdstp_persistent Γ Tds ds: IntoPersistent' (sdstp Γ Tds ds) | 0 := _.
-  Global Instance setp_persistent Γ T e : IntoPersistent' (setp Γ T e) | 0 := _.
-  Global Instance sstpi_persistent Γ T1 T2 i j : IntoPersistent' (sstpi Γ T1 T2 i j) | 0 := _.
-  Global Instance sptp_persistent Γ T p i : IntoPersistent' (sptp Γ T p i) | 0 := _.
+  Global Instance sdtp_persistent : IntoPersistent' (sdtp l d   Γ Td) | 0 := _.
+  Global Instance sdstp_persistent : IntoPersistent' (sdstp ds  Γ Tds) | 0 := _.
+  Global Instance setp_persistent : IntoPersistent' (setp e     Γ T) | 0 := _.
+  Global Instance sstpi_persistent : IntoPersistent' (sstpi i j Γ T1 T2) | 0 := _.
+  Global Instance sptp_persistent : IntoPersistent' (sptp p i   Γ T) | 0 := _.
 End SemTypes.
 
 Notation "d*⟦ T ⟧" := (def_interp_base T).
@@ -291,7 +290,7 @@ Section SampleTypingLemmas.
   Implicit Types (τ L T U : olty Σ 0).
 
   Lemma def_interp_tvmem_eq l T p ρ :
-    lift_ldlty (oLDVMem l T) l ρ (dpt p) ⊣⊢
+    lift_ldlty l ρ (dpt p) (oLDVMem l T) ⊣⊢
     path_wp p (oClose T ρ).
   Proof.
     rewrite /lift_ldlty/=; iSplit. by iDestruct 1 as (_ pmem [= ->]) "$".
@@ -415,49 +414,49 @@ End SampleTypingLemmas.
 Section Propers.
   Context `{HdotG: dlangG Σ}.
 
-  Global Instance: Proper ((≡) ==> (=) ==> (=) ==> (=) ==> (≡)) (lift_ldlty (Σ := Σ)).
-  Proof.
-    move => [l1 P1] [l2 P2] [/= Heq].
-    solve_proper_ho_equiv.
-    (* properness; [done|apply Heq]. *)
-  Qed.
+  Global Instance Proper_lift_ldlty l ρ d : Proper ((≡) ==> (≡)) (lift_ldlty l ρ d).
+  Proof. move => [l1 P1] [l2 P2] [/= Heq]. solve_proper_ho_equiv. Qed.
+  Global Instance: Params (@lift_ldlty) 5 := {}.
 
-  Global Instance Proper_env_oltyped : Proper ((≡) ==> (=) ==> (≡)) (env_oltyped (Σ := Σ)).
+  Global Instance Proper_env_oltyped : Proper ((≡) ==> (=) ==> (≡)) env_oltyped.
   Proof.
     move => + + /equiv_Forall2 + + _ <-.
     elim => [|T1 G1 IHG1] [|T2 G2] /=; [done|inversion 1..|] =>
       /(Forall2_cons_inv _ _ _ _) [HT HG] ρ; f_equiv; [apply IHG1, HG|apply HT].
   Qed.
+  Global Instance: Params (@env_oltyped) 2 := {}.
 
   (** ** Judgments *)
-  Global Instance Proper_sstpi :
-    Proper ((≡) ==> (≡) ==> (≡) ==> (=) ==> (=) ==> (≡)) (sstpi (Σ := Σ)).
+  Global Instance Proper_sstpi i j : Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sstpi i j).
   Proof.
     solve_proper_ho_equiv.
-    (* intros ?? HG ?? H1 ?? H2 ?** ?**; simplify_eq/=.
+    (* intros ?? HG ?? H1 ?? H2; simplify_eq/=.
     properness; [by rewrite HG|apply H1|apply H2]. *)
   Qed.
-  Global Instance Proper_sstpi_flip :
-    Proper ((≡) --> (≡) --> (≡) --> (=) --> (=) --> flip (≡)) (sstpi (Σ := Σ)).
-  Proof. apply: flip_proper_6. Qed.
+  Global Instance Proper_sstpi_flip i j :
+    Proper ((≡) --> (≡) --> (≡) --> flip (≡)) (sstpi i j).
+  Proof. apply: flip_proper_4. Qed.
+  Global Instance: Params (@sstpi) 4 := {}.
 
 
-  Global Instance Proper_setp : Proper ((≡) ==> (≡) ==> (=) ==> (≡)) setp.
+  Global Instance Proper_setp e : Proper ((≡) ==> (≡) ==> (≡)) (setp e).
   Proof.
     solve_proper_ho_equiv.
     (* intros ?? HG ?? HT ???; simplify_eq/=. by properness; [rewrite HG|apply HT]. *)
   Qed.
-  Global Instance Proper_setp_flip :
-    Proper (flip (≡) ==> flip (≡) ==> flip (=) ==> flip (≡)) setp.
-  Proof. apply: flip_proper_4. Qed.
+  Global Instance Proper_setp_flip e :
+    Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (setp e).
+  Proof. apply: flip_proper_3. Qed.
+  Global Instance: Params (@setp) 3 := {}.
 
-  Global Instance Proper_sdtp Γ : Proper ((≡) ==> (=) ==> (=) ==> (≡)) (sdtp Γ).
+  Global Instance Proper_sdtp l d : Proper ((≡) ==> (≡) ==> (≡)) (sdtp l d).
   Proof.
     solve_proper_ho_equiv.
     (* intros ?? Heq ??? ???; simplify_eq/=. by properness; [done..|rewrite Heq]. *)
   Qed.
-  Global Instance Proper_sdtp_flip Γ : Proper (flip (≡) ==> flip (=) ==> flip (=) ==> flip (≡)) (sdtp Γ).
-  Proof. apply: flip_proper_4. Qed.
+  Global Instance Proper_sdtp_flip l d : Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sdtp l d).
+  Proof. apply: flip_proper_3. Qed.
+  Global Instance: Params (@sdtp) 4 := {}.
 
 End Propers.
 
@@ -482,8 +481,8 @@ Section defs.
   Proof. split => /= *; apply persistent_ty_interp_lemmas.interp_subst_compose_ind. Qed. *)
 
   Lemma def_interp_tvmem_eq' l (T : ty) p ρ:
-    def_interp (TVMem l T) l ρ (dpt p) ⊣⊢
-    path_wp p (⟦ T ⟧ ρ).
+    d[ l ]⟦ TVMem l T ⟧ ρ (dpt p) ⊣⊢
+    path_wp p (V⟦ T ⟧ vnil ρ).
   Proof. apply def_interp_tvmem_eq. Qed.
 
   Lemma iterate_TLater_oLater i T:

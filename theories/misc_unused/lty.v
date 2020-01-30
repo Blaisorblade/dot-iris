@@ -221,7 +221,7 @@ Notation oClose τ := (τ vnil).
 
 Definition sCtx Σ := listO (oltyO Σ 0).
 
-Fixpoint env_oltyped {Σ} (Γ : sCtx Σ) (ρ : var → vl) : iProp Σ :=
+Fixpoint env_oltyped `{dlangG Σ} (Γ : sCtx Σ) (ρ : var → vl) : iProp Σ :=
   match Γ with
   | φ :: Γ' => env_oltyped Γ' (stail ρ) ∧ oClose φ ρ (shead ρ)
   | nil => True
@@ -229,7 +229,7 @@ Fixpoint env_oltyped {Σ} (Γ : sCtx Σ) (ρ : var → vl) : iProp Σ :=
 Notation "s⟦ Γ ⟧*" := (env_oltyped Γ).
 
 Section olty_ofe_2.
-  Context `{Σ : gFunctors} {i : nat}.
+  Context `{dlangG Σ} {i : nat}.
   Implicit Types (φ : hoEnvD Σ i) (τ : oltyO Σ i).
 
   Global Instance env_oltyped_persistent (Γ : sCtx Σ) ρ: Persistent (s⟦ Γ ⟧* ρ).
@@ -300,27 +300,26 @@ End Lty.
 Module Type LtyJudgements (Import VS: VlSortsFullSig) (Import LVS : LiftWp VS).
 Include Lty VS LVS.
 Section judgments.
-  Context `{dlangG Σ}.
+  Context {Σ}.
   Implicit Types (τ : oltyO Σ 0).
 
-  Definition sstpi Γ τ1 τ2 i j: iProp Σ :=
+  Definition sstpi `{dlangG Σ} i j Γ τ1 τ2 : iProp Σ :=
     □∀ ρ v,
       s⟦Γ⟧*ρ → ▷^i oClose τ1 ρ v → ▷^j oClose τ2 ρ v.
   Global Arguments sstpi /.
 
-  Definition setp Γ τ e : iProp Σ :=
+  Definition setp `{dlangG Σ} e Γ τ : iProp Σ :=
     □∀ ρ, s⟦Γ⟧* ρ → E⟦ τ ⟧ ρ (e.|[ρ]).
   Global Arguments setp /.
 
-  Definition setpi Γ τ e i: iProp Σ :=
+  Definition setpi `{dlangG Σ} e i Γ τ : iProp Σ :=
     □∀ ρ, s⟦Γ⟧* ρ → E⟦ eLater i τ ⟧ ρ (e.|[ρ]).
   Global Arguments setpi /.
-
 End judgments.
 
-Notation "Γ s⊨ e : τ" := (setp Γ τ e) (at level 74, e, τ at next level).
-Notation "Γ s⊨ e : τ , i" := (setpi Γ τ e i) (at level 74, e, τ at next level).
-Notation "Γ s⊨ T1 , i <: T2 , j " := (sstpi Γ T1 T2 i j) (at level 74, T1, T2, i, j at next level).
+Notation "Γ s⊨ e : τ" := (setp e Γ τ) (at level 74, e, τ at next level).
+Notation "Γ s⊨ e : τ , i" := (setpi e i Γ τ) (at level 74, e, τ at next level).
+Notation "Γ s⊨ T1 , i <: T2 , j " := (sstpi i j Γ T1 T2) (at level 74, T1, T2, i, j at next level).
 
 Section typing.
   Context `{dlangG Σ}.

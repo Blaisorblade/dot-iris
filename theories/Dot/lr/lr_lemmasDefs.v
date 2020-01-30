@@ -39,7 +39,7 @@ Section Sec.
 
   Lemma lift_dinterp_dms_mono T l ρ d ds:
     dms_hasnt ds l →
-    lift_dinterp_dms (Σ := Σ) T ρ ds -∗
+    lift_dinterp_dms T ρ ds -∗
     lift_dinterp_dms T ρ ((l, d) :: ds).
   Proof.
     intros ?. iDestruct 1 as (l' d' ?) "#H".
