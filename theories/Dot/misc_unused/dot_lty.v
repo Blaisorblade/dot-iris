@@ -36,14 +36,11 @@ Global Arguments LDlty {_} _%I _.
 Global Arguments ldlty_label {_} !_ /.
 Global Arguments ldlty_car {_} !_ /.
 
-(* Forces inserting coercions to -d>. *)
-Notation dApp := (ldlty_car : ldlty _ → _ -d> _).
-
 Canonical Structure labelO := leibnizO label.
 
 Section ldlty_ofe.
   Context {Σ}.
-  Let iso := (λ T : ldlty Σ, (dApp T, ldlty_label T)).
+  Let iso := (λ T : ldlty Σ, (ldlty_car T : _ -d> _, ldlty_label T)).
   Instance ldlty_equiv : Equiv (ldlty Σ) := λ A B, iso A ≡ iso B.
   Instance ldlty_dist : Dist (ldlty Σ) := λ n A B, iso A ≡{n}≡ iso B.
   Lemma ldlty_ofe_mixin : OfeMixin (ldlty Σ).
@@ -123,15 +120,22 @@ Section SemTypes.
     olty0 (λI ρ v, ∃ d, ⌜v @ l ↘ d⌝ ∧ TD ρ d).
 
   (* Rewrite using (higher) semantic kinds! *)
-  Definition oDTMem τ1 τ2 : dlty Σ := mkDlty (λI ρ d,
+  Definition oDTMem τ1 τ2 : dltyO Σ := mkDlty (λI ρ d,
     ∃ ψ, (d ↗n[ 0 ] ψ) ∧
        □ ((∀ v, ▷ τ1 vnil ρ v → ▷ □ ψ vnil v) ∧
           (∀ v, ▷ □ ψ vnil v → ▷ τ2 vnil ρ v))).
+  Global Instance Proper_oDTMem : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
+  Proof. solve_proper_ho_equiv. Qed.
+
   Definition oLDTMem l T1 T2 := LDlty (Some l) (oDTMem T1 T2).
   Definition oTTMem  l τ1 τ2 := lift_dinterp_vl l (oDTMem τ1 τ2).
 
-  Definition oDVMem τ : dlty Σ := mkDlty (λI ρ d,
+  Definition oDVMem τ : dltyO Σ := mkDlty (λI ρ d,
     ∃ pmem, ⌜d = dpt pmem⌝ ∧ path_wp pmem (oClose τ ρ)).
+
+  Global Instance Proper_oDVMem : Proper ((≡) ==> (≡)) oDVMem.
+  Proof. solve_proper_ho_equiv. Qed.
+
   Definition oLDVMem l T := LDlty (Some l) (oDVMem T).
   Definition oTVMem  l τ := lift_dinterp_vl l (oDVMem τ).
 
@@ -162,6 +166,9 @@ Section SemTypes.
     (λI ρ v,
     (∃ t, ⌜ v = vabs t ⌝ ∧
      □ ∀ w, ▷ τ1 vnil ρ w → ▷ interp_expr τ2 (w .: ρ) t.|[w/])).
+
+  Global Instance Proper_oAll : Proper ((≡) ==> (≡) ==> (≡)) oAll.
+  Proof. solve_proper_ho_equiv. Qed.
 
   Definition oPrim b : olty Σ 0 := olty0 (λI ρ v, ⌜pure_interp_prim b v⌝).
 
@@ -399,26 +406,12 @@ Section SampleTypingLemmas.
 End SampleTypingLemmas.
 
 (** * Proper instances. *)
-Ltac solve_proper_ho_equiv_core tac :=
-  solve [repeat intro; cbn; repeat tac (); cbn in *;
-  repeat match goal with H : _ ≡ _|- _ => apply H || rewrite H // end].
-Ltac solve_proper_ho_equiv :=
-  solve_proper_prepare; properness => //;
-  solve_proper_ho_equiv_core ltac:(fun _ => idtac).
-
 Section Propers.
   Context `{HdotG: dlangG Σ}.
 
-  (** ** Operations *)
-  Global Instance Proper_oMu : Proper ((≡) ==> (≡)) (oMu (Σ := Σ)).
-  Proof. solve_proper_ho_equiv. Qed.
-
-  Global Instance Proper_oAll : Proper ((≡) ==> (≡) ==> (≡)) oAll.
-  Proof. solve_proper_ho_equiv. Qed.
-
   Global Instance: Proper ((≡) ==> (=) ==> (=) ==> (=) ==> (≡)) (lift_ldlty (Σ := Σ)).
   Proof.
-    rewrite /lift_ldlty => -[l1 P1] [l2 P2] [/= Heq ?] ??? ??? ???; simplify_eq.
+    move => [l1 P1] [l2 P2] [/= Heq].
     solve_proper_ho_equiv.
     (* properness; [done|apply Heq]. *)
   Qed.
@@ -457,7 +450,7 @@ Section Propers.
     solve_proper_ho_equiv.
     (* intros ?? Heq ??? ???; simplify_eq/=. by properness; [done..|rewrite Heq]. *)
   Qed.
-  Global Instance Proper_sdtp_flip Γ : Proper (flip (≡) ==> flip (=) ==> flip (=) ==> flip (≡)) (sdtp (Σ := Σ) Γ).
+  Global Instance Proper_sdtp_flip Γ : Proper (flip (≡) ==> flip (=) ==> flip (=) ==> flip (≡)) (sdtp Γ).
   Proof. apply: flip_proper_4. Qed.
 
 End Propers.

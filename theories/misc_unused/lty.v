@@ -17,6 +17,22 @@ Notation "'λI' x .. y , t" := (fun x => .. (fun y => t%I) ..)
   (at level 200, x binder, y binder, right associativity, only parsing,
   format "'[  ' '[  ' 'λI'  x  ..  y ']' ,  '/' t ']'") : function_scope.
 
+Ltac ho_f_equiv :=
+  first
+    [ progress repeat match goal with
+      | H : _ ≡ _|- _ => (apply H || rewrite H //)
+      | H : _ ≡{_}≡ _ |- _ => (apply H || rewrite H //)
+      end
+    | f_equiv].
+
+(* Ltac solve_proper_ho_equiv_core tac :=
+  solve [repeat intro; cbn; repeat tac (); cbn in *;
+  repeat match goal with H : _ ≡ _|- _ => apply H || rewrite H // end].
+Ltac solve_proper_ho_equiv :=
+  solve_proper_prepare; properness => //;
+  solve_proper_ho_equiv_core ltac:(fun _ => idtac). *)
+Ltac solve_proper_ho_equiv := solve_proper_core ltac:(fun _ => ho_f_equiv).
+
 Implicit Types (Σ : gFunctors).
 
 (**
@@ -235,37 +251,47 @@ Section olty_ofe_2.
     Olty (vopen φ).
 
   (** We can define once and for all basic "logical" types: top, bottom, and, or, later and μ. *)
-  Definition oTop : oltyO Σ i := Olty (λ args ρ v, True)%I.
+  Definition oTop : oltyO Σ i := Olty (λI args ρ v, True).
 
-  Definition oBot : oltyO Σ i := Olty (λ args ρ v, False)%I.
+  Definition oBot : oltyO Σ i := Olty (λI args ρ v, False).
 
-  Definition oAnd τ1 τ2 : oltyO Σ i := Olty (λ args ρ v, τ1 args ρ v ∧ τ2 args ρ v)%I.
+  Definition oAnd τ1 τ2 : oltyO Σ i := Olty (λI args ρ v, τ1 args ρ v ∧ τ2 args ρ v).
+  Global Instance Proper_oAnd : Proper ((≡) ==> (≡) ==> (≡)) oAnd.
+  Proof. solve_proper_ho_equiv. Qed.
 
-  Definition oOr τ1 τ2 : oltyO Σ i := Olty (λ args ρ v, τ1 args ρ v ∨ τ2 args ρ v)%I.
+  Definition oOr τ1 τ2 : oltyO Σ i := Olty (λI args ρ v, τ1 args ρ v ∨ τ2 args ρ v).
+  Global Instance Proper_oOr : Proper ((≡) ==> (≡) ==> (≡)) oOr.
+  Proof. solve_proper_ho_equiv. Qed.
 
-  Definition eLater n (φ : hoEnvD Σ i) : hoEnvD Σ i := (λ args ρ v, ▷^n φ args ρ v)%I.
+
+  Definition eLater n (φ : hoEnvD Σ i) : hoEnvD Σ i := (λI args ρ v, ▷^n φ args ρ v).
   Global Arguments eLater /.
   Definition oLater τ : oltyO Σ i := Olty (eLater 1 τ).
+  Global Instance Proper_oLater : Proper ((≡) ==> (≡)) oLater.
+  Proof. solve_proper_ho_equiv. Qed.
 
   Lemma oLater_eq τ args ρ v : oLater τ args ρ v = (▷ τ args ρ v)%I.
   Proof. done. Qed.
 
-  Definition ho_oMu {i} (τ : oltyO Σ i) : oltyO Σ i := Olty (λ args ρ v, τ args (v .: ρ) v).
 
-  Definition oMu (τ : oltyO Σ 0) : oltyO Σ 0 := ho_oMu τ.
+  Definition oMu (τ : oltyO Σ i) : oltyO Σ i := Olty (λI args ρ v, τ args (v .: ρ) v).
+  Global Instance Proper_oMu : Proper ((≡) ==> (≡)) oMu.
+  Proof. solve_proper_ho_equiv. Qed.
 
-  Lemma ho_oMu_eq (τ : oltyO Σ i) args ρ v : ho_oMu τ args ρ v = τ args (v .: ρ) v.
+  Lemma oMu_eq (τ : oltyO Σ i) args ρ v : oMu τ args ρ v = τ args (v .: ρ) v.
   Proof. done. Qed.
 
-  Lemma s_interp_TMu_ren (T : oltyO Σ i) args ρ v: ho_oMu (shift T) args ρ v ≡ T args ρ v.
+
+  Lemma s_interp_TMu_ren (T : oltyO Σ i) args ρ v: oMu (shift T) args ρ v ≡ T args ρ v.
   Proof. rewrite /= (hoEnvD_weaken_one T args _ v) stail_eq. by []. Qed.
 
   Definition interp_expr `{dlangG Σ} (φ : hoEnvD Σ 0) : envPred tm Σ :=
     λI ρ t, □ WP t {{ vclose φ ρ }}.
   Global Arguments interp_expr /.
 
-  Definition oTSel0 `{dlangG Σ} s σ :=
-    olty0 (λ ρ v, ∃ ψ, s ↗[ σ ] ψ ∧ ▷ □ ψ v)%I.
+
+  Definition oTSel_raw `{dlangG Σ} s σ :=
+    Olty (λI args ρ v, ∃ ψ, s ↗n[σ, i] ψ ∧ ▷ □ ψ args v).
 End olty_ofe_2.
 End Lty.
 
