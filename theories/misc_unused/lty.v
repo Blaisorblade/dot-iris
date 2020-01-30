@@ -293,6 +293,8 @@ Section olty_ofe_2.
   Definition oTSel_raw `{dlangG Σ} s σ :=
     Olty (λI args ρ v, ∃ ψ, s ↗n[σ, i] ψ ∧ ▷ □ ψ args v).
 End olty_ofe_2.
+
+Notation "E⟦ τ ⟧" := (interp_expr τ).
 End Lty.
 
 Module Type LtyJudgements (Import VS: VlSortsFullSig) (Import LVS : LiftWp VS).
@@ -307,11 +309,11 @@ Section judgments.
   Global Arguments sstpi /.
 
   Definition setp Γ τ e : iProp Σ :=
-    □∀ ρ, s⟦Γ⟧* ρ → interp_expr τ ρ (e.|[ρ]).
+    □∀ ρ, s⟦Γ⟧* ρ → E⟦ τ ⟧ ρ (e.|[ρ]).
   Global Arguments setp /.
 
   Definition setpi Γ τ e i: iProp Σ :=
-    □∀ ρ, s⟦Γ⟧* ρ → interp_expr (eLater i τ) ρ (e.|[ρ]).
+    □∀ ρ, s⟦Γ⟧* ρ → E⟦ eLater i τ ⟧ ρ (e.|[ρ]).
   Global Arguments setpi /.
 
 End judgments.

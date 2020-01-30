@@ -165,7 +165,7 @@ Section SemTypes.
   Definition oAll τ1 τ2 := olty0
     (λI ρ v,
     (∃ t, ⌜ v = vabs t ⌝ ∧
-     □ ∀ w, ▷ τ1 vnil ρ w → ▷ interp_expr τ2 (w .: ρ) t.|[w/])).
+     □ ∀ w, ▷ τ1 vnil ρ w → ▷ E⟦ τ2 ⟧ (w .: ρ) t.|[w/])).
 
   Global Instance Proper_oAll : Proper ((≡) ==> (≡) ==> (≡)) oAll.
   Proof. solve_proper_ho_equiv. Qed.
@@ -254,7 +254,6 @@ Notation "d[ l ]⟦ T ⟧" := (def_interp T l).
 Notation "ds⟦ T ⟧" := (defs_interp T).
 
 Notation "d ↗ ψ" := (dm_to_type 0 d ψ) (at level 20).
-Notation "p⟦ T ⟧ₑ" := (interp_expr p⟦ T ⟧).
 Notation "⟦ Γ ⟧*" := s⟦ p⟦ Γ ⟧* ⟧*.
 
 (** Single-definition typing *)
