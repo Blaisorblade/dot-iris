@@ -19,6 +19,9 @@ All file paths in this file are relative to the `theories/` folder.
 
 - For the code sizes reported in Sec. 6, see `codesize.md`.
 
+- Paper notation E⟦ T ⟧ would translate to E⟦ V⟦ T ⟧ ⟧ in this development;
+  however, we generalize many definitions to semantic types.
+
 ## Differences between our paper (and technical appendix) and our Coq development.
 
 - While in the paper unstamped and stamped DOT are represented using disjoint
