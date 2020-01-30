@@ -116,8 +116,9 @@ Proof. induction 1; cbn; auto with ctx_sub. Qed.
 Hint Resolve ctx_id_syn ctx_trans_sub_syn unTLater_ctx_sub_syn
   ctx_sub_TLater_syn TLater_cong_ctx_sub_syn : ctx_sub.
 
-(** * When is a context weaker than another? *)
-(* Likely, this should be an iProp. *)
+(** * When is a context weaker than another? While we don't give complete
+rules, we develop some infrastructure to allow "stripping" laters from the
+context. *)
 Definition ty_sub `{HdlangG: dlangG Σ} T1 T2 := ∀ ρ v, p⟦ T1 ⟧ vnil ρ v -∗ p⟦ T2 ⟧ vnil ρ v.
 Notation "⊨T T1 <: T2" := (ty_sub T1 T2) (at level 74, T1, T2 at next level).
 Typeclasses Opaque ty_sub.
@@ -134,7 +135,6 @@ Section CtxSub.
   Global Instance: RewriteRelation ty_sub := {}.
   Global Instance: PreOrder ty_sub.
   Proof. split. by move => ??. by move => x y z H1 H2 ρ v; rewrite (H1 _ _). Qed.
-  (* Proof. split. by iIntros (???) "$". iIntros (x y z H1 H2 ρ v). iRewrite (H1 _ _). Qed. *)
 
   Global Instance: RewriteRelation ctx_sub := {}.
   Global Instance: PreOrder ctx_sub.
@@ -165,13 +165,6 @@ Section CtxSub.
       iSplit; by [iIntros "$" | iIntros "_"].
   Qed.
 
-  Global Instance Proper_fmap_TLater :
-    Proper (ctx_sub ==> ctx_sub) (fmap TLater).
-  Proof. intros xs ys Hl ?. by rewrite !env_TLater_commute (Hl _). Qed.
-  Global Instance Proper_fmap_TLater_flip :
-    Proper (flip ctx_sub ==> flip ctx_sub) (fmap TLater).
-  Proof. apply: flip_proper_2. Qed.
-
   (** The strength ordering of contexts lifts the strength ordering of types. *)
   Lemma env_lift_sub f g {Γ} (Hle: ∀ T, ⊨T f T <: g T):
     ⊨G f <$> Γ <:* g <$> Γ.
@@ -182,6 +175,21 @@ Section CtxSub.
     (∀ T, ⊨T f T <: g T) →
     ⊨G Γ1 <:* Γ2.
   Proof. move => -> -> Hweak. exact: env_lift_sub. Qed.
+
+  (* It's not immediate to generalize Proper_fmap_TLater to [fmap C] for a
+  type constructor [C]. Fpr instance, the following is hopeless. *)
+  (* Lemma Proper_fmap_ctx C
+    (Hle: ∀ T1 T2, ⊨T T1 <: T2 → ⊨T C T1 <: C T2):
+    Proper (ctx_sub ==> ctx_sub) (fmap C).
+  Proof.
+    intros G1 G2. elim: G2 G1 => [|T2 G2 IHG2] [|T1 G1] HG ρ //; cbn. *)
+
+  Global Instance Proper_fmap_TLater :
+    Proper (ctx_sub ==> ctx_sub) (fmap TLater).
+  Proof. intros xs ys Hl ?. by rewrite !env_TLater_commute (Hl _). Qed.
+  Global Instance Proper_fmap_TLater_flip :
+    Proper (flip ctx_sub ==> flip ctx_sub) (fmap TLater).
+  Proof. apply: flip_proper_2. Qed.
 
   Global Instance Proper_TAnd : Proper (ty_sub ==> ty_sub ==> ty_sub) TAnd.
   Proof. intros x y Hl x' y' Hl' ??. by rewrite /= (Hl _ _) (Hl' _ _). Qed.
