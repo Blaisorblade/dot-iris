@@ -98,21 +98,6 @@ Implicit Types
 
 Module SemTypes2.
 
-Section with_unary_lr.
-  Context `{HdotG: dlangG Σ}.
-
-  Import stamp_transfer unary_lr.
-
-  Lemma extraction_to_leadsto_envD_equiv T g s σ n: T ~[ n ] (g, (s, σ)) →
-    wellMappedφ ⟦ g ⟧g -∗ s ↝[ σ ] vopen (ty_interp T).
-  Proof.
-    move => [T'] [Hl] [<- [_ /is_stamped_nclosed_ty HclT]].
-    iIntros "Hm". iExists (vopen (ty_interp T')). iSplitR.
-    - iIntros "!%" (args ρ v). exact: interp_subst_commute.
-    - iApply (wellMappedφ_apply with "Hm"). by rewrite lookup_fmap Hl.
-  Qed.
-End with_unary_lr.
-
 Section with_lty.
   Context `{dlangG Σ}.
   Import path_repl.

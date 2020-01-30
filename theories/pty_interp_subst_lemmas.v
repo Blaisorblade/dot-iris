@@ -6,14 +6,17 @@ Module Type PTyInterpLemmas (Import VS : VlSortsFullSig) (Import LWP : LiftWp VS
   (Import LJ : LtyJudgements VS LWP).
 
 Class PTyInterp ty Σ :=
-  pty_interp : ty -> oltyO Σ 0.
-Notation "p⟦ T ⟧" := (pty_interp T).
-Notation "p⟦ g ⟧g" := (fmap (M := gmap stamp) pty_interp g).
-
-Module persistent_ty_interp_lemmas.
+  pty_interpO : ty -> oltyO Σ 0.
+Notation "p⟦ T ⟧" := (pty_interpO T).
 
 (* Also appears in Autosubst. *)
-Global Arguments pty_interp {_ _ _} !_ /.
+Global Arguments pty_interpO {_ _ _} !_ /.
+
+Definition pty_interp `{PTyInterp ty Σ} : ty -> hoEnvD Σ 0 := pty_interpO.
+Notation "⟦ g ⟧g" := (fmap (M := gmap stamp) pty_interp g).
+Global Arguments pty_interp /.
+
+Module persistent_ty_interp_lemmas.
 
 Class PTyInterpLemmas ty Σ `{sort_ty : Sort ty} `{!PTyInterp ty Σ} := {
   interp_subst_compose_ind T {args} ρ1 ρ2 v:

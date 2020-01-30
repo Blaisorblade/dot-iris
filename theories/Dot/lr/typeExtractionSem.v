@@ -4,7 +4,7 @@ From D.Dot Require Import unary_lr typeExtractionSyn.
 
 Set Implicit Arguments.
 
-Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx) (n: nat) (s: stamp) (g : stys).
+Implicit Types (v: vl) (e: tm) (n: nat) (s: stamp) (g : stys).
 
 Section typing_type_member_defs.
   Context `{!dlangG Σ}.
@@ -13,51 +13,56 @@ Section typing_type_member_defs.
      since the former is what we need to prove [D_Typ_Abs] below.
      Not sure that's still true if we change dm_to_type,
     but quite possibly yes.. *)
-    (* use interp_extractedTy? *)
-  (* Definition leadsto_envD_equiv s σ (φ : envD Σ) : iProp Σ :=
-    (∃ (φ' : envD Σ),
-      ⌜φ ≡ (λ ρ, φ' (∞ σ.|[ρ]))⌝ ∧ s ↝ φ')%I.
+  (*
+    Even if semantic types use infinite substitutions, we can still reuse the
+    current stamping theory, based on finite substitutions.
+  *)
+  Definition leadsto_envD_equiv {i} s σ (φ : hoEnvD Σ i) : iProp Σ :=
+    (∃ (φ' : hoEnvD Σ i),
+      ⌜φ ≡ (λ args ρ, φ' args (∞ σ.|[ρ]))⌝ ∧ s ↝n[ i ] φ')%I.
   Arguments leadsto_envD_equiv /.
   Notation "s ↝[  σ  ] φ" := (leadsto_envD_equiv s σ φ) (at level 20).
 
-  Lemma extraction_to_leadsto_envD_equiv T g s σ n: T ~[ n ] (g, (s, σ)) →
-    wellMappedφ ⟦ g ⟧g -∗ s ↝[ σ ] ty_interp T.
-  Proof.
-    move => [T'] [Hl] [<- [_ /is_stamped_nclosed_ty HclT]].
-    iIntros "Hm". iExists (ty_interp T'). iSplitR.
-    - iIntros "!%" (ρ v). exact: interp_subst_commute.
-    - iApply (wellMappedφ_apply with "Hm"). by rewrite lookup_fmap Hl.
-  Qed. *)
   Import stamp_transfer.
 
   Lemma extraction_to_leadsto_envD_equiv T g s σ n: T ~[ n ] (g, (s, σ)) →
-    wellMappedφ ⟦ g ⟧g -∗ s ↝[ σ ] pty_interp T.
+    wellMappedφ ⟦ g ⟧g -∗ s ↝[ σ ] pty_interpO T.
   Proof.
     move => [T'] [Hl] [<- [_ /is_stamped_nclosed_ty HclT]].
-    iIntros "Hm". iExists (vopen (pty_interp T' vnil)). iSplitR.
-    - iIntros "!%" (args ρ v). rewrite interp_subst_commute //.
-      (* Hack, needed because wellMappedφ_apply is too restrictive. *)
-      by dependent destruction args.
+    iIntros "Hm". iExists (pty_interpO T'). iSplitR.
+    - iIntros "!%" (args ρ v). exact: interp_subst_commute.
     - iApply (wellMappedφ_apply with "Hm"). by rewrite lookup_fmap Hl.
   Qed.
 
-  (** XXX In fact, this lemma should be provable for any φ,
-      not just ⟦ T ⟧, but we haven't actually defined the
-      necessary notation to state it:
-  Lemma D_Typ_Sem Γ L U s σ l φ:
-    Γ ⊨ φ, 1 <: U, 1 -∗
-    Γ ⊨ L, 1 <: φ, 1 -∗
-    (s, σ) ↝[ length Γ ] φ -∗
-    Γ ⊨d dtysem σ s : TTMem l L U.
-    *)
-  Lemma D_Typ_Abs Γ T L U s σ l:
+  Lemma sD_Typ_Abs {Γ} T L U s σ l:
+    Γ s⊨ oLater T, 0 <: oLater U, 0 -∗
+    Γ s⊨ oLater L, 0 <: oLater T, 0 -∗
+    s ↝[ σ ] T -∗
+    Γ s⊨ { l := dtysem σ s } : oLDTMem l L U.
+  Proof.
+    iIntros "#HTU #HLT #Hs /= !>" (ρ Hpid) "#Hg"; iSplit => //=.
+    iDestruct "Hs" as (φ Hγφ) "Hγ".
+    iExists (hoEnvD_inst (σ.|[ρ]) φ); iSplit.
+    by iApply (dm_to_type_intro with "Hγ").
+    iModIntro; repeat iSplit; iIntros (v) "#HL"; rewrite later_intuitionistically.
+    - iIntros "!>". iApply Hγφ. by iApply "HLT".
+    - iApply "HTU" => //. by iApply Hγφ.
+  Qed.
+
+  Lemma sD_Typ {Γ} (T : oltyO Σ 0) s σ l:
+    s ↝[ σ ] T -∗
+    Γ s⊨ { l := dtysem σ s } : oLDTMem l T T.
+  Proof. iIntros "#Hs"; iApply sD_Typ_Abs; by [| iIntros "!> **"]. Qed.
+
+
+  Lemma D_Typ_Abs {Γ} T L U s σ l:
     Γ ⊨ TLater T, 0 <: TLater U, 0 -∗
     Γ ⊨ TLater L, 0 <: TLater T, 0 -∗
     s ↝[ σ ] p⟦ T ⟧ -∗
     Γ ⊨ { l := dtysem σ s } : TTMem l L U.
   Proof. apply sD_Typ_Abs. Qed.
 
-  Lemma D_Typ Γ T s σ l:
+  Lemma D_Typ {Γ} T s σ l:
     s ↝[ σ ] p⟦ T ⟧ -∗
     Γ ⊨ { l := dtysem σ s } : TTMem l T T.
   Proof. apply sD_Typ. Qed.

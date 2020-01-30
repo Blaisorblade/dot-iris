@@ -17,8 +17,8 @@ Include PTyInterpLemmas VlSorts dlang_inst.
 Export persistent_ty_interp_lemmas.
 
 (** Override notations to specify scope. *)
-Notation "p⟦ T ⟧" := (pty_interp T%ty).
-Notation "p⟦ Γ ⟧*" := (fmap (M := list) pty_interp Γ).
+Notation "p⟦ T ⟧" := (pty_interpO T%ty).
+Notation "p⟦ Γ ⟧*" := (fmap (M := list) pty_interpO Γ).
 
 Definition dlty Σ := env -> iPPred dm Σ.
 Definition dltyO Σ := env -d> iPPredO dm Σ.
@@ -62,17 +62,6 @@ Section defs.
   Definition lift_ldlty (φ : ldlty Σ) l : envPred dm Σ :=
     λI ρ d, ⌜ ldlty_label φ = Some l ⌝ ∧ φ ρ d.
 
-  Context {i : nat}.
-  Implicit Types (φ : hoEnvD Σ i) (τ : olty Σ i).
-  (*
-    Even if semantic types use infinite substitutions, we can still reuse the
-    current stamping theory, based on finite substitutions.
-  *)
-  Definition leadsto_envD_equiv s σ (φ : hoEnvD Σ i) : iProp Σ :=
-    (∃ (φ' : hoEnvD Σ i),
-      ⌜φ ≡ (λ args ρ, φ' args (∞ σ.|[ρ]))⌝ ∧ s ↝n[ i ] φ')%I.
-  Arguments leadsto_envD_equiv /.
-
   Definition dm_to_type d i (ψ : hoD Σ i) : iProp Σ :=
     (∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ , i ] ψ)%I.
 End defs.
@@ -96,7 +85,6 @@ Global Arguments sptp /.
 
 Notation "Γ s⊨ {  l := d  } : T" := (sdtp Γ T l d) (at level 64, d, l, T at next level).
 Notation "Γ s⊨p p : τ , i" := (sptp Γ τ p i) (at level 74, p, τ, i at next level).
-Notation "s ↝[  σ  ] φ" := (leadsto_envD_equiv s σ φ) (at level 20).
 Notation "d ↗n[ i  ] ψ" := (dm_to_type d i ψ) (at level 20).
 
 Section dm_to_type.
@@ -261,10 +249,10 @@ Notation "p⟦ T ⟧ₑ" := (interp_expr p⟦ T ⟧).
 Notation "⟦ Γ ⟧*" := s⟦ p⟦ Γ ⟧* ⟧*.
 
 (* Notation "⟦ T ⟧ₑ" := (interp_expr p⟦ T ⟧). *)
-(* Definition interp_env (Γ : ctx) : env -d> iPropO Σ := env_oltyped (pty_interp <$> Γ).
+(* Definition interp_env (Γ : ctx) : env -d> iPropO Σ := env_oltyped (pty_interpO <$> Γ).
 Global Arguments interp_env !_ _ /.
 Notation "⟦ Γ ⟧*" := (interp_env Γ). *)
-(* Notation "⟦ Γ ⟧*" := (env_oltyped (pty_interp <$> Γ)). *)
+(* Notation "⟦ Γ ⟧*" := (env_oltyped (pty_interpO <$> Γ)). *)
 
 (** Single-definition typing *)
 Notation "Γ ⊨ {  l := d  } : T" := (idtp Γ T l d) (at level 74, d, l, T at next level).
@@ -321,26 +309,6 @@ Section SampleTypingLemmas.
     objLookupDet. iDestruct (dm_to_type_agree vnil v with "Hlψ Hγ") as "#Hag".
     iApply "HψU" => //. iNext. by iRewrite "Hag".
   Qed.
-
-  Lemma sD_Typ_Abs T L U s σ l:
-    Γ s⊨ oLater T, 0 <: oLater U, 0 -∗
-    Γ s⊨ oLater L, 0 <: oLater T, 0 -∗
-    s ↝[ σ ] T -∗
-    Γ s⊨ { l := dtysem σ s } : oLDTMem l L U.
-  Proof.
-    iIntros "#HTU #HLT #Hs /= !>" (ρ Hpid) "#Hg"; iSplit => //=.
-    iDestruct "Hs" as (φ Hγφ) "Hγ".
-    iExists (hoEnvD_inst (σ.|[ρ]) φ); iSplit.
-    by iApply (dm_to_type_intro with "Hγ").
-    iModIntro; repeat iSplit; iIntros (v) "#HL"; rewrite later_intuitionistically.
-    - iIntros "!>". iApply Hγφ. by iApply "HLT".
-    - iApply "HTU" => //. by iApply Hγφ.
-  Qed.
-
-  Lemma sD_Typ (τ : olty Σ 0) s σ l:
-    s ↝[ σ ] τ -∗
-    Γ s⊨ { l := dtysem σ s } : oLDTMem l τ τ.
-  Proof. iIntros "#Hs"; iApply sD_Typ_Abs; by [| iIntros "!> **"]. Qed.
 
   (*
      Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂ᶻ
@@ -503,7 +471,7 @@ Section defs.
   Context `{HdotG: dlangG Σ}.
 
   (* Wrap this into ty_interp to reuse lemmas. *)
-  Global Instance pto_ty_interp : TyInterp ty Σ := flip pty_interp vnil.
+  Global Instance pto_ty_interp : TyInterp ty Σ := flip pty_interpO vnil.
   Global Instance interp_persistent T ρ v : Persistent (⟦ T ⟧ ρ v) := _.
 
   Global Arguments pto_ty_interp _ /.
@@ -551,7 +519,7 @@ Section defs.
   Lemma Sub_Mu_A T i: Γ ⊨ TMu (shift T), i <: T, i.
   Proof.
     rewrite /istpi.
-    cbn [pinterp pty_interp].
+    cbn [pinterp pty_interpO].
     rewrite (pty_interp_subst T (ren (+1))).
     apply sSub_Mu_A.
     (* iIntros "!>" (vs v) "**".
@@ -561,7 +529,7 @@ Section defs.
   Lemma Sub_Mu_B T i: Γ ⊨ T, i <: TMu (shift T), i.
   Proof.
     rewrite /istpi.
-    cbn [pinterp pty_interp].
+    cbn [pinterp pty_interpO].
     rewrite (pty_interp_subst T (ren (+1))).
     apply sSub_Mu_B.
     (* iIntros "!>" (vs v) "**".

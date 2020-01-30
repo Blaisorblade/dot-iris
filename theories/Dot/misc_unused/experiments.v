@@ -99,7 +99,7 @@ Section Example.
   Import stamp_transfer astStamping.
 
   Lemma wellMappedφ_g0 s T:
-    s ↝ ⟦ T ⟧ -∗
+    s ↝n[ 0 ] p⟦ T ⟧ -∗
     wellMappedφ (⟦ g0 s T ⟧g).
   Proof.
     iIntros "Hs"; rewrite fmap_insert.
@@ -124,7 +124,7 @@ Section Example.
 
   (* XXX use more semantic typing. *)
   Example packTV_semTyped Γ s T (Hu: is_unstamped_ty' (length Γ) T):
-    s ↝ ⟦ T ⟧ -∗
+    s ↝n[ 0 ] p⟦ T ⟧ -∗
     Γ ⊨ tv (packTV (length Γ) s) : typeEq "A" T.
     (* Γ ⊨ tv (packTV (length Γ) s) : type "A" >: ⊥ <: T. *)
   Proof.
@@ -164,7 +164,7 @@ Section Example.
   Qed. *)
 
   Example foo Γ e v1 v2:
-    s0 ↝ ⟦ ⊤%ty ⟧ -∗
+    s0 ↝n[ 0 ] p⟦ ⊤%ty ⟧ -∗
     [] ⊨ e : iftFalse -∗
     [] ⊨ tv v1 : TTop -∗
     [] ⊨ tv v2 : TTop -∗
@@ -215,7 +215,7 @@ Section Example.
     [] v⊢ₜ[ g ] e : iftFalse →
     [] v⊢ₜ[ g ] tv v1 : TTop →
     [] v⊢ₜ[ g ] tv v2 : TTop →
-    s0 ↝ ⟦ ⊤%ty ⟧ -∗
+    s0 ↝n[ 0 ] p⟦ ⊤%ty ⟧ -∗
     [] ⊨ applyE e v1 v2 : TSing (pv v2).
   Proof.
     intros g; subst g.

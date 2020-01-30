@@ -30,14 +30,14 @@ Section ex.
 
   Import stamp_transfer.
 
-  Lemma alloc {s sγ} (φ : envD Σ) : sγ !! s = None → allGs sγ ==∗ s ↝ φ.
+  Lemma alloc {s sγ} φ : sγ !! s = None → allGs sγ ==∗ s ↝n[ 0 ] φ.
   Proof.
     iIntros (Hs) "Hsγ".
     by iMod (leadsto_alloc φ Hs with "Hsγ") as (?) "[_ [_ $]]".
   Qed.
 
   Definition pos v := ∃ n, v = vnat n ∧ n > 0.
-  Definition ipos: envD Σ := λ ρ v, (⌜ pos v ⌝) %I.
+  Definition ipos: hoEnvD Σ 0 := (λI args ρ v, ⌜ pos v ⌝).
   Import ectxi_language ectx_language.
 
 (* Arguments dlang_ectx_lang : simpl never.
@@ -52,7 +52,7 @@ Arguments dlang_ectxi_lang : simpl never. *)
   Lemma wp_nge m n (Hnge : ¬ m > n) : WP m > n {{ w, w ≡ false }}%I.
   Proof. wp_bin. ev; simplify_eq/=. by case_decide. Qed.
 
-  Lemma pos_wp ρ v : ipos ρ v ⊢ WP v > 0 {{ w, w ≡ vbool true }}.
+  Lemma pos_wp ρ v : ipos vnil ρ v ⊢ WP v > 0 {{ w, w ≡ vbool true }}.
   Proof. iDestruct 1 as %(n & -> & ?). by iApply wp_ge. Qed.
 
   Import swap_later_impl.
@@ -89,7 +89,7 @@ Arguments dlang_ectxi_lang : simpl never. *)
 
   Context (s: stamp).
 
-  Definition Hs := (s ↝ ipos)%I.
+  Definition Hs := (s ↝n[ 0 ] ipos)%I.
   Lemma allocHs sγ:
     sγ !! s = None → allGs sγ ==∗ Hs.
   Proof. exact (alloc ipos). Qed.
@@ -155,7 +155,7 @@ Arguments dlang_ectxi_lang : simpl never. *)
 	  val "n" = pv (vnat 2)
   }.
 
-  Lemma sToIpos : Hs -∗ dtysem [] s ↗n[ 0 ] vopen (ipos (∞ [])).
+  Lemma sToIpos : Hs -∗ dtysem [] s ↗n[ 0 ] hoEnvD_inst [] ipos.
   Proof. by iApply dm_to_type_intro. Qed.
 
   Lemma sHasA : Hs -∗ oDTMem p⟦ ⊥ ⟧ p⟦ 𝐍 ⟧ ids (dtysem [] s).
@@ -215,7 +215,7 @@ Arguments dlang_ectxi_lang : simpl never. *)
   }.
   Definition vTyp1 := μ vTyp1Body.
 
-  Lemma wp_div_spec (m : nat) w : ipos ids w -∗ WP m `div` w {{ ⟦ 𝐍 ⟧ ids }}.
+  Lemma wp_div_spec (m : nat) w : ipos vnil ids w -∗ WP m `div` w {{ ⟦ 𝐍 ⟧ ids }}.
   Proof. iDestruct 1 as %(n&?&?); simplify_eq. wp_bin. by iIntros "!%"; naive_solver. Qed.
 
   Lemma V_TVMem_I T (v w : vl) l
@@ -361,7 +361,7 @@ Arguments dlang_ectxi_lang : simpl never. *)
     by eapply Hsub, val_head_stuck.
   Qed.
 
-  Lemma wp_pos ρ (v : vl) : WP v > 0 {{ w, w ≡ vbool true }} ⊢ ▷ ipos ρ v.
+  Lemma wp_pos ρ (v : vl) : WP v > 0 {{ w, w ≡ vbool true }} ⊢ ▷ ipos vnil ρ v.
   Proof.
     have Hsub: sub_redexes_are_values (v > 0). {
       apply ectxi_language_sub_redexes_are_values.

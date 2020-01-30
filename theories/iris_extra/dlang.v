@@ -58,8 +58,6 @@ Module Type LiftWp (Import VS : VlSortsSig).
   Definition leadsto_n `{!dlangG Σ}
     s n (φ : hoEnvD Σ n) := (∃ γ, s ↦ γ ∧ γ ⤇n[ n ] φ)%I.
   Notation "s ↝n[ n  ] φ" := (leadsto_n s n φ) (at level 20) : bi_scope.
-  (* Backward compatibility. *)
-  Notation "s ↝ φ" := (s ↝n[ 0 ] vopen φ)%I  (at level 20) : bi_scope.
 
   Program Definition hoEnvD_inst {i Σ} σ : hoEnvD Σ i -n> hoD Σ i := λne φ, λ args, φ args (∞ σ).
   Next Obligation. move => i Σ σ n x y Heq args. exact: Heq. Qed.
@@ -108,12 +106,12 @@ Module Type LiftWp (Import VS : VlSortsSig).
       by rewrite (proof_irrel Heq eq_refl) /=.
     Qed.
 
-    Lemma leadsto_alloc {sγ s} (φ : envD Σ) :
+    Lemma leadsto_alloc {sγ s i} (φ : hoEnvD Σ i) :
       sγ !! s = None → allGs sγ ==∗
-      ∃ sγ', ⌜gdom sγ' ≡ {[s]} ∪ gdom sγ⌝ ∧ allGs sγ' ∧ s ↝ φ.
+      ∃ sγ', ⌜gdom sγ' ≡ {[s]} ∪ gdom sγ⌝ ∧ allGs sγ' ∧ s ↝n[ i ] φ.
     Proof.
       iIntros (HsFresh) "Hallsγ".
-      iMod (saved_ho_sem_type_alloc 0 (vopen φ)) as (γ) "Hγ".
+      iMod (saved_ho_sem_type_alloc i φ) as (γ) "Hγ".
       iMod (gen_iheap_alloc _ _ γ HsFresh with "Hallsγ") as "[Hallsγ Hs]".
       iModIntro; iExists (<[s:=γ]> sγ); rewrite dom_insert.
       repeat iSplit; last iExists γ; by iFrame.
@@ -175,23 +173,23 @@ Module Type LiftWp (Import VS : VlSortsSig).
 
     Section sem.
       Context `{!dlangG Σ}.
-      Implicit Types (gφ : gmap stamp (envD Σ)).
+      Implicit Types (gφ : gmap stamp (hoEnvD Σ 0)).
 
       Definition wellMappedφ gφ : iProp Σ :=
-        (□∀ s φ (Hl : gφ !! s = Some φ), s ↝ φ)%I.
+        (□∀ s φ (Hl : gφ !! s = Some φ), s ↝n[ 0 ] φ)%I.
       Global Instance wellMappedφ_persistent gφ: Persistent (wellMappedφ gφ) := _.
 
       Lemma wellMappedφ_empty : wellMappedφ ∅. Proof. by iIntros (???). Qed.
 
       Lemma wellMappedφ_insert gφ s φ :
-        wellMappedφ gφ -∗ s ↝ φ -∗ wellMappedφ (<[s:=φ]> gφ).
+        wellMappedφ gφ -∗ s ↝n[ 0 ] φ -∗ wellMappedφ (<[s:=φ]> gφ).
       Proof.
         iIntros "#Hwmg #Hs !>" (s' φ' Hl). case: (decide (s' = s)) Hl => [->|?];
           rewrite (lookup_insert, lookup_insert_ne) => ?;
           simplify_eq; by [> iApply "Hs" | iApply "Hwmg"].
       Qed.
 
-      Lemma wellMappedφ_apply s φ gφ : gφ !! s = Some φ → wellMappedφ gφ -∗ (s ↝ φ)%I.
+      Lemma wellMappedφ_apply s φ gφ : gφ !! s = Some φ → wellMappedφ gφ -∗ (s ↝n[ 0 ] φ)%I.
       Proof. iIntros (Hl) "#Hm"; iApply ("Hm" $! _ _ Hl). Qed.
 
       Global Opaque wellMappedφ.
@@ -270,5 +268,6 @@ Module Type LiftWp (Import VS : VlSortsSig).
   End dlang_adequacy.
 
   (* Backward compatibility. *)
+  Notation "s ↝ φ" := (s ↝n[ 0 ] vopen φ)%I  (at level 20) : bi_scope.
   Notation "s ↗[ σ  ] ψ" := (s ↗n[ σ , 0 ] vopen ψ)%I (at level 20) : bi_scope.
 End LiftWp.
