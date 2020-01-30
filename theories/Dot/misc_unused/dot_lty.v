@@ -45,6 +45,10 @@ Section ldlty_ofe.
   Instance ldlty_dist : Dist (ldlty Σ) := λ n A B, iso A ≡{n}≡ iso B.
   Lemma ldlty_ofe_mixin : OfeMixin (ldlty Σ).
   Proof. exact: (iso_ofe_mixin iso). Qed.
+
+  Definition LDltyO ol (P : env -d> iPPredO dm Σ) := LDlty ol P.
+  Global Instance : Proper ((≡) ==> (≡)) (LDltyO ol).
+  Proof. by solve_proper_prepare. Qed.
 End ldlty_ofe.
 Canonical Structure ldltyO Σ := OfeT (ldlty Σ) ldlty_ofe_mixin.
 
@@ -116,8 +120,10 @@ Section SemTypes.
   Implicit Types (τ : oltyO Σ 0).
    (* (ψ : vl -d> iPropO Σ) (φ : envD Σ)  *)
 
-  Program Definition lift_dinterp_vl l (TD : dlty Σ): olty Σ 0 :=
+  Program Definition lift_dinterp_vl l (TD : dltyO Σ): oltyO Σ 0 :=
     olty0 (λI ρ v, ∃ d, ⌜v @ l ↘ d⌝ ∧ TD ρ d).
+  Global Instance Proper_lift_dinterp_vl l : Proper ((≡) ==> (≡)) (lift_dinterp_vl l).
+  Proof. solve_proper_ho_equiv. Qed.
 
   (* Rewrite using (higher) semantic kinds! *)
   Definition oDTMem τ1 τ2 : dltyO Σ := mkDlty (λI ρ d,
@@ -128,16 +134,24 @@ Section SemTypes.
   Proof. solve_proper_ho_equiv. Qed.
 
   Definition oLDTMem l T1 T2 := LDlty (Some l) (oDTMem T1 T2).
-  Definition oTTMem  l τ1 τ2 := lift_dinterp_vl l (oDTMem τ1 τ2).
+  Global Instance Proper_oLDTMem : Proper ((≡) ==> (≡) ==> (≡)) (oLDTMem l).
+  Proof. solve_proper. Qed.
+
+  Definition oTTMem l τ1 τ2 := lift_dinterp_vl l (oDTMem τ1 τ2).
+  Global Instance Proper_oTTMem : Proper ((≡) ==> (≡) ==> (≡)) (oTTMem l).
+  Proof. solve_proper_ho_equiv. Qed.
 
   Definition oDVMem τ : dltyO Σ := mkDlty (λI ρ d,
     ∃ pmem, ⌜d = dpt pmem⌝ ∧ path_wp pmem (oClose τ ρ)).
-
   Global Instance Proper_oDVMem : Proper ((≡) ==> (≡)) oDVMem.
   Proof. solve_proper_ho_equiv. Qed.
 
   Definition oLDVMem l T := LDlty (Some l) (oDVMem T).
+  Global Instance Proper_oLDVMem : Proper ((≡) ==> (≡)) (oLDVMem l).
+  Proof. solve_proper. Qed.
   Definition oTVMem  l τ := lift_dinterp_vl l (oDVMem τ).
+  Global Instance Proper_oTVMem : Proper ((≡) ==> (≡)) (oTVMem l).
+  Proof. solve_proper_ho_equiv. Qed.
 
   Definition oTSel {i} p l : oltyO Σ i :=
     Olty (λI args ρ v, path_wp p.|[ρ]
