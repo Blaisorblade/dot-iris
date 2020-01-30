@@ -37,98 +37,6 @@ Section logrel.
   Notation D := (vl -d> iPropO Σ).
   Implicit Types (interp φ : envD Σ) (ψ : D).
 
-  (* Definition def_interp_vmem interp : envPred dm Σ :=
-    λ ρ d, (∃ pmem, ⌜d = dpt pmem⌝ ∧ path_wp pmem (interp ρ))%I.
-  Global Arguments def_interp_vmem /.
-
-
-  Definition lift_dinterp_vl l (dinterp: envPred dm Σ): envD Σ :=
-    λ ρ v, (∃ d, ⌜v @ l ↘ d⌝ ∧ dinterp ρ d)%I.
-  Global Arguments lift_dinterp_vl /.
-
-  Definition interp_vmem l interp : envD Σ :=
-    lift_dinterp_vl l (def_interp_vmem interp).
-  Global Arguments interp_vmem /.
-
-  Definition interp_and interp1 interp2 : envD Σ :=
-    λ ρ v, (interp1 ρ v ∧ interp2 ρ v)%I.
-  Global Arguments interp_and /.
-
-  Definition interp_or interp1 interp2 : envD Σ :=
-    λ ρ v, (interp1 ρ v ∨ interp2 ρ v)%I.
-  Global Arguments interp_or /.
-
-  Definition interp_later interp : envD Σ :=
-    λ ρ v, (▷ interp ρ v)%I.
-  Global Arguments interp_later /.
-
-  Definition interp_prim b : envD Σ := λ ρ v, ⌜pure_interp_prim b v⌝%I.
-  Global Arguments interp_prim /.
-
-  Definition interp_top : envD Σ := λ ρ v, True%I.
-  Global Arguments interp_top /.
-
-  Definition interp_bot : envD Σ := λ ρ v, False%I.
-  Global Arguments interp_bot /.
-
-  Definition interp_expr interp : envPred tm Σ :=
-    λ ρ t, (□ WP t {{ interp ρ }})%I.
-  Global Arguments interp_expr /.
-
-  (* Paolo: This definition is contractive (similarly to what's useful for
-     equi-recursive types).
-     However, I am not sure we need this; it'd be good to
-     write an example where this makes a difference.
-     I think that would be something like
-     nu x. { T = TNat; U = x.T -> x.T }:
-     mu (x: {T <: TNat; U <: x.T -> TNat}).
-     If the function type constructor is not contractive but only non-expansive,
-     typechecking this example needs to establish x.T <: TNat having in context
-     only x: {T <: TNat; U <: x.T -> TNat}.
-   *)
-  Definition interp_forall interp1 interp2 : envD Σ :=
-    λ ρ v,
-    (∃ t, ⌜ v = vabs t ⌝ ∧
-     □ ∀ w, ▷ interp1 ρ w → ▷ interp_expr interp2 (w .: ρ) t.|[w/])%I.
-  Global Arguments interp_forall /.
-
-  Definition interp_mu interp : envD Σ :=
-    λ ρ v, interp (v .: ρ) v.
-  Global Arguments interp_mu /.
-
-  Definition interp_sing p : envD Σ :=
-    λ ρ v, ⌜alias_paths p.|[ρ] (pv v)⌝%I.
-  Global Arguments interp_sing /.
-
-  Global Instance interp : TyInterp ty Σ := fix interp (T : ty) : envD Σ :=
-    let _ := interp : TyInterp ty Σ in
-    match T with
-    | TTMem l L U => interp_tmem l ⟦ L ⟧ ⟦ U ⟧
-    | TVMem l T' => interp_vmem l ⟦ T' ⟧
-    | TAnd T1 T2 => interp_and ⟦ T1 ⟧ ⟦ T2 ⟧
-    | TOr T1 T2 => interp_or ⟦ T1 ⟧ ⟦ T2 ⟧
-    | TLater T => interp_later ⟦ T ⟧
-    | TPrim b => interp_prim b
-    | TTop => interp_top
-    | TBot => interp_bot
-    | TAll T1 T2 => interp_forall ⟦ T1 ⟧ ⟦ T2 ⟧
-    | TMu T => interp_mu ⟦ T ⟧
-    | TSel p l => interp_sel p l
-    | TSing p => interp_sing p
-    end%I.
-
-  Global Instance interp_lemmas: TyInterpLemmas ty Σ.
-  Proof.
-    split; induction T => sb1 sb2 w /=;
-      properness; rewrite /= ?scons_up_swap ?hsubst_comp; trivial; by f_equiv => ?.
-  Qed. *)
-
-  Notation "⟦ T ⟧ₑ" := (interp_expr ⟦ T ⟧).
-
-  (* Global Instance interp_persistent T ρ v :
-    Persistent (⟦ T ⟧ ρ v).
-  Proof. apply _. revert v ρ; induction T => w ρ /=; try apply _. Qed. *)
-
   (* Fixpoint def_interp_base (T : ty) : envPred dm Σ :=
     λ ρ d,
     match T with
@@ -164,18 +72,6 @@ Section logrel.
 
   Global Instance defs_interp_persistent T ρ ds : Persistent (defs_interp T ρ ds).
   Proof. induction T; try apply _. Qed.
-
-  Fixpoint interp_env (Γ : ctx) (ρ : var → vl) : iProp Σ :=
-    match Γ with
-    | T :: Γ' => interp_env Γ' (stail ρ) ∧ ⟦ T ⟧ ρ (shead ρ)
-    | nil => True
-    end%I.
-
-  Notation "⟦ Γ ⟧*" := (interp_env Γ).
-
-  Global Instance interp_env_persistent Γ ρ :
-    Persistent (⟦ Γ ⟧* ρ).
-  Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
 
   (** Definitions for semantic (definition) (sub)typing *)
   Definition idtp Γ T l d : iProp Σ :=
@@ -230,7 +126,6 @@ Section logrel.
 End logrel.
 
 (* Notation "d ↗ ψ" := (dm_to_type d ψ) (at level 20). *)
-(* Notation "⟦ Γ ⟧*" := (interp_env Γ). *)
 (* Notation "⟦ T ⟧ₑ" := (interp_expr ⟦ T ⟧). *)
 
 (*
@@ -265,18 +160,6 @@ Section logrel_lemmas.
   Lemma iterate_TLater_later i T ρ v:
     ⟦ iterate TLater i T ⟧ ρ v ≡ (▷^i ⟦ T ⟧ ρ v)%I.
   Proof. exact: iterate_TLater_later0. Qed. *)
-
-  (* Lemma interp_env_lookup Γ ρ T x:
-    Γ !! x = Some T →
-    ⟦ Γ ⟧* ρ -∗ ⟦ (shiftN x T) ⟧ ρ (ρ x).
-  Proof.
-    elim: Γ ρ x => [//|τ' Γ' IHΓ] ρ x Hx /=.
-    iDestruct 1 as "[Hg Hv]". move: x Hx => [ [->] | x Hx] /=.
-    - rewrite hsubst_id. by [].
-    - rewrite hrenS.
-      iApply (interp_weaken_one (shiftN x T)).
-      iApply (IHΓ (stail ρ) x Hx with "Hg").
-  Qed. *)
 
   Context {Γ}.
   Lemma Sub_Refl T i : Γ ⊨ T, i <: T, i.
