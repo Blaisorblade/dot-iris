@@ -36,6 +36,7 @@ Section typing_type_member_defs.
     move => [T'] [Hl] [<- [_ /is_stamped_nclosed_ty HclT]].
     iIntros "Hm". iExists (vopen (pty_interp T' vnil)). iSplitR.
     - iIntros "!%" (args ρ v). rewrite interp_subst_commute //.
+      (* Hack, needed because wellMappedφ_apply is too restrictive. *)
       by dependent destruction args.
     - iApply (wellMappedφ_apply with "Hm"). by rewrite lookup_fmap Hl.
   Qed.

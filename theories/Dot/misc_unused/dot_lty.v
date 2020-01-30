@@ -147,13 +147,13 @@ Section SemTypes.
   Definition oLDVMem l T := LDlty (Some l) (oDVMem T).
   Definition oTVMem  l τ := lift_dinterp_vl l (oDVMem τ).
 
-  Definition oTSel p l :=
-    olty0 (λI ρ v, path_wp p.|[ρ]
-      (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗n[ 0 ] ψ ∧ ▷ □ ψ vnil v)).
+  Definition oTSel {i} p l : oltyO Σ i :=
+    Olty (λI args ρ v, path_wp p.|[ρ]
+      (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗n[ i ] ψ ∧ ▷ □ ψ args v)).
 
-  Lemma oTSel_pv w l args ρ v :
+  Lemma oTSel_pv {i} w l args ρ v :
     oTSel (pv w) l args ρ v ⊣⊢
-      ∃ ψ d, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n[ 0 ] ψ ∧ ▷ □ ψ vnil v.
+      ∃ ψ d, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n[ i ] ψ ∧ ▷ □ ψ args v.
   Proof. by rewrite /= path_wp_pv. Qed.
 
   Definition oSing p : olty Σ 0.

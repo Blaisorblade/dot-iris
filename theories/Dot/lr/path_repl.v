@@ -19,31 +19,31 @@ Section path_repl.
   Section with_unary_lr.
   Implicit Types (Γ : ctx).
 
-  Lemma rewrite_ty_path_repl {p q T1 T2 ρ v}:
+  Lemma rewrite_ty_path_repl {p q T1 T2 args ρ v}:
     T1 ~Tp[ p := q ] T2 →
     alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
-    p⟦ T1 ⟧ vnil ρ v ≡ p⟦ T2 ⟧ vnil ρ v.
+    p⟦ T1 ⟧ args ρ v ≡ p⟦ T2 ⟧ args ρ v.
   Proof.
-    move => Hrew; move: v ρ.
-    induction Hrew => v ρ He /=; properness;
-      by [ exact: path_replacement_equiv | exact: rewrite_path_path_repl
+    move => Hrew; move: args ρ v.
+    induction Hrew => args ρ v He /=; properness;
+      try by [ exact: path_replacement_equiv | exact: rewrite_path_path_repl
          | apply IHHrew; rewrite ?hsubst_comp | | f_equiv => ?; exact: IHHrew].
   Qed.
 
-  Lemma rewrite_ty_path_repl_rtc {p q T1 T2 ρ v}:
+  Lemma rewrite_ty_path_repl_rtc {p q T1 T2 args ρ v}:
     T1 ~Tp[ p := q ]* T2 →
     alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
-    p⟦ T1 ⟧ vnil ρ v ≡ p⟦ T2 ⟧ vnil ρ v.
+    p⟦ T1 ⟧ args ρ v ≡ p⟦ T2 ⟧ args ρ v.
   Proof.
     move => Hr Hal.
     elim: Hr => [//|T {}T1 {}T2 Hr _ <-].
     apply (rewrite_ty_path_repl Hr Hal).
   Qed.
 
-  Lemma psubst_one_repl {T T' p v w ρ}:
+  Lemma psubst_one_repl {T T' args p v w ρ}:
     T .Tp[ p /]~ T' →
     alias_paths p.|[ρ] (pv v) →
-    p⟦ T ⟧ vnil (v .: ρ) w ≡ p⟦ T' ⟧ vnil ρ w.
+    p⟦ T ⟧ args (v .: ρ) w ≡ p⟦ T' ⟧ args ρ w.
   Proof.
     intros Hrepl Hal.
     rewrite -(interp_weaken_one T' (v .: ρ) _) -(rewrite_ty_path_repl_rtc Hrepl)

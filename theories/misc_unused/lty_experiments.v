@@ -121,7 +121,7 @@ Section with_lty.
   Implicit Types (Γ : sCtx Σ) (T τ : oltyO Σ 0).
 
   Definition sem_path_repl_one T p T' : iProp Σ :=
-    T' ≡ olty0 (λI ρ v, path_wp p (λ w, T vnil (w .: ρ) v)).
+    T' ≡ Olty (λI args ρ v, path_wp p (λ w, T args (w .: ρ) v)).
   Notation "T .sTp[ p /]~ T'" := (sem_path_repl_one T p T') (at level 65).
 
   (* Define semantic T1 ~sTp[ p := q ] T2 as
