@@ -221,9 +221,6 @@ Section SemTypes.
   Definition def_interp T l := lift_ldlty ld⟦ T ⟧ l.
   Notation "d[ l ]⟦ T ⟧" := (def_interp T l).
 
-  (* Definition Dslty' {Σ} (T : envPred dms Σ)
-   `{∀ ρ ds, Persistent (T ρ ds)} : env -> iPPred dms Σ := Dslty T. *)
-
   Program Definition defs_interp_and (interp1 interp2 : dslty Σ) : dslty Σ :=
     Dslty (λI ρ ds, interp1 ρ ds ∧ interp2 ρ ds).
 
