@@ -201,10 +201,11 @@ Section SemTypes.
     | TVMem l T' => oDVMem p⟦ T' ⟧
     | _ => mkDlty (λI _ _, False)
     end.
-  Notation "d⟦ T ⟧" := (def_interp_base T%ty).
-  Definition ldef_interp T := LDlty (label_of_ty T) (def_interp_base T).
-  Notation "ld⟦ T ⟧" := (ldef_interp T%ty).
+  Notation "d*⟦ T ⟧" := (def_interp_base T).
+  Definition ldef_interp T := LDlty (label_of_ty T) d*⟦ T ⟧.
+  Notation "ld⟦ T ⟧" := (ldef_interp T).
   Definition def_interp T l := lift_ldlty ld⟦ T ⟧ l.
+  Notation "d[ l ]⟦ T ⟧" := (def_interp T l).
 
   (* Definition Dslty' {Σ} (T : envPred dms Σ)
    `{∀ ρ ds, Persistent (T ρ ds)} : env -> iPPred dms Σ := Dslty T. *)
@@ -215,14 +216,14 @@ Section SemTypes.
   Definition lift_dinterp_dms (T : ldltyO Σ) : dsltyO Σ := Dslty (λI ρ ds,
     ∃ l d, ⌜ dms_lookup l ds = Some d ⌝ ∧ lift_ldlty T l ρ d).
 
+  Reserved Notation "ds⟦ T ⟧".
   Fixpoint defs_interp T : dslty Σ :=
     match T with
-    | TAnd T1 T2 => defs_interp_and (defs_interp T1) (defs_interp T2)
+    | TAnd T1 T2 => defs_interp_and ds⟦T1⟧ ds⟦T2⟧
     | TTop => Dslty (λI ρ ds, True)
-    | _ => lift_dinterp_dms (ldef_interp T)
-    end.
-
-  Notation "ds⟦ T ⟧" := (defs_interp T%ty).
+    | _ => lift_dinterp_dms (ld⟦ T ⟧)
+    end
+  where "ds⟦ T ⟧" := (defs_interp T).
 
   Definition idtp  Γ T l d     := sdtp  p⟦Γ⟧* ld⟦T⟧ l d.
   Definition idstp Γ T ds      := sdstp p⟦Γ⟧* ds⟦T⟧ ds.
@@ -246,19 +247,15 @@ Section SemTypes.
   Global Instance sstpi_persistent Γ T1 T2 i j : IntoPersistent' (sstpi Γ T1 T2 i j) | 0 := _.
   Global Instance sptp_persistent Γ T p i : IntoPersistent' (sptp Γ T p i) | 0 := _.
 End SemTypes.
-(* Notation "d⟦ T ⟧" := (def_interp_base T%ty). *)
-Notation "d⟦ T ⟧" := (ldef_interp T%ty).
-Notation "ds⟦ T ⟧" := (defs_interp T%ty).
+
+Notation "d*⟦ T ⟧" := (def_interp_base T).
+Notation "ld⟦ T ⟧" := (ldef_interp T).
+Notation "d[ l ]⟦ T ⟧" := (def_interp T l).
+Notation "ds⟦ T ⟧" := (defs_interp T).
 
 Notation "d ↗ ψ" := (dm_to_type 0 d ψ) (at level 20).
 Notation "p⟦ T ⟧ₑ" := (interp_expr p⟦ T ⟧).
 Notation "⟦ Γ ⟧*" := s⟦ p⟦ Γ ⟧* ⟧*.
-
-(* Notation "⟦ T ⟧ₑ" := (interp_expr p⟦ T ⟧). *)
-(* Definition interp_env (Γ : ctx) : env -d> iPropO Σ := env_oltyped (pty_interpO <$> Γ).
-Global Arguments interp_env !_ _ /.
-Notation "⟦ Γ ⟧*" := (interp_env Γ). *)
-(* Notation "⟦ Γ ⟧*" := (env_oltyped (pty_interpO <$> Γ)). *)
 
 (** Single-definition typing *)
 Notation "Γ ⊨ {  l := d  } : T" := (idtp Γ T l d) (at level 74, d, l, T at next level).
