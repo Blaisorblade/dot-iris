@@ -176,7 +176,7 @@ Arguments dlang_ectxi_lang : simpl never. *)
     iIntros "#HeT !>" (ρ) "#HG /= !>".
     rewrite -wp_value'. iExists _; iSplit; first done.
     iIntros "!>" (v) "#Hv"; rewrite up_sub_compose.
-    (* Factor ⪭ out of [⟦ Γ ⟧* ρ] before [iNext]. *)
+    (* Factor ⪭ out of [G⟦ Γ ⟧ ρ] before [iNext]. *)
     iNext.
     iApply ("HeT" $! (v .: ρ) with "[$HG]").
     by rewrite (hoEnvD_weaken_one (olty_car T1) _ _ _) stail_eq.

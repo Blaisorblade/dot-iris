@@ -52,7 +52,7 @@ Section path_repl.
 
   Lemma singleton_aliasing Γ p q ρ i :
     Γ ⊨p p : TSing q, i -∗
-    ⟦ Γ ⟧* ρ -∗ ▷^i alias_pathsI p.|[ρ] q.|[ρ].
+    G⟦ Γ ⟧ ρ -∗ ▷^i alias_pathsI p.|[ρ] q.|[ρ].
   Proof.
     iIntros "#Hep #Hg". iSpecialize ("Hep" with "Hg").
     iNext i; iDestruct "Hep" as %Hep; iIntros "!%".

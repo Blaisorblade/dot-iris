@@ -263,7 +263,7 @@ Notation "d[ l ]⟦ T ⟧" := (def_interp T l).
 Notation "ds⟦ T ⟧" := (defs_interp T).
 
 Notation "d ↗ ψ" := (dm_to_type 0 d ψ) (at level 20).
-Notation "⟦ Γ ⟧*" := s⟦ V⟦ Γ ⟧* ⟧*.
+Notation "G⟦ Γ ⟧" := s⟦ V⟦ Γ ⟧* ⟧*.
 
 (** Single-definition typing *)
 Notation "Γ ⊨ {  l := d  } : T" := (idtp Γ T l d) (at level 74, d, l, T at next level).

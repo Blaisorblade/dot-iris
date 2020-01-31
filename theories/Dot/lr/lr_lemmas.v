@@ -124,7 +124,7 @@ Definition ty_sub `{HdlangG: dlangG Σ} T1 T2 := ∀ ρ v, V⟦ T1 ⟧ vnil ρ v
 Notation "⊨T T1 <: T2" := (ty_sub T1 T2) (at level 74, T1, T2 at next level).
 Typeclasses Opaque ty_sub.
 
-Definition ctx_sub `{HdlangG: dlangG Σ} Γ1 Γ2 : Prop := ∀ ρ, ⟦ Γ1 ⟧* ρ -∗ ⟦ Γ2 ⟧* ρ.
+Definition ctx_sub `{HdlangG: dlangG Σ} Γ1 Γ2 : Prop := ∀ ρ, G⟦ Γ1 ⟧ ρ -∗ G⟦ Γ2 ⟧ ρ.
 Notation "⊨G Γ1 <:* Γ2" := (ctx_sub Γ1 Γ2) (at level 74, Γ1, Γ2 at next level).
 Typeclasses Opaque ctx_sub.
 
@@ -160,7 +160,7 @@ Section CtxSub.
     Proper (flip ty_sub ==> flip ty_sub) TLater.
   Proof. apply: flip_proper_2. Qed.
 
-  Lemma env_TLater_commute Γ ρ : ⟦ TLater <$> Γ ⟧* ρ ⊣⊢ ▷ ⟦ Γ ⟧* ρ.
+  Lemma env_TLater_commute Γ ρ : G⟦ TLater <$> Γ ⟧ ρ ⊣⊢ ▷ G⟦ Γ ⟧ ρ.
   Proof.
     elim: Γ ρ => [| T Γ IH] ρ; cbn; [|rewrite IH later_and];
       iSplit; by [iIntros "$" | iIntros "_"].
@@ -300,7 +300,7 @@ Section LambdaIntros.
     iIntros "#HeT !>" (ρ) "#HG /= !>".
     rewrite -wp_value'. iExists _; iSplit; first done.
     iIntros "!>" (v) "#Hv"; rewrite up_sub_compose.
-    (* Factor ⪭ out of [⟦ Γ ⟧* ρ] before [iNext]. *)
+    (* Factor ⪭ out of [G⟦ Γ ⟧ ρ] before [iNext]. *)
     rewrite (ctx_sub_TLater_unTLater _ _) env_TLater_commute.
     iNext.
     iApply ("HeT" $! (v .: ρ) with "[$HG]").

@@ -593,7 +593,7 @@ Section Sec.
   Lemma T_self_sem_psingleton Γ p T i :
     Γ ⊨p p : T , i -∗
     (* Γ ⊨p p : sem_psingleton p , i *)
-    □∀ ρ, ⟦Γ⟧* ρ →
+    □∀ ρ, G⟦Γ⟧ ρ →
       ▷^i path_wp (p.|[ρ])
       (λ v, sem_psingleton p ρ v).
   Proof.

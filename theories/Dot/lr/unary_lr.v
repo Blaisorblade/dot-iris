@@ -75,15 +75,15 @@ Section logrel.
 
   (** Definitions for semantic (definition) (sub)typing *)
   Definition idtp Γ T l d : iProp Σ :=
-    □∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)] ⌝ → ⟦Γ⟧* ρ → def_interp T l ρ d.|[ρ].
+    □∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)] ⌝ → G⟦Γ⟧ ρ → def_interp T l ρ d.|[ρ].
   Global Arguments idtp /.
 
   Definition idstp Γ T ds : iProp Σ :=
-    ⌜wf_ds ds⌝ ∧ □∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → ⟦Γ⟧* ρ → defs_interp T ρ ds.|[ρ].
+    ⌜wf_ds ds⌝ ∧ □∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → G⟦Γ⟧ ρ → defs_interp T ρ ds.|[ρ].
   Global Arguments idstp /.
 
   Definition ietp Γ T e : iProp Σ :=
-    □∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ₑ ρ (e.|[ρ]).
+    □∀ ρ, G⟦Γ⟧ ρ → ⟦T⟧ₑ ρ (e.|[ρ]).
   Global Arguments ietp /. *)
 
   (** Indexed Subtyping. Defined on closed values. We must require closedness
@@ -97,21 +97,21 @@ Section logrel.
       It seems easier, in subtyping judgment, to use the weaker choice: that is,
       just delay individual types via (Γ ⊨ TLater T <: TLater U), that is
 
-      (□∀ v ρ, ⟦Γ⟧* ρ → ▷ ⟦T1⟧ ρ v → ▷ ⟦T2⟧ ρ v),
+      (□∀ v ρ, G⟦Γ⟧ ρ → ▷ ⟦T1⟧ ρ v → ▷ ⟦T2⟧ ρ v),
 
       instead of instead of introducing some notation to write
 
-      (□∀ v ρ, ⟦Γ⟧* ρ → ▷ (⟦T1⟧ ρ v → ⟦T2⟧ ρ v)).
+      (□∀ v ρ, G⟦Γ⟧ ρ → ▷ (⟦T1⟧ ρ v → ⟦T2⟧ ρ v)).
 
       And that forces using the same implication in the logical relation
       (unlike I did originally). *)
   (* Definition istpi Γ T1 T2 i j: iProp Σ :=
-    □∀ ρ v, ⟦Γ⟧* ρ → ▷^i ⟦T1⟧ ρ v → ▷^j ⟦T2⟧ ρ v.
+    □∀ ρ v, G⟦Γ⟧ ρ → ▷^i ⟦T1⟧ ρ v → ▷^j ⟦T2⟧ ρ v.
 
   Global Arguments istpi /.
 
   Definition iptp Γ T p i: iProp Σ :=
-    □∀ ρ, ⟦Γ⟧* ρ →
+    □∀ ρ, G⟦Γ⟧ ρ →
      ▷^i path_wp p.|[ρ] (λ v, ⟦T⟧ ρ v).
   Global Arguments iptp /.
 
