@@ -1,7 +1,7 @@
-From iris.proofmode Require Import tactics.
-From D Require Import iris_prelude.
+(* From iris.proofmode Require Import tactics.
+From D Require Import iris_prelude. *)
 From D.Dot Require Export dlang_inst path_wp dot_lty.
-From D.Dot Require Import lr_syn_aux.
+(* From D.Dot Require Import lr_syn_aux. *)
 
 (** Override notation from [dlang] to specify scope. *)
 (* Notation "⟦ T ⟧" := (ty_interp T%ty). *)
@@ -162,23 +162,8 @@ Section logrel_lemmas.
   Proof. exact: iterate_TLater_later0. Qed. *)
 
   Context {Γ}.
-  Lemma Sub_Refl T i : Γ ⊨ T, i <: T, i.
-  Proof. by iIntros "!> **". Qed.
-
-  Lemma Sub_Trans T1 T2 T3 i1 i2 i3 : Γ ⊨ T1, i1 <: T2, i2 -∗
-                                      Γ ⊨ T2, i2 <: T3, i3 -∗
-                                      Γ ⊨ T1, i1 <: T3, i3.
-  Proof.
-    iIntros "#Hsub1 #Hsub2 !> * #Hg #HT".
-    iApply ("Hsub2" with "[//] (Hsub1 [//] [//])").
-  Qed.
-
-  Lemma Sub_Eq T U i j :
-    Γ ⊨ T, i <: U, j ⊣⊢
-    Γ ⊨ iterate TLater i T, 0 <: iterate TLater j U, 0.
-  Proof. by rewrite /istpi/=; setoid_rewrite iterate_TLater_later. Qed.
 End logrel_lemmas.
-
+(*
 From D Require Import swap_later_impl.
 Import dlang_adequacy adequacy.
 
@@ -195,4 +180,4 @@ Qed.
 Corollary safety_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e T
   (Hwp : ∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T):
   safe e.
-Proof. apply adequate_safe, (adequacy_dot_sem _ e _ T), Hwp; naive_solver. Qed.
+Proof. apply adequate_safe, (adequacy_dot_sem _ e _ T), Hwp; naive_solver. Qed. *)

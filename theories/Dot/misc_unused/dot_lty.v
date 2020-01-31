@@ -1,7 +1,6 @@
 From iris.proofmode Require Import tactics.
 From D Require Export iris_prelude proper lty lr_syn_aux.
-From D Require Import ty_interp_subst_lemmas pty_interp_subst_lemmas
-  swap_later_impl.
+From D Require Import pty_interp_subst_lemmas swap_later_impl.
 From D.Dot Require Import syn syn.path_repl dlang_inst path_wp.
 From D.pure_program_logic Require Import lifting.
 
@@ -399,6 +398,22 @@ Section SampleTypingLemmas.
       rewrite /= (hoEnvD_subst_one T2 v2 v) //.
   Qed.
 
+  Lemma sSub_Refl T i : Γ s⊨ T, i <: T, i.
+  Proof. by iIntros "!> **". Qed.
+
+  Lemma sSub_Trans T1 T2 T3 i1 i2 i3 : Γ s⊨ T1, i1 <: T2, i2 -∗
+                                      Γ s⊨ T2, i2 <: T3, i3 -∗
+                                      Γ s⊨ T1, i1 <: T3, i3.
+  Proof.
+    iIntros "#Hsub1 #Hsub2 !> * #Hg #HT".
+    iApply ("Hsub2" with "[//] (Hsub1 [//] [//])").
+  Qed.
+
+  Lemma sSub_Eq T U i j :
+    Γ s⊨ T, i <: U, j ⊣⊢
+    Γ s⊨ iterate oLater i T, 0 <: iterate oLater j U, 0.
+  Proof. cbn. by setoid_rewrite s_iterate_TLater_later. Qed.
+
   Lemma pty_interp_subst (T : ty) σ : V⟦ T.|[σ] ⟧ ≡ V⟦ T ⟧.|[σ].
   Proof. intros ???; apply interp_subst_compose_ind. Qed.
 
@@ -460,20 +475,8 @@ Section Propers.
 
 End Propers.
 
-
-Include TyInterpLemmas VlSorts dlang_inst.
-
-Notation "⟦ T ⟧" := (ty_interp T%ty).
-
 Section defs.
   Context `{HdotG: dlangG Σ}.
-
-  (* Wrap this into ty_interp to reuse lemmas. *)
-  Global Instance pto_ty_interp : TyInterp ty Σ := flip pty_interpO vnil.
-  Global Instance interp_persistent T ρ v : Persistent (⟦ T ⟧ ρ v) := _.
-
-  Global Arguments pto_ty_interp _ /.
-  Global Arguments ty_interp {_ _ _} _ /.
 
   (* We don't expose the binding lemmas on this wrapper, only on the
      underlying interface. *)
@@ -496,6 +499,19 @@ Section defs.
   Qed.
 
   Context {Γ : ctx}.
+
+  Lemma Sub_Refl T i : Γ ⊨ T, i <: T, i.
+  Proof. apply sSub_Refl. Qed.
+
+  Lemma Sub_Trans T1 T2 T3 i1 i2 i3 : Γ ⊨ T1, i1 <: T2, i2 -∗
+                                      Γ ⊨ T2, i2 <: T3, i3 -∗
+                                      Γ ⊨ T1, i1 <: T3, i3.
+  Proof. apply sSub_Trans. Qed.
+
+  Lemma Sub_Eq T U i j :
+    Γ ⊨ T, i <: U, j ⊣⊢
+    Γ ⊨ iterate TLater i T, 0 <: iterate TLater j U, 0.
+  Proof. by rewrite /istpi sSub_Eq !iterate_TLater_oLater. Qed.
 
   Lemma T_Var x τ
     (Hlook : Γ !! x = Some τ):
@@ -579,7 +595,7 @@ Proof.
 Qed.
 
 Theorem adequacy_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e Ψ T
-  (Himpl : ∀ (Hdlang: dlangG Σ) v, ⟦ T ⟧ ids v -∗ ⌜Ψ v⌝)
+  (Himpl : ∀ (Hdlang: dlangG Σ) v, V⟦ T ⟧ vnil ids v -∗ ⌜Ψ v⌝)
   (Hlog : ∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T):
   ∀ σ, adequate NotStuck e σ (λ v _, Ψ v).
 Proof. exact: (s_adequacy_dot_sem Σ e Ψ (λ _, V⟦T⟧)). Qed.
@@ -594,3 +610,8 @@ Corollary safety_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e T
   (Hwp : ∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T):
   safe e.
 Proof. exact: (s_safety_dot_sem Σ e (λ _, V⟦T⟧)). Qed.
+
+(** Backward compatibility. *)
+Definition ty_interp `{!dlangG Σ} T : envD Σ := pty_interpO T vnil.
+Notation "⟦ T ⟧" := (ty_interp T).
+Arguments ty_interp {_ _} _ /.
