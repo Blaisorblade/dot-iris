@@ -13,7 +13,7 @@ Notation "V⟦ T ⟧" := (pty_interpO T).
 Global Arguments pty_interpO {_ _ _} !_ /.
 
 Definition pty_interp `{PTyInterp ty Σ} : ty -> hoEnvD Σ 0 := pty_interpO.
-Notation "⟦ g ⟧g" := (fmap (M := gmap stamp) pty_interp g).
+Notation "Vs⟦ g ⟧" := (fmap (M := gmap stamp) pty_interp g).
 Global Arguments pty_interp /.
 
 Module persistent_ty_interp_lemmas.

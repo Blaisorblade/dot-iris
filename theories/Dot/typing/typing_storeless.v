@@ -88,7 +88,7 @@ Inductive typed Γ g : tm → ty → Prop :=
 (* | Sem_typed e T :
     is_stamped_ty (length Γ) g T →
     is_stamped_tm (length Γ) g e →
-    (∀ `{!dlangG Σ} `{!SwapPropI Σ}, Γ ⊨[ ⟦ g ⟧g ] e : T) →
+    (∀ `{!dlangG Σ} `{!SwapPropI Σ}, Γ ⊨[ Vs⟦ g ⟧ ] e : T) →
     Γ v⊢ₜ[ g ] e : T *)
 where "Γ v⊢ₜ[ g ] e : T " := (typed Γ g e T)
 with dms_typed Γ g : dms → ty → Prop :=
@@ -176,7 +176,7 @@ with path_typed Γ g : path → ty → nat → Prop :=
 (* | sem_ptyped p T i :
     is_stamped_ty (length Γ) g T →
     is_stamped_path (length Γ) g p →
-    (∀ `{!dlangG Σ} `{!SwapPropI Σ}, Γ ⊨p[ ⟦ g ⟧g ] p : T, i) →
+    (∀ `{!dlangG Σ} `{!SwapPropI Σ}, Γ ⊨p[ Vs⟦ g ⟧ ] p : T, i) →
     Γ v⊢ₚ[ g ] p : T, i *)
 where "Γ v⊢ₚ[ g ] p : T , i" := (path_typed Γ g p T i)
 (* Γ v⊢ₜ[ g ] T1, i1 <: T2, i2 means that TLater^i1 T1 <: TLater^i2 T2. *)
@@ -316,7 +316,7 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
 (* | Sem_stp T1 T2 i1 i2 :
     is_stamped_ty (length Γ) g T1 →
     is_stamped_ty (length Γ) g T2 →
-    (∀ `{!dlangG Σ} `{!SwapPropI Σ}, Γ ⊨[ ⟦ g ⟧g ] T1, i1 <: T2, i2) →
+    (∀ `{!dlangG Σ} `{!SwapPropI Σ}, Γ ⊨[ Vs⟦ g ⟧ ] T1, i1 <: T2, i2) →
     Γ v⊢ₜ[ g ] T1, i1 <: T2, i2 *)
 where "Γ v⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ g T1 i1 T2 i2).
 

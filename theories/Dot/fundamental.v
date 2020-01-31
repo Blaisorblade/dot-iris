@@ -17,15 +17,15 @@ Section fundamental.
     end.
 
   Fixpoint fundamental_dm_typed Γ g l d T (HT: Γ v⊢[ g ]{ l := d } : T) { struct HT }:
-    Γ ⊨[ ⟦ g ⟧g ] { l := d } : T with
+    Γ ⊨[ Vs⟦ g ⟧ ] { l := d } : T with
   fundamental_dms_typed Γ g ds T (HT: Γ v⊢ds[ g ] ds : T) { struct HT }:
-    Γ ⊨ds[ ⟦ g ⟧g ] ds : T with
+    Γ ⊨ds[ Vs⟦ g ⟧ ] ds : T with
   fundamental_subtype Γ g T1 i1 T2 i2 (HT: Γ v⊢ₜ[ g ] T1, i1 <: T2, i2) { struct HT }:
-    Γ ⊨[ ⟦ g ⟧g ] T1, i1 <: T2, i2 with
+    Γ ⊨[ Vs⟦ g ⟧ ] T1, i1 <: T2, i2 with
   fundamental_typed Γ g e T (HT: Γ v⊢ₜ[ g ] e : T) { struct HT }:
-    Γ ⊨[ ⟦ g ⟧g ] e : T with
+    Γ ⊨[ Vs⟦ g ⟧ ] e : T with
   fundamental_path_typed Γ g p T i (HT : Γ v⊢ₚ[ g ] p : T, i) { struct HT }:
-    Γ ⊨p[ ⟦ g ⟧g ] p : T, i.
+    Γ ⊨p[ Vs⟦ g ⟧ ] p : T, i.
   Proof.
     - iIntros "#Hm"; induction HT.
       + iApply D_Typ_Abs; by [> iApply fundamental_subtype .. |
@@ -116,7 +116,7 @@ but any result value they produce also satisfies any properties that follow from
 semantic type. *)
 Theorem adequacy_mapped_semtyping Σ `{!dlangPreG Σ} `{!SwapPropI Σ} e g Ψ T
   (Himpl : ∀ `(!dlangG Σ) v, ⟦ T ⟧ ids v -∗ ⌜Ψ v⌝)
-  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), [] ⊨[ ⟦ g ⟧g ] e : T):
+  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), [] ⊨[ Vs⟦ g ⟧ ] e : T):
   ∀ σ, adequate NotStuck e σ (λ v _, Ψ v).
 Proof.
   eapply (adequacy_dot_sem Σ e _ T Himpl).
@@ -125,7 +125,7 @@ Qed.
 
 (** Theorem 5.5: safety of semantic typing. Corollary of [adequacy_mapped_semtyping]. *)
 Corollary safety_mapped_semtyping Σ `{!dlangPreG Σ} `{!SwapPropI Σ} e g T
-  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), [] ⊨[ ⟦ g ⟧g ] e : T):
+  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), [] ⊨[ Vs⟦ g ⟧ ] e : T):
   safe e.
 Proof.
   eapply adequate_safe, (adequacy_mapped_semtyping _ e g _ T), Hlog;
@@ -154,14 +154,14 @@ Qed.
 
 (** Normalization for gDOT paths. *)
 Lemma ipwp_gs_adequacy Σ `{dlangPreG Σ} `{SwapPropI Σ} g p T i
-  (Hwp : ∀ (Hdlang : dlangG Σ) `(!SwapPropI Σ), [] ⊨p[ ⟦ g ⟧g ] p : T , i):
+  (Hwp : ∀ (Hdlang : dlangG Σ) `(!SwapPropI Σ), [] ⊨p[ Vs⟦ g ⟧ ] p : T , i):
   terminates (path2tm p).
 Proof.
   eapply (@soundness (iResUR Σ) _ i).
   apply (bupd_plain_soundness _).
   iMod (gen_iheap_init (L := stamp) ∅) as (hG) "Hgs".
   set (DLangΣ := DLangG Σ _ hG).
-  iMod (@transfer_empty _ DLangΣ ⟦ g ⟧g with "Hgs") as "Hgs".
+  iMod (@transfer_empty _ DLangΣ Vs⟦ g ⟧ with "Hgs") as "Hgs".
   iApply ipwp_terminates.
   iApply (Hwp DLangΣ with "Hgs").
 Qed.

@@ -100,7 +100,7 @@ Section Example.
 
   Lemma wellMappedφ_g0 s T:
     s ↝n[ 0 ] V⟦ T ⟧ -∗
-    wellMappedφ (⟦ g0 s T ⟧g).
+    wellMappedφ (Vs⟦ g0 s T ⟧).
   Proof.
     iIntros "Hs"; rewrite fmap_insert.
     iApply (wellMappedφ_insert with "[] Hs"); iApply wellMappedφ_empty.
@@ -144,7 +144,7 @@ Section Example.
     eauto 10.
     Restart. *)
     iIntros "#Hs".
-    (* iAssert (wellMappedφ (⟦ <[ s := T ]>∅ ⟧g)) as "#Hw". *)
+    (* iAssert (wellMappedφ (Vs⟦ <[ s := T ]>∅ ⟧)) as "#Hw". *)
     iApply fundamental_typed; last by iApply (wellMappedφ_g0 with "Hs").
     have Hst: is_stamped_ty (length Γ) (<[s:=T]> ∅) T.
     exact: unstamped_stamped_type.
