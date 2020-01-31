@@ -11,8 +11,8 @@ Section Sec.
 
   Lemma lift_dinterp_dms_vl_commute T ds ρ l:
     label_of_ty T = Some l →
-    lift_dinterp_dms ld⟦T⟧ ρ (selfSubst ds) -∗
-    lift_dinterp_vl l d*⟦T⟧ vnil ρ (vobj ds).
+    lift_dinterp_dms LD⟦T⟧ ρ (selfSubst ds) -∗
+    lift_dinterp_vl l D*⟦T⟧ vnil ρ (vobj ds).
   Proof.
     rewrite /lift_dinterp_dms /=. iIntros (?).
     iDestruct 1 as (?l d ?) "[% H]"; simplify_eq/=.
@@ -20,7 +20,7 @@ Section Sec.
   Qed.
 
   Lemma lift_dsinterp_dms_vl_commute T ds ρ:
-    ds⟦T⟧ ρ (selfSubst ds) -∗
+    Ds⟦T⟧ ρ (selfSubst ds) -∗
     ⟦T⟧ ρ (vobj ds).
   Proof.
     iIntros "H".
@@ -33,8 +33,8 @@ Section Sec.
   Qed.
 
   Lemma def2defs_head {T l ρ d ds}:
-    d[ l ]⟦T⟧ ρ d -∗
-    lift_dinterp_dms ld⟦T⟧ ρ ((l, d) :: ds).
+    D[ l ]⟦T⟧ ρ d -∗
+    lift_dinterp_dms LD⟦T⟧ ρ ((l, d) :: ds).
   Proof. iIntros; iExists l, d. auto. Qed.
 
   Lemma lift_dinterp_dms_mono T l ρ d ds:

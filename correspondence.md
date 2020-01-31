@@ -22,6 +22,9 @@ All file paths in this file are relative to the `theories/` folder.
 - Paper notation E⟦ T ⟧ would translate to E⟦ V⟦ T ⟧ ⟧ in this development;
   however, we generalize many definitions to semantic types.
 
+- Notations such as \overbar{V}⟦ g ⟧ or \overbar{D}⟦ T ⟧ translate to Vs⟦ g ⟧
+  and Ds⟦ T ⟧.
+
 ## Differences between our paper (and technical appendix) and our Coq development.
 
 - While in the paper unstamped and stamped DOT are represented using disjoint

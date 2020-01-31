@@ -213,11 +213,11 @@ Section SemTypes.
     | TVMem l T' => oDVMem V⟦ T' ⟧
     | _ => mkDlty (λI _ _, False)
     end.
-  Notation "d*⟦ T ⟧" := (def_interp_base T).
-  Definition ldef_interp T := LDlty (label_of_ty T) d*⟦ T ⟧.
-  Notation "ld⟦ T ⟧" := (ldef_interp T).
-  Definition def_interp T l ρ d := lift_ldlty l ρ d ld⟦ T ⟧.
-  Notation "d[ l ]⟦ T ⟧" := (def_interp T l).
+  Notation "D*⟦ T ⟧" := (def_interp_base T).
+  Definition ldef_interp T := LDlty (label_of_ty T) D*⟦ T ⟧.
+  Notation "LD⟦ T ⟧" := (ldef_interp T).
+  Definition def_interp T l ρ d := lift_ldlty l ρ d LD⟦ T ⟧.
+  Notation "D[ l ]⟦ T ⟧" := (def_interp T l).
 
   Program Definition defs_interp_and (interp1 interp2 : dslty Σ) : dslty Σ :=
     Dslty (λI ρ ds, interp1 ρ ds ∧ interp2 ρ ds).
@@ -225,17 +225,17 @@ Section SemTypes.
   Definition lift_dinterp_dms `{dlangG Σ} (T : ldltyO Σ) : dsltyO Σ := Dslty (λI ρ ds,
     ∃ l d, ⌜ dms_lookup l ds = Some d ⌝ ∧ lift_ldlty l ρ d T).
 
-  Reserved Notation "ds⟦ T ⟧".
+  Reserved Notation "Ds⟦ T ⟧".
   Fixpoint defs_interp T : dslty Σ :=
     match T with
-    | TAnd T1 T2 => defs_interp_and ds⟦T1⟧ ds⟦T2⟧
+    | TAnd T1 T2 => defs_interp_and Ds⟦T1⟧ Ds⟦T2⟧
     | TTop => Dslty (λI ρ ds, True)
-    | _ => lift_dinterp_dms (ld⟦ T ⟧)
+    | _ => lift_dinterp_dms (LD⟦ T ⟧)
     end
-  where "ds⟦ T ⟧" := (defs_interp T).
+  where "Ds⟦ T ⟧" := (defs_interp T).
 
-  Definition idtp  Γ T l d     := sdtp l d  V⟦Γ⟧* ld⟦T⟧.
-  Definition idstp Γ T ds      := sdstp ds  V⟦Γ⟧* ds⟦T⟧.
+  Definition idtp  Γ T l d     := sdtp l d  V⟦Γ⟧* LD⟦T⟧.
+  Definition idstp Γ T ds      := sdstp ds  V⟦Γ⟧* Ds⟦T⟧.
   Definition ietp  Γ T e       := setp e    V⟦Γ⟧* V⟦T⟧.
   Definition istpi Γ T1 T2 i j := sstpi i j V⟦Γ⟧* V⟦T1⟧ V⟦T2⟧.
   Definition iptp  Γ T p i     := sptp p i  V⟦Γ⟧* V⟦T⟧.
@@ -257,10 +257,10 @@ Section SemTypes.
   Global Instance sptp_persistent : IntoPersistent' (sptp p i   Γ T) | 0 := _.
 End SemTypes.
 
-Notation "d*⟦ T ⟧" := (def_interp_base T).
-Notation "ld⟦ T ⟧" := (ldef_interp T).
-Notation "d[ l ]⟦ T ⟧" := (def_interp T l).
-Notation "ds⟦ T ⟧" := (defs_interp T).
+Notation "D*⟦ T ⟧" := (def_interp_base T).
+Notation "LD⟦ T ⟧" := (ldef_interp T).
+Notation "D[ l ]⟦ T ⟧" := (def_interp T l).
+Notation "Ds⟦ T ⟧" := (defs_interp T).
 
 Notation "d ↗ ψ" := (dm_to_type 0 d ψ) (at level 20).
 Notation "G⟦ Γ ⟧" := s⟦ V⟦ Γ ⟧* ⟧*.
@@ -484,7 +484,7 @@ Section defs.
   Proof. split => /= *; apply persistent_ty_interp_lemmas.interp_subst_compose_ind. Qed. *)
 
   Lemma def_interp_tvmem_eq' l (T : ty) p ρ:
-    d[ l ]⟦ TVMem l T ⟧ ρ (dpt p) ⊣⊢
+    D[ l ]⟦ TVMem l T ⟧ ρ (dpt p) ⊣⊢
     path_wp p (V⟦ T ⟧ vnil ρ).
   Proof. apply def_interp_tvmem_eq. Qed.
 
