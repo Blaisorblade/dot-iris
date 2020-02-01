@@ -6,23 +6,23 @@ Set Implicit Arguments.
 
 Implicit Types (v: vl) (e: tm) (n: nat) (s: stamp) (g : stys).
 
+Definition leadsto_envD_equiv `{!dlangG Σ} {i} s σ (φ : hoEnvD Σ i) : iProp Σ :=
+  (∃ (φ' : hoEnvD Σ i),
+    ⌜φ ≡ (λ args ρ, φ' args (∞ σ.|[ρ]))⌝ ∧ s ↝n[ i ] φ')%I.
+Arguments leadsto_envD_equiv /.
+Notation "s ↝[  σ  ] φ" := (leadsto_envD_equiv s σ φ) (at level 20).
+
 Section typing_type_member_defs.
   Context `{!dlangG Σ}.
 
   (* Beware: here we must use [∞ σ.|[ρ]], not [∞ σ >> ρ],
-     since the former is what we need to prove [D_Typ_Abs] below.
+     since the former is what we need to prove [sD_Typ_Abs] below.
      Not sure that's still true if we change dm_to_type,
     but quite possibly yes.. *)
   (*
     Even if semantic types use infinite substitutions, we can still reuse the
     current stamping theory, based on finite substitutions.
   *)
-  Definition leadsto_envD_equiv {i} s σ (φ : hoEnvD Σ i) : iProp Σ :=
-    (∃ (φ' : hoEnvD Σ i),
-      ⌜φ ≡ (λ args ρ, φ' args (∞ σ.|[ρ]))⌝ ∧ s ↝n[ i ] φ')%I.
-  Arguments leadsto_envD_equiv /.
-  Notation "s ↝[  σ  ] φ" := (leadsto_envD_equiv s σ φ) (at level 20).
-
   Import stamp_transfer.
 
   Lemma extraction_to_leadsto_envD_equiv T g s σ n: T ~[ n ] (g, (s, σ)) →
@@ -34,12 +34,45 @@ Section typing_type_member_defs.
     - iApply (wellMappedφ_apply with "Hm"). by rewrite lookup_fmap Hl.
   Qed.
 
+  (* Alternative presentation *)
+  Lemma sD_Typ_Sub {Γ} L1 L2 U1 U2 s σ l:
+    Γ s⊨ oLater U1, 0 <: oLater U2, 0 -∗
+    Γ s⊨ oLater L2, 0 <: oLater L1, 0 -∗
+    Γ s⊨ { l := dtysem σ s } : oLDTMem l L1 U1 -∗
+    Γ s⊨ { l := dtysem σ s } : oLDTMem l L2 U2.
+  Proof.
+    iIntros "#HU #HL #Hd /= !>" (ρ Hpid) "#Hg"; iSplit => //=.
+    iDestruct ("Hd" $! ρ Hpid with "Hg") as (Hl ψ) "(Hφ & HLψ & HψU)".
+    iExists ψ. iFrame "Hφ".
+    iModIntro; repeat iSplit; iIntros (v) "#H".
+    - iApply "HLψ". by iApply "HL".
+    - iApply ("HU" with "Hg"). by iApply "HψU".
+  Qed.
+
+  Lemma sD_Typ0 {Γ} (T : oltyO Σ 0) s σ l:
+    s ↝[ σ ] T -∗
+    Γ s⊨ { l := dtysem σ s } : oLDTMem l T T.
+  Proof.
+    iIntros "#Hs /= !>" (ρ Hpid) "#Hg"; iSplit => //=.
+    iDestruct "Hs" as (φ Hγφ) "Hγ".
+    iExists (hoEnvD_inst (σ.|[ρ]) φ); iSplit.
+    by iApply (dm_to_type_intro with "Hγ").
+    (* Dropping [iNext], as follows, requires the instance in
+    https://gitlab.mpi-sws.org/iris/iris/issues/287. *)
+    iModIntro; repeat iSplit; iIntros (v) "#H "; iNext; rewrite /= (Hγφ _ _ _) //.
+    (* iModIntro; repeat iSplit; iIntros (v) "#H "; rewrite /= (Hγφ _ _ _) //. *)
+  Qed.
+
   Lemma sD_Typ_Abs {Γ} T L U s σ l:
     Γ s⊨ oLater T, 0 <: oLater U, 0 -∗
     Γ s⊨ oLater L, 0 <: oLater T, 0 -∗
     s ↝[ σ ] T -∗
     Γ s⊨ { l := dtysem σ s } : oLDTMem l L U.
   Proof.
+    (* iIntros "HTU HLT Hs".
+    iApply (sD_Typ_Sub with "HTU HLT").
+    by iApply sD_Typ0.
+  Qed. *)
     iIntros "#HTU #HLT #Hs /= !>" (ρ Hpid) "#Hg"; iSplit => //=.
     iDestruct "Hs" as (φ Hγφ) "Hγ".
     iExists (hoEnvD_inst (σ.|[ρ]) φ); iSplit.
@@ -53,17 +86,4 @@ Section typing_type_member_defs.
     s ↝[ σ ] T -∗
     Γ s⊨ { l := dtysem σ s } : oLDTMem l T T.
   Proof. iIntros "#Hs"; iApply sD_Typ_Abs; by [| iIntros "!> **"]. Qed.
-
-
-  Lemma D_Typ_Abs {Γ} T L U s σ l:
-    Γ ⊨ TLater T, 0 <: TLater U, 0 -∗
-    Γ ⊨ TLater L, 0 <: TLater T, 0 -∗
-    s ↝[ σ ] V⟦ T ⟧ -∗
-    Γ ⊨ { l := dtysem σ s } : TTMem l L U.
-  Proof. apply sD_Typ_Abs. Qed.
-
-  Lemma D_Typ {Γ} T s σ l:
-    s ↝[ σ ] V⟦ T ⟧ -∗
-    Γ ⊨ { l := dtysem σ s } : TTMem l T T.
-  Proof. apply sD_Typ. Qed.
 End typing_type_member_defs.

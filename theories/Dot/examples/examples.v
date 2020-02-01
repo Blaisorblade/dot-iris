@@ -111,24 +111,24 @@ Arguments dlang_ectxi_lang : simpl never. *)
 
   (* Generic useful lemmas — not needed for fundamental theorem,
      but very useful for examples. *)
-  Lemma setp_value (T : olty Σ 0) v: (∀ ρ, T vnil ρ v.[ρ]) -∗ [] s⊨ tv v : T.
+  Lemma setp_value_eq (T : olty Σ 0) v: (∀ ρ, T vnil ρ v.[ρ]) ⊣⊢ [] s⊨ tv v : T.
   Proof.
-    iIntros "#H !>" (? _).
-    rewrite /= -wp_value'. iApply "H".
+    iSplit.
+    - iIntros "#H !>" (? _).
+      rewrite /= -wp_value'. iApply "H".
+    - iIntros "/= H" (ρ).
+      iSpecialize ("H" $! ρ with "[//]").
+      by rewrite /= wp_value_inv'.
   Qed.
 
-  Lemma setp_value_inv (T : olty Σ 0) v: [] s⊨ tv v : T -∗ ∀ ρ, T vnil ρ v.[ρ].
-  Proof.
-    iIntros "/= H" (ρ).
-    iSpecialize ("H" $! ρ with "[//]").
-    by rewrite /= wp_value_inv'.
-  Qed.
+  Lemma ietp_value_eq T v: (∀ ρ, ⟦ T ⟧ ρ v.[ρ]) ⊣⊢ [] ⊨ tv v : T.
+  Proof. apply setp_value_eq. Qed.
 
   Lemma ietp_value T v: (∀ ρ, ⟦ T ⟧ ρ v.[ρ]) -∗ [] ⊨ tv v : T.
-  Proof. apply setp_value. Qed.
+  Proof. by rewrite ietp_value_eq. Qed.
 
   Lemma ietp_value_inv T v: [] ⊨ tv v : T -∗ ∀ ρ, ⟦ T ⟧ ρ v.[ρ].
-  Proof. apply setp_value_inv. Qed.
+  Proof. by rewrite ietp_value_eq. Qed.
 
   Import hoasNotation.
 
@@ -243,7 +243,7 @@ Arguments dlang_ectxi_lang : simpl never. *)
   Proof.
     rewrite /posModT -(TMu_I _ posModV).
     iIntros "#Hs". cbn -[ietp].
-    iApply TAnd_I; first by rewrite -posModVHasAtyp.
+    iApply TAnd_I; first by iApply posModVHasAtyp.
     iApply TAnd_I; last iApply TAnd_I; last by
       iIntros "!> ** /="; rewrite -wp_value'.
     - valMember ρ; iExists _; iSplit; [done|].
@@ -284,7 +284,7 @@ Arguments dlang_ectxi_lang : simpl never. *)
     iApply TAnd_I; first last.
     - iApply (T_Sub _ _ _ _ 0); last by iApply Sub_Top.
       by iApply vHasA0typ.
-    - rewrite -ietp_value /= /iPPred_car /=.
+    - rewrite -setp_value_eq /= /iPPred_car /=.
       have Hev2: pos (vnat 2) by rewrite /pos; eauto.
       iIntros (_).
 

@@ -74,6 +74,10 @@ From D.Dot Require exampleInfra typingExInfra.
 From D.Dot Require fundamental typingStamping.
 From D.Dot.examples Require scalaLib.
 
+Import fundamental.
+Arguments sSub_Sel_Path {_ _ _ _ _ _ _ _}.
+Arguments Sub_Trans {_ _ _ _ _ _ _ _ _}.
+
 Section Example.
   Context `{HdlangG: dlangG Σ} `{SwapPropI Σ}.
   Import exampleInfra typingExInfra fundamental typingStamping scalaLib.
@@ -173,9 +177,9 @@ Section Example.
     rewrite /iftFalse.
     iIntros "#Hs #He #Hv1 #Hv2".
     iAssert ([] ⊨ ⊤, 0 <: pv (packTV 0 s0) @; "A", 0) as "#Hsub". {
-      iApply Sub_Trans.
+      iApply (Sub_Trans (T2 := ▶: ⊤) (i2 := 0)).
       iApply Sub_Add_Later.
-      iApply Sub_Sel_Path.
+      iApply sSub_Sel_Path.
       iApply P_Val.
       iApply (packTV_semTyped with "Hs"); stcrush.
     }
@@ -451,7 +455,7 @@ Section Sec.
   Proof.
       iInduction j as [] "IHj" forall (T).
     - iApply Sub_Refl.
-    - iApply Sub_Trans; rewrite ?iterate_Sr /=.
+    - iApply (Sub_Trans (i2 := j + i) (T2 := TLater T)); rewrite ?iterate_Sr /=.
       + iApply Sub_Later.
       + iApply ("IHj" $! (TLater T)).
   Qed.
@@ -476,7 +480,7 @@ Section Sec.
     rewrite /istpi.
     iIntros "H"; iSimpl; setoid_rewrite Distr_TLater_And.
     iApply (Sub_And with "[] H").
-    iApply (Sub_Trans _ T _ _ (S i)).
+    iApply (Sub_Trans (T2 := T) (i2 := S i)).
     - by iApply Sub_Mono.
     - by iApply Sub_Later.
   Qed.
@@ -523,7 +527,7 @@ Section Sec.
     iIntros "H".
     setoid_rewrite (sub_rewrite_2 Γ T _ _ i (Distr_TLaterN_And T U j)).
     iApply (Sub_And with "[] H").
-    iApply (Sub_Trans _ T _ _ (j + i)).
+    iApply (Sub_Trans (T2 := T) (i2 :=  j + i)).
     - by iApply iterate_Sub_Mono.
     - by iApply iterate_Sub_Later.
   Qed.

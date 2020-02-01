@@ -1,14 +1,14 @@
 From iris.proofmode Require Import tactics.
 From D.Dot Require Import unary_lr.
 
-Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
+Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms).
 
 Section Sec.
-  Context `{HdlangG: dlangG Σ} Γ.
+  Context `{HdlangG: dlangG Σ} (Γ : sCtx Σ).
 
   Lemma Sub_Sel_Path L U p l i:
-    Γ ⊨p p : TTMem l L U, i -∗
-    Γ ⊨ TLater L, i <: TSel p l, i.
+    Γ s⊨p p : oTTMem l L U, i -∗
+    Γ s⊨ oLater L, i <: oTSel p l, i.
   Proof.
     iIntros "/= #Hp !>" (ρ v) "Hg #Hφ /=".
     iSpecialize ("Hp" with "Hg").
@@ -20,8 +20,8 @@ Section Sec.
   Qed.
 
   Lemma Sel_Sub_Path L U p l i:
-    Γ ⊨p p : TTMem l L U, i -∗
-    Γ ⊨ TSel p l, i <: TLater U, i.
+    Γ s⊨p p : oTTMem l L U, i -∗
+    Γ s⊨ oTSel p l, i <: oLater U, i.
   Proof.
     iIntros " #Hp !>" (ρ v) "Hg Hφ".
     iSpecialize ("Hp" with "Hg").
@@ -36,9 +36,9 @@ Section Sec.
   Qed.
 
   Lemma P_Mem_E p T l i:
-    Γ ⊨p p : TVMem l T, i -∗
+    Γ s⊨p p : oTVMem l T, i -∗
     (*─────────────────────────*)
-    Γ ⊨p pself p l : T, i.
+    Γ s⊨p pself p l : T, i.
   Proof.
     iIntros "#HE !>" (ρ) "HG /=".
     iSpecialize ("HE" with "HG"); iNext i.
@@ -50,8 +50,8 @@ Section Sec.
      needed of path_wp hold simply by computation. *)
 
   Lemma P_DLater p T i :
-    Γ ⊨p p : TLater T, i -∗
-    Γ ⊨p p : T, S i.
+    Γ s⊨p p : oLater T, i -∗
+    Γ s⊨p p : T, S i.
   Proof.
     iIntros "/= #Hp !>" (ρ) "Hg".
     rewrite -swap_later -path_wp_later_swap.
@@ -60,10 +60,10 @@ Section Sec.
   Qed.
 
   Lemma P_Sub p T1 T2 i j:
-    Γ ⊨p p : T1, i -∗
-    Γ ⊨ T1, i <: T2, i + j -∗
+    Γ s⊨p p : T1, i -∗
+    Γ s⊨ T1, i <: T2, i + j -∗
     (*───────────────────────────────*)
-    Γ ⊨p p : T2, i + j.
+    Γ s⊨p p : T2, i + j.
   Proof.
     iIntros "/= * #HpT1 #Hsub !> * #Hg".
     iSpecialize ("HpT1" with "Hg").
@@ -73,9 +73,9 @@ Section Sec.
   Qed.
 
   Lemma P_Sub' p T1 T2 i:
-    Γ ⊨p p : T1, i -∗
-    Γ ⊨ T1, i <: T2, i -∗
+    Γ s⊨p p : T1, i -∗
+    Γ s⊨ T1, i <: T2, i -∗
     (*───────────────────────────────*)
-    Γ ⊨p p : T2, i.
+    Γ s⊨p p : T2, i.
   Proof. have := P_Sub p T1 T2 i 0. by rewrite (plusnO i). Qed.
 End Sec.
