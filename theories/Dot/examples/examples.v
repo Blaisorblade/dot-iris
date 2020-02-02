@@ -108,8 +108,8 @@ Section div_example.
   Lemma idtp_value_eq T l d (Hl : label_of_ty T = Some l):
     (∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → D*⟦ T ⟧ ρ d.|[ρ]) ⊣⊢ [] s⊨ { l := d } : LD⟦ T ⟧.
   Proof.
-    rewrite /idtp/=/lift_ldlty/=; iSplit.
-    by iIntros "#H !>" (ρ Hpid _); iFrame (Hl); iApply "H".
+    rewrite /idtp/=/lift_ldlty/= ?ld_label_match; iSplit.
+    by iIntros "#H !> /=" (ρ Hpid _); iFrame (Hl); iApply "H".
     by iIntros "#H" (ρ Hpid); iDestruct ("H" $! ρ Hpid with "[//]") as "[_ $]".
   Qed.
 
