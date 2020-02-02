@@ -45,12 +45,12 @@ Section ldlty_ofe.
   Lemma ldlty_ofe_mixin : OfeMixin (ldlty Σ).
   Proof. exact: (iso_ofe_mixin iso). Qed.
 
-  Definition LDltyO ol (P : env -d> iPPredO dm Σ) := LDlty ol P.
+  Canonical Structure ldltyO := OfeT (ldlty Σ) ldlty_ofe_mixin.
+  Definition LDltyO ol (P : env -d> iPPredO dm Σ) : ldltyO := LDlty ol P.
   Global Instance Proper_LDltyO: Proper ((≡) ==> (≡)) (LDltyO ol).
   Proof. by solve_proper_prepare. Qed.
 End ldlty_ofe.
-Canonical Structure ldltyO Σ := OfeT (ldlty Σ) ldlty_ofe_mixin.
-
+Arguments ldltyO : clear implicits.
 Global Instance: Params (@LDltyO) 2 := {}.
 
 Record ldslty {Σ} := LDslty {
@@ -65,6 +65,7 @@ Record ldslty {Σ} := LDslty {
   ldslty_def2defs_head {l d ds ρ} :
     ldslty_dlty ρ l d ⊢ ldslty_car ρ ((l, d) :: ds)
 }.
+
 Arguments ldslty : clear implicits.
 Arguments LDslty {_} _ _ _ _ _.
 Arguments ldslty_car {_} !_ /.
