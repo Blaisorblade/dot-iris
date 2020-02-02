@@ -365,7 +365,7 @@ Section LambdaIntros.
     Γ s⊨p p : T, 0 -∗
     Γ s⊨ { l := dpt p } : oLDVMem l T.
   Proof.
-    iIntros "/= #Hv !>" (ρ Hpid) "#Hg".
+    iIntros "#Hv !>" (ρ Hpid) "#Hg".
     rewrite def_interp_tvmem_eq.
     iApply ("Hv" with "Hg").
   Qed.

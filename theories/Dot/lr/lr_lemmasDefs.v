@@ -17,13 +17,13 @@ Section Sec.
     TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ ⊨ds ds : T -∗
     Γ ⊨ { l := dpt (pv (vobj ds)) } : TVMem l (TMu T).
   Proof.
-    iDestruct 1 as (Hwf) "#Hds"; iIntros "!>" (ρ Hpid) "#Hg"; cbn.
+    iDestruct 1 as (Hwf) "#Hds"; iIntros "!>" (ρ Hpid) "#Hg".
     rewrite def_interp_tvmem_eq path_wp_pv /=.
     iLöb as "IH".
     iApply lift_dsinterp_dms_vl_commute.
     rewrite norm_selfSubst.
     have Hs := path_includes_self ds ρ Hwf.
-    iApply ("Hds" $! (vobj _ .: ρ) Hs with "[$IH $Hg]"); iIntros "!%".
+    iApply ("Hds" $! (vobj _ .: ρ) Hs with "[$IH $Hg]"). iIntros "!%".
     (* rewrite shead_eq /=. *)
     apply (path_includes_field_aliases (pv (var_vl 0)) ρ l (vobj ds) Hpid).
     (* move: Hpid; apply path_includes_field_aliases. *)
