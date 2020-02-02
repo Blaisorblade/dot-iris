@@ -392,6 +392,25 @@ Section small_ex.
     is overly abstract when we try proving that [this.n : this.A];
     see concretely below.
   *)
+  Definition svTyp1Body : oltyO Σ 0 :=
+    oAnd (oTTMem "A" oBot (oPrim tnat))
+      (oAnd (oTVMem "n" (oTSel p0 "A"))
+      oTop).
+  Goal V⟦vTyp1Body⟧ = svTyp1Body. done. Abort.
+
+  Definition svTyp2Body : oltyO Σ 0 :=
+    oAnd (oTTMem "A" ipos ipos)
+      (oAnd (oTVMem "n" (oTSel p0 "A"))
+      oTop).
+  Definition svTyp2 := oMu svTyp2Body.
+
+  (* Arguments T_Sub {_ _ _ _ _ _ _}. *)
+  Lemma vHasA2t : Hs -∗ [] ⊨ tv v : vTyp1.
+  Proof.
+    iIntros "#Hs".
+    iApply (T_Sub (i := 0)).
+    Abort.
+
   Lemma vHasA1': Hs -∗ ⟦ vTyp1 ⟧ ids v.
   Proof.
     iIntros "#Hs".
