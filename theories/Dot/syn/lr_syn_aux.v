@@ -253,7 +253,7 @@ Notation wf_ds ds := (NoDup (map fst ds)).
 
 (** Definitions [ds] appear in the object resulting from evaluating path [ p.|[ρ] ]. *)
 Definition path_includes p ρ ds :=
-  path_wp_pure p.|[ρ] (λ w, ∃ ds', w = vobj ds' ∧ ds.|[ρ] `sublist_of` ds'.|[w/] ∧ wf_ds ds').
+  path_wp_pure p.|[ρ] (λ w, ∃ ds', w = vobj ds' ∧ ds.|[ρ] `sublist_of` selfSubst ds' ∧ wf_ds ds').
 
 Lemma ds_notin_subst l ds ρ :
   l ∉ map fst ds →
@@ -276,7 +276,7 @@ Qed.
 
 Lemma path_includes_self ds ρ : wf_ds ds → path_includes (pv (ids 0)) (vobj ds.|[up ρ] .: ρ) ds.
 Proof.
-  by constructor; exists ds.|[up ρ]; rewrite /= up_sub_compose; split_and!;
+  by constructor; exists ds.|[up ρ]; rewrite /= /selfSubst up_sub_compose; split_and!;
     last apply wf_ds_sub.
 Qed.
 
