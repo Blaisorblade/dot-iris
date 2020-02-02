@@ -46,10 +46,39 @@ Section ldlty_ofe.
   Proof. exact: (iso_ofe_mixin iso). Qed.
 
   Definition LDltyO ol (P : env -d> iPPredO dm Σ) := LDlty ol P.
+  Global Instance: Params (@LDltyO) 2 := {}.
   Global Instance : Proper ((≡) ==> (≡)) (LDltyO ol).
   Proof. by solve_proper_prepare. Qed.
 End ldlty_ofe.
 Canonical Structure ldltyO Σ := OfeT (ldlty Σ) ldlty_ofe_mixin.
+
+Record ldslty {Σ} := LDslty {
+  ldslty_car :> env -> iPPred dms Σ;
+  ldslty_olty :> oltyO Σ 0;
+  ldslty_commute {ds ρ} :
+    ldslty_car ρ (selfSubst ds) ⊢ ldslty_olty vnil ρ (vobj ds);
+  ldslty_mono {l d ds ρ} :
+    dms_hasnt ds l →
+    ldslty_car ρ ds ⊢ ldslty_car ρ ((l, d) :: ds)
+}.
+Arguments ldslty : clear implicits.
+Arguments LDslty {_} _ _ _ _.
+Arguments ldslty_car {_} !_ /.
+Arguments ldslty_olty {_} !_ /.
+
+Section ldslty_ofe.
+  Context {Σ}.
+  Let iso := (λ T : ldslty Σ, (ldslty_car T : _ -d> _, ldslty_olty T)).
+  Instance ldslty_equiv : Equiv (ldslty Σ) := λ A B, iso A ≡ iso B.
+  Instance ldslty_dist : Dist (ldslty Σ) := λ n A B, iso A ≡{n}≡ iso B.
+  Lemma ldslty_ofe_mixin : OfeMixin (ldslty Σ).
+  Proof. exact: (iso_ofe_mixin iso). Qed.
+
+  (* Definition LDsltyO (P : env -d> iPPredO dm Σ) := LDslty P.
+  Global Instance : Proper ((≡) ==> (≡)) (LDltyO ol).
+  Proof. by solve_proper_prepare. Qed. *)
+End ldslty_ofe.
+Canonical Structure ldsltyO Σ := OfeT (ldslty Σ) ldslty_ofe_mixin.
 
 Section defs.
   Context `{HdotG: dlangG Σ}.
@@ -123,6 +152,44 @@ Section SemTypes.
     olty0 (λI ρ v, ∃ d, ⌜v @ l ↘ d⌝ ∧ TD ρ d).
   Global Instance Proper_lift_dinterp_vl l : Proper ((≡) ==> (≡)) (lift_dinterp_vl l).
   Proof. solve_proper_ho_equiv. Qed.
+
+  Definition lift_dinterp_dms `{dlangG Σ} (T : ldltyO Σ) : dsltyO Σ := Dslty (λI ρ ds,
+    ∃ l d, ⌜ dms_lookup l ds = Some d ⌝ ∧ lift_ldlty l ρ d T).
+
+  Lemma sem_lift_dinterp_dms_vl_commute (T : ldltyO Σ) ds ρ l
+    (Hl : ldlty_label T = Some l) :
+    lift_dinterp_dms T ρ (selfSubst ds) -∗
+    lift_dinterp_vl l T vnil ρ (vobj ds).
+  Proof.
+    iDestruct 1 as (?l d ?) "[% H]"; simplify_eq/=.
+    iExists d; iFrame. by iExists ds.
+  Qed.
+
+  Lemma lift_dinterp_dms_mono T l ρ d ds:
+    dms_hasnt ds l →
+    lift_dinterp_dms T ρ ds -∗ lift_dinterp_dms T ρ ((l, d) :: ds).
+  Proof.
+    intros ?. iDestruct 1 as (l' d' ?) "#H".
+    iExists l', d'. iSplit; auto using dms_lookup_mono.
+  Qed.
+
+  Program Definition LDsLift `{dlangG Σ} l (T : ldltyO Σ)
+    (Hl : ldlty_label T = Some l) : ldsltyO Σ :=
+    LDslty (lift_dinterp_dms T) (lift_dinterp_vl l T) _ _.
+  Next Obligation. intros. exact: sem_lift_dinterp_dms_vl_commute. Qed.
+  Next Obligation. intros. exact: lift_dinterp_dms_mono. Qed.
+
+  Program Definition LDsTop : ldslty Σ := LDslty (Dslty (λI _ _, True)) oTop _ _.
+  Solve All Obligations with done.
+
+  Program Definition LDsBot : ldslty Σ := LDslty (Dslty (λI _ _, False)) oBot _ _.
+  Solve All Obligations with done.
+
+  Program Definition LDsAnd (Tds1 Tds2 : ldslty Σ): ldslty Σ :=
+    LDslty (Dslty (λI ρ ds, Tds1 ρ ds ∧ Tds2 ρ ds)) (oAnd Tds1 Tds2) _ _.
+  Next Obligation. intros; iIntros "/= [??]". iSplit; by iApply ldslty_commute. Qed.
+  Next Obligation. intros; iIntros "/= [??]". iSplit; by iApply ldslty_mono. Qed.
+
 
   (* Rewrite using (higher) semantic kinds! *)
   Definition oDTMem τ1 τ2 : dltyO Σ := mkDlty (λI ρ d,
@@ -210,6 +277,11 @@ Section SemTypes.
       properness; rewrite ?scons_up_swap ?hsubst_comp; trivial; by f_equiv => ?.
   Qed.
 
+  Lemma sem_def2defs_head {T l ρ d ds}:
+    lift_ldlty l ρ d T -∗
+    lift_dinterp_dms T ρ ((l, d) :: ds).
+  Proof. iIntros; iExists l, d. auto using dms_lookup_head. Qed.
+
   Fixpoint def_interp_base (T : ty) : dlty Σ :=
     match T with
     | TTMem l L U => oDTMem V⟦ L ⟧ V⟦ U ⟧
@@ -225,9 +297,6 @@ Section SemTypes.
   Program Definition defs_interp_and (interp1 interp2 : dslty Σ) : dslty Σ :=
     Dslty (λI ρ ds, interp1 ρ ds ∧ interp2 ρ ds).
 
-  Definition lift_dinterp_dms `{dlangG Σ} (T : ldltyO Σ) : dsltyO Σ := Dslty (λI ρ ds,
-    ∃ l d, ⌜ dms_lookup l ds = Some d ⌝ ∧ lift_ldlty l ρ d T).
-
   Reserved Notation "Ds⟦ T ⟧".
   Fixpoint defs_interp T : dslty Σ :=
     match T with
@@ -236,6 +305,56 @@ Section SemTypes.
     | _ => lift_dinterp_dms (LD⟦ T ⟧)
     end
   where "Ds⟦ T ⟧" := (defs_interp T).
+
+  Reserved Notation "LDs⟦ T ⟧".
+  Fixpoint ldefs_interp T : ldslty Σ :=
+    match T with
+    | TAnd T1 T2 => LDsAnd LDs⟦T1⟧ LDs⟦T2⟧
+    | TTop => LDsTop
+    (* | _ => lift_dinterp_dms (LD⟦ T ⟧) *)
+    | _ => LDsBot
+    end
+  where "LDs⟦ T ⟧" := (ldefs_interp T).
+
+  Lemma lift_dinterp_dms_vl_commute T ds ρ l:
+    label_of_ty T = Some l →
+    lift_dinterp_dms LD⟦T⟧ ρ (selfSubst ds) -∗
+    lift_dinterp_vl l D*⟦T⟧ vnil ρ (vobj ds).
+  Proof. apply (sem_lift_dinterp_dms_vl_commute LD⟦ T ⟧). Qed.
+  (* Lemma def2defs_head {T l ρ d ds}:
+    D[ l ]⟦T⟧ ρ d -∗ lift_dinterp_dms LD⟦T⟧ ρ ((l, d) :: ds).
+  Proof. apply sem_def2defs_head. Qed. *)
+
+  Lemma def2defs_head {l d ds ρ T} :
+    lift_ldlty l ρ d LD⟦ T ⟧ ⊢ Ds⟦ T ⟧ ρ ((l, d) :: ds).
+  Proof.
+    iIntros "#HT". iPoseProof "HT" as (Hl) "_".
+    destruct T; simplify_eq/=; iApply (sem_def2defs_head with "HT").
+  Qed.
+
+  Lemma lift_dsinterp_dms_vl_commute T ds ρ:
+    Ds⟦T⟧ ρ (selfSubst ds) -∗
+    V⟦T⟧ vnil ρ (vobj ds).
+  Proof.
+    iIntros "H /=".
+    iInduction T as [] "IHT";
+      try iDestruct "H" as (???) "[_[]]"; first done.
+    - iDestruct "H" as "/= [#H1 #H2]".
+      by iSplit; [> iApply "IHT"| iApply "IHT1"].
+    - by rewrite (lift_dinterp_dms_vl_commute (TVMem _ _)).
+    - by rewrite (lift_dinterp_dms_vl_commute (TTMem _ _ _)).
+  Qed.
+
+  Lemma defs_interp_mono T l ρ d ds:
+    dms_hasnt ds l →
+    Ds⟦T⟧ ρ ds -∗
+    Ds⟦T⟧ ρ ((l, d) :: ds).
+  Proof.
+    iIntros (Hlds) "HT".
+    iInduction T as [] "IHT" => //=;
+      try by [iDestruct "HT" as (????) "?" | iApply lift_dinterp_dms_mono].
+    iDestruct "HT" as "[HT1 HT2]"; iSplit; by [>iApply "IHT"|iApply "IHT1"].
+  Qed.
 
   Definition idtp  Γ T l d     := sdtp l d  V⟦Γ⟧* LD⟦T⟧.
   Definition idstp Γ T ds      := sdstp ds  V⟦Γ⟧* Ds⟦T⟧.
@@ -259,6 +378,10 @@ Section SemTypes.
   Global Instance sstpi_persistent : IntoPersistent' (sstpi i j Γ T1 T2) | 0 := _.
   Global Instance sptp_persistent : IntoPersistent' (sptp p i   Γ T) | 0 := _.
 End SemTypes.
+
+Section ldslty_defs.
+  Context `{dlangG Σ}.
+End ldslty_defs.
 
 Notation "D*⟦ T ⟧" := (def_interp_base T).
 Notation "LD⟦ T ⟧" := (ldef_interp T).
