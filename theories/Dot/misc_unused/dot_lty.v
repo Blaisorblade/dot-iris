@@ -367,7 +367,7 @@ Section SampleTypingLemmas.
   Lemma sTMu_E T v: Γ s⊨ tv v : oMu T -∗ Γ s⊨ tv v : T.|[v/].
   Proof. by rewrite sTMu_equiv. Qed.
 
-  Lemma sT_Forall_E e1 e2 T1 T2:
+  Lemma sT_All_E e1 e2 T1 T2:
     Γ s⊨ e1 : oAll T1 (shift T2) -∗
     Γ s⊨ e2 : T1 -∗
     (*────────────────────────────────────────────────────────────*)
@@ -381,7 +381,7 @@ Section SampleTypingLemmas.
     iIntros (v); by rewrite /= (hoEnvD_weaken_one T2 _ _ _).
   Qed.
 
-  Lemma sT_Forall_Ex e1 v2 T1 T2:
+  Lemma sT_All_Ex e1 v2 T1 T2:
     Γ s⊨ e1: oAll T1 T2 -∗
     Γ s⊨ tv v2 : T1 -∗
     (*────────────────────────────────────────────────────────────*)
@@ -563,25 +563,25 @@ Section defs.
   (* Moving eq paramaters first would speed things up. *)
   Global Instance: Params (@setp) 2 := {}. *)
 
-  Lemma T_Forall_E e1 e2 T1 T2:
+  Lemma T_All_E e1 e2 T1 T2:
     Γ ⊨ e1 : TAll T1 (shift T2) -∗
     Γ ⊨ e2 : T1 -∗
     (*────────────────────────────────────────────────────────────*)
     Γ ⊨ tapp e1 e2 : T2.
   Proof.
-    rewrite /ietp -(sT_Forall_E e1 e2).
+    rewrite /ietp -(sT_All_E e1 e2).
     (* apply equiv_entails. *)
     by rewrite -(pty_interp_subst T2 (ren(+1))).
     (* do 3 (properness => //=);
       apply (pty_interp_subst T2 (ren(+1))). *)
   Qed.
 
-  Lemma T_Forall_Ex e1 v2 T1 T2:
+  Lemma T_All_Ex e1 v2 T1 T2:
     Γ ⊨ e1: TAll T1 T2 -∗
     Γ ⊨ tv v2 : T1 -∗
     (*────────────────────────────────────────────────────────────*)
     Γ ⊨ tapp e1 (tv v2) : T2.|[v2/].
-  Proof. rewrite /ietp (sT_Forall_Ex e1 v2). by rewrite (pty_interp_subst T2). Qed.
+  Proof. rewrite /ietp (sT_All_Ex e1 v2). by rewrite (pty_interp_subst T2). Qed.
 End defs.
 
 Import dlang_adequacy adequacy.

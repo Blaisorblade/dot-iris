@@ -114,10 +114,10 @@ Section Sec.
     iApply ("Hds" $! (vobj _ .: ρ) Hs). by iFrame "IH Hg".
   Qed.
 
-  Lemma DNil_I : Γ ⊨ds [] : TTop.
+  Lemma D_Nil : Γ ⊨ds [] : TTop.
   Proof. by iSplit; last iIntros "!> **". Qed.
 
-  Lemma DCons_I d ds l T1 T2:
+  Lemma D_Cons d ds l T1 T2:
     dms_hasnt ds l →
     Γ ⊨ { l := d } : T1 -∗ Γ ⊨ds ds : T2 -∗
     Γ ⊨ds (l, d) :: ds : TAnd T1 T2.

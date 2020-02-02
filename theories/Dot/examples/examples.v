@@ -51,7 +51,7 @@ Section helpers.
   Proof. wp_bin. ev; simplify_eq/=. by case_decide. Qed.
 
   (* Argh, no semantic "unTLater" yet. *)
-  Lemma sT_Forall_I {Γ} T1 T2 e:
+  Lemma sT_All_I {Γ} T1 T2 e:
     shift T1 :: Γ s⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ s⊨ tv (vabs e) : oAll T1 T2.
@@ -215,7 +215,7 @@ Section div_example.
   Lemma sHasA' l Γ : Hs -∗ Γ s⊨ { l := dtysem [] s } : LD⟦ type l >: ⊥ <: 𝐍 ⟧.
   Proof.
     iIntros "Hs".
-    iApply (sD_Typ_Abs ipos); [|iApply Bot_Sub|by iExists _; iFrame "Hs"].
+    iApply (D_Typ_Abs ipos); [|iApply Bot_Sub|by iExists _; iFrame "Hs"].
     rewrite /ipos /pos/=; iIntros "!>" (ρ w) "_ >% !> !%".
     rewrite /pure_interp_prim /prim_evals_to /=. naive_solver.
   Qed.
@@ -239,7 +239,7 @@ Section div_example.
   Lemma ty_mkPos :
     [] s⊨ hclose hmkPosV : oAll V⟦ 𝐍 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : nat, v = n ∧ n > 0 ⌝)).
   Proof.
-    rewrite -sT_Forall_I /= /shead.
+    rewrite -sT_All_I /= /shead.
     iIntros (ρ) "!> /=". iDestruct 1 as %(_ & n & Hw); simplify_eq/=; rewrite Hw.
     iIntros "!>". iApply wp_wand; [iApply wp_if_ge | naive_solver].
   Qed.
@@ -344,7 +344,7 @@ Section small_ex.
     iIntros "#Hs".
     iApply (T_Sub (i := 0) (T1 := μ {@ type "A" >: ⊥ <: 𝐍})).
     iApply T_New_I.
-    iApply DCons_I; [done| by iApply sHasA'|].
+    iApply D_Cons; [done| by iApply sHasA'|].
     iSplit; [iIntros "!%"|iIntros "!> ** //"].
     repeat constructor; exact: not_elem_of_nil.
     iApply Sub_Trans.
@@ -418,7 +418,7 @@ Section small_ex.
     iSpecialize ("H" $! ids with "[#//]").
     rewrite hsubst_id /interp_expr wp_value_inv'.
     iApply "H".
-    iApply DCons_I => //.
+    iApply D_Cons => //.
     - (* Can't finish with D_Typ_Abs, this is only for syntactic types: *)
       (* From D.Dot Require Import typeExtractionSem.
       iApply D_Typ_Abs => //; first last.
@@ -426,7 +426,7 @@ Section small_ex.
       iModIntro.
       iIntros (ρ Hpid) "/= #_".
       iSplit => //. by iApply sHasA.
-    - iApply DCons_I => //; last by iApply DNil_I.
+    - iApply D_Cons => //; last by iApply D_Nil.
       iApply D_Path_TVMem_I.
       iIntros "!>" (ρ) "/="; iDestruct 1 as "[_ [HA [HB _]]]".
       iDestruct "HA" as (dA) "[HlA HA]".

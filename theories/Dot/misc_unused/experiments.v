@@ -89,8 +89,8 @@ Section Example.
     Γ ⊨ lett e1 e2 : C.
   Proof.
     iIntros "He #HA #HB".
-    iApply (T_Forall_E with "[] He").
-    iApply T_Forall_I.
+    iApply (T_All_E with "[] He").
+    iApply T_All_I.
     iSimpl; iIntros "!>" (ρ) "#[Hg [H|H]] !>";
       [iApply ("HA" with "[]") | iApply ("HB" with "[]")];
       iFrame "Hg H".
@@ -183,11 +183,11 @@ Section Example.
       iApply P_Val.
       iApply (packTV_semTyped with "Hs"); stcrush.
     }
-    iApply (T_Forall_Ex _ _ v2 (pv (packTV 0 s0) @; "A") (TSing p0)); first last.
+    iApply (T_All_Ex _ _ v2 (pv (packTV 0 s0) @; "A") (TSing p0)); first last.
     iApply (T_Sub _ _ _ _ 0 with "Hv2 Hsub").
-    iApply T_Forall_E; first last.
+    iApply T_All_E; first last.
     iApply (T_Sub _ _ _ _ 0 with "Hv1 Hsub").
-    Timeout 1 iApply (T_Forall_Ex [] e (packTV 0 s0) with "He").
+    Timeout 1 iApply (T_All_Ex [] e (packTV 0 s0) with "He").
     iApply (T_Sub _ _ (typeEq "A" ⊤) _ 0).
     iApply (packTV_semTyped [] with "Hs"); stcrush.
     iApply (fundamental_subtype _ ∅); last iApply wellMappedφ_empty.
@@ -313,30 +313,30 @@ Section Sec.
   Qed. *)
   Abort.
 
-  Lemma T_Forall_I1 {Γ} T1 T2 e:
+  Lemma T_All_I1 {Γ} T1 T2 e:
     TLater (shift T1) :: Γ ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
-  (* Proof. rewrite -T_Forall_I. f_equiv. iIntros (ρ) "[$ $]". Qed. *)
+  (* Proof. rewrite -T_All_I. f_equiv. iIntros (ρ) "[$ $]". Qed. *)
   Proof.
-    rewrite -T_Forall_I_Strong. ietp_weaken_ctx.
+    rewrite -T_All_I_Strong. ietp_weaken_ctx.
     (* by rewrite -(unTLater_ctx_sub (TLater _ :: _)). *)
     (* apply ietp_weaken_ctx_syn. *)
     (* exact: (unTLater_ctx_sub_syn (TLater _ :: _)). *)
   Qed.
 
-  Lemma T_Forall_I2 {Γ} T1 T2 e:
+  Lemma T_All_I2 {Γ} T1 T2 e:
     TLater (shift T1) :: Γ ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
-  Proof. rewrite -T_Forall_I. ietp_weaken_ctx. Qed.
+  Proof. rewrite -T_All_I. ietp_weaken_ctx. Qed.
 
-  Lemma T_Forall_I4 {Γ} T1 T2 e:
+  Lemma T_All_I4 {Γ} T1 T2 e:
     TLater (shift T1) :: Γ ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.
-    rewrite -T_Forall_I_Strong -(unTLater_ctx_sub (TLater _ :: _)).
+    rewrite -T_All_I_Strong -(unTLater_ctx_sub (TLater _ :: _)).
     by rewrite fmap_cons cancel.
   Qed.
 
@@ -380,7 +380,7 @@ Section Sec.
     iApply ("IH" with "H").
   Qed.
 
-  Lemma T_Forall_I'' Γ T1 T2 e :
+  Lemma T_All_I'' Γ T1 T2 e :
     TLater (shift T1) :: Γ ⊨ e : TLater T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.

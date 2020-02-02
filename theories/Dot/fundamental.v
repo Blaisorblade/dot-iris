@@ -30,17 +30,17 @@ Section restate.
   Proof. apply Sel_Sub_Path. Qed.
 
 
-  Lemma D_Typ_Abs T L U s σ l:
+  Lemma sD_Typ_Abs T L U s σ l:
     Γ ⊨ TLater T, 0 <: TLater U, 0 -∗
     Γ ⊨ TLater L, 0 <: TLater T, 0 -∗
     s ↝[ σ ] V⟦ T ⟧ -∗
     Γ ⊨ { l := dtysem σ s } : TTMem l L U.
-  Proof. apply sD_Typ_Abs. Qed.
+  Proof. apply D_Typ_Abs. Qed.
 
-  Lemma D_Typ T s σ l:
+  Lemma sD_Typ T s σ l:
     s ↝[ σ ] V⟦ T ⟧ -∗
     Γ ⊨ { l := dtysem σ s } : TTMem l T T.
-  Proof. apply sD_Typ. Qed.
+  Proof. apply D_Typ. Qed.
 End restate.
 
   Fixpoint fundamental_dm_typed Γ g l d T (HT: Γ v⊢[ g ]{ l := d } : T) { struct HT }:
@@ -55,7 +55,7 @@ End restate.
     Γ ⊨p[ Vs⟦ g ⟧ ] p : T, i.
   Proof.
     - iIntros "#Hm"; induction HT.
-      + iApply D_Typ_Abs; by [> iApply fundamental_subtype .. |
+      + iApply sD_Typ_Abs; by [> iApply fundamental_subtype .. |
           iApply extraction_to_leadsto_envD_equiv].
       + subst; iApply D_TVMem_All_I. by iApply fundamental_typed.
       + iApply D_TVMem_I. by iApply fundamental_typed.
@@ -63,8 +63,8 @@ End restate.
       + iApply D_New_Mem_I. by iApply fundamental_dms_typed.
       + iApply D_TVMem_Sub; by [> iApply fundamental_subtype|].
     - iIntros "#Hm"; induction HT.
-      + by iApply DNil_I.
-      + iApply DCons_I; by [|iApply fundamental_dm_typed].
+      + by iApply D_Nil.
+      + iApply D_Cons; by [|iApply fundamental_dm_typed].
     - iIntros "#Hm"; induction HT.
       + by iApply Sub_Refl.
       + by iApply Sub_Trans; [apply IHHT1|apply IHHT2].
@@ -97,12 +97,12 @@ End restate.
       + iApply Sub_TTMem_Cov_Distr.
       (* + by_reflect. *)
     - iIntros "#Hm"; induction HT.
-      + by iApply T_Forall_Ex; [apply IHHT1|apply IHHT2].
-      + by iApply T_Forall_Ex_p; [|apply IHHT|iApply fundamental_path_typed].
-      + by iApply T_Forall_E; [apply IHHT1|apply IHHT2].
+      + by iApply T_All_Ex; [apply IHHT1|apply IHHT2].
+      + by iApply T_All_Ex_p; [|apply IHHT|iApply fundamental_path_typed].
+      + by iApply T_All_E; [apply IHHT1|apply IHHT2].
       + by iApply T_Mem_E.
       + by iApply TMu_E.
-      + by iApply T_Forall_I.
+      + by iApply T_All_I.
       + iApply T_New_I. by iApply fundamental_dms_typed.
       + by iApply TMu_I.
       + by iApply T_Nat_I.

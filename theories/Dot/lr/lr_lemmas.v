@@ -292,7 +292,7 @@ Ltac ietp_weaken_ctx := auto with ctx_sub.
 Section LambdaIntros.
   Context `{HdlangG: dlangG Σ}.
 
-  Lemma T_Forall_I_Strong {Γ} T1 T2 e:
+  Lemma T_All_I_Strong {Γ} T1 T2 e:
     shift T1 :: (unTLater <$> Γ) ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
@@ -308,12 +308,12 @@ Section LambdaIntros.
   Qed.
 
   (* Derivable *)
-  Lemma T_Forall_I {Γ} T1 T2 e:
+  Lemma T_All_I {Γ} T1 T2 e:
     shift T1 :: Γ ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
-  (* Proof. by rewrite -T_Forall_I_Strong (unTLater_ctx_sub Γ). Qed. *)
-  Proof. rewrite -T_Forall_I_Strong. ietp_weaken_ctx. Qed.
+  (* Proof. by rewrite -T_All_I_Strong (unTLater_ctx_sub Γ). Qed. *)
+  Proof. rewrite -T_All_I_Strong. ietp_weaken_ctx. Qed.
 
   Lemma P_Val {Γ} v T:
     Γ ⊨ tv v : T -∗
@@ -344,13 +344,13 @@ Section LambdaIntros.
   Lemma D_TVMem_All_I_Strong {Γ} T1 T2 e l:
     shift T1 :: (unTLater <$> Γ) ⊨ e : T2 -∗
     Γ ⊨ { l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
-  Proof. by rewrite -D_TVMem_I -T_Forall_I_Strong. Qed.
+  Proof. by rewrite -D_TVMem_I -T_All_I_Strong. Qed.
 
   Lemma D_TVMem_All_I {Γ} V T1 T2 e l:
     shift T1 :: V :: Γ ⊨ e : T2 -∗
     Γ |L V ⊨ { l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
   Proof.
-    (* Compared to [T_Forall_I], we must strip later also from [TLater V]. *)
+    (* Compared to [T_All_I], we must strip later also from [TLater V]. *)
     rewrite -D_TVMem_All_I_Strong fmap_cons cancel.
     ietp_weaken_ctx.
   Qed.
@@ -445,7 +445,7 @@ Section Sec.
   Lemma TMu_E T v: Γ ⊨ tv v : TMu T -∗ Γ ⊨ tv v : T.|[v/].
   Proof. by rewrite TMu_equiv. Qed. *)
 
-  Lemma T_Forall_E e1 e2 T1 T2:
+  Lemma T_All_E e1 e2 T1 T2:
     Γ ⊨ e1 : TAll T1 (shift T2) -∗
     Γ ⊨ e2 : T1 -∗
     (*────────────────────────────────────────────────────────────*)
@@ -459,7 +459,7 @@ Section Sec.
     iIntros (v); by rewrite (interp_weaken_one T2 _ v).
   Qed.
 
-  Lemma T_Forall_Ex e1 v2 T1 T2:
+  Lemma T_All_Ex e1 v2 T1 T2:
     Γ ⊨ e1: TAll T1 T2 -∗
     Γ ⊨ tv v2 : T1 -∗
     (*────────────────────────────────────────────────────────────*)

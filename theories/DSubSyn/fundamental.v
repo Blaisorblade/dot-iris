@@ -109,9 +109,9 @@ Section Fundamental.
       + by iApply Sub_TAllConCov.
       + by iApply Sub_TTMem_Variant.
     - iInduction HT as [] "IHT".
-      + by iApply T_Forall_Ex.
-      + by iApply T_Forall_E.
-      + by iApply T_Forall_I.
+      + by iApply T_All_Ex.
+      + by iApply T_All_E.
+      + by iApply T_All_I.
       (* + iApply T_New_I.
         by iApply fundamental_dms_typed.
       + by iApply TMu_I. *)

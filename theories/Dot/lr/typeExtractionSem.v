@@ -35,7 +35,7 @@ Section typing_type_member_defs.
   Qed.
 
   (* Alternative presentation *)
-  Lemma sD_Typ_Sub {Γ} L1 L2 U1 U2 s σ l:
+  Lemma D_Typ_Sub {Γ} L1 L2 U1 U2 s σ l:
     Γ s⊨ oLater U1, 0 <: oLater U2, 0 -∗
     Γ s⊨ oLater L2, 0 <: oLater L1, 0 -∗
     Γ s⊨ { l := dtysem σ s } : oLDTMem l L1 U1 -∗
@@ -49,7 +49,7 @@ Section typing_type_member_defs.
     - iApply ("HU" with "Hg"). by iApply "HψU".
   Qed.
 
-  Lemma sD_Typ0 {Γ} (T : oltyO Σ 0) s σ l:
+  Lemma D_Typ0 {Γ} (T : oltyO Σ 0) s σ l:
     s ↝[ σ ] T -∗
     Γ s⊨ { l := dtysem σ s } : oLDTMem l T T.
   Proof.
@@ -63,15 +63,15 @@ Section typing_type_member_defs.
     (* iModIntro; repeat iSplit; iIntros (v) "#H "; rewrite /= (Hγφ _ _ _) //. *)
   Qed.
 
-  Lemma sD_Typ_Abs {Γ} T L U s σ l:
+  Lemma D_Typ_Abs {Γ} T L U s σ l:
     Γ s⊨ oLater T, 0 <: oLater U, 0 -∗
     Γ s⊨ oLater L, 0 <: oLater T, 0 -∗
     s ↝[ σ ] T -∗
     Γ s⊨ { l := dtysem σ s } : oLDTMem l L U.
   Proof.
     (* iIntros "HTU HLT Hs".
-    iApply (sD_Typ_Sub with "HTU HLT").
-    by iApply sD_Typ0.
+    iApply (D_Typ_Sub with "HTU HLT").
+    by iApply D_Typ0.
   Qed. *)
     iIntros "#HTU #HLT #Hs /= !>" (ρ Hpid) "#Hg"; iSplit => //=.
     iDestruct "Hs" as (φ Hγφ) "Hγ".
@@ -82,8 +82,8 @@ Section typing_type_member_defs.
     - iApply "HTU" => //. by iApply Hγφ.
   Qed.
 
-  Lemma sD_Typ {Γ} (T : oltyO Σ 0) s σ l:
+  Lemma D_Typ {Γ} (T : oltyO Σ 0) s σ l:
     s ↝[ σ ] T -∗
     Γ s⊨ { l := dtysem σ s } : oLDTMem l T T.
-  Proof. iIntros "#Hs"; iApply sD_Typ_Abs; by [| iIntros "!> **"]. Qed.
+  Proof. iIntros "#Hs"; iApply D_Typ_Abs; by [| iIntros "!> **"]. Qed.
 End typing_type_member_defs.

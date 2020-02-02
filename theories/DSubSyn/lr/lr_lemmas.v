@@ -22,7 +22,7 @@ Section Sec.
     by rewrite -wp_value' interp_env_lookup.
   Qed.
 
-  Lemma T_Forall_E e1 e2 T1 T2:
+  Lemma T_All_E e1 e2 T1 T2:
     Γ ⊨ e1: TAll T1 (shift T2) -∗
     Γ ⊨ e2 : T1 -∗
     (*────────────────────────────────────────────────────────────*)
@@ -36,7 +36,7 @@ Section Sec.
     iIntros (v). by rewrite (interp_weaken_one T2 _ v).
   Qed.
 
-  Lemma T_Forall_Ex e1 v2 T1 T2:
+  Lemma T_All_Ex e1 v2 T1 T2:
     Γ ⊨ e1: TAll T1 T2 -∗
     Γ ⊨ tv v2 : T1 -∗
     (*────────────────────────────────────────────────────────────*)
@@ -52,7 +52,7 @@ Section Sec.
       rewrite (interp_subst_one T2 v2 v); auto.
   Qed.
 
-  Lemma T_Forall_I T1 T2 e:
+  Lemma T_All_I T1 T2 e:
     shift T1 :: Γ ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
