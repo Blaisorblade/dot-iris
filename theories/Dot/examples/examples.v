@@ -91,6 +91,9 @@ Ltac valMember ρ :=
   iApply V_TVMem_I; [solve_fv_congruence|naive_solver|
     rewrite -ietp_value; iIntros (ρ)].
 
+Local Hint Resolve not_elem_of_nil : core.
+Local Hint Constructors NoDup : core.
+
 Section s_is_pos.
 
 Context `{HdlangG: dlangG Σ}.
@@ -212,14 +215,17 @@ Section div_example.
     iApply (sD_Typ_Abs ipos); [|iApply sBot_Sub|by iExists _; iFrame "Hs"].
     iApply Sub_later_ipos_nat.
   Qed.
+  Definition testVl l : vl := ν {@ type l = ([]; s)}.
+
+  Lemma sInTestVl l ρ :
+    path_includes (pv (ids 0)) (testVl l .: ρ) [type l = ([]; s)].
+  Proof. constructor; naive_solver. Qed.
+  Hint Resolve sInTestVl : core.
 
   Lemma sHasA l : Hs -∗ D*⟦ type l >: ⊥ <: 𝐍 ⟧ ids (dtysem [] s).
   Proof.
-    iIntros; cbn; repeat (repeat iExists _; repeat iSplit; try done).
-    by iApply sToIpos.
-    iModIntro; repeat iSplit; iIntros (w). by iIntros ">[]".
-    iMod 1 as %(n & -> & ?). iPureIntro.
-    rewrite /pure_interp_prim /prim_evals_to /=. eauto.
+    rewrite (sHasA' l []); iIntros "H".
+    by iDestruct ("H" $! (testVl l .: ids) with "[] []") as "[_ $]".
   Qed.
 
   Lemma posModVHasAtyp: Hs -∗ [] ⊨ posModV : type "Pos" >: ⊥ <: TNat.
@@ -227,7 +233,6 @@ Section div_example.
     rewrite -ietp_value; iIntros "#Hs" (ρ).
     iExists _; iSplit; by [eauto | iApply (sHasA "Pos")].
   Qed.
-
 
   Lemma ty_mkPos :
     [] s⊨ hclose hmkPosV : oAll V⟦ 𝐍 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : nat, v = n ∧ n > 0 ⌝)).
