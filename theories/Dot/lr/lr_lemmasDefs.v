@@ -101,7 +101,7 @@ Section Sec.
    * ---------------------
    * Γ ⊨ nu x. ds : μ x. T
    *)
-  Lemma T_New_I T ds:
+  Lemma T_Obj_I T ds:
      Γ |L T ⊨ds ds : T -∗
      Γ ⊨ tv (vobj ds) : TMu T.
   Proof.

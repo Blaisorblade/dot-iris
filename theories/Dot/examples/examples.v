@@ -50,21 +50,6 @@ Section helpers.
   Lemma wp_nge m n (Hnge : ¬ m > n) : WP m > n {{ w, w ≡ false }}%I.
   Proof. wp_bin. ev; simplify_eq/=. by case_decide. Qed.
 
-  (* Argh, no semantic "unTLater" yet. *)
-  Lemma sT_All_I {Γ} T1 T2 e:
-    shift T1 :: Γ s⊨ e : T2 -∗
-    (*─────────────────────────*)
-    Γ s⊨ tv (vabs e) : oAll T1 T2.
-  Proof.
-    iIntros "#HeT !>" (ρ) "#HG /= !>".
-    rewrite -wp_value'. iExists _; iSplit; first done.
-    iIntros "!>" (v) "#Hv"; rewrite up_sub_compose.
-    (* Factor ⪭ out of [G⟦ Γ ⟧ ρ] before [iNext]. *)
-    iNext.
-    iApply ("HeT" $! (v .: ρ) with "[$HG]").
-    by rewrite (hoEnvD_weaken_one (olty_car T1) _ _ _) stail_eq.
-  Qed.
-
   Lemma setp_value_eq (T : olty Σ 0) v: (∀ ρ, T vnil ρ v.[ρ]) ⊣⊢ [] s⊨ tv v : T.
   Proof.
     iSplit.
@@ -212,12 +197,20 @@ Section div_example.
   Lemma sToIpos : Hs -∗ dtysem [] s ↗n[ 0 ] hoEnvD_inst [] ipos.
   Proof. by iApply dm_to_type_intro. Qed.
 
+  Lemma Sub_ipos_nat Γ : Γ s⊨ ipos, 0 <: V⟦ 𝐍 ⟧, 0.
+  Proof.
+    rewrite /ipos /pos /= /pure_interp_prim /prim_evals_to /=.
+    iIntros "!>" (ρ w) "_ % !%"; naive_solver.
+  Qed.
+
+  Lemma Sub_later_ipos_nat Γ : Γ s⊨ oLater ipos, 0 <: oLater V⟦ 𝐍 ⟧, 0.
+  Proof. rewrite -sSub_Later_Sub -sSub_Index_Incr. apply Sub_ipos_nat. Qed.
+
   Lemma sHasA' l Γ : Hs -∗ Γ s⊨ { l := dtysem [] s } : LD⟦ type l >: ⊥ <: 𝐍 ⟧.
   Proof.
     iIntros "Hs".
-    iApply (D_Typ_Abs ipos); [|iApply Bot_Sub|by iExists _; iFrame "Hs"].
-    rewrite /ipos /pos/=; iIntros "!>" (ρ w) "_ >% !> !%".
-    rewrite /pure_interp_prim /prim_evals_to /=. naive_solver.
+    iApply (sD_Typ_Abs ipos); [|iApply sBot_Sub|by iExists _; iFrame "Hs"].
+    iApply Sub_later_ipos_nat.
   Qed.
 
   Lemma sHasA l : Hs -∗ D*⟦ type l >: ⊥ <: 𝐍 ⟧ ids (dtysem [] s).
@@ -253,10 +246,10 @@ Section div_example.
 
   Lemma posModVHasA: Hs -∗ [] ⊨ posModV : hclose posModT.
   Proof.
-    rewrite /posModT -(TMu_I _ posModV).
+    rewrite /posModT -(T_Mu_I _ posModV).
     iIntros "#Hs". cbn -[ietp].
-    iApply TAnd_I; first by iApply posModVHasAtyp.
-    iApply TAnd_I; last iApply TAnd_I; last by
+    iApply sT_And_I; first by iApply posModVHasAtyp.
+    iApply sT_And_I; last iApply sT_And_I; last by
       iIntros "!> ** /="; rewrite -wp_value'.
     - valMember ρ; iExists _; iSplit; [done|].
       iIntros (w) "!>"; iMod 1 as %[n Hw]; iIntros "!> !>".
@@ -338,35 +331,34 @@ Section small_ex.
 
 
   (** Yes, v has a valid type member. *)
-  Arguments T_Sub {_ _ _ _ _ _ _}.
   Lemma vHasA0typ: Hs -∗ [] ⊨ tv v : type "A" >: ⊥ <: 𝐍.
   Proof.
     iIntros "#Hs".
     iApply (T_Sub (i := 0) (T1 := μ {@ type "A" >: ⊥ <: 𝐍})).
-    iApply T_New_I.
+    iApply T_Obj_I.
     iApply D_Cons; [done| by iApply sHasA'|].
     iSplit; [iIntros "!%"|iIntros "!> ** //"].
     repeat constructor; exact: not_elem_of_nil.
     iApply Sub_Trans.
     iApply (Sub_Mu_A {@ type "A" >: ⊥ <: 𝐍}).
-    iApply And1_Sub.
+    iApply sAnd1_Sub.
   Qed.
-  (* This works. Crucially, we use TMu_I to introduce the object type.
+  (* This works. Crucially, we use T_Mu_I to introduce the object type.
      This way, we can inline the object in the type selection.
-     This cannot be done using T_New_I directly.
+     This cannot be done using T_Obj_I directly.
      However, this is closer to how typechecking in Scala
      actually works.
-     XXX: also, maybe this *could* be done with T_New_I with
+     XXX: also, maybe this *could* be done with T_Obj_I with
      a precise type? That'd be a more correct derivation.
    *)
   (* Lemma vHasA1: Hs -∗ ∀ ρ, ⟦ vTyp1 ⟧ ρ v.[ρ]. *)
   Lemma vHasA1t : Hs -∗ [] ⊨ tv v : vTyp1.
   Proof.
-    rewrite -(TMu_I _ v).
+    rewrite -(T_Mu_I _ v).
     iIntros "#Hs /=".
-    iApply TAnd_I; first by [iApply vHasA0typ].
-    iApply TAnd_I; first last.
-    - iApply (T_Sub (i := 0)); last by iApply Sub_Top.
+    iApply sT_And_I; first by [iApply vHasA0typ].
+    iApply sT_And_I; first last.
+    - iApply (T_Sub (i := 0)); last by iApply sSub_Top.
       by iApply vHasA0typ.
     - rewrite -setp_value_eq /= /iPPred_car /=.
       have Hev2: pos (vnat 2) by rewrite /pos; eauto.
@@ -376,19 +368,13 @@ Section small_ex.
         try by [|iApply dm_to_type_intro].
   Qed.
 
-  (* Lemma vHasA1': Hs -∗ ∀ ρ, ⟦ vTyp1 ⟧ ρ v.[ρ].
-  Proof.
-    rewrite -ietp_value_inv. iIntros "#Hs".
-    (* Fails, because we need a *syntactic* type. *)
-    iApply (T_Sub [] v _ vTyp1 0). *)
-
   (*
-    A different approach would be to type the object using T_New_I
+    A different approach would be to type the object using T_Obj_I
     with an object type [U] with member [TTMem "A" ipos ipos].
     We could then upcast the object. But type U is not syntactic,
     so we can't express this yet using the existing typing
     lemmas.
-    And if we use T_New_I on the final type, then [this.A]
+    And if we use T_Obj_I on the final type, then [this.A]
     is overly abstract when we try proving that [this.n : this.A];
     see concretely below.
   *)
@@ -404,24 +390,31 @@ Section small_ex.
       oTop).
   Definition svTyp2 := oMu svTyp2Body.
 
-  (* Arguments T_Sub {_ _ _ _ _ _ _}. *)
   Lemma vHasA2t : Hs -∗ [] ⊨ tv v : vTyp1.
   Proof.
     iIntros "#Hs".
-    iApply (T_Sub (i := 0)).
+    iApply (sT_Sub (i := 0) (T1 := svTyp2)); first last.
+    - iApply sSub_Mu_X; rewrite /svTyp2Body /vTyp1Body iterate_0.
+      iApply sSub_And; last iApply sSub_And; last iApply sSub_Top.
+    + iApply sSub_Trans; first iApply sAnd1_Sub.
+      iApply sSub_TTMem_Variant; [iApply sBot_Sub | iApply Sub_later_ipos_nat].
+    + iApply sSub_Trans; first iApply sAnd2_Sub.
+      iApply sSub_Trans; first iApply sAnd1_Sub; iApply sSub_Refl.
+    - rewrite /v /svTyp2 /svTyp2Body.
+    (* iApply T_Obj_I. *)
     Abort.
 
   Lemma vHasA1': Hs -∗ ⟦ vTyp1 ⟧ ids v.
   Proof.
     iIntros "#Hs".
-    iDestruct (T_New_I [] vTyp1Body with "[]") as "#H"; first last.
+    iDestruct (T_Obj_I [] vTyp1Body with "[]") as "#H"; first last.
     iSpecialize ("H" $! ids with "[#//]").
     rewrite hsubst_id /interp_expr wp_value_inv'.
     iApply "H".
     iApply D_Cons => //.
     - (* Can't finish with D_Typ_Abs, this is only for syntactic types: *)
       (* From D.Dot Require Import typeExtractionSem.
-      iApply D_Typ_Abs => //; first last.
+      iApply sD_Typ_Abs => //; first last.
       iExists _; iSplit => //=.  (* Here we need a syntactic type matching [ipos]. *) *)
       iModIntro.
       iIntros (ρ Hpid) "/= #_".
@@ -449,10 +442,9 @@ End small_ex.
 End s_is_pos.
 
 Import dlang_adequacy swap_later_impl.
-Arguments safety_dot_sem {_ _ _ _ _}.
 Lemma vSafe: safe (tv (v 1%positive)).
 Proof.
-  eapply (safety_dot_sem (Σ := dlangΣ) (T := vTyp1))=>*.
+  eapply (safety_dot_sem dlangΣ (T := vTyp1))=>*.
   by rewrite (allocHs 1%positive) // -vHasA1t.
 Qed.
 

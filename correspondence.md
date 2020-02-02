@@ -25,6 +25,21 @@ All file paths in this file are relative to the `theories/` folder.
 - Notations such as \overbar{V}⟦ g ⟧ or \overbar{D}⟦ T ⟧ translate to Vs⟦ g ⟧
   and Ds⟦ T ⟧.
 
+## Typing lemma naming conventions
+
+Prefixes: T P D
+
+Translation table:
+- -> _
+<: -> Sub
+∀ -> All
+{} -> Obj
+
+For each rule, there are up to three versions, with corresponding prefixes.
+- Purely semantic lemma (s)
+- Syntactic lemma
+- Syntactic typing rule (?)
+
 ## Differences between our paper (and technical appendix) and our Coq development.
 
 - While in the paper unstamped and stamped DOT are represented using disjoint

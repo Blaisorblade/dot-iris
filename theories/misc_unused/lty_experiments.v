@@ -144,7 +144,7 @@ Section with_lty.
     by apply alias_paths_simpl.
   Qed.
 
-  Lemma singleton_self Γ τ p i :
+  Lemma P_Sngl_Refl Γ τ p i :
     Γ s⊨p p : τ, i -∗
     Γ s⊨p p : oSing p, i.
   Proof.
@@ -180,7 +180,7 @@ Section with_lty.
     Γ s⊨p p : τ, 0 -∗
     Γ s⊨ iterate tskip i (path2tm p) : oSing p.
   Proof.
-    rewrite singleton_self sptp2setp.
+    rewrite P_Sngl_Refl sptp2setp.
     iIntros "Hp". iApply (T_Sub with "Hp").
     by iIntros "!> * _ $".
   Qed.
@@ -194,7 +194,7 @@ Section with_lty.
     iIntros "!%". by eapply alias_paths_simpl, alias_paths_symm.
   Qed.
 
-  Lemma singleton_trans Γ p q r i:
+  Lemma P_Sngl_Trans Γ p q r i:
     Γ s⊨p p : oSing q, i -∗
     Γ s⊨p q : oSing r, i -∗
     Γ s⊨p p : oSing r, i.
@@ -206,7 +206,7 @@ Section with_lty.
     iIntros "!%". by eapply alias_paths_simpl, alias_paths_trans.
   Qed.
 
-  Lemma singleton_elim Γ τ p q l i:
+  Lemma P_Sngl_E Γ τ p q l i:
     Γ s⊨p p : oSing q, i -∗
     Γ s⊨p pself q l : τ, i -∗
     Γ s⊨p pself p l : oSing (pself q l), i.

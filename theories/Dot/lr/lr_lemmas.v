@@ -8,9 +8,9 @@ From D.Dot Require Import rules unary_lr.
 Reserved Notation "⊢G Γ1 <:* Γ2" (at level 74, Γ1, Γ2 at next level).
 Reserved Notation "⊢T T1 <: T2" (at level 74, T1, T2 at next level).
 
-Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx) (ρ : env).
+Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env).
 
-(* Global Instance: Params (@ietp) 2. *)
+(* TODO: all of this, minus unTLater, can be generalized to semantic types/contexts. *)
 
 (** A left inverse of TLater. Sometimes written ⊲. *)
 (* Definition unTLater T : ty := match T with | TLater T' => T' | _ => T end. *)
@@ -130,6 +130,7 @@ Typeclasses Opaque ctx_sub.
 
 Section CtxSub.
   Context `{HdlangG: dlangG Σ}.
+  Implicit Type (T : ty) (Γ : ctx).
 
   (** * Basic lemmas about [ctx_sub]. *)
   (* TODO: Make this into a structural typing rule? *)
@@ -160,11 +161,17 @@ Section CtxSub.
     Proper (flip ty_sub ==> flip ty_sub) TLater.
   Proof. apply: flip_proper_2. Qed.
 
-  Lemma env_TLater_commute Γ ρ : G⟦ TLater <$> Γ ⟧ ρ ⊣⊢ ▷ G⟦ Γ ⟧ ρ.
+  Lemma senv_TLater_commute (Γ : sCtx Σ) ρ : s⟦ oLater <$> Γ ⟧* ρ ⊣⊢ ▷ s⟦ Γ ⟧* ρ.
   Proof.
     elim: Γ ρ => [| T Γ IH] ρ; cbn; [|rewrite IH later_and];
       iSplit; by [iIntros "$" | iIntros "_"].
   Qed.
+
+  Lemma fmap_TLater_oLater Γ : V⟦ TLater <$> Γ ⟧* ≡ oLater <$> V⟦ Γ ⟧*.
+  Proof. elim: Γ => [//| T Γ IH]; cbn. by rewrite IH. Qed.
+
+  Lemma env_TLater_commute Γ ρ : G⟦ TLater <$> Γ ⟧ ρ ⊣⊢ ▷ G⟦ Γ ⟧ ρ.
+  Proof. by rewrite -senv_TLater_commute fmap_TLater_oLater. Qed.
 
   (** The strength ordering of contexts lifts the strength ordering of types. *)
   Lemma env_lift_sub f g {Γ} (Hle: ∀ T, ⊨T f T <: g T):
@@ -292,19 +299,42 @@ Ltac ietp_weaken_ctx := auto with ctx_sub.
 Section LambdaIntros.
   Context `{HdlangG: dlangG Σ}.
 
+  Lemma sT_All_I_Strong {Γ} T1 T2 e:
+    shift T1 :: Γ s⊨ e : T2 -∗
+    (*─────────────────────────*)
+    oLater <$> Γ s⊨ tv (vabs e) : oAll T1 T2.
+  Proof.
+    iIntros "#HeT !>" (ρ) "#HG /= !>".
+    rewrite -wp_value'. iExists _; iSplit; first done.
+    iIntros "!>" (v) "#Hv"; rewrite up_sub_compose.
+    (* Factor ▷ out of [s⟦ Γ ⟧* ρ] before [iNext]. *)
+    rewrite senv_TLater_commute.
+    iNext.
+    iApply ("HeT" $! (v .: ρ) with "[$HG]").
+    by rewrite (hoEnvD_weaken_one T1 vnil _ v) stail_eq.
+  Qed.
+
+  Lemma sT_All_I {Γ} T1 T2 e:
+    shift T1 :: Γ s⊨ e : T2 -∗
+    (*─────────────────────────*)
+    Γ s⊨ tv (vabs e) : oAll T1 T2.
+  Proof.
+    rewrite sT_All_I_Strong.
+    iIntros "#HeT !>" (ρ) "#HG /= !>".
+    iApply ("HeT" $! ρ with "[]").
+    rewrite senv_TLater_commute. iApply "HG".
+  Qed.
+
   Lemma T_All_I_Strong {Γ} T1 T2 e:
     shift T1 :: (unTLater <$> Γ) ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.
-    iIntros "#HeT !>" (ρ) "#HG /= !>".
-    rewrite -wp_value'. iExists _; iSplit; first done.
-    iIntros "!>" (v) "#Hv"; rewrite up_sub_compose.
-    (* Factor ⪭ out of [G⟦ Γ ⟧ ρ] before [iNext]. *)
-    rewrite (ctx_sub_TLater_unTLater _ _) env_TLater_commute.
-    iNext.
-    iApply ("HeT" $! (v .: ρ) with "[$HG]").
-    by rewrite (interp_weaken_one T1 _ v) stail_eq.
+    rewrite /ietp/setp fmap_cons.
+    setoid_rewrite (ctx_sub_TLater_unTLater Γ _).
+    setoid_rewrite (fmap_TLater_oLater _).
+    setoid_rewrite (pty_interp_subst T1 (ren (+1))).
+    apply (sT_All_I_Strong (Γ := V⟦unTLater <$> Γ⟧*) V⟦T1⟧ V⟦T2⟧ e).
   Qed.
 
   (* Derivable *)
@@ -313,34 +343,47 @@ Section LambdaIntros.
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   (* Proof. by rewrite -T_All_I_Strong (unTLater_ctx_sub Γ). Qed. *)
-  Proof. rewrite -T_All_I_Strong. ietp_weaken_ctx. Qed.
-
-  Lemma P_Val {Γ} v T:
-    Γ ⊨ tv v : T -∗
-    Γ ⊨p pv v : T, 0.
   Proof.
-    iIntros "/= #Hp !>" (ρ) "Hg".
-    iSpecialize ("Hp" with "Hg"); rewrite /= wp_value_inv'.
-    by rewrite path_wp_pv.
+    rewrite -T_All_I_Strong. ietp_weaken_ctx.
+    (* Restart.
+    by rewrite /ietp -sT_All_I fmap_cons (pty_interp_subst T1 (ren (+1))). *)
   Qed.
 
+  Lemma sP_Val {Γ} v T:
+    Γ s⊨ tv v : T -∗
+    Γ s⊨p pv v : T, 0.
+  Proof.
+    iIntros "/= #Hp !>" (ρ) "Hg"; iSpecialize ("Hp" with "Hg").
+    by rewrite /= wp_value_inv' path_wp_pv.
+  Qed.
+
+  Lemma P_Val {Γ} v T: Γ ⊨ tv v : T -∗ Γ ⊨p pv v : T, 0.
+  Proof. apply sP_Val. Qed.
+
   (** Lemmas about definition typing. *)
-  Lemma D_Path_TVMem_I {Γ} T p l:
-    Γ ⊨p p : T, 0 -∗
-    Γ ⊨ { l := dpt p } : TVMem l T.
+  Lemma sD_Path_TVMem_I {Γ} T p l:
+    Γ s⊨p p : T, 0 -∗
+    Γ s⊨ { l := dpt p } : oLDVMem l T.
   Proof.
     iIntros "/= #Hv !>" (ρ Hpid) "#Hg".
     rewrite def_interp_tvmem_eq.
     iApply ("Hv" with "Hg").
   Qed.
 
-  (** Lemmas about definition typing. *)
-  Lemma D_TVMem_I {Γ} T v l:
-    Γ ⊨ tv v : T -∗
-    Γ ⊨ { l := dpt (pv v) } : TVMem l T.
-  Proof. by rewrite -D_Path_TVMem_I -P_Val. Qed.
+  Lemma D_Path_TVMem_I {Γ} T p l:
+    Γ ⊨p p : T, 0 -∗ Γ ⊨ { l := dpt p } : TVMem l T.
+  Proof. apply sD_Path_TVMem_I. Qed.
 
-  (* Derivable *)
+  Lemma sD_TVMem_I {Γ} T v l:
+    Γ s⊨ tv v : T -∗
+    Γ s⊨ { l := dpt (pv v) } : oLDVMem l T.
+  Proof. by rewrite -sD_Path_TVMem_I -sP_Val. Qed.
+
+  Lemma D_TVMem_I {Γ} T v l:
+    Γ ⊨ tv v : T -∗ Γ ⊨ { l := dpt (pv v) } : TVMem l T.
+  Proof. apply sD_TVMem_I. Qed.
+
+  (* Derivable, to drop. *)
   Lemma D_TVMem_All_I_Strong {Γ} T1 T2 e l:
     shift T1 :: (unTLater <$> Γ) ⊨ e : T2 -∗
     Γ ⊨ { l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
@@ -357,13 +400,13 @@ Section LambdaIntros.
 End LambdaIntros.
 
 Section Sec.
-  Context `{HdlangG: dlangG Σ} Γ.
+  Context `{HdlangG: dlangG Σ}.
 
-  Lemma T_Sub e T1 T2 i:
-    Γ ⊨ e : T1 -∗
-    Γ ⊨ T1, 0 <: T2, i -∗
+  Lemma sT_Sub {Γ e T1 T2 i}:
+    Γ s⊨ e : T1 -∗
+    Γ s⊨ T1, 0 <: T2, i -∗
     (*───────────────────────────────*)
-    Γ ⊨ iterate tskip i e : T2.
+    Γ s⊨ iterate tskip i e : T2.
   Proof.
     iIntros "/= #HeT1 #Hsub !>" (ρ) "#Hg !>".
     rewrite tskip_subst -wp_bind.
@@ -373,97 +416,123 @@ Section Sec.
     rewrite -wp_pure_step_later // -wp_value.
     by iApply "Hsub".
   Qed.
-(*
+
+  Lemma T_Sub {Γ e T1 T2 i}:
+    Γ ⊨ e : T1 -∗ Γ ⊨ T1, 0 <: T2, i -∗ Γ ⊨ iterate tskip i e : T2.
+  Proof. apply sT_Sub. Qed.
+
   (*
      x ∉ fv T
      ----------------------------------------------- (<:)
      Γ ⊨ mu x: T <: T    Γ ⊨ T <: mu(x: T)
   *)
 
-  Lemma interp_TMu_ren T ρ v: ⟦ TMu (shift T) ⟧ ρ v ≡ ⟦ T ⟧ ρ v.
-  Proof. by rewrite /= (interp_weaken_one T (_ .: ρ) v). Qed.
-
   (*
      Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂ᶻ
      ----------------------------------------------- (<:-μ-X)
      Γ ⊨ μ (x: T₁ˣ) <: μ(x: T₂ˣ)
   *)
-  (* Notation "◁ n T ▷" := (iterate TLater n T). *)
-  Lemma Sub_Mu_X T1 T2 i j:
-    iterate TLater i T1 :: Γ ⊨ T1, i <: T2, j -∗
-    Γ ⊨ TMu T1, i <: TMu T2, j.
+  Lemma sSub_Mu_X {Γ T1 T2 i j} :
+    iterate oLater i T1 :: Γ s⊨ T1, i <: T2, j -∗
+    Γ s⊨ oMu T1, i <: oMu T2, j.
   Proof.
     iIntros "/= #Hstp !>" (vs v) "#Hg #HT1".
     iApply ("Hstp" $! (v .: vs) v with "[# $Hg] [#//]").
-    by rewrite iterate_TLater_later.
+    by rewrite iterate_oLater_later.
   Qed.
 
-  (* Novel subtyping rules. Sub_Mu_1 and Sub_Mu_2 become (sort-of?)
+  (* Novel subtyping rules. sSub_Mu_1 and sSub_Mu_2 become (sort-of?)
   derivable. *)
-  Lemma Sub_Mu_A T i: Γ ⊨ TMu (shift T), i <: T, i.
-  Proof. iIntros "!>" (vs v) "**". by rewrite (interp_TMu_ren T vs v). Qed.
+  Lemma sSub_Mu_A {Γ T i} : Γ s⊨ oMu (shift T), i <: T, i.
+  Proof. iIntros "!> **". by rewrite s_interp_TMu_ren. Qed.
 
-  Lemma Sub_Mu_B T i: Γ ⊨ T, i <: TMu (shift T), i.
-  Proof. iIntros "!>" (vs v) "**". by rewrite (interp_TMu_ren T vs v). Qed.
-
-  (*
-     Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂
-     ----------------------------------------------- (<:-Mu-1)
-     Γ ⊨ μ (x: T₁ˣ) <: T₂
-  *)
-  (* Sort-of-show this rule is derivable from Sub_Mu_X and Sub_Mu_A. *)
-  Lemma Sub_Mu_1 T1 T2 i j:
-    iterate TLater i T1 :: Γ ⊨ T1, i <: shift T2, j -∗
-    Γ ⊨ TMu T1, i <: T2, j.
-  Proof. iIntros "Hstp"; iApply (Sub_Trans with "[-] []"). by iApply Sub_Mu_X. iApply Sub_Mu_A. Qed.
-  (*
-     Γ, z: T₁ᶻ ⊨ T₁ <: T₂ᶻ
-     ----------------------------------------------- (<:-Bind-2)
-     Γ ⊨ T₁ <: μ(x: T₂ˣ)
-  *)
-
-  Lemma Sub_Mu_2 T1 T2 i j:
-    iterate TLater i (shift T1) :: Γ ⊨ (shift T1), i <: T2, j -∗
-    Γ ⊨ T1, i <: TMu T2, j.
-  Proof. iIntros "Hstp"; iApply (Sub_Trans with "[] [-]"). iApply Sub_Mu_B. by iApply Sub_Mu_X. Qed.
+  Lemma sSub_Mu_B {Γ T i} : Γ s⊨ T, i <: oMu (shift T), i.
+  Proof. iIntros "!> **". by rewrite s_interp_TMu_ren. Qed.
 
   (*
      Γ ⊨ z: Tᶻ
      =============================================== (T-Rec-I/T-Rec-E)
      Γ ⊨ z: mu(x: Tˣ)
    *)
-  Lemma TMu_equiv T v: (Γ ⊨ tv v : TMu T) ≡ (Γ ⊨ tv v : T.|[v/]).
+  Lemma sTMu_equiv {Γ T v} : (Γ s⊨ tv v : oMu T) ≡ (Γ s⊨ tv v : T.|[v/]).
   Proof.
-    iSplit; iIntros "/= #Htp !>" (vs) "#Hg !>";
-    iDestruct (wp_value_inv with "(Htp Hg)") as "{Htp} Hgoal";
-    rewrite -wp_value (interp_subst_one T v (v.[vs])); done.
+    iSplit; iIntros "#Htp !>" (vs) "#Hg !> /=";
+    iDestruct (wp_value_inv' with "(Htp Hg)") as "{Htp} Hgoal";
+    rewrite -wp_value/= (hoEnvD_subst_one _ v (v.[vs])); done.
   Qed.
 
-  Lemma TMu_I T v: Γ ⊨ tv v : T.|[v/] -∗ Γ ⊨ tv v : TMu T.
-  Proof. by rewrite TMu_equiv. Qed.
+  Lemma sT_Mu_I {Γ T v} : Γ s⊨ tv v : T.|[v/] -∗ Γ s⊨ tv v : oMu T.
+  Proof. by rewrite sTMu_equiv. Qed.
 
-  Lemma TMu_E T v: Γ ⊨ tv v : TMu T -∗ Γ ⊨ tv v : T.|[v/].
-  Proof. by rewrite TMu_equiv. Qed. *)
+  Lemma sT_Mu_E {Γ T v} : Γ s⊨ tv v : oMu T -∗ Γ s⊨ tv v : T.|[v/].
+  Proof. by rewrite sTMu_equiv. Qed.
 
-  Lemma T_All_E e1 e2 T1 T2:
-    Γ ⊨ e1 : TAll T1 (shift T2) -∗
-    Γ ⊨ e2 : T1 -∗
-    (*────────────────────────────────────────────────────────────*)
-    Γ ⊨ tapp e1 e2 : T2.
+  Lemma Sub_Mu_X {Γ} T1 T2 i j:
+    iterate TLater i T1 :: Γ ⊨ T1, i <: T2, j -∗
+    Γ ⊨ TMu T1, i <: TMu T2, j.
   Proof.
-    iIntros "/= #He1 #Hv2 !>" (vs) "#HG !>".
-    smart_wp_bind (AppLCtx (e2.|[_])) v "#Hr" ("He1" with "[]").
-    smart_wp_bind (AppRCtx v) w "#Hw" ("Hv2" with "[]").
-    iDestruct "Hr" as (t ->) "#Hv".
-    rewrite -wp_pure_step_later // -wp_mono /=; first by iSpecialize ("Hv" with "Hw"); iNext.
-    iIntros (v); by rewrite (interp_weaken_one T2 _ v).
+    rewrite /istpi -sSub_Mu_X.
+    by rewrite fmap_cons (iterate_TLater_oLater i T1).
   Qed.
 
-  Lemma T_All_Ex e1 v2 T1 T2:
-    Γ ⊨ e1: TAll T1 T2 -∗
-    Γ ⊨ tv v2 : T1 -∗
+  Lemma Sub_Mu_A {Γ} T i: Γ ⊨ TMu (shift T), i <: T, i.
+  Proof.
+    rewrite /istpi.
+    cbn [pinterp pty_interpO].
+    rewrite (pty_interp_subst T (ren (+1))).
+    apply sSub_Mu_A.
+    (* iIntros "!>" (vs v) "**".
+    by rewrite /= (lift_olty_eq (pty_interp_subst _ _)). *)
+  Qed.
+
+  Lemma Sub_Mu_B {Γ} T i: Γ ⊨ T, i <: TMu (shift T), i.
+  Proof.
+    rewrite /istpi.
+    cbn [pinterp pty_interpO].
+    rewrite (pty_interp_subst T (ren (+1))).
+    apply sSub_Mu_B.
+    (* iIntros "!>" (vs v) "**".
+    by rewrite /= (lift_olty_eq (pty_interp_subst _ _)). *)
+  Qed.
+
+  (*
+     Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂
+     ----------------------------------------------- (<:-Bind-1)
+     Γ ⊨ μ (x: T₁ˣ) <: T₂
+  *)
+  (* Sort-of-show this rule is derivable from Sub_Mu_X and Sub_Mu_A. *)
+  Lemma Sub_Mu_1 {Γ T1 T2 i j} :
+    iterate TLater i T1 :: Γ ⊨ T1, i <: shift T2, j -∗
+    Γ ⊨ TMu T1, i <: T2, j.
+  Proof.
+    iIntros "Hstp"; iApply (Sub_Trans with "[-] []").
+    by iApply Sub_Mu_X. iApply Sub_Mu_A.
+  Qed.
+
+  (*
+     Γ, z: T₁ᶻ ⊨ T₁ <: T₂ᶻ
+     ----------------------------------------------- (<:-Bind-2)
+     Γ ⊨ T₁ <: μ(x: T₂ˣ)
+  *)
+  Lemma Sub_Mu_2 {Γ T1 T2 i j} :
+    iterate TLater i (shift T1) :: Γ ⊨ (shift T1), i <: T2, j -∗
+    Γ ⊨ T1, i <: TMu T2, j.
+  Proof.
+    iIntros "Hstp"; iApply (Sub_Trans with "[] [-]").
+    iApply Sub_Mu_B. by iApply Sub_Mu_X.
+  Qed.
+
+  Lemma T_Mu_I {Γ} T v: Γ ⊨ tv v : T.|[v/] -∗ Γ ⊨ tv v : TMu T.
+  Proof. by rewrite /ietp -sT_Mu_I pty_interp_subst. Qed.
+
+  Lemma T_Mu_E {Γ} T v: Γ ⊨ tv v : TMu T -∗ Γ ⊨ tv v : T.|[v/].
+  Proof. by rewrite /ietp sT_Mu_E pty_interp_subst. Qed.
+
+  Lemma sT_All_Ex {Γ e1 v2 T1 T2}:
+    Γ s⊨ e1: oAll T1 T2 -∗
+    Γ s⊨ tv v2 : T1 -∗
     (*────────────────────────────────────────────────────────────*)
-    Γ ⊨ tapp e1 (tv v2) : T2.|[v2/].
+    Γ s⊨ tapp e1 (tv v2) : T2.|[v2/].
   Proof.
     iIntros "/= #He1 #Hv2Arg !> * #HG !>".
     smart_wp_bind (AppLCtx (tv v2.[_])) v "#Hr {He1}" ("He1" with "[#//]").
@@ -475,13 +544,34 @@ Section Sec.
     iNext. iApply wp_wand.
     - iApply "HvFun".
     - iIntros (v) "{HG HvFun Hv2Arg} H".
-      rewrite (interp_subst_one T2 v2 v) //.
+      rewrite /= (hoEnvD_subst_one T2 v2 v) //.
   Qed.
 
+  Lemma T_All_Ex {Γ e1 v2 T1 T2}:
+    Γ ⊨ e1: TAll T1 T2 -∗ Γ ⊨ tv v2 : T1 -∗ Γ ⊨ tapp e1 (tv v2) : T2.|[v2/].
+  Proof. by rewrite /ietp (pty_interp_subst T2 (v2 .: ids)) -sT_All_Ex. Qed.
 
-  Lemma Sub_TVMem_Variant' T1 T2 i j l:
-    Γ ⊨ T1, i <: T2, j + i -∗
-    Γ ⊨ TVMem l T1, i <: TVMem l T2, j + i.
+  Lemma sT_All_E {Γ e1 e2 T1 T2}:
+    Γ s⊨ e1 : oAll T1 (shift T2) -∗
+    Γ s⊨ e2 : T1 -∗
+    (*────────────────────────────────────────────────────────────*)
+    Γ s⊨ tapp e1 e2 : T2.
+  Proof.
+    iIntros "/= #He1 #Hv2 !>" (vs) "#HG !>".
+    smart_wp_bind (AppLCtx (e2.|[_])) v "#Hr" ("He1" with "[]").
+    smart_wp_bind (AppRCtx v) w "#Hw" ("Hv2" with "[]").
+    iDestruct "Hr" as (t ->) "#Hv".
+    rewrite -wp_pure_step_later // -wp_mono /=; first by iSpecialize ("Hv" with "Hw"); iNext.
+    iIntros (v); by rewrite /= (hoEnvD_weaken_one T2 _ _ _).
+  Qed.
+
+  Lemma T_All_E {Γ e1 e2 T1 T2} :
+    Γ ⊨ e1 : TAll T1 (shift T2) -∗ Γ ⊨ e2 : T1 -∗ Γ ⊨ tapp e1 e2 : T2.
+  Proof. by rewrite /ietp -sT_All_E -(pty_interp_subst T2 (ren (+1))). Qed.
+
+  Lemma sSub_TVMem_Variant' {Γ T1 T2 i j l}:
+    Γ s⊨ T1, i <: T2, j + i -∗
+    Γ s⊨ oVMem l T1, i <: oVMem l T2, j + i.
   Proof.
     iIntros "#Hsub /= !>" (ρ v) "#Hg #HT1". setoid_rewrite laterN_plus.
     iDestruct "HT1" as (d) "#[Hdl #HT1]".
@@ -492,16 +582,19 @@ Section Sec.
     by iApply "Hsub".
   Qed.
 
-  Lemma Sub_TVMem_Variant T1 T2 i l:
-    Γ ⊨ T1, i <: T2, i -∗
-    Γ ⊨ TVMem l T1, i <: TVMem l T2, i.
-  Proof. iApply (Sub_TVMem_Variant' _ _ _ 0). Qed.
+  Lemma Sub_TVMem_Variant' {Γ T1 T2 i j l}:
+    Γ ⊨ T1, i <: T2, j + i -∗ Γ ⊨ TVMem l T1, i <: TVMem l T2, j + i.
+  Proof. apply sSub_TVMem_Variant'. Qed.
 
-  (* Stronger variant of T_Mem_E. *)
-  Lemma T_Mem_E' e T l:
-    Γ ⊨ e : TVMem l (TLater T) -∗
+  Lemma Sub_TVMem_Variant {Γ T1 T2 i l}:
+    Γ ⊨ T1, i <: T2, i -∗ Γ ⊨ TVMem l T1, i <: TVMem l T2, i.
+  Proof. iApply (Sub_TVMem_Variant' (j := 0)). Qed.
+
+  (* Stronger variant of [sT_Obj_E]. *)
+  Lemma sT_Obj_E' {Γ e T l}:
+    Γ s⊨ e : oVMem l (oLater T) -∗
     (*─────────────────────────*)
-    Γ ⊨ tproj e l : T.
+    Γ s⊨ tproj e l : T.
   Proof.
     iIntros "#HE /= !>" (ρ) "#HG !>".
     smart_wp_bind (ProjCtx l) v "#Hv {HE}" ("HE" with "[]").
@@ -509,26 +602,28 @@ Section Sec.
     rewrite -wp_pure_step_later //= path_wp_later_swap path_wp_to_wp. by [].
   Qed.
 
-  Lemma T_Mem_E e T l:
-    Γ ⊨ e : TVMem l T -∗
+  Lemma sT_Obj_E {Γ e T l}:
+    Γ s⊨ e : oVMem l T -∗
     (*─────────────────────────*)
-    Γ ⊨ tproj e l : T.
+    Γ s⊨ tproj e l : T.
   Proof.
-    rewrite -T_Mem_E'. iIntros "HE"; iApply (T_Sub e _ _ 0 with "HE").
-    rewrite -Sub_TVMem_Variant.
+    rewrite -sT_Obj_E'. iIntros "HE"; iApply (sT_Sub (i := 0) with "HE").
+    rewrite -(sSub_TVMem_Variant' (j := 0)).
     (* iApply Sub_Add_Later. *)
     by iIntros "!> ** !> /=".
   Qed.
 
+  Lemma T_Obj_E {Γ e T l}: Γ ⊨ e : TVMem l T -∗ Γ ⊨ tproj e l : T.
+  Proof. apply sT_Obj_E. Qed.
 End Sec.
 
 Section swap_based_typing_lemmas.
-  Context `{!dlangG Σ} {Γ} `{!SwapPropI Σ}.
+  Context `{!dlangG Σ} `{!SwapPropI Σ}.
 
-  Lemma Sub_TAllConCov T1 T2 U1 U2 i:
-    Γ ⊨ TLater T2, i <: TLater T1, i -∗
-    iterate TLater (S i) (shift T2) :: Γ ⊨ TLater U1, i <: TLater U2, i -∗
-    Γ ⊨ TAll T1 U1, i <: TAll T2 U2, i.
+  Lemma sSub_TAllConCov {Γ T1 T2 U1 U2 i}:
+    Γ s⊨ oLater T2, i <: oLater T1, i -∗
+    iterate oLater (S i) (shift T2) :: Γ s⊨ oLater U1, i <: oLater U2, i -∗
+    Γ s⊨ oAll T1 U1, i <: oAll T2 U2, i.
   Proof.
     rewrite iterate_S /=.
     iIntros "#HsubT #HsubU /= !>" (ρ v) "#Hg #HT1".
@@ -539,17 +634,27 @@ Section swap_based_typing_lemmas.
     iSpecialize ("HsubT" $! ρ w with "Hg HwT2").
     iSpecialize ("HsubU" $! (w .: ρ)); iEval (rewrite -forall_swap_impl) in "HsubU".
     iSpecialize ("HsubU" with "[# $Hg]").
-    by rewrite iterate_TLater_later -swap_later; iApply interp_weaken_one.
+    by rewrite iterate_oLater_later -swap_later /=; iApply hoEnvD_weaken_one.
     setoid_rewrite mlaterN_impl; setoid_rewrite mlater_impl.
     iNext i; iNext 1. iModIntro. iApply wp_wand.
     - iApply ("HT1" with "[]"). iApply "HsubT".
     - iIntros (u) "#HuU1". by iApply "HsubU".
   Qed.
 
-  Lemma Sub_TTMem_Variant' L1 L2 U1 U2 i j l:
-    Γ ⊨ TLater L2, j + i <: TLater L1, i -∗
-    Γ ⊨ TLater U1, i <: TLater U2, i -∗
-    Γ ⊨ TTMem l L1 U1, i <: TTMem l L2 U2, i.
+  Lemma Sub_TAllConCov {Γ} T1 T2 U1 U2 i:
+    Γ ⊨ TLater T2, i <: TLater T1, i -∗
+    iterate TLater (S i) (shift T2) :: Γ ⊨ TLater U1, i <: TLater U2, i -∗
+    Γ ⊨ TAll T1 U1, i <: TAll T2 U2, i.
+  Proof.
+    rewrite /istpi fmap_cons iterate_TLater_oLater.
+    rewrite (pty_interp_subst T2 (ren (+1))).
+    apply sSub_TAllConCov.
+  Qed.
+
+  Lemma sSub_TTMem_Variant' {Γ L1 L2 U1 U2 i j l}:
+    Γ s⊨ oLater L2, j + i <: oLater L1, i -∗
+    Γ s⊨ oLater U1, i <: oLater U2, i -∗
+    Γ s⊨ oTMem l L1 U1, i <: oTMem l L2 U2, i.
   Proof.
     iIntros "#IHT #IHT1 /= !>" (ρ v) "#Hg #HT1".
     iDestruct "HT1" as (d) "[Hl2 H]".
@@ -567,9 +672,15 @@ Section swap_based_typing_lemmas.
     - iApply "IHT1". by iApply "HφU".
   Qed.
 
-  Lemma Sub_TTMem_Variant L1 L2 U1 U2 i l:
+  Lemma sSub_TTMem_Variant {Γ L1 L2 U1 U2 i l}:
+    Γ s⊨ oLater L2, i <: oLater L1, i -∗
+    Γ s⊨ oLater U1, i <: oLater U2, i -∗
+    Γ s⊨ oTMem l L1 U1, i <: oTMem l L2 U2, i.
+  Proof. apply (sSub_TTMem_Variant' (j := 0)). Qed.
+
+  Lemma Sub_TTMem_Variant {Γ L1 L2 U1 U2 i l}:
     Γ ⊨ TLater L2, i <: TLater L1, i -∗
     Γ ⊨ TLater U1, i <: TLater U2, i -∗
     Γ ⊨ TTMem l L1 U1, i <: TTMem l L2 U2, i.
-  Proof. apply Sub_TTMem_Variant' with (j := 0). Qed.
+  Proof. apply sSub_TTMem_Variant. Qed.
 End swap_based_typing_lemmas.

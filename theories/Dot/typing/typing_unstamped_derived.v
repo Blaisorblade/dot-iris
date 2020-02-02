@@ -593,7 +593,7 @@ We formalize that as the derived rule below.
 The action of [fixRecs] depends on the type [T1] of [p].
 Hence, here we we assume the action of [fixRecs] has already been carried out:
 to do that, one must unfold top-level recursive types in the type of [p],
-as allowed through [T_Mu_E_p], rules for intersection types and intersection introduction.
+as allowed through [P_Mu_E], rules for intersection types and intersection introduction.
 On the other hand, this derived rule handles the substitution in [T2] directly.
 *)
 Lemma singleton_Mu_dotty1 {Γ p i T1' T2} :

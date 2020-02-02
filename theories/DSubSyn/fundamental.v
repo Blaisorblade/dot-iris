@@ -112,9 +112,9 @@ Section Fundamental.
       + by iApply T_All_Ex.
       + by iApply T_All_E.
       + by iApply T_All_I.
-      (* + iApply T_New_I.
+      (* + iApply T_Obj_I.
         by iApply fundamental_dms_typed.
-      + by iApply TMu_I. *)
+      + by iApply T_Mu_I. *)
       + by iApply T_Nat_I.
       + by iApply T_Var.
       + iApply T_Sub => //.

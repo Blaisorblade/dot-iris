@@ -19,12 +19,12 @@ Section AlsoSyntactically.
   Lemma singleton_Mu_1 {Γ p T i T'} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : TMu T, i -∗
     Γ ⊨ TSing p, i <: T', i.
-  Proof. rewrite (TMu_E_p Hrepl). apply singleton_self_sub. Qed.
+  Proof. rewrite (P_Mu_E Hrepl). apply singleton_self_sub. Qed.
 
   Lemma singleton_Mu_2 {Γ p T i T'} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : T', i -∗
     Γ ⊨ TSing p, i <: TMu T, i.
-  Proof. rewrite (TMu_I_p Hrepl). apply singleton_self_sub. Qed.
+  Proof. rewrite (P_Mu_I Hrepl). apply singleton_self_sub. Qed.
 
   (** Semantic version of derived rule [singleton_Mu_dotty1]. *)
   Lemma singleton_Mu_dotty1 {Γ p i T1 T2 T1' T2'}
@@ -41,7 +41,7 @@ Section AlsoSyntactically.
     Restart. *)
     iIntros "Hsub Hp".
     iApply (singleton_Mu_2 Hrepl2).
-    iApply (P_Sub' with "Hp Hsub").
+    iApply (sP_Sub' with "Hp Hsub").
   Qed.
 
 End AlsoSyntactically.
@@ -75,8 +75,6 @@ From D.Dot Require fundamental typingStamping.
 From D.Dot.examples Require scalaLib.
 
 Import fundamental.
-Arguments sSub_Sel_Path {_ _ _ _ _ _ _ _}.
-Arguments Sub_Trans {_ _ _ _ _ _ _ _ _}.
 
 Section Example.
   Context `{HdlangG: dlangG Σ} `{SwapPropI Σ}.
@@ -164,7 +162,7 @@ Section Example.
     iApply (T_Sub _ _ ((μ {@ typeEq "A" (shift T) }))); first last.
     iApply Sub_Mu_1; rewrite iterate_0.
     iApply Sub_Trans. iApply
-    iApply T_New_I.
+    iApply T_Obj_I.
   Qed. *)
 
   Example foo Γ e v1 v2:
@@ -178,17 +176,18 @@ Section Example.
     iIntros "#Hs #He #Hv1 #Hv2".
     iAssert ([] ⊨ ⊤, 0 <: pv (packTV 0 s0) @; "A", 0) as "#Hsub". {
       iApply (Sub_Trans (T2 := ▶: ⊤) (i2 := 0)).
-      iApply Sub_Add_Later.
-      iApply sSub_Sel_Path.
+      iApply sSub_Add_Later.
+      iApply Sub_Sel_Path.
       iApply P_Val.
       iApply (packTV_semTyped with "Hs"); stcrush.
     }
-    iApply (T_All_Ex _ _ v2 (pv (packTV 0 s0) @; "A") (TSing p0)); first last.
-    iApply (T_Sub _ _ _ _ 0 with "Hv2 Hsub").
+    Arguments T_All_Ex {_ _ _ _ _ _ _}.
+    iApply (T_All_Ex (v2 := v2) (T1 := pv (packTV 0 s0) @; "A") (T2 := TSing p0)); first last.
+    iApply (T_Sub (i := 0) with "Hv2 Hsub").
     iApply T_All_E; first last.
-    iApply (T_Sub _ _ _ _ 0 with "Hv1 Hsub").
-    Timeout 1 iApply (T_All_Ex [] e (packTV 0 s0) with "He").
-    iApply (T_Sub _ _ (typeEq "A" ⊤) _ 0).
+    iApply (T_Sub (i := 0) with "Hv1 Hsub").
+    Timeout 1 iApply (T_All_Ex (v2 := packTV 0 s0) with "He").
+    iApply (T_Sub (T1 := typeEq "A" ⊤) (i := 0)).
     iApply (packTV_semTyped [] with "Hs"); stcrush.
     iApply (fundamental_subtype _ ∅); last iApply wellMappedφ_empty.
     tcrush.
@@ -284,8 +283,8 @@ Section Sec.
     TLater V :: Γ ⊨ e : T.
   Proof. by rewrite fmap_cons -(ctx_sub_TLater Γ). Qed.
 
-  (* Variant of [PT_Mem_I]: not needed here, and we get an extra later :-|, tho it
-  matches [T_Mem_E']. Fails now that we allow path members. *)
+  (* Variant of [P_Fld_I]: not needed here, and we get an extra later :-|, tho it
+  matches [T_Obj_E']. Fails now that we allow path members. *)
   Lemma T_Mem_I Γ e T l:
     Γ ⊨ tproj e l : T -∗
     (*─────────────────────────*)
@@ -447,7 +446,7 @@ Section Sec.
     iInduction j as [] "IHj".
     - iApply Sub_Refl.
     - iApply (Sub_Trans with "IHj").
-      iApply Sub_Mono.
+      iApply sSub_Mono.
   Qed.
 
   Lemma iterate_Sub_Later Γ T i j:
@@ -456,7 +455,7 @@ Section Sec.
       iInduction j as [] "IHj" forall (T).
     - iApply Sub_Refl.
     - iApply (Sub_Trans (i2 := j + i) (T2 := TLater T)); rewrite ?iterate_Sr /=.
-      + iApply Sub_Later.
+      + iApply sSub_Later.
       + iApply ("IHj" $! (TLater T)).
   Qed.
 
@@ -469,7 +468,7 @@ Section Sec.
     Γ ⊨ T, i <: U, j + i -∗
     Γ ⊨ T, i <: TAnd U T, j + i .
   Proof.
-    iIntros "H"; iApply (Sub_And with "[H//] []").
+    iIntros "H"; iApply (sSub_And with "[H//] []").
     iApply iterate_Sub_Mono.
   Qed.
 
@@ -479,10 +478,10 @@ Section Sec.
   Proof.
     rewrite /istpi.
     iIntros "H"; iSimpl; setoid_rewrite Distr_TLater_And.
-    iApply (Sub_And with "[] H").
+    iApply (sSub_And with "[] H").
     iApply (Sub_Trans (T2 := T) (i2 := S i)).
-    - by iApply Sub_Mono.
-    - by iApply Sub_Later.
+    - by iApply sSub_Mono.
+    - by iApply sSub_Later.
   Qed.
 
   Lemma Distr_TLaterN_And T1 T2 j args ρ v:
@@ -526,7 +525,7 @@ Section Sec.
   Proof.
     iIntros "H".
     setoid_rewrite (sub_rewrite_2 Γ T _ _ i (Distr_TLaterN_And T U j)).
-    iApply (Sub_And with "[] H").
+    iApply (sSub_And with "[] H").
     iApply (Sub_Trans (T2 := T) (i2 :=  j + i)).
     - by iApply iterate_Sub_Mono.
     - by iApply iterate_Sub_Later.
@@ -539,7 +538,7 @@ Section Sec.
     - iApply Sub_Refl.
     - iApply Sub_Trans.
       iApply ("IHj" $! (TLater T)).
-      iApply Later_Sub.
+      iApply sLater_Sub.
   Qed.
 
   (* The point is, ensuring this works with T being a singleton type :-) *)

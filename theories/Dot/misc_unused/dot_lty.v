@@ -148,7 +148,7 @@ Section SemTypes.
   Definition oLDVMem l T := LDlty (Some l) (oDVMem T).
   Global Instance Proper_oLDVMem : Proper ((≡) ==> (≡)) (oLDVMem l).
   Proof. solve_proper. Qed.
-  Definition oVMem  l τ := lift_dinterp_vl l (oDVMem τ).
+  Definition oVMem l τ := lift_dinterp_vl l (oDVMem τ).
   Global Instance Proper_oVMem : Proper ((≡) ==> (≡)) (oVMem l).
   Proof. solve_proper_ho_equiv. Qed.
 
@@ -181,6 +181,7 @@ Section SemTypes.
 
   Global Instance Proper_oAll : Proper ((≡) ==> (≡) ==> (≡)) oAll.
   Proof. solve_proper_ho_equiv. Qed.
+  Global Instance: Params (@oAll) 2 := {}.
 
   Definition oPrim b : olty Σ 0 := olty0 (λI ρ v, ⌜pure_interp_prim b v⌝).
 
@@ -299,111 +300,11 @@ Section SampleTypingLemmas.
   Qed.
 
   Context {Γ : sCtx Σ}.
-  Lemma sSub_Sel L U va l i:
-    Γ s⊨ tv va : oTMem l L U, i -∗
-    Γ s⊨ oLater L, i <: oSel (pv va) l, i.
-  Proof.
-    iIntros "#Hva !>" (ρ v) "#Hg #HvL".
-    iSpecialize ("Hva" with "Hg"). rewrite /= wp_value_inv' path_wp_pv.
-    iNext.
-    iDestruct "Hva" as (d Hl ψ) "#[Hlψ [#HLψ #HψU]]".
-    iExists ψ, d; repeat iSplit => //. by iApply "HLψ".
-  Qed.
-
-  Lemma sSel_Sub L U va l i:
-    Γ s⊨ tv va : oTMem l L U, i -∗
-    Γ s⊨ oSel (pv va) l, i <: oLater U, i.
-  Proof.
-    iIntros "#Hva !>" (ρ v) "#Hg #Hψ".
-    iSpecialize ("Hva" with "Hg"); rewrite /= wp_value_inv' path_wp_pv.
-    iNext.
-    iDestruct "Hva" as (d Hl ψ) "#[Hlψ [#HLψ #HψU]]".
-    iDestruct "Hψ" as (ψ1 d1 Hva) "[Hγ #Hψ1v]".
-    objLookupDet. iDestruct (dm_to_type_agree vnil v with "Hlψ Hγ") as "#Hag".
-    iApply "HψU" => //. iNext. by iRewrite "Hag".
-  Qed.
-
-  (*
-     Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂ᶻ
-     ----------------------------------------------- (<:-μ-X)
-     Γ ⊨ μ (x: T₁ˣ) <: μ(x: T₂ˣ)
-  *)
-  (* Notation "◁ n T ▷" := (iterate TLater n T). *)
-  Lemma sSub_Mu_X T1 T2 i j:
-    iterate oLater i T1 :: Γ s⊨ T1, i <: T2, j -∗
-    Γ s⊨ oMu T1, i <: oMu T2, j.
-  Proof.
-    iIntros "/= #Hstp !>" (vs v) "#Hg #HT1".
-    iApply ("Hstp" $! (v .: vs) v with "[# $Hg] [#//]").
-    by rewrite s_iterate_TLater_later.
-  Qed.
-
-  Lemma sSub_Mu_A T i: Γ s⊨ oMu (shift T), i <: T, i.
-  Proof. iIntros "!> **". by rewrite s_interp_TMu_ren. Qed.
-
-  Lemma sSub_Mu_B T i: Γ s⊨ T, i <: oMu (shift T), i.
-  Proof. iIntros "!> **". by rewrite s_interp_TMu_ren. Qed.
-
-  (*
-     Γ ⊨ z: Tᶻ
-     =============================================== (T-Rec-I/T-Rec-E)
-     Γ ⊨ z: mu(x: Tˣ)
-   *)
-  Lemma sTMu_equiv T v: (Γ s⊨ tv v : oMu T) ≡ (Γ s⊨ tv v : T.|[v/]).
-  Proof.
-    iSplit; iIntros "#Htp !>" (vs) "#Hg !> /=";
-    iDestruct (wp_value_inv' with "(Htp Hg)") as "{Htp} Hgoal";
-    rewrite -wp_value/= (hoEnvD_subst_one _ v (v.[vs])); done.
-  Qed.
-
-  (*
-     Γ ⊨ z: Tᶻ
-     =============================================== (T-Rec-I/T-Rec-E)
-     Γ ⊨ z: mu(x: Tˣ)
-   *)
-  Lemma sTMu_I T v: Γ s⊨ tv v : T.|[v/] -∗ Γ s⊨ tv v : oMu T.
-  Proof. by rewrite sTMu_equiv. Qed.
-
-  Lemma sTMu_E T v: Γ s⊨ tv v : oMu T -∗ Γ s⊨ tv v : T.|[v/].
-  Proof. by rewrite sTMu_equiv. Qed.
-
-  Lemma sT_All_E e1 e2 T1 T2:
-    Γ s⊨ e1 : oAll T1 (shift T2) -∗
-    Γ s⊨ e2 : T1 -∗
-    (*────────────────────────────────────────────────────────────*)
-    Γ s⊨ tapp e1 e2 : T2.
-  Proof.
-    iIntros "/= #He1 #Hv2 !>" (vs) "#HG !>".
-    smart_wp_bind (AppLCtx (e2.|[_])) v "#Hr" ("He1" with "[]").
-    smart_wp_bind (AppRCtx v) w "#Hw" ("Hv2" with "[]").
-    iDestruct "Hr" as (t ->) "#Hv".
-    rewrite -wp_pure_step_later // -wp_mono /=; first by iSpecialize ("Hv" with "Hw"); iNext.
-    iIntros (v); by rewrite /= (hoEnvD_weaken_one T2 _ _ _).
-  Qed.
-
-  Lemma sT_All_Ex e1 v2 T1 T2:
-    Γ s⊨ e1: oAll T1 T2 -∗
-    Γ s⊨ tv v2 : T1 -∗
-    (*────────────────────────────────────────────────────────────*)
-    Γ s⊨ tapp e1 (tv v2) : T2.|[v2/].
-  Proof.
-    iIntros "/= #He1 #Hv2Arg !> * #HG !>".
-    smart_wp_bind (AppLCtx (tv v2.[_])) v "#Hr {He1}" ("He1" with "[#//]").
-    iDestruct "Hr" as (t ->) "#HvFun".
-    rewrite -wp_pure_step_later; last done.
-    iSpecialize ("HvFun" with "[#]"). {
-      rewrite -wp_value_inv'. by iApply ("Hv2Arg" with "[]").
-    }
-    iNext. iApply wp_wand.
-    - iApply "HvFun".
-    - iIntros (v) "{HG HvFun Hv2Arg} H".
-      rewrite /= (hoEnvD_subst_one T2 v2 v) //.
-  Qed.
 
   Lemma sSub_Refl T i : Γ s⊨ T, i <: T, i.
   Proof. by iIntros "!> **". Qed.
 
-  Lemma sSub_Trans T1 T2 T3 i1 i2 i3 : Γ s⊨ T1, i1 <: T2, i2 -∗
+  Lemma sSub_Trans {T1 T2 T3 i1 i2 i3} : Γ s⊨ T1, i1 <: T2, i2 -∗
                                       Γ s⊨ T2, i2 <: T3, i3 -∗
                                       Γ s⊨ T1, i1 <: T3, i3.
   Proof.
@@ -414,7 +315,7 @@ Section SampleTypingLemmas.
   Lemma sSub_Eq T U i j :
     Γ s⊨ T, i <: U, j ⊣⊢
     Γ s⊨ iterate oLater i T, 0 <: iterate oLater j U, 0.
-  Proof. cbn. by setoid_rewrite s_iterate_TLater_later. Qed.
+  Proof. cbn. by setoid_rewrite iterate_oLater_later. Qed.
 
   Lemma pty_interp_subst (T : ty) σ : V⟦ T.|[σ] ⟧ ≡ V⟦ T ⟧.|[σ].
   Proof. intros ???; apply interp_subst_compose_ind. Qed.
@@ -429,6 +330,17 @@ End SampleTypingLemmas.
 
 (** * Proper instances. *)
 Section Propers.
+  (** This instance doesn't allow setoid rewriting in the function argument
+  to [iterate]. That's appropriate for this project. *)
+  Global Instance: Params (@iterate) 3 := {}.
+  Global Instance Proper_iterate {n} {A : ofeT} (f : A -> A) :
+    Proper (equiv ==> equiv) f →
+    Proper (equiv ==> equiv) (iterate f n).
+  Proof.
+    elim: n => [|n IHn] Hp x y Heq; rewrite ?(iterate_0, iterate_S) //.
+    f_equiv. exact: IHn.
+  Qed.
+
   Context `{HdotG: dlangG Σ}.
 
   Global Instance Proper_lift_ldlty l ρ d : Proper ((≡) ==> (≡)) (lift_ldlty l ρ d).
@@ -497,7 +409,7 @@ Section defs.
   Lemma iterate_TLater_later T n args ρ v:
     V⟦ iterate TLater n T ⟧ args ρ v ≡ (▷^n V⟦ T ⟧ args ρ v)%I.
   Proof.
-    by rewrite (iterate_TLater_oLater n T _ _ _) s_iterate_TLater_later.
+    by rewrite (iterate_TLater_oLater n T _ _ _) iterate_oLater_later.
   Qed.
 
   Context {Γ : ctx}.
@@ -505,9 +417,9 @@ Section defs.
   Lemma Sub_Refl T i : Γ ⊨ T, i <: T, i.
   Proof. apply sSub_Refl. Qed.
 
-  Lemma Sub_Trans T1 T2 T3 i1 i2 i3 : Γ ⊨ T1, i1 <: T2, i2 -∗
-                                      Γ ⊨ T2, i2 <: T3, i3 -∗
-                                      Γ ⊨ T1, i1 <: T3, i3.
+  Lemma Sub_Trans {T1 T2 T3 i1 i2 i3} :
+    Γ ⊨ T1, i1 <: T2, i2 -∗ Γ ⊨ T2, i2 <: T3, i3 -∗
+    Γ ⊨ T1, i1 <: T3, i3.
   Proof. apply sSub_Trans. Qed.
 
   Lemma Sub_Eq T U i j :
@@ -524,68 +436,13 @@ Section defs.
     by rewrite list_lookup_fmap Hlook.
   Qed.
 
-  Lemma Sub_Mu_X T1 T2 i j:
-    iterate TLater i T1 :: Γ ⊨ T1, i <: T2, j -∗
-    Γ ⊨ TMu T1, i <: TMu T2, j.
-  Proof.
-    rewrite /istpi -sSub_Mu_X.
-    by rewrite fmap_cons (iterate_TLater_oLater i T1).
-  Qed.
-
-  Lemma Sub_Mu_A T i: Γ ⊨ TMu (shift T), i <: T, i.
-  Proof.
-    rewrite /istpi.
-    cbn [pinterp pty_interpO].
-    rewrite (pty_interp_subst T (ren (+1))).
-    apply sSub_Mu_A.
-    (* iIntros "!>" (vs v) "**".
-    by rewrite /= (lift_olty_eq (pty_interp_subst _ _)). *)
-  Qed.
-
-  Lemma Sub_Mu_B T i: Γ ⊨ T, i <: TMu (shift T), i.
-  Proof.
-    rewrite /istpi.
-    cbn [pinterp pty_interpO].
-    rewrite (pty_interp_subst T (ren (+1))).
-    apply sSub_Mu_B.
-    (* iIntros "!>" (vs v) "**".
-    by rewrite /= (lift_olty_eq (pty_interp_subst _ _)). *)
-  Qed.
-
-  Lemma TMu_I T v: Γ ⊨ tv v : T.|[v/] -∗ Γ ⊨ tv v : TMu T.
-  Proof. by rewrite /ietp -sTMu_I pty_interp_subst. Qed.
-
-  Lemma TMu_E T v: Γ ⊨ tv v : TMu T -∗ Γ ⊨ tv v : T.|[v/].
-  Proof. by rewrite /ietp sTMu_E pty_interp_subst. Qed.
 
   (* Global Instance: Params (@bi_entails) 1 := {}.
-  Global Instance: Params (@oAll) 2 := {}.
-  (* Moving eq paramaters first would speed things up. *)
-  Global Instance: Params (@setp) 2 := {}. *)
-
-  Lemma T_All_E e1 e2 T1 T2:
-    Γ ⊨ e1 : TAll T1 (shift T2) -∗
-    Γ ⊨ e2 : T1 -∗
-    (*────────────────────────────────────────────────────────────*)
-    Γ ⊨ tapp e1 e2 : T2.
-  Proof.
-    rewrite /ietp -(sT_All_E e1 e2).
-    (* apply equiv_entails. *)
-    by rewrite -(pty_interp_subst T2 (ren(+1))).
-    (* do 3 (properness => //=);
-      apply (pty_interp_subst T2 (ren(+1))). *)
-  Qed.
-
-  Lemma T_All_Ex e1 v2 T1 T2:
-    Γ ⊨ e1: TAll T1 T2 -∗
-    Γ ⊨ tv v2 : T1 -∗
-    (*────────────────────────────────────────────────────────────*)
-    Γ ⊨ tapp e1 (tv v2) : T2.|[v2/].
-  Proof. rewrite /ietp (sT_All_Ex e1 v2). by rewrite (pty_interp_subst T2). Qed.
+   *)
 End defs.
 
 Import dlang_adequacy adequacy.
-Theorem s_adequacy_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e Ψ
+Theorem s_adequacy_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} {e Ψ}
   (τ : ∀ `{dlangG Σ}, olty Σ 0)
   (Himpl : ∀ (Hdlang: dlangG Σ) v, oClose τ ids v -∗ ⌜Ψ v⌝)
   (Hlog : ∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] s⊨ e : τ):
@@ -596,22 +453,22 @@ Proof.
   iEval rewrite -(hsubst_id e). iApply ("Htyp" $! ids with "[//]").
 Qed.
 
-Theorem adequacy_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e Ψ T
+Theorem adequacy_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} {e Ψ T}
   (Himpl : ∀ (Hdlang: dlangG Σ) v, V⟦ T ⟧ vnil ids v -∗ ⌜Ψ v⌝)
   (Hlog : ∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T):
   ∀ σ, adequate NotStuck e σ (λ v _, Ψ v).
-Proof. exact: (s_adequacy_dot_sem Σ e Ψ (λ _, V⟦T⟧)). Qed.
+Proof. exact: (s_adequacy_dot_sem Σ (λ _, V⟦T⟧)). Qed.
 
-Corollary s_safety_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e
+Corollary s_safety_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} {e}
   (τ : ∀ `{dlangG Σ}, olty Σ 0)
   (Hwp : ∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] s⊨ e : τ):
   safe e.
-Proof. apply adequate_safe, (s_adequacy_dot_sem _ e _ τ), Hwp; naive_solver. Qed.
+Proof. apply adequate_safe, (s_adequacy_dot_sem Σ τ), Hwp; naive_solver. Qed.
 
-Corollary safety_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e T
+Corollary safety_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} {e T}
   (Hwp : ∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T):
   safe e.
-Proof. exact: (s_safety_dot_sem Σ e (λ _, V⟦T⟧)). Qed.
+Proof. exact: (s_safety_dot_sem Σ (λ _, V⟦T⟧)). Qed.
 
 (** Backward compatibility. *)
 Definition ty_interp `{!dlangG Σ} T : envD Σ := pty_interpO T vnil.

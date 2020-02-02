@@ -325,8 +325,8 @@ Section typing.
   Context `{dlangG Σ}.
   Implicit Types (τ : oltyO Σ 0).
 
-  Lemma s_iterate_TLater_later {i} (τ : oltyO Σ i) n args ρ v:
-    iterate oLater n τ args ρ v ≡ eLater n τ args ρ v.
+  Lemma iterate_oLater_later {i} (τ : oltyO Σ i) n args ρ v:
+    iterate oLater n τ args ρ v ⊣⊢ ▷^n τ args ρ v.
   Proof. elim: n => [//|n IHn]. by rewrite iterate_S /= IHn. Qed.
 
   Lemma sT_Var Γ x τ

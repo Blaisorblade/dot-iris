@@ -61,7 +61,7 @@ Section path_repl.
 
   (** Non-pDOT rules start: *)
 
-  Lemma singleton_self Γ T p i :
+  Lemma P_Sngl_Refl Γ T p i :
     Γ ⊨p p : T, i -∗
     Γ ⊨p p : TSing p, i.
   Proof.
@@ -98,12 +98,12 @@ Section path_repl.
     Γ ⊨p p : T, 0 -∗
     Γ ⊨ iterate tskip i (path2tm p) : TSing p.
   Proof.
-    rewrite singleton_self iptp2ietp.
+    rewrite P_Sngl_Refl iptp2ietp.
     iIntros "Hp". iApply (T_Sub with "Hp").
     by iIntros "!> * _ $".
   Qed. *)
 
-  Lemma singleton_self_inv Γ p q i :
+  Lemma P_Sngl_Inv Γ p q i :
     Γ ⊨p p : TSing q, i -∗
     Γ ⊨p q : TTop, i.
   Proof.
@@ -124,7 +124,7 @@ Section path_repl.
     iApply (rewrite_ty_path_repl_rtc Hrepl Hal with "HT1").
   Qed.
 
-  Lemma TMu_E_p {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
+  Lemma P_Mu_E {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : TMu T, i -∗ Γ ⊨p p : T', i.
   Proof.
     iIntros "#Hp !>" (ρ) "Hg /="; iSpecialize ("Hp" with "Hg"); iNext.
@@ -133,7 +133,7 @@ Section path_repl.
     by rewrite (psubst_one_repl Hrepl) ?alias_paths_pv_eq_1.
   Qed.
 
-  Lemma TMu_I_p {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
+  Lemma P_Mu_I {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : T', i -∗ Γ ⊨p p : TMu T, i.
   Proof.
     iIntros "#Hp !>" (ρ) "Hg /="; iSpecialize ("Hp" with "Hg"); iNext.
@@ -150,7 +150,7 @@ Section path_repl.
   Proof.
     (* iIntros "Hsub Hp".
     iApply singleton_self_sub.
-    iApply (P_Sub' with "Hp").
+    iApply (sP_Sub' with "Hp").
     iApply Sub_Mu_X.
     (* We're stuck! *)
     Restart. *)
@@ -198,7 +198,7 @@ Section path_repl.
     by rewrite (psubst_one_repl Hrepl) ?alias_paths_pv_eq_1.
   Qed.
 
-  Lemma P_To_E Γ T p :
+  Lemma T_Path Γ T p :
     Γ ⊨p p : T, 0 -∗ Γ ⊨ path2tm p : T.
   Proof.
     iIntros "#Hep !>" (ρ) "#Hg /="; rewrite path2tm_subst.
@@ -206,7 +206,7 @@ Section path_repl.
   Qed.
 
   (* From pDOT *)
-  Lemma PT_Mem_I Γ p T l i:
+  Lemma P_Fld_I Γ p T l i:
     Γ ⊨p pself p l : T, i -∗
     (*─────────────────────────*)
     Γ ⊨p p : TVMem l T, i.
@@ -224,7 +224,7 @@ Section path_repl.
     by iApply (path_wp_to_wp with "(Hep Hg)").
   Qed.
 
-  Lemma singleton_trans Γ p q T i:
+  Lemma P_Sngl_Trans Γ p q T i:
     Γ ⊨p p : TSing q, i -∗
     Γ ⊨p q : T, i -∗
     Γ ⊨p p : T, i.
@@ -235,7 +235,7 @@ Section path_repl.
     by iDestruct "Hal1" as %->%(alias_paths_elim_eq (V⟦ _ ⟧ _ _)).
   Qed.
 
-  Lemma singleton_elim Γ T p q l i:
+  Lemma P_Sngl_E Γ T p q l i:
     Γ ⊨p p : TSing q, i -∗
     Γ ⊨p pself q l : T, i -∗
     Γ ⊨p pself p l : TSing (pself q l), i.

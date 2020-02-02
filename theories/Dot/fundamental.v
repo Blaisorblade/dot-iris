@@ -19,28 +19,28 @@ Section fundamental.
 Section restate.
   Context (Γ : ctx).
 
-  Lemma sSub_Sel_Path L U p l i:
+  Lemma Sub_Sel_Path {L U p l i}:
     Γ ⊨p p : TTMem l L U, i -∗
     Γ ⊨ TLater L, i <: TSel p l, i.
-  Proof. apply Sub_Sel_Path. Qed.
+  Proof. apply sSub_Sel_Path. Qed.
 
-  Lemma sSel_Sub_Path L U p l i:
+  Lemma Sel_Sub_Path {L U p l i}:
     Γ ⊨p p : TTMem l L U, i -∗
     Γ ⊨ TSel p l, i <: TLater U, i.
-  Proof. apply Sel_Sub_Path. Qed.
+  Proof. apply sSel_Sub_Path. Qed.
 
 
-  Lemma sD_Typ_Abs T L U s σ l:
+  Lemma D_Typ_Abs T L U s σ l:
     Γ ⊨ TLater T, 0 <: TLater U, 0 -∗
     Γ ⊨ TLater L, 0 <: TLater T, 0 -∗
     s ↝[ σ ] V⟦ T ⟧ -∗
     Γ ⊨ { l := dtysem σ s } : TTMem l L U.
-  Proof. apply D_Typ_Abs. Qed.
+  Proof. apply sD_Typ_Abs. Qed.
 
-  Lemma sD_Typ T s σ l:
+  Lemma D_Typ T s σ l:
     s ↝[ σ ] V⟦ T ⟧ -∗
     Γ ⊨ { l := dtysem σ s } : TTMem l T T.
-  Proof. apply D_Typ. Qed.
+  Proof. apply sD_Typ. Qed.
 End restate.
 
   Fixpoint fundamental_dm_typed Γ g l d T (HT: Γ v⊢[ g ]{ l := d } : T) { struct HT }:
@@ -55,7 +55,7 @@ End restate.
     Γ ⊨p[ Vs⟦ g ⟧ ] p : T, i.
   Proof.
     - iIntros "#Hm"; induction HT.
-      + iApply sD_Typ_Abs; by [> iApply fundamental_subtype .. |
+      + iApply D_Typ_Abs; by [> iApply fundamental_subtype .. |
           iApply extraction_to_leadsto_envD_equiv].
       + subst; iApply D_TVMem_All_I. by iApply fundamental_typed.
       + iApply D_TVMem_I. by iApply fundamental_typed.
@@ -66,62 +66,62 @@ End restate.
       + by iApply D_Nil.
       + iApply D_Cons; by [|iApply fundamental_dm_typed].
     - iIntros "#Hm"; induction HT.
-      + by iApply Sub_Refl.
-      + by iApply Sub_Trans; [apply IHHT1|apply IHHT2].
-      + by iApply Later_Sub.
-      + by iApply Sub_Later.
-      + by iApply Sub_Add_Later.
-      + by iApply Sub_Index_Incr.
-      + by iApply Sub_Top.
-      + by iApply Bot_Sub.
-      + by iApply And1_Sub.
-      + by iApply And2_Sub.
-      + by iApply Sub_And.
-      + by iApply Sub_Or1.
-      + by iApply Sub_Or2.
-      + by iApply Or_Sub.
-      + iApply sSel_Sub_Path. by iApply fundamental_path_typed.
-      + iApply sSub_Sel_Path. by iApply fundamental_path_typed.
+      + by iApply sSub_Refl.
+      + by iApply sSub_Trans; [apply IHHT1|apply IHHT2].
+      + by iApply sLater_Sub.
+      + by iApply sSub_Later.
+      + by iApply sSub_Add_Later.
+      + by iApply sSub_Index_Incr.
+      + by iApply sSub_Top.
+      + by iApply sBot_Sub.
+      + by iApply sAnd1_Sub.
+      + by iApply sAnd2_Sub.
+      + by iApply sSub_And.
+      + by iApply sSub_Or1.
+      + by iApply sSub_Or2.
+      + by iApply sOr_Sub.
+      + iApply Sel_Sub_Path. by iApply fundamental_path_typed.
+      + iApply Sub_Sel_Path. by iApply fundamental_path_typed.
       + by iApply Sub_singleton; [|iApply fundamental_path_typed].
       + by iApply singleton_sym_sub; [iApply fundamental_path_typed|apply IHHT].
       + iApply singleton_self_sub. by iApply fundamental_path_typed.
       + by iApply Sub_Mu_X.
       + iApply Sub_Mu_A.
       + iApply Sub_Mu_B.
-      + by iApply Sub_Later_Sub.
+      + by iApply sSub_Later_Sub.
       + by iApply Sub_TAllConCov.
       + by iApply Sub_TVMem_Variant.
       + by iApply Sub_TTMem_Variant.
-      + iApply Sub_TAll_Cov_Distr.
-      + iApply Sub_TVMem_Cov_Distr.
-      + iApply Sub_TTMem_Cov_Distr.
+      + iApply sSub_TAll_Cov_Distr.
+      + iApply sSub_TVMem_Cov_Distr.
+      + iApply sSub_TTMem_Cov_Distr.
       (* + by_reflect. *)
     - iIntros "#Hm"; induction HT.
       + by iApply T_All_Ex; [apply IHHT1|apply IHHT2].
       + by iApply T_All_Ex_p; [|apply IHHT|iApply fundamental_path_typed].
       + by iApply T_All_E; [apply IHHT1|apply IHHT2].
-      + by iApply T_Mem_E.
-      + by iApply TMu_E.
+      + by iApply T_Obj_E.
+      + by iApply T_Mu_E.
       + by iApply T_All_I.
-      + iApply T_New_I. by iApply fundamental_dms_typed.
-      + by iApply TMu_I.
+      + iApply T_Obj_I. by iApply fundamental_dms_typed.
+      + by iApply T_Mu_I.
       + by iApply T_Nat_I.
       + by iApply T_Var.
       + by iApply T_Sub; [apply IHHT|iApply fundamental_subtype].
-      + iApply P_To_E. by iApply fundamental_path_typed.
+      + iApply T_Path. by iApply fundamental_path_typed.
       (* + by_reflect. *)
     - iIntros "#Hm"; induction HT.
       + iApply P_Val. by iApply fundamental_typed.
-      + by iApply P_DLater.
-      + by iApply P_Mem_E.
-      + by iApply P_Sub; [|iApply fundamental_subtype].
-      + by iApply TMu_I_p; [|apply IHHT].
-      + by iApply TMu_E_p; [|apply IHHT].
-      + by iApply PT_Mem_I.
-      + by iApply singleton_self.
-      + by iApply singleton_self_inv.
-      + by iApply singleton_trans; [apply IHHT1|apply IHHT2].
-      + by iApply singleton_elim; [apply IHHT1|apply IHHT2].
+      + by iApply sP_Later.
+      + by iApply sP_Fld_E.
+      + by iApply sP_Sub; [|iApply fundamental_subtype].
+      + by iApply P_Mu_I; [|apply IHHT].
+      + by iApply P_Mu_E; [|apply IHHT].
+      + by iApply P_Fld_I.
+      + by iApply P_Sngl_Refl.
+      + by iApply P_Sngl_Inv.
+      + by iApply P_Sngl_Trans; [apply IHHT1|apply IHHT2].
+      + by iApply P_Sngl_E; [apply IHHT1|apply IHHT2].
       (* + by_reflect. *)
   Qed.
 
@@ -141,21 +141,21 @@ Import dlang_adequacy adequacy.
 (** Adequacy of semantic typing: not only are semantically well-typed expressions safe,
 but any result value they produce also satisfies any properties that follow from their
 semantic type. *)
-Theorem adequacy_mapped_semtyping Σ `{!dlangPreG Σ} `{!SwapPropI Σ} e g Ψ T
+Theorem adequacy_mapped_semtyping Σ `{!dlangPreG Σ} `{!SwapPropI Σ} {e g Ψ T}
   (Himpl : ∀ `(!dlangG Σ) v, ⟦ T ⟧ ids v -∗ ⌜Ψ v⌝)
   (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), [] ⊨[ Vs⟦ g ⟧ ] e : T):
   ∀ σ, adequate NotStuck e σ (λ v _, Ψ v).
 Proof.
-  eapply (adequacy_dot_sem Σ e _ T Himpl).
+  eapply (adequacy_dot_sem Σ Himpl).
   iIntros (??) "Hs"; iApply Hlog. iApply (transfer_empty with "Hs").
 Qed.
 
 (** Theorem 5.5: safety of semantic typing. Corollary of [adequacy_mapped_semtyping]. *)
-Corollary safety_mapped_semtyping Σ `{!dlangPreG Σ} `{!SwapPropI Σ} e g T
+Corollary safety_mapped_semtyping Σ `{!dlangPreG Σ} `{!SwapPropI Σ} {e g T}
   (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), [] ⊨[ Vs⟦ g ⟧ ] e : T):
   safe e.
 Proof.
-  eapply adequate_safe, (adequacy_mapped_semtyping _ e g _ T), Hlog;
+  eapply adequate_safe, adequacy_mapped_semtyping, Hlog;
     naive_solver.
 Qed.
 
@@ -165,7 +165,7 @@ In fact, we use the even more general storeless typing. *)
 Corollary type_soundness_storeless {e T g}
   (HsT: [] v⊢ₜ[ g ] e : T): safe e.
 Proof.
-  apply: (safety_mapped_semtyping dlangΣ e g T); intros.
+  apply: (safety_mapped_semtyping dlangΣ); intros.
   apply fundamental_typed, HsT.
 Qed.
 
@@ -180,7 +180,7 @@ Proof.
 Qed.
 
 (** Normalization for gDOT paths. *)
-Lemma ipwp_gs_adequacy Σ `{dlangPreG Σ} `{SwapPropI Σ} g p T i
+Lemma ipwp_gs_adequacy Σ `{dlangPreG Σ} `{SwapPropI Σ} {g p T i}
   (Hwp : ∀ (Hdlang : dlangG Σ) `(!SwapPropI Σ), [] ⊨p[ Vs⟦ g ⟧ ] p : T , i):
   terminates (path2tm p).
 Proof.

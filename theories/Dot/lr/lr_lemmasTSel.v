@@ -6,7 +6,7 @@ Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms).
 Section Sec.
   Context `{HdlangG: dlangG Σ} (Γ : sCtx Σ).
 
-  Lemma Sub_Sel_Path L U p l i:
+  Lemma sSub_Sel_Path {L U p l i}:
     Γ s⊨p p : oTMem l L U, i -∗
     Γ s⊨ oLater L, i <: oSel p l, i.
   Proof.
@@ -19,7 +19,7 @@ Section Sec.
     by iApply "HLφ".
   Qed.
 
-  Lemma Sel_Sub_Path L U p l i:
+  Lemma sSel_Sub_Path {L U p l i}:
     Γ s⊨p p : oTMem l L U, i -∗
     Γ s⊨ oSel p l, i <: oLater U, i.
   Proof.
@@ -35,7 +35,7 @@ Section Sec.
     iApply "HφU" => //. iNext. by iRewrite "Hag".
   Qed.
 
-  Lemma P_Mem_E p T l i:
+  Lemma sP_Fld_E p T l i:
     Γ s⊨p p : oVMem l T, i -∗
     (*─────────────────────────*)
     Γ s⊨p pself p l : T, i.
@@ -46,10 +46,10 @@ Section Sec.
     iDestruct "HE" as (vp Hpv d Hlook pmem ->) "#H".
     iExists vp, pmem; eauto.
   Qed.
-  (* In the above proof, in contrast with T_Mem_E, lots of the lemmas
+  (* In the above proof, in contrast with T_Obj_E, lots of the lemmas
      needed of path_wp hold simply by computation. *)
 
-  Lemma P_DLater p T i :
+  Lemma sP_Later p T i :
     Γ s⊨p p : oLater T, i -∗
     Γ s⊨p p : T, S i.
   Proof.
@@ -59,7 +59,7 @@ Section Sec.
     by iIntros (v) "!> $".
   Qed.
 
-  Lemma P_Sub p T1 T2 i j:
+  Lemma sP_Sub p T1 T2 i j:
     Γ s⊨p p : T1, i -∗
     Γ s⊨ T1, i <: T2, i + j -∗
     (*───────────────────────────────*)
@@ -72,10 +72,10 @@ Section Sec.
     by iApply "Hsub".
   Qed.
 
-  Lemma P_Sub' p T1 T2 i:
+  Lemma sP_Sub' p T1 T2 i:
     Γ s⊨p p : T1, i -∗
     Γ s⊨ T1, i <: T2, i -∗
     (*───────────────────────────────*)
     Γ s⊨p p : T2, i.
-  Proof. have := P_Sub p T1 T2 i 0. by rewrite (plusnO i). Qed.
+  Proof. have := sP_Sub p T1 T2 i 0. by rewrite (plusnO i). Qed.
 End Sec.
