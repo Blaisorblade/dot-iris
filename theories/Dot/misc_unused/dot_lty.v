@@ -136,8 +136,8 @@ Section SemTypes.
   Global Instance Proper_oLDTMem : Proper ((≡) ==> (≡) ==> (≡)) (oLDTMem l).
   Proof. solve_proper. Qed.
 
-  Definition oTTMem l τ1 τ2 := lift_dinterp_vl l (oDTMem τ1 τ2).
-  Global Instance Proper_oTTMem : Proper ((≡) ==> (≡) ==> (≡)) (oTTMem l).
+  Definition oTMem l τ1 τ2 := lift_dinterp_vl l (oDTMem τ1 τ2).
+  Global Instance Proper_oTMem : Proper ((≡) ==> (≡) ==> (≡)) (oTMem l).
   Proof. solve_proper_ho_equiv. Qed.
 
   Definition oDVMem τ : dltyO Σ := mkDlty (λI ρ d,
@@ -148,16 +148,16 @@ Section SemTypes.
   Definition oLDVMem l T := LDlty (Some l) (oDVMem T).
   Global Instance Proper_oLDVMem : Proper ((≡) ==> (≡)) (oLDVMem l).
   Proof. solve_proper. Qed.
-  Definition oTVMem  l τ := lift_dinterp_vl l (oDVMem τ).
-  Global Instance Proper_oTVMem : Proper ((≡) ==> (≡)) (oTVMem l).
+  Definition oVMem  l τ := lift_dinterp_vl l (oDVMem τ).
+  Global Instance Proper_oVMem : Proper ((≡) ==> (≡)) (oVMem l).
   Proof. solve_proper_ho_equiv. Qed.
 
-  Definition oTSel {i} p l : oltyO Σ i :=
+  Definition oSel {i} p l : oltyO Σ i :=
     Olty (λI args ρ v, path_wp p.|[ρ]
       (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗n[ i ] ψ ∧ ▷ □ ψ args v)).
 
-  Lemma oTSel_pv {i} w l args ρ v :
-    oTSel (pv w) l args ρ v ⊣⊢
+  Lemma oSel_pv {i} w l args ρ v :
+    oSel (pv w) l args ρ v ⊣⊢
       ∃ ψ d, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n[ i ] ψ ∧ ▷ □ ψ args v.
   Proof. by rewrite /= path_wp_pv. Qed.
 
@@ -184,12 +184,14 @@ Section SemTypes.
 
   Definition oPrim b : olty Σ 0 := olty0 (λI ρ v, ⌜pure_interp_prim b v⌝).
 
+  (* Observe the naming pattern for semantic type constructors:
+  replace T by o. *)
   Global Instance pinterp : PTyInterp ty Σ :=
     fix pinterp (T : ty) : olty Σ 0 :=
     let _ := pinterp : PTyInterp ty Σ in
     match T with
-    | TTMem l L U => oTTMem l V⟦ L ⟧ V⟦ U ⟧
-    | TVMem l T' => oTVMem l V⟦ T' ⟧
+    | TTMem l L U => oTMem l V⟦ L ⟧ V⟦ U ⟧
+    | TVMem l T' => oVMem l V⟦ T' ⟧
     | TAnd T1 T2 => oAnd V⟦ T1 ⟧ V⟦ T2 ⟧
     | TOr T1 T2 => oOr V⟦ T1 ⟧ V⟦ T2 ⟧
     | TLater T => oLater V⟦ T ⟧
@@ -198,7 +200,7 @@ Section SemTypes.
     | TBot => oBot
     | TAll T1 T2 => oAll V⟦ T1 ⟧ V⟦ T2 ⟧
     | TMu T => oMu V⟦ T ⟧
-    | TSel p l => oTSel p l
+    | TSel p l => oSel p l
     | TSing p => oSing p
     end.
   Global Instance pinterp_lemmas: PTyInterpLemmas ty Σ.
@@ -298,8 +300,8 @@ Section SampleTypingLemmas.
 
   Context {Γ : sCtx Σ}.
   Lemma sSub_Sel L U va l i:
-    Γ s⊨ tv va : oTTMem l L U, i -∗
-    Γ s⊨ oLater L, i <: oTSel (pv va) l, i.
+    Γ s⊨ tv va : oTMem l L U, i -∗
+    Γ s⊨ oLater L, i <: oSel (pv va) l, i.
   Proof.
     iIntros "#Hva !>" (ρ v) "#Hg #HvL".
     iSpecialize ("Hva" with "Hg"). rewrite /= wp_value_inv' path_wp_pv.
@@ -309,8 +311,8 @@ Section SampleTypingLemmas.
   Qed.
 
   Lemma sSel_Sub L U va l i:
-    Γ s⊨ tv va : oTTMem l L U, i -∗
-    Γ s⊨ oTSel (pv va) l, i <: oLater U, i.
+    Γ s⊨ tv va : oTMem l L U, i -∗
+    Γ s⊨ oSel (pv va) l, i <: oLater U, i.
   Proof.
     iIntros "#Hva !>" (ρ v) "#Hg #Hψ".
     iSpecialize ("Hva" with "Hg"); rewrite /= wp_value_inv' path_wp_pv.

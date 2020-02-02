@@ -126,7 +126,7 @@ Section with_lty.
   Lemma rewrite_ty_path_repl_tsel {p q p1 l p2 ρ v}:
     p1 ~pp[ p := q ] p2 →
     alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
-    oClose (oTSel p1 l) ρ v ≡ oClose (oTSel p2 l) ρ v.
+    oClose (oSel p1 l) ρ v ≡ oClose (oSel p2 l) ρ v.
   Proof. exact: path_replacement_equiv. Qed.
 
   Lemma sem_psingleton_eq_1 p ρ v : oClose (oSing p) ρ v ≡ ⌜ path_wp_pure p.|[ρ] (eq v) ⌝%I.

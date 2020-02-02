@@ -290,7 +290,7 @@ Section olty_ofe_2.
   Global Arguments interp_expr /.
 
 
-  Definition oTSel_raw `{dlangG Σ} s σ :=
+  Definition oSel_raw `{dlangG Σ} s σ :=
     Olty (λI args ρ v, ∃ ψ, s ↗n[σ, i] ψ ∧ ▷ □ ψ args v).
 End olty_ofe_2.
 

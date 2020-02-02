@@ -393,14 +393,14 @@ Section small_ex.
     see concretely below.
   *)
   Definition svTyp1Body : oltyO Σ 0 :=
-    oAnd (oTTMem "A" oBot (oPrim tnat))
-      (oAnd (oTVMem "n" (oTSel p0 "A"))
+    oAnd (oTMem "A" oBot (oPrim tnat))
+      (oAnd (oVMem "n" (oSel p0 "A"))
       oTop).
   Goal V⟦vTyp1Body⟧ = svTyp1Body. done. Abort.
 
   Definition svTyp2Body : oltyO Σ 0 :=
-    oAnd (oTTMem "A" ipos ipos)
-      (oAnd (oTVMem "n" (oTSel p0 "A"))
+    oAnd (oTMem "A" ipos ipos)
+      (oAnd (oVMem "n" (oSel p0 "A"))
       oTop).
   Definition svTyp2 := oMu svTyp2Body.
 
