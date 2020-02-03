@@ -475,7 +475,7 @@ Section Sec.
     by rewrite iterate_oLater_later.
   Qed.
 
-  (* Novel subtyping rules. sSub_Mu_1 and sSub_Mu_2 become (sort-of?)
+  (** Novel subtyping rules. [Sub_Bind_1] and [Sub_Bind_2] become
   derivable. *)
   Lemma sSub_Mu_A {Γ T i} : Γ s⊨ oMu (shift T), i <: T, i.
   Proof. iIntros "!> **". by rewrite s_interp_TMu_ren. Qed.
@@ -533,8 +533,8 @@ Section Sec.
      ----------------------------------------------- (<:-Bind-1)
      Γ ⊨ μ (x: T₁ˣ) <: T₂
   *)
-  (* Sort-of-show this rule is derivable from Sub_Mu_X and Sub_Mu_A. *)
-  Lemma Sub_Mu_1 {Γ T1 T2 i j} :
+  (* Derive this rule from Sub_Mu_X and Sub_Mu_A. *)
+  Lemma Sub_Bind_1 {Γ T1 T2 i j} :
     iterate TLater i T1 :: Γ ⊨ T1, i <: shift T2, j -∗
     Γ ⊨ TMu T1, i <: T2, j.
   Proof.
@@ -547,7 +547,7 @@ Section Sec.
      ----------------------------------------------- (<:-Bind-2)
      Γ ⊨ T₁ <: μ(x: T₂ˣ)
   *)
-  Lemma Sub_Mu_2 {Γ T1 T2 i j} :
+  Lemma Sub_Bind_2 {Γ T1 T2 i j} :
     iterate TLater i (shift T1) :: Γ ⊨ (shift T1), i <: T2, j -∗
     Γ ⊨ T1, i <: TMu T2, j.
   Proof.
@@ -602,7 +602,7 @@ Section Sec.
     Γ ⊨ e1 : TAll T1 (shift T2) -∗ Γ ⊨ e2 : T1 -∗ Γ ⊨ tapp e1 e2 : T2.
   Proof. by rewrite /ietp -sT_All_E -(pty_interp_subst T2 (ren (+1))). Qed.
 
-  Lemma sSub_TVMem_Variant' {Γ T1 T2 i j l}:
+  Lemma sFld_Sub_Fld' {Γ T1 T2 i j l}:
     Γ s⊨ T1, i <: T2, j + i -∗
     Γ s⊨ oVMem l T1, i <: oVMem l T2, j + i.
   Proof.
@@ -615,13 +615,13 @@ Section Sec.
     by iApply "Hsub".
   Qed.
 
-  Lemma Sub_TVMem_Variant' {Γ T1 T2 i j l}:
+  Lemma Fld_Sub_Fld' {Γ T1 T2 i j l}:
     Γ ⊨ T1, i <: T2, j + i -∗ Γ ⊨ TVMem l T1, i <: TVMem l T2, j + i.
-  Proof. apply sSub_TVMem_Variant'. Qed.
+  Proof. apply sFld_Sub_Fld'. Qed.
 
-  Lemma Sub_TVMem_Variant {Γ T1 T2 i l}:
+  Lemma Fld_Sub_Fld {Γ T1 T2 i l}:
     Γ ⊨ T1, i <: T2, i -∗ Γ ⊨ TVMem l T1, i <: TVMem l T2, i.
-  Proof. iApply (Sub_TVMem_Variant' (j := 0)). Qed.
+  Proof. iApply (Fld_Sub_Fld' (j := 0)). Qed.
 
   (* Stronger variant of [sT_Obj_E]. *)
   Lemma sT_Obj_E' {Γ e T l}:
@@ -641,7 +641,7 @@ Section Sec.
     Γ s⊨ tproj e l : T.
   Proof.
     rewrite -sT_Obj_E'. iIntros "HE"; iApply (sT_Sub (i := 0) with "HE").
-    rewrite -(sSub_TVMem_Variant' (j := 0)).
+    rewrite -(sFld_Sub_Fld' (j := 0)).
     (* iApply Sub_Add_Later. *)
     by iIntros "!> ** !> /=".
   Qed.
@@ -653,7 +653,7 @@ End Sec.
 Section swap_based_typing_lemmas.
   Context `{!dlangG Σ} `{!SwapPropI Σ}.
 
-  Lemma sSub_TAllConCov {Γ T1 T2 U1 U2 i}:
+  Lemma sAll_Sub_All {Γ T1 T2 U1 U2 i}:
     Γ s⊨ oLater T2, i <: oLater T1, i -∗
     iterate oLater (S i) (shift T2) :: Γ s⊨ oLater U1, i <: oLater U2, i -∗
     Γ s⊨ oAll T1 U1, i <: oAll T2 U2, i.
@@ -674,17 +674,17 @@ Section swap_based_typing_lemmas.
     - iIntros (u) "#HuU1". by iApply "HsubU".
   Qed.
 
-  Lemma Sub_TAllConCov {Γ} T1 T2 U1 U2 i:
+  Lemma All_Sub_All {Γ} T1 T2 U1 U2 i:
     Γ ⊨ TLater T2, i <: TLater T1, i -∗
     iterate TLater (S i) (shift T2) :: Γ ⊨ TLater U1, i <: TLater U2, i -∗
     Γ ⊨ TAll T1 U1, i <: TAll T2 U2, i.
   Proof.
     rewrite /istpi fmap_cons iterate_TLater_oLater.
     rewrite (pty_interp_subst T2 (ren (+1))).
-    apply sSub_TAllConCov.
+    apply sAll_Sub_All.
   Qed.
 
-  Lemma sSub_TTMem_Variant' {Γ L1 L2 U1 U2 i j l}:
+  Lemma sTyp_Sub_Typ' {Γ L1 L2 U1 U2 i j l}:
     Γ s⊨ oLater L2, j + i <: oLater L1, i -∗
     Γ s⊨ oLater U1, i <: oLater U2, i -∗
     Γ s⊨ oTMem l L1 U1, i <: oTMem l L2 U2, i.
@@ -705,15 +705,15 @@ Section swap_based_typing_lemmas.
     - iApply "IHT1". by iApply "HφU".
   Qed.
 
-  Lemma sSub_TTMem_Variant {Γ L1 L2 U1 U2 i l}:
+  Lemma sTyp_Sub_Typ {Γ L1 L2 U1 U2 i l}:
     Γ s⊨ oLater L2, i <: oLater L1, i -∗
     Γ s⊨ oLater U1, i <: oLater U2, i -∗
     Γ s⊨ oTMem l L1 U1, i <: oTMem l L2 U2, i.
-  Proof. apply (sSub_TTMem_Variant' (j := 0)). Qed.
+  Proof. apply (sTyp_Sub_Typ' (j := 0)). Qed.
 
-  Lemma Sub_TTMem_Variant {Γ L1 L2 U1 U2 i l}:
+  Lemma Typ_Sub_Typ {Γ L1 L2 U1 U2 i l}:
     Γ ⊨ TLater L2, i <: TLater L1, i -∗
     Γ ⊨ TLater U1, i <: TLater U2, i -∗
     Γ ⊨ TTMem l L1 U1, i <: TTMem l L2 U2, i.
-  Proof. apply sSub_TTMem_Variant. Qed.
+  Proof. apply sTyp_Sub_Typ. Qed.
 End swap_based_typing_lemmas.

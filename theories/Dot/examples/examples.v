@@ -402,7 +402,7 @@ Section small_ex.
     - iApply sSub_Mu_X; rewrite /svTyp2Body /vTyp1Body iterate_0.
       iApply sSub_And; last iApply sSub_And; last iApply sSub_Top.
     + iApply sSub_Trans; first iApply sAnd1_Sub.
-      iApply sSub_TTMem_Variant; [iApply sBot_Sub | iApply Sub_later_ipos_nat].
+      iApply sTyp_Sub_Typ; [iApply sBot_Sub | iApply Sub_later_ipos_nat].
     + iApply sSub_Trans; first iApply sAnd2_Sub.
       iApply sSub_Trans; first iApply sAnd1_Sub; iApply sSub_Refl.
     - rewrite /v /svTyp2 /svTyp2Body.

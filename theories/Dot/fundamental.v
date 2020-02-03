@@ -89,9 +89,9 @@ End restate.
       + iApply Sub_Mu_A.
       + iApply Sub_Mu_B.
       + by iApply sSub_Later_Sub.
-      + by iApply Sub_TAllConCov.
-      + by iApply Sub_TVMem_Variant.
-      + by iApply Sub_TTMem_Variant.
+      + by iApply All_Sub_All.
+      + by iApply Fld_Sub_Fld.
+      + by iApply Typ_Sub_Typ.
       + iApply sSub_TAll_Cov_Distr.
       + iApply sSub_TVMem_Cov_Distr.
       + iApply sSub_TTMem_Cov_Distr.

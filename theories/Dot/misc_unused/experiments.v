@@ -160,7 +160,7 @@ Section Example.
 
     rewrite -(iterate_0 tskip (tv _)).
     iApply (T_Sub _ _ ((μ {@ typeEq "A" (shift T) }))); first last.
-    iApply Sub_Mu_1; rewrite iterate_0.
+    iApply Sub_Bind_1; rewrite iterate_0.
     iApply Sub_Trans. iApply
     iApply T_Obj_I.
   Qed. *)

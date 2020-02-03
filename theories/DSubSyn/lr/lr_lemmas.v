@@ -176,7 +176,7 @@ Section Sec.
     Γ ⊨ T, S i <: U, S j.
   Proof. iIntros "/= #Hsub !> ** !>". by iApply "Hsub". Qed.
 
-  Lemma DSub_TTMem_Variant L1 L2 U1 U2 i:
+  Lemma DTyp_Sub_Typ L1 L2 U1 U2 i:
     Γ ⊨[S i] L2 <: L1 -∗
     Γ ⊨[S i] U1 <: U2 -∗
     Γ ⊨[i] TTMem L1 U1 <: TTMem L2 U2.
