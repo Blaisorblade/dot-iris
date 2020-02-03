@@ -318,7 +318,7 @@ Section Sec.
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   (* Proof. rewrite -T_All_I. f_equiv. iIntros (ρ) "[$ $]". Qed. *)
   Proof.
-    rewrite -T_All_I_Strong. ietp_weaken_ctx.
+    rewrite -(T_All_I_Strong (Γ2 := Γ)) //; ietp_weaken_ctx.
     (* by rewrite -(unTLater_ctx_sub (TLater _ :: _)). *)
     (* apply ietp_weaken_ctx_syn. *)
     (* exact: (unTLater_ctx_sub_syn (TLater _ :: _)). *)
@@ -330,14 +330,14 @@ Section Sec.
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof. rewrite -T_All_I. ietp_weaken_ctx. Qed.
 
-  Lemma T_All_I4 {Γ} T1 T2 e:
+  (* Lemma T_All_I4 {Γ} T1 T2 e:
     TLater (shift T1) :: Γ ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.
     rewrite -T_All_I_Strong -(unTLater_ctx_sub (TLater _ :: _)).
     by rewrite fmap_cons cancel.
-  Qed.
+  Qed. *)
 
   Lemma TAll_Later_Swap0 Γ T U `{SwapPropI Σ}:
     Γ ⊨ TAll (TLater T) U, 0 <: TLater (TAll T U), 0.

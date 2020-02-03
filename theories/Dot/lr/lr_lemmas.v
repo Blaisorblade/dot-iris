@@ -10,7 +10,9 @@ Reserved Notation "⊢T T1 <: T2" (at level 74, T1, T2 at next level).
 
 Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env).
 
-(* TODO: all of this, minus unTLater, can be generalized to semantic types/contexts. *)
+(** * When is a context weaker than another? While we don't give complete
+rules, we develop some infrastructure to allow "stripping" laters from the
+context. *)
 
 (** A left inverse of TLater. Sometimes written ⊲. *)
 (* Definition unTLater T : ty := match T with | TLater T' => T' | _ => T end. *)
@@ -116,47 +118,76 @@ Proof. induction 1; cbn; auto with ctx_sub. Qed.
 Hint Resolve ctx_id_syn ctx_trans_sub_syn unTLater_ctx_sub_syn
   ctx_sub_TLater_syn TLater_cong_ctx_sub_syn : ctx_sub.
 
-(** * When is a context weaker than another? While we don't give complete
-rules, we develop some infrastructure to allow "stripping" laters from the
-context. *)
-(* This is specialized to [vnil] because contexts only contain proper types anyway. *)
-Definition ty_sub `{HdlangG: dlangG Σ} T1 T2 := ∀ ρ v, V⟦ T1 ⟧ vnil ρ v -∗ V⟦ T2 ⟧ vnil ρ v.
-Notation "⊨T T1 <: T2" := (ty_sub T1 T2) (at level 74, T1, T2 at next level).
-Typeclasses Opaque ty_sub.
 
-Definition ctx_sub `{HdlangG: dlangG Σ} Γ1 Γ2 : Prop := ∀ ρ, G⟦ Γ1 ⟧ ρ -∗ G⟦ Γ2 ⟧ ρ.
+(* This is specialized to [vnil] because contexts only contain proper types anyway. *)
+Definition s_ty_sub `{HdlangG: dlangG Σ} (T1 T2 : oltyO Σ 0) := ∀ ρ v, T1 vnil ρ v -∗ T2  vnil ρ v.
+Notation "s⊨T T1 <: T2" := (s_ty_sub T1 T2) (at level 74, T1, T2 at next level).
+
+Definition ty_sub `{HdlangG: dlangG Σ} T1 T2 := s⊨T V⟦ T1 ⟧ <: V⟦ T2 ⟧.
+Notation "⊨T T1 <: T2" := (ty_sub T1 T2) (at level 74, T1, T2 at next level).
+
+Definition s_ctx_sub `{HdlangG: dlangG Σ} (Γ1 Γ2 : sCtx Σ) : Prop := ∀ ρ, s⟦ Γ1 ⟧* ρ -∗ s⟦ Γ2 ⟧* ρ.
+Notation "s⊨G Γ1 <:* Γ2" := (s_ctx_sub Γ1 Γ2) (at level 74, Γ1, Γ2 at next level).
+
+Definition ctx_sub `{HdlangG: dlangG Σ} Γ1 Γ2 : Prop := s⊨G V⟦ Γ1 ⟧* <:* V⟦ Γ2 ⟧*.
 Notation "⊨G Γ1 <:* Γ2" := (ctx_sub Γ1 Γ2) (at level 74, Γ1, Γ2 at next level).
-Typeclasses Opaque ctx_sub.
 
 Section CtxSub.
   Context `{HdlangG: dlangG Σ}.
   Implicit Type (T : ty) (Γ : ctx).
 
-  (** * Basic lemmas about [ctx_sub]. *)
-  (* TODO: Make this into a structural typing rule? *)
+  (** * Basic lemmas about [s_ctx_sub]. *)
+  Global Instance: RewriteRelation s_ty_sub := {}.
+  Global Instance pre_s_ty_sub: PreOrder s_ty_sub.
+  Proof. split; first done. by move => x y z H1 H2 ρ v; rewrite (H1 _ _). Qed.
+
   Global Instance: RewriteRelation ty_sub := {}.
   Global Instance: PreOrder ty_sub.
-  Proof. split. by move => ??. by move => x y z H1 H2 ρ v; rewrite (H1 _ _). Qed.
+  Proof. rewrite /ty_sub; split; first done. by move => x y z H1 H2; etrans. Qed.
+
+  Global Instance: RewriteRelation s_ctx_sub := {}.
+  Global Instance: PreOrder s_ctx_sub.
+  Proof. split; first done. by move => x y z H1 H2 ρ; rewrite (H1 _). Qed.
 
   Global Instance: RewriteRelation ctx_sub := {}.
   Global Instance: PreOrder ctx_sub.
-  Proof. split. by move => ??. by move => x y z H1 H2 ρ; rewrite (H1 _). Qed.
+  Proof. rewrite /ctx_sub; split; first done. by move => x y z H1 H2; etrans. Qed.
+
+  Global Instance Proper_cons_s_ctx_sub : Proper (s_ty_sub ==> s_ctx_sub ==> s_ctx_sub) cons.
+  Proof. move => T1 T2 HlT Γ1 Γ2 Hl ρ. cbn. by rewrite (HlT _) (Hl _). Qed.
+  (* This is needed when flip ctx_sub arises from other rules. Doh. *)
+  Global Instance Proper_cons_s_ctx_sub_flip :
+    Proper (flip s_ty_sub ==> flip s_ctx_sub ==> flip s_ctx_sub) cons.
+  Proof. solve_proper. Qed.
 
   Global Instance Proper_cons_ctx_sub : Proper (ty_sub ==> ctx_sub ==> ctx_sub) cons.
-  Proof. move => T1 T2 HlT Γ1 Γ2 Hl ρ. cbn. by rewrite (HlT _) (Hl _). Qed.
-
+  Proof. rewrite /ty_sub /ctx_sub. solve_proper. Qed.
   Global Instance Proper_cons_ctx_sub_flip : Proper (flip ty_sub ==> flip ctx_sub ==> flip ctx_sub) cons.
   Proof. solve_proper. Qed.
 
   (** Typing is contravariant in [Γ]. *)
+  Global Instance Proper_setp e : Proper (flip s_ctx_sub ==> (=) ==> (⊢)) (setp e).
+  Proof. move => /= Γ1 Γ2 Hweak T1 T2 ->. by setoid_rewrite (Hweak _). Qed.
+  Global Instance Proper_setp_flip e : Proper (s_ctx_sub ==> flip (=) ==> flip (⊢)) (setp e).
+  Proof. apply: flip_proper_3. Qed.
+
   Global Instance Proper_ietp : Proper (flip ctx_sub ==> (=) ==> (=) ==> (⊢)) ietp.
-  Proof. rewrite /ietp /= => Γ1 Γ2 Hweak ??????; subst. by setoid_rewrite (Hweak _). Qed.
+  Proof.
+    rewrite /ctx_sub /flip /ietp => Γ1 Γ2 Hweak ??????; subst. by rewrite Hweak.
+  Qed.
+
   Global Instance Proper_ietp_flip :
     Proper (ctx_sub ==> flip (=) ==> flip (=) ==> flip (⊢)) ietp.
-  Proof. apply flip_proper_4, Proper_ietp. Qed.
+  Proof. apply: flip_proper_4. Qed.
+
+  Global Instance Proper_oLater : Proper (s_ty_sub ==> s_ty_sub) oLater.
+  Proof. intros x y Hl ??. by rewrite /= (Hl _ _). Qed.
+  Global Instance Proper_oLater_flip :
+    Proper (flip s_ty_sub ==> flip s_ty_sub) oLater.
+  Proof. apply: flip_proper_2. Qed.
 
   Global Instance Proper_TLater : Proper (ty_sub ==> ty_sub) TLater.
-  Proof. intros x y Hl ??. by rewrite /= (Hl _ _). Qed.
+  Proof. by rewrite /ty_sub => ?? /= ->. Qed.
   Global Instance Proper_TLater_flip :
     Proper (flip ty_sub ==> flip ty_sub) TLater.
   Proof. apply: flip_proper_2. Qed.
@@ -293,18 +324,24 @@ Section CtxSub.
   Proof. by apply Proper_ietp; first apply (fundamental_ctx_sub Hsyn). Qed.
 End CtxSub.
 
-Hint Resolve ietp_weaken_ctx_syn : ctx_sub.
+Typeclasses Opaque s_ty_sub.
+Typeclasses Opaque ty_sub.
+Typeclasses Opaque s_ctx_sub.
+Typeclasses Opaque ctx_sub.
+
+Hint Resolve ietp_weaken_ctx_syn fundamental_ctx_sub : ctx_sub.
 Ltac ietp_weaken_ctx := auto with ctx_sub.
 
 Section LambdaIntros.
   Context `{HdlangG: dlangG Σ}.
 
-  Lemma sT_All_I_Strong {Γ} T1 T2 e:
-    shift T1 :: Γ s⊨ e : T2 -∗
+  Lemma sT_All_I_Strong {Γ1 Γ2} T1 T2 e
+    (Hctx : s⊨G Γ1 <:* oLater <$> Γ2) :
+    shift T1 :: Γ2 s⊨ e : T2 -∗
     (*─────────────────────────*)
-    oLater <$> Γ s⊨ tv (vabs e) : oAll T1 T2.
+    Γ1 s⊨ tv (vabs e) : oAll T1 T2.
   Proof.
-    iIntros "#HeT !>" (ρ) "#HG /= !>".
+    rewrite Hctx; iIntros "#HeT !>" (ρ) "#HG /= !>".
     rewrite -wp_value'. iExists _; iSplit; first done.
     iIntros "!>" (v) "#Hv"; rewrite up_sub_compose.
     (* Factor ▷ out of [s⟦ Γ ⟧* ρ] before [iNext]. *)
@@ -319,35 +356,32 @@ Section LambdaIntros.
     (*─────────────────────────*)
     Γ s⊨ tv (vabs e) : oAll T1 T2.
   Proof.
-    rewrite sT_All_I_Strong.
-    iIntros "#HeT !>" (ρ) "#HG /= !>".
-    iApply ("HeT" $! ρ with "[]").
-    rewrite senv_TLater_commute. iApply "HG".
+    apply sT_All_I_Strong => ρ. rewrite senv_TLater_commute. by iIntros "$".
   Qed.
 
-  Lemma T_All_I_Strong {Γ} T1 T2 e:
+  Lemma T_All_I_Strong {Γ1 Γ2} T1 T2 e
+    (Hctx : ⊨G Γ1 <:* TLater <$> Γ2) :
+    shift T1 :: Γ2 ⊨ e : T2 -∗
+    (*─────────────────────────*)
+    Γ1 ⊨ tv (vabs e) : TAll T1 T2.
+  Proof.
+    rewrite /ietp fmap_cons (pty_interp_subst T1 (ren (+1))).
+    rewrite -(sT_All_I_Strong (Γ2 := V⟦Γ2⟧*)) // => ρ.
+    by rewrite -fmap_TLater_oLater.
+  Qed.
+
+  Lemma T_All_I_Strong' {Γ} T1 T2 e:
     shift T1 :: (unTLater <$> Γ) ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
-  Proof.
-    rewrite /ietp/setp fmap_cons.
-    setoid_rewrite (ctx_sub_TLater_unTLater Γ _).
-    setoid_rewrite (fmap_TLater_oLater _).
-    setoid_rewrite (pty_interp_subst T1 (ren (+1))).
-    apply (sT_All_I_Strong (Γ := V⟦unTLater <$> Γ⟧*) V⟦T1⟧ V⟦T2⟧ e).
-  Qed.
+  Proof. rewrite (T_All_I_Strong (Γ1 := Γ)) //. ietp_weaken_ctx. Qed.
 
   (* Derivable *)
   Lemma T_All_I {Γ} T1 T2 e:
     shift T1 :: Γ ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
-  (* Proof. by rewrite -T_All_I_Strong (unTLater_ctx_sub Γ). Qed. *)
-  Proof.
-    rewrite -T_All_I_Strong. ietp_weaken_ctx.
-    (* Restart.
-    by rewrite /ietp -sT_All_I fmap_cons (pty_interp_subst T1 (ren (+1))). *)
-  Qed.
+  Proof. rewrite -(T_All_I_Strong (Γ1 := Γ)) //. ietp_weaken_ctx. Qed.
 
   Lemma sP_Val {Γ} v T:
     Γ s⊨ tv v : T -∗
@@ -387,7 +421,7 @@ Section LambdaIntros.
   Lemma D_TVMem_All_I_Strong {Γ} T1 T2 e l:
     shift T1 :: (unTLater <$> Γ) ⊨ e : T2 -∗
     Γ ⊨ { l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
-  Proof. by rewrite -D_TVMem_I -T_All_I_Strong. Qed.
+  Proof. by rewrite -D_TVMem_I -T_All_I_Strong'. Qed.
 
   Lemma D_TVMem_All_I {Γ} V T1 T2 e l:
     shift T1 :: V :: Γ ⊨ e : T2 -∗
