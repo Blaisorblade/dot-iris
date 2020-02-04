@@ -100,10 +100,11 @@ Notation dslty Σ := (env -> iPPred dms Σ).
 Definition dsltyO Σ := env -d> iPPredO dms Σ.
 Notation Dslty T := (λ ρ, IPPred (λI ds, T ρ ds)).
 
+(** All semantics of a type. *)
 Record ldslty {Σ} := LDslty {
   ldslty_car :> dslty Σ;
   ldslty_olty : oltyO Σ 0;
-  ldslty_dlty : ldlty Σ;
+  ldslty_dlty : ldltyO Σ;
   ldslty_commute {ds ρ} :
     ldslty_car ρ (selfSubst ds) ⊢ ldslty_olty vnil ρ (vobj ds);
   ldslty_mono {l d ds ρ} :
@@ -122,7 +123,7 @@ Arguments ldslty_dlty {_} !_ /.
 Section ldslty_ofe.
   Context {Σ}.
 
-  Let iso := (λ T : ldslty Σ, (ldslty_car T : _ -d> _, ldslty_olty T)).
+  Let iso := (λ T : ldslty Σ, (ldslty_car T : _ -d> _, ldslty_olty T, ldslty_dlty T)).
   Instance ldslty_equiv : Equiv (ldslty Σ) := λ A B, iso A ≡ iso B.
   Instance ldslty_dist : Dist (ldslty Σ) := λ n A B, iso A ≡{n}≡ iso B.
   Lemma ldslty_ofe_mixin : OfeMixin (ldslty Σ).
