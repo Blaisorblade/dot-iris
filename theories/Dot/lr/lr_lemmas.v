@@ -10,16 +10,6 @@ Reserved Notation "⊢T T1 <: T2" (at level 74, T1, T2 at next level).
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx) (ρ : env).
 
-(** * When is a context weaker than another? *)
-(* Likely, this should be an iProp. *)
-Definition ty_sub `{HdlangG: dlangG Σ} T1 T2 := ∀ ρ v, ⟦ T1 ⟧ ρ v -∗ ⟦ T2 ⟧ ρ v.
-Notation "⊨T T1 <: T2" := (ty_sub T1 T2) (at level 74, T1, T2 at next level).
-Typeclasses Opaque ty_sub.
-
-Definition ctx_sub `{HdlangG: dlangG Σ} Γ1 Γ2 : Prop := ∀ ρ, ⟦ Γ1 ⟧* ρ -∗ ⟦ Γ2 ⟧* ρ.
-Notation "⊨G Γ1 <:* Γ2" := (ctx_sub Γ1 Γ2) (at level 74, Γ1, Γ2 at next level).
-Typeclasses Opaque ctx_sub.
-
 (* Global Instance: Params (@ietp) 2. *)
 
 (** A left inverse of TLater. Sometimes written ⊲. *)
@@ -34,37 +24,97 @@ end.
 Definition unTLater_TLater T: unTLater (TLater T) = T := reflexivity _.
 Global Instance: Cancel (=) unTLater TLater. Proof. exact: unTLater_TLater. Qed.
 
+(** The actual constructor is [ty_sub_TLater_syn]; the other ones are
+just congruence under [TLater], [TAnd], [TOr].
+We also add transitivity: it is not admissible, and the counterexample is
+[⊢T T <: TLater (TLater T)]. *)
 Inductive ty_sub_syn : ty → ty → Prop :=
 | ty_id_sub_syn T : ⊢T T <: T
 | ty_trans_sub_syn T1 T2 T3 : ⊢T T1 <: T2 → ⊢T T2 <: T3 → ⊢T T1 <: T3
-| unTLater_ty_sub_syn T : ⊢T unTLater T <: T
 | ty_sub_TLater_syn T : ⊢T T <: TLater T
-| ty_sub_TAnd_syn T1 T2 U1 U2 :
+| ty_sub_cong_TAnd_syn T1 T2 U1 U2 :
   ⊢T T1 <: U1 → ⊢T T2 <: U2 → ⊢T TAnd T1 T2 <: TAnd U1 U2
-| ty_sub_TOr_syn T1 T2 U1 U2 :
+| ty_sub_cong_TOr_syn T1 T2 U1 U2 :
   ⊢T T1 <: U1 → ⊢T T2 <: U2 → ⊢T TOr T1 T2 <: TOr U1 U2
+| ty_sub_cong_TLater_syn T1 T2 :
+  ⊢T T1 <: T2 →
+  ⊢T TLater T1 <: TLater T2
+(* Unused: *)
+(* | ty_sub_TLater_unTLater_syn T :
+  ⊢T T <: TLater (unTLater T). *)
 where "⊢T T1 <: T2" := (ty_sub_syn T1 T2).
 Hint Constructors ty_sub_syn : ctx_sub.
 
+Lemma unTLater_ty_sub_syn T : ⊢T unTLater T <: T.
+Proof. induction T; cbn; auto with ctx_sub. Qed.
+(* Not so easy to prove? *)
+(* Lemma ty_sub_TLater_unTLater_syn T :
+  ⊢T T <: TLater (unTLater T).
+Proof.
+  induction T; cbn; auto with ctx_sub.
+Abort. *)
+
+Hint Resolve unTLater_ty_sub_syn : ctx_sub.
+
 Inductive ctx_sub_syn : ctx → ctx → Prop :=
-| ctx_id_syn Γ : ⊢G Γ <:* Γ
-| ctx_trans_sub_syn Γ1 Γ2 Γ3 :
-  ⊢G Γ1 <:* Γ2 → ⊢G Γ2 <:* Γ3 → ⊢G Γ1 <:* Γ3
-| unTLater_ctx_sub_syn Γ :
-  ⊢G unTLater <$> Γ <:* Γ
-| ctx_sub_TLater_syn Γ :
-  ⊢G Γ <:* TLater <$> Γ
-| ctx_sub_TLater_unTLater_syn Γ :
-  ⊢G Γ <:* TLater <$> (unTLater <$> Γ)
-| TLater_cong_ctx_sub_syn Γ1 Γ2 :
-  ⊢G Γ1 <:* Γ2 →
-  ⊢G TLater <$> Γ1 <:* TLater <$> Γ2
+| ctx_nil_syn : ⊢G [] <:* []
+(* | ctx_sub_TLater_unTLater_syn Γ :
+  ⊢G Γ <:* TLater <$> (unTLater <$> Γ) *)
 | ctx_sub_cons_syn T1 T2 Γ1 Γ2 :
   ⊢T T1 <: T2 →
   ⊢G Γ1 <:* Γ2 →
   ⊢G T1 :: Γ1 <:* T2 :: Γ2
 where "⊢G Γ1 <:* Γ2" := (ctx_sub_syn Γ1 Γ2).
 Hint Constructors ctx_sub_syn : ctx_sub.
+
+Lemma ctx_id_syn Γ : ⊢G Γ <:* Γ.
+Proof. induction Γ; auto with ctx_sub. Qed.
+
+Lemma ctx_trans_sub_syn Γ1 Γ2 Γ3 :
+  ⊢G Γ1 <:* Γ2 → ⊢G Γ2 <:* Γ3 → ⊢G Γ1 <:* Γ3.
+Proof.
+  move => Hctx1; move: Γ3.
+  induction Hctx1; inversion 1; subst; eauto with ctx_sub.
+Qed.
+
+Lemma fmap_ctx_sub_syn {Γ} (f g : ty -> ty):
+  (∀ T, ⊢T f T <: g T) →
+  ⊢G f <$> Γ <:* g <$> Γ.
+Proof. induction Γ; cbn; auto with ctx_sub. Qed.
+
+Lemma unTLater_ctx_sub_syn Γ :
+  ⊢G unTLater <$> Γ <:* Γ.
+Proof.
+  rewrite -{2}(map_id Γ).
+  apply (fmap_ctx_sub_syn _ id); auto with ctx_sub.
+Qed.
+
+Lemma ctx_sub_TLater_syn Γ :
+  ⊢G Γ <:* TLater <$> Γ.
+Proof.
+  rewrite -{1}(map_id Γ).
+  apply (fmap_ctx_sub_syn id _); auto with ctx_sub.
+Qed.
+
+(* | ctx_sub_TLater_unTLater_syn Γ :
+  ⊢G Γ <:* TLater <$> (unTLater <$> Γ) *)
+Lemma TLater_cong_ctx_sub_syn Γ1 Γ2 :
+  ⊢G Γ1 <:* Γ2 →
+  ⊢G TLater <$> Γ1 <:* TLater <$> Γ2.
+Proof. induction 1; cbn; auto with ctx_sub. Qed.
+
+Hint Resolve ctx_id_syn ctx_trans_sub_syn unTLater_ctx_sub_syn
+  ctx_sub_TLater_syn TLater_cong_ctx_sub_syn : ctx_sub.
+
+(** * When is a context weaker than another? *)
+(* Likely, this should be an iProp. *)
+Definition ty_sub `{HdlangG: dlangG Σ} T1 T2 := ∀ ρ v, ⟦ T1 ⟧ ρ v -∗ ⟦ T2 ⟧ ρ v.
+Notation "⊨T T1 <: T2" := (ty_sub T1 T2) (at level 74, T1, T2 at next level).
+Typeclasses Opaque ty_sub.
+
+Definition ctx_sub `{HdlangG: dlangG Σ} Γ1 Γ2 : Prop := ∀ ρ, ⟦ Γ1 ⟧* ρ -∗ ⟦ Γ2 ⟧* ρ.
+Notation "⊨G Γ1 <:* Γ2" := (ctx_sub Γ1 Γ2) (at level 74, Γ1, Γ2 at next level).
+Typeclasses Opaque ctx_sub.
 
 Section CtxSub.
   Context `{HdlangG: dlangG Σ}.
