@@ -153,6 +153,12 @@ Section CtxSub.
   Global Instance: PreOrder ctx_sub.
   Proof. rewrite /ctx_sub; split; first done. by move => x y z H1 H2; etrans. Qed.
 
+  Global Instance: Proper (equiv ==> equiv ==> iff) s_ctx_sub.
+  Proof.
+    rewrite /s_ctx_sub => Γ1 Γ2 HΓ Δ1 Δ2 HΔ.
+    by setoid_rewrite HΔ; setoid_rewrite HΓ.
+  Qed.
+
   Global Instance Proper_cons_s_ctx_sub : Proper (s_ty_sub ==> s_ctx_sub ==> s_ctx_sub) cons.
   Proof. move => T1 T2 HlT Γ1 Γ2 Hl ρ. cbn. by rewrite (HlT _) (Hl _). Qed.
   (* This is needed when flip ctx_sub arises from other rules. Doh. *)
@@ -370,11 +376,11 @@ Section LambdaIntros.
     by rewrite -fmap_TLater_oLater.
   Qed.
 
-  Lemma T_All_I_Strong' {Γ} T1 T2 e:
+  (* Lemma T_All_I_Strong' {Γ} T1 T2 e:
     shift T1 :: (unTLater <$> Γ) ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
-  Proof. rewrite (T_All_I_Strong (Γ1 := Γ)) //. ietp_weaken_ctx. Qed.
+  Proof. rewrite (T_All_I_Strong (Γ1 := Γ)) //. ietp_weaken_ctx. Qed. *)
 
   (* Derivable *)
   Lemma T_All_I {Γ} T1 T2 e:
@@ -417,18 +423,31 @@ Section LambdaIntros.
     Γ ⊨ tv v : T -∗ Γ ⊨ { l := dpt (pv v) } : TVMem l T.
   Proof. apply sD_TVMem_I. Qed.
 
-  (* Derivable, to drop. *)
-  Lemma D_TVMem_All_I_Strong {Γ} T1 T2 e l:
-    shift T1 :: (unTLater <$> Γ) ⊨ e : T2 -∗
-    Γ ⊨ { l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
-  Proof. by rewrite -D_TVMem_I -T_All_I_Strong'. Qed.
+  (* Derivable. To drop? *)
+  Lemma sD_TVMem_All_I_Strong {Γ1 Γ2} T1 T2 e l
+    (Hctx : s⊨G Γ1 <:* oLater <$> Γ2) :
+    shift T1 :: Γ2 s⊨ e : T2 -∗
+    (*─────────────────────────*)
+    Γ1 s⊨ { l := dpt (pv (vabs e)) } : oLDVMem l (oAll T1 T2).
+  Proof. by rewrite -sD_TVMem_I -(sT_All_I_Strong (Γ2 := Γ2)). Qed.
+
+  Lemma D_TVMem_All_I_Strong {Γ1 Γ2} T1 T2 e l :
+    ⊨G Γ1 <:* TLater <$> Γ2 →
+    shift T1 :: Γ2 ⊨ e : T2 -∗
+    (*─────────────────────────*)
+    Γ1 ⊨ { l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
+  Proof.
+    rewrite /ctx_sub /ietp /idtp fmap_TLater_oLater => Hctx.
+    cbn -[setp sdtp]; rewrite pty_interp_subst.
+    exact: sD_TVMem_All_I_Strong.
+  Qed.
 
   Lemma D_TVMem_All_I {Γ} V T1 T2 e l:
     shift T1 :: V :: Γ ⊨ e : T2 -∗
     Γ |L V ⊨ { l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
   Proof.
     (* Compared to [T_All_I], we must strip later also from [TLater V]. *)
-    rewrite -D_TVMem_All_I_Strong fmap_cons cancel.
+    rewrite -(D_TVMem_All_I_Strong (Γ2 := V :: Γ)) // /defCtxCons fmap_cons.
     ietp_weaken_ctx.
   Qed.
 End LambdaIntros.
