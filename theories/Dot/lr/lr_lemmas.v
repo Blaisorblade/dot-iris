@@ -497,10 +497,10 @@ Section Sec.
   (** Novel subtyping rules. [Sub_Bind_1] and [Sub_Bind_2] become
   derivable. *)
   Lemma sSub_Mu_A {Γ T i} : Γ s⊨ oMu (shift T), i <: T, i.
-  Proof. iIntros "!> **". by rewrite s_interp_TMu_ren. Qed.
+  Proof. iIntros "!> **". by rewrite oMu_shift. Qed.
 
   Lemma sSub_Mu_B {Γ T i} : Γ s⊨ T, i <: oMu (shift T), i.
-  Proof. iIntros "!> **". by rewrite s_interp_TMu_ren. Qed.
+  Proof. iIntros "!> **". by rewrite oMu_shift. Qed.
 
   (*
      Γ ⊨ z: Tᶻ

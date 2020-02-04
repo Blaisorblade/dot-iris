@@ -201,6 +201,8 @@ Section olty_subst.
     all: by rewrite /hsubst/= ?hsubst_id -?hsubst_comp.
   Qed.
 
+  (* Currently unused; currently, we simplify and use the [hoEnvD_] lemmas.*)
+(*
   Lemma olty_subst_compose_ind τ args ρ1 ρ2 v: τ.|[ρ1] args ρ2 v ⊣⊢ τ args (ρ1 >> ρ2) v.
   Proof. apply hoEnvD_subst_compose_ind. Qed.
 
@@ -214,7 +216,8 @@ Section olty_subst.
 
   Lemma olty_subst_one τ v w args ρ:
     τ.|[v/] args ρ w ≡ τ args (v.[ρ] .: ρ) w.
-  Proof. apply hoEnvD_subst_one. Qed.
+  Proof. apply hoEnvD_subst_one. Qed. *)
+
 End olty_subst.
 
 Notation oClose τ := (τ vnil).
@@ -243,7 +246,7 @@ Section olty_ofe_2.
     iDestruct 1 as "[Hg Hv]". move: x Hx => [ [->] | x Hx] /=.
     - rewrite hsubst_id. by [].
     - rewrite hrenS.
-      iApply (olty_weaken_one (shiftN x τ)).
+      iApply (hoEnvD_weaken_one (shiftN x τ)).
       iApply (IHΓ (stail ρ) x Hx with "Hg").
   Qed.
 
@@ -282,7 +285,7 @@ Section olty_ofe_2.
   Proof. done. Qed.
 
 
-  Lemma s_interp_TMu_ren (T : oltyO Σ i) args ρ v: oMu (shift T) args ρ v ≡ T args ρ v.
+  Lemma oMu_shift (T : oltyO Σ i) args ρ v: oMu (shift T) args ρ v ≡ T args ρ v.
   Proof. rewrite /= (hoEnvD_weaken_one T args _ v) stail_eq. by []. Qed.
 
   Definition interp_expr `{dlangG Σ} (φ : hoEnvD Σ 0) : envPred tm Σ :=
@@ -358,12 +361,6 @@ Section typing.
     iIntros "/= !>" (ρ) "#Hg"; rewrite hsubst_of_val -wp_value'.
     by rewrite s_interp_env_lookup // id_subst.
   Qed.
-
-  Lemma sAnd1_Sub Γ τ1 τ2 i : Γ s⊨ oAnd τ1 τ2 , i <: τ1 , i.
-  Proof. iIntros "!>" (??) "#Hg #[$ _]". Qed.
-
-  Lemma sAnd2_Sub Γ τ1 τ2 i : Γ s⊨ oAnd τ1 τ2 , i <: τ2 , i.
-  Proof. iIntros "!>" (??) "#Hg #[_ $]". Qed.
 End typing.
 
 End LtyJudgements.
