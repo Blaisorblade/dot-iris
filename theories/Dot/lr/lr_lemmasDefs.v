@@ -65,10 +65,25 @@ Section Sec.
    * ---------------------
    * Γ ⊨ nu x. ds : μ x. T
    *)
+  Lemma sT_Obj_I (Γ : sCtx Σ) (T : ldslty Σ) ds:
+     oLater (ldslty_olty T) :: Γ s⊨ds ds : T -∗
+     Γ s⊨ tv (vobj ds) : oMu (ldslty_olty T).
+  Proof.
+    iDestruct 1 as (Hwf) "#Hds"; iIntros "!>" (ρ) "#Hg /= !>".
+    rewrite -wp_value'.
+    iLöb as "IH".
+    iApply ldslty_commute.
+    rewrite norm_selfSubst.
+    have Hs := path_includes_self ds ρ Hwf.
+    iApply ("Hds" $! (vobj _ .: ρ) Hs). by iFrame "IH Hg".
+  Qed.
+
   Lemma T_Obj_I Γ T ds:
      Γ |L T ⊨ds ds : T -∗
      Γ ⊨ tv (vobj ds) : TMu T.
   Proof.
+    (* rewrite /ietp /idstp. cbn -[setp sdstp].
+    rewrite sT_Obj_I. *)
     iDestruct 1 as (Hwf) "#Hds"; iIntros "!>" (ρ) "#Hg /= !>".
     rewrite -wp_value'.
     iLöb as "IH".
