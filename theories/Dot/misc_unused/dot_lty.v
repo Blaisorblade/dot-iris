@@ -116,6 +116,7 @@ Definition sptp `{HdotG: dlangG Σ} p i Γ (T : oltyO Σ 0): iProp Σ :=
 Global Arguments sptp /.
 
 Notation "Γ s⊨ {  l := d  } : T" := (sdtp l d Γ T) (at level 64, d, l, T at next level).
+Notation "Γ s⊨ds ds : T" := (sdstp ds Γ T) (at level 74, ds, T at next level).
 Notation "Γ s⊨p p : τ , i" := (sptp p i Γ τ) (at level 74, p, τ, i at next level).
 Notation "d ↗n[ i  ] ψ" := (dm_to_type d i ψ) (at level 20).
 
