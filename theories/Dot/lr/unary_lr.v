@@ -109,13 +109,36 @@ Section defs.
   (* Definition mkLDlty optl (φ : envPred dm Σ) `{∀ ρ d, Persistent (φ ρ d)} : ldlty Σ :=
     LDlty optl (λ ρ, IPPred (φ ρ)). *)
 
-  Definition lift_ldlty `{dlangG Σ} (φ : ldltyO Σ) : dltyO Σ := Dlty (λI ρ l d,
-    ⌜ ldlty_label φ = Some l ⌝ ∧ φ ρ d).
+  Program Definition lift_dinterp_vl (TD : ldltyO Σ) : oltyO Σ 0 :=
+    match ldlty_label TD with
+    | None => oBot
+    | Some l => olty0 (λI ρ v, ∃ d, ⌜v @ l ↘ d⌝ ∧ TD ρ d)
+    end.
+  Global Instance Proper_lift_dinterp_vl : Proper ((≡) ==> (≡)) lift_dinterp_vl.
+  Proof.
+    rewrite /lift_dinterp_vl => ??[/=??]; repeat case_match;
+      simplify_eq; solve_proper_ho_equiv.
+  Qed.
+
+  Program Definition DBot : dlty Σ := Dlty (λI ρ l d, False).
+  Definition lift_ldlty `{dlangG Σ} (TD : ldltyO Σ) : dltyO Σ :=
+    match ldlty_label TD with
+    | None => DBot
+    | Some l => Dlty (λI ρ l' d, ⌜ l = l' ⌝ ∧ TD ρ d)
+    end.
   Global Arguments lift_ldlty /.
+  Global Instance Proper_lift_ldlty : Proper ((≡) ==> (≡)) lift_ldlty.
+  Proof.
+    move => [l1 P1] [l2 P2] [/= Heq Heql]; repeat case_match; simplify_eq/=;
+      solve_proper_ho_equiv.
+  Qed.
 
   Definition dm_to_type d i (ψ : hoD Σ i) : iProp Σ :=
     (∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ , i ] ψ)%I.
 End defs.
+
+Global Instance: Params (@lift_ldlty) 5 := {}.
+
 
 (** Definitions for semantic (definition) typing *)
 Definition sdtp `{HdotG: dlangG Σ} l d Γ (φ : ldltyO Σ): iProp Σ :=
@@ -171,29 +194,6 @@ Section SemTypes.
   Implicit Types (τ : oltyO Σ 0).
    (* (ψ : vl -d> iPropO Σ) (φ : envD Σ)  *)
 
-  Program Definition lift_dinterp_vl (TD : ldltyO Σ) : oltyO Σ 0 :=
-    match ldlty_label TD with
-    | None => oBot
-    | Some l => olty0 (λI ρ v, ∃ d, ⌜v @ l ↘ d⌝ ∧ TD ρ d)
-    end.
-    (* check that the label in TD contains Some, else return false. *)
-  Global Instance Proper_lift_dinterp_vl : Proper ((≡) ==> (≡)) lift_dinterp_vl.
-  Proof.
-    rewrite /lift_dinterp_vl => ??[/=??]; repeat case_match;
-      simplify_eq; solve_proper_ho_equiv.
-  Qed.
-
-  (* Definition lift_dinterp_dms `{dlangG Σ} (T : dltyO Σ) : dsltyO Σ := Dslty (λI ρ ds,
-    ∃ l d, ⌜ dms_lookup l ds = Some d ⌝ ∧ T ρ l d).
-
-  Lemma sem_lift_dinterp_dms_vl_commute (T : ldltyO Σ) ds ρ l :
-    lift_dinterp_dms (lift_ldlty T) ρ (selfSubst ds) -∗
-    lift_dinterp_vl T vnil ρ (vobj ds).
-  Proof.
-    iDestruct 1 as (?l d ? ?) "H"; simplify_eq/=.
-    iExists d; iFrame. by iExists ds.
-  Qed. *)
-
   Definition lift_dinterp_dms `{dlangG Σ} (TD : ldltyO Σ) : dsltyO Σ := Dslty (λI ρ ds,
     ∃ l d, ⌜ dms_lookup l ds = Some d ⌝ ∧ lift_ldlty TD ρ l d).
 
@@ -201,25 +201,28 @@ Section SemTypes.
     lift_dinterp_dms T ρ (selfSubst ds) -∗
     lift_dinterp_vl T vnil ρ (vobj ds).
   Proof.
-    rewrite /lift_dinterp_vl.
-    iDestruct 1 as (l d ? ?) "H"; case_match; simplify_eq => //=.
-    iExists d; iFrame. iIntros "!%"; naive_solver.
+    rewrite /lift_dinterp_vl /=; case_match; simplify_eq/=;
+    iDestruct 1 as (?l' d ?) "H"; last done.
+    iExists d; iDestruct "H" as (->) "$".
+    iIntros "!%"; naive_solver.
   Qed.
 
   Lemma lift_dinterp_dms_mono T l ρ d ds
     (Hl : dms_hasnt ds l):
     lift_dinterp_dms T ρ ds -∗ lift_dinterp_dms T ρ ((l, d) :: ds).
   Proof.
-    iDestruct 1 as (l' d' ??) "H".
-    iExists l', d'; iFrame. auto using dms_lookup_mono.
+    cbn; case_match; iDestruct 1 as (l' d' ?) "H /="; last done.
+    iExists l', d'; iFrame; iIntros "!%".
+    exact: dms_lookup_mono.
   Qed.
 
   Lemma sem_def2defs_head {T l ρ d ds}:
     lift_ldlty T ρ l d -∗
     lift_dinterp_dms T ρ ((l, d) :: ds).
   Proof.
-    iDestruct 1 as (?) "H".
-    iExists l, d; iFrame. auto using dms_lookup_head.
+    iIntros "/= H"; case_match; last done.
+    iExists l, d; iFrame; iIntros "!%".
+    exact: dms_lookup_head.
   Qed.
 
   Program Definition LDsLift `{dlangG Σ} (T : ldltyO Σ) : ldsltyO Σ :=
@@ -231,7 +234,6 @@ Section SemTypes.
   Program Definition LDsTop : ldslty Σ := LDslty (Dslty (λI _ _, True)) oTop (Dlty (λI ρ l d, True)) _ _ _.
   Solve All Obligations with done.
 
-  Program Definition DBot : dlty Σ := Dlty (λI ρ l d, False).
   Program Definition LDsBot : ldslty Σ := LDslty (Dslty (λI _ _, False)) oBot DBot _ _ _.
   Solve All Obligations with done.
 
@@ -360,8 +362,10 @@ Section SemTypes.
     lift_ldlty LD⟦ T ⟧ ρ l d -∗
     Ds⟦ T ⟧ ρ ((l, d) :: ds).
   Proof.
-    iIntros "#HT". iPoseProof "HT" as (Hl) "?".
-    destruct T; simplify_eq => //; by rewrite -ldslty_def2defs_head.
+    iIntros "#HT /="; case_match; cbn; last done.
+    rewrite -ldslty_def2defs_head /=.
+    iPoseProof "HT" as (Hl) "_".
+    destruct T; simplify_eq/=; iApply "HT".
   Qed.
 
   Lemma lift_dsinterp_dms_vl_commute T ds ρ:
@@ -373,11 +377,6 @@ Section SemTypes.
     iDestruct 1 as "/= [#H1 #H2]".
     by iSplit; [> iApply "IHT"| iApply "IHT1"].
   Qed.
-
-  Lemma defs_interp_mono T l ρ d ds:
-    dms_hasnt ds l →
-    Ds⟦T⟧ ρ ds -∗ Ds⟦T⟧ ρ ((l, d) :: ds).
-  Proof. apply ldslty_mono. Qed.
 
   Definition idtp  Γ T l d     := sdtp l d  V⟦Γ⟧* LD⟦T⟧.
   Definition idstp Γ T ds      := sdstp ds  V⟦Γ⟧* Ds⟦T⟧.
@@ -493,10 +492,6 @@ Section Propers.
 
   Context `{HdotG: dlangG Σ}.
 
-  Global Instance Proper_lift_ldlty : Proper ((≡) ==> (≡)) (lift_ldlty (Σ := Σ)).
-  Proof. move => [l1 P1] [l2 P2] [/= Heq]. solve_proper_ho_equiv. Qed.
-  Global Instance: Params (@lift_ldlty) 5 := {}.
-
   Global Instance Proper_env_oltyped : Proper ((≡) ==> (=) ==> (≡)) env_oltyped.
   Proof.
     move => + + /equiv_Forall2 + + _ <-.
@@ -530,7 +525,7 @@ Section Propers.
 
   Global Instance Proper_sdtp l d : Proper ((≡) ==> (≡) ==> (≡)) (sdtp l d).
   Proof.
-    move => ??? [??] [??] [??]; simplify_eq/=; properness => //;
+    move => ??? [??] [??] [??] /=; case_match; simplify_eq/=; properness => //;
       solve_proper_ho_equiv.
   Qed.
   Global Instance Proper_sdtp_flip l d : Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sdtp l d).
