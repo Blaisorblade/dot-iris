@@ -102,7 +102,7 @@ Section Sec.
   Lemma sD_Cons Γ d ds l T1 (T2 : ldsltyO Σ):
     dms_hasnt ds l →
     Γ s⊨ { l := d } : T1 -∗ Γ s⊨ds ds : T2 -∗
-    Γ s⊨ds (l, d) :: ds : LDsAnd (LDsLift T1) T2.
+    Γ s⊨ds (l, d) :: ds : LDsAnd (ldlty2ldslty T1) T2.
   Proof.
     iIntros (Hlds) "#HT1 [% #HT2]"; iSplit.
     by iIntros "!%"; cbn; constructor => //; by rewrite -dms_hasnt_notin_eq.
@@ -110,7 +110,7 @@ Section Sec.
     iSpecialize ("HT1" $! _  Hpid with "Hg").
     iDestruct ("HT2" $! _  Hpids with "Hg") as "{HT2} HT2".
     (* iSplit; first by iApply sem_def2defs_head. *)
-    iSplit; first by iApply (ldslty_def2defs_head (LDsLift T1)).
+    iSplit; first by iApply (ldslty_def2defs_head (ldlty2ldslty _)).
 
     iApply (ldslty_mono with "HT2"); by [apply dms_hasnt_subst | eapply nclosed_sub_app].
   Qed.

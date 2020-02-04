@@ -400,18 +400,18 @@ Section Sec.
   Lemma TAll_Later_Swap `{SwapPropI Σ} Γ T U i:
     Γ ⊨ TAll (TLater T) (TLater U), i <: TLater (TAll T U), i.
   Proof.
-    iIntros "!>" (ρ v) "_ /= #HvTU". iNext i.
+    iIntros "!>" (ρ v) "_ #HvTU". iNext i.
     iDestruct "HvTU" as (t ->) "#HvTU".
     iExists t; iSplit => //.
     rewrite -mlater_pers. iModIntro (□ _)%I.
     iIntros (w). iSpecialize ("HvTU" $! w).
-    rewrite !later_intuitionistically -(wp_later_swap _ (V⟦ _ ⟧ _ _)).
-    rewrite -impl_later later_intuitionistically.
+    rewrite /= !later_intuitionistically -impl_later later_intuitionistically.
+    rewrite (wp_later_swap _ (V⟦ _ ⟧ _ _)).
     (* Either: *)
-    (* done. *)
+    done.
     (* Or keep the old but more flexible code: *)
-    iIntros "#HwT".
-    iApply ("HvTU" with "HwT").
+    (* iIntros "#HwT".
+    iApply ("HvTU" with "HwT"). *)
   Qed.
 
   Lemma TVMem_Later_Swap Γ l T i:
@@ -478,8 +478,8 @@ Section Sec.
   Proof.
     rewrite /istpi.
     iIntros "H"; iSimpl; setoid_rewrite Distr_TLater_And.
-    iApply (sSub_And with "[] H").
-    iApply (Sub_Trans (T2 := T) (i2 := S i)).
+    iApply (sSub_And _ _ (oLater _) with "[] H").
+    iApply (sSub_Trans (i2 := S i)).
     - by iApply sSub_Mono.
     - by iApply sSub_Later.
   Qed.

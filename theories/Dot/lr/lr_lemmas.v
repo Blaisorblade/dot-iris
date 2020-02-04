@@ -438,7 +438,7 @@ Section LambdaIntros.
     Γ1 ⊨ { l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
   Proof.
     rewrite /ctx_sub /ietp /idtp fmap_TLater_oLater => Hctx.
-    cbn -[setp sdtp]; rewrite pty_interp_subst.
+    rewrite fmap_cons pty_interp_subst.
     exact: sD_TVMem_All_I_Strong.
   Qed.
 
@@ -540,7 +540,6 @@ Section Sec.
   Lemma Sub_Mu_B {Γ} T i: Γ ⊨ T, i <: TMu (shift T), i.
   Proof.
     rewrite /istpi; cbn -[sstpi].
-    cbn [pinterp pty_interpO].
     rewrite (pty_interp_subst T (ren (+1))).
     apply sSub_Mu_B.
     (* iIntros "!>" (vs v) "**".

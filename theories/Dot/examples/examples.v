@@ -363,7 +363,7 @@ Section small_ex.
     iIntros "#Hs /=".
     iApply sT_And_I; first by [iApply vHasA0typ].
     iApply sT_And_I; first last.
-    - iApply (T_Sub (i := 0)); last by iApply sSub_Top.
+    - iApply (T_Sub (i := 0) (T2 := TTop)); last by iApply sSub_Top.
       by iApply vHasA0typ.
     - rewrite -setp_value_eq /= /iPPred_car /=.
       have Hev2: pos (vnat 2) by rewrite /pos; eauto.
