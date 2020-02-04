@@ -5,12 +5,15 @@ From D.Dot Require Import syn syn.path_repl.
 From D.Dot Require Export dlang_inst path_wp.
 From D.pure_program_logic Require Import lifting.
 
-Implicit Types (Σ : gFunctors).
-Implicit Types
+Unset Program Cases.
+
+Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
          (vs : vls) (ρ : var → vl) (l : label).
 
-Include LtyJudgements VlSorts dlang_inst.
+(** * Semantic domains. *)
+
+Include Lty VlSorts dlang_inst.
 Include PTyInterpLemmas VlSorts dlang_inst.
 Export persistent_ty_interp_lemmas.
 
@@ -37,19 +40,11 @@ End bottoms.
 
 (** Override notations to specify scope. *)
 Notation "V⟦ T ⟧" := (pty_interpO T%ty).
+
 Notation "V⟦ Γ ⟧*" := (fmap (M := list) pty_interpO Γ).
 
-(* Use Program without its extended pattern-matching compiler; we only need
-   its handling of coercions. *)
-Unset Program Cases.
-
-Definition dlty Σ := env -> label -> iPPred dm Σ.
-Definition dltyO Σ := env -d> label -d> iPPredO dm Σ.
-Notation Dlty T := (λ ρ l, IPPred (λI d, T ρ l d)).
-
-Definition mkDlty {Σ} (φ : env -> label -> dm -> iProp Σ) `{∀ ρ l d, Persistent (φ ρ l d)} : dlty Σ :=
-  Dlty (λ ρ l, IPPred (φ ρ l)).
-
+(** The semantics of a DOT type as a single-definition type is a pair of an
+expected label (if any) and a persistent predicate over the definition. *)
 Record ldlty Σ := LDlty {
   ldlty_label : option label;
   ldlty_car :> env -> iPPred dm Σ;
@@ -60,6 +55,12 @@ Global Arguments ldlty_car {_} !_ /.
 
 Canonical Structure labelO := leibnizO label.
 
+(** Semantic definition types [ldlty Σ] can be converted (through [lift_ldlty], below)
+into persistent predicates over labels and definitions of the following type. *)
+Definition dlty Σ := env -> label -> iPPred dm Σ.
+Definition dltyO Σ := env -d> label -d> iPPredO dm Σ.
+Notation Dlty T := (λ ρ l, IPPred (λI d, T ρ l d)).
+
 Section ldlty_ofe.
   Context {Σ}.
   Let iso := (λ T : ldlty Σ, (ldlty_car T : _ -d> _, ldlty_label T)).
@@ -69,32 +70,33 @@ Section ldlty_ofe.
   Proof. exact: (iso_ofe_mixin iso). Qed.
 
   Canonical Structure ldltyO := OfeT (ldlty Σ) ldlty_ofe_mixin.
+
+  (* Looks trivial, but it's needed for its Proper instance. *)
   Definition LDltyO ol (P : env -d> iPPredO dm Σ) : ldltyO := LDlty ol P.
   Global Instance Proper_LDltyO: Proper ((≡) ==> (≡)) (LDltyO ol).
   Proof. by solve_proper_prepare. Qed.
 
-  Definition mkLDlty ol (φ : env -> dm -> iProp Σ) `{∀ ρ d, Persistent (φ ρ d)} :=
+  Definition mkLDlty ol (φ : envPred dm Σ) `{∀ ρ d, Persistent (φ ρ d)} :=
     LDltyO ol (λ ρ, IPPred (φ ρ)).
   Global Arguments mkLDlty /.
 
   Global Instance : Bottom (ldlty Σ) := mkLDlty None ⊥.
+
+  Definition lift_ldlty (TD : ldltyO) : dltyO Σ := Dlty (λI ρ l' d,
+    match ldlty_label TD with
+    | None => ⊥
+    | Some l => ⌜ l = l' ⌝ ∧ TD ρ d
+    end).
+  Global Arguments lift_ldlty /.
+
+  Global Instance Proper_lift_ldlty : Proper ((≡) ==> (≡)) lift_ldlty.
+  Proof.
+    move => [l1 P1] [l2 P2] [/= Heq Heql]; repeat case_match; simplify_eq/=;
+      solve_proper_ho_equiv.
+  Qed.
 End ldlty_ofe.
-
 Arguments ldltyO : clear implicits.
-Global Instance: Params (@LDltyO) 2 := {}.
-
-Definition lift_ldlty {Σ} (TD : ldltyO Σ) : dltyO Σ := Dlty (λI ρ l' d,
-  match ldlty_label TD with
-  | None => ⊥
-  | Some l => ⌜ l = l' ⌝ ∧ TD ρ d
-  end).
-Global Arguments lift_ldlty /.
-
-Global Instance Proper_lift_ldlty {Σ} : Proper ((≡) ==> (≡)) (lift_ldlty (Σ := Σ)).
-Proof.
-  move => [l1 P1] [l2 P2] [/= Heq Heql]; repeat case_match; simplify_eq/=;
-    solve_proper_ho_equiv.
-Qed.
+Global Instance: Params (@lift_ldlty) 5 := {}.
 
 Notation dslty Σ := (env -> iPPred dms Σ).
 Definition dsltyO Σ := env -d> iPPredO dms Σ.
@@ -234,21 +236,13 @@ Section SemTypes.
     ∃ ψ, d ↗n[ 0 ] ψ ∧
        □ ((∀ v, ▷ τ1 vnil ρ v → ▷ □ ψ vnil v) ∧
           (∀ v, ▷ □ ψ vnil v → ▷ τ2 vnil ρ v))).
-  Global Instance Proper_oDTMem l : Proper ((≡) ==> (≡) ==> (≡)) (oLDTMem l).
-  Proof. rewrite /oLDTMem/= => ??? ???; f_equiv. solve_proper_ho_equiv. Qed.
-
-  Definition oTMem l τ1 τ2 := lift_dinterp_vl (oLDTMem l τ1 τ2).
-  Global Instance Proper_oTMem l : Proper ((≡) ==> (≡) ==> (≡)) (oTMem l).
-  Proof. rewrite /oTMem => ??? ???; f_equiv. solve_proper. Qed.
+  Global Instance Proper_oLDTMem l : Proper ((≡) ==> (≡) ==> (≡)) (oLDTMem l).
+  Proof. rewrite /oLDTMem/= => ??? ???. f_equiv. solve_proper_ho_equiv. Qed.
 
   Definition oLDVMem l τ : ldltyO Σ := mkLDlty (Some l) (λI ρ d,
     ∃ pmem, ⌜d = dpt pmem⌝ ∧ path_wp pmem (oClose τ ρ)).
   Global Instance Proper_oLDVMem l : Proper ((≡) ==> (≡)) (oLDVMem l).
   Proof. rewrite /oLDVMem/= => ???. f_equiv. solve_proper_ho_equiv. Qed.
-
-  Definition oVMem l τ := lift_dinterp_vl (oLDVMem l τ).
-  Global Instance Proper_oVMem l : Proper ((≡) ==> (≡)) (oVMem l).
-  Proof. rewrite /oVMem => ???; f_equiv. solve_proper. Qed.
 
   Definition oSel {i} p l : oltyO Σ i :=
     Olty (λI args ρ v, path_wp p.|[ρ]
@@ -397,6 +391,15 @@ Section SemTypes.
   Global Instance setp_persistent : IntoPersistent' (setp e     Γ T) | 0 := _.
   Global Instance sstpi_persistent : IntoPersistent' (sstpi i j Γ T1 T2) | 0 := _.
   Global Instance sptp_persistent : IntoPersistent' (sptp p i   Γ T) | 0 := _.
+
+
+  (* Backward compatibility. *)
+  Definition oTMem l τ1 τ2 := ldslty_olty (ldlty2ldslty (oLDTMem l τ1 τ2)).
+  Global Instance Proper_oTMem l : Proper ((≡) ==> (≡) ==> (≡)) (oTMem l).
+  Proof. rewrite /oTMem/= => ??? ???. f_equiv. solve_proper. Qed.
+  Definition oVMem l τ := ldslty_olty (ldlty2ldslty (oLDVMem l τ)).
+  Global Instance Proper_oVMem l : Proper ((≡) ==> (≡)) (oVMem l).
+  Proof. rewrite /oVMem/= => ???; f_equiv. solve_proper. Qed.
 End SemTypes.
 
 Global Instance: Params (@oAll) 2 := {}.
