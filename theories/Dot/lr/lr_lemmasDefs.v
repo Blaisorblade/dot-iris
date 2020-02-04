@@ -33,17 +33,7 @@ Section Sec.
   Lemma D_New_Mem_I Γ T l ds:
     TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ ⊨ds ds : T -∗
     Γ ⊨ { l := dpt (pv (vobj ds)) } : TVMem l (TMu T).
-  Proof.
-    iDestruct 1 as (Hwf) "#Hds"; iIntros "!>" (ρ Hpid) "#Hg".
-    rewrite def_interp_tvmem_eq path_wp_pv /=.
-    iLöb as "IH".
-    iApply lift_dsinterp_dms_vl_commute. (* Only difference from proof above. *)
-    rewrite norm_selfSubst.
-    have Hs := path_includes_self ds ρ Hwf.
-    iApply ("Hds" $! (vobj _ .: ρ) Hs with "[$IH $Hg]"). iIntros "!%".
-    (* rewrite shead_eq /=. *)
-    apply (path_includes_field_aliases (pv (var_vl 0)) ρ l (vobj ds) Hpid).
-  Qed.
+  Proof. apply sD_New_Mem_I. Qed.
 
   (* Drop, syntactically admissible. *)
   Lemma D_TVMem_Sub {Γ T1 T2 p l}:
@@ -81,17 +71,7 @@ Section Sec.
   Lemma T_Obj_I Γ T ds:
      Γ |L T ⊨ds ds : T -∗
      Γ ⊨ tv (vobj ds) : TMu T.
-  Proof.
-    (* rewrite /ietp /idstp. cbn -[setp sdstp].
-    rewrite sT_Obj_I. *)
-    iDestruct 1 as (Hwf) "#Hds"; iIntros "!>" (ρ) "#Hg /= !>".
-    rewrite -wp_value'.
-    iLöb as "IH".
-    iApply lift_dsinterp_dms_vl_commute.
-    rewrite norm_selfSubst.
-    have Hs := path_includes_self ds ρ Hwf.
-    iApply ("Hds" $! (vobj _ .: ρ) Hs). by iFrame "IH Hg".
-  Qed.
+  Proof. apply sT_Obj_I. Qed.
 
   Lemma sD_Nil Γ : Γ s⊨ds [] : LDsTop.
   Proof. by iSplit; last iIntros "!> **". Qed.
@@ -99,19 +79,17 @@ Section Sec.
   Lemma D_Nil Γ : Γ ⊨ds [] : TTop.
   Proof. apply sD_Nil. Qed.
 
-  Lemma sD_Cons Γ d ds l T1 (T2 : ldsltyO Σ):
+  Lemma sD_Cons Γ d ds l (T1 T2 : ldsltyO Σ):
     dms_hasnt ds l →
-    Γ s⊨ { l := d } : T1 -∗ Γ s⊨ds ds : T2 -∗
-    Γ s⊨ds (l, d) :: ds : LDsAnd (ldlty2ldslty T1) T2.
+    Γ s⊨ { l := d } : ldslty_dlty T1 -∗ Γ s⊨ds ds : T2 -∗
+    Γ s⊨ds (l, d) :: ds : LDsAnd T1 T2.
   Proof.
     iIntros (Hlds) "#HT1 [% #HT2]"; iSplit.
     by iIntros "!%"; cbn; constructor => //; by rewrite -dms_hasnt_notin_eq.
-    iIntros "!>" (ρ [Hpid Hpids]%path_includes_split) "#Hg"; cbn.
+    iIntros "!>" (ρ [Hpid Hpids]%path_includes_split) "#Hg".
     iSpecialize ("HT1" $! _  Hpid with "Hg").
     iDestruct ("HT2" $! _  Hpids with "Hg") as "{HT2} HT2".
-    (* iSplit; first by iApply sem_def2defs_head. *)
-    iSplit; first by iApply (ldslty_def2defs_head (ldlty2ldslty _)).
-
+    iSplit; first by iApply ldslty_def2defs_head.
     iApply (ldslty_mono with "HT2"); by [apply dms_hasnt_subst | eapply nclosed_sub_app].
   Qed.
 
@@ -119,19 +97,5 @@ Section Sec.
     dms_hasnt ds l →
     Γ ⊨ { l := d } : T1 -∗ Γ ⊨ds ds : T2 -∗
     Γ ⊨ds (l, d) :: ds : TAnd T1 T2.
-  Proof.
-    (* rewrite /idstp /idtp; cbn [ldefs_interp LDsAnd] => Hlds.
-    pose proof sD_Cons (V⟦ Γ ⟧* ) d ds l LD⟦ T1 ⟧ Ds⟦ T2 ⟧ Hlds.
-    apply H.
-    2: done. *)
-  (* cbn -[sdstp sdtp]. *)
-
-    iIntros (Hlds) "#HT1 [% #HT2]"; iSplit.
-    by iIntros "!%"; cbn; constructor => //; by rewrite -dms_hasnt_notin_eq.
-    iIntros "!>" (ρ [Hpid Hpids]%path_includes_split) "#Hg"; cbn.
-    iSpecialize ("HT1" $! _  Hpid with "Hg").
-    iDestruct ("HT2" $! _  Hpids with "Hg") as "{HT2} HT2".
-    iSplit; first by iApply def2defs_head.
-    iApply (ldslty_mono with "HT2"); by [apply dms_hasnt_subst | eapply nclosed_sub_app].
-  Qed.
+  Proof. apply sD_Cons. Qed.
 End Sec.
