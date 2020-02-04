@@ -17,17 +17,12 @@ Section Sec.
     oAnd (oLater (ldslty_olty T)) (oSing (pself (pv (ids 1)) l)) :: Γ s⊨ds ds : T -∗
     Γ s⊨ { l := dpt (pv (vobj ds)) } : oLDVMem l (oMu (ldslty_olty T)).
   Proof.
-    iDestruct 1 as (Hwf) "#Hds"; iIntros "!>" (ρ Hpid) "#Hg".
-    rewrite def_interp_tvmem_eq path_wp_pv /=.
-    iLöb as "IH".
-    iApply ldslty_commute.
-    rewrite norm_selfSubst.
-    have Hs := path_includes_self ds ρ Hwf.
-    iApply ("Hds" $! (vobj _ .: ρ) Hs with "[$IH $Hg]"). iIntros "!%".
-    (* rewrite shead_eq /=. *)
-    apply (path_includes_field_aliases (pv (var_vl 0)) ρ l (vobj ds) Hpid).
-    (* move: Hpid; apply path_includes_field_aliases. *)
-    (* exact: (path_includes_field_aliases (pv (var_vl 0)) ρ _ (vobj ds)). *)
+    iDestruct 1 as (Hwf) "#Hds";
+      iIntros "!>" (ρ Hpid%path_includes_field_aliases) "#Hg".
+    rewrite def_interp_tvmem_eq path_wp_pv /=. iLöb as "IH".
+    iApply ldslty_commute. rewrite norm_selfSubst.
+    iApply ("Hds" $! (vobj _ .: ρ) with "[%] [$IH $Hg //]").
+    exact: path_includes_self.
   Qed.
 
   Lemma D_New_Mem_I Γ T l ds:
@@ -60,12 +55,10 @@ Section Sec.
      Γ s⊨ tv (vobj ds) : oMu (ldslty_olty T).
   Proof.
     iDestruct 1 as (Hwf) "#Hds"; iIntros "!>" (ρ) "#Hg /= !>".
-    rewrite -wp_value'.
-    iLöb as "IH".
-    iApply ldslty_commute.
-    rewrite norm_selfSubst.
-    have Hs := path_includes_self ds ρ Hwf.
-    iApply ("Hds" $! (vobj _ .: ρ) Hs). by iFrame "IH Hg".
+    rewrite -wp_value' /=. iLöb as "IH".
+    iApply ldslty_commute. rewrite norm_selfSubst.
+    iApply ("Hds" $! (vobj _ .: ρ) with "[%] [$IH $Hg]").
+    exact: path_includes_self.
   Qed.
 
   Lemma T_Obj_I Γ T ds:
