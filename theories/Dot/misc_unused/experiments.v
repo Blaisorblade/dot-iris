@@ -19,12 +19,12 @@ Section AlsoSyntactically.
   Lemma singleton_Mu_1 {Γ p T i T'} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : TMu T, i -∗
     Γ ⊨ TSing p, i <: T', i.
-  Proof. rewrite (P_Mu_E Hrepl). apply singleton_self_sub. Qed.
+  Proof. rewrite (P_Mu_E Hrepl). apply Sngl_Self_Sub. Qed.
 
   Lemma singleton_Mu_2 {Γ p T i T'} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : T', i -∗
     Γ ⊨ TSing p, i <: TMu T, i.
-  Proof. rewrite (P_Mu_I Hrepl). apply singleton_self_sub. Qed.
+  Proof. rewrite (P_Mu_I Hrepl). apply Sngl_Self_Sub. Qed.
 
   (** Semantic version of derived rule [singleton_Mu_dotty1]. *)
   Lemma singleton_Mu_dotty1 {Γ p i T1 T2 T1' T2'}
@@ -350,17 +350,17 @@ Section Sec.
     by iApply ("HvTU" with "[# $HwT]").
   Qed.
 
-  Lemma iptp2ietp' i Γ T p :
+  Lemma T_Path' i Γ T p :
     Γ ⊨p p : iterate TLater i T, 0 -∗
     Γ ⊨ iterate tskip i (path2tm p) : T.
   Proof.
-    rewrite iptp2ietp.
+    rewrite T_Path.
     iIntros "Hp". iApply (T_Sub with "Hp").
     iIntros "!> **"; by rewrite iterate_TLater_later.
   Qed.
 
   (* It doesn't work, modulo maybe except-n. *)
-  Lemma iptp2ietp'' Γ T p i :
+  Lemma T_Path'' Γ T p i :
     Γ ⊨p p : T, i -∗
     Γ ⊨ path2tm p : iterate TLater i T.
   Proof.

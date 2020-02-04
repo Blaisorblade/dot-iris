@@ -82,9 +82,9 @@ End restate.
       + by iApply sOr_Sub.
       + iApply Sel_Sub_Path. by iApply fundamental_path_typed.
       + iApply Sub_Sel_Path. by iApply fundamental_path_typed.
-      + by iApply Sub_singleton; [|iApply fundamental_path_typed].
-      + by iApply singleton_sym_sub; [iApply fundamental_path_typed|apply IHHT].
-      + iApply singleton_self_sub. by iApply fundamental_path_typed.
+      + by iApply Sngl_pq_Sub; [|iApply fundamental_path_typed].
+      + by iApply Sngl_Sym_Sub; [iApply fundamental_path_typed|apply IHHT].
+      + iApply Sngl_Self_Sub. by iApply fundamental_path_typed.
       + by iApply Sub_Mu_X.
       + iApply Sub_Mu_A.
       + iApply Sub_Mu_B.

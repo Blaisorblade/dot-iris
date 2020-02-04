@@ -144,89 +144,14 @@ Section with_lty.
   Lemma sem_psingleton_eq_2 p ρ v : oClose (oSing p) ρ v ≡ path_wp p.|[ρ] (λ w, ⌜ v = w ⌝ )%I.
   Proof. by rewrite sem_psingleton_eq_1 path_wp_pureable. Qed.
 
-  Lemma singleton_aliasing Γ p q ρ i :
-    Γ s⊨p p : oSing q, i -∗
-    s⟦ Γ ⟧* ρ -∗ ▷^i alias_pathsI p.|[ρ] q.|[ρ].
-  Proof.
-    iIntros "#Hep #Hg". iSpecialize ("Hep" with "Hg").
-    iNext i; iDestruct "Hep" as %Hep; iIntros "!%".
-    by apply alias_paths_simpl.
-  Qed.
-
-  Lemma P_Sngl_Refl Γ τ p i :
-    Γ s⊨p p : τ, i -∗
-    Γ s⊨p p : oSing p, i.
-  Proof.
-    iIntros "#Hep !>" (ρ) "Hg". iSpecialize ("Hep" with "Hg"). iNext.
-    iDestruct (path_wp_eq with "Hep") as (v Hpv) "_".
-    iIntros "!%". by eapply alias_paths_simpl, alias_paths_self, alias_paths_pv_eq_1.
-  Qed.
-
-  Lemma sptp2setp Γ τ p :
-    Γ s⊨p p : τ, 0 -∗ Γ s⊨ path2tm p : τ.
-  Proof.
-    iIntros "#Hep !>" (ρ) "#Hg /="; rewrite path2tm_subst.
-    by iApply (path_wp_to_wp with "(Hep Hg)").
-  Qed.
-
-  Lemma T_Sub Γ e (T1 T2 : olty Σ 0) i:
-    Γ s⊨ e : T1 -∗
-    Γ s⊨ T1, 0 <: T2, i -∗
-    (*───────────────────────────────*)
-    Γ s⊨ iterate tskip i e : T2.
-  Proof.
-    iIntros "/= #HeT1 #Hsub !>" (ρ) "#Hg !>".
-    rewrite tskip_subst -wp_bind.
-    iApply (wp_wand with "(HeT1 Hg)").
-    iIntros (v) "#HvT1".
-    (* We can swap ▷^i with WP (tv v)! *)
-    rewrite -wp_pure_step_later // -wp_value.
-    by iApply "Hsub".
-  Qed.
-
-  (* XXX Generalize? *)
-  Lemma singleton_self_skip Γ τ p i :
-    Γ s⊨p p : τ, 0 -∗
-    Γ s⊨ iterate tskip i (path2tm p) : oSing p.
-  Proof.
-    rewrite P_Sngl_Refl sptp2setp.
-    iIntros "Hp". iApply (T_Sub with "Hp").
-    by iIntros "!> * _ $".
-  Qed.
-
-  Lemma singleton_sym Γ p q i:
+  (* Derivable syntactically. *)
+  (* Lemma singleton_sym Γ p q i:
     Γ s⊨p p : oSing q, i -∗
     Γ s⊨p q : oSing p, i.
   Proof.
     iIntros "#Hep !>" (ρ) "#Hg".
     iDestruct (singleton_aliasing with "Hep Hg") as "Hal". iNext i. iDestruct "Hal" as %Hal.
     iIntros "!%". by eapply alias_paths_simpl, alias_paths_symm.
-  Qed.
-
-  Lemma P_Sngl_Trans Γ p q r i:
-    Γ s⊨p p : oSing q, i -∗
-    Γ s⊨p q : oSing r, i -∗
-    Γ s⊨p p : oSing r, i.
-  Proof.
-    iIntros "#Hep #Heq !>" (ρ) "#Hg".
-    iDestruct (singleton_aliasing with "Hep Hg") as "Hal1".
-    iDestruct (singleton_aliasing with "Heq Hg") as "Hal2".
-    iNext i. iDestruct "Hal1" as %Hal1. iDestruct "Hal2" as %Hal2.
-    iIntros "!%". by eapply alias_paths_simpl, alias_paths_trans.
-  Qed.
-
-  Lemma P_Sngl_E Γ τ p q l i:
-    Γ s⊨p p : oSing q, i -∗
-    Γ s⊨p pself q l : τ, i -∗
-    Γ s⊨p pself p l : oSing (pself q l), i.
-  Proof.
-    iIntros "#Hep #HqlT !>" (ρ) "#Hg".
-    iDestruct (singleton_aliasing with "Hep Hg") as "Hal {Hep}".
-    iSpecialize ("HqlT" with "Hg").
-    rewrite !path_wp_eq /=.
-    iNext i. iDestruct "Hal" as %Hal. iDestruct "HqlT" as (vql Hql) "_".
-    iIntros "!% /="; setoid_rewrite alias_paths_pv_eq_1.
-    by eapply alias_paths_sameres, alias_paths_pself.
-  Qed.
+  Qed. *)
   End with_lty.
 End SemTypes2.
