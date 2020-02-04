@@ -29,9 +29,9 @@ just congruence under [TLater], [TAnd], [TOr].
 We also add transitivity: it is not admissible, and the counterexample is
 [⊢T T <: TLater (TLater T)]. *)
 Inductive ty_sub_syn : ty → ty → Prop :=
-| ty_id_sub_syn T : ⊢T T <: T
-| ty_trans_sub_syn T1 T2 T3 : ⊢T T1 <: T2 → ⊢T T2 <: T3 → ⊢T T1 <: T3
-| ty_sub_TLater_syn T : ⊢T T <: TLater T
+| ty_sub_id_syn T : ⊢T T <: T
+| ty_sub_TLater_add_syn T1 T2 :
+  ⊢T T1 <: T2 → ⊢T T1 <: TLater T2
 | ty_sub_cong_TAnd_syn T1 T2 U1 U2 :
   ⊢T T1 <: U1 → ⊢T T2 <: U2 → ⊢T TAnd T1 T2 <: TAnd U1 U2
 | ty_sub_cong_TOr_syn T1 T2 U1 U2 :
@@ -45,6 +45,16 @@ Inductive ty_sub_syn : ty → ty → Prop :=
 where "⊢T T1 <: T2" := (ty_sub_syn T1 T2).
 Hint Constructors ty_sub_syn : ctx_sub.
 
+Lemma ty_sub_TLater_syn T : ⊢T T <: TLater T. Proof. auto with ctx_sub. Qed.
+
+Lemma ty_trans_sub_syn T1 T2 T3 : ⊢T T1 <: T2 → ⊢T T2 <: T3 → ⊢T T1 <: T3.
+Proof.
+  move => + Hsub2. move: T1.
+  induction Hsub2; inversion 1; subst; auto with ctx_sub.
+Qed.
+
+Hint Resolve ty_sub_TLater_syn ty_trans_sub_syn : ctx_sub.
+
 Lemma unTLater_ty_sub_syn T : ⊢T unTLater T <: T.
 Proof. induction T; cbn; auto with ctx_sub. Qed.
 (* Not so easy to prove? *)
@@ -57,7 +67,7 @@ Abort. *)
 Hint Resolve unTLater_ty_sub_syn : ctx_sub.
 
 Inductive ctx_sub_syn : ctx → ctx → Prop :=
-| ctx_nil_syn : ⊢G [] <:* []
+| ctx_sub_nil_syn : ⊢G [] <:* []
 (* | ctx_sub_TLater_unTLater_syn Γ :
   ⊢G Γ <:* TLater <$> (unTLater <$> Γ) *)
 | ctx_sub_cons_syn T1 T2 Γ1 Γ2 :
@@ -73,8 +83,8 @@ Proof. induction Γ; auto with ctx_sub. Qed.
 Lemma ctx_trans_sub_syn Γ1 Γ2 Γ3 :
   ⊢G Γ1 <:* Γ2 → ⊢G Γ2 <:* Γ3 → ⊢G Γ1 <:* Γ3.
 Proof.
-  move => Hctx1; move: Γ3.
-  induction Hctx1; inversion 1; subst; eauto with ctx_sub.
+  move => + Hsub2. move: Γ1.
+  induction Hsub2; inversion 1; subst; eauto with ctx_sub.
 Qed.
 
 Lemma fmap_ctx_sub_syn {Γ} (f g : ty -> ty):
@@ -197,10 +207,17 @@ Section CtxSub.
       [> iIntros "[$ $]" | iIntros "[$|$]"].
   Qed.
 
-  Lemma ty_sub_TLater T : ⊨T T <: TLater T.
-  Proof. by intros ?; auto. Qed.
+  Lemma ty_sub_id T : ⊨T T <: T. Proof. done. Qed.
 
-  Hint Resolve ty_sub_TLater ty_sub_TLater_unTLater unTLater_ty_sub : ctx_sub.
+  Lemma ty_sub_TLater T : ⊨T T <: TLater T.
+  Proof. intros ?. auto. Qed.
+
+  Lemma ty_sub_TLater_add T1 T2 :
+    ⊨T T1 <: T2 →
+    ⊨T T1 <: TLater T2.
+  Proof. intros ->. apply ty_sub_TLater. Qed.
+
+  Hint Resolve ty_sub_id ty_sub_TLater ty_sub_TLater_add ty_sub_TLater_unTLater unTLater_ty_sub : ctx_sub.
 
   (* Unused *)
   Lemma TLater_unTLater_ty_sub_TLater T :
@@ -208,10 +225,13 @@ Section CtxSub.
   Proof. by rewrite unTLater_ty_sub. Qed.
 
   Lemma fundamental_ty_sub {T1 T2} : ⊢T T1 <: T2 → ⊨T T1 <: T2.
-  Proof. induction 1; auto with f_equiv ctx_sub; by [|etrans]. Qed.
+  Proof. induction 1; auto with f_equiv ctx_sub. Qed.
   Hint Resolve fundamental_ty_sub : ctx_sub.
 
   (** Lift the above ordering to environments. *)
+
+  Lemma ctx_sub_nil : ⊨G [] <:* []. Proof. done. Qed.
+
   Lemma unTLater_ctx_sub Γ : ⊨G unTLater <$> Γ <:* Γ.
   Proof. eapply env_lift_sub', unTLater_ty_sub; by rewrite ?list_fmap_id. Qed.
 
@@ -224,10 +244,10 @@ Section CtxSub.
     eapply env_lift_sub', ty_sub_TLater_unTLater; by rewrite ?list_fmap_id.
   Qed.
 
-  Hint Resolve ctx_sub_TLater ctx_sub_TLater_unTLater unTLater_ctx_sub : ctx_sub.
+  Hint Resolve ctx_sub_nil ctx_sub_TLater ctx_sub_TLater_unTLater unTLater_ctx_sub : ctx_sub.
 
   Lemma fundamental_ctx_sub {Γ1 Γ2} : ⊢G Γ1 <:* Γ2 → ⊨G Γ1 <:* Γ2.
-  Proof. induction 1; auto with f_equiv ctx_sub; by [|etrans]. Qed.
+  Proof. induction 1; auto with f_equiv ctx_sub. Qed.
 
   Local Hint Resolve fundamental_ctx_sub : ctx_sub.
 
