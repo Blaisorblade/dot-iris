@@ -1,7 +1,8 @@
 From iris.proofmode Require Import tactics.
 From D Require Export iris_prelude proper lty lr_syn_aux.
 From D Require Import pty_interp_subst_lemmas swap_later_impl.
-From D.Dot Require Import syn syn.path_repl dlang_inst path_wp.
+From D.Dot Require Import syn syn.path_repl.
+From D.Dot Require Export dlang_inst path_wp.
 From D.pure_program_logic Require Import lifting.
 
 Implicit Types (Σ : gFunctors).
@@ -9,15 +10,30 @@ Implicit Types
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
          (vs : vls) (ρ : var → vl) (l : label).
 
-Local Notation IntoPersistent' P := (IntoPersistent false P P).
-
 Include LtyJudgements VlSorts dlang_inst.
 Include PTyInterpLemmas VlSorts dlang_inst.
 Export persistent_ty_interp_lemmas.
 
+(** The logical relation core is [V⟦T⟧], which interprets *open* types into
+    predicates over *closed* values. Hence, [V⟦T⟧ T args ρ v] uses its argument [ρ]
+    to interpret anything contained in T, but not things contained in v.
+
+    Semantic judgements must apply instead to open terms/value/paths; therefore,
+    they are defined using closing substitution on arguments of [interp].
+
+    Similar comments apply to [def_interp].
+
+    Additionally, both apply to *stamped* syntax, hence they only expect
+    [dtysem] and not [dtysyn] for type member definitions.
+ *)
+
 (** Override notations to specify scope. *)
 Notation "V⟦ T ⟧" := (pty_interpO T%ty).
 Notation "V⟦ Γ ⟧*" := (fmap (M := list) pty_interpO Γ).
+
+(* Use Program without its extended pattern-matching compiler; we only need
+   its handling of coercions. *)
+Unset Program Cases.
 
 Definition dlty Σ := env -> label -> iPPred dm Σ.
 Definition dltyO Σ := env -d> label -d> iPPredO dm Σ.
@@ -27,8 +43,6 @@ Definition dslty Σ := env -> iPPred dms Σ.
 Definition dsltyO Σ := env -d> iPPredO dms Σ.
 Notation Dslty T := (λ ρ, IPPred (λI ds, T ρ ds)).
 
-Canonical Structure labelO := leibnizO label.
-
 Record ldlty Σ := LDlty {
   ldlty_label : option label;
   ldlty_car :> env -> iPPred dm Σ;
@@ -36,6 +50,8 @@ Record ldlty Σ := LDlty {
 Global Arguments LDlty {_} _%I _.
 Global Arguments ldlty_label {_} !_ /.
 Global Arguments ldlty_car {_} !_ /.
+
+Canonical Structure labelO := leibnizO label.
 
 Section ldlty_ofe.
   Context {Σ}.
@@ -101,6 +117,7 @@ Section defs.
     (∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ , i ] ψ)%I.
 End defs.
 
+(** Definitions for semantic (definition) typing *)
 Definition sdtp `{HdotG: dlangG Σ} l d Γ (φ : ldltyO Σ): iProp Σ :=
   □∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)] ⌝ → s⟦Γ⟧* ρ → lift_ldlty φ ρ l d.|[ρ].
 Global Arguments sdtp /.
@@ -110,12 +127,15 @@ Definition sdstp `{HdotG: dlangG Σ} ds Γ (T : dsltyO Σ) : iProp Σ :=
   ⌜wf_ds ds⌝ ∧ □∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → s⟦Γ⟧* ρ → T ρ ds.|[ρ].
 Global Arguments sdstp /.
 
+(** Path typing *)
 Definition sptp `{HdotG: dlangG Σ} p i Γ (T : oltyO Σ 0): iProp Σ :=
   □∀ ρ, s⟦Γ⟧* ρ -∗
     ▷^i path_wp (p.|[ρ]) (λ v, oClose T ρ v).
 Global Arguments sptp /.
 
+(** Single-definition typing *)
 Notation "Γ s⊨ {  l := d  } : T" := (sdtp l d Γ T) (at level 64, d, l, T at next level).
+(** Multi-definition typing *)
 Notation "Γ s⊨ds ds : T" := (sdstp ds Γ T) (at level 74, ds, T at next level).
 Notation "Γ s⊨p p : τ , i" := (sptp p i Γ τ) (at level 74, p, τ, i at next level).
 Notation "d ↗n[ i  ] ψ" := (dm_to_type d i ψ) (at level 20).
@@ -144,8 +164,6 @@ Section dm_to_type.
 
   Global Opaque dm_to_type.
 End dm_to_type.
-
-Unset Program Cases.
 
 Section SemTypes.
   Context `{HdotG: dlangG Σ}.
@@ -369,6 +387,8 @@ Section SemTypes.
   (* Global Arguments idstp /. *)
 
   (* Avoid auto-dropping box (and unfolding) when introducing judgments persistently. *)
+  Local Notation IntoPersistent' P := (IntoPersistent false P P).
+
   Global Instance idtp_persistent Γ T l d: IntoPersistent' (idtp Γ T l d) | 0 := _.
   Global Instance idstp_persistent Γ T ds: IntoPersistent' (idstp Γ T ds) | 0 := _.
   Global Instance ietp_persistent Γ T e : IntoPersistent' (ietp Γ T e) | 0 := _.
@@ -410,11 +430,9 @@ Notation "Γ ⊨p p : T , i" := (iptp Γ T p i) (at level 74, p, T, i at next le
 Notation "Γ ⊨ T1 , i <: T2 , j " := (istpi Γ T1 T2 i j) (at level 74, T1, T2, i, j at next level).
 
 Import stamp_transfer.
-(** Single-definition typing *)
+(** Judgment variants indexed by [gφ]. *)
 Notation "Γ ⊨[ gφ  ] { l := d  } : T" := (wellMappedφ gφ → idtp Γ T l d)%I (at level 74, d, l, T at next level).
-(** Multi-definition typing *)
 Notation "Γ ⊨ds[ gφ  ] ds : T" := (wellMappedφ gφ → idstp Γ T ds)%I (at level 74, ds, T at next level).
-(** Expression typing *)
 Notation "Γ ⊨[ gφ  ] e : T" := (wellMappedφ gφ → ietp Γ T e)%I (at level 74, e, T at next level).
 Notation "Γ ⊨p[ gφ  ] p : T , i" := (wellMappedφ gφ → iptp Γ T p i)%I (at level 74, p, T, i at next level).
 Notation "Γ ⊨[ gφ  ] T1 , i <: T2 , j" := (wellMappedφ gφ → istpi Γ T1 T2 i j)%I (at level 74, T1, T2, i, j at next level).

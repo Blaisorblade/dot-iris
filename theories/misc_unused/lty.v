@@ -303,15 +303,36 @@ Section judgments.
   Context {Σ}.
   Implicit Types (τ : oltyO Σ 0).
 
+  (** How do we represent subtyping in a later world? We have two distinct
+      choices, because in Iris ▷(P ⇒ Q) ⊢ ▷ P ⇒ ▷ Q but not viceversa
+      (unlike with raw step-indexing).
+      In turn, that's because to show ▷ P ⇒ ▷ Q we can assume resources are
+      valid one step earlier, unlike for ▷(P ⇒ Q).
+
+      It seems easier, in subtyping judgment, to use the weaker choice: that is,
+      just delay individual types via (Γ ⊨ TLater T <: TLater U), that is
+
+      (□∀ ρ v, G⟦Γ⟧ ρ → ▷ V⟦T1⟧ ρ v → ▷ V⟦T2⟧ ρ v),
+
+      instead of instead of introducing some notation to write
+
+      (□∀ ρ v, G⟦Γ⟧ ρ → ▷ (V⟦T1⟧ ρ v → V⟦T2⟧ ρ v)).
+
+      And that forces using the same implication in the logical relation
+      (unlike I did originally). *)
+
+  (** Indexed subtyping. *)
   Definition sstpi `{dlangG Σ} i j Γ τ1 τ2 : iProp Σ :=
     □∀ ρ v,
       s⟦Γ⟧*ρ → ▷^i oClose τ1 ρ v → ▷^j oClose τ2 ρ v.
   Global Arguments sstpi /.
 
+  (** Expression typing *)
   Definition setp `{dlangG Σ} e Γ τ : iProp Σ :=
     □∀ ρ, s⟦Γ⟧* ρ → E⟦ τ ⟧ ρ (e.|[ρ]).
   Global Arguments setp /.
 
+  (** Indexed expression typing (not used for Dot). *)
   Definition setpi `{dlangG Σ} e i Γ τ : iProp Σ :=
     □∀ ρ, s⟦Γ⟧* ρ → E⟦ eLater i τ ⟧ ρ (e.|[ρ]).
   Global Arguments setpi /.
