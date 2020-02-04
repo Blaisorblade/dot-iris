@@ -4,9 +4,9 @@ From D.Dot Require Import unary_lr.
 Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms).
 
 Section Sec.
-  Context `{HdlangG: dlangG Σ} (Γ : sCtx Σ).
+  Context `{HdlangG: dlangG Σ}.
 
-  Lemma sSub_Sel_Path {L U p l i}:
+  Lemma sSub_Sel_Path {Γ L U p l i}:
     Γ s⊨p p : oTMem l L U, i -∗
     Γ s⊨ oLater L, i <: oSel p l, i.
   Proof.
@@ -19,7 +19,12 @@ Section Sec.
     by iApply "HLφ".
   Qed.
 
-  Lemma sSel_Sub_Path {L U p l i}:
+  Lemma Sub_Sel_Path {Γ L U p l i}:
+    Γ ⊨p p : TTMem l L U, i -∗
+    Γ ⊨ TLater L, i <: TSel p l, i.
+  Proof. apply sSub_Sel_Path. Qed.
+
+  Lemma sSel_Sub_Path {Γ L U p l i}:
     Γ s⊨p p : oTMem l L U, i -∗
     Γ s⊨ oSel p l, i <: oLater U, i.
   Proof.
@@ -35,7 +40,12 @@ Section Sec.
     iApply "HφU" => //. iNext. by iRewrite "Hag".
   Qed.
 
-  Lemma sP_Fld_E p T l i:
+  Lemma Sel_Sub_Path {Γ L U p l i}:
+    Γ ⊨p p : TTMem l L U, i -∗
+    Γ ⊨ TSel p l, i <: TLater U, i.
+  Proof. apply sSel_Sub_Path. Qed.
+
+  Lemma sP_Fld_E {Γ} p T l i:
     Γ s⊨p p : oVMem l T, i -∗
     (*─────────────────────────*)
     Γ s⊨p pself p l : T, i.
@@ -49,7 +59,7 @@ Section Sec.
   (* In the above proof, in contrast with T_Obj_E, lots of the lemmas
      needed of path_wp hold simply by computation. *)
 
-  Lemma sP_Later p T i :
+  Lemma sP_Later {Γ} p T i :
     Γ s⊨p p : oLater T, i -∗
     Γ s⊨p p : T, S i.
   Proof.
@@ -59,7 +69,7 @@ Section Sec.
     by iIntros (v) "!> $".
   Qed.
 
-  Lemma sP_Sub p T1 T2 i j:
+  Lemma sP_Sub {Γ} p T1 T2 i j:
     Γ s⊨p p : T1, i -∗
     Γ s⊨ T1, i <: T2, i + j -∗
     (*───────────────────────────────*)
@@ -72,7 +82,7 @@ Section Sec.
     by iApply "Hsub".
   Qed.
 
-  Lemma sP_Sub' p T1 T2 i:
+  Lemma sP_Sub' {Γ} p T1 T2 i:
     Γ s⊨p p : T1, i -∗
     Γ s⊨ T1, i <: T2, i -∗
     (*───────────────────────────────*)

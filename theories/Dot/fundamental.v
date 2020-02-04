@@ -16,33 +16,6 @@ Section fundamental.
     | H : context [wellMappedφ] |- _ => by iApply H
     end.
 
-Section restate.
-  Context (Γ : ctx).
-
-  Lemma Sub_Sel_Path {L U p l i}:
-    Γ ⊨p p : TTMem l L U, i -∗
-    Γ ⊨ TLater L, i <: TSel p l, i.
-  Proof. apply sSub_Sel_Path. Qed.
-
-  Lemma Sel_Sub_Path {L U p l i}:
-    Γ ⊨p p : TTMem l L U, i -∗
-    Γ ⊨ TSel p l, i <: TLater U, i.
-  Proof. apply sSel_Sub_Path. Qed.
-
-
-  Lemma D_Typ_Abs T L U s σ l:
-    Γ ⊨ TLater T, 0 <: TLater U, 0 -∗
-    Γ ⊨ TLater L, 0 <: TLater T, 0 -∗
-    s ↝[ σ ] V⟦ T ⟧ -∗
-    Γ ⊨ { l := dtysem σ s } : TTMem l L U.
-  Proof. apply sD_Typ_Abs. Qed.
-
-  Lemma D_Typ T s σ l:
-    s ↝[ σ ] V⟦ T ⟧ -∗
-    Γ ⊨ { l := dtysem σ s } : TTMem l T T.
-  Proof. apply sD_Typ. Qed.
-End restate.
-
   Fixpoint fundamental_dm_typed Γ g l d T (HT: Γ v⊢[ g ]{ l := d } : T) { struct HT }:
     Γ ⊨[ Vs⟦ g ⟧ ] { l := d } : T with
   fundamental_dms_typed Γ g ds T (HT: Γ v⊢ds[ g ] ds : T) { struct HT }:

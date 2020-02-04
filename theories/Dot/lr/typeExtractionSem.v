@@ -82,8 +82,20 @@ Section typing_type_member_defs.
     - iApply "HTU" => //. by iApply Hγφ.
   Qed.
 
+  Lemma D_Typ_Abs {Γ} T L U s σ l:
+    Γ ⊨ TLater T, 0 <: TLater U, 0 -∗
+    Γ ⊨ TLater L, 0 <: TLater T, 0 -∗
+    s ↝[ σ ] V⟦ T ⟧ -∗
+    Γ ⊨ { l := dtysem σ s } : TTMem l L U.
+  Proof. apply sD_Typ_Abs. Qed.
+
   Lemma sD_Typ {Γ} (T : oltyO Σ 0) s σ l:
     s ↝[ σ ] T -∗
     Γ s⊨ { l := dtysem σ s } : oLDTMem l T T.
   Proof. iIntros "#Hs"; iApply sD_Typ_Abs; by [| iIntros "!> **"]. Qed.
+
+  Lemma D_Typ {Γ} T s σ l:
+    s ↝[ σ ] V⟦ T ⟧ -∗
+    Γ ⊨ { l := dtysem σ s } : TTMem l T T.
+  Proof. apply sD_Typ. Qed.
 End typing_type_member_defs.
