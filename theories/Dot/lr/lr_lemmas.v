@@ -455,6 +455,24 @@ End LambdaIntros.
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
+  Lemma sT_Var {Γ x τ}
+    (Hx : Γ !! x = Some τ):
+    (*──────────────────────*)
+    Γ s⊨ of_val (ids x) : shiftN x τ.
+  Proof.
+    iIntros "/= !>" (ρ) "#Hg"; rewrite -wp_value'.
+    by rewrite s_interp_env_lookup // id_subst.
+  Qed.
+
+  Lemma T_Var {Γ x τ}
+    (Hx : Γ !! x = Some τ):
+    (*──────────────────────*)
+    Γ ⊨ of_val (ids x) : shiftN x τ.
+  Proof.
+    rewrite /ietp (pty_interp_subst τ (ren (+x))). apply sT_Var.
+    by rewrite list_lookup_fmap Hx.
+  Qed.
+
   Lemma sT_Sub {Γ e T1 T2 i}:
     Γ s⊨ e : T1 -∗
     Γ s⊨ T1, 0 <: T2, i -∗

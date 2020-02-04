@@ -130,48 +130,71 @@ Section ldslty_ofe.
 End ldslty_ofe.
 Canonical Structure ldsltyO Σ := OfeT (ldslty Σ) ldslty_ofe_mixin.
 
-Section defs.
-  Context `{HdotG: dlangG Σ}.
-  Implicit Types (T : oltyO Σ 0) (TD : dlty Σ).
+(** Define fully semantic judgments. They accept arbitrary semantic types. *)
 
-  Program Definition lift_dinterp_vl (TD : ldltyO Σ) : oltyO Σ 0 := olty0 (λI ρ v,
-    match ldlty_label TD with
-    | None => ⊥
-    | Some l => ∃ d, ⌜v @ l ↘ d⌝ ∧ TD ρ d
-    end).
-  Global Instance Proper_lift_dinterp_vl : Proper ((≡) ==> (≡)) lift_dinterp_vl.
-  Proof.
-    rewrite /lift_dinterp_vl => ??[/=??]; repeat case_match;
-      simplify_eq; solve_proper_ho_equiv.
-  Qed.
+Section judgments.
+  Context {Σ}.
+  Implicit Types (τ : oltyO Σ 0).
 
-  Definition dm_to_type d i (ψ : hoD Σ i) : iProp Σ :=
-    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ , i ] ψ)%I.
-End defs.
+  (** How do we represent subtyping in a later world? We have two distinct
+      choices, because in Iris ▷(P ⇒ Q) ⊢ ▷ P ⇒ ▷ Q but not viceversa
+      (unlike with raw step-indexing).
+      In turn, that's because to show ▷ P ⇒ ▷ Q we can assume resources are
+      valid one step earlier, unlike for ▷(P ⇒ Q).
 
-Global Instance: Params (@lift_ldlty) 5 := {}.
+      It seems easier, in subtyping judgment, to use the weaker choice: that is,
+      just delay individual types via (Γ ⊨ TLater T <: TLater U), that is
 
-(** Definitions for semantic (definition) typing *)
-Definition sdtp `{HdotG: dlangG Σ} l d Γ (φ : ldltyO Σ): iProp Σ :=
-  □∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)] ⌝ → s⟦Γ⟧* ρ → lift_ldlty φ ρ l d.|[ρ].
-Global Arguments sdtp /.
+      (□∀ ρ v, G⟦Γ⟧ ρ → ▷ V⟦T1⟧ ρ v → ▷ V⟦T2⟧ ρ v),
 
-(** Multi-definition typing *)
-Definition sdstp `{HdotG: dlangG Σ} ds Γ (T : dsltyO Σ) : iProp Σ :=
-  ⌜wf_ds ds⌝ ∧ □∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → s⟦Γ⟧* ρ → T ρ ds.|[ρ].
-Global Arguments sdstp /.
+      instead of instead of introducing some notation to write
 
-(** Path typing *)
-Definition sptp `{HdotG: dlangG Σ} p i Γ (T : oltyO Σ 0): iProp Σ :=
-  □∀ ρ, s⟦Γ⟧* ρ -∗
-    ▷^i path_wp (p.|[ρ]) (λ v, oClose T ρ v).
-Global Arguments sptp /.
+      (□∀ ρ v, G⟦Γ⟧ ρ → ▷ (V⟦T1⟧ ρ v → V⟦T2⟧ ρ v)).
 
+      And that forces using the same implication in the logical relation
+      (unlike I did originally). *)
+
+  (** Expression typing *)
+  Definition setp `{dlangG Σ} e Γ τ : iProp Σ :=
+    □∀ ρ, s⟦Γ⟧* ρ → E⟦ τ ⟧ ρ (e.|[ρ]).
+  Global Arguments setp /.
+
+  (** Indexed subtyping. *)
+  Definition sstpi `{dlangG Σ} i j Γ τ1 τ2 : iProp Σ :=
+    □∀ ρ v,
+      s⟦Γ⟧*ρ → ▷^i oClose τ1 ρ v → ▷^j oClose τ2 ρ v.
+  Global Arguments sstpi /.
+
+  (** Definition typing *)
+  Definition sdtp `{dlangG Σ} l d Γ (φ : ldltyO Σ): iProp Σ :=
+    □∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)] ⌝ → s⟦Γ⟧* ρ → lift_ldlty φ ρ l d.|[ρ].
+  Global Arguments sdtp /.
+
+  (** Multi-definition typing *)
+  Definition sdstp `{dlangG Σ} ds Γ (T : dsltyO Σ) : iProp Σ :=
+    ⌜wf_ds ds⌝ ∧ □∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → s⟦Γ⟧* ρ → T ρ ds.|[ρ].
+  Global Arguments sdstp /.
+
+  (** Path typing *)
+  Definition sptp `{dlangG Σ} p i Γ (T : oltyO Σ 0): iProp Σ :=
+    □∀ ρ, s⟦Γ⟧* ρ -∗
+      ▷^i path_wp (p.|[ρ]) (λ v, oClose T ρ v).
+  Global Arguments sptp /.
+End judgments.
+
+(** Expression typing *)
+Notation "Γ s⊨ e : τ" := (setp e Γ τ) (at level 74, e, τ at next level).
+(** Indexed subtyping *)
+Notation "Γ s⊨ T1 , i <: T2 , j " := (sstpi i j Γ T1 T2) (at level 74, T1, T2, i, j at next level).
 (** Single-definition typing *)
 Notation "Γ s⊨ {  l := d  } : T" := (sdtp l d Γ T) (at level 64, d, l, T at next level).
 (** Multi-definition typing *)
 Notation "Γ s⊨ds ds : T" := (sdstp ds Γ T) (at level 74, ds, T at next level).
+(** Path typing *)
 Notation "Γ s⊨p p : τ , i" := (sptp p i Γ τ) (at level 74, p, τ, i at next level).
+
+Definition dm_to_type `{HdotG: dlangG Σ} d i (ψ : hoD Σ i) : iProp Σ :=
+  (∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ , i ] ψ)%I.
 Notation "d ↗n[ i  ] ψ" := (dm_to_type d i ψ) (at level 20).
 
 Section dm_to_type.
@@ -257,6 +280,17 @@ Section SemTypes.
   Proof. solve_proper_ho_equiv. Qed.
 
   Definition oPrim b : olty Σ 0 := olty0 (λI ρ v, ⌜pure_interp_prim b v⌝).
+
+  Program Definition lift_dinterp_vl (TD : ldltyO Σ) : oltyO Σ 0 := olty0 (λI ρ v,
+    match ldlty_label TD with
+    | None => ⊥
+    | Some l => ∃ d, ⌜v @ l ↘ d⌝ ∧ TD ρ d
+    end).
+  Global Instance Proper_lift_dinterp_vl : Proper ((≡) ==> (≡)) lift_dinterp_vl.
+  Proof.
+    rewrite /lift_dinterp_vl => ??[/=??]; repeat case_match;
+      simplify_eq; solve_proper_ho_equiv.
+  Qed.
 
   Definition lift_dinterp_dms `{dlangG Σ} (TD : ldltyO Σ) : dsltyO Σ := Dslty (λI ρ ds,
     ∃ l d, ⌜ dms_lookup l ds = Some d ⌝ ∧ lift_ldlty TD ρ l d).
@@ -398,7 +432,7 @@ Notation "Γ ⊨[ gφ  ] e : T" := (wellMappedφ gφ → ietp Γ T e)%I (at leve
 Notation "Γ ⊨p[ gφ  ] p : T , i" := (wellMappedφ gφ → iptp Γ T p i)%I (at level 74, p, T, i at next level).
 Notation "Γ ⊨[ gφ  ] T1 , i <: T2 , j" := (wellMappedφ gφ → istpi Γ T1 T2 i j)%I (at level 74, T1, T2, i, j at next level).
 
-Section SampleTypingLemmas.
+Section MiscLemmas.
   Context `{HdotG: dlangG Σ}.
   Implicit Types (τ L T U : olty Σ 0).
 
@@ -423,6 +457,10 @@ Section SampleTypingLemmas.
     iApply ("Hsub2" with "[//] (Hsub1 [//] [//])").
   Qed.
 
+  Lemma iterate_oLater_later {i} (τ : oltyO Σ i) n args ρ v:
+    iterate oLater n τ args ρ v ⊣⊢ ▷^n τ args ρ v.
+  Proof. elim: n => [//|n IHn]. by rewrite iterate_S /= IHn. Qed.
+
   Lemma sSub_Eq T U i j :
     Γ s⊨ T, i <: U, j ⊣⊢
     Γ s⊨ iterate oLater i T, 0 <: iterate oLater j U, 0.
@@ -437,7 +475,7 @@ Section SampleTypingLemmas.
   Lemma lift_olty_eq {i} {τ1 τ2 : oltyO Σ i} {args ρ v} :
     τ1 ≡ τ2 → τ1 args ρ v ≡ τ2 args ρ v.
   Proof. apply. Qed.
-End SampleTypingLemmas.
+End MiscLemmas.
 
 (** * Proper instances. *)
 Section Propers.
@@ -498,16 +536,6 @@ End Propers.
 Section defs.
   Context `{HdotG: dlangG Σ}.
 
-  (* We don't expose the binding lemmas on this wrapper, only on the
-     underlying interface. *)
-  (* Global Instance interp_lemmas: TyInterpLemmas ty Σ.
-  Proof. split => /= *; apply persistent_ty_interp_lemmas.interp_subst_compose_ind. Qed. *)
-
-  Lemma def_interp_tvmem_eq' l (T : ty) p ρ:
-    D[ l ]⟦ TVMem l T ⟧ ρ (dpt p) ⊣⊢
-    path_wp p (V⟦ T ⟧ vnil ρ).
-  Proof. apply def_interp_tvmem_eq. Qed.
-
   Lemma iterate_TLater_oLater i T:
     V⟦iterate TLater i T⟧ ≡ iterate oLater i V⟦T⟧.
   Proof. elim: i => [//|i IHi] ???. by rewrite !iterate_S /= (IHi _ _ _). Qed.
@@ -532,15 +560,6 @@ Section defs.
     Γ ⊨ T, i <: U, j ⊣⊢
     Γ ⊨ iterate TLater i T, 0 <: iterate TLater j U, 0.
   Proof. by rewrite /istpi sSub_Eq !iterate_TLater_oLater. Qed.
-
-  Lemma T_Var x τ
-    (Hlook : Γ !! x = Some τ):
-    (*──────────────────────*)
-    Γ ⊨ of_val (ids x) : shiftN x τ.
-  Proof.
-    rewrite /ietp (pty_interp_subst τ (ren (+x))). apply sT_Var.
-    by rewrite list_lookup_fmap Hlook.
-  Qed.
 End defs.
 
 Import dlang_adequacy adequacy.

@@ -3,7 +3,7 @@ From iris.proofmode Require Import tactics.
 
 From D Require Import lty.
 Module Type PTyInterpLemmas (Import VS : VlSortsFullSig) (Import LWP : LiftWp VS)
-  (Import LJ : LtyJudgements VS LWP).
+  (Import LJ : Lty VS LWP).
 
 Class PTyInterp ty Σ :=
   pty_interpO : ty -> oltyO Σ 0.
