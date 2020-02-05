@@ -57,6 +57,8 @@ theories/Dot/examples/typingExamples.v
 theories/Dot/examples/typingExamplesUnst.v
 theories/Dot/examples/typingExInfra.v
 theories/Dot/syn/syn.v
+theories/Dot/lr/later_sub_sem.v
+theories/Dot/typing/later_sub.v
 theories/Dot/typing/typing_storeless.v
 theories/Dot/typing/typing_stamped.v
 theories/Dot/typing/typing_unstamped.v
