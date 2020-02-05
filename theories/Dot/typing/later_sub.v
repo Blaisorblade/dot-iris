@@ -4,6 +4,8 @@ context. *)
 
 From D.Dot Require Import syn.
 
+Set Implicit Arguments.
+
 Reserved Notation "⊢G Γ1 <:* Γ2" (at level 74, Γ1, Γ2 at next level).
 Reserved Notation "⊢T T1 <: T2" (at level 74, T1, T2 at next level).
 
@@ -114,3 +116,9 @@ Hint Resolve ctx_id_syn ctx_trans_sub_syn unTLater_ctx_sub_syn
   ctx_sub_TLater_syn TLater_cong_ctx_sub_syn : ctx_sub.
 
 Ltac ietp_weaken_ctx := auto with ctx_sub.
+
+Lemma ctx_sub_len Γ Γ' : ⊢G Γ <:* Γ' → length Γ = length Γ'.
+Proof. by elim => [|> ?? /= ->]. Qed.
+
+Lemma ctx_sub_len_tlater {Γ Γ'} : ⊢G Γ <:* TLater <$> Γ' → length Γ = length Γ'.
+Proof. intros ->%ctx_sub_len. apply fmap_length. Qed.

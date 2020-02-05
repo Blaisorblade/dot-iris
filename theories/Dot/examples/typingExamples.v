@@ -304,9 +304,9 @@ Lemma dvabs_sub_typed {Γ} V T1 T2 e l L:
   is_stamped_ty (S (length Γ)) g T1 →
   Γ |L V v⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l L.
 Proof.
-  intros He Hsub Hs.
-  eapply dpt_sub_typed; first apply Hsub.
-  tcrush.
+  intros He Hsub Hs. apply dpt_pv_typed.
+  eapply (Subs_typed (i := 0)); first apply Hsub.
+  by apply Lam_typed_strip1.
 Qed.
 
 Example boolImplTypAlt Γ (Hst : s1_is_ift_ext):

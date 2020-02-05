@@ -1,5 +1,6 @@
 From D Require Import tactics.
 From D.Dot.syn Require Export syn.
+From D.Dot.typing Require Export later_sub.
 From D.Dot Require Import typing_storeless.
 
 Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
@@ -35,10 +36,11 @@ Inductive typed Γ g : tm → ty → Prop :=
     (*─────────────────────────*)
     Γ s⊢ₜ[ g ] tproj e l : T
 (** Introduction forms *)
-| Lam_typed e T1 T2:
+| Lam_typed_strong e T1 T2 Γ':
+    ⊢G Γ <:* TLater <$> Γ' →
     is_stamped_ty (length Γ) g T1 →
-    (* T1 :: Γ s⊢ₜ[ g ] e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
-    shift T1 :: Γ s⊢ₜ[ g ] e : T2 →
+    (* T1 :: Γ' s⊢ₜ[ g ] e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
+    shift T1 :: Γ' s⊢ₜ[ g ] e : T2 →
     (*─────────────────────────*)
     Γ s⊢ₜ[ g ] tv (vabs e) : TAll T1 T2
 | VObj_typed ds T:
@@ -81,11 +83,6 @@ with dm_typed Γ g : label → dm → ty → Prop :=
     Γ s⊢ₜ[ g ] TLater L, 0 <: TLater T, 0 →
     Γ s⊢ₜ[ g ] TLater T, 0 <: TLater U, 0 →
     Γ s⊢[ g ]{ l := dtysem σ s } : TTMem l L U
-| dvabs_typed Γ' V T1 T2 e l:
-    is_stamped_ty (length Γ) g T1 →
-    shift T1 :: V :: Γ' s⊢ₜ[ g ] e : T2 →
-    Γ = Γ' |L V →
-    Γ s⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2)
 | dpt_pv_typed l v T:
     Γ s⊢ₜ[ g ] tv v : T →
     Γ s⊢[ g ]{ l := dpt (pv v) } : TVMem l T
@@ -96,10 +93,6 @@ with dm_typed Γ g : label → dm → ty → Prop :=
     TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ s⊢ds[ g ] ds : T →
     is_stamped_ty (S (length Γ)) g T →
     Γ s⊢[ g ]{ l := dpt (pv (vobj ds)) } : TVMem l (TMu T)
-| dpt_sub_typed T1 T2 p l:
-    Γ s⊢ₜ[ g ] T1, 0 <: T2, 0 →
-    Γ s⊢[ g ]{ l := dpt p } : TVMem l T1 →
-    Γ s⊢[ g ]{ l := dpt p } : TVMem l T2
 where "Γ s⊢[ g ]{ l := d  } : T" := (dm_typed Γ g l d T)
 with path_typed Γ g : path → ty → nat → Prop :=
 | pv_typed x T:
@@ -315,15 +308,32 @@ Hint Constructors typed dms_typed dm_typed path_typed subtype : core.
 Remove Hints Trans_stp : core.
 Hint Extern 10 => try_once Trans_stp : core.
 
+Lemma Lam_typed Γ e T1 T2 g:
+  is_stamped_ty (length Γ) g T1 →
+  shift T1 :: Γ s⊢ₜ[ g ] e : T2 →
+  (*─────────────────────────*)
+  Γ s⊢ₜ[ g ] tv (vabs e) : TAll T1 T2.
+Proof. apply Lam_typed_strong. ietp_weaken_ctx. Qed.
+
+Lemma Lam_typed_strip1 Γ e V T1 T2 g:
+  is_stamped_ty (S (length Γ)) g T1 →
+  shift T1 :: V :: Γ s⊢ₜ[ g ] e : T2 →
+  (*─────────────────────────*)
+  Γ |L V s⊢ₜ[ g ] tv (vabs e) : TAll T1 T2.
+Proof.
+  intros. apply Lam_typed_strong with (Γ' := (V :: Γ)) => //.
+  rewrite /defCtxCons/=; ietp_weaken_ctx.
+Qed.
+
 Lemma dvabs_typed' Γ V T1 T2 e l g:
   is_stamped_ty (S (length Γ)) g T1 →
   shift T1 :: V :: Γ s⊢ₜ[ g ] e : T2 →
   Γ |L V s⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
-Proof. intros; exact: dvabs_typed. Qed.
+Proof. by intros; apply dpt_pv_typed, Lam_typed_strip1. Qed.
 
 Ltac typconstructor :=
   match goal with
-  | |- typed _ _ _ _ => constructor
+  | |- typed _ _ _ _ => first [apply Lam_typed_strip1 | apply Lam_typed | constructor]
   | |- dms_typed _ _ _ _ => constructor
   | |- dm_typed _ _ _ _ _ => first [apply dvabs_typed' | constructor]
   | |- path_typed _ _ _ _ _ => constructor

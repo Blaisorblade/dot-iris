@@ -71,12 +71,6 @@ Section syntyping_stamping_lemmas.
 
   Hint Extern 5 (is_stamped_path _ _ _) => try_once is_stamped_mono_path : core.
 
-  Lemma stamped_objIdent_typing_mono_dvabs_typed Γ Γ' T1 T2 V e l g g' :
-    shift T1 :: V :: Γ' s⊢ₜ[ g' ] e : T2 →
-    is_stamped_ty (length Γ) g T1 → g ⊆ g' → Γ = Γ' |L V →
-    Γ s⊢[ g' ]{ l := dpt (pv (vabs e)) }: TVMem l (TAll T1 T2).
-  Proof. econstructor; eauto 2. Qed.
-
   Lemma stamped_objIdent_typing_mono_mut Γ g :
     (∀ e T, Γ s⊢ₜ[ g ] e : T → ∀ g' (Hle : g ⊆ g'), Γ s⊢ₜ[ g' ] e : T) ∧
     (∀ ds T, Γ s⊢ds[ g ] ds : T → ∀ g' (Hle : g ⊆ g'), Γ s⊢ds[ g' ] ds : T) ∧
@@ -93,8 +87,7 @@ Section syntyping_stamping_lemmas.
     clear Γ g; intros;
       repeat match goal with
       | H : forall g : stys, _ |- _ => specialize (H g' Hle)
-      end; try exact: stamped_objIdent_typing_mono_dvabs_typed;
-      eauto 3; eauto.
+      end; eauto 3; eauto.
   Qed.
   Lemma stamped_objIdent_typed_mono Γ (g g' : stys) (Hle: g ⊆ g') e T:
     Γ s⊢ₜ[ g ] e : T → Γ s⊢ₜ[ g' ] e : T.
@@ -213,9 +206,11 @@ Section syntyping_stamping_lemmas.
   - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) [e1' [g1 ?]].
     exists (tproj e1' l), g1; naive_solver.
-  - intros * Hus1 Hu1 IHs1 g.
+  - intros * Hctxsub Hus1 Hu1 IHs1 g.
     move: IHs1 => /(.$ g) [e' [g1 ?]].
-    exists (tv (vabs e')), g1. naive_solver.
+    exists (tv (vabs e')), g1.
+    simpl in *. rewrite <-(ctx_sub_len_tlater Hctxsub) in *.
+    naive_solver.
   - intros * Huds1 IHs1 Hus1 g.
     move: IHs1 => /(.$ g) [ds' [g1 ?]].
     exists (tv (vobj ds')), g1; naive_solver.
@@ -254,10 +249,6 @@ Section syntyping_stamping_lemmas.
       first eapply (typing_stamped.dty_typed _ _ T); auto 2; [
         exact: (stamped_objIdent_subtype_mono _ Hts1)|
         exact: (stamped_objIdent_subtype_mono _ Hts2)].
-  - intros * Hus1 Hu1 IHs1 Heq g; simplify_eq/=.
-    move: IHs1 => /(.$ g) /= [e1' [g1 ?]]; destruct_and!.
-    exists (dpt (pv (vabs e1'))), g1; split_and!;
-      repeat first [typing_stamped.typconstructor | constructor]; naive_solver.
   - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [e1' [g1 ?]]; destruct_and!.
     have [v' ?]: ∃ v', e1' = tv v' by destruct e1'; naive_solver.
@@ -271,17 +262,6 @@ Section syntyping_stamping_lemmas.
     exists (dpt (pv (vobj ds'))), g1; split_and!; cbn;
       try eapply typing_stamped.dnew_typed; eauto 2;
       repeat constructor; eauto with f_equal.
-  - intros * Hu1 IHs1 Hu2 IHs2 g.
-    (* Here and for standard subsumption, by stamping the subtyping
-      derivation before typing, we needn't use monotonicity on [Hs],
-      which holds but would require extra boilerplate. *)
-    move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]].
-    move: IHs2 => /(.$ g1) [d' [g2 [Hts2 [Hle2 Hs]]]]; lte g g1 g2.
-    have [p' Heq]: ∃ p', d' = dpt p'. {
-      move: Hs => {Hts2}; destruct d'; rewrite /= /from_option => -[?[??]];
-        try case_match; simplify_eq; eauto 2.
-    }
-    exists d', g2; subst d'; split_and!; ev; eauto 3.
   - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [e1' [g1 ?]]; ev.
     destruct e1' as [v'| | | | | |] => //.

@@ -352,9 +352,9 @@ Lemma dvabs_sub_typed {Γ} V T1 T2 e l L:
   is_unstamped_ty' (S (length Γ)) T1 →
   Γ |L V u⊢{ l := dpt (pv (vabs e)) } : TVMem l L.
 Proof.
-  intros He Hsub Hs.
-  eapply dpt_sub_typed; first apply Hsub.
-  tcrush.
+  intros He Hsub Hs. apply dpt_pv_typed.
+  eapply (Subs_typed (i := 0)); first apply Hsub.
+  by apply Lam_typed_strip1.
 Qed.
 
 (* Note how we must weaken the type (or its environment) to account for the

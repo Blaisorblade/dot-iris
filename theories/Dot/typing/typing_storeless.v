@@ -1,4 +1,5 @@
 From D.Dot.syn Require Export syn path_repl lr_syn_aux.
+From D.Dot.typing Require Export later_sub.
 From D.Dot.stamping Require Export stampingDefsCore.
 (* From D.Dot.lr Require Import unary_lr.
 From D Require Import swap_later_impl. *)
@@ -53,10 +54,11 @@ Inductive typed Γ g : tm → ty → Prop :=
     (*──────────────────────*)
     Γ v⊢ₜ[ g ] tv v: T.|[v/]
 (** Introduction forms *)
-| Lam_typed e T1 T2:
+| Lam_typed_strong e T1 T2 Γ':
+    ⊢G Γ <:* TLater <$> Γ' →
     is_stamped_ty (length Γ) g T1 →
-    (* T1 :: Γ v⊢ₜ[ g ] e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
-    shift T1 :: Γ v⊢ₜ[ g ] e : T2 →
+    (* T1 :: Γ' v⊢ₜ[ g ] e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
+    shift T1 :: Γ' v⊢ₜ[ g ] e : T2 →
     (*─────────────────────────*)
     Γ v⊢ₜ[ g ] tv (vabs e) : TAll T1 T2
 | VObj_typed ds T:
@@ -108,11 +110,6 @@ with dm_typed Γ g : label → dm → ty → Prop :=
     Γ v⊢ₜ[ g ] TLater L, 0 <: TLater T, 0 →
     Γ v⊢ₜ[ g ] TLater T, 0 <: TLater U, 0 →
     Γ v⊢[ g ]{ l := dtysem σ s } : TTMem l L U
-| dvabs_typed Γ' V T1 T2 e l:
-    is_stamped_ty (length Γ) g T1 →
-    shift T1 :: V :: Γ' v⊢ₜ[ g ] e : T2 →
-    Γ = Γ' |L V →
-    Γ v⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2)
 | dpt_pv_typed l v T:
     Γ v⊢ₜ[ g ] tv v : T →
     Γ v⊢[ g ]{ l := dpt (pv v) } : TVMem l T
@@ -123,10 +120,6 @@ with dm_typed Γ g : label → dm → ty → Prop :=
     TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ v⊢ds[ g ] ds : T →
     is_stamped_ty (S (length Γ)) g T →
     Γ v⊢[ g ]{ l := dpt (pv (vobj ds)) } : TVMem l (TMu T)
-| dpt_sub_typed T1 T2 p l:
-    Γ v⊢ₜ[ g ] T1, 0 <: T2, 0 →
-    Γ v⊢[ g ]{ l := dpt p } : TVMem l T1 →
-    Γ v⊢[ g ]{ l := dpt p } : TVMem l T2
 where "Γ v⊢[ g ]{ l := d  } : T" := (dm_typed Γ g l d T)
 with path_typed Γ g : path → ty → nat → Prop :=
 | pv_typed v T:
@@ -341,11 +334,28 @@ with   stamped_subtype_mut_ind := Induction for subtype Sort Prop.
 Combined Scheme stamped_typing_mut_ind from stamped_typed_mut_ind, stamped_dms_typed_mut_ind,
   stamped_dm_typed_mut_ind, stamped_path_typed_mut_ind, stamped_subtype_mut_ind.
 
+Lemma Lam_typed Γ e T1 T2 g:
+  is_stamped_ty (length Γ) g T1 →
+  shift T1 :: Γ v⊢ₜ[ g ] e : T2 →
+  (*─────────────────────────*)
+  Γ v⊢ₜ[ g ] tv (vabs e) : TAll T1 T2.
+Proof. apply Lam_typed_strong. ietp_weaken_ctx. Qed.
+
+Lemma Lam_typed_strip1 Γ e V T1 T2 g:
+  is_stamped_ty (S (length Γ)) g T1 →
+  shift T1 :: V :: Γ v⊢ₜ[ g ] e : T2 →
+  (*─────────────────────────*)
+  Γ |L V v⊢ₜ[ g ] tv (vabs e) : TAll T1 T2.
+Proof.
+  intros. apply (Lam_typed_strong (Γ' := (V :: Γ))) => //.
+  rewrite /defCtxCons/=; ietp_weaken_ctx.
+Qed.
+
 Lemma dvabs_typed' Γ V T1 T2 e l g:
   is_stamped_ty (S (length Γ)) g T1 →
   shift T1 :: V :: Γ v⊢ₜ[ g ] e : T2 →
   Γ |L V v⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
-Proof. intros; exact: dvabs_typed. Qed.
+Proof. by intros; apply dpt_pv_typed, Lam_typed_strip1. Qed.
 
 Ltac typconstructor_check :=
   lazymatch goal with
@@ -354,7 +364,7 @@ Ltac typconstructor_check :=
   end.
 Ltac typconstructor :=
   match goal with
-  | |- typed _ _ _ _ => constructor
+  | |- typed _ _ _ _ => first [apply Lam_typed_strip1 | apply Lam_typed | constructor]
   | |- dms_typed _ _ _ _ => constructor
   | |- dm_typed _ _ _ _ _ => first [apply dvabs_typed' | constructor]
   | |- path_typed _ _ _ _ _ => constructor

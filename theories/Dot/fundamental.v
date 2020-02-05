@@ -1,8 +1,11 @@
 From iris.proofmode Require Import tactics.
 From D Require Import swap_later_impl.
-From D.Dot Require Import unary_lr typing_storeless typeExtractionSem typing_unstamped
+(* For fundamental theorem. *)
+From D.Dot Require Import unary_lr typing_storeless typeExtractionSem
   lr_lemmas lr_lemmasDefs lr_lemmasNoBinding lr_lemmasTSel lr_lemmasPrim
-  astStamping typingStamping skeleton.
+  later_sub_sem.
+(* For unstamped safety. *)
+From D.Dot Require Import typing_unstamped astStamping typingStamping skeleton.
 From D.Dot.lr Require Import path_repl.
 Import stamp_transfer.
 
@@ -30,11 +33,9 @@ Section fundamental.
     - iIntros "#Hm"; induction HT.
       + iApply D_Typ_Abs; by [> iApply fundamental_subtype .. |
           iApply extraction_to_leadsto_envD_equiv].
-      + subst; iApply D_TVMem_All_I. by iApply fundamental_typed.
       + iApply D_TVMem_I. by iApply fundamental_typed.
       + iApply D_Path_TVMem_I. by iApply fundamental_path_typed.
       + iApply D_New_Mem_I. by iApply fundamental_dms_typed.
-      + iApply D_TVMem_Sub; by [> iApply fundamental_subtype|].
     - iIntros "#Hm"; induction HT.
       + by iApply D_Nil.
       + iApply D_Cons; by [|iApply fundamental_dm_typed].
@@ -75,7 +76,7 @@ Section fundamental.
       + by iApply T_All_E; [apply IHHT1|apply IHHT2].
       + by iApply T_Obj_E.
       + by iApply T_Mu_E.
-      + by iApply T_All_I.
+      + iApply T_All_I_Strong; [|apply IHHT]. ietp_weaken_ctx.
       + iApply T_Obj_I. by iApply fundamental_dms_typed.
       + by iApply T_Mu_I.
       + by iApply T_Nat_I.
