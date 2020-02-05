@@ -7,6 +7,11 @@ From D.pure_program_logic Require Export weakestpre.
 (* As discussed in https://github.com/Blaisorblade/dot-iris/pull/2#discussion_r239389417, exporting that confuses Coq, who then
   prints [length] as [strings.length]. *)
 
+(** Notation for functions in the Iris scope. *)
+Notation "'λI' x .. y , t" := (fun x => .. (fun y => t%I) ..)
+  (at level 200, x binder, y binder, right associativity, only parsing,
+  format "'[  ' '[  ' 'λI'  x  ..  y ']' ,  '/' t ']'") : function_scope.
+
 Export uPred.
 
 Ltac properness :=
@@ -36,5 +41,15 @@ Ltac solve_proper_alt :=
 Ltac solve_proper_ho_core tac :=
   solve [repeat intro; cbn; repeat tac (); cbn in *;
   repeat match goal with H : _ ≡{_}≡ _|- _ => apply H end].
-Ltac solve_proper_ho := solve_proper_ho_core ltac:(fun _ => f_equiv).
-Ltac solve_contractive_ho := solve_proper_ho_core ltac:(fun _ => f_contractive || f_equiv).
+Ltac solve_proper_ho_alt := solve_proper_ho_core ltac:(fun _ => f_equiv).
+Ltac solve_contractive_ho_alt := solve_proper_ho_core ltac:(fun _ => f_contractive || f_equiv).
+
+Ltac ho_f_equiv :=
+  progress repeat match goal with
+    | H : _ ≡ _|- _ => (apply: H || rewrite H //)
+    | H : _ ≡{_}≡ _ |- _ => (apply: H || rewrite H //)
+    | H : dist_later _ _ _ |- _ => (apply: H || rewrite H //)
+    end.
+
+Ltac solve_proper_ho := solve_proper_core ltac:(fun _ => ho_f_equiv || f_equiv).
+Ltac solve_contractive_ho := solve_proper_core ltac:(fun _ => ho_f_equiv || f_contractive || f_equiv).

@@ -13,26 +13,6 @@ From D.pure_program_logic Require Import lifting adequacy.
 From Coq Require ProofIrrelevance FunctionalExtensionality.
 Import prelude.
 
-Notation "'λI' x .. y , t" := (fun x => .. (fun y => t%I) ..)
-  (at level 200, x binder, y binder, right associativity, only parsing,
-  format "'[  ' '[  ' 'λI'  x  ..  y ']' ,  '/' t ']'") : function_scope.
-
-Ltac ho_f_equiv :=
-  first
-    [ progress repeat match goal with
-      | H : _ ≡ _|- _ => (apply: H || rewrite H //)
-      | H : _ ≡{_}≡ _ |- _ => (apply: H || rewrite H //)
-      end
-    | f_equiv].
-
-(* Ltac solve_proper_ho_equiv_core tac :=
-  solve [repeat intro; cbn; repeat tac (); cbn in *;
-  repeat match goal with H : _ ≡ _|- _ => apply H || rewrite H // end].
-Ltac solve_proper_ho_equiv :=
-  solve_proper_prepare; properness => //;
-  solve_proper_ho_equiv_core ltac:(fun _ => idtac). *)
-Ltac solve_proper_ho_equiv := solve_proper_core ltac:(fun _ => ho_f_equiv).
-
 Implicit Types (Σ : gFunctors).
 
 (**
@@ -260,18 +240,18 @@ Section olty_ofe_2.
 
   Definition oAnd τ1 τ2 : oltyO Σ i := Olty (λI args ρ v, τ1 args ρ v ∧ τ2 args ρ v).
   Global Instance Proper_oAnd : Proper ((≡) ==> (≡) ==> (≡)) oAnd.
-  Proof. solve_proper_ho_equiv. Qed.
+  Proof. solve_proper_ho. Qed.
 
   Definition oOr τ1 τ2 : oltyO Σ i := Olty (λI args ρ v, τ1 args ρ v ∨ τ2 args ρ v).
   Global Instance Proper_oOr : Proper ((≡) ==> (≡) ==> (≡)) oOr.
-  Proof. solve_proper_ho_equiv. Qed.
+  Proof. solve_proper_ho. Qed.
 
 
   Definition eLater n (φ : hoEnvD Σ i) : hoEnvD Σ i := (λI args ρ v, ▷^n φ args ρ v).
   Global Arguments eLater /.
   Definition oLater τ : oltyO Σ i := Olty (eLater 1 τ).
   Global Instance Proper_oLater : Proper ((≡) ==> (≡)) oLater.
-  Proof. solve_proper_ho_equiv. Qed.
+  Proof. solve_proper_ho. Qed.
 
   Lemma oLater_eq τ args ρ v : oLater τ args ρ v = (▷ τ args ρ v)%I.
   Proof. done. Qed.
@@ -279,7 +259,7 @@ Section olty_ofe_2.
 
   Definition oMu (τ : oltyO Σ i) : oltyO Σ i := Olty (λI args ρ v, τ args (v .: ρ) v).
   Global Instance Proper_oMu : Proper ((≡) ==> (≡)) oMu.
-  Proof. solve_proper_ho_equiv. Qed.
+  Proof. solve_proper_ho. Qed.
 
   Lemma oMu_eq (τ : oltyO Σ i) args ρ v : oMu τ args ρ v = τ args (v .: ρ) v.
   Proof. done. Qed.

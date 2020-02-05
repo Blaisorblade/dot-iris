@@ -92,7 +92,7 @@ Section ldlty_ofe.
   Global Instance Proper_lift_ldlty : Proper ((≡) ==> (≡)) lift_ldlty.
   Proof.
     move => [l1 P1] [l2 P2] [/= Heq Heql]; repeat case_match; simplify_eq/=;
-      solve_proper_ho_equiv.
+      solve_proper_ho.
   Qed.
 End ldlty_ofe.
 Arguments ldltyO : clear implicits.
@@ -237,12 +237,12 @@ Section SemTypes.
        □ ((∀ v, ▷ τ1 vnil ρ v → ▷ □ ψ vnil v) ∧
           (∀ v, ▷ □ ψ vnil v → ▷ τ2 vnil ρ v))).
   Global Instance Proper_oLDTMem l : Proper ((≡) ==> (≡) ==> (≡)) (oLDTMem l).
-  Proof. rewrite /oLDTMem/= => ??? ???. f_equiv. solve_proper_ho_equiv. Qed.
+  Proof. rewrite /oLDTMem/= => ??? ???. f_equiv. solve_proper_ho. Qed.
 
   Definition oLDVMem l τ : ldltyO Σ := mkLDlty (Some l) (λI ρ d,
     ∃ pmem, ⌜d = dpt pmem⌝ ∧ path_wp pmem (oClose τ ρ)).
   Global Instance Proper_oLDVMem l : Proper ((≡) ==> (≡)) (oLDVMem l).
-  Proof. rewrite /oLDVMem/= => ???. f_equiv. solve_proper_ho_equiv. Qed.
+  Proof. rewrite /oLDVMem/= => ???. f_equiv. solve_proper_ho. Qed.
 
   Definition oSel {i} p l : oltyO Σ i :=
     Olty (λI args ρ v, path_wp p.|[ρ]
@@ -272,7 +272,7 @@ Section SemTypes.
      □ ∀ w, ▷ τ1 vnil ρ w → ▷ E⟦ τ2 ⟧ (w .: ρ) t.|[w/])).
 
   Global Instance Proper_oAll : Proper ((≡) ==> (≡) ==> (≡)) oAll.
-  Proof. solve_proper_ho_equiv. Qed.
+  Proof. solve_proper_ho. Qed.
 
   Definition oPrim b : olty Σ 0 := olty0 (λI ρ v, ⌜pure_interp_prim b v⌝).
 
@@ -284,7 +284,7 @@ Section SemTypes.
   Global Instance Proper_lift_dinterp_vl : Proper ((≡) ==> (≡)) lift_dinterp_vl.
   Proof.
     rewrite /lift_dinterp_vl => ??[/=??]; repeat case_match;
-      simplify_eq; solve_proper_ho_equiv.
+      simplify_eq; solve_proper_ho.
   Qed.
 
   Definition lift_dinterp_dms `{dlangG Σ} (TD : ldltyO Σ) : dsltyO Σ := Dslty (λI ρ ds,
@@ -507,7 +507,7 @@ Section Propers.
   (** ** Judgments *)
   Global Instance Proper_sstpi i j : Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sstpi i j).
   Proof.
-    solve_proper_ho_equiv.
+    solve_proper_ho.
     (* intros ?? HG ?? H1 ?? H2; simplify_eq/=.
     properness; [by rewrite HG|apply H1|apply H2]. *)
   Qed.
@@ -519,7 +519,7 @@ Section Propers.
 
   Global Instance Proper_setp e : Proper ((≡) ==> (≡) ==> (≡)) (setp e).
   Proof.
-    solve_proper_ho_equiv.
+    solve_proper_ho.
     (* intros ?? HG ?? HT ???; simplify_eq/=. by properness; [rewrite HG|apply HT]. *)
   Qed.
   Global Instance Proper_setp_flip e :
@@ -530,7 +530,7 @@ Section Propers.
   Global Instance Proper_sdtp l d : Proper ((≡) ==> (≡) ==> (≡)) (sdtp l d).
   Proof.
     move => ??? [??] [??] [??] /=; case_match; simplify_eq/=; properness => //;
-      solve_proper_ho_equiv.
+      solve_proper_ho.
   Qed.
   Global Instance Proper_sdtp_flip l d : Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sdtp l d).
   Proof. apply: flip_proper_3. Qed.
