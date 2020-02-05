@@ -175,6 +175,10 @@ Section olty_subst.
               (f_equal_dep _ _ args Heq)).
   Qed.
 
+  Lemma lift_olty_eq {τ1 τ2 : oltyO Σ i} {args ρ v} :
+    τ1 ≡ τ2 → τ1 args ρ v ≡ τ2 args ρ v.
+  Proof. apply. Qed.
+
   Global Instance hsubstLemmas_olty : HSubstLemmas vl (olty Σ i).
   Proof.
     split => [T|//|s1 s2 T]; apply olty_eq => args ρ; f_ext => v.
@@ -210,6 +214,7 @@ Fixpoint env_oltyped `{dlangG Σ} (Γ : sCtx Σ) (ρ : var → vl) : iProp Σ :=
   | nil => True
   end%I.
 Notation "s⟦ Γ ⟧*" := (env_oltyped Γ).
+Global Instance: Params (@env_oltyped) 2 := {}.
 
 Section olty_ofe_2.
   Context `{dlangG Σ} {i : nat}.
@@ -217,6 +222,13 @@ Section olty_ofe_2.
 
   Global Instance env_oltyped_persistent (Γ : sCtx Σ) ρ: Persistent (s⟦ Γ ⟧* ρ).
   Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
+
+  Global Instance Proper_env_oltyped : Proper ((≡) ==> (=) ==> (≡)) env_oltyped.
+  Proof.
+    move => + + /equiv_Forall2 + + _ <-.
+    elim => [|T1 G1 IHG1] [|T2 G2] /=; [done|inversion 1..|] =>
+      /(Forall2_cons_inv _ _ _ _) [HT HG] ρ; f_equiv; [apply IHG1, HG|apply HT].
+  Qed.
 
   Lemma s_interp_env_lookup Γ ρ (τ : olty Σ 0) x:
     Γ !! x = Some τ →

@@ -14,7 +14,6 @@
 theories/tactics.v
 theories/proper.v
 theories/ty_interp_subst_lemmas.v
-theories/pty_interp_subst_lemmas.v
 theories/prelude.v
 theories/iris_extra/iris_prelude.v
 theories/iris_extra/lty.v
@@ -81,6 +80,7 @@ theories/Dot/typing/typingProofs.v
 theories/Dot/typing/typingStamping.v
 theories/Dot/syn/rules.v
 theories/Dot/fundamental.v
+theories/Dot/lr/dot_lty.v
 theories/Dot/lr/unary_lr.v
 theories/Dot/lr/lr_lemmasNoBinding.v
 theories/Dot/lr/lr_lemmas.v

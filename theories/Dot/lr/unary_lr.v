@@ -1,9 +1,11 @@
 From iris.proofmode Require Import tactics.
 From D Require Export iris_prelude proper lty lr_syn_aux.
-From D Require Import pty_interp_subst_lemmas swap_later_impl.
-From D.Dot Require Import syn syn.path_repl.
+From D Require Import swap_later_impl.
+From D.Dot Require Import syn.
 From D.Dot Require Export dlang_inst path_wp.
-From D.pure_program_logic Require Import lifting.
+From D.pure_program_logic Require Import weakestpre.
+
+From D.Dot Require Export dot_lty.
 
 Unset Program Cases.
 
@@ -12,18 +14,6 @@ Implicit Types (Σ : gFunctors)
          (vs : vls) (ρ : var → vl) (l : label).
 
 (** * Semantic domains. *)
-
-Include Lty VlSorts dlang_inst.
-Include PTyInterpLemmas VlSorts dlang_inst.
-Export persistent_ty_interp_lemmas.
-
-Section bottoms.
-  Context {Σ}.
-  Global Instance bottom_iprop : Bottom (iProp Σ) := False%I.
-  Global Instance bottom_ippred {s}: Bottom (iPPred s Σ) := IPPred (λ _, ⊥).
-  Global Instance bottom_fun {A} `{Bottom B}: Bottom (A → B) := (λ _, ⊥).
-  Global Instance bottom_ofe_fun {A} {B : ofeT} `{Bottom B}: Bottom (A -d> B) := (λ _, ⊥).
-End bottoms.
 
 (** The logical relation core is [V⟦T⟧], which interprets *open* types into
     predicates over *closed* values. Hence, [V⟦T⟧ T args ρ v] uses its argument [ρ]
@@ -42,96 +32,6 @@ End bottoms.
 Notation "V⟦ T ⟧" := (pty_interpO T%ty).
 
 Notation "V⟦ Γ ⟧*" := (fmap (M := list) pty_interpO Γ).
-
-(** The semantics of a DOT type as a single-definition type is a pair of an
-expected label (if any) and a persistent predicate over the definition. *)
-Record ldlty Σ := LDlty {
-  ldlty_label : option label;
-  ldlty_car :> env -> iPPred dm Σ;
-}.
-Global Arguments LDlty {_} _%I _.
-Global Arguments ldlty_label {_} !_ /.
-Global Arguments ldlty_car {_} !_ /.
-
-Canonical Structure labelO := leibnizO label.
-
-(** Semantic definition types [ldlty Σ] can be converted (through [lift_ldlty], below)
-into persistent predicates over labels and definitions of the following type. *)
-Definition dlty Σ := env -> label -> iPPred dm Σ.
-Definition dltyO Σ := env -d> label -d> iPPredO dm Σ.
-Notation Dlty T := (λ ρ l, IPPred (λI d, T ρ l d)).
-
-Section ldlty_ofe.
-  Context {Σ}.
-  Let iso := (λ T : ldlty Σ, (ldlty_car T : _ -d> _, ldlty_label T)).
-  Instance ldlty_equiv : Equiv (ldlty Σ) := λ A B, iso A ≡ iso B.
-  Instance ldlty_dist : Dist (ldlty Σ) := λ n A B, iso A ≡{n}≡ iso B.
-  Lemma ldlty_ofe_mixin : OfeMixin (ldlty Σ).
-  Proof. exact: (iso_ofe_mixin iso). Qed.
-
-  Canonical Structure ldltyO := OfeT (ldlty Σ) ldlty_ofe_mixin.
-
-  (* Looks trivial, but it's needed for its Proper instance. *)
-  Definition LDltyO ol (P : env -d> iPPredO dm Σ) : ldltyO := LDlty ol P.
-  Global Instance Proper_LDltyO: Proper ((≡) ==> (≡)) (LDltyO ol).
-  Proof. by solve_proper_prepare. Qed.
-
-  Definition mkLDlty ol (φ : envPred dm Σ) `{∀ ρ d, Persistent (φ ρ d)} :=
-    LDltyO ol (λ ρ, IPPred (φ ρ)).
-  Global Arguments mkLDlty /.
-
-  Global Instance : Bottom (ldlty Σ) := mkLDlty None ⊥.
-
-  Definition lift_ldlty (TD : ldltyO) : dltyO Σ := Dlty (λI ρ l' d,
-    match ldlty_label TD with
-    | None => ⊥
-    | Some l => ⌜ l = l' ⌝ ∧ TD ρ d
-    end).
-  Global Arguments lift_ldlty /.
-
-  Global Instance Proper_lift_ldlty : Proper ((≡) ==> (≡)) lift_ldlty.
-  Proof.
-    move => [l1 P1] [l2 P2] [/= Heq Heql]; repeat case_match; simplify_eq/=;
-      solve_proper_ho.
-  Qed.
-End ldlty_ofe.
-Arguments ldltyO : clear implicits.
-Global Instance: Params (@lift_ldlty) 5 := {}.
-
-Notation dslty Σ := (env -> iPPred dms Σ).
-Definition dsltyO Σ := env -d> iPPredO dms Σ.
-Notation Dslty T := (λ ρ, IPPred (λI ds, T ρ ds)).
-
-(** All semantics of a type. *)
-Record ldslty {Σ} := LDslty {
-  ldslty_car :> dslty Σ;
-  ldslty_olty : oltyO Σ 0;
-  ldslty_dlty : ldltyO Σ;
-  ldslty_commute {ds ρ} :
-    ldslty_car ρ (selfSubst ds) ⊢ ldslty_olty vnil ρ (vobj ds);
-  ldslty_mono {l d ds ρ} :
-    dms_hasnt ds l →
-    ldslty_car ρ ds ⊢ ldslty_car ρ ((l, d) :: ds);
-  ldslty_def2defs_head {l d ds ρ} :
-    lift_ldlty ldslty_dlty ρ l d ⊢ ldslty_car ρ ((l, d) :: ds)
-}.
-
-Arguments ldslty : clear implicits.
-Arguments LDslty {_} _ _ _ _ _.
-Arguments ldslty_car {_} !_ /.
-Arguments ldslty_olty {_} !_ /.
-Arguments ldslty_dlty {_} !_ /.
-
-Section ldslty_ofe.
-  Context {Σ}.
-
-  Let iso := (λ T : ldslty Σ, (ldslty_car T : _ -d> _, ldslty_olty T, ldslty_dlty T)).
-  Instance ldslty_equiv : Equiv (ldslty Σ) := λ A B, iso A ≡ iso B.
-  Instance ldslty_dist : Dist (ldslty Σ) := λ n A B, iso A ≡{n}≡ iso B.
-  Lemma ldslty_ofe_mixin : OfeMixin (ldslty Σ).
-  Proof. exact: (iso_ofe_mixin iso). Qed.
-End ldslty_ofe.
-Canonical Structure ldsltyO Σ := OfeT (ldslty Σ) ldslty_ofe_mixin.
 
 (** Define fully semantic judgments. They accept arbitrary semantic types. *)
 
@@ -229,7 +129,6 @@ Section SemTypes.
   Context `{HdotG: dlangG Σ}.
 
   Implicit Types (τ : oltyO Σ 0).
-   (* (ψ : vl -d> iPropO Σ) (φ : envD Σ)  *)
 
   (* Rewrite using (higher) semantic kinds! *)
   Definition oLDTMem l τ1 τ2 : ldltyO Σ := mkLDlty (Some l) (λI ρ d,
@@ -275,54 +174,6 @@ Section SemTypes.
   Proof. solve_proper_ho. Qed.
 
   Definition oPrim b : olty Σ 0 := olty0 (λI ρ v, ⌜pure_interp_prim b v⌝).
-
-  Program Definition lift_dinterp_vl (TD : ldltyO Σ) : oltyO Σ 0 := olty0 (λI ρ v,
-    match ldlty_label TD with
-    | None => ⊥
-    | Some l => ∃ d, ⌜v @ l ↘ d⌝ ∧ TD ρ d
-    end).
-  Global Instance Proper_lift_dinterp_vl : Proper ((≡) ==> (≡)) lift_dinterp_vl.
-  Proof.
-    rewrite /lift_dinterp_vl => ??[/=??]; repeat case_match;
-      simplify_eq; solve_proper_ho.
-  Qed.
-
-  Definition lift_dinterp_dms `{dlangG Σ} (TD : ldltyO Σ) : dsltyO Σ := Dslty (λI ρ ds,
-    ∃ l d, ⌜ dms_lookup l ds = Some d ⌝ ∧ lift_ldlty TD ρ l d).
-
-  Program Definition ldlty2ldslty `{dlangG Σ} (T : ldltyO Σ) : ldsltyO Σ :=
-    LDslty (lift_dinterp_dms T) (lift_dinterp_vl T) T _ _ _.
-  Next Obligation.
-    intros; rewrite /lift_dinterp_vl /=; case_match;
-      iDestruct 1 as (?l' d ?) "H"; last done.
-    iExists d; iDestruct "H" as (->) "$".
-    iIntros "!%"; naive_solver.
-  Qed.
-  Next Obligation.
-    intros; cbn; case_match; iDestruct 1 as (l' d' ?) "H /="; last done.
-    iExists l', d'; iFrame; iIntros "!%".
-    exact: dms_lookup_mono.
-  Qed.
-  Next Obligation.
-    (* iIntros "* /="; case_match; simplify_eq/=; last done. *)
-    iIntros "* /= H". case_match; last done.
-    iExists l, d; iFrame. iIntros "!%".
-    exact: dms_lookup_head.
-  Qed.
-
-  Program Definition LDsTop : ldslty Σ := LDslty (Dslty (λI _ _, True)) oTop ⊥ _ _ _.
-  Solve All Obligations with eauto.
-
-  Program Definition olty2ldslty `{dlangG Σ} (T : oltyO Σ 0) : ldsltyO Σ :=
-    LDslty ⊥ T ⊥ _ _ _.
-  Solve All Obligations with by iIntros.
-  Global Instance : Bottom (ldslty Σ) := olty2ldslty ⊥.
-
-  Program Definition LDsAnd (Tds1 Tds2 : ldslty Σ): ldslty Σ :=
-    LDslty (Dslty (λI ρ ds, Tds1 ρ ds ∧ Tds2 ρ ds)) (oAnd (ldslty_olty Tds1) (ldslty_olty Tds2)) ⊥ _ _ _.
-  Next Obligation. intros; iIntros "/= [??]". iSplit; by iApply ldslty_commute. Qed.
-  Next Obligation. intros; iIntros "/= [??]". iSplit; by iApply ldslty_mono. Qed.
-  Next Obligation. intros; iIntros "[]". Qed.
 
   Reserved Notation "A⟦ T ⟧".
   (* Observe the naming pattern for semantic type constructors:
@@ -475,10 +326,6 @@ Section MiscLemmas.
 
   (* Lemma swap0 T σ args ρ v : V⟦ T.|[σ] ⟧ args ρ v ≡ (V⟦ T ⟧).|[σ] args ρ v.
   Proof. apply interp_subst_compose_ind. Qed. *)
-
-  Lemma lift_olty_eq {i} {τ1 τ2 : oltyO Σ i} {args ρ v} :
-    τ1 ≡ τ2 → τ1 args ρ v ≡ τ2 args ρ v.
-  Proof. apply. Qed.
 End MiscLemmas.
 
 (** * Proper instances. *)
@@ -495,14 +342,6 @@ Section Propers.
   Qed.
 
   Context `{HdotG: dlangG Σ}.
-
-  Global Instance Proper_env_oltyped : Proper ((≡) ==> (=) ==> (≡)) env_oltyped.
-  Proof.
-    move => + + /equiv_Forall2 + + _ <-.
-    elim => [|T1 G1 IHG1] [|T2 G2] /=; [done|inversion 1..|] =>
-      /(Forall2_cons_inv _ _ _ _) [HT HG] ρ; f_equiv; [apply IHG1, HG|apply HT].
-  Qed.
-  Global Instance: Params (@env_oltyped) 2 := {}.
 
   (** ** Judgments *)
   Global Instance Proper_sstpi i j : Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sstpi i j).
