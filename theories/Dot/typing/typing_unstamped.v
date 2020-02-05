@@ -44,8 +44,8 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ u⊢ₜ tproj e l : T
 (** Introduction forms *)
 | Lam_typed e T1 T2:
-    (* T1 :: Γ u⊢ₜ e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
     is_unstamped_ty' (length Γ) T1 →
+    (* T1 :: Γ u⊢ₜ e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
     shift T1 :: Γ u⊢ₜ e : T2 →
     (*─────────────────────────*)
     Γ u⊢ₜ tv (vabs e) : TAll T1 T2
