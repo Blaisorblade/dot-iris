@@ -10,11 +10,11 @@ Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env).
 Section LambdaIntros.
   Context `{HdlangG: dlangG Σ}.
 
-  Lemma sT_All_I_Strong {Γ1 Γ2} T1 T2 e
-    (Hctx : s⊨G Γ1 <:* oLater <$> Γ2) :
-    shift T1 :: Γ2 s⊨ e : T2 -∗
+  Lemma sT_All_I_Strong {Γ Γ'} T1 T2 e
+    (Hctx : s⊨G Γ <:* oLater <$> Γ') :
+    shift T1 :: Γ' s⊨ e : T2 -∗
     (*─────────────────────────*)
-    Γ1 s⊨ tv (vabs e) : oAll T1 T2.
+    Γ s⊨ tv (vabs e) : oAll T1 T2.
   Proof.
     rewrite Hctx; iIntros "#HeT !>" (ρ) "#HG /= !>".
     rewrite -wp_value'. iExists _; iSplit; first done.
@@ -33,23 +33,16 @@ Section LambdaIntros.
     apply sT_All_I_Strong => ρ. rewrite senv_TLater_commute. by iIntros "$".
   Qed.
 
-  Lemma T_All_I_Strong {Γ1 Γ2} T1 T2 e
-    (Hctx : ⊨G Γ1 <:* TLater <$> Γ2) :
-    shift T1 :: Γ2 ⊨ e : T2 -∗
-    (*─────────────────────────*)
-    Γ1 ⊨ tv (vabs e) : TAll T1 T2.
-  Proof.
-    rewrite /ietp fmap_cons (pty_interp_subst T1 (ren (+1))).
-    rewrite -(sT_All_I_Strong (Γ2 := V⟦Γ2⟧*)) // => ρ.
-    by rewrite -fmap_TLater_oLater.
-  Qed.
-
-  (* Derivable *)
-  Lemma T_All_I {Γ} T1 T2 e:
-    shift T1 :: Γ ⊨ e : T2 -∗
+  Lemma T_All_I_Strong {Γ Γ'} T1 T2 e
+    (Hctx : ⊨G Γ <:* TLater <$> Γ') :
+    shift T1 :: Γ' ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
-  Proof. rewrite -(T_All_I_Strong (Γ1 := Γ)) //. ietp_weaken_ctx. Qed.
+  Proof.
+    rewrite /ietp fmap_cons (pty_interp_subst T1 (ren (+1))).
+    rewrite -(sT_All_I_Strong (Γ' := V⟦Γ'⟧*)) // => ρ.
+    by rewrite -fmap_TLater_oLater.
+  Qed.
 
   Lemma sP_Val {Γ} v T:
     Γ s⊨ tv v : T -∗
@@ -84,34 +77,6 @@ Section LambdaIntros.
   Lemma D_TVMem_I {Γ} T v l:
     Γ ⊨ tv v : T -∗ Γ ⊨ { l := dpt (pv v) } : TVMem l T.
   Proof. apply sD_TVMem_I. Qed.
-
-  (* Derivable. To drop? *)
-  Lemma sD_TVMem_All_I_Strong {Γ1 Γ2} T1 T2 e l
-    (Hctx : s⊨G Γ1 <:* oLater <$> Γ2) :
-    shift T1 :: Γ2 s⊨ e : T2 -∗
-    (*─────────────────────────*)
-    Γ1 s⊨ { l := dpt (pv (vabs e)) } : oLDVMem l (oAll T1 T2).
-  Proof. by rewrite -sD_TVMem_I -(sT_All_I_Strong (Γ2 := Γ2)). Qed.
-
-  Lemma D_TVMem_All_I_Strong {Γ1 Γ2} T1 T2 e l :
-    ⊨G Γ1 <:* TLater <$> Γ2 →
-    shift T1 :: Γ2 ⊨ e : T2 -∗
-    (*─────────────────────────*)
-    Γ1 ⊨ { l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
-  Proof.
-    rewrite /ctx_sub /ietp /idtp fmap_TLater_oLater => Hctx.
-    rewrite fmap_cons pty_interp_subst.
-    exact: sD_TVMem_All_I_Strong.
-  Qed.
-
-  Lemma D_TVMem_All_I {Γ} V T1 T2 e l:
-    shift T1 :: V :: Γ ⊨ e : T2 -∗
-    Γ |L V ⊨ { l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
-  Proof.
-    (* Compared to [T_All_I], we must strip later also from [TLater V]. *)
-    rewrite -(D_TVMem_All_I_Strong (Γ2 := V :: Γ)) // /defCtxCons fmap_cons.
-    ietp_weaken_ctx.
-  Qed.
 End LambdaIntros.
 
 Section Sec.

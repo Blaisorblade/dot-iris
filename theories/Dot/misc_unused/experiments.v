@@ -80,6 +80,13 @@ Section Example.
   Context `{HdlangG: dlangG Σ} `{SwapPropI Σ}.
   Import exampleInfra typingExInfra fundamental typingStamping scalaLib.
 
+  (* Derivable *)
+  Lemma T_All_I {Γ} T1 T2 e:
+    shift T1 :: Γ ⊨ e : T2 -∗
+    (*─────────────────────────*)
+    Γ ⊨ tv (vabs e) : TAll T1 T2.
+  Proof. rewrite -(T_All_I_Strong (Γ := Γ)) //. ietp_weaken_ctx. Qed.
+
   Lemma OrSplit Γ e1 e2 A B C :
     Γ ⊨ e1 : TOr A B -∗
     shift A :: Γ ⊨ e2 : shift C -∗
@@ -318,7 +325,7 @@ Section Sec.
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   (* Proof. rewrite -T_All_I. f_equiv. iIntros (ρ) "[$ $]". Qed. *)
   Proof.
-    rewrite -(T_All_I_Strong (Γ2 := Γ)) //; ietp_weaken_ctx.
+    rewrite -(T_All_I_Strong (Γ' := Γ)) //; ietp_weaken_ctx.
     (* by rewrite -(unTLater_ctx_sub (TLater _ :: _)). *)
     (* apply ietp_weaken_ctx_syn. *)
     (* exact: (unTLater_ctx_sub_syn (TLater _ :: _)). *)
