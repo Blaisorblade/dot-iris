@@ -27,7 +27,7 @@ Section Sec.
   Qed.
 
   Lemma sSub_TVMem_Cov_Distr l T1 T2 i:
-    Γ s⊨ oAnd (oVMem l T1) (oVMem l T2), i <: oVMem l (oAnd T1 T2), i.
+    Γ s⊨ oAnd (cVMem l T1) (cVMem l T2), i <: cVMem l (oAnd T1 T2), i.
   Proof.
     iIntros "/= !>" (ρ v) "#Hg [#H1 H2]". iNext.
     iDestruct "H1" as (d? pmem?) "#H1"; iDestruct "H2" as (d'? pmem'?) "#H2". objLookupDet.
@@ -36,7 +36,7 @@ Section Sec.
   Qed.
 
   Lemma sSub_TVMem_Cov_Distr_2 l T1 T2 i:
-    Γ s⊨ oVMem l (oAnd T1 T2), i <: oAnd (oVMem l T1) (oVMem l T2), i.
+    Γ s⊨ cVMem l (oAnd T1 T2), i <: oAnd (cVMem l T1) (cVMem l T2), i.
   Proof.
     iIntros "/= !>" (ρ v) "#Hg #H". iNext.
     iDestruct "H" as (d? pmem Hlook) "H".
@@ -46,7 +46,7 @@ Section Sec.
 
   (* This should also follows internally from covariance, once that's proven. *)
   Lemma sSub_TVMem_Cov_Distr_Or_1 l T1 T2 i:
-    Γ s⊨ oOr (oVMem l T1) (oVMem l T2), i <: oVMem l (oOr T1 T2), i.
+    Γ s⊨ oOr (cVMem l T1) (cVMem l T2), i <: cVMem l (oOr T1 T2), i.
   Proof.
     iIntros "/= !>" (ρ v) "#Hg [#H| #H]"; iNext;
       iDestruct "H" as (d? pmem?) "#H"; repeat (iExists _; repeat iSplit => //);
@@ -54,7 +54,7 @@ Section Sec.
   Qed.
 
   Lemma sSub_TVMem_Cov_Distr_Or_2 l T1 T2 i:
-    Γ s⊨ oVMem l (oOr T1 T2), i <: oOr (oVMem l T1) (oVMem l T2), i.
+    Γ s⊨ cVMem l (oOr T1 T2), i <: oOr (cVMem l T1) (cVMem l T2), i.
   Proof.
     iIntros "/= !>" (ρ v) "#Hg #H". iNext.
     iDestruct "H" as (d? pmem?) "#H"; rewrite -path_wp_or.
@@ -63,7 +63,7 @@ Section Sec.
   Qed.
 
   Lemma sSub_TTMem_Cov_Distr l L U1 U2 i:
-    Γ s⊨ oAnd (oTMem l L U1) (oTMem l L U2), i <: oTMem l L (oAnd U1 U2), i.
+    Γ s⊨ oAnd (cTMem l L U1) (cTMem l L U2), i <: cTMem l L (oAnd U1 U2), i.
   Proof.
     iIntros "/= !>" (ρ v) "Hg [H1 H2]". iNext.
     iDestruct "H1" as (d? φ) "#[Hsφ1 [#HLφ1 #HφU1]]"; iDestruct "H2" as (d'? φ') "#[Hsφ2 [_ #HφU2]]".

@@ -7,7 +7,7 @@ Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
   Lemma sSub_Sel_Path {Γ L U p l i}:
-    Γ s⊨p p : oTMem l L U, i -∗
+    Γ s⊨p p : cTMem l L U, i -∗
     Γ s⊨ oLater L, i <: oSel p l, i.
   Proof.
     iIntros "/= #Hp !>" (ρ v) "Hg #Hφ /=".
@@ -25,7 +25,7 @@ Section Sec.
   Proof. apply sSub_Sel_Path. Qed.
 
   Lemma sSel_Sub_Path {Γ L U p l i}:
-    Γ s⊨p p : oTMem l L U, i -∗
+    Γ s⊨p p : cTMem l L U, i -∗
     Γ s⊨ oSel p l, i <: oLater U, i.
   Proof.
     iIntros " #Hp !>" (ρ v) "Hg Hφ".
@@ -46,7 +46,7 @@ Section Sec.
   Proof. apply sSel_Sub_Path. Qed.
 
   Lemma sP_Fld_E {Γ} p T l i:
-    Γ s⊨p p : oVMem l T, i -∗
+    Γ s⊨p p : cVMem l T, i -∗
     (*─────────────────────────*)
     Γ s⊨p pself p l : T, i.
   Proof.

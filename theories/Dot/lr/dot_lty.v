@@ -84,28 +84,28 @@ Notation Dslty T := (λ ρ, IPPred (λI ds, T ρ ds)).
 definition lists, single definitions, and values; together with proofs that
 they agree appropriately. *)
 Record clty {Σ} := Clty {
-  clty_car :> dslty Σ;
+  clty_dslty :> dslty Σ;
   clty_dlty : ldltyO Σ;
   clty_olty :> oltyO Σ 0;
   clty_def2defs_head {l d ds ρ} :
-    lift_ldlty clty_dlty ρ l d ⊢ clty_car ρ ((l, d) :: ds);
+    lift_ldlty clty_dlty ρ l d ⊢ clty_dslty ρ ((l, d) :: ds);
   clty_mono {l d ds ρ} :
     dms_hasnt ds l →
-    clty_car ρ ds ⊢ clty_car ρ ((l, d) :: ds);
+    clty_dslty ρ ds ⊢ clty_dslty ρ ((l, d) :: ds);
   clty_commute {ds ρ} :
-    clty_car ρ (selfSubst ds) ⊢ clty_olty vnil ρ (vobj ds);
+    clty_dslty ρ (selfSubst ds) ⊢ clty_olty vnil ρ (vobj ds);
 }.
 
 Arguments clty : clear implicits.
 Arguments Clty {_} _ _ _ _ _.
-Arguments clty_car {_} !_ /.
+Arguments clty_dslty {_} !_ /.
 Arguments clty_olty {_} !_ /.
 Arguments clty_dlty {_} !_ /.
 
 Section clty_ofe.
   Context {Σ}.
 
-  Let iso := (λ T : clty Σ, (clty_car T : _ -d> _, clty_dlty T, clty_olty T)).
+  Let iso := (λ T : clty Σ, (clty_dslty T : _ -d> _, clty_dlty T, clty_olty T)).
   Instance clty_equiv : Equiv (clty Σ) := λ A B, iso A ≡ iso B.
   Instance clty_dist : Dist (clty Σ) := λ n A B, iso A ≡{n}≡ iso B.
   Lemma clty_ofe_mixin : OfeMixin (clty Σ).
@@ -160,7 +160,7 @@ Section DefsTypes.
     rewrite /ldlty2clty/= => ???; split=>/=; repeat f_equiv; solve_proper.
   Qed.
 
-  Program Definition LDsTop : clty Σ := Clty (Dslty (λI _ _, True)) ⊥ oTop _ _ _.
+  Program Definition cTop : clty Σ := Clty (Dslty (λI _ _, True)) ⊥ oTop _ _ _.
   Solve All Obligations with eauto.
 
   Program Definition olty2clty `{dlangG Σ} (T : oltyO Σ 0) : cltyO Σ :=
@@ -168,7 +168,7 @@ Section DefsTypes.
   Solve All Obligations with by iIntros.
   Global Instance : Bottom (clty Σ) := olty2clty ⊥.
 
-  Program Definition LDsAnd (Tds1 Tds2 : clty Σ): clty Σ :=
+  Program Definition cAnd (Tds1 Tds2 : clty Σ): clty Σ :=
     Clty (Dslty (λI ρ ds, Tds1 ρ ds ∧ Tds2 ρ ds)) ⊥ (oAnd (clty_olty Tds1) (clty_olty Tds2)) _ _ _.
   Next Obligation. intros; iIntros "[]". Qed.
   Next Obligation. intros; iIntros "/= [??]". iSplit; by iApply clty_mono. Qed.
@@ -183,7 +183,7 @@ Class DTyInterp Σ :=
 Global Arguments all_interp {_ _} !_ /.
 Notation "A⟦ T ⟧" := (all_interp T).
 
-Notation "Ds⟦ T ⟧" := (clty_car A⟦ T ⟧).
+Notation "Ds⟦ T ⟧" := (clty_dslty A⟦ T ⟧).
 Notation "LD⟦ T ⟧" := (clty_dlty A⟦ T ⟧).
 
 (* We need [V⟦ _ ⟧] to be a proper first-class function. *)

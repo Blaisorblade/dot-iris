@@ -138,13 +138,13 @@ Section SemTypes.
   Global Instance Proper_oLDVMem l : Proper ((≡) ==> (≡)) (oLDVMem l).
   Proof. rewrite /oLDVMem/= => ???. f_equiv. solve_proper_ho. Qed.
 
-  (** Beware [oTMem] and [oVMem] are full [clty], despite the prefix. *)
-  Definition oTMem l τ1 τ2 : clty Σ := ldlty2clty (oLDTMem l τ1 τ2).
-  Global Instance Proper_oTMem l : Proper ((≡) ==> (≡) ==> (≡)) (oTMem l).
+  (** [cTMem] and [cVMem] are full [clty]. *)
+  Definition cTMem l τ1 τ2 : clty Σ := ldlty2clty (oLDTMem l τ1 τ2).
+  Global Instance Proper_cTMem l : Proper ((≡) ==> (≡) ==> (≡)) (cTMem l).
   Proof. solve_proper. Qed.
 
-  Definition oVMem l τ : clty Σ := ldlty2clty (oLDVMem l τ).
-  Global Instance Proper_oVMem l : Proper ((≡) ==> (≡)) (oVMem l).
+  Definition cVMem l τ : clty Σ := ldlty2clty (oLDVMem l τ).
+  Global Instance Proper_cVMem l : Proper ((≡) ==> (≡)) (cVMem l).
   Proof. solve_proper. Qed.
 
   Definition oSel {i} p l : oltyO Σ i :=
@@ -184,12 +184,12 @@ Section SemTypes.
   Global Program Instance dot_interp : DTyInterp Σ := fix dot_interp T :=
     let _ := dot_interp : DTyInterp Σ in
     match T with
-    | TTMem l L U => oTMem l V⟦ L ⟧ V⟦ U ⟧
-    | TVMem l T' => oVMem l V⟦ T' ⟧
+    | TTMem l L U => cTMem l V⟦ L ⟧ V⟦ U ⟧
+    | TVMem l T' => cVMem l V⟦ T' ⟧
 
-    | TAnd T1 T2 => LDsAnd A⟦T1⟧ A⟦T2⟧
+    | TAnd T1 T2 => cAnd A⟦T1⟧ A⟦T2⟧
 
-    | TTop => LDsTop
+    | TTop => cTop
     | TBot => olty2clty oBot
 
     | TOr T1 T2 => olty2clty $ oOr V⟦ T1 ⟧ V⟦ T2 ⟧

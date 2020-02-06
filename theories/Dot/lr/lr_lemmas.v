@@ -58,7 +58,7 @@ Section LambdaIntros.
   (** Lemmas about definition typing. *)
   Lemma sD_Path_TVMem_I {Γ} T p l:
     Γ s⊨p p : T, 0 -∗
-    Γ s⊨ { l := dpt p } : oVMem l T.
+    Γ s⊨ { l := dpt p } : cVMem l T.
   Proof.
     iIntros "#Hv !>" (ρ Hpid) "#Hg".
     rewrite def_interp_tvmem_eq.
@@ -71,7 +71,7 @@ Section LambdaIntros.
 
   Lemma sD_TVMem_I {Γ} T v l:
     Γ s⊨ tv v : T -∗
-    Γ s⊨ { l := dpt (pv v) } : oVMem l T.
+    Γ s⊨ { l := dpt (pv v) } : cVMem l T.
   Proof. by rewrite -sD_Path_TVMem_I -sP_Val. Qed.
 
   Lemma D_TVMem_I {Γ} T v l:
@@ -267,7 +267,7 @@ Section Sec.
 
   Lemma sFld_Sub_Fld' {Γ T1 T2 i j l}:
     Γ s⊨ T1, i <: T2, j + i -∗
-    Γ s⊨ oVMem l T1, i <: oVMem l T2, j + i.
+    Γ s⊨ cVMem l T1, i <: cVMem l T2, j + i.
   Proof.
     iIntros "#Hsub /= !>" (ρ v) "#Hg #HT1". setoid_rewrite laterN_plus.
     iDestruct "HT1" as (d) "#[Hdl #HT1]".
@@ -288,7 +288,7 @@ Section Sec.
 
   (* Stronger variant of [sT_Obj_E]. *)
   Lemma sT_Obj_E' {Γ e T l}:
-    Γ s⊨ e : oVMem l (oLater T) -∗
+    Γ s⊨ e : cVMem l (oLater T) -∗
     (*─────────────────────────*)
     Γ s⊨ tproj e l : T.
   Proof.
@@ -299,7 +299,7 @@ Section Sec.
   Qed.
 
   Lemma sT_Obj_E {Γ e T l}:
-    Γ s⊨ e : oVMem l T -∗
+    Γ s⊨ e : cVMem l T -∗
     (*─────────────────────────*)
     Γ s⊨ tproj e l : T.
   Proof.
@@ -350,7 +350,7 @@ Section swap_based_typing_lemmas.
   Lemma sTyp_Sub_Typ' {Γ L1 L2 U1 U2 i j l}:
     Γ s⊨ oLater L2, j + i <: oLater L1, i -∗
     Γ s⊨ oLater U1, i <: oLater U2, i -∗
-    Γ s⊨ oTMem l L1 U1, i <: oTMem l L2 U2, i.
+    Γ s⊨ cTMem l L1 U1, i <: cTMem l L2 U2, i.
   Proof.
     iIntros "#IHT #IHT1 /= !>" (ρ v) "#Hg #HT1".
     iDestruct "HT1" as (d) "[Hl2 H]".
@@ -371,7 +371,7 @@ Section swap_based_typing_lemmas.
   Lemma sTyp_Sub_Typ {Γ L1 L2 U1 U2 i l}:
     Γ s⊨ oLater L2, i <: oLater L1, i -∗
     Γ s⊨ oLater U1, i <: oLater U2, i -∗
-    Γ s⊨ oTMem l L1 U1, i <: oTMem l L2 U2, i.
+    Γ s⊨ cTMem l L1 U1, i <: cTMem l L2 U2, i.
   Proof. apply (sTyp_Sub_Typ' (j := 0)). Qed.
 
   Lemma Typ_Sub_Typ {Γ L1 L2 U1 U2 i l}:

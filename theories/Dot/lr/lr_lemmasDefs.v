@@ -15,7 +15,7 @@ Section Sec.
   (** This lemma is equivalent to pDOT's (Def-New). *)
   Lemma sD_New_Mem_I {Γ l ds} {T : clty Σ}:
     oAnd (oLater T) (oSing (pself (pv (ids 1)) l)) :: Γ s⊨ds ds : T -∗
-    Γ s⊨ { l := dpt (pv (vobj ds)) } : oVMem l (oMu (clty_olty T)).
+    Γ s⊨ { l := dpt (pv (vobj ds)) } : cVMem l (oMu (clty_olty T)).
   Proof.
     iDestruct 1 as (Hwf) "#Hds";
       iIntros "!>" (ρ Hpid%path_includes_field_aliases) "#Hg".
@@ -53,7 +53,7 @@ Section Sec.
      Γ ⊨ tv (vobj ds) : TMu T.
   Proof. apply sT_Obj_I. Qed.
 
-  Lemma sD_Nil Γ : Γ s⊨ds [] : LDsTop.
+  Lemma sD_Nil Γ : Γ s⊨ds [] : cTop.
   Proof. by iSplit; last iIntros "!> **". Qed.
 
   Lemma D_Nil Γ : Γ ⊨ds [] : TTop.
@@ -62,7 +62,7 @@ Section Sec.
   Lemma sD_Cons Γ d ds l (T1 T2 : cltyO Σ):
     dms_hasnt ds l →
     Γ s⊨ { l := d } : T1 -∗ Γ s⊨ds ds : T2 -∗
-    Γ s⊨ds (l, d) :: ds : LDsAnd T1 T2.
+    Γ s⊨ds (l, d) :: ds : cAnd T1 T2.
   Proof.
     iIntros (Hlds) "#HT1 [% #HT2]"; iSplit.
     by iIntros "!%"; cbn; constructor => //; by rewrite -dms_hasnt_notin_eq.
