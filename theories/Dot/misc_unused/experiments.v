@@ -4,7 +4,7 @@ From iris.proofmode Require Import tactics.
 From D Require Import swap_later_impl.
 From D.Dot.syn Require Import synLemmas rules path_repl.
 From D.Dot.lr Require Import unary_lr
-  lr_lemmas lr_lemmasTSel lr_lemmasNoBinding lr_lemmasDefs path_repl.
+  lr_lemmas lr_lemmasTSel lr_lemmasNoBinding lr_lemmasDefs path_repl later_sub_sem.
 
 Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
@@ -19,12 +19,12 @@ Section AlsoSyntactically.
   Lemma singleton_Mu_1 {Γ p T i T'} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : TMu T, i -∗
     Γ ⊨ TSing p, i <: T', i.
-  Proof. rewrite (TMu_E_p Hrepl). apply singleton_self_sub. Qed.
+  Proof. rewrite (P_Mu_E Hrepl). apply Sngl_Self_Sub. Qed.
 
   Lemma singleton_Mu_2 {Γ p T i T'} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : T', i -∗
     Γ ⊨ TSing p, i <: TMu T, i.
-  Proof. rewrite (TMu_I_p Hrepl). apply singleton_self_sub. Qed.
+  Proof. rewrite (P_Mu_I Hrepl). apply Sngl_Self_Sub. Qed.
 
   (** Semantic version of derived rule [singleton_Mu_dotty1]. *)
   Lemma singleton_Mu_dotty1 {Γ p i T1 T2 T1' T2'}
@@ -41,7 +41,7 @@ Section AlsoSyntactically.
     Restart. *)
     iIntros "Hsub Hp".
     iApply (singleton_Mu_2 Hrepl2).
-    iApply (P_Sub' with "Hp Hsub").
+    iApply (sP_Sub' with "Hp Hsub").
   Qed.
 
 End AlsoSyntactically.
@@ -74,9 +74,18 @@ From D.Dot Require exampleInfra typingExInfra.
 From D.Dot Require fundamental typingStamping.
 From D.Dot.examples Require scalaLib.
 
+Import fundamental.
+
 Section Example.
   Context `{HdlangG: dlangG Σ} `{SwapPropI Σ}.
   Import exampleInfra typingExInfra fundamental typingStamping scalaLib.
+
+  (* Derivable *)
+  Lemma T_All_I {Γ} T1 T2 e:
+    shift T1 :: Γ ⊨ e : T2 -∗
+    (*─────────────────────────*)
+    Γ ⊨ tv (vabs e) : TAll T1 T2.
+  Proof. rewrite -(T_All_I_Strong (Γ := Γ)) //. ietp_weaken_ctx. Qed.
 
   Lemma OrSplit Γ e1 e2 A B C :
     Γ ⊨ e1 : TOr A B -∗
@@ -85,8 +94,8 @@ Section Example.
     Γ ⊨ lett e1 e2 : C.
   Proof.
     iIntros "He #HA #HB".
-    iApply (T_Forall_E with "[] He").
-    iApply T_Forall_I.
+    iApply (T_All_E with "[] He").
+    iApply T_All_I.
     iSimpl; iIntros "!>" (ρ) "#[Hg [H|H]] !>";
       [iApply ("HA" with "[]") | iApply ("HB" with "[]")];
       iFrame "Hg H".
@@ -99,8 +108,8 @@ Section Example.
   Import stamp_transfer astStamping.
 
   Lemma wellMappedφ_g0 s T:
-    s ↝ ⟦ T ⟧ -∗
-    wellMappedφ (⟦ g0 s T ⟧g).
+    s ↝n[ 0 ] V⟦ T ⟧ -∗
+    wellMappedφ (Vs⟦ g0 s T ⟧).
   Proof.
     iIntros "Hs"; rewrite fmap_insert.
     iApply (wellMappedφ_insert with "[] Hs"); iApply wellMappedφ_empty.
@@ -110,21 +119,21 @@ Section Example.
 
   (* XXX "only empty context" won't be enough :-( *)
   Example foo1 Γ s T (Hcl : nclosed T 0) :
-    s ↝ ⟦ T ⟧ -∗
+    s ↝n[ 0 ] V⟦ T ⟧ -∗
     (* Γ ⊨ tv (packTV (length Γ) s) : typeEq "A" T. *)
     [] ⊨ tv (packTV 0 s) : typeEq "A" T.
   Proof.
     iIntros "#Hs !>" (ρ) "#_ /= !>".
     rewrite -wp_value'.
     iExists (dtysem [] s); iSplit; first eauto.
-    iExists (⟦ T ⟧ ids); iSplit; first by iApply (dm_to_type_intro _ _ []).
+    iExists (hoEnvD_inst [] V⟦ T ⟧); iSplit; first by iApply dm_to_type_intro.
     iModIntro; iSplit; iIntros (v) "#H !>";
       by rewrite (interp_subst_ids T ρ v) (closed_subst_id _ Hcl).
   Qed.
 
   (* XXX use more semantic typing. *)
   Example packTV_semTyped Γ s T (Hu: is_unstamped_ty' (length Γ) T):
-    s ↝ ⟦ T ⟧ -∗
+    s ↝n[ 0 ] V⟦ T ⟧ -∗
     Γ ⊨ tv (packTV (length Γ) s) : typeEq "A" T.
     (* Γ ⊨ tv (packTV (length Γ) s) : type "A" >: ⊥ <: T. *)
   Proof.
@@ -140,11 +149,11 @@ Section Example.
     asimpl.
     From D.Dot Require unstampedness_binding.
     have ?: nclosed T (length Γ) by eauto.
-    by rewrite -interp_subst_commute ?length_idsσ ?closed_subst_idsρ.
+    by rewrite -interp_finsubst_commute_cl ?length_idsσ ?closed_subst_idsρ.
     eauto 10.
     Restart. *)
     iIntros "#Hs".
-    (* iAssert (wellMappedφ (⟦ <[ s := T ]>∅ ⟧g)) as "#Hw". *)
+    (* iAssert (wellMappedφ (Vs⟦ <[ s := T ]>∅ ⟧)) as "#Hw". *)
     iApply fundamental_typed; last by iApply (wellMappedφ_g0 with "Hs").
     have Hst: is_stamped_ty (length Γ) (<[s:=T]> ∅) T.
     exact: unstamped_stamped_type.
@@ -158,13 +167,13 @@ Section Example.
 
     rewrite -(iterate_0 tskip (tv _)).
     iApply (T_Sub _ _ ((μ {@ typeEq "A" (shift T) }))); first last.
-    iApply Sub_Mu_1; rewrite iterate_0.
+    iApply Sub_Bind_1; rewrite iterate_0.
     iApply Sub_Trans. iApply
-    iApply T_New_I.
+    iApply T_Obj_I.
   Qed. *)
 
   Example foo Γ e v1 v2:
-    s0 ↝ ⟦ ⊤%ty ⟧ -∗
+    s0 ↝n[ 0 ] V⟦ ⊤%ty ⟧ -∗
     [] ⊨ e : iftFalse -∗
     [] ⊨ tv v1 : TTop -∗
     [] ⊨ tv v2 : TTop -∗
@@ -173,18 +182,19 @@ Section Example.
     rewrite /iftFalse.
     iIntros "#Hs #He #Hv1 #Hv2".
     iAssert ([] ⊨ ⊤, 0 <: pv (packTV 0 s0) @; "A", 0) as "#Hsub". {
-      iApply Sub_Trans.
-      iApply Sub_Add_Later.
+      iApply (Sub_Trans (T2 := ▶: ⊤) (i2 := 0)).
+      iApply sSub_Add_Later.
       iApply Sub_Sel_Path.
       iApply P_Val.
       iApply (packTV_semTyped with "Hs"); stcrush.
     }
-    iApply (T_Forall_Ex _ _ v2 (pv (packTV 0 s0) @; "A") (TSing p0)); first last.
-    iApply (T_Sub _ _ _ _ 0 with "Hv2 Hsub").
-    iApply T_Forall_E; first last.
-    iApply (T_Sub _ _ _ _ 0 with "Hv1 Hsub").
-    Timeout 1 iApply (T_Forall_Ex [] e (packTV 0 s0) with "He").
-    iApply (T_Sub _ _ (typeEq "A" ⊤) _ 0).
+    Arguments T_All_Ex {_ _ _ _ _ _ _}.
+    iApply (T_All_Ex (v2 := v2) (T1 := pv (packTV 0 s0) @; "A") (T2 := TSing p0)); first last.
+    iApply (T_Sub (i := 0) with "Hv2 Hsub").
+    iApply T_All_E; first last.
+    iApply (T_Sub (i := 0) with "Hv1 Hsub").
+    Timeout 1 iApply (T_All_Ex (v2 := packTV 0 s0) with "He").
+    iApply (T_Sub (T1 := typeEq "A" ⊤) (i := 0)).
     iApply (packTV_semTyped [] with "Hs"); stcrush.
     iApply (fundamental_subtype _ ∅); last iApply wellMappedφ_empty.
     tcrush.
@@ -215,7 +225,7 @@ Section Example.
     [] v⊢ₜ[ g ] e : iftFalse →
     [] v⊢ₜ[ g ] tv v1 : TTop →
     [] v⊢ₜ[ g ] tv v2 : TTop →
-    s0 ↝ ⟦ ⊤%ty ⟧ -∗
+    s0 ↝n[ 0 ] V⟦ ⊤%ty ⟧ -∗
     [] ⊨ applyE e v1 v2 : TSing (pv v2).
   Proof.
     intros g; subst g.
@@ -280,8 +290,8 @@ Section Sec.
     TLater V :: Γ ⊨ e : T.
   Proof. by rewrite fmap_cons -(ctx_sub_TLater Γ). Qed.
 
-  (* Variant of [PT_Mem_I]: not needed here, and we get an extra later :-|, tho it
-  matches [T_Mem_E']. Fails now that we allow path members. *)
+  (* Variant of [P_Fld_I]: not needed here, and we get an extra later :-|, tho it
+  matches [T_Obj_E']. Fails now that we allow path members. *)
   Lemma T_Mem_I Γ e T l:
     Γ ⊨ tproj e l : T -∗
     (*─────────────────────────*)
@@ -309,32 +319,32 @@ Section Sec.
   Qed. *)
   Abort.
 
-  Lemma T_Forall_I1 {Γ} T1 T2 e:
+  Lemma T_All_I1 {Γ} T1 T2 e:
     TLater (shift T1) :: Γ ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
-  (* Proof. rewrite -T_Forall_I. f_equiv. iIntros (ρ) "[$ $]". Qed. *)
+  (* Proof. rewrite -T_All_I. f_equiv. iIntros (ρ) "[$ $]". Qed. *)
   Proof.
-    rewrite -T_Forall_I_Strong. ietp_weaken_ctx.
+    rewrite -(T_All_I_Strong (Γ' := Γ)) //; ietp_weaken_ctx.
     (* by rewrite -(unTLater_ctx_sub (TLater _ :: _)). *)
     (* apply ietp_weaken_ctx_syn. *)
     (* exact: (unTLater_ctx_sub_syn (TLater _ :: _)). *)
   Qed.
 
-  Lemma T_Forall_I2 {Γ} T1 T2 e:
+  Lemma T_All_I2 {Γ} T1 T2 e:
     TLater (shift T1) :: Γ ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
-  Proof. rewrite -T_Forall_I. ietp_weaken_ctx. Qed.
+  Proof. rewrite -T_All_I. ietp_weaken_ctx. Qed.
 
-  Lemma T_Forall_I4 {Γ} T1 T2 e:
+  (* Lemma T_All_I4 {Γ} T1 T2 e:
     TLater (shift T1) :: Γ ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.
-    rewrite -T_Forall_I_Strong -(unTLater_ctx_sub (TLater _ :: _)).
+    rewrite -T_All_I_Strong -(unTLater_ctx_sub (TLater _ :: _)).
     by rewrite fmap_cons cancel.
-  Qed.
+  Qed. *)
 
   Lemma TAll_Later_Swap0 Γ T U `{SwapPropI Σ}:
     Γ ⊨ TAll (TLater T) U, 0 <: TLater (TAll T U), 0.
@@ -347,17 +357,17 @@ Section Sec.
     by iApply ("HvTU" with "[# $HwT]").
   Qed.
 
-  Lemma iptp2ietp' i Γ T p :
+  Lemma T_Path' i Γ T p :
     Γ ⊨p p : iterate TLater i T, 0 -∗
     Γ ⊨ iterate tskip i (path2tm p) : T.
   Proof.
-    rewrite iptp2ietp.
+    rewrite T_Path.
     iIntros "Hp". iApply (T_Sub with "Hp").
     iIntros "!> **"; by rewrite iterate_TLater_later.
   Qed.
 
   (* It doesn't work, modulo maybe except-n. *)
-  Lemma iptp2ietp'' Γ T p i :
+  Lemma T_Path'' Γ T p i :
     Γ ⊨p p : T, i -∗
     Γ ⊨ path2tm p : iterate TLater i T.
   Proof.
@@ -376,18 +386,18 @@ Section Sec.
     iApply ("IH" with "H").
   Qed.
 
-  Lemma T_Forall_I'' Γ T1 T2 e :
+  Lemma T_All_I'' Γ T1 T2 e :
     TLater (shift T1) :: Γ ⊨ e : TLater T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.
     iIntros "/= #HeT !>" (vs) "#HG !>".
     rewrite -wp_value'. iExists _; iSplit; first done.
-    iIntros "!>" (v) "#Hv"; rewrite up_sub_compose.
+    iIntros "!>" (v) "#Hv"; rewrite up_sub_compose /=.
     (* iApply (wp_later_swap _ (⟦ T2 ⟧ (v .: vs))).
     iApply ("HeT" $! (v .: vs) with "[$HG]"). *)
     iSpecialize ("HeT" $! (v .: vs) with "[#$HG]").
-    by rewrite (interp_weaken_one T1 _ v).
+    by rewrite (interp_weaken_one _ _ _).
     by rewrite wp_later_swap; iNext.
     (* by iDestruct (wp_later_swap with "HeT") as "{HeT} HeT"; iNext. *)
   Qed.
@@ -397,18 +407,18 @@ Section Sec.
   Lemma TAll_Later_Swap `{SwapPropI Σ} Γ T U i:
     Γ ⊨ TAll (TLater T) (TLater U), i <: TLater (TAll T U), i.
   Proof.
-    iIntros "!>" (ρ v) "_ /= #HvTU". iNext i.
+    iIntros "!>" (ρ v) "_ #HvTU". iNext i.
     iDestruct "HvTU" as (t ->) "#HvTU".
     iExists t; iSplit => //.
     rewrite -mlater_pers. iModIntro (□ _)%I.
     iIntros (w). iSpecialize ("HvTU" $! w).
-    rewrite !later_intuitionistically -(wp_later_swap _ (⟦ _ ⟧ _)).
-    rewrite -impl_later later_intuitionistically.
+    rewrite /= !later_intuitionistically -impl_later later_intuitionistically.
+    rewrite (wp_later_swap _ (V⟦ _ ⟧ _ _)).
     (* Either: *)
-    (* done. *)
+    done.
     (* Or keep the old but more flexible code: *)
-    iIntros "#HwT".
-    iApply ("HvTU" with "HwT").
+    (* iIntros "#HwT".
+    iApply ("HvTU" with "HwT"). *)
   Qed.
 
   Lemma TVMem_Later_Swap Γ l T i:
@@ -443,7 +453,7 @@ Section Sec.
     iInduction j as [] "IHj".
     - iApply Sub_Refl.
     - iApply (Sub_Trans with "IHj").
-      iApply Sub_Mono.
+      iApply sSub_Mono.
   Qed.
 
   Lemma iterate_Sub_Later Γ T i j:
@@ -451,21 +461,21 @@ Section Sec.
   Proof.
       iInduction j as [] "IHj" forall (T).
     - iApply Sub_Refl.
-    - iApply Sub_Trans; rewrite ?iterate_Sr /=.
-      + iApply Sub_Later.
+    - iApply (Sub_Trans (i2 := j + i) (T2 := TLater T)); rewrite ?iterate_Sr /=.
+      + iApply sSub_Later.
       + iApply ("IHj" $! (TLater T)).
   Qed.
 
-  Lemma Distr_TLater_And T1 T2 ρ v:
-    ⟦ TLater (TAnd T1 T2) ⟧ ρ v ⊣⊢
-    ⟦ TAnd (TLater T1) (TLater T2) ⟧ ρ v.
+  Lemma Distr_TLater_And T1 T2 args ρ v:
+    V⟦ TLater (TAnd T1 T2) ⟧ args ρ v ⊣⊢
+    V⟦ TAnd (TLater T1) (TLater T2) ⟧ args ρ v.
   Proof. iSplit; iIntros "/= [$ $]". Qed.
 
   Lemma selfIntersect Γ T U i j:
     Γ ⊨ T, i <: U, j + i -∗
     Γ ⊨ T, i <: TAnd U T, j + i .
   Proof.
-    iIntros "H"; iApply (Sub_And with "[H//] []").
+    iIntros "H"; iApply (sSub_And with "[H//] []").
     iApply iterate_Sub_Mono.
   Qed.
 
@@ -473,23 +483,24 @@ Section Sec.
     Γ ⊨ T, i <: TLater U, i -∗
     Γ ⊨ T, i <: TLater (TAnd T U), i .
   Proof.
+    rewrite /istpi.
     iIntros "H"; iSimpl; setoid_rewrite Distr_TLater_And.
-    iApply (Sub_And with "[] H").
-    iApply (Sub_Trans _ T _ _ (S i)).
-    - by iApply Sub_Mono.
-    - by iApply Sub_Later.
+    iApply (sSub_And _ _ (oLater _) with "[] H").
+    iApply (sSub_Trans (i2 := S i)).
+    - by iApply sSub_Mono.
+    - by iApply sSub_Later.
   Qed.
 
-  Lemma Distr_TLaterN_And T1 T2 j ρ v:
-    ⟦ iterate TLater j (TAnd T1 T2) ⟧ ρ v ⊣⊢
-    ⟦ TAnd (iterate TLater j T1) (iterate TLater j T2) ⟧ ρ v.
+  Lemma Distr_TLaterN_And T1 T2 j args ρ v:
+    V⟦ iterate TLater j (TAnd T1 T2) ⟧ args ρ v ⊣⊢
+    V⟦ TAnd (iterate TLater j T1) (iterate TLater j T2) ⟧ args ρ v.
   Proof.
     rewrite /= !iterate_TLater_later /=.
     iSplit; iIntros "/= [??]"; iSplit; by [].
   Qed.
 
   Lemma sub_rewrite_2 Γ T U1 U2 i:
-    (∀ ρ v, ⟦ U1 ⟧ ρ v ⊣⊢ ⟦ U2 ⟧ ρ v) →
+    (∀ args ρ v, V⟦ U1 ⟧ args ρ v ⊣⊢ V⟦ U2 ⟧ args ρ v) →
     Γ ⊨ T, i <: U1, i ⊣⊢
     Γ ⊨ T, i <: U2, i .
   Proof.
@@ -498,7 +509,7 @@ Section Sec.
   Qed.
 
   Lemma sub_rewrite_1 Γ T1 T2 U i:
-    (∀ ρ v, ⟦ T1 ⟧ ρ v ⊣⊢ ⟦ T2 ⟧ ρ v) →
+    (∀ args ρ v, V⟦ T1 ⟧ args ρ v ⊣⊢ V⟦ T2 ⟧ args ρ v) →
     Γ ⊨ T1, i <: U, i ⊣⊢
     Γ ⊨ T2, i <: U, i .
   Proof.
@@ -507,7 +518,7 @@ Section Sec.
   Qed.
 
   Lemma eq_to_bisub Γ T1 T2 i:
-    (∀ ρ v, ⟦ T1 ⟧ ρ v ⊣⊢ ⟦ T2 ⟧ ρ v) → True ⊢
+    (∀ args ρ v, V⟦ T1 ⟧ args ρ v ⊣⊢ V⟦ T2 ⟧ args ρ v) → True ⊢
     Γ ⊨ T1, i <: T2, i ∧
     Γ ⊨ T2, i <: T1, i .
   Proof.
@@ -521,8 +532,8 @@ Section Sec.
   Proof.
     iIntros "H".
     setoid_rewrite (sub_rewrite_2 Γ T _ _ i (Distr_TLaterN_And T U j)).
-    iApply (Sub_And with "[] H").
-    iApply (Sub_Trans _ T _ _ (j + i)).
+    iApply (sSub_And with "[] H").
+    iApply (Sub_Trans (T2 := T) (i2 :=  j + i)).
     - by iApply iterate_Sub_Mono.
     - by iApply iterate_Sub_Later.
   Qed.
@@ -534,7 +545,7 @@ Section Sec.
     - iApply Sub_Refl.
     - iApply Sub_Trans.
       iApply ("IHj" $! (TLater T)).
-      iApply Later_Sub.
+      iApply sLater_Sub.
   Qed.
 
   (* The point is, ensuring this works with T being a singleton type :-) *)
@@ -592,7 +603,7 @@ Section Sec.
   Lemma T_self_sem_psingleton Γ p T i :
     Γ ⊨p p : T , i -∗
     (* Γ ⊨p p : sem_psingleton p , i *)
-    □∀ ρ, ⟦Γ⟧* ρ →
+    □∀ ρ, G⟦Γ⟧ ρ →
       ▷^i path_wp (p.|[ρ])
       (λ v, sem_psingleton p ρ v).
   Proof.

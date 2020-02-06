@@ -43,8 +43,8 @@ Section Russell.
     iEval (rewrite /Hs /v /uAu /= path_wp_pv) in "HuauV'".
     iDestruct "HuauV'" as (ψ d Hl) "[Hs1 Hvav]".
     have Hdeq: d = dtysem [] s. by move: Hl => /= [ds [[<- /=] ?]]; simplify_eq.
-    iAssert (d ↗ russell_p ids) as "#Hs2". by iApply (dm_to_type_intro with "Hs").
-    iPoseProof (dm_to_type_agree d _ _ v with "Hs1 Hs2") as "#Hag".
+    iAssert (d ↗n[ 0 ] vopen (russell_p ids)) as "#Hs2". by iApply (dm_to_type_intro with "Hs").
+    iPoseProof (dm_to_type_agree vnil v with "Hs1 Hs2") as "#Hag".
     (* without lock, iNext would strip a later in [HuauV]. *)
     rewrite /v [uAu]lock; iNext; unlock.
     iRewrite "Hag" in "Hvav".
@@ -56,7 +56,7 @@ Section Russell.
     iIntros "#Hs"; iSplit.
     - iIntros "#HnotVAV /=".
       rewrite /uAu/=!path_wp_pv.
-      iExists (russell_p ids), (dtysem [] s).
+      iExists (vopen (russell_p ids)), (dtysem [] s).
       repeat iSplit; first by eauto.
       + by iApply (dm_to_type_intro with "Hs").
       + iIntros "!>!>!>". rewrite /uAu/= path_wp_pv. iApply "HnotVAV".

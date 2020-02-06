@@ -4,8 +4,8 @@ From D.Dot Require Import typing_storeless typeExtractionSyn traversals stampedn
 Set Implicit Arguments.
 
 Section syntyping_lemmas.
-
   Hint Constructors Forall : core.
+
   Lemma stamped_mut_subject Γ g :
     (∀ e T, Γ v⊢ₜ[ g ] e : T → is_stamped_tm (length Γ) g e) ∧
     (∀ ds T, Γ v⊢ds[ g ] ds : T → Forall (is_stamped_dm (length Γ) g) (map snd ds)) ∧
@@ -17,8 +17,8 @@ Section syntyping_lemmas.
         (P0 := λ Γ g ds T _, Forall (is_stamped_dm (length Γ) g) (map snd ds))
         (P1 := λ Γ g l d T _, is_stamped_dm (length Γ) g d)
         (P2 := λ Γ g p T i _, is_stamped_path (length Γ) g p); clear Γ g;
-        cbn; intros; try by (with_is_stamped inverse + idtac);
-          eauto using is_stamped_path2tm.
+        cbn; intros; try (rewrite <-(@ctx_sub_len_tlater Γ Γ') in *; last done);
+        try by (with_is_stamped inverse + idtac); eauto using is_stamped_path2tm.
     - repeat constructor => //=. by eapply lookup_lt_Some.
     - intros; elim: i {s} => [|i IHi]; rewrite /= ?iterate_0 ?iterate_S //; eauto.
     - move: e => [T' ?]; ev. by apply @Trav1.trav_dtysem with
@@ -97,6 +97,39 @@ Section syntyping_lemmas.
   Hint Extern 0 (Trav1.forall_traversal_ty _ _ _)   => progress cbn : core.
   Hint Extern 0 (Trav1.forall_traversal_path _ _ _)   => progress cbn : core.
 
+  Lemma fmap_TLater_stamped_inv Γ g :
+    stamped_ctx g $ TLater <$> Γ →
+    stamped_ctx g Γ.
+  Proof.
+    elim: Γ => [//|T Γ IHΓ]; cbn => Hs. inverse Hs.
+    constructor; first by auto. rewrite ->(fmap_length TLater) in *.
+    exact: is_stamped_TLater_inv.
+  Qed.
+
+  Lemma fmap_TLater_stamped Γ g :
+    stamped_ctx g Γ →
+    stamped_ctx g $ TLater <$> Γ.
+  Proof.
+    elim: Γ => [//|T Γ IHΓ] Hs; cbn. inverse Hs.
+    constructor; first by auto. rewrite fmap_length.
+    exact: (is_stamped_TLater_n (i := 1)).
+  Qed.
+
+  Lemma ty_sub_stamped n g T T' :
+    ⊢T T <: T' ->
+    is_stamped_ty n g T →
+    is_stamped_ty n g T'.
+  Proof. induction 1; inversion 1; eauto. Qed.
+
+  Lemma ctx_sub_stamped Γ Γ' g :
+    ⊢G Γ <:* Γ' ->
+    stamped_ctx g Γ →
+    stamped_ctx g Γ'.
+  Proof.
+    induction 1; inversion 1; subst; constructor; first by auto.
+    by erewrite <- ctx_sub_len; [exact: ty_sub_stamped|].
+  Qed.
+
   Lemma stamped_mut_types Γ g :
     (∀ e T, Γ v⊢ₜ[ g ] e : T → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T) ∧
     (∀ ds T, Γ v⊢ds[ g ] ds : T → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T) ∧
@@ -117,7 +150,13 @@ Section syntyping_lemmas.
       try (efeed pose proof H0; [by eauto | ev; clear H0]);
       repeat constructor; cbn; eauto 2;
       inverse_is_stamped; eauto.
-    eapply is_stamped_sub_rev_ty; eauto.
-    exact: stamped_lookup.
+    - eapply is_stamped_sub_rev_ty; eauto.
+    - rewrite <-(@ctx_sub_len_tlater Γ Γ') in *; try done.
+      efeed pose proof H. {
+        constructor. by eapply fmap_TLater_stamped_inv, ctx_sub_stamped.
+        rewrite <-(@ctx_sub_len_tlater Γ Γ') in *; try done. eauto.
+      }
+      eauto.
+    - exact: stamped_lookup.
   Qed.
 End syntyping_lemmas.

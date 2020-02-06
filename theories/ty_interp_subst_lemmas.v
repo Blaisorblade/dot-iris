@@ -6,7 +6,6 @@ Module Type TyInterpLemmas (Import VS : VlSortsFullSig) (Import LWP : LiftWp VS)
 Class TyInterp ty Σ :=
   ty_interp : ty -> envD Σ.
 Notation "⟦ T ⟧" := (ty_interp T).
-Notation "⟦ g ⟧g" := (fmap (M := gmap stamp) ty_interp g).
 
 (* Also appears in Autosubst. *)
 Global Arguments ty_interp {_ _ _} !_ /.
@@ -46,7 +45,7 @@ Section logrel_binding_lemmas.
     But [∞ σ >> ρ] and [∞ σ.|[ρ]] are only equal for
     [length σ] entries.
   *)
-  Lemma interp_subst_commute T σ ρ v (HclT : nclosed T (length σ)) :
+  Lemma interp_finsubst_commute_cl T σ ρ v (HclT : nclosed T (length σ)) :
     ⟦ T.|[∞ σ] ⟧ ρ v ≡ ⟦ T ⟧ (∞ σ.|[ρ]) v.
   Proof.
     rewrite interp_subst_compose_ind !(interp_subst_ids T _ _) -hsubst_comp.

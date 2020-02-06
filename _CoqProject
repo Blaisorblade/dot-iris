@@ -14,10 +14,10 @@
 theories/tactics.v
 theories/proper.v
 theories/ty_interp_subst_lemmas.v
-theories/misc_unused/lty.v
-theories/misc_unused/lty_experiments.v
 theories/prelude.v
 theories/iris_extra/iris_prelude.v
+theories/iris_extra/lty.v
+theories/misc_unused/lty_experiments.v
 theories/asubst_base.v
 theories/asubst_intf.v
 theories/iris_extra/dlang.v
@@ -56,6 +56,8 @@ theories/Dot/examples/typingExamples.v
 theories/Dot/examples/typingExamplesUnst.v
 theories/Dot/examples/typingExInfra.v
 theories/Dot/syn/syn.v
+theories/Dot/lr/later_sub_sem.v
+theories/Dot/typing/later_sub.v
 theories/Dot/typing/typing_storeless.v
 theories/Dot/typing/typing_stamped.v
 theories/Dot/typing/typing_unstamped.v
@@ -78,6 +80,7 @@ theories/Dot/typing/typingProofs.v
 theories/Dot/typing/typingStamping.v
 theories/Dot/syn/rules.v
 theories/Dot/fundamental.v
+theories/Dot/lr/dot_lty.v
 theories/Dot/lr/unary_lr.v
 theories/Dot/lr/lr_lemmasNoBinding.v
 theories/Dot/lr/lr_lemmas.v

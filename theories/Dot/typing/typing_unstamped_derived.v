@@ -352,9 +352,9 @@ Lemma dvabs_sub_typed {Γ} V T1 T2 e l L:
   is_unstamped_ty' (S (length Γ)) T1 →
   Γ |L V u⊢{ l := dpt (pv (vabs e)) } : TVMem l L.
 Proof.
-  intros He Hsub Hs.
-  eapply dpt_sub_typed; first apply Hsub.
-  tcrush.
+  intros He Hsub Hs. apply dpt_pv_typed.
+  eapply (Subs_typed (i := 0)); first apply Hsub.
+  by apply Lam_typed_strip1.
 Qed.
 
 (* Note how we must weaken the type (or its environment) to account for the
@@ -593,7 +593,7 @@ We formalize that as the derived rule below.
 The action of [fixRecs] depends on the type [T1] of [p].
 Hence, here we we assume the action of [fixRecs] has already been carried out:
 to do that, one must unfold top-level recursive types in the type of [p],
-as allowed through [T_Mu_E_p], rules for intersection types and intersection introduction.
+as allowed through [P_Mu_E], rules for intersection types and intersection introduction.
 On the other hand, this derived rule handles the substitution in [T2] directly.
 *)
 Lemma singleton_Mu_dotty1 {Γ p i T1' T2} :

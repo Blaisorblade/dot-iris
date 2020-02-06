@@ -1,7 +1,9 @@
 From iris.proofmode Require Import tactics.
+From D Require Import swap_later_impl.
 From D.pure_program_logic Require Import lifting adequacy.
 From D.Dot Require Import unary_lr
-  lr_lemmas lr_lemmasNoBinding lr_lemmasDefs lr_lemmasPrim.
+  lr_lemmas lr_lemmasTSel lr_lemmasNoBinding lr_lemmasDefs lr_lemmasPrim.
+From D.Dot Require Import typeExtractionSem.
 From D.Dot Require Import skeleton fundamental.
 From D.Dot Require Import scalaLib hoas exampleInfra typingExInfra.
 
@@ -24,38 +26,109 @@ Proof.
 Qed.
 
 (** XXX Not currently using olty. *)
-Module example.
-Section ex.
+Module examples.
+
+Import ectxi_language.
+
+Tactic Notation "wp_bind" uconstr(p) := iApply (wp_bind (fill [p])).
+Ltac wp_bin_base := iApply wp_bin; first eapply bin_op_syntype_sound; by [|constructor].
+Ltac wp_bin := iApply wp_wand; [wp_bin_base | iIntros].
+Tactic Notation "wp_bind" uconstr(p) := iApply (wp_bind (ectxi_language.fill [p])).
+Import stamp_transfer.
+
+(* Generic useful lemmas — not needed for fundamental theorem,
+    but very useful for examples. *)
+Section helpers.
   Context `{HdlangG: dlangG Σ}.
 
-  Import stamp_transfer.
-
-  Lemma alloc {s sγ} (φ : envD Σ) : sγ !! s = None → allGs sγ ==∗ s ↝ φ.
+  Lemma alloc {s sγ} φ : sγ !! s = None → allGs sγ ==∗ s ↝n[ 0 ] φ.
   Proof.
     iIntros (Hs) "Hsγ".
     by iMod (leadsto_alloc φ Hs with "Hsγ") as (?) "[_ [_ $]]".
   Qed.
-
-  Definition pos v := ∃ n, v = vnat n ∧ n > 0.
-  Definition ipos: envD Σ := λ ρ v, (⌜ pos v ⌝) %I.
-  Import ectxi_language ectx_language.
-
-(* Arguments dlang_ectx_lang : simpl never.
-Arguments dlang_ectxi_lang : simpl never. *)
-
-  Ltac wp_bin_base := iApply wp_bin; first eapply bin_op_syntype_sound; by [|constructor].
-  Ltac wp_bin := iApply wp_wand; [wp_bin_base | iIntros].
-  Tactic Notation "wp_bind" uconstr(p) := iApply (wp_bind (fill [p])).
-
   Lemma wp_ge m n (Hge : m > n) : WP m > n {{ w, w ≡ true }}%I.
   Proof. wp_bin. ev; simplify_eq/=. by case_decide. Qed.
   Lemma wp_nge m n (Hnge : ¬ m > n) : WP m > n {{ w, w ≡ false }}%I.
   Proof. wp_bin. ev; simplify_eq/=. by case_decide. Qed.
 
-  Lemma pos_wp ρ v : ipos ρ v ⊢ WP v > 0 {{ w, w ≡ vbool true }}.
+  Lemma setp_value Γ (T : olty Σ 0) v: Γ s⊨ tv v : T ⊣⊢ (□∀ ρ, s⟦ Γ ⟧* ρ → T vnil ρ v.[ρ]).
+  Proof.
+    rewrite /=; properness => //; iSplit;
+      [rewrite wp_value_inv|rewrite -wp_value]; iIntros "#$".
+  Qed.
+
+  Lemma setp_value_eq (T : olty Σ 0) v: (∀ ρ, T vnil ρ v.[ρ]) ⊣⊢ [] s⊨ tv v : T.
+  Proof.
+    iSplit.
+    - iIntros "#H !>" (? _).
+      rewrite /= -wp_value'. iApply "H".
+    - iIntros "/= H" (ρ).
+      iSpecialize ("H" $! ρ with "[//]").
+      by rewrite /= wp_value_inv'.
+  Qed.
+
+  Lemma ietp_value_eq T v: (∀ ρ, ⟦ T ⟧ ρ v.[ρ]) ⊣⊢ [] ⊨ tv v : T.
+  Proof. apply setp_value_eq. Qed.
+
+  Lemma ietp_value T v: (∀ ρ, ⟦ T ⟧ ρ v.[ρ]) -∗ [] ⊨ tv v : T.
+  Proof. by rewrite ietp_value_eq. Qed.
+
+  Lemma ietp_value_inv T v: [] ⊨ tv v : T -∗ ∀ ρ, ⟦ T ⟧ ρ v.[ρ].
+  Proof. by rewrite ietp_value_eq. Qed.
+
+  Lemma V_TVMem_I T (v w : vl) l
+    (Hclv : nclosed_vl v 0)
+    (* XXX should be (Hlook : v @ l ↘ (dpt (pv w))) *)
+    (Hlook : objLookup v l (dpt (pv w))):
+    [] ⊨ tv w : T -∗
+    [] ⊨ v : TVMem l T.
+  Proof.
+    Import synLemmas.
+    have Hclw: nclosed_vl w 0.
+    by have := nclosed_lookup' Hlook Hclv; eauto with fv.
+    iIntros "#H"; iApply ietp_value; iIntros (ρ) "/=".
+    iSpecialize ("H" $! ρ with "[//]"). rewrite wp_value_inv.
+    rewrite !closed_subst_vl_id //.
+    do 2 (iExists _; iSplit; [done|]).
+    by rewrite path_wp_pv.
+  Qed.
+End helpers.
+
+Ltac valMember ρ :=
+  iApply V_TVMem_I; [solve_fv_congruence|naive_solver|
+    rewrite -ietp_value; iIntros (ρ)].
+
+Local Hint Resolve not_elem_of_nil : core.
+Local Hint Constructors NoDup : core.
+
+Section s_is_pos.
+
+Context `{HdlangG: dlangG Σ}.
+Context (s: stamp).
+
+Definition pos v := ∃ n, v = vnat n ∧ n > 0.
+Definition ipos: oltyO Σ 0 := olty0 (λI ρ v, ⌜ pos v ⌝).
+
+Definition Hs := (s ↝n[ 0 ] ipos)%I.
+Lemma allocHs sγ:
+  sγ !! s = None → allGs sγ ==∗ Hs.
+Proof. exact (alloc ipos). Qed.
+
+Section div_example.
+  Lemma idtp_value_eq T l d (Hl : label_of_ty T = Some l):
+    (∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → D*⟦ T ⟧ ρ d.|[ρ]) ⊣⊢ [] s⊨ { l := d } : C⟦ T ⟧.
+  Proof.
+    rewrite /idtp/=/lift_ldlty/= ld_label_match Hl; iSplit.
+    by iIntros "#H !> /=" (ρ Hpid _); iSplit; first done; iApply "H".
+    by iIntros "#H" (ρ Hpid); iDestruct ("H" $! ρ Hpid with "[//]") as "[_ $]".
+  Qed.
+
+  (* Arguments dlang_ectx_lang : simpl never.
+  Arguments dlang_ectxi_lang : simpl never. *)
+
+  Lemma pos_wp ρ v : ipos vnil ρ v ⊢ WP v > 0 {{ w, w ≡ vbool true }}.
   Proof. iDestruct 1 as %(n & -> & ?). by iApply wp_ge. Qed.
 
-  Import swap_later_impl.
   Context `{SwapPropI Σ}.
   Lemma loopSemT: WP hclose hloopTm {{ _, False }}%I.
   Proof.
@@ -67,6 +140,7 @@ Arguments dlang_ectxi_lang : simpl never. *)
 
   Definition hmkPosBodyV n := htif (n > 0) n hloopTm.
   Definition hmkPosV := λ: n, hmkPosBodyV n.
+
   Lemma wp_if_ge (n : nat) :
     WP hclose (hmkPosBodyV n) {{ w, ⌜ w = n ∧ n > 0 ⌝}}%I.
   Proof.
@@ -87,43 +161,28 @@ Arguments dlang_ectxi_lang : simpl never. *)
     - iApply wp_wand; [iApply loopSemT | naive_solver].
   Qed.
 
-  Context (s: stamp).
-
-  Definition Hs := (s ↝ ipos)%I.
-  Lemma allocHs sγ:
-    sγ !! s = None → allGs sγ ==∗ Hs.
-  Proof. exact (alloc ipos). Qed.
-
   (* Experiments using fancier infrastructure: *)
   Lemma allocHsGen sγ:
     sγ !! s = None → allGs sγ ==∗ Hs.
   Proof.
+    (* iIntros (Hl) "H". iApply wellMappedφ_apply.
+    Fail pose (t := transfer (<[s:=ipos]> ∅)).
+    pose (u := transfer (<[s:=olty_car ipos]> ∅)).
+    2: iApply (transfer (<[s:=ipos]> ∅) with "H") => s'.
+      Unshelve. 3: apply _.
+    (* Check transfer (<[s:=olty_car ipos]> ∅). *)
+    Fail pose (t := transfer (<[s:=ipos]> ∅)). *)
+
     iIntros (Hl) "H". iApply wellMappedφ_apply;
-      last iApply (transfer (<[s:=ipos]> ∅) with "H") => s';
+      last iApply (transfer (<[s:=olty_car ipos]> ∅) with "H") => s';
       rewrite ?lookup_insert ?dom_insert ?dom_empty //; set_solver.
   Qed.
 
   Lemma allocHs1: allGs ∅ ==∗ Hs.
   Proof.
-    iIntros "H"; iApply wellMappedφ_apply; last iApply (transfer_empty (<[s:=ipos]> ∅) with "H").
+    iIntros "H"; iApply wellMappedφ_apply; last iApply (transfer_empty (<[s:=olty_car ipos]> ∅) with "H").
     by rewrite lookup_insert.
   Qed.
-
-  (* Generic useful lemmas — not needed for fundamental theorem,
-     but very useful for examples. *)
-  Lemma ietp_value T v: (∀ ρ, ⟦ T ⟧ ρ v.[ρ]) -∗ [] ⊨ tv v : T.
-  Proof.
-    iIntros "#H /= !>" (? _).
-    rewrite -wp_value'. iApply "H".
-  Qed.
-
-  Lemma ietp_value_inv T v: [] ⊨ tv v : T -∗ ∀ ρ, ⟦ T ⟧ ρ v.[ρ].
-  Proof.
-    iIntros "/= H" (ρ).
-    iSpecialize ("H" $! ρ with "[//]").
-    by rewrite wp_value_inv'.
-  Qed.
-
 
   Import hoasNotation.
 
@@ -135,8 +194,7 @@ Arguments dlang_ectxi_lang : simpl never. *)
 
   Definition hdivV := λ: m n, (htskip m) `div` n.
 
-  (** Under Iris assumption [Hs], [v.A] points to [ipos].
-      We assume [Hs] throughout the rest of the section. *)
+  (** We assume [Hs] throughout the rest of the section. *)
   Import DBNotation.
 
   Definition posModV := ν {@
@@ -145,84 +203,64 @@ Arguments dlang_ectxi_lang : simpl never. *)
     val "div" = pv (hclose hdivV)
   }.
 
-  Definition v := ν {@
-    type "A" = ([]; s);
-	  val "n" = pv (vnat 2)
-  }.
-
-  Lemma sToIpos : Hs -∗ dtysem [] s ↗ ipos (∞ []).
+  Lemma sToIpos : Hs -∗ dtysem [] s ↗n[ 0 ] hoEnvD_inst [] ipos.
   Proof. by iApply dm_to_type_intro. Qed.
 
-  Lemma sHasA : Hs -∗ def_interp_tmem ⟦ ⊥ ⟧ ⟦ 𝐍 ⟧ ids (dtysem [] s).
+  Lemma Sub_ipos_nat Γ : Γ s⊨ ipos, 0 <: V⟦ 𝐍 ⟧, 0.
   Proof.
-    iIntros; cbn; repeat (repeat iExists _; repeat iSplit; try done).
-    by iApply sToIpos.
-    iModIntro; repeat iSplit; iIntros (w). by iIntros ">[]".
-    iMod 1 as %(n & -> & ?). iPureIntro.
-    rewrite /pure_interp_prim /prim_evals_to /=. eauto.
+    rewrite /ipos /pos /= /pure_interp_prim /prim_evals_to /=.
+    iIntros "!>" (ρ w) "_ % !%"; naive_solver.
   Qed.
 
-  Lemma wp_mkPos :
-    interp_forall ⟦ 𝐍 ⟧ (λ ρ v, ⌜ ∃ n : nat, v = n ∧ n > 0 ⌝)%I ids (hclose hmkPosV).
-  Proof.
-    repeat (iExists _; iSplit => //).
-    iIntros (w) "!>"; iMod 1 as %[n Hw]; iIntros "!> !>".
-    simplify_eq/=.
-    iApply wp_wand; [iApply wp_if_ge | iIntros "!% /="].
-    naive_solver.
-  Qed.
+  Lemma Sub_later_ipos_nat Γ : Γ s⊨ oLater ipos, 0 <: oLater V⟦ 𝐍 ⟧, 0.
+  Proof. rewrite -sSub_Later_Sub -sSub_Index_Incr. apply Sub_ipos_nat. Qed.
 
-  (** Yes, v has a valid type member. *)
-  Lemma vHasA0: Hs -∗ ∀ ρ, ⟦ type "A" >: ⊥ <: TNat ⟧ ρ v.[ρ].
+  Lemma sHasA' l Γ : Hs -∗ Γ s⊨ { l := dtysem [] s } : C⟦ type l >: ⊥ <: 𝐍 ⟧.
   Proof.
-    iIntros "#Hs" (ρ); iExists _; iSplit; by [eauto | iApply sHasA].
+    iIntros "Hs".
+    iApply (sD_Typ_Abs ipos); [|iApply sBot_Sub|by iExists _; iFrame "Hs"].
+    iApply Sub_later_ipos_nat.
+  Qed.
+  Definition testVl l : vl := ν {@ type l = ([]; s)}.
+
+  Lemma sInTestVl l ρ :
+    path_includes (pv (ids 0)) (testVl l .: ρ) [type l = ([]; s)].
+  Proof. constructor; naive_solver. Qed.
+  Hint Resolve sInTestVl : core.
+
+  Lemma sHasA l : Hs -∗ D*⟦ type l >: ⊥ <: 𝐍 ⟧ ids (dtysem [] s).
+  Proof.
+    rewrite (sHasA' l []); iIntros "H".
+    by iDestruct ("H" $! (testVl l .: ids) with "[] []") as "[_ $]".
   Qed.
 
   Lemma posModVHasAtyp: Hs -∗ [] ⊨ posModV : type "Pos" >: ⊥ <: TNat.
   Proof.
     rewrite -ietp_value; iIntros "#Hs" (ρ).
-    iExists _; iSplit; by [eauto | iApply sHasA].
+    iExists _; iSplit; by [eauto | iApply (sHasA "Pos")].
   Qed.
 
-  Lemma vHasA0typ: Hs -∗ [] ⊨ tv v : type "A" >: ⊥ <: 𝐍.
-  Proof. rewrite -ietp_value. iApply vHasA0. Qed.
-
-  Definition vTyp1Body : ty := {@
-    type "A" >: ⊥ <: 𝐍;
-    val "n" : p0 @; "A"
-  }.
-  Definition vTyp1 := μ vTyp1Body.
-
-  Lemma wp_div_spec (m : nat) w : ipos ids w -∗ WP m `div` w {{ ⟦ 𝐍 ⟧ ids }}.
-  Proof. iDestruct 1 as %(n&?&?); simplify_eq. wp_bin. by iIntros "!%"; naive_solver. Qed.
-
-  Lemma V_TVMem_I T (v w : vl) l
-    (Hclv : nclosed_vl v 0)
-    (* XXX should be (Hlook : w @ l ↘ (dpt (pv v))) *)
-    (Hlook : objLookup v l (dpt (pv w))):
-    [] ⊨ tv w : T -∗
-    [] ⊨ v : TVMem l T.
+  Lemma ty_mkPos :
+    [] s⊨ hclose hmkPosV : oAll V⟦ 𝐍 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : nat, v = n ∧ n > 0 ⌝)).
   Proof.
-    Import synLemmas.
-    have Hclw: nclosed_vl w 0.
-    by have := nclosed_lookup' Hlook Hclv; eauto with fv.
-    iIntros "#H"; iApply ietp_value; iIntros (ρ) "/=".
-    iSpecialize ("H" $! ρ with "[//]"). rewrite wp_value_inv.
-    rewrite !closed_subst_vl_id //.
-    do 2 (iExists _; iSplit; [done|]).
-    by rewrite path_wp_pv.
+    rewrite -sT_All_I /= /shead.
+    iIntros (ρ) "!> /=". iDestruct 1 as %(_ & n & Hw); simplify_eq/=; rewrite Hw.
+    iIntros "!>". iApply wp_wand; [iApply wp_if_ge | naive_solver].
   Qed.
 
-  Ltac valMember ρ :=
-    iApply V_TVMem_I; [solve_fv_congruence|naive_solver|
-      rewrite -ietp_value; iIntros (ρ)].
+  Lemma wp_mkPos :
+    oAll V⟦ 𝐍 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : nat, v = n ∧ n > 0 ⌝)) vnil ids (hclose hmkPosV).
+  Proof. iApply wp_value_inv'. iApply (ty_mkPos with "[//]"). Qed.
+
+  Lemma wp_div_spec (m : nat) w : ipos vnil ids w -∗ WP m `div` w {{ ⟦ 𝐍 ⟧ ids }}.
+  Proof. iDestruct 1 as %(n&?&?); simplify_eq. wp_bin. by iIntros "!%"; naive_solver. Qed.
 
   Lemma posModVHasA: Hs -∗ [] ⊨ posModV : hclose posModT.
   Proof.
-    rewrite /posModT -(TMu_I [] _ posModV).
+    rewrite /posModT -(T_Mu_I _ posModV).
     iIntros "#Hs". cbn -[ietp].
-    iApply TAnd_I; first by rewrite -posModVHasAtyp.
-    iApply TAnd_I; last iApply TAnd_I; last by
+    iApply sT_And_I; first by iApply posModVHasAtyp.
+    iApply sT_And_I; last iApply sT_And_I; last by
       iIntros "!> ** /="; rewrite -wp_value'.
     - valMember ρ; iExists _; iSplit; [done|].
       iIntros (w) "!>"; iMod 1 as %[n Hw]; iIntros "!> !>".
@@ -240,85 +278,15 @@ Arguments dlang_ectxi_lang : simpl never. *)
       iDestruct "Harg" as (Φ d [ds Hlook]) "[Hs1 #Harg]";
         have {d ds Hlook}->: d = dtysem [] s by naive_solver.
       iPoseProof (sToIpos with "Hs") as "Hs2/=".
-      iPoseProof (dm_to_type_agree _ _ _ w with "Hs1 Hs2") as "{Hs Hs1 Hs2} Heq".
+      iPoseProof (dm_to_type_agree vnil w with "Hs1 Hs2") as "{Hs Hs1 Hs2} Heq".
       wp_bind (BinLCtx _ _); rewrite -wp_pure_step_later // -wp_value/=/lang.of_val.
       iNext. iRewrite "Heq" in "Harg"; iClear "Heq".
       by iApply wp_div_spec.
   Qed.
+End div_example.
 
-  (* This works. Crucially, we use TMu_I to introduce the object type.
-     This way, we can inline the object in the type selection.
-     This cannot be done using T_New_I directly.
-     However, this is closer to how typechecking in Scala
-     actually works.
-     XXX: also, maybe this *could* be done with T_New_I with
-     a precise type? That'd be a more correct derivation.
-   *)
-  Lemma vHasA1: Hs -∗ ∀ ρ, ⟦ vTyp1 ⟧ ρ v.[ρ].
-  Proof.
-    rewrite -ietp_value_inv -(TMu_I [] _ v).
-    iIntros "#Hs".
-    iApply TAnd_I; first by [iApply vHasA0typ].
-    iApply TAnd_I; first last.
-    - iApply (T_Sub _ _ _ _ 0); last by iApply Sub_Top.
-      by iApply vHasA0typ.
-    - rewrite -ietp_value /=.
-      have Hev2: pos (vnat 2) by rewrite /pos; eauto.
-      iIntros (_).
-
-      repeat (repeat iExists _; repeat iSplit; rewrite ?path_wp_pv //);
-        try by [|iApply dm_to_type_intro].
-  Qed.
-
-  Lemma vHasA1t : Hs -∗ [] ⊨ tv v : vTyp1.
-  Proof. rewrite -ietp_value. iApply vHasA1. Qed.
-
-  Lemma vHasA1TypAd : allGs ∅ ==∗ [] ⊨ tv v : vTyp1.
-  Proof. rewrite -ietp_value allocHs //; iIntros. by iApply vHasA1. Qed.
-
-  (* Lemma vHasA1': Hs -∗ ∀ ρ, ⟦ vTyp1 ⟧ ρ v.[ρ].
-  Proof.
-    rewrite -ietp_value_inv. iIntros "#Hs".
-    (* Fails, because we need a *syntactic* type. *)
-    iApply (T_Sub [] v _ vTyp1 0). *)
-
-  (*
-    A different approach would be to type the object using T_New_I
-    with an object type [U] with member [TTMem "A" ipos ipos].
-    We could then upcast the object. But type U is not syntactic,
-    so we can't express this yet using the existing typing
-    lemmas.
-    And if we use T_New_I on the final type, then [this.A]
-    is overly abstract when we try proving that [this.n : this.A];
-    see concretely below.
-  *)
-  Lemma vHasA1': Hs -∗ ⟦ vTyp1 ⟧ ids v.
-  Proof.
-    iIntros "#Hs".
-    iDestruct (T_New_I [] vTyp1Body with "[]") as "#H"; first last.
-    iSpecialize ("H" $! ids with "[#//]").
-    rewrite hsubst_id /interp_expr wp_value_inv'.
-    iApply "H".
-    iApply DCons_I => //.
-    - (* Can't finish with D_Typ_Abs, this is only for syntactic types: *)
-      (* From D.Dot Require Import typeExtractionSem.
-      iApply D_Typ_Abs => //; first last.
-      iExists _; iSplit => //=.  (* Here we need a syntactic type matching [ipos]. *) *)
-      iModIntro.
-      iIntros (ρ Hpid) "/= #_".
-      iSplit => //. by iApply sHasA.
-    - iApply DCons_I => //; last by iApply DNil_I.
-      iApply D_Path_TVMem_I.
-      iIntros "!>" (ρ) "/="; iDestruct 1 as "[_ [HA [HB _]]]".
-      iDestruct "HA" as (dA) "[HlA HA]".
-      iDestruct "HA" as (φ) "[Hlφ HA]".
-      iDestruct "HB" as (dB) "[HlB HB]".
-      iDestruct "HB" as (w) "HB".
-      rewrite !path_wp_pv.
-      iExists φ, dA; repeat iSplit => //; try iNext => //.
-      (* Last case is stuck, since we don't know what [ρ 0] is and what
-      "A" points to. *)
-  Abort.
+Section wp_inv.
+  Import ectxi_language ectx_language.
 
   Lemma wp_prim_step {e : tm} (Hne : to_val e = None) φ :
     WP e {{ φ }} ⊢ ∃ e2, ⌜ prim_step e tt [] e2 tt [] ⌝ ∧ ▷ WP e2 {{ φ }}.
@@ -339,7 +307,7 @@ Arguments dlang_ectxi_lang : simpl never. *)
     by eapply Hsub, val_head_stuck.
   Qed.
 
-  Lemma wp_pos ρ (v : vl) : WP v > 0 {{ w, w ≡ vbool true }} ⊢ ▷ ipos ρ v.
+  Lemma wp_pos ρ (v : vl) : WP v > 0 {{ w, w ≡ vbool true }} ⊢ ▷ ipos vnil ρ v.
   Proof.
     have Hsub: sub_redexes_are_values (v > 0). {
       apply ectxi_language_sub_redexes_are_values.
@@ -352,9 +320,167 @@ Arguments dlang_ectxi_lang : simpl never. *)
     simpl in Hev; repeat case_match; repeat case_decide; naive_solver.
   Qed.
 
-End ex.
+End wp_inv.
+
+Section small_ex.
+  (* Generic useful lemmas — not needed for fundamental theorem,
+     but very useful for examples. *)
+
+  (** Under Iris assumption [Hs], [v.A] points to [ipos]. *)
+  Import DBNotation.
+
+  Definition v := ν {@
+    type "A" = ([]; s);
+    val "n" = pv (vnat 2)
+  }.
+
+  Definition vTyp1Body : ty := {@
+    type "A" >: ⊥ <: 𝐍;
+    val "n" : p0 @; "A"
+  }.
+  Definition vTyp1 := μ vTyp1Body.
+
+
+  (** Yes, v has a valid type member. *)
+  Lemma vHasA0typ: Hs -∗ [] ⊨ tv v : type "A" >: ⊥ <: 𝐍.
+  Proof.
+    iIntros "#Hs".
+    iApply (T_Sub (i := 0) (T1 := μ {@ type "A" >: ⊥ <: 𝐍})).
+    iApply T_Obj_I.
+    iApply D_Cons; [done| by iApply sHasA'|].
+    iSplit; [iIntros "!%"|iIntros "!> ** //"].
+    repeat constructor; exact: not_elem_of_nil.
+    iApply Sub_Trans.
+    iApply (Sub_Mu_A {@ type "A" >: ⊥ <: 𝐍}).
+    iApply sAnd1_Sub.
+  Qed.
+  (* This works. Crucially, we use T_Mu_I to introduce the object type.
+     This way, we can inline the object in the type selection.
+     This cannot be done using T_Obj_I directly.
+     However, this is closer to how typechecking in Scala
+     actually works.
+     XXX: also, maybe this *could* be done with T_Obj_I with
+     a precise type? That'd be a more correct derivation.
+   *)
+  (* Lemma vHasA1: Hs -∗ ∀ ρ, ⟦ vTyp1 ⟧ ρ v.[ρ]. *)
+  Lemma vHasA1t : Hs -∗ [] ⊨ tv v : vTyp1.
+  Proof.
+    rewrite -(T_Mu_I _ v).
+    iIntros "#Hs /=".
+    iApply sT_And_I; first by [iApply vHasA0typ].
+    iApply sT_And_I; first last.
+    - iApply (T_Sub (i := 0) (T2 := TTop)); last by iApply sSub_Top.
+      by iApply vHasA0typ.
+    - rewrite -setp_value_eq /= /iPPred_car /=.
+      have Hev2: pos (vnat 2) by rewrite /pos; eauto.
+      iIntros (_).
+
+      repeat (repeat iExists _; repeat iSplit; rewrite ?path_wp_pv //);
+        try by [|iApply dm_to_type_intro].
+  Qed.
+
+  (*
+    A different approach would be to type the object using T_Obj_I
+    with an object type [U] with member [TTMem "A" ipos ipos].
+    We could then upcast the object. But type U is not syntactic,
+    so we can't express this yet using the existing typing
+    lemmas.
+    And if we use T_Obj_I on the final type, then [this.A]
+    is overly abstract when we try proving that [this.n : this.A];
+    see concretely below.
+  *)
+  Definition vTyp2Body : ty := {@
+    type "A" >: ⊥ <: 𝐍;
+    val "n" : TLater (p0 @; "A")
+  }.
+  Definition vTyp2 := μ vTyp2Body.
+
+  Definition svTyp2Body : oltyO Σ 0 :=
+    oAnd (cTMem "A" oBot (oPrim tnat))
+      (oAnd (cVMem "n" (oLater (oSel p0 "A")))
+      oTop).
+  Goal V⟦vTyp2Body⟧ = svTyp2Body. done. Abort.
+  Definition svTyp2 := oMu svTyp2Body.
+
+  Definition svTyp2ConcrBody : cltyO Σ :=
+    cAnd (cTMem "A" ipos ipos)
+      (cAnd (cVMem "n" (oLater (oSel p0 "A")))
+      cTop).
+  Definition svTyp2Concr := oMu svTyp2ConcrBody.
+
+  Lemma sT_Var0 {Γ T}
+    (Hx : Γ !! 0 = Some T):
+    (*──────────────────────*)
+    Γ s⊨ of_val (ids 0) : T.
+  Proof. rewrite -(hsubst_id T). apply (sT_Var Hx). Qed.
+
+  (* This works! But we get a weaker type, because we're using typing rules
+  for recursive objects on a not-really-recursive one. *)
+  Lemma vHasA2t `{SwapPropI Σ}: Hs -∗ [] s⊨ tv v : svTyp2.
+  Proof.
+    iIntros "#Hs".
+    iApply (sT_Sub (i := 0) (T1 := svTyp2Concr)); first last.
+    - iApply sSub_Mu_X; rewrite /svTyp2ConcrBody /vTyp1Body iterate_0.
+      iApply sSub_And; last iApply sSub_And; last iApply sSub_Top.
+    + iApply sSub_Trans; first iApply sAnd1_Sub.
+      iApply sTyp_Sub_Typ; [iApply sBot_Sub | iApply Sub_later_ipos_nat].
+    + iApply sSub_Trans; first iApply sAnd2_Sub.
+      iApply sAnd1_Sub.
+    - rewrite /v /svTyp2Concr /svTyp2ConcrBody.
+      iApply sT_Obj_I.
+      iApply sD_Cons; first done.
+      iApply (sD_Typ_Abs ipos); [iApply sSub_Refl..|by iExists _; iFrame "Hs"].
+      iApply sD_Cons; [done| |iApply sD_Nil].
+      iApply sD_TVMem_I.
+      iApply (sT_Sub (i := 0) (T1 := ipos)).
+      rewrite setp_value /ipos /pos; iIntros "!>" (ρ) "_ /= !%". naive_solver.
+      iApply sSub_Trans; first iApply sSub_Add_Later.
+      iApply sSub_Trans; first iApply sSub_Add_Later.
+      iApply sSub_Later_Sub.
+      iApply sSub_Sel_Path.
+      iApply sP_Later.
+      iApply sP_Val.
+      iApply (sT_Sub (i := 0)).
+      by iApply sT_Var0.
+      iApply sSub_Later_Sub.
+      iApply sAnd1_Sub.
+  Qed.
+
+  Lemma vHasA1': Hs -∗ ⟦ vTyp1 ⟧ ids v.
+  Proof.
+    iIntros "#Hs".
+    iDestruct (T_Obj_I [] vTyp1Body with "[]") as "#H"; first last.
+    iSpecialize ("H" $! ids with "[#//]").
+    rewrite hsubst_id /interp_expr wp_value_inv'.
+    iApply "H".
+    iApply D_Cons => //.
+    - (* Can't finish with D_Typ_Abs, this is only for syntactic types: *)
+      (* From D.Dot Require Import typeExtractionSem.
+      iApply sD_Typ_Abs => //; first last.
+      iExists _; iSplit => //=.  (* Here we need a syntactic type matching [ipos]. *) *)
+      iModIntro.
+      iIntros (ρ Hpid) "/= #_".
+      iSplit => //. by iApply sHasA.
+    - iApply D_Cons => //; last by iApply D_Nil.
+      iApply D_Path_TVMem_I.
+      iIntros "!>" (ρ) "/="; iDestruct 1 as "[_ [HA [HB _]]]".
+      iDestruct "HA" as (dA) "[HlA HA]".
+      iDestruct "HA" as (φ) "[Hlφ HA]".
+      iDestruct "HB" as (dB) "[HlB HB]".
+      iDestruct "HB" as (w) "HB".
+      rewrite !path_wp_pv.
+      iExists φ, dA; repeat iSplit => //; try iNext => //.
+      (* Last case is stuck, since we don't know what [ρ 0] is and what
+      "A" points to. *)
+  Abort.
+End small_ex.
+End s_is_pos.
 
 Import dlang_adequacy swap_later_impl.
 Lemma vSafe: safe (tv (v 1%positive)).
-Proof. eapply (safety_dot_sem dlangΣ)=>*; apply vHasA1TypAd. Qed.
-End example.
+Proof.
+  eapply (safety_dot_sem dlangΣ (T := vTyp1))=>*.
+  by rewrite (allocHs 1%positive) // -vHasA1t.
+Qed.
+
+End examples.

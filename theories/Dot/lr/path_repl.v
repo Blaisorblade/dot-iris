@@ -7,7 +7,7 @@ From iris.program_logic Require Import ectx_language.
 From D.pure_program_logic Require Import lifting.
 
 Implicit Types
-         (T : ty) (v w : vl) (t : tm) (d : dm) (ds : dms) (p q : path)
+         (v w : vl) (t : tm) (d : dm) (ds : dms) (p q : path)
          (ρ : env) (l : label) (Pv : vl → Prop).
 
 Section path_repl.
@@ -16,34 +16,31 @@ Section path_repl.
 
   Notation path_wp p φ := (@path_wp Σ p φ).
 
-  Section with_unary_lr.
-  Implicit Types (Γ : ctx).
-
-  Lemma rewrite_ty_path_repl {p q T1 T2 ρ v}:
+  Lemma rewrite_ty_path_repl {p q T1 T2 args ρ v}:
     T1 ~Tp[ p := q ] T2 →
     alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
-    ⟦ T1 ⟧ ρ v ≡ ⟦ T2 ⟧ ρ v.
+    V⟦ T1 ⟧ args ρ v ≡ V⟦ T2 ⟧ args ρ v.
   Proof.
-    move => Hrew; move: v ρ.
-    induction Hrew => v ρ He /=; properness;
-      by [ exact: path_replacement_equiv | exact: rewrite_path_path_repl
+    move => Hrew; move: args ρ v.
+    induction Hrew => args ρ v He /=; properness;
+      try by [ exact: path_replacement_equiv | exact: rewrite_path_path_repl
          | apply IHHrew; rewrite ?hsubst_comp | | f_equiv => ?; exact: IHHrew].
   Qed.
 
-  Lemma rewrite_ty_path_repl_rtc {p q T1 T2 ρ v}:
+  Lemma rewrite_ty_path_repl_rtc {p q T1 T2 args ρ v}:
     T1 ~Tp[ p := q ]* T2 →
     alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
-    ⟦ T1 ⟧ ρ v ≡ ⟦ T2 ⟧ ρ v.
+    V⟦ T1 ⟧ args ρ v ≡ V⟦ T2 ⟧ args ρ v.
   Proof.
     move => Hr Hal.
     elim: Hr => [//|T {}T1 {}T2 Hr _ <-].
     apply (rewrite_ty_path_repl Hr Hal).
   Qed.
 
-  Lemma psubst_one_repl {T T' p v w ρ}:
+  Lemma psubst_one_repl {T T' args p v w ρ}:
     T .Tp[ p /]~ T' →
     alias_paths p.|[ρ] (pv v) →
-    ⟦ T ⟧ (v .: ρ) w ≡ ⟦ T' ⟧ ρ w.
+    V⟦ T ⟧ args (v .: ρ) w ≡ V⟦ T' ⟧ args ρ w.
   Proof.
     intros Hrepl Hal.
     rewrite -(interp_weaken_one T' (v .: ρ) _) -(rewrite_ty_path_repl_rtc Hrepl)
@@ -51,8 +48,8 @@ Section path_repl.
   Qed.
 
   Lemma singleton_aliasing Γ p q ρ i :
-    Γ ⊨p p : TSing q, i -∗
-    ⟦ Γ ⟧* ρ -∗ ▷^i alias_pathsI p.|[ρ] q.|[ρ].
+    Γ s⊨p p : oSing q, i -∗
+    s⟦ Γ ⟧* ρ -∗ ▷^i alias_pathsI p.|[ρ] q.|[ρ].
   Proof.
     iIntros "#Hep #Hg". iSpecialize ("Hep" with "Hg").
     iNext i; iDestruct "Hep" as %Hep; iIntros "!%".
@@ -61,29 +58,35 @@ Section path_repl.
 
   (** Non-pDOT rules start: *)
 
-  Lemma singleton_self Γ T p i :
-    Γ ⊨p p : T, i -∗
-    Γ ⊨p p : TSing p, i.
+  Lemma sP_Sngl_Refl Γ τ p i :
+    Γ s⊨p p : τ, i -∗
+    Γ s⊨p p : oSing p, i.
   Proof.
     iIntros "#Hep !>" (ρ) "Hg". iSpecialize ("Hep" with "Hg"). iNext.
     iDestruct (path_wp_eq with "Hep") as (v Hpv) "_".
     iIntros "!%". by eapply alias_paths_simpl, alias_paths_self, alias_paths_pv_eq_1.
   Qed.
 
-  Lemma singleton_self_sub Γ p T i :
-    Γ ⊨p p : T, i -∗
-    Γ ⊨ TSing p, i <: T, i.
+  Lemma P_Sngl_Refl Γ T p i : Γ ⊨p p : T, i -∗ Γ ⊨p p : TSing p, i.
+  Proof. apply sP_Sngl_Refl. Qed.
+
+  Lemma sSngl_Self_Sub Γ p T i :
+    Γ s⊨p p : T, i -∗
+    Γ s⊨ oSing p, i <: T, i.
   Proof.
     iIntros "#Hp !>" (ρ v) "Hg /= Heq".
     iSpecialize ("Hp" with "Hg"); iNext i.
-    iDestruct "Heq" as %->%(alias_paths_elim_eq (⟦ T ⟧ ρ)).
+    iDestruct "Heq" as %->%(alias_paths_elim_eq (T _ ρ)).
     by rewrite path_wp_pv.
   Qed.
 
-  Lemma singleton_sym_sub Γ p q T i:
-    Γ ⊨p p : T, i -∗ (* Just to ensure [p] terminates and [TSing p] isn't empty. *)
-    Γ ⊨ TSing p, i <: TSing q, i -∗
-    Γ ⊨ TSing q, i <: TSing p, i.
+  Lemma Sngl_Self_Sub Γ p T i : Γ ⊨p p : T, i -∗ Γ ⊨ TSing p, i <: T, i.
+  Proof. apply sSngl_Self_Sub. Qed.
+
+  Lemma sSngl_Sym_Sub Γ p q T i:
+    Γ s⊨p p : T, i -∗ (* Just to ensure [p] terminates and [TSing p] isn't empty. *)
+    Γ s⊨ oSing p, i <: oSing q, i -∗
+    Γ s⊨ oSing q, i <: oSing p, i.
   Proof.
     iIntros "#Hp #Hps !>" (ρ v) "#Hg /= Heq".
     iDestruct (path_wp_eq with "(Hp Hg)") as (w) "[Hpw _] {Hp}".
@@ -93,19 +96,13 @@ Section path_repl.
     by rewrite (path_wp_pure_det Hqv Hqw).
   Qed.
 
-  (* Not too useful. *)
-  (* Lemma singleton_self_skip Γ τ p i :
-    Γ ⊨p p : T, 0 -∗
-    Γ ⊨ iterate tskip i (path2tm p) : TSing p.
-  Proof.
-    rewrite singleton_self iptp2ietp.
-    iIntros "Hp". iApply (T_Sub with "Hp").
-    by iIntros "!> * _ $".
-  Qed. *)
+  Lemma Sngl_Sym_Sub Γ p q T i: Γ ⊨p p : T, i -∗
+    Γ ⊨ TSing p, i <: TSing q, i -∗ Γ ⊨ TSing q, i <: TSing p, i.
+  Proof. apply sSngl_Sym_Sub. Qed.
 
-  Lemma singleton_self_inv Γ p q i :
-    Γ ⊨p p : TSing q, i -∗
-    Γ ⊨p q : TTop, i.
+  Lemma sP_Sngl_Inv Γ p q i :
+    Γ s⊨p p : oSing q, i -∗
+    Γ s⊨p q : oTop, i.
   Proof.
     iIntros "#Hpq !>" (ρ) "#Hg /=".
     iDestruct (singleton_aliasing with "Hpq Hg") as "Hal {Hpq Hg}".
@@ -113,9 +110,12 @@ Section path_repl.
     by apply (path_wp_pure_wand Hqv).
   Qed.
 
+  Lemma P_Sngl_Inv Γ p q i : Γ ⊨p p : TSing q, i -∗ Γ ⊨p q : TTop, i.
+  Proof. apply sP_Sngl_Inv. Qed.
+
   (** Non-pDOT rules end. *)
 
-  Lemma Sub_singleton {Γ i p q T1 T2} (Hrepl : T1 ~Tp[ p := q ]* T2):
+  Lemma Sngl_pq_Sub {Γ i p q T1 T2} (Hrepl : T1 ~Tp[ p := q ]* T2):
     Γ ⊨p p : TSing q, i -∗
     Γ ⊨ T1, i <: T2, i.
   Proof.
@@ -124,7 +124,7 @@ Section path_repl.
     iApply (rewrite_ty_path_repl_rtc Hrepl Hal with "HT1").
   Qed.
 
-  Lemma TMu_E_p {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
+  Lemma P_Mu_E {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : TMu T, i -∗ Γ ⊨p p : T', i.
   Proof.
     iIntros "#Hp !>" (ρ) "Hg /="; iSpecialize ("Hp" with "Hg"); iNext.
@@ -133,7 +133,7 @@ Section path_repl.
     by rewrite (psubst_one_repl Hrepl) ?alias_paths_pv_eq_1.
   Qed.
 
-  Lemma TMu_I_p {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
+  Lemma P_Mu_I {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : T', i -∗ Γ ⊨p p : TMu T, i.
   Proof.
     iIntros "#Hp !>" (ρ) "Hg /="; iSpecialize ("Hp" with "Hg"); iNext.
@@ -149,8 +149,8 @@ Section path_repl.
     Γ ⊨ TSing p, i <: TMu T2, i.
   Proof.
     (* iIntros "Hsub Hp".
-    iApply singleton_self_sub.
-    iApply (P_Sub' with "Hp").
+    iApply Sngl_Self_Sub.
+    iApply (sP_Sub' with "Hp").
     iApply Sub_Mu_X.
     (* We're stuck! *)
     Restart. *)
@@ -178,7 +178,7 @@ Section path_repl.
         (alias_paths_elim_eq _ Heq) path_wp_pv //.
   Qed.
 
-  Lemma T_Forall_Ex_p Γ e1 p2 T1 T2 T2' (Hrepl : T2 .Tp[ p2 /]~ T2') :
+  Lemma T_All_Ex_p Γ e1 p2 T1 T2 T2' (Hrepl : T2 .Tp[ p2 /]~ T2') :
     Γ ⊨ e1: TAll T1 T2 -∗
     Γ ⊨p p2 : T1, 0 -∗
     (*────────────────────────────────────────────────────────────*)
@@ -198,47 +198,68 @@ Section path_repl.
     by rewrite (psubst_one_repl Hrepl) ?alias_paths_pv_eq_1.
   Qed.
 
-  Lemma P_To_E Γ T p :
-    Γ ⊨p p : T, 0 -∗ Γ ⊨ path2tm p : T.
+  Lemma sT_Path Γ τ p :
+    Γ s⊨p p : τ, 0 -∗ Γ s⊨ path2tm p : τ.
   Proof.
     iIntros "#Hep !>" (ρ) "#Hg /="; rewrite path2tm_subst.
     by iApply (path_wp_to_wp with "(Hep Hg)").
   Qed.
 
+  Lemma T_Path Γ T p :
+    Γ ⊨p p : T, 0 -∗ Γ ⊨ path2tm p : T.
+  Proof. apply sT_Path. Qed.
+
+  (* From D.Dot Require Import lr_lemmas.
+  (* Not too useful. *)
+  (* XXX Generalize? *)
+  Lemma s_singleton_self_skip Γ τ p i :
+    Γ s⊨p p : τ, 0 -∗
+    Γ s⊨ iterate tskip i (path2tm p) : oSing p.
+  Proof.
+    rewrite sP_Sngl_Refl sT_Path.
+    iIntros "Hp". iApply (sT_Sub with "Hp").
+    by iIntros "!> * _ $".
+  Qed.
+
+  Lemma singleton_self_skip Γ T p i :
+    Γ ⊨p p : T, 0 -∗
+    Γ ⊨ iterate tskip i (path2tm p) : TSing p.
+  Proof. apply s_singleton_self_skip. Qed. *)
+
   (* From pDOT *)
-  Lemma PT_Mem_I Γ p T l i:
+  Lemma sP_Fld_I Γ p T l i:
     Γ ⊨p pself p l : T, i -∗
     (*─────────────────────────*)
     Γ ⊨p p : TVMem l T, i.
   Proof.
     iIntros "#HE /= !>" (ρ) "#HG"; iSpecialize ("HE" with "HG"); iNext i.
     rewrite path_wp_pself !path_wp_eq;
-      iDestruct "HE" as (v q Hlook Hpv) "Htw {HG}".
+      iDestruct "HE" as (v q Hlook Hpv) "Htw {HG} /=".
     iExists _; iFrame (Hpv). eauto.
   Qed.
 
-  Lemma iptp2ietp Γ T p :
-    Γ ⊨p p : T, 0 -∗ Γ ⊨ path2tm p : T.
-  Proof.
-    iIntros "#Hep !>" (ρ) "#Hg /="; rewrite path2tm_subst.
-    by iApply (path_wp_to_wp with "(Hep Hg)").
-  Qed.
+  Lemma P_Fld_I Γ p T l i: Γ ⊨p pself p l : T, i -∗ Γ ⊨p p : TVMem l T, i.
+  Proof. apply sP_Fld_I. Qed.
 
-  Lemma singleton_trans Γ p q T i:
-    Γ ⊨p p : TSing q, i -∗
-    Γ ⊨p q : T, i -∗
-    Γ ⊨p p : T, i.
+  Lemma sP_Sngl_Trans Γ p q T i:
+    Γ s⊨p p : oSing q, i -∗
+    Γ s⊨p q : T, i -∗
+    Γ s⊨p p : T, i.
   Proof.
     iIntros "#Hep #Heq !>" (ρ) "#Hg".
     iDestruct (singleton_aliasing with "Hep Hg") as "Hal1 {Hep}".
     iSpecialize ("Heq" with "Hg"). iNext i.
-    by iDestruct "Hal1" as %->%(alias_paths_elim_eq (⟦ _ ⟧ _)).
+    by iDestruct "Hal1" as %->%(alias_paths_elim_eq (T _ _)).
   Qed.
 
-  Lemma singleton_elim Γ T p q l i:
-    Γ ⊨p p : TSing q, i -∗
-    Γ ⊨p pself q l : T, i -∗
-    Γ ⊨p pself p l : TSing (pself q l), i.
+  Lemma P_Sngl_Trans Γ p q T i:
+    Γ ⊨p p : TSing q, i -∗ Γ ⊨p q : T, i -∗ Γ ⊨p p : T, i.
+  Proof. apply sP_Sngl_Trans. Qed.
+
+  Lemma sP_Sngl_E Γ τ p q l i:
+    Γ s⊨p p : oSing q, i -∗
+    Γ s⊨p pself q l : τ, i -∗
+    Γ s⊨p pself p l : oSing (pself q l), i.
   Proof.
     iIntros "#Hep #HqlT !>" (ρ) "#Hg".
     iSpecialize ("HqlT" with "Hg").
@@ -248,5 +269,8 @@ Section path_repl.
     iIntros "!% /="; setoid_rewrite alias_paths_pv_eq_1.
     by eapply alias_paths_sameres, alias_paths_pself.
   Qed.
-  End with_unary_lr.
+
+  Lemma P_Sngl_E Γ T p q l i: Γ ⊨p p : TSing q, i -∗ Γ ⊨p pself q l : T, i -∗
+    Γ ⊨p pself p l : TSing (pself q l), i.
+  Proof. apply sP_Sngl_E. Qed.
 End path_repl.
