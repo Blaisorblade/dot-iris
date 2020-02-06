@@ -86,7 +86,7 @@ they agree appropriately. *)
 Record clty {Σ} := Clty {
   clty_car :> dslty Σ;
   clty_dlty : ldltyO Σ;
-  clty_olty : oltyO Σ 0;
+  clty_olty :> oltyO Σ 0;
   clty_def2defs_head {l d ds ρ} :
     lift_ldlty clty_dlty ρ l d ⊢ clty_car ρ ((l, d) :: ds);
   clty_mono {l d ds ρ} :

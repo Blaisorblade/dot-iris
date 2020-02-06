@@ -109,7 +109,7 @@ Proof. exact (alloc ipos). Qed.
 
 Section div_example.
   Lemma idtp_value_eq T l d (Hl : label_of_ty T = Some l):
-    (∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → D*⟦ T ⟧ ρ d.|[ρ]) ⊣⊢ [] s⊨ { l := d } : LD⟦ T ⟧.
+    (∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → D*⟦ T ⟧ ρ d.|[ρ]) ⊣⊢ [] s⊨ { l := d } : A⟦ T ⟧.
   Proof.
     rewrite /idtp/=/lift_ldlty/= ld_label_match Hl; iSplit.
     by iIntros "#H !> /=" (ρ Hpid _); iSplit; first done; iApply "H".
@@ -209,7 +209,7 @@ Section div_example.
   Lemma Sub_later_ipos_nat Γ : Γ s⊨ oLater ipos, 0 <: oLater V⟦ 𝐍 ⟧, 0.
   Proof. rewrite -sSub_Later_Sub -sSub_Index_Incr. apply Sub_ipos_nat. Qed.
 
-  Lemma sHasA' l Γ : Hs -∗ Γ s⊨ { l := dtysem [] s } : LD⟦ type l >: ⊥ <: 𝐍 ⟧.
+  Lemma sHasA' l Γ : Hs -∗ Γ s⊨ { l := dtysem [] s } : A⟦ type l >: ⊥ <: 𝐍 ⟧.
   Proof.
     iIntros "Hs".
     iApply (sD_Typ_Abs ipos); [|iApply sBot_Sub|by iExists _; iFrame "Hs"].

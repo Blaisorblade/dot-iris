@@ -64,12 +64,12 @@ Section judgments.
   Global Arguments sstpi /.
 
   (** Definition typing *)
-  Definition sdtp `{dlangG Σ} l d Γ (φ : ldltyO Σ): iProp Σ :=
-    □∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)] ⌝ → s⟦Γ⟧* ρ → lift_ldlty φ ρ l d.|[ρ].
+  Definition sdtp `{dlangG Σ} l d Γ (φ : clty Σ): iProp Σ :=
+    □∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)] ⌝ → s⟦Γ⟧* ρ → lift_ldlty (clty_dlty φ) ρ l d.|[ρ].
   Global Arguments sdtp /.
 
   (** Multi-definition typing *)
-  Definition sdstp `{dlangG Σ} ds Γ (T : dsltyO Σ) : iProp Σ :=
+  Definition sdstp `{dlangG Σ} ds Γ (T : clty Σ) : iProp Σ :=
     ⌜wf_ds ds⌝ ∧ □∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → s⟦Γ⟧* ρ → T ρ ds.|[ρ].
   Global Arguments sdstp /.
 
@@ -203,8 +203,8 @@ Section SemTypes.
   Lemma ld_label_match T : ldlty_label LD⟦ T ⟧ = label_of_ty T.
   Proof. by destruct T. Qed.
 
-  Definition idtp  Γ T l d     := sdtp l d  V⟦Γ⟧* LD⟦T⟧.
-  Definition idstp Γ T ds      := sdstp ds  V⟦Γ⟧* Ds⟦T⟧.
+  Definition idtp  Γ T l d     := sdtp l d  V⟦Γ⟧* A⟦T⟧.
+  Definition idstp Γ T ds      := sdstp ds  V⟦Γ⟧* A⟦T⟧.
   Definition ietp  Γ T e       := setp e    V⟦Γ⟧* V⟦T⟧.
   Definition istpi Γ T1 T2 i j := sstpi i j V⟦Γ⟧* V⟦T1⟧ V⟦T2⟧.
   Definition iptp  Γ T p i     := sptp p i  V⟦Γ⟧* V⟦T⟧.
@@ -227,12 +227,10 @@ Section SemTypes.
   Global Instance sstpi_persistent : IntoPersistent' (sstpi i j Γ T1 T2) | 0 := _.
   Global Instance sptp_persistent : IntoPersistent' (sptp p i   Γ T) | 0 := _.
 
-
-  (* Backward compatibility. *)
-  Definition oTMem l τ1 τ2 := clty_olty (ldlty2clty (oLDTMem l τ1 τ2)).
+  Definition oTMem l τ1 τ2 := ldlty2clty (oLDTMem l τ1 τ2).
   Global Instance Proper_oTMem l : Proper ((≡) ==> (≡) ==> (≡)) (oTMem l).
   Proof. rewrite /oTMem/= => ??? ???. f_equiv. solve_proper. Qed.
-  Definition oVMem l τ := clty_olty (ldlty2clty (oLDVMem l τ)).
+  Definition oVMem l τ := ldlty2clty (oLDVMem l τ).
   Global Instance Proper_oVMem l : Proper ((≡) ==> (≡)) (oVMem l).
   Proof. rewrite /oVMem/= => ???; f_equiv. solve_proper. Qed.
 End SemTypes.
@@ -347,8 +345,8 @@ Section Propers.
 
   Global Instance Proper_sdtp l d : Proper ((≡) ==> (≡) ==> (≡)) (sdtp l d).
   Proof.
-    move => ??? [??] [??] [??] /=; case_match; simplify_eq/=; properness => //;
-      solve_proper_ho.
+    move => ??? [??? _ _ _] [??? _ _ _] [[/=?[/=??]]?];
+      repeat case_match; simplify_eq/=; properness => //; solve_proper_ho.
   Qed.
   Global Instance Proper_sdtp_flip l d : Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sdtp l d).
   Proof. apply: flip_proper_3. Qed.

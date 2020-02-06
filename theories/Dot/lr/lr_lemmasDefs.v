@@ -14,8 +14,8 @@ Section Sec.
 
   (** This lemma is equivalent to pDOT's (Def-New). *)
   Lemma sD_New_Mem_I {Γ l ds} {T : clty Σ}:
-    oAnd (oLater (clty_olty T)) (oSing (pself (pv (ids 1)) l)) :: Γ s⊨ds ds : T -∗
-    Γ s⊨ { l := dpt (pv (vobj ds)) } : oLDVMem l (oMu (clty_olty T)).
+    oAnd (oLater T) (oSing (pself (pv (ids 1)) l)) :: Γ s⊨ds ds : T -∗
+    Γ s⊨ { l := dpt (pv (vobj ds)) } : oVMem l (oMu (clty_olty T)).
   Proof.
     iDestruct 1 as (Hwf) "#Hds";
       iIntros "!>" (ρ Hpid%path_includes_field_aliases) "#Hg".
@@ -38,8 +38,8 @@ Section Sec.
    * Γ ⊨ nu x. ds : μ x. T
    *)
   Lemma sT_Obj_I (Γ : sCtx Σ) (T : clty Σ) ds:
-     oLater (clty_olty T) :: Γ s⊨ds ds : T -∗
-     Γ s⊨ tv (vobj ds) : oMu (clty_olty T).
+     oLater T :: Γ s⊨ds ds : T -∗
+     Γ s⊨ tv (vobj ds) : oMu T.
   Proof.
     iDestruct 1 as (Hwf) "#Hds"; iIntros "!>" (ρ) "#Hg /= !>".
     rewrite -wp_value' /=. iLöb as "IH".
@@ -61,7 +61,7 @@ Section Sec.
 
   Lemma sD_Cons Γ d ds l (T1 T2 : cltyO Σ):
     dms_hasnt ds l →
-    Γ s⊨ { l := d } : clty_dlty T1 -∗ Γ s⊨ds ds : T2 -∗
+    Γ s⊨ { l := d } : T1 -∗ Γ s⊨ds ds : T2 -∗
     Γ s⊨ds (l, d) :: ds : LDsAnd T1 T2.
   Proof.
     iIntros (Hlds) "#HT1 [% #HT2]"; iSplit.

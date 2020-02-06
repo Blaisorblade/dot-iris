@@ -38,8 +38,8 @@ Section typing_type_member_defs.
   Lemma sD_Typ_Sub {Γ} L1 L2 U1 U2 s σ l:
     Γ s⊨ oLater U1, 0 <: oLater U2, 0 -∗
     Γ s⊨ oLater L2, 0 <: oLater L1, 0 -∗
-    Γ s⊨ { l := dtysem σ s } : oLDTMem l L1 U1 -∗
-    Γ s⊨ { l := dtysem σ s } : oLDTMem l L2 U2.
+    Γ s⊨ { l := dtysem σ s } : oTMem l L1 U1 -∗
+    Γ s⊨ { l := dtysem σ s } : oTMem l L2 U2.
   Proof.
     iIntros "#HU #HL #Hd /= !>" (ρ Hpid) "#Hg"; iSplit => //=.
     iDestruct ("Hd" $! ρ Hpid with "Hg") as (Hl ψ) "(Hφ & HLψ & HψU)".
@@ -51,7 +51,7 @@ Section typing_type_member_defs.
 
   Lemma sD_Typ0 {Γ} (T : oltyO Σ 0) s σ l:
     s ↝[ σ ] T -∗
-    Γ s⊨ { l := dtysem σ s } : oLDTMem l T T.
+    Γ s⊨ { l := dtysem σ s } : oTMem l T T.
   Proof.
     iIntros "#Hs /= !>" (ρ Hpid) "#Hg"; iSplit => //=.
     iDestruct "Hs" as (φ Hγφ) "Hγ".
@@ -67,7 +67,7 @@ Section typing_type_member_defs.
     Γ s⊨ oLater T, 0 <: oLater U, 0 -∗
     Γ s⊨ oLater L, 0 <: oLater T, 0 -∗
     s ↝[ σ ] T -∗
-    Γ s⊨ { l := dtysem σ s } : oLDTMem l L U.
+    Γ s⊨ { l := dtysem σ s } : oTMem l L U.
   Proof.
     (* iIntros "HTU HLT Hs".
     iApply (sD_Typ_Sub with "HTU HLT").
@@ -91,7 +91,7 @@ Section typing_type_member_defs.
 
   Lemma sD_Typ {Γ} (T : oltyO Σ 0) s σ l:
     s ↝[ σ ] T -∗
-    Γ s⊨ { l := dtysem σ s } : oLDTMem l T T.
+    Γ s⊨ { l := dtysem σ s } : oTMem l T T.
   Proof. iIntros "#Hs"; iApply sD_Typ_Abs; by [| iIntros "!> **"]. Qed.
 
   Lemma D_Typ {Γ} T s σ l:

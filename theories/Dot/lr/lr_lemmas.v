@@ -58,7 +58,7 @@ Section LambdaIntros.
   (** Lemmas about definition typing. *)
   Lemma sD_Path_TVMem_I {Γ} T p l:
     Γ s⊨p p : T, 0 -∗
-    Γ s⊨ { l := dpt p } : oLDVMem l T.
+    Γ s⊨ { l := dpt p } : oVMem l T.
   Proof.
     iIntros "#Hv !>" (ρ Hpid) "#Hg".
     rewrite def_interp_tvmem_eq.
@@ -71,7 +71,7 @@ Section LambdaIntros.
 
   Lemma sD_TVMem_I {Γ} T v l:
     Γ s⊨ tv v : T -∗
-    Γ s⊨ { l := dpt (pv v) } : oLDVMem l T.
+    Γ s⊨ { l := dpt (pv v) } : oVMem l T.
   Proof. by rewrite -sD_Path_TVMem_I -sP_Val. Qed.
 
   Lemma D_TVMem_I {Γ} T v l:
