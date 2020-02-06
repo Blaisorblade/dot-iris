@@ -269,7 +269,7 @@ Section sec.
 
   Fixpoint htype_to_hosty {n} (T : htype n) : hoSTy Σ n :=
     match T with
-    | TWrap T' => TSWrap (vopen (ty_interp T'))
+    | TWrap T' => TSWrap (vopen ⟦ T' ⟧)
     | TLam n' φ T' => TSLam n' φ (htype_to_hosty T')
     | TApp n' T' v => TSApp n' (htype_to_hosty T') v
     end.

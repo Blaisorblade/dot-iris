@@ -26,10 +26,10 @@ Section typing_type_member_defs.
   Import stamp_transfer.
 
   Lemma extraction_to_leadsto_envD_equiv T g s σ n: T ~[ n ] (g, (s, σ)) →
-    wellMappedφ Vs⟦ g ⟧ -∗ s ↝[ σ ] pty_interpO T.
+    wellMappedφ Vs⟦ g ⟧ -∗ s ↝[ σ ] V⟦ T ⟧.
   Proof.
     move => [T'] [Hl] [<- [_ /is_stamped_nclosed_ty HclT]].
-    iIntros "Hm". iExists (pty_interpO T'). iSplitR.
+    iIntros "Hm". iExists V⟦ T' ⟧. iSplitR.
     - iIntros "!%" (args ρ v). exact: interp_subst_commute.
     - iApply (wellMappedφ_apply with "Hm"). by rewrite lookup_fmap Hl.
   Qed.
