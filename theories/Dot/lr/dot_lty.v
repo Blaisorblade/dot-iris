@@ -83,15 +83,15 @@ Notation Dslty T := (λ ρ, IPPred (λI ds, T ρ ds)).
 (** All semantics of a type. *)
 Record ldslty {Σ} := LDslty {
   ldslty_car :> dslty Σ;
-  ldslty_olty : oltyO Σ 0;
   ldslty_dlty : ldltyO Σ;
-  ldslty_commute {ds ρ} :
-    ldslty_car ρ (selfSubst ds) ⊢ ldslty_olty vnil ρ (vobj ds);
+  ldslty_olty : oltyO Σ 0;
+  ldslty_def2defs_head {l d ds ρ} :
+    lift_ldlty ldslty_dlty ρ l d ⊢ ldslty_car ρ ((l, d) :: ds);
   ldslty_mono {l d ds ρ} :
     dms_hasnt ds l →
     ldslty_car ρ ds ⊢ ldslty_car ρ ((l, d) :: ds);
-  ldslty_def2defs_head {l d ds ρ} :
-    lift_ldlty ldslty_dlty ρ l d ⊢ ldslty_car ρ ((l, d) :: ds)
+  ldslty_commute {ds ρ} :
+    ldslty_car ρ (selfSubst ds) ⊢ ldslty_olty vnil ρ (vobj ds);
 }.
 
 Arguments ldslty : clear implicits.
@@ -103,7 +103,7 @@ Arguments ldslty_dlty {_} !_ /.
 Section ldslty_ofe.
   Context {Σ}.
 
-  Let iso := (λ T : ldslty Σ, (ldslty_car T : _ -d> _, ldslty_olty T, ldslty_dlty T)).
+  Let iso := (λ T : ldslty Σ, (ldslty_car T : _ -d> _, ldslty_dlty T, ldslty_olty T)).
   Instance ldslty_equiv : Equiv (ldslty Σ) := λ A B, iso A ≡ iso B.
   Instance ldslty_dist : Dist (ldslty Σ) := λ n A B, iso A ≡{n}≡ iso B.
   Lemma ldslty_ofe_mixin : OfeMixin (ldslty Σ).
@@ -129,12 +129,12 @@ Section DefsTypes.
     ∃ l d, ⌜ dms_lookup l ds = Some d ⌝ ∧ lift_ldlty TD ρ l d).
 
   Program Definition ldlty2ldslty `{dlangG Σ} (T : ldltyO Σ) : ldsltyO Σ :=
-    LDslty (lift_dinterp_dms T) (lift_dinterp_vl T) T _ _ _.
+    LDslty (lift_dinterp_dms T) T (lift_dinterp_vl T) _ _ _.
   Next Obligation.
-    intros; rewrite /lift_dinterp_vl /=; case_match;
-      iDestruct 1 as (?l' d ?) "H"; last done.
-    iExists d; iDestruct "H" as (->) "$".
-    iIntros "!%"; naive_solver.
+    (* iIntros "* /="; case_match; simplify_eq/=; last done. *)
+    iIntros "* /= H". case_match; last done.
+    iExists l, d; iFrame. iIntros "!%".
+    exact: dms_lookup_head.
   Qed.
   Next Obligation.
     intros; cbn; case_match; iDestruct 1 as (l' d' ?) "H /="; last done.
@@ -142,49 +142,57 @@ Section DefsTypes.
     exact: dms_lookup_mono.
   Qed.
   Next Obligation.
-    (* iIntros "* /="; case_match; simplify_eq/=; last done. *)
-    iIntros "* /= H". case_match; last done.
-    iExists l, d; iFrame. iIntros "!%".
-    exact: dms_lookup_head.
+    intros; rewrite /lift_dinterp_vl /=; case_match;
+      iDestruct 1 as (?l' d ?) "H"; last done.
+    iExists d; iDestruct "H" as (->) "$".
+    iIntros "!%"; naive_solver.
   Qed.
 
-  Program Definition LDsTop : ldslty Σ := LDslty (Dslty (λI _ _, True)) oTop ⊥ _ _ _.
+  Program Definition LDsTop : ldslty Σ := LDslty (Dslty (λI _ _, True)) ⊥ oTop _ _ _.
   Solve All Obligations with eauto.
 
   Program Definition olty2ldslty `{dlangG Σ} (T : oltyO Σ 0) : ldsltyO Σ :=
-    LDslty ⊥ T ⊥ _ _ _.
+    LDslty ⊥ ⊥ T _ _ _.
   Solve All Obligations with by iIntros.
   Global Instance : Bottom (ldslty Σ) := olty2ldslty ⊥.
 
   Program Definition LDsAnd (Tds1 Tds2 : ldslty Σ): ldslty Σ :=
-    LDslty (Dslty (λI ρ ds, Tds1 ρ ds ∧ Tds2 ρ ds)) (oAnd (ldslty_olty Tds1) (ldslty_olty Tds2)) ⊥ _ _ _.
-  Next Obligation. intros; iIntros "/= [??]". iSplit; by iApply ldslty_commute. Qed.
-  Next Obligation. intros; iIntros "/= [??]". iSplit; by iApply ldslty_mono. Qed.
+    LDslty (Dslty (λI ρ ds, Tds1 ρ ds ∧ Tds2 ρ ds)) ⊥ (oAnd (ldslty_olty Tds1) (ldslty_olty Tds2)) _ _ _.
   Next Obligation. intros; iIntros "[]". Qed.
-
+  Next Obligation. intros; iIntros "/= [??]". iSplit; by iApply ldslty_mono. Qed.
+  Next Obligation. intros; iIntros "/= [??]". iSplit; by iApply ldslty_commute. Qed.
 End DefsTypes.
 
-Class PTyInterp ty Σ :=
-  pty_interpO : ty -> oltyO Σ 0.
-Notation "V⟦ T ⟧" := (pty_interpO T).
+Implicit Types (T: ty).
 
-(* Also appears in Autosubst. *)
-Global Arguments pty_interpO {_ _ _} !_ /.
+Class DTyInterp Σ :=
+  all_interp : ty → ldslty Σ.
+(* Inspired by Autosubst. *)
+Global Arguments all_interp {_ _} !_ /.
+Notation "A⟦ T ⟧" := (all_interp T).
 
-Definition pty_interp `{PTyInterp ty Σ} : ty -> hoEnvD Σ 0 := pty_interpO.
-Notation "Vs⟦ g ⟧" := (fmap (M := gmap stamp) pty_interp g).
-Global Arguments pty_interp /.
+Notation "Ds⟦ T ⟧" := (ldslty_car A⟦ T ⟧).
+Notation "LD⟦ T ⟧" := (ldslty_dlty A⟦ T ⟧).
 
-Class PTyInterpLemmas ty Σ `{sort_ty : Sort ty} `{!PTyInterp ty Σ} := {
+(* We need [V⟦ _ ⟧] to be a proper first-class function. *)
+Definition pty_interp `{DTyInterp Σ} T : oltyO Σ 0 := ldslty_olty A⟦ T ⟧.
+Global Arguments pty_interp {_ _} !_ /.
+
+Notation "V⟦ T ⟧" := (pty_interp T).
+Notation "Vs⟦ g ⟧" := (fmap (M := gmap stamp) (B := hoEnvD _ 0) pty_interp g).
+Notation "V⟦ Γ ⟧*" := (fmap (M := list) pty_interp Γ).
+
+Definition def_interp `{DTyInterp Σ} T l ρ d := lift_ldlty LD⟦ T ⟧ ρ l d.
+Notation "D[ l ]⟦ T ⟧" := (def_interp T l).
+
+Class PTyInterpLemmas Σ `{!DTyInterp Σ} := {
   interp_subst_compose_ind T {args} ρ1 ρ2 v:
     V⟦ T.|[ρ1] ⟧ args ρ2 v ⊣⊢ V⟦ T ⟧ args (ρ1 >> ρ2) v;
 }.
 
 (** * Lemmas about the logical relation itself. *)
 Section logrel_binding_lemmas.
-  Context `{Htil : PTyInterpLemmas ty Σ}.
-
-  Implicit Types (T: ty).
+  Context `{Htil : PTyInterpLemmas Σ}.
 
   Lemma interp_subst_compose T {args} ρ1 ρ2 ρ3:
     ρ1 >> ρ2 = ρ3 → V⟦ T.|[ρ1] ⟧ args ρ2 ≡ V⟦ T ⟧ args ρ3.

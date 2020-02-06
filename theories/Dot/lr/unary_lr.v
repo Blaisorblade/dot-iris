@@ -28,11 +28,6 @@ Implicit Types (Σ : gFunctors)
     [dtysem] and not [dtysyn] for type member definitions.
  *)
 
-(** Override notations to specify scope. *)
-Notation "V⟦ T ⟧" := (pty_interpO T%ty).
-
-Notation "V⟦ Γ ⟧*" := (fmap (M := list) pty_interpO Γ).
-
 (** Define fully semantic judgments. They accept arbitrary semantic types. *)
 
 Section judgments.
@@ -175,11 +170,10 @@ Section SemTypes.
 
   Definition oPrim b : olty Σ 0 := olty0 (λI ρ v, ⌜pure_interp_prim b v⌝).
 
-  Reserved Notation "A⟦ T ⟧".
   (* Observe the naming pattern for semantic type constructors:
   replace T by o. *)
-  Fixpoint all_interp T : ldslty Σ :=
-    let _ := (λ T, ldslty_olty (all_interp T)) : PTyInterp ty Σ in
+  Global Program Instance dot_interp : DTyInterp Σ := fix dot_interp T :=
+    let _ := dot_interp : DTyInterp Σ in
     match T with
     | TTMem l L U => ldlty2ldslty $ oLDTMem l V⟦ L ⟧ V⟦ U ⟧
     | TVMem l T' => ldlty2ldslty $ oLDVMem l V⟦ T' ⟧
@@ -196,25 +190,15 @@ Section SemTypes.
     | TMu T => olty2ldslty $ oMu V⟦ T ⟧
     | TSel p l => olty2ldslty $ oSel p l
     | TSing p => olty2ldslty $ oSing p
-    end
-  where "A⟦ T ⟧" := (all_interp T).
+    end.
 
-  Global Instance pinterp : PTyInterp ty Σ :=
-    λ T, ldslty_olty (all_interp T).
-  Global Arguments pinterp _ /.
-  Global Instance pinterp_lemmas: PTyInterpLemmas ty Σ.
+  Global Instance pinterp_lemmas: PTyInterpLemmas Σ.
   Proof.
-    split; rewrite /pty_interpO /=.
-    induction T => args sb1 sb2 w; rewrite /= /pty_interpO;
+    split; rewrite /pty_interp;
+     induction T => args sb1 sb2 w; rewrite /= /pty_interp;
       properness; rewrite ?scons_up_swap ?hsubst_comp; trivial.
       by f_equiv => ?.
   Qed.
-
-  Notation "LD⟦ T ⟧" := (ldslty_dlty A⟦ T ⟧).
-
-  Definition def_interp T l ρ d := lift_ldlty LD⟦ T ⟧ ρ l d.
-  Notation "D[ l ]⟦ T ⟧" := (def_interp T l).
-  Notation "Ds⟦ T ⟧" := (all_interp T).
 
   Lemma ld_label_match T : ldlty_label LD⟦ T ⟧ = label_of_ty T.
   Proof. by destruct T. Qed.
@@ -258,11 +242,6 @@ Global Instance: Params (@oAll) 2 := {}.
 Section ldslty_defs.
   Context `{dlangG Σ}.
 End ldslty_defs.
-
-Notation "A⟦ T ⟧" := (all_interp T).
-Notation "LD⟦ T ⟧" := (ldslty_dlty A⟦ T ⟧).
-Notation "D[ l ]⟦ T ⟧" := (def_interp T l).
-Notation "Ds⟦ T ⟧" := (ldslty_car A⟦ T ⟧).
 
 (* Backward compatibility. *)
 Notation "D*⟦ T ⟧" := (ldlty_car LD⟦ T ⟧).
@@ -435,6 +414,4 @@ Corollary safety_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} {e T}
 Proof. exact: (s_safety_dot_sem Σ (λ _, V⟦T⟧)). Qed.
 
 (** Backward compatibility. *)
-Definition ty_interp `{!dlangG Σ} T : envD Σ := pty_interpO T vnil.
-Notation "⟦ T ⟧" := (ty_interp T).
-Arguments ty_interp {_ _} _ /.
+Notation "⟦ T ⟧" := (V⟦ T ⟧ vnil).
