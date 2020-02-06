@@ -257,9 +257,11 @@ Section olty_ofe_2.
     Olty (vopen φ).
 
   (** We can define once and for all basic "logical" types: top, bottom, and, or, later and μ. *)
-  Definition oTop : oltyO Σ i := Olty (λI args ρ v, True).
+  Global Instance top_olty : Top (oltyO Σ i) := Olty ⊤.
+  Definition oTop : oltyO Σ i := ⊤.
 
-  Definition oBot : oltyO Σ i := Olty (λI args ρ v, False).
+  Global Instance bot_olty : Top (oltyO Σ i) := Olty ⊥.
+  Definition oBot : oltyO Σ i := ⊥.
 
   Definition oAnd τ1 τ2 : oltyO Σ i := Olty (λI args ρ v, τ1 args ρ v ∧ τ2 args ρ v).
   Global Instance Proper_oAnd : Proper ((≡) ==> (≡) ==> (≡)) oAnd.
