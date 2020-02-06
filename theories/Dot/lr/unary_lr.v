@@ -175,21 +175,21 @@ Section SemTypes.
   Global Program Instance dot_interp : DTyInterp Σ := fix dot_interp T :=
     let _ := dot_interp : DTyInterp Σ in
     match T with
-    | TTMem l L U => ldlty2ldslty $ oLDTMem l V⟦ L ⟧ V⟦ U ⟧
-    | TVMem l T' => ldlty2ldslty $ oLDVMem l V⟦ T' ⟧
+    | TTMem l L U => ldlty2clty $ oLDTMem l V⟦ L ⟧ V⟦ U ⟧
+    | TVMem l T' => ldlty2clty $ oLDVMem l V⟦ T' ⟧
 
     | TAnd T1 T2 => LDsAnd A⟦T1⟧ A⟦T2⟧
 
     | TTop => LDsTop
-    | TBot => olty2ldslty oBot
+    | TBot => olty2clty oBot
 
-    | TOr T1 T2 => olty2ldslty $ oOr V⟦ T1 ⟧ V⟦ T2 ⟧
-    | TLater T => olty2ldslty $ oLater V⟦ T ⟧
-    | TPrim b => olty2ldslty $ oPrim b
-    | TAll T1 T2 => olty2ldslty $ oAll V⟦ T1 ⟧ V⟦ T2 ⟧
-    | TMu T => olty2ldslty $ oMu V⟦ T ⟧
-    | TSel p l => olty2ldslty $ oSel p l
-    | TSing p => olty2ldslty $ oSing p
+    | TOr T1 T2 => olty2clty $ oOr V⟦ T1 ⟧ V⟦ T2 ⟧
+    | TLater T => olty2clty $ oLater V⟦ T ⟧
+    | TPrim b => olty2clty $ oPrim b
+    | TAll T1 T2 => olty2clty $ oAll V⟦ T1 ⟧ V⟦ T2 ⟧
+    | TMu T => olty2clty $ oMu V⟦ T ⟧
+    | TSel p l => olty2clty $ oSel p l
+    | TSing p => olty2clty $ oSing p
     end.
 
   Global Instance pinterp_lemmas: PTyInterpLemmas Σ.
@@ -229,19 +229,19 @@ Section SemTypes.
 
 
   (* Backward compatibility. *)
-  Definition oTMem l τ1 τ2 := ldslty_olty (ldlty2ldslty (oLDTMem l τ1 τ2)).
+  Definition oTMem l τ1 τ2 := clty_olty (ldlty2clty (oLDTMem l τ1 τ2)).
   Global Instance Proper_oTMem l : Proper ((≡) ==> (≡) ==> (≡)) (oTMem l).
   Proof. rewrite /oTMem/= => ??? ???. f_equiv. solve_proper. Qed.
-  Definition oVMem l τ := ldslty_olty (ldlty2ldslty (oLDVMem l τ)).
+  Definition oVMem l τ := clty_olty (ldlty2clty (oLDVMem l τ)).
   Global Instance Proper_oVMem l : Proper ((≡) ==> (≡)) (oVMem l).
   Proof. rewrite /oVMem/= => ???; f_equiv. solve_proper. Qed.
 End SemTypes.
 
 Global Instance: Params (@oAll) 2 := {}.
 
-Section ldslty_defs.
+Section clty_defs.
   Context `{dlangG Σ}.
-End ldslty_defs.
+End clty_defs.
 
 (* Backward compatibility. *)
 Notation "D*⟦ T ⟧" := (ldlty_car LD⟦ T ⟧).

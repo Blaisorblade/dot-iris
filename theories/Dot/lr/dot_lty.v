@@ -81,35 +81,35 @@ Definition dsltyO Σ := env -d> iPPredO dms Σ.
 Notation Dslty T := (λ ρ, IPPred (λI ds, T ρ ds)).
 
 (** All semantics of a type. *)
-Record ldslty {Σ} := LDslty {
-  ldslty_car :> dslty Σ;
-  ldslty_dlty : ldltyO Σ;
-  ldslty_olty : oltyO Σ 0;
-  ldslty_def2defs_head {l d ds ρ} :
-    lift_ldlty ldslty_dlty ρ l d ⊢ ldslty_car ρ ((l, d) :: ds);
-  ldslty_mono {l d ds ρ} :
+Record clty {Σ} := Clty {
+  clty_car :> dslty Σ;
+  clty_dlty : ldltyO Σ;
+  clty_olty : oltyO Σ 0;
+  clty_def2defs_head {l d ds ρ} :
+    lift_ldlty clty_dlty ρ l d ⊢ clty_car ρ ((l, d) :: ds);
+  clty_mono {l d ds ρ} :
     dms_hasnt ds l →
-    ldslty_car ρ ds ⊢ ldslty_car ρ ((l, d) :: ds);
-  ldslty_commute {ds ρ} :
-    ldslty_car ρ (selfSubst ds) ⊢ ldslty_olty vnil ρ (vobj ds);
+    clty_car ρ ds ⊢ clty_car ρ ((l, d) :: ds);
+  clty_commute {ds ρ} :
+    clty_car ρ (selfSubst ds) ⊢ clty_olty vnil ρ (vobj ds);
 }.
 
-Arguments ldslty : clear implicits.
-Arguments LDslty {_} _ _ _ _ _.
-Arguments ldslty_car {_} !_ /.
-Arguments ldslty_olty {_} !_ /.
-Arguments ldslty_dlty {_} !_ /.
+Arguments clty : clear implicits.
+Arguments Clty {_} _ _ _ _ _.
+Arguments clty_car {_} !_ /.
+Arguments clty_olty {_} !_ /.
+Arguments clty_dlty {_} !_ /.
 
-Section ldslty_ofe.
+Section clty_ofe.
   Context {Σ}.
 
-  Let iso := (λ T : ldslty Σ, (ldslty_car T : _ -d> _, ldslty_dlty T, ldslty_olty T)).
-  Instance ldslty_equiv : Equiv (ldslty Σ) := λ A B, iso A ≡ iso B.
-  Instance ldslty_dist : Dist (ldslty Σ) := λ n A B, iso A ≡{n}≡ iso B.
-  Lemma ldslty_ofe_mixin : OfeMixin (ldslty Σ).
+  Let iso := (λ T : clty Σ, (clty_car T : _ -d> _, clty_dlty T, clty_olty T)).
+  Instance clty_equiv : Equiv (clty Σ) := λ A B, iso A ≡ iso B.
+  Instance clty_dist : Dist (clty Σ) := λ n A B, iso A ≡{n}≡ iso B.
+  Lemma clty_ofe_mixin : OfeMixin (clty Σ).
   Proof. exact: (iso_ofe_mixin iso). Qed.
-End ldslty_ofe.
-Canonical Structure ldsltyO Σ := OfeT (ldslty Σ) ldslty_ofe_mixin.
+End clty_ofe.
+Canonical Structure cltyO Σ := OfeT (clty Σ) clty_ofe_mixin.
 
 Section DefsTypes.
   Context `{HdotG: dlangG Σ}.
@@ -128,8 +128,8 @@ Section DefsTypes.
   Definition lift_dinterp_dms `{dlangG Σ} (TD : ldltyO Σ) : dsltyO Σ := Dslty (λI ρ ds,
     ∃ l d, ⌜ dms_lookup l ds = Some d ⌝ ∧ lift_ldlty TD ρ l d).
 
-  Program Definition ldlty2ldslty `{dlangG Σ} (T : ldltyO Σ) : ldsltyO Σ :=
-    LDslty (lift_dinterp_dms T) T (lift_dinterp_vl T) _ _ _.
+  Program Definition ldlty2clty `{dlangG Σ} (T : ldltyO Σ) : cltyO Σ :=
+    Clty (lift_dinterp_dms T) T (lift_dinterp_vl T) _ _ _.
   Next Obligation.
     (* iIntros "* /="; case_match; simplify_eq/=; last done. *)
     iIntros "* /= H". case_match; last done.
@@ -148,34 +148,34 @@ Section DefsTypes.
     iIntros "!%"; naive_solver.
   Qed.
 
-  Program Definition LDsTop : ldslty Σ := LDslty (Dslty (λI _ _, True)) ⊥ oTop _ _ _.
+  Program Definition LDsTop : clty Σ := Clty (Dslty (λI _ _, True)) ⊥ oTop _ _ _.
   Solve All Obligations with eauto.
 
-  Program Definition olty2ldslty `{dlangG Σ} (T : oltyO Σ 0) : ldsltyO Σ :=
-    LDslty ⊥ ⊥ T _ _ _.
+  Program Definition olty2clty `{dlangG Σ} (T : oltyO Σ 0) : cltyO Σ :=
+    Clty ⊥ ⊥ T _ _ _.
   Solve All Obligations with by iIntros.
-  Global Instance : Bottom (ldslty Σ) := olty2ldslty ⊥.
+  Global Instance : Bottom (clty Σ) := olty2clty ⊥.
 
-  Program Definition LDsAnd (Tds1 Tds2 : ldslty Σ): ldslty Σ :=
-    LDslty (Dslty (λI ρ ds, Tds1 ρ ds ∧ Tds2 ρ ds)) ⊥ (oAnd (ldslty_olty Tds1) (ldslty_olty Tds2)) _ _ _.
+  Program Definition LDsAnd (Tds1 Tds2 : clty Σ): clty Σ :=
+    Clty (Dslty (λI ρ ds, Tds1 ρ ds ∧ Tds2 ρ ds)) ⊥ (oAnd (clty_olty Tds1) (clty_olty Tds2)) _ _ _.
   Next Obligation. intros; iIntros "[]". Qed.
-  Next Obligation. intros; iIntros "/= [??]". iSplit; by iApply ldslty_mono. Qed.
-  Next Obligation. intros; iIntros "/= [??]". iSplit; by iApply ldslty_commute. Qed.
+  Next Obligation. intros; iIntros "/= [??]". iSplit; by iApply clty_mono. Qed.
+  Next Obligation. intros; iIntros "/= [??]". iSplit; by iApply clty_commute. Qed.
 End DefsTypes.
 
 Implicit Types (T: ty).
 
 Class DTyInterp Σ :=
-  all_interp : ty → ldslty Σ.
+  all_interp : ty → clty Σ.
 (* Inspired by Autosubst. *)
 Global Arguments all_interp {_ _} !_ /.
 Notation "A⟦ T ⟧" := (all_interp T).
 
-Notation "Ds⟦ T ⟧" := (ldslty_car A⟦ T ⟧).
-Notation "LD⟦ T ⟧" := (ldslty_dlty A⟦ T ⟧).
+Notation "Ds⟦ T ⟧" := (clty_car A⟦ T ⟧).
+Notation "LD⟦ T ⟧" := (clty_dlty A⟦ T ⟧).
 
 (* We need [V⟦ _ ⟧] to be a proper first-class function. *)
-Definition pty_interp `{DTyInterp Σ} T : oltyO Σ 0 := ldslty_olty A⟦ T ⟧.
+Definition pty_interp `{DTyInterp Σ} T : oltyO Σ 0 := clty_olty A⟦ T ⟧.
 Global Arguments pty_interp {_ _} !_ /.
 
 Notation "V⟦ T ⟧" := (pty_interp T).
