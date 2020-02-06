@@ -187,7 +187,7 @@ Section SemTypes.
     | TTMem l L U => cTMem l V⟦ L ⟧ V⟦ U ⟧
     | TVMem l T' => cVMem l V⟦ T' ⟧
 
-    | TAnd T1 T2 => cAnd A⟦T1⟧ A⟦T2⟧
+    | TAnd T1 T2 => cAnd C⟦T1⟧ C⟦T2⟧
 
     | TTop => cTop
     | TBot => olty2clty oBot
@@ -212,8 +212,8 @@ Section SemTypes.
   Lemma ld_label_match T : ldlty_label LD⟦ T ⟧ = label_of_ty T.
   Proof. by destruct T. Qed.
 
-  Definition idtp  Γ T l d     := sdtp l d  V⟦Γ⟧* A⟦T⟧.
-  Definition idstp Γ T ds      := sdstp ds  V⟦Γ⟧* A⟦T⟧.
+  Definition idtp  Γ T l d     := sdtp l d  V⟦Γ⟧* C⟦T⟧.
+  Definition idstp Γ T ds      := sdstp ds  V⟦Γ⟧* C⟦T⟧.
   Definition ietp  Γ T e       := setp e    V⟦Γ⟧* V⟦T⟧.
   Definition istpi Γ T1 T2 i j := sstpi i j V⟦Γ⟧* V⟦T1⟧ V⟦T2⟧.
   Definition iptp  Γ T p i     := sptp p i  V⟦Γ⟧* V⟦T⟧.
