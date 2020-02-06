@@ -138,26 +138,22 @@ Section DefsTypes.
   Program Definition ldlty2clty `{dlangG Σ} (T : ldltyO Σ) : cltyO Σ :=
     Clty (lift_dinterp_dms T) T (lift_dinterp_vl T) _ _ _.
   Next Obligation.
-    (* iIntros "* /="; case_match; simplify_eq/=; last done. *)
-    iIntros "* /= H". case_match; last done.
-    iExists l, d; iFrame. iIntros "!%".
-    exact: dms_lookup_head.
+    iIntros "* /= H"; case_match; last done.
+    iExists l, d; iFrame. iIntros "!%". exact: dms_lookup_head.
   Qed.
   Next Obligation.
     intros; cbn; case_match; iDestruct 1 as (l' d' ?) "H /="; last done.
-    iExists l', d'; iFrame; iIntros "!%".
-    exact: dms_lookup_mono.
+    iExists l', d'; iFrame; iIntros "!%". exact: dms_lookup_mono.
   Qed.
   Next Obligation.
     intros; rewrite /lift_dinterp_vl /=; case_match;
       iDestruct 1 as (?l' d ?) "H"; last done.
-    iExists d; iDestruct "H" as (->) "$".
-    iIntros "!%"; naive_solver.
+    iExists d; iDestruct "H" as (->) "$"; iIntros "!%". naive_solver.
   Qed.
 
   Global Instance Proper_ldlty2clty : Proper ((≡) ==> (≡)) ldlty2clty.
   Proof.
-    rewrite /ldlty2clty/= => ???; split=>/=; repeat f_equiv; solve_proper.
+    rewrite /ldlty2clty => ???; split=>/=; repeat f_equiv; solve_proper.
   Qed.
 
   Program Definition cTop : clty Σ := Clty (Dslty (λI _ _, True)) ⊥ oTop _ _ _.
@@ -169,7 +165,7 @@ Section DefsTypes.
   Global Instance : Bottom (clty Σ) := olty2clty ⊥.
 
   Program Definition cAnd (Tds1 Tds2 : clty Σ): clty Σ :=
-    Clty (Dslty (λI ρ ds, Tds1 ρ ds ∧ Tds2 ρ ds)) ⊥ (oAnd (clty_olty Tds1) (clty_olty Tds2)) _ _ _.
+    Clty (Dslty (λI ρ ds, Tds1 ρ ds ∧ Tds2 ρ ds)) ⊥ (oAnd Tds1 Tds2) _ _ _.
   Next Obligation. intros; iIntros "[]". Qed.
   Next Obligation. intros; iIntros "/= [??]". iSplit; by iApply clty_mono. Qed.
   Next Obligation. intros; iIntros "/= [??]". iSplit; by iApply clty_commute. Qed.
