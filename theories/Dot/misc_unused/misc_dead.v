@@ -255,7 +255,7 @@ Section path_repl.
   Lemma alias_paths_subst_samepwp' p q:
     alias_pathsI p q ⊣⊢
       (∃ u, path_wp p (λ vp, ⌜u = vp⌝)) ∧
-      ∀ φ, ⌜PersistentP φ → path_wp p φ ≡ path_wp q φ⌝.
+      ∀ φ, ⌜path_wp p φ ≡ path_wp q φ⌝.
   Proof. iIntros "!%". apply alias_paths_samepwp. Qed.
 
 
