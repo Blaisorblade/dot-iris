@@ -90,7 +90,7 @@ Section helpers.
     iSpecialize ("H" $! ρ with "[//]"). rewrite wp_value_inv.
     rewrite !closed_subst_vl_id //.
     do 2 (iExists _; iSplit; [done|]).
-    by rewrite path_wp_pv.
+    by rewrite path_wp_pv_eq.
   Qed.
 End helpers.
 
@@ -266,7 +266,7 @@ Section div_example.
       iIntros (w) "!>"; iMod 1 as %[n Hw]; iIntros "!> !>".
       simplify_eq/=.
       iApply wp_wand; [iApply wp_if_ge | iIntros "/=" (v [-> ?])].
-      rewrite path_wp_pv.
+      rewrite path_wp_pv_eq.
       repeat (iExists _; try iSplit => //=).
       iSplit => //. by iApply dm_to_type_intro.
       iIntros "!%"; rewrite /pos.
@@ -274,7 +274,7 @@ Section div_example.
     - valMember ρ; iExists _; iSplit; [done|].
       iIntros (v) "!>"; iMod 1 as %[m Hw]; iIntros "!> !>".
       rewrite -wp_value'; simplify_eq/=; iExists _; iSplit; [done|].
-      iIntros (w) "!> #Harg!>!>"; rewrite path_wp_pv /=.
+      iIntros (w) "!> #Harg!>!>"; rewrite path_wp_pv_eq /=.
       iDestruct "Harg" as (Φ d [ds Hlook]) "[Hs1 #Harg]";
         have {d ds Hlook}->: d = dtysem [] s by naive_solver.
       iPoseProof (sToIpos with "Hs") as "Hs2/=".
@@ -375,7 +375,7 @@ Section small_ex.
       have Hev2: pos (vnat 2) by rewrite /pos; eauto.
       iIntros (_).
 
-      repeat (repeat iExists _; repeat iSplit; rewrite ?path_wp_pv //);
+      repeat (repeat iExists _; repeat iSplit; rewrite ?path_wp_pv_eq //);
         try by [|iApply dm_to_type_intro].
   Qed.
 
@@ -468,7 +468,7 @@ Section small_ex.
       iDestruct "HA" as (φ) "[Hlφ HA]".
       iDestruct "HB" as (dB) "[HlB HB]".
       iDestruct "HB" as (w) "HB".
-      rewrite !path_wp_pv.
+      rewrite !path_wp_pv_eq.
       iExists φ, dA; repeat iSplit => //; try iNext => //.
       (* Last case is stuck, since we don't know what [ρ 0] is and what
       "A" points to. *)

@@ -154,7 +154,7 @@ Section SemTypes.
   Lemma oSel_pv {i} w l args ρ v :
     oSel (pv w) l args ρ v ⊣⊢
       ∃ ψ d, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n[ i ] ψ ∧ ▷ □ ψ args v.
-  Proof. by rewrite /= path_wp_pv. Qed.
+  Proof. by rewrite /= path_wp_pv_eq. Qed.
 
   Definition oSing `{dlangG Σ} p : olty Σ 0 := olty0 (λI ρ v, ⌜alias_paths p.|[ρ] (pv v)⌝).
 
@@ -273,7 +273,7 @@ Section JudgDefs.
 
   Lemma path_includes_equiv p ρ ds : path_includes (pv (ids 0)) ρ ds ↔
     ∃ ds', ρ 0 = vobj ds' ∧ ds.|[ρ] `sublist_of` selfSubst ds' ∧ wf_ds ds'.
-  Proof. by rewrite /path_includes path_wp_pure_inv_pv. Qed.
+  Proof. by rewrite /path_includes path_wp_pure_pv_eq. Qed.
 
   Lemma idtp_eq Γ T l d : Γ ⊨ {  l := d  } : T ⊣⊢
     □∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)] ⌝ → G⟦Γ⟧ ρ → D[ l ]⟦T⟧ ρ d.|[ρ].

@@ -81,9 +81,9 @@ Section path_wp.
   Lemma path_wp_unfold p Φ : path_wp p Φ ⊣⊢ path_wp_pre path_wp p Φ.
   Proof. by rewrite path_wp_unseal /path_wp_def least_fixpoint_unfold. Qed.
 
-  Lemma path_wp_pv v φ : path_wp (pv v) φ ⊣⊢ φ v.
+  Lemma path_wp_pv_eq v φ : path_wp (pv v) φ ⊣⊢ φ v.
   Proof. by rewrite path_wp_unfold. Qed.
-  Lemma path_wp_pself p l φ : path_wp (pself p l) φ ⊣⊢ ∃ vp q, ⌜ vp @ l ↘ dpt q ⌝ ∧
+  Lemma path_wp_pself_eq p l φ : path_wp (pself p l) φ ⊣⊢ ∃ vp q, ⌜ vp @ l ↘ dpt q ⌝ ∧
         path_wp p (λ v, ⌜ vp = v ⌝) ∧ □ path_wp q φ.
   Proof. by rewrite path_wp_unfold. Qed.
 
@@ -271,7 +271,7 @@ Section path_wp.
     move => Hrepl.
     elim: Hrepl φ Hφ => [| p1' p2' l Hrepl IHrepl] φ Hφ /=.
     exact: alias_paths_elim_eq.
-    rewrite !path_wp_pself /= => Hal.
+    rewrite !path_wp_pself_eq /= => Hal.
     properness => //. exact: IHrepl.
   Qed.
 

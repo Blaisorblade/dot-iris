@@ -52,7 +52,7 @@ Section Sec.
   Proof.
     iIntros "#HE !>" (ρ) "HG /=".
     iSpecialize ("HE" with "HG"); iNext i.
-    rewrite path_wp_eq path_wp_pself.
+    rewrite path_wp_eq path_wp_pself_eq.
     iDestruct "HE" as (vp Hpv d Hlook pmem ->) "#H".
     iExists vp, pmem; eauto.
   Qed.

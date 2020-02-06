@@ -77,7 +77,7 @@ Section path_repl.
     iIntros "#Hp !>" (ρ v) "Hg /= Heq".
     iSpecialize ("Hp" with "Hg"); iNext i.
     iDestruct "Heq" as %->%(alias_paths_elim_eq (T _ ρ)).
-    by rewrite path_wp_pv.
+    by rewrite path_wp_pv_eq.
   Qed.
 
   Lemma Sngl_Self_Sub Γ p T i : Γ ⊨p p : T, i -∗ Γ ⊨ TSing p, i <: T, i.
@@ -158,7 +158,7 @@ Section path_repl.
     iSpecialize ("Hp" with "Hg").
     iAssert (▷^i ⟦ T1 ⟧ (v .: ρ) v)%I as "#HT1".
     by iNext i; iDestruct "Heq" as %Heq;
-      rewrite (alias_paths_elim_eq _ Heq) path_wp_pv.
+      rewrite (alias_paths_elim_eq _ Heq) path_wp_pv_eq.
     iApply ("Hsub" $! (v .: ρ) v with "[$Hg] HT1").
     rewrite iterate_TLater_later /= hsubst_comp. iFrame "Heq HT1".
   Qed.
@@ -175,7 +175,7 @@ Section path_repl.
     iSpecialize ("Hsub" $! ρ v with "[#$Hg] [#]");
       iNext i; iDestruct "Heq" as %Heq;
       rewrite -(psubst_one_repl Hrepl1, psubst_one_repl Hrepl2) //
-        (alias_paths_elim_eq _ Heq) path_wp_pv //.
+        (alias_paths_elim_eq _ Heq) path_wp_pv_eq //.
   Qed.
 
   Lemma T_All_Ex_p Γ e1 p2 T1 T2 T2' (Hrepl : T2 .Tp[ p2 /]~ T2') :
@@ -233,7 +233,7 @@ Section path_repl.
     Γ ⊨p p : TVMem l T, i.
   Proof.
     iIntros "#HE /= !>" (ρ) "#HG"; iSpecialize ("HE" with "HG"); iNext i.
-    rewrite path_wp_pself !path_wp_eq;
+    rewrite path_wp_pself_eq !path_wp_eq;
       iDestruct "HE" as (v q Hlook Hpv) "Htw {HG} /=".
     iExists _; iFrame (Hpv). eauto.
   Qed.

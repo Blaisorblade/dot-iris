@@ -11,7 +11,7 @@ Section Sec.
     Γ s⊨p pv v : T, 0.
   Proof.
     iIntros "/= #Hp !>" (ρ) "Hg"; iSpecialize ("Hp" with "Hg").
-    by rewrite /= wp_value_inv' path_wp_pv.
+    by rewrite /= wp_value_inv' path_wp_pv_eq.
   Qed.
 
   Lemma P_Val {Γ} v T: Γ ⊨ tv v : T -∗ Γ ⊨p pv v : T, 0.
@@ -47,7 +47,7 @@ Section Sec.
   Proof.
     iDestruct 1 as (Hwf) "#Hds";
       iIntros "!>" (ρ Hpid%path_includes_field_aliases) "#Hg".
-    rewrite def_interp_tvmem_eq path_wp_pv /=. iLöb as "IH".
+    rewrite def_interp_tvmem_eq path_wp_pv_eq /=. iLöb as "IH".
     iApply clty_commute. rewrite norm_selfSubst.
     iApply ("Hds" $! (vobj _ .: ρ) with "[%] [$IH $Hg //]").
     exact: path_includes_self.

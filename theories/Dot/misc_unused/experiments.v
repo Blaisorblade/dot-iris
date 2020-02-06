@@ -59,7 +59,7 @@ Section NotUsed.
   Proof.
     iIntros "#Htyp !>" (ρ v) "#Hg #HvT1".
     rewrite -(interp_weaken_one T2 (v .: ρ) v) -(interp_weaken_one T1 (v .: ρ) v).
-    iEval rewrite -path_wp_pv.
+    iEval rewrite -path_wp_pv_eq.
     iApply ("Htyp" $! (v .: ρ) with "[$Hg $HvT1]").
   Qed.
 

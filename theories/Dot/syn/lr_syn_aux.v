@@ -31,10 +31,10 @@ Inductive path_wp_pure : path → (vl → Prop) → Prop :=
   path_wp_pure (pself p l) Pv .
 Local Hint Constructors path_wp_pure : core.
 
-Lemma path_wp_pure_inv_pv Pv v : path_wp_pure (pv v) Pv ↔ Pv v.
+Lemma path_wp_pure_pv_eq Pv v : path_wp_pure (pv v) Pv ↔ Pv v.
 Proof. split; by [inversion_clear 1 | auto]. Qed.
 
-Lemma path_wp_pure_inv_pself Pv p l : path_wp_pure (pself p l) Pv →
+Lemma path_wp_pure_pself_eq Pv p l : path_wp_pure (pself p l) Pv →
   ∃ vp q, path_wp_pure p (eq vp) ∧ vp @ l ↘ dpt q ∧ path_wp_pure q Pv ∧
   path_wp_pure (pself p l) Pv.
 Proof. inversion_clear 1; naive_solver. Qed.
@@ -102,7 +102,7 @@ Definition alias_paths p q :=
 
 Lemma alias_paths_pv_eq_1 p vr :
   alias_paths p (pv vr) ↔ path_wp_pure p (eq vr).
-Proof. rewrite /alias_paths. by setoid_rewrite path_wp_pure_inv_pv. Qed.
+Proof. rewrite /alias_paths. by setoid_rewrite path_wp_pure_pv_eq. Qed.
 
 Hint Extern 1 (path_wp_pure _ _) => by apply path_wp_pure_swap : core.
 
@@ -110,7 +110,7 @@ Lemma alias_paths_pv_eq_2 p vr :
   alias_paths (pv vr) p ↔ path_wp_pure p (eq vr).
 Proof.
   rewrite /alias_paths -path_wp_pure_swap.
-  by setoid_rewrite path_wp_pure_inv_pv.
+  by setoid_rewrite path_wp_pure_pv_eq.
 Qed.
 
 Lemma alias_paths_self p v :
