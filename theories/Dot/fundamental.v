@@ -76,7 +76,7 @@ Section fundamental.
       + by iApply T_All_E; [apply IHHT1|apply IHHT2].
       + by iApply T_Obj_E.
       + by iApply T_Mu_E.
-      + iApply T_All_I_Strong; [|apply IHHT]. ietp_weaken_ctx.
+      + iApply T_All_I_Strong; [|apply IHHT]. exact: fundamental_ctx_sub.
       + iApply T_Obj_I. by iApply fundamental_dms_typed.
       + by iApply T_Mu_I.
       + by iApply T_Nat_I.
