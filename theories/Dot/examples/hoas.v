@@ -76,12 +76,17 @@ End hterm_lifting.
 (* Binders in our language: λ, ν, ∀, μ. *)
 
 (** We bind also to [hty'] to support well combinators like [hclose]. *)
+Declare Scope hty_scope.
 Bind Scope hty_scope with hty hty'.
-Bind Scope hdms_scope with hdms hdms'.
-(* [htm'] here interferes: we can only bind one scope to [hterm]. Merge them!*)
-Bind Scope hexpr_scope with htm.
 Delimit Scope hty_scope with HT.
+
+Declare Scope hdms_scope.
+Bind Scope hdms_scope with hdms hdms'.
 Delimit Scope hdms_scope with HD.
+
+(* [htm'] here interferes: we can only bind one scope to [hterm]. Merge them!*)
+Declare Scope hexpr_scope.
+Bind Scope hexpr_scope with htm.
 Delimit Scope hexpr_scope with HE.
 
 Instance ids_hvl : Ids hvl := λ x, (* [x]: input to the substitution. *)

@@ -26,6 +26,7 @@ Record iPPred vl Σ := IPPred {
 }.
 Global Arguments IPPred {_ _} _%I {_}.
 Global Arguments iPPred_car {_ _} !_ _ /.
+Declare Scope iPPred_scope.
 Bind Scope iPPred_scope with iPPred.
 Delimit Scope iPPred_scope with T.
 Global Existing Instance iPPred_persistent.
