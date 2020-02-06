@@ -138,6 +138,15 @@ Section SemTypes.
   Global Instance Proper_oLDVMem l : Proper ((≡) ==> (≡)) (oLDVMem l).
   Proof. rewrite /oLDVMem/= => ???. f_equiv. solve_proper_ho. Qed.
 
+  (** Beware [oTMem] and [oVMem] are full [clty], despite the prefix. *)
+  Definition oTMem l τ1 τ2 : clty Σ := ldlty2clty (oLDTMem l τ1 τ2).
+  Global Instance Proper_oTMem l : Proper ((≡) ==> (≡) ==> (≡)) (oTMem l).
+  Proof. solve_proper. Qed.
+
+  Definition oVMem l τ : clty Σ := ldlty2clty (oLDVMem l τ).
+  Global Instance Proper_oVMem l : Proper ((≡) ==> (≡)) (oVMem l).
+  Proof. solve_proper. Qed.
+
   Definition oSel {i} p l : oltyO Σ i :=
     Olty (λI args ρ v, path_wp p.|[ρ]
       (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗n[ i ] ψ ∧ ▷ □ ψ args v)).
@@ -175,8 +184,8 @@ Section SemTypes.
   Global Program Instance dot_interp : DTyInterp Σ := fix dot_interp T :=
     let _ := dot_interp : DTyInterp Σ in
     match T with
-    | TTMem l L U => ldlty2clty $ oLDTMem l V⟦ L ⟧ V⟦ U ⟧
-    | TVMem l T' => ldlty2clty $ oLDVMem l V⟦ T' ⟧
+    | TTMem l L U => oTMem l V⟦ L ⟧ V⟦ U ⟧
+    | TVMem l T' => oVMem l V⟦ T' ⟧
 
     | TAnd T1 T2 => LDsAnd A⟦T1⟧ A⟦T2⟧
 
@@ -226,13 +235,6 @@ Section SemTypes.
   Global Instance setp_persistent : IntoPersistent' (setp e     Γ T) | 0 := _.
   Global Instance sstpi_persistent : IntoPersistent' (sstpi i j Γ T1 T2) | 0 := _.
   Global Instance sptp_persistent : IntoPersistent' (sptp p i   Γ T) | 0 := _.
-
-  Definition oTMem l τ1 τ2 := ldlty2clty (oLDTMem l τ1 τ2).
-  Global Instance Proper_oTMem l : Proper ((≡) ==> (≡) ==> (≡)) (oTMem l).
-  Proof. rewrite /oTMem/= => ??? ???. f_equiv. solve_proper. Qed.
-  Definition oVMem l τ := ldlty2clty (oLDVMem l τ).
-  Global Instance Proper_oVMem l : Proper ((≡) ==> (≡)) (oVMem l).
-  Proof. rewrite /oVMem/= => ???; f_equiv. solve_proper. Qed.
 End SemTypes.
 
 Global Instance: Params (@oAll) 2 := {}.
