@@ -129,6 +129,11 @@ Section DefsTypes.
 
   Definition lift_dinterp_dms `{dlangG Σ} (TD : ldltyO Σ) : dsltyO Σ := Dslty (λI ρ ds,
     ∃ l d, ⌜ dms_lookup l ds = Some d ⌝ ∧ lift_ldlty TD ρ l d).
+  Global Instance Proper_lift_dinterp_dms : Proper ((≡) ==> (≡)) lift_dinterp_dms.
+  Proof.
+    rewrite /lift_dinterp_dms/= => ?? [/=??] ??/=;
+      repeat case_match; simplify_eq/=; solve_proper_ho.
+  Qed.
 
   Program Definition ldlty2clty `{dlangG Σ} (T : ldltyO Σ) : cltyO Σ :=
     Clty (lift_dinterp_dms T) T (lift_dinterp_vl T) _ _ _.
@@ -148,6 +153,11 @@ Section DefsTypes.
       iDestruct 1 as (?l' d ?) "H"; last done.
     iExists d; iDestruct "H" as (->) "$".
     iIntros "!%"; naive_solver.
+  Qed.
+
+  Global Instance Proper_ldlty2clty : Proper ((≡) ==> (≡)) ldlty2clty.
+  Proof.
+    rewrite /ldlty2clty/= => ???; split=>/=; repeat f_equiv; solve_proper.
   Qed.
 
   Program Definition LDsTop : clty Σ := Clty (Dslty (λI _ _, True)) ⊥ oTop _ _ _.
