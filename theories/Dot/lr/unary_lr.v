@@ -75,7 +75,7 @@ Section judgments.
 
   (** Path typing *)
   Definition sptp `{dlangG Σ} p i Γ (T : oltyO Σ 0): iProp Σ :=
-    □∀ ρ, s⟦Γ⟧* ρ -∗
+    □∀ ρ, s⟦Γ⟧* ρ →
       ▷^i path_wp (p.|[ρ]) (λ v, oClose T ρ v).
   Global Arguments sptp /.
 End judgments.
