@@ -217,30 +217,30 @@ Section logrel_part2.
     | nil => True
     end%I.
 
-  Notation "⟦ Γ ⟧*" := (interp_env Γ).
+  Notation "G⟦ Γ ⟧" := (interp_env Γ).
 
   Global Instance interp_env_persistent Γ ρ :
-    Persistent (⟦ Γ ⟧* ρ).
+    Persistent (G⟦ Γ ⟧ ρ).
   Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
 
   Definition ietp Γ T e : iProp Σ :=
-    (□∀ ρ, ⟦Γ⟧* ρ → ⟦T⟧ₑ ρ (e.|[ρ]))%I.
+    (□∀ ρ, G⟦Γ⟧ ρ → ⟦T⟧ₑ ρ (e.|[ρ]))%I.
   Global Arguments ietp /.
   Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 
   Definition ietpi Γ T e i: iProp Σ :=
-    (□∀ ρ, ⟦Γ⟧* ρ → ▷^i ⟦T⟧ₑ ρ (e.|[ρ]))%I.
+    (□∀ ρ, G⟦Γ⟧ ρ → ▷^i ⟦T⟧ₑ ρ (e.|[ρ]))%I.
   Global Arguments ietpi /.
   Notation "Γ ⊨ e : T , i" := (ietpi Γ T e i) (at level 74, e, T at next level).
 
   (** Indexed Subtyping. Defined on closed values. We must require closedness
       explicitly, since closedness now does not follow from being well-typed later. *)
   Definition istpi Γ T1 T2 i j: iProp Σ :=
-    (□∀ ρ v, ⟦Γ⟧* ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
+    (□∀ ρ v, G⟦Γ⟧ ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
   Global Arguments istpi /.
 
   Definition delayed_ivstp Γ T1 T2 i: iProp Σ :=
-    (□ ∀ ρ, ⟦Γ⟧*ρ → ▷^i ∀v, ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
+    (□ ∀ ρ, G⟦Γ⟧ρ → ▷^i ∀v, ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
   Global Arguments delayed_ivstp /.
 
   Global Instance ietp_persistent Γ T e : Persistent (ietp Γ T e) := _.
@@ -248,7 +248,7 @@ Section logrel_part2.
   Global Instance istpi_persistent Γ T1 T2 i j : Persistent (istpi Γ T1 T2 i j) := _.
 End logrel_part2.
 
-Notation "⟦ Γ ⟧*" := (interp_env Γ).
+Notation "G⟦ Γ ⟧" := (interp_env Γ).
 
 (** Expression typing *)
 Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
@@ -277,7 +277,7 @@ Section logrel_lemmas.
 
   Lemma interp_env_lookup Γ ρ T x:
     Γ !! x = Some T →
-    ⟦ Γ ⟧* ρ -∗ ⟦ (shiftN x T) ⟧ ρ (ρ x).
+    G⟦ Γ ⟧ ρ -∗ ⟦ (shiftN x T) ⟧ ρ (ρ x).
   Proof.
     elim: Γ ρ x => [//|τ' Γ' IHΓ] ρ x Hx /=.
     iDestruct 1 as "[Hg Hv]". move: x Hx => [ [->] | x Hx] /=.

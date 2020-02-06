@@ -14,7 +14,7 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (Γ : ctx).
 Section swap_based_typing_lemmas.
   Context `{!dsubSynG Σ} `{!SwapPropI Σ} {Γ}.
 
-  Lemma Sub_TAllConCov T1 T2 U1 U2 i:
+  Lemma All_Sub_All T1 T2 U1 U2 i:
     Γ ⊨ T2, S i <: T1, S i -∗
     iterate TLater (S i) (shift T2) :: Γ ⊨ U1, S i <: U2, S i -∗
     Γ ⊨ TAll T1 U1, i <: TAll T2 U2, i .
@@ -63,7 +63,7 @@ Section swap_based_typing_lemmas.
     - iIntros (u) "#HuU1". by iApply "HsubU".
   Qed.
 
-  Lemma Sub_TTMem_Variant L1 L2 U1 U2 i:
+  Lemma Typ_Sub_Typ L1 L2 U1 U2 i:
     Γ ⊨ L2, S i <: L1, S i -∗
     Γ ⊨ U1, S i <: U2, S i -∗
     Γ ⊨ TTMem L1 U1, i <: TTMem L2 U2, i.
@@ -106,15 +106,15 @@ Section Fundamental.
       + by iApply Bot_Sub.
       + iApply Sel_Sub. by iApply fundamental_typed.
       + iApply Sub_Sel. by iApply fundamental_typed.
-      + by iApply Sub_TAllConCov.
-      + by iApply Sub_TTMem_Variant.
+      + by iApply All_Sub_All.
+      + by iApply Typ_Sub_Typ.
     - iInduction HT as [] "IHT".
-      + by iApply T_Forall_Ex.
-      + by iApply T_Forall_E.
-      + by iApply T_Forall_I.
-      (* + iApply T_New_I.
+      + by iApply T_All_Ex.
+      + by iApply T_All_E.
+      + by iApply T_All_I.
+      (* + iApply T_Obj_I.
         by iApply fundamental_dms_typed.
-      + by iApply TMu_I. *)
+      + by iApply T_Mu_I. *)
       + by iApply T_Nat_I.
       + by iApply T_Var.
       + iApply T_Sub => //.

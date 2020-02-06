@@ -22,7 +22,7 @@ Section Sec.
     by rewrite -wp_value' interp_env_lookup.
   Qed.
 
-  Lemma T_Forall_E e1 e2 T1 T2:
+  Lemma T_All_E e1 e2 T1 T2:
     Γ ⊨ e1: TAll T1 (shift T2) -∗
     Γ ⊨ e2 : T1 -∗
     (*────────────────────────────────────────────────────────────*)
@@ -36,7 +36,7 @@ Section Sec.
     iIntros (v). by rewrite (interp_weaken_one T2 _ v).
   Qed.
 
-  Lemma T_Forall_Ex e1 v2 T1 T2:
+  Lemma T_All_Ex e1 v2 T1 T2:
     Γ ⊨ e1: TAll T1 T2 -∗
     Γ ⊨ tv v2 : T1 -∗
     (*────────────────────────────────────────────────────────────*)
@@ -52,7 +52,7 @@ Section Sec.
       rewrite (interp_subst_one T2 v2 v); auto.
   Qed.
 
-  Lemma T_Forall_I T1 T2 e:
+  Lemma T_All_I T1 T2 e:
     shift T1 :: Γ ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
@@ -176,7 +176,7 @@ Section Sec.
     Γ ⊨ T, S i <: U, S j.
   Proof. iIntros "/= #Hsub !> ** !>". by iApply "Hsub". Qed.
 
-  Lemma DSub_TTMem_Variant L1 L2 U1 U2 i:
+  Lemma DTyp_Sub_Typ L1 L2 U1 U2 i:
     Γ ⊨[S i] L2 <: L1 -∗
     Γ ⊨[S i] U1 <: U2 -∗
     Γ ⊨[i] TTMem L1 U1 <: TTMem L2 U2.
