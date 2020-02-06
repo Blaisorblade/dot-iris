@@ -1,7 +1,8 @@
 From iris.proofmode Require Import tactics.
+From D Require Import swap_later_impl.
 From D.pure_program_logic Require Import lifting adequacy.
 From D.Dot Require Import unary_lr
-  lr_lemmas lr_lemmasNoBinding lr_lemmasDefs lr_lemmasPrim.
+  lr_lemmas lr_lemmasTSel lr_lemmasNoBinding lr_lemmasDefs lr_lemmasPrim.
 From D.Dot Require Import typeExtractionSem.
 From D.Dot Require Import skeleton fundamental.
 From D.Dot Require Import scalaLib hoas exampleInfra typingExInfra.
@@ -49,6 +50,12 @@ Section helpers.
   Proof. wp_bin. ev; simplify_eq/=. by case_decide. Qed.
   Lemma wp_nge m n (Hnge : ¬ m > n) : WP m > n {{ w, w ≡ false }}%I.
   Proof. wp_bin. ev; simplify_eq/=. by case_decide. Qed.
+
+  Lemma setp_value Γ (T : olty Σ 0) v: Γ s⊨ tv v : T ⊣⊢ (□∀ ρ, s⟦ Γ ⟧* ρ → T vnil ρ v.[ρ]).
+  Proof.
+    rewrite /=; properness => //; iSplit;
+      [rewrite wp_value_inv|rewrite -wp_value]; iIntros "#$".
+  Qed.
 
   Lemma setp_value_eq (T : olty Σ 0) v: (∀ ρ, T vnil ρ v.[ρ]) ⊣⊢ [] s⊨ tv v : T.
   Proof.
@@ -122,7 +129,6 @@ Section div_example.
   Lemma pos_wp ρ v : ipos vnil ρ v ⊢ WP v > 0 {{ w, w ≡ vbool true }}.
   Proof. iDestruct 1 as %(n & -> & ?). by iApply wp_ge. Qed.
 
-  Import swap_later_impl.
   Context `{SwapPropI Σ}.
   Lemma loopSemT: WP hclose hloopTm {{ _, False }}%I.
   Proof.
@@ -383,31 +389,62 @@ Section small_ex.
     is overly abstract when we try proving that [this.n : this.A];
     see concretely below.
   *)
-  Definition svTyp1Body : oltyO Σ 0 :=
-    oAnd (cTMem "A" oBot (oPrim tnat))
-      (oAnd (cVMem "n" (oSel p0 "A"))
-      oTop).
-  Goal V⟦vTyp1Body⟧ = svTyp1Body. done. Abort.
+  Definition vTyp2Body : ty := {@
+    type "A" >: ⊥ <: 𝐍;
+    val "n" : TLater (p0 @; "A")
+  }.
+  Definition vTyp2 := μ vTyp2Body.
 
   Definition svTyp2Body : oltyO Σ 0 :=
-    oAnd (cTMem "A" ipos ipos)
-      (oAnd (cVMem "n" (oSel p0 "A"))
+    oAnd (cTMem "A" oBot (oPrim tnat))
+      (oAnd (cVMem "n" (oLater (oSel p0 "A")))
       oTop).
+  Goal V⟦vTyp2Body⟧ = svTyp2Body. done. Abort.
   Definition svTyp2 := oMu svTyp2Body.
 
-  Lemma vHasA2t : Hs -∗ [] ⊨ tv v : vTyp1.
+  Definition svTyp2ConcrBody : cltyO Σ :=
+    cAnd (cTMem "A" ipos ipos)
+      (cAnd (cVMem "n" (oLater (oSel p0 "A")))
+      cTop).
+  Definition svTyp2Concr := oMu svTyp2ConcrBody.
+
+  Lemma sT_Var0 {Γ T}
+    (Hx : Γ !! 0 = Some T):
+    (*──────────────────────*)
+    Γ s⊨ of_val (ids 0) : T.
+  Proof. rewrite -(hsubst_id T). apply (sT_Var Hx). Qed.
+
+  (* This works! But we get a weaker type, because we're using typing rules
+  for recursive objects on a not-really-recursive one. *)
+  Lemma vHasA2t `{SwapPropI Σ}: Hs -∗ [] s⊨ tv v : svTyp2.
   Proof.
     iIntros "#Hs".
-    iApply (sT_Sub (i := 0) (T1 := svTyp2)); first last.
-    - iApply sSub_Mu_X; rewrite /svTyp2Body /vTyp1Body iterate_0.
+    iApply (sT_Sub (i := 0) (T1 := svTyp2Concr)); first last.
+    - iApply sSub_Mu_X; rewrite /svTyp2ConcrBody /vTyp1Body iterate_0.
       iApply sSub_And; last iApply sSub_And; last iApply sSub_Top.
     + iApply sSub_Trans; first iApply sAnd1_Sub.
       iApply sTyp_Sub_Typ; [iApply sBot_Sub | iApply Sub_later_ipos_nat].
     + iApply sSub_Trans; first iApply sAnd2_Sub.
-      iApply sSub_Trans; first iApply sAnd1_Sub; iApply sSub_Refl.
-    - rewrite /v /svTyp2 /svTyp2Body.
-    (* iApply T_Obj_I. *)
-    Abort.
+      iApply sAnd1_Sub.
+    - rewrite /v /svTyp2Concr /svTyp2ConcrBody.
+      iApply sT_Obj_I.
+      iApply sD_Cons; first done.
+      iApply (sD_Typ_Abs ipos); [iApply sSub_Refl..|by iExists _; iFrame "Hs"].
+      iApply sD_Cons; [done| |iApply sD_Nil].
+      iApply sD_TVMem_I.
+      iApply (sT_Sub (i := 0) (T1 := ipos)).
+      rewrite setp_value /ipos /pos; iIntros "!>" (ρ) "_ /= !%". naive_solver.
+      iApply sSub_Trans; first iApply sSub_Add_Later.
+      iApply sSub_Trans; first iApply sSub_Add_Later.
+      iApply sSub_Later_Sub.
+      iApply sSub_Sel_Path.
+      iApply sP_Later.
+      iApply sP_Val.
+      iApply (sT_Sub (i := 0)).
+      by iApply sT_Var0.
+      iApply sSub_Later_Sub.
+      iApply sAnd1_Sub.
+  Qed.
 
   Lemma vHasA1': Hs -∗ ⟦ vTyp1 ⟧ ids v.
   Proof.
@@ -436,13 +473,6 @@ Section small_ex.
       (* Last case is stuck, since we don't know what [ρ 0] is and what
       "A" points to. *)
   Abort.
-
-  (* Lemma vHasA1': Hs -∗ ∀ ρ, ⟦ vTyp1 ⟧ ρ v.[ρ].
-  Proof.
-    rewrite -ietp_value_inv. iIntros "#Hs".
-    (* Fails, because we need a *syntactic* type. *)
-    iApply (T_Sub [] v _ vTyp1 0). *)
-
 End small_ex.
 End s_is_pos.
 
