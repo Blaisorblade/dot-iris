@@ -43,10 +43,7 @@ Notation "~ e" := (tun unot e%E) (at level 75, right associativity) : expr_scope
 Notation "e1 > e2" := (e2%E < e1%E)%E : expr_scope.
 Notation "e1 ≥ e2" := (e2%E ≤ e1%E)%E : expr_scope.
 
-(** First, let's maybe start defining some nicer notation. I have little clue what I'm doing tho.
-    *)
-
-(* Beware that "Bind Scope" just presets the scope of arguments for *new* definitions. *)
+(** Let's define some nicer notation. *)
 
 (** Notation for object values. *)
 
