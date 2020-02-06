@@ -37,7 +37,7 @@ Section path_wp_pre.
     match p with
     | pv vp => φ vp
     | pself p l => ∃ vp q, ⌜ vp @ l ↘ dpt q ⌝ ∧
-        path_wp p (λ v, ⌜ vp = v ⌝) ∧ □ path_wp q φ
+        path_wp p (λ v, ⌜ vp = v ⌝) ∧ path_wp q φ
     end%I.
   Instance: PersistentP φ → (∀ p φ, Persistent (path_wp p φ)) → Persistent (path_wp_pre path_wp p φ).
   Proof. intros; destruct p; apply _. Qed.
@@ -48,9 +48,11 @@ Section path_wp_pre.
   Proof.
     iIntros "#H"; iIntros (p1 Φ). rewrite /path_wp_pre /=.
     destruct (p1) as [v|]; first by iIntros.
-    iDestruct 1 as (vp q Hlook) "[Hp #Hq]".
+    iDestruct 1 as (vp q Hlook) "Hpq".
     iExists vp, q. iFrame (Hlook).
-    iSplitL "Hp"; [|iModIntro]; by iApply "H".
+    iSplit; iApply "H".
+    iDestruct "Hpq" as "[$ _]".
+    iDestruct "Hpq" as "[_ $]".
   Qed.
 
   (* Uncurry [path_wp_pre] and equip its type with an OFE structure *)
@@ -84,7 +86,7 @@ Section path_wp.
   Lemma path_wp_pv_eq v φ : path_wp (pv v) φ ⊣⊢ φ v.
   Proof. by rewrite path_wp_unfold. Qed.
   Lemma path_wp_pself_eq p l φ : path_wp (pself p l) φ ⊣⊢ ∃ vp q, ⌜ vp @ l ↘ dpt q ⌝ ∧
-        path_wp p (λ v, ⌜ vp = v ⌝) ∧ □ path_wp q φ.
+        path_wp p (λ v, ⌜ vp = v ⌝) ∧ path_wp q φ.
   Proof. by rewrite path_wp_unfold. Qed.
 
   (* General induction principle on path_wp. *)
@@ -137,12 +139,13 @@ Section path_wp.
     iAssert (∀ v, φ v -∗ <pers> φ v)%I as "Hv". by iIntros; iApply Hφ.
     clear Hφ; iIntros "H"; iRevert "H Hv"; path_wp_ind p φ.
     by iIntros "Hv HP"; iApply "HP".
-    iDestruct 1 as (vp q Hlook) "[[IHeq _] [IHpw _]]"; iIntros "HP".
+    iDestruct 1 as (vp q Hlook) "IH"; iIntros "HP".
     iApply persistently_exist; iExists vp.
     iApply persistently_exist; iExists q.
     iApply persistently_and; iSplit; first by eauto.
-    iApply persistently_and; iSplit;
-      [iApply "IHeq"; eauto | iApply ("IHpw" with "HP")].
+    iApply persistently_and; iSplit.
+    - iDestruct "IH" as "[[IHeq _] _]". iApply "IHeq"; eauto.
+    - iDestruct "IH" as "[_ [IHpw _]]". iApply ("IHpw" with "HP").
   Qed.
 
   Global Instance Proper_pwp: Proper ((=) ==> pointwise_relation _ (≡) ==> (≡)) path_wp.
@@ -179,10 +182,12 @@ Section path_wp.
   Proof.
     iIntros "H1"; iRevert (φ2); iRevert "H1"; path_wp_ind p φ1.
     - by iIntros "H1" (Φ2) "Hwand"; rewrite path_wp_unfold/=; iApply "Hwand".
-    - iDestruct 1 as (vp q Hlook) "[[IHp #Hp] #IHq]"; iIntros (Φ2) "#Hwand".
+    - iDestruct 1 as (vp q Hlook) "IH"; iIntros (Φ2) "#Hwand".
       iEval (rewrite path_wp_unfold /=).
-      iExists vp, q; iFrame (Hlook) "Hp".
-      iModIntro. iApply ("IHq" with "Hwand").
+      iExists vp, q. iFrame (Hlook).
+      iSplit; first iDestruct "IH" as "[[_ #$] _]".
+      iDestruct "IH" as "[_ IHq]".
+      iApply ("IHq" with "Hwand").
   Qed.
 
   Global Instance path_wp_pureableI p φ Pv :
@@ -211,36 +216,32 @@ Section path_wp.
     path_wp p (λ w, ⌜w = u⌝) ⊣⊢ path_wp p (λ w, ⌜u = w⌝).
   Proof. iIntros "!%". by rewrite /= path_wp_pure_swap. Qed.
 
-  Lemma path_wp_eq p φ {Hφ : PersistentP φ} :
+  Lemma path_wp_eq p φ :
     path_wp p φ ⊣⊢ ∃ v, ⌜ path_wp_pure p (eq v) ⌝ ∧ φ v.
   Proof.
     iSplit.
-    - iIntros "H".
-      iAssert (∀ v : vl, φ v -∗ <pers> φ v)%I as "Hφ".
-      by unfold Persistent in *; iIntros; iApply Hφ.
-      clear Hφ; iRevert "H Hφ"; path_wp_ind p φ.
-      + iIntros "H Hφ"; iExists v. iSplit; eauto.
-      + iDestruct 1 as (vp q Hlook) "[[IHp _] [IHq _]]"; iIntros "Hφ".
-        iDestruct ("IHp" with "[]") as %(? & Hp & <-); first by eauto.
-        iDestruct ("IHq" with "Hφ") as (vq Hq) "H".
-        iExists vq; eauto.
-    - iDestruct 1 as (v Hwp) "#H".
+    - path_wp_ind p φ; first by eauto 10.
+      iDestruct 1 as (vp q Hlook) "[[IHp _] [IHq _]]".
+      iDestruct ("IHp") as %(? & Hp & <-).
+      iDestruct ("IHq") as (vq Hq) "H".
+      iExists vq; eauto.
+    - iDestruct 1 as (v Hwp) "H".
       move: Hwp; move HE: (eq v) => φ' Hwp.
       iInduction Hwp as [|] "IH"; simplify_eq/=;
         iEval (rewrite path_wp_unfold /=); first done.
       iExists _, _; repeat iSplit => //.
-      iModIntro; by iApply "IH1".
+      by iApply "IH1".
   Qed.
 
   (* Not provable through pure props for impure [φ]. *)
   Lemma alias_paths_samepwp p q:
     alias_paths p q ↔
       (∃ u, path_wp_pure p (eq u)) ∧
-      ∀ φ, PersistentP φ → path_wp p φ ≡ path_wp q φ.
+      ∀ φ, path_wp p φ ≡ path_wp q φ.
   Proof.
     rewrite alias_paths_sameres; split.
     - destruct 1 as (v & Hp & Hq).
-      split; first by [eauto]; intros φ Hφ.
+      split; first by [eauto]; intros φ.
       rewrite !path_wp_eq. f_equiv => w.
       do 2 f_equiv.
       split => Hr; [ rewrite -(path_wp_pure_det Hp Hr)
@@ -251,7 +252,7 @@ Section path_wp.
       iRevert (Hp). by rewrite -!path_wp_pureable Heq.
   Qed.
 
-  Lemma alias_paths_elim_eq φ {p q} `{PersistentP φ}:
+  Lemma alias_paths_elim_eq φ {p q}:
     alias_paths p q →
     path_wp p φ ≡ path_wp q φ.
   Proof. intros ?%alias_paths_samepwp. intuition. Qed.
@@ -263,13 +264,12 @@ Section path_wp.
       [alias_paths_subst p r ids → path_wp q φ ≡ path_wp (q .p[p := r]) φ].
 
       But we do need the general form. *)
-  Lemma path_replacement_equiv {p q ρ} p1 p2 φ {Hφ : PersistentP φ}:
+  Lemma path_replacement_equiv {p q ρ} p1 p2 φ :
     p1 ~pp[ p := q ] p2 →
     alias_paths p.|[ρ] q.|[ρ] →
     path_wp p1.|[ρ] φ ≡ path_wp p2.|[ρ] φ.
   Proof.
-    move => Hrepl.
-    elim: Hrepl φ Hφ => [| p1' p2' l Hrepl IHrepl] φ Hφ /=.
+    move => Hrepl; elim: Hrepl φ => [| p1' p2' l Hrepl IHrepl] φ /=.
     exact: alias_paths_elim_eq.
     rewrite !path_wp_pself_eq /= => Hal.
     properness => //. exact: IHrepl.
