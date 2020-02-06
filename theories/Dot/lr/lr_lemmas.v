@@ -43,40 +43,6 @@ Section LambdaIntros.
     rewrite -(sT_All_I_Strong (Γ' := V⟦Γ'⟧*)) // => ρ.
     by rewrite -fmap_TLater_oLater.
   Qed.
-
-  Lemma sP_Val {Γ} v T:
-    Γ s⊨ tv v : T -∗
-    Γ s⊨p pv v : T, 0.
-  Proof.
-    iIntros "/= #Hp !>" (ρ) "Hg"; iSpecialize ("Hp" with "Hg").
-    by rewrite /= wp_value_inv' path_wp_pv.
-  Qed.
-
-  Lemma P_Val {Γ} v T: Γ ⊨ tv v : T -∗ Γ ⊨p pv v : T, 0.
-  Proof. apply sP_Val. Qed.
-
-  (** Lemmas about definition typing. *)
-  Lemma sD_Path_TVMem_I {Γ} T p l:
-    Γ s⊨p p : T, 0 -∗
-    Γ s⊨ { l := dpt p } : cVMem l T.
-  Proof.
-    iIntros "#Hv !>" (ρ Hpid) "#Hg".
-    rewrite def_interp_tvmem_eq.
-    iApply ("Hv" with "Hg").
-  Qed.
-
-  Lemma D_Path_TVMem_I {Γ} T p l:
-    Γ ⊨p p : T, 0 -∗ Γ ⊨ { l := dpt p } : TVMem l T.
-  Proof. apply sD_Path_TVMem_I. Qed.
-
-  Lemma sD_TVMem_I {Γ} T v l:
-    Γ s⊨ tv v : T -∗
-    Γ s⊨ { l := dpt (pv v) } : cVMem l T.
-  Proof. by rewrite -sD_Path_TVMem_I -sP_Val. Qed.
-
-  Lemma D_TVMem_I {Γ} T v l:
-    Γ ⊨ tv v : T -∗ Γ ⊨ { l := dpt (pv v) } : TVMem l T.
-  Proof. apply sD_TVMem_I. Qed.
 End LambdaIntros.
 
 Section Sec.
