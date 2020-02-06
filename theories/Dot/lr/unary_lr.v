@@ -256,7 +256,7 @@ Notation "Γ ⊨ds ds : T" := (idstp Γ T ds) (at level 74, ds, T at next level)
 (** Expression typing *)
 Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 Notation "Γ ⊨p p : T , i" := (iptp Γ T p i) (at level 74, p, T, i at next level).
-Notation "Γ ⊨ T1 , i <: T2 , j " := (istpi Γ T1 T2 i j) (at level 74, T1, T2, i, j at next level).
+Notation "Γ ⊨ T1 , i <: T2 , j" := (istpi Γ T1 T2 i j) (at level 74, T1, T2, i, j at next level).
 
 Import stamp_transfer.
 (** Judgment variants indexed by [gφ]. *)
@@ -265,6 +265,39 @@ Notation "Γ ⊨ds[ gφ  ] ds : T" := (wellMappedφ gφ → idstp Γ T ds)%I (at
 Notation "Γ ⊨[ gφ  ] e : T" := (wellMappedφ gφ → ietp Γ T e)%I (at level 74, e, T at next level).
 Notation "Γ ⊨p[ gφ  ] p : T , i" := (wellMappedφ gφ → iptp Γ T p i)%I (at level 74, p, T, i at next level).
 Notation "Γ ⊨[ gφ  ] T1 , i <: T2 , j" := (wellMappedφ gφ → istpi Γ T1 T2 i j)%I (at level 74, T1, T2, i, j at next level).
+
+(** Show these typing judgments are equivalent to what we present in the paper. *)
+Section JudgDefs.
+  Context `{HdotG: dlangG Σ}.
+  Implicit Types (T : ty) (Γ : ctx).
+
+  Lemma path_includes_equiv p ρ ds : path_includes (pv (ids 0)) ρ ds ↔
+    ∃ ds', ρ 0 = vobj ds' ∧ ds.|[ρ] `sublist_of` selfSubst ds' ∧ wf_ds ds'.
+  Proof. by rewrite /path_includes path_wp_pure_inv_pv. Qed.
+
+  Lemma idtp_eq Γ T l d : Γ ⊨ {  l := d  } : T ⊣⊢
+    □∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)] ⌝ → G⟦Γ⟧ ρ → D[ l ]⟦T⟧ ρ d.|[ρ].
+  Proof. reflexivity. Qed.
+
+  Lemma idstp_eq Γ T ds : Γ ⊨ds ds : T ⊣⊢
+    ⌜wf_ds ds⌝ ∧ □∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → G⟦Γ⟧ ρ → Ds⟦T⟧ ρ ds.|[ρ].
+  Proof. reflexivity. Qed.
+
+  Lemma ietp_eq Γ e T :
+    Γ ⊨ e : T ⊣⊢ □∀ ρ, G⟦Γ⟧ ρ → E⟦ V⟦T⟧ ⟧ ρ (e.|[ρ]).
+  Proof. reflexivity. Qed.
+
+  Lemma istpi_eq Γ T1 i T2 j :
+    Γ ⊨ T1, i <: T2, j ⊣⊢
+    □∀ ρ v, G⟦Γ⟧ ρ → ▷^i V⟦T1⟧ vnil ρ v → ▷^j V⟦T2⟧ vnil ρ v.
+  Proof. reflexivity. Qed.
+
+  Lemma iptp_eq Γ p T i :
+    Γ ⊨p p : T , i ⊣⊢
+    □∀ ρ, G⟦Γ⟧ ρ →
+      ▷^i path_wp (p.|[ρ]) (λ v, V⟦T⟧ vnil ρ v).
+  Proof. reflexivity. Qed.
+End JudgDefs.
 
 Section MiscLemmas.
   Context `{HdotG: dlangG Σ}.
