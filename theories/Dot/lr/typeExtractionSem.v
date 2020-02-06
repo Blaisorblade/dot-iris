@@ -30,7 +30,7 @@ Section typing_type_member_defs.
   Proof.
     move => [T'] [Hl] [<- [_ /is_stamped_nclosed_ty HclT]].
     iIntros "Hm". iExists V⟦ T' ⟧. iSplitR.
-    - iIntros "!%" (args ρ v). exact: interp_subst_commute.
+    - iIntros "!%" (args ρ v). exact: interp_finsubst_commute_cl.
     - iApply (wellMappedφ_apply with "Hm"). by rewrite lookup_fmap Hl.
   Qed.
 

@@ -173,34 +173,34 @@ End DefsTypes.
 
 Implicit Types (T: ty).
 
-Class DTyInterp Σ :=
-  all_interp : ty → clty Σ.
+Class CTyInterp Σ :=
+  clty_interp : ty → clty Σ.
 (* Inspired by Autosubst. *)
-Global Arguments all_interp {_ _} !_ /.
-Notation "A⟦ T ⟧" := (all_interp T).
+Global Arguments clty_interp {_ _} !_ /.
+Notation "C⟦ T ⟧" := (clty_interp T).
 
-Notation "Ds⟦ T ⟧" := (clty_dslty A⟦ T ⟧).
-Notation "LD⟦ T ⟧" := (clty_dlty A⟦ T ⟧).
+Notation "Ds⟦ T ⟧" := (clty_dslty C⟦ T ⟧).
+Notation "LD⟦ T ⟧" := (clty_dlty C⟦ T ⟧).
 
 (* We need [V⟦ _ ⟧] to be a proper first-class function. *)
-Definition pty_interp `{DTyInterp Σ} T : oltyO Σ 0 := clty_olty A⟦ T ⟧.
+Definition pty_interp `{CTyInterp Σ} T : oltyO Σ 0 := clty_olty C⟦ T ⟧.
 Global Arguments pty_interp {_ _} !_ /.
 
 Notation "V⟦ T ⟧" := (pty_interp T).
 Notation "Vs⟦ g ⟧" := (fmap (M := gmap stamp) (B := hoEnvD _ 0) pty_interp g).
 Notation "V⟦ Γ ⟧*" := (fmap (M := list) pty_interp Γ).
 
-Definition def_interp `{DTyInterp Σ} T l ρ d := lift_ldlty LD⟦ T ⟧ ρ l d.
+Definition def_interp `{CTyInterp Σ} T l ρ d := lift_ldlty LD⟦ T ⟧ ρ l d.
 Notation "D[ l ]⟦ T ⟧" := (def_interp T l).
 
-Class PTyInterpLemmas Σ `{!DTyInterp Σ} := {
+Class CTyInterpLemmas Σ `{!CTyInterp Σ} := {
   interp_subst_compose_ind T {args} ρ1 ρ2 v:
     V⟦ T.|[ρ1] ⟧ args ρ2 v ⊣⊢ V⟦ T ⟧ args (ρ1 >> ρ2) v;
 }.
 
 (** * Lemmas about the logical relation itself. *)
 Section logrel_binding_lemmas.
-  Context `{Htil : PTyInterpLemmas Σ}.
+  Context `{Htil : CTyInterpLemmas Σ}.
 
   Lemma interp_subst_compose T {args} ρ1 ρ2 ρ3:
     ρ1 >> ρ2 = ρ3 → V⟦ T.|[ρ1] ⟧ args ρ2 ≡ V⟦ T ⟧ args ρ3.
@@ -224,11 +224,15 @@ Section logrel_binding_lemmas.
     But [∞ σ >> ρ] and [∞ σ.|[ρ]] are only equal for
     [length σ] entries.
   *)
-  Lemma interp_subst_commute T σ ρ v (HclT : nclosed T (length σ)) args :
+  Lemma interp_finsubst_commute_cl T σ ρ v (HclT : nclosed T (length σ)) args :
     V⟦ T.|[∞ σ] ⟧ args ρ v ≡ V⟦ T ⟧ args (∞ σ.|[ρ]) v.
   Proof.
     rewrite interp_subst_compose_ind !(interp_subst_ids T _ _) -hsubst_comp.
     (* *The* step requiring [HclT]. *)
     by rewrite (subst_compose _ _ HclT).
   Qed.
+
+  (** Substitution on semantic types commutes with the semantics. *)
+  Lemma interp_subst_commute (T : ty) σ : V⟦ T.|[σ] ⟧ ≡ V⟦ T ⟧.|[σ].
+  Proof. intros ???; apply interp_subst_compose_ind. Qed.
 End logrel_binding_lemmas.

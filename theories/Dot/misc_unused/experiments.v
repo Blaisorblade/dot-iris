@@ -149,7 +149,7 @@ Section Example.
     asimpl.
     From D.Dot Require unstampedness_binding.
     have ?: nclosed T (length Γ) by eauto.
-    by rewrite -interp_subst_commute ?length_idsσ ?closed_subst_idsρ.
+    by rewrite -interp_finsubst_commute_cl ?length_idsσ ?closed_subst_idsρ.
     eauto 10.
     Restart. *)
     iIntros "#Hs".

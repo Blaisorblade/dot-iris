@@ -45,7 +45,7 @@ Section logrel_binding_lemmas.
     But [∞ σ >> ρ] and [∞ σ.|[ρ]] are only equal for
     [length σ] entries.
   *)
-  Lemma interp_subst_commute T σ ρ v (HclT : nclosed T (length σ)) :
+  Lemma interp_finsubst_commute_cl T σ ρ v (HclT : nclosed T (length σ)) :
     ⟦ T.|[∞ σ] ⟧ ρ v ≡ ⟦ T ⟧ (∞ σ.|[ρ]) v.
   Proof.
     rewrite interp_subst_compose_ind !(interp_subst_ids T _ _) -hsubst_comp.

@@ -39,7 +39,7 @@ Section LambdaIntros.
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.
-    rewrite /ietp fmap_cons (pty_interp_subst T1 (ren (+1))).
+    rewrite /ietp fmap_cons (interp_subst_commute T1 (ren (+1))).
     rewrite -(sT_All_I_Strong (Γ' := V⟦Γ'⟧*)) // => ρ.
     by rewrite -fmap_TLater_oLater.
   Qed.
@@ -62,7 +62,7 @@ Section Sec.
     (*──────────────────────*)
     Γ ⊨ of_val (ids x) : shiftN x τ.
   Proof.
-    rewrite /ietp (pty_interp_subst τ (ren (+x))). apply sT_Var.
+    rewrite /ietp (interp_subst_commute τ (ren (+x))). apply sT_Var.
     by rewrite list_lookup_fmap Hx.
   Qed.
 
@@ -142,19 +142,19 @@ Section Sec.
   Lemma Sub_Mu_A {Γ} T i: Γ ⊨ TMu (shift T), i <: T, i.
   Proof.
     rewrite /istpi; cbn -[sstpi].
-    rewrite (pty_interp_subst T (ren (+1))).
+    rewrite (interp_subst_commute T (ren (+1))).
     apply sSub_Mu_A.
     (* iIntros "!>" (vs v) "**".
-    by rewrite /= (lift_olty_eq (pty_interp_subst _ _)). *)
+    by rewrite /= (lift_olty_eq (interp_subst_commute _ _)). *)
   Qed.
 
   Lemma Sub_Mu_B {Γ} T i: Γ ⊨ T, i <: TMu (shift T), i.
   Proof.
     rewrite /istpi; cbn -[sstpi].
-    rewrite (pty_interp_subst T (ren (+1))).
+    rewrite (interp_subst_commute T (ren (+1))).
     apply sSub_Mu_B.
     (* iIntros "!>" (vs v) "**".
-    by rewrite /= (lift_olty_eq (pty_interp_subst _ _)). *)
+    by rewrite /= (lift_olty_eq (interp_subst_commute _ _)). *)
   Qed.
 
   (*
@@ -185,10 +185,10 @@ Section Sec.
   Qed.
 
   Lemma T_Mu_I {Γ} T v: Γ ⊨ tv v : T.|[v/] -∗ Γ ⊨ tv v : TMu T.
-  Proof. by rewrite /ietp -sT_Mu_I pty_interp_subst. Qed.
+  Proof. by rewrite /ietp -sT_Mu_I interp_subst_commute. Qed.
 
   Lemma T_Mu_E {Γ} T v: Γ ⊨ tv v : TMu T -∗ Γ ⊨ tv v : T.|[v/].
-  Proof. by rewrite /ietp sT_Mu_E pty_interp_subst. Qed.
+  Proof. by rewrite /ietp sT_Mu_E interp_subst_commute. Qed.
 
   Lemma sT_All_Ex {Γ e1 v2 T1 T2}:
     Γ s⊨ e1: oAll T1 T2 -∗
@@ -211,7 +211,7 @@ Section Sec.
 
   Lemma T_All_Ex {Γ e1 v2 T1 T2}:
     Γ ⊨ e1: TAll T1 T2 -∗ Γ ⊨ tv v2 : T1 -∗ Γ ⊨ tapp e1 (tv v2) : T2.|[v2/].
-  Proof. by rewrite /ietp (pty_interp_subst T2 (v2 .: ids)) -sT_All_Ex. Qed.
+  Proof. by rewrite /ietp (interp_subst_commute T2 (v2 .: ids)) -sT_All_Ex. Qed.
 
   Lemma sT_All_E {Γ e1 e2 T1 T2}:
     Γ s⊨ e1 : oAll T1 (shift T2) -∗
@@ -229,7 +229,7 @@ Section Sec.
 
   Lemma T_All_E {Γ e1 e2 T1 T2} :
     Γ ⊨ e1 : TAll T1 (shift T2) -∗ Γ ⊨ e2 : T1 -∗ Γ ⊨ tapp e1 e2 : T2.
-  Proof. by rewrite /ietp -sT_All_E -(pty_interp_subst T2 (ren (+1))). Qed.
+  Proof. by rewrite /ietp -sT_All_E -(interp_subst_commute T2 (ren (+1))). Qed.
 
   Lemma sFld_Sub_Fld' {Γ T1 T2 i j l}:
     Γ s⊨ T1, i <: T2, j + i -∗
@@ -309,7 +309,7 @@ Section swap_based_typing_lemmas.
     Γ ⊨ TAll T1 U1, i <: TAll T2 U2, i.
   Proof.
     rewrite /istpi fmap_cons iterate_TLater_oLater.
-    rewrite (pty_interp_subst T2 (ren (+1))).
+    rewrite (interp_subst_commute T2 (ren (+1))).
     apply sAll_Sub_All.
   Qed.
 

@@ -181,8 +181,8 @@ Section SemTypes.
 
   (* Observe the naming pattern for semantic type constructors:
   replace T by o. *)
-  Global Program Instance dot_interp : DTyInterp Σ := fix dot_interp T :=
-    let _ := dot_interp : DTyInterp Σ in
+  Global Program Instance dot_interp : CTyInterp Σ := fix dot_interp T :=
+    let _ := dot_interp : CTyInterp Σ in
     match T with
     | TTMem l L U => cTMem l V⟦ L ⟧ V⟦ U ⟧
     | TVMem l T' => cVMem l V⟦ T' ⟧
@@ -201,7 +201,7 @@ Section SemTypes.
     | TSing p => olty2clty $ oSing p
     end.
 
-  Global Instance pinterp_lemmas: PTyInterpLemmas Σ.
+  Global Instance pinterp_lemmas: CTyInterpLemmas Σ.
   Proof.
     split; rewrite /pty_interp;
      induction T => args sb1 sb2 w; rewrite /= /pty_interp;
@@ -299,12 +299,6 @@ Section MiscLemmas.
     Γ s⊨ T, i <: U, j ⊣⊢
     Γ s⊨ iterate oLater i T, 0 <: iterate oLater j U, 0.
   Proof. cbn. by setoid_rewrite iterate_oLater_later. Qed.
-
-  Lemma pty_interp_subst (T : ty) σ : V⟦ T.|[σ] ⟧ ≡ V⟦ T ⟧.|[σ].
-  Proof. intros ???; apply interp_subst_compose_ind. Qed.
-
-  (* Lemma swap0 T σ args ρ v : V⟦ T.|[σ] ⟧ args ρ v ≡ (V⟦ T ⟧).|[σ] args ρ v.
-  Proof. apply interp_subst_compose_ind. Qed. *)
 End MiscLemmas.
 
 (** * Proper instances. *)
