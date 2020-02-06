@@ -186,12 +186,11 @@ Section SemTypes.
     match T with
     | TTMem l L U => cTMem l V⟦ L ⟧ V⟦ U ⟧
     | TVMem l T' => cVMem l V⟦ T' ⟧
-
     | TAnd T1 T2 => cAnd C⟦T1⟧ C⟦T2⟧
-
     | TTop => cTop
-    | TBot => olty2clty oBot
 
+    (* The remaining types are not useful for definition typing. *)
+    | TBot => olty2clty oBot
     | TOr T1 T2 => olty2clty $ oOr V⟦ T1 ⟧ V⟦ T2 ⟧
     | TLater T => olty2clty $ oLater V⟦ T ⟧
     | TPrim b => olty2clty $ oPrim b
