@@ -60,7 +60,17 @@ Section iPPred_ofe.
     - apply _.
   Qed.
 
-  Global Program Instance iPPred_inhabited : Inhabited vpred := populate (IPPred (λ _, False)%I).
+  Global Instance bottom_iprop : Bottom (iProp Σ) := False%I.
+  Global Instance top_iprop : Top (iProp Σ) := True%I.
+
+  Global Instance bottom_ippred {s}: Bottom (iPPred s Σ) := IPPred (λ _, ⊥).
+  Global Instance top_ippred {s}: Top (iPPred s Σ) := IPPred (λ _, ⊤).
+  Global Instance bottom_fun {A} `{Bottom B}: Bottom (A → B) := (λ _, ⊥).
+  Global Instance top_fun {A} `{Top B}: Top (A → B) := (λ _, ⊤).
+  Global Instance bottom_ofe_fun {A} {B : ofeT} `{Bottom B}: Bottom (A -d> B) := (λ _, ⊥).
+  Global Instance top_ofe_fun {A} {B : ofeT} `{Top B}: Top (A -d> B) := (λ _, ⊤).
+
+  Global Program Instance iPPred_inhabited : Inhabited vpred := populate ⊥.
 
   Global Instance iPPred_car_ne : NonExpansive lApp.
   Proof. intros n f g Heq. apply Heq. Qed.

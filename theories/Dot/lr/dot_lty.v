@@ -13,14 +13,6 @@ Implicit Types (Σ : gFunctors)
 
 Include Lty VlSorts dlang_inst.
 
-Section bottoms.
-  Context {Σ}.
-  Global Instance bottom_iprop : Bottom (iProp Σ) := False%I.
-  Global Instance bottom_ippred {s}: Bottom (iPPred s Σ) := IPPred (λ _, ⊥).
-  Global Instance bottom_fun {A} `{Bottom B}: Bottom (A → B) := (λ _, ⊥).
-  Global Instance bottom_ofe_fun {A} {B : ofeT} `{Bottom B}: Bottom (A -d> B) := (λ _, ⊥).
-End bottoms.
-
 (** The semantics of a DOT type as a single-definition type is a pair of an
 expected label (if any) and a persistent predicate over the definition. *)
 Record ldlty Σ := LDlty {
