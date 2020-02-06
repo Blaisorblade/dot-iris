@@ -159,8 +159,8 @@ Section DefsTypes.
   Program Definition cTop : clty Σ := Clty (Dslty (λI _ _, True)) ⊥ oTop _ _ _.
   Solve All Obligations with eauto.
 
-  Program Definition olty2clty `{dlangG Σ} (T : oltyO Σ 0) : cltyO Σ :=
-    Clty ⊥ ⊥ T _ _ _.
+  Program Definition olty2clty `{dlangG Σ} (U : oltyO Σ 0) : cltyO Σ :=
+    Clty ⊥ ⊥ U _ _ _.
   Solve All Obligations with by iIntros.
   Global Instance : Bottom (clty Σ) := olty2clty ⊥.
 
