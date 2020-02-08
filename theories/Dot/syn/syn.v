@@ -60,6 +60,8 @@ Definition vls := list vl.
 Definition dms := list (label * dm).
 Definition ctx := list ty.
 
+Declare Scope dms_scope.
+Declare Scope ty_scope.
 Bind Scope dms_scope with dms.
 Bind Scope ty_scope with ty.
 Delimit Scope ty_scope with ty.
