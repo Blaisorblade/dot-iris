@@ -1,0 +1,9 @@
+vnil : ∀ vl : Type, vec vl 0
+
+vnil is not universe polymorphic
+Argument vl is implicit and maximally inserted
+Argument scope is [type_scope]
+vnil is transparent
+Expands to: Constant D.iris_extra.saved_interp_dep.vnil
+Notation shift chi := (shiftN 1 chi)
+Expands to: Notation D.prelude.shift
