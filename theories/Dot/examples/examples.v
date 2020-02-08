@@ -258,7 +258,7 @@ Section div_example.
   Lemma posModVHasA: Hs -∗ [] ⊨ posModV : hclose posModT.
   Proof.
     rewrite /posModT -(T_Mu_I _ posModV).
-    iIntros "#Hs". cbn -[ietp].
+    iIntros "#Hs /=".
     iApply sT_And_I; first by iApply posModVHasAtyp.
     iApply sT_And_I; last iApply sT_And_I; last by
       iIntros "!> ** /="; rewrite -wp_value'.
