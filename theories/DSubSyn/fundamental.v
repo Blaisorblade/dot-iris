@@ -37,7 +37,7 @@ Section swap_based_typing_lemmas.
       iIntros "!> #HUv0".
       iApply ("HsubU" $! (w .: ρ) v0 with "[# $Hg] HUv0").
       unfold_interp; rewrite iterate_TLater_later.
-      by iApply interp_weaken_one.
+      by iApply (interp_weaken_one T2).
     }
     iNext 1; iNext i. iApply wp_wand.
     - iApply "HT1". by iApply "HsubT".
@@ -59,7 +59,7 @@ Section swap_based_typing_lemmas.
     iSpecialize ("HsubT" with "Hg").
     iSpecialize ("HsubU" $! (w .: ρ) with "[# $Hg]"). {
       unfold_interp. rewrite iterate_TLater_later.
-      by iApply interp_weaken_one.
+      by iApply (interp_weaken_one T2).
     }
     iNext 1; iNext i. iApply wp_wand.
     - iApply "HT1". by iApply "HsubT".

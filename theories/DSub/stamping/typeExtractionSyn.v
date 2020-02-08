@@ -17,7 +17,10 @@ Lemma ex_fresh_stamp {X} (g: gmap stamp X): { s | s ∉ gdom g }.
 Proof. exists (fresh_stamp g). by apply fresh_stamp_spec. Qed.
 
 Lemma insert_grow g s T: s ∉ gdom g → g ⊆ <[s:=T]> g.
-Proof. intro Hfresh. eapply insert_subseteq, not_elem_of_dom, Hfresh. Qed.
+Proof.
+  intros Hfresh.
+  apply insert_subseteq, (not_elem_of_dom (D := gset stamp)), Hfresh.
+Qed.
 Hint Resolve insert_grow : core.
 
 Lemma ex_fresh_stamp_strong g T: { s | s ∉ gdom g ∧ g ⊆ <[s := T]> g }.
