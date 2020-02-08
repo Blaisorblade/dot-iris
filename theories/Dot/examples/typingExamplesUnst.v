@@ -99,7 +99,7 @@ Proof.
   move: (HsT2) => /is_unstamped_ren1_ty HsT3; rewrite -hrenS in HsT3.
   tcrush; rewrite ?iterate_S ?iterate_0 /=;
     first [apply: LSel_stp' | apply: SelU_stp]; tcrush; apply: Var_typed';
-    rewrite ?hsubst_id //; by [| autosubst].
+    rewrite ?hsubst_id //; by autosubst.
 Qed.
 
 Lemma tyAppIFT_typed Γ T t :
