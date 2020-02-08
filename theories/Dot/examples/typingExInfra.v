@@ -118,8 +118,8 @@ Arguments extraction : simpl never.
 Hint Extern 5 => try_once extraction_weaken : core.
 Hint Extern 5 (is_stamped_ty _ _ _) => try_once is_stamped_weaken_ty : core.
 Hint Extern 5 (is_stamped_dm _ _ _) => try_once is_stamped_weaken_dm : core.
-Hint Extern 5 (is_stamped_ty _ _ _) => progress cbn : core.
-Hint Extern 5 (is_stamped_ren _ _ _ _) => progress cbn : core.
+Hint Extern 5 (is_stamped_ty _ _ _) => progress simpl : core.
+Hint Extern 5 (is_stamped_ren _ _ _ _) => progress simpl : core.
 
 (** [tcrush] is the safest automation around. *)
 Ltac tcrush := repeat first [ eassumption | reflexivity | typconstructor | stcrush ].

@@ -328,7 +328,7 @@ Lemma same_skel_tm_subst e e' v v':
 Proof.
   move: e'; induction e; destruct e';
   move => Hske Hskv;
-    cbn in Hske |- *; try inversion Hske; ev; asimpl;
+    simpl in Hske |- *; try inversion Hske; ev; asimpl;
       auto.
   - apply same_skel_vl_subst; auto.
     intros x; destruct x as [|x]; asimpl; simpl; auto.

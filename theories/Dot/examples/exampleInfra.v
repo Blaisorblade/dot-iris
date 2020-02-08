@@ -182,3 +182,51 @@ Hint Resolve Nat.lt_0_succ : core.
 
 Definition vabs' x := tv (vabs x).
 Definition lett t u := tapp (vabs' u) t.
+
+(* Argh, really? Override *)
+Ltac autosubst ::=
+  simpl; trivial; autosubst_unfold; solve [repeat first
+  [ solve [trivial]
+  | progress (
+      simpl; unfold _bind, ren, scomp, hcomp; fsimpl; autosubst_unfold_up;
+      autorewrite with autosubst;
+      rewrite ->?id_scompX, ->?id_scompR, ->?subst_idX, ->?subst_compX,
+              ->?subst_compR, ->?id_subst, ->?subst_id, ->?subst_compI,
+              ->?id_hsubstX, ->?id_hsubstR, ->?hsubst_idX, ->?scomp_hcompX,
+              ->?scomp_hcompR, ->?hsubst_compX, ->?hsubst_compR,
+              ->?hsubst_id, ->?id_hsubst, ->?hsubst_compI, ->?scomp_hcompI
+    )
+  | match goal with [|- context[(_ .: _) ?x]] =>
+      match goal with [y : _ |- _ ] => unify y x; destruct x; simpl @scons end
+    end
+  | fold_id]].
+
+Ltac asimpl :=
+  autorewrite with autosubst;
+  simpl; autosubst_unfold; repeat first
+  [ progress (
+      simpl; unfold _bind, ren, scomp, hcomp; fsimpl; autosubst_unfold_up;
+      autorewrite with autosubst;
+      rewrite ->?id_scompX, ->?id_scompR, ->?subst_idX, ->?subst_compX,
+              ->?subst_compR, ->?id_subst, ->?subst_id, ->?subst_compI,
+              ->?id_hsubstX, ->?id_hsubstR, ->?hsubst_idX, ->?scomp_hcompX,
+              ->?scomp_hcompR, ->?hsubst_compX, ->?hsubst_compR,
+              ->?hsubst_id, ->?id_hsubst, ->?hsubst_compI, ->?scomp_hcompI
+    )
+  | fold_id];
+  fold_ren; fold_comp; fold_up.
+
+Ltac asimplH H :=
+  autorewrite with autosubst in H;
+  simpl in H; autosubst_unfoldH H; repeat first
+  [ progress (
+      simpl in H; unfold _bind, ren, scomp, hcomp in H; fsimpl in H;
+      autosubst_unfold_upH H; autorewrite with autosubst in H;
+      rewrite ->?id_scompX, ->?id_scompR, ->?subst_idX, ->?subst_compX,
+              ->?subst_compR, ->?id_subst, ->?subst_id, ->?subst_compI,
+              ->?id_hsubstX, ->?id_hsubstR, ->?hsubst_idX, ->?scomp_hcompX,
+              ->?scomp_hcompR, ->?hsubst_compX, ->?hsubst_compR,
+              ->?hsubst_id, ->?id_hsubst, ->?hsubst_compI, ->?scomp_hcompI in H
+    )
+  | fold_id in H];
+  fold_renH H; fold_compH H; fold_upH H.

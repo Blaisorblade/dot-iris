@@ -176,7 +176,7 @@ Lemma is_stamped_ren_mut:
     is_stamped_ty j g (rename r T)).
 Proof.
   apply syntax_mut_ind; intros; with_is_stamped ltac:(fun H => inversion_clear H);
-    cbn in *; try by [constructor; cbn; eauto].
+    simpl in *; try by [constructor; cbn; eauto].
   - eauto.
   - constructor; rewrite list_pair_swap_snd_rename Forall_fmap;
       by decompose_Forall; eauto.
@@ -224,7 +224,7 @@ Lemma is_stamped_sub_mut:
     is_stamped_ty j g T.|[s]).
 Proof.
   apply syntax_mut_ind; intros; with_is_stamped ltac:(fun H => inversion_clear H);
-    cbn in *; try by [constructor; cbn; eauto]; eauto.
+    simpl in *; try by [constructor; cbn; eauto]; eauto.
   - constructor => /=.
     repeat rewrite ->Forall_fmap in *; rewrite !Forall_fmap.
     decompose_Forall.

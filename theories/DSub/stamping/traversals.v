@@ -81,10 +81,10 @@ Global Arguments pathP /.
 
 Global Hint Constructors forall_traversal_vl forall_traversal_ty forall_traversal_tm : core.
 
-Global Hint Extern 0 (varP _ _ _) =>    progress cbn : core.
-Global Hint Extern 0 (vtyP _ _ _) =>    progress cbn : core.
-Global Hint Extern 0 (vstampP _ _ _) => progress cbn : core.
-Global Hint Extern 0 (pathP _ _ _) =>   progress cbn : core.
+Global Hint Extern 0 (varP _ _ _) =>    progress simpl : core.
+Global Hint Extern 0 (vtyP _ _ _) =>    progress simpl : core.
+Global Hint Extern 0 (vstampP _ _ _) => progress simpl : core.
+Global Hint Extern 0 (pathP _ _ _) =>   progress simpl : core.
 End Trav1.
 
 Definition tmemc: Type := ty + vls * stamp.

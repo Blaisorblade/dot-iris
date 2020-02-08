@@ -119,9 +119,9 @@ Proof.
   }
   apply VObj_typed; tcrush.
   by apply (dty_typed TNat); wtcrush.
-  cbn; apply (App_typed (T1 := TUnit));
+  simpl; apply (App_typed (T1 := TUnit));
     last eapply (Subs_typed_nocoerce TNat); tcrush.
-  tcrush; cbn.
+  tcrush; simpl.
 
   pose (T0 := μ {@ val "hashCode" : TAll ⊤ 𝐍 }).
 
