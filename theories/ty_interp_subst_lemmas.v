@@ -1,5 +1,5 @@
-From D Require Import prelude asubst_base dlang.
 From iris.proofmode Require Import tactics.
+From D Require Import prelude asubst_base dlang.
 
 Module Type TyInterpLemmas (Import VS : VlSortsFullSig) (Import LWP : LiftWp VS).
 

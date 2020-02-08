@@ -1,6 +1,6 @@
-From D Require Export prelude proofmode_extra.
 From iris.base_logic Require Import upred.
 From D.pure_program_logic Require Export weakestpre.
+From D Require Export prelude proofmode_extra.
 
 (* Do not export iris.proofmode.tactics! *)
 (* From iris.proofmode Require Export tactics. *)
