@@ -1,0 +1,78 @@
+{@ 𝐍;
+𝐍;
+𝐍}%ty
+     : ty
+ν {@ val "a" = pv 0 }
+     : vl_
+μ {@ type "A" >: 𝐍 <: ⊤ }
+     : ty
+μ {@ val "a" : 𝐍  }
+     : ty
+μ {@ type "A" >: 𝐍 <: ⊤;
+  val "a" : 𝐍 
+  ;
+  val "b" : 𝐍 
+  }
+     : ty
+ν {@}
+     : vl_
+ν {@}
+     : vl_
+ν {@ val "a" = pv 0 }
+     : vl_
+ν {@ val "a" = pv 0;
+  val "b" = pv 1}
+     : vl_
+p0 @; "A"
+     : ty
+(p0 @ "A" @ "B") @; "C"
+     : ty
+p0 @ "A"
+     : path
+(p0 @ "A" @ "B") @; "C"
+     : ty
+(val "symb" : (p0 @ "symbols") @; "Symbol" )%ty
+     : ty
+ta = λ v : tm, (v > 0)%E
+     : tm → tm
+
+Arguments ta _%expr_scope
+tb = λ v : tm, (v > 0)%E
+     : tm → tm
+
+Arguments tb _%expr_scope
+ν {@ type "A" = (σ2; 1%positive) }
+     : vl_
+ν {@ val "a" = pv 0;
+  type "A" = (σ2; 1%positive)}
+     : vl_
+ν {@ val "a" = pv 0;
+  type "A" = (σ2; 1%positive)}
+     : vl_
+hanyToNothing = hclose (⊤ →: ⊥)
+     : ty
+hloopDefT = (val "loop" : ⊤ →: ⊥ )%HT
+     : hty
+The command has indeed failed with message:
+Found type "vl" where "hvl" was expected.
+0 : htm
+     : htm
+(2 > 1)%HE
+     : htm
+(1 > 2)%HE
+     : htm
+(1 ≥ 2)%HE
+     : htm
+(1 > 0)%HE
+     : htm
+     = TAll TNat (TMu (TAnd (TSing DBNotation.p1) (TSing DBNotation.p0)))
+     : ty
+     = λ (T : nat → ty) (U : (nat → vl_) → nat → ty) (i : nat),
+         TAll (T i) (U (λ x : nat, var_vl (x - S i)) (S i))
+     : hty → (hvl → hty) → hty
+     = TAnd TNat (TAnd TNat (TAnd TNat TTop))
+     : ty
+     = vabs DBNotation.x0
+     : vl
+     = tv (vabs (vabs (tapp DBNotation.x1 DBNotation.x0)))
+     : tm

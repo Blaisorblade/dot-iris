@@ -1,8 +1,7 @@
-From D Require Import iris_prelude swap_later_impl asubst_intf.
 From iris.proofmode Require Import tactics.
 From iris.program_logic Require Import ectx_language language.
-
 From D.pure_program_logic Require adequacy.
+From D Require Import iris_prelude swap_later_impl asubst_intf.
 From D Require gen_iheap saved_interp_dep.
 
 Local Notation gdom g := (dom (gset stamp) g).
@@ -22,7 +21,7 @@ End mapsto_stamp_gname.
 End mapsto.
 
 Module Type LiftWp (Import VS : VlSortsSig).
-  Export mapsto saved_interp_dep.
+  Export mapsto prelude saved_interp_dep.
   Implicit Types (v : vl) (vs : vls) (Σ : gFunctors).
   Include SavedInterpDep VS.
 

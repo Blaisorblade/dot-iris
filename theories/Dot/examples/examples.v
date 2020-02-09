@@ -1,11 +1,14 @@
 From iris.proofmode Require Import tactics.
-From D Require Import swap_later_impl.
 From D.pure_program_logic Require Import lifting adequacy.
+From iris.program_logic Require Import ectxi_language.
+
+From D Require Import swap_later_impl.
+From D.Dot Require Import scalaLib hoas exampleInfra typingExInfra.
+
 From D.Dot Require Import unary_lr
   lr_lemmas lr_lemmasTSel lr_lemmasNoBinding lr_lemmasDefs lr_lemmasPrim.
 From D.Dot Require Import typeExtractionSem.
 From D.Dot Require Import skeleton fundamental.
-From D.Dot Require Import scalaLib hoas exampleInfra typingExInfra.
 
 Import hoasNotation.
 
@@ -27,8 +30,6 @@ Qed.
 
 (** XXX Not currently using olty. *)
 Module examples.
-
-Import ectxi_language.
 
 Tactic Notation "wp_bind" uconstr(p) := iApply (wp_bind (fill [p])).
 Ltac wp_bin_base := iApply wp_bin; first eapply bin_op_syntype_sound; by [|constructor].

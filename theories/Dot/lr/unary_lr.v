@@ -410,7 +410,11 @@ Section defs.
   Proof. by rewrite /istpi sSub_Eq !iterate_TLater_oLater. Qed.
 End defs.
 
-Import dlang_adequacy adequacy.
+(** Backward compatibility. *)
+Notation "⟦ T ⟧" := (oClose V⟦ T ⟧).
+
+Import adequacy dlang_adequacy.
+
 Theorem s_adequacy_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} {e Ψ}
   (τ : ∀ `{dlangG Σ}, olty Σ 0)
   (Himpl : ∀ (Hdlang: dlangG Σ) v, oClose τ ids v -∗ ⌜Ψ v⌝)
@@ -438,6 +442,3 @@ Corollary safety_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} {e T}
   (Hwp : ∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T):
   safe e.
 Proof. exact: (s_safety_dot_sem Σ (λ _, V⟦T⟧)). Qed.
-
-(** Backward compatibility. *)
-Notation "⟦ T ⟧" := (V⟦ T ⟧ vnil).
