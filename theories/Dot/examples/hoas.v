@@ -136,8 +136,11 @@ Definition hTMu : (hvl → hty) → hty := liftBind TMu.
 Definition hTVMem : label → hty → hty := λ l, liftA1 (TVMem l).
 Definition hTTMem : label → hty → hty → hty := λ l, liftA2 (TTMem l).
 Definition hTSel : hpath → label → nat → ty := Eval cbv in λ p l, liftA2 TSel p (pureS l).
-Definition hTNat : hty := liftA0 TNat.
+Definition hTPrim b : hty := liftA0 (TPrim b).
 Definition hTSing : hpath → hty := liftA1 TSing.
+
+Definition hTNat : hty := liftA0 TNat.
+Definition hTBool : hty := liftA0 TBool.
 
 Arguments hvobj _%HD.
 Arguments hTAll _%HT _%HT.
@@ -168,8 +171,11 @@ Arguments hTMu /.
 Arguments hTVMem /.
 Arguments hTTMem /.
 Arguments hTSel /.
-Arguments hTNat /.
+Arguments hTPrim /.
 Arguments hTSing /.
+
+Arguments hTNat /.
+Arguments hTBool /.
 
 End syn.
 
