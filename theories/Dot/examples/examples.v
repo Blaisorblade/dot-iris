@@ -34,7 +34,6 @@ Module examples.
 Tactic Notation "wp_bind" uconstr(p) := iApply (wp_bind (fill [p])).
 Ltac wp_bin_base := iApply wp_bin; first eapply bin_op_syntype_sound; by [|constructor].
 Ltac wp_bin := iApply wp_wand; [wp_bin_base | iIntros].
-Tactic Notation "wp_bind" uconstr(p) := iApply (wp_bind (ectxi_language.fill [p])).
 Import stamp_transfer.
 
 (* Generic useful lemmas — not needed for fundamental theorem,
