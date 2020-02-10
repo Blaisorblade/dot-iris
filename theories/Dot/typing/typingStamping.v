@@ -226,6 +226,23 @@ Section syntyping_stamping_lemmas.
     move: IHs1 => /(.$ g) /= [p1' [g1 ?]]; ev.
     exists (path2tm p1'), g1; naive_solver.
   - intros. exists (tv (vnat n)), g; naive_solver.
+  - intros. exists (tv (vbool b)), g; naive_solver.
+  - intros * Hprim Hu1 IHs1 g.
+    move: IHs1 => /(.$ g) [e1' [g1 ?]].
+    exists (tun u e1'), g1; naive_solver.
+  - intros * Hprim Hu1 IHs1 Hu2 IHs2 g.
+    move: IHs1 => /(.$ g) [e1' [g1 [Hts1 [Hle1 ?]]]].
+    move: IHs2 => /(.$ g1) [e2' [g2 [Hts2 [Hle2 ?]]]].
+    have ?: unstamp_tm g2 e1' = e1 by exact: stamps_unstamp_mono_tm.
+    (* Must come *after* the assertion. *)
+    lte g g1 g2; ev.
+    exists (tbin b e1' e2'), g2; cbn; split_and!; first econstructor; eauto 3.
+  - intros * Hu1 IHs1 Hu2 IHs2 Hu3 IHs3 g.
+    move: IHs1 => /(.$ g) [e' [g1 [Hts1 [Hle1 ?]]]].
+    move: IHs2 => /(.$ g1) [e1' [g2 [Hts2 [Hle2 ?]]]].
+    move: IHs3 => /(.$ g2) [e2' [g3 [Hts3 [Hle3 ?]]]].
+    lte g g1 g2; lte g1 g2 g3; lte g g1 g3; ev.
+    exists (tif e' e1' e2'), g3; cbn; split_and!; try f_equal; naive_solver.
   - intros; exists [], g; naive_solver.
   - intros * Hu1 IHs1 Hu2 IHs2 ? g.
     move: IHs1 => /(.$ g) [d' [g1 ?]].

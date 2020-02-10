@@ -75,6 +75,20 @@ Inductive typed Γ : tm → ty → Prop :=
 (** Primitives. *)
 | T_Nat_typed n:
     Γ u⊢ₜ tv (vnat n): TNat
+| T_Bool_typed b:
+    Γ u⊢ₜ tv (vbool b): TBool
+| T_Un_typed u e1 B1 Br (Hu : un_op_syntype u B1 Br) :
+    Γ u⊢ₜ e1 : TPrim B1 →
+    Γ u⊢ₜ tun u e1 : TPrim Br
+| T_Bin_typed b e1 e2 B1 B2 Br (Hu : bin_op_syntype b B1 B2 Br) :
+    Γ u⊢ₜ e1 : TPrim B1 →
+    Γ u⊢ₜ e2 : TPrim B2 →
+    Γ u⊢ₜ tbin b e1 e2 : TPrim Br
+| T_If_typed e e1 e2 T :
+    Γ u⊢ₜ e: TBool →
+    Γ u⊢ₜ e1 : T →
+    Γ u⊢ₜ e2 : T →
+    Γ u⊢ₜ tif e e1 e2 : T
 where "Γ u⊢ₜ e : T " := (typed Γ e T)
 with dms_typed Γ : dms → ty → Prop :=
 | dnil_typed : Γ u⊢ds [] : TTop

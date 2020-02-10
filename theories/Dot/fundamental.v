@@ -83,6 +83,10 @@ Section fundamental.
       + by iApply T_Sub; [apply IHHT|iApply fundamental_subtype].
       + iApply T_Path. by iApply fundamental_path_typed.
       + by iApply sT_Nat_I.
+      + by iApply sT_Bool_I.
+      + by iApply T_Un.
+      + by iApply T_Bin.
+      + by iApply sT_If.
       (* + by_reflect. *)
     - iIntros "#Hm"; induction HT.
       + iApply P_Val. by iApply fundamental_typed.
