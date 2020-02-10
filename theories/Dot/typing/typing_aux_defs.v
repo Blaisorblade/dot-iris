@@ -1,15 +1,27 @@
-(** * When is a context weaker than another? While we don't give complete
-rules, we develop some infrastructure to allow "stripping" laters from the
-context. *)
-
+(** Auxiliary typing judgments and lemmas, shared between different variants of the typing judgment. *)
 From D.Dot Require Import syn.
 
 Set Implicit Arguments.
 
+Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
+
+Inductive un_op_syntype : un_op → base_ty → base_ty → Set :=
+| ty_unot : un_op_syntype unot tbool tbool.
+
+Inductive bin_op_syntype : bin_op → base_ty → base_ty → base_ty → Set :=
+| ty_beq_bool : bin_op_syntype beq    tbool tbool tbool
+| ty_beq_nat  : bin_op_syntype beq    tnat  tnat  tbool
+| ty_blt      : bin_op_syntype blt    tnat  tnat  tbool
+| ty_ble      : bin_op_syntype ble    tnat  tnat  tbool
+| ty_bplus    : bin_op_syntype bplus  tnat  tnat  tnat
+| ty_btimes   : bin_op_syntype btimes tnat  tnat  tnat.
+
+(** * When is a context weaker than another? While we don't give complete
+rules, we develop some infrastructure to allow "stripping" laters from the
+context. *)
+
 Reserved Notation "⊢G Γ1 <:* Γ2" (at level 74, Γ1, Γ2 at next level).
 Reserved Notation "⊢T T1 <: T2" (at level 74, T1, T2 at next level).
-
-Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms).
 
 (** A left inverse of TLater. Sometimes written ⊲. *)
 (* Definition unTLater T : ty := match T with | TLater T' => T' | _ => T end. *)

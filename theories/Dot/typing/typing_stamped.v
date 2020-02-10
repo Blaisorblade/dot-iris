@@ -1,6 +1,6 @@
 From D Require Import tactics.
 From D.Dot.syn Require Export syn.
-From D.Dot.typing Require Export later_sub.
+From D.Dot.typing Require Export typing_aux_defs.
 From D.Dot Require Import typing_storeless.
 
 Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).

@@ -4,7 +4,7 @@ From iris.proofmode Require Import tactics.
 
 From D Require Import proper.
 From D.Dot Require Import unary_lr.
-From D.Dot Require Export later_sub.
+From D.Dot Require Import typing_aux_defs.
 
 (* This is specialized to [vnil] because contexts only contain proper types anyway. *)
 Definition s_ty_sub `{HdlangG: dlangG Σ} (T1 T2 : oltyO Σ 0) := ∀ ρ v, T1 vnil ρ v -∗ T2  vnil ρ v.

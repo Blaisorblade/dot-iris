@@ -1,5 +1,6 @@
 From iris.proofmode Require Import tactics.
-From D.Dot Require Import syn prim_typing.
+From D.Dot Require Import syn.
+From D.Dot Require Import typing_aux_defs.
 From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language.
 

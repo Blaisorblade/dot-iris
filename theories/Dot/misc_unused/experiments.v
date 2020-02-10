@@ -3,6 +3,7 @@ From iris.program_logic Require Import language ectx_language ectxi_language.
 From iris.proofmode Require Import tactics.
 From D Require Import swap_later_impl.
 From D.Dot.syn Require Import synLemmas rules path_repl.
+From D.Dot Require Import typing_aux_defs.
 From D.Dot.lr Require Import unary_lr
   lr_lemmas lr_lemmasTSel lr_lemmasNoBinding lr_lemmasDefs path_repl later_sub_sem.
 

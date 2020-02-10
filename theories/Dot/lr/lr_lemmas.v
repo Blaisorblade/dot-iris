@@ -3,7 +3,7 @@ From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language.
 
 From D Require Import swap_later_impl proper.
-From D.Dot Require Import rules unary_lr later_sub later_sub_sem.
+From D.Dot Require Import rules unary_lr typing_aux_defs later_sub_sem.
 
 Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env).
 

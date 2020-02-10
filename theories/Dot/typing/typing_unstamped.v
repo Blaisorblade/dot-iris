@@ -6,7 +6,7 @@
 *)
 From D Require Import tactics.
 From D.Dot.syn Require Export syn path_repl lr_syn_aux.
-From D.Dot.typing Require Export later_sub.
+From D.Dot.typing Require Export typing_aux_defs.
 From D.Dot.stamping Require Export stampingDefsCore.
 
 Set Implicit Arguments.
