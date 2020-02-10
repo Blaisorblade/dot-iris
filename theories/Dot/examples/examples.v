@@ -31,8 +31,10 @@ Qed.
 (** XXX Not currently using olty. *)
 Module examples.
 
+Local Hint Constructors bin_op_syntype cond_bin_op_syntype : core.
+
 Tactic Notation "wp_bind" uconstr(p) := iApply (wp_bind (fill [p])).
-Ltac wp_bin_base := iApply wp_bin; first eapply bin_op_syntype_sound; by [|constructor].
+Ltac wp_bin_base := iApply wp_bin; first eapply cond_bin_op_syntype_sound; by [eauto|].
 Ltac wp_bin := iApply wp_wand; [wp_bin_base | iIntros].
 Import stamp_transfer.
 

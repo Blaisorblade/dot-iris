@@ -265,6 +265,9 @@ Notation "Γ ⊨[ gφ  ] e : T" := (wellMappedφ gφ → ietp Γ T e)%I (at leve
 Notation "Γ ⊨p[ gφ  ] p : T , i" := (wellMappedφ gφ → iptp Γ T p i)%I (at level 74, p, T, i at next level).
 Notation "Γ ⊨[ gφ  ] T1 , i <: T2 , j" := (wellMappedφ gφ → istpi Γ T1 T2 i j)%I (at level 74, T1, T2, i, j at next level).
 
+Notation oNat := (oPrim tnat).
+Notation oBool := (oPrim tbool).
+
 (** Show these typing judgments are equivalent to what we present in the paper. *)
 Section JudgDefs.
   Context `{HdotG: dlangG Σ}.

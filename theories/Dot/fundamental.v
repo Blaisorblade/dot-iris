@@ -79,10 +79,10 @@ Section fundamental.
       + iApply T_All_I_Strong; [|apply IHHT]. exact: fundamental_ctx_sub.
       + iApply T_Obj_I. by iApply fundamental_dms_typed.
       + by iApply T_Mu_I.
-      + by iApply T_Nat_I.
       + by iApply T_Var.
       + by iApply T_Sub; [apply IHHT|iApply fundamental_subtype].
       + iApply T_Path. by iApply fundamental_path_typed.
+      + by iApply sT_Nat_I.
       (* + by_reflect. *)
     - iIntros "#Hm"; induction HT.
       + iApply P_Val. by iApply fundamental_typed.

@@ -70,8 +70,6 @@ Inductive typed Γ g : tm → ty → Prop :=
     Γ v⊢ₜ[ g ] tv v: T.|[v/] →
     (*──────────────────────*)
     Γ v⊢ₜ[ g ] tv v: TMu T
-| Nat_typed n:
-    Γ v⊢ₜ[ g ] tv (vnat n): TNat
 
 (** "General" rules *)
 | Var_typed x T :
@@ -87,6 +85,10 @@ Inductive typed Γ g : tm → ty → Prop :=
     Γ v⊢ₚ[ g ] p : T, 0 →
     (*───────────────────────────────*)
     Γ v⊢ₜ[ g ] path2tm p : T
+
+(** Primitives. *)
+| T_Nat_typed n:
+    Γ v⊢ₜ[ g ] tv (vnat n): TNat
 (* | Sem_typed e T :
     is_stamped_ty (length Γ) g T →
     is_stamped_tm (length Γ) g e →
