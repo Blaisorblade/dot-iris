@@ -29,7 +29,7 @@ Inductive typed Γ : tm → ty → Prop :=
     shift T1 :: Γ u⊢ₜ e : T2 →
     (*─────────────────────────*)
     Γ u⊢ₜ tv (vabs e) : TAll T1 T2
-| Nat_typed n:
+| T_Nat_typed n:
     Γ u⊢ₜ tv (vnat n): TNat
 
 (** "General" rules *)
