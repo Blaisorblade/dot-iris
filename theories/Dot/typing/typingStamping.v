@@ -279,6 +279,17 @@ Section syntyping_stamping_lemmas.
     exists (dpt (pv (vobj ds'))), g1; split_and!; cbn;
       try eapply typing_stamped.dnew_typed; eauto 2;
       repeat constructor; eauto with f_equal.
+  - intros * Hu1 IHs1 Hu2 IHs2 g.
+    (* Here and for standard subsumption, by stamping the subtyping
+      derivation before typing, we needn't use monotonicity on [Hs],
+      which holds but would require extra boilerplate. *)
+    move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]].
+    move: IHs2 => /(.$ g1) [d' [g2 [Hts2 [Hle2 Hs]]]]; lte g g1 g2.
+    have [p' Heq]: ∃ p', d' = dpt p'. {
+      move: Hs => {Hts2}; destruct d'; rewrite /= /from_option => -[?[??]];
+        try case_match; simplify_eq; eauto 2.
+    }
+    exists d', g2; subst d'; split_and!; ev; eauto 3.
   - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [e1' [g1 ?]]; ev.
     destruct e1' as [v'| | | | | |] => //.

@@ -621,3 +621,15 @@ Lemma pDOT_Def_Path_derived Γ l p T
   (Hu : is_unstamped_path (length Γ) AlsoNonVars p) :
   Γ u⊢{ l := dpt p } : TVMem l (TSing p).
 Proof. eapply dpath_typed, Hu. apply (psingleton_refl_typed (T := T)), Hx. Qed.
+
+(*
+Lemma dpath_sub_typed_admit_failed Γ l p T1 T2:
+  Γ u⊢{ l := dpt p } : TVMem l T1 →
+  Γ u⊢ₜ T1 , 0 <: T2, 0 →
+  Γ u⊢{ l := dpt p } : TVMem l T2.
+Proof.
+  intros Ht1 Hsub; inverse Ht1; constructor => //; first
+    [eapply (Subs_typed (i := 0)) | eapply (p_subs_typed (i := 0))]; eauto.
+  apply VObj_typed; tcrush.
+Abort.
+*)

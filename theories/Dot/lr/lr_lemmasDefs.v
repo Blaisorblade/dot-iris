@@ -58,6 +58,24 @@ Section Sec.
     Γ ⊨ { l := dpt (pv (vobj ds)) } : TVMem l (TMu T).
   Proof. apply sD_New_Mem_I. Qed.
 
+  Lemma sD_TVMem_Sub {Γ T1 T2 p l}:
+    Γ s⊨ T1, 0 <: T2, 0 -∗
+    Γ s⊨ { l := dpt p } : cVMem l T1 -∗
+    Γ s⊨ { l := dpt p } : cVMem l T2.
+  Proof.
+    iIntros "#Hsub #Hv !>" (ρ Hpid) "#Hg".
+    iSpecialize ("Hv" $! ρ Hpid with "Hg").
+    rewrite !def_interp_tvmem_eq.
+    iApply (path_wp_wand with "Hv"); iIntros "!> **".
+    by iApply ("Hsub" with "Hg").
+  Qed.
+
+  Lemma D_TVMem_Sub {Γ T1 T2 p l}:
+    Γ ⊨ T1, 0 <: T2, 0 -∗
+    Γ ⊨ { l := dpt p } : TVMem l T1 -∗
+    Γ ⊨ { l := dpt p } : TVMem l T2.
+  Proof. apply sD_TVMem_Sub. Qed.
+
   (* Check that Löb induction works as expected for proving introduction of
    * objects. Using Löb induction works easily.
    *

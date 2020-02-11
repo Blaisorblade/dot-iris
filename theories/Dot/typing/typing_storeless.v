@@ -136,6 +136,10 @@ with dm_typed Γ g : label → dm → ty → Prop :=
     TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ v⊢ds[ g ] ds : T →
     is_stamped_ty (S (length Γ)) g T →
     Γ v⊢[ g ]{ l := dpt (pv (vobj ds)) } : TVMem l (TMu T)
+| dpt_sub_typed T1 T2 p l:
+    Γ v⊢ₜ[ g ] T1, 0 <: T2, 0 →
+    Γ v⊢[ g ]{ l := dpt p } : TVMem l T1 →
+    Γ v⊢[ g ]{ l := dpt p } : TVMem l T2
 where "Γ v⊢[ g ]{ l := d  } : T" := (dm_typed Γ g l d T)
 with path_typed Γ g : path → ty → nat → Prop :=
 | pv_typed v T:
