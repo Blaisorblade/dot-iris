@@ -247,31 +247,30 @@ Definition boolImplTConcr : ty :=
     val "false" : IFT
   }.
 
-Example SubIFT_LaterP0Bool Γ : TLater {@
+Example SubIFT_P0Bool Γ : {@
     typeEq "Boolean" IFT;
-    val "true" : TLater p0Bool;
-    val "false" : TLater p0Bool
-  } :: Γ v⊢ₜ[ g ] IFT, 0 <: ▶: p0Bool, 0.
-Proof.
-  ettrans; first (apply (AddI_stp _ _ 2); tcrush).
-  ettrans; first (apply TLaterR_stp; tcrush).
-  ettrans; last (apply TLaterR_stp; tcrush).
-  eapply LSel_stp. tcrush.
-  eapply Var_typed_sub; by [|tcrush].
-Qed.
+    val "true" : IFT;
+    val "false" : IFT
+  }%ty :: Γ v⊢ₜ[ g ] IFT, 0 <: p0Bool, 0.
+Proof. eapply LSel_stp''; tcrush. varsub; tcrush. Qed.
 
 Example SubIFT_LaterP0Bool' Γ : {@
     typeEq "Boolean" IFT;
     val "true" : IFT;
     val "false" : IFT
   }%ty :: Γ v⊢ₜ[ g ] IFT, 0 <: ▶: p0Bool, 0.
+Proof. ettrans; first exact: SubIFT_P0Bool. tcrush. Qed.
+
+Example SubIFT_LaterP0Bool Γ : TLater {@
+    typeEq "Boolean" IFT;
+    val "true" : TLater p0Bool;
+    val "false" : TLater p0Bool
+  } :: Γ v⊢ₜ[ g ] IFT, 0 <: ▶: p0Bool, 0.
 Proof.
-  ettrans; last (apply TLaterR_stp; tcrush).
-  ettrans; first (apply (AddI_stp _ _ 2); tcrush).
-  ettrans; first (apply TLaterR_stp; tcrush).
-  eapply LSel_stp. tcrush.
-  eapply Var_typed_sub. by [|tcrush].
-  ettrans; last apply TAddLater_stp; tcrush.
+  asideLaters.
+  ettrans; first (apply (AddI_stp _ _ 1); tcrush).
+  eapply LSel_stp''; tcrush.
+  varsub; tcrush.
 Qed.
 
 Example boolImplTyp Γ (Hst : s1_is_ift_ext):

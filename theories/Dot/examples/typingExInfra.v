@@ -90,6 +90,11 @@ Hint Resolve is_stamped_idsσ_ren : core.
 
 Ltac ettrans := eapply Trans_stp.
 
+Ltac asideLaters :=
+  repeat first
+    [ettrans; last (apply TLaterR_stp; tcrush)|
+    ettrans; first (apply TLaterL_stp; tcrush)].
+
 Ltac lNext := ettrans; first apply TAnd2_stp; tcrush.
 Ltac lThis := ettrans; first apply TAnd1_stp; tcrush.
 
@@ -214,6 +219,12 @@ Lemma LSel_stp' Γ U {p l L i}:
   Γ v⊢ₚ[ g ] p : TTMem l L U, i →
   Γ v⊢ₜ[ g ] L, i <: TSel p l, i.
 Proof. intros; ettrans; last exact: (LSel_stp (p := p)); tcrush. Qed.
+
+(** Specialization of [LSel_stp'] for convenience. *)
+Lemma LSel_stp'' Γ {p l L i}:
+  is_stamped_ty (length Γ) g L →
+  Γ v⊢ₚ[ g ] p : TTMem l L L, i → Γ v⊢ₜ[ g ] L, i <: TSel p l, i.
+Proof. apply LSel_stp'. Qed.
 
 Lemma AddI_stp Γ T i (Hst: is_stamped_ty (length Γ) g T) :
   Γ v⊢ₜ[ g ] T, 0 <: T, i.
