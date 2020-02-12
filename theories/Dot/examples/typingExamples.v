@@ -279,15 +279,7 @@ Example boolImplTyp Γ (Hst : s1_is_ift_ext):
 Proof.
   apply (Subs_typed_nocoerce boolImplTConcr).
   tcrush; by [apply (dty_typed IFT); wtcrush| exact: Var_typed'].
-  tcrush; rewrite iterate_0.
-  - ettrans; first apply TAnd1_stp; tcrush.
-  - ettrans; first apply TAnd2_stp; tcrush.
-    ettrans; first apply TAnd1_stp; tcrush.
-    apply SubIFT_LaterP0Bool'.
-  - ettrans; first apply TAnd2_stp; tcrush.
-    ettrans; first apply TAnd2_stp; tcrush.
-    ettrans; first apply TAnd1_stp; tcrush.
-    apply SubIFT_LaterP0Bool'.
+  tcrush; rewrite iterate_0; ltcrush; apply SubIFT_LaterP0Bool'.
 Qed.
 
 (* We can also use subtyping on the individual members to type this example. *)
