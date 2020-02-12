@@ -361,10 +361,11 @@ Proof.
 
   apply TAllConCov_stp; stcrush.
   { ettrans. exact: packBooleanLB. wtcrush. }
-  apply TLaterCov_stp, TAllConCov_stp; stcrush.
+  apply Sub_later_shift; [wtcrush..|].
+  apply TAllConCov_stp; stcrush.
   - ettrans. exact: packBooleanLB. wtcrush.
-  - eapply TLaterCov_stp, Trans_stp.
-    exact: packBooleanUB. tcrush.
+  - eapply Sub_later_shift; [wtcrush..|].
+    ettrans. exact: packBooleanUB. tcrush.
 Qed.
 
 (* Eta-expand to drop the later. *)
