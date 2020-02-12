@@ -317,7 +317,7 @@ Proof.
   apply /Subs_typed_nocoerce /Hsub.
 
   eapply Appv_typed'; first exact: Var_typed'.
-  apply: Var_typed_sub; repeat tcrush; rewrite /= hsubst_id //.
+  apply: Var_typed_sub; tcrush; rewrite /= hsubst_id //.
   rewrite !hsubst_comp; f_equal. autosubst.
 Qed.
 
