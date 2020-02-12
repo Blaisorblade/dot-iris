@@ -351,6 +351,8 @@ Lemma dvabs_typed' Γ V T1 T2 e l:
   Γ |L V u⊢{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
 Proof. by intros; apply dpt_pv_typed, Lam_typed_strip1. Qed.
 
+Ltac ettrans := eapply Trans_stp.
+
 Ltac typconstructor := match goal with
   | |- typed _ _ _ => first [apply Lam_typed_strip1 | apply Lam_typed | constructor]
   | |- dms_typed _ _ _ => constructor

@@ -377,6 +377,8 @@ Lemma dvabs_typed' Γ V T1 T2 e l g:
   Γ |L V v⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
 Proof. by intros; apply dpt_pv_typed, Lam_typed_strip1. Qed.
 
+Ltac ettrans := eapply Trans_stp.
+
 Ltac typconstructor_check :=
   lazymatch goal with
   (* | |- context [ dlang_inst.dlangG ] => fail "Only applicable rule is reflection" *)
