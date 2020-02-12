@@ -344,15 +344,6 @@ Proof.
   constructor; exact: PSelf_singleton_stp.
 Qed.
 
-Lemma pv_dlater {Γ p T i} :
-  is_unstamped_ty' (length Γ) T →
-  Γ u⊢ₚ p : TLater T, i →
-  Γ u⊢ₚ p : T, S i.
-Proof.
-  intros Hu Hp; apply p_subs_typed with (j := 1) (T1 := TLater T) (T2 := T) in Hp;
-    move: Hp; rewrite (plusnS i 0) (plusnO i); intros; tcrush.
-Qed.
-
 Lemma Mu_stp' {Γ T T' i}:
   T' = shift T →
   is_unstamped_ty' (length Γ) T →

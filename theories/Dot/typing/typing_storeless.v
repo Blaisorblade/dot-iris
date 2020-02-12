@@ -145,9 +145,6 @@ with path_typed Γ g : path → ty → nat → Prop :=
 | pv_typed v T:
     Γ v⊢ₜ[ g ] tv v : T →
     Γ v⊢ₚ[ g ] pv v : T, 0
-| pv_dlater p T i:
-    Γ v⊢ₚ[ g ] p : TLater T, i →
-    Γ v⊢ₚ[ g ] p : T, S i
 (* Mnemonic: Path from SELecting a Field *)
 | pself_typed p T i l:
     Γ v⊢ₚ[ g ] p : TVMem l T, i →
@@ -377,6 +374,15 @@ Lemma dvabs_typed' Γ V T1 T2 e l g:
   Γ |L V v⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
 Proof. by intros; apply dpt_pv_typed, Lam_typed_strip1. Qed.
 
+Lemma pv_dlater {Γ p T i g} :
+  is_stamped_ty (length Γ) g T →
+  Γ v⊢ₚ[ g ] p : TLater T, i →
+  Γ v⊢ₚ[ g ] p : T, S i.
+Proof.
+  intros Hu Hp; apply p_subs_typed with (j := 1) (T1 := TLater T) (T2 := T) in Hp;
+    move: Hp; rewrite (plusnS i 0) (plusnO i); intros; by [|constructor].
+Qed.
+
 Ltac ettrans := eapply Trans_stp.
 
 Ltac typconstructor_check :=
@@ -389,6 +395,6 @@ Ltac typconstructor :=
   | |- typed _ _ _ _ => first [apply Lam_typed_strip1 | apply Lam_typed | constructor]
   | |- dms_typed _ _ _ _ => constructor
   | |- dm_typed _ _ _ _ _ => first [apply dvabs_typed' | constructor]
-  | |- path_typed _ _ _ _ _ => constructor
+  | |- path_typed _ _ _ _ _ => first [apply pv_dlater | constructor]
   | |- subtype _ _ _ _ _ _ => constructor
   end; typconstructor_check.

@@ -91,7 +91,6 @@ Section fundamental.
       (* + by_reflect. *)
     - iIntros "#Hm"; induction HT.
       + iApply P_Val. by iApply fundamental_typed.
-      + by iApply sP_Later.
       + by iApply sP_Fld_E.
       + by iApply sP_Sub; [|iApply fundamental_subtype].
       + by iApply P_Mu_I; [|apply IHHT].

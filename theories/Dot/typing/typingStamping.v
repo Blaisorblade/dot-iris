@@ -298,9 +298,6 @@ Section syntyping_stamping_lemmas.
     have ?: v' = var_vl x; naive_solver.
   - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [p1' [g1 ?]].
-    exists p1', g1; naive_solver.
-  - intros * Hu1 IHs1 g.
-    move: IHs1 => /(.$ g) /= [p1' [g1 ?]].
     exists (pself p1' l), g1; naive_solver.
   - intros * Hu1 IHs1 Hu2 IHs2 g.
     move: IHs1 => /(.$ g) [g1 [Hs1 ?]].
