@@ -297,8 +297,8 @@ Lemma BindSpec Γ (L T U : ty):
   {@ type "A" >: T <: T }%ty :: Γ u⊢ₜ T, 0 <: U, 0 →
   Γ u⊢ₜ tv (ν {@ type "A" = T }) : μ {@ type "A" >: L <: U }.
 Proof.
-  intros; eapply Subs_typed_nocoerce; tcrush; rewrite iterate_0.
-  ltcrush.
+  intros.
+  eapply Subs_typed_nocoerce with (T1 := μ {@ type "A" >: T <: T }); ltcrush.
 Qed.
 
 Lemma p_subs_typed' {Γ p T1 T2 i} :

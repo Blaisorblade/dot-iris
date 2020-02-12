@@ -247,6 +247,13 @@ Proof. move=> Ht Hu HsT. apply /App_typed /Ht /Lam_typed /Hu /HsT. Qed.
    self-variable of the created object. *)
 Definition packTV n s := (ν {@ type "A" = (shift (idsσ n); s)}).
 
+Lemma Dty_typed T {Γ l s σ}:
+  T ~[ length Γ ] (g, (s, σ)) →
+  is_stamped_σ (length Γ) g σ →
+  is_stamped_ty (length Γ) g T →
+  Γ v⊢[ g ]{ l := dtysem σ s } : TTMem l T T.
+Proof. intros. apply (dty_typed T); auto 3. Qed.
+
 Lemma packTV_typed' s T n Γ :
   g !! s = Some T →
   is_stamped_ty n g T →
@@ -258,9 +265,9 @@ Proof.
   apply (Subs_typed_nocoerce (μ {@ typeEq "A" (shift T) }));
     last (ettrans; first apply (Mu_stp _ (T := {@ typeEq "A" T })); tcrush).
   apply VObj_typed; tcrush.
-  apply (dty_typed (shift T)); auto 2; tcrush.
-  apply /(@extraction_inf_subst _ (length _)); auto 3;
-    by apply /extraction_weaken /Hle /pack_extraction.
+  apply (Dty_typed (shift T)); simpl; eauto 2.
+  eapply extraction_inf_subst, is_stamped_ren1.
+  by apply /extraction_weaken /Hle /pack_extraction.
 Qed.
 
 Lemma packTV_typed s T Γ :
