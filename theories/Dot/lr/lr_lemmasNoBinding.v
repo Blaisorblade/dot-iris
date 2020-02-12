@@ -86,10 +86,6 @@ Section Sec.
     iApply (wp_and_val with "(HT1 Hg) (HT2 Hg)").
   Qed.
 
-  Lemma sSub_Mono T i :
-    Γ s⊨ T, i <: T, S i.
-  Proof. by iIntros "!> **". Qed.
-
   Lemma sSub_Add_Later T i :
     Γ s⊨ T, i <: oLater T, i.
   Proof. by iIntros "!> ** !> /=". Qed.

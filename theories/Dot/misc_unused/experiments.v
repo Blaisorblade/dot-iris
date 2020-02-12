@@ -446,6 +446,10 @@ Section Sec.
     2: iSpecialize ("IH" with "H").
   Abort.
 
+  Lemma sSub_Mono Γ T i :
+    Γ s⊨ T, i <: T, S i.
+  Proof. by iIntros "!> **". Qed.
+
   (** Rename. *)
   Lemma iterate_Sub_Mono Γ T i j:
     Γ ⊨ T, i <: T, j + i.
