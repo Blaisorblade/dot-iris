@@ -162,23 +162,6 @@ Lemma TMuE_typed' Γ x T1 T2:
   Γ u⊢ₜ tv (ids x): T2.
 Proof. intros; subst; tcrush. Qed.
 
-Lemma Sub_later_shift {Γ T1 T2 i j}
-  (Hs1: is_unstamped_ty' (length Γ) T1)
-  (Hs2: is_unstamped_ty' (length Γ) T2)
-  (Hsub: Γ u⊢ₜ T1, S i <: T2, S j):
-  Γ u⊢ₜ TLater T1, i <: TLater T2, j.
-Proof. by asideLaters. Qed.
-
-Lemma Sub_later_shift_inv {Γ T1 T2 i j}
-  (Hs1: is_unstamped_ty' (length Γ) T1)
-  (Hs2: is_unstamped_ty' (length Γ) T2)
-  (Hsub: Γ u⊢ₜ TLater T1, i <: TLater T2, j):
-  Γ u⊢ₜ T1, S i <: T2, S j.
-Proof.
-  ettrans; first exact: TLaterR_stp.
-  by ettrans; last eapply TLaterL_stp.
-Qed.
-
 Lemma LSel_stp' Γ U {p l L i}:
   is_unstamped_ty' (length Γ) L →
   Γ u⊢ₚ p : TTMem l L U, i →
@@ -193,7 +176,9 @@ Proof. apply LSel_stp'. Qed.
 
 (* Worse than dty_typed, but shown in the paper. *)
 Lemma dty_typed_intermediate Γ T l L U:
+  is_unstamped_ty' (length Γ) L →
   is_unstamped_ty' (length Γ) T →
+  is_unstamped_ty' (length Γ) U →
   Γ u⊢ₜ L, 0 <: T, 0 →
   Γ u⊢ₜ T, 0 <: U, 0 →
   Γ u⊢{ l := dtysyn T } : TTMem l L U.
@@ -214,10 +199,12 @@ Lemma AddI_stp Γ T i (Hst: is_unstamped_ty' (length Γ) T) :
 Proof. rewrite -(plusnO i). by apply (AddIJ_stp i 0). Qed.
 
 Lemma AddIB_stp Γ T U i:
+  is_unstamped_ty' (length Γ) T →
+  is_unstamped_ty' (length Γ) U →
   Γ u⊢ₜ T, 0 <: U, 0 →
   Γ u⊢ₜ T, i <: U, i.
 Proof.
-  move => Hstp; elim: i => [|n IHn]; first tcrush.
+  move => HuT HuU Hstp; elim: i => [|n IHn]; first tcrush.
   exact: TMono_stp.
 Qed.
 
@@ -231,11 +218,15 @@ Lemma Let_typed Γ t u T U :
 Proof. move => Ht Hu HsT. apply /App_typed /Ht /Lam_typed /Hu /HsT. Qed.
 
 Lemma val_LB T U Γ i x l :
+  is_unstamped_ty' (length Γ) T →
+  x < length Γ →
   Γ u⊢ₜ tv (ids x) : type l >: T <: U →
   Γ u⊢ₜ ▶: T, i <: (pv (ids x) @; l), i.
 Proof. intros; apply /AddIB_stp /(@LSel_stp _ (pv _)); tcrush. Qed.
 
 Lemma val_UB T L Γ i x l :
+  is_unstamped_ty' (length Γ) T →
+  x < length Γ →
   Γ u⊢ₜ tv (ids x) : type l >: L <: T →
   Γ u⊢ₜ (pv (ids x) @; l), i <: ▶: T, i.
 Proof. intros; eapply AddIB_stp, SelU_stp; tcrush. Qed.
@@ -342,15 +333,6 @@ Lemma pand_typed {Γ p T1 T2 i}:
 Proof.
   intros Hp1 Hp2. eapply p_subs_typed', psingleton_refl_typed, Hp1.
   constructor; exact: PSelf_singleton_stp.
-Qed.
-
-Lemma pv_dlater {Γ p T i} :
-  is_unstamped_ty' (length Γ) T →
-  Γ u⊢ₚ p : TLater T, i →
-  Γ u⊢ₚ p : T, S i.
-Proof.
-  intros Hu Hp; apply p_subs_typed with (j := 1) (T1 := TLater T) (T2 := T) in Hp;
-    move: Hp; rewrite (plusnS i 0) (plusnO i); intros; tcrush.
 Qed.
 
 Lemma Mu_stp' {Γ T T' i}:

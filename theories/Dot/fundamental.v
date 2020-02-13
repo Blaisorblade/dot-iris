@@ -46,7 +46,6 @@ Section fundamental.
       + by iApply sLater_Sub.
       + by iApply sSub_Later.
       + by iApply sSub_Add_Later.
-      + by iApply sSub_Index_Incr.
       + by iApply sSub_Top.
       + by iApply sBot_Sub.
       + by iApply sAnd1_Sub.
@@ -63,13 +62,13 @@ Section fundamental.
       + by iApply Sub_Mu_X.
       + iApply Sub_Mu_A.
       + iApply Sub_Mu_B.
-      + by iApply sSub_Later_Sub.
       + by iApply All_Sub_All.
       + by iApply Fld_Sub_Fld.
       + by iApply Typ_Sub_Typ.
       + iApply sSub_TAll_Cov_Distr.
       + iApply sSub_TVMem_Cov_Distr.
       + iApply sSub_TTMem_Cov_Distr.
+      + by iApply sSub_Later_Mono.
       (* + by_reflect. *)
     - iIntros "#Hm"; induction HT.
       + by iApply T_All_Ex; [apply IHHT1|apply IHHT2].
@@ -91,7 +90,6 @@ Section fundamental.
       (* + by_reflect. *)
     - iIntros "#Hm"; induction HT.
       + iApply P_Val. by iApply fundamental_typed.
-      + by iApply sP_Later.
       + by iApply sP_Fld_E.
       + by iApply sP_Sub; [|iApply fundamental_subtype].
       + by iApply P_Mu_I; [|apply IHHT].

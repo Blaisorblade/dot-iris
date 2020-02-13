@@ -126,9 +126,6 @@ with path_typed Γ : path → ty → nat → Prop :=
 | pv_typed x T:
     Γ u⊢ₜ tv (var_vl x) : T →
     Γ u⊢ₚ pv (var_vl x) : T, 0
-| pv_dlater p T i:
-    Γ u⊢ₚ p : TLater T, i →
-    Γ u⊢ₚ p : T, S i
 (* Mnemonic: Path from SELecting a Field *)
 | pself_typed p T i l:
     Γ u⊢ₚ p : TVMem l T, i →
@@ -262,10 +259,6 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 
 (* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types.
  "Cov" stands for covariance, "Con" for contravariance. *)
-(* Needed? Maybe drop later instead? *)
-| TLaterCov_stp T1 T2 i j:
-    Γ u⊢ₜ T1, S i <: T2, S j →
-    Γ u⊢ₜ TLater T1, i <: TLater T2, j
 | TAllConCov_stp T1 T2 U1 U2 i:
     Γ u⊢ₜ TLater T2, i <: TLater T1, i →
     iterate TLater (S i) (shift T2) :: Γ u⊢ₜ TLater U1, i <: TLater U2, i →
@@ -299,9 +292,9 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Γ u⊢ₜ TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
 
 (* "Structural" rule about indexes. Only try last. *)
-| TMono_stp T1 T2 i j:
+| TLater_Mono_stp T1 T2 i j:
     Γ u⊢ₜ T1, i <: T2, j →
-    Γ u⊢ₜ T1, S i <: T2, S j
+    Γ u⊢ₜ TLater T1, i <: TLater T2, j
 where "Γ u⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
 
 (* Make [T] first argument: Hide Γ for e.g. typing examples. *)
@@ -351,12 +344,55 @@ Lemma dvabs_typed' Γ V T1 T2 e l:
   Γ |L V u⊢{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
 Proof. by intros; apply dpt_pv_typed, Lam_typed_strip1. Qed.
 
+Lemma pv_dlater {Γ p T i} :
+  is_unstamped_ty' (length Γ) T →
+  Γ u⊢ₚ p : TLater T, i →
+  Γ u⊢ₚ p : T, S i.
+Proof.
+  intros Hu Hp; apply p_subs_typed with (j := 1) (T1 := TLater T) (T2 := T) in Hp;
+    move: Hp; rewrite (plusnS i 0) (plusnO i); intros; by [|constructor].
+Qed.
+
 Ltac ettrans := eapply Trans_stp.
 
-Ltac typconstructor := match goal with
+Lemma TMono_stp {Γ T1 T2 i j} :
+  Γ u⊢ₜ T1, i <: T2, j →
+  is_unstamped_ty' (length Γ) T1 →
+  is_unstamped_ty' (length Γ) T2 →
+  Γ u⊢ₜ T1, S i <: T2, S j.
+Proof.
+  intros.
+  ettrans; first exact: TLaterR_stp.
+  ettrans; last exact: TLaterL_stp.
+  exact: TLater_Mono_stp.
+Qed.
+
+Lemma Sub_later_shift {Γ T1 T2 i j}
+  (Hs1: is_unstamped_ty' (length Γ) T1)
+  (Hs2: is_unstamped_ty' (length Γ) T2)
+  (Hsub: Γ u⊢ₜ T1, S i <: T2, S j):
+  Γ u⊢ₜ TLater T1, i <: TLater T2, j.
+Proof.
+  ettrans; first exact: TLaterL_stp.
+  by eapply Trans_stp, TLaterR_stp.
+Qed.
+
+Lemma Sub_later_shift_inv {Γ T1 T2 i j}
+  (Hs1: is_unstamped_ty' (length Γ) T1)
+  (Hs2: is_unstamped_ty' (length Γ) T2)
+  (Hsub: Γ u⊢ₜ TLater T1, i <: TLater T2, j):
+  Γ u⊢ₜ T1, S i <: T2, S j.
+Proof.
+  ettrans; first exact: TLaterR_stp.
+  by eapply Trans_stp, TLaterL_stp.
+Qed.
+
+Ltac typconstructor :=
+  match goal with
   | |- typed _ _ _ => first [apply Lam_typed_strip1 | apply Lam_typed | constructor]
   | |- dms_typed _ _ _ => constructor
   | |- dm_typed _ _ _ _ => first [apply dvabs_typed' | constructor]
-  | |- path_typed _ _ _ _ => constructor
-  | |- subtype _ _ _ _ _ => constructor
+  | |- path_typed _ _ _ _ => first [apply pv_dlater | constructor]
+  | |- subtype _ _ _ _ _ =>
+    first [apply Sub_later_shift | constructor | apply TMono_stp]
   end.

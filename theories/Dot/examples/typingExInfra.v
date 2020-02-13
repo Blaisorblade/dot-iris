@@ -178,26 +178,6 @@ Lemma Subs_typed_nocoerce T1 T2 {Γ e} :
 Proof. rewrite -(iterate_0 tskip e). eauto. Qed.
 Hint Resolve Subs_typed_nocoerce : core.
 
-Lemma Sub_later_shift {Γ T1 T2 i j}
-  (Hs1: is_stamped_ty (length Γ) g T1)
-  (Hs2: is_stamped_ty (length Γ) g T2)
-  (Hsub: Γ v⊢ₜ[ g ] T1, S i <: T2, S j):
-  Γ v⊢ₜ[ g ] TLater T1, i <: TLater T2, j.
-Proof.
-  ettrans; first exact: TLaterL_stp.
-  by eapply Trans_stp, TLaterR_stp.
-Qed.
-
-Lemma Sub_later_shift_inv {Γ T1 T2 i j}
-  (Hs1: is_stamped_ty (length Γ) g T1)
-  (Hs2: is_stamped_ty (length Γ) g T2)
-  (Hsub: Γ v⊢ₜ[ g ] TLater T1, i <: TLater T2, j):
-  Γ v⊢ₜ[ g ] T1, S i <: T2, S j.
-Proof.
-  ettrans; first exact: TLaterR_stp.
-  by eapply Trans_stp, TLaterL_stp.
-Qed.
-
 Lemma Var_typed_sub Γ x T1 T2 :
   Γ !! x = Some T1 →
   Γ v⊢ₜ[ g ] shiftN x T1, 0 <: T2, 0 →
@@ -233,10 +213,12 @@ Proof.
 Qed.
 
 Lemma AddIB_stp Γ T U i:
+  is_stamped_ty (length Γ) g T →
+  is_stamped_ty (length Γ) g U →
   Γ v⊢ₜ[ g ] T, 0 <: U, 0 →
   Γ v⊢ₜ[ g ] T, i <: U, i.
 Proof.
-  move => Hstp; elim: i => [|n IHn]; first tcrush.
+  move => Hst Hsu Hstp; elim: i => [|n IHn]; first tcrush.
   exact: TMono_stp.
 Qed.
 
@@ -286,18 +268,42 @@ Lemma packTV_typed s T Γ :
 Proof. intros; exact: packTV_typed'. Qed.
 
 Lemma val_LB T U Γ i v :
+  is_stamped_ty (length Γ) g T →
+  is_stamped_vl (length Γ) g v →
   Γ v⊢ₜ[ g ] tv v : type "A" >: T <: U →
   Γ v⊢ₜ[ g ] ▶: T, i <: (pv v @; "A"), i.
 Proof. intros; apply /AddIB_stp /(LSel_stp (p := pv _)); tcrush. Qed.
+
+Lemma is_stamped_sub_dm d s m n:
+  is_stamped_sub n m g s →
+  is_stamped_dm n g d →
+  is_stamped_dm m g d.|[s].
+Proof. apply is_stamped_sub_mut. Qed.
+
+Lemma is_stamped_dtysem m n s T:
+  g !! s = Some T →
+  is_stamped_ty m g T →
+  m ≤ n →
+  is_stamped_dm n g (dtysem (idsσ m) s).
+Proof.
+  intros.
+  by apply Trav1.trav_dtysem with (T' := T) (ts' := (m, g)), is_stamped_idsσ.
+Qed.
 
 Lemma packTV_LB s T n Γ i :
   g !! s = Some T →
   is_stamped_ty n g T →
   n <= length Γ →
   Γ v⊢ₜ[ g ] ▶: T, i <: (pv (packTV n s) @; "A"), i.
-Proof. intros; by apply /val_LB /packTV_typed'. Qed.
+Proof.
+  intros; apply /val_LB /packTV_typed'; wtcrush; cbn.
+  eapply (is_stamped_sub_dm (dtysem _ _) (ren (+1))); trivial.
+  exact: is_stamped_dtysem.
+Qed.
 
 Lemma val_UB T L Γ i v :
+  is_stamped_ty (length Γ) g T →
+  is_stamped_vl (length Γ) g v →
   Γ v⊢ₜ[ g ] tv v : type "A" >: L <: T →
   Γ v⊢ₜ[ g ] (pv v @; "A"), i <: ▶: T, i.
 Proof. intros; eapply AddIB_stp, SelU_stp; tcrush. Qed.
@@ -307,7 +313,11 @@ Lemma packTV_UB s T n Γ i :
   g !! s = Some T →
   n <= length Γ →
   Γ v⊢ₜ[ g ] (pv (packTV n s) @; "A"), i <: ▶: T, i.
-Proof. intros; by apply /val_UB /packTV_typed'. Qed.
+Proof.
+  intros; apply /val_UB /packTV_typed'; wtcrush.
+  eapply (is_stamped_sub_dm (dtysem _ _) (ren (+1))); trivial.
+  exact: is_stamped_dtysem.
+Qed.
 
 Definition tApp Γ t s :=
   lett t (lett (tv (packTV (S (length Γ)) s)) (tapp (tv x1) (tv x0))).

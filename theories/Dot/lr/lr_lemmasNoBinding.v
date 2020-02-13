@@ -113,6 +113,14 @@ Section Sec.
     Γ s⊨ T, S i <: U, S j.
   Proof. iIntros "/= #Hsub !> ** !>". by iApply "Hsub". Qed.
 
+  Lemma sSub_Later_Mono T U i j:
+    Γ s⊨ T, i <: U, j -∗
+    Γ s⊨ oLater T, i <: oLater U, j.
+  Proof.
+    iIntros "/= #Hsub !> %% Hg HT". rewrite !swap_later.
+    by iApply ("Hsub" with "Hg HT").
+  Qed.
+
   Lemma sAnd1_Sub T1 T2 i: Γ s⊨ oAnd T1 T2, i <: T1, i.
   Proof. by iIntros "/= !> * ? [? ?]". Qed.
   Lemma sAnd2_Sub T1 T2 i: Γ s⊨ oAnd T1 T2, i <: T2, i.

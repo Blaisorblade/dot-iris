@@ -118,9 +118,6 @@ with path_typed Γ g : path → ty → nat → Prop :=
 | pv_typed x T:
     Γ s⊢ₜ[ g ] tv (var_vl x) : T →
     Γ s⊢ₚ[ g ] pv (var_vl x) : T, 0
-| pv_dlater p T i:
-    Γ s⊢ₚ[ g ] p : TLater T, i →
-    Γ s⊢ₚ[ g ] p : T, S i
 (* Mnemonic: Path from SELecting a Field *)
 | pself_typed p T i l:
     Γ s⊢ₚ[ g ] p : TVMem l T, i →
@@ -176,13 +173,10 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     is_stamped_ty (length Γ) g T →
     Γ s⊢ₜ[ g ] T, S i <: TLater T, i
 
-(* "Structural" rules about indexes *)
+(* "Structural" rule about indexes *)
 | TAddLater_stp T i:
     is_stamped_ty (length Γ) g T →
     Γ s⊢ₜ[ g ] T, i <: TLater T, i
-| TMono_stp T1 T2 i j:
-    Γ s⊢ₜ[ g ] T1, i <: T2, j →
-    Γ s⊢ₜ[ g ] T1, S i <: T2, S j
 
 (* "Logical" connectives *)
 | Top_stp i T :
@@ -259,10 +253,6 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
 
 (* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types.
  "Cov" stands for covariance, "Con" for contravariance. *)
-(* Needed? Maybe drop later instead? *)
-| TLaterCov_stp T1 T2 i j:
-    Γ s⊢ₜ[ g ] T1, S i <: T2, S j →
-    Γ s⊢ₜ[ g ] TLater T1, i <: TLater T2, j
 | TAllConCov_stp T1 T2 U1 U2 i:
     Γ s⊢ₜ[ g ] TLater T2, i <: TLater T1, i →
     iterate TLater (S i) (shift T2) :: Γ s⊢ₜ[ g ] TLater U1, i <: TLater U2, i →
@@ -294,6 +284,11 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     is_stamped_ty (length Γ) g U1 →
     is_stamped_ty (length Γ) g U2 →
     Γ s⊢ₜ[ g ] TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
+
+(* "Structural" rule about indexes. Only try last. *)
+| TLater_Mono_stp T1 T2 i j:
+    Γ s⊢ₜ[ g ] T1, i <: T2, j →
+    Γ s⊢ₜ[ g ] TLater T1, i <: TLater T2, j
 where "Γ s⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ g T1 i1 T2 i2).
 
 Scheme exp_stamped_objIdent_typed_mut_ind := Induction for typed Sort Prop
@@ -351,15 +346,57 @@ Lemma dvabs_typed' Γ V T1 T2 e l g:
   Γ |L V s⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
 Proof. by intros; apply dpt_pv_typed, Lam_typed_strip1. Qed.
 
+Lemma pv_dlater {Γ p T i g} :
+  is_stamped_ty (length Γ) g T →
+  Γ s⊢ₚ[ g ] p : TLater T, i →
+  Γ s⊢ₚ[ g ] p : T, S i.
+Proof.
+  intros Hu Hp; apply p_subs_typed with (j := 1) (T1 := TLater T) (T2 := T) in Hp;
+    move: Hp; rewrite (plusnS i 0) (plusnO i); intros; by [|constructor].
+Qed.
+
 Ltac ettrans := eapply Trans_stp.
+
+Lemma TMono_stp {Γ T1 T2 i j g} :
+  Γ s⊢ₜ[ g ] T1, i <: T2, j →
+  is_stamped_ty (length Γ) g T1 →
+  is_stamped_ty (length Γ) g T2 →
+  Γ s⊢ₜ[ g ] T1, S i <: T2, S j.
+Proof.
+  intros.
+  ettrans; first exact: TLaterR_stp.
+  ettrans; last exact: TLaterL_stp.
+  exact: TLater_Mono_stp.
+Qed.
+
+Lemma Sub_later_shift {Γ T1 T2 i j g}
+  (Hs1: is_stamped_ty (length Γ) g T1)
+  (Hs2: is_stamped_ty (length Γ) g T2)
+  (Hsub: Γ s⊢ₜ[ g ] T1, S i <: T2, S j):
+  Γ s⊢ₜ[ g ] TLater T1, i <: TLater T2, j.
+Proof.
+  ettrans; first exact: TLaterL_stp.
+  by eapply Trans_stp, TLaterR_stp.
+Qed.
+
+Lemma Sub_later_shift_inv {Γ T1 T2 i j g}
+  (Hs1: is_stamped_ty (length Γ) g T1)
+  (Hs2: is_stamped_ty (length Γ) g T2)
+  (Hsub: Γ s⊢ₜ[ g ] TLater T1, i <: TLater T2, j):
+  Γ s⊢ₜ[ g ] T1, S i <: T2, S j.
+Proof.
+  ettrans; first exact: TLaterR_stp.
+  by eapply Trans_stp, TLaterL_stp.
+Qed.
 
 Ltac typconstructor :=
   match goal with
   | |- typed _ _ _ _ => first [apply Lam_typed_strip1 | apply Lam_typed | constructor]
   | |- dms_typed _ _ _ _ => constructor
   | |- dm_typed _ _ _ _ _ => first [apply dvabs_typed' | constructor]
-  | |- path_typed _ _ _ _ _ => constructor
-  | |- subtype _ _ _ _ _ _ => constructor
+  | |- path_typed _ _ _ _ _ => first [apply pv_dlater | constructor]
+  | |- subtype _ _ _ _ _ _ =>
+    first [apply Sub_later_shift | constructor | apply TMono_stp]
   end.
 
 Section syntyping_lemmas.
