@@ -285,10 +285,6 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
 
 (* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types.
  "Cov" stands for covariance, "Con" for contravariance. *)
-(* Needed? Maybe drop later instead? *)
-| TLaterCov_stp T1 T2 i j:
-    Γ v⊢ₜ[ g ] T1, S i <: T2, S j →
-    Γ v⊢ₜ[ g ] TLater T1, i <: TLater T2, j
 | TAllConCov_stp T1 T2 U1 U2 i:
     Γ v⊢ₜ[ g ] TLater T2, i <: TLater T1, i →
     iterate TLater (S i) (shift T2) :: Γ v⊢ₜ[ g ] TLater U1, i <: TLater U2, i →
@@ -399,6 +395,26 @@ Proof.
   exact: TLater_Mono_stp.
 Qed.
 
+Lemma Sub_later_shift {Γ T1 T2 i j g}
+  (Hs1: is_stamped_ty (length Γ) g T1)
+  (Hs2: is_stamped_ty (length Γ) g T2)
+  (Hsub: Γ v⊢ₜ[ g ] T1, S i <: T2, S j):
+  Γ v⊢ₜ[ g ] TLater T1, i <: TLater T2, j.
+Proof.
+  ettrans; first exact: TLaterL_stp.
+  by eapply Trans_stp, TLaterR_stp.
+Qed.
+
+Lemma Sub_later_shift_inv {Γ T1 T2 i j g}
+  (Hs1: is_stamped_ty (length Γ) g T1)
+  (Hs2: is_stamped_ty (length Γ) g T2)
+  (Hsub: Γ v⊢ₜ[ g ] TLater T1, i <: TLater T2, j):
+  Γ v⊢ₜ[ g ] T1, S i <: T2, S j.
+Proof.
+  ettrans; first exact: TLaterR_stp.
+  by eapply Trans_stp, TLaterL_stp.
+Qed.
+
 Ltac typconstructor_check :=
   lazymatch goal with
   (* | |- context [ dlang_inst.dlangG ] => fail "Only applicable rule is reflection" *)
@@ -410,5 +426,6 @@ Ltac typconstructor :=
   | |- dms_typed _ _ _ _ => constructor
   | |- dm_typed _ _ _ _ _ => first [apply dvabs_typed' | constructor]
   | |- path_typed _ _ _ _ _ => first [apply pv_dlater | constructor]
-  | |- subtype _ _ _ _ _ _ => first [constructor | apply TMono_stp]
+  | |- subtype _ _ _ _ _ _ =>
+    first [apply Sub_later_shift | constructor | apply TMono_stp]
   end; typconstructor_check.

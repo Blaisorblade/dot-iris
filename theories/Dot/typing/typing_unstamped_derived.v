@@ -162,23 +162,6 @@ Lemma TMuE_typed' Γ x T1 T2:
   Γ u⊢ₜ tv (ids x): T2.
 Proof. intros; subst; tcrush. Qed.
 
-Lemma Sub_later_shift {Γ T1 T2 i j}
-  (Hs1: is_unstamped_ty' (length Γ) T1)
-  (Hs2: is_unstamped_ty' (length Γ) T2)
-  (Hsub: Γ u⊢ₜ T1, S i <: T2, S j):
-  Γ u⊢ₜ TLater T1, i <: TLater T2, j.
-Proof. by asideLaters. Qed.
-
-Lemma Sub_later_shift_inv {Γ T1 T2 i j}
-  (Hs1: is_unstamped_ty' (length Γ) T1)
-  (Hs2: is_unstamped_ty' (length Γ) T2)
-  (Hsub: Γ u⊢ₜ TLater T1, i <: TLater T2, j):
-  Γ u⊢ₜ T1, S i <: T2, S j.
-Proof.
-  ettrans; first exact: TLaterR_stp.
-  by ettrans; last eapply TLaterL_stp.
-Qed.
-
 Lemma LSel_stp' Γ U {p l L i}:
   is_unstamped_ty' (length Γ) L →
   Γ u⊢ₚ p : TTMem l L U, i →
@@ -193,8 +176,8 @@ Proof. apply LSel_stp'. Qed.
 
 (* Worse than dty_typed, but shown in the paper. *)
 Lemma dty_typed_intermediate Γ T l L U:
-  is_unstamped_ty' (length Γ) T →
   is_unstamped_ty' (length Γ) L →
+  is_unstamped_ty' (length Γ) T →
   is_unstamped_ty' (length Γ) U →
   Γ u⊢ₜ L, 0 <: T, 0 →
   Γ u⊢ₜ T, 0 <: U, 0 →

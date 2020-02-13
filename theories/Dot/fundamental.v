@@ -62,7 +62,6 @@ Section fundamental.
       + by iApply Sub_Mu_X.
       + iApply Sub_Mu_A.
       + iApply Sub_Mu_B.
-      + by iApply sSub_Later_Sub.
       + by iApply All_Sub_All.
       + by iApply Fld_Sub_Fld.
       + by iApply Typ_Sub_Typ.
