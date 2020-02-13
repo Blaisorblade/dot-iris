@@ -194,6 +194,8 @@ Proof. apply LSel_stp'. Qed.
 (* Worse than dty_typed, but shown in the paper. *)
 Lemma dty_typed_intermediate Γ T l L U:
   is_unstamped_ty' (length Γ) T →
+  is_unstamped_ty' (length Γ) L →
+  is_unstamped_ty' (length Γ) U →
   Γ u⊢ₜ L, 0 <: T, 0 →
   Γ u⊢ₜ T, 0 <: U, 0 →
   Γ u⊢{ l := dtysyn T } : TTMem l L U.
@@ -214,10 +216,12 @@ Lemma AddI_stp Γ T i (Hst: is_unstamped_ty' (length Γ) T) :
 Proof. rewrite -(plusnO i). by apply (AddIJ_stp i 0). Qed.
 
 Lemma AddIB_stp Γ T U i:
+  is_unstamped_ty' (length Γ) T →
+  is_unstamped_ty' (length Γ) U →
   Γ u⊢ₜ T, 0 <: U, 0 →
   Γ u⊢ₜ T, i <: U, i.
 Proof.
-  move => Hstp; elim: i => [|n IHn]; first tcrush.
+  move => HuT HuU Hstp; elim: i => [|n IHn]; first tcrush.
   exact: TMono_stp.
 Qed.
 
@@ -231,11 +235,15 @@ Lemma Let_typed Γ t u T U :
 Proof. move => Ht Hu HsT. apply /App_typed /Ht /Lam_typed /Hu /HsT. Qed.
 
 Lemma val_LB T U Γ i x l :
+  is_unstamped_ty' (length Γ) T →
+  x < length Γ →
   Γ u⊢ₜ tv (ids x) : type l >: T <: U →
   Γ u⊢ₜ ▶: T, i <: (pv (ids x) @; l), i.
 Proof. intros; apply /AddIB_stp /(@LSel_stp _ (pv _)); tcrush. Qed.
 
 Lemma val_UB T L Γ i x l :
+  is_unstamped_ty' (length Γ) T →
+  x < length Γ →
   Γ u⊢ₜ tv (ids x) : type l >: L <: T →
   Γ u⊢ₜ (pv (ids x) @; l), i <: ▶: T, i.
 Proof. intros; eapply AddIB_stp, SelU_stp; tcrush. Qed.

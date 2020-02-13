@@ -46,7 +46,6 @@ Section fundamental.
       + by iApply sLater_Sub.
       + by iApply sSub_Later.
       + by iApply sSub_Add_Later.
-      + by iApply sSub_Index_Incr.
       + by iApply sSub_Top.
       + by iApply sBot_Sub.
       + by iApply sAnd1_Sub.
@@ -70,6 +69,7 @@ Section fundamental.
       + iApply sSub_TAll_Cov_Distr.
       + iApply sSub_TVMem_Cov_Distr.
       + iApply sSub_TTMem_Cov_Distr.
+      + by iApply sSub_Later_Mono.
       (* + by_reflect. *)
     - iIntros "#Hm"; induction HT.
       + by iApply T_All_Ex; [apply IHHT1|apply IHHT2].

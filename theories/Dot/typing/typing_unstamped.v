@@ -296,9 +296,9 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Γ u⊢ₜ TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
 
 (* "Structural" rule about indexes. Only try last. *)
-| TMono_stp T1 T2 i j:
+| TLater_Mono_stp T1 T2 i j:
     Γ u⊢ₜ T1, i <: T2, j →
-    Γ u⊢ₜ T1, S i <: T2, S j
+    Γ u⊢ₜ TLater T1, i <: TLater T2, j
 where "Γ u⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
 
 (* Make [T] first argument: Hide Γ for e.g. typing examples. *)
@@ -359,10 +359,23 @@ Qed.
 
 Ltac ettrans := eapply Trans_stp.
 
-Ltac typconstructor := match goal with
+Lemma TMono_stp {Γ T1 T2 i j} :
+  Γ u⊢ₜ T1, i <: T2, j →
+  is_unstamped_ty' (length Γ) T1 →
+  is_unstamped_ty' (length Γ) T2 →
+  Γ u⊢ₜ T1, S i <: T2, S j.
+Proof.
+  intros.
+  ettrans; first exact: TLaterR_stp.
+  ettrans; last exact: TLaterL_stp.
+  exact: TLater_Mono_stp.
+Qed.
+
+Ltac typconstructor :=
+  match goal with
   | |- typed _ _ _ => first [apply Lam_typed_strip1 | apply Lam_typed | constructor]
   | |- dms_typed _ _ _ => constructor
   | |- dm_typed _ _ _ _ => first [apply dvabs_typed' | constructor]
   | |- path_typed _ _ _ _ => first [apply pv_dlater | constructor]
-  | |- subtype _ _ _ _ _ => constructor
+  | |- subtype _ _ _ _ _ => first [constructor | apply TMono_stp]
   end.

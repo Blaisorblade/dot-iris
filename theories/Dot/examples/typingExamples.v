@@ -323,13 +323,20 @@ Proof.
   exact: packBooleanTyp0.
 Qed.
 
+Lemma is_stamped_dm_s1 (Hst : s1_is_ift) : is_stamped_dm 0 g (dtysem σ1 s1).
+Proof.
+  (* apply /extr_dtysem_stamped; by [apply: get_s1_is_ift|]. *)
+  eapply is_stamped_dtysem with (m := 0); tcrush.
+Qed.
+Hint Resolve is_stamped_dm_s1 : core.
+
 Lemma packBooleanLB Γ (Hst : s1_is_ift) i :
   Γ v⊢ₜ[ g ] ▶: IFT, i <: (pv packBoolean @; "A"), i.
-Proof. by apply /val_LB /packBooleanTyp0. Qed.
+Proof. apply /val_LB /packBooleanTyp0; wtcrush. Qed.
 
 Lemma packBooleanUB Γ (Hst : s1_is_ift) i :
   Γ v⊢ₜ[ g ] (pv packBoolean @; "A"), i <: ▶: IFT, i.
-Proof. by apply /val_UB /packBooleanTyp0. Qed.
+Proof. apply /val_UB /packBooleanTyp0; wtcrush. Qed.
 
 Definition iftAnd false : vl := vabs (vabs'
   (tapp (tapp (tapp (tv x1) (tv packBoolean)) (tv x0)) false)).
@@ -347,8 +354,6 @@ Proof.
     exact: Var_typed'.
     by change IFTBody.|[_] with IFTBody.
   }
-  have Hs: is_stamped_dm 0 g (dtysem σ1 s1).
-  apply /extr_dtysem_stamped; by [apply: get_s1_is_ift|].
 
   apply TAllConCov_stp; stcrush.
   { ettrans. exact: packBooleanLB. wtcrush. }
@@ -409,7 +414,8 @@ Proof.
   rewrite /= -/IFTBody => HsT1.
   move: (HsT1) => /is_stamped_ren1_ty HsT2; rewrite -hrenS in HsT2.
   move: (HsT2) => /is_stamped_ren1_ty HsT3; rewrite -hrenS in HsT3.
-  tcrush; rewrite ?iterate_S ?iterate_0 /=;
+  move: (HsT3) => /is_stamped_ren1_ty HsT4; rewrite -hrenS in HsT4.
+  tcrush; rewrite ?iterate_S ?iterate_0 /=; stcrush;
     first [apply: LSel_stp' | apply: SelU_stp]; tcrush; apply: Var_typed';
     rewrite ?hsubst_id //; by autosubst.
 Qed.

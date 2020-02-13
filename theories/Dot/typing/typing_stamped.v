@@ -173,13 +173,10 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     is_stamped_ty (length Γ) g T →
     Γ s⊢ₜ[ g ] T, S i <: TLater T, i
 
-(* "Structural" rules about indexes *)
+(* "Structural" rule about indexes *)
 | TAddLater_stp T i:
     is_stamped_ty (length Γ) g T →
     Γ s⊢ₜ[ g ] T, i <: TLater T, i
-| TMono_stp T1 T2 i j:
-    Γ s⊢ₜ[ g ] T1, i <: T2, j →
-    Γ s⊢ₜ[ g ] T1, S i <: T2, S j
 
 (* "Logical" connectives *)
 | Top_stp i T :
@@ -291,6 +288,11 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     is_stamped_ty (length Γ) g U1 →
     is_stamped_ty (length Γ) g U2 →
     Γ s⊢ₜ[ g ] TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
+
+(* "Structural" rule about indexes. Only try last. *)
+| TLater_Mono_stp T1 T2 i j:
+    Γ s⊢ₜ[ g ] T1, i <: T2, j →
+    Γ s⊢ₜ[ g ] TLater T1, i <: TLater T2, j
 where "Γ s⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ g T1 i1 T2 i2).
 
 Scheme exp_stamped_objIdent_typed_mut_ind := Induction for typed Sort Prop
@@ -359,13 +361,25 @@ Qed.
 
 Ltac ettrans := eapply Trans_stp.
 
+Lemma TMono_stp {Γ T1 T2 i j g} :
+  Γ s⊢ₜ[ g ] T1, i <: T2, j →
+  is_stamped_ty (length Γ) g T1 →
+  is_stamped_ty (length Γ) g T2 →
+  Γ s⊢ₜ[ g ] T1, S i <: T2, S j.
+Proof.
+  intros.
+  ettrans; first exact: TLaterR_stp.
+  ettrans; last exact: TLaterL_stp.
+  exact: TLater_Mono_stp.
+Qed.
+
 Ltac typconstructor :=
   match goal with
   | |- typed _ _ _ _ => first [apply Lam_typed_strip1 | apply Lam_typed | constructor]
   | |- dms_typed _ _ _ _ => constructor
   | |- dm_typed _ _ _ _ _ => first [apply dvabs_typed' | constructor]
   | |- path_typed _ _ _ _ _ => first [apply pv_dlater | constructor]
-  | |- subtype _ _ _ _ _ _ => constructor
+  | |- subtype _ _ _ _ _ _ => first [constructor | apply TMono_stp]
   end.
 
 Section syntyping_lemmas.
