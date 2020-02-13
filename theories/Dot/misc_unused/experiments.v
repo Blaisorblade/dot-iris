@@ -8,8 +8,7 @@ From D.Dot.lr Require Import unary_lr
   lr_lemmas lr_lemmasTSel lr_lemmasNoBinding lr_lemmasDefs path_repl later_sub_sem.
 
 Implicit Types
-         (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
-         (Γ : ctx).
+         (v: vl) (e: tm) (d: dm) (ds: dms) (p : path).
 
 (** These typing lemmas can be derived syntactically.
  But I had written semantic proofs first, and they might help. *)
@@ -28,7 +27,7 @@ Section AlsoSyntactically.
   Proof. rewrite (P_Mu_I Hrepl). apply Sngl_Self_Sub. Qed.
 
   (** Semantic version of derived rule [singleton_Mu_dotty1]. *)
-  Lemma singleton_Mu_dotty1 {Γ p i T1 T2 T1' T2'}
+  Lemma singleton_Mu_dotty1 {Γ p i T1 T2 T2'}
     (Hrepl2 : T2 .Tp[ p /]~ T2'):
     Γ ⊨ T1, i <: T2', i -∗
     Γ ⊨p p : T1, i -∗
@@ -119,7 +118,7 @@ Section Example.
   Definition applyE e v1 v2 := e $: tv (packTV 0 s0) $: tv v1 $: tv v2.
 
   (* XXX "only empty context" won't be enough :-( *)
-  Example foo1 Γ s T (Hcl : nclosed T 0) :
+  Example foo1 s T (Hcl : nclosed T 0) :
     s ↝n[ 0 ] V⟦ T ⟧ -∗
     (* Γ ⊨ tv (packTV (length Γ) s) : typeEq "A" T. *)
     [] ⊨ tv (packTV 0 s) : typeEq "A" T.
@@ -173,7 +172,7 @@ Section Example.
     iApply T_Obj_I.
   Qed. *)
 
-  Example foo Γ e v1 v2:
+  Example foo e v1 v2:
     s0 ↝n[ 0 ] V⟦ ⊤%ty ⟧ -∗
     [] ⊨ e : iftFalse -∗
     [] ⊨ tv v1 : TTop -∗
@@ -221,7 +220,7 @@ Section Example.
     eapply Subs_typed_nocoerce; [ apply Hp | tcrush ].
   Qed.
 
-  Example foosem Γ e v1 v2:
+  Example foosem e v1 v2:
     let g := g0 s0 ⊤ in
     [] v⊢ₜ[ g ] e : iftFalse →
     [] v⊢ₜ[ g ] tv v1 : TTop →
@@ -446,6 +445,10 @@ Section Sec.
     unshelve (iApply (timeless with "H2")); first last.
     2: iSpecialize ("IH" with "H").
   Abort.
+
+  Lemma sSub_Mono Γ T i :
+    Γ s⊨ T, i <: T, S i.
+  Proof. by iIntros "!> **". Qed.
 
   (** Rename. *)
   Lemma iterate_Sub_Mono Γ T i j:

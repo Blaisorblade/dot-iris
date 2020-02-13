@@ -59,17 +59,7 @@ Section Sec.
   (* In the above proof, in contrast with T_Obj_E, lots of the lemmas
      needed of path_wp hold simply by computation. *)
 
-  Lemma sP_Later {Γ} p T i :
-    Γ s⊨p p : oLater T, i -∗
-    Γ s⊨p p : T, S i.
-  Proof.
-    iIntros "/= #Hp !>" (ρ) "Hg".
-    rewrite -swap_later -path_wp_later_swap.
-    iApply (path_wp_wand with "(Hp Hg)"); iNext i.
-    by iIntros (v) "!> $".
-  Qed.
-
-  Lemma sP_Sub {Γ} p T1 T2 i j:
+  Lemma sP_Sub {Γ p T1 T2 i j}:
     Γ s⊨p p : T1, i -∗
     Γ s⊨ T1, i <: T2, i + j -∗
     (*───────────────────────────────*)
@@ -87,5 +77,16 @@ Section Sec.
     Γ s⊨ T1, i <: T2, i -∗
     (*───────────────────────────────*)
     Γ s⊨p p : T2, i.
-  Proof. have := sP_Sub p T1 T2 i 0. by rewrite (plusnO i). Qed.
+  Proof. have := @sP_Sub Γ p T1 T2 i 0. by rewrite (plusnO i). Qed.
+
+  (* Derivable, kept for examples. *)
+  Lemma sP_Later {Γ} p T i :
+    Γ s⊨p p : oLater T, i -∗
+    Γ s⊨p p : T, S i.
+  Proof.
+    rewrite (sP_Sub (j := 1) (T1 := oLater T) (T2 := T)); iIntros "Hsub".
+    rewrite (plusnS i 0) (plusnO i).
+    iApply "Hsub".
+    iIntros "/= !>" (ρ v) "Hg $".
+  Qed.
 End Sec.

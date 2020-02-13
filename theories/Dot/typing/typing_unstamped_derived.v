@@ -73,8 +73,6 @@ Ltac wtcrush := repeat first [ fast_done | typconstructor | stcrush ] ; try solv
     try_once is_unstamped_weaken_ty |
     try_once is_unstamped_weaken_path ]; eauto].
 
-Ltac ettrans := eapply Trans_stp.
-
 Ltac asideLaters :=
   repeat first
     [ettrans; last (apply TLaterR_stp; tcrush)|
@@ -187,6 +185,12 @@ Lemma LSel_stp' Γ U {p l L i}:
   Γ u⊢ₜ L, i <: TSel p l, i.
 Proof. intros; ettrans; last exact: (@LSel_stp _ p); tcrush. Qed.
 
+(** Specialization of [LSel_stp'] for convenience. *)
+Lemma LSel_stp'' Γ {p l L i}:
+  is_unstamped_ty' (length Γ) L →
+  Γ u⊢ₚ p : TTMem l L L, i → Γ u⊢ₜ L, i <: TSel p l, i.
+Proof. apply LSel_stp'. Qed.
+
 (* Worse than dty_typed, but shown in the paper. *)
 Lemma dty_typed_intermediate Γ T l L U:
   is_unstamped_ty' (length Γ) T →
@@ -297,8 +301,8 @@ Lemma BindSpec Γ (L T U : ty):
   {@ type "A" >: T <: T }%ty :: Γ u⊢ₜ T, 0 <: U, 0 →
   Γ u⊢ₜ tv (ν {@ type "A" = T }) : μ {@ type "A" >: L <: U }.
 Proof.
-  intros; eapply Subs_typed_nocoerce; tcrush; rewrite iterate_0.
-  ltcrush.
+  intros.
+  eapply Subs_typed_nocoerce with (T1 := μ {@ type "A" >: T <: T }); ltcrush.
 Qed.
 
 Lemma p_subs_typed' {Γ p T1 T2 i} :
@@ -338,6 +342,15 @@ Lemma pand_typed {Γ p T1 T2 i}:
 Proof.
   intros Hp1 Hp2. eapply p_subs_typed', psingleton_refl_typed, Hp1.
   constructor; exact: PSelf_singleton_stp.
+Qed.
+
+Lemma pv_dlater {Γ p T i} :
+  is_unstamped_ty' (length Γ) T →
+  Γ u⊢ₚ p : TLater T, i →
+  Γ u⊢ₚ p : T, S i.
+Proof.
+  intros Hu Hp; apply p_subs_typed with (j := 1) (T1 := TLater T) (T2 := T) in Hp;
+    move: Hp; rewrite (plusnS i 0) (plusnO i); intros; tcrush.
 Qed.
 
 Lemma Mu_stp' {Γ T T' i}:

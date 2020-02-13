@@ -103,7 +103,7 @@ Example SubIFT_P0Bool Γ : {@
     val "true" : IFT;
     val "false" : IFT
   }%ty :: Γ u⊢ₜ IFT, 0 <: p0Bool, 0.
-Proof. eapply LSel_stp'; tcrush. varsub; tcrush. Qed.
+Proof. eapply LSel_stp''; tcrush. varsub; tcrush. Qed.
 
 Example SubIFT_LaterP0Bool' Γ : {@
     typeEq "Boolean" IFT;
@@ -120,7 +120,7 @@ Example SubIFT_LaterP0Bool Γ : (▶: {@
 Proof.
   asideLaters.
   ettrans; first (apply (AddI_stp _ _ 1); tcrush).
-  eapply LSel_stp'; tcrush.
+  eapply LSel_stp''; tcrush.
   varsub; tcrush.
 Qed.
 
@@ -386,7 +386,7 @@ Proof.
   - varsub.
     ettrans; first (apply TAddLater_stp; tcrush).
     asideLaters.
-    eapply LSel_stp'; tcrush.
+    eapply LSel_stp''; tcrush.
     varsub; tcrush.
 Qed.
 

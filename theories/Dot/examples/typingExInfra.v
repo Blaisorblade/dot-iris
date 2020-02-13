@@ -88,7 +88,10 @@ Hint Extern 10 => try_once Trans_stp : core.
 
 Hint Resolve is_stamped_idsσ_ren : core.
 
-Ltac ettrans := eapply Trans_stp.
+Ltac asideLaters :=
+  repeat first
+    [ettrans; last (apply TLaterR_stp; tcrush)|
+    ettrans; first (apply TLaterL_stp; tcrush)].
 
 Ltac lNext := ettrans; first apply TAnd2_stp; tcrush.
 Ltac lThis := ettrans; first apply TAnd1_stp; tcrush.
@@ -215,6 +218,12 @@ Lemma LSel_stp' Γ U {p l L i}:
   Γ v⊢ₜ[ g ] L, i <: TSel p l, i.
 Proof. intros; ettrans; last exact: (LSel_stp (p := p)); tcrush. Qed.
 
+(** Specialization of [LSel_stp'] for convenience. *)
+Lemma LSel_stp'' Γ {p l L i}:
+  is_stamped_ty (length Γ) g L →
+  Γ v⊢ₚ[ g ] p : TTMem l L L, i → Γ v⊢ₜ[ g ] L, i <: TSel p l, i.
+Proof. apply LSel_stp'. Qed.
+
 Lemma AddI_stp Γ T i (Hst: is_stamped_ty (length Γ) g T) :
   Γ v⊢ₜ[ g ] T, 0 <: T, i.
 Proof.
@@ -247,6 +256,13 @@ Proof. move=> Ht Hu HsT. apply /App_typed /Ht /Lam_typed /Hu /HsT. Qed.
    self-variable of the created object. *)
 Definition packTV n s := (ν {@ type "A" = (shift (idsσ n); s)}).
 
+Lemma Dty_typed T {Γ l s σ}:
+  T ~[ length Γ ] (g, (s, σ)) →
+  is_stamped_σ (length Γ) g σ →
+  is_stamped_ty (length Γ) g T →
+  Γ v⊢[ g ]{ l := dtysem σ s } : TTMem l T T.
+Proof. intros. apply (dty_typed T); auto 3. Qed.
+
 Lemma packTV_typed' s T n Γ :
   g !! s = Some T →
   is_stamped_ty n g T →
@@ -258,9 +274,9 @@ Proof.
   apply (Subs_typed_nocoerce (μ {@ typeEq "A" (shift T) }));
     last (ettrans; first apply (Mu_stp _ (T := {@ typeEq "A" T })); tcrush).
   apply VObj_typed; tcrush.
-  apply (dty_typed (shift T)); auto 2; tcrush.
-  apply /(@extraction_inf_subst _ (length _)); auto 3;
-    by apply /extraction_weaken /Hle /pack_extraction.
+  apply (Dty_typed (shift T)); simpl; eauto 2.
+  eapply extraction_inf_subst, is_stamped_ren1.
+  by apply /extraction_weaken /Hle /pack_extraction.
 Qed.
 
 Lemma packTV_typed s T Γ :
@@ -317,7 +333,7 @@ Proof.
   apply /Subs_typed_nocoerce /Hsub.
 
   eapply Appv_typed'; first exact: Var_typed'.
-  apply: Var_typed_sub; repeat tcrush; rewrite /= hsubst_id //.
+  apply: Var_typed_sub; tcrush; rewrite /= hsubst_id //.
   rewrite !hsubst_comp; f_equal. autosubst.
 Qed.
 

@@ -91,8 +91,7 @@ Proof.
   - varsub.
     ettrans; first (apply TAddLater_stp; tcrush).
     asideLaters.
-    eapply LSel_stp'; tcrush.
-    varsub; tcrush.
+    eapply LSel_stp''; tcrush. varsub; tcrush.
 Qed.
 
 Definition hoptionTConcr := hTOr hnoneConcrT (hsomeConcrT ⊥ ⊤).
