@@ -20,6 +20,27 @@ Coercion vlit : base_lit >-> vl_.
 Coercion lnat : nat >-> base_lit.
 Coercion lbool : bool >-> base_lit.
 
+Module Export packedStampedTyDefs.
+
+Record preTyMem {nvl} := MkTy {
+  pStamp : stamp;
+  pSubst : list nvl;
+  pTy : ty;
+  pNoVars : nat;
+}.
+
+Arguments preTyMem : clear implicits.
+Arguments MkTy {_}.
+Arguments pStamp {_} !_ /.
+Arguments pSubst {_} !_ /.
+Arguments pTy {_} !_ /.
+Arguments pNoVars {_} !_ /.
+
+Notation stampTy := (preTyMem vl).
+Definition dtysem' : stampTy -> dm := λ '(MkTy s σ _ _), dtysem σ s.
+End packedStampedTyDefs.
+
+
 Module Import DBNotation.
 
 (* Definition vnat' n := vnat n.
@@ -66,6 +87,7 @@ Arguments vobj _%dms_scope.
 Notation "'ν' ds " := (vobj ds) (at level 60, ds at next level).
 Notation "'val' l = v" := (l, dpt v) (at level 60, l at level 50).
 Notation "'type' l = T  " := (l, dtysyn T) (at level 60, l at level 50).
+Notation "'type' l '=[' T ']'" := (l, dtysem' T) (at level 60, l at level 50, T at level 200).
 
 (** Notation for object types. *)
 Global Instance: Top ty := TTop.

@@ -34,6 +34,8 @@ SubClass hpath := hpath'.
 SubClass hty   := hty'.
 SubClass hdms  := hdms'.
 
+Notation hstampTy := (preTyMem hvl).
+
 (** Utilities to lift syntax to [hterm]s. *)
 Module Import hterm_lifting.
 Section lifting.
@@ -116,6 +118,7 @@ Definition hvobj : (hvl → hdms) → hvl := λ ds,
   liftBind vobj (liftList ∘ ds).
 
 Definition hdtysyn : hty → hdm := liftA1 dtysyn.
+Definition hdtysem (σ : list hvl) s : hdm := λ x, dtysem (map (.$ x) σ) s.
 (* Not sure about [hdtysem], and not needed. *)
 Definition hdpt : hpath → hdm := liftA1 dpt.
 
@@ -158,6 +161,7 @@ Arguments hvlit /.
 Arguments hvabs /.
 Arguments hvobj /.
 Arguments hdtysyn /.
+Arguments hdtysem /.
 Arguments hdpt /.
 Arguments hpv /.
 Arguments hpself /.
@@ -235,6 +239,11 @@ Notation "'ν' ds " := (hvobj ds) (at level 60, ds at next level).
 Notation "'ν:' x , ds " := (hvobj (λD x, ds)) (at level 60, ds at next level).
 Notation "'val' l = v" := (l, hdpt v) (at level 60, l at level 50).
 Notation "'type' l = T  " := (l, hdtysyn T) (at level 60, l at level 50).
+
+Definition hdtysem' : hstampTy → hdm := λ '(MkTy s hσ _ _), hdtysem hσ s.
+Arguments hdtysem' !_ /.
+
+Notation "'type' l '=[' T ']'" := (l, hdtysem' T) (at level 60, l at level 50, T at level 200).
 
 (** Notation for object types. *)
 Global Instance: Top hty := hTTop.

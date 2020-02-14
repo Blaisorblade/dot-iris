@@ -5,14 +5,16 @@ From stdpp Require Import strings.
 
 From D Require Import tactics.
 From D.Dot Require Import syn.
-From D.Dot Require Export typing_storeless exampleInfra.
+From D.Dot Require Export typing_storeless exampleInfra hoas.
 Export DBNotation.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
+Implicit Types (g : stys).
 
 (**********************)
 (** STAMPED NOTATION **)
 (**********************)
+Bind Scope positive_scope with stamp.
 
 Notation σ1 := ([] : vls).
 Notation s1 := (1 %positive).
@@ -62,8 +64,31 @@ Lemma pack_extraction' g s T T' n σ :
   T' ~[ n ] (g, (s, σ)).
 Proof. move => Hcl HsT Hsσ ->. exists T; split_and!; auto. Qed.
 
-Hint Resolve pack_extraction' : fvc.
-Ltac by_extcrush := by try eapply pack_extraction'; rewrite /= ?hsubst_id; eauto with fvc.
+Notation styConforms' g p := (g !! pStamp p = Some (pTy p)).
+Definition styConforms {nvl} g (p : preTyMem nvl) : Prop := styConforms' g p.
+
+Record TyMemStamp g p := {
+  pStampTy : is_stamped_ty (length (pSubst p)) g (pTy p);
+  pStampσ: is_stamped_σ (pNoVars p) g (pSubst p);
+}.
+
+Notation extractPreTyMem' g p := ((pTy p).|[∞ pSubst p] ~[ pNoVars p ] (g, (pStamp p, pSubst p))).
+Definition extractPreTyMem g (p : stampTy): Prop := extractPreTyMem' g p.
+
+Lemma stampTyAgree g : ∀ p, styConforms' g p → TyMemStamp g p → extractPreTyMem' g p.
+Proof. move=> [s σ T n]/= Hl [/= HsT Hsσ]. exact: pack_extraction'. Qed.
+
+Definition stClose : hstampTy → stampTy := λ '(MkTy s hσ T n), (MkTy s (map hclose hσ) T n).
+
+Definition hTyMemStamp g p := TyMemStamp g (stClose p).
+Arguments hTyMemStamp _ !_ /.
+
+Notation hextractPreTyMem' g p := (extractPreTyMem' g (stClose p)).
+Definition hextractPreTyMem g (p : hstampTy) := hextractPreTyMem' g p.
+
+Lemma hstampTyAgree g p: styConforms' g p → hTyMemStamp g p → hextractPreTyMem' g p.
+Proof. intros; apply stampTyAgree => //. by destruct p. Qed.
+
 
 (****************)
 (** AUTOMATION **)
@@ -91,6 +116,8 @@ Ltac wtcrush := repeat first [fast_done | typconstructor | stcrush]; try solve [
 Hint Extern 5 (nclosed _ _) => by solve_fv_congruence : fvc.
 Hint Resolve pack_extraction : fvc.
 Hint Extern 5 (is_stamped_ty _ _ _) => tcrush : fvc.
+Hint Resolve pack_extraction' : fvc.
+Ltac by_extcrush := by try eapply pack_extraction'; rewrite /= ?hsubst_id; eauto with fvc.
 
 Hint Constructors typed subtype dms_typed dm_typed path_typed : core.
 Remove Hints Trans_stp : core.
@@ -127,7 +154,7 @@ Ltac ltcrush := tcrush; repeat lookup.
 (*******************)
 
 Section examples_lemmas.
-Context {g : stys}.
+Context {g}.
 
 Lemma Appv_typed' T2 {Γ e1 v2 T1 T3} :
   Γ v⊢ₜ[ g ] e1: TAll T1 T2 →                        Γ v⊢ₜ[ g ] tv v2 : T1 →

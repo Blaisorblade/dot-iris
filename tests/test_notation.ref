@@ -41,13 +41,13 @@ tb = λ v : tm, (v > 0)%E
      : tm → tm
 
 Argument scope is [expr_scope]
-ν {@ type "A" = (σ2; 1%positive) }
+ν {@ type "A" = (σ2; 1) }
      : vl_
 ν {@ val "a" = pv 0;
-  type "A" = (σ2; 1%positive)}
+  type "A" = (σ2; 1)}
      : vl_
 ν {@ val "a" = pv 0;
-  type "A" = (σ2; 1%positive)}
+  type "A" = (σ2; 1)}
      : vl_
 hanyToNothing = hclose (⊤ →: ⊥)
      : ty
