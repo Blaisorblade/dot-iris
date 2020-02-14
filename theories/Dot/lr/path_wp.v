@@ -7,6 +7,8 @@ From D.pure_program_logic Require Import lifting.
 Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
          (Γ : ctx) (ρ : env) (Pv : vl → Prop).
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
 
 (** A simplified variant of weakest preconditions for path evaluation.
 The difference is that path evaluation is completely pure, and
@@ -71,7 +73,7 @@ Proof.
 Qed.
 
 Definition path_wp_def {Σ} p φ : iProp Σ := bi_least_fixpoint path_wp_pre' (p, φ).
-Definition path_wp_aux {Σ} : seal (@path_wp_def Σ). by eexists. Qed.
+Definition path_wp_aux {Σ} : seal (@path_wp_def Σ). Proof. by eexists. Qed.
 
 Section path_wp.
   Context {Σ : gFunctors}.

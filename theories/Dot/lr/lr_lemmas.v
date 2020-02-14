@@ -6,6 +6,8 @@ From D Require Import swap_later_impl proper.
 From D.Dot Require Import rules unary_lr typing_aux_defs later_sub_sem.
 
 Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env).
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
 
 Section LambdaIntros.
   Context `{HdlangG: dlangG Σ}.
@@ -281,6 +283,7 @@ End Sec.
 
 Section swap_based_typing_lemmas.
   Context `{!dlangG Σ} `{!SwapPropI Σ}.
+  Set Default Proof Using "Type*".
 
   Lemma sAll_Sub_All {Γ T1 T2 U1 U2 i}:
     Γ s⊨ oLater T2, i <: oLater T1, i -∗

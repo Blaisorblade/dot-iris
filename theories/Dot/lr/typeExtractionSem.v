@@ -5,6 +5,8 @@ From D.Dot Require Import unary_lr typeExtractionSyn.
 Set Implicit Arguments.
 
 Implicit Types (v: vl) (e: tm) (n: nat) (s: stamp) (g : stys).
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
 
 Definition leadsto_envD_equiv `{!dlangG Σ} {i} s σ (φ : hoEnvD Σ i) : iProp Σ :=
   (∃ (φ' : hoEnvD Σ i),

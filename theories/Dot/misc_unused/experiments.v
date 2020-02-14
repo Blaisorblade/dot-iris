@@ -9,6 +9,8 @@ From D.Dot.lr Require Import unary_lr
 
 Implicit Types
          (v: vl) (e: tm) (d: dm) (ds: dms) (p : path).
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
 
 (** These typing lemmas can be derived syntactically.
  But I had written semantic proofs first, and they might help. *)
@@ -68,6 +70,13 @@ Section NotUsed.
     (*───────────────────────────────*)
     Γ ⊨ T1, 0 <: T2, 0.
   Proof. by rewrite P_Val P_Skolem. Qed.
+
+  (* Derivable *)
+  Lemma T_All_I {Γ} T1 T2 e:
+    shift T1 :: Γ ⊨ e : T2 -∗
+    (*─────────────────────────*)
+    Γ ⊨ tv (vabs e) : TAll T1 T2.
+  Proof. rewrite -(T_All_I_Strong (Γ := Γ)) //. ietp_weaken_ctx. Qed.
 End NotUsed.
 
 From D.Dot Require exampleInfra typingExInfra.
@@ -78,14 +87,8 @@ Import fundamental.
 
 Section Example.
   Context `{HdlangG: dlangG Σ} `{SwapPropI Σ}.
+  Set Default Proof Using "Type*".
   Import exampleInfra typingExInfra fundamental typingStamping scalaLib.
-
-  (* Derivable *)
-  Lemma T_All_I {Γ} T1 T2 e:
-    shift T1 :: Γ ⊨ e : T2 -∗
-    (*─────────────────────────*)
-    Γ ⊨ tv (vabs e) : TAll T1 T2.
-  Proof. rewrite -(T_All_I_Strong (Γ := Γ)) //. ietp_weaken_ctx. Qed.
 
   Lemma OrSplit Γ e1 e2 A B C :
     Γ ⊨ e1 : TOr A B -∗

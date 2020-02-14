@@ -8,6 +8,8 @@ From D.pure_program_logic Require Import weakestpre.
 From D.Dot Require Export dot_lty.
 
 Unset Program Cases.
+Set Suggest Proof Using.
+Set Default Proof Using "Type*".
 
 Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
@@ -313,12 +315,10 @@ Section MiscLemmas.
     iIntros "H"; iSplit; first done; iExists p. by auto.
   Qed.
 
-  Context {Γ : sCtx Σ}.
-
-  Lemma sSub_Refl T i : Γ s⊨ T, i <: T, i.
+  Lemma sSub_Refl {Γ} T i : Γ s⊨ T, i <: T, i.
   Proof. by iIntros "!> **". Qed.
 
-  Lemma sSub_Trans {T1 T2 T3 i1 i2 i3} : Γ s⊨ T1, i1 <: T2, i2 -∗
+  Lemma sSub_Trans {Γ T1 T2 T3 i1 i2 i3} : Γ s⊨ T1, i1 <: T2, i2 -∗
                                       Γ s⊨ T2, i2 <: T3, i3 -∗
                                       Γ s⊨ T1, i1 <: T3, i3.
   Proof.
@@ -330,7 +330,7 @@ Section MiscLemmas.
     iterate oLater n τ args ρ v ⊣⊢ ▷^n τ args ρ v.
   Proof. elim: n => [//|n IHn]. by rewrite iterate_S /= IHn. Qed.
 
-  Lemma sSub_Eq T U i j :
+  Lemma sSub_Eq {Γ T U i j} :
     Γ s⊨ T, i <: U, j ⊣⊢
     Γ s⊨ iterate oLater i T, 0 <: iterate oLater j U, 0.
   Proof. cbn. by setoid_rewrite iterate_oLater_later. Qed.
@@ -397,17 +397,17 @@ Section defs.
     by rewrite (iterate_TLater_oLater n T _ _ _) iterate_oLater_later.
   Qed.
 
-  Context {Γ : ctx}.
 
-  Lemma Sub_Refl T i : Γ ⊨ T, i <: T, i.
+
+  Lemma Sub_Refl {Γ} T i : Γ ⊨ T, i <: T, i.
   Proof. apply sSub_Refl. Qed.
 
-  Lemma Sub_Trans {T1 T2 T3 i1 i2 i3} :
+  Lemma Sub_Trans {Γ T1 T2 T3 i1 i2 i3} :
     Γ ⊨ T1, i1 <: T2, i2 -∗ Γ ⊨ T2, i2 <: T3, i3 -∗
     Γ ⊨ T1, i1 <: T3, i3.
   Proof. apply sSub_Trans. Qed.
 
-  Lemma Sub_Eq T U i j :
+  Lemma Sub_Eq {Γ T U i j} :
     Γ ⊨ T, i <: U, j ⊣⊢
     Γ ⊨ iterate TLater i T, 0 <: iterate TLater j U, 0.
   Proof. by rewrite /istpi sSub_Eq !iterate_TLater_oLater. Qed.

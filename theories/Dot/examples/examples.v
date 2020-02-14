@@ -9,6 +9,8 @@ From D.Dot Require Import unary_lr
   lr_lemmas lr_lemmasTSel lr_lemmasNoBinding lr_lemmasDefs lr_lemmasPrim.
 From D.Dot Require Import typeExtractionSem.
 From D.Dot Require Import skeleton fundamental.
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
 
 Import hoasNotation.
 
@@ -133,7 +135,7 @@ Section div_example.
 
   Context `{SwapPropI Σ}.
   Lemma loopSemT: WP hclose hloopTm {{ _, False }}%I.
-  Proof.
+  Proof using Type*.
     iDestruct (fundamental_typed _ _ _ _ (loopTyp []) with "[]") as "H".
     iApply wellMappedφ_empty.
     iSpecialize ("H" $! ids with "[//]").
@@ -145,7 +147,7 @@ Section div_example.
 
   Lemma wp_if_ge (n : nat) :
     WP hclose (hmkPosBodyV n) {{ w, ⌜ w = n ∧ n > 0 ⌝}}%I.
-  Proof.
+  Proof using Type*.
     wp_bind (IfCtx _ _).
     wp_bin; ev; simplify_eq/=.
     case_decide; rewrite -wp_pure_step_later //; iNext.
@@ -155,7 +157,7 @@ Section div_example.
 
   Lemma wp_if_ge' (n : nat) :
     WP tif (n > 0) (1 `div` n) (hclose hloopTm) {{ w, ⟦ 𝐍 ⟧ ids w ∧ ⌜ n > 0 ⌝}}%I.
-  Proof.
+  Proof using Type*.
     wp_bind (IfCtx _ _).
     wp_bin; ev; simplify_eq/=.
     case_decide; rewrite -wp_pure_step_later //; iNext.
@@ -177,7 +179,7 @@ Section div_example.
 
     iIntros (Hl) "H". iApply wellMappedφ_apply;
       last iApply (transfer (<[s:=olty_car ipos]> ∅) with "H") => s';
-      rewrite ?lookup_insert ?dom_insert ?dom_empty //; set_solver.
+      rewrite ?lookup_insert ?dom_insert ?dom_empty //; set_solver+ Hl.
   Qed.
 
   Lemma allocHs1: allGs ∅ ==∗ Hs.
@@ -244,7 +246,7 @@ Section div_example.
 
   Lemma ty_mkPos :
     [] s⊨ hclose hmkPosV : oAll V⟦ 𝐍 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : nat, v = n ∧ n > 0 ⌝)).
-  Proof.
+  Proof using Type*.
     rewrite -sT_All_I /= /shead.
     iIntros (ρ) "!> /=". iDestruct 1 as %(_ & n & Hw); simplify_eq/=; rewrite Hw.
     iIntros "!>". iApply wp_wand; [iApply wp_if_ge | naive_solver].
@@ -252,13 +254,13 @@ Section div_example.
 
   Lemma wp_mkPos :
     oAll V⟦ 𝐍 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : nat, v = n ∧ n > 0 ⌝)) vnil ids (hclose hmkPosV).
-  Proof. iApply wp_value_inv'. iApply (ty_mkPos with "[//]"). Qed.
+  Proof using Type*. iApply wp_value_inv'. iApply (ty_mkPos with "[//]"). Qed.
 
   Lemma wp_div_spec (m : nat) w : ipos vnil ids w -∗ WP m `div` w {{ ⟦ 𝐍 ⟧ ids }}.
   Proof. iDestruct 1 as %(n&?&?); simplify_eq. wp_bin. by iIntros "!%"; naive_solver. Qed.
 
   Lemma posModVHasA: Hs -∗ [] ⊨ posModV : hclose posModT.
-  Proof.
+  Proof using Type*.
     rewrite /posModT -(T_Mu_I _ posModV).
     iIntros "#Hs /=".
     iApply sT_And_I; first by iApply posModVHasAtyp.

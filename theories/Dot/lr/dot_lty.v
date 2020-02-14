@@ -6,6 +6,8 @@ From D.Dot Require Export dlang_inst.
 (** * Semantic domains for DOT logical relations. *)
 
 Unset Program Cases.
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
 
 Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
@@ -193,6 +195,7 @@ Class CTyInterpLemmas Σ `{!CTyInterp Σ} := {
 (** * Lemmas about the logical relation itself. *)
 Section logrel_binding_lemmas.
   Context `{Htil : CTyInterpLemmas Σ}.
+  Set Default Proof Using "Type*".
 
   Lemma interp_subst_compose T {args} ρ1 ρ2 ρ3:
     ρ1 >> ρ2 = ρ3 → V⟦ T.|[ρ1] ⟧ args ρ2 ≡ V⟦ T ⟧ args ρ3.

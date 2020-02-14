@@ -9,6 +9,9 @@ From D.Dot Require Import typing_unstamped astStamping typingStamping skeleton.
 From D.Dot.lr Require Import path_repl.
 Import stamp_transfer.
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type*".
+
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 
 Section fundamental.

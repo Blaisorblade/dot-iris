@@ -3,6 +3,9 @@ From D.Dot Require Import unary_lr.
 
 Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms).
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
+
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
