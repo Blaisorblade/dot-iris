@@ -1,11 +1,25 @@
 From stdpp Require Import strings.
 
 From D Require Import tactics.
-From D.Dot Require Import syn exampleInfra hoas.
-From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived.
+From D.Dot Require Import syn exampleInfra hoas typingExInfra.
+(* From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived. *)
+From D.Dot.typing Require Import typing_storeless.
 Import DBNotation.
 
+Set Implicit Arguments.
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
+
+Implicit Types (g : stys).
+
+Definition mapfst {A B C} (f : A → C): A * B → (C * B) := λ '(a, b), (f a, b).
+
 Module primOption.
+Import hoasNotation.
+
+Section primOption'.
+Context {g}.
+
 (*
   Encoding Option, using actual booleans. However, we do export Option as an abstract type.
   type Option = {
@@ -14,8 +28,6 @@ Module primOption.
     val pmatch: [U] => U => (T => U) => U
   }
 *)
-
-Import hoasNotation.
 
 (* ∀ x : {type U}, x.U → (self.T -> x.U) -> x.U *)
 Definition hpmatchT self := ∀: x : tparam "U", hpv x @; "U" →: (hpv self @; "T" →: hpv x @; "U") →: hpv x @; "U".
@@ -40,16 +52,32 @@ Definition hnoneConcrTBody self : hty := {@
 }.
 Definition hnoneConcrT := μ: self, hnoneConcrTBody self.
 
+Definition hpBot : hstampTy := MkTy 1 [] ⊥ 0.
+Lemma hpBotStamp : hTyMemStamp g hpBot. Proof. split; stcrush. Qed.
+Context (Hbot : styConforms g hpBot).
+Lemma hpBotExt : hextractPreTyMem g hpBot. Proof using Hbot. by apply stampTyAgree, hpBotStamp. Qed.
+
+Definition hpXA x : hstampTy := MkTy 2 [x] (hclose (hpv hx0 @; "A")) 1.
+Lemma hpXAStamp : hTyMemStamp g (hpXA hx0). Proof. split; stcrush. Qed.
+Context (HxA : styConforms g (hpXA hx0)).
+Lemma hpXAExt : hextractPreTyMem g (hpXA hx0).
+Proof using HxA. (* by_extcrush. *) by apply stampTyAgree, hpXAStamp. Qed.
+
 Definition hnoneV := ν: _, {@
-  type "T" = ⊥;
+  type "T" =[ hpBot ];
   val "isEmpty" = true;
   val "pmatch" = λ: x none some, none
 }.
 Definition noneV := hclose hnoneV.
 
 Example noneTypStronger Γ :
-  Γ u⊢ₜ tv noneV : hclose hnoneConcrT.
-Proof. tcrush; var. Qed.
+  Γ v⊢ₜ[ g ] tv noneV : hclose hnoneConcrT.
+Proof using Hbot.
+  tcrush; last var.
+  apply (dty_typed ⊥); tcrush.
+  by_extcrush.
+  (* apply: extraction_weaken; first apply: hpBotExt; cbn; lia. *)
+Qed.
 
 (*
   //type Some = Option & { self => val get: self.T }
@@ -74,7 +102,8 @@ Definition hmkSomeTGen res : hty := ∀: x: tparam "A", (x @; "A" →: res (x @;
 Definition hmkSomeTSing : hty := hmkSomeTGen hsomeConcrT.
 
 Definition hmkSome : hvl := λ: x content, ν: self, {@
-  type "T" = hpv x @; "A";
+  (* type "T" = hpv x @; "A"; *)
+  type "T" =[ hpXA x ];
   val "isEmpty" = false;
   val "pmatch" = λ: x none some, some $: htskip (self @: "get");
   val "get" = content
@@ -82,9 +111,10 @@ Definition hmkSome : hvl := λ: x content, ν: self, {@
 Definition mkSome := hclose hmkSome.
 
 Example mkSomeTypStronger Γ :
-  Γ u⊢ₜ tv mkSome : hclose hmkSomeTSing.
-Proof.
+  Γ v⊢ₜ[ g ] tv mkSome : hclose hmkSomeTSing.
+Proof using HxA.
   tcrush; cbv.
+  - apply (dty_typed (hclose $ hpv hx2 @; "A")); tcrush; by_extcrush.
   - eapply App_typed; first var.
     apply (Subs_typed (i := 1) (T1 := hclose (▶: (hp3 @; "T"))%HT)); tcrush.
     varsub; ltcrush.
@@ -102,20 +132,28 @@ Definition hoptionModTConcrBody : hty := {@
   val "mkSome" : hmkSomeTSing
 }.
 
+Definition hpOptionTConcr : hstampTy := MkTy 3 [] (hclose hoptionTConcr) 0.
+Lemma hpOptionTConcrStamp : hTyMemStamp g hpOptionTConcr. Proof. split; stcrush. Qed.
+Context (HoptionTConcr : styConforms g hpOptionTConcr).
+Lemma hpOptionTConcrExt : hextractPreTyMem g hpOptionTConcr. Proof using HoptionTConcr. by_extcrush. Qed.
+
 Definition hoptionModV := ν: self, {@
-  type "Option" = hoptionTConcr;
+  type "Option" =[ hpOptionTConcr ];
   val "none" = hnoneV;
   val "mkSome" = hmkSome
 }.
 
+Collection gHyps := Hbot HxA HoptionTConcr.
+
 (** Rather precise type for [hoptionModV]. *)
 Example optionModConcrTyp Γ :
-  Γ u⊢ₜ hclose hoptionModV : hclose (μ: _, hoptionModTConcrBody).
-Proof.
+  Γ v⊢ₜ[ g ] hclose hoptionModV : hclose (μ: _, hoptionModTConcrBody).
+Proof using gHyps.
   set U := hclose (▶: hoptionModTConcrBody).
   have := noneTypStronger (U :: Γ).
   have := mkSomeTypStronger (U :: Γ) => /(dpt_pv_typed "mkSome") Hs Hn.
   ltcrush.
+  apply (dty_typed (hclose hoptionTConcr)); tcrush. by_extcrush.
 Qed.
 
 (** Define interface for [hoptionModV]. To rewrite to have abstraction. *)
@@ -138,8 +176,8 @@ Definition hoptionModTInvBody self : hty := {@
 }.
 
 Example optionModInvTyp Γ :
-  Γ u⊢ₜ hclose hoptionModV : hclose (μ: self, hoptionModTInvBody self).
-Proof.
+  Γ v⊢ₜ[ g ] hclose hoptionModV : hclose (μ: self, hoptionModTInvBody self).
+Proof using gHyps.
   eapply Subs_typed_nocoerce; first apply optionModConcrTyp.
   ltcrush; rewrite iterate_0.
   all: try (eapply LSel_stp'; tcrush; varsub; ltcrush).
@@ -153,11 +191,12 @@ Definition hoptionModT := μ: self, {@
 }.
 
 Example optionModTypSub Γ :
-  Γ u⊢ₜ hclose (μ: self, hoptionModTInvBody self), 0 <: hclose hoptionModT, 0.
+  Γ v⊢ₜ[ g ] hclose (μ: self, hoptionModTInvBody self), 0 <: hclose hoptionModT, 0.
 Proof. ltcrush. Qed.
 
 Example optionModTyp Γ :
-  Γ u⊢ₜ hclose (htv hoptionModV) : hclose hoptionModT.
-Proof. eapply Subs_typed_nocoerce, optionModTypSub; apply optionModInvTyp. Qed.
+  Γ v⊢ₜ[ g ] hclose (htv hoptionModV) : hclose hoptionModT.
+Proof using gHyps. eapply Subs_typed_nocoerce, optionModTypSub; apply optionModInvTyp. Qed.
 
+End primOption'.
 End primOption.
