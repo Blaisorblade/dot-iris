@@ -363,7 +363,7 @@ Lemma packTV_typed' T n Γ l :
 Proof.
   move => HsT1 Hle; move: (Hle) (HsT1) => /le_n_S Hles /is_unstamped_ren1_ty HsT2.
   apply (Subs_typed_nocoerce (μ {@ typeEq l (shift T) }));
-    last (ettrans; first apply (@Mu_stp _ ({@ typeEq l T })); wtcrush).
+    last (ettrans; first apply: (Mu_stp _ (T := {@ typeEq l T })); wtcrush).
   apply VObj_typed; wtcrush.
 Qed.
 

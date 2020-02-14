@@ -11,6 +11,10 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 (** NOTATIONS  **)
 (****************)
 
+(** https://github.com/math-comp/analysis/blob/bb4938c2dee89e91668f8d6a251e968d2f5a05ae/theories/posnum.v#L51-L52 *)
+(** Enrico (Tassi?)'s trick for tc resolution in [have]. Doesn't conflict with infix [!!]. *)
+Notation "!! x" := (ltac:(refine x)) (at level 100, only parsing).
+
 Coercion tv : vl_ >-> tm.
 Coercion vlit : base_lit >-> vl_.
 Coercion lnat : nat >-> base_lit.
@@ -64,9 +68,10 @@ Notation "'val' l = v" := (l, dpt v) (at level 60, l at level 50).
 Notation "'type' l = T  " := (l, dtysyn T) (at level 60, l at level 50).
 
 (** Notation for object types. *)
+Global Instance: Top ty := TTop.
+Global Instance: Bottom ty := TBot.
+
 Open Scope ty_scope.
-Notation "⊤" := TTop : ty_scope.
-Notation "⊥" := TBot : ty_scope.
 (* Notation " {@ } " := TTop (format "{@ }") : ty_scope. *)
 Notation " {@ T1 } " := ( TAnd T1 ⊤ ) (format "{@  T1  }"): ty_scope.
 Notation " {@ T1 ; T2 ; .. ; Tn } " :=

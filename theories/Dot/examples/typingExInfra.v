@@ -254,7 +254,7 @@ Proof.
   move => Hlp HsT1 Hle; move: (Hle) (HsT1) => /le_n_S Hles /is_stamped_ren1_ty HsT2.
   move: (is_stamped_nclosed_ty HsT1) => Hcl.
   apply (Subs_typed_nocoerce (μ {@ typeEq "A" (shift T) }));
-    last (ettrans; first apply (Mu_stp _ (T := {@ typeEq "A" T })); tcrush).
+    last (ettrans; first apply: (Mu_stp _ (T := {@ typeEq "A" T })); tcrush).
   apply VObj_typed; tcrush.
   apply (Dty_typed (shift T)); simpl; eauto 2.
   eapply extraction_inf_subst, is_stamped_ren1.

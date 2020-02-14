@@ -12,9 +12,9 @@ Check {@ TNat ; TNat ; TNat }%ty.
 
 Check ν {@ val "a" = pv (vnat 0) }.
 
-Check μ {@ type "A" >: TNat <: TTop }.
+Check μ {@ type "A" >: TNat <: ⊤}.
 Check μ {@ val "a" : TNat }.
-Check μ {@ type "A" >: TNat <: TTop ; val "a" : TNat ; val "b" : TNat }.
+Check μ {@ type "A" >: TNat <: ⊤ ; val "a" : TNat ; val "b" : TNat }.
 
 Check vobj {@}.
 Check ν {@ }.

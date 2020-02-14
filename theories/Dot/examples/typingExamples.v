@@ -177,11 +177,11 @@ Proof.
   - apply (Subs_typed_nocoerce (μ {@ type "A" >: ⊥ <: TNat})); tcrush.
     + apply (dty_typed TNat); wtcrush.
     + ettrans;
-      [eapply (Mu_stp _ (T := {@ type "A" >: ⊥ <: TNat })%ty 0)|]; tcrush.
+      [apply: (Mu_stp _ (T := {@ type "A" >: ⊥ <: TNat })%ty 0)|]; tcrush.
   - apply (Subs_typed_nocoerce (μ {@ type "B" >: ⊥ <: ⊤})); tcrush.
     + apply (dty_typed String); wtcrush.
     + ettrans;
-      [eapply (Mu_stp _ (T := {@ type "B" >: ⊥ <: ⊤ })%ty 0)|]; tcrush.
+      [apply: (Mu_stp _ (T := {@ type "B" >: ⊥ <: ⊤ })%ty 0)|]; tcrush.
 Qed.
 End StringExamples.
 

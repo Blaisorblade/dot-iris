@@ -237,9 +237,9 @@ Notation "'val' l = v" := (l, hdpt v) (at level 60, l at level 50).
 Notation "'type' l = T  " := (l, hdtysyn T) (at level 60, l at level 50).
 
 (** Notation for object types. *)
+Global Instance: Top hty := hTTop.
+Global Instance: Bottom hty := hTBot.
 Open Scope hty_scope.
-Notation "⊤" := hTTop : hty_scope.
-Notation "⊥" := hTBot : hty_scope.
 Notation " {@ T1 } " := ( hTAnd T1 ⊤ ) (format "{@  T1  }"): hty_scope.
 Notation " {@ T1 ; T2 ; .. ; Tn } " :=
   (hTAnd T1 (hTAnd T2 .. (hTAnd Tn ⊤)..))

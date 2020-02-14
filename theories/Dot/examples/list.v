@@ -126,10 +126,10 @@ Proof.
   apply (Subs_typed_nocoerce $ hclose $ hlistTGen hx1 hx0 ⊥ ⊥ ).
   - evar (T : ty).
     set L :=  hclose (▶: hlistModTConcrBody hx1 hx0).
-    have := trueTyp Γ [hclose ⊤; T; L].
-    have := loopTyp (hclose ⊤ :: T :: L :: boolImplT :: Γ).
+    have := !! trueTyp Γ [⊤; T; L].
+    have := !! loopTyp (⊤ :: T :: L :: boolImplT :: Γ).
     rewrite {}/T/= => Ht Hl.
-    tcrush; apply (Subs_typed_nocoerce (hclose ⊥)); cbn; tcrush.
+    tcrush; apply (Subs_typed_nocoerce ⊥); tcrush.
   - tcrush; last mltcrush.
     ettrans; first eapply TAddLater_stp; stcrush.
     asideLaters.
