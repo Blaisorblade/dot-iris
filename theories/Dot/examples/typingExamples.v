@@ -9,6 +9,7 @@ From D.Dot Require Import syn typingExInfra stampedness_binding.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
+Notation HashableString := (μ {@ val "hashCode" : TAll TUnit TNat }).
 Section examples.
 (* From D Require Import typeExtraction *)
 Context {g : stys}.
@@ -82,7 +83,6 @@ Qed.
 *)
 
 (* This stands for type [String] in that example. *)
-Notation HashableString := (μ {@ val "hashCode" : TAll TUnit TNat }).
 Definition KeysT : ty := μ {@
   type "Key" >: ⊥ <: ⊤;
   val "key": TAll HashableString (p1 @; "Key")
