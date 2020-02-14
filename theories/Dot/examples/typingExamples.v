@@ -96,7 +96,7 @@ Definition hashKeys : vl := ν {@
 Definition s1_is_tnat :=
   TNat ~[ 0 ] (g, (s1, σ1)).
 Lemma get_s1_is_tnat : g !! s1 = Some TNat → s1_is_tnat.
-Proof. intros; red. by_extcrush. Qed.
+Proof. by_extcrush. Qed.
 
 (* To typecheck the object body, we first typecheck it with a tighter type,
     and then widen it. *)
@@ -149,7 +149,7 @@ Definition systemVal := tv (ν {@
 Definition s2_is_String :=
   String ~[ 0 ] (g, (s2, σ2)).
 Lemma get_s2_is_String : g !! s2 = Some String → s2_is_String.
-Proof. intros; red. by_extcrush. Qed.
+Proof using HclString. by_extcrush. Qed.
 
 (* Type *)
 Definition systemValT := μ {@

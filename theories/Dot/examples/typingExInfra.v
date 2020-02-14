@@ -54,6 +54,17 @@ Proof.
   rewrite length_idsσ closed_subst_idsρ; auto.
 Qed.
 
+Lemma pack_extraction' g s T T' n σ :
+  g !! s = Some T →
+  is_stamped_ty (length σ) g T →
+  is_stamped_σ n g σ →
+  T' = T.|[∞ σ] →
+  T' ~[ n ] (g, (s, σ)).
+Proof. move => Hcl HsT Hsσ ->. exists T; split_and!; auto. Qed.
+
+Hint Resolve pack_extraction' : fvc.
+Ltac by_extcrush := by try eapply pack_extraction'; rewrite /= ?hsubst_id; eauto with fvc.
+
 (****************)
 (** AUTOMATION **)
 (****************)
@@ -80,7 +91,6 @@ Ltac wtcrush := repeat first [fast_done | typconstructor | stcrush]; try solve [
 Hint Extern 5 (nclosed _ _) => by solve_fv_congruence : fvc.
 Hint Resolve pack_extraction : fvc.
 Hint Extern 5 (is_stamped_ty _ _ _) => tcrush : fvc.
-Ltac by_extcrush := by auto with fvc.
 
 Hint Constructors typed subtype dms_typed dm_typed path_typed : core.
 Remove Hints Trans_stp : core.
