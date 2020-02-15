@@ -5,7 +5,7 @@ From stdpp Require Import strings.
 From D Require Import tactics.
 From D.Dot.syn Require Import syn path_repl.
 From D.Dot.typing Require Import typing_storeless.
-From D.Dot Require Import exampleInfra typingExInfra hoas.
+From D.Dot Require Import exampleInfra typingExInfra.
 (* From D.Dot Require Import typingExamples. *)
 From D.Dot Require Import primOption.
 
@@ -45,14 +45,16 @@ Definition fromPDotPaperAbsTypesTBody : ty := {@
 
 Definition pTop : stampTy := MkTy 40 [] ⊤ 0.
 
-Definition pTypeRef : stampTy := MkTy 50 [x0; x1] (TAnd (x0 @; "Type") typeRefTBody) 2.
+Definition optionTy pOpt pCore := TAnd (pOpt @; "Option") (typeEq "T" (pCore @ "types" @; "Type")).
 
-Definition pSymbol : stampTy := MkTy 60 [x0; x1] {@
-  val "tpe" : x1 @ "types" @; "Type";
+Definition pSymbol : stampTy := MkTy 50 [x0; x1; x2] {@
+  val "tpe" : optionTy x2 x1;
   val "id" : TNat
-} 2.
+} 3.
 
-Definition fromPDotG : stys := psAddStys primOptionG [pTop; pTypeRef; pSymbol].
+Definition pTypeRef : stampTy := MkTy 60 [x0; x1] (TAnd (x0 @; "Type") typeRefTBody) 2.
+
+Definition fromPDotG : stys := psAddStys primOptionG [pTop; pSymbol; pTypeRef].
 Opaque fromPDotG.
 
 Lemma pTopStamp : TyMemStamp fromPDotG pTop. Proof. split; stcrush. Qed.
@@ -76,30 +78,30 @@ Definition fromPDotPaperTypesV : vl := ν {@
     })
 }.
 
-Definition fromPDotPaperSymbolsTBody : ty := {@
+Definition fromPDotPaperSymbolsTBody pOpt : ty := {@
   typeEq "Symbol" $ {@
-    val "tpe" : x1 @ "types" @; "Type";
+    val "tpe" : optionTy pOpt x1;
     val "id" : TNat
   }%ty;
-  val "newSymbol" : x1 @ "types" @; "Type" →: TNat →: x0 @; "Symbol"
+  val "newSymbol" : optionTy pOpt x1 →: TNat →: x0 @; "Symbol"
 }.
 
-Definition fromPDotPaperAbsSymbolsTBody : ty := {@
+Definition fromPDotPaperAbsSymbolsTBody pOpt : ty := {@
   type "Symbol" >: ⊥ <: {@
-    val "tpe" : x1 @ "types" @; "Type";
+    val "tpe" : optionTy pOpt x1;
     val "id" : TNat
   };
-  val "newSymbol" : x1 @ "types" @; "Type" →: TNat →: x0 @; "Symbol"
+  val "newSymbol" : optionTy pOpt x1 →: TNat →: x0 @; "Symbol"
 }.
 
-Definition fromPDotPaperTBody : ty := {@
+Definition fromPDotPaperTBody pOpt : ty := {@
   val "types" : μ fromPDotPaperTypesTBody;
-  val "symbols" : μ fromPDotPaperSymbolsTBody
+  val "symbols" : μ (fromPDotPaperSymbolsTBody (shift pOpt))
 }.
 
-Definition fromPDotPaperAbsTBody : ty := {@
+Definition fromPDotPaperAbsTBody pOpt : ty := {@
   val "types" : μ fromPDotPaperAbsTypesTBody;
-  val "symbols" : μ fromPDotPaperAbsSymbolsTBody
+  val "symbols" : μ (fromPDotPaperAbsSymbolsTBody (shift pOpt))
 }.
 
 Definition fromPDotPaperSymbolsV : vl := ν {@
@@ -119,7 +121,7 @@ Ltac hideCtx := idtac.
 Definition optionModT := hclose hoptionModT.
 
 Example fromPDotPaperTypesTyp Γ :
-  TLater fromPDotPaperAbsTBody :: optionModT :: Γ v⊢ₜ[fromPDotG]
+  TLater (fromPDotPaperAbsTBody x1) :: optionModT :: Γ v⊢ₜ[fromPDotG]
     fromPDotPaperTypesV : μ fromPDotPaperTypesTBody.
 Proof.
   tcrush; try by [eapply Dty_typed; tcrush; by_extcrush].
@@ -147,7 +149,7 @@ Proof.
 Qed.
 
 Example fromPDotPaperTypesAbsTyp Γ :
-  TLater fromPDotPaperAbsTBody :: optionModT :: Γ v⊢ₜ[fromPDotG]
+  TLater (fromPDotPaperAbsTBody x1) :: optionModT :: Γ v⊢ₜ[fromPDotG]
     fromPDotPaperTypesV : μ fromPDotPaperAbsTypesTBody.
 Proof.
   eapply Subs_typed_nocoerce; first exact: fromPDotPaperTypesTyp; ltcrush.
@@ -156,8 +158,8 @@ Proof.
 Qed.
 
 Example fromPDotPaperSymbolsTyp Γ :
-  TLater fromPDotPaperAbsTBody :: optionModT :: Γ v⊢ₜ[fromPDotG]
-    fromPDotPaperSymbolsV : μ fromPDotPaperSymbolsTBody.
+  TLater (fromPDotPaperAbsTBody x1) :: optionModT :: Γ v⊢ₜ[fromPDotG]
+    fromPDotPaperSymbolsV : μ (fromPDotPaperSymbolsTBody x2).
 Proof.
   tcrush.
   - eapply Dty_typed; tcrush; by_extcrush.
@@ -171,22 +173,22 @@ Proof.
 Qed.
 
 Example fromPDotPaperSymbolsAbsTyp Γ :
-  TLater fromPDotPaperAbsTBody :: optionModT :: Γ v⊢ₜ[fromPDotG]
-    fromPDotPaperSymbolsV : μ fromPDotPaperAbsSymbolsTBody.
+  TLater (fromPDotPaperAbsTBody x1) :: optionModT :: Γ v⊢ₜ[fromPDotG]
+    fromPDotPaperSymbolsV : μ (fromPDotPaperAbsSymbolsTBody x2).
 Proof.
   eapply Subs_typed_nocoerce; first exact: fromPDotPaperSymbolsTyp; tcrush.
   lThis.
 Qed.
 
-Example fromPDotPaperTyp Γ : optionModT :: Γ v⊢ₜ[fromPDotG] fromPDotPaper : μ fromPDotPaperAbsTBody.
+Example fromPDotPaperTyp Γ : optionModT :: Γ v⊢ₜ[fromPDotG] fromPDotPaper : μ (fromPDotPaperAbsTBody x1).
 Proof.
   pose proof fromPDotPaperTypesAbsTyp Γ.
   pose proof fromPDotPaperSymbolsAbsTyp Γ.
   tcrush.
 Qed.
 
-Definition getAnyTypeT : ty :=
-  TAll (μ fromPDotPaperAbsTBody) (p0 @ "types" @; "Type").
+Definition getAnyTypeT pOpt : ty :=
+  TAll (μ fromPDotPaperAbsTBody (shift pOpt)) (x0 @ "types" @; "Type").
 Definition getAnyType : vl := vabs (tskip (tproj (tproj x0 "types") "AnyType")).
 
 Ltac simplSubst := rewrite /= /up/= /ids/ids_vl/=.
@@ -205,11 +207,12 @@ Definition fromPDotPaperAbsTypesTBodySubst : ty := {@
 Lemma fromPDotPSubst: fromPDotPaperAbsTypesTBody .Tp[ (p0 @ "types") /]~ fromPDotPaperAbsTypesTBodySubst.
 Proof. exact: psubst_ty_rtc_sufficient. Qed.
 
-Example getAnyTypeFunTyp Γ : Γ v⊢ₜ[fromPDotG] getAnyType : getAnyTypeT.
+Example getAnyTypeFunTyp Γ : μ (fromPDotPaperAbsTBody x2) :: optionModT :: Γ v⊢ₜ[fromPDotG] getAnyType : getAnyTypeT x1.
 Proof.
   rewrite /getAnyType -(iterate_S tskip 0); tcrush.
-  eapply (Subs_typed (T1 := TLater (p0 @ "types" @; "Type"))); tcrush.
-  set Γ' := shift (μ fromPDotPaperAbsTBody) :: Γ.
+  eapply (Subs_typed (T1 := TLater (x0 @ "types" @; "Type"))); tcrush.
+  set Γ' := shift (μ (fromPDotPaperAbsTBody (shiftV x1))) ::
+    μ (fromPDotPaperAbsTBody x2) :: optionModT :: Γ.
   have Hpx: Γ' v⊢ₚ[fromPDotG] p0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0
     by tcrush; eapply Subs_typed_nocoerce;
       [ by eapply TMuE_typed; first var; stcrush | tcrush].
@@ -221,8 +224,8 @@ Proof.
 Qed.
 
 Example getAnyTypeTyp0 Γ :
-  μ fromPDotPaperAbsTBody :: Γ v⊢ₜ[fromPDotG]
-    tapp getAnyType x0 : p0 @ "types" @; "Type".
+  μ (fromPDotPaperAbsTBody x2) :: optionModT :: Γ v⊢ₜ[fromPDotG]
+    tapp getAnyType x0 : x0 @ "types" @; "Type".
 Proof. eapply Appv_typed'; [exact: getAnyTypeFunTyp|var|tcrush..]. Qed.
 End semExample.
 (*
