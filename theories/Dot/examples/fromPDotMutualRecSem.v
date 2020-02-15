@@ -120,22 +120,35 @@ Definition fromPDotPaper : vl := ν {@
 Ltac hideCtx := idtac.
 Definition optionModT := hclose hoptionModT.
 
+Ltac tMember := eapply Dty_typed; tcrush; by_extcrush.
+
 Example fromPDotPaperTypesTyp Γ :
   TLater (fromPDotPaperAbsTBody x1) :: optionModT :: Γ v⊢ₜ[fromPDotG]
     fromPDotPaperTypesV : μ fromPDotPaperTypesTBody.
 Proof.
-  tcrush; try by [eapply Dty_typed; tcrush; by_extcrush].
-  - eapply (Subs_typed_nocoerce) => /=; hideCtx.
+  (* tcrush; try by [eapply Dty_typed; tcrush; by_extcrush]. *)
+  apply VObj_typed; last stcrush.
+  apply dcons_typed; [tMember | | done].
+  apply dcons_typed; [tMember | | done].
+  apply dcons_typed; [tcrush| | done]. {
+    eapply (Subs_typed_nocoerce) => /=; hideCtx.
     + repeat first [var | typconstructor | tcrush].
     + apply (Trans_stp (T2 := ⊤) (i2 := 0)); first tcrush.
       eapply LSel_stp'; last (tcrush; varsub); ltcrush.
-  - eapply (Subs_typed_nocoerce (TMu ⊤)); first tcrush.
+  }
+  apply dcons_typed; [ | | done]. {
+    tMember. (* TypeRef. *)
+  }
+  apply dcons_typed; [tcrush | | done]. {
+    eapply (Subs_typed_nocoerce (TMu ⊤)); first tcrush.
     eapply (Trans_stp (T2 := ⊤) (i2 := 0)); tcrush.
     eapply (Trans_stp (i2 := 1)); [exact: AddI_stp | ].
     asideLaters.
     eapply (LSel_stp' _ ⊤); tcrush.
     varsub; apply Sub_later_shift; tcrush.
-  - eapply (Subs_typed_nocoerce) => /=; hideCtx.
+  }
+  apply dcons_typed; [tcrush | | done]. {
+    eapply (Subs_typed_nocoerce) => /=; hideCtx.
     + repeat first [var | typconstructor | tcrush].
     + ettrans; first last.
       eapply LSel_stp'; first last.
@@ -146,6 +159,8 @@ Proof.
         eapply (Trans_stp (T2 := ⊤)); tcrush.
         eapply LSel_stp'; tcrush.
         varsub; tcrush.
+  }
+  apply dnil_typed.
 Qed.
 
 Example fromPDotPaperTypesAbsTyp Γ :
