@@ -1,7 +1,7 @@
 (**
 Infrastructure for examples of DOT programs using stamped and storeless typing.
 *)
-From stdpp Require Import strings.
+From stdpp Require Import strings gmap.
 
 From D Require Import tactics.
 From D.Dot Require Import syn.
@@ -69,10 +69,10 @@ Proof. move => Hcl HsT Hsσ ->. exists T; split_and!; auto. Qed.
 
 Notation styConforms' g p := (g !! pStamp p = Some (pTy p)).
 Definition styConforms {nvl} g (p : preTyMem nvl) : Prop := styConforms' g p.
+Arguments styConforms {_} _ !_ /.
 
 Record TyMemStamp g p := {
-  pStampTy : is_stamped_ty (length (pSubst p)) g (pTy p);
-  pStampσ: is_stamped_σ (pNoVars p) g (pSubst p);
+  pStampTy : is_stamped_ty (length (pSubst p)) g (pTy p); pStampσ: is_stamped_σ (pNoVars p) g (pSubst p);
 }.
 
 Notation extractPreTyMem' g p := ((pTy p).|[∞ pSubst p] ~[ pNoVars p ] (g, (pStamp p, pSubst p))).
@@ -81,6 +81,7 @@ Definition extractPreTyMem g (p : stampTy): Prop := extractPreTyMem' g p.
 Lemma stampTyAgree g : ∀ p, styConforms' g p → TyMemStamp g p → extractPreTyMem' g p.
 Proof. move=> [s σ T n]/= Hl [/= HsT Hsσ]. exact: pack_extraction'. Qed.
 
+(** wrappers for [hstampTy], which is more convenient for HOAS terms. *)
 Definition stClose : hstampTy → stampTy := λ '(MkTy s hσ T n), (MkTy s (map hclose hσ) T n).
 
 Definition hTyMemStamp g p := TyMemStamp g (stClose p).
@@ -92,6 +93,20 @@ Definition hextractPreTyMem g (p : hstampTy) := hextractPreTyMem' g p.
 Lemma hstampTyAgree g p: styConforms' g p → hTyMemStamp g p → hextractPreTyMem' g p.
 Proof. intros; apply stampTyAgree => //. by destruct p. Qed.
 
+Definition pToStys {nvl} : preTyMem nvl → stys := λ '(MkTy s σ T n), {[s:=T]}.
+Definition pAddStys {nvl} : preTyMem nvl → stys → stys := λ p g, pToStys p ∪ g.
+Global Arguments pAddStys {_} !_ /.
+
+Lemma pAddStysSpec {nvl} g s σ T n :
+  pAddStys (nvl := nvl) (MkTy s σ T n) g = <[s:=T]> g.
+Proof. by rewrite insert_union_singleton_l. Qed.
+Lemma pAddStysConforms {nvl} g p : styConforms (nvl := nvl) (pAddStys p g) p.
+Proof.
+  destruct p; simpl. apply /lookup_union_Some_raw /ltac:(left) /lookup_insert.
+Qed.
+
+Definition psAddStys {nvl} : stys → list (preTyMem nvl) → stys := foldr pAddStys.
+(* XXX prove its correctness, or just test it via vm_compute? *)
 
 (****************)
 (** AUTOMATION **)

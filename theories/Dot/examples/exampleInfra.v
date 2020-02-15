@@ -25,6 +25,7 @@ Record preTyMem {nvl} := MkTy {
   pTy : ty;
   pNoVars : nat;
 }.
+Add Printing Constructor preTyMem.
 
 Arguments preTyMem : clear implicits.
 Arguments MkTy {_}.
