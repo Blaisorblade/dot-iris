@@ -5,6 +5,9 @@ From Autosubst Require Export Autosubst.
 From D Require Export tactics.
 From iris.program_logic Require Import language.
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
+
 Definition safe {Λ} (e : expr Λ) :=
   ∀ e' thp σ σ', rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
     is_Some (to_val e') ∨ reducible (Λ := Λ) e' σ'.
@@ -68,27 +71,36 @@ Section rename_instances.
   (* Hint Rewrite @list_rename_fold : autosubst. *)
 End rename_instances.
 
-Section subst_instances.
+Section vls_subst_instances.
   Context `{Ids vl} `{Subst vl} `{SubstLemmas vl}.
-  Context `{Ids X} `{Rename X} `{HSubst vl X} {hsl: HSubstLemmas vl X}.
+  Set Default Proof Using "Type*".
 
   Global Instance vls_hsubst: HSubst vl (list vl) :=
     λ sb, map (subst sb).
-  Global Instance list_hsubst: HSubst vl (list X) :=
-    λ sb, map (hsubst sb).
-  Global Arguments list_hsubst /.
   Global Arguments vls_hsubst /.
 
   Definition vls_subst_fold (sb : var → vl) (vs : list vl) : map (subst sb) vs = hsubst sb vs := eq_refl.
-  Definition list_hsubst_fold sb (xs : list X) : map (hsubst sb) xs = hsubst sb xs := eq_refl.
-
-  Hint Rewrite @vls_subst_fold @list_hsubst_fold : autosubst.
+  Hint Rewrite @vls_subst_fold : autosubst.
 
   Global Instance hsubst_lemmas_vls: HSubstLemmas vl (list vl).
   Proof.
     split; trivial; intros; rewrite /hsubst;
       induction s; asimpl; by f_equal.
   Qed.
+End vls_subst_instances.
+
+Section list_hsubst_instances.
+  Context `{Ids vl} `{Subst vl}.
+  Context `{Ids X} `{Rename X} `{HSubst vl X} {hsl: HSubstLemmas vl X}.
+  Set Default Proof Using "Type*".
+
+  Global Instance list_hsubst: HSubst vl (list X) :=
+    λ sb, map (hsubst sb).
+  Global Arguments list_hsubst /.
+
+  Definition list_hsubst_fold sb (xs : list X) : map (hsubst sb) xs = hsubst sb xs := eq_refl.
+  Hint Rewrite @list_hsubst_fold : autosubst.
+
   Global Instance hsubst_lemmas_list: HSubstLemmas vl (list X).
   Proof.
     split; trivial; intros; rewrite /hsubst;
@@ -122,7 +134,8 @@ Section subst_instances.
       rewrite !map_map; elim: axs => [//| [a x] axs IHaxs /=]. by f_equal.
     Qed.
   End pair_instances.
-End subst_instances.
+End list_hsubst_instances.
+
 Definition list_pair_hsubst_fold {A} `{HSubst vl X} sb (xs: list (A * X)): map (mapsnd (hsubst sb)) xs = hsubst sb xs := eq_refl.
 
 Hint Rewrite @vls_subst_fold @list_hsubst_fold : autosubst.
