@@ -13,6 +13,10 @@ Definition safe {Λ} (e : expr Λ) :=
 Definition terminates {Λ} (e : expr Λ) :=
   ∃ v : val Λ, rtc pure_step e (of_val v).
 
+(** https://github.com/math-comp/analysis/blob/bb4938c2dee89e91668f8d6a251e968d2f5a05ae/theories/posnum.v#L51-L52 *)
+(** Enrico (Tassi?)'s trick for tc resolution in [have]. Doesn't conflict with infix [!!]. *)
+Notation "!! x" := (ltac:(refine x)) (at level 100, only parsing).
+
 (* Fixed version of stdpp's. *)
 Tactic Notation "efeed" "pose" "proof" constr(H) "as" simple_intropattern(H') :=
   efeed H using (fun p => pose proof p as H').

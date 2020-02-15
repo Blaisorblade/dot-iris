@@ -11,10 +11,6 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 (** NOTATIONS  **)
 (****************)
 
-(** https://github.com/math-comp/analysis/blob/bb4938c2dee89e91668f8d6a251e968d2f5a05ae/theories/posnum.v#L51-L52 *)
-(** Enrico (Tassi?)'s trick for tc resolution in [have]. Doesn't conflict with infix [!!]. *)
-Notation "!! x" := (ltac:(refine x)) (at level 100, only parsing).
-
 Coercion tv : vl_ >-> tm.
 Coercion vlit : base_lit >-> vl_.
 Coercion lnat : nat >-> base_lit.
