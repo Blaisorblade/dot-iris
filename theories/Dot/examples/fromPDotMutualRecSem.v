@@ -18,6 +18,7 @@ Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
 Section semExample.
+Import primOption.
 (** FromPDotPaper *)
 
 Definition typeRefTBody : ty := {@
@@ -51,7 +52,7 @@ Definition pSymbol : stampTy := MkTy 60 [x0; x1] {@
   val "id" : TNat
 } 2.
 
-Definition fromPDotG : stys := psAddStys primOption.primOptionG [pTop; pTypeRef; pSymbol].
+Definition fromPDotG : stys := psAddStys primOptionG [pTop; pTypeRef; pSymbol].
 Opaque fromPDotG.
 
 Lemma pTopStamp : TyMemStamp fromPDotG pTop. Proof. split; stcrush. Qed.
@@ -115,9 +116,10 @@ Definition fromPDotPaper : vl := ν {@
 }.
 
 Ltac hideCtx := idtac.
+Definition optionModT := hclose hoptionModT.
 
-Example fromPDotPaperTypesTyp :
-  TLater fromPDotPaperAbsTBody :: [] v⊢ₜ[fromPDotG]
+Example fromPDotPaperTypesTyp Γ :
+  TLater fromPDotPaperAbsTBody :: optionModT :: Γ v⊢ₜ[fromPDotG]
     fromPDotPaperTypesV : μ fromPDotPaperTypesTBody.
 Proof.
   tcrush; try by [eapply Dty_typed; tcrush; by_extcrush].
@@ -144,8 +146,8 @@ Proof.
         varsub; tcrush.
 Qed.
 
-Example fromPDotPaperTypesAbsTyp :
-  TLater fromPDotPaperAbsTBody :: [] v⊢ₜ[fromPDotG]
+Example fromPDotPaperTypesAbsTyp Γ :
+  TLater fromPDotPaperAbsTBody :: optionModT :: Γ v⊢ₜ[fromPDotG]
     fromPDotPaperTypesV : μ fromPDotPaperAbsTypesTBody.
 Proof.
   eapply Subs_typed_nocoerce; first exact: fromPDotPaperTypesTyp; ltcrush.
@@ -153,8 +155,8 @@ Proof.
   varsub; tcrush.
 Qed.
 
-Example fromPDotPaperSymbolsTyp :
-  TLater fromPDotPaperAbsTBody :: [] v⊢ₜ[fromPDotG]
+Example fromPDotPaperSymbolsTyp Γ :
+  TLater fromPDotPaperAbsTBody :: optionModT :: Γ v⊢ₜ[fromPDotG]
     fromPDotPaperSymbolsV : μ fromPDotPaperSymbolsTBody.
 Proof.
   tcrush.
@@ -168,18 +170,18 @@ Proof.
       * mltcrush.
 Qed.
 
-Example fromPDotPaperSymbolsAbsTyp :
-  TLater fromPDotPaperAbsTBody :: [] v⊢ₜ[fromPDotG]
+Example fromPDotPaperSymbolsAbsTyp Γ :
+  TLater fromPDotPaperAbsTBody :: optionModT :: Γ v⊢ₜ[fromPDotG]
     fromPDotPaperSymbolsV : μ fromPDotPaperAbsSymbolsTBody.
 Proof.
   eapply Subs_typed_nocoerce; first exact: fromPDotPaperSymbolsTyp; tcrush.
   lThis.
 Qed.
 
-Example fromPDotPaperTyp : [] v⊢ₜ[fromPDotG] fromPDotPaper : μ fromPDotPaperAbsTBody.
+Example fromPDotPaperTyp Γ : optionModT :: Γ v⊢ₜ[fromPDotG] fromPDotPaper : μ fromPDotPaperAbsTBody.
 Proof.
-  pose proof fromPDotPaperTypesAbsTyp.
-  pose proof fromPDotPaperSymbolsAbsTyp.
+  pose proof fromPDotPaperTypesAbsTyp Γ.
+  pose proof fromPDotPaperSymbolsAbsTyp Γ.
   tcrush.
 Qed.
 
@@ -218,8 +220,8 @@ Proof.
   repeat lNext.
 Qed.
 
-Example getAnyTypeTyp0 :
-  [μ fromPDotPaperAbsTBody] v⊢ₜ[fromPDotG]
+Example getAnyTypeTyp0 Γ :
+  μ fromPDotPaperAbsTBody :: Γ v⊢ₜ[fromPDotG]
     tapp getAnyType x0 : p0 @ "types" @; "Type".
 Proof. eapply Appv_typed'; [exact: getAnyTypeFunTyp|var|tcrush..]. Qed.
 End semExample.
