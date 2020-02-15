@@ -2,7 +2,7 @@
 𝐍;
 𝐍}%ty
      : ty
-ν {@ val "a" = pv 0 }
+ν {@ val "a" = 0 }
      : vl_
 μ {@ type "A" >: 𝐍 <: ⊤ }
      : ty
@@ -18,20 +18,20 @@
      : vl_
 ν {@}
      : vl_
-ν {@ val "a" = pv 0 }
+ν {@ val "a" = 0 }
      : vl_
-ν {@ val "a" = pv 0;
-  val "b" = pv 1}
+ν {@ val "a" = 0;
+  val "b" = 1}
      : vl_
-p0 @; "A"
+x0 @; "A"
      : ty
-(p0 @ "A" @ "B") @; "C"
+(x0 @ "A" @ "B") @; "C"
      : ty
-p0 @ "A"
+x0 @ "A"
      : path
-(p0 @ "A" @ "B") @; "C"
+(x0 @ "A" @ "B") @; "C"
      : ty
-(val "symb" : (p0 @ "symbols") @; "Symbol" )%ty
+(val "symb" : (x0 @ "symbols") @; "Symbol" )%ty
      : ty
 ta = λ v : tm, (v > 0)%E
      : tm → tm
@@ -43,10 +43,10 @@ tb = λ v : tm, (v > 0)%E
 Argument scope is [expr_scope]
 ν {@ type "A" = (σ2; 1) }
      : vl_
-ν {@ val "a" = pv 0;
+ν {@ val "a" = 0;
   type "A" = (σ2; 1)}
      : vl_
-ν {@ val "a" = pv 0;
+ν {@ val "a" = 0;
   type "A" = (σ2; 1)}
      : vl_
 hanyToNothing = hclose (⊤ →: ⊥)
@@ -65,7 +65,7 @@ Found type "vl" where "hvl" was expected.
      : htm
 (1 > 0)%HE
      : htm
-     = TAll TNat (TMu (TAnd (TSing DBNotation.p1) (TSing DBNotation.p0)))
+     = TAll TNat (TMu (TAnd (TSing DBNotation.x1) (TSing DBNotation.x0)))
      : ty
      = λ (T : nat → ty) (U : (nat → vl_) → nat → ty) (i : nat),
          TAll (T i) (U (λ x : nat, var_vl (x - S i)) (S i))

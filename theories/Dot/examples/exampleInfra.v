@@ -12,6 +12,7 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 (****************)
 
 Coercion tv : vl_ >-> tm.
+Coercion pv : vl_ >-> path.
 Coercion vlit : base_lit >-> vl_.
 Coercion lnat : nat >-> base_lit.
 Coercion lbool : bool >-> base_lit.
