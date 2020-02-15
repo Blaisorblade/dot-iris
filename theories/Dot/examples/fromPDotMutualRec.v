@@ -36,16 +36,16 @@ From D.Dot Require Import hoas. *)
 Definition fromPDotPaperTypesV : vl := ν {@
   type "Type" = TTop;
   type "TypeTop" = TTop;
-  val "newTypeTop" = pv (vabs $ tv $ ν {@ });
+  val "newTypeTop" = vabs (ν {@ });
   type "TypeRef" = TAnd (p0 @; "Type") typeRefTBody;
-  val "AnyType" = pv (ν {@ });
-  val "newTypeRef" = pv (vabs $
+  val "AnyType" = ν {@ };
+  val "newTypeRef" = vabs (
     (* lett (hclose (hassert (tv (vnat 0)))) $
     tv $ ν {@
       val "symb" = x2
     }) *)
-    tv $ ν {@
-      val "symb" = pv x1
+    ν {@
+      val "symb" = x1
     })
 }.
 
@@ -80,20 +80,20 @@ Definition fromPDotPaperSymbolsV : vl := ν {@
     val "tpe" : p1 @ "types" @; "Type";
     val "name" : HashableString
   };
-  val "newSymbol" = pv (vabs $ tv $ vabs $ tv $ ν {@
-    val "tpe" = pv x2;
-    val "name" = pv x1
+  val "newSymbol" = (vabs $ vabs $ ν {@
+    val "tpe" = x2;
+    val "name" = x1
   })
 }.
 
 Definition fromPDotPaper : vl := ν {@
-  val "types" = pv fromPDotPaperTypesV;
-  val "symbols" = pv fromPDotPaperSymbolsV
+  val "types" = fromPDotPaperTypesV;
+  val "symbols" = fromPDotPaperSymbolsV
 }.
 
 Example fromPDotPaperTypesTyp :
   TLater fromPDotPaperAbsTBody :: [] u⊢ₜ
-    tv fromPDotPaperTypesV : μ fromPDotPaperTypesTBody.
+    fromPDotPaperTypesV : μ fromPDotPaperTypesTBody.
 Proof.
   tcrush.
   - eapply (Subs_typed_nocoerce) => /=; hideCtx.
@@ -121,7 +121,7 @@ Qed.
 
 Example fromPDotPaperTypesAbsTyp :
   TLater fromPDotPaperAbsTBody :: [] u⊢ₜ
-    tv fromPDotPaperTypesV : μ fromPDotPaperAbsTypesTBody.
+    fromPDotPaperTypesV : μ fromPDotPaperAbsTypesTBody.
 Proof.
   eapply Subs_typed_nocoerce; first exact: fromPDotPaperTypesTyp; ltcrush.
   eapply LSel_stp'; tcrush.
@@ -130,7 +130,7 @@ Qed.
 
 Example fromPDotPaperSymbolsTyp :
   TLater fromPDotPaperAbsTBody :: [] u⊢ₜ
-    tv fromPDotPaperSymbolsV : μ fromPDotPaperSymbolsTBody.
+    fromPDotPaperSymbolsV : μ fromPDotPaperSymbolsTBody.
 Proof.
   tcrush.
   - eapply (Subs_typed_nocoerce) => /=; hideCtx.
@@ -144,13 +144,13 @@ Qed.
 
 Example fromPDotPaperSymbolsAbsTyp :
   TLater fromPDotPaperAbsTBody :: [] u⊢ₜ
-    tv fromPDotPaperSymbolsV : μ fromPDotPaperAbsSymbolsTBody.
+    fromPDotPaperSymbolsV : μ fromPDotPaperAbsSymbolsTBody.
 Proof.
   eapply Subs_typed_nocoerce; first exact: fromPDotPaperSymbolsTyp; tcrush.
   lThis.
 Qed.
 
-Example fromPDotPaperTyp : [] u⊢ₜ tv fromPDotPaper : μ fromPDotPaperAbsTBody.
+Example fromPDotPaperTyp : [] u⊢ₜ fromPDotPaper : μ fromPDotPaperAbsTBody.
 Proof.
   pose proof fromPDotPaperTypesAbsTyp.
   pose proof fromPDotPaperSymbolsAbsTyp.
@@ -159,7 +159,7 @@ Qed.
 
 Definition getAnyTypeT : ty :=
   TAll (μ fromPDotPaperAbsTBody) (p0 @ "types" @; "Type").
-Definition getAnyType : vl := vabs (tskip (tproj (tproj (tv x0) "types") "AnyType")).
+Definition getAnyType : vl := vabs (tskip (tproj (tproj x0 "types") "AnyType")).
 
 Ltac simplSubst := rewrite /= /up/= /ids/ids_vl/=.
 From D.Dot.syn Require Import path_repl.
@@ -178,7 +178,7 @@ Definition fromPDotPaperAbsTypesTBodySubst : ty := {@
 Lemma fromPDotPSubst: fromPDotPaperAbsTypesTBody .Tp[ (p0 @ "types") /]~ fromPDotPaperAbsTypesTBodySubst.
 Proof. exact: psubst_ty_rtc_sufficient. Qed.
 
-Example getAnyTypeFunTyp Γ : Γ u⊢ₜ tv getAnyType : getAnyTypeT.
+Example getAnyTypeFunTyp Γ : Γ u⊢ₜ getAnyType : getAnyTypeT.
 Proof.
   rewrite /getAnyType -(iterate_S tskip 0); tcrush.
   eapply (Subs_typed (T1 := TLater (p0 @ "types" @; "Type"))); tcrush.
@@ -195,7 +195,7 @@ Qed.
 
 Example getAnyTypeTyp0 :
   [μ fromPDotPaperAbsTBody] u⊢ₜ
-    tapp (tv getAnyType) (tv x0) : p0 @ "types" @; "Type".
+    tapp getAnyType x0 : p0 @ "types" @; "Type".
 Proof. eapply Appv_typed'; [exact: getAnyTypeFunTyp|var|tcrush..]. Qed.
 (*
 lett (tv fromPDotPaper) (tapp (tv getAnyType) x0) : (pv fromPDotPaper @ "types" @; "Type").
