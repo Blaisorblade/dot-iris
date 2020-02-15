@@ -3,11 +3,27 @@
 From stdpp Require Import strings.
 
 From D Require Import tactics.
-From D.Dot Require Import syn exampleInfra scalaLib.
-From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived.
+From D.Dot Require Import syn exampleInfra.
+From D.Dot Require Import hoas typingExInfra.
+From D.Dot.typing Require Import typing_storeless.
+From D.Dot Require Import primOption typingExamples.
+(* From D.Dot Require Import scalaLib.
+From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived. *)
 Import DBNotation.
 
+Set Implicit Arguments.
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
+
+Implicit Types (g : stys).
+
+Section semExample.
 (** FromPDotPaper *)
+Context {g}.
+
+Definition pTop : stampTy := MkTy 40 [] ⊤ 0.
+Lemma pTopStamp : TyMemStamp g pTop. Proof. split; stcrush. Qed.
+Context (Htop : styConforms g pTop).
 
 Definition typeRefTBody : ty := {@
   val "symb" : x1 @ "symbols" @; "Symbol"
@@ -31,13 +47,16 @@ Definition fromPDotPaperAbsTypesTBody : ty := {@
   val "newTypeRef" : x1 @ "symbols" @; "Symbol" →: x0 @; "TypeRef"
 }.
 
+Definition pTypeRef : stampTy := MkTy 50 [x0; x1] (TAnd (x0 @; "Type") typeRefTBody) 2.
+Lemma pTypeRefStamp : TyMemStamp g pTypeRef. Proof. split; stcrush. Qed.
+Context (HtypeRef : styConforms g pTypeRef).
 (* Import AssertPlain.
 From D.Dot Require Import hoas. *)
 Definition fromPDotPaperTypesV : vl := ν {@
-  type "Type" = TTop;
-  type "TypeTop" = TTop;
+  type "Type" =[ pTop ];
+  type "TypeTop" =[ pTop ];
   val "newTypeTop" = vabs (ν {@ });
-  type "TypeRef" = TAnd (x0 @; "Type") typeRefTBody;
+  type "TypeRef" =[ pTypeRef ];
   val "AnyType" = ν {@ };
   val "newTypeRef" = vabs (
     ν {@
@@ -71,11 +90,15 @@ Definition fromPDotPaperAbsTBody : ty := {@
   val "symbols" : μ fromPDotPaperAbsSymbolsTBody
 }.
 
+Definition pSymbol : stampTy := MkTy 60 [x0; x1] {@
+  val "tpe" : x1 @ "types" @; "Type";
+  val "id" : TNat
+} 2.
+Lemma pSymbolStamp : TyMemStamp g pSymbol. Proof. split; stcrush. Qed.
+Context (Hsymbol : styConforms g pSymbol).
+
 Definition fromPDotPaperSymbolsV : vl := ν {@
-  type "Symbol" = {@
-    val "tpe" : x1 @ "types" @; "Type";
-    val "id" : TNat
-  };
+  type "Symbol" =[ pSymbol ];
   val "newSymbol" = (vabs $ vabs $ ν {@
     val "tpe" = x2;
     val "id" = x1
@@ -87,12 +110,14 @@ Definition fromPDotPaper : vl := ν {@
   val "symbols" = fromPDotPaperSymbolsV
 }.
 
+Ltac hideCtx := idtac.
+
 Example fromPDotPaperTypesTyp :
-  TLater fromPDotPaperAbsTBody :: [] u⊢ₜ
+  TLater fromPDotPaperAbsTBody :: [] v⊢ₜ[g]
     fromPDotPaperTypesV : μ fromPDotPaperTypesTBody.
-Proof.
-  tcrush.
-  - eapply (Subs_typed_nocoerce) => /=; hideCtx.
+Proof using Htop HtypeRef.
+  tcrush; try by [eapply Dty_typed; tcrush; eapply pack_extraction'; tcrush].
+  - eapply (Subs_typed_nocoerce) => /=.
     + repeat first [var | typconstructor | tcrush].
     + apply (Trans_stp (T2 := ⊤) (i2 := 0)); first tcrush.
       eapply LSel_stp'; last (tcrush; varsub); ltcrush.
@@ -102,33 +127,34 @@ Proof.
     asideLaters.
     eapply (LSel_stp' _ ⊤); tcrush.
     varsub; apply Sub_later_shift; tcrush.
-  - eapply (Subs_typed_nocoerce) => /=; hideCtx.
+  - eapply (Subs_typed_nocoerce) => /=.
     + repeat first [var | typconstructor | tcrush].
     + ettrans; first last.
       eapply LSel_stp'; first last.
       * constructor; varsub.
         ltcrush.
       * tcrush.
-      * tcrush; last apply Bind1; tcrush.
+      * tcrush.
         eapply (Trans_stp (T2 := ⊤)); tcrush.
         eapply LSel_stp'; tcrush.
         varsub; tcrush.
 Qed.
 
 Example fromPDotPaperTypesAbsTyp :
-  TLater fromPDotPaperAbsTBody :: [] u⊢ₜ
+  TLater fromPDotPaperAbsTBody :: [] v⊢ₜ[g]
     fromPDotPaperTypesV : μ fromPDotPaperAbsTypesTBody.
-Proof.
+Proof using Htop HtypeRef.
   eapply Subs_typed_nocoerce; first exact: fromPDotPaperTypesTyp; ltcrush.
   eapply LSel_stp'; tcrush.
   varsub; tcrush.
 Qed.
 
 Example fromPDotPaperSymbolsTyp :
-  TLater fromPDotPaperAbsTBody :: [] u⊢ₜ
+  TLater fromPDotPaperAbsTBody :: [] v⊢ₜ[g]
     fromPDotPaperSymbolsV : μ fromPDotPaperSymbolsTBody.
-Proof.
+Proof using Hsymbol.
   tcrush.
+  - eapply Dty_typed; tcrush; eapply pack_extraction' => //; tcrush.
   - eapply (Subs_typed_nocoerce) => /=; hideCtx.
     + repeat first [var | typconstructor | tcrush].
     + ettrans; first last.
@@ -139,15 +165,15 @@ Proof.
 Qed.
 
 Example fromPDotPaperSymbolsAbsTyp :
-  TLater fromPDotPaperAbsTBody :: [] u⊢ₜ
+  TLater fromPDotPaperAbsTBody :: [] v⊢ₜ[g]
     fromPDotPaperSymbolsV : μ fromPDotPaperAbsSymbolsTBody.
-Proof.
+Proof using Hsymbol.
   eapply Subs_typed_nocoerce; first exact: fromPDotPaperSymbolsTyp; tcrush.
   lThis.
 Qed.
 
-Example fromPDotPaperTyp : [] u⊢ₜ fromPDotPaper : μ fromPDotPaperAbsTBody.
-Proof.
+Example fromPDotPaperTyp : [] v⊢ₜ[g] fromPDotPaper : μ fromPDotPaperAbsTBody.
+Proof using All.
   pose proof fromPDotPaperTypesAbsTyp.
   pose proof fromPDotPaperSymbolsAbsTyp.
   tcrush.
@@ -174,23 +200,23 @@ Definition fromPDotPaperAbsTypesTBodySubst : ty := {@
 Lemma fromPDotPSubst: fromPDotPaperAbsTypesTBody .Tp[ (p0 @ "types") /]~ fromPDotPaperAbsTypesTBodySubst.
 Proof. exact: psubst_ty_rtc_sufficient. Qed.
 
-Example getAnyTypeFunTyp Γ : Γ u⊢ₜ getAnyType : getAnyTypeT.
+Example getAnyTypeFunTyp Γ : Γ v⊢ₜ[g] getAnyType : getAnyTypeT.
 Proof.
   rewrite /getAnyType -(iterate_S tskip 0); tcrush.
   eapply (Subs_typed (T1 := TLater (p0 @ "types" @; "Type"))); tcrush.
   set Γ' := shift (μ fromPDotPaperAbsTBody) :: Γ.
-  have Hpx: Γ' u⊢ₚ p0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0
+  have Hpx: Γ' v⊢ₚ[g] p0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0
     by tcrush; eapply Subs_typed_nocoerce;
       [ by eapply TMuE_typed; first var; stcrush | tcrush].
-  have HpxSubst: Γ' u⊢ₚ p0 @ "types" : fromPDotPaperAbsTypesTBodySubst, 0.
+  have HpxSubst: Γ' v⊢ₚ[g] p0 @ "types" : fromPDotPaperAbsTypesTBodySubst, 0.
   by eapply (p_mu_e_typed (T := fromPDotPaperAbsTypesTBody)
-    (p := p0 @ "types")), Hpx; tcrush.
+    (p := p0 @ "types")), Hpx; tcrush; exact: fromPDotPSubst.
   eapply (Path_typed (p := p0)), pself_inv_typed, (p_subs_typed (i := 0)), HpxSubst.
   repeat lNext.
 Qed.
 
 Example getAnyTypeTyp0 :
-  [μ fromPDotPaperAbsTBody] u⊢ₜ
+  [μ fromPDotPaperAbsTBody] v⊢ₜ[g]
     tapp getAnyType x0 : p0 @ "types" @; "Type".
 Proof. eapply Appv_typed'; [exact: getAnyTypeFunTyp|var|tcrush..]. Qed.
 (*
