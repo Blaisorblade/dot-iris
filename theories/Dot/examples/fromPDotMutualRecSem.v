@@ -21,10 +21,6 @@ Section semExample.
 (** FromPDotPaper *)
 Context {g}.
 
-Definition pTop : stampTy := MkTy 40 [] ⊤ 0.
-Lemma pTopStamp : TyMemStamp g pTop. Proof. split; stcrush. Qed.
-Context (Htop : styConforms g pTop).
-
 Definition typeRefTBody : ty := {@
   val "symb" : x1 @ "symbols" @; "Symbol"
 }.
@@ -47,9 +43,21 @@ Definition fromPDotPaperAbsTypesTBody : ty := {@
   val "newTypeRef" : x1 @ "symbols" @; "Symbol" →: x0 @; "TypeRef"
 }.
 
+Definition pTop : stampTy := MkTy 40 [] ⊤ 0.
+Lemma pTopStamp : TyMemStamp g pTop. Proof. split; stcrush. Qed.
+Context (Htop : styConforms g pTop).
+
 Definition pTypeRef : stampTy := MkTy 50 [x0; x1] (TAnd (x0 @; "Type") typeRefTBody) 2.
 Lemma pTypeRefStamp : TyMemStamp g pTypeRef. Proof. split; stcrush. Qed.
 Context (HtypeRef : styConforms g pTypeRef).
+
+Definition pSymbol : stampTy := MkTy 60 [x0; x1] {@
+  val "tpe" : x1 @ "types" @; "Type";
+  val "id" : TNat
+} 2.
+Lemma pSymbolStamp : TyMemStamp g pSymbol. Proof. split; stcrush. Qed.
+Context (Hsymbol : styConforms g pSymbol).
+
 (* Import AssertPlain.
 From D.Dot Require Import hoas. *)
 Definition fromPDotPaperTypesV : vl := ν {@
@@ -89,13 +97,6 @@ Definition fromPDotPaperAbsTBody : ty := {@
   val "types" : μ fromPDotPaperAbsTypesTBody;
   val "symbols" : μ fromPDotPaperAbsSymbolsTBody
 }.
-
-Definition pSymbol : stampTy := MkTy 60 [x0; x1] {@
-  val "tpe" : x1 @ "types" @; "Type";
-  val "id" : TNat
-} 2.
-Lemma pSymbolStamp : TyMemStamp g pSymbol. Proof. split; stcrush. Qed.
-Context (Hsymbol : styConforms g pSymbol).
 
 Definition fromPDotPaperSymbolsV : vl := ν {@
   type "Symbol" =[ pSymbol ];
