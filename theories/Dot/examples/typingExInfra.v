@@ -8,6 +8,9 @@ From D.Dot Require Import syn.
 From D.Dot Require Export typing_storeless exampleInfra hoas.
 Export DBNotation.
 
+Set Default Proof Using "Type".
+Set Suggest Proof Using.
+
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 Implicit Types (g : stys).
 

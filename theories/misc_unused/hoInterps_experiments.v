@@ -7,6 +7,9 @@ From D Require Import saved_interp_dep asubst_intf dlang ty_interp_subst_lemmas.
 From Coq Require FunctionalExtensionality.
 Import EqNotations.
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
+
 Module try1 (Import VS : VlSortsSig).
 Section saved_pred3_use.
   Context {Σ : gFunctors}.
@@ -58,7 +61,7 @@ Section saved_dep_use.
     | 0 => λ φ, φ vnil
     | S n => λ _, eFalse
     end φ.
-  Lemma vclose_id φ : vclose (existT 0 φ) = φ vnil. Proof eq_refl.
+  Lemma vclose_id φ : vclose (existT 0 φ) = φ vnil. Proof. done. Qed.
 
   Program Definition vuncurry' : {n & vl → hoEnvD Σ n} → hoEnvND Σ := λ '(existT n φ),
     existT (S n) (λ args, φ (vhead args) (vtail args)).

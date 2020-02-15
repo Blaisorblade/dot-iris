@@ -9,6 +9,7 @@ From D.Dot.lr Require Import unary_lr
 
 Implicit Types
          (v: vl) (e: tm) (d: dm) (ds: dms) (p : path).
+
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 

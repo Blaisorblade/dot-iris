@@ -1,6 +1,9 @@
 From iris.proofmode Require Import tactics.
 From iris.base_logic Require Import lib.saved_prop.
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
+
 (** saved interpretations *)
 
 Notation savedInterpG Σ A B := (savedPredG Σ (A * B)).

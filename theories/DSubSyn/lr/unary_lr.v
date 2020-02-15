@@ -6,6 +6,9 @@ From D.DSub Require Export dlang_inst.
 Include TyInterpLemmas VlSorts dlang_inst.
 Export ty_interp_lemmas.
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type*".
+
 (** Deduce types from variable names, like on paper, for readability and to help
     type inference for some overloaded operations (e.g. substitution). *)
 Implicit Types

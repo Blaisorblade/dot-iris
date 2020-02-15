@@ -3,6 +3,9 @@ From D.pure_program_logic Require Import lifting.
 
 From D Require Import proofmode_extra.
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
+
 Section wp_extra.
   Context `{irisG Λ Σ}.
   Implicit Types s : stuckness.

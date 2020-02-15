@@ -7,7 +7,9 @@ Implicit Types
          (Γ : ctx) (vs : vls) (l : label).
 
 Set Implicit Arguments.
-Set Nested Proofs Allowed.
+
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
 
 Notation unshifts x := (∃ x', x = shift x').
 Notation unshifts_vl v := (∃ v', v = shiftV v').
@@ -226,7 +228,7 @@ Proof. move => /(_ r'). apply aux. Qed.
 Lemma not_psubst_path_idempotent: ~∀ p q,
   psubst_path p q q = q →
   IdempotentUnary (psubst_path p q).
-Proof. move => /(_ p q _ r'). check. eauto. Qed.
+Proof using All. move => /(_ p q _ r'). check. eauto. Qed.
 End psubst_path_idempotent_counterexample.
 
 (* Lemma replacing_again_wont_save_you p q p1 p2:

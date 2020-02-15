@@ -2,6 +2,9 @@ From iris.proofmode Require Import tactics.
 
 From iris.program_logic Require Import language lifting.
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
+
 Section wp_extra.
   Context `{!irisG Λ Σ}.
   Implicit Types P : val Λ → iProp Σ.

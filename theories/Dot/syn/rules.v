@@ -2,6 +2,9 @@ From iris.program_logic Require Import language ectx_language.
 From D.Dot Require Import syn.
 Import asubst_base.
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
+
 Implicit Types e : tm.
 
 Section lang_rules.

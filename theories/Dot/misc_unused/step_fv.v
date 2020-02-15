@@ -2,8 +2,11 @@ From D Require Import tactics.
 From D.Dot Require Import syn synLemmas.
 From iris.program_logic Require Import ectx_language.
 
-Set Implicit Arguments.
 Implicit Types (T: ty) (v: vl) (t: tm) (d: dm) (ds: dms).
+Set Implicit Arguments.
+
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
 
 Section nclosed_prim_step.
   Lemma nclosed_beta t1 v2 n:

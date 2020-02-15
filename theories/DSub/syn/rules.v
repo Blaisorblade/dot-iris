@@ -4,6 +4,9 @@ Import asubst_base.
 
 Implicit Types e : tm.
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
+
 Section lang_rules.
   Ltac inv_head_step :=
     repeat match goal with

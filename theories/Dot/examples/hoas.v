@@ -4,6 +4,8 @@ From stdpp Require Import strings.
 From D Require Import tactics.
 From D.Dot Require Import syn exampleInfra.
 
+Set Default Proof Using "Type".
+
 (* Inspired by the "Unembedding DSLs" paper, but specialized.
 The algorithm it uses is very different from McBride's Jigger.
 https://web.archive.org/web/20130412082828/http://www.e-pig.org/epilogue/?p=773

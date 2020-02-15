@@ -5,6 +5,9 @@ From D.DSub Require Import syn.
 Set Primitive Projections.
 Set Implicit Arguments.
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
+
 Implicit Types (T: ty) (v: vl) (e t: tm) (Γ : ctx) (n: nat).
 
 Module Trav1.

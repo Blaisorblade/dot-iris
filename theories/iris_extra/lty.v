@@ -13,6 +13,9 @@ From D Require Import prelude iris_prelude asubst_base asubst_intf dlang.
 
 Implicit Types (Σ : gFunctors).
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
+
 (**
 "Logical TYpes": persistent Iris predicates over values.
 Adapted from

@@ -3,6 +3,9 @@ From D.Dot Require Import typing_storeless typeExtractionSyn traversals stampedn
 
 Set Implicit Arguments.
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
+
 Section syntyping_lemmas.
   Hint Constructors Forall : core.
 

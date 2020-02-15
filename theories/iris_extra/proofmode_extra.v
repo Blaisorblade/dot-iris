@@ -1,6 +1,9 @@
 From iris.proofmode Require Import tactics.
 Import bi.
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
+
 Lemma forall_swap_impl `{BiAffine PROP} {A} (P : PROP) `{!Persistent P} (Ψ : A → PROP) :
   (P → ∀ a, Ψ a)%I ⊣⊢ (∀ a, P → Ψ a)%I.
 Proof.
@@ -145,5 +148,4 @@ Section wp_extra.
   Proof.
     iIntros (?) "Hwp H". iApply (wp_strong_mono_later with "Hwp"); auto.
   Qed.
-
 End wp_extra.

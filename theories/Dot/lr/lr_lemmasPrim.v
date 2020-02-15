@@ -7,6 +7,7 @@ From iris.program_logic Require Import language.
 From D.Dot Require Import rules unary_lr.
 
 Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (n : nat).
+
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 

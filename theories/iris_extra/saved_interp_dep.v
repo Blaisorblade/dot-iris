@@ -3,6 +3,9 @@ From iris.base_logic Require Import lib.saved_prop.
 From stdpp Require Import vector.
 From D Require Import prelude iris_prelude asubst_intf.
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
+
 Import EqNotations.
 Unset Program Cases.
 

@@ -7,6 +7,7 @@ From D.pure_program_logic Require Import lifting.
 Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
          (Γ : ctx) (ρ : env) (Pv : vl → Prop).
+
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 

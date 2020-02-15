@@ -6,6 +6,9 @@ From D.Dot Require Import typing_storeless.
 Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
 Implicit Types (g : stys).
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
+
 (* The typing judgement comes from [s/⊢/s⊢] in [typing_storeless.v], and restricting most values to variables (except in object definitions). *)
 Reserved Notation "Γ s⊢ₜ[ g  ] e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ s⊢ₚ[ g  ] p : T , i" (at level 74, p, T, i at next level).

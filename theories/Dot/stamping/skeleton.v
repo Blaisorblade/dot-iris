@@ -6,6 +6,10 @@ From D.Dot Require Import syn traversals.
 From D.Dot Require rules.
 
 Set Implicit Arguments.
+
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
+
 Implicit Types (e t : tm) (efs : list tm) (σ : ()).
 
 Section prim_step_det.

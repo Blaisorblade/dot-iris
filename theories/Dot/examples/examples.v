@@ -9,6 +9,7 @@ From D.Dot Require Import unary_lr
   lr_lemmas lr_lemmasTSel lr_lemmasNoBinding lr_lemmasDefs lr_lemmasPrim.
 From D.Dot Require Import typeExtractionSem.
 From D.Dot Require Import skeleton fundamental.
+
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 

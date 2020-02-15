@@ -2,6 +2,9 @@ From D Require Export prelude.
 From D Require Import asubst_intf asubst_base.
 From iris.program_logic Require ectx_language ectxi_language.
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type*".
+
 (** This module is included right away. Its only point is asserting explicitly
     what interface it implements. *)
 Module VlSorts <: VlSortsFullSig.

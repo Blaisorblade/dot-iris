@@ -1,6 +1,9 @@
 From iris.proofmode Require Import tactics.
 From D Require Import prelude asubst_base dlang.
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type*".
+
 Module Type TyInterpLemmas (Import VS : VlSortsFullSig) (Import LWP : LiftWp VS).
 
 Class TyInterp ty Σ :=

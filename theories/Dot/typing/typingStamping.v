@@ -4,6 +4,9 @@ From D.Dot Require typing_unstamped.
 
 Set Implicit Arguments.
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
+
 Definition is_unstamped_to_AlsoNonVars_tm_def e : Prop := ∀ n b,
   is_unstamped_tm   n b e → is_unstamped_tm n AlsoNonVars e.
 Definition is_unstamped_to_AlsoNonVars_vl_def v : Prop := ∀ n b,

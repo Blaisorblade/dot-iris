@@ -1,6 +1,9 @@
 From iris.program_logic Require Import language.
 From D Require Import prelude asubst_intf.
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type*".
+
 Module Type Sorts (Import V : ValuesSig) <: SortsSig V.
 Include SortsSig V.
 

@@ -8,6 +8,9 @@ From D.pure_program_logic Require Import lifting.
 From D.DSub Require Import rules synLemmas.
 From D.DSubSyn Require Import unary_lr.
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type*".
+
 Implicit Types (L T U: ty) (v: vl) (e: tm) (Γ : ctx).
 
 Section Sec.

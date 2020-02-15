@@ -6,6 +6,9 @@ From D Require Import gen_iheap lty dlang ty_interp_subst_lemmas.
 
 Implicit Types (Σ : gFunctors).
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
+
 (*
   - Redefining *existing judgments* on Lty will let us
     generalize current typing lemmas to be about semantic types.

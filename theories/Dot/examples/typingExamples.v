@@ -8,6 +8,7 @@ From D Require Import tactics.
 From D.Dot Require Import syn typingExInfra stampedness_binding.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
+
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 

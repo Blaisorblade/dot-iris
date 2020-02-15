@@ -4,6 +4,9 @@ From D.pure_program_logic Require adequacy.
 From D Require Import iris_prelude swap_later_impl asubst_intf.
 From D Require gen_iheap saved_interp_dep.
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
+
 Local Notation gdom g := (dom (gset stamp) g).
 
 Module mapsto.

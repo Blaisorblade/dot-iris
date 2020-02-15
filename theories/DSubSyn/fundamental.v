@@ -11,6 +11,9 @@ From D.DSubSyn Require Import unary_lr lr_lemmas.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (Γ : ctx).
 
+Set Suggest Proof Using.
+Set Default Proof Using "Type*".
+
 Section swap_based_typing_lemmas.
   Context `{!dsubSynG Σ} `{!SwapPropI Σ} {Γ}.
 
