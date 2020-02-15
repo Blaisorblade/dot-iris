@@ -52,6 +52,7 @@ theories/Dot/examples/scalaLib.v
 theories/Dot/examples/list.v
 theories/Dot/examples/exampleInfra.v
 theories/Dot/examples/fromPDotMutualRec.v
+theories/Dot/examples/fromPDotMutualRecSem.v
 theories/Dot/examples/typingExamples.v
 theories/Dot/examples/typingExamplesUnst.v
 theories/Dot/examples/typingExInfra.v

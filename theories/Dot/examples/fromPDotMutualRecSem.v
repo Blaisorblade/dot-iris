@@ -3,10 +3,12 @@
 From stdpp Require Import strings.
 
 From D Require Import tactics.
-From D.Dot Require Import syn exampleInfra.
-From D.Dot Require Import hoas typingExInfra.
+From D.Dot.syn Require Import syn path_repl.
 From D.Dot.typing Require Import typing_storeless.
-From D.Dot Require Import primOption typingExamples.
+From D.Dot Require Import exampleInfra typingExInfra hoas.
+(* From D.Dot Require Import typingExamples. *)
+From D.Dot Require Import primOption.
+
 (* From D.Dot Require Import scalaLib.
 From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived. *)
 Import DBNotation.
@@ -186,7 +188,6 @@ Definition getAnyTypeT : ty :=
 Definition getAnyType : vl := vabs (tskip (tproj (tproj x0 "types") "AnyType")).
 
 Ltac simplSubst := rewrite /= /up/= /ids/ids_vl/=.
-From D.Dot.syn Require Import path_repl.
 
 Definition fromPDotPaperAbsTypesTBodySubst : ty := {@
   type "Type" >: ⊥ <: ⊤;
@@ -221,6 +222,7 @@ Example getAnyTypeTyp0 :
   [μ fromPDotPaperAbsTBody] v⊢ₜ[fromPDotG]
     tapp getAnyType x0 : p0 @ "types" @; "Type".
 Proof. eapply Appv_typed'; [exact: getAnyTypeFunTyp|var|tcrush..]. Qed.
+End semExample.
 (*
 lett (tv fromPDotPaper) (tapp (tv getAnyType) x0) : (pv fromPDotPaper @ "types" @; "Type").
 Example getAnyTypeTyp : [] u⊢ₜ lett (tv fromPDotPaper) (tapp (tv getAnyType) x0) : (pv fromPDotPaper @ "types" @; "Type").
