@@ -117,7 +117,7 @@ Example fromPDotPaperTypesTyp :
     fromPDotPaperTypesV : μ fromPDotPaperTypesTBody.
 Proof using Htop HtypeRef.
   tcrush; try by [eapply Dty_typed; tcrush; eapply pack_extraction'; tcrush].
-  - eapply (Subs_typed_nocoerce) => /=.
+  - eapply (Subs_typed_nocoerce) => /=; hideCtx.
     + repeat first [var | typconstructor | tcrush].
     + apply (Trans_stp (T2 := ⊤) (i2 := 0)); first tcrush.
       eapply LSel_stp'; last (tcrush; varsub); ltcrush.
@@ -127,7 +127,7 @@ Proof using Htop HtypeRef.
     asideLaters.
     eapply (LSel_stp' _ ⊤); tcrush.
     varsub; apply Sub_later_shift; tcrush.
-  - eapply (Subs_typed_nocoerce) => /=.
+  - eapply (Subs_typed_nocoerce) => /=; hideCtx.
     + repeat first [var | typconstructor | tcrush].
     + ettrans; first last.
       eapply LSel_stp'; first last.
