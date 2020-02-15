@@ -3,8 +3,9 @@
 From stdpp Require Import strings.
 
 From D Require Import tactics.
-From D.Dot Require Import syn exampleInfra scalaLib.
+From D.Dot.syn Require Import syn path_repl.
 From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived.
+From D.Dot Require Import exampleInfra scalaLib.
 Import DBNotation.
 
 (** FromPDotPaper *)
@@ -158,7 +159,6 @@ Definition getAnyTypeT : ty :=
 Definition getAnyType : vl := vabs (tskip (tproj (tproj x0 "types") "AnyType")).
 
 Ltac simplSubst := rewrite /= /up/= /ids/ids_vl/=.
-From D.Dot.syn Require Import path_repl.
 
 Definition fromPDotPaperAbsTypesTBodySubst : ty := {@
   type "Type" >: ⊥ <: ⊤;
