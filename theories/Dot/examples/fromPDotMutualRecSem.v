@@ -117,7 +117,7 @@ Example fromPDotPaperTypesTyp :
   TLater fromPDotPaperAbsTBody :: [] v⊢ₜ[g]
     fromPDotPaperTypesV : μ fromPDotPaperTypesTBody.
 Proof using Htop HtypeRef.
-  tcrush; try by [eapply Dty_typed; tcrush; eapply pack_extraction'; tcrush].
+  tcrush; try by [eapply Dty_typed; tcrush; by_extcrush].
   - eapply (Subs_typed_nocoerce) => /=; hideCtx.
     + repeat first [var | typconstructor | tcrush].
     + apply (Trans_stp (T2 := ⊤) (i2 := 0)); first tcrush.
@@ -155,7 +155,7 @@ Example fromPDotPaperSymbolsTyp :
     fromPDotPaperSymbolsV : μ fromPDotPaperSymbolsTBody.
 Proof using Hsymbol.
   tcrush.
-  - eapply Dty_typed; tcrush; eapply pack_extraction' => //; tcrush.
+  - eapply Dty_typed; tcrush; by_extcrush.
   - eapply (Subs_typed_nocoerce) => /=; hideCtx.
     + repeat first [var | typconstructor | tcrush].
     + ettrans; first last.

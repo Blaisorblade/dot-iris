@@ -134,6 +134,7 @@ Ltac wtcrush := repeat first [fast_done | typconstructor | stcrush]; try solve [
 Hint Extern 5 (nclosed _ _) => by solve_fv_congruence : fvc.
 Hint Resolve pack_extraction : fvc.
 Hint Extern 5 (is_stamped_ty _ _ _) => tcrush : fvc.
+Hint Extern 5 (is_stamped_σ _ _ _) => tcrush : fvc.
 Hint Resolve pack_extraction' : fvc.
 Ltac by_extcrush := by try eapply pack_extraction'; rewrite /= ?hsubst_id; eauto with fvc.
 
