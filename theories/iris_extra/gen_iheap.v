@@ -35,7 +35,7 @@ Section definitions.
 
   Definition mapsto_def (l : L) (v: V) : iProp Σ :=
     own (gen_iheap_name hG) (◯ {[ l := to_agree (v : leibnizO V) ]}).
-  Definition mapsto_aux : seal (@mapsto_def). by eexists. Qed.
+  Definition mapsto_aux : seal (@mapsto_def). Proof. by eexists. Qed.
   Definition mapsto := mapsto_aux.(unseal).
   Definition mapsto_eq : @mapsto = @mapsto_def := mapsto_aux.(seal_eq).
 End definitions.
