@@ -10,8 +10,6 @@ Set Implicit Arguments.
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
-Implicit Types (g : stys).
-
 Definition mapfst {A B C} (f : A → C): A * B → (C * B) := λ '(a, b), (f a, b).
 
 Module primOption.
@@ -114,24 +112,24 @@ Definition hpBot : hstampTy := MkTy 1 [] ⊥ 0.
 Definition hpXA x : hstampTy := MkTy 2 [x] (hclose (hpv hx0 @; "A")) 1.
 Definition hpOptionTConcr : hstampTy := MkTy 3 [] (hclose hoptionTConcr) 0.
 
-Definition g := psAddStys ∅ [hpBot; hpXA hx0; hpOptionTConcr].
+Definition primOptionG : stys := psAddStys ∅ [hpBot; hpXA hx0; hpOptionTConcr].
 
-Lemma hpBotStamp : hTyMemStamp g hpBot. Proof. split; stcrush. Qed.
-Lemma hpXAStamp : hTyMemStamp g (hpXA hx0). Proof. split; stcrush. Qed.
-Lemma hpOptionTConcrStamp : hTyMemStamp g hpOptionTConcr. Proof. split; stcrush. Qed.
+Lemma hpBotStamp : hTyMemStamp primOptionG hpBot. Proof. split; stcrush. Qed.
+Lemma hpXAStamp : hTyMemStamp primOptionG (hpXA hx0). Proof. split; stcrush. Qed.
+Lemma hpOptionTConcrStamp : hTyMemStamp primOptionG hpOptionTConcr. Proof. split; stcrush. Qed.
 
-Lemma Hbot: styConforms g hpBot. Proof. done. Qed.
-Lemma hpBotExt : hextractPreTyMem g hpBot. Proof. by_extcrush. Qed.
+Lemma Hbot: styConforms primOptionG hpBot. Proof. done. Qed.
+Lemma hpBotExt : hextractPreTyMem primOptionG hpBot. Proof. by_extcrush. Qed.
 (* Proof. apply /hstampTyAgree /hpBotStamp /Hbot. Qed. *)
 
-Lemma HxA : styConforms g (hpXA hx0). Proof. done. Qed.
-Lemma hpXAExt : hextractPreTyMem g (hpXA hx0). Proof. by_extcrush. Qed.
+Lemma HxA : styConforms primOptionG (hpXA hx0). Proof. done. Qed.
+Lemma hpXAExt : hextractPreTyMem primOptionG (hpXA hx0). Proof. by_extcrush. Qed.
 (* Proof. by apply /hstampTyAgree /hpXAStamp /HxA. Qed. *)
 
-Lemma HoptionTConcr : styConforms g hpOptionTConcr. Proof. done. Qed.
-Lemma hpOptionTConcrExt : hextractPreTyMem g hpOptionTConcr. Proof. by_extcrush. Qed.
+Lemma HoptionTConcr : styConforms primOptionG hpOptionTConcr. Proof. done. Qed.
+Lemma hpOptionTConcrExt : hextractPreTyMem primOptionG hpOptionTConcr. Proof. by_extcrush. Qed.
 
-Opaque g.
+Opaque primOptionG.
 
 Definition hnoneV := ν: _, {@
   type "T" =[ hpBot ];
@@ -141,7 +139,7 @@ Definition hnoneV := ν: _, {@
 Definition noneV := hclose hnoneV.
 
 Example noneTypStronger Γ :
-  Γ v⊢ₜ[ g ] tv noneV : hclose hnoneConcrT.
+  Γ v⊢ₜ[ primOptionG ] tv noneV : hclose hnoneConcrT.
 Proof.
   tcrush; last var.
   apply (dty_typed ⊥); tcrush.
@@ -159,7 +157,7 @@ Definition hmkSome : hvl := λ: x content, ν: self, {@
 Definition mkSome := hclose hmkSome.
 
 Example mkSomeTypStronger Γ :
-  Γ v⊢ₜ[ g ] tv mkSome : hclose hmkSomeTSing.
+  Γ v⊢ₜ[ primOptionG ] tv mkSome : hclose hmkSomeTSing.
 Proof.
   tcrush; cbv.
   - apply (dty_typed (hclose $ hpv hx2 @; "A")); tcrush; by_extcrush.
@@ -181,7 +179,7 @@ Definition hoptionModV := ν: self, {@
 
 (** Rather precise type for [hoptionModV]. *)
 Example optionModConcrTyp Γ :
-  Γ v⊢ₜ[ g ] hclose hoptionModV : hclose (μ: _, hoptionModTConcrBody).
+  Γ v⊢ₜ[ primOptionG ] hclose hoptionModV : hclose (μ: _, hoptionModTConcrBody).
 Proof.
   set U := hclose (▶: hoptionModTConcrBody).
   have := noneTypStronger (U :: Γ).
@@ -191,7 +189,7 @@ Proof.
 Qed.
 
 Example optionModInvTyp Γ :
-  Γ v⊢ₜ[ g ] hclose hoptionModV : hclose (μ: self, hoptionModTInvBody self).
+  Γ v⊢ₜ[ primOptionG ] hclose hoptionModV : hclose (μ: self, hoptionModTInvBody self).
 Proof.
   eapply Subs_typed_nocoerce; first apply optionModConcrTyp.
   ltcrush; rewrite iterate_0.
@@ -200,11 +198,11 @@ Proof.
 Qed.
 
 Example optionModTypSub Γ :
-  Γ v⊢ₜ[ g ] hclose (μ: self, hoptionModTInvBody self), 0 <: hclose hoptionModT, 0.
+  Γ v⊢ₜ[ primOptionG ] hclose (μ: self, hoptionModTInvBody self), 0 <: hclose hoptionModT, 0.
 Proof. ltcrush. Qed.
 
 Example optionModTyp Γ :
-  Γ v⊢ₜ[ g ] hclose (htv hoptionModV) : hclose hoptionModT.
+  Γ v⊢ₜ[ primOptionG ] hclose (htv hoptionModV) : hclose hoptionModT.
 Proof. eapply Subs_typed_nocoerce, optionModTypSub; apply optionModInvTyp. Qed.
 
 End primOption'.
