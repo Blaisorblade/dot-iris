@@ -147,6 +147,8 @@ Section olty_subst.
   Global Instance HSubstLemmas_hoEnvD : HSubstLemmas vl (hoEnvD Σ i).
   Proof. split => //; renLemmas_hoEnvD. Qed.
 
+  Global Instance: Sort (hoEnvD Σ i) := {}.
+
   Lemma hoEnvD_subst_compose_ind φ args ρ1 ρ2 v: φ.|[ρ1] args ρ2 v ⊣⊢ φ args (ρ1 >> ρ2) v.
   Proof. done. Qed.
 
@@ -193,6 +195,8 @@ Section olty_subst.
     split => [T|//|s1 s2 T]; apply olty_eq => args ρ; f_ext => v.
     all: by rewrite /hsubst/= ?hsubst_id -?hsubst_comp.
   Qed.
+
+  Global Instance: Sort (olty Σ i) := {}.
 
   (* Currently unused; currently, we simplify and use the [hoEnvD_] lemmas.*)
 (*
