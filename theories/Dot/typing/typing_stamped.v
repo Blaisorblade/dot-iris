@@ -399,7 +399,7 @@ Ltac typconstructor :=
   | |- dm_typed _ _ _ _ _ => first [apply dvabs_typed' | constructor]
   | |- path_typed _ _ _ _ _ => first [apply pv_dlater | constructor]
   | |- subtype _ _ _ _ _ _ =>
-    first [apply Sub_later_shift | constructor | apply TMono_stp]
+    first [apply Sub_later_shift | constructor ]
   end.
 
 Section syntyping_lemmas.

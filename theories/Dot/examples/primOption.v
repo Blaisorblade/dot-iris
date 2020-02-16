@@ -206,13 +206,15 @@ Example optionModInvTyp Γ :
 Proof.
   eapply Subs_typed_nocoerce; first apply optionModConcrTyp.
   ltcrush; rewrite iterate_0.
-  all: try (eapply LSel_stp'; tcrush; varsub; ltcrush).
+  eapply LSel_stp'; tcrush; varsub; ltcrush.
+  all: try eapply LSel_stp', (path_tp_weaken (i := 0));
+    try (typconstructor; varsub; ltcrush); wtcrush.
   all: try (ettrans; last eapply TOr2_stp); mltcrush.
 Qed.
 
 Example optionModTypSub Γ :
   Γ v⊢ₜ[ primOptionG ] hclose (μ: self, hoptionModTInvBody self), 0 <: hclose hoptionModT, 0.
-Proof. ltcrush. Qed.
+Proof. ltcrush; eapply (Subs_typed (i := 0)), T_Bool_typed; tcrush. Qed.
 
 Example optionModTyp Γ :
   Γ v⊢ₜ[ primOptionG ] hclose (htv hoptionModV) : hclose hoptionModT.

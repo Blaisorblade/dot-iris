@@ -162,7 +162,7 @@ Proof.
   tcrush; lNext.
 
   (** We do it using [LSel_stp'] on [self.A], and looking up [A] on [self]'s type. *)
-  eapply LSel_stp'; ltcrush. varsub; ltcrush.
+  eapply LSel_stp', (path_tp_weaken (i := 0)); wtcrush. varsub; ltcrush.
 Qed.
 
 Ltac norm := cbv; hideCtx.
@@ -170,7 +170,7 @@ Lemma consTSub Γ : hclose (hlistModTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢�
   hclose (hconsTConcr hx1 hx0), 0 <: hclose (hconsT hx0), 0.
 Proof.
   tcrush; rewrite !iterate_S !iterate_0; hideCtx; last mltcrush.
-  eapply LSel_stp'; tcrush; varsub; by ltcrush.
+  eapply LSel_stp', (path_tp_weaken (i := 0)); wtcrush; varsub; by ltcrush.
 Qed.
 
 Example listTypConcr Γ : boolImplT :: Γ u⊢ₜ hclose (htv (hlistModV hx0)) : hclose (hlistModTConcr hx0).
@@ -284,7 +284,7 @@ Proof.
       eapply TMuE_typed' with (T1 := hclose (val "head" : ⊤ →: hp0 @; "A"));
       [ | done | tcrush ..].
       - varsub; asideLaters; lThis; ltcrush.
-      - by apply (SelU_stp (L := hclose ⊥)); tcrush; varsub; ltcrush.
+      - by apply (SelU_stp (L := ⊥)), (path_tp_weaken (i := 0)); wtcrush; varsub; ltcrush.
   }
   eapply (Subs_typed (i := 1) (T1 := hclose (hTAnd (hp0 @; "List") U))).
   (******)
@@ -307,9 +307,9 @@ Proof.
   eapply (App_typed (T1 := hclose 𝐍)); last tcrush.
   (* Perform avoidance on the type application. *)
   eapply tyApp_typed with (T := hclose 𝐍); first done; intros; ltcrush; cbv -[Γ'].
-  by eapply LSel_stp'; tcrush; var.
+  by eapply LSel_stp', (path_tp_weaken (i := 0)); try (typconstructor; var); wtcrush.
   by lNext.
-  lNext; by eapply SelU_stp; tcrush; var.
+  lNext; by eapply SelU_stp, (path_tp_weaken (i := 0)); try (typconstructor; var); wtcrush.
 Qed.
 
 Example clListTypNat3 Γ :

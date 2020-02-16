@@ -182,7 +182,7 @@ Lemma dty_typed_intermediate Γ T l L U:
   Γ u⊢ₜ L, 0 <: T, 0 →
   Γ u⊢ₜ T, 0 <: U, 0 →
   Γ u⊢{ l := dtysyn T } : TTMem l L U.
-Proof. intros; apply dty_typed; tcrush. Qed.
+Proof. intros; apply dty_typed => //; tcrush; exact: TMono_stp. Qed.
 
 (** * Manipulating laters, basics. *)
 
@@ -314,7 +314,8 @@ Lemma BindSpec Γ (L T U : ty):
   Γ u⊢ₜ tv (ν {@ type "A" = T }) : μ {@ type "A" >: L <: U }.
 Proof.
   intros.
-  eapply Subs_typed_nocoerce with (T1 := μ {@ type "A" >: T <: T }); ltcrush.
+  eapply Subs_typed_nocoerce with (T1 := μ {@ type "A" >: T <: T }); ltcrush;
+    exact: TMono_stp.
 Qed.
 
 Lemma p_subs_typed' {Γ p T1 T2 i} :

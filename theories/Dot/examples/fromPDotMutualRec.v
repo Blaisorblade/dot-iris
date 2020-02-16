@@ -122,7 +122,6 @@ Example fromPDotPaperTypesAbsTyp :
 Proof.
   eapply Subs_typed_nocoerce; first exact: fromPDotPaperTypesTyp; ltcrush.
   eapply LSel_stp', (path_tp_weaken (i := 0)); wtcrush.
-  rewrite iterate_0.
   varsub; tcrush.
 Qed.
 

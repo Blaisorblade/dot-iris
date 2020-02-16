@@ -67,7 +67,7 @@ Proof.
   apply (Subs_typed_nocoerce (val "hashCode" : ⊤ →: 𝐍)).
   by eapply Subs_typed_nocoerce; [eapply TMuE_typed'; by [var||stcrush] | tcrush].
   tcrush.
-  eapply LSel_stp'; tcrush.
+  eapply LSel_stp', (path_tp_weaken (i := 0)); wtcrush.
   varsub; tcrush.
 Qed.
 
@@ -99,9 +99,11 @@ Proof.
   move: (HsT1) => /is_unstamped_ren1_ty HsT2; rewrite -hrenS in HsT2.
   move: (HsT2) => /is_unstamped_ren1_ty HsT3; rewrite -hrenS in HsT3.
   move: (HsT3) => /is_unstamped_ren1_ty HsT4; rewrite -hrenS in HsT4.
-  tcrush; rewrite ?iterate_S ?iterate_0 /=;
-    first [apply: LSel_stp' | apply: SelU_stp]; tcrush; apply: Var_typed';
-    rewrite ?hsubst_id //; by autosubst.
+  tcrush; rewrite ?iterate_S ?iterate_0 /=; tcrush;
+    first [eapply LSel_stp', (path_tp_weaken (i := 0)) |
+      eapply SelU_stp, (path_tp_weaken (i := 0))];
+       try (typconstructor; apply: Var_typed');
+    rewrite ?hsubst_id //; try autosubst; wtcrush.
 Qed.
 
 Lemma tyAppIFT_typed Γ T t :

@@ -189,7 +189,9 @@ Proof.
   have Hty: T :: Γ u⊢ₜ tyApp e "A" (⊤ →: ⊤) :
     hclose (⊤ →: ⊤) →: (⊤ →: ⊤) →: ▶: (⊤ →: ⊤).
   by eapply tyApp_typed; first apply He; intros; simpl; tcrush;
-    [eapply LSel_stp'..|eapply SelU_stp]; tcrush; var.
+    [eapply LSel_stp', (path_tp_weaken (i := 0))..|
+    eapply SelU_stp, (path_tp_weaken (i := 0))];
+    try (typconstructor; var); wtcrush.
   move: Hty => /Appv_typed /(_ Hx1 _) /Appv_typed /(_ Hx0) /= Hty.
   eapply (Subs_typed (i := 1)), Hty; tcrush.
 Qed.
@@ -236,7 +238,8 @@ Proof.
   have Hty: T :: Γ u⊢ₜ tyApp e "A" ⊤ :
     hclose (∀: t : ⊤, ∀: f: ⊤, hTSing (hpv f)).
   by eapply tyApp_typed; first apply He; intros; tcrush;
-    eapply LSel_stp'; tcrush; var.
+    eapply LSel_stp', (path_tp_weaken (i := 0));
+    try (typconstructor; var); wtcrush.
   rewrite /assertBody.
   move: Hty => /Appv_typed /(_ Hx1 _) /Appv_typed /(_ Hx0) /=.
   apply; tcrush.
@@ -252,7 +255,8 @@ Proof.
   have Hty: T :: U :: Γ u⊢ₜ tyApp e "A" ⊤ :
     hclose (∀: t : ⊤, ∀: f: ⊤, hTSing (hpv t)).
   by eapply tyApp_typed; first apply He; intros; tcrush;
-    eapply LSel_stp'; tcrush; var.
+    eapply LSel_stp', (path_tp_weaken (i := 0));
+    try (typconstructor; var); wtcrush.
   rewrite /assertBody.
   move: Hty => /Appv_typed /(_ Hx1 _) /Appv_typed /(_ Hx0) /=.
   apply; tcrush.
@@ -438,7 +442,9 @@ Example optionModInvTyp Γ :
 Proof.
   eapply Subs_typed_nocoerce; first apply optionModConcrTyp.
   ltcrush; rewrite iterate_0.
-  all: try (eapply LSel_stp'; ltcrush; varsub; ltcrush).
+  eapply LSel_stp'; tcrush; varsub; ltcrush.
+  all: try eapply LSel_stp', (path_tp_weaken (i := 0));
+    try (typconstructor; varsub; ltcrush); wtcrush.
   all: try (ettrans; last eapply TOr2_stp); mltcrush.
 Qed.
 
@@ -454,10 +460,7 @@ Ltac prepare_lemma L H :=
 
 Example optionModTypSub Γ :
   Γ u⊢ₜ hclose (μ: self, hoptionModTInvBody self), 0 <: hclose hoptionModT, 0.
-Proof.
-  prepare_lemma hIFTFalseTSub Hf; prepare_lemma hIFTTrueTSub Ht.
-  ltcrush.
-Qed.
+Proof. ltcrush; varsub; tcrush. Qed.
 
 Example optionModTyp Γ :
   Γ u⊢ₜ hclose (htv hoptionModV) : hclose hoptionModT.

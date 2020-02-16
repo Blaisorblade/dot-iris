@@ -228,8 +228,8 @@ Proof.
   iApply (fundamental_subtype with "Hs").
   ltcrush.
   (* eapply Subs_typed_nocoerce; first exact: fromPDotPaperTypesTyp; ltcrush. *)
-  eapply LSel_stp'; tcrush.
-  varsub. tcrush.
+  eapply LSel_stp', (path_tp_weaken (i := 0)); wtcrush.
+  varsub; tcrush.
 Qed.
 
 Example fromPDotPaperSymbolsTyp Γ :
