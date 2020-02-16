@@ -331,6 +331,26 @@ Lemma AddI_stp Γ T i (Hst: is_unstamped_ty' (length Γ) T) :
   Γ u⊢ₜ T, 0 <: T, i.
 Proof. apply (AddIJ_stp' (i := 0) (j := i)); by [|lia]. Qed.
 
+Lemma Sub_later_shift {Γ T1 T2 i j}
+  (Hs1: is_unstamped_ty' (length Γ) T1)
+  (Hs2: is_unstamped_ty' (length Γ) T2)
+  (Hsub: Γ u⊢ₜ T1, S i <: T2, S j):
+  Γ u⊢ₜ TLater T1, i <: TLater T2, j.
+Proof.
+  ettrans; first exact: TLaterL_stp.
+  by eapply Trans_stp, TLaterR_stp.
+Qed.
+
+Lemma Sub_later_shift_inv {Γ T1 T2 i j}
+  (Hs1: is_unstamped_ty' (length Γ) T1)
+  (Hs2: is_unstamped_ty' (length Γ) T2)
+  (Hsub: Γ u⊢ₜ TLater T1, i <: TLater T2, j):
+  Γ u⊢ₜ T1, S i <: T2, S j.
+Proof.
+  ettrans; first exact: TLaterR_stp.
+  by eapply Trans_stp, TLaterL_stp.
+Qed.
+
 Lemma path_tp_weaken {Γ p T i j} (Hst: is_unstamped_ty' (length Γ) T) : i <= j →
   Γ u⊢ₚ p : T, i → Γ u⊢ₚ p : T, j.
 Proof.
@@ -340,7 +360,17 @@ Proof.
   apply: AddIJ_stp'; by [|lia].
 Qed.
 
-Lemma delay_stp Γ T1 T2 i j :
+Lemma pv_dlater {Γ p T i} :
+  is_unstamped_ty' (length Γ) T →
+  Γ u⊢ₚ p : TLater T, i →
+  Γ u⊢ₚ p : T, S i.
+Proof.
+  intros Hu Hp; apply p_subs_typed with (j := 1) (T1 := TLater T) (T2 := T) in Hp;
+    move: Hp; rewrite (plusnS i 0) (plusnO i); intros; by [|constructor].
+Qed.
+
+
+(* Lemma delay_stp Γ T1 T2 i j :
   (* is_unstamped_ty' (length Γ) T1 →
   is_unstamped_ty' (length Γ) T2 → *)
   Γ u⊢ₜ T1, i <: T2, j →
@@ -363,7 +393,7 @@ Proof.
   eapply PSub_singleton_stp; rewrite ?fmap_length //. admit.
   eapply (PSym_singleton_stp (T := T)) =>//. admit.
   eapply PSelf_singleton_stp =>//. admit.
-Admitted.
+Admitted. *)
 
 Scheme idx_unstamped_path_typed_mut_ind := Induction for path_typed Sort Prop
 with   idx_unstamped_subtype_mut_ind := Induction for subtype Sort Prop.
@@ -417,7 +447,6 @@ Axiom undelay_stp : ∀ Γ Γ' T1 T2 i j,
   ⊢G Γ <:* Γ' →
   Γ' u⊢ₜ T1, i <: T2, j →
   Γ u⊢ₜ T1, i <: T2, j.
-
 
 Lemma TMono_stp_adm {Γ T1 T2 i j} :
   Γ u⊢ₜ T1, i <: T2, j →
@@ -492,15 +521,6 @@ Lemma dvabs_typed' Γ V T1 T2 e l:
   Γ |L V u⊢{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
 Proof. by intros; apply dpt_pv_typed, Lam_typed_strip1. Qed.
 
-Lemma pv_dlater {Γ p T i} :
-  is_unstamped_ty' (length Γ) T →
-  Γ u⊢ₚ p : TLater T, i →
-  Γ u⊢ₚ p : T, S i.
-Proof.
-  intros Hu Hp; apply p_subs_typed with (j := 1) (T1 := TLater T) (T2 := T) in Hp;
-    move: Hp; rewrite (plusnS i 0) (plusnO i); intros; by [|constructor].
-Qed.
-
 
 Lemma TMono_stp {Γ T1 T2 i j} :
   Γ u⊢ₜ T1, i <: T2, j →
@@ -512,26 +532,6 @@ Proof.
   ettrans; first exact: TLaterR_stp.
   ettrans; last exact: TLaterL_stp.
   exact: TLater_Mono_stp.
-Qed.
-
-Lemma Sub_later_shift {Γ T1 T2 i j}
-  (Hs1: is_unstamped_ty' (length Γ) T1)
-  (Hs2: is_unstamped_ty' (length Γ) T2)
-  (Hsub: Γ u⊢ₜ T1, S i <: T2, S j):
-  Γ u⊢ₜ TLater T1, i <: TLater T2, j.
-Proof.
-  ettrans; first exact: TLaterL_stp.
-  by eapply Trans_stp, TLaterR_stp.
-Qed.
-
-Lemma Sub_later_shift_inv {Γ T1 T2 i j}
-  (Hs1: is_unstamped_ty' (length Γ) T1)
-  (Hs2: is_unstamped_ty' (length Γ) T2)
-  (Hsub: Γ u⊢ₜ TLater T1, i <: TLater T2, j):
-  Γ u⊢ₜ T1, S i <: T2, S j.
-Proof.
-  ettrans; first exact: TLaterR_stp.
-  by eapply Trans_stp, TLaterL_stp.
 Qed.
 
 Ltac typconstructor :=
