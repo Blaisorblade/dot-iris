@@ -207,7 +207,7 @@ Proof.
   eapply Subs_typed_nocoerce; first apply optionModConcrTyp.
   ltcrush; rewrite iterate_0.
   eapply LSel_stp'; tcrush; varsub; ltcrush.
-  all: try eapply LSel_stp', (path_tp_weaken (i := 0));
+  all: try eapply LSel_stp', (path_tp_delay (i := 0));
     try (typconstructor; varsub; ltcrush); wtcrush.
   all: try (ettrans; last eapply TOr2_stp); mltcrush.
 Qed.

@@ -273,7 +273,7 @@ Lemma AddI_stp Γ T i (Hst: is_stamped_ty (length Γ) g T) :
   Γ v⊢ₜ[ g ] T, 0 <: T, i.
 Proof. apply: AddIJ_stp'; by [|lia]. Qed.
 
-Lemma path_tp_weaken {Γ p T i j} (Hst: is_stamped_ty (length Γ) g T) : i <= j →
+Lemma path_tp_delay {Γ p T i j} (Hst: is_stamped_ty (length Γ) g T) : i <= j →
   Γ v⊢ₚ[ g ] p : T, i → Γ v⊢ₚ[ g ] p : T, j.
 Proof.
   intros Hle Hp.
@@ -345,7 +345,7 @@ Lemma val_LB L U Γ i v :
   Γ v⊢ₜ[ g ] ▶: L, i <: (pv v @; "A"), i.
 Proof.
   intros ??? Hv; apply (LSel_stp (p := pv _) (U := U)).
-  apply (path_tp_weaken (i := 0)); wtcrush.
+  apply (path_tp_delay (i := 0)); wtcrush.
 Qed.
 
 Lemma is_stamped_sub_dm d s m n:
@@ -383,7 +383,7 @@ Lemma val_UB L U Γ i v :
   Γ v⊢ₜ[ g ] (pv v @; "A"), i <: ▶: U, i.
 Proof.
   intros ??? Hv; apply (SelU_stp (p := pv _) (L := L)).
-  apply (path_tp_weaken (i := 0)); wtcrush.
+  apply (path_tp_delay (i := 0)); wtcrush.
 Qed.
 
 Lemma packTV_UB s T n Γ i :

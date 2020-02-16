@@ -202,7 +202,7 @@ Lemma AddI_stp Γ T i (Hst: is_unstamped_ty' (length Γ) T) :
   Γ u⊢ₜ T, 0 <: T, i.
 Proof. apply (AddIJ_stp' 0 i); by [|lia]. Qed.
 
-Lemma path_tp_weaken {Γ p T i j} (Hst: is_unstamped_ty' (length Γ) T) : i <= j →
+Lemma path_tp_delay {Γ p T i j} (Hst: is_unstamped_ty' (length Γ) T) : i <= j →
   Γ u⊢ₚ p : T, i → Γ u⊢ₚ p : T, j.
 Proof.
   intros Hle Hp.
@@ -238,7 +238,7 @@ Lemma val_LB L U Γ i x l :
   Γ u⊢ₜ ▶: L, i <: (pv (ids x) @; l), i.
 Proof.
   intros ??? Hv; apply (LSel_stp (p := pv _) (U := U)).
-  apply (path_tp_weaken (i := 0)); wtcrush.
+  apply (path_tp_delay (i := 0)); wtcrush.
 Qed.
 
 Lemma val_UB L U Γ i x l :
@@ -249,7 +249,7 @@ Lemma val_UB L U Γ i x l :
   Γ u⊢ₜ (pv (ids x) @; l), i <: ▶: U, i.
 Proof.
   intros ??? Hv; apply (SelU_stp (p := pv _) (L := L)).
-  apply (path_tp_weaken (i := 0)); wtcrush.
+  apply (path_tp_delay (i := 0)); wtcrush.
 Qed.
 
 (* These rules from storeless typing must be encoded somehow via variables. *)

@@ -132,7 +132,7 @@ Proof.
   }
   apply (Subs_typed_nocoerce (val "hashCode" : TAll ⊤ 𝐍)). exact: Htp.
   tcrush.
-  eapply LSel_stp', (path_tp_weaken (i := 0)); wtcrush.
+  eapply LSel_stp', (path_tp_delay (i := 0)); wtcrush.
   varsub; tcrush.
 Qed.
 
@@ -419,8 +419,8 @@ Proof.
   move: (HsT2) => /is_stamped_ren1_ty HsT3; rewrite -hrenS in HsT3.
   move: (HsT3) => /is_stamped_ren1_ty HsT4; rewrite -hrenS in HsT4.
   tcrush; rewrite ?iterate_S ?iterate_0 /=; tcrush;
-    first [eapply LSel_stp', (path_tp_weaken (i := 0)) |
-      eapply SelU_stp, (path_tp_weaken (i := 0))];
+    first [eapply LSel_stp', (path_tp_delay (i := 0)) |
+      eapply SelU_stp, (path_tp_delay (i := 0))];
        try (typconstructor; apply: Var_typed');
     rewrite ?hsubst_id //; try autosubst; wtcrush.
 Qed.
