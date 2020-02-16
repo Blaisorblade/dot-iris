@@ -313,6 +313,154 @@ Hint Constructors typed dms_typed dm_typed path_typed subtype : core.
 Remove Hints Trans_stp : core.
 Hint Extern 10 => try_once Trans_stp : core.
 
+Ltac ettrans := eapply Trans_stp.
+
+Lemma AddIJ_stp {Γ T} i j (Hst: is_unstamped_ty' (length Γ) T) :
+  Γ u⊢ₜ T, j <: T, i + j.
+Proof.
+  elim: i => [|n IHn]; first by auto.
+  ettrans; first apply IHn.
+  ettrans; [exact: TAddLater_stp | by constructor].
+Qed.
+
+Lemma AddIJ_stp' {Γ T} i j (Hst: is_unstamped_ty' (length Γ) T) (Hle : i <= j) :
+  Γ u⊢ₜ T, i <: T, j.
+Proof. rewrite (le_plus_minus i j Hle) Nat.add_comm. exact: AddIJ_stp. Qed.
+
+Lemma AddI_stp Γ T i (Hst: is_unstamped_ty' (length Γ) T) :
+  Γ u⊢ₜ T, 0 <: T, i.
+Proof. apply (AddIJ_stp' (i := 0) (j := i)); by [|lia]. Qed.
+
+Lemma path_tp_weaken {Γ p T i j} (Hst: is_unstamped_ty' (length Γ) T) : i <= j →
+  Γ u⊢ₚ p : T, i → Γ u⊢ₚ p : T, j.
+Proof.
+  intros Hle Hp.
+  rewrite (le_plus_minus i j Hle); move: {j Hle} (j - i) => k.
+  eapply p_subs_typed, Hp.
+  apply: AddIJ_stp'; by [|lia].
+Qed.
+
+Lemma delay_stp Γ T1 T2 i j :
+  (* is_unstamped_ty' (length Γ) T1 →
+  is_unstamped_ty' (length Γ) T2 → *)
+  Γ u⊢ₜ T1, i <: T2, j →
+  TLater <$> Γ u⊢ₜ T1, S i <: T2, S j.
+Proof.
+  induction 1;
+  try (by constructor; rewrite ?fmap_length //).
+
+  by econstructor.
+  (* eapply IHsubtype1 => //.
+  eapply IHsubtype2.
+  Timeout 1 try_once Trans_stp; eauto.
+
+  econstructor; eauto.
+  inverse_is_unstamped. *)
+  apply (SelU_stp (L := L)). admit.
+    (* (path_tp_weaken (i := i)); rewrite ?fmap_length;
+  try by [|lia]. admit.  *)
+  apply (LSel_stp (U := U)). admit.
+  eapply PSub_singleton_stp; rewrite ?fmap_length //. admit.
+  eapply (PSym_singleton_stp (T := T)) =>//. admit.
+  eapply PSelf_singleton_stp =>//. admit.
+Admitted.
+
+Scheme idx_unstamped_path_typed_mut_ind := Induction for path_typed Sort Prop
+with   idx_unstamped_subtype_mut_ind := Induction for subtype Sort Prop.
+Combined Scheme idx_unstamped_typing_mut_ind from
+  idx_unstamped_subtype_mut_ind, idx_unstamped_path_typed_mut_ind.
+
+About idx_unstamped_typing_mut_ind.
+
+Lemma delay_stp_mut Γ :
+  (∀ T1 i T2 j,
+    (* is_unstamped_ty' (length Γ) T1 →
+    is_unstamped_ty' (length Γ) T2 → *)
+    Γ u⊢ₜ T1, i <: T2, j →
+    TLater <$> Γ u⊢ₜ T1, S i <: T2, S j)
+    ∧
+  (∀ p T i,
+    (* is_unstamped_ty' (length Γ) T1 →
+    is_unstamped_ty' (length Γ) T2 → *)
+    Γ u⊢ₚ p : T, i →
+    TLater <$> Γ u⊢ₚ p : T , S i).
+Proof.
+  eapply idx_unstamped_typing_mut_ind with
+    (P := λ Γ p T i _,
+      (* is_unstamped_ty' (length Γ) T1 →
+      is_unstamped_ty' (length Γ) T2 → *)
+      TLater <$> Γ u⊢ₚ p : T , S i)
+    (P0 := λ Γ T1 i T2 j _,
+      (* is_unstamped_ty' (length Γ) T1 →
+      is_unstamped_ty' (length Γ) T2 → *)
+      (* Γ u⊢ₜ T1, i <: T2, j → *)
+      TLater <$> Γ u⊢ₜ T1, S i <: T2, S j); clear Γ; intros;
+    try (by constructor; rewrite ?fmap_length);
+    try (by econstructor; rewrite ?fmap_length);
+    last by eapply (p_subs_typed (i := S i)).
+
+  -
+   inverse t.
+  + eapply (p_subs_typed (i := 0)); admit. (*Seems doable *)
+  + have ?: i = 0 by admit. subst. rewrite ->(iterate_0 tskip) in *. simplify_eq/=. admit. (* Nope *)
+  +  destruct p; simplify_eq/=. (* Nope *)
+  admit.
+  -
+  - econstructor; rewrite ?fmap_length //.
+  7: by econstructor.
+  apply
+  econstructor.
+
+
+
+Axiom undelay_stp : ∀ Γ Γ' T1 T2 i j,
+  ⊢G Γ <:* Γ' →
+  Γ' u⊢ₜ T1, i <: T2, j →
+  Γ u⊢ₜ T1, i <: T2, j.
+
+
+Lemma TMono_stp_adm {Γ T1 T2 i j} :
+  Γ u⊢ₜ T1, i <: T2, j →
+  Γ u⊢ₜ T1, S i <: T2, S j.
+Proof. intros Hs; eapply undelay_stp, delay_stp, Hs; ietp_weaken_ctx. Qed.
+by
+eauto.
+induction 1; try by econstructor.
+
+ (path_tp_weaken (i := i)); rewrite ?fmap_length;
+ apply (LSel_stp (U := U)), (path_tp_weaken (i := i)); rewrite ?fmap_length;
+ try by [|lia]. admit.
+
+ u⊢ₚ p : TSing q, i
+
+
+    (* (∀ p T i, Γ v⊢ₚ[ g ] p : T , i → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T) ∧ *)
+ repeat constructor.
+ apply LSel_stp.
+ econstructor.
+  - 3: rewrite ?fmap_length //.
+
+constructor.
+1-24: try by econstructor; rewrite ?fmap_length.
+
+
+
+Lemma TMono_stp_adm {Γ T1 T2 i j} :
+  Γ u⊢ₜ T1, i <: T2, j →
+  Γ u⊢ₜ T1, S i <: T2, S j.
+Proof. induction 1; try by econstructor.
+admit.
+admit.
+admit.
+admit.
+admit.
+
+(* False *)
+constructor=>//. admit.
+constructor=>//.
+Timeout 1 eauto.
+
+
 Lemma unstamped_path_root_is_var Γ p T i:
   Γ u⊢ₚ p : T, i → ∃ x, path_root p = var_vl x.
 Proof. by elim; intros; cbn; eauto 2 using is_unstamped_path_root. Qed.
@@ -353,7 +501,6 @@ Proof.
     move: Hp; rewrite (plusnS i 0) (plusnO i); intros; by [|constructor].
 Qed.
 
-Ltac ettrans := eapply Trans_stp.
 
 Lemma TMono_stp {Γ T1 T2 i j} :
   Γ u⊢ₜ T1, i <: T2, j →
