@@ -38,7 +38,7 @@ Definition fromPDotPaperAbsTypesTBody : ty := {@
   type "Type" >: ⊥ <: TTop;
   type "TypeTop" >: ⊥ <: x0 @; "Type";
   val "newTypeTop" : ⊤ →: x0 @; "TypeTop";
-  type "TypeRef" >: ⊥ <: TAnd (p0 @; "Type") typeRefTBody;
+  type "TypeRef" >: ⊥ <: TAnd (x0 @; "Type") typeRefTBody;
   val "AnyType" : ▶: (x0 @; "Type");
   val "newTypeRef" : x1 @ "symbols" @; "Symbol" →: x0 @; "TypeRef"
 }.
@@ -120,8 +120,6 @@ Definition fromPDotPaper : vl := ν {@
 Ltac hideCtx := idtac.
 Definition optionModT := hclose hoptionModT.
 
-Ltac tMember := eapply Dty_typed; tcrush; by_extcrush.
-
 Example fromPDotPaperTypesTyp Γ :
   TLater (fromPDotPaperAbsTBody x1) :: optionModT :: Γ v⊢ₜ[fromPDotG]
     fromPDotPaperTypesV : μ fromPDotPaperTypesTBody.
@@ -131,10 +129,9 @@ Proof.
   apply dcons_typed; [tMember | | done].
   apply dcons_typed; [tMember | | done].
   apply dcons_typed; [tcrush| | done]. {
-    eapply (Subs_typed_nocoerce) => /=; hideCtx.
-    + repeat first [var | typconstructor | tcrush].
-    + apply (Trans_stp (T2 := ⊤) (i2 := 0)); first tcrush.
-      eapply LSel_stp'; last (tcrush; varsub); ltcrush.
+    eapply Subs_typed_nocoerce.
+    + apply (TMuE_typed (T := TTop)); tcrush.
+    + apply (LSel_stp' _ TTop); last (tcrush; varsub); stcrush. ltcrush.
   }
   apply dcons_typed; [ | | done]. {
     tMember. (* TypeRef. *)
@@ -148,8 +145,9 @@ Proof.
     varsub; apply Sub_later_shift; tcrush.
   }
   apply dcons_typed; [tcrush | | done]. {
-    eapply (Subs_typed_nocoerce) => /=; hideCtx.
-    + repeat first [var | typconstructor | tcrush].
+    eapply Subs_typed_nocoerce.
+    + apply (TMuE_typed (T :=
+        {@ val "symb" : shift ((x2 @ "symbols") @; "Symbol")})); tcrush.
     + ettrans; first last.
       eapply LSel_stp'; first last.
       * constructor; varsub.
@@ -177,7 +175,7 @@ Example fromPDotPaperSymbolsTyp Γ :
     fromPDotPaperSymbolsV : μ (fromPDotPaperSymbolsTBody x2).
 Proof.
   tcrush.
-  - eapply Dty_typed; tcrush; by_extcrush.
+  - tMember.
   - eapply (Subs_typed_nocoerce) => /=; hideCtx.
     + repeat first [var | typconstructor | tcrush].
     + ettrans; first last.
