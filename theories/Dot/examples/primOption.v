@@ -4,6 +4,12 @@ From D Require Import tactics.
 From D.Dot Require Import syn exampleInfra hoas typingExInfra.
 (* From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived. *)
 From D.Dot.typing Require Import typing_storeless.
+(* From D.Dot Require Import unary_lr
+  lr_lemmas lr_lemmasTSel lr_lemmasNoBinding lr_lemmasDefs lr_lemmasPrim.
+From D.Dot Require Import typeExtractionSem.
+From D.Dot Require Import fundamental.
+From D Require Import swap_later_impl. *)
+
 Import DBNotation.
 
 Set Implicit Arguments.
@@ -14,6 +20,8 @@ Definition mapfst {A B C} (f : A → C): A * B → (C * B) := λ '(a, b), (f a, 
 
 Module primOption.
 Import hoasNotation.
+
+Ltac tMember := apply Dty_typed; tcrush; by_extcrush.
 
 Section primOption'.
 
@@ -57,14 +65,14 @@ Definition hoptionTGen (L U : hty) := μ: self, {@
 
 Definition hnoneConcrTBody self : hty := {@
   typeEq "T" ⊥;
-  val "isEmpty" : hTBool;
+  val "isEmpty" : hTSing true;
   val "pmatch" : hpmatchT self
 }.
 Definition hnoneConcrT := μ: self, hnoneConcrTBody self.
 
 Definition hsomeConcrT hL hU : hty := μ: self, {@
   type "T" >: hL <: hU;
-  val "isEmpty" : hTBool;
+  val "isEmpty" : hTSing false;
   val "pmatch" : hpmatchT self;
   val "get" : ▶: self @; "T"
 }.
@@ -138,13 +146,16 @@ Definition hnoneV := ν: _, {@
 }.
 Definition noneV := hclose hnoneV.
 
+Lemma boolSing g Γ (b : bool) : Γ v⊢ₜ[g] b : TSing b.
+Proof.
+  eapply (Path_typed (p := b)), (psingleton_refl_typed (T := TBool)).
+  tcrush.
+Qed.
+
 Example noneTypStronger Γ :
   Γ v⊢ₜ[ primOptionG ] tv noneV : hclose hnoneConcrT.
 Proof.
-  tcrush; last var.
-  apply (dty_typed ⊥); tcrush.
-  by_extcrush.
-  (* apply: extraction_weaken; first apply: hpBotExt; cbn; lia. *)
+  tcrush; [tMember | apply boolSing | var].
 Qed.
 
 Definition hmkSome : hvl := λ: x content, ν: self, {@
@@ -160,7 +171,9 @@ Example mkSomeTypStronger Γ :
   Γ v⊢ₜ[ primOptionG ] tv mkSome : hclose hmkSomeTSing.
 Proof.
   tcrush; cbv.
-  - apply (dty_typed (hclose $ hpv hx2 @; "A")); tcrush; by_extcrush.
+  - tMember.
+    (* apply (dty_typed (hclose $ hpv hx2 @; "A")); tcrush; by_extcrush. *)
+  - apply boolSing.
   - eapply App_typed; first var.
     apply (Subs_typed (i := 1) (T1 := hclose (▶: (hp3 @; "T"))%HT)); tcrush.
     varsub; ltcrush.
@@ -185,7 +198,7 @@ Proof.
   have := noneTypStronger (U :: Γ).
   have := mkSomeTypStronger (U :: Γ) => /(dpt_pv_typed "mkSome") Hs Hn.
   ltcrush.
-  apply (dty_typed (hclose hoptionTConcr)); tcrush. by_extcrush.
+  tMember.
 Qed.
 
 Example optionModInvTyp Γ :
