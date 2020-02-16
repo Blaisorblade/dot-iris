@@ -194,11 +194,24 @@ Proof.
   ettrans; [exact: TAddLater_stp | tcrush].
 Qed.
 
+Lemma AddIJ_stp' {Γ T} i j (Hst: is_unstamped_ty' (length Γ) T) (Hle : i <= j) :
+  Γ u⊢ₜ T, i <: T, j.
+Proof. rewrite (le_plus_minus i j Hle) Nat.add_comm. exact: AddIJ_stp. Qed.
+
 Lemma AddI_stp Γ T i (Hst: is_unstamped_ty' (length Γ) T) :
   Γ u⊢ₜ T, 0 <: T, i.
-Proof. rewrite -(plusnO i). by apply (AddIJ_stp i 0). Qed.
+Proof. apply (AddIJ_stp' 0 i); by [|lia]. Qed.
 
-Lemma AddIB_stp Γ T U i:
+Lemma path_tp_weaken {Γ p T i j} (Hst: is_unstamped_ty' (length Γ) T) : i <= j →
+  Γ u⊢ₚ p : T, i → Γ u⊢ₚ p : T, j.
+Proof.
+  intros Hle Hp.
+  rewrite (le_plus_minus i j Hle); move: {j Hle} (j - i) => k.
+  eapply p_subs_typed, Hp.
+  apply: AddIJ_stp'; by [|lia].
+Qed.
+
+(* Lemma AddIB_stp Γ T U i:
   is_unstamped_ty' (length Γ) T →
   is_unstamped_ty' (length Γ) U →
   Γ u⊢ₜ T, 0 <: U, 0 →
@@ -206,7 +219,7 @@ Lemma AddIB_stp Γ T U i:
 Proof.
   move => HuT HuU Hstp; elim: i => [|n IHn]; first tcrush.
   exact: TMono_stp.
-Qed.
+Qed. *)
 
 (** * Derived constructions. *)
 
@@ -217,19 +230,27 @@ Lemma Let_typed Γ t u T U :
   Γ u⊢ₜ lett t u : U.
 Proof. move => Ht Hu HsT. apply /App_typed /Ht /Lam_typed /Hu /HsT. Qed.
 
-Lemma val_LB T U Γ i x l :
-  is_unstamped_ty' (length Γ) T →
+Lemma val_LB L U Γ i x l :
+  is_unstamped_ty' (length Γ) L →
+  is_unstamped_ty' (length Γ) U →
   x < length Γ →
-  Γ u⊢ₜ tv (ids x) : type l >: T <: U →
-  Γ u⊢ₜ ▶: T, i <: (pv (ids x) @; l), i.
-Proof. intros; apply /AddIB_stp /(@LSel_stp _ (pv _)); tcrush. Qed.
+  Γ u⊢ₜ tv (ids x) : type l >: L <: U →
+  Γ u⊢ₜ ▶: L, i <: (pv (ids x) @; l), i.
+Proof.
+  intros ??? Hv; apply (LSel_stp (p := pv _) (U := U)).
+  apply (path_tp_weaken (i := 0)); wtcrush.
+Qed.
 
-Lemma val_UB T L Γ i x l :
-  is_unstamped_ty' (length Γ) T →
+Lemma val_UB L U Γ i x l :
+  is_unstamped_ty' (length Γ) L →
+  is_unstamped_ty' (length Γ) U →
   x < length Γ →
-  Γ u⊢ₜ tv (ids x) : type l >: L <: T →
-  Γ u⊢ₜ (pv (ids x) @; l), i <: ▶: T, i.
-Proof. intros; eapply AddIB_stp, SelU_stp; tcrush. Qed.
+  Γ u⊢ₜ tv (ids x) : type l >: L <: U →
+  Γ u⊢ₜ (pv (ids x) @; l), i <: ▶: U, i.
+Proof.
+  intros ??? Hv; apply (SelU_stp (p := pv _) (L := L)).
+  apply (path_tp_weaken (i := 0)); wtcrush.
+Qed.
 
 (* These rules from storeless typing must be encoded somehow via variables. *)
 (* Lemma packTV_LB T n Γ i :

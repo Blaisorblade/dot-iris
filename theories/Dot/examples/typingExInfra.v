@@ -260,15 +260,29 @@ Lemma LSel_stp'' Γ {p l L i}:
   Γ v⊢ₚ[ g ] p : TTMem l L L, i → Γ v⊢ₜ[ g ] L, i <: TSel p l, i.
 Proof. apply LSel_stp'. Qed.
 
-Lemma AddI_stp Γ T i (Hst: is_stamped_ty (length Γ) g T) :
-  Γ v⊢ₜ[ g ] T, 0 <: T, i.
+Lemma AddIJ_stp' {Γ T i j} (Hst: is_stamped_ty (length Γ) g T) (Hle : i <= j):
+  Γ v⊢ₜ[ g ] T, i <: T, j.
 Proof.
-  elim: i => [|n IHn]; first tcrush.
+  rewrite (le_plus_minus i j Hle) Nat.add_comm; move: {j Hle} (j - i) => k.
+  elim: k => [|n IHn] /=; first tcrush.
   ettrans; first apply IHn.
   ettrans; [exact: TAddLater_stp | tcrush].
 Qed.
 
-Lemma AddIB_stp Γ T U i:
+Lemma AddI_stp Γ T i (Hst: is_stamped_ty (length Γ) g T) :
+  Γ v⊢ₜ[ g ] T, 0 <: T, i.
+Proof. apply: AddIJ_stp'; by [|lia]. Qed.
+
+Lemma path_tp_weaken {Γ p T i j} (Hst: is_stamped_ty (length Γ) g T) : i <= j →
+  Γ v⊢ₚ[ g ] p : T, i → Γ v⊢ₚ[ g ] p : T, j.
+Proof.
+  intros Hle Hp.
+  rewrite (le_plus_minus i j Hle); move: {j Hle} (j - i) => k.
+  eapply p_subs_typed, Hp.
+  apply: AddIJ_stp'; by [|lia].
+Qed.
+
+(* Lemma AddIB_stp Γ T U i:
   is_stamped_ty (length Γ) g T →
   is_stamped_ty (length Γ) g U →
   Γ v⊢ₜ[ g ] T, 0 <: U, 0 →
@@ -276,7 +290,7 @@ Lemma AddIB_stp Γ T U i:
 Proof.
   move => Hst Hsu Hstp; elim: i => [|n IHn]; first tcrush.
   exact: TMono_stp.
-Qed.
+Qed. *)
 
 Lemma is_stamped_pvar i n : i < n → is_stamped_path n g (pv (var_vl i)).
 Proof. eauto. Qed.
@@ -323,12 +337,16 @@ Lemma packTV_typed s T Γ :
   Γ v⊢ₜ[ g ] tv (packTV (length Γ) s) : typeEq "A" T.
 Proof. intros; exact: packTV_typed'. Qed.
 
-Lemma val_LB T U Γ i v :
-  is_stamped_ty (length Γ) g T →
+Lemma val_LB L U Γ i v :
+  is_stamped_ty (length Γ) g L →
+  is_stamped_ty (length Γ) g U →
   is_stamped_vl (length Γ) g v →
-  Γ v⊢ₜ[ g ] tv v : type "A" >: T <: U →
-  Γ v⊢ₜ[ g ] ▶: T, i <: (pv v @; "A"), i.
-Proof. intros; apply /AddIB_stp /(LSel_stp (p := pv _)); tcrush. Qed.
+  Γ v⊢ₜ[ g ] tv v : type "A" >: L <: U →
+  Γ v⊢ₜ[ g ] ▶: L, i <: (pv v @; "A"), i.
+Proof.
+  intros ??? Hv; apply (LSel_stp (p := pv _) (U := U)).
+  apply (path_tp_weaken (i := 0)); wtcrush.
+Qed.
 
 Lemma is_stamped_sub_dm d s m n:
   is_stamped_sub n m g s →
@@ -357,12 +375,16 @@ Proof.
   exact: is_stamped_dtysem.
 Qed.
 
-Lemma val_UB T L Γ i v :
-  is_stamped_ty (length Γ) g T →
+Lemma val_UB L U Γ i v :
+  is_stamped_ty (length Γ) g L →
+  is_stamped_ty (length Γ) g U →
   is_stamped_vl (length Γ) g v →
-  Γ v⊢ₜ[ g ] tv v : type "A" >: L <: T →
-  Γ v⊢ₜ[ g ] (pv v @; "A"), i <: ▶: T, i.
-Proof. intros; eapply AddIB_stp, SelU_stp; tcrush. Qed.
+  Γ v⊢ₜ[ g ] tv v : type "A" >: L <: U →
+  Γ v⊢ₜ[ g ] (pv v @; "A"), i <: ▶: U, i.
+Proof.
+  intros ??? Hv; apply (SelU_stp (p := pv _) (L := L)).
+  apply (path_tp_weaken (i := 0)); wtcrush.
+Qed.
 
 Lemma packTV_UB s T n Γ i :
   is_stamped_ty n g T →
