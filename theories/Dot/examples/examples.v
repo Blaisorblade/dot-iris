@@ -436,7 +436,7 @@ Section small_ex.
       iApply sD_Cons; first done.
       iApply (sD_Typ_Abs ipos); [iApply sSub_Refl..|by iExists _; iFrame "Hs"].
       iApply sD_Cons; [done| |iApply sD_Nil].
-      iApply sD_TVMem_I.
+      iApply sD_Val.
       iApply (sT_Sub (i := 0) (T1 := ipos)).
       rewrite setp_value /ipos /pos; iIntros "!>" (ρ) "_ /= !%". naive_solver.
       iApply sSub_Trans; first iApply sSub_Add_Later.
@@ -467,7 +467,7 @@ Section small_ex.
       iIntros (ρ Hpid) "/= #_".
       iSplit => //. by iApply sHasA.
     - iApply D_Cons => //; last by iApply D_Nil.
-      iApply D_Path_TVMem_I.
+      iApply D_Path.
       iIntros "!>" (ρ) "/="; iDestruct 1 as "[_ [HA [HB _]]]".
       iDestruct "HA" as (dA) "[HlA HA]".
       iDestruct "HA" as (φ) "[Hlφ HA]".

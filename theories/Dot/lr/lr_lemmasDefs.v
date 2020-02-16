@@ -21,7 +21,7 @@ Section Sec.
   Proof. apply sP_Val. Qed.
 
   (** Lemmas about definition typing. *)
-  Lemma sD_Path_TVMem_I {Γ} T p l:
+  Lemma sD_Path {Γ} T p l:
     Γ s⊨p p : T, 0 -∗
     Γ s⊨ { l := dpt p } : cVMem l T.
   Proof.
@@ -30,21 +30,21 @@ Section Sec.
     iApply ("Hv" with "Hg").
   Qed.
 
-  Lemma D_Path_TVMem_I {Γ} T p l:
+  Lemma D_Path {Γ} T p l:
     Γ ⊨p p : T, 0 -∗ Γ ⊨ { l := dpt p } : TVMem l T.
-  Proof. apply sD_Path_TVMem_I. Qed.
+  Proof. apply sD_Path. Qed.
 
-  Lemma sD_TVMem_I {Γ} T v l:
+  Lemma sD_Val {Γ} T v l:
     Γ s⊨ tv v : T -∗
     Γ s⊨ { l := dpt (pv v) } : cVMem l T.
-  Proof. by rewrite -sD_Path_TVMem_I -sP_Val. Qed.
+  Proof. by rewrite -sD_Path -sP_Val. Qed.
 
-  Lemma D_TVMem_I {Γ} T v l:
+  Lemma D_Val {Γ} T v l:
     Γ ⊨ tv v : T -∗ Γ ⊨ { l := dpt (pv v) } : TVMem l T.
-  Proof. apply sD_TVMem_I. Qed.
+  Proof. apply sD_Val. Qed.
 
   (** This lemma is equivalent to pDOT's (Def-New). *)
-  Lemma sD_New_Mem_I {Γ l ds} {T : clty Σ}:
+  Lemma sD_Val_New {Γ l ds} {T : clty Σ}:
     oAnd (oLater T) (oSing (pself (pv (ids 1)) l)) :: Γ s⊨ds ds : T -∗
     Γ s⊨ { l := dpt (pv (vobj ds)) } : cVMem l (oMu (clty_olty T)).
   Proof.
@@ -56,12 +56,12 @@ Section Sec.
     exact: path_includes_self.
   Qed.
 
-  Lemma D_New_Mem_I Γ T l ds:
+  Lemma D_Val_New Γ T l ds:
     TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ ⊨ds ds : T -∗
     Γ ⊨ { l := dpt (pv (vobj ds)) } : TVMem l (TMu T).
-  Proof. apply sD_New_Mem_I. Qed.
+  Proof. apply sD_Val_New. Qed.
 
-  Lemma sD_TVMem_Sub {Γ T1 T2 p l}:
+  Lemma sD_Path_Sub {Γ T1 T2 p l}:
     Γ s⊨ T1, 0 <: T2, 0 -∗
     Γ s⊨ { l := dpt p } : cVMem l T1 -∗
     Γ s⊨ { l := dpt p } : cVMem l T2.
@@ -73,11 +73,11 @@ Section Sec.
     by iApply ("Hsub" with "Hg").
   Qed.
 
-  Lemma D_TVMem_Sub {Γ T1 T2 p l}:
+  Lemma D_Path_Sub {Γ T1 T2 p l}:
     Γ ⊨ T1, 0 <: T2, 0 -∗
     Γ ⊨ { l := dpt p } : TVMem l T1 -∗
     Γ ⊨ { l := dpt p } : TVMem l T2.
-  Proof. apply sD_TVMem_Sub. Qed.
+  Proof. apply sD_Path_Sub. Qed.
 
   (* Check that Löb induction works as expected for proving introduction of
    * objects. Using Löb induction works easily.

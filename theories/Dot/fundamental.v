@@ -36,10 +36,10 @@ Section fundamental.
     - iIntros "#Hm"; induction HT.
       + iApply D_Typ_Abs; by [> iApply fundamental_subtype .. |
           iApply extraction_to_leadsto_envD_equiv].
-      + iApply D_TVMem_I. by iApply fundamental_typed.
-      + iApply D_Path_TVMem_I. by iApply fundamental_path_typed.
-      + iApply D_New_Mem_I. by iApply fundamental_dms_typed.
-      + iApply D_TVMem_Sub; by [> iApply fundamental_subtype|].
+      + iApply D_Val. by iApply fundamental_typed.
+      + iApply D_Path. by iApply fundamental_path_typed.
+      + iApply D_Val_New. by iApply fundamental_dms_typed.
+      + iApply D_Path_Sub; by [> iApply fundamental_subtype|].
     - iIntros "#Hm"; induction HT.
       + by iApply D_Nil.
       + iApply D_Cons; by [|iApply fundamental_dm_typed].

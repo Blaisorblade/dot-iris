@@ -280,9 +280,9 @@ Example fromPDotPaperTyp Γ : optionModT :: Γ ⊨[fromPDotGφ] fromPDotPaper : 
 Proof.
   iIntros "#Hs".
   iApply T_Obj_I.
-  iApply D_Cons; [done| iApply D_TVMem_I |].
+  iApply D_Cons; [done| iApply D_Val |].
   iApply (fromPDotPaperTypesAbsTyp with "Hs").
-  iApply D_Cons; [done| iApply D_TVMem_I | iApply D_Nil].
+  iApply D_Cons; [done| iApply D_Val | iApply D_Nil].
   (* Fix mismatch between maps; one is an extension. *)
   (* - Way 1, easier: weaken syntactic typing *)
   (* iApply (fundamental_typed with "Hs").
