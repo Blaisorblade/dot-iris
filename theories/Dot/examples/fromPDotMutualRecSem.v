@@ -275,6 +275,14 @@ Qed.
       | H : forall g : stys, _ |- _ => specialize (H g' Hle)
       end; eauto 3; eauto.
     Qed.
+Transparent wellMappedφ.
+Lemma wellMappedφ_extend gφ1 gφ2 (Hle : gφ2 ⊆ gφ1):
+    wellMappedφ gφ1 -∗ wellMappedφ gφ2.
+Proof.
+  iIntros "#Hs" (s φ Hl) "/= !>". iApply ("Hs" with "[%]").
+  by eapply map_subseteq_spec, Hl.
+Qed.
+Opaque wellMappedφ.
 
 Example fromPDotPaperTyp Γ : optionModT :: Γ ⊨[fromPDotGφ] fromPDotPaper : μ (fromPDotPaperAbsTBody x1).
 Proof.
@@ -295,40 +303,13 @@ Proof.
 
   iApply fundamental_typed.
   exact: fromPDotPaperSymbolsAbsTyp.
-
-Transparent wellMappedφ.
-  iIntros "/= !>" (s φ Hl).
-  iApply ("Hs" with "[%]").
-Opaque wellMappedφ.
-  rewrite /fromPDotGφ /pAddStys/=.
-  move: Hl; destruct (fromPDotG !! s) eqn:Heqs;
-    rewrite !lookup_fmap Heqs => Hl; simplify_eq/=.
-  have Heq: ({[60%positive := TAnd (x0 @; "Type") typeRefTBody]} ∪ fromPDotG) !! s = Some t.
+  iApply (wellMappedφ_extend with "Hs").
+  intros s.
+  destruct (fromPDotG !! s) as [T|] eqn:Heqs; rewrite !lookup_fmap Heqs/=; last by case_match.
+  have Heq: ({[60%positive := TAnd (x0 @; "Type") typeRefTBody]} ∪ fromPDotG) !! s = Some T.
   eapply lookup_union_Some_r, Heqs. by apply map_disjoint_singleton_l.
-  by simpl_map by exact Heq.
+  by simpl_map by exact: Heq.
 Qed.
-  (* done.
-  rewrite lookup_merge Heqs.
-first last.
-  case E: (fromPDotG !! s). => [T|]. first last.
-  Import fin_maps gmap.
-  About lookup_weaken.
-  move: Hl.
-  apply (lookup_weaken _ _ _ _ Hl) => {Hl}.
-  set_solver-.
-
-  Search _ (_ <$> (merge _ _)).
-  cbn.
-  tcrush. *)
-
-
-(* Example fromPDotPaperTyp Γ : optionModT :: Γ v⊢ₜ[fromPDotG] fromPDotPaper : μ (fromPDotPaperAbsTBody x1).
-Proof.
-  pose proof fromPDotPaperTypesAbsTyp Γ.
-
-  typconstructor.
-  tcrush.
-Qed. *)
 
 Definition getAnyTypeT pOpt : ty :=
   TAll (μ fromPDotPaperAbsTBody (shift pOpt)) (x0 @ "types" @; "Type").
