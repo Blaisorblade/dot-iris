@@ -390,6 +390,15 @@ Section Sec.
     iApply ("IH" with "H").
   Qed.
 
+  Lemma T_Path'' Γ T v i :
+    Γ ⊨p pv v : T, i -∗
+    Γ ⊨ tv v : iterate TLater i T.
+  Proof.
+    iIntros "#Hep !>" (ρ) "#Hg /= !>".
+    rewrite -wp_value' iterate_TLater_later -path_wp_pv_eq.
+    iApply ("Hep" with "Hg").
+  Qed.
+
   Lemma T_All_I'' Γ T1 T2 e :
     TLater (shift T1) :: Γ ⊨ e : TLater T2 -∗
     (*─────────────────────────*)

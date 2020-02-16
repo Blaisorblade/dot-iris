@@ -395,20 +395,27 @@ Proof.
   eapply PSelf_singleton_stp =>//. admit.
 Admitted. *)
 
-Scheme idx_unstamped_path_typed_mut_ind := Induction for path_typed Sort Prop
+Scheme
+idx_unstamped_typed_mut_ind := Induction for typed Sort Prop
+with
+idx_unstamped_path_typed_mut_ind := Induction for path_typed Sort Prop
 with   idx_unstamped_subtype_mut_ind := Induction for subtype Sort Prop.
 Combined Scheme idx_unstamped_typing_mut_ind from
-  idx_unstamped_subtype_mut_ind, idx_unstamped_path_typed_mut_ind.
+  idx_unstamped_typed_mut_ind,
+idx_unstamped_subtype_mut_ind, idx_unstamped_path_typed_mut_ind.
 
 About idx_unstamped_typing_mut_ind.
 
 Lemma delay_stp_mut Γ :
+  (∀ e T,
+    Γ u⊢ₜ e : T →
+    ∀ x, e = tv (var_vl x) →
+    TLater <$> Γ u⊢ₜ e : TLater T) ∧
   (∀ T1 i T2 j,
     (* is_unstamped_ty' (length Γ) T1 →
     is_unstamped_ty' (length Γ) T2 → *)
     Γ u⊢ₜ T1, i <: T2, j →
-    TLater <$> Γ u⊢ₜ T1, S i <: T2, S j)
-    ∧
+    TLater <$> Γ u⊢ₜ T1, S i <: T2, S j) ∧
   (∀ p T i,
     (* is_unstamped_ty' (length Γ) T1 →
     is_unstamped_ty' (length Γ) T2 → *)
@@ -416,31 +423,111 @@ Lemma delay_stp_mut Γ :
     TLater <$> Γ u⊢ₚ p : T , S i).
 Proof.
   eapply idx_unstamped_typing_mut_ind with
-    (P := λ Γ p T i _,
-      (* is_unstamped_ty' (length Γ) T1 →
-      is_unstamped_ty' (length Γ) T2 → *)
+    (P := λ Γ e T _,
+      ∀ x, e = tv (var_vl x) →
+      TLater <$> Γ u⊢ₜ e : TLater T)
+    (P0 := λ Γ p T i _,
       TLater <$> Γ u⊢ₚ p : T , S i)
-    (P0 := λ Γ T1 i T2 j _,
-      (* is_unstamped_ty' (length Γ) T1 →
-      is_unstamped_ty' (length Γ) T2 → *)
+    (P1 := λ Γ T1 i T2 j _,
       (* Γ u⊢ₜ T1, i <: T2, j → *)
-      TLater <$> Γ u⊢ₜ T1, S i <: T2, S j); clear Γ; intros;
+      TLater <$> Γ u⊢ₜ T1, S i <: T2, S j); clear Γ; intros; simplify_eq/=;
     try (by constructor; rewrite ?fmap_length);
     try (by econstructor; rewrite ?fmap_length);
     last by eapply (p_subs_typed (i := S i)).
 
+  - apply (Var_typed _ _ (T := TLater T)).
+    by rewrite (list_lookup_fmap TLater) e.
+  - have ?: i = 0 by [destruct i; simplify_eq]; subst.
+    rewrite ->(iterate_0 tskip) in *; simplify_eq/=.
+    eapply (Subs_typed (i := 0)); last eauto.
+    apply Sub_later_shift; rewrite // fmap_length.
+    (* Unstamping, which should be provable. *)
+    all: admit.
+  - destruct p; simplify_eq/=.
+    (* Here we still have a chance, semantically. *)
+    eapply (Path_typed (p := pv _)).
+    admit. (* Very nope, semantically unsound. *)
+  - eapply (p_subs_typed (i := 0)), pv_typed, H => //=.
+    constructor; rewrite fmap_length.
+    (* Unstamping, which should be provable. *)
+    admit.
+Abort.
+
+Lemma delay_stp_mut' Γ :
+  (∀ e T,
+    Γ u⊢ₜ e : T →
+    ∀ x, e = tv (var_vl x) →
+    TLater <$> Γ u⊢ₜ e : TLater T) ∧
+  (∀ T1 i T2 j,
+    (* is_unstamped_ty' (length Γ) T1 →
+    is_unstamped_ty' (length Γ) T2 → *)
+    Γ u⊢ₜ T1, i <: T2, j →
+    TLater <$> Γ u⊢ₜ T1, S i <: T2, S j) ∧
+  (∀ p T i,
+    (* is_unstamped_ty' (length Γ) T1 →
+    is_unstamped_ty' (length Γ) T2 → *)
+    Γ u⊢ₚ p : T, i →
+    TLater <$> Γ u⊢ₚ p : TLater T , i).
+Proof.
+Local Hint Resolve pv_dlater : core.
+  eapply idx_unstamped_typing_mut_ind with
+    (P := λ Γ e T _,
+      ∀ x, e = tv (var_vl x) →
+      TLater <$> Γ u⊢ₜ e : TLater T)
+    (P0 := λ Γ p T i _,
+      TLater <$> Γ u⊢ₚ p : TLater T , i)
+    (P1 := λ Γ T1 i T2 j _,
+      (* Γ u⊢ₜ T1, i <: T2, j → *)
+      TLater <$> Γ u⊢ₜ T1, S i <: T2, S j); clear Γ; intros; simplify_eq/=;
+    try (by constructor; rewrite ?fmap_length; eauto 2);
+    try (by econstructor; rewrite ?fmap_length).
+    (* last by eapply (p_subs_typed (i := S i)). *)
+
+  - apply (Var_typed _ _ (T := TLater T)).
+    by rewrite (list_lookup_fmap TLater) e.
+  - have ?: i = 0 by [destruct i; simplify_eq]; subst.
+    rewrite ->(iterate_0 tskip) in *; simplify_eq/=.
+    eapply (Subs_typed (i := 0)); last eauto.
+    apply Sub_later_shift; rewrite // fmap_length.
+    (* Unstamping, which should be provable. *)
+    all: admit.
   -
-   inverse t.
+  constructor. (* Seems hard or messy. *)
+  (* apply P *)
+  apply pv_dlater in H; rewrite ?fmap_length.
+  - destruct p; simplify_eq/=.
+    eapply (Path_typed (p := pv _)).
+    admit. (* Nope *)
+  - eapply (p_subs_typed (i := 0)), pv_typed, H => //=.
+    constructor; rewrite fmap_length.
+    (* Unstamping, which should be provable. *)
+    admit.
+Abort. *)
+
+
+  (* econstructor.
+  apply H0. (* Nope *)
+
+  admit. (* Nope *)
+  rewrite e. simplify_eq/=.
+  eapply (p_subs_typed (i := 0)); admit. (*Seems doable *)
+
+  -
+   dependent induction t.
   + eapply (p_subs_typed (i := 0)); admit. (*Seems doable *)
-  + have ?: i = 0 by admit. subst. rewrite ->(iterate_0 tskip) in *. simplify_eq/=. admit. (* Nope *)
+  + have ?: i = 0 by admit. subst. rewrite ->(iterate_0 tskip) in *. simplify_eq/=.
+  admit. (* Nope *)
   +  destruct p; simplify_eq/=. (* Nope *)
   admit.
   -
   - econstructor; rewrite ?fmap_length //.
   7: by econstructor.
   apply
-  econstructor.
+  econstructor. *)
 
+Axiom delay_stp : ∀ Γ T1 T2 i j,
+  Γ u⊢ₜ T1, i <: T2, j →
+  TLater <$> Γ u⊢ₜ T1, S i <: T2, S j.
 
 
 Axiom undelay_stp : ∀ Γ Γ' T1 T2 i j,
