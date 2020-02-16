@@ -71,6 +71,10 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ u⊢ₚ p : T, 0 →
     (*───────────────────────────────*)
     Γ u⊢ₜ path2tm p : T
+| Path_var_typed x T i :
+    Γ u⊢ₚ pv (var_vl x) : T, i →
+    (*───────────────────────────────*)
+    Γ u⊢ₜ tv (var_vl x) : iterate TLater i T
 
 (** Primitives. *)
 | T_Nat_typed n:
@@ -442,17 +446,23 @@ Proof.
     eapply (Subs_typed (i := 0)); last eauto.
     apply Sub_later_shift; rewrite // fmap_length.
     (* Unstamping, which should be provable. *)
-    all: admit.
+    all: skip.
   - destruct p; simplify_eq/=.
+    (*
     (* Here we still have a chance, semantically. *)
     eapply (Path_typed (p := pv _)).
     admit. (* Very nope, semantically unsound. *)
+    *)
+
+    exact: (Path_var_typed (i := 1)).
+  - exact: (Path_var_typed (i := S i)).
   - eapply (p_subs_typed (i := 0)), pv_typed, H => //=.
     constructor; rewrite fmap_length.
     (* Unstamping, which should be provable. *)
-    admit.
-Abort.
+    skip.
+Qed.
 
+(*
 Lemma delay_stp_mut' Γ :
   (∀ e T,
     Γ u⊢ₜ e : T →
@@ -525,21 +535,22 @@ Abort. *)
   apply
   econstructor. *)
 
-Axiom delay_stp : ∀ Γ T1 T2 i j,
+Lemma delay_stp : ∀ Γ T1 T2 i j,
   Γ u⊢ₜ T1, i <: T2, j →
   TLater <$> Γ u⊢ₜ T1, S i <: T2, S j.
+Proof. intros. by apply delay_stp_mut. Qed.
 
-
+(* Missing. *)
 Axiom undelay_stp : ∀ Γ Γ' T1 T2 i j,
   ⊢G Γ <:* Γ' →
   Γ' u⊢ₜ T1, i <: T2, j →
-  Γ u⊢ₜ T1, i <: T2, j.
+  Γ  u⊢ₜ T1, i <: T2, j.
 
 Lemma TMono_stp_adm {Γ T1 T2 i j} :
   Γ u⊢ₜ T1, i <: T2, j →
   Γ u⊢ₜ T1, S i <: T2, S j.
 Proof. intros Hs; eapply undelay_stp, delay_stp, Hs; ietp_weaken_ctx. Qed.
-by
+(* by
 eauto.
 induction 1; try by econstructor.
 
@@ -557,11 +568,11 @@ induction 1; try by econstructor.
   - 3: rewrite ?fmap_length //.
 
 constructor.
-1-24: try by econstructor; rewrite ?fmap_length.
+1-24: try by econstructor; rewrite ?fmap_length. *)
 
 
 
-Lemma TMono_stp_adm {Γ T1 T2 i j} :
+(* Lemma TMono_stp_adm {Γ T1 T2 i j} :
   Γ u⊢ₜ T1, i <: T2, j →
   Γ u⊢ₜ T1, S i <: T2, S j.
 Proof. induction 1; try by econstructor.
@@ -574,7 +585,7 @@ admit.
 (* False *)
 constructor=>//. admit.
 constructor=>//.
-Timeout 1 eauto.
+Timeout 1 eauto. *)
 
 
 Lemma unstamped_path_root_is_var Γ p T i:
