@@ -200,7 +200,7 @@ Proof.
     (* iApply (fundamental_dm_typed with "Hs"); tcrush. *)
     (* XXX maybe strip this later (T_All_I_Strong can) but fix things up! *)
     set Γ1 :=
-      (fromPDotPaperTypesTBody)%ty :: (TLater (fromPDotPaperAbsTBody x1))%ty :: optionModT :: Γ.
+      fromPDotPaperTypesTBody :: fromPDotPaperAbsTBody x1 :: optionModT :: Γ.
     set Γ2 := x2 @ "symbols" @; "Symbol" :: Γ1.
 
     (* Next: *)
@@ -218,8 +218,9 @@ Proof.
       (* Necessary: Pick this over [pv_dlater]. *)
       apply pself_typed.
       tcrush; varsub.
-      ltcrush.
-      apply Bind1; ltcrush.
+      ettrans; first apply TAddLater_stp; stcrush.
+      asideLaters.
+      ltcrush; mltcrush.
     }
 
     (* Too weak! *)
@@ -230,34 +231,20 @@ Proof.
       tskip (tskip (tskip x0) @: "tpe") : val "isEmpty" : TBool. { *)
       tcrush.
       eapply (Subs_typed (i := 1)); first apply TLaterL_stp; stcrush.
-      tcrush.
-      eapply (Subs_typed (i := 2)); last var.
-      (* eapply (Subs_typed (i := 1)); last typconstructor; first last. *)
-      ettrans; first apply TAddLater_stp; stcrush.
-      asideLaters.
-      ettrans; last apply TLaterL_stp; stcrush.
-      eapply (SelU_stp (L := ⊥)).
-      (* Necessary: Pick this over [pv_dlater]. *)
-      apply pself_typed.
-      tcrush; varsub.
-      ltcrush.
-      ltcrush.
-      apply Bind1; ltcrush.
+      eapply (Subs_typed (i := 0)), Hopt; rewrite /optionTy.
       lThis.
-      eapply (SelU_stp (L := ⊥)); tcrush.
-      varsub.
-      ettrans; first apply TAddLater_stp; stcrush.
-      ettrans; first apply TAddLater_stp; stcrush.
-      hideCtx.
-      asideLaters.
+      eapply (SelU_stp (L := ⊥)).
+      tcrush; varsub.
       mltcrush.
-      by mltcrush.
+      (* Import hoasNotation. *)
+      hideCtx.
+      simplSubst.
+      mltcrush.
     }
     iApply D_Val.
     iApply (T_All_I_Strong (Γ' := Γ1)).
     Import later_sub_sem.
-    rewrite /defCtxCons/=.
-    ietp_weaken_ctx.
+    rewrite /defCtxCons/=; ietp_weaken_ctx.
 
     iPoseProof (fundamental_typed _ _ _ _ Hcond with "Hs") as "Hcond".
     iIntros "!>" (ρ) "#Hg !>".
@@ -276,17 +263,13 @@ Proof.
     iApply wp_wand; [iApply loopSemT | iIntros "!>% []"].
     rewrite -wp_pure_step_later //.
 
-naive_solver.
-
-    iApply wp_
-
 
     have: Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
       ν {@ val "symb" = x1 } : shift (x0 @; "TypeRef"). {
     apply (Subs_typed (i := 0) (T1 := {@ val "symb" : x2 @ "symbols" @; "Symbol"})); first last.
-    + apply: (TMuE_typed (T :=
+    - apply: (TMuE_typed (T :=
         {@ val "symb" : shift ((x2 @ "symbols") @; "Symbol")})); tcrush.
-    + ettrans; first last.
+    - ettrans; first last.
       eapply LSel_stp'; first last.
       * constructor; varsub.
         ltcrush.
@@ -295,6 +278,8 @@ naive_solver.
         eapply (Trans_stp (T2 := ⊤)); tcrush.
         eapply LSel_stp'; tcrush.
         varsub; tcrush.
+        lThis.
+        mltcrush.
         apply Subs_typed_nocoerce.
         tcrush.
     }
