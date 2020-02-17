@@ -65,20 +65,23 @@ Definition pSymbol : stampTy := MkTy 50 [x0; x1; x2] {@
 Definition pTypeRef : stampTy := MkTy 60 [x0; x1] (TAnd (x0 @; "Type") typeRefTBody) 2.
 
 (* Definition fromPDotG : stys := psAddStys primOptionG [pTop; pSymbol; pTypeRef]. *)
+(** The syntactic stamp map we use in our syntactic judgments. *)
 Definition fromPDotG : stys := psAddStys primOptionG [pTop; pSymbol].
-Definition fromPDotGφ := Vs⟦ pAddStys pTypeRef fromPDotG ⟧.
+Definition fromPDotG' : stys := pAddStys pTypeRef fromPDotG.
+Definition fromPDotGφ := Vs⟦ fromPDotG' ⟧.
+Opaque fromPDotG.
+Opaque fromPDotG'.
 
 Import stamp_transfer.
 Lemma transfer : allGs ∅ ==∗ wellMappedφ fromPDotGφ.
 Proof. apply transfer_empty. Qed.
-Opaque fromPDotG.
 
 Lemma pTopStamp : TyMemStamp fromPDotG pTop. Proof. split; stcrush. Qed.
 Lemma pTypeRefStamp : TyMemStamp fromPDotG pTypeRef. Proof. split; stcrush. Qed.
 Lemma pSymbolStamp : TyMemStamp fromPDotG pSymbol. Proof. split; stcrush. Qed.
 Lemma Htop : styConforms fromPDotG pTop. Proof. done. Qed.
 Lemma Hsymbol : styConforms fromPDotG pSymbol. Proof. done. Qed.
-(* Lemma HtypeRef : styConforms fromPDotG pTypeRef. Proof. done. Qed. *)
+Lemma HtypeRef : styConforms fromPDotG' pTypeRef. Proof. done. Qed.
 
 (* Import AssertPlain.
 From D.Dot Require Import hoas. *)
@@ -201,9 +204,24 @@ Proof.
     set Γ2 := x2 @ "symbols" @; "Symbol" :: Γ1.
 
     (* Next: *)
-    (* evar (T : ty).
+    (* evar (T : ty). *)
     have Hopt : Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
-      tskip (tskip (tskip x0) @: "tpe") : T. *)
+      tskip (tskip x0) @: "tpe" : optionTy x3 x2. {
+      (* eapply (Subs_typed (i := 1)); first apply TLaterL_stp; stcrush. *)
+      tcrush.
+      eapply (Subs_typed (i := 2)); last var.
+      (* eapply (Subs_typed (i := 1)); last typconstructor; first last. *)
+      ettrans; first apply TAddLater_stp; stcrush.
+      asideLaters.
+      ettrans; last apply TLaterL_stp; stcrush.
+      eapply (SelU_stp (L := ⊥)).
+      (* Necessary: Pick this over [pv_dlater]. *)
+      apply pself_typed.
+      tcrush; varsub.
+      ltcrush.
+      apply Bind1; ltcrush.
+    }
+
     (* Too weak! *)
     have Hcond : Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
       tskip (tskip (tskip x0) @: "tpe") @: "isEmpty" : TBool. {
