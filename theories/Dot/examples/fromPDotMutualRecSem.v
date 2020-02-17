@@ -217,11 +217,11 @@ Proof.
 
     (* Next: *)
     (* evar (T : ty). *)
-    have Hopt : Γ2 v⊢ₜ[ fromPDotG' ]
-      tskip (tskip x0) @: "tpe" : optionTy x3 x2. {
-      (* eapply (Subs_typed (i := 1)); first apply TLaterL_stp; stcrush. *)
-      tcrush.
-      eapply (Subs_typed (i := 2)); last var.
+
+    have Hx0 : Γ2 v⊢ₜ[ fromPDotG' ] x0 : x2 @ "symbols" @; "Symbol" by var.
+    have Hsub0X0 :
+      Γ2 v⊢ₜ[ fromPDotG' ] x2 @ "symbols" @; "Symbol", 0 <:
+        val "tpe" : optionTy x3 x2 , 2. {
       (* eapply (Subs_typed (i := 1)); last typconstructor; first last. *)
       ettrans; first apply TAddLater_stp; stcrush.
       asideLaters.
@@ -233,6 +233,16 @@ Proof.
       ettrans; first apply TAddLater_stp; stcrush.
       asideLaters.
       ltcrush; mltcrush.
+    }
+    have Hx0' : Γ2 v⊢ₚ[ fromPDotG' ] x0 : val "tpe" : optionTy x3 x2, 2. {
+      eapply (p_subs_typed (i := 0)), pv_typed, Hx0. apply Hsub0X0.
+    }
+
+    have Hopt : Γ2 v⊢ₜ[ fromPDotG' ]
+      tskip (tskip x0) @: "tpe" : optionTy x3 x2. {
+      (* eapply (Subs_typed (i := 1)); first apply TLaterL_stp; stcrush. *)
+      typconstructor.
+      eapply (Subs_typed (i := 2)), Hx0. apply Hsub0X0.
     }
 
     have HoptSub' :
@@ -292,6 +302,7 @@ Proof.
     have Hopt'' : Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
       tskip (tskip x0) @: "tpe" :
       TLater (hclose hoptionTConcr). {
+        tcrush.
         admit.
     }
 
@@ -343,28 +354,36 @@ Proof.
     } *)
 
     (* iPoseProof (fundamental_typed _ _ _ _ Hopt with "Hs") as "Hopt". *)
+
     (* XXX: Use pand_typed. On the path x0! *)
+
     iPoseProof (fundamental_typed _ _ _ _ Hopt'' with "Hs") as "Hopt".
     iPoseProof (fundamental_typed _ _ _ _ Hcond with "Hs") as "Hcond".
     iIntros "!>" (ρ) "#Hg !>".
+    Arguments iPPred_car : simpl never.
+    Arguments pty_interp : simpl never.
+    (* simpl.
+    simplSubst. *)
   Tactic Notation "smart_wp_bind'" uconstr(ctxs) ident(v) constr(Hv) uconstr(Hp) :=
     iApply (wp_bind (ectx_language.fill ctxs));
     iApply (wp_wand with "[-]"); [iApply Hp; trivial|];
     iIntros (v) Hv.
 
-    smart_wp_bind' [SkipCtx; ProjCtx _; IfCtx _ _] optV "#Ha" ("Hopt" with "Hg").
+    (* smart_wp_bind' [SkipCtx; ProjCtx _; IfCtx _ _] optV "#Ha" ("Hopt" with "Hg").
     iDestruct "Ha" as "[HF|HT]".
-    iApply (wp_bind (fill [IfCtx _ _])).
+    iApply (wp_bind (fill [IfCtx _ _])). *)
 
     smart_wp_bind' [IfCtx _ _] v "#Ha" ("Hcond" with "Hg").
+    iEval simplSubst.
+    iSimpl.
     iDestruct "Ha" as %[b Hbool]. simpl in b, Hbool; subst.
     destruct b.
     From D.pure_program_logic Require Import lifting.
-    Import examples prelude.
+    Import examples prelude saved_interp_dep.
     rewrite -wp_pure_step_later //.
     iApply wp_wand; [iApply loopSemT | iIntros "!>% []"].
     rewrite -wp_pure_step_later //.
-
+    cbn.
 
     have: Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
       ν {@ val "symb" = x1 } : shift (x0 @; "TypeRef"). {
@@ -382,8 +401,7 @@ Proof.
         varsub; tcrush.
         lThis.
         mltcrush.
-        apply Subs_typed_nocoerce.
-        tcrush.
+        (* apply Subs_typed_nocoerce. *)
     }
 
     (* Split, semantically. *)
