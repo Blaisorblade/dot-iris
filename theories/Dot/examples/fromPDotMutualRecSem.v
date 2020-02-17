@@ -8,6 +8,7 @@ From D.Dot.syn Require Import syn path_repl.
 From D.Dot.typing Require Import typing_storeless.
 From D.Dot Require Import exampleInfra typingExInfra examples.
 (* From D.Dot Require Import typingExamples. *)
+Import scalaLib.
 From D.Dot Require Import primOption.
 
 From D Require Import swap_later_impl.
@@ -38,7 +39,8 @@ Definition fromPDotPaperTypesTBody : ty := {@
   val "newTypeTop" : ⊤ →: x0 @; "TypeTop";
   typeEq "TypeRef" $ TAnd (x0 @; "Type") typeRefTBody;
   val "AnyType" : ▶: (x0 @; "Type");
-  val "newTypeRef" : x1 @ "symbols" @; "Symbol" →: x0 @; "TypeRef"
+  val "newTypeRef" : x1 @ "symbols" @; "Symbol" →: x0 @; "TypeRef";
+  val "getTypeFromTypeRef" : x0 @; "TypeRef" →: x0 @; "Type"
 }.
 
 Definition fromPDotPaperAbsTypesTBody : ty := {@
@@ -47,7 +49,8 @@ Definition fromPDotPaperAbsTypesTBody : ty := {@
   val "newTypeTop" : ⊤ →: x0 @; "TypeTop";
   type "TypeRef" >: ⊥ <: TAnd (x0 @; "Type") typeRefTBody;
   val "AnyType" : ▶: (x0 @; "Type");
-  val "newTypeRef" : x1 @ "symbols" @; "Symbol" →: x0 @; "TypeRef"
+  val "newTypeRef" : x1 @ "symbols" @; "Symbol" →: x0 @; "TypeRef";
+  val "getTypeFromTypeRef" : x0 @; "TypeRef" →: x0 @; "Type"
 }.
 
 Definition pTop : stampTy := MkTy 40 [] ⊤ 0.
@@ -86,9 +89,13 @@ Definition fromPDotPaperTypesV : vl := ν {@
   type "TypeRef" =[ pTypeRef ];
   val "AnyType" = ν {@ };
   val "newTypeRef" = vabs (
-    ν {@
+    tif (tskip (tskip (tskip x0) @: "tpe") @: "isEmpty") (hclose hloopTm)
+    (ν {@
       val "symb" = x1
-    })
+    }));
+  val "getTypeFromTypeRef" = vabs (
+    (tskip x0 @: "tpe") @: "get"
+  )
 }.
 
 Definition fromPDotPaperSymbolsTBody pOpt : ty := {@
@@ -130,11 +137,24 @@ Definition fromPDotPaper : vl := ν {@
   val "symbols" = fromPDotPaperSymbolsV
 }.
 
-Ltac hideCtx := idtac.
 Definition optionModT := hclose hoptionModT.
 
 Ltac semTMember i := iApply D_Typ; iApply (extraction_to_leadsto_envD_equiv (n := i) with "Hs"); by_extcrush.
 Import prelude.
+
+Ltac simplSubst := rewrite /= /up/= /ids/ids_vl/=.
+
+Ltac hideCtx' Γ :=
+  let x := fresh "Γ" in set x := Γ.
+Ltac hideCtx :=
+  match goal with
+  | |- ?Γ v⊢ₜ[ _ ] _ : _ => hideCtx' Γ
+  | |- ?Γ v⊢ₜ[ _ ] _, _ <: _, _ => hideCtx' Γ
+  | |- ?Γ v⊢ₚ[ _ ] _ : _, _  => hideCtx' Γ
+  | |- ?Γ v⊢[ _ ]{ _ := _  } : _ => hideCtx' Γ
+  | |- ?Γ v⊢ds[ _ ] _ : _ => hideCtx' Γ
+  end.
+
 
 Example semFromPDotPaperTypesTyp Γ :
   TLater (fromPDotPaperAbsTBody x1) :: optionModT :: Γ ⊨[ fromPDotGφ ]
@@ -158,7 +178,160 @@ Proof.
     eapply (LSel_stp' _ ⊤); tcrush.
     varsub; apply Sub_later_shift; tcrush.
   }
-  iApply D_Cons; [done | iApply (fundamental_dm_typed with "Hs"); tcrush | ]. {
+(*
+  iApply D_Cons; [done | | ]. {
+    iApply D_Val.
+    iApply sT_All_I.
+    (* Arguments setp : simpl never.
+    cbn. *)
+    iApply sT_If.
+    admit.
+    {
+      iIntros "!> % ? !>".
+      iApply wp_wand; [iApply loopSemT | iIntros "%[]"].
+    }
+    admit.
+  } *)
+
+  iApply D_Cons; [done | | ]. {
+    (* iApply (fundamental_dm_typed with "Hs"); tcrush. *)
+    (* XXX maybe strip this later (T_All_I_Strong can) but fix things up! *)
+    set Γ1 :=
+      (fromPDotPaperTypesTBody)%ty :: (TLater (fromPDotPaperAbsTBody x1))%ty :: optionModT :: Γ.
+    set Γ2 := x2 @ "symbols" @; "Symbol" :: Γ1.
+
+    (* Next: *)
+    (* evar (T : ty).
+    have Hopt : Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
+      tskip (tskip (tskip x0) @: "tpe") : T. *)
+    (* Too weak! *)
+    have Hcond : Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
+      tskip (tskip (tskip x0) @: "tpe") @: "isEmpty" : TBool. {
+
+    (* have Hcond : Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
+      tskip (tskip (tskip x0) @: "tpe") : val "isEmpty" : TBool. { *)
+      tcrush.
+      eapply (Subs_typed (i := 1)); first apply TLaterL_stp; stcrush.
+      tcrush.
+      eapply (Subs_typed (i := 2)); last var.
+      (* eapply (Subs_typed (i := 1)); last typconstructor; first last. *)
+      ettrans; first apply TAddLater_stp; stcrush.
+      asideLaters.
+      ettrans; last apply TLaterL_stp; stcrush.
+      eapply (SelU_stp (L := ⊥)).
+      (* Necessary: Pick this over [pv_dlater]. *)
+      apply pself_typed.
+      tcrush; varsub.
+      ltcrush.
+      ltcrush.
+      apply Bind1; ltcrush.
+      lThis.
+      eapply (SelU_stp (L := ⊥)); tcrush.
+      varsub.
+      ettrans; first apply TAddLater_stp; stcrush.
+      ettrans; first apply TAddLater_stp; stcrush.
+      hideCtx.
+      asideLaters.
+      mltcrush.
+      by mltcrush.
+    }
+    iApply D_Val.
+    iApply (T_All_I_Strong (Γ' := Γ1)).
+    Import later_sub_sem.
+    rewrite /defCtxCons/=.
+    ietp_weaken_ctx.
+
+    iPoseProof (fundamental_typed _ _ _ _ Hcond with "Hs") as "Hcond".
+    iIntros "!>" (ρ) "#Hg !>".
+    Import prelude saved_interp_dep.
+  Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
+    iApply (wp_bind (ectx_language.fill[ctx]));
+    iApply (wp_wand with "[-]"); [iApply Hp; trivial|];
+    iIntros (v) Hv.
+
+    smart_wp_bind (IfCtx _ _) v "#Ha" ("Hcond" with "Hg").
+    iDestruct "Ha" as %[b Hbool]. simpl in b, Hbool; subst.
+    destruct b.
+    From D.pure_program_logic Require Import lifting.
+    Import examples prelude.
+    rewrite -wp_pure_step_later //.
+    iApply wp_wand; [iApply loopSemT | iIntros "!>% []"].
+    rewrite -wp_pure_step_later //.
+
+naive_solver.
+
+    iApply wp_
+
+
+    have: Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
+      ν {@ val "symb" = x1 } : shift (x0 @; "TypeRef"). {
+    apply (Subs_typed (i := 0) (T1 := {@ val "symb" : x2 @ "symbols" @; "Symbol"})); first last.
+    + apply: (TMuE_typed (T :=
+        {@ val "symb" : shift ((x2 @ "symbols") @; "Symbol")})); tcrush.
+    + ettrans; first last.
+      eapply LSel_stp'; first last.
+      * constructor; varsub.
+        ltcrush.
+      * tcrush.
+      * tcrush.
+        eapply (Trans_stp (T2 := ⊤)); tcrush.
+        eapply LSel_stp'; tcrush.
+        varsub; tcrush.
+        apply Subs_typed_nocoerce.
+        tcrush.
+    }
+
+    (* Split, semantically. *)
+
+(*
+    evar (T : ty).
+    have : Γ0 v⊢ₜ[ pAddStys pTypeRef fromPDotG ] x0 : T; rewrite {}/T; first var.
+    intros Hx0.
+
+    evar (T : ty).
+    have : Γ0 v⊢ₜ[ pAddStys pTypeRef fromPDotG ] x1 : T; rewrite {}/T; first var.
+    intros Hx1.
+
+    evar (T : ty).
+    Arguments pTypeRef : simpl never.
+    Arguments pAddStys : simpl never.
+    have /= : Γ0 v⊢ₜ[ pAddStys pTypeRef fromPDotG ] x2 : T; rewrite {}/T; first var.
+    intros _. *)
+
+    (* evar (T : ty).
+    have : Γ0 v⊢ₜ[ pAddStys pTypeRef fromPDotG ] x0 : T; rewrite {}/T. {
+      eapply (Subs_typed (i := 0)), Hx0.
+      (* ettrans; last apply TLaterL_stp. *)
+      eapply SelU_stp.
+      tcrush.
+      varsub.
+      asideLaters.
+      mltcrush.
+      simplSubst.
+    } *)
+    (* intros Hsx0. *)
+(*
+    rewrite /optionModT/hoptionModT/=.
+    ltcrush.
+    lThis.
+    ltcrush.
+    apply pself_typed.
+    mltcrush.
+    ettrans.
+    apply Bind1; stcrush.
+    mltcrush.
+    varsub.
+    asideLaters.
+    mltcrush.
+    ltcrush. *)
+    (* eapply (Trans_stp (T2 := val "isEmpty" : TBool) (i2 := 3)); last admit.
+    (* ettrans; first apply TAddLater_stp; stcrush.
+    asideLaters. *)
+    ettrans; last apply TLaterL_stp; stcrush. *)
+
+
+
+
     apply (Subs_typed (i := 0) (T1 := {@ val "symb" : x2 @ "symbols" @; "Symbol"})); first last.
     + apply: (TMuE_typed (T :=
         {@ val "symb" : shift ((x2 @ "symbols") @; "Symbol")})); tcrush.
@@ -172,6 +345,45 @@ Proof.
         eapply LSel_stp'; tcrush.
         varsub; tcrush.
         admit.
+  } *)
+  iApply D_Cons; [done | iApply (fundamental_dm_typed with "Hs"); tcrush | ]. {
+    set Γ' := x1 @; "TypeRef" :: fromPDotPaperTypesTBody ::
+      (▶: fromPDotPaperAbsTBody x1)%ty :: optionModT :: Γ.
+    (* have ?: Γ' v⊢ₜ[ pAddStys pTypeRef fromPDotG ] x0 : x1 @; "TypeRef"; first var. *)
+    set T : ty := (▶: (shift typeRefTBody))%ty.
+    unfold typeRefTBody in T.
+    (* evar (T : ty). *)
+    have : Γ' v⊢ₜ[ pAddStys pTypeRef fromPDotG ] x0 : T; rewrite {}/T. {
+      varsub.
+      ettrans.
+      (* eapply (Trans_stp (T2 := ▶: TAnd (x1 @; "Type") (shift typeRefTBody))); last by tcrush. *)
+
+      + eapply SelU_stp; typconstructor. varsub. ltcrush.
+      + tcrush.
+    }
+    intros Hx.
+
+    (* eapply (Subs_typed (i := 1)); last typconstructor; first last. *)
+    (* eapply (Subs_typed (i := 0)); first last. *)
+    eapply (Subs_typed (i := 1)), Hx.
+    asideLaters.
+    lThis.
+    (* Throws away too much info! *)
+    lNext.
+    mltcrush.
+    simplSubst.
+    (* Sub_AddLater
+    ettrans; last apply TLaterL_stp; stcrush. {
+    (* var. *)
+    ettrans; last apply TLaterL_stp. {
+      eapply SelU_stp; typconstructor; varsub. ltcrush.
+    }
+    stcrush.
+    lNext. lThis.
+    typconstructor. stcrush.
+    eapply Var_typed_sub.
+    eapply LSel_stp'. first last. *)
+    admit.
   }
   iApply D_Nil.
 Admitted.
@@ -315,8 +527,6 @@ Qed.
 Definition getAnyTypeT pOpt : ty :=
   TAll (μ fromPDotPaperAbsTBody (shift pOpt)) (x0 @ "types" @; "Type").
 Definition getAnyType : vl := vabs (tskip (tproj (tproj x0 "types") "AnyType")).
-
-Ltac simplSubst := rewrite /= /up/= /ids/ids_vl/=.
 
 Definition fromPDotPaperAbsTypesTBodySubst : ty := {@
   type "Type" >: ⊥ <: ⊤;
