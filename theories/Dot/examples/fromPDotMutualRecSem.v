@@ -22,6 +22,7 @@ From D.Dot Require Import fundamental.
 From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived. *)
 Import DBNotation.
 Import examples prelude saved_interp_dep.
+Import later_sub_sem.
 
 Set Implicit Arguments.
 Set Suggest Proof Using.
@@ -240,7 +241,6 @@ Proof.
       fromPDotPaperTypesTBody :: fromPDotPaperAbsTBody x1 :: optionModTInv :: Γ.
     iApply D_Val.
     iApply (T_All_I_Strong (Γ' := Γ1)).
-    Import later_sub_sem.
     rewrite /defCtxCons/=; ietp_weaken_ctx.
     set Γ2 := x2 @ "symbols" @; "Symbol" :: Γ1.
 
