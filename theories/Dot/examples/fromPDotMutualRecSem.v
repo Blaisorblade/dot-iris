@@ -27,10 +27,19 @@ Import later_sub_sem.
 Set Implicit Arguments.
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
+Import primOption.
+
+Section hoas.
+  Import hoasNotation.
+  Definition hoptionTyConcr pCore :=
+    hTOr hnoneConcrT (hsomeConcrT
+      ⊥
+      (pCore @ "types" @; "Type")).
+  Definition optionModTInv := hclose (μ: self, hoptionModTInvBody self).
+End hoas.
 
 Section semExample.
-Context `{HdlangG: dlangG Σ} `{!SwapPropI Σ}.
-Import primOption.
+Context `{HdlangG: dlangG Σ} `{HswapProp : !SwapPropI Σ}.
 (** FromPDotPaper *)
 
 Definition typeRefTBody : ty := {@
@@ -161,23 +170,16 @@ Ltac hideCtx :=
   | |- ?Γ v⊢ds[ _ ] _ : _ => hideCtx' Γ
   end.
 
-Section hoas.
-  Import hoasNotation.
-  Definition hoptionTyConcr pCore :=
-    hTOr hnoneConcrT (hsomeConcrT
-      ⊥
-      (pCore @ "types" @; "Type")).
-  Definition optionModTInv := hclose (μ: self, hoptionModTInvBody self).
-End hoas.
-
 Lemma swapSem {S T U i Γ}: Γ ⊨ TAnd (TOr S T) U , i <: TOr (TAnd S U) (TAnd T U), i.
 Proof.
   iIntros "!> %% #Hg [[HS|HT] Hu] !> /="; [iLeft|iRight]; iFrame.
 Qed.
+
 Lemma swap {S T U i Γ g}: Γ v⊢ₜ[ g ] TAnd (TOr S T) U , i <: TOr (TAnd S U) (TAnd T U), i.
 Proof.
   ettrans; last apply TOr_stp.
 Admitted.
+
 Lemma TOr_stp_split Γ g T1 T2 U1 U2 i:
   is_stamped_ty (length Γ) g U1 →
   is_stamped_ty (length Γ) g U2 →
@@ -219,6 +221,7 @@ Proof.
     eapply (LSel_stp' _ ⊤); tcrush.
     varsub; apply Sub_later_shift; tcrush.
   }
+
 (*
   iApply D_Cons; [done | | ]. {
     iApply D_Val.
