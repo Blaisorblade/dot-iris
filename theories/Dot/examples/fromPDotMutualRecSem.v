@@ -55,6 +55,7 @@ Definition fromPDotPaperAbsTypesTBody : ty := {@
 
 Definition pTop : stampTy := MkTy 40 [] ⊤ 0.
 
+(* XXX typeEq forbids None, use upper bound. *)
 Definition optionTy pOpt pCore := TAnd (pOpt @; "Option") (typeEq "T" (pCore @ "types" @; "Type")).
 
 Definition pSymbol : stampTy := MkTy 50 [x0; x1; x2] {@
@@ -158,9 +159,17 @@ Ltac hideCtx :=
   | |- ?Γ v⊢ds[ _ ] _ : _ => hideCtx' Γ
   end.
 
+Section hoas.
+  Import hoasNotation.
+  Definition hoptionTyConcr pCore :=
+    hTOr hnoneConcrT (hsomeConcrT
+      (pCore @ "types" @; "Type")
+      (pCore @ "types" @; "Type")).
+  Definition optionModTInvBody := hclose (μ: self, hoptionModTInvBody self).
+End hoas.
 
 Example semFromPDotPaperTypesTyp Γ :
-  TLater (fromPDotPaperAbsTBody x1) :: optionModT :: Γ ⊨[ fromPDotGφ ]
+  TLater (fromPDotPaperAbsTBody x1) :: optionModTInvBody :: Γ ⊨[ fromPDotGφ ]
     fromPDotPaperTypesV : μ fromPDotPaperTypesTBody.
 Proof.
   iIntros "#Hs".
@@ -200,7 +209,11 @@ Proof.
     (* iApply (fundamental_dm_typed with "Hs"); tcrush. *)
     (* XXX maybe strip this later (T_All_I_Strong can) but fix things up! *)
     set Γ1 :=
-      fromPDotPaperTypesTBody :: fromPDotPaperAbsTBody x1 :: optionModT :: Γ.
+      fromPDotPaperTypesTBody :: fromPDotPaperAbsTBody x1 :: optionModTInvBody :: Γ.
+    iApply D_Val.
+    iApply (T_All_I_Strong (Γ' := Γ1)).
+    Import later_sub_sem.
+    rewrite /defCtxCons/=; ietp_weaken_ctx.
     set Γ2 := x2 @ "symbols" @; "Symbol" :: Γ1.
 
     (* Next: *)
@@ -223,12 +236,39 @@ Proof.
       ltcrush; mltcrush.
     }
 
-    (* Too weak! *)
+    have Hopt' : Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
+      tskip (tskip x0) @: "tpe" :
+      TLater (hclose (hoptionTyConcr hoasNotation.hx2)). {
+      eapply (Subs_typed (i := 0)), Hopt.
+      (* ettrans; first apply TAddLater_stp; stcrush. *)
+      tcrush.
+      rewrite /hoptionTyConcr/optionTy.
+      (* XXX Split with *)
+      (* ettrans; first apply TAnd_stp. *)
+      (* XXX nope. *)
+      lThis.
+      ettrans.
+      eapply (SelU_stp (L := ⊥) (U := hclose hoptionTConcr)).
+      tcrush.
+      varsub.
+      mltcrush; lThis.
+      asideLaters.
+      tcrush.
+      admit.
+    }
+
+    (* In fact, we want subtyping. *)
     have Hcond : Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
       tskip (tskip (tskip x0) @: "tpe") @: "isEmpty" : TBool. {
+      tcrush.
+      eapply (Subs_typed (i := 1)); first apply TLaterL_stp; stcrush.
+      eapply (Subs_typed (i := 0)), Hopt'.
+      mltcrush; eapply (Subs_typed (i := 0) (T1:=TBool)); tcrush.
+    }
 
+    (* Fails due to using optionModTInvBody. *)
     (* have Hcond : Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
-      tskip (tskip (tskip x0) @: "tpe") : val "isEmpty" : TBool. { *)
+      tskip (tskip (tskip x0) @: "tpe") : val "isEmpty" : TBool. {
       tcrush.
       eapply (Subs_typed (i := 1)); first apply TLaterL_stp; stcrush.
       eapply (Subs_typed (i := 0)), Hopt; rewrite /optionTy.
@@ -240,21 +280,24 @@ Proof.
       hideCtx.
       simplSubst.
       mltcrush.
-    }
-    iApply D_Val.
-    iApply (T_All_I_Strong (Γ' := Γ1)).
-    Import later_sub_sem.
-    rewrite /defCtxCons/=; ietp_weaken_ctx.
+      eapply (Subs_typed (i := 0) (T1:=TBool)); tcrush.
+    } *)
 
+    (* iPoseProof (fundamental_typed _ _ _ _ Hopt with "Hs") as "Hopt". *)
+    iPoseProof (fundamental_typed _ _ _ _ Hopt' with "Hs") as "Hopt".
     iPoseProof (fundamental_typed _ _ _ _ Hcond with "Hs") as "Hcond".
     iIntros "!>" (ρ) "#Hg !>".
-    Import prelude saved_interp_dep.
-  Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
-    iApply (wp_bind (ectx_language.fill[ctx]));
+    Import ectx_language prelude saved_interp_dep.
+  Tactic Notation "smart_wp_bind'" uconstr(ctxs) ident(v) constr(Hv) uconstr(Hp) :=
+    iApply (wp_bind (ectx_language.fill ctxs));
     iApply (wp_wand with "[-]"); [iApply Hp; trivial|];
     iIntros (v) Hv.
 
-    smart_wp_bind (IfCtx _ _) v "#Ha" ("Hcond" with "Hg").
+    (* smart_wp_bind' [SkipCtx; ProjCtx _; IfCtx _ _] optV "#Ha" ("Hopt" with "Hg").
+    iDestruct "Ha" as "[HF|HT]".
+    iApply (wp_bind (fill [IfCtx _ _])). *)
+
+    smart_wp_bind' [IfCtx _ _] v "#Ha" ("Hcond" with "Hg").
     iDestruct "Ha" as %[b Hbool]. simpl in b, Hbool; subst.
     destruct b.
     From D.pure_program_logic Require Import lifting.
