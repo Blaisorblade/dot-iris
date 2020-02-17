@@ -1,6 +1,7 @@
 (**
  *)
 From stdpp Require Import strings.
+From iris.proofmode Require Import tactics.
 
 From D Require Import tactics.
 From D.Dot.syn Require Import syn path_repl.
@@ -9,12 +10,11 @@ From D.Dot Require Import exampleInfra typingExInfra examples.
 (* From D.Dot Require Import typingExamples. *)
 From D.Dot Require Import primOption.
 
-From iris.proofmode Require Import tactics.
+From D Require Import swap_later_impl.
 From D.Dot Require Import unary_lr
   lr_lemmas lr_lemmasTSel lr_lemmasNoBinding lr_lemmasDefs lr_lemmasPrim.
 From D.Dot Require Import typeExtractionSem.
 From D.Dot Require Import fundamental.
-From D Require Import swap_later_impl.
 (* From D.Dot Require Import scalaLib.
 From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived. *)
 Import DBNotation.
@@ -29,7 +29,7 @@ Import primOption.
 (** FromPDotPaper *)
 
 Definition typeRefTBody : ty := {@
-  val "symb" : x1 @ "symbols" @; "Symbol"
+  val "symb" : TAnd (x1 @ "symbols" @; "Symbol") (val "tpe" : hclose (hsomeConcrT ⊥ ⊤))
 }.
 
 Definition fromPDotPaperTypesTBody : ty := {@
@@ -144,15 +144,13 @@ Proof.
   iApply T_Obj_I.
   iApply D_Cons; [done | semTMember 0 | ].
   iApply D_Cons; [done | semTMember 0 | ].
-  iApply D_Cons; [done | iApply (fundamental_dm_typed with "Hs") | ]. {
-    tcrush.
+  iApply D_Cons; [done | iApply (fundamental_dm_typed with "Hs"); tcrush | ]. {
     eapply Subs_typed_nocoerce.
     + apply (TMuE_typed (T := TTop)); tcrush.
     + apply (LSel_stp' _ TTop); last (tcrush; varsub); stcrush. ltcrush.
   }
   iApply D_Cons; [done | semTMember 2 | ].
-  iApply (fundamental_dms_typed with "Hs").
-  apply dcons_typed; [tcrush | | done]. {
+  iApply D_Cons; [done | iApply (fundamental_dm_typed with "Hs"); tcrush | ]. {
     eapply (Subs_typed_nocoerce (TMu ⊤)); first tcrush.
     eapply (Trans_stp (T2 := ⊤) (i2 := 0)); tcrush.
     eapply (Trans_stp (i2 := 1)); [exact: AddI_stp | ].
@@ -160,9 +158,9 @@ Proof.
     eapply (LSel_stp' _ ⊤); tcrush.
     varsub; apply Sub_later_shift; tcrush.
   }
-  apply dcons_typed; [tcrush | | done]. {
-    eapply Subs_typed_nocoerce.
-    + apply (TMuE_typed (T :=
+  iApply D_Cons; [done | iApply (fundamental_dm_typed with "Hs"); tcrush | ]. {
+    apply (Subs_typed (i := 0) (T1 := {@ val "symb" : x2 @ "symbols" @; "Symbol"})); first last.
+    + apply: (TMuE_typed (T :=
         {@ val "symb" : shift ((x2 @ "symbols") @; "Symbol")})); tcrush.
     + ettrans; first last.
       eapply LSel_stp'; first last.
@@ -173,9 +171,10 @@ Proof.
         eapply (Trans_stp (T2 := ⊤)); tcrush.
         eapply LSel_stp'; tcrush.
         varsub; tcrush.
+        admit.
   }
-  apply dnil_typed.
-Qed.
+  iApply D_Nil.
+Admitted.
 
 (* Example fromPDotPaperTypesTyp Γ :
   TLater (fromPDotPaperAbsTBody x1) :: optionModT :: Γ v⊢ₜ[fromPDotG]
@@ -214,6 +213,8 @@ Proof.
         eapply (Trans_stp (T2 := ⊤)); tcrush.
         eapply LSel_stp'; tcrush.
         varsub; tcrush.
+        ltcrush.
+        admit.
   }
   apply dnil_typed.
 Qed. *)
@@ -321,9 +322,9 @@ Definition fromPDotPaperAbsTypesTBodySubst : ty := {@
   type "Type" >: ⊥ <: ⊤;
   type "TypeTop" >: ⊥ <: x0 @ "types" @; "Type";
   val "newTypeTop" : ⊤ →: x0 @ "types" @; "TypeTop";
-  type "TypeRef" >: ⊥ <: TAnd (x0 @ "types" @; "Type") {@
-    val "symb" : x0 @ "symbols" @; "Symbol"
-  };
+  type "TypeRef" >: ⊥ <: TAnd (x0 @ "types" @; "Type") ({@
+    val "symb" : TAnd (x0 @ "symbols" @; "Symbol") (val "tpe" : hclose (hsomeConcrT ⊥ ⊤))
+  });
   val "AnyType" : ▶: (x0 @ "types" @; "Type");
   val "newTypeRef" : x0 @ "symbols" @; "Symbol" →: x0 @ "types" @; "TypeRef"
 }.
