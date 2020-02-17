@@ -55,8 +55,7 @@ Definition fromPDotPaperAbsTypesTBody : ty := {@
 
 Definition pTop : stampTy := MkTy 40 [] ⊤ 0.
 
-(* XXX typeEq forbids None, use upper bound. *)
-Definition optionTy pOpt pCore := TAnd (pOpt @; "Option") (typeEq "T" (pCore @ "types" @; "Type")).
+Definition optionTy pOpt pCore := TAnd (pOpt @; "Option") (type "T" >: ⊥ <: (pCore @ "types" @; "Type")).
 
 Definition pSymbol : stampTy := MkTy 50 [x0; x1; x2] {@
   val "tpe" : optionTy x2 x1;
@@ -163,7 +162,7 @@ Section hoas.
   Import hoasNotation.
   Definition hoptionTyConcr pCore :=
     hTOr hnoneConcrT (hsomeConcrT
-      (pCore @ "types" @; "Type")
+      ⊥
       (pCore @ "types" @; "Type")).
   Definition optionModTInvBody := hclose (μ: self, hoptionModTInvBody self).
 End hoas.
@@ -218,7 +217,7 @@ Proof.
 
     (* Next: *)
     (* evar (T : ty). *)
-    have Hopt : Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
+    have Hopt : Γ2 v⊢ₜ[ fromPDotG' ]
       tskip (tskip x0) @: "tpe" : optionTy x3 x2. {
       (* eapply (Subs_typed (i := 1)); first apply TLaterL_stp; stcrush. *)
       tcrush.
@@ -236,15 +235,75 @@ Proof.
       ltcrush; mltcrush.
     }
 
-    have Hopt' : Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
+    have HoptSub' :
+      Γ2 v⊢ₜ[ fromPDotG' ] optionTy x3 x2, 1 <:
+      hclose hoptionTConcr, 2. {
+        admit.
+    }
+    Import ectx_language prelude saved_interp_dep.
+      Lemma swapSem {S T U i Γ}: Γ ⊨ TAnd (TOr S T) U , i <: TOr (TAnd S U) (TAnd T U), i.
+      Proof.
+        iIntros "!> %% #Hg [[HS|HT] Hu] !> /="; [iLeft|iRight]; iFrame.
+      Qed.
+      (* Lemma swap {S T U i Γ g}: Γ v⊢ₜ[ g ] TAnd (TOr S T) U , i <: TOr (TAnd S U) (TAnd T U), i.
+      Proof.
+        ettrans; last apply TOr_stp.
+      Admitted. *)
+
+    (* have HoptSub :
+      Γ2 v⊢ₜ[ fromPDotG' ] optionTy x3 x2, 1 <:
+      hclose (hoptionTyConcr hoasNotation.hx2), 2. {
+      tcrush.
+      rewrite /hoptionTyConcr/optionTy.
+      eapply (Trans_stp (T2 := TAnd (hclose hoptionTConcr) (type "T" >: ⊥ <: (x2 @ "types") @; "Type")) (i2 := 2));
+        first apply TAnd_stp. {
+        lThis.
+        ettrans; last apply TLaterL_stp; stcrush.
+        eapply (SelU_stp (L := ⊥) (U := hclose hoptionTConcr)).
+        tcrush.
+        varsub.
+        mltcrush; lThis.
+      }
+      by ettrans; first apply TAddLater_stp; stcrush; asideLaters; ltcrush.
+      rewrite /hoptionTConcr/=.
+      ettrans; first apply swap.
+      Lemma TOr_stp_split Γ g T1 T2 U1 U2 i:
+        is_stamped_ty (length Γ) g U1 →
+        is_stamped_ty (length Γ) g U2 →
+        Γ v⊢ₜ[ g ] T1, i <: U1, i →
+        Γ v⊢ₜ[ g ] T2, i <: U2, i →
+        Γ v⊢ₜ[ g ] TOr T1 T2, i <: TOr U1 U2, i.
+      Proof.
+        intros.
+        apply TOr_stp; [
+          eapply Trans_stp, TOr1_stp | eapply Trans_stp, TOr2_stp]; tcrush.
+      Qed.
+      apply TOr_stp_split; stcrush.
+      ltcrush.
+      lNext.
+      ltcrush.
+      (* lThis.
+
+
+      simplSubst. *)
+      admit.
+    } *)
+
+    have Hopt'' : Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
+      tskip (tskip x0) @: "tpe" :
+      TLater (hclose hoptionTConcr). {
+        admit.
+    }
+
+    (* have Hopt' : Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
       tskip (tskip x0) @: "tpe" :
       TLater (hclose (hoptionTyConcr hoasNotation.hx2)). {
       eapply (Subs_typed (i := 0)), Hopt.
       (* ettrans; first apply TAddLater_stp; stcrush. *)
       tcrush.
       rewrite /hoptionTyConcr/optionTy.
-      (* XXX Split with *)
-      (* ettrans; first apply TAnd_stp. *)
+      eapply (Trans_stp (T2 := TAnd (hclose hoptionTConcr) _) (i2 := 0));
+        first apply TAnd_stp.
       (* XXX nope. *)
       lThis.
       ettrans.
@@ -255,14 +314,14 @@ Proof.
       asideLaters.
       tcrush.
       admit.
-    }
+    } *)
 
     (* In fact, we want subtyping. *)
     have Hcond : Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
       tskip (tskip (tskip x0) @: "tpe") @: "isEmpty" : TBool. {
       tcrush.
       eapply (Subs_typed (i := 1)); first apply TLaterL_stp; stcrush.
-      eapply (Subs_typed (i := 0)), Hopt'.
+      eapply (Subs_typed (i := 0)), Hopt''.
       mltcrush; eapply (Subs_typed (i := 0) (T1:=TBool)); tcrush.
     }
 
@@ -284,18 +343,18 @@ Proof.
     } *)
 
     (* iPoseProof (fundamental_typed _ _ _ _ Hopt with "Hs") as "Hopt". *)
-    iPoseProof (fundamental_typed _ _ _ _ Hopt' with "Hs") as "Hopt".
+    (* XXX: Use pand_typed. On the path x0! *)
+    iPoseProof (fundamental_typed _ _ _ _ Hopt'' with "Hs") as "Hopt".
     iPoseProof (fundamental_typed _ _ _ _ Hcond with "Hs") as "Hcond".
     iIntros "!>" (ρ) "#Hg !>".
-    Import ectx_language prelude saved_interp_dep.
   Tactic Notation "smart_wp_bind'" uconstr(ctxs) ident(v) constr(Hv) uconstr(Hp) :=
     iApply (wp_bind (ectx_language.fill ctxs));
     iApply (wp_wand with "[-]"); [iApply Hp; trivial|];
     iIntros (v) Hv.
 
-    (* smart_wp_bind' [SkipCtx; ProjCtx _; IfCtx _ _] optV "#Ha" ("Hopt" with "Hg").
+    smart_wp_bind' [SkipCtx; ProjCtx _; IfCtx _ _] optV "#Ha" ("Hopt" with "Hg").
     iDestruct "Ha" as "[HF|HT]".
-    iApply (wp_bind (fill [IfCtx _ _])). *)
+    iApply (wp_bind (fill [IfCtx _ _])).
 
     smart_wp_bind' [IfCtx _ _] v "#Ha" ("Hcond" with "Hg").
     iDestruct "Ha" as %[b Hbool]. simpl in b, Hbool; subst.
