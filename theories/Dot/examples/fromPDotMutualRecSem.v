@@ -333,17 +333,17 @@ Proof. exact: psubst_ty_rtc_sufficient. Qed.
 
 Example getAnyTypeFunTyp Γ : μ (fromPDotPaperAbsTBody x2) :: optionModT :: Γ v⊢ₜ[fromPDotG] getAnyType : getAnyTypeT x1.
 Proof.
-  rewrite /getAnyType -(iterate_S tskip 0); tcrush.
-  eapply (Subs_typed (T1 := TLater (x0 @ "types" @; "Type"))); tcrush.
-  set Γ' := shift (μ (fromPDotPaperAbsTBody (shiftV x1))) ::
+  rewrite /getAnyType; tcrush.
+  eapply (Subs_typed (T1 := TLater (x0 @ "types" @; "Type")) (i := 1)); tcrush.
+  set Γ' := shift (μ (fromPDotPaperAbsTBody x2)) ::
     μ (fromPDotPaperAbsTBody x2) :: optionModT :: Γ.
-  have Hpx: Γ' v⊢ₚ[fromPDotG] p0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0
+  have Hpx: Γ' v⊢ₚ[fromPDotG] x0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0
     by tcrush; eapply Subs_typed_nocoerce;
       [ by eapply TMuE_typed; first var; stcrush | tcrush].
-  have HpxSubst: Γ' v⊢ₚ[fromPDotG] p0 @ "types" : fromPDotPaperAbsTypesTBodySubst, 0.
+  have HpxSubst: Γ' v⊢ₚ[fromPDotG] x0 @ "types" : fromPDotPaperAbsTypesTBodySubst, 0.
   by eapply (p_mu_e_typed (T := fromPDotPaperAbsTypesTBody)
-    (p := p0 @ "types")), Hpx; tcrush; exact: fromPDotPSubst.
-  eapply (Path_typed (p := p0)), pself_inv_typed, (p_subs_typed (i := 0)), HpxSubst.
+    (p := x0 @ "types")), Hpx; tcrush; exact: fromPDotPSubst.
+  eapply (Path_typed (p := x0)), pself_inv_typed, (p_subs_typed (i := 0)), HpxSubst.
   repeat lNext.
 Qed.
 
