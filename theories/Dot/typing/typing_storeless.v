@@ -316,6 +316,11 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     is_stamped_ty (length Γ) g U1 →
     is_stamped_ty (length Γ) g U2 →
     Γ v⊢ₜ[ g ] TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
+| DistrAndOr1_stp {S T U i}:
+    is_stamped_ty (length Γ) g S →
+    is_stamped_ty (length Γ) g T →
+    is_stamped_ty (length Γ) g U →
+    Γ v⊢ₜ[ g ] TAnd (TOr S T) U , i <: TOr (TAnd S U) (TAnd T U), i
 
 (* "Structural" rule about indexes. Only try last. *)
 | Undelay_stp Γ' T1 T2 i j :

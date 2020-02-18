@@ -282,6 +282,112 @@ Proof.
   apply: AddIJ_stp'; by [|lia].
 Qed.
 
+(* Lattice theory *)
+Lemma TOr_stp_split Γ T1 T2 U1 U2 i:
+  is_stamped_ty (length Γ) g U1 →
+  is_stamped_ty (length Γ) g U2 →
+  Γ v⊢ₜ[ g ] T1, i <: U1, i →
+  Γ v⊢ₜ[ g ] T2, i <: U2, i →
+  Γ v⊢ₜ[ g ] TOr T1 T2, i <: TOr U1 U2, i.
+Proof.
+  intros.
+  apply TOr_stp; [
+    eapply Trans_stp, TOr1_stp | eapply Trans_stp, TOr2_stp]; tcrush.
+Qed.
+
+Lemma TAnd_stp_split Γ T1 T2 U1 U2 i:
+  is_stamped_ty (length Γ) g T1 →
+  is_stamped_ty (length Γ) g T2 →
+  Γ v⊢ₜ[ g ] T1, i <: U1, i →
+  Γ v⊢ₜ[ g ] T2, i <: U2, i →
+  Γ v⊢ₜ[ g ] TAnd T1 T2, i <: TAnd U1 U2, i.
+Proof.
+  intros; apply TAnd_stp; [
+    eapply Trans_stp; first apply TAnd1_stp |
+    eapply Trans_stp; first apply TAnd2_stp]; tcrush.
+Qed.
+
+Lemma distrAndOr2_stp {Γ S T U i}:
+  is_stamped_ty (length Γ) g S →
+  is_stamped_ty (length Γ) g T →
+  is_stamped_ty (length Γ) g U →
+  Γ v⊢ₜ[ g ] TOr (TAnd S U) (TAnd T U), i <: TAnd (TOr S T) U , i.
+Proof.
+  intros; apply TOr_stp; apply TAnd_stp; tcrush;
+    (ettrans; first apply TAnd1_stp); tcrush.
+Qed.
+
+Lemma distrOrAnd1_stp {Γ S T U i}:
+  is_stamped_ty (length Γ) g S →
+  is_stamped_ty (length Γ) g T →
+  is_stamped_ty (length Γ) g U →
+  Γ v⊢ₜ[ g ] TOr (TAnd S T) U , i <: TAnd (TOr S U) (TOr T U), i.
+Proof.
+  intros; apply TOr_stp; apply TAnd_stp; tcrush;
+    (ettrans; last apply TOr1_stp); tcrush.
+Qed.
+
+Lemma comm_and {Γ T U i} :
+  is_stamped_ty (length Γ) g T →
+  is_stamped_ty (length Γ) g U →
+  Γ v⊢ₜ[ g ] TAnd T U, i <: TAnd U T, i.
+Proof. intros; tcrush. Qed.
+
+Lemma comm_or {Γ T U i} :
+  is_stamped_ty (length Γ) g T →
+  is_stamped_ty (length Γ) g U →
+  Γ v⊢ₜ[ g ] TOr T U, i <: TOr U T, i.
+Proof. intros; tcrush. Qed.
+
+Lemma absorb_and_or {Γ T U i} :
+  is_stamped_ty (length Γ) g T →
+  is_stamped_ty (length Γ) g U →
+  Γ v⊢ₜ[ g ] TAnd U (TOr T U), i <: U, i.
+Proof. intros; tcrush. Qed.
+
+Lemma absorb_or_and {Γ T U i} :
+  is_stamped_ty (length Γ) g T →
+  is_stamped_ty (length Γ) g U →
+  Γ v⊢ₜ[ g ] TOr U (TAnd T U), i <: U, i.
+Proof. intros; tcrush. Qed.
+
+Lemma absorb_or_and2 {Γ T U i} :
+  is_stamped_ty (length Γ) g T →
+  is_stamped_ty (length Γ) g U →
+  Γ v⊢ₜ[ g ] TOr (TAnd T U) T, i <: T, i.
+Proof. intros; ettrans; first apply comm_or; tcrush. Qed.
+
+Lemma assoc_or {Γ S T U i} :
+  is_stamped_ty (length Γ) g S →
+  is_stamped_ty (length Γ) g T →
+  is_stamped_ty (length Γ) g U →
+  Γ v⊢ₜ[ g ] TOr (TOr S T) U, i <: TOr S (TOr T U), i.
+Proof. intros; tcrush; (ettrans; last apply TOr2_stp); tcrush. Qed.
+
+(* Based on Lemma 4.3 in
+https://books.google.co.uk/books?id=vVVTxeuiyvQC&lpg=PA104&pg=PA85#v=onepage&q&f=false.
+Would be much easier to formalize with setoid rewriting.
+*)
+Lemma distrOrAnd2_stp {Γ S T U i}:
+  is_stamped_ty (length Γ) g S →
+  is_stamped_ty (length Γ) g T →
+  is_stamped_ty (length Γ) g U →
+  Γ v⊢ₜ[ g ] TAnd (TOr S U) (TOr T U), i <: TOr (TAnd S T) U , i.
+Proof.
+  intros.
+  ettrans; first apply DistrAndOr1_stp; stcrush => //.
+  ettrans; first apply TOr_stp_split, absorb_and_or; try apply Refl_stp;
+    stcrush => //.
+  ettrans; first apply TOr_stp_split; try apply (Refl_stp _ _ (T := U));
+    try (ettrans; first apply (comm_and (T := S))); try apply DistrAndOr1_stp; stcrush => //.
+  ettrans; first apply assoc_or; stcrush => //.
+  ettrans; first apply TOr_stp_split.
+  3: apply Refl_stp; tcrush.
+  3: ettrans; first apply absorb_or_and2; tcrush.
+  all: tcrush.
+  ettrans; first eapply comm_and; tcrush.
+Qed.
+
 (* Lemma AddIB_stp Γ T U i:
   is_stamped_ty (length Γ) g T →
   is_stamped_ty (length Γ) g U →

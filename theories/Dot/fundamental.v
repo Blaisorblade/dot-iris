@@ -71,6 +71,7 @@ Section fundamental.
       + iApply sSub_TAll_Cov_Distr.
       + iApply sSub_TVMem_Cov_Distr.
       + iApply sSub_TTMem_Cov_Distr.
+      + by iApply sDistrAndOr1.
       + by iApply istpi_weaken_ctx_syn.
       + subst. by iApply Delay_Sub.
       (* + by_reflect. *)
