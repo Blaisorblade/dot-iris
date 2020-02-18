@@ -51,6 +51,20 @@ End LambdaIntros.
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
+  Lemma sDelay_Sub {Γ T U i j}:
+    Γ s⊨ T, i <: U, j -∗
+    oLater <$> Γ s⊨ oLater T, i <: oLater U, j.
+  Proof.
+    iIntros "#Hsub !>" (ρ v) "#Hg/=".
+    rewrite !swap_later -later_impl senv_TLater_commute.
+    iNext. iApply ("Hsub" with "Hg").
+  Qed.
+
+  Lemma Delay_Sub {Γ T U i j}:
+    Γ ⊨ T, i <: U, j -∗
+    TLater <$> Γ ⊨ TLater T, i <: TLater U, j.
+  Proof. by rewrite /istpi fmap_TLater_oLater sDelay_Sub. Qed.
+
   Lemma sT_Var {Γ x τ}
     (Hx : Γ !! x = Some τ):
     (*──────────────────────*)

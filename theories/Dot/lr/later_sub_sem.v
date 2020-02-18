@@ -61,11 +61,17 @@ Section CtxSub.
   Global Instance Proper_cons_ctx_sub_flip : Proper (flip ty_sub ==> flip ctx_sub ==> flip ctx_sub) cons.
   Proof. solve_proper. Qed.
 
-  (** Typing is contravariant in [Γ]. *)
+  (** Typing is contravariant in [Γ].
+  Note these instances are very specialized. *)
   Global Instance Proper_setp e : Proper (flip s_ctx_sub ==> (=) ==> (⊢)) (setp e).
   Proof. move => /= Γ1 Γ2 Hweak T1 T2 ->. by setoid_rewrite (Hweak _). Qed.
   Global Instance Proper_setp_flip e : Proper (s_ctx_sub ==> flip (=) ==> flip (⊢)) (setp e).
   Proof. apply: flip_proper_3. Qed.
+
+  Global Instance Proper_sstpi i j : Proper (flip s_ctx_sub ==> (=) ==> (=) ==> (⊢)) (sstpi i j).
+  Proof. move => /= Γ1 Γ2 Hweak T1 T2 -> U1 U2 ->. by setoid_rewrite (Hweak _). Qed.
+  Global Instance Proper_sstpi_flip i j : Proper (s_ctx_sub ==> flip (=) ==> flip (=) ==> flip (⊢)) (sstpi i j).
+  Proof. apply: flip_proper_4. Qed.
 
   Global Instance Proper_ietp : Proper (flip ctx_sub ==> (=) ==> (=) ==> (⊢)) ietp.
   Proof.
@@ -75,6 +81,17 @@ Section CtxSub.
   Global Instance Proper_ietp_flip :
     Proper (ctx_sub ==> flip (=) ==> flip (=) ==> flip (⊢)) ietp.
   Proof. apply: flip_proper_4. Qed.
+
+  Global Instance Proper_istpi :
+    Proper (flip ctx_sub ==> (=) ==> (=) ==> (=) ==> (=) ==> (⊢)) istpi.
+  Proof.
+    rewrite /ctx_sub /flip /istpi => Γ1 Γ2 Hweak ????????????; subst.
+    by rewrite Hweak.
+  Qed.
+  Global Instance Proper_istpi_flip :
+    Proper (ctx_sub ==> flip (=) ==> flip (=) ==> flip (=) ==> flip (=) ==> flip (⊢)) istpi.
+  Proof. apply: flip_proper_6. Qed.
+
 
   Global Instance Proper_oLater : Proper (s_ty_sub ==> s_ty_sub) oLater.
   Proof. intros x y Hl ??. by rewrite /= (Hl _ _). Qed.
@@ -218,6 +235,10 @@ Section CtxSub.
 
   Lemma ietp_weaken_ctx_syn Γ1 Γ2 {T e} (Hsyn : ⊢G Γ1 <:* Γ2) : Γ2 ⊨ e : T -∗ Γ1 ⊨ e : T.
   Proof. by apply Proper_ietp; first apply (fundamental_ctx_sub Hsyn). Qed.
+
+  Lemma istpi_weaken_ctx_syn Γ1 Γ2 {T1 T2 i j} (Hsyn : ⊢G Γ1 <:* Γ2) :
+    Γ2 ⊨ T1, i <: T2, j -∗ Γ1 ⊨ T1, i <: T2, j.
+  Proof. by apply Proper_istpi; first apply (fundamental_ctx_sub Hsyn). Qed.
 End CtxSub.
 
 Typeclasses Opaque s_ty_sub.
