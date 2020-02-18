@@ -1,6 +1,5 @@
 From iris.proofmode Require Import tactics.
 From D Require Import iris_prelude.
-From D Require Import iris_extra.swap_later_impl.
 From D.Dot Require Import dlang_inst rules lr_syn_aux syn.path_repl.
 From D.pure_program_logic Require Import lifting.
 

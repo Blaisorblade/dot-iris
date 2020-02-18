@@ -13,6 +13,54 @@ Implicit Types
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
+Section NoSwapVariants.
+  Context `{HdlangG: dlangG Σ}.
+
+  (* Yes, no swap! *)
+  Lemma sTyp_Sub_Typ {Γ L1 L2 U1 U2 l}:
+    Γ s⊨ oLater L2, 0 <: oLater L1, 0 -∗
+    Γ s⊨ oLater U1, 0 <: oLater U2, 0 -∗
+    Γ s⊨ cTMem l L1 U1, 0 <: cTMem l L2 U2, 0.
+  Proof using HdlangG.
+    iIntros "#IHT #IHT1 /= !>" (ρ v) "#Hg #HT1".
+    iDestruct "HT1" as (d) "[Hl2 H]".
+    iDestruct "H" as (φ) "#[Hφl [HLφ #HφU]]".
+    iExists d; repeat iSplit; first by [].
+    iExists φ; repeat iSplitL; first by [];
+      rewrite -?mlater_pers;
+      iIntros "!>" (w);
+      iSpecialize ("IHT" $! ρ w with "Hg");
+      iSpecialize ("IHT1" $! ρ w with "Hg");
+      iIntros.
+    - iApply "HLφ" => //. by iApply "IHT".
+    - iApply "IHT1". by iApply "HφU".
+  Qed.
+
+  Context `{HswapProp : !SwapPropI Σ}.
+  (* A swap still needed, but only because functions are contractive. *)
+  Lemma sAll_Sub_All {Γ T1 T2 U1 U2}:
+    Γ s⊨ oLater T2, 0 <: oLater T1, 0 -∗
+    oLater (shift T2) :: Γ s⊨ oLater U1, 0 <: oLater U2, 0 -∗
+    Γ s⊨ oAll T1 U1, 0 <: oAll T2 U2, 0.
+  Proof using HdlangG HswapProp.
+    iIntros "#HsubT #HsubU /= !>" (ρ v) "#Hg #HT1".
+    iDestruct "HT1" as (t) "#[Heq #HT1]". iExists t; iSplit => //.
+    iIntros (w).
+    (* rewrite -mlater_impl. *)
+    iIntros "!> #HwT2".
+    iSpecialize ("HsubT" $! ρ w with "Hg HwT2").
+    iSpecialize ("HsubU" $! (w .: ρ)); iEval (rewrite -forall_swap_impl) in "HsubU".
+    iSpecialize ("HsubU" with "[# $Hg]").
+    by iApply hoEnvD_weaken_one.
+    setoid_rewrite mlater_impl.
+    rewrite -!mlater_pers; iModIntro.
+    iNext 1.
+    iApply wp_wand.
+    - iApply ("HT1" with "[]"). iApply "HsubT".
+    - iIntros (u) "#HuU1". by iApply "HsubU".
+  Qed.
+End NoSwapVariants.
+
 (** These typing lemmas can be derived syntactically.
  But I had written semantic proofs first, and they might help. *)
 Section AlsoSyntactically.
