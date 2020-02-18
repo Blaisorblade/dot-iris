@@ -170,28 +170,6 @@ Ltac hideCtx :=
   | |- ?Γ v⊢ds[ _ ] _ : _ => hideCtx' Γ
   end.
 
-Lemma swapSem {S T U i Γ}: Γ ⊨ TAnd (TOr S T) U , i <: TOr (TAnd S U) (TAnd T U), i.
-Proof.
-  iIntros "!> %% #Hg [[HS|HT] Hu] !> /="; [iLeft|iRight]; iFrame.
-Qed.
-
-Lemma swap {S T U i Γ g}: Γ v⊢ₜ[ g ] TAnd (TOr S T) U , i <: TOr (TAnd S U) (TAnd T U), i.
-Proof.
-  ettrans; last apply TOr_stp.
-Admitted.
-
-Lemma TOr_stp_split Γ g T1 T2 U1 U2 i:
-  is_stamped_ty (length Γ) g U1 →
-  is_stamped_ty (length Γ) g U2 →
-  Γ v⊢ₜ[ g ] T1, i <: U1, i →
-  Γ v⊢ₜ[ g ] T2, i <: U2, i →
-  Γ v⊢ₜ[ g ] TOr T1 T2, i <: TOr U1 U2, i.
-Proof.
-  intros.
-  apply TOr_stp; [
-    eapply Trans_stp, TOr1_stp | eapply Trans_stp, TOr2_stp]; tcrush.
-Qed.
-
 Arguments iPPred_car : simpl never.
 Arguments pty_interp : simpl never.
 Tactic Notation "smart_wp_bind'" uconstr(ctxs) ident(v) constr(Hv) uconstr(Hp) :=
@@ -300,7 +278,7 @@ Proof.
       }
       by ettrans; first apply TAddLater_stp; stcrush; asideLaters; ltcrush.
       rewrite /hoptionTConcr/=.
-      ettrans; first apply swap.
+      ettrans; first apply distrAndOr1_stp.
       apply TOr_stp_split; stcrush.
       ltcrush.
       lNext.
