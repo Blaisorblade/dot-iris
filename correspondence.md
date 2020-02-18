@@ -38,7 +38,7 @@ Translation table:
 For each rule, there are up to three versions, with corresponding prefixes.
 - Purely semantic lemma (s)
 - Syntactic lemma
-- Syntactic typing rule (?)
+- Syntactic typing rule (?, they still don't follow this naming convention :-( ).
 
 ## Differences between our paper (and technical appendix) and our Coq development.
 
@@ -49,7 +49,7 @@ For each rule, there are up to three versions, with corresponding prefixes.
 
 - Unlike in the appendix, our saved predicates support an additional argument
   `args : vec n vl` for some `n`. We always set `n = 0` to ignore this, but our
-  implementation has additional flexibility.
+  implementation has additional flexibility that we plan to use in the future.
 
 - Our mechanization extends gDOT with some primitives, such as booleans and
   naturals, with some associated operations, even tho all of those are
