@@ -318,8 +318,13 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     Γ v⊢ₜ[ g ] TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
 
 (* "Structural" rule about indexes. Only try last. *)
-| TLater_Mono_stp T1 T2 i j:
-    Γ v⊢ₜ[ g ] T1, i <: T2, j →
+| Undelay_stp Γ' T1 T2 i j :
+    ⊢G Γ <:* Γ' →
+    Γ' v⊢ₜ[ g ] T1, i <: T2, j →
+    Γ  v⊢ₜ[ g ] T1, i <: T2, j
+| Delay_stp' Γ' T1 T2 i j:
+    Γ' v⊢ₜ[ g ] T1, i <: T2, j →
+    Γ = TLater <$> Γ' →
     Γ v⊢ₜ[ g ] TLater T1, i <: TLater T2, j
 (* | Sem_stp T1 T2 i1 i2 :
     is_stamped_ty (length Γ) g T1 →
@@ -382,6 +387,15 @@ Proof.
 Qed.
 
 Ltac ettrans := eapply Trans_stp.
+
+Lemma Delay_stp {Γ g T1 T2 i j} :
+  Γ v⊢ₜ[ g ] T1, i <: T2, j → TLater <$> Γ v⊢ₜ[ g ] TLater T1, i <: TLater T2, j.
+Proof. intros. exact: Delay_stp'. Qed.
+
+Lemma TLater_Mono_stp {Γ g T1 T2 i j} :
+  Γ v⊢ₜ[ g ] T1, i <: T2, j →
+  Γ v⊢ₜ[ g ] TLater T1, i <: TLater T2, j.
+Proof. intros Hs; eapply Undelay_stp, Delay_stp, Hs; ietp_weaken_ctx. Qed.
 
 Lemma TMono_stp {Γ T1 T2 i j g} :
   Γ v⊢ₜ[ g ] T1, i <: T2, j →

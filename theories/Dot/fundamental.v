@@ -71,7 +71,8 @@ Section fundamental.
       + iApply sSub_TAll_Cov_Distr.
       + iApply sSub_TVMem_Cov_Distr.
       + iApply sSub_TTMem_Cov_Distr.
-      + by iApply sSub_Later_Mono.
+      + by iApply istpi_weaken_ctx_syn.
+      + subst. by iApply Delay_Sub.
       (* + by_reflect. *)
     - iIntros "#Hm"; induction HT.
       + by iApply T_All_Ex; [apply IHHT1|apply IHHT2].
