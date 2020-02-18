@@ -133,6 +133,8 @@ Section syntyping_lemmas.
     by erewrite <- ctx_sub_len; [exact: ty_sub_stamped|].
   Qed.
 
+  Local Hint Resolve ctx_sub_stamped fmap_TLater_stamped_inv : core.
+
   Lemma stamped_mut_types Γ g :
     (∀ e T, Γ v⊢ₜ[ g ] e : T → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T) ∧
     (∀ ds T, Γ v⊢ds[ g ] ds : T → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T) ∧
@@ -149,17 +151,11 @@ Section syntyping_lemmas.
         (P3 := λ Γ g T1 i1 T2 i2 _, ∀ (Hctx: stamped_ctx g Γ),
                is_stamped_ty (length Γ) g T1 ∧ is_stamped_ty (length Γ) g T2); clear Γ g.
     all: intros; simplify_eq/=; try nosplit inverse Hctx;
+      try (rewrite ->?(@ctx_sub_len Γ Γ'),
+        ?(@ctx_sub_len_tlater Γ Γ') in * by assumption);
       try (efeed pose proof H ; [by eauto | ev; clear H ]);
       try (efeed pose proof H0; [by eauto | ev; clear H0]);
-      repeat constructor; cbn; eauto 2;
-      inverse_is_stamped; eauto.
-    - eapply is_stamped_sub_rev_ty; eauto.
-    - rewrite <-(@ctx_sub_len_tlater Γ Γ') in *; try done.
-      efeed pose proof H. {
-        constructor. by eapply fmap_TLater_stamped_inv, ctx_sub_stamped.
-        rewrite <-(@ctx_sub_len_tlater Γ Γ') in *; try done. eauto.
-      }
-      eauto.
-    - exact: stamped_lookup.
+      repeat constructor; rewrite /= ?fmap_length; eauto 2;
+      inverse_is_stamped; eauto 4 using stamped_lookup, is_stamped_sub_rev_ty.
   Qed.
 End syntyping_lemmas.
