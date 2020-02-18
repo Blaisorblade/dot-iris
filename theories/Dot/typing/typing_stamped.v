@@ -289,9 +289,9 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     Γ s⊢ₜ[ g ] TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
 
 (* "Structural" rule about indexes. Only try last. *)
-| TLater_Mono_stp T1 T2 i j:
+(* | TLater_Mono_stp T1 T2 i j:
     Γ s⊢ₜ[ g ] T1, i <: T2, j →
-    Γ s⊢ₜ[ g ] TLater T1, i <: TLater T2, j
+    Γ s⊢ₜ[ g ] TLater T1, i <: TLater T2, j *)
 where "Γ s⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ g T1 i1 T2 i2).
 
 Scheme exp_stamped_objIdent_typed_mut_ind := Induction for typed Sort Prop
@@ -360,7 +360,7 @@ Qed.
 
 Ltac ettrans := eapply Trans_stp.
 
-Lemma TMono_stp {Γ T1 T2 i j g} :
+(* Lemma TMono_stp {Γ T1 T2 i j g} :
   Γ s⊢ₜ[ g ] T1, i <: T2, j →
   is_stamped_ty (length Γ) g T1 →
   is_stamped_ty (length Γ) g T2 →
@@ -370,7 +370,7 @@ Proof.
   ettrans; first exact: TLaterR_stp.
   ettrans; last exact: TLaterL_stp.
   exact: TLater_Mono_stp.
-Qed.
+Qed. *)
 
 Lemma Sub_later_shift {Γ T1 T2 i j g}
   (Hs1: is_stamped_ty (length Γ) g T1)
@@ -417,7 +417,6 @@ Section syntyping_lemmas.
         (P2 := λ Γ g p T i _, Γ v⊢ₚ[ g ] p : T, i)
         (P3 := λ Γ g T1 i1 T2 i2 _, Γ v⊢ₜ[ g ] T1, i1 <: T2, i2); clear Γ g;
       try solve [econstructor; eauto].
-      intros. exact: typing_storeless.TLater_Mono_stp.
   Qed.
   Lemma typing_obj_ident_to_typing Γ g e T:
     Γ s⊢ₜ[ g ] e : T → Γ v⊢ₜ[ g ] e : T.
