@@ -111,7 +111,7 @@ Module Import syn.
 
 Coercion htv := liftA1 tv : hvl → htm.
 Definition htapp : htm → htm → htm := liftA2 tapp.
-Definition htproj : htm → label → nat → tm := Eval cbv in λ t l, liftA2 tproj t (pureS l).
+Definition htproj : htm → label → htm := Eval cbv in λ t l, liftA2 tproj t (pureS l).
 Definition htskip : htm → htm := liftA1 tskip.
 Definition htif : htm → htm → htm → htm := liftA3 tif.
 Definition htun : un_op → htm → htm := λ u, liftA1 (tun u).
@@ -133,7 +133,7 @@ Definition hdtysem (σ : list hvl) s : hdm := λ x, dtysem (map (.$ x) σ) s.
 Definition hdpt : hpath → hdm := liftA1 dpt.
 
 Coercion hpv := liftA1 pv : hvl → hpath.
-Definition hpself : hpath → label → nat → path := Eval cbv in λ p l, liftA2 pself p (pureS l).
+Definition hpself : hpath → label → hpath := Eval cbv in λ p l, liftA2 pself p (pureS l).
 
 Definition hTTop : hty := liftA0 TTop.
 Definition hTBot : hty := liftA0 TBot.
@@ -148,7 +148,7 @@ Definition hTAll : hty → (hvl → hty) → hty := λ T U i,
 Definition hTMu : (hvl → hty) → hty := liftBind TMu.
 Definition hTVMem : label → hty → hty := λ l, liftA1 (TVMem l).
 Definition hTTMem : label → hty → hty → hty := λ l, liftA2 (TTMem l).
-Definition hTSel : hpath → label → nat → ty := Eval cbv in λ p l, liftA2 TSel p (pureS l).
+Definition hTSel : hpath → label → hty := Eval cbv in λ p l, liftA2 TSel p (pureS l).
 Definition hTPrim b : hty := liftA0 (TPrim b).
 Definition hTSing : hpath → hty := liftA1 TSing.
 
