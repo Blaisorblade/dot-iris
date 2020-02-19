@@ -109,7 +109,7 @@ Definition fromPDotPaperTypesV : vl := ν {@
   type "TypeRef" =[ pTypeRef ];
   val "AnyType" = ν {@ };
   val "newTypeRef" = vabs (
-    tif (tskip (tskip (tskip x0) @: "tpe") @: "isEmpty") (hclose hloopTm)
+    tif (tskip (tskip x0 @: "tpe") @: "isEmpty") (hclose hloopTm)
     (ν {@
       val "symb" = x1
     }));
@@ -174,12 +174,12 @@ Ltac hideCtx :=
   | |- ?Γ v⊢ds[ _ ] _ : _ => hideCtx' Γ
   end.
 
-Arguments iPPred_car : simpl never.
-Arguments pty_interp : simpl never.
 Tactic Notation "smart_wp_bind'" uconstr(ctxs) ident(v) constr(Hv) uconstr(Hp) :=
   iApply (wp_bind (ectx_language.fill ctxs));
   iApply (wp_wand with "[-]"); [iApply Hp; trivial|];
   iIntros (v) Hv.
+
+Lemma sem_later T a b c: V⟦TLater T⟧ a b c ⊣⊢ ▷ V⟦T⟧ a b c. done. Qed.
 
 Example semFromPDotPaperTypesTyp Γ :
   TLater (fromPDotPaperAbsTBody x1) :: optionModTInv :: Γ ⊨[ fromPDotGφ ]
@@ -234,52 +234,48 @@ Proof.
     have Hx0 : Γ2 v⊢ₜ[ fromPDotG' ] x0 : x2 @ "symbols" @; "Symbol" by var.
     have Hsub0X0 :
       Γ2 v⊢ₜ[ fromPDotG' ] x2 @ "symbols" @; "Symbol", 0 <:
-        val "tpe" : optionTy x3 x2 , 2. {
+        val "tpe" : optionTy x3 x2 , 1. {
       (* eapply (iT_Sub (i := 1)); last typconstructor; first last. *)
-      ettrans; first apply iSub_Add_Later; stcrush.
       asideLaters.
       ettrans; last apply iLater_Sub; stcrush.
       eapply (iSel_Sub (L := ⊥)).
       (* Necessary: Pick this over [pv_dlater]. *)
       apply iP_Fld_E.
       tcrush; varsub.
-      ettrans; first apply iSub_Add_Later; stcrush.
-      asideLaters.
       ltcrush; mltcrush.
     }
-    have Hx0' : Γ2 v⊢ₚ[ fromPDotG' ] x0 : val "tpe" : optionTy x3 x2, 2. {
-      eapply (iP_Sub (i := 0)), iP_Val, Hx0. apply Hsub0X0.
-    }
 
-    have Hopt : Γ2 v⊢ₜ[ fromPDotG' ]
-      tskip (tskip x0) @: "tpe" : optionTy x3 x2. {
-      (* eapply (iT_Sub (i := 1)); first apply iLater_Sub; stcrush. *)
-      typconstructor.
-      eapply (iT_Sub (i := 2)), Hx0. apply Hsub0X0.
-    }
-
-
-    (* have HoptSub' :
-      Γ2 v⊢ₜ[ fromPDotG' ] optionTy x3 x2, 1 <:
-      hclose hoptionTConcr, 2. {
-        admit.
-    } *)
-
-    (* set foo := hTAnd (hsomeConcrT ⊥ ⊤) (type "T" >: ⊥ <: (hx2 @ "types") @; "Type"). *)
-    (* have Hx0'' : Γ2 v⊢ₚ[ fromPDotG' ] x0 : val "tpe" : hoptionTyConcr hx2, 2. { *)
-
-    have HoptSub' :
-      Γ2 v⊢ₜ[ fromPDotG' ] optionTy x3 x2, 2 <: hoptionTyConcr1 hoasNotation.hx2, 3. {
+    have HoptSub0 :
+      Γ2 v⊢ₜ[ fromPDotG' ] optionTy x3 x2, 0 <: hoptionTyConcr1 hoasNotation.hx2, 1. {
       tcrush.
       rewrite /hoptionTyConcr/optionTy.
-      eapply (iSub_Trans (T2 := TAnd hoptionTConcr (type "T" >: ⊥ <: (x2 @ "types") @; "Type")) (i2 := 3));
+      eapply (iSub_Trans (T2 := TAnd hoptionTConcr (type "T" >: ⊥ <: (x2 @ "types") @; "Type")) (i2 := 1));
         first apply iSub_And. {
         lThis.
         ettrans; last apply iLater_Sub; stcrush.
         eapply (iSel_Sub (L := ⊥) (U := hclose hoptionTConcr)).
         tcrush.
         varsub.
-        ettrans; first apply iSub_Add_Later; stcrush.
+        mltcrush.
+      }
+      by ettrans; first apply iSub_Add_Later; stcrush; asideLaters; ltcrush.
+
+      rewrite /hoptionTConcr/=.
+      ettrans; first apply iAnd_Or_Sub_Distr; stcrush.
+      apply iOr_Sub_split; ltcrush.
+    }
+
+    have HoptSub1 :
+      Γ2 v⊢ₜ[ fromPDotG' ] optionTy x3 x2, 1 <: hoptionTyConcr1 hoasNotation.hx2, 2. {
+      tcrush.
+      rewrite /hoptionTyConcr/optionTy.
+      eapply (iSub_Trans (T2 := TAnd hoptionTConcr (type "T" >: ⊥ <: (x2 @ "types") @; "Type")) (i2 := 2));
+        first apply iSub_And. {
+        lThis.
+        ettrans; last apply iLater_Sub; stcrush.
+        eapply (iSel_Sub (L := ⊥) (U := hclose hoptionTConcr)).
+        tcrush.
+        varsub.
         ettrans; first apply iSub_Add_Later; stcrush.
         asideLaters.
         mltcrush.
@@ -290,6 +286,108 @@ Proof.
       ettrans; first apply iAnd_Or_Sub_Distr; stcrush.
       apply iOr_Sub_split; ltcrush.
     }
+
+    have HoptSubT :
+      Γ2 v⊢ₜ[ fromPDotG' ] val "tpe" : optionTy x3 x2, 1 <: val "tpe" : TLater (hoptionTyConcr1 hoasNotation.hx2), 1. {
+      tcrush. by asideLaters.
+    }
+
+    have Hx0' : Γ2 v⊢ₚ[ fromPDotG' ] x0 : val "tpe" : optionTy x3 x2, 1. {
+      eapply (iP_Sub (i := 0)), iP_Val, Hx0. apply Hsub0X0.
+    }
+
+    have Hx0'' : Γ2 v⊢ₚ[ fromPDotG' ] x0 : val "tpe" : TLater (hoptionTyConcr1 hoasNotation.hx2), 1. {
+      eapply (iP_Sub (i := 1)), Hx0'. apply HoptSubT.
+    }
+    have Hx0T : Γ2 v⊢ₜ[ fromPDotG' ] x0 : TLater (val "tpe" : TLater (hoptionTyConcr1 hoasNotation.hx2)). {
+      eapply (iT_Sub (i := 0)), Hx0.
+      ettrans; first apply Hsub0X0.
+      ettrans; first apply HoptSubT.
+      tcrush.
+    }
+    iIntros "!>" (ρ) "#Hg !>".
+    (* iPoseProof (fundamental_path_typed _ _ _ _ _ Hx0'' with "Hs") as "Hx0". *)
+    iPoseProof (fundamental_typed _ _ _ _ Hx0T with "Hs") as "Hx0".
+    (* iApply (wp_bind (fill [SkipCtx; ProjCtx _; SkipCtx; ProjCtx _; IfCtx _ _])). *)
+    smart_wp_bind' [SkipCtx; ProjCtx _; SkipCtx; ProjCtx _; IfCtx _ _] symV "{Hx0} #Hx0" ("Hx0" with "Hg").
+    iEval simplSubst; rewrite /of_val /vclose.
+    iApply (wp_bind (fill [ProjCtx _; SkipCtx; ProjCtx _; IfCtx _ _])).
+    rewrite -wp_pure_step_later ?sem_later -?wp_value; last done.
+    iNext 1.
+    iDestruct "Hx0" as (d Hl p ->) "Hx0tpe".
+    iApply (wp_bind (fill [SkipCtx; ProjCtx _; IfCtx _ _])); iSimpl.
+    iDestruct (path_wp_pure_exec with "Hx0tpe") as (optV [n?]) "{Hx0tpe} Hw".
+    rewrite sem_later -wp_pure_step_later; last done.
+    rewrite -wp_pure_step_later -1?wp_value; last done.
+    iNext.
+    iNext n.
+    (*
+    iAssert ([] ⊨ optV @: "tpe" : ▶: hoptionTyConcr1 (λ x : var, hoasNotation.hx2 x)) as "Htpe". {
+    iApply T_Obj_E.
+    } *)
+    iApply (wp_bind (fill [ProjCtx _; IfCtx _ _])); iSimpl.
+    rewrite -wp_pure_step_later -1?wp_value /of_val; last done.
+    iNext.
+    iDestruct "Hw" as "[HwF|HwT]".
+    (* Next, use subtyping to convert Hw? into something usable. *)
+
+    (* In fact, we want subtyping. *)
+
+    have Hopt'' : Γ2 v⊢ₜ[ fromPDotG' ] tskip (tskip x0) @: "tpe" :
+      TLater hoptionTConcr. {
+        tcrush.
+        admit.
+    }
+
+    have Hcond : Γ2 v⊢ₜ[ fromPDotG' ]
+      tskip (tskip (tskip x0) @: "tpe") @: "isEmpty" : TBool. {
+      tcrush.
+      eapply (iT_Sub (i := 1)); first apply iLater_Sub; stcrush.
+      eapply (iT_Sub (i := 0)), Hopt''.
+      mltcrush; eapply (iT_Sub (i := 0) (T1 := TBool)); tcrush.
+    }
+
+
+(*
+Arguments iPPred_car : simpl never.
+Arguments pty_interp : simpl never. *)
+    (* cbn [iPPred_car pty_interp].
+
+
+    smart_wp_bind' [SkipCtx; ProjCtx _; IfCtx _ _] optV "#Ha" ("Hopt" with "Hg").
+    iPoseProof (fundamental_typed _ _ _ _ Hcond with "Hs") as "Hcond". *)
+
+    (* simpl.
+    simplSubst. *)
+
+    (* smart_wp_bind' [SkipCtx; ProjCtx _; IfCtx _ _] optV "#Ha" ("Hopt" with "Hg").
+    iDestruct "Ha" as "[HF|HT]".
+    iApply (wp_bind (fill [IfCtx _ _])). *)
+
+
+    have Hopt : Γ2 v⊢ₜ[ fromPDotG' ]
+      tskip x0 @: "tpe" : optionTy x3 x2. {
+      (* eapply (iT_Sub (i := 1)); first apply iLater_Sub; stcrush. *)
+      typconstructor.
+      eapply (iT_Sub (i := 1)), Hx0. apply Hsub0X0.
+    }
+
+    have Hopt' : Γ2 v⊢ₜ[ fromPDotG' ]
+      tskip (tskip x0 @: "tpe") : hoptionTyConcr1 hoasNotation.hx2. {
+        tcrush.
+      eapply (iT_Sub (i := 1)), Hopt. apply HoptSub0.
+    }
+
+
+    (* have HoptSub1 :
+      Γ2 v⊢ₜ[ fromPDotG' ] optionTy x3 x2, 1 <:
+      hclose hoptionTConcr, 2. {
+        admit.
+    } *)
+
+    (* set foo := hTAnd (hsomeConcrT ⊥ ⊤) (type "T" >: ⊥ <: (hx2 @ "types") @; "Type"). *)
+    (* have Hx0'' : Γ2 v⊢ₚ[ fromPDotG' ] x0 : val "tpe" : hoptionTyConcr hx2, 2. { *)
+
     (* rewrite /hoptionTyConcr1 in HoptSub'. *)
 
     (* have HoptSub :
@@ -327,12 +425,6 @@ Proof.
       admit.
     } *)
 
-    have Hopt'' : Γ2 v⊢ₜ[ fromPDotG' ] tskip (tskip x0) @: "tpe" :
-      TLater hoptionTConcr. {
-        tcrush.
-        admit.
-    }
-
     (* have Hopt' : Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
       tskip (tskip x0) @: "tpe" :
       TLater (hclose (hoptionTyConcr hoasNotation.hx2)). {
@@ -353,15 +445,6 @@ Proof.
       tcrush.
       admit.
     } *)
-
-    (* In fact, we want subtyping. *)
-    have Hcond : Γ2 v⊢ₜ[ fromPDotG' ]
-      tskip (tskip (tskip x0) @: "tpe") @: "isEmpty" : TBool. {
-      tcrush.
-      eapply (iT_Sub (i := 1)); first apply iLater_Sub; stcrush.
-      eapply (iT_Sub (i := 0)), Hopt''.
-      mltcrush; eapply (iT_Sub (i := 0) (T1 := TBool)); tcrush.
-    }
 
     (* Fails due to using optionModTInv. *)
     (* have Hcond : Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
