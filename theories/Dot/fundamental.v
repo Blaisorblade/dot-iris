@@ -57,21 +57,21 @@ Section fundamental.
       + by iApply sSub_Or1.
       + by iApply sSub_Or2.
       + by iApply sOr_Sub.
-      + iApply Sel_Sub_Path. by iApply fundamental_path_typed.
-      + iApply Sub_Sel_Path. by iApply fundamental_path_typed.
+      + iApply Sel_Sub. by iApply fundamental_path_typed.
+      + iApply Sub_Sel. by iApply fundamental_path_typed.
       + by iApply Sngl_pq_Sub; [|iApply fundamental_path_typed].
-      + by iApply Sngl_Sym_Sub; [iApply fundamental_path_typed|apply IHHT].
-      + iApply Sngl_Self_Sub. by iApply fundamental_path_typed.
-      + by iApply Sub_Mu_X.
-      + iApply Sub_Mu_A.
-      + iApply Sub_Mu_B.
+      + by iApply Sngl_Sub_Sym; [iApply fundamental_path_typed|apply IHHT].
+      + iApply Sngl_Sub_Self. by iApply fundamental_path_typed.
+      + by iApply Mu_Sub_Mu.
+      + iApply Mu_Sub.
+      + iApply Sub_Mu.
       + by iApply All_Sub_All.
       + by iApply Fld_Sub_Fld.
       + by iApply Typ_Sub_Typ.
-      + iApply sSub_TAll_Cov_Distr.
-      + iApply sSub_TVMem_Cov_Distr.
-      + iApply sSub_TTMem_Cov_Distr.
-      + by iApply sDistrAndOr1.
+      + iApply sAnd_All_Sub_Distr.
+      + iApply sAnd_Fld_Sub_Distr.
+      + iApply sAnd_Typ_Sub_Distr.
+      + by iApply sAnd_Or_Sub_Distr.
       (* + by iApply istpi_weaken_ctx_syn.
       + subst. by iApply Delay_Sub. *)
       (* + by_reflect. *)

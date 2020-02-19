@@ -17,9 +17,9 @@ Import hoasNotation.
 
 Example loopDefTyp Γ : Γ v⊢ₜ[ ∅ ] hclose (htv hloopDefV) : hclose hloopDefT.
 Proof.
-  apply (Subs_typed_nocoerce (hclose hloopDefTConcr)); mltcrush. cbv.
+  apply (iT_Sub_nocoerce (hclose hloopDefTConcr)); mltcrush. cbv.
 
-  eapply App_typed; last var.
+  eapply iT_All_E; last var.
   tcrush; varsub; lookup.
 Qed.
 
@@ -28,7 +28,7 @@ Proof. have ? := loopDefTyp Γ; tcrush. Qed.
 
 Example loopTyp Γ : Γ v⊢ₜ[∅] hclose hloopTm : ⊥.
 Proof.
-  have ? := loopFunTyp Γ; apply (App_typed (T1 := ⊤)), (Subs_typed_nocoerce 𝐍); tcrush.
+  have ? := loopFunTyp Γ; apply (iT_All_E (T1 := ⊤)), (iT_Sub_nocoerce 𝐍); tcrush.
 Qed.
 
 (** XXX Not currently using olty. *)
@@ -356,7 +356,7 @@ Section small_ex.
     iSplit; [iIntros "!%"|iIntros "!> ** //"].
     repeat constructor; exact: not_elem_of_nil.
     iApply Sub_Trans.
-    iApply (Sub_Mu_A {@ type "A" >: ⊥ <: 𝐍}).
+    iApply (Mu_Sub {@ type "A" >: ⊥ <: 𝐍}).
     iApply sAnd1_Sub.
   Qed.
   (* This works. Crucially, we use T_Mu_I to introduce the object type.
@@ -425,7 +425,7 @@ Section small_ex.
   Proof.
     iIntros "#Hs".
     iApply (sT_Sub (i := 0) (T1 := svTyp2Concr)); first last.
-    - iApply sSub_Mu_X; rewrite /svTyp2ConcrBody /vTyp1Body iterate_0.
+    - iApply sMu_Sub_Mu; rewrite /svTyp2ConcrBody /vTyp1Body iterate_0.
       iApply sSub_And; last iApply sSub_And; last iApply sSub_Top.
     + iApply sSub_Trans; first iApply sAnd1_Sub.
       iApply sTyp_Sub_Typ; [iApply sBot_Sub | iApply Sub_later_ipos_nat].
@@ -442,7 +442,7 @@ Section small_ex.
       iApply sSub_Trans; first iApply sSub_Add_Later.
       iApply sSub_Trans; first iApply sSub_Add_Later.
       iApply sSub_Later_Sub.
-      iApply sSub_Sel_Path.
+      iApply sSub_Sel.
       iApply sP_Later.
       iApply sP_Val.
       iApply (sT_Sub (i := 0)).

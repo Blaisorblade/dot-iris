@@ -9,7 +9,7 @@ Set Default Proof Using "Type".
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
-  Lemma sSub_Sel_Path {Γ L U p l i}:
+  Lemma sSub_Sel {Γ L U p l i}:
     Γ s⊨p p : cTMem l L U, i -∗
     Γ s⊨ oLater L, i <: oSel p l, i.
   Proof.
@@ -22,12 +22,12 @@ Section Sec.
     by iApply "HLφ".
   Qed.
 
-  Lemma Sub_Sel_Path {Γ L U p l i}:
+  Lemma Sub_Sel {Γ L U p l i}:
     Γ ⊨p p : TTMem l L U, i -∗
     Γ ⊨ TLater L, i <: TSel p l, i.
-  Proof. apply sSub_Sel_Path. Qed.
+  Proof. apply sSub_Sel. Qed.
 
-  Lemma sSel_Sub_Path {Γ L U p l i}:
+  Lemma sSel_Sub {Γ L U p l i}:
     Γ s⊨p p : cTMem l L U, i -∗
     Γ s⊨ oSel p l, i <: oLater U, i.
   Proof.
@@ -43,10 +43,10 @@ Section Sec.
     iApply "HφU" => //. iNext. by iRewrite "Hag".
   Qed.
 
-  Lemma Sel_Sub_Path {Γ L U p l i}:
+  Lemma Sel_Sub {Γ L U p l i}:
     Γ ⊨p p : TTMem l L U, i -∗
     Γ ⊨ TSel p l, i <: TLater U, i.
-  Proof. apply sSel_Sub_Path. Qed.
+  Proof. apply sSel_Sub. Qed.
 
   Lemma sP_Fld_E {Γ} p T l i:
     Γ s⊨p p : cVMem l T, i -∗

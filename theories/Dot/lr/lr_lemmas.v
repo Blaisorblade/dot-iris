@@ -113,7 +113,7 @@ Section Sec.
      ----------------------------------------------- (<:-μ-X)
      Γ ⊨ μ (x: T₁ˣ) <: μ(x: T₂ˣ)
   *)
-  Lemma sSub_Mu_X {Γ T1 T2 i j} :
+  Lemma sMu_Sub_Mu {Γ T1 T2 i j} :
     iterate oLater i T1 :: Γ s⊨ T1, i <: T2, j -∗
     Γ s⊨ oMu T1, i <: oMu T2, j.
   Proof.
@@ -124,10 +124,10 @@ Section Sec.
 
   (** Novel subtyping rules. [Sub_Bind_1] and [Sub_Bind_2] become
   derivable. *)
-  Lemma sSub_Mu_A {Γ T i} : Γ s⊨ oMu (shift T), i <: T, i.
+  Lemma sMu_Sub {Γ T i} : Γ s⊨ oMu (shift T), i <: T, i.
   Proof. iIntros "!> **". by rewrite oMu_shift. Qed.
 
-  Lemma sSub_Mu_B {Γ T i} : Γ s⊨ T, i <: oMu (shift T), i.
+  Lemma sSub_Mu {Γ T i} : Γ s⊨ T, i <: oMu (shift T), i.
   Proof. iIntros "!> **". by rewrite oMu_shift. Qed.
 
   (*
@@ -148,28 +148,28 @@ Section Sec.
   Lemma sT_Mu_E {Γ T v} : Γ s⊨ tv v : oMu T -∗ Γ s⊨ tv v : T.|[v/].
   Proof. by rewrite sTMu_equiv. Qed.
 
-  Lemma Sub_Mu_X {Γ} T1 T2 i j:
+  Lemma Mu_Sub_Mu {Γ} T1 T2 i j:
     iterate TLater i T1 :: Γ ⊨ T1, i <: T2, j -∗
     Γ ⊨ TMu T1, i <: TMu T2, j.
   Proof.
-    rewrite /istpi -sSub_Mu_X.
+    rewrite /istpi -sMu_Sub_Mu.
     by rewrite fmap_cons (iterate_TLater_oLater i T1).
   Qed.
 
-  Lemma Sub_Mu_A {Γ} T i: Γ ⊨ TMu (shift T), i <: T, i.
+  Lemma Mu_Sub {Γ} T i: Γ ⊨ TMu (shift T), i <: T, i.
   Proof.
     rewrite /istpi; cbn -[sstpi].
     rewrite (interp_subst_commute T (ren (+1))).
-    apply sSub_Mu_A.
+    apply sMu_Sub.
     (* iIntros "!>" (vs v) "**".
     by rewrite /= (lift_olty_eq (interp_subst_commute _ _)). *)
   Qed.
 
-  Lemma Sub_Mu_B {Γ} T i: Γ ⊨ T, i <: TMu (shift T), i.
+  Lemma Sub_Mu {Γ} T i: Γ ⊨ T, i <: TMu (shift T), i.
   Proof.
     rewrite /istpi; cbn -[sstpi].
     rewrite (interp_subst_commute T (ren (+1))).
-    apply sSub_Mu_B.
+    apply sSub_Mu.
     (* iIntros "!>" (vs v) "**".
     by rewrite /= (lift_olty_eq (interp_subst_commute _ _)). *)
   Qed.
@@ -179,13 +179,13 @@ Section Sec.
      ----------------------------------------------- (<:-Bind-1)
      Γ ⊨ μ (x: T₁ˣ) <: T₂
   *)
-  (* Derive this rule from Sub_Mu_X and Sub_Mu_A. *)
+  (* Derive this rule from Mu_Sub_Mu and Mu_Sub. *)
   Lemma Sub_Bind_1 {Γ T1 T2 i j} :
     iterate TLater i T1 :: Γ ⊨ T1, i <: shift T2, j -∗
     Γ ⊨ TMu T1, i <: T2, j.
   Proof.
     iIntros "Hstp"; iApply (Sub_Trans with "[-] []").
-    by iApply Sub_Mu_X. iApply Sub_Mu_A.
+    by iApply Mu_Sub_Mu. iApply Mu_Sub.
   Qed.
 
   (*
@@ -198,7 +198,7 @@ Section Sec.
     Γ ⊨ T1, i <: TMu T2, j.
   Proof.
     iIntros "Hstp"; iApply (Sub_Trans with "[] [-]").
-    iApply Sub_Mu_B. by iApply Sub_Mu_X.
+    iApply Sub_Mu. by iApply Mu_Sub_Mu.
   Qed.
 
   Lemma T_Mu_I {Γ} T v: Γ ⊨ tv v : T.|[v/] -∗ Γ ⊨ tv v : TMu T.

@@ -16,18 +16,18 @@ Example ex0 e Γ T:
   Γ u⊢ₜ e : T →
   is_unstamped_ty' (length Γ) T →
   Γ u⊢ₜ e : ⊤.
-Proof. intros. apply (Subs_typed_nocoerce T TTop); tcrush. Qed.
+Proof. intros. apply (iT_Sub_nocoerce T TTop); tcrush. Qed.
 
 Example ex1 Γ n T:
   Γ u⊢ₜ tv (ν {@ val "a" = pv (vnat n)}) : μ {@ val "a" : TNat }.
 Proof.
-  (* Help proof search: Avoid trying TMuI_typed, that's slow. *)
-  apply VObj_typed; tcrush.
+  (* Help proof search: Avoid trying iT_Mu_I, that's slow. *)
+  apply iT_Obj_I; tcrush.
 Qed.
 
 Example ex2 Γ T :
   Γ u⊢ₜ tv (ν {@ type "A" = p0 @; "B" } ) : TMu (TAnd (TTMem "A" TBot TTop) TTop).
-Proof. apply VObj_typed; tcrush. Qed.
+Proof. apply iT_Obj_I; tcrush. Qed.
 
 (* Try out fixpoints. *)
 Definition F3 T :=
@@ -35,7 +35,7 @@ Definition F3 T :=
 
 Example ex3 Γ T:
   Γ u⊢ₜ tv (ν {@ type "A" = F3 (p0 @; "A") } ) : F3 (F3 (TSel p0 "A")).
-Proof. apply VObj_typed; tcrush. Qed.
+Proof. apply iT_Obj_I; tcrush. Qed.
 
 Definition KeysT : ty := μ {@
   type "Key" >: ⊥ <: ⊤;
@@ -55,19 +55,19 @@ Definition KeysTConcr := μ {@
 Example hashKeys_typed Γ:
   Γ u⊢ₜ tv hashKeys : KeysT.
 Proof.
-  apply (Subs_typed_nocoerce KeysTConcr); first last. {
-    apply Mu_stp_mu; last stcrush.
+  apply (iT_Sub_nocoerce KeysTConcr); first last. {
+    apply iMu_Sub_Mu; last stcrush.
     tcrush.
     lThis.
   }
   tcrush.
-  apply App_typed with (T1 := TUnit);
-    last eapply (Subs_typed_nocoerce TNat); tcrush.
+  apply iT_All_E with (T1 := TUnit);
+    last eapply (iT_Sub_nocoerce TNat); tcrush.
 
-  apply (Subs_typed_nocoerce (val "hashCode" : ⊤ →: 𝐍)).
-  by eapply Subs_typed_nocoerce; [eapply TMuE_typed'; by [var||stcrush] | tcrush].
+  apply (iT_Sub_nocoerce (val "hashCode" : ⊤ →: 𝐍)).
+  by eapply iT_Sub_nocoerce; [eapply iT_Mu_E'; by [var||stcrush] | tcrush].
   tcrush.
-  eapply LSel_stp', (path_tp_delay (i := 0)); wtcrush.
+  eapply iSub_Sel', (path_tp_delay (i := 0)); wtcrush.
   varsub; tcrush.
 Qed.
 
@@ -82,11 +82,11 @@ Definition boolImplT0 : ty :=
 Example boolImplTypAlt Γ :
   Γ u⊢ₜ tv boolImplV : boolImplT.
 Proof.
-  apply (Subs_typed_nocoerce boolImplT0);
+  apply (iT_Sub_nocoerce boolImplT0);
     last (tcrush; lThis).
   tcrush.
-  - eapply Subs_typed_nocoerce; [apply iftTrueTyp|apply SubIFT_LaterP0Bool].
-  - eapply Subs_typed_nocoerce; [apply iftFalseTyp|apply SubIFT_LaterP0Bool].
+  - eapply iT_Sub_nocoerce; [apply iftTrueTyp|apply SubIFT_LaterP0Bool].
+  - eapply iT_Sub_nocoerce; [apply iftFalseTyp|apply SubIFT_LaterP0Bool].
 Qed.
 
 (* Utilities needed for not. *)
@@ -100,9 +100,9 @@ Proof.
   move: (HsT2) => /is_unstamped_ren1_ty HsT3; rewrite -hrenS in HsT3.
   move: (HsT3) => /is_unstamped_ren1_ty HsT4; rewrite -hrenS in HsT4.
   tcrush; rewrite ?iterate_S ?iterate_0 /=; tcrush;
-    first [eapply LSel_stp', (path_tp_delay (i := 0)) |
-      eapply SelU_stp, (path_tp_delay (i := 0))];
-       try (typconstructor; apply: Var_typed');
+    first [eapply iSub_Sel', (path_tp_delay (i := 0)) |
+      eapply iSel_Sub, (path_tp_delay (i := 0))];
+       try (typconstructor; apply: iT_Var');
     rewrite ?hsubst_id //; try autosubst; wtcrush.
 Qed.
 
@@ -132,12 +132,12 @@ Proof.
   move: (HsT1) => /is_unstamped_ren1_ty HsT2.
   move: (HsT2) => /is_unstamped_ren1_ty; rewrite -hrenS => HsT3.
   move: (HsT3) => /is_unstamped_ren1_ty; rewrite -hrenS => HsT4.
-  eapply Let_typed; [exact: Ht| |rewrite /= !(hren_upn 1); tcrush].
+  eapply iT_Let; [exact: Ht| |rewrite /= !(hren_upn 1); tcrush].
   rewrite /= !(hren_upn_gen 1) (hren_upn_gen 2) /=.
   tcrush; rewrite -!hrenS -(iterate_S tskip 0).
-  eapply (Subs_typed (T1 := ▶:T.|[_])); first tcrush.
-  repeat (eapply App_typed; last var).
-  apply: Var_typed' => //.
+  eapply (iT_Sub (T1 := ▶:T.|[_])); first tcrush.
+  repeat (eapply iT_All_E; last var).
+  apply: iT_Var' => //.
   rewrite /= !(hren_upn 1) (hren_upn_gen 1) (hren_upn_gen 2)
     !hsubst_comp !ren_ren_comp /=. done.
 Qed.
@@ -165,8 +165,8 @@ Lemma iftNotBodyTyp Γ t :
   Γ u⊢ₜ iftNotBody t IFT (tv iftTrue) (tv iftFalse) : IFT.
 Proof.
   intros.
-  eapply App_typed; last exact: iftTrueTyp.
-  eapply App_typed; last exact: iftFalseTyp.
+  eapply iT_All_E; last exact: iftTrueTyp.
+  eapply iT_All_E; last exact: iftFalseTyp.
   exact: iftCoerce_tyAppIFT_typed_IFT.
 Qed.
 
@@ -175,7 +175,7 @@ Qed.
 Definition iftNot0 := vabs' (iftNotBody (tv x0) IFT (tv iftTrue) (tv iftFalse)).
 Lemma iftNotTyp Γ T :
   Γ u⊢ₜ iftNot0 : TAll IFT IFT.
-Proof. apply Lam_typed; first stcrush. apply iftNotBodyTyp. var. Qed.
+Proof. apply iT_All_I; first stcrush. apply iftNotBodyTyp. var. Qed.
 
 (* AND = λ a b. a b False. *)
 Definition iftAndBody t1 t2 T false :=
@@ -190,8 +190,8 @@ Lemma iftAndBodyTyp Γ t1 t2 :
   Γ u⊢ₜ iftAndBody t1 t2 IFT (tv iftFalse) : IFT.
 Proof.
   intros Ht1 Ht2.
-  eapply App_typed; last exact: iftFalseTyp.
-  eapply App_typed; last exact: Ht2.
+  eapply iT_All_E; last exact: iftFalseTyp.
+  eapply iT_All_E; last exact: Ht2.
   exact: iftCoerce_tyAppIFT_typed_IFT.
 Qed.
 

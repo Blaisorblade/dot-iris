@@ -93,26 +93,26 @@ Example fromPDotPaperTypesTyp :
     fromPDotPaperTypesV : μ fromPDotPaperTypesTBody.
 Proof.
   tcrush.
-  - eapply (Subs_typed_nocoerce) => /=; hideCtx.
+  - eapply (iT_Sub_nocoerce) => /=; hideCtx.
     + repeat first [var | typconstructor | tcrush].
-    + apply (Trans_stp (T2 := ⊤) (i2 := 0)); first tcrush.
-      eapply LSel_stp'; last (tcrush; varsub); ltcrush.
-  - eapply (Subs_typed_nocoerce (TMu ⊤)); first tcrush.
-    eapply (Trans_stp (T2 := ⊤) (i2 := 0)); tcrush.
-    eapply (Trans_stp (i2 := 1)); [exact: AddI_stp | ].
+    + apply (iSub_Trans (T2 := ⊤) (i2 := 0)); first tcrush.
+      eapply iSub_Sel'; last (tcrush; varsub); ltcrush.
+  - eapply (iT_Sub_nocoerce (TMu ⊤)); first tcrush.
+    eapply (iSub_Trans (T2 := ⊤) (i2 := 0)); tcrush.
+    eapply (iSub_Trans (i2 := 1)); [exact: iSub_AddI | ].
     asideLaters.
-    eapply (LSel_stp' _ ⊤); tcrush.
+    eapply (iSub_Sel' _ ⊤); tcrush.
     varsub; apply Sub_later_shift; tcrush.
-  - eapply (Subs_typed_nocoerce) => /=; hideCtx.
+  - eapply (iT_Sub_nocoerce) => /=; hideCtx.
     + repeat first [var | typconstructor | tcrush].
     + ettrans; first last.
-      eapply LSel_stp'; first last.
+      eapply iSub_Sel'; first last.
       * constructor; varsub.
         ltcrush.
       * tcrush.
       * tcrush; last apply Bind1; tcrush.
-        eapply (Trans_stp (T2 := ⊤)); tcrush.
-        eapply LSel_stp'; tcrush.
+        eapply (iSub_Trans (T2 := ⊤)); tcrush.
+        eapply iSub_Sel'; tcrush.
         varsub; tcrush.
 Qed.
 
@@ -120,8 +120,8 @@ Example fromPDotPaperTypesAbsTyp :
   TLater fromPDotPaperAbsTBody :: [] u⊢ₜ
     fromPDotPaperTypesV : μ fromPDotPaperAbsTypesTBody.
 Proof.
-  eapply Subs_typed_nocoerce; first exact: fromPDotPaperTypesTyp; ltcrush.
-  eapply LSel_stp', (path_tp_delay (i := 0)); wtcrush.
+  eapply iT_Sub_nocoerce; first exact: fromPDotPaperTypesTyp; ltcrush.
+  eapply iSub_Sel', (path_tp_delay (i := 0)); wtcrush.
   varsub; tcrush.
 Qed.
 
@@ -130,10 +130,10 @@ Example fromPDotPaperSymbolsTyp :
     fromPDotPaperSymbolsV : μ fromPDotPaperSymbolsTBody.
 Proof.
   tcrush.
-  - eapply (Subs_typed_nocoerce) => /=; hideCtx.
+  - eapply (iT_Sub_nocoerce) => /=; hideCtx.
     + repeat first [var | typconstructor | tcrush].
     + ettrans; first last.
-      eapply LSel_stp'; first last.
+      eapply iSub_Sel'; first last.
       * constructor; varsub; tcrush.
       * tcrush.
       * mltcrush.
@@ -143,7 +143,7 @@ Example fromPDotPaperSymbolsAbsTyp :
   TLater fromPDotPaperAbsTBody :: [] u⊢ₜ
     fromPDotPaperSymbolsV : μ fromPDotPaperAbsSymbolsTBody.
 Proof.
-  eapply Subs_typed_nocoerce; first exact: fromPDotPaperSymbolsTyp; tcrush.
+  eapply iT_Sub_nocoerce; first exact: fromPDotPaperSymbolsTyp; tcrush.
   lThis.
 Qed.
 
@@ -177,32 +177,32 @@ Proof. exact: psubst_ty_rtc_sufficient. Qed.
 Example getAnyTypeFunTyp Γ : Γ u⊢ₜ getAnyType : getAnyTypeT.
 Proof.
   rewrite /getAnyType -(iterate_S tskip 0); tcrush.
-  eapply (Subs_typed (T1 := TLater (p0 @ "types" @; "Type"))); tcrush.
+  eapply (iT_Sub (T1 := TLater (p0 @ "types" @; "Type"))); tcrush.
   set Γ' := shift (μ fromPDotPaperAbsTBody) :: Γ.
   have Hpx: Γ' u⊢ₚ p0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0
-    by tcrush; eapply Subs_typed_nocoerce;
-      [ by eapply TMuE_typed; first var; stcrush | tcrush].
+    by tcrush; eapply iT_Sub_nocoerce;
+      [ by eapply iT_Mu_E; first var; stcrush | tcrush].
   have HpxSubst: Γ' u⊢ₚ p0 @ "types" : fromPDotPaperAbsTypesTBodySubst, 0.
-  by eapply (p_mu_e_typed (T := fromPDotPaperAbsTypesTBody)
+  by eapply (iP_Mu_E (T := fromPDotPaperAbsTypesTBody)
     (p := p0 @ "types")), Hpx; tcrush.
-  eapply (Path_typed (p := p0)), pself_inv_typed, (p_subs_typed (i := 0)), HpxSubst.
+  eapply (iT_Path (p := p0)), iP_Fld_I, (iP_Sub (i := 0)), HpxSubst.
   repeat lNext.
 Qed.
 
 Example getAnyTypeTyp0 :
   [μ fromPDotPaperAbsTBody] u⊢ₜ
     tapp getAnyType x0 : p0 @ "types" @; "Type".
-Proof. eapply Appv_typed'; [exact: getAnyTypeFunTyp|var|tcrush..]. Qed.
+Proof. eapply iT_All_Ex'; [exact: getAnyTypeFunTyp|var|tcrush..]. Qed.
 (*
 lett (tv fromPDotPaper) (tapp (tv getAnyType) x0) : (pv fromPDotPaper @ "types" @; "Type").
 Example getAnyTypeTyp : [] u⊢ₜ lett (tv fromPDotPaper) (tapp (tv getAnyType) x0) : (pv fromPDotPaper @ "types" @; "Type").
 Proof.
-  eapply (App_path_typed (pv _)); [| eapply getAnyTypeFunTyp|].
+  eapply (iT_All_Ex_p (pv _)); [| eapply getAnyTypeFunTyp|].
 
 Example getAnyTypeTyp : [] u⊢ₜ tapp (tv getAnyType) (tv fromPDotPaper) : (pv fromPDotPaper @ "types" @; "Type").
 Proof.
-  eapply (App_path_typed (pv _)); [| eapply getAnyTypeFunTyp|].
-Let_typed
-  2: apply (Path_typed (pv fromPDotPaper)). fromPDotPaperTyp. ;
+  eapply (iT_All_Ex_p (pv _)); [| eapply getAnyTypeFunTyp|].
+iT_Let
+  2: apply (iT_Path (pv fromPDotPaper)). fromPDotPaperTyp. ;
   (* Wanted: application of functions to paths;  *)
 Abort. *)

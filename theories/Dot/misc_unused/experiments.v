@@ -70,12 +70,12 @@ Section AlsoSyntactically.
   Lemma singleton_Mu_1 {Γ p T i T'} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : TMu T, i -∗
     Γ ⊨ TSing p, i <: T', i.
-  Proof. rewrite (P_Mu_E Hrepl). apply Sngl_Self_Sub. Qed.
+  Proof. rewrite (P_Mu_E Hrepl). apply Sngl_Sub_Self. Qed.
 
   Lemma singleton_Mu_2 {Γ p T i T'} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : T', i -∗
     Γ ⊨ TSing p, i <: TMu T, i.
-  Proof. rewrite (P_Mu_I Hrepl). apply Sngl_Self_Sub. Qed.
+  Proof. rewrite (P_Mu_I Hrepl). apply Sngl_Sub_Self. Qed.
 
   (** Semantic version of derived rule [singleton_Mu_dotty1]. *)
   Lemma singleton_Mu_dotty1 {Γ p i T1 T2 T2'}
@@ -209,7 +209,7 @@ Section Example.
     iApply fundamental_typed; last by iApply (wellMappedφ_g0 with "Hs").
     have Hst: is_stamped_ty (length Γ) (<[s:=T]> ∅) T.
     exact: unstamped_stamped_type.
-    (* eapply Subs_typed_nocoerce. *)
+    (* eapply iT_Sub_nocoerce. *)
     eapply packTV_typed'; rewrite //= ?lookup_insert //.
     (* tcrush. *)
   Qed.
@@ -236,7 +236,7 @@ Section Example.
     iAssert ([] ⊨ ⊤, 0 <: pv (packTV 0 s0) @; "A", 0) as "#Hsub". {
       iApply (Sub_Trans (T2 := ▶: ⊤) (i2 := 0)).
       iApply sSub_Add_Later.
-      iApply Sub_Sel_Path.
+      iApply Sub_Sel.
       iApply P_Val.
       iApply (packTV_semTyped with "Hs"); stcrush.
     }
@@ -263,13 +263,13 @@ Section Example.
     have Hp: Γ v⊢ₜ[ g0 s0 ⊤ ] tv (packTV 0 s0) : typeEq "A" ⊤.
       by apply: packTV_typed'; [| |lia].
     have Hsub : Γ v⊢ₜ[ g0 s0 ⊤ ] ⊤, 0 <: pv (packTV 0 s0) @; "A", 0
-      by eapply LSel_stp'; tcrush.
-    apply (Appv_typed (T1 := pv (packTV 0 s0) @; "A") (T2 := TSing p0)); first last.
-    by eapply Subs_typed_nocoerce, Hsub.
-    eapply App_typed; first last.
-    by eapply Subs_typed_nocoerce, Hsub.
-    apply (Appv_typed (v2 := packTV 0 s0) He).
-    eapply Subs_typed_nocoerce; [ apply Hp | tcrush ].
+      by eapply iSub_Sel'; tcrush.
+    apply (iT_All_Ex (T1 := pv (packTV 0 s0) @; "A") (T2 := TSing p0)); first last.
+    by eapply iT_Sub_nocoerce, Hsub.
+    eapply iT_All_E; first last.
+    by eapply iT_Sub_nocoerce, Hsub.
+    apply (iT_All_Ex (v2 := packTV 0 s0) He).
+    eapply iT_Sub_nocoerce; [ apply Hp | tcrush ].
   Qed.
 
   Example foosem e v1 v2:
@@ -293,7 +293,7 @@ Section Example.
     T :: Γ v⊢ₜ[ g0 s0 ⊤ ] applyE e v1 x0 : TSing (pv x0).
   Proof.
     intros; apply foosyn => //.
-    eapply Var_typed_sub; [ done | tcrush]. cbn.
+    eapply iT_Var_Sub; [ done | tcrush]. cbn.
     eapply unstamped_stamped_type.
     by rewrite hsubst_id.
   Qed.
@@ -398,7 +398,7 @@ Section Sec.
     by rewrite fmap_cons cancel.
   Qed. *)
 
-  Lemma TAll_Later_Swap0 Γ T U `{SwapPropI Σ}:
+  Lemma All_Later_Sub_Distr0 Γ T U `{SwapPropI Σ}:
     Γ ⊨ TAll (TLater T) U, 0 <: TLater (TAll T U), 0.
   Proof.
     iIntros "!>" (ρ v) "_ /= #HvTU".
@@ -454,9 +454,9 @@ Section Sec.
     (* by iDestruct (wp_later_swap with "HeT") as "{HeT} HeT"; iNext. *)
   Qed.
 
-  (** Stronger version of TAll_Later_Swap0, needs wp_later_swap, which
+  (** Stronger version of All_Later_Sub_Distr0, needs wp_later_swap, which
       might not extend to stronger WPs?*)
-  Lemma TAll_Later_Swap `{SwapPropI Σ} Γ T U i:
+  Lemma All_Later_Sub_Distr `{SwapPropI Σ} Γ T U i:
     Γ ⊨ TAll (TLater T) (TLater U), i <: TLater (TAll T U), i.
   Proof.
     iIntros "!>" (ρ v) "_ #HvTU". iNext i.
@@ -473,7 +473,7 @@ Section Sec.
     iApply ("HvTU" with "HwT"). *)
   Qed.
 
-  Lemma TVMem_Later_Swap Γ l T i:
+  Lemma Fld_Later_Sub_Distr Γ l T i:
     Γ ⊨ TVMem l (TLater T), i <: TLater (TVMem l T), i.
   Proof.
     iIntros "!>" (ρ v) "_ /= #HvT". iNext i.

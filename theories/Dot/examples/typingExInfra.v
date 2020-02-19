@@ -139,18 +139,18 @@ Hint Resolve pack_extraction' : fvc.
 Ltac by_extcrush := by try eapply pack_extraction'; rewrite /= ?hsubst_id; eauto with fvc.
 
 Hint Constructors typed subtype dms_typed dm_typed path_typed : core.
-Remove Hints Trans_stp : core.
-Hint Extern 10 => try_once Trans_stp : core.
+Remove Hints iSub_Trans : core.
+Hint Extern 10 => try_once iSub_Trans : core.
 
 Hint Resolve is_stamped_idsσ_ren : core.
 
 Ltac asideLaters :=
   repeat first
-    [ettrans; last (apply TLaterR_stp; tcrush)|
-    ettrans; first (apply TLaterL_stp; tcrush)].
+    [ettrans; last (apply iSub_Later; tcrush)|
+    ettrans; first (apply iLater_Sub; tcrush)].
 
-Ltac lNext := ettrans; first apply TAnd2_stp; tcrush.
-Ltac lThis := ettrans; first apply TAnd1_stp; tcrush.
+Ltac lNext := ettrans; first apply iAnd2_Sub; tcrush.
+Ltac lThis := ettrans; first apply iAnd1_Sub; tcrush.
 
 Ltac lookup :=
   lazymatch goal with
@@ -175,27 +175,27 @@ Ltac ltcrush := tcrush; repeat lookup.
 Section examples_lemmas.
 Context {g}.
 
-Lemma Appv_typed' T2 {Γ e1 v2 T1 T3} :
+Lemma iT_All_Ex' T2 {Γ e1 v2 T1 T3} :
   Γ v⊢ₜ[ g ] e1: TAll T1 T2 →                        Γ v⊢ₜ[ g ] tv v2 : T1 →
   T3 = T2.|[v2/] →
   (*────────────────────────────────────────────────────────────*)
   Γ v⊢ₜ[ g ] tapp e1 (tv v2) : T3.
 Proof. intros; subst; by econstructor. Qed.
 
-Lemma Var_typed' Γ x T1 T2 :
+Lemma iT_Var' Γ x T1 T2 :
   Γ !! x = Some T1 →
   T2 = shiftN x T1 →
   (*──────────────────────*)
   Γ v⊢ₜ[ g ] tv (var_vl x) : T2.
 Proof. intros; subst; tcrush. Qed.
 
-Lemma Var0_typed Γ T :
+Lemma iT_Var0 Γ T :
   Γ !! 0 = Some T →
   (*──────────────────────*)
   Γ v⊢ₜ[ g ] tv (var_vl 0) : T.
-Proof. intros; eapply Var_typed'; by rewrite ?hsubst_id. Qed.
+Proof. intros; eapply iT_Var'; by rewrite ?hsubst_id. Qed.
 
-Lemma TMuE_typed' Γ v T1 T2:
+Lemma iT_Mu_E' Γ v T1 T2:
   Γ v⊢ₜ[ g ] tv v: TMu T1 →
   T2 = T1.|[v/] →
   (*──────────────────────*)
@@ -208,8 +208,8 @@ Lemma Bind1 Γ T1 T2 i:
   Γ v⊢ₜ[g] μ T1, i <: T2, i.
 Proof.
   intros Hus1 Hus2 Hsub.
-  ettrans. exact: (Mu_stp_mu Hsub).
-  exact: Mu_stp.
+  ettrans. exact: (iMu_Sub_Mu Hsub).
+  exact: iMu_Sub.
 Qed.
 
 Lemma Bind2 Γ T1 T2 i:
@@ -218,7 +218,7 @@ Lemma Bind2 Γ T1 T2 i:
   Γ v⊢ₜ[g] T1, i <: μ T2, i.
 Proof.
   intros Hus1 Hus2 Hsub.
-  ettrans; last apply (Mu_stp_mu Hsub); [exact: Stp_mu | wtcrush].
+  ettrans; last apply (iMu_Sub_Mu Hsub); [exact: iSub_Mu | wtcrush].
 Qed.
 
 Lemma Bind1' Γ T1 T2:
@@ -227,63 +227,63 @@ Lemma Bind1' Γ T1 T2:
   Γ v⊢ₜ[g] μ T1, 0 <: T2, 0.
 Proof. intros; exact: Bind1. Qed.
 
-Lemma Subs_typed_nocoerce T1 T2 {Γ e} :
+Lemma iT_Sub_nocoerce T1 T2 {Γ e} :
   Γ v⊢ₜ[ g ] e : T1 →
   Γ v⊢ₜ[ g ] T1, 0 <: T2, 0 →
   Γ v⊢ₜ[ g ] e : T2.
 Proof. rewrite -(iterate_0 tskip e). eauto. Qed.
-Hint Resolve Subs_typed_nocoerce : core.
+Hint Resolve iT_Sub_nocoerce : core.
 
-Lemma Var_typed_sub Γ x T1 T2 :
+Lemma iT_Var_Sub Γ x T1 T2 :
   Γ !! x = Some T1 →
   Γ v⊢ₜ[ g ] shiftN x T1, 0 <: T2, 0 →
   (*──────────────────────*)
   Γ v⊢ₜ[ g ] tv (var_vl x) : T2.
-Proof. intros; eapply Subs_typed_nocoerce; by [exact: Var_typed|]. Qed.
+Proof. intros; eapply iT_Sub_nocoerce; by [exact: iT_Var|]. Qed.
 
-Lemma Var0_typed_sub Γ T1 T2 :
+Lemma iT_Var0_Sub Γ T1 T2 :
   Γ !! 0 = Some T1 →
   Γ v⊢ₜ[ g ] T1, 0 <: T2, 0 →
   (*──────────────────────*)
   Γ v⊢ₜ[ g ] tv (var_vl 0) : T2.
-Proof. intros. by eapply Var_typed_sub; [| rewrite ?hsubst_id]. Qed.
+Proof. intros. by eapply iT_Var_Sub; [| rewrite ?hsubst_id]. Qed.
 
-Lemma LSel_stp' Γ U {p l L i}:
+Lemma iSub_Sel' Γ U {p l L i}:
   is_stamped_ty (length Γ) g L →
   Γ v⊢ₚ[ g ] p : TTMem l L U, i →
   Γ v⊢ₜ[ g ] L, i <: TSel p l, i.
-Proof. intros; ettrans; last exact: (LSel_stp (p := p)); tcrush. Qed.
+Proof. intros; ettrans; last exact: (iSub_Sel (p := p)); tcrush. Qed.
 
-(** Specialization of [LSel_stp'] for convenience. *)
-Lemma LSel_stp'' Γ {p l L i}:
+(** Specialization of [iSub_Sel'] for convenience. *)
+Lemma iSub_Sel'' Γ {p l L i}:
   is_stamped_ty (length Γ) g L →
   Γ v⊢ₚ[ g ] p : TTMem l L L, i → Γ v⊢ₜ[ g ] L, i <: TSel p l, i.
-Proof. apply LSel_stp'. Qed.
+Proof. apply iSub_Sel'. Qed.
 
-Lemma AddIJ_stp' {Γ T i j} (Hst: is_stamped_ty (length Γ) g T) (Hle : i <= j):
+Lemma iSub_AddIJ' {Γ T i j} (Hst: is_stamped_ty (length Γ) g T) (Hle : i <= j):
   Γ v⊢ₜ[ g ] T, i <: T, j.
 Proof.
   rewrite (le_plus_minus i j Hle) Nat.add_comm; move: {j Hle} (j - i) => k.
   elim: k => [|n IHn] /=; first tcrush.
   ettrans; first apply IHn.
-  ettrans; [exact: TAddLater_stp | tcrush].
+  ettrans; [exact: iSub_Add_Later | tcrush].
 Qed.
 
-Lemma AddI_stp Γ T i (Hst: is_stamped_ty (length Γ) g T) :
+Lemma iSub_AddI Γ T i (Hst: is_stamped_ty (length Γ) g T) :
   Γ v⊢ₜ[ g ] T, 0 <: T, i.
-Proof. apply: AddIJ_stp'; by [|lia]. Qed.
+Proof. apply: iSub_AddIJ'; by [|lia]. Qed.
 
 Lemma path_tp_delay {Γ p T i j} (Hst: is_stamped_ty (length Γ) g T) : i <= j →
   Γ v⊢ₚ[ g ] p : T, i → Γ v⊢ₚ[ g ] p : T, j.
 Proof.
   intros Hle Hp.
   rewrite (le_plus_minus i j Hle); move: {j Hle} (j - i) => k.
-  eapply p_subs_typed, Hp.
-  apply: AddIJ_stp'; by [|lia].
+  eapply iP_Sub, Hp.
+  apply: iSub_AddIJ'; by [|lia].
 Qed.
 
 (* Lattice theory *)
-Lemma TOr_stp_split Γ T1 T2 U1 U2 i:
+Lemma iOr_Sub_split Γ T1 T2 U1 U2 i:
   is_stamped_ty (length Γ) g U1 →
   is_stamped_ty (length Γ) g U2 →
   Γ v⊢ₜ[ g ] T1, i <: U1, i →
@@ -291,40 +291,40 @@ Lemma TOr_stp_split Γ T1 T2 U1 U2 i:
   Γ v⊢ₜ[ g ] TOr T1 T2, i <: TOr U1 U2, i.
 Proof.
   intros.
-  apply TOr_stp; [
-    eapply Trans_stp, TOr1_stp | eapply Trans_stp, TOr2_stp]; tcrush.
+  apply iOr_Sub; [
+    eapply iSub_Trans, iSub_Or1 | eapply iSub_Trans, iSub_Or2]; tcrush.
 Qed.
 
-Lemma TAnd_stp_split Γ T1 T2 U1 U2 i:
+Lemma iSub_And_split Γ T1 T2 U1 U2 i:
   is_stamped_ty (length Γ) g T1 →
   is_stamped_ty (length Γ) g T2 →
   Γ v⊢ₜ[ g ] T1, i <: U1, i →
   Γ v⊢ₜ[ g ] T2, i <: U2, i →
   Γ v⊢ₜ[ g ] TAnd T1 T2, i <: TAnd U1 U2, i.
 Proof.
-  intros; apply TAnd_stp; [
-    eapply Trans_stp; first apply TAnd1_stp |
-    eapply Trans_stp; first apply TAnd2_stp]; tcrush.
+  intros; apply iSub_And; [
+    eapply iSub_Trans; first apply iAnd1_Sub |
+    eapply iSub_Trans; first apply iAnd2_Sub]; tcrush.
 Qed.
 
-Lemma distrAndOr2_stp {Γ S T U i}:
+Lemma iAnd_Or_Sub_Distr_inv {Γ S T U i}:
   is_stamped_ty (length Γ) g S →
   is_stamped_ty (length Γ) g T →
   is_stamped_ty (length Γ) g U →
   Γ v⊢ₜ[ g ] TOr (TAnd S U) (TAnd T U), i <: TAnd (TOr S T) U , i.
 Proof.
-  intros; apply TOr_stp; apply TAnd_stp; tcrush;
-    (ettrans; first apply TAnd1_stp); tcrush.
+  intros; apply iOr_Sub; apply iSub_And; tcrush;
+    (ettrans; first apply iAnd1_Sub); tcrush.
 Qed.
 
-Lemma distrOrAnd1_stp {Γ S T U i}:
+Lemma iOr_And_Sub_Distr {Γ S T U i}:
   is_stamped_ty (length Γ) g S →
   is_stamped_ty (length Γ) g T →
   is_stamped_ty (length Γ) g U →
   Γ v⊢ₜ[ g ] TOr (TAnd S T) U , i <: TAnd (TOr S U) (TOr T U), i.
 Proof.
-  intros; apply TOr_stp; apply TAnd_stp; tcrush;
-    (ettrans; last apply TOr1_stp); tcrush.
+  intros; apply iOr_Sub; apply iSub_And; tcrush;
+    (ettrans; last apply iSub_Or1); tcrush.
 Qed.
 
 Lemma comm_and {Γ T U i} :
@@ -362,27 +362,27 @@ Lemma assoc_or {Γ S T U i} :
   is_stamped_ty (length Γ) g T →
   is_stamped_ty (length Γ) g U →
   Γ v⊢ₜ[ g ] TOr (TOr S T) U, i <: TOr S (TOr T U), i.
-Proof. intros; tcrush; (ettrans; last apply TOr2_stp); tcrush. Qed.
+Proof. intros; tcrush; (ettrans; last apply iSub_Or2); tcrush. Qed.
 
 (* Based on Lemma 4.3 in
 https://books.google.co.uk/books?id=vVVTxeuiyvQC&lpg=PA104&pg=PA85#v=onepage&q&f=false.
 Would be much easier to formalize with setoid rewriting.
 *)
-Lemma distrOrAnd2_stp {Γ S T U i}:
+Lemma iOr_And_Sub_Distr_inv {Γ S T U i}:
   is_stamped_ty (length Γ) g S →
   is_stamped_ty (length Γ) g T →
   is_stamped_ty (length Γ) g U →
   Γ v⊢ₜ[ g ] TAnd (TOr S U) (TOr T U), i <: TOr (TAnd S T) U , i.
 Proof.
   intros.
-  ettrans; first apply DistrAndOr1_stp; stcrush => //.
-  ettrans; first apply TOr_stp_split, absorb_and_or; try apply Refl_stp;
+  ettrans; first apply iAnd_Or_Sub_Distr; stcrush => //.
+  ettrans; first apply iOr_Sub_split, absorb_and_or; try apply iSub_Refl;
     stcrush => //.
-  ettrans; first apply TOr_stp_split; try apply (Refl_stp _ _ (T := U));
-    try (ettrans; first apply (comm_and (T := S))); try apply DistrAndOr1_stp; stcrush => //.
+  ettrans; first apply iOr_Sub_split; try apply (iSub_Refl _ _ (T := U));
+    try (ettrans; first apply (comm_and (T := S))); try apply iAnd_Or_Sub_Distr; stcrush => //.
   ettrans; first apply assoc_or; stcrush => //.
-  ettrans; first apply TOr_stp_split.
-  3: apply Refl_stp; tcrush.
+  ettrans; first apply iOr_Sub_split.
+  3: apply iSub_Refl; tcrush.
   3: ettrans; first apply absorb_or_and2; tcrush.
   all: tcrush.
   ettrans; first eapply comm_and; tcrush.
@@ -395,7 +395,7 @@ Qed.
   Γ v⊢ₜ[ g ] T, i <: U, i.
 Proof.
   move => Hst Hsu Hstp; elim: i => [|n IHn]; first tcrush.
-  exact: TMono_stp.
+  exact: iSub_Mono.
 Qed. *)
 
 Lemma is_stamped_pvar i n : i < n → is_stamped_path n g (pv (var_vl i)).
@@ -403,23 +403,23 @@ Proof. eauto. Qed.
 Lemma is_stamped_pvars i n l : i < n → is_stamped_ty n g (pv (var_vl i) @; l).
 Proof. eauto using is_stamped_pvar. Qed.
 
-Lemma Let_typed Γ t u T U :
+Lemma iT_Let Γ t u T U :
   Γ v⊢ₜ[ g ] t : T →
   shift T :: Γ v⊢ₜ[ g ] u : shift U →
   is_stamped_ty (length Γ) g T →
   Γ v⊢ₜ[ g ] lett t u : U.
-Proof. move=> Ht Hu HsT. apply /App_typed /Ht /Lam_typed /Hu /HsT. Qed.
+Proof. move=> Ht Hu HsT. apply /iT_All_E /Ht /iT_All_I /Hu /HsT. Qed.
 
 (* Note how we must weaken the type (or its environment) to account for the
    self-variable of the created object. *)
 Definition packTV n s := (ν {@ type "A" = (shift (idsσ n); s)}).
 
-Lemma Dty_typed T {Γ l s σ}:
+Lemma iD_Typ T {Γ l s σ}:
   T ~[ length Γ ] (g, (s, σ)) →
   is_stamped_σ (length Γ) g σ →
   is_stamped_ty (length Γ) g T →
   Γ v⊢[ g ]{ l := dtysem σ s } : TTMem l T T.
-Proof. intros. apply (dty_typed T); auto 3. Qed.
+Proof. intros. apply (iD_Typ_Abs T); auto 3. Qed.
 
 Lemma packTV_typed' s T n Γ :
   g !! s = Some T →
@@ -429,10 +429,10 @@ Lemma packTV_typed' s T n Γ :
 Proof.
   move => Hlp HsT1 Hle; move: (Hle) (HsT1) => /le_n_S Hles /is_stamped_ren1_ty HsT2.
   move: (is_stamped_nclosed_ty HsT1) => Hcl.
-  apply (Subs_typed_nocoerce (μ {@ typeEq "A" (shift T) }));
-    last (ettrans; first apply: (Mu_stp _ (T := {@ typeEq "A" T })); tcrush).
-  apply VObj_typed; tcrush.
-  apply (Dty_typed (shift T)); simpl; eauto 2.
+  apply (iT_Sub_nocoerce (μ {@ typeEq "A" (shift T) }));
+    last (ettrans; first apply: (iMu_Sub _ (T := {@ typeEq "A" T })); tcrush).
+  apply iT_Obj_I; tcrush.
+  apply (iD_Typ (shift T)); simpl; eauto 2.
   eapply extraction_inf_subst, is_stamped_ren1.
   by apply /extraction_weaken /Hle /pack_extraction.
 Qed.
@@ -450,7 +450,7 @@ Lemma val_LB L U Γ i v :
   Γ v⊢ₜ[ g ] tv v : type "A" >: L <: U →
   Γ v⊢ₜ[ g ] ▶: L, i <: (pv v @; "A"), i.
 Proof.
-  intros ??? Hv; apply (LSel_stp (p := pv _) (U := U)).
+  intros ??? Hv; apply (iSub_Sel (p := pv _) (U := U)).
   apply (path_tp_delay (i := 0)); wtcrush.
 Qed.
 
@@ -488,7 +488,7 @@ Lemma val_UB L U Γ i v :
   Γ v⊢ₜ[ g ] tv v : type "A" >: L <: U →
   Γ v⊢ₜ[ g ] (pv v @; "A"), i <: ▶: U, i.
 Proof.
-  intros ??? Hv; apply (SelU_stp (p := pv _) (L := L)).
+  intros ??? Hv; apply (iSel_Sub (p := pv _) (L := L)).
   apply (path_tp_delay (i := 0)); wtcrush.
 Qed.
 
@@ -520,21 +520,21 @@ Proof.
   move => Ht Hsub HsT1 HsU1 Hl; move: (HsT1) => /is_stamped_ren1_ty HsT2.
   move: (HsT2) => /is_stamped_ren1_ty HsT3.
   rewrite -hrenS in HsT3.
-  eapply Let_typed; [exact: Ht| |tcrush].
-  eapply Let_typed; [by apply packTV_typed| |tcrush].
+  eapply iT_Let; [exact: Ht| |tcrush].
+  eapply iT_Let; [by apply packTV_typed| |tcrush].
   rewrite /= -!hrenS -/(typeEq _ _).
 
-  apply /Subs_typed_nocoerce /Hsub.
+  apply /iT_Sub_nocoerce /Hsub.
 
-  eapply Appv_typed'; first exact: Var_typed'.
-  apply: Var_typed_sub; tcrush; rewrite /= hsubst_id //.
+  eapply iT_All_Ex'; first exact: iT_Var'.
+  apply: iT_Var_Sub; tcrush; rewrite /= hsubst_id //.
   rewrite !hsubst_comp; f_equal. autosubst.
 Qed.
 
 End examples_lemmas.
 
-Hint Resolve is_stamped_pvar is_stamped_pvars Subs_typed_nocoerce : core.
+Hint Resolve is_stamped_pvar is_stamped_pvars iT_Sub_nocoerce : core.
 
-Ltac var := exact: Var0_typed || exact: Var_typed'.
-Ltac varsub := (eapply Var0_typed_sub || eapply Var_typed_sub); first done.
+Ltac var := exact: iT_Var0 || exact: iT_Var'.
+Ltac varsub := (eapply iT_Var0_Sub || eapply iT_Var_Sub); first done.
 Ltac mltcrush := tcrush; try ((apply Bind1' || apply Bind1); tcrush); repeat lookup.

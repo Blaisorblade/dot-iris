@@ -20,10 +20,10 @@ Lemma trueTyp Γ Γ'' : Γ'' ++ boolImplT :: Γ u⊢ₜ
   hclose (htrueTm (hx (length Γ''))) : hclose (hpx (length Γ'') @; "Boolean").
 Proof.
   have ?: length Γ'' < length (Γ'' ++ boolImplT :: Γ) by rewrite app_length /=; lia.
-  apply (Subs_typed (i := 1) (T1 := hclose (▶: hpx (length Γ'') @; "Boolean")));
+  apply (iT_Sub (i := 1) (T1 := hclose (▶: hpx (length Γ'') @; "Boolean")));
     rewrite /= plusnO; tcrush.
-    eapply Subs_typed_nocoerce.
-  - eapply TMuE_typed'; first eapply Var_typed'; try by [rewrite lookup_app_r ?Nat.sub_diag|]; stcrush.
+    eapply iT_Sub_nocoerce.
+  - eapply iT_Mu_E'; first eapply iT_Var'; try by [rewrite lookup_app_r ?Nat.sub_diag|]; stcrush.
   - ltcrush.
 Qed.
 
@@ -31,10 +31,10 @@ Lemma falseTyp Γ Γ'' : Γ'' ++ boolImplT :: Γ u⊢ₜ
   hclose (hfalseTm (hx (length Γ''))) : hclose (hpx (length Γ'') @; "Boolean").
 Proof.
   have ?: length Γ'' < length (Γ'' ++ boolImplT :: Γ) by rewrite app_length /=; lia.
-  apply (Subs_typed (i := 1) (T1 := hclose (▶: hpx (length Γ'') @; "Boolean")));
+  apply (iT_Sub (i := 1) (T1 := hclose (▶: hpx (length Γ'') @; "Boolean")));
     rewrite /= plusnO; tcrush.
-  eapply Subs_typed_nocoerce.
-  - eapply TMuE_typed'; first eapply Var_typed'; try by [rewrite lookup_app_r ?Nat.sub_diag|]; stcrush.
+  eapply iT_Sub_nocoerce.
+  - eapply iT_Mu_E'; first eapply iT_Var'; try by [rewrite lookup_app_r ?Nat.sub_diag|]; stcrush.
   - ltcrush.
 Qed.
 
@@ -123,17 +123,17 @@ Definition hlistModTConcr bool : hty := μ: sci, hlistModTConcrBody bool sci.
 Example nilTyp Γ : hclose (▶: hlistModTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
   hclose (htv (hnilV hx1)) : hclose (hnilT hx0).
 Proof.
-  apply (Subs_typed_nocoerce $ hclose $ hlistTGen hx1 hx0 ⊥ ⊥ ).
+  apply (iT_Sub_nocoerce $ hclose $ hlistTGen hx1 hx0 ⊥ ⊥ ).
   - evar (T : ty).
     set L :=  hclose (▶: hlistModTConcrBody hx1 hx0).
     have := !! trueTyp Γ [⊤; T; L].
     have := !! loopTyp (⊤ :: T :: L :: boolImplT :: Γ).
     rewrite {}/T/= => Ht Hl.
-    tcrush; apply (Subs_typed_nocoerce ⊥); tcrush.
+    tcrush; apply (iT_Sub_nocoerce ⊥); tcrush.
   - tcrush; last mltcrush.
-    ettrans; first eapply TAddLater_stp; stcrush.
+    ettrans; first eapply iSub_Add_Later; stcrush.
     asideLaters.
-    eapply LSel_stp'; tcrush. varsub.
+    eapply iSub_Sel'; tcrush. varsub.
     asideLaters.
     ltcrush.
 Qed.
@@ -144,7 +144,7 @@ Proof.
   epose proof falseTyp Γ [_; _; _; _; _; _] as Ht; cbn in Ht.
   tcrush; clear Ht.
   (** Typecheck returned head: *)
-  by varsub; eapply (LSel_stp' _ (hclose (hp4 @; "T"))); tcrush; varsub; ltcrush.
+  by varsub; eapply (iSub_Sel' _ (hclose (hp4 @; "T"))); tcrush; varsub; ltcrush.
   (**
     Typecheck returned tail. Recall [cons] starts with
 
@@ -161,8 +161,8 @@ Proof.
   (** It suffices to show that [x.A <: self.A]: *)
   tcrush; lNext.
 
-  (** We do it using [LSel_stp'] on [self.A], and looking up [A] on [self]'s type. *)
-  eapply LSel_stp', (path_tp_delay (i := 0)); wtcrush. varsub; ltcrush.
+  (** We do it using [iSub_Sel'] on [self.A], and looking up [A] on [self]'s type. *)
+  eapply iSub_Sel', (path_tp_delay (i := 0)); wtcrush. varsub; ltcrush.
 Qed.
 
 Ltac norm := cbv; hideCtx.
@@ -170,14 +170,14 @@ Lemma consTSub Γ : hclose (hlistModTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢�
   hclose (hconsTConcr hx1 hx0), 0 <: hclose (hconsT hx0), 0.
 Proof.
   tcrush; rewrite !iterate_S !iterate_0; hideCtx; last mltcrush.
-  eapply LSel_stp', (path_tp_delay (i := 0)); wtcrush; varsub; by ltcrush.
+  eapply iSub_Sel', (path_tp_delay (i := 0)); wtcrush; varsub; by ltcrush.
 Qed.
 
 Example listTypConcr Γ : boolImplT :: Γ u⊢ₜ hclose (htv (hlistModV hx0)) : hclose (hlistModTConcr hx0).
 Proof.
   have Hn := nilTyp Γ.
-  (* Without the call to [dpt_pv_typed], Coq would (smartly) default to [dvabs_typed] *)
-  have := consTyp Γ => /(dpt_pv_typed "cons") Hc /=.
+  (* Without the call to [iD_Val], Coq would (smartly) default to [dvabs_typed] *)
+  have := consTyp Γ => /(iD_Val "cons") Hc /=.
   tcrush.
 Qed.
 
@@ -185,7 +185,7 @@ Example listTyp Γ : boolImplT :: Γ u⊢ₜ hclose (htv (hlistModV hx0)) : hclo
 Proof.
   have Hv := listTypConcr Γ.
   have Hsub := consTSub Γ.
-  eapply Subs_typed_nocoerce; first exact Hv; ltcrush.
+  eapply iT_Sub_nocoerce; first exact Hv; ltcrush.
 Qed.
 
 
@@ -195,7 +195,7 @@ Qed.
 (*
 Definition clListV := lett (tv boolImplV) (tv listV).
 Example clListTyp Γ : Γ u⊢ₜ clListV : listT.
-  eapply Let_typed. apply boolImplTyp.
+  eapply iT_Let. apply boolImplTyp.
   Fail change (shift listT) with (listT).
   Fail apply listTyp.
 Abort. *)
@@ -212,8 +212,8 @@ Example clListTyp' Γ (T : ty) body
   (Ht : shift (hclose (hlistModT hx0)) :: boolImplT :: Γ u⊢ₜ body : shift (shift T)) :
   Γ u⊢ₜ hclose (clListV' body) : T.
 Proof.
-  eapply Let_typed; first apply boolImplTyp.
-  eapply Let_typed; first apply listTyp.
+  eapply iT_Let; first apply boolImplTyp.
+  eapply iT_Let; first apply listTyp.
   all: tcrush.
 Qed.
 
@@ -228,8 +228,8 @@ Example clListTyp'2 Γ (T : ty) hbody
   (Ht : hclose (hlistModT hx1) :: boolImplT :: Γ u⊢ₜ hbody (hxm 1) (hxm 2) 2 : shift (shift T)) :
   Γ u⊢ₜ hclose (hclListV' hbody) : T.
 Proof.
-  eapply Let_typed; first apply boolImplTyp.
-  eapply Let_typed; first apply listTyp.
+  eapply iT_Let; first apply boolImplTyp.
+  eapply iT_Let; first apply listTyp.
   all: tcrush.
 Qed.
 
@@ -256,22 +256,22 @@ Proof.
     |- ?Γ u⊢ₜ _ : _ =>
     set Γ' := Γ
   end.
-  have HL : Γ' u⊢ₜ tv (ids 0): hclose (hlistModTBody hx1 hx0) by apply: TMuE_typed'; first var; stcrush.
+  have HL : Γ' u⊢ₜ tv (ids 0): hclose (hlistModTBody hx1 hx0) by apply: iT_Mu_E'; first var; stcrush.
 
   (* The result of "head" has one more later than the list. *)
-  eapply (Subs_typed (i := 2) (T1 := hclose (▶: (▶: 𝐍)))).
+  eapply (iT_Sub (i := 2) (T1 := hclose (▶: (▶: 𝐍)))).
   asideLaters. tcrush.
-  eapply (App_typed (T1 := hclose ⊤)); last (eapply Subs_typed_nocoerce); tcrush.
+  eapply (iT_All_E (T1 := hclose ⊤)); last (eapply iT_Sub_nocoerce); tcrush.
   have Hnil: Γ' u⊢ₜ (htv (hxm 2) @: "nil") 2 : hclose (hnilT hx0)
-    by tcrush; eapply Subs_typed_nocoerce; ltcrush.
+    by tcrush; eapply iT_Sub_nocoerce; ltcrush.
   have Hsnil: Γ' u⊢ₜ htskip (htv (hxm 2) @: "nil") 2
     : hclose $ hTAnd (hp0 @; "List") (typeEq "A" ⊥). {
-    eapply (Subs_typed (i := 1)), Hnil.
-    by tcrush; [lThis | lNext; apply AddI_stp; tcrush].
+    eapply (iT_Sub (i := 1)), Hnil.
+    by tcrush; [lThis | lNext; apply iSub_AddI; tcrush].
   }
   have Hcons: Γ' u⊢ₜ (htv (hxm 2) @: "cons") 2 : hclose $ hconsT hx0. {
     tcrush.
-    eapply Subs_typed_nocoerce; by [| ltcrush].
+    eapply iT_Sub_nocoerce; by [| ltcrush].
   }
 
   (* Here we produce a list of later nats, since we produce a list of p.A where p is the
@@ -280,13 +280,13 @@ Proof.
   set V := (hclose (hTAnd (hlistT hx1 hx0) U)).
   apply AnfBind_typed with (T := V); stcrush; first last.
   {
-    eapply Subs_typed_nocoerce; first
-      eapply TMuE_typed' with (T1 := hclose (val "head" : ⊤ →: hp0 @; "A"));
+    eapply iT_Sub_nocoerce; first
+      eapply iT_Mu_E' with (T1 := hclose (val "head" : ⊤ →: hp0 @; "A"));
       [ | done | tcrush ..].
       - varsub; asideLaters; lThis; ltcrush.
-      - by apply (SelU_stp (L := ⊥)), (path_tp_delay (i := 0)); wtcrush; varsub; ltcrush.
+      - by apply (iSel_Sub (L := ⊥)), (path_tp_delay (i := 0)); wtcrush; varsub; ltcrush.
   }
-  eapply (Subs_typed (i := 1) (T1 := hclose (hTAnd (hp0 @; "List") U))).
+  eapply (iT_Sub (i := 1) (T1 := hclose (hTAnd (hp0 @; "List") U))).
   (******)
   (* We seem stuck here. The problem is that *we* wrote
   x.List & { A <: Nat }, and that's <: (▶: ListBody) & { A <: Nat }, and we have no
@@ -296,20 +296,20 @@ Proof.
   (▶: (ListBody & { A <: Nat }), and we're back in business!
    *)
   {
-    ettrans; last apply TLaterL_stp; stcrush.
-    ettrans; [|apply: TDistr_TLater_And_stp; stcrush].
+    ettrans; last apply iLater_Sub; stcrush.
+    ettrans; [|apply: iAnd_Later_Sub_Distr; stcrush].
     tcrush; [lThis | lNext].
-    eapply SelU_stp; tcrush.
-    eapply Subs_typed_nocoerce; ltcrush.
+    eapply iSel_Sub; tcrush.
+    eapply iT_Sub_nocoerce; ltcrush.
   }
 
-  eapply App_typed, Hsnil.
-  eapply (App_typed (T1 := hclose 𝐍)); last tcrush.
+  eapply iT_All_E, Hsnil.
+  eapply (iT_All_E (T1 := hclose 𝐍)); last tcrush.
   (* Perform avoidance on the type application. *)
   eapply tyApp_typed with (T := hclose 𝐍); first done; intros; ltcrush; cbv -[Γ'].
-  by eapply LSel_stp', (path_tp_delay (i := 0)); try (typconstructor; var); wtcrush.
+  by eapply iSub_Sel', (path_tp_delay (i := 0)); try (typconstructor; var); wtcrush.
   by lNext.
-  lNext; by eapply SelU_stp, (path_tp_delay (i := 0)); try (typconstructor; var); wtcrush.
+  lNext; by eapply iSel_Sub, (path_tp_delay (i := 0)); try (typconstructor; var); wtcrush.
 Qed.
 
 Example clListTypNat3 Γ :

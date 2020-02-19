@@ -21,8 +21,8 @@ Definition hloopDefT : hty := val "loop" : ⊤ →: ⊥.
 Definition hloopDefTConcr : hty := μ: _, {@ hloopDefT }.
 Example loopDefTyp Γ : Γ u⊢ₜ hclose (htv hloopDefV) : hclose hloopDefT.
 Proof.
-  apply (Subs_typed_nocoerce (hclose hloopDefTConcr)); mltcrush; cbv.
-  eapply App_typed; last var.
+  apply (iT_Sub_nocoerce (hclose hloopDefTConcr)); mltcrush; cbv.
+  eapply iT_All_E; last var.
   tcrush; varsub; lookup.
 Qed.
 
@@ -33,7 +33,7 @@ Proof. have ? := loopDefTyp Γ; tcrush. Qed.
 Definition hloopTm : htm := hloopFunTm $: htv (hvnat 0).
 Example loopTyp Γ : Γ u⊢ₜ hclose hloopTm : ⊥.
 Proof.
-  have ? := loopFunTyp Γ; apply (App_typed (T1 := ⊤)), (Subs_typed_nocoerce 𝐍);
+  have ? := loopFunTyp Γ; apply (iT_All_E (T1 := ⊤)), (iT_Sub_nocoerce 𝐍);
     tcrush.
 Qed.
 End loop.
@@ -103,7 +103,7 @@ Example SubIFT_P0Bool Γ : {@
     val "true" : IFT;
     val "false" : IFT
   }%ty :: Γ u⊢ₜ IFT, 0 <: p0Bool, 0.
-Proof. eapply LSel_stp''; tcrush. varsub; tcrush. Qed.
+Proof. eapply iSub_Sel''; tcrush. varsub; tcrush. Qed.
 
 Example SubIFT_LaterP0Bool' Γ : {@
     typeEq "Boolean" IFT;
@@ -119,19 +119,19 @@ Example SubIFT_LaterP0Bool Γ : (▶: {@
   })%ty :: Γ u⊢ₜ IFT, 0 <: ▶: p0Bool, 0.
 Proof.
   asideLaters.
-  ettrans; first (apply (AddI_stp _ _ 1); tcrush).
-  eapply LSel_stp''; tcrush.
+  ettrans; first (apply (iSub_AddI _ _ 1); tcrush).
+  eapply iSub_Sel''; tcrush.
   varsub; tcrush.
 Qed.
 
 Example boolImplTypConcr Γ :
   Γ u⊢ₜ tv boolImplV : boolImplTConcr.
-Proof. tcrush; by [apply (dty_typed IFT); tcrush | var]. Qed.
+Proof. tcrush; by [apply (iD_Typ_Abs IFT); tcrush | var]. Qed.
 
 Example boolImplTyp Γ :
   Γ u⊢ₜ tv boolImplV : boolImplT.
 Proof.
-  apply (Subs_typed_nocoerce boolImplTConcr); first by apply boolImplTypConcr.
+  apply (iT_Sub_nocoerce boolImplTConcr); first by apply boolImplTypConcr.
   tcrush; rewrite iterate_0; ltcrush; apply SubIFT_LaterP0Bool'.
 Qed.
 
@@ -146,14 +146,14 @@ Definition hIFTTrueT : hty := hIFTGenT (λ t f, hTSing (hpv t)).
 Example iftTrueSingTyp Γ : Γ u⊢ₜ tv iftTrue : hclose hIFTTrueT.
 Proof.
   tcrush; cbv.
-  eapply (Path_typed (p := pv _)), psingleton_refl_typed.
+  eapply (iT_Path (p := pv _)), iP_Sngl_Refl.
   typconstructor; var.
 Qed.
 
 Example iftFalseSingTyp Γ : Γ u⊢ₜ tv iftFalse : hclose hIFTFalseT.
 Proof.
   tcrush; cbv.
-  eapply (Path_typed (p := pv _)), psingleton_refl_typed.
+  eapply (iT_Path (p := pv _)), iP_Sngl_Refl.
   typconstructor; var.
 Qed.
 
@@ -189,20 +189,20 @@ Proof.
   have Hty: T :: Γ u⊢ₜ tyApp e "A" (⊤ →: ⊤) :
     hclose (⊤ →: ⊤) →: (⊤ →: ⊤) →: ▶: (⊤ →: ⊤).
   by eapply tyApp_typed; first apply He; intros; simpl; tcrush;
-    [eapply LSel_stp', (path_tp_delay (i := 0))..|
-    eapply SelU_stp, (path_tp_delay (i := 0))];
+    [eapply iSub_Sel', (path_tp_delay (i := 0))..|
+    eapply iSel_Sub, (path_tp_delay (i := 0))];
     try (typconstructor; var); wtcrush.
-  move: Hty => /Appv_typed /(_ Hx1 _) /Appv_typed /(_ Hx0) /= Hty.
-  eapply (Subs_typed (i := 1)), Hty; tcrush.
+  move: Hty => /iT_All_Ex /(_ Hx1 _) /iT_All_Ex /(_ Hx0) /= Hty.
+  eapply (iT_Sub (i := 1)), Hty; tcrush.
 Qed.
 
 Lemma hassertFunTyp Γ e
   (Hty : ((⊤ →: ⊤) :: (⊤ →: ⊤) :: Γ)%ty u⊢ₜ e : hclose hIFT) :
   Γ u⊢ₜ hclose (hassertFun e) : ⊤ →: ⊤.
 Proof.
-  apply Let_typed with (T := (⊤ →: ⊤)%ty); tcrush; first var.
-  apply Let_typed with (T := (⊤ →: ⊤)%ty); stcrush.
-  by eapply Subs_typed_nocoerce; first apply loopFunTyp; tcrush.
+  apply iT_Let with (T := (⊤ →: ⊤)%ty); tcrush; first var.
+  apply iT_Let with (T := (⊤ →: ⊤)%ty); stcrush.
+  by eapply iT_Sub_nocoerce; first apply loopFunTyp; tcrush.
   by apply hassertBodyTyp; tcrush; var.
 Qed.
 
@@ -210,7 +210,7 @@ Lemma hassertTyp Γ e
   (Ht : ((⊤ →: ⊤) :: (⊤ →: ⊤) :: Γ)%ty u⊢ₜ e : hclose hIFT):
   Γ u⊢ₜ hclose (hassert e) : ⊤.
 Proof.
-  eapply App_typed, Subs_typed_nocoerce; first exact: hassertFunTyp; tcrush.
+  eapply iT_All_E, iT_Sub_nocoerce; first exact: hassertFunTyp; tcrush.
 Qed.
 End AssertPlain.
 
@@ -238,10 +238,10 @@ Proof.
   have Hty: T :: Γ u⊢ₜ tyApp e "A" ⊤ :
     hclose (∀: t : ⊤, ∀: f: ⊤, hTSing (hpv f)).
   by eapply tyApp_typed; first apply He; intros; tcrush;
-    eapply LSel_stp', (path_tp_delay (i := 0));
+    eapply iSub_Sel', (path_tp_delay (i := 0));
     try (typconstructor; var); wtcrush.
   rewrite /assertBody.
-  move: Hty => /Appv_typed /(_ Hx1 _) /Appv_typed /(_ Hx0) /=.
+  move: Hty => /iT_All_Ex /(_ Hx1 _) /iT_All_Ex /(_ Hx0) /=.
   apply; tcrush.
 Qed.
 
@@ -255,10 +255,10 @@ Proof.
   have Hty: T :: U :: Γ u⊢ₜ tyApp e "A" ⊤ :
     hclose (∀: t : ⊤, ∀: f: ⊤, hTSing (hpv t)).
   by eapply tyApp_typed; first apply He; intros; tcrush;
-    eapply LSel_stp', (path_tp_delay (i := 0));
+    eapply iSub_Sel', (path_tp_delay (i := 0));
     try (typconstructor; var); wtcrush.
   rewrite /assertBody.
-  move: Hty => /Appv_typed /(_ Hx1 _) /Appv_typed /(_ Hx0) /=.
+  move: Hty => /iT_All_Ex /(_ Hx1 _) /iT_All_Ex /(_ Hx0) /=.
   apply; tcrush.
 Qed.
 
@@ -267,13 +267,13 @@ Lemma hassertFunTrueTyp Γ e :
   Γ u⊢ₜ hclose (hassertFun e) : ⊤.
 Proof.
   move => /hassertBodyTrueTyp He.
-  apply Let_typed with (T := ⊤%ty); stcrush. {
-    apply (Subs_typed_nocoerce (⊤ →: ⊤)); tcrush; var.
+  apply iT_Let with (T := ⊤%ty); stcrush. {
+    apply (iT_Sub_nocoerce (⊤ →: ⊤)); tcrush; var.
   }
-  apply Let_typed with (T := ⊤%ty); stcrush. {
-    eapply Subs_typed_nocoerce; first apply loopFunTyp; tcrush.
+  apply iT_Let with (T := ⊤%ty); stcrush. {
+    eapply iT_Sub_nocoerce; first apply loopFunTyp; tcrush.
   }
-  eapply Subs_typed_nocoerce; first apply He; tcrush; var.
+  eapply iT_Sub_nocoerce; first apply He; tcrush; var.
 Qed.
 
 Lemma hassertFunFalseTyp Γ e :
@@ -281,13 +281,13 @@ Lemma hassertFunFalseTyp Γ e :
   Γ u⊢ₜ hclose (hassertFun e) : ⊤.
 Proof.
   move => /hassertBodyFalseTyp He.
-  apply Let_typed with (T := ⊤%ty); stcrush. {
-    apply (Subs_typed_nocoerce (⊤ →: ⊤)); tcrush; var.
+  apply iT_Let with (T := ⊤%ty); stcrush. {
+    apply (iT_Sub_nocoerce (⊤ →: ⊤)); tcrush; var.
   }
-  apply Let_typed with (T := ⊤%ty); stcrush. {
-    eapply Subs_typed_nocoerce; first apply loopFunTyp; tcrush.
+  apply iT_Let with (T := ⊤%ty); stcrush. {
+    eapply iT_Sub_nocoerce; first apply loopFunTyp; tcrush.
   }
-  eapply Subs_typed_nocoerce; first apply He; tcrush; var.
+  eapply iT_Sub_nocoerce; first apply He; tcrush; var.
 Qed.
 End AssertSingletons.
 
@@ -341,10 +341,10 @@ Example noneTypStronger Γ :
   Γ u⊢ₜ tv noneV : hclose hnoneSingT.
 Proof.
   have := iftTrueSingTyp (hclose (▶: hnoneSingTBody hx0) :: Γ) =>
-    /(dpt_pv_typed "isEmpty") ?.
-  (* apply VObj_typed; last stcrush.
-  apply dcons_typed; [tcrush| |tcrush].
-  apply dcons_typed; [eauto | |tcrush]. *)
+    /(iD_Val "isEmpty") ?.
+  (* apply iT_Obj_I; last stcrush.
+  apply iD_Cons; [tcrush| |tcrush].
+  apply iD_Cons; [eauto | |tcrush]. *)
   tcrush; var.
 Qed.
 
@@ -382,15 +382,15 @@ Example mkSomeTypStronger Γ :
   Γ u⊢ₜ tv mkSome : hclose hmkSomeTSing.
 Proof.
   evar (Γ' : ctx).
-  have := iftFalseSingTyp Γ' => /(dpt_pv_typed "isEmpty"); rewrite /Γ' => Hf.
+  have := iftFalseSingTyp Γ' => /(iD_Val "isEmpty"); rewrite /Γ' => Hf.
   tcrush; cbv.
-  - eapply App_typed; first var.
-    apply (Subs_typed (i := 1) (T1 := hclose (▶: (hp3 @; "T"))%HT)); tcrush.
+  - eapply iT_All_E; first var.
+    apply (iT_Sub (i := 1) (T1 := hclose (▶: (hp3 @; "T"))%HT)); tcrush.
     varsub; ltcrush.
   - varsub.
-    ettrans; first (apply TAddLater_stp; tcrush).
+    ettrans; first (apply iSub_Add_Later; tcrush).
     asideLaters.
-    eapply LSel_stp''; tcrush.
+    eapply iSub_Sel''; tcrush.
     varsub; tcrush.
 Qed.
 
@@ -414,7 +414,7 @@ Example optionModConcrTyp Γ :
 Proof.
   set U := hclose (▶: hoptionModTConcrBody).
   have := noneTypStronger (U :: Γ).
-  have := mkSomeTypStronger (U :: Γ) => /(dpt_pv_typed "mkSome") Hs Hn.
+  have := mkSomeTypStronger (U :: Γ) => /(iD_Val "mkSome") Hs Hn.
   ltcrush.
 Qed.
 
@@ -440,12 +440,12 @@ Definition hoptionModTInvBody self : hty := {@
 Example optionModInvTyp Γ :
   Γ u⊢ₜ hclose (htv hoptionModV) : hclose (μ: self, hoptionModTInvBody self).
 Proof.
-  eapply Subs_typed_nocoerce; first apply optionModConcrTyp.
+  eapply iT_Sub_nocoerce; first apply optionModConcrTyp.
   ltcrush; rewrite iterate_0.
-  eapply LSel_stp'; tcrush; varsub; ltcrush.
-  all: try eapply LSel_stp', (path_tp_delay (i := 0));
+  eapply iSub_Sel'; tcrush; varsub; ltcrush.
+  all: try eapply iSub_Sel', (path_tp_delay (i := 0));
     try (typconstructor; varsub; ltcrush); wtcrush.
-  all: try (ettrans; last eapply TOr2_stp); mltcrush.
+  all: try (ettrans; last eapply iSub_Or2); mltcrush.
 Qed.
 
 Definition hoptionModT := μ: self, {@
@@ -464,6 +464,6 @@ Proof. ltcrush; varsub; tcrush. Qed.
 
 Example optionModTyp Γ :
   Γ u⊢ₜ hclose (htv hoptionModV) : hclose hoptionModT.
-Proof. eapply Subs_typed_nocoerce, optionModTypSub; apply optionModInvTyp. Qed.
+Proof. eapply iT_Sub_nocoerce, optionModTypSub; apply optionModInvTyp. Qed.
 
 End option.

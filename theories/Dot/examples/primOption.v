@@ -21,7 +21,7 @@ Definition mapfst {A B C} (f : A → C): A * B → (C * B) := λ '(a, b), (f a, 
 Module primOption.
 Import hoasNotation.
 
-Ltac tMember := apply Dty_typed; tcrush; by_extcrush.
+Ltac tMember := apply iD_Typ; tcrush; by_extcrush.
 
 Section primOption'.
 
@@ -148,7 +148,7 @@ Definition noneV := hclose hnoneV.
 
 Lemma boolSing g Γ (b : bool) : Γ v⊢ₜ[g] b : TSing b.
 Proof.
-  eapply (Path_typed (p := b)), (psingleton_refl_typed (T := TBool)).
+  eapply (iT_Path (p := b)), (iP_Sngl_Refl (T := TBool)).
   tcrush.
 Qed.
 
@@ -172,15 +172,15 @@ Example mkSomeTypStronger Γ :
 Proof.
   tcrush; cbv.
   - tMember.
-    (* apply (dty_typed (hclose $ hpv hx2 @; "A")); tcrush; by_extcrush. *)
+    (* apply (iD_Typ_Abs (hclose $ hpv hx2 @; "A")); tcrush; by_extcrush. *)
   - apply boolSing.
-  - eapply App_typed; first var.
-    apply (Subs_typed (i := 1) (T1 := hclose (▶: (hp3 @; "T"))%HT)); tcrush.
+  - eapply iT_All_E; first var.
+    apply (iT_Sub (i := 1) (T1 := hclose (▶: (hp3 @; "T"))%HT)); tcrush.
     varsub; ltcrush.
   - varsub.
-    ettrans; first (apply TAddLater_stp; tcrush).
+    ettrans; first (apply iSub_Add_Later; tcrush).
     asideLaters.
-    eapply LSel_stp''; tcrush. varsub; tcrush.
+    eapply iSub_Sel''; tcrush. varsub; tcrush.
 Qed.
 
 
@@ -196,7 +196,7 @@ Example optionModConcrTyp Γ :
 Proof.
   set U := hclose (▶: hoptionModTConcrBody).
   have := noneTypStronger (U :: Γ).
-  have := mkSomeTypStronger (U :: Γ) => /(dpt_pv_typed "mkSome") Hs Hn.
+  have := mkSomeTypStronger (U :: Γ) => /(iD_Val "mkSome") Hs Hn.
   ltcrush.
   tMember.
 Qed.
@@ -204,21 +204,21 @@ Qed.
 Example optionModInvTyp Γ :
   Γ v⊢ₜ[ primOptionG ] hclose hoptionModV : hclose (μ: self, hoptionModTInvBody self).
 Proof.
-  eapply Subs_typed_nocoerce; first apply optionModConcrTyp.
+  eapply iT_Sub_nocoerce; first apply optionModConcrTyp.
   ltcrush; rewrite iterate_0.
-  eapply LSel_stp'; tcrush; varsub; ltcrush.
-  all: try eapply LSel_stp', (path_tp_delay (i := 0));
+  eapply iSub_Sel'; tcrush; varsub; ltcrush.
+  all: try eapply iSub_Sel', (path_tp_delay (i := 0));
     try (typconstructor; varsub; ltcrush); wtcrush.
-  all: try (ettrans; last eapply TOr2_stp); mltcrush.
+  all: try (ettrans; last eapply iSub_Or2); mltcrush.
 Qed.
 
 Example optionModTypSub Γ :
   Γ v⊢ₜ[ primOptionG ] hclose (μ: self, hoptionModTInvBody self), 0 <: hclose hoptionModT, 0.
-Proof. ltcrush; eapply (Subs_typed (i := 0)), T_Bool_typed; tcrush. Qed.
+Proof. ltcrush; eapply (iT_Sub (i := 0)), iT_Bool_I; tcrush. Qed.
 
 Example optionModTyp Γ :
   Γ v⊢ₜ[ primOptionG ] hclose (htv hoptionModV) : hclose hoptionModT.
-Proof. eapply Subs_typed_nocoerce, optionModTypSub; apply optionModInvTyp. Qed.
+Proof. eapply iT_Sub_nocoerce, optionModTypSub; apply optionModInvTyp. Qed.
 
 End primOption'.
 End primOption.

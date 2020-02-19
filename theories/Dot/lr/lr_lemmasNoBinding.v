@@ -9,12 +9,12 @@ Section Sec.
   Context `{HdlangG: dlangG Σ} (Γ : sCtx Σ).
 
   (* Only provable semantically *)
-  Lemma sDistrAndOr1 {S T U i}: Γ s⊨ oAnd (oOr S T) U , i <: oOr (oAnd S U) (oAnd T U), i.
+  Lemma sAnd_Or_Sub_Distr {S T U i}: Γ s⊨ oAnd (oOr S T) U , i <: oOr (oAnd S U) (oAnd T U), i.
   Proof. iIntros "!> %% #Hg [[HS|HT] Hu] !> /="; [iLeft|iRight]; iFrame. Qed.
 
-  (** Also derivable syntactically; see [distrOrAnd2_stp]. But much easier to
+  (** Also derivable syntactically; see [iOr_And_Sub_Distr_inv]. But much easier to
   derive in the model. *)
-  Lemma sDistrOrAnd2 {S T U i}: Γ s⊨ oAnd (oOr S U) (oOr T U), i <: oOr (oAnd S T) U , i.
+  Lemma sAnd_Or_Sub_Distr_inv {S T U i}: Γ s⊨ oAnd (oOr S U) (oOr T U), i <: oOr (oAnd S T) U , i.
   Proof. iIntros "!> %% #Hg [[HS|HT] [HT'|HU]] !> /="; eauto with iFrame. Qed.
 
   (* Is it true that for covariant F, F[A ∧ B] = F[A] ∧ F[B]?
@@ -22,7 +22,7 @@ Section Sec.
     F[A ∧ B] <: F[A] ∧ F[B] is provable by covariance.
     Let's prove F[A] ∧ F[B] <: F[A ∧ B] in the model.
     *)
-  Lemma sSub_TAll_Cov_Distr T U1 U2 i:
+  Lemma sAnd_All_Sub_Distr T U1 U2 i:
     Γ s⊨ oAnd (oAll T U1) (oAll T U2), i <: oAll T (oAnd U1 U2), i.
   Proof.
     iIntros "/= !>" (ρ v) "#Hg [#H1 #H2]". iNext.
@@ -37,7 +37,7 @@ Section Sec.
     iApply wp_and. by iApply "H1". by iApply "H2".
   Qed.
 
-  Lemma sSub_TVMem_Cov_Distr l T1 T2 i:
+  Lemma sAnd_Fld_Sub_Distr l T1 T2 i:
     Γ s⊨ oAnd (cVMem l T1) (cVMem l T2), i <: cVMem l (oAnd T1 T2), i.
   Proof.
     iIntros "/= !>" (ρ v) "#Hg [#H1 H2]". iNext.
@@ -46,7 +46,7 @@ Section Sec.
     by iApply path_wp_and; auto.
   Qed.
 
-  Lemma sSub_TVMem_Cov_Distr_2 l T1 T2 i:
+  Lemma sAnd_Fld_Sub_Distr_2 l T1 T2 i:
     Γ s⊨ cVMem l (oAnd T1 T2), i <: oAnd (cVMem l T1) (cVMem l T2), i.
   Proof.
     iIntros "/= !>" (ρ v) "#Hg #H". iNext.
@@ -56,7 +56,7 @@ Section Sec.
   Qed.
 
   (* This should also follows internally from covariance, once that's proven. *)
-  Lemma sSub_TVMem_Cov_Distr_Or_1 l T1 T2 i:
+  Lemma sAnd_Fld_Sub_Distr_Or_1 l T1 T2 i:
     Γ s⊨ oOr (cVMem l T1) (cVMem l T2), i <: cVMem l (oOr T1 T2), i.
   Proof.
     iIntros "/= !>" (ρ v) "#Hg [#H| #H]"; iNext;
@@ -64,7 +64,7 @@ Section Sec.
       rewrite -path_wp_or; by [iLeft | iRight].
   Qed.
 
-  Lemma sSub_TVMem_Cov_Distr_Or_2 l T1 T2 i:
+  Lemma sAnd_Fld_Sub_Distr_Or_2 l T1 T2 i:
     Γ s⊨ cVMem l (oOr T1 T2), i <: oOr (cVMem l T1) (cVMem l T2), i.
   Proof.
     iIntros "/= !>" (ρ v) "#Hg #H". iNext.
@@ -73,7 +73,7 @@ Section Sec.
       repeat (iExists _; repeat iSplit => //).
   Qed.
 
-  Lemma sSub_TTMem_Cov_Distr l L U1 U2 i:
+  Lemma sAnd_Typ_Sub_Distr l L U1 U2 i:
     Γ s⊨ oAnd (cTMem l L U1) (cTMem l L U2), i <: cTMem l L (oAnd U1 U2), i.
   Proof.
     iIntros "/= !>" (ρ v) "Hg [H1 H2]". iNext.

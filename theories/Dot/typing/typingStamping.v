@@ -67,8 +67,8 @@ Section syntyping_stamping_lemmas.
   Import typing_unstamped typing_storeless.
 
   Hint Constructors typing_stamped.typed typing_stamped.subtype typing_stamped.dms_typed typing_stamped.dm_typed typing_stamped.path_typed : core.
-  Remove Hints typing_stamped.Trans_stp : core.
-  Hint Extern 10 => try_once typing_stamped.Trans_stp : core.
+  Remove Hints typing_stamped.iSub_Trans : core.
+  Hint Extern 10 => try_once typing_stamped.iSub_Trans : core.
 
   Implicit Types (L T U V : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty) (g : stys).
 
@@ -132,10 +132,10 @@ Section syntyping_stamping_lemmas.
   Hint Resolve psubst_one_implies is_unstamped_ty_subst : core.
   (** These hints slow down proof search. *)
   (** Not directed. *)
-  Remove Hints typing_stamped.psingleton_trans : core.
+  Remove Hints typing_stamped.iP_Sngl_Trans : core.
   (** These cause cycles. *)
-  Remove Hints typing_stamped.p_mu_e_typed : core.
-  Remove Hints typing_stamped.p_mu_i_typed : core.
+  Remove Hints typing_stamped.iP_Mu_E : core.
+  Remove Hints typing_stamped.iP_Mu_I : core.
   Notation stamps_tm'   n e__u g e__s := (stamps_tm   n AlsoNonVars e__u g e__s).
   Notation stamps_dm'   n d__u g d__s := (stamps_dm   n AlsoNonVars d__u g d__s).
   Notation stamps_dms'  n d__u g d__s := (stamps_dms  n AlsoNonVars d__u g d__s).
@@ -202,7 +202,7 @@ Section syntyping_stamping_lemmas.
     (* have ?: T2 .Tp[ p2 /]~ psubst_one_ty T2 p2 by exact: psubst_one_implies.
     have ?: is_unstamped_ty (length Γ) (psubst_one_ty T2 p2)
       by eapply is_unstamped_ty_subst. *)
-    split_and!; first eapply typing_stamped.App_path_typed; naive_solver eauto 4.
+    split_and!; first eapply typing_stamped.iT_All_Ex_p; naive_solver eauto 4.
 
   - intros * Hu1 IHs1 Hu2 IHs2 g.
     move: IHs1 => /(.$ g) [e1' [g1 ?]];
@@ -268,7 +268,7 @@ Section syntyping_stamping_lemmas.
     destruct (stamp_dtysyn_spec g2 Husv); destruct_and!.
     have ?: g2 ⊆ g3 by simplify_eq. lte g g1 g2; lte g g2 g3; lte g1 g2 g3.
     exists (dtysem σ s), g3; simplify_eq; split_and!;
-      first eapply (typing_stamped.dty_typed _ _ T); auto 2; [
+      first eapply (typing_stamped.iD_Typ_Abs _ _ T); auto 2; [
         exact: (stamped_objIdent_subtype_mono _ Hts1)|
         exact: (stamped_objIdent_subtype_mono _ Hts2)].
   - intros * Hu1 IHs1 g.
@@ -282,7 +282,7 @@ Section syntyping_stamping_lemmas.
   - intros * Hu1 IHs1 Hus1 g.
     move: IHs1 => /(.$ g) /= [ds' [g1 ?]]; destruct_and!.
     exists (dpt (pv (vobj ds'))), g1; split_and!; cbn;
-      try eapply typing_stamped.dnew_typed; eauto 2;
+      try eapply typing_stamped.iD_Val_New; eauto 2;
       repeat constructor; eauto with f_equal.
   - intros * Hu1 IHs1 Hu2 IHs2 g.
     (* Here and for standard subsumption, by stamping the subtyping
@@ -308,7 +308,7 @@ Section syntyping_stamping_lemmas.
     move: IHs1 => /(.$ g) [g1 [Hs1 ?]].
     move: IHs2 => /(.$ g1) [p1' [g2 [IHs2 ?]]]; ev; lte g g1 g2.
     exists p1', g2; split_and! => //.
-    eapply typing_stamped.p_subs_typed, IHs2.
+    eapply typing_stamped.iP_Sub, IHs2.
     by eapply stamped_objIdent_subtype_mono, Hs1.
   - intros * Hus1 Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [p1' [g1 ?]]; ev.
@@ -334,7 +334,7 @@ Section syntyping_stamping_lemmas.
     move: IHs1 => /(.$ g) [p1' [g1 ?]]; ev.
     exists q, g1. move: (unstamped_path_root_is_var Hu1) => ?.
     have ?: p1' = p by naive_solver.
-    split_and!; first eapply typing_stamped.psingleton_inv_typed; naive_solver.
+    split_and!; first eapply typing_stamped.iP_Sngl_Inv; naive_solver.
   - intros * Hu1 IHs1 Hu2 IHs2 g.
     move: IHs1 => /(.$ g) [p1' [g1 ?]];
     move: IHs2 => /(.$ g1) [q1' [g2 ?]]; ev; lte g g1 g2.
@@ -342,7 +342,7 @@ Section syntyping_stamping_lemmas.
     move: (unstamped_path_root_is_var Hu2) => Hp2.
     have [? ?]: p1' = p ∧ q1' = q by [naive_solver]; subst p1' q1'.
     exists p, g2; split_and!;
-      first eapply typing_stamped.psingleton_trans; eauto 2.
+      first eapply typing_stamped.iP_Sngl_Trans; eauto 2.
   - intros * Hu1 IHs1 Hu2 IHs2 g.
     move: IHs1 => /(.$ g) [p1' [g1 ?]];
     move: IHs2 => /(.$ g1) [ql1' [g2 ?]]; ev; lte g g1 g2.
@@ -353,7 +353,7 @@ Section syntyping_stamping_lemmas.
     have Hus1: is_unstamped_path' (length Γ) (pself p l) by eauto.
     have [??]: p1' = p ∧ ql1' = pself q l by [naive_solver]; subst p1' ql1'.
     exists (pself p l), g2; split_and!;
-      first eapply typing_stamped.psingleton_elim;
+      first eapply typing_stamped.iP_Sngl_E;
       first apply (stamped_objIdent_path_typed_mono (g := g1)); eauto 3.
   - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [p1' [g1 ?]]; ev.
@@ -368,24 +368,24 @@ Section syntyping_stamping_lemmas.
     move: (unstamped_path_root_is_var Hu1) => Hp1.
     have ?: p1' = p by [naive_solver]; subst p1'.
     exists g1. repeat constructor => //.
-    eapply typing_stamped.PSub_singleton_stp; eauto 2.
+    eapply typing_stamped.iSngl_pq_Sub; eauto 2.
   - intros * Hu1 IHs1 Hu2 IHs2 g.
     move: IHs1 => /(.$ g) [p1' [g1 ?]].
     move: IHs2 => /(.$ g1) [g2 ?]; ev; lte g g1 g2.
     move: (unstamped_path_root_is_var Hu1) => Hp1.
     have ?: p1' = p by [naive_solver]; subst p1'.
     exists g2; split_and! => //.
-    by apply (typing_stamped.PSym_singleton_stp _ _ T); eauto 2.
+    by apply (typing_stamped.iSngl_Sub_Sym _ _ T); eauto 2.
   - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) [p1' [g1 ?]]; ev.
     move: (unstamped_path_root_is_var Hu1) => Hp1.
     have ?: p1' = p by [naive_solver]; subst p1'.
-    exists g1; split_and! => //. exact: typing_stamped.PSelf_singleton_stp.
+    exists g1; split_and! => //. exact: typing_stamped.iSngl_Sub_Self.
   - intros * Hu1 IHs1 Hu2 IHs2 Hus1 g.
     move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]];
     move: IHs2 => /(.$ g1) [g2 [Hts2 Hle2]]; lte g g1 g2.
     exists g2; split_and! => //.
-    apply typing_stamped.TAllConCov_stp; eauto 2.
+    apply typing_stamped.iAll_Sub_All; eauto 2.
   Qed.
 
   Lemma stamp_objIdent_typed g Γ e T: Γ u⊢ₜ e : T →

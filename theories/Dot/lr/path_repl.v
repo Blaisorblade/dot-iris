@@ -72,7 +72,7 @@ Section path_repl.
   Lemma P_Sngl_Refl Γ T p i : Γ ⊨p p : T, i -∗ Γ ⊨p p : TSing p, i.
   Proof. apply sP_Sngl_Refl. Qed.
 
-  Lemma sSngl_Self_Sub Γ p T i :
+  Lemma sSngl_Sub_Self Γ p T i :
     Γ s⊨p p : T, i -∗
     Γ s⊨ oSing p, i <: T, i.
   Proof.
@@ -82,10 +82,10 @@ Section path_repl.
     by rewrite path_wp_pv_eq.
   Qed.
 
-  Lemma Sngl_Self_Sub Γ p T i : Γ ⊨p p : T, i -∗ Γ ⊨ TSing p, i <: T, i.
-  Proof. apply sSngl_Self_Sub. Qed.
+  Lemma Sngl_Sub_Self Γ p T i : Γ ⊨p p : T, i -∗ Γ ⊨ TSing p, i <: T, i.
+  Proof. apply sSngl_Sub_Self. Qed.
 
-  Lemma sSngl_Sym_Sub Γ p q T i:
+  Lemma sSngl_Sub_Sym Γ p q T i:
     Γ s⊨p p : T, i -∗ (* Just to ensure [p] terminates and [TSing p] isn't empty. *)
     Γ s⊨ oSing p, i <: oSing q, i -∗
     Γ s⊨ oSing q, i <: oSing p, i.
@@ -98,9 +98,9 @@ Section path_repl.
     by rewrite (path_wp_pure_det Hqv Hqw).
   Qed.
 
-  Lemma Sngl_Sym_Sub Γ p q T i: Γ ⊨p p : T, i -∗
+  Lemma Sngl_Sub_Sym Γ p q T i: Γ ⊨p p : T, i -∗
     Γ ⊨ TSing p, i <: TSing q, i -∗ Γ ⊨ TSing q, i <: TSing p, i.
-  Proof. apply sSngl_Sym_Sub. Qed.
+  Proof. apply sSngl_Sub_Sym. Qed.
 
   Lemma sP_Sngl_Inv Γ p q i :
     Γ s⊨p p : oSing q, i -∗
@@ -151,9 +151,9 @@ Section path_repl.
     Γ ⊨ TSing p, i <: TMu T2, i.
   Proof.
     (* iIntros "Hsub Hp".
-    iApply Sngl_Self_Sub.
+    iApply Sngl_Sub_Self.
     iApply (sP_Sub' with "Hp").
-    iApply Sub_Mu_X.
+    iApply Mu_Sub_Mu.
     (* We're stuck! *)
     Restart. *)
     iIntros "#Hsub #Hp !>" (ρ v) "#Hg /= #Heq".
