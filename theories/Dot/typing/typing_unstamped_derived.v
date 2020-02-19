@@ -175,14 +175,14 @@ Lemma LSel_stp'' Γ {p l L i}:
 Proof. apply LSel_stp'. Qed.
 
 (* Worse than dty_typed, but shown in the paper. *)
-Lemma dty_typed_intermediate Γ T l L U:
+(* Lemma dty_typed_intermediate Γ T l L U:
   is_unstamped_ty' (length Γ) L →
   is_unstamped_ty' (length Γ) T →
   is_unstamped_ty' (length Γ) U →
   Γ u⊢ₜ L, 0 <: T, 0 →
   Γ u⊢ₜ T, 0 <: U, 0 →
   Γ u⊢{ l := dtysyn T } : TTMem l L U.
-Proof. intros; apply dty_typed => //; tcrush; exact: TMono_stp. Qed.
+Proof. intros; apply dty_typed => //; tcrush; exact: TMono_stp. Qed. *)
 
 (** * Manipulating laters, basics. *)
 
@@ -309,13 +309,12 @@ Ltac mltcrush := tcrush; try ((apply Bind1' || apply Bind1); tcrush); repeat loo
 Lemma BindSpec Γ (L T U : ty):
   is_unstamped_ty' (S (length Γ)) T →
   is_unstamped_ty' (S (length Γ)) L → is_unstamped_ty' (S (length Γ)) U →
-  {@ type "A" >: T <: T }%ty :: Γ u⊢ₜ L, 0 <: T, 0 →
-  {@ type "A" >: T <: T }%ty :: Γ u⊢ₜ T, 0 <: U, 0 →
+  {@ type "A" >: T <: T }%ty :: Γ u⊢ₜ L, 1 <: T, 1 →
+  {@ type "A" >: T <: T }%ty :: Γ u⊢ₜ T, 1 <: U, 1 →
   Γ u⊢ₜ tv (ν {@ type "A" = T }) : μ {@ type "A" >: L <: U }.
 Proof.
   intros.
-  eapply Subs_typed_nocoerce with (T1 := μ {@ type "A" >: T <: T }); ltcrush;
-    exact: TMono_stp.
+  eapply Subs_typed_nocoerce with (T1 := μ {@ type "A" >: T <: T }); ltcrush.
 Qed.
 
 Lemma p_subs_typed' {Γ p T1 T2 i} :

@@ -8,8 +8,6 @@ All file paths in this file are relative to the `theories/` folder.
 
 - Derived rule `(<:-Later-Shift)` is called `Sub_later_shift` in Coq.
 
-- Typing rule `(D-Typ-Abs-Better)` is derived as `dty_typed_intermediate`.
-
 - The fundamental theorem and type soundness for gDOT, are proven in
   `Dot/fundamental.v`.
   - Translation of typing derivations is proved in

@@ -292,9 +292,9 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Γ u⊢ₜ TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
 
 (* "Structural" rule about indexes. Only try last. *)
-| TLater_Mono_stp T1 T2 i j:
+(* | TLater_Mono_stp T1 T2 i j:
     Γ u⊢ₜ T1, i <: T2, j →
-    Γ u⊢ₜ TLater T1, i <: TLater T2, j
+    Γ u⊢ₜ TLater T1, i <: TLater T2, j *)
 where "Γ u⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
 
 (* Make [T] first argument: Hide Γ for e.g. typing examples. *)
@@ -355,7 +355,7 @@ Qed.
 
 Ltac ettrans := eapply Trans_stp.
 
-Lemma TMono_stp {Γ T1 T2 i j} :
+(* Lemma TMono_stp {Γ T1 T2 i j} :
   Γ u⊢ₜ T1, i <: T2, j →
   is_unstamped_ty' (length Γ) T1 →
   is_unstamped_ty' (length Γ) T2 →
@@ -365,7 +365,7 @@ Proof.
   ettrans; first exact: TLaterR_stp.
   ettrans; last exact: TLaterL_stp.
   exact: TLater_Mono_stp.
-Qed.
+Qed. *)
 
 Lemma Sub_later_shift {Γ T1 T2 i j}
   (Hs1: is_unstamped_ty' (length Γ) T1)
