@@ -143,33 +143,33 @@ Section syntyping_stamping_lemmas.
 
   Lemma stamp_objIdent_typing_mut Γ :
     (∀ e T, Γ u⊢ₜ e : T →
-      ∀ (g : stys), ∃ e' (g' : stys),
+      ∀ g, ∃ e' g',
       Γ s⊢ₜ[ g' ] e' : T ∧ g ⊆ g' ∧ stamps_tm' (length Γ) e g' e') ∧
     (∀ ds T, Γ u⊢ds ds : T →
-      ∀ (g : stys), ∃ ds' (g' : stys),
+      ∀ g, ∃ ds' g',
       Γ s⊢ds[ g' ] ds' : T ∧ g ⊆ g' ∧ stamps_dms' (length Γ) ds g' ds') ∧
     (∀ l d T, Γ u⊢{ l := d } : T →
-      ∀ (g : stys), ∃ d' (g' : stys),
+      ∀ g, ∃ d' g',
       Γ s⊢[ g' ]{ l := d' } : T
         ∧ g ⊆ g' ∧ stamps_dm' (length Γ) d g' d') ∧
     (∀ p T i, Γ u⊢ₚ p : T, i →
-      ∀ (g : stys), ∃ p' (g' : stys),
+      ∀ g, ∃ p' g',
       Γ s⊢ₚ[ g' ] p' : T, i
         ∧ g ⊆ g' ∧ stamps_path' (length Γ) p g' p') ∧
     (∀ T1 i1 T2 i2, Γ u⊢ₜ T1, i1 <: T2, i2 →
-      ∀ (g : stys), ∃ (g' : stys), Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2 ∧ g ⊆ g').
+      ∀ g, ∃ g', Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2 ∧ g ⊆ g').
   Proof.
     eapply unstamped_typing_mut_ind with
-      (P := λ Γ e T _, ∀ g, ∃ e' (g' : stys),
+      (P := λ Γ e T _, ∀ g, ∃ e' g',
         Γ s⊢ₜ[ g' ] e' : T ∧ g ⊆ g' ∧ stamps_tm' (length Γ) e g' e')
-      (P0 := λ Γ ds T _, ∀ g, ∃ ds' (g' : stys),
+      (P0 := λ Γ ds T _, ∀ g, ∃ ds' g',
         Γ s⊢ds[ g' ] ds' : T ∧ g ⊆ g' ∧ stamps_dms' (length Γ) ds g' ds')
-      (P1 := λ Γ l d T _, ∀ (g : stys), ∃ d' (g' : stys),
+      (P1 := λ Γ l d T _, ∀ g, ∃ d' g',
         Γ s⊢[ g' ]{ l := d' } : T ∧ g ⊆ g' ∧
         stamps_dm' (length Γ) d g' d')
-      (P2 := λ Γ p T i _, ∀ (g : stys), ∃ p' (g' : stys),
+      (P2 := λ Γ p T i _, ∀ g, ∃ p' g',
         Γ s⊢ₚ[ g' ] p' : T, i ∧ g ⊆ g' ∧ stamps_path' (length Γ) p g' p')
-      (P3 := λ Γ T1 i1 T2 i2 _, ∀ (g : stys), ∃ (g' : stys),
+      (P3 := λ Γ T1 i1 T2 i2 _, ∀ g, ∃ g',
         Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2 ∧ g ⊆ g');
        clear Γ.
 
@@ -387,12 +387,12 @@ Section syntyping_stamping_lemmas.
   Qed.
 
   Lemma stamp_objIdent_typed Γ e T: Γ u⊢ₜ e : T →
-    ∀ (g : stys), ∃ e' (g' : stys),
+    ∀ g , ∃ e' g',
     Γ s⊢ₜ[ g' ] e' : T ∧ g ⊆ g' ∧ stamps_tm' (length Γ) e g' e'.
   Proof. apply (stamp_objIdent_typing_mut Γ). Qed.
 
   Lemma stamp_objIdent_path_typed Γ p T i: Γ u⊢ₚ p : T, i →
-    ∀ (g : stys), ∃ p' (g' : stys),
+    ∀ g, ∃ p' g',
     Γ s⊢ₚ[ g' ] p' : T, i ∧ g ⊆ g' ∧ stamps_path' (length Γ) p g' p'.
   Proof. apply (stamp_objIdent_typing_mut Γ). Qed.
 
