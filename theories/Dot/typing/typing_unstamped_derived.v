@@ -15,7 +15,7 @@ Lemma unstamped_subject_closed {Γ e T}
   (Ht : Γ u⊢ₜ e : T) :
   nclosed e (length Γ).
 Proof.
-  destruct (stamp_objIdent_typed Ht ∅); ev. exact: is_unstamped_nclosed_tm.
+  destruct (stamp_objIdent_typed ∅ Ht); ev. exact: is_unstamped_nclosed_tm.
 Qed.
 
 Lemma var_typed_closed {Γ x T} : Γ u⊢ₜ tv (ids x) : T → x < length Γ.

@@ -156,7 +156,7 @@ Corollary type_soundness e T :
   [] u⊢ₜ e : T → safe e.
 Proof.
   (* Apply 5.3: Translation of typing derivations. *)
-  intros (e_s & g & HsT & Hs)%stamp_typed.
+  intros (e_s & g & HsT & Hs)%(stamp_typed ∅).
   apply Hs.
   apply (type_soundness_storeless HsT).
 Qed.
@@ -187,7 +187,7 @@ Corollary path_normalization p T i :
   [] u⊢ₚ p : T, i → terminates (path2tm p).
 Proof.
   (* Apply 5.3: Translation of typing derivations. *)
-  intros (e_s & g & HsT & Hs)%stamp_path_typed.
+  intros (e_s & g & HsT & Hs)%(stamp_path_typed ∅).
   apply Hs.
   apply (path_normalization_storeless HsT).
 Qed.

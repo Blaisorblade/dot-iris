@@ -386,15 +386,15 @@ Section syntyping_stamping_lemmas.
     apply typing_stamped.TAllConCov_stp; eauto 2.
   Qed.
 
-  Lemma stamp_objIdent_typed Γ e T: Γ u⊢ₜ e : T →
-    ∀ g , ∃ e' g',
+  Lemma stamp_objIdent_typed g Γ e T: Γ u⊢ₜ e : T →
+    ∃ e' g',
     Γ s⊢ₜ[ g' ] e' : T ∧ g ⊆ g' ∧ stamps_tm' (length Γ) e g' e'.
-  Proof. apply (stamp_objIdent_typing_mut Γ). Qed.
+  Proof. unmut_lemma (stamp_objIdent_typing_mut Γ). Qed.
 
-  Lemma stamp_objIdent_path_typed Γ p T i: Γ u⊢ₚ p : T, i →
-    ∀ g, ∃ p' g',
+  Lemma stamp_objIdent_path_typed g Γ p T i: Γ u⊢ₚ p : T, i →
+    ∃ p' g',
     Γ s⊢ₚ[ g' ] p' : T, i ∧ g ⊆ g' ∧ stamps_path' (length Γ) p g' p'.
-  Proof. apply (stamp_objIdent_typing_mut Γ). Qed.
+  Proof. unmut_lemma (stamp_objIdent_typing_mut Γ). Qed.
 
   Lemma safe_stamp {n e g e_s}:
     stamps_tm' n e g e_s → safe e_s → safe e.
@@ -404,13 +404,13 @@ Section syntyping_stamping_lemmas.
     stamps_tm' n e g e_s → terminates e_s → terminates e.
   Proof. move => [/unstamp_same_skel_tm Hs _] Hsafe. exact: terminates_same_skel. Qed.
 
-  Lemma stamp_typed Γ e T: Γ u⊢ₜ e : T →
-    ∃ e' (g : stys),
-    Γ v⊢ₜ[ g ] e' : T ∧ (safe e' → safe e).
+  Lemma stamp_typed Γ e T g: Γ u⊢ₜ e : T →
+    ∃ e' g',
+    Γ v⊢ₜ[ g' ] e' : T ∧ g ⊆ g' ∧ (safe e' → safe e).
   Proof.
-    move => /stamp_objIdent_typed HobjI.
-    case (HobjI ∅) as (e' & g' & HobjI'%typing_obj_ident_to_typing & ? & ?).
-    exists e', g'; split; first done. exact: safe_stamp.
+    intros (e' & g' & HobjI'%typing_obj_ident_to_typing & ? & ?)%
+      (stamp_objIdent_typed g).
+    exists e', g'; split_and! => //. exact: safe_stamp.
   Qed.
 
   Lemma stamps_path2tm n p g p' :
@@ -420,13 +420,12 @@ Section syntyping_stamping_lemmas.
       with_is_unstamped inverse; split_and! => //; eauto.
   Qed.
 
-  Lemma stamp_path_typed Γ p T i: Γ u⊢ₚ p : T, i →
-    ∃ p' (g : stys),
-    Γ v⊢ₚ[ g ] p' : T, i ∧ (terminates (path2tm p') → terminates (path2tm p)).
+  Lemma stamp_path_typed Γ p T g i: Γ u⊢ₚ p : T, i →
+    ∃ p' g',
+    Γ v⊢ₚ[ g' ] p' : T, i ∧ g ⊆ g' ∧ (terminates (path2tm p') → terminates (path2tm p)).
   Proof.
-    move => /stamp_objIdent_path_typed HobjI.
-    case (HobjI ∅) as (p' & g' & HobjI'%typing_obj_ident_to_typing_mut & ? & ?).
-    exists p', g'; split; first done.
-    by eapply terminates_stamp, stamps_path2tm.
+    intros (p' & g' & HobjI'%typing_obj_ident_to_typing_mut & ? & ?)%
+      (stamp_objIdent_path_typed g).
+    exists p', g'; split_and! => //. by eapply terminates_stamp, stamps_path2tm.
   Qed.
 End syntyping_stamping_lemmas.
