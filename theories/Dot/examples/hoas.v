@@ -42,6 +42,12 @@ Coercion hclose_dm   := hclose : hdm   → dm.
 Coercion hclose_path := hclose : hpath → path.
 Coercion hclose_ty   := hclose : hty   → ty.
 
+Arguments hclose_tm   /.
+Arguments hclose_vl   /.
+Arguments hclose_dm   /.
+Arguments hclose_path /.
+Arguments hclose_ty   /.
+
 Notation hstampTy := (preTyMem hvl).
 
 (** Utilities to lift syntax to [hterm]s. *)
@@ -63,7 +69,8 @@ Definition liftA3 (con : s1 → s2 → s3 → s4) :
   hterm s1 → hterm s2 → hterm s3 → hterm s4 := λ a1 a2 a3 i,
   con (a1 i) (a2 i) (a3 i).
 
-Definition liftBind (con : s1 → s2) (f : hvl → hterm s1) : hterm s2 := λ i,
+(* Here and below, the point of [Eval cbv] is to improve the results of simplification. *)
+Definition liftBind (con : s1 → s2) (f : hvl → hterm s1) : hterm s2 := Eval cbv -[minus] in λ i,
   let i' := S i in
   let v := ren (λ j, j - i') in
   con (f v i').
