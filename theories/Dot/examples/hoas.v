@@ -105,9 +105,9 @@ Coercion htv := liftA1 tv : hvl → htm.
 Definition htapp : htm → htm → htm := liftA2 tapp.
 Definition htproj : htm → label → nat → tm := Eval cbv in λ t l, liftA2 tproj t (pureS l).
 Definition htskip : htm → htm := liftA1 tskip.
-Definition htif : htm -> htm -> htm -> htm := liftA3 tif.
-Definition htun : un_op -> htm -> htm := λ u, liftA1 (tun u).
-Definition htbin : bin_op -> htm -> htm -> htm := λ b, liftA2 (tbin b).
+Definition htif : htm → htm → htm → htm := liftA3 tif.
+Definition htun : un_op → htm → htm := λ u, liftA1 (tun u).
+Definition htbin : bin_op → htm → htm → htm := λ b, liftA2 (tbin b).
 
 Definition hvar_vl : var → hvl := ids_hvl.
 
