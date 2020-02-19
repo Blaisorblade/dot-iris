@@ -37,9 +37,9 @@ Section hoas.
       (pCore @ "types" @; "Type")).
   Definition optionModTInv := hclose (μ: self, hoptionModTInvBody self).
 
-  Definition hoptionTyConcr1 (pCore : hpath) :=
-    hTOr hnoneConcrT (hTAnd (hsomeConcrT ⊥ ⊤)
+  Definition hsomeType pCore := (hTAnd (hsomeConcrT ⊥ ⊤)
       (type "T" >: ⊥ <: pCore @ "types" @; "Type")).
+  Definition hoptionTyConcr1 (pCore : hpath) := hTOr hnoneConcrT (hsomeType pCore).
 End hoas.
 
 Section semExample.
@@ -179,7 +179,7 @@ Tactic Notation "smart_wp_bind'" uconstr(ctxs) ident(v) constr(Hv) uconstr(Hp) :
   iApply (wp_wand with "[-]"); [iApply Hp; trivial|];
   iIntros (v) Hv.
 
-Lemma sem_later T a b c: V⟦TLater T⟧ a b c ⊣⊢ ▷ V⟦T⟧ a b c. done. Qed.
+Lemma sem_later T a b c: V⟦TLater T⟧ a b c ⊣⊢ ▷ V⟦T⟧ a b c. Proof. done. Qed.
 
 Example semFromPDotPaperTypesTyp Γ :
   TLater (fromPDotPaperAbsTBody x1) :: optionModTInv :: Γ ⊨[ fromPDotGφ ]
@@ -321,6 +321,7 @@ Proof.
     rewrite -wp_pure_step_later -1?wp_value; last done.
     iNext.
     iNext n.
+    clear p Hl H n.
     (*
     iAssert ([] ⊨ optV @: "tpe" : ▶: hoptionTyConcr1 (λ x : var, hoasNotation.hx2 x)) as "Htpe". {
     iApply T_Obj_E.
@@ -328,11 +329,65 @@ Proof.
     iApply (wp_bind (fill [ProjCtx _; IfCtx _ _])); iSimpl.
     rewrite -wp_pure_step_later -1?wp_value /of_val; last done.
     iNext.
-    iDestruct "Hw" as "[HwF|HwT]".
-    (* Next, use subtyping to convert Hw? into something usable. *)
+    rewrite /hoptionTyConcr1.
+    have Hf: Γ2 v⊢ₜ[ fromPDotG' ] hnoneConcrT, 0 <: val "isEmpty" : TSing true, 0 by mltcrush.
+    have Ht: Γ2 v⊢ₜ[ fromPDotG' ] hsomeType hoasNotation.hx2, 0 <:
+      val "isEmpty" : TSing false, 0 by lThis; mltcrush.
+    iDestruct "Hw" as "[HwF|HwT]". {
+      iPoseProof (fundamental_subtype _ _ _ _ _ _ Hf with "Hs") as "Hf".
+      iDestruct ("Hf" $! _ optV with "Hg HwF") as (? Hl pb ->) "{Hf} Hpb".
+      iDestruct (path_wp_pure_exec with "Hpb") as %(bv & [n?] & Heq); iClear "Hpb".
+      move: Heq; rewrite alias_paths_pv_eq_2 path_wp_pure_pv_eq => Heq.
+      iApply (wp_bind (fill [IfCtx _ _])).
+      rewrite -wp_pure_step_later; last done.
+      rewrite -wp_pure_step_later -1?wp_value; last done.
+      iNext.
+      iNext n.
+      iSimpl.
+      clear pb Hl H n.
+      simpl in Heq; rewrite -Heq.
+      rewrite -wp_pure_step_later -1?wp_value; last done.
+      iApply wp_wand; [iApply loopSemT | iIntros "!>% []"].
+    }
 
-    (* In fact, we want subtyping. *)
+    iPoseProof (fundamental_subtype _ _ _ _ _ _ Ht with "Hs") as "Ht".
+    iDestruct ("Ht" $! _ optV with "Hg HwT") as (? Hl pb ->) "{Ht} Hpb".
+    iDestruct (path_wp_pure_exec with "Hpb") as %(bv & [n?] & Heq); iClear "Hpb".
+    move: Heq; rewrite alias_paths_pv_eq_2 path_wp_pure_pv_eq => Heq.
+    iApply (wp_bind (fill [IfCtx _ _])).
+    rewrite -wp_pure_step_later; last done.
+    rewrite -wp_pure_step_later -1?wp_value; last done.
+    iNext.
+    iNext n.
+    iSimpl.
+    clear pb Hl H n.
+    simpl in Heq; rewrite -{}Heq.
+    rewrite -wp_pure_step_later -1?wp_value; last done.
+    (* To conclude, prove the right subtyping for hsomeType and TypeRef. But first go back to relate symV and (ρ 1). *)
 
+    have: Γ2 v⊢ₜ[ fromPDotG' ]
+      ν {@ val "symb" = x1 } : x1 @; "TypeRef". {
+    apply (iT_Sub (i := 0) (T1 := {@ val "symb" : x2 @ "symbols" @; "Symbol"})); first last.
+    - apply: (iT_Mu_E (T :=
+        {@ val "symb" : (x3 @ "symbols" @; "Symbol")})); tcrush.
+      var.
+    - ettrans; first last.
+      eapply iSub_Sel'; first last.
+      * constructor; varsub.
+        ltcrush.
+      * tcrush.
+      * tcrush.
+        eapply (iSub_Trans (T2 := ⊤)); tcrush.
+        eapply iSub_Sel'; tcrush.
+        varsub; tcrush.
+        lThis.
+        mltcrush.
+        (* apply iT_Sub_nocoerce. *)
+        admit.
+    }
+
+
+(*
     have Hopt'' : Γ2 v⊢ₜ[ fromPDotG' ] tskip (tskip x0) @: "tpe" :
       TLater hoptionTConcr. {
         tcrush.
@@ -345,7 +400,7 @@ Proof.
       eapply (iT_Sub (i := 1)); first apply iLater_Sub; stcrush.
       eapply (iT_Sub (i := 0)), Hopt''.
       mltcrush; eapply (iT_Sub (i := 0) (T1 := TBool)); tcrush.
-    }
+    } *)
 
 
 (*
@@ -364,7 +419,7 @@ Arguments pty_interp : simpl never. *)
     iDestruct "Ha" as "[HF|HT]".
     iApply (wp_bind (fill [IfCtx _ _])). *)
 
-
+(*
     have Hopt : Γ2 v⊢ₜ[ fromPDotG' ]
       tskip x0 @: "tpe" : optionTy x3 x2. {
       (* eapply (iT_Sub (i := 1)); first apply iLater_Sub; stcrush. *)
@@ -376,7 +431,7 @@ Arguments pty_interp : simpl never. *)
       tskip (tskip x0 @: "tpe") : hoptionTyConcr1 hoasNotation.hx2. {
         tcrush.
       eapply (iT_Sub (i := 1)), Hopt. apply HoptSub0.
-    }
+    } *)
 
 
     (* have HoptSub1 :
@@ -467,7 +522,7 @@ Arguments pty_interp : simpl never. *)
 
     (* XXX: Use iP_And. On the path x0! *)
 
-    iPoseProof (fundamental_typed _ _ _ _ Hopt'' with "Hs") as "Hopt".
+    (* iPoseProof (fundamental_typed _ _ _ _ Hopt'' with "Hs") as "Hopt".
     iPoseProof (fundamental_typed _ _ _ _ Hcond with "Hs") as "Hcond".
     iIntros "!>" (ρ) "#Hg !>".
     (* simpl.
@@ -485,28 +540,7 @@ Arguments pty_interp : simpl never. *)
     rewrite -wp_pure_step_later //.
     iApply wp_wand; [iApply loopSemT | iIntros "!>% []"].
     rewrite -wp_pure_step_later //.
-    cbn.
-
-    have: Γ2 v⊢ₜ[ fromPDotG' ]
-      ν {@ val "symb" = x1 } : x1 @; "TypeRef". {
-    apply (iT_Sub (i := 0) (T1 := {@ val "symb" : x2 @ "symbols" @; "Symbol"})); first last.
-    - apply: (iT_Mu_E (T :=
-        {@ val "symb" : (x3 @ "symbols" @; "Symbol")})); tcrush.
-      var.
-    - ettrans; first last.
-      eapply iSub_Sel'; first last.
-      * constructor; varsub.
-        ltcrush.
-      * tcrush.
-      * tcrush.
-        eapply (iSub_Trans (T2 := ⊤)); tcrush.
-        eapply iSub_Sel'; tcrush.
-        varsub; tcrush.
-        lThis.
-        mltcrush.
-        (* apply iT_Sub_nocoerce. *)
-        admit.
-    }
+    cbn. *)
 
     (* Split, semantically. *)
 
