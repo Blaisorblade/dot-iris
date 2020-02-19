@@ -141,6 +141,8 @@ Section syntyping_stamping_lemmas.
   Notation stamps_dms'  n d__u g d__s := (stamps_dms  n AlsoNonVars d__u g d__s).
   Notation stamps_path' n p__u g p__s := (stamps_path n OnlyVars  p__u g p__s).
 
+  (* This allows stamped paths to change; that's not used for paths appearing
+  in types, and it helps stamp D-Val/D-Val-New. *)
   Lemma stamp_objIdent_typing_mut Γ :
     (∀ e T, Γ u⊢ₜ e : T →
       ∀ g, ∃ e' g',
