@@ -36,6 +36,10 @@ Section hoas.
       ⊥
       (pCore @ "types" @; "Type")).
   Definition optionModTInv := hclose (μ: self, hoptionModTInvBody self).
+
+  Definition hoptionTyConcr1 (pCore : hpath) :=
+    hTOr hnoneConcrT (hTAnd (hsomeConcrT ⊥ ⊤)
+      (type "T" >: ⊥ <: pCore @ "types" @; "Type")).
 End hoas.
 
 Section semExample.
@@ -221,8 +225,7 @@ Proof.
     set Γ1 :=
       fromPDotPaperTypesTBody :: fromPDotPaperAbsTBody x1 :: optionModTInv :: Γ.
     iApply D_Val.
-    iApply (T_All_I_Strong (Γ' := Γ1)).
-    rewrite /defCtxCons/=; ietp_weaken_ctx.
+    iApply (T_All_I_Strong (Γ' := Γ1)); first by rewrite /defCtxCons/=; ietp_weaken_ctx.
     set Γ2 := x2 @ "symbols" @; "Symbol" :: Γ1.
 
     (* Next: *)
@@ -255,14 +258,41 @@ Proof.
       eapply (iT_Sub (i := 2)), Hx0. apply Hsub0X0.
     }
 
-    have HoptSub' :
+
+    (* have HoptSub' :
       Γ2 v⊢ₜ[ fromPDotG' ] optionTy x3 x2, 1 <:
       hclose hoptionTConcr, 2. {
         admit.
-    }
+    } *)
 
-    (*
-    have HoptSub :
+    (* set foo := hTAnd (hsomeConcrT ⊥ ⊤) (type "T" >: ⊥ <: (hx2 @ "types") @; "Type"). *)
+    (* have Hx0'' : Γ2 v⊢ₚ[ fromPDotG' ] x0 : val "tpe" : hoptionTyConcr hx2, 2. { *)
+
+    have HoptSub' :
+      Γ2 v⊢ₜ[ fromPDotG' ] optionTy x3 x2, 2 <: hoptionTyConcr1 hoasNotation.hx2, 3. {
+      tcrush.
+      rewrite /hoptionTyConcr/optionTy.
+      eapply (iSub_Trans (T2 := TAnd hoptionTConcr (type "T" >: ⊥ <: (x2 @ "types") @; "Type")) (i2 := 3));
+        first apply iSub_And. {
+        lThis.
+        ettrans; last apply iLater_Sub; stcrush.
+        eapply (iSel_Sub (L := ⊥) (U := hclose hoptionTConcr)).
+        tcrush.
+        varsub.
+        ettrans; first apply iSub_Add_Later; stcrush.
+        ettrans; first apply iSub_Add_Later; stcrush.
+        asideLaters.
+        mltcrush.
+      }
+      by ettrans; first apply iSub_Add_Later; stcrush; asideLaters; ltcrush.
+
+      rewrite /hoptionTConcr/=.
+      ettrans; first apply iAnd_Or_Sub_Distr; stcrush.
+      apply iOr_Sub_split; ltcrush.
+    }
+    (* rewrite /hoptionTyConcr1 in HoptSub'. *)
+
+    (* have HoptSub :
       Γ2 v⊢ₜ[ fromPDotG' ] optionTy x3 x2, 1 <:
       hclose (hoptionTyConcr hoasNotation.hx2), 2. {
       tcrush.
@@ -278,21 +308,27 @@ Proof.
       }
       by ettrans; first apply iSub_Add_Later; stcrush; asideLaters; ltcrush.
       rewrite /hoptionTConcr/=.
-      ettrans; first apply distrAndOr1_stp.
+      ettrans; first apply iAnd_Or_Sub_Distr; stcrush.
       apply iOr_Sub_split; stcrush.
       ltcrush.
-      lNext.
+      Arguments hterm_lifting.liftBind /.
+      rewrite /hsomeConcrT/hpmatchT; simplSubst.
+      rewrite /=.
+      apply Bind2; stcrush.
+      mltcrush.
+      by lThis; mltcrush.
+      lThis; mltcrush.
+      simplSubst.
+      mltcrush.
+      (* lNext. *)
       ltcrush.
       (* lThis.
-
-
       simplSubst. *)
       admit.
     } *)
 
-    have Hopt'' : Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
-      tskip (tskip x0) @: "tpe" :
-      TLater (hclose hoptionTConcr). {
+    have Hopt'' : Γ2 v⊢ₜ[ fromPDotG' ] tskip (tskip x0) @: "tpe" :
+      TLater hoptionTConcr. {
         tcrush.
         admit.
     }
@@ -319,12 +355,12 @@ Proof.
     } *)
 
     (* In fact, we want subtyping. *)
-    have Hcond : Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
+    have Hcond : Γ2 v⊢ₜ[ fromPDotG' ]
       tskip (tskip (tskip x0) @: "tpe") @: "isEmpty" : TBool. {
       tcrush.
       eapply (iT_Sub (i := 1)); first apply iLater_Sub; stcrush.
       eapply (iT_Sub (i := 0)), Hopt''.
-      mltcrush; eapply (iT_Sub (i := 0) (T1:=TBool)); tcrush.
+      mltcrush; eapply (iT_Sub (i := 0) (T1 := TBool)); tcrush.
     }
 
     (* Fails due to using optionModTInv. *)
@@ -368,11 +404,12 @@ Proof.
     rewrite -wp_pure_step_later //.
     cbn.
 
-    have: Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
-      ν {@ val "symb" = x1 } : shift (x0 @; "TypeRef"). {
+    have: Γ2 v⊢ₜ[ fromPDotG' ]
+      ν {@ val "symb" = x1 } : x1 @; "TypeRef". {
     apply (iT_Sub (i := 0) (T1 := {@ val "symb" : x2 @ "symbols" @; "Symbol"})); first last.
     - apply: (iT_Mu_E (T :=
-        {@ val "symb" : shift ((x2 @ "symbols") @; "Symbol")})); tcrush.
+        {@ val "symb" : (x3 @ "symbols" @; "Symbol")})); tcrush.
+      var.
     - ettrans; first last.
       eapply iSub_Sel'; first last.
       * constructor; varsub.
