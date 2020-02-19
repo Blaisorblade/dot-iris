@@ -129,7 +129,6 @@ Definition hvobj : (hvl → hdms) → hvl := λ ds,
 
 Definition hdtysyn : hty → hdm := liftA1 dtysyn.
 Definition hdtysem (σ : list hvl) s : hdm := λ x, dtysem (map (.$ x) σ) s.
-(* Not sure about [hdtysem], and not needed. *)
 Definition hdpt : hpath → hdm := liftA1 dpt.
 
 Coercion hpv := liftA1 pv : hvl → hpath.
