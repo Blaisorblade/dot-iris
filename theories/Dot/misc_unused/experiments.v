@@ -484,6 +484,23 @@ Section Sec.
     iExists (pmem); by iSplit.
   Qed.
 
+  (** Unlike the other lemmas, this appears to fail, and that makes sense.
+  It says that if you have *now* a type member between ▷ L and ▷ U, then you
+  also have *later* a type member between L and U; I don't see a reason for
+  that to be true.
+  *)
+  Lemma Typ_Later_Sub_Distr `{SwapPropI Σ} Γ L U i l:
+    Γ ⊨ TTMem l (TLater L) (TLater U), i <: TLater (TTMem l L U), i.
+  Proof.
+    rewrite /istpi/=.
+    iIntros (ρ v) "!> #Hg #Hv !>"; iDestruct "Hv" as (d Hl ψ) "H".
+    iExists d; iFrame (Hl); iExists ψ. iDestruct "H" as "[$ #[H1 H2]] {H}".
+    rewrite /= !later_intuitionistically; iModIntro (□ _)%I; iSplit; iIntros (w).
+    rewrite -mlater_impl; iIntros "H"; iApply "H1"; iApply "H".
+    rewrite -mlater_impl; iIntros "H"; iApply "H2".
+    Fail iApply "H".
+  Abort.
+
   (* This would be surprising without ◇, and fails even with it. *)
   Lemma wp_later_swap2 t Φ: ▷ WP t {{ v, Φ v }} ⊢ ◇ WP t {{ v, ▷ Φ v }}.
   Proof.
