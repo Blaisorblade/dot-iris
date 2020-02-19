@@ -36,6 +36,12 @@ SubClass hpath := hpath'.
 SubClass hty   := hty'.
 SubClass hdms  := hdms'.
 
+Coercion hclose_tm   := hclose : htm   → tm.
+Coercion hclose_vl   := hclose : hvl   → vl.
+Coercion hclose_dm   := hclose : hdm   → dm.
+Coercion hclose_path := hclose : hpath → path.
+Coercion hclose_ty   := hclose : hty   → ty.
+
 Notation hstampTy := (preTyMem hvl).
 
 (** Utilities to lift syntax to [hterm]s. *)
