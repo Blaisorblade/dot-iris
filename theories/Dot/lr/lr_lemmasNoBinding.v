@@ -8,6 +8,15 @@ Set Default Proof Using "Type".
 Section Sec.
   Context `{HdlangG: dlangG Σ} (Γ : sCtx Σ).
 
+  (* Only provable semantically *)
+  Lemma sDistrAndOr1 {S T U i}: Γ s⊨ oAnd (oOr S T) U , i <: oOr (oAnd S U) (oAnd T U), i.
+  Proof. iIntros "!> %% #Hg [[HS|HT] Hu] !> /="; [iLeft|iRight]; iFrame. Qed.
+
+  (** Also derivable syntactically; see [distrOrAnd2_stp]. But much easier to
+  derive in the model. *)
+  Lemma sDistrOrAnd2 {S T U i}: Γ s⊨ oAnd (oOr S U) (oOr T U), i <: oOr (oAnd S T) U , i.
+  Proof. iIntros "!> %% #Hg [[HS|HT] [HT'|HU]] !> /="; eauto with iFrame. Qed.
+
   (* Is it true that for covariant F, F[A ∧ B] = F[A] ∧ F[B]?
     Dotty assumes that, tho DOT didn't capture it.
     F[A ∧ B] <: F[A] ∧ F[B] is provable by covariance.
