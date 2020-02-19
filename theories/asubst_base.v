@@ -468,11 +468,6 @@ Lemma subst_compose x σ ξ n :
   x.|[∞ σ.|[ξ]] = x.|[∞ σ].|[ξ].
 Proof. intros Hclx <-; asimpl. apply Hclx, to_subst_compose. Qed.
 
-Lemma subst_compose_idsσ x n ξ:
-  nclosed x n →
-  x.|[∞ (idsσ n).|[ξ]] = x.|[∞ (idsσ n)].|[ξ].
-Proof. intros; eauto using subst_compose. Qed.
-
 Lemma nclosed_mono x n m:
   nclosed x n → n <= m → nclosed x m.
 Proof. move => Hcl Hle s1 s2 Hseq. by eapply Hcl, eq_n_s_mon. Qed.
@@ -482,7 +477,6 @@ Lemma nclosed_vl_mono v n m:
 Proof. move => Hcl Hle s1 s2 Hseq. by eapply Hcl, eq_n_s_mon. Qed.
 
 End sort_lemmas.
-Hint Resolve @subst_compose @subst_compose_idsσ : core.
 
 Lemma nclosed_σ_mono σ n m :
   nclosed_σ σ n → n <= m → nclosed_σ σ m.
