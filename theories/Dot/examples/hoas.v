@@ -57,6 +57,13 @@ Definition liftA3 (con : s1 → s2 → s3 → s4) :
   hterm s1 → hterm s2 → hterm s3 → hterm s4 := λ a1 a2 a3 i,
   con (a1 i) (a2 i) (a3 i).
 
+Definition liftBind (con : s1 → s2) (f : hvl → hterm s1) : hterm s2 := λ i,
+  let i' := S i in
+  let v := ren (λ j, j - i') in
+  con (f v i').
+
+Definition liftList : list (label * hdm) → hterm (list (label * dm)) := λ ds i, map (mapsnd (.$ i)) ds.
+
 Global Arguments apS /.
 Global Arguments bindS /.
 
@@ -64,13 +71,8 @@ Global Arguments liftA0 /.
 Global Arguments liftA1 /.
 Global Arguments liftA2 /.
 Global Arguments liftA3 /.
-
-Definition liftBind (con : s1 → s2) (f : hvl → hterm s1) : hterm s2 := λ i,
-  let i' := S i in
-  let v := ren (λ j, j - i') in
-  con (f v i').
-
-Definition liftList : list (label * hdm) → hterm (list (label * dm)) := λ ds i, map (mapsnd (.$ i)) ds.
+Global Arguments liftBind /.
+Global Arguments liftList /.
 
 (* Ever used? Likely not. *)
 (* Definition hshift : hterm s1 → hterm s1 := λ t i, t (S i). *)
