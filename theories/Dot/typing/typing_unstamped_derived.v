@@ -127,7 +127,7 @@ Lemma iT_Sub_nocoerce T1 T2 {Γ e} :
   Γ u⊢ₜ e : T1 →
   Γ u⊢ₜ T1, 0 <: T2, 0 →
   Γ u⊢ₜ e : T2.
-Proof. rewrite -(iterate_0 tskip e). eauto. Qed.
+Proof. intros. exact: (iT_Sub (i:=0)). Qed.
 Hint Resolve iT_Sub_nocoerce : core.
 
 Lemma iT_Var_Sub Γ x T1 T2 :
