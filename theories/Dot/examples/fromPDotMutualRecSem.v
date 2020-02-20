@@ -114,7 +114,7 @@ Definition fromPDotPaperTypesV : vl := ν {@
       val "symb" = x1
     }));
   val "getTypeFromTypeRef" = vabs (
-    (tskip x0 @: "tpe") @: "get"
+    tskip (tskip x0 @: "symb") @: "tpe" @: "get"
   )
 }.
 
@@ -664,7 +664,32 @@ Arguments pty_interp : simpl never. *)
     }
     intros Hx.
 
-    (* eapply (iT_Sub (i := 1)); last typconstructor; first last. *)
+    eapply (iT_Sub (i := 1) (T1 := TLater (TAnd ((x2 @ "symbols") @; "Symbol")
+      (TLater (val "tpe" : hclose (hsomeConcrT ⊥ ⊤)))))); first last. {
+      typconstructor; eapply (iT_Sub (i := 1)), Hx; asideLaters; ltcrush.
+      ettrans; first apply iSub_Add_Later; tcrush; lNext.
+    }
+    asideLaters.
+    ltcrush.
+    asideLaters.
+    ettrans.
+    apply iSub_And_split, iSub_Refl; stcrush.
+    eapply (iSel_Sub (L := ⊥) (U := val "tpe" : optionTy x3 x2)).
+    apply iP_Fld_E.
+    tcrush.
+    varsub.
+    asideLaters.
+    mltcrush.
+    by mltcrush.
+    rewrite /optionTy.
+    simplSubst.
+    (* Next: try to use distributivity. *)
+    (* ltcrush.
+    lThis.
+    hideCtx.
+    cbn.
+     last typconstructor; first last. *)
+
     (* eapply (iT_Sub (i := 0)); first last. *)
     (* eapply (iT_Sub (i := 1)), Hx.
     asideLaters.
