@@ -217,10 +217,9 @@ Lemma iSngl_pq_Sub_inv {Γ i p q T1 T2 g}:
   Γ v⊢ₜ[g] T1, i <: T2, i.
 Proof. intros. by eapply iSngl_pq_Sub, iP_Sngl_Sym. Qed.
 
-
 Lemma ty_sub_TAnd_TLater_TAnd_distr_inv T U :
-  ⊢T TAnd (TLater T) (TLater U) <: TLater (TAnd T U).
-Admitted.
+  ⊨T TAnd (TLater T) (TLater U) <: TLater (TAnd T U).
+Proof. iIntros (??) "[$$]". Qed.
 
 Typeclasses Opaque pty_interp.
 
@@ -535,19 +534,17 @@ Proof.
   set Γ' := TAnd fromPDotPaperTypesTBody (TSing (x1 @ "types")) ::
     fromPDotPaperAbsTBody x1 :: optionModTInv :: Γ.
   have Hctx:
-    ⊢G TAnd (▶: fromPDotPaperTypesTBody) (TSing (x1 @ "types")) ::
-    (▶: fromPDotPaperAbsTBody x1)%ty :: optionModTInv :: Γ <:* (TLater <$> Γ'). {
-    constructor; last by ietp_weaken_ctx.
-    eapply ty_trans_sub_syn, ty_sub_TAnd_TLater_TAnd_distr_inv.
-    ietp_weaken_ctx.
-  }
+    ⊨G TAnd (▶: fromPDotPaperTypesTBody) (TSing (x1 @ "types")) ::
+    (▶: fromPDotPaperAbsTBody x1)%ty :: optionModTInv :: Γ <:* (TLater <$> Γ').
+    by rewrite /Γ'/= -ty_sub_TAnd_TLater_TAnd_distr_inv; ietp_weaken_ctx.
 
   iIntros "#Hs".
   iApply D_Cons; [done | semTMember 0 | ].
   iApply D_Cons; [done | semTMember 0 | ].
-  iApply D_Cons; [done | iApply (fundamental_dm_typed with "Hs") | ]. {
-    typconstructor.
-    apply (iT_All_I_Strong (Γ' := Γ')); tcrush.
+  iApply D_Cons; [done |  | ]. {
+    iApply D_Val.
+    iApply (T_All_I_Strong (Γ' := Γ')). apply Hctx.
+    iApply (fundamental_typed with "Hs").
     eapply iT_Sub_nocoerce.
     + apply (iT_Mu_E (T := TTop)); tcrush.
     + apply (iSub_Sel' _ TTop); tcrush; varsub. lThis; ltcrush.
@@ -567,9 +564,10 @@ Proof.
     iApply (newTypeRef_semTyped with "Hs").
   }
 
-  iApply D_Cons; [done | iApply (fundamental_dm_typed with "Hs")| ]. {
-    typconstructor.
-    apply (iT_All_I_Strong (Γ' := Γ')); tcrush.
+  iApply D_Cons; [done | | ]. {
+    iApply D_Val.
+    iApply (T_All_I_Strong (Γ' := Γ')). apply Hctx.
+    iApply (fundamental_typed with "Hs").
     set Γ1 := x1 @; "TypeRef" :: Γ'.
     (* have ?: Γ' v⊢ₜ[ pAddStys pTypeRef fromPDotG ] x0 : x1 @; "TypeRef"; first var. *)
     set T : ty := (▶: (shift typeRefTBody))%ty.
