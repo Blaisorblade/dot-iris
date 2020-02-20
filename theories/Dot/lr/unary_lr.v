@@ -315,6 +315,14 @@ Section MiscLemmas.
     iIntros "H"; iSplit; first done; iExists p. by auto.
   Qed.
 
+  Lemma sP_Val {Γ} v T:
+    Γ s⊨ tv v : T -∗
+    Γ s⊨p pv v : T, 0.
+  Proof.
+    iIntros "/= #Hp !>" (ρ) "Hg". rewrite path_wp_pv_eq -wp_value_inv'.
+    iApply ("Hp" with "Hg").
+  Qed.
+
   Lemma sSub_Refl {Γ} T i : Γ s⊨ T, i <: T, i.
   Proof. by iIntros "!> **". Qed.
 
@@ -374,6 +382,7 @@ Section Propers.
   Proof. apply: flip_proper_3. Qed.
   Global Instance: Params (@setp) 3 := {}.
 
+
   Global Instance Proper_sdtp l d : Proper ((≡) ==> (≡) ==> (≡)) (sdtp l d).
   Proof.
     move => ??? [??? _ _ _] [??? _ _ _] [[/=?[/=??]]?];
@@ -382,6 +391,13 @@ Section Propers.
   Global Instance Proper_sdtp_flip l d : Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sdtp l d).
   Proof. apply: flip_proper_3. Qed.
   Global Instance: Params (@sdtp) 4 := {}.
+
+
+  Global Instance Proper_sptp p i : Proper ((≡) ==> (≡) ==> (≡)) (sptp p i).
+  Proof. solve_proper_ho. Qed.
+  Global Instance Proper_sptp_flip p i : Proper ((≡) --> (≡) --> flip (≡)) (sptp p i).
+  Proof. apply: flip_proper_3. Qed.
+  Global Instance: Params (@sptp) 4 := {}.
 End Propers.
 
 Section defs.
@@ -398,6 +414,9 @@ Section defs.
   Qed.
 
 
+
+  Lemma P_Val {Γ} v T: Γ ⊨ tv v : T -∗ Γ ⊨p pv v : T, 0.
+  Proof. apply sP_Val. Qed.
 
   Lemma Sub_Refl {Γ} T i : Γ ⊨ T, i <: T, i.
   Proof. apply sSub_Refl. Qed.
