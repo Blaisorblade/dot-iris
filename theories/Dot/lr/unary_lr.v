@@ -391,6 +391,13 @@ Section Propers.
   Global Instance Proper_sdtp_flip l d : Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sdtp l d).
   Proof. apply: flip_proper_3. Qed.
   Global Instance: Params (@sdtp) 4 := {}.
+
+
+  Global Instance Proper_sptp p i : Proper ((≡) ==> (≡) ==> (≡)) (sptp p i).
+  Proof. solve_proper_ho. Qed.
+  Global Instance Proper_sptp_flip p i : Proper ((≡) --> (≡) --> flip (≡)) (sptp p i).
+  Proof. apply: flip_proper_3. Qed.
+  Global Instance: Params (@sptp) 4 := {}.
 End Propers.
 
 Section defs.
