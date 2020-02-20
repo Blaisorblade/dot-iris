@@ -329,6 +329,12 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     is_stamped_ty (length Γ) g T2 →
     (∀ `{!dlangG Σ} `{!SwapPropI Σ}, Γ ⊨[ Vs⟦ g ⟧ ] T1, i1 <: T2, i2) →
     Γ v⊢ₜ[ g ] T1, i1 <: T2, i2 *)
+
+| iSub_Skolem_P {T1 T2 i j}:
+    is_stamped_ty (length Γ) g T1 →
+    iterate TLater i (shift T1) :: Γ v⊢ₚ[ g ] pv (ids 0) : shift T2, j →
+    (*───────────────────────────────*)
+    Γ v⊢ₜ[ g ] T1, i <: T2, j
 where "Γ v⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ g T1 i1 T2 i2).
 
 (* Make [T] first argument: Hide [Γ] and [g] for e.g. typing examples. *)
@@ -432,12 +438,20 @@ Ltac typconstructor_check :=
   (* | |- context [ dlang_inst.dlangG ] => fail "Only applicable rule is reflection" *)
   | _ => idtac
   end.
+Ltac typconstructor_blacklist Γ :=
+  lazymatch goal with
+  (* | |- context [ dlang_inst.dlangG ] => *)
+  | |- path_typed ?Γ' _ _ _ _ =>
+  tryif (unify Γ Γ') then idtac else fail 1 "Only applicable rule is iSub_Skolem_P"
+  | _ => idtac
+  end.
+
 Ltac typconstructor :=
   match goal with
-  | |- typed _ _ _ _ => first [apply iT_All_I_strip1 | apply iT_All_I | constructor]
-  | |- dms_typed _ _ _ _ => constructor
-  | |- dm_typed _ _ _ _ _ => first [apply dvabs_typed' | constructor]
-  | |- path_typed _ _ _ _ _ => first [apply pv_dlater | constructor]
-  | |- subtype _ _ _ _ _ _ =>
-    first [apply Sub_later_shift | constructor ]
+  | |- typed      ?Γ _ _ _ => first [apply iT_All_I_strip1 | apply iT_All_I | constructor]
+  | |- dms_typed  ?Γ _ _ _ => constructor
+  | |- dm_typed   ?Γ _ _ _ _ => first [apply dvabs_typed' | constructor]
+  | |- path_typed ?Γ _ _ _ _ => first [apply pv_dlater | constructor]
+  | |- subtype    ?Γ _ _ _ _ _ =>
+    first [apply Sub_later_shift | constructor ]; typconstructor_blacklist Γ
   end; typconstructor_check.

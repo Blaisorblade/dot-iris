@@ -72,6 +72,7 @@ Section fundamental.
       + iApply sAnd_Fld_Sub_Distr.
       + iApply sAnd_Typ_Sub_Distr.
       + by iApply sAnd_Or_Sub_Distr.
+      + iApply Sub_Skolem_P. by iApply fundamental_path_typed.
       (* + by iApply istpi_weaken_ctx_syn.
       + subst. by iApply Delay_Sub. *)
       (* + by_reflect. *)
