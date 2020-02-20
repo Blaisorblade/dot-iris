@@ -102,7 +102,7 @@ Lemma HtypeRef : styConforms fromPDotG' pTypeRef. Proof. done. Qed.
 
 (* Import AssertPlain.
 From D.Dot Require Import hoas. *)
-Definition fromPDotPaperTypesV : vl := ν {@
+Definition fromPDotPaperTypesVBody : dms := {@
   type "Type" =[ pTop ];
   type "TypeTop" =[ pTop ];
   val "newTypeTop" = vabs (ν {@ });
@@ -153,7 +153,7 @@ Definition fromPDotPaperSymbolsV : vl := ν {@
 }.
 
 Definition fromPDotPaper : vl := ν {@
-  val "types" = fromPDotPaperTypesV;
+  val "types" = ν fromPDotPaperTypesVBody;
   val "symbols" = fromPDotPaperSymbolsV
 }.
 
@@ -192,7 +192,7 @@ Typeclasses Opaque pty_interp.
 (* Argh, no aliasing here. *)
 Example semFromPDotPaperTypesTyp Γ :
   TLater (fromPDotPaperAbsTBody x1) :: optionModTInv :: Γ ⊨[ fromPDotGφ ]
-    fromPDotPaperTypesV : μ fromPDotPaperTypesTBody.
+    ν fromPDotPaperTypesVBody : μ fromPDotPaperTypesTBody.
 Proof.
   iIntros "#Hs".
   iApply T_Obj_I.
@@ -580,7 +580,7 @@ Qed.
 
 Example fromPDotPaperTypesAbsTyp Γ :
   TLater (fromPDotPaperAbsTBody x1) :: optionModTInv :: Γ ⊨[fromPDotGφ]
-    fromPDotPaperTypesV : μ fromPDotPaperAbsTypesTBody.
+    ν fromPDotPaperTypesVBody : μ fromPDotPaperAbsTypesTBody.
 Proof.
   iIntros "#Hs".
   iApply (T_Sub (i := 0)).
