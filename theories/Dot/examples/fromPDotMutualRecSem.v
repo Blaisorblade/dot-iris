@@ -457,7 +457,6 @@ Arguments pty_interp : simpl never. *)
       ltcrush.
       (* lThis.
       simplSubst. *)
-      admit.
     } *)
 
     (* have Hopt' : Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
@@ -478,7 +477,6 @@ Arguments pty_interp : simpl never. *)
       mltcrush; lThis.
       asideLaters.
       tcrush.
-      admit.
     } *)
 
     (* Fails due to using optionModTInv. *)
@@ -693,7 +691,6 @@ Proof.
 
     have Hsub : Γ1 v⊢ₜ[ fromPDotG' ]
       val "get" : x2 @ "types" @; "Type" , 2 <: val "get" : x1 @; "Type" , 2. {
-        admit.
     }
     eapply iSub_Trans, Hsub.
     lNext.
