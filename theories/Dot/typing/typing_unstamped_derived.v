@@ -637,15 +637,3 @@ Lemma pDOT_Def_Path_derived Γ l p T
   (Hu : is_unstamped_path (length Γ) AlsoNonVars p) :
   Γ u⊢{ l := dpt p } : TVMem l (TSing p).
 Proof. eapply iD_Path, Hu. apply (iP_Sngl_Refl (T := T)), Hx. Qed.
-
-(*
-Lemma dpath_sub_typed_admit_failed Γ l p T1 T2:
-  Γ u⊢{ l := dpt p } : TVMem l T1 →
-  Γ u⊢ₜ T1 , 0 <: T2, 0 →
-  Γ u⊢{ l := dpt p } : TVMem l T2.
-Proof.
-  intros Ht1 Hsub; inverse Ht1; constructor => //; first
-    [eapply (iT_Sub (i := 0)) | eapply (iP_Sub (i := 0))]; eauto.
-  apply iT_Obj_I; tcrush.
-Abort.
-*)
