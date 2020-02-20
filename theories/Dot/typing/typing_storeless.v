@@ -249,6 +249,7 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
 | iSub_Sel p U {l L i}:
     Γ v⊢ₚ[ g ] p : TTMem l L U, i →
     Γ v⊢ₜ[ g ] TLater L, i <: TSel p l, i
+
 | iSngl_pq_Sub p q {i T1 T2}:
     T1 ~Tp[ p := q ]* T2 →
     is_stamped_ty (length Γ) g T1 →
@@ -262,14 +263,6 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
 | iSngl_Sub_Self {p T i} :
     Γ v⊢ₚ[ g ] p : T, i →
     Γ v⊢ₜ[ g ] TSing p, i <: T, i
-
-(* TODO: figure out if the drugs I had when I wrote these rules were good or bad. *)
-(* | iSel_Sub l L U p i j: *)
-(*     Γ v⊢ₚ[ g ] p : TTMem l L U, i → *)
-(*     Γ v⊢ₜ[ g ] TSel p l, j <: U, S (i + j) *)
-(* | iSub_Sel l L U p i j: *)
-(*     Γ v⊢ₚ[ g ] p : TTMem l L U, i → *)
-(*     Γ v⊢ₜ[ g ] L, S (i + j) <: TSel p l, j *)
 
 (* Subtyping for recursive types. Congruence, and opening in both directions. *)
 | iMu_Sub_Mu T1 T2 i j:
