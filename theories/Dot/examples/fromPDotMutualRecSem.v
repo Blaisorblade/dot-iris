@@ -188,33 +188,72 @@ Lemma iAnd_Later_Sub_Distr Γ T1 T2 i g :
   Γ v⊢ₜ[ g ] TAnd (TLater T1) (TLater T2), i <: TLater (TAnd T1 T2), i.
 Proof. intros; asideLaters; tcrush; [lThis|lNext]. Qed.
 
+Lemma iP_Sub' {Γ p T1 T2 i g} :
+  Γ v⊢ₜ[g] T1, i <: T2, i →
+  Γ v⊢ₚ[g] p : T1, i →
+  Γ v⊢ₚ[g] p : T2, i.
+Proof.
+  intros; rewrite -(plusnO i).
+  by eapply (iP_Sub 0); rewrite ?plusnO.
+Qed.
+
+Lemma iP_Sngl_Sym Γ p q g i:
+  is_stamped_path (length Γ) g q →
+  Γ v⊢ₚ[g] p : TSing q, i →
+  Γ v⊢ₚ[g] q : TSing p, i.
+Proof.
+  intros Hus Hpq. eapply iP_Sub'.
+  eapply (iSngl_Sub_Sym Hpq). by apply iSngl_Sub_Self, Hpq.
+  eapply iP_Sngl_Refl.
+  by apply (iP_Sngl_Inv Hpq).
+Qed.
+
+Lemma ty_sub_TAnd_TLater_TAnd_distr_inv T U :
+  ⊢T TAnd (TLater T) (TLater U) <: TLater (TAnd T U).
+Admitted.
+
 Typeclasses Opaque pty_interp.
+
 (* Argh, no aliasing here. *)
 Example semFromPDotPaperTypesTyp Γ :
-  TLater (fromPDotPaperAbsTBody x1) :: optionModTInv :: Γ ⊨[ fromPDotGφ ]
-    ν fromPDotPaperTypesVBody : μ fromPDotPaperTypesTBody.
+  (* TLater (fromPDotPaperAbsTBody x1) :: optionModTInv :: Γ ⊨
+    ν fromPDotPaperTypesVBody : μ fromPDotPaperTypesTBody. *)
+  TAnd (▶: fromPDotPaperTypesTBody) (TSing (x1 @ "types")) ::
+  TLater (fromPDotPaperAbsTBody x1) :: optionModTInv :: Γ
+  ⊨ds[ fromPDotGφ ] fromPDotPaperTypesVBody : fromPDotPaperTypesTBody.
 Proof.
+  set Γ' := TAnd fromPDotPaperTypesTBody (TSing (x1 @ "types"))
+  :: fromPDotPaperAbsTBody x1 :: optionModTInv :: Γ.
+  have Hctx:
+    ⊢G TAnd (▶: fromPDotPaperTypesTBody) (TSing (x1 @ "types")) ::
+    (▶: fromPDotPaperAbsTBody x1)%ty :: optionModTInv :: Γ <:* (TLater <$> Γ'). {
+    constructor; last by ietp_weaken_ctx.
+    eapply ty_trans_sub_syn, ty_sub_TAnd_TLater_TAnd_distr_inv.
+    ietp_weaken_ctx.
+  }
+
   iIntros "#Hs".
-  iApply T_Obj_I.
   iApply D_Cons; [done | semTMember 0 | ].
   iApply D_Cons; [done | semTMember 0 | ].
-  iApply D_Cons; [done | iApply (fundamental_dm_typed with "Hs"); tcrush | ]. {
+  iApply D_Cons; [done | iApply (fundamental_dm_typed with "Hs") | ]. {
+    typconstructor.
+    apply (iT_All_I_Strong (Γ' := Γ')); tcrush.
     eapply iT_Sub_nocoerce.
     + apply (iT_Mu_E (T := TTop)); tcrush.
-    + apply (iSub_Sel' _ TTop); last (tcrush; varsub); stcrush. ltcrush.
+    + apply (iSub_Sel' _ TTop); tcrush; varsub. lThis; ltcrush.
   }
   iApply D_Cons; [done | semTMember 2 | ].
-  iApply D_Cons; [done | iApply (fundamental_dm_typed with "Hs"); tcrush | ]. {
+  iApply D_Cons; [done | iApply (fundamental_dm_typed with "Hs")| ]. {
+    tcrush.
     eapply (iT_Sub_nocoerce (TMu ⊤)); first tcrush.
     eapply (iSub_Trans (T2 := ⊤) (i2 := 0)); tcrush.
     eapply (iSub_Trans (i2 := 1)); [exact: iSub_AddI | ].
     asideLaters.
-    eapply (iSub_Sel' _ ⊤); tcrush.
-    varsub; apply Sub_later_shift; tcrush.
+    eapply (iSub_Sel' _ ⊤); tcrush. varsub; lThis.
   }
   iApply D_Cons; [done | | ]. {
-    set Γ1 :=
-      fromPDotPaperTypesTBody :: fromPDotPaperAbsTBody x1 :: optionModTInv :: Γ.
+    set Γ1 := Γ'.
+      (* fromPDotPaperTypesTBody :: fromPDotPaperAbsTBody x1 :: optionModTInv :: Γ. *)
     iApply D_Val.
     iApply (T_All_I_Strong (Γ' := Γ1)); first by rewrite /defCtxCons/=; ietp_weaken_ctx.
     set Γ2 := x2 @ "symbols" @; "Symbol" :: Γ1.
@@ -383,10 +422,10 @@ Proof.
     }
     have Hsublast : Γ2 v⊢ₜ[ fromPDotG' ] shift typeRefTBody, 0 <: x1 @; "TypeRef", 0. {
       eapply iSub_Sel'; tcrush.
-      varsub.
+      varsub; lThis.
       ltcrush.
       eapply iSub_Sel'; tcrush.
-      varsub.
+      varsub; lThis.
       ettrans; first apply iSub_Add_Later; stcrush.
       asideLaters.
       ltcrush.
@@ -480,19 +519,20 @@ Arguments pty_interp : simpl never. *)
       eapply (iT_Sub (i := 0) (T1:=TBool)); tcrush.
     } *)
 
-  iApply D_Cons; [done | iApply (fundamental_dm_typed with "Hs"); tcrush | ]. {
-    set Γ' := x1 @; "TypeRef" :: fromPDotPaperTypesTBody ::
-      (▶: fromPDotPaperAbsTBody x1)%ty :: optionModTInv :: Γ.
+  iApply D_Cons; [done | iApply (fundamental_dm_typed with "Hs")| ]. {
+    typconstructor.
+    apply (iT_All_I_Strong (Γ' := Γ')); tcrush.
+    set Γ1 := x1 @; "TypeRef" :: Γ'.
     (* have ?: Γ' v⊢ₜ[ pAddStys pTypeRef fromPDotG ] x0 : x1 @; "TypeRef"; first var. *)
     set T : ty := (▶: (shift typeRefTBody))%ty.
     unfold typeRefTBody in T.
     (* evar (T : ty). *)
-    have : Γ' v⊢ₜ[ pAddStys pTypeRef fromPDotG ] x0 : T; rewrite {}/T. {
+    have : Γ1 v⊢ₜ[ fromPDotG' ] x0 : T; rewrite {}/T. {
       varsub.
       ettrans.
       (* eapply (iSub_Trans (T2 := ▶: TAnd (x1 @; "Type") (shift typeRefTBody))); last by tcrush. *)
 
-      + eapply iSel_Sub; typconstructor. varsub. ltcrush.
+      + eapply iSel_Sub; typconstructor. varsub. lThis. ltcrush.
       + tcrush.
     }
     intros Hx.
@@ -501,6 +541,50 @@ Arguments pty_interp : simpl never. *)
     (A) on the one hand, show what x.T is.
     (B) on the other hand, thanks to hsomeConcr, we have a get method.
     *)
+Lemma iSngl_pq_Sub_inv {Γ i p q T1 T2 g}:
+  T1 ~Tp[ p := q ]* T2 →
+  is_stamped_ty   (length Γ) g T1 →
+  is_stamped_ty   (length Γ) g T2 →
+  is_stamped_path (length Γ) g p →
+  Γ v⊢ₚ[g] q : TSing p, i →
+  Γ v⊢ₜ[g] T1, i <: T2, i.
+Proof. intros. by eapply iSngl_pq_Sub, iP_Sngl_Sym. Qed.
+
+    suff Hx' : Γ1 v⊢ₜ[ fromPDotG' ] x0 : ▶: val "symb" : val "tpe" : val "get" : x1 @; "Type". {
+      eapply (iT_Sub (i := 2)); first last.
+      by typconstructor; eapply (iT_Sub (i := 1)), Hx'; asideLaters; ltcrush.
+      ettrans; first apply iSub_Add_Later; tcrush.
+      ettrans; first apply iSub_Add_Later; tcrush.
+      asideLaters.
+      tcrush.
+    }
+    (* eapply (iT_Path (p := pv _)).
+    typconstructor.  *)
+    (* iP_Val. *)
+
+    have Hx0 : Γ1 v⊢ₜ[ fromPDotG' ] x0 : ▶: val "symb" : val "tpe" : μ (val "get" : ▶: x0 @; "T"). {
+    (* have Hx0 : Γ1 v⊢ₜ[ fromPDotG' ] x0 : ▶: val "symb" : val "tpe" : val "get" : T. { *)
+      eapply (iT_Sub (i := 0)), Hx.
+      ltcrush.
+      lNext.
+      rewrite /hsomeConcrT/=; simplSubst.
+      ltcrush.
+    }
+
+    (* varsub.
+    eapply (iSub_Trans (T2 := ▶: (val "symb" : (val "tpe" : (val "get" : x2 @ "types" @; "Type" ))))),
+    (iSngl_pq_Sub_inv (q := x1) (p := x2 @ "types")); stcrush; first 1 last.
+    exact: psubst_ty_rtc_sufficient.
+    by tcrush; varsub; lNext.
+
+
+
+
+    eapply (iSel_Sub (L := ⊥)).
+    tcrush.
+    varsub.
+    lThis.
+    mltcrush. *)
 
     eapply (iT_Sub (i := 2) (T1 := TLater (TAnd ((x2 @ "symbols") @; "Symbol")
       (TLater (val "tpe" : hclose (hsomeConcrT ⊥ ⊤)))))); first last. {
@@ -518,6 +602,8 @@ Arguments pty_interp : simpl never. *)
     varsub.
     asideLaters.
     mltcrush.
+    ettrans; first apply iSub_Add_Later; stcrush.
+    asideLaters.
     by mltcrush.
     rewrite /optionTy.
     simplSubst.
@@ -526,6 +612,18 @@ Arguments pty_interp : simpl never. *)
     asideLaters.
     ettrans; first apply iAnd_Fld_Sub_Distr; stcrush.
     tcrush.
+    have Hsub : Γ1 v⊢ₜ[ fromPDotG' ]
+      val "get" : x2 @ "types" @; "Type" , 2 <: val "get" : x1 @; "Type" , 2. {
+        admit.
+    }
+    eapply iSub_Trans, Hsub.
+    lNext.
+    rewrite /hsomeConcrT/=.
+    mltcrush.
+    eapply iSub_Sel.
+    ltcrush.
+
+
     (* Very annoying distributivity. Prove this in the model?
     Also not matching: delays, [x1] vs [x2 @ "types" ] *)
 (* Goal
@@ -644,7 +742,8 @@ Example fromPDotPaperTyp Γ : optionModTInv :: Γ ⊨[fromPDotGφ] fromPDotPaper
 Proof.
   iIntros "#Hs".
   iApply T_Obj_I.
-  iApply D_Cons; [done| iApply D_Val |].
+  iApply D_Cons; [done| iApply D_Val_New |].
+  iPoseProof (fromPDotPaperTypesAbsTyp with "Hs") as "?".
   iApply (fromPDotPaperTypesAbsTyp with "Hs").
   iApply D_Cons; [done| iApply D_Val | iApply D_Nil].
   (* Fix mismatch between maps; one is an extension. *)
