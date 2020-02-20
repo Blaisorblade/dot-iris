@@ -72,8 +72,6 @@ Section syntyping_stamping_lemmas.
 
   Implicit Types (L T U V : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty) (g : stys).
 
-  Hint Extern 5 (is_stamped_path _ _ _) => try_once is_stamped_mono_path : core.
-
   Lemma stamped_objIdent_typing_mono_mut Γ g :
     (∀ e T, Γ s⊢ₜ[ g ] e : T → ∀ g' (Hle : g ⊆ g'), Γ s⊢ₜ[ g' ] e : T) ∧
     (∀ ds T, Γ s⊢ds[ g ] ds : T → ∀ g' (Hle : g ⊆ g'), Γ s⊢ds[ g' ] ds : T) ∧

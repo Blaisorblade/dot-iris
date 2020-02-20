@@ -187,6 +187,7 @@ Lemma is_stamped_mono_σ g1 g2 n σ:
 Proof. intros; decompose_Forall. exact: is_stamped_mono_vl. Qed.
 
 Hint Extern 5 (is_stamped_ty _ _ _) => try_once is_stamped_mono_ty : core.
+Hint Extern 5 (is_stamped_path _ _ _) => try_once is_stamped_mono_path : core.
 Hint Extern 5 (is_stamped_σ _ _ _) => try_once is_stamped_mono_σ : core.
 
 Lemma is_stamped_path2tm n g p :
