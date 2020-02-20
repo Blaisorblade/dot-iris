@@ -161,61 +161,12 @@ Definition optionModT := hclose hoptionModT.
 
 Ltac semTMember i := iApply D_Typ; iApply (extraction_to_leadsto_envD_equiv (n := i) with "Hs"); by_extcrush.
 
-Ltac simplSubst := rewrite /= /up/= /ids/ids_vl/=.
-
-Ltac hideCtx' Γ :=
-  let x := fresh "Γ" in set x := Γ.
-Ltac hideCtx :=
-  match goal with
-  | |- ?Γ v⊢ₜ[ _ ] _ : _ => hideCtx' Γ
-  | |- ?Γ v⊢ₜ[ _ ] _, _ <: _, _ => hideCtx' Γ
-  | |- ?Γ v⊢ₚ[ _ ] _ : _, _  => hideCtx' Γ
-  | |- ?Γ v⊢[ _ ]{ _ := _  } : _ => hideCtx' Γ
-  | |- ?Γ v⊢ds[ _ ] _ : _ => hideCtx' Γ
-  end.
-
 Tactic Notation "smart_wp_bind'" uconstr(ctxs) ident(v) constr(Hv) uconstr(Hp) :=
   iApply (wp_bind (ectx_language.fill ctxs));
   iApply (wp_wand with "[-]"); [iApply Hp; trivial|];
   iIntros (v) Hv.
 
 Lemma sem_later T a b c: V⟦TLater T⟧ a b c ⊣⊢ ▷ V⟦T⟧ a b c. Proof. done. Qed.
-
-(* Adapted from [typing_unstamped_derived.v]. *)
-Lemma iAnd_Later_Sub_Distr Γ T1 T2 i g :
-  is_stamped_ty (length Γ) g T1 →
-  is_stamped_ty (length Γ) g T2 →
-  Γ v⊢ₜ[ g ] TAnd (TLater T1) (TLater T2), i <: TLater (TAnd T1 T2), i.
-Proof. intros; asideLaters; tcrush; [lThis|lNext]. Qed.
-
-Lemma iP_Sub' {Γ p T1 T2 i g} :
-  Γ v⊢ₜ[g] T1, i <: T2, i →
-  Γ v⊢ₚ[g] p : T1, i →
-  Γ v⊢ₚ[g] p : T2, i.
-Proof.
-  intros; rewrite -(plusnO i).
-  by eapply (iP_Sub 0); rewrite ?plusnO.
-Qed.
-
-Lemma iP_Sngl_Sym Γ p q g i:
-  is_stamped_path (length Γ) g q →
-  Γ v⊢ₚ[g] p : TSing q, i →
-  Γ v⊢ₚ[g] q : TSing p, i.
-Proof.
-  intros Hus Hpq. eapply iP_Sub'.
-  eapply (iSngl_Sub_Sym Hpq). by apply iSngl_Sub_Self, Hpq.
-  eapply iP_Sngl_Refl.
-  by apply (iP_Sngl_Inv Hpq).
-Qed.
-
-Lemma iSngl_pq_Sub_inv {Γ i p q T1 T2 g}:
-  T1 ~Tp[ p := q ]* T2 →
-  is_stamped_ty   (length Γ) g T1 →
-  is_stamped_ty   (length Γ) g T2 →
-  is_stamped_path (length Γ) g p →
-  Γ v⊢ₚ[g] q : TSing p, i →
-  Γ v⊢ₜ[g] T1, i <: T2, i.
-Proof. intros. by eapply iSngl_pq_Sub, iP_Sngl_Sym. Qed.
 
 Lemma ty_sub_TAnd_TLater_TAnd_distr_inv T U :
   ⊨T TAnd (TLater T) (TLater U) <: TLater (TAnd T U).
@@ -496,31 +447,6 @@ Arguments pty_interp : simpl never. *)
       eapply (iT_Sub (i := 0) (T1:=TBool)); tcrush.
     } *)
 
-Lemma assoc_and {Γ S T U i g} :
-  is_stamped_ty (length Γ) g S →
-  is_stamped_ty (length Γ) g T →
-  is_stamped_ty (length Γ) g U →
-  Γ v⊢ₜ[ g ] TAnd (TAnd S T) U, i <: TAnd S (TAnd T U), i.
-Proof. intros. tcrush; lThis. Qed.
-Lemma iP_And {Γ p T1 T2 i g}:
-  Γ v⊢ₚ[g] p : T1, i →
-  Γ v⊢ₚ[g] p : T2, i →
-  Γ v⊢ₚ[g] p : TAnd T1 T2, i.
-Proof.
-  intros Hp1 Hp2. eapply iP_Sub', iP_Sngl_Refl, Hp1.
-  constructor; exact: iSngl_Sub_Self.
-Qed.
-
-Lemma iLaterN_Sub {Γ T g i j} :
-  is_stamped_ty (length Γ) g T →
-  Γ v⊢ₜ[g] iterate TLater j T, i <: T, j + i.
-Proof.
-  elim: j T => /= [|j IHj] T HuT; rewrite ?iterate_0 ?iterate_Sr /=; tcrush.
-  ettrans.
-  - apply (IHj (TLater T)); stcrush.
-  - exact: iLater_Sub.
-Qed.
-
 (* Argh, no aliasing here. *)
 Example semFromPDotPaperTypesTyp Γ :
   (* TLater (fromPDotPaperAbsTBody x1) :: optionModTInv :: Γ ⊨
@@ -774,35 +700,6 @@ Proof.
   lThis.
 Qed.
 
-Lemma storeless_objIdent_typing_mono_mut Γ g :
-  (∀ e T, Γ v⊢ₜ[ g ] e : T → ∀ g' (Hle : g ⊆ g'), Γ v⊢ₜ[ g' ] e : T) ∧
-  (∀ ds T, Γ v⊢ds[ g ] ds : T → ∀ g' (Hle : g ⊆ g'), Γ v⊢ds[ g' ] ds : T) ∧
-  (∀ l d T, Γ v⊢[ g ]{ l := d } : T → ∀ g' (Hle : g ⊆ g'), Γ v⊢[ g' ]{ l := d } : T) ∧
-  (∀ p T i, Γ v⊢ₚ[ g ] p : T, i → ∀ g' (Hle : g ⊆ g'), Γ v⊢ₚ[ g' ] p : T, i) ∧
-  (∀ T1 i1 T2 i2, Γ v⊢ₜ[ g ] T1, i1 <: T2, i2 → ∀ g' (Hle : g ⊆ g'), Γ v⊢ₜ[ g' ] T1, i1 <: T2, i2).
-Proof.
-Hint Extern 5 (is_stamped_path _ _ _) => try_once is_stamped_mono_path : core.
-  eapply storeless_typing_mut_ind with
-      (P := λ Γ g e T _, ∀ g' (Hle : g ⊆ g'), Γ v⊢ₜ[ g' ] e : T)
-      (P0 := λ Γ g ds T _, ∀ g' (Hle : g ⊆ g'), Γ v⊢ds[ g' ] ds : T)
-      (P1 := λ Γ g l d T _, ∀ g' (Hle : g ⊆ g'), Γ v⊢[ g' ]{ l := d } : T)
-      (P2 := λ Γ g p T i _, ∀ g' (Hle : g ⊆ g'), Γ v⊢ₚ[ g' ] p : T, i)
-      (P3 := λ Γ g T1 i1 T2 i2 _, ∀ g' (Hle : g ⊆ g'), Γ v⊢ₜ[ g' ] T1, i1 <: T2, i2);
-  clear Γ g; intros;
-    repeat match goal with
-    | H : forall g : stys, _ |- _ => specialize (H g' Hle)
-    end; eauto 3; eauto.
-  Qed.
-
-Transparent wellMappedφ.
-Lemma wellMappedφ_extend gφ1 gφ2 (Hle : gφ2 ⊆ gφ1):
-    wellMappedφ gφ1 -∗ wellMappedφ gφ2.
-Proof.
-  iIntros "#Hs" (s φ Hl) "/= !>". iApply ("Hs" with "[%]").
-  by eapply map_subseteq_spec, Hl.
-Qed.
-Opaque wellMappedφ.
-
 Example fromPDotPaperTyp Γ : optionModTInv :: Γ ⊨[fromPDotGφ] fromPDotPaper : μ (fromPDotPaperAbsTBody x1).
 Proof.
   iIntros "#Hs".
@@ -815,7 +712,7 @@ Proof.
   (* Fix mismatch between maps; one is an extension. *)
   (* - Way 1, easier: weaken syntactic typing *)
   (* iApply (fundamental_typed with "Hs").
-  eapply storeless_objIdent_typing_mono_mut.
+  eapply storeless_typing_mono_mut.
   exact: fromPDotPaperSymbolsAbsTyp.
   eapply map_union_subseteq_r.
   (* cbn; solve_map_disjoint. *)
