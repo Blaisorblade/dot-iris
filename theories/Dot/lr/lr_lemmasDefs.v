@@ -9,17 +9,6 @@ Set Default Proof Using "Type".
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
-  Lemma sP_Val {Γ} v T:
-    Γ s⊨ tv v : T -∗
-    Γ s⊨p pv v : T, 0.
-  Proof.
-    iIntros "/= #Hp !>" (ρ) "Hg"; iSpecialize ("Hp" with "Hg").
-    by rewrite /= wp_value_inv' path_wp_pv_eq.
-  Qed.
-
-  Lemma P_Val {Γ} v T: Γ ⊨ tv v : T -∗ Γ ⊨p pv v : T, 0.
-  Proof. apply sP_Val. Qed.
-
   (** Lemmas about definition typing. *)
   Lemma sD_Path {Γ} T p l:
     Γ s⊨p p : T, 0 -∗
