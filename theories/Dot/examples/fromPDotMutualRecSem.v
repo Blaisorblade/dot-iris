@@ -114,7 +114,7 @@ Definition fromPDotPaperTypesV : vl := ν {@
       val "symb" = x1
     }));
   val "getTypeFromTypeRef" = vabs (
-    tskip (tskip x0 @: "symb") @: "tpe" @: "get"
+    tskip (tskip (tskip x0 @: "symb")) @: "tpe" @: "get"
   )
 }.
 
@@ -181,6 +181,14 @@ Tactic Notation "smart_wp_bind'" uconstr(ctxs) ident(v) constr(Hv) uconstr(Hp) :
 
 Lemma sem_later T a b c: V⟦TLater T⟧ a b c ⊣⊢ ▷ V⟦T⟧ a b c. Proof. done. Qed.
 
+(* Adapted from [typing_unstamped_derived.v]. *)
+Lemma iAnd_Later_Sub_Distr Γ T1 T2 i g :
+  is_stamped_ty (length Γ) g T1 →
+  is_stamped_ty (length Γ) g T2 →
+  Γ v⊢ₜ[ g ] TAnd (TLater T1) (TLater T2), i <: TLater (TAnd T1 T2), i.
+Proof. intros; asideLaters; tcrush; [lThis|lNext]. Qed.
+
+(* Argh, no aliasing here. *)
 Example semFromPDotPaperTypesTyp Γ :
   TLater (fromPDotPaperAbsTBody x1) :: optionModTInv :: Γ ⊨[ fromPDotGφ ]
     fromPDotPaperTypesV : μ fromPDotPaperTypesTBody.
@@ -663,8 +671,13 @@ Arguments pty_interp : simpl never. *)
       + tcrush.
     }
     intros Hx.
+    Eval cbv -[minus] in hsomeConcrT.
+    (* The proper fix might be to use intersections introduction and Fld_I here.
+    (A) on the one hand, show what x.T is.
+    (B) on the other hand, thanks to hsomeConcr, we have a get method.
+    *)
 
-    eapply (iT_Sub (i := 1) (T1 := TLater (TAnd ((x2 @ "symbols") @; "Symbol")
+    eapply (iT_Sub (i := 2) (T1 := TLater (TAnd ((x2 @ "symbols") @; "Symbol")
       (TLater (val "tpe" : hclose (hsomeConcrT ⊥ ⊤)))))); first last. {
       typconstructor; eapply (iT_Sub (i := 1)), Hx; asideLaters; ltcrush.
       ettrans; first apply iSub_Add_Later; tcrush; lNext.
@@ -684,6 +697,21 @@ Arguments pty_interp : simpl never. *)
     rewrite /optionTy.
     simplSubst.
     (* Next: try to use distributivity. *)
+    ettrans; first apply iAnd_Later_Sub_Distr; stcrush.
+    asideLaters.
+    ettrans; first apply iAnd_Fld_Sub_Distr; stcrush.
+    tcrush.
+    (* Very annoying distributivity. Prove this in the model?
+    Also not matching: delays, [x1] vs [x2 @ "types" ] *)
+(* Goal
+Γ' v⊢ₜ[ fromPDotG' ]
+TAnd (TAnd
+  (x3 @; "Option")
+  (type "T" >: ⊥ <: (x2 @ "types") @; "Type"))
+  (hsomeConcrT ⊥ ⊤ 0), 2 <:
+    val "get" : x1 @; "Type" , 2
+*)
+
     (* ltcrush.
     lThis.
     hideCtx.
