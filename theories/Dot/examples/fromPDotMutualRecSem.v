@@ -369,16 +369,41 @@ Proof.
     set T := typeRefTBody; unfold typeRefTBody in T.
     (* sum up ingredient. We need to get typereftbody semantically, prove that's a subtype of abstract TypeRef*)
     iAssert (V⟦ val "tpe" : hsomeConcrT ⊥ ⊤ ⟧ vnil ρ (ρ 0)) as "#Hww". {
-      iPoseProof "Hw" as "[Hw2 _]".
       iExists (dpt p); iFrame (Hl). iExists p; iSplit; first done.
       iApply path_wp_eq.
       iExists optV; iFrame (Hal).
-      iApply "Hw2".
+      iDestruct "Hw" as "[$ _]".
     }
 
     iAssert (V⟦ TAnd ((x2 @ "symbols") @; "Symbol") (val "tpe" : hclose (hsomeConcrT ⊥ ⊤)) ⟧ vnil ρ (ρ 0)) as "#Hw1". {
       iDestruct "Hg" as "[_$]". iApply "Hww".
     }
+    iAssert (V⟦ shift typeRefTBody ⟧ vnil ρ (ν [val "symb" = rename (+1) (ρ 0)])) as "#Hw2". {
+      iSplit; last by [].
+      iExists _; iSplit; first by eauto.
+      iExists _; iSplit; first by [].
+      rewrite path_wp_pv_eq.
+      rewrite (_ : (rename (+1) (ρ 0)).[_] = ρ 0); last autosubst.
+      iApply "Hw1".
+    }
+    have Hsublast : Γ2 v⊢ₜ[ fromPDotG' ] shift typeRefTBody, 0 <: x1 @; "TypeRef", 0. {
+      eapply iSub_Sel'; tcrush.
+      varsub.
+      ltcrush.
+      eapply iSub_Sel'; tcrush.
+      varsub.
+      ettrans; first apply iSub_Add_Later; stcrush.
+      asideLaters.
+      ltcrush.
+    }
+
+    iApply (fundamental_subtype _ _ _ _ _ _ Hsublast with "Hs Hg").
+    iNext.
+    iClear "Hx0 Hg Hs Hw Hww Hw1".
+    iApply "Hw2".
+
+    (* iPoseProof (fundamental_subtype _ _ _ _ _ _ Hsublast with "Hs Hg") as "Hsublast".
+    iPoseProof
 
     have: Γ2 v⊢ₜ[ fromPDotG' ]
       ν {@ val "symb" = x1 } : x1 @; "TypeRef". {
@@ -399,7 +424,7 @@ Proof.
         mltcrush.
         (* apply iT_Sub_nocoerce. *)
         admit.
-    }
+    } *)
 
 
 (*
@@ -621,7 +646,6 @@ Arguments pty_interp : simpl never. *)
         eapply iSub_Sel'; tcrush.
         varsub; tcrush.
         admit. *)
-        admit.
   }
   iApply D_Cons; [done | iApply (fundamental_dm_typed with "Hs"); tcrush | ]. {
     set Γ' := x1 @; "TypeRef" :: fromPDotPaperTypesTBody ::
