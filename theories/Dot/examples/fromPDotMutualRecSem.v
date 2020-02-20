@@ -567,6 +567,17 @@ TAnd (TAnd
   iApply D_Nil.
 Admitted.
 
+Lemma fromPDotPaperTypesSub Γ:
+(▶: fromPDotPaperAbsTBody x1)%ty :: optionModTInv :: Γ ⊨[ fromPDotGφ
+] μ fromPDotPaperTypesTBody, 0 <: μ fromPDotPaperAbsTypesTBody, 0.
+Proof.
+  iApply fundamental_subtype.
+  ltcrush.
+  (* eapply iT_Sub_nocoerce; first exact: fromPDotPaperTypesTyp; ltcrush. *)
+  eapply iSub_Sel', (path_tp_delay (i := 0)); wtcrush.
+  varsub; tcrush.
+Qed.
+
 Example fromPDotPaperTypesAbsTyp Γ :
   TLater (fromPDotPaperAbsTBody x1) :: optionModTInv :: Γ ⊨[fromPDotGφ]
     fromPDotPaperTypesV : μ fromPDotPaperAbsTypesTBody.
@@ -574,11 +585,7 @@ Proof.
   iIntros "#Hs".
   iApply (T_Sub (i := 0)).
   iApply (semFromPDotPaperTypesTyp with "Hs").
-  iApply (fundamental_subtype with "Hs").
-  ltcrush.
-  (* eapply iT_Sub_nocoerce; first exact: fromPDotPaperTypesTyp; ltcrush. *)
-  eapply iSub_Sel', (path_tp_delay (i := 0)); wtcrush.
-  varsub; tcrush.
+  iApply (fromPDotPaperTypesSub with "Hs").
 Qed.
 
 Example fromPDotPaperSymbolsTyp Γ :
