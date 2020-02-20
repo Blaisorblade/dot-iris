@@ -138,6 +138,16 @@ Hint Extern 5 (is_stamped_σ _ _ _) => tcrush : fvc.
 Hint Resolve pack_extraction' : fvc.
 Ltac by_extcrush := by try eapply pack_extraction'; rewrite /= ?hsubst_id; eauto with fvc.
 
+Ltac hideCtx :=
+  let hideCtx' Γ := (let x := fresh "Γ" in set x := Γ) in
+  match goal with
+  | |- ?Γ v⊢ₜ[ _ ] _ : _ => hideCtx' Γ
+  | |- ?Γ v⊢ₜ[ _ ] _, _ <: _, _ => hideCtx' Γ
+  | |- ?Γ v⊢ₚ[ _ ] _ : _, _  => hideCtx' Γ
+  | |- ?Γ v⊢[ _ ]{ _ := _  } : _ => hideCtx' Γ
+  | |- ?Γ v⊢ds[ _ ] _ : _ => hideCtx' Γ
+  end.
+
 Hint Constructors typed subtype dms_typed dm_typed path_typed : core.
 Remove Hints iSub_Trans : core.
 Hint Extern 10 => try_once iSub_Trans : core.
@@ -248,11 +258,50 @@ Lemma Bind1' Γ T1 T2:
   Γ v⊢ₜ[g] μ T1, 0 <: T2, 0.
 Proof. intros; exact: Bind1. Qed.
 
+(* Adapted from [typing_unstamped_derived.v]. *)
+Lemma iP_Sub' {Γ p T1 T2 i} :
+  Γ v⊢ₜ[g] T1, i <: T2, i →
+  Γ v⊢ₚ[g] p : T1, i →
+  Γ v⊢ₚ[g] p : T2, i.
+Proof.
+  intros; rewrite -(plusnO i).
+  by eapply (iP_Sub 0); rewrite ?plusnO.
+Qed.
+
+Lemma iP_Sngl_Sym Γ p q i:
+  is_stamped_path (length Γ) g q →
+  Γ v⊢ₚ[g] p : TSing q, i →
+  Γ v⊢ₚ[g] q : TSing p, i.
+Proof.
+  intros Hus Hpq. eapply iP_Sub'.
+  eapply (iSngl_Sub_Sym Hpq). by apply iSngl_Sub_Self, Hpq.
+  eapply iP_Sngl_Refl.
+  by apply (iP_Sngl_Inv Hpq).
+Qed.
+
+Lemma iSngl_pq_Sub_inv {Γ i p q T1 T2}:
+  T1 ~Tp[ p := q ]* T2 →
+  is_stamped_ty   (length Γ) g T1 →
+  is_stamped_ty   (length Γ) g T2 →
+  is_stamped_path (length Γ) g p →
+  Γ v⊢ₚ[g] q : TSing p, i →
+  Γ v⊢ₜ[g] T1, i <: T2, i.
+Proof. intros. by eapply iSngl_pq_Sub, iP_Sngl_Sym. Qed.
+
+Lemma iP_And {Γ p T1 T2 i}:
+  Γ v⊢ₚ[g] p : T1, i →
+  Γ v⊢ₚ[g] p : T2, i →
+  Γ v⊢ₚ[g] p : TAnd T1 T2, i.
+Proof.
+  intros Hp1 Hp2. eapply iP_Sub', iP_Sngl_Refl, Hp1.
+  constructor; exact: iSngl_Sub_Self.
+Qed.
+
 Lemma iT_Sub_nocoerce T1 T2 {Γ e} :
   Γ v⊢ₜ[ g ] e : T1 →
   Γ v⊢ₜ[ g ] T1, 0 <: T2, 0 →
   Γ v⊢ₜ[ g ] e : T2.
-Proof. rewrite -(iterate_0 tskip e). eauto. Qed.
+Proof. intros. exact: (iT_Sub (i:=0)). Qed.
 Hint Resolve iT_Sub_nocoerce : core.
 
 Lemma iT_Var_Sub Γ x T1 T2 :
@@ -294,6 +343,16 @@ Lemma iSub_AddI Γ T i (Hst: is_stamped_ty (length Γ) g T) :
   Γ v⊢ₜ[ g ] T, 0 <: T, i.
 Proof. apply: iSub_AddIJ'; by [|lia]. Qed.
 
+Lemma iLaterN_Sub {Γ T i j} :
+  is_stamped_ty (length Γ) g T →
+  Γ v⊢ₜ[g] iterate TLater j T, i <: T, j + i.
+Proof.
+  elim: j T => /= [|j IHj] T HuT; rewrite ?iterate_0 ?iterate_Sr /=; tcrush.
+  ettrans.
+  - apply (IHj (TLater T)); stcrush.
+  - exact: iLater_Sub.
+Qed.
+
 Lemma path_tp_delay {Γ p T i j} (Hst: is_stamped_ty (length Γ) g T) : i <= j →
   Γ v⊢ₚ[ g ] p : T, i → Γ v⊢ₚ[ g ] p : T, j.
 Proof.
@@ -302,6 +361,13 @@ Proof.
   eapply iP_Sub, Hp.
   apply: iSub_AddIJ'; by [|lia].
 Qed.
+
+Lemma iAnd_Later_Sub_Distr Γ T1 T2 i :
+  is_stamped_ty (length Γ) g T1 →
+  is_stamped_ty (length Γ) g T2 →
+  Γ v⊢ₜ[ g ] TAnd (TLater T1) (TLater T2), i <: TLater (TAnd T1 T2), i.
+Proof. intros; asideLaters; tcrush; [lThis|lNext]. Qed.
+
 
 (* Lattice theory *)
 Lemma iOr_Sub_split Γ T1 T2 U1 U2 i:
@@ -384,6 +450,13 @@ Lemma assoc_or {Γ S T U i} :
   is_stamped_ty (length Γ) g U →
   Γ v⊢ₜ[ g ] TOr (TOr S T) U, i <: TOr S (TOr T U), i.
 Proof. intros; tcrush; (ettrans; last apply iSub_Or2); tcrush. Qed.
+
+Lemma assoc_and {Γ S T U i} :
+  is_stamped_ty (length Γ) g S →
+  is_stamped_ty (length Γ) g T →
+  is_stamped_ty (length Γ) g U →
+  Γ v⊢ₜ[ g ] TAnd (TAnd S T) U, i <: TAnd S (TAnd T U), i.
+Proof. intros. tcrush; lThis. Qed.
 
 (* Based on Lemma 4.3 in
 https://books.google.co.uk/books?id=vVVTxeuiyvQC&lpg=PA104&pg=PA85#v=onepage&q&f=false.

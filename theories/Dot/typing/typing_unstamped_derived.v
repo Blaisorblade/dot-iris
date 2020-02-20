@@ -97,9 +97,8 @@ Ltac lookup :=
   end.
 Ltac ltcrush := tcrush; repeat lookup.
 
-Ltac hideCtx' Γ :=
-  let x := fresh "Γ" in set x := Γ.
 Ltac hideCtx :=
+  let hideCtx' Γ := (let x := fresh "Γ" in set x := Γ) in
   match goal with
   | |- ?Γ u⊢ₜ _ : _ => hideCtx' Γ
   | |- ?Γ u⊢ₜ _, _ <: _, _ => hideCtx' Γ

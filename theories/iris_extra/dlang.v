@@ -194,6 +194,13 @@ Module Type LiftWp (Import VS : VlSortsSig).
       Lemma wellMappedφ_apply s φ gφ : gφ !! s = Some φ → wellMappedφ gφ -∗ (s ↝n[ 0 ] φ)%I.
       Proof. iIntros (Hl) "#Hm"; iApply ("Hm" $! _ _ Hl). Qed.
 
+      Lemma wellMappedφ_extend gφ1 gφ2 (Hle : gφ2 ⊆ gφ1):
+          wellMappedφ gφ1 -∗ wellMappedφ gφ2.
+      Proof.
+        iIntros "#Hs" (s φ Hl) "/= !>". iApply ("Hs" with "[%]").
+        by eapply map_subseteq_spec, Hl.
+      Qed.
+
       Global Opaque wellMappedφ.
 
       Lemma transfer' {gφ} sγ : freshMappings gφ sγ → allGs sγ ==∗

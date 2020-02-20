@@ -182,3 +182,6 @@ Hint Resolve Nat.lt_0_succ : core.
 
 Definition vabs' x := tv (vabs x).
 Definition lett t u := tapp (vabs' u) t.
+
+(* Simplify substitution operations on concrete terms. *)
+Ltac simplSubst := rewrite /= /up/= /ids/ids_vl/=.
