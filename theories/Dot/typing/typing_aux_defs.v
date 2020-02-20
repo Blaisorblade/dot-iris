@@ -53,8 +53,8 @@ Inductive ty_sub_syn : ty → ty → Prop :=
 (* Unused: *)
 (* | ty_sub_TLater_unTLater_syn T :
   ⊢T T <: TLater (unTLater T). *)
-| ty_sub_TAnd_TLater_TAnd_distr_inv T U :
-  ⊢T TAnd (TLater T) (TLater U) <: TLater (TAnd T U)
+(* | ty_sub_TAnd_TLater_TAnd_distr_inv T U : *)
+(*   ⊢T TAnd (TLater T) (TLater U) <: TLater (TAnd T U) *)
 where "⊢T T1 <: T2" := (ty_sub_syn T1 T2).
 Hint Constructors ty_sub_syn : ctx_sub.
 
