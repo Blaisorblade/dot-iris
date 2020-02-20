@@ -584,7 +584,7 @@ Lemma storeless_objIdent_typing_mono_mut Γ g :
   (∀ T1 i1 T2 i2, Γ v⊢ₜ[ g ] T1, i1 <: T2, i2 → ∀ g' (Hle : g ⊆ g'), Γ v⊢ₜ[ g' ] T1, i1 <: T2, i2).
 Proof.
 Hint Extern 5 (is_stamped_path _ _ _) => try_once is_stamped_mono_path : core.
-  eapply stamped_typing_mut_ind with
+  eapply storeless_typing_mut_ind with
       (P := λ Γ g e T _, ∀ g' (Hle : g ⊆ g'), Γ v⊢ₜ[ g' ] e : T)
       (P0 := λ Γ g ds T _, ∀ g' (Hle : g ⊆ g'), Γ v⊢ds[ g' ] ds : T)
       (P1 := λ Γ g l d T _, ∀ g' (Hle : g ⊆ g'), Γ v⊢[ g' ]{ l := d } : T)

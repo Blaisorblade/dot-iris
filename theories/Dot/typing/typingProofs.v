@@ -15,7 +15,7 @@ Section syntyping_lemmas.
     (∀ l d T, Γ v⊢[ g ]{ l := d } : T → is_stamped_dm (length Γ) g d) ∧
     (∀ p T i, Γ v⊢ₚ[ g ] p : T, i → is_stamped_path (length Γ) g p).
   Proof.
-    eapply exp_stamped_typing_mut_ind with
+    eapply exp_storeless_typing_mut_ind with
         (P := λ Γ g e T _, is_stamped_tm (length Γ) g e)
         (P0 := λ Γ g ds T _, Forall (is_stamped_dm (length Γ) g) (map snd ds))
         (P1 := λ Γ g l d T _, is_stamped_dm (length Γ) g d)
@@ -143,7 +143,7 @@ Section syntyping_lemmas.
     (∀ T1 i1 T2 i2, Γ v⊢ₜ[ g ] T1, i1 <: T2, i2 → ∀ (Hctx: stamped_ctx g Γ),
       is_stamped_ty (length Γ) g T1 ∧ is_stamped_ty (length Γ) g T2).
   Proof.
-    eapply stamped_typing_mut_ind with
+    eapply storeless_typing_mut_ind with
         (P := λ Γ g e T _, ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T)
         (P0 := λ Γ g ds T _, ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T)
         (P1 := λ Γ g l d T _, ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T)

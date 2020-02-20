@@ -346,7 +346,7 @@ with   exp_stamped_dm_typed_mut_ind := Induction for dm_typed Sort Prop
 with   exp_stamped_path_typed_mut_ind := Induction for path_typed Sort Prop.
 (* with   subtype_mut_ind := Induction for subtype Sort Prop. *)
 
-Combined Scheme exp_stamped_typing_mut_ind from exp_stamped_typed_mut_ind, exp_stamped_dms_typed_mut_ind,
+Combined Scheme exp_storeless_typing_mut_ind from exp_stamped_typed_mut_ind, exp_stamped_dms_typed_mut_ind,
   exp_stamped_dm_typed_mut_ind, exp_stamped_path_typed_mut_ind.
 
 Scheme stamped_typed_mut_ind := Induction for typed Sort Prop
@@ -355,7 +355,7 @@ with   stamped_dm_typed_mut_ind := Induction for dm_typed Sort Prop
 with   stamped_path_typed_mut_ind := Induction for path_typed Sort Prop
 with   stamped_subtype_mut_ind := Induction for subtype Sort Prop.
 
-Combined Scheme stamped_typing_mut_ind from stamped_typed_mut_ind, stamped_dms_typed_mut_ind,
+Combined Scheme storeless_typing_mut_ind from stamped_typed_mut_ind, stamped_dms_typed_mut_ind,
   stamped_dm_typed_mut_ind, stamped_path_typed_mut_ind, stamped_subtype_mut_ind.
 
 Lemma iT_All_I Γ e T1 T2 g:
