@@ -86,12 +86,8 @@ Definition pTypeRef : stampTy := MkTy 60 [x0; x1] (TAnd (x0 @; "Type") typeRefTB
 Definition fromPDotG : stys := psAddStys primOptionG [pTop; pSymbol].
 Definition fromPDotG' : stys := pAddStys pTypeRef fromPDotG.
 Definition fromPDotGφ := Vs⟦ fromPDotG' ⟧.
-Opaque fromPDotG.
-Opaque fromPDotG'.
-
-Import stamp_transfer.
-Lemma transfer : allGs ∅ ==∗ wellMappedφ fromPDotGφ.
-Proof. apply transfer_empty. Qed.
+Arguments fromPDotG : simpl never.
+Arguments fromPDotG' : simpl never.
 
 Lemma pTopStamp : TyMemStamp fromPDotG pTop. Proof. split; stcrush. Qed.
 Lemma pTypeRefStamp : TyMemStamp fromPDotG pTypeRef. Proof. split; stcrush. Qed.
@@ -172,6 +168,7 @@ Lemma ty_sub_TAnd_TLater_TAnd_distr_inv T U :
   ⊨T TAnd (TLater T) (TLater U) <: TLater (TAnd T U).
 Proof. iIntros (??) "[$$]". Qed.
 
+(* This is an essential optimization to speed up [iNext]. *)
 Typeclasses Opaque pty_interp.
 
 Let newTypeRefΓ Γ :=
@@ -445,8 +442,6 @@ Proof.
   eapply iT_Sub_nocoerce; first exact: fromPDotPaperSymbolsTyp; tcrush.
   lThis.
 Qed.
-
-Transparent fromPDotG'.
 
 Example fromPDotPaperTyp Γ : optionModTInv :: Γ ⊨[fromPDotGφ]
   fromPDotPaper : μ (fromPDotPaperAbsTBody x1).
