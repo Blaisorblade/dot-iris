@@ -1,3 +1,4 @@
+From D Require Import prelude.
 From D.Dot Require Import fundamental.
 From D.Dot.examples Require examples fromPDotMutualRecSem.
 
