@@ -283,32 +283,29 @@ Proof.
   all: rewrite -wp_pure_step_later -1?wp_value; last done.
   by iApply wp_wand; [iApply loopSemT | iIntros "!>% []"].
 
+  iNext.
   (* To conclude, prove the right subtyping for hsomeType and TypeRef. *)
-  iAssert (V⟦ val "tpe" : hsomeConcrT ⊥ ⊤ ⟧ vnil ρ (ρ 0)) as "{Hw} #Hw". {
-    lrSimpl.
-    iExists (dpt p); iFrame (Hl). iExists p; iSplit; first done.
-    rewrite path_wp_eq.
-    iExists optV; iFrame (Hal).
-    lrSimpl in "Hw"; lrSimpl.
-    iDestruct "Hw" as "[$ _]".
-  }
+  iPoseProof (fundamental_subtype _ _ _ _ (x1 @; "TypeRef")
+    _ (Hsublast Γ) with "Hs Hg") as "{Hs} Hsub".
+  lrSimpl in "Hsub". iApply "Hsub"; iClear "Hsub".
 
-  iAssert (V⟦ TAnd ((x2 @ "symbols") @; "Symbol")
-    (val "tpe" : hclose (hsomeConcrT ⊥ ⊤)) ⟧ vnil ρ (ρ 0)) as "{Hw} #Hw". {
-    iDestruct "Hg" as "[_ H]".
-    lrSimpl in "H"; lrSimpl.
-    iFrame "H"; iApply "Hw".
-  }
+  (* Just to restate the current goal (for some extra readability). *)
   iAssert (V⟦ shift typeRefTBody ⟧ vnil ρ (ν [val "symb" = rename (+1) (ρ 0)]))
-    as "{Hw} #Hw". { lrSimpl.
-    iSplit; last by [].
-    iExists _; iSplit; first by eauto.
-    iExists _; iSplit; first by [].
-    rewrite path_wp_pv_eq.
-    rewrite (_ : (rename (+1) (ρ 0)).[_] = ρ 0); last autosubst.
-    iApply "Hw".
-  }
-  iApply (fundamental_subtype _ _ _ _ _ _ (Hsublast Γ) with "Hs Hg Hw").
+    as "{Hw} #Hw"; lrSimpl; last iApply "Hw".
+  iSplit; last by [].
+  iExists _; iSplit; first by eauto.
+  iExists _; iSplit; first by [].
+  rewrite path_wp_pv_eq.
+  rewrite (_ : (rename (+1) (ρ 0)).[_] = ρ 0); last autosubst.
+
+  iDestruct "Hg" as "[_ H]"; lrSimpl in "H"; lrSimpl.
+  iSplit; [by iApply "H"| iClear "H"].
+
+  iAssert (V⟦ val "tpe" : hsomeConcrT ⊥ ⊤ ⟧ vnil ρ (ρ 0)) as "{Hw} #Hw";
+    lrSimpl; last iApply "Hw".
+  iExists (dpt p); iFrame (Hl); iExists p; iSplit; first done; rewrite path_wp_eq.
+  iExists optV; iSplit; first done; lrSimpl in "Hw"; lrSimpl.
+  by iDestruct "Hw" as "[$ _]".
 Qed.
 
 Example semFromPDotPaperTypesTyp Γ :
