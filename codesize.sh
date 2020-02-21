@@ -9,13 +9,21 @@ totsize() {
 sum() {
   awk '{s+=$1} END {print s}'
 }
-sumDirs() {
-  echo -n "$1 ($(echo $2)): "
-  for i in $2; do
+sumDirsRaw() {
+  res=$(for i in $1; do
     checkEmpty $i
     totsize $i
-  done | sum
+  done | sum)
+  echo $res
 }
+format() {
+  echo "$1 ($2): $3"
+}
+
+sumDirs() {
+  format "$1" "$2" "$(sumDirsRaw "$2")"
+}
+
 # total() {
 #   sumDirs "$1" "$(find . -type d)"
 # }
@@ -33,13 +41,23 @@ find . -type d |
 
 echo
 sumDirs "Unused" "misc_unused Dot/misc_unused DSub/misc_unused"
-echo
-sumDirs "Preliminaries" ". iris_extra pure_program_logic"
-cd Dot
-echo
-sumDirs "DOT" "$(find . -type d \( -name misc_unused -prune -o -print \))"
+
+prelimDirs=". iris_extra pure_program_logic"
+prelimLoc=$(sumDirsRaw "$prelimDirs")
+dotDirs="$(echo $(find Dot -type d \( -name misc_unused -prune -o -print \)))"
+dotLoc=$(sumDirsRaw "$dotDirs")
 
 echo
+format "Preliminaries + DOT" "$prelimDirs $dotDirs" "$[$prelimLoc + $dotLoc]"
+
+echo
+format "Preliminaries" ". iris_extra pure_program_logic" $prelimLoc
+
+echo
+format "DOT" "$dotDirs" "$dotLoc"
+
+echo
+cd Dot
 sumDirs "syntax" "syn"
 sumDirs "logrel" "lr"
 sumDirs "model (syntax + logrel)" "syn lr"
