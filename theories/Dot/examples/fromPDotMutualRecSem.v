@@ -265,9 +265,6 @@ Proof.
   iIntros "#Hs !>" (ρ) "#Hg !>".
   iPoseProof (fundamental_typed _ _ _ _ Hx0T with "Hs Hg") as "Hx0".
   iDestruct (wp_value_inv with "Hx0") as "{Hx0} Hx0".
-  (* iApply (wp_bind (fill [SkipCtx; ProjCtx _; SkipCtx; ProjCtx _; IfCtx _ _])).
-  rewrite -wp_value. *)
-  (* iApply (wp_bind (fill [SkipCtx; ProjCtx _; SkipCtx; ProjCtx _; IfCtx _ _])). *)
   iEval simplSubst; rewrite /of_val /vclose sem_later.
   iApply (wp_bind (fill [ProjCtx _; SkipCtx; ProjCtx _; IfCtx _ _])).
   rewrite -wp_pure_step_later -?wp_value; last done.
@@ -282,10 +279,6 @@ Proof.
   iNext.
   iNext n.
   (* clear p Hl HpOptV n. *)
-  (*
-  iAssert ([] ⊨ optV @: "tpe" : ▶: hoptionTyConcr1 (λ x : var, hoasNotation.hx2 x)) as "Htpe". {
-  iApply T_Obj_E.
-  } *)
   iApply (wp_bind (fill [ProjCtx _; IfCtx _ _])); iSimpl.
   rewrite -wp_pure_step_later -1?wp_value /of_val; last done.
   iNext.
@@ -309,25 +302,10 @@ Proof.
   all: rewrite -wp_pure_step_later -1?wp_value; last done.
   by iApply wp_wand; [iApply loopSemT | iIntros "!>% []"].
 
-  (* iPoseProof (fundamental_subtype _ _ _ _ _ _ Hv with "Hs") as "Ht".
-  iDestruct ("Ht" $! _ optV with "Hg HwT") as (? Hl' pb ->) "{Ht} Hpb".
-  iDestruct (path_wp_pure_exec with "Hpb") as %(bv & [n?] & Heq); iClear "Hpb".
-  move: Heq; rewrite alias_paths_pv_eq_2 path_wp_pure_pv_eq => Heq.
-  iApply (wp_bind (fill [IfCtx _ _])).
-  rewrite -wp_pure_step_later; last done.
-  rewrite -wp_pure_step_later -1?wp_value; last done.
-  iNext.
-  iNext n1.
-  iSimpl.
-  clear pb Hl H n.
-  simpl in Heq; rewrite -{}Heq.
-  rewrite -wp_pure_step_later -1?wp_value; last done. *)
-
   (* To conclude, prove the right subtyping for hsomeType and TypeRef. *)
   cbn in Hl.
   rewrite /hsomeType.
   set T := typeRefTBody; unfold typeRefTBody in T.
-  (* sum up ingredient. We need to get typereftbody semantically, prove that's a subtype of abstract TypeRef*)
   iAssert (V⟦ val "tpe" : hsomeConcrT ⊥ ⊤ ⟧ vnil ρ (ρ 0)) as "#Hww". {
     iSimpl.
     iExists (dpt p); iFrame (Hl). iExists p; iSplit; first done.
@@ -367,90 +345,7 @@ Proof.
   iApply ("Hsub" with "Hw2").
 Qed.
 
-(*
-Arguments iPPred_car : simpl never.
-Arguments pty_interp : simpl never. *)
-    (* cbn [iPPred_car pty_interp].
-
-
-     *)
-
-
-    (* have HoptSub :
-      Γ2 v⊢ₜ[ fromPDotG' ] optionTy x3 x2, 1 <:
-      hclose (hoptionTyConcr hoasNotation.hx2), 2. {
-      tcrush.
-      rewrite /hoptionTyConcr/optionTy.
-      eapply (iSub_Trans (T2 := TAnd (hclose hoptionTConcr) (type "T" >: ⊥ <: (x2 @ "types") @; "Type")) (i2 := 2));
-        first apply iSub_And. {
-        lThis.
-        ettrans; last apply iLater_Sub; stcrush.
-        eapply (iSel_Sub (L := ⊥) (U := hclose hoptionTConcr)).
-        tcrush.
-        varsub.
-        mltcrush; lThis.
-      }
-      by ettrans; first apply iSub_Add_Later; stcrush; asideLaters; ltcrush.
-      rewrite /hoptionTConcr/=.
-      ettrans; first apply iAnd_Or_Sub_Distr; stcrush.
-      apply iOr_Sub_split; stcrush.
-      ltcrush.
-      Arguments hterm_lifting.liftBind /.
-      rewrite /hsomeConcrT/hpmatchT; simplSubst.
-      rewrite /=.
-      apply Bind2; stcrush.
-      mltcrush.
-      by lThis; mltcrush.
-      lThis; mltcrush.
-      simplSubst.
-      mltcrush.
-      (* lNext. *)
-      ltcrush.
-      (* lThis.
-      simplSubst. *)
-    } *)
-
-    (* have Hopt' : Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
-      tskip (tskip x0) @: "tpe" :
-      TLater (hclose (hoptionTyConcr hoasNotation.hx2)). {
-      eapply (iT_Sub (i := 0)), Hopt.
-      (* ettrans; first apply iSub_Add_Later; stcrush. *)
-      tcrush.
-      rewrite /hoptionTyConcr/optionTy.
-      eapply (iSub_Trans (T2 := TAnd (hclose hoptionTConcr) _) (i2 := 0));
-        first apply iSub_And.
-      (* XXX nope. *)
-      lThis.
-      ettrans.
-      eapply (iSel_Sub (L := ⊥) (U := hclose hoptionTConcr)).
-      tcrush.
-      varsub.
-      mltcrush; lThis.
-      asideLaters.
-      tcrush.
-    } *)
-
-    (* Fails due to using optionModTInv. *)
-    (* have Hcond : Γ2 v⊢ₜ[ pAddStys pTypeRef fromPDotG ]
-      tskip (tskip (tskip x0) @: "tpe") : val "isEmpty" : TBool. {
-      tcrush.
-      eapply (iT_Sub (i := 1)); first apply iLater_Sub; stcrush.
-      eapply (iT_Sub (i := 0)), Hopt; rewrite /optionTy.
-      lThis.
-      eapply (iSel_Sub (L := ⊥)).
-      tcrush; varsub.
-      mltcrush.
-      (* Import hoasNotation. *)
-      hideCtx.
-      simplSubst.
-      mltcrush.
-      eapply (iT_Sub (i := 0) (T1:=TBool)); tcrush.
-    } *)
-
-(* Argh, no aliasing here. *)
 Example semFromPDotPaperTypesTyp Γ :
-  (* TLater (fromPDotPaperAbsTBody x1) :: optionModTInv :: Γ ⊨
-    ν fromPDotPaperTypesVBody : μ fromPDotPaperTypesTBody. *)
   TAnd (▶: fromPDotPaperTypesTBody) (TSing (x1 @ "types")) ::
   TLater (fromPDotPaperAbsTBody x1) :: optionModTInv :: Γ
   ⊨ds[ fromPDotGφ ] fromPDotPaperTypesVBody : fromPDotPaperTypesTBody.
@@ -493,15 +388,11 @@ Proof.
     iApply (T_All_I_Strong (Γ' := Γ')). apply Hctx.
     iApply (fundamental_typed with "Hs").
     set Γ1 := x1 @; "TypeRef" :: Γ'.
-    (* have ?: Γ' v⊢ₜ[ pAddStys pTypeRef fromPDotG ] x0 : x1 @; "TypeRef"; first var. *)
     set T : ty := (▶: (shift typeRefTBody))%ty.
     unfold typeRefTBody in T.
-    (* evar (T : ty). *)
     have : Γ1 v⊢ₜ[ fromPDotG' ] x0 : T; rewrite {}/T. {
       varsub.
       ettrans.
-      (* eapply (iSub_Trans (T2 := ▶: TAnd (x1 @; "Type") (shift typeRefTBody))); last by tcrush. *)
-
       + eapply iSel_Sub; typconstructor. varsub. lThis. ltcrush.
       + tcrush.
     }
@@ -511,51 +402,6 @@ Proof.
     (A) on the one hand, show what x.T is.
     (B) on the other hand, thanks to hsomeConcr, we have a get method.
     *)
-    (* suff Hx' : Γ1 v⊢ₜ[ fromPDotG' ] x0 : ▶: val "symb" : val "tpe" : val "get" : x1 @; "Type". {
-      eapply (iT_Sub (i := 2)); first last.
-      by typconstructor; eapply (iT_Sub (i := 1)), Hx'; asideLaters; ltcrush.
-      ettrans; first apply iSub_Add_Later; tcrush.
-      ettrans; first apply iSub_Add_Later; tcrush.
-      asideLaters.
-      tcrush.
-    }
-    (* eapply (iT_Path (p := pv _)).
-    typconstructor.  *)
-    (* iP_Val. *)
-
-    (* have Hx0 : Γ1 v⊢ₜ[ fromPDotG' ] x0 : ▶: val "symb" : val "tpe" : μ (val "get" : ▶: x0 @; "T"). {
-    (* have Hx0 : Γ1 v⊢ₜ[ fromPDotG' ] x0 : ▶: val "symb" : val "tpe" : val "get" : T. { *)
-      eapply (iT_Sub (i := 0)), Hx.
-      ltcrush.
-      lNext.
-      rewrite /hsomeConcrT/=; simplSubst.
-      ltcrush.
-    } *)
-
-    eapply (iT_Sub (i := 0)), Hx.
-    ltcrush.
-    apply iSub_Skolem_P; tcrush.
-    simplSubst; rewrite !iterate_S !iterate_0; hideCtx.
-    varsub.
-    lNext.
-    ltcrush.
-
-    constructor.
-
-    (* varsub.
-    eapply (iSub_Trans (T2 := ▶: (val "symb" : (val "tpe" : (val "get" : x2 @ "types" @; "Type" ))))),
-    (iSngl_pq_Sub_inv (q := x1) (p := x2 @ "types")); stcrush; first 1 last.
-    exact: psubst_ty_rtc_sufficient.
-    by tcrush; varsub; lNext.
-
-
-
-
-    eapply (iSel_Sub (L := ⊥)).
-    tcrush.
-    varsub.
-    lThis.
-    mltcrush. *) *)
     eapply (iT_Sub (i := 2)); first apply (iLaterN_Sub (j := 2)); tcrush.
 
     eapply (iT_Sub (i := 2) (T1 := (TLater (TAnd ((x2 @ "symbols") @; "Symbol")
@@ -606,52 +452,6 @@ Proof.
     varsub.
     mltcrush.
     lThis.
-    (* mltcrush.
-
-    apply iSub_Skolem_P; stcrush.
-    mltcrush.
-    hideCtx.
-    simplSubst.
-    tcrush.
-    tcrush.
-
-    have Hsub : Γ1 v⊢ₜ[ fromPDotG' ]
-      val "get" : x2 @ "types" @; "Type" , 2 <: val "get" : x1 @; "Type" , 2. {
-    }
-    eapply iSub_Trans, Hsub.
-    lNext.
-    mltcrush.
-    eapply iSub_Sel.
-    ltcrush. *)
-
-
-    (* Very annoying distributivity. Prove this in the model? *)
-
-    (* ltcrush.
-    lThis.
-    hideCtx.
-    cbn.
-     last typconstructor; first last. *)
-
-    (* eapply (iT_Sub (i := 0)); first last. *)
-    (* eapply (iT_Sub (i := 1)), Hx.
-    asideLaters.
-    lThis.
-    (* Throws away too much info! *)
-    lNext.
-    mltcrush.
-    simplSubst. *)
-    (* Sub_AddLater
-    ettrans; last apply iLater_Sub; stcrush. {
-    (* var. *)
-    ettrans; last apply iLater_Sub. {
-      eapply iSel_Sub; typconstructor; varsub. ltcrush.
-    }
-    stcrush.
-    lNext. lThis.
-    typconstructor. stcrush.
-    eapply iT_Var_Sub.
-    eapply iSub_Sel'. first last. *)
   }
   iApply D_Nil.
 Qed.
