@@ -220,6 +220,14 @@ Proof.
   ltcrush.
 Qed.
 
+Lemma Hx0 Γ :
+  newTypeRefΓ Γ v⊢ₜ[ fromPDotG' ] x0 :
+    ▶: val "tpe" : ▶: hoptionTyConcr1 hoasNotation.hx2.
+Proof.
+  varsub. eapply iSub_Trans, iSub_Trans, iSub_Later;
+    [apply Hsub0X0 | apply HoptSubT | tcrush].
+Qed.
+
 Tactic Notation "lrSimpl" := iEval (cbv [pty_interp]).
 Tactic Notation "lrSimpl" "in" constr(iSelP) :=
   iEval (cbv [pty_interp]) in iSelP.
@@ -232,12 +240,10 @@ Lemma newTypeRef_semTyped Γ :
 Proof.
   have Hsub0X0 := Hsub0X0 Γ.
   have HoptSubT := HoptSubT Γ.
-  set Γ2 := newTypeRefΓ Γ.
+  have Hx0 := Hx0 Γ.
+  move: Hx0 HoptSubT Hsub0X0; pose Γ2 := newTypeRefΓ Γ => Hx0 HoptSubT Hsub0X0.
   unfold newTypeRefΓ in Γ2.
-  have Hx0 : Γ2 v⊢ₜ[ fromPDotG' ] x0 : ▶: val "tpe" : ▶: hoptionTyConcr1 hoasNotation.hx2. {
-    varsub. eapply iSub_Trans, iSub_Trans, iSub_Later;
-      [apply Hsub0X0 | apply HoptSubT | tcrush].
-  }
+
   iIntros "#Hs !>" (ρ) "#Hg !>".
   iPoseProof (fundamental_typed _ _ _ _ Hx0 with "Hs Hg") as "Hx0".
   rewrite /interp_expr wp_value_inv.
