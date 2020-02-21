@@ -174,49 +174,65 @@ Proof. iIntros (??) "[$$]". Qed.
 
 Typeclasses Opaque pty_interp.
 
-Lemma newTypeRef_semTyped Γ  :
-  shift ((x1 @ "symbols") @; "Symbol") ::
-    TAnd fromPDotPaperTypesTBody (TSing (x1 @ "types")) ::
-    fromPDotPaperAbsTBody x1 :: optionModTInv :: Γ ⊨[ fromPDotGφ ]
-    tif (tskip (tskip x0 @: "tpe") @: "isEmpty")
-      (hclose hloopTm)
-      (ν {@ val "symb" = x1 }) : shift (x0 @; "TypeRef").
-Proof.
-  set Γ2 :=
+Let newTypeRefΓ Γ :=
     x2 @ "symbols" @; "Symbol" ::
     TAnd fromPDotPaperTypesTBody (TSing (x1 @ "types")) ::
     fromPDotPaperAbsTBody x1 :: optionModTInv :: Γ.
+Lemma Hsub0X0 Γ :
+  newTypeRefΓ Γ v⊢ₜ[ fromPDotG' ] x2 @ "symbols" @; "Symbol", 0 <:
+    val "tpe" : optionTy x3 x2 , 1.
+Proof.
+  ettrans; last apply iLater_Sub; stcrush.
+  eapply (iSel_Sub (L := ⊥)).
+  (* Necessary: Pick this over [pv_dlater]. *)
+  apply iP_Fld_E.
+  tcrush; varsub.
+  ltcrush; mltcrush.
+Qed.
 
-  have Hsub0X0 :
-    Γ2 v⊢ₜ[ fromPDotG' ] x2 @ "symbols" @; "Symbol", 0 <:
-      val "tpe" : optionTy x3 x2 , 1. {
-    ettrans; last apply iLater_Sub; stcrush.
-    eapply (iSel_Sub (L := ⊥)).
-    (* Necessary: Pick this over [pv_dlater]. *)
-    apply iP_Fld_E.
-    tcrush; varsub.
-    ltcrush; mltcrush.
-  }
+Lemma HoptSubT Γ :
+  newTypeRefΓ Γ v⊢ₜ[ fromPDotG' ]
+    val "tpe" : optionTy x3 x2, 1 <:
+    val "tpe" : TLater (hoptionTyConcr1 hoasNotation.hx2), 1.
+Proof.
+  tcrush; asideLaters.
+  rewrite /hoptionTyConcr/hoptionTyConcr1/optionTy/=.
+  eapply (iSub_Trans (T2 := TAnd hoptionTConcr
+    (type "T" >: ⊥ <: (x2 @ "types") @; "Type")) (i2 := 2));
+    first apply iSub_And; first 1 last.
+  - ettrans; first apply iSub_Add_Later; stcrush; asideLaters; ltcrush.
+  - rewrite /hoptionTConcr/=; ettrans; first apply iAnd_Or_Sub_Distr;
+    stcrush; apply iOr_Sub_split; ltcrush.
+  - lThis. ettrans; last apply iLater_Sub; stcrush.
+    eapply (iSel_Sub (L := ⊥) (U := hclose hoptionTConcr)); tcrush.
+    varsub.
+    ettrans; first apply iSub_Add_Later; stcrush.
+    asideLaters; mltcrush.
+Qed.
 
-  have HoptSubT :
-    Γ2 v⊢ₜ[ fromPDotG' ]
-      val "tpe" : optionTy x3 x2, 1 <:
-      val "tpe" : TLater (hoptionTyConcr1 hoasNotation.hx2), 1. {
-    tcrush; asideLaters.
-    rewrite /hoptionTyConcr/hoptionTyConcr1/optionTy/=.
-    eapply (iSub_Trans (T2 := TAnd hoptionTConcr
-      (type "T" >: ⊥ <: (x2 @ "types") @; "Type")) (i2 := 2));
-      first apply iSub_And; first 1 last.
-    - ettrans; first apply iSub_Add_Later; stcrush; asideLaters; ltcrush.
-    - rewrite /hoptionTConcr/=; ettrans; first apply iAnd_Or_Sub_Distr;
-      stcrush; apply iOr_Sub_split; ltcrush.
-    - lThis. ettrans; last apply iLater_Sub; stcrush.
-      eapply (iSel_Sub (L := ⊥) (U := hclose hoptionTConcr)); tcrush.
-      varsub.
-      ettrans; first apply iSub_Add_Later; stcrush.
-      asideLaters; mltcrush.
-  }
+Lemma Hsublast Γ :
+  newTypeRefΓ Γ v⊢ₜ[ fromPDotG' ] shift typeRefTBody, 0 <: x1 @; "TypeRef", 0.
+Proof.
+  eapply iSub_Sel'; tcrush.
+  varsub; lThis.
+  ltcrush.
+  eapply iSub_Sel'; tcrush.
+  varsub; lThis.
+  ettrans; first apply iSub_Add_Later; stcrush.
+  asideLaters.
+  ltcrush.
+Qed.
 
+Lemma newTypeRef_semTyped Γ :
+  newTypeRefΓ Γ ⊨[ fromPDotGφ ]
+  tif (tskip (tskip x0 @: "tpe") @: "isEmpty")
+    (hclose hloopTm)
+    (ν {@ val "symb" = x1 }) : shift (x0 @; "TypeRef").
+Proof.
+  have Hsub0X0 := Hsub0X0 Γ.
+  have HoptSubT := HoptSubT Γ.
+  set Γ2 := newTypeRefΓ Γ.
+  unfold newTypeRefΓ in Γ2.
   have Hx0 : Γ2 v⊢ₜ[ fromPDotG' ] x0 : ▶: val "tpe" : ▶: hoptionTyConcr1 hoasNotation.hx2. {
     varsub. eapply iSub_Trans, iSub_Trans, iSub_Later;
       [apply Hsub0X0 | apply HoptSubT | tcrush].
@@ -261,7 +277,7 @@ Proof.
   by iApply wp_wand; [iApply loopSemT | iIntros "!>% []"].
 
   (* To conclude, prove the right subtyping for hsomeType and TypeRef. *)
-  iAssert (V⟦ val "tpe" : hsomeConcrT ⊥ ⊤ ⟧ vnil ρ (ρ 0)) as "#Hww". {
+  iAssert (V⟦ val "tpe" : hsomeConcrT ⊥ ⊤ ⟧ vnil ρ (ρ 0)) as "{Hw} #Hw". {
     iEval (cbv [pty_interp]).
     iExists (dpt p); iFrame (Hl). iExists p; iSplit; first done.
     iApply path_wp_eq.
@@ -271,34 +287,21 @@ Proof.
   }
 
   iAssert (V⟦ TAnd ((x2 @ "symbols") @; "Symbol")
-    (val "tpe" : hclose (hsomeConcrT ⊥ ⊤)) ⟧ vnil ρ (ρ 0)) as "#Hw1". {
+    (val "tpe" : hclose (hsomeConcrT ⊥ ⊤)) ⟧ vnil ρ (ρ 0)) as "{Hw} #Hw". {
     iDestruct "Hg" as "[_ H]".
     iEval (cbv [pty_interp]) in "H"; iEval (cbv [pty_interp]).
-    iFrame "H"; iApply "Hww".
+    iFrame "H"; iApply "Hw".
   }
   iAssert (V⟦ shift typeRefTBody ⟧ vnil ρ (ν [val "symb" = rename (+1) (ρ 0)]))
-    as "#Hw2". { iEval (cbv [pty_interp]).
+    as "{Hw} #Hw". { iEval (cbv [pty_interp]).
     iSplit; last by [].
     iExists _; iSplit; first by eauto.
     iExists _; iSplit; first by [].
     rewrite path_wp_pv_eq.
     rewrite (_ : (rename (+1) (ρ 0)).[_] = ρ 0); last autosubst.
-    iApply "Hw1".
+    iApply "Hw".
   }
-  have Hsublast : Γ2 v⊢ₜ[ fromPDotG' ] shift typeRefTBody, 0 <: x1 @; "TypeRef", 0. {
-    eapply iSub_Sel'; tcrush.
-    varsub; lThis.
-    ltcrush.
-    eapply iSub_Sel'; tcrush.
-    varsub; lThis.
-    ettrans; first apply iSub_Add_Later; stcrush.
-    asideLaters.
-    ltcrush.
-  }
-
-  iPoseProof (fundamental_subtype _ _ _ _ _ _ Hsublast with "Hs Hg") as "Hsub".
-  iEval (cbv [pty_interp]) in "Hsub".
-  iApply ("Hsub" with "Hw2").
+  iApply (fundamental_subtype _ _ _ _ _ _ (Hsublast Γ) with "Hs Hg Hw").
 Qed.
 
 Example semFromPDotPaperTypesTyp Γ :
@@ -341,8 +344,7 @@ Proof.
   iApply D_Cons; [done | iApply D_Val | iApply D_Nil].
   iApply (T_All_I_Strong (Γ' := Γ')). apply Hctx.
   iApply (fundamental_typed with "Hs").
-  set Γ1 := x1 @; "TypeRef" :: Γ'.
-  have Hx : Γ1 v⊢ₜ[ fromPDotG' ] x0 : ▶: shift typeRefTBody. {
+  have Hx: x1 @; "TypeRef" :: Γ' v⊢ₜ[ fromPDotG' ] x0 : ▶: shift typeRefTBody. {
     varsub.
     ettrans.
     + eapply iSel_Sub; typconstructor. varsub. lThis. ltcrush.
@@ -355,8 +357,8 @@ Proof.
   *)
   eapply (iT_Sub (i := 2)); first apply (iLaterN_Sub (j := 2)); tcrush.
 
-  eapply (iT_Sub (i := 2) (T1 := (TLater (TAnd ((x2 @ "symbols") @; "Symbol")
-    (TLater (val "tpe" : hclose (hsomeConcrT ⊥ ⊤))))))); first last. {
+  eapply (iT_Sub (i := 2) (T1 := (▶: (TAnd ((x2 @ "symbols") @; "Symbol")
+    (▶: (val "tpe" : hclose (hsomeConcrT ⊥ ⊤))))))); first last. {
     typconstructor; eapply (iT_Sub (i := 1)), Hx. asideLaters. ltcrush.
     ettrans; first apply iSub_Add_Later; tcrush; lNext.
   }
@@ -392,7 +394,7 @@ Proof.
   eapply (iP_Sub' (T1 := (TAnd (val "get" : ▶: x0 @; "T")
     (type "T" >: ⊥ <: (x3 @ "types") @; "Type")))); first last.
   apply iP_And; last by tcrush; varsub; tcrush. {
-    apply (iP_Mu_E (p := x0) (T := ((val "get" : ▶: x0 @; "T" )))).
+    apply (iP_Mu_E (p := x0) (T := val "get" : ▶: x0 @; "T")).
     exact: psubst_ty_rtc_sufficient.
     stcrush.
     tcrush.
@@ -406,8 +408,8 @@ Proof.
 Qed.
 
 Lemma fromPDotPaperTypesSub Γ:
-(▶: fromPDotPaperAbsTBody x1)%ty :: optionModTInv :: Γ ⊨[ fromPDotGφ
-] μ fromPDotPaperTypesTBody, 0 <: μ fromPDotPaperAbsTypesTBody, 0.
+  (▶: fromPDotPaperAbsTBody x1)%ty :: optionModTInv :: Γ ⊨[ fromPDotGφ ]
+  μ fromPDotPaperTypesTBody, 0 <: μ fromPDotPaperAbsTypesTBody, 0.
 Proof.
   iApply fundamental_subtype.
   ltcrush.
@@ -430,15 +432,14 @@ Example fromPDotPaperSymbolsTyp Γ :
   TLater (fromPDotPaperAbsTBody x1) :: optionModTInv :: Γ v⊢ₜ[fromPDotG]
     fromPDotPaperSymbolsV : μ (fromPDotPaperSymbolsTBody x2).
 Proof.
-  tcrush.
-  - tMember.
-  - eapply (iT_Sub_nocoerce) => /=; hideCtx.
-    + repeat first [var | typconstructor | tcrush].
-    + ettrans; first last.
-      eapply iSub_Sel'; first last.
-      * constructor; varsub; tcrush.
-      * tcrush.
-      * mltcrush.
+  tcrush; first tMember.
+  eapply (iT_Sub_nocoerce) => /=; hideCtx.
+  - repeat first [var | typconstructor | tcrush].
+  - ettrans; first last.
+    eapply iSub_Sel'; first last.
+    + constructor; varsub; tcrush.
+    + tcrush.
+    + mltcrush.
 Qed.
 
 Example fromPDotPaperSymbolsAbsTyp Γ :
@@ -449,12 +450,16 @@ Proof.
   lThis.
 Qed.
 
-Example fromPDotPaperTyp Γ : optionModTInv :: Γ ⊨[fromPDotGφ] fromPDotPaper : μ (fromPDotPaperAbsTBody x1).
+Transparent fromPDotG'.
+
+Example fromPDotPaperTyp Γ : optionModTInv :: Γ ⊨[fromPDotGφ]
+  fromPDotPaper : μ (fromPDotPaperAbsTBody x1).
 Proof.
   iIntros "#Hs".
   iApply T_Obj_I.
   iApply D_Cons; [done| |].
-  iApply D_Path_Sub; [iApply (fromPDotPaperTypesSub with "Hs") | iApply D_Val_New].
+  iApply D_Path_Sub; last iApply D_Val_New.
+  iApply (fromPDotPaperTypesSub with "Hs").
   iApply (semFromPDotPaperTypesTyp with "Hs").
 
   iApply D_Cons; [done| iApply D_Val | iApply D_Nil].
@@ -470,11 +475,11 @@ Proof.
 
   iApply fundamental_typed.
   exact: fromPDotPaperSymbolsAbsTyp.
-  iApply (wellMappedφ_extend with "Hs").
-  intros s.
-  destruct (fromPDotG !! s) as [T|] eqn:Heqs; rewrite !lookup_fmap Heqs/=; last by case_match.
-  have Heq: ({[60%positive := TAnd (x0 @; "Type") typeRefTBody]} ∪ fromPDotG) !! s = Some T.
-  eapply lookup_union_Some_r, Heqs. by apply map_disjoint_singleton_l.
+  iApply (wellMappedφ_extend with "Hs") => s.
+  destruct (fromPDotG !! s) as [T|] eqn:Heqs; rewrite !lookup_fmap Heqs/=;
+    last by case_match.
+  have Heq: fromPDotG' !! s = Some T. eapply lookup_union_Some_r, Heqs.
+  by apply map_disjoint_singleton_l.
   by simpl_map by exact: Heq.
 Qed.
 End semExample.
