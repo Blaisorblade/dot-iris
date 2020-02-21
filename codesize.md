@@ -1,42 +1,44 @@
 # Code size statistics
 
 They were computed by running `./codesize.sh` on commit 
-dc77af3fe941b04cd7a98480ca1329c79a40c04f.
+7a9b4e14caa907b1d7cde7520f46c97a62877cfc.
 
 Saved output:
 ```
 $ ./codesize.sh
-theories: 943
-theories/iris_extra: 1088
-theories/Dot: 143
-theories/Dot/stamping: 2505
-theories/Dot/misc_unused: 1300
-theories/Dot/typing: 2045
-theories/Dot/syn: 1304
-theories/Dot/examples: 2650
-theories/Dot/lr: 1898
-theories/misc_unused: 1275
-theories/DSub/stamping: 1010
-theories/DSub/misc_unused: 72
+theories: 1021
+theories/iris_extra: 1324
+theories/Dot: 194
+theories/Dot/stamping: 2648
+theories/Dot/misc_unused: 1327
+theories/Dot/typing: 2645
+theories/Dot/syn: 1845
+theories/Dot/examples: 4239
+theories/Dot/lr: 2613
+theories/misc_unused: 616
+theories/DSub/stamping: 1016
+theories/DSub/misc_unused: 75
 theories/DSub/typing: 226
-theories/DSub/syn: 650
-theories/DSub/lr: 287
-theories/DSubSyn: 150
+theories/DSub/syn: 656
+theories/DSub/lr: 227
+theories/DSubSyn: 153
 theories/DSubSyn/typing: 226
-theories/DSubSyn/lr: 523
+theories/DSubSyn/lr: 530
 theories/pure_program_logic: 730
 
-Unused (misc_unused Dot/misc_unused DSub/misc_unused): 2647
+Unused (misc_unused Dot/misc_unused DSub/misc_unused): 2018
 
-Preliminaries (. iris_extra pure_program_logic): 2761
+Preliminaries + DOT (. iris_extra pure_program_logic Dot Dot/stamping Dot/typing Dot/syn Dot/examples Dot/lr): 17259
 
-DOT (. ./stamping ./typing ./syn ./examples ./lr): 10545
+Preliminaries (. iris_extra pure_program_logic): 3075
 
-syntax (syn): 1304
-logrel (lr): 1898
-model (syntax + logrel) (syn lr): 3202
+DOT (Dot Dot/stamping Dot/typing Dot/syn Dot/examples Dot/lr): 14184
 
-syntactic typing (w/ stamping) (. typing stamping): 4693
+syntax (syn): 1845
+logrel (lr): 2613
+model (syntax + logrel) (syn lr): 4458
 
-examples (examples): 2650
+syntactic typing (w/ stamping) (. typing stamping): 5487
+
+examples (examples): 4239
 ```
