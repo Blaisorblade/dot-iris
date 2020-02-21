@@ -473,18 +473,33 @@ Proof.
   by apply map_disjoint_singleton_l.
   by simpl_map by exact: Heq.
 Qed.
+
+Example pCoreSemTyped Γ : Γ ⊨[fromPDotGφ]
+  lett (hclose hoptionModV) fromPDotPaper : ⊤.
+Proof.
+  rewrite /lett /vabs'.
+  iIntros "#Hs".
+  iApply T_All_E; first last.
+  iApply (fundamental_typed with "Hs").
+  eapply storeless_typing_mono_mut; first exact: optionModInvTyp.
+  rewrite /fromPDotG' /fromPDotG/=.
+  by repeat (etrans; last apply map_union_subseteq_r; last solve_map_disjoint).
+  iApply (T_All_I_Strong (Γ' := Γ)). ietp_weaken_ctx.
+  iApply (T_Sub (i := 0)).
+  iApply (fromPDotPaperTyp with "Hs").
+  iApply sSub_Top.
+Qed.
+
 End semExample.
 
-(* We need a closed program! *)
-(*
-Import dlang_adequacy swap_later_impl.
-Lemma pcoreSafe: safe (tv fromPDotPaper).
+Import dlang_adequacy swap_later_impl stamp_transfer.
+Lemma pcoreSafe: safe (lett (hclose hoptionModV) fromPDotPaper).
 Proof.
-  eapply (safety_dot_sem dlangΣ (T := μ (fromPDotPaperAbsTBody x1)))=>*.
-  rewrite transfer.
+  eapply (safety_dot_sem dlangΣ (T := _))=>*.
+  rewrite (transfer_empty fromPDotGφ).
   iIntros "> H !>".
-  iApply (fromPDotPaperTyp with "H").
-Qed. *)
+  iApply (pCoreSemTyped with "H").
+Qed.
 
 Definition getAnyTypeT pOpt : ty :=
   TAll (μ fromPDotPaperAbsTBody (shift pOpt)) (x0 @ "types" @; "Type").
