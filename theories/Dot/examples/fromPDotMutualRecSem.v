@@ -449,29 +449,26 @@ Proof.
   iIntros "#Hs".
   iApply T_Obj_I.
   iApply D_Cons; [done| |].
-  iApply D_Path_Sub; last iApply D_Val_New.
-  iApply (fromPDotPaperTypesSub with "Hs").
-  iApply (semFromPDotPaperTypesTyp with "Hs").
+  - iApply D_Path_Sub; last iApply D_Val_New.
+    + iApply (fromPDotPaperTypesSub with "Hs").
+    + iApply (semFromPDotPaperTypesTyp with "Hs").
 
-  iApply D_Cons; [done| iApply D_Val | iApply D_Nil].
+  - iApply D_Cons; [done| iApply D_Val | iApply D_Nil].
   (* Fix mismatch between maps; one is an extension. *)
-  (* - Way 1, easier: weaken syntactic typing *)
-  (* iApply (fundamental_typed with "Hs").
-  eapply storeless_typing_mono_mut.
-  exact: fromPDotPaperSymbolsAbsTyp.
-  eapply map_union_subseteq_r.
-  (* cbn; solve_map_disjoint. *)
-  by apply map_disjoint_singleton_l. *)
+    (* - Way 1, easier: weaken syntactic typing *)
+    iApply (fundamental_typed with "Hs").
+    eapply storeless_typing_mono_mut.
+    + exact: fromPDotPaperSymbolsAbsTyp.
+    + by eapply map_union_subseteq_r, map_disjoint_singleton_l.
   (* - Way 2, harder: weaken wellMapped. *)
-
-  iApply fundamental_typed.
+  (* iApply fundamental_typed.
   exact: fromPDotPaperSymbolsAbsTyp.
   iApply (wellMappedφ_extend with "Hs") => s.
   destruct (fromPDotG !! s) as [T|] eqn:Heqs; rewrite !lookup_fmap Heqs/=;
     last by case_match.
   have Heq: fromPDotG' !! s = Some T. eapply lookup_union_Some_r, Heqs.
   by apply map_disjoint_singleton_l.
-  by simpl_map by exact: Heq.
+  by simpl_map by exact: Heq. *)
 Qed.
 
 Example pCoreSemTyped Γ : Γ ⊨[fromPDotGφ]
