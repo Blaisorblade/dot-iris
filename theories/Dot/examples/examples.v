@@ -179,7 +179,7 @@ Section div_example.
     Fail pose (t := transfer (<[s:=ipos]> ∅)). *)
 
     iIntros (Hl) "H". iApply wellMappedφ_apply;
-      last iApply (transfer (<[s:=olty_car ipos]> ∅) with "H") => s';
+      last iApply (!!(transfer (<[s:=olty_car ipos]> ∅)) with "H") => s';
       rewrite ?lookup_insert ?dom_insert ?dom_empty //; set_solver+ Hl.
   Qed.
 
