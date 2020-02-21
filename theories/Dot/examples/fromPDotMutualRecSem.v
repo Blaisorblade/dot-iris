@@ -223,6 +223,10 @@ Proof.
   ltcrush.
 Qed.
 
+Tactic Notation "lrSimpl" := iEval (cbv [pty_interp]).
+Tactic Notation "lrSimpl" "in" constr(iSelP) :=
+  iEval (cbv [pty_interp]) in iSelP.
+
 Lemma newTypeRef_semTyped Γ :
   newTypeRefΓ Γ ⊨[ fromPDotGφ ]
   tif (tskip (tskip x0 @: "tpe") @: "isEmpty")
@@ -239,14 +243,14 @@ Proof.
   }
   iIntros "#Hs !>" (ρ) "#Hg !>".
   iPoseProof (fundamental_typed _ _ _ _ Hx0 with "Hs Hg") as "Hx0".
-  iDestruct (wp_value_inv with "Hx0") as "{Hx0} Hx0".
+  rewrite /interp_expr wp_value_inv.
   iEval simplSubst; rewrite /of_val /vclose sem_later.
   iApply (wp_bind (fill [ProjCtx _; SkipCtx; ProjCtx _; IfCtx _ _])).
   rewrite -wp_pure_step_later -?wp_value; last done. iNext 1.
-  iEval (cbv [pty_interp]) in "Hx0".
-  iPoseProof "Hx0" as (d Hl p ->) "{Hx0} Hx0tpe".
+
+  lrSimpl in "Hx0"; iDestruct "Hx0" as (d Hl p ->) "#Hx0".
+  rewrite path_wp_eq; iDestruct "Hx0" as (optV Hal) "HoptV".
   iApply (wp_bind (fill [SkipCtx; ProjCtx _; IfCtx _ _])); iSimpl.
-  rewrite path_wp_eq; iDestruct "Hx0tpe" as (optV Hal) "HoptV".
   have [n HpOptV] := path_wp_exec_pure _ _ Hal.
   rewrite sem_later -wp_pure_step_later; last done.
   rewrite -wp_pure_step_later -1?wp_value; last done.
@@ -257,7 +261,7 @@ Proof.
   rewrite -wp_pure_step_later -1?wp_value /of_val; last done.
   iNext.
   rewrite /hoptionTyConcr1.
-  iEval (cbv [pty_interp]) in "HoptV".
+  lrSimpl in "HoptV".
   iDestruct "HoptV" as "[Hw|Hw]";
     [ have Hv: Γ2 v⊢ₜ[ fromPDotG' ] hnoneConcrT, 0 <:
         val "isEmpty" : TSing true, 0 by mltcrush
@@ -278,22 +282,22 @@ Proof.
 
   (* To conclude, prove the right subtyping for hsomeType and TypeRef. *)
   iAssert (V⟦ val "tpe" : hsomeConcrT ⊥ ⊤ ⟧ vnil ρ (ρ 0)) as "{Hw} #Hw". {
-    iEval (cbv [pty_interp]).
+    lrSimpl.
     iExists (dpt p); iFrame (Hl). iExists p; iSplit; first done.
-    iApply path_wp_eq.
+    rewrite path_wp_eq.
     iExists optV; iFrame (Hal).
-    iEval (cbv [pty_interp]) in "Hw"; iEval (cbv [pty_interp]).
+    lrSimpl in "Hw"; lrSimpl.
     iDestruct "Hw" as "[$ _]".
   }
 
   iAssert (V⟦ TAnd ((x2 @ "symbols") @; "Symbol")
     (val "tpe" : hclose (hsomeConcrT ⊥ ⊤)) ⟧ vnil ρ (ρ 0)) as "{Hw} #Hw". {
     iDestruct "Hg" as "[_ H]".
-    iEval (cbv [pty_interp]) in "H"; iEval (cbv [pty_interp]).
+    lrSimpl in "H"; lrSimpl.
     iFrame "H"; iApply "Hw".
   }
   iAssert (V⟦ shift typeRefTBody ⟧ vnil ρ (ν [val "symb" = rename (+1) (ρ 0)]))
-    as "{Hw} #Hw". { iEval (cbv [pty_interp]).
+    as "{Hw} #Hw". { lrSimpl.
     iSplit; last by [].
     iExists _; iSplit; first by eauto.
     iExists _; iSplit; first by [].
@@ -331,7 +335,7 @@ Proof.
     tcrush.
     eapply (iT_Sub_nocoerce (TMu ⊤)); first tcrush.
     eapply (iSub_Trans (T2 := ⊤) (i2 := 0)); tcrush.
-    eapply (iSub_Trans (i2 := 1)); [exact: iSub_AddI | ].
+    eapply (iSub_Trans (i2 := 1)); first exact: iSub_AddI.
     asideLaters.
     eapply (iSub_Sel' _ ⊤); tcrush. varsub; lThis.
   }
@@ -363,48 +367,40 @@ Proof.
     ettrans; first apply iSub_Add_Later; tcrush; lNext.
   }
   asideLaters.
-  ettrans.
-  apply iSub_And_split, iSub_Refl; stcrush.
-  eapply (iSel_Sub (L := ⊥) (U := val "tpe" : optionTy x3 x2)).
-  apply iP_Fld_E.
-  tcrush.
-  varsub.
-  asideLaters.
-  mltcrush.
-  ettrans; first apply iSub_Add_Later; stcrush.
-  asideLaters.
-  by mltcrush.
+  ettrans. {
+    apply iSub_And_split, iSub_Refl; stcrush.
+    eapply (iSel_Sub (L := ⊥) (U := val "tpe" : optionTy x3 x2)), iP_Fld_E.
+    tcrush; varsub.
+    asideLaters. mltcrush.
+    ettrans; first apply iSub_Add_Later; stcrush.
+    asideLaters. by mltcrush.
+  }
   rewrite /optionTy; simplSubst.
   (* Next: try to use distributivity. *)
   ettrans; first apply iAnd_Later_Sub_Distr; stcrush.
   asideLaters.
-  ettrans; first apply iAnd_Fld_Sub_Distr; stcrush.
-  tcrush.
+  ettrans; first apply iAnd_Fld_Sub_Distr; tcrush.
   eapply (iSub_Trans (T2 := val "get" : ▶: ▶: x2 @ "types" @; "Type")),
     (iSngl_pq_Sub_inv (q := x1) (p := x2 @ "types"));
     stcrush; [|exact: psubst_ty_rtc_sufficient|]; first last. {
     tcrush; varsub; asideLaters. lNext.
     by ettrans; first apply (iSub_AddIJ' (j := 2)); wtcrush.
   }
-  ettrans; first apply assoc_and; stcrush.
+  ettrans; first apply assoc_and; tcrush.
   lNext.
-  rewrite /hsomeConcrT; simplSubst.
+  rewrite /hsomeConcrT/=.
   apply iSub_Skolem_P; stcrush.
   rewrite !iterate_S !iterate_0; hideCtx. simplSubst.
   eapply (iP_Sub' (T1 := (TAnd (val "get" : ▶: x0 @; "T")
     (type "T" >: ⊥ <: (x3 @ "types") @; "Type")))); first last.
   apply iP_And; last by tcrush; varsub; tcrush. {
-    apply (iP_Mu_E (p := x0) (T := val "get" : ▶: x0 @; "T")).
+    apply (iP_Mu_E (p := x0) (T := val "get" : ▶: x0 @; "T")); tcrush.
     exact: psubst_ty_rtc_sufficient.
-    stcrush.
-    tcrush.
     varsub. asideLaters. lNext. ltcrush.
   }
   lThis.
   eapply (iSel_Sub (L := ⊥)); tcrush.
-  varsub.
-  mltcrush.
-  lThis.
+  varsub. mltcrush. lThis.
 Qed.
 
 Lemma fromPDotPaperTypesSub Γ:
