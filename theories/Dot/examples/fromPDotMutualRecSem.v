@@ -105,10 +105,9 @@ Definition fromPDotPaperTypesVBody : dms := {@
   type "TypeRef" =[ pTypeRef ];
   val "AnyType" = ν {@ };
   val "newTypeRef" = vabs (
-    tif (tskip (tskip x0 @: "tpe") @: "isEmpty") (hclose hloopTm)
-    (ν {@
-      val "symb" = x1
-    }));
+    tif (~ (tskip (tskip x0 @: "tpe") @: "isEmpty"))
+      (ν {@ val "symb" = x1 })
+      hloopTm);
   val "getTypeFromTypeRef" = vabs (
     tskip (tskip (tskip (tskip (tskip x0 @: "symb")) @: "tpe" @: "get"))
   )
@@ -234,9 +233,11 @@ Tactic Notation "lrSimpl" "in" constr(iSelP) :=
 
 Lemma newTypeRef_semTyped Γ :
   newTypeRefΓ Γ ⊨[ fromPDotGφ ]
-  tif (tskip (tskip x0 @: "tpe") @: "isEmpty")
-    (hclose hloopTm)
-    (ν {@ val "symb" = x1 }) : shift (x0 @; "TypeRef").
+  tif
+    (~ (tskip (tskip x0 @: "tpe") @: "isEmpty"))
+    (ν {@ val "symb" = x1 })
+    hloopTm
+    : shift (x0 @; "TypeRef").
 Proof.
   have Hsub0X0 := Hsub0X0 Γ.
   have HoptSubT := HoptSubT Γ.
@@ -248,19 +249,21 @@ Proof.
   iPoseProof (fundamental_typed _ _ _ _ Hx0 with "Hs Hg") as "Hx0".
   rewrite /interp_expr wp_value_inv.
   iEval simplSubst; rewrite /of_val /vclose sem_later.
-  iApply (wp_bind (fill [ProjCtx _; SkipCtx; ProjCtx _; IfCtx _ _])).
+  iApply (wp_bind (fill [IfCtx _ _])); iApply (wp_bind (fill [UnCtx _]));
+    iApply (wp_bind (fill [ProjCtx _])); iApply (wp_bind (fill [SkipCtx]));
+    iApply (wp_bind (fill [ProjCtx _])).
+  (* iApply (wp_bind (fill [ProjCtx _; SkipCtx; ProjCtx _; IfCtx _ _])). *)
   rewrite -wp_pure_step_later -?wp_value; last done. iNext 1.
 
   lrSimpl in "Hx0"; iDestruct "Hx0" as (d Hl p ->) "#Hx0".
   rewrite path_wp_eq; iDestruct "Hx0" as (optV Hal) "HoptV".
-  iApply (wp_bind (fill [SkipCtx; ProjCtx _; IfCtx _ _])); iSimpl.
+  iSimpl.
+  (* iApply (wp_bind (fill [SkipCtx; ProjCtx _; IfCtx _ _])); iSimpl. *)
   have [n HpOptV] := path_wp_exec_pure _ _ Hal.
   rewrite sem_later -wp_pure_step_later; last done.
   rewrite -wp_pure_step_later -1?wp_value; last done.
-  iNext.
-  iNext n.
+  iNext; iNext n.
   (* clear p Hl HpOptV n. *)
-  iApply (wp_bind (fill [ProjCtx _; IfCtx _ _])); iSimpl.
   rewrite -wp_pure_step_later -1?wp_value /of_val; last done.
   iNext.
   rewrite /hoptionTyConcr1.
@@ -275,15 +278,13 @@ Proof.
     iEval (cbv [pty_interp]; cbn) in "Hv";
     iDestruct "Hv" as (? Hl' pb ->) "Hpb";
     iDestruct (path_wp_pure_exec with "Hpb") as %(bv & [n1 ?] & Heq); iClear "Hpb".
-  all: move: Heq; rewrite alias_paths_pv_eq_2 path_wp_pure_pv_eq => Heq;
-    iApply (wp_bind (fill [IfCtx _ _]));
+  all: move: Heq; rewrite alias_paths_pv_eq_2 path_wp_pure_pv_eq => Heq; cbn in Heq;
     rewrite -wp_pure_step_later; last done;
     rewrite -wp_pure_step_later -1?wp_value; last done.
   all: iNext; iNext n1; iSimpl; simpl in Heq; rewrite -{}Heq.
   all: rewrite -wp_pure_step_later -1?wp_value; last done.
-  by iApply wp_wand; [iApply loopSemT | iIntros "!>% []"].
-
-  iNext.
+  all: rewrite -wp_pure_step_later -1?wp_value; last done; iNext; iNext.
+  by iApply wp_wand; [iApply loopSemT | iIntros "% []"].
   (* To conclude, prove the right subtyping for hsomeType and TypeRef. *)
   iPoseProof (fundamental_subtype _ _ _ _ (x1 @; "TypeRef")
     _ (Hsublast Γ) with "Hs Hg") as "{Hs} Hsub".
