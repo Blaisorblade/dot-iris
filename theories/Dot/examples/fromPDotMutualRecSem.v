@@ -199,7 +199,7 @@ Proof.
   tcrush; asideLaters.
   rewrite /hoptionTyConcr/hoptionTyConcr1/optionTy/=.
   eapply (iSub_Trans (T2 := TAnd hoptionTConcr
-    (type "T" >: ⊥ <: (x2 @ "types") @; "Type")) (i2 := 2));
+    (type "T" >: ⊥ <: x2 @ "types" @; "Type")) (i2 := 2));
     first apply iSub_And; first 1 last.
   - ettrans; first apply iSub_Add_Later; stcrush; asideLaters; ltcrush.
   - rewrite /hoptionTConcr/=; ettrans; first apply iAnd_Or_Sub_Distr;
@@ -338,8 +338,8 @@ Proof.
   iApply (fundamental_typed with "Hs").
   have Hx: x1 @; "TypeRef" :: Γ' v⊢ₜ[ fromPDotG' ] x0 : ▶: shift typeRefTBody. {
     varsub.
-    ettrans.
-    + eapply iSel_Sub; typconstructor. varsub. lThis. ltcrush.
+    eapply (iSub_Trans (T2 := ▶: TAnd (x1 @; "Type") (shift typeRefTBody))).
+    + apply (iSel_Sub (L := ⊥)); tcrush. varsub. lThis; ltcrush.
     + tcrush.
   }
 
@@ -349,15 +349,17 @@ Proof.
   *)
   eapply (iT_Sub (i := 2)); first apply (iLaterN_Sub (j := 2)); tcrush.
 
-  eapply (iT_Sub (i := 2) (T1 := (▶: (TAnd ((x2 @ "symbols") @; "Symbol")
-    (▶: (val "tpe" : hclose (hsomeConcrT ⊥ ⊤))))))); first last. {
-    typconstructor; eapply (iT_Sub (i := 1)), Hx. asideLaters. ltcrush.
+  apply (iT_Sub (i := 2) (T1 := ▶: TAnd (x2 @ "symbols" @; "Symbol")
+    (▶: val "tpe" : hsomeConcrT ⊥ ⊤))); first last. {
+    typconstructor. eapply (iT_Sub (i := 1)), Hx. asideLaters. ltcrush.
     ettrans; first apply iSub_Add_Later; tcrush; lNext.
   }
   asideLaters.
-  ettrans. {
+  apply (iSub_Trans (i2 := 1) (T2 :=
+    TAnd (▶: val "tpe" : optionTy x3 x2)
+        (▶: val "tpe" : hsomeConcrT ⊥ ⊤))). {
     apply iSub_And_split, iSub_Refl; stcrush.
-    eapply (iSel_Sub (L := ⊥) (U := val "tpe" : optionTy x3 x2)), iP_Fld_E.
+    apply (iSel_Sub (L := ⊥)), iP_Fld_E.
     tcrush; varsub.
     asideLaters. mltcrush.
     ettrans; first apply iSub_Add_Later; stcrush.
@@ -379,15 +381,15 @@ Proof.
   rewrite /hsomeConcrT/=.
   apply iSub_Skolem_P; stcrush.
   rewrite !iterate_S !iterate_0; hideCtx. simplSubst.
-  eapply (iP_Sub' (T1 := (TAnd (val "get" : ▶: x0 @; "T")
-    (type "T" >: ⊥ <: (x3 @ "types") @; "Type")))); first last.
+  apply (iP_Sub' (T1 := TAnd (val "get" : ▶: x0 @; "T")
+    (type "T" >: ⊥ <: x3 @ "types" @; "Type"))); first last.
   apply iP_And; last by tcrush; varsub; tcrush. {
     apply (iP_Mu_E (p := x0) (T := val "get" : ▶: x0 @; "T")); tcrush.
     exact: psubst_ty_rtc_sufficient.
     varsub. asideLaters. lNext. ltcrush.
   }
   lThis.
-  eapply (iSel_Sub (L := ⊥)); tcrush.
+  apply (iSel_Sub (L := ⊥)); tcrush.
   varsub. mltcrush. lThis.
 Qed.
 
