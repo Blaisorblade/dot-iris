@@ -176,8 +176,8 @@ Let newTypeRefΓ Γ :=
     x2 @ "symbols" @; "Symbol" ::
     TAnd fromPDotPaperTypesTBody (TSing (x1 @ "types")) ::
     fromPDotPaperAbsTBody x1 :: optionModTInv :: Γ.
-Lemma Hsub0X0 Γ :
-  newTypeRefΓ Γ v⊢ₜ[ fromPDotG' ] x2 @ "symbols" @; "Symbol", 0 <:
+Lemma Hsub0X0 Γ g :
+  newTypeRefΓ Γ v⊢ₜ[g] x2 @ "symbols" @; "Symbol", 0 <:
     val "tpe" : optionTy x3 x2 , 1.
 Proof.
   ettrans; last apply iLater_Sub; stcrush.
@@ -188,8 +188,8 @@ Proof.
   ltcrush; mltcrush.
 Qed.
 
-Lemma HoptSubT Γ :
-  newTypeRefΓ Γ v⊢ₜ[ fromPDotG' ]
+Lemma HoptSubT Γ g:
+  newTypeRefΓ Γ v⊢ₜ[g]
     val "tpe" : optionTy x3 x2, 1 <:
     val "tpe" : TLater (hoptionTyConcr1 hoasNotation.hx2), 1.
 Proof.
@@ -208,8 +208,8 @@ Proof.
     asideLaters; mltcrush.
 Qed.
 
-Lemma Hsublast Γ :
-  newTypeRefΓ Γ v⊢ₜ[ fromPDotG' ] shift typeRefTBody, 0 <: x1 @; "TypeRef", 0.
+Lemma Hsublast Γ g:
+  newTypeRefΓ Γ v⊢ₜ[g] shift typeRefTBody, 0 <: x1 @; "TypeRef", 0.
 Proof.
   eapply iSub_Sel'; tcrush.
   varsub; lThis.
@@ -221,8 +221,8 @@ Proof.
   ltcrush.
 Qed.
 
-Lemma Hx0 Γ :
-  newTypeRefΓ Γ v⊢ₜ[ fromPDotG' ] x0 :
+Lemma Hx0 Γ g :
+  newTypeRefΓ Γ v⊢ₜ[g] x0 :
     ▶: val "tpe" : ▶: hoptionTyConcr1 hoasNotation.hx2.
 Proof.
   varsub. eapply iSub_Trans, iSub_Trans, iSub_Later;
@@ -233,8 +233,8 @@ Tactic Notation "lrSimpl" := iEval (cbv [pty_interp]).
 Tactic Notation "lrSimpl" "in" constr(iSelP) :=
   iEval (cbv [pty_interp]) in iSelP.
 
-Lemma newTypeRef_semTyped Γ :
-  newTypeRefΓ Γ ⊨[ fromPDotGφ ] newTypeRefBody : x1 @; "TypeRef".
+Lemma newTypeRef_semTyped Γ g :
+  newTypeRefΓ Γ ⊨[ Vs⟦ g ⟧ ] newTypeRefBody : x1 @; "TypeRef".
 Proof.
   have := Hx0 Γ; set Γ2 := newTypeRefΓ Γ; unfold newTypeRefΓ in Γ2 => Hx0.
 
