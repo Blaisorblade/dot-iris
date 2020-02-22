@@ -98,16 +98,18 @@ Lemma HtypeRef : styConforms fromPDotG' pTypeRef. Proof. done. Qed.
 
 (* Import AssertPlain.
 From D.Dot Require Import hoas. *)
+Definition newTypeRefBody :=
+  tif (~ (tskip (tskip x0 @: "tpe") @: "isEmpty"))
+    (ν {@ val "symb" = x1 })
+    hloopTm.
+
 Definition fromPDotPaperTypesVBody : dms := {@
   type "Type" =[ pTop ];
   type "TypeTop" =[ pTop ];
   val "newTypeTop" = vabs (ν {@ });
   type "TypeRef" =[ pTypeRef ];
   val "AnyType" = ν {@ };
-  val "newTypeRef" = vabs (
-    tif (~ (tskip (tskip x0 @: "tpe") @: "isEmpty"))
-      (ν {@ val "symb" = x1 })
-      hloopTm);
+  val "newTypeRef" = vabs newTypeRefBody;
   val "getTypeFromTypeRef" = vabs (
     tskip (tskip (tskip (tskip (tskip x0 @: "symb")) @: "tpe" @: "get"))
   )
@@ -232,18 +234,9 @@ Tactic Notation "lrSimpl" "in" constr(iSelP) :=
   iEval (cbv [pty_interp]) in iSelP.
 
 Lemma newTypeRef_semTyped Γ :
-  newTypeRefΓ Γ ⊨[ fromPDotGφ ]
-  tif
-    (~ (tskip (tskip x0 @: "tpe") @: "isEmpty"))
-    (ν {@ val "symb" = x1 })
-    hloopTm
-    : shift (x0 @; "TypeRef").
+  newTypeRefΓ Γ ⊨[ fromPDotGφ ] newTypeRefBody : x1 @; "TypeRef".
 Proof.
-  have Hsub0X0 := Hsub0X0 Γ.
-  have HoptSubT := HoptSubT Γ.
-  have Hx0 := Hx0 Γ.
-  move: Hx0 HoptSubT Hsub0X0; pose Γ2 := newTypeRefΓ Γ => Hx0 HoptSubT Hsub0X0.
-  unfold newTypeRefΓ in Γ2.
+  have := Hx0 Γ; set Γ2 := newTypeRefΓ Γ; unfold newTypeRefΓ in Γ2 => Hx0.
 
   iIntros "#Hs !>" (ρ) "#Hg !>".
   iPoseProof (fundamental_typed _ _ _ _ Hx0 with "Hs Hg") as "Hx0".
@@ -262,10 +255,10 @@ Proof.
   have [n HpOptV] := path_wp_exec_pure _ _ Hal.
   rewrite sem_later -wp_pure_step_later; last done.
   rewrite -wp_pure_step_later -1?wp_value; last done.
-  iNext; iNext n.
+  iNext 1; iNext n.
   (* clear p Hl HpOptV n. *)
   rewrite -wp_pure_step_later -1?wp_value /of_val; last done.
-  iNext.
+  iNext 1.
   rewrite /hoptionTyConcr1.
   lrSimpl in "HoptV".
   iDestruct "HoptV" as "[Hw|Hw]";
@@ -281,7 +274,7 @@ Proof.
   all: move: Heq; rewrite alias_paths_pv_eq_2 path_wp_pure_pv_eq => Heq; cbn in Heq;
     rewrite -wp_pure_step_later; last done;
     rewrite -wp_pure_step_later -1?wp_value; last done.
-  all: iNext; iNext n1; iSimpl; simpl in Heq; rewrite -{}Heq.
+  all: iNext 1; iNext n1; iSimpl; simpl in Heq; rewrite -{}Heq.
   all: rewrite -wp_pure_step_later -1?wp_value; last done.
   all: rewrite -wp_pure_step_later -1?wp_value; last done; iNext; iNext.
   by iApply wp_wand; [iApply loopSemT | iIntros "% []"].
