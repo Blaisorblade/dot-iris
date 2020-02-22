@@ -106,6 +106,7 @@ Definition newTypeRefBody :=
   seq (assert (~ (tskip x0 @: "tpe" @: "isEmpty")))
     (ν {@ val "symb" = x1 }).
 
+Notation "t @:: l" := ((tskip t) @: l) (at level 59, l at next level).
 Definition fromPDotPaperTypesVBody : dms := {@
   type "Type" =[ pTop ];
   type "TypeTop" =[ pTop ];
@@ -114,7 +115,7 @@ Definition fromPDotPaperTypesVBody : dms := {@
   val "AnyType" = ν {@ };
   val "newTypeRef" = vabs newTypeRefBody;
   val "getTypeFromTypeRef" = vabs (
-    tskip (tskip (tskip (tskip (tskip x0 @: "symb")) @: "tpe" @: "get"))
+    iterate tskip 2 (x0 @:: "symb" @:: "tpe" @: "get")
   )
 }.
 
@@ -349,21 +350,20 @@ Proof.
   *)
   eapply (iT_Sub (i := 2)); first apply (iLaterN_Sub (j := 2)); tcrush.
 
-  apply (iT_Sub (i := 2) (T1 := ▶: TAnd (x2 @ "symbols" @; "Symbol")
+  apply (iT_Sub (i := 1) (T1 := TAnd (x2 @ "symbols" @; "Symbol")
     (▶: val "tpe" : hsomeConcrT ⊥ ⊤))); first last. {
     typconstructor. eapply (iT_Sub (i := 1)), Hx. asideLaters. ltcrush.
     ettrans; first apply iSub_Add_Later; tcrush; lNext.
   }
   asideLaters.
-  apply (iSub_Trans (i2 := 1) (T2 :=
+  apply (iSub_Trans (i2 := 0) (T2 :=
     TAnd (▶: val "tpe" : optionTy x3 x2)
         (▶: val "tpe" : hsomeConcrT ⊥ ⊤))). {
     apply iSub_And_split, iSub_Refl; stcrush.
     apply (iSel_Sub (L := ⊥)), iP_Fld_E.
     tcrush; varsub.
-    asideLaters. mltcrush.
-    ettrans; first apply iSub_Add_Later; stcrush.
-    asideLaters. by mltcrush.
+    mltcrush.
+    by mltcrush.
   }
   rewrite /optionTy; simplSubst.
   (* Next: try to use distributivity. *)
@@ -374,7 +374,7 @@ Proof.
     (iSngl_pq_Sub_inv (q := x1) (p := x2 @ "types"));
     stcrush; [|exact: psubst_ty_rtc_sufficient|]; first last. {
     tcrush; varsub; asideLaters. lNext.
-    by ettrans; first apply (iSub_AddIJ' (j := 2)); wtcrush.
+    by ettrans; first apply (iSub_AddIJ' (j := 1)); wtcrush.
   }
   ettrans; first apply assoc_and; tcrush.
   lNext.
