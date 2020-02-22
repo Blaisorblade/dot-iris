@@ -98,10 +98,13 @@ Lemma HtypeRef : styConforms fromPDotG' pTypeRef. Proof. done. Qed.
 
 (* Import AssertPlain.
 From D.Dot Require Import hoas. *)
+Definition assert cond :=
+  tif cond 0 hloopTm.
+Definition seq (e1 e2 : tm) := lett e1 (shift e2).
+
 Definition newTypeRefBody :=
-  tif (~ (tskip (tskip x0 @: "tpe") @: "isEmpty"))
-    (ν {@ val "symb" = x1 })
-    hloopTm.
+  seq (assert (~ (tskip x0 @: "tpe" @: "isEmpty")))
+    (ν {@ val "symb" = x1 }).
 
 Definition fromPDotPaperTypesVBody : dms := {@
   type "Type" =[ pTop ];
@@ -228,70 +231,61 @@ Proof.
   varsub. eapply iSub_Trans, iSub_Trans, iSub_Later;
     [apply Hsub0X0 | apply HoptSubT | tcrush].
 Qed.
+Lemma HvT Γ g : newTypeRefΓ Γ v⊢ₜ[g] hnoneConcrT, 0 <: val "isEmpty" : TSing true, 0.
+Proof. mltcrush. Qed.
+Lemma HvF Γ g : newTypeRefΓ Γ v⊢ₜ[g]
+  hsomeType hoasNotation.hx2, 0 <: val "isEmpty" : TSing false, 0.
+Proof. lThis; mltcrush. Qed.
 
 Tactic Notation "lrSimpl" := iEval (cbv [pty_interp]).
 Tactic Notation "lrSimpl" "in" constr(iSelP) :=
   iEval (cbv [pty_interp]) in iSelP.
+Tactic Notation "reshape" uconstr(lctx) := iApply (wp_bind (fill lctx)).
+Ltac wp_pure := rewrite -wp_pure_step_later -1?wp_value; last done; iNext.
 
 Lemma newTypeRef_semTyped Γ g :
   newTypeRefΓ Γ ⊨[ Vs⟦ g ⟧ ] newTypeRefBody : x1 @; "TypeRef".
 Proof.
-  have := Hx0 Γ; set Γ2 := newTypeRefΓ Γ; unfold newTypeRefΓ in Γ2 => Hx0.
+  have := Hx0 Γ g; set Γ2 := newTypeRefΓ Γ; unfold newTypeRefΓ in Γ2 => Hx0.
 
   iIntros "#Hs !>" (ρ) "#Hg !>".
-  iPoseProof (fundamental_typed _ _ _ _ Hx0 with "Hs Hg") as "Hx0".
-  rewrite /interp_expr wp_value_inv.
-  iEval simplSubst; rewrite /of_val /vclose sem_later.
-  iApply (wp_bind (fill [IfCtx _ _])); iApply (wp_bind (fill [UnCtx _]));
-    iApply (wp_bind (fill [ProjCtx _])); iApply (wp_bind (fill [SkipCtx]));
-    iApply (wp_bind (fill [ProjCtx _])).
-  (* iApply (wp_bind (fill [ProjCtx _; SkipCtx; ProjCtx _; IfCtx _ _])). *)
-  rewrite -wp_pure_step_later -?wp_value; last done. iNext 1.
+  iPoseProof (fundamental_typed _ _ _ _ Hx0 with "Hs Hg") as "#Hx0".
+  reshape [AppRCtx _]; reshape [IfCtx _ _]; reshape [UnCtx _];
+    reshape [ProjCtx _]; reshape [ProjCtx _]; iSimpl.
 
-  lrSimpl in "Hx0"; iDestruct "Hx0" as (d Hl p ->) "#Hx0".
-  rewrite path_wp_eq; iDestruct "Hx0" as (optV Hal) "HoptV".
-  iSimpl.
-  (* iApply (wp_bind (fill [SkipCtx; ProjCtx _; IfCtx _ _])); iSimpl. *)
-  have [n HpOptV] := path_wp_exec_pure _ _ Hal.
-  rewrite sem_later -wp_pure_step_later; last done.
-  rewrite -wp_pure_step_later -1?wp_value; last done.
-  iNext 1; iNext n.
-  (* clear p Hl HpOptV n. *)
-  rewrite -wp_pure_step_later -1?wp_value /of_val; last done.
-  iNext 1.
-  rewrite /hoptionTyConcr1.
-  lrSimpl in "HoptV".
-  iDestruct "HoptV" as "[Hw|Hw]";
-    [ have Hv: Γ2 v⊢ₜ[ fromPDotG' ] hnoneConcrT, 0 <:
-        val "isEmpty" : TSing true, 0 by mltcrush
-    | have Hv: Γ2 v⊢ₜ[ fromPDotG' ] hsomeType hoasNotation.hx2, 0 <:
-        val "isEmpty" : TSing false, 0 by lThis; mltcrush ];
-    iPoseProof (fundamental_subtype _ _ _ _ _ _ Hv with "Hs") as "Hv".
-  all: iSpecialize ("Hv" $! _ optV with "Hg Hw");
-    iEval (cbv [pty_interp]; cbn) in "Hv";
-    iDestruct "Hv" as (? Hl' pb ->) "Hpb";
-    iDestruct (path_wp_pure_exec with "Hpb") as %(bv & [n1 ?] & Heq); iClear "Hpb".
+  rewrite /interp_expr wp_value_inv /vclose sem_later /newTypeRefBody /of_val.
+  wp_pure.
+
+  lrSimpl in "Hx0"; iDestruct "Hx0" as (d Hl p ->) "Hx0".
+  rewrite path_wp_eq; iDestruct "Hx0" as (optV Hal) "HoptV"; rewrite sem_later.
+  wp_pure.
+  have [n HpOptV] := path_wp_exec_pure _ _ Hal; wp_pure => {HpOptV n}.
+  rewrite /hoptionTyConcr1; lrSimpl in "HoptV".
+  iDestruct "HoptV" as "[Hw|Hw]"; [have Hv := HvT | have Hv := HvF].
+  all: iPoseProof (fundamental_subtype _ _ _ _ _ _ (Hv Γ g) with "Hs") as "Hv";
+    iSpecialize ("Hv" $! _ optV with "Hg Hw"); lrSimpl in "Hv";
+    iDestruct "Hv" as (? Hl' pb ->) "Hpb"; lrSimpl in "Hpb";
+    rewrite path_wp_pure_exec; iDestruct "Hpb" as %(bv & [n1 ?] & Heq).
   all: move: Heq; rewrite alias_paths_pv_eq_2 path_wp_pure_pv_eq => Heq; cbn in Heq;
-    rewrite -wp_pure_step_later; last done;
-    rewrite -wp_pure_step_later -1?wp_value; last done.
-  all: iNext 1; iNext n1; iSimpl; simpl in Heq; rewrite -{}Heq.
-  all: rewrite -wp_pure_step_later -1?wp_value; last done.
-  all: rewrite -wp_pure_step_later -1?wp_value; last done; iNext; iNext.
+    wp_pure; wp_pure.
+  all: simpl in Heq; rewrite -{}Heq; wp_pure; wp_pure.
   by iApply wp_wand; [iApply loopSemT | iIntros "% []"].
+  wp_pure.
   (* To conclude, prove the right subtyping for hsomeType and TypeRef. *)
   iPoseProof (fundamental_subtype _ _ _ _ (x1 @; "TypeRef")
-    _ (Hsublast Γ) with "Hs Hg") as "{Hs} Hsub".
-  lrSimpl in "Hsub". iApply "Hsub"; iClear "Hsub".
+    _ (Hsublast Γ g) with "Hs Hg") as "{Hs} Hsub"; lrSimpl in "Hsub".
+  iApply "Hsub"; iClear "Hsub".
 
   (* Just to restate the current goal (for some extra readability). *)
-  iAssert (V⟦ shift typeRefTBody ⟧ vnil ρ (ν [val "symb" = rename (+1) (ρ 0)]))
-    as "{Hw} #Hw"; lrSimpl; last iApply "Hw".
-  iSplit; last by [].
-  iExists _; iSplit; first by eauto.
-  iExists _; iSplit; first by [].
-  rewrite path_wp_pv_eq.
-  rewrite (_ : (rename (+1) (ρ 0)).[_] = ρ 0); last autosubst.
-
+  iAssert (V⟦ shift typeRefTBody ⟧ vnil ρ
+    (shiftV (ν [val "symb" = x1])).[up ρ].[vnat 0/])
+    as "{Hw} #Hw"; last iApply "Hw".
+  rewrite (_ : (shiftV _).[_].[_] = ν [val "symb" = shiftV (ρ 0)]); last
+    by rewrite up_sub_compose_vl; autosubst.
+  lrSimpl; iSplit; last by []. iExists _; iSplit; first by eauto.
+  iExists _; iSplit; first by []. rewrite path_wp_pv_eq.
+  rewrite (_ : ∀ v w, (shiftV v).[w/] = v); last by
+    intros; autosubst.
   iDestruct "Hg" as "[_ H]"; lrSimpl in "H"; lrSimpl.
   iSplit; [by iApply "H"| iClear "H"].
 
