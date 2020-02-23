@@ -111,7 +111,7 @@ with dm_typed Γ : label → dm → ty → Prop :=
     Γ u⊢{ l := dpt (pv v) } : TVMem l T
 | iD_Path l p T:
     Γ u⊢ₚ p : T, 0 →
-    is_unstamped_path (length Γ) AlsoNonVars p →
+    is_unstamped_path' (length Γ) p →
     Γ u⊢{ l := dpt p } : TVMem l T
 | iD_Val_New l T ds:
     TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ u⊢ds ds : T →

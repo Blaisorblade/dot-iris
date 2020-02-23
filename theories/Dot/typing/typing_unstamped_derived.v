@@ -633,6 +633,6 @@ Proof. intros; eapply iT_Let; eauto. Qed.
 
 Lemma pDOT_Def_Path_derived Γ l p T
   (Hx : Γ u⊢ₚ p : T, 0)
-  (Hu : is_unstamped_path (length Γ) AlsoNonVars p) :
+  (Hu : is_unstamped_path' (length Γ) p) :
   Γ u⊢{ l := dpt p } : TVMem l (TSing p).
 Proof. eapply iD_Path, Hu. apply (iP_Sngl_Refl (T := T)), Hx. Qed.
