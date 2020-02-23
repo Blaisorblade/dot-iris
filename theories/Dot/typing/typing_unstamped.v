@@ -28,7 +28,6 @@ Inductive typed Γ : tm → ty → Prop :=
 (** Dependent application; only allowed if the argument is a path. *)
 | iT_All_Ex_p p2 e1 T1 T2:
     is_unstamped_ty' (S (length Γ)) T2 →
-    is_unstamped_path' (length Γ) p2 →
     (* T2 .Tp[ p2 /]~ T2' → *)
     Γ u⊢ₜ e1: TAll T1 T2 →
     Γ u⊢ₚ p2 : T1, 0 →
@@ -111,7 +110,6 @@ with dm_typed Γ : label → dm → ty → Prop :=
     Γ u⊢{ l := dpt (pv v) } : TVMem l T
 | iD_Path l p T:
     Γ u⊢ₚ p : T, 0 →
-    is_unstamped_path' (length Γ) p →
     Γ u⊢{ l := dpt p } : TVMem l T
 | iD_Val_New l T ds:
     TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ u⊢ds ds : T →

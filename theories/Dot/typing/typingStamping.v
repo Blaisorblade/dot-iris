@@ -90,10 +90,11 @@ Section syntyping_stamping_lemmas.
   Lemma unstamped_path_subject Γ p T i:
     Γ u⊢ₚ p : T, i → is_unstamped_path' (length Γ) p.
   Proof. apply unstamped_mut_subject. Qed.
+  Local Hint Resolve unstamped_path_subject : core.
 
   Section unstamped_syntyping_lemmas.
 
-  Local Hint Resolve is_unstamped_ty_subst unstamped_path_subject : core.
+  Local Hint Resolve is_unstamped_ty_subst : core.
 
   (* The reverse direction slows proof search and isn't used anyway? *)
   Lemma is_unstamped_ren_ty_1 i T b:
@@ -341,12 +342,12 @@ Section syntyping_stamping_lemmas.
   (* In hyp names, [Hus] are for [is_unstamped_ty], [Husp] for
   [is_unstamped_path], [Hu] for unstamped typing, [IHs] for the induction
   hyps about stamped typing, [Hle] for [g? ⊆ g?], [Hpr] for path replacement. *)
-  - intros * Hus1 Husp Hu1 IHs1 Hu2 IHs2 g.
+  - intros * Husp Hu1 IHs1 Hu2 IHs2 g.
     move: IHs1 => /(.$ g) [e1' [g1 [IHs1 [Hle1 Hse1]]]];
     move: IHs2 => /(.$ g1) [g2 [IHs2 Hle2]]; lte g g1 g2.
     have Hse1': unstamp_tm g2 e1' = e1. by eapply stamps_unstamp_mono_tm, Hse1.
     exists (tapp e1' (path2tm p2)), g2.
-    split_and!; first eapply typing_stamped.iT_All_Ex_p => //; naive_solver.
+    split_and!; first eapply typing_stamped.iT_All_Ex_p => //; naive_solver eauto 6.
   - intros * Hu1 IHs1 Hu2 IHs2 g.
     move: IHs1 => /(.$ g) [e1' [g1 ?]];
     move: IHs2 => /(.$ g1) [e2' [g2 ?]]; ev; lte g g1 g2.
@@ -420,9 +421,10 @@ Section syntyping_stamping_lemmas.
     have [v' ?]: ∃ v', e1' = tv v' by destruct e1'; naive_solver.
     simplify_eq/=; with_is_stamped inverse; with_is_unstamped inverse.
     exists (dpt (pv v')), g1; naive_solver.
-  - intros * Hu1 IHs1 Hus1 g.
+  - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [g1 ?]; destruct_and!.
-    exists (dpt p), g1; naive_solver.
+    exists (dpt p), g1; split_and!; naive_solver eauto
+      using is_unstamped_path2AlsoNonVars.
   - intros * Hu1 IHs1 Hus1 g.
     move: IHs1 => /(.$ g) /= [ds' [g1 ?]]; destruct_and!.
     exists (dpt (pv (vobj ds'))), g1; split_and!; cbn;
