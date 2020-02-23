@@ -1,6 +1,7 @@
 From D.Dot Require Import typing_stamped stampingDefsCore astStamping skeleton
   path_repl_lemmas.
 From D.Dot Require typing_unstamped.
+From D.Dot Require Import unstampedness_binding.
 
 Set Implicit Arguments.
 
@@ -89,6 +90,133 @@ Section syntyping_stamping_lemmas.
   Lemma unstamped_path_subject Γ p T i:
     Γ u⊢ₚ p : T, i → is_unstamped_path' (length Γ) p.
   Proof. apply unstamped_mut_subject. Qed.
+
+  Section unstamped_syntyping_lemmas.
+
+  Local Hint Resolve is_unstamped_ty_subst unstamped_path_subject : core.
+
+  (* The reverse direction slows proof search and isn't used anyway? *)
+  Lemma is_unstamped_ren_ty_1 i T b:
+    is_unstamped_ty i b T ->
+    is_unstamped_ty (S i) b (shift T).
+  Proof. intros Ht. eapply is_unstamped_sub_ren_ty, Ht. auto. Qed.
+
+  Local Hint Resolve is_unstamped_ren_ty_1 is_unstamped_nclosed_ty : core.
+
+  Hint Extern 5 (nclosed _ _) => try_once nclosed_ren_inv_ty_one : core.
+  Hint Extern 5 => try_once nclosed_sub_inv_ty_one : core.
+
+  Inductive unstamped_ctx: ctx → Prop :=
+  | unstamped_nil : unstamped_ctx []
+  | unstamped_cons Γ T:
+    unstamped_ctx Γ →
+    is_unstamped_ty' (S (length Γ)) T →
+    unstamped_ctx (T :: Γ).
+  Hint Constructors unstamped_ctx : core.
+
+  Lemma unstamped_nclosed_lookup Γ x T:
+    unstamped_ctx Γ →
+    Γ !! x = Some T →
+    nclosed (shiftN x T) (length Γ).
+  Proof.
+    elim: Γ T x => // U Γ IHΓ T [Hs [<-]|x Hs Hl] /=; inverse Hs.
+    - rewrite hsubst_id; eauto.
+    - rewrite hrenS; eapply nclosed_sub_app, IHΓ; auto.
+  Qed.
+  Local Hint Resolve unstamped_nclosed_lookup : core.
+
+  Lemma unstamped_lookup Γ x T:
+    unstamped_ctx Γ → Γ !! x = Some T →
+    is_unstamped_ty' (length Γ) (shiftN x T).
+  Proof.
+    elim: x Γ => /= [|x IHx] [|U Γ] /= Hctx Hl; inverse Hctx; simplify_eq.
+    - by rewrite hsubst_id.
+    - rewrite hrenS.
+      apply (@is_unstamped_ren_ty_1 (length Γ) (shiftN x T)), IHx; eauto.
+  Qed.
+
+  Lemma is_unstamped_TLater_n {i n T}:
+    is_unstamped_ty' n T →
+    is_unstamped_ty' n (iterate TLater i T).
+  Proof. elim: i => [|//i IHi]; rewrite ?iterate_0 ?iterate_S //; auto. Qed.
+
+  Lemma is_unstamped_tv_inv {n v b}:
+    is_unstamped_tm n b (tv v) →
+    is_unstamped_vl n b v.
+  Proof. by inversion 1. Qed.
+  Lemma is_unstamped_TLater_inv {n T}:
+    is_unstamped_ty' n (TLater T) →
+    is_unstamped_ty' n T.
+  Proof. by inversion 1. Qed.
+
+  Local Hint Resolve is_unstamped_tv_inv is_unstamped_TLater_n : core.
+  Local Hint Extern 5 (is_unstamped_ty _ _ _) => try_once is_unstamped_TLater_inv : core.
+
+  (* XXX reusable. *)
+  Import traversals.
+  Hint Extern 0 (Trav1.forall_traversal_ty _ _ _)   => progress cbn : core.
+  Hint Extern 0 (Trav1.forall_traversal_path _ _ _)   => progress cbn : core.
+
+  Lemma fmap_TLater_unstamped_inv Γ :
+    unstamped_ctx $ TLater <$> Γ →
+    unstamped_ctx Γ.
+  Proof.
+    elim: Γ => [//|T Γ IHΓ]; cbn => Hs. inverse Hs.
+    constructor; first by auto. rewrite ->(fmap_length TLater) in *.
+    exact: is_unstamped_TLater_inv.
+  Qed.
+
+  Lemma fmap_TLater_unstamped Γ :
+    unstamped_ctx Γ →
+    unstamped_ctx $ TLater <$> Γ.
+  Proof.
+    elim: Γ => [//|T Γ IHΓ] Hs; cbn. inverse Hs.
+    constructor; first by auto. rewrite fmap_length.
+    exact: (is_unstamped_TLater_n (i := 1)).
+  Qed.
+
+  Lemma ty_sub_unstamped n T T' :
+    ⊢T T <: T' ->
+    is_unstamped_ty' n T →
+    is_unstamped_ty' n T'.
+  Proof. induction 1; inversion 1; eauto. Qed.
+
+  Lemma ctx_sub_unstamped Γ Γ' :
+    ⊢G Γ <:* Γ' ->
+    unstamped_ctx Γ →
+    unstamped_ctx Γ'.
+  Proof.
+    induction 1; inversion 1; subst; constructor; first by auto.
+    by erewrite <- ctx_sub_len; [exact: ty_sub_unstamped|].
+  Qed.
+
+  Local Hint Resolve ctx_sub_unstamped fmap_TLater_unstamped_inv : core.
+
+  Lemma unstamped_mut_types Γ :
+    (∀ e T, Γ u⊢ₜ e : T → ∀ (Hctx: unstamped_ctx Γ), is_unstamped_ty' (length Γ) T) ∧
+    (∀ ds T, Γ u⊢ds ds : T → ∀ (Hctx: unstamped_ctx Γ), is_unstamped_ty' (length Γ) T) ∧
+    (∀ l d T, Γ u⊢{ l := d } : T → ∀ (Hctx: unstamped_ctx Γ), is_unstamped_ty' (length Γ) T) ∧
+    (∀ p T i, Γ u⊢ₚ p : T , i → ∀ (Hctx: unstamped_ctx Γ), is_unstamped_ty' (length Γ) T) ∧
+    (∀ T1 i1 T2 i2, Γ u⊢ₜ T1, i1 <: T2, i2 → ∀ (Hctx: unstamped_ctx Γ),
+      is_unstamped_ty' (length Γ) T1 ∧ is_unstamped_ty' (length Γ) T2).
+  Proof.
+    eapply unstamped_typing_mut_ind with
+        (P := λ Γ e T _, ∀ (Hctx: unstamped_ctx Γ), is_unstamped_ty' (length Γ) T)
+        (P0 := λ Γ ds T _, ∀ (Hctx: unstamped_ctx Γ), is_unstamped_ty' (length Γ) T)
+        (P1 := λ Γ l d T _, ∀ (Hctx: unstamped_ctx Γ), is_unstamped_ty' (length Γ) T)
+        (P2 := λ Γ p T i _, ∀ (Hctx: unstamped_ctx Γ), is_unstamped_ty' (length Γ) T)
+        (P3 := λ Γ T1 i1 T2 i2 _, ∀ (Hctx: unstamped_ctx Γ),
+               is_unstamped_ty' (length Γ) T1 ∧ is_unstamped_ty' (length Γ) T2); clear Γ.
+    all: intros; simplify_eq/=; try nosplit inverse Hctx;
+      try (rewrite ->?(@ctx_sub_len Γ Γ'),
+        ?(@ctx_sub_len_tlater Γ Γ') in * by assumption);
+      try (efeed pose proof H ; [by eauto | ev; clear H ]);
+      try (efeed pose proof H0; [by eauto | ev; clear H0]);
+      repeat constructor; rewrite /= ?fmap_length; eauto 2;
+      inverse_is_unstamped; eauto 4 using unstamped_lookup, is_unstamped_sub_rev_ty.
+  Qed.
+
+  End unstamped_syntyping_lemmas.
 
   Hint Constructors typing_stamped.typed typing_stamped.subtype typing_stamped.dms_typed typing_stamped.dm_typed typing_stamped.path_typed : core.
   Remove Hints typing_stamped.iSub_Trans : core.

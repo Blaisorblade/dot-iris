@@ -1,14 +1,12 @@
 From D Require Import prelude.
-From D.Dot Require Import typing_storeless typeExtractionSyn traversals stampedness_binding closed_subst.
-
+From D.Dot Require Import typeExtractionSyn traversals stampedness_binding closed_subst.
+From D.Dot Require Import typing_storeless.
 Set Implicit Arguments.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
-Section syntyping_lemmas.
-  Hint Constructors Forall : core.
-
+Section storeless_syntyping_lemmas.
   Lemma stamped_mut_subject Γ g :
     (∀ e T, Γ v⊢ₜ[ g ] e : T → is_stamped_tm (length Γ) g e) ∧
     (∀ ds T, Γ v⊢ds[ g ] ds : T → Forall (is_stamped_dm (length Γ) g) (map snd ds)) ∧
@@ -34,7 +32,6 @@ Section syntyping_lemmas.
   Lemma stamped_path_subject Γ g p T i:
     Γ v⊢ₚ[ g ] p : T, i → is_stamped_path (length Γ) g p.
   Proof. apply stamped_mut_subject. Qed.
-  Local Hint Resolve stamped_exp_subject stamped_path_subject : core.
 
   (* The reverse direction slows proof search and isn't used anyway? *)
   Lemma is_stamped_ren_ty_1 i T g:
@@ -135,6 +132,7 @@ Section syntyping_lemmas.
 
   Local Hint Resolve ctx_sub_stamped fmap_TLater_stamped_inv : core.
 
+  Local Hint Resolve stamped_exp_subject stamped_path_subject : core.
   Lemma stamped_mut_types Γ g :
     (∀ e T, Γ v⊢ₜ[ g ] e : T → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T) ∧
     (∀ ds T, Γ v⊢ds[ g ] ds : T → ∀ (Hctx: stamped_ctx g Γ), is_stamped_ty (length Γ) g T) ∧
@@ -158,4 +156,4 @@ Section syntyping_lemmas.
       repeat constructor; rewrite /= ?fmap_length; eauto 2;
       inverse_is_stamped; eauto 4 using stamped_lookup, is_stamped_sub_rev_ty.
   Qed.
-End syntyping_lemmas.
+End storeless_syntyping_lemmas.
