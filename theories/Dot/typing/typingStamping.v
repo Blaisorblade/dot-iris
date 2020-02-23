@@ -161,6 +161,9 @@ Section syntyping_stamping_lemmas.
     Γ u⊢ₚ p : T, i → is_unstamped_path' (length Γ) p.
   Proof. apply unstamped_mut_subject. Qed.
 
+  (* To guard against loops. *)
+  Tactic Notation "naive_solver" := timeout 1 naive_solver.
+
   (* This allows stamped paths to change; that's not used for paths appearing
   in types, and it helps stamp D-Val/D-Val-New. *)
   Lemma stamp_objIdent_typing_mut Γ :
