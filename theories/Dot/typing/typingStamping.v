@@ -7,6 +7,11 @@ Set Implicit Arguments.
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
+Notation stamps_tm'   n e__u g e__s := (stamps_tm   n AlsoNonVars e__u g e__s).
+Notation stamps_dm'   n d__u g d__s := (stamps_dm   n AlsoNonVars d__u g d__s).
+Notation stamps_dms'  n d__u g d__s := (stamps_dms  n AlsoNonVars d__u g d__s).
+Notation stamps_path' n p__u g p__s := (stamps_path n OnlyVars  p__u g p__s).
+
 Definition is_unstamped_to_AlsoNonVars_tm_def e : Prop := ∀ n b,
   is_unstamped_tm   n b e → is_unstamped_tm n AlsoNonVars e.
 Definition is_unstamped_to_AlsoNonVars_vl_def v : Prop := ∀ n b,
@@ -134,10 +139,6 @@ Section syntyping_stamping_lemmas.
   (** These cause cycles. *)
   Remove Hints typing_stamped.iP_Mu_E : core.
   Remove Hints typing_stamped.iP_Mu_I : core.
-  Notation stamps_tm'   n e__u g e__s := (stamps_tm   n AlsoNonVars e__u g e__s).
-  Notation stamps_dm'   n d__u g d__s := (stamps_dm   n AlsoNonVars d__u g d__s).
-  Notation stamps_dms'  n d__u g d__s := (stamps_dms  n AlsoNonVars d__u g d__s).
-  Notation stamps_path' n p__u g p__s := (stamps_path n OnlyVars  p__u g p__s).
 
   (* This allows stamped paths to change; that's not used for paths appearing
   in types, and it helps stamp D-Val/D-Val-New. *)
