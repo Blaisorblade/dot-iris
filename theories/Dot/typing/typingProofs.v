@@ -93,10 +93,6 @@ Section storeless_syntyping_lemmas.
   Local Hint Resolve is_stamped_tv_inv is_stamped_TLater_n : core.
   Local Hint Extern 5 (is_stamped_ty _ _ _) => try_once is_stamped_TLater_inv : core.
 
-  (* XXX reusable. *)
-  Hint Extern 0 (Trav1.forall_traversal_ty _ _ _)   => progress cbn : core.
-  Hint Extern 0 (Trav1.forall_traversal_path _ _ _)   => progress cbn : core.
-
   Lemma fmap_TLater_stamped_inv Γ g :
     stamped_ctx g $ TLater <$> Γ →
     stamped_ctx g Γ.

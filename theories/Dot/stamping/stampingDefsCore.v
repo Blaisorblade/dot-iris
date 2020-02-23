@@ -194,3 +194,9 @@ Lemma is_stamped_path2tm n g p :
   is_stamped_path n g p →
   is_stamped_tm n g (path2tm p).
 Proof. elim: p => /= [v|p IHp l] Hp; inversion Hp; auto. Qed.
+
+Hint Extern 0 (forall_traversal_tm _ _ _)   => progress cbn : core.
+Hint Extern 0 (forall_traversal_vl _ _ _)   => progress cbn : core.
+Hint Extern 0 (forall_traversal_dm _ _ _)   => progress cbn : core.
+Hint Extern 0 (forall_traversal_path _ _ _) => progress cbn : core.
+Hint Extern 0 (forall_traversal_ty _ _ _)   => progress cbn : core.

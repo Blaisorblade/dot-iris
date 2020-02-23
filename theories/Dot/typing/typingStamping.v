@@ -153,11 +153,6 @@ Section syntyping_stamping_lemmas.
   Local Hint Resolve is_unstamped_tv_inv is_unstamped_TLater_n : core.
   Local Hint Extern 5 (is_unstamped_ty _ _ _) => try_once is_unstamped_TLater_inv : core.
 
-  (* XXX reusable. *)
-  Import traversals.
-  Hint Extern 0 (Trav1.forall_traversal_ty _ _ _)   => progress cbn : core.
-  Hint Extern 0 (Trav1.forall_traversal_path _ _ _)   => progress cbn : core.
-
   Lemma fmap_TLater_unstamped_inv Γ :
     unstamped_ctx $ TLater <$> Γ →
     unstamped_ctx Γ.

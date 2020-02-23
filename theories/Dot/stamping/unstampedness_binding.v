@@ -172,12 +172,6 @@ Lemma is_unstamped_ren_OnlyVars i j b r :
   is_unstamped_ren i j b r → is_unstamped_ren i j OnlyVars r.
 Proof. intros Hu ?**. by eapply is_unstamped_var_OnlyVars, Hu. Qed.
 
-Hint Extern 0 (forall_traversal_tm _ _ _)   => progress cbn : core.
-Hint Extern 0 (forall_traversal_vl _ _ _)   => progress cbn : core.
-Hint Extern 0 (forall_traversal_dm _ _ _)   => progress cbn : core.
-Hint Extern 0 (forall_traversal_path _ _ _) => progress cbn : core.
-Hint Extern 0 (forall_traversal_ty _ _ _)   => progress cbn : core.
-
 Lemma is_unstamped_ren_mut:
   (∀ t r i j b,
     is_unstamped_ren i j b r →
