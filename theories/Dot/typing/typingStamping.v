@@ -62,14 +62,33 @@ Lemma is_unstamped_path2tm' n b p :
 Proof. intros. by eapply is_unstamped_tm2AlsoNonVars, is_unstamped_path2tm. Qed.
 
 Section syntyping_stamping_lemmas.
+  Import typing_unstamped typing_storeless.
+
   Hint Extern 5 (is_unstamped_ty _ AlsoNonVars _) =>
     try_once is_unstamped_ty2AlsoNonVars : core.
-
   Hint Resolve is_unstamped_path2tm' : core.
-
   Hint Immediate is_unstamped_var2OnlyVars is_unstamped_path2AlsoNonVars : core.
 
-  Import typing_unstamped typing_storeless.
+  Lemma unstamped_mut_subject Γ :
+    (∀ e T,   Γ u⊢ₜ e : T → is_unstamped_tm (length Γ) AlsoNonVars e) ∧
+    (∀ ds T,  Γ u⊢ds ds : T → is_unstamped_dms (length Γ) AlsoNonVars ds) ∧
+    (∀ l d T, Γ u⊢{ l := d } : T → is_unstamped_dm (length Γ) AlsoNonVars d) ∧
+    (∀ p T i, Γ u⊢ₚ p : T, i → is_unstamped_path' (length Γ) p).
+  Proof.
+    eapply exp_unstamped_typing_mut_ind with
+        (P := λ Γ e T _, is_unstamped_tm (length Γ) AlsoNonVars e)
+        (P0 := λ Γ ds T _, is_unstamped_dms (length Γ) AlsoNonVars ds)
+        (P1 := λ Γ l d T _, is_unstamped_dm (length Γ) AlsoNonVars d)
+        (P2 := λ Γ p T i _, is_unstamped_path' (length Γ) p); clear Γ;
+        cbn; intros; try (rewrite <-(@ctx_sub_len_tlater Γ Γ') in *; last done);
+        try by (with_is_unstamped inverse + idtac); eauto 6 using is_unstamped_path2tm.
+    - repeat constructor => //=. by eapply lookup_lt_Some.
+    - intros; elim: i {s} => [|i IHi]; rewrite /= ?iterate_0 ?iterate_S //; eauto.
+  Qed.
+
+  Lemma unstamped_path_subject Γ p T i:
+    Γ u⊢ₚ p : T, i → is_unstamped_path' (length Γ) p.
+  Proof. apply unstamped_mut_subject. Qed.
 
   Hint Constructors typing_stamped.typed typing_stamped.subtype typing_stamped.dms_typed typing_stamped.dm_typed typing_stamped.path_typed : core.
   Remove Hints typing_stamped.iSub_Trans : core.
@@ -139,27 +158,6 @@ Section syntyping_stamping_lemmas.
   (** These cause cycles. *)
   Remove Hints typing_stamped.iP_Mu_E : core.
   Remove Hints typing_stamped.iP_Mu_I : core.
-
-  Lemma unstamped_mut_subject Γ :
-    (∀ e T,   Γ u⊢ₜ e : T → is_unstamped_tm (length Γ) AlsoNonVars e) ∧
-    (∀ ds T,  Γ u⊢ds ds : T → is_unstamped_dms (length Γ) AlsoNonVars ds) ∧
-    (∀ l d T, Γ u⊢{ l := d } : T → is_unstamped_dm (length Γ) AlsoNonVars d) ∧
-    (∀ p T i, Γ u⊢ₚ p : T, i → is_unstamped_path' (length Γ) p).
-  Proof.
-    eapply exp_unstamped_typing_mut_ind with
-        (P := λ Γ e T _, is_unstamped_tm (length Γ) AlsoNonVars e)
-        (P0 := λ Γ ds T _, is_unstamped_dms (length Γ) AlsoNonVars ds)
-        (P1 := λ Γ l d T _, is_unstamped_dm (length Γ) AlsoNonVars d)
-        (P2 := λ Γ p T i _, is_unstamped_path' (length Γ) p); clear Γ;
-        cbn; intros; try (rewrite <-(@ctx_sub_len_tlater Γ Γ') in *; last done);
-        try by (with_is_unstamped inverse + idtac); eauto 6 using is_unstamped_path2tm.
-    - repeat constructor => //=. by eapply lookup_lt_Some.
-    - intros; elim: i {s} => [|i IHi]; rewrite /= ?iterate_0 ?iterate_S //; eauto.
-  Qed.
-
-  Lemma unstamped_path_subject Γ p T i:
-    Γ u⊢ₚ p : T, i → is_unstamped_path' (length Γ) p.
-  Proof. apply unstamped_mut_subject. Qed.
 
   (* To guard against loops. *)
   Tactic Notation "naive_solver" := timeout 1 naive_solver.
