@@ -188,7 +188,6 @@ Corollary path_normalization p T i :
   [] u⊢ₚ p : T, i → terminates (path2tm p).
 Proof.
   (* Apply 5.3: Translation of typing derivations. *)
-  intros (e_s & g & HsT & Hs)%(stamp_path_typed ∅).
-  apply Hs.
+  intros (g & HsT & _)%(stamp_path_typed ∅).
   apply (path_normalization_storeless HsT).
 Qed.

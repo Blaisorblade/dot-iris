@@ -95,6 +95,7 @@ theories/pure_program_logic/lifting.v
 theories/pure_program_logic/adequacy.v
 theories/Dot/misc_unused/experiments.v
 theories/Dot/misc_unused/misc_dead.v
+theories/Dot/misc_unused/skeleton_termination.v
 theories/Dot/syn/path_repl.v
 theories/Dot/syn/path_repl_lemmas.v
 theories/Dot/lr/path_repl.v
