@@ -35,10 +35,10 @@ Section hoas.
     hTOr hnoneConcrT (hsomeConcrT
       ⊥
       (pCore @ "types" @; "Type")).
-  Definition optionModTInv := hclose (μ: self, hoptionModTInvBody self).
+  Definition optionModTInv : ty := μ: self, hoptionModTInvBody self.
 
-  Definition hsomeType pCore := (hTAnd (hsomeConcrT ⊥ ⊤)
-      (type "T" >: ⊥ <: pCore @ "types" @; "Type")).
+  Definition hsomeType pCore := hTAnd (hsomeConcrT ⊥ ⊤)
+      (type "T" >: ⊥ <: pCore @ "types" @; "Type").
   Definition hoptionTyConcr1 (pCore : hpath) := hTOr hnoneConcrT (hsomeType pCore).
 End hoas.
 
@@ -47,7 +47,7 @@ Context `{HdlangG: dlangG Σ} `{HswapProp : !SwapPropI Σ}.
 (** FromPDotPaper *)
 
 Definition typeRefTBody : ty := {@
-  val "symb" : TAnd (x1 @ "symbols" @; "Symbol") (val "tpe" : hclose (hsomeConcrT ⊥ ⊤))
+  val "symb" : TAnd (x1 @ "symbols" @; "Symbol") (val "tpe" : hsomeConcrT ⊥ ⊤)
 }.
 
 Definition fromPDotPaperTypesTBody : ty := {@
@@ -158,7 +158,7 @@ Definition fromPDotPaper : vl := ν {@
   val "symbols" = fromPDotPaperSymbolsV
 }.
 
-Definition optionModT := hclose hoptionModT.
+Definition optionModT : ty := hoptionModT.
 
 Ltac semTMember i := iApply D_Typ; iApply (extraction_to_leadsto_envD_equiv (n := i) with "Hs"); by_extcrush.
 
@@ -206,7 +206,7 @@ Proof.
   - rewrite /hoptionTConcr/=; ettrans; first apply iAnd_Or_Sub_Distr;
     stcrush; apply iOr_Sub_split; ltcrush.
   - lThis. ettrans; last apply iLater_Sub; stcrush.
-    eapply (iSel_Sub (L := ⊥) (U := hclose hoptionTConcr)); tcrush.
+    eapply (iSel_Sub (L := ⊥) (U := hoptionTConcr)); tcrush.
     varsub.
     ettrans; first apply iSub_Add_Later; stcrush.
     asideLaters; mltcrush.
@@ -465,7 +465,7 @@ Proof.
 Qed.
 
 Example pCoreSemTyped Γ : Γ ⊨[fromPDotGφ]
-  lett (hclose hoptionModV) fromPDotPaper : ⊤.
+  lett (hoptionModV : vl) fromPDotPaper : ⊤.
 Proof.
   rewrite /lett /vabs'.
   iIntros "#Hs".
@@ -483,7 +483,7 @@ Qed.
 End semExample.
 
 Import dlang_adequacy swap_later_impl stamp_transfer.
-Lemma pcoreSafe: safe (lett (hclose hoptionModV) fromPDotPaper).
+Lemma pcoreSafe: safe (lett (hoptionModV : vl) fromPDotPaper).
 Proof.
   eapply (safety_dot_sem dlangΣ (T := _))=>*.
   rewrite (transfer_empty fromPDotGφ).
@@ -500,7 +500,7 @@ Definition fromPDotPaperAbsTypesTBodySubst : ty := {@
   type "TypeTop" >: ⊥ <: x0 @ "types" @; "Type";
   val "newTypeTop" : ⊤ →: x0 @ "types" @; "TypeTop";
   type "TypeRef" >: ⊥ <: TAnd (x0 @ "types" @; "Type") ({@
-    val "symb" : TAnd (x0 @ "symbols" @; "Symbol") (val "tpe" : hclose (hsomeConcrT ⊥ ⊤))
+    val "symb" : TAnd (x0 @ "symbols" @; "Symbol") (val "tpe" : hsomeConcrT ⊥ ⊤)
   });
   val "AnyType" : ▶: (x0 @ "types" @; "Type");
   val "newTypeRef" : x0 @ "symbols" @; "Symbol" →: x0 @ "types" @; "TypeRef";

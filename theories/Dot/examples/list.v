@@ -10,17 +10,17 @@ Import DBNotation hoasNotation.
 Implicit Types (L T U: hty) (Γ : list ty).
  (* (v: vl) (e: tm) (d: dm) (ds: dms) . *)
 
-Definition htrueTm bool := htskip (htproj (htv bool) "true").
-Definition hfalseTm bool := htskip (htproj (htv bool) "false").
+Definition htrueTm (bool : hvl) := htskip (bool @: "true").
+Definition hfalseTm (bool : hvl) := htskip (bool @: "false").
 
 (* bool : boolImplT *)
 (* Let Γ' := boolImplT :: Γ. *)
 
 Lemma trueTyp Γ Γ'' : Γ'' ++ boolImplT :: Γ u⊢ₜ
-  hclose (htrueTm (hx (length Γ''))) : hclose (hpx (length Γ'') @; "Boolean").
+  htrueTm (hx (length Γ'')) : hpx (length Γ'') @; "Boolean".
 Proof.
   have ?: length Γ'' < length (Γ'' ++ boolImplT :: Γ) by rewrite app_length /=; lia.
-  apply (iT_Sub (i := 1) (T1 := hclose (▶: hpx (length Γ'') @; "Boolean")));
+  apply (iT_Sub (i := 1) (T1 := ▶: hpx (length Γ'') @; "Boolean"));
     rewrite /= plusnO; tcrush.
     eapply iT_Sub_nocoerce.
   - eapply iT_Mu_E'; first eapply iT_Var'; try by [rewrite lookup_app_r ?Nat.sub_diag|]; stcrush.
@@ -28,10 +28,10 @@ Proof.
 Qed.
 
 Lemma falseTyp Γ Γ'' : Γ'' ++ boolImplT :: Γ u⊢ₜ
-  hclose (hfalseTm (hx (length Γ''))) : hclose (hpx (length Γ'') @; "Boolean").
+  hfalseTm (hx (length Γ'')) : hpx (length Γ'') @; "Boolean".
 Proof.
   have ?: length Γ'' < length (Γ'' ++ boolImplT :: Γ) by rewrite app_length /=; lia.
-  apply (iT_Sub (i := 1) (T1 := hclose (▶: hpx (length Γ'') @; "Boolean")));
+  apply (iT_Sub (i := 1) (T1 := ▶: hpx (length Γ'') @; "Boolean"));
     rewrite /= plusnO; tcrush.
   eapply iT_Sub_nocoerce.
   - eapply iT_Mu_E'; first eapply iT_Var'; try by [rewrite lookup_app_r ?Nat.sub_diag|]; stcrush.
@@ -41,11 +41,11 @@ Qed.
 (** * Interface of the list module. *)
 
 (* [sci] stands for [scala.collection.immutable], following the example in WadlerFest DOT. *)
-Definition hlistTGen bool sci L U : hty := μ: self, {@
+Definition hlistTGen (bool sci : hpath) L U : hty := μ: self, {@
   type "A" >: L <: U;
-  val "isEmpty" : ⊤ →: hpv bool @; "Boolean";
-  val "head" : ⊤ →: hpv self @; "A";
-  val "tail" : ⊤ →: hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv self @; "A" )
+  val "isEmpty" : ⊤ →: bool @; "Boolean";
+  val "head" : ⊤ →: self @; "A";
+  val "tail" : ⊤ →: hTAnd (sci @; "List") (type "A" >: ⊥ <: self @; "A" )
 }.
 
 (** ** The list type itself. *)
@@ -57,14 +57,14 @@ Definition hlistT bool sci := hlistTGen bool sci ⊥ ⊤.
 - when we initialize "nil", [sci] has type [▶:(type "List" >: ... <: ...], so
   we can't deduce anything about [sci@;"List"], only something about
   [▶:(sci@; "List")]. *)
-Definition hnilT sci := hTAnd (▶: hpv sci @; "List") (typeEq "A" ⊥).
+Definition hnilT sci := hTAnd (▶: sci @; "List") (typeEq "A" ⊥).
 
 (** ∀(x: {A})∀(hd: x.A)∀(tl: sci.List∧{A <: x.A})sci.List∧{A <: x.A} *)
 Definition hconsT sci : hty :=
   ∀: x : (tparam "T"),
-    hpv x @; "T" →:
-    (hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv x @; "T")) →:
-    hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv x @; "T").
+    x @; "T" →:
+    (hTAnd (sci @; "List") (type "A" >: ⊥ <: x @; "T")) →:
+    hTAnd (sci @; "List") (type "A" >: ⊥ <: x @; "T").
 
 (** mod stands for module. *)
 Definition hlistModTBody bool sci : hty := {@
@@ -78,9 +78,9 @@ Definition hlistModT bool : hty := μ: sci, hlistModTBody bool sci.
 (** * Implementation of the list module. *)
 Definition hnilV bool : hvl := ν: self, {@
   type "A" = ⊥;
-  val "isEmpty" = hpv (λ: _, htrueTm bool);
-  val "head" = hpv (λ: _, hloopTm);
-  val "tail" = hpv (λ: _, hloopTm)
+  val "isEmpty" = λ: _, htrueTm bool;
+  val "head" = λ: _, hloopTm;
+  val "tail" = λ: _, hloopTm
 }.
 
 (*
@@ -88,27 +88,27 @@ Definition hnilV bool : hvl := ν: self, {@
     A = x.A; isEmpty = bool.false; head = hd; tail = tl } in result *)
 Program Definition hconsV bool : hvl :=
   λ: x, λ:: hd tl, htv $ ν: self, {@
-    type "A" = hpv x @; "T";
-    val "isEmpty" = hpv (λ: _, hfalseTm bool);
-    val "head" =    hpv (λ: _, htv hd);
-    val "tail" =    hpv (λ: _, htv tl)
+    type "A" = x @; "T";
+    val "isEmpty" = λ: _, hfalseTm bool;
+    val "head" =    λ: _, hd;
+    val "tail" =    λ: _, tl
   }.
 
-Definition hlistModV bool : hvl := ν: self, {@
+Definition hlistModV (bool : hvl) : hvl := ν: self, {@
   type "List" = hlistT bool self;
-  val "nil"  = hpv (hnilV bool);
-  val "cons" = hpv (hconsV bool)
+  val "nil"  = hnilV bool;
+  val "cons" = hconsV bool
 }.
 
 
 (** * Auxiliary types, needed in derivations of typing judgments. *)
 Definition hconsTResConcr bool sci U := hlistTGen bool sci U U.
 
-Definition hconsTConcr bool sci : hty :=
+Definition hconsTConcr (bool sci : hpath) : hty :=
   ∀: x: tparam "T",
-    hpv x @; "T" →:
-      hTAnd (hpv sci @; "List") (type "A" >: ⊥ <: hpv x @; "T") →:
-      (hconsTResConcr bool sci (hpv x @; "T")).
+    x @; "T" →:
+      hTAnd (sci @; "List") (type "A" >: ⊥ <: x @; "T") →:
+      (hconsTResConcr bool sci (x @; "T")).
 
 Definition hlistModTConcrBody bool sci : hty := {@
   typeEq "List" $ hlistT bool sci;
@@ -120,12 +120,12 @@ Definition hlistModTConcr bool : hty := μ: sci, hlistModTConcrBody bool sci.
 
 (** * Proofs that [hlistModV] has type [hlistModT]. *)
 
-Example nilTyp Γ : hclose (▶: hlistModTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
-  hclose (htv (hnilV hx1)) : hclose (hnilT hx0).
+Example nilTyp Γ : (▶: hlistModTConcrBody hx1 hx0)%ty :: boolImplT :: Γ u⊢ₜ
+  hnilV hx1 : hnilT hx0.
 Proof.
   apply (iT_Sub_nocoerce $ hclose $ hlistTGen hx1 hx0 ⊥ ⊥ ).
   - evar (T : ty).
-    set L :=  hclose (▶: hlistModTConcrBody hx1 hx0).
+    set L := (▶: hlistModTConcrBody hx1 hx0)%ty.
     have := !! trueTyp Γ [⊤; T; L].
     have := !! loopTyp (⊤ :: T :: L :: boolImplT :: Γ).
     rewrite {}/T/= => Ht Hl.
@@ -138,13 +138,13 @@ Proof.
     ltcrush.
 Qed.
 
-Example consTyp Γ : hclose (▶: hlistModTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
-  hclose (htv (hconsV hx1)) : hclose (hconsTConcr hx1 hx0).
+Example consTyp Γ : (▶: hlistModTConcrBody hx1 hx0)%ty :: boolImplT :: Γ u⊢ₜ
+  hconsV hx1 : hconsTConcr hx1 hx0.
 Proof.
   epose proof falseTyp Γ [_; _; _; _; _; _] as Ht; cbn in Ht.
   tcrush; clear Ht.
   (** Typecheck returned head: *)
-  by varsub; eapply (iSub_Sel' _ (hclose (hp4 @; "T"))); tcrush; varsub; ltcrush.
+  by varsub; eapply (iSub_Sel' _ (hp4 @; "T")); tcrush; varsub; ltcrush.
   (**
     Typecheck returned tail. Recall [cons] starts with
 
@@ -166,14 +166,14 @@ Proof.
 Qed.
 
 Ltac norm := cbv; hideCtx.
-Lemma consTSub Γ : hclose (hlistModTConcrBody hx1 hx0) :: boolImplT :: Γ u⊢ₜ
-  hclose (hconsTConcr hx1 hx0), 0 <: hclose (hconsT hx0), 0.
+Lemma consTSub Γ : (hlistModTConcrBody hx1 hx0 : ty) :: boolImplT :: Γ u⊢ₜ
+  hconsTConcr hx1 hx0, 0 <: hconsT hx0, 0.
 Proof.
   tcrush; rewrite !iterate_S !iterate_0; hideCtx; last mltcrush.
   eapply iSub_Sel', (path_tp_delay (i := 0)); wtcrush; varsub; by ltcrush.
 Qed.
 
-Example listTypConcr Γ : boolImplT :: Γ u⊢ₜ hclose (htv (hlistModV hx0)) : hclose (hlistModTConcr hx0).
+Example listTypConcr Γ : boolImplT :: Γ u⊢ₜ hlistModV hx0 : hlistModTConcr hx0.
 Proof.
   have Hn := nilTyp Γ.
   (* Without the call to [iD_Val], Coq would (smartly) default to [dvabs_typed] *)
@@ -181,7 +181,7 @@ Proof.
   tcrush.
 Qed.
 
-Example listTyp Γ : boolImplT :: Γ u⊢ₜ hclose (htv (hlistModV hx0)) : hclose (hlistModT hx0).
+Example listTyp Γ : boolImplT :: Γ u⊢ₜ hlistModV hx0 : hlistModT hx0.
 Proof.
   have Hv := listTypConcr Γ.
   have Hsub := consTSub Γ.
@@ -201,16 +201,16 @@ Example clListTyp Γ : Γ u⊢ₜ clListV : listT.
 Abort. *)
 
 Definition hclListV' (hbody : hvl → hvl → htm) :=
-  hlett: bool := htv (pureS boolImplV) in:
-  hlett: list := htv (hlistModV bool) in:
+  hlett: bool := pureS boolImplV in:
+  hlett: list := hlistModV bool in:
     hbody bool list.
 
 (** Have [clListV'] take an open de BruijN [tm]. *)
 Definition clListV' (body : tm) := hclListV' (λ _ _, pureS body).
 
 Example clListTyp' Γ (T : ty) body
-  (Ht : shift (hclose (hlistModT hx0)) :: boolImplT :: Γ u⊢ₜ body : shift (shift T)) :
-  Γ u⊢ₜ hclose (clListV' body) : T.
+  (Ht : shift (hlistModT hx0 : ty) :: boolImplT :: Γ u⊢ₜ body : shift (shift T)) :
+  Γ u⊢ₜ clListV' body : T.
 Proof.
   eapply iT_Let; first apply boolImplTyp.
   eapply iT_Let; first apply listTyp.
@@ -218,15 +218,15 @@ Proof.
 Qed.
 
 Example clListTypNat Γ :
-  Γ u⊢ₜ hclose (clListV' (hclose (htv (hvnat 1)))) : hclose 𝐍.
+  Γ u⊢ₜ clListV' (hvnat 1) : hclose 𝐍.
 Proof. apply clListTyp'. tcrush. Qed.
 
 (** This typing lemma generalizes over an arbitrary body [hbody], taken as open HOAS terms. To close it,
 we must turn it into a concrete term exactly as [hclListV'] would, which exposes implementation details
 I'd rather not. *)
 Example clListTyp'2 Γ (T : ty) hbody
-  (Ht : hclose (hlistModT hx1) :: boolImplT :: Γ u⊢ₜ hbody (hxm 1) (hxm 2) 2 : shift (shift T)) :
-  Γ u⊢ₜ hclose (hclListV' hbody) : T.
+  (Ht : (hlistModT hx1 : ty) :: boolImplT :: Γ u⊢ₜ hbody (hxm 1) (hxm 2) 2 : shift (shift T)) :
+  Γ u⊢ₜ hclListV' hbody : T.
 Proof.
   eapply iT_Let; first apply boolImplTyp.
   eapply iT_Let; first apply listTyp.
@@ -234,7 +234,7 @@ Proof.
 Qed.
 
 Example clListTypNat2 Γ :
-  Γ u⊢ₜ hclose (hclListV' (λ _ _, htv (hvnat 1))) : hclose 𝐍.
+  Γ u⊢ₜ hclListV' (λ _ _, hvnat 1) : 𝐍.
 Proof. apply clListTyp'2. tcrush. Qed.
 
 (** XXX: try recursive linking? Probably not. *)
@@ -243,33 +243,30 @@ Proof. apply clListTyp'2. tcrush. Qed.
 Definition hheadCons (list : hvl) :=
   htskip $ htskip (
     (hAnfBind $ htskip
-      (htyApp (htv list @: "cons") "T" 𝐍
-        $: htv (hvnat 0)
-        $: htskip (htv list @: "nil")))
-    @: "head" $: htv (hvnat 0)).
+      (htyApp (list @: "cons") "T" 𝐍
+        $: 0
+        $: htskip (list @: "nil")))
+    @: "head" $: 0).
 (* Invoking a method from an abstract type (here, [list @; "List"] needs a skip. *)
 
-Example hheadConsTyp Γ :
-  hclose (hlistModT hx1) :: boolImplT :: Γ u⊢ₜ (hheadCons (hxm 2)) 2 : hclose 𝐍.
+Program Example hheadConsTyp Γ :
+  hlistModT hx1 :: boolImplT :: Γ u⊢ₜ hheadCons (hxm 2) 2 : 𝐍.
 Proof.
-  match goal with
-    |- ?Γ u⊢ₜ _ : _ =>
-    set Γ' := Γ
-  end.
-  have HL : Γ' u⊢ₜ tv (ids 0): hclose (hlistModTBody hx1 hx0) by apply: iT_Mu_E'; first var; stcrush.
+  hideCtx; set Γ' := Γ0.
+  have HL : Γ' u⊢ₜ x0: hlistModTBody hx1 hx0 by apply: iT_Mu_E'; first var; stcrush.
 
   (* The result of "head" has one more later than the list. *)
-  eapply (iT_Sub (i := 2) (T1 := hclose (▶: (▶: 𝐍)))).
+  eapply (iT_Sub (i := 2) (T1 := ▶: ▶: 𝐍)).
   asideLaters. tcrush.
-  eapply (iT_All_E (T1 := hclose ⊤)); last (eapply iT_Sub_nocoerce); tcrush.
-  have Hnil: Γ' u⊢ₜ (htv (hxm 2) @: "nil") 2 : hclose (hnilT hx0)
+  eapply (iT_All_E (T1 := ⊤)); last (eapply iT_Sub_nocoerce); tcrush.
+  have Hnil: Γ' u⊢ₜ (hxm 2 @: "nil") 2 : hclose (hnilT hx0)
     by tcrush; eapply iT_Sub_nocoerce; ltcrush.
-  have Hsnil: Γ' u⊢ₜ htskip (htv (hxm 2) @: "nil") 2
+  have Hsnil: Γ' u⊢ₜ htskip (hxm 2 @: "nil") 2
     : hclose $ hTAnd (hp0 @; "List") (typeEq "A" ⊥). {
     eapply (iT_Sub (i := 1)), Hnil.
     by tcrush; [lThis | lNext; apply iSub_AddI; tcrush].
   }
-  have Hcons: Γ' u⊢ₜ (htv (hxm 2) @: "cons") 2 : hclose $ hconsT hx0. {
+  have Hcons: Γ' u⊢ₜ (hxm 2 @: "cons") 2 : hconsT hx0. {
     tcrush.
     eapply iT_Sub_nocoerce; by [| ltcrush].
   }
@@ -277,16 +274,16 @@ Proof.
   (* Here we produce a list of later nats, since we produce a list of p.A where p is the
   "type" argument and p : { A <: Nat} so p.A <: ▶: Nat. *)
   set U := (type "A" >: ⊥ <: ▶: 𝐍)%HT.
-  set V := (hclose (hTAnd (hlistT hx1 hx0) U)).
+  set V := (hTAnd (hlistT hx1 hx0) U).
   apply AnfBind_typed with (T := V); stcrush; first last.
   {
     eapply iT_Sub_nocoerce; first
-      eapply iT_Mu_E' with (T1 := hclose (val "head" : ⊤ →: hp0 @; "A"));
+      eapply iT_Mu_E' with (T1 := (val "head" : ⊤ →: hp0 @; "A")%HT);
       [ | done | tcrush ..].
       - varsub; asideLaters; lThis; ltcrush.
       - by apply (iSel_Sub (L := ⊥)), (path_tp_delay (i := 0)); wtcrush; varsub; ltcrush.
   }
-  eapply (iT_Sub (i := 1) (T1 := hclose (hTAnd (hp0 @; "List") U))).
+  eapply (iT_Sub (i := 1) (T1 := hTAnd (hp0 @; "List") U)).
   (******)
   (* We seem stuck here. The problem is that *we* wrote
   x.List & { A <: Nat }, and that's <: (▶: ListBody) & { A <: Nat }, and we have no
@@ -304,14 +301,14 @@ Proof.
   }
 
   eapply iT_All_E, Hsnil.
-  eapply (iT_All_E (T1 := hclose 𝐍)); last tcrush.
+  eapply (iT_All_E (T1 := 𝐍)); last tcrush.
   (* Perform avoidance on the type application. *)
-  eapply tyApp_typed with (T := hclose 𝐍); first done; intros; ltcrush; cbv -[Γ'].
+  eapply tyApp_typed with (T := 𝐍%HT); first done; intros; ltcrush; cbv -[Γ'].
   by eapply iSub_Sel', (path_tp_delay (i := 0)); try (typconstructor; var); wtcrush.
   by lNext.
   lNext; by eapply iSel_Sub, (path_tp_delay (i := 0)); try (typconstructor; var); wtcrush.
 Qed.
 
 Example clListTypNat3 Γ :
-  Γ u⊢ₜ hclose (hclListV' (λ bool, hheadCons)) : hclose 𝐍.
+  Γ u⊢ₜ hclListV' (λ bool, hheadCons) : 𝐍.
 Proof. apply clListTyp'2, hheadConsTyp. Qed.
