@@ -278,7 +278,7 @@ Proof.
   apply AnfBind_typed with (T := V); stcrush; first last.
   {
     eapply iT_Sub_nocoerce; first
-      eapply iT_Mu_E' with (T1 := (val "head" : ⊤ →: hp0 @; "A")%HT);
+      eapply (iT_Mu_E' (T1 := (val "head" : ⊤ →: hp0 @; "A")%HT));
       [ | done | tcrush ..].
       - varsub; asideLaters; lThis; ltcrush.
       - by apply (iSel_Sub (L := ⊥)), (path_tp_delay (i := 0)); wtcrush; varsub; ltcrush.

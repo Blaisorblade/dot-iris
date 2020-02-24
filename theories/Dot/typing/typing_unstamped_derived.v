@@ -36,7 +36,7 @@ Proof.
   eapply iT_All_Ex_p with (p2 := (pv (var_vl x2))); tcrush.
 Qed.
 
-Lemma iT_Mu_E Γ x T:
+Lemma iT_Mu_E {Γ x T}:
   Γ u⊢ₜ tv (var_vl x): TMu T →
   (*──────────────────────*)
   is_unstamped_ty' (S (length Γ)) T →
@@ -46,7 +46,7 @@ Proof.
   by apply (iT_Path (p := pv (ids x))), iP_Mu_E, iP_Val, Hx.
 Qed.
 
-Lemma iT_Mu_I Γ x T:
+Lemma iT_Mu_I {Γ x T}:
   Γ u⊢ₜ tv (var_vl x): T.|[(var_vl x)/] →
   (*──────────────────────*)
   is_unstamped_ty' (S (length Γ)) T →
@@ -153,7 +153,7 @@ Lemma iT_All_Ex' T2 {Γ e1 x2 T1 T3} :
   Γ u⊢ₜ tapp e1 (tv (ids x2)) : T3.
 Proof. intros; subst; exact: iT_All_Ex. Qed.
 
-Lemma iT_Mu_E' Γ x T1 T2:
+Lemma iT_Mu_E' {Γ x T1 T2}:
   Γ u⊢ₜ tv (ids x): μ T1 →
   T2 = T1.|[ids x/] →
   is_unstamped_ty' (S (length Γ)) T1 →
@@ -635,3 +635,34 @@ Lemma pDOT_Def_Path_derived Γ l p T
   (Hx : Γ u⊢ₚ p : T, 0):
   Γ u⊢{ l := dpt p } : TVMem l (TSing p).
 Proof. eapply iD_Path, (iP_Sngl_Refl (T := T)), Hx. Qed.
+
+Lemma pv_dlaterN {Γ p T i j} :
+  is_unstamped_ty' (length Γ) T →
+  Γ u⊢ₚ p : iterate TLater j T, i →
+  Γ u⊢ₚ p : T, i + j.
+Proof.
+  elim: j i => [|j IHj] i Hu Hp; rewrite (plusnO, plusnS); first done.
+  apply (IHj (S i)), pv_dlater, Hp; tcrush; exact: is_unstamped_TLater_n.
+Qed.
+
+Lemma iMu_LaterN_Sub_Distr_inv {Γ T i n} :
+  is_unstamped_ty' (S (length Γ)) T →
+  Γ u⊢ₜ iterate TLater n (TMu T), i <: TMu (iterate TLater n T), i.
+Proof.
+  intros Hu.
+  elim: n i => [|n IHn] i; first tcrush; rewrite !iterate_S.
+  ettrans; last apply iMu_Later_Sub_Distr_inv.
+  by asideLaters; wtcrush.
+  by apply is_unstamped_TLater_n; stcrush.
+Qed.
+
+Lemma iMu_LaterN_Sub_Distr {Γ T i n} :
+  is_unstamped_ty' (S (length Γ)) T →
+  Γ u⊢ₜ TMu (iterate TLater n T), i <: iterate TLater n (TMu T), i.
+Proof.
+  intros Hu.
+  elim: n i => [|n IHn] i; first tcrush; rewrite !iterate_S.
+  ettrans; first apply iMu_Later_Sub_Distr.
+  by apply is_unstamped_TLater_n; stcrush.
+  by asideLaters; wtcrush.
+Qed.
