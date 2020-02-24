@@ -666,3 +666,94 @@ Proof.
   by apply is_unstamped_TLater_n; stcrush.
   by asideLaters; wtcrush.
 Qed.
+
+Lemma shift_sub `{Sort X} {x : X} v: (shift x).|[v/] = x.
+Proof. autosubst. Qed.
+
+(* If I add [iSub_Skolem_P] to the syntactic type system, what other rules
+can I derive? Apparently, subtyping for recursive types, almost. See below! *)
+
+Set Suggest Proof Using.
+Section cond.
+  Context (Hskolem : ∀ Γ T1 T2 i j,
+    is_unstamped_ty' (length Γ) T1 →
+    iterate TLater i (shift T1) :: Γ u⊢ₚ pv (ids 0) : shift T2, j →
+    Γ u⊢ₜ T1, i <: T2, j).
+  Set Default Proof Using "Hskolem".
+
+(* Convenient application syntax. *)
+Lemma iSub_Skolem_P {Γ T1 T2 i j}:
+  is_unstamped_ty' (length Γ) T1 →
+  iterate TLater i (shift T1) :: Γ u⊢ₚ pv (ids 0) : shift T2, j →
+  Γ u⊢ₜ T1, i <: T2, j.
+Proof. apply Hskolem. Qed.
+
+
+Lemma iMu_Sub'' {Γ T i}:
+  is_unstamped_ty' (length Γ) T →
+  Γ u⊢ₜ TMu (shift T), i <: T, i.
+Proof.
+  intros Hu; apply iSub_Skolem_P; wtcrush.
+  apply (pv_dlaterN (i := 0)); wtcrush; hideCtx.
+  apply (iT_Mu_E' (T1 := iterate ▶:%ty i (shift (shift T)))),
+    is_unstamped_TLater_n; cbn; wtcrush; last by rewrite !TLater_subst shift_sub.
+  eapply iT_Sub_nocoerce; first var.
+  ettrans; first apply iMu_LaterN_Sub_Distr_inv; first
+    by rewrite (hren_upn 1); eapply is_unstamped_sub_ren_ty, Hu; auto.
+  rewrite (hren_upn 1 T) hrenS /=; tcrush; cbn.
+  by apply is_unstamped_TLater_n; wtcrush.
+Qed.
+
+Lemma iSub_Mu'' {Γ T i}:
+  is_unstamped_ty' (length Γ) T →
+  Γ u⊢ₜ T, i <: TMu (shift T), i.
+Proof.
+  intros Hu; apply iSub_Skolem_P => //.
+  have HusT: is_unstamped_ty' (S (S (length Γ))) (shift T).|[up (ren (+1))]
+    by rewrite (hren_upn 1); eapply is_unstamped_sub_ren_ty, Hu; auto.
+  apply (pv_dlaterN (i := 0)); wtcrush.
+  eapply iT_Sub_nocoerce, iMu_LaterN_Sub_Distr; last by wtcrush.
+  apply iT_Mu_I, is_unstamped_TLater_n; cbn; wtcrush.
+  by rewrite !TLater_subst (hren_upn 1) (hrenS T 1) shift_sub; var.
+Qed.
+
+(* Pretty close to [iMu_Sub_Mu'], except that the context of the hypothesis is different. *)
+Lemma iMu_Sub_Mu' {Γ T1 T2 i j}:
+  iterate TLater i (shift (μ T1)) :: Γ u⊢ₜ T1, i <: T2, j →
+  is_unstamped_ty' (S (length Γ)) T1 →
+  is_unstamped_ty' (S (length Γ)) T2 →
+  Γ u⊢ₜ TMu T1, i <: TMu T2, j.
+Proof.
+  intros Hsub Hu1 Hu2.
+  apply iSub_Skolem_P; stcrush.
+  have Hu1' : is_unstamped_ty' (S (S (length Γ))) T1.|[up (ren (+1))]. {
+    rewrite up_upren_internal; auto.
+    eapply is_unstamped_sub_ren_ty, Hu1.
+    by apply is_unstamped_ren_up.
+  }
+  have Hu2' : is_unstamped_ty' (S (S (length Γ))) T2.|[up (ren (+1))]. {
+    rewrite up_upren_internal; auto.
+    eapply is_unstamped_sub_ren_ty, Hu2.
+    by apply is_unstamped_ren_up.
+  }
+  eapply (pv_dlaterN (i := 0)); wtcrush.
+  hideCtx.
+  eapply iT_Sub_nocoerce, iMu_LaterN_Sub_Distr, Hu2'.
+  eapply iT_Mu_I; last by wtcrush.
+  rewrite TLater_subst.
+  rewrite (_ : T2.|[up (ren (+1))].|[x0/] = T2); last
+    by rewrite up_sub_compose; autosubst.
+  have Hx0 : Γ0 u⊢ₜ x0 : iterate ▶:%ty i T1. {
+    eapply iT_Mu_E'.
+    by eapply iT_Sub_nocoerce, iMu_LaterN_Sub_Distr_inv; [var|done].
+    by rewrite TLater_subst up_sub_compose; autosubst.
+    exact: is_unstamped_TLater_n.
+  }
+  eapply (iT_Sub (i := 0)), Hx0.
+  ettrans; first apply iLaterN_Sub; first wtcrush.
+  ettrans; last apply iSub_LaterN, Hu2.
+  rewrite !plusnO.
+  exact: Hsub.
+Qed.
+
+End cond.
