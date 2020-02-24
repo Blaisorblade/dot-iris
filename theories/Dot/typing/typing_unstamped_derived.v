@@ -563,7 +563,7 @@ Lemma iMu_Later_Sub_Distr_inv Γ T i :
   Γ u⊢ₜ TLater (TMu T), i <: TMu (TLater T), i.
 Proof. intros; asideLaters; tcrush. Qed.
 
-(** Show that [singleton_Mu_[12]] and [p_mu_[ie]_typed] are interderivable. *)
+(** Show that [singleton_Mu_[12]] and [iP_Mu_[IE]] are interderivable. *)
 Lemma singleton_Mu_1 {Γ p T i} :
   Γ u⊢ₚ p : TMu T, i →
   is_unstamped_ty' (S (length Γ)) T →
