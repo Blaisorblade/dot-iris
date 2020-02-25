@@ -223,3 +223,16 @@ Proof.
     (conj Hestep (elem_of_list_here _ _))).
   by eapply IHHsteps, Hin.
 Qed.
+
+Corollary simulation_skiperase_erased_steps_vl {t1 v2 σ σ' thp} :
+  rtc erased_step ([t1], σ) (thp, σ') → tv v2 ∈ thp →
+  rtc erased_step ([erase_tm t1], σ) ([tv (erase_vl v2)], σ').
+Proof. exact: (simulation_skiperase_erased_steps (t2 := tv v2)). Qed.
+
+Corollary simulation_skiperase_erased_steps_vl' {t1 v2 σ σ'} :
+  rtc erased_step ([t1], σ) ([tv v2], σ') →
+  rtc erased_step ([erase_tm t1], σ) ([tv (erase_vl v2)], σ').
+Proof.
+  intros.
+  by eapply simulation_skiperase_erased_steps_vl, elem_of_list_singleton.
+Qed.
