@@ -269,6 +269,9 @@ Instance dms_eq_dec' : EqDecision dms := list_eq_dec.
 Local Ltac finish_lists l x :=
   elim: l => [|x xs IHds] //=; idtac + elim: x => [l d] //=; f_equal => //; by f_equal.
 
+Lemma up_upren_vl (ξ : var → var): up (ren ξ) =@{var → vl} ren (upren ξ).
+Proof. exact: up_upren_internal. Qed.
+
 Lemma vl_rename_Lemma (ξ : var → var) v : rename ξ v = v.[ren ξ]
 with
 tm_rename_Lemma (ξ : var → var) t : rename ξ t = t.|[ren ξ]
@@ -281,7 +284,7 @@ path_rename_Lemma (ξ : var → var) p :
   rename ξ p = p.|[ren ξ].
 Proof.
   all: [> destruct v | destruct t | destruct d | destruct T | destruct p].
-  all: rewrite /= ?up_upren_internal; f_equal => //; finish_lists l x.
+  all: rewrite /= ?up_upren_vl; f_equal => //; finish_lists l x.
 Qed.
 
 Lemma vl_ids_Lemma v : v.[ids] = v

@@ -156,6 +156,9 @@ Instance vls_eq_dec' : EqDecision vls := list_eq_dec.
 Local Ltac finish_lists l x :=
   elim: l => [|x xs IHds] //=; by f_equal.
 
+Lemma up_upren_vl (ξ : var → var): up (ren ξ) =@{var → vl} ren (upren ξ).
+Proof. exact: up_upren_internal. Qed.
+
 Lemma vl_rename_Lemma (ξ : var → var) v : rename ξ v = v.[ren ξ]
 with
 tm_rename_Lemma (ξ : var → var) t : rename ξ t = t.|[ren ξ]
@@ -163,7 +166,7 @@ with
 ty_rename_Lemma (ξ : var → var) T : rename ξ T = T.|[ren ξ].
 Proof.
   all: [> destruct v | destruct t | destruct T].
-  all: rewrite /= ?up_upren_internal; f_equal => //; finish_lists l x.
+  all: rewrite /= ?up_upren_vl; f_equal => //; finish_lists l x.
 Qed.
 
 Lemma vl_ids_Lemma v : v.[ids] = v

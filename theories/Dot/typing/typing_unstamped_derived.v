@@ -727,12 +727,12 @@ Proof.
   intros Hsub Hu1 Hu2.
   apply iSub_Skolem_P; stcrush.
   have Hu1' : is_unstamped_ty' (S (S (length Γ))) T1.|[up (ren (+1))]. {
-    rewrite up_upren_internal; auto.
+    rewrite up_upren_vl.
     eapply is_unstamped_sub_ren_ty, Hu1.
     by apply is_unstamped_ren_up.
   }
   have Hu2' : is_unstamped_ty' (S (S (length Γ))) T2.|[up (ren (+1))]. {
-    rewrite up_upren_internal; auto.
+    rewrite up_upren_vl.
     eapply is_unstamped_sub_ren_ty, Hu2.
     by apply is_unstamped_ren_up.
   }
