@@ -1,7 +1,7 @@
 (** Define matching between terms which only differ in type members,
     following Sec. 3.5 of the PDF. *)
 From iris.program_logic Require Import
-     ectx_lifting ectx_language ectxi_language.
+     language ectx_language ectxi_language.
 From D.Dot Require Import syn traversals.
 
 Set Implicit Arguments.
@@ -285,18 +285,12 @@ Proof. apply same_skel_subst. Qed.
 Lemma same_skel_dm_subst v : same_skel_dm_subst_def v.
 Proof. apply same_skel_subst. Qed.
 
-(* Just a test proof. *)
+Lemma same_skel_tm_subst' e : same_skel_tm_subst_def e.
+Proof. apply same_skel_subst. Qed.
 Lemma same_skel_tm_subst e e' v v':
   same_skel_tm e e' → same_skel_vl v v' →
   same_skel_tm (e.|[v/]) (e'.|[v'/]).
-Proof.
-  move: e'; induction e; destruct e';
-  move => Hske Hskv;
-    cbn in Hske |- *; try inversion Hske; ev; asimpl;
-      auto.
-  - apply same_skel_vl_subst; auto.
-    intros x; destruct x as [|x]; asimpl; simpl; auto.
-Qed.
+Proof. by intros; apply same_skel_tm_subst' => // -[|x]. Qed.
 
 Fixpoint same_skel_dms (ds1 ds2 : dms) {struct ds1} : Prop :=
   match ds1 with
