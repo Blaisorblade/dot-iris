@@ -5,6 +5,8 @@ From D.Dot Require typingExInfra.
 Module TestDB.
 Import DBNotation.
 
+Open Scope Z_scope.
+
 Check {@ TInt ; TInt ; TInt }%ty.
 
 (* Check (TSel (pself (pself p0 1) 2) 3). *)

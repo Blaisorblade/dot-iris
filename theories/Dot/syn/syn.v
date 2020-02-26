@@ -12,7 +12,7 @@ Module VlSorts <: VlSortsFullSig.
 
 Definition label := string.
 
-Inductive base_lit : Set := lint (n : nat) | lbool (b : bool).
+Inductive base_lit : Set := lint (n : Z) | lbool (b : bool).
 Inductive un_op : Set := unot.
 Inductive bin_op : Set := bplus | bminus | btimes | bdiv | blt | ble | beq.
 Inductive base_ty : Set := tint | tbool.
@@ -412,23 +412,23 @@ Definition bin_op_eval_bool (b : bin_op) (b1 b2 : bool) : option vl :=
   | _ => None
   end.
 
-Definition bin_op_eval_int (b : bin_op) (n1 n2 : nat) : option vl :=
+Definition bin_op_eval_int (b : bin_op) (n1 n2 : Z) : option vl :=
   match b with
   | bplus => Some $ vlit $ lint (n1 + n2)
   | bminus =>
-    if bool_decide (n2 ≤ n1) then
+    if bool_decide (n2 ≤ n1)%Z then
       Some $ vlit $ lint (n1 - n2)
     else
       None
   | btimes => Some $ vlit $ lint (n1 - n2)
   | bdiv =>
     match n2 with
-    | 0 => None
+    | Z0 => None
     | _ => Some $ vlit $ lint (n1 / n2)
     end
-  | blt => Some $ vlit $ lbool $ bool_decide (n1 < n2)
-  | ble => Some $ vlit $ lbool $ bool_decide (n1 ≤ n2)
-  | beq => Some $ vlit $ lbool $ bool_decide (n1 = n2)
+  | blt => Some $ vlit $ lbool $ bool_decide (n1 < n2)%Z
+  | ble => Some $ vlit $ lbool $ bool_decide (n1 ≤ n2)%Z
+  | beq => Some $ vlit $ lbool $ bool_decide (n1 = n2)%Z
   end.
 
 Definition bin_op_eval (b : bin_op) (v1 v2 : vl) : option vl :=

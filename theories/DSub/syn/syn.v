@@ -15,7 +15,7 @@ Inductive tm : Type :=
   | tskip : tm -> tm
  with vl_ : Type :=
   | var_vl : var -> vl_
-  | vint : nat -> vl_
+  | vint : Z -> vl_
   | vabs : tm -> vl_
   | vty : ty -> vl_
   | vstamp : list vl_ -> stamp -> vl_

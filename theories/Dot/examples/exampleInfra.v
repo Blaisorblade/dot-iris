@@ -14,7 +14,7 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 Coercion tv : vl_ >-> tm.
 Coercion pv : vl_ >-> path.
 Coercion vlit : base_lit >-> vl_.
-Coercion lint : nat >-> base_lit.
+Coercion lint : Z >-> base_lit.
 Coercion lbool : bool >-> base_lit.
 
 Module Export packedStampedTyDefs.
@@ -42,7 +42,7 @@ End packedStampedTyDefs.
 Module Import DBNotation.
 
 (* Definition vint' n := vint n.
-Coercion vint' : nat >-> vl_. *)
+Coercion vint' : Z >-> vl_. *)
 (* XXX rename *)
 Bind Scope expr_scope with tm.
 Delimit Scope expr_scope with E.

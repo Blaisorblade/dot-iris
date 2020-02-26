@@ -43,10 +43,10 @@ tb = λ v : tm, (v > 0)%E
 Arguments tb _%expr_scope
 ν {@ type "A" = (σ2; 1) }
      : vl_
-ν {@ val "a" = 0;
+ν {@ val "a" = 0%Z;
   type "A" = (σ2; 1)}
      : vl_
-ν {@ val "a" = 0;
+ν {@ val "a" = 0%Z;
   type "A" = (σ2; 1)}
      : vl_
 hanyToNothing = hclose (⊤ →: ⊥)

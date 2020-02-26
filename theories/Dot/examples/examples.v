@@ -35,12 +35,14 @@ Qed.
 Module examples.
 
 Local Hint Constructors bin_op_syntype cond_bin_op_syntype : core.
+Local Hint Extern 1000 => lia : core.
 
 Tactic Notation "wp_bind" uconstr(p) := iApply (wp_bind (fill [p])).
-Ltac wp_bin_base := iApply wp_bin; first eapply cond_bin_op_syntype_sound; by [eauto|].
+Ltac wp_bin_base := iApply wp_bin; first eapply cond_bin_op_syntype_sound; by [cbn; eauto|].
 Ltac wp_bin := iApply wp_wand; [wp_bin_base | iIntros].
 Import stamp_transfer.
 
+Local Open Scope Z_scope.
 (* Generic useful lemmas — not needed for fundamental theorem,
     but very useful for examples. *)
 Section helpers.
@@ -52,9 +54,9 @@ Section helpers.
     by iMod (leadsto_alloc φ Hs with "Hsγ") as (?) "[_ [_ $]]".
   Qed.
   Lemma wp_ge m n (Hge : m > n) : WP m > n {{ w, w ≡ true }}%I.
-  Proof. wp_bin. ev; simplify_eq/=. by case_decide. Qed.
+  Proof. wp_bin. ev; simplify_eq/=. case_decide; by [|lia]. Qed.
   Lemma wp_nge m n (Hnge : ¬ m > n) : WP m > n {{ w, w ≡ false }}%I.
-  Proof. wp_bin. ev; simplify_eq/=. by case_decide. Qed.
+  Proof. wp_bin. ev; simplify_eq/=. case_decide; by [|lia]. Qed.
 
   Lemma setp_value Γ (T : olty Σ 0) v: Γ s⊨ tv v : T ⊣⊢ (□∀ ρ, s⟦ Γ ⟧* ρ → T vnil ρ v.[ρ]).
   Proof.
@@ -121,7 +123,7 @@ Proof. exact (alloc ipos). Qed.
 
 Section div_example.
   Lemma idtp_value_eq T l d (Hl : label_of_ty T = Some l):
-    (∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → D*⟦ T ⟧ ρ d.|[ρ]) ⊣⊢ [] s⊨ { l := d } : C⟦ T ⟧.
+    (∀ ρ, ⌜path_includes x0 ρ [(l, d)]⌝ → D*⟦ T ⟧ ρ d.|[ρ]) ⊣⊢ [] s⊨ { l := d } : C⟦ T ⟧.
   Proof.
     rewrite /idtp/=/lift_ldlty/= ld_label_match Hl; iSplit.
     by iIntros "#H !> /=" (ρ Hpid _); iSplit; first done; iApply "H".
@@ -146,17 +148,17 @@ Section div_example.
   Definition hmkPosBodyV n := htif (n > 0) n hloopTm.
   Definition hmkPosV := λ: n, hmkPosBodyV n.
 
-  Lemma wp_if_ge (n : nat) :
+  Lemma wp_if_ge (n : Z) :
     WP hclose (hmkPosBodyV n) {{ w, ⌜ w = n ∧ n > 0 ⌝}}%I.
   Proof using Type*.
     wp_bind (IfCtx _ _).
     wp_bin; ev; simplify_eq/=.
     case_decide; rewrite -wp_pure_step_later //; iNext.
-    by rewrite -wp_value'.
+    by rewrite -wp_value'; auto.
     iApply wp_wand; [iApply loopSemT | naive_solver].
   Qed.
 
-  Lemma wp_if_ge' (n : nat) :
+  Lemma wp_if_ge' (n : Z) :
     WP tif (n > 0) (1 `div` n) (hclose hloopTm) {{ w, ⟦ 𝐙 ⟧ ids w ∧ ⌜ n > 0 ⌝}}%I.
   Proof using Type*.
     wp_bind (IfCtx _ _).
@@ -229,7 +231,7 @@ Section div_example.
   Definition testVl l : vl := ν {@ type l = ([]; s)}.
 
   Lemma sInTestVl l ρ :
-    path_includes (pv (ids 0)) (testVl l .: ρ) [type l = ([]; s)].
+    path_includes (pv x0) (testVl l .: ρ) [type l = ([]; s)].
   Proof. constructor; naive_solver. Qed.
   Hint Resolve sInTestVl : core.
 
@@ -246,7 +248,7 @@ Section div_example.
   Qed.
 
   Lemma ty_mkPos :
-    [] s⊨ hclose hmkPosV : oAll V⟦ 𝐙 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : nat, v = n ∧ n > 0 ⌝)).
+    [] s⊨ hclose hmkPosV : oAll V⟦ 𝐙 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : Z, v = n ∧ n > 0 ⌝)).
   Proof using Type*.
     rewrite -sT_All_I /= /shead.
     iIntros (ρ) "!> /=". iDestruct 1 as %(_ & n & Hw); simplify_eq/=; rewrite Hw.
@@ -254,10 +256,10 @@ Section div_example.
   Qed.
 
   Lemma wp_mkPos :
-    oAll V⟦ 𝐙 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : nat, v = n ∧ n > 0 ⌝)) vnil ids (hclose hmkPosV).
+    oAll V⟦ 𝐙 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : Z, v = n ∧ n > 0 ⌝)) vnil ids (hclose hmkPosV).
   Proof using Type*. iApply wp_value_inv'. iApply (ty_mkPos with "[//]"). Qed.
 
-  Lemma wp_div_spec (m : nat) w : ipos vnil ids w -∗ WP m `div` w {{ ⟦ 𝐙 ⟧ ids }}.
+  Lemma wp_div_spec (m : Z) w : ipos vnil ids w -∗ WP m `div` w {{ ⟦ 𝐙 ⟧ ids }}.
   Proof. iDestruct 1 as %(n&?&?); simplify_eq. wp_bin. by iIntros "!%"; naive_solver. Qed.
 
   Lemma posModVHasA: Hs -∗ [] ⊨ posModV : hclose posModT.
@@ -414,9 +416,9 @@ Section small_ex.
   Definition svTyp2Concr := oMu svTyp2ConcrBody.
 
   Lemma sT_Var0 {Γ T}
-    (Hx : Γ !! 0 = Some T):
+    (Hx : Γ !! 0%nat = Some T):
     (*──────────────────────*)
-    Γ s⊨ of_val (ids 0) : T.
+    Γ s⊨ of_val x0 : T.
   Proof. rewrite -(hsubst_id T). apply (sT_Var Hx). Qed.
 
   (* This works! But we get a weaker type, because we're using typing rules

@@ -6,7 +6,7 @@ From iris.program_logic Require Import language.
 
 From D.Dot Require Import rules unary_lr.
 
-Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (n : nat).
+Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (n : Z).
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
@@ -15,8 +15,8 @@ Inductive cond_bin_op_syntype : bin_op → ∀ (B1 B2 Br : base_ty),
   (prim_sem B1 → prim_sem B2 → Prop) → Set :=
 | ty_syn b B1 B2 Br : bin_op_syntype b B1 B2 Br →
                       cond_bin_op_syntype b B1 B2 Br (const (const True))
-| ty_bminus         : cond_bin_op_syntype bminus tint  tint  tint  (λ n1 n2, n2 ≤ n1)
-| ty_bdiv           : cond_bin_op_syntype bdiv   tint  tint  tint  (λ _ n, n > 0).
+| ty_bminus         : cond_bin_op_syntype bminus tint  tint  tint  (λ n1 n2, n2 ≤ n1)%Z
+| ty_bdiv           : cond_bin_op_syntype bdiv   tint  tint  tint  (λ _ n, n > 0)%Z.
 
 Definition un_op_semtype u B1 Br := ∀ v, pure_interp_prim B1 v →
   ∃ w, un_op_eval u v = Some w ∧ pure_interp_prim Br w.

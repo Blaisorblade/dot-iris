@@ -186,7 +186,7 @@ Proof. setoid_rewrite alias_paths_pv_eq_1. apply alias_paths_symm. Qed.
 Definition prim_sem (B : base_ty) :=
   match B with
   | tbool => bool
-  | tint => nat
+  | tint => Z
   end.
 
 Definition prim_evals_to (B : base_ty) (v : vl) : prim_sem B → Prop :=
