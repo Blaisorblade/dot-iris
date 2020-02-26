@@ -36,7 +36,9 @@ Translation table:
 For each rule, there are up to three versions, with corresponding prefixes.
 - Purely semantic lemma (s)
 - Syntactic lemma
-- Syntactic typing rule (i for inductive, but most still don't follow this naming convention :-().
+- Syntactic typing rule (i for inductive).
+
+The paper's P-Var is here called (s|i|)P_Val.
 
 ## Differences between our paper (and technical appendix) and our Coq development.
 
