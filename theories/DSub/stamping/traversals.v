@@ -8,7 +8,7 @@ Set Implicit Arguments.
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
-Implicit Types (T: ty) (v: vl) (e t: tm) (Γ : ctx) (n: nat).
+Implicit Types (T: ty) (v: vl) (e t: tm) (Γ : ctx).
 
 Module Trav1.
 Record Traversal {travStateT: Type} :=

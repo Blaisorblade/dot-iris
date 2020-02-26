@@ -141,12 +141,7 @@ with
 tm_eq_dec t1 t2 : Decision (t1 = t2)
 with
 ty_eq_dec T1 T2 : Decision (T1 = T2).
-Proof.
-   all: rewrite /Decision; decide equality;
-       try (apply vl_eq_dec || apply tm_eq_dec || apply ty_eq_dec ||
-            apply @list_eq_dec ||
-            apply nat_eq_dec || apply positive_eq_dec); auto.
-Defined.
+Proof. all: rewrite /Decision; decide equality; solve_decision. Defined.
 
 Instance vl_eq_dec' : EqDecision vl := vl_eq_dec.
 Instance tm_eq_dec' : EqDecision tm := tm_eq_dec.

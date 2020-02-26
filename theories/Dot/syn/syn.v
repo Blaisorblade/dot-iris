@@ -414,17 +414,17 @@ Definition bin_op_eval_bool (b : bin_op) (b1 b2 : bool) : option vl :=
 
 Definition bin_op_eval_int (b : bin_op) (n1 n2 : nat) : option vl :=
   match b with
-  | bplus => Some $ vlit $ lint $ n1 + n2
+  | bplus => Some $ vlit $ lint (n1 + n2)
   | bminus =>
     if bool_decide (n2 ≤ n1) then
-      Some $ vlit $ lint $ n1 - n2
+      Some $ vlit $ lint (n1 - n2)
     else
       None
-  | btimes => Some $ vlit $ lint $ n1 - n2
+  | btimes => Some $ vlit $ lint (n1 - n2)
   | bdiv =>
     match n2 with
     | 0 => None
-    | _ => Some $ vlit $ lint $ n1 / n2
+    | _ => Some $ vlit $ lint (n1 / n2)
     end
   | blt => Some $ vlit $ lbool $ bool_decide (n1 < n2)
   | ble => Some $ vlit $ lbool $ bool_decide (n1 ≤ n2)
