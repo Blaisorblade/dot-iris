@@ -370,7 +370,7 @@ Section syntyping_stamping_lemmas.
     move: IHs1 => /(.$ g) /= [g1 ?]; ev.
     have ? := unstamped_path_subject Hu1.
     exists (path2tm p), g1; naive_solver.
-  - intros. exists (tv (vnat n)), g; naive_solver.
+  - intros. exists (tv (vint n)), g; naive_solver.
   - intros. exists (tv (vbool b)), g; naive_solver.
   - intros * Hprim Hu1 IHs1 g.
     move: IHs1 => /(.$ g) [e1' [g1 ?]].

@@ -18,16 +18,16 @@ From D.Dot Require Import unary_lr
   lr_lemmas lr_lemmasTSel lr_lemmasNoBinding lr_lemmasDefs lr_lemmasPrim.
 From D.Dot Require Import typeExtractionSem.
 From D.Dot Require Import fundamental.
+Import dlang_adequacy stamp_transfer.
 (* From D.Dot Require Import scalaLib.
 From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived. *)
 Import DBNotation.
-Import examples prelude saved_interp_dep.
+Import examples primOption prelude saved_interp_dep.
 Import later_sub_sem.
 
 Set Implicit Arguments.
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
-Import primOption.
 
 Section hoas.
   Import hoasNotation.
@@ -76,7 +76,7 @@ Definition optionTy pOpt pCore := TAnd (pOpt @; "Option") (type "T" >: ⊥ <: (p
 
 Definition pSymbol : stampTy := MkTy 50 [x0; x1; x2] {@
   val "tpe" : optionTy x2 x1;
-  val "id" : TNat
+  val "id" : TInt
 } 3.
 
 Definition pTypeRef : stampTy := MkTy 60 [x0; x1] (TAnd (x0 @; "Type") typeRefTBody) 2.
@@ -96,8 +96,6 @@ Lemma Htop : styConforms fromPDotG pTop. Proof. done. Qed.
 Lemma Hsymbol : styConforms fromPDotG pSymbol. Proof. done. Qed.
 Lemma HtypeRef : styConforms fromPDotG' pTypeRef. Proof. done. Qed.
 
-(* Import AssertPlain.
-From D.Dot Require Import hoas. *)
 Definition assert cond :=
   tif cond 0 hloopTm.
 Definition seq (e1 e2 : tm) := lett e1 (shift e2).
@@ -122,17 +120,17 @@ Definition fromPDotPaperTypesVBody : dms := {@
 Definition fromPDotPaperSymbolsTBody pOpt : ty := {@
   typeEq "Symbol" $ {@
     val "tpe" : optionTy pOpt x1;
-    val "id" : TNat
+    val "id" : TInt
   }%ty;
-  val "newSymbol" : optionTy pOpt x1 →: TNat →: x0 @; "Symbol"
+  val "newSymbol" : optionTy pOpt x1 →: TInt →: x0 @; "Symbol"
 }.
 
 Definition fromPDotPaperAbsSymbolsTBody pOpt : ty := {@
   type "Symbol" >: ⊥ <: {@
     val "tpe" : optionTy pOpt x1;
-    val "id" : TNat
+    val "id" : TInt
   };
-  val "newSymbol" : optionTy pOpt x1 →: TNat →: x0 @; "Symbol"
+  val "newSymbol" : optionTy pOpt x1 →: TInt →: x0 @; "Symbol"
 }.
 
 Definition fromPDotPaperTBody pOpt : ty := {@
@@ -279,7 +277,7 @@ Proof.
 
   (* Just to restate the current goal (for some extra readability). *)
   iAssert (V⟦ shift typeRefTBody ⟧ vnil ρ
-    (shiftV (ν [val "symb" = x1])).[up ρ].[vnat 0/])
+    (shiftV (ν [val "symb" = x1])).[up ρ].[vint 0/])
     as "{Hw} #Hw"; last iApply "Hw".
   rewrite (_ : (shiftV _).[_].[_] = ν [val "symb" = shiftV (ρ 0)]); last
     by rewrite up_sub_compose_vl; autosubst.
@@ -482,7 +480,6 @@ Qed.
 
 End semExample.
 
-Import dlang_adequacy swap_later_impl stamp_transfer.
 Lemma pcoreSafe: safe (lett (hoptionModV : vl) fromPDotPaper).
 Proof.
   eapply (safety_dot_sem dlangΣ (T := _))=>*.

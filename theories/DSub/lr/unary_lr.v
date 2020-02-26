@@ -58,7 +58,7 @@ Section logrel.
     λ ρ t, WP t {{ interp ρ }} %I.
   Global Arguments interp_expr /.
 
-  Definition interp_nat : envD Σ := λ ρ v, (∃ n, ⌜v = vnat n⌝) %I.
+  Definition interp_nat : envD Σ := λ ρ v, (∃ n, ⌜v = vint n⌝) %I.
   Global Arguments interp_nat /.
 
   Definition interp_top : envD Σ := λ ρ v, True%I.
@@ -71,11 +71,11 @@ Section logrel.
       contractive, unlike other logical relations here.
       It'd be good to write an example where this makes a difference.
       I think that would be something like
-      nu x. { T = TNat; U = x.T -> x.T }:
-      mu (x: {T <: TNat; U <: x.T -> TNat}).
+      nu x. { T = TInt; U = x.T -> x.T }:
+      mu (x: {T <: TInt; U <: x.T -> TInt}).
       If the function type constructor is not contractive but only non-expansive,
-      typechecking this example needs to establish x.T <: TNat having in context
-      only x: {T <: TNat; U <: x.T -> TNat}.
+      typechecking this example needs to establish x.T <: TInt having in context
+      only x: {T <: TInt; U <: x.T -> TInt}.
     *)
   Definition interp_forall interp1 interp2 : envD Σ :=
     λ ρ v,
@@ -103,7 +103,7 @@ Section logrel.
     | TBot => interp_bot
     | TLater T => interp_later ⟦ T ⟧
     | TTMem L U => interp_tmem ⟦ L ⟧ ⟦ U ⟧
-    | TNat => interp_nat
+    | TInt => interp_nat
     | TAll T1 T2 => interp_forall ⟦ T1 ⟧ ⟦ T2 ⟧
     | TSel w => interp_sel w
     end%I.

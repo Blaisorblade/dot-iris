@@ -7,7 +7,7 @@ Import DBNotation.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
-Notation HashableString := (μ {@ val "hashCode" : TUnit →: TNat }).
+Notation HashableString := (μ {@ val "hashCode" : TUnit →: TInt }).
 
 Module Export loop.
 Import hoasNotation.
@@ -30,10 +30,10 @@ Definition hloopFunTm : htm := htv hloopDefV @: "loop".
 Example loopFunTyp Γ : Γ u⊢ₜ hclose hloopFunTm : hclose ⊤ →: ⊥.
 Proof. have ? := loopDefTyp Γ; tcrush. Qed.
 
-Definition hloopTm : htm := hloopFunTm $: htv (hvnat 0).
+Definition hloopTm : htm := hloopFunTm $: htv (hvint 0).
 Example loopTyp Γ : Γ u⊢ₜ hclose hloopTm : ⊥.
 Proof.
-  have ? := loopFunTyp Γ; apply (iT_All_E (T1 := ⊤)), (iT_Sub_nocoerce 𝐍);
+  have ? := loopFunTyp Γ; apply (iT_All_E (T1 := ⊤)), (iT_Sub_nocoerce 𝐙);
     tcrush.
 Qed.
 End loop.
@@ -177,7 +177,7 @@ Definition hassertFun e :=
   pureS (assertBody e).
 
 Definition hassert e :=
-  hassertFun e $: htv (hvnat 0).
+  hassertFun e $: htv (hvint 0).
 
 Lemma hassertBodyTyp Γ e T :
   T :: Γ u⊢ₜ e : hclose hIFT →
@@ -226,7 +226,7 @@ Definition hassertFun e :=
   pureS (assertBody e).
 
 Definition hassert e :=
-  hassertFun e $: htv (hvnat 0).
+  hassertFun e $: htv (hvint 0).
 
 Lemma hassertBodyFalseTyp Γ e T :
   T :: Γ u⊢ₜ e : hclose hIFTFalseT →

@@ -165,11 +165,11 @@ Section SemTypes.
      However, I am not sure we need this; it'd be good to
      write an example where this makes a difference.
      I think that would be something like
-     nu x. { T = TNat; U = x.T -> x.T }:
-     mu (x: {T <: TNat; U <: x.T -> TNat}).
+     nu x. { T = TInt; U = x.T -> x.T }:
+     mu (x: {T <: TInt; U <: x.T -> TInt}).
      If the function type constructor is not contractive but only non-expansive,
-     typechecking this example needs to establish x.T <: TNat having in context
-     only x: {T <: TNat; U <: x.T -> TNat}.
+     typechecking this example needs to establish x.T <: TInt having in context
+     only x: {T <: TInt; U <: x.T -> TInt}.
    *)
   Definition oAll τ1 τ2 := olty0
     (λI ρ v,
@@ -267,7 +267,7 @@ Notation "Γ ⊨[ gφ  ] e : T" := (wellMappedφ gφ → ietp Γ T e)%I (at leve
 Notation "Γ ⊨p[ gφ  ] p : T , i" := (wellMappedφ gφ → iptp Γ T p i)%I (at level 74, p, T, i at next level).
 Notation "Γ ⊨[ gφ  ] T1 , i <: T2 , j" := (wellMappedφ gφ → istpi Γ T1 T2 i j)%I (at level 74, T1, T2, i, j at next level).
 
-Notation oNat := (oPrim tnat).
+Notation oInt := (oPrim tint).
 Notation oBool := (oPrim tbool).
 
 (** Show these typing judgments are equivalent to what we present in the paper. *)

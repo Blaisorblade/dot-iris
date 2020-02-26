@@ -32,7 +32,7 @@ Inductive typed Γ g : tm → ty → Prop :=
     (*─────────────────────────*)
     Γ s⊢ₜ[ g ] tv (vabs e) : TAll T1 T2
 | iT_Nat_I n:
-    Γ s⊢ₜ[ g ] tv (vnat n): TNat
+    Γ s⊢ₜ[ g ] tv (vint n): TInt
 
 (** "General" rules *)
 | iT_Var x T :
@@ -185,7 +185,7 @@ Proof.
     move: IHs1 => /(.$ g) [e' [g1 [IHs1 [Hle1 ?]]]]; ev.
     exists (tv (vabs e')), g1; cbn.
     split_and!; eauto with f_equal.
-  - intros. exists (tv (vnat n)), g; cbn.
+  - intros. exists (tv (vint n)), g; cbn.
     split_and!; eauto with f_equal.
   - intros. exists (tv (var_vl x)), g; cbn.
     have ? : x < length Γ. exact: lookup_lt_Some.

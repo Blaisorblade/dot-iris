@@ -1,17 +1,17 @@
-{@ 𝐍;
-𝐍;
-𝐍}%ty
+{@ 𝐙;
+𝐙;
+𝐙}%ty
      : ty
 ν {@ val "a" = 0 }
      : vl_
-μ {@ type "A" >: 𝐍 <: ⊤ }
+μ {@ type "A" >: 𝐙 <: ⊤ }
      : ty
-μ {@ val "a" : 𝐍  }
+μ {@ val "a" : 𝐙  }
      : ty
-μ {@ type "A" >: 𝐍 <: ⊤;
-  val "a" : 𝐍 
+μ {@ type "A" >: 𝐙 <: ⊤;
+  val "a" : 𝐙 
   ;
-  val "b" : 𝐍 
+  val "b" : 𝐙 
   }
      : ty
 ν {@}
@@ -43,10 +43,10 @@ tb = λ v : tm, (v > 0)%E
 Arguments tb _%expr_scope
 ν {@ type "A" = (σ2; 1) }
      : vl_
-ν {@ val "a" = 0;
+ν {@ val "a" = 0%Z;
   type "A" = (σ2; 1)}
      : vl_
-ν {@ val "a" = 0;
+ν {@ val "a" = 0%Z;
   type "A" = (σ2; 1)}
      : vl_
 hanyToNothing = hclose (⊤ →: ⊥)
@@ -65,12 +65,12 @@ Found type "vl" where "hvl" was expected.
      : htm
 (1 > 0)%HE
      : htm
-     = TAll TNat (TMu (TAnd (TSing DBNotation.x1) (TSing DBNotation.x0)))
+     = TAll TInt (TMu (TAnd (TSing DBNotation.x1) (TSing DBNotation.x0)))
      : ty
      = λ (T : nat → ty) (U : (nat → vl_) → nat → ty) (i : nat),
          TAll (T i) (U (λ x : nat, var_vl (x - S i)) (S i))
      : hty → (hvl → hty) → hty
-     = TAnd TNat (TAnd TNat (TAnd TNat TTop))
+     = TAnd TInt (TAnd TInt (TAnd TInt TTop))
      : ty
      = vabs DBNotation.x0
      : vl

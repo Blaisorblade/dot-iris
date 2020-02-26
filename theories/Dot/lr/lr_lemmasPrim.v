@@ -6,7 +6,7 @@ From iris.program_logic Require Import language.
 
 From D.Dot Require Import rules unary_lr.
 
-Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (n : nat).
+Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (n : Z).
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
@@ -15,8 +15,8 @@ Inductive cond_bin_op_syntype : bin_op → ∀ (B1 B2 Br : base_ty),
   (prim_sem B1 → prim_sem B2 → Prop) → Set :=
 | ty_syn b B1 B2 Br : bin_op_syntype b B1 B2 Br →
                       cond_bin_op_syntype b B1 B2 Br (const (const True))
-| ty_bminus         : cond_bin_op_syntype bminus tnat  tnat  tnat  (λ n1 n2, n2 ≤ n1)
-| ty_bdiv           : cond_bin_op_syntype bdiv   tnat  tnat  tnat  (λ _ n, n > 0).
+| ty_bminus         : cond_bin_op_syntype bminus tint  tint  tint  (λ n1 n2, n2 ≤ n1)%Z
+| ty_bdiv           : cond_bin_op_syntype bdiv   tint  tint  tint  (λ _ n, n ≠ 0).
 
 Definition un_op_semtype u B1 Br := ∀ v, pure_interp_prim B1 v →
   ∃ w, un_op_eval u v = Some w ∧ pure_interp_prim Br w.
@@ -46,7 +46,7 @@ Qed.
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
-  Lemma sT_Nat_I Γ n: Γ s⊨ tv (vnat n): oNat.
+  Lemma sT_Nat_I Γ n: Γ s⊨ tv (vint n): oInt.
   Proof. iIntros "!> * _ /="; rewrite -wp_value /= /pure_interp_prim /prim_evals_to; eauto. Qed.
 
   Lemma sT_Bool_I Γ b: Γ s⊨ tv (vbool b): oBool.

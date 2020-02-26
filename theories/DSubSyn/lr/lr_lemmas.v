@@ -169,7 +169,7 @@ Section Sec.
   Qed.
 
   Lemma T_Nat_I n:
-    Γ ⊨ tv (vnat n): TNat.
+    Γ ⊨ tv (vint n): TInt.
   Proof.
     iIntros "/= !>" (ρ) "_". rewrite -wp_value; unfold_interp. by iExists n.
   Qed.

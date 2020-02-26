@@ -49,17 +49,17 @@ Definition fromPDotPaperTypesV : vl := ν {@
 Definition fromPDotPaperSymbolsTBody : ty := {@
   typeEq "Symbol" $ {@
     val "tpe" : x1 @ "types" @; "Type";
-    val "id" : TNat
+    val "id" : TInt
   }%ty;
-  val "newSymbol" : x1 @ "types" @; "Type" →: TNat →: x0 @; "Symbol"
+  val "newSymbol" : x1 @ "types" @; "Type" →: TInt →: x0 @; "Symbol"
 }.
 
 Definition fromPDotPaperAbsSymbolsTBody : ty := {@
   type "Symbol" >: ⊥ <: {@
     val "tpe" : x1 @ "types" @; "Type";
-    val "id" : TNat
+    val "id" : TInt
   };
-  val "newSymbol" : x1 @ "types" @; "Type" →: TNat →: x0 @; "Symbol"
+  val "newSymbol" : x1 @ "types" @; "Type" →: TInt →: x0 @; "Symbol"
 }.
 
 Definition fromPDotPaperTBody : ty := {@
@@ -75,7 +75,7 @@ Definition fromPDotPaperAbsTBody : ty := {@
 Definition fromPDotPaperSymbolsV : vl := ν {@
   type "Symbol" = {@
     val "tpe" : x1 @ "types" @; "Type";
-    val "id" : TNat
+    val "id" : TInt
   };
   val "newSymbol" = (vabs $ vabs $ ν {@
     val "tpe" = x2;

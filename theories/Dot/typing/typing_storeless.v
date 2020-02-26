@@ -88,7 +88,7 @@ Inductive typed Γ g : tm → ty → Prop :=
 
 (** Primitives. *)
 | iT_Nat_I n:
-    Γ v⊢ₜ[ g ] tv (vnat n): TNat
+    Γ v⊢ₜ[ g ] tv (vint n): TInt
 | iT_Bool_I b:
     Γ v⊢ₜ[ g ] tv (vbool b): TBool
 | iT_Un u e1 B1 Br (Hu : un_op_syntype u B1 Br) :

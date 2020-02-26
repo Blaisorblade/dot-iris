@@ -51,7 +51,7 @@ Section logrel.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_expr /.
 
-  Definition interp_nat : envD Σ := λ ρ v, (∃ n, ⌜v = vnat n⌝) %I.
+  Definition interp_nat : envD Σ := λ ρ v, (∃ n, ⌜v = vint n⌝) %I.
   Global Arguments interp_nat /.
 
   Definition interp_top : envD Σ := λ ρ v, True%I.
@@ -70,11 +70,11 @@ Section logrel.
      However, I am not sure we need this; it'd be good to
      write an example where this makes a difference.
      I think that would be something like
-     nu x. { T = TNat; U = x.T -> x.T }:
-     mu (x: {T <: TNat; U <: x.T -> TNat}).
+     nu x. { T = TInt; U = x.T -> x.T }:
+     mu (x: {T <: TInt; U <: x.T -> TInt}).
      If the function type constructor is not contractive but only non-expansive,
-     typechecking this example needs to establish x.T <: TNat having in context
-     only x: {T <: TNat; U <: x.T -> TNat}.
+     typechecking this example needs to establish x.T <: TInt having in context
+     only x: {T <: TInt; U <: x.T -> TInt}.
     *)
 
   Program Definition interp_forall: envD Σ -n> envD Σ -n> envD Σ :=
@@ -129,7 +129,7 @@ Section logrel.
     match T with
     | TLater T => interp_later (rec rinterp T)
     | TTMem L U => interp_tmem rinterp (rec rinterp L) (rec rinterp U)
-    | TNat => interp_nat
+    | TInt => interp_nat
     | TAll T1 T2 => interp_forall (rec rinterp T1) (rec rinterp T2)
     | TSel w => interp_sel rinterp w
     | TTop => interp_top
@@ -167,7 +167,7 @@ Section logrel.
   Ltac rewrite_interp := rewrite /ty_interp; repeat first [rewrite fixpoint_interp_eq3 | progress (repeat f_equiv; rewrite ?fixpoint_interp_eq1 //=) | move => ? /= ].
   Lemma interp_TAll T1 T2 ρ v: interp (TAll T1 T2) ρ v ≡ interp_forall ⟦ T1 ⟧ ⟦ T2 ⟧ ρ v.
   Proof. rewrite_interp. Qed.
-  Lemma interp_TNat ρ v: interp TNat ρ v ≡ interp_nat ρ v.
+  Lemma interp_TInt ρ v: interp TInt ρ v ≡ interp_nat ρ v.
   Proof. rewrite_interp. Qed.
   Lemma interp_TLater T1 ρ v: interp (TLater T1) ρ v ≡ interp_later ⟦ T1 ⟧ ρ v.
   Proof. rewrite_interp. Qed.
@@ -186,14 +186,14 @@ Notation "⟦ T ⟧ₑ" := (interp_expr ⟦ T ⟧).
 (** Unfold uses of interp, but only if the argument allows progress. *)
 Ltac unfold_interp :=
   rewrite /=
-    ?interp_TLater ?interp_TAll ?interp_TNat ?interp_TTMem
+    ?interp_TLater ?interp_TAll ?interp_TInt ?interp_TTMem
     ?interp_TSel ?interp_TTop ?interp_TBot /=.
 
 Ltac setoid_unfold_interp :=
   try setoid_rewrite interp_TAll;
   try setoid_rewrite interp_TLater;
   try setoid_rewrite interp_TSel;
-  try setoid_rewrite interp_TNat;
+  try setoid_rewrite interp_TInt;
   try setoid_rewrite interp_TTMem;
   try setoid_rewrite interp_TTop;
   try setoid_rewrite interp_TBot;

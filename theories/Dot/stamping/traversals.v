@@ -8,7 +8,7 @@ Set Default Proof Using "Type".
 
 Implicit Types
          (S T U: ty) (v: vl) (e t: tm) (p: path) (d: dm) (ds: dms) (vs: vls)
-         (Γ : ctx) (n: nat).
+         (Γ : ctx).
 
 Module Trav1.
 Record Traversal {travStateT: Type} :=
