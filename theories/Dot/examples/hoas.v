@@ -127,7 +127,7 @@ Definition htbin : bin_op → htm → htm → htm := λ b, liftA2 (tbin b).
 Definition hvar_vl : var → hvl := ids_hvl.
 
 Coercion hvlit := (λ l, liftA1 vlit (pureS l)) : base_lit → hvl.
-Notation hvnat n := (hvlit $ lnat n).
+Notation hvint n := (hvlit $ lint n).
 
 Definition hvabs : (hvl → htm) → hvl := liftBind vabs.
 
@@ -158,7 +158,7 @@ Definition hTSel : hpath → label → hty := Eval cbv in λ p l, liftA2 TSel p 
 Definition hTPrim b : hty := liftA0 (TPrim b).
 Definition hTSing : hpath → hty := liftA1 TSing.
 
-Definition hTNat : hty := liftA0 TNat.
+Definition hTInt : hty := liftA0 TInt.
 Definition hTBool : hty := liftA0 TBool.
 
 Arguments hvobj _%HD.
@@ -194,7 +194,7 @@ Arguments hTSel /.
 Arguments hTPrim /.
 Arguments hTSing /.
 
-Arguments hTNat /.
+Arguments hTInt /.
 Arguments hTBool /.
 
 End syn.
@@ -272,7 +272,7 @@ Notation " {@ T1 ; T2 ; .. ; Tn } " :=
   (format "'[v' {@  '[' T1 ']'  ;  '/' T2  ;  '/' ..  ;  '/' Tn } ']'") : hty_scope.
 Close Scope hty_scope.
 
-Notation "'𝐍'" := hTNat : hty_scope.
+Notation "'𝐙'" := hTInt : hty_scope.
 
 Notation "▶:" := hTLater : hty_scope.
 Notation "▶: T" := (hTLater T) (at level 49, right associativity) : hty_scope.

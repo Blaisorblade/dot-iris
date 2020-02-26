@@ -218,7 +218,7 @@ Proof.
 Qed.
 
 Example clListTypNat Γ :
-  Γ u⊢ₜ clListV' (hvnat 1) : hclose 𝐍.
+  Γ u⊢ₜ clListV' (hvint 1) : hclose 𝐙.
 Proof. apply clListTyp'. tcrush. Qed.
 
 (** This typing lemma generalizes over an arbitrary body [hbody], taken as open HOAS terms. To close it,
@@ -234,7 +234,7 @@ Proof.
 Qed.
 
 Example clListTypNat2 Γ :
-  Γ u⊢ₜ hclListV' (λ _ _, hvnat 1) : 𝐍.
+  Γ u⊢ₜ hclListV' (λ _ _, hvint 1) : 𝐙.
 Proof. apply clListTyp'2. tcrush. Qed.
 
 (** XXX: try recursive linking? Probably not. *)
@@ -243,20 +243,20 @@ Proof. apply clListTyp'2. tcrush. Qed.
 Definition hheadCons (list : hvl) :=
   htskip $ htskip (
     (hAnfBind $ htskip
-      (htyApp (list @: "cons") "T" 𝐍
+      (htyApp (list @: "cons") "T" 𝐙
         $: 0
         $: htskip (list @: "nil")))
     @: "head" $: 0).
 (* Invoking a method from an abstract type (here, [list @; "List"] needs a skip. *)
 
 Program Example hheadConsTyp Γ :
-  hlistModT hx1 :: boolImplT :: Γ u⊢ₜ hheadCons (hxm 2) 2 : 𝐍.
+  hlistModT hx1 :: boolImplT :: Γ u⊢ₜ hheadCons (hxm 2) 2 : 𝐙.
 Proof.
   hideCtx; set Γ' := Γ0.
   have HL : Γ' u⊢ₜ x0: hlistModTBody hx1 hx0 by apply: iT_Mu_E'; first var; stcrush.
 
   (* The result of "head" has one more later than the list. *)
-  eapply (iT_Sub (i := 2) (T1 := ▶: ▶: 𝐍)).
+  eapply (iT_Sub (i := 2) (T1 := ▶: ▶: 𝐙)).
   asideLaters. tcrush.
   eapply (iT_All_E (T1 := ⊤)); last (eapply iT_Sub_nocoerce); tcrush.
   have Hnil: Γ' u⊢ₜ (hxm 2 @: "nil") 2 : hclose (hnilT hx0)
@@ -273,7 +273,7 @@ Proof.
 
   (* Here we produce a list of later nats, since we produce a list of p.A where p is the
   "type" argument and p : { A <: Nat} so p.A <: ▶: Nat. *)
-  set U := (type "A" >: ⊥ <: ▶: 𝐍)%HT.
+  set U := (type "A" >: ⊥ <: ▶: 𝐙)%HT.
   set V := (hTAnd (hlistT hx1 hx0) U).
   apply AnfBind_typed with (T := V); stcrush; first last.
   {
@@ -301,14 +301,14 @@ Proof.
   }
 
   eapply iT_All_E, Hsnil.
-  eapply (iT_All_E (T1 := 𝐍)); last tcrush.
+  eapply (iT_All_E (T1 := 𝐙)); last tcrush.
   (* Perform avoidance on the type application. *)
-  eapply tyApp_typed with (T := 𝐍%HT); first done; intros; ltcrush; cbv -[Γ'].
+  eapply tyApp_typed with (T := 𝐙%HT); first done; intros; ltcrush; cbv -[Γ'].
   by eapply iSub_Sel', (path_tp_delay (i := 0)); try (typconstructor; var); wtcrush.
   by lNext.
   lNext; by eapply iSel_Sub, (path_tp_delay (i := 0)); try (typconstructor; var); wtcrush.
 Qed.
 
 Example clListTypNat3 Γ :
-  Γ u⊢ₜ hclListV' (λ bool, hheadCons) : 𝐍.
+  Γ u⊢ₜ hclListV' (λ bool, hheadCons) : 𝐙.
 Proof. apply clListTyp'2, hheadConsTyp. Qed.

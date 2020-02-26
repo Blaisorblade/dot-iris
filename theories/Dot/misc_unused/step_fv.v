@@ -51,7 +51,7 @@ Section nclosed_prim_step.
     move => Hev Hcl; apply fv_of_val.
     assert (Hclt1: nclosed_vl v1 n) by eauto with fv.
     assert (Hclt2: nclosed_vl v2 n) by eauto with fv.
-    unfold bin_op_eval, bin_op_eval_nat, bin_op_eval_bool in *.
+    unfold bin_op_eval, bin_op_eval_int, bin_op_eval_bool in *.
     by repeat (case_match; simplify_eq).
   Qed.
 

@@ -129,7 +129,7 @@ Proof.
     rewrite /un_op_eval => Hev.
     by repeat (case_match => //; simplify_eq/=).
   - intros Hev; constructor; move: Hev.
-    rewrite /bin_op_eval /bin_op_eval_nat /bin_op_eval_bool => Hev.
+    rewrite /bin_op_eval /bin_op_eval_int /bin_op_eval_bool => Hev.
     by repeat (case_match => //; simplify_eq/=).
 Qed.
 

@@ -12,10 +12,10 @@ Module VlSorts <: VlSortsFullSig.
 
 Definition label := string.
 
-Inductive base_lit : Set := lnat (n : nat) | lbool (b : bool).
+Inductive base_lit : Set := lint (n : nat) | lbool (b : bool).
 Inductive un_op : Set := unot.
 Inductive bin_op : Set := bplus | bminus | btimes | bdiv | blt | ble | beq.
-Inductive base_ty : Set := tnat | tbool.
+Inductive base_ty : Set := tint | tbool.
 
 Inductive tm : Type :=
   | tv : vl_ -> tm
@@ -54,9 +54,9 @@ Inductive tm : Type :=
 Definition vl := vl_.
 
 (* Shortcuts. *)
-Notation TNat := (TPrim tnat).
+Notation TInt := (TPrim tint).
 Notation TBool := (TPrim tbool).
-Notation vnat n := (vlit $ lnat n).
+Notation vint n := (vlit $ lint n).
 Notation vbool b := (vlit $ lbool b).
 
 Definition vls := list vl.
@@ -78,8 +78,8 @@ Implicit Types
          (T : ty) (v : vl) (t : tm) (d : dm) (ds : dms) (p : path)
          (Γ : ctx) (vs : vls) (l : label).
 
-Instance inh_ty : Inhabited ty := populate TNat.
-Instance inh_base_lit : Inhabited base_lit := populate (lnat 0).
+Instance inh_ty : Inhabited ty := populate TInt.
+Instance inh_base_lit : Inhabited base_lit := populate (lint 0).
 Instance inh_vl : Inhabited vl := populate (vlit inhabitant).
 Instance inh_pth : Inhabited path := populate (pv inhabitant).
 Instance inh_dm : Inhabited dm := populate (dpt inhabitant).
@@ -412,19 +412,19 @@ Definition bin_op_eval_bool (b : bin_op) (b1 b2 : bool) : option vl :=
   | _ => None
   end.
 
-Definition bin_op_eval_nat (b : bin_op) (n1 n2 : nat) : option vl :=
+Definition bin_op_eval_int (b : bin_op) (n1 n2 : nat) : option vl :=
   match b with
-  | bplus => Some $ vlit $ lnat $ n1 + n2
+  | bplus => Some $ vlit $ lint $ n1 + n2
   | bminus =>
     if bool_decide (n2 ≤ n1) then
-      Some $ vlit $ lnat $ n1 - n2
+      Some $ vlit $ lint $ n1 - n2
     else
       None
-  | btimes => Some $ vlit $ lnat $ n1 - n2
+  | btimes => Some $ vlit $ lint $ n1 - n2
   | bdiv =>
     match n2 with
     | 0 => None
-    | _ => Some $ vlit $ lnat $ n1 / n2
+    | _ => Some $ vlit $ lint $ n1 / n2
     end
   | blt => Some $ vlit $ lbool $ bool_decide (n1 < n2)
   | ble => Some $ vlit $ lbool $ bool_decide (n1 ≤ n2)
@@ -433,7 +433,7 @@ Definition bin_op_eval_nat (b : bin_op) (n1 n2 : nat) : option vl :=
 
 Definition bin_op_eval (b : bin_op) (v1 v2 : vl) : option vl :=
   match v1, v2 with
-  | vlit (lnat n1), vlit (lnat n2) => bin_op_eval_nat b n1 n2
+  | vlit (lint n1), vlit (lint n2) => bin_op_eval_int b n1 n2
   | vlit (lbool b1), vlit (lbool b2) => bin_op_eval_bool b b1 b2
   | _, _ => None
   end.

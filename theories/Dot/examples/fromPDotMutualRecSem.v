@@ -76,7 +76,7 @@ Definition optionTy pOpt pCore := TAnd (pOpt @; "Option") (type "T" >: ⊥ <: (p
 
 Definition pSymbol : stampTy := MkTy 50 [x0; x1; x2] {@
   val "tpe" : optionTy x2 x1;
-  val "id" : TNat
+  val "id" : TInt
 } 3.
 
 Definition pTypeRef : stampTy := MkTy 60 [x0; x1] (TAnd (x0 @; "Type") typeRefTBody) 2.
@@ -120,17 +120,17 @@ Definition fromPDotPaperTypesVBody : dms := {@
 Definition fromPDotPaperSymbolsTBody pOpt : ty := {@
   typeEq "Symbol" $ {@
     val "tpe" : optionTy pOpt x1;
-    val "id" : TNat
+    val "id" : TInt
   }%ty;
-  val "newSymbol" : optionTy pOpt x1 →: TNat →: x0 @; "Symbol"
+  val "newSymbol" : optionTy pOpt x1 →: TInt →: x0 @; "Symbol"
 }.
 
 Definition fromPDotPaperAbsSymbolsTBody pOpt : ty := {@
   type "Symbol" >: ⊥ <: {@
     val "tpe" : optionTy pOpt x1;
-    val "id" : TNat
+    val "id" : TInt
   };
-  val "newSymbol" : optionTy pOpt x1 →: TNat →: x0 @; "Symbol"
+  val "newSymbol" : optionTy pOpt x1 →: TInt →: x0 @; "Symbol"
 }.
 
 Definition fromPDotPaperTBody pOpt : ty := {@
@@ -277,7 +277,7 @@ Proof.
 
   (* Just to restate the current goal (for some extra readability). *)
   iAssert (V⟦ shift typeRefTBody ⟧ vnil ρ
-    (shiftV (ν [val "symb" = x1])).[up ρ].[vnat 0/])
+    (shiftV (ν [val "symb" = x1])).[up ρ].[vint 0/])
     as "{Hw} #Hw"; last iApply "Hw".
   rewrite (_ : (shiftV _).[_].[_] = ν [val "symb" = shiftV (ρ 0)]); last
     by rewrite up_sub_compose_vl; autosubst.

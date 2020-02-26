@@ -33,7 +33,7 @@ unstamp_vl g (v: vl): vl :=
   | vstamp vs s => unstamp_vstamp g vs s
   | vabs t => vabs (unstamp_tm g t)
   | vty T => vty (unstamp_ty g T)
-  | vnat _ => v
+  | vint _ => v
   | var_vl _ => v
   end
 with
@@ -48,7 +48,7 @@ unstamp_ty g (T: ty): ty :=
   (* | TMu T => TMu (unstamp_ty g T) *)
   | TTMem T1 T2 => TTMem (unstamp_ty g T1) (unstamp_ty g T2)
   | TSel v => TSel (unstamp_vl g v)
-  | TNat => T
+  | TInt => T
   end.
 
 (** XXX this formulation might be inconvenient: storing the correct n in the map might be preferable. *)

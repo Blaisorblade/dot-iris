@@ -24,7 +24,7 @@ Inductive typed Γ : tm → ty → Prop :=
     (*─────────────────────────*)
     Γ ⊢ₜ tv (vabs e) : TAll T1 T2
 | iT_Nat_I n:
-    Γ ⊢ₜ tv (vnat n): TNat
+    Γ ⊢ₜ tv (vint n): TInt
 
 (** "General" rules *)
 | iT_Var x T :

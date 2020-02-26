@@ -19,7 +19,7 @@ Example ex0 e Γ T:
 Proof. intros. apply (iT_Sub_nocoerce T TTop); tcrush. Qed.
 
 Example ex1 Γ n T:
-  Γ u⊢ₜ tv (ν {@ val "a" = pv (vnat n)}) : μ {@ val "a" : TNat }.
+  Γ u⊢ₜ tv (ν {@ val "a" = pv (vint n)}) : μ {@ val "a" : TInt }.
 Proof.
   (* Help proof search: Avoid trying iT_Mu_I, that's slow. *)
   apply iT_Obj_I; tcrush.
@@ -42,16 +42,16 @@ Definition KeysT : ty := μ {@
   val "key": HashableString →: p0 @; "Key"
 }.
 Definition hashKeys : vl := ν {@
-  type "Key" = TNat;
+  type "Key" = TInt;
   val "key" = pv (vabs (tapp (tproj (tv x0) "hashCode") tUnit))
 }.
 
 Definition KeysTConcr := μ {@
-  type "Key" >: TNat <: ⊤;
+  type "Key" >: TInt <: ⊤;
   val "key" : HashableString →: p0 @; "Key"
 }.
 
-(* IDEA for our work: use [(type "Key" >: TNat <: ⊤) ⩓ (type "Key" >: ⊥ <: ⊤)]. *)
+(* IDEA for our work: use [(type "Key" >: TInt <: ⊤) ⩓ (type "Key" >: ⊥ <: ⊤)]. *)
 Example hashKeys_typed Γ:
   Γ u⊢ₜ tv hashKeys : KeysT.
 Proof.
@@ -62,9 +62,9 @@ Proof.
   }
   tcrush.
   apply iT_All_E with (T1 := TUnit);
-    last eapply (iT_Sub_nocoerce TNat); tcrush.
+    last eapply (iT_Sub_nocoerce TInt); tcrush.
 
-  apply (iT_Sub_nocoerce (val "hashCode" : ⊤ →: 𝐍)).
+  apply (iT_Sub_nocoerce (val "hashCode" : ⊤ →: 𝐙)).
   by eapply iT_Sub_nocoerce; [eapply iT_Mu_E'; by [var||stcrush] | tcrush].
   tcrush.
   eapply iSub_Sel', (path_tp_delay (i := 0)); wtcrush.

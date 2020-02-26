@@ -12,7 +12,7 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
-Notation HashableString := (μ {@ val "hashCode" : TAll TUnit TNat }).
+Notation HashableString := (μ {@ val "hashCode" : TAll TUnit TInt }).
 Section examples.
 (* From D Require Import typeExtraction *)
 Context {g : stys}.
@@ -28,7 +28,7 @@ Example ex0 e Γ T:
 Proof. intros. apply (iT_Sub_nocoerce T TTop); tcrush. Qed.
 
 Example ex1 Γ n T:
-  Γ v⊢ₜ[ g ] tv (ν {@ val "a" = pv (vnat n)}) : μ {@ val "a" : TNat }.
+  Γ v⊢ₜ[ g ] tv (ν {@ val "a" = pv (vint n)}) : μ {@ val "a" : TInt }.
 Proof.
   (* Help proof search: Avoid trying iT_Mu_I, that's slow. *)
   apply iT_Obj_I; tcrush.
@@ -94,20 +94,20 @@ Definition hashKeys : vl := ν {@
   type "Key" = (σ1; s1);
   val "key" = pv (vabs (tapp (tproj (tv x0) "hashCode") tUnit))
 }.
-Definition s1_is_tnat :=
-  TNat ~[ 0 ] (g, (s1, σ1)).
-Lemma get_s1_is_tnat : g !! s1 = Some TNat → s1_is_tnat.
+Definition s1_is_tint :=
+  TInt ~[ 0 ] (g, (s1, σ1)).
+Lemma get_s1_is_tint : g !! s1 = Some TInt → s1_is_tint.
 Proof. by_extcrush. Qed.
 
 (* To typecheck the object body, we first typecheck it with a tighter type,
     and then widen it. *)
 Definition KeysT' := μ {@
-  type "Key" >: TNat <: ⊤;
+  type "Key" >: TInt <: ⊤;
   val "key": TAll HashableString (p1 @; "Key")
 }.
-(* IDEA for our work: use [(type "Key" >: TNat <: ⊤) ⩓ (type "Key" >: ⊥ <: ⊤)]. *)
+(* IDEA for our work: use [(type "Key" >: TInt <: ⊤) ⩓ (type "Key" >: ⊥ <: ⊤)]. *)
 
-Example hashKeys_typed Γ (Hs1 : s1_is_tnat):
+Example hashKeys_typed Γ (Hs1 : s1_is_tint):
   Γ v⊢ₜ[ g ] tv hashKeys : KeysT.
 Proof.
   cut (Γ v⊢ₜ[ g ] tv hashKeys : KeysT').
@@ -118,19 +118,19 @@ Proof.
     ettrans; first apply iAnd1_Sub; tcrush.
   }
   apply iT_Obj_I; tcrush.
-  by apply (iD_Typ_Abs TNat); wtcrush.
+  by apply (iD_Typ_Abs TInt); wtcrush.
   cbn; apply (iT_All_E (T1 := TUnit));
-    last eapply (iT_Sub_nocoerce TNat); tcrush.
+    last eapply (iT_Sub_nocoerce TInt); tcrush.
   tcrush; cbn.
 
-  pose (T0 := μ {@ val "hashCode" : TAll ⊤ 𝐍 }).
+  pose (T0 := μ {@ val "hashCode" : TAll ⊤ 𝐙 }).
 
-  have Htp: ∀ Γ', T0 :: Γ' v⊢ₜ[ g ] tv x0 : val "hashCode" : TAll ⊤ TNat. {
+  have Htp: ∀ Γ', T0 :: Γ' v⊢ₜ[ g ] tv x0 : val "hashCode" : TAll ⊤ TInt. {
     intros. eapply iT_Sub_nocoerce.
     eapply iT_Mu_E'; by [exact: iT_Var'|].
     by apply iAnd1_Sub; tcrush.
   }
-  apply (iT_Sub_nocoerce (val "hashCode" : TAll ⊤ 𝐍)). exact: Htp.
+  apply (iT_Sub_nocoerce (val "hashCode" : TAll ⊤ 𝐙)). exact: Htp.
   tcrush.
   eapply iSub_Sel', (path_tp_delay (i := 0)); wtcrush.
   varsub; tcrush.
@@ -154,31 +154,31 @@ Proof using HclString. by_extcrush. Qed.
 
 (* Type *)
 Definition systemValT := μ {@
-  val "subSys1" : μ {@ type "A" >: ⊥ <: TNat};
+  val "subSys1" : μ {@ type "A" >: ⊥ <: TInt};
   val "subSys2" : μ {@ type "B" >: ⊥ <: ⊤}}.
 
-Example motivEx Γ (Hs1: s1_is_tnat) (Hs2: s2_is_String)
+Example motivEx Γ (Hs1: s1_is_tint) (Hs2: s2_is_String)
   (HsString: is_stamped_ty 0 g String):
   Γ v⊢ₜ[ g ] systemVal : systemValT.
 Proof.
   apply iT_Obj_I; tcrush.
-  all: [> apply (iD_Typ_Abs TNat) | apply (iD_Typ_Abs String) ]; wtcrush.
+  all: [> apply (iD_Typ_Abs TInt) | apply (iD_Typ_Abs String) ]; wtcrush.
 Qed.
 
 (* Uh, we can unfold recursive types during construction! Does that allow
 us to encode mutual recursion? Write this up. *)
 Definition systemValT' := μ {@
-  val "subSys1" : type "A" >: ⊥ <: TNat;
+  val "subSys1" : type "A" >: ⊥ <: TInt;
   val "subSys2" : type "B" >: ⊥ <: ⊤}.
-Example motivEx1 Γ (Hs1: s1_is_tnat) (Hs2: s2_is_String)
+Example motivEx1 Γ (Hs1: s1_is_tint) (Hs2: s2_is_String)
   (HsString: is_stamped_ty 0 g String):
   Γ v⊢ₜ[ g ] systemVal : systemValT'.
 Proof.
   apply iT_Obj_I; tcrush.
-  - apply (iT_Sub_nocoerce (μ {@ type "A" >: ⊥ <: TNat})); tcrush.
-    + apply (iD_Typ_Abs TNat); wtcrush.
+  - apply (iT_Sub_nocoerce (μ {@ type "A" >: ⊥ <: TInt})); tcrush.
+    + apply (iD_Typ_Abs TInt); wtcrush.
     + ettrans;
-      [apply: (iMu_Sub _ (T := {@ type "A" >: ⊥ <: TNat })%ty 0)|]; tcrush.
+      [apply: (iMu_Sub _ (T := {@ type "A" >: ⊥ <: TInt })%ty 0)|]; tcrush.
   - apply (iT_Sub_nocoerce (μ {@ type "B" >: ⊥ <: ⊤})); tcrush.
     + apply (iD_Typ_Abs String); wtcrush.
     + ettrans;

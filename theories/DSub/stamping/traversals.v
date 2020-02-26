@@ -30,7 +30,7 @@ Section fold.
   | trav_var_vl ts i: trav.(varP) ts i → forall_traversal_vl ts (var_vl i)
   | trav_vabs ts t: forall_traversal_tm (trav.(upS) ts) t →
                     forall_traversal_vl ts (vabs t)
-  | trav_vnat ts n: forall_traversal_vl ts (vnat n)
+  | trav_vint ts n: forall_traversal_vl ts (vint n)
   | trav_vty ts T:
       forall_traversal_ty ts T →
       trav.(vtyP) ts T →
@@ -69,7 +69,7 @@ Section fold.
       forall_traversal_vl ts v →
       trav.(pathP) ts v →
       forall_traversal_ty ts (TSel v)
-  | trav_TNat ts: forall_traversal_ty ts TNat
+  | trav_TInt ts: forall_traversal_ty ts TInt
     .
 End fold.
 

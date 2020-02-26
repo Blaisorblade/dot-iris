@@ -186,13 +186,13 @@ Proof. setoid_rewrite alias_paths_pv_eq_1. apply alias_paths_symm. Qed.
 Definition prim_sem (B : base_ty) :=
   match B with
   | tbool => bool
-  | tnat => nat
+  | tint => nat
   end.
 
 Definition prim_evals_to (B : base_ty) (v : vl) : prim_sem B → Prop :=
   match B return prim_sem B → Prop with
   | tbool => λ l, v = vlit $ lbool l
-  | tnat  => λ l, v = vlit $ lnat l
+  | tint  => λ l, v = vlit $ lint l
   end.
 
 Definition pure_interp_prim B v := ∃ l : prim_sem B, prim_evals_to B v l.

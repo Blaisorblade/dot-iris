@@ -14,7 +14,7 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 Coercion tv : vl_ >-> tm.
 Coercion pv : vl_ >-> path.
 Coercion vlit : base_lit >-> vl_.
-Coercion lnat : nat >-> base_lit.
+Coercion lint : nat >-> base_lit.
 Coercion lbool : bool >-> base_lit.
 
 Module Export packedStampedTyDefs.
@@ -41,8 +41,8 @@ End packedStampedTyDefs.
 
 Module Import DBNotation.
 
-(* Definition vnat' n := vnat n.
-Coercion vnat' : nat >-> vl_. *)
+(* Definition vint' n := vint n.
+Coercion vint' : nat >-> vl_. *)
 (* XXX rename *)
 Bind Scope expr_scope with tm.
 Delimit Scope expr_scope with E.
@@ -102,7 +102,7 @@ Notation " {@ T1 ; T2 ; .. ; Tn } " :=
 (*                                          (format "{@  T1  ;  ..  ;  T2  ;  Tn  }"): ty_scope. *)
 Close Scope ty_scope.
 
-Notation "'𝐍'" := TNat : ty_scope.
+Notation "'𝐙'" := TInt : ty_scope.
 
 Notation "▶:" := TLater : ty_scope.
 (* Level taken from Iris. *)
@@ -148,7 +148,7 @@ Notation p4 := (pv x4).
 Notation p5 := (pv x5).
 
 Notation TUnit := (⊤%ty : ty).
-Notation tUnit := (tv (vnat 0) : tm).
+Notation tUnit := (tv (vint 0) : tm).
 
 End DBNotation.
 

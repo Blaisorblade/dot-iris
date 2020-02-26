@@ -5,21 +5,21 @@ From D.Dot Require typingExInfra.
 Module TestDB.
 Import DBNotation.
 
-Check {@ TNat ; TNat ; TNat }%ty.
+Check {@ TInt ; TInt ; TInt }%ty.
 
 (* Check (TSel (pself (pself p0 1) 2) 3). *)
 (* Check (x0 @ 1 @ 2 ; 3). *)
 
-Check ν {@ val "a" = pv (vnat 0) }.
+Check ν {@ val "a" = pv (vint 0) }.
 
-Check μ {@ type "A" >: TNat <: ⊤}.
-Check μ {@ val "a" : TNat }.
-Check μ {@ type "A" >: TNat <: ⊤ ; val "a" : TNat ; val "b" : TNat }.
+Check μ {@ type "A" >: TInt <: ⊤}.
+Check μ {@ val "a" : TInt }.
+Check μ {@ type "A" >: TInt <: ⊤ ; val "a" : TInt ; val "b" : TInt }.
 
 Check vobj {@}.
 Check ν {@ }.
-Check ν {@ val "a" = pv (vnat 0) }.
-Check ν {@ val "a" = pv (vnat 0) ; val "b" = pv (vnat 1) }.
+Check ν {@ val "a" = pv (vint 0) }.
+Check ν {@ val "a" = pv (vint 0) ; val "b" = pv (vint 1) }.
 
 Check (p0 @; "A").
 Check (pself (pself p0 "A") "B" @; "C").
@@ -36,8 +36,8 @@ Definition tc v := (0 ≥ (v ≥ 0))%E.
 Module TestStamped.
 Import typingExInfra.
 Check ν {@ type "A" = (σ1 ; s1) }.
-Check ν {@ val "a" = pv (vnat 0); type "A" = (σ1 ; s1) }.
-Check ν {@ val "a" = pv (vnat 0) ; type "A" = (σ1 ; s1) }.
+Check ν {@ val "a" = pv (vint 0); type "A" = (σ1 ; s1) }.
+Check ν {@ val "a" = pv (vint 0) ; type "A" = (σ1 ; s1) }.
 End TestStamped.
 End TestDB.
 
@@ -69,22 +69,22 @@ Check (1 ≥ 2)%HE.
 Check (1 > 0)%HE.
 
 Goal hvar_vl = λ n i, var_vl (n + i). done. Abort.
-Goal ∀ n, hvnat n = liftA0 (vnat n). done. Abort.
+Goal ∀ n, hvint n = liftA0 (vint n). done. Abort.
 Goal hxm = λ i, ren (λ j, j - i). done. Abort.
 
 (** * First test *)
 
-(* ∀ (x : TNat), μ y, x.type ∧ x.type *)
-Definition ex0 := hclose $ hTAll hTNat (λ x, hTMu (λ y, hTAnd (hTSing (hpv x)) (hTSing (hpv y)))).
+(* ∀ (x : TInt), μ y, x.type ∧ x.type *)
+Definition ex0 := hclose $ hTAll hTInt (λ x, hTMu (λ y, hTAnd (hTSing (hpv x)) (hTSing (hpv y)))).
 Eval cbv in ex0.
 
 Eval cbv -[plus minus] in hTAll.
 Goal hTAll = λ T U i, (TAll (T i) (U (λ x, var_vl (x - S i)) (S i))). done. Abort.
 (* Goal hTAll = λ T U i, (∀ (T i), U (λ x, var_vl (x - S i)) (S i)). done. Abort. *)
 
-Eval cbv in hclose {@ hTNat ; hTNat ; hTNat } %HT.
+Eval cbv in hclose {@ hTInt ; hTInt ; hTInt } %HT.
 
-Definition ex := hclose $ ∀: x : hTNat, hTMu (λ y, hTAnd (hTSing (hpv x)) (hTSing (hpv y))).
+Definition ex := hclose $ ∀: x : hTInt, hTMu (λ y, hTAnd (hTSing (hpv x)) (hTSing (hpv y))).
 Goal ex = ex0. done. Abort.
 
 Definition ex2 := hclose (λ: f, htv f).

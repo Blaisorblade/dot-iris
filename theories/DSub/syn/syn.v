@@ -15,7 +15,7 @@ Inductive tm : Type :=
   | tskip : tm -> tm
  with vl_ : Type :=
   | var_vl : var -> vl_
-  | vnat : nat -> vl_
+  | vint : nat -> vl_
   | vabs : tm -> vl_
   | vty : ty -> vl_
   | vstamp : list vl_ -> stamp -> vl_
@@ -29,7 +29,7 @@ Inductive tm : Type :=
   (* | TMu : ty -> ty *)
   | TTMem : ty -> ty -> ty
   | TSel : vl_ -> ty
-  | TNat : ty.
+  | TInt : ty.
 
 Definition vl := vl_.
 
@@ -40,8 +40,8 @@ Implicit Types
          (L T U : ty) (v : vl) (t : tm)
          (Γ : ctx).
 
-Instance inh_ty : Inhabited ty := populate TNat.
-Instance inh_vl : Inhabited vl := populate (vnat 0).
+Instance inh_ty : Inhabited ty := populate TInt.
+Instance inh_vl : Inhabited vl := populate (vint 0).
 Instance inh_tm : Inhabited tm := populate (tv inhabitant).
 
 Instance ids_vl : Ids vl := var_vl.
@@ -69,7 +69,7 @@ vl_rename (sb : var → var) v : vl :=
   let c := ty_rename : Rename ty in
   match v with
   | var_vl x => var_vl (sb x)
-  | vnat n => vnat n
+  | vint n => vint n
   | vabs t => vabs (rename (upren sb) t)
   | vty T => vty (rename sb T)
   | vstamp vs s => vstamp (rename sb vs) s
@@ -88,7 +88,7 @@ ty_rename (sb : var → var) T : ty :=
   (* | TMu T => TMu (rename (upren sb) T) *)
   | TTMem T1 T2 => TTMem (rename sb T1) (rename sb T2)
   | TSel v => TSel (rename sb v)
-  | TNat => TNat
+  | TInt => TInt
   end.
 
 Instance rename_tm : Rename tm := tm_rename.
@@ -110,7 +110,7 @@ vl_subst (sb : var → vl) v : vl :=
   let c := ty_hsubst : HSubst vl ty in
   match v with
   | var_vl x => sb x
-  | vnat n => vnat n
+  | vint n => vint n
   | vabs t => vabs (hsubst (up sb) t)
   | vty T => vty (hsubst sb T)
   | vstamp vs s => vstamp (hsubst sb vs) s
@@ -129,7 +129,7 @@ ty_hsubst (sb : var → vl) T : ty :=
   (* | TMu T => TMu (hsubst (up sb) T) *)
   | TTMem T1 T2 => TTMem (hsubst sb T1) (hsubst sb T2)
   | TSel v => TSel (subst sb v)
-  | TNat => TNat
+  | TInt => TInt
   end.
 
 Instance subst_vl : Subst vl := vl_subst.
@@ -354,7 +354,7 @@ Section syntax_mut_rect.
   Variable step_tapp : ∀ t1 t2, Ptm t1 → Ptm t2 → Ptm (tapp t1 t2).
   Variable step_tskip : ∀ t1, Ptm t1 → Ptm (tskip t1).
   Variable step_var_vl : ∀ i, Pvl (var_vl i).
-  Variable step_vnat : ∀ n, Pvl (vnat n).
+  Variable step_vint : ∀ n, Pvl (vint n).
   Variable step_vabs : ∀ t1, Ptm t1 → Pvl (vabs t1).
   Variable step_vty : ∀ T1, Pty T1 → Pvl (vty T1).
   Variable step_vstamp : ∀ vs s, ForallT Pvl vs → Pvl (vstamp vs s).
@@ -364,7 +364,7 @@ Section syntax_mut_rect.
   Variable step_TALl : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAll T1 T2).
   Variable step_TTMem : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TTMem T1 T2).
   Variable step_TSel : ∀ v1, Pvl v1 → Pty (TSel v1).
-  Variable step_TNat : Pty TNat.
+  Variable step_TInt : Pty TInt.
 
   Fixpoint tm_mut_rect t : Ptm t
   with vl_mut_rect v : Pvl v
@@ -403,7 +403,7 @@ Section syntax_mut_ind.
   Variable step_tapp : ∀ t1 t2, Ptm t1 → Ptm t2 → Ptm (tapp t1 t2).
   Variable step_tskip : ∀ t1, Ptm t1 → Ptm (tskip t1).
   Variable step_var_vl : ∀ i, Pvl (var_vl i).
-  Variable step_vnat : ∀ n, Pvl (vnat n).
+  Variable step_vint : ∀ n, Pvl (vint n).
   Variable step_vabs : ∀ t1, Ptm t1 → Pvl (vabs t1).
   Variable step_vty : ∀ T1, Pty T1 → Pvl (vty T1).
   (** Beware here in Prop we use Forall, not ForallT! *)
@@ -414,7 +414,7 @@ Section syntax_mut_ind.
   Variable step_TALl : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAll T1 T2).
   Variable step_TTMem : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TTMem T1 T2).
   Variable step_TSel : ∀ v1, Pvl v1 → Pty (TSel v1).
-  Variable step_TNat : Pty TNat.
+  Variable step_TInt : Pty TInt.
 
   Lemma syntax_mut_ind : (∀ t, Ptm t) ∧ (∀ v, Pvl v) ∧ (∀ T, Pty T).
   Proof.
@@ -443,8 +443,8 @@ Section syntax_mut_ind_closed.
       Ptm t1 n → Ptm (tskip t1) n.
   Variable step_var_vl : ∀ n i,
       nclosed_vl (var_vl i) n → Pvl (var_vl i) n.
-  Variable step_vnat : ∀ n m,
-      nclosed_vl (vnat m) n → Pvl (vnat m) n.
+  Variable step_vint : ∀ n m,
+      nclosed_vl (vint m) n → Pvl (vint m) n.
   Variable step_vabs : ∀ n t1,
       nclosed t1 (S n) →
       nclosed_vl (vabs t1) n →
@@ -475,9 +475,9 @@ Section syntax_mut_ind_closed.
   Variable step_TSel : ∀ n v1,
       nclosed_vl v1 n → nclosed (TSel v1) n →
       Pvl v1 n → Pty (TSel v1) n.
-  Variable step_TNat : ∀ n,
-      nclosed TNat n →
-      Pty TNat n.
+  Variable step_TInt : ∀ n,
+      nclosed TInt n →
+      Pty TInt n.
 
   Fixpoint nclosed_tm_mut_ind n t : nclosed t n → Ptm t n
   with     nclosed_vl_mut_ind n v : nclosed_vl v n → Pvl v n
