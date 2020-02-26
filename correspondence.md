@@ -61,8 +61,3 @@ The paper's P-Var is here called (s|i|)P_Val.
   Storeless typing generalizes some rules of stamped typing to allow arbitrary
   values in paths, and not just variables. This is not at all necessary to our
   proof technique, but it simply allows typing more programs.
-
-- For convenience, we add to storeless typeless "reflection" rules `Sem_typed`,
-  `sem_ptyped` and `Sem_stp`, such that semantic typing implies storeless
-  semantic typing. That's just a convenience to prove semantic typing more
-  easily, as syntactic typing supports better automation.
