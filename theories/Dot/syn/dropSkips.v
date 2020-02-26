@@ -174,8 +174,9 @@ Lemma erase_ctxi_fill_item (K : ectx_item) e :
   erase_tm (fill_item K e) = fill (erase_ctxi K) (erase_tm e).
 Proof. by induction K. Qed.
 
+Definition erase_ctxi_list := mbind erase_ctxi.
 Lemma erase_ctxi_fill (Ks : list ectx_item) e :
-  erase_tm (fill Ks e) = fill (concat (map erase_ctxi Ks)) (erase_tm e).
+  erase_tm (fill Ks e) = fill (erase_ctxi_list Ks) (erase_tm e).
 Proof.
   elim: Ks e => [//|K Ks IH] e. by rewrite /= fill_app IH erase_ctxi_fill_item.
 Qed.
@@ -208,6 +209,14 @@ Proof.
   eapply (rtc_congruence (λ t, ([t], ()))), Hstep => /= e1 e2 Hs.
   edestruct erased_step_prim as [_ [He _]]; first split;
    by [>apply Hs| | apply He].
+Qed.
+
+Theorem simulation_skiperase_erased_step' {t1 t2 σ σ'} :
+  erased_step ([t1], σ) ([t2], σ') →
+  rtc erased_step ([erase_tm t1], σ) ([erase_tm t2], σ').
+Proof.
+  intros Hs; eapply simulation_skiperase_erased_step; split_and => //.
+  by rewrite elem_of_list_singleton.
 Qed.
 
 Theorem simulation_skiperase_erased_steps {t1 t2 σ σ' thp} :
