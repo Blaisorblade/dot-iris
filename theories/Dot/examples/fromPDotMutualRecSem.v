@@ -18,16 +18,16 @@ From D.Dot Require Import unary_lr
   lr_lemmas lr_lemmasTSel lr_lemmasNoBinding lr_lemmasDefs lr_lemmasPrim.
 From D.Dot Require Import typeExtractionSem.
 From D.Dot Require Import fundamental.
+Import dlang_adequacy stamp_transfer.
 (* From D.Dot Require Import scalaLib.
 From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived. *)
 Import DBNotation.
-Import examples prelude saved_interp_dep.
+Import examples primOption prelude saved_interp_dep.
 Import later_sub_sem.
 
 Set Implicit Arguments.
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
-Import primOption.
 
 Section hoas.
   Import hoasNotation.
@@ -96,8 +96,6 @@ Lemma Htop : styConforms fromPDotG pTop. Proof. done. Qed.
 Lemma Hsymbol : styConforms fromPDotG pSymbol. Proof. done. Qed.
 Lemma HtypeRef : styConforms fromPDotG' pTypeRef. Proof. done. Qed.
 
-(* Import AssertPlain.
-From D.Dot Require Import hoas. *)
 Definition assert cond :=
   tif cond 0 hloopTm.
 Definition seq (e1 e2 : tm) := lett e1 (shift e2).
@@ -482,7 +480,6 @@ Qed.
 
 End semExample.
 
-Import dlang_adequacy swap_later_impl stamp_transfer.
 Lemma pcoreSafe: safe (lett (hoptionModV : vl) fromPDotPaper).
 Proof.
   eapply (safety_dot_sem dlangΣ (T := _))=>*.
