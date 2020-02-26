@@ -16,7 +16,7 @@ Inductive cond_bin_op_syntype : bin_op → ∀ (B1 B2 Br : base_ty),
 | ty_syn b B1 B2 Br : bin_op_syntype b B1 B2 Br →
                       cond_bin_op_syntype b B1 B2 Br (const (const True))
 | ty_bminus         : cond_bin_op_syntype bminus tint  tint  tint  (λ n1 n2, n2 ≤ n1)%Z
-| ty_bdiv           : cond_bin_op_syntype bdiv   tint  tint  tint  (λ _ n, n > 0)%Z.
+| ty_bdiv           : cond_bin_op_syntype bdiv   tint  tint  tint  (λ _ n, n ≠ 0).
 
 Definition un_op_semtype u B1 Br := ∀ v, pure_interp_prim B1 v →
   ∃ w, un_op_eval u v = Some w ∧ pure_interp_prim Br w.
