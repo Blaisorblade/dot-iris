@@ -22,30 +22,63 @@ Section fundamental.
     | H : context [wellMappedφ] |- _ => by iApply H
     end.
 
-  Fixpoint fundamental_dm_typed Γ g l d T (HT: Γ v⊢[ g ]{ l := d } : T) { struct HT }:
-    Γ ⊨[ Vs⟦ g ⟧ ] { l := d } : T with
-  fundamental_dms_typed Γ g ds T (HT: Γ v⊢ds[ g ] ds : T) { struct HT }:
-    Γ ⊨ds[ Vs⟦ g ⟧ ] ds : T with
-  fundamental_subtype Γ g T1 i1 T2 i2 (HT: Γ v⊢ₜ[ g ] T1, i1 <: T2, i2) { struct HT }:
-    Γ ⊨[ Vs⟦ g ⟧ ] T1, i1 <: T2, i2 with
-  fundamental_typed Γ g e T (HT: Γ v⊢ₜ[ g ] e : T) { struct HT }:
-    Γ ⊨[ Vs⟦ g ⟧ ] e : T with
-  fundamental_path_typed Γ g p T i (HT : Γ v⊢ₚ[ g ] p : T, i) { struct HT }:
-    Γ ⊨p[ Vs⟦ g ⟧ ] p : T, i.
+  Lemma fundamental_mut Γ g :
+    (∀ e T (HT: Γ v⊢ₜ[ g ] e : T), Γ ⊨[ Vs⟦ g ⟧ ] e : T) ∧
+    (∀ ds T (HT: Γ v⊢ds[ g ] ds : T), Γ ⊨ds[ Vs⟦ g ⟧ ] ds : T) ∧
+    (∀ l d T, Γ v⊢[ g ]{ l := d } : T → Γ ⊨[ Vs⟦ g ⟧ ] { l := d } : T) ∧
+    (∀ p T i (HT : Γ v⊢ₚ[ g ] p : T, i), Γ ⊨p[ Vs⟦ g ⟧ ] p : T, i) ∧
+    (∀ T1 i1 T2 i2 (HT: Γ v⊢ₜ[ g ] T1, i1 <: T2, i2),
+      Γ ⊨[ Vs⟦ g ⟧ ] T1, i1 <: T2, i2).
   Proof.
-    - iIntros "#Hm"; induction HT.
-      + iApply D_Typ_Abs; by [> iApply fundamental_subtype .. |
-          iApply extraction_to_leadsto_envD_equiv].
-      + iApply D_Val. by iApply fundamental_typed.
-      + iApply D_Path. by iApply fundamental_path_typed.
-      + iApply D_Val_New. by iApply fundamental_dms_typed.
-      + iApply D_Path_Sub; by [> iApply fundamental_subtype|].
-    - iIntros "#Hm"; induction HT.
+    eapply storeless_typing_mut_ind with
+        (P := λ Γ g e T _,  Γ ⊨[ Vs⟦ g ⟧ ] e : T)
+        (P0 := λ Γ g ds T _,  Γ ⊨ds[ Vs⟦ g ⟧ ] ds : T)
+        (P1 := λ Γ g l d T _,  Γ ⊨[ Vs⟦ g ⟧ ] { l := d } : T)
+        (P2 := λ Γ g p T i _,  Γ ⊨p[ Vs⟦ g ⟧ ] p : T, i)
+        (P3 := λ Γ g T1 i1 T2 i2 _,  Γ ⊨[ Vs⟦ g ⟧ ] T1, i1 <: T2, i2);
+    clear Γ g; intros; iIntros "#Hm".
+      + by iApply T_All_Ex; [iApply H|iApply H0].
+      + by iApply T_All_Ex_p; [|iApply H|iApply H0].
+      + by iApply T_All_E; [iApply H|iApply H0].
+      + by iApply T_Obj_E; iApply H.
+      + by iApply T_Mu_E; iApply H.
+      + iApply T_All_I_Strong; [|by iApply H]. exact: fundamental_ctx_sub.
+      + iApply T_Obj_I. by iApply H.
+      + iApply T_Mu_I. by iApply H.
+      + by iApply T_Var.
+      + by iApply T_Sub; [iApply H0|iApply H].
+      + iApply T_Path. by iApply H.
+      + by iApply sT_Nat_I.
+      + by iApply sT_Bool_I.
+      + by iApply T_Un; [|iApply H].
+      + by iApply T_Bin; [| iApply H| iApply H0].
+      + by iApply sT_If; [iApply H|iApply H0|iApply H1].
+
+      (* + by_reflect. *)
       + by iApply D_Nil.
-      + iApply D_Cons; by [|iApply fundamental_dm_typed].
-    - iIntros "#Hm"; induction HT.
+      + by iApply D_Cons; [|iApply H|iApply H0].
+
+      + by iApply D_Typ_Abs; [> iApply H0 | iApply H|
+          iApply extraction_to_leadsto_envD_equiv].
+      + iApply D_Val. by iApply H.
+      + iApply D_Path. by iApply H.
+      + iApply D_Val_New. by iApply H.
+      + iApply D_Path_Sub; by [> iApply H|iApply H0].
+
+      + iApply P_Val. by iApply H.
+      + iApply sP_Fld_E. by iApply H.
+      + by iApply sP_Sub; [iApply H0|iApply H].
+      + by iApply P_Mu_I; [|iApply H].
+      + by iApply P_Mu_E; [|iApply H].
+      + iApply P_Fld_I. by iApply H.
+      + iApply P_Sngl_Refl. by iApply H.
+      + iApply P_Sngl_Inv. by iApply H.
+      + by iApply P_Sngl_Trans; [iApply H|iApply H0].
+      + by iApply P_Sngl_E; [iApply H|iApply H0].
+      (* + by_reflect. *)
+
       + by iApply sSub_Refl.
-      + by iApply sSub_Trans; [apply IHHT1|apply IHHT2].
+      + by iApply sSub_Trans; [iApply H|iApply H0].
       + by iApply sLater_Sub.
       + by iApply sSub_Later.
       + by iApply sSub_Add_Later.
@@ -53,60 +86,46 @@ Section fundamental.
       + by iApply sBot_Sub.
       + by iApply sAnd1_Sub.
       + by iApply sAnd2_Sub.
-      + by iApply sSub_And.
+      + by iApply sSub_And; [iApply H|iApply H0].
       + by iApply sSub_Or1.
       + by iApply sSub_Or2.
-      + by iApply sOr_Sub.
-      + iApply Sel_Sub. by iApply fundamental_path_typed.
-      + iApply Sub_Sel. by iApply fundamental_path_typed.
-      + by iApply Sngl_pq_Sub; [|iApply fundamental_path_typed].
-      + by iApply Sngl_Sub_Sym; [iApply fundamental_path_typed|apply IHHT].
-      + iApply Sngl_Sub_Self. by iApply fundamental_path_typed.
-      + by iApply Mu_Sub_Mu.
+      + by iApply sOr_Sub; [iApply H|iApply H0].
+      + iApply Sel_Sub. by iApply H.
+      + iApply Sub_Sel. by iApply H.
+      + by iApply Sngl_pq_Sub; [|iApply H].
+      + by iApply Sngl_Sub_Sym; [iApply H|iApply H0].
+      + iApply Sngl_Sub_Self. by iApply H.
+      + iApply Mu_Sub_Mu. by iApply H.
       + iApply Mu_Sub.
       + iApply Sub_Mu.
-      + by iApply All_Sub_All.
-      + by iApply Fld_Sub_Fld.
-      + by iApply Typ_Sub_Typ.
+      + by iApply All_Sub_All; [iApply H|iApply H0].
+      + iApply Fld_Sub_Fld. by iApply H.
+      + by iApply Typ_Sub_Typ; [iApply H|iApply H0].
       + iApply sAnd_All_Sub_Distr.
       + iApply sAnd_Fld_Sub_Distr.
       + iApply sAnd_Typ_Sub_Distr.
-      + by iApply sAnd_Or_Sub_Distr.
-      + iApply Sub_Skolem_P. by iApply fundamental_path_typed.
+      + iApply sAnd_Or_Sub_Distr.
+      + iApply Sub_Skolem_P. by iApply H.
       (* + by iApply istpi_weaken_ctx_syn.
       + subst. by iApply Delay_Sub. *)
       (* + by_reflect. *)
-    - iIntros "#Hm"; induction HT.
-      + by iApply T_All_Ex; [apply IHHT1|apply IHHT2].
-      + by iApply T_All_Ex_p; [|apply IHHT|iApply fundamental_path_typed].
-      + by iApply T_All_E; [apply IHHT1|apply IHHT2].
-      + by iApply T_Obj_E.
-      + by iApply T_Mu_E.
-      + iApply T_All_I_Strong; [|apply IHHT]. exact: fundamental_ctx_sub.
-      + iApply T_Obj_I. by iApply fundamental_dms_typed.
-      + by iApply T_Mu_I.
-      + by iApply T_Var.
-      + by iApply T_Sub; [apply IHHT|iApply fundamental_subtype].
-      + iApply T_Path. by iApply fundamental_path_typed.
-      + by iApply sT_Nat_I.
-      + by iApply sT_Bool_I.
-      + by iApply T_Un.
-      + by iApply T_Bin.
-      + by iApply sT_If.
-      (* + by_reflect. *)
-    - iIntros "#Hm"; induction HT.
-      + iApply P_Val. by iApply fundamental_typed.
-      + by iApply sP_Fld_E.
-      + by iApply sP_Sub; [|iApply fundamental_subtype].
-      + by iApply P_Mu_I; [|apply IHHT].
-      + by iApply P_Mu_E; [|apply IHHT].
-      + by iApply P_Fld_I.
-      + by iApply P_Sngl_Refl.
-      + by iApply P_Sngl_Inv.
-      + by iApply P_Sngl_Trans; [apply IHHT1|apply IHHT2].
-      + by iApply P_Sngl_E; [apply IHHT1|apply IHHT2].
-      (* + by_reflect. *)
   Qed.
+
+  Lemma fundamental_dm_typed Γ g l d T (HT: Γ v⊢[ g ]{ l := d } : T) :
+    Γ ⊨[ Vs⟦ g ⟧ ] { l := d } : T.
+  Proof. unmut_lemma (fundamental_mut Γ g). Qed.
+  Lemma fundamental_dms_typed Γ g ds T (HT: Γ v⊢ds[ g ] ds : T) :
+    Γ ⊨ds[ Vs⟦ g ⟧ ] ds : T.
+  Proof. unmut_lemma (fundamental_mut Γ g). Qed.
+  Lemma fundamental_subtype Γ g T1 i1 T2 i2 (HT: Γ v⊢ₜ[ g ] T1, i1 <: T2, i2) :
+    Γ ⊨[ Vs⟦ g ⟧ ] T1, i1 <: T2, i2.
+  Proof. unmut_lemma (fundamental_mut Γ g). Qed.
+  Lemma fundamental_typed Γ g e T (HT: Γ v⊢ₜ[ g ] e : T) :
+    Γ ⊨[ Vs⟦ g ⟧ ] e : T.
+  Proof. unmut_lemma (fundamental_mut Γ g). Qed.
+  Lemma fundamental_path_typed Γ g p T i (HT : Γ v⊢ₚ[ g ] p : T, i) :
+    Γ ⊨p[ Vs⟦ g ⟧ ] p : T, i.
+  Proof. unmut_lemma (fundamental_mut Γ g). Qed.
 
   Lemma ipwp_terminates {p T i}:
     [] ⊨p p : T , i ⊢ ▷^i ⌜ terminates (path2tm p) ⌝.
