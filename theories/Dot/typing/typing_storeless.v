@@ -366,7 +366,7 @@ Lemma dvabs_typed' Γ V T1 T2 e l g:
   Γ |L V v⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
 Proof. by intros; apply iD_Val, iT_All_I_strip1. Qed.
 
-Lemma pv_dlater {Γ p T i g} :
+Lemma iP_Later {Γ p T i g} :
   is_stamped_ty (length Γ) g T →
   Γ v⊢ₚ[ g ] p : TLater T, i →
   Γ v⊢ₚ[ g ] p : T, S i.
@@ -436,7 +436,7 @@ Ltac typconstructor :=
   | |- typed      ?Γ _ _ _ => first [apply iT_All_I_strip1 | apply iT_All_I | constructor]
   | |- dms_typed  ?Γ _ _ _ => constructor
   | |- dm_typed   ?Γ _ _ _ _ => first [apply dvabs_typed' | constructor]
-  | |- path_typed ?Γ _ _ _ _ => first [apply pv_dlater | constructor]
+  | |- path_typed ?Γ _ _ _ _ => first [apply iP_Later | constructor]
   | |- subtype    ?Γ _ _ _ _ _ =>
     first [apply Sub_later_shift | constructor ]; typconstructor_blacklist Γ
   end; typconstructor_check.

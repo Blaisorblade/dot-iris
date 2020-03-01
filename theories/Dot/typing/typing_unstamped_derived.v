@@ -636,13 +636,13 @@ Lemma pDOT_Def_Path_derived Γ l p T
   Γ u⊢{ l := dpt p } : TVMem l (TSing p).
 Proof. eapply iD_Path, (iP_Sngl_Refl (T := T)), Hx. Qed.
 
-Lemma pv_dlaterN {Γ p T i j} :
+Lemma iP_LaterN {Γ p T i j} :
   is_unstamped_ty' (length Γ) T →
   Γ u⊢ₚ p : iterate TLater j T, i →
   Γ u⊢ₚ p : T, i + j.
 Proof.
   elim: j i => [|j IHj] i Hu Hp; rewrite (plusnO, plusnS); first done.
-  apply (IHj (S i)), pv_dlater, Hp; tcrush; exact: is_unstamped_TLater_n.
+  apply (IHj (S i)), iP_Later, Hp; tcrush; exact: is_unstamped_TLater_n.
 Qed.
 
 Lemma iMu_LaterN_Sub_Distr_inv {Γ T i n} :
@@ -694,7 +694,7 @@ Lemma iMu_Sub'' {Γ T i}:
   Γ u⊢ₜ TMu (shift T), i <: T, i.
 Proof.
   intros Hu; apply iSub_Skolem_P; wtcrush.
-  apply (pv_dlaterN (i := 0)); wtcrush; hideCtx.
+  apply (iP_LaterN (i := 0)); wtcrush; hideCtx.
   apply (iT_Mu_E' (T1 := iterate ▶:%ty i (shift (shift T)))),
     is_unstamped_TLater_n; cbn; wtcrush; last by rewrite !TLater_subst shift_sub.
   eapply iT_Sub_nocoerce; first var.
@@ -711,7 +711,7 @@ Proof.
   intros Hu; apply iSub_Skolem_P => //.
   have HusT: is_unstamped_ty' (S (S (length Γ))) (shift T).|[up (ren (+1))]
     by rewrite (hren_upn 1); eapply is_unstamped_sub_ren_ty, Hu; auto.
-  apply (pv_dlaterN (i := 0)); wtcrush.
+  apply (iP_LaterN (i := 0)); wtcrush.
   eapply iT_Sub_nocoerce, iMu_LaterN_Sub_Distr; last by wtcrush.
   apply iT_Mu_I, is_unstamped_TLater_n; cbn; wtcrush.
   by rewrite !TLater_subst (hren_upn 1) (hrenS T 1) shift_sub; var.
@@ -736,7 +736,7 @@ Proof.
     eapply is_unstamped_sub_ren_ty, Hu2.
     by apply is_unstamped_ren_up.
   }
-  eapply (pv_dlaterN (i := 0)); wtcrush.
+  eapply (iP_LaterN (i := 0)); wtcrush.
   hideCtx.
   eapply iT_Sub_nocoerce, iMu_LaterN_Sub_Distr, Hu2'.
   eapply iT_Mu_I; last by wtcrush.

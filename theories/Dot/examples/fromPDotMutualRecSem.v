@@ -184,7 +184,7 @@ Lemma Hsub0X0 Γ g :
 Proof.
   ettrans; last apply iLater_Sub; stcrush.
   eapply (iSel_Sub (L := ⊥)).
-  (* Necessary: Pick this over [pv_dlater]. *)
+  (* Necessary: Pick this over [iP_Later]. *)
   apply iP_Fld_E.
   tcrush; varsub.
   ltcrush; mltcrush.
