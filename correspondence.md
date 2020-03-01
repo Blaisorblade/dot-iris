@@ -38,9 +38,15 @@ For each rule, there are up to three versions, with corresponding prefixes.
 - Syntactic lemma
 - Syntactic typing rule (i for inductive).
 
-The paper's P-Var is here called (s|i|)P_Val.
+The paper's P-Var is here called `P_Val`.
+The paper's D-And is here replaced by `D_Nil` and `D_Cons`.
 
 ## Differences between our paper (and technical appendix) and our Coq development.
+
+- Definition lists in Coq are represented as standard cons lists, like in Coq
+  developments by Rapoport et al. (e.g. pDOT) and unlike in DOT papers.
+
+- Semantic definition typing was significantly simplified on paper.
 
 - While in the paper unstamped and stamped DOT are represented using disjoint
   syntaxes, in Coq there is a single syntax, together with predicates
