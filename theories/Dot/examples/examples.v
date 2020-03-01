@@ -9,29 +9,60 @@ From D.Dot Require Import unary_lr
   lr_lemmas lr_lemmasTSel lr_lemmasNoBinding lr_lemmasDefs lr_lemmasPrim.
 From D.Dot Require Import typeExtractionSem.
 From D.Dot Require Import skeleton fundamental.
+Import dlang_adequacy.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
-Import hoasNotation.
+Import hoas.syn.
 
-Example loopDefTyp Γ : Γ v⊢ₜ[ ∅ ] hclose (htv hloopDefV) : hclose hloopDefT.
+(* XXX move into hoas.v. *)
+Module hoasNotation'.
+  Export hoasNotation.
+  Notation "'type' l = ( σ ; s )" := (l, hdtysem σ s) (at level 60, l at level 50).
+End hoasNotation'.
+
+Module Import examplesBodies.
+Import hoasNotation'.
+
+Definition posModT := μ: self, {@
+  type "Pos" >: ⊥ <: 𝐙;
+  val "mkPos" : 𝐙 →: self @; "Pos";
+  val "div" : 𝐙 →: self @; "Pos" →: 𝐙
+}.
+
+Definition hdivV := λ: m n, m `div` (htskip n).
+Definition hmkPosBodyV (n : hvl) := htif (n > 0) n hloopTm.
+Definition hmkPosV := λ: n, hmkPosBodyV n.
+
+Definition hposModV s : hvl := ν: _ , {@
+  type "Pos" = ([]; s);
+  val "mkPos" = hmkPosV;
+  val "div" = hdivV
+}.
+
+Definition hminiV s := ν: _, {@
+  type "A" = ([]; s);
+  val "n" = 2
+}.
+
+End examplesBodies.
+
+Example loopDefTyp Γ : Γ v⊢ₜ[ ∅ ] hloopDefV : hloopDefT.
 Proof.
-  apply (iT_Sub_nocoerce (hclose hloopDefTConcr)); mltcrush. cbv.
-
+  apply (iT_Sub_nocoerce hloopDefTConcr); mltcrush.
   eapply iT_All_E; last var.
   tcrush; varsub; lookup.
 Qed.
 
-Example loopFunTyp Γ : Γ v⊢ₜ[∅] hclose hloopFunTm : hclose ⊤ →: ⊥.
+Example loopFunTyp Γ : Γ v⊢ₜ[∅] hloopFunTm : ⊤ →: ⊥.
 Proof. have ? := loopDefTyp Γ; tcrush. Qed.
 
-Example loopTyp Γ : Γ v⊢ₜ[∅] hclose hloopTm : ⊥.
+Example loopTyp Γ : Γ v⊢ₜ[∅] hloopTm : ⊥.
 Proof.
   have ? := loopFunTyp Γ; apply (iT_All_E (T1 := ⊤)), (iT_Sub_nocoerce 𝐙); tcrush.
 Qed.
 
-(** XXX Not currently using olty. *)
 Module examples.
 
 Local Hint Constructors bin_op_syntype cond_bin_op_syntype : core.
@@ -46,6 +77,7 @@ Local Open Scope Z_scope.
 (* Generic useful lemmas — not needed for fundamental theorem,
     but very useful for examples. *)
 Section helpers.
+
   Context `{HdlangG: dlangG Σ}.
 
   Lemma alloc {s sγ} φ : sγ !! s = None → allGs sγ ==∗ s ↝n[ 0 ] φ.
@@ -137,7 +169,7 @@ Section div_example.
   Proof. iDestruct 1 as %(n & -> & ?). by iApply wp_ge. Qed.
 
   Context `{SwapPropI Σ}.
-  Lemma loopSemT: WP hclose hloopTm {{ _, False }}%I.
+  Lemma loopSemT: WP hloopTm {{ _, False }}%I.
   Proof using Type*.
     iDestruct (fundamental_typed _ _ _ _ (loopTyp []) with "[]") as "H".
     iApply wellMappedφ_empty.
@@ -145,11 +177,10 @@ Section div_example.
     by rewrite hsubst_id /=.
   Qed.
 
-  Definition hmkPosBodyV n := htif (n > 0) n hloopTm.
-  Definition hmkPosV := λ: n, hmkPosBodyV n.
-
+  Section useHoas.
+  Import hoasNotation'.
   Lemma wp_if_ge (n : Z) :
-    WP hclose (hmkPosBodyV n) {{ w, ⌜ w = n ∧ n > 0 ⌝}}%I.
+    WP hmkPosBodyV n {{ w, ⌜ w = n ∧ n > 0 ⌝}}%I.
   Proof using Type*.
     wp_bind (IfCtx _ _).
     wp_bin; ev; simplify_eq/=.
@@ -159,7 +190,7 @@ Section div_example.
   Qed.
 
   Lemma wp_if_ge' (n : Z) :
-    WP tif (n > 0) (1 `div` n) (hclose hloopTm) {{ w, ⟦ 𝐙 ⟧ ids w ∧ ⌜ n > 0 ⌝}}%I.
+    WP tif (n > 0) (1 `div` n) hloopTm {{ w, ⟦ 𝐙 ⟧ ids w ∧ ⌜ n > 0 ⌝}}%I.
   Proof using Type*.
     wp_bind (IfCtx _ _).
     wp_bin; ev; simplify_eq/=.
@@ -167,25 +198,11 @@ Section div_example.
     - wp_bin. naive_solver.
     - iApply wp_wand; [iApply loopSemT | naive_solver].
   Qed.
-
-  Import hoasNotation.
-
-  Definition posModT := μ: self, {@
-    type "Pos" >: ⊥ <: 𝐙;
-    val "mkPos" : 𝐙 →: self @; "Pos";
-    val "div" : 𝐙 →: self @; "Pos" →: 𝐙
-  }.
-
-  Definition hdivV := λ: m n, (htskip m) `div` n.
+  End useHoas.
 
   (** We assume [Hs] throughout the rest of the section. *)
-  Import DBNotation.
 
-  Definition posModV := ν {@
-    type "Pos" = ([]; s);
-    val "mkPos" = pv (hclose hmkPosV);
-    val "div" = pv (hclose hdivV)
-  }.
+  Definition posModV : vl := hposModV s.
 
   Lemma sToIpos : Hs -∗ dtysem [] s ↗n[ 0 ] hoEnvD_inst [] ipos.
   Proof. by iApply dm_to_type_intro. Qed.
@@ -205,27 +222,28 @@ Section div_example.
     iApply (sD_Typ_Abs ipos); [|iApply sBot_Sub|by iExists _; iFrame "Hs"].
     iApply Sub_later_ipos_nat.
   Qed.
-  Definition testVl l : vl := ν {@ type l = ([]; s)}.
+
+  Definition testDm := dtysem [] s.
+  Definition testVl l : vl := ν {@ (l, testDm) }.
 
   Lemma sInTestVl l ρ :
-    path_includes (pv x0) (testVl l .: ρ) [type l = ([]; s)].
+    path_includes (pv x0) (testVl l .: ρ) [(l, testDm)].
   Proof. constructor; naive_solver. Qed.
-  Hint Resolve sInTestVl : core.
 
-  Lemma sHasA l : Hs -∗ D*⟦ type l >: ⊥ <: 𝐙 ⟧ ids (dtysem [] s).
+  Lemma sHasA l : Hs -∗ D*⟦ type l >: ⊥ <: 𝐙 ⟧ ids testDm.
   Proof.
     rewrite (sHasA' l []); iIntros "H".
-    by iDestruct ("H" $! (testVl l .: ids) with "[] []") as "[_ $]".
+    iDestruct ("H" $! (testVl l .: ids) with "[] []") as "[_ $]"; auto using sInTestVl.
   Qed.
 
-  Lemma posModVHasAtyp: Hs -∗ [] ⊨ posModV : type "Pos" >: ⊥ <: TInt.
+  Lemma posModVHasATy: Hs -∗ [] ⊨ posModV : type "Pos" >: ⊥ <: TInt.
   Proof.
     rewrite -ietp_value; iIntros "#Hs" (ρ).
     iExists _; iSplit; by [eauto | iApply (sHasA "Pos")].
   Qed.
 
   Lemma ty_mkPos :
-    [] s⊨ hclose hmkPosV : oAll V⟦ 𝐙 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : Z, v = n ∧ n > 0 ⌝)).
+    [] s⊨ hmkPosV : oAll V⟦ 𝐙 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : Z, v = n ∧ n > 0 ⌝)).
   Proof using Type*.
     rewrite -sT_All_I /= /shead.
     iIntros (ρ) "!> /=". iDestruct 1 as %(_ & n & Hw); simplify_eq/=; rewrite Hw.
@@ -233,37 +251,45 @@ Section div_example.
   Qed.
 
   Lemma wp_mkPos :
-    oAll V⟦ 𝐙 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : Z, v = n ∧ n > 0 ⌝)) vnil ids (hclose hmkPosV).
+    oAll V⟦ 𝐙 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : Z, v = n ∧ n > 0 ⌝)) vnil ids hmkPosV.
   Proof using Type*. iApply wp_value_inv'. iApply (ty_mkPos with "[//]"). Qed.
 
   Lemma wp_div_spec (m : Z) w : ipos vnil ids w -∗ WP m `div` w {{ ⟦ 𝐙 ⟧ ids }}.
   Proof. iDestruct 1 as %(n&?&?); simplify_eq. wp_bin. by iIntros "!%"; naive_solver. Qed.
 
-  Lemma posModVHasA: Hs -∗ [] ⊨ posModV : hclose posModT.
+  Close Scope Z_scope.
+
+  Lemma posModTy: Hs -∗ [] ⊨ posModV : posModT.
   Proof using Type*.
     rewrite /posModT -(T_Mu_I _ posModV).
-    iIntros "#Hs /=".
-    iApply sT_And_I; first by iApply posModVHasAtyp.
+    iIntros "#Hs".
+    iApply sT_And_I; first by iApply posModVHasATy.
     iApply sT_And_I; last iApply sT_And_I; last by
       iIntros "!> ** /="; rewrite -wp_value'.
-    - valMember ρ; iExists _; iSplit; [done|].
-      iIntros (w) "!>"; iMod 1 as %[n Hw]; iIntros "!> !>".
-      simplify_eq/=.
-      iApply wp_wand; [iApply wp_if_ge | iIntros "/=" (v [-> ?])].
+    - iApply V_TVMem_I; [solve_fv_congruence|naive_solver|].
+      iApply sT_All_I.
+      rewrite /= /shead.
+      iIntros "!>" (ρ [_ [n Hw]]) "!> /=".
+      simplify_eq/=; rewrite Hw.
+      iApply wp_wand; [iApply wp_if_ge |iIntros "/=" (v [-> ?])].
       rewrite path_wp_pv_eq.
       repeat (iExists _; try iSplit => //=).
       iSplit => //. by iApply dm_to_type_intro.
       iIntros "!%"; rewrite /pos.
       naive_solver.
-    - valMember ρ; iExists _; iSplit; [done|].
-      iIntros (v) "!>"; iMod 1 as %[m Hw]; iIntros "!> !>".
-      rewrite -wp_value'; simplify_eq/=; iExists _; iSplit; [done|].
-      iIntros (w) "!> #Harg!>!>"; rewrite path_wp_pv_eq /=.
+    - iApply V_TVMem_I; [solve_fv_congruence|naive_solver|].
+      iApply sT_All_I.
+      iApply sT_All_I.
+      rewrite /= /shead /stail/=.
+      iIntros "!>" (ρ ) "#[[_ Hw] Harg] !> /=".
+      iDestruct "Hw" as %[m ->].
+      setoid_rewrite path_wp_pv_eq.
+      setoid_rewrite later_intuitionistically.
       iDestruct "Harg" as (Φ d [ds Hlook]) "[Hs1 #Harg]";
         have {d ds Hlook}->: d = dtysem [] s by naive_solver.
       iPoseProof (sToIpos with "Hs") as "Hs2/=".
-      iPoseProof (dm_to_type_agree vnil w with "Hs1 Hs2") as "{Hs Hs1 Hs2} Heq".
-      wp_bind (BinLCtx _ _); rewrite -wp_pure_step_later // -wp_value/=/lang.of_val.
+      iPoseProof (dm_to_type_agree vnil (ρ 0) with "Hs1 Hs2") as "{Hs Hs1 Hs2} Heq".
+      wp_bind (BinRCtx _ _); rewrite -wp_pure_step_later // -wp_value/=/lang.of_val.
       iNext. iRewrite "Heq" in "Harg"; iClear "Heq".
       by iApply wp_div_spec.
   Qed.
@@ -310,23 +336,19 @@ Section small_ex.
   (* Generic useful lemmas — not needed for fundamental theorem,
      but very useful for examples. *)
 
-  (** Under Iris assumption [Hs], [v.A] points to [ipos]. *)
+  (** Under Iris assumption [Hs], [miniV.A] points to [ipos]. *)
   Import DBNotation.
 
-  Definition v := ν {@
-    type "A" = ([]; s);
-    val "n" = pv (vint 2)
-  }.
-
-  Definition vTyp1Body : ty := {@
+  Definition miniVT1Body : ty := {@
     type "A" >: ⊥ <: 𝐙;
     val "n" : p0 @; "A"
   }.
-  Definition vTyp1 := μ vTyp1Body.
+  Definition miniVT1 := μ miniVT1Body.
+  Definition miniV : vl := hminiV s.
 
 
-  (** Yes, v has a valid type member. *)
-  Lemma vHasA0typ: Hs -∗ [] ⊨ tv v : type "A" >: ⊥ <: 𝐙.
+  (** Yes, miniV has a valid type member. *)
+  Lemma vHasA0typ: Hs -∗ [] ⊨ miniV : type "A" >: ⊥ <: 𝐙.
   Proof.
     iIntros "#Hs".
     iApply (T_Sub (i := 0) (T1 := μ {@ type "A" >: ⊥ <: 𝐙})).
@@ -346,10 +368,9 @@ Section small_ex.
      XXX: also, maybe this *could* be done with T_Obj_I with
      a precise type? That'd be a more correct derivation.
    *)
-  (* Lemma vHasA1: Hs -∗ ∀ ρ, ⟦ vTyp1 ⟧ ρ v.[ρ]. *)
-  Lemma vHasA1t : Hs -∗ [] ⊨ tv v : vTyp1.
+  Lemma vHasA1t : Hs -∗ [] ⊨ miniV : miniVT1.
   Proof.
-    rewrite -(T_Mu_I _ v).
+    rewrite -(T_Mu_I _ miniV).
     iIntros "#Hs /=".
     iApply sT_And_I; first by [iApply vHasA0typ].
     iApply sT_And_I; first last.
@@ -373,24 +394,24 @@ Section small_ex.
     is overly abstract when we try proving that [this.n : this.A];
     see concretely below.
   *)
-  Definition vTyp2Body : ty := {@
+  Definition miniVT2Body : ty := {@
     type "A" >: ⊥ <: 𝐙;
     val "n" : TLater (p0 @; "A")
   }.
-  Definition vTyp2 := μ vTyp2Body.
+  Definition miniVT2 := μ miniVT2Body.
 
-  Definition svTyp2Body : oltyO Σ 0 :=
+  Definition sminiVT2Body : oltyO Σ 0 :=
     oAnd (cTMem "A" oBot (oPrim tint))
       (oAnd (cVMem "n" (oLater (oSel p0 "A")))
       oTop).
-  Goal V⟦vTyp2Body⟧ = svTyp2Body. done. Abort.
-  Definition svTyp2 := oMu svTyp2Body.
+  Goal V⟦miniVT2Body⟧ = sminiVT2Body. done. Abort.
+  Definition sminiVT2 := oMu sminiVT2Body.
 
-  Definition svTyp2ConcrBody : cltyO Σ :=
+  Definition sminiVT2ConcrBody : cltyO Σ :=
     cAnd (cTMem "A" ipos ipos)
       (cAnd (cVMem "n" (oLater (oSel p0 "A")))
       cTop).
-  Definition svTyp2Concr := oMu svTyp2ConcrBody.
+  Definition sminiVT2Concr := oMu sminiVT2ConcrBody.
 
   Lemma sT_Var0 {Γ T}
     (Hx : Γ !! 0%nat = Some T):
@@ -400,17 +421,17 @@ Section small_ex.
 
   (* This works! But we get a weaker type, because we're using typing rules
   for recursive objects on a not-really-recursive one. *)
-  Lemma vHasA2t `{SwapPropI Σ}: Hs -∗ [] s⊨ tv v : svTyp2.
+  Lemma vHasA2t `{SwapPropI Σ}: Hs -∗ [] s⊨ miniV : sminiVT2.
   Proof.
     iIntros "#Hs".
-    iApply (sT_Sub (i := 0) (T1 := svTyp2Concr)); first last.
-    - iApply sMu_Sub_Mu; rewrite /svTyp2ConcrBody /vTyp1Body iterate_0.
+    iApply (sT_Sub (i := 0) (T1 := sminiVT2Concr)); first last.
+    - iApply sMu_Sub_Mu; rewrite /sminiVT2ConcrBody /miniVT1Body iterate_0.
       iApply sSub_And; last iApply sSub_And; last iApply sSub_Top.
     + iApply sSub_Trans; first iApply sAnd1_Sub.
       iApply sTyp_Sub_Typ; [iApply sBot_Sub | iApply Sub_later_ipos_nat].
     + iApply sSub_Trans; first iApply sAnd2_Sub.
       iApply sAnd1_Sub.
-    - rewrite /v /svTyp2Concr /svTyp2ConcrBody.
+    - rewrite /miniV /sminiVT2Concr /sminiVT2ConcrBody.
       iApply sT_Obj_I.
       iApply sD_Cons; first done.
       iApply (sD_Typ_Abs ipos); [iApply sSub_Refl..|by iExists _; iFrame "Hs"].
@@ -432,11 +453,16 @@ Section small_ex.
 End small_ex.
 End s_is_pos.
 
-Import dlang_adequacy swap_later_impl.
-Lemma vSafe: safe (tv (v 1%positive)).
+Lemma miniVSafe (s : stamp): safe (tv (miniV s)).
 Proof.
-  eapply (safety_dot_sem dlangΣ (T := vTyp1))=>*.
-  by rewrite (allocHs 1%positive) // -vHasA1t.
+  eapply (safety_dot_sem dlangΣ (T := miniVT1))=>*.
+  by rewrite (allocHs s) // -vHasA1t.
+Qed.
+
+Lemma posModVSafe (s : stamp): safe (tv (posModV s)).
+Proof.
+  eapply (safety_dot_sem dlangΣ (T := posModT))=>*.
+  by rewrite (allocHs s) // -posModTy.
 Qed.
 
 End examples.
