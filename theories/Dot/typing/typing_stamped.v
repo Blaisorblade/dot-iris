@@ -343,7 +343,7 @@ Proof.
   rewrite /defCtxCons/=; ietp_weaken_ctx.
 Qed.
 
-Lemma dvabs_typed' Γ V T1 T2 e l g:
+Lemma iD_All Γ V T1 T2 e l g:
   is_stamped_ty (S (length Γ)) g T1 →
   shift T1 :: V :: Γ s⊢ₜ[ g ] e : T2 →
   Γ |L V s⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
@@ -396,7 +396,7 @@ Ltac typconstructor :=
   match goal with
   | |- typed _ _ _ _ => first [apply iT_All_I_strip1 | apply iT_All_I | constructor]
   | |- dms_typed _ _ _ _ => constructor
-  | |- dm_typed _ _ _ _ _ => first [apply dvabs_typed' | constructor]
+  | |- dm_typed _ _ _ _ _ => first [apply iD_All | constructor]
   | |- path_typed _ _ _ _ _ => first [apply iP_Later | constructor]
   | |- subtype _ _ _ _ _ _ =>
     first [apply Sub_later_shift | constructor ]

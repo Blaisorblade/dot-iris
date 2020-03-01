@@ -176,7 +176,7 @@ Qed.
 Example listTypConcr Γ : boolImplT :: Γ u⊢ₜ hlistModV hx0 : hlistModTConcr hx0.
 Proof.
   have Hn := nilTyp Γ.
-  (* Without the call to [iD_Val], Coq would (smartly) default to [dvabs_typed] *)
+  (* Without the call to [iD_Val], Coq would (smartly) default to [iD_All] *)
   have := consTyp Γ => /(iD_Val "cons") Hc /=.
   tcrush.
 Qed.
