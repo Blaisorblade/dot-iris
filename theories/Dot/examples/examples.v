@@ -168,29 +168,6 @@ Section div_example.
     - iApply wp_wand; [iApply loopSemT | naive_solver].
   Qed.
 
-  (* Experiments using fancier infrastructure: *)
-  Lemma allocHsGen sγ:
-    sγ !! s = None → allGs sγ ==∗ Hs.
-  Proof.
-    (* iIntros (Hl) "H". iApply wellMappedφ_apply.
-    Fail pose (t := transfer (<[s:=ipos]> ∅)).
-    pose (u := transfer (<[s:=olty_car ipos]> ∅)).
-    2: iApply (transfer (<[s:=ipos]> ∅) with "H") => s'.
-      Unshelve. 3: apply _.
-    (* Check transfer (<[s:=olty_car ipos]> ∅). *)
-    Fail pose (t := transfer (<[s:=ipos]> ∅)). *)
-
-    iIntros (Hl) "H". iApply wellMappedφ_apply;
-      last iApply (!!(transfer (<[s:=olty_car ipos]> ∅)) with "H") => s';
-      rewrite ?lookup_insert ?dom_insert ?dom_empty //; set_solver+ Hl.
-  Qed.
-
-  Lemma allocHs1: allGs ∅ ==∗ Hs.
-  Proof.
-    iIntros "H"; iApply wellMappedφ_apply; last iApply (transfer_empty (<[s:=olty_car ipos]> ∅) with "H").
-    by rewrite lookup_insert.
-  Qed.
-
   Import hoasNotation.
 
   Definition posModT := μ: self, {@
@@ -452,34 +429,6 @@ Section small_ex.
       iApply sSub_Later_Sub.
       iApply sAnd1_Sub.
   Qed.
-
-  Lemma vHasA1': Hs -∗ ⟦ vTyp1 ⟧ ids v.
-  Proof.
-    iIntros "#Hs".
-    iDestruct (T_Obj_I [] vTyp1Body with "[]") as "#H"; first last.
-    iSpecialize ("H" $! ids with "[#//]").
-    rewrite hsubst_id /interp_expr wp_value_inv'.
-    iApply "H".
-    iApply D_Cons => //.
-    - (* Can't finish with D_Typ_Abs, this is only for syntactic types: *)
-      (* From D.Dot Require Import typeExtractionSem.
-      iApply sD_Typ_Abs => //; first last.
-      iExists _; iSplit => //=.  (* Here we need a syntactic type matching [ipos]. *) *)
-      iModIntro.
-      iIntros (ρ Hpid) "/= #_".
-      iSplit => //. by iApply sHasA.
-    - iApply D_Cons => //; last by iApply D_Nil.
-      iApply D_Path.
-      iIntros "!>" (ρ) "/="; iDestruct 1 as "[_ [HA [HB _]]]".
-      iDestruct "HA" as (dA) "[HlA HA]".
-      iDestruct "HA" as (φ) "[Hlφ HA]".
-      iDestruct "HB" as (dB) "[HlB HB]".
-      iDestruct "HB" as (w) "HB".
-      rewrite !path_wp_pv_eq.
-      iExists φ, dA; repeat iSplit => //; try iNext => //.
-      (* Last case is stuck, since we don't know what [ρ 0] is and what
-      "A" points to. *)
-  Abort.
 End small_ex.
 End s_is_pos.
 
