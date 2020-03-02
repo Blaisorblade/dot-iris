@@ -1,7 +1,7 @@
 # Code size statistics
 
 Computed by running `./codesize.sh > codesize.md` on commit
-ef97ac0adf685108484035111aaf964a005e82f0.
+2f420144d7f36daa84e97bf2f0c021b3a752c956.
 
 ```
 theories: 1022
@@ -16,11 +16,11 @@ theories/Dot/lr: 2647
 theories/misc_unused: 616
 theories/DSub/stamping: 1016
 theories/DSub/misc_unused: 75
-theories/DSub/typing: 226
+theories/DSub/typing: 137
 theories/DSub/syn: 654
 theories/DSub/lr: 219
 theories/DSubSyn: 152
-theories/DSubSyn/typing: 226
+theories/DSubSyn/typing: 221
 theories/DSubSyn/lr: 521
 theories/pure_program_logic: 730
 

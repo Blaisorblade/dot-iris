@@ -5,7 +5,7 @@
   allows arbitrary values in types.
 *)
 From D Require Import tactics.
-From D.DSub Require Export syn stampingDefsCore.
+From D.DSub Require Export syn.
 From D.DSubSyn Require Export typing_storeless.
 
 Reserved Notation "Γ u⊢ₜ e : T" (at level 74, e, T at next level).
@@ -25,7 +25,6 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ u⊢ₜ tapp e1 e2 : T2
 | iT_All_I e T1 T2:
     (* T1 :: Γ u⊢ₜ e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
-    is_unstamped_ty T1 →
     shift T1 :: Γ u⊢ₜ e : T2 →
     (*─────────────────────────*)
     Γ u⊢ₜ tv (vabs e) : TAll T1 T2
@@ -44,7 +43,6 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ u⊢ₜ iterate tskip i e : T2
 | iT_Typ_Abs T L U :
     nclosed T (length Γ) →
-    is_unstamped_ty T →
     Γ u⊢ₜ T, 1 <: U, 1 →
     Γ u⊢ₜ L, 1 <: T, 1 →
     Γ u⊢ₜ tv (vty T) : TTMem L U
@@ -74,12 +72,10 @@ subtype Γ : ty → nat → ty → nat → Prop :=
 
 (* Type selections *)
 | iSel_Sub L U v:
-    is_unstamped_ty (TSel v) →
     Γ u⊢ₜ tv v : TTMem L U →
     Γ u⊢ₜ TSel v, 0 <: U, 1
 
 | iSub_Sel L U v:
-    is_unstamped_ty (TSel v) →
     Γ u⊢ₜ tv v : TTMem L U →
     Γ u⊢ₜ L, 1 <: TSel v, 0
 
@@ -121,6 +117,5 @@ Qed.
 
 Lemma Vty_typed Γ T L U :
     nclosed T (length Γ) →
-    is_unstamped_ty T →
     Γ u⊢ₜ tv (vty T) : TTMem T T.
-Proof. intros Hcl Hus; apply (iT_Typ_Abs Γ T); auto. Qed.
+Proof. intros Hcl; apply (iT_Typ_Abs Γ T); auto. Qed.
