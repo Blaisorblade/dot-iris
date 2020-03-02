@@ -38,7 +38,6 @@ cat << EOF
 Computed by running \`./codesize.sh > codesize.md\` on commit
 $(git rev-parse HEAD).
 
-Saved output:
 \`\`\`
 EOF
 

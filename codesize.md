@@ -1,9 +1,8 @@
 # Code size statistics
 
 Computed by running `./codesize.sh > codesize.md` on commit
-40b958fd3dc91456ce3e049e310bbe8f44e3378a.
+094a2355b70144e6c198a504f823fe4c4db957ab.
 
-Saved output:
 ```
 theories: 1021
 theories/iris_extra: 1324
