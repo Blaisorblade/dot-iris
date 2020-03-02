@@ -4,7 +4,7 @@ maintainer: "Paolo G. Giarrusso"
 authors: "Paolo G. Giarrusso, Amin Timany, Léo Stefanesco"
 homepage: "https://github.com/Blaisorblade/dot-iris"
 bug-reports: "https://github.com/Blaisorblade/dot-iris/issues"
-synopsis: "Dependencies for mechanization of gDOT in Iris"
+synopsis: "(Dependencies for) Mechanization of gDOT in Iris"
 depends: [
   "coq" { (>= "8.10" & < "8.11~") }
   "coq-iris" { = "dev.2020-01-21.1.676a5302" }
