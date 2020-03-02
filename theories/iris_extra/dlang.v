@@ -52,11 +52,6 @@ Module Type LiftWp (Import VS : VlSortsSig).
   Hint Extern 10 (IntoVal _ _) =>
     rewrite /IntoVal; eapply of_to_val; rewrite /= !to_of_val /=; solve [ eauto ] : typeclass_instances.
 
-  Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
-    iApply (wp_bind (fill[ctx]));
-    iApply (wp_wand with "[-]"); [iApply Hp; trivial|]; cbn;
-    iIntros (v) Hv.
-
   Definition leadsto_n `{!dlangG Σ}
     s n (φ : hoEnvD Σ n) := (∃ γ, s ↦ γ ∧ γ ⤇n[ n ] φ)%I.
   Notation "s ↝n[ n  ] φ" := (leadsto_n s n φ) (at level 20) : bi_scope.

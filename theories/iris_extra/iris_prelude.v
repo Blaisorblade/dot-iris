@@ -1,6 +1,16 @@
+From iris.proofmode Require Import tactics.
+From iris.program_logic Require Import ectx_language.
 From iris.base_logic Require Import upred.
+
 From D.pure_program_logic Require Export weakestpre.
 From D Require Export prelude proofmode_extra.
+
+Export uPred.
+
+Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
+  iApply (wp_bind (fill[ctx]));
+  iApply (wp_wand with "[-]"); [iApply Hp; trivial|]; cbn;
+  iIntros (v) Hv.
 
 (* Do not export iris.proofmode.tactics! *)
 (* From iris.proofmode Require Export tactics. *)
@@ -11,8 +21,6 @@ From D Require Export prelude proofmode_extra.
 Notation "'λI' x .. y , t" := (fun x => .. (fun y => t%I) ..)
   (at level 200, x binder, y binder, right associativity, only parsing,
   format "'[  ' '[  ' 'λI'  x  ..  y ']' ,  '/' t ']'") : function_scope.
-
-Export uPred.
 
 Ltac properness :=
   repeat match goal with
