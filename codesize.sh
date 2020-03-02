@@ -76,7 +76,7 @@ sumDirs "logrel" "lr"
 sumDirs "model (syntax + logrel)" "syn lr"
 
 echo
-sumDirs "syntactic typing (w/ stamping)" ". typing stamping"
+sumDirs "syntactic typing (w/ stamping & fundamental)" ". typing stamping"
 
 echo
 sumDirs "examples" "examples"
