@@ -46,6 +46,11 @@ Inside the `Dot` folder:
 Install the Coq and Iris version specified in `opam`, for instance via
 `opam install coq.<insert Coq version here> coq-iris.<insert version here>`.
 
+Currently, that means:
+```
+opam install coq.8.10.2 coq-iris.dev.2020-01-21.1.676a5302
+```
+
 ### To use opam 2.0
 
 One can use opam 2.0 to create a local switch, that is, a local version of iris
