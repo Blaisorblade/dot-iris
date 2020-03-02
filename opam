@@ -1,9 +1,5 @@
 opam-version: "2.0"
 name: "dot-iris-builddep"
-maintainer: "Paolo G. Giarrusso"
-authors: "Paolo G. Giarrusso, Amin Timany, Léo Stefanesco"
-homepage: "https://github.com/Blaisorblade/dot-iris"
-bug-reports: "https://github.com/Blaisorblade/dot-iris/issues"
 synopsis: "(Dependencies for) Mechanization of gDOT in Iris"
 depends: [
   "coq" { (>= "8.11.1" & < "8.12~") }
