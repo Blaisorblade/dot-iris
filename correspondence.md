@@ -67,3 +67,16 @@ The paper's D-And is here replaced by `D_Nil` and `D_Cons`.
   Storeless typing generalizes some rules of stamped typing to allow arbitrary
   values in paths, and not just variables. This is not at all necessary to our
   proof technique, but it simply allows typing more programs.
+
+## Paper - development mapping
+
+- DOT syntax and operational semantics: `Dot/syn/syn.v`
+- Unstamped typing judgments: `Dot/typing/typing_unstamped.v`
+- Unstamped typing judgments, derived rules:
+  `Dot/typing/typing_unstamped.v`,
+  `Dot/typing/typing_unstamped_derived.v`
+- Logical relation: `Dot/unary_lr.v`.
+- Top-level type safety theorems: `Dot/fundamental.v`.
+- Covariant lists example: `Dot/examples/list.v`.
+- Positive integers example: `Dot/examples/examples.v`.
+- Unsafe motivating example: `Dot/examples/fromPDotMutualRecSem.v`.
