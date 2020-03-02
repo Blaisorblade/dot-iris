@@ -160,17 +160,8 @@ Section SemTypes.
 
   Definition oSing `{dlangG Σ} p : olty Σ 0 := olty0 (λI ρ v, ⌜alias_paths p.|[ρ] (pv v)⌝).
 
-  (* Paolo: This definition is contractive (similarly to what's useful for
-     equi-recursive types).
-     However, I am not sure we need this; it'd be good to
-     write an example where this makes a difference.
-     I think that would be something like
-     nu x. { T = TInt; U = x.T -> x.T }:
-     mu (x: {T <: TInt; U <: x.T -> TInt}).
-     If the function type constructor is not contractive but only non-expansive,
-     typechecking this example needs to establish x.T <: TInt having in context
-     only x: {T <: TInt; U <: x.T -> TInt}.
-   *)
+  (* Function types; this definition is contractive (similarly to what's
+     useful for equi-recursive types). *)
   Definition oAll τ1 τ2 := olty0
     (λI ρ v,
     (∃ t, ⌜ v = vabs t ⌝ ∧

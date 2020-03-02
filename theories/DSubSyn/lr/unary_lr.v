@@ -66,18 +66,8 @@ Section logrel.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_later /.
 
-  (* Paolo: This definition is contractive (similarly to what's useful for
-     equi-recursive types).
-     However, I am not sure we need this; it'd be good to
-     write an example where this makes a difference.
-     I think that would be something like
-     nu x. { T = TInt; U = x.T -> x.T }:
-     mu (x: {T <: TInt; U <: x.T -> TInt}).
-     If the function type constructor is not contractive but only non-expansive,
-     typechecking this example needs to establish x.T <: TInt having in context
-     only x: {T <: TInt; U <: x.T -> TInt}.
-    *)
-
+  (* Function types; this definition is contractive (similarly to what's
+     useful for equi-recursive types). *)
   Program Definition interp_forall: envD Σ -n> envD Σ -n> envD Σ :=
     λne interp1 interp2, λ ρ v,
     (∃ t, ⌜ v = vabs t ⌝ ∧

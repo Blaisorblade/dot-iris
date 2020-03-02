@@ -67,16 +67,8 @@ Section logrel.
   Definition interp_bot : envD Σ := λ ρ v, False%I.
   Global Arguments interp_bot /.
 
-  (* XXX Paolo: This definition is correct but non-expansive, instead of
-      contractive, unlike other logical relations here.
-      It'd be good to write an example where this makes a difference.
-      I think that would be something like
-      nu x. { T = TInt; U = x.T -> x.T }:
-      mu (x: {T <: TInt; U <: x.T -> TInt}).
-      If the function type constructor is not contractive but only non-expansive,
-      typechecking this example needs to establish x.T <: TInt having in context
-      only x: {T <: TInt; U <: x.T -> TInt}.
-    *)
+  (* XXX This definition is correct but non-expansive, instead of
+      contractive, unlike other logical relations here. *)
   Definition interp_forall interp1 interp2 : envD Σ :=
     λ ρ v,
     (□ ∀ w, interp1 ρ w -∗ interp_expr interp2 (w .: ρ) (tapp (tv v) (tv w)))%I.
