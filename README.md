@@ -44,7 +44,7 @@ Inside the `Dot` folder:
 ### Iris version
 
 Install the Coq and Iris version specified in `opam`, for instance via
-`opam install coq-iris.<insert version here>`.
+`opam install coq.<insert Coq version here> coq-iris.<insert version here>`.
 
 ### To use opam 2.0
 
