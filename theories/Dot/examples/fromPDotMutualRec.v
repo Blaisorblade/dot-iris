@@ -19,7 +19,6 @@ Definition fromPDotPaperTypesTBody : ty := {@
   typeEq "TypeTop" ⊤;
   val "newTypeTop" : ⊤ →: x0 @; "TypeTop";
   typeEq "TypeRef" $ TAnd (x0 @; "Type") typeRefTBody;
-  val "AnyType" : ▶: (x0 @; "Type");
   val "newTypeRef" : x1 @ "symbols" @; "Symbol" →: x0 @; "TypeRef"
 }.
 
@@ -28,7 +27,6 @@ Definition fromPDotPaperAbsTypesTBody : ty := {@
   type "TypeTop" >: ⊥ <: x0 @; "Type";
   val "newTypeTop" : ⊤ →: x0 @; "TypeTop";
   type "TypeRef" >: ⊥ <: TAnd (p0 @; "Type") typeRefTBody;
-  val "AnyType" : ▶: (x0 @; "Type");
   val "newTypeRef" : x1 @ "symbols" @; "Symbol" →: x0 @; "TypeRef"
 }.
 
@@ -39,7 +37,6 @@ Definition fromPDotPaperTypesV : vl := ν {@
   type "TypeTop" = TTop;
   val "newTypeTop" = vabs (ν {@ });
   type "TypeRef" = TAnd (x0 @; "Type") typeRefTBody;
-  val "AnyType" = ν {@ };
   val "newTypeRef" = vabs (
     ν {@
       val "symb" = x1
@@ -97,12 +94,6 @@ Proof.
     + repeat first [var | typconstructor | tcrush].
     + apply (iSub_Trans (T2 := ⊤) (i2 := 0)); first tcrush.
       eapply iSub_Sel'; last (tcrush; varsub); ltcrush.
-  - eapply (iT_Sub_nocoerce (TMu ⊤)); first tcrush.
-    eapply (iSub_Trans (T2 := ⊤) (i2 := 0)); tcrush.
-    eapply (iSub_Trans (i2 := 1)); [exact: iSub_AddI | ].
-    asideLaters.
-    eapply (iSub_Sel' _ ⊤); tcrush.
-    varsub; apply Sub_later_shift; tcrush.
   - eapply (iT_Sub_nocoerce) => /=; hideCtx.
     + repeat first [var | typconstructor | tcrush].
     + ettrans; first last.
@@ -155,8 +146,8 @@ Proof.
 Qed.
 
 Definition getAnyTypeT : ty :=
-  TAll (μ fromPDotPaperAbsTBody) (p0 @ "types" @; "Type").
-Definition getAnyType : vl := vabs (tskip (tproj (tproj x0 "types") "AnyType")).
+  TAll (μ fromPDotPaperAbsTBody) (⊤ →: p0 @ "types" @; "TypeTop").
+Definition getAnyType : vl := vabs (tskip (tproj (tproj x0 "types") "newTypeTop")).
 
 Ltac simplSubst := rewrite /= /up/= /ids/ids_vl/=.
 
@@ -167,7 +158,6 @@ Definition fromPDotPaperAbsTypesTBodySubst : ty := {@
   type "TypeRef" >: ⊥ <: TAnd (x0 @ "types" @; "Type") {@
     val "symb" : x0 @ "symbols" @; "Symbol"
   };
-  val "AnyType" : ▶: (x0 @ "types" @; "Type");
   val "newTypeRef" : x0 @ "symbols" @; "Symbol" →: x0 @ "types" @; "TypeRef"
 }.
 
@@ -177,7 +167,7 @@ Proof. exact: psubst_ty_rtc_sufficient. Qed.
 Example getAnyTypeFunTyp Γ : Γ u⊢ₜ getAnyType : getAnyTypeT.
 Proof.
   rewrite /getAnyType -(iterate_S tskip 0); tcrush.
-  eapply (iT_Sub (T1 := TLater (p0 @ "types" @; "Type"))); tcrush.
+  eapply (iT_Sub (T1 := TLater (⊤ →: p0 @ "types" @; "TypeTop"))); tcrush.
   set Γ' := shift (μ fromPDotPaperAbsTBody) :: Γ.
   have Hpx: Γ' u⊢ₚ p0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0
     by tcrush; eapply iT_Sub_nocoerce;
@@ -186,13 +176,17 @@ Proof.
   by eapply (iP_Mu_E (T := fromPDotPaperAbsTypesTBody)
     (p := p0 @ "types")), Hpx; tcrush.
   eapply (iT_Path (p := p0)), iP_Fld_I, (iP_Sub (i := 0)), HpxSubst.
-  repeat lNext.
+  ltcrush.
 Qed.
 
 Example getAnyTypeTyp0 :
   [μ fromPDotPaperAbsTBody] u⊢ₜ
-    tapp getAnyType x0 : p0 @ "types" @; "Type".
-Proof. eapply iT_All_Ex'; [exact: getAnyTypeFunTyp|var|tcrush..]. Qed.
+    getAnyType $: x0 $: () : p0 @ "types" @; "TypeTop".
+Proof.
+  eapply (iT_All_E (T1 := ⊤)), iT_Sub_nocoerce; tcrush.
+  eapply iT_All_Ex'; [exact: getAnyTypeFunTyp|var|tcrush..].
+Qed.
+
 (*
 lett (tv fromPDotPaper) (tapp (tv getAnyType) x0) : (pv fromPDotPaper @ "types" @; "Type").
 Example getAnyTypeTyp : [] u⊢ₜ lett (tv fromPDotPaper) (tapp (tv getAnyType) x0) : (pv fromPDotPaper @ "types" @; "Type").
