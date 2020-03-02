@@ -1,10 +1,11 @@
 From iris.proofmode Require Import tactics.
-From D Require Import prelude asubst_base dlang.
+From D Require Import prelude iris_prelude asubst_base saved_interp_dep.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
 
-Module Type TyInterpLemmas (Import VS : VlSortsFullSig) (Import LWP : LiftWp VS).
+Module Type TyInterpLemmas (Import VS : VlSortsFullSig)
+  (Import LWP : SavedInterpDep VS).
 
 Class TyInterp ty Σ :=
   ty_interp : ty -> envD Σ.
