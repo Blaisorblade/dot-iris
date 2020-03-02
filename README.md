@@ -11,6 +11,8 @@ The mapping between the paper and this mechanization is described in
 Here is a rough layout of the various files.
 
 * `theories/Dot`: guarded DOT. Complete.
+* `theories/DSub`, `theories/DSubSyn`: guarded D<:, complete (mentioned in a
+  side note in the paper).
 * `theories/`: General infrastructure.
 * `theories/pure_program_logic`: define a "pure" variant of Iris's weakest
   precondition.
