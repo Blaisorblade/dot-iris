@@ -128,7 +128,6 @@ Section Fundamental.
 End Fundamental.
 
 From D.pure_program_logic Require Import adequacy.
-Import dlang_adequacy.
 
 Theorem adequacy Σ `{HdsubG: dsubSynG Σ} `{!SwapPropI Σ} e T:
   (∀ `(dsubSynG Σ) `(SwapPropI Σ), [] ⊨ e : T) →

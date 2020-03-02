@@ -1,9 +1,10 @@
 From iris.proofmode Require Import tactics.
 From D Require Export iris_prelude.
-From D Require Import ty_interp_subst_lemmas.
-From D.DSub Require Export dlang_inst.
+From D Require Import ty_interp_subst_lemmas saved_interp_dep.
+From D.DSub Require Export syn.
 
-Include TyInterpLemmas VlSorts dlang_inst.
+Include SavedInterpDep VlSorts.
+Include TyInterpLemmas VlSorts.
 Export ty_interp_lemmas.
 
 Set Suggest Proof Using.
