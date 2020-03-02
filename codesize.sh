@@ -4,7 +4,11 @@ checkEmpty() {
 }
 
 totsize() {
-  wc -l $1/*.v | tail -1|awk '{print $1}'
+  if ls $1/*.v &> /dev/null; then
+    wc -l $1/*.v | tail -1|awk '{print $1}'
+  else
+    echo 0
+  fi
 }
 sum() {
   awk '{s+=$1} END {print s}'
