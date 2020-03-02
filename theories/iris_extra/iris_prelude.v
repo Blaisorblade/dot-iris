@@ -12,6 +12,11 @@ Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
   iApply (wp_wand with "[-]"); [iApply Hp; trivial|]; cbn;
   iIntros (v) Hv.
 
+(* Instances for [IntoVal], used e.g. by [wp_value]; copied from F_mu. *)
+Hint Extern 5 (IntoVal _ _) => eapply of_to_val; fast_done : typeclass_instances.
+Hint Extern 10 (IntoVal _ _) =>
+  rewrite /IntoVal; eapply of_to_val; rewrite /= !to_of_val /=; solve [ eauto ] : typeclass_instances.
+
 (* Do not export iris.proofmode.tactics! *)
 (* From iris.proofmode Require Export tactics. *)
 (* As discussed in https://github.com/Blaisorblade/dot-iris/pull/2#discussion_r239389417, exporting that confuses Coq, who then

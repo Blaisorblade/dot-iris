@@ -47,11 +47,6 @@ Module Type LiftWp (Import VS : VlSortsSig).
   Local Definition test_interp_expr `{dlangG Σ} :=
     λ (t: expr dlang_lang), WP t {{ v, False }} %I.
 
-  (* Copied from F_mu *)
-  Hint Extern 5 (IntoVal _ _) => eapply of_to_val; fast_done : typeclass_instances.
-  Hint Extern 10 (IntoVal _ _) =>
-    rewrite /IntoVal; eapply of_to_val; rewrite /= !to_of_val /=; solve [ eauto ] : typeclass_instances.
-
   Definition leadsto_n `{!dlangG Σ}
     s n (φ : hoEnvD Σ n) := (∃ γ, s ↦ γ ∧ γ ⤇n[ n ] φ)%I.
   Notation "s ↝n[ n  ] φ" := (leadsto_n s n φ) (at level 20) : bi_scope.
