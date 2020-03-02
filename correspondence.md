@@ -10,7 +10,7 @@ All file paths in this file are relative to the `theories/` folder.
   `Dot/typing/typing_unstamped.v`,
   `Dot/typing/typing_unstamped_derived.v`
 - Stamped typing is defined in `Dot/typing/typing_stamped.v`.
-- Logical relation: `Dot/unary_lr.v`.
+- Logical relation: `Dot/unary_lr.v`, including adequacy.
 - The fundamental theorem and type soundness for gDOT, are proven in
   `Dot/fundamental.v`.
   - Translation of typing derivations is proved in

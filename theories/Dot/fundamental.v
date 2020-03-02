@@ -126,40 +126,11 @@ Section fundamental.
   Lemma fundamental_path_typed Γ g p T i (HT : Γ v⊢ₚ[ g ] p : T, i) :
     Γ ⊨p[ Vs⟦ g ⟧ ] p : T, i.
   Proof. unmut_lemma (fundamental_mut Γ g). Qed.
-
-  Lemma ipwp_terminates {p T i}:
-    [] ⊨p p : T , i ⊢ ▷^i ⌜ terminates (path2tm p) ⌝.
-  Proof.
-    iIntros "#H".
-    iSpecialize ("H" $! ids with "[//]"); rewrite hsubst_id.
-    iApply (path_wp_terminates with "H").
-  Qed.
 End fundamental.
 
 (** Adequacy of our logical relation: semantically well-typed terms are safe. *)
 
 Import dlang_adequacy adequacy.
-
-(** Adequacy of semantic typing: not only are semantically well-typed expressions safe,
-but any result value they produce also satisfies any properties that follow from their
-semantic type. *)
-Theorem adequacy_mapped_semtyping Σ `{!dlangPreG Σ} `{!SwapPropI Σ} {e g Ψ T}
-  (Himpl : ∀ `(!dlangG Σ) v, ⟦ T ⟧ ids v -∗ ⌜Ψ v⌝)
-  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), [] ⊨[ Vs⟦ g ⟧ ] e : T):
-  ∀ σ, adequate NotStuck e σ (λ v _, Ψ v).
-Proof.
-  eapply (adequacy_dot_sem Σ Himpl).
-  iIntros (??) "Hs"; iApply Hlog. iApply (transfer_empty with "Hs").
-Qed.
-
-(** Theorem 5.5: safety of semantic typing. Corollary of [adequacy_mapped_semtyping]. *)
-Corollary safety_mapped_semtyping Σ `{!dlangPreG Σ} `{!SwapPropI Σ} {e g T}
-  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), [] ⊨[ Vs⟦ g ⟧ ] e : T):
-  safe e.
-Proof.
-  eapply adequate_safe, adequacy_mapped_semtyping, Hlog;
-    naive_solver.
-Qed.
 
 (** The overall proof of type soundness, as outlined in Sec. 5 of the paper. *)
 (** Combination of Thm 5.4 and 5.5, to give soundness of stamped typing.
@@ -182,19 +153,6 @@ Proof.
 Qed.
 
 (** Normalization for gDOT paths. *)
-Lemma ipwp_gs_adequacy Σ `{dlangPreG Σ} `{SwapPropI Σ} {g p T i}
-  (Hwp : ∀ (Hdlang : dlangG Σ) `(!SwapPropI Σ), [] ⊨p[ Vs⟦ g ⟧ ] p : T , i):
-  terminates (path2tm p).
-Proof.
-  eapply (@soundness (iResUR Σ) _ i).
-  apply (bupd_plain_soundness _).
-  iMod (gen_iheap_init (L := stamp) ∅) as (hG) "Hgs".
-  set (DLangΣ := DLangG Σ _ hG).
-  iMod (@transfer_empty _ DLangΣ Vs⟦ g ⟧ with "Hgs") as "Hgs".
-  iApply ipwp_terminates.
-  iApply (Hwp DLangΣ with "Hgs").
-Qed.
-
 Lemma path_normalization_storeless {g p T i}
   (Ht : [] v⊢ₚ[ g ] p : T, i) :
   terminates (path2tm p).
