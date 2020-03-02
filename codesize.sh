@@ -28,6 +28,16 @@ sumDirs() {
 #   sumDirs "$1" "$(find . -type d)"
 # }
 
+cat << EOF
+# Code size statistics
+
+Computed by running \`./codesize.sh > codesize.md\` on commit
+$(git rev-parse HEAD).
+
+Saved output:
+\`\`\`
+EOF
+
 cd theories
 find . -type d |
   while read i; do
@@ -76,3 +86,5 @@ sumDirs "examples" "examples"
 # cd DSubSyn
 # sumDirs "DSub syntax" "syn"
 # cd ..
+
+echo '```'
