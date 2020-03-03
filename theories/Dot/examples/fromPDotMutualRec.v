@@ -5,7 +5,7 @@ From stdpp Require Import strings.
 From D Require Import tactics.
 From D.Dot.syn Require Import syn path_repl.
 From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived.
-From D.Dot Require Import exampleInfra scalaLib.
+From D.Dot Require Import exampleInfra hoas scalaLib.
 Import DBNotation.
 
 (** FromPDotPaper *)
@@ -30,6 +30,15 @@ Definition fromPDotPaperAbsTypesTBody : ty := {@
   val "newTypeRef" : x1 @ "symbols" @; "Symbol" →: x0 @; "TypeRef"
 }.
 
+Definition assert cond :=
+  tif cond 0 hloopTm.
+Definition seq (e1 e2 : tm) := lett e1 (shift e2).
+Notation "t @:: l" := ((tskip t) @: l) (at level 59, l at next level).
+
+Definition newTypeRefBody :=
+  seq (assert (~ ((tskip x0) @:: "tpe" @:: "isEmpty")))
+    (ν {@ val "symb" = x1 }).
+
 (* Import AssertPlain.
 From D.Dot Require Import hoas. *)
 Definition fromPDotPaperTypesV : vl := ν {@
@@ -37,10 +46,7 @@ Definition fromPDotPaperTypesV : vl := ν {@
   type "TypeTop" = TTop;
   val "newTypeTop" = vabs (ν {@ });
   type "TypeRef" = TAnd (x0 @; "Type") typeRefTBody;
-  val "newTypeRef" = vabs (
-    ν {@
-      val "symb" = x1
-    })
+  val "newTypeRef" = vabs newTypeRefBody
 }.
 
 Definition fromPDotPaperSymbolsTBody : ty := {@
@@ -94,7 +100,41 @@ Proof.
     + repeat first [var | typconstructor | tcrush].
     + apply (iSub_Trans (T2 := ⊤) (i2 := 0)); first tcrush.
       eapply iSub_Sel'; last (tcrush; varsub); ltcrush.
-  - eapply (iT_Sub_nocoerce) => /=; hideCtx.
+  - rewrite /newTypeRefBody.
+    eapply (iT_Let _ _ _ TTop); tcrush.
+    + eapply iT_Un; first constructor.
+      tcrush.
+      hideCtx.
+      have Hx0: Γ u⊢ₜ x0 : x2 @ "symbols" @; "Symbol" by var.
+      eapply (iT_Sub (i := 1) (T1 := ▶: val "isEmpty" : TBool)); tcrush.
+      eapply (iT_Sub (i := 1)); first by apply iLater_Sub; stcrush.
+      eapply (iT_Sub (i := 1)); first by apply iLater_Sub; stcrush.
+      varsub.
+      ettrans; first apply iSub_Add_Later; stcrush.
+      eapply iSub_Trans, iSub_Later; stcrush.
+      eapply iSub_Trans; first apply iLater_Sub; stcrush.
+      eapply (iSel_Sub (L := ⊥)).
+      (* Avoid [iP_Later]. *)
+      eapply iP_Fld_E.
+      tcrush. varsub.
+      asideLaters.
+      mltcrush.
+      mltcrush.
+      eapply (iSel_Sub (L := ⊥)).
+      eapply iP_Fld_E.
+      mltcrush.
+      varsub.
+      asideLaters.
+      lThis.
+      ettrans; last apply (iSub_AddIJ 1); stcrush.
+      ltcrush.
+      rewrite /fromPDotPaperAbsTypesTBody.
+      mltcrush.
+      eapply (iT_Path (p := x0)).
+      eapply
+      tcrush.
+    1-3: admit.
+    eapply (iT_Sub_nocoerce) => /=; hideCtx.
     + repeat first [var | typconstructor | tcrush].
     + ettrans; first last.
       eapply iSub_Sel'; first last.
@@ -105,6 +145,7 @@ Proof.
         eapply (iSub_Trans (T2 := ⊤)); tcrush.
         eapply iSub_Sel'; tcrush.
         varsub; tcrush.
+
 Qed.
 
 Example fromPDotPaperTypesAbsTyp :
