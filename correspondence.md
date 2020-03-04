@@ -21,6 +21,9 @@ All file paths in this file are relative to the `theories/` folder.
 - Covariant lists example: `Dot/examples/list.v`.
 - Positive integers example: `Dot/examples/examples.v`.
 - Unsafe motivating example: `Dot/examples/fromPDotMutualRecSem.v`.
+- Earlier variant from Sec. 1: `Dot/examples/fromPDotMutualRec.v`; here we
+  simplified the use of `Option` away, which we preserve in
+  `Dot/examples/fromPDotMutualRecSem.v`.
 
 - For the code sizes reported in Sec. 6, see `codesize.md`.
 
