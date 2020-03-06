@@ -197,9 +197,12 @@ Proof.
   induction Ki; rewrite /= ?fill_app /=; eauto with f_equal.
 Qed. *)
 
+Definition simpl_prim_step := (λ e1 e2, prim_step e1 () [] e2 () []).
+Notation prim_steps := (rtc simpl_prim_step).
+
 Theorem simulation_skiperase e1 e2 :
-  prim_step e1 () [] e2 () [] →
-  rtc (λ e1 e2, prim_step e1 () [] e2 () []) (erase_tm e1) (erase_tm e2).
+  simpl_prim_step e1 e2 →
+  prim_steps (erase_tm e1) (erase_tm e2).
 Proof.
   inversion 1 as [Ks ???? Hh%head_erase_sim]; simplify_eq/=.
   rewrite !erase_ctxi_fill. induction Hh; [apply rtc_refl|eapply rtc_l, IHHh].
@@ -212,39 +215,11 @@ From D Require Import iris_extra.det_reduction.
 
 Lemma simulation_skiperase' e1 σ1 κ e2 σ2 efs :
   prim_step e1 σ1 κ e2 σ2 efs →
-  rtc (λ e1 e2, prim_step e1 () [] e2 () []) (erase_tm e1) (erase_tm e2).
+  prim_steps (erase_tm e1) (erase_tm e2).
 Proof.
   intros Hs; prim_step_inversion Hs.
   destruct σ1; exact: simulation_skiperase.
 Qed.
-
-Theorem simulation_skiperase_erased_step {t1 t2 σ σ'} :
-  erased_step ([t1], σ) ([t2], σ') →
-  rtc erased_step ([erase_tm t1], σ) ([erase_tm t2], σ').
-Proof.
-  rewrite erased_step_prim => /simulation_skiperase' Hstep; destruct σ, σ'.
-  eapply (rtc_congruence (λ t, ([t], ()))), Hstep => /= e1 e2 Hs.
-  apply erased_step_prim, Hs.
-Qed.
-
-Theorem simulation_skiperase_erased_steps {t1 t2 σ σ'} :
-  rtc erased_step ([t1], σ) ([t2], σ') →
-  rtc erased_step ([erase_tm t1], σ) ([erase_tm t2], σ').
-Proof.
-  move => Hsteps.
-  dependent induction Hsteps; first done.
-  destruct y as [l σ'']; have ?: σ'' = σ by destruct σ, σ''; subst.
-  move: H (H) => [k Hstep] Hestep.
-  have [ti ?] := step_inversion Hstep; destruct_and!; simplify_eq.
-  etrans; first exact: (simulation_skiperase_erased_step Hestep).
-  exact: IHHsteps.
-Qed.
-
-Corollary simulation_skiperase_erased_steps_vl {t1 v2 σ σ'} :
-  rtc erased_step ([t1], σ) ([tv v2], σ') →
-  rtc erased_step ([erase_tm t1], σ) ([tv (erase_vl v2)], σ').
-Proof. exact: (simulation_skiperase_erased_steps (t2 := tv v2)). Qed.
-
 Lemma erased_step_inversion {t1 thp σ σ'} :
   erased_step ([t1], σ) (thp, σ') →
   ∃ t2, thp = [t2] ∧ prim_step t1 σ [] t2 σ' [].
@@ -267,9 +242,6 @@ Proof.
   by rewrite elem_of_list_singleton=>->.
 Qed.
 
-Definition simpl_prim_step := (λ e1 e2, prim_step e1 () [] e2 () []).
-Notation prim_steps := (rtc simpl_prim_step).
-
 Lemma erased_prim_steps e1 e2:
   rtc erased_step ([e1], ()) ([e2], ()) ↔
   prim_steps e1 e2.
@@ -281,6 +253,29 @@ Proof.
   - trans ([y], ()) => //. apply rtc_once.
     exists []; eauto.
 Qed.
+
+Theorem simulation_skip_erase_prim_steps t1 t2 :
+  prim_steps t1 t2 →
+  prim_steps (erase_tm t1) (erase_tm t2).
+Proof.
+  intros Hsteps; dependent induction Hsteps; first done.
+  etrans; last done.
+  exact: simulation_skiperase'.
+Qed.
+
+Theorem simulation_skiperase_erased_steps {t1 t2 σ σ'} :
+  rtc erased_step ([t1], σ) ([t2], σ') →
+  rtc erased_step ([erase_tm t1], σ) ([erase_tm t2], σ').
+Proof.
+  uniqueState; rewrite !erased_prim_steps.
+  exact: simulation_skip_erase_prim_steps.
+Qed.
+
+Corollary simulation_skiperase_erased_steps_vl {t1 v2 σ σ'} :
+  rtc erased_step ([t1], σ) ([tv v2], σ') →
+  rtc erased_step ([erase_tm t1], σ) ([tv (erase_vl v2)], σ').
+Proof. exact: (simulation_skiperase_erased_steps (t2 := tv v2)). Qed.
+
 
 Lemma fill_prim_steps Ks {eK1 eK2} :
   prim_steps eK1 eK2 →
@@ -590,15 +585,15 @@ Qed. *)
 Lemma safe_skiperase {e}:
   safe e → safe (erase_tm e).
 Proof.
-  rewrite /safe => Hsafe ee' thp [] [] Hereds Hin.
-  have {}Hereds := rtc_erased_step_inversion Hereds Hin.
-  have /erased_prim_steps Hereds' := Hereds.
-  destruct (prims_erase_sim_inv e _ Hereds') as [e' [Hreds%erased_prim_steps He]].
-  destruct (Hsafe e' [e'] () ()) as [Hv|Hr];
-    [done|by rewrite elem_of_list_singleton|left|]; simplify_eq/=.
+  rewrite /safe => Hsafe ee' /pure_steps_erased'.
+  destruct dummyState => /erased_prim_steps Hereds'.
+  destruct (prims_erase_sim_inv e _ Hereds') as [e' [Hreds %erased_prim_steps He]].
+
+  destruct (Hsafe e') as [Hv|Hr];
+    [by apply pure_steps_erased'; destruct dummyState | left|]; simplify_eq/=.
   - destruct e'; try by [case (is_Some_None Hv)]; eauto.
   - destruct Hr.
-  (* pose proof (Hsafe e' thp () ()). *)
+  (* pose proof (Hsafe e'). *)
   (* destruct e; simplify_eq/=.
   pose proof (simulation_skiperase_erased_steps Hred Hin) as Hst. *)
 Abort.
@@ -606,7 +601,7 @@ Abort.
 Lemma safe_skiperase_inv {e}:
   safe (erase_tm e) → safe e.
 Proof.
-  rewrite /safe => Hsafe e' > Hred Hin.
+  (* rewrite /safe => Hsafe e' > Hred Hin.
   pose proof (simulation_skiperase_erased_steps Hred Hin) as Hst.
   edestruct Hsafe as [Hs|Hs]; [apply Hst|apply elem_of_list_here| |right].
   - destruct e'; try by [case (is_Some_None Hs)]; first naive_solver.
@@ -618,7 +613,7 @@ Proof.
     apply _.
 
     naive_solver.
-  - eapply same_skel_reducible, Hs; exact: same_skel_symm_tm. *)
+  - eapply same_skel_reducible, Hs; exact: same_skel_symm_tm. *) *)
 Abort.
 
 From D.Dot Require Import skeleton_termination.
@@ -634,12 +629,12 @@ Proof.
   exact: IHHr.
 Qed.
 
-Theorem rtc_erased_step_inversion'' {t1 σ σ' thp} :
+(* Theorem rtc_erased_step_inversion'' {t1 σ σ' thp} :
   rtc erased_step ([t1], σ) (thp, σ') →
   ∃ t2, thp = [t2].
 Proof.
   move=> Hs; have [t2' ?] := rtc_erased_step_inversion' Hs; subst; eauto.
-Qed.
+Qed. *)
 
 Lemma rtc_erased_steps_det {e v thp}:
   rtc erased_step ([e], ()) ([tv v], ()) →
@@ -647,35 +642,21 @@ Lemma rtc_erased_steps_det {e v thp}:
   rtc erased_step (thp, ()) ([tv v], ()).
 Proof.
   rewrite erased_prim_steps => H1 H2.
-  destruct (rtc_erased_step_inversion'' H2) as [e']; simplify_eq.
+  destruct (rtc_erased_step_inversion' H2) as [e']; simplify_eq.
   move: H2; rewrite !erased_prim_steps => H2.
   exact: prim_steps_det.
 Qed.
 
 
-(* Lemma safe_skiperase1 {e1 v2 σ σ'}:
-  erased_step ([e1], σ) ([tv v2], σ') →
-  safe (erase_tm e1).
-Proof.
-  destruct σ, σ'.
-  rewrite /safe => /simulation_skiperase_erased_step' /= Hsafe e' thp [] [] Hred Hin.
-  destruct (rtc_erased_step_inversion' Hred) as [e'' ?]; simplify_eq.
-  move: Hin; rewrite elem_of_list_singleton => ?; subst e''.
-  pose proof (rtc_erased_steps_det Hsafe Hred) as Hremaining.
-  destruct (rtc_inv _ _ Hremaining) as [|Hrem]; simplify_eq/=.
-  - left; eauto.
-  - right; destruct Hrem as [[thp []] [Hrred%erased_step_inversion _]].
-    hnf; naive_solver.
-Qed. *)
-
 Lemma safe_erase_to_val {e1 v2}:
   prim_steps e1 (tv v2) →
   safe (erase_tm e1).
 Proof.
-  rewrite /safe => /erased_prim_steps /simulation_skiperase_erased_steps_vl'
-    /= Hsafe e' thp [] [] Hred Hin.
-  destruct (rtc_erased_step_inversion' Hred) as [e'' ?]; simplify_eq.
-  move: Hin; rewrite elem_of_list_singleton => ?; subst e''.
+  rewrite /safe => /erased_prim_steps /simulation_skiperase_erased_steps_vl
+    /= Hsafe e' /pure_steps_erased' Hred.
+  destruct dummyState.
+  (* destruct (rtc_erased_step_inversion' Hred) as [e'' ?]; simplify_eq.
+  move: Hin; rewrite elem_of_list_singleton => ?; subst e''. *)
   pose proof (rtc_erased_steps_det Hsafe Hred) as Hremaining.
   destruct (rtc_inv _ _ Hremaining) as [|Hrem]; simplify_eq/=.
   - left; eauto.
@@ -687,12 +668,13 @@ Lemma safe_erase_diverging {e1}:
   diverges' e1 →
   safe (erase_tm e1).
 Proof.
-  rewrite /safe /diverges' => /= Hdiv ee2 thp [] [] Hred Hin.
-  destruct (rtc_erased_step_inversion'' Hred) as [e'' ?]; simplify_eq.
-  have /erased_prim_steps Hereds := (rtc_erased_step_inversion Hred Hin).
-  move => {Hin Hred}.
+  rewrite /safe /diverges' => /= Hdiv ee2 /pure_steps_erased'.
+  case: dummyState => /erased_prim_steps Hereds'.
+  (* destruct (rtc_erased_step_inversion'' Hred) as [e'' ?]; simplify_eq.
+  have /erased_prim_steps Hereds := (rtc_erased_step_inversion Hred Hin). *)
+  (* move => {Hin Hred}. *)
   (* %erased_prim_steps *)
-  destruct (prims_erase_sim_inv _ _ Hereds) as [e2 [Hreds He]]; subst.
+  destruct (prims_erase_sim_inv _ _ Hereds') as [e2 [Hreds He]]; subst.
   have Hrede2 := Hdiv _ Hreds.
   (* What now? *)
 Admitted.
@@ -729,23 +711,6 @@ Proof.
   exact: safe_erase_to_val.
   exact: safe_erase_diverging.
 Qed.
-
-(*
-
-Lemma safe_skiperase1 {e1 v2 σ σ'}:
-  erased_step ([e1], σ) ([tv v2], σ') →
-  safe (erase_tm e1).
-Proof.
-  destruct σ, σ'.
-  rewrite /safe => /simulation_skiperase_erased_step' /= Hsafe e' thp [] [] Hred Hin.
-  destruct (rtc_erased_step_inversion Hred) as [e'' ?]; simplify_eq.
-  move: Hin; rewrite elem_of_list_singleton => ?; subst e''.
-  pose proof (rtc_erased_steps_det Hsafe Hred) as Hremaining.
-  destruct (rtc_inv _ _ Hremaining) as [|Hrem]; simplify_eq/=.
-  - left; eauto.
-  - right; destruct Hrem as [[thp []] [Hrred%erased_step_inversion _]].
-    hnf; naive_solver.
-Qed. *)
 
 (* Lemma fill_erase_expr {e e1 Ks} :
   erase_tm e = fill Ks e1 →
