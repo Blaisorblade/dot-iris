@@ -137,7 +137,7 @@ Section saved_ho_sem_type_extra.
   (** The semantics of a kind includes a predicate on types, and a subtype predicate.
    *)
   (* XXX make these non-expansive. *)
-  Definition skind Σ n := env → olty Σ n →  iProp Σ.
+  Definition skind Σ n := env → olty Σ n → iProp Σ.
   Definition srelkind Σ n := env → olty Σ n → olty Σ n → iProp Σ.
 
   (* Semantic Full Kind. *)
@@ -154,19 +154,19 @@ Section saved_ho_sem_type_extra.
   Definition app2 {n} (F : sfkind Σ n) : srelkind Σ n := F.
 
   Definition subtype {n} : srelkind Σ n := λ ρ (φ1 φ2 : olty Σ n),
-    (□ ∀ (args : vec vl n) v, ⌜ nclosed_vl v 0 ⌝ -∗
-      φ1 args ρ v -∗ φ2 args ρ v)%I.
+    (□ ∀ (args : vec vl n) v, ⌜ nclosed_vl v 0 ⌝ →
+      φ1 args ρ v → φ2 args ρ v)%I.
   Definition semEquiv {n} : srelkind Σ n := λ ρ (φ1 φ2 : olty Σ n),
-    (□ ∀ (args : vec vl n) v, ⌜ nclosed_vl v 0 ⌝ -∗
-      φ1 args ρ v ∗-∗ φ2 args ρ v)%I.
+    (□ ∀ (args : vec vl n) v, ⌜ nclosed_vl v 0 ⌝ →
+      φ1 args ρ v ↔ φ2 args ρ v)%I.
 
   Notation D := (iPred vl Σ).
 
   Definition kind_star_subtype1 : srelkind Σ 0 := subtype.
   Definition kind_star_subtype : srelkind Σ 0 := λ ρ φ1 φ2,
-    (□ ∀ v, ⌜ nclosed_vl v 0 ⌝ -∗ vclose (oApp φ1) ρ v -∗ vclose (oApp φ2) ρ v)%I.
+    (□ ∀ v, ⌜ nclosed_vl v 0 ⌝ → oClose φ1 ρ v → oClose φ2 ρ v)%I.
   Definition kind_star_eqtype : srelkind Σ 0 := λ ρ φ1 φ2,
-    (□ ∀ v, ⌜ nclosed_vl v 0 ⌝ -∗ vclose (oApp φ1) ρ v ∗-∗ vclose (oApp φ2) ρ v)%I.
+    (□ ∀ v, ⌜ nclosed_vl v 0 ⌝ → oClose φ1 ρ v ↔ oClose φ2 ρ v)%I.
 
   Lemma kind_star_subtype_eq ρ φ1 φ2 :
     kind_star_subtype1 ρ φ1 φ2 ≡ kind_star_subtype ρ φ1 φ2.
@@ -176,20 +176,20 @@ Section saved_ho_sem_type_extra.
     iIntros "H" (args). by rewrite (vec_vnil args).
   Qed.
 
-  Program Definition ocurry {n} (Φ : olty Σ (S n)) : vl -d> oltyO Σ n :=
+  Definition ocurry {n} (Φ : olty Σ (S n)) : vl -d> oltyO Σ n :=
     λ v, Olty (λ args, vcurry (oApp Φ) v args).
 
-  Program Definition ouncurry {n} (Φ : vl -d> oltyO Σ n) : olty Σ (S n) :=
-    Olty (λ args, vuncurry (λ v, oApp (Φ v)) args).
+  Definition ouncurry {n} (Φ : vl -d> oltyO Σ n) : olty Σ (S n) :=
+    Olty (λ args, vuncurry Φ args).
 
-  Definition oclose (φ : olty Σ 0) : env → iPred vl Σ := φ vnil.
+  Definition oclose (φ : olty Σ 0) : env → iPred vl Σ := oClose φ.
 
   Definition skpi {n} (φArg : olty Σ 0) (K : skind Σ n) : skind Σ (S n) :=
-    λ ρ φ, (□∀ arg, vclose (oApp φArg) ρ arg → K ρ (ocurry φ arg))%I.
+    λI ρ φ, □∀ arg, oClose φArg ρ arg → K ρ (ocurry φ arg).
 
   (* A possible sketch of kinded subtyping for lambdas? *)
   Definition srpi {n} (φArg : olty Σ 0) (Kr : srelkind Σ n) : srelkind Σ (S n) :=
-    λ ρ φ1 φ2, (□∀ arg, vclose (oApp φArg) ρ arg -∗ Kr ρ (ocurry φ1 arg) (ocurry φ2 arg))%I.
+    λI ρ φ1 φ2, □∀ arg, oClose φArg ρ arg → Kr ρ (ocurry φ1 arg) (ocurry φ2 arg).
 
   Definition spi {n} (φArg : olty Σ 0) (K : sfkind Σ n) : sfkind Σ (S n) :=
     Sfkind (skpi φArg (sfkind_car K)) (srpi φArg (sfkind_sub K)).
@@ -204,8 +204,8 @@ Section saved_ho_sem_type_extra.
   (* The point of Sandro's kind syntax is to use this only at kind 0. *)
   (* Definition sktmem {n} (φ1 φ2 : hoD Σ n) φ :=
     (subtype n 1 1 φ1 φ ∧ subtype n 1 1 φ φ)%I. *)
-  Definition skintv (φ1 φ2 : olty Σ 0) : skind Σ 0 := λ ρ φ,
-    (subtype ρ φ1 φ ∧ subtype ρ φ φ2)%I.
+  Definition skintv (φ1 φ2 : olty Σ 0) : skind Σ 0 := λI ρ φ,
+    subtype ρ φ1 φ ∧ subtype ρ φ φ2.
   Definition sintv (φ1 φ2 : olty Σ 0) : sfkind Σ 0 :=
     Sfkind (skintv φ1 φ2) kind_star_subtype.
   (* Next Obligation.  move=>????? Heq. f_equiv. exact: Heq. solve_proper_ho. *)
@@ -239,20 +239,16 @@ Section saved_ho_sem_type_extra.
     | TSLam n : hoEnvD Σ 0 → hoSTy n → hoSTy (S n)
     | TSApp n : hoSTy (S n) → vl → hoSTy n.
 
-  (* Olty needed, to give both semantic substitution and extra attributes. *)
-
   Fixpoint hoSTySem {n} (T : hoSTy n): hoEnvD Σ n :=
     match T with
     | TSWrap φ => φ
-    | TSLam n' φ T' =>
-      (* vuncurry (λ v, hoSTySem T') *)
-      (* XXX Now I need semantic substitution. *)
-      (* vuncurry (A := envD Σ) (λ v, (hoSTySem T').|[v/]) *)
+    | TSLam n' φ T =>
+      vuncurry (λ v, (hoSTySem T).|[v/])
       (* Alternatives: *)
-      vuncurry (A := envD Σ) (λ v args ρ, hoSTySem T' args (v .: ρ))
-      (* λ args ρ, hoSTySem T' (vtail args) (vhead args .: ρ) *)
-    | TSApp n' T' v =>
-      vcurry (hoSTySem T') v
+      (* vuncurry (A := envD Σ) (λ v args ρ, hoSTySem T args (v .: ρ)) *)
+      (* λ args ρ, hoSTySem T (vtail args) (vhead args .: ρ) *)
+    | TSApp n' T v =>
+      vcurry (hoSTySem T) v
     end.
 End saved_ho_sem_type_extra.
 Arguments hoSTy: clear implicits.
@@ -279,7 +275,7 @@ Section sec.
   Definition typeSem {n} (T : htype n) : hoEnvD Σ n := hoSTySem (htype_to_hosty T).
 
   Lemma K_App_Lam {n} (argT : olty Σ 0) (φ1 φ2: olty Σ (S n)) (K : srelkind Σ n) ρ :
-    srpi argT K ρ φ1 φ2 ⊣⊢ (□∀ v, oclose argT ρ v -∗ K ρ (ocurry φ1 v) (ocurry φ2 v))%I.
+    srpi argT K ρ φ1 φ2 ⊣⊢ (□∀ v, oclose argT ρ v → K ρ (ocurry φ1 v) (ocurry φ2 v))%I.
   Proof. done. Qed.
   (** XXX Need a subtyping judgment to throw in environments... *)
 
@@ -294,7 +290,7 @@ Section sec.
   Lemma eta {n} argT (φ : olty Σ (S n)) ρ : srpi argT semEquiv ρ φ (ouncurry (ocurry φ)).
   Proof.
     rewrite /srpi /semEquiv.
-    iIntros "!> * #Harg !> **"; rewrite -wand_iff_refl. done.
+    iIntros "!> * #Harg !> **". rewrite -(iff_refl emp%I). done.
   Qed.
 
   Program Fixpoint sem_program {n} {struct n} : kind Σ n → skind Σ n :=
