@@ -60,7 +60,7 @@ Lemma ty_sub_TLater_syn T : ⊢T T <: TLater T. Proof. auto with ctx_sub. Qed.
 
 Lemma ty_trans_sub_syn T1 T2 T3 : ⊢T T1 <: T2 → ⊢T T2 <: T3 → ⊢T T1 <: T3.
 Proof.
-  move => + Hsub2. move: T1.
+  move: T1 => + + Hsub2.
   induction Hsub2; inversion 1; subst; auto with ctx_sub.
 Qed.
 
@@ -94,7 +94,7 @@ Proof. induction Γ; auto with ctx_sub. Qed.
 Lemma ctx_trans_sub_syn Γ1 Γ2 Γ3 :
   ⊢G Γ1 <:* Γ2 → ⊢G Γ2 <:* Γ3 → ⊢G Γ1 <:* Γ3.
 Proof.
-  move => + Hsub2. move: Γ1.
+  move: Γ1 => + + Hsub2.
   induction Hsub2; inversion 1; subst; eauto with ctx_sub.
 Qed.
 
