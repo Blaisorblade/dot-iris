@@ -352,7 +352,7 @@ Lemma iP_And {Γ p T1 T2 i}:
   Γ u⊢ₚ p : TAnd T1 T2, i.
 Proof.
   intros Hp1 Hp2. eapply iP_Sub', iP_Sngl_Refl, Hp1.
-  constructor; exact: iSngl_Sub_Self.
+  apply iSub_And; exact: iSngl_Sub_Self.
 Qed.
 
 Lemma iMu_Sub' {Γ T T' i}:
