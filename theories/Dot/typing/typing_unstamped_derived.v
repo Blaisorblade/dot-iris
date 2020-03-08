@@ -372,6 +372,11 @@ Proof.
   by apply iT_All_I_strip1.
 Qed.
 
+Lemma iD_Path_Singl {Γ} p l T :
+  Γ u⊢ₚ p : T, 0 →
+  Γ u⊢{ l := dpt p } : TVMem l (TSing p).
+Proof. intros Hp. eapply iD_Path, iP_Sngl_Refl, Hp. Qed.
+
 (* Note how we must weaken the type (or its environment) to account for the
    self-variable of the created object. *)
 Definition packTV l T := (ν {@ type l = shift T }).
