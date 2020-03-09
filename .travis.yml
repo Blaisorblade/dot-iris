@@ -20,6 +20,8 @@ env:
 
 before_script:
   export -f travis_fold
+  export -f travis_time_start
+  export -f travis_time_finish
 
 install: |
   # Download the COQ container
@@ -31,16 +33,25 @@ install: |
     export PS4='+ \e[33;1m(\$0 @ line \$LINENO) \$\e[0m '; set -ex
     if [ -n \"\${COMPILER_EDGE}\" ]; then opam switch \${COMPILER_EDGE}; eval \$(opam env); fi
     echo -en 'travis_fold:start:update\\r'
+    travis_time_start
     opam repo add iris-dev https://gitlab.mpi-sws.org/FP/opam-dev.git --set-default --all
     opam update -y
     opam pin add -y -n -k path $OPAM_NAME .
+    travis_time_finish
     echo -en 'travis_fold:end:update\\r'
+    #
     echo -en 'travis_fold:start:autosubst\\r'
+    travis_time_start
     opam install -y -v -j ${NJOBS} coq-autosubst
+    travis_time_finish
     echo -en 'travis_fold:end:autosubst\\r'
+    #
     echo -en 'travis_fold:start:iris\\r'
+    travis_time_start
     opam install -y -v -j ${NJOBS} --deps-only $OPAM_NAME
+    travis_time_finish
     echo -en 'travis_fold:end:iris\\r'
+    #
     opam config list; opam repo list; opam list
     " install
 
