@@ -1,7 +1,7 @@
 # Type Soundness for DOT via logical relations
 
-Mechanization accompanying the paper "Scala Step-by-step: Soundness for
-DOT with Step-Indexed Logical Relations and Iris".
+Mechanization accompanying the paper "Scala Step-by-Step: Soundness for
+DOT with Step-Indexed Logical Relations in Iris".
 
 The mapping between the paper and this mechanization is described in
 [correspondence.md](correspondence.md).
