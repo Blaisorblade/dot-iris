@@ -30,10 +30,17 @@ install: |
   docker exec COQ /bin/bash --login -c "
     export PS4='+ \e[33;1m(\$0 @ line \$LINENO) \$\e[0m '; set -ex
     if [ -n \"\${COMPILER_EDGE}\" ]; then opam switch \${COMPILER_EDGE}; eval \$(opam env); fi
+    echo -en 'travis_fold:start:update\\r'
     opam repo add iris-dev https://gitlab.mpi-sws.org/FP/opam-dev.git --set-default --all
     opam update -y
     opam pin add -n -k path $OPAM_NAME .
+    echo -en 'travis_fold:end:update\\r'
+    echo -en 'travis_fold:start:autosubst\\r'
+    opam install -y -v -j ${NJOBS} coq-autosubst
+    echo -en 'travis_fold:end:autosubst\\r'
+    echo -en 'travis_fold:start:iris\\r'
     opam install -y -v -j ${NJOBS} --deps-only $OPAM_NAME
+    echo -en 'travis_fold:end:iris\\r'
     opam config list; opam repo list; opam list
     " install
 
