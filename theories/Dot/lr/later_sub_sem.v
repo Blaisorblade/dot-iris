@@ -168,6 +168,8 @@ Section CtxSub.
   Qed.
 
   Lemma ty_sub_id T : ⊨T T <: T. Proof. done. Qed.
+  Lemma ty_sub_trans T1 T2 T3 : ⊨T T1 <: T2 → ⊨T T2 <: T3 → ⊨T T1 <: T3.
+  Proof. by intros ->. Qed.
 
   Lemma ty_sub_TLater T : ⊨T T <: TLater T.
   Proof. intros ?. auto. Qed.
@@ -177,7 +179,16 @@ Section CtxSub.
     ⊨T T1 <: TLater T2.
   Proof. intros ->. apply ty_sub_TLater. Qed.
 
-  Hint Resolve ty_sub_id ty_sub_TLater ty_sub_TLater_add ty_sub_TLater_unTLater unTLater_ty_sub : ctx_sub.
+  Lemma ty_distr_TAnd_TLater T1 T2 :
+    ⊨T TAnd (TLater T1) (TLater T2) <: TLater (TAnd T1 T2).
+  Proof. iIntros (??) "[$ $]". Qed.
+
+  Lemma ty_distr_TOr_TLater T1 T2 :
+    ⊨T TOr (TLater T1) (TLater T2) <: TLater (TOr T1 T2).
+  Proof. iIntros (??) "[$|$]". Qed.
+
+  Hint Resolve ty_sub_id ty_sub_TLater ty_sub_TLater_add ty_sub_TLater_unTLater
+    ty_distr_TAnd_TLater ty_distr_TOr_TLater unTLater_ty_sub : ctx_sub.
 
   (* Unused *)
   Lemma TLater_unTLater_ty_sub_TLater T :
@@ -185,7 +196,7 @@ Section CtxSub.
   Proof. by rewrite unTLater_ty_sub. Qed.
 
   Lemma fundamental_ty_sub {T1 T2} : ⊢T T1 <: T2 → ⊨T T1 <: T2.
-  Proof. induction 1; auto with f_equiv ctx_sub. Qed.
+  Proof. induction 1; auto with f_equiv ctx_sub. exact: ty_sub_trans. Qed.
   Hint Resolve fundamental_ty_sub : ctx_sub.
 
   (** Lift the above ordering to environments. *)

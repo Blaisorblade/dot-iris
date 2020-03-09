@@ -18,7 +18,7 @@ Section storeless_syntyping_lemmas.
         (P0 := λ Γ g ds T _, Forall (is_stamped_dm (length Γ) g) (map snd ds))
         (P1 := λ Γ g l d T _, is_stamped_dm (length Γ) g d)
         (P2 := λ Γ g p T i _, is_stamped_path (length Γ) g p); clear Γ g;
-        cbn; intros; try (rewrite <-(@ctx_sub_len_tlater Γ Γ') in *; last done);
+        cbn; intros; try (rewrite <-(@ctx_strip_len Γ Γ') in *; last done);
         try by (with_is_stamped inverse + idtac); eauto using is_stamped_path2tm.
     - repeat constructor => //=. by eapply lookup_lt_Some.
     - intros; elim: i {s} => [|i IHi]; rewrite /= ?iterate_0 ?iterate_S //; eauto.
@@ -111,11 +111,26 @@ Section storeless_syntyping_lemmas.
     exact: (is_stamped_TLater_n (i := 1)).
   Qed.
 
+  Lemma ty_strip_stamped n g T T' :
+    ⊢T T >>▷ T' ->
+    is_stamped_ty n g T →
+    is_stamped_ty n g T'.
+  Proof. induction 1; inversion 1; auto. Qed.
+
   Lemma ty_sub_stamped n g T T' :
     ⊢T T <: T' ->
     is_stamped_ty n g T →
     is_stamped_ty n g T'.
-  Proof. induction 1; inversion 1; eauto. Qed.
+  Proof. induction 1; inversion 1; auto. Qed.
+
+  Lemma ctx_strip_stamped Γ Γ' g :
+    ⊢G Γ >>▷* Γ' ->
+    stamped_ctx g Γ →
+    stamped_ctx g Γ'.
+  Proof.
+    induction 1; inversion 1; subst; constructor; first by auto.
+    by erewrite <- ctx_strip_len; [exact: ty_strip_stamped|].
+  Qed.
 
   Lemma ctx_sub_stamped Γ Γ' g :
     ⊢G Γ <:* Γ' ->
@@ -126,7 +141,7 @@ Section storeless_syntyping_lemmas.
     by erewrite <- ctx_sub_len; [exact: ty_sub_stamped|].
   Qed.
 
-  Local Hint Resolve ctx_sub_stamped fmap_TLater_stamped_inv : core.
+  Local Hint Resolve ctx_sub_stamped ctx_strip_stamped fmap_TLater_stamped_inv : core.
 
   Local Hint Resolve stamped_exp_subject stamped_path_subject : core.
   Lemma stamped_mut_types Γ g :
@@ -146,7 +161,7 @@ Section storeless_syntyping_lemmas.
                is_stamped_ty (length Γ) g T1 ∧ is_stamped_ty (length Γ) g T2); clear Γ g.
     all: intros; simplify_eq/=; try nosplit inverse Hctx;
       try (rewrite ->?(@ctx_sub_len Γ Γ'),
-        ?(@ctx_sub_len_tlater Γ Γ') in * by assumption);
+        ?(@ctx_strip_len Γ Γ') in * by assumption);
       try (efeed pose proof H ; [by eauto | ev; clear H ]);
       try (efeed pose proof H0; [by eauto | ev; clear H0]);
       repeat constructor; rewrite /= ?fmap_length; eauto 2;

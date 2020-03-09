@@ -42,7 +42,8 @@ Section fundamental.
       + by iApply T_All_E; [iApply H|iApply H0].
       + by iApply T_Obj_E; iApply H.
       + by iApply T_Mu_E; iApply H.
-      + iApply T_All_I_Strong; [|by iApply H]. exact: fundamental_ctx_sub.
+      + iApply T_All_I_Strong; [|by iApply H].
+        by apply fundamental_ctx_sub, ctx_strip_to_sub.
       + iApply T_Obj_I. by iApply H.
       + iApply T_Mu_I. by iApply H.
       + by iApply T_Var.
