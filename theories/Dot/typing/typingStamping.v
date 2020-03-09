@@ -81,7 +81,7 @@ Section syntyping_stamping_lemmas.
         (P0 := λ Γ ds T _, is_unstamped_dms (length Γ) AlsoNonVars ds)
         (P1 := λ Γ l d T _, is_unstamped_dm (length Γ) AlsoNonVars d)
         (P2 := λ Γ p T i _, is_unstamped_path' (length Γ) p); clear Γ;
-        cbn; intros; try (rewrite <-(@ctx_sub_len_tlater Γ Γ') in *; last done);
+        cbn; intros; try (rewrite <-(@ctx_strip_len Γ Γ') in *; last done);
         try by (with_is_unstamped inverse + idtac); eauto 6 using is_unstamped_path2tm.
     - repeat constructor => //=. by eapply lookup_lt_Some.
     - intros; elim: i {s} => [|i IHi]; rewrite /= ?iterate_0 ?iterate_S //; eauto.
@@ -171,11 +171,26 @@ Section syntyping_stamping_lemmas.
     exact: (is_unstamped_TLater_n (i := 1)).
   Qed.
 
+  Lemma ty_strip_unstamped n T T' :
+    ⊢T T >>▷ T' ->
+    is_unstamped_ty' n T →
+    is_unstamped_ty' n T'.
+  Proof. induction 1; inversion 1; auto. Qed.
+
   Lemma ty_sub_unstamped n T T' :
     ⊢T T <: T' ->
     is_unstamped_ty' n T →
     is_unstamped_ty' n T'.
-  Proof. induction 1; inversion 1; eauto. Qed.
+  Proof. induction 1; inversion 1; auto. Qed.
+
+  Lemma ctx_strip_unstamped Γ Γ' :
+    ⊢G Γ >>▷* Γ' ->
+    unstamped_ctx Γ →
+    unstamped_ctx Γ'.
+  Proof.
+    induction 1; inversion 1; subst; constructor; first by auto.
+    by erewrite <- ctx_strip_len; [exact: ty_strip_unstamped|].
+  Qed.
 
   Lemma ctx_sub_unstamped Γ Γ' :
     ⊢G Γ <:* Γ' ->
@@ -186,7 +201,7 @@ Section syntyping_stamping_lemmas.
     by erewrite <- ctx_sub_len; [exact: ty_sub_unstamped|].
   Qed.
 
-  Local Hint Resolve ctx_sub_unstamped fmap_TLater_unstamped_inv : core.
+  Local Hint Resolve ctx_strip_unstamped ctx_sub_unstamped fmap_TLater_unstamped_inv : core.
 
   Lemma unstamped_mut_types Γ :
     (∀ e T, Γ u⊢ₜ e : T → ∀ (Hctx: unstamped_ctx Γ), is_unstamped_ty' (length Γ) T) ∧
@@ -205,7 +220,7 @@ Section syntyping_stamping_lemmas.
                is_unstamped_ty' (length Γ) T1 ∧ is_unstamped_ty' (length Γ) T2); clear Γ.
     all: intros; simplify_eq/=; try nosplit inverse Hctx;
       try (rewrite ->?(@ctx_sub_len Γ Γ'),
-        ?(@ctx_sub_len_tlater Γ Γ') in * by assumption);
+        ?(@ctx_strip_len Γ Γ') in * by assumption);
       try (efeed pose proof H ; [by eauto | ev; clear H ]);
       try (efeed pose proof H0; [by eauto | ev; clear H0]);
       repeat constructor; rewrite /= ?fmap_length; eauto 2;
@@ -353,7 +368,7 @@ Section syntyping_stamping_lemmas.
   - intros * Hctxsub Hus1 Hu1 IHs1 g.
     move: IHs1 => /(.$ g) [e' [g1 ?]].
     exists (tv (vabs e')), g1.
-    simpl in *. rewrite <-(ctx_sub_len_tlater Hctxsub) in *.
+    simpl in *. rewrite <-(ctx_strip_len Hctxsub) in *.
     naive_solver.
   - intros * Huds1 IHs1 Hus1 g.
     move: IHs1 => /(.$ g) [ds' [g1 ?]].
