@@ -127,19 +127,25 @@ Section saved_ho_sem_type_extra.
     unpack Ψ2 a b c.
   Proof. exact: unpack_ne. Qed.
 
-  Definition oCurry {n} (Φ : olty Σ (S n)) : vl -d> oltyO Σ n :=
-    λ v, Olty (λ args, vcurry (oApp Φ) v args).
+  Definition oCurry {n} {A : ofeT} (Φ : vec vl (S n) -> A) :
+    vl -d> vec vl n -d> A := vcurry Φ.
 
-  Definition oUncurry {n} (Φ : vl -d> oltyO Σ n) : olty Σ (S n) :=
-    Olty (λ args, vuncurry Φ args).
+  Definition oUncurry {n} {A : ofeT} (Φ : vl → vec vl n → A) :
+    vec vl (S n) -d> A := vuncurry Φ.
   Definition oLaterN {n} i (τ : olty Σ n) := Olty (eLater i τ).
 End saved_ho_sem_type_extra.
+
+Definition hoLty Σ n := vec vl n -> lty Σ.
+Definition hoLtyO Σ n := vec vl n -d> ltyO Σ.
+
+Definition envApply {Σ n} : oltyO Σ n → env → hoLtyO Σ n :=
+  λ T, flip T.
 
 (** The semantics of a kind includes a predicate on types, and a subtype predicate.
   *)
 (* XXX make these non-expansive? *)
-Notation skind Σ n := (env → olty Σ n → iProp Σ).
-Notation srelkind Σ n := (env → olty Σ n → olty Σ n → iProp Σ).
+Notation skind Σ n := (∀ (i : nat), env → hoLty Σ n → iProp Σ).
+Notation srelkind Σ n := (env → hoLtyO Σ n → hoLtyO Σ n → iProp Σ).
 
 (* Semantic Full Kind. *)
 Record sfkind Σ n := Sfkind {
@@ -151,8 +157,8 @@ Global Arguments sfkind_car {_ _} _ _ _ : simpl never.
 Global Arguments sfkind_sub {_ _} _ _ _ _ : simpl never.
 
 (** Kinded, indexed subtyping *)
-Definition sstpk `{dlangG Σ} {n} i j Γ T1 T2 (K : sfkind Σ n) : iProp Σ :=
-  □∀ ρ, s⟦Γ⟧*ρ → sfkind_sub K ρ (oLaterN i T1) (oLaterN j T2).
+Program Definition sstpk `{dlangG Σ} {n} i j Γ T1 T2 (K : sfkind Σ n) : iProp Σ :=
+  □∀ ρ, s⟦Γ⟧*ρ → sfkind_sub K ρ (envApply (oLaterN i T1) ρ) (envApply (oLaterN j T2) ρ).
 (* :: is at level 60. *)
 (* Notation "Γ s⊨k T1 , i <: T2 , j ∷ K" := (sstpk i j Γ T1 T2 K)
   (at level 74, i, j at level 59, T1, T2, i at next level). *)
@@ -162,14 +168,16 @@ Notation "Γ s⊨ T1 , i <: T2 , j ∷ K" := (sstpk i j Γ T1 T2 K)
 (* XXX Should we delay [T] as well? Yes, based on [iSel_Sub]/[iSub_Sel].
 Should we delay K?*)
 (* V1: delay K and rely on swaps to make that affect all types. *)
-Definition sktp `{dlangG Σ} {n} i Γ T (K : sfkind Σ n) : iProp Σ :=
-  □∀ ρ, s⟦Γ⟧*ρ → ▷^i K ρ T.
-(* V2: push the delay down. *)
 (* Definition sktp `{dlangG Σ} {n} i Γ T (K : sfkind Σ n) : iProp Σ :=
-  □∀ ρ, s⟦Γ⟧*ρ → K i ρ (oLaterN i T). *)
+  □∀ ρ, s⟦Γ⟧*ρ → ▷^i K ρ T. *)
+(* V2: push the delay down. *)
+Definition sktp `{dlangG Σ} {n} i Γ T (K : sfkind Σ n) : iProp Σ :=
+  □∀ ρ, s⟦Γ⟧*ρ → K i ρ (envApply (oLaterN i T) ρ).
 (* XXX What delays are wanted here? *)
+(* Definition ssktp `{dlangG Σ} {n} i Γ (K1 K2 : sfkind Σ n) : iProp Σ :=
+  □∀ ρ T, s⟦Γ⟧*ρ → ▷^i K1 ρ (envApply T ρ) → ▷^i K2 ρ (envApply T ρ). *)
 Definition ssktp `{dlangG Σ} {n} i Γ (K1 K2 : sfkind Σ n) : iProp Σ :=
-  □∀ ρ τ, s⟦Γ⟧*ρ → ▷^i K1 ρ τ → ▷^i K2 ρ τ.
+  □∀ ρ (T : olty Σ n), s⟦Γ⟧*ρ → K1 i ρ (envApply T ρ) → K2 i ρ (envApply T ρ).
 
 End HoSemTypes.
 
@@ -180,12 +188,12 @@ Include HoSemTypes VlSorts dlang_inst dot_lty.
 Section semkinds.
   Context `{dlangG Σ}.
 
-  Definition subtype {n} : srelkind Σ n := λI ρ (φ1 φ2 : olty Σ n),
-    □ ∀ args v, φ1 args ρ v → φ2 args ρ v.
+  Definition subtype {n} : srelkind Σ n := λI ρ φ1 φ2,
+    □ ∀ args v, φ1 args v → φ2 args v.
 
-  Definition skstar : skind Σ 0 := λI ρ φ, True.
+  Definition skstar : skind Σ 0 := λI i ρ φ, True.
   Definition srstar : srelkind Σ 0 := λ ρ φ1 φ2,
-    (□ ∀ v, oClose φ1 ρ v → oClose φ2 ρ v)%I.
+    (□ ∀ v, oClose φ1 v → oClose φ2 v)%I.
   Definition sstar : sfkind Σ 0 := Sfkind skstar srstar.
 
   (* Show that kinded subtyping correctly generalizes the existing kind-*
@@ -199,9 +207,9 @@ Section semkinds.
   Qed.
 
   Definition skpi {n} (φArg : olty Σ 0) (K : skind Σ n) : skind Σ (S n) :=
-    λI ρ φ, □∀ arg, oClose φArg ρ arg → K ρ (oCurry φ arg).
+    λI i ρ φ, □∀ arg, oClose φArg ρ arg → K i ρ (vcurry φ arg).
   Definition srpi {n} (φArg : olty Σ 0) (Kr : srelkind Σ n) : srelkind Σ (S n) :=
-    λI ρ φ1 φ2, □∀ arg, oClose φArg ρ arg → Kr ρ (oCurry φ1 arg) (oCurry φ2 arg).
+    λI ρ φ1 φ2, □∀ arg, oClose φArg ρ arg → Kr ρ (vcurry φ1 arg) (vcurry φ2 arg).
   Definition spi {n} (φArg : olty Σ 0) (K : sfkind Σ n) : sfkind Σ (S n) :=
     Sfkind (skpi φArg (sfkind_car K)) (srpi φArg (sfkind_sub K)).
 
@@ -215,8 +223,12 @@ Section semkinds.
   (* The point of Sandro's kind syntax is to use this only at kind 0. *)
   (* Definition sktmem {n} (φ1 φ2 : hoD Σ n) φ :=
     (subtype n 1 1 φ1 φ ∧ subtype n 1 1 φ φ)%I. *)
-  Definition skintv (φ1 φ2 : olty Σ 0) : skind Σ 0 := λI ρ φ,
-    subtype ρ (oLaterN 1 φ1) φ ∧ subtype ρ φ (oLaterN 1 φ2).
+  Program Definition skintv (φ1 φ2 : olty Σ 0) : skind Σ 0 := λI i ρ φ,
+    subtype ρ (envApply (oLaterN (S i) φ1) ρ) φ
+    (* subtype ρ (envApply (oLaterN (S i) φ1) ρ) (oLater i φ). *)
+    ∧
+    (* subtype ρ (oLaterN i φ) (envApply (oLaterN (S i) φ2) ρ). *)
+    subtype ρ φ (envApply (oLaterN (S i) φ2) ρ).
   Definition sintv (φ1 φ2 : olty Σ 0) : sfkind Σ 0 :=
     Sfkind (skintv φ1 φ2) srstar.
 
@@ -237,14 +249,26 @@ Section semkinds.
     | TSLam {n} : olty Σ 0 → hoSTy n → hoSTy (S n)
     | TSApp {n} : hoSTy (S n) → path → hoSTy n.
 
-  Definition oLam {n} (τ : olty Σ n) : olty Σ (S n) :=
-    oUncurry (λ v, τ.|[v/]).
-    (* Alternatives: *)
-    (* oUncurry (λ v args ρ, τ args (v .: ρ)). *)
+  Definition oLam {n} (τ : oltyO Σ n) : oltyO Σ (S n) :=
+    (* vuncurry (λ v, τ.|[v/]). *)
+    vuncurry (λ v, Olty (λ args ρ, τ args (v .: ρ))).
     (* Olty (λ args ρ, τ (vtail args) (vhead args .: ρ)). *)
-  Definition oTApp {n} (τ : olty Σ (S n)) v : olty Σ n := oCurry τ v.
-  Definition oTAppP {n} (τ : olty Σ (S n)) (p : path) : olty Σ n :=
-    Olty (λ args ρ v, path_wp p.|[ρ] (λ w, oCurry τ w args ρ v)).
+  Lemma oLam_equiv1 {n τ} : oLam (n := n) τ ≡
+    Olty (λ args ρ, τ (vtail args) (vhead args .: ρ)).
+  Proof. done. Qed.
+
+  (* *not* equivalent! *)
+  Lemma oLam_equiv2 {n τ} : oLam (n := n) τ ≡
+    vuncurry (λ v, τ.|[v/]).
+  Proof.
+    move=> args ρ v; rewrite /= /hsubst /hsubst_hoEnvD.
+    asimpl.
+    do 3 f_equiv.
+  Abort.
+
+  Definition oTApp {n} (τ : oltyO Σ (S n)) v : olty Σ n := vcurry τ v.
+  Definition oTAppP {n} (τ : oltyO Σ (S n)) (p : path) : olty Σ n :=
+    Olty (λ args ρ v, path_wp p.|[ρ] (λ w, vcurry τ w args ρ v)).
 
   Lemma swap_oLam_oLater {n} (τ : olty Σ n) :
     oLater (oLam τ) ≡ oLam (oLater τ).
@@ -296,8 +320,8 @@ Section sec.
     (□ ∀ v, oClose φ1 ρ v ↔ oClose φ2 ρ v)%I. *)
 
 
-  Definition sstpk1 {n} i Γ T1 T2 (K : sfkind Σ n) : iProp Σ :=
-    □∀ ρ, s⟦Γ⟧*ρ → ▷^i sfkind_sub K ρ T1 T2.
+  Definition sstpk1 {n} i Γ (T1 T2 : oltyO Σ n) (K : sfkind Σ n) : iProp Σ :=
+    □∀ ρ, s⟦Γ⟧*ρ → ▷^i sfkind_sub K ρ (envApply T1 ρ) (envApply T2 ρ).
   Lemma sstpk1_star_eq_sstp Γ i T1 T2 :
     sstpk1 i Γ T1 T2 sstar ⊣⊢ Γ s⊨ T1 , i <: T2 , i.
   Proof using HswapProp.
@@ -329,26 +353,26 @@ Section sec.
     end.
   Definition typeSem {n} (T : htype n) : hoEnvD Σ n := hoSTySem (htype_to_hosty T).
 
-  Lemma K_App_Lam {n} (argT : olty Σ 0) (φ1 φ2: olty Σ (S n)) (K : srelkind Σ n) ρ :
-    srpi argT K ρ φ1 φ2 ⊣⊢ (□∀ v, oClose argT ρ v → K ρ (oCurry φ1 v) (oCurry φ2 v))%I.
+  Lemma K_App_Lam {n} (argT : olty Σ 0) (φ1 φ2: hoLtyO Σ (S n)) (K : srelkind Σ n) ρ :
+    srpi argT K ρ φ1 φ2 ⊣⊢ (□∀ v, oClose argT ρ v → K ρ (vcurry φ1 v) (vcurry φ2 v))%I.
   Proof. done. Qed.
   (** XXX Need a subtyping judgment to throw in environments... *)
 
   (* Here, we inherit eta from the metalanguage, in both directions. *)
   (* Er, let's please carry it closer to the syntax? *)
-  Lemma eta1 {n} argT (φ : olty Σ (S n)) ρ : srpi argT subtype ρ φ (oUncurry (oCurry φ)).
+  Lemma eta1 {n} argT (φ : hoLtyO Σ (S n)) ρ : srpi argT subtype ρ φ (vuncurry (vcurry φ)).
   Proof.
     rewrite /srpi /subtype.
     iIntros "!> * #Harg !>" (args v) "$".
   Qed.
 
-  Lemma eta2 {n} argT (φ : olty Σ (S n)) ρ : srpi argT subtype ρ (oUncurry (oCurry φ)) φ.
+  Lemma eta2 {n} argT (φ : hoLtyO Σ (S n)) ρ : srpi argT subtype ρ (vuncurry (vcurry φ)) φ.
   Proof.
     rewrite /srpi /subtype.
     iIntros "!> * #Harg !>" (args v) "$".
   Qed.
 
-  (* Lemma eta {n} argT (φ : olty Σ (S n)) ρ : srpi argT semEquiv ρ φ (oUncurry (oCurry φ)).
+  (* Lemma eta {n} argT (φ : olty Σ (S n)) ρ : srpi argT semEquiv ρ φ (vuncurry (vcurry φ)).
   Proof.
     rewrite /srpi /semEquiv.
     iIntros "!> * #Harg !> **". rewrite -(iff_refl emp%I). done.
@@ -395,8 +419,12 @@ Section sec.
   Global Arguments dm_to_type: simpl never.
 
   (* [K]'s argument must ignore [ρ]. Patch the definition of skind instead. *)
+  Notation HoLty φ := (λ args, Lty (λI v, φ args v)).
+  Definition packHoLtyO {Σ n} φ : hoLtyO Σ n := HoLty (λI args v, □ φ args v).
+
   Definition def_interp_tmem {n} (K : skind Σ n): envPred dm Σ :=
-    λI ρ d, ∃ φ, d.|[ρ] ↗n[ n ] φ ∧ K ρ (Olty (λ args ρ v, □ φ args v)).
+    (* λI ρ d, ∃ (φ : hoLtyO Σ n), d.|[ρ] ↗n[ n ] φ ∧ K 0 ρ φ. *)
+    λI ρ d, ∃ (φ : hoD Σ n), d.|[ρ] ↗n[ n ] φ ∧ K 0 ρ (packHoLtyO φ).
   Definition def_interp_tmem_spec (φ1 φ2 : olty Σ 0) : envPred dm Σ :=
     def_interp_tmem (skintv φ1 φ2).
 End sec.
