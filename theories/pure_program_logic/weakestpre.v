@@ -162,25 +162,12 @@ Proof.
   iIntros (HΦ) "H"; iApply (wp_strong_mono with "H"); auto.
   iIntros (v) "?". by iApply HΦ.
 Qed.
-Lemma wp_stuck_mono s1 s2 E e Φ :
-  s1 ⊑ s2 → WP e @ s1; E {{ Φ }} ⊢ WP e @ s2; E {{ Φ }}.
-Proof. iIntros (?) "H". iApply (wp_strong_mono with "H"); auto. Qed.
-Lemma wp_stuck_weaken s E e Φ :
-  WP e @ s; E {{ Φ }} ⊢ WP e @ E ?{{ Φ }}.
-Proof. apply wp_stuck_mono. by destruct s. Qed.
-Lemma wp_mask_mono s E1 E2 e Φ : WP e @ s; E1 {{ Φ }} ⊢ WP e @ s; E2 {{ Φ }}.
-Proof. iIntros "H"; iApply (wp_strong_mono with "H"); auto. Qed.
 Global Instance wp_mono' s E e :
   Proper (pointwise_relation _ (⊢) ==> (⊢)) (wp (PROP:=iProp Σ) s E e).
 Proof. by intros Φ Φ' ?; apply wp_mono. Qed.
 
 Lemma wp_value s E Φ e v : IntoVal e v → Φ v ⊢ WP e @ s; E {{ Φ }}.
 Proof. intros <-. by apply wp_value'. Qed.
-Lemma wp_value_fupd' s E Φ v : Φ v ⊢ WP of_val v @ s; E {{ Φ }}.
-Proof. intros. by rewrite -wp_value'. Qed.
-Lemma wp_value_fupd s E Φ e v `{!IntoVal e v} :
-  (Φ v) ⊢ WP e @ s; E {{ Φ }}.
-Proof. intros. rewrite -wp_value //. Qed.
 Lemma wp_value_inv s E Φ e v : IntoVal e v → WP e @ s; E {{ Φ }} ⊢ Φ v.
 Proof. intros <-. by apply wp_value_inv'. Qed.
 
@@ -233,31 +220,4 @@ Section proofmode_classes.
     (∀ v, Frame p R (Φ v) (Ψ v)) →
     Frame p R (WP e @ s; E {{ Φ }}) (WP e @ s; E {{ Ψ }}).
   Proof. rewrite /Frame=> HR. rewrite wp_frame_l. apply wp_mono, HR. Qed.
-
-  Global Instance elim_acc_wp {X} E1 E2 α β γ e s Φ :
-    Atomic (stuckness_to_atomicity s) e →
-    ElimAcc (X:=X) (λ x, x) (λ x, x)%I
-            α β γ (WP e @ s; E1 {{ Φ }})
-            (λ x, WP e @ s; E2 {{ v, β x ∗ (γ x -∗? Φ v) }})%I.
-  Proof.
-    intros ?. rewrite /ElimAcc.
-    iIntros "Hinner Hacc". iDestruct "Hacc" as (x) "[Hα Hclose]".
-    iApply (wp_wand with "[Hinner Hα]").
-    { by iApply wp_mask_mono; iApply ("Hinner" with "[Hα]"). }
-    iIntros (v) "[Hβ HΦ]".
-    iDestruct ("Hclose" with "Hβ") as "Hclose".
-    by iApply "HΦ".
-  Qed.
-
-  Global Instance elim_acc_wp_nonatomic {X} E α β γ e s Φ :
-    ElimAcc (X:=X) (λ x, x) (λ x, x)%I
-            α β γ (WP e @ s; E {{ Φ }})
-            (λ x, WP e @ s; E {{ v, β x ∗ (γ x -∗? Φ v) }})%I.
-  Proof.
-    rewrite /ElimAcc.
-    iIntros "Hinner Hacc". iDestruct "Hacc" as (x) "[Hα Hclose]".
-    iApply (wp_wand with "[Hinner Hα]"); first by iApply "Hinner".
-    iIntros (v) "[Hβ HΦ]". iDestruct ("Hclose" with "Hβ") as "Hclose".
-    iApply "HΦ". by iApply "Hclose".
-  Qed.
 End proofmode_classes.
