@@ -9,8 +9,6 @@ env:
   - NJOBS="2"
   - CONTRIB_NAME="dot-iris"
   - OPAM_NAME="dot-iris-builddep"
-  # Time each Coq command in the logs
-  - TIMED=1
   matrix:
   # TODO: remove unneeded versions below
   - COQ_IMAGE="coqorg/coq:8.10"
@@ -34,7 +32,6 @@ before_install: |
     travis_fold end "$1"
   }
   export -f do_travis
-  export TIMED
 
 install: |
   # Download the COQ container
@@ -57,7 +54,7 @@ script:
 - |
   do_travis "script" "
     sudo chown -R coq:coq /home/coq/${CONTRIB_NAME}
-    ( make -j ${NJOBS} )"
+    ( make -j ${NJOBS} TIMED=1 )"
 
 after_script:
 - docker stop COQ  # optional but recommended
