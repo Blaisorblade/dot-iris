@@ -36,7 +36,7 @@ script:
   docker exec COQ /bin/bash --login -c "
     export PS4='+ \e[33;1m(\$0 @ line \$LINENO) \$\e[0m '; set -ex
     sudo chown -R coq:coq /home/coq/${CONTRIB_NAME}
-    ( make -j ${NJOBS} )
+    ( make -j ${NJOBS} TIMED=1 )
     " script
 - echo -en 'travis_fold:end:script\\r'
 
