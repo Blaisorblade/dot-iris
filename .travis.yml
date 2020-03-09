@@ -33,7 +33,7 @@ install: |
     echo -en 'travis_fold:start:update\\r'
     opam repo add iris-dev https://gitlab.mpi-sws.org/FP/opam-dev.git --set-default --all
     opam update -y
-    opam pin add -n -k path $OPAM_NAME .
+    opam pin add -y -n -k path $OPAM_NAME .
     echo -en 'travis_fold:end:update\\r'
     echo -en 'travis_fold:start:autosubst\\r'
     opam install -y -v -j ${NJOBS} coq-autosubst
