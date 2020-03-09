@@ -8,6 +8,7 @@ env:
   global:
   - NJOBS="2"
   - CONTRIB_NAME="dot-iris"
+  - OPAM_NAME="dot-iris-builddep"
   matrix:
   # TODO: remove unneeded versions below
   - COQ_IMAGE="coqorg/coq:8.10"
@@ -31,7 +32,8 @@ install: |
     if [ -n \"\${COMPILER_EDGE}\" ]; then opam switch \${COMPILER_EDGE}; eval \$(opam env); fi
     opam repo add iris-dev https://gitlab.mpi-sws.org/FP/opam-dev.git --set-default --all
     opam update -y
-    opam install -y -v -j ${NJOBS} .
+    opam pin add -n -k path $OPAM_NAME .
+    opam install -y -v -j ${NJOBS} --deps-only $OPAM_NAME
     opam config list; opam repo list; opam list
     " install
 
