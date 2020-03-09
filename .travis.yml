@@ -34,6 +34,7 @@ before_install: |
     travis_fold end "$1"
   }
   export -f do_travis
+  export TIMED
 
 install: |
   # Download the COQ container
