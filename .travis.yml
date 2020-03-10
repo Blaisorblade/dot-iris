@@ -18,10 +18,20 @@ env:
   # this config uses: $COMPILER_EDGE (cf. "opam switch" command below)
   # See https://github.com/coq-community/docker-coq/wiki#supported-tags
 
-before_script:
+before_install: |
   export -f travis_fold
   export -f travis_time_start
   export -f travis_time_finish
+  do_travis() {
+    travis_fold start "$1"
+    travis_time_start
+    docker exec COQ /bin/bash --login -c "
+      export PS4='+ \e[33;1m(\$0 @ line \$LINENO) \$\e[0m '; set -ex
+      $2" "$1"
+    travis_time_finish
+    travis_fold end "$1"
+  }
+  export -f do_travis
 
 install: |
   # Download the COQ container
@@ -29,41 +39,22 @@ install: |
   # Start the COQ container
   docker run -d -i --init --name=COQ -v ${TRAVIS_BUILD_DIR}:/home/coq/${CONTRIB_NAME} -w /home/coq/${CONTRIB_NAME} ${COQ_IMAGE}
   # Prepare the COQ container
-  docker exec COQ /bin/bash --login -c "
-    export PS4='+ \e[33;1m(\$0 @ line \$LINENO) \$\e[0m '; set -ex
+  do_travis "update" "
     if [ -n \"\${COMPILER_EDGE}\" ]; then opam switch \${COMPILER_EDGE}; eval \$(opam env); fi
-    echo -en 'travis_fold:start:update\\r'
-    travis_time_start
     opam repo add iris-dev https://gitlab.mpi-sws.org/FP/opam-dev.git --set-default --all
     opam update -y
-    opam pin add -y -n -k path $OPAM_NAME .
-    travis_time_finish
-    echo -en 'travis_fold:end:update\\r'
-    #
-    echo -en 'travis_fold:start:autosubst\\r'
-    travis_time_start
-    opam install -y -v -j ${NJOBS} coq-autosubst
-    travis_time_finish
-    echo -en 'travis_fold:end:autosubst\\r'
-    #
-    echo -en 'travis_fold:start:iris\\r'
-    travis_time_start
-    opam install -y -v -j ${NJOBS} --deps-only $OPAM_NAME
-    travis_time_finish
-    echo -en 'travis_fold:end:iris\\r'
-    #
-    opam config list; opam repo list; opam list
-    " install
+    opam pin add -y -n -k path $OPAM_NAME ."
+  #
+  do_travis "autosubst" "opam install -y -v -j ${NJOBS} coq-autosubst"
+  do_travis "iris" "opam install -y -v -j ${NJOBS} --deps-only $OPAM_NAME"
+  do_travis "settings" "opam config list; opam repo list; opam list"
 
 script:
-- echo -e "${ANSI_YELLOW}Building ${CONTRIB_NAME}...${ANSI_RESET}" && travis_fold start "script"
+- echo -e "${ANSI_YELLOW}Building ${CONTRIB_NAME}...${ANSI_RESET}"
 - |
-  docker exec COQ /bin/bash --login -c "
-    export PS4='+ \e[33;1m(\$0 @ line \$LINENO) \$\e[0m '; set -ex
+  do_travis "script" "
     sudo chown -R coq:coq /home/coq/${CONTRIB_NAME}
-    ( make -j ${NJOBS} TIMED=1 )
-    " script
-- travis_fold end "script"
+    ( make -j ${NJOBS} TIMED=1 )"
 
 after_script:
 - docker stop COQ  # optional but recommended
