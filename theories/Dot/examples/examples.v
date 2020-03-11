@@ -295,43 +295,6 @@ Section div_example.
   Qed.
 End div_example.
 
-Section wp_inv.
-  Import ectxi_language ectx_language.
-
-  Lemma wp_prim_step {e : tm} (Hne : to_val e = None) φ :
-    WP e {{ φ }} ⊢ ∃ e2, ⌜ prim_step e tt [] e2 tt [] ⌝ ∧ ▷ WP e2 {{ φ }}.
-  Proof.
-    rewrite wp_unfold/wp_pre/= {}Hne; iIntros "Hwp".
-    iDestruct ("Hwp" $! () [] [] 0%nat with "[//]") as (Hred) "Hwp".
-    destruct Hred as (? & e2 & [] & ? & Hr%prim_step_view).
-    iDestruct ("Hwp" $! e2 with "[%//]") as "(_ & Heq & _)".
-    by iExists _; iFrame.
-  Qed.
-
-  Lemma wp_head_step {e : tm} (Hsub : sub_redexes_are_values e) (Hne : to_val e = None) φ :
-    WP e {{ φ }} ⊢ ∃ e2 : tm, ⌜ head_step e tt [] e2 tt [] ⌝ ∧ ▷ WP e2 {{ φ }}.
-  Proof.
-    iIntros "H"; iDestruct (wp_prim_step Hne with "H") as (e2 Hred) "Hwp".
-    suff ?: head_step e () [] e2 () [] by iExists _; iFrame.
-    destruct Hred as [K]; subst; suff: K = [] by naive_solver.
-    by eapply Hsub, val_head_stuck.
-  Qed.
-
-  Lemma wp_pos ρ (v : vl) : WP v > 0 {{ w, w ≡ vbool true }} ⊢ ▷ ipos vnil ρ v.
-  Proof.
-    have Hsub: sub_redexes_are_values (v > 0). {
-      apply ectxi_language_sub_redexes_are_values.
-      by case => /= *; simplify_eq/=; eauto.
-    }
-    rewrite /ipos/pos (wp_head_step Hsub) //; iDestruct 1 as (e2 Hhr) "Heq"; iNext.
-    have {Hhr}[w [-> Hev]]: ∃ w : vl, e2 = w ∧ bin_op_eval blt 0 v = Some w by inverse Hhr; eauto.
-    iDestruct (wp_value_inv' with "Heq") as %->%leibniz_equiv; iIntros "!%".
-    (* rewrite wp_value_inv'; iDestruct "Heq" as %->%leibniz_equiv; iIntros "!%". *)
-    simpl in Hev; repeat case_match; repeat case_decide; naive_solver.
-  Qed.
-
-End wp_inv.
-
 Section small_ex.
   (* Generic useful lemmas — not needed for fundamental theorem,
      but very useful for examples. *)

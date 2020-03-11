@@ -324,33 +324,12 @@ Section Sec.
   Proof. by rewrite fmap_cons -(ctx_sub_TLater Γ). Qed.
 
   (* Variant of [P_Fld_I]: not needed here, and we get an extra later :-|, tho it
-  matches [T_Obj_E']. Fails now that we allow path members. *)
-  Lemma T_Mem_I Γ e T l:
+  matches [T_Obj_E']. Fails now that we allow path members, and it
+  always required inverting WP. *)
+  (* Lemma T_Mem_I Γ e T l:
     Γ ⊨ tproj e l : T -∗
     (*─────────────────────────*)
-    Γ ⊨ e : TVMem l (TLater T).
-  Proof.
-    iIntros "#HE /= !>" (ρ) "#HG !>".
-    iSpecialize ("HE" with "HG").
-    rewrite (wp_bind_inv (fill [ProjCtx l])) /= /lang.of_val.
-    iApply (wp_wand with "HE"); iIntros "/=" (v) "{HE}HE".
-    rewrite wp_unfold /wp_pre/=.
-    remember (tproj (tv v) l) as e'.
-    iDestruct ("HE" $! () [] [] 0 with "[//]") as (Hs) "HE".
-    have {Hs} [p [Hhr Hl]]: ∃ p, head_step e' () [] (path2tm p) () [] ∧ v @ l ↘ dpt p. {
-      have Hhr: head_reducible e' ().
-        apply prim_head_reducible, ectxi_language_sub_redexes_are_values;
-          by [|move => -[]/= *; simplify_eq/=; eauto].
-      destruct Hhr as ([] & e2 & [] & efs & Hhr'); last now inversion Hhr'.
-      inversion Hhr'; simplify_eq/=. eauto.
-    }
-    simplify_eq/=.
-    iDestruct ("HE" with "[%]") as "(_ & ? & _)"; first exact: head_prim_step.
-    do 2 (iExists _; iSplit => //).
-    (* rewrite path_wp_to_wp.
-    rewrite wp_value_inv'. eauto.
-  Qed. *)
-  Abort.
+    Γ ⊨ e : TVMem l (TLater T). *)
 
   Lemma T_All_I1 {Γ} T1 T2 e:
     TLater (shift T1) :: Γ ⊨ e : T2 -∗
@@ -483,18 +462,7 @@ Section Sec.
   Abort.
 
   (* This would be surprising without ◇, and fails even with it. *)
-  Lemma wp_later_swap2 t Φ: ▷ WP t {{ v, Φ v }} ⊢ ◇ WP t {{ v, ▷ Φ v }}.
-  Proof.
-    iLöb as "IH" forall (t Φ).
-    iEval (rewrite !wp_unfold /wp_pre /=).
-    case: (to_val t) => [v|]. eauto.
-    iIntros "H" (σ1 κ κs n _); iDestruct ("H" $! σ1 κ κs n with "[#//]") as "[Hr H]".
-    iSplit. iApply (timeless with "Hr").
-    iIntros (e2 σ2 efs Hstep); iDestruct ("H" $! e2 σ2 efs Hstep) as "[_ [H H2]]".
-    iSplit => //. iSplitR "H2"; first last.
-    unshelve (iApply (timeless with "H2")); first last.
-    2: iSpecialize ("IH" with "H").
-  Abort.
+  (* Lemma wp_later_swap2 t Φ: ▷ WP t {{ v, Φ v }} ⊢ ◇ WP t {{ v, ▷ Φ v }}. *)
 
   Lemma sSub_Mono Γ T i :
     Γ s⊨ T, i <: T, S i.

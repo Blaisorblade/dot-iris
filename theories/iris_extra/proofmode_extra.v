@@ -123,29 +123,4 @@ Section wp_extra.
     iDestruct "H2" as "[_ [H2 _]]".
     by iApply ("IH" with "H1 H2").
   Qed.
-
-  Lemma wp_strong_mono_later s1 s2 E1 E2 e Φ Ψ :
-    s1 ⊑ s2 →
-    TCEq (to_val e) None →
-    WP e @ s1; E1 {{ Φ }} -∗ ▷(∀ v, Φ v -∗ Ψ v) -∗ WP e @ s2; E2 {{ Ψ }}.
-  Proof.
-    iIntros (? Heq) "H HΦ".
-    rewrite !wp_unfold /wp_pre !Heq.
-    iIntros (σ1 κ κs n) "Hσ".
-    iDestruct ("H" with "[$]") as "[% H]".
-    iSplit; [by destruct s1, s2|]. iIntros (e2 σ2 efs Hstep).
-    iDestruct ("H" with "[//]") as "H". iIntros "!>".
-    iDestruct "H" as "(Hσ & H & Hefs)".
-    iFrame "Hσ". iSplitR "Hefs".
-    - by iApply (wp_strong_mono with "H HΦ").
-    - iApply (big_sepL_impl with "Hefs"); iIntros "!#" (k ef _).
-      iIntros "H". iApply (wp_strong_mono with "H"); auto.
-  Qed.
-
-  Lemma wp_wand_later s E e Φ Ψ :
-    TCEq (to_val e) None →
-    WP e @ s; E {{ Φ }} -∗ ▷ (∀ v, Φ v -∗ Ψ v) -∗ WP e @ s; E {{ Ψ }}.
-  Proof.
-    iIntros (?) "Hwp H". iApply (wp_strong_mono_later with "Hwp"); auto.
-  Qed.
 End wp_extra.
