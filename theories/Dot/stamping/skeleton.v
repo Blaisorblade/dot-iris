@@ -2,7 +2,8 @@
     following Sec. 3.5 of the PDF. *)
 From iris.program_logic Require Import
      language ectx_language ectxi_language.
-From D.Dot Require Import syn traversals.
+From D Require Import iris_extra.det_reduction.
+From D.Dot Require Import syn rules.
 
 Set Implicit Arguments.
 
@@ -429,41 +430,18 @@ Qed.
 Lemma same_skel_symm_tm e1 e2: same_skel_tm e1 e2 → same_skel_tm e2 e1.
 Proof. apply same_skel_symm. Qed.
 
-Lemma prim_step_inversion e1 σ1 κ e2 σ2 efs :
-  prim_step e1 σ1 κ e2 σ2 efs →
-  κ = [] ∧ efs = [].
-Proof. move => [/= ????? Hstep]; by inversion Hstep. Qed.
-
 Ltac prim_step_inversion H :=
-  destruct (prim_step_inversion H); simplify_eq/=.
-
-Lemma prim_step_view e1 σ1 κ e2 σ2 efs
-  (Hstep : prim_step e1 σ1 κ e2 σ2 efs) :
-  prim_step e1 σ1 [] e2 σ2 [].
-Proof. by prim_step_inversion Hstep. Qed.
-
-Lemma prim_step_step t1 σ κ t2 σ' efs :
-  prim_step t1 σ κ t2 σ' efs → step ([t1], σ) [] ([t2], σ').
-Proof.
-  move => /prim_step_view. by eapply @step_atomic with (t1 := []) (t2 := []).
-Qed.
-Hint Immediate prim_step_step : core.
-
-Lemma step_inversion (t1 : tm) thp σ σ' κ :
-  step ([t1], σ) κ (thp, σ') →
-  ∃ t2, thp = [t2] ∧ κ = [] ∧ prim_step t1 σ [] t2 σ' [].
-Proof.
-  destruct 1 as [????? t0 ??? Hstep]; destruct t0 as [|?[]]; [| naive_solver..].
-  prim_step_inversion Hstep; eauto.
-Qed.
+  destruct (prim_step_inversion H); ev; simplify_eq/=.
 
 Lemma step_inversion' (t1 t2: tm) thp σ σ' κ :
   step ([t1], σ) κ (thp, σ') → t2 ∈ thp →
   thp = [t2] ∧ κ = [] ∧ prim_step t1 σ [] t2 σ' [].
-Proof.
-  move => /step_inversion [t2' [-> [->]]].
-  rewrite elem_of_list_singleton. naive_solver.
-Qed.
+Proof. exact: step_inversion'. Qed.
+
+Lemma prim_step_step t1 σ κ t2 σ' efs :
+  prim_step t1 σ κ t2 σ' efs → step ([t1], σ) [] ([t2], σ').
+Proof. exact: prim_step_step. Qed.
+Hint Immediate prim_step_step : core.
 
 Lemma erased_step_prim (t1 t2: tm) thp σ σ' :
   erased_step ([t1], σ) (thp, σ') ∧ t2 ∈ thp ↔
@@ -494,14 +472,14 @@ Proof.
     exists t1'; split_and!; try constructor; eauto.
   intros Hin; destruct y as [l σ'']; have ?: σ'' = σ by destruct σ, σ''.
   subst. move: H (H) => [k Hstep] Hestep.
-  move: (step_inversion Hstep) => [ti ?]; destruct_and!; simplify_eq.
+  have [ti ?] := step_inversion Hstep; destruct_and!; simplify_eq.
   pose proof (simulation_skeleton_erased_step Hst
     (conj Hestep (elem_of_list_here _ _))) as (ti' & thpi'&(Hestep'&Hti')&?).
   pose proof IHHsteps as (t2' &?&?) => //.
   exists t2'; split_and! => //.
   suff ?: thpi' = [ti'] by subst; eapply rtc_l with (y := ([ti'], _)).
-  move: Hestep' => [k' Hstep'].
-  move: (step_inversion Hstep') Hti' => [ti'' [-> _]].
+  move: Hestep' Hti' => [k' Hstep'].
+  have [ti'' [-> ?]] := step_inversion Hstep'.
   rewrite elem_of_list_singleton; naive_solver.
 Qed.
 

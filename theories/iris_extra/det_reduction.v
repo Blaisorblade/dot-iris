@@ -20,16 +20,6 @@ Proof.
   intros K1 K2 Heq [???]; split; intros *; setoid_rewrite <-Heq => *; auto 2.
 Qed.
 
-(* Lemma rtc_congruence `{R : relation A} `{R' : relation B} C
-  x y (f : C → A) (g : C → B) `{!Inj (=) (=) f}:
-  (∀ x y, R (f x) (f y) → R' (g x) (g y)) → rtc R (f x) (f y) → rtc R' (g x) (g y).
-Proof.
-intros Hf Ht.
-dependent induction Ht; simplify_eq; econstructor; eauto.
-Qed. *)
-
-(* Proof. induction 2; econstructor; eauto. Qed. *)
-
 Definition safe_gen {Λ} (e : L.expr Λ) :=
   prelude.safe e.
   (* ∀ e' thp σ σ', rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →

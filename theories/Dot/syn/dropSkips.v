@@ -192,13 +192,14 @@ Qed.
 
 (* Reuse lemmas relating Iris's various wrappers of reduction relations. *)
 From D.Dot Require Import skeleton.
+From D Require Import iris_extra.det_reduction.
 
 Lemma simulation_skiperase' e1 σ1 κ e2 σ2 efs :
   prim_step e1 σ1 κ e2 σ2 efs →
   rtc (λ e1 e2, prim_step e1 () [] e2 () []) (erase_tm e1) (erase_tm e2).
 Proof.
   intros Hs; prim_step_inversion Hs.
-  destruct σ1, σ2; exact: simulation_skiperase.
+  destruct σ1; exact: simulation_skiperase.
 Qed.
 
 Theorem simulation_skiperase_erased_step {t1 t2 σ σ' thp} :
@@ -223,14 +224,13 @@ Theorem simulation_skiperase_erased_steps {t1 t2 σ σ' thp} :
   rtc erased_step ([t1], σ) (thp, σ') → t2 ∈ thp →
   rtc erased_step ([erase_tm t1], σ) ([erase_tm t2], σ').
 Proof.
-  intros Hsteps; dependent induction Hsteps.
-  by rewrite elem_of_list_singleton => ->; constructor.
-  intros Hin; destruct y as [l σ'']; have ?: σ'' = σ by destruct σ, σ''.
-  subst. move: H (H) => [k Hstep] Hestep.
-  move: (step_inversion Hstep) => [ti ?]; destruct_and!; simplify_eq.
-  etrans; first apply (simulation_skiperase_erased_step
-    (conj Hestep (elem_of_list_here _ _))).
-  by eapply IHHsteps, Hin.
+  move => + Hin => /rtc_erased_step_inversion /(_ Hin) Hsteps {Hin}.
+  dependent induction Hsteps; first done.
+  destruct y as [l σ'']; have ?: σ'' = σ by destruct σ, σ''; subst.
+  move: H (H) => [k Hstep] Hestep.
+  have [ti ?] := step_inversion Hstep; destruct_and!; simplify_eq.
+  etrans; first exact: (simulation_skiperase_erased_step' Hestep).
+  exact: IHHsteps.
 Qed.
 
 Corollary simulation_skiperase_erased_steps_vl {t1 v2 σ σ' thp} :
