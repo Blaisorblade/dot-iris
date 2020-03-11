@@ -133,7 +133,8 @@ Theorem adequacy Σ `{HdsubG: dsubSynG Σ} `{!SwapPropI Σ} e T:
   (∀ `(dsubSynG Σ) `(SwapPropI Σ), [] ⊨ e : T) →
   safe e.
 Proof.
-  intros Htyp ???*. cut (adequate NotStuck e σ (λ _ _, True)); first (intros [_ ?]; eauto).
+  rewrite /safe /not_stuck; intros Htyp ???*.
+  cut (adequate NotStuck e σ (λ _ _, True)); first by intros [_ ?]; eauto.
   eapply (wp_adequacy Σ) => /=.
   iIntros (?) "!>". iExists (λ _ _, True%I); iSplit=> //.
   iPoseProof (Htyp _ _) as "#Htyp".

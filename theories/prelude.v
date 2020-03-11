@@ -10,7 +10,7 @@ Set Default Proof Using "Type".
 
 Definition safe {Λ} (e : expr Λ) :=
   ∀ e' thp σ σ', rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
-    is_Some (to_val e') ∨ reducible (Λ := Λ) e' σ'.
+    not_stuck e' σ'.
 
 (** This defines, in fact, pure and deterministic termination. *)
 Definition terminates {Λ} (e : expr Λ) :=
