@@ -13,6 +13,13 @@ Import L EL.
 
 Hint Constructors rtc : core.
 
+(* XXX remove from asubst_base.v *)
+Instance Proper_LanguageCtx (Λ: language):
+  Proper (pointwise_relation _ (=) ==> impl) (@LanguageCtx Λ).
+Proof.
+  intros K1 K2 Heq [???]; split; intros *; setoid_rewrite <-Heq => *; auto 2.
+Qed.
+
 (* Lemma rtc_congruence `{R : relation A} `{R' : relation B} C
   x y (f : C → A) (g : C → B) `{!Inj (=) (=) f}:
   (∀ x y, R (f x) (f y) → R' (g x) (g y)) → rtc R (f x) (f y) → rtc R' (g x) (g y).
@@ -24,8 +31,9 @@ Qed. *)
 (* Proof. induction 2; econstructor; eauto. Qed. *)
 
 Definition safe_gen {Λ} (e : L.expr Λ) :=
-  ∀ e' thp σ σ', rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
-    not_stuck e' σ'.
+  prelude.safe e.
+  (* ∀ e' thp σ σ', rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
+    not_stuck e' σ'. *)
 
 Class UniqueInhabited A := {
   unique_inhabited :> Inhabited A;
@@ -173,7 +181,8 @@ Lemma rtc_erased_step_inversion' `{!LangDet Λ} {t1 : L.expr Λ} {res σ}
   (Hs : rtc erased_step ([t1], σ) res) :
   ∃ t2, res = ([t2], σ).
 Proof.
-  dependent induction Hs; first naive_solver.
+  move E: ([t1], σ) Hs => cfg Hs.
+  elim: Hs t1 E; intros; first naive_solver.
   edestruct erased_step_inversion; naive_solver.
 Qed.
 
@@ -181,9 +190,11 @@ Qed.
 Lemma pure_steps_erased' `{LangDet Λ} e1 e2 :
   rtc pure_step e1 e2 ↔ rtc erased_step ([e1], dummyState) ([e2], dummyState).
 Proof.
-  split; rewrite !pure_steps_erased /erased_step' => Hs.
-  - induction Hs; naive_solver.
-  - dependent induction Hs; first naive_solver.
+  split; rewrite !pure_steps_erased /erased_step'.
+  - induction 1; naive_solver.
+  - move E1: ([e1], dummyState) => c1.
+    move E2: ([e2], dummyState) => c2 Hs.
+    elim: Hs e1 e2 E1 E2; intros; first naive_solver.
     edestruct erased_step_inversion; naive_solver.
 Qed.
 
@@ -201,7 +212,7 @@ Qed.
 
 Lemma safe_equiv e : safe_gen e ↔ safe e.
 Proof.
-  rewrite /safe /safe_gen; split; intros Hsafe *.
+  rewrite /safe /safe_gen; split; intros Hsafe ?*.
   - intros Hred%pure_steps_erased'.
     by eapply (Hsafe e'), elem_of_list_singleton.
   - move => + Hin => /rtc_erased_step_inversion /(_ Hin).

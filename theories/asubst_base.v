@@ -545,10 +545,3 @@ Proof. rewrite /ren/scomp; fsimpl; by rewrite (id_scompX (v .: ρ)). Qed.
 End Sorts.
 
 Module Type VlSortsFullSig <: VlSortsSig := ValuesSig <+ Sorts.
-
-(* XXX Doesn't really belong here, but there's no good place for it. *)
-Instance Proper_LanguageCtx (Λ: language):
-  Proper (pointwise_relation _ (=) ==> impl) (@LanguageCtx Λ).
-Proof.
-  intros K1 K2 Heq [???]; split; intros *; setoid_rewrite <-Heq => *; auto 2.
-Qed.

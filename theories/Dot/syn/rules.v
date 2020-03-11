@@ -1,6 +1,6 @@
 From iris.program_logic Require Import language ectx_language.
+From D Require Import iris_extra.det_reduction.
 From D.Dot Require Import syn.
-Import asubst_base.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
@@ -88,3 +88,6 @@ Qed.
 Lemma head_step_pure e1 e2 σ1 κ σ2 efs :
   head_step e1 σ1 κ e2 σ2 efs → PureExec True 1 e1 e2.
 Proof. inversion 1; intros ?; exact: pure_exec. Qed.
+
+Instance: EctxLangDet dlang_ectx_lang.
+Proof. repeat split; [intros; exact: head_step_pure|by intros [] []]. Qed.
