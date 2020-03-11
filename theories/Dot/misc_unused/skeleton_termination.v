@@ -28,10 +28,6 @@ End AlternativeDef.
 
 Section prim_step_det.
 Import rules.
-Lemma head_step_pure e1 e2 σ1 κ σ2 efs :
-  head_step e1 σ1 κ e2 σ2 efs → PureExec True 1 e1 e2.
-Proof. inversion 1; intros ?; exact: pure_exec. Qed.
-
 Lemma prim_step_pure e1 e2 σ1 κ σ2 efs :
   prim_step e1 σ1 κ e2 σ2 efs → PureExec True 1 e1 e2.
 Proof. inversion 1; simplify_eq/=. by eapply pure_exec_fill, head_step_pure. Qed.
