@@ -10,11 +10,7 @@ env:
   - CONTRIB_NAME="dot-iris"
   - OPAM_NAME="dot-iris-builddep"
   matrix:
-  # TODO: remove unneeded versions below
   - COQ_IMAGE="coqorg/coq:8.10"
-  # - COQ_IMAGE="coqorg/coq:8.11"
-  # - COQ_IMAGE="coqorg/coq:dev"
-  # "default" switch: $COMPILER
   # this config uses: $COMPILER_EDGE (cf. "opam switch" command below)
   # See https://github.com/coq-community/docker-coq/wiki#supported-tags
 
