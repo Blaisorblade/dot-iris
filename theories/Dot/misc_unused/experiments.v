@@ -366,8 +366,8 @@ Section Sec.
     iLöb as "IH" forall (t Φ).
     iEval (rewrite !wp_unfold /wp_pre /=).
     case: (to_val t) => [v|]. by eauto.
-    iIntros "H" (σ1 κ κs n _); iDestruct ("H" $! σ1 κ κs n with "[#//]") as "[$ H]".
-    iIntros (e2 σ2 efs Hstep); iDestruct ("H" $! e2 σ2 efs Hstep) as "[$ [H $]]".
+    iDestruct 1 as (e2 Hstep) "H".
+    iExists e2; iSplit; first done.
     iApply ("IH" with "H").
   Qed.
 

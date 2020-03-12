@@ -32,9 +32,9 @@ Implicit Types
 (* The only point of these instances is to select Σ uniquely. *)
 Class dsubSynG (Σ: gFunctors) := DsubSynG {}.
 
+From D.DSub Require Export rules.
 Instance dsubsynG_irisG `{!dsubSynG Σ}: irisG dlang_lang Σ := {
-  state_interp σ κs _ := True%I;
-  fork_post _ := True%I;
+  irisG_langdet := _;
 }.
 
 (* Use Program without its extended pattern-matching compiler; we only need

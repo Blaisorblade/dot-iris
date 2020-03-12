@@ -441,7 +441,7 @@ Theorem s_adequacy_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} {e Ψ}
   (τ : ∀ `{dlangG Σ}, olty Σ 0)
   (Himpl : ∀ (Hdlang: dlangG Σ) v, oClose τ ids v -∗ ⌜Ψ v⌝)
   (Hlog : ∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] s⊨ e : τ):
-  ∀ σ, adequate NotStuck e σ (λ v _, Ψ v).
+  adequate e (λ v, Ψ v).
 Proof.
   eapply (adequacy_dlang _); [apply Himpl | iIntros (??) "Hgs"].
   iMod (Hlog with "Hgs") as "#Htyp".
@@ -451,7 +451,7 @@ Qed.
 Theorem adequacy_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} {e Ψ T}
   (Himpl : ∀ (Hdlang: dlangG Σ) v, V⟦ T ⟧ vnil ids v -∗ ⌜Ψ v⌝)
   (Hlog : ∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T):
-  ∀ σ, adequate NotStuck e σ (λ v _, Ψ v).
+  adequate e (λ v, Ψ v).
 Proof. exact: (s_adequacy_dot_sem Σ (λ _, V⟦T⟧)). Qed.
 
 Corollary s_safety_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} {e}
@@ -471,7 +471,7 @@ semantic type. *)
 Theorem adequacy_mapped_semtyping Σ `{!dlangPreG Σ} `{!SwapPropI Σ} {e g Ψ T}
   (Himpl : ∀ `(!dlangG Σ) v, ⟦ T ⟧ ids v -∗ ⌜Ψ v⌝)
   (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), [] ⊨[ Vs⟦ g ⟧ ] e : T):
-  ∀ σ, adequate NotStuck e σ (λ v _, Ψ v).
+  adequate e (λ v, Ψ v).
 Proof.
   eapply (adequacy_dot_sem Σ Himpl).
   iIntros (??) "Hs"; iApply Hlog. iApply (transfer_empty with "Hs").
@@ -494,7 +494,7 @@ Proof.
   eapply (@soundness (iResUR Σ) _ i).
   apply (bupd_plain_soundness _).
   iMod (gen_iheap_init (L := stamp) ∅) as (hG) "Hgs".
-  set (DLangΣ := DLangG Σ _ hG).
+  set (DLangΣ := DLangG Σ _ hG _).
   iMod (@transfer_empty _ DLangΣ Vs⟦ g ⟧ with "Hgs") as "Hgs".
   iApply ipwp_terminates.
   iApply (Hwp DLangΣ with "Hgs").
