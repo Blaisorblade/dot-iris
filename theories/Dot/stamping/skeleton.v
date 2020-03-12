@@ -433,54 +433,43 @@ Proof. apply same_skel_symm. Qed.
 Ltac prim_step_inversion H :=
   destruct (prim_step_inversion H); ev; simplify_eq/=.
 
-Lemma step_inversion' (t1 t2: tm) thp σ σ' κ :
-  step ([t1], σ) κ (thp, σ') → t2 ∈ thp →
-  thp = [t2] ∧ κ = [] ∧ prim_step t1 σ [] t2 σ' [].
-Proof. exact: step_inversion'. Qed.
-
 Lemma prim_step_step t1 σ κ t2 σ' efs :
   prim_step t1 σ κ t2 σ' efs → step ([t1], σ) [] ([t2], σ').
 Proof. exact: prim_step_step. Qed.
 Hint Immediate prim_step_step : core.
 
-Lemma erased_step_prim (t1 t2: tm) thp σ σ' :
-  erased_step ([t1], σ) (thp, σ') ∧ t2 ∈ thp ↔
-  prim_step t1 σ [] t2 σ' [] ∧ thp = [t2].
-Proof. split; rewrite /erased_step.
-  - move => [[os Hstep] Hin]; move: (step_inversion' Hstep Hin); naive_solver.
-  - move => [Hstep ->]. split; last constructor; eauto.
-Qed.
-
-Theorem simulation_skeleton_erased_step {t1 t1' t2 σ σ' thp} :
-  same_skel_tm t1 t1' →
-  erased_step ([t1], σ) (thp, σ') ∧ t2 ∈ thp →
-  ∃ t2' thp', (erased_step ([t1'], σ) (thp', σ') ∧ t2' ∈ thp') ∧
-    same_skel_tm t2 t2'.
+Lemma erased_step_prim (t1 t2: tm) σ σ' :
+  erased_step ([t1], σ) ([t2], σ') ↔
+  prim_step t1 σ [] t2 σ' [].
 Proof.
-  setoid_rewrite erased_step_prim; intros Hskel [Hstep ->].
-  edestruct simulation_skeleton as (t2' & ? & ?) => //.
-  by exists t2', [t2'].
+  split; rewrite /erased_step; last by eauto.
+  move => [os Hstep]. have := !!step_inversion Hstep. naive_solver.
 Qed.
 
-Theorem simulation_skeleton_erased_steps {t1 t1' t2 σ σ' thp} :
+Theorem simulation_skeleton_erased_step {t1 t1' t2 σ σ'} :
   same_skel_tm t1 t1' →
-  rtc erased_step ([t1], σ) (thp, σ') → t2 ∈ thp →
+  erased_step ([t1], σ) ([t2], σ') →
+  ∃ t2', erased_step ([t1'], σ) ([t2'], σ') ∧ same_skel_tm t2 t2'.
+Proof.
+  setoid_rewrite erased_step_prim; intros Hskel Hstep.
+  edestruct simulation_skeleton as (t2' & ? & ?) => //.
+  exists t2'. naive_solver.
+Qed.
+
+Theorem simulation_skeleton_erased_steps {t1 t1' t2 σ σ' } :
+  same_skel_tm t1 t1' →
+  rtc erased_step ([t1], σ) ([t2], σ') →
   ∃ t2', rtc erased_step ([t1'], σ) ([t2'], σ') ∧ same_skel_tm t2 t2'.
 Proof.
   intros Hst Hsteps; revert t1' Hst; dependent induction Hsteps; intros ??.
-  by rewrite elem_of_list_singleton => ->;
-    exists t1'; split_and!; try constructor; eauto.
-  intros Hin; destruct y as [l σ'']; have ?: σ'' = σ by destruct σ, σ''.
-  subst. move: H (H) => [k Hstep] Hestep.
+  by exists t1'; split_and!; try constructor; eauto.
+  destruct y as [l []], σ, σ'.
+  move: H (H) => [k Hstep] Hestep.
   have [ti ?] := step_inversion Hstep; destruct_and!; simplify_eq.
-  pose proof (simulation_skeleton_erased_step Hst
-    (conj Hestep (elem_of_list_here _ _))) as (ti' & thpi'&(Hestep'&Hti')&?).
+  pose proof (simulation_skeleton_erased_step Hst Hestep) as (ti' &Hestep'&?).
   pose proof IHHsteps as (t2' &?&?) => //.
-  exists t2'; split_and! => //.
-  suff ?: thpi' = [ti'] by subst; eapply rtc_l with (y := ([ti'], _)).
-  move: Hestep' Hti' => [k' Hstep'].
-  have [ti'' [-> ?]] := step_inversion Hstep'.
-  rewrite elem_of_list_singleton; naive_solver.
+  exists t2'; split_and => //.
+  by eapply rtc_l with (y := ([ti'], _)).
 Qed.
 
 Lemma reducible_reducible_no_obs (e : tm) σ:
@@ -508,10 +497,10 @@ Qed.
 Lemma safe_same_skel {e e_s}:
   same_skel_tm e e_s → safe e_s → safe e.
 Proof.
-  rewrite /safe => Hskel Hsafe e' > Hred Hin.
-  destruct (simulation_skeleton_erased_steps Hskel Hred Hin)
+  rewrite /safe => Hskel Hsafe e' /pure_steps_erased' Hred.
+  destruct (simulation_skeleton_erased_steps Hskel Hred)
     as (e_s' & Hst_s & Hskel').
-  edestruct Hsafe as [Hs|Hs]; [apply Hst_s|apply elem_of_list_here|left|right].
+  edestruct Hsafe as [Hs|Hs]; [apply pure_steps_erased', Hst_s|left|right].
   - destruct e_s'; try by case (is_Some_None Hs).
     destruct e' => //; naive_solver.
   - eapply same_skel_reducible, Hs; exact: same_skel_symm_tm.

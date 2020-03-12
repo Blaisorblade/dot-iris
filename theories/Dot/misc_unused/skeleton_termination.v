@@ -47,8 +47,7 @@ Theorem simulation_skeleton_pure_steps {t_s t_r u_s : tm} :
   rtc pure_step t_s t_r →
   ∃ u_r, rtc pure_step u_s u_r ∧ same_skel_tm t_r u_r.
 Proof.
-  setoid_rewrite pure_steps_erased'; intros.
-  by eapply simulation_skeleton_erased_steps, elem_of_list_singleton.
+  setoid_rewrite pure_steps_erased'; exact: simulation_skeleton_erased_steps.
 Qed.
 
 Lemma terminates_same_skel {e e_s}:

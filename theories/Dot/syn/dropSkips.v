@@ -202,46 +202,29 @@ Proof.
   destruct σ1; exact: simulation_skiperase.
 Qed.
 
-Theorem simulation_skiperase_erased_step {t1 t2 σ σ' thp} :
-  erased_step ([t1], σ) (thp, σ') ∧ t2 ∈ thp →
-  rtc erased_step ([erase_tm t1], σ) ([erase_tm t2], σ').
-Proof.
-  rewrite erased_step_prim => -[/simulation_skiperase' Hstep _]; destruct σ, σ'.
-  eapply (rtc_congruence (λ t, ([t], ()))), Hstep => /= e1 e2 Hs.
-  edestruct erased_step_prim as [_ [He _]]; first split;
-   by [>apply Hs| | apply He].
-Qed.
-
-Theorem simulation_skiperase_erased_step' {t1 t2 σ σ'} :
+Theorem simulation_skiperase_erased_step {t1 t2 σ σ'} :
   erased_step ([t1], σ) ([t2], σ') →
   rtc erased_step ([erase_tm t1], σ) ([erase_tm t2], σ').
 Proof.
-  intros Hs; eapply simulation_skiperase_erased_step; split_and => //.
-  by rewrite elem_of_list_singleton.
+  rewrite erased_step_prim => /simulation_skiperase' Hstep; destruct σ, σ'.
+  eapply (rtc_congruence (λ t, ([t], ()))), Hstep => /= e1 e2 Hs.
+  apply erased_step_prim, Hs.
 Qed.
 
-Theorem simulation_skiperase_erased_steps {t1 t2 σ σ' thp} :
-  rtc erased_step ([t1], σ) (thp, σ') → t2 ∈ thp →
+Theorem simulation_skiperase_erased_steps {t1 t2 σ σ'} :
+  rtc erased_step ([t1], σ) ([t2], σ') →
   rtc erased_step ([erase_tm t1], σ) ([erase_tm t2], σ').
 Proof.
-  move => + Hin => /rtc_erased_step_inversion /(_ Hin) Hsteps {Hin}.
+  move => Hsteps.
   dependent induction Hsteps; first done.
   destruct y as [l σ'']; have ?: σ'' = σ by destruct σ, σ''; subst.
   move: H (H) => [k Hstep] Hestep.
   have [ti ?] := step_inversion Hstep; destruct_and!; simplify_eq.
-  etrans; first exact: (simulation_skiperase_erased_step' Hestep).
+  etrans; first exact: (simulation_skiperase_erased_step Hestep).
   exact: IHHsteps.
 Qed.
 
-Corollary simulation_skiperase_erased_steps_vl {t1 v2 σ σ' thp} :
-  rtc erased_step ([t1], σ) (thp, σ') → tv v2 ∈ thp →
-  rtc erased_step ([erase_tm t1], σ) ([tv (erase_vl v2)], σ').
-Proof. exact: (simulation_skiperase_erased_steps (t2 := tv v2)). Qed.
-
-Corollary simulation_skiperase_erased_steps_vl' {t1 v2 σ σ'} :
+Corollary simulation_skiperase_erased_steps_vl {t1 v2 σ σ'} :
   rtc erased_step ([t1], σ) ([tv v2], σ') →
   rtc erased_step ([erase_tm t1], σ) ([tv (erase_vl v2)], σ').
-Proof.
-  intros.
-  by eapply simulation_skiperase_erased_steps_vl, elem_of_list_singleton.
-Qed.
+Proof. exact: (simulation_skiperase_erased_steps (t2 := tv v2)). Qed.

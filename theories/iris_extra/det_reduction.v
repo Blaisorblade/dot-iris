@@ -230,4 +230,4 @@ Proof.
 Qed.
 End EctxLangDet.
 
-Notation safe := safe_gen.
+Notation safe := safe_simpl.

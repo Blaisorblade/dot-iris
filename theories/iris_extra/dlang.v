@@ -238,9 +238,11 @@ Module Type LiftWp (Import VS : VlSortsSig).
     Qed.
     Export adequacy det_reduction.
 
+    Section LangDet.
+    Context `{LangDet dlang_lang}.
     Lemma adequate_safe (e : expr dlang_lang) :
       (∀ σ, adequate NotStuck e σ (λ _ _, True)) → safe e.
-    Proof. intros Had ?? σ**. by eapply (Had σ). Qed.
+    Proof. rewrite -safe_equiv. intros Had ? **. by eapply Had. Qed.
 
     (* [Himpl] only takes explicit arguments because Coq doesn't support
     implicit ones. *)
@@ -265,6 +267,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
         allGs ∅ ==∗ WP e {{ Φ Hdlang }}):
       safe e.
     Proof. apply adequate_safe, (adequacy_dlang Σ e Φ), Hwp; naive_solver. Qed.
+    End LangDet.
   End dlang_adequacy.
 
   (* Backward compatibility. *)
