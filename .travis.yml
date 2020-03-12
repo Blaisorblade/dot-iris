@@ -39,12 +39,11 @@ install: |
   # Prepare the COQ container
   do_travis "update" "
     if [ -n \"\${COMPILER_EDGE}\" ]; then opam switch \${COMPILER_EDGE}; eval \$(opam env); fi
-    opam repo add iris-dev https://gitlab.mpi-sws.org/FP/opam-dev.git --set-default --all
     opam update -y
     opam pin add -y -n -k path $OPAM_NAME ."
   #
-  do_travis "autosubst" "opam install -y -v -j ${NJOBS} coq-autosubst"
-  do_travis "iris" "opam install -y -v -j ${NJOBS} --deps-only $OPAM_NAME"
+  # Likely redundant, except during upgrades
+  do_travis "deps" "opam install -y -v -j ${NJOBS} --deps-only $OPAM_NAME"
   do_travis "settings" "opam config list; opam repo list; opam list"
 
 script:
