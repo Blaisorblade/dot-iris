@@ -131,7 +131,7 @@ End fundamental.
 
 (** Adequacy of our logical relation: semantically well-typed terms are safe. *)
 
-Import dlang_adequacy adequacy.
+Import dlang_adequacy.
 
 (** The overall proof of type soundness, as outlined in Sec. 5 of the paper. *)
 (** Combination of Thm 5.4 and 5.5, to give soundness of stamped typing.

@@ -10,51 +10,61 @@ Unset Strict Implicit.
 Module L := language.
 Module EL := ectx_language.
 Import L EL.
+Implicit Types (Λ : language).
 
-Hint Constructors rtc : core.
-
-(* XXX remove from asubst_base.v *)
-Instance Proper_LanguageCtx (Λ: language):
+Instance Proper_LanguageCtx Λ:
   Proper (pointwise_relation _ (=) ==> impl) (@LanguageCtx Λ).
 Proof.
   intros K1 K2 Heq [???]; split; intros *; setoid_rewrite <-Heq => *; auto 2.
 Qed.
 
-Definition safe_gen {Λ} (e : L.expr Λ) :=
-  prelude.safe e.
-  (* ∀ e' thp σ σ', rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
-    not_stuck e' σ'. *)
 
 Class UniqueInhabited A := {
   unique_inhabited :> Inhabited A;
   unique_proof_irrel :> ProofIrrel A;
 }.
 
-Class LangDet (Λ : L.language) := {
+Class LangDet Λ := {
   prim_step_PureExec (e1 e2 : L.expr Λ) σ1 κ σ2 efs :
     L.prim_step e1 σ1 κ e2 σ2 efs → PureExec True 1 e1 e2;
   lang_inh_state :> UniqueInhabited (L.state Λ)
 }.
 
 Class EctxLangDet (Λ : EL.ectxLanguage) := {
-  head_step_PureExec (e1 e2 : EL.expr Λ) σ1 κ σ2 efs :
+  head_step_PureExec (e1 e2 : L.expr Λ) σ1 κ σ2 efs :
     EL.head_step e1 σ1 κ e2 σ2 efs → L.PureExec True 1 e1 e2;
   ectx_inh_state :> UniqueInhabited (L.state Λ)
 }.
+
 Notation dummyState := (inhabitant (A := L.state _)).
+
 Ltac uniqueState :=
   repeat match goal with
   | s : L.state _ |- _ => assert (s = dummyState) as -> by apply: proof_irrel
   end.
 
+(** This defines, in fact, pure and deterministic termination. *)
+Definition terminates {Λ} (e : L.expr Λ) :=
+  ∃ v : L.val Λ, rtc pure_step e (L.of_val v).
+
+Lemma PureExec_to_terminates {Λ : L.language} n φ e v :
+  PureExec φ n e (L.of_val v) → φ → terminates (Λ := Λ) e.
+Proof. intros HP Hφ. exists v. eapply nsteps_rtc, HP, Hφ. Qed.
+
 Notation not_stuck e := (L.not_stuck e dummyState).
 
-Definition safe `{!LangDet Λ} (e : L.expr Λ) :=
+Definition safe_gen {Λ} (e : L.expr Λ) :=
+  ∀ e' thp σ σ', rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
+    L.not_stuck e' σ'.
+
+Definition safe_simpl `{!LangDet Λ} (e : L.expr Λ) :=
   ∀ e', rtc pure_step e e' → not_stuck e'.
+
+Hint Constructors rtc : core.
 
 Section LangDet.
 
-Context {Λ : L.language}.
+Context {Λ}.
 Implicit Type (e t : L.expr Λ).
 
 Lemma pure_to_prim e1 e2 σ:
@@ -200,9 +210,9 @@ Proof.
   by move /elem_of_list_singleton ->.
 Qed.
 
-Lemma safe_equiv e : safe_gen e ↔ safe e.
+Lemma safe_equiv e : safe_gen e ↔ safe_simpl e.
 Proof.
-  rewrite /safe /safe_gen; split; intros Hsafe ?*.
+  rewrite /safe_simpl /safe_gen; split; intros Hsafe ?*.
   - intros Hred%pure_steps_erased'.
     by eapply (Hsafe e'), elem_of_list_singleton.
   - move => + Hin => /rtc_erased_step_inversion /(_ Hin).
@@ -211,7 +221,7 @@ Qed.
 End LangDet.
 
 Section EctxLangDet.
-Context `{EctxLangDet Λ}.
+Context {Λ : ectxLanguage} `{EctxLangDet Λ}.
 
 Global Instance EctxLangDet_LangDet : LangDet Λ.
 Proof.
@@ -219,3 +229,5 @@ Proof.
   inversion 1; simplify_eq/=. by eapply pure_exec_fill, head_step_PureExec.
 Qed.
 End EctxLangDet.
+
+Notation safe := safe_gen.

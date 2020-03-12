@@ -128,12 +128,13 @@ Section Fundamental.
 End Fundamental.
 
 From D.pure_program_logic Require Import adequacy.
+From D.iris_extra Require Import det_reduction.
 
 Theorem adequacy Σ `{HdsubG: dsubSynG Σ} `{!SwapPropI Σ} e T:
   (∀ `(dsubSynG Σ) `(SwapPropI Σ), [] ⊨ e : T) →
   safe e.
 Proof.
-  rewrite /safe /not_stuck; intros Htyp ???*.
+  rewrite /safe /L.not_stuck; intros Htyp ???*.
   cut (adequate NotStuck e σ (λ _ _, True)); first by intros [_ ?]; eauto.
   eapply (wp_adequacy Σ) => /=.
   iIntros (?) "!>". iExists (λ _ _, True%I); iSplit=> //.

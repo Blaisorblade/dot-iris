@@ -3,6 +3,7 @@ From iris.program_logic Require Import ectx_language language.
 From D.pure_program_logic Require adequacy.
 From D Require Import iris_prelude swap_later_impl asubst_intf.
 From D Require gen_iheap saved_interp_dep.
+From D.iris_extra Require det_reduction.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
@@ -235,7 +236,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
       apply Swappable_iResUR.
       rewrite /gid; repeat (dependent destruction i; cbn; try apply _).
     Qed.
-    Import adequacy.
+    Export adequacy det_reduction.
 
     Lemma adequate_safe (e : expr dlang_lang) :
       (∀ σ, adequate NotStuck e σ (λ _ _, True)) → safe e.

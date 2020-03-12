@@ -1,3 +1,4 @@
+From D Require Import iris_extra.det_reduction.
 From D.Dot Require Import typing_stamped stampingDefsCore astStamping skeleton
   path_repl_lemmas.
 From D.Dot Require typing_unstamped.

@@ -94,9 +94,6 @@ Proof.
   by apply nsteps_once_inv, pure_tproj.
 Qed.
 
-Lemma PureExec_to_terminates n φ e v : PureExec φ n e (tv v) → φ → terminates e.
-Proof. intros HP Hφ. exists v. eapply nsteps_rtc, HP, Hφ. Qed.
-
 Definition alias_paths p q :=
   path_wp_pure q (λ vp, path_wp_pure p (eq vp)).
 

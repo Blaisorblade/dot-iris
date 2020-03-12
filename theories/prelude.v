@@ -8,14 +8,6 @@ From iris.program_logic Require Import language.
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
-Definition safe {Λ} (e : expr Λ) :=
-  ∀ e' thp σ σ', rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
-    not_stuck e' σ'.
-
-(** This defines, in fact, pure and deterministic termination. *)
-Definition terminates {Λ} (e : expr Λ) :=
-  ∃ v : val Λ, rtc pure_step e (of_val v).
-
 (** https://github.com/math-comp/analysis/blob/bb4938c2dee89e91668f8d6a251e968d2f5a05ae/theories/posnum.v#L51-L52 *)
 (** Enrico (Tassi?)'s trick for tc resolution in [have]. Doesn't conflict with infix [!!]. *)
 Notation "!! x" := (ltac:(refine x)) (at level 100, only parsing).
