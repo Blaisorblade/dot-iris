@@ -10,11 +10,7 @@ env:
   - CONTRIB_NAME="dot-iris"
   - OPAM_NAME="dot-iris-builddep"
   matrix:
-  # TODO: remove unneeded versions below
-  - COQ_IMAGE="coqorg/coq:8.10"
-  # - COQ_IMAGE="coqorg/coq:8.11"
-  # - COQ_IMAGE="coqorg/coq:dev"
-  # "default" switch: $COMPILER
+  - COQ_IMAGE="blaisorblade/docker-dot-iris:2020-01-21.1.676a5302"
   # this config uses: $COMPILER_EDGE (cf. "opam switch" command below)
   # See https://github.com/coq-community/docker-coq/wiki#supported-tags
 
@@ -43,12 +39,11 @@ install: |
   # Prepare the COQ container
   do_travis "update" "
     if [ -n \"\${COMPILER_EDGE}\" ]; then opam switch \${COMPILER_EDGE}; eval \$(opam env); fi
-    opam repo add iris-dev https://gitlab.mpi-sws.org/FP/opam-dev.git --set-default --all
     opam update -y
     opam pin add -y -n -k path $OPAM_NAME ."
   #
-  do_travis "autosubst" "opam install -y -v -j ${NJOBS} coq-autosubst"
-  do_travis "iris" "opam install -y -v -j ${NJOBS} --deps-only $OPAM_NAME"
+  # Likely redundant, except during upgrades
+  do_travis "deps" "opam install -y -v -j ${NJOBS} --deps-only $OPAM_NAME"
   do_travis "settings" "opam config list; opam repo list; opam list"
 
 script:
