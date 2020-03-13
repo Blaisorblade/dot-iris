@@ -97,8 +97,8 @@ Section logrel.
     (ty -d> envD Σ) -n> envD Σ -n> envD Σ -n> envD Σ :=
     λne rinterp interpL interpU, λ ρ v,
     (∃ φ, ▷ [ rinterp ] v ↗ φ ∧
-       □ ((∀ v, ▷ interpL ρ v → ▷ □ φ v) ∧
-          (∀ v, ▷ □ φ v → ▷ interpU ρ v)))%I.
+       □ ((∀ v, interpL ρ v → ▷ □ φ v) ∧
+          (∀ v, ▷ □ φ v → interpU ρ v)))%I.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_tmem /.
 

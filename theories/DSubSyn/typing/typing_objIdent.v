@@ -43,8 +43,8 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ u⊢ₜ iterate tskip i e : T2
 | iT_Typ_Abs T L U :
     nclosed T (length Γ) →
-    Γ u⊢ₜ T, 1 <: U, 1 →
-    Γ u⊢ₜ L, 1 <: T, 1 →
+    Γ u⊢ₜ T, 1 <: U, 0 →
+    Γ u⊢ₜ L, 0 <: T, 1 →
     Γ u⊢ₜ tv (vty T) : TTMem L U
 (* A bit surprising this is needed, but appears in the DOT papers, and this is
    only admissible if t has a type U that is a proper subtype of TAnd T1 T2. *)
@@ -63,6 +63,10 @@ subtype Γ : ty → nat → ty → nat → Prop :=
 | iSub_Mono T1 T2 i:
     Γ u⊢ₜ T1, i <: T2, i →
     Γ u⊢ₜ T1, S i <: T2, S i
+| iLater_Sub i T:
+    Γ u⊢ₜ TLater T, i <: T, S i
+| iSub_Later i T:
+    Γ u⊢ₜ T, S i <: TLater T, i
 
 (* "Logical" connectives *)
 | iSub_Top i T :
@@ -73,11 +77,11 @@ subtype Γ : ty → nat → ty → nat → Prop :=
 (* Type selections *)
 | iSel_Sub L U v:
     Γ u⊢ₜ tv v : TTMem L U →
-    Γ u⊢ₜ TSel v, 0 <: U, 1
+    Γ u⊢ₜ TSel v, 0 <: U, 0
 
 | iSub_Sel L U v:
     Γ u⊢ₜ tv v : TTMem L U →
-    Γ u⊢ₜ L, 1 <: TSel v, 0
+    Γ u⊢ₜ L, 0 <: TSel v, 0
 
 (* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types.
  "Cov" stands for covariance, "Con" for contravariance. *)
@@ -91,8 +95,8 @@ subtype Γ : ty → nat → ty → nat → Prop :=
     iterate TLater (S i) (shift T2) :: Γ u⊢ₜ U1, S i <: U2, S i →
     Γ u⊢ₜ TAll T1 U1, i <: TAll T2 U2, i
 | iTyp_Sub_Typ L1 L2 U1 U2 i:
-    Γ u⊢ₜ L2, S i <: L1, S i →
-    Γ u⊢ₜ U1, S i <: U2, S i →
+    Γ u⊢ₜ L2, i <: L1, i →
+    Γ u⊢ₜ U1, i <: U2, i →
     Γ u⊢ₜ TTMem L1 U1, i <: TTMem L2 U2, i
 where "Γ u⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
 
@@ -117,5 +121,5 @@ Qed.
 
 Lemma Vty_typed Γ T L U :
     nclosed T (length Γ) →
-    Γ u⊢ₜ tv (vty T) : TTMem T T.
+    Γ u⊢ₜ tv (vty T) : TTMem (TLater T) (TLater T).
 Proof. intros Hcl; apply (iT_Typ_Abs Γ T); auto. Qed.

@@ -67,14 +67,13 @@ Section swap_based_typing_lemmas.
   Qed.
 
   Lemma Typ_Sub_Typ L1 L2 U1 U2 i:
-    Γ ⊨ L2, S i <: L1, S i -∗
-    Γ ⊨ U1, S i <: U2, S i -∗
+    Γ ⊨ L2, i <: L1, i -∗
+    Γ ⊨ U1, i <: U2, i -∗
     Γ ⊨ TTMem L1 U1, i <: TTMem L2 U2, i.
   Proof.
     iIntros "#IHT #IHT1 /= !>" (ρ v) "#Hg".
     unfold_interp.
     iDestruct 1 as (φ) "#[Hφl [HLφ #HφU]]".
-    setoid_rewrite <- later_laterN.
     setoid_rewrite mlaterN_impl.
     iExists φ; repeat iSplitL; first done;
       rewrite -!mlaterN_pers;
@@ -102,9 +101,10 @@ Section Fundamental.
       + by iApply Sub_Refl.
       + by iApply Sub_Trans.
       + by iIntros "!> **".
-      (* + by iApply Sub_Later.
-      + by iApply Sub_Mono. *)
+      (* + by iApply Sub_Mono. *)
       + by iApply Sub_Index_Incr.
+      + by iApply Later_Sub.
+      + by iApply Sub_Later.
       + by iApply Sub_Top.
       + by iApply Bot_Sub.
       + iApply Sel_Sub. by iApply fundamental_typed.

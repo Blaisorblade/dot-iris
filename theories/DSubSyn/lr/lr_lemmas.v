@@ -100,8 +100,8 @@ Section Sec.
   Qed.
 
   Lemma T_Vty_abs_I T L U :
-    Γ ⊨ T, 1 <: U, 1 -∗
-    Γ ⊨ L, 1 <: T, 1 -∗
+    Γ ⊨ T, 1 <: U, 0 -∗
+    Γ ⊨ L, 0 <: T, 1 -∗
     Γ ⊨ tv (vty T) : TTMem L U.
   Proof.
     iIntros "#HTU #HLT /= !>" (vs) "#HG".
@@ -114,8 +114,8 @@ Section Sec.
   Qed.
 
   Lemma DT_Vty_abs_I T L U :
-    Γ ⊨[1] T <: U -∗
-    Γ ⊨[1] L <: T -∗
+    Γ ⊨[0] TLater T <: U -∗
+    Γ ⊨[0] L <: TLater T -∗
     Γ ⊨ tv (vty T) : TTMem L U.
   Proof.
     (* Ltac solve_fv_congruence := rewrite /nclosed /nclosed_vl /= => *; f_equiv; solve [(idtac + asimpl); auto using eq_up]. *)
@@ -124,13 +124,13 @@ Section Sec.
     iExists _; iSplit. by iExists _.
     iModIntro; repeat iSplit; iIntros (v) "#H";
       rewrite later_intuitionistically -(interp_subst_ids _ _ _).
-    - iIntros "!>"; by iApply "HLT".
-    - by iApply "HTU".
+    - iIntros "!>". iSpecialize ("HLT" with "HG H"). unfold_interp. iApply "HLT".
+    - iApply ("HTU" with "HG"). unfold_interp. iApply "H".
   Qed.
 
   Lemma Sub_Sel L U va i:
     Γ ⊨ tv va : TTMem L U, i -∗
-    Γ ⊨ L, S i <: TSel va, i.
+    Γ ⊨ L, i <: TSel va, i.
   Proof.
     iIntros "/= #Hva !>" (vs v) "#Hg #HvL".
     iSpecialize ("Hva" with "Hg"). iNext i.
@@ -142,7 +142,7 @@ Section Sec.
 
   Lemma DSub_Sel L U va i:
     Γ ⊨ tv va : TTMem L U, i -∗
-    Γ ⊨[i] TLater L <: TSel va.
+    Γ ⊨[i] L <: TSel va.
   Proof.
     iIntros "/= #Hva !>" (vs) "#Hg".
     iSpecialize ("Hva" with "Hg"). iNext.
@@ -155,11 +155,11 @@ Section Sec.
 
   Lemma Sel_Sub L U va i:
     Γ ⊨ tv va : TTMem L U, i -∗
-    Γ ⊨ TSel va, i <: U, S i.
+    Γ ⊨ TSel va, i <: U, i.
   Proof.
     iIntros "/= #Hva !>" (vs v) "#Hg #Hφ".
     iSpecialize ("Hva" with "Hg").
-    rewrite -swap_later wp_value_inv'; unfold_interp.
+    rewrite wp_value_inv'; unfold_interp.
     iDestruct "Hva" as (φ) "#[HT0 #[HLφ HφU]]".
     iApply "HφU".
     iDestruct "Hφ" as (φ1) "[HT1 #Hφ1v]".
@@ -180,8 +180,8 @@ Section Sec.
   Proof. iIntros "/= #Hsub !> ** !>". by iApply "Hsub". Qed.
 
   Lemma DTyp_Sub_Typ L1 L2 U1 U2 i:
-    Γ ⊨[S i] L2 <: L1 -∗
-    Γ ⊨[S i] U1 <: U2 -∗
+    Γ ⊨[i] L2 <: L1 -∗
+    Γ ⊨[i] U1 <: U2 -∗
     Γ ⊨[i] TTMem L1 U1 <: TTMem L2 U2.
   Proof.
     iIntros "#HsubL #HsubU /= !>" (ρ) "#Hg"; iIntros (v).
@@ -211,4 +211,13 @@ Section Sec.
   Lemma DBot_Sub T i:
     Γ ⊨[i] TBot <: T.
   Proof. by iIntros "!> ** !> **"; unfold_interp. Qed.
+
+  Lemma Later_Sub T i :
+    Γ ⊨ TLater T, i <: T, S i.
+  Proof. by iIntros "/= !> **"; unfold_interp; iNext. Qed.
+
+  Lemma Sub_Later T i :
+    Γ ⊨ T, S i <: TLater T, i.
+  Proof. by iIntros "/= !> ** !>"; unfold_interp. Qed.
+
 End Sec.
