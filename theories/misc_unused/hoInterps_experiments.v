@@ -221,14 +221,12 @@ Section semkinds.
     fold_srelkind kind_star_eqtype. *)
 
   (* The point of Sandro's kind syntax is to use this only at kind 0. *)
-  (* Definition sktmem {n} (φ1 φ2 : hoD Σ n) φ :=
-    (subtype n 1 1 φ1 φ ∧ subtype n 1 1 φ φ)%I. *)
   Program Definition skintv (φ1 φ2 : olty Σ 0) : skind Σ 0 := λI i ρ φ,
-    subtype ρ (envApply (oLaterN (S i) φ1) ρ) φ
+    subtype ρ (envApply (oLaterN i φ1) ρ) φ
     (* subtype ρ (envApply (oLaterN (S i) φ1) ρ) (oLater i φ). *)
     ∧
     (* subtype ρ (oLaterN i φ) (envApply (oLaterN (S i) φ2) ρ). *)
-    subtype ρ φ (envApply (oLaterN (S i) φ2) ρ).
+    subtype ρ φ (envApply (oLaterN i φ2) ρ).
   Definition sintv (φ1 φ2 : olty Σ 0) : sfkind Σ 0 :=
     Sfkind (skintv φ1 φ2) srstar.
 
@@ -426,7 +424,7 @@ Section sec.
     (* λI ρ d, ∃ (φ : hoLtyO Σ n), d.|[ρ] ↗n[ n ] φ ∧ K 0 ρ φ. *)
     λI ρ d, ∃ (φ : hoD Σ n), d.|[ρ] ↗n[ n ] φ ∧ K 0 ρ (packHoLtyO φ).
   Definition def_interp_tmem_spec (φ1 φ2 : olty Σ 0) : envPred dm Σ :=
-    def_interp_tmem (skintv φ1 φ2).
+    def_interp_tmem (skintv (oLater φ1) (oLater φ2)).
 End sec.
 
 Notation "d ↗n[ n ] φ" := (dm_to_type d n φ) (at level 20).
