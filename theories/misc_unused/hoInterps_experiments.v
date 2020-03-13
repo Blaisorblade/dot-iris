@@ -207,9 +207,9 @@ Section semkinds.
   Qed.
 
   Definition skpi {n} (φArg : olty Σ 0) (K : skind Σ n) : skind Σ (S n) :=
-    λI i ρ φ, □∀ arg, oClose φArg ρ arg → K i ρ (vcurry φ arg).
+    λI i ρ φ, □∀ arg, oClose φArg ρ arg → K i (arg .: ρ) (vcurry φ arg).
   Definition srpi {n} (φArg : olty Σ 0) (Kr : srelkind Σ n) : srelkind Σ (S n) :=
-    λI ρ φ1 φ2, □∀ arg, oClose φArg ρ arg → Kr ρ (vcurry φ1 arg) (vcurry φ2 arg).
+    λI ρ φ1 φ2, □∀ arg, oClose φArg ρ arg → Kr (arg .: ρ) (vcurry φ1 arg) (vcurry φ2 arg).
   Definition spi {n} (φArg : olty Σ 0) (K : sfkind Σ n) : sfkind Σ (S n) :=
     Sfkind (skpi φArg (sfkind_car K)) (srpi φArg (sfkind_sub K)).
 
@@ -354,7 +354,7 @@ Section sec.
   Definition typeSem {n} (T : htype n) : hoEnvD Σ n := hoSTySem (htype_to_hosty T).
 
   Lemma K_App_Lam {n} (argT : olty Σ 0) (φ1 φ2: hoLtyO Σ (S n)) (K : srelkind Σ n) ρ :
-    srpi argT K ρ φ1 φ2 ⊣⊢ (□∀ v, oClose argT ρ v → K ρ (vcurry φ1 v) (vcurry φ2 v))%I.
+    srpi argT K ρ φ1 φ2 ⊣⊢ (□∀ v, oClose argT ρ v → K (v .: ρ) (vcurry φ1 v) (vcurry φ2 v))%I.
   Proof. done. Qed.
   (** XXX Need a subtyping judgment to throw in environments... *)
 
