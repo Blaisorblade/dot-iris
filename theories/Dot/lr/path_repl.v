@@ -132,7 +132,7 @@ Section path_repl.
     iIntros "#Hp !>" (ρ) "Hg /="; iSpecialize ("Hp" with "Hg"); iNext.
     rewrite !path_wp_eq.
     iDestruct "Hp" as (v Heq) "Hp"; iExists v; iFrame (Heq).
-    by rewrite (psubst_one_repl Hrepl) ?alias_paths_pv_eq_1.
+    by rewrite oMu_eq (psubst_one_repl Hrepl) ?alias_paths_pv_eq_1.
   Qed.
 
   Lemma P_Mu_I {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
@@ -141,7 +141,7 @@ Section path_repl.
     iIntros "#Hp !>" (ρ) "Hg /="; iSpecialize ("Hp" with "Hg"); iNext.
     rewrite !path_wp_eq.
     iDestruct "Hp" as (v Heq) "Hp"; iExists v; iFrame (Heq).
-    by rewrite (psubst_one_repl Hrepl) ?alias_paths_pv_eq_1.
+    by rewrite oMu_eq (psubst_one_repl Hrepl) ?alias_paths_pv_eq_1.
   Qed.
 
   (** For https://github.com/lampepfl/dotty/blob/85962b19ddf4f1909189bf07b40f9a05849f9bbf/compiler/src/dotty/tools/dotc/core/TypeComparer.scala#L553. *)
