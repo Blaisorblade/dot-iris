@@ -81,6 +81,7 @@ End derived_swap_lemmas.
 
 From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language.
+From D.iris_extra Require Import det_reduction.
 
 Section wp_extra.
   Context `{irisG Λ Σ}.
@@ -99,28 +100,16 @@ Section wp_extra.
     iApply wp_value'; by iSplit.
   Qed.
 
-  (*
-    Overly strong, and doesn't generalize, as state_interp
-    is basically never persistent.
-    Still here; will be needed for pDOT.
-  *)
-  Lemma wp_and `{∀ σ κ n, Persistent (state_interp σ κ n)} (P1 P2: val Λ → iProp Σ) e:
+  (* Doesn't generalize to standard WP, but needed for pDOT. *)
+  Lemma wp_and `{!LangDet Λ} (P1 P2: val Λ → iProp Σ) e:
     WP e {{ P1 }} -∗ WP e {{ P2 }} -∗ WP e {{ v, P1 v ∧ P2 v }}.
   Proof.
-    iLöb as "IH" forall (e).
-    iIntros "H1 H2".
-    iEval (rewrite !wp_unfold /wp_pre) in "H1 H2".
-    iEval (rewrite !wp_unfold /wp_pre).
-    case_match; first by auto.
-    iIntros (σ1 k ks n) "#Ha".
-    iDestruct ("H1" $! σ1 k ks n with "Ha") as "[$ H1]".
-    iDestruct ("H2" $! σ1 k ks n with "Ha") as "[% H2]".
-    iIntros (e2 σ2 efs Hstep).
-    iSpecialize ("H1" $! e2 σ2 efs Hstep);
-    iSpecialize ("H2" $! e2 σ2 efs Hstep).
-    iNext.
-    iDestruct "H1" as "[$ [H1 $]]".
-    iDestruct "H2" as "[_ [H2 _]]".
-    by iApply ("IH" with "H1 H2").
+    iLöb as "IH" forall (e); iIntros "H1 H2".
+    iEval (rewrite !wp_unfold /wp_pre) in "H1 H2";
+      iEval (rewrite !wp_unfold /wp_pre);
+      case_match; [by auto|].
+    iDestruct "H1" as (e1 Hs1) "H1"; iDestruct "H2" as (e2 Hs2) "H2".
+    rewrite !(prim_step_det Hs1 Hs2).
+    by iExists (e2); iSplit; [|iApply ("IH" with "H1 H2")].
   Qed.
 End wp_extra.

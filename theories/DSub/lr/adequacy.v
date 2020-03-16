@@ -2,7 +2,7 @@ From iris.proofmode Require Import tactics.
 From D Require Import swap_later_impl.
 From D.DSub Require Import unary_lr rules.
 
-Import dlang_adequacy.
+Import dlang_adequacy det_reduction.
 
 Theorem adequacy_dsub_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} e T:
   (∀ `(dlangG Σ) `(!SwapPropI Σ), [] ⊨ e : T) →

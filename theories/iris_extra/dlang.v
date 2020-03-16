@@ -37,11 +37,11 @@ Module Type LiftWp (Import VS : VlSortsSig).
   Class dlangG Σ := DLangG {
     dlangG_savior :> savedHoSemTypeG Σ;
     dlangG_interpNames :> gen_iheapG stamp gname Σ;
+    dlangG_langdet :> LangDet dlang_lang;
   }.
 
   Instance dlangG_irisG `{dlangG Σ} : irisG dlang_lang Σ := {
-    state_interp σ κs _ := True%I;
-    fork_post _ := True%I;
+    irisG_langdet := _;
   }.
 
   (* Defining this needs the above irisG instance in scope. *)
@@ -240,9 +240,10 @@ Module Type LiftWp (Import VS : VlSortsSig).
 
     Section LangDet.
     Context `{LangDet dlang_lang}.
-    Lemma adequate_safe (e : expr dlang_lang) :
-      (∀ σ, adequate NotStuck e σ (λ _ _, True)) → safe e.
-    Proof. rewrite -safe_equiv. intros Had ? **. by eapply Had. Qed.
+
+    Lemma adequate_safe (e : expr dlang_lang):
+      adequate e (λ _, True) → safe e.
+    Proof. intros [_ Had] ** ?. exact: Had. Qed.
 
     (* [Himpl] only takes explicit arguments because Coq doesn't support
     implicit ones. *)
@@ -251,14 +252,14 @@ Module Type LiftWp (Import VS : VlSortsSig).
       (Ψ : val dlang_lang → Prop)
       (Himpl : ∀ (Hdlang : dlangG Σ) v, Φ Hdlang v -∗ ⌜Ψ v⌝)
       (Hwp : ∀ (Hdlang : dlangG Σ) `(!SwapPropI Σ), allGs ∅ ==∗ WP e {{ v, Φ Hdlang v }}) :
-      ∀ σ, adequate NotStuck e σ (λ v _, Ψ v).
+      adequate e (λ v, Ψ v).
     Proof.
-      intros σ; apply (wp_adequacy Σ) => /= ?.
+      apply (wp_adequacy (Σ := Σ) (Λ := dlang_lang) e Ψ) => /=.
       iMod (gen_iheap_init (L := stamp) ∅) as (hG) "Hgs".
-      set (DLangΣ := DLangG Σ _ hG).
+      set (DLangΣ := DLangG Σ _ hG _).
       iMod (Hwp DLangΣ with "Hgs") as "Hwp".
-      iIntros "!>"; iExists (λ _ _, True)%I; iFrame (I).
-      iApply (wp_wand with "Hwp"). iIntros (v); iApply Himpl.
+      iIntros "!>".
+      iApply (wp_wand with "Hwp"). by iIntros (v); iApply Himpl.
     Qed.
 
     Corollary safety_dlang Σ `{dlangPreG Σ} `{SwapPropI Σ}
