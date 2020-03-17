@@ -106,8 +106,8 @@ Global Arguments iPPredO : clear implicits.
 
 Module Type Lty (Import VS: VlSortsFullSig) (Import LVS : LiftWp VS).
 
-Notation lty Σ := (iPPred vl Σ).
-Notation ltyO Σ := (iPPredO vl Σ).
+Notation lty := (iPPred vl).
+Notation ltyO := (iPPredO vl).
 Notation Lty := (IPPred (vl := vl)).
 Notation lty_car := (iPPred_car (vl := vl)) (only parsing).
 (* Forces inserting coercions to -d>. *)
