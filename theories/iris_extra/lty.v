@@ -145,20 +145,32 @@ Section olty_subst.
 
   Global Instance: Sort (hoEnvD Σ i) := {}.
 
-  Lemma hoEnvD_subst_compose_ind φ args ρ1 ρ2 v: φ.|[ρ1] args ρ2 v ⊣⊢ φ args (ρ1 >> ρ2) v.
+  Lemma hoEnvD_subst_compose_ind φ args ρ1 ρ2 v: φ.|[ρ1] args ρ2 v = φ args (ρ1 >> ρ2) v.
   Proof. done. Qed.
+
+  Lemma hoEnvD_subst_compose_eq φ args ρ1 ρ2 ρ3 :
+    ρ1 >> ρ2 = ρ3 → φ.|[ρ1] args ρ2 = φ args ρ3.
+  Proof. by move=> <-. Qed.
 
   Lemma hoEnvD_subst_compose φ args ρ1 ρ2 ρ3 :
     ρ1 >> ρ2 = ρ3 → φ.|[ρ1] args ρ2 ≡ φ args ρ3.
   Proof. by move=> <-. Qed.
 
+  Lemma hoEnvD_weaken_one_eq φ args ρ:
+    shift φ args ρ = φ args (stail ρ).
+  Proof. apply hoEnvD_subst_compose_eq. autosubst. Qed.
+
   Lemma hoEnvD_weaken_one φ args ρ:
      shift φ args ρ ≡ φ args (stail ρ).
-  Proof. apply hoEnvD_subst_compose. autosubst. Qed.
+  Proof. by rewrite hoEnvD_weaken_one_eq. Qed.
+
+  Lemma hoEnvD_subst_one_eq φ v args ρ:
+    φ.|[v/] args ρ = φ args (v.[ρ] .: ρ).
+  Proof. apply hoEnvD_subst_compose_eq. autosubst. Qed.
 
   Lemma hoEnvD_subst_one φ v w args ρ:
     φ.|[v/] args ρ w ≡ φ args (v.[ρ] .: ρ) w.
-  Proof. apply hoEnvD_subst_compose. autosubst. Qed.
+  Proof. by rewrite hoEnvD_subst_one_eq. Qed.
 
   Definition Olty (olty_car : vec vl i → (var → vl) → vl → iProp Σ)
    `{∀ args ρ v, Persistent (olty_car args ρ v)}: oltyO Σ i :=
