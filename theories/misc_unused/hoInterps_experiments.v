@@ -68,9 +68,12 @@ Arguments spine_s_kind : clear implicits.
 
 (** Semantic kinds can be interpreted into predicates. *)
 (** Semantic Kinds as unary Predicates. *)
-Notation sp_kind Σ n := (env → hoLty Σ n → iProp Σ).
+Notation sp_kind Σ n := (env → iPPred (hoLty Σ n) Σ).
+Notation SpKind K := (λ ρ, IPPred (λI T, K ρ T)).
+
 (** Semantic Kinds as relations. *)
-Notation sr_kind Σ n := (env → hoLtyO Σ n → hoLtyO Σ n → iProp Σ).
+Notation sr_kind Σ n := (env → hoLtyO Σ n → iPPred (hoLty Σ n) Σ).
+Notation SrKind K := (λ ρ T1, IPPred (λI T2, K ρ T1 T2)).
 
 Notation iRel P Σ := (P Σ → P Σ → iProp Σ).
 Definition subtype_lty {Σ} : iRel ltyO Σ := λI φ1 φ2,
@@ -81,7 +84,7 @@ Notation "X ⊆ Y ⊆ Z" := (X ⊆ Y ∧ Y ⊆ Z)%I : bi_scope.
 Notation "X ⊆ Y ⊆ Z ⊆ W" := (X ⊆ Y ∧ Y ⊆ Z ∧ Z ⊆ W)%I (at level 70, Y, Z at next level) : bi_scope.
 
 (** Semantic Full Kind. *)
-Record sf_kind {Σ n} := Sfkind {
+Record sf_kind {Σ n} := SfKind {
   sf_kind_car :> sp_kind Σ n;
   sf_kind_sub : sr_kind Σ n;
 }.
@@ -92,43 +95,43 @@ Global Arguments sf_kind_sub : simpl never.
 Section kinds_types.
   Context {Σ}.
 
-  Definition sp_intv (L U : olty Σ 0) : spine_s_kind Σ 0 := SpineSK vnil L U.
-  Definition sp_pi {n} (S : olty Σ 0) (K : spine_s_kind Σ n) : spine_s_kind Σ n.+1 :=
+  Definition sp_kintv (L U : olty Σ 0) : spine_s_kind Σ 0 := SpineSK vnil L U.
+  Definition sp_kpi {n} (S : olty Σ 0) (K : spine_s_kind Σ n) : spine_s_kind Σ n.+1 :=
     SpineSK (vcons S (spine_kargs K)) (spine_L K) (spine_U K).
 
-  Definition sf_intv (L U : olty Σ 0) : sf_kind Σ 0 :=
-    Sfkind
-      (λI ρ φ,
-        oClose L ρ ⊆ oClose φ ⊆ oClose U ρ)
-      (λI ρ φ1 φ2,
-        oClose L ρ ⊆ oClose φ1 ⊆ oClose φ2 ⊆ oClose U ρ).
+  Definition sf_kintv (L U : olty Σ 0) : sf_kind Σ 0 :=
+    SfKind
+      (SpKind (λI ρ φ,
+        oClose L ρ ⊆ oClose φ ⊆ oClose U ρ))
+      (SrKind (λI ρ φ1 φ2,
+        oClose L ρ ⊆ oClose φ1 ⊆ oClose φ2 ⊆ oClose U ρ)).
 
-  Definition sf_pi {n} (S : olty Σ 0) (K : sf_kind Σ n) : sf_kind Σ n.+1 :=
-    Sfkind
-      (λI ρ φ,
-        □∀ arg, oClose S ρ arg →
-        sf_kind_car K (arg .: ρ) (vcurry φ arg))
-      (λI ρ φ1 φ2,
-        □∀ arg, oClose S ρ arg →
-        sf_kind_sub K (arg .: ρ) (vcurry φ1 arg) (vcurry φ2 arg)).
+  Definition sf_kpi {n} (S : olty Σ 0) (K : sf_kind Σ n) : sf_kind Σ n.+1 :=
+    SfKind
+      (SpKind (λI ρ φ,
+        □∀ arg, S vnil ρ arg →
+        sf_kind_car K (arg .: ρ) (vcurry φ arg)))
+      (SrKind (λI ρ φ1 φ2,
+        □∀ arg, S vnil ρ arg →
+        sf_kind_sub K (arg .: ρ) (vcurry φ1 arg) (vcurry φ2 arg))).
 
 
-  Definition sf_star : sf_kind Σ 0 := sf_intv oBot oTop.
+  Definition sf_star : sf_kind Σ 0 := sf_kintv oBot oTop.
 
   Fixpoint s_kind_to_spine_s_kind {n} (K : s_kind Σ n) : spine_s_kind Σ n :=
     match K with
-    | s_kintv L U => sp_intv L U
-    | s_kpi s K => sp_pi s (s_kind_to_spine_s_kind K)
+    | s_kintv L U => sp_kintv L U
+    | s_kpi s K => sp_kpi s (s_kind_to_spine_s_kind K)
     end.
 
   Definition spine_s_kind_to_sf_kind {n} (K : spine_s_kind Σ n) : sf_kind Σ n :=
-    vec_fold (sf_intv (spine_L K) (spine_U K)) (@sf_pi) n (spine_kargs K).
+    vec_fold (sf_kintv (spine_L K) (spine_U K)) (@sf_kpi) n (spine_kargs K).
   Global Arguments spine_s_kind_to_sf_kind {_} !_.
 
   Fixpoint s_kind_to_sf_kind {n} (K : s_kind Σ n) : sf_kind Σ n :=
     match K with
-    | s_kintv L U => sf_intv L U
-    | s_kpi s K => sf_pi s (s_kind_to_sf_kind K)
+    | s_kintv L U => sf_kintv L U
+    | s_kpi s K => sf_kpi s (s_kind_to_sf_kind K)
     end.
 
   Lemma s_kind_refl {n} (K : s_kind Σ n) T (ρ : env) :
@@ -148,9 +151,10 @@ Section kinds_types.
   Qed.
 
   Definition oLam {n} (τ : oltyO Σ n) : oltyO Σ n.+1 :=
-    Olty (λ args ρ, τ (vtail args) (vhead args .: ρ)).
+    Olty (λI args ρ, τ (vtail args) (vhead args .: ρ)).
     (* vuncurry (λ v, Olty (λ args ρ, τ args (v .: ρ))). *)
-  Definition oTAppV {n} (τ : oltyO Σ n.+1) v : olty Σ n := vcurry τ v.
+  Definition oTAppV {n} (T : oltyO Σ n.+1) w : olty Σ n :=
+    Olty (λI args ρ, T (vcons w.[ρ] args) ρ).
 
   Lemma swap_oLam_oLater {n} (τ : olty Σ n) :
     oLater (oLam τ) ≡ oLam (oLater τ).
@@ -168,12 +172,12 @@ Program Definition sstpk `{!dlangG Σ} {n} i j Γ T1 T2 (K : sf_kind Σ n) : iPr
 Notation "Γ s⊨ T1 , i <: T2 , j ∷ K" := (sstpk i j Γ T1 T2 K)
   (at level 74, i, j, T1, T2, K at next level).
 Definition sktp `{!dlangG Σ} {n} i Γ T (K : sf_kind Σ n) : iProp Σ :=
-  □∀ ρ, s⟦Γ⟧*ρ → ▷^i K ρ T.
-Notation "Γ s⊨ T ∷[ i ] K" := (sktp i Γ T K)
+  □∀ ρ, s⟦Γ⟧*ρ → ▷^i K ρ (envApply T ρ).
+Notation "Γ s⊨ T ∷[ i  ] K" := (sktp i Γ T K)
   (at level 74, T, K at next level).
 Definition ssktp `{!dlangG Σ} {n} i Γ (K1 K2 : sf_kind Σ n) : iProp Σ :=
-  □∀ ρ (T : olty Σ n), s⟦Γ⟧*ρ → ▷^i (K1 ρ (envApply T ρ) → K2 ρ (envApply T ρ)).
-Notation "Γ s⊨ K1 <∷[ i ] K2" := (ssktp i Γ K1 K2)
+  □∀ ρ, s⟦Γ⟧*ρ → ∀ (T : olty Σ n), ▷^i (K1 ρ (envApply T ρ) → K2 ρ (envApply T ρ)).
+Notation "Γ s⊨ K1 <∷[ i  ] K2" := (ssktp i Γ K1 K2)
   (at level 74, K1, K2 at next level).
 
 End HoSemTypes.
@@ -186,7 +190,7 @@ Implicit Types
          (ρ : var → vl) (l : label).
 
 Section dot_types.
-  Context `{dlangG Σ} `{HswapProp: SwapPropI Σ}.
+  Context `{dlangG Σ}.
 
   Lemma sstpk_star_eq_sstp Γ i j T1 T2 :
     Γ s⊨ T1 , i <: T2 , j ∷ sf_star ⊣⊢ Γ s⊨ T1 , i <: T2 , j.

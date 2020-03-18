@@ -202,7 +202,7 @@ Section semkinds.
   (* Definition skstar : sp_kind Σ 0 := λI ρ φ, True.
   Definition srstar : sr_kind Σ 0 := λ ρ φ1 φ2,
     (□ ∀ v, oClose φ1 v → oClose φ2 v)%I.
-  Definition sstar : sf_kind Σ 0 := Sfkind skstar srstar. *)
+  Definition sstar : sf_kind Σ 0 := SfKind skstar srstar. *)
 
   (* Show that kinded subtyping correctly generalizes the existing kind-*
   subtyping. *)
@@ -222,7 +222,7 @@ Section semkinds.
   (* Fixpoint sem {n} (k : kind Σ n) : sp_kind Σ n :=
     match k with
       | kintv φ1 φ2 => sp_kintv φ1 φ2
-      | kpi n φ1 k' => spk_pi φ1 (sem k')
+      | kpi n φ1 k' => spk_kpi φ1 (sem k')
     end. *)
 
   (* Notice the argument type is not used here. *)
@@ -280,7 +280,7 @@ Section sec.
   (* Definition srLaterN {Σ n} i j (K : sr_kind Σ n) : sr_kind Σ n :=
     λ ρ T1 T2, K ρ (oLaterN i T1) (oLaterN j T2). *)
   (* Definition sfLaterN {n} i (K : sf_kind Σ n) : sf_kind Σ n :=
-    Sfkind (skLaterN i K) K. *)
+    SfKind (skLaterN i K) K. *)
 
   (* Definition sstpk `{dlangG Σ} {n} i j Γ τ₁ τ₂ (K : sf_kind Σ n) : iProp Σ :=
     □∀ ρ, s⟦Γ⟧*ρ → srLaterN i j (sf_kind_sub K) ρ τ₁ τ₂. *)
@@ -338,7 +338,7 @@ Section sec.
   Definition typeSem {n} (T : htype n) : hoEnvD Σ n := hoSTySem (htype_to_hosty T).
 
   Lemma K_App_Lam {n} (argT : olty Σ 0) (φ1 φ2: hoLtyO Σ (S n)) (K : sf_kind Σ n) ρ :
-    sf_kind_sub (sf_pi argT K) ρ φ1 φ2 ⊣⊢ (□∀ v, oClose argT ρ v → sf_kind_sub K (v .: ρ) (vcurry φ1 v) (vcurry φ2 v))%I.
+    sf_kind_sub (sf_kpi argT K) ρ φ1 φ2 ⊣⊢ (□∀ v, oClose argT ρ v → sf_kind_sub K (v .: ρ) (vcurry φ1 v) (vcurry φ2 v))%I.
   Proof. done. Qed.
   (** XXX Need a subtyping judgment to throw in environments... *)
 
@@ -346,7 +346,7 @@ Section sec.
   (* Er, let's please carry it closer to the syntax? *)
   Lemma eta1 {n} argT (φ : hoLtyO Σ n.+1) K ρ :
     (∀ arg, s_kind_to_sf_kind K (arg .: ρ) (vcurry φ arg)) →
-    sf_kind_sub (sf_pi argT (s_kind_to_sf_kind K)) ρ φ (vuncurry (vcurry φ)).
+    sf_kind_sub (sf_kpi argT (s_kind_to_sf_kind K)) ρ φ (vuncurry (vcurry φ)).
   Proof.
     rewrite /sf_kind_sub /=.
     iIntros (HK) "!> * #Harg". iApply s_kind_refl. iApply HK.
@@ -368,13 +368,13 @@ Section sec.
   Program Fixpoint sem_program {n} {struct n} : s_kind Σ n → sf_kind Σ n :=
     match n return _ with
     | 0 => λ k, match k with
-      | s_kintv φ1 φ2 => sf_intv φ1 φ2
+      | s_kintv φ1 φ2 => sf_kintv φ1 φ2
       | s_kpi _ _ => _
       end
     | S n => λ k, match k with
       | s_kintv φ1 φ2 => _
       | s_kpi φ1 k' =>
-        sf_pi φ1 (sem_program (rew _ in k'))
+        sf_kpi φ1 (sem_program (rew _ in k'))
       end
     end.
   Next Obligation. done. Qed.
@@ -385,7 +385,7 @@ Section sec.
   (* Derive Signature for kind.
   Equations sem_eq {n} : kind Σ n → sp_kind Σ n :=
     sem_eq (kintv φ1 φ2) := sp_kintv φ1 φ2;
-    sem_eq (kpi n φ1 k') := spk_pi φ1 (sem_eq k').
+    sem_eq (kpi n φ1 k') := spk_kpi φ1 (sem_eq k').
 
   Lemma unfold_sem_kintv φ1 φ2: sem_eq (kintv φ1 φ2) = sp_kintv φ1 φ2.
   Proof. by simp sem_eq. Qed. *)
@@ -413,7 +413,7 @@ Section sec.
     (* λI ρ d, ∃ (φ : hoLtyO Σ n), d.|[ρ] ↗n[ n ] φ ∧ K 0 ρ φ. *)
     λI ρ d, ∃ (φ : hoD Σ n), d.|[ρ] ↗n[ n ] φ ∧ K ρ (packHoLtyO φ).
   Definition def_interp_tmem_spec (φ1 φ2 : olty Σ 0) : envPred dm Σ :=
-    def_interp_tmem (sf_intv (oLater φ1) (oLater φ2)).
+    def_interp_tmem (sf_kintv (oLater φ1) (oLater φ2)).
 End sec.
 
 Notation "d ↗n[ n ] φ" := (dm_to_type d n φ) (at level 20).
