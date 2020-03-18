@@ -172,7 +172,7 @@ Instance SubsetEq_type {Σ n} : SubsetEq (hoLtyO Σ n) := λI φ1 φ2,
 From D.Dot Require Import dot_lty unary_lr.
 Module HkDot2.
 (* Include HoSemTypes2 VlSorts dlang_inst dot_lty. *)
-Import HkDot.
+Export HkDot.
 
 Implicit Types (l : label) (p : path).
 
@@ -260,8 +260,8 @@ Arguments hoSTy: clear implicits.
 End HkDot2.
 
 (* These are "bad" experiments. *)
-Module HoGenExperimnents.
-Import swap_later_impl HkDot HkDot2.
+Module HoGenExperiments.
+Import swap_later_impl HkDot2.
 Section sec.
   Context `{!CTyInterp Σ}.
   Context `{dlangG Σ} `{HswapProp: SwapPropI Σ}.
@@ -390,31 +390,4 @@ Section sec.
   Lemma unfold_sem_kintv φ1 φ2: sem_eq (kintv φ1 φ2) = sp_kintv φ1 φ2.
   Proof. by simp sem_eq. Qed. *)
 End sec.
-End HoGenExperimnents.
-
-Module dot_experiments.
-Import HkDot HkDot2.
-(* Include TyInterpLemmas VlSorts dlang_inst.
-Export ty_interp_lemmas. *)
-
-Section sec.
-  Context `{!savedHoSemTypeG Σ} `{!dlangG Σ} `{CTyInterp Σ}.
-
-  Definition dm_to_type (d : dm) n (ψ : hoD Σ n) : iProp Σ :=
-    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ, n ] ψ)%I.
-  Notation "d ↗n[ n ] φ" := (dm_to_type d n φ) (at level 20).
-  Global Arguments dm_to_type: simpl never.
-
-  (* [K]'s argument must ignore [ρ]. Patch the definition of sp_kind instead. *)
-  Notation HoLty φ := (λ args, Lty (λI v, φ args v)).
-  Definition packHoLtyO {Σ n} φ : hoLtyO Σ n := HoLty (λI args v, □ φ args v).
-
-  Definition def_interp_tmem {n} (K : sf_kind Σ n): envPred dm Σ :=
-    (* λI ρ d, ∃ (φ : hoLtyO Σ n), d.|[ρ] ↗n[ n ] φ ∧ K 0 ρ φ. *)
-    λI ρ d, ∃ (φ : hoD Σ n), d.|[ρ] ↗n[ n ] φ ∧ K ρ (packHoLtyO φ).
-  Definition def_interp_tmem_spec (φ1 φ2 : olty Σ 0) : envPred dm Σ :=
-    def_interp_tmem (sf_kintv (oLater φ1) (oLater φ2)).
-End sec.
-
-Notation "d ↗n[ n ] φ" := (dm_to_type d n φ) (at level 20).
-End dot_experiments.
+End HoGenExperiments.
