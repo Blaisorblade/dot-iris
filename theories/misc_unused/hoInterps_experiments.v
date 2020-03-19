@@ -345,5 +345,29 @@ Section dot_types.
     }
     by iApply (Proper_sfkind with "HsubK").
   Qed.
+  (** Reflexivity and transitivity of subkinding are admissible. *)
+
+  (** * Kinded subtyping. *)
+  Lemma sSubK_Refl' Γ {n} T (K : s_kind Σ n) :
+    let sfK := s_kind_to_sf_kind K in
+    Γ s⊨ T ∷[ 0 ] sfK -∗
+    Γ s⊨ T, 0 <: T, 0 ∷ sfK.
+  Proof.
+    iIntros (?) "#HK !>". iIntros (ρ) "#Hg".
+    iApply s_kind_refl.
+    by iApply (Proper_sfkind with "(HK Hg)").
+  Qed.
+
+  Lemma sSubK_Refl Γ {n} T (K : s_kind Σ n) i :
+    let sfK := s_kind_to_sf_kind K in
+    Γ s⊨ T ∷[ i ] sfK -∗
+    Γ s⊨ T, i <: T, i ∷ sfK.
+  Proof.
+    (* have ->: i = 0 by admit. *)
+    iIntros (?) "#HK !>". iIntros (ρ) "#Hg".
+    iApply s_kind_refl.
+    Fail by iApply (Proper_sfkind with "(HK Hg)").
+  Abort.
+
 End dot_types.
 End HkDot.
