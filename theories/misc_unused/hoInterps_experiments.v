@@ -321,6 +321,17 @@ Section gen_lemmas.
   (** Reflexivity and transitivity of subkinding are admissible. *)
 
   (** * Kinded subtyping. *)
+  Lemma ksubtyping_intro i Γ (T1 T2 : olty Σ 0) :
+    (□∀ ρ, s⟦ Γ ⟧* ρ -∗
+    ▷^i (∀ v, oClose T1 ρ v → oClose T2 ρ v)) -∗
+    Γ s⊨ T1 <:[ i ] T2 ∷ sf_star.
+  Proof.
+    iIntros "#Hsub !> * #Hg".
+    iDestruct ("Hsub" with "Hg") as "{Hsub Hg} Hsub"; iFrame "Hsub"; iClear "#".
+    iNext i; iSplit;
+      iIntros (v); [iIntros "!> []" | iIntros "!> _ //"].
+  Qed.
+
   Lemma sSubK_Refl Γ {n} T (K : s_kind Σ n) i :
     Γ s⊨ T ∷[ i ] K -∗
     Γ s⊨ T <:[ i ] T ∷ K.
@@ -354,9 +365,8 @@ Section dot_types.
     Γ s⊨ T1 <:[ i ] T2 ∷ sf_star ⊣⊢ Γ s⊨ T1 , i <: T2 , i.
   Proof using HswapProp.
     iSplit; first iApply sstpkD_star_to_sstp.
-    rewrite /sstpkD /sf_kind_sub/=; iIntros "#Hsub !>" (ρ) "#Hg"; repeat iSplit;
-      iIntros (v); [iIntros "!>!> []" | | iIntros "!>!> _ //"].
-    rewrite -mlaterN_pers -impl_laterN.
+    rewrite -ksubtyping_intro; iIntros "#Hsub !> * Hg" (v).
+    rewrite -impl_laterN.
     iApply ("Hsub" $! ρ v with "Hg").
   Qed.
 
