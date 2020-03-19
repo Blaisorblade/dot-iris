@@ -265,7 +265,7 @@ Section olty_ofe_2.
   Global Instance top_olty : Top (oltyO Σ i) := Olty ⊤.
   Definition oTop : oltyO Σ i := ⊤.
 
-  Global Instance bot_olty : Top (oltyO Σ i) := Olty ⊥.
+  Global Instance bot_olty : Bottom (oltyO Σ i) := Olty ⊥.
   Definition oBot : oltyO Σ i := ⊥.
 
   Definition oAnd τ1 τ2 : oltyO Σ i := Olty (λI args ρ v, τ1 args ρ v ∧ τ2 args ρ v).
