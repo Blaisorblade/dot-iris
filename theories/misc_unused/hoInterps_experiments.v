@@ -318,7 +318,23 @@ Section gen_lemmas.
     by iApply (Proper_sfkind with "HsubK").
   Qed.
 
-  (** Reflexivity and transitivity of subkinding are admissible. *)
+  (** Reflexivity and transitivity of subkinding seem admissible, but let's
+  prove them anyway, to show they hold regardless of extensions. *)
+  Lemma sKSub_Refl {n} Γ i (K : sf_kind Σ n) :
+    Γ s⊨ K <∷[ i ] K.
+  Proof using HswapProp.
+    rewrite /ssktp; setoid_rewrite <-(impl_laterN _).
+    iIntros "!> * Hg * $".
+  Qed.
+
+  Lemma sKSub_Trans {n} Γ i (K1 K2 K3 : sf_kind Σ n) :
+    Γ s⊨ K1 <∷[ i ] K2 -∗
+    Γ s⊨ K2 <∷[ i ] K3 -∗
+    Γ s⊨ K1 <∷[ i ] K3.
+  Proof using HswapProp.
+    iIntros "#Hs1 #Hs2 !> * #Hg *"; rewrite -impl_laterN; iIntros "#HK1".
+    iApply ("Hs2" with "Hg (Hs1 Hg HK1)").
+  Qed.
 
   (** * Kinded subtyping. *)
   Lemma ksubtyping_intro i Γ (T1 T2 : olty Σ 0) :
@@ -338,6 +354,38 @@ Section gen_lemmas.
   Proof.
     iIntros "#HK !>". iIntros (ρ) "#Hg".
     iApply (s_kind_refl with "(HK Hg)").
+  Qed.
+
+  Lemma sSubK_Trans Γ {n} T1 T2 T3 (K : s_kind Σ n) i :
+    Γ s⊨ T1 <:[ i ] T2 ∷ K -∗
+    Γ s⊨ T2 <:[ i ] T3 ∷ K -∗
+    Γ s⊨ T1 <:[ i ] T3 ∷ K.
+  Proof.
+    iIntros "#Hs1 #Hs2 !> * #Hg".
+    iApply (s_kind_trans with "(Hs1 Hg) (Hs2 Hg)").
+  Qed.
+
+  (* Notation "" := sf_star. *)
+  (* Notation "L  U" := (sf_kintv L U) (at level 70). *)
+
+  (* <:-..-U *)
+  Lemma sSubK_IntvU Γ T L U (K : s_kind Σ 0) i :
+    Γ s⊨ T ∷[ i ] (sf_kintv L U) -∗
+    Γ s⊨ T <:[ i ] U ∷ sf_star.
+  Proof.
+    rewrite -ksubtyping_intro; iIntros "#HK !> * Hg".
+    iDestruct ("HK" with "Hg") as "[_ Hsub]".
+    iNext i; iApply "Hsub".
+  Qed.
+
+  (* <:-..-L *)
+  Lemma sSubK_IntvL Γ T L U (K : s_kind Σ 0) i :
+    Γ s⊨ T ∷[ i ] (sf_kintv L U) -∗
+    Γ s⊨ L <:[ i ] T ∷ sf_star.
+  Proof.
+    rewrite -ksubtyping_intro; iIntros "#HK !> * Hg".
+    iDestruct ("HK" with "Hg") as "[Hsub _]".
+    iNext i; iApply "Hsub".
   Qed.
 End gen_lemmas.
 
