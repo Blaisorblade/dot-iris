@@ -169,7 +169,7 @@ Instance SubsetEq_type {Σ n} : SubsetEq (hoLtyO Σ n) := λI φ1 φ2,
   □ ∀ args v, φ1 args v → φ2 args v. *)
 
 
-From D.Dot Require Import dot_lty unary_lr.
+From D.Dot.lr Require Import dot_lty unary_lr lr_lemmasNoBinding.
 Module HkDot2.
 (* Include HoSemTypes2 VlSorts dlang_inst dot_lty. *)
 Export HkDot.
@@ -262,9 +262,120 @@ End HkDot2.
 (* These are "bad" experiments. *)
 Module HoGenExperiments.
 Import swap_later_impl HkDot2.
+
+Program Definition sstpk `{!dlangG Σ} {n} i j Γ T1 T2 (K : sf_kind Σ n) : iProp Σ :=
+  □∀ ρ, s⟦Γ⟧*ρ → sf_kind_sub K ρ (envApply (oLaterN i T1) ρ) (envApply (oLaterN j T2) ρ).
+Notation "Γ s⊨ T1 , i <: T2 , j ∷ K" := (sstpk i j Γ T1 T2 K)
+  (at level 74, i, j, T1, T2, K at next level).
+
 Section sec.
   Context `{!CTyInterp Σ}.
   Context `{dlangG Σ} `{HswapProp: SwapPropI Σ}.
+
+  Lemma sstpk_star_eq_sstp Γ i j T1 T2 :
+    Γ s⊨ T1 , i <: T2 , j ∷ sf_star ⊣⊢ Γ s⊨ T1 , i <: T2 , j.
+  Proof.
+    rewrite /sstpk /sf_kind_sub/= /sf_star; iSplit; iIntros "/= #Hsub !>" (ρ).
+    iIntros (v) "#Hg".
+    by iDestruct ("Hsub" $! ρ with "Hg") as "{Hsub} (_ & #Hsub &_)"; iApply ("Hsub" $! v).
+    iIntros "#Hg"; repeat iSplit; iIntros "!>" (v); [iIntros "[]" | | iIntros "_ //"].
+    by iApply ("Hsub" $! ρ v with "Hg").
+  Qed.
+
+  Lemma subtyping_spec i j Γ T1 T2 ρ :
+    Γ s⊨ T1, i <: T2, j -∗
+    s⟦ Γ ⟧* ρ -∗
+    (∀ v, ▷^i oClose T1 ρ v → ▷^j oClose T2 ρ v).
+  Proof.
+    iIntros "#Hsub #Hg" (v).
+    iApply ("Hsub" $! _ v with "Hg").
+  Qed.
+
+  Lemma subtyping_spec_swap i Γ T1 T2 ρ :
+    Γ s⊨ T1, i <: T2, i -∗
+    s⟦ Γ ⟧* ρ -∗
+    ▷^i (∀ v, oClose T1 ρ v → oClose T2 ρ v).
+  Proof using HswapProp.
+    iIntros "#Hsub #Hg" (v).
+    rewrite -mlaterN_impl.
+    iApply (subtyping_spec with "Hsub Hg").
+  Qed.
+
+  Lemma sKSub_Intv' (L1 L2 U1 U2 : olty Σ 0) Γ i :
+    Γ s⊨ L2, i <: L1, i -∗
+    Γ s⊨ U1, i <: U2, i -∗
+    Γ s⊨ sf_kintv L1 U1 <∷[ i ] sf_kintv L2 U2.
+  Proof using HswapProp.
+    iIntros "#HsubL #HsubU !>" (ρ) "#Hg". iIntros (T).
+    iPoseProof (subtyping_spec_swap with "HsubL Hg") as "{HsubL} HsubL".
+    iPoseProof (subtyping_spec_swap with "HsubU Hg") as "{HsubU} HsubU".
+    iNext i.
+    rewrite /sf_kind_sub/= /subtype_lty.
+    iIntros "#[#HsubL1 #HsubU1] /=".
+    iSplit; iIntros (v) "!> #H".
+    by iApply ("HsubL1" with "(HsubL H)").
+    by iApply ("HsubU" with "(HsubU1 H)").
+  Qed.
+
+  Lemma sK_Star' Γ (T : olty Σ 0) i :
+    Γ s⊨ T ∷[ i ] sf_star.
+  Proof using HswapProp.
+    iApply sK_KSub. iApply sK_Sing.
+    iApply sKSub_Intv; [iApply sBot_Sub | iApply sSub_Top].
+  Qed.
+
+  Lemma sKSub_Pi {n} (S1 S2 : olty Σ 0) (K1 K2 : sf_kind Σ n) Γ i :
+    Γ s⊨ S2, i <: S1, i -∗
+    oLaterN i (shift S2) :: Γ s⊨ K1 <∷[ i ] K2 -∗
+    Γ s⊨ sf_kpi S1 K1 <∷[ i ] sf_kpi S2 K2.
+  Proof using HswapProp.
+    iIntros "#HsubS #HsubK !>" (ρ) "#Hg /=".
+    iPoseProof (subtyping_spec_swap with "HsubS Hg") as "{HsubS} HsubS".
+    iAssert (□∀ arg : vl, let ρ' := arg .: ρ in
+            ▷^i (oClose S2 ρ arg → ∀ T : olty Σ n,
+            K1 ρ' (envApply T ρ') → K2 ρ' (envApply T ρ')))%I as
+            "{HsubK} #HsubK". {
+      setoid_rewrite <-mlaterN_impl.
+      iIntros "!>" (arg) "HS2"; iIntros (T).
+      rewrite -mlaterN_impl.
+      iIntros "HK1".
+      iApply ("HsubK" $! (arg .: ρ) with "[$Hg HS2] HK1").
+      iApply (hoEnvD_weaken_one S2 _ (_ .: _) _ with "HS2").
+    }
+    iIntros (T); iNext i.
+    iIntros "#HTK1 !>" (arg) "#HS".
+    iSpecialize ("HsubK" $! arg with "HS").
+    (* iSpecialize ("HsubK" $! !!(shift (vcurry T arg)) with "[]"). {
+      iApply (Proper_sfkind with "(HTK1 (HsubS HS))") => args v /=.
+      by rewrite (hoEnvD_weaken_one (vcurry T arg) args (arg .: ρ) v).
+    } *)
+    iSpecialize ("HsubK" $! (oShift (vcurry T arg)) with "[]"). {
+      by iApply (Proper_sfkind with "(HTK1 (HsubS HS))").
+    }
+    by iApply (Proper_sfkind with "HsubK").
+  Qed.
+
+  Lemma sSubK_Refl' Γ {n} T (K : s_kind Σ n) :
+    let sfK := s_kind_to_sf_kind K in
+    Γ s⊨ T ∷[ 0 ] sfK -∗
+    Γ s⊨ T, 0 <: T, 0 ∷ sfK.
+  Proof.
+    iIntros (?) "#HK !>". iIntros (ρ) "#Hg".
+    iApply s_kind_refl.
+    by iApply (Proper_sfkind with "(HK Hg)").
+  Qed.
+
+  Lemma sSubK_Refl Γ {n} T (K : s_kind Σ n) i :
+    let sfK := s_kind_to_sf_kind K in
+    Γ s⊨ T ∷[ i ] sfK -∗
+    Γ s⊨ T, i <: T, i ∷ sfK.
+  Proof.
+    (* have ->: i = 0 by admit. *)
+    iIntros (?) "#HK !>". iIntros (ρ) "#Hg".
+    iApply s_kind_refl.
+    Fail by iApply (Proper_sfkind with "(HK Hg)").
+  Abort.
+
 
   (* Definition srstar1 : sr_kind Σ 0 := subtype.
   Lemma srstar_eq ρ φ1 φ2 :
