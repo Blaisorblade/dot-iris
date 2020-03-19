@@ -339,20 +339,29 @@ Section gen_lemmas.
   (** * Kinded subtyping. *)
   Lemma ksubtyping_intro i Γ (T1 T2 : olty Σ 0) :
     (□∀ ρ, s⟦ Γ ⟧* ρ -∗
-    ▷^i (∀ v, oClose T1 ρ v → oClose T2 ρ v)) -∗
+    ∀ v, ▷^i (oClose T1 ρ v → oClose T2 ρ v)) -∗
     Γ s⊨ T1 <:[ i ] T2 ∷ sf_star.
   Proof.
     iIntros "#Hsub !> * #Hg".
-    iDestruct ("Hsub" with "Hg") as "{Hsub Hg} Hsub"; iFrame "Hsub"; iClear "#".
-    iNext i; iSplit;
-      iIntros (v); [iIntros "!> []" | iIntros "!> _ //"].
+    iDestruct ("Hsub" with "Hg") as "{Hsub Hg} Hsub".
+    iNext i; repeat iSplit;
+      iIntros (v) "!>"; [iIntros "[]" | iApply "Hsub" | iIntros "_ //"].
+  Qed.
+
+  Lemma ksubtyping_intro_swap i Γ (T1 T2 : olty Σ 0) :
+    (□∀ ρ, s⟦ Γ ⟧* ρ -∗
+    ∀ v, ▷^i oClose T1 ρ v → ▷^i oClose T2 ρ v) -∗
+    Γ s⊨ T1 <:[ i ] T2 ∷ sf_star.
+  Proof using HswapProp.
+    rewrite -ksubtyping_intro; iIntros "#Hsub !> * #Hg *".
+    iApply (impl_laterN with "(Hsub Hg)").
   Qed.
 
   Lemma sSubK_Refl Γ {n} T (K : s_kind Σ n) i :
     Γ s⊨ T ∷[ i ] K -∗
     Γ s⊨ T <:[ i ] T ∷ K.
   Proof.
-    iIntros "#HK !>". iIntros (ρ) "#Hg".
+    iIntros "#HK !> * #Hg".
     iApply (s_kind_refl with "(HK Hg)").
   Qed.
 
@@ -368,12 +377,19 @@ Section gen_lemmas.
   (* Notation "" := sf_star. *)
   (* Notation "L  U" := (sf_kintv L U) (at level 70). *)
 
+  Lemma sSubK_Top Γ (T : olty Σ 0) i :
+    Γ s⊨ T <:[ i ] ⊤ ∷ sf_star.
+  Proof. rewrite -ksubtyping_intro. iIntros "!> * _ * !> _ //". Qed.
+  Lemma sSubK_Bot Γ (T : olty Σ 0) i :
+    Γ s⊨ ⊥ <:[ i ] T ∷ sf_star.
+  Proof. rewrite -ksubtyping_intro; iIntros "!> * _ * !> []". Qed.
+
   (* <:-..-U *)
   Lemma sSubK_IntvU Γ T L U (K : s_kind Σ 0) i :
     Γ s⊨ T ∷[ i ] (sf_kintv L U) -∗
     Γ s⊨ T <:[ i ] U ∷ sf_star.
   Proof.
-    rewrite -ksubtyping_intro; iIntros "#HK !> * Hg".
+    rewrite -ksubtyping_intro; iIntros "#HK !> * Hg *".
     iDestruct ("HK" with "Hg") as "[_ Hsub]".
     iNext i; iApply "Hsub".
   Qed.
@@ -383,7 +399,7 @@ Section gen_lemmas.
     Γ s⊨ T ∷[ i ] (sf_kintv L U) -∗
     Γ s⊨ L <:[ i ] T ∷ sf_star.
   Proof.
-    rewrite -ksubtyping_intro; iIntros "#HK !> * Hg".
+    rewrite -ksubtyping_intro; iIntros "#HK !> * Hg *".
     iDestruct ("HK" with "Hg") as "[Hsub _]".
     iNext i; iApply "Hsub".
   Qed.
@@ -413,9 +429,8 @@ Section dot_types.
     Γ s⊨ T1 <:[ i ] T2 ∷ sf_star ⊣⊢ Γ s⊨ T1 , i <: T2 , i.
   Proof using HswapProp.
     iSplit; first iApply sstpkD_star_to_sstp.
-    rewrite -ksubtyping_intro; iIntros "#Hsub !> * Hg" (v).
-    rewrite -impl_laterN.
-    iApply ("Hsub" $! ρ v with "Hg").
+    rewrite -ksubtyping_intro_swap; iIntros "#Hsub !> * Hg *".
+    iApply ("Hsub" with "Hg").
   Qed.
 
   Definition oTApp {n} (T : oltyO Σ n.+1) (p : path) : olty Σ n :=
