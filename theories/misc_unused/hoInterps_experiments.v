@@ -194,7 +194,7 @@ Definition sktp `{!dlangG Σ} {n} i Γ T (K : sf_kind Σ n) : iProp Σ :=
 Notation "Γ s⊨ T ∷[ i  ] K" := (sktp i Γ T K)
   (at level 74, T, K at next level).
 Definition ssktp `{!dlangG Σ} {n} i Γ (K1 K2 : sf_kind Σ n) : iProp Σ :=
-  □∀ ρ, s⟦Γ⟧*ρ → ∀ (T : oltyO Σ n), ▷^i (K1 ρ (envApply T ρ) → K2 ρ (envApply T ρ)).
+  □∀ ρ, s⟦Γ⟧*ρ → ∀ (T : hoLtyO Σ n), ▷^i (K1 ρ T → K2 ρ T).
 Notation "Γ s⊨ K1 <∷[ i  ] K2" := (ssktp i Γ K1 K2)
   (at level 74, K1, K2 at next level).
 
@@ -295,27 +295,17 @@ Section gen_lemmas.
     iIntros "#HsubS #HsubK !>" (ρ) "#Hg /=".
     iPoseProof (ksubtyping_spec with "HsubS Hg") as "{HsubS} HsubS".
     iAssert (□∀ arg : vl, let ρ' := arg .: ρ in
-            ▷^i (oClose S2 ρ arg → ∀ T : olty Σ n,
-            K1 ρ' (envApply T ρ') → K2 ρ' (envApply T ρ')))%I as
+            ▷^i (oClose S2 ρ arg → ∀ T : hoLtyO Σ n,
+            K1 ρ' T → K2 ρ' T))%I as
             "{HsubK} #HsubK". {
       setoid_rewrite <-mlaterN_impl.
-      iIntros "!>" (arg) "HS2"; iIntros (T).
-      rewrite -mlaterN_impl.
-      iIntros "HK1".
-      iApply ("HsubK" $! (arg .: ρ) with "[$Hg HS2] HK1").
+      iIntros "!> * #HS2" (T); rewrite -mlaterN_impl; iIntros "HK1".
+      iApply ("HsubK" $! (arg .: ρ) with "[$Hg] HK1").
       iApply (hoEnvD_weaken_one S2 _ (_ .: _) _ with "HS2").
     }
-    iIntros (T); iNext i.
-    iIntros "#HTK1 !>" (arg) "#HS".
+    iIntros (T); iNext i; iIntros "#HTK1 !> * #HS".
     iSpecialize ("HsubK" $! arg with "HS").
-    (* iSpecialize ("HsubK" $! !!(shift (vcurry T arg)) with "[]"). {
-      iApply (Proper_sfkind with "(HTK1 (HsubS HS))") => args v /=.
-      by rewrite (hoEnvD_weaken_one (vcurry T arg) args (arg .: ρ) v).
-    } *)
-    iSpecialize ("HsubK" $! (oShift (vcurry T arg)) with "[]"). {
-      by iApply (Proper_sfkind with "(HTK1 (HsubS HS))").
-    }
-    by iApply (Proper_sfkind with "HsubK").
+    iApply ("HsubK" $! (vcurry T arg) with "(HTK1 (HsubS HS))").
   Qed.
 
   (** Reflexivity and transitivity of subkinding seem admissible, but let's
@@ -452,6 +442,17 @@ Section dot_types.
   Definition cTMemK {n} l (K : sf_kind Σ n) : clty Σ := ldlty2clty (oLDTMemK l K).
   (** Here [n]'s argument to oSel should be explicit. *)
   Global Arguments oSel {_ _} n p l args ρ : rename.
+
+  Lemma sSubK_TMem {n} Γ l (K1 K2 : s_kind Σ n) i :
+    Γ s⊨ K1 <∷[ i ] K2 -∗
+    Γ s⊨ cTMemK l K1 <:[ i ] cTMemK l K2 ∷ sf_star.
+  Proof using HswapProp.
+    rewrite -ksubtyping_intro_swap.
+    iIntros "#HK !> * #Hg * /=".
+    iDestruct 1 as (d) "[Hld Hφ]"; iExists d; iFrame "Hld".
+    iDestruct "Hφ" as (φ) "[Hlφ #HK1]"; iExists φ; iFrame "Hlφ".
+    iApply ("HK" with "Hg HK1").
+  Qed.
 
   (** * Kinding *)
   Lemma sK_Star Γ (T : olty Σ 0) i :
