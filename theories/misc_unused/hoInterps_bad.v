@@ -221,7 +221,7 @@ Section semkinds.
 
   (* Fixpoint sem {n} (k : kind Σ n) : sp_kind Σ n :=
     match k with
-      | kintv φ1 φ2 => sp_kintv φ1 φ2
+      | kintv φ1 φ2 => sp_s_kintv φ1 φ2
       | kpi n φ1 k' => spk_kpi φ1 (sem k')
     end. *)
 
@@ -495,10 +495,10 @@ Section sec.
 
   (* Derive Signature for kind.
   Equations sem_eq {n} : kind Σ n → sp_kind Σ n :=
-    sem_eq (kintv φ1 φ2) := sp_kintv φ1 φ2;
+    sem_eq (kintv φ1 φ2) := sp_s_kintv φ1 φ2;
     sem_eq (kpi n φ1 k') := spk_kpi φ1 (sem_eq k').
 
-  Lemma unfold_sem_kintv φ1 φ2: sem_eq (kintv φ1 φ2) = sp_kintv φ1 φ2.
+  Lemma unfold_sem_kintv φ1 φ2: sem_eq (kintv φ1 φ2) = sp_s_kintv φ1 φ2.
   Proof. by simp sem_eq. Qed. *)
 End sec.
 End HoGenExperiments.
