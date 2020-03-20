@@ -91,6 +91,12 @@ Record sf_kind {Σ n} := SfKind {
   sf_kind_sub : sr_kind Σ n;
   sf_kind_car_ne ρ :> NonExpansive (sf_kind_car ρ);
   sf_kind_sub_ne ρ :> NonExpansive2 (sf_kind_sub ρ);
+  sf_kind_sub_refl ρ T :
+    sf_kind_car ρ T -∗ sf_kind_sub ρ T T;
+  sf_kind_sub_trans ρ T1 T2 T3 :
+    sf_kind_sub ρ T1 T2 -∗
+    sf_kind_sub ρ T2 T3 -∗
+    sf_kind_sub ρ T1 T3;
 }.
 Global Arguments sf_kind : clear implicits.
 Global Arguments sf_kind_car : simpl never.
@@ -114,17 +120,30 @@ Proof. solve_proper_ho. Qed.
 Section kinds_types.
   Context {Σ}.
 
+  Lemma subtype_trans {T1} T2 {T3} :
+    T1 ⊆ T2 ⊢@{iPropI Σ} T2 ⊆ T3 -∗ T1 ⊆ T3.
+  Proof.
+    iIntros "#Hs1 #Hs2 !>" (v) "#HT1".
+    iApply ("Hs2" with "(Hs1 HT1)").
+  Qed.
+
+
   Definition sp_kintv (L U : olty Σ 0) : spine_s_kind Σ 0 := SpineSK vnil L U.
   Definition sp_kpi {n} (S : olty Σ 0) (K : spine_s_kind Σ n) : spine_s_kind Σ n.+1 :=
     SpineSK (vcons S (spine_kargs K)) (spine_L K) (spine_U K).
 
-  Definition sf_kintv (L U : olty Σ 0) : sf_kind Σ 0 :=
+  Program Definition sf_kintv (L U : olty Σ 0) : sf_kind Σ 0 :=
     SfKind
       (SpKind (λI ρ φ,
         oClose L ρ ⊆ oClose φ ⊆ oClose U ρ))
       (SrKind (λI ρ φ1 φ2,
         oClose L ρ ⊆ oClose φ1 ⊆ oClose φ2 ⊆ oClose U ρ))
-        ltac:(solve_proper_ho) ltac:(solve_proper_ho).
+        ltac:(solve_proper_ho) ltac:(solve_proper_ho) _ _.
+  Next Obligation. by iIntros "* ($&$) !> * $". Qed.
+  Next Obligation.
+    iIntros "* ($&HLT1&_) (_ & HT2T3 & $)".
+    iApply (subtype_trans (oClose T2) with "HLT1 HT2T3").
+  Qed.
 
   Program Definition sf_kpi {n} (S : olty Σ 0) (K : sf_kind Σ n) : sf_kind Σ n.+1 :=
     SfKind
@@ -133,7 +152,7 @@ Section kinds_types.
         sf_kind_car K (arg .: ρ) (vcurry φ arg)))
       (SrKind (λI ρ φ1 φ2,
         □∀ arg, S vnil ρ arg →
-        sf_kind_sub K (arg .: ρ) (vcurry φ1 arg) (vcurry φ2 arg))) _ _.
+        sf_kind_sub K (arg .: ρ) (vcurry φ1 arg) (vcurry φ2 arg))) _ _ _ _.
   Next Obligation.
     move=> n S K ρ m T1 T2 HT /=.
     have ?: ∀ ρ, NonExpansive (sf_kind_car K ρ) by apply sf_kind_car_ne.
@@ -145,6 +164,14 @@ Section kinds_types.
     f_equiv; f_equiv => ?; f_equiv.
     by apply sf_kind_sub_ne; f_equiv.
     (* apply Hne; by f_equiv. *)
+  Qed.
+  Next Obligation.
+    iIntros "* #H !>" (arg) "#Harg".
+    iApply (sf_kind_sub_refl with "(H Harg)").
+  Qed.
+  Next Obligation.
+    iIntros "* #H1 #H2 !>" (arg) "#Harg".
+    iApply (sf_kind_sub_trans with "(H1 Harg) (H2 Harg)").
   Qed.
 
   Definition sf_star : sf_kind Σ 0 := sf_kintv oBot oTop.
@@ -200,42 +227,6 @@ Notation "Γ s⊨ K1 <∷[ i  ] K2" := (ssktp i Γ K1 K2)
 
 Section gen_lemmas.
   Context `{dlangG Σ} `{HswapProp: SwapPropI Σ}.
-
-  Lemma s_kind_refl {n} (K : s_kind Σ n) T (ρ : env) :
-    K ρ T -∗ sf_kind_sub K ρ T T.
-  Proof.
-    elim: n ρ K T => [|n IHn] ρ; cbn.
-    - move E: 0 => n K T. destruct K as [L U|] eqn:?; simplify_eq.
-      by iIntros "($&$) !>" (v) "$".
-    - move E: n.+1 => m K T.
-      (* case E': K T E => [|m S K'].
-      case: K T E. *)
-      destruct K as [|m S K'] eqn:?; simplify_eq/=.
-      iIntros "#H !>" (arg) "#Harg".
-      iApply (IHn with "(H Harg)").
-  Qed.
-
-  Lemma subtype_trans {T1} T2 {T3} :
-    T1 ⊆ T2 ⊢@{iPropI Σ} T2 ⊆ T3 -∗ T1 ⊆ T3.
-  Proof.
-    iIntros "#Hs1 #Hs2 !>" (v) "#HT1".
-    iApply ("Hs2" with "(Hs1 HT1)").
-  Qed.
-
-  Lemma s_kind_trans {n} (K : s_kind Σ n) T1 T2 T3 (ρ : env) :
-    sf_kind_sub K ρ T1 T2 -∗
-    sf_kind_sub K ρ T2 T3 -∗
-    sf_kind_sub K ρ T1 T3.
-  Proof.
-    elim: n ρ K T1 T2 T3 => [|n IHn] ρ; cbn.
-    - move E: 0 => n K T1 T2 T3. destruct K as [L U|] eqn:?; simplify_eq.
-      iIntros "($&HLT1&_) (_ & HT2T3 & $)".
-      iApply (subtype_trans (oClose T2) with "HLT1 HT2T3").
-    - move E: n.+1 => m K T1 T2 T3.
-      destruct K as [|m S K'] eqn:?; simplify_eq/=.
-      iIntros "#H1 #H2 !>" (arg) "#Harg".
-      iApply (IHn with "(H1 Harg) (H2 Harg)").
-  Qed.
 
   Local Notation IntoPersistent' P := (IntoPersistent false P P).
 
@@ -352,7 +343,7 @@ Section gen_lemmas.
     Γ s⊨ T <:[ i ] T ∷ K.
   Proof.
     iIntros "#HK !> * #Hg".
-    iApply (s_kind_refl with "(HK Hg)").
+    iApply (sf_kind_sub_refl with "(HK Hg)").
   Qed.
 
   Lemma sSubK_Trans Γ {n} T1 T2 T3 (K : s_kind Σ n) i :
@@ -361,7 +352,7 @@ Section gen_lemmas.
     Γ s⊨ T1 <:[ i ] T3 ∷ K.
   Proof.
     iIntros "#Hs1 #Hs2 !> * #Hg".
-    iApply (s_kind_trans with "(Hs1 Hg) (Hs2 Hg)").
+    iApply (sf_kind_sub_trans with "(Hs1 Hg) (Hs2 Hg)").
   Qed.
 
   (* Notation "" := sf_star. *)
