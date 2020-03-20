@@ -118,13 +118,13 @@ Section kinds_types.
   Definition sp_kpi {n} (S : olty Σ 0) (K : spine_s_kind Σ n) : spine_s_kind Σ n.+1 :=
     SpineSK (vcons S (spine_kargs K)) (spine_L K) (spine_U K).
 
-  Program Definition sf_kintv (L U : olty Σ 0) : sf_kind Σ 0 :=
+  Definition sf_kintv (L U : olty Σ 0) : sf_kind Σ 0 :=
     SfKind
       (SpKind (λI ρ φ,
         oClose L ρ ⊆ oClose φ ⊆ oClose U ρ))
       (SrKind (λI ρ φ1 φ2,
-        oClose L ρ ⊆ oClose φ1 ⊆ oClose φ2 ⊆ oClose U ρ)) _ _.
-  Solve All Obligations with solve_proper_ho.
+        oClose L ρ ⊆ oClose φ1 ⊆ oClose φ2 ⊆ oClose U ρ))
+        ltac:(solve_proper_ho) ltac:(solve_proper_ho).
 
   Program Definition sf_kpi {n} (S : olty Σ 0) (K : sf_kind Σ n) : sf_kind Σ n.+1 :=
     SfKind
