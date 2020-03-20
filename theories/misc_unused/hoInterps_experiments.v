@@ -97,6 +97,9 @@ Record sf_kind {Σ n} := SfKind {
     sf_kind_sub ρ T1 T2 -∗
     sf_kind_sub ρ T2 T3 -∗
     sf_kind_sub ρ T1 T3;
+  sf_kind_sub_reg ρ T1 T2 :
+    sf_kind_sub ρ T1 T2 -∗
+    sf_kind_car ρ T1 ∧ sf_kind_car ρ T2;
 }.
 Global Arguments sf_kind : clear implicits.
 Global Arguments sf_kind_car : simpl never.
@@ -138,11 +141,16 @@ Section kinds_types.
         oClose L ρ ⊆ oClose φ ⊆ oClose U ρ))
       (SrKind (λI ρ φ1 φ2,
         oClose L ρ ⊆ oClose φ1 ⊆ oClose φ2 ⊆ oClose U ρ))
-        ltac:(solve_proper_ho) ltac:(solve_proper_ho) _ _.
+        ltac:(solve_proper_ho) ltac:(solve_proper_ho) _ _ _.
   Next Obligation. by iIntros "* ($&$) !> * $". Qed.
   Next Obligation.
     iIntros "* ($&HLT1&_) (_ & HT2T3 & $)".
     iApply (subtype_trans (oClose T2) with "HLT1 HT2T3").
+  Qed.
+  Next Obligation.
+    iIntros "* /= #(A & B & C)"; iFrame "A C"; iSplit.
+    iApply (subtype_trans with "B C").
+    iApply (subtype_trans with "A B").
   Qed.
 
   Program Definition sf_kpi {n} (S : olty Σ 0) (K : sf_kind Σ n) : sf_kind Σ n.+1 :=
@@ -152,7 +160,7 @@ Section kinds_types.
         sf_kind_car K (arg .: ρ) (vcurry φ arg)))
       (SrKind (λI ρ φ1 φ2,
         □∀ arg, S vnil ρ arg →
-        sf_kind_sub K (arg .: ρ) (vcurry φ1 arg) (vcurry φ2 arg))) _ _ _ _.
+        sf_kind_sub K (arg .: ρ) (vcurry φ1 arg) (vcurry φ2 arg))) _ _ _ _ _.
   Next Obligation.
     move=> n S K ρ m T1 T2 HT /=.
     have ?: ∀ ρ, NonExpansive (sf_kind_car K ρ) by apply sf_kind_car_ne.
@@ -172,6 +180,11 @@ Section kinds_types.
   Next Obligation.
     iIntros "* #H1 #H2 !>" (arg) "#Harg".
     iApply (sf_kind_sub_trans with "(H1 Harg) (H2 Harg)").
+  Qed.
+  Next Obligation.
+    iIntros "* /= #H"; iSplit; iIntros "!>" (arg) "#Harg".
+    iDestruct (sf_kind_sub_reg with "(H Harg)") as "[$_]".
+    iDestruct (sf_kind_sub_reg with "(H Harg)") as "[_$]".
   Qed.
 
   Definition sf_star : sf_kind Σ 0 := sf_kintv oBot oTop.
@@ -220,6 +233,9 @@ Definition sktp `{!dlangG Σ} {n} i Γ T (K : sf_kind Σ n) : iProp Σ :=
   □∀ ρ, s⟦Γ⟧*ρ → ▷^i K ρ (envApply T ρ).
 Notation "Γ s⊨ T ∷[ i  ] K" := (sktp i Γ T K)
   (at level 74, T, K at next level).
+
+(* This only covers kinding, not kinded subtyping! Instead, cover *only* kinded subtyipng, and deduce
+the clause for kinding from sf_kind_sub_refl. *)
 Definition ssktp `{!dlangG Σ} {n} i Γ (K1 K2 : sf_kind Σ n) : iProp Σ :=
   □∀ ρ, s⟦Γ⟧*ρ → ∀ (T : hoLtyO Σ n), ▷^i (K1 ρ T → K2 ρ T).
 Notation "Γ s⊨ K1 <∷[ i  ] K2" := (ssktp i Γ K1 K2)
