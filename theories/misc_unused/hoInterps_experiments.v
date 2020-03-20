@@ -491,6 +491,68 @@ Section dot_types.
   Lemma oTApp_pv {n} (T : oltyO Σ n.+1) w :
     oTApp T (pv w) ≡ oTAppV T w .
   Proof. intros ???. by rewrite /= path_wp_pv_eq. Qed.
+
+  Global Instance Proper_envApply n: Proper ((≡) ==> (=) ==> (≡)) (envApply (Σ := Σ) (n := n)).
+  Proof. solve_proper_ho. Qed.
+
+  Global Instance: Params (@sf_kind_sub) 4 := {}.
+  (** XXX Copy-paste of sSubK_AppV, plus hacks for missing Proper instances I guess? *)
+  Lemma sSubK_App Γ {n} (K : sf_kind Σ n) S T i v :
+    Γ s⊨ T ∷[i] sf_kpi S K -∗
+    Γ s⊨p pv v : S, i -∗
+    Γ s⊨ oTApp T (pv v) ∷[i] K.|[v/].
+  Proof.
+    iIntros "#HTK #Hv !> * #Hg". rewrite kSubstOne_eq /=.
+    iSpecialize ("HTK" with "Hg"); iSpecialize ("Hv" with "Hg"); iNext i.
+    rewrite path_wp_pv_eq /=.
+    iSpecialize ("HTK" with "Hv").
+    (* Argh. *)
+    (* About sf_kind_sub. *)
+    (* Set Typeclasses Debug. *)
+    (* iEval rewrite {1}(oTApp_pv T). *)
+    (* Timeout 1 iEval rewrite oTApp_pv. *)
+    iApply (Proper_sfkind with "HTK"); by rewrite oTApp_pv.
+    (* Time by rewrite oTApp_pv. *)
+    (* Argh. *)
+    (* iApply ("HTK"). *)
+    (* by rewrite (oTApp_pv _ _ _ _ _). *)
+    (* by rewrite /= path_wp_pv_eq. *)
+  Qed.
+
+    (* rewrite /oTAppV/envApply/flip.
+    iApply (Proper_sfkind).
+    cbn.
+
+    iApply (Proper_sfkind with "HTK").
+    iS
+    rewrite -mlaterN_pers -impl_laterN.
+    iIntros "!> Hs".
+    iSpecialize ("HTK" $! (arg .: ρ) with "[$Hg $Hs]").
+    by iApply (Proper_sfkind with "HTK").
+  Qed. *)
+
+  (* XXX argh. *)
+  (* Definition kind_path_subst {n} p q (K1 K2 : sf_kind Σ n) : iProp Σ :=
+    ∀ (H : alias_paths p q) ρ T1 T2,
+    K1 ρ T1 T2 ≡ K2 ρ T1 T2 .
+
+  Lemma sSubK_App Γ {n} (K1 K2 : sf_kind Σ n) S T i p :
+    Γ s⊨ T ∷[i] sf_kpi S K1 -∗
+    Γ s⊨p p : S, i -∗
+    Γ s⊨ oTAppV T v ∷[i] K2.
+  Proof.
+    iIntros "#HTK #Hv !> * #Hg".
+    rewrite kSubstOne_eq /=.
+    iSpecialize ("HTK" with "Hg"); iSpecialize ("Hv" with "Hg").
+    rewrite path_wp_pv_eq /=; iNext i.
+    iSpecialize ("HTK" with "Hv").
+    (* iEval rewrite /sf_kind_sub/=.
+    iApply ("HTK"). *)
+    by iApply (Proper_sfkind with "HTK").
+  Qed. *)
+
+
+
   Lemma sstpkD_star_to_sstp Γ i T1 T2 :
     Γ s⊨ T1 <:[ i ] T2 ∷ sf_star ⊢ Γ s⊨ T1 , i <: T2 , i.
   Proof.
