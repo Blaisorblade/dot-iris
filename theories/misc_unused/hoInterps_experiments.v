@@ -97,9 +97,12 @@ Record sf_kind {Σ n} := SfKind {
     sf_kind_sub ρ T1 T2 -∗
     sf_kind_sub ρ T2 T3 -∗
     sf_kind_sub ρ T1 T3;
-  sf_kind_sub_reg ρ T1 T2 :
+  sf_kind_sub_reg_1 ρ T1 T2 :
     sf_kind_sub ρ T1 T2 -∗
-    sf_kind_car ρ T1 ∧ sf_kind_car ρ T2;
+    sf_kind_car ρ T1;
+  sf_kind_sub_reg_2 ρ T1 T2 :
+    sf_kind_sub ρ T1 T2 -∗
+    sf_kind_car ρ T2;
 }.
 Global Arguments sf_kind : clear implicits.
 Global Arguments sf_kind_car : simpl never.
@@ -130,7 +133,6 @@ Section kinds_types.
     iApply ("Hs2" with "(Hs1 HT1)").
   Qed.
 
-
   Definition sp_kintv (L U : olty Σ 0) : spine_s_kind Σ 0 := SpineSK vnil L U.
   Definition sp_kpi {n} (S : olty Σ 0) (K : spine_s_kind Σ n) : spine_s_kind Σ n.+1 :=
     SpineSK (vcons S (spine_kargs K)) (spine_L K) (spine_U K).
@@ -141,15 +143,18 @@ Section kinds_types.
         oClose L ρ ⊆ oClose φ ⊆ oClose U ρ))
       (SrKind (λI ρ φ1 φ2,
         oClose L ρ ⊆ oClose φ1 ⊆ oClose φ2 ⊆ oClose U ρ))
-        ltac:(solve_proper_ho) ltac:(solve_proper_ho) _ _ _.
+        ltac:(solve_proper_ho) ltac:(solve_proper_ho) _ _ _ _.
   Next Obligation. by iIntros "* ($&$) !> * $". Qed.
   Next Obligation.
     iIntros "* ($&HLT1&_) (_ & HT2T3 & $)".
     iApply (subtype_trans (oClose T2) with "HLT1 HT2T3").
   Qed.
   Next Obligation.
-    iIntros "* /= #(A & B & C)"; iFrame "A C"; iSplit.
+    iIntros "* /= #(A & B & C)". iFrame "A".
     iApply (subtype_trans with "B C").
+  Qed.
+  Next Obligation.
+    iIntros "* /= #(A & B & C)". iFrame "C".
     iApply (subtype_trans with "A B").
   Qed.
 
@@ -160,7 +165,7 @@ Section kinds_types.
         sf_kind_car K (arg .: ρ) (vcurry φ arg)))
       (SrKind (λI ρ φ1 φ2,
         □∀ arg, S vnil ρ arg →
-        sf_kind_sub K (arg .: ρ) (vcurry φ1 arg) (vcurry φ2 arg))) _ _ _ _ _.
+        sf_kind_sub K (arg .: ρ) (vcurry φ1 arg) (vcurry φ2 arg))) _ _ _ _ _ _.
   Next Obligation.
     move=> n S K ρ m T1 T2 HT /=.
     have ?: ∀ ρ, NonExpansive (sf_kind_car K ρ) by apply sf_kind_car_ne.
@@ -182,9 +187,10 @@ Section kinds_types.
     iApply (sf_kind_sub_trans with "(H1 Harg) (H2 Harg)").
   Qed.
   Next Obligation.
-    iIntros "* /= #H"; iSplit; iIntros "!>" (arg) "#Harg".
-    iDestruct (sf_kind_sub_reg with "(H Harg)") as "[$_]".
-    iDestruct (sf_kind_sub_reg with "(H Harg)") as "[_$]".
+    iIntros "* /= #H !> * #Harg"; iApply (sf_kind_sub_reg_1 with "(H Harg)").
+  Qed.
+  Next Obligation.
+    iIntros "* /= #H !> * #Harg"; iApply (sf_kind_sub_reg_2 with "(H Harg)").
   Qed.
 
   Definition sf_star : sf_kind Σ 0 := sf_kintv oBot oTop.
