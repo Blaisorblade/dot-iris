@@ -321,10 +321,10 @@ Section sec.
     Γ s⊨ T ∷[ i ] sf_star.
   Proof using HswapProp.
     iApply sK_KSub. iApply sK_Sing.
-    iApply sKSub_Intv; [iApply sBot_Sub | iApply sSub_Top].
+    iApply sKSub_Intv'; [iApply sBot_Sub | iApply sSub_Top].
   Qed.
 
-  Lemma sKSub_Pi {n} (S1 S2 : olty Σ 0) (K1 K2 : sf_kind Σ n) Γ i :
+  Lemma sKSub_Pi' {n} (S1 S2 : olty Σ 0) (K1 K2 : sf_kind Σ n) Γ i :
     Γ s⊨ S2, i <: S1, i -∗
     oLaterN i (shift S2) :: Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ sf_kpi S1 K1 <∷[ i ] sf_kpi S2 K2.
@@ -332,8 +332,8 @@ Section sec.
     iIntros "#HsubS #HsubK !>" (ρ) "#Hg /=".
     iPoseProof (subtyping_spec_swap with "HsubS Hg") as "{HsubS} HsubS".
     iAssert (□∀ arg : vl, let ρ' := arg .: ρ in
-            ▷^i (oClose S2 ρ arg → ∀ T : olty Σ n,
-            K1 ρ' (envApply T ρ') → K2 ρ' (envApply T ρ')))%I as
+            ▷^i (oClose S2 ρ arg → ∀ T : hoLtyO Σ n,
+            K1 ρ' T → K2 ρ' T))%I as
             "{HsubK} #HsubK". {
       setoid_rewrite <-mlaterN_impl.
       iIntros "!>" (arg) "HS2"; iIntros (T).
@@ -349,7 +349,7 @@ Section sec.
       iApply (Proper_sfkind with "(HTK1 (HsubS HS))") => args v /=.
       by rewrite (hoEnvD_weaken_one (vcurry T arg) args (arg .: ρ) v).
     } *)
-    iSpecialize ("HsubK" $! (oShift (vcurry T arg)) with "[]"). {
+    iSpecialize ("HsubK" $! (vcurry T arg) with "[]"). {
       by iApply (Proper_sfkind with "(HTK1 (HsubS HS))").
     }
     by iApply (Proper_sfkind with "HsubK").
@@ -361,7 +361,7 @@ Section sec.
     Γ s⊨ T, 0 <: T, 0 ∷ sfK.
   Proof.
     iIntros (?) "#HK !>". iIntros (ρ) "#Hg".
-    iApply s_kind_refl.
+    iApply sf_kind_sub_refl.
     by iApply (Proper_sfkind with "(HK Hg)").
   Qed.
 
@@ -372,7 +372,7 @@ Section sec.
   Proof.
     (* have ->: i = 0 by admit. *)
     iIntros (?) "#HK !>". iIntros (ρ) "#Hg".
-    iApply s_kind_refl.
+    iApply sf_kind_sub_refl.
     Fail by iApply (Proper_sfkind with "(HK Hg)").
   Abort.
 
@@ -460,7 +460,7 @@ Section sec.
     sf_kind_sub (sf_kpi argT (s_kind_to_sf_kind K)) ρ φ (vuncurry (vcurry φ)).
   Proof.
     rewrite /sf_kind_sub /=.
-    iIntros (HK) "!> * #Harg". iApply s_kind_refl. iApply HK.
+    iIntros (HK) "!> * #Harg". iApply sf_kind_sub_refl. iApply HK.
   Qed.
 
   (* Lemma eta2 {n} argT (φ : hoLtyO Σ (S n)) ρ :
