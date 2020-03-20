@@ -102,6 +102,39 @@ Global Arguments iPPredO : clear implicits.
 
 Module Type Lty (Import VS: VlSortsFullSig) (Import LVS : LiftWp VS).
 
+Definition env_vpred subj Σ := env → iPPred subj Σ.
+Section ippred_subst.
+  Context {Σ : gFunctors} {subj : Type}.
+
+  Global Instance ids_env_vpred : Ids (env_vpred subj Σ) := λ _, inhabitant.
+  Global Instance rename_env_vpred : Rename (env_vpred subj Σ) :=
+    λ r φ ρ, φ (r >>> ρ).
+  Global Instance hsubst_env_vpred : HSubst vl (env_vpred subj Σ) :=
+    λ sb φ ρ, φ (sb >> ρ).
+
+  Ltac renLemmas_env_vpred :=
+    hnf; rewrite /hsubst /hsubst_env_vpred => /= *;
+    f_ext => ?; autosubst.
+
+  Global Instance HSubstLemmas_env_vpred : HSubstLemmas vl (env_vpred subj Σ).
+  Proof. split => //; renLemmas_env_vpred. Qed.
+
+  Global Instance Sort_env_pred : Sort (env_vpred subj Σ) := {}.
+End ippred_subst.
+
+Section fun_sort.
+  Context `{Sort X} (A : Type).
+  Global Instance ids_fun: Ids (A → X) := λ x _, ids x.
+  Global Instance rename_fun: Rename (A → X) := λ r x a, rename r (x a).
+  Global Instance hsubst_fun: HSubst vl (A → X) := λ sb x a, (x a).|[sb].
+  Global Instance HSubstLemmas_fun: HSubstLemmas vl (A → X).
+  Proof using All.
+    split; rewrite /= /hsubst /hsubst_fun => *; f_ext => ?/=;
+    (idtac + rewrite /ids/ids_fun); autosubst.
+  Qed.
+  Global Instance: Sort (A → X) := {}.
+End fun_sort.
+
 Notation lty := (iPPred vl).
 Notation ltyO := (iPPredO vl).
 Notation Lty := (IPPred (vl := vl)).
