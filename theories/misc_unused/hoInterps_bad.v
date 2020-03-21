@@ -301,24 +301,24 @@ Section sec.
     iApply (subtyping_spec with "Hsub Hg").
   Qed.
 
-  Lemma sKSub_Intv' (L1 L2 U1 U2 : olty Σ 0) Γ i :
+  Lemma sSkd_Intv' (L1 L2 U1 U2 : olty Σ 0) Γ i :
     Γ s⊨ L2, i <: L1, i -∗
     Γ s⊨ U1, i <: U2, i -∗
     Γ s⊨ sf_kintv L1 U1 <∷[ i ] sf_kintv L2 U2.
-  Proof using HswapProp. by rewrite -!sstpkD_star_eq_sstp -sKSub_Intv. Qed.
+  Proof using HswapProp. by rewrite -!sstpkD_star_eq_sstp -sSkd_Intv. Qed.
 
   Lemma sK_Star' Γ (T : olty Σ 0) i :
     Γ s⊨ T ∷[ i ] sf_star.
   Proof using HswapProp.
-    iApply sK_KSub. iApply sK_Sing.
-    iApply sKSub_Intv'; [iApply sBot_Sub | iApply sSub_Top].
+    iApply sK_Sub. iApply sK_Sing.
+    iApply sSkd_Intv'; [iApply sBot_Sub | iApply sSub_Top].
   Qed.
 
-  Lemma sKSub_Pi' {n} (S1 S2 : olty Σ 0) (K1 K2 : sf_kind Σ n) Γ i :
+  Lemma sSkd_Pi' {n} (S1 S2 : olty Σ 0) (K1 K2 : sf_kind Σ n) Γ i :
     Γ s⊨ S2, i <: S1, i -∗
     oLaterN i (shift S2) :: Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ sf_kpi S1 K1 <∷[ i ] sf_kpi S2 K2.
-  Proof using HswapProp. by rewrite -!sstpkD_star_eq_sstp -sKSub_Pi. Qed.
+  Proof using HswapProp. by rewrite -!sstpkD_star_eq_sstp -sSkd_Pi. Qed.
 
   Lemma sSubK_Refl' Γ {n} T (K : s_kind Σ n) :
     let sfK := s_kind_to_sf_kind K in

@@ -297,13 +297,14 @@ Section gen_lemmas.
     iIntros "#Hsub !>" (ρ). rewrite -sr_kintv_refl /sp_kintv /=. iApply "Hsub".
   Qed.
 
+  (** * Prefixes: K for Kinding, KStp for kinded subtyping, Skd for subkinding. *)
   Lemma sK_Sing Γ (T : olty Σ 0) i :
     Γ s⊨ T ∷[ i ] sf_kintv T T.
   Proof.
     rewrite -kinding_intro; iIntros "!>" (ρ) "_". by rewrite -subtype_refl.
   Qed.
 
-  Lemma sSK_KSub Γ {n} (T1 T2 : olty Σ n) (K1 K2 : sf_kind Σ n) i :
+  Lemma sKStp_Sub Γ {n} (T1 T2 : olty Σ n) (K1 K2 : sf_kind Σ n) i :
     Γ s⊨ T1 <:[ i ] T2 ∷ K1 -∗
     Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ T1 <:[ i ] T2 ∷ K2.
@@ -311,19 +312,19 @@ Section gen_lemmas.
     iIntros "#H1 #Hsub !>" (ρ) "#Hg". iApply ("Hsub" with "Hg (H1 Hg)").
   Qed.
 
-  Lemma sK_KSub Γ {n} (T : olty Σ n) (K1 K2 : sf_kind Σ n) i :
+  Lemma sK_Sub Γ {n} (T : olty Σ n) (K1 K2 : sf_kind Σ n) i :
     Γ s⊨ T ∷[ i ] K1 -∗
     Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ T ∷[ i ] K2.
-  Proof. apply sSK_KSub. Qed.
+  Proof. apply sKStp_Sub. Qed.
 
   Definition oShift {n} (T : oltyO Σ n) :=
     Olty (λ args ρ v, T args (stail ρ) v).
   Lemma oShift_eq {n} (T : oltyO Σ n) : oShift T ≡ shift T.
   Proof. move=>args ρ v /=. by rewrite (hoEnvD_weaken_one _ _ _ v). Qed.
 
-  (* XXX: Prefixes: Rename Sub to STyp, and use SKd for subkinding rather than SK? *)
-  Lemma sSK_Lam Γ {n} (K : sf_kind Σ n) S T1 T2 i :
+  (* XXX: Prefixes: Rename Sub to STyp *)
+  Lemma sKStp_Lam Γ {n} (K : sf_kind Σ n) S T1 T2 i :
     oLaterN i (oShift S) :: Γ s⊨ T1 <:[i] T2 ∷ K -∗
     Γ s⊨ oLam T1 <:[i] oLam T2 ∷ sf_kpi S K.
   Proof using HswapProp.
@@ -337,7 +338,7 @@ Section gen_lemmas.
   Lemma sK_Lam Γ {n} (K : sf_kind Σ n) S T i :
     oLaterN i (oShift S) :: Γ s⊨ T ∷[i] K -∗
     Γ s⊨ oLam T ∷[i] sf_kpi S K.
-  Proof using HswapProp. apply sSK_Lam. Qed.
+  Proof using HswapProp. apply sKStp_Lam. Qed.
 
     (* rewrite /vcurry /envApply/flip/oLam/Olty/vhead/vcons/=.
     by iApply "HTK".
@@ -345,7 +346,7 @@ Section gen_lemmas.
     /iPPred_car/=.
     by iApply "HTK". *)
   (** * Subkinding *)
-  Lemma sKSub_Intv (L1 L2 U1 U2 : olty Σ 0) Γ i :
+  Lemma sSkd_Intv (L1 L2 U1 U2 : olty Σ 0) Γ i :
     Γ s⊨ L2 <:[ i ] L1 ∷ sf_star -∗
     Γ s⊨ U1 <:[ i ] U2 ∷ sf_star -∗
     Γ s⊨ sf_kintv L1 U1 <∷[ i ] sf_kintv L2 U2.
@@ -358,7 +359,7 @@ Section gen_lemmas.
     iApply (subtype_trans with "HsubU1 HsubU").
   Qed.
 
-  Lemma sKSub_Pi {n} (S1 S2 : olty Σ 0) (K1 K2 : sf_kind Σ n) Γ i :
+  Lemma sSkd_Pi {n} (S1 S2 : olty Σ 0) (K1 K2 : sf_kind Σ n) Γ i :
     Γ s⊨ S2 <:[ i ] S1 ∷ sf_star -∗
     oLaterN i (oShift S2) :: Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ sf_kpi S1 K1 <∷[ i ] sf_kpi S2 K2.
@@ -380,14 +381,14 @@ Section gen_lemmas.
 
   (** Reflexivity and transitivity of subkinding seem admissible, but let's
   prove them anyway, to show they hold regardless of extensions. *)
-  Lemma sKSub_Refl {n} Γ i (K : sf_kind Σ n) :
+  Lemma sSkd_Refl {n} Γ i (K : sf_kind Σ n) :
     Γ s⊨ K <∷[ i ] K.
   Proof using HswapProp.
     rewrite /ssktp; setoid_rewrite <-(impl_laterN _).
     iIntros "!> * Hg * $".
   Qed.
 
-  Lemma sKSub_Trans {n} Γ i (K1 K2 K3 : sf_kind Σ n) :
+  Lemma sSkd_Trans {n} Γ i (K1 K2 K3 : sf_kind Σ n) :
     Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ K2 <∷[ i ] K3 -∗
     Γ s⊨ K1 <∷[ i ] K3.
@@ -475,7 +476,7 @@ Section dot_types.
   Lemma kSubstOne_eq {n} (K : sf_kind Σ n) v ρ : sf_kind_sub K.|[v/] ρ = kSubstOne v K ρ.
   Proof. by rewrite /sf_kind_sub/= subst_swap_base. Qed.
 
-  Lemma sSK_AppV Γ {n} (K : sf_kind Σ n) S T1 T2 i v :
+  Lemma sKStp_AppV Γ {n} (K : sf_kind Σ n) S T1 T2 i v :
     Γ s⊨ T1 <:[i] T2 ∷ sf_kpi S K -∗
     Γ s⊨p pv v : S, i -∗
     Γ s⊨ oTAppV T1 v <:[i] oTAppV T2 v ∷ K.|[v/].
@@ -490,7 +491,7 @@ Section dot_types.
     Γ s⊨ T ∷[i] sf_kpi S K -∗
     Γ s⊨p pv v : S, i -∗
     Γ s⊨ oTAppV T v ∷[i] K.|[v/].
-  Proof. apply sSK_AppV. Qed.
+  Proof. apply sKStp_AppV. Qed.
 
   Definition oTApp {n} (T : oltyO Σ n.+1) (p : path) : oltyO Σ n :=
     Olty (λ args ρ v, path_wp p.|[ρ] (λ w, T (vcons w args) ρ v)).
@@ -604,7 +605,7 @@ Section dot_types.
   Lemma sK_Star Γ (T : olty Σ 0) i :
     Γ s⊨ T ∷[ i ] sf_star.
   Proof using HswapProp.
-    iApply sK_KSub. iApply sK_Sing. iApply sKSub_Intv; rewrite sstpkD_star_eq_sstp.
+    iApply sK_Sub. iApply sK_Sing. iApply sSkd_Intv; rewrite sstpkD_star_eq_sstp.
     by iApply sBot_Sub.
     by iApply sSub_Top.
   Qed.
