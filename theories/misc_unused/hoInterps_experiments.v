@@ -582,10 +582,10 @@ Section dot_types.
 
   Global Instance: Params (@sf_kind_sub) 4 := {}.
   (** XXX Copy-paste of sKStp_AppV, plus hacks for missing Proper instances I guess? *)
-  Lemma sKStp_App Γ {n} (K : sf_kind Σ n) S T i v :
-    Γ s⊨ T ∷[i] sf_kpi S K -∗
+  Lemma sKStp_App Γ {n} (K : sf_kind Σ n) S T1 T2 i v :
+    Γ s⊨ T1 <:[i] T2 ∷ sf_kpi S K -∗
     Γ s⊨p pv v : S, i -∗
-    Γ s⊨ oTApp T (pv v) ∷[i] K.|[v/].
+    Γ s⊨ oTApp T1 (pv v) <:[i] oTApp T2 (pv v) ∷ K.|[v/].
   Proof.
     iIntros "#HTK #Hv !> * #Hg". rewrite kSubstOne_eq /=.
     iSpecialize ("HTK" with "Hg"); iSpecialize ("Hv" with "Hg"); iNext i.
