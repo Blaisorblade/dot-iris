@@ -44,6 +44,8 @@ Definition hoLtyO Σ n := vec vl n -d> ltyO Σ.
 
 Definition envApply {Σ n} : oltyO Σ n → env → hoLtyO Σ n :=
   λ T, flip T.
+Global Instance Proper_envApply n: Proper ((≡) ==> (=) ==> (≡)) (envApply (Σ := Σ) (n := n)).
+Proof. solve_proper_ho. Qed.
 
 Definition oCurry {n} {A : ofeT} (Φ : vec vl n.+1 → A) :
   vl -d> vec vl n -d> A := vcurry Φ.
@@ -145,7 +147,7 @@ Section kinds_types.
     oClose L ρ ⊆ oClose φ1 ⊆ oClose φ2 ⊆ oClose U ρ).
 
   Lemma sr_kintv_refl L U ρ φ : sp_kintv L U ρ φ -∗ sr_kintv L U ρ φ φ.
-  Proof. iIntros "($ & $)"; iApply subtype_refl. Qed.
+  Proof. iIntros "($ & $)". by rewrite -subtype_refl. Qed.
 
   Program Definition sf_kintv (L U : olty Σ 0) : sf_kind Σ 0 :=
     SfKind (sr_kintv L U) ltac:(solve_proper_ho) _ _ _.
@@ -298,12 +300,14 @@ Section gen_lemmas.
   Qed.
 
   (** * Prefixes: K for Kinding, KStp for kinded subtyping, Skd for subkinding. *)
+  (* XXX: Prefixes: Rename elsewhere Sub to STyp *)
   Lemma sK_Sing Γ (T : olty Σ 0) i :
     Γ s⊨ T ∷[ i ] sf_kintv T T.
   Proof.
     rewrite -kinding_intro; iIntros "!>" (ρ) "_". by rewrite -subtype_refl.
   Qed.
 
+  (** Kind subsumption (for kinded subtyping). *)
   Lemma sKStp_Sub Γ {n} (T1 T2 : olty Σ n) (K1 K2 : sf_kind Σ n) i :
     Γ s⊨ T1 <:[ i ] T2 ∷ K1 -∗
     Γ s⊨ K1 <∷[ i ] K2 -∗
@@ -312,6 +316,7 @@ Section gen_lemmas.
     iIntros "#H1 #Hsub !>" (ρ) "#Hg". iApply ("Hsub" with "Hg (H1 Hg)").
   Qed.
 
+  (** Kind subsumption (for kinding). *)
   Lemma sK_Sub Γ {n} (T : olty Σ n) (K1 K2 : sf_kind Σ n) i :
     Γ s⊨ T ∷[ i ] K1 -∗
     Γ s⊨ K1 <∷[ i ] K2 -∗
@@ -323,7 +328,6 @@ Section gen_lemmas.
   Lemma oShift_eq {n} (T : oltyO Σ n) : oShift T ≡ shift T.
   Proof. move=>args ρ v /=. by rewrite (hoEnvD_weaken_one _ _ _ v). Qed.
 
-  (* XXX: Prefixes: Rename Sub to STyp *)
   Lemma sKStp_Lam Γ {n} (K : sf_kind Σ n) S T1 T2 i :
     oLaterN i (oShift S) :: Γ s⊨ T1 <:[i] T2 ∷ K -∗
     Γ s⊨ oLam T1 <:[i] oLam T2 ∷ sf_kpi S K.
@@ -399,7 +403,7 @@ Section gen_lemmas.
 
   (** * Kinded subtyping. *)
 
-  Lemma sKStp_Refl Γ {n} T (K : s_kind Σ n) i :
+  Lemma sKStp_Refl Γ {n} T (K : sf_kind Σ n) i :
     Γ s⊨ T ∷[ i ] K -∗
     Γ s⊨ T <:[ i ] T ∷ K.
   Proof. done. Qed.
@@ -498,9 +502,6 @@ Section dot_types.
   Lemma oTApp_pv {n} (T : oltyO Σ n.+1) w :
     oTApp T (pv w) ≡ oTAppV T w .
   Proof. intros ???. by rewrite /= path_wp_pv_eq. Qed.
-
-  Global Instance Proper_envApply n: Proper ((≡) ==> (=) ==> (≡)) (envApply (Σ := Σ) (n := n)).
-  Proof. solve_proper_ho. Qed.
 
   Global Instance: Params (@sf_kind_sub) 4 := {}.
   (** XXX Copy-paste of sKStp_AppV, plus hacks for missing Proper instances I guess? *)
