@@ -240,7 +240,11 @@ Program Definition sstpkD `{!dlangG Σ} {n} i Γ T1 T2 (K : sf_kind Σ n) : iPro
   □∀ ρ, s⟦Γ⟧*ρ → ▷^i K ρ (envApply T1 ρ) (envApply T2 ρ).
 Notation "Γ s⊨ T1 <:[ i  ] T2 ∷ K" := (sstpkD i Γ T1 T2 K)
   (at level 74, i, T1, T2, K at next level).
-(* Definition sktp `{!dlangG Σ} {n} i Γ T (K : sf_kind Σ n) : iProp Σ := *)
+
+Notation "Γ s⊨ T1 =[ i  ] T2 ∷ K" :=
+  (Γ s⊨ T1 <:[ i  ] T2 ∷ K ∧ Γ s⊨ T2 <:[ i  ] T1 ∷ K)%I
+  (at level 74, i, T1, T2, K at next level).
+
 Notation "Γ s⊨ T ∷[ i  ] K" := (Γ s⊨ T <:[ i ] T ∷ K)
   (at level 74, T, K at next level).
 
@@ -416,6 +420,55 @@ Section gen_lemmas.
     Γ s⊨ T <:[ i ] T ∷ K.
   Proof. done. Qed.
 
+  (* XXX fixing ones in lty.v. *)
+  Global Instance iPPred_car_ne n subj : Proper (dist n ==> (=) ==> dist n) (@iPPred_car subj Σ).
+  Proof. by intros A A' HA w ? <-. Qed.
+  Global Instance iPPred_car_proper subj : Proper ((≡) ==> (=) ==> (≡)) (@iPPred_car subj Σ).
+  Proof. by intros A A' ? w ? <-. Qed.
+
+  (* We can't actually write the right instance; this is just false for arbitrary persistent predicates.
+    Instead, we must use Proper_sfkind, which is a setoid instance for a *pair* of projections.
+   *)
+  (* Global Instance iPPred_car_ne (subj : ofeT) n : Proper (dist n ==> (≡) ==> dist n) (@iPPred_car subj Σ).
+  Proof. intros A A' HA w ? ?. apply (HA _). <-. Qed.
+  Global Instance lty_car_proper subj : Proper ((≡) ==> (≡) ==> (≡)) (@iPPred_car subj Σ).
+  Proof. by intros A A' ? w ? <-. Qed. *)
+
+  Global Instance: Params (@sf_kind_sub) 4 := {}.
+  (** XXX no ofe instance for sf_kind. *)
+  Global Instance Proper_sstpkD n i :
+    Proper ((≡) ==> (≡) ==> (≡) ==> (=) ==> (≡)) (sstpkD (Σ := Σ) (n := n) i).
+  Proof.
+    rewrite /sstpkD=> Γ1 Γ2 HΓ T1 T2 HT U1 U2 HU K ? <-.
+    setoid_rewrite HΓ; properness; first done.
+    by apply Proper_sfkind; f_equiv.
+  Qed.
+  Global Instance: Params (@sstpkD) 4 := {}.
+
+  (* Replace by a Proper instance. *)
+  (* Lemma sKStp_Refl_Aux {n} Γ T1 T2 (K : sf_kind Σ n) i :
+    T1 ≡ T2 →
+    Γ s⊨ T1 ∷[i] K -∗
+    Γ s⊨ T1 <:[i] T2 ∷ K.
+  Proof. intros ->. apply sKStp_Refl. Qed. *)
+
+  Lemma sKEq_Refl {n} Γ T1 T2 (K : sf_kind Σ n) i :
+    T1 ≡ T2 →
+    Γ s⊨ T1 ∷[i] K -∗
+    Γ s⊨ T1 =[i] T2 ∷ K.
+  Proof.
+    (* intros <-; iIntros "$".  *)
+    iIntros (Heq) "#H"; by iSplit; iApply (Proper_sstpkD with "H").
+  Qed.
+
+  Lemma sKEq_Eta {n} Γ S T (K : sf_kind Σ n) i :
+    Γ s⊨ T ∷[i] sf_kpi S K -∗
+    Γ s⊨ T =[i] oLam (oTAppV (oShift T) (ids 0)) ∷ sf_kpi S K.
+  Proof.
+    iApply sKEq_Refl => + ρ v /=; apply: vec_S_inv => w args.
+    autosubst.
+  Qed.
+
   Lemma sKStp_Trans Γ {n} T1 T2 T3 (K : s_kind Σ n) i :
     Γ s⊨ T1 <:[ i ] T2 ∷ K -∗
     Γ s⊨ T2 <:[ i ] T3 ∷ K -∗
@@ -504,6 +557,18 @@ Section dot_types.
     Γ s⊨p pv v : S, i -∗
     Γ s⊨ oTAppV T v ∷[i] K.|[v/].
   Proof. apply sKStp_AppV. Qed.
+
+  Lemma sKEq_BetaV {n} Γ S T (K : sf_kind Σ n) i v :
+    Γ s⊨p pv v : S, i -∗
+    oLaterN i (oShift S) :: Γ s⊨ T ∷[i] K -∗
+    Γ s⊨ oTAppV (oLam T) v =[i] T.|[v/] ∷ K.|[v/].
+  Proof using HswapProp.
+    iIntros "#Hp #HK"; iApply sKEq_Refl.
+    by move => args ρ w; rewrite /= /hsubst /hsubst_hoEnvD/=; autosubst.
+    iIntros "!> * #Hg"; rewrite sK_Lam kSubstOne_eq /=.
+    iSpecialize ("Hp" with "Hg"); iSpecialize ("HK" with "Hg"); iNext i.
+    rewrite path_wp_pv_eq; by iApply (Proper_sfkind with "(HK Hp)").
+  Qed.
 
   Definition oTApp {n} (T : oltyO Σ n.+1) (p : path) : oltyO Σ n :=
     Olty (λ args ρ v, path_wp p.|[ρ] (λ w, T (vcons w args) ρ v)).
