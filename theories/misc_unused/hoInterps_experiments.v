@@ -475,16 +475,22 @@ Section dot_types.
   Lemma kSubstOne_eq {n} (K : sf_kind Σ n) v ρ : sf_kind_sub K.|[v/] ρ = kSubstOne v K ρ.
   Proof. by rewrite /sf_kind_sub/= subst_swap_base. Qed.
 
-  Lemma sSubK_AppV Γ {n} (K : sf_kind Σ n) S T i v :
-    Γ s⊨ T ∷[i] sf_kpi S K -∗
+  Lemma sSK_AppV Γ {n} (K : sf_kind Σ n) S T1 T2 i v :
+    Γ s⊨ T1 <:[i] T2 ∷ sf_kpi S K -∗
     Γ s⊨p pv v : S, i -∗
-    Γ s⊨ oTAppV T v ∷[i] K.|[v/].
+    Γ s⊨ oTAppV T1 v <:[i] oTAppV T2 v ∷ K.|[v/].
   Proof.
     iIntros "#HTK #Hv !> * #Hg"; rewrite kSubstOne_eq /=.
     iSpecialize ("HTK" with "Hg"); iSpecialize ("Hv" with "Hg"); iNext i.
     rewrite path_wp_pv_eq /=.
     by iApply (Proper_sfkind with "(HTK Hv)").
   Qed.
+
+  Lemma sK_AppV Γ {n} (K : sf_kind Σ n) S T i v :
+    Γ s⊨ T ∷[i] sf_kpi S K -∗
+    Γ s⊨p pv v : S, i -∗
+    Γ s⊨ oTAppV T v ∷[i] K.|[v/].
+  Proof. apply sSK_AppV. Qed.
 
   Definition oTApp {n} (T : oltyO Σ n.+1) (p : path) : oltyO Σ n :=
     Olty (λ args ρ v, path_wp p.|[ρ] (λ w, T (vcons w args) ρ v)).
