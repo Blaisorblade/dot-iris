@@ -6,7 +6,7 @@ From iris.base_logic Require Import lib.saved_prop.
 From D Require Import iris_prelude.
 From D Require Import saved_interp_dep asubst_intf asubst_base dlang lty.
 From D Require Import swap_later_impl.
-From D.Dot.lr Require dot_lty unary_lr lr_lemmasNoBinding.
+From D.Dot.lr Require dot_lty unary_lr lr_lemmasNoBinding typeExtractionSem.
 
 Import EqNotations.
 
@@ -516,7 +516,7 @@ End gen_lemmas.
 End HoSemTypes.
 
 Module HkDot.
-Import dot_lty unary_lr lr_lemmasNoBinding.
+Import dot_lty unary_lr lr_lemmasNoBinding typeExtractionSem.
 Include HoSemTypes VlSorts dlang_inst dot_lty.
 Implicit Types
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
@@ -686,6 +686,20 @@ Section dot_types.
     iApply sK_Sub. iApply sK_Sing. iApply sSkd_Intv; rewrite sstpkD_star_eq_sstp.
     by iApply sBot_Sub.
     by iApply sSub_Top.
+  Qed.
+
+  (** Generalization of [sD_Typ_Abs]. *)
+  Lemma sD_TypK_Abs {Γ n} T (K : sf_kind Σ n) s σ l:
+    Γ s⊨ oLater T ∷[ 0 ] K -∗
+    s ↝[ σ ] T -∗
+    Γ s⊨ { l := dtysem σ s } : cTMemK l K.
+  Proof.
+    iIntros "#HTK"; iDestruct 1 as (φ Hγφ) "#Hγ".
+    iIntros "/= !>" (ρ Hpid) "Hg"; iSplit; first done.
+    iExists (hoEnvD_inst (σ.|[ρ]) φ); iSplit.
+    by iApply (dm_to_type_intro with "Hγ").
+    iApply (Proper_sfkind' with "(HTK Hg)") => args v /=.
+    by rewrite -(Hγφ args ρ v) make_intuitionistically.
   Qed.
 End dot_types.
 End HkDot.
