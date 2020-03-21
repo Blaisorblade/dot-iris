@@ -116,6 +116,10 @@ Proof.
   move=> T1 T2 /equiv_dist HT U1 U2 /equiv_dist HU.
   apply /equiv_dist => m. exact: sf_kind_sub_ne.
 Qed.
+Global Lemma Proper_sfkind' {Σ n} (K : sf_kind Σ n) ρ T1 T2 :
+  T1 ≡ T2 → K ρ T1 T1 ≡ K ρ T2 T2.
+Proof. intros Heq. by apply Proper_sfkind. Qed.
+
 Global Instance Proper_sfkind_A {Σ n} (K : sf_kind Σ n) ρ :
   Proper (pointwise_relation _ (≡) ==> pointwise_relation _ (≡) ==> (≡)) (K ρ).
 Proof. apply Proper_sfkind. Qed.
@@ -567,7 +571,7 @@ Section dot_types.
     by move => args ρ w; rewrite /= /hsubst /hsubst_hoEnvD/=; autosubst.
     iIntros "!> * #Hg"; rewrite sK_Lam kSubstOne_eq /=.
     iSpecialize ("Hp" with "Hg"); iSpecialize ("HK" with "Hg"); iNext i.
-    rewrite path_wp_pv_eq; by iApply (Proper_sfkind with "(HK Hp)").
+    rewrite path_wp_pv_eq. by iApply (Proper_sfkind' with "(HK Hp)").
   Qed.
 
   Definition oTApp {n} (T : oltyO Σ n.+1) (p : path) : oltyO Σ n :=
