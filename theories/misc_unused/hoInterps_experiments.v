@@ -307,6 +307,14 @@ Section gen_lemmas.
     rewrite -kinding_intro; iIntros "!>" (ρ) "_". by rewrite -subtype_refl.
   Qed.
 
+  Lemma sKStp_Intv Γ (T1 T2 L U : olty Σ 0) i :
+    Γ s⊨ T1 <:[i] T2 ∷ sf_kintv L U -∗
+    Γ s⊨ T1 <:[i] T2 ∷ sf_kintv T1 T2.
+  Proof.
+    iIntros "#Hs !> * Hg"; iDestruct ("Hs" with "Hg") as "{Hs} (_ & $ & _)".
+    by rewrite -!subtype_refl.
+  Qed.
+
   (** Kind subsumption (for kinded subtyping). *)
   Lemma sKStp_Sub Γ {n} (T1 T2 : olty Σ n) (K1 K2 : sf_kind Σ n) i :
     Γ s⊨ T1 <:[ i ] T2 ∷ K1 -∗
