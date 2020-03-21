@@ -399,12 +399,12 @@ Section gen_lemmas.
 
   (** * Kinded subtyping. *)
 
-  Lemma sSubK_Refl Γ {n} T (K : s_kind Σ n) i :
+  Lemma sKStp_Refl Γ {n} T (K : s_kind Σ n) i :
     Γ s⊨ T ∷[ i ] K -∗
     Γ s⊨ T <:[ i ] T ∷ K.
   Proof. done. Qed.
 
-  Lemma sSubK_Trans Γ {n} T1 T2 T3 (K : s_kind Σ n) i :
+  Lemma sKStp_Trans Γ {n} T1 T2 T3 (K : s_kind Σ n) i :
     Γ s⊨ T1 <:[ i ] T2 ∷ K -∗
     Γ s⊨ T2 <:[ i ] T3 ∷ K -∗
     Γ s⊨ T1 <:[ i ] T3 ∷ K.
@@ -416,15 +416,15 @@ Section gen_lemmas.
   (* Notation "" := sf_star. *)
   (* Notation "L  U" := (sf_kintv L U) (at level 70). *)
 
-  Lemma sSubK_Top Γ (T : olty Σ 0) i :
+  Lemma sKStp_Top Γ (T : olty Σ 0) i :
     Γ s⊨ T <:[ i ] ⊤ ∷ sf_star.
   Proof. rewrite -ksubtyping_intro. iIntros "!> * _ * !> _ //". Qed.
-  Lemma sSubK_Bot Γ (T : olty Σ 0) i :
+  Lemma sKStp_Bot Γ (T : olty Σ 0) i :
     Γ s⊨ ⊥ <:[ i ] T ∷ sf_star.
   Proof. rewrite -ksubtyping_intro; iIntros "!> * _ * !> []". Qed.
 
   (* <:-..-U *)
-  Lemma sSubK_IntvU Γ T L U i :
+  Lemma sKStp_IntvU Γ T L U i :
     Γ s⊨ T ∷[ i ] sf_kintv L U -∗
     Γ s⊨ T <:[ i ] U ∷ sf_star.
   Proof.
@@ -434,7 +434,7 @@ Section gen_lemmas.
   Qed.
 
   (* <:-..-L *)
-  Lemma sSubK_IntvL Γ T L U i :
+  Lemma sKStp_IntvL Γ T L U i :
     Γ s⊨ T ∷[ i ] sf_kintv L U -∗
     Γ s⊨ L <:[ i ] T ∷ sf_star.
   Proof.
@@ -503,8 +503,8 @@ Section dot_types.
   Proof. solve_proper_ho. Qed.
 
   Global Instance: Params (@sf_kind_sub) 4 := {}.
-  (** XXX Copy-paste of sSubK_AppV, plus hacks for missing Proper instances I guess? *)
-  Lemma sSubK_App Γ {n} (K : sf_kind Σ n) S T i v :
+  (** XXX Copy-paste of sKStp_AppV, plus hacks for missing Proper instances I guess? *)
+  Lemma sKStp_App Γ {n} (K : sf_kind Σ n) S T i v :
     Γ s⊨ T ∷[i] sf_kpi S K -∗
     Γ s⊨p pv v : S, i -∗
     Γ s⊨ oTApp T (pv v) ∷[i] K.|[v/].
@@ -543,7 +543,7 @@ Section dot_types.
     ∀ (H : alias_paths p q) ρ T1 T2,
     K1 ρ T1 T2 ≡ K2 ρ T1 T2 .
 
-  Lemma sSubK_App Γ {n} (K1 K2 : sf_kind Σ n) S T i p :
+  Lemma sKStp_App Γ {n} (K1 K2 : sf_kind Σ n) S T i p :
     Γ s⊨ T ∷[i] sf_kpi S K1 -∗
     Γ s⊨p p : S, i -∗
     Γ s⊨ oTAppV T v ∷[i] K2.
@@ -590,7 +590,7 @@ Section dot_types.
   (** Here [n]'s argument to oSel should be explicit. *)
   Global Arguments oSel {_ _} n p l args ρ : rename.
 
-  Lemma sSubK_TMem {n} Γ l (K1 K2 : s_kind Σ n) i :
+  Lemma sKStp_TMem {n} Γ l (K1 K2 : s_kind Σ n) i :
     Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ cTMemK l K1 <:[ i ] cTMemK l K2 ∷ sf_star.
   Proof using HswapProp.

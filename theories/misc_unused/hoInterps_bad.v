@@ -320,7 +320,7 @@ Section sec.
     Γ s⊨ sf_kpi S1 K1 <∷[ i ] sf_kpi S2 K2.
   Proof using HswapProp. by rewrite -!sstpkD_star_eq_sstp -sSkd_Pi. Qed.
 
-  Lemma sSubK_Refl' Γ {n} T (K : s_kind Σ n) :
+  Lemma sKStp_Refl' Γ {n} T (K : s_kind Σ n) :
     let sfK := s_kind_to_sf_kind K in
     Γ s⊨ T ∷[ 0 ] sfK -∗
     Γ s⊨ T, 0 <: T, 0 ∷ sfK.
@@ -329,7 +329,7 @@ Section sec.
     by iApply (Proper_sfkind with "(HK Hg)").
   Qed.
 
-  Lemma sSubK_Refl Γ {n} T (K : s_kind Σ n) i :
+  Lemma sKStp_Refl Γ {n} T (K : s_kind Σ n) i :
     let sfK := s_kind_to_sf_kind K in
     Γ s⊨ T ∷[ i ] sfK -∗
     Γ s⊨ T, i <: T, i ∷ sfK.
