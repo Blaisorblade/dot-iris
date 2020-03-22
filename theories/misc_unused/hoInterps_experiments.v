@@ -655,8 +655,9 @@ Section dot_types.
   Qed.
 
 
+  Notation hoLty_car τ := (λ args v, lty_car (τ args) v).
   Notation HoLty φ := (λ args, Lty (λI v, φ args v)).
-  Definition packHoLtyO {Σ n} (φ : hoD Σ n) : hoLtyO Σ n := HoLty (λI args v, □ ▷ φ args v).
+  Definition packHoLtyO {Σ n} (φ : hoD Σ n) : hoLtyO Σ n := HoLty (λI args v, ▷ □ φ args v).
 
   Definition oLDTMemK {n} l (K : sf_kind Σ n) : ldltyO Σ := mkLDlty (Some l) (λI ρ d,
     ∃ (ψ : hoD Σ n), d ↗n[ n ] ψ ∧ K ρ (packHoLtyO ψ) (packHoLtyO ψ)).
@@ -701,5 +702,36 @@ Section dot_types.
     iApply (Proper_sfkind' with "(HTK Hg)") => args v /=.
     by rewrite -(Hγφ args ρ v) make_intuitionistically.
   Qed.
+  (* Lemma lift_olty_eq subj {τ1 τ2 : iPPred subj Σ} :
+    (sbi_internal_eq (A := subj -d> _) (iPPred_car τ1) (iPPred_car τ2)) ⊢@{iPropI Σ} τ1 ≡ τ2.
+  Proof.
+  Admitted. *)
+    (* iIntros "H".
+    iApply prop_ext_2.
+    rewrite equiv_internal_eq.
+    iApply internal_eq_rewrite. ∗.
+  apply. Qed. *)
+
+  Global Lemma sfkind_respects {n} (K : sf_kind Σ n) ρ (T1 T2 : hoLtyO Σ n) :
+    (∀ args v, T1 args v ↔ T2 args v) ⊢@{iPropI Σ} K ρ T1 T1 -∗ K ρ T2 T2.
+  Proof.
+    (* repeat setoid_rewrite <-bi.discrete_fun_equivI.  *)
+  Admitted.
+
+  (* Lemma sK_Sel {Γ n} l (K : s_kind Σ n) v i : *)
+  Lemma sK_Sel {Γ n} l (K : sf_kind Σ n) v i :
+    Γ s⊨p pv v : cTMemK l K, i -∗
+    Γ s⊨ oSel n (pv v) l ∷[i] K.
+  Proof.
+    iIntros "#Hp !> * #Hg"; iSpecialize ("Hp" with "Hg"); iNext i.
+    rewrite /= path_wp_pv_eq /=; iDestruct "Hp" as (d Hl ψ) "[Hl HK]".
+    iApply (sfkind_respects with "[] HK"); iIntros (args w).
+    rewrite /= path_wp_pv_eq.
+    iSplit; first by iIntros "H"; iExists ψ, d; iFrame (Hl) "Hl".
+    iDestruct 1 as (ψ' ?d Hl') "[Hl' Hw]"; objLookupDet.
+    iDestruct (dm_to_type_agree args w with "Hl Hl'") as "Hag".
+    iNext. by iRewrite "Hag".
+  Qed.
+
 End dot_types.
 End HkDot.
