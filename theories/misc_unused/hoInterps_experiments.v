@@ -92,6 +92,8 @@ Notation "X ⊆ Y ⊆ Z ⊆ W" := (X ⊆ Y ∧ Y ⊆ Z ∧ Z ⊆ W)%I (at level 
 Record sf_kind {Σ n} := SfKind {
   sf_kind_sub :> sr_kind Σ n;
   sf_kind_sub_ne ρ :> NonExpansive2 (sf_kind_sub ρ);
+  sf_kind_sub_internal_proper (T1 T2 : hoLtyO Σ n) ρ:
+    (□ ∀ args v, T1 args v ↔ T2 args v) ⊢@{iPropI Σ} sf_kind_sub ρ T1 T1 ∗-∗ sf_kind_sub ρ T2 T2;
   sf_kind_sub_trans ρ T1 T2 T3 :
     sf_kind_sub ρ T1 T2 -∗
     sf_kind_sub ρ T2 T3 -∗
@@ -151,11 +153,25 @@ Section kinds_types.
   Definition sr_kintv (L U : olty Σ 0) : sr_kind Σ 0 := SrKind (λI ρ φ1 φ2,
     oClose L ρ ⊆ oClose φ1 ⊆ oClose φ2 ⊆ oClose U ρ).
 
-  Lemma sr_kintv_refl L U ρ φ : sp_kintv L U ρ φ -∗ sr_kintv L U ρ φ φ.
-  Proof. iIntros "($ & $)". by rewrite -subtype_refl. Qed.
+  Lemma sr_kintv_refl L U ρ φ : sp_kintv L U ρ φ ≡ sr_kintv L U ρ φ φ.
+  Proof.
+    iSplit; last by iIntros "($ & _ & $)".
+    iIntros "($ & $)"; by rewrite -subtype_refl.
+  Qed.
 
   Program Definition sf_kintv (L U : olty Σ 0) : sf_kind Σ 0 :=
-    SfKind (sr_kintv L U) ltac:(solve_proper_ho) _ _ _.
+    SfKind (sr_kintv L U) ltac:(solve_proper_ho) _ _ _ _.
+  Next Obligation.
+    intros; rewrite -!sr_kintv_refl.
+    iIntros "#Heq".
+    iAssert (oClose T1 ⊆ oClose T2)%I as "HT1". by iIntros "!> * H"; iApply ("Heq" with "H").
+    iAssert (oClose T2 ⊆ oClose T1)%I as "HT2". by iIntros "!> * H"; iApply ("Heq" with "H").
+    iSplit; iIntros "(HL&HU) /="; iSplit.
+    by iApply (subtype_trans with "HL HT1").
+    by iApply (subtype_trans with "HT2 HU").
+    by iApply (subtype_trans with "HL HT2").
+    by iApply (subtype_trans with "HT1 HU").
+  Qed.
   Next Obligation.
     iIntros "* ($&HLT1&_) (_ & HT2T3 & $)".
     iApply (subtype_trans (oClose T2) with "HLT1 HT2T3").
@@ -176,7 +192,7 @@ Section kinds_types.
         sf_kind_car K (arg .: ρ) (vcurry φ arg))) *)
       (SrKind (λI ρ φ1 φ2,
         □∀ arg, S vnil ρ arg →
-        K (arg .: ρ) (vcurry φ1 arg) (vcurry φ2 arg))) _ _ _ _.
+        K (arg .: ρ) (vcurry φ1 arg) (vcurry φ2 arg))) _ _ _ _ _.
   (* Next Obligation.
     move=> n S K ρ m T1 T2 HT /=.
     have ?: ∀ ρ, NonExpansive (sf_kind_car K ρ) by apply sf_kind_car_ne.
@@ -188,6 +204,12 @@ Section kinds_types.
     f_equiv; f_equiv => ?; f_equiv.
     by apply sf_kind_sub_ne; f_equiv.
     (* apply Hne; by f_equiv. *)
+  Qed.
+  Next Obligation.
+    iIntros "* #Heq /="; iSplit; iIntros "#HT !> * #HS";
+      iSpecialize ("HT" $! arg with "HS");
+      iApply (sf_kind_sub_internal_proper with "[] HT");
+      iIntros "!> *"; first iApply and_comm; iApply "Heq".
   Qed.
   (* Next Obligation.
     iIntros "* #H !>" (arg) "#Harg".
@@ -530,10 +552,11 @@ Section dot_types.
   and only finally lift that over sf_kind. *)
   (* XXX Name. *)
   Program Definition kSub {n} (f : env → env) (K : sf_kind Σ n) : sf_kind Σ n :=
-    SfKind (λI ρ, K (f ρ)) _ _ _ _.
+    SfKind (λI ρ, K (f ρ)) _ _ _ _ _.
   Next Obligation.
     move=> n K v ρ m T1 T2 HT U1 U2 HU /=; exact: sf_kind_sub_ne.
   Qed.
+  Next Obligation. intros; simpl; exact: sf_kind_sub_internal_proper. Qed.
   Next Obligation. intros; simpl; exact: sf_kind_sub_trans. Qed.
   Next Obligation. intros; simpl; exact: sf_kind_sub_quasi_refl_1. Qed.
   Next Obligation. intros; simpl; exact: sf_kind_sub_quasi_refl_2. Qed.
@@ -702,10 +725,9 @@ Section dot_types.
     iApply (Proper_sfkind' with "(HTK Hg)") => args v /=.
     by rewrite -(Hγφ args ρ v) make_intuitionistically.
   Qed.
-  (* Lemma lift_olty_eq subj {τ1 τ2 : iPPred subj Σ} :
+  Lemma lift_olty_eq subj {τ1 τ2 : iPPred subj Σ} :
     (sbi_internal_eq (A := subj -d> _) (iPPred_car τ1) (iPPred_car τ2)) ⊢@{iPropI Σ} τ1 ≡ τ2.
-  Proof.
-  Admitted. *)
+  Proof. by uPred.unseal. Qed.
     (* iIntros "H".
     iApply prop_ext_2.
     rewrite equiv_internal_eq.
@@ -714,9 +736,7 @@ Section dot_types.
 
   Lemma sfkind_respects {n} (K : sf_kind Σ n) ρ (T1 T2 : hoLtyO Σ n) :
     (□ ∀ args v, T1 args v ↔ T2 args v) ⊢@{iPropI Σ} K ρ T1 T1 -∗ K ρ T2 T2.
-  Proof.
-    (* repeat setoid_rewrite <-bi.discrete_fun_equivI.  *)
-  Admitted.
+  Proof. rewrite (sf_kind_sub_internal_proper K T1 T2 ρ); iIntros "[$_]". Qed.
 
   Lemma sK_Sel {Γ n} l (K : sf_kind Σ n) p i :
     Γ s⊨p p : cTMemK l K, i -∗
