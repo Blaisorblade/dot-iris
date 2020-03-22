@@ -712,7 +712,7 @@ Section dot_types.
     iApply internal_eq_rewrite. ∗.
   apply. Qed. *)
 
-  Global Lemma sfkind_respects {n} (K : sf_kind Σ n) ρ (T1 T2 : hoLtyO Σ n) :
+  Lemma sfkind_respects {n} (K : sf_kind Σ n) ρ (T1 T2 : hoLtyO Σ n) :
     (∀ args v, T1 args v ↔ T2 args v) ⊢@{iPropI Σ} K ρ T1 T1 -∗ K ρ T2 T2.
   Proof.
     (* repeat setoid_rewrite <-bi.discrete_fun_equivI.  *)
