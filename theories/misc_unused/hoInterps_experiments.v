@@ -713,19 +713,18 @@ Section dot_types.
   apply. Qed. *)
 
   Lemma sfkind_respects {n} (K : sf_kind Σ n) ρ (T1 T2 : hoLtyO Σ n) :
-    (∀ args v, T1 args v ↔ T2 args v) ⊢@{iPropI Σ} K ρ T1 T1 -∗ K ρ T2 T2.
+    (□ ∀ args v, T1 args v ↔ T2 args v) ⊢@{iPropI Σ} K ρ T1 T1 -∗ K ρ T2 T2.
   Proof.
     (* repeat setoid_rewrite <-bi.discrete_fun_equivI.  *)
   Admitted.
 
-  (* Lemma sK_Sel {Γ n} l (K : s_kind Σ n) v i : *)
-  Lemma sK_Sel {Γ n} l (K : sf_kind Σ n) v i :
+  Lemma sK_SelV {Γ n} l (K : sf_kind Σ n) v i :
     Γ s⊨p pv v : cTMemK l K, i -∗
     Γ s⊨ oSel n (pv v) l ∷[i] K.
   Proof.
     iIntros "#Hp !> * #Hg"; iSpecialize ("Hp" with "Hg"); iNext i.
-    rewrite /= path_wp_pv_eq /=; iDestruct "Hp" as (d Hl ψ) "[Hl HK]".
-    iApply (sfkind_respects with "[] HK"); iIntros (args w).
+    rewrite path_wp_pv_eq /=; iDestruct "Hp" as (d Hl ψ) "[Hl HK]".
+    iApply (sfkind_respects with "[] HK"); iIntros (args w) "!>".
     rewrite /= path_wp_pv_eq.
     iSplit; first by iIntros "H"; iExists ψ, d; iFrame (Hl) "Hl".
     iDestruct 1 as (ψ' ?d Hl') "[Hl' Hw]"; objLookupDet.
