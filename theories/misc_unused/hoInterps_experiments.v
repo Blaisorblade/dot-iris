@@ -718,16 +718,17 @@ Section dot_types.
     (* repeat setoid_rewrite <-bi.discrete_fun_equivI.  *)
   Admitted.
 
-  Lemma sK_SelV {Γ n} l (K : sf_kind Σ n) v i :
-    Γ s⊨p pv v : cTMemK l K, i -∗
-    Γ s⊨ oSel n (pv v) l ∷[i] K.
+  Lemma sK_Sel {Γ n} l (K : sf_kind Σ n) p i :
+    Γ s⊨p p : cTMemK l K, i -∗
+    Γ s⊨ oSel n p l ∷[i] K.
   Proof.
     iIntros "#Hp !> * #Hg"; iSpecialize ("Hp" with "Hg"); iNext i.
-    rewrite path_wp_pv_eq /=; iDestruct "Hp" as (d Hl ψ) "[Hl HK]".
-    iApply (sfkind_respects with "[] HK"); iIntros (args w) "!>".
-    rewrite /= path_wp_pv_eq.
-    iSplit; first by iIntros "H"; iExists ψ, d; iFrame (Hl) "Hl".
-    iDestruct 1 as (ψ' ?d Hl') "[Hl' Hw]"; objLookupDet.
+    rewrite path_wp_eq /=; iDestruct "Hp" as (v Hal d Hl ψ) "[Hl HK] {Hg}".
+    iApply (sfkind_respects with "[] HK"); iIntros (args w) "!> {HK}".
+    rewrite /= path_wp_eq; iSplit. { iIntros "H"; iExists v; iFrame (Hal).
+      by iExists ψ, d; iFrame (Hl) "Hl". }
+    iDestruct 1 as (v' Hal' ψ' ?d Hl') "[Hl' Hw]".
+    have ? := path_wp_pure_det Hal Hal'; subst v'; objLookupDet.
     iDestruct (dm_to_type_agree args w with "Hl Hl'") as "Hag".
     iNext. by iRewrite "Hag".
   Qed.
