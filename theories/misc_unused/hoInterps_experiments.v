@@ -126,6 +126,7 @@ Proof. apply Proper_sfkind. Qed.
 
 Global Instance vcurry_ne vl n A m : Proper (dist m ==> (=) ==> dist m) (@vcurry vl n A).
 Proof. solve_proper_ho. Qed.
+Add Printing Constructor iPPred.
 
 Section kinds_types.
   Context {Σ}.
@@ -258,7 +259,6 @@ Notation "Γ s⊨ K1 <∷[ i  ] K2" := (ssktp i Γ K1 K2)
   (at level 74, K1, K2 at next level).
 
 (* XXX *)
-Add Printing Constructor iPPred.
 Section gen_lemmas.
   Context `{dlangG Σ} `{HswapProp: SwapPropI Σ}.
 
