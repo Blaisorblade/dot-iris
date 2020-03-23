@@ -13,13 +13,11 @@ Section Sec.
     Γ s⊨p p : cTMem l L U, i -∗
     Γ s⊨ oLater L, i <: oSel p l, i.
   Proof.
-    iIntros "/= #Hp !>" (ρ v) "Hg #Hφ /=".
-    iSpecialize ("Hp" with "Hg").
-    iApply (path_wp_wand with "Hp").
-    iIntros "!> !>" (w).
-    iDestruct 1 as (d Hl φ) "#(Hlφ & #HLφ & #HφU)".
-    iExists φ, d; repeat iSplit => //.
-    by iApply "HLφ".
+    iIntros "/= #Hp !>" (ρ v) "Hg #HL /=".
+    iSpecialize ("Hp" with "Hg"); iNext i.
+    iApply (path_wp_wand with "Hp"); iIntros "!>" (w).
+    iDestruct 1 as (d Hl φ) "[Hlφ [HLφ _]]".
+    iExists φ, d; iFrame (Hl) "Hlφ". iApply ("HLφ" with "HL").
   Qed.
 
   Lemma Sub_Sel {Γ L U p l i}:
@@ -31,16 +29,14 @@ Section Sec.
     Γ s⊨p p : cTMem l L U, i -∗
     Γ s⊨ oSel p l, i <: oLater U, i.
   Proof.
-    iIntros " #Hp !>" (ρ v) "Hg Hφ".
-    iSpecialize ("Hp" with "Hg").
+    iIntros "#Hp !>" (ρ v) "Hg Hφ"; iSpecialize ("Hp" with "Hg").
     iNext i.
-    rewrite /= !path_wp_eq.
-    iDestruct "Hp" as (w Hw d Hl φ) "#[Hlφ [_ #HφU]]".
-    iDestruct "Hφ" as (w' Hw' φ1 d1 Hl') "[Hγ #HΦ1v]".
-    rewrite -(path_wp_pure_det Hw Hw') {Hw Hw'} in Hl'.
-    objLookupDet.
-    iDestruct (dm_to_type_agree vnil v with "Hlφ Hγ") as "#Hag".
-    iApply "HφU" => //. iNext. by iRewrite "Hag".
+    iDestruct (path_wp_and' with "Hp Hφ") as "H".
+    iDestruct (path_wp_eq with "H") as (w Hw) "[Hp Hφ] /=".
+    iDestruct "Hp" as (d Hl φ) "[Hlφ [_ HφU]]"; iApply "HφU".
+    iDestruct "Hφ" as (φ1 d1 Hl') "[Hγ HΦ1v]"; objLookupDet.
+    iDestruct (dm_to_type_agree vnil v with "Hγ Hlφ") as "Hag".
+    iNext. by iRewrite "Hag" in "HΦ1v".
   Qed.
 
   Lemma Sel_Sub {Γ L U p l i}:

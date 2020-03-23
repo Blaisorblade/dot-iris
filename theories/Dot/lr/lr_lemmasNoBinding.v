@@ -43,7 +43,7 @@ Section Sec.
     iIntros "/= !>" (ρ v) "#Hg [#H1 H2]". iNext.
     iDestruct "H1" as (d? pmem?) "#H1"; iDestruct "H2" as (d'? pmem'?) "#H2". objLookupDet.
     repeat (iExists _; repeat iSplit => //).
-    by iApply path_wp_and; auto.
+    by iApply (path_wp_and' with "H1 H2").
   Qed.
 
   Lemma sAnd_Fld_Sub_Distr_2 l T1 T2 i:

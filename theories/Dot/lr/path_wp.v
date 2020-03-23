@@ -177,47 +177,6 @@ Section path_wp.
     - iIntros (Hp); iInduction Hp as [] "IH"; iEval (rewrite path_wp_unfold /=); eauto.
   Qed.
 
-  Lemma path_wp_wand φ1 φ2 p:
-    path_wp p φ1 -∗
-    □ (∀ v, φ1 v -∗ φ2 v) -∗
-    path_wp p φ2.
-  Proof.
-    iIntros "H1"; iRevert (φ2); iRevert "H1"; path_wp_ind p φ1.
-    - by iIntros "H1" (Φ2) "Hwand"; rewrite path_wp_unfold/=; iApply "Hwand".
-    - iDestruct 1 as (vp q Hlook) "IH"; iIntros (Φ2) "#Hwand".
-      iEval (rewrite path_wp_unfold /=).
-      iExists vp, q. iFrame (Hlook).
-      iSplit; first iDestruct "IH" as "[[_ #$] _]".
-      iDestruct "IH" as "[_ IHq]".
-      iApply ("IHq" with "Hwand").
-  Qed.
-
-  Global Instance path_wp_pureableI p φ Pv :
-    (∀ v, IntoPure (φ v) (Pv v)) →
-    IntoPure (path_wp p φ)%I (path_wp_pure p Pv).
-  Proof.
-    rewrite /IntoPure -path_wp_pureable. iIntros (Hw) "Hp".
-    iApply (path_wp_wand with "Hp"). iIntros (v). iApply Hw.
-  Qed.
-  Global Instance path_wp_pureableF p φ Pv b :
-    (∀ v, FromPure b (φ v) (Pv v)) →
-    FromPure false (path_wp p φ)%I (path_wp_pure p Pv).
-  Proof.
-    rewrite /FromPure/= -path_wp_pureable. iIntros (Hw) "Hp".
-    iApply (path_wp_wand with "Hp"). iIntros (v Hpv) "!>". iApply Hw.
-    by case: b {Hw} => /=; iIntros "!%".
-  Qed.
-
-  Lemma path_wp_det p v1 v2:
-    path_wp p (λ w, ⌜ v1 = w ⌝) -∗
-    path_wp p (λ w, ⌜ v2 = w ⌝) -∗
-    ⌜ v1 = v2 ⌝: iProp Σ.
-  Proof. iIntros "!%". exact: path_wp_pure_det. Qed.
-
-  Lemma path_wp_swap p u :
-    path_wp p (λ w, ⌜w = u⌝) ⊣⊢ path_wp p (λ w, ⌜u = w⌝).
-  Proof. iIntros "!%". by rewrite /= path_wp_pure_swap. Qed.
-
   Lemma path_wp_eq p φ :
     path_wp p φ ⊣⊢ ∃ v, ⌜ path_wp_pure p (eq v) ⌝ ∧ φ v.
   Proof.
@@ -231,9 +190,53 @@ Section path_wp.
       move: Hwp; move HE: (eq v) => φ' Hwp.
       iInduction Hwp as [|] "IH"; simplify_eq/=;
         iEval (rewrite path_wp_unfold /=); first done.
-      iExists _, _; repeat iSplit => //.
-      by iApply "IH1".
+      iExists _, _. by repeat iSplit; [|iApply path_wp_pureable|iApply "IH1"].
   Qed.
+
+  Lemma strong_path_wp_wand φ1 φ2 p:
+    □ (∀ v, ⌜ path_wp_pure p (eq v) ⌝ → φ1 v -∗ φ2 v) ⊢
+    path_wp p φ1 -∗ path_wp p φ2.
+  Proof.
+    rewrite !path_wp_eq; iIntros "#Hwand"; iDestruct 1 as (v Hal) "H1".
+    iExists v; iFrame (Hal). iApply ("Hwand" $! _ Hal with "H1").
+  Qed.
+
+  Lemma path_wp_wand' φ1 φ2 p:
+    □ (∀ v, φ1 v -∗ φ2 v) -∗ path_wp p φ1 -∗ path_wp p φ2.
+  Proof.
+    iIntros "#Hwand"; iApply (strong_path_wp_wand with "[]").
+    iIntros "!> * _"; iApply "Hwand".
+  Qed.
+
+  Lemma path_wp_wand φ1 φ2 p:
+    path_wp p φ1 -∗ □ (∀ v, φ1 v -∗ φ2 v) -∗ path_wp p φ2.
+  Proof. iIntros "H1 Hwand"; iApply (path_wp_wand' with "Hwand H1"). Qed.
+
+  Global Instance path_wp_pureableI p φ Pv :
+    (∀ v, IntoPure (φ v) (Pv v)) →
+    IntoPure (path_wp p φ)%I (path_wp_pure p Pv).
+  Proof.
+    rewrite /IntoPure -path_wp_pureable; iIntros (Hw).
+    iApply path_wp_wand'. iIntros (v). iApply Hw.
+  Qed.
+  Global Instance path_wp_pureableF p φ Pv b :
+    (∀ v, FromPure b (φ v) (Pv v)) →
+    FromPure false (path_wp p φ)%I (path_wp_pure p Pv).
+  Proof.
+    rewrite /FromPure/= -path_wp_pureable. iIntros (Hw).
+    iApply path_wp_wand'. iIntros (v Hpv) "!>". iApply Hw.
+    by case: b {Hw} => /=; iFrame (Hpv).
+  Qed.
+
+  Lemma path_wp_det p v1 v2:
+    path_wp p (λ w, ⌜ v1 = w ⌝) -∗
+    path_wp p (λ w, ⌜ v2 = w ⌝) -∗
+    ⌜ v1 = v2 ⌝: iProp Σ.
+  Proof. iIntros "!%". exact: path_wp_pure_det. Qed.
+
+  Lemma path_wp_swap p u :
+    path_wp p (λ w, ⌜w = u⌝) ⊣⊢ path_wp p (λ w, ⌜u = w⌝).
+  Proof. iIntros "!%". by rewrite /= path_wp_pure_swap. Qed.
 
   (* Not provable through pure props for impure [φ]. *)
   Lemma alias_paths_samepwp p q:
@@ -241,14 +244,12 @@ Section path_wp.
       (∃ u, path_wp_pure p (eq u)) ∧
       ∀ φ, path_wp p φ ≡ path_wp q φ.
   Proof.
-    rewrite alias_paths_sameres; split.
-    - destruct 1 as (v & Hp & Hq).
-      split; first by [eauto]; intros φ.
-      rewrite !path_wp_eq. f_equiv => w.
-      do 2 f_equiv.
-      split => Hr; [ rewrite -(path_wp_pure_det Hp Hr)
-        | rewrite -(path_wp_pure_det Hq Hr)]; auto.
-    - destruct 1 as ((u & Hp) & Heq). exists u; split; first done.
+    split.
+    - move => Hal; have /alias_paths_sameres [v [Hp Hq]] := Hal.
+      split; first by [eauto]; intros φ; rewrite !path_wp_eq.
+      f_equiv => w. do 2 f_equiv. apply alias_paths_elim_eq_pure, Hal.
+    - rewrite alias_paths_sameres. destruct 1 as ((u & Hp) & Heq).
+      exists u; split; first done.
       (* Yes, very weird. *)
       apply (pure_soundness (M := iResUR Σ)).
       iRevert (Hp). by rewrite -!path_wp_pureable Heq.
@@ -300,6 +301,11 @@ Section path_wp.
       rewrite -(path_wp_pure_det Hv1 Hv2); iExists v1; eauto.
     - iDestruct 1 as (v Hv) "[H1 H2]"; eauto 6.
   Qed.
+
+  Lemma path_wp_and' p Φ1 Φ2 `{PersistentP Φ1} `{PersistentP Φ2}:
+    path_wp p Φ1 ⊢ path_wp p Φ2 -∗
+    path_wp p (λ v, Φ1 v ∧ Φ2 v).
+  Proof. rewrite -path_wp_and; iIntros "$ $". Qed.
 
   Lemma path_wp_or p Φ1 Φ2 `{PersistentP Φ1} `{PersistentP Φ2}:
     path_wp p Φ1 ∨ path_wp p Φ2 ⊣⊢

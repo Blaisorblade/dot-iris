@@ -65,8 +65,8 @@ Section path_repl.
     Γ s⊨p p : oSing p, i.
   Proof.
     iIntros "#Hep !>" (ρ) "Hg". iSpecialize ("Hep" with "Hg"). iNext.
-    iDestruct (path_wp_eq with "Hep") as (v Hpv) "_".
-    iIntros "!%". by eapply alias_paths_simpl, alias_paths_self, alias_paths_pv_eq_1.
+    iApply (strong_path_wp_wand with "[] Hep"); iIntros (v Hpv) "!> _ !%".
+    apply alias_paths_pv_eq_1, Hpv.
   Qed.
 
   Lemma P_Sngl_Refl Γ T p i : Γ ⊨p p : T, i -∗ Γ ⊨p p : TSing p, i.
@@ -92,9 +92,9 @@ Section path_repl.
   Proof.
     iIntros "#Hp #Hps !>" (ρ v) "#Hg /= Heq".
     iDestruct (path_wp_eq with "(Hp Hg)") as (w) "[Hpw _] {Hp}".
-    rewrite -alias_paths_pv_eq_1.
-    iSpecialize ("Hps" $! _ w with "Hg Hpw"); iNext i; rewrite !alias_paths_pv_eq_1.
-    iDestruct "Hps" as %Hqw; iDestruct "Hpw" as %Hpw; iDestruct "Heq" as %Hqv; iIntros "!%".
+    rewrite -alias_paths_pv_eq_1; iSpecialize ("Hps" $! _ w with "Hg Hpw");
+      rewrite !alias_paths_pv_eq_1.
+    iNext i; iRevert "Hps Hpw Heq"; iIntros "!%" (Hqw Hpw Hqv).
     by rewrite (path_wp_pure_det Hqv Hqw).
   Qed.
 
@@ -109,7 +109,7 @@ Section path_repl.
     iIntros "#Hpq !>" (ρ) "#Hg /=".
     iDestruct (singleton_aliasing with "Hpq Hg") as "Hal {Hpq Hg}".
     iNext i. iDestruct "Hal" as %(v & _ & Hqv)%alias_paths_sameres. iIntros "!%".
-    by apply (path_wp_pure_wand Hqv).
+    exact: (path_wp_pure_wand Hqv).
   Qed.
 
   Lemma P_Sngl_Inv Γ p q i : Γ ⊨p p : TSing q, i -∗ Γ ⊨p q : TTop, i.
@@ -129,9 +129,8 @@ Section path_repl.
   Lemma P_Mu_E {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : TMu T, i -∗ Γ ⊨p p : T', i.
   Proof.
-    iIntros "#Hp !>" (ρ) "Hg /="; iSpecialize ("Hp" with "Hg"); iNext.
-    rewrite !path_wp_eq.
-    iDestruct "Hp" as (v Heq) "Hp"; iExists v; iFrame (Heq).
+    iIntros "#Hp !>" (ρ) "Hg /="; iSpecialize ("Hp" with "Hg").
+    iApply (strong_path_wp_wand with "[] Hp"); iIntros "!> **".
     by rewrite oMu_eq (psubst_one_repl Hrepl) ?alias_paths_pv_eq_1.
   Qed.
 
@@ -139,8 +138,7 @@ Section path_repl.
     Γ ⊨p p : T', i -∗ Γ ⊨p p : TMu T, i.
   Proof.
     iIntros "#Hp !>" (ρ) "Hg /="; iSpecialize ("Hp" with "Hg"); iNext.
-    rewrite !path_wp_eq.
-    iDestruct "Hp" as (v Heq) "Hp"; iExists v; iFrame (Heq).
+    iApply (strong_path_wp_wand with "[] Hp"); iIntros "!> **".
     by rewrite oMu_eq (psubst_one_repl Hrepl) ?alias_paths_pv_eq_1.
   Qed.
 
@@ -234,10 +232,9 @@ Section path_repl.
     (*─────────────────────────*)
     Γ ⊨p p : TVMem l T, i.
   Proof.
-    iIntros "#HE /= !>" (ρ) "#HG"; iSpecialize ("HE" with "HG"); iNext i.
-    rewrite path_wp_pself_eq !path_wp_eq;
-      iDestruct "HE" as (v q Hlook Hpv) "Htw {HG} /=".
-    iExists _; iFrame (Hpv). eauto.
+    iIntros "#HE /= !>" (ρ) "Hg"; iSpecialize ("HE" with "Hg"); iNext i.
+    rewrite path_wp_pself_eq; iDestruct "HE" as (v q Hlook) "[Hpv #Htw]".
+    iApply (path_wp_wand with "Hpv"). iIntros "/= !> % <-"; eauto.
   Qed.
 
   Lemma P_Fld_I Γ p T l i: Γ ⊨p pself p l : T, i -∗ Γ ⊨p p : TVMem l T, i.
