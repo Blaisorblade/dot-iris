@@ -109,6 +109,7 @@ Global Arguments sf_kind : clear implicits.
 Global Arguments sf_kind_sub {_ _} !_ /.
 Add Printing Constructor sf_kind.
 Global Arguments SfKind {_ _} _.
+Global Instance: Params (@sf_kind_sub) 4 := {}.
 
 (* This is really properness of sf_kind_sub; but it's also proper over the
 first argument K. Maybe that's worth a wrapper with swapped arguments. *)
@@ -600,10 +601,9 @@ Section dot_types.
   Definition oTApp {n} (T : oltyO Σ n.+1) (p : path) : oltyO Σ n :=
     Olty (λ args ρ v, path_wp p.|[ρ] (λ w, T (vcons w args) ρ v)).
   Lemma oTApp_pv {n} (T : oltyO Σ n.+1) w :
-    oTApp T (pv w) ≡ oTAppV T w .
+    oTApp T (pv w) ≡ oTAppV T w.
   Proof. intros ???. by rewrite /= path_wp_pv_eq. Qed.
 
-  Global Instance: Params (@sf_kind_sub) 4 := {}.
   (** XXX Copy-paste of sKStp_AppV, plus hacks for missing Proper instances I guess? *)
   Lemma sKStp_App Γ {n} (K : sf_kind Σ n) S T1 T2 i v :
     Γ s⊨ T1 <:[i] T2 ∷ sf_kpi S K -∗
@@ -726,6 +726,7 @@ Section dot_types.
     by rewrite -(Hγφ args ρ v) make_intuitionistically.
   Qed.
   Lemma lift_olty_eq subj {τ1 τ2 : iPPred subj Σ} :
+    (* (iPPred_car τ1 ≡@{subj -d> _} iPPred_car τ2) ⊢@{iPropI Σ} τ1 ≡ τ2. *)
     (sbi_internal_eq (A := subj -d> _) (iPPred_car τ1) (iPPred_car τ2)) ⊢@{iPropI Σ} τ1 ≡ τ2.
   Proof. by uPred.unseal. Qed.
     (* iIntros "H".
