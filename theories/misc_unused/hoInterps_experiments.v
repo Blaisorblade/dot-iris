@@ -188,23 +188,13 @@ Section kinds_types.
 
   Program Definition sf_kpi {n} (S : olty Σ 0) (K : sf_kind Σ n) : sf_kind Σ n.+1 :=
     SfKind
-      (* (SpKind (λI ρ φ,
-        □∀ arg, S vnil ρ arg →
-        sf_kind_car K (arg .: ρ) (vcurry φ arg))) *)
       (SrKind (λI ρ φ1 φ2,
         □∀ arg, S vnil ρ arg →
         K (arg .: ρ) (vcurry φ1 arg) (vcurry φ2 arg))) _ _ _ _ _.
-  (* Next Obligation.
-    move=> n S K ρ m T1 T2 HT /=.
-    have ?: ∀ ρ, NonExpansive (sf_kind_car K ρ) by apply sf_kind_car_ne.
-    (* f_equiv; f_equiv => ?; *) solve_proper_ho.
-  Qed. *)
   Next Obligation.
     move=> n S K ρ m T1 T2 HT U1 U2 HU /=.
-    (* have Hne: ∀ ρ, NonExpansive2 (sf_kind_sub K ρ) by apply sf_kind_sub_ne. *)
     f_equiv; f_equiv => ?; f_equiv.
     by apply sf_kind_sub_ne; f_equiv.
-    (* apply Hne; by f_equiv. *)
   Qed.
   Next Obligation.
     iIntros "* #Heq /="; iSplit; iIntros "#HT !> * #HS";
@@ -212,10 +202,6 @@ Section kinds_types.
       iApply (sf_kind_sub_internal_proper with "[] HT");
       iIntros "!> *"; first iApply and_comm; iApply "Heq".
   Qed.
-  (* Next Obligation.
-    iIntros "* #H !>" (arg) "#Harg".
-    iApply (sf_kind_sub_refl with "(H Harg)").
-  Qed. *)
   Next Obligation.
     iIntros "* #H1 #H2 !>" (arg) "#Harg".
     iApply (sf_kind_sub_trans with "(H1 Harg) (H2 Harg)").
@@ -288,7 +274,6 @@ Section gen_lemmas.
   Local Notation IntoPersistent' P := (IntoPersistent false P P).
 
   Global Instance sstpkD_persistent : IntoPersistent' (sstpkD (n := n) i Γ T1 T2 K) | 0 := _.
-  (* Global Instance sktp_persistent `{!dlangG Σ} : IntoPersistent' (sktp (n := n) i Γ T K) | 0 := _. *)
   Global Instance ssktp_persistent : IntoPersistent' (ssktp (n := n) i Γ K1 K2) | 0 := _.
   Global Instance subtype_lty_persistent : IntoPersistent' (T1 ⊆@{Σ} T2) | 0 := _.
 
@@ -383,11 +368,6 @@ Section gen_lemmas.
     Γ s⊨ oLam T ∷[i] sf_kpi S K.
   Proof using HswapProp. apply sKStp_Lam. Qed.
 
-    (* rewrite /vcurry /envApply/flip/oLam/Olty/vhead/vcons/=.
-    by iApply "HTK".
-    case: (oLam T).
-    /iPPred_car/=.
-    by iApply "HTK". *)
   (** * Subkinding *)
   Lemma sSkd_Intv (L1 L2 U1 U2 : olty Σ 0) Γ i :
     Γ s⊨ L2 <:[ i ] L1 ∷ sf_star -∗
@@ -472,29 +452,16 @@ Section gen_lemmas.
   Qed.
   Global Instance: Params (@sstpkD) 4 := {}.
 
-  (* Replace by a Proper instance. *)
-  (* Lemma sKStp_Refl_Aux {n} Γ T1 T2 (K : sf_kind Σ n) i :
-    T1 ≡ T2 →
-    Γ s⊨ T1 ∷[i] K -∗
-    Γ s⊨ T1 <:[i] T2 ∷ K.
-  Proof. intros ->. apply sKStp_Refl. Qed. *)
-
   Lemma sKEq_Refl {n} Γ T1 T2 (K : sf_kind Σ n) i :
     T1 ≡ T2 →
     Γ s⊨ T1 ∷[i] K -∗
     Γ s⊨ T1 =[i] T2 ∷ K.
-  Proof.
-    (* intros <-; iIntros "$".  *)
-    iIntros (Heq) "#H"; by iSplit; iApply (Proper_sstpkD with "H").
-  Qed.
+  Proof. iIntros (Heq) "#H"; by iSplit; iApply (Proper_sstpkD with "H"). Qed.
 
   Lemma sKEq_Eta {n} Γ S T (K : sf_kind Σ n) i :
     Γ s⊨ T ∷[i] sf_kpi S K -∗
     Γ s⊨ T =[i] oLam (oTAppV (oShift T) (ids 0)) ∷ sf_kpi S K.
-  Proof.
-    iApply sKEq_Refl => + ρ v /=; apply: vec_S_inv => w args.
-    autosubst.
-  Qed.
+  Proof. iApply sKEq_Refl => + ρ v; apply: vec_S_inv => w args. autosubst. Qed.
 
   Lemma sKStp_Trans Γ {n} T1 T2 T3 (K : s_kind Σ n) i :
     Γ s⊨ T1 <:[ i ] T2 ∷ K -∗
@@ -664,37 +631,10 @@ Section dot_types.
     by rewrite (alias_paths_elim_eq _ Hal) path_wp_pv_eq.
   Qed.
 
-    (* rewrite /oTAppV/envApply/flip.
-    iApply (Proper_sfkind).
-    cbn.
-
-    iApply (Proper_sfkind with "HTK").
-    iS
-    rewrite -mlaterN_pers -impl_laterN.
-    iIntros "!> Hs".
-    iSpecialize ("HTK" $! (arg .: ρ) with "[$Hg $Hs]").
-    by iApply (Proper_sfkind with "HTK").
-  Qed. *)
-
   (* XXX argh. *)
   (* Definition kind_path_subst {n} p q (K1 K2 : sf_kind Σ n) : iProp Σ :=
     ∀ (H : alias_paths p q) ρ T1 T2,
-    K1 ρ T1 T2 ≡ K2 ρ T1 T2 .
-
-  Lemma sKStp_App Γ {n} (K1 K2 : sf_kind Σ n) S T i p :
-    Γ s⊨ T ∷[i] sf_kpi S K1 -∗
-    Γ s⊨p p : S, i -∗
-    Γ s⊨ oTAppV T v ∷[i] K2.
-  Proof.
-    iIntros "#HTK #Hv !> * #Hg".
-    rewrite kSubstOne_eq /=.
-    iSpecialize ("HTK" with "Hg"); iSpecialize ("Hv" with "Hg").
-    rewrite path_wp_pv_eq /=; iNext i.
-    iSpecialize ("HTK" with "Hv").
-    (* iEval rewrite /sf_kind_sub/=.
-    iApply ("HTK"). *)
-    by iApply (Proper_sfkind with "HTK").
-  Qed. *)
+    K1 ρ T1 T2 ≡ K2 ρ T1 T2 . *)
 
 
 
