@@ -567,40 +567,12 @@ Section dot_types.
   Lemma opSubst_pv_eq {n} v (T : olty Σ n) : opSubst (pv v) T ≡ T.|[v/].
   Proof. move=> args ρ w /=. by rewrite path_wp_pv_eq subst_swap_base. Qed.
 
-  Lemma sKStp_AppV Γ {n} (K : sf_kind Σ n) S T1 T2 i v :
-    Γ s⊨ T1 <:[i] T2 ∷ sf_kpi S K -∗
-    Γ s⊨p pv v : S, i -∗
-    Γ s⊨ oTAppV T1 v <:[i] oTAppV T2 v ∷ K.|[v/].
-  Proof.
-    iIntros "#HTK #Hv !> * #Hg"; rewrite kSubstOne_eq /=.
-    iSpecialize ("HTK" with "Hg"); iSpecialize ("Hv" with "Hg"); iNext i.
-    rewrite path_wp_pv_eq /=.
-    by iApply (Proper_sfkind with "(HTK Hv)").
-  Qed.
-
-  Lemma sK_AppV Γ {n} (K : sf_kind Σ n) S T i v :
-    Γ s⊨ T ∷[i] sf_kpi S K -∗
-    Γ s⊨p pv v : S, i -∗
-    Γ s⊨ oTAppV T v ∷[i] K.|[v/].
-  Proof. apply sKStp_AppV. Qed.
-
-  Lemma sKEq_BetaV {n} Γ S T (K : sf_kind Σ n) i v :
-    Γ s⊨p pv v : S, i -∗
-    oLaterN i (oShift S) :: Γ s⊨ T ∷[i] K -∗
-    Γ s⊨ oTAppV (oLam T) v =[i] T.|[v/] ∷ K.|[v/].
-  Proof using HswapProp.
-    iIntros "#Hp #HK"; iApply sKEq_Refl.
-    by move => args ρ w; rewrite /= /hsubst /hsubst_hoEnvD/=; autosubst.
-    iIntros "!> * #Hg"; rewrite sK_Lam kSubstOne_eq /=.
-    iSpecialize ("Hp" with "Hg"); iSpecialize ("HK" with "Hg"); iNext i.
-    rewrite path_wp_pv_eq. by iApply (Proper_sfkind' with "(HK Hp)").
-  Qed.
-
   Definition oTApp {n} (T : oltyO Σ n.+1) (p : path) : oltyO Σ n :=
     Olty (λ args ρ v, path_wp p.|[ρ] (λ w, T (vcons w args) ρ v)).
   Lemma oTApp_pv {n} (T : oltyO Σ n.+1) w :
     oTApp T (pv w) ≡ oTAppV T w.
   Proof. intros ???. by rewrite /= path_wp_pv_eq. Qed.
+
 
   Lemma sKStp_App Γ {n} (K : sf_kind Σ n) S T1 T2 i p :
     Γ s⊨ T1 <:[i] T2 ∷ sf_kpi S K -∗
@@ -615,6 +587,29 @@ Section dot_types.
       by rewrite (alias_paths_elim_eq _ Hal) path_wp_pv_eq.
   Qed.
 
+  Lemma sK_App Γ {n} (K : sf_kind Σ n) S T i p :
+    Γ s⊨ T ∷[i] sf_kpi S K -∗
+    Γ s⊨p p : S, i -∗
+    Γ s⊨ oTApp T p ∷[i] kpSubstOne p K.
+  Proof. apply sKStp_App. Qed.
+
+  (* Maybe not interesting *)
+  Lemma sKStp_AppV Γ {n} (K : sf_kind Σ n) S T1 T2 i v :
+    Γ s⊨ T1 <:[i] T2 ∷ sf_kpi S K -∗
+    Γ s⊨p pv v : S, i -∗
+    Γ s⊨ oTAppV T1 v <:[i] oTAppV T2 v ∷ K.|[v/].
+  Proof.
+    rewrite -!oTApp_pv. iIntros "#HTK #Hv !> * #Hg"; rewrite kpSubstOne_eq.
+    iApply (sKStp_App with "HTK Hv Hg").
+  Qed.
+
+  Lemma sK_AppV Γ {n} (K : sf_kind Σ n) S T i v :
+    Γ s⊨ T ∷[i] sf_kpi S K -∗
+    Γ s⊨p pv v : S, i -∗
+    Γ s⊨ oTAppV T v ∷[i] K.|[v/].
+  Proof. apply sKStp_AppV. Qed.
+
+
   (* XXX Those two semantic types are definitionally equal; show that opSubst
   agrees with syntactic path substitution for gDOT. *)
   Lemma sKEq_Beta {n} Γ S T (K : sf_kind Σ n) i p :
@@ -623,12 +618,17 @@ Section dot_types.
     Γ s⊨ oTApp (oLam T) p =[i] opSubst p T ∷ kpSubstOne p K.
   Proof using HswapProp.
     iIntros "#Hp #HK"; iApply sKEq_Refl; first done.
-    iIntros "!> * #Hg"; rewrite sK_Lam /=.
-    iSpecialize ("Hp" with "Hg"); iSpecialize ("HK" with "Hg"); iNext i.
-    iApply (strong_path_wp_wand with "[] Hp").
-    iIntros "{Hp Hg} !>" (v Hal%alias_paths_pv_eq_1) "Hs".
-    iApply (Proper_sfkind' with "(HK Hs)") => args w /=.
-    by rewrite (alias_paths_elim_eq _ Hal) path_wp_pv_eq.
+    rewrite sK_Lam; iApply (sK_App with "HK Hp").
+  Qed.
+
+  Lemma sKEq_BetaV {n} Γ S T (K : sf_kind Σ n) i v :
+    Γ s⊨p pv v : S, i -∗
+    oLaterN i (oShift S) :: Γ s⊨ T ∷[i] K -∗
+    Γ s⊨ oTAppV (oLam T) v =[i] T.|[v/] ∷ K.|[v/].
+  Proof using HswapProp.
+    iIntros "#Hv #HK"; iApply sKEq_Refl.
+    by move => args ρ w; rewrite  /= /hsubst /hsubst_hoEnvD/=; autosubst.
+    rewrite sK_Lam; iApply (sK_AppV with "HK Hv").
   Qed.
 
   (* XXX argh. *)
