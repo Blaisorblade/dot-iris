@@ -307,7 +307,7 @@ Module Export option.
 
 Import hoasNotation.
 
-(* ∀ x : {type U}, x.U → (self.T -> x.U) -> x.U *)
+(* ∀ x : {type U}, x.U → (self.T → x.U) → x.U *)
 Definition hpmatchT self := ∀: x : tparam "U", hpv x @; "U" →: (hpv self @; "T" →: hpv x @; "U") →: hpv x @; "U".
 Definition hoptionTGen (L U : hty) := μ: self, {@
   type "T" >: L <: U;

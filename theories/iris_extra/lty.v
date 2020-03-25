@@ -16,6 +16,11 @@ Implicit Types (Σ : gFunctors).
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
+Global Instance bottom_fun {A} `{Bottom B}: Bottom (A → B) := (λ _, ⊥).
+Global Instance top_fun {A} `{Top B}: Top (A → B) := (λ _, ⊤).
+Global Instance bottom_ofe_fun {A} {B : ofeT} `{Bottom B}: Bottom (A -d> B) := (λ _, ⊥).
+Global Instance top_ofe_fun {A} {B : ofeT} `{Top B}: Top (A -d> B) := (λ _, ⊤).
+
 (**
 "Logical TYpes": persistent Iris predicates over values.
 Adapted from
@@ -68,10 +73,6 @@ Section iPPred_ofe.
 
   Global Instance bottom_ippred {s}: Bottom (iPPred s Σ) := IPPred (λ _, ⊥).
   Global Instance top_ippred {s}: Top (iPPred s Σ) := IPPred (λ _, ⊤).
-  Global Instance bottom_fun {A} `{Bottom B}: Bottom (A → B) := (λ _, ⊥).
-  Global Instance top_fun {A} `{Top B}: Top (A → B) := (λ _, ⊤).
-  Global Instance bottom_ofe_fun {A} {B : ofeT} `{Bottom B}: Bottom (A -d> B) := (λ _, ⊥).
-  Global Instance top_ofe_fun {A} {B : ofeT} `{Top B}: Top (A -d> B) := (λ _, ⊤).
 
   Global Program Instance iPPred_inhabited : Inhabited vpred := populate ⊥.
 
@@ -114,15 +115,12 @@ Notation lty_car := (iPPred_car (vl := vl)) (only parsing).
 (* Forces inserting coercions to -d>. *)
 Notation lApp := (iPPred_car : lty _ → _ -d> _).
 
-Global Arguments vopen /.
-Global Arguments vclose /.
-
 (* "Open Logical TYpes": persistent Iris predicates over environments and values. *)
-Definition olty Σ i := vec vl i -> env -> lty Σ.
+Definition olty Σ i := vec vl i → env → lty Σ.
 Notation oltyO Σ n := (vec vl n -d> env -d> ltyO Σ).
 
 Notation olty_car τ := (λ args ρ v, lty_car (τ args ρ) v).
-Definition oApp {Σ i} : olty Σ i -> hoEnvD Σ i := λ φ, olty_car φ.
+Definition oApp {Σ i} : olty Σ i → hoEnvD Σ i := λ φ, olty_car φ.
 
 (* Rename hoEnvD to hoEnv(D?)O. *)
 (* Definition hoEnv Σ i := vec vl i → (var → vl) → vl → iProp Σ. *)

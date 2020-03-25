@@ -35,7 +35,7 @@ Section storeless_syntyping_lemmas.
 
   (* The reverse direction slows proof search and isn't used anyway? *)
   Lemma is_stamped_ren_ty_1 i T g:
-    is_stamped_ty i g T ->
+    is_stamped_ty i g T →
     is_stamped_ty (S i) g (shift T).
   Proof. intros Ht. eapply is_stamped_sub_ty, Ht. auto. Qed.
 
@@ -112,19 +112,19 @@ Section storeless_syntyping_lemmas.
   Qed.
 
   Lemma ty_strip_stamped n g T T' :
-    ⊢T T >>▷ T' ->
+    ⊢T T >>▷ T' →
     is_stamped_ty n g T →
     is_stamped_ty n g T'.
   Proof. induction 1; inversion 1; auto. Qed.
 
   Lemma ty_sub_stamped n g T T' :
-    ⊢T T <: T' ->
+    ⊢T T <: T' →
     is_stamped_ty n g T →
     is_stamped_ty n g T'.
   Proof. induction 1; inversion 1; auto. Qed.
 
   Lemma ctx_strip_stamped Γ Γ' g :
-    ⊢G Γ >>▷* Γ' ->
+    ⊢G Γ >>▷* Γ' →
     stamped_ctx g Γ →
     stamped_ctx g Γ'.
   Proof.
@@ -133,7 +133,7 @@ Section storeless_syntyping_lemmas.
   Qed.
 
   Lemma ctx_sub_stamped Γ Γ' g :
-    ⊢G Γ <:* Γ' ->
+    ⊢G Γ <:* Γ' →
     stamped_ctx g Γ →
     stamped_ctx g Γ'.
   Proof.

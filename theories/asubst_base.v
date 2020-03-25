@@ -190,7 +190,7 @@ Lemma nclosed_vl_ids i j: i < j → nclosed_vl (ids i) j.
 Proof. move => ????; rewrite !id_subst. eauto. Qed.
 Hint Resolve nclosed_vl_ids : core.
 
-Lemma nclosed_var_lt i n: nclosed_vl (ids i) n -> i < n.
+Lemma nclosed_var_lt i n: nclosed_vl (ids i) n → i < n.
 Proof.
   move => Heq.
   set s0 := fun c m => if (decide (m < n)) then ids 0 else ids c: vl.
@@ -353,7 +353,7 @@ Qed.
 Lemma fv_cons_inv_v v vs n : nclosed (v :: vs) n → nclosed_vl v n /\ nclosed vs n.
 Proof. intros Hcl; split; solve_inv_fv_congruence_h Hcl. Qed.
 
-Lemma closed_vls_to_Forall m σ: nclosed σ m -> nclosed_σ σ m.
+Lemma closed_vls_to_Forall m σ: nclosed σ m → nclosed_σ σ m.
 Proof. elim: σ => [//=|v σ IHσ] /fv_cons_inv_v [Hclv Hclσ]. auto. Qed.
 
 Lemma nclosed_sub_inv_var n w i j k: j + k <= i →

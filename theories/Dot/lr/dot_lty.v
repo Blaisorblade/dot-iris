@@ -19,7 +19,7 @@ Include Lty VlSorts dlang_inst.
 expected label (if any) and a persistent predicate over the definition. *)
 Record ldlty Σ := LDlty {
   ldlty_label : option label;
-  ldlty_car :> env -> iPPred dm Σ;
+  ldlty_car :> env → iPPred dm Σ;
 }.
 Add Printing Constructor ldlty.
 Global Arguments LDlty {_} _%I _.
@@ -30,7 +30,7 @@ Canonical Structure labelO := leibnizO label.
 
 (** Semantic definition types [ldlty Σ] can be converted (through [lift_ldlty], below)
 into persistent predicates over labels and definitions of the following type. *)
-Definition dlty Σ := env -> label -> iPPred dm Σ.
+Definition dlty Σ := env → label → iPPred dm Σ.
 Definition dltyO Σ := env -d> label -d> iPPredO dm Σ.
 Notation Dlty T := (λ ρ l, IPPred (λI d, T ρ l d)).
 
@@ -71,7 +71,7 @@ End ldlty_ofe.
 Arguments ldltyO : clear implicits.
 Global Instance: Params (@lift_ldlty) 5 := {}.
 
-Notation dslty Σ := (env -> iPPred dms Σ).
+Notation dslty Σ := (env → iPPred dms Σ).
 Definition dsltyO Σ := env -d> iPPredO dms Σ.
 Notation Dslty T := (λ ρ, IPPred (λI ds, T ρ ds)).
 

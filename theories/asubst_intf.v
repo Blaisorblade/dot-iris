@@ -34,7 +34,7 @@ End ValuesSig.
 (** These definitions are [Include]d in each language, and available without
 importing [asubst_base] and modules defined in there. *)
 Module Type SortsSig (Import V : ValuesSig).
-  Definition env := var -> vl.
+  Definition env := var → vl.
 
   Fixpoint to_subst σ : var → vl :=
     match σ with
