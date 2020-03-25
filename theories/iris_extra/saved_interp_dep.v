@@ -34,10 +34,7 @@ Section vec.
   Global Arguments vopen /.
 
   Lemma vopen_vclose_inv (φ : vec vl 0 -d> A) : vopen (vclose φ) = φ.
-  Proof.
-    apply FunctionalExtensionality.functional_extensionality_dep => x.
-    by rewrite /vopen /vclose (vec_vnil x).
-  Qed.
+  Proof. apply functional_extensionality_dep => x /=. by rewrite (vec_vnil x). Qed.
 
   Definition vcurry (Φ : vec vl (S n) -d> A) : vl -d> vec vl n -d> A :=
     λ v args, Φ (vcons v args).
