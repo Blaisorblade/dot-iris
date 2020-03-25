@@ -114,9 +114,6 @@ Notation lty_car := (iPPred_car (vl := vl)) (only parsing).
 (* Forces inserting coercions to -d>. *)
 Notation lApp := (iPPred_car : lty _ → _ -d> _).
 
-Global Arguments vopen /.
-Global Arguments vclose /.
-
 (* "Open Logical TYpes": persistent Iris predicates over environments and values. *)
 Definition olty Σ i := vec vl i -> env -> lty Σ.
 Notation oltyO Σ n := (vec vl n -d> env -d> ltyO Σ).

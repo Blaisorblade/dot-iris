@@ -28,7 +28,10 @@ Section vec.
 
   (* Manipulation of higher-order semantic types. *)
   Definition vclose (Φ : vec vl 0 -d> A): A := Φ vnil.
+  Global Arguments vclose /.
+
   Definition vopen (Φ : A) : vec vl 0 -d> A := λ args, Φ.
+  Global Arguments vopen /.
 
   Lemma vopen_vclose_inv (φ : vec vl 0 -d> A) : vopen (vclose φ) = φ.
   Proof.
