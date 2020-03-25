@@ -349,7 +349,7 @@ Section Propers.
   (** This instance doesn't allow setoid rewriting in the function argument
   to [iterate]. That's appropriate for this project. *)
   Global Instance: Params (@iterate) 3 := {}.
-  Global Instance Proper_iterate {n} {A : ofeT} (f : A -> A) :
+  Global Instance Proper_iterate {n} {A : ofeT} (f : A → A) :
     Proper (equiv ==> equiv) f →
     Proper (equiv ==> equiv) (iterate f n).
   Proof.

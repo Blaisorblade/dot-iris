@@ -142,7 +142,7 @@ Lemma ctx_strip_to_sub G1 G2 :
   ⊢G G1 <:* TLater <$> G2.
 Proof. elim=> /=; eauto using ty_strip_to_sub with ctx_sub. Qed.
 
-Lemma fmap_ctx_sub_syn {Γ} (f g : ty -> ty):
+Lemma fmap_ctx_sub_syn {Γ} (f g : ty → ty):
   (∀ T, ⊢T f T <: g T) →
   ⊢G f <$> Γ <:* g <$> Γ.
 Proof. induction Γ; cbn; auto with ctx_sub. Qed.

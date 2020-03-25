@@ -10,25 +10,25 @@ Set Default Proof Using "Type*".
 Module VlSorts <: VlSortsFullSig.
 
 Inductive tm : Type :=
-  | tv : vl_ -> tm
-  | tapp : tm -> tm -> tm
-  | tskip : tm -> tm
+  | tv : vl_ → tm
+  | tapp : tm → tm → tm
+  | tskip : tm → tm
  with vl_ : Type :=
-  | var_vl : var -> vl_
-  | vint : Z -> vl_
-  | vabs : tm -> vl_
-  | vty : ty -> vl_
-  | vstamp : list vl_ -> stamp -> vl_
+  | var_vl : var → vl_
+  | vint : Z → vl_
+  | vabs : tm → vl_
+  | vty : ty → vl_
+  | vstamp : list vl_ → stamp → vl_
  with ty : Type :=
   | TTop : ty
   | TBot : ty
-  (* | TAnd : ty -> ty -> ty *)
-  (* | TOr : ty -> ty -> ty *)
-  | TLater : ty -> ty
-  | TAll : ty -> ty -> ty
-  (* | TMu : ty -> ty *)
-  | TTMem : ty -> ty -> ty
-  | TSel : vl_ -> ty
+  (* | TAnd : ty → ty → ty *)
+  (* | TOr : ty → ty → ty *)
+  | TLater : ty → ty
+  | TAll : ty → ty → ty
+  (* | TMu : ty → ty *)
+  | TTMem : ty → ty → ty
+  | TSel : vl_ → ty
   | TInt : ty.
 
 Definition vl := vl_.
@@ -239,7 +239,7 @@ Definition to_val (t: tm) : option vl :=
   | _ => None
   end.
 
-Definition of_val: vl -> tm := tv.
+Definition of_val: vl → tm := tv.
 
 Inductive ectx_item :=
 | AppLCtx (e2: tm)
@@ -256,7 +256,7 @@ Definition fill_item (Ki : ectx_item) (e : tm) : tm :=
 Definition state := unit.
 Definition observation := unit.
 
-Inductive head_step : tm -> state -> list observation -> tm -> state -> list tm -> Prop :=
+Inductive head_step : tm → state → list observation → tm → state → list tm → Prop :=
 | st_beta t1 v2 σ:
     head_step (tapp (tv (vabs t1)) (tv v2)) σ [] (t1.|[v2/]) σ []
 | st_skip v σ:

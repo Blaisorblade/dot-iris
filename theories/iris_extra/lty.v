@@ -116,11 +116,11 @@ Notation lty_car := (iPPred_car (vl := vl)) (only parsing).
 Notation lApp := (iPPred_car : lty _ → _ -d> _).
 
 (* "Open Logical TYpes": persistent Iris predicates over environments and values. *)
-Definition olty Σ i := vec vl i -> env -> lty Σ.
+Definition olty Σ i := vec vl i → env → lty Σ.
 Notation oltyO Σ n := (vec vl n -d> env -d> ltyO Σ).
 
 Notation olty_car τ := (λ args ρ v, lty_car (τ args ρ) v).
-Definition oApp {Σ i} : olty Σ i -> hoEnvD Σ i := λ φ, olty_car φ.
+Definition oApp {Σ i} : olty Σ i → hoEnvD Σ i := λ φ, olty_car φ.
 
 (* Rename hoEnvD to hoEnv(D?)O. *)
 (* Definition hoEnv Σ i := vec vl i → (var → vl) → vl → iProp Σ. *)

@@ -54,7 +54,7 @@ Section logrel.
           (∀ v, interp1 ρ v → interp2 ρ v)))%I.
   Global Arguments interp_tmem /.
 
-  Definition interp_expr interp : (var -> vl) -d> tm -d> iPropO Σ :=
+  Definition interp_expr interp : (var → vl) -d> tm -d> iPropO Σ :=
     λ ρ t, WP t {{ interp ρ }} %I.
   Global Arguments interp_expr /.
 

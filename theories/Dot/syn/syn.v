@@ -18,38 +18,38 @@ Inductive bin_op : Set := bplus | bminus | btimes | bdiv | blt | ble | beq.
 Inductive base_ty : Set := tint | tbool.
 
 Inductive tm : Type :=
-  | tv : vl_ -> tm
-  | tapp : tm -> tm -> tm
-  | tproj : tm -> label -> tm
-  | tskip : tm -> tm
-  | tun : un_op -> tm -> tm
-  | tbin : bin_op -> tm -> tm -> tm
-  | tif : tm -> tm -> tm -> tm
+  | tv : vl_ → tm
+  | tapp : tm → tm → tm
+  | tproj : tm → label → tm
+  | tskip : tm → tm
+  | tun : un_op → tm → tm
+  | tbin : bin_op → tm → tm → tm
+  | tif : tm → tm → tm → tm
  with vl_ : Type :=
-  | var_vl : var -> vl_
-  | vlit : base_lit -> vl_
-  | vabs : tm -> vl_
-  | vobj : list (label * dm) -> vl_
+  | var_vl : var → vl_
+  | vlit : base_lit → vl_
+  | vabs : tm → vl_
+  | vobj : list (label * dm) → vl_
  with dm : Type :=
-  | dtysyn : ty -> dm
-  | dtysem : list vl_ -> stamp -> dm
-  | dpt : path -> dm
+  | dtysyn : ty → dm
+  | dtysem : list vl_ → stamp → dm
+  | dpt : path → dm
  with path : Type :=
-  | pv : vl_ -> path
-  | pself : path -> label -> path
+  | pv : vl_ → path
+  | pself : path → label → path
  with ty : Type :=
   | TTop : ty
   | TBot : ty
-  | TAnd : ty -> ty -> ty
-  | TOr : ty -> ty -> ty
-  | TLater : ty -> ty
-  | TAll : ty -> ty -> ty
-  | TMu : ty -> ty
-  | TVMem : label -> ty -> ty
-  | TTMem : label -> ty -> ty -> ty
-  | TSel : path -> label -> ty
-  | TPrim : base_ty -> ty
-  | TSing : path -> ty.
+  | TAnd : ty → ty → ty
+  | TOr : ty → ty → ty
+  | TLater : ty → ty
+  | TAll : ty → ty → ty
+  | TMu : ty → ty
+  | TVMem : label → ty → ty
+  | TTMem : label → ty → ty → ty
+  | TSel : path → label → ty
+  | TPrim : base_ty → ty
+  | TSing : path → ty.
 
 Definition vl := vl_.
 
@@ -474,7 +474,7 @@ Ltac simplOpen ds :=
   end.
 
 (** Determinacy of [objLookup]. *)
-Lemma objLookupDet v l d1 d2: v @ l ↘ d1 -> v @ l ↘ d2 -> d1 = d2.
+Lemma objLookupDet v l d1 d2: v @ l ↘ d1 → v @ l ↘ d2 → d1 = d2.
 Proof. rewrite /objLookup => *; ev. by simplify_eq. Qed.
 Ltac objLookupDet :=
   lazymatch goal with
@@ -492,7 +492,7 @@ Definition to_val (t: tm) : option vl :=
   | _ => None
   end.
 
-Definition of_val: vl -> tm := tv.
+Definition of_val: vl → tm := tv.
 
 Inductive ectx_item :=
 | AppLCtx (e2 : tm)
@@ -519,7 +519,7 @@ Definition fill_item (Ki : ectx_item) (e : tm) : tm :=
 Definition state := unit.
 Definition observation := unit.
 
-Inductive head_step : tm -> state -> list observation -> tm -> state -> list tm -> Prop :=
+Inductive head_step : tm → state → list observation → tm → state → list tm → Prop :=
 | st_beta t1 v2 σ:
   head_step (tapp (tv (vabs t1)) (tv v2)) σ [] (t1.|[v2/]) σ []
 | st_proj v l σ p:

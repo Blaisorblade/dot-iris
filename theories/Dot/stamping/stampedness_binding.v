@@ -293,7 +293,7 @@ Proof. apply is_stamped_ren_shift; auto. Qed.
 Hint Resolve is_stamped_ren1 : core.
 
 Lemma is_stamped_ren1_ty i T g:
-  is_stamped_ty i g T ->
+  is_stamped_ty i g T →
   is_stamped_ty (S i) g (shift T).
 Proof. exact: is_stamped_sub_ty. Qed.
 
@@ -360,7 +360,7 @@ Proof. intros; by eapply is_stamped_sub_rev_ty. Qed.
 
 Lemma is_stamped_ren_ty i T g:
   nclosed T i →
-  is_stamped_ty i g T <->
+  is_stamped_ty i g T ↔
   is_stamped_ty (S i) g (shift T).
 Proof.
   split; [ exact: is_stamped_sub_ty | exact: is_stamped_sub_rev_ty ].

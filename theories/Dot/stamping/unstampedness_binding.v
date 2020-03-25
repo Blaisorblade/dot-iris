@@ -324,12 +324,12 @@ Proof. apply is_unstamped_ren_shift; lia. Qed.
 Hint Resolve is_unstamped_ren1 : core.
 
 Lemma is_unstamped_ren1_ty i T b:
-  is_unstamped_ty i b T ->
+  is_unstamped_ty i b T →
   is_unstamped_ty (S i) b (shift T).
 Proof. exact: is_unstamped_sub_ren_ty. Qed.
 
 Lemma is_unstamped_ren1_path i p b:
-  is_unstamped_path i b p ->
+  is_unstamped_path i b p →
   is_unstamped_path (S i) b (shift p).
 Proof. exact: is_unstamped_sub_ren_path. Qed.
 
@@ -396,7 +396,7 @@ Lemma is_unstamped_sub_one_rev i b T v:
 Proof. intros; by eapply is_unstamped_sub_rev_ty. Qed.
 
 Lemma is_unstamped_ren_ty i b T:
-  is_unstamped_ty i b T <->
+  is_unstamped_ty i b T ↔
   is_unstamped_ty (S i) b (shift T).
 Proof.
   split; first exact: is_unstamped_ren1_ty.

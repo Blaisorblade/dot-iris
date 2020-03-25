@@ -99,7 +99,7 @@ Section syntyping_stamping_lemmas.
 
   (* The reverse direction slows proof search and isn't used anyway? *)
   Lemma is_unstamped_ren_ty_1 i T b:
-    is_unstamped_ty i b T ->
+    is_unstamped_ty i b T →
     is_unstamped_ty (S i) b (shift T).
   Proof. intros Ht. eapply is_unstamped_sub_ren_ty, Ht. auto. Qed.
 
@@ -173,19 +173,19 @@ Section syntyping_stamping_lemmas.
   Qed.
 
   Lemma ty_strip_unstamped n T T' :
-    ⊢T T >>▷ T' ->
+    ⊢T T >>▷ T' →
     is_unstamped_ty' n T →
     is_unstamped_ty' n T'.
   Proof. induction 1; inversion 1; auto. Qed.
 
   Lemma ty_sub_unstamped n T T' :
-    ⊢T T <: T' ->
+    ⊢T T <: T' →
     is_unstamped_ty' n T →
     is_unstamped_ty' n T'.
   Proof. induction 1; inversion 1; auto. Qed.
 
   Lemma ctx_strip_unstamped Γ Γ' :
-    ⊢G Γ >>▷* Γ' ->
+    ⊢G Γ >>▷* Γ' →
     unstamped_ctx Γ →
     unstamped_ctx Γ'.
   Proof.
@@ -194,7 +194,7 @@ Section syntyping_stamping_lemmas.
   Qed.
 
   Lemma ctx_sub_unstamped Γ Γ' :
-    ⊢G Γ <:* Γ' ->
+    ⊢G Γ <:* Γ' →
     unstamped_ctx Γ →
     unstamped_ctx Γ'.
   Proof.

@@ -115,7 +115,7 @@ Section logrel.
 
   (* This is a structurally recursive Coq function.
      Non-structurally recursive calls must happen under [▷] and use [rinterp]. *)
-  Definition interp_rec: (ty -d> envD Σ) -> ty -d> envD Σ :=
+  Definition interp_rec: (ty -d> envD Σ) → ty -d> envD Σ :=
     fix rec rinterp T :=
     match T with
     | TLater T => interp_later (rec rinterp T)

@@ -8,7 +8,7 @@ Module Type TyInterpLemmas (Import VS : VlSortsFullSig)
   (Import LWP : SavedInterpDep VS).
 
 Class TyInterp ty Σ :=
-  ty_interp : ty -> envD Σ.
+  ty_interp : ty → envD Σ.
 Notation "⟦ T ⟧" := (ty_interp T).
 
 (* Also appears in Autosubst. *)

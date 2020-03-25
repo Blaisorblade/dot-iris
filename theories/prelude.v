@@ -176,7 +176,7 @@ Hint Constructors ForallT : core.
     The proof is a bit subtler than you'd think because it can't look into Prop
     to produce proof-relevant part of the result (and that's why I can't inversion until very late.
  *)
-Lemma ForallT_Forall {X} (P: X → Prop) xs: (ForallT P xs -> Forall P xs) * (Forall P xs -> ForallT P xs).
+Lemma ForallT_Forall {X} (P: X → Prop) xs: (ForallT P xs → Forall P xs) * (Forall P xs → ForallT P xs).
 Proof.
   split; (elim: xs => [|x xs IHxs] H; constructor; [|apply IHxs]; by inversion H).
 Qed.

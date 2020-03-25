@@ -127,7 +127,7 @@ Section saved_ho_sem_type_extra.
     unpack Ψ2 a b c.
   Proof. exact: unpack_ne. Qed.
 
-  Definition oCurry {n} {A : ofeT} (Φ : vec vl (S n) -> A) :
+  Definition oCurry {n} {A : ofeT} (Φ : vec vl (S n) → A) :
     vl -d> vec vl n -d> A := vcurry Φ.
 
   Definition oUncurry {n} {A : ofeT} (Φ : vl → vec vl n → A) :
@@ -135,7 +135,7 @@ Section saved_ho_sem_type_extra.
   Definition oLaterN {n} i (τ : olty Σ n) := Olty (eLater i τ).
 End saved_ho_sem_type_extra.
 
-Definition hoLty Σ n := vec vl n -> lty Σ.
+Definition hoLty Σ n := vec vl n → lty Σ.
 Definition hoLtyO Σ n := vec vl n -d> ltyO Σ.
 
 Definition envApply {Σ n} : oltyO Σ n → env → hoLtyO Σ n :=
