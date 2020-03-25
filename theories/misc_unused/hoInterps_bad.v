@@ -10,6 +10,8 @@ Import EqNotations.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
+Set Implicit Arguments.
+Unset Strict Implicit.
 
 Module try1 (Import VS : VlSortsSig).
 Section saved_pred3_use.
@@ -116,6 +118,7 @@ Section saved_ho_sem_type_extra.
 
   Definition unpack : ∀ Ψ, hoEnvD Σ (packedHoEnvD_arity Ψ) :=
     λ Ψ args ρ v, unNext (projT2 Ψ args ρ v).
+  Arguments unpack : clear implicits.
 
   Lemma packedHoEnvD_arity_ne {Φ Ψ : packedHoEnvD Σ} {n} :
     Φ ≡{n}≡ Ψ → packedHoEnvD_arity Φ = packedHoEnvD_arity Ψ.
