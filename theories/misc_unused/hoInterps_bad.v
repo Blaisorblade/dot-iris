@@ -320,22 +320,20 @@ Section sec.
     Γ s⊨ sf_kpi S1 K1 <∷[ i ] sf_kpi S2 K2.
   Proof using HswapProp. by rewrite -!sstpkD_star_eq_sstp -sSkd_Pi. Qed.
 
-  Lemma sKStp_Refl' Γ {n} T (K : s_kind Σ n) :
-    let sfK := s_kind_to_sf_kind K in
-    Γ s⊨ T ∷[ 0 ] sfK -∗
-    Γ s⊨ T, 0 <: T, 0 ∷ sfK.
+  Lemma sKStp_Refl' Γ {n} T (K : sf_kind Σ n) :
+    Γ s⊨ T ∷[ 0 ] K -∗
+    Γ s⊨ T, 0 <: T, 0 ∷ K.
   Proof.
-    iIntros (?) "#HK !>". iIntros (ρ) "#Hg".
+    iIntros "#HK !>". iIntros (ρ) "#Hg".
     by iApply (Proper_sfkind with "(HK Hg)").
   Qed.
 
-  Lemma sKStp_Refl Γ {n} T (K : s_kind Σ n) i :
-    let sfK := s_kind_to_sf_kind K in
-    Γ s⊨ T ∷[ i ] sfK -∗
-    Γ s⊨ T, i <: T, i ∷ sfK.
+  Lemma sKStp_Refl Γ {n} T (K : sf_kind Σ n) i :
+    Γ s⊨ T ∷[ i ] K -∗
+    Γ s⊨ T, i <: T, i ∷ K.
   Proof.
     (* have ->: i = 0 by admit. *)
-    iIntros (?) "#HK !>". iIntros (ρ) "#Hg".
+    iIntros "#HK !>". iIntros (ρ) "#Hg".
     Fail by iApply (Proper_sfkind with "(HK Hg)").
   Abort.
 
@@ -418,9 +416,9 @@ Section sec.
 
   (* Here, we inherit eta from the metalanguage, in both directions. *)
   (* Er, let's please carry it closer to the syntax? *)
-  Lemma eta1 {n} argT (φ : hoLtyO Σ n.+1) K ρ :
-    (∀ arg, s_kind_to_sf_kind K (arg .: ρ) (vcurry φ arg) (vcurry φ arg)) →
-    sf_kind_sub (sf_kpi argT (s_kind_to_sf_kind K)) ρ φ (vuncurry (vcurry φ)).
+  Lemma eta1 {n} argT (φ : hoLtyO Σ n.+1) (K : sf_kind Σ n) ρ :
+    (∀ arg, K (arg .: ρ) (vcurry φ arg) (vcurry φ arg)) →
+    sf_kpi argT K ρ φ (vuncurry (vcurry φ)).
   Proof. iIntros (HK) "!> * _". iApply HK. Qed.
 
   (* Lemma eta2 {n} argT (φ : hoLtyO Σ (S n)) ρ :

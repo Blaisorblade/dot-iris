@@ -247,8 +247,6 @@ Section kinds_types.
 
 End kinds_types.
 
-Coercion s_kind_to_sf_kind : s_kind >-> sf_kind.
-
 (** Kinded, indexed subtyping *)
 Program Definition sstpkD `{!dlangG Σ} {n} i Γ T1 T2 (K : sf_kind Σ n) : iProp Σ :=
   □∀ ρ, s⟦Γ⟧*ρ → ▷^i K ρ (envApply T1 ρ) (envApply T2 ρ).
@@ -463,7 +461,7 @@ Section gen_lemmas.
     Γ s⊨ T =[i] oLam (oTAppV (oShift T) (ids 0)) ∷ sf_kpi S K.
   Proof. iApply sKEq_Refl => + ρ v; apply: vec_S_inv => w args. autosubst. Qed.
 
-  Lemma sKStp_Trans Γ {n} T1 T2 T3 (K : s_kind Σ n) i :
+  Lemma sKStp_Trans Γ {n} T1 T2 T3 (K : sf_kind Σ n) i :
     Γ s⊨ T1 <:[ i ] T2 ∷ K -∗
     Γ s⊨ T2 <:[ i ] T3 ∷ K -∗
     Γ s⊨ T1 <:[ i ] T3 ∷ K.
@@ -669,7 +667,7 @@ Section dot_types.
   (** Here [n]'s argument to oSel should be explicit. *)
   Global Arguments oSel {_ _} n p l args ρ : rename.
 
-  Lemma sKStp_TMem {n} Γ l (K1 K2 : s_kind Σ n) i :
+  Lemma sKStp_TMem {n} Γ l (K1 K2 : sf_kind Σ n) i :
     Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ cTMemK l K1 <:[ i ] cTMemK l K2 ∷ sf_star.
   Proof using HswapProp.
