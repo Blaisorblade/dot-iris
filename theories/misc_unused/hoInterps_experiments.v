@@ -125,10 +125,7 @@ Section kinds_types.
 
   Lemma subtype_trans {T1} T2 {T3} :
     T1 ⊆ T2 -∗ T2 ⊆ T3 -∗ T1 ⊆@{Σ} T3.
-  Proof.
-    iIntros "#Hs1 #Hs2 !>" (v) "#HT1".
-    iApply ("Hs2" with "(Hs1 HT1)").
-  Qed.
+  Proof. iIntros "#H1 #H2 !>" (v) "#HT1". iApply ("H2" with "(H1 HT1)"). Qed.
 
   Definition sp_kintv (L U : olty Σ 0) : sp_kind Σ 0 := SpKind (λI ρ φ,
     oClose L ρ ⊆ oClose φ ⊆ oClose U ρ).
