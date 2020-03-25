@@ -199,21 +199,6 @@ with kind : nat → Type :=
 Section semkinds.
   Context `{dlangG Σ}.
 
-  (* Definition skstar : sp_kind Σ 0 := λI ρ φ, True.
-  Definition srstar : sr_kind Σ 0 := λ ρ φ1 φ2,
-    (□ ∀ v, oClose φ1 v → oClose φ2 v)%I.
-  Definition sstar : sf_kind Σ 0 := SfKind skstar srstar. *)
-
-  (* Show that kinded subtyping correctly generalizes the existing kind-*
-  subtyping. *)
-
-  (* Definition fold_srelkind (base : sr_kind Σ 0) {n} : vec (olty Σ 0) n → sr_kind Σ n :=
-    vec_fold base (@srpi) n.
-  Definition subtype_w_expKind {n}: vec (olty Σ 0) n → sr_kind Σ n :=
-    fold_srelkind srstar. *)
-  (* Definition eqtype_w_expKind : ∀ n, vec (olty Σ 0) n → sr_kind Σ n :=
-    fold_srelkind kind_star_eqtype. *)
-
   (* Inductive kind {Σ} : nat → Type :=
     | kintv : olty Σ 0 → olty Σ 0 → kind 0
     | kpi n : olty Σ 0 → kind n → kind (S n).
@@ -259,28 +244,12 @@ End semkinds.
 Arguments hoSTy: clear implicits.
 End HkDot2.
 
-(* These are "bad" experiments. *)
+(* These are abandoned experiments. *)
 Module HoGenExperiments.
 Import swap_later_impl HkDot2.
 
-Program Definition sstpk `{!dlangG Σ} {n} i j Γ T1 T2 (K : sf_kind Σ n) : iProp Σ :=
-  □∀ ρ, s⟦Γ⟧*ρ → sf_kind_sub K ρ (envApply (oLaterN i T1) ρ) (envApply (oLaterN j T2) ρ).
-Notation "Γ s⊨ T1 , i <: T2 , j ∷ K" := (sstpk i j Γ T1 T2 K)
-  (at level 74, i, j, T1, T2, K at next level).
-
 Section sec.
-  Context `{!CTyInterp Σ}.
   Context `{dlangG Σ} `{HswapProp: SwapPropI Σ}.
-
-  Lemma sstpk_star_eq_sstp Γ i j T1 T2 :
-    Γ s⊨ T1 , i <: T2 , j ∷ sf_star ⊣⊢ Γ s⊨ T1 , i <: T2 , j.
-  Proof.
-    rewrite /sstpk /sf_kind_sub/= /sf_star; iSplit; iIntros "/= #Hsub !>" (ρ).
-    iIntros (v) "#Hg".
-    by iDestruct ("Hsub" $! ρ with "Hg") as "{Hsub} (_ & #Hsub &_)"; iApply ("Hsub" $! v).
-    iIntros "#Hg"; repeat iSplit; iIntros "!>" (v); [iIntros "[]" | | iIntros "_ //"].
-    by iApply ("Hsub" $! ρ v with "Hg").
-  Qed.
 
   Lemma subtyping_spec i j Γ T1 T2 ρ :
     Γ s⊨ T1, i <: T2, j -∗
@@ -320,82 +289,6 @@ Section sec.
     Γ s⊨ sf_kpi S1 K1 <∷[ i ] sf_kpi S2 K2.
   Proof using HswapProp. by rewrite -!sstpkD_star_eq_sstp -sSkd_Pi. Qed.
 
-  Lemma sKStp_Refl' Γ {n} T (K : sf_kind Σ n) :
-    Γ s⊨ T ∷[ 0 ] K -∗
-    Γ s⊨ T, 0 <: T, 0 ∷ K.
-  Proof.
-    iIntros "#HK !>". iIntros (ρ) "#Hg".
-    by iApply (Proper_sfkind with "(HK Hg)").
-  Qed.
-
-  Lemma sKStp_Refl Γ {n} T (K : sf_kind Σ n) i :
-    Γ s⊨ T ∷[ i ] K -∗
-    Γ s⊨ T, i <: T, i ∷ K.
-  Proof.
-    (* have ->: i = 0 by admit. *)
-    iIntros "#HK !>". iIntros (ρ) "#Hg".
-    Fail by iApply (Proper_sfkind with "(HK Hg)").
-  Abort.
-
-
-  (* Definition srstar1 : sr_kind Σ 0 := subtype.
-  Lemma srstar_eq ρ φ1 φ2 :
-    srstar1 ρ φ1 φ2 ≡ srstar ρ φ1 φ2.
-  Proof.
-    rewrite /srstar1 /srstar /subtype /vclose.
-    apply intuitionistically_proper, equiv_spec; split. by iIntros "H".
-    iIntros "H" (args). by rewrite (vec_vnil args).
-  Qed. *)
-
-  (* Definition skLaterN {Σ n} i (K : sp_kind Σ n) : sp_kind Σ n :=
-    λ ρ φ, K ρ (oLaterN i φ). *)
-  (* Definition srLaterN {Σ n} i j (K : sr_kind Σ n) : sr_kind Σ n :=
-    λ ρ T1 T2, K ρ (oLaterN i T1) (oLaterN j T2). *)
-  (* Definition sfLaterN {n} i (K : sf_kind Σ n) : sf_kind Σ n :=
-    SfKind (skLaterN i K) K. *)
-
-  (* Definition sstpk `{dlangG Σ} {n} i j Γ τ₁ τ₂ (K : sf_kind Σ n) : iProp Σ :=
-    □∀ ρ, s⟦Γ⟧*ρ → srLaterN i j (sf_kind_sub K) ρ τ₁ τ₂. *)
-  (* Definition semEquiv {n} : sr_kind Σ n := λI ρ (φ1 φ2 : olty Σ n),
-    □ ∀ args v, φ1 args ρ v ↔ φ2 args ρ v. *)
-  (* Definition kind_star_eqtype : sr_kind Σ 0 := λ ρ φ1 φ2,
-    (□ ∀ v, oClose φ1 ρ v ↔ oClose φ2 ρ v)%I. *)
-
-
-  (* Definition sstpk1 {n} i Γ (T1 T2 : oltyO Σ n) (K : sf_kind Σ n) : iProp Σ :=
-    □∀ ρ, s⟦Γ⟧*ρ → ▷^i sf_kind_sub K ρ (envApply T1 ρ) (envApply T2 ρ).
-  Lemma sstpk1_star_eq_sstp Γ i T1 T2 :
-    sstpk1 i Γ T1 T2 sf_star ⊣⊢ Γ s⊨ T1 , i <: T2 , i.
-  Proof using HswapProp.
-    rewrite /sstpk1 /sf_kind_sub/= /sf_star.
-    iSplit; iIntros "/= #Hsub !>" (ρ); [iIntros (v)|]; iIntros "#Hg".
-    iSpecialize ("Hsub" $! ρ with "Hg"); iSpecialize ("Hsub" $! v).
-    rewrite -mlaterN_pers laterN_impl.
-    by iApply "Hsub".
-    rewrite -mlaterN_pers; iIntros (v) "!>"; rewrite -mlaterN_impl.
-    iDestruct "Hsub" as "#Hsub".
-    iApply ("Hsub" $! ρ v with "Hg").
-  Qed. *)
-
-  (* Lemma sstpk1_star_eq_sstp Γ i j T1 T2 :
-    sstpk i j Γ T1 T2 sf_star ⊣⊢ Γ s⊨ T1 , i <: T2 , j.
-  Proof using HswapProp.
-    rewrite /sstpk /sf_kind_sub/= /sf_star.
-    iSplit; iIntros "/= #Hsub !>" (ρ); [iIntros (v)|]; iIntros "#Hg".
-    iDestruct ("Hsub" $! ρ with "Hg") as "{Hsub} (_ & #Hsub &_)"; iSpecialize ("Hsub" $! v).
-    rewrite /= -laterN_impl.
-    by iApply "Hsub".
-    rewrite -mlaterN_pers; iIntros (v) "!>"; rewrite -mlaterN_impl.
-    iDestruct "Hsub" as "#Hsub".
-    iApply ("Hsub" $! ρ v with "Hg").
-  Qed. *)
-
-
-  (* Inductive kind : nat → Type :=
-    | kintv : ty → ty → kind 0
-    | kpi n : ty → kind n → kind (S n). *)
-
-
   Inductive htype : nat → Type :=
     | TWrap : ty → htype 0
     | TLam {n} : olty Σ 0 → htype n → htype (S n)
@@ -409,30 +302,9 @@ Section sec.
     end.
   Definition typeSem {n} (T : htype n) : hoEnvD Σ n := hoSTySem (htype_to_hosty T).
 
-  Lemma K_App_Lam {n} (argT : olty Σ 0) (φ1 φ2: hoLtyO Σ (S n)) (K : sf_kind Σ n) ρ :
-    sf_kind_sub (sf_kpi argT K) ρ φ1 φ2 ⊣⊢ (□∀ v, oClose argT ρ v → sf_kind_sub K (v .: ρ) (vcurry φ1 v) (vcurry φ2 v))%I.
+  Lemma sf_kpi_eq {n} (S : olty Σ 0) (φ1 φ2: hoLtyO Σ n.+1) (K : sf_kind Σ n) ρ :
+    sf_kpi S K ρ φ1 φ2 ⊣⊢ □∀ v, oClose S ρ v → K (v .: ρ) (vcurry φ1 v) (vcurry φ2 v).
   Proof. done. Qed.
-  (** XXX Need a subtyping judgment to throw in environments... *)
-
-  (* Here, we inherit eta from the metalanguage, in both directions. *)
-  (* Er, let's please carry it closer to the syntax? *)
-  Lemma eta1 {n} argT (φ : hoLtyO Σ n.+1) (K : sf_kind Σ n) ρ :
-    (∀ arg, K (arg .: ρ) (vcurry φ arg) (vcurry φ arg)) →
-    sf_kpi argT K ρ φ (vuncurry (vcurry φ)).
-  Proof. iIntros (HK) "!> * _". iApply HK. Qed.
-
-  (* Lemma eta2 {n} argT (φ : hoLtyO Σ (S n)) ρ :
-    srpi argT subtype ρ (vuncurry (vcurry φ)) φ.
-  Proof.
-    rewrite /srpi /subtype.
-    iIntros "!> * #Harg !>" (args v) "$".
-  Qed. *)
-
-  (* Lemma eta {n} argT (φ : olty Σ (S n)) ρ : srpi argT semEquiv ρ φ (vuncurry (vcurry φ)).
-  Proof.
-    rewrite /srpi /semEquiv.
-    iIntros "!> * #Harg !> **". rewrite -(iff_refl emp%I). done.
-  Qed. *)
 
   Program Fixpoint sem_program {n} {struct n} : s_kind Σ n → sf_kind Σ n :=
     match n return _ with
