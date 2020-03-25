@@ -100,40 +100,9 @@ End iPPred_ofe.
 
 Global Arguments iPPredO : clear implicits.
 
+Ltac f_ext_dep := apply functional_extensionality_dep.
+
 Module Type Lty (Import VS: VlSortsFullSig) (Import LVS : LiftWp VS).
-
-Definition env_vpred subj Σ := env → iPPred subj Σ.
-Section ippred_subst.
-  Context {Σ : gFunctors} {subj : Type}.
-
-  Global Instance ids_env_vpred : Ids (env_vpred subj Σ) := λ _, inhabitant.
-  Global Instance rename_env_vpred : Rename (env_vpred subj Σ) :=
-    λ r φ ρ, φ (r >>> ρ).
-  Global Instance hsubst_env_vpred : HSubst vl (env_vpred subj Σ) :=
-    λ sb φ ρ, φ (sb >> ρ).
-
-  Ltac renLemmas_env_vpred :=
-    hnf; rewrite /hsubst /hsubst_env_vpred => /= *;
-    f_ext => ?; autosubst.
-
-  Global Instance HSubstLemmas_env_vpred : HSubstLemmas vl (env_vpred subj Σ).
-  Proof. split => //; renLemmas_env_vpred. Qed.
-
-  Global Instance Sort_env_pred : Sort (env_vpred subj Σ) := {}.
-End ippred_subst.
-
-Section fun_sort.
-  Context `{Sort X} (A : Type).
-  Global Instance ids_fun: Ids (A → X) := λ x _, ids x.
-  Global Instance rename_fun: Rename (A → X) := λ r x a, rename r (x a).
-  Global Instance hsubst_fun: HSubst vl (A → X) := λ sb x a, (x a).|[sb].
-  Global Instance HSubstLemmas_fun: HSubstLemmas vl (A → X).
-  Proof using All.
-    split; rewrite /= /hsubst /hsubst_fun => *; f_ext => ?/=;
-    (idtac + rewrite /ids/ids_fun); autosubst.
-  Qed.
-  Global Instance: Sort (A → X) := {}.
-End fun_sort.
 
 Notation lty := (iPPred vl).
 Notation ltyO := (iPPredO vl).
@@ -148,6 +117,60 @@ Notation oltyO Σ n := (vec vl n -d> env -d> ltyO Σ).
 
 Notation olty_car τ := (λ args ρ v, lty_car (τ args ρ) v).
 Definition oApp {Σ i} : olty Σ i → hoEnvD Σ i := λ φ, olty_car φ.
+Definition Olty {Σ i} (olty_car : vec vl i → (var → vl) → vl → iProp Σ)
+  `{∀ args ρ v, Persistent (olty_car args ρ v)}: oltyO Σ i :=
+  λ args ρ, Lty (olty_car args ρ).
+
+Local Ltac wrap_hsubst_lemmas h :=
+  by split => *; repeat (f_ext_dep => ?  || apply lty_eq); rewrite /hsubst /h
+    ?(id_hsubst, hsubst_id, hsubst_comp); autosubst.
+
+
+Section envPred_subst.
+  Context {Σ : gFunctors} {subj : Type}.
+
+  Global Instance ids_envPred : Ids (envPred subj Σ) := λ _, inhabitant.
+  Global Instance rename_envPred : Rename (envPred subj Σ) :=
+    λ r φ ρ, φ (r >>> ρ).
+  Global Instance hsubst_envPred : HSubst vl (envPred subj Σ) :=
+    λ sb φ ρ, φ (sb >> ρ).
+
+  Global Instance HSubstLemmas_envPred : HSubstLemmas vl (envPred subj Σ).
+  Proof. wrap_hsubst_lemmas hsubst_envPred. Qed.
+
+  Global Instance Sort_envPred : Sort (envPred subj Σ) := {}.
+End envPred_subst.
+
+Definition envLtyO subj Σ := env -d> iPPredO subj Σ.
+Notation EnvLty T := (λ ρ, IPPred (λI s, T ρ s)).
+
+Section ippred_subst.
+  Context {Σ : gFunctors} {subj : Type}.
+
+  (* These bodies are eta-expanded - they start with a constructor, so that
+  projections on them reduce. *)
+  Global Instance ids_envLtyO : Ids (envLtyO subj Σ) := λ _, inhabitant.
+  Global Instance rename_envLtyO : Rename (envLtyO subj Σ) :=
+    λ r φ, (λ ρ, φ (r >>> ρ)).
+  Global Instance hsubst_envLtyO : HSubst vl (envLtyO subj Σ) :=
+    λ sb φ, (λ ρ, φ (sb >> ρ)).
+
+  Global Instance HSubstLemmas_envLtyO : HSubstLemmas vl (envLtyO subj Σ).
+  Proof. wrap_hsubst_lemmas hsubst_envLtyO. Qed.
+
+  Global Instance Sort_env_pred : Sort (envLtyO subj Σ) := {}.
+End ippred_subst.
+
+Section fun_sort.
+  Context {X : ofeT} `{Sort X} (A : Type).
+  Global Instance ids_fun: Ids (A -d> X) := λ x _, ids x.
+  Global Instance rename_fun: Rename (A -d> X) := λ r x a, rename r (x a).
+  Global Instance hsubst_fun: HSubst vl (A -d> X) := λ sb x a, (x a).|[sb].
+  Global Instance HSubstLemmas_fun: HSubstLemmas vl (A -d> X).
+  Proof using All. wrap_hsubst_lemmas hsubst_fun. Qed.
+  Global Instance: Sort (A → X) := {}.
+End fun_sort.
+
 
 (* Rename hoEnvD to hoEnv(D?)O. *)
 (* Definition hoEnv Σ i := vec vl i → (var → vl) → vl → iProp Σ. *)
@@ -163,19 +186,10 @@ Section olty_subst.
   Context `{Σ : gFunctors} {i : nat}.
   Implicit Types (φ : hoEnvD Σ i) (τ : olty Σ i).
 
-  Global Instance ids_hoEnvD : Ids (hoEnvD Σ i) := λ _, inhabitant.
-  Global Instance rename_hoEnvD : Rename (hoEnvD Σ i) :=
-    λ r φ args ρ, φ args (r >>> ρ).
-  Global Instance hsubst_hoEnvD : HSubst vl (hoEnvD Σ i) :=
-    λ sb φ args ρ, φ args (sb >> ρ).
-
-  Ltac renLemmas_hoEnvD :=
-    hnf; rewrite /hsubst /hsubst_hoEnvD => /= *;
-    do 2 (apply FunctionalExtensionality.functional_extensionality_dep => ?); autosubst.
-
-  Global Instance HSubstLemmas_hoEnvD : HSubstLemmas vl (hoEnvD Σ i).
-  Proof. split => //; renLemmas_hoEnvD. Qed.
-
+  Global Instance ids_hoEnvD : Ids (hoEnvD Σ i) := ids_fun _.
+  Global Instance rename_hoEnvD : Rename (hoEnvD Σ i) := _.
+  Global Instance hsubst_hoEnvD : HSubst vl (hoEnvD Σ i) := _.
+  Global Instance HSubstLemmas_hoEnvD : HSubstLemmas vl (hoEnvD Σ i) := _.
   Global Instance: Sort (hoEnvD Σ i) := {}.
 
   Lemma hoEnvD_subst_compose_ind φ args ρ1 ρ2 v: φ.|[ρ1] args ρ2 v = φ args (ρ1 >> ρ2) v.
@@ -205,15 +219,26 @@ Section olty_subst.
     φ.|[v/] args ρ w ≡ φ args (v.[ρ] .: ρ) w.
   Proof. by rewrite hoEnvD_subst_one_eq. Qed.
 
-  Definition Olty (olty_car : vec vl i → (var → vl) → vl → iProp Σ)
-   `{∀ args ρ v, Persistent (olty_car args ρ v)}: oltyO Σ i :=
-    λ args ρ, Lty (olty_car args ρ).
+  (* Global Instance ids_oltyO : Ids (oltyO Σ i) := _.
+  Global Instance rename_oltyO : Rename (oltyO Σ i) := _.
+  Global Instance hsubst_oltyO : HSubst vl (oltyO Σ i) := _.
+  Global Instance hsubstLemmas_oltyO : HSubstLemmas vl (oltyO Σ i) := _.
+  Global Instance: Sort (oltyO Σ i) := {}.
 
-  Global Instance ids_olty : Ids (olty Σ i) := λ _, inhabitant.
-  Global Program Instance rename_olty : Rename (olty Σ i) :=
+  Global Instance ids_olty : Ids (olty Σ i) := _.
+  Global Instance rename_olty : Rename (olty Σ i) := _.
+  Global Instance hsubst_olty : HSubst vl (olty Σ i) := _.
+  Global Instance hsubstLemmas_olty : HSubstLemmas vl (olty Σ i) := _.
+  Global Instance: Sort (olty Σ i) := {}. *)
+
+  Global Instance ids_olty : Ids (oltyO Σ i) := λ _, inhabitant.
+  Global Instance rename_olty : Rename (oltyO Σ i) :=
     λ r τ, Olty (rename r (olty_car τ)).
-  Global Program Instance hsubst_olty : HSubst vl (olty Σ i) :=
-    λ sb τ, Olty ((olty_car τ).|[sb]).
+  Global Instance hsubst_olty : HSubst vl (oltyO Σ i) :=
+    λ sb τ, Olty (hsubst sb (olty_car τ)).
+
+  Global Instance hsubstLemmas_olty' : HSubstLemmas vl (olty Σ i).
+  Proof. wrap_hsubst_lemmas hsubst_olty. Qed.
 
   Lemma olty_eq τ1 τ2:
     (∀ args ρ, olty_car τ1 args ρ = olty_car τ2 args ρ) →
@@ -231,18 +256,12 @@ Section olty_subst.
     τ1 ≡ τ2 → τ1 args ρ v ≡ τ2 args ρ v.
   Proof. apply. Qed.
 
-  Global Instance hsubstLemmas_olty : HSubstLemmas vl (olty Σ i).
-  Proof.
-    split => [T|//|s1 s2 T]; apply olty_eq => args ρ; f_ext => v.
-    all: by rewrite /hsubst/= ?hsubst_id -?hsubst_comp.
-  Qed.
-
   Global Instance: Sort (olty Σ i) := {}.
 
   (* Currently unused; currently, we simplify and use the [hoEnvD_] lemmas.*)
-(*
+
   Lemma olty_subst_compose_ind τ args ρ1 ρ2 v: τ.|[ρ1] args ρ2 v ⊣⊢ τ args (ρ1 >> ρ2) v.
-  Proof. apply hoEnvD_subst_compose_ind. Qed.
+  Proof. by rewrite /= hoEnvD_subst_compose_ind. Qed.
 
   Lemma olty_subst_compose τ args ρ1 ρ2 ρ3 :
     ρ1 >> ρ2 = ρ3 → τ.|[ρ1] args ρ2 ≡ τ args ρ3.
@@ -254,7 +273,7 @@ Section olty_subst.
 
   Lemma olty_subst_one τ v w args ρ:
     τ.|[v/] args ρ w ≡ τ args (v.[ρ] .: ρ) w.
-  Proof. apply hoEnvD_subst_one. Qed. *)
+  Proof. apply hoEnvD_subst_one. Qed.
 
 End olty_subst.
 
@@ -335,6 +354,7 @@ Section olty_ofe_2.
 
   Lemma oMu_shift (T : oltyO Σ i) args ρ v: oMu (shift T) args ρ v ≡ T args ρ v.
   Proof. rewrite /= (hoEnvD_weaken_one T args _ v) stail_eq. by []. Qed.
+  (* Proof. rewrite oMu_eq (olty_weaken_one T args _ v) stail_eq. by []. Qed. *)
 
   Definition interp_expr `{dlangG Σ} (φ : hoEnvD Σ 0) : envPred tm Σ :=
     λI ρ t, □ WP t {{ vclose φ ρ }}.

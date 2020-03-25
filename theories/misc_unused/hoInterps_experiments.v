@@ -563,7 +563,9 @@ Section dot_types.
     Γ s⊨ oTAppV (oLam T) v =[i] T.|[v/] ∷ K.|[v/].
   Proof using HswapProp.
     iIntros "#Hv #HK"; iApply sKEq_Refl.
-    by move => args ρ w; rewrite  /= /hsubst /hsubst_hoEnvD/=; autosubst.
+    move => args ρ w.
+    rewrite /= /hsubst /hsubst_hoEnvD /hsubst_fun /hsubst /hsubst_envPred.
+    autosubst.
     rewrite sK_Lam; iApply (sK_AppV with "HK Hv").
   Qed.
 

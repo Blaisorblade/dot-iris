@@ -270,7 +270,7 @@ Section semkinds.
   Lemma oLam_equiv2 {n τ} : oLam (Σ := Σ) (n := n) τ ≡
     vuncurry (λ v, τ.|[v/]).
   Proof.
-    move=> args ρ v; rewrite /= /hsubst /hsubst_hoEnvD.
+    move=> args ρ v; rewrite /= /hsubst /hsubst_hoEnvD /hsubst_fun/= /hsubst /hsubst_envPred.
     asimpl.
     do 3 f_equiv.
   Abort.
