@@ -18,7 +18,7 @@ Section vec.
   (* vector operations, on a functional representation of vectors. *)
   Definition vcons (v : vl) (args: vec vl n) : vec vl (S n) := vector.vcons v args.
 
-  Definition vnil : vec vl 0 := vector.vnil.
+  Notation vnil := vector.vnil.
   Definition vhead (args: vec vl (S n)) : vl := args !!! 0.
   Definition vtail (args: vec vl (S n)) : vec vl n :=
     Vector.caseS (λ n _, vec vl n) (λ h n t, t) args.
