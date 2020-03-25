@@ -199,8 +199,45 @@ with kind : nat → Type :=
   | kintv (L U : hty 0) : kind 0
   | kpi {n} (S : hty 0) (K : kind n) : kind n.+1.
 
+(** An inductive representation of gHkDOT semantic kinds. *)
+Inductive s_kind {Σ} : nat → Type :=
+  | s_kintv : olty Σ 0 → olty Σ 0 → s_kind 0
+  | s_kpi n : olty Σ 0 → s_kind n → s_kind n.+1.
+Global Arguments s_kind: clear implicits.
+
+(** Alternative inductive representation of gHkDOT semantic kinds. *)
+Record spine_s_kind {Σ} {n : nat} : Type := SpineSK {
+  spine_kargs : vec (olty Σ 0) n;
+  spine_L : olty Σ 0;
+  spine_U : olty Σ 0;
+}.
+Arguments spine_s_kind : clear implicits.
+
+
 Section semkinds.
   Context `{dlangG Σ}.
+
+  Definition sp_s_kintv (L U : olty Σ 0) : spine_s_kind Σ 0 := SpineSK vnil L U.
+  Definition sp_s_kpi {n} (S : olty Σ 0) (K : spine_s_kind Σ n) : spine_s_kind Σ n.+1 :=
+    SpineSK (vcons S (spine_kargs K)) (spine_L K) (spine_U K).
+
+  Fixpoint s_kind_to_spine_s_kind {n} (K : s_kind Σ n) : spine_s_kind Σ n :=
+    match K with
+    | s_kintv L U => sp_s_kintv L U
+    | s_kpi s K => sp_s_kpi s (s_kind_to_spine_s_kind K)
+    end.
+
+  Definition spine_s_kind_to_sf_kind {n} (K : spine_s_kind Σ n) : sf_kind Σ n :=
+    vec_fold (sf_kintv (spine_L K) (spine_U K)) (@sf_kpi Σ) n (spine_kargs K).
+  Global Arguments spine_s_kind_to_sf_kind {_} !_.
+
+  Fixpoint s_kind_to_sf_kind {n} (K : s_kind Σ n) : sf_kind Σ n :=
+    match K with
+    | s_kintv L U => sf_kintv L U
+    | s_kpi s K => sf_kpi s (s_kind_to_sf_kind K)
+    end.
+
+
 
   (* Inductive kind {Σ} : nat → Type :=
     | kintv : olty Σ 0 → olty Σ 0 → kind 0
