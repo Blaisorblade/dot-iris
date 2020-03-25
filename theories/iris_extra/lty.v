@@ -25,6 +25,7 @@ Record iPPred vl Σ := IPPred {
   iPPred_car :> vl → iProp Σ;
   iPPred_persistent v : Persistent (iPPred_car v);
 }.
+Add Printing Constructor iPPred.
 Global Arguments IPPred {_ _} _%I {_}.
 Global Arguments iPPred_car {_ _} !_ _ /.
 Declare Scope iPPred_scope.

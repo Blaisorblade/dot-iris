@@ -21,6 +21,7 @@ Record ldlty Σ := LDlty {
   ldlty_label : option label;
   ldlty_car :> env -> iPPred dm Σ;
 }.
+Add Printing Constructor ldlty.
 Global Arguments LDlty {_} _%I _.
 Global Arguments ldlty_label {_} !_ /.
 Global Arguments ldlty_car {_} !_ /.
@@ -89,6 +90,7 @@ Record clty {Σ} := Clty {
   clty_commute {ds ρ} :
     clty_dslty ρ (selfSubst ds) ⊢ clty_olty vnil ρ (vobj ds);
 }.
+Add Printing Constructor clty.
 
 Arguments clty : clear implicits.
 Arguments Clty {_} _ _ _ _ _.
