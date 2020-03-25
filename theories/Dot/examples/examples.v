@@ -379,7 +379,7 @@ Section small_ex.
   Lemma sT_Var0 {Γ T}
     (Hx : Γ !! 0%nat = Some T):
     (*──────────────────────*)
-    Γ s⊨ of_val x0 : T.
+    Γ s⊨ x0 : T.
   Proof. rewrite -(hsubst_id T). apply (sT_Var Hx). Qed.
 
   (* This works! But we get a weaker type, because we're using typing rules
