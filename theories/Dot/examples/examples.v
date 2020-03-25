@@ -9,6 +9,7 @@ From D.Dot Require Import unary_lr
   lr_lemmas lr_lemmasTSel lr_lemmasNoBinding lr_lemmasDefs lr_lemmasPrim.
 From D.Dot Require Import typeExtractionSem.
 From D.Dot Require Import skeleton fundamental.
+Import dlang_adequacy.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
@@ -415,7 +416,6 @@ Section small_ex.
 End small_ex.
 End s_is_pos.
 
-Import dlang_adequacy.
 Lemma miniVSafe (s : stamp): safe (tv (miniV s)).
 Proof.
   eapply (safety_dot_sem dlangΣ (T := miniVT1))=>*.
