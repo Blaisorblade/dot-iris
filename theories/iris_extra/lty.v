@@ -16,6 +16,11 @@ Implicit Types (Σ : gFunctors).
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
+Global Instance bottom_fun {A} `{Bottom B}: Bottom (A → B) := (λ _, ⊥).
+Global Instance top_fun {A} `{Top B}: Top (A → B) := (λ _, ⊤).
+Global Instance bottom_ofe_fun {A} {B : ofeT} `{Bottom B}: Bottom (A -d> B) := (λ _, ⊥).
+Global Instance top_ofe_fun {A} {B : ofeT} `{Top B}: Top (A -d> B) := (λ _, ⊤).
+
 (**
 "Logical TYpes": persistent Iris predicates over values.
 Adapted from
@@ -68,10 +73,6 @@ Section iPPred_ofe.
 
   Global Instance bottom_ippred {s}: Bottom (iPPred s Σ) := IPPred (λ _, ⊥).
   Global Instance top_ippred {s}: Top (iPPred s Σ) := IPPred (λ _, ⊤).
-  Global Instance bottom_fun {A} `{Bottom B}: Bottom (A → B) := (λ _, ⊥).
-  Global Instance top_fun {A} `{Top B}: Top (A → B) := (λ _, ⊤).
-  Global Instance bottom_ofe_fun {A} {B : ofeT} `{Bottom B}: Bottom (A -d> B) := (λ _, ⊥).
-  Global Instance top_ofe_fun {A} {B : ofeT} `{Top B}: Top (A -d> B) := (λ _, ⊤).
 
   Global Program Instance iPPred_inhabited : Inhabited vpred := populate ⊥.
 
