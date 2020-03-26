@@ -81,7 +81,7 @@ Section iPPred_ofe.
   Global Instance iPPred_car_proper : Proper ((≡) ==> (≡)) lApp.
   Proof. apply ne_proper, iPPred_car_ne. Qed.
 
-  Program Definition pack ψ := IPPred (λ v, □ ψ v)%I.
+  Definition pack ψ := IPPred (λ v, □ ψ v)%I.
 
   Lemma iPPred_car_pack_id ψ `{∀ v, Persistent (ψ v)} :
     lApp (pack ψ) ≡ ψ.

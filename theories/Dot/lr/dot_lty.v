@@ -112,7 +112,7 @@ Canonical Structure cltyO Σ := OfeT (clty Σ) clty_ofe_mixin.
 Section DefsTypes.
   Context `{HdotG: dlangG Σ}.
 
-  Program Definition lift_dinterp_vl (TD : ldltyO Σ) : oltyO Σ 0 := olty0 (λI ρ v,
+  Definition lift_dinterp_vl (TD : ldltyO Σ) : oltyO Σ 0 := olty0 (λI ρ v,
     match ldlty_label TD with
     | None => ⊥
     | Some l => ∃ d, ⌜v @ l ↘ d⌝ ∧ TD ρ d

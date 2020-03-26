@@ -212,7 +212,7 @@ Section kinds_types.
 End kinds_types.
 
 (** Kinded, indexed subtyping *)
-Program Definition sstpkD `{!dlangG Σ} {n} i Γ T1 T2 (K : sf_kind Σ n) : iProp Σ :=
+Definition sstpkD `{!dlangG Σ} {n} i Γ T1 T2 (K : sf_kind Σ n) : iProp Σ :=
   □∀ ρ, s⟦Γ⟧*ρ → ▷^i K ρ (envApply T1 ρ) (envApply T2 ρ).
 Notation "Γ s⊨ T1 <:[ i  ] T2 ∷ K" := (sstpkD i Γ T1 T2 K)
   (at level 74, i, T1, T2, K at next level).

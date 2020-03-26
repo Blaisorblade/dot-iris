@@ -51,7 +51,7 @@ Section saved_dep_use.
   Definition eFalse : envD Σ := λ ρ v, False%I.
 
   Unset Program Cases.
-  Program Definition vcurry : hoEnvND Σ → vl → hoEnvND Σ := λ '(existT n φ),
+  Definition vcurry : hoEnvND Σ → vl → hoEnvND Σ := λ '(existT n φ),
     match n with
     | 0 => λ _ _, existT 0 (λ _, eFalse)
     | S m => λ φ a, existT m (λ args : vec vl m, φ (vcons a args))

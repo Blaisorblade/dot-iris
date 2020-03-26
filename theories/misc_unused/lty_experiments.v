@@ -47,7 +47,7 @@ Global Instance env_typed_persistent' `{OTyInterp ty Σ} Γ ρ : Persistent (env
 Definition judgment Σ : Type := env -d> iPropO Σ.
 Definition nosubj_judgment Σ : Type := env -d> iPropO Σ.
 Definition subj_judgment Σ s : Type := s * (env -d> s -d> iPropO Σ).
-Program Definition subj_judgment_to_judgment {Σ s} : subj_judgment Σ s → judgment Σ :=
+Definition subj_judgment_to_judgment {Σ s} : subj_judgment Σ s → judgment Σ :=
   λ '(x, φ) ρ, φ ρ x.
 
 Definition judgment_holds (Γ : sCtx Σ) (J : judgment Σ): iProp Σ :=
@@ -68,10 +68,10 @@ Global Arguments setp /.
 (* DOT/D<: judgments are indexed by [⋅]. *)
 Notation "t ⋅: τ" := (setp τ t) (at level 73).
 Definition test_judge_me2 Γ t τ := Γ s⊨ t ⋅: τ.
-Program Definition nosubj_judgment_to_judgment {Σ} : nosubj_judgment Σ → judgment Σ := λ φ, φ.
+Definition nosubj_judgment_to_judgment {Σ} : nosubj_judgment Σ → judgment Σ := λ φ, φ.
 
 Definition ivstp τ1 τ2 : nosubj_judgment Σ := (λ ρ, ∀ v, oClose τ1 ρ v → oClose τ2 ρ v)%I.
-Program Definition sstpi τ1 i1 τ2 i2 := nosubj_judgment_to_judgment (Σ := Σ)
+Definition sstpi τ1 i1 τ2 i2 := nosubj_judgment_to_judgment (Σ := Σ)
   (λ ρ, ∀ v, ▷^i1 oClose τ1 ρ v → ▷^i2 oClose τ2 ρ v)%I.
 Notation "τ1 , i1 <: τ2 , i2" := (sstpi τ1 i1 τ2 i2) (at level 73, τ2, i1, i2 at next level).
 
