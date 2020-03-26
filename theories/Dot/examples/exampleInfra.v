@@ -17,6 +17,9 @@ Coercion vlit : base_lit >-> vl_.
 Coercion lint : Z >-> base_lit.
 Coercion lbool : bool >-> base_lit.
 
+Identity Coercion vl2vl_ : vl >-> vl_.
+Coercion vl_2vl := id : vl_ -> vl.
+
 Module Export packedStampedTyDefs.
 
 Record preTyMem {nvl} := MkTy {

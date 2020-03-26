@@ -462,8 +462,6 @@ Proof.
   by simpl_map by exact: Heq. *)
 Qed.
 
-Identity Coercion vl2vl_ : vl >-> vl_.
-
 Example pCoreSemTyped Γ : Γ ⊨[fromPDotGφ]
   lett hoptionModV fromPDotPaper : ⊤.
 Proof.
