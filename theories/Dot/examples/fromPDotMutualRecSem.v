@@ -462,8 +462,10 @@ Proof.
   by simpl_map by exact: Heq. *)
 Qed.
 
+Identity Coercion vl2vl_ : vl >-> vl_.
+
 Example pCoreSemTyped Γ : Γ ⊨[fromPDotGφ]
-  lett (hoptionModV : vl) fromPDotPaper : ⊤.
+  lett hoptionModV fromPDotPaper : ⊤.
 Proof.
   rewrite /lett /vabs'.
   iIntros "#Hs".
@@ -480,7 +482,7 @@ Qed.
 
 End semExample.
 
-Lemma pcoreSafe: safe (lett (hoptionModV : vl) fromPDotPaper).
+Lemma pcoreSafe: safe (lett hoptionModV fromPDotPaper).
 Proof.
   eapply (safety_dot_sem dlangΣ (T := _))=>*.
   rewrite (transfer_empty fromPDotGφ).
