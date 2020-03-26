@@ -77,7 +77,7 @@ Notation "X ⊆ Y ⊆ Z ⊆ W" := (X ⊆ Y ∧ Y ⊆ Z ∧ Z ⊆ W)%I (at level 
 (** Semantic Full Kind. *)
 Record sf_kind {Σ n} := SfKind {
   sf_kind_sub :> sr_kind Σ n;
-  sf_kind_sub_ne ρ :> NonExpansive2 (sf_kind_sub ρ);
+  sf_kind_sub_ne ρ : NonExpansive2 (sf_kind_sub ρ);
   sf_kind_sub_internal_proper (T1 T2 : hoLtyO Σ n) ρ:
     (□ ∀ args v, T1 args v ↔ T2 args v) ⊢@{iPropI Σ} sf_kind_sub ρ T1 T1 ∗-∗ sf_kind_sub ρ T2 T2;
   sf_kind_sub_trans ρ T1 T2 T3 :
@@ -91,6 +91,7 @@ Record sf_kind {Σ n} := SfKind {
     sf_kind_sub ρ T1 T2 -∗
     sf_kind_sub ρ T2 T2;
 }.
+Existing Instance sf_kind_sub_ne. (* Using :> would create an ambiguous coercion to Funclass. *)
 Global Arguments sf_kind : clear implicits.
 Global Arguments sf_kind_sub {_ _} !_ /.
 Add Printing Constructor sf_kind.
@@ -482,9 +483,10 @@ Section dot_types.
   (* XXX Name. *)
   Program Definition kSub {n} (f : env → env) (K : sf_kind Σ n) : sf_kind Σ n :=
     SfKind (λI ρ, K (f ρ)) _ _ _ _ _.
-  Next Obligation.
+  (* Solved automatically but in a fragile way. *)
+  (* Next Obligation.
     move=> n K v ρ m T1 T2 HT U1 U2 HU /=; exact: sf_kind_sub_ne.
-  Qed.
+  Qed. *)
   Next Obligation. intros; simpl; exact: sf_kind_sub_internal_proper. Qed.
   Next Obligation. intros; simpl; exact: sf_kind_sub_trans. Qed.
   Next Obligation. intros; simpl; exact: sf_kind_sub_quasi_refl_1. Qed.
