@@ -27,6 +27,7 @@ theories/iris_extra/saved_interp_dep.v
 theories/misc_unused/saved_interp.v
 theories/misc_unused/saved_interp_n.v
 theories/misc_unused/hoInterps_experiments.v
+theories/misc_unused/hoInterps_bad.v
 theories/iris_extra/proofmode_extra.v
 theories/iris_extra/swap_later_impl.v
 theories/DSub/lr/adequacy.v
