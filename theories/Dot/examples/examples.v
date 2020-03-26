@@ -14,6 +14,8 @@ Import dlang_adequacy.
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
+Implicit Types (v w : vl) (d : dm) (ds : dms).
+
 Import hoas.syn.
 
 (* XXX move into hoas.v. *)
@@ -90,13 +92,13 @@ Section helpers.
   Lemma wp_nge m n (Hnge : ¬ m > n) : WP m > n {{ w, w ≡ false }}%I.
   Proof. wp_bin. ev; simplify_eq/=. case_decide; by [|lia]. Qed.
 
-  Lemma setp_value Γ (T : olty Σ 0) v: Γ s⊨ tv v : T ⊣⊢ (□∀ ρ, s⟦ Γ ⟧* ρ → T vnil ρ v.[ρ]).
+  Lemma setp_value Γ (T : olty Σ 0) v: Γ s⊨ v : T ⊣⊢ (□∀ ρ, s⟦ Γ ⟧* ρ → T vnil ρ v.[ρ]).
   Proof.
     rewrite /=; properness => //; iSplit;
       [rewrite wp_value_inv|rewrite -wp_value]; iIntros "#$".
   Qed.
 
-  Lemma setp_value_eq (T : olty Σ 0) v: (∀ ρ, T vnil ρ v.[ρ]) ⊣⊢ [] s⊨ tv v : T.
+  Lemma setp_value_eq (T : olty Σ 0) v: (∀ ρ, T vnil ρ v.[ρ]) ⊣⊢ [] s⊨ v : T.
   Proof.
     iSplit.
     - iIntros "#H !>" (? _).
@@ -106,20 +108,20 @@ Section helpers.
       by rewrite /= wp_value_inv'.
   Qed.
 
-  Lemma ietp_value_eq T v: (∀ ρ, ⟦ T ⟧ ρ v.[ρ]) ⊣⊢ [] ⊨ tv v : T.
+  Lemma ietp_value_eq T v: (∀ ρ, ⟦ T ⟧ ρ v.[ρ]) ⊣⊢ [] ⊨ v : T.
   Proof. apply setp_value_eq. Qed.
 
-  Lemma ietp_value T v: (∀ ρ, ⟦ T ⟧ ρ v.[ρ]) -∗ [] ⊨ tv v : T.
+  Lemma ietp_value T v: (∀ ρ, ⟦ T ⟧ ρ v.[ρ]) -∗ [] ⊨ v : T.
   Proof. by rewrite ietp_value_eq. Qed.
 
-  Lemma ietp_value_inv T v: [] ⊨ tv v : T -∗ ∀ ρ, ⟦ T ⟧ ρ v.[ρ].
+  Lemma ietp_value_inv T v : [] ⊨ v : T -∗ ∀ ρ, ⟦ T ⟧ ρ v.[ρ].
   Proof. by rewrite ietp_value_eq. Qed.
 
-  Lemma V_TVMem_I T (v w : vl) l
+  Lemma V_TVMem_I T v w l
     (Hclv : nclosed_vl v 0)
     (* XXX should be (Hlook : v @ l ↘ (dpt (pv w))) *)
     (Hlook : objLookup v l (dpt (pv w))):
-    [] ⊨ tv w : T -∗
+    [] ⊨ w : T -∗
     [] ⊨ v : TVMem l T.
   Proof.
     Import synLemmas.
@@ -416,13 +418,13 @@ Section small_ex.
 End small_ex.
 End s_is_pos.
 
-Lemma miniVSafe (s : stamp): safe (tv (miniV s)).
+Lemma miniVSafe (s : stamp): safe (miniV s).
 Proof.
   eapply (safety_dot_sem dlangΣ (T := miniVT1))=>*.
   by rewrite (allocHs s) // -vHasA1t.
 Qed.
 
-Lemma posModVSafe (s : stamp): safe (tv (posModV s)).
+Lemma posModVSafe (s : stamp): safe (posModV s).
 Proof.
   eapply (safety_dot_sem dlangΣ (T := posModT))=>*.
   by rewrite (allocHs s) // -posModTy.
