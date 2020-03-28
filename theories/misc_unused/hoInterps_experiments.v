@@ -693,4 +693,49 @@ Section dot_types.
   Qed.
 
 End dot_types.
+
+Section dot_experimental_kinds.
+  Context `{dlangG Σ}.
+  Local Tactic Notation "iSplitWith" constr(H) "as" constr(H') :=
+    iApply (bi.and_parallel with H); iSplit; iIntros H'.
+  Program Definition kAnd (K1 K2 : sf_kind Σ 0) : sf_kind Σ 0 :=
+    SfKind (SrKind (λI ρ T1 T2, K1 ρ T1 T2 ∧ K2 ρ T1 T2)) _ _ _ _ _.
+  Next Obligation.
+    move=> K1 K2 ρ n T1 T2 HT U1 U2 HU /=. f_equiv; exact: sf_kind_sub_ne.
+  Qed.
+  Next Obligation.
+    iIntros "/= * #Heq"; iSplit; iIntros "H";
+    iSplitWith "H" as "H";
+    iApply (sf_kind_sub_internal_proper with "Heq H").
+  Qed.
+  Next Obligation.
+    iIntros "/= * [HK1a HK2a] [HK1b HK2b]".
+    iSplit.
+    iApply (sf_kind_sub_trans with "HK1a HK1b").
+    iApply (sf_kind_sub_trans with "HK2a HK2b").
+  Qed.
+  Next Obligation.
+    by iIntros "* [HK1 HK2]"; iSplit; iApply sf_kind_sub_quasi_refl_1.
+  Qed.
+  Next Obligation.
+    by iIntros "* [HK1 HK2]"; iSplit; iApply sf_kind_sub_quasi_refl_2.
+  Qed.
+
+  Definition isSing (T : lty Σ) := (□∀ v1 v2, T v1 → T v2 → ⌜ v1 = v2 ⌝)%I.
+  (* Uh. Not actually checking subtyping, but passes requirements. [kSing] also checks requirements. *)
+  Program Definition kSing' : sf_kind Σ 0 :=
+    SfKind (SrKind (λI ρ T1 T2, isSing (oClose T1) ∧ isSing (oClose T2))) _ _ _ _ _.
+  Next Obligation. rewrite /isSing. solve_proper_ho. Qed.
+  Next Obligation.
+    iIntros "* /= #Heq"; iSplit; iIntros "#Hsing";
+    by iSplitWith "Hsing" as "#Hsing'";
+    iIntros "!> * #Hv1 #Hv2"; iApply "Hsing"; iApply "Heq".
+  Qed.
+  Next Obligation. iIntros "/= _ " (T0 T1 T2) "[$_] [_$]". Qed.
+  Next Obligation. iIntros "/= _" (T1 T2) "[$ _]". Qed.
+  Next Obligation. iIntros "/= _" (T1 T2) "[_ $]". Qed.
+
+  Definition kSing (K : sf_kind Σ 0) : sf_kind Σ 0 := kAnd sf_star kSing'.
+    (* SfKind (SrKind (λI ρ T1 T2, oClose T1 ⊆ oClose T2 ∧ □(∀ v1 v2, oClose T2 v1 → oClose T2 v2 → ⌜ v1 = v2 ⌝))) _ _ _ _ _. *)
+End dot_experimental_kinds.
 End HkDot.
