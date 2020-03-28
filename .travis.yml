@@ -45,7 +45,7 @@ install: |
     opam pin add -y -n -k path $OPAM_NAME ."
   #
   # Likely redundant, except during upgrades
-  do_travis "deps" "opam install -y -v -j ${NJOBS} --deps-only $OPAM_NAME"
+  do_travis "deps" "opam install --ignore-constraints-on=coq-stdpp -y -v -j ${NJOBS} --deps-only $OPAM_NAME"
   do_travis "settings" "opam config list; opam repo list; opam list"
 
 script:

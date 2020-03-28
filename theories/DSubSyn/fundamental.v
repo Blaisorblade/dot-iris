@@ -92,10 +92,10 @@ Section Fundamental.
   Context `{!dsubSynG Σ} `{!SwapPropI Σ}.
 
   Lemma fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2):
-    Γ ⊨ T1, i1 <: T2, i2
+    ⊢ Γ ⊨ T1, i1 <: T2, i2
   with
   fundamental_typed Γ e T (HT: Γ ⊢ₜ e : T):
-    Γ ⊨ e : T.
+    ⊢ Γ ⊨ e : T.
   Proof.
     - iInduction HT as [] "IHT".
       + by iApply Sub_Refl.
@@ -131,7 +131,7 @@ From D.pure_program_logic Require Import adequacy.
 From D.iris_extra Require Import det_reduction.
 
 Theorem adequacy Σ `{HdsubG: dsubSynG Σ} `{!SwapPropI Σ} e T:
-  (∀ `(dsubSynG Σ) `(SwapPropI Σ), [] ⊨ e : T) →
+  (∀ `(dsubSynG Σ) `(SwapPropI Σ), ⊢ [] ⊨ e : T) →
   safe e.
 Proof.
   rewrite /safe; intros Htyp ?*.

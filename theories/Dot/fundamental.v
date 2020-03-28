@@ -23,19 +23,19 @@ Section fundamental.
     end.
 
   Lemma fundamental_mut Γ g :
-    (∀ e T (HT: Γ v⊢ₜ[ g ] e : T), Γ ⊨[ Vs⟦ g ⟧ ] e : T) ∧
-    (∀ ds T (HT: Γ v⊢ds[ g ] ds : T), Γ ⊨ds[ Vs⟦ g ⟧ ] ds : T) ∧
-    (∀ l d T, Γ v⊢[ g ]{ l := d } : T → Γ ⊨[ Vs⟦ g ⟧ ] { l := d } : T) ∧
-    (∀ p T i (HT : Γ v⊢ₚ[ g ] p : T, i), Γ ⊨p[ Vs⟦ g ⟧ ] p : T, i) ∧
+    (∀ e T (HT: Γ v⊢ₜ[ g ] e : T), ⊢ Γ ⊨[ Vs⟦ g ⟧ ] e : T) ∧
+    (∀ ds T (HT: Γ v⊢ds[ g ] ds : T), ⊢ Γ ⊨ds[ Vs⟦ g ⟧ ] ds : T) ∧
+    (∀ l d T, Γ v⊢[ g ]{ l := d } : T → ⊢ Γ ⊨[ Vs⟦ g ⟧ ] { l := d } : T) ∧
+    (∀ p T i (HT : Γ v⊢ₚ[ g ] p : T, i), ⊢ Γ ⊨p[ Vs⟦ g ⟧ ] p : T, i) ∧
     (∀ T1 i1 T2 i2 (HT: Γ v⊢ₜ[ g ] T1, i1 <: T2, i2),
-      Γ ⊨[ Vs⟦ g ⟧ ] T1, i1 <: T2, i2).
+      ⊢ Γ ⊨[ Vs⟦ g ⟧ ] T1, i1 <: T2, i2).
   Proof.
     eapply storeless_typing_mut_ind with
-        (P := λ Γ g e T _,  Γ ⊨[ Vs⟦ g ⟧ ] e : T)
-        (P0 := λ Γ g ds T _,  Γ ⊨ds[ Vs⟦ g ⟧ ] ds : T)
-        (P1 := λ Γ g l d T _,  Γ ⊨[ Vs⟦ g ⟧ ] { l := d } : T)
-        (P2 := λ Γ g p T i _,  Γ ⊨p[ Vs⟦ g ⟧ ] p : T, i)
-        (P3 := λ Γ g T1 i1 T2 i2 _,  Γ ⊨[ Vs⟦ g ⟧ ] T1, i1 <: T2, i2);
+        (P := λ Γ g e T _,  ⊢ Γ ⊨[ Vs⟦ g ⟧ ] e : T)
+        (P0 := λ Γ g ds T _,  ⊢ Γ ⊨ds[ Vs⟦ g ⟧ ] ds : T)
+        (P1 := λ Γ g l d T _, ⊢ Γ ⊨[ Vs⟦ g ⟧ ] { l := d } : T)
+        (P2 := λ Γ g p T i _, ⊢ Γ ⊨p[ Vs⟦ g ⟧ ] p : T, i)
+        (P3 := λ Γ g T1 i1 T2 i2 _, ⊢ Γ ⊨[ Vs⟦ g ⟧ ] T1, i1 <: T2, i2);
     clear Γ g; intros; iIntros "#Hm".
       + by iApply T_All_Ex; [iApply H|iApply H0].
       + by iApply T_All_Ex_p; [|iApply H|iApply H0].
@@ -113,19 +113,19 @@ Section fundamental.
   Qed.
 
   Lemma fundamental_dm_typed Γ g l d T (HT: Γ v⊢[ g ]{ l := d } : T) :
-    Γ ⊨[ Vs⟦ g ⟧ ] { l := d } : T.
+    ⊢ Γ ⊨[ Vs⟦ g ⟧ ] { l := d } : T.
   Proof. unmut_lemma (fundamental_mut Γ g). Qed.
   Lemma fundamental_dms_typed Γ g ds T (HT: Γ v⊢ds[ g ] ds : T) :
-    Γ ⊨ds[ Vs⟦ g ⟧ ] ds : T.
+    ⊢ Γ ⊨ds[ Vs⟦ g ⟧ ] ds : T.
   Proof. unmut_lemma (fundamental_mut Γ g). Qed.
   Lemma fundamental_subtype Γ g T1 i1 T2 i2 (HT: Γ v⊢ₜ[ g ] T1, i1 <: T2, i2) :
-    Γ ⊨[ Vs⟦ g ⟧ ] T1, i1 <: T2, i2.
+    ⊢ Γ ⊨[ Vs⟦ g ⟧ ] T1, i1 <: T2, i2.
   Proof. unmut_lemma (fundamental_mut Γ g). Qed.
   Lemma fundamental_typed Γ g e T (HT: Γ v⊢ₜ[ g ] e : T) :
-    Γ ⊨[ Vs⟦ g ⟧ ] e : T.
+    ⊢ Γ ⊨[ Vs⟦ g ⟧ ] e : T.
   Proof. unmut_lemma (fundamental_mut Γ g). Qed.
   Lemma fundamental_path_typed Γ g p T i (HT : Γ v⊢ₚ[ g ] p : T, i) :
-    Γ ⊨p[ Vs⟦ g ⟧ ] p : T, i.
+    ⊢ Γ ⊨p[ Vs⟦ g ⟧ ] p : T, i.
   Proof. unmut_lemma (fundamental_mut Γ g). Qed.
 End fundamental.
 

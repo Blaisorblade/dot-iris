@@ -46,17 +46,17 @@ Qed.
 Section Sec.
   Context `{HdlangG: dlangG Σ}.
 
-  Lemma sT_Nat_I Γ n: Γ s⊨ tv (vint n): oInt.
+  Lemma sT_Nat_I Γ n: ⊢ Γ s⊨ tv (vint n): oInt.
   Proof. iIntros "!> * _ /="; rewrite -wp_value /= /pure_interp_prim /prim_evals_to; eauto. Qed.
 
-  Lemma sT_Bool_I Γ b: Γ s⊨ tv (vbool b): oBool.
+  Lemma sT_Bool_I Γ b: ⊢ Γ s⊨ tv (vbool b): oBool.
   Proof. iIntros "!> * _ /="; rewrite -wp_value /= /pure_interp_prim /prim_evals_to; eauto. Qed.
 
 
   (** * Unary operations *)
   Lemma wp_un B1 Br u v
     (Hev1 : pure_interp_prim B1 v) (Hu : un_op_semtype u B1 Br) :
-    WP tun u (tv v) {{ w, ⌜un_op_eval u v = Some w ∧ pure_interp_prim Br w⌝ }}%I.
+    ⊢ WP tun u (tv v) {{ w, ⌜un_op_eval u v = Some w ∧ pure_interp_prim Br w⌝ }}.
   Proof.
     destruct (Hu v) => //; ev.
     by rewrite -wp_pure_step_later // -wp_value'; auto.
@@ -81,7 +81,7 @@ Section Sec.
   Lemma wp_bin {b v1 v2 B1 B2 Br P} (Hu : bin_op_semtype b B1 B2 Br P) l1 l2
     (Hev1 : prim_evals_to B1 v1 l1) (Hev2 : prim_evals_to B2 v2 l2)
     (HP : P l1 l2) :
-    WP tbin b (tv v1) (tv v2) {{ w, ⌜bin_op_eval b v1 v2 = Some w ∧ pure_interp_prim Br w⌝ }}%I.
+    ⊢ WP tbin b (tv v1) (tv v2) {{ w, ⌜bin_op_eval b v1 v2 = Some w ∧ pure_interp_prim Br w⌝ }}.
   Proof.
     edestruct (Hu v1 v2) => //; ev.
     by rewrite -wp_pure_step_later // -wp_value'; auto.

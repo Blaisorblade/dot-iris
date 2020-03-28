@@ -83,9 +83,9 @@ Section logrel.
   Notation "[ rinterp ] v ↗ φ" := (vl_has_semtype rinterp v φ) (at level 20).
 
   Lemma vl_has_semtype_agree rinterp v (φ1 φ2 : D):
-    (▷ [ rinterp ] v ↗ φ1 →
-     ▷ [ rinterp ] v ↗ φ2 →
-     ∀ w, ▷ (φ1 w ≡ φ2 w))%I.
+    ⊢ ▷ [ rinterp ] v ↗ φ1 →
+      ▷ [ rinterp ] v ↗ φ2 →
+      ∀ w, ▷ (φ1 w ≡ φ2 w).
   Proof.
     iIntros "/= #H1 #H2" (w).
     iDestruct "H1" as (T1) "[>% #Heq1]". iDestruct "H2" as (T) "[>% #Heq2]"; simplify_eq.
@@ -282,7 +282,7 @@ Section logrel_lemmas.
   Qed.
 
   Context {Γ}.
-  Lemma Sub_Refl T i : Γ ⊨ T, i <: T, i.
+  Lemma Sub_Refl T i : ⊢ Γ ⊨ T, i <: T, i.
   Proof. by iIntros "/= !> **". Qed.
 
   Lemma Sub_Trans T1 T2 T3 i1 i2 i3 : Γ ⊨ T1, i1 <: T2, i2 -∗
@@ -293,7 +293,7 @@ Section logrel_lemmas.
     iApply ("Hsub2" with "Hg (Hsub1 Hg [//])").
   Qed.
 
-  Lemma DSub_Refl T i : Γ ⊨[i] T <: T.
+  Lemma DSub_Refl T i : ⊢ Γ ⊨[i] T <: T.
   Proof. by iIntros "/= !> ** !> **". Qed.
 
   Lemma DSub_Trans T1 T2 T3 i : Γ ⊨[i] T1 <: T2 -∗

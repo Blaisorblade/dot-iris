@@ -243,7 +243,7 @@ Tactic Notation "reshape" uconstr(lctx) := iApply (wp_bind (fill lctx)).
 Ltac wp_pure := rewrite -wp_pure_step_later -1?wp_value; last done; iNext.
 
 Lemma newTypeRef_semTyped Γ g :
-  newTypeRefΓ Γ ⊨[ Vs⟦ g ⟧ ] newTypeRefBody : x1 @; "TypeRef".
+  ⊢ newTypeRefΓ Γ ⊨[ Vs⟦ g ⟧ ] newTypeRefBody : x1 @; "TypeRef".
 Proof.
   have := Hx0 Γ g; set Γ2 := newTypeRefΓ Γ; unfold newTypeRefΓ in Γ2 => Hx0.
 
@@ -296,7 +296,7 @@ Proof.
 Qed.
 
 Example semFromPDotPaperTypesTyp Γ :
-  TAnd (▶: fromPDotPaperTypesTBody) (TSing (x1 @ "types")) ::
+  ⊢ TAnd (▶: fromPDotPaperTypesTBody) (TSing (x1 @ "types")) ::
   (▶: fromPDotPaperAbsTBody x1)%ty :: optionModTInv :: Γ
   ⊨ds[ fromPDotGφ ] fromPDotPaperTypesVBody : fromPDotPaperTypesTBody.
 Proof.
@@ -392,7 +392,7 @@ Proof.
 Qed.
 
 Lemma fromPDotPaperTypesSub Γ:
-  (▶: fromPDotPaperAbsTBody x1)%ty :: optionModTInv :: Γ ⊨[ fromPDotGφ ]
+  ⊢ (▶: fromPDotPaperAbsTBody x1)%ty :: optionModTInv :: Γ ⊨[ fromPDotGφ ]
   μ fromPDotPaperTypesTBody, 0 <: μ fromPDotPaperAbsTypesTBody, 0.
 Proof.
   iApply fundamental_subtype.
@@ -434,7 +434,7 @@ Proof.
   lThis.
 Qed.
 
-Example fromPDotPaperTyp Γ : optionModTInv :: Γ ⊨[fromPDotGφ]
+Example fromPDotPaperTyp Γ : ⊢ optionModTInv :: Γ ⊨[fromPDotGφ]
   fromPDotPaper : μ (fromPDotPaperAbsTBody x1).
 Proof.
   iIntros "#Hs".
@@ -462,7 +462,7 @@ Proof.
   by simpl_map by exact: Heq. *)
 Qed.
 
-Example pCoreSemTyped Γ : Γ ⊨[fromPDotGφ]
+Example pCoreSemTyped Γ : ⊢ Γ ⊨[fromPDotGφ]
   lett hoptionModV fromPDotPaper : ⊤.
 Proof.
   rewrite /lett /vabs'.

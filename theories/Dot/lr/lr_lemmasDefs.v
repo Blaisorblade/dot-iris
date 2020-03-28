@@ -91,10 +91,10 @@ Section Sec.
      Γ ⊨ tv (vobj ds) : TMu T.
   Proof. apply sT_Obj_I. Qed.
 
-  Lemma sD_Nil Γ : Γ s⊨ds [] : cTop.
+  Lemma sD_Nil Γ : ⊢ Γ s⊨ds [] : cTop.
   Proof. by iSplit; last iIntros "!> **". Qed.
 
-  Lemma D_Nil Γ : Γ ⊨ds [] : TTop.
+  Lemma D_Nil Γ : ⊢ Γ ⊨ds [] : TTop.
   Proof. apply sD_Nil. Qed.
 
   Lemma sD_Cons Γ d ds l (T1 T2 : cltyO Σ):

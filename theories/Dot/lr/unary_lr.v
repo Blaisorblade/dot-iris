@@ -315,7 +315,7 @@ Section MiscLemmas.
     iApply ("Hp" with "Hg").
   Qed.
 
-  Lemma sSub_Refl {Γ} T i : Γ s⊨ T, i <: T, i.
+  Lemma sSub_Refl {Γ} T i : ⊢ Γ s⊨ T, i <: T, i.
   Proof. by iIntros "!> **". Qed.
 
   Lemma sSub_Trans {Γ T1 T2 T3 i1 i2 i3} : Γ s⊨ T1, i1 <: T2, i2 -∗
@@ -418,7 +418,7 @@ Section defs.
   Lemma P_Val {Γ} v T: Γ ⊨ tv v : T -∗ Γ ⊨p pv v : T, 0.
   Proof. apply sP_Val. Qed.
 
-  Lemma Sub_Refl {Γ} T i : Γ ⊨ T, i <: T, i.
+  Lemma Sub_Refl {Γ} T i : ⊢ Γ ⊨ T, i <: T, i.
   Proof. apply sSub_Refl. Qed.
 
   Lemma Sub_Trans {Γ T1 T2 T3 i1 i2 i3} :
@@ -470,7 +470,7 @@ but any result value they produce also satisfies any properties that follow from
 semantic type. *)
 Theorem adequacy_mapped_semtyping Σ `{!dlangPreG Σ} `{!SwapPropI Σ} {e g Ψ T}
   (Himpl : ∀ `(!dlangG Σ) v, ⟦ T ⟧ ids v -∗ ⌜Ψ v⌝)
-  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), [] ⊨[ Vs⟦ g ⟧ ] e : T):
+  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), ⊢ [] ⊨[ Vs⟦ g ⟧ ] e : T):
   adequate e (λ v, Ψ v).
 Proof.
   eapply (adequacy_dot_sem Σ Himpl).
@@ -479,7 +479,7 @@ Qed.
 
 (** Theorem 5.5: safety of semantic typing. Corollary of [adequacy_mapped_semtyping]. *)
 Corollary safety_mapped_semtyping Σ `{!dlangPreG Σ} `{!SwapPropI Σ} {e g T}
-  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), [] ⊨[ Vs⟦ g ⟧ ] e : T):
+  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), ⊢ [] ⊨[ Vs⟦ g ⟧ ] e : T):
   safe e.
 Proof.
   eapply adequate_safe, adequacy_mapped_semtyping, Hlog;
@@ -488,7 +488,7 @@ Qed.
 
 (** Adequacy of normalization for gDOT paths. *)
 Lemma ipwp_gs_adequacy Σ `{dlangPreG Σ} `{SwapPropI Σ} {g p T i}
-  (Hwp : ∀ (Hdlang : dlangG Σ) `(!SwapPropI Σ), [] ⊨p[ Vs⟦ g ⟧ ] p : T , i):
+  (Hwp : ∀ (Hdlang : dlangG Σ) `(!SwapPropI Σ), ⊢ [] ⊨p[ Vs⟦ g ⟧ ] p : T , i):
   terminates (path2tm p).
 Proof.
   eapply (@soundness (iResUR Σ) _ i).

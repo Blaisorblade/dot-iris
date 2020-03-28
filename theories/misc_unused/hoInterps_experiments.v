@@ -96,7 +96,7 @@ Proof. solve_proper_ho. Qed.
 Section kinds_types.
   Context {Σ}.
 
-  Lemma subtype_refl {T}: (T ⊆@{Σ} T)%I.
+  Lemma subtype_refl {T}: ⊢ T ⊆@{Σ} T.
   Proof. iIntros "!> * $". Qed.
 
   Lemma subtype_trans {T1} T2 {T3} :
@@ -255,7 +255,7 @@ Section gen_lemmas.
   (** * Prefixes: K for Kinding, KStp for kinded subtyping, Skd for subkinding. *)
   (* XXX: Prefixes: Rename elsewhere Sub to STyp *)
   Lemma sK_Sing Γ (T : olty Σ 0) i :
-    Γ s⊨ T ∷[ i ] sf_kintv T T.
+    ⊢ Γ s⊨ T ∷[ i ] sf_kintv T T.
   Proof.
     rewrite -kinding_intro; iIntros "!>" (ρ) "_". by rewrite -subtype_refl.
   Qed.
@@ -342,7 +342,7 @@ Section gen_lemmas.
   (** Reflexivity and transitivity of subkinding seem admissible, but let's
   prove them anyway, to show they hold regardless of extensions. *)
   Lemma sSkd_Refl {n} Γ i (K : sf_kind Σ n) :
-    Γ s⊨ K <∷[ i ] K.
+    ⊢ Γ s⊨ K <∷[ i ] K.
   Proof using HswapProp.
     rewrite /ssktp; setoid_rewrite <-(impl_laterN _).
     iIntros "!> * Hg * $".
@@ -401,10 +401,10 @@ Section gen_lemmas.
   (* Notation "L  U" := (sf_kintv L U) (at level 70). *)
 
   Lemma sKStp_Top Γ (T : olty Σ 0) i :
-    Γ s⊨ T <:[ i ] ⊤ ∷ sf_star.
+    ⊢ Γ s⊨ T <:[ i ] ⊤ ∷ sf_star.
   Proof. rewrite -ksubtyping_intro. iIntros "!> * _ * !> _ //". Qed.
   Lemma sKStp_Bot Γ (T : olty Σ 0) i :
-    Γ s⊨ ⊥ <:[ i ] T ∷ sf_star.
+    ⊢ Γ s⊨ ⊥ <:[ i ] T ∷ sf_star.
   Proof. rewrite -ksubtyping_intro; iIntros "!> * _ * !> []". Qed.
 
   (* <:-..-U *)
@@ -608,7 +608,7 @@ Section dot_types.
 
   (** * Kinding *)
   Lemma sK_Star Γ (T : olty Σ 0) i :
-    Γ s⊨ T ∷[ i ] sf_star.
+    ⊢ Γ s⊨ T ∷[ i ] sf_star.
   Proof using HswapProp.
     iApply sK_Sub. iApply sK_Sing. iApply sSkd_Intv; rewrite sstpkD_star_eq_sstp.
     by iApply sBot_Sub.
