@@ -87,18 +87,6 @@ Section iPPred_ofe.
   Global Instance iPPred_car_proper : Proper ((≡) ==> (=) ==> (≡)) (@iPPred_car vl Σ).
   Proof. by intros A A' HA w ? <-. Qed.
 
-  Definition pack ψ := IPPred (λ v, □ ψ v)%I.
-
-  Lemma iPPred_car_pack_id ψ `{∀ v, Persistent (ψ v)} :
-    lApp (pack ψ) ≡ ψ.
-  Proof. intros ?. apply: intuitionistic_intuitionistically. Qed.
-
-  Lemma pack_iPPred_car_id τ : pack (iPPred_car τ) ≡ τ.
-  Proof.
-    move: τ => [τ Hp] v /=.
-    apply: intuitionistic_intuitionistically.
-  Qed.
-
   (*
     Since substitution lemmas don't use setoids,
     [HSubstLemmas vl (olty Σ i)] requires proof irrelevance.
