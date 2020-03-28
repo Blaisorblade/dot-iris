@@ -34,7 +34,8 @@ Section Russell.
   Lemma vHasA: Hs ⊢ ⟦ TTMem "A" TBot TTop ⟧ ids v.
   Proof.
     iIntros "#Hs /=".
-    repeat (repeat iExists _; repeat iSplit => //). by iApply dm_to_type_intro.
+    iExists _; iSplit. by iExists _; iSplit.
+    iExists _; iSplit. by iApply dm_to_type_intro.
     iModIntro; repeat iSplit; by iIntros "** !>".
   Qed.
 
