@@ -33,6 +33,7 @@ before_install: |
   export -f do_travis
 
 install: |
+  set -e
   # Download the COQ container
   docker pull ${COQ_IMAGE}
   # Start the COQ container
