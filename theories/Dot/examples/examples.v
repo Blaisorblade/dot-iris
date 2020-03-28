@@ -150,7 +150,7 @@ Context (s: stamp).
 Definition pos v := ∃ n, v = vint n ∧ n > 0.
 Definition ipos: oltyO Σ 0 := olty0 (λI ρ v, ⌜ pos v ⌝).
 
-Definition Hs := (s ↝n[ 0 ] ipos)%I.
+Definition Hs : iProp Σ := s ↝n[ 0 ] ipos.
 Lemma allocHs sγ:
   sγ !! s = None → allGs sγ ==∗ Hs.
 Proof. exact (alloc ipos). Qed.

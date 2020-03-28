@@ -10,8 +10,8 @@ Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
 Definition leadsto_envD_equiv `{!dlangG Σ} {i} s σ (φ : hoEnvD Σ i) : iProp Σ :=
-  (∃ (φ' : hoEnvD Σ i),
-    ⌜φ ≡ (λ args ρ, φ' args (∞ σ.|[ρ]))⌝ ∧ s ↝n[ i ] φ')%I.
+  ∃ (φ' : hoEnvD Σ i),
+    ⌜φ ≡ (λ args ρ, φ' args (∞ σ.|[ρ]))⌝ ∧ s ↝n[ i ] φ'.
 Arguments leadsto_envD_equiv /.
 Notation "s ↝[  σ  ] φ" := (leadsto_envD_equiv s σ φ) (at level 20).
 

@@ -95,7 +95,7 @@ Notation "Γ s⊨ds ds : T" := (sdstp ds Γ T) (at level 74, ds, T at next level
 Notation "Γ s⊨p p : τ , i" := (sptp p i Γ τ) (at level 74, p, τ, i at next level).
 
 Definition dm_to_type `{HdotG: dlangG Σ} d i (ψ : hoD Σ i) : iProp Σ :=
-  (∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ , i ] ψ)%I.
+  ∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ , i ] ψ.
 Notation "d ↗n[ i  ] ψ" := (dm_to_type d i ψ) (at level 20).
 
 Section dm_to_type.

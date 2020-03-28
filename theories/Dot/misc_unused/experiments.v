@@ -581,7 +581,7 @@ Section Sec.
   Proof. iIntros (H); rewrite -wp_pure_step_later // -wp_value' //=. Qed.
 
   (* v : p.type *)
-  (* Definition sem_psingleton p ρ v : iProp Σ := path_wp p.|[ρ] (λ w, ⌜ w = v ⌝ )%I.
+  (* Definition sem_psingleton p ρ v : iProp Σ := path_wp p.|[ρ] (λI w, ⌜ w = v ⌝ ).
   Global Arguments sem_psingleton /.
   Global Instance: Persistent (sem_psingleton p ρ v) := _.
 
@@ -630,7 +630,7 @@ Section Sec.
 
   Lemma path_wp_exec2 {p v m} :
     PureExec True m (path2tm p) (tv v) →
-    path_wp p (λ w, ⌜ w = v ⌝ : iProp Σ)%I.
+    path_wp p (λI w, ⌜ w = v ⌝ : iProp Σ).
   Lemma self_sem_psingleton3 p i v:
     PureExec True i (path2tm p) (tv v) →
     path_wp p (sem_psingleton p ids).

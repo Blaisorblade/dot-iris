@@ -5,13 +5,13 @@ Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
 Lemma forall_swap_impl `{BiAffine PROP} {A} (P : PROP) `{!Persistent P} (Ψ : A → PROP) :
-  (P → ∀ a, Ψ a)%I ⊣⊢ (∀ a, P → Ψ a)%I.
+  (P → ∀ a, Ψ a) ⊣⊢ ∀ a, P → Ψ a.
 Proof.
   iSplit; [iIntros "H" (a) "P"|iIntros "H P" (a)]; iApply ("H" with "P").
 Qed.
 
 Lemma forall_swap_wand {PROP: bi} {A} (P : PROP) `{!Persistent P} (Ψ : A → PROP) :
-  (P -∗ ∀ a, Ψ a)%I ⊣⊢ (∀ a, P -∗ Ψ a)%I.
+  (P -∗ ∀ a, Ψ a) ⊣⊢ ∀ a, P -∗ Ψ a.
 Proof.
   iSplit; [iIntros "H" (a) "P"|iIntros "H P" (a)]; iApply ("H" with "P").
 Qed.

@@ -221,7 +221,7 @@ Fixpoint env_oltyped `{dlangG Σ} (Γ : sCtx Σ) (ρ : var → vl) : iProp Σ :=
   match Γ with
   | φ :: Γ' => env_oltyped Γ' (stail ρ) ∧ oClose φ ρ (shead ρ)
   | nil => True
-  end%I.
+  end.
 Notation "s⟦ Γ ⟧*" := (env_oltyped Γ).
 Global Instance: Params (@env_oltyped) 2 := {}.
 
