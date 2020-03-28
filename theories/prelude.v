@@ -12,9 +12,26 @@ Set Default Proof Using "Type".
 (** Enrico (Tassi?)'s trick for tc resolution in [have]. Doesn't conflict with infix [!!]. *)
 Notation "!! x" := (ltac:(refine x)) (at level 100, only parsing).
 
-(* Fixed version of stdpp's. *)
-Tactic Notation "efeed" "pose" "proof" constr(H) "as" simple_intropattern(H') :=
-  efeed H using (fun p => pose proof p as H').
+(** ssreflect postfix notation for the successor and predecessor functions.
+SSreflect uses "pred" for the generic predicate type, and S as a local bound
+variable.*)
+Notation succn := Datatypes.S.
+Notation predn := Peano.pred.
+
+Notation "n .+1" := (succn n) (at level 2, left associativity,
+  format "n .+1") : nat_scope.
+Notation "n .+2" := n.+1.+1 (at level 2, left associativity,
+  format "n .+2") : nat_scope.
+Notation "n .+3" := n.+2.+1 (at level 2, left associativity,
+  format "n .+3") : nat_scope.
+Notation "n .+4" := n.+2.+2 (at level 2, left associativity,
+  format "n .+4") : nat_scope.
+
+Notation "n .-1" := (predn n) (at level 2, left associativity,
+  format "n .-1") : nat_scope.
+Notation "n .-2" := n.-1.-1 (at level 2, left associativity,
+  format "n .-2") : nat_scope.
+
 
 (* Inspired by stdpp's [destruct_and?/!]. *)
 Tactic Notation "destruct_or" "?" :=
@@ -30,17 +47,6 @@ Tactic Notation "destruct_or" "!" := progress destruct_or?.
   setting the obligation tactic, won't be re-run. So let's do it
   ourselves: *)
 Obligation Tactic := idtac.
-
-Tactic Notation "locAsimpl'" uconstr(e1) :=
-  remember (e1) as __e' eqn:__Heqe';
-  progress asimpl in __Heqe'; subst __e'.
-
-(* This retries multiple times; must lock patterns and ignore them *)
-Ltac locAsimpl :=
-  repeat match goal with
-  | |- context [?a.[?s]] => locAsimpl' a.[s]
-  | |- context [?a.|[?s]] => locAsimpl' (a.|[s])
-  end.
 
 Definition stamp := positive.
 

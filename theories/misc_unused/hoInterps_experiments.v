@@ -15,27 +15,7 @@ Set Default Proof Using "Type".
 Set Implicit Arguments.
 Unset Strict Implicit.
 
-Implicit Types (Σ : gFunctors) .
-(** ssreflect postfix notation for the successor and predecessor functions.
-SSreflect uses "pred" for the generic predicate type, and S as a local bound
-variable.*)
-Notation succn := Datatypes.S.
-Notation predn := Peano.pred.
-
-Notation "n .+1" := (succn n) (at level 2, left associativity,
-  format "n .+1") : nat_scope.
-Notation "n .+2" := n.+1.+1 (at level 2, left associativity,
-  format "n .+2") : nat_scope.
-Notation "n .+3" := n.+2.+1 (at level 2, left associativity,
-  format "n .+3") : nat_scope.
-Notation "n .+4" := n.+2.+2 (at level 2, left associativity,
-  format "n .+4") : nat_scope.
-
-Notation "n .-1" := (predn n) (at level 2, left associativity,
-  format "n .-1") : nat_scope.
-Notation "n .-2" := n.-1.-1 (at level 2, left associativity,
-  format "n .-2") : nat_scope.
-
+Implicit Types (Σ : gFunctors).
 
 Module Type HoSemTypes (Import VS : VlSortsFullSig) (Import LWP : LiftWp VS) (Import L : Lty VS LWP).
 
@@ -77,7 +57,7 @@ Notation "X ⊆ Y ⊆ Z ⊆ W" := (X ⊆ Y ∧ Y ⊆ Z ∧ Z ⊆ W)%I (at level 
 (** Semantic Full Kind. *)
 Record sf_kind {Σ n} := SfKind {
   sf_kind_sub :> sr_kind Σ n;
-  sf_kind_sub_ne ρ :> NonExpansive2 (sf_kind_sub ρ);
+  sf_kind_sub_ne ρ : NonExpansive2 (sf_kind_sub ρ);
   sf_kind_sub_internal_proper (T1 T2 : hoLtyO Σ n) ρ:
     (□ ∀ args v, T1 args v ↔ T2 args v) ⊢@{iPropI Σ} sf_kind_sub ρ T1 T1 ∗-∗ sf_kind_sub ρ T2 T2;
   sf_kind_sub_trans ρ T1 T2 T3 :
@@ -91,6 +71,7 @@ Record sf_kind {Σ n} := SfKind {
     sf_kind_sub ρ T1 T2 -∗
     sf_kind_sub ρ T2 T2;
 }.
+Existing Instance sf_kind_sub_ne. (* Using :> would create an ambiguous coercion to Funclass. *)
 Global Arguments sf_kind : clear implicits.
 Global Arguments sf_kind_sub {_ _} !_ /.
 Add Printing Constructor sf_kind.
@@ -109,13 +90,8 @@ Global Lemma Proper_sfkind' {Σ n} (K : sf_kind Σ n) ρ T1 T2 :
   T1 ≡ T2 → K ρ T1 T1 ≡ K ρ T2 T2.
 Proof. intros Heq. by apply Proper_sfkind. Qed.
 
-Global Instance Proper_sfkind_A {Σ n} (K : sf_kind Σ n) ρ :
-  Proper (pointwise_relation _ (≡) ==> pointwise_relation _ (≡) ==> (≡)) (K ρ).
-Proof. apply Proper_sfkind. Qed.
-
 Global Instance vcurry_ne vl n A m : Proper (dist m ==> (=) ==> dist m) (@vcurry vl n A).
 Proof. solve_proper_ho. Qed.
-Add Printing Constructor iPPred.
 
 Section kinds_types.
   Context {Σ}.
@@ -211,7 +187,7 @@ Section kinds_types.
 End kinds_types.
 
 (** Kinded, indexed subtyping *)
-Program Definition sstpkD `{!dlangG Σ} {n} i Γ T1 T2 (K : sf_kind Σ n) : iProp Σ :=
+Definition sstpkD `{!dlangG Σ} {n} i Γ T1 T2 (K : sf_kind Σ n) : iProp Σ :=
   □∀ ρ, s⟦Γ⟧*ρ → ▷^i K ρ (envApply T1 ρ) (envApply T2 ρ).
 Notation "Γ s⊨ T1 <:[ i  ] T2 ∷ K" := (sstpkD i Γ T1 T2 K)
   (at level 74, i, T1, T2, K at next level).
@@ -388,22 +364,10 @@ Section gen_lemmas.
     Γ s⊨ T <:[ i ] T ∷ K.
   Proof. done. Qed.
 
-  (* XXX fixing ones in lty.v. *)
-  Global Instance iPPred_car_ne n subj : Proper (dist n ==> (=) ==> dist n) (@iPPred_car subj Σ).
-  Proof. by intros A A' HA w ? <-. Qed.
-  Global Instance iPPred_car_proper subj : Proper ((≡) ==> (=) ==> (≡)) (@iPPred_car subj Σ).
-  Proof. by intros A A' ? w ? <-. Qed.
-
   (* We can't actually write the right instance; this is just false for arbitrary persistent predicates.
     Instead, we must use Proper_sfkind, which is a setoid instance for a *pair* of projections.
    *)
-  (* Global Instance iPPred_car_ne (subj : ofeT) n : Proper (dist n ==> (≡) ==> dist n) (@iPPred_car subj Σ).
-  Proof. intros A A' HA w ? ?. apply (HA _). <-. Qed.
-  Global Instance lty_car_proper subj : Proper ((≡) ==> (≡) ==> (≡)) (@iPPred_car subj Σ).
-  Proof. by intros A A' ? w ? <-. Qed. *)
 
-  Global Instance: Params (@sf_kind_sub) 4 := {}.
-  (** XXX no ofe instance for sf_kind. *)
   Global Instance Proper_sstpkD n i :
     Proper ((≡) ==> (≡) ==> (≡) ==> (=) ==> (≡)) (sstpkD (Σ := Σ) (n := n) i).
   Proof.
@@ -482,9 +446,10 @@ Section dot_types.
   (* XXX Name. *)
   Program Definition kSub {n} (f : env → env) (K : sf_kind Σ n) : sf_kind Σ n :=
     SfKind (λI ρ, K (f ρ)) _ _ _ _ _.
-  Next Obligation.
+  (* Solved automatically but in a fragile way. *)
+  (* Next Obligation.
     move=> n K v ρ m T1 T2 HT U1 U2 HU /=; exact: sf_kind_sub_ne.
-  Qed.
+  Qed. *)
   Next Obligation. intros; simpl; exact: sf_kind_sub_internal_proper. Qed.
   Next Obligation. intros; simpl; exact: sf_kind_sub_trans. Qed.
   Next Obligation. intros; simpl; exact: sf_kind_sub_quasi_refl_1. Qed.
@@ -663,15 +628,6 @@ Section dot_types.
     iApply (Proper_sfkind' with "(HTK Hg)") => args v /=.
     by rewrite -(Hγφ args ρ v) make_intuitionistically.
   Qed.
-  Lemma lift_olty_eq subj {τ1 τ2 : iPPred subj Σ} :
-    (* (iPPred_car τ1 ≡@{subj -d> _} iPPred_car τ2) ⊢@{iPropI Σ} τ1 ≡ τ2. *)
-    (sbi_internal_eq (A := subj -d> _) (iPPred_car τ1) (iPPred_car τ2)) ⊢@{iPropI Σ} τ1 ≡ τ2.
-  Proof. by uPred.unseal. Qed.
-    (* iIntros "H".
-    iApply prop_ext_2.
-    rewrite equiv_internal_eq.
-    iApply internal_eq_rewrite. ∗.
-  apply. Qed. *)
 
   Lemma sfkind_respects {n} (K : sf_kind Σ n) ρ (T1 T2 : hoLtyO Σ n) :
     (□ ∀ args v, T1 args v ↔ T2 args v) ⊢@{iPropI Σ} K ρ T1 T1 -∗ K ρ T2 T2.

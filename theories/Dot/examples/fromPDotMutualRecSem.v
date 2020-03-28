@@ -175,9 +175,9 @@ Proof. iIntros (??) "[$$]". Qed.
 Typeclasses Opaque pty_interp.
 
 Let newTypeRefΓ Γ :=
-    x2 @ "symbols" @; "Symbol" ::
-    TAnd fromPDotPaperTypesTBody (TSing (x1 @ "types")) ::
-    fromPDotPaperAbsTBody x1 :: optionModTInv :: Γ.
+  x2 @ "symbols" @; "Symbol" ::
+  TAnd fromPDotPaperTypesTBody (TSing (x1 @ "types")) ::
+  fromPDotPaperAbsTBody x1 :: optionModTInv :: Γ.
 Lemma Hsub0X0 Γ g :
   newTypeRefΓ Γ v⊢ₜ[g] x2 @ "symbols" @; "Symbol", 0 <:
     val "tpe" : optionTy x3 x2 , 1.
@@ -297,7 +297,7 @@ Qed.
 
 Example semFromPDotPaperTypesTyp Γ :
   TAnd (▶: fromPDotPaperTypesTBody) (TSing (x1 @ "types")) ::
-  TLater (fromPDotPaperAbsTBody x1) :: optionModTInv :: Γ
+  (▶: fromPDotPaperAbsTBody x1)%ty :: optionModTInv :: Γ
   ⊨ds[ fromPDotGφ ] fromPDotPaperTypesVBody : fromPDotPaperTypesTBody.
 Proof.
   set Γ' := TAnd fromPDotPaperTypesTBody (TSing (x1 @ "types")) ::
@@ -463,7 +463,7 @@ Proof.
 Qed.
 
 Example pCoreSemTyped Γ : Γ ⊨[fromPDotGφ]
-  lett (hoptionModV : vl) fromPDotPaper : ⊤.
+  lett hoptionModV fromPDotPaper : ⊤.
 Proof.
   rewrite /lett /vabs'.
   iIntros "#Hs".
@@ -480,7 +480,7 @@ Qed.
 
 End semExample.
 
-Lemma pcoreSafe: safe (lett (hoptionModV : vl) fromPDotPaper).
+Lemma pcoreSafe: safe (lett hoptionModV fromPDotPaper).
 Proof.
   eapply (safety_dot_sem dlangΣ (T := _))=>*.
   rewrite (transfer_empty fromPDotGφ).
@@ -490,7 +490,7 @@ Qed.
 
 Definition getAnyTypeT pOpt : ty :=
   TAll (μ fromPDotPaperAbsTBody (shift pOpt)) (x0 @ "types" @; "Type").
-Definition getAnyType : vl := vabs (tskip (tproj (tproj x0 "types") "AnyType")).
+Definition getAnyType : vl := vabs (tskip (x0 @: "types" @: "AnyType")).
 
 Definition fromPDotPaperAbsTypesTBodySubst : ty := {@
   type "Type" >: ⊥ <: ⊤;
@@ -507,7 +507,9 @@ Definition fromPDotPaperAbsTypesTBodySubst : ty := {@
 Lemma fromPDotPSubst: fromPDotPaperAbsTypesTBody .Tp[ (p0 @ "types") /]~ fromPDotPaperAbsTypesTBodySubst.
 Proof. exact: psubst_ty_rtc_sufficient. Qed.
 
-Example getAnyTypeFunTyp Γ : μ (fromPDotPaperAbsTBody x2) :: optionModTInv :: Γ v⊢ₜ[fromPDotG] getAnyType : getAnyTypeT x1.
+Example getAnyTypeFunTyp Γ :
+  μ (fromPDotPaperAbsTBody x2) :: optionModTInv :: Γ
+  v⊢ₜ[fromPDotG] getAnyType : getAnyTypeT x1.
 Proof.
   rewrite /getAnyType; tcrush.
   eapply (iT_Sub (T1 := TLater (x0 @ "types" @; "Type")) (i := 1)); tcrush.
@@ -528,15 +530,15 @@ Example getAnyTypeTyp0 Γ :
     tapp getAnyType x0 : x0 @ "types" @; "Type".
 Proof. eapply iT_All_Ex'; [exact: getAnyTypeFunTyp|var|tcrush..]. Qed.
 (*
-lett (tv fromPDotPaper) (tapp (tv getAnyType) x0) : (pv fromPDotPaper @ "types" @; "Type").
-Example getAnyTypeTyp : [] u⊢ₜ lett (tv fromPDotPaper) (tapp (tv getAnyType) x0) : (pv fromPDotPaper @ "types" @; "Type").
+lett fromPDotPaper (getAnyType $: x0) : fromPDotPaper @ "types" @; "Type".
+Example getAnyTypeTyp : [] u⊢ₜ lett fromPDotPaper (getAnyType $: x0) : fromPDotPaper @ "types" @; "Type".
 Proof.
   eapply (iT_All_Ex_p (pv _)); [| eapply getAnyTypeFunTyp|].
 
-Example getAnyTypeTyp : [] u⊢ₜ tapp (tv getAnyType) (tv fromPDotPaper) : (pv fromPDotPaper @ "types" @; "Type").
+Example getAnyTypeTyp : [] u⊢ₜ getAnyType $: fromPDotPaper : fromPDotPaper @ "types" @; "Type".
 Proof.
   eapply (iT_All_Ex_p (pv _)); [| eapply getAnyTypeFunTyp|].
 iT_Let
-  2: apply (iT_Path (pv fromPDotPaper)). fromPDotPaperTyp. ;
+  2: apply (iT_Path fromPDotPaper). fromPDotPaperTyp. ;
   (* Wanted: application of functions to paths;  *)
 Abort. *)

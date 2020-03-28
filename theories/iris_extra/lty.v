@@ -60,6 +60,12 @@ Section iPPred_ofe.
   Proof. by apply (iso_ofe_mixin lApp). Qed.
   Canonical Structure iPPredO := OfeT vpred iPPred_ofe_mixin.
 
+  Infix "≡@{ A }" := (sbi_internal_eq (A := A)) (only parsing) : bi_scope.
+
+  Lemma lift_olty_eq {τ1 τ2 : iPPred vl Σ} :
+    iPPred_car τ1 ≡@{vl -d> _} iPPred_car τ2 ⊢@{iPropI Σ} τ1 ≡ τ2.
+  Proof. by uPred.unseal; split. Qed.
+
   (* Only needed to define Lty using Iris fixpoints (e.g. for normal recursive types). *)
   Global Instance iPPred_cofe : Cofe iPPredO.
   Proof.
@@ -76,22 +82,10 @@ Section iPPred_ofe.
 
   Global Program Instance iPPred_inhabited : Inhabited vpred := populate ⊥.
 
-  Global Instance iPPred_car_ne : NonExpansive lApp.
-  Proof. intros n f g Heq. apply Heq. Qed.
-  Global Instance iPPred_car_proper : Proper ((≡) ==> (≡)) lApp.
-  Proof. apply ne_proper, iPPred_car_ne. Qed.
-
-  Program Definition pack ψ := IPPred (λ v, □ ψ v)%I.
-
-  Lemma iPPred_car_pack_id ψ `{∀ v, Persistent (ψ v)} :
-    lApp (pack ψ) ≡ ψ.
-  Proof. intros ?. apply: intuitionistic_intuitionistically. Qed.
-
-  Lemma pack_iPPred_car_id τ : pack (iPPred_car τ) ≡ τ.
-  Proof.
-    move: τ => [τ Hp] v /=.
-    apply: intuitionistic_intuitionistically.
-  Qed.
+  Global Instance iPPred_car_ne n : Proper (dist n ==> (=) ==> dist n) (@iPPred_car vl Σ).
+  Proof. by intros A A' HA w ? <-. Qed.
+  Global Instance iPPred_car_proper : Proper ((≡) ==> (=) ==> (≡)) (@iPPred_car vl Σ).
+  Proof. by intros A A' HA w ? <-. Qed.
 
   (*
     Since substitution lemmas don't use setoids,

@@ -24,8 +24,6 @@ theories/iris_extra/det_reduction.v
 theories/iris_extra/dlang.v
 theories/iris_extra/gen_iheap.v
 theories/iris_extra/saved_interp_dep.v
-theories/misc_unused/saved_interp.v
-theories/misc_unused/saved_interp_n.v
 theories/misc_unused/hoInterps_experiments.v
 theories/misc_unused/hoInterps_bad.v
 theories/iris_extra/proofmode_extra.v

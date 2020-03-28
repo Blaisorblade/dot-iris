@@ -2,7 +2,7 @@
 Require Import Equations.Equations. *)
 From iris.proofmode Require Import tactics.
 From iris.base_logic Require Import lib.saved_prop.
-From D Require Import iris_prelude saved_interp_n.
+From D Require Import iris_prelude.
 From D Require Import saved_interp_dep asubst_intf dlang ty_interp_subst_lemmas.
 From Coq Require FunctionalExtensionality.
 From D Require swap_later_impl.
@@ -51,7 +51,7 @@ Section saved_dep_use.
   Definition eFalse : envD Σ := λ ρ v, False%I.
 
   Unset Program Cases.
-  Program Definition vcurry : hoEnvND Σ → vl → hoEnvND Σ := λ '(existT n φ),
+  Definition vcurry : hoEnvND Σ → vl → hoEnvND Σ := λ '(existT n φ),
     match n with
     | 0 => λ _ _, existT 0 (λ _, eFalse)
     | S m => λ φ a, existT m (λ args : vec vl m, φ (vcons a args))

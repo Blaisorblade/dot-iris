@@ -27,8 +27,8 @@ Example ex0 e Γ T:
   Γ v⊢ₜ[ g ] e : ⊤.
 Proof. intros. apply (iT_Sub_nocoerce T TTop); tcrush. Qed.
 
-Example ex1 Γ n T:
-  Γ v⊢ₜ[ g ] tv (ν {@ val "a" = pv (vint n)}) : μ {@ val "a" : TInt }.
+Example ex1 Γ (n : Z) T:
+  Γ v⊢ₜ[ g ] ν {@ val "a" = n } : μ {@ val "a" : TInt }.
 Proof.
   (* Help proof search: Avoid trying iT_Mu_I, that's slow. *)
   apply iT_Obj_I; tcrush.
@@ -36,7 +36,7 @@ Qed.
 
 Example ex2 Γ T
   (Hg: g !! s1 = Some (p0 @; "B")):
-  Γ v⊢ₜ[ g ] tv (ν {@ type "A" = (idsσ 1 ; s1) } ) :
+  Γ v⊢ₜ[ g ] ν {@ type "A" = (idsσ 1 ; s1) } :
     TMu (TAnd (TTMem "A" TBot TTop) TTop).
 Proof.
   have Hs: (p0 @; "B") ~[ 1 ] (g, (s1, idsσ 1)).
@@ -53,7 +53,7 @@ Definition F3 T :=
 
 Example ex3 Γ T
   (Hg: g !! s1 = Some (F3 (p0 @; "A"))):
-  Γ v⊢ₜ[ g ] tv (ν {@ type "A" = (σ1 ; s1) } ) :
+  Γ v⊢ₜ[ g ] ν {@ type "A" = (σ1 ; s1) } :
     F3 (F3 (TSel p0 "A")).
 Proof.
   have Hs: F3 (p0 @; "A") ~[ 0 ] (g, (s1, σ1)).
@@ -108,9 +108,9 @@ Definition KeysT' := μ {@
 (* IDEA for our work: use [(type "Key" >: TInt <: ⊤) ⩓ (type "Key" >: ⊥ <: ⊤)]. *)
 
 Example hashKeys_typed Γ (Hs1 : s1_is_tint):
-  Γ v⊢ₜ[ g ] tv hashKeys : KeysT.
+  Γ v⊢ₜ[ g ] hashKeys : KeysT.
 Proof.
-  cut (Γ v⊢ₜ[ g ] tv hashKeys : KeysT').
+  cut (Γ v⊢ₜ[ g ] hashKeys : KeysT').
   { intros H.
     apply (iT_Sub_nocoerce KeysT'); first done.
     apply iMu_Sub_Mu; last stcrush.
@@ -125,7 +125,7 @@ Proof.
 
   pose (T0 := μ {@ val "hashCode" : TAll ⊤ 𝐙 }).
 
-  have Htp: ∀ Γ', T0 :: Γ' v⊢ₜ[ g ] tv x0 : val "hashCode" : TAll ⊤ TInt. {
+  have Htp: ∀ Γ', T0 :: Γ' v⊢ₜ[ g ] x0 : val "hashCode" : TAll ⊤ TInt. {
     intros. eapply iT_Sub_nocoerce.
     eapply iT_Mu_E'; by [exact: iT_Var'|].
     by apply iAnd1_Sub; tcrush.
@@ -144,9 +144,9 @@ Section StringExamples.
 Context (String : ty) (HclString : is_stamped_ty 0 g String).
 
 (* Term *)
-Definition systemVal := tv (ν {@
-  val "subSys1" = pv (ν {@ type "A" = (σ1; s1) }) ;
-  val "subSys2" = pv (ν {@ type "B" = (σ2; s2) }) }).
+Definition systemVal := ν {@
+  val "subSys1" = ν {@ type "A" = (σ1; s1) } ;
+  val "subSys2" = ν {@ type "B" = (σ2; s2) } }.
 Definition s2_is_String :=
   String ~[ 0 ] (g, (s2, σ2)).
 Lemma get_s2_is_String : g !! s2 = Some String → s2_is_String.
@@ -208,12 +208,12 @@ Hint Resolve IFTStamped : core.
 
 (* Definition IFT : ty := {@ val "if" : IFTFun }. *)
 
-Definition iftTrue := vabs (vabs' (vabs' (tv x1))).
-Definition iftFalse := vabs (vabs' (vabs' (tv x0))).
+Definition iftTrue := vabs (vabs' (vabs' x1)).
+Definition iftFalse := vabs (vabs' (vabs' x0)).
 
-Example iftTrueTyp Γ : Γ v⊢ₜ[ g ] tv iftTrue : IFT.
+Example iftTrueTyp Γ : Γ v⊢ₜ[ g ] iftTrue : IFT.
 Proof. tcrush. exact: iT_Var'. Qed.
-Example iftFalseTyp Γ : Γ v⊢ₜ[ g ] tv iftFalse : IFT.
+Example iftFalseTyp Γ : Γ v⊢ₜ[ g ] iftFalse : IFT.
 Proof. tcrush. exact: iT_Var'. Qed.
 
 Definition s1_is_ift := g !! s1 = Some IFT.
@@ -232,8 +232,8 @@ Hint Resolve p0BoolStamped : core.
 Definition boolImplV :=
   ν {@
     type "Boolean" = ( σ1; s1 );
-    val "true" = pv iftTrue;
-    val "false" = pv iftFalse
+    val "true" = iftTrue;
+    val "false" = iftFalse
   }.
 (* This type makes "Boolean" nominal by abstracting it. *)
 Definition boolImplT : ty :=
@@ -277,7 +277,7 @@ Proof.
 Qed.
 
 Example boolImplTyp Γ (Hst : s1_is_ift_ext):
-  Γ v⊢ₜ[ g ] tv boolImplV : boolImplT.
+  Γ v⊢ₜ[ g ] boolImplV : boolImplT.
 Proof.
   apply (iT_Sub_nocoerce boolImplTConcr).
   tcrush; by [apply (iD_Typ_Abs IFT); wtcrush| exact: iT_Var'].
@@ -304,7 +304,7 @@ Proof.
 Qed.
 
 Example boolImplTypAlt Γ (Hst : s1_is_ift_ext):
-  Γ v⊢ₜ[ g ] tv boolImplV : boolImplT.
+  Γ v⊢ₜ[ g ] boolImplV : boolImplT.
 Proof.
   apply (iT_Sub_nocoerce boolImplT0);
     last (tcrush; ettrans; first apply iAnd1_Sub; tcrush).
@@ -316,11 +316,11 @@ Qed.
 (* AND = λ a b. a b False. *)
 Definition packBoolean := packTV 0 s1.
 Lemma packBooleanTyp0 Γ (Hst : s1_is_ift) :
-  Γ v⊢ₜ[ g ] tv packBoolean : typeEq "A" IFT.
+  Γ v⊢ₜ[ g ] packBoolean : typeEq "A" IFT.
 Proof. apply (packTV_typed' s1 IFT); eauto 1. Qed.
 
 Lemma packBooleanTyp Γ (Hst : s1_is_ift) :
-  Γ v⊢ₜ[ g ] tv packBoolean : type "A" >: ⊥ <: ⊤.
+  Γ v⊢ₜ[ g ] packBoolean : type "A" >: ⊥ <: ⊤.
 Proof.
   apply (iT_Sub_nocoerce (typeEq "A" IFT)); last tcrush.
   exact: packBooleanTyp0.
@@ -334,18 +334,18 @@ Qed.
 Hint Resolve is_stamped_dm_s1 : core.
 
 Lemma packBooleanLB Γ (Hst : s1_is_ift) i :
-  Γ v⊢ₜ[ g ] ▶: IFT, i <: (pv packBoolean @; "A"), i.
+  Γ v⊢ₜ[ g ] ▶: IFT, i <: packBoolean @; "A", i.
 Proof. apply /val_LB /packBooleanTyp0; wtcrush. Qed.
 
 Lemma packBooleanUB Γ (Hst : s1_is_ift) i :
-  Γ v⊢ₜ[ g ] (pv packBoolean @; "A"), i <: ▶: IFT, i.
+  Γ v⊢ₜ[ g ] packBoolean @; "A", i <: ▶: IFT, i.
 Proof. apply /val_UB /packBooleanTyp0; wtcrush. Qed.
 
-Definition iftAnd false : vl := vabs (vabs'
-  (tapp (tapp (tapp (tv x1) (tv packBoolean)) (tv x0)) false)).
+Definition iftAnd false : vl := vabs (vabs' (
+  x1 $: packBoolean $: x0 $: false)).
 
 Example iftAndTyp Γ (Hst : s1_is_ift):
-  Γ v⊢ₜ[ g ] tv (iftAnd (tv iftFalse)) : TAll IFT (TAll IFT (▶:IFT)).
+  Γ v⊢ₜ[ g ] iftAnd iftFalse : TAll IFT (TAll IFT (▶:IFT)).
 Proof.
   unfold s1_is_ift in *; rewrite /iftAnd /vabs'.
   tcrush.
@@ -371,8 +371,7 @@ Qed.
 
 Example iftAndTyp'1 Γ (Hst : s1_is_ift):
   Γ v⊢ₜ[ g ] vabs' (vabs'
-    (tskip
-      (tapp (tapp (tv (iftAnd (tv iftFalse))) (tv x1)) (tv x0)))) :
+    (tskip (iftAnd iftFalse $: x1 $: x0))) :
     TAll IFT (TAll IFT IFT).
 Proof.
   tcrush; rewrite -(iterate_S tskip 0).
@@ -383,7 +382,7 @@ Proof.
 Qed.
 
 Definition iftCoerce t :=
-  lett t (vabs' (vabs' (tskip (tapp (tapp (tv x2) (tv x1)) (tv x0))))).
+  lett t (vabs' (vabs' (tskip (x2 $: x1 $: x0)))).
 
 Lemma coerce_tAppIFT Γ t T :
   is_stamped_ty (length Γ) g T →
@@ -406,7 +405,7 @@ Proof.
 Qed.
 
 Example iftAndTyp'2 Γ (Hst : s1_is_ift):
-  Γ v⊢ₜ[ g ] iftCoerce (tv (iftAnd (tv iftFalse))) : TAll IFT (TAll IFT IFT).
+  Γ v⊢ₜ[ g ] iftCoerce (iftAnd iftFalse) : TAll IFT (TAll IFT IFT).
 Proof. intros. apply /coerce_tAppIFT /iftAndTyp; tcrush. Qed.
 
 Lemma subIFT i Γ T:
@@ -479,10 +478,8 @@ Proof.
 Qed.
 
 Definition iftAnd2 Γ t1 t2 s :=
-  tapp (tapp
-      (iftCoerce (tApp Γ t1 s))
-    t2)
-  (tv iftFalse).
+  iftCoerce (tApp Γ t1 s) $: t2 $:
+  iftFalse.
 
 Lemma iftAndTyp2 Γ T t1 t2 s :
   g !! s = Some IFT →

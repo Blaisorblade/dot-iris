@@ -18,15 +18,15 @@ Example ex0 e Γ T:
   Γ u⊢ₜ e : ⊤.
 Proof. intros. apply (iT_Sub_nocoerce T TTop); tcrush. Qed.
 
-Example ex1 Γ n T:
-  Γ u⊢ₜ tv (ν {@ val "a" = pv (vint n)}) : μ {@ val "a" : TInt }.
+Example ex1 Γ (n : Z) T:
+  Γ u⊢ₜ ν {@ val "a" = n} : μ {@ val "a" : TInt }.
 Proof.
   (* Help proof search: Avoid trying iT_Mu_I, that's slow. *)
   apply iT_Obj_I; tcrush.
 Qed.
 
 Example ex2 Γ T :
-  Γ u⊢ₜ tv (ν {@ type "A" = p0 @; "B" } ) : TMu (TAnd (TTMem "A" TBot TTop) TTop).
+  Γ u⊢ₜ ν {@ type "A" = p0 @; "B" } : TMu (TAnd (TTMem "A" TBot TTop) TTop).
 Proof. apply iT_Obj_I; tcrush. Qed.
 
 (* Try out fixpoints. *)
@@ -34,7 +34,7 @@ Definition F3 T :=
   TMu (TAnd (TTMem "A" T T) TTop).
 
 Example ex3 Γ T:
-  Γ u⊢ₜ tv (ν {@ type "A" = F3 (p0 @; "A") } ) : F3 (F3 (TSel p0 "A")).
+  Γ u⊢ₜ ν {@ type "A" = F3 (p0 @; "A") } : F3 (F3 (TSel p0 "A")).
 Proof. apply iT_Obj_I; tcrush. Qed.
 
 Definition KeysT : ty := μ {@
@@ -53,7 +53,7 @@ Definition KeysTConcr := μ {@
 
 (* IDEA for our work: use [(type "Key" >: TInt <: ⊤) ⩓ (type "Key" >: ⊥ <: ⊤)]. *)
 Example hashKeys_typed Γ:
-  Γ u⊢ₜ tv hashKeys : KeysT.
+  Γ u⊢ₜ hashKeys : KeysT.
 Proof.
   apply (iT_Sub_nocoerce KeysTConcr); first last. {
     apply iMu_Sub_Mu; last stcrush.
@@ -80,7 +80,7 @@ Definition boolImplT0 : ty :=
   }.
 
 Example boolImplTypAlt Γ :
-  Γ u⊢ₜ tv boolImplV : boolImplT.
+  Γ u⊢ₜ boolImplV : boolImplT.
 Proof.
   apply (iT_Sub_nocoerce boolImplT0);
     last (tcrush; lThis).
@@ -121,7 +121,7 @@ Qed.
 (* Beware: we could inline the [lett t], but then we'd need to use a weakening lemma
 to prove [iftCoerce_typed]. *)
 Definition iftCoerce t :=
-  lett t (vabs' (vabs' (tskip (tapp (tapp (tv x2) (tv x1)) (tv x0))))).
+  lett t (vabs' (vabs' (tskip (x2 $: x1 $: x0)))).
 
 Lemma iftCoerce_typed Γ t T :
   is_unstamped_ty' (length Γ) T →
@@ -154,10 +154,7 @@ Lemma iftCoerce_tyAppIFT_typed_IFT Γ t :
 Proof. intros. apply iftCoerce_tyAppIFT_typed; tcrush. Qed.
 
 Definition iftNotBody t T true false :=
-  tapp (tapp
-      (iftCoerce (tyApp t "A" T))
-    false)
-  true.
+  iftCoerce (tyApp t "A" T) $: false $: true.
 
 (* XXX Beware that false and true are inlined here. *)
 Lemma iftNotBodyTyp Γ t :
@@ -172,17 +169,14 @@ Qed.
 
 (* We'd want NOT = λ a. a False True. *)
 (* This is NOT0 = λ a. a (λ t f. f) (λ t f. t). *)
-Definition iftNot0 := vabs' (iftNotBody (tv x0) IFT (tv iftTrue) (tv iftFalse)).
+Definition iftNot0 := vabs' (iftNotBody x0 IFT iftTrue iftFalse).
 Lemma iftNotTyp Γ T :
   Γ u⊢ₜ iftNot0 : TAll IFT IFT.
 Proof. apply iT_All_I; first stcrush. apply iftNotBodyTyp. var. Qed.
 
 (* AND = λ a b. a b False. *)
 Definition iftAndBody t1 t2 T false :=
-  tapp (tapp
-      (iftCoerce (tyApp t1 "A" T))
-    t2)
-  false.
+  iftCoerce (tyApp t1 "A" T) $: t2 $: false.
 
 Lemma iftAndBodyTyp Γ t1 t2 :
   Γ u⊢ₜ t1 : IFT →
@@ -196,7 +190,7 @@ Proof.
 Qed.
 
 Lemma iftAndTyp Γ T :
-  Γ u⊢ₜ vabs' (vabs' (iftAndBody (tv x1) (tv x0) IFT (tv iftFalse))) : IFT →: IFT →: IFT.
+  Γ u⊢ₜ vabs' (vabs' (iftAndBody x1 x0 IFT iftFalse)) : IFT →: IFT →: IFT.
 Proof. tcrush. apply iftAndBodyTyp; var. Qed.
 
 (*
@@ -216,15 +210,15 @@ Import hoasNotation.
 
 (* Not typeable *)
 Definition hcircular_init : hvl := ν: x, {@
-  val "v" = hpv x @ "v"
+  val "v" = x @ "v"
 }.
 
-Lemma circular_init_typed Γ : Γ u⊢ₜ hclose (htv hcircular_init) : hclose (μ: x, {@ val "v" : ⊤}).
+Lemma circular_init_typed Γ : Γ u⊢ₜ hcircular_init : μ: x, {@ val "v" : ⊤}.
 Proof. tcrush; cbv; hideCtx. varsub. asideLaters. ltcrush. Abort.
 
 Definition hcircular_init2 : hvl := ν: x, {@
-  val "v" = hpv x
+  val "v" = x
 }.
 
-Lemma circular_init_typed Γ : Γ u⊢ₜ hclose (htv hcircular_init2) : hclose (μ: x, {@ val "v" : ⊤}).
+Lemma circular_init_typed Γ : Γ u⊢ₜ hcircular_init2 : μ: x, {@ val "v" : ⊤}.
 Proof. tcrush; cbv; hideCtx. varsub. ltcrush. Qed.

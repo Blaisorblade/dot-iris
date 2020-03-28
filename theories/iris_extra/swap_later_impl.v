@@ -227,10 +227,8 @@ Proof.
 Qed.
 
 From D Require Import gen_iheap.
-(* From D Require Import saved_interp.
-From iris.base_logic Require Import gen_heap. *)
+(* From iris.base_logic Require Import gen_heap. *)
 
-(* Instance CmraSwappable_savedInterp Σ A B: CmraSwappable (gFunctors_lookup (savedInterpΣ A B) Fin.F1 (iPrePropO Σ) _) := Swappable_agreeR. *)
 Instance CmraSwappable_gen_iheap Σ `{Countable A} B: CmraSwappable (gFunctors_lookup (gen_iheapΣ A B) Fin.F1 (iPrePropO Σ) _) := Swappable_discrete _.
 (* Instance CmraSwappable_gen_heap Σ `{Countable A} B: CmraSwappable (gFunctors_lookup (gen_heapΣ A B) Fin.F1 (iPrePropO Σ) _) := Swappable_discrete _. *)
 
