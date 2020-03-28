@@ -110,13 +110,8 @@ Global Lemma Proper_sfkind' {Σ n} (K : sf_kind Σ n) ρ T1 T2 :
   T1 ≡ T2 → K ρ T1 T1 ≡ K ρ T2 T2.
 Proof. intros Heq. by apply Proper_sfkind. Qed.
 
-Global Instance Proper_sfkind_A {Σ n} (K : sf_kind Σ n) ρ :
-  Proper (pointwise_relation _ (≡) ==> pointwise_relation _ (≡) ==> (≡)) (K ρ).
-Proof. apply Proper_sfkind. Qed.
-
 Global Instance vcurry_ne vl n A m : Proper (dist m ==> (=) ==> dist m) (@vcurry vl n A).
 Proof. solve_proper_ho. Qed.
-Add Printing Constructor iPPred.
 
 Section kinds_types.
   Context {Σ}.
@@ -389,22 +384,10 @@ Section gen_lemmas.
     Γ s⊨ T <:[ i ] T ∷ K.
   Proof. done. Qed.
 
-  (* XXX fixing ones in lty.v. *)
-  Global Instance iPPred_car_ne n subj : Proper (dist n ==> (=) ==> dist n) (@iPPred_car subj Σ).
-  Proof. by intros A A' HA w ? <-. Qed.
-  Global Instance iPPred_car_proper subj : Proper ((≡) ==> (=) ==> (≡)) (@iPPred_car subj Σ).
-  Proof. by intros A A' ? w ? <-. Qed.
-
   (* We can't actually write the right instance; this is just false for arbitrary persistent predicates.
     Instead, we must use Proper_sfkind, which is a setoid instance for a *pair* of projections.
    *)
-  (* Global Instance iPPred_car_ne (subj : ofeT) n : Proper (dist n ==> (≡) ==> dist n) (@iPPred_car subj Σ).
-  Proof. intros A A' HA w ? ?. apply (HA _). <-. Qed.
-  Global Instance lty_car_proper subj : Proper ((≡) ==> (≡) ==> (≡)) (@iPPred_car subj Σ).
-  Proof. by intros A A' ? w ? <-. Qed. *)
 
-  Global Instance: Params (@sf_kind_sub) 4 := {}.
-  (** XXX no ofe instance for sf_kind. *)
   Global Instance Proper_sstpkD n i :
     Proper ((≡) ==> (≡) ==> (≡) ==> (=) ==> (≡)) (sstpkD (Σ := Σ) (n := n) i).
   Proof.
@@ -665,15 +648,6 @@ Section dot_types.
     iApply (Proper_sfkind' with "(HTK Hg)") => args v /=.
     by rewrite -(Hγφ args ρ v) make_intuitionistically.
   Qed.
-  Lemma lift_olty_eq subj {τ1 τ2 : iPPred subj Σ} :
-    (* (iPPred_car τ1 ≡@{subj -d> _} iPPred_car τ2) ⊢@{iPropI Σ} τ1 ≡ τ2. *)
-    (sbi_internal_eq (A := subj -d> _) (iPPred_car τ1) (iPPred_car τ2)) ⊢@{iPropI Σ} τ1 ≡ τ2.
-  Proof. by uPred.unseal. Qed.
-    (* iIntros "H".
-    iApply prop_ext_2.
-    rewrite equiv_internal_eq.
-    iApply internal_eq_rewrite. ∗.
-  apply. Qed. *)
 
   Lemma sfkind_respects {n} (K : sf_kind Σ n) ρ (T1 T2 : hoLtyO Σ n) :
     (□ ∀ args v, T1 args v ↔ T2 args v) ⊢@{iPropI Σ} K ρ T1 T1 -∗ K ρ T2 T2.
