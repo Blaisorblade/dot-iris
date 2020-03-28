@@ -19,7 +19,7 @@ Section vec.
   Definition vcons (v : vl) (args: vec vl n) : vec vl (S n) := vector.vcons v args.
 
   Notation vnil := vector.vnil.
-  Definition vhead (args: vec vl (S n)) : vl := args !!! 0.
+  Definition vhead (args: vec vl (S n)) : vl := args !!! 0%fin.
   Definition vtail (args: vec vl (S n)) : vec vl n :=
     Vector.caseS (λ n _, vec vl n) (λ h n t, t) args.
 
