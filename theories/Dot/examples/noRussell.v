@@ -20,12 +20,12 @@ Section Russell.
   Definition uAu u := ⟦TSel (pv u) "A"⟧ ids u.
   Instance uauP: Persistent (uAu u) := _.
 
-  Definition russell_p : envD Σ := λ ρ v, (□ (uAu v -∗ False))%I.
+  Definition russell_p : envD Σ := λI ρ v, (□ (uAu v -∗ False)).
   (* This would internalize as [russell_p ρ v := v : μ x. not (x.A)]. *)
 
   Context (s: stamp).
 
-  Definition Hs := (s ↝ russell_p)%I.
+  Definition Hs : iProp Σ := (s ↝ russell_p).
   (** Under Iris assumption [Hs], [v.A] points to [russell_p].
       We assume [Hs] throughout the rest of the section. *)
   Definition v := vobj [("A", dtysem [] s)].

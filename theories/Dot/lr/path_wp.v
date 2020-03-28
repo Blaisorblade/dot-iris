@@ -40,7 +40,7 @@ Section path_wp_pre.
     | pv vp => φ vp
     | pself p l => ∃ vp q, ⌜ vp @ l ↘ dpt q ⌝ ∧
         path_wp p (λ v, ⌜ vp = v ⌝) ∧ path_wp q φ
-    end%I.
+    end.
   Instance: PersistentP φ → (∀ p φ, Persistent (path_wp p φ)) → Persistent (path_wp_pre path_wp p φ).
   Proof. intros; destruct p; apply _. Qed.
 
@@ -164,7 +164,7 @@ Section path_wp.
     path_wp p (λ v, ⌜Pv v⌝) ⊣⊢ ⌜path_wp_pure p Pv⌝.
   Proof.
     iSplit.
-    - move HE: (λ v : vl, ⌜Pv v⌝)%I => φ.
+    - move HE: (λI v : vl, ⌜Pv v⌝) => φ.
       (* Internalize HE to ensure properness. *)
       iAssert ((φ : vl -d> iPropO Σ) ≡ (λ v : vl, ⌜Pv v⌝))%I as "HE".
       by simplify_eq.
@@ -214,14 +214,14 @@ Section path_wp.
 
   Global Instance path_wp_pureableI p φ Pv :
     (∀ v, IntoPure (φ v) (Pv v)) →
-    IntoPure (path_wp p φ)%I (path_wp_pure p Pv).
+    IntoPure (path_wp p φ) (path_wp_pure p Pv).
   Proof.
     rewrite /IntoPure -path_wp_pureable; iIntros (Hw).
     iApply path_wp_wand'. iIntros (v). iApply Hw.
   Qed.
   Global Instance path_wp_pureableF p φ Pv b :
     (∀ v, FromPure b (φ v) (Pv v)) →
-    FromPure false (path_wp p φ)%I (path_wp_pure p Pv).
+    FromPure false (path_wp p φ) (path_wp_pure p Pv).
   Proof.
     rewrite /FromPure/= -path_wp_pureable. iIntros (Hw).
     iApply path_wp_wand'. iIntros (v Hpv) "!>". iApply Hw.
@@ -349,7 +349,7 @@ Section path_wp.
     by rewrite -wp_pure_step_later // -wp_value.
   Qed.
 
-  Global Instance path_wp_timeless p Pv: Timeless (path_wp p (λ v, ⌜Pv v⌝))%I.
+  Global Instance path_wp_timeless p Pv: Timeless (path_wp p (λI v, ⌜Pv v⌝)).
   Proof. rewrite path_wp_pureable. apply _. Qed.
 
   Lemma path_wp_terminates p φ `{PersistentP φ} :

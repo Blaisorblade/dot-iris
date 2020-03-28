@@ -20,7 +20,7 @@ Section saved_pred3_use.
   Notation envD Σ := (env -d> vl -d> iPropO Σ).
   Notation hoEnvD Σ := (list vl -d> envD Σ).
   Implicit Types (Φ : hoEnvD Σ) (n : nat).
-  Definition eFalse : envD Σ := λ ρ v, False%I.
+  Definition eFalse : envD Σ := λI ρ v, False.
 
   (* We can track function arity by just storing a number,
      but that's a bit cumbersome. *)
@@ -29,14 +29,14 @@ Section saved_pred3_use.
     match n with
     | 0 => (0, λ _, eFalse)
     | S n => (n, λ args, Φ (a :: args))
-    end%I.
+    end.
   Definition vclose : hoEnvND Σ → envD Σ := λ '(n, Φ), Φ [].
   Definition vuncurry n (Φ : vl → hoEnvD Σ) : hoEnvND Σ :=
     (S n, λ args,
       match args with
       | w :: args => Φ w args
       | [] => eFalse
-      end%I).
+      end).
 End saved_pred3_use.
 End try1.
 From D Require Import saved_interp_dep lty asubst_base.
@@ -48,7 +48,7 @@ Section saved_dep_use.
   Context {Σ : gFunctors}.
   Notation hoEnvND Σ := (sigTO (hoEnvD Σ)).
   Implicit Types (Φ : hoEnvND Σ) (n : nat).
-  Definition eFalse : envD Σ := λ ρ v, False%I.
+  Definition eFalse : envD Σ := λI ρ v, False.
 
   Unset Program Cases.
   Definition vcurry : hoEnvND Σ → vl → hoEnvND Σ := λ '(existT n φ),

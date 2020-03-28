@@ -48,36 +48,36 @@ Section logrel.
   Implicit Types (interp : envD Σ) (φ : D).
 
   Program Definition interp_expr : envD Σ -n> (var → vl) -d> tm -d> iPropO Σ :=
-    λne interp, λ ρ t, WP t {{ interp ρ }} %I.
+    λne interp, λI ρ t, WP t {{ interp ρ }}.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_expr /.
 
-  Definition interp_nat : envD Σ := λ ρ v, (∃ n, ⌜v = vint n⌝) %I.
+  Definition interp_nat : envD Σ := λI ρ v, ∃ n, ⌜v = vint n⌝.
   Global Arguments interp_nat /.
 
-  Definition interp_top : envD Σ := λ ρ v, True%I.
+  Definition interp_top : envD Σ := λI ρ v, True.
   Global Arguments interp_top /.
 
-  Definition interp_bot : envD Σ := λ ρ v, False%I.
+  Definition interp_bot : envD Σ := λI ρ v, False.
   Global Arguments interp_bot /.
 
   Program Definition interp_later: envD Σ -n> envD Σ :=
-    λne interp, λ ρ v, (▷ interp ρ v)%I.
+    λne interp, λI ρ v, ▷ interp ρ v.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_later /.
 
   (* Function types; this definition is contractive (similarly to what's
      useful for equi-recursive types). *)
   Program Definition interp_forall: envD Σ -n> envD Σ -n> envD Σ :=
-    λne interp1 interp2, λ ρ v,
-    (∃ t, ⌜ v = vabs t ⌝ ∧
-      □ ▷ ∀ w, interp1 ρ w → interp_expr interp2 (w .: ρ) t.|[w/])%I.
+    λne interp1 interp2, λI ρ v,
+    ∃ t, ⌜ v = vabs t ⌝ ∧
+      □ ▷ ∀ w, interp1 ρ w → interp_expr interp2 (w .: ρ) t.|[w/].
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_forall /.
 
   Program Definition vl_has_semtype : (ty -d> envD Σ) -n> vl -d> D -n> iPropO Σ :=
-    λne rinterp, λ v, λne φ,
-    (∃ T, ⌜ v = vty T ⌝ ∧ ∀ w, (φ w ≡ rinterp T ids w))%I.
+    λne rinterp, λI v, λne φ,
+    ∃ T, ⌜ v = vty T ⌝ ∧ ∀ w, (φ w ≡ rinterp T ids w).
   Solve All Obligations with solve_proper_ho.
   Global Arguments vl_has_semtype /.
   Notation "[ rinterp ] v ↗ φ" := (vl_has_semtype rinterp v φ) (at level 20).
@@ -95,10 +95,10 @@ Section logrel.
 
   Program Definition interp_tmem :
     (ty -d> envD Σ) -n> envD Σ -n> envD Σ -n> envD Σ :=
-    λne rinterp interpL interpU, λ ρ v,
-    (∃ φ, ▷ [ rinterp ] v ↗ φ ∧
+    λne rinterp interpL interpU, λI ρ v,
+    ∃ φ, ▷ [ rinterp ] v ↗ φ ∧
        □ ((∀ v, interpL ρ v → ▷ □ φ v) ∧
-          (∀ v, ▷ □ φ v → interpU ρ v)))%I.
+          (∀ v, ▷ □ φ v → interpU ρ v)).
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_tmem /.
 
@@ -106,8 +106,8 @@ Section logrel.
   Proof. solve_contractive_ho. Qed.
 
   Program Definition interp_sel: (ty -d> envD Σ) -n> vl -d> envD Σ :=
-    λne rinterp, λ w ρ v,
-    (▷ ∃ ϕ, [rinterp] w.[ρ] ↗ ϕ ∧ □ ϕ v)%I.
+    λne rinterp, λI w ρ v,
+    ▷ ∃ ϕ, [rinterp] w.[ρ] ↗ ϕ ∧ □ ϕ v.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_sel /.
   Global Instance interp_sel_contractive : Contractive interp_sel.
@@ -125,7 +125,7 @@ Section logrel.
     | TSel w => interp_sel rinterp w
     | TTop => interp_top
     | TBot => interp_bot
-    end%I.
+    end.
 
   (* solve_contractive is really not happy about checking this code. *)
   Global Instance interp_rec_contractive : Contractive interp_rec.
@@ -209,7 +209,7 @@ Section logrel_part2.
     match Γ with
     | T :: Γ' => interp_env Γ' (stail ρ) ∧ ⟦ T ⟧ ρ (shead ρ)
     | nil => True
-    end%I.
+    end.
 
   Notation "G⟦ Γ ⟧" := (interp_env Γ).
 
@@ -218,23 +218,23 @@ Section logrel_part2.
   Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
 
   Definition ietp Γ T e : iProp Σ :=
-    (□∀ ρ, G⟦Γ⟧ ρ → ⟦T⟧ₑ ρ (e.|[ρ]))%I.
+    □∀ ρ, G⟦Γ⟧ ρ → ⟦T⟧ₑ ρ (e.|[ρ]).
   Global Arguments ietp /.
   Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 
   Definition ietpi Γ T e i: iProp Σ :=
-    (□∀ ρ, G⟦Γ⟧ ρ → ▷^i ⟦T⟧ₑ ρ (e.|[ρ]))%I.
+    □∀ ρ, G⟦Γ⟧ ρ → ▷^i ⟦T⟧ₑ ρ (e.|[ρ]).
   Global Arguments ietpi /.
   Notation "Γ ⊨ e : T , i" := (ietpi Γ T e i) (at level 74, e, T at next level).
 
   (** Indexed Subtyping. Defined on closed values. We must require closedness
       explicitly, since closedness now does not follow from being well-typed later. *)
   Definition istpi Γ T1 T2 i j: iProp Σ :=
-    (□∀ ρ v, G⟦Γ⟧ ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
+    □∀ ρ v, G⟦Γ⟧ ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v.
   Global Arguments istpi /.
 
   Definition delayed_ivstp Γ T1 T2 i: iProp Σ :=
-    (□ ∀ ρ, G⟦Γ⟧ρ → ▷^i ∀v, ⟦T1⟧ ρ v → ⟦T2⟧ ρ v)%I.
+    □ ∀ ρ, G⟦Γ⟧ρ → ▷^i ∀v, ⟦T1⟧ ρ v → ⟦T2⟧ ρ v.
   Global Arguments delayed_ivstp /.
 
   Global Instance ietp_persistent Γ T e : Persistent (ietp Γ T e) := _.
@@ -263,7 +263,7 @@ Section logrel_lemmas.
   Qed.
 
   Lemma semantic_typing_uniform_step_index Γ T e i:
-    Γ ⊨ e : T -∗ Γ ⊨ e : T,i.
+    Γ ⊨ e : T -∗ Γ ⊨ e : T, i.
   Proof.
     iIntros "#H !>" (ρ) "#HΓ".
     iInduction i as [|i] "IHi". by iApply "H". iExact "IHi".

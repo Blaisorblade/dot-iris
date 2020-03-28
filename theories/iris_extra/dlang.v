@@ -32,7 +32,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
   Notation savedHoSemTypeG Σ := (savedHoEnvPredG vl Σ).
   Notation savedHoSemTypeΣ := (savedHoEnvPredΣ vl).
 
-  Instance InhEnvPred s Σ : Inhabited (envPred s Σ) := populate (λ _ _, False)%I.
+  Instance InhEnvPred s Σ : Inhabited (envPred s Σ) := populate (λI _ _, False).
 
   Class dlangG Σ := DLangG {
     dlangG_savior :> savedHoSemTypeG Σ;
@@ -46,17 +46,18 @@ Module Type LiftWp (Import VS : VlSortsSig).
 
   (* Defining this needs the above irisG instance in scope. *)
   Local Definition test_interp_expr `{dlangG Σ} :=
-    λ (t: expr dlang_lang), WP t {{ v, False }} %I.
+    λI (t: expr dlang_lang), WP t {{ v, False }}.
 
   Definition leadsto_n `{!dlangG Σ}
-    s n (φ : hoEnvD Σ n) := (∃ γ, s ↦ γ ∧ γ ⤇n[ n ] φ)%I.
+    s n (φ : hoEnvD Σ n) : iProp Σ := ∃ γ, s ↦ γ ∧ γ ⤇n[ n ] φ.
   Notation "s ↝n[ n  ] φ" := (leadsto_n s n φ) (at level 20) : bi_scope.
 
-  Program Definition hoEnvD_inst {i Σ} σ : hoEnvD Σ i -n> hoD Σ i := λne φ, λ args, φ args (∞ σ).
+  Program Definition hoEnvD_inst {i Σ} σ : hoEnvD Σ i -n> hoD Σ i :=
+    λne φ, λ args, φ args (∞ σ).
   Next Obligation. move => i Σ σ n x y Heq args. exact: Heq. Qed.
 
   Definition stamp_σ_to_type_n `{!dlangG Σ} s σ n (ψ : hoD Σ n) : iProp Σ :=
-    (∃ φ : hoEnvD Σ n, s ↝n[ n ] φ ∧ ▷ (ψ ≡ hoEnvD_inst σ φ))%I.
+    ∃ φ : hoEnvD Σ n, s ↝n[ n ] φ ∧ ▷ (ψ ≡ hoEnvD_inst σ φ).
   Notation "s ↗n[ σ , n  ] ψ" := (stamp_σ_to_type_n s σ n ψ) (at level 20): bi_scope.
 
   Section mapsto.
@@ -169,7 +170,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
       Implicit Types (gφ : gmap stamp (hoEnvD Σ 0)).
 
       Definition wellMappedφ gφ : iProp Σ :=
-        (□∀ s φ (Hl : gφ !! s = Some φ), s ↝n[ 0 ] φ)%I.
+        □∀ s φ (Hl : gφ !! s = Some φ), s ↝n[ 0 ] φ.
       Global Instance wellMappedφ_persistent gφ: Persistent (wellMappedφ gφ) := _.
 
       Lemma wellMappedφ_empty : wellMappedφ ∅. Proof. by iIntros (???). Qed.
@@ -182,7 +183,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
           simplify_eq; by [> iApply "Hs" | iApply "Hwmg"].
       Qed.
 
-      Lemma wellMappedφ_apply s φ gφ : gφ !! s = Some φ → wellMappedφ gφ -∗ (s ↝n[ 0 ] φ)%I.
+      Lemma wellMappedφ_apply s φ gφ : gφ !! s = Some φ → wellMappedφ gφ -∗ s ↝n[ 0 ] φ.
       Proof. iIntros (Hl) "#Hm"; iApply ("Hm" $! _ _ Hl). Qed.
 
       Lemma wellMappedφ_extend gφ1 gφ2 (Hle : gφ2 ⊆ gφ1):

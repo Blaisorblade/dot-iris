@@ -41,47 +41,47 @@ Section logrel.
   (* XXX this is wrong unless we translate, and here I want for now to switch to having no translation.
      Tho maybe let's do one thing at a time. *)
   Definition dm_to_type v (ψ : D) : iProp Σ :=
-    (∃ s σ, ⌜ v = vstamp σ s ⌝ ∧ s ↗[ σ ] ψ)%I.
+    ∃ s σ, ⌜ v = vstamp σ s ⌝ ∧ s ↗[ σ ] ψ.
   Notation "v ↗ φ" := (dm_to_type v φ) (at level 20).
   Global Instance dm_to_type_persistent d τ: Persistent (d ↗ τ) := _.
   Global Opaque dm_to_type.
 
   Definition interp_tmem interp1 interp2 : envD Σ :=
-    λ ρ v,
-    (∃ φ, (v ↗ φ) ∧
+    λI ρ v,
+    ∃ φ, (v ↗ φ) ∧
        □ ((∀ v, ▷ interp1 ρ v → ▷ □ φ v) ∧
           (∀ v, ▷ □ φ v → ▷ interp2 ρ v) ∧
-          (∀ v, interp1 ρ v → interp2 ρ v)))%I.
+          (∀ v, interp1 ρ v → interp2 ρ v)).
   Global Arguments interp_tmem /.
 
   Definition interp_expr interp : (var → vl) -d> tm -d> iPropO Σ :=
-    λ ρ t, WP t {{ interp ρ }} %I.
+    λI ρ t, WP t {{ interp ρ }}.
   Global Arguments interp_expr /.
 
-  Definition interp_nat : envD Σ := λ ρ v, (∃ n, ⌜v = vint n⌝) %I.
+  Definition interp_nat : envD Σ := λI ρ v, ∃ n, ⌜v = vint n⌝.
   Global Arguments interp_nat /.
 
-  Definition interp_top : envD Σ := λ ρ v, True%I.
+  Definition interp_top : envD Σ := λI ρ v, True.
   Global Arguments interp_top /.
 
-  Definition interp_bot : envD Σ := λ ρ v, False%I.
+  Definition interp_bot : envD Σ := λI ρ v, False.
   Global Arguments interp_bot /.
 
   (* XXX This definition is correct but non-expansive, instead of
       contractive, unlike other logical relations here. *)
   Definition interp_forall interp1 interp2 : envD Σ :=
-    λ ρ v,
-    (□ ∀ w, interp1 ρ w -∗ interp_expr interp2 (w .: ρ) (tapp (tv v) (tv w)))%I.
+    λI ρ v,
+    □ ∀ w, interp1 ρ w -∗ interp_expr interp2 (w .: ρ) (tapp (tv v) (tv w)).
   Global Arguments interp_forall /.
 
   Definition interp_selA w interpL interpU : envD Σ :=
-    λ ρ v,
-    (interpU ρ v ∧ (interpL ρ v ∨
-                    ∃ ϕ, w.[ρ] ↗ ϕ ∧ ▷ □ ϕ v))%I.
+    λI ρ v,
+    interpU ρ v ∧ (interpL ρ v ∨
+                    ∃ ϕ, w.[ρ] ↗ ϕ ∧ ▷ □ ϕ v).
   Global Arguments interp_selA /.
 
   Definition interp_later interp : envD Σ :=
-    λ ρ v, (▷ interp ρ v)%I.
+    λI ρ v, ▷ interp ρ v.
   Global Arguments interp_later /.
 
   Definition interp_sel w : envD Σ :=
@@ -98,7 +98,7 @@ Section logrel.
     | TInt => interp_nat
     | TAll T1 T2 => interp_forall ⟦ T1 ⟧ ⟦ T2 ⟧
     | TSel w => interp_sel w
-    end%I.
+    end.
 
   Global Instance interp_lemmas: TyInterpLemmas ty Σ.
   Proof.
@@ -118,7 +118,7 @@ Section logrel.
     match Γ with
     | T :: Γ' => interp_env Γ' (stail ρ) ∧ ⟦ T ⟧ ρ (shead ρ)
     | nil => True
-    end%I.
+    end.
 
   Notation "G⟦ Γ ⟧" := (interp_env Γ).
 
@@ -127,19 +127,19 @@ Section logrel.
   Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
 
   Definition ietp Γ T e : iProp Σ :=
-    (□∀ ρ, G⟦Γ⟧ ρ → ⟦T⟧ₑ ρ (e.|[ρ]))%I.
+    □∀ ρ, G⟦Γ⟧ ρ → ⟦T⟧ₑ ρ (e.|[ρ]).
   Global Arguments ietp /.
   Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 
   Definition ietpi Γ T e i: iProp Σ :=
-    (□∀ ρ, G⟦Γ⟧ ρ → ▷^i ⟦T⟧ₑ ρ (e.|[ρ]))%I.
+    □∀ ρ, G⟦Γ⟧ ρ → ▷^i ⟦T⟧ₑ ρ (e.|[ρ]).
   Global Arguments ietpi /.
   Notation "Γ ⊨ e : T , i" := (ietpi Γ T e i) (at level 74, e, T at next level).
 
   (** Indexed Subtyping. Defined on closed values. We must require closedness
       explicitly, since closedness now does not follow from being well-typed later. *)
   Definition istpi Γ T1 T2 i j: iProp Σ :=
-    (□∀ ρ v, G⟦Γ⟧ ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v)%I.
+    □∀ ρ v, G⟦Γ⟧ ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v.
   Global Arguments istpi /.
 
   Global Instance ietp_persistent Γ T e : Persistent (ietp Γ T e) := _.
@@ -168,7 +168,7 @@ Section logrel_lemmas.
   Qed.
 
   Lemma semantic_typing_uniform_step_index Γ T e i:
-    Γ ⊨ e : T -∗ Γ ⊨ e : T,i.
+    Γ ⊨ e : T -∗ Γ ⊨ e : T, i.
   Proof.
     iIntros "#H !>" (ρ) "#HΓ".
     iInduction i as [|i] "IHi". by iApply "H". iExact "IHi".
