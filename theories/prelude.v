@@ -33,10 +33,6 @@ Notation "n .-2" := n.-1.-1 (at level 2, left associativity,
   format "n .-2") : nat_scope.
 
 
-(* Fixed version of stdpp's. *)
-Tactic Notation "efeed" "pose" "proof" constr(H) "as" simple_intropattern(H') :=
-  efeed H using (fun p => pose proof p as H').
-
 (* Inspired by stdpp's [destruct_and?/!]. *)
 Tactic Notation "destruct_or" "?" :=
   repeat match goal with
