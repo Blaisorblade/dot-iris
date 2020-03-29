@@ -49,7 +49,7 @@ Definition vec_fold {A} {P : nat → Type}
     match n with
     | 0 =>   λ argTs, base
     | S n => λ argTs, step (vhead argTs) (rec n (vtail argTs))
-    end%I.
+    end.
 
 Module Type SavedInterpDep (Import V : VlSortsSig).
 
