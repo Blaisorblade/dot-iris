@@ -24,8 +24,8 @@ Hint Extern 10 (IntoVal _ _) =>
 
 (** Notation for functions in the Iris scope. *)
 Notation "'λI' x .. y , t" := (fun x => .. (fun y => t%I) ..)
-  (at level 200, x binder, y binder, right associativity, only parsing,
-  format "'[  ' '[  ' 'λI'  x  ..  y ']' ,  '/' t ']'") : function_scope.
+  (at level 200, x binder, y binder, right associativity,
+  only parsing) : function_scope.
 
 Ltac properness :=
   repeat match goal with

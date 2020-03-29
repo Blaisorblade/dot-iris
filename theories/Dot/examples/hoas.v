@@ -233,13 +233,13 @@ Close Scope hdms_scope.
 
 (* Useful for writing functions whose body is in scope [%HT]. *)
 Notation "'λT' x .. y , t" := (fun x => .. (fun y => t%HT) ..)
-  (at level 200, x binder, y binder, right associativity, only parsing,
-  format "'[  ' '[  ' 'λT'  x  ..  y ']' ,  '/' t ']'") : hty_scope.
+  (at level 200, x binder, y binder, right associativity,
+  only parsing) : hty_scope.
 
 (* Useful for writing functions whose body is in scope [%HD]. *)
 Notation "'λD' x .. y , t" := (fun x => .. (fun y => t%HD) ..)
-  (at level 200, x binder, y binder, right associativity, only parsing,
-  format "'[  ' '[  ' 'λD'  x  ..  y ']' ,  '/' t ']'") : hdms_scope.
+  (at level 200, x binder, y binder, right associativity,
+  only parsing) : hdms_scope.
 
 (** Value lambda. Relies on inserting [htv] coercions in the output. *)
 Notation "'λ:' x .. y , t" := (hvabs (fun x => .. (hvabs (fun y => t%HE)) ..))
