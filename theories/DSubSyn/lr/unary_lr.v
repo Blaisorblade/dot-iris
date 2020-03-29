@@ -83,9 +83,9 @@ Section logrel.
   Notation "[ rinterp ] v ↗ φ" := (vl_has_semtype rinterp v φ) (at level 20).
 
   Lemma vl_has_semtype_agree rinterp v (φ1 φ2 : D):
-    ⊢ ▷ [ rinterp ] v ↗ φ1 →
-      ▷ [ rinterp ] v ↗ φ2 →
-      ∀ w, ▷ (φ1 w ≡ φ2 w).
+    ▷ [ rinterp ] v ↗ φ1 -∗
+    ▷ [ rinterp ] v ↗ φ2 -∗
+    ∀ w, ▷ (φ1 w ≡ φ2 w).
   Proof.
     iIntros "/= #H1 #H2" (w).
     iDestruct "H1" as (T1) "[>% #Heq1]". iDestruct "H2" as (T) "[>% #Heq2]"; simplify_eq.
