@@ -87,9 +87,9 @@ Section helpers.
     iIntros (Hs) "Hsγ".
     by iMod (leadsto_alloc φ Hs with "Hsγ") as (?) "[_ [_ $]]".
   Qed.
-  Lemma wp_ge m n (Hge : m > n) : WP m > n {{ w, w ≡ true }}%I.
+  Lemma wp_ge m n (Hge : m > n) : ⊢ WP m > n {{ w, w ≡ true }}.
   Proof. wp_bin. ev; simplify_eq/=. case_decide; by [|lia]. Qed.
-  Lemma wp_nge m n (Hnge : ¬ m > n) : WP m > n {{ w, w ≡ false }}%I.
+  Lemma wp_nge m n (Hnge : ¬ m > n) : ⊢ WP m > n {{ w, w ≡ false }}.
   Proof. wp_bin. ev; simplify_eq/=. case_decide; by [|lia]. Qed.
 
   Lemma setp_value Γ (T : olty Σ 0) v: Γ s⊨ v : T ⊣⊢ (□∀ ρ, s⟦ Γ ⟧* ρ → T vnil ρ v.[ρ]).
@@ -171,7 +171,7 @@ Section div_example.
   Proof. iDestruct 1 as %(n & -> & ?). by iApply wp_ge. Qed.
 
   Context `{SwapPropI Σ}.
-  Lemma loopSemT: WP hloopTm {{ _, False }}%I.
+  Lemma loopSemT: ⊢ WP hloopTm {{ _, False }}.
   Proof using Type*.
     iDestruct (fundamental_typed _ _ _ _ (loopTyp []) with "[]") as "H".
     iApply wellMappedφ_empty.
@@ -182,7 +182,7 @@ Section div_example.
   Section useHoas.
   Import hoasNotation'.
   Lemma wp_if_ge (n : Z) :
-    WP hmkPosBodyV n {{ w, ⌜ w = n ∧ n > 0 ⌝}}%I.
+    ⊢ WP hmkPosBodyV n {{ w, ⌜ w = n ∧ n > 0 ⌝}}.
   Proof using Type*.
     wp_bind (IfCtx _ _).
     wp_bin; ev; simplify_eq/=.
@@ -192,7 +192,7 @@ Section div_example.
   Qed.
 
   Lemma wp_if_ge' (n : Z) :
-    WP tif (n > 0) (1 `div` n) hloopTm {{ w, ⟦ 𝐙 ⟧ ids w ∧ ⌜ n > 0 ⌝}}%I.
+    ⊢ WP tif (n > 0) (1 `div` n) hloopTm {{ w, ⟦ 𝐙 ⟧ ids w ∧ ⌜ n > 0 ⌝}}.
   Proof using Type*.
     wp_bind (IfCtx _ _).
     wp_bin; ev; simplify_eq/=.
@@ -209,13 +209,13 @@ Section div_example.
   Lemma sToIpos : Hs -∗ dtysem [] s ↗n[ 0 ] hoEnvD_inst [] ipos.
   Proof. by iApply dm_to_type_intro. Qed.
 
-  Lemma Sub_ipos_nat Γ : Γ s⊨ ipos, 0 <: V⟦ 𝐙 ⟧, 0.
+  Lemma Sub_ipos_nat Γ : ⊢ Γ s⊨ ipos, 0 <: V⟦ 𝐙 ⟧, 0.
   Proof.
     rewrite /ipos /pos /= /pure_interp_prim /prim_evals_to /=.
     iIntros "!>" (ρ w) "_ % !%"; naive_solver.
   Qed.
 
-  Lemma Sub_later_ipos_nat Γ : Γ s⊨ oLater ipos, 0 <: oLater V⟦ 𝐙 ⟧, 0.
+  Lemma Sub_later_ipos_nat Γ : ⊢ Γ s⊨ oLater ipos, 0 <: oLater V⟦ 𝐙 ⟧, 0.
   Proof. rewrite -sSub_Later_Sub -sSub_Index_Incr. apply Sub_ipos_nat. Qed.
 
   Lemma sHasA' l Γ : Hs -∗ Γ s⊨ { l := dtysem [] s } : C⟦ type l >: ⊥ <: 𝐙 ⟧.
@@ -245,7 +245,7 @@ Section div_example.
   Qed.
 
   Lemma ty_mkPos :
-    [] s⊨ hmkPosV : oAll V⟦ 𝐙 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : Z, v = n ∧ n > 0 ⌝)).
+    ⊢ [] s⊨ hmkPosV : oAll V⟦ 𝐙 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : Z, v = n ∧ n > 0 ⌝)).
   Proof using Type*.
     rewrite -sT_All_I /= /shead.
     iIntros (ρ) "!> /=". iDestruct 1 as %(_ & n & Hw); simplify_eq/=; rewrite Hw.
@@ -253,7 +253,7 @@ Section div_example.
   Qed.
 
   Lemma wp_mkPos :
-    oAll V⟦ 𝐙 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : Z, v = n ∧ n > 0 ⌝)) vnil ids hmkPosV.
+    ⊢ oAll V⟦ 𝐙 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : Z, v = n ∧ n > 0 ⌝)) vnil ids hmkPosV.
   Proof using Type*. iApply wp_value_inv'. iApply (ty_mkPos with "[//]"). Qed.
 
   Lemma wp_div_spec (m : Z) w : ipos vnil ids w -∗ WP m `div` w {{ ⟦ 𝐙 ⟧ ids }}.
@@ -381,7 +381,7 @@ Section small_ex.
   Lemma sT_Var0 {Γ T}
     (Hx : Γ !! 0%nat = Some T):
     (*──────────────────────*)
-    Γ s⊨ x0 : T.
+    ⊢ Γ s⊨ x0 : T.
   Proof. rewrite -(hsubst_id T). apply (sT_Var Hx). Qed.
 
   (* This works! But we get a weaker type, because we're using typing rules

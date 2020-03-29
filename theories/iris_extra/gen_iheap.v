@@ -65,7 +65,7 @@ Section to_gen_iheap.
 End to_gen_iheap.
 
 Lemma gen_iheap_init `{hG : gen_iheapPreG L V Σ} σ :
-  (|==> ∃ _ : gen_iheapG L V Σ, gen_iheap_ctx σ)%I.
+  ⊢ |==> ∃ _ : gen_iheapG L V Σ, gen_iheap_ctx σ.
 Proof.
   iMod (own_alloc (● to_gen_iheap σ)) as (γ) "Hh".
   { apply auth_auth_valid. exact: to_gen_iheap_valid. }

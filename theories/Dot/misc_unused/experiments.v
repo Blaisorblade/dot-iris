@@ -332,7 +332,7 @@ Section Sec.
     Γ ⊨ e : TVMem l (TLater T). *)
 
   Lemma All_Later_Sub_Distr0 Γ T U `{SwapPropI Σ}:
-    Γ ⊨ TAll (TLater T) U, 0 <: TLater (TAll T U), 0.
+    ⊢ Γ ⊨ TAll (TLater T) U, 0 <: TLater (TAll T U), 0.
   Proof.
     iIntros "!>" (ρ v) "_ /= #HvTU".
     iDestruct "HvTU" as (t ->) "#HvTU".
@@ -390,7 +390,7 @@ Section Sec.
   (** Stronger version of All_Later_Sub_Distr0, needs wp_later_swap, which
       might not extend to stronger WPs?*)
   Lemma All_Later_Sub_Distr `{SwapPropI Σ} Γ T U i:
-    Γ ⊨ TAll (TLater T) (TLater U), i <: TLater (TAll T U), i.
+    ⊢ Γ ⊨ TAll (TLater T) (TLater U), i <: TLater (TAll T U), i.
   Proof.
     iIntros "!>" (ρ v) "_ #HvTU". iNext i.
     iDestruct "HvTU" as (t ->) "#HvTU".
@@ -407,7 +407,7 @@ Section Sec.
   Qed.
 
   Lemma Fld_Later_Sub_Distr Γ l T i:
-    Γ ⊨ TVMem l (TLater T), i <: TLater (TVMem l T), i.
+    ⊢ Γ ⊨ TVMem l (TLater T), i <: TLater (TVMem l T), i.
   Proof.
     iIntros "!>" (ρ v) "_ /= #HvT". iNext i.
     iDestruct "HvT" as (d Hlook) "#HvT".
@@ -423,7 +423,7 @@ Section Sec.
   that to be true.
   *)
   Lemma Typ_Later_Sub_Distr `{SwapPropI Σ} Γ L U i l:
-    Γ ⊨ TTMem l (TLater L) (TLater U), i <: TLater (TTMem l L U), i.
+    ⊢ Γ ⊨ TTMem l (TLater L) (TLater U), i <: TLater (TTMem l L U), i.
   Proof.
     rewrite /istpi/=.
     iIntros (ρ v) "!> #Hg #Hv !>"; iDestruct "Hv" as (d Hl ψ) "H".
@@ -438,12 +438,12 @@ Section Sec.
   (* Lemma wp_later_swap2 t Φ: ▷ WP t {{ v, Φ v }} ⊢ ◇ WP t {{ v, ▷ Φ v }}. *)
 
   Lemma sSub_Mono Γ T i :
-    Γ s⊨ T, i <: T, S i.
+    ⊢ Γ s⊨ T, i <: T, S i.
   Proof. by iIntros "!> **". Qed.
 
   (** Rename. *)
   Lemma iterate_Sub_Mono Γ T i j:
-    Γ ⊨ T, i <: T, j + i.
+    ⊢ Γ ⊨ T, i <: T, j + i.
   Proof.
     iInduction j as [] "IHj".
     - iApply Sub_Refl.
@@ -452,7 +452,7 @@ Section Sec.
   Qed.
 
   Lemma iterate_Sub_Later Γ T i j:
-    Γ ⊨ T, j + i <: iterate TLater j T, i.
+    ⊢ Γ ⊨ T, j + i <: iterate TLater j T, i.
   Proof.
       iInduction j as [] "IHj" forall (T).
     - iApply Sub_Refl.
@@ -534,7 +534,7 @@ Section Sec.
   Qed.
 
   Lemma iterate_Later_Sub Γ T i j:
-    Γ ⊨ iterate TLater j T, i <: T, i + j.
+    ⊢ Γ ⊨ iterate TLater j T, i <: T, i + j.
   Proof.
       iInduction j as [] "IHj" forall (T); rewrite ?plusnO ?iterate_Sr ?plusnS.
     - iApply Sub_Refl.
@@ -563,16 +563,16 @@ Section Sec.
 
   (* Core typing lemmas, sketches. TODO: make the above into a type, and add all
      the plumbing. *)
-  Lemma self_sem_singleton ρ v: sem_singleton v ρ v.[ρ].
+  Lemma self_sem_singleton ρ v: ⊢ sem_singleton v ρ v.[ρ].
   Proof. by iIntros "!%". Qed.
 
   Lemma other_sem_singleton ρ w v v':
-    (sem_singleton w ρ v.[ρ] →
-    sem_singleton w ρ v' ↔ sem_singleton v ρ v')%I.
+    ⊢ sem_singleton w ρ v.[ρ] →
+    sem_singleton w ρ v' ↔ sem_singleton v ρ v'.
   Proof. iIntros (Hv) "/="; iSplit; iIntros (Hv1) "!%"; by simplify_eq. Qed.
 
   Lemma tskip_self_sem_singleton ρ v:
-    WP (tskip (tv v.[ρ])) {{ w, sem_singleton v ρ w }}%I.
+    ⊢ WP (tskip (tv v.[ρ])) {{ w, sem_singleton v ρ w }}.
   Proof. rewrite -wp_pure_step_later // -wp_value /=. by iIntros "!%". Qed.
 
   Lemma tskip_other_sem_singleton ρ w v v':

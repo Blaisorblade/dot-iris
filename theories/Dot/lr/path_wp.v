@@ -45,8 +45,8 @@ Section path_wp_pre.
   Proof. intros; destruct p; apply _. Qed.
 
   Lemma path_wp_pre_mono (wp1 wp2 : path → (vl -d> iPropO Σ) → iProp Σ) :
-    ((□ ∀ p Φ, wp1 p Φ -∗ wp2 p Φ) →
-    ∀ p Φ, path_wp_pre wp1 p Φ -∗ path_wp_pre wp2 p Φ)%I.
+    ⊢ (□ ∀ p Φ, wp1 p Φ -∗ wp2 p Φ) →
+    ∀ p Φ, path_wp_pre wp1 p Φ -∗ path_wp_pre wp2 p Φ.
   Proof.
     iIntros "#H"; iIntros (p1 Φ). rewrite /path_wp_pre /=.
     destruct (p1) as [v|]; first by iIntros.
@@ -94,8 +94,8 @@ Section path_wp.
   (* General induction principle on path_wp. *)
   Lemma path_wp_ind' Ψ
     (HΨ : ∀ n p, Proper (pointwise_relation _ (dist n) ==> dist n) (Ψ p)):
-    (□ (∀ p Φ, path_wp_pre (λ p Φ, Ψ p Φ ∧ path_wp p Φ) p Φ -∗ Ψ p Φ) →
-    ∀ p Φ, path_wp p Φ -∗ Ψ p Φ)%I.
+    ⊢ □ (∀ p Φ, path_wp_pre (λ p Φ, Ψ p Φ ∧ path_wp p Φ) p Φ -∗ Ψ p Φ) →
+    ∀ p Φ, path_wp p Φ -∗ Ψ p Φ.
   Proof.
     iIntros "#IH" (p Φ) "H". rewrite path_wp_unseal.
     set (Ψ' := curry Ψ : prodO pathO (vl -d> iPropO Σ) → iPropO Σ).
@@ -108,9 +108,9 @@ Section path_wp.
   (* Specialized induction principle on path_wp. *)
   Lemma path_wp_ind Ψ
     (Hprop : ∀ n p, Proper (pointwise_relation _ (dist n) ==> dist n) (Ψ p)):
-    ((∀ v Φ, □ (Φ v -∗ Ψ (pv v) Φ)) →
+    ⊢ (∀ v Φ, □ (Φ v -∗ Ψ (pv v) Φ)) →
      (∀ p l Φ, □ (path_wp_pre (λ p Φ, Ψ p Φ ∧ path_wp p Φ) (pself p l) Φ -∗ Ψ (pself p l) Φ)) →
-     ∀ p Φ, path_wp p Φ -∗ Ψ p Φ)%I.
+     ∀ p Φ, path_wp p Φ -∗ Ψ p Φ.
   Proof.
     iIntros "#Hpv #Hpself" (p Φ) "Hp". iApply (path_wp_ind' with "[] Hp").
     iIntros "!>" ([|?p l]); iIntros; by [iApply "Hpv"| iApply "Hpself"].

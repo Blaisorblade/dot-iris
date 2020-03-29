@@ -9,12 +9,12 @@ Section Sec.
   Context `{HdlangG: dlangG Σ} (Γ : sCtx Σ).
 
   (* Only provable semantically *)
-  Lemma sAnd_Or_Sub_Distr {S T U i}: Γ s⊨ oAnd (oOr S T) U , i <: oOr (oAnd S U) (oAnd T U), i.
+  Lemma sAnd_Or_Sub_Distr {S T U i}: ⊢ Γ s⊨ oAnd (oOr S T) U , i <: oOr (oAnd S U) (oAnd T U), i.
   Proof. iIntros "!> %% #Hg [[HS|HT] Hu] !> /="; [iLeft|iRight]; iFrame. Qed.
 
   (** Also derivable syntactically; see [iOr_And_Sub_Distr_inv]. But much easier to
   derive in the model. *)
-  Lemma sAnd_Or_Sub_Distr_inv {S T U i}: Γ s⊨ oAnd (oOr S U) (oOr T U), i <: oOr (oAnd S T) U , i.
+  Lemma sAnd_Or_Sub_Distr_inv {S T U i}: ⊢ Γ s⊨ oAnd (oOr S U) (oOr T U), i <: oOr (oAnd S T) U , i.
   Proof. iIntros "!> %% #Hg [[HS|HT] [HT'|HU]] !> /="; eauto with iFrame. Qed.
 
   (* Is it true that for covariant F, F[A ∧ B] = F[A] ∧ F[B]?
@@ -23,7 +23,7 @@ Section Sec.
     Let's prove F[A] ∧ F[B] <: F[A ∧ B] in the model.
     *)
   Lemma sAnd_All_Sub_Distr T U1 U2 i:
-    Γ s⊨ oAnd (oAll T U1) (oAll T U2), i <: oAll T (oAnd U1 U2), i.
+    ⊢ Γ s⊨ oAnd (oAll T U1) (oAll T U2), i <: oAll T (oAnd U1 U2), i.
   Proof.
     iIntros "/= !>" (ρ v) "#Hg [#H1 #H2]". iNext.
     iDestruct "H1" as (t ?) "#H1"; iDestruct "H2" as (t' ->) "#H2"; simplify_eq.
@@ -38,7 +38,7 @@ Section Sec.
   Qed.
 
   Lemma sAnd_Fld_Sub_Distr l T1 T2 i:
-    Γ s⊨ oAnd (cVMem l T1) (cVMem l T2), i <: cVMem l (oAnd T1 T2), i.
+    ⊢ Γ s⊨ oAnd (cVMem l T1) (cVMem l T2), i <: cVMem l (oAnd T1 T2), i.
   Proof.
     iIntros "/= !>" (ρ v) "#Hg [#H1 H2]". iNext.
     iDestruct "H1" as (d? pmem?) "#H1"; iDestruct "H2" as (d'? pmem'?) "#H2". objLookupDet.
@@ -47,7 +47,7 @@ Section Sec.
   Qed.
 
   Lemma sAnd_Fld_Sub_Distr_2 l T1 T2 i:
-    Γ s⊨ cVMem l (oAnd T1 T2), i <: oAnd (cVMem l T1) (cVMem l T2), i.
+    ⊢ Γ s⊨ cVMem l (oAnd T1 T2), i <: oAnd (cVMem l T1) (cVMem l T2), i.
   Proof.
     iIntros "/= !>" (ρ v) "#Hg #H". iNext.
     iDestruct "H" as (d? pmem Hlook) "H".
@@ -57,7 +57,7 @@ Section Sec.
 
   (* This should also follows internally from covariance, once that's proven. *)
   Lemma sAnd_Fld_Sub_Distr_Or_1 l T1 T2 i:
-    Γ s⊨ oOr (cVMem l T1) (cVMem l T2), i <: cVMem l (oOr T1 T2), i.
+    ⊢ Γ s⊨ oOr (cVMem l T1) (cVMem l T2), i <: cVMem l (oOr T1 T2), i.
   Proof.
     iIntros "/= !>" (ρ v) "#Hg [#H| #H]"; iNext;
       iDestruct "H" as (d? pmem?) "#H"; repeat (iExists _; repeat iSplit => //);
@@ -65,7 +65,7 @@ Section Sec.
   Qed.
 
   Lemma sAnd_Fld_Sub_Distr_Or_2 l T1 T2 i:
-    Γ s⊨ cVMem l (oOr T1 T2), i <: oOr (cVMem l T1) (cVMem l T2), i.
+    ⊢ Γ s⊨ cVMem l (oOr T1 T2), i <: oOr (cVMem l T1) (cVMem l T2), i.
   Proof.
     iIntros "/= !>" (ρ v) "#Hg #H". iNext.
     iDestruct "H" as (d? pmem?) "#H"; rewrite -path_wp_or.
@@ -74,7 +74,7 @@ Section Sec.
   Qed.
 
   Lemma sAnd_Typ_Sub_Distr l L U1 U2 i:
-    Γ s⊨ oAnd (cTMem l L U1) (cTMem l L U2), i <: cTMem l L (oAnd U1 U2), i.
+    ⊢ Γ s⊨ oAnd (cTMem l L U1) (cTMem l L U2), i <: cTMem l L (oAnd U1 U2), i.
   Proof.
     iIntros "/= !>" (ρ v) "Hg [H1 H2]". iNext.
     iDestruct "H1" as (d? φ) "#[Hsφ1 [#HLφ1 #HφU1]]"; iDestruct "H2" as (d'? φ') "#[Hsφ2 [_ #HφU2]]".
@@ -98,7 +98,7 @@ Section Sec.
   Qed.
 
   Lemma sSub_Add_Later T i :
-    Γ s⊨ T, i <: oLater T, i.
+    ⊢ Γ s⊨ T, i <: oLater T, i.
   Proof. by iIntros "!> ** !> /=". Qed.
 
   Lemma sSub_Later_Sub T1 T2 i j:
@@ -112,11 +112,11 @@ Section Sec.
   Qed.
 
   Lemma sLater_Sub T i :
-    Γ s⊨ oLater T, i <: T, S i.
+    ⊢ Γ s⊨ oLater T, i <: T, S i.
   Proof. by iIntros "/= !>" (ρ v) "#HG #HT !>". Qed.
 
   Lemma sSub_Later T i :
-    Γ s⊨ T, S i <: oLater T, i.
+    ⊢ Γ s⊨ T, S i <: oLater T, i.
   Proof. by iIntros "/= !> ** !>". Qed.
 
   Lemma sSub_Index_Incr T U i j:
@@ -132,9 +132,9 @@ Section Sec.
     by iApply ("Hsub" with "Hg HT").
   Qed.
 
-  Lemma sAnd1_Sub T1 T2 i: Γ s⊨ oAnd T1 T2, i <: T1, i.
+  Lemma sAnd1_Sub T1 T2 i: ⊢ Γ s⊨ oAnd T1 T2, i <: T1, i.
   Proof. by iIntros "/= !> * ? [? ?]". Qed.
-  Lemma sAnd2_Sub T1 T2 i: Γ s⊨ oAnd T1 T2, i <: T2, i.
+  Lemma sAnd2_Sub T1 T2 i: ⊢ Γ s⊨ oAnd T1 T2, i <: T2, i.
   Proof. by iIntros "/= !> * ? [? ?]". Qed.
 
   Lemma sSub_And T U1 U2 i j:
@@ -146,9 +146,9 @@ Section Sec.
     by iSplit; [iApply "H1" | iApply "H2"].
   Qed.
 
-  Lemma sSub_Or1 T1 T2 i: Γ s⊨ T1, i <: oOr T1 T2, i.
+  Lemma sSub_Or1 T1 T2 i: ⊢ Γ s⊨ T1, i <: oOr T1 T2, i.
   Proof. by iIntros "!> * _ ? !> /="; eauto. Qed.
-  Lemma sSub_Or2 T1 T2 i: Γ s⊨ T2, i <: oOr T1 T2, i.
+  Lemma sSub_Or2 T1 T2 i: ⊢ Γ s⊨ T2, i <: oOr T1 T2, i.
   Proof. by iIntros "!> * _ ? !> /="; eauto. Qed.
 
   Lemma sOr_Sub T1 T2 U i j:
@@ -158,10 +158,10 @@ Section Sec.
   Proof. iIntros "/= #H1 #H2 !> * #Hg #[HT1 | HT2]"; by [iApply "H1" | iApply "H2"]. Qed.
 
   Lemma sSub_Top T i:
-    Γ s⊨ T, i <: oTop, i.
+    ⊢ Γ s⊨ T, i <: oTop, i.
   Proof. by iIntros "!> ** /=". Qed.
 
   Lemma sBot_Sub T i:
-    Γ s⊨ oBot, i <: T, i.
+    ⊢ Γ s⊨ oBot, i <: T, i.
   Proof. by iIntros "/= !> ** !>". Qed.
 End Sec.

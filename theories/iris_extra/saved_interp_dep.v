@@ -108,7 +108,7 @@ Section saved_ho_sem_type.
     solve_contractive_ho.
   Qed.
 
-  Lemma saved_ho_sem_type_alloc i φ : (|==> ∃ γ, γ ⤇n[ i ] φ)%I.
+  Lemma saved_ho_sem_type_alloc i φ : ⊢ |==> ∃ γ, γ ⤇n[ i ] φ.
   Proof. apply saved_anything_alloc. Qed.
 
   Lemma packedHoEnvPred_arity_neI Ψ1 Ψ2 : Ψ1 ≡ Ψ2 ⊢@{iPropI Σ}

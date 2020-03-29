@@ -19,7 +19,7 @@ Section Sec.
   Lemma T_Var x T:
     Γ !! x = Some T →
     (*──────────────────────*)
-    Γ ⊨ tv (var_vl x) : shiftN x T.
+    ⊢ Γ ⊨ tv (var_vl x) : shiftN x T.
   Proof.
     iIntros (Hx) "/= !> * #Hg".
     by rewrite -wp_value' interp_env_lookup.
@@ -169,7 +169,7 @@ Section Sec.
   Qed.
 
   Lemma T_Nat_I n:
-    Γ ⊨ tv (vint n): TInt.
+    ⊢ Γ ⊨ tv (vint n): TInt.
   Proof.
     iIntros "/= !>" (ρ) "_". rewrite -wp_value; unfold_interp. by iExists n.
   Qed.
@@ -195,29 +195,29 @@ Section Sec.
   Qed.
 
   Lemma Sub_Top T i:
-    Γ ⊨ T, i <: TTop, i.
+    ⊢ Γ ⊨ T, i <: TTop, i.
   Proof. by iIntros "!> **"; unfold_interp. Qed.
 
   Lemma DSub_Top T i:
-    Γ ⊨[i] T <: TTop.
+    ⊢ Γ ⊨[i] T <: TTop.
   Proof.
     iIntros "!> ** !> **". by unfold_interp.
   Qed.
 
   Lemma Bot_Sub T i:
-    Γ ⊨ TBot, i <: T, i.
+    ⊢ Γ ⊨ TBot, i <: T, i.
   Proof. by iIntros "!> ** !>"; unfold_interp. Qed.
 
   Lemma DBot_Sub T i:
-    Γ ⊨[i] TBot <: T.
+    ⊢ Γ ⊨[i] TBot <: T.
   Proof. by iIntros "!> ** !> **"; unfold_interp. Qed.
 
   Lemma Later_Sub T i :
-    Γ ⊨ TLater T, i <: T, S i.
+    ⊢ Γ ⊨ TLater T, i <: T, S i.
   Proof. by iIntros "/= !> **"; unfold_interp; iNext. Qed.
 
   Lemma Sub_Later T i :
-    Γ ⊨ T, S i <: TLater T, i.
+    ⊢ Γ ⊨ T, S i <: TLater T, i.
   Proof. by iIntros "/= !> ** !>"; unfold_interp. Qed.
 
 End Sec.

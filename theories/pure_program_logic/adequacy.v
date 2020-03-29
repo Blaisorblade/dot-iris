@@ -117,7 +117,7 @@ Qed.
 End adequacy.
 
 Theorem wp_adequacy {Σ Λ} e φ `{LangDet Λ} :
-  (let _ : irisG Λ Σ := IrisG _ in (|==> WP e {{ v, ⌜φ v⌝ }})%I : iProp Σ) →
+  (⊢@{iPropI Σ} let _ : irisG Λ Σ := IrisG _ in |==> WP e {{ v, ⌜φ v⌝ }}) →
   adequate e (λ v, φ v).
 Proof.
   intros Hwp; split; intros ? [n Hsteps]%rtc_nsteps; eapply (soundness _ n);

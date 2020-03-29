@@ -111,7 +111,7 @@ Section Sec.
   Lemma sT_Var {Γ x τ}
     (Hx : Γ !! x = Some τ):
     (*──────────────────────*)
-    Γ s⊨ of_val (ids x) : shiftN x τ.
+    ⊢ Γ s⊨ of_val (ids x) : shiftN x τ.
   Proof.
     iIntros "/= !>" (ρ) "#Hg"; rewrite -wp_value'.
     by rewrite s_interp_env_lookup // id_subst.
@@ -120,7 +120,7 @@ Section Sec.
   Lemma T_Var {Γ x τ}
     (Hx : Γ !! x = Some τ):
     (*──────────────────────*)
-    Γ ⊨ of_val (ids x) : shiftN x τ.
+    ⊢ Γ ⊨ of_val (ids x) : shiftN x τ.
   Proof.
     rewrite /ietp (interp_subst_commute τ (ren (+x))). apply sT_Var.
     by rewrite list_lookup_fmap Hx.
@@ -167,10 +167,10 @@ Section Sec.
 
   (** Novel subtyping rules. [Sub_Bind_1] and [Sub_Bind_2] become
   derivable. *)
-  Lemma sMu_Sub {Γ T i} : Γ s⊨ oMu (shift T), i <: T, i.
+  Lemma sMu_Sub {Γ T i} : ⊢ Γ s⊨ oMu (shift T), i <: T, i.
   Proof. iIntros "!> **". by rewrite oMu_shift. Qed.
 
-  Lemma sSub_Mu {Γ T i} : Γ s⊨ T, i <: oMu (shift T), i.
+  Lemma sSub_Mu {Γ T i} : ⊢ Γ s⊨ T, i <: oMu (shift T), i.
   Proof. iIntros "!> **". by rewrite oMu_shift. Qed.
 
   (*
@@ -199,7 +199,7 @@ Section Sec.
     by rewrite fmap_cons (iterate_TLater_oLater i T1).
   Qed.
 
-  Lemma Mu_Sub {Γ} T i: Γ ⊨ TMu (shift T), i <: T, i.
+  Lemma Mu_Sub {Γ} T i: ⊢ Γ ⊨ TMu (shift T), i <: T, i.
   Proof.
     rewrite /istpi; cbn -[sstpi].
     rewrite (interp_subst_commute T (ren (+1))).
@@ -208,7 +208,7 @@ Section Sec.
     by rewrite /= (lift_olty_eq (interp_subst_commute _ _)). *)
   Qed.
 
-  Lemma Sub_Mu {Γ} T i: Γ ⊨ T, i <: TMu (shift T), i.
+  Lemma Sub_Mu {Γ} T i: ⊢ Γ ⊨ T, i <: TMu (shift T), i.
   Proof.
     rewrite /istpi; cbn -[sstpi].
     rewrite (interp_subst_commute T (ren (+1))).

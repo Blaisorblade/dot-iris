@@ -173,7 +173,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
         □∀ s φ (Hl : gφ !! s = Some φ), s ↝n[ 0 ] φ.
       Global Instance wellMappedφ_persistent gφ: Persistent (wellMappedφ gφ) := _.
 
-      Lemma wellMappedφ_empty : wellMappedφ ∅. Proof. by iIntros (???). Qed.
+      Lemma wellMappedφ_empty : ⊢ wellMappedφ ∅. Proof. by iIntros (???). Qed.
 
       Lemma wellMappedφ_insert gφ s φ :
         wellMappedφ gφ -∗ s ↝n[ 0 ] φ -∗ wellMappedφ (<[s:=φ]> gφ).

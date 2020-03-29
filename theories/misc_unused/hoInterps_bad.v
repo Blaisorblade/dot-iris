@@ -317,7 +317,7 @@ Section sec.
   Proof using HswapProp. by rewrite -!sstpkD_star_eq_sstp -sSkd_Intv. Qed.
 
   Lemma sK_Star' Γ (T : olty Σ 0) i :
-    Γ s⊨ T ∷[ i ] sf_star.
+    ⊢ Γ s⊨ T ∷[ i ] sf_star.
   Proof using HswapProp.
     iApply sK_Sub. iApply sK_Sing.
     iApply sSkd_Intv'; [iApply sBot_Sub | iApply sSub_Top].
