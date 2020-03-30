@@ -6,7 +6,7 @@ From iris.base_logic Require Import lib.saved_prop.
 From D Require Import iris_prelude.
 From D Require Import saved_interp_dep asubst_intf asubst_base dlang lty.
 From D Require Import swap_later_impl.
-From D.Dot.lr Require dot_lty unary_lr lr_lemmasNoBinding.
+From D.Dot.lr Require dot_lty unary_lr lr_lemmasNoBinding path_repl.
 
 Import EqNotations.
 
@@ -436,7 +436,7 @@ End gen_lemmas.
 End HoSemTypes.
 
 Module HkDot.
-Import dot_lty unary_lr lr_lemmasNoBinding.
+Import dot_lty unary_lr lr_lemmasNoBinding path_repl.
 Include HoSemTypes VlSorts dlang_inst dot_lty.
 Implicit Types
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
@@ -493,11 +493,6 @@ Section dot_types.
   Lemma kpSubstOne_eq {n} (K : sf_kind Σ n) v ρ T1 T2 : sf_kind_sub K.|[v/] ρ T1 T2 ≡ kpSubstOne (pv v) K ρ T1 T2.
   Proof. by rewrite /= path_wp_pv_eq subst_swap_base. Qed.
 
-  Definition opSubst {n} p (T : oltyO Σ n) : oltyO Σ n :=
-    Olty (λI args ρ v, path_wp p.|[ρ] (λ w, T args (w .: ρ) v)).
-  Lemma opSubst_pv_eq {n} v (T : olty Σ n) : opSubst (pv v) T ≡ T.|[v/].
-  Proof. move=> args ρ w /=. by rewrite path_wp_pv_eq subst_swap_base. Qed.
-
   Definition oTApp {n} (T : oltyO Σ n.+1) (p : path) : oltyO Σ n :=
     Olty (λ args ρ v, path_wp p.|[ρ] (λ w, T (vcons w args) ρ v)).
   Lemma oTApp_pv {n} (T : oltyO Σ n.+1) w :
@@ -542,7 +537,8 @@ Section dot_types.
 
 
   (* XXX Those two semantic types are definitionally equal; show that opSubst
-  agrees with syntactic path substitution for gDOT. *)
+  agrees with syntactic path substitution for gDOT.
+  The closest thing we can state is [sem_psubst_one_eq]. *)
   Lemma sKEq_Beta {n} Γ S T (K : sf_kind Σ n) i p :
     Γ s⊨p p : S, i -∗
     oLaterN i (oShift S) :: Γ s⊨ T ∷[i] K -∗
@@ -649,6 +645,17 @@ Section dot_types.
     iNext. by iRewrite "Hag".
   Qed.
 
+  Lemma sSngl_pq_KSub {Γ i p q T1 T2 K} (Hrepl : T1 ~sTp[ p := q ]* T2) :
+    Γ s⊨p p : oSing q, i -∗
+    Γ s⊨ T1 ∷[i] K -∗
+    Γ s⊨ T1 <:[i] T2 ∷ K.
+  Proof.
+    iIntros "#Hal #HK !> * #Hg".
+    iSpecialize ("Hal" with "Hg"); iSpecialize ("HK" with "Hg"); iNext i.
+    iDestruct "Hal" as %Hal%alias_paths_simpl.
+    iApply (Proper_sfkind with "HK"); first done.
+    move => args; rewrite (vec_vnil args). apply symmetry, (Hrepl _ Hal).
+  Qed.
 End dot_types.
 
 Section dot_experimental_kinds.
