@@ -660,6 +660,26 @@ End dot_types.
 
 Section dot_experimental_kinds.
   Context `{dlangG Σ}.
+
+  (* WTF why am I proving this? To support more kinds? *)
+  Lemma sSngl_KSub_Sym Γ p q T i L U:
+    Γ s⊨p p : T, i -∗ (* Just to ensure [p] terminates and [oSing p] isn't empty. *)
+    Γ s⊨ oSing p <:[i] oSing q ∷ sf_kintv L U -∗
+    Γ s⊨ oSing q <:[i] oSing p ∷ sf_kintv L U.
+  Proof.
+    iIntros "#Hp #Hps !>" (ρ) "#Hg /=".
+    iDestruct (path_wp_eq with "(Hp Hg)") as (w) "[Hpw _] {Hp}".
+    iSpecialize ("Hps" with "Hg"); rewrite -alias_paths_pv_eq_1; iNext i.
+    (* Weird that this works. *)
+    iDestruct ("Hps" with "Hpw") as %Hqw%alias_paths_symm.
+    iDestruct "Hpw" as %Hpw.
+    suff Heq: !!(envApply (oSing p) ρ ≡ envApply (oSing q) ρ)
+      by iApply (Proper_sfkind with "Hps").
+    iIntros (args v) "/=".
+    have Hal /= := alias_paths_trans _ _ _ Hpw Hqw.
+    by rewrite !alias_paths_pv_eq_1 (alias_paths_elim_eq_pure _ Hal).
+  Qed.
+
   Local Tactic Notation "iSplitWith" constr(H) "as" constr(H') :=
     iApply (bi.and_parallel with H); iSplit; iIntros H'.
   Program Definition kAnd (K1 K2 : sf_kind Σ 0) : sf_kind Σ 0 :=
