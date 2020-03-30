@@ -442,6 +442,11 @@ Implicit Types
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
          (ρ : var → vl) (l : label).
 
+Definition sem_kind_path_repl {Σ n} p q (K1 K2 : sf_kind Σ n) : Prop :=
+  ∀ ρ T1 T2, alias_paths p.|[ρ] q.|[ρ] → K1 ρ T1 T2 ≡ K2 ρ T1 T2.
+Notation "K1 ~sKd[ p := q  ]* K2" :=
+  (sem_kind_path_repl p q K1 K2) (at level 70).
+
 Section dot_types.
   Context `{dlangG Σ} `{HswapProp: SwapPropI Σ}.
 
@@ -558,12 +563,6 @@ Section dot_types.
     rewrite sK_Lam; iApply (sK_AppV with "HK Hv").
   Qed.
 
-  (* XXX argh. *)
-  (* Definition kind_path_subst {n} p q (K1 K2 : sf_kind Σ n) : iProp Σ :=
-    ∀ (H : alias_paths p q) ρ T1 T2,
-    K1 ρ T1 T2 ≡ K2 ρ T1 T2 . *)
-
-
 
   Lemma sstpkD_star_to_sstp Γ i T1 T2 :
     Γ s⊨ T1 <:[ i ] T2 ∷ sf_star ⊢ Γ s⊨ T1 , i <: T2 , i.
@@ -657,6 +656,20 @@ Section dot_types.
     iApply (Proper_sfkind with "HK"); first done.
     move => args v. apply symmetry, Hrepl, Hal.
   Qed.
+
+  (* This is the easy part :-) *)
+  Lemma sSngl_pq_KSub' {Γ i p q n T1 T2} {K1 K2 : sf_kind Σ n}
+    (Hrepl : K1 ~sKd[ p := q ]* K2) :
+    Γ s⊨p p : oSing q, i -∗
+    Γ s⊨ T1 <:[i] T2 ∷ K1 -∗
+    Γ s⊨ T1 <:[i] T2 ∷ K2.
+  Proof.
+    iIntros "#Hal #HK !> * #Hg".
+    iSpecialize ("Hal" with "Hg"); iSpecialize ("HK" with "Hg"). iNext i.
+    iDestruct "Hal" as %Hal%alias_paths_simpl.
+    by iApply (Hrepl with "HK").
+  Qed.
+
 End dot_types.
 
 Section dot_experimental_kinds.
