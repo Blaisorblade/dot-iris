@@ -90,6 +90,10 @@ Global Lemma Proper_sfkind' {Σ n} (K : sf_kind Σ n) ρ T1 T2 :
   T1 ≡ T2 → K ρ T1 T1 ≡ K ρ T2 T2.
 Proof. intros Heq. by apply Proper_sfkind. Qed.
 
+Lemma sfkind_respects {Σ n} (K : sf_kind Σ n) ρ (T1 T2 : hoLtyO Σ n) :
+  (□ ∀ args v, T1 args v ↔ T2 args v) ⊢@{iPropI Σ} K ρ T1 T1 -∗ K ρ T2 T2.
+Proof. rewrite (sf_kind_sub_internal_proper K T1 T2 ρ); iIntros "[$_]". Qed.
+
 Global Instance vcurry_ne vl n A m : Proper (dist m ==> (=) ==> dist m) (@vcurry vl n A).
 Proof. solve_proper_ho. Qed.
 
@@ -116,7 +120,8 @@ Section kinds_types.
   Qed.
 
   Program Definition sf_kintv (L U : olty Σ 0) : sf_kind Σ 0 :=
-    SfKind (sr_kintv L U) ltac:(solve_proper_ho) _ _ _ _.
+    SfKind (sr_kintv L U) _ _ _ _ _.
+  Next Obligation. solve_proper_ho. Qed.
   Next Obligation.
     intros; rewrite -!sr_kintv_refl.
     iIntros "#Heq".
@@ -628,10 +633,6 @@ Section dot_types.
     iApply (Proper_sfkind' with "(HTK Hg)") => args v /=.
     by rewrite -(Hγφ args ρ v) make_intuitionistically.
   Qed.
-
-  Lemma sfkind_respects {n} (K : sf_kind Σ n) ρ (T1 T2 : hoLtyO Σ n) :
-    (□ ∀ args v, T1 args v ↔ T2 args v) ⊢@{iPropI Σ} K ρ T1 T1 -∗ K ρ T2 T2.
-  Proof. rewrite (sf_kind_sub_internal_proper K T1 T2 ρ); iIntros "[$_]". Qed.
 
   Lemma sK_Sel {Γ n} l (K : sf_kind Σ n) p i :
     Γ s⊨p p : cTMemK l K, i -∗
