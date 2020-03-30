@@ -17,8 +17,8 @@ Definition opSubst {Σ n} p (T : oltyO Σ n) : oltyO Σ n :=
 Notation "T .sTp[ p /]" := (opSubst p T) (at level 65).
 
 (* sem_psubst_ty  *)
-Definition sem_ty_path_repl {Σ} p q (T1 T2 : olty Σ 0) : Prop :=
-  ∀ ρ, alias_paths p.|[ρ] q.|[ρ] → oClose T1 ρ ≡ oClose T2 ρ.
+Definition sem_ty_path_repl {Σ n} p q (T1 T2 : olty Σ n) : Prop :=
+  ∀ args ρ v, alias_paths p.|[ρ] q.|[ρ] → T1 args ρ v ≡ T2 args ρ v.
 Notation "T1 ~sTp[ p := q  ]* T2" :=
   (sem_ty_path_repl p q T1 T2) (at level 70).
 
@@ -40,7 +40,7 @@ Section path_repl.
     (Hrew : T1 ~Tp[ p := q ] T2) :
     V⟦ T1 ⟧ ~sTp[ p := q ]* V⟦ T2 ⟧.
   Proof.
-    rewrite /sem_ty_path_repl; induction Hrew => ρ v He /=; properness;
+    rewrite /sem_ty_path_repl; induction Hrew => args ρ v He /=; properness;
       try by [ exact: path_replacement_equiv | exact: rewrite_path_path_repl
          | apply IHHrew; rewrite ?hsubst_comp | | f_equiv => ?; exact: IHHrew].
   Qed.
@@ -49,7 +49,7 @@ Section path_repl.
     (Hrew : T1 ~Tp[ p := q ]* T2) :
     V⟦ T1 ⟧ ~sTp[ p := q ]* V⟦ T2 ⟧.
   Proof.
-    move=> ρ Hal v. elim: Hrew => [//|T {}T1 {}T2 Hr _ <-].
+    move=> args ρ v Hal. elim: Hrew => [//|T {}T1 {}T2 Hr _ <-].
     apply (fundamental_ty_path_repl Hr), Hal.
   Qed.
 
@@ -57,7 +57,7 @@ Section path_repl.
     (Hrepl : T1 ~Tp[ p := q ]* T2):
     alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
     V⟦ T1 ⟧ args ρ ≡ V⟦ T2 ⟧ args ρ.
-  Proof. rewrite (vec_vnil args). exact: fundamental_ty_path_repl_rtc. Qed.
+  Proof. intros Hal v. apply: (fundamental_ty_path_repl_rtc Hrepl) Hal. Qed.
 
   Lemma sem_psubst_one_eq {T T' args p v ρ}
     (Hrepl : T .Tp[ p /]~ T')
@@ -150,7 +150,7 @@ Section path_repl.
   Proof.
     iIntros "#Hal !>" (ρ v) "#Hg HT1". iSpecialize ("Hal" with "Hg"). iNext i.
     iDestruct "Hal" as %Hal%alias_paths_simpl.
-    iApply (Hrepl _ Hal with "HT1").
+    iApply (Hrepl with "HT1"). exact Hal.
   Qed.
 
   Lemma Sngl_pq_Sub {Γ i p q T1 T2} (Hrepl : T1 ~Tp[ p := q ]* T2):

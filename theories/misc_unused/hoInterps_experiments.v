@@ -645,7 +645,8 @@ Section dot_types.
     iNext. by iRewrite "Hag".
   Qed.
 
-  Lemma sSngl_pq_KSub {Γ i p q T1 T2 K} (Hrepl : T1 ~sTp[ p := q ]* T2) :
+  Lemma sSngl_pq_KSub {Γ i p q n T1 T2} {K : sf_kind Σ n}
+    (Hrepl : T1 ~sTp[ p := q ]* T2) :
     Γ s⊨p p : oSing q, i -∗
     Γ s⊨ T1 ∷[i] K -∗
     Γ s⊨ T1 <:[i] T2 ∷ K.
@@ -654,7 +655,7 @@ Section dot_types.
     iSpecialize ("Hal" with "Hg"); iSpecialize ("HK" with "Hg"); iNext i.
     iDestruct "Hal" as %Hal%alias_paths_simpl.
     iApply (Proper_sfkind with "HK"); first done.
-    move => args; rewrite (vec_vnil args). apply symmetry, (Hrepl _ Hal).
+    move => args v. apply symmetry, Hrepl, Hal.
   Qed.
 End dot_types.
 
