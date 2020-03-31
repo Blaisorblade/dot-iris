@@ -28,7 +28,7 @@ Section path_repl.
 
   Notation path_wp p φ := (@path_wp Σ p φ).
 
-  Lemma opSubst_pv_eq {n} v (T : olty Σ n) : T .sTp[ pv v /] ≡ T.|[v/].
+  Lemma opSubst_pv_eq {n} v (T : oltyO Σ n) : T .sTp[ pv v /] ≡ T.|[v/].
   Proof. move=> args ρ w /=. by rewrite path_wp_pv_eq subst_swap_base. Qed.
 
   Lemma sem_psubst_one_repl {n} {T : olty Σ n} {args p v w ρ}:

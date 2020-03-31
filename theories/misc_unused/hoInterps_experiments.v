@@ -32,7 +32,7 @@ Definition oCurry {n} {A : ofeT} (Φ : vec vl n.+1 → A) :
 
 Definition oUncurry {n} {A : ofeT} (Φ : vl → vec vl n → A) :
   vec vl n.+1 -d> A := vuncurry Φ.
-Definition oLaterN {Σ n} i (τ : olty Σ n) := Olty (eLater i τ).
+Definition oLaterN {Σ n} i (τ : oltyO Σ n) := Olty (eLater i τ).
 
 (** Semantic kinds can be interpreted into predicates. *)
 (** Semantic Kinds as unary Predicates. *)
@@ -107,10 +107,10 @@ Section kinds_types.
     T1 ⊆ T2 -∗ T2 ⊆ T3 -∗ T1 ⊆@{Σ} T3.
   Proof. iIntros "#H1 #H2 !>" (v) "#HT1". iApply ("H2" with "(H1 HT1)"). Qed.
 
-  Definition sp_kintv (L U : olty Σ 0) : sp_kind Σ 0 := SpKind (λI ρ φ,
+  Definition sp_kintv (L U : oltyO Σ 0) : sp_kind Σ 0 := SpKind (λI ρ φ,
     oClose L ρ ⊆ oClose φ ⊆ oClose U ρ).
 
-  Definition sr_kintv (L U : olty Σ 0) : sr_kind Σ 0 := SrKind (λI ρ φ1 φ2,
+  Definition sr_kintv (L U : oltyO Σ 0) : sr_kind Σ 0 := SrKind (λI ρ φ1 φ2,
     oClose L ρ ⊆ oClose φ1 ⊆ oClose φ2 ⊆ oClose U ρ).
 
   Lemma sr_kintv_refl L U ρ φ : sp_kintv L U ρ φ ≡ sr_kintv L U ρ φ φ.
@@ -119,7 +119,7 @@ Section kinds_types.
     iIntros "($ & $)"; by rewrite -subtype_refl.
   Qed.
 
-  Program Definition sf_kintv (L U : olty Σ 0) : sf_kind Σ 0 :=
+  Program Definition sf_kintv (L U : oltyO Σ 0) : sf_kind Σ 0 :=
     SfKind (sr_kintv L U) _ _ _ _ _.
   Next Obligation. solve_proper_ho. Qed.
   Next Obligation.
@@ -146,7 +146,7 @@ Section kinds_types.
     iApply (subtype_trans with "A B").
   Qed.
 
-  Program Definition sf_kpi {n} (S : olty Σ 0) (K : sf_kind Σ n) : sf_kind Σ n.+1 :=
+  Program Definition sf_kpi {n} (S : oltyO Σ 0) (K : sf_kind Σ n) : sf_kind Σ n.+1 :=
     SfKind
       (SrKind (λI ρ φ1 φ2,
         □∀ arg, S vnil ρ arg →
@@ -178,14 +178,14 @@ Section kinds_types.
   Definition oLam {n} (τ : oltyO Σ n) : oltyO Σ n.+1 :=
     Olty (λI args ρ, τ (vtail args) (vhead args .: ρ)).
     (* vuncurry (λ v, Olty (λ args ρ, τ args (v .: ρ))). *)
-  Definition oTAppV {n} (T : oltyO Σ n.+1) w : olty Σ n :=
+  Definition oTAppV {n} (T : oltyO Σ n.+1) w : oltyO Σ n :=
     Olty (λI args ρ, T (vcons w.[ρ] args) ρ).
 
-  Lemma swap_oLam_oLater {n} (τ : olty Σ n) :
+  Lemma swap_oLam_oLater {n} (τ : oltyO Σ n) :
     oLater (oLam τ) ≡ oLam (oLater τ).
   Proof. done. Qed.
 
-  Lemma swap_oTApp_oLater {n} (τ : olty Σ (S n)) v:
+  Lemma swap_oTApp_oLater {n} (τ : oltyO Σ (S n)) v:
     oLater (oTAppV τ v) ≡ oTAppV (oLater τ) v.
   Proof. done. Qed.
 
@@ -229,7 +229,7 @@ Section gen_lemmas.
       iApply ("Hsub" $! v).
   Qed.
 
-  Lemma ksubtyping_intro i Γ (T1 T2 : olty Σ 0) :
+  Lemma ksubtyping_intro i Γ (T1 T2 : oltyO Σ 0) :
     (□∀ ρ, s⟦ Γ ⟧* ρ →
     ∀ v, ▷^i (oClose T1 ρ v → oClose T2 ρ v)) -∗
     Γ s⊨ T1 <:[ i ] T2 ∷ sf_star.
@@ -240,7 +240,7 @@ Section gen_lemmas.
       iIntros (v) "!>"; [iIntros "[]" | iApply "Hsub" | iIntros "_ //"].
   Qed.
 
-  Lemma ksubtyping_intro_swap i Γ (T1 T2 : olty Σ 0) :
+  Lemma ksubtyping_intro_swap i Γ (T1 T2 : oltyO Σ 0) :
     (□∀ ρ, s⟦ Γ ⟧* ρ →
     ∀ v, ▷^i oClose T1 ρ v → ▷^i oClose T2 ρ v) -∗
     Γ s⊨ T1 <:[ i ] T2 ∷ sf_star.
@@ -249,7 +249,7 @@ Section gen_lemmas.
     iApply (impl_laterN with "(Hsub Hg)").
   Qed.
 
-  Lemma kinding_intro Γ i (L T U : olty Σ 0) :
+  Lemma kinding_intro Γ i (L T U : oltyO Σ 0) :
     (□∀ ρ, s⟦ Γ ⟧* ρ →
     ▷^i (oClose L ρ ⊆ oClose T ρ ⊆ oClose U ρ)) -∗
     Γ s⊨ T ∷[ i ] sf_kintv L U.
@@ -259,13 +259,13 @@ Section gen_lemmas.
 
   (** * Prefixes: K for Kinding, KStp for kinded subtyping, Skd for subkinding. *)
   (* XXX: Prefixes: Rename elsewhere Sub to STyp *)
-  Lemma sK_Sing Γ (T : olty Σ 0) i :
+  Lemma sK_Sing Γ (T : oltyO Σ 0) i :
     ⊢ Γ s⊨ T ∷[ i ] sf_kintv T T.
   Proof.
     rewrite -kinding_intro; iIntros "!>" (ρ) "_". by rewrite -subtype_refl.
   Qed.
 
-  Lemma sKStp_Intv Γ (T1 T2 L U : olty Σ 0) i :
+  Lemma sKStp_Intv Γ (T1 T2 L U : oltyO Σ 0) i :
     Γ s⊨ T1 <:[i] T2 ∷ sf_kintv L U -∗
     Γ s⊨ T1 <:[i] T2 ∷ sf_kintv T1 T2.
   Proof.
@@ -274,7 +274,7 @@ Section gen_lemmas.
   Qed.
 
   (** Kind subsumption (for kinded subtyping). *)
-  Lemma sKStp_Sub Γ {n} (T1 T2 : olty Σ n) (K1 K2 : sf_kind Σ n) i :
+  Lemma sKStp_Sub Γ {n} (T1 T2 : oltyO Σ n) (K1 K2 : sf_kind Σ n) i :
     Γ s⊨ T1 <:[ i ] T2 ∷ K1 -∗
     Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ T1 <:[ i ] T2 ∷ K2.
@@ -283,7 +283,7 @@ Section gen_lemmas.
   Qed.
 
   (** Kind subsumption (for kinding). *)
-  Lemma sK_Sub Γ {n} (T : olty Σ n) (K1 K2 : sf_kind Σ n) i :
+  Lemma sK_Sub Γ {n} (T : oltyO Σ n) (K1 K2 : sf_kind Σ n) i :
     Γ s⊨ T ∷[ i ] K1 -∗
     Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ T ∷[ i ] K2.
@@ -311,7 +311,7 @@ Section gen_lemmas.
   Proof using HswapProp. apply sKStp_Lam. Qed.
 
   (** * Subkinding *)
-  Lemma sSkd_Intv (L1 L2 U1 U2 : olty Σ 0) Γ i :
+  Lemma sSkd_Intv (L1 L2 U1 U2 : oltyO Σ 0) Γ i :
     Γ s⊨ L2 <:[ i ] L1 ∷ sf_star -∗
     Γ s⊨ U1 <:[ i ] U2 ∷ sf_star -∗
     Γ s⊨ sf_kintv L1 U1 <∷[ i ] sf_kintv L2 U2.
@@ -324,7 +324,7 @@ Section gen_lemmas.
     iApply (subtype_trans with "HsubU1 HsubU").
   Qed.
 
-  Lemma sSkd_Pi {n} (S1 S2 : olty Σ 0) (K1 K2 : sf_kind Σ n) Γ i :
+  Lemma sSkd_Pi {n} (S1 S2 : oltyO Σ 0) (K1 K2 : sf_kind Σ n) Γ i :
     Γ s⊨ S2 <:[ i ] S1 ∷ sf_star -∗
     oLaterN i (oShift S2) :: Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ sf_kpi S1 K1 <∷[ i ] sf_kpi S2 K2.
@@ -405,10 +405,10 @@ Section gen_lemmas.
   (* Notation "" := sf_star. *)
   (* Notation "L  U" := (sf_kintv L U) (at level 70). *)
 
-  Lemma sKStp_Top Γ (T : olty Σ 0) i :
+  Lemma sKStp_Top Γ (T : oltyO Σ 0) i :
     ⊢ Γ s⊨ T <:[ i ] ⊤ ∷ sf_star.
   Proof. rewrite -ksubtyping_intro. iIntros "!> * _ * !> _ //". Qed.
-  Lemma sKStp_Bot Γ (T : olty Σ 0) i :
+  Lemma sKStp_Bot Γ (T : oltyO Σ 0) i :
     ⊢ Γ s⊨ ⊥ <:[ i ] T ∷ sf_star.
   Proof. rewrite -ksubtyping_intro; iIntros "!> * _ * !> []". Qed.
 
@@ -587,7 +587,7 @@ Section dot_types.
 
   Definition oLDTMemK {n} l (K : sf_kind Σ n) : ldltyO Σ := mkLDlty (Some l) (λI ρ d,
     ∃ (ψ : hoD Σ n), d ↗n[ n ] ψ ∧ K ρ (packHoLtyO ψ) (packHoLtyO ψ)).
-  Definition oLDTMemSpec l (L U : olty Σ 0) : ldltyO Σ :=
+  Definition oLDTMemSpec l (L U : oltyO Σ 0) : ldltyO Σ :=
     oLDTMemK l (sf_kintv (oLater L) (oLater U)).
 
   (** [cTMem] and [cVMem] are full [clty]. *)
@@ -607,7 +607,7 @@ Section dot_types.
   Qed.
 
   (** * Kinding *)
-  Lemma sK_Star Γ (T : olty Σ 0) i :
+  Lemma sK_Star Γ (T : oltyO Σ 0) i :
     ⊢ Γ s⊨ T ∷[ i ] sf_star.
   Proof using HswapProp.
     iApply sK_Sub. iApply sK_Sing. iApply sSkd_Intv; rewrite sstpkD_star_eq_sstp.
