@@ -5,14 +5,14 @@ From D.Dot Require Import unary_lr typing_storeless typeExtractionSem
   lr_lemmas lr_lemmasDefs lr_lemmasNoBinding lr_lemmasTSel lr_lemmasPrim
   later_sub_sem.
 (* For unstamped safety. *)
-From D.Dot Require Import typing_unstamped astStamping typingStamping skeleton.
+From D.Dot Require Import typing_unstamped typeExtractionSyn astStamping typingStamping skeleton.
 From D.Dot.lr Require Import path_repl.
 Import stamp_transfer.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
 
-Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
+Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx) (g : stys).
 
 Section fundamental.
   Context `{!dlangG Σ} `{!SwapPropI Σ}.
@@ -21,6 +21,15 @@ Section fundamental.
     match goal with
     | H : context [wellMappedφ] |- _ => by iApply H
     end.
+
+  Lemma extraction_to_leadsto_envD_equiv T g s σ n: T ~[ n ] (g, (s, σ)) →
+    wellMappedφ Vs⟦ g ⟧ -∗ s ↝[ σ ] V⟦ T ⟧.
+  Proof.
+    move => [T'] [Hl] [<- [_ /is_stamped_nclosed_ty HclT]].
+    iIntros "Hm". iExists V⟦ T' ⟧. iSplitR.
+    - iIntros "!%" (args ρ v). exact: interp_finsubst_commute_cl.
+    - iApply (wellMappedφ_apply with "Hm"). by rewrite lookup_fmap Hl.
+  Qed.
 
   Lemma fundamental_mut Γ g :
     (∀ e T (HT: Γ v⊢ₜ[ g ] e : T), ⊢ Γ ⊨[ Vs⟦ g ⟧ ] e : T) ∧
