@@ -7,6 +7,7 @@ From D Require Import iris_prelude.
 From D Require Import saved_interp_dep asubst_intf asubst_base dlang lty.
 From D Require Import swap_later_impl.
 From D.Dot.lr Require dot_lty unary_lr lr_lemmasNoBinding path_repl.
+From D.Dot Require hoas exampleInfra.
 
 Import EqNotations.
 
@@ -436,7 +437,7 @@ End gen_lemmas.
 End HoSemTypes.
 
 Module HkDot.
-Import dot_lty unary_lr lr_lemmasNoBinding path_repl.
+Import dot_lty unary_lr lr_lemmasNoBinding path_repl hoas exampleInfra.
 Include HoSemTypes VlSorts dlang_inst dot_lty.
 Implicit Types
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
@@ -671,6 +672,21 @@ Section dot_types.
   Qed.
 
 End dot_types.
+
+Section examples.
+  Context `{dlangG Σ} `{HswapProp: SwapPropI Σ}.
+  Import DBNotation dot_lty.
+
+  Definition oId := oLam (oSel 0 x0 "A").
+  Lemma oLater0 {n} (T : oltyO Σ n) : oLaterN 0 T ≡ T.
+  Proof. done. Qed.
+
+  Lemma oId_K Γ :
+    ⊢ Γ s⊨ oId ∷[0] sf_kpi (cTMemK "A" sf_star) sf_star.
+  Proof using HswapProp. by rewrite -sK_Lam -sK_Star. Qed.
+    (* Time iApply sK_Lam; iApply sK_Star. *)
+
+End examples.
 
 Section dot_experimental_kinds.
   Context `{dlangG Σ}.
