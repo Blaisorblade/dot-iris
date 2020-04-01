@@ -17,12 +17,7 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx) (g : sty
 Section fundamental.
   Context `{!dlangG Σ} `{!SwapPropI Σ}.
 
-  Local Ltac by_reflect :=
-    match goal with
-    | H : context [wellMappedφ] |- _ => by iApply H
-    end.
-
-  Lemma extraction_to_leadsto_envD_equiv T g s σ n: T ~[ n ] (g, (s, σ)) →
+  Lemma extraction_to_leadsto_envD_equiv {T g s σ n} : T ~[ n ] (g, (s, σ)) →
     wellMappedφ Vs⟦ g ⟧ -∗ s ↝[ σ ] V⟦ T ⟧.
   Proof.
     move => [T'] [Hl] [<- [_ /is_stamped_nclosed_ty HclT]].
@@ -64,7 +59,6 @@ Section fundamental.
       + by iApply T_Bin; [| iApply H| iApply H0].
       + by iApply sT_If; [iApply H|iApply H0|iApply H1].
 
-      (* + by_reflect. *)
       + by iApply D_Nil.
       + by iApply D_Cons; [|iApply H|iApply H0].
 
@@ -85,7 +79,6 @@ Section fundamental.
       + iApply P_Sngl_Inv. by iApply H.
       + by iApply P_Sngl_Trans; [iApply H|iApply H0].
       + by iApply P_Sngl_E; [iApply H|iApply H0].
-      (* + by_reflect. *)
 
       + by iApply sSub_Refl.
       + by iApply sSub_Trans; [iApply H|iApply H0].
@@ -116,9 +109,6 @@ Section fundamental.
       + iApply sAnd_Typ_Sub_Distr.
       + iApply sAnd_Or_Sub_Distr.
       + iApply Sub_Skolem_P. by iApply H.
-      (* + by iApply istpi_weaken_ctx_syn.
-      + subst. by iApply Delay_Sub. *)
-      (* + by_reflect. *)
   Qed.
 
   Lemma fundamental_dm_typed Γ g l d T (HT: Γ v⊢[ g ]{ l := d } : T) :
