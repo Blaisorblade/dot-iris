@@ -6,7 +6,7 @@ From iris.base_logic Require Import lib.saved_prop.
 From D Require Import iris_prelude.
 From D Require Import saved_interp_dep asubst_intf asubst_base dlang lty.
 From D Require Import swap_later_impl.
-From D.Dot.lr Require dot_lty unary_lr lr_lemmasNoBinding typeExtractionSem.
+From D.Dot.lr Require dot_lty unary_lr lr_lemmasNoBinding.
 
 Import EqNotations.
 
@@ -431,7 +431,7 @@ End gen_lemmas.
 End HoSemTypes.
 
 Module HkDot.
-Import dot_lty unary_lr lr_lemmasNoBinding typeExtractionSem.
+Import dot_lty unary_lr lr_lemmasNoBinding.
 Include HoSemTypes VlSorts dlang_inst dot_lty.
 Implicit Types
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
