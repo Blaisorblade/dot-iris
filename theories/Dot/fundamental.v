@@ -11,13 +11,15 @@ Import stamp_transfer.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
+Set Implicit Arguments.
+Unset Strict Implicit.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx) (g : stys).
 
 Section fundamental.
   Context `{!dlangG Σ} `{!SwapPropI Σ}.
 
-  Lemma extraction_to_leadsto_envD_equiv {T g s σ n} : T ~[ n ] (g, (s, σ)) →
+  Lemma extraction_to_leadsto_envD_equiv T g s σ n : T ~[ n ] (g, (s, σ)) →
     wellMappedφ Vs⟦ g ⟧ -∗ s ↝[ σ ] V⟦ T ⟧.
   Proof.
     move => [T'] [Hl] [<- [_ /is_stamped_nclosed_ty HclT]].
@@ -26,21 +28,24 @@ Section fundamental.
     - iApply (wellMappedφ_apply with "Hm"). by rewrite lookup_fmap Hl.
   Qed.
 
-  Lemma fundamental_mut Γ g :
-    (∀ e T (HT: Γ v⊢ₜ[ g ] e : T), ⊢ Γ ⊨[ Vs⟦ g ⟧ ] e : T) ∧
-    (∀ ds T (HT: Γ v⊢ds[ g ] ds : T), ⊢ Γ ⊨ds[ Vs⟦ g ⟧ ] ds : T) ∧
-    (∀ l d T, Γ v⊢[ g ]{ l := d } : T → ⊢ Γ ⊨[ Vs⟦ g ⟧ ] { l := d } : T) ∧
-    (∀ p T i (HT : Γ v⊢ₚ[ g ] p : T, i), ⊢ Γ ⊨p[ Vs⟦ g ⟧ ] p : T, i) ∧
-    (∀ T1 i1 T2 i2 (HT: Γ v⊢ₜ[ g ] T1, i1 <: T2, i2),
-      ⊢ Γ ⊨[ Vs⟦ g ⟧ ] T1, i1 <: T2, i2).
+  (* Make proofs below more robust. *)
+  Opaque setp sdstp sdtp sptp sstpi.
+
+  Definition fundamental_typed_def Γ g e T (HT: Γ v⊢ₜ[ g ] e : T) := ⊢ Γ ⊨[ Vs⟦ g ⟧ ] e : T.
+  Definition fundamental_dms_typed_def Γ g ds T (HT: Γ v⊢ds[ g ] ds : T) := ⊢ Γ ⊨ds[ Vs⟦ g ⟧ ] ds : T.
+  Definition fundamental_dm_typed_def Γ g l d T (HT : Γ v⊢[ g ]{ l := d } : T) := ⊢ Γ ⊨[ Vs⟦ g ⟧ ] { l := d } : T.
+  Definition fundamental_path_typed_def Γ g p T i (HT : Γ v⊢ₚ[ g ] p : T, i) := ⊢ Γ ⊨p[ Vs⟦ g ⟧ ] p : T, i.
+  Definition fundamental_subtype_def Γ g T1 i1 T2 i2 (HT: Γ v⊢ₜ[ g ] T1, i1 <: T2, i2) :=
+    ⊢ Γ ⊨[ Vs⟦ g ⟧ ] T1, i1 <: T2, i2.
+
+  Theorem fundamental_mut Γ g :
+    (∀ e T HT, @fundamental_typed_def Γ g e T HT) ∧
+    (∀ ds T HT, @fundamental_dms_typed_def Γ g ds T HT) ∧
+    (∀ l d T HT, @fundamental_dm_typed_def Γ g l d T HT) ∧
+    (∀ p T i HT, @fundamental_path_typed_def Γ g p T i HT) ∧
+    (∀ T1 i1 T2 i2 HT, @fundamental_subtype_def Γ g T1 i1 T2 i2 HT).
   Proof.
-    eapply storeless_typing_mut_ind with
-        (P := λ Γ g e T _,  ⊢ Γ ⊨[ Vs⟦ g ⟧ ] e : T)
-        (P0 := λ Γ g ds T _,  ⊢ Γ ⊨ds[ Vs⟦ g ⟧ ] ds : T)
-        (P1 := λ Γ g l d T _, ⊢ Γ ⊨[ Vs⟦ g ⟧ ] { l := d } : T)
-        (P2 := λ Γ g p T i _, ⊢ Γ ⊨p[ Vs⟦ g ⟧ ] p : T, i)
-        (P3 := λ Γ g T1 i1 T2 i2 _, ⊢ Γ ⊨[ Vs⟦ g ⟧ ] T1, i1 <: T2, i2);
-    clear Γ g; intros; iIntros "#Hm".
+    apply storeless_typing_mut_ind; clear Γ g; intros; iIntros "#Hm".
       + by iApply T_All_Ex; [iApply H|iApply H0].
       + by iApply T_All_Ex_p; [|iApply H|iApply H0].
       + by iApply T_All_E; [iApply H|iApply H0].
@@ -111,21 +116,21 @@ Section fundamental.
       + iApply Sub_Skolem_P. by iApply H.
   Qed.
 
-  Lemma fundamental_dm_typed Γ g l d T (HT: Γ v⊢[ g ]{ l := d } : T) :
-    ⊢ Γ ⊨[ Vs⟦ g ⟧ ] { l := d } : T.
-  Proof. unmut_lemma (fundamental_mut Γ g). Qed.
-  Lemma fundamental_dms_typed Γ g ds T (HT: Γ v⊢ds[ g ] ds : T) :
-    ⊢ Γ ⊨ds[ Vs⟦ g ⟧ ] ds : T.
-  Proof. unmut_lemma (fundamental_mut Γ g). Qed.
-  Lemma fundamental_subtype Γ g T1 i1 T2 i2 (HT: Γ v⊢ₜ[ g ] T1, i1 <: T2, i2) :
-    ⊢ Γ ⊨[ Vs⟦ g ⟧ ] T1, i1 <: T2, i2.
-  Proof. unmut_lemma (fundamental_mut Γ g). Qed.
-  Lemma fundamental_typed Γ g e T (HT: Γ v⊢ₜ[ g ] e : T) :
-    ⊢ Γ ⊨[ Vs⟦ g ⟧ ] e : T.
-  Proof. unmut_lemma (fundamental_mut Γ g). Qed.
-  Lemma fundamental_path_typed Γ g p T i (HT : Γ v⊢ₚ[ g ] p : T, i) :
-    ⊢ Γ ⊨p[ Vs⟦ g ⟧ ] p : T, i.
-  Proof. unmut_lemma (fundamental_mut Γ g). Qed.
+  Lemma fundamental_typed Γ g e T :
+    Γ v⊢ₜ[ g ] e : T → ⊢ Γ ⊨[ Vs⟦ g ⟧ ] e : T.
+  Proof. apply (fundamental_mut Γ g). Qed.
+  Lemma fundamental_dms_typed Γ g ds T :
+    Γ v⊢ds[ g ] ds : T → ⊢ Γ ⊨ds[ Vs⟦ g ⟧ ] ds : T.
+  Proof. apply (fundamental_mut Γ g). Qed.
+  Lemma fundamental_dm_typed Γ g l d T :
+    Γ v⊢[ g ]{ l := d } : T → ⊢ Γ ⊨[ Vs⟦ g ⟧ ] { l := d } : T.
+  Proof. apply (fundamental_mut Γ g). Qed.
+  Lemma fundamental_path_typed Γ g p T i :
+    Γ v⊢ₚ[ g ] p : T, i → ⊢ Γ ⊨p[ Vs⟦ g ⟧ ] p : T, i.
+  Proof. apply (fundamental_mut Γ g). Qed.
+  Lemma fundamental_subtype Γ g T1 i1 T2 i2 :
+    Γ v⊢ₜ[ g ] T1, i1 <: T2, i2 → ⊢ Γ ⊨[ Vs⟦ g ⟧ ] T1, i1 <: T2, i2.
+  Proof. apply (fundamental_mut Γ g). Qed.
 End fundamental.
 
 (** Adequacy of our logical relation: semantically well-typed terms are safe. *)
