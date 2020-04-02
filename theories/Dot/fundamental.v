@@ -28,6 +28,9 @@ Section fundamental.
     - iApply (wellMappedφ_apply with "Hm"). by rewrite lookup_fmap Hl.
   Qed.
 
+  (* Make proofs below more robust. *)
+  Opaque setp sdstp sdtp sptp sstpi.
+
   Lemma fundamental_mut Γ g :
     (∀ e T (HT: Γ v⊢ₜ[ g ] e : T), ⊢ Γ ⊨[ Vs⟦ g ⟧ ] e : T) ∧
     (∀ ds T (HT: Γ v⊢ds[ g ] ds : T), ⊢ Γ ⊨ds[ Vs⟦ g ⟧ ] ds : T) ∧
@@ -113,21 +116,21 @@ Section fundamental.
       + iApply Sub_Skolem_P. by iApply H.
   Qed.
 
-  Lemma fundamental_dm_typed Γ g l d T (HT: Γ v⊢[ g ]{ l := d } : T) :
-    ⊢ Γ ⊨[ Vs⟦ g ⟧ ] { l := d } : T.
-  Proof. unmut_lemma (fundamental_mut Γ g). Qed.
-  Lemma fundamental_dms_typed Γ g ds T (HT: Γ v⊢ds[ g ] ds : T) :
-    ⊢ Γ ⊨ds[ Vs⟦ g ⟧ ] ds : T.
-  Proof. unmut_lemma (fundamental_mut Γ g). Qed.
-  Lemma fundamental_subtype Γ g T1 i1 T2 i2 (HT: Γ v⊢ₜ[ g ] T1, i1 <: T2, i2) :
-    ⊢ Γ ⊨[ Vs⟦ g ⟧ ] T1, i1 <: T2, i2.
-  Proof. unmut_lemma (fundamental_mut Γ g). Qed.
-  Lemma fundamental_typed Γ g e T (HT: Γ v⊢ₜ[ g ] e : T) :
-    ⊢ Γ ⊨[ Vs⟦ g ⟧ ] e : T.
-  Proof. unmut_lemma (fundamental_mut Γ g). Qed.
-  Lemma fundamental_path_typed Γ g p T i (HT : Γ v⊢ₚ[ g ] p : T, i) :
-    ⊢ Γ ⊨p[ Vs⟦ g ⟧ ] p : T, i.
-  Proof. unmut_lemma (fundamental_mut Γ g). Qed.
+  Lemma fundamental_typed Γ g e T :
+    Γ v⊢ₜ[ g ] e : T → ⊢ Γ ⊨[ Vs⟦ g ⟧ ] e : T.
+  Proof. apply (fundamental_mut Γ g). Qed.
+  Lemma fundamental_dms_typed Γ g ds T :
+    Γ v⊢ds[ g ] ds : T → ⊢ Γ ⊨ds[ Vs⟦ g ⟧ ] ds : T.
+  Proof. apply (fundamental_mut Γ g). Qed.
+  Lemma fundamental_dm_typed Γ g l d T :
+    Γ v⊢[ g ]{ l := d } : T → ⊢ Γ ⊨[ Vs⟦ g ⟧ ] { l := d } : T.
+  Proof. apply (fundamental_mut Γ g). Qed.
+  Lemma fundamental_path_typed Γ g p T i :
+    Γ v⊢ₚ[ g ] p : T, i → ⊢ Γ ⊨p[ Vs⟦ g ⟧ ] p : T, i.
+  Proof. apply (fundamental_mut Γ g). Qed.
+  Lemma fundamental_subtype Γ g T1 i1 T2 i2 :
+    Γ v⊢ₜ[ g ] T1, i1 <: T2, i2 → ⊢ Γ ⊨[ Vs⟦ g ⟧ ] T1, i1 <: T2, i2.
+  Proof. apply (fundamental_mut Γ g). Qed.
 End fundamental.
 
 (** Adequacy of our logical relation: semantically well-typed terms are safe. *)
