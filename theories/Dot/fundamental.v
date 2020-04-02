@@ -11,13 +11,15 @@ Import stamp_transfer.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
+Set Implicit Arguments.
+Unset Strict Implicit.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx) (g : stys).
 
 Section fundamental.
   Context `{!dlangG Σ} `{!SwapPropI Σ}.
 
-  Lemma extraction_to_leadsto_envD_equiv {T g s σ n} : T ~[ n ] (g, (s, σ)) →
+  Lemma extraction_to_leadsto_envD_equiv T g s σ n : T ~[ n ] (g, (s, σ)) →
     wellMappedφ Vs⟦ g ⟧ -∗ s ↝[ σ ] V⟦ T ⟧.
   Proof.
     move => [T'] [Hl] [<- [_ /is_stamped_nclosed_ty HclT]].

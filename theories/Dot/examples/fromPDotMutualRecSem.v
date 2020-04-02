@@ -248,7 +248,7 @@ Proof.
   have := Hx0 Γ g; set Γ2 := newTypeRefΓ Γ; unfold newTypeRefΓ in Γ2 => Hx0.
 
   iIntros "#Hs !>" (ρ) "#Hg !>".
-  iPoseProof (fundamental_typed _ _ _ _ Hx0 with "Hs Hg") as "#Hx0".
+  iPoseProof (fundamental_typed Hx0 with "Hs Hg") as "#Hx0".
   reshape [AppRCtx _]; reshape [IfCtx _ _]; reshape [UnCtx _];
     reshape [ProjCtx _]; reshape [ProjCtx _]; iSimpl.
 
@@ -261,7 +261,7 @@ Proof.
   have [n HpOptV] := path_wp_exec_pure _ _ Hal; wp_pure => {HpOptV n}.
   rewrite /hoptionTyConcr1; lrSimpl in "HoptV".
   iDestruct "HoptV" as "[Hw|Hw]"; [have Hv := HvT | have Hv := HvF].
-  all: iPoseProof (fundamental_subtype _ _ _ _ _ _ (Hv Γ g) with "Hs") as "Hv";
+  all: iPoseProof (fundamental_subtype (Hv Γ g) with "Hs") as "Hv";
     iSpecialize ("Hv" $! _ optV with "Hg Hw"); lrSimpl in "Hv";
     iDestruct "Hv" as (? Hl' pb ->) "Hpb"; lrSimpl in "Hpb";
     rewrite path_wp_pure_exec; iDestruct "Hpb" as %(bv & [n1 ?] & Heq).
@@ -271,8 +271,7 @@ Proof.
   by iApply wp_wand; [iApply loopSemT | iIntros "% []"].
   wp_pure.
   (* To conclude, prove the right subtyping for hsomeType and TypeRef. *)
-  iPoseProof (fundamental_subtype _ _ _ _ (x1 @; "TypeRef")
-    _ (Hsublast Γ g) with "Hs Hg") as "{Hs} Hsub"; lrSimpl in "Hsub".
+  iPoseProof (fundamental_subtype (Hsublast Γ g) with "Hs Hg") as "{Hs} Hsub"; lrSimpl in "Hsub".
   iApply "Hsub"; iClear "Hsub".
 
   (* Just to restate the current goal (for some extra readability). *)

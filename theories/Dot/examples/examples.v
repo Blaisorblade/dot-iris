@@ -173,7 +173,7 @@ Section div_example.
   Context `{SwapPropI Σ}.
   Lemma loopSemT: ⊢ WP hloopTm {{ _, False }}.
   Proof using Type*.
-    iDestruct (fundamental_typed _ _ _ _ (loopTyp []) with "[]") as "H".
+    iDestruct (fundamental_typed (loopTyp []) with "[]") as "H".
     iApply wellMappedφ_empty.
     iSpecialize ("H" $! ids with "[//]").
     by rewrite hsubst_id /=.

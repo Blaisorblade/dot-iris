@@ -229,7 +229,7 @@ Section Example.
     Timeout 1 iApply (T_All_Ex (v2 := packTV 0 s0) with "He").
     iApply (T_Sub (T1 := typeEq "A" ⊤) (i := 0)).
     iApply (packTV_semTyped [] with "Hs"); stcrush.
-    iApply (fundamental_subtype _ ∅); last iApply wellMappedφ_empty.
+    iApply (fundamental_subtype (g := ∅)); last iApply wellMappedφ_empty.
     tcrush.
   Qed.
 
