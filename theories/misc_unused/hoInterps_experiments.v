@@ -6,7 +6,7 @@ From iris.base_logic Require Import lib.saved_prop.
 From D Require Import iris_prelude.
 From D Require Import saved_interp_dep asubst_intf asubst_base dlang lty.
 From D Require Import swap_later_impl.
-From D.Dot.lr Require dot_lty unary_lr lr_lemmasNoBinding.
+From D.Dot.lr Require dot_lty unary_lr lr_lemmasNoBinding path_repl.
 
 Import EqNotations.
 
@@ -90,6 +90,10 @@ Global Lemma Proper_sfkind' {Σ n} (K : sf_kind Σ n) ρ T1 T2 :
   T1 ≡ T2 → K ρ T1 T1 ≡ K ρ T2 T2.
 Proof. intros Heq. by apply Proper_sfkind. Qed.
 
+Lemma sfkind_respects {Σ n} (K : sf_kind Σ n) ρ (T1 T2 : hoLtyO Σ n) :
+  (□ ∀ args v, T1 args v ↔ T2 args v) ⊢@{iPropI Σ} K ρ T1 T1 -∗ K ρ T2 T2.
+Proof. rewrite (sf_kind_sub_internal_proper K T1 T2 ρ); iIntros "[$_]". Qed.
+
 Global Instance vcurry_ne vl n A m : Proper (dist m ==> (=) ==> dist m) (@vcurry vl n A).
 Proof. solve_proper_ho. Qed.
 
@@ -116,7 +120,8 @@ Section kinds_types.
   Qed.
 
   Program Definition sf_kintv (L U : olty Σ 0) : sf_kind Σ 0 :=
-    SfKind (sr_kintv L U) ltac:(solve_proper_ho) _ _ _ _.
+    SfKind (sr_kintv L U) _ _ _ _ _.
+  Next Obligation. solve_proper_ho. Qed.
   Next Obligation.
     intros; rewrite -!sr_kintv_refl.
     iIntros "#Heq".
@@ -431,11 +436,16 @@ End gen_lemmas.
 End HoSemTypes.
 
 Module HkDot.
-Import dot_lty unary_lr lr_lemmasNoBinding.
+Import dot_lty unary_lr lr_lemmasNoBinding path_repl.
 Include HoSemTypes VlSorts dlang_inst dot_lty.
 Implicit Types
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
          (ρ : var → vl) (l : label).
+
+Definition sem_kind_path_repl {Σ n} p q (K1 K2 : sf_kind Σ n) : Prop :=
+  ∀ ρ T1 T2, alias_paths p.|[ρ] q.|[ρ] → K1 ρ T1 T2 ≡ K2 ρ T1 T2.
+Notation "K1 ~sKd[ p := q  ]* K2" :=
+  (sem_kind_path_repl p q K1 K2) (at level 70).
 
 Section dot_types.
   Context `{dlangG Σ} `{HswapProp: SwapPropI Σ}.
@@ -488,11 +498,6 @@ Section dot_types.
   Lemma kpSubstOne_eq {n} (K : sf_kind Σ n) v ρ T1 T2 : sf_kind_sub K.|[v/] ρ T1 T2 ≡ kpSubstOne (pv v) K ρ T1 T2.
   Proof. by rewrite /= path_wp_pv_eq subst_swap_base. Qed.
 
-  Definition opSubst {n} p (T : oltyO Σ n) : oltyO Σ n :=
-    Olty (λI args ρ v, path_wp p.|[ρ] (λ w, T args (w .: ρ) v)).
-  Lemma opSubst_pv_eq {n} v (T : olty Σ n) : opSubst (pv v) T ≡ T.|[v/].
-  Proof. move=> args ρ w /=. by rewrite path_wp_pv_eq subst_swap_base. Qed.
-
   Definition oTApp {n} (T : oltyO Σ n.+1) (p : path) : oltyO Σ n :=
     Olty (λ args ρ v, path_wp p.|[ρ] (λ w, T (vcons w args) ρ v)).
   Lemma oTApp_pv {n} (T : oltyO Σ n.+1) w :
@@ -537,7 +542,8 @@ Section dot_types.
 
 
   (* XXX Those two semantic types are definitionally equal; show that opSubst
-  agrees with syntactic path substitution for gDOT. *)
+  agrees with syntactic path substitution for gDOT.
+  The closest thing we can state is [sem_psubst_one_eq]. *)
   Lemma sKEq_Beta {n} Γ S T (K : sf_kind Σ n) i p :
     Γ s⊨p p : S, i -∗
     oLaterN i (oShift S) :: Γ s⊨ T ∷[i] K -∗
@@ -556,12 +562,6 @@ Section dot_types.
     by move => args ρ w; rewrite  /= /hsubst /hsubst_hoEnvD/=; autosubst.
     rewrite sK_Lam; iApply (sK_AppV with "HK Hv").
   Qed.
-
-  (* XXX argh. *)
-  (* Definition kind_path_subst {n} p q (K1 K2 : sf_kind Σ n) : iProp Σ :=
-    ∀ (H : alias_paths p q) ρ T1 T2,
-    K1 ρ T1 T2 ≡ K2 ρ T1 T2 . *)
-
 
 
   Lemma sstpkD_star_to_sstp Γ i T1 T2 :
@@ -629,10 +629,6 @@ Section dot_types.
     by rewrite -(Hγφ args ρ v) make_intuitionistically.
   Qed.
 
-  Lemma sfkind_respects {n} (K : sf_kind Σ n) ρ (T1 T2 : hoLtyO Σ n) :
-    (□ ∀ args v, T1 args v ↔ T2 args v) ⊢@{iPropI Σ} K ρ T1 T1 -∗ K ρ T2 T2.
-  Proof. rewrite (sf_kind_sub_internal_proper K T1 T2 ρ); iIntros "[$_]". Qed.
-
   Lemma sK_Sel {Γ n} l (K : sf_kind Σ n) p i :
     Γ s⊨p p : cTMemK l K, i -∗
     Γ s⊨ oSel n p l ∷[i] K.
@@ -648,10 +644,56 @@ Section dot_types.
     iNext. by iRewrite "Hag".
   Qed.
 
+  Lemma sSngl_pq_KSub {Γ i p q n T1 T2} {K : sf_kind Σ n}
+    (Hrepl : T1 ~sTp[ p := q ]* T2) :
+    Γ s⊨p p : oSing q, i -∗
+    Γ s⊨ T1 ∷[i] K -∗
+    Γ s⊨ T1 <:[i] T2 ∷ K.
+  Proof.
+    iIntros "#Hal #HK !> * #Hg".
+    iSpecialize ("Hal" with "Hg"); iSpecialize ("HK" with "Hg"); iNext i.
+    iDestruct "Hal" as %Hal%alias_paths_simpl.
+    iApply (Proper_sfkind with "HK"); first done.
+    move => args v. apply symmetry, Hrepl, Hal.
+  Qed.
+
+  (* This is the easy part :-) *)
+  Lemma sSngl_pq_KSub' {Γ i p q n T1 T2} {K1 K2 : sf_kind Σ n}
+    (Hrepl : K1 ~sKd[ p := q ]* K2) :
+    Γ s⊨p p : oSing q, i -∗
+    Γ s⊨ T1 <:[i] T2 ∷ K1 -∗
+    Γ s⊨ T1 <:[i] T2 ∷ K2.
+  Proof.
+    iIntros "#Hal #HK !> * #Hg".
+    iSpecialize ("Hal" with "Hg"); iSpecialize ("HK" with "Hg"). iNext i.
+    iDestruct "Hal" as %Hal%alias_paths_simpl.
+    by iApply (Hrepl with "HK").
+  Qed.
+
 End dot_types.
 
 Section dot_experimental_kinds.
   Context `{dlangG Σ}.
+
+  (* WTF why am I proving this? To support more kinds? *)
+  Lemma sSngl_KSub_Sym Γ p q T i L U:
+    Γ s⊨p p : T, i -∗ (* Just to ensure [p] terminates and [oSing p] isn't empty. *)
+    Γ s⊨ oSing p <:[i] oSing q ∷ sf_kintv L U -∗
+    Γ s⊨ oSing q <:[i] oSing p ∷ sf_kintv L U.
+  Proof.
+    iIntros "#Hp #Hps !>" (ρ) "#Hg /=".
+    iDestruct (path_wp_eq with "(Hp Hg)") as (w) "[Hpw _] {Hp}".
+    iSpecialize ("Hps" with "Hg"); rewrite -alias_paths_pv_eq_1; iNext i.
+    (* Weird that this works. *)
+    iDestruct ("Hps" with "Hpw") as %Hqw%alias_paths_symm.
+    iDestruct "Hpw" as %Hpw.
+    suff Heq: !!(envApply (oSing p) ρ ≡ envApply (oSing q) ρ)
+      by iApply (Proper_sfkind with "Hps").
+    iIntros (args v) "/=".
+    have Hal /= := alias_paths_trans _ _ _ Hpw Hqw.
+    by rewrite !alias_paths_pv_eq_1 (alias_paths_elim_eq_pure _ Hal).
+  Qed.
+
   Local Tactic Notation "iSplitWith" constr(H) "as" constr(H') :=
     iApply (bi.and_parallel with H); iSplit; iIntros H'.
   Program Definition kAnd (K1 K2 : sf_kind Σ 0) : sf_kind Σ 0 :=

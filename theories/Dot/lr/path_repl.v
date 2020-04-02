@@ -12,42 +12,68 @@ Implicit Types
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
+Definition opSubst {Σ n} p (T : oltyO Σ n) : oltyO Σ n :=
+  Olty (λI args ρ v, path_wp p.|[ρ] (λ w, T args (w .: ρ) v)).
+Notation "T .sTp[ p /]" := (opSubst p T) (at level 65).
+
+(* sem_psubst_ty  *)
+Definition sem_ty_path_repl {Σ n} p q (T1 T2 : olty Σ n) : Prop :=
+  ∀ args ρ v, alias_paths p.|[ρ] q.|[ρ] → T1 args ρ v ≡ T2 args ρ v.
+Notation "T1 ~sTp[ p := q  ]* T2" :=
+  (sem_ty_path_repl p q T1 T2) (at level 70).
+
 Section path_repl.
   Context `{dlangG Σ}.
   Implicit Types (φ: vl → iProp Σ).
 
   Notation path_wp p φ := (@path_wp Σ p φ).
 
-  Lemma rewrite_ty_path_repl {p q T1 T2 args ρ v}:
-    T1 ~Tp[ p := q ] T2 →
-    alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
-    V⟦ T1 ⟧ args ρ v ≡ V⟦ T2 ⟧ args ρ v.
+  Lemma opSubst_pv_eq {n} v (T : olty Σ n) : T .sTp[ pv v /] ≡ T.|[v/].
+  Proof. move=> args ρ w /=. by rewrite path_wp_pv_eq subst_swap_base. Qed.
+
+  Lemma sem_psubst_one_repl {n} {T : olty Σ n} {args p v w ρ}:
+    alias_paths p.|[ρ] (pv v) →
+    T .sTp[ p /] args ρ w ≡ T args (v .: ρ) w.
+  Proof. move=> /alias_paths_elim_eq /= ->. by rewrite path_wp_pv_eq. Qed.
+
+  Lemma fundamental_ty_path_repl {p q T1 T2}
+    (Hrew : T1 ~Tp[ p := q ] T2) :
+    V⟦ T1 ⟧ ~sTp[ p := q ]* V⟦ T2 ⟧.
   Proof.
-    move => Hrew; move: args ρ v.
-    induction Hrew => args ρ v He /=; properness;
+    rewrite /sem_ty_path_repl; induction Hrew => args ρ v He /=; properness;
       try by [ exact: path_replacement_equiv | exact: rewrite_path_path_repl
          | apply IHHrew; rewrite ?hsubst_comp | | f_equiv => ?; exact: IHHrew].
   Qed.
 
-  Lemma rewrite_ty_path_repl_rtc {p q T1 T2 args ρ v}:
-    T1 ~Tp[ p := q ]* T2 →
-    alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
-    V⟦ T1 ⟧ args ρ v ≡ V⟦ T2 ⟧ args ρ v.
+  Lemma fundamental_ty_path_repl_rtc {p q T1 T2}
+    (Hrew : T1 ~Tp[ p := q ]* T2) :
+    V⟦ T1 ⟧ ~sTp[ p := q ]* V⟦ T2 ⟧.
   Proof.
-    move => Hr Hal.
-    elim: Hr => [//|T {}T1 {}T2 Hr _ <-].
-    apply (rewrite_ty_path_repl Hr Hal).
+    move=> args ρ v Hal. elim: Hrew => [//|T {}T1 {}T2 Hr _ <-].
+    apply (fundamental_ty_path_repl Hr), Hal.
   Qed.
 
-  Lemma psubst_one_repl {T T' args p v w ρ}:
-    T .Tp[ p /]~ T' →
-    alias_paths p.|[ρ] (pv v) →
-    V⟦ T ⟧ args (v .: ρ) w ≡ V⟦ T' ⟧ args ρ w.
+  Lemma rewrite_ty_path_repl_rtc {p q T1 T2 args ρ}
+    (Hrepl : T1 ~Tp[ p := q ]* T2):
+    alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
+    V⟦ T1 ⟧ args ρ ≡ V⟦ T2 ⟧ args ρ.
+  Proof. intros Hal v. apply: (fundamental_ty_path_repl_rtc Hrepl) Hal. Qed.
+
+  Lemma sem_psubst_one_eq {T T' args p v ρ}
+    (Hrepl : T .Tp[ p /]~ T')
+    (Hal : alias_paths p.|[ρ] (pv v)) :
+    V⟦ T' ⟧ args ρ ≡ (V⟦ T ⟧) .sTp[ p /] args ρ.
   Proof.
-    intros Hrepl Hal.
-    rewrite -(interp_weaken_one T' (v .: ρ) _) -(rewrite_ty_path_repl_rtc Hrepl)
-      // hsubst_comp ren_scons /= alias_paths_symm //.
+    rewrite -(interp_weaken_one T' (v .: ρ)) => w.
+    rewrite -(rewrite_ty_path_repl_rtc Hrepl) /=.
+    by rewrite (alias_paths_elim_eq _ Hal) path_wp_pv_eq.
+    by rewrite hsubst_comp ren_scons /= alias_paths_symm.
   Qed.
+
+  Lemma psubst_one_repl {T T' args p v w ρ}
+    (Hr : T .Tp[ p /]~ T') (Hal : alias_paths p.|[ρ] (pv v)) :
+    V⟦ T ⟧ args (v .: ρ) w ≡ V⟦ T' ⟧ args ρ w.
+  Proof. by rewrite (sem_psubst_one_eq Hr Hal) (sem_psubst_one_repl Hal). Qed.
 
   Lemma singleton_aliasing Γ p q ρ i :
     Γ s⊨p p : oSing q, i -∗
@@ -86,7 +112,7 @@ Section path_repl.
   Proof. apply sSngl_Sub_Self. Qed.
 
   Lemma sSngl_Sub_Sym Γ p q T i:
-    Γ s⊨p p : T, i -∗ (* Just to ensure [p] terminates and [TSing p] isn't empty. *)
+    Γ s⊨p p : T, i -∗ (* Just to ensure [p] terminates and [oSing p] isn't empty. *)
     Γ s⊨ oSing p, i <: oSing q, i -∗
     Γ s⊨ oSing q, i <: oSing p, i.
   Proof.
@@ -117,29 +143,59 @@ Section path_repl.
 
   (** Non-pDOT rules end. *)
 
-  Lemma Sngl_pq_Sub {Γ i p q T1 T2} (Hrepl : T1 ~Tp[ p := q ]* T2):
-    Γ ⊨p p : TSing q, i -∗
-    Γ ⊨ T1, i <: T2, i.
+  (** Obtain this rule for *semantic* substitution. *)
+  Lemma sSngl_pq_Sub {Γ i p q T1 T2} (Hrepl : T1 ~sTp[ p := q ]* T2) :
+    Γ s⊨p p : oSing q, i -∗
+    Γ s⊨ T1, i <: T2, i.
   Proof.
     iIntros "#Hal !>" (ρ v) "#Hg HT1". iSpecialize ("Hal" with "Hg"). iNext i.
     iDestruct "Hal" as %Hal%alias_paths_simpl.
-    iApply (rewrite_ty_path_repl_rtc Hrepl Hal with "HT1").
+    iApply (Hrepl with "HT1"). exact Hal.
+  Qed.
+
+  Lemma Sngl_pq_Sub {Γ i p q T1 T2} (Hrepl : T1 ~Tp[ p := q ]* T2):
+    Γ ⊨p p : TSing q, i -∗
+    Γ ⊨ T1, i <: T2, i.
+  Proof. apply sSngl_pq_Sub, fundamental_ty_path_repl_rtc, Hrepl. Qed.
+
+  Lemma sP_Mu_E {Γ T p i} :
+    Γ s⊨p p : oMu T, i -∗ Γ s⊨p p : T .sTp[ p /], i.
+  Proof.
+    iIntros "#Hp !>" (ρ) "Hg /=".
+    iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "!> **".
+    by rewrite oMu_eq sem_psubst_one_repl ?alias_paths_pv_eq_1.
   Qed.
 
   Lemma P_Mu_E {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : TMu T, i -∗ Γ ⊨p p : T', i.
   Proof.
-    iIntros "#Hp !>" (ρ) "Hg /="; iSpecialize ("Hp" with "Hg").
-    iApply (strong_path_wp_wand with "[] Hp"); iIntros "!> **".
-    by rewrite oMu_eq (psubst_one_repl Hrepl) ?alias_paths_pv_eq_1.
+    (* Proof from scratch *)
+    (* iIntros "#Hp !>" (ρ) "Hg /=".
+    iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "!> **".
+    by rewrite oMu_eq -(psubst_one_repl Hrepl ) ?alias_paths_pv_eq_1. *)
+    (* Even if we reuse sP_Mu_E, we must prove that [p] terminates. *)
+    rewrite /iptp sP_Mu_E; iIntros "#Hp !>" (ρ) "Hg /=".
+    iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "!> **".
+    by rewrite (sem_psubst_one_eq Hrepl) ?alias_paths_pv_eq_1.
+  Qed.
+
+  Lemma sP_Mu_I {Γ T p i} :
+    Γ s⊨p p : T .sTp[ p /], i -∗ Γ s⊨p p : oMu T, i.
+  Proof.
+    iIntros "#Hp !>" (ρ) "Hg /=".
+    iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "!> **".
+    by rewrite oMu_eq sem_psubst_one_repl ?alias_paths_pv_eq_1.
   Qed.
 
   Lemma P_Mu_I {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : T', i -∗ Γ ⊨p p : TMu T, i.
   Proof.
-    iIntros "#Hp !>" (ρ) "Hg /="; iSpecialize ("Hp" with "Hg"); iNext.
-    iApply (strong_path_wp_wand with "[] Hp"); iIntros "!> **".
-    by rewrite oMu_eq (psubst_one_repl Hrepl) ?alias_paths_pv_eq_1.
+    (* iIntros "#Hp !>" (ρ) "Hg /=".
+    iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "!> **".
+    by rewrite oMu_eq (psubst_one_repl Hrepl) ?alias_paths_pv_eq_1. *)
+    rewrite /iptp -sP_Mu_I; iIntros "#Hp !>" (ρ) "Hg /=".
+    iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "!> **".
+    by rewrite (sem_psubst_one_eq Hrepl) ?alias_paths_pv_eq_1.
   Qed.
 
   (** For https://github.com/lampepfl/dotty/blob/85962b19ddf4f1909189bf07b40f9a05849f9bbf/compiler/src/dotty/tools/dotc/core/TypeComparer.scala#L553. *)
@@ -178,11 +234,11 @@ Section path_repl.
         (alias_paths_elim_eq _ Heq) path_wp_pv_eq //.
   Qed.
 
-  Lemma T_All_Ex_p Γ e1 p2 T1 T2 T2' (Hrepl : T2 .Tp[ p2 /]~ T2') :
-    Γ ⊨ e1: TAll T1 T2 -∗
-    Γ ⊨p p2 : T1, 0 -∗
+  Lemma sT_All_Ex_p Γ e1 p2 T1 T2 :
+    Γ s⊨ e1: oAll T1 T2 -∗
+    Γ s⊨p p2 : T1, 0 -∗
     (*────────────────────────────────────────────────────────────*)
-    Γ ⊨ tapp e1 (path2tm p2) : T2'.
+    Γ s⊨ tapp e1 (path2tm p2) : T2 .sTp[ p2 /].
   Proof.
     iIntros "#He1 #Hp2 !>" (ρ) "#Hg /= !>".
     smart_wp_bind (AppLCtx _) v "#Hr {He1}" ("He1" with "Hg").
@@ -195,7 +251,20 @@ Section path_repl.
     iSpecialize ("HvFun" with "Hpw").
     iNext.
     iApply (wp_wand with "HvFun"); iIntros (v) "{HvFun Hpw} Hres".
-    by rewrite (psubst_one_repl Hrepl) ?alias_paths_pv_eq_1.
+    by rewrite sem_psubst_one_repl ?alias_paths_pv_eq_1.
+  Qed.
+
+  Lemma T_All_Ex_p Γ e1 p2 T1 T2 T2' (Hrepl : T2 .Tp[ p2 /]~ T2') :
+    Γ ⊨ e1: TAll T1 T2 -∗
+    Γ ⊨p p2 : T1, 0 -∗
+    (*────────────────────────────────────────────────────────────*)
+    Γ ⊨ tapp e1 (path2tm p2) : T2'.
+  Proof.
+    iIntros "#He1 #Hp2 !> * #Hg !>".
+    iDestruct (path_wp_eq with "(Hp2 Hg)") as (pw Hal%alias_paths_pv_eq_1) "_".
+    iDestruct (sT_All_Ex_p with "He1 Hp2") as "{He1 Hp2} Hep".
+    iApply (wp_wand with "(Hep Hg)"); iIntros "{Hep Hg} * #Hv".
+    iApply (sem_psubst_one_eq Hrepl Hal with "Hv").
   Qed.
 
   Lemma sT_Path Γ τ p :
