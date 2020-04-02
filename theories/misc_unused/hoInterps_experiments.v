@@ -260,8 +260,11 @@ Section gen_lemmas.
 
   (** * Prefixes: K for Kinding, KStp for kinded subtyping, Skd for subkinding. *)
   (* XXX: Prefixes: Rename elsewhere Sub to STyp *)
+
+  Definition sf_sngl (T : oltyO Σ 0) : sf_kind Σ 0 := sf_kintv T T.
+
   Lemma sK_Sing Γ (T : oltyO Σ 0) i :
-    ⊢ Γ s⊨ T ∷[ i ] sf_kintv T T.
+    ⊢ Γ s⊨ T ∷[ i ] sf_sngl T.
   Proof.
     rewrite -kinding_intro; iIntros "!>" (ρ) "_". by rewrite -subtype_refl.
   Qed.
@@ -686,6 +689,9 @@ Section examples.
   Proof using HswapProp. by rewrite -sK_Lam -sK_Star. Qed.
     (* Time iApply sK_Lam; iApply sK_Star. *)
 
+  Lemma oId_K_Sngl Γ :
+    ⊢ Γ s⊨ oId ∷[0] sf_kpi (cTMemK "A" sf_star) (sf_sngl (oSel 0 x0 "A")).
+  Proof using HswapProp. by rewrite -sK_Lam -sK_Sing. Qed.
 End examples.
 
 Section dot_experimental_kinds.
