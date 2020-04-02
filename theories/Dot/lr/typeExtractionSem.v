@@ -1,19 +1,13 @@
 From stdpp Require Import gmap.
 From iris.proofmode Require Import tactics.
-From D.Dot Require Import unary_lr typeExtractionSyn.
+From D.Dot Require Import unary_lr.
 
 Set Implicit Arguments.
 
-Implicit Types (v: vl) (e: tm) (n: nat) (s: stamp) (g : stys).
+Implicit Types (v: vl) (e: tm) (n: nat) (s: stamp).
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
-
-Definition leadsto_envD_equiv `{!dlangG Σ} {i} s σ (φ : hoEnvD Σ i) : iProp Σ :=
-  ∃ (φ' : hoEnvD Σ i),
-    ⌜φ ≡ (λ args ρ, φ' args (∞ σ.|[ρ]))⌝ ∧ s ↝n[ i ] φ'.
-Arguments leadsto_envD_equiv /.
-Notation "s ↝[  σ  ] φ" := (leadsto_envD_equiv s σ φ) (at level 20).
 
 Section typing_type_member_defs.
   Context `{!dlangG Σ}.
@@ -27,15 +21,6 @@ Section typing_type_member_defs.
     current stamping theory, based on finite substitutions.
   *)
   Import stamp_transfer.
-
-  Lemma extraction_to_leadsto_envD_equiv T g s σ n: T ~[ n ] (g, (s, σ)) →
-    wellMappedφ Vs⟦ g ⟧ -∗ s ↝[ σ ] V⟦ T ⟧.
-  Proof.
-    move => [T'] [Hl] [<- [_ /is_stamped_nclosed_ty HclT]].
-    iIntros "Hm". iExists V⟦ T' ⟧. iSplitR.
-    - iIntros "!%" (args ρ v). exact: interp_finsubst_commute_cl.
-    - iApply (wellMappedφ_apply with "Hm"). by rewrite lookup_fmap Hl.
-  Qed.
 
   (* Alternative presentation *)
   Lemma sD_Typ_Sub {Γ} L1 L2 U1 U2 s σ l:
