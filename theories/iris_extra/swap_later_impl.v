@@ -232,10 +232,10 @@ Proof.
 Qed.
 
 Instance Swappable_iResUR (Σ: gFunctors):
-  (∀ i, CmraSwappable (gFunctors_lookup Σ i (iPrePropO Σ) _)) →
+  (∀ i, CmraSwappable (rFunctor_apply (gFunctors_lookup Σ i) (iPrePropO Σ))) →
   CmraSwappable (iResUR Σ) := _.
 Instance Swappable_iResUR_manual (Σ: gFunctors):
-  (∀ i, CmraSwappable (gFunctors_lookup Σ i (iPrePropO Σ) _)) →
+  (∀ i, CmraSwappable (rFunctor_apply (gFunctors_lookup Σ i) (iPrePropO Σ))) →
   CmraSwappable (iResUR Σ).
 Proof. move=>*. apply Swappable_ofe_funUR=>*. exact: Swappable_gmapUR. Qed.
 
@@ -249,7 +249,7 @@ From D Require Import gen_iheap.
 
 Instance CmraSwappable_gen_iheap Σ `{Countable A} B:
   CmraSwappable (
-    gFunctors_lookup (gen_iheapΣ A B) Fin.F1 (iPrePropO Σ) _) :=
+    rFunctor_apply (gFunctors_lookup (gen_iheapΣ A B) Fin.F1) (iPrePropO Σ)) :=
   Swappable_discrete _.
 (* Instance CmraSwappable_gen_heap Σ `{Countable A} B: CmraSwappable (gFunctors_lookup (gen_heapΣ A B) Fin.F1 (iPrePropO Σ) _) := Swappable_discrete _. *)
 

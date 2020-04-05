@@ -54,7 +54,7 @@ Section to_gen_iheap.
   Lemma gen_iheap_singleton_included σ l v :
     {[l := to_agree v]} ≼ to_gen_iheap σ → σ !! l = Some v.
   Proof.
-    rewrite singleton_included=> -[[q' av] []].
+    rewrite singleton_included_l=> -[[q' av] []].
     rewrite /to_gen_iheap lookup_fmap fmap_Some_equiv. move => -[v' [Hl ->]].
     by move => /Some_included [ /to_agree_inj | /to_agree_included ] /leibniz_equiv_iff ->.
   Qed.
