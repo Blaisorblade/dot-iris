@@ -122,12 +122,17 @@ End SwapCmra.
 
 (** ** Discrete CMRAs. *)
 Instance Swappable_discrete {A}: CmraDiscrete A → CmraSwappable A.
-Proof. by split => n mx z _ Hv //; exists z; move: Hv; rewrite -!cmra_discrete_valid_iff. Qed.
+Proof.
+  split => n mx z _ Hv //; exists z; move: Hv.
+  by rewrite -!cmra_discrete_valid_iff.
+Qed.
 
 (** ** Option. *)
-Lemma validN_mjoin_option `{A: cmraT} n (mma: option (option A)): ✓{n} mjoin mma ↔ ✓{n} mma.
+Lemma validN_mjoin_option `{A: cmraT} n (mma: option (option A)):
+  ✓{n} mjoin mma ↔ ✓{n} mma.
 Proof. by destruct mma. Qed.
-Lemma valid_mjoin_option `{A: cmraT} (mma: option (option A)): ✓ mjoin mma ↔ ✓ mma.
+Lemma valid_mjoin_option `{A: cmraT} (mma: option (option A)):
+  ✓ mjoin mma ↔ ✓ mma.
 Proof. by destruct mma. Qed.
 Lemma validN_opM_mjoin_option `{A: cmraT} n (a: A) mma:
   ✓{n} (a ⋅? mjoin mma) ↔ ✓{n} (Some a ⋅? mma).
@@ -139,19 +144,24 @@ Proof. by destruct mma; rewrite //= Some_op_opM. Qed.
 Instance Swappable_optionUR `{!CmraSwappable A}: CmraSwappable (optionUR A).
 Proof.
   split => n mmx [z|] /= Hx Hxz.
-  - case: (cmra_extend_included n (mjoin mmx) z) => [||x [Hv Heq]]; last (exists (Some x); move: Hv);
+  - case: (cmra_extend_included n (mjoin mmx) z) => [||x [Hv Heq]];
+    last (exists (Some x); move: Hv);
     by rewrite ?validN_mjoin_option ?validN_opM_mjoin_option ?Heq //.
   - exists None; split_and!; destruct mmx; by rewrite /= ?left_id.
 Qed.
 
 (** ** Dependently-typed functions over a finite discrete domain *)
-Instance Swappable_ofe_funUR {A} (B: A → ucmraT) (H: ∀ i, CmraSwappable (B i)): CmraSwappable (discrete_funUR B).
+Instance Swappable_ofe_funUR {A} (B: A → ucmraT) (H: ∀ i, CmraSwappable (B i)):
+  CmraSwappable (discrete_funUR B).
 Proof.
   split => n mx z Hvmx Hvzmx.
-  unshelve eassert (FUN := λ a, cmra_extend_included n ((.$ a) <$> mx) (z a) _ _).
-  1-2: move: Hvzmx; destruct mx; rewrite /= -?discrete_fun_lookup_op ?Some_validN; eauto.
+  unshelve eassert (FUN := λ a,
+    cmra_extend_included n ((.$ a) <$> mx) (z a) _ _).
+  1-2: move: Hvzmx; destruct mx;
+    rewrite /= -?discrete_fun_lookup_op ?Some_validN; by eauto.
   exists (λ x, proj1_sig (FUN x)); split_and! => a;
-  destruct mx; rewrite /= ?discrete_fun_lookup_op //; destruct (FUN a) as (?&HP1&HP2); eauto.
+  destruct mx; rewrite /= ?discrete_fun_lookup_op //;
+  destruct (FUN a) as (?&HP1&HP2); eauto.
 
   (* Alternative proof. *)
   (* Restart.
@@ -197,11 +207,13 @@ End agree.
 Instance Swappable_exclR {A} : CmraSwappable (exclR A).
 Proof. by split => n [x|] [z|] //; exists (Excl z). Qed.
 
-Lemma gmap_cmra_extend_included n `{Countable A} `{!CmraSwappable T} (x: gmapUR A T) z:
+Lemma gmap_cmra_extend_included n `{Countable A} `{!CmraSwappable T}
+  (x: gmapUR A T) z:
   ✓{S n} x → ✓{n} (z ⋅ x) → { z' | ✓{S n} (z' ⋅ x) ∧ z ≡{n}≡ z' }.
 Proof.
   move => Hvx Hvzx.
-  unshelve eassert (FUN := (λ (i : A), cmra_extend_included n (Some (x !! i)) (z !! i) _ _)).
+  unshelve eassert (FUN := (λ (i : A),
+    cmra_extend_included n (Some (x !! i)) (z !! i) _ _)).
   by apply Hvx.
   by rewrite /= -lookup_op.
   exists (map_imap (λ i _, proj1_sig (FUN i)) z).
@@ -209,16 +221,22 @@ Proof.
   by case: (z !! i) (FUN i) => [?|] [?[?]]; rewrite /= ?left_id.
 Qed.
 
-Instance Swappable_gmapUR `{Countable A} `{!CmraSwappable T}: CmraSwappable (gmapUR A T).
+Instance Swappable_gmapUR `{Countable A} `{!CmraSwappable T}:
+  CmraSwappable (gmapUR A T).
 Proof.
   split => n [x|] z; rewrite /= ?Some_validN.
   - by apply gmap_cmra_extend_included.
   - move => _ Hvz.
-    case (gmap_cmra_extend_included n ∅ z) => [||z' Hv] //; last (exists z'; move: Hv); by rewrite right_id.
+    case (gmap_cmra_extend_included n ∅ z) => [||z' Hv] //;
+      last (exists z'; move: Hv); by rewrite right_id.
 Qed.
 
-Instance Swappable_iResUR (Σ: gFunctors): (∀ i, CmraSwappable (gFunctors_lookup Σ i (iPrePropO Σ) _)) → CmraSwappable (iResUR Σ) := _.
-Instance Swappable_iResUR_manual (Σ: gFunctors): (∀ i, CmraSwappable (gFunctors_lookup Σ i (iPrePropO Σ) _)) → CmraSwappable (iResUR Σ).
+Instance Swappable_iResUR (Σ: gFunctors):
+  (∀ i, CmraSwappable (gFunctors_lookup Σ i (iPrePropO Σ) _)) →
+  CmraSwappable (iResUR Σ) := _.
+Instance Swappable_iResUR_manual (Σ: gFunctors):
+  (∀ i, CmraSwappable (gFunctors_lookup Σ i (iPrePropO Σ) _)) →
+  CmraSwappable (iResUR Σ).
 Proof. move=>*. apply Swappable_ofe_funUR=>*. exact: Swappable_gmapUR. Qed.
 
 Instance Swappable_iResUREmpty: CmraSwappable (iResUR #[]).
@@ -229,7 +247,10 @@ Qed.
 From D Require Import gen_iheap.
 (* From iris.base_logic Require Import gen_heap. *)
 
-Instance CmraSwappable_gen_iheap Σ `{Countable A} B: CmraSwappable (gFunctors_lookup (gen_iheapΣ A B) Fin.F1 (iPrePropO Σ) _) := Swappable_discrete _.
+Instance CmraSwappable_gen_iheap Σ `{Countable A} B:
+  CmraSwappable (
+    gFunctors_lookup (gen_iheapΣ A B) Fin.F1 (iPrePropO Σ) _) :=
+  Swappable_discrete _.
 (* Instance CmraSwappable_gen_heap Σ `{Countable A} B: CmraSwappable (gFunctors_lookup (gen_heapΣ A B) Fin.F1 (iPrePropO Σ) _) := Swappable_discrete _. *)
 
 Notation SwapPropI Σ := (SwapProp (iPropSI Σ)).
