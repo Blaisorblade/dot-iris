@@ -57,7 +57,7 @@ Notation envPred s Σ := (env -d> s -d> iPropO Σ).
 Definition hoEnvPred s Σ n := vec vl n -d> envPred s Σ.
 Definition hoEnvPredO s Σ : ofeT := sigTO (hoEnvPred s Σ).
 Definition hoEnvPredOF s : oFunctor := { n & vec vl n -d> env -d> s -d> ▶ ∙ }.
-Definition packedHoEnvPred s Σ : ofeT := hoEnvPredOF s (iPropO Σ) _.
+Definition packedHoEnvPred s Σ : ofeT := oFunctor_apply (hoEnvPredOF s) (iPropO Σ).
 
 Definition hoD Σ n := vec vl n -d> vl -d> iPropO Σ.
 Notation hoEnvD := (hoEnvPred vl).
