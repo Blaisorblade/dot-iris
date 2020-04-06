@@ -6,6 +6,35 @@ DOT with Step-Indexed Logical Relations in Iris".
 The mapping between the paper and this mechanization is described in
 [correspondence.md](correspondence.md).
 
+## Compiling the Proof the first time
+### Requirements
+- make and [opam 2.0.6](https://opam.ocaml.org/doc/Install.html) or later.
+- Coq 8.11.1, installed through opam
+
+### Installing dependencies
+
+The following commands will install the correct versions of the std++ and Iris libraries.
+This development is unlikely to compile with other versions.
+```shell
+eval $(opam env)
+opam repo add iris-dev https://gitlab.mpi-sws.org/FP/opam-dev.git --set-default --all
+opam install --deps-only .
+```
+
+### Compiling the actual proof
+
+We recommend a parallel build; if your processor has 4 cores, use 4 parallel jobs.
+If you don't know, 2 is a good default.
+
+To build the proof with 2 parallel jobs, run:
+
+```shell
+eval $(opam env)
+make -j 2
+```
+
+which should take around 5-10 minutes.
+
 ## File Layout
 
 Here is a rough layout of the various files.
