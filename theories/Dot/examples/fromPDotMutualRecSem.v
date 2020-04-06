@@ -528,16 +528,3 @@ Example getAnyTypeTyp0 Γ :
   μ (fromPDotPaperAbsTBody x2) :: optionModTInv :: Γ v⊢ₜ[fromPDotG]
     tapp getAnyType x0 : x0 @ "types" @; "Type".
 Proof. eapply iT_All_Ex'; [exact: getAnyTypeFunTyp|var|tcrush..]. Qed.
-(*
-lett fromPDotPaper (getAnyType $: x0) : fromPDotPaper @ "types" @; "Type".
-Example getAnyTypeTyp : [] u⊢ₜ lett fromPDotPaper (getAnyType $: x0) : fromPDotPaper @ "types" @; "Type".
-Proof.
-  eapply (iT_All_Ex_p (pv _)); [| eapply getAnyTypeFunTyp|].
-
-Example getAnyTypeTyp : [] u⊢ₜ getAnyType $: fromPDotPaper : fromPDotPaper @ "types" @; "Type".
-Proof.
-  eapply (iT_All_Ex_p (pv _)); [| eapply getAnyTypeFunTyp|].
-iT_Let
-  2: apply (iT_Path fromPDotPaper). fromPDotPaperTyp. ;
-  (* Wanted: application of functions to paths;  *)
-Abort. *)
