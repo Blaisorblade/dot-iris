@@ -53,7 +53,8 @@ script:
 - |
   do_travis "script" "
     sudo chown -R coq:coq /home/coq/${CONTRIB_NAME}
-    ( make -k -j ${NJOBS} TIMED=1 )"
+    make -k -j ${NJOBS} TIMED=1
+    make html"
 
 after_script:
 - docker stop COQ  # optional but recommended
