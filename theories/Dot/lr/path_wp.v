@@ -283,7 +283,7 @@ Section path_wp.
   Lemma rewrite_path_path_repl {p q p1 p2 ρ v}:
     p1 ~pp[ p := q ] p2 →
     alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
-    ⌜alias_paths p1.|[ρ] (pv v)⌝%I ≡@{iProp Σ} ⌜alias_paths p2.|[ρ] (pv v)⌝%I.
+    ⌜alias_paths p1.|[ρ] (pv v)⌝ ⊣⊢@{iPropI Σ} ⌜alias_paths p2.|[ρ] (pv v)⌝.
     (* alias_paths p1.|[ρ] (pv v) ↔ alias_paths p2.|[ρ] (pv v). *)
   Proof.
     intros Hrew Hal.
