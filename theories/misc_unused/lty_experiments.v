@@ -55,10 +55,10 @@ Section with_lty.
     oClose (oSel p1 l) ρ v ≡ oClose (oSel p2 l) ρ v.
   Proof. exact: path_replacement_equiv. Qed.
 
-  Lemma sem_psingleton_eq_1 p ρ v : oClose (oSing p) ρ v ≡ ⌜ path_wp_pure p.|[ρ] (eq v) ⌝%I.
+  Lemma sem_psingleton_eq_1 p ρ v : oClose (oSing p) ρ v ⊣⊢ ⌜ path_wp_pure p.|[ρ] (eq v) ⌝.
   Proof. by rewrite /=/alias_pathsI alias_paths_pv_eq_1. Qed.
 
-  Lemma sem_psingleton_eq_2 p ρ v : oClose (oSing p) ρ v ≡ path_wp p.|[ρ] (λ w, ⌜ v = w ⌝ )%I.
+  Lemma sem_psingleton_eq_2 p ρ v : oClose (oSing p) ρ v ⊣⊢ path_wp p.|[ρ] (λ w, ⌜ v = w ⌝ ).
   Proof. by rewrite sem_psingleton_eq_1 path_wp_pureable. Qed.
 
   (* Derivable syntactically. *)

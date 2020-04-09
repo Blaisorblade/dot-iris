@@ -408,7 +408,7 @@ Section defs.
   Proof. elim: i => [//|i IHi] ???. by rewrite !iterate_S /= (IHi _ _ _). Qed.
 
   Lemma iterate_TLater_later T n args ρ v:
-    V⟦ iterate TLater n T ⟧ args ρ v ≡ (▷^n V⟦ T ⟧ args ρ v)%I.
+    V⟦ iterate TLater n T ⟧ args ρ v ⊣⊢ ▷^n V⟦ T ⟧ args ρ v.
   Proof.
     by rewrite (iterate_TLater_oLater n T _ _ _) iterate_oLater_later.
   Qed.

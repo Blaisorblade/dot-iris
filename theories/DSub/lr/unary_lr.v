@@ -161,7 +161,7 @@ Section logrel_lemmas.
   Context `{!dlangG Σ}.
 
   Lemma iterate_TLater_later i T ρ v:
-    ⟦ iterate TLater i T ⟧ ρ v ≡ (▷^i ⟦ T ⟧ ρ v)%I.
+    ⟦ iterate TLater i T ⟧ ρ v ⊣⊢ ▷^i ⟦ T ⟧ ρ v.
   Proof.
     elim: i => [|i IHi] //.
     rewrite iterate_S /=; rewrite IHi //.
