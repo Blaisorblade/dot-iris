@@ -7,8 +7,8 @@ From D Require Import iris_prelude.
 From D Require Export succ_notation.
 From D Require Import saved_interp_dep asubst_intf asubst_base dlang lty.
 From D Require Import swap_later_impl.
-From D.Dot.lr Require dot_lty unary_lr .
-From D.Dot.lr Require path_repl lr_lemmasNoBinding.
+From D.Dot.lr Require dot_lty unary_lr path_repl.
+From D.Dot.lr Require lr_lemmasNoBinding lr_lemmasDefs lr_lemmas lr_lemmasTSel.
 From D.Dot Require hoas exampleInfra.
 
 Import EqNotations.
@@ -677,7 +677,6 @@ Section dot_types.
   Qed.
 
 End dot_types.
-From D.Dot.lr Require lr_lemmasDefs lr_lemmas lr_lemmasTSel.
 Import lr_lemmasDefs lr_lemmas lr_lemmasTSel.
 
 (** An inductive representation of gHkDOT semantic kinds. *)
@@ -773,6 +772,52 @@ Section derived.
       iApply sAnd1_Sub.
   Qed. *)
 
+      (* Γ s⊨ T1 ∷[ i ] K2 -∗
+      Γ s⊨ T1 =[ i ] T2 ∷ K1 -∗
+      Γ s⊨ T2 ∷[ i ] K2. *)
+
+  Fixpoint ho_intv {n} (K : s_kind Σ n) : olty Σ n → olty Σ n → s_kind Σ n :=
+    match K with
+    | s_kintv _ _ =>
+      λ T1 T2, s_kintv T1 T2
+    | s_kpi S K =>
+      λ T1 T2, s_kpi S (ho_intv K
+        (oTAppV (oShift T1) (ids 0)) (oTAppV (oShift T2) (ids 0)))
+    end.
+
+  Definition kShift {n} (K : sf_kind Σ n) : sf_kind Σ n :=
+    kSub (λ ρ, stail ρ) K.
+  Lemma kShift_cancel {n} (K : sf_kind Σ n) v :
+    sf_kind_sub (kShift K).|[v/] = K.
+  Proof. autosubst. Qed.
+
+  Lemma sK_HoSing {n} Γ (K : s_kind Σ n) T i :
+    ⊢ Γ s⊨ T ∷[i] K -∗ Γ s⊨ T ∷[i] ho_intv K T T.
+  Proof using HswapProp.
+    elim: K T Γ => [S1 S2|m S K IHK] T Γ /=; iIntros "#HK".
+    by iApply sK_Sing.
+    (*
+    (* rewrite sKEq_Eta. *)
+    (* specialize (IHK (oTAppV T (ids 0))). *)
+    iAssert (oLaterN i (oShift S) :: Γ s⊨ oShift T ∷[ i ] (sf_kpi (oShift S) (kShift K)))%I as "{HK} HK".
+    admit.
+    (* iApply sK_Pi. *)
+    *)
+    iPoseProof (IHK (oTAppV (oShift T) (ids 0)) (oLaterN i (oShift S) :: Γ) with "[]") as "IHK".
+    rewrite (sK_AppV _ _ (v := ids 0)).
+    (* XXX to fix, fix setoids on kinds. *)
+    (*
+    (* iEval rewrite -kShift_cancel. *)
+    (* rewrite kShift_cancel.
+    iApply Proper_sstpkD *) *)
+    admit.
+    iIntros "!>" (ρ) "#Hg /="; rewrite -mlaterN_pers; iIntros (w) "!>".
+    rewrite -mlaterN_impl; iIntros "#Hw".
+    (* iSpecialize ("HK" $! (w .: ρ) with "[$Hg $Hw]"). *)
+    iSpecialize ("IHK" $! (w .: ρ) with "[$Hg $Hw]").
+    iNext i.
+    by iApply (Proper_sfkind with "IHK").
+  Admitted.
 End derived.
 
 Section examples.
