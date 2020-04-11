@@ -60,16 +60,14 @@ Section iPPred_ofe.
   Proof. by apply (iso_ofe_mixin lApp). Qed.
   Canonical Structure iPPredO := OfeT vpred iPPred_ofe_mixin.
 
-  Infix "≡@{ A }" := (sbi_internal_eq (A := A)) (only parsing) : bi_scope.
-
-  Lemma lift_olty_eq {τ1 τ2 : iPPred vl Σ} :
-    iPPred_car τ1 ≡@{vl -d> _} iPPred_car τ2 ⊢@{iPropI Σ} τ1 ≡ τ2.
-  Proof. by uPred.unseal; split. Qed.
+  Lemma iPPred_equivI {τ1 τ2 : iPPred vl Σ} :
+    iPPred_car τ1 ≡@{vl -d> _} iPPred_car τ2 ⊣⊢@{iPropI Σ} τ1 ≡ τ2.
+  Proof. by uPred.unseal. Qed.
 
   (* Only needed to define Lty using Iris fixpoints (e.g. for normal recursive types). *)
   Global Instance iPPred_cofe : Cofe iPPredO.
   Proof.
-    apply (iso_cofe_subtype' pred_persistent IPPred iPPred_car) => //.
+    apply (iso_cofe_subtype' pred_persistent IPPred lApp) => //.
     - by move => [].
     - apply _.
   Qed.
@@ -130,6 +128,30 @@ Section olty_subst.
   Context `{Σ : gFunctors} {i : nat}.
   Implicit Types (φ : hoEnvD Σ i) (τ : olty Σ i).
 
+  Lemma olty_eq τ1 τ2:
+    (∀ args ρ, olty_car τ1 args ρ = olty_car τ2 args ρ) →
+    τ1 = τ2.
+  Proof. intros * Heq; f_ext => args; f_ext => ρ. apply lty_eq, Heq. Qed.
+
+  Lemma olty_eq' τ1 τ2: olty_car τ1 = olty_car τ2 → τ1 = τ2.
+  Proof.
+    intros Heq; apply olty_eq => args ρ.
+    apply (f_equal_dep _ _ ρ
+              (f_equal_dep _ _ args Heq)).
+  Qed.
+
+  Lemma lift_olty_eq {τ1 τ2 : oltyO Σ i} {args ρ v} :
+    τ1 ≡ τ2 → τ1 args ρ v ≡ τ2 args ρ v.
+  Proof. apply. Qed.
+
+  Lemma olty_equivI {n} (T1 T2 : oltyO Σ n):
+    (∀ args ρ v, T1 args ρ v ≡ T2 args ρ v) ⊣⊢@{iPropI Σ} (T1 ≡ T2).
+  Proof.
+    repeat setoid_rewrite discrete_fun_equivI.
+    f_equiv=>args; f_equiv=>ρ.
+    by rewrite -iPPred_equivI discrete_fun_equivI.
+  Qed.
+
   Global Instance ids_hoEnvD : Ids (hoEnvD Σ i) := λ _, inhabitant.
   Global Instance rename_hoEnvD : Rename (hoEnvD Σ i) :=
     λ r φ args ρ, φ args (r >>> ρ).
@@ -169,22 +191,6 @@ Section olty_subst.
     λ r τ, Olty (rename r (olty_car τ)).
   Global Program Instance hsubst_olty : HSubst vl (olty Σ i) :=
     λ sb τ, Olty ((olty_car τ).|[sb]).
-
-  Lemma olty_eq τ1 τ2:
-    (∀ args ρ, olty_car τ1 args ρ = olty_car τ2 args ρ) →
-    τ1 = τ2.
-  Proof. intros * Heq; f_ext => args; f_ext => ρ. apply lty_eq, Heq. Qed.
-
-  Lemma olty_eq' τ1 τ2: olty_car τ1 = olty_car τ2 → τ1 = τ2.
-  Proof.
-    intros Heq; apply olty_eq => args ρ.
-    apply (f_equal_dep _ _ ρ
-              (f_equal_dep _ _ args Heq)).
-  Qed.
-
-  Lemma lift_olty_eq {τ1 τ2 : oltyO Σ i} {args ρ v} :
-    τ1 ≡ τ2 → τ1 args ρ v ≡ τ2 args ρ v.
-  Proof. apply. Qed.
 
   Global Instance hsubstLemmas_olty : HSubstLemmas vl (olty Σ i).
   Proof.
@@ -273,8 +279,10 @@ Section olty_ofe_2.
   Definition eLater n (φ : hoEnvD Σ i) : hoEnvD Σ i := (λI args ρ v, ▷^n φ args ρ v).
   Global Arguments eLater /.
   Definition oLater τ : oltyO Σ i := Olty (eLater 1 τ).
-  Global Instance Proper_oLater : Proper ((≡) ==> (≡)) oLater.
+
+  Global Instance oLater_ne n : Proper (dist n ==> dist n) oLater.
   Proof. solve_proper_ho. Qed.
+  Global Instance oLater_proper : Proper ((≡) ==> (≡)) oLater := ne_proper _.
 
   Lemma oLater_eq τ args ρ v : oLater τ args ρ v = (▷ τ args ρ v)%I.
   Proof. done. Qed.
