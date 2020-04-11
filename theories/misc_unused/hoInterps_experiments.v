@@ -7,7 +7,8 @@ From D Require Import iris_prelude.
 From D Require Export succ_notation.
 From D Require Import saved_interp_dep asubst_intf asubst_base dlang lty.
 From D Require Import swap_later_impl.
-From D.Dot.lr Require dot_lty unary_lr lr_lemmasNoBinding path_repl.
+From D.Dot.lr Require dot_lty unary_lr .
+From D.Dot.lr Require path_repl lr_lemmasNoBinding.
 From D.Dot Require hoas exampleInfra.
 
 Import EqNotations.
@@ -530,7 +531,7 @@ Section dot_types.
   Proof. apply sKStp_App. Qed.
 
   (* Maybe not interesting *)
-  Lemma sKStp_AppV Γ {n} (K : sf_kind Σ n) S T1 T2 i v :
+  Lemma sKStp_AppV Γ {n} (K : sf_kind Σ n) {S T1 T2 i v} :
     Γ s⊨ T1 <:[i] T2 ∷ sf_kpi S K -∗
     Γ s⊨p pv v : S, i -∗
     Γ s⊨ oTAppV T1 v <:[i] oTAppV T2 v ∷ K.|[v/].
@@ -539,7 +540,7 @@ Section dot_types.
     iApply (sKStp_App with "HTK Hv Hg").
   Qed.
 
-  Lemma sK_AppV Γ {n} (K : sf_kind Σ n) S T i v :
+  Lemma sK_AppV Γ {n} (K : sf_kind Σ n) {S T i v} :
     Γ s⊨ T ∷[i] sf_kpi S K -∗
     Γ s⊨p pv v : S, i -∗
     Γ s⊨ oTAppV T v ∷[i] K.|[v/].
@@ -676,6 +677,103 @@ Section dot_types.
   Qed.
 
 End dot_types.
+From D.Dot.lr Require lr_lemmasDefs lr_lemmas lr_lemmasTSel.
+Import lr_lemmasDefs lr_lemmas lr_lemmasTSel.
+
+(** An inductive representation of gHkDOT semantic kinds. *)
+Inductive s_kind {Σ} : nat → Type :=
+  | s_kintv : olty Σ 0 → olty Σ 0 → s_kind 0
+  | s_kpi n : olty Σ 0 → s_kind n → s_kind n.+1.
+Global Arguments s_kind: clear implicits.
+
+Fixpoint s_kind_to_sf_kind {Σ n} (K : s_kind Σ n) : sf_kind Σ n :=
+  match K with
+  | s_kintv L U => sf_kintv L U
+  | s_kpi S K => sf_kpi S (s_kind_to_sf_kind K)
+  end.
+Coercion s_kind_to_sf_kind : s_kind >-> sf_kind.
+
+Section derived.
+  Context `{dlangG Σ} `{HswapProp: SwapPropI Σ}.
+
+  Lemma sK_Eq_Symm Γ {n} (K : sf_kind Σ n) T1 T2 i :
+    Γ s⊨ T1 =[ i ] T2 ∷ K -∗
+    Γ s⊨ T2 =[ i ] T1 ∷ K.
+  Proof. iIntros "[$ $]". Qed.
+
+  Lemma sP_New1 n Γ l σ s (K : sf_kind Σ n) T :
+    oLater (cAnd (cTMemK l K) cTop) :: Γ s⊨ oLater T ∷[ 0 ] K -∗
+    s ↝[ σ ] T -∗
+    Γ s⊨p vobj [ (l, dtysem σ s) ] : oMu (cAnd (cTMemK l K) cTop), 0.
+  Proof.
+    iIntros "#HT #Hs".
+    iApply sP_Val.
+    iApply sT_Obj_I; iApply sD_Cons; [done| |iApply sD_Nil].
+    iApply (sD_TypK_Abs with "HT Hs").
+  Qed.
+
+  (* XXX *)
+  Lemma eq_equiv {A : ofeT} (x y : A) : x = y → x ≡ y.
+  Proof. by intros ->. Qed.
+
+  Global Instance : Params (@bi_wand b) 1 := {}.
+  (* Closer to what Sandro wrote on paper, but some adjustments can only be done in the model, right now. *)
+  Lemma sP_New' n Γ l σ s (K : sf_kind Σ n) T :
+    oLater (cTMemK l K) :: Γ s⊨ oLater T ∷[ 0 ] K -∗
+    s ↝[ σ ] T -∗
+    Γ s⊨p vobj [ (l, dtysem σ s) ] : oMu (cTMemK l K), 0.
+  Proof.
+    have Heq: (clty_olty (cTMemK l K) ≡ cAnd (cTMemK l K) cTop).
+    by intros ???; iSplit; [iIntros "$" | iIntros "[$ _]"].
+    rewrite Heq. apply sP_New1.
+    (* iIntros. *)
+    (* iIntros "A B".
+    iEval (rewrite Heq) in "A".
+    Set Typeclasses Debug.
+    iEval (rewrite Heq).
+    About bi_wand. *)
+  Qed.
+    (* apply olty_equivI.
+
+    iAssert ((clty_olty (cTMemK l K) ≡ cAnd (cTMemK l K) cTop))%I as "Heq".
+    rewrite -olty_equivI.
+    iIntros (args ρ v); iApply prop_ext; iIntros "!>".
+    by iSplit; [iIntros "$" | iIntros "[$ _]"].
+
+    iAssert (oLater (cTMemK l K) ≡ oLater (cAnd (cTMemK l K) cTop))%I as "HTeq".
+    by iRewrite "Heq".
+    iEval (rewrite -olty_equivI) in "HTeq".
+
+    (* iAssert (oLater (cTMemK l K) ≡@{hoEnvD _ _} oLater (cAnd (cTMemK l K) cTop))%I as "HTeq".
+    rewrite -olty_equivI.
+    iRewrite "Heq". *)
+
+    iAssert (oLater (cTMemK l K) :: Γ ≡@{sCtx _} oLater (cAnd (cTMemK l K) cTop):: Γ)%I as "HΓeq".
+    by iRewrite "Heq".
+    (* Import iris.algebra.list.
+    have ?: NonExpansive (flip cons Γ) by solve_proper.
+    iApply (f_equiv (B := listO _) (flip cons Γ)).
+    iApply olty_equivI; iIntros (???).
+    rewrite !oLater_eq. unshelve iApply f_equiv. iApply "Heq".
+    cbn.
+    About f_equiv.
+    admit. *)
+    iIntros "#HT #Hs".
+    iApply sP_Val.
+    iApply (sT_Sub (i := 0) (T1 := oMu (cAnd (cTMemK l K) cTop))).
+    - iApply sT_Obj_I; iApply sD_Cons; [done| |iApply sD_Nil].
+      iApply (sD_TypK_Abs with "[] Hs").
+      iEval (rewrite /sstpkD; cbn [env_oltyped]).
+      iIntros "!> * [Hg [Hz _]]"; iApply ("HT" with "[$Hg $Hz]").
+      (* iDestruct "Hz" as "[$_]". *)
+      (* iEval (cbn [env_oltyped]).  *)
+      (* rewrite !oLater_eq.
+      iRewrite ("Heq" $! vnil ρ (shead ρ)). in "Hz". *)
+    - iApply sMu_Sub_Mu.
+      iApply sAnd1_Sub.
+  Qed. *)
+
+End derived.
 
 Section examples.
   Context `{dlangG Σ} `{HswapProp: SwapPropI Σ}.
