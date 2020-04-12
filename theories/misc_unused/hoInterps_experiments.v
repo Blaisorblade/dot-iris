@@ -878,50 +878,6 @@ Section derived.
     iEval (rewrite Heq).
     About bi_wand. *)
   Qed.
-    (* apply olty_equivI.
-
-    iAssert ((clty_olty (cTMemK l K) ≡ cAnd (cTMemK l K) cTop))%I as "Heq".
-    rewrite -olty_equivI.
-    iIntros (args ρ v); iApply prop_ext; iIntros "!>".
-    by iSplit; [iIntros "$" | iIntros "[$ _]"].
-
-    iAssert (oLater (cTMemK l K) ≡ oLater (cAnd (cTMemK l K) cTop))%I as "HTeq".
-    by iRewrite "Heq".
-    iEval (rewrite -olty_equivI) in "HTeq".
-
-    (* iAssert (oLater (cTMemK l K) ≡@{hoEnvD _ _} oLater (cAnd (cTMemK l K) cTop))%I as "HTeq".
-    rewrite -olty_equivI.
-    iRewrite "Heq". *)
-
-    iAssert (oLater (cTMemK l K) :: Γ ≡@{sCtx _} oLater (cAnd (cTMemK l K) cTop):: Γ)%I as "HΓeq".
-    by iRewrite "Heq".
-    (* Import iris.algebra.list.
-    have ?: NonExpansive (flip cons Γ) by solve_proper.
-    iApply (f_equiv (B := listO _) (flip cons Γ)).
-    iApply olty_equivI; iIntros (???).
-    rewrite !oLater_eq. unshelve iApply f_equiv. iApply "Heq".
-    cbn.
-    About f_equiv.
-    admit. *)
-    iIntros "#HT #Hs".
-    iApply sP_Val.
-    iApply (sT_Sub (i := 0) (T1 := oMu (cAnd (cTMemK l K) cTop))).
-    - iApply sT_Obj_I; iApply sD_Cons; [done| |iApply sD_Nil].
-      iApply (sD_TypK_Abs with "[] Hs").
-      iEval (rewrite /sstpiK; cbn [env_oltyped]).
-      iIntros "!> * [Hg [Hz _]]"; iApply ("HT" with "[$Hg $Hz]").
-      (* iDestruct "Hz" as "[$_]". *)
-      (* iEval (cbn [env_oltyped]).  *)
-      (* rewrite !oLater_eq.
-      iRewrite ("Heq" $! vnil ρ (shead ρ)). in "Hz". *)
-    - iApply sMu_Sub_Mu.
-      iApply sAnd1_Sub.
-  Qed. *)
-
-      (* Γ s⊨ T1 ∷[ i ] K2 -∗
-      Γ s⊨ T1 =[ i ] T2 ∷ K1 -∗
-      Γ s⊨ T2 ∷[ i ] K2. *)
-
   Fixpoint ho_intv {n} (K : s_kind Σ n) : olty Σ n → olty Σ n → s_kind Σ n :=
     match K with
     | s_kintv _ _ =>
@@ -1043,30 +999,6 @@ Section derived.
     iApply ("HT" with "[$Hg $H]").
   Qed.
 
-
-  (*
-    (*
-    (* rewrite sKEq_Eta. *)
-    (* specialize (IHK (oTAppV T (ids 0))). *)
-    iAssert (oLaterN i (oShift S) :: Γ s⊨ oShift T ∷[ i ] (sf_kpi (oShift S) (kShift K)))%I as "{HK} HK".
-    admit.
-    (* iApply sK_Pi. *)
-    *)
-    iPoseProof (IHK (oTAppV (oShift T) (ids 0)) (oLaterN i (oShift S) :: Γ) with "[]") as "IHK".
-    rewrite (sK_AppV _ _ (v := ids 0)).
-    (* XXX to fix, fix setoids on kinds. *)
-    rewrite -{2}(kShift_cancel K (ids 0)).
-    (* rewrite kShift_cancel.
-    iApply Proper_sstpiK *)
-    admit.
-    iIntros "!>" (ρ) "#Hg /="; rewrite -mlaterN_pers; iIntros (w) "!>".
-    rewrite -mlaterN_impl; iIntros "#Hw".
-    (* iSpecialize ("HK" $! (w .: ρ) with "[$Hg $Hw]"). *)
-    iSpecialize ("IHK" $! (w .: ρ) with "[$Hg $Hw]").
-    iNext i.
-    by iApply (Proper_sfkind with "IHK").
-  Abort.
-  *)
 
 End derived.
 
