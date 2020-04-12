@@ -619,8 +619,9 @@ Section dot_types.
     intros; iApply path_wp_wand'; iIntros "!> *".
     iApply sf_kind_sub_quasi_refl_2.
   Qed.
-  Lemma kpSubstOne_eq {n} (K : sf_kind Σ n) v ρ T1 T2 : sf_kind_sub K.|[v/] ρ T1 T2 ≡ kpSubstOne (pv v) K ρ T1 T2.
-  Proof. by rewrite /= path_wp_pv_eq subst_swap_base. Qed.
+  Lemma kpSubstOne_eq {n} (K : sf_kind Σ n) v :
+    K.|[v/] ≡ kpSubstOne (pv v) K.
+  Proof. move=> ???. by rewrite /= path_wp_pv_eq subst_swap_base. Qed.
 
   Definition oTApp {n} (T : oltyO Σ n.+1) (p : path) : oltyO Σ n :=
     Olty (λ args ρ v, path_wp p.|[ρ] (λ w, T (vcons w args) ρ v)).
@@ -665,6 +666,14 @@ Section dot_types.
   Proof. apply sKStp_AppV. Qed.
 
 
+  Lemma sTEq_Beta {n} (T : oltyO Σ n) p :
+    oTApp (oLam T) p ≡ T .sTp[ p /].
+  Proof. done. Qed.
+
+  Lemma sTEq_BetaV {n} (T : oltyO Σ n) v :
+    oTAppV (oLam T) v ≡ T.|[v/].
+  Proof. move => args ρ w /=. by rewrite subst_swap_base. Qed.
+
   (* XXX Those two semantic types are definitionally equal; show that opSubst
   agrees with syntactic path substitution for gDOT.
   The closest thing we can state is [sem_psubst_one_eq]. *)
@@ -673,8 +682,8 @@ Section dot_types.
     oLaterN i (oShift S) :: Γ s⊨ T ∷[i] K -∗
     Γ s⊨ oTApp (oLam T) p =[i] opSubst p T ∷ kpSubstOne p K.
   Proof using HswapProp.
-    iIntros "#Hp #HK"; iApply sKEq_Refl; first done.
-    rewrite sK_Lam; iApply (sK_App with "HK Hp").
+    iIntros "#Hp #HK"; iApply sKEq_Refl. apply sTEq_Beta.
+    rewrite sK_Lam. iApply (sK_App with "HK Hp").
   Qed.
 
   Lemma sKEq_BetaV {n} Γ S T (K : sf_kind Σ n) i v :
@@ -682,8 +691,10 @@ Section dot_types.
     oLaterN i (oShift S) :: Γ s⊨ T ∷[i] K -∗
     Γ s⊨ oTAppV (oLam T) v =[i] T.|[v/] ∷ K.|[v/].
   Proof using HswapProp.
-    iIntros "#Hv #HK"; iApply sKEq_Refl.
-    by move => args ρ w; rewrite /= /hsubst /hsubst_hoEnvD/=; autosubst.
+    (* Reuses other lemma but slow. *)
+    (* rewrite -oTApp_pv -opSubst_pv_eq kpSubstOne_eq.
+    apply sKEq_Beta. *)
+    iIntros "#Hv #HK"; iApply sKEq_Refl. apply sTEq_BetaV.
     rewrite sK_Lam; iApply (sK_AppV with "HK Hv").
   Qed.
 
