@@ -846,38 +846,6 @@ Section derived.
 
   (* XXX Missing: Proper oShift, Proper oTAppV, Proper ho_intv *)
 
-  Lemma sP_New1 n Γ l σ s (K : sf_kind Σ n) T :
-    oLater (cAnd (cTMemK l K) cTop) :: Γ s⊨ oLater T ∷[ 0 ] K -∗
-    s ↝[ σ ] T -∗
-    Γ s⊨p vobj [ (l, dtysem σ s) ] : oMu (cAnd (cTMemK l K) cTop), 0.
-  Proof.
-    iIntros "#HT #Hs".
-    iApply sP_Val.
-    iApply sT_Obj_I; iApply sD_Cons; [done| |iApply sD_Nil].
-    iApply (sD_TypK_Abs with "HT Hs").
-  Qed.
-
-  (* XXX *)
-  Lemma eq_equiv {A : ofeT} (x y : A) : x = y → x ≡ y.
-  Proof. by intros ->. Qed.
-
-  (* Global Instance : Params (@bi_wand b) 1 := {}. *)
-  (* Closer to what Sandro wrote on paper, but some adjustments can only be done in the model, right now. *)
-  Lemma sP_New' n Γ l σ s (K : sf_kind Σ n) T :
-    oLater (cTMemK l K) :: Γ s⊨ oLater T ∷[ 0 ] K -∗
-    s ↝[ σ ] T -∗
-    Γ s⊨p vobj [ (l, dtysem σ s) ] : oMu (cTMemK l K), 0.
-  Proof.
-    have Heq: (clty_olty (cTMemK l K) ≡ cAnd (cTMemK l K) cTop).
-    by intros ???; iSplit; [iIntros "$" | iIntros "[$ _]"].
-    rewrite Heq. apply sP_New1.
-    (* iIntros. *)
-    (* iIntros "A B".
-    iEval (rewrite Heq) in "A".
-    Set Typeclasses Debug.
-    iEval (rewrite Heq).
-    About bi_wand. *)
-  Qed.
   Fixpoint ho_intv {n} (K : s_kind Σ n) : olty Σ n → olty Σ n → s_kind Σ n :=
     match K with
     | s_kintv _ _ =>
@@ -957,6 +925,17 @@ Section derived.
     Γ s⊨ T ∷[i] K -∗ Γ s⊨ T ∷[i] ho_sing K T.
   Proof using HswapProp. apply sK_HoIntv. Qed.
 
+  Lemma sP_New1 n Γ l σ s (K : sf_kind Σ n) T :
+    oLater (cAnd (cTMemK l K) cTop) :: Γ s⊨ oLater T ∷[ 0 ] K -∗
+    s ↝[ σ ] T -∗
+    Γ s⊨p vobj [ (l, dtysem σ s) ] : oMu (cAnd (cTMemK l K) cTop), 0.
+  Proof.
+    iIntros "#HT #Hs".
+    iApply sP_Val.
+    iApply sT_Obj_I; iApply sD_Cons; [done| |iApply sD_Nil].
+    iApply (sD_TypK_Abs with "HT Hs").
+  Qed.
+
   (* to_rename, and should this be primitive? *)
   Lemma sSkd_Intv_Sub Γ L U T1 T2 i :
     Γ s⊨ T1 <:[ i ] T2 ∷ sf_kintv L U -∗
@@ -999,7 +978,21 @@ Section derived.
     iApply ("HT" with "[$Hg $H]").
   Qed.
 
+  (* XXX *)
+  Lemma eq_equiv {A : ofeT} (x y : A) : x = y → x ≡ y.
+  Proof. by intros ->. Qed.
 
+  (* Global Instance : Params (@bi_wand b) 1 := {}. *)
+  (* Closer to what Sandro wrote on paper, but some adjustments can only be done in the model, right now. *)
+  Lemma sP_New' n Γ l σ s (K : sf_kind Σ n) T :
+    oLater (cTMemK l K) :: Γ s⊨ oLater T ∷[ 0 ] K -∗
+    s ↝[ σ ] T -∗
+    Γ s⊨p vobj [ (l, dtysem σ s) ] : oMu (cTMemK l K), 0.
+  Proof.
+    have Heq: (clty_olty (cTMemK l K) ≡ cAnd (cTMemK l K) cTop).
+    by intros ???; iSplit; [iIntros "$" | iIntros "[$ _]"].
+    rewrite Heq. apply sP_New1.
+  Qed.
 End derived.
 
 Section examples.
