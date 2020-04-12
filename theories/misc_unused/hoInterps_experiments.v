@@ -25,6 +25,12 @@ Module Type HoSemTypes (Import VS : VlSortsFullSig) (Import LWP : LiftWp VS) (Im
 Definition hoLty Σ n := vec vl n → lty Σ.
 Definition hoLtyO Σ n := vec vl n -d> ltyO Σ.
 
+Notation hoLty_car τ := (λ args v, lty_car (τ args) v).
+
+Notation HoLty φ := (λ args, Lty (λI v, φ args v)).
+
+
+
 Definition envApply {Σ n} : oltyO Σ n → env → hoLtyO Σ n :=
   λ T, flip T.
 Global Instance: Params (@envApply) 2 := {}.
@@ -375,15 +381,21 @@ Section gen_lemmas.
     Γ s⊨ T2 =[ i ] T1 ∷ K.
   Proof. iIntros "[$ $]". Qed.
 
+  Lemma sf_star_eq ρ T1 T2 :
+    sf_star ρ T1 T2 ⊣⊢ oClose T1 ⊆@{Σ} oClose T2.
+  Proof.
+    iSplit; first by iIntros "(_ & $ & _)".
+    iIntros "$"; iSplit;
+      iIntros (v) "!>"; [iIntros "[]" | iIntros "_ //"].
+  Qed.
 
   Lemma ksubtyping_spec ρ i Γ T1 T2 :
     Γ s⊨ T1 <:[ i ] T2 ∷ sf_star -∗
     s⟦ Γ ⟧* ρ -∗
     ▷^i (oClose T1 ρ ⊆ oClose T2 ρ).
   Proof.
-    iIntros "#Hsub #Hg" (v).
-    iDestruct ("Hsub" $! ρ with "Hg") as "{Hsub} (_ & #Hsub &_)"; iNext i;
-      iApply ("Hsub" $! v).
+    iIntros "Hsub Hg" (v); iDestruct (sf_star_eq with "(Hsub Hg)") as "Hsub".
+    iApply ("Hsub" $! v).
   Qed.
 
   Lemma ksubtyping_intro i Γ (T1 T2 : oltyO Σ 0) :
@@ -391,10 +403,9 @@ Section gen_lemmas.
     ∀ v, ▷^i (oClose T1 ρ v → oClose T2 ρ v)) -∗
     Γ s⊨ T1 <:[ i ] T2 ∷ sf_star.
   Proof.
-    iIntros "#Hsub !> * #Hg".
-    iDestruct ("Hsub" with "Hg") as "{Hsub Hg} Hsub".
-    iNext i; repeat iSplit;
-      iIntros (v) "!>"; [iIntros "[]" | iApply "Hsub" | iIntros "_ //"].
+    iIntros "#Hsub !> * #Hg"; rewrite sf_star_eq /=.
+    iSpecialize ("Hsub" with "Hg"); iNext i.
+    iApply "Hsub".
   Qed.
 
   Lemma ksubtyping_intro_swap i Γ (T1 T2 : oltyO Σ 0) :
@@ -727,8 +738,6 @@ Section dot_types.
   Qed.
 
 
-  Notation hoLty_car τ := (λ args v, lty_car (τ args) v).
-  Notation HoLty φ := (λ args, Lty (λI v, φ args v)).
   Definition packHoLtyO {Σ n} (φ : hoD Σ n) : hoLtyO Σ n := HoLty (λI args v, ▷ □ φ args v).
 
   Definition oLDTMemK {n} l (K : sf_kind Σ n) : ldltyO Σ := mkLDlty (Some l) (λI ρ d,
@@ -850,7 +859,7 @@ Section derived.
   Lemma eq_equiv {A : ofeT} (x y : A) : x = y → x ≡ y.
   Proof. by intros ->. Qed.
 
-  Global Instance : Params (@bi_wand b) 1 := {}.
+  (* Global Instance : Params (@bi_wand b) 1 := {}. *)
   (* Closer to what Sandro wrote on paper, but some adjustments can only be done in the model, right now. *)
   Lemma sP_New' n Γ l σ s (K : sf_kind Σ n) T :
     oLater (cTMemK l K) :: Γ s⊨ oLater T ∷[ 0 ] K -∗
