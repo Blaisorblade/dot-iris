@@ -558,25 +558,36 @@ Section gen_lemmas.
     ⊢ Γ s⊨ ⊥ <:[ i ] T ∷ sf_star.
   Proof. rewrite -ksubtyping_intro; iIntros "!> * _ * !> []". Qed.
 
-  (* <:-..-U *)
-  Lemma sKStp_IntvU Γ T L U i :
-    Γ s⊨ T ∷[ i ] sf_kintv L U -∗
-    Γ s⊨ T <:[ i ] U ∷ sf_star.
+  (* XXX <:-..-U *)
+  Lemma sKStp_IntvU Γ T1 T2 L U i :
+    Γ s⊨ T1 <:[i] T2 ∷ sf_kintv L U -∗
+    Γ s⊨ T2 <:[i] U ∷ sf_star.
   Proof.
     rewrite -ksubtyping_intro; iIntros "#HK !> * Hg *".
     iDestruct ("HK" with "Hg") as "[_ [_ Hsub]]".
     iNext i; iApply "Hsub".
   Qed.
 
-  (* <:-..-L *)
-  Lemma sKStp_IntvL Γ T L U i :
+  (* <:-..-U *)
+  Lemma sKStp_IntvU' Γ T L U i :
     Γ s⊨ T ∷[ i ] sf_kintv L U -∗
-    Γ s⊨ L <:[ i ] T ∷ sf_star.
+    Γ s⊨ T <:[ i ] U ∷ sf_star.
+  Proof. apply sKStp_IntvU. Qed.
+
+  (* <:-..-L *)
+  Lemma sKStp_IntvL Γ T1 T2 L U i :
+    Γ s⊨ T1 <:[i] T2 ∷ sf_kintv L U -∗
+    Γ s⊨ L <:[ i ] T1 ∷ sf_star.
   Proof.
     rewrite -ksubtyping_intro; iIntros "#HK !> * Hg *".
     iDestruct ("HK" with "Hg") as "[Hsub _]".
     iNext i; iApply "Hsub".
   Qed.
+
+  Lemma sKStp_IntvL' Γ T L U i :
+    Γ s⊨ T ∷[ i ] sf_kintv L U -∗
+    Γ s⊨ L <:[ i ] T ∷ sf_star.
+  Proof. apply sKStp_IntvL. Qed.
 End gen_lemmas.
 
 End HoSemTypes.
