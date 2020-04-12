@@ -956,20 +956,16 @@ Section derived.
     iApply sSub_Trans; [iApply IHj|iApply sLater_Sub].
   Qed.
 
-  Lemma sK_HoIntv {n} Γ (K : s_kind Σ n) T1 T2 i :
-    ⊢ Γ s⊨ T1 <:[i] T2 ∷ K -∗
-      Γ s⊨ T1 <:[i] T2 ∷ ho_intv K T1 T2.
-  Proof using HswapProp.
-    elim: K Γ T1 T2 => [S1 S2|{}n S K IHK] Γ T1 T2 /=; iIntros "HK".
-    by iApply sKStp_Intv.
+  Lemma sK_Eta_Apply {n} Γ (K : s_kind Σ n) S T1 T2 i :
+    Γ s⊨ T1 <:[ i ] T2 ∷ sf_kpi S K -∗
+    oLaterN i (oShift S) :: Γ s⊨
+      oTAppV (oShift T1) (ids 0) <:[i] oTAppV (oShift T2) (ids 0) ∷ K.
+  Proof.
+    iIntros "HK".
     rewrite (shift_sstpiK (oLaterN i (oShift S))) kShift_sf_kpi_eq.
-    (* XXX Here we rewrite using untyped equality *)
-    iEval (rewrite {1}(sTEq_Eta T1) {1}(sTEq_Eta T2)).
-    iApply sKStp_Lam.
-    iApply IHK.
     (* Either *)
     iEval rewrite -(kShift_cancel' K).
-    iApply (sKStp_AppV _ _ (S0 := oShift S) with "HK").
+    iApply (sKStp_AppV _ _ (S := oShift S) with "HK").
     (* Or *)
     (* rewrite (sKStp_AppV _ _ (S0 := oShift S) (v := ids 0)) .
     rewrite (kShift_cancel' K).
@@ -981,8 +977,23 @@ Section derived.
     iApply (sLaterN_Sub 0 i).
   Qed.
 
+  Lemma sK_HoIntv {n} Γ (K : s_kind Σ n) T1 T2 i :
+    Γ s⊨ T1 <:[i] T2 ∷ K -∗
+    Γ s⊨ T1 <:[i] T2 ∷ ho_intv K T1 T2.
+  Proof using HswapProp.
+    elim: K Γ T1 T2 => [S1 S2|{}n S K IHK] Γ T1 T2 /=; iIntros "HK".
+    by iApply sKStp_Intv.
+    (* XXX Here we rewrite using untyped equality *)
+    iEval (rewrite {1}(sTEq_Eta T1) {1}(sTEq_Eta T2)).
+    iApply sKStp_Lam.
+    iApply IHK.
+    iApply (sK_Eta_Apply with "HK").
+  Qed.
+
+  Definition ho_sing {n} K T := ho_intv (n := n) K T T.
+
   Lemma sK_HoSing {n} Γ (K : s_kind Σ n) T i :
-    ⊢ Γ s⊨ T ∷[i] K -∗ Γ s⊨ T ∷[i] ho_intv K T T.
+    Γ s⊨ T ∷[i] K -∗ Γ s⊨ T ∷[i] ho_sing K T.
   Proof using HswapProp. apply sK_HoIntv. Qed.
 
     (* XXX Missing: Proper oShift, Proper oTAppV, Proper ho_intv *)
