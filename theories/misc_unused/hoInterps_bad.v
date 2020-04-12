@@ -289,6 +289,31 @@ Import swap_later_impl HkDot2.
 Section sec.
   Context `{dlangG Σ} `{HswapProp: SwapPropI Σ}.
 
+  (* Unused *)
+  Program Definition hLaterN {n} i: hoLtyO Σ n -n> hoLtyO Σ n :=
+    λne T, HoLty (λI args v, ▷^i T args v).
+  Next Obligation. solve_proper_ho. Qed.
+
+  (* This is not a semantic kind: Transitivity fails. *)
+  (* Program Definition kStarIJ i j : sf_kind Σ 0 :=
+    SfKind
+      (SrKind (λI ρ T1 T2,
+      sf_star ρ (hLaterN i T1) (hLaterN j T2))) _ _ _ _ _.
+  Next Obligation.
+    intros * T1 T2 HT U1 U2 HU.
+    by apply sf_kind_sub_ne_2; apply hLaterN.
+    (* by f_equiv; f_equiv. *)
+  Qed.
+  Next Obligation.
+    iIntros "* #Heq"; iSplit; iIntros "#Hle"; rewrite !sf_star_eq /=;
+    iIntros "!>" (v) "#H"; iApply "Heq"; iApply "Hle"; iApply "Heq"; iApply "H".
+  Qed.
+  Next Obligation.
+    iIntros "* H1 H2".
+    rewrite !sf_star_eq.
+    iApply (subtype_trans with "H1").
+  Abort. *)
+
   Lemma subtyping_spec i j Γ T1 T2 ρ :
     Γ s⊨ T1, i <: T2, j -∗
     s⟦ Γ ⟧* ρ -∗
