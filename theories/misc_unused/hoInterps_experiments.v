@@ -844,6 +844,8 @@ Coercion s_kind_to_sf_kind : s_kind >-> sf_kind.
 Section derived.
   Context `{Hdlang : dlangG Σ} `{HswapProp : SwapPropI Σ}.
 
+  (* XXX Missing: Proper oShift, Proper oTAppV, Proper ho_intv *)
+
   Lemma sP_New1 n Γ l σ s (K : sf_kind Σ n) T :
     oLater (cAnd (cTMemK l K) cTop) :: Γ s⊨ oLater T ∷[ 0 ] K -∗
     s ↝[ σ ] T -∗
@@ -934,10 +936,12 @@ Section derived.
     oLaterN i T ≡ iterate oLater i T.
   Proof using Hdlang. move=>???. by rewrite iterate_oLater_later. Qed.
 
+  (* XXX *)
   Lemma oLaterN_succ_eq {n} (T : olty Σ n) i :
     oLaterN i.+1 T ≡ oLater (oLaterN i T).
   Proof. done. Qed.
 
+  (* XXX *)
   Lemma sSub_LaterN {Γ T} i j:
     ⊢ Γ s⊨ T, j + i <: oLaterN j T, i.
   Proof.
@@ -947,6 +951,7 @@ Section derived.
     iApply sSub_Trans; [iApply sSub_Later|iApply IHj].
   Qed.
 
+  (* XXX *)
   Lemma sLaterN_Sub {Γ T} i j :
     ⊢ Γ s⊨ oLaterN j T, i <: T, j + i.
   Proof.
@@ -996,7 +1001,49 @@ Section derived.
     Γ s⊨ T ∷[i] K -∗ Γ s⊨ T ∷[i] ho_sing K T.
   Proof using HswapProp. apply sK_HoIntv. Qed.
 
-    (* XXX Missing: Proper oShift, Proper oTAppV, Proper ho_intv *)
+  (* to_rename, and should this be primitive? *)
+  Lemma sSkd_Intv_Sub Γ L U T1 T2 i :
+    Γ s⊨ T1 <:[ i ] T2 ∷ sf_kintv L U -∗
+    Γ s⊨ sf_kintv T1 T2 <∷[ i ] sf_kintv L U.
+  Proof.
+    iIntros "#HK".
+    iApply sSkd_Intv.
+    iApply (sKStp_IntvL with "HK").
+    iApply (sKStp_IntvU with "HK").
+  Qed.
+
+  Lemma sSkd_HoIntv {n} Γ (K : s_kind Σ n) T1 T2 i :
+    Γ s⊨ T1 <:[i] T2 ∷ K -∗
+    Γ s⊨ ho_intv K T1 T2 <∷[i] K .
+  Proof using HswapProp.
+    elim: K Γ T1 T2 => [S1 S2|{}n S K IHK] Γ T1 T2 /=; first iApply sSkd_Intv_Sub.
+    iIntros "HK".
+    iApply sSkd_Pi; first by iApply sK_Star.
+    iApply IHK.
+    iApply (sK_Eta_Apply with "HK").
+  Qed.
+
+  Lemma sP_New2 n Γ l σ s (K : s_kind Σ n) (T : olty Σ n) :
+    oLater (cAnd (cTMemK l (ho_sing K (oLater T))) cTop) :: Γ s⊨ oLater T ∷[ 0 ] K -∗
+    s ↝[ σ ] T -∗
+    Γ s⊨p vobj [ (l, dtysem σ s) ] : oMu (cAnd (cTMemK l K) cTop), 0.
+  Proof using HswapProp.
+    iIntros "#HT #Hs".
+    iApply (sP_Sub (i := 0) (j := 0) (T1 := oMu (cAnd (cTMemK l (ho_sing K (oLater T))) cTop))).
+    rewrite sK_HoIntv; iApply (sP_New1 with "HT Hs").
+    iApply sMu_Sub_Mu; rewrite iterate_0.
+    iApply sSub_Trans; first iApply sAnd1_Sub.
+    iApply sSub_And; last iApply sSub_Top.
+    rewrite -sstpiK_star_eq_sstp.
+    iApply sKStp_TMem.
+    iApply sSkd_HoIntv.
+    (* Sub-environment. *)
+    rewrite /sstpiK; cbn [env_oltyped].
+    iIntros "!> * #[Hg H]".
+    iApply ("HT" with "[$Hg $H]").
+  Qed.
+
+
   (*
     (*
     (* rewrite sKEq_Eta. *)
@@ -1020,6 +1067,7 @@ Section derived.
     by iApply (Proper_sfkind with "IHK").
   Abort.
   *)
+
 End derived.
 
 Section examples.
