@@ -150,7 +150,7 @@ Should we delay K?*)
 (* Definition sktp `{dlangG Σ} {n} i Γ T (K : sf_kind Σ n) : iProp Σ :=
   □∀ ρ, s⟦Γ⟧*ρ → ▷^i K ρ (envApply (oLaterN i T) ρ). *)
 (* XXX What delays are wanted here? *)
-(* Definition ssktp `{dlangG Σ} {n} i Γ (K1 K2 : sf_kind Σ n) : iProp Σ :=
+(* Definition sSkd `{dlangG Σ} {n} i Γ (K1 K2 : sf_kind Σ n) : iProp Σ :=
   □∀ ρ T, s⟦Γ⟧*ρ → ▷^i K1 ρ (envApply T ρ) → ▷^i K2 ρ (envApply T ρ). *)
 
 End HoSemTypes2.
@@ -312,7 +312,7 @@ Section sec.
     Γ s⊨ L2, i <: L1, i -∗
     Γ s⊨ U1, i <: U2, i -∗
     Γ s⊨ sf_kintv L1 U1 <∷[ i ] sf_kintv L2 U2.
-  Proof using HswapProp. by rewrite -!sstpkD_star_eq_sstp -sSkd_Intv. Qed.
+  Proof using HswapProp. by rewrite -!sstpiK_star_eq_sstp -sSkd_Intv. Qed.
 
   Lemma sK_Star' Γ (T : olty Σ 0) i :
     ⊢ Γ s⊨ T ∷[ i ] sf_star.
@@ -325,7 +325,7 @@ Section sec.
     Γ s⊨ S2, i <: S1, i -∗
     oLaterN i (shift S2) :: Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ sf_kpi S1 K1 <∷[ i ] sf_kpi S2 K2.
-  Proof using HswapProp. by rewrite -!sstpkD_star_eq_sstp -sSkd_Pi. Qed.
+  Proof using HswapProp. by rewrite -!sstpiK_star_eq_sstp -sSkd_Pi. Qed.
 
   Inductive htype : nat → Type :=
     | TWrap : ty → htype 0
