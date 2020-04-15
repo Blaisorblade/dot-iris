@@ -1017,6 +1017,11 @@ Section dot_experimental_kinds.
   Context `{dlangG Σ}.
 
   (* WTF why am I proving this? To support more kinds? *)
+  (* Make this derivable from sth. like.
+  S <: T :: L..U ->
+  T <: S :: * ->
+  S = T :: L..U
+  *)
   Lemma sSngl_KSub_Sym Γ p q T i L U:
     Γ s⊨p p : T, i -∗ (* Just to ensure [p] terminates and [oSing p] isn't empty. *)
     Γ s⊨ oSing p <:[i] oSing q ∷ sf_kintv L U -∗
