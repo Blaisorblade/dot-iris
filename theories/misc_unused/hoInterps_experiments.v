@@ -581,14 +581,14 @@ Section gen_lemmas.
 
   (* <:-..-U *)
   Lemma sKStp_IntvU' Γ T L U i :
-    Γ s⊨ T ∷[ i ] sf_kintv L U -∗
-    Γ s⊨ T <:[ i ] U ∷ sf_star.
+    Γ s⊨ T ∷[i] sf_kintv L U -∗
+    Γ s⊨ T <:[i] U ∷ sf_star.
   Proof. apply sKStp_IntvU. Qed.
 
   (* <:-..-L *)
   Lemma sKStp_IntvL Γ T1 T2 L U i :
     Γ s⊨ T1 <:[i] T2 ∷ sf_kintv L U -∗
-    Γ s⊨ L <:[ i ] T1 ∷ sf_star.
+    Γ s⊨ L <:[i] T1 ∷ sf_star.
   Proof.
     rewrite -ksubtyping_intro; iIntros "#HK !> * Hg *".
     iDestruct ("HK" with "Hg") as "[Hsub _]".
@@ -596,8 +596,8 @@ Section gen_lemmas.
   Qed.
 
   Lemma sKStp_IntvL' Γ T L U i :
-    Γ s⊨ T ∷[ i ] sf_kintv L U -∗
-    Γ s⊨ L <:[ i ] T ∷ sf_star.
+    Γ s⊨ T ∷[i] sf_kintv L U -∗
+    Γ s⊨ L <:[i] T ∷ sf_star.
   Proof. apply sKStp_IntvL. Qed.
 End gen_lemmas.
 
@@ -702,7 +702,7 @@ Section dot_types.
   Lemma sKEq_Beta {n} Γ S T (K : sf_kind Σ n) i p :
     Γ s⊨p p : S, i -∗
     oLaterN i (oShift S) :: Γ s⊨ T ∷[i] K -∗
-    Γ s⊨ oTApp (oLam T) p =[i] opSubst p T ∷ kpSubstOne p K.
+    Γ s⊨ oTApp (oLam T) p =[i] T .sTp[ p /] ∷ kpSubstOne p K.
   Proof using HswapProp.
     iIntros "#Hp #HK"; iApply sKEq_Refl. apply sTEq_Beta.
     rewrite sK_Lam. iApply (sK_App with "HK Hp").
