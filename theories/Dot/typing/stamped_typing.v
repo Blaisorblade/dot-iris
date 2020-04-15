@@ -166,7 +166,7 @@ with path_typed Γ g : path → ty → nat → Prop :=
     Γ s⊢ₚ[ g ] pself p l : TSing (pself q l), i
 where "Γ s⊢ₚ[ g ] p : T , i" := (path_typed Γ g p T i)
 (* Γ s⊢ₜ[ g ] T1, i1 <: T2, i2 means that TLater^i1 T1 <: TLater^i2 T2. *)
-with subtype Γ g : ty → nat → ty → nat → Prop :=
+with subtype Γ g : ty → ty → Prop :=
 | iSub_Refl i T :
     is_stamped_ty (length Γ) g T →
     Γ s⊢ₜ[ g ] T, i <: T, i
@@ -289,7 +289,7 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     is_stamped_ty (length Γ) g U →
     Γ s⊢ₜ[ g ] TAnd (TOr S T) U , i <: TOr (TAnd S U) (TAnd T U), i
 
-where "Γ s⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ g T1 i1 T2 i2).
+where "Γ s⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ g (iterate TLater i1 T1%ty) (iterate TLater i2 T2%ty)).
 
 Scheme exp_stamped_obj_ident_typed_mut_ind := Induction for typed Sort Prop
 with   exp_stamped_obj_ident_dms_typed_mut_ind := Induction for dms_typed Sort Prop
@@ -323,14 +323,14 @@ Section syntyping_lemmas.
     (∀ ds T, Γ s⊢ds[ g ] ds : T → Γ v⊢ds[ g ] ds : T) ∧
     (∀ l d T, Γ s⊢[ g ]{ l := d } : T → Γ v⊢[ g ]{ l := d } : T) ∧
     (∀ p T i, Γ s⊢ₚ[ g ] p : T, i → Γ v⊢ₚ[ g ] p : T, i) ∧
-    (∀ T1 i1 T2 i2, Γ s⊢ₜ[ g ] T1, i1 <: T2, i2 → Γ v⊢ₜ[ g ] T1, i1 <: T2, i2).
+    (∀ T1 T2, Γ s⊢ₜ[ g ] T1, 0 <: T2, 0 → Γ v⊢ₜ[ g ] T1, 0 <: T2, 0).
   Proof.
     eapply stamped_obj_ident_typing_mut_ind with
         (P := λ Γ g e T _, Γ v⊢ₜ[ g ] e : T)
         (P0 := λ Γ g ds T _, Γ v⊢ds[ g ] ds : T)
         (P1 := λ Γ g l d T _, Γ v⊢[ g ]{ l := d } : T)
         (P2 := λ Γ g p T i _, Γ v⊢ₚ[ g ] p : T, i)
-        (P3 := λ Γ g T1 i1 T2 i2 _, Γ v⊢ₜ[ g ] T1, i1 <: T2, i2); clear Γ g;
-      try solve [eauto].
+        (P3 := λ Γ g T1 T2 _, Γ v⊢ₜ[ g ] T1, 0 <: T2, 0); clear Γ g; intros *;
+      try solve [rewrite ?iterate_comp /=; eauto].
   Qed.
 End syntyping_lemmas.

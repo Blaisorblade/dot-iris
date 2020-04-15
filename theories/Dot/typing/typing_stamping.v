@@ -155,6 +155,16 @@ Section syntyping_stamping_lemmas.
   Local Hint Resolve is_unstamped_tv_inv is_unstamped_TLater_n : core.
   Local Hint Extern 5 (is_unstamped_ty _ _ _) => try_once is_unstamped_TLater_inv : core.
 
+  Lemma is_unstamped_TLater_n_inv {i n T}:
+    is_unstamped_ty' n (iterate TLater i T) →
+    is_unstamped_ty' n T.
+  Proof. elim: i => [|//i IHi]; rewrite ?iterate_0 ?iterate_S //; auto. Qed.
+  (* Hint Resolve is_unstamped_TLater_n_inv : core. *)
+  Lemma is_unstamped_TLater_n_iff {i n T}:
+    is_unstamped_ty' n (iterate TLater i T) ↔
+    is_unstamped_ty' n T.
+  Proof. split; eauto using is_unstamped_TLater_n_inv. Qed.
+
   Lemma fmap_TLater_unstamped_inv Γ :
     unstamped_ctx $ TLater <$> Γ →
     unstamped_ctx Γ.
@@ -210,7 +220,7 @@ Section syntyping_stamping_lemmas.
     (∀ ds T, Γ u⊢ds ds : T → ∀ (Hctx: unstamped_ctx Γ), is_unstamped_ty' (length Γ) T) ∧
     (∀ l d T, Γ u⊢{ l := d } : T → ∀ (Hctx: unstamped_ctx Γ), is_unstamped_ty' (length Γ) T) ∧
     (∀ p T i, Γ u⊢ₚ p : T , i → ∀ (Hctx: unstamped_ctx Γ), is_unstamped_ty' (length Γ) T) ∧
-    (∀ T1 i1 T2 i2, Γ u⊢ₜ T1, i1 <: T2, i2 → ∀ (Hctx: unstamped_ctx Γ),
+    (∀ T1 T2 , Γ u⊢ₜ T1, 0 <: T2, 0 → ∀ (Hctx: unstamped_ctx Γ),
       is_unstamped_ty' (length Γ) T1 ∧ is_unstamped_ty' (length Γ) T2).
   Proof.
     eapply unstamped_typing_mut_ind with
@@ -218,11 +228,13 @@ Section syntyping_stamping_lemmas.
         (P0 := λ Γ ds T _, ∀ (Hctx: unstamped_ctx Γ), is_unstamped_ty' (length Γ) T)
         (P1 := λ Γ l d T _, ∀ (Hctx: unstamped_ctx Γ), is_unstamped_ty' (length Γ) T)
         (P2 := λ Γ p T i _, ∀ (Hctx: unstamped_ctx Γ), is_unstamped_ty' (length Γ) T)
-        (P3 := λ Γ T1 i1 T2 i2 _, ∀ (Hctx: unstamped_ctx Γ),
+        (P3 := λ Γ T1 T2 _, ∀ (Hctx: unstamped_ctx Γ),
                is_unstamped_ty' (length Γ) T1 ∧ is_unstamped_ty' (length Γ) T2); clear Γ.
     all: intros; simplify_eq/=; try nosplit inverse Hctx;
       try (rewrite ->?(@ctx_sub_len Γ Γ'),
         ?(@ctx_strip_len Γ Γ') in * by assumption);
+      repeat_on_hyps (fun H =>
+      move: H; rewrite !is_unstamped_TLater_n_iff => H);
       try (efeed pose proof H ; [by eauto | ev; clear H ]);
       try (efeed pose proof H0; [by eauto | ev; clear H0]);
       repeat constructor; rewrite /= ?fmap_length; eauto 2;
@@ -319,8 +331,8 @@ Section syntyping_stamping_lemmas.
       ∀ g, ∃ g',
       Γ s⊢ₚ[ g' ] p : T, i
         ∧ g ⊆ g') ∧
-    (∀ T1 i1 T2 i2, Γ u⊢ₜ T1, i1 <: T2, i2 →
-      ∀ g, ∃ g', Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2 ∧ g ⊆ g').
+    (∀ T1 T2, Γ u⊢ₜ T1, 0 <: T2, 0 →
+      ∀ g, ∃ g', Γ s⊢ₜ[ g' ] T1, 0 <: T2, 0 ∧ g ⊆ g').
   Proof.
     eapply unstamped_typing_mut_ind with
       (P := λ Γ e T _, ∀ g, ∃ e' g',
@@ -332,8 +344,8 @@ Section syntyping_stamping_lemmas.
         stamps_dm' (length Γ) d g' d')
       (P2 := λ Γ p T i _, ∀ g, ∃ g',
         Γ s⊢ₚ[ g' ] p : T, i ∧ g ⊆ g')
-      (P3 := λ Γ T1 i1 T2 i2 _, ∀ g, ∃ g',
-        Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2 ∧ g ⊆ g');
+      (P3 := λ Γ T1 T2 _, ∀ g, ∃ g',
+        Γ s⊢ₜ[ g' ] T1, 0 <: T2, 0 ∧ g ⊆ g');
        clear Γ.
 
     all: try solve [intros * Hu1 IHs1 Hu2 IHs2 g;
@@ -348,7 +360,7 @@ Section syntyping_stamping_lemmas.
     all: try solve [intros * Hu1 IHs1 **;
       move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]]; exists g1; split_and!;
       try fast_done; (constructor; eauto 2) || eauto 3].
-    all: try solve [intros; exists g; split_and!; try fast_done; constructor; eauto 2].
+    all: try solve [intros; exists g; split_and!; try fast_done; constructor; eauto 3].
 
   (* In hyp names, [Hus] are for [is_unstamped_ty], [Husp] for
   [is_unstamped_path], [Hu] for unstamped typing, [IHs] for the induction
@@ -381,7 +393,10 @@ Section syntyping_stamping_lemmas.
     move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]].
     move: IHs2 => /(.$ g1) [e' [g2 [Hts2 [Hle2 Hs]]]]; lte g g1 g2.
     eapply stamps_tm_skip with (i := i) in Hs.
-    exists (iterate tskip i e'), g2; eauto.
+    exists (iterate tskip i e'), g2; split. 2: eauto.
+    econstructor.
+    split_and!; try done; eauto 3.
+    all: eauto 4.
   - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [g1 ?]; ev.
     have ? := unstamped_path_subject Hu1.

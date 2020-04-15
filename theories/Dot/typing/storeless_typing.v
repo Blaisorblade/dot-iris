@@ -182,7 +182,7 @@ with path_typed Γ g : path → ty → nat → Prop :=
     Γ v⊢ₚ[ g ] pself p l : TSing (pself q l), i
 where "Γ v⊢ₚ[ g ] p : T , i" := (path_typed Γ g p T i)
 (* Γ v⊢ₜ[ g ] T1, i1 <: T2, i2 means that TLater^i1 T1 <: TLater^i2 T2. *)
-with subtype Γ g : ty → nat → ty → nat → Prop :=
+with subtype Γ g : ty → ty → Prop :=
 | iSub_Refl i T :
     is_stamped_ty (length Γ) g T →
     Γ v⊢ₜ[ g ] T, i <: T, i
@@ -190,12 +190,6 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     Γ v⊢ₜ[ g ] T1, i1 <: T2, i2 →
     Γ v⊢ₜ[ g ] T2, i2 <: T3, i3 →
     Γ v⊢ₜ[ g ] T1, i1 <: T3, i3
-| iLater_Sub i T:
-    is_stamped_ty (length Γ) g T →
-    Γ v⊢ₜ[ g ] TLater T, i <: T, S i
-| iSub_Later i T:
-    is_stamped_ty (length Γ) g T →
-    Γ v⊢ₜ[ g ] T, S i <: TLater T, i
 
 (* "Structural" rule about indexes *)
 | iSub_Add_Later T i:
@@ -313,7 +307,9 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     iterate TLater i (shift T1) :: Γ v⊢ₚ[ g ] pv (ids 0) : shift T2, j →
     (*───────────────────────────────*)
     Γ v⊢ₜ[ g ] T1, i <: T2, j
-where "Γ v⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ g T1 i1 T2 i2).
+where "Γ v⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ g (iterate TLater i1 T1%ty) (iterate TLater i2 T2%ty)).
+
+Notation "Γ v⊢ₜ[ g  ] T1 <: T2" := (storeless_typing.subtype Γ g T1 T2) (at level 74, T1, T2 at next level, only parsing).
 
 (* Make [T] first argument: Hide [Γ] and [g] for e.g. typing examples. *)
 Global Arguments iD_Typ_Abs {Γ g} T _ _ _ _ _ _ _ _ _ : assert.
@@ -340,6 +336,15 @@ Combined Scheme storeless_typing_mut_ind from stamped_typed_mut_ind, stamped_dms
 Hint Constructors typed subtype dms_typed dm_typed path_typed : core.
 Remove Hints iSub_Trans : core.
 Hint Extern 10 => try_once iSub_Trans : core.
+
+Lemma iLater_Sub Γ g i T:
+  is_stamped_ty (length Γ) g T →
+  Γ v⊢ₜ[ g ] TLater T, i <: T, S i.
+Proof. intros Hs. rewrite -iterate_Sr. exact: iSub_Refl. Qed.
+Lemma iSub_Later Γ g i T:
+  is_stamped_ty (length Γ) g T →
+  Γ v⊢ₜ[ g ] T, S i <: TLater T, i.
+Proof. intros Hs. rewrite -iterate_Sr. exact: iSub_Refl. Qed.
 
 Lemma iT_All_I Γ e T1 T2 g:
   is_stamped_ty (length Γ) g T1 →
@@ -370,7 +375,7 @@ Lemma iP_Later {Γ p T i g} :
   Γ v⊢ₚ[ g ] p : T, S i.
 Proof.
   intros Hu Hp; apply iP_Sub with (j := 1) (T1 := TLater T) (T2 := T) in Hp;
-    move: Hp; rewrite (plusnS i 0) (plusnO i); intros; by [|constructor].
+    move: Hp; rewrite (plusnS i 0) (plusnO i); intros; by [> |apply iLater_Sub].
 Qed.
 
 Ltac ettrans := eapply iSub_Trans.
@@ -408,6 +413,11 @@ Ltac typconstructor :=
   | |- dms_typed  ?Γ _ _ _ => constructor
   | |- dm_typed   ?Γ _ _ _ _ => first [apply iD_All | constructor]
   | |- path_typed ?Γ _ _ _ _ => first [apply iP_Later | constructor]
-  | |- subtype    ?Γ _ _ _ _ _ =>
-    first [apply Sub_later_shift | constructor ]; typconstructor_blacklist Γ
+  | |- subtype    ?Γ _ _ _ =>
+    first
+      [ apply Sub_later_shift
+      | apply iSub_Refl
+      | apply iSub_Later
+      | apply iLater_Sub
+      | constructor ]; typconstructor_blacklist Γ
   end.

@@ -63,7 +63,7 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ !! x = Some T →
     (*──────────────────────*)
     Γ u⊢ₜ tv (var_vl x) : shiftN x T
-| iT_Sub e T1 T2 i :
+| iT_Sub e T1 T2 {i} :
     Γ u⊢ₜ T1, 0 <: T2, i → Γ u⊢ₜ e : T1 →
     (*───────────────────────────────*)
     Γ u⊢ₜ iterate tskip i e : T2
@@ -163,7 +163,7 @@ with path_typed Γ : path → ty → nat → Prop :=
     Γ u⊢ₚ pself p l : TSing (pself q l), i
 where "Γ u⊢ₚ p : T , i" := (path_typed Γ p T i)
 (* Γ u⊢ₜ T1, i1 <: T2, i2 means that TLater^i1 T1 <: TLater^i2 T2. *)
-with subtype Γ : ty → nat → ty → nat → Prop :=
+with subtype Γ : ty → ty → Prop :=
 | iSub_Refl i T :
     is_unstamped_ty' (length Γ) T →
     Γ u⊢ₜ T, i <: T, i
@@ -286,7 +286,7 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     is_unstamped_ty' (length Γ) U →
     Γ u⊢ₜ TAnd (TOr S T) U , i <: TOr (TAnd S U) (TAnd T U), i
 
-where "Γ u⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
+where "Γ u⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ (iterate TLater i1 T1%ty) (iterate TLater i2 T2%ty)).
 
 (* Make [T] first argument: Hide Γ for e.g. typing examples. *)
 Global Arguments iD_Typ_Abs {Γ} T _ _ _ _ _ _ : assert.
@@ -384,6 +384,6 @@ Ltac typconstructor :=
   | |- dms_typed _ _ _ => constructor
   | |- dm_typed _ _ _ _ => first [apply iD_All | constructor]
   | |- path_typed _ _ _ _ => first [apply iP_Later | constructor]
-  | |- subtype _ _ _ _ _ =>
+  | |- subtype _ _ _ =>
     first [apply Sub_later_shift | constructor ]
   end.

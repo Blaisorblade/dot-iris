@@ -398,20 +398,18 @@ Lemma iSub_LaterN Γ T i j:
   is_unstamped_ty' (length Γ) T →
   Γ u⊢ₜ T, j + i <: iterate TLater j T, i.
 Proof.
-  elim: j T => /= [|j IHj] T HuT; rewrite ?iterate_0 ?iterate_Sr /=; tcrush.
-  ettrans.
-  - exact: iSub_Later.
-  - apply (IHj (TLater T)); stcrush.
+  intros HuT; rewrite iterate_comp plus_comm; tcrush.
+  (* elim: j T => /= [|j IHj] T HuT; rewrite ?iterate_0 ?iterate_Sr /=; tcrush.
+  apply (IHj (TLater T)); stcrush. *)
 Qed.
 
 Lemma iLaterN_Sub {Γ T} i j :
   is_unstamped_ty' (length Γ) T →
   Γ u⊢ₜ iterate TLater j T, i <: T, j + i.
 Proof.
-  elim: j T => /= [|j IHj] T HuT; rewrite ?iterate_0 ?iterate_Sr /=; tcrush.
-  ettrans.
-  - apply (IHj (TLater T)); stcrush.
-  - exact: iLater_Sub.
+  intros HuT; rewrite iterate_comp plus_comm; tcrush.
+  (* elim: j T => /= [|j IHj] T HuT; rewrite ?iterate_0 ?iterate_Sr /=; tcrush.
+  apply (IHj (TLater T)); stcrush. *)
 Qed.
 
 (* This can be useful when [T] is a singleton type. *)
