@@ -263,8 +263,8 @@ Lemma iP_Sub' {Γ p T1 T2 i} :
   Γ v⊢ₚ[g] p : T1, i →
   Γ v⊢ₚ[g] p : T2, i.
 Proof.
-  intros; rewrite -(plusnO i).
-  by eapply (iP_Sub 0); rewrite ?plusnO.
+  intros Hsub Hp; rewrite -(plusnO i).
+  by eapply (iP_Sub (j := 0)), Hp; rewrite plusnO.
 Qed.
 
 Lemma iP_Sngl_Sym Γ p q i:
@@ -471,7 +471,7 @@ Proof.
   ettrans; first apply iAnd_Or_Sub_Distr; stcrush => //.
   ettrans; first apply iOr_Sub_split, absorb_and_or; try apply iSub_Refl;
     stcrush => //.
-  ettrans; first apply iOr_Sub_split; try apply (iSub_Refl _ _ (T := U));
+  ettrans; first apply iOr_Sub_split; try apply (iSub_Refl _ (T := U));
     try (ettrans; first apply (comm_and (T := S))); try apply iAnd_Or_Sub_Distr; stcrush => //.
   ettrans; first apply assoc_or; stcrush => //.
   ettrans; first apply iOr_Sub_split.
@@ -523,7 +523,7 @@ Proof.
   move => Hlp HsT1 Hle; move: (Hle) (HsT1) => /le_n_S Hles /is_stamped_ren1_ty HsT2.
   move: (is_stamped_nclosed_ty HsT1) => Hcl.
   apply (iT_Sub_nocoerce (μ {@ typeEq "A" (shift T) }));
-    last (ettrans; first apply: (iMu_Sub _ (T := {@ typeEq "A" T })); tcrush).
+    last (ettrans; first apply: (iMu_Sub (T := {@ typeEq "A" T })); tcrush).
   apply iT_Obj_I; tcrush.
   apply (iD_Typ (shift T)); simpl; eauto 2.
   eapply extraction_inf_subst, is_stamped_ren1.

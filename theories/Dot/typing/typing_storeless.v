@@ -5,6 +5,7 @@ From D.Dot.stamping Require Export stampingDefsCore.
 From D Require Import swap_later_impl. *)
 
 Set Implicit Arguments.
+Unset Strict Implicit.
 
 Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
 Implicit Types (g : stys).

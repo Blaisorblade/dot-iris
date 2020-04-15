@@ -3,6 +3,9 @@ From D.Dot.syn Require Export syn.
 From D.Dot.typing Require Export typing_aux_defs.
 From D.Dot Require Import typing_storeless.
 
+Set Implicit Arguments.
+Unset Strict Implicit.
+
 Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
 Implicit Types (g : stys).
 

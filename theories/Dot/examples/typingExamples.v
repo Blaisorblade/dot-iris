@@ -178,11 +178,11 @@ Proof.
   - apply (iT_Sub_nocoerce (μ {@ type "A" >: ⊥ <: TInt})); tcrush.
     + apply (iD_Typ_Abs TInt); wtcrush.
     + ettrans;
-      [apply: (iMu_Sub _ (T := {@ type "A" >: ⊥ <: TInt })%ty 0)|]; tcrush.
+      [apply: (iMu_Sub (T := {@ type "A" >: ⊥ <: TInt })%ty 0)|]; tcrush.
   - apply (iT_Sub_nocoerce (μ {@ type "B" >: ⊥ <: ⊤})); tcrush.
     + apply (iD_Typ_Abs String); wtcrush.
     + ettrans;
-      [apply: (iMu_Sub _ (T := {@ type "B" >: ⊥ <: ⊤ })%ty 0)|]; tcrush.
+      [apply: (iMu_Sub (T := {@ type "B" >: ⊥ <: ⊤ })%ty 0)|]; tcrush.
 Qed.
 End StringExamples.
 

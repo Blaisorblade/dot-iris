@@ -424,7 +424,7 @@ Section syntyping_stamping_lemmas.
     destruct (stamp_dtysyn_spec g2 Husv); destruct_and!.
     have ?: g2 ⊆ g3 by simplify_eq. lte g g1 g2; lte g g2 g3; lte g1 g2 g3.
     exists (dtysem σ s), g3; simplify_eq; split_and!;
-      first eapply (typing_stamped.iD_Typ_Abs _ _ T); auto 2; [
+      first eapply (typing_stamped.iD_Typ_Abs (T := T)); auto 2; [
         exact: (stamped_objIdent_subtype_mono _ Hts1)|
         exact: (stamped_objIdent_subtype_mono _ Hts2)].
   - intros * Hu1 IHs1 g.

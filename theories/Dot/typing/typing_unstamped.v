@@ -10,6 +10,7 @@ From D.Dot.typing Require Export typing_aux_defs.
 From D.Dot.stamping Require Export stampingDefsCore.
 
 Set Implicit Arguments.
+Unset Strict Implicit.
 
 Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
 
