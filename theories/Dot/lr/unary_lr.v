@@ -232,10 +232,6 @@ End SemTypes.
 
 Global Instance: Params (@oAll) 2 := {}.
 
-Section clty_defs.
-  Context `{dlangG Σ}.
-End clty_defs.
-
 (* Backward compatibility. *)
 Notation "D*⟦ T ⟧" := (ldlty_car LD⟦ T ⟧).
 

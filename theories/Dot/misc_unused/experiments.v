@@ -221,7 +221,6 @@ Section Example.
       iApply P_Val.
       iApply (packTV_semTyped with "Hs"); stcrush.
     }
-    Arguments T_All_Ex {_ _ _ _ _ _ _}.
     iApply (T_All_Ex (v2 := v2) (T1 := pv (packTV 0 s0) @; "A") (T2 := TSing p0)); first last.
     iApply (T_Sub (i := 0) with "Hv2 Hsub").
     iApply T_All_E; first last.
