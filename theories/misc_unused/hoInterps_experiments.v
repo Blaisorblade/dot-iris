@@ -344,7 +344,7 @@ Section gen_lemmas.
     (* Time by apply sf_kind_sub_proper => //; f_equiv. *)
     by apply Proper_sfkind; f_equiv.
   Qed.
-  Global Instance: Params (@sstpiK) 4 := {}.
+  Global Instance: Params (@sstpiK) 5 := {}.
 
   Global Instance Proper_sSkd n i :
     Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sSkd (Σ := Σ) (n := n) i).
@@ -352,7 +352,7 @@ Section gen_lemmas.
     rewrite /sSkd => Γ1 Γ2 HΓ K1 K2 HK1 K3 K4 HK2.
     by properness; rewrite (HΓ, HK1, HK2).
   Qed.
-  Global Instance: Params (@sSkd) 4 := {}.
+  Global Instance: Params (@sSkd) 5 := {}.
 
   Lemma shift_sstpiK S Γ {n i} (T1 T2 : olty Σ n) K :
     Γ s⊨ T1 <:[ i ] T2 ∷ K -∗
@@ -747,7 +747,7 @@ Section dot_types.
   (** [cTMem] and [cVMem] are full [clty]. *)
   Definition cTMemK {n} l (K : sf_kind Σ n) : clty Σ := ldlty2clty (oLDTMemK l K).
   (** Here [n]'s argument to oSel should be explicit. *)
-  Global Arguments oSel {_ _} n p l args ρ : rename.
+  Global Arguments oSel {_ _ _} n p l args ρ : rename.
 
   Lemma sKStp_TMem {n} Γ l (K1 K2 : sf_kind Σ n) i :
     Γ s⊨ K1 <∷[ i ] K2 -∗

@@ -21,24 +21,23 @@ Qed.
 Instance unit_pi: ProofIrrel ().
 Proof. by intros [] []. Qed.
 
-Class UniqueInhabited A := {
-  unique_inhabited : Inhabited A;
-  unique_proof_irrel : ProofIrrel A;
-}.
-Existing Instances unique_inhabited unique_proof_irrel.
-
-Class LangDet Λ := {
+(* Instances of [Inhabited] must not be bundled, as usual for operational type
+classes. *)
+Notation InhabitedState Λ := (Inhabited (L.state Λ)).
+Class LangDet (Λ : L.language) `{InhabitedState Λ} := {
   prim_step_PureExec (e1 e2 : L.expr Λ) σ1 κ σ2 efs :
     L.prim_step e1 σ1 κ e2 σ2 efs → PureExec True 1 e1 e2;
-  lang_inh_state : UniqueInhabited (L.state Λ)
+  lang_inh_state : ProofIrrel (L.state Λ)
 }.
+Arguments LangDet Λ {_}.
 Existing Instance lang_inh_state.
 
-Class EctxLangDet (Λ : EL.ectxLanguage) := {
+Class EctxLangDet (Λ : EL.ectxLanguage) `{InhabitedState Λ} := {
   head_step_PureExec (e1 e2 : L.expr Λ) σ1 κ σ2 efs :
     EL.head_step e1 σ1 κ e2 σ2 efs → L.PureExec True 1 e1 e2;
-  ectx_inh_state : UniqueInhabited (L.state Λ)
+  ectx_inh_state :> ProofIrrel (L.state Λ)
 }.
+Arguments EctxLangDet Λ {_}.
 Existing Instance ectx_inh_state.
 
 Notation dummyState := (inhabitant (A := L.state _)).

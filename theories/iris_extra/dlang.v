@@ -34,12 +34,12 @@ Module Type LiftWp (Import VS : VlSortsSig).
 
   Instance InhEnvPred s Σ : Inhabited (envPred s Σ) := populate (λI _ _, False).
 
-  Class dlangG Σ := DLangG {
+  Class dlangG Σ `{InhabitedState dlang_lang} := DLangG {
     dlangG_savior :> savedHoSemTypeG Σ;
     dlangG_interpNames :> gen_iheapG stamp gname Σ;
     dlangG_langdet :> LangDet dlang_lang;
   }.
-  Arguments DLangG _ {_ _ _}.
+  Arguments DLangG _ {_ _ _ _}.
 
   Instance dlangG_irisG `{dlangG Σ} : irisG dlang_lang Σ := {
     irisG_langdet := _;
