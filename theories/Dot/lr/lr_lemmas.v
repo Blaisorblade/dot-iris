@@ -11,7 +11,7 @@ Set Suggest Proof Using.
 Set Default Proof Using "Type*".
 
 Section LambdaIntros.
-  Context `{HdlangG: dlangG Σ}.
+  Context `{HdlangG: !dlangG Σ}.
 
   Lemma sT_All_I_Strong {Γ Γ'} T1 T2 e
     (Hctx : s⊨G Γ <:* oLater <$> Γ') :
@@ -49,7 +49,7 @@ Section LambdaIntros.
 End LambdaIntros.
 
 Section Sec.
-  Context `{HdlangG: dlangG Σ}.
+  Context `{HdlangG: !dlangG Σ}.
 
   (* An inverse of subsumption: subtyping is *equivalent* to convertibility
   for values. *)
