@@ -461,9 +461,7 @@ Theorem simulation_skeleton_erased_steps {t1 t1' t2 σ σ' } :
   rtc L.erased_step ([t1], σ) ([t2], σ') →
   ∃ t2', rtc erased_step ([t1'], σ) ([t2'], σ') ∧ same_skel_tm t2 t2'.
 Proof.
-  (* XXX Hack. *)
-  have Heq := !!pure_steps_erased'; destruct σ, σ', dummyState.
-  setoid_rewrite <-Heq.
+  uniqueState; setoid_rewrite <-pure_steps_erased'.
 
   intros Hst Hsteps; revert t1' Hst.
   induction Hsteps; intros ??.

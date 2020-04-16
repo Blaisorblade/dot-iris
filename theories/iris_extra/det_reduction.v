@@ -44,7 +44,11 @@ Notation dummyState := (inhabitant (A := L.state _)).
 
 Ltac uniqueState :=
   repeat match goal with
-  | s : L.state _ |- _ => assert (s = dummyState) as -> by apply: proof_irrel
+  | s : ?T |- _ =>
+    let Λ := fresh "Λ" in
+    evar (Λ : language);
+    unify T (L.state ?Λ); clear Λ;
+    assert (s = dummyState) as -> by exact: proof_irrel
   end.
 
 (** This defines, in fact, pure and deterministic termination. *)
