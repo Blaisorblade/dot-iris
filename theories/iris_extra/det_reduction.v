@@ -18,6 +18,8 @@ Proof.
   intros K1 K2 Heq [???]; split; intros *; setoid_rewrite <-Heq => *; auto 2.
 Qed.
 
+Instance unit_pi: ProofIrrel ().
+Proof. by intros [] []. Qed.
 
 Class UniqueInhabited A := {
   unique_inhabited :> Inhabited A;
