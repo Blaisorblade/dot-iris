@@ -62,7 +62,7 @@ Definition safe_gen {Λ} (e : L.expr Λ) :=
   ∀ e' thp σ σ', rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
     L.not_stuck e' σ'.
 
-Definition safe_simpl `{!LangDet Λ} (e : L.expr Λ) :=
+Definition safe_simpl `{LangDet Λ} (e : L.expr Λ) :=
   ∀ e', rtc pure_step e e' → not_stuck e'.
 
 Hint Constructors rtc : core.
@@ -80,7 +80,7 @@ Proof.
   edestruct Hpure; [exact: Hsafe|] => {Hpure}. naive_solver.
 Qed.
 
-Context `{!LangDet Λ}.
+Context `{HlangDet : LangDet Λ}.
 Lemma prim_step_pure {e1 e2 σ1 κ σ2 efs} :
   L.prim_step e1 σ1 κ e2 σ2 efs → pure_step e1 e2.
 Proof. move => /prim_step_PureExec /(_ I). exact: nsteps_once_inv. Qed.
@@ -182,7 +182,7 @@ End LangDet.
 Hint Resolve ->pure_step_erased : core.
 Hint Resolve <-pure_step_erased : core.
 
-Lemma rtc_erased_step_inversion' `{!LangDet Λ} {t1 : L.expr Λ} {res σ}
+Lemma rtc_erased_step_inversion' `{LangDet Λ} {t1 : L.expr Λ} {res σ}
   (Hs : rtc erased_step ([t1], σ) res) :
   ∃ t2, res = ([t2], σ).
 Proof.
@@ -204,7 +204,7 @@ Proof.
 Qed.
 
 Section LangDet.
-Context `{!LangDet Λ}.
+Context `{HlangDet : LangDet Λ}.
 Implicit Type (e t : L.expr Λ).
 
 Theorem rtc_erased_step_inversion {t1 t2 σ σ' thp} :

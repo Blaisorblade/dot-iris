@@ -49,7 +49,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
   Local Definition test_interp_expr `{dlangG Σ} :=
     λI (t: expr dlang_lang), WP t {{ v, False }}.
 
-  Definition leadsto_n `{!dlangG Σ}
+  Definition leadsto_n `{dlangG Σ}
     s n (φ : hoEnvD Σ n) : iProp Σ := ∃ γ, s ↦ γ ∧ γ ⤇n[ n ] φ.
   Notation "s ↝n[ n  ] φ" := (leadsto_n s n φ) (at level 20) : bi_scope.
 
@@ -57,18 +57,18 @@ Module Type LiftWp (Import VS : VlSortsSig).
     λne φ, λ args, φ args (∞ σ).
   Next Obligation. move => i Σ σ n x y Heq args. exact: Heq. Qed.
 
-  Definition stamp_σ_to_type_n `{!dlangG Σ} s σ n (ψ : hoD Σ n) : iProp Σ :=
+  Definition stamp_σ_to_type_n `{dlangG Σ} s σ n (ψ : hoD Σ n) : iProp Σ :=
     ∃ φ : hoEnvD Σ n, s ↝n[ n ] φ ∧ ▷ (ψ ≡ hoEnvD_inst σ φ).
   Notation "s ↗n[ σ , n  ] ψ" := (stamp_σ_to_type_n s σ n ψ) (at level 20): bi_scope.
 
-  Definition leadsto_envD_equiv `{!dlangG Σ} {i} s σ (φ : hoEnvD Σ i) : iProp Σ :=
+  Definition leadsto_envD_equiv `{dlangG Σ} {i} s σ (φ : hoEnvD Σ i) : iProp Σ :=
     ∃ (φ' : hoEnvD Σ i),
       ⌜φ ≡ (λ args ρ, φ' args (∞ σ.|[ρ]))⌝ ∧ s ↝n[ i ] φ'.
   Arguments leadsto_envD_equiv /.
   Notation "s ↝[ σ  ] φ" := (leadsto_envD_equiv s σ φ) (at level 20).
 
   Section mapsto.
-    Context `{!dlangG Σ}.
+    Context `{Hdlang : dlangG Σ}.
 
     Global Instance: Contractive (leadsto_n s n).
     Proof. solve_contractive. Qed.
@@ -173,7 +173,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
     Qed.
 
     Section sem.
-      Context `{Hdlang : !dlangG Σ}.
+      Context `{Hdlang : dlangG Σ}.
       Implicit Types (gφ : gmap stamp (hoEnvD Σ 0)).
 
       Definition wellMappedφ gφ : iProp Σ :=

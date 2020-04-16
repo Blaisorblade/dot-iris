@@ -308,7 +308,7 @@ Section kinds_types.
 End kinds_types.
 
 (** Kinded, Indexed SubTyPing *)
-Definition sstpiK `{!dlangG Σ} {n} i Γ T1 T2 (K : sf_kind Σ n) : iProp Σ :=
+Definition sstpiK `{dlangG Σ} {n} i Γ T1 T2 (K : sf_kind Σ n) : iProp Σ :=
   □∀ ρ, s⟦Γ⟧*ρ → ▷^i K ρ (envApply T1 ρ) (envApply T2 ρ).
 Notation "Γ s⊨ T1 <:[ i  ] T2 ∷ K" := (sstpiK i Γ T1 T2 K)
   (at level 74, i, T1, T2, K at next level).
@@ -321,7 +321,7 @@ Notation "Γ s⊨ T ∷[ i  ] K" := (Γ s⊨ T <:[ i ] T ∷ K)
   (at level 74, T, K at next level).
 
 (* Semantic SubKinding *)
-Definition sSkd `{!dlangG Σ} {n} i Γ (K1 K2 : sf_kind Σ n) : iProp Σ :=
+Definition sSkd `{dlangG Σ} {n} i Γ (K1 K2 : sf_kind Σ n) : iProp Σ :=
   □∀ ρ, s⟦Γ⟧*ρ → ∀ (T1 T2 : hoLtyO Σ n), ▷^i (K1 ρ T1 T2 → K2 ρ T1 T2).
 Notation "Γ s⊨ K1 <∷[ i  ] K2" := (sSkd i Γ K1 K2)
   (at level 74, K1, K2 at next level).
