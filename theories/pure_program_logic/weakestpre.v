@@ -35,9 +35,9 @@ Qed.
 
 Definition wp_def `{irisG Λ Σ} : stuckness → coPset →
    expr Λ → (val Λ → iProp Σ) → iProp Σ := λ _ _, fixpoint wp_pre.
-Definition wp_aux `{irisG Λ Σ} : seal (@wp_def Λ Σ _). by eexists. Qed.
+Definition wp_aux `{irisG Λ Σ} : seal (wp_def (Λ := Λ) (Σ := Σ)). Proof. by eexists. Qed.
 Instance wp' `{irisG Λ Σ} : Wp Λ (iProp Σ) stuckness := wp_aux.(unseal).
-Definition wp_eq `{irisG Λ Σ} : wp = @wp_def Λ Σ _ := wp_aux.(seal_eq).
+Definition wp_eq `{irisG Λ Σ} : wp = wp_def (Λ := Λ) (Σ := Σ) := wp_aux.(seal_eq).
 
 Section wp.
 Context `{irisG Λ Σ}.
