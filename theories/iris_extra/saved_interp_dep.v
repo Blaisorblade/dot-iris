@@ -23,8 +23,12 @@ Section vec.
   Definition vtail (args: vec vl (S n)) : vec vl n :=
     Vector.caseS (λ n _, vec vl n) (λ h n t, t) args.
 
-  Lemma vec_vnil (v : vec vl 0) : v = vnil.
+  Lemma vec_vnil_eta (v : vec vl 0) : v = vnil.
   Proof. by apply vec_0_inv with (P := λ v, v = vnil). Qed.
+
+  Lemma vec_vcons_eta : ∀ args : vec vl (S n),
+    vcons (vhead args) (vtail args) = args.
+  Proof. exact: vec_S_inv. Qed.
 
   (* Manipulation of higher-order semantic types. *)
   Definition vclose (Φ : vec vl 0 -d> A): A := Φ vnil.
@@ -34,7 +38,7 @@ Section vec.
   Global Arguments vopen /.
 
   Lemma vopen_vclose_inv (φ : vec vl 0 -d> A) : vopen (vclose φ) = φ.
-  Proof. apply functional_extensionality_dep => x /=. by rewrite (vec_vnil x). Qed.
+  Proof. apply functional_extensionality_dep => x /=. by rewrite (vec_vnil_eta x). Qed.
 
   Definition vcurry (Φ : vec vl (S n) -d> A) : vl -d> vec vl n -d> A :=
     λ v args, Φ (vcons v args).

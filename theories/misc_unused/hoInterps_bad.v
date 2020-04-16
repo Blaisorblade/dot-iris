@@ -73,14 +73,12 @@ Section saved_dep_use.
       | left Heq => φ' (rew <- [vec vl] Heq in vtail args)
       | right _ => eFalse
       end).
-  Lemma vec_eta {A n} (args : vec A (S n)) : vcons (vhead args) (vtail args) = args.
-  Proof. by dependent destruction args. Qed.
 
   Lemma vcurry_vuncurry n (φ : hoEnvD Σ (S n)) : vuncurry n (vcurry (existT (S n) φ)) = existT (S n) φ.
   Proof.
     rewrite /vuncurry; cbn; destruct n; f_equiv;
       apply FunctionalExtensionality.functional_extensionality_dep => args;
-      by rewrite (decide_left (P := (_ = _)) eq_refl) vec_eta.
+      by rewrite (decide_left (P := (_ = _)) eq_refl) vec_vcons_eta.
   Qed.
 
   Lemma vuncurry_vcurry n (φ : vl → hoEnvD Σ n) :
