@@ -2,7 +2,6 @@ Axioms:
 functional_extensionality_dep : ∀ (A : Type) (B : A → Type) 
                                   (f g : ∀ x : A, B x),
                                   (∀ x : A, f x = g x) → f = g
-JMeq_eq : ∀ (A : Type) (x y : A), x ~= y → x = y
 Axioms:
 functional_extensionality_dep : ∀ (A : Type) (B : A → Type) 
                                   (f g : ∀ x : A, B x),

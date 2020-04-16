@@ -458,18 +458,23 @@ Qed.
 
 Theorem simulation_skeleton_erased_steps {t1 t1' t2 σ σ' } :
   same_skel_tm t1 t1' →
-  rtc erased_step ([t1], σ) ([t2], σ') →
+  rtc L.erased_step ([t1], σ) ([t2], σ') →
   ∃ t2', rtc erased_step ([t1'], σ) ([t2'], σ') ∧ same_skel_tm t2 t2'.
 Proof.
-  intros Hst Hsteps; revert t1' Hst; dependent induction Hsteps; intros ??.
-  by exists t1'; split_and!; try constructor; eauto.
-  destruct y as [l []], σ, σ'.
+  (* XXX Hack. *)
+  have Heq := !!pure_steps_erased'; destruct σ, σ', dummyState.
+  setoid_rewrite <-Heq.
+
+  intros Hst Hsteps; revert t1' Hst.
+  induction Hsteps; intros ??.
+  exists t1'; split_and!; try constructor; eauto.
+  move: H => /pure_step_erased H.
   move: H (H) => [k Hstep] Hestep.
   have [ti ?] := step_inversion Hstep; destruct_and!; simplify_eq.
-  pose proof (simulation_skeleton_erased_step Hst Hestep) as (ti' &Hestep'&?).
-  pose proof IHHsteps as (t2' &?&?) => //.
+  destruct (simulation_skeleton_erased_step Hst Hestep) as (ti' &Hestep'&?).
+  edestruct IHHsteps as (t2' &?&?) => //.
   exists t2'; split_and => //.
-  by eapply rtc_l with (y := ([ti'], _)).
+  by eapply rtc_l with (y := ti'); [apply pure_step_erased|].
 Qed.
 
 Lemma reducible_reducible_no_obs (e : tm) σ:
