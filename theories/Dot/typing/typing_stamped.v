@@ -421,7 +421,4 @@ Section syntyping_lemmas.
         (P3 := λ Γ g T1 i1 T2 i2 _, Γ v⊢ₜ[ g ] T1, i1 <: T2, i2); clear Γ g;
       try solve [econstructor; eauto].
   Qed.
-  Lemma typing_obj_ident_to_typing Γ g e T:
-    Γ s⊢ₜ[ g ] e : T → Γ v⊢ₜ[ g ] e : T.
-  Proof. apply typing_obj_ident_to_typing_mut. Qed.
 End syntyping_lemmas.

@@ -109,7 +109,7 @@ Hint Constructors typed subtype : core.
 Remove Hints iSub_Trans : core.
 Hint Extern 10 => try_once iSub_Trans : core.
 
-Lemma typing_obj_ident_to_typing Γ:
+Lemma typing_obj_ident_to_typing_mut Γ:
   (∀ e T, Γ u⊢ₜ e : T → Γ ⊢ₜ e : T) ∧
   (∀ T1 i1 T2 i2, Γ u⊢ₜ T1, i1 <: T2, i2 → Γ ⊢ₜ T1, i1 <: T2, i2).
 Proof.

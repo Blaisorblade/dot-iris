@@ -196,7 +196,7 @@ Section Example.
   Qed.
     (* Unshelve.
     done.
-    apply typing_obj_ident_to_typing.
+    apply typing_obj_ident_to_typing_mut.
 
     rewrite -(iterate_0 tskip (tv _)).
     iApply (T_Sub _ _ ((μ {@ typeEq "A" (shift T) }))); first last.

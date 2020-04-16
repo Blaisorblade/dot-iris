@@ -499,7 +499,7 @@ Section syntyping_stamping_lemmas.
     ∃ e' g',
     Γ v⊢ₜ[ g' ] e' : T ∧ g ⊆ g' ∧ (safe e' → safe e).
   Proof.
-    intros (e' & g' & HobjI'%typing_obj_ident_to_typing & ? & ?)%
+    intros (e' & g' & HobjI'%typing_obj_ident_to_typing_mut & ? & ?)%
       (stamp_objIdent_typed g).
     exists e', g'; split_and! => //. exact: safe_stamp.
   Qed.
