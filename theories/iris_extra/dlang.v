@@ -205,7 +205,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
         ∃ sγ', ⌜gdom sγ' ≡ gdom gφ ∪ gdom sγ⌝ ∧ allGs sγ' ∧ wellMappedφ gφ.
       Proof.
         elim gφ using map_ind.
-        - iIntros "/=" (H) "Hallsγ !>". iExists sγ; iFrame; iSplit.
+        - iIntros "/=" (Hdom) "Hallsγ !>". iExists sγ; iFrame; iSplit.
           + by rewrite dom_empty left_id.
           + by iApply wellMappedφ_empty.
         - iIntros (s φ gφ' Hsg IH [Hssγ Hdom]%freshMappings_split) "Hown".

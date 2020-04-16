@@ -165,7 +165,7 @@ Qed.
 Lemma erased_step_inversion t1 σ res :
   erased_step ([t1], σ) res →
   ∃ t2, res = ([t2], σ) ∧ L.prim_step t1 σ [] t2 σ [].
-Proof. case: res => ?? [? /step_inversion H]; uniqueState. naive_solver. Qed.
+Proof. case: res => ?? [? /step_inversion Hst]; uniqueState. naive_solver. Qed.
 (*
 Lemma erased_step_inversion1 {t1 thp σ σ'} :
   erased_step ([t1], σ) (thp, σ') →
