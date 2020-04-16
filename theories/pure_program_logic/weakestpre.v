@@ -16,7 +16,7 @@ and is specialized to deterministic languages.
 Class irisG (Λ : language) (Σ : gFunctors) := IrisG {
   irisG_langdet :> LangDet Λ
 }.
-Arguments IrisG {_ _} _.
+Arguments IrisG _ _ {_}.
 Local Notation σ := dummyState.
 
 Definition wp_pre `{irisG Λ Σ}
