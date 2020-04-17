@@ -213,7 +213,7 @@ Arguments spine_s_kind : clear implicits.
 
 
 Section semkinds.
-  Context `{dlangG Σ}.
+  Context `{!dlangG Σ}.
 
   Definition sp_s_kintv (L U : olty Σ 0) : spine_s_kind Σ 0 := SpineSK vnil L U.
   Definition sp_s_kpi {n} (S : olty Σ 0) (K : spine_s_kind Σ n) : spine_s_kind Σ n.+1 :=
@@ -287,7 +287,7 @@ Module HoGenExperiments.
 Import swap_later_impl HkDot2.
 
 Section sec.
-  Context `{dlangG Σ} `{HswapProp: SwapPropI Σ}.
+  Context `{!dlangG Σ} `{HswapProp: SwapPropI Σ}.
 
   (* Unused *)
   Program Definition hLaterN {n} i: hoLtyO Σ n -n> hoLtyO Σ n :=

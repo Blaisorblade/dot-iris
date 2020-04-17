@@ -308,7 +308,7 @@ Section kinds_types.
 End kinds_types.
 
 (** Kinded, Indexed SubTyPing *)
-Definition sstpiK `{!dlangG Σ} {n} i Γ T1 T2 (K : sf_kind Σ n) : iProp Σ :=
+Definition sstpiK `{dlangG Σ} {n} i Γ T1 T2 (K : sf_kind Σ n) : iProp Σ :=
   □∀ ρ, s⟦Γ⟧*ρ → ▷^i K ρ (envApply T1 ρ) (envApply T2 ρ).
 Notation "Γ s⊨ T1 <:[ i  ] T2 ∷ K" := (sstpiK i Γ T1 T2 K)
   (at level 74, i, T1, T2, K at next level).
@@ -321,13 +321,13 @@ Notation "Γ s⊨ T ∷[ i  ] K" := (Γ s⊨ T <:[ i ] T ∷ K)
   (at level 74, T, K at next level).
 
 (* Semantic SubKinding *)
-Definition sSkd `{!dlangG Σ} {n} i Γ (K1 K2 : sf_kind Σ n) : iProp Σ :=
+Definition sSkd `{dlangG Σ} {n} i Γ (K1 K2 : sf_kind Σ n) : iProp Σ :=
   □∀ ρ, s⟦Γ⟧*ρ → ∀ (T1 T2 : hoLtyO Σ n), ▷^i (K1 ρ T1 T2 → K2 ρ T1 T2).
 Notation "Γ s⊨ K1 <∷[ i  ] K2" := (sSkd i Γ K1 K2)
   (at level 74, K1, K2 at next level).
 
 Section gen_lemmas.
-  Context `{dlangG Σ} `{HswapProp: SwapPropI Σ}.
+  Context `{Hdlang : dlangG Σ} `{HswapProp: SwapPropI Σ}.
 
   Local Notation IntoPersistent' P := (IntoPersistent false P P).
 
@@ -344,7 +344,7 @@ Section gen_lemmas.
     (* Time by apply sf_kind_sub_proper => //; f_equiv. *)
     by apply Proper_sfkind; f_equiv.
   Qed.
-  Global Instance: Params (@sstpiK) 4 := {}.
+  Global Instance: Params (@sstpiK) 5 := {}.
 
   Global Instance Proper_sSkd n i :
     Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sSkd (Σ := Σ) (n := n) i).
@@ -352,7 +352,7 @@ Section gen_lemmas.
     rewrite /sSkd => Γ1 Γ2 HΓ K1 K2 HK1 K3 K4 HK2.
     by properness; rewrite (HΓ, HK1, HK2).
   Qed.
-  Global Instance: Params (@sSkd) 4 := {}.
+  Global Instance: Params (@sSkd) 5 := {}.
 
   Lemma shift_sstpiK S Γ {n i} (T1 T2 : olty Σ n) K :
     Γ s⊨ T1 <:[ i ] T2 ∷ K -∗
@@ -615,7 +615,7 @@ Notation "K1 ~sKd[ p := q  ]* K2" :=
   (sem_kind_path_repl p q K1 K2) (at level 70).
 
 Section dot_types.
-  Context `{dlangG Σ} `{HswapProp: SwapPropI Σ}.
+  Context `{!dlangG Σ} `{HswapProp: SwapPropI Σ}.
 
   Program Definition kpSubstOne {n} p (K : sf_kind Σ n) : sf_kind Σ n :=
     SfKind
@@ -747,7 +747,7 @@ Section dot_types.
   (** [cTMem] and [cVMem] are full [clty]. *)
   Definition cTMemK {n} l (K : sf_kind Σ n) : clty Σ := ldlty2clty (oLDTMemK l K).
   (** Here [n]'s argument to oSel should be explicit. *)
-  Global Arguments oSel {_ _} n p l args ρ : rename.
+  Global Arguments oSel {_ _ _} n p l args ρ : rename.
 
   Lemma sKStp_TMem {n} Γ l (K1 K2 : sf_kind Σ n) i :
     Γ s⊨ K1 <∷[ i ] K2 -∗
@@ -841,7 +841,7 @@ Fixpoint s_kind_to_sf_kind {Σ n} (K : s_kind Σ n) : sf_kind Σ n :=
 Coercion s_kind_to_sf_kind : s_kind >-> sf_kind.
 
 Section derived.
-  Context `{Hdlang : dlangG Σ} `{HswapProp : SwapPropI Σ}.
+  Context `{Hdlang : !dlangG Σ} `{HswapProp : SwapPropI Σ}.
 
   (* XXX Missing: Proper oShift, Proper oTAppV, Proper ho_intv *)
 
@@ -995,7 +995,7 @@ Section derived.
 End derived.
 
 Section examples.
-  Context `{dlangG Σ} `{HswapProp: SwapPropI Σ}.
+  Context `{!dlangG Σ} `{HswapProp: SwapPropI Σ}.
   Import DBNotation dot_lty.
 
   Definition oId := oLam (oSel 0 x0 "A").
@@ -1013,7 +1013,7 @@ Section examples.
 End examples.
 
 Section dot_experimental_kinds.
-  Context `{dlangG Σ}.
+  Context `{!dlangG Σ}.
 
   (* WTF why am I proving this? To support more kinds? *)
   (* Make this derivable from sth. like.

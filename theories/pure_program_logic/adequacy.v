@@ -29,7 +29,7 @@ Proof.
 Qed. *)
 
 Section adequacy.
-Context `{!irisG Λ Σ}.
+Context `{Hiris : irisG Λ Σ}.
 
 Implicit Types e : expr Λ.
 Implicit Types P Q : iProp Σ.

@@ -13,10 +13,10 @@ precondition: it uses no (basic/fancy) updates, does not supports Iris invariant
 and is specialized to deterministic languages.
 *)
 
-Class irisG (Λ : language) (Σ : gFunctors) := IrisG {
+Class irisG (Λ : language) (Σ : gFunctors) `{InhabitedState Λ} := IrisG {
   irisG_langdet :> LangDet Λ
 }.
-Arguments IrisG _ _ {_}.
+Arguments IrisG _ _ {_ _}.
 Local Notation σ := dummyState.
 
 Definition wp_pre `{irisG Λ Σ}

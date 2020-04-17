@@ -230,7 +230,7 @@ Section SemTypes.
   Global Instance sptp_persistent : IntoPersistent' (sptp p i   Γ T) | 0 := _.
 End SemTypes.
 
-Global Instance: Params (@oAll) 2 := {}.
+Global Instance: Params (@oAll) 3 := {}.
 
 (* Backward compatibility. *)
 Notation "D*⟦ T ⟧" := (ldlty_car LD⟦ T ⟧).
@@ -365,7 +365,7 @@ Section Propers.
   Global Instance Proper_sstpi_flip i j :
     Proper ((≡) --> (≡) --> (≡) --> flip (≡)) (sstpi i j).
   Proof. apply: flip_proper_4. Qed.
-  Global Instance: Params (@sstpi) 4 := {}.
+  Global Instance: Params (@sstpi) 5 := {}.
 
 
   Global Instance Proper_setp e : Proper ((≡) ==> (≡) ==> (≡)) (setp e).
@@ -376,7 +376,7 @@ Section Propers.
   Global Instance Proper_setp_flip e :
     Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (setp e).
   Proof. apply: flip_proper_3. Qed.
-  Global Instance: Params (@setp) 3 := {}.
+  Global Instance: Params (@setp) 4 := {}.
 
 
   Global Instance Proper_sdtp l d : Proper ((≡) ==> (≡) ==> (≡)) (sdtp l d).
@@ -386,14 +386,14 @@ Section Propers.
   Qed.
   Global Instance Proper_sdtp_flip l d : Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sdtp l d).
   Proof. apply: flip_proper_3. Qed.
-  Global Instance: Params (@sdtp) 4 := {}.
+  Global Instance: Params (@sdtp) 5 := {}.
 
 
   Global Instance Proper_sptp p i : Proper ((≡) ==> (≡) ==> (≡)) (sptp p i).
   Proof. solve_proper_ho. Qed.
   Global Instance Proper_sptp_flip p i : Proper ((≡) --> (≡) --> flip (≡)) (sptp p i).
   Proof. apply: flip_proper_3. Qed.
-  Global Instance: Params (@sptp) 4 := {}.
+  Global Instance: Params (@sptp) 5 := {}.
 End Propers.
 
 Section defs.
