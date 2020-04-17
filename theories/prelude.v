@@ -53,8 +53,8 @@ Section vls_subst_instances.
 
   Global Instance hsubst_lemmas_vls: HSubstLemmas vl (list vl).
   Proof.
-    split; trivial; intros; rewrite /hsubst;
-      induction s; asimpl; by f_equal.
+    split => // [|theta eta] vs; rewrite /hsubst;
+      elim: vs => [//|v vs /= ->]; f_equal; autosubst.
   Qed.
 End vls_subst_instances.
 
@@ -72,8 +72,8 @@ Section list_hsubst_instances.
 
   Global Instance hsubst_lemmas_list: HSubstLemmas vl (list X).
   Proof.
-    split; trivial; intros; rewrite /hsubst;
-      induction s; asimpl; by f_equal.
+    split => // [|theta eta] vs; rewrite /hsubst;
+      elim: vs => [//|v vs /= ->]; f_equal; autosubst.
   Qed.
   Section pair_instances.
     Context `{Inhabited A}.
@@ -94,13 +94,13 @@ Section list_hsubst_instances.
     Global Instance hsubst_lemmas_pair: HSubstLemmas vl (A * X).
     Proof.
       split; intros; rewrite /hsubst /pair_hsubst /mapsnd /=;
-        repeat case_match; simplify_eq; asimpl; by [].
+        repeat case_match; simplify_eq; autosubst.
     Qed.
     Definition list_pair_rename_fold sb (axs: list (A * X)): map (mapsnd (rename sb)) axs = rename sb axs := eq_refl.
 
     Lemma list_pair_swap_snd_rename r axs: map snd (rename r axs) = map (rename r) (map snd axs).
     Proof.
-      rewrite !map_map; elim: axs => [//| [a x] axs IHaxs /=]. by f_equal.
+      rewrite !map_map. by elim: axs => [| [a x] axs /= ->].
     Qed.
   End pair_instances.
 End list_hsubst_instances.
@@ -137,7 +137,7 @@ Section Autosubst_Lemmas.
   Lemma iter_up (m x : nat) (f : var → term) :
     upn m f x = if lt_dec x m then ids x else rename (+m) (f (x - m)).
   Proof.
-    elim: m x => [|m IH] [|x]; case_match => //; asimpl => //; rewrite IH;
+    elim: m x => [|m IH] [|x]; case_match => //; asimpl; rewrite // IH;
       case_match; (omega || autosubst).
   Qed.
 
@@ -147,7 +147,8 @@ Section Autosubst_Lemmas.
 End Autosubst_Lemmas.
 
 Inductive ForallT {A : Type} (P : A → Type) : list A → Type :=
-    ForallT_nil : ForallT P [] | ForallT_cons : ∀ (x : A) (l : list A), P x → ForallT P l → ForallT P (x :: l).
+| ForallT_nil : ForallT P []
+| ForallT_cons x xs : P x → ForallT P xs → ForallT P (x :: xs).
 Hint Constructors ForallT : core.
 
 (** To be able to reuse lemmas on Forall, show that ForallT is equivalent to Forall for predicates in Prop.
@@ -156,5 +157,5 @@ Hint Constructors ForallT : core.
  *)
 Lemma ForallT_Forall {X} (P: X → Prop) xs: (ForallT P xs → Forall P xs) * (Forall P xs → ForallT P xs).
 Proof.
-  split; (elim: xs => [|x xs IHxs] H; constructor; [|apply IHxs]; by inversion H).
+  split; (elim: xs => [|x xs IH] H; constructor; [|apply IH]; by inversion H).
 Qed.
