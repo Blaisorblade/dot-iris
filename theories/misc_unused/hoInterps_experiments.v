@@ -326,7 +326,6 @@ Definition sSkd `{!dlangG Σ} {n} i Γ (K1 K2 : sf_kind Σ n) : iProp Σ :=
 Notation "Γ s⊨ K1 <∷[ i  ] K2" := (sSkd i Γ K1 K2)
   (at level 74, K1, K2 at next level).
 
-(* XXX *)
 Section gen_lemmas.
   Context `{dlangG Σ} `{HswapProp: SwapPropI Σ}.
 
