@@ -370,7 +370,7 @@ Lemma nclosed_ren_rev_var i j k n:
   nclosed_vl (ids n).[upn k (ren (+j))] (i + j + k) → nclosed_vl (ids n) (i + k).
 Proof.
   rewrite !id_subst iter_up !rename_subst id_subst /=.
-  case_match; rewrite /= !nclosed_vl_ids_equiv; omega.
+  case_match; rewrite /= !nclosed_vl_ids_equiv; lia.
 Qed.
 
 (* Rewrite lemmas to be faster than asimpl: *)
