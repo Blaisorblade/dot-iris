@@ -12,14 +12,6 @@ Set Default Proof Using "Type".
 (** Enrico (Tassi?)'s trick for tc resolution in [have]. Doesn't conflict with infix [!!]. *)
 Notation "!! x" := (ltac:(refine x)) (at level 100, only parsing).
 
-(* Inspired by stdpp's [destruct_and?/!]. *)
-Tactic Notation "destruct_or" "?" :=
-  repeat match goal with
-  | H : _ ∨ _ |- _ => destruct H
-  | H : Is_true (_ || _) |- _ => apply orb_True in H; destruct H
-  end.
-Tactic Notation "destruct_or" "!" := progress destruct_or?.
-
 (*
   If [prelude] and [Program] are imported after Iris modules,
   side effects from [iris.algebra.base] and [stdpp.base], including
