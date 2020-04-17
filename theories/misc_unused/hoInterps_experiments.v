@@ -327,7 +327,7 @@ Notation "Γ s⊨ K1 <∷[ i  ] K2" := (sSkd i Γ K1 K2)
   (at level 74, K1, K2 at next level).
 
 Section gen_lemmas.
-  Context `{dlangG Σ} `{HswapProp: SwapPropI Σ}.
+  Context `{Hdlang : dlangG Σ} `{HswapProp: SwapPropI Σ}.
 
   Local Notation IntoPersistent' P := (IntoPersistent false P P).
 
@@ -615,7 +615,7 @@ Notation "K1 ~sKd[ p := q  ]* K2" :=
   (sem_kind_path_repl p q K1 K2) (at level 70).
 
 Section dot_types.
-  Context `{dlangG Σ} `{HswapProp: SwapPropI Σ}.
+  Context `{!dlangG Σ} `{HswapProp: SwapPropI Σ}.
 
   Program Definition kpSubstOne {n} p (K : sf_kind Σ n) : sf_kind Σ n :=
     SfKind
@@ -841,7 +841,7 @@ Fixpoint s_kind_to_sf_kind {Σ n} (K : s_kind Σ n) : sf_kind Σ n :=
 Coercion s_kind_to_sf_kind : s_kind >-> sf_kind.
 
 Section derived.
-  Context `{Hdlang : dlangG Σ} `{HswapProp : SwapPropI Σ}.
+  Context `{Hdlang : !dlangG Σ} `{HswapProp : SwapPropI Σ}.
 
   (* XXX Missing: Proper oShift, Proper oTAppV, Proper ho_intv *)
 
@@ -995,7 +995,7 @@ Section derived.
 End derived.
 
 Section examples.
-  Context `{dlangG Σ} `{HswapProp: SwapPropI Σ}.
+  Context `{!dlangG Σ} `{HswapProp: SwapPropI Σ}.
   Import DBNotation dot_lty.
 
   Definition oId := oLam (oSel 0 x0 "A").
@@ -1013,7 +1013,7 @@ Section examples.
 End examples.
 
 Section dot_experimental_kinds.
-  Context `{dlangG Σ}.
+  Context `{!dlangG Σ}.
 
   (* WTF why am I proving this? To support more kinds? *)
   (* Make this derivable from sth. like.
