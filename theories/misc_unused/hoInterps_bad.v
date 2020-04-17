@@ -150,7 +150,7 @@ Should we delay K?*)
 (* Definition sktp `{dlangG Σ} {n} i Γ T (K : sf_kind Σ n) : iProp Σ :=
   □∀ ρ, s⟦Γ⟧*ρ → ▷^i K ρ (envApply (oLaterN i T) ρ). *)
 (* XXX What delays are wanted here? *)
-(* Definition ssktp `{dlangG Σ} {n} i Γ (K1 K2 : sf_kind Σ n) : iProp Σ :=
+(* Definition sSkd `{dlangG Σ} {n} i Γ (K1 K2 : sf_kind Σ n) : iProp Σ :=
   □∀ ρ T, s⟦Γ⟧*ρ → ▷^i K1 ρ (envApply T ρ) → ▷^i K2 ρ (envApply T ρ). *)
 
 End HoSemTypes2.
@@ -289,6 +289,31 @@ Import swap_later_impl HkDot2.
 Section sec.
   Context `{dlangG Σ} `{HswapProp: SwapPropI Σ}.
 
+  (* Unused *)
+  Program Definition hLaterN {n} i: hoLtyO Σ n -n> hoLtyO Σ n :=
+    λne T, HoLty (λI args v, ▷^i T args v).
+  Next Obligation. solve_proper_ho. Qed.
+
+  (* This is not a semantic kind: Transitivity fails. *)
+  (* Program Definition kStarIJ i j : sf_kind Σ 0 :=
+    SfKind
+      (SrKind (λI ρ T1 T2,
+      sf_star ρ (hLaterN i T1) (hLaterN j T2))) _ _ _ _ _.
+  Next Obligation.
+    intros * T1 T2 HT U1 U2 HU.
+    by apply sf_kind_sub_ne_2; apply hLaterN.
+    (* by f_equiv; f_equiv. *)
+  Qed.
+  Next Obligation.
+    iIntros "* #Heq"; iSplit; iIntros "#Hle"; rewrite !sf_star_eq /=;
+    iIntros "!>" (v) "#H"; iApply "Heq"; iApply "Hle"; iApply "Heq"; iApply "H".
+  Qed.
+  Next Obligation.
+    iIntros "* H1 H2".
+    rewrite !sf_star_eq.
+    iApply (subtype_trans with "H1").
+  Abort. *)
+
   Lemma subtyping_spec i j Γ T1 T2 ρ :
     Γ s⊨ T1, i <: T2, j -∗
     s⟦ Γ ⟧* ρ -∗
@@ -312,7 +337,7 @@ Section sec.
     Γ s⊨ L2, i <: L1, i -∗
     Γ s⊨ U1, i <: U2, i -∗
     Γ s⊨ sf_kintv L1 U1 <∷[ i ] sf_kintv L2 U2.
-  Proof using HswapProp. by rewrite -!sstpkD_star_eq_sstp -sSkd_Intv. Qed.
+  Proof using HswapProp. by rewrite -!sstpiK_star_eq_sstp -sSkd_Intv. Qed.
 
   Lemma sK_Star' Γ (T : olty Σ 0) i :
     ⊢ Γ s⊨ T ∷[ i ] sf_star.
@@ -325,7 +350,7 @@ Section sec.
     Γ s⊨ S2, i <: S1, i -∗
     oLaterN i (shift S2) :: Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ sf_kpi S1 K1 <∷[ i ] sf_kpi S2 K2.
-  Proof using HswapProp. by rewrite -!sstpkD_star_eq_sstp -sSkd_Pi. Qed.
+  Proof using HswapProp. by rewrite -!sstpiK_star_eq_sstp -sSkd_Pi. Qed.
 
   Inductive htype : nat → Type :=
     | TWrap : ty → htype 0
