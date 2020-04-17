@@ -41,10 +41,13 @@ Inside the `Dot` folder:
 * `fundamental.v`: prove fundamental theorem, adequacy and type safety.
 
 ## Installation
-### Iris version
+### Coq/Iris version
 
-Install the Coq and Iris version specified in `opam`, for instance via
-`opam install coq.<insert Coq version here> coq-iris.<insert version here>`.
+The supported Coq and Iris versions are specified in `opam`; we currently assume
+Coq 8.11.1 (and we know of bugs in both 8.10.2 and 8.11.0).
+
+Install those exact versions, for instance via
+`opam install coq.8.11.1 coq-iris.<insert version here>`.
 
 ### To use opam 2.0
 
