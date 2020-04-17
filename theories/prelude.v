@@ -29,14 +29,15 @@ Notation shift chi := (shiftN 1 chi).
 Notation shiftV v := (shiftVN 1 v).
 
 (* Not an instance because it should *not* be used automatically. *)
-Definition inh_ids `{Inhabited X}: Ids X := λ _, inhabitant.
-Instance list_ids {X}: Ids (list X) := inh_ids.
+Definition inh_ids `{Inhabited X} : Ids X := λ _, inhabitant.
+Instance list_ids {X} : Ids (list X) := inh_ids.
 
 Section rename_instances.
   Context `{Ids X} `{Rename X}.
-  Global Instance list_rename: Rename (list X) :=
+  Global Instance list_rename : Rename (list X) :=
     λ sb, map (rename sb).
-  Definition list_rename_fold (sb : var → var) (xs : list X) : map (rename sb) xs = rename sb xs := eq_refl.
+  Definition list_rename_fold (sb : var → var) (xs : list X) :
+    map (rename sb) xs = rename sb xs := eq_refl.
   (* Hint Rewrite @list_rename_fold : autosubst. *)
 End rename_instances.
 
@@ -44,14 +45,15 @@ Section vls_subst_instances.
   Context `{Ids vl} `{Subst vl} `{SubstLemmas vl}.
   Set Default Proof Using "Type*".
 
-  Global Instance vls_hsubst: HSubst vl (list vl) :=
+  Global Instance vls_hsubst : HSubst vl (list vl) :=
     λ sb, map (subst sb).
   Global Arguments vls_hsubst /.
 
-  Definition vls_subst_fold (sb : var → vl) (vs : list vl) : map (subst sb) vs = hsubst sb vs := eq_refl.
+  Definition vls_subst_fold (sb : var → vl) (vs : list vl) :
+    map (subst sb) vs = hsubst sb vs := eq_refl.
   Hint Rewrite @vls_subst_fold : autosubst.
 
-  Global Instance hsubst_lemmas_vls: HSubstLemmas vl (list vl).
+  Global Instance hsubst_lemmas_vls : HSubstLemmas vl (list vl).
   Proof.
     split => // [|theta eta] vs; rewrite /hsubst;
       elim: vs => [//|v vs /= ->]; f_equal; autosubst.
@@ -60,52 +62,58 @@ End vls_subst_instances.
 
 Section list_hsubst_instances.
   Context `{Ids vl} `{Subst vl}.
-  Context `{Ids X} `{Rename X} `{HSubst vl X} {hsl: HSubstLemmas vl X}.
+  Context `{Ids X} `{Rename X} `{HSubst vl X} {hsl : HSubstLemmas vl X}.
   Set Default Proof Using "Type*".
 
-  Global Instance list_hsubst: HSubst vl (list X) :=
+  Global Instance list_hsubst : HSubst vl (list X) :=
     λ sb, map (hsubst sb).
   Global Arguments list_hsubst /.
 
-  Definition list_hsubst_fold sb (xs : list X) : map (hsubst sb) xs = hsubst sb xs := eq_refl.
+  Definition list_hsubst_fold sb (xs : list X) :
+    map (hsubst sb) xs = hsubst sb xs := eq_refl.
   Hint Rewrite @list_hsubst_fold : autosubst.
 
-  Global Instance hsubst_lemmas_list: HSubstLemmas vl (list X).
+  Global Instance hsubst_lemmas_list : HSubstLemmas vl (list X).
   Proof.
     split => // [|theta eta] vs; rewrite /hsubst;
       elim: vs => [//|v vs /= ->]; f_equal; autosubst.
   Qed.
   Section pair_instances.
     Context `{Inhabited A}.
-    Implicit Types (x: X) (a: A).
+    Implicit Types (x : X) (a : A).
 
     (** [Sort X → Sort (A, X)] *)
-    Definition mapsnd `(f: B → C) : A * B → A * C := λ '(a, b), (a, f b).
-    Global Instance pair_ids: Ids (A * X) := λ n, (inhabitant, ids n).
-    Global Instance pair_rename: Rename (A * X) :=
+    Definition mapsnd `(f : B → C) : A * B → A * C := λ '(a, b), (a, f b).
+    Global Instance pair_ids : Ids (A * X) := λ n, (inhabitant, ids n).
+    Global Instance pair_rename : Rename (A * X) :=
       λ sb, mapsnd (rename sb).
-    Global Instance pair_hsubst: HSubst vl (A * X) :=
+    Global Instance pair_hsubst : HSubst vl (A * X) :=
       λ sb, mapsnd (hsubst sb).
     Global Arguments pair_hsubst /.
 
-    Definition pair_rename_fold sb (ax: A * X): mapsnd (rename sb) ax = rename sb ax := eq_refl.
-    Definition pair_hsubst_fold sb (ax: A * X): mapsnd (hsubst sb) ax = hsubst sb ax := eq_refl.
+    Definition pair_rename_fold sb (ax : A * X) :
+      mapsnd (rename sb) ax = rename sb ax := eq_refl.
+    Definition pair_hsubst_fold sb (ax : A * X) :
+      mapsnd (hsubst sb) ax = hsubst sb ax := eq_refl.
 
-    Global Instance hsubst_lemmas_pair: HSubstLemmas vl (A * X).
+    Global Instance hsubst_lemmas_pair : HSubstLemmas vl (A * X).
     Proof.
       split; intros; rewrite /hsubst /pair_hsubst /mapsnd /=;
         repeat case_match; simplify_eq; autosubst.
     Qed.
-    Definition list_pair_rename_fold sb (axs: list (A * X)): map (mapsnd (rename sb)) axs = rename sb axs := eq_refl.
+    Definition list_pair_rename_fold sb (axs : list (A * X)) :
+      map (mapsnd (rename sb)) axs = rename sb axs := eq_refl.
 
-    Lemma list_pair_swap_snd_rename r axs: map snd (rename r axs) = map (rename r) (map snd axs).
+    Lemma list_pair_swap_snd_rename r axs :
+      map snd (rename r axs) = map (rename r) (map snd axs).
     Proof.
       rewrite !map_map. by elim: axs => [| [a x] axs /= ->].
     Qed.
   End pair_instances.
 End list_hsubst_instances.
 
-Definition list_pair_hsubst_fold {A} `{HSubst vl X} sb (xs: list (A * X)): map (mapsnd (hsubst sb)) xs = hsubst sb xs := eq_refl.
+Definition list_pair_hsubst_fold {A} `{HSubst vl X} sb (xs : list (A * X)) :
+  map (mapsnd (hsubst sb)) xs = hsubst sb xs := eq_refl.
 
 Hint Rewrite @vls_subst_fold @list_hsubst_fold : autosubst.
 (* The hints in the previous line are needed; for the next ones, that's less clear. *)
@@ -119,7 +127,7 @@ Hint Rewrite @list_pair_rename_fold @list_pair_hsubst_fold : autosubst.
 Hint Mode HSubst - + : typeclass_instances.
 (* That Hint stops that. *)
 (* Fail Goal ∀ s x, x.|[s] = x. *)
-(* Goal ∀ s (x: ty) , x.|[s] = x. Abort. *)
+(* Goal ∀ s (x : ty), x.|[s] = x. Abort. *)
 
 Lemma iterate_comp {X} (f : X → X) n m x :
   iterate f n (iterate f m x) = iterate f (n + m) x.
@@ -141,7 +149,7 @@ Section Autosubst_Lemmas.
       case_match; (omega || autosubst).
   Qed.
 
-  Lemma upn_comp n m f: upn n (upn m f) = upn (n + m) f.
+  Lemma upn_comp n m f : upn n (upn m f) = upn (n + m) f.
   Proof. apply iterate_comp. Qed.
 
 End Autosubst_Lemmas.
@@ -155,7 +163,8 @@ Hint Constructors ForallT : core.
     The proof is a bit subtler than you'd think because it can't look into Prop
     to produce proof-relevant part of the result (and that's why I can't inversion until very late.
  *)
-Lemma ForallT_Forall {X} (P: X → Prop) xs: (ForallT P xs → Forall P xs) * (Forall P xs → ForallT P xs).
+Lemma ForallT_Forall {X} (P : X → Prop) xs :
+  (ForallT P xs → Forall P xs) * (Forall P xs → ForallT P xs).
 Proof.
   split; (elim: xs => [|x xs IH] H; constructor; [|apply IH]; by inversion H).
 Qed.
