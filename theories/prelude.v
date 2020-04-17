@@ -134,14 +134,13 @@ Section Autosubst_Lemmas.
           {rename_term : Rename term} {subst_term : Subst term}
           {subst_lemmas_term : SubstLemmas term}.
 
+  (* lia fails here, because some inequalities are used
+      in other hypotheses. *)
   Lemma iter_up (m x : nat) (f : var → term) :
     upn m f x = if lt_dec x m then ids x else rename (+m) (f (x - m)).
   Proof.
-    revert x; induction m as [|m IH]=> -[|x];
-      case_match => //; asimpl; rewrite // IH; case_match; asimpl.
-    (* lia fails here, because some inequalities are used
-       in other hypotheses. *)
-    all: by [|omega].
+    elim: m x => [|m IH] [|x]; case_match => //; asimpl => //; rewrite IH;
+      case_match; (omega || autosubst).
   Qed.
 
   Lemma upn_comp n m f: upn n (upn m f) = upn (n + m) f.
