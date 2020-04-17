@@ -129,6 +129,12 @@ Hint Mode HSubst - + : typeclass_instances.
 (* Fail Goal ∀ s x, x.|[s] = x. *)
 (* Goal ∀ s (x: ty) , x.|[s] = x. Abort. *)
 
+Lemma iterate_comp {X} (f : X → X) n m x :
+  iterate f n (iterate f m x) = iterate f (n + m) x.
+Proof.
+  by elim: n m => [//|n IHn] m; rewrite iterate_Sr -iterate_S /= -plusnS.
+Qed.
+
 Section Autosubst_Lemmas.
   Context {term : Type} {ids_term : Ids term}
           {rename_term : Rename term} {subst_term : Subst term}
@@ -144,11 +150,7 @@ Section Autosubst_Lemmas.
   Qed.
 
   Lemma upn_comp n m f: upn n (upn m f) = upn (n + m) f.
-  Proof.
-    revert m; induction n => m; first done.
-    rewrite -fold_upn_up fold_up_upn; simpl.
-    replace (S (n + m)) with (n + S m) by lia; auto.
-  Qed.
+  Proof. apply iterate_comp. Qed.
 
 End Autosubst_Lemmas.
 
