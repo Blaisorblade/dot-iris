@@ -350,7 +350,7 @@ Section sec.
       | s_kintv φ1 φ2 => sf_kintv φ1 φ2
       | s_kpi _ _ => _
       end
-    | S n => λ k, match k with
+    | n.+1 => λ k, match k with
       | s_kintv φ1 φ2 => _
       | s_kpi φ1 k' =>
         sf_kpi φ1 (sem_program (rew _ in k'))

@@ -4,6 +4,9 @@ variable.*)
 Notation succn := Datatypes.S.
 Notation predn := Peano.pred.
 
+(* Enable using S in pattern matching by shadowing S. *)
+Definition S := S.
+
 Notation "n .+1" := (succn n) (at level 2, left associativity,
   format "n .+1") : nat_scope.
 Notation "n .+2" := n.+1.+1 (at level 2, left associativity,
