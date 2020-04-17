@@ -64,7 +64,7 @@ End NoSwapVariants.
 (** These typing lemmas can be derived syntactically.
  But I had written semantic proofs first, and they might help. *)
 Section AlsoSyntactically.
-  Context `{HdlangG: dlangG Σ}.
+  Context `{HdlangG: !dlangG Σ}.
 
   (* Also derivable syntactically. *)
   Lemma singleton_Mu_1 {Γ p T i T'} (Hrepl : T .Tp[ p /]~ T') :
@@ -99,7 +99,7 @@ End AlsoSyntactically.
 
 (* Additional typing lemmas that *)
 Section NotUsed.
-  Context `{HdlangG: dlangG Σ}.
+  Context `{HdlangG: !dlangG Σ}.
 
   (* Derivable *)
   Lemma T_All_I {Γ} T1 T2 e:
@@ -116,7 +116,7 @@ From D.Dot.examples Require scalaLib.
 Import fundamental.
 
 Section Example.
-  Context `{HdlangG: dlangG Σ} `{SwapPropI Σ}.
+  Context `{HdlangG: !dlangG Σ} `{SwapPropI Σ}.
   Set Default Proof Using "Type*".
   Import exampleInfra typingExInfra fundamental typingStamping scalaLib.
 
@@ -221,7 +221,6 @@ Section Example.
       iApply P_Val.
       iApply (packTV_semTyped with "Hs"); stcrush.
     }
-    Arguments T_All_Ex {_ _ _ _ _ _ _}.
     iApply (T_All_Ex (v2 := v2) (T1 := pv (packTV 0 s0) @; "A") (T2 := TSing p0)); first last.
     iApply (T_Sub (i := 0) with "Hv2 Hsub").
     iApply T_All_E; first last.
@@ -309,7 +308,7 @@ Section Example.
 End Example.
 
 Section Sec.
-  Context `{HdlangG: dlangG Σ}.
+  Context `{HdlangG: !dlangG Σ}.
 
   (* Subsumed by transitivity. *)
   (* Global Instance: Proper (flip ctx_sub ==> ctx_sub ==> impl) ctx_sub.

@@ -43,7 +43,7 @@ Section hoas.
 End hoas.
 
 Section semExample.
-Context `{HdlangG: dlangG Σ} `{HswapProp : !SwapPropI Σ}.
+Context `{HdlangG: !dlangG Σ} `{HswapProp : !SwapPropI Σ}.
 (** FromPDotPaper *)
 
 Definition typeRefTBody : ty := {@

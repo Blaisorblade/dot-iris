@@ -232,10 +232,6 @@ End SemTypes.
 
 Global Instance: Params (@oAll) 2 := {}.
 
-Section clty_defs.
-  Context `{dlangG Σ}.
-End clty_defs.
-
 (* Backward compatibility. *)
 Notation "D*⟦ T ⟧" := (ldlty_car LD⟦ T ⟧).
 
@@ -438,9 +434,9 @@ Notation "⟦ T ⟧" := (oClose V⟦ T ⟧).
 Import dlang_adequacy.
 
 Theorem s_adequacy_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} {e Ψ}
-  (τ : ∀ `{dlangG Σ}, olty Σ 0)
+  (τ : ∀ `{!dlangG Σ}, olty Σ 0)
   (Himpl : ∀ (Hdlang: dlangG Σ) v, oClose τ ids v -∗ ⌜Ψ v⌝)
-  (Hlog : ∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] s⊨ e : τ):
+  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), allGs ∅ ==∗ [] s⊨ e : τ):
   adequate e (λ v, Ψ v).
 Proof.
   eapply (adequacy_dlang _); [apply Himpl | iIntros (??) "Hgs"].
@@ -450,18 +446,18 @@ Qed.
 
 Theorem adequacy_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} {e Ψ T}
   (Himpl : ∀ (Hdlang: dlangG Σ) v, V⟦ T ⟧ vnil ids v -∗ ⌜Ψ v⌝)
-  (Hlog : ∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T):
+  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T):
   adequate e (λ v, Ψ v).
 Proof. exact: (s_adequacy_dot_sem Σ (λ _, V⟦T⟧)). Qed.
 
 Corollary s_safety_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} {e}
-  (τ : ∀ `{dlangG Σ}, olty Σ 0)
-  (Hwp : ∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] s⊨ e : τ):
+  (τ : ∀ `{!dlangG Σ}, olty Σ 0)
+  (Hwp : ∀ `{!dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] s⊨ e : τ):
   safe e.
 Proof. apply adequate_safe, (s_adequacy_dot_sem Σ τ), Hwp; naive_solver. Qed.
 
 Corollary safety_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} {e T}
-  (Hwp : ∀ `{dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T):
+  (Hwp : ∀ `{!dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T):
   safe e.
 Proof. exact: (s_safety_dot_sem Σ (λ _, V⟦T⟧)). Qed.
 
@@ -494,8 +490,8 @@ Proof.
   eapply (@soundness (iResUR Σ) _ i).
   apply (bupd_plain_soundness _).
   iMod (gen_iheap_init (L := stamp) ∅) as (hG) "Hgs".
-  set (DLangΣ := DLangG Σ _ hG _).
-  iMod (@transfer_empty _ DLangΣ Vs⟦ g ⟧ with "Hgs") as "Hgs".
+  set (DLangΣ := DLangG Σ).
+  iMod (transfer_empty (Hdlang := DLangΣ) Vs⟦ g ⟧ with "Hgs") as "Hgs".
   iApply ipwp_terminates.
   iApply (Hwp DLangΣ with "Hgs").
 Qed.

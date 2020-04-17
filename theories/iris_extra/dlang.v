@@ -39,6 +39,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
     dlangG_interpNames :> gen_iheapG stamp gname Σ;
     dlangG_langdet :> LangDet dlang_lang;
   }.
+  Arguments DLangG _ {_ _ _}.
 
   Instance dlangG_irisG `{dlangG Σ} : irisG dlang_lang Σ := {
     irisG_langdet := _;
@@ -172,7 +173,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
     Qed.
 
     Section sem.
-      Context `{!dlangG Σ}.
+      Context `{Hdlang : !dlangG Σ}.
       Implicit Types (gφ : gmap stamp (hoEnvD Σ 0)).
 
       Definition wellMappedφ gφ : iProp Σ :=
@@ -205,7 +206,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
         ∃ sγ', ⌜gdom sγ' ≡ gdom gφ ∪ gdom sγ⌝ ∧ allGs sγ' ∧ wellMappedφ gφ.
       Proof.
         elim gφ using map_ind.
-        - iIntros "/=" (H) "Hallsγ !>". iExists sγ; iFrame; iSplit.
+        - iIntros "/=" (Hdom) "Hallsγ !>". iExists sγ; iFrame; iSplit.
           + by rewrite dom_empty left_id.
           + by iApply wellMappedφ_empty.
         - iIntros (s φ gφ' Hsg IH [Hssγ Hdom]%freshMappings_split) "Hown".
@@ -264,7 +265,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
     Proof.
       apply (wp_adequacy (Σ := Σ) (Λ := dlang_lang) e Ψ) => /=.
       iMod (gen_iheap_init (L := stamp) ∅) as (hG) "Hgs".
-      set (DLangΣ := DLangG Σ _ hG _).
+      set (DLangΣ := DLangG Σ).
       iMod (Hwp DLangΣ with "Hgs") as "Hwp".
       iIntros "!>".
       iApply (wp_wand with "Hwp"). by iIntros (v); iApply Himpl.

@@ -80,7 +80,7 @@ Local Open Scope Z_scope.
     but very useful for examples. *)
 Section helpers.
 
-  Context `{HdlangG: dlangG Σ}.
+  Context `{HdlangG: !dlangG Σ}.
 
   Lemma alloc {s sγ} φ : sγ !! s = None → allGs sγ ==∗ s ↝n[ 0 ] φ.
   Proof.
@@ -144,7 +144,7 @@ Local Hint Constructors NoDup : core.
 
 Section s_is_pos.
 
-Context `{HdlangG: dlangG Σ}.
+Context `{HdlangG: !dlangG Σ}.
 Context (s: stamp).
 
 Definition pos v := ∃ n, v = vint n ∧ n > 0.

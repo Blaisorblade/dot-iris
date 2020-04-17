@@ -23,7 +23,7 @@ Notation "T1 ~sTp[ p := q  ]* T2" :=
   (sem_ty_path_repl p q T1 T2) (at level 70).
 
 Section path_repl.
-  Context `{dlangG Σ}.
+  Context `{!dlangG Σ}.
   Implicit Types (φ: vl → iProp Σ).
 
   Notation path_wp p φ := (@path_wp Σ p φ).

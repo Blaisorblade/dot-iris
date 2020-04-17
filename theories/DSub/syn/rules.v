@@ -66,4 +66,4 @@ Lemma head_step_pure e1 e2 σ1 κ σ2 efs :
 Proof. inversion 1; intros ?; exact: pure_exec. Qed.
 
 Instance: EctxLangDet dlang_ectx_lang.
-Proof. repeat split; [intros; exact: head_step_pure|by intros [] []]. Qed.
+Proof. repeat split; [intros; exact: head_step_pure|apply _]. Qed.

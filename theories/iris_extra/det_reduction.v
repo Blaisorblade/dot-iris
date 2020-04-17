@@ -18,23 +18,28 @@ Proof.
   intros K1 K2 Heq [???]; split; intros *; setoid_rewrite <-Heq => *; auto 2.
 Qed.
 
+Instance unit_pi: ProofIrrel ().
+Proof. by intros [] []. Qed.
 
 Class UniqueInhabited A := {
-  unique_inhabited :> Inhabited A;
-  unique_proof_irrel :> ProofIrrel A;
+  unique_inhabited : Inhabited A;
+  unique_proof_irrel : ProofIrrel A;
 }.
+Existing Instances unique_inhabited unique_proof_irrel.
 
 Class LangDet Λ := {
   prim_step_PureExec (e1 e2 : L.expr Λ) σ1 κ σ2 efs :
     L.prim_step e1 σ1 κ e2 σ2 efs → PureExec True 1 e1 e2;
-  lang_inh_state :> UniqueInhabited (L.state Λ)
+  lang_inh_state : UniqueInhabited (L.state Λ)
 }.
+Existing Instance lang_inh_state.
 
 Class EctxLangDet (Λ : EL.ectxLanguage) := {
   head_step_PureExec (e1 e2 : L.expr Λ) σ1 κ σ2 efs :
     EL.head_step e1 σ1 κ e2 σ2 efs → L.PureExec True 1 e1 e2;
-  ectx_inh_state :> UniqueInhabited (L.state Λ)
+  ectx_inh_state : UniqueInhabited (L.state Λ)
 }.
+Existing Instance ectx_inh_state.
 
 Notation dummyState := (inhabitant (A := L.state _)).
 
@@ -160,7 +165,7 @@ Qed.
 Lemma erased_step_inversion t1 σ res :
   erased_step ([t1], σ) res →
   ∃ t2, res = ([t2], σ) ∧ L.prim_step t1 σ [] t2 σ [].
-Proof. case: res => ?? [? /step_inversion H]; uniqueState. naive_solver. Qed.
+Proof. case: res => ?? [? /step_inversion Hst]; uniqueState. naive_solver. Qed.
 (*
 Lemma erased_step_inversion1 {t1 thp σ σ'} :
   erased_step ([t1], σ) (thp, σ') →
