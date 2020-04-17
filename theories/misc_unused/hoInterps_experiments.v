@@ -4,6 +4,7 @@ From Coq Require FunctionalExtensionality.
 From iris.proofmode Require Import tactics.
 From iris.base_logic Require Import lib.saved_prop.
 From D Require Import iris_prelude.
+From D Require Export succ_notation.
 From D Require Import saved_interp_dep asubst_intf asubst_base dlang lty.
 From D Require Import swap_later_impl.
 From D.Dot.lr Require dot_lty unary_lr lr_lemmasNoBinding path_repl.

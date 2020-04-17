@@ -15,6 +15,7 @@ theories/tactics.v
 theories/proper.v
 theories/ty_interp_subst_lemmas.v
 theories/prelude.v
+theories/succ_notation.v
 theories/iris_extra/iris_prelude.v
 theories/iris_extra/lty.v
 theories/misc_unused/lty_experiments.v
