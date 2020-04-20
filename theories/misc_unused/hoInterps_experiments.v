@@ -42,7 +42,6 @@ Definition oCurry {n} {A : ofeT} (Φ : vec vl n.+1 → A) :
 
 Definition oUncurry {n} {A : ofeT} (Φ : vl → vec vl n → A) :
   vec vl n.+1 -d> A := vuncurry Φ.
-Definition oLaterN {Σ n} i (τ : oltyO Σ n) := Olty (eLater i τ).
 
 (** Semantic kinds can be interpreted into predicates. *)
 (** Semantic Kinds as unary Predicates. *)
@@ -293,12 +292,12 @@ Section kinds_types.
   Definition oTAppV {n} (T : oltyO Σ n.+1) w : oltyO Σ n :=
     Olty (λI args ρ, T (vcons w.[ρ] args) ρ).
 
-  Lemma swap_oLam_oLater {n} (τ : oltyO Σ n) :
-    oLater (oLam τ) ≡ oLam (oLater τ).
+  Lemma swap_oLam_oLaterN {n} (τ : oltyO Σ n) m :
+    oLaterN m (oLam τ) ≡ oLam (oLaterN m τ).
   Proof. done. Qed.
 
-  Lemma swap_oTApp_oLater {n} (τ : oltyO Σ (S n)) v:
-    oLater (oTAppV τ v) ≡ oTAppV (oLater τ) v.
+  Lemma swap_oTApp_oLaterN {n} (τ : oltyO Σ (S n)) m v:
+    oLaterN m (oTAppV τ v) ≡ oTAppV (oLaterN m τ) v.
   Proof. done. Qed.
 
 End kinds_types.

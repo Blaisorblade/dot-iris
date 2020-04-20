@@ -276,16 +276,13 @@ Section olty_ofe_2.
   Global Instance Proper_oOr : Proper ((≡) ==> (≡) ==> (≡)) oOr.
   Proof. solve_proper_ho. Qed.
 
+  Definition oLaterN n (τ : oltyO Σ i) := Olty (λI args ρ v, ▷^n τ args ρ v).
 
-  Definition eLater n (φ : hoEnvD Σ i) : hoEnvD Σ i := (λI args ρ v, ▷^n φ args ρ v).
-  Global Arguments eLater /.
-  Definition oLater τ : oltyO Σ i := Olty (eLater 1 τ).
-
-  Global Instance oLater_ne n : Proper (dist n ==> dist n) oLater.
+  Global Instance oLaterN_ne m : NonExpansive (oLaterN m).
   Proof. solve_proper_ho. Qed.
-  Global Instance oLater_proper : Proper ((≡) ==> (≡)) oLater := ne_proper _.
+  Global Instance oLaterN_proper m : Proper ((≡) ==> (≡)) (oLaterN m) := ne_proper _.
 
-  Lemma oLater_eq τ args ρ v : oLater τ args ρ v = (▷ τ args ρ v)%I.
+  Lemma oLaterN_eq n τ args ρ v : oLaterN n τ args ρ v = (▷^n τ args ρ v)%I.
   Proof. done. Qed.
 
 
@@ -310,4 +307,5 @@ Section olty_ofe_2.
 End olty_ofe_2.
 
 Notation "E⟦ τ ⟧" := (interp_expr τ).
+Notation oLater := (oLaterN 1).
 End Lty.
