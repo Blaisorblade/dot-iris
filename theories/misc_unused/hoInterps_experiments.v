@@ -46,9 +46,7 @@ Definition oLaterN {Σ n} i (τ : oltyO Σ n) := Olty (eLater i τ).
 
 (** Semantic kinds can be interpreted into predicates. *)
 (** Semantic Kinds as unary Predicates. *)
-Notation sp_kind Σ n := (env → iPPred (hoLtyO Σ n) Σ).
-Notation SpKind K := (λ ρ, IPPred (λI T, K ρ T)).
-
+Notation sp_kind Σ n := (env → hoLtyO Σ n → iPropO Σ).
 (** Semantic Kinds as relations. *)
 Notation sr_kind Σ n := (env → hoLtyO Σ n → hoLtyO Σ n → iPropO Σ).
 Notation sr_kindO Σ n := (env -d> hoLtyO Σ n -d> hoLtyO Σ n -d> iPropO Σ).
@@ -218,15 +216,13 @@ Section kinds_types.
     T1 ⊆ T2 -∗ T2 ⊆ T3 -∗ T1 ⊆@{Σ} T3.
   Proof. iIntros "#H1 #H2 !>" (v) "#HT1". iApply ("H2" with "(H1 HT1)"). Qed.
 
-  Definition sp_kintv (L U : oltyO Σ 0) : sp_kind Σ 0 := SpKind (λI ρ φ,
-    oClose L ρ ⊆ oClose φ ⊆ oClose U ρ).
-
   Definition sr_kintv (L U : oltyO Σ 0) : sr_kind Σ 0 := λI ρ φ1 φ2,
     oClose L ρ ⊆ oClose φ1 ⊆ oClose φ2 ⊆ oClose U ρ.
 
-  Lemma sr_kintv_refl L U ρ φ : sp_kintv L U ρ φ ≡ sr_kintv L U ρ φ φ.
+  Lemma sr_kintv_refl L U ρ φ : sr_kintv L U ρ φ φ ⊣⊢
+    oClose L ρ ⊆ oClose φ ⊆ oClose U ρ.
   Proof.
-    iSplit; last by iIntros "($ & _ & $)".
+    iSplit; first by iIntros "($ & _ & $)".
     iIntros "($ & $)"; by rewrite -subtype_refl.
   Qed.
 
@@ -234,7 +230,7 @@ Section kinds_types.
     SfKind (sr_kintv L U).
   Next Obligation. cbn; solve_proper_ho. Qed.
   Next Obligation.
-    intros; rewrite -!sr_kintv_refl.
+    intros; rewrite !sr_kintv_refl.
     iIntros "#Heq".
     iAssert (oClose T1 ⊆ oClose T2)%I as "HT1". by iIntros "!> * H"; iApply ("Heq" with "H").
     iAssert (oClose T2 ⊆ oClose T1)%I as "HT2". by iIntros "!> * H"; iApply ("Heq" with "H").
@@ -249,11 +245,11 @@ Section kinds_types.
     iApply (subtype_trans (oClose T2) with "HLT1 HT2T3").
   Qed.
   Next Obligation.
-    intros; rewrite -sr_kintv_refl; iIntros "* /= ($ & B & C)".
+    intros; rewrite sr_kintv_refl; iIntros "* /= ($ & B & C)".
     iApply (subtype_trans with "B C").
   Qed.
   Next Obligation.
-    intros; rewrite -sr_kintv_refl; iIntros "* /= #(A & B & $)".
+    intros; rewrite sr_kintv_refl; iIntros "* /= #(A & B & $)".
     iApply (subtype_trans with "A B").
   Qed.
 
@@ -421,7 +417,7 @@ Section gen_lemmas.
     ▷^i (oClose L ρ ⊆ oClose T ρ ⊆ oClose U ρ)) -∗
     Γ s⊨ T ∷[ i ] sf_kintv L U.
   Proof.
-    iIntros "#Hsub !>" (ρ); rewrite /= -sr_kintv_refl /sp_kintv /=. iApply "Hsub".
+    iIntros "#Hsub !>" (ρ); rewrite /= sr_kintv_refl /=. iApply "Hsub".
   Qed.
 
   (** * Prefixes: K for Kinding, KStp for kinded subtyping, Skd for subkinding. *)
