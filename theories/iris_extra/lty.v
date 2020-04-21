@@ -223,13 +223,14 @@ Notation oClose τ := (τ vnil).
 
 Definition sCtx Σ := listO (oltyO Σ 0).
 
-Fixpoint env_oltyped `{dlangG Σ} (Γ : sCtx Σ) (ρ : var → vl) : iProp Σ :=
+Reserved Notation "s⟦ Γ ⟧* ρ" (at level 10).
+Fixpoint env_oltyped `{dlangG Σ} (ρ : var → vl) (Γ : sCtx Σ) : iProp Σ :=
   match Γ with
-  | φ :: Γ' => env_oltyped Γ' (stail ρ) ∧ oClose φ ρ (shead ρ)
+  | φ :: Γ' => s⟦ Γ' ⟧* (stail ρ) ∧ oClose φ ρ (shead ρ)
   | nil => True
-  end.
-Notation "s⟦ Γ ⟧*" := (env_oltyped Γ).
-Global Instance: Params (@env_oltyped) 3 := {}.
+  end
+where "s⟦ Γ ⟧* ρ" := (env_oltyped ρ Γ).
+Global Instance: Params (@env_oltyped) 4 := {}.
 
 Section olty_ofe_2.
   Context `{dlangG Σ} {i : nat}.
@@ -238,11 +239,11 @@ Section olty_ofe_2.
   Global Instance env_oltyped_persistent (Γ : sCtx Σ) ρ: Persistent (s⟦ Γ ⟧* ρ).
   Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
 
-  Global Instance Proper_env_oltyped : Proper ((≡) ==> (=) ==> (≡)) env_oltyped.
+  Global Instance Proper_env_oltyped ρ : Proper ((≡) ==> (≡)) (env_oltyped ρ).
   Proof.
-    move => + + /equiv_Forall2 + + _ <-.
-    elim => [|T1 G1 IHG1] [|T2 G2] /=; [done|inversion 1..|] =>
-      /(Forall2_cons_inv _ _ _ _) [HT HG] ρ; f_equiv; [apply IHG1, HG|apply HT].
+    move: ρ => + G1 G2 /equiv_Forall2.
+    elim: G1 G2 => [|T1 G1 IHG1] [|T2 G2] ρ /=; [done|inversion 1..|] =>
+      /(Forall2_cons_inv _ _ _ _) [HT HG]; f_equiv; [apply IHG1, HG|apply HT].
   Qed.
 
   Lemma s_interp_env_lookup Γ ρ (τ : olty Σ 0) x:

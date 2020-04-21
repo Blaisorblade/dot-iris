@@ -236,7 +236,7 @@ Global Instance: Params (@oAll) 3 := {}.
 Notation "D*⟦ T ⟧" := (ldlty_car LD⟦ T ⟧).
 
 Notation "d ↗ ψ" := (dm_to_type 0 d ψ) (at level 20).
-Notation "G⟦ Γ ⟧" := s⟦ V⟦ Γ ⟧* ⟧*.
+Notation "G⟦ Γ ⟧ ρ" := (s⟦ V⟦ Γ ⟧* ⟧* ρ) (at level 10).
 
 (** Single-definition typing *)
 Notation "Γ ⊨ {  l := d  } : T" := (idtp Γ T l d) (at level 74, d, l, T at next level).
