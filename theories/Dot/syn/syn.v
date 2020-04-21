@@ -479,7 +479,7 @@ Proof. rewrite /objLookup => *; ev. by simplify_eq. Qed.
 Ltac objLookupDet :=
   lazymatch goal with
   | H1: ?v @ ?l ↘ ?d1, H2: ?v @ ?l ↘ ?d2 |- _=>
-    have ?: d2 = d1 by [eapply objLookupDet; eassumption]; simplify_eq
+    have ?: d2 = d1 by [exact: objLookupDet]; simplify_eq
   end.
 
 (** Instantiating iris with Dot *)
