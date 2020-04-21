@@ -850,21 +850,10 @@ Section derived.
     end.
 
   (* XXX *)
-  Lemma oLaterN_eq {n} (T : olty Σ n) i :
-    oLaterN i T ≡ iterate oLater i T.
-  Proof using Hdlang. move=>???. by rewrite iterate_oLater_later. Qed.
-
-  (* XXX *)
-  Lemma oLaterN_succ_eq {n} (T : olty Σ n) i :
-    oLaterN i.+1 T ≡ oLater (oLaterN i T).
-  Proof. done. Qed.
-
-  (* XXX *)
   Lemma sSub_LaterN {Γ T} i j:
     ⊢ Γ s⊨ T, j + i <: oLaterN j T, i.
   Proof.
-    rewrite oLaterN_eq.
-    elim: j T => [|j IHj] T; rewrite ?iterate_0 ?iterate_Sr ?plusSn.
+    elim: j T => [|j IHj] T; rewrite 1?oLaterN_0 1?oLaterN_Sr ?plusSn.
     apply sSub_Refl.
     iApply sSub_Trans; [iApply sSub_Later|iApply IHj].
   Qed.
@@ -873,8 +862,7 @@ Section derived.
   Lemma sLaterN_Sub {Γ T} i j :
     ⊢ Γ s⊨ oLaterN j T, i <: T, j + i.
   Proof.
-    rewrite oLaterN_eq.
-    elim: j T => [|j IHj] T; rewrite ?iterate_0 ?iterate_Sr ?plusSn.
+    elim: j T => [|j IHj] T; rewrite 1?oLaterN_0 1?oLaterN_Sr ?plusSn.
     apply sSub_Refl.
     iApply sSub_Trans; [iApply IHj|iApply sLater_Sub].
   Qed.
@@ -994,8 +982,6 @@ Section examples.
   Import DBNotation dot_lty.
 
   Definition oId := oLam (oSel 0 x0 "A").
-  Lemma oLater0 {n} (T : oltyO Σ n) : oLaterN 0 T ≡ T.
-  Proof. done. Qed.
 
   Lemma oId_K Γ :
     ⊢ Γ s⊨ oId ∷[0] sf_kpi (cTMemK "A" sf_star) sf_star.

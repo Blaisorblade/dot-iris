@@ -322,10 +322,6 @@ Section MiscLemmas.
     iApply ("Hsub2" with "[//] (Hsub1 [//] [//])").
   Qed.
 
-  Lemma iterate_oLater_later {i} (τ : oltyO Σ i) n args ρ v:
-    iterate oLater n τ args ρ v ⊣⊢ ▷^n τ args ρ v.
-  Proof. elim: n => [//|n IHn]. by rewrite iterate_S /= IHn. Qed.
-
   Lemma sSub_Eq {Γ T U i j} :
     Γ s⊨ T, i <: U, j ⊣⊢
     Γ s⊨ iterate oLater i T, 0 <: iterate oLater j U, 0.
@@ -409,6 +405,10 @@ Section defs.
     by rewrite (iterate_TLater_oLater n T _ _ _) iterate_oLater_later.
   Qed.
 
+  Lemma sSub_Eq' {Γ T U i j} :
+    V⟦ Γ ⟧* s⊨ V⟦ T ⟧, i <: V⟦ U ⟧, j ⊣⊢
+    V⟦ Γ ⟧* s⊨ V⟦ iterate TLater i T ⟧, 0 <: V⟦ iterate TLater j U ⟧, 0.
+  Proof. by rewrite sSub_Eq !iterate_TLater_oLater. Qed.
 
 
   Lemma P_Val {Γ} v T: Γ ⊨ tv v : T -∗ Γ ⊨p pv v : T, 0.

@@ -232,9 +232,46 @@ Fixpoint env_oltyped `{dlangG Σ} (ρ : var → vl) (Γ : sCtx Σ) : iProp Σ :=
 where "s⟦ Γ ⟧* ρ" := (env_oltyped ρ Γ).
 Global Instance: Params (@env_oltyped) 4 := {}.
 
+(** * oLaterN *)
+Section oLaterN.
+  Context {Σ} {i : nat}.
+  Definition oLaterN n (τ : oltyO Σ i) := Olty (λI args ρ v, ▷^n τ args ρ v).
+
+  Global Instance oLaterN_ne m : NonExpansive (oLaterN m).
+  Proof. solve_proper_ho. Qed.
+  Global Instance oLaterN_proper m : Proper ((≡) ==> (≡)) (oLaterN m) := ne_proper _.
+
+  Lemma oLaterN_eq n τ args ρ v : oLaterN n τ args ρ v = (▷^n τ args ρ v)%I.
+  Proof. done. Qed.
+
+End oLaterN.
+Notation oLater := (oLaterN 1).
+
 Section olty_ofe_2.
   Context `{dlangG Σ} {i : nat}.
   Implicit Types (φ : hoEnvD Σ i) (τ : oltyO Σ i).
+
+  (** oLaterN, part 2 *)
+
+  Lemma oLaterN_0 (T : olty Σ i) :
+    oLaterN 0 T ≡ T.
+  Proof. done. Qed.
+
+  Lemma oLaterN_S (T : olty Σ i) n :
+    oLaterN (S n) T ≡ oLater (oLaterN n T).
+  Proof. done. Qed.
+
+  Lemma oLaterN_Sr (T : olty Σ i) n :
+    oLaterN (S n) T ≡ oLaterN n (oLater T).
+  Proof. move => ???/=. by rewrite swap_later. Qed.
+
+  Lemma oLaterN_iterate_oLater_eq (T : olty Σ i) n :
+    iterate oLater n T ≡ oLaterN n T.
+  Proof. elim: n => [//|n IHn]. by rewrite iterate_S /= IHn => ???. Qed.
+
+  Lemma iterate_oLater_later (τ : oltyO Σ i) n args ρ v:
+    iterate oLater n τ args ρ v ⊣⊢ ▷^n τ args ρ v.
+  Proof. apply: oLaterN_iterate_oLater_eq. Qed.
 
   Global Instance env_oltyped_persistent (Γ : sCtx Σ) ρ: Persistent (s⟦ Γ ⟧* ρ).
   Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
@@ -276,16 +313,6 @@ Section olty_ofe_2.
   Global Instance Proper_oOr : Proper ((≡) ==> (≡) ==> (≡)) oOr.
   Proof. solve_proper_ho. Qed.
 
-  Definition oLaterN n (τ : oltyO Σ i) := Olty (λI args ρ v, ▷^n τ args ρ v).
-
-  Global Instance oLaterN_ne m : NonExpansive (oLaterN m).
-  Proof. solve_proper_ho. Qed.
-  Global Instance oLaterN_proper m : Proper ((≡) ==> (≡)) (oLaterN m) := ne_proper _.
-
-  Lemma oLaterN_eq n τ args ρ v : oLaterN n τ args ρ v = (▷^n τ args ρ v)%I.
-  Proof. done. Qed.
-
-
   Definition oMu (τ : oltyO Σ i) : oltyO Σ i := Olty (λI args ρ v, τ args (v .: ρ) v).
   Global Instance Proper_oMu : Proper ((≡) ==> (≡)) oMu.
   Proof. solve_proper_ho. Qed.
@@ -318,5 +345,4 @@ Section olty_ofe_2.
 End olty_ofe_2.
 
 Notation "E⟦ τ ⟧" := (interp_expr τ).
-Notation oLater := (oLaterN 1).
 End Lty.
