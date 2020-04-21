@@ -229,7 +229,7 @@ Fixpoint env_oltyped `{dlangG Σ} (Γ : sCtx Σ) (ρ : var → vl) : iProp Σ :=
   | nil => True
   end.
 Notation "s⟦ Γ ⟧*" := (env_oltyped Γ).
-Global Instance: Params (@env_oltyped) 2 := {}.
+Global Instance: Params (@env_oltyped) 3 := {}.
 
 Section olty_ofe_2.
   Context `{dlangG Σ} {i : nat}.
