@@ -60,16 +60,9 @@ Section ldlty_ofe.
     | None => ⊥
     | Some l => ⌜ l = l' ⌝ ∧ TD ρ d
     end).
-  Global Arguments lift_ldlty /.
-
-  Global Instance Proper_lift_ldlty : Proper ((≡) ==> (≡)) lift_ldlty.
-  Proof.
-    move => [l1 P1] [l2 P2] [/= Heq Heql]; repeat case_match; simplify_eq/=;
-      solve_proper_ho.
-  Qed.
 End ldlty_ofe.
 Arguments ldltyO : clear implicits.
-Global Instance: Params (@lift_ldlty) 5 := {}.
+Global Arguments lift_ldlty {_} _ /.
 
 Notation dslty Σ := (env → iPPred dms Σ).
 Definition dsltyO Σ := env -d> iPPredO dms Σ.
