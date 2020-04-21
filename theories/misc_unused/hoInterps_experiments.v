@@ -69,7 +69,7 @@ Notation "X ⊆ Y ⊆ Z ⊆ W" := (X ⊆ Y ∧ Y ⊆ Z ∧ Z ⊆ W)%I (at level 
 Record sf_kind {Σ n} := SfKind {
   sf_kind_sub :> sr_kind Σ n;
   sf_kind_persistent ρ T1 T2 : Persistent (sf_kind_sub ρ T1 T2);
-  sf_kind_sub_ne_2 ρ : NonExpansive2 (sf_kind_sub ρ);
+  sf_kind_sub_ne_2 ρ : id $ NonExpansive2 (sf_kind_sub ρ);
   sf_kind_sub_internal_proper (T1 T2 : hoLtyO Σ n) ρ:
     (□ ∀ args v, T1 args v ↔ T2 args v) ⊢@{iPropI Σ} sf_kind_sub ρ T1 T1 ∗-∗ sf_kind_sub ρ T2 T2;
   sf_kind_sub_trans ρ T1 T2 T3 :
@@ -114,14 +114,14 @@ Global Arguments sf_kindO : clear implicits.
 Global Instance sf_kind_sub_ne {Σ n m} :
   Proper (dist m ==> (=) ==> dist m ==> dist m ==> dist m) (@sf_kind_sub Σ n).
 Proof.
-  intros K1 K2 HK ρ ? <- T1 T2 HT U1 U2 HU; have ? := sf_kind_sub_ne_2 K1.
+  intros K1 K2 HK ρ ? <- T1 T2 HT U1 U2 HU; have /= ? := sf_kind_sub_ne_2 K1.
   rewrite HT HU. apply HK.
 Qed.
 Global Instance sf_kind_sub_proper {Σ n} :
   Proper ((≡) ==> (=) ==> (≡) ==> (≡) ==> (≡)) (@sf_kind_sub Σ n).
 Proof.
   intros K1 K2 HK ρ ? <- T1 T2 HT U1 U2 HU.
-  have Hne := sf_kind_sub_ne_2 K1.
+  have /= Hne := sf_kind_sub_ne_2 K1.
   have Hp := !! (ne_proper_2 (K1 ρ)).
   rewrite HT HU. apply HK.
 Qed.
@@ -232,7 +232,7 @@ Section kinds_types.
 
   Program Definition sf_kintv (L U : oltyO Σ 0) : sf_kind Σ 0 :=
     SfKind (sr_kintv L U) _ _ _ _ _.
-  Next Obligation. solve_proper_ho. Qed.
+  Next Obligation. cbn; solve_proper_ho. Qed.
   Next Obligation.
     intros; rewrite -!sr_kintv_refl.
     iIntros "#Heq".
@@ -1068,7 +1068,7 @@ Section dot_experimental_kinds.
   (* Uh. Not actually checking subtyping, but passes requirements. [kSing] also checks requirements. *)
   Program Definition kSing' : sf_kind Σ 0 :=
     SfKind (SrKind (λI ρ T1 T2, isSing (oClose T1) ∧ isSing (oClose T2))) _ _ _ _ _.
-  Next Obligation. rewrite /isSing. solve_proper_ho. Qed.
+  Next Obligation. rewrite /isSing/=. solve_proper_ho. Qed.
   Next Obligation.
     iIntros "* /= #Heq"; iSplit; iIntros "#Hsing";
     by iSplitWith "Hsing" as "#Hsing'";
