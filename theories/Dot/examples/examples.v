@@ -390,7 +390,7 @@ Section small_ex.
   Proof.
     iIntros "#Hs".
     iApply (sT_Sub (i := 0) (T1 := sminiVT2Concr)); first last.
-    - iApply sMu_Sub_Mu; rewrite /sminiVT2ConcrBody /miniVT1Body iterate_0.
+    - iApply sMu_Sub_Mu; rewrite /sminiVT2ConcrBody /miniVT1Body oLaterN_0.
       iApply sSub_And; last iApply sSub_And; last iApply sSub_Top.
     + iApply sSub_Trans; first iApply sAnd1_Sub.
       iApply sTyp_Sub_Typ; [iApply sBot_Sub | iApply Sub_later_ipos_nat].

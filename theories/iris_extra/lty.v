@@ -265,14 +265,6 @@ Section olty_ofe_2.
     oLaterN (S n) T ≡ oLaterN n (oLater T).
   Proof. move => ???/=. by rewrite swap_later. Qed.
 
-  Lemma oLaterN_iterate_oLater_eq (T : olty Σ i) n :
-    iterate oLater n T ≡ oLaterN n T.
-  Proof. elim: n => [//|n IHn]. by rewrite iterate_S /= IHn => ???. Qed.
-
-  Lemma iterate_oLater_later (τ : oltyO Σ i) n args ρ v:
-    iterate oLater n τ args ρ v ⊣⊢ ▷^n τ args ρ v.
-  Proof. apply: oLaterN_iterate_oLater_eq. Qed.
-
   Global Instance env_oltyped_persistent (Γ : sCtx Σ) ρ: Persistent (s⟦ Γ ⟧* ρ).
   Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
 

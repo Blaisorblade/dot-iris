@@ -948,7 +948,7 @@ Section derived.
     iIntros "#HT #Hs".
     iApply (sP_Sub (i := 0) (j := 0) (T1 := oMu (cAnd (cTMemK l (ho_sing K (oLater T))) cTop))).
     rewrite sK_HoIntv; iApply (sP_New1 with "HT Hs").
-    iApply sMu_Sub_Mu; rewrite iterate_0.
+    iApply sMu_Sub_Mu; rewrite oLaterN_0.
     iApply sSub_Trans; first iApply sAnd1_Sub.
     iApply sSub_And; last iApply sSub_Top.
     rewrite -sstpiK_star_eq_sstp.
