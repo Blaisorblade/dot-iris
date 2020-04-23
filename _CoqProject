@@ -18,7 +18,6 @@ theories/prelude.v
 theories/succ_notation.v
 theories/iris_extra/iris_prelude.v
 theories/iris_extra/lty.v
-theories/misc_unused/lty_experiments.v
 theories/asubst_base.v
 theories/asubst_intf.v
 theories/iris_extra/det_reduction.v
@@ -39,7 +38,6 @@ theories/DSub/stamping/stampedness_binding.v
 theories/DSub/stamping/astStamping.v
 theories/DSub/syn/synLemmas.v
 theories/DSub/lr/dlang_inst.v
-theories/DSub/misc_unused/step_fv.v
 theories/DSub/lr/unary_lr.v
 theories/DSub/stamping/closed_subst.v
 theories/DSub/typing/typing_storeless.v
@@ -74,7 +72,6 @@ theories/Dot/stamping/stampedness_binding.v
 theories/Dot/stamping/unstampedness_binding.v
 theories/Dot/lr/dlang_inst.v
 theories/Dot/syn/synLemmas.v
-theories/Dot/misc_unused/step_fv.v
 theories/Dot/stamping/skeleton.v
 theories/Dot/stamping/astStamping.v
 theories/Dot/stamping/stampingDefsCore.v
@@ -94,7 +91,6 @@ theories/pure_program_logic/weakestpre.v
 theories/pure_program_logic/lifting.v
 theories/pure_program_logic/adequacy.v
 theories/Dot/misc_unused/experiments.v
-theories/Dot/misc_unused/misc_dead.v
 theories/Dot/misc_unused/skeleton_termination.v
 theories/Dot/syn/path_repl.v
 theories/Dot/syn/path_repl_lemmas.v
