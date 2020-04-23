@@ -46,13 +46,10 @@ Definition oLaterN {Σ n} i (τ : oltyO Σ n) := Olty (eLater i τ).
 
 (** Semantic kinds can be interpreted into predicates. *)
 (** Semantic Kinds as unary Predicates. *)
-Notation sp_kind Σ n := (env → iPPred (hoLtyO Σ n) Σ).
-Notation SpKind K := (λ ρ, IPPred (λI T, K ρ T)).
-
+Notation sp_kind Σ n := (env → hoLtyO Σ n → iPropO Σ).
 (** Semantic Kinds as relations. *)
 Notation sr_kind Σ n := (env → hoLtyO Σ n → hoLtyO Σ n → iPropO Σ).
 Notation sr_kindO Σ n := (env -d> hoLtyO Σ n -d> hoLtyO Σ n -d> iPropO Σ).
-Notation SrKind K := (λ ρ T1 T2, K ρ T1 T2).
 
 Notation iRel P Σ := (P Σ → P Σ → iProp Σ).
 Definition subtype_lty {Σ} : iRel ltyO Σ := λI φ1 φ2,
@@ -66,7 +63,7 @@ Notation "X ⊆ Y ⊆ Z" := (X ⊆ Y ∧ Y ⊆ Z)%I : bi_scope.
 Notation "X ⊆ Y ⊆ Z ⊆ W" := (X ⊆ Y ∧ Y ⊆ Z ∧ Z ⊆ W)%I (at level 70, Y, Z at next level) : bi_scope.
 
 (** Semantic Full Kind. *)
-Record sf_kind {Σ n} := SfKind {
+Record sf_kind {Σ n} := _SfKind {
   sf_kind_sub :> sr_kind Σ n;
   sf_kind_persistent ρ T1 T2 : Persistent (sf_kind_sub ρ T1 T2);
   sf_kind_sub_ne_2 ρ : NonExpansive2 (sf_kind_sub ρ);
@@ -88,7 +85,7 @@ Add Printing Constructor sf_kind.
 Existing Instance sf_kind_persistent.
 Global Arguments sf_kind : clear implicits.
 Global Arguments sf_kind_sub {_ _} !_ /.
-Global Arguments SfKind {_ _} _ {_}.
+Global Arguments _SfKind {_ _} _ {_}.
 
 Declare Scope sf_kind_scope.
 Bind Scope sf_kind_scope with sf_kind.
@@ -148,6 +145,7 @@ Proof. rewrite (sf_kind_sub_internal_proper K T1 T2 ρ); iIntros "[$_]". Qed.
 Global Instance vcurry_ne vl n A m : Proper (dist m ==> (=) ==> dist m) (@vcurry vl n A).
 Proof. solve_proper_ho. Qed.
 
+Notation SfKind F := (_SfKind F notc_hole _ _ _ _).
 Section sf_kind_subst.
   Context {Σ}.
 
@@ -156,7 +154,7 @@ Section sf_kind_subst.
   and only finally lift that over sf_kind. *)
   (* XXX Name. *)
   Program Definition kSub {n} (f : env → env) (K : sf_kind Σ n) : sf_kind Σ n :=
-    SfKind (λI ρ, K (f ρ)) _ _ _ _ _.
+    SfKind (λI ρ, K (f ρ)).
   Next Obligation.
     move=> n f K ρ m T1 T2 HT U1 U2 HU /=; exact: sf_kind_sub_ne_2.
   Qed.
@@ -166,7 +164,7 @@ Section sf_kind_subst.
   Next Obligation. intros; simpl; exact: sf_kind_sub_quasi_refl_2. Qed.
 
   Global Program Instance inhabited_sf_kind {n}: Inhabited (sf_kind Σ n) :=
-    populate $ SfKind (λI _ _ _, False) _ _ _ _ _.
+    populate $ SfKind (λI _ _ _, False).
   Next Obligation. done. Qed.
   Next Obligation. cbn; eauto. Qed.
   Next Obligation. cbn; eauto. Qed.
@@ -218,23 +216,21 @@ Section kinds_types.
     T1 ⊆ T2 -∗ T2 ⊆ T3 -∗ T1 ⊆@{Σ} T3.
   Proof. iIntros "#H1 #H2 !>" (v) "#HT1". iApply ("H2" with "(H1 HT1)"). Qed.
 
-  Definition sp_kintv (L U : oltyO Σ 0) : sp_kind Σ 0 := SpKind (λI ρ φ,
-    oClose L ρ ⊆ oClose φ ⊆ oClose U ρ).
+  Definition sr_kintv (L U : oltyO Σ 0) : sr_kind Σ 0 := λI ρ φ1 φ2,
+    oClose L ρ ⊆ oClose φ1 ⊆ oClose φ2 ⊆ oClose U ρ.
 
-  Definition sr_kintv (L U : oltyO Σ 0) : sr_kind Σ 0 := SrKind (λI ρ φ1 φ2,
-    oClose L ρ ⊆ oClose φ1 ⊆ oClose φ2 ⊆ oClose U ρ).
-
-  Lemma sr_kintv_refl L U ρ φ : sp_kintv L U ρ φ ≡ sr_kintv L U ρ φ φ.
+  Lemma sr_kintv_refl L U ρ φ : sr_kintv L U ρ φ φ ⊣⊢
+    oClose L ρ ⊆ oClose φ ⊆ oClose U ρ.
   Proof.
-    iSplit; last by iIntros "($ & _ & $)".
+    iSplit; first by iIntros "($ & _ & $)".
     iIntros "($ & $)"; by rewrite -subtype_refl.
   Qed.
 
   Program Definition sf_kintv (L U : oltyO Σ 0) : sf_kind Σ 0 :=
-    SfKind (sr_kintv L U) _ _ _ _ _.
-  Next Obligation. solve_proper_ho. Qed.
+    SfKind (sr_kintv L U).
+  Next Obligation. cbn; solve_proper_ho. Qed.
   Next Obligation.
-    intros; rewrite -!sr_kintv_refl.
+    intros; rewrite !sr_kintv_refl.
     iIntros "#Heq".
     iAssert (oClose T1 ⊆ oClose T2)%I as "HT1". by iIntros "!> * H"; iApply ("Heq" with "H").
     iAssert (oClose T2 ⊆ oClose T1)%I as "HT2". by iIntros "!> * H"; iApply ("Heq" with "H").
@@ -249,19 +245,19 @@ Section kinds_types.
     iApply (subtype_trans (oClose T2) with "HLT1 HT2T3").
   Qed.
   Next Obligation.
-    intros; rewrite -sr_kintv_refl; iIntros "* /= ($ & B & C)".
+    intros; rewrite sr_kintv_refl; iIntros "* /= ($ & B & C)".
     iApply (subtype_trans with "B C").
   Qed.
   Next Obligation.
-    intros; rewrite -sr_kintv_refl; iIntros "* /= #(A & B & $)".
+    intros; rewrite sr_kintv_refl; iIntros "* /= #(A & B & $)".
     iApply (subtype_trans with "A B").
   Qed.
 
   Program Definition sf_kpi {n} (S : oltyO Σ 0) (K : sf_kind Σ n) : sf_kind Σ n.+1 :=
     SfKind
-      (SrKind (λI ρ φ1 φ2,
+      (λI ρ φ1 φ2,
         □∀ arg, S vnil ρ arg →
-        K (arg .: ρ) (vcurry φ1 arg) (vcurry φ2 arg))) _ _ _ _ _.
+        K (arg .: ρ) (vcurry φ1 arg) (vcurry φ2 arg)).
   Next Obligation.
     move=> n S K ρ m T1 T2 HT U1 U2 HU /=.
     f_equiv; f_equiv => ?; f_equiv.
@@ -421,7 +417,7 @@ Section gen_lemmas.
     ▷^i (oClose L ρ ⊆ oClose T ρ ⊆ oClose U ρ)) -∗
     Γ s⊨ T ∷[ i ] sf_kintv L U.
   Proof.
-    iIntros "#Hsub !>" (ρ); rewrite /= -sr_kintv_refl /sp_kintv /=. iApply "Hsub".
+    iIntros "#Hsub !>" (ρ); rewrite /= sr_kintv_refl /=. iApply "Hsub".
   Qed.
 
   (** * Prefixes: K for Kinding, KStp for kinded subtyping, Skd for subkinding. *)
@@ -619,7 +615,7 @@ Section dot_types.
 
   Program Definition kpSubstOne {n} p (K : sf_kind Σ n) : sf_kind Σ n :=
     SfKind
-      (SrKind (λI ρ T1 T2, path_wp p.|[ρ] (λ v, K (v .: ρ) T1 T2))) _ _ _ _ _.
+      (λI ρ T1 T2, path_wp p.|[ρ] (λ v, K (v .: ρ) T1 T2)).
   Next Obligation.
     move=> n K v ρ m T1 T2 HT U1 U2 HU /=. f_equiv=>?. exact: sf_kind_sub_ne_2.
   Qed.
@@ -1042,7 +1038,7 @@ Section dot_experimental_kinds.
   Local Tactic Notation "iSplitWith" constr(H) "as" constr(H') :=
     iApply (bi.and_parallel with H); iSplit; iIntros H'.
   Program Definition kAnd (K1 K2 : sf_kind Σ 0) : sf_kind Σ 0 :=
-    SfKind (SrKind (λI ρ T1 T2, K1 ρ T1 T2 ∧ K2 ρ T1 T2)) _ _ _ _ _.
+    SfKind (λI ρ T1 T2, K1 ρ T1 T2 ∧ K2 ρ T1 T2).
   Next Obligation.
     move=> K1 K2 ρ n T1 T2 HT U1 U2 HU /=. f_equiv; exact: sf_kind_sub_ne_2.
   Qed.
@@ -1067,8 +1063,8 @@ Section dot_experimental_kinds.
   Definition isSing (T : lty Σ) := (□∀ v1 v2, T v1 → T v2 → ⌜ v1 = v2 ⌝)%I.
   (* Uh. Not actually checking subtyping, but passes requirements. [kSing] also checks requirements. *)
   Program Definition kSing' : sf_kind Σ 0 :=
-    SfKind (SrKind (λI ρ T1 T2, isSing (oClose T1) ∧ isSing (oClose T2))) _ _ _ _ _.
-  Next Obligation. rewrite /isSing. solve_proper_ho. Qed.
+    SfKind (λI ρ T1 T2, isSing (oClose T1) ∧ isSing (oClose T2)).
+  Next Obligation. rewrite /isSing/=. solve_proper_ho. Qed.
   Next Obligation.
     iIntros "* /= #Heq"; iSplit; iIntros "#Hsing";
     by iSplitWith "Hsing" as "#Hsing'";

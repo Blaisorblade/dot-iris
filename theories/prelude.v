@@ -12,6 +12,9 @@ Set Default Proof Using "Type".
 (** Enrico (Tassi?)'s trick for tc resolution in [have]. Doesn't conflict with infix [!!]. *)
 Notation "!! x" := (ltac:(refine x)) (at level 100, only parsing).
 
+Definition disable_tc_search {T : Type} (x : id T) : T := x.
+Notation notc_hole := (disable_tc_search _).
+
 (*
   If [prelude] and [Program] are imported after Iris modules,
   side effects from [iris.algebra.base] and [stdpp.base], including
