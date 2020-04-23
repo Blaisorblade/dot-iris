@@ -172,16 +172,6 @@ Section Sec.
     iIntros "!> **"; by rewrite iterate_TLater_later.
   Qed.
 
-  (* It doesn't work, modulo maybe except-n. *)
-  Lemma T_Path'' Γ T p i :
-    Γ ⊨p p : T, i -∗
-    Γ ⊨ path2tm p : iterate TLater i T.
-  Proof.
-    iIntros "#Hep !>" (ρ) "#Hg /= !>"; rewrite path2tm_subst.
-    iApply wp_wand. iPoseProof (path_wp_to_wp with "(Hep Hg)") as "?".
-    (* We're stuck here. *)
-  Abort.
-
   Lemma wp_later_swap t Φ: WP t {{ v, ▷ Φ v }} ⊢ ▷ WP t {{ v, Φ v }}.
   Proof.
     iLöb as "IH" forall (t Φ).
@@ -237,26 +227,6 @@ Section Sec.
     rewrite path_wp_later_swap.
     iExists (pmem); by iSplit.
   Qed.
-
-  (** Unlike the other lemmas, this appears to fail, and that makes sense.
-  It says that if you have *now* a type member between ▷ L and ▷ U, then you
-  also have *later* a type member between L and U; I don't see a reason for
-  that to be true.
-  *)
-  Lemma Typ_Later_Sub_Distr `{SwapPropI Σ} Γ L U i l:
-    ⊢ Γ ⊨ TTMem l (TLater L) (TLater U), i <: TLater (TTMem l L U), i.
-  Proof.
-    rewrite /istpi/=.
-    iIntros (ρ v) "!> #Hg #Hv !>"; iDestruct "Hv" as (d Hl ψ) "H".
-    iExists d; iFrame (Hl); iExists ψ. iDestruct "H" as "[$ #[H1 H2]] {H}".
-    rewrite /= !later_intuitionistically; iModIntro (□ _)%I; iSplit; iIntros (w).
-    rewrite -mlater_impl; iIntros "H"; iApply "H1"; iApply "H".
-    rewrite -mlater_impl; iIntros "H"; iApply "H2".
-    Fail iApply "H".
-  Abort.
-
-  (* This would be surprising without ◇, and fails even with it. *)
-  (* Lemma wp_later_swap2 t Φ: ▷ WP t {{ v, Φ v }} ⊢ ◇ WP t {{ v, ▷ Φ v }}. *)
 
   Lemma sSub_Mono Γ T i :
     ⊢ Γ s⊨ T, i <: T, S i.
