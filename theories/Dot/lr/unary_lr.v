@@ -322,14 +322,10 @@ Section MiscLemmas.
     iApply ("Hsub2" with "[//] (Hsub1 [//] [//])").
   Qed.
 
-  Lemma iterate_oLater_later {i} (τ : oltyO Σ i) n args ρ v:
-    iterate oLater n τ args ρ v ⊣⊢ ▷^n τ args ρ v.
-  Proof. elim: n => [//|n IHn]. by rewrite iterate_S /= IHn. Qed.
-
   Lemma sSub_Eq {Γ T U i j} :
     Γ s⊨ T, i <: U, j ⊣⊢
-    Γ s⊨ iterate oLater i T, 0 <: iterate oLater j U, 0.
-  Proof. cbn. by setoid_rewrite iterate_oLater_later. Qed.
+    Γ s⊨ oLaterN i T, 0 <: oLaterN j U, 0.
+  Proof. done. Qed.
 
   Lemma ipwp_terminates {p T i}:
     [] s⊨p p : T , i ⊢ ▷^i ⌜ terminates (path2tm p) ⌝.
@@ -400,15 +396,17 @@ Section defs.
   Context `{HdotG: dlangG Σ}.
 
   Lemma iterate_TLater_oLater i T:
-    V⟦iterate TLater i T⟧ ≡ iterate oLater i V⟦T⟧.
+    V⟦iterate TLater i T⟧ ≡ oLaterN i V⟦T⟧.
   Proof. elim: i => [//|i IHi] ???. by rewrite !iterate_S /= (IHi _ _ _). Qed.
 
   Lemma iterate_TLater_later T n args ρ v:
     V⟦ iterate TLater n T ⟧ args ρ v ⊣⊢ ▷^n V⟦ T ⟧ args ρ v.
-  Proof.
-    by rewrite (iterate_TLater_oLater n T _ _ _) iterate_oLater_later.
-  Qed.
+  Proof. by rewrite (iterate_TLater_oLater n T _ _ _). Qed.
 
+  Lemma sSub_iterate_TLater_Eq {Γ T U i j} :
+    V⟦ Γ ⟧* s⊨ V⟦ T ⟧, i <: V⟦ U ⟧, j ⊣⊢
+    V⟦ Γ ⟧* s⊨ V⟦ iterate TLater i T ⟧, 0 <: V⟦ iterate TLater j U ⟧, 0.
+  Proof. by rewrite sSub_Eq !iterate_TLater_oLater. Qed.
 
 
   Lemma P_Val {Γ} v T: Γ ⊨ tv v : T -∗ Γ ⊨p pv v : T, 0.
@@ -425,7 +423,7 @@ Section defs.
   Lemma Sub_Eq {Γ T U i j} :
     Γ ⊨ T, i <: U, j ⊣⊢
     Γ ⊨ iterate TLater i T, 0 <: iterate TLater j U, 0.
-  Proof. by rewrite /istpi sSub_Eq !iterate_TLater_oLater. Qed.
+  Proof. by rewrite /istpi sSub_iterate_TLater_Eq. Qed.
 End defs.
 
 (** Backward compatibility. *)

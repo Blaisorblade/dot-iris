@@ -42,7 +42,6 @@ Definition oCurry {n} {A : ofeT} (Φ : vec vl n.+1 → A) :
 
 Definition oUncurry {n} {A : ofeT} (Φ : vl → vec vl n → A) :
   vec vl n.+1 -d> A := vuncurry Φ.
-Definition oLaterN {Σ n} i (τ : oltyO Σ n) := Olty (eLater i τ).
 
 (** Semantic kinds can be interpreted into predicates. *)
 (** Semantic Kinds as unary Predicates. *)
@@ -293,12 +292,12 @@ Section kinds_types.
   Definition oTAppV {n} (T : oltyO Σ n.+1) w : oltyO Σ n :=
     Olty (λI args ρ, T (vcons w.[ρ] args) ρ).
 
-  Lemma swap_oLam_oLater {n} (τ : oltyO Σ n) :
-    oLater (oLam τ) ≡ oLam (oLater τ).
+  Lemma swap_oLam_oLaterN {n} (τ : oltyO Σ n) m :
+    oLaterN m (oLam τ) ≡ oLam (oLaterN m τ).
   Proof. done. Qed.
 
-  Lemma swap_oTApp_oLater {n} (τ : oltyO Σ (S n)) v:
-    oLater (oTAppV τ v) ≡ oTAppV (oLater τ) v.
+  Lemma swap_oTApp_oLaterN {n} (τ : oltyO Σ (S n)) m v:
+    oLaterN m (oTAppV τ v) ≡ oTAppV (oLaterN m τ) v.
   Proof. done. Qed.
 
 End kinds_types.
@@ -851,21 +850,10 @@ Section derived.
     end.
 
   (* XXX *)
-  Lemma oLaterN_eq {n} (T : olty Σ n) i :
-    oLaterN i T ≡ iterate oLater i T.
-  Proof using Hdlang. move=>???. by rewrite iterate_oLater_later. Qed.
-
-  (* XXX *)
-  Lemma oLaterN_succ_eq {n} (T : olty Σ n) i :
-    oLaterN i.+1 T ≡ oLater (oLaterN i T).
-  Proof. done. Qed.
-
-  (* XXX *)
   Lemma sSub_LaterN {Γ T} i j:
     ⊢ Γ s⊨ T, j + i <: oLaterN j T, i.
   Proof.
-    rewrite oLaterN_eq.
-    elim: j T => [|j IHj] T; rewrite ?iterate_0 ?iterate_Sr ?plusSn.
+    elim: j T => [|j IHj] T; rewrite 1?oLaterN_0 1?oLaterN_Sr ?plusSn.
     apply sSub_Refl.
     iApply sSub_Trans; [iApply sSub_Later|iApply IHj].
   Qed.
@@ -874,8 +862,7 @@ Section derived.
   Lemma sLaterN_Sub {Γ T} i j :
     ⊢ Γ s⊨ oLaterN j T, i <: T, j + i.
   Proof.
-    rewrite oLaterN_eq.
-    elim: j T => [|j IHj] T; rewrite ?iterate_0 ?iterate_Sr ?plusSn.
+    elim: j T => [|j IHj] T; rewrite 1?oLaterN_0 1?oLaterN_Sr ?plusSn.
     apply sSub_Refl.
     iApply sSub_Trans; [iApply IHj|iApply sLater_Sub].
   Qed.
@@ -961,7 +948,7 @@ Section derived.
     iIntros "#HT #Hs".
     iApply (sP_Sub (i := 0) (j := 0) (T1 := oMu (cAnd (cTMemK l (ho_sing K (oLater T))) cTop))).
     rewrite sK_HoIntv; iApply (sP_New1 with "HT Hs").
-    iApply sMu_Sub_Mu; rewrite iterate_0.
+    iApply sMu_Sub_Mu; rewrite oLaterN_0.
     iApply sSub_Trans; first iApply sAnd1_Sub.
     iApply sSub_And; last iApply sSub_Top.
     rewrite -sstpiK_star_eq_sstp.
@@ -995,8 +982,6 @@ Section examples.
   Import DBNotation dot_lty.
 
   Definition oId := oLam (oSel 0 x0 "A").
-  Lemma oLater0 {n} (T : oltyO Σ n) : oLaterN 0 T ≡ T.
-  Proof. done. Qed.
 
   Lemma oId_K Γ :
     ⊢ Γ s⊨ oId ∷[0] sf_kpi (cTMemK "A" sf_star) sf_star.

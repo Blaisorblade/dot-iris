@@ -22,7 +22,7 @@ Module SemTypes2.
 (*
 (** Indexed expression typing (not used for Dot). *)
 Definition setpi `{dlangG Σ} e i Γ τ : iProp Σ :=
-  □∀ ρ, s⟦Γ⟧* ρ → E⟦ eLater i τ ⟧ ρ (e.|[ρ]).
+  □∀ ρ, s⟦Γ⟧* ρ → E⟦ oLaterN i τ ⟧ ρ (e.|[ρ]).
 Global Arguments setpi /.
 
 Notation "Γ s⊨ e : τ , i" := (setpi e i Γ τ) (at level 74, e, τ at next level).

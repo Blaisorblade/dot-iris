@@ -54,14 +54,14 @@ Section Sec.
   (* An inverse of subsumption: subtyping is *equivalent* to convertibility
   for values. *)
   Lemma sSub_Skolem_P {Γ T1 T2 i j}:
-    iterate oLater i (shift T1) :: Γ s⊨p pv (ids 0) : shift T2, j -∗
+    oLaterN i (shift T1) :: Γ s⊨p pv (ids 0) : shift T2, j -∗
     (*───────────────────────────────*)
     Γ s⊨ T1, i <: T2, j.
   Proof.
     iIntros "#Htyp !>" (ρ v) "#Hg #HvT1".
     iEval rewrite -path_wp_pv_eq.
     iApply ("Htyp" $! (v .: ρ) with "[$Hg ]").
-    by rewrite iterate_oLater_later; iApply "HvT1".
+    by iApply "HvT1".
   Qed.
 
   Lemma sSub_Skolem_P' Γ T1 T2:
@@ -80,7 +80,7 @@ Section Sec.
   Qed.
 
   Lemma sSub_Skolem_T {Γ T1 T2 i}:
-    iterate oLater i (shift T1) :: Γ s⊨ tv (ids 0) : shift T2 -∗
+    oLaterN i (shift T1) :: Γ s⊨ tv (ids 0) : shift T2 -∗
     (*───────────────────────────────*)
     Γ s⊨ T1, i <: T2, 0.
   Proof. by rewrite sP_Val sSub_Skolem_P. Qed.
@@ -157,12 +157,11 @@ Section Sec.
      Γ ⊨ μ (x: T₁ˣ) <: μ(x: T₂ˣ)
   *)
   Lemma sMu_Sub_Mu {Γ T1 T2 i j} :
-    iterate oLater i T1 :: Γ s⊨ T1, i <: T2, j -∗
+    oLaterN i T1 :: Γ s⊨ T1, i <: T2, j -∗
     Γ s⊨ oMu T1, i <: oMu T2, j.
   Proof.
     iIntros "/= #Hstp !>" (vs v) "#Hg #HT1".
-    iApply ("Hstp" $! (v .: vs) v with "[# $Hg] [#//]").
-    by rewrite iterate_oLater_later.
+    iApply ("Hstp" $! (v .: vs) v with "[$Hg $HT1] [$HT1]").
   Qed.
 
   (** Novel subtyping rules. [Sub_Bind_1] and [Sub_Bind_2] become
@@ -344,10 +343,9 @@ Section swap_based_typing_lemmas.
 
   Lemma sAll_Sub_All {Γ T1 T2 U1 U2 i}:
     Γ s⊨ oLater T2, i <: oLater T1, i -∗
-    iterate oLater (S i) (shift T2) :: Γ s⊨ oLater U1, i <: oLater U2, i -∗
+    oLaterN (S i) (shift T2) :: Γ s⊨ oLater U1, i <: oLater U2, i -∗
     Γ s⊨ oAll T1 U1, i <: oAll T2 U2, i.
   Proof.
-    rewrite iterate_S /=.
     iIntros "#HsubT #HsubU /= !>" (ρ v) "#Hg #HT1".
     iDestruct "HT1" as (t) "#[Heq #HT1]". iExists t; iSplit => //.
     iIntros (w).
@@ -356,7 +354,7 @@ Section swap_based_typing_lemmas.
     iSpecialize ("HsubT" $! ρ w with "Hg HwT2").
     iSpecialize ("HsubU" $! (w .: ρ)); iEval (rewrite -forall_swap_impl) in "HsubU".
     iSpecialize ("HsubU" with "[# $Hg]").
-    by rewrite iterate_oLater_later -swap_later /=; iApply hoEnvD_weaken_one.
+    by rewrite -swap_later /=; iApply hoEnvD_weaken_one.
     setoid_rewrite mlaterN_impl; setoid_rewrite mlater_impl.
     iNext i; iNext 1. iModIntro. iApply wp_wand.
     - iApply ("HT1" with "[]"). iApply "HsubT".

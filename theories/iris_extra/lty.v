@@ -232,9 +232,38 @@ Fixpoint env_oltyped `{dlangG Σ} (ρ : var → vl) (Γ : sCtx Σ) : iProp Σ :=
 where "s⟦ Γ ⟧* ρ" := (env_oltyped ρ Γ).
 Global Instance: Params (@env_oltyped) 4 := {}.
 
+(** * oLaterN *)
+Section oLaterN.
+  Context {Σ} {i : nat}.
+  Definition oLaterN n (τ : oltyO Σ i) := Olty (λI args ρ v, ▷^n τ args ρ v).
+
+  Global Instance oLaterN_ne m : NonExpansive (oLaterN m).
+  Proof. solve_proper_ho. Qed.
+  Global Instance oLaterN_proper m : Proper ((≡) ==> (≡)) (oLaterN m) := ne_proper _.
+
+  Lemma oLaterN_eq n τ args ρ v : oLaterN n τ args ρ v = (▷^n τ args ρ v)%I.
+  Proof. done. Qed.
+
+End oLaterN.
+Notation oLater := (oLaterN 1).
+
 Section olty_ofe_2.
   Context `{dlangG Σ} {i : nat}.
   Implicit Types (φ : hoEnvD Σ i) (τ : oltyO Σ i).
+
+  (** oLaterN, part 2 *)
+
+  Lemma oLaterN_0 (T : olty Σ i) :
+    oLaterN 0 T ≡ T.
+  Proof. done. Qed.
+
+  Lemma oLaterN_S (T : olty Σ i) n :
+    oLaterN (S n) T ≡ oLater (oLaterN n T).
+  Proof. done. Qed.
+
+  Lemma oLaterN_Sr (T : olty Σ i) n :
+    oLaterN (S n) T ≡ oLaterN n (oLater T).
+  Proof. move => ???/=. by rewrite swap_later. Qed.
 
   Global Instance env_oltyped_persistent (Γ : sCtx Σ) ρ: Persistent (s⟦ Γ ⟧* ρ).
   Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
@@ -276,19 +305,6 @@ Section olty_ofe_2.
   Global Instance Proper_oOr : Proper ((≡) ==> (≡) ==> (≡)) oOr.
   Proof. solve_proper_ho. Qed.
 
-
-  Definition eLater n (φ : hoEnvD Σ i) : hoEnvD Σ i := (λI args ρ v, ▷^n φ args ρ v).
-  Global Arguments eLater /.
-  Definition oLater τ : oltyO Σ i := Olty (eLater 1 τ).
-
-  Global Instance oLater_ne n : Proper (dist n ==> dist n) oLater.
-  Proof. solve_proper_ho. Qed.
-  Global Instance oLater_proper : Proper ((≡) ==> (≡)) oLater := ne_proper _.
-
-  Lemma oLater_eq τ args ρ v : oLater τ args ρ v = (▷ τ args ρ v)%I.
-  Proof. done. Qed.
-
-
   Definition oMu (τ : oltyO Σ i) : oltyO Σ i := Olty (λI args ρ v, τ args (v .: ρ) v).
   Global Instance Proper_oMu : Proper ((≡) ==> (≡)) oMu.
   Proof. solve_proper_ho. Qed.
@@ -304,6 +320,17 @@ Section olty_ofe_2.
     λI ρ t, □ WP t {{ vclose φ ρ }}.
   Global Arguments interp_expr /.
 
+  Lemma swap_oMu_oLaterN (τ : oltyO Σ i) n :
+    oLaterN n (oMu τ) ≡ oMu (oLaterN n τ).
+  Proof. done. Qed.
+
+  Lemma swap_oAnd_oLaterN (τ1 τ2 : oltyO Σ i) n :
+    oLaterN n (oAnd τ1 τ2) ≡ oAnd (oLaterN n τ1) (oLaterN n τ2).
+  Proof. move => args ρ v /=. by rewrite laterN_and. Qed.
+
+  Lemma swap_oOr_oLaterN (τ1 τ2 : oltyO Σ i) n :
+    oLaterN n (oOr τ1 τ2) ≡ oOr (oLaterN n τ1) (oLaterN n τ2).
+  Proof. move => args ρ v /=. by rewrite laterN_or. Qed.
 
   Definition oSel_raw `{dlangG Σ} s σ :=
     Olty (λI args ρ v, ∃ ψ, s ↗n[σ, i] ψ ∧ ▷ □ ψ args v).
