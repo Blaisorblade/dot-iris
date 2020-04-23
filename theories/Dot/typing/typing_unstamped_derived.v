@@ -372,7 +372,7 @@ Proof.
   by apply iT_All_I_strip1.
 Qed.
 
-Lemma iD_Path_Singl {Γ} p l T :
+Lemma iD_Path_Sngl {Γ} p l T :
   Γ u⊢ₚ p : T, 0 →
   Γ u⊢{ l := dpt p } : TVMem l (TSing p).
 Proof. intros Hp. eapply iD_Path, iP_Sngl_Refl, Hp. Qed.
