@@ -93,7 +93,7 @@ End saved_dep_use.
 End HoSemTypes.
 End noDepTypes.
 
-From D Require Import hoInterps_experiments.
+From D.Dot Require Import hkdot.
 
 (** The semantics of a kind includes a predicate on types, and a subtype predicate.
   *)
@@ -170,7 +170,7 @@ Instance SubsetEq_type {Σ n} : SubsetEq (hoLtyO Σ n) := λI φ1 φ2,
   □ ∀ args v, φ1 args v → φ2 args v. *)
 
 
-From D.Dot.lr Require Import dot_lty unary_lr lr_lemmasNoBinding.
+From D.Dot Require Import dot_lty unary_lr no_binding_lr.
 Module HkDot2.
 (* Include HoSemTypes2 VlSorts dlang_inst dot_lty. *)
 Export HkDot.

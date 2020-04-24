@@ -2,8 +2,8 @@ From stdpp Require Import strings.
 
 From D Require Import tactics.
 From D.Dot Require Import syn unstampedness_binding.
-From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived.
-From D.Dot.examples Require Import exampleInfra scalaLib hoas.
+From D.Dot.typing Require Import unstamped_typing unstamped_typing_derived_rules.
+From D.Dot.examples Require Import ex_utils scala_lib hoas.
 
 Import DBNotation hoasNotation.
 

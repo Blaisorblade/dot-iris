@@ -3,9 +3,9 @@
 From stdpp Require Import strings.
 
 From D Require Import tactics.
-From D.Dot.syn Require Import syn path_repl.
-From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived.
-From D.Dot Require Import exampleInfra scalaLib.
+From D.Dot Require Import syn path_repl.
+From D.Dot.typing Require Import unstamped_typing unstamped_typing_derived_rules.
+From D.Dot Require Import ex_utils scala_lib.
 Import DBNotation.
 
 (** FromPDotPaper *)

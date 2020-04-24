@@ -2,7 +2,7 @@
     way, without involving Iris. *)
 From stdpp Require Import gmap.
 From D Require Import tactics.
-From D.DSub Require Import syn synLemmas typeExtractionSyn stampingDefsCore.
+From D.DSub Require Import syn syn_lemmas type_extraction_syn core_stamping_defs.
 
 Set Implicit Arguments.
 

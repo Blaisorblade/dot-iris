@@ -2,10 +2,10 @@ From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language ectx_language ectxi_language.
 From iris.proofmode Require Import tactics.
 From D Require Import swap_later_impl.
-From D.Dot.syn Require Import synLemmas rules path_repl.
+From D.Dot Require Import syn_lemmas rules path_repl.
 From D.Dot Require Import typing_aux_defs.
-From D.Dot.lr Require Import unary_lr
-  lr_lemmas lr_lemmasTSel lr_lemmasNoBinding lr_lemmasDefs path_repl later_sub_sem.
+From D.Dot Require Import unary_lr
+  binding_lr tsel_lr no_binding_lr defs_lr path_repl_lr later_sub_sem.
 
 Implicit Types
          (v: vl) (e: tm) (d: dm) (ds: dms) (p : path).
@@ -109,16 +109,16 @@ Section NotUsed.
   Proof. rewrite -(T_All_I_Strong (Γ := Γ)) //. ietp_weaken_ctx. Qed.
 End NotUsed.
 
-From D.Dot Require exampleInfra typingExInfra.
-From D.Dot Require fundamental typingStamping.
-From D.Dot.examples Require scalaLib.
+From D.Dot Require ex_utils storeless_typing_ex_utils.
+From D.Dot Require fundamental typing_stamping.
+From D.Dot.examples Require scala_lib.
 
 Import fundamental.
 
 Section Example.
   Context `{HdlangG: !dlangG Σ} `{SwapPropI Σ}.
   Set Default Proof Using "Type*".
-  Import exampleInfra typingExInfra fundamental typingStamping scalaLib.
+  Import ex_utils storeless_typing_ex_utils fundamental typing_stamping scala_lib.
 
   Lemma OrSplit Γ e1 e2 A B C :
     Γ ⊨ e1 : TOr A B -∗

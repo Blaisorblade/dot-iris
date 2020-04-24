@@ -6,22 +6,22 @@ From iris.proofmode Require Import tactics.
 From D.pure_program_logic Require Import weakestpre lifting.
 
 From D Require Import tactics.
-From D.Dot.syn Require Import syn path_repl.
-From D.Dot.typing Require Import typing_storeless.
-From D.Dot Require Import exampleInfra typingExInfra scalaLib exampleIrisUtil.
-(* From D.Dot Require Import typingExamples. *)
-From D.Dot Require Import primOption.
+From D.Dot Require Import syn path_repl.
+From D.Dot.typing Require Import storeless_typing.
+From D.Dot Require Import ex_utils storeless_typing_ex_utils scala_lib ex_iris_utils.
+(* From D.Dot Require Import storeless_typing_ex. *)
+From D.Dot Require Import prim_boolean_option.
 
 From D Require Import swap_later_impl.
 From D.Dot Require Import unary_lr
-  lr_lemmas lr_lemmasTSel lr_lemmasNoBinding lr_lemmasDefs lr_lemmasPrim.
-From D.Dot Require Import typeExtractionSem.
+  binding_lr tsel_lr no_binding_lr defs_lr prims_lr.
+From D.Dot Require Import tdefs_lr.
 From D.Dot Require Import fundamental.
 Import dlang_adequacy stamp_transfer.
-(* From D.Dot Require Import scalaLib.
-From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived. *)
+(* From D.Dot Require Import scala_lib.
+From D.Dot.typing Require Import unstamped_typing unstamped_typing_derived_rules. *)
 Import DBNotation.
-Import primOption prelude saved_interp_dep.
+Import prim_boolean_option prelude saved_interp_dep.
 Import later_sub_sem.
 
 Set Implicit Arguments.

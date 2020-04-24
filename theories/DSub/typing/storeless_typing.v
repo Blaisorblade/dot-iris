@@ -3,8 +3,8 @@
 *)
 From D Require Import tactics.
 From D.DSub Require Export syn.
-From D.DSub Require Import stampingDefsCore astStamping.
-From D.DSubSyn Require Import typing_objIdent.
+From D.DSub Require Import core_stamping_defs ast_stamping.
+From D.DSubSyn Require Import obj_ident_typing.
 
 Set Implicit Arguments.
 

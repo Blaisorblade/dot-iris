@@ -3,7 +3,7 @@ Infrastructure for examples of DOT programs.
 *)
 From stdpp Require Import strings.
 From D Require Import tactics.
-From D.Dot Require Import syn syn.path_repl lr_syn_aux.
+From D.Dot Require Import syn path_repl lr_syn_aux.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 

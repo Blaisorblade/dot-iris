@@ -5,7 +5,7 @@ From stdpp Require Import strings gmap.
 
 From D Require Import tactics.
 From D.Dot Require Import syn.
-From D.Dot Require Export typing_storeless exampleInfra hoas.
+From D.Dot Require Export storeless_typing ex_utils hoas.
 Export DBNotation.
 
 Set Default Proof Using "Type".
@@ -30,7 +30,7 @@ Notation "'type' l = ( σ ; s )" := (l, dtysem σ s) (at level 60, l at level 50
 (***************)
 (** WEAKENING **)
 (***************)
-From D.Dot Require Import traversals stampingDefsCore typeExtractionSyn.
+From D.Dot Require Import traversals core_stamping_defs type_extraction_syn.
 
 Lemma extr_dtysem_stamped {g s} σ T n :
   T ~[ n ] (g, (s, σ)) →
@@ -169,7 +169,7 @@ Proof.
   clear Γ g; intros;
     repeat match goal with
     | H : forall g : stys, _ |- _ => specialize (H g' Hle)
-    end; eauto 3; eauto using typing_storeless.typed.
+    end; eauto 3; eauto using storeless_typing.typed.
 Qed.
 
 Hint Resolve is_stamped_idsσ_ren : core.
@@ -257,7 +257,7 @@ Lemma Bind1' Γ T1 T2:
   Γ v⊢ₜ[g] μ T1, 0 <: T2, 0.
 Proof. intros; exact: Bind1. Qed.
 
-(* Adapted from [typing_unstamped_derived.v]. *)
+(* Adapted from [unstamped_typing_derived_rules.v]. *)
 Lemma iP_Sub' {Γ p T1 T2 i} :
   Γ v⊢ₜ[g] T1, i <: T2, i →
   Γ v⊢ₚ[g] p : T1, i →

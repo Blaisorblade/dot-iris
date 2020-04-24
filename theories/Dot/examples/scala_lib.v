@@ -1,8 +1,8 @@
 From stdpp Require Import strings.
 
 From D Require Import tactics.
-From D.Dot Require Import syn exampleInfra hoas.
-From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived.
+From D.Dot Require Import syn ex_utils hoas.
+From D.Dot.typing Require Import unstamped_typing unstamped_typing_derived_rules.
 Import DBNotation.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).

@@ -7,9 +7,9 @@ From D Require Import iris_prelude.
 From D Require Export succ_notation.
 From D Require Import saved_interp_dep asubst_intf asubst_base dlang lty.
 From D Require Import swap_later_impl.
-From D.Dot.lr Require dot_lty unary_lr path_repl.
-From D.Dot.lr Require lr_lemmasNoBinding lr_lemmasDefs lr_lemmas lr_lemmasTSel.
-From D.Dot Require hoas exampleInfra.
+From D.Dot Require dot_lty unary_lr path_repl_lr.
+From D.Dot Require no_binding_lr defs_lr binding_lr tsel_lr.
+From D.Dot Require hoas ex_utils.
 
 Import EqNotations.
 
@@ -598,7 +598,7 @@ End gen_lemmas.
 End HoSemTypes.
 
 Module HkDot.
-Import dot_lty unary_lr lr_lemmasNoBinding path_repl hoas exampleInfra.
+Import dot_lty unary_lr no_binding_lr path_repl_lr hoas ex_utils.
 Include HoSemTypes VlSorts dlang_inst dot_lty.
 Implicit Types
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
@@ -820,7 +820,7 @@ Section dot_types.
   Qed.
 
 End dot_types.
-Import lr_lemmasDefs lr_lemmas lr_lemmasTSel.
+Import defs_lr binding_lr tsel_lr.
 
 (** An inductive representation of gHkDOT semantic kinds. *)
 Inductive s_kind {Σ} : nat → Type :=

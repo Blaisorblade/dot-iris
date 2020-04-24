@@ -7,7 +7,7 @@
  *)
 From iris.proofmode Require Import tactics.
 From D Require Import proofmode_extra swap_later_impl.
-From D.DSubSyn Require Import unary_lr lr_lemmas.
+From D.DSubSyn Require Import unary_lr semtyp_lemmas.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (Γ : ctx).
 
@@ -86,7 +86,7 @@ Section swap_based_typing_lemmas.
   Qed.
 End swap_based_typing_lemmas.
 
-From D.DSubSyn Require Import typing_storeless.
+From D.DSubSyn Require Import storeless_typing.
 
 Section Fundamental.
   Context `{!dsubSynG Σ} `{!SwapPropI Σ}.

@@ -1,6 +1,6 @@
 (** Lemmas relating is_stamped with binding and substitution. *)
-From D.Dot Require Import syn synLemmas traversals.
-From D.Dot Require Export stampingDefsCore.
+From D.Dot Require Import syn syn_lemmas traversals.
+From D.Dot Require Export core_stamping_defs.
 Import Trav1.
 
 Set Implicit Arguments.

@@ -1,12 +1,12 @@
 From iris.proofmode Require Import tactics.
 From D Require Import swap_later_impl.
 (* For fundamental theorem. *)
-From D.Dot Require Import unary_lr typing_storeless typeExtractionSem
-  lr_lemmas lr_lemmasDefs lr_lemmasNoBinding lr_lemmasTSel lr_lemmasPrim
+From D.Dot Require Import unary_lr storeless_typing tdefs_lr
+  binding_lr defs_lr no_binding_lr tsel_lr prims_lr
   later_sub_sem.
 (* For unstamped safety. *)
-From D.Dot Require Import typing_unstamped typeExtractionSyn astStamping typingStamping skeleton.
-From D.Dot.lr Require Import path_repl.
+From D.Dot Require Import unstamped_typing type_extraction_syn ast_stamping typing_stamping skeleton.
+From D.Dot Require Import path_repl_lr.
 Import stamp_transfer.
 
 Set Suggest Proof Using.

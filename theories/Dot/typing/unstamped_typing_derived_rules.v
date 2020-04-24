@@ -1,8 +1,8 @@
 From stdpp Require Import strings.
 From D Require Import tactics.
-From D.Dot Require Import syn synLemmas exampleInfra typing_unstamped.
+From D.Dot Require Import syn syn_lemmas ex_utils unstamped_typing.
 From D.Dot Require Import unstampedness_binding.
-From D.Dot Require Import path_repl_lemmas typingStamping.
+From D.Dot Require Import path_repl_lemmas typing_stamping.
 Import DBNotation.
 
 Lemma is_unstamped_pvar i n b : i < n → is_unstamped_path n b (pv (var_vl i)).
@@ -15,7 +15,7 @@ Lemma unstamped_subject_closed {Γ e T}
   (Ht : Γ u⊢ₜ e : T) :
   nclosed e (length Γ).
 Proof.
-  destruct (stamp_objIdent_typed ∅ Ht); ev. exact: is_unstamped_nclosed_tm.
+  destruct (stamp_obj_ident_typed ∅ Ht); ev. exact: is_unstamped_nclosed_tm.
 Qed.
 
 Lemma var_typed_closed {Γ x T} : Γ u⊢ₜ tv (ids x) : T → x < length Γ.

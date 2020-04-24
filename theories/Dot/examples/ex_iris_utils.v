@@ -3,11 +3,11 @@ From D.pure_program_logic Require Import lifting adequacy.
 From iris.program_logic Require Import ectxi_language.
 
 From D Require Import swap_later_impl.
-From D.Dot Require Import scalaLib hoas exampleInfra typingExInfra.
+From D.Dot Require Import scala_lib hoas ex_utils storeless_typing_ex_utils.
 
 From D.Dot Require Import unary_lr
-  lr_lemmas lr_lemmasTSel lr_lemmasNoBinding lr_lemmasDefs lr_lemmasPrim.
-From D.Dot Require Import typeExtractionSem.
+  binding_lr tsel_lr no_binding_lr defs_lr prims_lr.
+From D.Dot Require Import tdefs_lr.
 From D.Dot Require Import skeleton fundamental.
 Import dlang_adequacy.
 

@@ -1,6 +1,6 @@
 From iris.proofmode Require Import tactics.
 From D Require Import iris_prelude iris_extra.det_reduction.
-From D.Dot Require Import dlang_inst rules lr_syn_aux syn.path_repl.
+From D.Dot Require Import dlang_inst rules lr_syn_aux path_repl.
 From D.pure_program_logic Require Import lifting.
 
 Implicit Types

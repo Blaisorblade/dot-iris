@@ -1,5 +1,5 @@
 From D Require Import tactics.
-From D.DSub Require Import syn synLemmas.
+From D.DSub Require Import syn syn_lemmas.
 
 Implicit Types (T: ty) (v: vl) (e: tm) (Γ : ctx).
 Set Implicit Arguments.

@@ -3,7 +3,7 @@ Dot.unary_lr
   
   ============================
   length [1] = 1
-Dot.lr_lemmas
+Dot.binding_lr
 1 subgoal
   
   ============================

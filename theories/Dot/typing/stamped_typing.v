@@ -1,7 +1,7 @@
 From D Require Import tactics.
 From D.Dot.syn Require Export syn.
 From D.Dot.typing Require Export typing_aux_defs.
-From D.Dot Require Import typing_storeless.
+From D.Dot Require Import storeless_typing.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -12,7 +12,7 @@ Implicit Types (g : stys).
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
-(* The typing judgement comes from [s/⊢/s⊢] in [typing_storeless.v], and restricting most values to variables (except in object definitions). *)
+(* The typing judgement comes from [s/⊢/s⊢] in [storeless_typing.v], and restricting most values to variables (except in object definitions). *)
 Reserved Notation "Γ s⊢ₜ[ g  ] e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ s⊢ₚ[ g  ] p : T , i" (at level 74, p, T, i at next level).
 Reserved Notation "Γ s⊢[ g  ]{ l := d  } : T " (at level 74, l, d, T at next level).
@@ -297,23 +297,23 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     Γ s⊢ₜ[ g ] TLater T1, i <: TLater T2, j *)
 where "Γ s⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ g T1 i1 T2 i2).
 
-Scheme exp_stamped_objIdent_typed_mut_ind := Induction for typed Sort Prop
-with   exp_stamped_objIdent_dms_typed_mut_ind := Induction for dms_typed Sort Prop
-with   exp_stamped_objIdent_dm_typed_mut_ind := Induction for dm_typed Sort Prop
-with   exp_stamped_objIdent_path_typed_mut_ind := Induction for path_typed Sort Prop.
+Scheme exp_stamped_obj_ident_typed_mut_ind := Induction for typed Sort Prop
+with   exp_stamped_obj_ident_dms_typed_mut_ind := Induction for dms_typed Sort Prop
+with   exp_stamped_obj_ident_dm_typed_mut_ind := Induction for dm_typed Sort Prop
+with   exp_stamped_obj_ident_path_typed_mut_ind := Induction for path_typed Sort Prop.
 (* with   subtype_mut_ind := Induction for subtype Sort Prop. *)
 
-Combined Scheme exp_stamped_objIdent_typing_mut_ind from exp_stamped_objIdent_typed_mut_ind, exp_stamped_objIdent_dms_typed_mut_ind,
-  exp_stamped_objIdent_dm_typed_mut_ind, exp_stamped_objIdent_path_typed_mut_ind.
+Combined Scheme exp_stamped_obj_ident_typing_mut_ind from exp_stamped_obj_ident_typed_mut_ind, exp_stamped_obj_ident_dms_typed_mut_ind,
+  exp_stamped_obj_ident_dm_typed_mut_ind, exp_stamped_obj_ident_path_typed_mut_ind.
 
-Scheme stamped_objIdent_typed_mut_ind := Induction for typed Sort Prop
-with   stamped_objIdent_dms_typed_mut_ind := Induction for dms_typed Sort Prop
-with   stamped_objIdent_dm_typed_mut_ind := Induction for dm_typed Sort Prop
-with   stamped_objIdent_path_typed_mut_ind := Induction for path_typed Sort Prop
-with   stamped_objIdent_subtype_mut_ind := Induction for subtype Sort Prop.
+Scheme stamped_obj_ident_typed_mut_ind := Induction for typed Sort Prop
+with   stamped_obj_ident_dms_typed_mut_ind := Induction for dms_typed Sort Prop
+with   stamped_obj_ident_dm_typed_mut_ind := Induction for dm_typed Sort Prop
+with   stamped_obj_ident_path_typed_mut_ind := Induction for path_typed Sort Prop
+with   stamped_obj_ident_subtype_mut_ind := Induction for subtype Sort Prop.
 
-Combined Scheme stamped_objIdent_typing_mut_ind from stamped_objIdent_typed_mut_ind, stamped_objIdent_dms_typed_mut_ind,
-  stamped_objIdent_dm_typed_mut_ind, stamped_objIdent_path_typed_mut_ind, stamped_objIdent_subtype_mut_ind.
+Combined Scheme stamped_obj_ident_typing_mut_ind from stamped_obj_ident_typed_mut_ind, stamped_obj_ident_dms_typed_mut_ind,
+  stamped_obj_ident_dm_typed_mut_ind, stamped_obj_ident_path_typed_mut_ind, stamped_obj_ident_subtype_mut_ind.
 
 
   (* Scheme typed_mut_ind := Induction for typed Sort Prop
@@ -413,7 +413,7 @@ Section syntyping_lemmas.
     (∀ p T i, Γ s⊢ₚ[ g ] p : T, i → Γ v⊢ₚ[ g ] p : T, i) ∧
     (∀ T1 i1 T2 i2, Γ s⊢ₜ[ g ] T1, i1 <: T2, i2 → Γ v⊢ₜ[ g ] T1, i1 <: T2, i2).
   Proof.
-    eapply stamped_objIdent_typing_mut_ind with
+    eapply stamped_obj_ident_typing_mut_ind with
         (P := λ Γ g e T _, Γ v⊢ₜ[ g ] e : T)
         (P0 := λ Γ g ds T _, Γ v⊢ds[ g ] ds : T)
         (P1 := λ Γ g l d T _, Γ v⊢[ g ]{ l := d } : T)

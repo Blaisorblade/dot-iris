@@ -5,8 +5,8 @@ From stdpp Require Import strings.
 
 From D Require Import tactics.
 From D.Dot Require Import syn unstampedness_binding.
-From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived.
-From D.Dot Require Import exampleInfra hoas scalaLib.
+From D.Dot.typing Require Import unstamped_typing unstamped_typing_derived_rules.
+From D.Dot Require Import ex_utils hoas scala_lib.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 

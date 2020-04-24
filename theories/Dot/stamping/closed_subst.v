@@ -1,5 +1,5 @@
 From D Require Import tactics.
-From D.Dot Require Import syn synLemmas.
+From D.Dot Require Import syn syn_lemmas.
 
 Implicit Types
          (T: ty) (v: vl) (e: tm) (p: path) (d: dm) (ds: dms) (vs: vls)
