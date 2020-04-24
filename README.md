@@ -10,7 +10,8 @@ The mapping between the paper and this mechanization is described in
 
 ## Compiling the Proof the first time
 ### Requirements
-- make and [opam 2.0.6](https://opam.ocaml.org/doc/Install.html) or later.
+- GNU make
+- [opam 2.0.6](https://opam.ocaml.org/doc/Install.html) or later.
 - Coq 8.11.1, installed through opam
 
 ### Installing dependencies
