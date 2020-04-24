@@ -27,17 +27,8 @@ opam install --deps-only .
 
 ### Compiling the actual proof
 
-We recommend a parallel build; if your processor has 4 cores, use 4 parallel jobs.
-If you don't know, 2 is a good default.
-
-To build the proof with 2 parallel jobs, run:
-
-```shell
-eval $(opam env)
-make -j 2
-```
-
-which should take around 5-10 minutes.
+Run `make -jN` to build the full development, where N is the number of your
+CPU cores; that should take around 5-10 minutes.
 
 ## File Layout
 
