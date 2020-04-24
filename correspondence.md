@@ -4,27 +4,39 @@ All file paths in this file are relative to the `theories/` folder.
 
 ## Paper - development mapping
 
-- gDOT syntax and operational semantics: `Dot/syn/syn.v`
-- Unstamped typing judgments: `Dot/typing/unstamped_typing.v`
+- gDOT syntax and operational semantics (Fig. 3): `Dot/syn/syn.v`
+- gDOT unstamped typing judgments (Fig. 6, 7): `Dot/typing/unstamped_typing.v`
 - Unstamped typing judgments, derived rules:
   `Dot/typing/unstamped_typing.v`,
   `Dot/typing/unstamped_typing_derived_rules.v`
 - Stamped typing is defined in `Dot/typing/stamped_typing.v`.
-- Logical relation: `Dot/unary_lr.v`, including adequacy.
-- The fundamental theorem and type soundness for gDOT, are proven in
-  `Dot/fundamental.v`.
-  - Translation of typing derivations is proved in
+  - Translation of typing derivations (Thm. 5.3) is proved in
     `Dot/typing/typing_stamping.v`.
+- Iris proof rules (Fig. 8): most rules are proven from Iris itself.
+  - Impl-▷ is proven in from `iris_extra/swap_later_impl.v`.
+  - Saved-Pred-Agree is proven as 
+  `saved_ho_sem_type_agree` from [`iris_extra/saved_interp_dep.v`](theories/iris_extra/saved_interp_dep.v).
+- Expression weakest precondition (Sec. 5.2.1): Definition and proof rules appear in
+  `pure_program_logic`.
+- Path weakest precondition (Sec. 5.2.2): defined in `Dot/lr/path_wp.v`.
+- Logical relation (Fig. 9):
+  - Auxiliary definitions appear in `iris_extra/dlang.v`.
+  - Infrastructure on semantic predicates 
+    is defined in `Dot/lr/lty.v` and `Dot/lr/dot_lty.v`.
+  - The logical relation and semantic judgments are completed in `Dot/unary_lr.v`,
+    including adequacy (Thm. 5.5).
+- The fundamental theorem (Thm. 5.4) and type soundness for gDOT (Thm. 5.2)
+  are proven in `Dot/fundamental.v`.
 
 - Examples are in `Dot/examples/`. In particular:
-  - Covariant lists example: `Dot/examples/list.v`.
-  - Positive integers example: `Dot/examples/examples.v`.
-  - Unsafe motivating example: `Dot/examples/from_pdot_mutual_rec_sem.v`.
-  - Earlier variant from Sec. 1: `Dot/examples/from_pdot_mutual_rec.v`; here we
-    simplified the use of `Option` away, which we preserve in
-    `Dot/examples/from_pdot_mutual_rec_sem.v`.
+  - Covariant lists example (Sec. 6.1): `Dot/examples/list.v`.
+  - Positive integers example (Sec. 6.2): `Dot/examples/positive_div.v`.
+  - Motivating example (Sec. 1, Fig. 2): `Dot/examples/from_pdot_mutual_rec.v`; here we
+    simplified the use of `Option` away, but we do use `Option` when formalizing Sec. 6.3.
+  - Unsafe motivating example (Sec. 6.3): `Dot/examples/from_pdot_mutual_rec_sem.v`.
 
 - For the code sizes reported in Sec. 6, see `codesize.md`.
+- Testcase `tests/test_used_axioms.v` confirms that the only axiom we use is functional extensionality.
 
 - Paper notation E⟦ T ⟧ would translate to E⟦ V⟦ T ⟧ ⟧ in this development;
   however, we generalize many definitions to semantic types.
