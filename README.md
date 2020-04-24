@@ -20,7 +20,8 @@ The following commands will install the correct versions of the std++ and Iris l
 This development is unlikely to compile with other versions.
 ```shell
 eval $(opam env)
-opam repo add iris-dev https://gitlab.mpi-sws.org/FP/opam-dev.git --set-default --all
+opam repo add coq-released https://coq.inria.fr/opam/released --set-default --all
+opam repo add iris-dev https://gitlab.mpi-sws.org/iris/opam.git --set-default --all
 opam install --deps-only .
 ```
 
