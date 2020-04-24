@@ -12,12 +12,10 @@ The mapping between the paper and this mechanization is described in
 ### Requirements
 - GNU make
 - [opam 2.0.6](https://opam.ocaml.org/doc/Install.html) or later.
-- Coq 8.11.1, installed through opam
 
 ### Installing dependencies
 
-The following commands will install the correct versions of the std++ and Iris libraries.
-This development is unlikely to compile with other versions.
+The following commands will install Coq 8.11.1 and the correct versions of the std++ and Iris libraries.
 ```shell
 eval $(opam env)
 opam repo add coq-released https://coq.inria.fr/opam/released --set-default --all
