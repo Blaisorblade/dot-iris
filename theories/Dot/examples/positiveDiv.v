@@ -3,7 +3,7 @@ From D.pure_program_logic Require Import lifting adequacy.
 From iris.program_logic Require Import ectxi_language.
 
 From D Require Import swap_later_impl.
-From D.Dot Require Import scalaLib hoas exampleInfra typingExInfra.
+From D.Dot Require Import scalaLib hoas exampleInfra typingExInfra exampleIrisUtil.
 
 From D.Dot Require Import unary_lr
   lr_lemmas lr_lemmasTSel lr_lemmasNoBinding lr_lemmasDefs lr_lemmasPrim.
@@ -18,14 +18,8 @@ Implicit Types (v w : vl) (d : dm) (ds : dms).
 
 Import hoas.syn.
 
-(* XXX move into hoas.v. *)
-Module hoasNotation'.
-  Export hoasNotation.
-  Notation "'type' l = ( σ ; s )" := (l, hdtysem σ s) (at level 60, l at level 50).
-End hoasNotation'.
-
 Module Import examplesBodies.
-Import hoasNotation'.
+Import hoasNotation.
 
 Definition posModT := μ: self, {@
   type "Pos" >: ⊥ <: 𝐙;
@@ -49,21 +43,6 @@ Definition hminiV s := ν: _, {@
 }.
 
 End examplesBodies.
-
-Example loopDefTyp Γ : Γ v⊢ₜ[ ∅ ] hloopDefV : hloopDefT.
-Proof.
-  apply (iT_Sub_nocoerce hloopDefTConcr); mltcrush.
-  eapply iT_All_E; last var.
-  tcrush; varsub; lookup.
-Qed.
-
-Example loopFunTyp Γ : Γ v⊢ₜ[∅] hloopFunTm : ⊤ →: ⊥.
-Proof. have ? := loopDefTyp Γ; tcrush. Qed.
-
-Example loopTyp Γ : Γ v⊢ₜ[∅] hloopTm : ⊥.
-Proof.
-  have ? := loopFunTyp Γ; apply (iT_All_E (T1 := ⊤)), (iT_Sub_nocoerce 𝐙); tcrush.
-Qed.
 
 Module examples.
 
@@ -180,7 +159,7 @@ Section div_example.
   Qed.
 
   Section useHoas.
-  Import hoasNotation'.
+  Import hoasNotation.
   Lemma wp_if_ge (n : Z) :
     ⊢ WP hmkPosBodyV n {{ w, ⌜ w = n ∧ n > 0 ⌝}}.
   Proof using Type*.

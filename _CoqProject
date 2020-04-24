@@ -99,3 +99,4 @@ theories/Dot/misc_unused/path_repl_misc.v
 theories/Dot/syn/lr_syn_aux.v
 theories/Dot/syn/dropSkips.v
 theories/Dot/examples/primOption.v
+theories/Dot/examples/exampleIrisUtil.v

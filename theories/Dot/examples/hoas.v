@@ -255,6 +255,7 @@ Notation "'ν' ds " := (hvobj ds) (at level 60, ds at next level).
 Notation "'ν:' x , ds " := (hvobj (λD x, ds)) (at level 60, ds at next level).
 Notation "'val' l = v" := (l, hdpt v) (at level 60, l at level 50).
 Notation "'type' l = T  " := (l, hdtysyn T) (at level 60, l at level 50).
+Notation "'type' l = ( σ ; s )" := (l, hdtysem σ s) (at level 60, l at level 50).
 
 Definition hdtysem' : hstampTy → hdm := λ '(MkTy s hσ _ _), hdtysem hσ s.
 Arguments hdtysem' !_ /.
