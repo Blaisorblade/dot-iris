@@ -1,12 +1,12 @@
 From stdpp Require Import strings.
 
 From D Require Import tactics.
-From D.Dot Require Import syn exampleInfra hoas typingExInfra.
-(* From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived. *)
-From D.Dot.typing Require Import typing_storeless.
+From D.Dot Require Import syn ex_utils hoas storeless_typing_ex_utils.
+(* From D.Dot.typing Require Import unstamped_typing unstamped_typing_derived_rules. *)
+From D.Dot.typing Require Import storeless_typing.
 (* From D.Dot Require Import unary_lr
-  lr_lemmas lr_lemmasTSel lr_lemmasNoBinding lr_lemmasDefs lr_lemmasPrim.
-From D.Dot Require Import typeExtractionSem.
+  binding_lr tsel_lr no_binding_lr defs_lr prims_lr.
+From D.Dot Require Import tdefs_lr.
 From D.Dot Require Import fundamental.
 From D Require Import swap_later_impl. *)
 
@@ -18,12 +18,12 @@ Set Default Proof Using "Type".
 
 Definition mapfst {A B C} (f : A → C): A * B → (C * B) := λ '(a, b), (f a, b).
 
-Module primOption.
+Module prim_boolean_option.
 Import hoasNotation.
 
 Ltac tMember := apply iD_Typ; tcrush; by_extcrush.
 
-Section primOption'.
+Section prim_boolean_option'.
 
 (**
 Encoding Option, using primitive booleans; we export Option as an abstract type.
@@ -220,5 +220,5 @@ Example optionModTyp Γ :
   Γ v⊢ₜ[ primOptionG ] hclose (htv hoptionModV) : hclose hoptionModT.
 Proof. eapply iT_Sub_nocoerce, optionModTypSub; apply optionModInvTyp. Qed.
 
-End primOption'.
-End primOption.
+End prim_boolean_option'.
+End prim_boolean_option.

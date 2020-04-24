@@ -2,7 +2,7 @@ From iris.proofmode Require Import tactics.
 From iris.program_logic Require Import ectx_language.
 From D.pure_program_logic Require Import lifting.
 From D Require Import iris_prelude.
-From D.Dot.syn Require Import syn path_repl rules.
+From D.Dot Require Import syn path_repl rules.
 From D.Dot.lr Require Import path_wp dlang_inst unary_lr.
 
 Implicit Types
@@ -278,7 +278,7 @@ Section path_repl.
     Γ ⊨p p : T, 0 -∗ Γ ⊨ path2tm p : T.
   Proof. apply sT_Path. Qed.
 
-  (* From D.Dot Require Import lr_lemmas.
+  (* From D.Dot Require Import binding_lr.
   (* Not too useful. *)
   (* XXX Generalize? *)
   Lemma s_singleton_self_skip Γ τ p i :

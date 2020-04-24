@@ -1,4 +1,4 @@
-# Type Soundness for DOT via logical relations 
+# Type Soundness for DOT via logical relations
 
 [![Build Status](https://travis-ci.org/Blaisorblade/dot-iris.svg?branch=master)](https://travis-ci.org/Blaisorblade/dot-iris)
 
@@ -45,20 +45,20 @@ Inside the `Dot` folder:
 * `syn`: syntax
   - `syn.v`: definition of the basic SYNtax, and instantiate Iris with DOT
     operational semantics.
-  - `synLemmas.v`: (SYNtactic Lemmas): lemmas about syntax and binding.
+  - `syn_lemmas.v`: (SYNtactic Lemmas): lemmas about syntax and binding.
   - `rules.v`: lemmas about this language's operational semantics.
 * `lr`: logical relation, semantic typing, compatibility lemmas
   - `path_wp.v`: define path weakest precondition;
   - `dlang_inst.v`: instantiate shared Iris setup from `dlang.v`;
   - `unary_lr.v`: definition of unary logical relation.
   Compatibility lemmas:
-  - `lr_lemmasDefs.v`: lemmas about DEFinition typing;
-  - `lr_lemmasTSel.v`: lemmas about TSel (type selection);
-  - `lr_lemmasNoBinding.v`: various typing lemmas, not requiring `synLemmas.v`;
-  - `lr_lemmas.v`: other misc typing lemmas.
+  - `defs_lr.v`: lemmas about DEFinition typing;
+  - `tsel_lr.v`: lemmas about TSel (type selection);
+  - `no_binding_lr.v`: various typing lemmas, not requiring `syn_lemmas.v`;
+  - `binding_lr.v`: other misc typing lemmas.
 * `stamping`: definitions and lemmas about stamping.
 * `typing`: syntactic typing and auxiliary lemmas about it
-  - `typingStamping.v`: prove stamping of typing derivations.
+  - `typing_stamping.v`: prove stamping of typing derivations.
 * `examples`: various gDOT snippets.
 * `fundamental.v`: prove fundamental theorem, adequacy and type safety.
 

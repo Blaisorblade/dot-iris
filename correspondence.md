@@ -5,24 +5,24 @@ All file paths in this file are relative to the `theories/` folder.
 ## Paper - development mapping
 
 - gDOT syntax and operational semantics: `Dot/syn/syn.v`
-- Unstamped typing judgments: `Dot/typing/typing_unstamped.v`
+- Unstamped typing judgments: `Dot/typing/unstamped_typing.v`
 - Unstamped typing judgments, derived rules:
-  `Dot/typing/typing_unstamped.v`,
-  `Dot/typing/typing_unstamped_derived.v`
-- Stamped typing is defined in `Dot/typing/typing_stamped.v`.
+  `Dot/typing/unstamped_typing.v`,
+  `Dot/typing/unstamped_typing_derived_rules.v`
+- Stamped typing is defined in `Dot/typing/stamped_typing.v`.
 - Logical relation: `Dot/unary_lr.v`, including adequacy.
 - The fundamental theorem and type soundness for gDOT, are proven in
   `Dot/fundamental.v`.
   - Translation of typing derivations is proved in
-    `Dot/typing/typingStamping.v`.
+    `Dot/typing/typing_stamping.v`.
 
 - Examples are in `Dot/examples/`. In particular:
   - Covariant lists example: `Dot/examples/list.v`.
   - Positive integers example: `Dot/examples/examples.v`.
-  - Unsafe motivating example: `Dot/examples/fromPDotMutualRecSem.v`.
-  - Earlier variant from Sec. 1: `Dot/examples/fromPDotMutualRec.v`; here we
+  - Unsafe motivating example: `Dot/examples/from_pdot_mutual_rec_sem.v`.
+  - Earlier variant from Sec. 1: `Dot/examples/from_pdot_mutual_rec.v`; here we
     simplified the use of `Option` away, which we preserve in
-    `Dot/examples/fromPDotMutualRecSem.v`.
+    `Dot/examples/from_pdot_mutual_rec_sem.v`.
 
 - For the code sizes reported in Sec. 6, see `codesize.md`.
 
@@ -71,7 +71,7 @@ The paper's D-And is here replaced by `D_Nil` and `D_Cons`.
   encodable.
 
 - Compared to the paper, and even to the appendix, we describe (in
-  `Dot/typing/typing_storeless.v`) an additional "storeless" typing judgment, a
+  `Dot/typing/storeless_typing.v`) an additional "storeless" typing judgment, a
   strict generalization of stamped typing.
   Storeless typing generalizes some rules of stamped typing to allow arbitrary
   values in paths, and not just variables. This is not at all necessary to our

@@ -1,12 +1,12 @@
 (**
   An (unstamped) typing judgment for DSub with object identities --- that is,
   allowing only variables in types.
-  We show that it implies the unstamped typing judgment from [D.SubSyn.typing_storeless], which
+  We show that it implies the unstamped typing judgment from [D.SubSyn.storeless_typing], which
   allows arbitrary values in types.
 *)
 From D Require Import tactics.
 From D.DSub Require Export syn.
-From D.DSubSyn Require Export typing_storeless.
+From D.DSubSyn Require Export storeless_typing.
 
 Reserved Notation "Γ u⊢ₜ e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ u⊢ₜ T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).

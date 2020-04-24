@@ -5,16 +5,16 @@
   [stamp_typing_mut].
 *)
 From D Require Import tactics.
-From D.Dot.syn Require Export syn path_repl lr_syn_aux.
+From D.Dot Require Export syn path_repl lr_syn_aux.
 From D.Dot.typing Require Export typing_aux_defs.
-From D.Dot.stamping Require Export stampingDefsCore.
+From D.Dot.stamping Require Export core_stamping_defs.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
 
 Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
 
-(* The typing judgement comes from [s/⊢/u⊢/] over [Dot/typing_stamped.v], and dropping stamping. *)
+(* The typing judgement comes from [s/⊢/u⊢/] over [Dot/stamped_typing.v], and dropping stamping. *)
 Reserved Notation "Γ u⊢ₜ e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ u⊢ₚ p : T , i" (at level 74, p, T, i at next level).
 Reserved Notation "Γ u⊢{ l := d  } : T" (at level 74, l, d, T at next level).

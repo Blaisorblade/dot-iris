@@ -1,6 +1,6 @@
-From D.Dot.syn Require Export syn path_repl lr_syn_aux.
+From D.Dot Require Export syn path_repl lr_syn_aux.
 From D.Dot.typing Require Export typing_aux_defs.
-From D.Dot.stamping Require Export stampingDefsCore.
+From D.Dot.stamping Require Export core_stamping_defs.
 (* From D.Dot.lr Require Import unary_lr.
 From D Require Import swap_later_impl. *)
 

@@ -59,7 +59,7 @@ Proof.
 Qed.
 
 
-From D.Dot Require Import stampingDefsCore astStamping typingStamping path_repl_lemmas.
+From D.Dot Require Import core_stamping_defs ast_stamping typing_stamping path_repl_lemmas.
 
 Lemma terminates_stamp {n e g e_s}:
   stamps_tm' n e g e_s → terminates e_s → terminates e.

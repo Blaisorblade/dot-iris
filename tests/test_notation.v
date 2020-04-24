@@ -1,6 +1,6 @@
 From stdpp Require Import strings.
-From D.Dot Require Import syn exampleInfra hoas.
-From D.Dot Require typingExInfra.
+From D.Dot Require Import syn ex_utils hoas.
+From D.Dot Require storeless_typing_ex_utils.
 
 Module TestDB.
 Import DBNotation.
@@ -36,7 +36,7 @@ Print tb.
 Definition tc v := (0 ≥ (v ≥ 0))%E.
 
 Module TestStamped.
-Import typingExInfra.
+Import storeless_typing_ex_utils.
 Check ν {@ type "A" = (σ1 ; s1) }.
 Check ν {@ val "a" = pv (vint 0); type "A" = (σ1 ; s1) }.
 Check ν {@ val "a" = pv (vint 0) ; type "A" = (σ1 ; s1) }.

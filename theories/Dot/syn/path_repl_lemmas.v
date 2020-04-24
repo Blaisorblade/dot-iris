@@ -1,6 +1,6 @@
 From iris.proofmode Require Import tactics.
-From D.Dot Require Import syn syn.path_repl.
-From D.Dot Require Import stampingDefsCore unstampedness_binding closed_subst.
+From D.Dot Require Import syn path_repl.
+From D.Dot Require Import core_stamping_defs unstampedness_binding closed_subst.
 
 Implicit Types
          (T : ty) (v w : vl) (t : tm) (d : dm) (ds : dms) (p q : path)

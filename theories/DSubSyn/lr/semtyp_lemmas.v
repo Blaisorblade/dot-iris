@@ -5,7 +5,7 @@
  *)
 From iris.proofmode Require Import tactics.
 From D.pure_program_logic Require Import lifting.
-From D.DSub Require Import rules synLemmas.
+From D.DSub Require Import rules syn_lemmas.
 From D.DSubSyn Require Import unary_lr.
 
 Set Suggest Proof Using.

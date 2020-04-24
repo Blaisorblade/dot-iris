@@ -1,6 +1,6 @@
 From D Require Import prelude.
-From D.Dot Require Import typeExtractionSyn traversals stampedness_binding closed_subst.
-From D.Dot Require Import typing_storeless.
+From D.Dot Require Import type_extraction_syn traversals stampedness_binding closed_subst.
+From D.Dot Require Import storeless_typing.
 Set Implicit Arguments.
 
 Set Suggest Proof Using.

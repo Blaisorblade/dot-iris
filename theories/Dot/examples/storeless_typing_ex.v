@@ -5,7 +5,7 @@ I am also experimenting with notations, but beware the current definitions are p
 From stdpp Require Import strings.
 
 From D Require Import tactics.
-From D.Dot Require Import syn typingExInfra stampedness_binding.
+From D.Dot Require Import syn storeless_typing_ex_utils stampedness_binding.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
