@@ -8,6 +8,35 @@ DOT with Step-Indexed Logical Relations in Iris".
 The mapping between the paper and this mechanization is described in
 [correspondence.md](correspondence.md).
 
+## Compiling the Proof the first time
+### Requirements
+- make and [opam 2.0.6](https://opam.ocaml.org/doc/Install.html) or later.
+- Coq 8.11.1, installed through opam
+
+### Installing dependencies
+
+The following commands will install the correct versions of the std++ and Iris libraries.
+This development is unlikely to compile with other versions.
+```shell
+eval $(opam env)
+opam repo add iris-dev https://gitlab.mpi-sws.org/FP/opam-dev.git --set-default --all
+opam install --deps-only .
+```
+
+### Compiling the actual proof
+
+We recommend a parallel build; if your processor has 4 cores, use 4 parallel jobs.
+If you don't know, 2 is a good default.
+
+To build the proof with 2 parallel jobs, run:
+
+```shell
+eval $(opam env)
+make -j 2
+```
+
+which should take around 5-10 minutes.
+
 ## File Layout
 
 Here is a rough layout of the various files.
@@ -42,60 +71,6 @@ Inside the `Dot` folder:
 * `examples`: various gDOT snippets.
 * `fundamental.v`: prove fundamental theorem, adequacy and type safety.
 
-## Installation
-### Coq/Iris version
-
-The supported Coq and Iris versions are specified in `opam`; we currently assume
-Coq 8.11.1 (and we know of bugs in both 8.10.2 and 8.11.0).
-
-Install those exact versions, for instance via
-`opam install coq.8.11.1 coq-iris.<insert version here>`.
-
-### To use opam 2.0
-
-One can use opam 2.0 to create a local switch, that is, a local version of iris
-and of coq that will only be used when one is inside this directory. _The first
-time,_ one should do:
-
-```shell
-opam repo add iris-dev https://gitlab.mpi-sws.org/FP/opam-dev.git --set-default --all
-```
-
-to add the iris opam repository, and then, in this directory, do
-
-```shell
-opam switch create . ocaml-base-compiler.4.09.0 --locked
-```
-
-to create the local switch. Then, every time you wants to work on this, do
-
-```shell
-eval $(opam env)
-```
-
-so that `coqc`, etc, correspond to the local version. You can also configure
-opam to do this automatically by answering yes when `opam init` asks you the
-following:
-"A hook can be added to opam's init scripts to ensure that the shell remains in sync with the opam environment when they are loaded. Set that up?"
-
-To answer that question again, check `opam init` docs; `opam init --reinit`
-works here.
-
-### Upgrading switch
-
-Use
-
-```
-opam install .
-```
-
-to upgrade the switch when we bump dependencies (which for now we do seldom).
-To make this succeed, you might need to first run `opam unpin coq-stdpp
-coq-iris`, `opam uninstall dot-iris`, `opam uninstall .`, or such.
-
-After updating deps, you will need to do a clean build, so `make clean` and then
-`make`.
-
-## Development/Additional docs (not relevant to paper)
+## Documentation for developers / additional docs (not relevant to paper)
 
 See `development.md`.
