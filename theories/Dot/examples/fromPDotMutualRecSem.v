@@ -8,7 +8,7 @@ From D.pure_program_logic Require Import weakestpre lifting.
 From D Require Import tactics.
 From D.Dot.syn Require Import syn path_repl.
 From D.Dot.typing Require Import typing_storeless.
-From D.Dot Require Import exampleInfra typingExInfra examples.
+From D.Dot Require Import exampleInfra typingExInfra positiveDiv.
 (* From D.Dot Require Import typingExamples. *)
 Import scalaLib.
 From D.Dot Require Import primOption.

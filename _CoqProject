@@ -63,7 +63,7 @@ theories/Dot/typing/typing_stamped.v
 theories/Dot/typing/typing_unstamped.v
 theories/Dot/typing/typing_unstamped_derived.v
 theories/Dot/lr/path_wp.v
-theories/Dot/examples/examples.v
+theories/Dot/examples/positiveDiv.v
 theories/Dot/examples/noRussell.v
 theories/Dot/stamping/typeExtractionSyn.v
 theories/Dot/lr/typeExtractionSem.v
