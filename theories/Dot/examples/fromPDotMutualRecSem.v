@@ -8,9 +8,8 @@ From D.pure_program_logic Require Import weakestpre lifting.
 From D Require Import tactics.
 From D.Dot.syn Require Import syn path_repl.
 From D.Dot.typing Require Import typing_storeless.
-From D.Dot Require Import exampleInfra typingExInfra examples.
+From D.Dot Require Import exampleInfra typingExInfra scalaLib exampleIrisUtil.
 (* From D.Dot Require Import typingExamples. *)
-Import scalaLib.
 From D.Dot Require Import primOption.
 
 From D Require Import swap_later_impl.
@@ -22,7 +21,7 @@ Import dlang_adequacy stamp_transfer.
 (* From D.Dot Require Import scalaLib.
 From D.Dot.typing Require Import typing_unstamped typing_unstamped_derived. *)
 Import DBNotation.
-Import examples primOption prelude saved_interp_dep.
+Import primOption prelude saved_interp_dep.
 Import later_sub_sem.
 
 Set Implicit Arguments.
