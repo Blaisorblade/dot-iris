@@ -1,4 +1,6 @@
-# Type Soundness for DOT via logical relations
+# Type Soundness for DOT via logical relations 
+
+[![Build Status](https://travis-ci.org/Blaisorblade/dot-iris.svg?branch=master)](https://travis-ci.org/Blaisorblade/dot-iris)
 
 Mechanization accompanying the paper "Scala Step-by-Step: Soundness for
 DOT with Step-Indexed Logical Relations in Iris".
