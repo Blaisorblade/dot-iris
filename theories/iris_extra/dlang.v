@@ -45,10 +45,6 @@ Module Type LiftWp (Import VS : VlSortsSig).
     irisG_langdet := _;
   }.
 
-  (* Defining this needs the above irisG instance in scope. *)
-  Local Definition test_interp_expr `{dlangG Σ} :=
-    λI (t: expr dlang_lang), WP t {{ v, False }}.
-
   Definition leadsto_n `{dlangG Σ}
     s n (φ : hoEnvD Σ n) : iProp Σ := ∃ γ, s ↦ γ ∧ γ ⤇n[ n ] φ.
   Notation "s ↝n[ n  ] φ" := (leadsto_n s n φ) (at level 20) : bi_scope.
