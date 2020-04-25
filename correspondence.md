@@ -12,7 +12,7 @@ All file paths in this file are relative to the `theories/` folder.
 - Stamped typing is defined in `Dot/typing/stamped_typing.v`.
   - Translation of typing derivations (Thm. 5.3) is proved in
     `Dot/typing/typing_stamping.v`.
-- Iris proof rules (Fig. 8): most rules are proven from Iris itself.
+- Iris proof rules (Fig. 8): most rules are proven from Iris itself, except two:
   - Impl-▷ is proven in from `iris_extra/swap_later_impl.v`.
   - Saved-Pred-Agree is proven as 
   `saved_ho_sem_type_agree` from [`iris_extra/saved_interp_dep.v`](theories/iris_extra/saved_interp_dep.v).
@@ -29,20 +29,14 @@ All file paths in this file are relative to the `theories/` folder.
   are proven in `Dot/fundamental.v`.
 
 - Examples are in `Dot/examples/`. In particular:
-  - Covariant lists example (Sec. 6.1): `Dot/examples/list.v`.
-  - Positive integers example (Sec. 6.2): `Dot/examples/positive_div.v`.
-  - Motivating example (Sec. 1, Fig. 2): `Dot/examples/from_pdot_mutual_rec.v`; here we
+  - Motivating example (Fig. 2, discussed in Sec. 1.1 and 4.0): `Dot/examples/from_pdot_mutual_rec.v`; here we
     simplified the use of `Option` away, but we do use `Option` when formalizing Sec. 6.3.
-  - Unsafe motivating example (Sec. 6.3): `Dot/examples/from_pdot_mutual_rec_sem.v`.
+  - Covariant lists example (Fig. 10, Sec. 6.1): `Dot/examples/list.v`.
+  - Positive integers example (Fig. 11, Sec. 6.2): `Dot/examples/positive_div.v`.
+  - Unsafe motivating example (Fig. 12, Sec. 6.3): `Dot/examples/from_pdot_mutual_rec_sem.v`.
 
 - For the code sizes reported in Sec. 6, see `codesize.md`.
 - Testcase `tests/test_used_axioms.v` confirms that the only axiom we use is functional extensionality.
-
-- Paper notation E⟦ T ⟧ would translate to E⟦ V⟦ T ⟧ ⟧ in this development;
-  however, we generalize many definitions to semantic types.
-
-- Notations such as \overbar{V}⟦ g ⟧ or \overbar{D}⟦ T ⟧ translate to Vs⟦ g ⟧
-  and Ds⟦ T ⟧.
 
 ## Typing lemma naming conventions
 
@@ -64,8 +58,17 @@ The paper's D-And is here replaced by `D_Nil` and `D_Cons`.
 
 ## Differences between our paper (and technical appendix) and our Coq development.
 
-- Definition lists in Coq are represented as standard cons lists, like in Coq
-  developments by Rapoport et al. (e.g. pDOT) and unlike in DOT papers.
+- Notations such as \overbar{V}⟦ g ⟧ or \overbar{D}⟦ T ⟧ translate to Vs⟦ g ⟧
+  and Ds⟦ T ⟧.
+
+- Paper notation E⟦ T ⟧ would translate to E⟦ V⟦ T ⟧ ⟧ in this development;
+  however, we generalize many definitions to semantic types, so that notation
+  seldom appears.
+
+- In Coq, definition lists use constructors nil and cons as usual, like in Coq
+  developments by Rapoport et al. (e.g. pDOT).
+  On paper, definition lists are instead constructed by singleton and
+  merge operations (Fig. 3), as in other DOT papers.
 
 - Semantic definition typing was significantly simplified on paper.
 
