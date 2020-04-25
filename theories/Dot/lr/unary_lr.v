@@ -56,28 +56,28 @@ Section judgments.
       (unlike I did originally). *)
 
   (** Expression typing *)
-  Definition setp `{dlangG Σ} e Γ τ : iProp Σ :=
+  Definition setp `{!dlangG Σ} e Γ τ : iProp Σ :=
     □∀ ρ, s⟦Γ⟧* ρ → E⟦ τ ⟧ ρ (e.|[ρ]).
   Global Arguments setp /.
 
   (** Indexed subtyping. *)
-  Definition sstpi `{dlangG Σ} i j Γ τ1 τ2 : iProp Σ :=
+  Definition sstpi `{!dlangG Σ} i j Γ τ1 τ2 : iProp Σ :=
     □∀ ρ v,
       s⟦Γ⟧*ρ → ▷^i oClose τ1 ρ v → ▷^j oClose τ2 ρ v.
   Global Arguments sstpi /.
 
   (** Definition typing *)
-  Definition sdtp `{dlangG Σ} l d Γ (φ : clty Σ): iProp Σ :=
+  Definition sdtp `{!dlangG Σ} l d Γ (φ : clty Σ): iProp Σ :=
     □∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)] ⌝ → s⟦Γ⟧* ρ → lift_ldlty (clty_dlty φ) ρ l d.|[ρ].
   Global Arguments sdtp /.
 
   (** Multi-definition typing *)
-  Definition sdstp `{dlangG Σ} ds Γ (T : clty Σ) : iProp Σ :=
+  Definition sdstp `{!dlangG Σ} ds Γ (T : clty Σ) : iProp Σ :=
     ⌜wf_ds ds⌝ ∧ □∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → s⟦Γ⟧* ρ → T ρ ds.|[ρ].
   Global Arguments sdstp /.
 
   (** Path typing *)
-  Definition sptp `{dlangG Σ} p i Γ (T : oltyO Σ 0): iProp Σ :=
+  Definition sptp `{!dlangG Σ} p i Γ (T : oltyO Σ 0): iProp Σ :=
     □∀ ρ, s⟦Γ⟧* ρ →
       ▷^i path_wp (p.|[ρ]) (oClose T ρ).
   Global Arguments sptp /.
@@ -161,7 +161,7 @@ Section SemTypes.
       ∃ ψ d, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n[ n ] ψ ∧ ▷ □ ψ args v.
   Proof. by rewrite /= path_wp_pv_eq. Qed.
 
-  Definition oSing `{dlangG Σ} p : olty Σ 0 := olty0 (λI ρ v, ⌜alias_paths p.|[ρ] (pv v)⌝).
+  Definition oSing `{!dlangG Σ} p : olty Σ 0 := olty0 (λI ρ v, ⌜alias_paths p.|[ρ] (pv v)⌝).
 
   (* Function types; this definition is contractive (similarly to what's
      useful for equi-recursive types). *)
@@ -363,7 +363,7 @@ Section Propers.
   Global Instance Proper_sstpi_flip i j :
     Proper ((≡) --> (≡) --> (≡) --> flip (≡)) (sstpi i j).
   Proof. apply: flip_proper_4. Qed.
-  Global Instance: Params (@sstpi) 5 := {}.
+  Global Instance: Params (@sstpi) 4 := {}.
 
 
   Global Instance Proper_setp e : Proper ((≡) ==> (≡) ==> (≡)) (setp e).
@@ -374,7 +374,7 @@ Section Propers.
   Global Instance Proper_setp_flip e :
     Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (setp e).
   Proof. apply: flip_proper_3. Qed.
-  Global Instance: Params (@setp) 4 := {}.
+  Global Instance: Params (@setp) 3 := {}.
 
 
   Global Instance Proper_sdtp l d : Proper ((≡) ==> (≡) ==> (≡)) (sdtp l d).
@@ -384,14 +384,14 @@ Section Propers.
   Qed.
   Global Instance Proper_sdtp_flip l d : Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sdtp l d).
   Proof. apply: flip_proper_3. Qed.
-  Global Instance: Params (@sdtp) 5 := {}.
+  Global Instance: Params (@sdtp) 4 := {}.
 
 
   Global Instance Proper_sptp p i : Proper ((≡) ==> (≡) ==> (≡)) (sptp p i).
   Proof. solve_proper_ho. Qed.
   Global Instance Proper_sptp_flip p i : Proper ((≡) --> (≡) --> flip (≡)) (sptp p i).
   Proof. apply: flip_proper_3. Qed.
-  Global Instance: Params (@sptp) 5 := {}.
+  Global Instance: Params (@sptp) 4 := {}.
 End Propers.
 
 Section defs.
