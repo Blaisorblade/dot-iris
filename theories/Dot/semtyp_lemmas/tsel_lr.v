@@ -7,7 +7,7 @@ Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
 Section Sec.
-  Context `{HdlangG: dlangG Σ}.
+  Context `{HdlangG: !dlangG Σ}.
 
   Lemma sSub_Sel {Γ L U p l i}:
     Γ s⊨p p : cTMem l L U, i -∗

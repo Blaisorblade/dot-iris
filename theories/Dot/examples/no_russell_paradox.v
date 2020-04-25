@@ -8,7 +8,7 @@ Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
 Section Russell.
-  Context `{HdlangG: dlangG Σ}.
+  Context `{HdlangG: !dlangG Σ}.
 
   (**
     A version of Russell's paradox, that however does not go through because of

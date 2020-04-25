@@ -340,7 +340,7 @@ Section path_wp.
     iDestruct 1 as (v Hcl) "H". eauto.
   Qed.
 
-  Context {Hdlang : dlangG Σ}.
+  Context `{Hdlang : !dlangG Σ}.
   Lemma path_wp_to_wp p φ `{PersistentP φ}:
     path_wp p (λ v, φ v) -∗
     WP (path2tm p) {{ v, φ v }}.
