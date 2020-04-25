@@ -85,6 +85,7 @@ Existing Instance sf_kind_persistent.
 Global Arguments sf_kind : clear implicits.
 Global Arguments sf_kind_sub {_ _} !_ /.
 Global Arguments _SfKind {_ _} _ {_}.
+Notation SfKind F := (_SfKind F notc_hole _ _ _ _).
 
 Declare Scope sf_kind_scope.
 Bind Scope sf_kind_scope with sf_kind.
@@ -144,7 +145,6 @@ Proof. rewrite (sf_kind_sub_internal_proper K T1 T2 ρ); iIntros "[$_]". Qed.
 Global Instance vcurry_ne vl n A m : Proper (dist m ==> (=) ==> dist m) (@vcurry vl n A).
 Proof. solve_proper_ho. Qed.
 
-Notation SfKind F := (_SfKind F notc_hole _ _ _ _).
 Section sf_kind_subst.
   Context {Σ}.
 
