@@ -14,7 +14,7 @@ Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
 Section NoSwapVariants.
-  Context `{HdlangG: dlangG Σ}.
+  Context `{HdlangG: !dlangG Σ}.
 
   (* Yes, no swap! *)
   Lemma sTyp_Sub_Typ {Γ L1 L2 U1 U2 l}:

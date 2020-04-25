@@ -742,7 +742,7 @@ Section dot_types.
   (** [cTMem] and [cVMem] are full [clty]. *)
   Definition cTMemK {n} l (K : sf_kind Σ n) : clty Σ := ldlty2clty (oLDTMemK l K).
   (** Here [n]'s argument to oSel should be explicit. *)
-  Global Arguments oSel {_ _ _} n p l args ρ : rename.
+  Global Arguments oSel {_ _} n p l args ρ : rename.
 
   Lemma sKStp_TMem {n} Γ l (K1 K2 : sf_kind Σ n) i :
     Γ s⊨ K1 <∷[ i ] K2 -∗

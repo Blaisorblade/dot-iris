@@ -44,7 +44,7 @@ Proof.
 Qed.
 
 Section Sec.
-  Context `{HdlangG: dlangG Σ}.
+  Context `{HdlangG: !dlangG Σ}.
 
   Lemma sT_Nat_I Γ n: ⊢ Γ s⊨ tv (vint n): oInt.
   Proof. iIntros "!> * _ /="; rewrite -wp_value /= /pure_interp_prim /prim_evals_to; eauto. Qed.

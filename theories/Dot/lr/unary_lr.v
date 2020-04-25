@@ -94,12 +94,12 @@ Notation "Γ s⊨ds ds : T" := (sdstp ds Γ T) (at level 74, ds, T at next level
 (** Path typing *)
 Notation "Γ s⊨p p : τ , i" := (sptp p i Γ τ) (at level 74, p, τ, i at next level).
 
-Definition dm_to_type `{HdotG: dlangG Σ} d i (ψ : hoD Σ i) : iProp Σ :=
+Definition dm_to_type `{HdotG: !dlangG Σ} d i (ψ : hoD Σ i) : iProp Σ :=
   ∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ , i ] ψ.
 Notation "d ↗n[ i  ] ψ" := (dm_to_type d i ψ) (at level 20).
 
 Section dm_to_type.
-  Context `{HdotG: dlangG Σ}.
+  Context `{HdotG: !dlangG Σ}.
 
   Global Instance dm_to_type_persistent d i ψ: Persistent (d ↗n[ i ] ψ) := _.
 
@@ -124,7 +124,7 @@ Section dm_to_type.
 End dm_to_type.
 
 Section SemTypes.
-  Context `{HdotG: dlangG Σ}.
+  Context `{HdotG: !dlangG Σ}.
 
   Implicit Types (τ : oltyO Σ 0).
 
@@ -230,7 +230,7 @@ Section SemTypes.
   Global Instance sptp_persistent : IntoPersistent' (sptp p i   Γ T) | 0 := _.
 End SemTypes.
 
-Global Instance: Params (@oAll) 3 := {}.
+Global Instance: Params (@oAll) 2 := {}.
 
 (* Backward compatibility. *)
 Notation "D*⟦ T ⟧" := (ldlty_car LD⟦ T ⟧).
@@ -260,7 +260,7 @@ Notation oBool := (oPrim tbool).
 
 (** Show these typing judgments are equivalent to what we present in the paper. *)
 Section JudgDefs.
-  Context `{HdotG: dlangG Σ}.
+  Context `{HdotG: !dlangG Σ}.
   Implicit Types (T : ty) (Γ : ctx).
 
   Lemma path_includes_equiv p ρ ds : path_includes (pv (ids 0)) ρ ds ↔
@@ -292,7 +292,7 @@ Section JudgDefs.
 End JudgDefs.
 
 Section MiscLemmas.
-  Context `{HdotG: dlangG Σ}.
+  Context `{HdotG: !dlangG Σ}.
   Implicit Types (τ L T U : olty Σ 0).
 
   Lemma def_interp_tvmem_eq l T p ρ :
@@ -349,7 +349,7 @@ Section Propers.
     f_equiv. exact: IHn.
   Qed.
 
-  Context `{HdotG: dlangG Σ}.
+  Context `{HdotG: !dlangG Σ}.
 
   (** ** Judgments *)
   Global Instance Proper_sstpi i j : Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sstpi i j).
@@ -393,7 +393,7 @@ Section Propers.
 End Propers.
 
 Section defs.
-  Context `{HdotG: dlangG Σ}.
+  Context `{HdotG: !dlangG Σ}.
 
   Lemma iterate_TLater_oLater i T:
     V⟦iterate TLater i T⟧ ≡ oLaterN i V⟦T⟧.

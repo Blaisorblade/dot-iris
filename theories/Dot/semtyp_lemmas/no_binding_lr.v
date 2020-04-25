@@ -6,7 +6,7 @@ Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
 Section Sec.
-  Context `{HdlangG: dlangG Σ} (Γ : sCtx Σ).
+  Context `{HdlangG: !dlangG Σ} (Γ : sCtx Σ).
 
   (* Only provable semantically *)
   Lemma sAnd_Or_Sub_Distr {S T U i}: ⊢ Γ s⊨ oAnd (oOr S T) U , i <: oOr (oAnd S U) (oAnd T U), i.
