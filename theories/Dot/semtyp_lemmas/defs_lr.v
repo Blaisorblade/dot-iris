@@ -14,10 +14,10 @@ Section Sec.
     Γ s⊨p p : T, 0 -∗
     Γ s⊨ { l := dpt p } : cVMem l T.
   Proof.
-    iIntros "#Hv !>" (ρ Hpid) "#Hg".
-    rewrite def_interp_tvmem_eq.
-    iApply ("Hv" with "Hg").
+    rewrite sdtp_eq; iIntros "#Hv !>" (ρ Hpid) "#Hg".
+    rewrite cVMem_dpt_eq; iApply ("Hv" with "Hg").
   Qed.
+
 
   Lemma D_Path {Γ} T p l:
     Γ ⊨p p : T, 0 -∗ Γ ⊨ { l := dpt p } : TVMem l T.
@@ -37,9 +37,9 @@ Section Sec.
     oAnd (oLater T) (oSing (pself (pv (ids 1)) l)) :: Γ s⊨ds ds : T -∗
     Γ s⊨ { l := dpt (pv (vobj ds)) } : cVMem l (oMu (clty_olty T)).
   Proof.
-    iDestruct 1 as (Hwf) "#Hds";
+    rewrite sdtp_eq; iDestruct 1 as (Hwf) "#Hds";
       iIntros "!>" (ρ Hpid%path_includes_field_aliases) "#Hg".
-    rewrite def_interp_tvmem_eq path_wp_pv_eq /=. iLöb as "IH".
+    rewrite cVMem_dpt_eq path_wp_pv_eq /=. iLöb as "IH".
     iApply clty_commute. rewrite norm_selfSubst.
     iApply ("Hds" $! (vobj _ .: ρ) with "[%] [$IH $Hg //]").
     exact: path_includes_self.
@@ -55,9 +55,8 @@ Section Sec.
     Γ s⊨ { l := dpt p } : cVMem l T1 -∗
     Γ s⊨ { l := dpt p } : cVMem l T2.
   Proof.
-    iIntros "#Hsub #Hv !>" (ρ Hpid) "#Hg".
-    iSpecialize ("Hv" $! ρ Hpid with "Hg").
-    rewrite !def_interp_tvmem_eq.
+    rewrite !sdtp_eq; iIntros "#Hsub #Hv !>" (ρ Hpid) "#Hg".
+    iSpecialize ("Hv" $! ρ Hpid with "Hg"); rewrite !cVMem_dpt_eq.
     iApply (path_wp_wand with "Hv"); iIntros "!> **".
     by iApply ("Hsub" with "Hg").
   Qed.
@@ -102,7 +101,7 @@ Section Sec.
     Γ s⊨ { l := d } : T1 -∗ Γ s⊨ds ds : T2 -∗
     Γ s⊨ds (l, d) :: ds : cAnd T1 T2.
   Proof.
-    iIntros (Hlds) "#HT1 [% #HT2]"; iSplit.
+    rewrite !sdtp_eq; iIntros (Hlds) "#HT1 [% #HT2]"; iSplit.
     by iIntros "!%"; cbn; constructor => //; by rewrite -dms_hasnt_notin_eq.
     iIntros "!>" (ρ [Hpid Hpids]%path_includes_split) "#Hg".
     iSpecialize ("HT1" $! _  Hpid with "Hg").

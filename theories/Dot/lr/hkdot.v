@@ -741,13 +741,17 @@ Section dot_types.
 
   Definition packHoLtyO {Σ n} (φ : hoD Σ n) : hoLtyO Σ n := HoLty (λI args v, ▷ □ φ args v).
 
-  Definition oLDTMemK {n} l (K : sf_kind Σ n) : ldltyO Σ := mkLDlty (Some l) (λI ρ d,
+  Definition oDTMemK {n} (K : sf_kind Σ n) : dltyO Σ := Dlty (λI ρ d,
     ∃ (ψ : hoD Σ n), d ↗n[ n ] ψ ∧ K ρ (packHoLtyO ψ) (packHoLtyO ψ)).
-  Definition oLDTMemSpec l (L U : oltyO Σ 0) : ldltyO Σ :=
-    oLDTMemK l (sf_kintv (oLater L) (oLater U)).
+  Definition oDTMemSpec (L U : oltyO Σ 0) : dltyO Σ :=
+    oDTMemK (sf_kintv (oLater L) (oLater U)).
 
   (** [cTMem] and [cVMem] are full [clty]. *)
-  Definition cTMemK {n} l (K : sf_kind Σ n) : clty Σ := ldlty2clty (oLDTMemK l K).
+  Definition cTMemK {n} l (K : sf_kind Σ n) : clty Σ := dty2clty l (oDTMemK K).
+
+  Lemma cTMemK_eq l {n} (K : sf_kind Σ n) d ρ :
+    cTMemK l K ρ [(l, d)] ⊣⊢ oDTMemK K ρ d.
+  Proof. by rewrite dty2clty_singleton. Qed.
 
   Lemma sKStp_TMem {n} Γ l (K1 K2 : sf_kind Σ n) i :
     Γ s⊨ K1 <∷[ i ] K2 -∗
@@ -774,8 +778,8 @@ Section dot_types.
     s ↝[ σ ] T -∗
     Γ s⊨ { l := dtysem σ s } : cTMemK l K.
   Proof.
-    iIntros "#HTK"; iDestruct 1 as (φ Hγφ) "#Hγ".
-    iIntros "/= !>" (ρ Hpid) "Hg"; iSplit; first done.
+    rewrite sdtp_eq; iIntros "#HTK"; iDestruct 1 as (φ Hγφ) "#Hγ".
+    iIntros "!>" (ρ Hpid) "Hg"; rewrite cTMemK_eq.
     iExists (hoEnvD_inst (σ.|[ρ]) φ); iSplit.
     by iApply (dm_to_type_intro with "Hγ").
     iApply (Proper_sfkind' with "(HTK Hg)") => args v /=.

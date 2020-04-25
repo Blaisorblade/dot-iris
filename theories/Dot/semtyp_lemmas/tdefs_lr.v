@@ -29,8 +29,9 @@ Section typing_type_member_defs.
     Γ s⊨ { l := dtysem σ s } : cTMem l L1 U1 -∗
     Γ s⊨ { l := dtysem σ s } : cTMem l L2 U2.
   Proof.
-    iIntros "#HU #HL #Hd /= !>" (ρ Hpid) "#Hg"; iSplit => //=.
-    iDestruct ("Hd" $! ρ Hpid with "Hg") as (Hl ψ) "(Hφ & HLψ & HψU)".
+    rewrite !sdtp_eq; iIntros "#HU #HL #Hd !>" (ρ Hpid) "#Hg".
+    iSpecialize ("Hd" $! ρ Hpid with "Hg"); rewrite !cTMem_eq.
+    iDestruct "Hd" as (ψ) "(Hφ & HLψ & HψU)".
     iExists ψ. iFrame "Hφ".
     iModIntro; repeat iSplit; iIntros (v) "#H".
     - iApply "HLψ". by iApply "HL".
@@ -41,8 +42,8 @@ Section typing_type_member_defs.
     s ↝[ σ ] T -∗
     Γ s⊨ { l := dtysem σ s } : cTMem l T T.
   Proof.
-    iIntros "#Hs /= !>" (ρ Hpid) "#Hg"; iSplit => //=.
-    iDestruct "Hs" as (φ Hγφ) "Hγ".
+    rewrite !sdtp_eq; iIntros "#Hs !>" (ρ Hpid) "#Hg".
+    rewrite cTMem_eq; iDestruct "Hs" as (φ Hγφ) "Hγ".
     iExists (hoEnvD_inst (σ.|[ρ]) φ); iSplit.
     by iApply (dm_to_type_intro with "Hγ").
     (* Dropping [iNext], as follows, requires the instance in
@@ -61,8 +62,8 @@ Section typing_type_member_defs.
     iApply (sD_Typ_Sub with "HTU HLT").
     by iApply sD_Typ0.
   Qed. *)
-    iIntros "#HTU #HLT #Hs /= !>" (ρ Hpid) "#Hg"; iSplit => //=.
-    iDestruct "Hs" as (φ Hγφ) "Hγ".
+    rewrite !sdtp_eq; iIntros "#HTU #HLT #Hs !>" (ρ Hpid) "#Hg".
+    rewrite cTMem_eq; iDestruct "Hs" as (φ Hγφ) "Hγ".
     iExists (hoEnvD_inst (σ.|[ρ]) φ); iSplit.
     by iApply (dm_to_type_intro with "Hγ").
     iModIntro; repeat iSplit; iIntros (v) "#HL"; rewrite later_intuitionistically.
