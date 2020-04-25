@@ -8,7 +8,7 @@ From D.Dot Require Import scala_lib hoas ex_utils storeless_typing_ex_utils ex_i
 From D.Dot Require Import unary_lr
   binding_lr tsel_lr no_binding_lr defs_lr prims_lr.
 From D.Dot Require Import tdefs_lr.
-From D.Dot Require Import skeleton fundamental.
+From D.Dot Require Import skeleton fundamental syn_lemmas.
 Import dlang_adequacy.
 
 Set Suggest Proof Using.
@@ -103,7 +103,6 @@ Section helpers.
     [] ⊨ w : T -∗
     [] ⊨ v : TVMem l T.
   Proof.
-    Import syn_lemmas.
     have Hclw: nclosed_vl w 0.
     by have := nclosed_lookup' Hlook Hclv; eauto with fv.
     iIntros "#H"; iApply ietp_value; iIntros (ρ) "/=".
