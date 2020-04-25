@@ -297,9 +297,9 @@ Section path_repl.
 
   (* From pDOT *)
   Lemma sP_Fld_I Γ p T l i:
-    Γ ⊨p pself p l : T, i -∗
+    Γ s⊨p pself p l : T, i -∗
     (*─────────────────────────*)
-    Γ ⊨p p : TVMem l T, i.
+    Γ s⊨p p : cVMem l T, i.
   Proof.
     iIntros "#HE /= !>" (ρ) "Hg"; iSpecialize ("HE" with "Hg"); iNext i.
     rewrite path_wp_pself_eq; iDestruct "HE" as (v q Hlook) "[Hpv #Htw]".

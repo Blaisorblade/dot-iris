@@ -134,14 +134,6 @@ Lemma allocHs sγ:
 Proof. exact (alloc ipos). Qed.
 
 Section div_example.
-  Lemma idtp_value_eq T l d (Hl : label_of_ty T = Some l):
-    (∀ ρ, ⌜path_includes x0 ρ [(l, d)]⌝ → D*⟦ T ⟧ ρ d.|[ρ]) ⊣⊢ [] s⊨ { l := d } : C⟦ T ⟧.
-  Proof.
-    rewrite /idtp/=/lift_ldlty/= ld_label_match Hl; iSplit.
-    by iIntros "#H !> /=" (ρ Hpid _); iSplit; first done; iApply "H".
-    by iIntros "#H" (ρ Hpid); iDestruct ("H" $! ρ Hpid with "[//]") as "[_ $]".
-  Qed.
-
   (* Arguments dlang_ectx_lang : simpl never.
   Arguments dlang_ectxi_lang : simpl never. *)
 

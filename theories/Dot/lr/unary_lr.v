@@ -123,6 +123,11 @@ Section dm_to_type.
   Global Opaque dm_to_type.
 End dm_to_type.
 
+Definition oSelN `{!dlangG Σ} n p l : oltyO Σ n :=
+  Olty (λI args ρ v, path_wp p.|[ρ]
+    (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗n[ n ] ψ ∧ ▷ □ ψ args v)).
+Notation oSel := (oSelN 0).
+
 Section SemTypes.
   Context `{HdotG: !dlangG Σ}.
 
@@ -150,13 +155,10 @@ Section SemTypes.
   Global Instance Proper_cVMem l : Proper ((≡) ==> (≡)) (cVMem l).
   Proof. solve_proper. Qed.
 
-  Definition oSel {i} p l : oltyO Σ i :=
-    Olty (λI args ρ v, path_wp p.|[ρ]
-      (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗n[ i ] ψ ∧ ▷ □ ψ args v)).
 
-  Lemma oSel_pv {i} w l args ρ v :
-    oSel (pv w) l args ρ v ⊣⊢
-      ∃ ψ d, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n[ i ] ψ ∧ ▷ □ ψ args v.
+  Lemma oSel_pv {n} w l args ρ v :
+    oSelN n (pv w) l args ρ v ⊣⊢
+      ∃ ψ d, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n[ n ] ψ ∧ ▷ □ ψ args v.
   Proof. by rewrite /= path_wp_pv_eq. Qed.
 
   Definition oSing `{dlangG Σ} p : olty Σ 0 := olty0 (λI ρ v, ⌜alias_paths p.|[ρ] (pv v)⌝).

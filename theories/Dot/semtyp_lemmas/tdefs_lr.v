@@ -67,7 +67,7 @@ Section typing_type_member_defs.
     by iApply (dm_to_type_intro with "Hγ").
     iModIntro; repeat iSplit; iIntros (v) "#HL"; rewrite later_intuitionistically.
     - iIntros "!>". iApply Hγφ. by iApply "HLT".
-    - iApply "HTU" => //. by iApply Hγφ.
+    - iApply ("HTU" with "Hg"). by iApply Hγφ.
   Qed.
 
   Lemma D_Typ_Abs {Γ} T L U s σ l:

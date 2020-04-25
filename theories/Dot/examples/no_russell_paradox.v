@@ -33,7 +33,7 @@ Section Russell.
   (** Yes, v has a valid type member. *)
   Lemma vHasA: Hs ⊢ ⟦ TTMem "A" TBot TTop ⟧ ids v.
   Proof.
-    iIntros "#Hs /=".
+    iIntros "#Hs".
     iExists _; iSplit. by iExists _; iSplit.
     iExists _; iSplit. by iApply dm_to_type_intro.
     iModIntro; repeat iSplit; by iIntros "** !>".

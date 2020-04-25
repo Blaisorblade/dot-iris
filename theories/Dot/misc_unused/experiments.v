@@ -217,8 +217,8 @@ Section Sec.
     iApply ("HvTU" with "HwT"). *)
   Qed.
 
-  Lemma Fld_Later_Sub_Distr Γ l T i:
-    ⊢ Γ ⊨ TVMem l (TLater T), i <: TLater (TVMem l T), i.
+  Lemma sFld_Later_Sub_Distr Γ l T i:
+    ⊢ Γ s⊨ cVMem l (oLater T), i <: oLater (cVMem l T), i.
   Proof.
     iIntros "!>" (ρ v) "_ /= #HvT". iNext i.
     iDestruct "HvT" as (d Hlook) "#HvT".

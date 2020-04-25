@@ -741,15 +741,12 @@ Section dot_types.
 
   (** [cTMem] and [cVMem] are full [clty]. *)
   Definition cTMemK {n} l (K : sf_kind Σ n) : clty Σ := ldlty2clty (oLDTMemK l K).
-  (** Here [n]'s argument to oSel should be explicit. *)
-  Global Arguments oSel {_ _} n p l args ρ : rename.
 
   Lemma sKStp_TMem {n} Γ l (K1 K2 : sf_kind Σ n) i :
     Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ cTMemK l K1 <:[ i ] cTMemK l K2 ∷ sf_star.
   Proof using HswapProp.
-    rewrite -ksubtyping_intro_swap.
-    iIntros "#HK !> * #Hg * /=".
+    rewrite -ksubtyping_intro_swap; iIntros "#HK !> * #Hg *".
     iDestruct 1 as (d) "[Hld Hφ]"; iExists d; iFrame "Hld".
     iDestruct "Hφ" as (φ) "[Hlφ #HK1]"; iExists φ; iFrame "Hlφ".
     iApply ("HK" with "Hg HK1").
@@ -780,7 +777,7 @@ Section dot_types.
 
   Lemma sK_Sel {Γ n} l (K : sf_kind Σ n) p i :
     Γ s⊨p p : cTMemK l K, i -∗
-    Γ s⊨ oSel n p l ∷[i] K.
+    Γ s⊨ oSelN n p l ∷[i] K.
   Proof.
     iIntros "#Hp !> * #Hg"; iSpecialize ("Hp" with "Hg"); iNext i.
     rewrite path_wp_eq.
@@ -981,7 +978,7 @@ Section examples.
   Context `{!dlangG Σ} `{HswapProp: SwapPropI Σ}.
   Import DBNotation dot_lty.
 
-  Definition oId := oLam (oSel 0 x0 "A").
+  Definition oId := oLam (oSel x0 "A").
 
   Lemma oId_K Γ :
     ⊢ Γ s⊨ oId ∷[0] sf_kpi (cTMemK "A" sf_star) sf_star.
@@ -989,7 +986,7 @@ Section examples.
     (* Time iApply sK_Lam; iApply sK_Star. *)
 
   Lemma oId_K_Sngl Γ :
-    ⊢ Γ s⊨ oId ∷[0] sf_kpi (cTMemK "A" sf_star) (sf_sngl (oSel 0 x0 "A")).
+    ⊢ Γ s⊨ oId ∷[0] sf_kpi (cTMemK "A" sf_star) (sf_sngl (oSel x0 "A")).
   Proof using HswapProp. by rewrite -sK_Lam -sK_Sing. Qed.
 End examples.
 
