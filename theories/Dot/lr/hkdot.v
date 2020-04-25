@@ -296,7 +296,7 @@ Section kinds_types.
     oLaterN m (oLam τ) ≡ oLam (oLaterN m τ).
   Proof. done. Qed.
 
-  Lemma swap_oTApp_oLaterN {n} (τ : oltyO Σ (S n)) m v:
+  Lemma swap_oTAppV_oLaterN {n} (τ : oltyO Σ (S n)) m v:
     oLaterN m (oTAppV τ v) ≡ oTAppV (oLaterN m τ) v.
   Proof. done. Qed.
 
@@ -645,6 +645,13 @@ Section dot_types.
     oTApp T (pv w) ≡ oTAppV T w.
   Proof. intros ???. by rewrite /= path_wp_pv_eq. Qed.
 
+  Lemma swap_oTApp_pv_oLaterN {n} (τ : oltyO Σ (S n)) m v:
+    oLaterN m (oTApp τ v) ≡ oTApp (oLaterN m τ) v.
+  Proof. by rewrite !oTApp_pv. Qed.
+
+  Lemma swap_oTApp_oLaterN {n} (τ : oltyO Σ (S n)) m p args ρ v:
+    oTApp (oLaterN m τ) p args ρ v ⊢ oLaterN m (oTApp τ p) args ρ v.
+  Proof. by rewrite /= path_wp_laterN_swap. Qed.
 
   Lemma sKStp_App Γ {n} (K : sf_kind Σ n) S T1 T2 i p :
     Γ s⊨ T1 <:[i] T2 ∷ sf_kpi S K -∗
