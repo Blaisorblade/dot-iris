@@ -11,7 +11,7 @@ Set Default Proof Using "Type".
 
 Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
-         (vs : vls) (ρ : var → vl) (l : label).
+         (ρ : var → vl) (l : label).
 
 Include Lty VlSorts dlang_inst.
 

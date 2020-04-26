@@ -14,7 +14,7 @@ Set Default Proof Using "Type*".
 
 Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
-         (vs : vls) (ρ : var → vl) (l : label).
+         (ρ : var → vl) (l : label).
 
 (** * Semantic domains. *)
 
@@ -207,7 +207,7 @@ Section SemTypes.
     match T with
     | TTMem l L U => cTMem l V⟦ L ⟧ V⟦ U ⟧
     | TVMem l T' => cVMem l V⟦ T' ⟧
-    | TAnd T1 T2 => cAnd C⟦T1⟧ C⟦T2⟧
+    | TAnd T1 T2 => cAnd C⟦ T1 ⟧ C⟦ T2 ⟧
     | TTop => cTop
 
     (* The remaining types are not useful for definition typing. *)

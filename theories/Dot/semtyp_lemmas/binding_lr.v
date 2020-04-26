@@ -25,7 +25,7 @@ Section LambdaIntros.
     (* Factor ▷ out of [s⟦ Γ ⟧* ρ] before [iNext]. *)
     rewrite senv_TLater_commute. iNext.
     iApply ("HeT" $! (v .: ρ) with "[$HG]").
-    by rewrite (hoEnvD_weaken_one T1 vnil _ v) stail_eq.
+    by rewrite (hoEnvD_weaken_one T1 vnil _ v).
   Qed.
 
   Lemma sT_All_I {Γ} T1 T2 e:
@@ -160,8 +160,8 @@ Section Sec.
     oLaterN i T1 :: Γ s⊨ T1, i <: T2, j -∗
     Γ s⊨ oMu T1, i <: oMu T2, j.
   Proof.
-    iIntros "/= #Hstp !>" (vs v) "#Hg #HT1".
-    iApply ("Hstp" $! (v .: vs) v with "[$Hg $HT1] [$HT1]").
+    iIntros "/= #Hstp !>" (ρ v) "#Hg #HT1".
+    iApply ("Hstp" $! (v .: ρ) v with "[$Hg $HT1] [$HT1]").
   Qed.
 
   (** Novel subtyping rules. [Sub_Bind_1] and [Sub_Bind_2] become
@@ -179,9 +179,9 @@ Section Sec.
    *)
   Lemma sTMu_equiv {Γ T v} : (Γ s⊨ tv v : oMu T) ≡ (Γ s⊨ tv v : T.|[v/]).
   Proof.
-    iSplit; iIntros "#Htp !>" (vs) "#Hg !> /=";
+    iSplit; iIntros "#Htp !>" (ρ) "#Hg !> /=";
     iDestruct (wp_value_inv' with "(Htp Hg)") as "{Htp} Hgoal";
-    rewrite -wp_value/= (hoEnvD_subst_one _ v (v.[vs])); done.
+    by rewrite -wp_value/= (hoEnvD_subst_one _ v (v.[ρ])).
   Qed.
 
   Lemma sT_Mu_I {Γ T v} : Γ s⊨ tv v : T.|[v/] -∗ Γ s⊨ tv v : oMu T.
@@ -203,7 +203,7 @@ Section Sec.
     rewrite /istpi; cbn -[sstpi].
     rewrite (interp_subst_commute T (ren (+1))).
     apply sMu_Sub.
-    (* iIntros "!>" (vs v) "**".
+    (* iIntros "!>" (ρ v) "**".
     by rewrite /= (lift_olty_eq (interp_subst_commute _ _)). *)
   Qed.
 
@@ -212,7 +212,7 @@ Section Sec.
     rewrite /istpi; cbn -[sstpi].
     rewrite (interp_subst_commute T (ren (+1))).
     apply sSub_Mu.
-    (* iIntros "!>" (vs v) "**".
+    (* iIntros "!>" (ρ v) "**".
     by rewrite /= (lift_olty_eq (interp_subst_commute _ _)). *)
   Qed.
 
@@ -265,7 +265,7 @@ Section Sec.
     iNext. iApply wp_wand.
     - iApply "HvFun".
     - iIntros (v) "{HG HvFun Hv2Arg} H".
-      rewrite /= (hoEnvD_subst_one T2 v2 v) //.
+      by rewrite /= (hoEnvD_subst_one T2 v2 v).
   Qed.
 
   Lemma T_All_Ex {Γ e1 v2 T1 T2}:
@@ -278,7 +278,7 @@ Section Sec.
     (*────────────────────────────────────────────────────────────*)
     Γ s⊨ tapp e1 e2 : T2.
   Proof.
-    iIntros "/= #He1 #Hv2 !>" (vs) "#HG !>".
+    iIntros "/= #He1 #Hv2 !>" (ρ) "#HG !>".
     smart_wp_bind (AppLCtx (e2.|[_])) v "#Hr" ("He1" with "[]").
     smart_wp_bind (AppRCtx v) w "#Hw" ("Hv2" with "[]").
     iDestruct "Hr" as (t ->) "#Hv".
