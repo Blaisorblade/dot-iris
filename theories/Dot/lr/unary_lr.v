@@ -18,14 +18,20 @@ Implicit Types (Σ : gFunctors)
 
 (** * Semantic domains. *)
 
-(** The logical relation core is [V⟦T⟧], which interprets *open* types into
-    predicates over *closed* values. Hence, [V⟦T⟧ T args ρ v] uses its argument [ρ]
-    to interpret anything contained in T, but not things contained in v.
+(** The logical relation on values is [V⟦T⟧]. We also define the logical
+    relation on definitions Ds⟦T⟧.
 
-    Semantic judgements must apply instead to open terms/value/paths; therefore,
-    they are defined using closing substitution on arguments of [interp].
+    Both definitions follow the one on paper; concretely, they are defined
+    through C⟦T⟧ in instance [dot_interp].
 
-    XXX Similar comments apply to [def_interp].
+    Binding and closing substitutions:
+
+    Both relations interprets *open* types into predicates over values that
+    are meant to be closed. So for instance [V⟦T⟧ T args ρ v] applies substitution [ρ]
+    to [T], but not to [v]. We don't actually require that [v] be closed.
+
+    Semantic judgements must apply instead to open subjects (terms/value/paths),
+    so they apply substitutions to their subject.
 
     Additionally, both apply to *stamped* syntax, hence they only expect
     [dtysem] and not [dtysyn] for type member definitions.
@@ -194,7 +200,8 @@ Section SemTypes.
   Definition oPrim b : olty Σ 0 := olty0 (λI ρ v, ⌜pure_interp_prim b v⌝).
 
   (* Observe the naming pattern for semantic type constructors:
-  replace T by o. *)
+  replace T by o (for most constructors) or by c (for constructors producing
+  cltys). *)
   Global Instance dot_interp : CTyInterp Σ := fix dot_interp T :=
     let _ := dot_interp : CTyInterp Σ in
     match T with
