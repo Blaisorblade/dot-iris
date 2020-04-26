@@ -57,13 +57,17 @@ After updating deps, you will need to do a clean build, so `make clean` and then
 
 
 ### Additional developments, not used in the paper
-Inside the `Dot` folder:
-* `misc_unused`: misc stuff, not used elsewhere or relevant to the paper.
 
-* `theories/DSub`: guarded D<:, incomplete, used for prototyping.
-* `theories/DSubSyn`: guarded D<:, where type members are represented by
-  storing syntactic types in values, and interpreting them recursively. Used for
-  prototyping but mostly complete. Shares code from `theories/DSub`.
+* [`theories/DSub`](theories/DSub): guarded D<:, incomplete, used for prototyping.
+* [`theories/DSubSyn`](theories/DSubSyn): guarded D<:, complete.
+  This code demonstrates a simpler modeling technique: type members are
+  represented by storing syntactic types in values, and interpreting them
+  recursively. Used for prototyping but mostly complete. Shares code from
+  `theories/DSub`.
+
+Inside the `Dot` folder:
+* [`misc_unused`](theories/Dot/misc_unused): misc stuff, not used elsewhere or
+  relevant to the paper.
 
 ### Bumping Iris
 

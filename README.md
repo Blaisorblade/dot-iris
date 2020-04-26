@@ -5,7 +5,8 @@
 Mechanization accompanying the paper "Scala Step-by-Step: Soundness for
 DOT with Step-Indexed Logical Relations in Iris".
 
-The mapping between the paper and this mechanization is described in
+The mapping between the paper and this mechanization, together with the
+layout of the codebase, is described in
 [correspondence.md](correspondence.md).
 
 ## Compiling the Proof the first time
@@ -28,40 +29,6 @@ opam install --deps-only .
 Run `make -jN` to build the full development, where N is the number of your
 CPU cores; that should take around 5-10 minutes.
 
-## File Layout
-
-Here is a rough layout of the various files.
-
-* `theories/Dot`: guarded DOT. Complete.
-* `theories/DSub`, `theories/DSubSyn`: guarded D<:, complete (mentioned in a
-  side note in the paper).
-* `theories/`: General infrastructure.
-* `theories/pure_program_logic`: define a "pure" variant of Iris's weakest
-  precondition.
-* `theories/iris_extra`: Additional Iris infrastructure.
-  - `dlang.v`: instantiate Iris with a language setup for our proofs
-
-Inside the `Dot` folder:
-* `syn`: syntax
-  - `syn.v`: definition of the basic SYNtax, and instantiate Iris with DOT
-    operational semantics.
-  - `syn_lemmas.v`: (SYNtactic Lemmas): lemmas about syntax and binding.
-  - `rules.v`: lemmas about this language's operational semantics.
-* `lr`: logical relation, semantic typing, compatibility lemmas
-  - `path_wp.v`: define path weakest precondition;
-  - `dlang_inst.v`: instantiate shared Iris setup from `dlang.v`;
-  - `unary_lr.v`: definition of unary logical relation.
-  Compatibility lemmas:
-  - `defs_lr.v`: lemmas about DEFinition typing;
-  - `tsel_lr.v`: lemmas about TSel (type selection);
-  - `no_binding_lr.v`: various typing lemmas, not requiring `syn_lemmas.v`;
-  - `binding_lr.v`: other misc typing lemmas.
-* `stamping`: definitions and lemmas about stamping.
-* `typing`: syntactic typing and auxiliary lemmas about it
-  - `typing_stamping.v`: prove stamping of typing derivations.
-* `examples`: various gDOT snippets.
-* `fundamental.v`: prove fundamental theorem, adequacy and type safety.
-
 ## Documentation for developers / additional docs (not relevant to paper)
 
-See `development.md`.
+See [`development.md`](development.md).
