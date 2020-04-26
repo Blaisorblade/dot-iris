@@ -130,20 +130,44 @@ Inside the [`Dot`](theories/Dot) folder:
 
 ## Typing lemma naming conventions
 
-Prefixes: T P D
+Names of typing rules and lemmas can be derived mechanically from those in
+the paper, with a couple of exceptions.
 
-Translation table:
-| Paper | Coq |
-| ----- | --- |
-| -     | _   |
-| <:    | Sub |
-| ∀     | All |
-| {}    | Obj |
+Translation table of symbols in names:
+| Paper   | Coq    |
+| :-----: | :----: |
+| `-`     | `_`    |
+| `<:`    | `Sub`  |
+| `∀`     | `All`  |
+| `{}`    | `Obj`  |
 
-For each rule, there are up to three versions, with corresponding prefixes.
-- Purely semantic lemma (`s`)
-- Syntactic lemma
-- Syntactic typing rule (`i` for inductive).
+- Exceptions:
+  - The paper's P-Var is here called `P_Val`.
+  - The paper's D-And is here replaced by `D_Nil` and `D_Cons`.
 
-The paper's P-Var is here called `P_Val`.
-The paper's D-And is here replaced by `D_Nil` and `D_Cons`.
+- The names of all typing rules, but not of subtyping rules, have a prefix
+  that identifies the judgment:
+
+| Prefix | Typing Judgment |
+| :----: | :-------------- |
+| `T`    | Expression      |
+| `P`    | Path            |
+| `D`    | Definition      |
+
+- The names of subtyping rules contain `<:` or `Sub`, and the name of the
+  type constructor the rule concerns; the order relates to the shape of the rule. For
+  instance rule `<:-μ` will conclude that type `T <: μ x. T`, while
+  rule `μ-<:` will conclude that some type `μ x. T <: T`, assuming certain
+  premises.
+
+For each typing rule (say, `T_Path`), there are up to three versions, with
+corresponding prefixes.
+- A syntactic typing rule, with prefix `i` (for inductive); for instance, `iT_Path`.
+- A semantic lemma, as described in the paper, with no prefix; for instance, `T_Path`.
+- A purely semantic lemma, with prefix `s`. Such lemmas are not discussed in
+  the paper, but "purely semantic" means that the statement does not mention
+  syntactic types, but only their semantic version.
+
+Hence, rule `iT_Path` is a syntactic rule for expression typing (the
+subsumption rule), called `T-Path` in the paper, while
+`sSub_Sel` is a semantic typing lemma corresponding to `<:-Sel`.
