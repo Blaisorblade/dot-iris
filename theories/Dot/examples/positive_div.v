@@ -105,11 +105,11 @@ Section helpers.
   Proof.
     have Hclw: nclosed_vl w 0.
     by have := nclosed_lookup' Hlook Hclv; eauto with fv.
-    iIntros "#H"; iApply ietp_value; iIntros (ρ) "/=".
-    iSpecialize ("H" $! ρ with "[//]"). rewrite wp_value_inv.
-    rewrite !closed_subst_vl_id //.
-    do 2 (iExists _; iSplit; [done|]).
-    by rewrite path_wp_pv_eq.
+    iIntros "#H"; iApply ietp_value; iIntros (ρ).
+    iSpecialize ("H" $! ρ with "[//]").
+    rewrite /interp_expr wp_value_inv !closed_subst_vl_id //.
+    iExists _; iSplit; first done.
+    by rewrite oDVMem_eq path_wp_pv_eq.
   Qed.
 End helpers.
 
@@ -202,16 +202,15 @@ Section div_example.
     path_includes (pv x0) (testVl l .: ρ) [(l, testDm)].
   Proof. constructor; naive_solver. Qed.
 
-  Lemma sHasA l : Hs -∗ D*⟦ type l >: ⊥ <: 𝐙 ⟧ ids testDm.
+  Lemma sHasA l : Hs -∗ Ds⟦ type l >: ⊥ <: 𝐙 ⟧ ids [(l, testDm)].
   Proof.
-    rewrite (sHasA' l []); iIntros "H".
-    iDestruct ("H" $! (testVl l .: ids) with "[] []") as "[_ $]"; auto using sInTestVl.
+    rewrite (sHasA' l []) sdtp_eq; iIntros "H".
+    iApply ("H" $! (testVl l .: ids) with "[] [//]"); auto using sInTestVl.
   Qed.
 
   Lemma posModVHasATy: Hs -∗ [] ⊨ posModV : type "Pos" >: ⊥ <: TInt.
   Proof.
-    rewrite -ietp_value; iIntros "#Hs" (ρ).
-    iExists _; iSplit; by [eauto | iApply (sHasA "Pos")].
+    rewrite -ietp_value; iIntros "**". by rewrite (sHasA "Pos") -clty_commute.
   Qed.
 
   Lemma ty_mkPos :

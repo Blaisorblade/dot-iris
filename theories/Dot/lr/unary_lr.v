@@ -18,14 +18,20 @@ Implicit Types (Σ : gFunctors)
 
 (** * Semantic domains. *)
 
-(** The logical relation core is [V⟦T⟧], which interprets *open* types into
-    predicates over *closed* values. Hence, [V⟦T⟧ T args ρ v] uses its argument [ρ]
-    to interpret anything contained in T, but not things contained in v.
+(** The logical relation on values is [V⟦T⟧]. We also define the logical
+    relation on definitions Ds⟦T⟧.
 
-    Semantic judgements must apply instead to open terms/value/paths; therefore,
-    they are defined using closing substitution on arguments of [interp].
+    Both definitions follow the one on paper; concretely, they are defined
+    through C⟦T⟧ in instance [dot_interp].
 
-    Similar comments apply to [def_interp].
+    Binding and closing substitutions:
+
+    Both relations interprets *open* types into predicates over values that
+    are meant to be closed. So for instance [V⟦T⟧ T args ρ v] applies substitution [ρ]
+    to [T], but not to [v]. We don't actually require that [v] be closed.
+
+    Semantic judgements must apply instead to open subjects (terms/value/paths),
+    so they apply substitutions to their subject.
 
     Additionally, both apply to *stamped* syntax, hence they only expect
     [dtysem] and not [dtysyn] for type member definitions.
@@ -66,15 +72,14 @@ Section judgments.
       s⟦Γ⟧*ρ → ▷^i oClose τ1 ρ v → ▷^j oClose τ2 ρ v.
   Global Arguments sstpi /.
 
-  (** Definition typing *)
-  Definition sdtp `{!dlangG Σ} l d Γ (φ : clty Σ): iProp Σ :=
-    □∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)] ⌝ → s⟦Γ⟧* ρ → lift_ldlty (clty_dlty φ) ρ l d.|[ρ].
-  Global Arguments sdtp /.
-
   (** Multi-definition typing *)
   Definition sdstp `{!dlangG Σ} ds Γ (T : clty Σ) : iProp Σ :=
     ⌜wf_ds ds⌝ ∧ □∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → s⟦Γ⟧* ρ → T ρ ds.|[ρ].
   Global Arguments sdstp /.
+
+  (** Definition typing *)
+  Definition sdtp `{!dlangG Σ} l d Γ (φ : clty Σ): iProp Σ := sdstp [(l, d)] Γ φ.
+  Global Arguments sdtp /.
 
   (** Path typing *)
   Definition sptp `{!dlangG Σ} p i Γ (T : oltyO Σ 0): iProp Σ :=
@@ -133,28 +138,47 @@ Section SemTypes.
 
   Implicit Types (τ : oltyO Σ 0).
 
-  (* Rewrite using (higher) semantic kinds! *)
-  Definition oLDTMem l τ1 τ2 : ldltyO Σ := mkLDlty (Some l) (λI ρ d,
+  Definition oDTMem τ1 τ2 : dltyO Σ := Dlty (λI ρ d,
     ∃ ψ, d ↗n[ 0 ] ψ ∧
        □ ((∀ v, ▷ τ1 vnil ρ v → ▷ □ ψ vnil v) ∧
           (∀ v, ▷ □ ψ vnil v → ▷ τ2 vnil ρ v))).
-  Global Instance Proper_oLDTMem l : Proper ((≡) ==> (≡) ==> (≡)) (oLDTMem l).
-  Proof. rewrite /oLDTMem/= => ??? ???. f_equiv. solve_proper_ho. Qed.
+  Global Instance Proper_oDTMem : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
+  Proof.
+    rewrite /oDTMem => ??? ??? ??/=; properness; try reflexivity; ho_f_equiv.
+  Qed.
 
-  Definition oLDVMem l τ : ldltyO Σ := mkLDlty (Some l) (λI ρ d,
+  Definition oDVMem τ : dltyO Σ := Dlty (λI ρ d,
     ∃ pmem, ⌜d = dpt pmem⌝ ∧ path_wp pmem (oClose τ ρ)).
-  Global Instance Proper_oLDVMem l : Proper ((≡) ==> (≡)) (oLDVMem l).
-  Proof. rewrite /oLDVMem/= => ???. f_equiv. solve_proper_ho. Qed.
+  Global Instance Proper_oDVMem : Proper ((≡) ==> (≡)) oDVMem.
+  Proof.
+    rewrite /oDVMem => ??? ??/=; properness; try reflexivity;
+      apply path_wp_proper => ?; ho_f_equiv.
+  Qed.
+
+  Lemma oDVMem_eq T ρ p :
+    oDVMem T ρ (dpt p) ≡ path_wp p (oClose T ρ).
+  Proof. simpl; iSplit; last by eauto. by iDestruct 1 as (pmem [= ->]) "$". Qed.
 
   (** [cTMem] and [cVMem] are full [clty]. *)
-  Definition cTMem l τ1 τ2 : clty Σ := ldlty2clty (oLDTMem l τ1 τ2).
+  Definition cTMem l τ1 τ2 : clty Σ := dty2clty l (oDTMem τ1 τ2).
   Global Instance Proper_cTMem l : Proper ((≡) ==> (≡) ==> (≡)) (cTMem l).
   Proof. solve_proper. Qed.
 
-  Definition cVMem l τ : clty Σ := ldlty2clty (oLDVMem l τ).
+  Lemma cTMem_eq l T1 T2 d ρ :
+    cTMem l T1 T2 ρ [(l, d)] ⊣⊢ oDTMem T1 T2 ρ d.
+  Proof. by rewrite dty2clty_singleton. Qed.
+
+  Definition cVMem l τ : clty Σ := dty2clty l (oDVMem τ).
   Global Instance Proper_cVMem l : Proper ((≡) ==> (≡)) (cVMem l).
   Proof. solve_proper. Qed.
 
+  Lemma cVMem_eq l T d ρ :
+    cVMem l T ρ [(l, d)] ⊣⊢ oDVMem T ρ d.
+  Proof. by rewrite dty2clty_singleton. Qed.
+
+  Lemma cVMem_dpt_eq l T p ρ :
+    cVMem l T ρ [(l, dpt p)] ⊣⊢ path_wp p (oClose T ρ).
+  Proof. by rewrite cVMem_eq oDVMem_eq. Qed.
 
   Lemma oSel_pv {n} w l args ρ v :
     oSelN n (pv w) l args ρ v ⊣⊢
@@ -176,7 +200,8 @@ Section SemTypes.
   Definition oPrim b : olty Σ 0 := olty0 (λI ρ v, ⌜pure_interp_prim b v⌝).
 
   (* Observe the naming pattern for semantic type constructors:
-  replace T by o. *)
+  replace T by o (for most constructors) or by c (for constructors producing
+  cltys). *)
   Global Instance dot_interp : CTyInterp Σ := fix dot_interp T :=
     let _ := dot_interp : CTyInterp Σ in
     match T with
@@ -204,9 +229,6 @@ Section SemTypes.
       by f_equiv => ?.
   Qed.
 
-  Lemma ld_label_match T : ldlty_label LD⟦ T ⟧ = label_of_ty T.
-  Proof. by destruct T. Qed.
-
   Definition idtp  Γ T l d     := sdtp l d  V⟦Γ⟧* C⟦T⟧.
   Definition idstp Γ T ds      := sdstp ds  V⟦Γ⟧* C⟦T⟧.
   Definition ietp  Γ T e       := setp e    V⟦Γ⟧* V⟦T⟧.
@@ -223,7 +245,7 @@ Section SemTypes.
   Global Instance istpi_persistent Γ T1 T2 i j : IntoPersistent' (istpi Γ T1 T2 i j) | 0 := _.
   Global Instance iptp_persistent Γ T p i : IntoPersistent' (iptp Γ T p i) | 0 := _.
 
-  Implicit Types (T : olty Σ 0) (Td : ldlty Σ) (Tds : dslty Σ).
+  Implicit Types (T : olty Σ 0) (Td : clty Σ) (Tds : dslty Σ).
 
   Global Instance sdtp_persistent : IntoPersistent' (sdtp l d   Γ Td) | 0 := _.
   Global Instance sdstp_persistent : IntoPersistent' (sdstp ds  Γ Tds) | 0 := _.
@@ -233,9 +255,6 @@ Section SemTypes.
 End SemTypes.
 
 Global Instance: Params (@oAll) 2 := {}.
-
-(* Backward compatibility. *)
-Notation "D*⟦ T ⟧" := (ldlty_car LD⟦ T ⟧).
 
 Notation "d ↗ ψ" := (dm_to_type 0 d ψ) (at level 20).
 Notation "G⟦ Γ ⟧ ρ" := (s⟦ V⟦ Γ ⟧* ⟧* ρ) (at level 10).
@@ -263,15 +282,23 @@ Notation oBool := (oPrim tbool).
 (** Show these typing judgments are equivalent to what we present in the paper. *)
 Section JudgDefs.
   Context `{HdotG: !dlangG Σ}.
+
+  (* This is only useful to show that certain definitions we give are
+    equivalent to the ones in the paper. *)
+  Lemma lift_dty_vl_equiv_paper l T :
+    lift_dty_vl l T ≡ lift_dty_vl_paper (lift_dty_dms l T).
+  Proof.
+    (* The proof is just a quantifier swap. *)
+    intros args ρ v; rewrite /= /objLookup; iSplit.
+    by iDestruct 1 as (d (ds & -> & Hl)) "/= H"; eauto.
+    by iDestruct 1 as (ds -> d Hl) "/= H"; eauto 10.
+  Qed.
+
   Implicit Types (T : ty) (Γ : ctx).
 
   Lemma path_includes_equiv p ρ ds : path_includes (pv (ids 0)) ρ ds ↔
     ∃ ds', ρ 0 = vobj ds' ∧ ds.|[ρ] `sublist_of` selfSubst ds' ∧ wf_ds ds'.
   Proof. by rewrite /path_includes path_wp_pure_pv_eq. Qed.
-
-  Lemma idtp_eq Γ T l d : Γ ⊨ {  l := d  } : T ⊣⊢
-    □∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)] ⌝ → G⟦Γ⟧ ρ → D[ l ]⟦T⟧ ρ d.|[ρ].
-  Proof. reflexivity. Qed.
 
   Lemma idstp_eq Γ T ds : Γ ⊨ds ds : T ⊣⊢
     ⌜wf_ds ds⌝ ∧ □∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → G⟦Γ⟧ ρ → Ds⟦T⟧ ρ ds.|[ρ].
@@ -297,12 +324,11 @@ Section MiscLemmas.
   Context `{HdotG: !dlangG Σ}.
   Implicit Types (τ L T U : olty Σ 0).
 
-  Lemma def_interp_tvmem_eq l T p ρ :
-    lift_ldlty (oLDVMem l T) ρ l (dpt p) ⊣⊢
-    path_wp p (oClose T ρ).
+  Lemma sdtp_eq (Γ : sCtx Σ) (T : clty Σ) l d:
+    Γ s⊨ { l := d } : T ⊣⊢
+      (□∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → s⟦Γ⟧* ρ → T ρ [(l, d.|[ρ])]).
   Proof.
-    rewrite /lift_ldlty/=; iSplit. by iDestruct 1 as (_ pmem [= ->]) "$".
-    iIntros "H"; iSplit; first done; iExists p. by auto.
+    rewrite /= pure_True ?(left_id True%I bi_and); by [> | exact: NoDup_singleton].
   Qed.
 
   Lemma sP_Val {Γ} v T:
@@ -376,16 +402,15 @@ Section Propers.
   Proof. apply: flip_proper_3. Qed.
   Global Instance: Params (@setp) 3 := {}.
 
-
-  Global Instance Proper_sdtp l d : Proper ((≡) ==> (≡) ==> (≡)) (sdtp l d).
-  Proof.
-    move => ??? [??? _ _ _] [??? _ _ _] [[/=?[/=??]]?];
-      repeat case_match; simplify_eq/=; properness => //; solve_proper_ho.
-  Qed.
-  Global Instance Proper_sdtp_flip l d : Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sdtp l d).
+  Global Instance Proper_sdstp ds : Proper ((≡) ==> (≡) ==> (≡)) (sdstp ds).
+  Proof. move => ??? [?? _ _ _] [?? _ _ _] [/= ??]; properness; by f_equiv. Qed.
+  Global Instance Proper_sdstp_flip ds :
+    Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sdstp ds).
   Proof. apply: flip_proper_3. Qed.
-  Global Instance: Params (@sdtp) 4 := {}.
 
+  Global Instance Proper_sdtp l d : Proper ((≡) ==> (≡) ==> (≡)) (sdtp l d) := _.
+  Global Instance Proper_sdtp_flip l d : Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sdtp l d) := _.
+  Global Instance: Params (@sdtp) 4 := {}.
 
   Global Instance Proper_sptp p i : Proper ((≡) ==> (≡) ==> (≡)) (sptp p i).
   Proof. solve_proper_ho. Qed.
