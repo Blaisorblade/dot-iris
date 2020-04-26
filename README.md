@@ -24,6 +24,11 @@ opam repo add iris-dev https://gitlab.mpi-sws.org/iris/opam.git --set-default --
 opam install --deps-only .
 ```
 
+Currently, this will install
+`coq-autosubst.dev.coq86`,
+`coq-stdpp.dev.2020-04-03.1.eeef6250` and
+`coq-iris.dev.2020-04-04.3.9b2ad256`.
+
 ### Compiling the actual proof
 
 Run `make -jN` to build the full development, where N is the number of your
