@@ -2,6 +2,42 @@ All file paths in this file are relative to the [`theories/`](theories/) folder.
 
 # Correspondence between paper and Coq dev
 
+## Differences between our paper (and technical appendix) and our Coq development.
+
+- Notations such as `\overbar{V}⟦ g ⟧` or `\overbar{D}⟦ T ⟧` translate to `Vs⟦ g ⟧`
+  and `Ds⟦ T ⟧`.
+
+- Paper notation `E⟦ T ⟧` would translate to `E⟦ V⟦ T ⟧ ⟧` in this development;
+  however, we generalize many definitions to semantic types, so that notation
+  seldom appears.
+
+- In Coq, definition lists use constructors `nil` and `cons` as usual, like in Coq
+  developments by Rapoport et al. (e.g. pDOT).
+  On paper, definition lists are instead constructed by singleton and
+  merge operations (Fig. 3), as in other DOT papers.
+
+- While in the paper unstamped and stamped DOT are represented using disjoint
+  syntaxes, in Coq there is a single syntax, together with predicates
+  `is_unstamped_?` and `is_stamped_?`, characterizing whether some AST is
+  unstamped or stamped.
+
+- Unlike in the appendix, our saved predicates support an additional argument
+  `args : vec n vl` for some `n`. We always set `n = 0` to ignore this, but our
+  implementation has additional flexibility that we plan to use in the future.
+
+- Our mechanization extends gDOT with some primitives, such as booleans and
+  naturals, with some associated operations, even tho all of those are
+  encodable.
+
+- Compared to the paper, and even to the appendix, we describe (in
+  [`Dot/typing/storeless_typing.v`](theories/Dot/typing/storeless_typing.v))
+  an additional "storeless" typing judgment, a
+  strict generalization of stamped typing.
+  Storeless typing generalizes some rules of stamped typing to allow arbitrary
+  values in paths, and not just variables. This is not at all necessary to our
+  proof technique, but it simply allows typing more programs while still
+  using a syntactic typing judgment.
+
 ## Paper - development mapping
 
 Sec. 2:
@@ -111,39 +147,3 @@ For each rule, there are up to three versions, with corresponding prefixes.
 
 The paper's P-Var is here called `P_Val`.
 The paper's D-And is here replaced by `D_Nil` and `D_Cons`.
-
-## Differences between our paper (and technical appendix) and our Coq development.
-
-- Notations such as `\overbar{V}⟦ g ⟧` or `\overbar{D}⟦ T ⟧` translate to `Vs⟦ g ⟧`
-  and `Ds⟦ T ⟧`.
-
-- Paper notation `E⟦ T ⟧` would translate to `E⟦ V⟦ T ⟧ ⟧` in this development;
-  however, we generalize many definitions to semantic types, so that notation
-  seldom appears.
-
-- In Coq, definition lists use constructors `nil` and `cons` as usual, like in Coq
-  developments by Rapoport et al. (e.g. pDOT).
-  On paper, definition lists are instead constructed by singleton and
-  merge operations (Fig. 3), as in other DOT papers.
-
-- While in the paper unstamped and stamped DOT are represented using disjoint
-  syntaxes, in Coq there is a single syntax, together with predicates
-  `is_unstamped_?` and `is_stamped_?`, characterizing whether some AST is
-  unstamped or stamped.
-
-- Unlike in the appendix, our saved predicates support an additional argument
-  `args : vec n vl` for some `n`. We always set `n = 0` to ignore this, but our
-  implementation has additional flexibility that we plan to use in the future.
-
-- Our mechanization extends gDOT with some primitives, such as booleans and
-  naturals, with some associated operations, even tho all of those are
-  encodable.
-
-- Compared to the paper, and even to the appendix, we describe (in
-  [`Dot/typing/storeless_typing.v`](theories/Dot/typing/storeless_typing.v))
-  an additional "storeless" typing judgment, a
-  strict generalization of stamped typing.
-  Storeless typing generalizes some rules of stamped typing to allow arbitrary
-  values in paths, and not just variables. This is not at all necessary to our
-  proof technique, but it simply allows typing more programs while still
-  using a syntactic typing judgment.
