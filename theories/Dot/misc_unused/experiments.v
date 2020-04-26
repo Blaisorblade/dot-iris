@@ -169,7 +169,7 @@ Section Sec.
   Proof.
     rewrite T_Path.
     iIntros "Hp". iApply (T_Sub with "Hp").
-    iIntros "!> **"; by rewrite iterate_TLater_later.
+    iIntros "!> **"; by rewrite iterate_TLater_oLater.
   Qed.
 
   Lemma wp_later_swap t Φ: WP t {{ v, ▷ Φ v }} ⊢ ▷ WP t {{ v, Φ v }}.
@@ -193,7 +193,7 @@ Section Sec.
     (* iApply (wp_later_swap _ (⟦ T2 ⟧ (v .: vs))).
     iApply ("HeT" $! (v .: vs) with "[$HG]"). *)
     iSpecialize ("HeT" $! (v .: vs) with "[#$HG]").
-    by rewrite (interp_weaken_one _ _ _).
+    by rewrite interp_weaken_one.
     by rewrite wp_later_swap; iNext.
     (* by iDestruct (wp_later_swap with "HeT") as "{HeT} HeT"; iNext. *)
   Qed.
@@ -281,7 +281,7 @@ Section Sec.
     V⟦ iterate TLater j (TAnd T1 T2) ⟧ args ρ v ⊣⊢
     V⟦ TAnd (iterate TLater j T1) (iterate TLater j T2) ⟧ args ρ v.
   Proof.
-    rewrite /= !iterate_TLater_later /=.
+    rewrite !interp_TAnd_eq /= !iterate_TLater_oLater.
     iSplit; iIntros "/= [??]"; iSplit; by [].
   Qed.
 

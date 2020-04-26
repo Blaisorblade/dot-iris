@@ -178,8 +178,8 @@ Section olty_subst.
      shift φ args ρ ≡ φ args (stail ρ).
   Proof. apply hoEnvD_subst_compose. autosubst. Qed.
 
-  Lemma hoEnvD_subst_one φ v w args ρ:
-    φ.|[v/] args ρ w ≡ φ args (v.[ρ] .: ρ) w.
+  Lemma hoEnvD_subst_one φ v args ρ:
+    φ.|[v/] args ρ ≡ φ args (v.[ρ] .: ρ).
   Proof. apply hoEnvD_subst_compose. autosubst. Qed.
 
   Definition Olty (olty_car : vec vl i → (var → vl) → vl → iProp Σ)

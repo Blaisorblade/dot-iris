@@ -25,7 +25,7 @@ Section LambdaIntros.
     (* Factor ▷ out of [s⟦ Γ ⟧* ρ] before [iNext]. *)
     rewrite senv_TLater_commute. iNext.
     iApply ("HeT" $! (v .: ρ) with "[$HG]").
-    by rewrite (hoEnvD_weaken_one T1 vnil _ v).
+    by rewrite hoEnvD_weaken_one.
   Qed.
 
   Lemma sT_All_I {Γ} T1 T2 e:
@@ -181,7 +181,7 @@ Section Sec.
   Proof.
     iSplit; iIntros "#Htp !>" (ρ) "#Hg !> /=";
     iDestruct (wp_value_inv' with "(Htp Hg)") as "{Htp} Hgoal";
-    by rewrite -wp_value/= (hoEnvD_subst_one _ v (v.[ρ])).
+    by rewrite -wp_value /= hoEnvD_subst_one.
   Qed.
 
   Lemma sT_Mu_I {Γ T v} : Γ s⊨ tv v : T.|[v/] -∗ Γ s⊨ tv v : oMu T.
@@ -265,7 +265,7 @@ Section Sec.
     iNext. iApply wp_wand.
     - iApply "HvFun".
     - iIntros (v) "{HG HvFun Hv2Arg} H".
-      by rewrite /= (hoEnvD_subst_one T2 v2 v).
+      by rewrite /= hoEnvD_subst_one.
   Qed.
 
   Lemma T_All_Ex {Γ e1 v2 T1 T2}:

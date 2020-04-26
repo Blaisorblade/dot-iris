@@ -158,7 +158,7 @@ Section logrel_binding_lemmas.
   Proof. apply interp_subst_compose. autosubst. Qed.
 
   Lemma interp_subst_one T v w ρ {args} :
-    V⟦ T.|[v/] ⟧ args ρ w ≡ V⟦ T ⟧ args (v.[ρ] .: ρ) w.
+    V⟦ T.|[v/] ⟧ args ρ ≡ V⟦ T ⟧ args (v.[ρ] .: ρ).
   Proof. apply interp_subst_compose. autosubst. Qed.
 
   Lemma interp_subst_ids T ρ {args} : V⟦ T ⟧ args ρ ≡ V⟦ T.|[ρ] ⟧ args ids.
@@ -174,7 +174,7 @@ Section logrel_binding_lemmas.
   Lemma interp_finsubst_commute_cl T σ ρ v (HclT : nclosed T (length σ)) args :
     V⟦ T.|[∞ σ] ⟧ args ρ v ≡ V⟦ T ⟧ args (∞ σ.|[ρ]) v.
   Proof.
-    rewrite interp_subst_compose_ind !(interp_subst_ids T _ _) -hsubst_comp.
+    rewrite interp_subst_compose_ind !(interp_subst_ids T) -hsubst_comp.
     (* *The* step requiring [HclT]. *)
     by rewrite (subst_compose _ _ HclT).
   Qed.

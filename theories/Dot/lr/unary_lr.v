@@ -221,6 +221,11 @@ Section SemTypes.
     | TSing p => olty2clty $ oSing p
     end.
 
+  (** Unfolding lemma for [TAnd]: defined because [simpl] on the LHS produces
+      [oAnd C⟦ T1 ⟧ C⟦ T2 ⟧]. *)
+  Lemma interp_TAnd_eq T1 T2 : V⟦ TAnd T1 T2 ⟧ ≡ oAnd V⟦ T1 ⟧ V⟦ T2 ⟧.
+  Proof. done. Qed.
+
   Global Instance pinterp_lemmas: CTyInterpLemmas Σ.
   Proof.
     split; rewrite /pty_interp;
@@ -423,11 +428,7 @@ Section defs.
 
   Lemma iterate_TLater_oLater i T:
     V⟦iterate TLater i T⟧ ≡ oLaterN i V⟦T⟧.
-  Proof. elim: i => [//|i IHi] ???. by rewrite !iterate_S /= (IHi _ _ _). Qed.
-
-  Lemma iterate_TLater_later T n args ρ v:
-    V⟦ iterate TLater n T ⟧ args ρ v ⊣⊢ ▷^n V⟦ T ⟧ args ρ v.
-  Proof. by rewrite (iterate_TLater_oLater n T _ _ _). Qed.
+  Proof. elim: i => [//|i IHi] ???; by rewrite !iterate_S /= IHi. Qed.
 
   Lemma sSub_iterate_TLater_Eq {Γ T U i j} :
     V⟦ Γ ⟧* s⊨ V⟦ T ⟧, i <: V⟦ U ⟧, j ⊣⊢
