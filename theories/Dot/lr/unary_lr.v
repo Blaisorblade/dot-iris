@@ -177,7 +177,7 @@ Section SemTypes.
 
   (* Observe the naming pattern for semantic type constructors:
   replace T by o. *)
-  Global Program Instance dot_interp : CTyInterp Σ := fix dot_interp T :=
+  Global Instance dot_interp : CTyInterp Σ := fix dot_interp T :=
     let _ := dot_interp : CTyInterp Σ in
     match T with
     | TTMem l L U => cTMem l V⟦ L ⟧ V⟦ U ⟧
