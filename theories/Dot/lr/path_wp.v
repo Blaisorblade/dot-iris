@@ -74,11 +74,12 @@ Qed.
 
 Definition path_wp_def {Σ} p φ : iProp Σ := bi_least_fixpoint path_wp_pre' (p, φ).
 Definition path_wp_aux {Σ} : seal (@path_wp_def Σ). Proof. by eexists. Qed.
+Definition path_wp {Σ} := (@path_wp_aux Σ).(unseal).
+Definition path_wp_unseal {Σ} : path_wp = @path_wp_def Σ := path_wp_aux.(seal_eq).
 
 Section path_wp.
   Context {Σ : gFunctors}.
-  Definition path_wp := (@path_wp_aux Σ).(unseal).
-  Definition path_wp_unseal : path_wp = @path_wp_def Σ := path_wp_aux.(seal_eq).
+  Local Notation path_wp := (path_wp (Σ := Σ)).
 
   Implicit Types (φ Φ : vl -d> iPropO Σ).
 
