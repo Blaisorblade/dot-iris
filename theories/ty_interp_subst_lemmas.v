@@ -52,7 +52,7 @@ Section logrel_binding_lemmas.
   Lemma interp_finsubst_commute_cl T σ ρ v (HclT : nclosed T (length σ)) :
     ⟦ T.|[∞ σ] ⟧ ρ v ≡ ⟦ T ⟧ (∞ σ.|[ρ]) v.
   Proof.
-    rewrite interp_subst_compose_ind !(interp_subst_ids T _ _) -hsubst_comp.
+    rewrite interp_subst_compose_ind !(interp_subst_ids T) -hsubst_comp.
     (* *The* step requiring [HclT]. *)
     by rewrite (subst_compose _ _ HclT).
   Qed.

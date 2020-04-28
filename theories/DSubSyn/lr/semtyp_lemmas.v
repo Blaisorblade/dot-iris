@@ -108,7 +108,7 @@ Section Sec.
     rewrite -wp_value; unfold_interp.
     iExists _; iSplit. by iExists _.
     iModIntro; repeat iSplit; iIntros (v) "#H";
-      rewrite later_intuitionistically -(interp_subst_ids _ _ _).
+      rewrite later_intuitionistically -interp_subst_ids.
     - iIntros "!>"; by iApply "HLT".
     - by iApply "HTU".
   Qed.

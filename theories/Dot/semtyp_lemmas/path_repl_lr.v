@@ -216,7 +216,7 @@ Section path_repl.
     by iNext i; iDestruct "Heq" as %Heq;
       rewrite (alias_paths_elim_eq _ Heq) path_wp_pv_eq.
     iApply ("Hsub" $! (v .: ρ) v with "[$Hg] HT1").
-    iEval rewrite iterate_TLater_later /= hsubst_comp. iFrame "Heq HT1".
+    iEval rewrite iterate_TLater_oLater /= hsubst_comp. iFrame "Heq HT1".
   Qed.
 
   (** What Dotty actually checks uses substitution twice. A simple case is the following: *)

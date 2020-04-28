@@ -202,7 +202,7 @@ Section sf_kind_subst.
   Definition oShift {n} (T : oltyO Σ n) :=
     Olty (λ args ρ v, T args (stail ρ) v).
   Lemma oShift_eq {n} (T : oltyO Σ n) : oShift T ≡ shift T.
-  Proof. move=>args ρ v /=. by rewrite (hoEnvD_weaken_one _ _ _ v). Qed.
+  Proof. move=>args ρ v /=. by rewrite hoEnvD_weaken_one. Qed.
 End sf_kind_subst.
 
 Section kinds_types.

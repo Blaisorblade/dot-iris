@@ -48,8 +48,8 @@ Section typing_type_member_defs.
     by iApply (dm_to_type_intro with "Hγ").
     (* Dropping [iNext], as follows, requires the instance in
     https://gitlab.mpi-sws.org/iris/iris/issues/287. *)
-    (* by iModIntro; repeat iSplit; iIntros (v) "#H"; rewrite /= (Hγφ _ _ _). *)
-    by iModIntro; repeat iSplit; iIntros (v) "#H"; iNext; rewrite /= (Hγφ _ _ _).
+    (* by iModIntro; repeat iSplit; iIntros (v) "#H"; rewrite /= (Hγφ _ _). *)
+    by iModIntro; repeat iSplit; iIntros (v) "#H"; iNext; rewrite /= (Hγφ _ _).
   Qed.
 
   Lemma sD_Typ_Abs {Γ} T L U s σ l:
