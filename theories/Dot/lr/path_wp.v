@@ -77,6 +77,8 @@ Definition path_wp_aux {Σ} : seal (@path_wp_def Σ). Proof. by eexists. Qed.
 Definition path_wp {Σ} := (@path_wp_aux Σ).(unseal).
 Definition path_wp_unseal {Σ} : path_wp = @path_wp_def Σ := path_wp_aux.(seal_eq).
 
+Global Instance: Params (@path_wp) 2 := {}.
+
 Section path_wp.
   Context {Σ : gFunctors}.
   Local Notation path_wp := (path_wp (Σ := Σ)).
