@@ -90,7 +90,7 @@ Section gen_iheap.
   Proof.
     apply wand_intro_r.
     rewrite mapsto_eq /mapsto_def -own_op -auth_frag_op own_valid discrete_valid.
-    f_equiv=> /auth_frag_valid /=. rewrite op_singleton singleton_valid.
+    f_equiv=> /auth_frag_valid /=. rewrite singleton_op singleton_valid.
     by intros ?%agree_op_invL'.
   Qed.
 
