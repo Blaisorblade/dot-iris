@@ -234,7 +234,6 @@ Section SemTypes.
   Definition ietp  Γ T e       := setp e    V⟦Γ⟧* V⟦T⟧.
   Definition istpi Γ T1 T2 i j := sstpi i j V⟦Γ⟧* V⟦T1⟧ V⟦T2⟧.
   Definition iptp  Γ T p i     := sptp p i  V⟦Γ⟧* V⟦T⟧.
-  (* Global Arguments idstp /. *)
 
   (* Avoid auto-dropping box (and unfolding) when introducing judgments persistently. *)
   Local Notation IntoPersistent' P := (IntoPersistent false P P).

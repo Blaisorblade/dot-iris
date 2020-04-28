@@ -59,9 +59,9 @@ Ltac solve_contractive_ho_alt := solve_proper_ho_core ltac:(fun _ => f_contracti
 
 Ltac ho_f_equiv :=
   progress repeat match goal with
-    | H : _ ≡ _|- _ => (apply: H || rewrite H //)
-    | H : _ ≡{_}≡ _ |- _ => (apply: H || rewrite H //)
-    | H : dist_later _ _ _ |- _ => (apply: H || rewrite H //)
+    | H : _ ≡ _|- _ => apply: H || rewrite H //
+    | H : _ ≡{_}≡ _ |- _ => apply: H || rewrite H //
+    | H : dist_later _ _ _ |- _ => apply: H || rewrite H //
     end.
 
 Ltac solve_proper_ho := solve_proper_core ltac:(fun _ => ho_f_equiv || f_equiv).
