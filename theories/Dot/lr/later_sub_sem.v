@@ -1,6 +1,5 @@
 (** * When is a context weaker than another? Semantic version. *)
 
-From iris.proofmode Require Import tactics.
 
 From D Require Import proper.
 From D.Dot Require Import unary_lr.

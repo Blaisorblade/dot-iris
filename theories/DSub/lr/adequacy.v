@@ -1,4 +1,3 @@
-From iris.proofmode Require Import tactics.
 From D Require Import swap_later_impl.
 From D.DSub Require Import unary_lr rules.
 

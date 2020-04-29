@@ -3,7 +3,6 @@
    This file *must not* depend on either typing.v (typing ruls) or
    swap_later_impl.v (extra swap lemmas).
  *)
-From iris.proofmode Require Import tactics.
 From D.pure_program_logic Require Import lifting.
 From D.DSub Require Import rules syn_lemmas.
 From D.DSubSyn Require Import unary_lr.

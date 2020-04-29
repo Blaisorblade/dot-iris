@@ -1,4 +1,3 @@
-From iris.proofmode Require Import tactics.
 From D.Dot Require Import syn path_repl.
 From D.Dot Require Import core_stamping_defs unstampedness_binding closed_subst.
 

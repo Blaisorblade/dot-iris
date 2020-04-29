@@ -1,5 +1,4 @@
 (* A HOAS frontend for de Bruijn terms. *)
-From stdpp Require Import strings.
 
 From D Require Import tactics.
 From D.Dot Require Import syn ex_utils.

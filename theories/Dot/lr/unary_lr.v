@@ -1,4 +1,3 @@
-From iris.proofmode Require Import tactics.
 From D Require Export iris_prelude proper lty lr_syn_aux.
 From D Require Import iris_extra.det_reduction.
 From D Require Import swap_later_impl.
