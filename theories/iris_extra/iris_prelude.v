@@ -79,10 +79,10 @@ Ltac properness :=
 (** ** Variants of [solve_proper] and [solve_contractive] that are more effective
 for higher-order functions. *)
 
-(** Specialized version of [f_equiv]. This is _not_ just [assumption], as it
-will successfully apply equalities of functions [f ≡ g] to equalities of
-function applications [f x y z ≡ g x y z]. *)
-Ltac ho_f_equiv :=
+(** Prove [f x y z ≡ g x y z] from equalities of functions [f ≡ g].
+Complements [f_equiv] for use in [solve_proper_ho].
+This is _not_ just [assumption]. *)
+Ltac hof_eq_app :=
   match goal with
   | H : _ ≡ _|- _ => apply: H
   | H : _ ≡{_}≡ _ |- _ => apply: H
@@ -91,8 +91,8 @@ Ltac ho_f_equiv :=
 
 (** ** Our best [solve_proper]/[solve_contractive] extension for higher-order
 functions. *)
-Ltac solve_proper_ho := solve_proper_core ltac:(fun _ => ho_f_equiv || f_equiv).
-Ltac solve_contractive_ho := solve_proper_core ltac:(fun _ => ho_f_equiv || f_contractive || f_equiv).
+Ltac solve_proper_ho := solve_proper_core ltac:(fun _ => hof_eq_app || f_equiv).
+Ltac solve_contractive_ho := solve_proper_core ltac:(fun _ => hof_eq_app || f_contractive || f_equiv).
 
 (** ** Other [solve_proper]/[solve_contractive] extensions for higher-order
 functions, which might or might not be useful sometimes. *)

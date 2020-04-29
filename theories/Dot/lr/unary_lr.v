@@ -143,7 +143,7 @@ Section SemTypes.
           (∀ v, ▷ □ ψ vnil v → ▷ τ2 vnil ρ v))).
   Global Instance Proper_oDTMem : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
   Proof.
-    rewrite /oDTMem => ??? ??? ??/=; properness; try reflexivity; ho_f_equiv.
+    rewrite /oDTMem => ??? ??? ??/=; properness; try reflexivity; hof_eq_app.
   Qed.
 
   Definition oDVMem τ : dltyO Σ := Dlty (λI ρ d,
@@ -151,7 +151,7 @@ Section SemTypes.
   Global Instance Proper_oDVMem : Proper ((≡) ==> (≡)) oDVMem.
   Proof.
     rewrite /oDVMem => ??? ??/=; properness; try reflexivity;
-      apply path_wp_proper => ?; ho_f_equiv.
+      apply path_wp_proper => ?; hof_eq_app.
   Qed.
 
   Lemma oDVMem_eq T ρ p :
