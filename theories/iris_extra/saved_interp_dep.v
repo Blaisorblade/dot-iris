@@ -1,7 +1,9 @@
-From iris.proofmode Require Import tactics.
 From iris.base_logic Require Import lib.saved_prop.
 From stdpp Require Import vector.
 From D Require Import prelude iris_prelude asubst_intf.
+Print ltac_tactics.string_to_ident_hook.
+Export ltac2_string_ident.
+Print ltac_tactics.string_to_ident_hook.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
