@@ -1,4 +1,3 @@
-From iris.proofmode Require Import tactics.
 From iris.base_logic Require Import lib.saved_prop.
 From stdpp Require Import vector.
 From D Require Import prelude iris_prelude asubst_intf.

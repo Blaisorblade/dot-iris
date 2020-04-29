@@ -1,6 +1,12 @@
-From iris.proofmode Require Import tactics.
+From iris.proofmode Require Export tactics.
 From iris.program_logic Require Import ectx_language.
 From iris.base_logic Require Import upred.
+
+From iris_string_ident Require ltac2_string_ident.
+(* Now [ltac2_string_ident] has taken effect: *)
+(* Print ltac_tactics.string_to_ident_hook. *)
+(* Nevertheless, it must be exported, or it won't take effect in importing files. *)
+Export ltac2_string_ident.
 
 From D.pure_program_logic Require Export weakestpre.
 From D Require Export prelude proofmode_extra.
@@ -41,11 +47,6 @@ Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
 Hint Extern 5 (IntoVal _ _) => eapply of_to_val; fast_done : typeclass_instances.
 Hint Extern 10 (IntoVal _ _) =>
   rewrite /IntoVal; eapply of_to_val; rewrite /= !to_of_val /=; solve [ eauto ] : typeclass_instances.
-
-(* Do not export iris.proofmode.tactics! *)
-(* From iris.proofmode Require Export tactics. *)
-(* As discussed in https://github.com/Blaisorblade/dot-iris/pull/2#discussion_r239389417, exporting that confuses Coq, who then
-  prints [length] as [strings.length]. *)
 
 (** Notation for functions in the Iris scope. *)
 Notation "'λI' x .. y , t" := (fun x => .. (fun y => t%I) ..)

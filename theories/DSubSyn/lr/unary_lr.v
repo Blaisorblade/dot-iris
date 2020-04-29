@@ -1,4 +1,3 @@
-From iris.proofmode Require Import tactics.
 From D Require Export iris_prelude.
 From D Require Import ty_interp_subst_lemmas saved_interp_dep.
 From D.DSub Require Export syn.
@@ -265,7 +264,7 @@ Section logrel_lemmas.
   Lemma semantic_typing_uniform_step_index Γ T e i:
     Γ ⊨ e : T -∗ Γ ⊨ e : T, i.
   Proof.
-    iIntros "#H !>" (ρ) "#HΓ".
+    iIntros "#H !> %ρ #HΓ".
     iInduction i as [|i] "IHi". by iApply "H". iExact "IHi".
   Qed.
 

@@ -1,4 +1,3 @@
-From iris.proofmode Require Import tactics.
 From D Require Import prelude iris_prelude asubst_base saved_interp_dep.
 
 Set Suggest Proof Using.

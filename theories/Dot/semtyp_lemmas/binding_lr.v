@@ -19,7 +19,7 @@ Section LambdaIntros.
     (*─────────────────────────*)
     Γ s⊨ tv (vabs e) : oAll T1 T2.
   Proof.
-    rewrite Hctx; iIntros "#HeT !>" (ρ) "#HG /= !>".
+    rewrite Hctx; iIntros "#HeT !> %ρ #HG /= !>".
     rewrite -wp_value'. iExists _; iSplit; first done.
     iIntros "!>" (v) "#Hv"; rewrite up_sub_compose.
     (* Factor ▷ out of [s⟦ Γ ⟧* ρ] before [iNext]. *)
@@ -58,7 +58,7 @@ Section Sec.
     (*───────────────────────────────*)
     Γ s⊨ T1, i <: T2, j.
   Proof.
-    iIntros "#Htyp !>" (ρ v) "#Hg #HvT1".
+    iIntros "#Htyp !> %ρ %v #Hg #HvT1".
     iEval rewrite -path_wp_pv_eq.
     iApply ("Htyp" $! (v .: ρ) with "[$Hg ]").
     by iApply "HvT1".
@@ -98,7 +98,7 @@ Section Sec.
     Γ s⊨ T, i <: U, j -∗
     oLater <$> Γ s⊨ oLater T, i <: oLater U, j.
   Proof.
-    iIntros "#Hsub !>" (ρ v) "#Hg/=".
+    iIntros "#Hsub !> %ρ %v #Hg/=".
     rewrite !swap_later -later_impl senv_TLater_commute.
     iNext. iApply ("Hsub" with "Hg").
   Qed.
@@ -113,7 +113,7 @@ Section Sec.
     (*──────────────────────*)
     ⊢ Γ s⊨ of_val (ids x) : shiftN x τ.
   Proof.
-    iIntros "/= !>" (ρ) "#Hg"; rewrite -wp_value'.
+    iIntros "/= !> %ρ #Hg"; rewrite -wp_value'.
     by rewrite s_interp_env_lookup // id_subst.
   Qed.
 
@@ -132,7 +132,7 @@ Section Sec.
     (*───────────────────────────────*)
     Γ s⊨ iterate tskip i e : T2.
   Proof.
-    iIntros "/= #HeT1 #Hsub !>" (ρ) "#Hg !>".
+    iIntros "/= #HeT1 #Hsub !> %ρ #Hg !>".
     rewrite tskip_subst -wp_bind.
     iApply (wp_wand with "(HeT1 Hg)").
     iIntros (v) "#HvT1".
@@ -160,7 +160,7 @@ Section Sec.
     oLaterN i T1 :: Γ s⊨ T1, i <: T2, j -∗
     Γ s⊨ oMu T1, i <: oMu T2, j.
   Proof.
-    iIntros "/= #Hstp !>" (ρ v) "#Hg #HT1".
+    iIntros "/= #Hstp !> %ρ %v #Hg #HT1".
     iApply ("Hstp" $! (v .: ρ) v with "[$Hg $HT1] [$HT1]").
   Qed.
 
@@ -179,7 +179,7 @@ Section Sec.
    *)
   Lemma sTMu_equiv {Γ T v} : (Γ s⊨ tv v : oMu T) ≡ (Γ s⊨ tv v : T.|[v/]).
   Proof.
-    iSplit; iIntros "#Htp !>" (ρ) "#Hg !> /=";
+    iSplit; iIntros "#Htp !> %ρ #Hg !> /=";
     iDestruct (wp_value_inv' with "(Htp Hg)") as "{Htp} Hgoal";
     by rewrite -wp_value /= hoEnvD_subst_one.
   Qed.
@@ -203,7 +203,7 @@ Section Sec.
     rewrite /istpi; cbn -[sstpi].
     rewrite (interp_subst_commute T (ren (+1))).
     apply sMu_Sub.
-    (* iIntros "!>" (ρ v) "**".
+    (* iIntros "!> %ρ %v **".
     by rewrite /= (lift_olty_eq (interp_subst_commute _ _)). *)
   Qed.
 
@@ -212,7 +212,7 @@ Section Sec.
     rewrite /istpi; cbn -[sstpi].
     rewrite (interp_subst_commute T (ren (+1))).
     apply sSub_Mu.
-    (* iIntros "!>" (ρ v) "**".
+    (* iIntros "!> %ρ %v **".
     by rewrite /= (lift_olty_eq (interp_subst_commute _ _)). *)
   Qed.
 
@@ -278,7 +278,7 @@ Section Sec.
     (*────────────────────────────────────────────────────────────*)
     Γ s⊨ tapp e1 e2 : T2.
   Proof.
-    iIntros "/= #He1 #Hv2 !>" (ρ) "#HG !>".
+    iIntros "/= #He1 #Hv2 !> %ρ #HG !>".
     smart_wp_bind (AppLCtx (e2.|[_])) v "#Hr" ("He1" with "[]").
     smart_wp_bind (AppRCtx v) w "#Hw" ("Hv2" with "[]").
     iDestruct "Hr" as (t ->) "#Hv".
@@ -294,7 +294,7 @@ Section Sec.
     Γ s⊨ T1, i <: T2, j + i -∗
     Γ s⊨ cVMem l T1, i <: cVMem l T2, j + i.
   Proof.
-    iIntros "#Hsub /= !>" (ρ v) "#Hg #HT1". setoid_rewrite laterN_plus.
+    iIntros "#Hsub /= !> %ρ %v #Hg #HT1". setoid_rewrite laterN_plus.
     iDestruct "HT1" as (d) "#[Hdl #HT1]".
     iExists d; repeat iSplit => //.
     iDestruct "HT1" as (pmem) "[Heq HvT1]".
@@ -317,7 +317,7 @@ Section Sec.
     (*─────────────────────────*)
     Γ s⊨ tproj e l : T.
   Proof.
-    iIntros "#HE /= !>" (ρ) "#HG !>".
+    iIntros "#HE /= !> %ρ #HG !>".
     smart_wp_bind (ProjCtx l) v "#Hv {HE}" ("HE" with "[]").
     iDestruct "Hv" as (? Hl pmem ->) "Hv".
     rewrite -wp_pure_step_later //= path_wp_later_swap path_wp_to_wp. by [].
@@ -346,7 +346,7 @@ Section swap_based_typing_lemmas.
     oLaterN (S i) (shift T2) :: Γ s⊨ oLater U1, i <: oLater U2, i -∗
     Γ s⊨ oAll T1 U1, i <: oAll T2 U2, i.
   Proof.
-    iIntros "#HsubT #HsubU /= !>" (ρ v) "#Hg #HT1".
+    iIntros "#HsubT #HsubU /= !> %ρ %v #Hg #HT1".
     iDestruct "HT1" as (t) "#[Heq #HT1]". iExists t; iSplit => //.
     iIntros (w).
     rewrite -!mlaterN_pers -mlaterN_impl.
@@ -376,7 +376,7 @@ Section swap_based_typing_lemmas.
     Γ s⊨ oLater U1, i <: oLater U2, i -∗
     Γ s⊨ cTMem l L1 U1, i <: cTMem l L2 U2, i.
   Proof.
-    iIntros "#IHT #IHT1 /= !>" (ρ v) "#Hg #HT1".
+    iIntros "#IHT #IHT1 /= !> %ρ %v #Hg #HT1".
     iDestruct "HT1" as (d) "[Hl2 H]".
     iDestruct "H" as (φ) "#[Hφl [HLφ #HφU]]".
     rewrite (comm plus).

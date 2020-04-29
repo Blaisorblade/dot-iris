@@ -25,7 +25,7 @@ Section Sec.
   Lemma sAnd_All_Sub_Distr T U1 U2 i:
     ⊢ Γ s⊨ oAnd (oAll T U1) (oAll T U2), i <: oAll T (oAnd U1 U2), i.
   Proof.
-    iIntros "/= !>" (ρ v) "#Hg [#H1 #H2]". iNext.
+    iIntros "/= !> %ρ %v #Hg [#H1 #H2]". iNext.
     iDestruct "H1" as (t ?) "#H1"; iDestruct "H2" as (t' ->) "#H2"; simplify_eq.
     iExists _; iSplit => //.
     iIntros "!>" (w) "#HT".
@@ -40,7 +40,7 @@ Section Sec.
   Lemma sAnd_Fld_Sub_Distr l T1 T2 i:
     ⊢ Γ s⊨ oAnd (cVMem l T1) (cVMem l T2), i <: cVMem l (oAnd T1 T2), i.
   Proof.
-    iIntros "/= !>" (ρ v) "#Hg [#H1 H2]". iNext.
+    iIntros "/= !> %ρ %v #Hg [#H1 H2]". iNext.
     iDestruct "H1" as (d? pmem?) "#H1"; iDestruct "H2" as (d'? pmem'?) "#H2". objLookupDet.
     repeat (iExists _; repeat iSplit => //).
     by iApply (path_wp_and' with "H1 H2").
@@ -49,7 +49,7 @@ Section Sec.
   Lemma sAnd_Fld_Sub_Distr_2 l T1 T2 i:
     ⊢ Γ s⊨ cVMem l (oAnd T1 T2), i <: oAnd (cVMem l T1) (cVMem l T2), i.
   Proof.
-    iIntros "/= !>" (ρ v) "#Hg #H". iNext.
+    iIntros "/= !> %ρ %v #Hg #H". iNext.
     iDestruct "H" as (d? pmem Hlook) "H".
     rewrite -path_wp_and; iDestruct "H" as "[H1 H2]".
     iSplit; repeat (iExists _; repeat iSplit => //).
@@ -59,7 +59,7 @@ Section Sec.
   Lemma sAnd_Fld_Sub_Distr_Or_1 l T1 T2 i:
     ⊢ Γ s⊨ oOr (cVMem l T1) (cVMem l T2), i <: cVMem l (oOr T1 T2), i.
   Proof.
-    iIntros "/= !>" (ρ v) "#Hg [#H| #H]"; iNext;
+    iIntros "/= !> %ρ %v #Hg [#H| #H]"; iNext;
       iDestruct "H" as (d? pmem?) "#H"; repeat (iExists _; repeat iSplit => //);
       rewrite -path_wp_or; by [iLeft | iRight].
   Qed.
@@ -67,7 +67,7 @@ Section Sec.
   Lemma sAnd_Fld_Sub_Distr_Or_2 l T1 T2 i:
     ⊢ Γ s⊨ cVMem l (oOr T1 T2), i <: oOr (cVMem l T1) (cVMem l T2), i.
   Proof.
-    iIntros "/= !>" (ρ v) "#Hg #H". iNext.
+    iIntros "/= !> %ρ %v #Hg #H". iNext.
     iDestruct "H" as (d? pmem?) "#H"; rewrite -path_wp_or.
     iDestruct "H" as "#[H | H]"; [> iLeft | iRight];
       repeat (iExists _; repeat iSplit => //).
@@ -76,7 +76,7 @@ Section Sec.
   Lemma sAnd_Typ_Sub_Distr l L U1 U2 i:
     ⊢ Γ s⊨ oAnd (cTMem l L U1) (cTMem l L U2), i <: cTMem l L (oAnd U1 U2), i.
   Proof.
-    iIntros "/= !>" (ρ v) "Hg [H1 H2]". iNext.
+    iIntros "/= !> %ρ %v Hg [H1 H2]". iNext.
     iDestruct "H1" as (d? φ) "#[Hsφ1 [#HLφ1 #HφU1]]"; iDestruct "H2" as (d'? φ') "#[Hsφ2 [_ #HφU2]]".
     objLookupDet.
     iExists d; repeat iSplit => //.
@@ -93,7 +93,7 @@ Section Sec.
     Γ s⊨ tv v : T2 -∗
     Γ s⊨ tv v : oAnd T1 T2.
   Proof.
-    iIntros "#HT1 #HT2 /= !>" (ρ) "#Hg".
+    iIntros "#HT1 #HT2 /= !> %ρ #Hg".
     iApply (wp_and_val with "(HT1 Hg) (HT2 Hg)").
   Qed.
 
@@ -105,7 +105,7 @@ Section Sec.
     Γ s⊨ T1, S i <: T2, S j -∗
     Γ s⊨ oLater T1, i <: oLater T2, j.
   Proof.
-    iIntros "/= #Hsub !>" (ρ v) "#Hg #HT1".
+    iIntros "/= #Hsub !> %ρ %v #Hg #HT1".
     iSpecialize ("Hsub" $! _ v with "Hg").
     rewrite !swap_later.
     by iApply "Hsub".
@@ -113,7 +113,7 @@ Section Sec.
 
   Lemma sLater_Sub T i :
     ⊢ Γ s⊨ oLater T, i <: T, S i.
-  Proof. by iIntros "/= !>" (ρ v) "#HG #HT !>". Qed.
+  Proof. by iIntros "/= !> %ρ %v #HG #HT !>". Qed.
 
   Lemma sSub_Later T i :
     ⊢ Γ s⊨ T, S i <: oLater T, i.

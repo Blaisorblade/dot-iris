@@ -3,7 +3,6 @@
    This file *must not* depend on either typing.v (typing ruls) or
    swap_later_impl.v (extra swap lemmas).
  *)
-From iris.proofmode Require Import tactics.
 From D.pure_program_logic Require Import lifting.
 From D.DSub Require Import rules syn_lemmas.
 From D.DSubSyn Require Import unary_lr.
@@ -119,7 +118,7 @@ Section Sec.
     Γ ⊨ tv (vty T) : TTMem L U.
   Proof.
     (* Ltac solve_fv_congruence := rewrite /nclosed /nclosed_vl /= => *; f_equiv; solve [(idtac + asimpl); auto using eq_up]. *)
-    iIntros "#HTU #HLT /= !>" (ρ) "#HG".
+    iIntros "#HTU #HLT /= !> %ρ #HG".
     rewrite -wp_value; unfold_interp.
     iExists _; iSplit. by iExists _.
     iModIntro; repeat iSplit; iIntros (v) "#H";
@@ -171,7 +170,7 @@ Section Sec.
   Lemma T_Nat_I n:
     ⊢ Γ ⊨ tv (vint n): TInt.
   Proof.
-    iIntros "/= !>" (ρ) "_". rewrite -wp_value; unfold_interp. by iExists n.
+    iIntros "/= !> %ρ _". rewrite -wp_value; unfold_interp. by iExists n.
   Qed.
 
   Lemma Sub_Index_Incr T U i j:
@@ -184,7 +183,7 @@ Section Sec.
     Γ ⊨[i] U1 <: U2 -∗
     Γ ⊨[i] TTMem L1 U1 <: TTMem L2 U2.
   Proof.
-    iIntros "#HsubL #HsubU /= !>" (ρ) "#Hg"; iIntros (v).
+    iIntros "#HsubL #HsubU /= !> %ρ #Hg"; iIntros (v).
     iSpecialize ("HsubL" with "Hg"); iSpecialize ("HsubU" with "Hg").
     unfold_interp. iNext.
     iDestruct 1 as (φ) "#[Hφl [#HLφ #HφU]]".

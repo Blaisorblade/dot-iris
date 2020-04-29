@@ -22,7 +22,7 @@ Section NoSwapVariants.
     Γ s⊨ oLater U1, 0 <: oLater U2, 0 -∗
     Γ s⊨ cTMem l L1 U1, 0 <: cTMem l L2 U2, 0.
   Proof using HdlangG.
-    iIntros "#IHT #IHT1 /= !>" (ρ v) "#Hg #HT1".
+    iIntros "#IHT #IHT1 /= !> %ρ %v #Hg #HT1".
     iDestruct "HT1" as (d) "[Hl2 H]".
     iDestruct "H" as (φ) "#[Hφl [HLφ #HφU]]".
     iExists d; repeat iSplit; first by [].
@@ -43,7 +43,7 @@ Section NoSwapVariants.
     oLater (shift T2) :: Γ s⊨ oLater U1, 0 <: oLater U2, 0 -∗
     Γ s⊨ oAll T1 U1, 0 <: oAll T2 U2, 0.
   Proof using HdlangG HswapProp.
-    iIntros "#HsubT #HsubU /= !>" (ρ v) "#Hg #HT1".
+    iIntros "#HsubT #HsubU /= !> %ρ %v #Hg #HT1".
     iDestruct "HT1" as (t) "#[Heq #HT1]". iExists t; iSplit => //.
     iIntros (w).
     (* rewrite -mlater_impl. *)
@@ -84,7 +84,7 @@ Section AlsoSyntactically.
     Γ ⊨p p : T1, i -∗
     Γ ⊨ TSing p, i <: TMu T2, i.
   Proof.
-    (* iIntros "#Hsub #Hp !>" (ρ v) "#Hg /= #Heq".
+    (* iIntros "#Hsub #Hp !> %ρ %v #Hg /= #Heq".
     iSpecialize ("Hp" with "Hg").
     iSpecialize ("Hsub" $! ρ v with "[#$Hg] [#]");
       iNext i; iDestruct "Heq" as %Heq;
@@ -129,7 +129,7 @@ Section Example.
     iIntros "He #HA #HB".
     iApply (T_All_E with "[] He").
     iApply T_All_I.
-    iSimpl; iIntros "!>" (ρ) "#[Hg [H|H]] !>";
+    iSimpl; iIntros "!> %ρ #[Hg [H|H]] !>";
       [iApply ("HA" with "[]") | iApply ("HB" with "[]")];
       iFrame "Hg H".
   Qed.
@@ -155,7 +155,7 @@ Section Sec.
   Lemma All_Later_Sub_Distr0 Γ T U `{SwapPropI Σ}:
     ⊢ Γ ⊨ TAll (TLater T) U, 0 <: TLater (TAll T U), 0.
   Proof.
-    iIntros "!>" (ρ v) "_ /= #HvTU".
+    iIntros "!> %ρ %v _ /= #HvTU".
     iDestruct "HvTU" as (t ->) "#HvTU".
     iExists t; iSplit => //. iNext.
     iIntros (w) "!>".
@@ -203,7 +203,7 @@ Section Sec.
   Lemma All_Later_Sub_Distr `{SwapPropI Σ} Γ T U i:
     ⊢ Γ ⊨ TAll (TLater T) (TLater U), i <: TLater (TAll T U), i.
   Proof.
-    iIntros "!>" (ρ v) "_ #HvTU". iNext i.
+    iIntros "!> %ρ %v _ #HvTU". iNext i.
     iDestruct "HvTU" as (t ->) "#HvTU".
     iExists t; iSplit => //.
     rewrite -mlater_pers. iModIntro (□ _)%I.
@@ -220,7 +220,7 @@ Section Sec.
   Lemma sFld_Later_Sub_Distr Γ l T i:
     ⊢ Γ s⊨ cVMem l (oLater T), i <: oLater (cVMem l T), i.
   Proof.
-    iIntros "!>" (ρ v) "_ /= #HvT". iNext i.
+    iIntros "!> %ρ %v _ /= #HvT". iNext i.
     iDestruct "HvT" as (d Hlook) "#HvT".
     iExists (d); (iSplit; try iSplit) => //.
     iDestruct "HvT" as (pmem ->) "HvT".
@@ -290,7 +290,7 @@ Section Sec.
     Γ ⊨ T, i <: U1, i ⊣⊢
     Γ ⊨ T, i <: U2, i .
   Proof.
-    iIntros (Heq); iSplit; iIntros "/= #H !>" (ρ v) "#Hg #HT";
+    iIntros (Heq); iSplit; iIntros "/= #H !> %ρ %v #Hg #HT";
       [rewrite -Heq //|rewrite Heq //]; by iApply "H".
   Qed.
 
@@ -299,7 +299,7 @@ Section Sec.
     Γ ⊨ T1, i <: U, i ⊣⊢
     Γ ⊨ T2, i <: U, i .
   Proof.
-    iIntros (Heq); iSplit; iIntros "/= #H !>" (ρ v) "#Hg #HT";
+    iIntros (Heq); iSplit; iIntros "/= #H !> %ρ %v #Hg #HT";
       [rewrite -Heq //|rewrite Heq //]; by iApply "H".
   Qed.
 
@@ -308,7 +308,7 @@ Section Sec.
     Γ ⊨ T1, i <: T2, i ∧
     Γ ⊨ T2, i <: T1, i .
   Proof.
-    iIntros (Heq) "_"; iSplit; iIntros "/= !>" (ρ v) "#Hg #HT";
+    iIntros (Heq) "_"; iSplit; iIntros "/= !> %ρ %v #Hg #HT";
       [rewrite -Heq //|rewrite Heq //]; by iApply "H".
   Qed.
 

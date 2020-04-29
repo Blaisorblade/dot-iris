@@ -1,4 +1,3 @@
-From stdpp Require Import strings.
 From D Require Import tactics.
 From D.Dot Require Import syn syn_lemmas ex_utils unstamped_typing.
 From D.Dot Require Import unstampedness_binding.

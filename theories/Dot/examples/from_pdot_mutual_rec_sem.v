@@ -246,7 +246,7 @@ Lemma newTypeRef_semTyped Γ g :
 Proof.
   have := Hx0 Γ g; set Γ2 := newTypeRefΓ Γ; unfold newTypeRefΓ in Γ2 => Hx0.
 
-  iIntros "#Hs !>" (ρ) "#Hg !>".
+  iIntros "#Hs !> %ρ #Hg !>".
   iPoseProof (fundamental_typed Hx0 with "Hs Hg") as "#Hx0".
   reshape [AppRCtx _]; reshape [IfCtx _ _]; reshape [UnCtx _];
     reshape [ProjCtx _]; reshape [ProjCtx _]; iSimpl.

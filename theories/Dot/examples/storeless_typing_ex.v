@@ -2,7 +2,6 @@
 WIP examples constructing syntactic typing derivations.
 I am also experimenting with notations, but beware the current definitions are pretty bad.
  *)
-From stdpp Require Import strings.
 
 From D Require Import tactics.
 From D.Dot Require Import syn storeless_typing_ex_utils stampedness_binding.

@@ -1,6 +1,5 @@
 (**
  *)
-From stdpp Require Import strings.
 
 From D Require Import tactics.
 From D.Dot Require Import syn path_repl.

@@ -1,6 +1,5 @@
 (* (* Must be loaded first, so that other modules can reset some flags. *)
 Require Import Equations.Equations. *)
-From iris.proofmode Require Import tactics.
 From iris.base_logic Require Import lib.saved_prop.
 From D Require Import iris_prelude.
 From D Require Import saved_interp_dep asubst_intf dlang ty_interp_subst_lemmas.

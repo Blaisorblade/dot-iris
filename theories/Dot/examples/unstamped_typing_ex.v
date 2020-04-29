@@ -1,7 +1,6 @@
 (**
 WIP examples constructing _unstamped_ syntactic typing derivations.
  *)
-From stdpp Require Import strings.
 
 From D Require Import tactics.
 From D.Dot Require Import syn unstampedness_binding.

@@ -66,9 +66,8 @@ Section Sec.
     Γ s⊨ e1 : oPrim B1 -∗
     Γ s⊨ tun u e1 : oPrim Br.
   Proof.
-    iIntros "#He1 !>" (ρ) "#Hg !>".
-    smart_wp_bind (UnCtx _) v1 "#Ha1" ("He1" with "Hg"); iClear "He1 Hg".
-    iDestruct "Ha1" as %Ha1.
+    iIntros "#He1 !> %ρ #Hg !>".
+    smart_wp_bind (UnCtx _) v1 "%Ha1" ("He1" with "Hg"); iClear "He1 Hg".
     by iApply wp_wand; [iApply wp_un|iIntros (? [??])].
   Qed.
 
@@ -92,11 +91,9 @@ Section Sec.
     Γ s⊨ e2 : oPrim B2 -∗
     Γ s⊨ tbin b e1 e2 : oPrim Br.
   Proof.
-    iIntros "#He1 #He2 !> /=" (ρ) "#Hg !>". rewrite /oPrim/= /pure_interp_prim.
-    smart_wp_bind (BinLCtx _ _) v1 "#Ha1" ("He1" with "Hg"); iClear "He1".
-    iDestruct "Ha1" as %Ha1.
-    smart_wp_bind (BinRCtx _ _) v2 "#Ha2" ("He2" with "Hg"); iClear "He2".
-    iDestruct "Ha2" as %Ha2; ev.
+    iIntros "#He1 #He2 !> /= %ρ #Hg !>". rewrite /oPrim/= /pure_interp_prim.
+    smart_wp_bind (BinLCtx _ _) v1 "%Ha1" ("He1" with "Hg"); iClear "He1".
+    smart_wp_bind (BinRCtx _ _) v2 "%Ha2" ("He2" with "Hg"); iClear "He2"; ev.
     by iApply wp_wand; [iApply wp_bin|iIntros (? [??])].
   Qed.
 
@@ -116,7 +113,7 @@ Section Sec.
     Γ s⊨ e : oBool -∗ Γ s⊨ e1 : T -∗ Γ s⊨ e2 : T -∗
     Γ s⊨ tif e e1 e2 : T.
   Proof.
-    iIntros "#He #He1 #He2 !> /=" (ρ) "#Hg !>".
+    iIntros "#He #He1 #He2 !> /= %ρ #Hg !>".
     smart_wp_bind (IfCtx _ _) v "#Ha" ("He" with "[]").
     rewrite /pure_interp_prim/=; iDestruct "Ha" as %([] & ->);
       (rewrite -wp_pure_step_later; last done);

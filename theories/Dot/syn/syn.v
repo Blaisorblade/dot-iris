@@ -1,4 +1,4 @@
-From stdpp Require Import strings.
+From stdpp Require Export strings.
 From D Require Export prelude.
 From D Require Import asubst_intf asubst_base.
 From iris.program_logic Require ectx_language ectxi_language.

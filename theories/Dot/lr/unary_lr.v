@@ -1,4 +1,3 @@
-From iris.proofmode Require Import tactics.
 From D Require Export iris_prelude proper lty lr_syn_aux.
 From D Require Import iris_extra.det_reduction.
 From D Require Import swap_later_impl.
@@ -339,7 +338,7 @@ Section MiscLemmas.
     Γ s⊨ tv v : T -∗
     Γ s⊨p pv v : T, 0.
   Proof.
-    iIntros "/= #Hp !>" (ρ) "Hg". rewrite path_wp_pv_eq -wp_value_inv'.
+    iIntros "/= #Hp !> %ρ Hg". rewrite path_wp_pv_eq -wp_value_inv'.
     iApply ("Hp" with "Hg").
   Qed.
 
