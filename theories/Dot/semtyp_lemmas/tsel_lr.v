@@ -12,7 +12,7 @@ Section Sec.
     Γ s⊨p p : cTMem l L U, i -∗
     Γ s⊨ oLater L, i <: oSel p l, i.
   Proof.
-    iIntros "/= #Hp !>" (ρ v) "Hg #HL /=".
+    iIntros "/= #Hp !> %ρ %v Hg #HL /=".
     iSpecialize ("Hp" with "Hg"); iNext i.
     iApply (path_wp_wand with "Hp"); iIntros "!>" (w).
     iDestruct 1 as (d Hl φ) "[Hlφ [HLφ _]]".
@@ -28,7 +28,7 @@ Section Sec.
     Γ s⊨p p : cTMem l L U, i -∗
     Γ s⊨ oSel p l, i <: oLater U, i.
   Proof.
-    iIntros "#Hp !>" (ρ v) "Hg Hφ"; iSpecialize ("Hp" with "Hg").
+    iIntros "#Hp !> %ρ %v Hg Hφ"; iSpecialize ("Hp" with "Hg").
     iNext i.
     iDestruct (path_wp_and' with "Hp Hφ") as "H".
     iDestruct (path_wp_eq with "H") as (w Hw) "[Hp Hφ] /=".
@@ -58,7 +58,7 @@ Section Sec.
     (*─────────────────────────*)
     Γ s⊨p pself p l : T, i.
   Proof.
-    iIntros "#HE !>" (ρ) "HG /=".
+    iIntros "#HE !> %ρ HG /=".
     iSpecialize ("HE" with "HG"); iNext i.
     rewrite path_wp_eq path_wp_pself_eq.
     iDestruct "HE" as (vp Hpv d Hlook pmem ->) "#H".
@@ -95,6 +95,6 @@ Section Sec.
     rewrite (sP_Sub (j := 1) (T1 := oLater T) (T2 := T)); iIntros "Hsub".
     rewrite (plusnS i 0) (plusnO i).
     iApply "Hsub".
-    iIntros "/= !>" (ρ v) "Hg $".
+    iIntros "/= !> %ρ %v Hg $".
   Qed.
 End Sec.

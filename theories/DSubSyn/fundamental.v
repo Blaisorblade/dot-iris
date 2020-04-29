@@ -23,7 +23,7 @@ Section swap_based_typing_lemmas.
     Γ ⊨ TAll T1 U1, i <: TAll T2 U2, i .
   Proof.
     rewrite iterate_S /=.
-    iIntros "#HsubT #HsubU /= !>" (ρ v) "#Hg".
+    iIntros "#HsubT #HsubU /= !> %ρ %v #Hg".
     unfold_interp.
     iDestruct 1 as (t) "#[Heq #HT1]". iExists t; iSplit => //.
     iIntros (w).
@@ -50,7 +50,7 @@ Section swap_based_typing_lemmas.
     Γ ⊨[i] TAll T1 U1 <: TAll T2 U2.
   Proof.
     rewrite iterate_S /=.
-    iIntros "#HsubT #HsubU /= !>" (ρ) "#Hg"; iIntros (v).
+    iIntros "#HsubT #HsubU /= !> %ρ #Hg"; iIntros (v).
     rewrite -mlaterN_impl; unfold_interp.
     iDestruct 1 as (t) "#[Heq #HT1]"; iExists t; iFrame "Heq".
     iIntros (w).
@@ -71,7 +71,7 @@ Section swap_based_typing_lemmas.
     Γ ⊨ U1, i <: U2, i -∗
     Γ ⊨ TTMem L1 U1, i <: TTMem L2 U2, i.
   Proof.
-    iIntros "#IHT #IHT1 /= !>" (ρ v) "#Hg".
+    iIntros "#IHT #IHT1 /= !> %ρ %v #Hg".
     unfold_interp.
     iDestruct 1 as (φ) "#[Hφl [HLφ #HφU]]".
     setoid_rewrite mlaterN_impl.

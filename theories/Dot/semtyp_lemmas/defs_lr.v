@@ -78,7 +78,7 @@ Section Sec.
      oLater T :: Γ s⊨ds ds : T -∗
      Γ s⊨ tv (vobj ds) : oMu T.
   Proof.
-    iDestruct 1 as (Hwf) "#Hds"; iIntros "!>" (ρ) "#Hg /= !>".
+    iDestruct 1 as (Hwf) "#Hds"; iIntros "!> %ρ #Hg /= !>".
     rewrite -wp_value' /=. iLöb as "IH".
     iApply clty_commute. rewrite norm_selfSubst.
     iApply ("Hds" $! (vobj _ .: ρ) with "[%] [$IH $Hg]").

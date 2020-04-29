@@ -169,7 +169,7 @@ Section logrel_lemmas.
   Lemma semantic_typing_uniform_step_index Γ T e i:
     Γ ⊨ e : T -∗ Γ ⊨ e : T, i.
   Proof.
-    iIntros "#H !>" (ρ) "#HΓ".
+    iIntros "#H !> %ρ #HΓ".
     iInduction i as [|i] "IHi". by iApply "H". iExact "IHi".
   Qed.
 

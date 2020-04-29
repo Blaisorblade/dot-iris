@@ -372,7 +372,7 @@ Section small_ex.
       iApply sD_Cons; [done| |iApply sD_Nil].
       iApply sD_Val.
       iApply (sT_Sub (i := 0) (T1 := ipos)).
-      rewrite setp_value /ipos /pos; iIntros "!>" (ρ) "_ /= !%". naive_solver.
+      rewrite setp_value /ipos /pos; iIntros "!> %ρ _ /= !%". naive_solver.
       iApply sSub_Trans; first iApply sSub_Add_Later.
       iApply sSub_Trans; first iApply sSub_Add_Later.
       iApply sSub_Later_Sub.

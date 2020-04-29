@@ -90,7 +90,7 @@ Section path_repl.
     Γ s⊨p p : τ, i -∗
     Γ s⊨p p : oSing p, i.
   Proof.
-    iIntros "#Hep !>" (ρ) "Hg". iSpecialize ("Hep" with "Hg"). iNext.
+    iIntros "#Hep !> %ρ Hg". iSpecialize ("Hep" with "Hg"). iNext.
     iApply (strong_path_wp_wand with "[] Hep"); iIntros (v Hpv) "!> _ !%".
     apply alias_paths_pv_eq_1, Hpv.
   Qed.
@@ -102,7 +102,7 @@ Section path_repl.
     Γ s⊨p p : T, i -∗
     Γ s⊨ oSing p, i <: T, i.
   Proof.
-    iIntros "#Hp !>" (ρ v) "Hg /= Heq".
+    iIntros "#Hp !> %ρ %v Hg /= Heq".
     iSpecialize ("Hp" with "Hg"); iNext i.
     iDestruct "Heq" as %->%(alias_paths_elim_eq (T _ ρ)).
     by rewrite path_wp_pv_eq.
@@ -116,7 +116,7 @@ Section path_repl.
     Γ s⊨ oSing p, i <: oSing q, i -∗
     Γ s⊨ oSing q, i <: oSing p, i.
   Proof.
-    iIntros "#Hp #Hps !>" (ρ v) "#Hg /= Heq".
+    iIntros "#Hp #Hps !> %ρ %v #Hg /= Heq".
     iDestruct (path_wp_eq with "(Hp Hg)") as (w) "[Hpw _] {Hp}".
     rewrite -alias_paths_pv_eq_1; iSpecialize ("Hps" $! _ w with "Hg Hpw");
       rewrite !alias_paths_pv_eq_1.
@@ -132,7 +132,7 @@ Section path_repl.
     Γ s⊨p p : oSing q, i -∗
     Γ s⊨p q : oTop, i.
   Proof.
-    iIntros "#Hpq !>" (ρ) "#Hg /=".
+    iIntros "#Hpq !> %ρ #Hg /=".
     iDestruct (singleton_aliasing with "Hpq Hg") as "Hal {Hpq Hg}".
     iNext i. iDestruct "Hal" as %(v & _ & Hqv)%alias_paths_sameres. iIntros "!%".
     exact: (path_wp_pure_wand Hqv).
@@ -148,7 +148,7 @@ Section path_repl.
     Γ s⊨p p : oSing q, i -∗
     Γ s⊨ T1, i <: T2, i.
   Proof.
-    iIntros "#Hal !>" (ρ v) "#Hg HT1". iSpecialize ("Hal" with "Hg"). iNext i.
+    iIntros "#Hal !> %ρ %v #Hg HT1". iSpecialize ("Hal" with "Hg"). iNext i.
     iDestruct "Hal" as %Hal%alias_paths_simpl.
     iApply (Hrepl with "HT1"). exact Hal.
   Qed.
@@ -161,7 +161,7 @@ Section path_repl.
   Lemma sP_Mu_E {Γ T p i} :
     Γ s⊨p p : oMu T, i -∗ Γ s⊨p p : T .sTp[ p /], i.
   Proof.
-    iIntros "#Hp !>" (ρ) "Hg /=".
+    iIntros "#Hp !> %ρ Hg /=".
     iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "!> **".
     by rewrite oMu_eq sem_psubst_one_repl ?alias_paths_pv_eq_1.
   Qed.
@@ -170,11 +170,11 @@ Section path_repl.
     Γ ⊨p p : TMu T, i -∗ Γ ⊨p p : T', i.
   Proof.
     (* Proof from scratch *)
-    (* iIntros "#Hp !>" (ρ) "Hg /=".
+    (* iIntros "#Hp !> %ρ Hg /=".
     iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "!> **".
     by rewrite oMu_eq -(psubst_one_repl Hrepl ) ?alias_paths_pv_eq_1. *)
     (* Even if we reuse sP_Mu_E, we must prove that [p] terminates. *)
-    rewrite /iptp sP_Mu_E; iIntros "#Hp !>" (ρ) "Hg /=".
+    rewrite /iptp sP_Mu_E; iIntros "#Hp !> %ρ Hg /=".
     iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "!> **".
     by rewrite (sem_psubst_one_eq Hrepl) ?alias_paths_pv_eq_1.
   Qed.
@@ -182,7 +182,7 @@ Section path_repl.
   Lemma sP_Mu_I {Γ T p i} :
     Γ s⊨p p : T .sTp[ p /], i -∗ Γ s⊨p p : oMu T, i.
   Proof.
-    iIntros "#Hp !>" (ρ) "Hg /=".
+    iIntros "#Hp !> %ρ Hg /=".
     iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "!> **".
     by rewrite oMu_eq sem_psubst_one_repl ?alias_paths_pv_eq_1.
   Qed.
@@ -190,10 +190,10 @@ Section path_repl.
   Lemma P_Mu_I {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : T', i -∗ Γ ⊨p p : TMu T, i.
   Proof.
-    (* iIntros "#Hp !>" (ρ) "Hg /=".
+    (* iIntros "#Hp !> %ρ Hg /=".
     iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "!> **".
     by rewrite oMu_eq (psubst_one_repl Hrepl) ?alias_paths_pv_eq_1. *)
-    rewrite /iptp -sP_Mu_I; iIntros "#Hp !>" (ρ) "Hg /=".
+    rewrite /iptp -sP_Mu_I; iIntros "#Hp !> %ρ Hg /=".
     iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "!> **".
     by rewrite (sem_psubst_one_eq Hrepl) ?alias_paths_pv_eq_1.
   Qed.
@@ -210,7 +210,7 @@ Section path_repl.
     iApply Mu_Sub_Mu.
     (* We're stuck! *)
     Restart. *)
-    iIntros "#Hsub #Hp !>" (ρ v) "#Hg #Heq".
+    iIntros "#Hsub #Hp !> %ρ %v #Hg #Heq".
     iSpecialize ("Hp" with "Hg").
     iAssert (▷^i ⟦ T1 ⟧ (v .: ρ) v)%I as "#HT1".
     by iNext i; iDestruct "Heq" as %Heq;
@@ -226,7 +226,7 @@ Section path_repl.
     Γ ⊨p p : TMu T1, i -∗
     Γ ⊨ TSing p, i <: TMu T2, i.
   Proof.
-    iIntros "#Hsub #Hp !>" (ρ v) "#Hg /= #Heq".
+    iIntros "#Hsub #Hp !> %ρ %v #Hg /= #Heq".
     iSpecialize ("Hp" with "Hg").
     iSpecialize ("Hsub" $! ρ v with "[#$Hg] [#]");
       iNext i; iDestruct "Heq" as %Heq;
@@ -240,7 +240,7 @@ Section path_repl.
     (*────────────────────────────────────────────────────────────*)
     Γ s⊨ tapp e1 (path2tm p2) : T2 .sTp[ p2 /].
   Proof.
-    iIntros "#He1 #Hp2 !>" (ρ) "#Hg /= !>".
+    iIntros "#He1 #Hp2 !> %ρ #Hg /= !>".
     smart_wp_bind (AppLCtx _) v "#Hr {He1}" ("He1" with "Hg").
     iDestruct "Hr" as (t ->) "#HvFun".
     iDestruct (path_wp_eq with "(Hp2 Hg)") as (pw Hpwp) "{Hp2 Hg} Hpw".
@@ -270,7 +270,7 @@ Section path_repl.
   Lemma sT_Path Γ τ p :
     Γ s⊨p p : τ, 0 -∗ Γ s⊨ path2tm p : τ.
   Proof.
-    iIntros "#Hep !>" (ρ) "#Hg /="; rewrite path2tm_subst.
+    iIntros "#Hep !> %ρ #Hg /="; rewrite path2tm_subst.
     by iApply (path_wp_to_wp with "(Hep Hg)").
   Qed.
 
@@ -301,7 +301,7 @@ Section path_repl.
     (*─────────────────────────*)
     Γ s⊨p p : cVMem l T, i.
   Proof.
-    iIntros "#HE /= !>" (ρ) "Hg"; iSpecialize ("HE" with "Hg"); iNext i.
+    iIntros "#HE /= !> %ρ Hg"; iSpecialize ("HE" with "Hg"); iNext i.
     rewrite path_wp_pself_eq; iDestruct "HE" as (v q Hlook) "[Hpv #Htw]".
     iApply (path_wp_wand with "Hpv"). iIntros "/= !> % <-"; eauto.
   Qed.
@@ -314,7 +314,7 @@ Section path_repl.
     Γ s⊨p q : T, i -∗
     Γ s⊨p p : T, i.
   Proof.
-    iIntros "#Hep #Heq !>" (ρ) "#Hg".
+    iIntros "#Hep #Heq !> %ρ #Hg".
     iDestruct (singleton_aliasing with "Hep Hg") as "Hal1 {Hep}".
     iSpecialize ("Heq" with "Hg"). iNext i.
     by iDestruct "Hal1" as %->%(alias_paths_elim_eq (T _ _)).
@@ -329,7 +329,7 @@ Section path_repl.
     Γ s⊨p pself q l : τ, i -∗
     Γ s⊨p pself p l : oSing (pself q l), i.
   Proof.
-    iIntros "#Hep #HqlT !>" (ρ) "#Hg".
+    iIntros "#Hep #HqlT !> %ρ #Hg".
     iSpecialize ("HqlT" with "Hg").
     iDestruct (singleton_aliasing with "Hep Hg") as "Hal {Hep Hg}".
     rewrite !path_wp_eq /=.

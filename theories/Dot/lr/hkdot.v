@@ -353,7 +353,7 @@ Section gen_lemmas.
     Γ s⊨ T1 <:[ i ] T2 ∷ K -∗
     S :: Γ s⊨ oShift T1 <:[ i ] oShift T2 ∷ kShift K.
   Proof.
-    iIntros "#HK !>" (ρ) "/= #[Hg _]".
+    iIntros "#HK !> %ρ /= #[Hg _]".
     by iApply (Proper_sfkind with "(HK Hg)").
   Qed.
 
@@ -427,7 +427,7 @@ Section gen_lemmas.
   Lemma sK_Sing Γ (T : oltyO Σ 0) i :
     ⊢ Γ s⊨ T ∷[ i ] sf_sngl T.
   Proof.
-    rewrite -kinding_intro; iIntros "!>" (ρ) "_". by rewrite -subtype_refl.
+    rewrite -kinding_intro; iIntros "!> %ρ _". by rewrite -subtype_refl.
   Qed.
 
   Lemma sKStp_Intv Γ (T1 T2 L U : oltyO Σ 0) i :
@@ -444,7 +444,7 @@ Section gen_lemmas.
     Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ T1 <:[ i ] T2 ∷ K2.
   Proof.
-    iIntros "#H1 #Hsub !>" (ρ) "#Hg". iApply ("Hsub" with "Hg (H1 Hg)").
+    iIntros "#H1 #Hsub !> %ρ #Hg". iApply ("Hsub" with "Hg (H1 Hg)").
   Qed.
 
   (** Kind subsumption (for kinding). *)
@@ -489,7 +489,7 @@ Section gen_lemmas.
     oLaterN i (oShift S2) :: Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ sf_kpi S1 K1 <∷[ i ] sf_kpi S2 K2.
   Proof using HswapProp.
-    iIntros "#HsubS #HsubK !>" (ρ) "#Hg /=".
+    iIntros "#HsubS #HsubK !> %ρ #Hg /=".
     iPoseProof (ksubtyping_spec with "HsubS Hg") as "{HsubS} HsubS".
     iAssert (□∀ arg : vl, let ρ' := arg .: ρ in
             ▷^i (oClose S2 ρ arg → ∀ T1 T2 : hoLtyO Σ n,
@@ -725,7 +725,7 @@ Section dot_types.
   Lemma sstpiK_star_to_sstp Γ i T1 T2 :
     Γ s⊨ T1 <:[ i ] T2 ∷ sf_star ⊢ Γ s⊨ T1 , i <: T2 , i.
   Proof.
-    iIntros "#Hsub !>" (ρ v) "#Hg".
+    iIntros "#Hsub !> %ρ %v #Hg".
     iDestruct (ksubtyping_spec with "Hsub Hg") as "{Hsub Hg} Hsub".
     rewrite -laterN_impl. iNext i. iApply ("Hsub" $! v).
   Qed.
@@ -1015,7 +1015,7 @@ Section dot_experimental_kinds.
     Γ s⊨ oSing p <:[i] oSing q ∷ sf_kintv L U -∗
     Γ s⊨ oSing q <:[i] oSing p ∷ sf_kintv L U.
   Proof.
-    iIntros "#Hp #Hps !>" (ρ) "#Hg /=".
+    iIntros "#Hp #Hps !> %ρ #Hg /=".
     iDestruct (path_wp_eq with "(Hp Hg)") as (w) "[Hpw _] {Hp}".
     iSpecialize ("Hps" with "Hg"); rewrite -alias_paths_pv_eq_1; iNext i.
     (* Weird that this works. *)

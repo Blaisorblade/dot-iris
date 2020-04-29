@@ -338,7 +338,7 @@ Section MiscLemmas.
     Γ s⊨ tv v : T -∗
     Γ s⊨p pv v : T, 0.
   Proof.
-    iIntros "/= #Hp !>" (ρ) "Hg". rewrite path_wp_pv_eq -wp_value_inv'.
+    iIntros "/= #Hp !> %ρ Hg". rewrite path_wp_pv_eq -wp_value_inv'.
     iApply ("Hp" with "Hg").
   Qed.
 
