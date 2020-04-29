@@ -13,7 +13,7 @@ Section Sec.
     Γ s⊨p p : cTMem l L U, i -∗
     Γ s⊨ oLater L, i <: oSel p l, i.
   Proof.
-    iIntros "/= #Hp !>" (ρ v) "Hg #HL /=".
+    iIntros "/= #Hp !> %ρ %v Hg #HL /=".
     iSpecialize ("Hp" with "Hg"); iNext i.
     iApply (path_wp_wand with "Hp"); iIntros "!>" (w).
     iDestruct 1 as (d Hl φ) "[Hlφ [HLφ _]]".
