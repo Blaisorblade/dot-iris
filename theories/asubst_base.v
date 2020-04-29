@@ -6,6 +6,7 @@ Set Default Proof Using "Type*".
 
 Module Type Sorts (Import V : ValuesSig) <: SortsSig V.
 Include SortsSig V.
+Export asubst_intf.
 
 Lemma iterate_comp {X} (f : X → X) n m x :
   iterate f n (iterate f m x) = iterate f (n + m) x.
