@@ -7,7 +7,7 @@ Set Default Proof Using "Type*".
 
 (** This module is included right away. Its only point is asserting explicitly
     what interface it implements. *)
-Module VlSorts <: VlSortsFullSig.
+Module Export VlSorts <: VlSortsFullSig.
 
 Inductive tm : Type :=
   | tv : vl_ → tm
@@ -308,7 +308,6 @@ Proof. done. Qed.
 
 Include Sorts.
 End VlSorts.
-Export VlSorts.
 
 Instance sort_ty : Sort ty := {}.
 

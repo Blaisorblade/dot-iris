@@ -8,7 +8,7 @@ Set Default Proof Using "Type*".
 
 (** This module is included right away. Its only point is asserting explicitly
     what interface it implements. *)
-Module VlSorts <: VlSortsFullSig.
+Module Export VlSorts <: VlSortsFullSig.
 
 Definition label := string.
 
@@ -586,7 +586,6 @@ Proof. done. Qed.
 
 Include Sorts.
 End VlSorts.
-Export VlSorts.
 
 Instance sort_dm : Sort dm := {}.
 Instance sort_path : Sort path := {}.
