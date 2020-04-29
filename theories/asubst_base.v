@@ -7,6 +7,15 @@ Set Default Proof Using "Type*".
 Module Type Sorts (Import V : ValuesSig) <: SortsSig V.
 Include SortsSig V.
 
+Lemma iterate_comp {X} (f : X → X) n m x :
+  iterate f n (iterate f m x) = iterate f (n + m) x.
+Proof.
+  by elim: n m => [//|n IHn] m; rewrite iterate_Sr -iterate_S /= -plusnS.
+Qed.
+
+Lemma upn_comp n m f : upn n (upn m f) = upn (n + m) f.
+Proof. apply iterate_comp. Qed.
+
 Class Sort (s : Type)
   {inh_s : Inhabited s}
   {ids_s : Ids s} {ren_s : Rename s} {hsubst_vl_s : HSubst vl s}
@@ -355,6 +364,13 @@ Proof. intros Hcl; split; solve_inv_fv_congruence_h Hcl. Qed.
 
 Lemma closed_vls_to_Forall m σ: nclosed σ m → nclosed_σ σ m.
 Proof. elim: σ => [//=|v σ IHσ] /fv_cons_inv_v [Hclv Hclσ]. auto. Qed.
+
+Lemma iter_up (m x : nat) (f : var → vl) :
+  upn m f x = if lt_dec x m then ids x else rename (+m) (f (x - m)).
+Proof.
+  elim: m x => [|m IH] [|x]; case_match => //; asimpl; rewrite // IH;
+    case_match; (lia || autosubst).
+Qed.
 
 Lemma nclosed_sub_inv_var n w i j k: j + k <= i →
   nclosed_vl (ids n).[upn j (w .: ids) >> ren (+k)] i →
