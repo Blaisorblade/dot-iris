@@ -22,8 +22,7 @@ Notation notc_hole := (disable_tc_search _).
   ourselves: *)
 Obligation Tactic := idtac.
 
-Definition stamp := positive.
-
+(** Autosubst extensions: notations *)
 Notation shiftN n chi := chi.|[ren (+n)].
 Notation shiftVN n v := v.[ren (+n)].
 
@@ -35,6 +34,8 @@ Notation shiftV v := (shiftVN 1 v).
 
 (** Functorial action of the [A * _] functor. *)
 Definition mapsnd {A} `(f : B → C) : A * B → A * C := λ '(a, b), (a, f b).
+
+Definition stamp := positive.
 
 Inductive ForallT {A : Type} (P : A → Type) : list A → Type :=
 | ForallT_nil : ForallT P []
