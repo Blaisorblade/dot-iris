@@ -2,6 +2,12 @@ From iris.proofmode Require Export tactics.
 From iris.program_logic Require Import ectx_language.
 From iris.base_logic Require Import upred.
 
+From iris_string_ident Require ltac2_string_ident.
+(* Now [ltac2_string_ident] has taken effect: *)
+(* Print ltac_tactics.string_to_ident_hook. *)
+(* Nevertheless, it must be exported, or it won't take effect in importing files. *)
+Export ltac2_string_ident.
+
 From D.pure_program_logic Require Export weakestpre.
 From D Require Export prelude proofmode_extra.
 
