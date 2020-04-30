@@ -1,17 +1,38 @@
+(** Prelude for Iris-based code.
+This file adds or re-exports utilities that should always be available.
+*)
 From iris.proofmode Require Export tactics.
-From iris.program_logic Require Import ectx_language.
-From iris.base_logic Require Import upred.
+From iris_string_ident Require Export ltac2_string_ident.
 
-From iris_string_ident Require ltac2_string_ident.
-(* Now [ltac2_string_ident] has taken effect: *)
-(* Print ltac_tactics.string_to_ident_hook. *)
-(* Nevertheless, it must be exported, or it won't take effect in importing files. *)
-Export ltac2_string_ident.
+From iris.base_logic Require Import base_logic.
+Export uPred.
+
+(* For local definitions. *)
+From iris.program_logic Require Import ectx_language.
 
 From D.pure_program_logic Require Export weakestpre.
 From D Require Export prelude proofmode_extra.
 
-Export uPred.
+(** * Notation for functions in the Iris scope. *)
+Notation "'λI' x .. y , t" := (fun x => .. (fun y => t%I) ..)
+  (at level 200, x binder, y binder, right associativity,
+  only parsing) : function_scope.
+
+(** * Automation for Iris program logic. *)
+Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
+  iApply (wp_bind (fill[ctx]));
+  iApply (wp_wand with "[-]"); [iApply Hp; trivial|]; cbn;
+  iIntros (v) Hv.
+
+(* Instances for [IntoVal], used e.g. by [wp_value]; copied from F_mu. *)
+Hint Extern 5 (IntoVal _ _) => eapply of_to_val; fast_done : typeclass_instances.
+Hint Extern 10 (IntoVal _ _) =>
+  rewrite /IntoVal; eapply of_to_val; rewrite /= !to_of_val /=; solve [ eauto ] : typeclass_instances.
+
+
+(** * Setoid rewriting *)
+
+(** ** Enable rewriting from [f x] to [g x] with [f ≡ g]. *)
 
 Instance equiv_ext_dfun2_pointwise {A B} :
   subrelation (≡@{A -d> B}) (pointwise_relation A (≡)).
@@ -37,22 +58,9 @@ Instance dist_ext_dfun3_forall {A B C n} :
     (forall_relation (const (forall_relation (const (dist n))))).
 Proof. done. Qed.
 
+(** * Tactics for manipulating and using Proper instances. *)
 
-Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
-  iApply (wp_bind (fill[ctx]));
-  iApply (wp_wand with "[-]"); [iApply Hp; trivial|]; cbn;
-  iIntros (v) Hv.
-
-(* Instances for [IntoVal], used e.g. by [wp_value]; copied from F_mu. *)
-Hint Extern 5 (IntoVal _ _) => eapply of_to_val; fast_done : typeclass_instances.
-Hint Extern 10 (IntoVal _ _) =>
-  rewrite /IntoVal; eapply of_to_val; rewrite /= !to_of_val /=; solve [ eauto ] : typeclass_instances.
-
-(** Notation for functions in the Iris scope. *)
-Notation "'λI' x .. y , t" := (fun x => .. (fun y => t%I) ..)
-  (at level 200, x binder, y binder, right associativity,
-  only parsing) : function_scope.
-
+(** Specialized version of [f_equiv]. *)
 Ltac properness :=
   repeat match goal with
   | |- (∃ _: _, _)%I ≡ (∃ _: _, _)%I => apply bi.exist_proper =>?
@@ -68,30 +76,42 @@ Ltac properness :=
   | |- (_ ∗ _)%I ≡ (_ ∗ _)%I => apply bi.sep_proper
   end.
 
-Ltac solve_proper_alt :=
-  repeat intro; (simpl + idtac);
-  by repeat match goal with H : _ ≡{_}≡ _|- _ => rewrite H end.
+(** ** Variants of [solve_proper] and [solve_contractive] that are more effective
+for higher-order functions. *)
 
-(** An ad-hoc variant of solve_proper that seems to work better when defining
-      proper higher-order functions. In particular, using intro allows showing that a
-      lambda abstraction is proper if its body is proper.
-      Its implementation can also prove [f1 x ≡ f2 x] from [H : f1 ≡ f2]:
-      neither f_equiv nor rewrite deal with that, but [apply H] does. *)
-Ltac solve_proper_ho_core tac :=
-  solve [repeat intro; cbn; repeat tac (); cbn in *;
-  repeat match goal with H : _ ≡{_}≡ _|- _ => apply H end].
-Ltac solve_proper_ho_alt := solve_proper_ho_core ltac:(fun _ => f_equiv).
-Ltac solve_contractive_ho_alt := solve_proper_ho_core ltac:(fun _ => f_contractive || f_equiv).
-
-Ltac ho_f_equiv :=
+(** Prove [f x y z ≡ g x y z] from equalities of functions [f ≡ g].
+Complements [f_equiv] for use in [solve_proper_ho].
+This is _not_ just [assumption]. *)
+Ltac hof_eq_app :=
   match goal with
   | H : _ ≡ _|- _ => apply: H
   | H : _ ≡{_}≡ _ |- _ => apply: H
   | H : dist_later _ _ _ |- _ => apply: H
   end.
 
-Ltac solve_proper_ho := solve_proper_core ltac:(fun _ => ho_f_equiv || f_equiv).
-Ltac solve_contractive_ho := solve_proper_core ltac:(fun _ => ho_f_equiv || f_contractive || f_equiv).
+(** ** Our best [solve_proper]/[solve_contractive] extension for higher-order
+functions. *)
+Ltac solve_proper_ho := solve_proper_core ltac:(fun _ => hof_eq_app || f_equiv).
+Ltac solve_contractive_ho := solve_proper_core ltac:(fun _ => hof_eq_app || f_contractive || f_equiv).
+
+(** ** Other [solve_proper]/[solve_contractive] extensions for higher-order
+functions, which might or might not be useful sometimes. *)
+
+Ltac solve_proper_alt :=
+  repeat intro; (simpl + idtac);
+  by repeat match goal with H : _ ≡{_}≡ _|- _ => rewrite H end.
+
+(** An ad-hoc variant of solve_proper that seems to work better when defining
+proper higher-order functions. *)
+(* In particular, using intro allows showing that
+a lambda abstraction is proper if its body is proper. Its implementation can
+also prove [f1 x ≡ f2 x] from [H : f1 ≡ f2]: neither f_equiv nor rewrite deal
+with that, but [apply H] does. *)
+Ltac solve_proper_ho_core tac :=
+  solve [repeat intro; cbn; repeat tac (); cbn in *;
+  repeat match goal with H : _ ≡{_}≡ _|- _ => apply H end].
+Ltac solve_proper_ho_alt := solve_proper_ho_core ltac:(fun _ => f_equiv).
+Ltac solve_contractive_ho_alt := solve_proper_ho_core ltac:(fun _ => f_contractive || f_equiv).
 
 Ltac deep_ho_f_equiv :=
   match goal with
