@@ -122,21 +122,6 @@ Qed.
 Lemma up_sub_compose_base ρ v : up ρ >> v .: ids = v .: ρ.
 Proof. by rewrite -scons_up_swap /scomp subst_idX. Qed.
 
-Lemma subst_swap_base v ρ : v.[ρ] .: ρ = (v .: ids) >> ρ.
-Proof.
-  rewrite /scomp scons_comp. (* Actual swap *)
-  by rewrite id_scompX. (* Cleanup *)
-Qed.
-
-Lemma subst_swap_vl v ρ w : v.[up ρ].[w.[ρ]/] = v.[w/].[ρ].
-Proof. by rewrite !subst_comp up_sub_compose_base subst_swap_base. Qed.
-
-Lemma subst_swap `{Sort X} (x: X) ρ v : x.|[up ρ].|[v.[ρ]/] = x.|[v/].|[ρ].
-Proof. by rewrite !hsubst_comp up_sub_compose_base subst_swap_base. Qed.
-
-Lemma shift_sub `{Sort X} {x : X} v: (shift x).|[v/] = x.
-Proof. autosubst. Qed.
-
 Lemma up_sub_compose_vl ρ v w : v.[up ρ].[w/] = v.[w .: ρ].
 Proof. by rewrite subst_comp up_sub_compose_base. Qed.
 
@@ -414,6 +399,31 @@ Qed.
 Section sort_lemmas.
 Context `{_HsX: Sort X}.
 Implicit Types (x : X) (Γ : list X).
+
+Lemma subst_swap_base v ρ : v.[ρ] .: ρ = (v .: ids) >> ρ.
+Proof.
+  rewrite /scomp scons_comp. (* Actual swap *)
+  by rewrite id_scompX. (* Cleanup *)
+Qed.
+
+Lemma subst_swap_vl v ρ w : v.[up ρ].[w.[ρ]/] = v.[w/].[ρ].
+Proof. by rewrite !subst_comp up_sub_compose_base subst_swap_base. Qed.
+
+Lemma subst_swap (x: X) ρ v : x.|[up ρ].|[v.[ρ]/] = x.|[v/].|[ρ].
+Proof. by rewrite !hsubst_comp up_sub_compose_base subst_swap_base. Qed.
+
+Lemma shift_sub_vl v w: (shiftV v).[w/] = v.
+Proof.
+  (* Time by rewrite subst_comp -{2}(subst_id v); f_equal; autosubst. *)
+  rewrite subst_comp -{2}(subst_id v) /ren /scomp; fsimpl; by rewrite id_scompX.
+Qed.
+
+Lemma shift_sub {x : X} v: (shift x).|[v/] = x.
+Proof.
+  (* Time rewrite hsubst_comp -{2}(hsubst_id x); f_equal; autosubst. *)
+  by rewrite hsubst_comp -{2}(hsubst_id x) /ren /scomp; fsimpl;
+    rewrite id_scompX.
+Qed.
 
 Lemma ren_upn i v : v.[ren (+i)].[upn i (ren (+1))] = v.[ren (+S i)].
 Proof.
