@@ -287,17 +287,6 @@ Notation oBool := (oPrim tbool).
 Section JudgDefs.
   Context `{HdotG: !dlangG Σ}.
 
-  (* This is only useful to show that certain definitions we give are
-    equivalent to the ones in the paper. *)
-  Lemma lift_dty_vl_equiv_paper l T :
-    lift_dty_vl l T ≡ lift_dty_vl_paper (lift_dty_dms l T).
-  Proof.
-    (* The proof is just a quantifier swap. *)
-    intros args ρ v; rewrite /= /objLookup; iSplit.
-    by iDestruct 1 as (d (ds & -> & Hl)) "/= H"; eauto.
-    by iDestruct 1 as (ds -> d Hl) "/= H"; eauto 10.
-  Qed.
-
   Implicit Types (T : ty) (Γ : ctx).
 
   Lemma path_includes_equiv p ρ ds : path_includes (pv (ids 0)) ρ ds ↔

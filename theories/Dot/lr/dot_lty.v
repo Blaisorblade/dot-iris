@@ -58,13 +58,53 @@ Section clty_ofe.
 End clty_ofe.
 Canonical Structure cltyO Σ := OfeT (clty Σ) clty_ofe_mixin.
 
-Section DefsTypes.
+Section clty_ofe_proper.
+  Context {Σ}.
+  Global Instance clty_olty_ne : NonExpansive (clty_olty (Σ := Σ)).
+  Proof. by move=> ???[/= _ H]. Qed.
+  Global Instance clty_olty_proper :
+    Proper ((≡) ==> (≡)) (clty_olty (Σ := Σ)) := ne_proper _.
+
+  Global Instance clty_dslty_ne n : Proper (dist n ==> dist (A := dsltyO Σ) n) (clty_dslty (Σ := Σ)).
+  Proof. by move=> ??[/= H _]. Qed.
+  Global Instance clty_dslty_proper :
+    Proper ((≡) ==> (≡@{dsltyO Σ})) (clty_dslty (Σ := Σ)) := ne_proper _.
+End clty_ofe_proper.
+
+Definition lift_dty_dms `{!dlangG Σ} l (TD : dltyO Σ) : dsltyO Σ := Dslty (λI ρ ds,
+  ∃ d, ⌜ dms_lookup l ds = Some d ⌝ ∧ TD ρ d).
+Instance: Params (@lift_dty_dms) 3 := {}.
+
+Definition lift_dty_vl `{!dlangG Σ} l (TD : dltyO Σ) : oltyO Σ 0 :=
+  olty0 (λI ρ v, ∃ d, ⌜v @ l ↘ d ⌝ ∧ TD ρ d).
+Instance: Params (@lift_dty_vl) 3 := {}.
+
+(** This definition is only useful to show in [lift_dty_vl_equiv_paper] that
+certain definitions we give are equivalent to the ones in the paper. *)
+Definition lift_dty_vl_paper `{!dlangG Σ} (TD : dsltyO Σ) : oltyO Σ 0 := olty0 (λI ρ v,
+  ∃ ds, ⌜v = vobj ds⌝ ∧ TD ρ (selfSubst ds)).
+
+Section lift_dty_lemmas.
   Context `{HdotG: !dlangG Σ}.
 
-  Definition lift_dty_dms `{!dlangG Σ} l (TD : dltyO Σ) : dsltyO Σ := Dslty (λI ρ ds,
-    ∃ d, ⌜ dms_lookup l ds = Some d ⌝ ∧ TD ρ d).
-  Global Instance Proper_lift_dty_dms l : Proper ((≡) ==> (≡)) (lift_dty_dms l).
+  Lemma lift_dty_vl_equiv_paper l T :
+    lift_dty_vl l T ≡ lift_dty_vl_paper (lift_dty_dms l T).
+  Proof.
+    (* The proof is just a quantifier swap. *)
+    intros args ρ v; rewrite /= /objLookup; iSplit.
+    by iDestruct 1 as (d (ds & -> & Hl)) "/= H"; eauto.
+    by iDestruct 1 as (ds -> d Hl) "/= H"; eauto 10.
+  Qed.
+
+  Global Instance lift_dty_dms_ne l : NonExpansive (lift_dty_dms l).
   Proof. rewrite /lift_dty_dms/= => ??? ??/=; properness; solve_proper_ho. Qed.
+  Global Instance lift_dty_dms_proper l :
+    Proper ((≡) ==> (≡)) (lift_dty_dms l) := ne_proper _.
+
+  Global Instance lift_dty_vl_ne : NonExpansive (lift_dty_vl l).
+  Proof. rewrite /lift_dty_vl => ???; simplify_eq; solve_proper_ho. Qed.
+  Global Instance lift_dty_vl_proper l :
+    Proper ((≡) ==> (≡)) (lift_dty_vl l) := ne_proper _.
 
   Lemma lift_dty_dms_singleton_eq' (TD : dltyO Σ) l1 l2 ρ d :
     lift_dty_dms l1 TD ρ [(l2, d)] ⊣⊢ ⌜ l1 = l2 ⌝ ∧ TD ρ d.
@@ -77,41 +117,42 @@ Section DefsTypes.
   Proof.
     by rewrite lift_dty_dms_singleton_eq' pure_True // (left_id True%I bi_and).
   Qed.
+End lift_dty_lemmas.
 
-  Definition lift_dty_vl `{!dlangG Σ} l (TD : dltyO Σ) : oltyO Σ 0 :=
-    olty0 (λI ρ v, ∃ d, ⌜v @ l ↘ d ⌝ ∧ TD ρ d).
-  Global Instance Proper_lift_dty_vl : Proper ((≡) ==> (≡)) (lift_dty_vl l).
-  Proof. rewrite /lift_dty_vl => ???; simplify_eq; solve_proper_ho. Qed.
+Program Definition olty2clty `{!dlangG Σ} (U : oltyO Σ 0) : cltyO Σ :=
+  Clty ⊥ U.
+Solve All Obligations with by iIntros.
 
-  Program Definition dty2clty `{!dlangG Σ} l (T : dltyO Σ) : cltyO Σ :=
-    Clty (lift_dty_dms l T) (lift_dty_vl l T).
-  Next Obligation.
-    intros. rewrite lift_dty_dms_singleton_eq' /=.
-    iIntros "[-> ?]"; rewrite decide_True //. naive_solver.
-  Qed.
-  Next Obligation.
-    rewrite /dms_hasnt /=; intros; case_decide; last done.
-    by iDestruct 1 as (d' ?) "_"; simplify_eq.
-  Qed.
-  Next Obligation.
-    intros; iDestruct 1 as (d Hl) "H". iExists d; iSplit; naive_solver.
-  Qed.
-  Global Instance Proper_dty2clty l : Proper ((≡) ==> (≡)) (dty2clty l).
+Program Definition dty2clty `{!dlangG Σ} l (T : dltyO Σ) : cltyO Σ :=
+  Clty (lift_dty_dms l T) (lift_dty_vl l T).
+Next Obligation.
+  intros. rewrite lift_dty_dms_singleton_eq' /=.
+  iIntros "[-> ?]"; rewrite decide_True //. naive_solver.
+Qed.
+Next Obligation.
+  rewrite /dms_hasnt /=; intros; case_decide; last done.
+  by iDestruct 1 as (d' ?) "_"; simplify_eq.
+Qed.
+Next Obligation.
+  intros; iDestruct 1 as (d Hl) "H". iExists d; iSplit; naive_solver.
+Qed.
+Global Instance: Params (@dty2clty) 3 := {}.
+
+Section DefsTypes.
+  Context `{HdotG: !dlangG Σ}.
+
+  Global Instance dty2clty_ne l : NonExpansive (dty2clty l).
   Proof. split; rewrite /dty2clty/=; by repeat f_equiv. Qed.
+  Global Instance dty2clty_proper l :
+    Proper ((≡) ==> (≡)) (dty2clty l) := ne_proper _.
 
   Lemma dty2clty_singleton l (TD : dlty Σ) ρ d :
     dty2clty l TD ρ [(l, d)] ≡ TD ρ d.
   Proof. by rewrite lift_dty_dms_singleton_eq. Qed.
 
-  Definition lift_dty_vl_paper `{!dlangG Σ} (TD : dsltyO Σ) : oltyO Σ 0 := olty0 (λI ρ v,
-    ∃ ds, ⌜v = vobj ds⌝ ∧ TD ρ (selfSubst ds)).
-
   Program Definition cTop : clty Σ := Clty (Dslty (λI _ _, True)) oTop.
   Solve All Obligations with eauto.
 
-  Program Definition olty2clty `{!dlangG Σ} (U : oltyO Σ 0) : cltyO Σ :=
-    Clty ⊥ U.
-  Solve All Obligations with by iIntros.
   Global Instance : Bottom (clty Σ) := olty2clty ⊥.
 
   Program Definition cAnd (Tds1 Tds2 : clty Σ): clty Σ :=

@@ -238,6 +238,13 @@ Section olty_subst.
 
   Global Instance: Sort (olty Σ i) := {}.
 
+  Global Instance hsubst_olty_ne ρ :
+    NonExpansive (hsubst (outer := oltyO Σ i) ρ).
+  Proof. solve_proper_ho. Qed.
+
+  Global Instance hsubst_olty_proper ρ :
+    Proper ((≡) ==> (≡)) (hsubst (outer := oltyO Σ i) ρ) := ne_proper _.
+
   (* Currently unused; currently, we simplify and use the [hoEnvD_] lemmas.*)
 (*
   Lemma olty_subst_compose_ind τ args ρ1 ρ2 v: τ.|[ρ1] args ρ2 v ⊣⊢ τ args (ρ1 >> ρ2) v.

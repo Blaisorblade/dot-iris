@@ -46,6 +46,14 @@ Section vec.
     λ args, Φ (vhead args) (vtail args).
 End vec.
 
+Instance vcurry_ne vl n A m :
+  Proper (dist m ==> (=) ==> dist m) (@vcurry vl n A).
+Proof. solve_proper_ho. Qed.
+
+Instance vcurry_proper vl n A : Proper ((≡) ==> (=) ==> (≡)) (@vcurry vl n A).
+Proof. solve_proper_ho. Qed.
+Instance: Params (@vcurry) 3 := {}.
+
 Definition vec_fold {A} {P : nat → Type}
   (base : P 0) (step : ∀ {n}, A → P n → P (S n)) : ∀ n, vec A n → P n :=
   fix rec n :=
