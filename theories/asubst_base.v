@@ -1,12 +1,23 @@
+(**
+This file collects substitution lemmas for languages implementing
+[ValuesSig].
+*)
 From iris.program_logic Require Import language.
 From D Require Import prelude asubst_intf.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
 
+(** The module type [Sorts] is a "mixin module" that is included directly in
+each language implementing [ValuesSig],
+*)
 Module Type Sorts (Import V : ValuesSig) <: SortsSig V.
 Include SortsSig V.
-Export asubst_intf.
+
+(** We export [ASubstLangDefUtils] even tho these mostly should be internals
+to language definitions, as sometimes later proofs refer to
+[ASubstLangDefUtils]'s contents. *)
+Export ASubstLangDefUtils.
 
 Lemma iterate_comp {X} (f : X → X) n m x :
   iterate f n (iterate f m x) = iterate f (n + m) x.

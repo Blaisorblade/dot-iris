@@ -1,15 +1,27 @@
-(** Basic interfaces for Iris languages with Autosubst substitution operations. *)
+(** Basic interfaces for D* languages (such as D<:, Dot).
+We abstract over such languages to implement reusable infrastructure.
+
+As we make significant use of Coq's ML-style module system, which is not
+well-known, our comments explain our usage.
+*)
 
 From iris.program_logic Require Import language.
 From D Require Import prelude.
 
-(** Parameters that each language must implement. This is not [Include]d, so
-any definitions here must be repeated in each language definition. *)
+(** * Parameters that each D* language must implement.
+For our purposes here, a D* language is
+- an Iris language,
+- supporting substitution of values in values,
+- supporting substitution of values in terms.
+Substitution must be implemented using Autosubst.
+
+This module type is used as an interface and not as a "mixin module" (so, not
+[Include]d), so it only contains declarations: any definitions here would
+have to be repeated in each language definition. *)
 Module Type ValuesSig.
-  Parameter dlang_lang : language.
+  Parameter dlang_lang : iris.program_logic.language.language.
 
   Definition vl : Type := val dlang_lang.
-  Definition vls := list vl.
 
   Declare Instance inh_vl : Inhabited vl.
   Declare Instance ids_vl : Ids vl.
@@ -19,7 +31,10 @@ Module Type ValuesSig.
   Declare Instance subst_vl : Subst vl.
   Declare Instance subst_lemmas_vl : SubstLemmas vl.
 
+  (** The abbreviation [tm] is available in importing modules but not
+  required in implementing modules. *)
   Notation tm := (expr dlang_lang).
+
   Declare Instance inh_tm : Inhabited tm.
   Declare Instance ids_tm : Ids tm.
 
@@ -31,10 +46,16 @@ Module Type ValuesSig.
   Parameter hsubst_of_val : ∀ (v : vl) s, (of_val v).|[s] = of_val (v.[s]).
 End ValuesSig.
 
-(** These definitions are [Include]d in each language, and available without
-importing [asubst_base] and modules defined in there. *)
+(** * This module type contains minimal infrastructure for D*-languages.
+It is a "mixin module": that is, it is [Include]d (indirectly) in each language
+implementing [ValuesSig], yet functors can abstract over implementing modules.
+Mixin module [Sorts] in [asubst_base] defines additional infrastructure.
+*)
 Module Type SortsSig (Import V : ValuesSig).
+  Definition vls := list vl.
   Definition env := var → vl.
+
+  Implicit Types (v : vl) (vs σ : vls) (ρ : env).
 
   Fixpoint to_subst σ : var → vl :=
     match σ with
@@ -50,10 +71,17 @@ Module Type SortsSig (Import V : ValuesSig).
     reflexivity _.
 End SortsSig.
 
+(** [VlSortsSig] mixes in [ValuesSig] and [SortsSig], and most infrastructure
+is defined in functors abstracting over [VlSortsSig].
+Module [VlSortsFullSig] in [asubst_base] defines additional infrastructure, but
+to minimize compile-time dependencies, most such functors should abstract over
+[VlSortsSig] and not [VlSortsFullSig].
+*)
 Module Type VlSortsSig := ValuesSig <+ SortsSig.
 
-(** Autosubst extensions, and utilities useful when defining languages. *)
-
+(** Autosubst extensions, and utilities useful when defining languages and implementing
+[ValuesSig]. *)
+Module ASubstLangDefUtils.
 (* Not an instance because it should *not* be used automatically. *)
 Definition inh_ids `{Inhabited X} : Ids X := λ _, inhabitant.
 Instance list_ids {X} : Ids (list X) := inh_ids.
@@ -153,3 +181,4 @@ Hint Mode HSubst - + : typeclass_instances.
 (* That Hint stops that. *)
 (* Fail Goal ∀ s x, x.|[s] = x. *)
 (* Goal ∀ s (x : ty), x.|[s] = x. Abort. *)
+End ASubstLangDefUtils.

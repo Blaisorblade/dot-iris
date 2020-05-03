@@ -8,6 +8,7 @@ Set Default Proof Using "Type*".
 (** This module is included right away. Its only point is asserting explicitly
     what interface it implements. *)
 Module Export VlSorts <: VlSortsFullSig.
+Import ASubstLangDefUtils.
 
 Inductive tm : Type :=
   | tv : vl_ → tm
@@ -33,7 +34,6 @@ Inductive tm : Type :=
 
 Definition vl := vl_.
 
-Definition vls := list vl.
 Definition ctx := list ty.
 
 Implicit Types
@@ -51,7 +51,6 @@ Proof. by move=>??[]. Qed.
 
 Instance ids_tm : Ids tm := inh_ids.
 Instance ids_ty : Ids ty := inh_ids.
-Instance ids_vls : Ids vls := _.
 Instance ids_ctx : Ids ctx := _.
 
 Fixpoint tm_rename (sb : var → var) t : tm :=
@@ -146,7 +145,6 @@ Proof. all: rewrite /Decision; decide equality; solve_decision. Defined.
 Instance vl_eq_dec' : EqDecision vl := vl_eq_dec.
 Instance tm_eq_dec' : EqDecision tm := tm_eq_dec.
 Instance ty_eq_dec' : EqDecision ty := ty_eq_dec.
-Instance vls_eq_dec' : EqDecision vls := list_eq_dec.
 
 Local Ltac finish_lists l x :=
   elim: l => [|x xs IHds] //=; by f_equal.
