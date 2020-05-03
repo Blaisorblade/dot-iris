@@ -69,6 +69,57 @@ Module Type SortsSig (Import V : ValuesSig).
 
   Definition to_subst_cons v σ : ∞ (v :: σ) = v .: ∞ σ :=
     reflexivity _.
+
+  Definition stail ρ := (+1) >>> ρ.
+  Definition shead ρ := ρ 0.
+
+  Lemma shead_eq v ρ: shead (v .: ρ) = v. Proof. done. Qed.
+  Lemma stail_eq v ρ: stail (v .: ρ) = ρ. Proof. done. Qed.
+
+  (* This class describes a syntactic sort that supports substituting values. *)
+  Class Sort (s : Type)
+    {inh_s : Inhabited s}
+    {ids_s : Ids s} {ren_s : Rename s} {hsubst_vl_s : HSubst vl s}
+    {hsubst_lemmas_vl_s : HSubstLemmas vl s} := {}.
+
+  (** Some hand-written rewriting lemmas, designed to speed up
+      certain uses of [autosubst]. *)
+  (* Reverse-engineered from autosubst output for speed. *)
+  Lemma scons_up_swap a sb1 sb2 : a .: sb1 >> sb2 = up sb1 >> a .: sb2.
+  Proof.
+    rewrite upX /ren /scomp scons_comp;
+      fsimpl; rewrite subst_compX; by fsimpl; rewrite id_scompX id_subst.
+  Qed.
+  (* Rewrite lemmas to be faster than asimpl: *)
+  Lemma renS_comp n : ren (+S n) = ren (+n) >> ren (+1).
+  Proof. rewrite /ren/scomp. fsimpl. by rewrite (id_scompX ((+1) >>> ids)). Qed.
+
+  Lemma subst_swap_base v ρ : v.[ρ] .: ρ = (v .: ids) >> ρ.
+  Proof.
+    rewrite /scomp scons_comp. (* Actual swap *)
+    by rewrite id_scompX. (* Cleanup *)
+  Qed.
+
+  Lemma shift_sub_vl v w: (shiftV v).[w/] = v.
+  Proof.
+    (* Time by rewrite subst_comp -{2}(subst_id v); f_equal; autosubst. *)
+    rewrite subst_comp -{2}(subst_id v) /ren /scomp; fsimpl; by rewrite id_scompX.
+  Qed.
+
+  Section sort_lemmas.
+    Context `{_HsX: Sort X}.
+    Implicit Types (x : X).
+
+    Lemma hrenS `{Sort X} (x : X) n : shiftN (S n) x = shift (shiftN n x).
+    Proof. rewrite hsubst_comp renS_comp. by []. Qed.
+
+    Lemma shift_sub `{Sort X} {x : X} v: (shift x).|[v/] = x.
+    Proof.
+      (* Time rewrite hsubst_comp -{2}(hsubst_id x); f_equal; autosubst. *)
+      by rewrite hsubst_comp -{2}(hsubst_id x) /ren /scomp; fsimpl;
+        rewrite id_scompX.
+    Qed.
+  End sort_lemmas.
 End SortsSig.
 
 (** [VlSortsSig] mixes in [ValuesSig] and [SortsSig], and most infrastructure

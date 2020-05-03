@@ -13,7 +13,7 @@ From iris.algebra Require Import list.
 From iris.proofmode Require Import tactics.
 From iris.program_logic Require Import language.
 From D.pure_program_logic Require Import lifting adequacy.
-From D Require Import prelude iris_prelude asubst_base asubst_intf dlang.
+From D Require Import prelude iris_prelude asubst_intf dlang.
 
 Implicit Types (Σ : gFunctors).
 
@@ -103,7 +103,7 @@ End iPPred_ofe.
 
 Global Arguments iPPredO : clear implicits.
 
-Module Type Lty (Import VS: VlSortsFullSig) (Import LVS : LiftWp VS).
+Module Type Lty (Import VS: VlSortsSig) (Import LVS : LiftWp VS).
 
 Notation lty := (iPPred vl).
 Notation ltyO := (iPPredO vl).
