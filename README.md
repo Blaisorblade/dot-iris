@@ -16,11 +16,21 @@ layout of the codebase, is described in
 
 ### Installing dependencies
 
-The following commands will install Coq 8.11.1 and the correct versions of the std++ and Iris libraries.
+The following commands will install the correct Coq version (8.11.1) and the
+correct versions of the std++ and Iris libraries.
+
+- If `opam` is not configured, run its setup wizard with `opam init`.
+- Then, prepare for installation with:
 ```shell
 eval $(opam env)
 opam repo add coq-released https://coq.inria.fr/opam/released --set-default --all
 opam repo add iris-dev https://gitlab.mpi-sws.org/iris/opam.git --set-default --all
+opam update
+```
+- If you use `opam` for other Coq projects, you might want to set up a dedicated
+  `opam` switch. Instructions appear in [`development.md`](./development.md).
+- Actually install dependencies with:
+```shell
 opam install --deps-only .
 ```
 
