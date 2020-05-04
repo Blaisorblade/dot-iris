@@ -134,6 +134,8 @@ Proof. by rewrite !subst_comp up_sub_compose_base subst_swap_base. Qed.
 Lemma subst_swap `{Sort X} (x: X) ρ v : x.|[up ρ].|[v.[ρ]/] = x.|[v/].|[ρ].
 Proof. by rewrite !hsubst_comp up_sub_compose_base subst_swap_base. Qed.
 
+Lemma shift_sub `{Sort X} {x : X} v: (shift x).|[v/] = x.
+Proof. autosubst. Qed.
 
 Lemma up_sub_compose_vl ρ v w : v.[up ρ].[w/] = v.[w .: ρ].
 Proof. by rewrite subst_comp up_sub_compose_base. Qed.
