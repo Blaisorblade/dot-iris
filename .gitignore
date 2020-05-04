@@ -20,3 +20,5 @@ Makefile.coq.conf
 _opam/
 html/
 html-old/
+*.before-timing
+*.after-timing
