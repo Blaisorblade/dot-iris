@@ -1,15 +1,19 @@
-(** ** Semantic types, judgments, etc.
-As usual in Iris, semantic types are persistent Iris predicates on values.
-Since D* syntactic types can contain variables ranging on values, semantic types take a value substitution as argument.
-Using Autosubst 1, we define substitution on semantic types by precomposition:
-[ τ.|[s] = λ ρ, τ (ρ >> s) ].
+(** Formalize semantic types and associated infrastructure.
+
+In Iris one represents semantic types as persistent Iris predicates on
+values.
+Since D* syntactic types can contain variables ranging on values, semantic
+types take a value substitution as argument.
+
+Using Autosubst, we can define substitution on semantic types by
+precomposition: [ τ.|[s] = λ ρ, τ (ρ >> s) ].
 *)
 From Coq Require ProofIrrelevance FunctionalExtensionality.
 From iris.algebra Require Import list.
 From iris.proofmode Require Import tactics.
 From iris.program_logic Require Import language.
 From D.pure_program_logic Require Import lifting adequacy.
-From D Require Import prelude iris_prelude asubst_base asubst_intf dlang.
+From D Require Import prelude iris_prelude asubst_intf dlang.
 
 Implicit Types (Σ : gFunctors).
 
@@ -46,14 +50,6 @@ Section iPPred_ofe.
   (* Forces inserting coercions to -d>. *)
   Notation lApp := (iPPred_car : iPPred _ _ → _ -d> _).
 
-  Definition pred_persistent (A : vl -d> iPropO Σ) := ∀ w, Persistent (A w).
-
-  Instance: LimitPreserving pred_persistent.
-  Proof.
-    apply limit_preserving_forall=> v.
-    apply bi.limit_preserving_Persistent => n f g Heq. exact: Heq.
-  Qed.
-
   Instance iPPred_equiv : Equiv vpred := λ A B, lApp A ≡ B.
   Instance iPPred_dist : Dist vpred := λ n A B, lApp A ≡{n}≡ B.
   Lemma iPPred_ofe_mixin : OfeMixin vpred.
@@ -64,7 +60,16 @@ Section iPPred_ofe.
     iPPred_car τ1 ≡@{vl -d> _} iPPred_car τ2 ⊣⊢@{iPropI Σ} τ1 ≡ τ2.
   Proof. by uPred.unseal. Qed.
 
-  (* Only needed to define Lty using Iris fixpoints (e.g. for normal recursive types). *)
+  (** * Show iPPred forms a Cofe. Only needed to define Lty using Iris
+  fixpoints (e.g. for normal recursive types), so _currently_ unused. *)
+  Definition pred_persistent (A : vl -d> iPropO Σ) := ∀ w, Persistent (A w).
+
+  Instance: LimitPreserving pred_persistent.
+  Proof.
+    apply limit_preserving_forall=> v.
+    apply bi.limit_preserving_Persistent => n f g Heq. exact: Heq.
+  Qed.
+
   Global Instance iPPred_cofe : Cofe iPPredO.
   Proof.
     apply (iso_cofe_subtype' pred_persistent IPPred lApp) => //.
@@ -98,7 +103,7 @@ End iPPred_ofe.
 
 Global Arguments iPPredO : clear implicits.
 
-Module Type Lty (Import VS: VlSortsFullSig) (Import LVS : LiftWp VS).
+Module Type Lty (Import VS: VlSortsSig) (Import LVS : LiftWp VS).
 
 Notation lty := (iPPred vl).
 Notation ltyO := (iPPredO vl).

@@ -671,9 +671,6 @@ Proof.
   by asideLaters; wtcrush.
 Qed.
 
-Lemma shift_sub `{Sort X} {x : X} v: (shift x).|[v/] = x.
-Proof. autosubst. Qed.
-
 (* If I add [iSub_Skolem_P] to the syntactic type system, what other rules
 can I derive? Apparently, subtyping for recursive types, almost. See below! *)
 

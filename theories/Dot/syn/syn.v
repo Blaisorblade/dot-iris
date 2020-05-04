@@ -9,6 +9,7 @@ Set Default Proof Using "Type*".
 (** This module is included right away. Its only point is asserting explicitly
     what interface it implements. *)
 Module Export VlSorts <: VlSortsFullSig.
+Import ASubstLangDefUtils.
 
 Definition label := string.
 
@@ -59,7 +60,6 @@ Notation TBool := (TPrim tbool).
 Notation vint n := (vlit $ lint n).
 Notation vbool b := (vlit $ lbool b).
 
-Definition vls := list vl.
 Definition dms := list (label * dm).
 Definition ctx := list ty.
 
@@ -76,7 +76,7 @@ Delimit Scope dms_scope with dms.
 
 Implicit Types
          (T : ty) (v : vl) (t : tm) (d : dm) (ds : dms) (p : path)
-         (Γ : ctx) (vs : vls) (l : label).
+         (Γ : ctx) (l : label).
 
 Instance inh_ty : Inhabited ty := populate TInt.
 Instance inh_base_lit : Inhabited base_lit := populate (lint 0).
@@ -94,7 +94,6 @@ Instance ids_tm : Ids tm := inh_ids.
 Instance ids_dm : Ids dm := inh_ids.
 Instance ids_pth : Ids path := inh_ids.
 Instance ids_ty : Ids ty := inh_ids.
-Instance ids_vls : Ids vls := _.
 Instance ids_dms : Ids dms := _.
 Instance ids_ctx : Ids ctx := _.
 
@@ -263,8 +262,6 @@ Instance tm_eq_dec' : EqDecision tm := tm_eq_dec.
 Instance dm_eq_dec' : EqDecision dm := dm_eq_dec.
 Instance ty_eq_dec' : EqDecision ty := ty_eq_dec.
 Instance path_eq_dec' : EqDecision path := path_eq_dec.
-Instance vls_eq_dec' : EqDecision vls := list_eq_dec.
-Instance dms_eq_dec' : EqDecision dms := list_eq_dec.
 
 Local Ltac finish_lists l x :=
   elim: l => [|x xs IHds] //=; idtac + elim: x => [l d] //=; f_equal => //; by f_equal.
@@ -379,8 +376,6 @@ Instance hsubst_lemmas_pth : HSubstLemmas vl path.
 Proof.
   split; auto using path_ids_Lemma, path_comp_Lemma.
 Qed.
-
-Instance hsubst_lemmas_vls : HSubstLemmas vl vls := _.
 
 Instance hsubst_lemmas_ctx : HSubstLemmas vl ctx := _.
 
@@ -586,6 +581,8 @@ Proof. done. Qed.
 
 Include Sorts.
 End VlSorts.
+
+Implicit Types (vs : vls).
 
 Instance sort_dm : Sort dm := {}.
 Instance sort_path : Sort path := {}.

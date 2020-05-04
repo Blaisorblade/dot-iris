@@ -1,12 +1,23 @@
+(**
+This file collects substitution lemmas for languages implementing
+[ValuesSig].
+*)
 From iris.program_logic Require Import language.
 From D Require Import prelude asubst_intf.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
 
+(** The module type [Sorts] is a "mixin module" that is included directly in
+each language implementing [ValuesSig],
+*)
 Module Type Sorts (Import V : ValuesSig) <: SortsSig V.
 Include SortsSig V.
-Export asubst_intf.
+
+(** We export [ASubstLangDefUtils] even tho these mostly should be internals
+to language definitions, as sometimes later proofs refer to
+[ASubstLangDefUtils]'s contents. *)
+Export ASubstLangDefUtils.
 
 Lemma iterate_comp {X} (f : X → X) n m x :
   iterate f n (iterate f m x) = iterate f (n + m) x.
@@ -16,11 +27,6 @@ Qed.
 
 Lemma upn_comp n m f : upn n (upn m f) = upn (n + m) f.
 Proof. apply iterate_comp. Qed.
-
-Class Sort (s : Type)
-  {inh_s : Inhabited s}
-  {ids_s : Ids s} {ren_s : Rename s} {hsubst_vl_s : HSubst vl s}
-  {hsubst_lemmas_vl_s : HSubstLemmas vl s} := {}.
 
 Global Instance sort_tm : Sort tm := {}.
 Global Instance sort_vls : Sort vls := {}.
@@ -92,12 +98,6 @@ Proof. intros. by apply fv_cons, fv_pair. Qed.
     Dealing with binders in nclosed "inverse" lemmas requires more infrastructure than for "direct" lemmas.
     See fv_vabs_inv_manual for an explanation. *)
 
-Definition stail ρ := (+1) >>> ρ.
-Definition shead ρ := ρ 0.
-
-Lemma shead_eq v ρ: shead (v .: ρ) = v. Proof. done. Qed.
-Lemma stail_eq v ρ: stail (v .: ρ) = ρ. Proof. done. Qed.
-
 Lemma eq_n_s_tails {n ρ1 ρ2} : eq_n_s ρ1 ρ2 (S n) → eq_n_s (stail ρ1) (stail ρ2) n.
 Proof.
   move => /= HsEq x Hl.
@@ -112,28 +112,8 @@ Proof. rewrite /shead => /= HsEq. exact: HsEq. Qed.
 Lemma eq_cons v sb1 sb2 n : eq_n_s sb1 sb2 n → eq_n_s (v .: sb1) (v .: sb2) (S n).
 Proof. move => Heqs [//|x] /lt_S_n /Heqs //. Qed.
 
-(* Reverse-engineered from autosubst output for speed. *)
-Lemma scons_up_swap a sb1 sb2 : a .: sb1 >> sb2 = up sb1 >> a .: sb2.
-Proof.
-  rewrite upX /ren /scomp scons_comp;
-    fsimpl; rewrite subst_compX; by fsimpl; rewrite id_scompX id_subst.
-Qed.
-
 Lemma up_sub_compose_base ρ v : up ρ >> v .: ids = v .: ρ.
 Proof. by rewrite -scons_up_swap /scomp subst_idX. Qed.
-
-Lemma subst_swap_base v ρ : v.[ρ] .: ρ = (v .: ids) >> ρ.
-Proof.
-  rewrite /scomp scons_comp. (* Actual swap *)
-  by rewrite id_scompX. (* Cleanup *)
-Qed.
-
-Lemma subst_swap_vl v ρ w : v.[up ρ].[w.[ρ]/] = v.[w/].[ρ].
-Proof. by rewrite !subst_comp up_sub_compose_base subst_swap_base. Qed.
-
-Lemma subst_swap `{Sort X} (x: X) ρ v : x.|[up ρ].|[v.[ρ]/] = x.|[v/].|[ρ].
-Proof. by rewrite !hsubst_comp up_sub_compose_base subst_swap_base. Qed.
-
 
 Lemma up_sub_compose_vl ρ v w : v.[up ρ].[w/] = v.[w .: ρ].
 Proof. by rewrite subst_comp up_sub_compose_base. Qed.
@@ -391,9 +371,6 @@ Proof.
 Qed.
 
 (* Rewrite lemmas to be faster than asimpl: *)
-Lemma renS_comp n : ren (+S n) = ren (+n) >> ren (+1).
-Proof. rewrite /ren/scomp. fsimpl. by rewrite (id_scompX ((+1) >>> ids)). Qed.
-
 Lemma scompA a b c : a >> b >> c = a >> (b >> c).
 Proof. by rewrite /scomp/= -!subst_compX. Qed.
 
@@ -413,6 +390,12 @@ Section sort_lemmas.
 Context `{_HsX: Sort X}.
 Implicit Types (x : X) (Γ : list X).
 
+Lemma subst_swap_vl v ρ w : v.[up ρ].[w.[ρ]/] = v.[w/].[ρ].
+Proof. by rewrite !subst_comp up_sub_compose_base subst_swap_base. Qed.
+
+Lemma subst_swap (x: X) ρ v : x.|[up ρ].|[v.[ρ]/] = x.|[v/].|[ρ].
+Proof. by rewrite !hsubst_comp up_sub_compose_base subst_swap_base. Qed.
+
 Lemma ren_upn i v : v.[ren (+i)].[upn i (ren (+1))] = v.[ren (+S i)].
 Proof.
   move: (ren_upn_gen i 0 1). by rewrite plusnS !plusnO subst_comp =>->.
@@ -422,9 +405,6 @@ Lemma hren_upn i x : x.|[ren (+i)].|[upn i (ren (+1))] = x.|[ren (+S i)].
 Proof.
   move: (ren_upn_gen i 0 1). by rewrite plusnS !plusnO hsubst_comp =>->.
 Qed.
-
-Lemma hrenS x n : shiftN (S n) x = shift (shiftN n x).
-Proof. rewrite hsubst_comp renS_comp. by []. Qed.
 
 Lemma hren_upn_gen i j k x : x.|[ren (+i + j)].|[upn i (ren (+k))] = x.|[ren (+i + j + k)].
 Proof. by rewrite !hsubst_comp ren_upn_gen. Qed.
