@@ -22,3 +22,4 @@ html/
 html-old/
 *.before-timing
 *.after-timing
+.vagrant/
