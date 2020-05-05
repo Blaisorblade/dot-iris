@@ -11,7 +11,7 @@ packages="tmux git build-essential perl make nano vim m4 linux-headers-generic"
 #emacs
 apt-get install -y $packages
 apt-get install -y --no-install-recommends opam
-# XXX drop ocaml-nox ? but then opam?
+# Maybe drop ocaml-nox and replace it by optimized version? Hm not worth it.
 apt-get install -y --no-install-recommends ocaml-nox
 
-#apt-get clean
+# apt-get clean
