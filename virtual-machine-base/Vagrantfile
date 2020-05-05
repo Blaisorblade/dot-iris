@@ -61,7 +61,7 @@ Vagrant.configure("2") do |config|
     # Create drive
     vb.customize ["storageattach", :id, "--storagectl", "IDE Controller", "--type", "dvddrive", "--port", "0", "--device", "0", "--medium", "emptydrive"]
     # Attach Guest Additions image. Doesn't work without using `emptydrive` first.
-    vb.customize ["storageattach", :id, "--storagectl", "IDE Controller", "--type", "dvddrive", "--port", "0", "--device", "0", "--medium", "additions"]
+    # vb.customize ["storageattach", :id, "--storagectl", "IDE Controller", "--type", "dvddrive", "--port", "0", "--device", "0", "--medium", "additions"]
   end
   #
   # View the documentation for the provider you are using for more
