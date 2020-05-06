@@ -32,13 +32,4 @@ Vagrant.configure("2") do |config|
   # If this fails, you will still be able to build machines from the produced box,
   # but Vagrant will fail to SSH into those machines.
   config.ssh.insert_key = false
-  # More hacky approach:
-  # config.vm.provision "shell", privileged: false, inline: <<-SHELL
-  #   curl -s https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub > ~/.ssh/authorized_keys
-  #   chown vagrant.vagrant -R ~/.ssh
-  #   chmod 0700 ~/.ssh
-  #   chmod 0600 ~/.ssh/authorized_keys
-  # SHELL
-  # # To keep the key unchanged when using this, shut down the machine from
-  # # VirtualBox directly, not from Vagrant.
 end
