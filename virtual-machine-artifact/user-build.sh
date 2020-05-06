@@ -5,6 +5,7 @@ cd dot-iris
 
 # opam_base_compiler=ocaml-system
 # opam switch create ${opam_base_compiler} --locked
+eval $(opam env)
 opam install -y --deps-only .
-make -j2 TIMED=1
+time make -j2
 make html
