@@ -50,7 +50,7 @@ Vagrant.configure("2") do |config|
   # Example for VirtualBox:
   #
   config.vm.provider "virtualbox" do |vb|
-    vb.name = "dotIrisVmFocal"
+    vb.name = "dotIrisVmBase"
     # Display the VirtualBox GUI when booting the machine
     # vb.gui = true
 
@@ -73,4 +73,12 @@ Vagrant.configure("2") do |config|
 
   config.vm.provision "shell", path: "./root-provision.sh"
   config.vm.provision "shell", privileged: false, path: "./user-provision.sh"
+  # Restore baseline insecure key. To keep it, shut down the machine from
+  # VirtualBox, not Vagrant.
+  config.vm.provision "shell", privileged: false, inline: <<-SHELL
+    curl -s https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub > ~/.ssh/authorized_keys
+    chown vagrant.vagrant -R ~/.ssh
+    chmod 0700 ~/.ssh
+    chmod 0600 ~/.ssh/authorized_keys
+  SHELL
 end
