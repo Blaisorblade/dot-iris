@@ -3,6 +3,7 @@
 
 Vagrant.configure("2") do |config|
   # Docs at https://docs.vagrantup.com.
+  config.ssh.insert_key = true
 
   config.vm.box = "dot-iris-base"
 
