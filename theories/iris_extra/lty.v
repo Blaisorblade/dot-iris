@@ -90,6 +90,17 @@ Section iPPred_ofe.
   Global Instance iPPred_car_proper : Proper ((≡) ==> (=) ==> (≡)) (@iPPred_car vl Σ).
   Proof. by intros A A' HA w ? <-. Qed.
 
+  Definition iPPred_make ψ := IPPred (λ v, □ ψ v)%I.
+
+  Lemma iPPred_car_pack_id ψ `{∀ v, Persistent (ψ v)} :
+    lApp (iPPred_make ψ) ≡ ψ.
+  Proof. move=> ?/=. apply: intuitionistic_intuitionistically. Qed.
+
+  Lemma pack_iPPred_car_id τ : iPPred_make (iPPred_car τ) ≡ τ.
+  Proof.
+    move: τ => [τ Hp] v /=. apply: intuitionistic_intuitionistically.
+  Qed.
+
   (*
     Since substitution lemmas don't use setoids,
     [HSubstLemmas vl (olty Σ i)] requires proof irrelevance.
@@ -111,6 +122,30 @@ Notation Lty := (IPPred (vl := vl)).
 Notation lty_car := (iPPred_car (vl := vl)) (only parsing).
 (* Forces inserting coercions to -d>. *)
 Notation lApp := (iPPred_car : lty _ → _ -d> _).
+
+Notation iRel P Σ := (P Σ → P Σ → iProp Σ).
+Definition subtype_lty {Σ} : iRel ltyO Σ := λI φ1 φ2,
+  ∀ v, φ1 v → φ2 v.
+Infix "⊆" := subtype_lty : bi_scope.
+Notation "X ⊆@{ Σ } Y" := (subtype_lty (Σ := Σ) X Y) (at level 70, only parsing) : bi_scope.
+Notation "X ⊆ Y ⊆ Z" := (X ⊆ Y ∧ Y ⊆ Z)%I : bi_scope.
+Notation "X ⊆ Y ⊆ Z ⊆ W" := (X ⊆ Y ∧ Y ⊆ Z ∧ Z ⊆ W)%I (at level 70, Y, Z at next level) : bi_scope.
+Section subtype_lty.
+  Context {Σ}.
+
+  Global Instance subtype_lty_ne : NonExpansive2 (subtype_lty (Σ := Σ)).
+  Proof. solve_proper_ho. Qed.
+  Global Instance subtype_lty_proper :
+    Proper ((≡) ==> (≡) ==> (≡)) (subtype_lty (Σ := Σ)) := ne_proper_2 _.
+
+  Lemma subtype_refl {T}: ⊢ T ⊆@{Σ} T.
+  Proof. by iIntros "%v $". Qed.
+
+  Lemma subtype_trans {T1} T2 {T3} :
+    T1 ⊆ T2 -∗ T2 ⊆ T3 -∗ T1 ⊆@{Σ} T3.
+  Proof. iIntros "H1 H2 %v HT1". iApply ("H2" with "(H1 HT1)"). Qed.
+End subtype_lty.
+
 
 (* "Open Logical TYpes": persistent Iris predicates over environments and values. *)
 Definition olty Σ i := vec vl i → env → lty Σ.
@@ -180,6 +215,14 @@ Section olty_subst.
   Definition Olty (olty_car : vec vl i → (var → vl) → vl → iProp Σ)
    `{∀ args ρ v, Persistent (olty_car args ρ v)}: oltyO Σ i :=
     λ args ρ, Lty (olty_car args ρ).
+
+  Definition olty_make φ : oltyO Σ i := Olty (λI args ρ v, □ φ args ρ v).
+  Lemma olty_car_make_id φ `{∀ args ρ v, Persistent (φ args ρ v)} :
+    oApp (olty_make φ) ≡ φ.
+  Proof. move=> ???. apply: intuitionistic_intuitionistically. Qed.
+
+  Lemma olty_make_car_id τ : olty_make (olty_car τ) ≡ τ.
+  Proof. move=>???. apply: intuitionistic_intuitionistically. Qed.
 
   Global Instance ids_olty : Ids (olty Σ i) := λ _, inhabitant.
   Global Program Instance rename_olty : Rename (olty Σ i) :=

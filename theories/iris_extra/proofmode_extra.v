@@ -16,6 +16,16 @@ Proof.
   iSplit; [iIntros "H" (a) "P"|iIntros "H P" (a)]; iApply ("H" with "P").
 Qed.
 
+Lemma bi_emp_valid_True `{BiAffine PROP} {P : PROP} (Hvalid : ⊢ P) : P ⊣⊢ True.
+Proof. by iSplit; [iIntros "_"|rewrite -Hvalid]. Qed.
+
+Lemma forall_intuitionistically {A} `{BiAffine PROP} (Φ : A → PROP) :
+  (∀ x, □ Φ x) ⊣⊢ □ ∀ x, Φ x.
+Proof.
+  iSplit; last iApply intuitionistically_forall.
+  iIntros "#H !> %"; by iApply "H".
+Qed.
+
 Section proofmode_extra.
   Context {PROP : sbi}.
   Implicit Types P Q R : PROP.
