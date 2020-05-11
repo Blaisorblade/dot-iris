@@ -51,6 +51,7 @@ theories/Dot/semtyp_lemmas/defs_lr.v
 theories/Dot/semtyp_lemmas/sub_lr.v
 theories/Dot/semtyp_lemmas/path_repl_lr.v
 theories/Dot/semtyp_lemmas/prims_lr.v
+theories/Dot/semtyp_lemmas/dsub_lr.v
 
 theories/Dot/stamping/ast_stamping.v
 theories/Dot/stamping/closed_subst.v
