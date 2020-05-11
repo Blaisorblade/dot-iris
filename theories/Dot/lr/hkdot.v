@@ -870,6 +870,24 @@ Section dot_experimental_kinds.
     by iApply (sKStp_Trans with "Hs1 HU").
   Qed.
 
+  Lemma failed_path_equality n Γ T l L U i (K : sf_kind Σ n) v w :
+    Γ s⊨ T ∷[i] sf_kpi (cTMemK l (sf_kintv L U)) K -∗
+    Γ s⊨ oSel v l =[i] oSel w l ∷ sf_kintv L U -∗
+    Γ s⊨ oTAppV T v <:[i] oTAppV T w ∷ K.|[v/].
+    (* This goal is false if T uses singleton types — say T = λ x. x.type,
+    that is, [oLam (oSing (pv (ids 0)))]. *)
+  Proof.
+    rewrite /sstpiK.
+    iIntros "/= #HT [#Hsub1 #Hsub2] !> %ρ #Hg"; iSpecialize ("HT" with "Hg");
+      iSpecialize ("Hsub1" with "Hg"); iSpecialize ("Hsub2" with "Hg");
+      iNext i.
+    rewrite /sr_kintv/=.
+    rewrite !envApply_oTAppV_eq.
+    iEval asimpl.
+    (* iApply sf_kind_sub_trans.
+    iApply (sfkind_respects with "[] (HT [])"). *)
+  Abort.
+
 
   (* WTF why am I proving this? To support more kinds? *)
   (* Make this derivable from sth. like.
