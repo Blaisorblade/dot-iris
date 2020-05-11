@@ -41,6 +41,7 @@ theories/Dot/syn/drop_skips.v
 
 theories/Dot/lr/dlang_inst.v
 theories/Dot/lr/dot_lty.v
+theories/Dot/lr/hkdot.v
 theories/Dot/lr/later_sub_sem.v
 theories/Dot/lr/path_wp.v
 theories/Dot/lr/unary_lr.v
@@ -87,6 +88,7 @@ theories/Dot/examples/storeless_typing_ex.v
 theories/Dot/examples/storeless_typing_ex_utils.v
 theories/Dot/examples/unstamped_typing_ex.v
 
+theories/Dot/hkdot/sem_kind.v
 
 theories/DSub/syn/rules.v
 theories/DSub/syn/syn.v
