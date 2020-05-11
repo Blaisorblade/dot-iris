@@ -260,6 +260,10 @@ Section olty_ofe_2.
     oLaterN (S n) T ≡ oLaterN n (oLater T).
   Proof. move => ???/=. by rewrite swap_later. Qed.
 
+  Lemma oLaterN_plus {m n} {T : olty Σ i} :
+    oLaterN (m + n) T ≡ oLaterN m (oLaterN n T).
+  Proof. move=> ???. by rewrite/= laterN_plus. Qed.
+
   Global Instance env_oltyped_persistent (Γ : sCtx Σ) ρ: Persistent (s⟦ Γ ⟧* ρ).
   Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
 
