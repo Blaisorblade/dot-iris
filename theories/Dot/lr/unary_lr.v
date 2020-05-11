@@ -13,7 +13,7 @@ Set Default Proof Using "Type*".
 
 Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
-         (ρ : var → vl) (l : label).
+         (ρ : env) (l : label).
 
 (** * Semantic domains. *)
 
@@ -349,8 +349,8 @@ Section MiscLemmas.
                                       Γ s⊨ T2, i2 <: T3, i3 -∗
                                       Γ s⊨ T1, i1 <: T3, i3.
   Proof.
-    iIntros "#Hsub1 #Hsub2 !> * #Hg #HT".
-    iApply ("Hsub2" with "[//] (Hsub1 [//] [//])").
+    iIntros "#Hsub1 #Hsub2 !> * #Hg HT".
+    iApply ("Hsub2" with "Hg (Hsub1 Hg HT)").
   Qed.
 
   Lemma sSub_Eq {Γ T U i j} :

@@ -50,7 +50,7 @@ Section swap_based_typing_lemmas.
     Γ ⊨[i] TAll T1 U1 <: TAll T2 U2.
   Proof.
     rewrite iterate_S /=.
-    iIntros "#HsubT #HsubU /= !> %ρ #Hg"; iIntros (v).
+    iIntros "#HsubT #HsubU /= !> %ρ #Hg %v".
     rewrite -mlaterN_impl; unfold_interp.
     iDestruct 1 as (t) "#[Heq #HT1]"; iExists t; iFrame "Heq".
     iIntros (w).

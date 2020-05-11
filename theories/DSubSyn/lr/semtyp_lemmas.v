@@ -183,13 +183,13 @@ Section Sec.
     Γ ⊨[i] U1 <: U2 -∗
     Γ ⊨[i] TTMem L1 U1 <: TTMem L2 U2.
   Proof.
-    iIntros "#HsubL #HsubU /= !> %ρ #Hg"; iIntros (v).
+    iIntros "#HsubL #HsubU /= !> %ρ #Hg %v".
     iSpecialize ("HsubL" with "Hg"); iSpecialize ("HsubU" with "Hg").
     unfold_interp. iNext.
     iDestruct 1 as (φ) "#[Hφl [#HLφ #HφU]]".
     iExists φ; repeat iSplitL; first done;
       iIntros "!>" (w) "#Hw".
-    - iApply "HLφ" => //. by iApply "HsubL".
+    - iApply "HLφ". by iApply "HsubL".
     - iApply "HsubU". by iApply "HφU".
   Qed.
 
