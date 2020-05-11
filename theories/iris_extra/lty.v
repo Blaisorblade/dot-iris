@@ -119,16 +119,6 @@ Notation oltyO Σ n := (vec vl n -d> env -d> ltyO Σ).
 Notation olty_car τ := (λ args ρ v, lty_car (τ args ρ) v).
 Definition oApp {Σ i} : olty Σ i → hoEnvD Σ i := λ φ, olty_car φ.
 
-(* Rename hoEnvD to hoEnv(D?)O. *)
-(* Definition hoEnv Σ i := vec vl i → (var → vl) → vl → iProp Σ. *)
-(* Definition oiPPred_car {Σ i} : olty Σ i → vec vl i → (var → vl) → vl → iProp Σ := *)
-(* Definition oiPPred_car {Σ i} : olty Σ i → hoEnv Σ i :=
-  λ τ args ρ v, lty_car (τ args ρ) v. *)
-
-(* Different from normal TyInterp. Better? *)
-Class OTyInterp (ty : nat → Type) Σ :=
-  oty_interp : ∀ {i}, ty i → olty Σ i.
-
 Section olty_subst.
   Context `{Σ : gFunctors} {i : nat}.
   Implicit Types (φ : hoEnvD Σ i) (τ : olty Σ i).
