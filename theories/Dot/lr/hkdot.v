@@ -824,6 +824,12 @@ Section derived.
       iApply sStp_Add_Later.
   Qed.
 
+  (* Wrote this during discussion with Sandro; it apparently does not hold in
+  the system in his thesis. *)
+  Lemma sK_Sel_Red {n} Γ p l (K : s_kind Σ n) i :
+    Γ s⊨p p : cTMemK l K, i -∗
+    Γ s⊨ oSelN n p l ∷[i] ho_sing K (oSelN n p l).
+  Proof using HswapProp. rewrite sK_Sel. apply sK_HoSing. Qed.
 
 End derived.
 
