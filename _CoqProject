@@ -42,7 +42,6 @@ theories/Dot/syn/syn_lemmas.v
 
 theories/Dot/lr/dlang_inst.v
 theories/Dot/lr/dot_lty.v
-theories/Dot/lr/hkdot.v
 theories/Dot/lr/later_sub_sem.v
 theories/Dot/lr/path_wp.v
 theories/Dot/lr/unary_lr.v
