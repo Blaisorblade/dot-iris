@@ -90,17 +90,6 @@ Section iPPred_ofe.
   Global Instance iPPred_car_proper : Proper ((≡) ==> (=) ==> (≡)) (@iPPred_car vl Σ).
   Proof. by intros A A' HA w ? <-. Qed.
 
-  Definition iPPred_make ψ := IPPred (λ v, □ ψ v)%I.
-
-  Lemma iPPred_car_pack_id ψ `{∀ v, Persistent (ψ v)} :
-    lApp (iPPred_make ψ) ≡ ψ.
-  Proof. move=> ?/=. apply: intuitionistic_intuitionistically. Qed.
-
-  Lemma pack_iPPred_car_id τ : iPPred_make (iPPred_car τ) ≡ τ.
-  Proof.
-    move: τ => [τ Hp] v /=. apply: intuitionistic_intuitionistically.
-  Qed.
-
   (*
     Since substitution lemmas don't use setoids,
     [HSubstLemmas vl (olty Σ i)] requires proof irrelevance.
@@ -215,14 +204,6 @@ Section olty_subst.
   Definition Olty (olty_car : vec vl i → (var → vl) → vl → iProp Σ)
    `{∀ args ρ v, Persistent (olty_car args ρ v)}: oltyO Σ i :=
     λ args ρ, Lty (olty_car args ρ).
-
-  Definition olty_make φ : oltyO Σ i := Olty (λI args ρ v, □ φ args ρ v).
-  Lemma olty_car_make_id φ `{∀ args ρ v, Persistent (φ args ρ v)} :
-    oApp (olty_make φ) ≡ φ.
-  Proof. move=> ???. apply: intuitionistic_intuitionistically. Qed.
-
-  Lemma olty_make_car_id τ : olty_make (olty_car τ) ≡ τ.
-  Proof. move=>???. apply: intuitionistic_intuitionistically. Qed.
 
   Global Instance ids_olty : Ids (olty Σ i) := λ _, inhabitant.
   Global Program Instance rename_olty : Rename (olty Σ i) :=
