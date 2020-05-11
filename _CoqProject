@@ -46,6 +46,7 @@ theories/Dot/lr/hkdot.v
 theories/Dot/lr/later_sub_sem.v
 theories/Dot/lr/path_wp.v
 theories/Dot/lr/unary_lr.v
+theories/Dot/lr/path_equiv.v
 
 theories/Dot/semtyp_lemmas/binding_lr.v
 theories/Dot/semtyp_lemmas/defs_lr.v
