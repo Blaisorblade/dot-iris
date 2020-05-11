@@ -35,7 +35,7 @@ Section Russell.
     iIntros "#Hs".
     iExists _; iSplit. by iExists _; iSplit.
     iExists _; iSplit. by iApply dm_to_type_intro.
-    iModIntro; repeat iSplit; by iIntros "** !>".
+    by iModIntro; repeat iSplit; iIntros "% ** !>".
   Qed.
 
   Lemma later_not_UAU: Hs ⊢ uAu v -∗ ▷ False.

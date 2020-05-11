@@ -65,7 +65,8 @@ Section typing_type_member_defs.
     rewrite cTMem_eq; iDestruct "Hs" as (φ Hγφ) "Hγ".
     iExists (hoEnvD_inst (σ.|[ρ]) φ); iSplit.
     by iApply (dm_to_type_intro with "Hγ").
-    iModIntro; repeat iSplit; iIntros (v) "#HL"; rewrite later_intuitionistically.
+    iModIntro; repeat iSplit; iIntros (v) "#HL";
+      rewrite /= later_intuitionistically.
     - iIntros "!>". iApply Hγφ. by iApply "HLT".
     - iApply ("HTU" with "Hg"). by iApply Hγφ.
   Qed.

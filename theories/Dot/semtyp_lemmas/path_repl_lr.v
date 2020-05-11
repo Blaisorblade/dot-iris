@@ -40,7 +40,8 @@ Section path_repl.
     (Hrew : T1 ~Tp[ p := q ] T2) :
     V⟦ T1 ⟧ ~sTp[ p := q ]* V⟦ T2 ⟧.
   Proof.
-    rewrite /sem_ty_path_repl; induction Hrew => args ρ v He /=; properness;
+    rewrite /sem_ty_path_repl; induction Hrew => args ρ v He /=;
+      rewrite /subtype_lty/=; properness;
       try by [ exact: path_replacement_equiv | exact: rewrite_path_path_repl
          | apply IHHrew; rewrite ?hsubst_comp | | f_equiv => ?; exact: IHHrew].
   Qed.

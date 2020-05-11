@@ -139,11 +139,12 @@ Section SemTypes.
 
   Definition oDTMem τ1 τ2 : dltyO Σ := Dlty (λI ρ d,
     ∃ ψ, d ↗n[ 0 ] ψ ∧
-       □ ((∀ v, ▷ τ1 vnil ρ v → ▷ □ ψ vnil v) ∧
-          (∀ v, ▷ □ ψ vnil v → ▷ τ2 vnil ρ v))).
+       □ (oLater τ1 vnil ρ ⊆ packHoLtyO ψ vnil ∧
+          packHoLtyO ψ vnil ⊆ oLater τ2 vnil ρ)).
   Global Instance Proper_oDTMem : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
   Proof.
-    rewrite /oDTMem => ??? ??? ??/=; properness; try reflexivity; hof_eq_app.
+    rewrite /oDTMem => ??? ??? ??/=; properness; try reflexivity;
+      solve_proper_ho.
   Qed.
 
   Definition oDVMem τ : dltyO Σ := Dlty (λI ρ d,
@@ -228,9 +229,9 @@ Section SemTypes.
   Global Instance pinterp_lemmas: CTyInterpLemmas Σ.
   Proof.
     split; rewrite /pty_interp;
-     induction T => args sb1 sb2 w; rewrite /= /pty_interp;
+      induction T => args sb1 sb2 w; rewrite /= /pty_interp /subtype_lty /=;
       properness; rewrite ?scons_up_swap ?hsubst_comp; trivial.
-      by f_equiv => ?.
+    by f_equiv => ?.
   Qed.
 
   Definition idtp  Γ T l d     := sdtp l d  V⟦Γ⟧* C⟦T⟧.

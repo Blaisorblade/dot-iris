@@ -143,6 +143,25 @@ Notation oltyO Σ n := (vec vl n -d> env -d> ltyO Σ).
 Notation olty_car τ := (λ args ρ v, lty_car (τ args ρ) v).
 Definition oApp {Σ i} : olty Σ i → hoEnvD Σ i := λ φ, olty_car φ.
 
+
+Definition hoLty Σ n := vec vl n → lty Σ.
+Definition hoLtyO Σ n := vec vl n -d> ltyO Σ.
+Notation hoLty_car τ := (λ args v, lty_car (τ args) v).
+Notation HoLty φ := (λ args, Lty (λI v, φ args v)).
+
+
+Definition envApply {Σ n} : oltyO Σ n → env → hoLtyO Σ n :=
+  λ T, flip T.
+Instance: Params (@envApply) 2 := {}.
+Instance Proper_envApply n :
+  Proper ((≡) ==> (=) ==> (≡)) (envApply (Σ := Σ) (n := n)).
+Proof. solve_proper_ho. Qed.
+
+Definition packHoLtyO {Σ n} (φ : hoD Σ n) : hoLtyO Σ n := HoLty (λI args v, ▷ □ φ args v).
+Instance: Params (@packHoLtyO) 2 := {}.
+Instance packHoLtyO_proper {Σ n} : Proper ((≡) ==> (≡)) (packHoLtyO (Σ := Σ) (n := n)).
+Proof. solve_proper_ho. Qed.
+
 Section olty_subst.
   Context `{Σ : gFunctors} {i : nat}.
   Implicit Types (φ : hoEnvD Σ i) (τ : olty Σ i).
