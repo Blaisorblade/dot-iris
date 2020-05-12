@@ -107,3 +107,7 @@ Lemma flip_proper_7
     flip R6 ==> flip R7) f.
 Proof. solve_proper. Qed.
 End flip_proper.
+
+(** Potentially useful to speed up proofs. *)
+Lemma eq_equiv `{Equiv A} `{!Equivalence (≡@{A})} (x y : A) : x = y → x ≡ y.
+Proof. by intros ->. Qed.

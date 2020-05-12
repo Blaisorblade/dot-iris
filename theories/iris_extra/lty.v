@@ -13,7 +13,7 @@ From iris.algebra Require Import list.
 From iris.proofmode Require Import tactics.
 From iris.program_logic Require Import language.
 From D.pure_program_logic Require Import lifting adequacy.
-From D Require Import prelude iris_prelude asubst_intf dlang.
+From D Require Import prelude iris_prelude asubst_intf dlang proper.
 
 Implicit Types (Σ : gFunctors).
 
@@ -262,7 +262,33 @@ Section olty_subst.
     τ.|[v/] args ρ w ≡ τ args (v.[ρ] .: ρ) w.
   Proof. apply hoEnvD_subst_one. Qed. *)
 
+  Definition oShift (T : oltyO Σ i) :=
+    Olty (λ args ρ v, T args (stail ρ) v).
+
+  (* Holds definitionally when id_subst does, so for any reasonable concrete language. *)
+
+  Global Instance oShift_ne: NonExpansive oShift.
+  Proof. solve_proper_ho. Qed.
+  Global Instance oShift_proper : Proper ((≡) ==> (≡)) oShift := ne_proper _.
 End olty_subst.
+
+Global Instance: Params (@oShift) 2 := {}.
+
+Section oShift.
+  Context `{Σ : gFunctors} {i : nat}.
+
+  Lemma oShift_eq (T : oltyO Σ i) : oShift T ≡ shift T.
+  Proof. move=> args ρ v /=. by rewrite hoEnvD_weaken_one. Qed.
+
+  Lemma oShift_subst (T : olty Σ i) ρ :
+    (oShift T).|[up ρ] ≡ oShift T.|[ρ].
+  Proof.
+    (* Works but is slow. *)
+    (* rewrite !oShift_eq; autosubst. *)
+    move=>args ξ v; rewrite /= /hsubst /hsubst_hoEnvD /stail/=;
+      apply eq_equiv; do 2 f_equal; autosubst.
+  Qed.
+End oShift.
 
 Notation oClose τ := (τ vnil).
 
