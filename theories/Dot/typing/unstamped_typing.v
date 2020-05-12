@@ -316,7 +316,6 @@ Scheme exp_unstamped_typed_mut_ind := Induction for typed Sort Prop
 with   exp_unstamped_dms_typed_mut_ind := Induction for dms_typed Sort Prop
 with   exp_unstamped_dm_typed_mut_ind := Induction for dm_typed Sort Prop
 with   exp_unstamped_path_typed_mut_ind := Induction for path_typed Sort Prop.
-(* with   subtype_mut_ind := Induction for subtype Sort Prop. *)
 
 Combined Scheme exp_unstamped_typing_mut_ind from exp_unstamped_typed_mut_ind, exp_unstamped_dms_typed_mut_ind,
   exp_unstamped_dm_typed_mut_ind, exp_unstamped_path_typed_mut_ind.

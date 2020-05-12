@@ -301,7 +301,6 @@ Scheme exp_stamped_obj_ident_typed_mut_ind := Induction for typed Sort Prop
 with   exp_stamped_obj_ident_dms_typed_mut_ind := Induction for dms_typed Sort Prop
 with   exp_stamped_obj_ident_dm_typed_mut_ind := Induction for dm_typed Sort Prop
 with   exp_stamped_obj_ident_path_typed_mut_ind := Induction for path_typed Sort Prop.
-(* with   subtype_mut_ind := Induction for subtype Sort Prop. *)
 
 Combined Scheme exp_stamped_obj_ident_typing_mut_ind from exp_stamped_obj_ident_typed_mut_ind, exp_stamped_obj_ident_dms_typed_mut_ind,
   exp_stamped_obj_ident_dm_typed_mut_ind, exp_stamped_obj_ident_path_typed_mut_ind.
@@ -314,16 +313,6 @@ with   stamped_obj_ident_subtype_mut_ind := Induction for subtype Sort Prop.
 
 Combined Scheme stamped_obj_ident_typing_mut_ind from stamped_obj_ident_typed_mut_ind, stamped_obj_ident_dms_typed_mut_ind,
   stamped_obj_ident_dm_typed_mut_ind, stamped_obj_ident_path_typed_mut_ind, stamped_obj_ident_subtype_mut_ind.
-
-
-  (* Scheme typed_mut_ind := Induction for typed Sort Prop
-  with   dms_typed_mut_ind := Induction for dms_typed Sort Prop
-  with   dm_typed_mut_ind := Induction for dm_typed Sort Prop
-  with   path_typed_mut_ind := Induction for path_typed Sort Prop
-  with   subtype_mut_ind := Induction for subtype Sort Prop.
-
-  Combined Scheme typing_mut_ind from typed_mut_ind, dms_typed_mut_ind, dm_typed_mut_ind,
-    path_typed_mut_ind, subtype_mut_ind. *)
 
 (** Stamped typing is not used for examples, so we only provide minimal
 automation. *)

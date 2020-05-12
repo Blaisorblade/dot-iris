@@ -1,8 +1,6 @@
 From D.Dot Require Export syn path_repl lr_syn_aux.
 From D.Dot.typing Require Export typing_aux_defs.
 From D.Dot.stamping Require Export core_stamping_defs.
-(* From D.Dot.lr Require Import unary_lr.
-From D Require Import swap_later_impl. *)
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -15,7 +13,6 @@ Reserved Notation "Γ v⊢ₜ[ g ] e : T"
   format "'[' '[' Γ ']'  '/' v⊢ₜ[  g  ]  '[' e ']'  :  '[' T ']' ']'").
 Reserved Notation "Γ v⊢ₚ[ g  ] p : T , i" (at level 74, p, T, i at next level).
 Reserved Notation "Γ v⊢[ g ]{ l := d } : T "
-(* Reserved Notation "Γ v⊢[ g  ]{ l := d  } : T " *)
   (at level 74, l, d, T at next level,
    format "'[' '[' Γ  ']' '/' '[' v⊢[  g  ]{  l  :=  d  } ']' :  '[' T ']' ']'").
 Reserved Notation "Γ v⊢ds[ g ] ds : T"
@@ -307,14 +304,6 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     Γ v⊢ₜ[ g ] TAnd (TOr S T) U , i <: TOr (TAnd S U) (TAnd T U), i
 
 (* "Structural" rule about indexes. Only try last. *)
-(* | Undelay_stp Γ' T1 T2 i j :
-    ⊢G Γ <:* Γ' →
-    Γ' v⊢ₜ[ g ] T1, i <: T2, j →
-    Γ  v⊢ₜ[ g ] T1, i <: T2, j
-| Delay_stp' Γ' T1 T2 i j:
-    Γ' v⊢ₜ[ g ] T1, i <: T2, j →
-    Γ = TLater <$> Γ' →
-    Γ v⊢ₜ[ g ] TLater T1, i <: TLater T2, j *)
 
 | iSub_Skolem_P {T1 T2 i j}:
     is_stamped_ty (length Γ) g T1 →
@@ -330,7 +319,6 @@ Scheme exp_stamped_typed_mut_ind := Induction for typed Sort Prop
 with   exp_stamped_dms_typed_mut_ind := Induction for dms_typed Sort Prop
 with   exp_stamped_dm_typed_mut_ind := Induction for dm_typed Sort Prop
 with   exp_stamped_path_typed_mut_ind := Induction for path_typed Sort Prop.
-(* with   subtype_mut_ind := Induction for subtype Sort Prop. *)
 
 Combined Scheme exp_storeless_typing_mut_ind from exp_stamped_typed_mut_ind, exp_stamped_dms_typed_mut_ind,
   exp_stamped_dm_typed_mut_ind, exp_stamped_path_typed_mut_ind.
@@ -383,27 +371,6 @@ Proof.
 Qed.
 
 Ltac ettrans := eapply iSub_Trans.
-
-(* Lemma Delay_stp {Γ g T1 T2 i j} :
-  Γ v⊢ₜ[ g ] T1, i <: T2, j → TLater <$> Γ v⊢ₜ[ g ] TLater T1, i <: TLater T2, j.
-Proof. intros. exact: Delay_stp'. Qed.
-
-Lemma TLater_Mono_stp {Γ g T1 T2 i j} :
-  Γ v⊢ₜ[ g ] T1, i <: T2, j →
-  Γ v⊢ₜ[ g ] TLater T1, i <: TLater T2, j.
-Proof. intros Hs; eapply Undelay_stp, Delay_stp, Hs; ietp_weaken_ctx. Qed. *)
-
-(* Lemma iSub_Mono {Γ T1 T2 i j g} :
-  Γ v⊢ₜ[ g ] T1, i <: T2, j →
-  is_stamped_ty (length Γ) g T1 →
-  is_stamped_ty (length Γ) g T2 →
-  Γ v⊢ₜ[ g ] T1, S i <: T2, S j.
-Proof.
-  intros.
-  ettrans; first exact: iSub_Later.
-  ettrans; last exact: iLater_Sub.
-  exact: TLater_Mono_stp.
-Qed. *)
 
 Lemma Sub_later_shift {Γ T1 T2 i j g}
   (Hs1: is_stamped_ty (length Γ) g T1)
