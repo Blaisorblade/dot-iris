@@ -47,7 +47,7 @@ Section derived_swap_lemmas.
   Proof. iSplit. iApply wand_laterN. iApply laterN_wand. Qed.
 End derived_swap_lemmas.
 
-(** * Implementation of swap laws for uniform predicates. *)
+(** ** Implementation of swap laws for uniform predicates. *)
 
 Class CmraSwappable (M : cmraT) := {
   (* TODO cmra_extend should really be cmra_extend_sep. *)
@@ -123,16 +123,16 @@ Proof. split=>P. iSplit; [iApply bupd_later | iApply later_bupd]. Qed.
 
 End SwapCmra.
 
-(** * [CmraSwappable] Instances. *)
+(** ** [CmraSwappable] Instances. *)
 
-(** ** Discrete CMRAs. *)
+(** *** Discrete CMRAs. *)
 Instance Swappable_discrete {A}: CmraDiscrete A → CmraSwappable A.
 Proof.
   split => n mx z _ Hv //; exists z; move: Hv.
   by rewrite -!cmra_discrete_valid_iff.
 Qed.
 
-(** ** Option. *)
+(** *** Option. *)
 Lemma validN_mjoin_option `{A: cmraT} n (mma: option (option A)):
   ✓{n} mjoin mma ↔ ✓{n} mma.
 Proof. by destruct mma. Qed.
@@ -155,7 +155,7 @@ Proof.
   - exists None; split_and!; destruct mmx; by rewrite /= ?left_id.
 Qed.
 
-(** ** Dependently-typed functions over a finite discrete domain *)
+(** *** Dependently-typed functions over a finite discrete domain *)
 Instance Swappable_ofe_funUR {A} (B: A → ucmraT) (H: ∀ i, CmraSwappable (B i)):
   CmraSwappable (discrete_funUR B).
 Proof.
@@ -181,7 +181,7 @@ Proof.
 Qed.
 
 Section agree.
-(** ** Agreement CMRA. *)
+(** *** Agreement CMRA. *)
 Context {A : ofeT}.
 Implicit Types a b : A.
 
@@ -208,7 +208,7 @@ Proof.
 Qed.
 End agree.
 
-(** ** Exclusive CMRA. *)
+(** *** Exclusive CMRA. *)
 Instance Swappable_exclR {A} : CmraSwappable (exclR A).
 Proof. by split => n [x|] [z|] //; exists (Excl z). Qed.
 
