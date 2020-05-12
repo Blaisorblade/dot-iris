@@ -391,14 +391,8 @@ Proof.
   by eapply iSub_Trans, iLater_Sub.
 Qed.
 
-Ltac typconstructor_check :=
-  lazymatch goal with
-  (* | |- context [ dlang_inst.dlangG ] => fail "Only applicable rule is reflection" *)
-  | _ => idtac
-  end.
 Ltac typconstructor_blacklist Γ :=
   lazymatch goal with
-  (* | |- context [ dlang_inst.dlangG ] => *)
   | |- path_typed ?Γ' _ _ _ _ =>
   tryif (unify Γ Γ') then idtac else fail 1 "Only applicable rule is iSub_Skolem_P"
   | _ => idtac
@@ -412,4 +406,4 @@ Ltac typconstructor :=
   | |- path_typed ?Γ _ _ _ _ => first [apply iP_Later | constructor]
   | |- subtype    ?Γ _ _ _ _ _ =>
     first [apply Sub_later_shift | constructor ]; typconstructor_blacklist Γ
-  end; typconstructor_check.
+  end.
