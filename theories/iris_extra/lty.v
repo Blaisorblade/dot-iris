@@ -362,15 +362,15 @@ Section olty_ofe_2.
     λI ρ t, □ WP t {{ vclose φ ρ }}.
   Global Arguments interp_expr /.
 
-  Lemma swap_oMu_oLaterN (τ : oltyO Σ i) n :
+  Lemma sTEq_oMu_oLaterN (τ : oltyO Σ i) n :
     oLaterN n (oMu τ) ≡ oMu (oLaterN n τ).
   Proof. done. Qed.
 
-  Lemma swap_oAnd_oLaterN (τ1 τ2 : oltyO Σ i) n :
+  Lemma sTEq_oAnd_oLaterN (τ1 τ2 : oltyO Σ i) n :
     oLaterN n (oAnd τ1 τ2) ≡ oAnd (oLaterN n τ1) (oLaterN n τ2).
   Proof. move => args ρ v /=. by rewrite laterN_and. Qed.
 
-  Lemma swap_oOr_oLaterN (τ1 τ2 : oltyO Σ i) n :
+  Lemma sTEq_oOr_oLaterN (τ1 τ2 : oltyO Σ i) n :
     oLaterN n (oOr τ1 τ2) ≡ oOr (oLaterN n τ1) (oLaterN n τ2).
   Proof. move => args ρ v /=. by rewrite laterN_or. Qed.
 
