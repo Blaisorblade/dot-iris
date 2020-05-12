@@ -588,42 +588,6 @@ Instance sort_dm : Sort dm := {}.
 Instance sort_path : Sort path := {}.
 Instance sort_ty : Sort ty := {}.
 
-(** After instantiating Autosubst, a few binding-related syntactic definitions
-    that need not their own file. *)
-
-(** Here is a manual proof of a lemma, with explanations. *)
-Lemma fv_vabs_inv_manual e n : nclosed_vl (vabs e) n → nclosed e (S n).
-Proof.
-  rewrite /nclosed_vl /nclosed => /= Hfv s1 s2 HsEq.
-
-  (** From Hfv, we only learn that [e.|[up s1] = e.|[up s2]], for arbitrary [s1]
-      and [s2], but substitutions in our thesis [e.|[s1] = e.|[s2]] are not of form [up ?].
-      Hence, we rewrite it using [decomp_s] / [decomp_s_vl] to get a
-      substitution of form [up ?], then rewrite with [e.|[up (stail s1)] =
-      e.|[up (stail s2)]] (got from [Hfv]), and conclude.
-      *)
-  rewrite ?(decomp_s _ s1) ?(decomp_s _ s2) ?(decomp_s_vl _ s1) ?(decomp_s_vl _ s2) (eq_n_s_heads HsEq); last lia.
-  injection (Hfv _ _ (eq_n_s_tails HsEq)); rewritePremises; reflexivity.
-Qed.
-
-(* Special cases needed below. *)
-
-(* The proof of this lemma needs asimpl and hence is expensive, so we provide it
-   separately. *)
-Lemma fv_vobj_ds_inv l d ds n : nclosed_vl (vobj ((l, d) :: ds)) n → nclosed_vl (vobj ds) n.
-Proof. solve_inv_fv_congruence. Qed.
-
-Lemma fv_vobj_d_inv l d ds n : nclosed_vl (vobj ((l, d) :: ds)) n → nclosed d (S n).
-Proof. solve_inv_fv_congruence. Qed.
-
-Lemma fv_dtysem_inv_vs s v vs n : nclosed (dtysem (v :: vs) s) n → nclosed (dtysem vs s) n.
-Proof. solve_inv_fv_congruence. Qed.
-
-Lemma fv_dtysem_inv_v s v vs n : nclosed (dtysem (v :: vs) s) n → nclosed_vl v n.
-Proof. solve_inv_fv_congruence. Qed.
-
-Hint Resolve fv_vobj_ds_inv fv_vobj_d_inv fv_dtysem_inv_v fv_dtysem_inv_vs : fvl.
-
 (** Induction principles for syntax. *)
 
 Section syntax_mut_rect.
@@ -750,6 +714,25 @@ Section syntax_mut_ind.
 End syntax_mut_ind.
 
 (** Induction principles for closed terms. *)
+
+
+(* Some inversion lemmas for [nclosed], needed below. *)
+
+(* The proof of this lemma needs asimpl and hence is expensive, so we provide it
+   separately. *)
+Lemma fv_vobj_ds_inv l d ds n : nclosed_vl (vobj ((l, d) :: ds)) n → nclosed_vl (vobj ds) n.
+Proof. solve_inv_fv_congruence. Qed.
+
+Lemma fv_vobj_d_inv l d ds n : nclosed_vl (vobj ((l, d) :: ds)) n → nclosed d (S n).
+Proof. solve_inv_fv_congruence. Qed.
+
+Lemma fv_dtysem_inv_vs s v vs n : nclosed (dtysem (v :: vs) s) n → nclosed (dtysem vs s) n.
+Proof. solve_inv_fv_congruence. Qed.
+
+Lemma fv_dtysem_inv_v s v vs n : nclosed (dtysem (v :: vs) s) n → nclosed_vl v n.
+Proof. solve_inv_fv_congruence. Qed.
+
+Hint Resolve fv_vobj_ds_inv fv_vobj_d_inv fv_dtysem_inv_v fv_dtysem_inv_vs : fvl.
 
 Section syntax_mut_ind_closed.
   Variable Ptm : tm   → nat → Prop.

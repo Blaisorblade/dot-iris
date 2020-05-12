@@ -1,7 +1,4 @@
-(**
-This file collects substitution lemmas for languages implementing
-[ValuesSig].
-*)
+(** * Substitution lemmas for languages implementing [ValuesSig]. *)
 From iris.program_logic Require Import language.
 From D Require Import prelude asubst_intf.
 
@@ -70,10 +67,10 @@ Definition nclosed `{HSubst vl X} (x : X) n :=
 Notation nclosed_σ σ n := (Forall (λ v, nclosed_vl v n) σ).
 Notation cl_ρ σ := (nclosed_σ σ 0).
 
-(** Infrastructure to prove "direct" lemmas on nclosed{,_vl}: deduce that an expression is closed
+(** Infrastructure to prove "direct" lemmas on [nclosed{,_vl}]: deduce that an expression is closed
     by knowing that its subexpression are closed. *)
 
-(** Needed by solve_fv_congruence when dealing with binders, such as in fv_vobj and fv_vabs. *)
+(** Needed by [solve_fv_congruence] when dealing with binders, such as in [fv_vobj] and [fv_vabs]. *)
 Lemma eq_up ρ1 ρ2 n : eq_n_s ρ1 ρ2 n → eq_n_s (up ρ1) (up ρ2) (S n).
 Proof.
   rewrite /up. move => Heq [|x] Hl //=. f_equiv. apply Heq. lia.
@@ -93,10 +90,10 @@ Lemma fv_pair_cons `{Sort X} `{!Inhabited A} (a : A) (x : X) xs n : nclosed xs n
 (* solve_fv_congruence would work, but this gives a smaller proof. *)
 Proof. intros. by apply fv_cons, fv_pair. Qed.
 
-(** Infrastructure for "inverse" lemmas on nclosed{,_vl}: by knowing that an expression is closed,
+(** Infrastructure for "inverse" lemmas on [nclosed{,_vl}]: by knowing that an expression is closed,
     deduce that one of its subexpressions is closed.
     Dealing with binders in nclosed "inverse" lemmas requires more infrastructure than for "direct" lemmas.
-    See fv_vabs_inv_manual for an explanation. *)
+    See [fv_vabs_inv_manual] for an explanation. *)
 
 Lemma eq_n_s_tails {n ρ1 ρ2} : eq_n_s ρ1 ρ2 (S n) → eq_n_s (stail ρ1) (stail ρ2) n.
 Proof.
@@ -108,7 +105,6 @@ Qed.
 Lemma eq_n_s_heads {n ρ1 ρ2} : eq_n_s ρ1 ρ2 n → n > 0 → shead ρ1 = shead ρ2.
 Proof. rewrite /shead => /= HsEq. exact: HsEq. Qed.
 
-(* Unused? *)
 Lemma eq_cons v sb1 sb2 n : eq_n_s sb1 sb2 n → eq_n_s (v .: sb1) (v .: sb2) (S n).
 Proof. move => Heqs [//|x] /lt_S_n /Heqs //. Qed.
 
