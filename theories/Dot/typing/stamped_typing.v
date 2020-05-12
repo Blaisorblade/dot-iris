@@ -325,85 +325,12 @@ Combined Scheme stamped_obj_ident_typing_mut_ind from stamped_obj_ident_typed_mu
   Combined Scheme typing_mut_ind from typed_mut_ind, dms_typed_mut_ind, dm_typed_mut_ind,
     path_typed_mut_ind, subtype_mut_ind. *)
 
+(** Stamped typing is not used for examples, so we only provide minimal
+automation. *)
+
 Hint Constructors typed dms_typed dm_typed path_typed subtype : core.
 Remove Hints iSub_Trans : core.
 Hint Extern 10 => try_once iSub_Trans : core.
-
-Lemma iT_All_I Γ e T1 T2 g:
-  is_stamped_ty (length Γ) g T1 →
-  shift T1 :: Γ s⊢ₜ[ g ] e : T2 →
-  (*─────────────────────────*)
-  Γ s⊢ₜ[ g ] tv (vabs e) : TAll T1 T2.
-Proof. apply iT_All_I_Strong. ietp_weaken_ctx. Qed.
-
-Lemma iT_All_I_strip1 Γ e V T1 T2 g:
-  is_stamped_ty (S (length Γ)) g T1 →
-  shift T1 :: V :: Γ s⊢ₜ[ g ] e : T2 →
-  (*─────────────────────────*)
-  Γ |L V s⊢ₜ[ g ] tv (vabs e) : TAll T1 T2.
-Proof.
-  intros. apply iT_All_I_Strong with (Γ' := (V :: Γ)) => //.
-  rewrite /defCtxCons/=; ietp_weaken_ctx.
-Qed.
-
-Lemma iD_All Γ V T1 T2 e l g:
-  is_stamped_ty (S (length Γ)) g T1 →
-  shift T1 :: V :: Γ s⊢ₜ[ g ] e : T2 →
-  Γ |L V s⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
-Proof. by intros; apply iD_Val, iT_All_I_strip1. Qed.
-
-Lemma iP_Later {Γ p T i g} :
-  is_stamped_ty (length Γ) g T →
-  Γ s⊢ₚ[ g ] p : TLater T, i →
-  Γ s⊢ₚ[ g ] p : T, S i.
-Proof.
-  intros Hu Hp; apply iP_Sub with (j := 1) (T1 := TLater T) (T2 := T) in Hp;
-    move: Hp; rewrite (plusnS i 0) (plusnO i); intros; by [|constructor].
-Qed.
-
-Ltac ettrans := eapply iSub_Trans.
-
-(* Lemma iSub_Mono {Γ T1 T2 i j g} :
-  Γ s⊢ₜ[ g ] T1, i <: T2, j →
-  is_stamped_ty (length Γ) g T1 →
-  is_stamped_ty (length Γ) g T2 →
-  Γ s⊢ₜ[ g ] T1, S i <: T2, S j.
-Proof.
-  intros.
-  ettrans; first exact: iSub_Later.
-  ettrans; last exact: iLater_Sub.
-  exact: TLater_Mono_stp.
-Qed. *)
-
-Lemma Sub_later_shift {Γ T1 T2 i j g}
-  (Hs1: is_stamped_ty (length Γ) g T1)
-  (Hs2: is_stamped_ty (length Γ) g T2)
-  (Hsub: Γ s⊢ₜ[ g ] T1, S i <: T2, S j):
-  Γ s⊢ₜ[ g ] TLater T1, i <: TLater T2, j.
-Proof.
-  ettrans; first exact: iLater_Sub.
-  by eapply iSub_Trans, iSub_Later.
-Qed.
-
-Lemma Sub_later_shift_inv {Γ T1 T2 i j g}
-  (Hs1: is_stamped_ty (length Γ) g T1)
-  (Hs2: is_stamped_ty (length Γ) g T2)
-  (Hsub: Γ s⊢ₜ[ g ] TLater T1, i <: TLater T2, j):
-  Γ s⊢ₜ[ g ] T1, S i <: T2, S j.
-Proof.
-  ettrans; first exact: iSub_Later.
-  by eapply iSub_Trans, iLater_Sub.
-Qed.
-
-Ltac typconstructor :=
-  match goal with
-  | |- typed _ _ _ _ => first [apply iT_All_I_strip1 | apply iT_All_I | constructor]
-  | |- dms_typed _ _ _ _ => constructor
-  | |- dm_typed _ _ _ _ _ => first [apply iD_All | constructor]
-  | |- path_typed _ _ _ _ _ => first [apply iP_Later | constructor]
-  | |- subtype _ _ _ _ _ _ =>
-    first [apply Sub_later_shift | constructor ]
-  end.
 
 Section syntyping_lemmas.
   Lemma typing_obj_ident_to_typing_mut Γ g:
