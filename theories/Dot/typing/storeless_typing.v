@@ -264,8 +264,7 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     is_stamped_ty (length Γ) g T →
     Γ v⊢ₜ[ g ] T, i <: TMu (shift T), i
 
-(* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types.
- "Cov" stands for covariance, "Con" for contravariance. *)
+(* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types. *)
 | iAll_Sub_All T1 T2 U1 U2 i:
     Γ v⊢ₜ[ g ] TLater T2, i <: TLater T1, i →
     iterate TLater (S i) (shift T2) :: Γ v⊢ₜ[ g ] TLater U1, i <: TLater U2, i →

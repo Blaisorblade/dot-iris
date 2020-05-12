@@ -248,8 +248,7 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     is_unstamped_ty' (length Γ) T →
     Γ u⊢ₜ T, i <: TMu (shift T), i
 
-(* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types.
- "Cov" stands for covariance, "Con" for contravariance. *)
+(* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types. *)
 | iAll_Sub_All T1 T2 U1 U2 i:
     Γ u⊢ₜ TLater T2, i <: TLater T1, i →
     iterate TLater (S i) (shift T2) :: Γ u⊢ₜ TLater U1, i <: TLater U2, i →
@@ -282,10 +281,6 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     is_unstamped_ty' (length Γ) U2 →
     Γ u⊢ₜ TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
 
-(* "Structural" rule about indexes. Only try last. *)
-(* | TLater_Mono_stp T1 T2 i j:
-    Γ u⊢ₜ T1, i <: T2, j →
-    Γ u⊢ₜ TLater T1, i <: TLater T2, j *)
 where "Γ u⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
 
 (* Make [T] first argument: Hide Γ for e.g. typing examples. *)
@@ -353,18 +348,6 @@ Proof.
 Qed.
 
 Ltac ettrans := eapply iSub_Trans.
-
-(* Lemma iSub_Mono {Γ T1 T2 i j} :
-  Γ u⊢ₜ T1, i <: T2, j →
-  is_unstamped_ty' (length Γ) T1 →
-  is_unstamped_ty' (length Γ) T2 →
-  Γ u⊢ₜ T1, S i <: T2, S j.
-Proof.
-  intros.
-  ettrans; first exact: iSub_Later.
-  ettrans; last exact: iLater_Sub.
-  exact: TLater_Mono_stp.
-Qed. *)
 
 Lemma Sub_later_shift {Γ T1 T2 i j}
   (Hs1: is_unstamped_ty' (length Γ) T1)

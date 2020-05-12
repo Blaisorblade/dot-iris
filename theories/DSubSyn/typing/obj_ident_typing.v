@@ -83,8 +83,7 @@ subtype Γ : ty → nat → ty → nat → Prop :=
     Γ u⊢ₜ tv v : TTMem L U →
     Γ u⊢ₜ L, 0 <: TSel v, 0
 
-(* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types.
- "Cov" stands for covariance, "Con" for contravariance. *)
+(* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types. *)
 (* Needed? Maybe drop later instead? *)
 (* | iLater_Sub_Later T1 T2 i:
     Γ u⊢ₜ T1, S i <: T2, S i →

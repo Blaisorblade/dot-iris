@@ -249,8 +249,7 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     is_stamped_ty (length Γ) g T →
     Γ s⊢ₜ[ g ] T, i <: TMu (shift T), i
 
-(* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types.
- "Cov" stands for covariance, "Con" for contravariance. *)
+(* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types. *)
 | iAll_Sub_All T1 T2 U1 U2 i:
     Γ s⊢ₜ[ g ] TLater T2, i <: TLater T1, i →
     iterate TLater (S i) (shift T2) :: Γ s⊢ₜ[ g ] TLater U1, i <: TLater U2, i →
@@ -283,10 +282,6 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     is_stamped_ty (length Γ) g U2 →
     Γ s⊢ₜ[ g ] TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
 
-(* "Structural" rule about indexes. Only try last. *)
-(* | TLater_Mono_stp T1 T2 i j:
-    Γ s⊢ₜ[ g ] T1, i <: T2, j →
-    Γ s⊢ₜ[ g ] TLater T1, i <: TLater T2, j *)
 where "Γ s⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ g T1 i1 T2 i2).
 
 Scheme exp_stamped_obj_ident_typed_mut_ind := Induction for typed Sort Prop
