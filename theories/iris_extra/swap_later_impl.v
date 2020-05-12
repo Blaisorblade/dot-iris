@@ -1,16 +1,21 @@
+(** * Show proof rule [Impl-▷].
+Swap later [▷] with Iris implication [→] and wand [-∗]. *)
 From iris.proofmode Require Import tactics.
 From iris.base_logic Require Import lib.iprop (* For gname *)
      lib.saved_prop.
 From iris.algebra Require Import agree excl gmap auth.
+From D Require Import gen_iheap.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
-(** * Interface to Swap laws for any [sbi]. *)
+(** ** Interface to Swap laws for any [sbi]. *)
 Class SwapProp (PROP: sbi) := {
   impl_later : ∀ (P Q: PROP), (▷ P → ▷ Q) ⊢ ▷ (P → Q);
   wand_later: ∀ (P Q: PROP), (▷ P -∗ ▷ Q) ⊢ ▷ (P -∗ Q)
 }.
+
+Notation SwapPropI Σ := (SwapProp (iPropSI Σ)).
 
 Class SwapBUpd (PROP: sbi) `(BUpd PROP) := {
   later_bupd_commute: ∀(P:PROP), (|==> ▷ P) ⊣⊢ ▷ |==> P
@@ -244,13 +249,7 @@ Proof.
   apply Swappable_iResUR. by apply fin_0_inv.
 Qed.
 
-From D Require Import gen_iheap.
-(* From iris.base_logic Require Import gen_heap. *)
-
 Instance CmraSwappable_gen_iheap Σ `{Countable A} B:
   CmraSwappable (
     rFunctor_apply (gFunctors_lookup (gen_iheapΣ A B) Fin.F1) (iPrePropO Σ)) :=
   Swappable_discrete _.
-(* Instance CmraSwappable_gen_heap Σ `{Countable A} B: CmraSwappable (gFunctors_lookup (gen_heapΣ A B) Fin.F1 (iPrePropO Σ) _) := Swappable_discrete _. *)
-
-Notation SwapPropI Σ := (SwapProp (iPropSI Σ)).
