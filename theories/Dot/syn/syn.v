@@ -1,3 +1,10 @@
+(**
+* gDOT syntax and operational semantics.
+Follows Sec. 2; implemented using de Bruijn indexes and the Autosubst 1
+infrastructure.
+The operational semantics implements the Iris infrastructure for languages,
+using contextual small-step operational semantics.
+*)
 From stdpp Require Export strings.
 From D Require Export prelude.
 From D Require Import asubst_intf asubst_base.
@@ -6,52 +13,65 @@ From iris.program_logic Require ectx_language ectxi_language.
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
 
-(** This module is included right away. Its only point is asserting explicitly
-    what interface it implements. *)
+(**
+This module is included right away, but it asserts explicitly
+that it implements our language interface [VlSortsFullSig].
+*)
 Module Export VlSorts <: VlSortsFullSig.
 Import ASubstLangDefUtils.
 
+(** Type of labels; we use a single type for both term labels [a] and type
+labels [A]. *)
 Definition label := string.
 
+(** Syntax of primitive literals, operations and types. *)
 Inductive base_lit : Set := lint (n : Z) | lbool (b : bool).
 Inductive un_op : Set := unot.
 Inductive bin_op : Set := bplus | bminus | btimes | bdiv | blt | ble | beq.
 Inductive base_ty : Set := tint | tbool.
 
+(** ** DOT syntax, with corresponding on-paper syntax in comments. *)
+(** Expressions/terms [e ::= ]: *)
 Inductive tm : Type :=
-  | tv : vl_ → tm
-  | tapp : tm → tm → tm
-  | tproj : tm → label → tm
-  | tskip : tm → tm
-  | tun : un_op → tm → tm
-  | tbin : bin_op → tm → tm → tm
-  | tif : tm → tm → tm → tm
+  | tv : vl_ → tm (* inject values into terms [v]; *)
+  | tapp : tm → tm → tm (* application [e e]; *)
+  | tproj : tm → label → tm (* projections [e.a]; *)
+  | tskip : tm → tm (* coercions [coerce e]. *)
+  (** Primitive terms. *)
+  | tun : un_op → tm → tm (* unary operation; *)
+  | tbin : bin_op → tm → tm → tm (* binary operation; *)
+  | tif : tm → tm → tm → tm (* if conditional. *)
+ (** Values [v ::=]: *)
  with vl_ : Type :=
-  | var_vl : var → vl_
-  | vlit : base_lit → vl_
-  | vabs : tm → vl_
-  | vobj : list (label * dm) → vl_
+  | var_vl : var → vl_ (* variables [x]. *)
+  | vlit : base_lit → vl_ (* literals (not in paper) *)
+  | vabs : tm → vl_ (* lambdas [λ x. t] *)
+  | vobj : list (label * dm) → vl_ (* objects [ν x. t]. *)
+ (** Definition bodies [d ::= ]: *)
  with dm : Type :=
-  | dtysyn : ty → dm
-  | dtysem : list vl_ → stamp → dm
-  | dpt : path → dm
+  | dtysyn : ty → dm (* unstamped type definition [T]; *)
+  | dtysem : list vl_ → stamp → dm (* stamped type definition [σ, s]; *)
+  | dpt : path → dm (* path definition [p]. *)
+ (** Paths [p ::= ] *)
  with path : Type :=
-  | pv : vl_ → path
-  | pself : path → label → path
+  | pv : vl_ → path (* values [v]; *)
+  | pself : path → label → path (* path selection [p.a]. *)
+ (** Types [L, S, T, U, V, W ::= ] *)
  with ty : Type :=
-  | TTop : ty
-  | TBot : ty
-  | TAnd : ty → ty → ty
-  | TOr : ty → ty → ty
-  | TLater : ty → ty
-  | TAll : ty → ty → ty
-  | TMu : ty → ty
-  | TVMem : label → ty → ty
-  | TTMem : label → ty → ty → ty
-  | TSel : path → label → ty
-  | TPrim : base_ty → ty
-  | TSing : path → ty.
+  | TTop : ty (* top type [⊤]; *)
+  | TBot : ty (* bottom type [⊤]; *)
+  | TAnd : ty → ty → ty (* intersection type [S ∧ T]; *)
+  | TOr : ty → ty → ty (* union type [S ∨ T]; *)
+  | TLater : ty → ty (* later type [▷ T]; *)
+  | TAll : ty → ty → ty (* forall type [∀ x: S. T]; *)
+  | TMu : ty → ty (* mu-types [μ x. T]; *)
+  | TVMem : label → ty → ty (* value members [{a: T}];*)
+  | TTMem : label → ty → ty → ty (* type members [{A :: L .. U}]; *)
+  | TSel : path → label → ty (* type selections [p.A]; *)
+  | TPrim : base_ty → ty (* primitive types *)
+  | TSing : path → ty (* singleton types [p.type].*).
 
+(* Workaround Coq bug with modules. *)
 Definition vl := vl_.
 
 (* Shortcuts. *)
@@ -60,7 +80,9 @@ Notation TBool := (TPrim tbool).
 Notation vint n := (vlit $ lint n).
 Notation vbool b := (vlit $ lbool b).
 
+(** Definition lists [\overbar{d}]. *)
 Definition dms := list (label * dm).
+(** Typing contexts [Γ]. *)
 Definition ctx := list ty.
 
 Declare Scope dms_scope.
@@ -383,7 +405,7 @@ Instance inh_label : Inhabited label := _.
 Instance hsubst_lemmas_dms : HSubstLemmas vl dms := _.
 
 (******************************************************************************)
-(** Auxiliary definitions for operational semantics. *)
+(** * Auxiliary definitions for operational semantics. *)
 (******************************************************************************)
 
 Fixpoint path2tm p: tm :=
@@ -393,7 +415,7 @@ Fixpoint path2tm p: tm :=
   end.
 
 (******************************************************************************)
-(** Auxiliary definitions for operational semantics: primitives. *)
+(** ** Auxiliary definitions for operational semantics: primitives. *)
 (******************************************************************************)
 Definition un_op_eval (u : un_op) (v1 : vl) : option vl :=
   match u, v1 with
@@ -434,7 +456,7 @@ Definition bin_op_eval (b : bin_op) (v1 v2 : vl) : option vl :=
   end.
 
 (******************************************************************************)
-(** Auxiliary definitions for operational semantics: object lookup. *)
+(** ** Auxiliary definitions for operational semantics: object lookup. *)
 (******************************************************************************)
 
 Fixpoint dms_lookup l ds : option dm :=
@@ -451,6 +473,7 @@ Fixpoint dms_lookup l ds : option dm :=
     variable). To use when descending under the [vobj] binder. *)
 Definition selfSubst ds: dms := ds.|[vobj ds/].
 
+(** Member selection, on paper [v.l ↘ d]. *)
 Definition objLookup v (l: label) d: Prop :=
   ∃ ds, v = vobj ds ∧ (dms_lookup l (selfSubst ds)) = Some d.
 Hint Unfold objLookup : core.
@@ -461,7 +484,7 @@ Notation "v @ l ↘ d" := (objLookup v l d) (at level 74).
 (** Instead of letting obj_opens_to autounfold,
     provide tactics to show it's deterministic and so on. *)
 
-(** Rewrite v ↗ ds to vobj ds' ↗ ds. *)
+(** Rewrite v @ l ↘ ds to vobj ds' @ l ↘ ds. *)
 Ltac simplOpen ds :=
   lazymatch goal with
   | H: ?v @ ?l ↘ ?d |-_=>
@@ -489,6 +512,8 @@ Definition to_val (t: tm) : option vl :=
 
 Definition of_val: vl → tm := tv.
 
+(** ** Evaluation context nodes.
+On-paper evaluation contexts [K] correspond to [list ectx_item]. *)
 Inductive ectx_item :=
 | AppLCtx (e2 : tm)
 | AppRCtx (v1 : vl)
@@ -499,6 +524,7 @@ Inductive ectx_item :=
 | BinRCtx (b : bin_op) (v1 : vl)
 | IfCtx (e1 e2 : tm).
 
+(** Context-filling. *)
 Definition fill_item (Ki : ectx_item) (e : tm) : tm :=
   match Ki with
   | AppLCtx e2 => tapp e e2
@@ -511,15 +537,22 @@ Definition fill_item (Ki : ectx_item) (e : tm) : tm :=
   | IfCtx e1 e2 => tif e e1 e2
   end.
 
-
+(** ** Head-reduction [e →ₕ e'].
+Its context closure [e →ₜ e'] is called [prim_step] and defined by Iris. *)
 Inductive head_step : tm → unit → list unit → tm → unit → list tm → Prop :=
+(* [(λ x. e) v →ₕ e[x ≔ v]] *)
 | st_beta t1 v2 σ:
   head_step (tapp (tv (vabs t1)) (tv v2)) σ [] (t1.|[v2/]) σ []
 | st_proj v l σ p:
+  (* [v.a ↘ p] *)
+  (* ---------- *)
+  (* [v.a →ₕ p] *)
   v @ l ↘ dpt p →
   head_step (tproj (tv v) l) σ [] (path2tm p) σ []
+(* [coerce v →ₕ v] *)
 | st_skip v σ:
   head_step (tskip (tv v)) σ [] (tv v) σ []
+(** Rules for primitive operations: *)
 | st_un u v1 v σ:
   un_op_eval u v1 = Some v →
   head_step (tun u (tv v1)) σ [] (tv v) σ []
@@ -588,7 +621,7 @@ Instance sort_dm : Sort dm := {}.
 Instance sort_path : Sort path := {}.
 Instance sort_ty : Sort ty := {}.
 
-(** Induction principles for syntax. *)
+(** *** Induction principles for syntax. *)
 
 Section syntax_mut_rect.
   Variable Ptm : tm   → Type.
@@ -713,10 +746,10 @@ Section syntax_mut_ind.
   Qed.
 End syntax_mut_ind.
 
-(** Induction principles for closed terms. *)
+(** *** Induction principles for closed terms. *)
 
-
-(* Some inversion lemmas for [nclosed], needed below. *)
+(** Some inversion lemmas for [nclosed], needed below. See docs for
+[solve_inv_fv_congruence] for explanations. *)
 
 (* The proof of this lemma needs asimpl and hence is expensive, so we provide it
    separately. *)
