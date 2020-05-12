@@ -147,11 +147,6 @@ Ltac hideCtx :=
   | |- ?Γ v⊢ds[ _ ] _ : _ => hideCtx' Γ
   end.
 
-Hint Constructors typed subtype dms_typed dm_typed path_typed : core.
-Remove Hints iSub_Trans : core.
-Hint Extern 10 => try_once iSub_Trans : core.
-
-
 (** Not used here, but useful for extending storeless typing and making it compositional. *)
 Lemma storeless_typing_mono_mut Γ g :
   (∀ e T, Γ v⊢ₜ[ g ] e : T → ∀ g' (Hle : g ⊆ g'), Γ v⊢ₜ[ g' ] e : T) ∧
@@ -169,7 +164,7 @@ Proof.
   clear Γ g; intros;
     repeat match goal with
     | H : forall g : stys, _ |- _ => specialize (H g' Hle)
-    end; eauto 3; eauto using storeless_typing.typed.
+    end; eauto 3; eauto.
 Qed.
 
 Hint Resolve is_stamped_idsσ_ren : core.

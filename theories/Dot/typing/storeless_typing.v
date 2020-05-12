@@ -344,6 +344,12 @@ with   stamped_subtype_mut_ind := Induction for subtype Sort Prop.
 Combined Scheme storeless_typing_mut_ind from stamped_typed_mut_ind, stamped_dms_typed_mut_ind,
   stamped_dm_typed_mut_ind, stamped_path_typed_mut_ind, stamped_subtype_mut_ind.
 
+(** ** A few derived rules, and some automation to use them in examples. *)
+
+Hint Constructors typed subtype dms_typed dm_typed path_typed : core.
+Remove Hints iSub_Trans : core.
+Hint Extern 10 => try_once iSub_Trans : core.
+
 Lemma iT_All_I Γ e T1 T2 g:
   is_stamped_ty (length Γ) g T1 →
   shift T1 :: Γ v⊢ₜ[ g ] e : T2 →
