@@ -65,7 +65,9 @@ Definition safe_gen {Λ} (e : L.expr Λ) :=
   ∀ e' thp σ σ', rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
     L.not_stuck e' σ'.
 
-Definition safe_simpl `{LangDet Λ} (e : L.expr Λ) :=
+(** For a deterministic language, we can give a simpler definition,
+equivalent to [safe_gen], as shown in [safe_equiv]. *)
+Definition safe `{LangDet Λ} (e : L.expr Λ) :=
   ∀ e', rtc pure_step e e' → not_stuck e'.
 
 Hint Constructors rtc : core.
@@ -218,9 +220,11 @@ Proof.
   by move /elem_of_list_singleton ->.
 Qed.
 
-Lemma safe_equiv e : safe_gen e ↔ safe_simpl e.
+(** For a deterministic language, the general and specialized definitions of
+safety are equivalent. *)
+Lemma safe_equiv e : safe_gen e ↔ safe e.
 Proof.
-  rewrite /safe_simpl /safe_gen; split; intros Hsafe ?*.
+  rewrite /safe /safe_gen; split; intros Hsafe ?*.
   - intros Hred%pure_steps_erased'.
     by eapply (Hsafe e'), elem_of_list_singleton.
   - move => + Hin => /rtc_erased_step_inversion /(_ Hin).
@@ -237,5 +241,3 @@ Proof.
   inversion 1; simplify_eq/=. by eapply pure_exec_fill, head_step_PureExec.
 Qed.
 End EctxLangDet.
-
-Notation safe := safe_simpl.
