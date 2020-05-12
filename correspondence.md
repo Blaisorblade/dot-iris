@@ -84,17 +84,60 @@ Inside the [`Dot`](theories/Dot) folder:
 
 ## Paper - development mapping
 
+### Trusted base
+To confirm that we have proved type soundness for gDOT, and that our examples
+are well-typed and/or type-safe, it is sufficient to check our type soundness
+theorem, and the involved definitions.
+
 Sec. 2:
-- gDOT syntax and operational semantics (Fig. 3): [`Dot/syn/syn.v`](theories/Dot/syn/syn.v)
+- syntax and operational semantics for unstamped and stamped gDOT (Fig. 3, Sec. 5.1):
+  [`Dot/syn/syn.v`](theories/Dot/syn/syn.v).
+  - values, expressions, paths, definition bodies and lists, types are called
+    respectively `vl`, `tm`, `path`, `dm`, `dms`, `ty`;
+  - member selection: `objLookup`
+  - evaluation contexts: `list ectx_item`.
+  - operational semantics:
+    - head-reduction: `head_step`; reduction: `prim_step`.
 
 Sec. 4:
 - gDOT unstamped typing judgments (Sec. 4, Fig. 6, 7):
   - The `Γ1 ≫ ▷ Γ2` judgment, and auxiliary judgments for primitive types:
     [`Dot/typing/typing_aux_defs.v`](theories/Dot/typing/typing_aux_defs.v)
-  - Primitive rules: [`Dot/typing/unstamped_typing.v`](theories/Dot/typing/unstamped_typing.v)
+  - Primitive typing rules: [`Dot/typing/unstamped_typing.v`](theories/Dot/typing/unstamped_typing.v)
   - Derived rules:
     [`Dot/typing/unstamped_typing.v`](theories/Dot/typing/unstamped_typing.v),
     [`Dot/typing/unstamped_typing_derived_rules.v`](theories/Dot/typing/unstamped_typing_derived_rules.v)
+
+Sec. 5:
+- Safety (Def. 5.1) is defined as `safe` in
+  [`iris_extra/det_reduction.v`](theories/iris_extra/det_reduction.v).
+- Type soundness for gDOT (Thm. 5.2) is proven in
+  [`Dot/fundamental.v`](theories/Dot/fundamental.v) as `Corollary
+  type_soundness`.
+
+Sec. 6:
+- Examples are written using high-level notations than the one defined in `syn.v`:
+  - `Module DBNotation` is defined in
+    [`Dot/examples/ex_utils.v`](theories/Dot/examples/ex_utils.v); it is merely
+    an alternative Unicode notation for deBruijn terms.
+  - `Module hoasNotation` is defined in
+    [`Dot/examples/hoas.v`](theories/Dot/examples/hoas.v); it defines an HOAS
+    frontend for writing concrete terms.
+
+- Examples are in [`Dot/examples/`](theories/Dot/examples/). In particular:
+  - Motivating example (Fig. 2, discussed in Sec. 1.1 and 4.0): [`Dot/examples/from_pdot_mutual_rec.v`](theories/Dot/examples/from_pdot_mutual_rec.v); here we
+    simplified the use of `Option` away, but we do use `Option` when formalizing Sec. 6.3.
+  - Covariant lists example (Fig. 10, Sec. 6.1): [`Dot/examples/list.v`](theories/Dot/examples/list.v).
+  - Positive integers example (Fig. 11, Sec. 6.2): [`Dot/examples/positive_div.v`](theories/Dot/examples/positive_div.v).
+  - Unsafe motivating example (Fig. 12, Sec. 6.3): [`Dot/examples/from_pdot_mutual_rec_sem.v`](theories/Dot/examples/from_pdot_mutual_rec_sem.v).
+
+Sec. 7:
+- For the (updated) code sizes, see [`codesize.md`](codesize.md).
+- Testcase [`tests/test_used_axioms.v`](tests/test_used_axioms.v) confirms that the only axiom we use is functional extensionality.
+
+### Proofs
+
+The proof strategy we describe in the paper is implemented in the following files.
 
 Sec. 5:
 - Stamped typing is defined in [`Dot/typing/stamped_typing.v`](theories/Dot/typing/stamped_typing.v).
@@ -111,22 +154,11 @@ Sec. 5:
   - Auxiliary definitions appear in [`iris_extra/dlang.v`](theories/iris_extra/dlang.v).
   - Infrastructure on semantic predicates
     is defined in [`Dot/lr/lty.v`](theories/Dot/lr/lty.v) and [`Dot/lr/dot_lty.v`](theories/Dot/lr/dot_lty.v).
+  - The core definition
+
   - The logical relation and semantic judgments are completed in [`Dot/unary_lr.v`](theories/Dot/unary_lr.v),
     including adequacy (Thm. 5.5).
-- The fundamental theorem (Thm. 5.4) and type soundness for gDOT (Thm. 5.2)
-  are proven in [`Dot/fundamental.v`](theories/Dot/fundamental.v).
-
-Sec. 6:
-- Examples are in [`Dot/examples/`](theories/Dot/examples/). In particular:
-  - Motivating example (Fig. 2, discussed in Sec. 1.1 and 4.0): [`Dot/examples/from_pdot_mutual_rec.v`](theories/Dot/examples/from_pdot_mutual_rec.v); here we
-    simplified the use of `Option` away, but we do use `Option` when formalizing Sec. 6.3.
-  - Covariant lists example (Fig. 10, Sec. 6.1): [`Dot/examples/list.v`](theories/Dot/examples/list.v).
-  - Positive integers example (Fig. 11, Sec. 6.2): [`Dot/examples/positive_div.v`](theories/Dot/examples/positive_div.v).
-  - Unsafe motivating example (Fig. 12, Sec. 6.3): [`Dot/examples/from_pdot_mutual_rec_sem.v`](theories/Dot/examples/from_pdot_mutual_rec_sem.v).
-
-Sec. 7:
-- For the code sizes, see [`codesize.md`](codesize.md).
-- Testcase [`tests/test_used_axioms.v`](tests/test_used_axioms.v) confirms that the only axiom we use is functional extensionality.
+- The fundamental theorem (Thm. 5.4) is proven in [`Dot/fundamental.v`](theories/Dot/fundamental.v).
 
 ## Typing lemma naming conventions
 
