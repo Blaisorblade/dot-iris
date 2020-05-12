@@ -237,14 +237,6 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     Γ s⊢ₚ[ g ] p : T, i →
     Γ s⊢ₜ[ g ] TSing p, i <: T, i
 
-(* TODO: figure out if the drugs I had when I wrote these rules were good or bad. *)
-(* | iSel_Sub l L U p i j: *)
-(*     Γ s⊢ₚ[ g ] p : TTMem l L U, i → *)
-(*     Γ s⊢ₜ[ g ] TSel p l, j <: U, S (i + j) *)
-(* | iSub_Sel l L U p i j: *)
-(*     Γ s⊢ₚ[ g ] p : TTMem l L U, i → *)
-(*     Γ s⊢ₜ[ g ] L, S (i + j) <: TSel p l, j *)
-
 (* Subtyping for recursive types. Congruence, and opening in both directions. *)
 | iMu_Sub_Mu T1 T2 i j:
     (iterate TLater i T1 :: Γ) s⊢ₜ[ g ] T1, i <: T2, j →
