@@ -1,13 +1,17 @@
-(**
- *)
+(** * Motivating example, syntactic version.
+
+This example is called in code [fromPDotPaper], because it is indeed inspired
+by the pDOT paper.
+
+Here, the main lemma is [fromPDotPaperTyp], saying that
+[fromPDotPaper] has type [μ fromPDotPaperAbsTBody].
+*)
 
 From D Require Import tactics.
 From D.Dot Require Import syn path_repl.
 From D.Dot.typing Require Import unstamped_typing unstamped_typing_derived_rules.
 From D.Dot Require Import ex_utils scala_lib.
 Import DBNotation.
-
-(** FromPDotPaper *)
 
 Definition typeRefTBody : ty := {@
   val "symb" : x1 @ "symbols" @; "Symbol"

@@ -1,5 +1,20 @@
-(**
- *)
+(** * Motivating example, semantic version.
+
+This example is called in code [fromPDotPaper], because it is indeed inspired
+by the pDOT paper. This example is encoded using both [DBNotation] and
+[hoasNotation].
+
+Here, the main lemmas are
+- [fromPDotPaperTyp], saying that
+  [fromPDotPaper] has semantic type [μ (fromPDotPaperAbsTBody x1)]
+  in a suitable context, and
+- [pcoreSafe], asserting safety of
+  [lett hoptionModV fromPDotPaper], which links [fromPDotPaper] against
+  [hoptionModV], an implementation of Option.
+
+The implementation also uses, for convenience, storeless typing.
+*)
+
 From stdpp Require Import strings.
 From iris.program_logic Require Import ectx_language.
 From iris.proofmode Require Import tactics.
