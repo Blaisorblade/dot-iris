@@ -86,9 +86,6 @@ theories/Dot/examples/scala_lib.v
 theories/Dot/examples/storeless_typing_ex.v
 theories/Dot/examples/storeless_typing_ex_utils.v
 theories/Dot/examples/unstamped_typing_ex.v
-theories/Dot/misc_unused/experiments.v
-theories/Dot/misc_unused/path_repl_misc.v
-theories/Dot/misc_unused/skeleton_termination.v
 
 
 theories/DSub/syn/rules.v
