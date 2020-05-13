@@ -2,48 +2,6 @@ All file paths in this file are relative to the [`theories/`](theories/) folder.
 
 # Correspondence between paper and Coq dev
 
-## Directory Layout
-
-* [`theories/Dot`](theories/Dot): guarded DOT. Complete.
-* [`theories/`](theories/): General infrastructure.
-* [`theories/pure_program_logic`](theories/pure_program_logic): define a "pure"
-  variant of Iris's weakest precondition.
-* [`theories/iris_extra`](theories/iris_extra): Additional Iris infrastructure.
-  - [`dlang.v`](theories/iris_extra/dlang.v): instantiate Iris with the language setup for our proofs
-  - [`lty.v`](theories/iris_extra/lty.v): define semantic types (called `lty`
-    for logical types), together with language-generic utilities, such as
-    substitution and substitution lemmas on them.
-
-Inside the [`Dot`](theories/Dot) folder:
-* [`syn`](theories/Dot/syn): syntax
-  - [`syn.v`](theories/Dot/syn/syn.v): definition of the basic SYNtax, and instantiate Iris with DOT
-    operational semantics.
-  - [`syn_lemmas.v`](theories/Dot/syn/syn_lemmas.v): (SYNtactic Lemmas): lemmas about syntax and binding.
-  - [`rules.v`](theories/Dot/syn/rules.v): lemmas about this language's operational semantics.
-* [`lr`](theories/Dot/lr): logical relation, semantic typing judgment
-  - [`dlang_inst.v`](theories/Dot/lr/dlang_inst.v): instantiate shared Iris setup from [`dlang.v`](theories/iris_extra/dlang.v);
-  - [`path_wp.v`](theories/Dot/lr/path_wp.v): define path weakest precondition;
-  - [`dot_lty.v`](theories/Dot/lr/dot_lty.v): define DOT-specific infrastructure on semantic types (lty), such as semantic types for definitions.
-  - [`unary_lr.v`](theories/Dot/lr/unary_lr.v): definition of unary logical relation.
-  - [`later_sub_sem.v`](theories/Dot/lr/later_sub_sem.v): define semantics of
-    the `Γ1 ≫ ▷ Γ2` judgment.
-* [`semtyp_lemmas`](theories/Dot/semtyp_lemmas): semantic typing lemmas:
-  - [`binding_lr.v`](theories/Dot/semtyp_lemmas/binding_lr.v): misc typing lemmas,
-    requiring additional Coq-level dependencies such as lemmas about binding or operational semantics.
-  - [`defs_lr.v`](theories/Dot/semtyp_lemmas/defs_lr.v): DEFinitionS;
-  - [`no_binding_lr.v`](theories/Dot/semtyp_lemmas/no_binding_lr.v): various
-    typing lemmas, not requiring additional dependencies.
-  - [`path_repl_lr.v`](theories/Dot/semtyp_lemmas/path_repl_lr.v):
-    PATH REPLacement and pDOT-specific lemmas;
-  - [`prims_lr.v`](theories/Dot/semtyp_lemmas/prims_lr.v): PRIMitiveS;
-  - [`tdefs_lr.v`](theories/Dot/semtyp_lemmas/defs_lr.v): Type DEFinitionS;
-  - [`tsel_lr.v`](theories/Dot/semtyp_lemmas/tsel_lr.v): Type SELections;
-* [`stamping`](theories/Dot/stamping): definitions and lemmas about stamping.
-* [`typing`](theories/Dot/typing): syntactic typing and auxiliary lemmas about it
-  - [`typing_stamping.v`](theories/Dot/typing_stamping.v): prove stamping of typing derivations.
-* [`examples`](theories/Dot/examples): various gDOT snippets.
-* [`fundamental.v`](theories/Dot/fundamental.v): prove fundamental theorem, adequacy and type safety.
-
 ## Differences between our paper (and technical appendix) and our Coq development
 
 There are a number of small differences between the paper presentation
@@ -232,3 +190,46 @@ corresponding prefixes.
 Hence, rule `iT_Path` is a syntactic rule for expression typing (the
 subsumption rule), called `T-Path` in the paper, while
 `sSub_Sel` is a semantic typing lemma corresponding to `<:-Sel`.
+
+# Directory Layout
+
+* [`theories/Dot`](theories/Dot): guarded DOT. Complete.
+* [`theories/`](theories/): General infrastructure.
+* [`theories/pure_program_logic`](theories/pure_program_logic): define a "pure"
+  variant of Iris's weakest precondition.
+* [`theories/iris_extra`](theories/iris_extra): Additional Iris infrastructure.
+  - [`dlang.v`](theories/iris_extra/dlang.v): instantiate Iris with the language setup for our proofs
+  - [`lty.v`](theories/iris_extra/lty.v): define semantic types (called `lty`
+    for logical types), together with language-generic utilities, such as
+    substitution and substitution lemmas on them.
+
+Inside the [`Dot`](theories/Dot) folder:
+* [`syn`](theories/Dot/syn): syntax
+  - [`syn.v`](theories/Dot/syn/syn.v): definition of the basic SYNtax, and instantiate Iris with DOT
+    operational semantics.
+  - [`syn_lemmas.v`](theories/Dot/syn/syn_lemmas.v): (SYNtactic Lemmas): lemmas about syntax and binding.
+  - [`rules.v`](theories/Dot/syn/rules.v): lemmas about this language's operational semantics.
+* [`lr`](theories/Dot/lr): logical relation, semantic typing judgment
+  - [`dlang_inst.v`](theories/Dot/lr/dlang_inst.v): instantiate shared Iris setup from [`dlang.v`](theories/iris_extra/dlang.v);
+  - [`path_wp.v`](theories/Dot/lr/path_wp.v): define path weakest precondition;
+  - [`dot_lty.v`](theories/Dot/lr/dot_lty.v): define DOT-specific infrastructure on semantic types (lty), such as semantic types for definitions.
+  - [`unary_lr.v`](theories/Dot/lr/unary_lr.v): definition of unary logical relation.
+  - [`later_sub_sem.v`](theories/Dot/lr/later_sub_sem.v): define semantics of
+    the `Γ1 ≫ ▷ Γ2` judgment.
+* [`semtyp_lemmas`](theories/Dot/semtyp_lemmas): semantic typing lemmas:
+  - [`binding_lr.v`](theories/Dot/semtyp_lemmas/binding_lr.v): misc typing lemmas,
+    requiring additional Coq-level dependencies such as lemmas about binding or operational semantics.
+  - [`defs_lr.v`](theories/Dot/semtyp_lemmas/defs_lr.v): DEFinitionS;
+  - [`no_binding_lr.v`](theories/Dot/semtyp_lemmas/no_binding_lr.v): various
+    typing lemmas, not requiring additional dependencies.
+  - [`path_repl_lr.v`](theories/Dot/semtyp_lemmas/path_repl_lr.v):
+    PATH REPLacement and pDOT-specific lemmas;
+  - [`prims_lr.v`](theories/Dot/semtyp_lemmas/prims_lr.v): PRIMitiveS;
+  - [`tdefs_lr.v`](theories/Dot/semtyp_lemmas/defs_lr.v): Type DEFinitionS;
+  - [`tsel_lr.v`](theories/Dot/semtyp_lemmas/tsel_lr.v): Type SELections;
+* [`stamping`](theories/Dot/stamping): definitions and lemmas about stamping.
+* [`typing`](theories/Dot/typing): syntactic typing and auxiliary lemmas about it
+  - [`typing_stamping.v`](theories/Dot/typing_stamping.v): prove stamping of typing derivations.
+* [`examples`](theories/Dot/examples): various gDOT snippets.
+* [`fundamental.v`](theories/Dot/fundamental.v): prove fundamental theorem, adequacy and type safety.
+
