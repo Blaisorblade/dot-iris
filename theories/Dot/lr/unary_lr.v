@@ -62,7 +62,7 @@ Section judgments.
 
   (** Expression typing *)
   Definition setp `{!dlangG Σ} e Γ τ : iProp Σ :=
-    □∀ ρ, sG⟦Γ⟧* ρ → E⟦ τ ⟧ ρ (e.|[ρ]).
+    □∀ ρ, sG⟦Γ⟧* ρ → sE⟦ τ ⟧ ρ (e.|[ρ]).
   Global Arguments setp /.
 
   (** Indexed subtyping. *)
@@ -192,7 +192,7 @@ Section SemTypes.
   Definition oAll τ1 τ2 := olty0
     (λI ρ v,
     (∃ t, ⌜ v = vabs t ⌝ ∧
-     □ ∀ w, ▷ τ1 vnil ρ w → ▷ E⟦ τ2 ⟧ (w .: ρ) t.|[w/])).
+     □ ∀ w, ▷ τ1 vnil ρ w → ▷ sE⟦ τ2 ⟧ (w .: ρ) t.|[w/])).
 
   Global Instance Proper_oAll : Proper ((≡) ==> (≡) ==> (≡)) oAll.
   Proof. solve_proper_ho. Qed.
@@ -298,7 +298,7 @@ Section JudgDefs.
   Proof. reflexivity. Qed.
 
   Lemma ietp_eq Γ e T :
-    Γ ⊨ e : T ⊣⊢ □∀ ρ, G⟦Γ⟧ ρ → E⟦ V⟦T⟧ ⟧ ρ (e.|[ρ]).
+    Γ ⊨ e : T ⊣⊢ □∀ ρ, G⟦Γ⟧ ρ → sE⟦ V⟦T⟧ ⟧ ρ (e.|[ρ]).
   Proof. reflexivity. Qed.
 
   Lemma istpi_eq Γ T1 i T2 j :

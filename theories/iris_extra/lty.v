@@ -438,5 +438,5 @@ Section olty_ofe_2.
     Olty (λI args ρ v, ∃ ψ, s ↗n[σ, i] ψ ∧ ▷ □ ψ args v).
 End olty_ofe_2.
 
-Notation "E⟦ τ ⟧" := (interp_expr τ).
+Notation "sE⟦ τ ⟧" := (interp_expr τ).
 End Lty.
