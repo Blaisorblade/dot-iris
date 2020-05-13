@@ -4,7 +4,7 @@
 From D Require Import tactics.
 From D.Dot Require Import syn path_repl.
 From D.Dot.typing Require Import unstamped_typing unstamped_typing_derived_rules.
-From D.Dot Require Import ex_utils scala_lib.
+From D.Dot Require Import hoas ex_utils scala_lib.
 Import DBNotation.
 
 (** FromPDotPaper *)
@@ -42,35 +42,38 @@ Definition fromPDotPaperTypesV : vl := ν {@
     })
 }.
 
-Definition fromPDotPaperSymbolsTBody : ty := {@
+Definition optionTy pOpt pCore :=
+  TAnd (pOpt @; "Option") (type "T" >: ⊥ <: (pCore @ "types" @; "Type")).
+
+Definition fromPDotPaperSymbolsTBody pOpt : ty := {@
   typeEq "Symbol" $ {@
-    val "tpe" : x1 @ "types" @; "Type";
+    val "tpe" : optionTy pOpt x1;
     val "id" : TInt
   }%ty;
-  val "newSymbol" : x1 @ "types" @; "Type" →: TInt →: x0 @; "Symbol"
+  val "newSymbol" : optionTy pOpt x1 →: TInt →: x0 @; "Symbol"
 }.
 
-Definition fromPDotPaperAbsSymbolsTBody : ty := {@
+Definition fromPDotPaperAbsSymbolsTBody pOpt : ty := {@
   type "Symbol" >: ⊥ <: {@
-    val "tpe" : x1 @ "types" @; "Type";
+    val "tpe" : optionTy pOpt x1;
     val "id" : TInt
   };
-  val "newSymbol" : x1 @ "types" @; "Type" →: TInt →: x0 @; "Symbol"
+  val "newSymbol" : optionTy pOpt x1 →: TInt →: x0 @; "Symbol"
 }.
 
-Definition fromPDotPaperTBody : ty := {@
+Definition fromPDotPaperTBody pOpt : ty := {@
   val "types" : μ fromPDotPaperTypesTBody;
-  val "symbols" : μ fromPDotPaperSymbolsTBody
+  val "symbols" : μ (fromPDotPaperSymbolsTBody (shift pOpt))
 }.
 
-Definition fromPDotPaperAbsTBody : ty := {@
+Definition fromPDotPaperAbsTBody pOpt : ty := {@
   val "types" : μ fromPDotPaperAbsTypesTBody;
-  val "symbols" : μ fromPDotPaperAbsSymbolsTBody
+  val "symbols" : μ (fromPDotPaperAbsSymbolsTBody (shift pOpt))
 }.
 
-Definition fromPDotPaperSymbolsV : vl := ν {@
+Definition fromPDotPaperSymbolsV pOpt : vl := ν {@
   type "Symbol" = {@
-    val "tpe" : x1 @ "types" @; "Type";
+    val "tpe" : optionTy (shift pOpt) x1;
     val "id" : TInt
   };
   val "newSymbol" = (vabs $ vabs $ ν {@
@@ -79,13 +82,13 @@ Definition fromPDotPaperSymbolsV : vl := ν {@
   })
 }.
 
-Definition fromPDotPaper : vl := ν {@
+Definition fromPDotPaper pOpt : vl := ν {@
   val "types" = fromPDotPaperTypesV;
-  val "symbols" = fromPDotPaperSymbolsV
+  val "symbols" = fromPDotPaperSymbolsV (shift pOpt)
 }.
 
 Example fromPDotPaperTypesTyp :
-  TLater fromPDotPaperAbsTBody :: [] u⊢ₜ
+  TLater (fromPDotPaperAbsTBody x1) :: optionModT :: [] u⊢ₜ
     fromPDotPaperTypesV : μ fromPDotPaperTypesTBody.
 Proof.
   tcrush.
@@ -107,7 +110,7 @@ Proof.
 Qed.
 
 Example fromPDotPaperTypesAbsTyp :
-  TLater fromPDotPaperAbsTBody :: [] u⊢ₜ
+  TLater (fromPDotPaperAbsTBody x1) :: optionModT :: [] u⊢ₜ
     fromPDotPaperTypesV : μ fromPDotPaperAbsTypesTBody.
 Proof.
   eapply iT_Sub_nocoerce; first exact: fromPDotPaperTypesTyp; ltcrush.
@@ -116,8 +119,8 @@ Proof.
 Qed.
 
 Example fromPDotPaperSymbolsTyp :
-  TLater fromPDotPaperAbsTBody :: [] u⊢ₜ
-    fromPDotPaperSymbolsV : μ fromPDotPaperSymbolsTBody.
+  TLater (fromPDotPaperAbsTBody x1) :: optionModT :: [] u⊢ₜ
+    fromPDotPaperSymbolsV x1 : μ (fromPDotPaperSymbolsTBody x2).
 Proof.
   tcrush.
   - eapply (iT_Sub_nocoerce) => /=; hideCtx.
@@ -130,22 +133,28 @@ Proof.
 Qed.
 
 Example fromPDotPaperSymbolsAbsTyp :
-  TLater fromPDotPaperAbsTBody :: [] u⊢ₜ
-    fromPDotPaperSymbolsV : μ fromPDotPaperAbsSymbolsTBody.
+  TLater (fromPDotPaperAbsTBody x1) :: optionModT :: [] u⊢ₜ
+    fromPDotPaperSymbolsV x1 : μ (fromPDotPaperAbsSymbolsTBody x2).
 Proof.
   eapply iT_Sub_nocoerce; first exact: fromPDotPaperSymbolsTyp; tcrush.
   lThis.
 Qed.
 
-Example fromPDotPaperTyp : [] u⊢ₜ fromPDotPaper : μ fromPDotPaperAbsTBody.
+Example fromPDotPaperTyp : optionModT :: [] u⊢ₜ fromPDotPaper x0 : μ (fromPDotPaperAbsTBody x1).
 Proof.
   pose proof fromPDotPaperTypesAbsTyp.
   pose proof fromPDotPaperSymbolsAbsTyp.
   tcrush.
 Qed.
 
-Definition getAnyTypeT : ty :=
-  TAll (μ fromPDotPaperAbsTBody) (⊤ →: p0 @ "types" @; "TypeTop").
+Example pCoreTyp : [] u⊢ₜ lett hoptionModV (fromPDotPaper x0) : ⊤.
+Proof.
+  eapply iT_All_E, optionModTyp; tcrush.
+  eapply (iT_Sub (i := 0)), fromPDotPaperTyp; tcrush.
+Qed.
+
+Definition getAnyTypeT pOpt : ty :=
+  TAll (μ (fromPDotPaperAbsTBody (shift pOpt))) (⊤ →: p0 @ "types" @; "TypeTop").
 Definition getAnyType : vl := vabs (tskip (tproj (tproj x0 "types") "newTypeTop")).
 
 Ltac simplSubst := rewrite /= /up/= /ids/ids_vl/=.
@@ -163,11 +172,11 @@ Definition fromPDotPaperAbsTypesTBodySubst : ty := {@
 Lemma fromPDotPSubst: fromPDotPaperAbsTypesTBody .Tp[ (p0 @ "types") /]~ fromPDotPaperAbsTypesTBodySubst.
 Proof. exact: psubst_ty_rtc_sufficient. Qed.
 
-Example getAnyTypeFunTyp Γ : Γ u⊢ₜ getAnyType : getAnyTypeT.
+Example getAnyTypeFunTyp Γ T : T :: optionModT :: Γ u⊢ₜ getAnyType : getAnyTypeT x1.
 Proof.
   rewrite /getAnyType -(iterate_S tskip 0); tcrush.
   eapply (iT_Sub (T1 := TLater (⊤ →: p0 @ "types" @; "TypeTop"))); tcrush.
-  set Γ' := shift (μ fromPDotPaperAbsTBody) :: Γ.
+  set Γ' := shift (μ fromPDotPaperAbsTBody (shiftV x1)) :: T :: optionModT :: Γ.
   have Hpx: Γ' u⊢ₚ p0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0
     by tcrush; eapply iT_Sub_nocoerce;
       [ by eapply iT_Mu_E; first var; stcrush | tcrush].
@@ -179,8 +188,8 @@ Proof.
 Qed.
 
 Example getAnyTypeTyp0 :
-  [μ fromPDotPaperAbsTBody] u⊢ₜ
-    getAnyType $: x0 $: () : p0 @ "types" @; "TypeTop".
+  [μ (fromPDotPaperAbsTBody x2); optionModT] u⊢ₜ
+    getAnyType $: x0 $: () : x0 @ "types" @; "TypeTop".
 Proof.
   eapply (iT_All_E (T1 := ⊤)), iT_Sub_nocoerce; tcrush.
   eapply iT_All_Ex'; [exact: getAnyTypeFunTyp|var|tcrush..].
