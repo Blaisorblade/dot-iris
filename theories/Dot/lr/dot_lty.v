@@ -184,6 +184,7 @@ Global Arguments pty_interp {_ _} !_ /.
 Notation "V⟦ T ⟧" := (pty_interp T).
 Notation "Vs⟦ g ⟧" := (fmap (M := gmap stamp) (B := hoEnvD _ 0) pty_interp g).
 Notation "V⟦ Γ ⟧*" := (fmap (M := list) pty_interp Γ).
+Notation "E⟦ T ⟧" := (sE⟦ V⟦ T ⟧ ⟧).
 
 Class CTyInterpLemmas Σ `{!CTyInterp Σ} := {
   interp_subst_compose_ind T {args} ρ1 ρ2 v:

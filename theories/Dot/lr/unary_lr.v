@@ -298,7 +298,7 @@ Section JudgDefs.
   Proof. reflexivity. Qed.
 
   Lemma ietp_eq Γ e T :
-    Γ ⊨ e : T ⊣⊢ □∀ ρ, G⟦Γ⟧ ρ → sE⟦ V⟦T⟧ ⟧ ρ (e.|[ρ]).
+    Γ ⊨ e : T ⊣⊢ □∀ ρ, G⟦Γ⟧ ρ → E⟦T⟧ ρ (e.|[ρ]).
   Proof. reflexivity. Qed.
 
   Lemma istpi_eq Γ T1 i T2 j :
