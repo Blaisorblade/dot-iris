@@ -1,6 +1,6 @@
 From D Require Export iris_prelude.
-From D Require Import ty_interp_subst_lemmas.
-From D.DSub Require Export dlang_inst.
+From D.DSub Require Import dlang_inst ty_interp_subst_lemmas.
+Export dlang_inst.
 
 Include TyInterpLemmas VlSorts dlang_inst.
 Export ty_interp_lemmas.

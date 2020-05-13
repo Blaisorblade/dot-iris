@@ -1,3 +1,4 @@
+(** * Binding lemmas about DSub* logical relations. *)
 From D Require Import prelude iris_prelude asubst_base saved_interp_dep.
 
 Set Suggest Proof Using.
@@ -19,7 +20,6 @@ Class TyInterpLemmas ty Σ `{sort_ty : Sort ty} `{!TyInterp ty Σ} := {
     ⟦ T.|[ρ1] ⟧ ρ2 v ⊣⊢ ⟦ T ⟧ (ρ1 >> ρ2) v;
 }.
 
-(** * Lemmas about the logical relation itself. *)
 Section logrel_binding_lemmas.
   Context `{Htil : TyInterpLemmas ty Σ}.
 

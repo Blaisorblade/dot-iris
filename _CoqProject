@@ -30,7 +30,6 @@ theories/prelude.v
 theories/proper.v
 theories/succ_notation.v
 theories/tactics.v
-theories/ty_interp_subst_lemmas.v
 
 theories/Dot/syn/drop_skips.v
 theories/Dot/syn/lr_syn_aux.v
@@ -96,6 +95,7 @@ theories/DSub/syn/rules.v
 theories/DSub/syn/syn.v
 theories/DSub/syn/syn_lemmas.v
 
+theories/DSub/lr/ty_interp_subst_lemmas.v
 theories/DSub/lr/adequacy.v
 theories/DSub/lr/dlang_inst.v
 theories/DSub/lr/unary_lr.v
