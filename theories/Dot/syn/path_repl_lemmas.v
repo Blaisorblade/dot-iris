@@ -1,3 +1,4 @@
+(** * Show equivalence of path substitution and normal substitution. *)
 From Coq.ssr Require Import ssrbool.
 From D Require Import succ_notation.
 From D.Dot Require Import syn path_repl.

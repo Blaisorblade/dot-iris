@@ -24,8 +24,8 @@ theories/iris_extra/proofmode_extra.v
 theories/iris_extra/saved_interp_dep.v
 theories/iris_extra/swap_later_impl.v
 
-theories/asubst_base.v
 theories/asubst_intf.v
+theories/asubst_base.v
 theories/prelude.v
 theories/proper.v
 theories/succ_notation.v

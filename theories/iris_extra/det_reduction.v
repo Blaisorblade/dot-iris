@@ -1,3 +1,4 @@
+(** * Define when a language is deterministic and when an expression is safe. *)
 From D Require Import prelude.
 From iris.program_logic Require language ectx_language.
 
@@ -21,6 +22,7 @@ Qed.
 Instance unit_pi: ProofIrrel ().
 Proof. by intros [] []. Qed.
 
+(** ** [LangDet] defines when a language is deterministic. *)
 (* Instances of [Inhabited] must not be bundled, as usual for operational type
 classes. *)
 Notation InhabitedState Λ := (Inhabited (L.state Λ)).
@@ -61,12 +63,13 @@ Proof. intros HP Hφ. exists v. eapply nsteps_rtc, HP, Hφ. Qed.
 
 Notation not_stuck e := (L.not_stuck e dummyState).
 
+(** ** Safety for an arbitrary Iris language. *)
 Definition safe_gen {Λ} (e : L.expr Λ) :=
   ∀ e' thp σ σ', rtc erased_step ([e], σ) (thp, σ') → e' ∈ thp →
     L.not_stuck e' σ'.
 
-(** For a deterministic language, we can give a simpler definition,
-equivalent to [safe_gen], as shown in [safe_equiv]. *)
+(** ** For a deterministic language, we can give a simpler definition.
+[safe_equiv] shows this is equivalent to [safe_gen]. *)
 Definition safe `{LangDet Λ} (e : L.expr Λ) :=
   ∀ e', rtc pure_step e e' → not_stuck e'.
 
@@ -220,8 +223,7 @@ Proof.
   by move /elem_of_list_singleton ->.
 Qed.
 
-(** For a deterministic language, the general and specialized definitions of
-safety are equivalent. *)
+(** ** For a deterministic language, [safe_gen] and [safe] are equivalent. *)
 Lemma safe_equiv e : safe_gen e ↔ safe e.
 Proof.
   rewrite /safe /safe_gen; split; intros Hsafe ?*.

@@ -1,3 +1,4 @@
+(** * Fundamental theorem and type safety for gDOT. *)
 From D Require Import swap_later_impl.
 (* For fundamental theorem. *)
 From D.Dot Require Import unary_lr storeless_typing tdefs_lr

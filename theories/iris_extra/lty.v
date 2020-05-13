@@ -1,4 +1,4 @@
-(** Formalize semantic types and associated infrastructure.
+(** * Formalize infrastructure for semantic types; not shown in the paper.
 
 In Iris one represents semantic types as persistent Iris predicates on
 values.
@@ -7,6 +7,9 @@ types take a value substitution as argument.
 
 Using Autosubst, we can define substitution on semantic types by
 precomposition: [ τ.|[s] = λ ρ, τ (ρ >> s) ].
+
+All this infrastructure works for arbitrary languages implementing
+[ValuesSig].
 *)
 From Coq Require ProofIrrelevance FunctionalExtensionality.
 From iris.algebra Require Import list.
@@ -25,8 +28,9 @@ Global Instance top_fun {A} `{Top B}: Top (A → B) := (λ _, ⊤).
 Global Instance bottom_ofe_fun {A} {B : ofeT} `{Bottom B}: Bottom (A -d> B) := (λ _, ⊥).
 Global Instance top_ofe_fun {A} {B : ofeT} `{Top B}: Top (A -d> B) := (λ _, ⊤).
 
-(**
-"Logical TYpes": persistent Iris predicates over values.
+(** ** "Iris Persistent Predicates" [iPPred].
+
+We use such predicates also for definition bodies and definition lists.
 Adapted from
 https://gitlab.mpi-sws.org/iris/examples/blob/d4f4153920ea82617c7222aeeb00b6710d51ee03/theories/logrel_heaplang/ltyping.v#L5. *)
 
@@ -42,6 +46,7 @@ Bind Scope iPPred_scope with iPPred.
 Delimit Scope iPPred_scope with T.
 Global Existing Instance iPPred_persistent.
 
+(** ** OFE on [iPPred]. *)
 Section iPPred_ofe.
   Context {vl : Type} {Σ}.
   Notation vpred := (iPPred vl Σ).
@@ -60,8 +65,9 @@ Section iPPred_ofe.
     iPPred_car τ1 ≡@{vl -d> _} iPPred_car τ2 ⊣⊢@{iPropI Σ} τ1 ≡ τ2.
   Proof. by uPred.unseal. Qed.
 
-  (** * Show iPPred forms a Cofe. Only needed to define Lty using Iris
-  fixpoints (e.g. for normal recursive types), so _currently_ unused. *)
+  (** ** Show iPPred forms a COFE.
+  Only needed to define Lty using Iris fixpoints (e.g. for normal recursive
+  types), so _currently_ unused. *)
   Definition pred_persistent (A : vl -d> iPropO Σ) := ∀ w, Persistent (A w).
 
   Instance: LimitPreserving pred_persistent.
@@ -105,6 +111,8 @@ Global Arguments iPPredO : clear implicits.
 
 Module Type Lty (Import VS: VlSortsSig) (Import LVS : LiftWp VS).
 
+(**
+** "Logical TYpes": persistent Iris predicates over values. *)
 Notation lty := (iPPred vl).
 Notation ltyO := (iPPredO vl).
 Notation Lty := (IPPred (vl := vl)).
@@ -119,6 +127,7 @@ Infix "⊆" := subtype_lty : bi_scope.
 Notation "X ⊆@{ Σ } Y" := (subtype_lty (Σ := Σ) X Y) (at level 70, only parsing) : bi_scope.
 Notation "X ⊆ Y ⊆ Z" := (X ⊆ Y ∧ Y ⊆ Z)%I : bi_scope.
 Notation "X ⊆ Y ⊆ Z ⊆ W" := (X ⊆ Y ∧ Y ⊆ Z ∧ Z ⊆ W)%I (at level 70, Y, Z at next level) : bi_scope.
+
 Section subtype_lty.
   Context {Σ}.
 
@@ -136,12 +145,12 @@ Section subtype_lty.
 End subtype_lty.
 
 
-(* "Open Logical TYpes": persistent Iris predicates over environments and values. *)
-Definition olty Σ i := vec vl i → env → lty Σ.
+(** * "Open Logical TYpes": persistent Iris predicates over environments and values. *)
+Definition olty Σ n := vec vl n → env → lty Σ.
 Notation oltyO Σ n := (vec vl n -d> env -d> ltyO Σ).
 
 Notation olty_car τ := (λ args ρ v, lty_car (τ args ρ) v).
-Definition oApp {Σ i} : olty Σ i → hoEnvD Σ i := λ φ, olty_car φ.
+Definition oApp {Σ n} : olty Σ n → hoEnvD Σ n := λ φ, olty_car φ.
 
 
 Definition hoLty Σ n := vec vl n → lty Σ.
@@ -162,6 +171,7 @@ Instance: Params (@packHoLtyO) 2 := {}.
 Instance packHoLtyO_proper {Σ n} : Proper ((≡) ==> (≡)) (packHoLtyO (Σ := Σ) (n := n)).
 Proof. solve_proper_ho. Qed.
 
+(** ** Substitution over [olty]. *)
 Section olty_subst.
   Context `{Σ : gFunctors} {i : nat}.
   Implicit Types (φ : hoEnvD Σ i) (τ : olty Σ i).
@@ -262,6 +272,8 @@ Section olty_subst.
     τ.|[v/] args ρ w ≡ τ args (v.[ρ] .: ρ) w.
   Proof. apply hoEnvD_subst_one. Qed. *)
 
+  (** Shift a type; [oShift T] and [shift T] have different reduction
+  behavior. *)
   Definition oShift (T : oltyO Σ i) :=
     Olty (λ args ρ v, T args (stail ρ) v).
 
@@ -283,7 +295,7 @@ Section oShift.
   Lemma oShift_subst (T : olty Σ i) ρ :
     (oShift T).|[up ρ] ≡ oShift T.|[ρ].
   Proof.
-    (* Works but is slow. *)
+    (* Working but slow proof: *)
     (* rewrite !oShift_eq; autosubst. *)
     move=>args ξ v; rewrite /= /hsubst /hsubst_hoEnvD /stail/=;
       apply eq_equiv; do 2 f_equal; autosubst.
@@ -292,8 +304,14 @@ End oShift.
 
 Notation oClose τ := (τ vnil).
 
+(** Semantic typing contexts [Γ]; the paper only uses syntactic typing
+contexts [Γ]. *)
 Definition sCtx Σ := listO (oltyO Σ 0).
 
+(** Part of the definition of [G⟦ Γ ⟧].
+Define when an environment [ρ] conforms to a semantic typing context [Γ],
+that is a list of semantic types.
+*)
 Reserved Notation "s⟦ Γ ⟧* ρ" (at level 10).
 Fixpoint env_oltyped `{dlangG Σ} (ρ : var → vl) (Γ : sCtx Σ) : iProp Σ :=
   match Γ with
@@ -303,9 +321,12 @@ Fixpoint env_oltyped `{dlangG Σ} (ρ : var → vl) (Γ : sCtx Σ) : iProp Σ :=
 where "s⟦ Γ ⟧* ρ" := (env_oltyped ρ Γ).
 Global Instance: Params (@env_oltyped) 4 := {}.
 
-(** * oLaterN *)
+(** ** Constructors for language-independent semantic types, corresponding to
+[⊤], [⊥], [T₁ ∧ T₂], [T₁ ∨ T₂], [μ x. T], [▷]. *)
+(** oLaterN *)
 Section oLaterN.
   Context {Σ} {i : nat}.
+  (** Semantic type constructor for [▷^n T] *)
   Definition oLaterN n (τ : oltyO Σ i) := Olty (λI args ρ v, ▷^n τ args ρ v).
 
   Global Instance oLaterN_ne m : NonExpansive (oLaterN m).
@@ -314,8 +335,8 @@ Section oLaterN.
 
   Lemma oLaterN_eq n τ args ρ v : oLaterN n τ args ρ v = (▷^n τ args ρ v)%I.
   Proof. done. Qed.
-
 End oLaterN.
+(** Semantic type constructor for [▷ T] *)
 Notation oLater := (oLaterN 1).
 
 Section olty_ofe_2.
@@ -365,21 +386,27 @@ Section olty_ofe_2.
   Definition olty0 (φ : envD Σ) `{∀ ρ v, Persistent (φ ρ v)} : oltyO Σ 0 :=
     Olty (vopen φ).
 
-  (** We can define once and for all basic "logical" types: top, bottom, and, or, later and μ. *)
-  Global Instance top_olty : Top (oltyO Σ i) := Olty ⊤.
-  Definition oTop : oltyO Σ i := ⊤.
+  (** *** We can define once and for all basic "logical" types: top, bottom, and, or, later and μ. *)
 
+  (** Semantic type constructor for [⊤] *)
+  Definition oTop : oltyO Σ i := ⊤.
+  Global Instance top_olty : Top (oltyO Σ i) := Olty ⊤.
+
+  (** Semantic type constructor for [⊥] *)
   Global Instance bot_olty : Bottom (oltyO Σ i) := Olty ⊥.
   Definition oBot : oltyO Σ i := ⊥.
 
+  (** Semantic type constructor for [T₁ ∧ T₂] *)
   Definition oAnd τ1 τ2 : oltyO Σ i := Olty (λI args ρ v, τ1 args ρ v ∧ τ2 args ρ v).
   Global Instance Proper_oAnd : Proper ((≡) ==> (≡) ==> (≡)) oAnd.
   Proof. solve_proper_ho. Qed.
 
+  (** Semantic type constructor for [T₁ ∨ T₂] *)
   Definition oOr τ1 τ2 : oltyO Σ i := Olty (λI args ρ v, τ1 args ρ v ∨ τ2 args ρ v).
   Global Instance Proper_oOr : Proper ((≡) ==> (≡) ==> (≡)) oOr.
   Proof. solve_proper_ho. Qed.
 
+  (** Semantic type constructor for [μ x. T] *)
   Definition oMu (τ : oltyO Σ i) : oltyO Σ i := Olty (λI args ρ v, τ args (v .: ρ) v).
   Global Instance Proper_oMu : Proper ((≡) ==> (≡)) oMu.
   Proof. solve_proper_ho. Qed.
@@ -387,9 +414,9 @@ Section olty_ofe_2.
   Lemma oMu_eq (τ : oltyO Σ i) args ρ v : oMu τ args ρ v = τ args (v .: ρ) v.
   Proof. done. Qed.
 
-
   Lemma oMu_shift (T : oltyO Σ i) args ρ v: oMu (shift T) args ρ v ≡ T args ρ v.
   Proof. rewrite /= (hoEnvD_weaken_one T args _ v) stail_eq. by []. Qed.
+
 
   Definition interp_expr `{dlangG Σ} (φ : hoEnvD Σ 0) : envPred tm Σ :=
     λI ρ t, □ WP t {{ vclose φ ρ }}.

@@ -1,3 +1,4 @@
+(** * Judgments defining gDOT stamped typing. *)
 From D Require Import tactics.
 From D.Dot.syn Require Export syn.
 From D.Dot.typing Require Export typing_aux_defs.
@@ -99,6 +100,7 @@ with dms_typed Γ g : dms → ty → Prop :=
     Γ s⊢ds[ g ] (l, d) :: ds : TAnd T1 T2
 where "Γ s⊢ds[ g ] ds : T" := (dms_typed Γ g ds T)
 with dm_typed Γ g : label → dm → ty → Prop :=
+(** ** Stamped version of [D-Typ-Abs]. *)
 | iD_Typ_Abs T l L U s σ:
     T ~[ length Γ ] (g, (s, σ)) →
     is_stamped_σ (length Γ) g σ →
@@ -305,6 +307,8 @@ Combined Scheme stamped_obj_ident_typing_mut_ind from stamped_obj_ident_typed_mu
 automation. *)
 
 Hint Constructors typed dms_typed dm_typed path_typed subtype : core.
+
+(** Ensure [eauto]'s proof search does not diverge due to transitivity. *)
 Remove Hints iSub_Trans : core.
 Hint Extern 10 => try_once iSub_Trans : core.
 

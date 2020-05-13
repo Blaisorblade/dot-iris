@@ -1,3 +1,8 @@
+(**
+* Lift DOT operational semantics into rules for the Iris program logic.
+In particular, declare instances of [PureExec], for use with
+[wp_pure_step_later].
+*)
 From iris.program_logic Require Import language ectx_language.
 From D Require Import iris_extra.det_reduction.
 From D.Dot Require Import syn.
@@ -8,6 +13,7 @@ Set Default Proof Using "Type".
 Implicit Types e : tm.
 
 Section lang_rules.
+  (* Deriving from iris-examples. *)
   Ltac inv_head_step :=
     repeat match goal with
     | H : to_val _ = Some _ |- _ => apply of_to_val in H

@@ -1,4 +1,4 @@
-(** Basic interfaces for D* languages (such as D<:, Dot).
+(** * Basic interfaces for D* languages (such as D<:, Dot).
 We abstract over such languages to implement reusable infrastructure.
 
 As we make significant use of Coq's ML-style module system, which is not
@@ -8,7 +8,7 @@ well-known, our comments explain our usage.
 From iris.program_logic Require Import language.
 From D Require Import prelude.
 
-(** * Parameters that each D* language must implement.
+(** ** [ValueSig] describes parameters that each D* language must implement.
 For our purposes here, a D* language is
 - an Iris language,
 - supporting substitution of values in values,
@@ -46,7 +46,7 @@ Module Type ValuesSig.
   Parameter hsubst_of_val : ∀ (v : vl) s, (of_val v).|[s] = of_val (v.[s]).
 End ValuesSig.
 
-(** * This module type contains minimal infrastructure for D*-languages.
+(** ** This module type contains minimal infrastructure for D*-languages.
 It is a "mixin module": that is, it is [Include]d (indirectly) in each language
 implementing [ValuesSig], yet functors can abstract over implementing modules.
 Mixin module [Sorts] in [asubst_base] defines additional infrastructure.

@@ -1,8 +1,10 @@
-(**
-  An unstamped typing judgment for Dot, allowing only variables in paths, and not arbitrary values.
-  We show that unstamped typing derivations from here can
-  be converted to stamped derivations of this typing judgment, in lemma
-  [stamp_typing_mut].
+(** * Judgments defining gDOT unstamped typing.
+
+We show that unstamped typing derivations from here can
+be converted to stamped derivations of this typing judgment, in lemma
+[stamp_typing_mut].
+
+This judgment allowing only variables in paths, and not arbitrary values.
 *)
 From D Require Import tactics.
 From D.Dot Require Export syn path_repl lr_syn_aux.
@@ -21,9 +23,7 @@ Reserved Notation "Γ u⊢{ l := d  } : T" (at level 74, l, d, T at next level).
 Reserved Notation "Γ u⊢ds ds : T" (at level 74, ds, T at next level).
 Reserved Notation "Γ u⊢ₜ T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
 
-(**
-Judgments for typing, subtyping, path and definition typing.
-*)
+(** ** Judgments for typing, subtyping, path and definition typing. *)
 Inductive typed Γ : tm → ty → Prop :=
 (** First, elimination forms *)
 (** Dependent application; only allowed if the argument is a path. *)
@@ -295,10 +295,6 @@ with   unstamped_subtype_mut_ind := Induction for subtype Sort Prop.
 Combined Scheme unstamped_typing_mut_ind from unstamped_typed_mut_ind, unstamped_dms_typed_mut_ind, unstamped_dm_typed_mut_ind,
   unstamped_path_typed_mut_ind, unstamped_subtype_mut_ind.
 
-Hint Constructors typed dms_typed dm_typed path_typed subtype : core.
-Remove Hints iSub_Trans : core.
-Hint Extern 10 => try_once iSub_Trans : core.
-
 Scheme exp_unstamped_typed_mut_ind := Induction for typed Sort Prop
 with   exp_unstamped_dms_typed_mut_ind := Induction for dms_typed Sort Prop
 with   exp_unstamped_dm_typed_mut_ind := Induction for dm_typed Sort Prop
@@ -314,6 +310,14 @@ Proof. by elim; intros; cbn; eauto 2 using is_unstamped_path_root. Qed.
 Lemma dtysem_not_utyped Γ l d T :
   Γ u⊢{ l := d } : T → ∀ σ s, d ≠ dtysem σ s.
 Proof. by case. Qed.
+
+(** ** A few derived rules, and some automation to use them in examples. *)
+
+Hint Constructors typed dms_typed dm_typed path_typed subtype : core.
+
+(** Ensure [eauto]'s proof search does not diverge due to transitivity. *)
+Remove Hints iSub_Trans : core.
+Hint Extern 10 => try_once iSub_Trans : core.
 
 Lemma iT_All_I Γ e T1 T2:
   is_unstamped_ty' (length Γ) T1 →

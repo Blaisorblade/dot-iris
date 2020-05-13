@@ -1,3 +1,10 @@
+(**
+* Expression weakest precondition.
+
+The following development is that of a *pure* weakest
+precondition: it uses no (basic/fancy) updates, does not supports Iris invariants,
+and is specialized to deterministic languages.
+*)
 From iris.base_logic Require Export iprop.
 From iris.program_logic Require Export language.
 From iris.bi Require Export weakestpre.
@@ -6,12 +13,6 @@ From iris.proofmode Require Import base tactics classes.
 From D.iris_extra Require Export det_reduction.
 Set Default Proof Using "Type".
 Import uPred.
-
-(*
-The following development is that of a *Plain* weakest
-precondition: it uses no (basic/fancy) updates, does not supports Iris invariants,
-and is specialized to deterministic languages.
-*)
 
 Class irisG (Λ : language) (Σ : gFunctors) `{InhabitedState Λ} := IrisG {
   irisG_langdet :> LangDet Λ
@@ -131,7 +132,7 @@ Proof.
   iExists e2; iSplit; first done. by iApply "IH".
 Qed.
 
-(** * Derived rules *)
+(** ** Derived rules *)
 Lemma wp_mono e Φ Ψ : (∀ v, Φ v ⊢ Ψ v) → WP e {{ Φ }} ⊢ WP e {{ Ψ }}.
 Proof.
   iIntros (HΦ) "H"; iApply (wp_strong_mono with "H"); auto.
