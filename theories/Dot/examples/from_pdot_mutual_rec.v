@@ -200,17 +200,3 @@ Proof.
   eapply (iT_All_E (T1 := ⊤)), iT_Sub_nocoerce; tcrush.
   eapply iT_All_Ex'; [exact: getAnyTypeFunTyp|var|tcrush..].
 Qed.
-
-(*
-lett (tv fromPDotPaper) (tapp (tv getAnyType) x0) : (pv fromPDotPaper @ "types" @; "Type").
-Example getAnyTypeTyp : [] u⊢ₜ lett (tv fromPDotPaper) (tapp (tv getAnyType) x0) : (pv fromPDotPaper @ "types" @; "Type").
-Proof.
-  eapply (iT_All_Ex_p (pv _)); [| eapply getAnyTypeFunTyp|].
-
-Example getAnyTypeTyp : [] u⊢ₜ tapp (tv getAnyType) (tv fromPDotPaper) : (pv fromPDotPaper @ "types" @; "Type").
-Proof.
-  eapply (iT_All_Ex_p (pv _)); [| eapply getAnyTypeFunTyp|].
-iT_Let
-  2: apply (iT_Path (pv fromPDotPaper)). fromPDotPaperTyp. ;
-  (* Wanted: application of functions to paths;  *)
-Abort. *)
