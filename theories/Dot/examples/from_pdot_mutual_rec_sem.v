@@ -238,7 +238,8 @@ Proof. lThis; mltcrush. Qed.
 Tactic Notation "lrSimpl" := iEval (cbv [pty_interp]).
 Tactic Notation "lrSimpl" "in" constr(iSelP) :=
   iEval (cbv [pty_interp]) in iSelP.
-Tactic Notation "reshape" uconstr(lctx) := iApply (wp_bind (fill lctx)).
+
+Tactic Notation "wp_bind" uconstr(p) := iApply (wp_bind (fill [p])).
 Ltac wp_pure := rewrite -wp_pure_step_later -1?wp_value; last done; iNext.
 
 Lemma newTypeRef_semTyped Γ g :
@@ -248,8 +249,8 @@ Proof.
 
   iIntros "#Hs !> %ρ #Hg !>".
   iPoseProof (fundamental_typed Hx0 with "Hs Hg") as "#Hx0".
-  reshape [AppRCtx _]; reshape [IfCtx _ _]; reshape [UnCtx _];
-    reshape [ProjCtx _]; reshape [ProjCtx _]; iSimpl.
+  wp_bind (AppRCtx _); wp_bind (IfCtx _ _); wp_bind (UnCtx _);
+    wp_bind (ProjCtx _); wp_bind (ProjCtx _); iSimpl.
 
   rewrite /interp_expr wp_value_inv /vclose sem_later /newTypeRefBody /of_val.
   wp_pure.

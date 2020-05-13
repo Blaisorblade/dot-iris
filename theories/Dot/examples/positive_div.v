@@ -49,7 +49,6 @@ Module examples.
 Local Hint Constructors bin_op_syntype cond_bin_op_syntype : core.
 Local Hint Extern 1000 => lia : core.
 
-Tactic Notation "wp_bind" uconstr(p) := iApply (wp_bind (fill [p])).
 Ltac wp_bin_base := iApply wp_bin; first eapply cond_bin_op_syntype_sound; by [cbn; eauto|].
 Ltac wp_bin := iApply wp_wand; [wp_bin_base | iIntros].
 Import stamp_transfer.
@@ -116,9 +115,6 @@ End helpers.
 Ltac valMember ρ :=
   iApply V_TVMem_I; [solve_fv_congruence|naive_solver|
     rewrite -ietp_value; iIntros (ρ)].
-
-Local Hint Resolve not_elem_of_nil : core.
-Local Hint Constructors NoDup : core.
 
 Section s_is_pos.
 
