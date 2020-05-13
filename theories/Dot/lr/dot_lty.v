@@ -1,9 +1,8 @@
+(** * Semantic domains for DOT logical relations. *)
 From iris.proofmode Require Import tactics.
 From D Require Export iris_prelude proper lty lr_syn_aux.
 From D.Dot Require Import syn.
 From D.Dot Require Export dlang_inst.
-
-(** * Semantic domains for DOT logical relations. *)
 
 Unset Program Cases.
 Set Suggest Proof Using.
@@ -25,9 +24,9 @@ Notation dslty Σ := (env → iPPred dms Σ).
 Definition dsltyO Σ := env -d> iPPredO dms Σ.
 Notation Dslty T := (λ ρ, IPPred (λI ds, T ρ ds)).
 
-(** A "complete" logical type, containing all semantics of a type — for
-definition lists, single definitions, and values; together with proofs that
-they agree appropriately. *)
+(** ** A "complete" logical type, containing all semantics of a type.
+That is, semantics for both definition lists and values, and proofs that they
+agree appropriately. *)
 Record clty {Σ} := _Clty {
   clty_dslty :> dslty Σ;
   clty_olty :> oltyO Σ 0;
@@ -71,6 +70,7 @@ Section clty_ofe_proper.
     Proper ((≡) ==> (≡@{dsltyO Σ})) (clty_dslty (Σ := Σ)) := ne_proper _.
 End clty_ofe_proper.
 
+(** *** Helpers for constructing [clty]. *)
 Definition lift_dty_dms `{!dlangG Σ} l (TD : dltyO Σ) : dsltyO Σ := Dslty (λI ρ ds,
   ∃ d, ⌜ dms_lookup l ds = Some d ⌝ ∧ TD ρ d).
 Instance: Params (@lift_dty_dms) 3 := {}.
@@ -164,14 +164,14 @@ End DefsTypes.
 
 Implicit Types (T: ty).
 
-(** [CTyInterp] is an (operational) typeclass, whose implementation
-*)
+(** [CTyInterp] is an (operational) typeclass, implemented by the gDOT
+logical relation. *)
 Class CTyInterp Σ :=
   clty_interp : ty → clty Σ.
 Global Arguments clty_interp {_ _} !_ /.
 Notation "C⟦ T ⟧" := (clty_interp T).
 
-(** * Define various notations on top of [clty_interp]. *)
+(** *** Define various notations on top of [clty_interp]. *)
 (** Definition interpretation of types (Fig. 9). *)
 Notation "Ds⟦ T ⟧" := (clty_dslty C⟦ T ⟧).
 
@@ -180,18 +180,19 @@ Notation "Ds⟦ T ⟧" := (clty_dslty C⟦ T ⟧).
 Definition pty_interp `{CTyInterp Σ} T : oltyO Σ 0 := clty_olty C⟦ T ⟧.
 Global Arguments pty_interp {_ _} !_ /.
 
-(** Value interpretation of types (Fig. 9). *)
+(** * Value interpretation of types (Fig. 9). *)
 Notation "V⟦ T ⟧" := (pty_interp T).
 Notation "Vs⟦ g ⟧" := (fmap (M := gmap stamp) (B := hoEnvD _ 0) pty_interp g).
 Notation "V⟦ Γ ⟧*" := (fmap (M := list) pty_interp Γ).
 Notation "E⟦ T ⟧" := (sE⟦ V⟦ T ⟧ ⟧).
 
+(** ** Binding lemmas about gDOT logical relations. *)
 Class CTyInterpLemmas Σ `{!CTyInterp Σ} := {
   interp_subst_compose_ind T {args} ρ1 ρ2 v:
     V⟦ T.|[ρ1] ⟧ args ρ2 v ⊣⊢ V⟦ T ⟧ args (ρ1 >> ρ2) v;
 }.
 
-(** * Lemmas about the logical relation itself. *)
+(** Corollaries of [CTyInterpLemmas]. *)
 Section logrel_binding_lemmas.
   Context `{Htil : CTyInterpLemmas Σ}.
   Set Default Proof Using "Type*".

@@ -1,3 +1,6 @@
+(** * Show simulation between terms and skip-free terms.
+Ideally we would want a bisimulation, so this is incomplete, but left as
+future work in the paper. *)
 From iris.program_logic Require Import language ectx_language ectxi_language.
 From D Require Import prelude.
 From D.Dot Require Import syn.

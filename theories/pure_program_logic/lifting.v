@@ -1,3 +1,4 @@
+(** * Lift operational semantics to expression weakest preconditions. *)
 From D.pure_program_logic Require Export weakestpre.
 From iris.proofmode Require Import tactics.
 Set Default Proof Using "Type".

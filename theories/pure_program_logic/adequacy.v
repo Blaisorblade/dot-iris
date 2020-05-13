@@ -1,3 +1,4 @@
+(** * Adequacy of expression weakest preconditions, part of gDOT adequacy. *)
 From stdpp Require Import relations.
 From iris.proofmode Require Import tactics.
 From D.pure_program_logic Require Export weakestpre.

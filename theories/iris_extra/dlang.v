@@ -1,3 +1,4 @@
+(** * Instantiate Iris for D* languages. *)
 From iris.program_logic Require Import ectx_language language.
 From D.pure_program_logic Require adequacy.
 From D Require Import iris_prelude swap_later_impl asubst_intf.
@@ -33,6 +34,11 @@ Module Type LiftWp (Import VS : VlSortsSig).
 
   Instance InhEnvPred s Σ : Inhabited (envPred s Σ) := populate (λI _ _, False).
 
+  (** ** Define Iris ghost state used by gD<:/gDOT proofs.
+  Iris proofs must abstract over instances of [dlangG Σ].
+  For further details, see
+  https://gitlab.mpi-sws.org/iris/iris/-/blob/ffacaa0337d6668dc11646b330c114184d258b76/docs/proof_guide.md#resource-algebra-management.
+  *)
   Class dlangG Σ `{InhabitedState dlang_lang} := DLangG {
     dlangG_savior :> savedHoSemTypeG Σ;
     dlangG_interpNames :> gen_iheapG stamp gname Σ;
@@ -40,10 +46,12 @@ Module Type LiftWp (Import VS : VlSortsSig).
   }.
   Arguments DLangG _ {_ _ _ _}.
 
+  (** ** Instance of [irisG] enable using the expression weakest precondition; this instance. *)
   Instance dlangG_irisG `{dlangG Σ} : irisG dlang_lang Σ := {
     irisG_langdet := _;
   }.
 
+  (** Notation [s ↝n[ n  ] φ] generalizes [s ↝ φ] on paper; [n] is the arity. *)
   Definition leadsto_n `{dlangG Σ}
     s n (φ : hoEnvD Σ n) : iProp Σ := ∃ γ, s ↦ γ ∧ γ ⤇n[ n ] φ.
   Notation "s ↝n[ n  ] φ" := (leadsto_n s n φ) (at level 20) : bi_scope.

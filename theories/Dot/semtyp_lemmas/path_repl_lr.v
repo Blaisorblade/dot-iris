@@ -1,3 +1,4 @@
+(** * Semantic lemmas on singleton types, path typing and path replacement. *)
 From iris.proofmode Require Import tactics.
 From iris.program_logic Require Import ectx_language.
 From D.pure_program_logic Require Import lifting.
@@ -12,11 +13,11 @@ Implicit Types
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
+(** ** Semantic substitution of path in type. *)
 Definition opSubst {Σ n} p (T : oltyO Σ n) : oltyO Σ n :=
   Olty (λI args ρ v, path_wp p.|[ρ] (λ w, T args (w .: ρ) v)).
 Notation "T .sTp[ p /]" := (opSubst p T) (at level 65).
 
-(* sem_psubst_ty  *)
 Definition sem_ty_path_repl {Σ n} p q (T1 T2 : olty Σ n) : Prop :=
   ∀ args ρ v, alias_paths p.|[ρ] q.|[ρ] → T1 args ρ v ≡ T2 args ρ v.
 Notation "T1 ~sTp[ p := q  ]* T2" :=
@@ -191,9 +192,6 @@ Section path_repl.
   Lemma P_Mu_I {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : T', i -∗ Γ ⊨p p : TMu T, i.
   Proof.
-    (* iIntros "#Hp !> %ρ Hg /=".
-    iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "!> **".
-    by rewrite oMu_eq (psubst_one_repl Hrepl) ?alias_paths_pv_eq_1. *)
     rewrite /iptp -sP_Mu_I; iIntros "#Hp !> %ρ Hg /=".
     iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "!> **".
     by rewrite (sem_psubst_one_eq Hrepl) ?alias_paths_pv_eq_1.

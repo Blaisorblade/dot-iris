@@ -1,5 +1,4 @@
-(**
-* Expression weakest precondition.
+(** * Expression weakest preconditions.
 
 The following development is that of a *pure* weakest
 precondition: it uses no (basic/fancy) updates, does not supports Iris invariants,

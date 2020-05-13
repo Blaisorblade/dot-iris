@@ -1,3 +1,4 @@
+(** * "Prelude" with utilities available everywhere. *)
 (* Base Coq settings (ssreflect and setup): *)
 From Coq.Program Require Export Program.
 From iris.algebra Require Export base.
@@ -30,7 +31,7 @@ Notation shiftVN n v := v.[ren (+n)].
 Notation shift chi := (shiftN 1 chi).
 Notation shiftV v := (shiftVN 1 v).
 
-(** * Miscellaneous utilities *)
+(** ** Miscellaneous utilities *)
 
 (** Functorial action of the [A * _] functor. *)
 Definition mapsnd {A} `(f : B → C) : A * B → A * C := λ '(a, b), (a, f b).
