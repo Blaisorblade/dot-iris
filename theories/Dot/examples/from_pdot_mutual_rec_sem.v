@@ -413,16 +413,6 @@ Proof.
   varsub; tcrush.
 Qed.
 
-(* Example fromPDotPaperTypesAbsTyp Γ :
-  TLater (fromPDotPaperAbsTBody x1) :: optionModTInv :: Γ ⊨[fromPDotGφ]
-    ν fromPDotPaperTypesVBody : μ fromPDotPaperAbsTypesTBody.
-Proof.
-  iIntros "#Hs".
-  iApply (T_Sub (i := 0)).
-  iApply (semFromPDotPaperTypesTyp with "Hs").
-  iApply (fromPDotPaperTypesSub with "Hs").
-Qed. *)
-
 Example fromPDotPaperSymbolsTyp Γ :
   TLater (fromPDotPaperAbsTBody x1) :: optionModTInv :: Γ v⊢ₜ[fromPDotG]
     fromPDotPaperSymbolsV : μ (fromPDotPaperSymbolsTBody x2).
