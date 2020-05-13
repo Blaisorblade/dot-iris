@@ -1,4 +1,4 @@
-(** ssreflect postfix notation for the successor and predecessor functions.
+(** * ssreflect postfix notation for the successor and predecessor functions.
 SSreflect uses "pred" for the generic predicate type, and S as a local bound
 variable.*)
 Notation succn := Datatypes.S.
