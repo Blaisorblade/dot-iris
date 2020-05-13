@@ -4,7 +4,9 @@ This example is called in code [fromPDotPaper], because it is indeed inspired
 by the pDOT paper.
 
 Here, the main lemma is [fromPDotPaperTyp], saying that
-[fromPDotPaper] has type [μ fromPDotPaperAbsTBody].
+[fromPDotPaper x0] has type [μ (fromPDotPaperAbsTBody x1)].
+Moreover, [pCoreTyp] shows that
+[lett hoptionModV (fromPDotPaper x0)] is well-typed.
 *)
 
 From D Require Import tactics.

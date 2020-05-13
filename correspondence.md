@@ -125,8 +125,8 @@ Sec. 6:
     frontend for writing concrete terms.
 
 - Examples are in [`Dot/examples/`](theories/Dot/examples/). In particular:
-  - Motivating example (Fig. 2, discussed in Sec. 1.1 and 4.0): [`Dot/examples/from_pdot_mutual_rec.v`](theories/Dot/examples/from_pdot_mutual_rec.v); here we
-    simplified the use of `Option` away, but we do use `Option` when formalizing Sec. 6.3.
+  - Motivating example (Fig. 2, discussed in Sec. 1.1 and 4.0):
+    [`Dot/examples/from_pdot_mutual_rec.v`](theories/Dot/examples/from_pdot_mutual_rec.v).
   - Covariant lists example (Fig. 10, Sec. 6.1): [`Dot/examples/list.v`](theories/Dot/examples/list.v).
   - Positive integers example (Fig. 11, Sec. 6.2): [`Dot/examples/positive_div.v`](theories/Dot/examples/positive_div.v).
   - Unsafe motivating example (Fig. 12, Sec. 6.3): [`Dot/examples/from_pdot_mutual_rec_sem.v`](theories/Dot/examples/from_pdot_mutual_rec_sem.v).
