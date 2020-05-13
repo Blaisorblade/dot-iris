@@ -453,6 +453,8 @@ Definition hoptionModT := μ: self, {@
   val "mkSome" : hmkSomeT self
 }.
 
+Definition optionModT : ty := hoptionModT.
+
 Ltac prepare_lemma L H :=
   let Γ' := fresh "Γ" in
   evar (Γ' : ctx); have := L Γ'; rewrite {}/Γ' => H.

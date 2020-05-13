@@ -105,6 +105,8 @@ Definition hoptionModT := μ: self, {@
   val "mkSome" : hmkSomeT self
 }.
 
+Definition optionModT : ty := hoptionModT.
+
 
 (** Define the stamped map table we'll need. *)
 Definition hpBot : hstampTy := MkTy 1 [] ⊥ 0.
