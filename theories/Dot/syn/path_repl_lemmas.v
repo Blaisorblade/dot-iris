@@ -1,3 +1,5 @@
+From Coq.ssr Require Import ssrbool.
+From D Require Import succ_notation.
 From D.Dot Require Import syn path_repl.
 From D.Dot Require Import core_stamping_defs unstampedness_binding closed_subst.
 
@@ -5,30 +7,27 @@ Implicit Types
          (T : ty) (v w : vl) (t : tm) (d : dm) (ds : dms) (p q : path)
          (Γ : ctx) (vs : vls) (l : label).
 
-From Coq.ssr Require Import ssrbool.
-(** [ssrbool] shadows [pred], shadow it back. *)
-Notation pred := Nat.pred.
 Set Implicit Arguments.
 
-Definition unshiftsN `{Sort X} i (x : X) := x.|[upn i (ren pred)].|[upn i (ren (+1))] = x.
-Definition unshiftsN_vl i v := v.[upn i (ren pred)].[upn i (ren (+1))] = v.
+Definition unshiftsN `{Sort X} i (x : X) := x.|[upn i (ren predn)].|[upn i (ren (+1))] = x.
+Definition unshiftsN_vl i v := v.[upn i (ren predn)].[upn i (ren (+1))] = v.
 
 Lemma shift_unshift `{Sort X} (x : X): unshift (shift x) = x.
 Proof. by rewrite hsubst_comp hsubst_id. Qed.
 
-Lemma unshiftsN_shiftN i p : unshiftsN i (shiftN (S i) p).
+Lemma unshiftsN_shiftN i p : unshiftsN i (shiftN i.+1 p).
 Proof.
   rewrite /unshiftsN.
   elim: i => [|i]; first by rewrite shift_unshift.
-  rewrite {2}(hrenS _ (S i)) => <-.
+  rewrite {2}(hrenS _ i.+1) => <-.
   rewrite !hsubst_comp.
   abstract autosubst.
 Qed.
 
-Lemma up_reduce s x : (up s (S x) : vl) = shiftV (s x).
+Lemma up_reduce s x : (up s x.+1 : vl) = shiftV (s x).
 Proof. by rewrite -rename_subst. Qed.
 
-Notation upn_mp1 i := (upn i (ren (pred >>> (+1)))).
+Notation upn_mp1 i := (upn i (ren (predn >>> (+1)))).
 
 Lemma ren_const x i : x ≠ i → upn_mp1 i x = var_vl x.
 Proof.
@@ -49,9 +48,9 @@ Proof.
 Qed.
 
 Definition psubst_one_path_gen i q p :=
-  q .p[ pv (ids i) := shiftN (S i) p ].
+  q .p[ pv (ids i) := shiftN i.+1 p ].
 Definition psubst_one_ty_gen i T p :=
-  T .T[ pv (ids i) := shiftN (S i) p ].
+  T .T[ pv (ids i) := shiftN i.+1 p ].
 
 Lemma psubst_one_path_gen_unshifts_gen i n q p :
   is_unstamped_path' n q →
@@ -97,9 +96,9 @@ Proof.
 Qed.
 
 Lemma is_unstamped_path_subst_gen i n p q :
-  is_unstamped_path' (S i + n) q →
+  is_unstamped_path' (i.+1 + n) q →
   is_unstamped_path' n p →
-  is_unstamped_path' (S i + n) (psubst_one_path_gen i q p).
+  is_unstamped_path' (i.+1 + n) (psubst_one_path_gen i q p).
 Proof.
   rewrite /psubst_one_path_gen.
   move: p i; induction q => p i Hu Hup //=; last by (constructor;
@@ -110,18 +109,18 @@ Proof.
 Qed.
 
 Lemma is_unstamped_ty_subst_gen i n T p :
-  is_unstamped_ty' (S i + n) T →
+  is_unstamped_ty' (i.+1 + n) T →
   is_unstamped_path' n p →
-  is_unstamped_ty' (S i + n) (psubst_one_ty_gen i T p).
+  is_unstamped_ty' (i.+1 + n) (psubst_one_ty_gen i T p).
 Proof.
   rewrite /psubst_one_ty_gen /unshiftsN.
   move: p i n; induction T => p0 i n Hu; f_equal/=; with_is_unstamped inverse;
     constructor; rewrite -?hrenS -?iterate_S /=;
-    change (S (i + n)) with (S i + n); eauto; exact: is_unstamped_path_subst_gen.
+    change ((i + n).+1) with (i.+1 + n); eauto; exact: is_unstamped_path_subst_gen.
 Qed.
 
 Lemma is_unstamped_ty_subst n T p :
-  is_unstamped_ty' (S n) T →
+  is_unstamped_ty' n.+1 T →
   is_unstamped_path' n p →
   is_unstamped_ty' n (psubst_one_ty T p).
 Proof.
@@ -140,7 +139,7 @@ Proof.
 Qed.
 
 Lemma upn_reduce i s x :
-  upn (S i) s (S x) =@{vl} shiftV (upn i s x).
+  upn i.+1 s x.+1 =@{vl} shiftV (upn i s x).
 Proof. by rewrite iterate_S up_reduce. Qed.
 
 Lemma upn_app_ids_ne x i v :
