@@ -72,8 +72,8 @@ format "DOT" "$dotDirs" "$dotLoc"
 echo
 cd Dot
 sumDirs "syntax" "syn"
-sumDirs "logrel" "lr"
-sumDirs "model (syntax + logrel)" "syn lr"
+sumDirs "logrel" "lr semtyp_lemmas"
+sumDirs "model (syntax + logrel)" "syn lr semtyp_lemmas"
 
 echo
 sumDirs "syntactic typing (w/ stamping & fundamental)" ". typing stamping"
