@@ -312,13 +312,13 @@ Definition sCtx Σ := listO (oltyO Σ 0).
 Define when an environment [ρ] conforms to a semantic typing context [Γ],
 that is a list of semantic types.
 *)
-Reserved Notation "s⟦ Γ ⟧* ρ" (at level 10).
+Reserved Notation "sG⟦ Γ ⟧* ρ" (at level 10).
 Fixpoint env_oltyped `{dlangG Σ} (ρ : var → vl) (Γ : sCtx Σ) : iProp Σ :=
   match Γ with
-  | φ :: Γ' => s⟦ Γ' ⟧* (stail ρ) ∧ oClose φ ρ (shead ρ)
+  | φ :: Γ' => sG⟦ Γ' ⟧* (stail ρ) ∧ oClose φ ρ (shead ρ)
   | nil => True
   end
-where "s⟦ Γ ⟧* ρ" := (env_oltyped ρ Γ).
+where "sG⟦ Γ ⟧* ρ" := (env_oltyped ρ Γ).
 Global Instance: Params (@env_oltyped) 4 := {}.
 
 (** ** Constructors for language-independent semantic types, corresponding to
@@ -361,7 +361,7 @@ Section olty_ofe_2.
     oLaterN (m + n) T ≡ oLaterN m (oLaterN n T).
   Proof. move=> ???. by rewrite/= laterN_plus. Qed.
 
-  Global Instance env_oltyped_persistent (Γ : sCtx Σ) ρ: Persistent (s⟦ Γ ⟧* ρ).
+  Global Instance env_oltyped_persistent (Γ : sCtx Σ) ρ: Persistent (sG⟦ Γ ⟧* ρ).
   Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
 
   Global Instance Proper_env_oltyped ρ : Proper ((≡) ==> (≡)) (env_oltyped ρ).
@@ -373,7 +373,7 @@ Section olty_ofe_2.
 
   Lemma s_interp_env_lookup Γ ρ (τ : olty Σ 0) x:
     Γ !! x = Some τ →
-    s⟦ Γ ⟧* ρ -∗ oClose (shiftN x τ) ρ (ρ x).
+    sG⟦ Γ ⟧* ρ -∗ oClose (shiftN x τ) ρ (ρ x).
   Proof.
     elim: Γ ρ x => [//|τ' Γ' IHΓ] ρ x Hx /=.
     iDestruct 1 as "[Hg Hv]". move: x Hx => [ [->] | x Hx] /=.
@@ -438,5 +438,5 @@ Section olty_ofe_2.
     Olty (λI args ρ v, ∃ ψ, s ↗n[σ, i] ψ ∧ ▷ □ ψ args v).
 End olty_ofe_2.
 
-Notation "E⟦ τ ⟧" := (interp_expr τ).
+Notation "sE⟦ τ ⟧" := (interp_expr τ).
 End Lty.

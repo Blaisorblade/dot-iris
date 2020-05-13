@@ -106,13 +106,13 @@ Section lift_dty_lemmas.
   Global Instance lift_dty_vl_proper l :
     Proper ((≡) ==> (≡)) (lift_dty_vl l) := ne_proper _.
 
-  Lemma lift_dty_dms_singleton_eq' (TD : dltyO Σ) l1 l2 ρ d :
+  Lemma lift_dty_dms_singleton_eq' (TD : dlty Σ) l1 l2 ρ d :
     lift_dty_dms l1 TD ρ [(l2, d)] ⊣⊢ ⌜ l1 = l2 ⌝ ∧ TD ρ d.
   Proof.
     iSplit; simpl; first by case_decide; iDestruct 1 as (d' [= ->]) "$".
     iDestruct 1 as (->) "H"; rewrite decide_True //; naive_solver.
   Qed.
-  Lemma lift_dty_dms_singleton_eq (TD : dltyO Σ) l ρ d :
+  Lemma lift_dty_dms_singleton_eq (TD : dlty Σ) l ρ d :
     lift_dty_dms l TD ρ [(l, d)] ⊣⊢ TD ρ d.
   Proof.
     by rewrite lift_dty_dms_singleton_eq' pure_True // (left_id True%I bi_and).
@@ -184,6 +184,7 @@ Global Arguments pty_interp {_ _} !_ /.
 Notation "V⟦ T ⟧" := (pty_interp T).
 Notation "Vs⟦ g ⟧" := (fmap (M := gmap stamp) (B := hoEnvD _ 0) pty_interp g).
 Notation "V⟦ Γ ⟧*" := (fmap (M := list) pty_interp Γ).
+Notation "E⟦ T ⟧" := (sE⟦ V⟦ T ⟧ ⟧).
 
 Class CTyInterpLemmas Σ `{!CTyInterp Σ} := {
   interp_subst_compose_ind T {args} ρ1 ρ2 v:
