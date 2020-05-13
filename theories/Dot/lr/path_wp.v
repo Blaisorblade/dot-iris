@@ -1,3 +1,9 @@
+(** * gDOT's path weakest precondition [path_wp].
+Constructing Iris least fixpoints is relatively involved; but lemma
+[path_wp_unfold] witnesses that [path_wp] is the fixpoint of [path_wp_pre].
+The defining equations are proven as lemmas [path_wp_pv_eq] and
+[path_wp_pself_eq].
+*)
 From D Require Import iris_prelude iris_extra.det_reduction.
 From D.Dot Require Import dlang_inst rules lr_syn_aux path_repl.
 From D.pure_program_logic Require Import lifting.

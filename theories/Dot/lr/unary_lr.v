@@ -1,3 +1,4 @@
+(** * Logical relation and semantic judgments. *)
 From D Require Export iris_prelude proper lty lr_syn_aux.
 From D Require Import iris_extra.det_reduction.
 From D Require Import swap_later_impl.
@@ -15,13 +16,11 @@ Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
          (ρ : env) (l : label).
 
-(** * Semantic domains. *)
-
 (** The logical relation on values is [V⟦T⟧]. We also define the logical
-    relation on definitions Ds⟦T⟧.
+    relation on definitions [Ds⟦T⟧].
 
     Both definitions follow the one on paper; concretely, they are defined
-    through C⟦T⟧ in instance [dot_interp].
+    through [C⟦T⟧] in instance [dot_interp].
 
     Binding and closing substitutions:
 
@@ -36,29 +35,11 @@ Implicit Types (Σ : gFunctors)
     [dtysem] and not [dtysyn] for type member definitions.
  *)
 
-(** Define fully semantic judgments. They accept arbitrary semantic types. *)
+(** ** Define fully semantic judgments. They accept arbitrary semantic types. *)
 
 Section judgments.
   Context {Σ}.
   Implicit Types (τ : oltyO Σ 0).
-
-  (** How do we represent subtyping in a later world? We have two distinct
-      choices, because in Iris ▷(P ⇒ Q) ⊢ ▷ P ⇒ ▷ Q but not viceversa
-      (unlike with raw step-indexing).
-      In turn, that's because to show ▷ P ⇒ ▷ Q we can assume resources are
-      valid one step earlier, unlike for ▷(P ⇒ Q).
-
-      It seems easier, in subtyping judgment, to use the weaker choice: that is,
-      just delay individual types via (Γ ⊨ TLater T <: TLater U), that is
-
-      (□∀ ρ v, G⟦Γ⟧ ρ → ▷ V⟦T1⟧ ρ v → ▷ V⟦T2⟧ ρ v),
-
-      instead of instead of introducing some notation to write
-
-      (□∀ ρ v, G⟦Γ⟧ ρ → ▷ (V⟦T1⟧ ρ v → V⟦T2⟧ ρ v)).
-
-      And that forces using the same implication in the logical relation
-      (unlike I did originally). *)
 
   (** Expression typing *)
   Definition setp `{!dlangG Σ} e Γ τ : iProp Σ :=
@@ -98,6 +79,7 @@ Notation "Γ s⊨ds ds : T" := (sdstp ds Γ T) (at level 74, ds, T at next level
 (** Path typing *)
 Notation "Γ s⊨p p : τ , i" := (sptp p i Γ τ) (at level 74, p, τ, i at next level).
 
+(** When a definition points to type. Inlined in paper. *)
 Definition dm_to_type `{HdotG: !dlangG Σ} d i (ψ : hoD Σ i) : iProp Σ :=
   ∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ , i ] ψ.
 Notation "d ↗n[ i  ] ψ" := (dm_to_type d i ψ) (at level 20).
@@ -132,11 +114,13 @@ Definition oSelN `{!dlangG Σ} n p l : oltyO Σ n :=
     (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗n[ n ] ψ ∧ ▷ □ ψ args v)).
 Notation oSel := (oSelN 0).
 
+(** ** gDOT-specific semantic types. *)
 Section SemTypes.
   Context `{HdotG: !dlangG Σ}.
 
   Implicit Types (τ : oltyO Σ 0).
 
+  (** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
   Definition oDTMem τ1 τ2 : dltyO Σ := Dlty (λI ρ d,
     ∃ ψ, d ↗n[ 0 ] ψ ∧
        □ (oLater τ1 vnil ρ ⊆ packHoLtyO ψ vnil ∧
@@ -147,6 +131,7 @@ Section SemTypes.
       solve_proper_ho.
   Qed.
 
+  (** [ D⟦ { a : τ } ⟧ ]. *)
   Definition oDVMem τ : dltyO Σ := Dlty (λI ρ d,
     ∃ pmem, ⌜d = dpt pmem⌝ ∧ path_wp pmem (oClose τ ρ)).
   Global Instance Proper_oDVMem : Proper ((≡) ==> (≡)) oDVMem.
@@ -159,7 +144,9 @@ Section SemTypes.
     oDVMem T ρ (dpt p) ≡ path_wp p (oClose T ρ).
   Proof. simpl; iSplit; last by eauto. by iDestruct 1 as (pmem [= ->]) "$". Qed.
 
-  (** [cTMem] and [cVMem] are full [clty]. *)
+  (** Lift [oDTMem] and [oDVMem] to full [clty]s, [cTMem] and [cVMem]. *)
+
+  (** [ Ds⟦ { l :: τ1 .. τ2 } ⟧] and [ V⟦ { l :: τ1 .. τ2 } ⟧ ]. *)
   Definition cTMem l τ1 τ2 : clty Σ := dty2clty l (oDTMem τ1 τ2).
   Global Instance Proper_cTMem l : Proper ((≡) ==> (≡) ==> (≡)) (cTMem l).
   Proof. solve_proper. Qed.
@@ -168,6 +155,7 @@ Section SemTypes.
     cTMem l T1 T2 ρ [(l, d)] ⊣⊢ oDTMem T1 T2 ρ d.
   Proof. by rewrite dty2clty_singleton. Qed.
 
+  (** [ Ds⟦ { l : τ } ⟧] and [ V⟦ { l : τ } ⟧ ]. *)
   Definition cVMem l τ : clty Σ := dty2clty l (oDVMem τ).
   Global Instance Proper_cVMem l : Proper ((≡) ==> (≡)) (cVMem l).
   Proof. solve_proper. Qed.
@@ -185,8 +173,10 @@ Section SemTypes.
       ∃ ψ d, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n[ n ] ψ ∧ ▷ □ ψ args v.
   Proof. by rewrite /= path_wp_pv_eq. Qed.
 
+  (** [ V⟦ p.type ⟧]. *)
   Definition oSing `{!dlangG Σ} p : olty Σ 0 := olty0 (λI ρ v, ⌜alias_paths p.|[ρ] (pv v)⌝).
 
+  (** [ V⟦ ∀ x: τ1. τ2 ⟧]. *)
   (* Function types; this definition is contractive (similarly to what's
      useful for equi-recursive types). *)
   Definition oAll τ1 τ2 := olty0
@@ -197,8 +187,10 @@ Section SemTypes.
   Global Instance Proper_oAll : Proper ((≡) ==> (≡) ==> (≡)) oAll.
   Proof. solve_proper_ho. Qed.
 
+  (** Semantics of primitive types. *)
   Definition oPrim b : olty Σ 0 := olty0 (λI ρ v, ⌜pure_interp_prim b v⌝).
 
+  (** Dispatch function defining [V⟦ T ⟧] and [Ds⟦ T ⟧]. *)
   (* Observe the naming pattern for semantic type constructors:
   replace T by o (for most constructors) or by c (for constructors producing
   cltys). *)
@@ -226,6 +218,7 @@ Section SemTypes.
   Lemma interp_TAnd_eq T1 T2 : V⟦ TAnd T1 T2 ⟧ ≡ oAnd V⟦ T1 ⟧ V⟦ T2 ⟧.
   Proof. done. Qed.
 
+  (** Binding lemmas for [V⟦ T ⟧] and [Ds⟦ T ⟧]. *)
   Global Instance pinterp_lemmas: CTyInterpLemmas Σ.
   Proof.
     split; rewrite /pty_interp;
@@ -283,7 +276,7 @@ Notation "Γ ⊨[ gφ  ] T1 , i <: T2 , j" := (wellMappedφ gφ → istpi Γ T1 
 Notation oInt := (oPrim tint).
 Notation oBool := (oPrim tbool).
 
-(** Show these typing judgments are equivalent to what we present in the paper. *)
+(** ** Show these typing judgments are equivalent to what we present in the paper. *)
 Section JudgDefs.
   Context `{HdotG: !dlangG Σ}.
 
@@ -357,7 +350,7 @@ Section MiscLemmas.
   Qed.
 End MiscLemmas.
 
-(** * Proper instances. *)
+(** Proper instances. *)
 Section Propers.
   (** This instance doesn't allow setoid rewriting in the function argument
   to [iterate]. That's appropriate for this project. *)
@@ -372,7 +365,7 @@ Section Propers.
 
   Context `{HdotG: !dlangG Σ}.
 
-  (** ** Judgments *)
+  (** Judgments *)
   Global Instance Proper_sstpi i j : Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sstpi i j).
   Proof.
     solve_proper_ho.
@@ -487,7 +480,8 @@ Proof.
   iIntros (??) "Hs"; iApply Hlog. iApply (transfer_empty with "Hs").
 Qed.
 
-(** Theorem 5.5: safety of semantic typing. Corollary of [adequacy_mapped_semtyping]. *)
+(** * Theorem 5.5: adequacy/safety of semantic typing.
+Corollary of [adequacy_mapped_semtyping]. *)
 Corollary safety_mapped_semtyping Σ `{!dlangPreG Σ} `{!SwapPropI Σ} {e g T}
   (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), ⊢ [] ⊨[ Vs⟦ g ⟧ ] e : T):
   safe e.

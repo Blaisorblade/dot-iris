@@ -1,3 +1,4 @@
+(** * Path substitution and replacement. *)
 From stdpp Require Import relations.
 From D.Dot.syn Require Import syn.
 

@@ -116,6 +116,7 @@ Section fundamental.
       + iApply Sub_Skolem_P. by iApply H.
   Qed.
 
+  (** * Fundamental theorem 5.4. *)
   Lemma fundamental_typed Γ g e T :
     Γ v⊢ₜ[ g ] e : T → ⊢ Γ ⊨[ Vs⟦ g ⟧ ] e : T.
   Proof. apply (fundamental_mut Γ g). Qed.
@@ -143,6 +144,7 @@ In fact, we use the even more general storeless typing. *)
 Corollary type_soundness_storeless {e T g}
   (HsT: [] v⊢ₜ[ g ] e : T): safe e.
 Proof.
+  (* Apply 5.5: Adequacy of semantic typing. *)
   apply: (safety_mapped_semtyping dlangΣ); intros.
   apply fundamental_typed, HsT.
 Qed.

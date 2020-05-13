@@ -1,3 +1,6 @@
+(** * Show stamped typing only relates stamped syntax.
+Proofs are done on storeless typing, but that includes stamped typing (see
+[stamped_to_storeless_typing_mut]. *)
 From D Require Import prelude.
 From D.Dot Require Import type_extraction_syn traversals stampedness_binding closed_subst.
 From D.Dot Require Import storeless_typing.

@@ -1,3 +1,4 @@
+(** * Semantic lemmas for typing of primitive expressions. *)
 From iris.proofmode Require Import tactics.
 From D.Dot Require Import syn.
 From D.Dot Require Import typing_aux_defs.
@@ -53,7 +54,7 @@ Section Sec.
   Proof. iIntros "!> * _ /="; rewrite -wp_value /= /pure_interp_prim /prim_evals_to; eauto. Qed.
 
 
-  (** * Unary operations *)
+  (** ** Unary operations *)
   Lemma wp_un B1 Br u v
     (Hev1 : pure_interp_prim B1 v) (Hu : un_op_semtype u B1 Br) :
     ⊢ WP tun u (tv v) {{ w, ⌜un_op_eval u v = Some w ∧ pure_interp_prim Br w⌝ }}.
@@ -76,7 +77,7 @@ Section Sec.
     Γ ⊨ tun u e1 : TPrim Br.
   Proof. apply sT_Un, un_op_syntype_sound, Hu. Qed.
 
-  (** * Binary operations *)
+  (** ** Binary operations *)
   Lemma wp_bin {b v1 v2 B1 B2 Br P} (Hu : bin_op_semtype b B1 B2 Br P) l1 l2
     (Hev1 : prim_evals_to B1 v1 l1) (Hev2 : prim_evals_to B2 v2 l2)
     (HP : P l1 l2) :

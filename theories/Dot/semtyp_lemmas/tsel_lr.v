@@ -1,3 +1,4 @@
+(** * Semantic typing lemmas about type selections (and path typing). *)
 From D.Dot Require Import unary_lr.
 
 Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms).

@@ -1,3 +1,4 @@
+(** * Iris saved predicates. *)
 From iris.base_logic Require Import lib.saved_prop.
 From stdpp Require Import vector.
 From D Require Import prelude iris_prelude asubst_intf.
@@ -29,7 +30,7 @@ Section vec.
     vcons (vhead args) (vtail args) = args.
   Proof. exact: vec_S_inv. Qed.
 
-  (* Manipulation of higher-order semantic types. *)
+  (** Manipulation of higher-order semantic types. *)
   Definition vclose (Φ : vec vl 0 -d> A): A := Φ vnil.
   Global Arguments vclose /.
 

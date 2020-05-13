@@ -1,3 +1,4 @@
+(** * Misc. semantic typing lemmas. *)
 From iris.proofmode Require Import tactics.
 From D.Dot Require Import unary_lr.
 

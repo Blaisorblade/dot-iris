@@ -1,7 +1,4 @@
-(**
-Syntactic predicates used to define our logical relation for DOT,
-and misc. useful lemmas.
-*)
+(** * Iris-free auxiliary utilities for our gDOT logical relation. *)
 From D Require Export prelude.
 From iris.program_logic Require Import language.
 From D.Dot Require Export syn rules.

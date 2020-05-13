@@ -1,4 +1,4 @@
-(** Utilities for setoids. *)
+(** * Utilities for setoids. *)
 From stdpp Require Import tactics.
 
 Set Suggest Proof Using.

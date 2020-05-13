@@ -1,4 +1,4 @@
-(** Auxiliary typing judgments and lemmas, shared between different variants of the typing judgment. *)
+(** * Auxiliary typing judgments and lemmas, shared between different variants of the typing judgment. *)
 From D.Dot Require Import syn.
 
 Set Implicit Arguments.
@@ -16,7 +16,7 @@ Inductive bin_op_syntype : bin_op → base_ty → base_ty → base_ty → Set :=
 | ty_bplus    : bin_op_syntype bplus  tint  tint  tint
 | ty_btimes   : bin_op_syntype btimes tint  tint  tint.
 
-(** * When is a context weaker than another? While we don't give complete
+(** ** When is a context weaker than another? While we don't give complete
 rules, we develop some infrastructure to allow "stripping" laters from the
 context. *)
 

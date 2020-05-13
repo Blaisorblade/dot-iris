@@ -1,3 +1,4 @@
+(** * Semantic lemmas for definition typing of type definitions. *)
 From stdpp Require Import gmap.
 From D.Dot Require Import unary_lr.
 

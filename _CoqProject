@@ -11,9 +11,9 @@
 # We have ambiguous paths and so far it is not even clear what they are (https://gitlab.mpi-sws.org/iris/iris/issues/240).
 -arg -w -arg -ambiguous-paths
 
-theories/pure_program_logic/adequacy.v
-theories/pure_program_logic/lifting.v
 theories/pure_program_logic/weakestpre.v
+theories/pure_program_logic/lifting.v
+theories/pure_program_logic/adequacy.v
 
 theories/iris_extra/det_reduction.v
 theories/iris_extra/dlang.v
@@ -24,20 +24,20 @@ theories/iris_extra/proofmode_extra.v
 theories/iris_extra/saved_interp_dep.v
 theories/iris_extra/swap_later_impl.v
 
+theories/prelude.v
 theories/asubst_intf.v
 theories/asubst_base.v
-theories/prelude.v
 theories/proper.v
 theories/succ_notation.v
 theories/tactics.v
 
-theories/Dot/syn/drop_skips.v
-theories/Dot/syn/lr_syn_aux.v
+theories/Dot/syn/syn.v
+theories/Dot/syn/rules.v
 theories/Dot/syn/path_repl.v
 theories/Dot/syn/path_repl_lemmas.v
-theories/Dot/syn/rules.v
-theories/Dot/syn/syn.v
 theories/Dot/syn/syn_lemmas.v
+theories/Dot/syn/lr_syn_aux.v
+theories/Dot/syn/drop_skips.v
 
 theories/Dot/lr/dlang_inst.v
 theories/Dot/lr/dot_lty.v
