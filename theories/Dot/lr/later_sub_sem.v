@@ -15,7 +15,7 @@ Notation "s⊨T T1 <: T2" := (s_ty_sub T1 T2) (at level 74, T1, T2 at next level
 Definition ty_sub `{HdlangG: !dlangG Σ} T1 T2 := s⊨T V⟦ T1 ⟧ <: V⟦ T2 ⟧.
 Notation "⊨T T1 <: T2" := (ty_sub T1 T2) (at level 74, T1, T2 at next level).
 
-Definition s_ctx_sub `{HdlangG: !dlangG Σ} (Γ1 Γ2 : sCtx Σ) : Prop := ∀ ρ, s⟦ Γ1 ⟧* ρ -∗ s⟦ Γ2 ⟧* ρ.
+Definition s_ctx_sub `{HdlangG: !dlangG Σ} (Γ1 Γ2 : sCtx Σ) : Prop := ∀ ρ, sG⟦ Γ1 ⟧* ρ -∗ sG⟦ Γ2 ⟧* ρ.
 Notation "s⊨G Γ1 <:* Γ2" := (s_ctx_sub Γ1 Γ2) (at level 74, Γ1, Γ2 at next level).
 
 Definition ctx_sub `{HdlangG: !dlangG Σ} Γ1 Γ2 : Prop := s⊨G V⟦ Γ1 ⟧* <:* V⟦ Γ2 ⟧*.
@@ -104,7 +104,7 @@ Section CtxSub.
     Proper (flip ty_sub ==> flip ty_sub) TLater.
   Proof. apply: flip_proper_2. Qed.
 
-  Lemma senv_TLater_commute (Γ : sCtx Σ) ρ : s⟦ oLater <$> Γ ⟧* ρ ⊣⊢ ▷ s⟦ Γ ⟧* ρ.
+  Lemma senv_TLater_commute (Γ : sCtx Σ) ρ : sG⟦ oLater <$> Γ ⟧* ρ ⊣⊢ ▷ sG⟦ Γ ⟧* ρ.
   Proof.
     elim: Γ ρ => [| T Γ IH] ρ; cbn; [|rewrite IH later_and];
       iSplit; by [iIntros "$" | iIntros "_"].

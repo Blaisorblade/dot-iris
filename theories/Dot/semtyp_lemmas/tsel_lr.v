@@ -46,7 +46,7 @@ Section Sec.
   (* Suppose path typing required termination *now* rather than later:
 
     Definition sptp `{!dlangG Σ} p i Γ (T : oltyO Σ 0): iProp Σ :=
-     □∀ ρ, s⟦Γ⟧* ρ →
+     □∀ ρ, sG⟦Γ⟧* ρ →
 -      ▷^i path_wp (p.|[ρ]) (λ v, oClose T ρ v).
 +      path_wp (p.|[ρ]) (λ v, ▷^i oClose T ρ v).
 

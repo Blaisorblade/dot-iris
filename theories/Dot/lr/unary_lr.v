@@ -62,18 +62,18 @@ Section judgments.
 
   (** Expression typing *)
   Definition setp `{!dlangG Σ} e Γ τ : iProp Σ :=
-    □∀ ρ, s⟦Γ⟧* ρ → E⟦ τ ⟧ ρ (e.|[ρ]).
+    □∀ ρ, sG⟦Γ⟧* ρ → E⟦ τ ⟧ ρ (e.|[ρ]).
   Global Arguments setp /.
 
   (** Indexed subtyping. *)
   Definition sstpi `{!dlangG Σ} i j Γ τ1 τ2 : iProp Σ :=
     □∀ ρ v,
-      s⟦Γ⟧*ρ → ▷^i oClose τ1 ρ v → ▷^j oClose τ2 ρ v.
+      sG⟦Γ⟧*ρ → ▷^i oClose τ1 ρ v → ▷^j oClose τ2 ρ v.
   Global Arguments sstpi /.
 
   (** Multi-definition typing *)
   Definition sdstp `{!dlangG Σ} ds Γ (T : clty Σ) : iProp Σ :=
-    ⌜wf_ds ds⌝ ∧ □∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → s⟦Γ⟧* ρ → T ρ ds.|[ρ].
+    ⌜wf_ds ds⌝ ∧ □∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → sG⟦Γ⟧* ρ → T ρ ds.|[ρ].
   Global Arguments sdstp /.
 
   (** Definition typing *)
@@ -82,7 +82,7 @@ Section judgments.
 
   (** Path typing *)
   Definition sptp `{!dlangG Σ} p i Γ (T : oltyO Σ 0): iProp Σ :=
-    □∀ ρ, s⟦Γ⟧* ρ →
+    □∀ ρ, sG⟦Γ⟧* ρ →
       ▷^i path_wp (p.|[ρ]) (oClose T ρ).
   Global Arguments sptp /.
 End judgments.
@@ -261,7 +261,7 @@ End SemTypes.
 Global Instance: Params (@oAll) 2 := {}.
 
 Notation "d ↗ ψ" := (dm_to_type 0 d ψ) (at level 20).
-Notation "G⟦ Γ ⟧ ρ" := (s⟦ V⟦ Γ ⟧* ⟧* ρ) (at level 10).
+Notation "G⟦ Γ ⟧ ρ" := (sG⟦ V⟦ Γ ⟧* ⟧* ρ) (at level 10).
 
 (** Single-definition typing *)
 Notation "Γ ⊨ {  l := d  } : T" := (idtp Γ T l d) (at level 74, d, l, T at next level).
@@ -319,7 +319,7 @@ Section MiscLemmas.
 
   Lemma sdtp_eq (Γ : sCtx Σ) (T : clty Σ) l d:
     Γ s⊨ { l := d } : T ⊣⊢
-      (□∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → s⟦Γ⟧* ρ → T ρ [(l, d.|[ρ])]).
+      (□∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ [(l, d.|[ρ])]).
   Proof.
     rewrite /= pure_True ?(left_id True%I bi_and); by [> | exact: NoDup_singleton].
   Qed.
