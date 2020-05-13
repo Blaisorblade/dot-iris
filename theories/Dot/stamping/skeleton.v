@@ -1,5 +1,5 @@
-(** Define matching between terms which only differ in type members,
-    following Sec. 3.5 of the PDF. *)
+(** * Define correspondence between terms which only differ in type members.
+Show it's a bisimulation and it preserves safety. *)
 From iris.program_logic Require Import
      language ectx_language ectxi_language.
 From D Require Import iris_extra.det_reduction.
@@ -456,6 +456,9 @@ Proof.
   exists t2'. naive_solver.
 Qed.
 
+(** ** [same_skel_tm] is a simulation.
+Since it's symmetric by [same_skel_symm_tm], it's also a
+bisimulation. *)
 Theorem simulation_skeleton_erased_steps {t1 t1' t2 σ σ' } :
   same_skel_tm t1 t1' →
   rtc L.erased_step ([t1], σ) ([t2], σ') →
@@ -497,7 +500,7 @@ Proof.
   by eapply reducible_no_obs_reducible, same_skel_reducible_no_obs.
 Qed.
 
-Lemma safe_same_skel {e e_s}:
+Lemma same_skel_safe_impl {e e_s}:
   same_skel_tm e e_s → safe e_s → safe e.
 Proof.
   rewrite /safe => Hskel Hsafe e' /pure_steps_erased' Hred.
@@ -508,3 +511,7 @@ Proof.
     destruct e' => //; naive_solver.
   - eapply same_skel_reducible, Hs; exact: same_skel_symm_tm.
 Qed.
+
+Lemma same_skel_safe_equiv {e e_s} :
+  same_skel_tm e e_s → safe e_s ↔ safe e.
+Proof. split; apply same_skel_safe_impl; by [>|apply: same_skel_symm_tm]. Qed.

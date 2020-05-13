@@ -153,7 +153,7 @@ Corollary type_soundness e T :
 Proof.
   (* Apply 5.3: Translation of typing derivations. *)
   intros (e_s & g & HsT & ? & Hs)%(stamp_typed ∅) ?.
-  apply Hs.
+  apply (same_skel_safe_equiv Hs).
   apply (type_soundness_storeless HsT).
 Qed.
 

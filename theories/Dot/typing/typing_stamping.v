@@ -1,3 +1,4 @@
+(** * Stamping theorem. *)
 From D Require Import iris_extra.det_reduction.
 From D.Dot Require Import stamped_typing core_stamping_defs ast_stamping skeleton
   path_repl_lemmas.
@@ -491,17 +492,20 @@ Section syntyping_stamping_lemmas.
     Γ s⊢ₚ[ g' ] p : T, i ∧ g ⊆ g'.
   Proof. unmut_lemma (stamp_obj_ident_typing_mut Γ). Qed.
 
-  Lemma safe_stamp {n e g e_s}:
-    stamps_tm' n e g e_s → safe e_s → safe e.
-  Proof. move => [/unstamp_same_skel_tm Hs _] Hsafe. exact: safe_same_skel. Qed.
+  (** [stamps_tm'] implies [same_skel_tm], which is a bisimulation, as shown
+  by [simulation_skeleton_erased_steps]. *)
+  Lemma stamp_bisim_same_skel_tm {n e g e_s}:
+    stamps_tm' n e g e_s → same_skel_tm e e_s.
+  Proof. by case => /unstamp_same_skel_tm. Qed.
 
+  (** * Stamping theorem 5.3. *)
   Lemma stamp_typed Γ e T g: Γ u⊢ₜ e : T →
     ∃ e' g',
-    Γ v⊢ₜ[ g' ] e' : T ∧ g ⊆ g' ∧ (safe e' → safe e).
+    Γ v⊢ₜ[ g' ] e' : T ∧ g ⊆ g' ∧ same_skel_tm e e'.
   Proof.
     intros (e' & g' & HobjI'%typing_obj_ident_to_typing_mut & ? & ?)%
       (stamp_obj_ident_typed g).
-    exists e', g'; split_and! => //. exact: safe_stamp.
+    exists e', g'; split_and! => //. exact: stamp_bisim_same_skel_tm.
   Qed.
 
   Lemma stamp_path_typed Γ p T g i: Γ u⊢ₚ p : T, i →
