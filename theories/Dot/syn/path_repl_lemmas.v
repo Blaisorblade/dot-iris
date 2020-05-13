@@ -21,7 +21,7 @@ Proof.
   elim: i => [|i]; first by rewrite shift_unshift.
   rewrite {2}(hrenS _ i.+1) => <-.
   rewrite !hsubst_comp.
-  abstract autosubst.
+  autosubst.
 Qed.
 
 Lemma up_reduce s x : (up s x.+1 : vl) = shiftV (s x).
