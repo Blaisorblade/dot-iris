@@ -59,8 +59,9 @@ definitions.
   without reference to syntactic types, and Coq notation `V⟦ T ⟧` translates
   syntactic types into semantic types using those combinators.
 
-  - Paper notations `E⟦ T ⟧` and `G⟦ T ⟧` come with counterparts on Semantic types,
-    called respectively `sE⟦ T ⟧` and `sG⟦ T ⟧`.
+  - Paper notations `E⟦ T ⟧`, `G⟦ T ⟧` and semantic typing judgments `Γ ⊨ ...`
+    come in Coq with counterparts on semantic types, written respectively
+    `sE⟦ T ⟧`, `sG⟦ T ⟧` and `Γ s⊨ ...`.
 
 - Similarly, the definition interpretation `Ds⟦ T ⟧` produces semantic
   _definition_ types, called `dslty Σ`.
@@ -77,7 +78,8 @@ are well-typed and/or type-safe, it is sufficient to check our type soundness
 theorem, and the involved definitions.
 
 Sec. 2:
-- syntax and operational semantics for unstamped and stamped gDOT (Fig. 3, Sec. 5.1):
+- syntax, substitution and operational semantics for unstamped and stamped
+  gDOT (Fig. 3, Sec. 5.1):
   [`Dot/syn/syn.v`](theories/Dot/syn/syn.v).
   - values, expressions, paths, definition bodies and lists, types are called
     respectively `vl`, `tm`, `path`, `dm`, `dms`, `ty`;
@@ -90,6 +92,8 @@ Sec. 4:
 - gDOT unstamped typing judgments (Sec. 4, Fig. 6, 7):
   - The `Γ1 ≫ ▷ Γ2` judgment, and auxiliary judgments for primitive types:
     [`Dot/typing/typing_aux_defs.v`](theories/Dot/typing/typing_aux_defs.v)
+  - Path substitution and replacement:
+    [`Dot/syn/path_repl.v`](theories/Dot/syn/path_repl.v)
   - Primitive typing rules: [`Dot/typing/unstamped_typing.v`](theories/Dot/typing/unstamped_typing.v)
   - Derived rules:
     [`Dot/typing/unstamped_typing.v`](theories/Dot/typing/unstamped_typing.v),
@@ -130,21 +134,24 @@ Sec. 5:
 - Stamped typing is defined in [`Dot/typing/stamped_typing.v`](theories/Dot/typing/stamped_typing.v).
   - Translation of typing derivations (Thm. 5.3) is proved in
     [`Dot/typing/typing_stamping.v`](theories/Dot/typing/typing_stamping.v).
-- Iris proof rules (Sec. 5, Fig. 8): Iris proves all rules shown, except the following ones:
-  - Impl-▷ is proven in from [`iris_extra/swap_later_impl.v`](theories/iris_extra/swap_later_impl.v).
-  - Saved-Pred-Agree is proven as
+- Iris connectives (Sec. 5.2) are predefined by Iris, except for `s ↝ φ`,
+  defined in [`iris_extra/dlang.v`](theories/iris_extra/dlang.v) as
+  `s ↝n[ n ] φ` (where `n` is the arity of semantic predicate `φ`).
+- Iris proof rules (Sec. 5.2, Fig. 8): Iris proves all rules shown, except the following ones:
+  - `Impl-▷` is proven in from [`iris_extra/swap_later_impl.v`](theories/iris_extra/swap_later_impl.v).
+  - `Saved-Pred-Agree` is proven as
   `saved_ho_sem_type_agree` from [`iris_extra/saved_interp_dep.v`](theories/iris_extra/saved_interp_dep.v).
 - Expression weakest precondition (Sec. 5.2.1): Definition and proof rules appear in
   [`pure_program_logic`](theories/pure_program_logic).
+  On-paper rules `Wp-Val` and `Wp-Step` are called `Wp-Value` and `Wp-Pure-Step-Later` in Coq.
 - Path weakest precondition (Sec. 5.2.2): defined in [`Dot/lr/path_wp.v`](theories/Dot/lr/path_wp.v).
 - Logical relation (Sec. 5, Fig. 9):
   - Auxiliary definitions appear in [`iris_extra/dlang.v`](theories/iris_extra/dlang.v).
+  - Syntactic auxiliary definitions appear in [`Dot/syn/lr_syn_aux.v`](theories/Dot/syn/lr_syn_aux.v).
   - Infrastructure on semantic predicates
     is defined in [`Dot/lr/lty.v`](theories/Dot/lr/lty.v) and [`Dot/lr/dot_lty.v`](theories/Dot/lr/dot_lty.v).
-  - The core definition
-
-  - The logical relation and semantic judgments are completed in [`Dot/unary_lr.v`](theories/Dot/unary_lr.v),
-    including adequacy (Thm. 5.5).
+  - The logical relation `V⟦ T ⟧` and semantic judgments `Γ ⊨ ...` are completed
+    in [`Dot/unary_lr.v`](theories/Dot/unary_lr.v), including adequacy (Thm. 5.5).
 - The fundamental theorem (Thm. 5.4) is proven in [`Dot/fundamental.v`](theories/Dot/fundamental.v).
 
 ## Typing lemma naming conventions
