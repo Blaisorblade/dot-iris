@@ -9,20 +9,19 @@ From D Require Import tactics.
 From D.Dot Require Import syn path_repl.
 From D.Dot.typing Require Import storeless_typing.
 From D.Dot Require Import ex_utils storeless_typing_ex_utils scala_lib ex_iris_utils.
-(* From D.Dot Require Import storeless_typing_ex. *)
 From D.Dot Require Import prim_boolean_option.
 
 From D Require Import swap_later_impl.
 From D.Dot Require Import unary_lr
-  binding_lr tsel_lr no_binding_lr defs_lr prims_lr.
+  binding_lr tsel_lr no_binding_lr defs_lr prims_lr later_sub_sem.
 From D.Dot Require Import tdefs_lr.
 From D.Dot Require Import fundamental.
-Import dlang_adequacy stamp_transfer.
-(* From D.Dot Require Import scala_lib.
-From D.Dot.typing Require Import unstamped_typing unstamped_typing_derived_rules. *)
+Import dlang_adequacy stamp_transfer prim_boolean_option_mod.
+
 Import DBNotation.
-Import prim_boolean_option prelude saved_interp_dep.
-Import later_sub_sem.
+
+(* Override some imports. *)
+Import prelude.
 
 Set Implicit Arguments.
 Set Suggest Proof Using.
