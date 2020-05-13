@@ -313,7 +313,7 @@ Remove Hints iSub_Trans : core.
 Hint Extern 10 => try_once iSub_Trans : core.
 
 Section syntyping_lemmas.
-  Lemma typing_obj_ident_to_typing_mut Γ g:
+  Lemma stamped_to_storeless_typing_mut Γ g:
     (∀ e T, Γ s⊢ₜ[ g ] e : T → Γ v⊢ₜ[ g ] e : T) ∧
     (∀ ds T, Γ s⊢ds[ g ] ds : T → Γ v⊢ds[ g ] ds : T) ∧
     (∀ l d T, Γ s⊢[ g ]{ l := d } : T → Γ v⊢[ g ]{ l := d } : T) ∧

@@ -503,7 +503,7 @@ Section syntyping_stamping_lemmas.
     ∃ e' g',
     Γ v⊢ₜ[ g' ] e' : T ∧ g ⊆ g' ∧ same_skel_tm e e'.
   Proof.
-    intros (e' & g' & HobjI'%typing_obj_ident_to_typing_mut & ? & ?)%
+    intros (e' & g' & HobjI'%stamped_to_storeless_typing_mut & ? & ?)%
       (stamp_obj_ident_typed g).
     exists e', g'; split_and! => //. exact: stamp_bisim_same_skel_tm.
   Qed.
@@ -512,7 +512,7 @@ Section syntyping_stamping_lemmas.
     ∃ g',
     Γ v⊢ₚ[ g' ] p : T, i ∧ g ⊆ g'.
   Proof.
-    intros (g' & HobjI'%typing_obj_ident_to_typing_mut & ?)%
+    intros (g' & HobjI'%stamped_to_storeless_typing_mut & ?)%
       (stamp_obj_ident_path_typed g).
     exists g'; split_and! => //.
   Qed.
