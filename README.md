@@ -44,7 +44,7 @@ CPU cores; that should take around 5-10 minutes.
 Run `make html` to run Coqdoc over the code, to obtain an hyperlinked version
 (for ease of cross-referencing).
 `html/toc.html` offers an index for navigation; keep in mind that
-[correspondence.md](correspondence.md) is a better overview.
+[`correspondence.md`](correspondence.md) is a better overview.
 
 ## Documentation for developers / additional docs (not relevant to paper)
 
