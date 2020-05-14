@@ -6,8 +6,8 @@ Mechanization accompanying the paper "Scala Step-by-Step: Soundness for
 DOT with Step-Indexed Logical Relations in Iris".
 
 The mapping between the paper and this mechanization, together with the
-layout of the codebase, is described in
-[correspondence.md](correspondence.md).
+layout of the codebase, is described in [`correspondence.md`](correspondence.md).
+See below for how to obtain CoqDoc sources.
 
 ## Compiling the Proof the first time
 ### Requirements
@@ -38,6 +38,11 @@ opam install --deps-only .
 
 Run `make -jN` to build the full development, where N is the number of your
 CPU cores; that should take around 5-10 minutes.
+
+### Running CoqDoc
+
+Run `make html` to run Coqdoc over the code, to obtain an HTML version (for ease of browsing).
+Visit `html/toc.html` for an index — but [correspondence.md](correspondence.md) is a better overview.
 
 ## Documentation for developers / additional docs (not relevant to paper)
 
