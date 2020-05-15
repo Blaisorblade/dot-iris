@@ -64,6 +64,7 @@ deploy:
   repo: Blaisorblade/dot-iris-website
   target_branch: gh-pages
   keep_history: true
+  allow_empty_commit: true
   # keep_history: false
   verbose: true
 
