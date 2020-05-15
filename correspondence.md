@@ -7,29 +7,30 @@ All file paths in this file are relative to the [`theories/`](theories/) folder.
 There are a number of small differences between the paper presentation
 of gDOT and the formalization in Coq. We briefly discuss them here.
 
-- Notations such as `\overbar{V}⟦ g ⟧` or `\overbar{D}⟦ T ⟧` translate to `Vs⟦ g ⟧`
-  and `Ds⟦ T ⟧`.
+- Notations such as `\overbar{V}⟦ g ⟧` or `\overbar{D}⟦ T ⟧` in the paper are
+  translate to `Vs⟦ g ⟧` and `Ds⟦ T ⟧` in Coq.
 
-- In Coq, definition lists use constructors `nil` and `cons` as usual, like in Coq
-  developments by Rapoport et al. (e.g. pDOT).
-  On paper, definition lists are instead constructed by singleton and
-  merge operations (Fig. 3), as in other DOT papers.
+- In Coq, definition lists use constructors are represented using Coq's `list`
+  data type, whereas singleton and merge operations are used in the paper
+  (Fig. 3). Our approach in Coq is influenced by the Coq development of pDOT by
+  Rapoport et al.
 
 - While in the paper unstamped and stamped DOT are represented using disjoint
   syntaxes, in Coq there is a single syntax, together with predicates
   `is_unstamped_?` and `is_stamped_?`, characterizing whether some AST is
   unstamped or stamped.
 
-- Unlike in the appendix, our saved predicates and semantic types support an
+- Unlike in the paper, our saved predicates and semantic types support an
   additional argument `args` of type `vec n vl`, where `n` is the _arity_ of the
-  semantic type. gDOT only uses predicates of arity `n = 0`, which are
-  equivalent to the predicates used on paper.
+  semantic type. This additional argument is useful top provide forwards
+  compatibility higher-kinds. gDOT only uses predicates of arity `n = 0`, which
+  are equivalent to the predicates used on paper.
 
 - Our mechanization extends gDOT with some primitives, such as booleans and
   naturals, with some associated operations, even though all of those primitives
   are encodable.
 
-- Compared to the paper, and even to the appendix, we describe (in
+- Compared to the paper, we describe (in
   [`Dot/typing/storeless_typing.v`](theories/Dot/typing/storeless_typing.v))
   an additional "storeless" typing judgment, a
   strict generalization of stamped typing.
@@ -43,7 +44,7 @@ of gDOT and the formalization in Coq. We briefly discuss them here.
   For instance, in Coq `iProp` is parameterized by an additional index `Σ`.
   We hope such matters are not distracting, and refer to
   https://gitlab.mpi-sws.org/iris/iris/-/tree/master/#further-resources
-  for further info.
+  for further information.
 
 ### Semantic types
 
@@ -55,10 +56,11 @@ definitions.
   semantic types, defined as environment-indexed persistent predicates over
   values, of type `Env → Val → iProp`.
   Instead, in Coq, semantic types are a first-class notion, described by Coq
-  type `olty Σ 0`; most of Fig. 9 is defined as combinators on semantic types,
-  without reference to syntactic types, and Coq notation `V⟦ T ⟧` translates
-  syntactic types into semantic types using those combinators.
-
+  type `olty Σ 0`.
+  
+  - Most of Fig. 9 is defined as combinators on semantic types,
+    without reference to syntactic types. The Coq notation `V⟦ T ⟧` translates
+    syntactic types into semantic types using those combinators.
   - Paper notations `E⟦ T ⟧`, `G⟦ T ⟧` and semantic typing judgments `Γ ⊨ ...`
     come in Coq with counterparts on semantic types, written respectively
     `sE⟦ T ⟧`, `sG⟦ T ⟧` and `Γ s⊨ ...`.
@@ -137,7 +139,8 @@ Sec. 5:
 - Iris connectives (Sec. 5.2) are predefined by Iris, except for `s ↝ φ`,
   defined in [`iris_extra/dlang.v`](theories/iris_extra/dlang.v) as
   `s ↝n[ n ] φ` (where `n` is the arity of semantic predicate `φ`).
-- Iris proof rules (Sec. 5.2, Fig. 8): Iris proves all rules shown, except the following ones:
+- Iris proof rules (Sec. 5.2, Fig. 8): Iris proves all rules shown, except the
+  following ones, which are proved by unsealing Iris's model:
   - `Impl-▷` is proven in from [`iris_extra/swap_later_impl.v`](theories/iris_extra/swap_later_impl.v).
   - `Saved-Pred-Agree` is proven as
   `saved_ho_sem_type_agree` from [`iris_extra/saved_interp_dep.v`](theories/iris_extra/saved_interp_dep.v).
@@ -169,7 +172,9 @@ Translation table of symbols in names:
 
 - Exceptions:
   - The paper's P-Var is here called `P_Val`.
-  - The paper's D-And is here replaced by `D_Nil` and `D_Cons`.
+  - The paper's D-And is here replaced by `D_Nil` and `D_Cons` because definition
+    lists are represented as lists (see above section on differences with the
+    paper).
 
 - The names of all typing rules, but not of subtyping rules, have a prefix
   that identifies the judgment:
@@ -200,7 +205,7 @@ subsumption rule), called `T-Path` in the paper, while
 
 # Directory Layout
 
-* [`theories/Dot`](theories/Dot): guarded DOT. Complete.
+* [`theories/Dot`](theories/Dot): guarded DOT.
 * [`theories/`](theories/): General infrastructure.
 * [`theories/pure_program_logic`](theories/pure_program_logic): define a "pure"
   variant of Iris's weakest precondition.

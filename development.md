@@ -3,10 +3,10 @@
 ## Creating a local opam switch
 
 Instead of installing dependencies globally, one _can_ use opam 2.0 to create a
-separate switch. That _can_ be a local switch, that is, a local version of iris
-and of coq that will only be used when the shell is inside `dot-iris` directory;
-global switches can be useful, but for those we refer to `opam`'s docs. We
-provide next instructions for local switches.
+separate switch. That _can_ be a local switch, i.e., a local version of Iris
+and of Coq that will only be used when the shell is inside `dot-iris` directory.
+Global switches can be useful, but for those we refer to `opam`'s docs. We
+provide instructions for local switches in this file.
 
 _The first time,_ one should run:
 
@@ -17,30 +17,30 @@ opam repo add iris-dev https://gitlab.mpi-sws.org/FP/opam-dev.git --set-default 
 opam update
 ```
 
-to add the iris opam repository, and then, in this directory, do
+to add the Iris opam repository, and then, in the `dot-iris` directory, do:
 
 ```shell
 opam switch create . ocaml-variants.4.07.1+flambda --locked
 ```
 
 to create the local switch. Then, every time you wants to work on this project,
-`cd` to `dot-iris`'s folder and run
+`cd` to `dot-iris`'s folder and run:
 
 ```shell
 eval $(opam env)
 ```
 
-so that `coqc`, etc, correspond to the local version.
+so that `coqc`, etc., correspond to the local version.
 
 If you want to automate the `eval $(opam env)` step, you can rerun `opam init`'s
-configuration wizard via `opam init --reinit`, and answer yes when opam asks:
+configuration wizard via `opam init --reinit`, and answer "yes" when opam asks:
 
 > A hook can be added to opam's init scripts to ensure that the shell remains in
 > sync with the opam environment when they are loaded. Set that up?
 
 ## Upgrading switch
 
-Use
+Use:
 
 ```
 opam install .
@@ -50,8 +50,8 @@ to upgrade the switch when we bump dependencies (which for now we do seldom).
 To make this succeed, you might need to first run `opam unpin coq-stdpp
 coq-iris`, `opam uninstall dot-iris`, `opam uninstall .`, or such.
 
-After updating deps, you will need to do a clean build, so run `make clean`
-before `make`.
+After updating the dependencies, you will need to do a clean build, so run
+`make clean` before `make`.
 
 ## Bumping Iris
 
