@@ -63,7 +63,8 @@ deploy:
   github_token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
   repo: Blaisorblade/dot-iris-website
   target_branch: gh-pages
-  keep_history: false
+  keep_history: true
+  # keep_history: false
   verbose: true
 
   local_dir: html
