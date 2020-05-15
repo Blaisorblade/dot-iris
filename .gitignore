@@ -4,6 +4,7 @@
 *.vio
 *.v.d
 .coqdeps.d
+.Makefile.coq.d
 *.glob
 *.cache
 *.aux
