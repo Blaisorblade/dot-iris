@@ -57,3 +57,21 @@ script:
 
 after_script:
 - docker stop COQ  # optional but recommended
+
+deploy:
+  provider: pages
+  github_token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+  repo: Blaisorblade/dot-iris-website
+  target_branch: gh-pages
+  keep_history: false
+  verbose: true
+
+  local_dir: html
+
+  on:
+    # branch: master
+    branch: coqdocjs
+  # skip_cleanup: true
+  edge: true # https://docs.travis-ci.com/user/deployment-v2
+
+  commit_message:	Deploy %{project_name}@%{git_sha} to %{url}:%{target_branch}
