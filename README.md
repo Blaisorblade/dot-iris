@@ -10,9 +10,19 @@ layout of the codebase, is described in [`correspondence.md`](correspondence.md)
 See below for how to process sources with Coqdoc.
 
 ## Compiling the Proof the first time
+
 ### Requirements
+
 - GNU make
 - [opam 2.0.6](https://opam.ocaml.org/doc/Install.html) or later.
+
+### Cloning this repository
+
+After the cloning, run
+```
+git submodule update --init --recursive
+```
+to fetch all git submodules.
 
 ### Installing dependencies
 
