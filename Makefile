@@ -1,8 +1,5 @@
-COQDOCFLAGS:= \
-  --toc --toc-depth 2 --html --interpolate \
-  --index indexpage --no-lib-name --parse-comments --utf8
-
-export COQDOCFLAGS
+EXTRA_DIR := coqdocjs/extra
+export COQDOC := ./coqdoc.sh
 
 ######
 
@@ -24,6 +21,8 @@ html: all
 	rm -fr html-old
 	[ -d html ] && mv html html-old || true
 	@$(MAKE) -f Makefile.coq $@
+	cp $(EXTRA_DIR)/resources/* html
+	cd html; ln -s toc.html index.html
 .PHONY: html
 
 # Create Coq Makefile.
