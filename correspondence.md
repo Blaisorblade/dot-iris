@@ -8,7 +8,7 @@ There are a number of small differences between the paper presentation
 of gDOT and the formalization in Coq. We briefly discuss them here.
 
 - Notations such as `\overbar{V}⟦ g ⟧` or `\overbar{D}⟦ T ⟧` in the paper are
-  translate to `Vs⟦ g ⟧` and `Ds⟦ T ⟧` in Coq.
+  translated to `Vs⟦ g ⟧` and `Ds⟦ T ⟧` in Coq.
 
 - In Coq, definition lists use constructors are represented using Coq's `list`
   data type, whereas singleton and merge operations are used in the paper
@@ -22,8 +22,8 @@ of gDOT and the formalization in Coq. We briefly discuss them here.
 
 - Unlike in the paper, our saved predicates and semantic types support an
   additional argument `args` of type `vec n vl`, where `n` is the _arity_ of the
-  semantic type. This additional argument is useful top provide forwards
-  compatibility higher-kinds. gDOT only uses predicates of arity `n = 0`, which
+  semantic type. This additional argument is useful to provide forwards
+  compatibility with higher-kinds. gDOT only uses predicates of arity `n = 0`, which
   are equivalent to the predicates used on paper.
 
 - Our mechanization extends gDOT with some primitives, such as booleans and
