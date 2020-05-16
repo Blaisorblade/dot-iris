@@ -1,3 +1,11 @@
+(** * Encoding covariant lists.
+
+Here, the main lemma is [listTyp], saying that [hlistModV hx0] (the code shown
+in the paper) has type [hlistModT hx0] in a context offering a boolean
+implementation.
+Subsequent examples demonstrate how to link lists with the boolean
+implementation we provide, and how to _use_ lists.
+ *)
 
 From D Require Import tactics.
 From D.Dot Require Import syn unstampedness_binding.
@@ -37,7 +45,7 @@ Proof.
   - ltcrush.
 Qed.
 
-(** * Interface of the list module. *)
+(** ** Interface of the list module. *)
 
 (* [sci] stands for [scala.collection.immutable], following the example in WadlerFest DOT. *)
 Definition hlistTGen (bool sci : hpath) L U : hty := μ: self, {@
@@ -47,7 +55,7 @@ Definition hlistTGen (bool sci : hpath) L U : hty := μ: self, {@
   val "tail" : ⊤ →: hTAnd (sci @; "List") (type "A" >: ⊥ <: self @; "A" )
 }.
 
-(** ** The list type itself. *)
+(** *** The list type itself. *)
 Definition hlistT bool sci := hlistTGen bool sci ⊥ ⊤.
 
 (** This ▶: Later is needed because
@@ -74,7 +82,7 @@ Definition hlistModTBody bool sci : hty := {@
 Definition hlistModT bool : hty := μ: sci, hlistModTBody bool sci.
 
 
-(** * Implementation of the list module. *)
+(** ** Implementation of the list module. *)
 Definition hnilV bool : hvl := ν: self, {@
   type "A" = ⊥;
   val "isEmpty" = λ: _, htrueTm bool;
@@ -100,7 +108,7 @@ Definition hlistModV (bool : hvl) : hvl := ν: self, {@
 }.
 
 
-(** * Auxiliary types, needed in derivations of typing judgments. *)
+(** ** Auxiliary types, needed in derivations of typing judgments. *)
 Definition hconsTResConcr bool sci U := hlistTGen bool sci U U.
 
 Definition hconsTConcr (bool sci : hpath) : hty :=
@@ -117,8 +125,7 @@ Definition hlistModTConcrBody bool sci : hty := {@
 
 Definition hlistModTConcr bool : hty := μ: sci, hlistModTConcrBody bool sci.
 
-(** * Proofs that [hlistModV] has type [hlistModT]. *)
-
+(** ** Lemmas for proof that [hlistModV] has type [hlistModT]. *)
 Example nilTyp Γ : (▶: hlistModTConcrBody hx1 hx0)%ty :: boolImplT :: Γ u⊢ₜ
   hnilV hx1 : hnilT hx0.
 Proof.
@@ -180,6 +187,7 @@ Proof.
   tcrush.
 Qed.
 
+(** ** Proof that [hlistModV] has type [hlistModT]. *)
 Example listTyp Γ : boolImplT :: Γ u⊢ₜ hlistModV hx0 : hlistModT hx0.
 Proof.
   have Hv := listTypConcr Γ.
@@ -188,9 +196,12 @@ Proof.
 Qed.
 
 
-(** * Link lists with booleans. *)
+(** ** Link lists with booleans. *)
 
-(* Naive attempt; this fails avoidance. *)
+(*
+Naive attempt; this fails, because the return type mentions a local variable.
+Inferring return types that avoid mentioning local variables is called the
+avoidance problem, a term going back to the ML module literature. *)
 (*
 Definition clListV := lett (tv boolImplV) (tv listV).
 Example clListTyp Γ : Γ u⊢ₜ clListV : listT.
@@ -236,9 +247,7 @@ Example clListTypNat2 Γ :
   Γ u⊢ₜ hclListV' (λ _ _, hvint 1) : 𝐙.
 Proof. apply clListTyp'2. tcrush. Qed.
 
-(** XXX: try recursive linking? Probably not. *)
-
-(** * Link lists with booleans and with a client using the list API. *)
+(** ** Link lists with booleans and with a client using the list API. *)
 Definition hheadCons (list : hvl) :=
   htskip $ htskip (
     (hAnfBind $ htskip
