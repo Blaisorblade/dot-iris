@@ -73,7 +73,6 @@ deploy:
   # cleanup: false
 
   on:
-    # branch: master
-    branch: coqdocjs
+    branch: master
 
   commit_message:	Deploy %{project_name}@%{git_sha} to %{url}:%{target_branch}
