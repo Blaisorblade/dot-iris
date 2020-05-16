@@ -1,3 +1,8 @@
+(** * Russell's paradox does not affect guarded impredicative type members.
+This is not in our paper.
+- Naive impredicative type members support Russell's paradox (not shown here).
+- The same problematic code, with guarded impredicative type members, is not a problem.
+*)
 From D.Dot Require Import unary_lr.
 
 Implicit Types
