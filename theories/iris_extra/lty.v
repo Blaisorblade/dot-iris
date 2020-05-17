@@ -414,9 +414,8 @@ Section olty_ofe_2.
   Lemma oMu_eq (τ : oltyO Σ i) args ρ v : oMu τ args ρ v = τ args (v .: ρ) v.
   Proof. done. Qed.
 
-  Lemma oMu_shift (T : oltyO Σ i) args ρ v: oMu (shift T) args ρ v ≡ T args ρ v.
-  Proof. rewrite /= (hoEnvD_weaken_one T args _ v) stail_eq. by []. Qed.
-
+  Lemma oMu_shift (T : oltyO Σ i) : oMu (shift T) ≡ T.
+  Proof. move=> args ρ v. by rewrite /= (hoEnvD_weaken_one T args _ v). Qed.
 
   Definition interp_expr `{dlangG Σ} (φ : hoEnvD Σ 0) : envPred tm Σ :=
     λI ρ t, □ WP t {{ vclose φ ρ }}.
