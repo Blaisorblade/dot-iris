@@ -112,7 +112,7 @@ Section fundamental.
       + iApply sAnd_All_Sub_Distr.
       + iApply sAnd_Fld_Sub_Distr.
       + iApply sAnd_Typ_Sub_Distr.
-      + iApply sAnd_Or_Sub_Distr.
+      + iApply sDistr_And_Or_Sub.
       + iApply Sub_Skolem_P. by iApply H.
   Qed.
 

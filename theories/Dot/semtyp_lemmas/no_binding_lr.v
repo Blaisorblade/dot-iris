@@ -10,12 +10,12 @@ Section Sec.
   Context `{HdlangG: !dlangG Σ} (Γ : sCtx Σ).
 
   (* Only provable semantically *)
-  Lemma sAnd_Or_Sub_Distr {S T U i}: ⊢ Γ s⊨ oAnd (oOr S T) U , i <: oOr (oAnd S U) (oAnd T U), i.
+  Lemma sDistr_And_Or_Sub {S T U i}: ⊢ Γ s⊨ oAnd (oOr S T) U , i <: oOr (oAnd S U) (oAnd T U), i.
   Proof. iIntros "!> %% #Hg [[HS|HT] Hu] !> /="; [iLeft|iRight]; iFrame. Qed.
 
   (** Also derivable syntactically; see [iOr_And_Sub_Distr_inv]. But much easier to
   derive in the model. *)
-  Lemma sAnd_Or_Sub_Distr_inv {S T U i}: ⊢ Γ s⊨ oAnd (oOr S U) (oOr T U), i <: oOr (oAnd S T) U , i.
+  Lemma sDistr_And_Or_Sub_inv {S T U i}: ⊢ Γ s⊨ oAnd (oOr S U) (oOr T U), i <: oOr (oAnd S T) U , i.
   Proof. iIntros "!> %% #Hg [[HS|HT] [HT'|HU]] !> /="; eauto with iFrame. Qed.
 
   (* Is it true that for covariant F, F[A ∧ B] = F[A] ∧ F[B]?

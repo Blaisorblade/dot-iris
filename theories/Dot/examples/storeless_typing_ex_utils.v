@@ -388,7 +388,7 @@ Proof.
     eapply iSub_Trans; first apply iAnd2_Sub]; tcrush.
 Qed.
 
-Lemma iAnd_Or_Sub_Distr_inv {Γ S T U i}:
+Lemma iDistr_And_Or_Sub_inv {Γ S T U i}:
   is_stamped_ty (length Γ) g S →
   is_stamped_ty (length Γ) g T →
   is_stamped_ty (length Γ) g U →
@@ -463,11 +463,11 @@ Lemma iOr_And_Sub_Distr_inv {Γ S T U i}:
   Γ v⊢ₜ[ g ] TAnd (TOr S U) (TOr T U), i <: TOr (TAnd S T) U , i.
 Proof.
   intros.
-  ettrans; first apply iAnd_Or_Sub_Distr; stcrush => //.
+  ettrans; first apply iDistr_And_Or_Sub; stcrush => //.
   ettrans; first apply iOr_Sub_split, absorb_and_or; try apply iSub_Refl;
     stcrush => //.
   ettrans; first apply iOr_Sub_split; try apply (iSub_Refl _ (T := U));
-    try (ettrans; first apply (comm_and (T := S))); try apply iAnd_Or_Sub_Distr; stcrush => //.
+    try (ettrans; first apply (comm_and (T := S))); try apply iDistr_And_Or_Sub; stcrush => //.
   ettrans; first apply assoc_or; stcrush => //.
   ettrans; first apply iOr_Sub_split.
   3: apply iSub_Refl; tcrush.

@@ -212,7 +212,7 @@ Proof.
     (type "T" >: ⊥ <: x2 @ "types" @; "Type")) (i2 := 2));
     first apply iSub_And; first 1 last.
   - ettrans; first apply iSub_Add_Later; stcrush; asideLaters; ltcrush.
-  - rewrite /hoptionTConcr/=; ettrans; first apply iAnd_Or_Sub_Distr;
+  - rewrite /hoptionTConcr/=; ettrans; first apply iDistr_And_Or_Sub;
     stcrush; apply iOr_Sub_split; ltcrush.
   - lThis. ettrans; last apply iLater_Sub; stcrush.
     eapply (iSel_Sub (L := ⊥) (U := hoptionTConcr)); tcrush.
