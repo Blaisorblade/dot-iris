@@ -283,6 +283,11 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     is_stamped_ty (length Γ) g U1 →
     is_stamped_ty (length Γ) g U2 →
     Γ s⊢ₜ[ g ] TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
+| iDistr_And_Or_Sub {S T U i}:
+    is_stamped_ty (length Γ) g S →
+    is_stamped_ty (length Γ) g T →
+    is_stamped_ty (length Γ) g U →
+    Γ s⊢ₜ[ g ] TAnd (TOr S T) U , i <: TOr (TAnd S U) (TAnd T U), i
 
 where "Γ s⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ g T1 i1 T2 i2).
 

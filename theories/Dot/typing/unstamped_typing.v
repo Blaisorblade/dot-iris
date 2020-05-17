@@ -280,6 +280,11 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     is_unstamped_ty' (length Γ) U1 →
     is_unstamped_ty' (length Γ) U2 →
     Γ u⊢ₜ TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
+| iDistr_And_Or_Sub {S T U i}:
+    is_unstamped_ty' (length Γ) S →
+    is_unstamped_ty' (length Γ) T →
+    is_unstamped_ty' (length Γ) U →
+    Γ u⊢ₜ TAnd (TOr S T) U , i <: TOr (TAnd S U) (TAnd T U), i
 
 where "Γ u⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
 
