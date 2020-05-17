@@ -22,7 +22,10 @@ html: all
 	[ -d html ] && mv html html-old || true
 	@$(MAKE) -f Makefile.coq $@
 	cp $(EXTRA_DIR)/resources/* html
-	cd html; ln -s toc.html index.html; touch .nojekyll
+	cd html; ln -s ./toc.html index.html
+	# Create some layout in the website
+	mv html coqdoc; mkdir html; mv coqdoc html
+	cd html; touch .nojekyll
 .PHONY: html
 
 # Create Coq Makefile.
