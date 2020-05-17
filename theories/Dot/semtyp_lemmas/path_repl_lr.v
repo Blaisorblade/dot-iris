@@ -203,6 +203,7 @@ Section path_repl.
     Γ ⊨p p : TMu T1, i -∗
     Γ ⊨ TSing p, i <: TMu T2, i.
   Proof.
+    (* Demonstrate why this rule is not easy to derive.*)
     (* iIntros "Hsub Hp".
     iApply Sngl_Sub_Self.
     iApply (sP_Sub' with "Hp").
