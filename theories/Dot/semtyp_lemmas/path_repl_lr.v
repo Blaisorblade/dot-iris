@@ -18,9 +18,18 @@ Definition opSubst {Σ n} p (T : oltyO Σ n) : oltyO Σ n :=
   Olty (λI args ρ v, path_wp p.|[ρ] (λ w, T args (w .: ρ) v)).
 Notation "T .sTp[ p /]" := (opSubst p T) (at level 65).
 
+(** ** Semantic definition of path replacement. *)
+Definition sem_ty_path_replI {Σ n} p q (T1 T2 : olty Σ n) : iProp Σ :=
+  □∀ args ρ v (H : alias_paths p.|[ρ] q.|[ρ]), T1 args ρ v ≡ T2 args ρ v.
+Notation "T1 ~sTpI[ p := q  ]* T2" :=
+  (sem_ty_path_replI p q T1 T2) (at level 70).
+
+(** Semantic definition of path replacement, experts-only version.
+Unlike [sem_ty_path_replI], this version in [Prop] is less expressive, but
+sufficient for our goals and faster to use in certain proofs. *)
 Definition sem_ty_path_repl {Σ n} p q (T1 T2 : olty Σ n) : Prop :=
   ∀ args ρ v, alias_paths p.|[ρ] q.|[ρ] → T1 args ρ v ≡ T2 args ρ v.
-Notation "T1 ~sTp[ p := q  ]* T2" :=
+Notation "T1 ~sTpP[ p := q  ]* T2" :=
   (sem_ty_path_repl p q T1 T2) (at level 70).
 
 Section path_repl.
@@ -34,9 +43,15 @@ Section path_repl.
     T .sTp[ p /] args ρ w ≡ T args (v .: ρ) w.
   Proof. move=> /alias_paths_elim_eq /= ->. by rewrite path_wp_pv_eq. Qed.
 
+  Lemma sem_ty_path_repl_eq {n} {p q} {T1 T2 : olty Σ n} :
+    T1 ~sTpP[ p := q ]* T2 → ⊢ T1 ~sTpI[ p := q ]* T2.
+  Proof. iIntros "%Heq !%". apply: Heq. Qed.
+  (* The reverse does not hold. *)
+
+
   Lemma fundamental_ty_path_repl {p q T1 T2}
     (Hrew : T1 ~Tp[ p := q ] T2) :
-    V⟦ T1 ⟧ ~sTp[ p := q ]* V⟦ T2 ⟧.
+    V⟦ T1 ⟧ ~sTpP[ p := q ]* V⟦ T2 ⟧.
   Proof.
     rewrite /sem_ty_path_repl; induction Hrew => args ρ v He /=;
       rewrite /subtype_lty/=; properness;
@@ -46,17 +61,17 @@ Section path_repl.
 
   Lemma fundamental_ty_path_repl_rtc {p q T1 T2}
     (Hrew : T1 ~Tp[ p := q ]* T2) :
-    V⟦ T1 ⟧ ~sTp[ p := q ]* V⟦ T2 ⟧.
+    V⟦ T1 ⟧ ~sTpP[ p := q ]* V⟦ T2 ⟧.
   Proof.
     move=> args ρ v Hal. elim: Hrew => [//|T {}T1 {}T2 Hr _ <-].
     apply (fundamental_ty_path_repl Hr), Hal.
   Qed.
 
   Lemma rewrite_ty_path_repl_rtc {p q T1 T2 args ρ}
-    (Hrepl : T1 ~Tp[ p := q ]* T2):
-    alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
+    (Hrepl : T1 ~Tp[ p := q ]* T2)
+    (Hal : alias_paths p.|[ρ] q.|[ρ]): (* p : q.type *)
     V⟦ T1 ⟧ args ρ ≡ V⟦ T2 ⟧ args ρ.
-  Proof. intros Hal v. apply: (fundamental_ty_path_repl_rtc Hrepl) Hal. Qed.
+  Proof. intros v. apply: (fundamental_ty_path_repl_rtc Hrepl) Hal. Qed.
 
   Lemma sem_psubst_one_eq {T T' args p v ρ}
     (Hrepl : T .Tp[ p /]~ T')
@@ -142,20 +157,25 @@ Section path_repl.
 
   (** Non-pDOT rules end. *)
 
-  (** Obtain this rule for *semantic* substitution. *)
-  Lemma sSngl_pq_Sub {Γ i p q T1 T2} (Hrepl : T1 ~sTp[ p := q ]* T2) :
+  (** Here we show this rule for *semantic* substitution. *)
+  Lemma sSngl_pq_Sub {Γ i p q T1 T2} :
+    T1 ~sTpI[ p := q ]* T2 -∗
     Γ s⊨p p : oSing q, i -∗
     Γ s⊨ T1, i <: T2, i.
   Proof.
-    iIntros "#Hal !> %ρ %v #Hg HT1". iSpecialize ("Hal" with "Hg"). iNext i.
+    iIntros "#Hrepl #Hal !> %ρ %v Hg HT1".
+    iSpecialize ("Hal" with "Hg"); iNext i.
     iDestruct "Hal" as %Hal%alias_paths_simpl.
-    iApply (Hrepl with "HT1"). exact Hal.
+    iRewrite -("Hrepl" $! vnil ρ v Hal); iExact "HT1".
   Qed.
 
   Lemma Sngl_pq_Sub {Γ i p q T1 T2} (Hrepl : T1 ~Tp[ p := q ]* T2):
     Γ ⊨p p : TSing q, i -∗
     Γ ⊨ T1, i <: T2, i.
-  Proof. apply sSngl_pq_Sub, fundamental_ty_path_repl_rtc, Hrepl. Qed.
+  Proof.
+    iApply sSngl_pq_Sub; iApply sem_ty_path_repl_eq.
+    apply fundamental_ty_path_repl_rtc, Hrepl.
+  Qed.
 
   Lemma sP_Mu_E {Γ T p i} :
     Γ s⊨p p : oMu T, i -∗ Γ s⊨p p : T .sTp[ p /], i.
