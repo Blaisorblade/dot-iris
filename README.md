@@ -49,6 +49,10 @@ opam install --deps-only .
 Run `make -jN` to build the full development, where N is the number of your
 CPU cores; that should take around 5-10 minutes.
 
+### Browsing published CoqDoc
+
+Start from [here](https://blaisorblade.github.io/dot-iris-website/coqdoc/).
+
 ### Running CoqDoc
 
 Run `make html` to run Coqdoc over the code, to obtain an hyperlinked version
