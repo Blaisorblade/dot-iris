@@ -25,9 +25,6 @@ Notation "T1 ~sTp[ p := q  ]* T2" :=
 
 Section path_repl.
   Context `{!dlangG Σ}.
-  Implicit Types (φ: vl → iProp Σ).
-
-  Notation path_wp p φ := (@path_wp Σ p φ).
 
   Lemma opSubst_pv_eq {n} v (T : oltyO Σ n) : T .sTp[ pv v /] ≡ T.|[v/].
   Proof. move=> args ρ w /=. by rewrite path_wp_pv_eq subst_swap_base. Qed.
@@ -277,23 +274,6 @@ Section path_repl.
   Lemma T_Path Γ T p :
     Γ ⊨p p : T, 0 -∗ Γ ⊨ path2tm p : T.
   Proof. apply sT_Path. Qed.
-
-  (* From D.Dot Require Import binding_lr.
-  (* Not too useful. *)
-  (* XXX Generalize? *)
-  Lemma s_singleton_self_skip Γ τ p i :
-    Γ s⊨p p : τ, 0 -∗
-    Γ s⊨ iterate tskip i (path2tm p) : oSing p.
-  Proof.
-    rewrite sP_Sngl_Refl sT_Path.
-    iIntros "Hp". iApply (sT_Sub with "Hp").
-    by iIntros "!> * _ $".
-  Qed.
-
-  Lemma singleton_self_skip Γ T p i :
-    Γ ⊨p p : T, 0 -∗
-    Γ ⊨ iterate tskip i (path2tm p) : TSing p.
-  Proof. apply s_singleton_self_skip. Qed. *)
 
   (* From pDOT *)
   Lemma sP_Fld_I Γ p T l i:
