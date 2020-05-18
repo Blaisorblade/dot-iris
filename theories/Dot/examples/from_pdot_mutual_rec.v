@@ -109,7 +109,7 @@ Proof.
       * constructor; varsub.
         ltcrush.
       * tcrush.
-      * tcrush; last apply Bind1; tcrush.
+      * tcrush; last apply iSub_Bind_1; tcrush.
         eapply (iSub_Trans (T2 := ⊤)); tcrush.
         eapply iSub_Sel'; tcrush.
         varsub; tcrush.

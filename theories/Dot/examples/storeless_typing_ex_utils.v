@@ -227,7 +227,7 @@ Lemma iT_Mu_E' Γ v T1 T2:
   Γ v⊢ₜ[ g ] tv v: T2.
 Proof. intros; subst; auto. Qed.
 
-Lemma Bind1 Γ T1 T2 i:
+Lemma iSub_Bind_1 Γ T1 T2 i:
   is_stamped_ty (S (length Γ)) g T1 → is_stamped_ty (length Γ) g T2 →
   iterate TLater i T1 :: Γ v⊢ₜ[g] T1, i <: shift T2, i →
   Γ v⊢ₜ[g] μ T1, i <: T2, i.
@@ -237,7 +237,7 @@ Proof.
   exact: iMu_Sub.
 Qed.
 
-Lemma Bind2 Γ T1 T2 i:
+Lemma iSub_Bind_2 Γ T1 T2 i:
   is_stamped_ty (length Γ) g T1 → is_stamped_ty (S (length Γ)) g T2 →
   iterate TLater i (shift T1) :: Γ v⊢ₜ[g] shift T1, i <: T2, i →
   Γ v⊢ₜ[g] T1, i <: μ T2, i.
@@ -246,11 +246,11 @@ Proof.
   ettrans; last apply (iMu_Sub_Mu Hsub); [exact: iSub_Mu | wtcrush].
 Qed.
 
-Lemma Bind1' Γ T1 T2:
+Lemma iSub_Bind_1' Γ T1 T2:
   is_stamped_ty (S (length Γ)) g T1 → is_stamped_ty (length Γ) g T2 →
   T1 :: Γ v⊢ₜ[g] T1, 0 <: shift T2, 0 →
   Γ v⊢ₜ[g] μ T1, 0 <: T2, 0.
-Proof. intros; exact: Bind1. Qed.
+Proof. intros; exact: iSub_Bind_1. Qed.
 
 (* Adapted from [unstamped_typing_derived_rules.v]. *)
 Lemma iP_Sub' {Γ p T1 T2 i} :
@@ -625,4 +625,4 @@ Hint Resolve is_stamped_pvar is_stamped_pvars iT_Sub_nocoerce : core.
 
 Ltac var := exact: iT_Var0 || exact: iT_Var'.
 Ltac varsub := (eapply iT_Var0_Sub || eapply iT_Var_Sub); first done.
-Ltac mltcrush := tcrush; try ((apply Bind1' || apply Bind1); tcrush); repeat lookup.
+Ltac mltcrush := tcrush; try ((apply iSub_Bind_1' || apply iSub_Bind_1); tcrush); repeat lookup.

@@ -268,9 +268,9 @@ Lemma iD_Typ Γ T l:
   Γ u⊢{ l := dtysyn T } : TTMem l T T.
 Proof. intros. tcrush. Qed.
 
-(* We can derive rules Bind1 and Bind2 (the latter only conjectured) from
+(* We can derive rules iSub_Bind_1 and iSub_Bind_2 (the latter only conjectured) from
   "Type Soundness for Dependent Object Types (DOT)", Rompf and Amin, OOPSLA '16. *)
-Lemma Bind1 Γ T1 T2 i:
+Lemma iSub_Bind_1 Γ T1 T2 i:
   is_unstamped_ty' (S (length Γ)) T1 → is_unstamped_ty' (length Γ) T2 →
   iterate TLater i T1 :: Γ u⊢ₜ T1, i <: shift T2, i →
   Γ u⊢ₜ μ T1, i <: T2, i.
@@ -280,7 +280,7 @@ Proof.
   exact: iMu_Sub.
 Qed.
 
-Lemma Bind2 Γ T1 T2 i:
+Lemma iSub_Bind_2 Γ T1 T2 i:
   is_unstamped_ty' (length Γ) T1 → is_unstamped_ty' (S (length Γ)) T2 →
   iterate TLater i (shift T1) :: Γ u⊢ₜ shift T1, i <: T2, i →
   Γ u⊢ₜ T1, i <: μ T2, i.
@@ -289,19 +289,19 @@ Proof.
   ettrans; last apply (iMu_Sub_Mu Hsub); [exact: iSub_Mu | wtcrush].
 Qed.
 
-Lemma Bind1' Γ T1 T2:
+Lemma iSub_Bind_1' Γ T1 T2:
   is_unstamped_ty' (S (length Γ)) T1 → is_unstamped_ty' (length Γ) T2 →
   T1 :: Γ u⊢ₜ T1, 0 <: shift T2, 0 →
   Γ u⊢ₜ μ T1, 0 <: T2, 0.
-Proof. intros; exact: Bind1. Qed.
+Proof. intros; exact: iSub_Bind_1. Qed.
 
-Lemma Bind2' Γ T1 T2:
+Lemma iSub_Bind_2' Γ T1 T2:
   is_unstamped_ty' (length Γ) T1 → is_unstamped_ty' (S (length Γ)) T2 →
   shift T1 :: Γ u⊢ₜ shift T1, 0 <: T2, 0 →
   Γ u⊢ₜ T1, 0 <: μ T2, 0.
-Proof. intros; exact: Bind2. Qed.
+Proof. intros; exact: iSub_Bind_2. Qed.
 
-Ltac mltcrush := tcrush; try ((apply Bind1' || apply Bind1); tcrush); repeat lookup.
+Ltac mltcrush := tcrush; try ((apply iSub_Bind_1' || apply iSub_Bind_1); tcrush); repeat lookup.
 
 (* Simplified package introduction, for talk. *)
 Lemma BindSpec Γ (L T U : ty):
