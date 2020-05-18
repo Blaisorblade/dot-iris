@@ -156,33 +156,6 @@ Section Sec.
   Proof. apply sT_Sub. Qed.
 
   (*
-     x ∉ fv T
-     ----------------------------------------------- (<:)
-     Γ ⊨ mu x: T <: T    Γ ⊨ T <: mu(x: T)
-  *)
-
-  (*
-     Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂ᶻ
-     ----------------------------------------------- (<:-μ-X)
-     Γ ⊨ μ (x: T₁ˣ) <: μ(x: T₂ˣ)
-  *)
-  Lemma sMu_Sub_Mu {Γ T1 T2 i j} :
-    oLaterN i T1 :: Γ s⊨ T1, i <: T2, j -∗
-    Γ s⊨ oMu T1, i <: oMu T2, j.
-  Proof.
-    iIntros "/= #Hstp !> %ρ %v #Hg #HT1".
-    iApply ("Hstp" $! (v .: ρ) v with "[$Hg $HT1] [$HT1]").
-  Qed.
-
-  (** Novel subtyping rules. [Sub_Bind_1] and [Sub_Bind_2] become
-  derivable. *)
-  Lemma sMu_Sub {Γ T i} : ⊢ Γ s⊨ oMu (shift T), i <: T, i.
-  Proof. iIntros "!> **". by rewrite oMu_shift. Qed.
-
-  Lemma sSub_Mu {Γ T i} : ⊢ Γ s⊨ T, i <: oMu (shift T), i.
-  Proof. iIntros "!> **". by rewrite oMu_shift. Qed.
-
-  (*
      Γ ⊨ z: Tᶻ
      =============================================== (T-Rec-I/T-Rec-E)
      Γ ⊨ z: mu(x: Tˣ)
@@ -199,59 +172,6 @@ Section Sec.
 
   Lemma sT_Mu_E {Γ T v} : Γ s⊨ tv v : oMu T -∗ Γ s⊨ tv v : T.|[v/].
   Proof. by rewrite sTMu_equiv. Qed.
-
-  Lemma Mu_Sub_Mu {Γ} T1 T2 i j:
-    iterate TLater i T1 :: Γ ⊨ T1, i <: T2, j -∗
-    Γ ⊨ TMu T1, i <: TMu T2, j.
-  Proof.
-    rewrite /istpi -sMu_Sub_Mu.
-    by rewrite fmap_cons (iterate_TLater_oLater i T1).
-  Qed.
-
-  Lemma Mu_Sub {Γ} T i: ⊢ Γ ⊨ TMu (shift T), i <: T, i.
-  Proof.
-    rewrite /istpi; cbn -[sstpi].
-    rewrite (interp_subst_commute T (ren (+1))).
-    apply sMu_Sub.
-    (* iIntros "!> %ρ %v **".
-    by rewrite /= (lift_olty_eq (interp_subst_commute _ _)). *)
-  Qed.
-
-  Lemma Sub_Mu {Γ} T i: ⊢ Γ ⊨ T, i <: TMu (shift T), i.
-  Proof.
-    rewrite /istpi; cbn -[sstpi].
-    rewrite (interp_subst_commute T (ren (+1))).
-    apply sSub_Mu.
-    (* iIntros "!> %ρ %v **".
-    by rewrite /= (lift_olty_eq (interp_subst_commute _ _)). *)
-  Qed.
-
-  (*
-     Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂
-     ----------------------------------------------- (<:-Bind-1)
-     Γ ⊨ μ (x: T₁ˣ) <: T₂
-  *)
-  (* Derive this rule from Mu_Sub_Mu and Mu_Sub. *)
-  Lemma Sub_Bind_1 {Γ T1 T2 i j} :
-    iterate TLater i T1 :: Γ ⊨ T1, i <: shift T2, j -∗
-    Γ ⊨ TMu T1, i <: T2, j.
-  Proof.
-    iIntros "Hstp"; iApply (Sub_Trans with "[-] []").
-    by iApply Mu_Sub_Mu. iApply Mu_Sub.
-  Qed.
-
-  (*
-     Γ, z: T₁ᶻ ⊨ T₁ <: T₂ᶻ
-     ----------------------------------------------- (<:-Bind-2)
-     Γ ⊨ T₁ <: μ(x: T₂ˣ)
-  *)
-  Lemma Sub_Bind_2 {Γ T1 T2 i j} :
-    iterate TLater i (shift T1) :: Γ ⊨ (shift T1), i <: T2, j -∗
-    Γ ⊨ T1, i <: TMu T2, j.
-  Proof.
-    iIntros "Hstp"; iApply (Sub_Trans with "[] [-]").
-    iApply Sub_Mu. by iApply Mu_Sub_Mu.
-  Qed.
 
   Lemma T_Mu_I {Γ} T v: Γ ⊨ tv v : T.|[v/] -∗ Γ ⊨ tv v : TMu T.
   Proof. by rewrite /ietp -sT_Mu_I interp_subst_commute. Qed.
@@ -300,27 +220,6 @@ Section Sec.
     Γ ⊨ e1 : TAll T1 (shift T2) -∗ Γ ⊨ e2 : T1 -∗ Γ ⊨ tapp e1 e2 : T2.
   Proof. by rewrite /ietp -sT_All_E -(interp_subst_commute T2 (ren (+1))). Qed.
 
-  Lemma sFld_Sub_Fld' {Γ T1 T2 i j l}:
-    Γ s⊨ T1, i <: T2, j + i -∗
-    Γ s⊨ cVMem l T1, i <: cVMem l T2, j + i.
-  Proof.
-    iIntros "#Hsub /= !> %ρ %v #Hg #HT1". setoid_rewrite laterN_plus.
-    iDestruct "HT1" as (d) "#[Hdl #HT1]".
-    iExists d; repeat iSplit => //.
-    iDestruct "HT1" as (pmem) "[Heq HvT1]".
-    iExists pmem; repeat iSplit => //; rewrite !path_wp_eq.
-    iDestruct "HvT1" as (w) "[Hv HvT1]"; iExists w; iFrame "Hv".
-    by iApply "Hsub".
-  Qed.
-
-  Lemma Fld_Sub_Fld' {Γ T1 T2 i j l}:
-    Γ ⊨ T1, i <: T2, j + i -∗ Γ ⊨ TVMem l T1, i <: TVMem l T2, j + i.
-  Proof. apply sFld_Sub_Fld'. Qed.
-
-  Lemma Fld_Sub_Fld {Γ T1 T2 i l}:
-    Γ ⊨ T1, i <: T2, i -∗ Γ ⊨ TVMem l T1, i <: TVMem l T2, i.
-  Proof. iApply (Fld_Sub_Fld' (j := 0)). Qed.
-
   Lemma sT_Obj_E {Γ e T l}:
     Γ s⊨ e : cVMem l T -∗
     (*─────────────────────────*)
@@ -335,70 +234,3 @@ Section Sec.
   Lemma T_Obj_E {Γ e T l}: Γ ⊨ e : TVMem l T -∗ Γ ⊨ tproj e l : T.
   Proof. apply sT_Obj_E. Qed.
 End Sec.
-
-Section swap_based_typing_lemmas.
-  Context `{!dlangG Σ} `{!SwapPropI Σ}.
-
-  Lemma sAll_Sub_All {Γ T1 T2 U1 U2 i}:
-    Γ s⊨ oLater T2, i <: oLater T1, i -∗
-    oLaterN (S i) (shift T2) :: Γ s⊨ oLater U1, i <: oLater U2, i -∗
-    Γ s⊨ oAll T1 U1, i <: oAll T2 U2, i.
-  Proof.
-    iIntros "#HsubT #HsubU /= !> %ρ %v #Hg #HT1".
-    iDestruct "HT1" as (t) "#[Heq #HT1]". iExists t; iSplit => //.
-    iIntros (w).
-    rewrite -!mlaterN_pers -mlaterN_impl.
-    iIntros "!> #HwT2".
-    iSpecialize ("HsubT" $! ρ w with "Hg HwT2").
-    iSpecialize ("HsubU" $! (w .: ρ)); iEval (rewrite -forall_swap_impl) in "HsubU".
-    iSpecialize ("HsubU" with "[# $Hg]").
-    by rewrite -swap_later /=; iApply hoEnvD_weaken_one.
-    setoid_rewrite mlaterN_impl; setoid_rewrite mlater_impl.
-    iNext i; iNext 1. iModIntro. iApply wp_wand.
-    - iApply ("HT1" with "[]"). iApply "HsubT".
-    - iIntros (u) "#HuU1". by iApply "HsubU".
-  Qed.
-
-  Lemma All_Sub_All {Γ} T1 T2 U1 U2 i:
-    Γ ⊨ TLater T2, i <: TLater T1, i -∗
-    iterate TLater (S i) (shift T2) :: Γ ⊨ TLater U1, i <: TLater U2, i -∗
-    Γ ⊨ TAll T1 U1, i <: TAll T2 U2, i.
-  Proof.
-    rewrite /istpi fmap_cons iterate_TLater_oLater.
-    rewrite (interp_subst_commute T2 (ren (+1))).
-    apply sAll_Sub_All.
-  Qed.
-
-  Lemma sTyp_Sub_Typ' {Γ L1 L2 U1 U2 i j l}:
-    Γ s⊨ oLater L2, j + i <: oLater L1, i -∗
-    Γ s⊨ oLater U1, i <: oLater U2, i -∗
-    Γ s⊨ cTMem l L1 U1, i <: cTMem l L2 U2, i.
-  Proof.
-    iIntros "#IHT #IHT1 /= !> %ρ %v #Hg #HT1".
-    iDestruct "HT1" as (d) "[Hl2 H]".
-    iDestruct "H" as (φ) "#[Hφl [HLφ #HφU]]".
-    rewrite (comm plus).
-    setoid_rewrite laterN_plus; setoid_rewrite mlaterN_impl.
-    iExists d; repeat iSplit; first by iNext.
-    iExists φ; repeat iSplitL; first by [iNext];
-      rewrite -!mlaterN_pers;
-      iIntros "!>" (w);
-      iSpecialize ("IHT" $! ρ w with "Hg");
-      iSpecialize ("IHT1" $! ρ w with "Hg");
-      iNext i; iIntros.
-    - iApply "HLφ" => //. by iApply "IHT".
-    - iApply "IHT1". by iApply "HφU".
-  Qed.
-
-  Lemma sTyp_Sub_Typ {Γ L1 L2 U1 U2 i l}:
-    Γ s⊨ oLater L2, i <: oLater L1, i -∗
-    Γ s⊨ oLater U1, i <: oLater U2, i -∗
-    Γ s⊨ cTMem l L1 U1, i <: cTMem l L2 U2, i.
-  Proof. apply (sTyp_Sub_Typ' (j := 0)). Qed.
-
-  Lemma Typ_Sub_Typ {Γ L1 L2 U1 U2 i l}:
-    Γ ⊨ TLater L2, i <: TLater L1, i -∗
-    Γ ⊨ TLater U1, i <: TLater U2, i -∗
-    Γ ⊨ TTMem l L1 U1, i <: TTMem l L2 U2, i.
-  Proof. apply sTyp_Sub_Typ. Qed.
-End swap_based_typing_lemmas.

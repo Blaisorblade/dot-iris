@@ -217,43 +217,6 @@ Section semantic_lemmas.
     by rewrite (sem_psubst_one_eq Hrepl) ?alias_paths_pv_eq_1.
   Qed.
 
-  (** For https://github.com/lampepfl/dotty/blob/85962b19ddf4f1909189bf07b40f9a05849f9bbf/compiler/src/dotty/tools/dotc/core/TypeComparer.scala#L553. *)
-  Lemma singleton_Mu_dotty_approx_0 {Γ p i T1 T2} :
-    iterate TLater i (TAnd T1 (TSing (shift p))) :: Γ ⊨ T1, i <: T2, i -∗
-    Γ ⊨p p : TMu T1, i -∗
-    Γ ⊨ TSing p, i <: TMu T2, i.
-  Proof.
-    (* Demonstrate why this rule is not easy to derive.*)
-    (* iIntros "Hsub Hp".
-    iApply Sngl_Sub_Self.
-    iApply (sP_Sub' with "Hp").
-    iApply Mu_Sub_Mu.
-    (* We're stuck! *)
-    Restart. *)
-    iIntros "#Hsub #Hp !> %ρ %v #Hg #Heq".
-    iSpecialize ("Hp" with "Hg").
-    iAssert (▷^i ⟦ T1 ⟧ (v .: ρ) v)%I as "#HT1".
-    by iNext i; iDestruct "Heq" as %Heq;
-      rewrite (alias_paths_elim_eq _ Heq) path_wp_pv_eq.
-    iApply ("Hsub" $! (v .: ρ) v with "[$Hg] HT1").
-    iEval rewrite iterate_TLater_oLater /= hsubst_comp. iFrame "Heq HT1".
-  Qed.
-
-  (** What Dotty actually checks uses substitution twice. A simple case is the following: *)
-  Lemma singleton_Mu_dotty_approx_1 {Γ p i T1 T2 T1' T2'}
-    (Hrepl1 : T1 .Tp[ p /]~ T1') (Hrepl2 : T2 .Tp[ p /]~ T2'):
-    Γ ⊨ T1', i <: T2', i -∗
-    Γ ⊨p p : TMu T1, i -∗
-    Γ ⊨ TSing p, i <: TMu T2, i.
-  Proof.
-    iIntros "#Hsub #Hp !> %ρ %v #Hg /= #Heq".
-    iSpecialize ("Hp" with "Hg").
-    iSpecialize ("Hsub" $! ρ v with "[#$Hg] [#]");
-      iNext i; iDestruct "Heq" as %Heq;
-      rewrite -(psubst_one_repl Hrepl1, psubst_one_repl Hrepl2) //
-        (alias_paths_elim_eq _ Heq) path_wp_pv_eq //.
-  Qed.
-
   Lemma sT_All_Ex_p Γ e1 p2 T1 T2 :
     Γ s⊨ e1: oAll T1 T2 -∗
     Γ s⊨p p2 : T1, 0 -∗

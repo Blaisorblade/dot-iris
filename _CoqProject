@@ -45,9 +45,10 @@ theories/Dot/lr/later_sub_sem.v
 theories/Dot/lr/path_wp.v
 theories/Dot/lr/unary_lr.v
 
+theories/Dot/semtyp_lemmas/examples_lr.v
 theories/Dot/semtyp_lemmas/binding_lr.v
 theories/Dot/semtyp_lemmas/defs_lr.v
-theories/Dot/semtyp_lemmas/no_binding_lr.v
+theories/Dot/semtyp_lemmas/sub_lr.v
 theories/Dot/semtyp_lemmas/path_repl_lr.v
 theories/Dot/semtyp_lemmas/prims_lr.v
 theories/Dot/semtyp_lemmas/tdefs_lr.v
