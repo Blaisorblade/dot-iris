@@ -82,7 +82,10 @@ Section path_repl.
     iNext i; iDestruct "Hep" as %Hep; iIntros "!%".
     by apply alias_paths_simpl.
   Qed.
+End path_repl.
 
+Section semantic_lemmas.
+  Context `{!dlangG Σ}.
   (** Non-pDOT rules start: *)
 
   Lemma sP_Sngl_Refl Γ τ p i :
@@ -321,4 +324,4 @@ Section path_repl.
   Lemma P_Sngl_E Γ T p q l i: Γ ⊨p p : TSing q, i -∗ Γ ⊨p pself q l : T, i -∗
     Γ ⊨p pself p l : TSing (pself q l), i.
   Proof. apply sP_Sngl_E. Qed.
-End path_repl.
+End semantic_lemmas.

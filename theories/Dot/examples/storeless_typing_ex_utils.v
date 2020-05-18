@@ -398,7 +398,7 @@ Proof.
     (ettrans; first apply iAnd1_Sub); tcrush.
 Qed.
 
-Lemma iOr_And_Sub_Distr {Γ S T U i}:
+Lemma iDistr_Or_And_Sub {Γ S T U i}:
   is_stamped_ty (length Γ) g S →
   is_stamped_ty (length Γ) g T →
   is_stamped_ty (length Γ) g U →
@@ -456,7 +456,7 @@ Proof. intros. tcrush; lThis. Qed.
 https://books.google.co.uk/books?id=vVVTxeuiyvQC&lpg=PA104&pg=PA85#v=onepage&q&f=false.
 Would be much easier to formalize with setoid rewriting.
 *)
-Lemma iOr_And_Sub_Distr_inv {Γ S T U i}:
+Lemma iDistr_Or_And_Sub_inv {Γ S T U i}:
   is_stamped_ty (length Γ) g S →
   is_stamped_ty (length Γ) g T →
   is_stamped_ty (length Γ) g U →
