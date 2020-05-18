@@ -89,15 +89,6 @@ Section Sec.
       iNext. by iRewrite -"Hag".
   Qed.
 
-  Lemma sT_And_I v T1 T2:
-    Γ s⊨ tv v : T1 -∗
-    Γ s⊨ tv v : T2 -∗
-    Γ s⊨ tv v : oAnd T1 T2.
-  Proof.
-    iIntros "#HT1 #HT2 /= !> %ρ #Hg".
-    iApply (wp_and_val with "(HT1 Hg) (HT2 Hg)").
-  Qed.
-
   Lemma sSub_Add_Later T i :
     ⊢ Γ s⊨ T, i <: oLater T, i.
   Proof. by iIntros "!> ** !> /=". Qed.

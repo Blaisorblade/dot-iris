@@ -127,6 +127,15 @@ Section Sec.
     by rewrite list_lookup_fmap Hx.
   Qed.
 
+  Lemma sT_And_I Γ v T1 T2:
+    Γ s⊨ tv v : T1 -∗
+    Γ s⊨ tv v : T2 -∗
+    Γ s⊨ tv v : oAnd T1 T2.
+  Proof.
+    iIntros "#HT1 #HT2 /= !> %ρ #Hg".
+    iApply (wp_and_val with "(HT1 Hg) (HT2 Hg)").
+  Qed.
+
   Lemma sT_Sub {Γ e T1 T2 i}:
     Γ s⊨ e : T1 -∗
     Γ s⊨ T1, 0 <: T2, i -∗
