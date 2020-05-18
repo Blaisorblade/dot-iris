@@ -20,11 +20,6 @@ Section Sec.
     iExists φ, d; iFrame (Hl) "Hlφ". iApply ("HLφ" with "HL").
   Qed.
 
-  Lemma Sub_Sel {Γ L U p l i}:
-    Γ ⊨p p : TTMem l L U, i -∗
-    Γ ⊨ TLater L, i <: TSel p l, i.
-  Proof. apply sSub_Sel. Qed.
-
   Lemma sSel_Sub {Γ L U p l i}:
     Γ s⊨p p : cTMem l L U, i -∗
     Γ s⊨ oSel p l, i <: oLater U, i.
@@ -38,11 +33,6 @@ Section Sec.
     iDestruct (dm_to_type_agree vnil v with "Hγ Hlφ") as "Hag".
     iNext. by iRewrite "Hag" in "HΦ1v".
   Qed.
-
-  Lemma Sel_Sub {Γ L U p l i}:
-    Γ ⊨p p : TTMem l L U, i -∗
-    Γ ⊨ TSel p l, i <: TLater U, i.
-  Proof. apply sSel_Sub. Qed.
 
   (* Suppose path typing required termination *now* rather than later:
 

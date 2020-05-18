@@ -98,8 +98,8 @@ Section fundamental.
       + by iApply sSub_Or1.
       + by iApply sSub_Or2.
       + by iApply sOr_Sub; [iApply H|iApply H0].
-      + iApply Sel_Sub. by iApply H.
-      + iApply Sub_Sel. by iApply H.
+      + iApply sSel_Sub; by iApply H.
+      + iApply sSub_Sel; by iApply H.
       + by iApply Sngl_pq_Sub; [|iApply H].
       + by iApply Sngl_Sub_Sym; [iApply H|iApply H0].
       + iApply Sngl_Sub_Self. by iApply H.
