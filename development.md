@@ -8,7 +8,7 @@ and of Coq that will only be used when the shell is inside `dot-iris` directory.
 Global switches can be useful, but for those we refer to `opam`'s docs. We
 provide instructions for local switches in this file.
 
-_The first time,_ one should run:
+_The first time,_ after installing and configuring `opam`, one should run:
 
 ```shell
 eval $(opam env)
@@ -20,10 +20,15 @@ opam update
 to add the Iris opam repository, and then, in the `dot-iris` directory, do:
 
 ```shell
-opam switch create . ocaml-variants.4.07.1+flambda --locked
+opam switch create . -y ocaml-variants.4.07.1+flambda --locked
+eval $(opam env)
 ```
 
-to create the local switch. Then, every time you wants to work on this project,
+to create the local switch.
+This will also install all needed packages, from the OCaml
+compiler to Coq and all dependencies, and take a while (10-30 minutes).
+
+Then, every time you wants to work on this project,
 `cd` to `dot-iris`'s folder and run:
 
 ```shell
@@ -40,7 +45,7 @@ configuration wizard via `opam init --reinit`, and answer "yes" when opam asks:
 
 ## Upgrading switch
 
-Use:
+Use, in `dot-iris`'s folder:
 
 ```
 opam install .
@@ -52,6 +57,14 @@ coq-iris`, `opam uninstall dot-iris`, `opam uninstall .`, or such.
 
 After updating the dependencies, you will need to do a clean build, so run
 `make clean` before `make`.
+
+## Removing switch
+
+Use, in `dot-iris`'s folder:
+
+```
+opam switch remove .
+```
 
 ## Bumping Iris
 
