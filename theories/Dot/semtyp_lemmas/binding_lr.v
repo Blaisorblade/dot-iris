@@ -321,27 +321,15 @@ Section Sec.
     Γ ⊨ T1, i <: T2, i -∗ Γ ⊨ TVMem l T1, i <: TVMem l T2, i.
   Proof. iApply (Fld_Sub_Fld' (j := 0)). Qed.
 
-  (* Stronger variant of [sT_Obj_E]. *)
-  Lemma sT_Obj_E' {Γ e T l}:
-    Γ s⊨ e : cVMem l (oLater T) -∗
+  Lemma sT_Obj_E {Γ e T l}:
+    Γ s⊨ e : cVMem l T -∗
     (*─────────────────────────*)
     Γ s⊨ tproj e l : T.
   Proof.
     iIntros "#HE /= !> %ρ #HG !>".
     smart_wp_bind (ProjCtx l) v "#Hv {HE}" ("HE" with "[]").
     iDestruct "Hv" as (? Hl pmem ->) "Hv".
-    rewrite -wp_pure_step_later //= path_wp_later_swap path_wp_to_wp. by [].
-  Qed.
-
-  Lemma sT_Obj_E {Γ e T l}:
-    Γ s⊨ e : cVMem l T -∗
-    (*─────────────────────────*)
-    Γ s⊨ tproj e l : T.
-  Proof.
-    rewrite -sT_Obj_E'. iIntros "HE"; iApply (sT_Sub (i := 0) with "HE").
-    rewrite -(sFld_Sub_Fld' (j := 0)).
-    (* iApply Sub_Add_Later. *)
-    by iIntros "!> ** !> /=".
+    by rewrite -wp_pure_step_later //= path_wp_to_wp.
   Qed.
 
   Lemma T_Obj_E {Γ e T l}: Γ ⊨ e : TVMem l T -∗ Γ ⊨ tproj e l : T.
