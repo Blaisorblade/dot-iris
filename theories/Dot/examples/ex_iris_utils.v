@@ -4,10 +4,8 @@ From iris.program_logic Require Import ectxi_language.
 From D Require Import swap_later_impl.
 From D.Dot Require Import scala_lib hoas ex_utils storeless_typing_ex_utils.
 
-From D.Dot Require Import unary_lr
-  binding_lr tsel_lr no_binding_lr defs_lr prims_lr.
-From D.Dot Require Import tdefs_lr.
-From D.Dot Require Import skeleton fundamental.
+From D.Dot Require Export fundamental.
+From D.Dot Require Import skeleton.
 Import dlang_adequacy.
 
 Set Suggest Proof Using.

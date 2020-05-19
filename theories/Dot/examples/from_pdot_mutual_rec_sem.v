@@ -27,10 +27,6 @@ From D.Dot Require Import ex_utils storeless_typing_ex_utils scala_lib ex_iris_u
 From D.Dot Require Import prim_boolean_option.
 
 From D Require Import swap_later_impl.
-From D.Dot Require Import unary_lr
-  binding_lr tsel_lr no_binding_lr defs_lr prims_lr later_sub_sem.
-From D.Dot Require Import tdefs_lr.
-From D.Dot Require Import fundamental.
 Import dlang_adequacy stamp_transfer prim_boolean_option_mod.
 
 Import DBNotation.

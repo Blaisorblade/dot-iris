@@ -1,12 +1,11 @@
 (** * Fundamental theorem and type safety for gDOT. *)
 From D Require Import swap_later_impl.
 (* For fundamental theorem. *)
-From D.Dot Require Import unary_lr storeless_typing tdefs_lr
-  binding_lr defs_lr no_binding_lr tsel_lr prims_lr
-  later_sub_sem.
+From D.Dot Require Export unary_lr later_sub_sem
+  no_binding_lr binding_lr tdefs_lr defs_lr tsel_lr prims_lr path_repl_lr.
+From D.Dot Require Import storeless_typing.
 (* For unstamped safety. *)
 From D.Dot Require Import unstamped_typing type_extraction_syn ast_stamping typing_stamping skeleton.
-From D.Dot Require Import path_repl_lr.
 Import stamp_transfer.
 
 Set Suggest Proof Using.
