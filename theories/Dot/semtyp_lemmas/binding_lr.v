@@ -80,35 +80,6 @@ Section Sec.
     exact: sSub_Skolem_P.
   Qed.
 
-  Lemma sSub_Skolem_T {Γ T1 T2 i}:
-    oLaterN i (shift T1) :: Γ s⊨ tv (ids 0) : shift T2 -∗
-    (*───────────────────────────────*)
-    Γ s⊨ T1, i <: T2, 0.
-  Proof. by rewrite sP_Val sSub_Skolem_P. Qed.
-
-  Lemma Sub_Skolem_T {Γ T1 T2 i}:
-    iterate TLater i (shift T1) :: Γ ⊨ tv (ids 0) : shift T2 -∗
-    (*───────────────────────────────*)
-    Γ ⊨ T1, i <: T2, 0.
-  Proof.
-    rewrite /istpi/ietp -sSub_Skolem_T fmap_cons iterate_TLater_oLater.
-    by rewrite (interp_subst_commute T1) (interp_subst_commute T2).
-  Qed.
-
-  Lemma sDelay_Sub {Γ T U i j}:
-    Γ s⊨ T, i <: U, j -∗
-    oLater <$> Γ s⊨ oLater T, i <: oLater U, j.
-  Proof.
-    iIntros "#Hsub !> %ρ %v #Hg/=".
-    rewrite !swap_later -later_impl senv_TLater_commute.
-    iNext. iApply ("Hsub" with "Hg").
-  Qed.
-
-  Lemma Delay_Sub {Γ T U i j}:
-    Γ ⊨ T, i <: U, j -∗
-    TLater <$> Γ ⊨ TLater T, i <: TLater U, j.
-  Proof. by rewrite /istpi fmap_TLater_oLater sDelay_Sub. Qed.
-
   Lemma sT_Var {Γ x τ}
     (Hx : Γ !! x = Some τ):
     (*──────────────────────*)
