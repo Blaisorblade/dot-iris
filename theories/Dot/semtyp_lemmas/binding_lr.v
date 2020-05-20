@@ -89,6 +89,15 @@ Section Sec.
     by rewrite s_interp_env_lookup // id_subst.
   Qed.
 
+  Lemma sP_Var {Γ x τ}
+    (Hx : Γ !! x = Some τ):
+    (*──────────────────────*)
+    ⊢ Γ s⊨p pv (ids x) : shiftN x τ, 0.
+  Proof.
+    iIntros "/= !> %ρ #Hg"; rewrite path_wp_pv_eq.
+    by rewrite s_interp_env_lookup // id_subst.
+  Qed.
+
   Lemma T_Var {Γ x τ}
     (Hx : Γ !! x = Some τ):
     (*──────────────────────*)
