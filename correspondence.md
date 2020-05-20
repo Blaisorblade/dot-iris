@@ -10,7 +10,7 @@ of gDOT and the formalization in Coq. We briefly discuss them here.
 - Notations such as `\overbar{V}⟦ g ⟧` or `\overbar{D}⟦ T ⟧` in the paper are
   translated to `Vs⟦ g ⟧` and `Ds⟦ T ⟧` in Coq.
 
-- In Coq, definition lists use constructors are represented using Coq's `list`
+- In Coq, definition lists are represented using Coq's `list`
   data type, whereas singleton and merge operations are used in the paper
   (Fig. 3). Our approach in Coq is influenced by the Coq development of pDOT by
   Rapoport et al.
@@ -56,7 +56,7 @@ definitions.
   semantic types, defined as environment-indexed persistent predicates over
   values, of type `Env → Val → iProp`.
   Instead, in Coq, semantic types are a first-class notion, described by Coq
-  type `olty Σ 0`.
+  type `olty Σ 0`, defined in `iris_extra/lty.v`.
   
   - Most of Fig. 9 is defined as combinators on semantic types,
     without reference to syntactic types. The Coq notation `V⟦ T ⟧` translates
@@ -77,7 +77,8 @@ definitions.
 ### Trusted base
 To confirm that we have proved type soundness for gDOT, and that our examples
 are well-typed and/or type-safe, it is sufficient to check our type soundness
-theorem, and the involved definitions.
+theorem, and the definition of the language with its operational semantics and
+type system. In more details:
 
 Sec. 2:
 - syntax, substitution and operational semantics for unstamped and stamped
@@ -134,7 +135,7 @@ The proof strategy we describe in the paper is implemented in the following file
 
 Sec. 5:
 - Stamped typing is defined in [`Dot/typing/stamped_typing.v`](theories/Dot/typing/stamped_typing.v).
-  - Translation of typing derivations (Thm. 5.3) is proved in
+  - Translation of typing derivations (Thm. 5.3) is defined in [`Dot/stamping/ast_stamping.v`](theories/Dot/stamping/ast_stamping.v) and proved in
     [`Dot/typing/typing_stamping.v`](theories/Dot/typing/typing_stamping.v).
 - Iris connectives (Sec. 5.2) are predefined by Iris, except for `s ↝ φ`,
   defined in [`iris_extra/dlang.v`](theories/iris_extra/dlang.v) as
