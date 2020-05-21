@@ -557,10 +557,15 @@ Notation "K1 ~sKd[ p := q  ]* K2" :=
 
 Definition oDTMemK `{!dlangG Σ} {n} (K : sf_kind Σ n) : dltyO Σ := Dlty (λI ρ d,
   ∃ (ψ : hoD Σ n), d ↗n[ n ] ψ ∧ K ρ (packHoLtyO ψ) (packHoLtyO ψ)).
+
 Definition oDTMemSpec `{!dlangG Σ} (L U : oltyO Σ 0) : dltyO Σ :=
   oDTMemK (sf_kintv (oLater L) (oLater U)).
 
 Definition cTMemK `{!dlangG Σ} {n} l (K : sf_kind Σ n) : clty Σ := dty2clty l (oDTMemK K).
+
+Definition oDTMemAnyKind `{!dlangG Σ} : dltyO Σ := Dlty (λI ρ d,
+  ∃ n (ψ : hoD Σ n), d ↗n[ n ] ψ).
+Definition cTMemAnyKind `{!dlangG Σ} l : clty Σ := dty2clty l oDTMemAnyKind.
 
 Program Definition kpSubstOne {Σ} {n} p (K : sf_kind Σ n) : sf_kind Σ n :=
   SfKind
@@ -604,6 +609,10 @@ Section proper_eq.
 
   Lemma cTMemK_eq {n} l (K : sf_kind Σ n) d ρ :
     cTMemK l K ρ [(l, d)] ⊣⊢ oDTMemK K ρ d.
+  Proof. by rewrite dty2clty_singleton. Qed.
+
+  Lemma cTMemAnyKind_eq l d ρ :
+    cTMemAnyKind l ρ [(l, d)] ⊣⊢ oDTMemAnyKind ρ d.
   Proof. by rewrite dty2clty_singleton. Qed.
 
   Lemma cTMemK_subst {n} l (K : sf_kind Σ n) ρ :

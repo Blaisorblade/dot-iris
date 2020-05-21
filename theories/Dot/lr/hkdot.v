@@ -521,6 +521,14 @@ Section dot_types.
     iApply ("HK" with "HK1").
   Qed.
 
+  Lemma sKStp_TMem_AnyKind {n} Γ l (K : sf_kind Σ n) i :
+    ⊢ Γ s⊨ cTMemK l K <:[ i ] cTMemAnyKind l ∷ sf_star.
+  Proof.
+    rewrite -ksubtyping_intro; iIntros "!> * #Hg * !>".
+    iDestruct 1 as (d Hl φ) "[Hl _]".
+    iExists d; iFrame (Hl); iExists n, φ; iFrame "Hl".
+  Qed.
+
   (** * Kinding *)
   Lemma sK_Star Γ (T : oltyO Σ 0) i :
     ⊢ Γ s⊨ T ∷[ i ] sf_star.
