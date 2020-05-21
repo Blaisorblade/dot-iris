@@ -6,9 +6,11 @@ From D.Dot Require Import syn ex_utils.
 Set Default Proof Using "Type".
 
 (* Inspired by the "Unembedding DSLs" paper, but specialized.
+
 The algorithm it uses is very different from McBride's Jigger.
 https://web.archive.org/web/20130412082828/http://www.e-pig.org/epilogue/?p=773
-It’s made possible exactly because our de Bruijn terms have a type indexed by the number of variables in scope.
+Jigger is made possible exactly because their types of de Bruijn terms
+are indexed by the number of free variables.
 *)
 (* TODO? Check out:
   http://www.cs.uu.nl/research/techreps/repo/CS-2012/2012-009.pdf
