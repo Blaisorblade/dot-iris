@@ -30,15 +30,6 @@ Reserved Notation "T1 ~Tp[ p := q  ] T2" (at level 70).
 
 (** The path replacement judgment, as defined in the pDOT paper. *)
 (*
-  This does only one replacement, as path replacement in the pDOT paper.
-  Path substitution is a particular sequene of such replacements, but if q contains p,
-  there are sequences of replacements that don't correspond to a single path substitution,
-  but to iterated path substitutions.
-  Nevertheless, as long as both p and q are valid in the same scope, both
-  are fine.
-  However, substitution can be sound in contexts where path replacements aren't sound.
-
-  Still, path_repl_one uses path replacement with *disjoints* paths!
 *)
 Inductive ty_path_repl (p q : path) : ty → ty → Prop :=
 | ty_path_repl_TAnd1 T1 T2 U :
