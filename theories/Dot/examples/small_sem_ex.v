@@ -102,12 +102,6 @@ Section small_ex.
       cTop).
   Definition sminiVT2Concr := oMu sminiVT2ConcrBody.
 
-  Lemma sT_Var0 {Γ T}
-    (Hx : Γ !! 0%nat = Some T):
-    (*──────────────────────*)
-    ⊢ Γ s⊨ x0 : T.
-  Proof. rewrite -(hsubst_id T). apply (sT_Var Hx). Qed.
-
   (* The next lemma [ demonstrates an alternative typing derivation,
   using gDOT rules
    But we get a weaker type, because we're using typing rules

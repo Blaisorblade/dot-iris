@@ -170,4 +170,33 @@ Section Lemmas.
     TLater <$> Γ ⊨ TLater T, i <: TLater U, j.
   Proof. by rewrite /istpi fmap_TLater_oLater sDelay_Sub. Qed.
 
+  Lemma sSub_LaterN {Γ T} i j:
+    ⊢ Γ s⊨ T, j + i <: oLaterN j T, i.
+  Proof.
+    elim: j T => [|j IHj] T; rewrite 1?oLaterN_0 1?oLaterN_Sr ?plusSn.
+    apply sSub_Refl.
+    iApply sSub_Trans; [iApply sSub_Later|iApply IHj].
+  Qed.
+
+  Lemma sLaterN_Sub {Γ T} i j :
+    ⊢ Γ s⊨ oLaterN j T, i <: T, j + i.
+  Proof.
+    elim: j T => [|j IHj] T; rewrite 1?oLaterN_0 1?oLaterN_Sr ?plusSn.
+    apply sSub_Refl.
+    iApply sSub_Trans; [iApply IHj|iApply sLater_Sub].
+  Qed.
+
+  Lemma sT_Var0 {Γ T}
+    (Hx : Γ !! 0 = Some T):
+    (*──────────────────────*)
+    ⊢ Γ s⊨ tv (ids 0) : T.
+  Proof. rewrite -(hsubst_id T). apply (sT_Var Hx). Qed.
+
+  Lemma sP_LaterN {Γ i j} p T :
+    Γ s⊨p p : oLaterN j T, i -∗
+    Γ s⊨p p : T, i + j.
+  Proof.
+    rewrite comm; elim: j i => [//|j IHj] i; rewrite plus_Snm_nSm.
+    by rewrite -(IHj (S i)) -sP_Later.
+  Qed.
 End Lemmas.
