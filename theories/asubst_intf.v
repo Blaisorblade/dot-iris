@@ -82,11 +82,11 @@ Module Type SortsSig (Import V : ValuesSig).
     {ids_s : Ids s} {ren_s : Rename s} {hsubst_vl_s : HSubst vl s}
     {hsubst_lemmas_vl_s : HSubstLemmas vl s} := {}.
 
-  (** Some hand-written rewriting lemmas, designed to speed up
-      certain uses of [autosubst]. *)
-  (* Reverse-engineered from autosubst output for speed. *)
+  (** Some hand-written rewriting lemmas, designed to replace
+      certain common and slow uses of [autosubst]. *)
   Lemma scons_up_swap a sb1 sb2 : a .: sb1 >> sb2 = up sb1 >> a .: sb2.
   Proof.
+    (* Reverse-engineered from autosubst output. *)
     rewrite upX /ren /scomp scons_comp;
       fsimpl; rewrite subst_compX; by fsimpl; rewrite id_scompX id_subst.
   Qed.
@@ -97,7 +97,7 @@ Module Type SortsSig (Import V : ValuesSig).
   Lemma subst_swap_base v ρ : v.[ρ] .: ρ = (v .: ids) >> ρ.
   Proof.
     rewrite /scomp scons_comp. (* Actual swap *)
-    by rewrite id_scompX. (* Cleanup *)
+    by rewrite id_scompX. (* Cleanup result of manipulation *)
   Qed.
 
   Lemma shift_sub_vl v w: (shiftV v).[w/] = v.
