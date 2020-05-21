@@ -12,14 +12,6 @@ Set Default Proof Using "Type".
 Section typing_type_member_defs.
   Context `{!dlangG Σ}.
 
-  (* Beware: here we must use [∞ σ.|[ρ]], not [∞ σ >> ρ],
-     since the former is what we need to prove [sD_Typ_Abs] below.
-     Not sure that's still true if we change dm_to_type,
-    but quite possibly yes.. *)
-  (*
-    Even if semantic types use infinite substitutions, we can still reuse the
-    current stamping theory, based on finite substitutions.
-  *)
   Import stamp_transfer.
 
   (* Alternative presentation *)
