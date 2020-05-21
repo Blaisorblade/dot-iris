@@ -102,7 +102,6 @@ Module Type SortsSig (Import V : ValuesSig).
 
   Lemma shift_sub_vl v w: (shiftV v).[w/] = v.
   Proof.
-    (* Time by rewrite subst_comp -{2}(subst_id v); f_equal; autosubst. *)
     rewrite subst_comp -{2}(subst_id v) /ren /scomp; fsimpl; by rewrite id_scompX.
   Qed.
 
@@ -115,7 +114,6 @@ Module Type SortsSig (Import V : ValuesSig).
 
     Lemma shift_sub `{Sort X} {x : X} v: (shift x).|[v/] = x.
     Proof.
-      (* Time rewrite hsubst_comp -{2}(hsubst_id x); f_equal; autosubst. *)
       by rewrite hsubst_comp -{2}(hsubst_id x) /ren /scomp; fsimpl;
         rewrite id_scompX.
     Qed.

@@ -138,7 +138,6 @@ Lemma is_stamped_ren_up n m g r:
   is_stamped_ren n m g r →
   is_stamped_ren (S n) (S m) g (upren r).
 Proof.
-  (* rewrite /is_stamped_ren /is_stamped_sub /=. *)
   move => Hr [|i] //= Hi; first by constructor => /=; lia.
   have Hi': i < n by lia.
   specialize (Hr i Hi'); inverse Hr.

@@ -44,20 +44,15 @@ End packedStampedTyDefs.
 
 Module Import DBNotation.
 
-(* Definition vint' n := vint n.
-Coercion vint' : Z >-> vl_. *)
-(* XXX rename *)
 Bind Scope expr_scope with tm.
 Delimit Scope expr_scope with E.
 
 Notation "()" := (vobj []) : expr_scope.
-(* Notation "- e" := (tun MinusUnOp e%E) : expr_scope. *)
 
 Notation "e1 + e2" := (tbin bplus e1%E e2%E) : expr_scope.
 Notation "e1 - e2" := (tbin bminus e1%E e2%E) : expr_scope.
 Notation "e1 * e2" := (tbin btimes e1%E e2%E) : expr_scope.
 Notation "e1 `div` e2" := (tbin bdiv e1%E e2%E) : expr_scope.
-(* Notation "e1 `rem` e2" := (tbin RemOp e1%E e2%E) : expr_scope. *)
 
 Notation "e1 ≤ e2" := (tbin ble e1%E e2%E) : expr_scope.
 Notation "e1 < e2" := (tbin blt e1%E e2%E) : expr_scope.
@@ -78,7 +73,6 @@ Notation " {@ } " := (@nil (string * dm)) (format "{@ }") : dms_scope.
 Notation " {@ x } " := ( x :: {@} ) (format "{@  x  }"): dms_scope.
 Notation " {@ x ; y ; .. ; z } " :=
   (cons x (cons y .. (cons z nil) ..))
-  (* (format "{@  x ;  y ;  .. ;  z  }") *)
   (format "'[v' {@  '[' x ']' ;  '/' y ;  '/' .. ;  '/' z } ']'")
   : dms_scope.
 
@@ -95,14 +89,10 @@ Global Instance: Top ty := TTop.
 Global Instance: Bottom ty := TBot.
 
 Open Scope ty_scope.
-(* Notation " {@ } " := TTop (format "{@ }") : ty_scope. *)
 Notation " {@ T1 } " := ( TAnd T1 ⊤ ) (format "{@  T1  }"): ty_scope.
 Notation " {@ T1 ; T2 ; .. ; Tn } " :=
   (TAnd T1 (TAnd T2 .. (TAnd Tn ⊤)..))
-  (* (format "'[v' {@  '[' T1 ']'  ;   T2  ;   ..  ;   Tn } ']'") : ty_scope. *)
   (format "'[v' {@  '[' T1 ']'  ;  '/' T2  ;  '/' ..  ;  '/' Tn } ']'") : ty_scope.
-(* Notation " {@ T1 ; .. ; T2 ; Tn } " := (TAnd (TAnd .. (TAnd {@} T1) .. T2) Tn) *)
-(*                                          (format "{@  T1  ;  ..  ;  T2  ;  Tn  }"): ty_scope. *)
 Close Scope ty_scope.
 
 Notation "'𝐙'" := TInt : ty_scope.
@@ -122,9 +112,6 @@ Notation "'val' l : T" :=
   (at level 60, l, T at level 50, format "'[' 'val'  l  :  T  ']' '/'") : ty_scope.
 
 Notation "S →: T" := (TAll S%ty (shift T%ty)) (at level 49, T at level 98, right associativity) : ty_scope.
-
-(* Notation "v @ l1 @ .. @ l2 ; l" := (TSel (pself .. (pself (pv v) l1) .. l2) l) *)
-(*                                      (format "v  @  l1  @  ..  @  l2  ;  l", at level 69, l1, l2 at level 60). *)
 
 Notation "p @; l" := (TSel p l) (at level 48).
 Notation "v @ l1 @ .. @ l2" := (pself .. (pself v l1) .. l2)

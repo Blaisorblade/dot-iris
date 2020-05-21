@@ -165,17 +165,6 @@ Proof.
   exists (λ x, proj1_sig (FUN x)); split_and! => a;
   destruct mx; rewrite /= ?discrete_fun_lookup_op //;
   destruct (FUN a) as (?&HP1&HP2); eauto.
-
-  (* Alternative proof. *)
-  (* Restart.
-
-  split => n [x|] /= z Hvmx Hvzmx.
-  - assert (FUN := λ a, cmra_extend_included n (Some (x a)) (z a) (Hvmx a) (Hvzmx a)).
-    exists (λ x, proj1_sig (FUN x)); split_and! => a;
-    rewrite /= ?discrete_fun_lookup_op //; by destruct (FUN a) as (?&?&?).
-  - assert (FUN := λ a, cmra_extend_included n None (z a) I (Hvzmx a)).
-    exists (λ x, proj1_sig (FUN x)); split_and! => a;
-    by destruct (FUN a) as (?&?&?). *)
 Qed.
 
 Section agree.

@@ -51,16 +51,9 @@ unstamp_ty g (T: ty): ty :=
   | TInt => T
   end.
 
-(** XXX this formulation might be inconvenient: storing the correct n in the map might be preferable. *)
-Definition is_stamped_gmap g: Prop := ∀ s T, g !! s = Some T → ∃ n, is_stamped_ty n g T.
-
 Notation stamps_tm n e__u g e__s := (unstamp_tm g e__s = e__u ∧ is_unstamped_tm e__u ∧ is_stamped_tm n g e__s).
 Notation stamps_vl n v__u g v__s := (unstamp_vl g v__s = v__u ∧ is_unstamped_vl v__u ∧ is_stamped_vl n g v__s).
 Notation stamps_ty n T__u g T__s := (unstamp_ty g T__s = T__u ∧ is_unstamped_ty T__u ∧ is_stamped_ty n g T__s).
-
-(* Unused. *)
-(* Lemma stamped_idsσ g m n: Forall (is_stamped_vl m g) (idsσ n). *)
-(* Proof. pose proof (stamped_idsσ_ren g m n (+0)) as H. by asimpl in H. Qed. *)
 
 (* Core cases of existence of translations. *)
 Definition stamp_vty g n T :=
@@ -111,9 +104,6 @@ Qed.
 
 Lemma var_stamps_to_self1 g x v: unstamp_vl g v = var_vl x → v = var_vl x.
 Proof. case: v => //= σ s. move: (g!!s) => [T|] /= Heq; simplify_eq. Qed.
-
-Lemma var_stamps_to_self n g x v: stamps_vl n (var_vl x) g v → v = var_vl x.
-Proof. move=> [Heq _]. exact: var_stamps_to_self1. Qed.
 
 Lemma stamps_tm_skip n g i e e':
   stamps_tm n e g e' →

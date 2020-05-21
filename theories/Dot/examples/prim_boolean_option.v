@@ -121,11 +121,9 @@ Lemma hpOptionTConcrStamp : hTyMemStamp primOptionG hpOptionTConcr. Proof. split
 
 Lemma Hbot: styConforms primOptionG hpBot. Proof. done. Qed.
 Lemma hpBotExt : hextractPreTyMem primOptionG hpBot. Proof. by_extcrush. Qed.
-(* Proof. apply /hstampTyAgree /hpBotStamp /Hbot. Qed. *)
 
 Lemma HxA : styConforms primOptionG (hpXA hx0). Proof. done. Qed.
 Lemma hpXAExt : hextractPreTyMem primOptionG (hpXA hx0). Proof. by_extcrush. Qed.
-(* Proof. by apply /hstampTyAgree /hpXAStamp /HxA. Qed. *)
 
 Lemma HoptionTConcr : styConforms primOptionG hpOptionTConcr. Proof. done. Qed.
 Lemma hpOptionTConcrExt : hextractPreTyMem primOptionG hpOptionTConcr. Proof. by_extcrush. Qed.
@@ -165,7 +163,6 @@ Example mkSomeTypStronger Γ :
 Proof.
   tcrush; cbv.
   - tMember.
-    (* apply (iD_Typ_Abs (hclose $ hpv hx2 @; "A")); tcrush; by_extcrush. *)
   - apply boolSing.
   - eapply iT_All_E; first var.
     apply (iT_Sub (i := 1) (T1 := hclose (▶: (hp3 @; "T"))%HT)); tcrush.

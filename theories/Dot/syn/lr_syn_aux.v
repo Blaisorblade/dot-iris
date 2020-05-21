@@ -253,8 +253,6 @@ Lemma ds_notin_subst l ds ρ :
   l ∉ map fst ds →
   l ∉ map fst ds.|[ρ].
 Proof.
-  (* elim: ds => [//|[l' d] ds IH]; cbn.
-  rewrite !not_elem_of_cons. naive_solver. *)
   intros; by apply dms_hasnt_notin_eq, dms_hasnt_subst, dms_hasnt_notin_eq.
 Qed.
 

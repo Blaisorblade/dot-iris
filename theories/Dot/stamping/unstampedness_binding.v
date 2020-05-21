@@ -32,8 +32,6 @@ Lemma is_unstamped_nclosed_mut:
 Proof.
   apply syntax_mut_ind; intros; with_is_unstamped inverse => //; ev;
     try by move => s1 s2 Hseq; f_equal/=;
-    (* firsorder is slower. *)
-    (* firstorder eauto using eq_up. *)
       try first [eapply H|eapply H0|eapply H1]; eauto using eq_up.
   - apply fv_vobj, nclosed_axs_to_nclosed.
     generalize dependent ds => ds.
@@ -145,7 +143,6 @@ Lemma is_unstamped_ren_up n m r b:
   is_unstamped_ren n m b r →
   is_unstamped_ren (S n) (S m) b (upren r).
 Proof.
-  (* rewrite /is_unstamped_ren /is_unstamped_sub /=. *)
   move => Hr [|i] //= Hi; first by constructor => /=; lia.
   have Hi': i < n by lia.
   specialize (Hr i Hi'); inverse Hr.
@@ -215,21 +212,18 @@ Proof.
 Qed.
 Hint Resolve is_unstamped_sub_up : core.
 
-(* False! Hence is_unstamped_sub_mut is also false. *)
+(* While this file is mostly an analogue of [stampedness_binding.v],
+[is_stamped_sub_mut] does not translate to an analogue
+[is_unstamped_sub_mut], because the following statement
+[is_unstamped_sub_varpath] does not hold: *)
+
 (* Lemma is_unstamped_sub_varpath p s i j:
   is_unstamped_sub i j s →
   is_unstamped_path i p →
   (∃ x : var, path_root p = var_vl x) →
   ∃ x : var, path_root p.|[s] = var_vl x.
-Proof.
-  intros Hus Hup [x ?]. induction p as [[]|]; simplify_eq/=;
-    with_is_unstamped inverse. 2: eauto.
-    inverse H1; cbn in *.
-  specialize (Hus x H2). inverse Hus; simplify_eq/=.
-  eauto.
-Abort. *)
+Abort.
 
-(*
 Lemma is_unstamped_sub_mut:
   (∀ t s i j,
     is_unstamped_sub i j s →
@@ -251,36 +245,8 @@ Lemma is_unstamped_sub_mut:
     is_unstamped_sub i j s →
     is_unstamped_ty i T →
     is_unstamped_ty j T.|[s]).
-Proof.
-  apply syntax_mut_ind; intros;
-    with_is_unstamped ltac:(fun H => inversion_clear H);
-    cbn in *; try by [|constructor; cbn; eauto 3].
-  - eauto.
-  - constructor => /=.
-    repeat rewrite ->Forall_fmap in *; rewrite !Forall_fmap.
-    decompose_Forall.
-    unfold snd in *; case_match; subst; cbn; eauto.
-  - constructor; cbn; eauto.
-Abort. *)
-
-(* Lemma is_unstamped_sub_vl v s m n:
-  is_unstamped_sub n m s →
-  is_unstamped_vl n v →
-  is_unstamped_vl m v.[s].
-Proof. apply is_unstamped_sub_mut. Qed.
-Lemma is_unstamped_sub_ty T s m n:
-  is_unstamped_sub n m s →
-  is_unstamped_ty n T →
-  is_unstamped_ty m T.|[s].
-Proof. apply is_unstamped_sub_mut. Qed.
-
-Lemma is_unstamped_sub_σ σ s m n:
-  is_unstamped_sub n m s →
-  is_unstamped_σ n σ →
-  is_unstamped_σ m σ.|[s].
-Proof.
-  intros; rewrite Forall_fmap. decompose_Forall. exact: is_unstamped_sub_vl.
-Qed. *)
+Abort.
+*)
 
 Lemma is_unstamped_vl_ids i j b: i < j → is_unstamped_vl j b (ids i).
 Proof. rewrite /ids /ids_vl; by constructor. Qed.

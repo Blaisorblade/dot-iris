@@ -73,8 +73,6 @@ unstamp_ty g (T: ty): ty :=
   end.
 
 Definition unstamp_dms g ds := map (mapsnd (unstamp_dm g)) ds.
-(** XXX this formulation might be inconvenient: storing the correct n in the map might be preferable. *)
-Definition is_stamped_gmap g: Prop := ∀ s T, g !! s = Some T → ∃ n, is_stamped_ty n g T.
 
 Notation stamps_tm   n b e__u g e__s := (unstamp_tm   g e__s      = e__u      ∧ is_unstamped_tm   n b e__u ∧ is_stamped_tm   n g e__s).
 Notation stamps_vl   n b v__u g v__s := (unstamp_vl   g v__s      = v__u      ∧ is_unstamped_vl   n b v__u ∧ is_stamped_vl   n g v__s).
@@ -116,10 +114,6 @@ Lemma unstamp_path2tm g p q :
   unstamp_path g p = q →
   unstamp_tm g (path2tm p) = path2tm q.
 Proof. elim: p q => [v|p IHp l] [w|q l'] /= ?; simplify_eq; f_equal; auto. Qed.
-
-(* Unused. *)
-(* Lemma stamped_idsσ g m n: Forall (is_stamped_vl m g) (idsσ n). *)
-(* Proof. pose proof (stamped_idsσ_ren g m n (+0)) as H. by asimpl in H. Qed. *)
 
 (* Core cases of existence of translations. *)
 Definition stamp_dtysyn g n T :=
@@ -200,20 +194,11 @@ Qed.
 Lemma var_stamps_to_self1 g x v: unstamp_vl g v = var_vl x → v = var_vl x.
 Proof. by case: v. Qed.
 
-Lemma var_stamps_to_self n g x v b: stamps_vl n b (var_vl x) g v → v = var_vl x.
-Proof. move=> [Heq _]. exact: var_stamps_to_self1. Qed.
-
 Lemma path_stamps_to_self1 g p_s p_u x: unstamp_path g p_s = p_u → path_root p_u = var_vl x → p_s = p_u.
 Proof.
   elim: p_s p_u => /= [v_s|p_s IHp l] [] *;
     simplify_eq/=; f_equal; eauto using var_stamps_to_self1.
 Qed.
-
-(* Lemma path_stamps_to_self2 g n p_s p_u: is_unstamped_path n p_u → unstamp_path g p_s = p_u → p_s = p_u.
-Proof.
-  elim: p_s p_u => /= [v_s|p_s IHp l] [] *; with_is_unstamped inverse; cbn in *; ev;
-    simplify_eq/=; f_equal; eauto using var_stamps_to_self1.
-Qed. *)
 
 Lemma unstamp_dms_hasnt ds ds' l g: dms_hasnt ds l → unstamp_dms g ds' = ds → dms_hasnt ds' l.
 Proof.

@@ -106,7 +106,6 @@ Proof.
 Qed.
 
 Definition psAddStys {nvl} : stys → list (preTyMem nvl) → stys := foldr pAddStys.
-(* XXX prove its correctness, or just test it via vm_compute? *)
 
 (****************)
 (** AUTOMATION **)
@@ -475,16 +474,6 @@ Proof.
   all: tcrush.
   ettrans; first eapply comm_and; tcrush.
 Qed.
-
-(* Lemma AddIB_stp Γ T U i:
-  is_stamped_ty (length Γ) g T →
-  is_stamped_ty (length Γ) g U →
-  Γ v⊢ₜ[ g ] T, 0 <: U, 0 →
-  Γ v⊢ₜ[ g ] T, i <: U, i.
-Proof.
-  move => Hst Hsu Hstp; elim: i => [|n IHn]; first tcrush.
-  exact: iSub_Mono.
-Qed. *)
 
 Lemma is_stamped_pvar i n : i < n → is_stamped_path n g (pv (var_vl i)).
 Proof. eauto. Qed.

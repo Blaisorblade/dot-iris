@@ -282,7 +282,6 @@ Section syntyping_stamping_lemmas.
   Hint Extern 5 => try_once stamps_unstamp_mono_tm : core.
   Hint Extern 5 => try_once is_stamped_mono_dm : core.
   Hint Extern 5 => try_once stamps_unstamp_mono_dm : core.
-  (* Hint Extern 5 => try_once stamps_unstamp_mono_vl : core. *)
 
   Hint Resolve unstamped_stamped_type var_stamps_to_self1 path_stamps_to_self1 : core.
   Hint Extern 998 (_ = _) => f_equal : core.

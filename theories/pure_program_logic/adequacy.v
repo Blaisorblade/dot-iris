@@ -25,7 +25,6 @@ Implicit Types Φs : list (val Λ → iProp Σ).
 Local Notation σ := dummyState.
 
 Lemma wp_step e1 e2 Φ :
-  (* to_val e1 = None → *)
   pure_step e1 e2 →
   WP e1 {{ Φ }} -∗ ▷ WP e2 {{ Φ }}.
 Proof.
@@ -35,16 +34,6 @@ Proof.
   suff ->: e2' = e2 by [].
   edestruct Hpure as [_ []]; [done|naive_solver].
 Qed.
-
-(* Lemma wptp_step s e1 e2 Φ :
-  step ([e1],σ) [] ([e2], σ) →
-  WP e1 @ s; ⊤ {{ Φ }} -∗ ▷ WP e2 @ s; ⊤ {{ Φ }}.
-Proof.
-  iIntros (Hstep) "He".
-  destruct Hstep as [e1' σ1' e2' σ2' efs [|? t1'] t2' ?? Hstep];
-    simplify_list_eq; last done.
-  iDestruct (wp_step with "He") as "H".
-Qed. *)
 
 Lemma wptp_steps {n e1 e2 Φ} :
   nsteps pure_step n e1 e2 →

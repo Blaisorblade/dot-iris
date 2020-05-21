@@ -110,7 +110,6 @@ Proof.
   move: p i; induction q => p i Hu Hup //=; last by (constructor;
     inverse Hu; simplify_eq/=; eauto).
   case_decide; simplify_eq => //.
-  (* eauto 4 using is_unstamped_sub_ren_path, is_unstamped_weaken_path with lia. *)
   eapply is_unstamped_sub_ren_path, Hup; eauto with lia.
 Qed.
 

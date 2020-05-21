@@ -60,8 +60,6 @@ Definition hIFT : hty :=
   ∀: x : tparam "A", hIFTBody x.
 Definition IFT := hclose hIFT.
 
-(* Definition hIFT : hty := {@ val "if" : hIFTFun }. *)
-
 Definition hiftTrue : hvl := λ: x, λ:: t f, htv t.
 Definition hiftFalse : hvl := λ: x, λ:: t f, htv f.
 Definition iftTrue := hclose hiftTrue.

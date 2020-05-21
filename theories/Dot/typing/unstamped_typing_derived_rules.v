@@ -20,7 +20,6 @@ Qed.
 Lemma var_typed_closed {Γ x T} : Γ u⊢ₜ tv (ids x) : T → x < length Γ.
 Proof. by move => /unstamped_subject_closed/fv_of_val_inv/nclosed_var_lt. Qed.
 
-(* Ltac tcrush := repeat first [ fast_done | typconstructor | stcrush ]. *)
 Ltac tcrush := repeat first [ eassumption | reflexivity | typconstructor | stcrush ].
 
 Lemma iT_All_Ex Γ e1 x2 T1 T2:
@@ -172,16 +171,6 @@ Lemma iSub_Sel'' Γ {p l L i}:
   Γ u⊢ₚ p : TTMem l L L, i → Γ u⊢ₜ L, i <: TSel p l, i.
 Proof. apply iSub_Sel'. Qed.
 
-(* Worse than iD_Typ_Abs, but shown in the paper. *)
-(* Lemma iD_Typ_Abs_intermediate Γ T l L U:
-  is_unstamped_ty' (length Γ) L →
-  is_unstamped_ty' (length Γ) T →
-  is_unstamped_ty' (length Γ) U →
-  Γ u⊢ₜ L, 0 <: T, 0 →
-  Γ u⊢ₜ T, 0 <: U, 0 →
-  Γ u⊢{ l := dtysyn T } : TTMem l L U.
-Proof. intros; apply iD_Typ_Abs => //; tcrush; exact: iSub_Mono. Qed. *)
-
 (** * Manipulating laters, basics. *)
 
 Lemma iSub_AddIJ {Γ T} i j (Hst: is_unstamped_ty' (length Γ) T) :
@@ -208,16 +197,6 @@ Proof.
   eapply iP_Sub, Hp.
   apply: iSub_AddIJ'; by [|lia].
 Qed.
-
-(* Lemma AddIB_stp Γ T U i:
-  is_unstamped_ty' (length Γ) T →
-  is_unstamped_ty' (length Γ) U →
-  Γ u⊢ₜ T, 0 <: U, 0 →
-  Γ u⊢ₜ T, i <: U, i.
-Proof.
-  move => HuT HuU Hstp; elim: i => [|n IHn]; first tcrush.
-  exact: iSub_Mono.
-Qed. *)
 
 (** * Derived constructions. *)
 

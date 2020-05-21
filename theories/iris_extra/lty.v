@@ -432,9 +432,6 @@ Section olty_ofe_2.
   Lemma sTEq_oOr_oLaterN (τ1 τ2 : oltyO Σ i) n :
     oLaterN n (oOr τ1 τ2) ≡ oOr (oLaterN n τ1) (oLaterN n τ2).
   Proof. move => args ρ v /=. by rewrite laterN_or. Qed.
-
-  Definition oSel_raw `{dlangG Σ} s σ :=
-    Olty (λI args ρ v, ∃ ψ, s ↗n[σ, i] ψ ∧ ▷ □ ψ args v).
 End olty_ofe_2.
 
 Notation "sE⟦ τ ⟧" := (interp_expr τ).

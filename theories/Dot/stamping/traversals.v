@@ -221,13 +221,8 @@ Section fold.
       forall_traversal_path ts p1 p2 →
       forall_traversal_dm ts (dpt p1) (dpt p2)
   | trav_dty ts tm1 tm2:
-      (* forall_traversal_ty ts T → *)
       trav.(dtyP) ts tm1 tm2 →
       forall_traversal_dm ts (tmemc2dm tm1) (tmemc2dm tm2)
-  (* | trav_dtysem ts vs s:
-      trav.(dtysemP) ts vs s →
-      Forall (forall_traversal_vl ts) vs →
-      forall_traversal_dm ts (dtysem vs s) *)
   with
   forall_traversal_path: travStateT → path → path → Prop :=
   | trav_pv ts v1 v2:

@@ -16,9 +16,6 @@ https://web.archive.org/web/20130412082828/http://www.e-pig.org/epilogue/?p=773
 
 Jigger exploits type inference and well-scoped de Bruijn terms.
 *)
-(* TODO? Check out:
-  http://www.cs.uu.nl/research/techreps/repo/CS-2012/2012-009.pdf
-*)
 
 (**
 Our algorithm is inspired by Atkey's et al.'s
@@ -107,8 +104,6 @@ Global Arguments liftA3 /.
 Global Arguments liftBind /.
 Global Arguments liftList /.
 
-(* Ever used? Likely not. *)
-(* Definition hshift : hterm s1 → hterm s1 := λ t i, t (S i). *)
 End lifting.
 End hterm_lifting.
 
@@ -168,7 +163,6 @@ Definition hTOr : hty → hty → hty := liftA2 TOr.
 Definition hTLater : hty → hty := liftA1 TLater.
 
 Definition hTAll : hty → (hvl → hty) → hty := λ T U i,
-  (* liftBind (liftA1 TAll T i) U i. *)
   liftBind (TAll (T i)) U i.
 
 Definition hTMu : (hvl → hty) → hty := liftBind TMu.
@@ -227,7 +221,6 @@ Notation "e1 + e2" := (htbin bplus e1%HE e2%HE) : hexpr_scope.
 Notation "e1 - e2" := (htbin bminus e1%HE e2%HE) : hexpr_scope.
 Notation "e1 * e2" := (htbin btimes e1%HE e2%HE) : hexpr_scope.
 Notation "e1 `div` e2" := (htbin bdiv e1%HE e2%HE) : hexpr_scope.
-(* Notation "e1 `rem` e2" := (htbin RemOp e1%HE e2%HE) : hexpr_scope. *)
 
 Notation "e1 ≤ e2" := (htbin ble e1%HE e2%HE) : hexpr_scope.
 Notation "e1 < e2" := (htbin blt e1%HE e2%HE) : hexpr_scope.
@@ -245,7 +238,6 @@ Notation " {@ } " := (@nil (string * hdm)) (format "{@ }") : hdms_scope.
 Notation " {@ x } " := ( x :: {@} ) (format "{@  x  }"): hdms_scope.
 Notation " {@ x ; y ; .. ; z } " :=
   (cons x (cons y .. (cons z nil) ..))
-  (* (format "{@  x ;  y ;  .. ;  z  }") *)
   (format "'[v' {@  '[' x ']' ;  '/' y ;  '/' .. ;  '/' z } ']'")
   : hdms_scope.
 
@@ -289,7 +281,6 @@ Open Scope hty_scope.
 Notation " {@ T1 } " := ( hTAnd T1 ⊤ ) (format "{@  T1  }"): hty_scope.
 Notation " {@ T1 ; T2 ; .. ; Tn } " :=
   (hTAnd T1 (hTAnd T2 .. (hTAnd Tn ⊤)..))
-  (* (format "'[v' {@  '[' T1 ']'  ;   T2  ;   ..  ;   Tn } ']'") : hty_scope. *)
   (format "'[v' {@  '[' T1 ']'  ;  '/' T2  ;  '/' ..  ;  '/' Tn } ']'") : hty_scope.
 Close Scope hty_scope.
 
