@@ -155,8 +155,8 @@ Lemma unstamped_stamps_self_mut:
   (∀ p g n b, is_unstamped_path n b p → unstamp_path g p = p) ∧
   (∀ T g n b, is_unstamped_ty   n b T → unstamp_ty g T = T).
 Proof.
-  apply syntax_mut_ind;
-  try by intros; with_is_unstamped inverse; simplify_eq/=; f_equal; eauto 2; by destruct (g !! s).
+  apply syntax_mut_ind; try by intros; with_is_unstamped inverse;
+    simplify_eq/=; f_equal; eauto 2; by destruct (g !! s).
   elim => [//|[l d] ds /= IHds] IH g n b Hus. inverse IH.
   have [Hd Hds]: is_unstamped_dm (S n) b d ∧ is_unstamped_dms (S n) b ds.
   by inversion Hus as [ | | | ?? Hds]; simplify_eq/=; inverse Hds.
@@ -182,7 +182,7 @@ Proof.
     by apply /extract_spec /unstamped_stamped_type.
   destruct (extract g n T) as (g' & s & σ) eqn:Heq.
   rewrite /extract in Heq; simplify_eq.
-  split_and!; try eapply trav_dtysem with (T' := T) (ts' := (n, <[fresh_stamp g := T]> g));
+  split_and!; try apply trav_dtysem with (T' := T) (ts' := (n, <[fresh_stamp g := T]> g));
     rewrite /= ?lookup_insert //= ?closed_subst_idsρ ?length_idsσ //;
     eauto using is_stamped_idsσ, unstamped_stamped_type.
 Qed.
