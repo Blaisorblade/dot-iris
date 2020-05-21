@@ -115,7 +115,7 @@ Bind Scope hsyn_scope with hty htm hterm.
 Delimit Scope hsyn_scope with HS.
 
 Declare Scope hdms_scope.
-Bind Scope hdms_scope with hdms list.
+Bind Scope hdms_scope with hdms.
 Delimit Scope hdms_scope with HD.
 
 Instance ids_hvl : Ids hvl := λ x, (* [x]: input to the substitution. *)
