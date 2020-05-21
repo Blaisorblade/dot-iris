@@ -1,22 +1,42 @@
-(* A HOAS frontend for de Bruijn terms. *)
+(* A HOAS frontend to generate de Bruijn DOT terms for examples.
+
+While some more examples could use this frontend (and they don't, due to
+historical reasons), beware this frontend is not fully transparent, and in
+particular is not suitable for robust typing lemmas.
+*)
 
 From D Require Import tactics.
 From D.Dot Require Import syn ex_utils.
 
 Set Default Proof Using "Type".
 
-(* Inspired by the "Unembedding DSLs" paper, but specialized.
-
-The algorithm it uses is very different from McBride's Jigger.
+(*
+The algorithm we use is very different from McBride's Jigger:
 https://web.archive.org/web/20130412082828/http://www.e-pig.org/epilogue/?p=773
-Jigger is made possible exactly because their types of de Bruijn terms
-are indexed by the number of free variables.
+
+Jigger exploits type inference and well-scoped de Bruijn terms.
 *)
 (* TODO? Check out:
   http://www.cs.uu.nl/research/techreps/repo/CS-2012/2012-009.pdf
 *)
+
+(**
+Our algorithm is inspired by Atkey's et al.'s
+"Unembedding Domain-Specific Languages", Haskell'09,
+https://doi.org/10.1145/1596638.1596644. *)
+
+(* Our HOAS terms are functions from the number of free variables in scope
+to an actual de Bruijn term. *)
+(** Type of HOAS terms. *)
 Definition hterm sort := var → sort.
-Definition hclose {s1} : hterm s1 → s1 := (.$ 0).
+
+(* We can convert a closed HOAS term to a de Bruijn one by apply the term to 0. *)
+(** Convert a closed HOAS term to the corresponding de Bruijn term. *)
+Definition hclose {s1} : hterm s1 → s1 := Eval cbv in (.$ 0).
+
+(* Here in [hclose] and below, the point of [Eval cbv] is to improve the
+results of simplification, by hiding all the abstractions used to define our
+combinators on HOAS terms. *)
 Global Arguments hclose /.
 Definition pureS {s1} : s1 → hterm s1 := λ x _, x.
 Global Arguments pureS /.
@@ -70,7 +90,6 @@ Definition liftA3 (con : s1 → s2 → s3 → s4) :
   hterm s1 → hterm s2 → hterm s3 → hterm s4 := λ a1 a2 a3 i,
   con (a1 i) (a2 i) (a3 i).
 
-(* Here and below, the point of [Eval cbv] is to improve the results of simplification. *)
 Definition liftBind (con : s1 → s2) (f : hvl → hterm s1) : hterm s2 := Eval cbv -[minus] in λ i,
   let i' := S i in
   let v := ren (λ j, j - i') in

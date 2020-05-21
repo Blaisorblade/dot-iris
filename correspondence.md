@@ -57,7 +57,7 @@ definitions.
   values, of type `Env → Val → iProp`.
   Instead, in Coq, semantic types are a first-class notion, described by Coq
   type `olty Σ 0`, defined in `iris_extra/lty.v`.
-  
+
   - Most of Fig. 9 is defined as combinators on semantic types,
     without reference to syntactic types. The Coq notation `V⟦ T ⟧` translates
     syntactic types into semantic types using those combinators.
@@ -78,7 +78,7 @@ definitions.
 To confirm that we have proved type soundness for gDOT, and that our examples
 are well-typed and/or type-safe, it is sufficient to check our type soundness
 theorem, and the definition of the language with its operational semantics and
-type system. In more details:
+type system. In more detail:
 
 Sec. 2:
 - syntax, substitution and operational semantics for unstamped and stamped
@@ -110,7 +110,7 @@ Sec. 5:
   type_soundness`.
 
 Sec. 6:
-- Examples are written using high-level notations than the one defined in `syn.v`:
+- Examples are written using higher-level notations than the one defined in `syn.v`:
   - `Module DBNotation` is defined in
     [`Dot/examples/ex_utils.v`](theories/Dot/examples/ex_utils.v); it is merely
     an alternative Unicode notation for deBruijn terms.
