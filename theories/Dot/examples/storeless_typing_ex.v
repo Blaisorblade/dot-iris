@@ -34,16 +34,16 @@ Proof.
 Qed.
 
 Example ex2 Γ T
-  (Hg: g !! s1 = Some (p0 @; "B")):
+  (Hg: g !! s1 = Some (x0 @; "B")):
   Γ v⊢ₜ[ g ] ν {@ type "A" = (idsσ 1 ; s1) } :
     TMu (TAnd (TTMem "A" TBot TTop) TTop).
 Proof.
-  have Hs: (p0 @; "B") ~[ 1 ] (g, (s1, idsσ 1)).
+  have Hs: (x0 @; "B") ~[ 1 ] (g, (s1, idsσ 1)).
   by_extcrush.
-  have Hst: is_stamped_ty (1 + length Γ) g (p0 @; "B").
+  have Hst: is_stamped_ty (1 + length Γ) g (x0 @; "B").
   by tcrush.
   apply iT_Obj_I; tcrush. (* Avoid trying iT_Mu_I, that's slow. *)
-  apply (iD_Typ_Abs (p0 @; "B")); cbn; by wtcrush.
+  apply (iD_Typ_Abs (x0 @; "B")); cbn; by wtcrush.
 Qed.
 
 (* Try out fixpoints. *)
@@ -51,16 +51,16 @@ Definition F3 T :=
   TMu (TAnd (TTMem "A" T T) TTop).
 
 Example ex3 Γ T
-  (Hg: g !! s1 = Some (F3 (p0 @; "A"))):
+  (Hg: g !! s1 = Some (F3 (x0 @; "A"))):
   Γ v⊢ₜ[ g ] ν {@ type "A" = (σ1 ; s1) } :
-    F3 (F3 (TSel p0 "A")).
+    F3 (F3 (TSel x0 "A")).
 Proof.
-  have Hs: F3 (p0 @; "A") ~[ 0 ] (g, (s1, σ1)).
+  have Hs: F3 (x0 @; "A") ~[ 0 ] (g, (s1, σ1)).
   by_extcrush.
-  have Hst: is_stamped_ty (1 + length Γ) g (F3 (p0 @; "A")).
+  have Hst: is_stamped_ty (1 + length Γ) g (F3 (x0 @; "A")).
   by stcrush.
   apply iT_Obj_I; tcrush. (* Avoid trying iT_Mu_I, that's slow. *)
-  apply (iD_Typ_Abs (F3 (p0 @; "A"))); by wtcrush.
+  apply (iD_Typ_Abs (F3 (x0 @; "A"))); by wtcrush.
 Qed.
 
 (********************)
@@ -87,11 +87,11 @@ Qed.
 (* This stands for type [String] in that example. *)
 Definition KeysT : ty := μ {@
   type "Key" >: ⊥ <: ⊤;
-  val "key": TAll HashableString (p1 @; "Key")
+  val "key": TAll HashableString (x1 @; "Key")
 }.
 Definition hashKeys : vl := ν {@
   type "Key" = (σ1; s1);
-  val "key" = pv (vabs (tapp (tproj (tv x0) "hashCode") tUnit))
+  val "key" = vabs (tapp (tproj x0 "hashCode") tUnit)
 }.
 Definition s1_is_tint :=
   TInt ~[ 0 ] (g, (s1, σ1)).
@@ -102,7 +102,7 @@ Proof. by_extcrush. Qed.
     and then widen it. *)
 Definition KeysT' := μ {@
   type "Key" >: TInt <: ⊤;
-  val "key": TAll HashableString (p1 @; "Key")
+  val "key": TAll HashableString (x1 @; "Key")
 }.
 (* IDEA for our work: use [(type "Key" >: TInt <: ⊤) ⩓ (type "Key" >: ⊥ <: ⊤)]. *)
 
@@ -198,7 +198,7 @@ In fact, that code doesn't typecheck as given, and we fix it by setting.
 
 IFT ≡ IFTFun
  *)
-Definition IFTBody := (TAll (p0 @; "A") (TAll (p1 @; "A") (p2 @; "A"))).
+Definition IFTBody := (TAll (x0 @; "A") (TAll (x1 @; "A") (x2 @; "A"))).
 Definition IFT : ty :=
   TAll (type "A" >: ⊥ <: ⊤) IFTBody.
 Lemma IFTStamped: is_stamped_ty 0 g IFT.
@@ -207,8 +207,8 @@ Hint Resolve IFTStamped : core.
 
 (* Definition IFT : ty := {@ val "if" : IFTFun }. *)
 
-Definition iftTrue := vabs (vabs' (vabs' x1)).
-Definition iftFalse := vabs (vabs' (vabs' x0)).
+Definition iftTrue := vabs (vabs (vabs x1)).
+Definition iftFalse := vabs (vabs (vabs x0)).
 
 Example iftTrueTyp Γ : Γ v⊢ₜ[ g ] iftTrue : IFT.
 Proof. tcrush. exact: iT_Var'. Qed.
@@ -223,7 +223,7 @@ Lemma get_s1_is_ift : s1_is_ift → s1_is_ift_ext.
 Proof. intros; red. by_extcrush. Qed.
 Hint Resolve get_s1_is_ift : core.
 
-Definition p0Bool := (p0 @; "Boolean").
+Definition p0Bool := x0 @; "Boolean".
 Lemma p0BoolStamped: is_stamped_ty 1 g p0Bool.
 Proof. tcrush. Qed.
 Hint Resolve p0BoolStamped : core.
@@ -340,13 +340,13 @@ Lemma packBooleanUB Γ (Hst : s1_is_ift) i :
   Γ v⊢ₜ[ g ] packBoolean @; "A", i <: ▶: IFT, i.
 Proof. apply /val_UB /packBooleanTyp0; wtcrush. Qed.
 
-Definition iftAnd false : vl := vabs (vabs' (
+Definition iftAnd false : vl := vabs (vabs (
   x1 $: packBoolean $: x0 $: false)).
 
 Example iftAndTyp Γ (Hst : s1_is_ift):
   Γ v⊢ₜ[ g ] iftAnd iftFalse : TAll IFT (TAll IFT (▶:IFT)).
 Proof.
-  unfold s1_is_ift in *; rewrite /iftAnd /vabs'.
+  unfold s1_is_ift in *; rewrite /iftAnd.
   tcrush.
   eapply iT_All_E; last exact: iftFalseTyp.
   eapply iT_All_E; last exact: iT_Var'.
@@ -369,7 +369,7 @@ Qed.
 (* Eta-expand to drop the later. *)
 
 Example iftAndTyp'1 Γ (Hst : s1_is_ift):
-  Γ v⊢ₜ[ g ] vabs' (vabs'
+  Γ v⊢ₜ[ g ] vabs (vabs
     (tskip (iftAnd iftFalse $: x1 $: x0))) :
     TAll IFT (TAll IFT IFT).
 Proof.
@@ -381,7 +381,7 @@ Proof.
 Qed.
 
 Definition iftCoerce t :=
-  lett t (vabs' (vabs' (tskip (x2 $: x1 $: x0)))).
+  lett t (vabs (vabs (tskip (x2 $: x1 $: x0)))).
 
 Lemma coerce_tAppIFT Γ t T :
   is_stamped_ty (length Γ) g T →
@@ -462,8 +462,8 @@ Proof. intros. apply tAppIFT_coerced_typed; eauto 3. Qed.
 Definition iftNot Γ t s :=
   tapp (tapp
       (iftCoerce (tApp Γ t s))
-    (tv iftFalse))
-  (tv iftTrue).
+    iftFalse)
+  iftTrue.
 
 Lemma iftNotTyp Γ T t s :
   g !! s = Some IFT →

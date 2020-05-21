@@ -502,7 +502,7 @@ Lemma packTV_typed' s T n Γ :
   g !! s = Some T →
   is_stamped_ty n g T →
   n <= length Γ →
-  Γ v⊢ₜ[ g ] tv (packTV n s) : typeEq "A" T.
+  Γ v⊢ₜ[ g ] packTV n s : typeEq "A" T.
 Proof.
   move => Hlp HsT1 Hle; move: (Hle) (HsT1) => /le_n_S Hles /is_stamped_ren1_ty HsT2.
   move: (is_stamped_nclosed_ty HsT1) => Hcl.
@@ -517,17 +517,17 @@ Qed.
 Lemma packTV_typed s T Γ :
   g !! s = Some T →
   is_stamped_ty (length Γ) g T →
-  Γ v⊢ₜ[ g ] tv (packTV (length Γ) s) : typeEq "A" T.
+  Γ v⊢ₜ[ g ] packTV (length Γ) s : typeEq "A" T.
 Proof. intros; exact: packTV_typed'. Qed.
 
 Lemma val_LB L U Γ i v :
   is_stamped_ty (length Γ) g L →
   is_stamped_ty (length Γ) g U →
   is_stamped_vl (length Γ) g v →
-  Γ v⊢ₜ[ g ] tv v : type "A" >: L <: U →
-  Γ v⊢ₜ[ g ] ▶: L, i <: (pv v @; "A"), i.
+  Γ v⊢ₜ[ g ] v : type "A" >: L <: U →
+  Γ v⊢ₜ[ g ] ▶: L, i <: v @; "A", i.
 Proof.
-  intros ??? Hv; apply (iSub_Sel (p := pv _) (U := U)).
+  intros ??? Hv; apply (iSub_Sel (U := U)).
   apply (path_tp_delay (i := 0)); wtcrush.
 Qed.
 
@@ -551,7 +551,7 @@ Lemma packTV_LB s T n Γ i :
   g !! s = Some T →
   is_stamped_ty n g T →
   n <= length Γ →
-  Γ v⊢ₜ[ g ] ▶: T, i <: (pv (packTV n s) @; "A"), i.
+  Γ v⊢ₜ[ g ] ▶: T, i <: packTV n s @; "A", i.
 Proof.
   intros; apply /val_LB /packTV_typed'; wtcrush; cbn.
   eapply (is_stamped_sub_dm (dtysem _ _) (ren (+1))); trivial.
@@ -562,10 +562,10 @@ Lemma val_UB L U Γ i v :
   is_stamped_ty (length Γ) g L →
   is_stamped_ty (length Γ) g U →
   is_stamped_vl (length Γ) g v →
-  Γ v⊢ₜ[ g ] tv v : type "A" >: L <: U →
-  Γ v⊢ₜ[ g ] (pv v @; "A"), i <: ▶: U, i.
+  Γ v⊢ₜ[ g ] v : type "A" >: L <: U →
+  Γ v⊢ₜ[ g ] v @; "A", i <: ▶: U, i.
 Proof.
-  intros ??? Hv; apply (iSel_Sub (p := pv _) (L := L)).
+  intros ??? Hv; apply (iSel_Sub (L := L)).
   apply (path_tp_delay (i := 0)); wtcrush.
 Qed.
 
@@ -573,7 +573,7 @@ Lemma packTV_UB s T n Γ i :
   is_stamped_ty n g T →
   g !! s = Some T →
   n <= length Γ →
-  Γ v⊢ₜ[ g ] (pv (packTV n s) @; "A"), i <: ▶: T, i.
+  Γ v⊢ₜ[ g ] packTV n s @; "A", i <: ▶: T, i.
 Proof.
   intros; apply /val_UB /packTV_typed'; wtcrush.
   eapply (is_stamped_sub_dm (dtysem _ _) (ren (+1))); trivial.
@@ -581,7 +581,7 @@ Proof.
 Qed.
 
 Definition tApp Γ t s :=
-  lett t (lett (tv (packTV (S (length Γ)) s)) (tapp (tv x1) (tv x0))).
+  lett t (lett (packTV (S (length Γ)) s) (tapp x1 x0)).
 
 Lemma typeApp_typed s Γ T U V t :
   Γ v⊢ₜ[ g ] t : TAll (type "A" >: ⊥ <: ⊤) U →

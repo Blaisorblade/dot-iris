@@ -25,7 +25,7 @@ Proof.
 Qed.
 
 Example ex2 Γ T :
-  Γ u⊢ₜ ν {@ type "A" = p0 @; "B" } : TMu (TAnd (TTMem "A" TBot TTop) TTop).
+  Γ u⊢ₜ ν {@ type "A" = x0 @; "B" } : TMu (TAnd (TTMem "A" TBot TTop) TTop).
 Proof. apply iT_Obj_I; tcrush. Qed.
 
 (* Try out fixpoints. *)
@@ -33,21 +33,21 @@ Definition F3 T :=
   TMu (TAnd (TTMem "A" T T) TTop).
 
 Example ex3 Γ T:
-  Γ u⊢ₜ ν {@ type "A" = F3 (p0 @; "A") } : F3 (F3 (TSel p0 "A")).
+  Γ u⊢ₜ ν {@ type "A" = F3 (x0 @; "A") } : F3 (F3 (TSel x0 "A")).
 Proof. apply iT_Obj_I; tcrush. Qed.
 
 Definition KeysT : ty := μ {@
   type "Key" >: ⊥ <: ⊤;
-  val "key": HashableString →: p0 @; "Key"
+  val "key": HashableString →: x0 @; "Key"
 }.
 Definition hashKeys : vl := ν {@
   type "Key" = TInt;
-  val "key" = pv (vabs (tapp (tproj (tv x0) "hashCode") tUnit))
+  val "key" = vabs (tapp (tproj x0 "hashCode") tUnit)
 }.
 
 Definition KeysTConcr := μ {@
   type "Key" >: TInt <: ⊤;
-  val "key" : HashableString →: p0 @; "Key"
+  val "key" : HashableString →: x0 @; "Key"
 }.
 
 (* IDEA for our work: use [(type "Key" >: TInt <: ⊤) ⩓ (type "Key" >: ⊥ <: ⊤)]. *)
@@ -73,7 +73,7 @@ Qed.
 (* We can also use subtyping on the individual members to type this example. *)
 Definition boolImplT0 : ty :=
   μ {@
-    typeEq "Boolean" IFT;
+    typeEq "Boolean" hIFT;
     val "true" : TLater p0Bool;
     val "false" : TLater p0Bool
   }.
@@ -107,7 +107,7 @@ Qed.
 
 Lemma tyAppIFT_typed Γ T t :
   is_unstamped_ty' (length Γ) T →
-  Γ u⊢ₜ t : IFT →
+  Γ u⊢ₜ t : hIFT →
   Γ u⊢ₜ tyApp t "A" T : T →: T →: ▶: T.
 Proof.
   move => HsT1 Ht; move: (HsT1) => /is_unstamped_ren1_ty HsT2.
@@ -120,7 +120,7 @@ Qed.
 (* Beware: we could inline the [lett t], but then we'd need to use a weakening lemma
 to prove [iftCoerce_typed]. *)
 Definition iftCoerce t :=
-  lett t (vabs' (vabs' (tskip (x2 $: x1 $: x0)))).
+  lett t (vabs (vabs (tskip (x2 $: x1 $: x0)))).
 
 Lemma iftCoerce_typed Γ t T :
   is_unstamped_ty' (length Γ) T →
@@ -143,13 +143,13 @@ Qed.
 
 Lemma iftCoerce_tyAppIFT_typed Γ T t :
   is_unstamped_ty' (length Γ) T →
-  Γ u⊢ₜ t : IFT →
+  Γ u⊢ₜ t : hIFT →
   Γ u⊢ₜ iftCoerce (tyApp t "A" T) : T →: T →: T.
 Proof. intros. by apply /iftCoerce_typed /tyAppIFT_typed. Qed.
 
 Lemma iftCoerce_tyAppIFT_typed_IFT Γ t :
-  Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ iftCoerce (tyApp t "A" IFT) : IFT →: IFT →: IFT.
+  Γ u⊢ₜ t : hIFT →
+  Γ u⊢ₜ iftCoerce (tyApp t "A" hIFT) : IFT →: IFT →: IFT.
 Proof. intros. apply iftCoerce_tyAppIFT_typed; tcrush. Qed.
 
 Definition iftNotBody t T true false :=
@@ -157,8 +157,8 @@ Definition iftNotBody t T true false :=
 
 (* XXX Beware that false and true are inlined here. *)
 Lemma iftNotBodyTyp Γ t :
-  Γ u⊢ₜ t : IFT →
-  Γ u⊢ₜ iftNotBody t IFT (tv iftTrue) (tv iftFalse) : IFT.
+  Γ u⊢ₜ t : hIFT →
+  Γ u⊢ₜ iftNotBody t hIFT hiftTrue hiftFalse : hIFT.
 Proof.
   intros.
   eapply iT_All_E; last exact: iftTrueTyp.
@@ -168,9 +168,9 @@ Qed.
 
 (* We'd want NOT = λ a. a False True. *)
 (* This is NOT0 = λ a. a (λ t f. f) (λ t f. t). *)
-Definition iftNot0 := vabs' (iftNotBody x0 IFT iftTrue iftFalse).
+Definition iftNot0 := vabs (iftNotBody x0 hIFT hiftTrue hiftFalse).
 Lemma iftNotTyp Γ T :
-  Γ u⊢ₜ iftNot0 : TAll IFT IFT.
+  Γ u⊢ₜ iftNot0 : TAll hIFT hIFT.
 Proof. apply iT_All_I; first stcrush. apply iftNotBodyTyp. var. Qed.
 
 (* AND = λ a b. a b False. *)
@@ -178,9 +178,9 @@ Definition iftAndBody t1 t2 T false :=
   iftCoerce (tyApp t1 "A" T) $: t2 $: false.
 
 Lemma iftAndBodyTyp Γ t1 t2 :
-  Γ u⊢ₜ t1 : IFT →
-  Γ u⊢ₜ t2 : IFT →
-  Γ u⊢ₜ iftAndBody t1 t2 IFT (tv iftFalse) : IFT.
+  Γ u⊢ₜ t1 : hIFT →
+  Γ u⊢ₜ t2 : hIFT →
+  Γ u⊢ₜ iftAndBody t1 t2 hIFT hiftFalse : hIFT.
 Proof.
   intros Ht1 Ht2.
   eapply iT_All_E; last exact: iftFalseTyp.
@@ -189,7 +189,7 @@ Proof.
 Qed.
 
 Lemma iftAndTyp Γ T :
-  Γ u⊢ₜ vabs' (vabs' (iftAndBody x1 x0 IFT iftFalse)) : IFT →: IFT →: IFT.
+  Γ u⊢ₜ vabs (vabs (iftAndBody x1 x0 hIFT hiftFalse)) : IFT →: IFT →: IFT.
 Proof. tcrush. apply iftAndBodyTyp; var. Qed.
 
 (*
@@ -201,7 +201,7 @@ let bool = boolImplV :
 Definition IFTp0 : ty := p0Bool →: p0Bool →: p0Bool.
 
 Lemma iftCoerce_tyAppIFT_typed_p0Boolean Γ T t :
-  T :: Γ u⊢ₜ t : IFT →
+  T :: Γ u⊢ₜ t : hIFT →
   T :: Γ u⊢ₜ iftCoerce (tyApp t "A" p0Bool) : p0Bool →: p0Bool →: p0Bool.
 Proof. intros. apply iftCoerce_tyAppIFT_typed; tcrush. Qed.
 

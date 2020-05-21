@@ -258,11 +258,6 @@ Notation "'λ:' x .. y , t" := (hvabs (fun x => .. (hvabs (fun y => t%HE)) ..))
   (at level 200, x binder, y binder, right associativity,
   format "'[  ' '[  ' 'λ:'  x  ..  y ']' ,  '/' t ']'").
 
-(** Term lambda. Does not rely on coercions, and is more annoying. *)
-Notation "'λ::' x .. y , t" := (htv (hvabs (fun x => .. (htv (hvabs (fun y => t%HE))) ..)))
-  (at level 200, x binder, y binder, right associativity,
-  format "'[  ' '[  ' 'λ::'  x  ..  y ']' ,  '/' t ']'").
-
 Notation "'ν' ds " := (hvobj ds) (at level 60, ds at next level).
 Notation "'ν:' x , ds " := (hvobj (λD x, ds)) (at level 60, ds at next level).
 Notation "'val' l = v" := (l, hdpt v) (at level 60, l at level 50).
@@ -322,30 +317,18 @@ Notation hx6 := (hx 6).
 recommended. *)
 Definition hxm i : hvl := λ j, var_vl (j - i).
 
-Notation hpx n := (hpv (hx n)).
-Notation hp0 := (hpx 0).
-Notation hp1 := (hpx 1).
-Notation hp2 := (hpx 2).
-Notation hp3 := (hpx 3).
-Notation hp4 := (hpx 4).
-Notation hp5 := (hpx 5).
-Notation hp6 := (hpx 6).
-
 (** Additional syntactic sugar, in HOAS version *)
-Definition hvabs' x := htv (hvabs x).
-Arguments hvabs' /.
-
-Definition hlett t u := htapp (hvabs' u) t.
+Definition hlett t u := htapp (hvabs u) t.
 Arguments hlett /.
-Notation "hlett: x := t in: u" := (htapp (λ:: x, u) t) (at level 80).
+Notation "hlett: x := t in: u" := (htapp (λ: x, u) t) (at level 80).
 
 Definition hpackTV l T := ν: self, {@ type l = T }.
 Definition htyApp t l T :=
   hlett: x := t in:
-  hlett: a := htv (hpackTV l T) in:
-    htv x $: htv a.
+  hlett: a := hpackTV l T in:
+    x $: a.
 
-Definition hAnfBind t := hlett: x := t in: htv x.
+Definition hAnfBind t := hlett: x := t in: x.
 
 (* Notation "∀: x .. y , P" := (hTAll x, .. (hTAll y, P) ..)
   (at level 200, x binder, y binder, right associativity,

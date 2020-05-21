@@ -31,7 +31,7 @@ Definition fromPDotPaperAbsTypesTBody : ty := {@
   type "Type" >: ⊥ <: TTop;
   type "TypeTop" >: ⊥ <: x0 @; "Type";
   val "newTypeTop" : ⊤ →: x0 @; "TypeTop";
-  type "TypeRef" >: ⊥ <: TAnd (p0 @; "Type") typeRefTBody;
+  type "TypeRef" >: ⊥ <: TAnd (x0 @; "Type") typeRefTBody;
   val "newTypeRef" : x1 @ "symbols" @; "Symbol" →: x0 @; "TypeRef"
 }.
 
@@ -160,7 +160,7 @@ Proof.
 Qed.
 
 Definition getAnyTypeT pOpt : ty :=
-  TAll (μ (fromPDotPaperAbsTBody (shift pOpt))) (⊤ →: p0 @ "types" @; "TypeTop").
+  TAll (μ (fromPDotPaperAbsTBody (shift pOpt))) (⊤ →: x0 @ "types" @; "TypeTop").
 Definition getAnyType : vl := vabs (tskip (tproj (tproj x0 "types") "newTypeTop")).
 
 Ltac simplSubst := rewrite /= /up/= /ids/ids_vl/=.
@@ -175,21 +175,21 @@ Definition fromPDotPaperAbsTypesTBodySubst : ty := {@
   val "newTypeRef" : x0 @ "symbols" @; "Symbol" →: x0 @ "types" @; "TypeRef"
 }.
 
-Lemma fromPDotPSubst: fromPDotPaperAbsTypesTBody .Tp[ (p0 @ "types") /]~ fromPDotPaperAbsTypesTBodySubst.
+Lemma fromPDotPSubst: fromPDotPaperAbsTypesTBody .Tp[ (x0 @ "types") /]~ fromPDotPaperAbsTypesTBodySubst.
 Proof. exact: psubst_ty_rtc_sufficient. Qed.
 
 Example getAnyTypeFunTyp Γ T : T :: optionModT :: Γ u⊢ₜ getAnyType : getAnyTypeT x1.
 Proof.
   rewrite /getAnyType -(iterate_S tskip 0); tcrush.
-  eapply (iT_Sub (T1 := TLater (⊤ →: p0 @ "types" @; "TypeTop"))); tcrush.
+  eapply (iT_Sub (T1 := TLater (⊤ →: x0 @ "types" @; "TypeTop"))); tcrush.
   set Γ' := shift (μ fromPDotPaperAbsTBody (shiftV x1)) :: T :: optionModT :: Γ.
-  have Hpx: Γ' u⊢ₚ p0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0
+  have Hpx: Γ' u⊢ₚ x0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0
     by tcrush; eapply iT_Sub_nocoerce;
       [ by eapply iT_Mu_E; first var; stcrush | tcrush].
-  have HpxSubst: Γ' u⊢ₚ p0 @ "types" : fromPDotPaperAbsTypesTBodySubst, 0.
+  have HpxSubst: Γ' u⊢ₚ x0 @ "types" : fromPDotPaperAbsTypesTBodySubst, 0.
   by eapply (iP_Mu_E (T := fromPDotPaperAbsTypesTBody)
-    (p := p0 @ "types")), Hpx; tcrush.
-  eapply (iT_Path (p := p0)), iP_Fld_I, (iP_Sub (i := 0)), HpxSubst.
+    (p := x0 @ "types")), Hpx; tcrush.
+  eapply (iT_Path (p := x0)), iP_Fld_I, (iP_Sub (i := 0)), HpxSubst.
   ltcrush.
 Qed.
 

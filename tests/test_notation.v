@@ -9,7 +9,7 @@ Open Scope Z_scope.
 
 Check {@ TInt ; TInt ; TInt }%ty.
 
-(* Check (TSel (pself (pself p0 1) 2) 3). *)
+(* Check (TSel (pself (pself x0 1) 2) 3). *)
 (* Check (x0 @ 1 @ 2 ; 3). *)
 
 Check ν {@ val "a" = pv (vint 0) }.
@@ -23,11 +23,11 @@ Check ν {@ }.
 Check ν {@ val "a" = pv (vint 0) }.
 Check ν {@ val "a" = pv (vint 0) ; val "b" = pv (vint 1) }.
 
-Check (p0 @; "A").
-Check (pself (pself p0 "A") "B" @; "C").
-Check (p0 @ "A").
-Check (p0 @ "A" @ "B" @; "C").
-Check (val "symb" : p0 @ "symbols" @; "Symbol")%ty.
+Check (x0 @; "A").
+Check (pself (pself x0 "A") "B" @; "C").
+Check (x0 @ "A").
+Check (x0 @ "A" @ "B" @; "C").
+Check (val "symb" : x0 @ "symbols" @; "Symbol")%ty.
 
 Definition ta v := (0 < v)%E.
 Print ta.
@@ -92,7 +92,7 @@ Goal ex = ex0. done. Abort.
 Definition ex2 := hclose (λ: f, htv f).
 Eval cbv in ex2.
 Goal ex2 = vabs (tv DBNotation.x0). done. Qed.
-Definition ex3 := hclose (λ:: f x, htapp (htv f) (htv x)).
+Definition ex3 : tm := λ: f x, htapp f x.
 Eval cbv in ex3.
 Goal ex3 = tv (vabs (tv (vabs (tapp (tv DBNotation.x1) (tv DBNotation.x0))))). done. Abort.
 End hoasTests.

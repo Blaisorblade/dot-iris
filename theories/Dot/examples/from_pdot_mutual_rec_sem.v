@@ -462,7 +462,7 @@ Qed.
 Example pCoreSemTyped Γ : ⊢ Γ ⊨[fromPDotGφ]
   lett hoptionModV fromPDotPaper : ⊤.
 Proof.
-  rewrite /lett /vabs'.
+  rewrite /lett.
   iIntros "#Hs".
   iApply T_All_E; first last.
   iApply (fundamental_typed with "Hs").
@@ -501,7 +501,7 @@ Definition fromPDotPaperAbsTypesTBodySubst : ty := {@
   val "getTypeFromTypeRef" : x0 @ "types" @; "TypeRef" →: x0 @ "types" @; "Type"
 }.
 
-Lemma fromPDotPSubst: fromPDotPaperAbsTypesTBody .Tp[ (p0 @ "types") /]~ fromPDotPaperAbsTypesTBodySubst.
+Lemma fromPDotPSubst: fromPDotPaperAbsTypesTBody .Tp[ x0 @ "types" /]~ fromPDotPaperAbsTypesTBodySubst.
 Proof. exact: psubst_ty_rtc_sufficient. Qed.
 
 Example getAnyTypeFunTyp Γ :
