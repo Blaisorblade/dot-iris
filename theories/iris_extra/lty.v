@@ -417,7 +417,7 @@ Section olty_ofe_2.
   Lemma oMu_shift (T : oltyO Σ i) : oMu (shift T) ≡ T.
   Proof. move=> args ρ v. by rewrite /= (hoEnvD_weaken_one T args _ v). Qed.
 
-  Definition interp_expr `{dlangG Σ} (φ : hoEnvD Σ 0) : envPred tm Σ :=
+  Definition interp_expr (φ : hoEnvD Σ 0) : envPred tm Σ :=
     λI ρ t, □ WP t {{ vclose φ ρ }}.
   Global Arguments interp_expr /.
 
