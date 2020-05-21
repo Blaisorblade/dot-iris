@@ -50,8 +50,6 @@ End derived_swap_lemmas.
 (** ** Implementation of swap laws for uniform predicates. *)
 
 Class CmraSwappable (M : cmraT) := {
-  (* TODO cmra_extend should really be cmra_extend_sep. *)
-  (* cmra_extend_included: ∀ n (x x': A), ✓{S n} x → x ≼ x' → ✓{n} x' → ∃ x'', ✓{S n} x'' ∧ x ≼ x'' ∧ x' ≡{n}≡ x''; *)
   cmra_extend_included: ∀ n (mx : option M) z,
     ✓{S n} mx → ✓{n} (z ⋅? mx) → { z' | ✓{S n} (z' ⋅? mx) ∧ z ≡{n}≡ z' }
 }.
