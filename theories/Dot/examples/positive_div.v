@@ -90,8 +90,7 @@ Section helpers.
 
   Lemma V_TVMem_I T v w l
     (Hclv : nclosed_vl v 0)
-    (* XXX should be (Hlook : v @ l ↘ (dpt (pv w))) *)
-    (Hlook : objLookup v l (dpt (pv w))):
+    (Hlook : v @ l ↘ (dpt (pv w))) :
     [] ⊨ w : T -∗
     [] ⊨ v : TVMem l T.
   Proof.
