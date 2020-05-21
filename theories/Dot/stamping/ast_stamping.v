@@ -191,13 +191,14 @@ Proof.
   exists v', g'; simplify_eq; eauto.
 Qed.
 
-Lemma var_stamps_to_self1 g x v: unstamp_vl g v = var_vl x → v = var_vl x.
+Lemma var_stamps_to_self g x v: unstamp_vl g v = var_vl x → v = var_vl x.
 Proof. by case: v. Qed.
 
-Lemma path_stamps_to_self1 g p_s p_u x: unstamp_path g p_s = p_u → path_root p_u = var_vl x → p_s = p_u.
+Lemma path_stamps_to_self g p_s p_u x:
+  unstamp_path g p_s = p_u → path_root p_u = var_vl x → p_s = p_u.
 Proof.
   elim: p_s p_u => /= [v_s|p_s IHp l] [] *;
-    simplify_eq/=; f_equal; eauto using var_stamps_to_self1.
+    simplify_eq/=; f_equal; eauto using var_stamps_to_self.
 Qed.
 
 Lemma unstamp_dms_hasnt ds ds' l g: dms_hasnt ds l → unstamp_dms g ds' = ds → dms_hasnt ds' l.

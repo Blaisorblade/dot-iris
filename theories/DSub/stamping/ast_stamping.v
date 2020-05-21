@@ -102,7 +102,7 @@ Proof.
   exists v', g'; simplify_eq; eauto.
 Qed.
 
-Lemma var_stamps_to_self1 g x v: unstamp_vl g v = var_vl x → v = var_vl x.
+Lemma var_stamps_to_self g x v: unstamp_vl g v = var_vl x → v = var_vl x.
 Proof. case: v => //= σ s. move: (g!!s) => [T|] /= Heq; simplify_eq. Qed.
 
 Lemma stamps_tm_skip n g i e e':

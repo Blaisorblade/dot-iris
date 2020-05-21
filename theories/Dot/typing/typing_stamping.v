@@ -283,7 +283,7 @@ Section syntyping_stamping_lemmas.
   Hint Extern 5 => try_once is_stamped_mono_dm : core.
   Hint Extern 5 => try_once stamps_unstamp_mono_dm : core.
 
-  Hint Resolve unstamped_stamped_type var_stamps_to_self1 path_stamps_to_self1 : core.
+  Hint Resolve unstamped_stamped_type var_stamps_to_self path_stamps_to_self : core.
   Hint Extern 998 (_ = _) => f_equal : core.
 
   Local Ltac lte g g1 g2 := have ?: g ⊆ g2 by trans g1.
