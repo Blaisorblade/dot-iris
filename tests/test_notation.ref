@@ -36,17 +36,17 @@ x0 @ "A"
 ta = λ v : tm, (v > 0)%E
      : tm → tm
 
-Argument scope is [expr_scope]
+Arguments ta _%expr_scope
 tb = λ v : tm, (v > 0)%E
      : tm → tm
 
-Argument scope is [expr_scope]
+Arguments tb _%expr_scope
 ν {@ type "A" = (σ2; 1) }
      : vl_
-ν {@ val "a" = 0;
+ν {@ val "a" = 0%Z;
   type "A" = (σ2; 1)}
      : vl_
-ν {@ val "a" = 0;
+ν {@ val "a" = 0%Z;
   type "A" = (σ2; 1)}
      : vl_
 hanyToNothing = hclose (⊤ →: ⊥)

@@ -1,4 +1,4 @@
-Notation vnil := @Vector.nil
+Notation vnil := vnil
 Expands to: Notation stdpp.vector.vnil
 Notation shift chi := (shiftN 1 chi)
 Expands to: Notation D.prelude.shift
