@@ -547,17 +547,6 @@ Proof.
   by apply Trav1.trav_dtysem with (T' := T) (ts' := (m, g)), is_stamped_idsσ.
 Qed.
 
-Lemma packTV_LB s T n Γ i :
-  g !! s = Some T →
-  is_stamped_ty n g T →
-  n <= length Γ →
-  Γ v⊢ₜ[ g ] ▶: T, i <: packTV n s @; "A", i.
-Proof.
-  intros; apply /val_LB /packTV_typed'; wtcrush; cbn.
-  eapply (is_stamped_sub_dm (dtysem _ _) (ren (+1))); trivial.
-  exact: is_stamped_dtysem.
-Qed.
-
 Lemma val_UB L U Γ i v :
   is_stamped_ty (length Γ) g L →
   is_stamped_ty (length Γ) g U →
@@ -567,17 +556,6 @@ Lemma val_UB L U Γ i v :
 Proof.
   intros ??? Hv; apply (iSel_Sub (L := L)).
   apply (path_tp_delay (i := 0)); wtcrush.
-Qed.
-
-Lemma packTV_UB s T n Γ i :
-  is_stamped_ty n g T →
-  g !! s = Some T →
-  n <= length Γ →
-  Γ v⊢ₜ[ g ] packTV n s @; "A", i <: ▶: T, i.
-Proof.
-  intros; apply /val_UB /packTV_typed'; wtcrush.
-  eapply (is_stamped_sub_dm (dtysem _ _) (ren (+1))); trivial.
-  exact: is_stamped_dtysem.
 Qed.
 
 Definition tApp Γ t s :=

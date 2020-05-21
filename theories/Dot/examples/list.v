@@ -15,13 +15,9 @@ From D.Dot.examples Require Import ex_utils scala_lib hoas.
 Import DBNotation hoasNotation.
 
 Implicit Types (L T U: hty) (Γ : list ty).
- (* (v: vl) (e: tm) (d: dm) (ds: dms) . *)
 
 Definition htrueTm (bool : hvl) := htskip (bool @: "true").
 Definition hfalseTm (bool : hvl) := htskip (bool @: "false").
-
-(* bool : boolImplT *)
-(* Let Γ' := boolImplT :: Γ. *)
 
 Lemma trueTyp Γ Γ'' : Γ'' ++ boolImplT :: Γ u⊢ₜ
   htrueTm (hx (length Γ'')) : hx (length Γ'') @; "Boolean".

@@ -229,19 +229,6 @@ Proof.
   apply (path_tp_delay (i := 0)); wtcrush.
 Qed.
 
-(* These rules from storeless typing must be encoded somehow via variables. *)
-(* Lemma packTV_LB T n Γ i :
-  is_unstamped_ty' n T →
-  n <= length Γ →
-  Γ u⊢ₜ ▶: T, i <: (pv (packTV T) @; "A"), i.
-Proof. intros; apply /val_LB /packTV_typed'. Qed. *)
-
-(* Lemma packTV_UB T n Γ i :
-  is_unstamped_ty' n T →
-  n <= length Γ →
-  Γ u⊢ₜ (pv (packTV T) @; "A"), i <: ▶: T, i.
-Proof. intros; by apply /val_UB /packTV_typed'. Qed. *)
-
 Lemma iD_Typ Γ T l:
   is_unstamped_ty' (length Γ) T →
   Γ u⊢{ l := dtysyn T } : TTMem l T T.

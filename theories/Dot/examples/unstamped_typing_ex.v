@@ -155,7 +155,7 @@ Proof. intros. apply iftCoerce_tyAppIFT_typed; tcrush. Qed.
 Definition iftNotBody t T true false :=
   iftCoerce (tyApp t "A" T) $: false $: true.
 
-(* XXX Beware that false and true are inlined here. *)
+(* Beware that false and true are inlined here. *)
 Lemma iftNotBodyTyp Γ t :
   Γ u⊢ₜ t : hIFT →
   Γ u⊢ₜ iftNotBody t hIFT hiftTrue hiftFalse : hIFT.
