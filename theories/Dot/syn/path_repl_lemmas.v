@@ -1,4 +1,8 @@
-(** * Show equivalence of path substitution and normal substitution. *)
+(** * Show correctness of functional path substitution.
+
+This is relative to both relational path substitution, and to normal
+substitution.
+*)
 From Coq.ssr Require Import ssrbool.
 From D Require Import succ_notation.
 From D.Dot Require Import syn path_repl.
@@ -84,11 +88,12 @@ Proof.
   by rewrite /unshiftsN /psubst_one_ty_gen ?iterate_S !iterate_0 => ->.
 Qed.
 
-(** This lemma shows that functional path substitution function implies
-relational path substitution (the main one we use). *)
+(**
+Prove functional path substitution correct, relative to relational path
+substitution, for unstamped terms. *)
 Lemma psubst_one_implies n T p T' :
   is_unstamped_ty' n T →
-  psubst_one_ty T p = T' → T .Tp[ p /]~ T'.
+  T .Tp[ p /] = T' → T .Tp[ p /]~ T'.
 Proof.
   move => /(psubst_one_base_unshifts p) [T''].
   rewrite /psubst_one_ty /psubst_one_ty_base => Hw <-.
@@ -123,7 +128,7 @@ Qed.
 Lemma is_unstamped_ty_subst n T p :
   is_unstamped_ty' n.+1 T →
   is_unstamped_path' n p →
-  is_unstamped_ty' n (psubst_one_ty T p).
+  is_unstamped_ty' n (T .Tp[ p /]).
 Proof.
   intros HuT Hup; have /= := (is_unstamped_ty_subst_gen (i := 0) HuT Hup).
   rewrite /psubst_one_ty /psubst_one_ty_gen -/(psubst_one_ty_base T p).
@@ -183,6 +188,7 @@ Proof.
   by rewrite hsubst_comp.
 Qed.
 
+(** Path substitution with a value agrees with normal substitution. *)
 Lemma psubst_subst_agree_ty T n v
   (Hu : is_unstamped_ty' n T) :
   T .Tp[ pv v /] = T .|[ v /].

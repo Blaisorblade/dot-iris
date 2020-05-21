@@ -1,4 +1,15 @@
-(** * Path substitution and replacement. *)
+(** * Path substitution and replacement.
+
+Path replacement replaces one occurrence of a path [p] by another path [q],
+without affecting other occurrences of [p].
+
+Path substitution replaces all occurrences of path [pv (ids 0)] by another
+path [p], and shifts
+
+We define these operations as relations (whose definition is comparatively
+clear), and then we define functions and prove them correct (here and in
+[path_repl_lemmas.v]).
+*)
 From stdpp Require Import relations.
 From D.Dot.syn Require Import syn.
 
@@ -28,8 +39,10 @@ Notation "p1 ~pp[ p := q  ]* p2" := (path_path_repl_rtc p q p1 p2) (at level 70)
 
 Reserved Notation "T1 ~Tp[ p := q  ] T2" (at level 70).
 
-(** The path replacement judgment, as defined in the pDOT paper. *)
-(*
+(** ** The path replacement judgment, as defined in the pDOT paper.
+[T1 ~Tp[ p := q ] T2] means that [T2] is obtained from [T1] by replacing
+_one_ occurrence of [p] by [q]. We also use the reflexive-transitive closure
+of this judgemnt.
 *)
 Inductive ty_path_repl (p q : path) : ty → ty → Prop :=
 | ty_path_repl_TAnd1 T1 T2 U :
@@ -82,20 +95,38 @@ Proof.
     f_equiv; exact: path_path_repl_id.
 Qed.
 
-(** Define substitution of [pv (ids 0)] by [p] in terms of the
-    transitive closure of path replacement.
-    Here it's crucial to use the transitive closure of path replacement
-    to substitute all occurrences. *)
+(**
+Define substitution of [pv (ids 0)] by [p] as a relation, in terms of the
+transitive closure of path replacement.
+Since the result of path substitution is [shift T'], it's clear that all
+occurrences of [pv (ids 0)] have been replaced. *)
 Definition path_repl_one T p T' :=
   T ~Tp[ pv (ids 0) := shift p ]* shift T'.
 Notation "T .Tp[ p /]~ T'" := (path_repl_one T p T') (at level 65).
 
+(**
+We also define path replacement as a function, and prove it correct in
+[psubst_ty_rtc_sufficient].
+*)
 Reserved Notation "r .p[ p := q  ]" (at level 65).
 Fixpoint psubst_path p q r : path := match (decide (r = p)) with
 | left _ => q
 | _ =>
   match r with
-  | pv _ => r (* XXX no, values can contain paths! OTOH, pDOT path replacement doesn't do this. *)
+  | pv _ => r
+  (* While these values can in turn contain paths, pDOT path replacement
+  doesn't substitute inside such values (because in pDOT such values cannot
+  appear in paths); lemma [psubst_path_rtc_sufficient] shows this
+  functional path replacement agrees with relational path replacement.
+
+  This operation is also used to build functional path substitution, for use
+  on unstamped types. And for unstamped types, lemma [psubst_one_implies]
+  shows this function is correct, relative to relational path substitution.
+
+  This design was chosen when values could not contain paths; now that values
+  _can_ contain paths, we could probably modify substitution to traverse
+  paths inside values.
+  *)
   | pself r' l => pself (r' .p[ p := q ]) l
   end
 end
@@ -175,6 +206,11 @@ Section decide_psubst.
   Qed.
 End decide_psubst.
 
+(**
+Finally, we can also define path substitution as a function.
+Its proofs of correctness is in [path_repl_lemmas.v], in lemmas
+[psubst_one_implies] and [psubst_subst_agree_ty].
+*)
 Definition psubst_one_path_base q p := q .p[ pv (ids 0) := shift p ].
 Definition psubst_one_path q p := unshift (psubst_one_path_base q p).
 Notation "q .pp[ p /]" := (psubst_one_path q p) (at level 65).
