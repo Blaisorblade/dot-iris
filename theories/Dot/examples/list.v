@@ -280,12 +280,12 @@ Proof.
 
   (* Here we produce a list of later nats, since we produce a list of p.A where p is the
   "type" argument and p : { A <: Nat} so p.A <: ▶: Nat. *)
-  set U := (type "A" >: ⊥ <: ▶: 𝐙)%HT.
+  set U := (type "A" >: ⊥ <: ▶: 𝐙)%HS.
   set V := (hTAnd (hlistT hx1 hx0) U).
   apply AnfBind_typed with (T := V); stcrush; first last.
   {
     eapply iT_Sub_nocoerce; first
-      eapply (iT_Mu_E' (T1 := (val "head" : ⊤ →: hx0 @; "A")%HT));
+      eapply (iT_Mu_E' (T1 := (val "head" : ⊤ →: hx0 @; "A")%HS));
       [ | done | tcrush ..].
       - varsub; asideLaters; lThis; ltcrush.
       - by apply (iSel_Sub (L := ⊥)), (path_tp_delay (i := 0)); wtcrush; varsub; ltcrush.
@@ -310,7 +310,7 @@ Proof.
   eapply iT_All_E, Hsnil.
   eapply (iT_All_E (T1 := 𝐙)); last tcrush.
   (* Perform avoidance on the type application. *)
-  eapply tyApp_typed with (T := 𝐙%HT); first done; intros; ltcrush; cbv -[Γ'].
+  eapply tyApp_typed with (T := 𝐙%HS); first done; intros; ltcrush; cbv -[Γ'].
   by eapply iSub_Sel', (path_tp_delay (i := 0)); try (typconstructor; var); wtcrush.
   by lNext.
   lNext; by eapply iSel_Sub, (path_tp_delay (i := 0)); try (typconstructor; var); wtcrush.

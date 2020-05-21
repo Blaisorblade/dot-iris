@@ -161,7 +161,7 @@ Proof.
   - tMember.
   - apply boolSing.
   - eapply iT_All_E; first var.
-    apply (iT_Sub (i := 1) (T1 := (▶: (hx3 @; "T"))%HT)); tcrush.
+    apply (iT_Sub (i := 1) (T1 := (▶: (hx3 @; "T"))%HS)); tcrush.
     varsub; ltcrush.
   - varsub.
     ettrans; first (apply iSub_Add_Later; tcrush).
