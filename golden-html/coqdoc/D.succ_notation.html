@@ -1,0 +1,68 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<link href="coqdocjs.css" rel="stylesheet" type="text/css"/>
+</head>
+
+<body onload="document.getElementById('content').focus()">
+  <div id="header">
+    <span class="left">
+      <span class="modulename"> <script> document.write(document.title) </script> </span>
+    </span>
+
+    <span class="button" id="toggle-proofs"></span>
+
+    <span class="right">
+      <a href="../">Project Page</a>
+      <a href="./indexpage.html"> Index </a>
+      <a href="./toc.html"> Table of Contents </a>
+    </span>
+</div>
+    <div id="content" tabindex="-1" onblur="document.getElementById('content').focus()">
+    <div id="main">
+<h1 class="libtitle">D.succ_notation</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+<a name="lab47"></a><h1 class="section">ssreflect postfix notation for the successor and predecessor functions.</h1>
+
+SSreflect uses "pred" for the generic predicate type, and S as a local bound
+variable.
+</div>
+<div class="code">
+<span class="id" title="keyword">Notation</span> <a name="succn"><span class="id" title="abbreviation">succn</span></a> := <a class="idref" href="http://coq.inria.fr/distrib/V8.11.1/stdlib//Coq.Init.Datatypes.html#S"><span class="id" title="constructor">Datatypes.S</span></a>.<br/>
+<span class="id" title="keyword">Notation</span> <a name="predn"><span class="id" title="abbreviation">predn</span></a> := <a class="idref" href="http://coq.inria.fr/distrib/V8.11.1/stdlib//Coq.Init.Peano.html#pred"><span class="id" title="abbreviation">Peano.pred</span></a>.<br/>
+
+<br/>
+<span class="comment">(*&nbsp;Enable&nbsp;using&nbsp;S&nbsp;in&nbsp;pattern&nbsp;matching&nbsp;by&nbsp;shadowing&nbsp;S.&nbsp;*)</span><br/>
+<span class="id" title="keyword">Definition</span> <a name="S"><span class="id" title="definition">S</span></a> := <a class="idref" href="http://coq.inria.fr/distrib/V8.11.1/stdlib//Coq.Init.Datatypes.html#S"><span class="id" title="constructor">S</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="bda89d73ec4a8f23ae92b565ffb5aaa6"><span class="id" title="notation">&quot;</span></a>n .+1" := (<a class="idref" href="D.succ_notation.html#succn"><span class="id" title="abbreviation">succn</span></a> <span class="id" title="var">n</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2, <span class="id" title="tactic">left</span> <span class="id" title="keyword">associativity</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">format</span> "n .+1") : <span class="id" title="var">nat_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> <a name="bc63483175fac06bcd5541a5e9093b18"><span class="id" title="notation">&quot;</span></a>n .+2" := <span class="id" title="var">n</span><a class="idref" href="D.succ_notation.html#bda89d73ec4a8f23ae92b565ffb5aaa6"><span class="id" title="notation">.+1.+1</span></a> (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2, <span class="id" title="tactic">left</span> <span class="id" title="keyword">associativity</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">format</span> "n .+2") : <span class="id" title="var">nat_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> <a name="331a87f8f0f3c9336601c27f1e458dc3"><span class="id" title="notation">&quot;</span></a>n .+3" := <span class="id" title="var">n</span><a class="idref" href="D.succ_notation.html#bc63483175fac06bcd5541a5e9093b18"><span class="id" title="notation">.+2</span></a><a class="idref" href="D.succ_notation.html#bda89d73ec4a8f23ae92b565ffb5aaa6"><span class="id" title="notation">.+1</span></a> (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2, <span class="id" title="tactic">left</span> <span class="id" title="keyword">associativity</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">format</span> "n .+3") : <span class="id" title="var">nat_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> <a name="854d640e6c55155f8eda90636a67ef35"><span class="id" title="notation">&quot;</span></a>n .+4" := <span class="id" title="var">n</span><a class="idref" href="D.succ_notation.html#bc63483175fac06bcd5541a5e9093b18"><span class="id" title="notation">.+2.+2</span></a> (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2, <span class="id" title="tactic">left</span> <span class="id" title="keyword">associativity</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">format</span> "n .+4") : <span class="id" title="var">nat_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="f953bf7095e0da1cb644443fd0e17d6d"><span class="id" title="notation">&quot;</span></a>n .-1" := (<a class="idref" href="D.succ_notation.html#predn"><span class="id" title="abbreviation">predn</span></a> <span class="id" title="var">n</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2, <span class="id" title="tactic">left</span> <span class="id" title="keyword">associativity</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">format</span> "n .-1") : <span class="id" title="var">nat_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> <a name="b9f3db5365f11e72cad3907646ac5a3a"><span class="id" title="notation">&quot;</span></a>n .-2" := <span class="id" title="var">n</span><a class="idref" href="D.succ_notation.html#f953bf7095e0da1cb644443fd0e17d6d"><span class="id" title="notation">.-1.-1</span></a> (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2, <span class="id" title="tactic">left</span> <span class="id" title="keyword">associativity</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">format</span> "n .-2") : <span class="id" title="var">nat_scope</span>.<br/>
+</div>
+</div>
+<div id="footer">
+  Generated by <a href="http://coq.inria.fr/">coqdoc</a> and improved with <a href="https://github.com/tebbi/coqdocjs">CoqdocJS</a>
+</div>
+</div>
+</body>
+
+</html>

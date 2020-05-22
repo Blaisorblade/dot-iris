@@ -1,0 +1,610 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<link href="coqdocjs.css" rel="stylesheet" type="text/css"/>
+</head>
+
+<body onload="document.getElementById('content').focus()">
+  <div id="header">
+    <span class="left">
+      <span class="modulename"> <script> document.write(document.title) </script> </span>
+    </span>
+
+    <span class="button" id="toggle-proofs"></span>
+
+    <span class="right">
+      <a href="../">Project Page</a>
+      <a href="./indexpage.html"> Index </a>
+      <a href="./toc.html"> Table of Contents </a>
+    </span>
+</div>
+    <div id="content" tabindex="-1" onblur="document.getElementById('content').focus()">
+    <div id="main">
+<div id="toc">
+<a href="D.pure_program_logic.weakestpre.html"><h2>D.pure_program_logic.weakestpre</h2></a>
+<ul class="doclist">
+<li><a href="D.pure_program_logic.weakestpre.html#lab1">Expression weakest preconditions.</a>
+<ul class="doclist">
+<li><a href="D.pure_program_logic.weakestpre.html#lab2">Derived rules</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="D.pure_program_logic.lifting.html"><h2>D.pure_program_logic.lifting</h2></a>
+<ul class="doclist">
+<li><a href="D.pure_program_logic.lifting.html#lab3">Lift operational semantics to expression weakest preconditions.</a>
+
+</li>
+</ul>
+<a href="D.pure_program_logic.adequacy.html"><h2>D.pure_program_logic.adequacy</h2></a>
+<ul class="doclist">
+<li><a href="D.pure_program_logic.adequacy.html#lab4">Adequacy of expression weakest preconditions, part of gDOT adequacy.</a>
+
+</li>
+</ul>
+<a href="D.iris_extra.det_reduction.html"><h2>D.iris_extra.det_reduction</h2></a>
+<ul class="doclist">
+<li><a href="D.iris_extra.det_reduction.html#lab5">Define when a language is deterministic and when an expression is safe.</a>
+<ul class="doclist">
+<li><a href="D.iris_extra.det_reduction.html#lab6"><span class="inlinecode"><span class="id" title="var">LangDet</span></span> defines when a language is deterministic.</a>
+
+</li>
+<li><a href="D.iris_extra.det_reduction.html#lab7">Safety for an arbitrary Iris language.</a>
+
+</li>
+<li><a href="D.iris_extra.det_reduction.html#lab8">For a deterministic language, we can give a simpler definition.</a>
+
+</li>
+<li><a href="D.iris_extra.det_reduction.html#lab9">For a deterministic language, <span class="inlinecode"><span class="id" title="var">safe_gen</span></span> and <span class="inlinecode"><span class="id" title="var">safe</span></span> are equivalent.</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="D.iris_extra.dlang.html"><h2>D.iris_extra.dlang</h2></a>
+<ul class="doclist">
+<li><a href="D.iris_extra.dlang.html#lab10">Instantiate Iris for D* languages.</a>
+<ul class="doclist">
+<li><a href="D.iris_extra.dlang.html#lab11">Define Iris ghost state used by gD&lt;:/gDOT proofs.</a>
+
+</li>
+<li><a href="D.iris_extra.dlang.html#lab12">Instance of <span class="inlinecode"><span class="id" title="var">irisG</span></span> enable using the expression weakest precondition; this instance.</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="D.iris_extra.gen_iheap.html"><h2>D.iris_extra.gen_iheap</h2></a>
+<a href="D.iris_extra.iris_prelude.html"><h2>D.iris_extra.iris_prelude</h2></a>
+<ul class="doclist">
+<li><a href="D.iris_extra.iris_prelude.html#lab13">Notation for functions in the Iris scope.</a>
+
+</li>
+<li><a href="D.iris_extra.iris_prelude.html#lab14">Automation for Iris program logic.</a>
+
+</li>
+<li><a href="D.iris_extra.iris_prelude.html#lab15">Setoid rewriting</a>
+<ul class="doclist">
+<li><a href="D.iris_extra.iris_prelude.html#lab16">Enable rewriting from <span class="inlinecode"><span class="id" title="var">f</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> to <span class="inlinecode"><span class="id" title="var">g</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> with <span class="inlinecode"><span class="id" title="var">f</span></span> <span class="inlinecode">≡</span> <span class="inlinecode"><span class="id" title="var">g</span></span>.</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="D.iris_extra.iris_prelude.html#lab17">Tactics for manipulating and using Proper instances.</a>
+<ul class="doclist">
+<li><a href="D.iris_extra.iris_prelude.html#lab18">Variants of <span class="inlinecode"><span class="id" title="var">solve_proper</span></span> and <span class="inlinecode"><span class="id" title="var">solve_contractive</span></span> that are more effective</a>
+
+</li>
+<li><a href="D.iris_extra.iris_prelude.html#lab19">Our best <span class="inlinecode"><span class="id" title="var">solve_proper</span></span>/<span class="inlinecode"><span class="id" title="var">solve_contractive</span></span> extension for higher-order</a>
+
+</li>
+<li><a href="D.iris_extra.iris_prelude.html#lab20">Other <span class="inlinecode"><span class="id" title="var">solve_proper</span></span>/<span class="inlinecode"><span class="id" title="var">solve_contractive</span></span> extensions for higher-order</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="D.iris_extra.lty.html"><h2>D.iris_extra.lty</h2></a>
+<ul class="doclist">
+<li><a href="D.iris_extra.lty.html#lab21">Formalize infrastructure for semantic types; not shown in the paper.</a>
+<ul class="doclist">
+<li><a href="D.iris_extra.lty.html#lab22">"Iris Persistent Predicates" <span class="inlinecode"><span class="id" title="var">iPPred</span></span>.</a>
+
+</li>
+<li><a href="D.iris_extra.lty.html#lab23">OFE on <span class="inlinecode"><span class="id" title="var">iPPred</span></span>.</a>
+
+</li>
+<li><a href="D.iris_extra.lty.html#lab24">Show iPPred forms a COFE.</a>
+
+</li>
+<li><a href="D.iris_extra.lty.html#lab25">"Logical TYpes": persistent Iris predicates over values.</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="D.iris_extra.lty.html#lab26">"Open Logical TYpes": persistent Iris predicates over environments and values.</a>
+<ul class="doclist">
+<li><a href="D.iris_extra.lty.html#lab27">Substitution over <span class="inlinecode"><span class="id" title="var">olty</span></span>.</a>
+
+</li>
+<li><a href="D.iris_extra.lty.html#lab28">Constructors for language-independent semantic types, corresponding to</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="D.iris_extra.proofmode_extra.html"><h2>D.iris_extra.proofmode_extra</h2></a>
+<a href="D.iris_extra.saved_interp_dep.html"><h2>D.iris_extra.saved_interp_dep</h2></a>
+<ul class="doclist">
+<li><a href="D.iris_extra.saved_interp_dep.html#lab30">Iris saved predicates.</a>
+
+</li>
+</ul>
+<a href="D.iris_extra.swap_later_impl.html"><h2>D.iris_extra.swap_later_impl</h2></a>
+<ul class="doclist">
+<li><a href="D.iris_extra.swap_later_impl.html#lab31">Show proof rule <span class="inlinecode"><span class="id" title="var">Impl</span>-▷</span>.</a>
+<ul class="doclist">
+<li><a href="D.iris_extra.swap_later_impl.html#lab32">Interface to Swap laws for any <span class="inlinecode"><span class="id" title="var">sbi</span></span>.</a>
+
+</li>
+<li><a href="D.iris_extra.swap_later_impl.html#lab33">Implementation of swap laws for uniform predicates.</a>
+
+</li>
+<li><a href="D.iris_extra.swap_later_impl.html#lab34"><span class="inlinecode"><span class="id" title="var">CmraSwappable</span></span> Instances.</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="D.prelude.html"><h2>D.prelude</h2></a>
+<ul class="doclist">
+<li><a href="D.prelude.html#lab40">"Prelude" with utilities available everywhere.</a>
+<ul class="doclist">
+<li><a href="D.prelude.html#lab41">Miscellaneous utilities</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="D.asubst_intf.html"><h2>D.asubst_intf</h2></a>
+<ul class="doclist">
+<li><a href="D.asubst_intf.html#lab42">Basic interfaces for D* languages (such as D&lt;:, Dot).</a>
+<ul class="doclist">
+<li><a href="D.asubst_intf.html#lab43"><span class="inlinecode"><span class="id" title="var">ValueSig</span></span> describes parameters that each D* language must implement.</a>
+
+</li>
+<li><a href="D.asubst_intf.html#lab44">This module type contains minimal infrastructure for D*-languages.</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="D.asubst_base.html"><h2>D.asubst_base</h2></a>
+<ul class="doclist">
+<li><a href="D.asubst_base.html#lab45">Substitution lemmas for languages implementing <span class="inlinecode"><span class="id" title="var">ValuesSig</span></span>.</a>
+
+</li>
+</ul>
+<a href="D.proper.html"><h2>D.proper</h2></a>
+<ul class="doclist">
+<li><a href="D.proper.html#lab46">Utilities for setoids.</a>
+
+</li>
+</ul>
+<a href="D.succ_notation.html"><h2>D.succ_notation</h2></a>
+<ul class="doclist">
+<li><a href="D.succ_notation.html#lab47">ssreflect postfix notation for the successor and predecessor functions.</a>
+
+</li>
+</ul>
+<a href="D.tactics.html"><h2>D.tactics</h2></a>
+<a href="D.Dot.syn.syn.html"><h2>D.Dot.syn.syn</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.syn.syn.html#lab48">gDOT syntax and operational semantics.</a>
+<ul class="doclist">
+<li><a href="D.Dot.syn.syn.html#lab49">DOT syntax, with corresponding on-paper syntax in comments.</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="D.Dot.syn.syn.html#lab50">Auxiliary definitions for operational semantics.</a>
+<ul class="doclist">
+<li><a href="D.Dot.syn.syn.html#lab51">Auxiliary definitions for operational semantics: primitives.</a>
+
+</li>
+<li><a href="D.Dot.syn.syn.html#lab52">Auxiliary definitions for operational semantics: object lookup.</a>
+
+</li>
+<li><a href="D.Dot.syn.syn.html#lab53">Evaluation context nodes.</a>
+
+</li>
+<li><a href="D.Dot.syn.syn.html#lab54">Head-reduction <span class="inlinecode"><span class="id" title="var">e</span></span> <span class="inlinecode">→ₕ</span> <span class="inlinecode"><span class="id" title="var">e'</span></span>.</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="D.Dot.syn.rules.html"><h2>D.Dot.syn.rules</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.syn.rules.html#lab57">Lift DOT operational semantics into rules for the Iris program logic.</a>
+
+</li>
+</ul>
+<a href="D.Dot.syn.path_repl.html"><h2>D.Dot.syn.path_repl</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.syn.path_repl.html#lab58">Path substitution and replacement.</a>
+<ul class="doclist">
+<li><a href="D.Dot.syn.path_repl.html#lab59">The path replacement judgment, as defined in the pDOT paper.</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="D.Dot.syn.path_repl_lemmas.html"><h2>D.Dot.syn.path_repl_lemmas</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.syn.path_repl_lemmas.html#lab60">Show correctness of functional path substitution.</a>
+
+</li>
+</ul>
+<a href="D.Dot.syn.syn_lemmas.html"><h2>D.Dot.syn.syn_lemmas</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.syn.syn_lemmas.html#lab61">Free-variable lemmas for DOT.</a>
+
+</li>
+</ul>
+<a href="D.Dot.syn.lr_syn_aux.html"><h2>D.Dot.syn.lr_syn_aux</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.syn.lr_syn_aux.html#lab62">Iris-free auxiliary utilities for our gDOT logical relation.</a>
+
+</li>
+</ul>
+<a href="D.Dot.syn.drop_skips.html"><h2>D.Dot.syn.drop_skips</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.syn.drop_skips.html#lab63">Show simulation between terms and skip-free terms.</a>
+
+</li>
+</ul>
+<a href="D.Dot.lr.dlang_inst.html"><h2>D.Dot.lr.dlang_inst</h2></a>
+<a href="D.Dot.lr.dot_lty.html"><h2>D.Dot.lr.dot_lty</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.lr.dot_lty.html#lab64">Semantic domains for DOT logical relations.</a>
+<ul class="doclist">
+<li><a href="D.Dot.lr.dot_lty.html#lab65">A "complete" logical type, containing all semantics of a type.</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="D.Dot.lr.dot_lty.html#lab68">Value interpretation of types (Fig. 9).</a>
+<ul class="doclist">
+<li><a href="D.Dot.lr.dot_lty.html#lab69">Binding lemmas about gDOT logical relations.</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="D.Dot.lr.later_sub_sem.html"><h2>D.Dot.lr.later_sub_sem</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.lr.later_sub_sem.html#lab70">When is a context weaker than another? Semantic version.</a>
+
+</li>
+<li><a href="D.Dot.lr.later_sub_sem.html#lab71">Basic lemmas about <span class="inlinecode"><span class="id" title="var">s_ctx_sub</span></span>.</a>
+
+</li>
+</ul>
+<a href="D.Dot.lr.path_wp.html"><h2>D.Dot.lr.path_wp</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.lr.path_wp.html#lab72">gDOT's path weakest precondition <span class="inlinecode"><span class="id" title="var">path_wp</span></span>.</a>
+
+</li>
+</ul>
+<a href="D.Dot.lr.unary_lr.html"><h2>D.Dot.lr.unary_lr</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.lr.unary_lr.html#lab73">Logical relation and semantic judgments.</a>
+<ul class="doclist">
+<li><a href="D.Dot.lr.unary_lr.html#lab74">Define fully semantic judgments. They accept arbitrary semantic types.</a>
+
+</li>
+<li><a href="D.Dot.lr.unary_lr.html#lab75">Semantic path substitution and replacement.</a>
+
+</li>
+<li><a href="D.Dot.lr.unary_lr.html#lab76">gDOT semantic types.</a>
+
+</li>
+<li><a href="D.Dot.lr.unary_lr.html#lab77">Show these typing judgments are equivalent to what we present in the paper.</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="D.Dot.lr.unary_lr.html#lab78">Theorem 5.5: adequacy/safety of semantic typing.</a>
+
+</li>
+</ul>
+<a href="D.Dot.semtyp_lemmas.examples_lr.html"><h2>D.Dot.semtyp_lemmas.examples_lr</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.semtyp_lemmas.examples_lr.html#lab79">Semantic lemmas not used by the fundamental theorem.</a>
+
+</li>
+</ul>
+<a href="D.Dot.semtyp_lemmas.binding_lr.html"><h2>D.Dot.semtyp_lemmas.binding_lr</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.semtyp_lemmas.binding_lr.html#lab80">Binding-related semantic typing lemmas.</a>
+
+</li>
+</ul>
+<a href="D.Dot.semtyp_lemmas.defs_lr.html"><h2>D.Dot.semtyp_lemmas.defs_lr</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.semtyp_lemmas.defs_lr.html#lab81">Semantic lemmas for definition typing.</a>
+<ul class="doclist">
+<li><a href="D.Dot.semtyp_lemmas.defs_lr.html#lab82">Type member introduction.</a>
+
+</li>
+<li><a href="D.Dot.semtyp_lemmas.defs_lr.html#lab83">Prove object introduction rule, using Löb induction:</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="D.Dot.semtyp_lemmas.defs_lr.html#lab84">Γ, x: ▷ T ⊨ ds : T</a>
+
+</li>
+<li><a href="D.Dot.semtyp_lemmas.defs_lr.html#lab85">---------------------</a>
+
+</li>
+<li><a href="D.Dot.semtyp_lemmas.defs_lr.html#lab86">Γ ⊨ nu x. ds : μ x. T</a>
+
+</li>
+</ul>
+<a href="D.Dot.semtyp_lemmas.sub_lr.html"><h2>D.Dot.semtyp_lemmas.sub_lr</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.semtyp_lemmas.sub_lr.html#lab87">Semantic lemmas for double-delay subtyping.</a>
+<ul class="doclist">
+<li><a href="D.Dot.semtyp_lemmas.sub_lr.html#lab88">Subtyping for type selections.</a>
+
+</li>
+<li><a href="D.Dot.semtyp_lemmas.sub_lr.html#lab89">Type members: variance of <span class="inlinecode"><span class="id" title="var">cTMem</span></span>, that is <span class="inlinecode">{<span class="id" title="var">A</span></span> <span class="inlinecode">::</span> <span class="inlinecode"><span class="id" title="var">L</span></span> <span class="inlinecode">..</span> <span class="inlinecode"><span class="id" title="var">U</span>}</span>.</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="D.Dot.semtyp_lemmas.path_repl_lr.html"><h2>D.Dot.semtyp_lemmas.path_repl_lr</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.semtyp_lemmas.path_repl_lr.html#lab90">Semantic lemmas on singleton types, path typing and path replacement.</a>
+
+</li>
+</ul>
+<a href="D.Dot.semtyp_lemmas.prims_lr.html"><h2>D.Dot.semtyp_lemmas.prims_lr</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.semtyp_lemmas.prims_lr.html#lab91">Semantic lemmas for typing of primitive expressions.</a>
+<ul class="doclist">
+<li><a href="D.Dot.semtyp_lemmas.prims_lr.html#lab92">Unary operations</a>
+
+</li>
+<li><a href="D.Dot.semtyp_lemmas.prims_lr.html#lab93">Binary operations</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="D.Dot.stamping.ast_stamping.html"><h2>D.Dot.stamping.ast_stamping</h2></a>
+<a href="D.Dot.stamping.closed_subst.html"><h2>D.Dot.stamping.closed_subst</h2></a>
+<a href="D.Dot.stamping.core_stamping_defs.html"><h2>D.Dot.stamping.core_stamping_defs</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.stamping.core_stamping_defs.html#lab94">Stamping is monotone wrt stamp table extension.</a>
+
+</li>
+</ul>
+<a href="D.Dot.stamping.skeleton.html"><h2>D.Dot.stamping.skeleton</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.stamping.skeleton.html#lab95">Define correspondence between terms which only differ in type members.</a>
+<ul class="doclist">
+<li><a href="D.Dot.stamping.skeleton.html#lab96"><span class="inlinecode"><span class="id" title="var">same_skel_tm</span></span> is a simulation.</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="D.Dot.stamping.stampedness_binding.html"><h2>D.Dot.stamping.stampedness_binding</h2></a>
+<a href="D.Dot.stamping.traversals.html"><h2>D.Dot.stamping.traversals</h2></a>
+<a href="D.Dot.stamping.type_extraction_syn.html"><h2>D.Dot.stamping.type_extraction_syn</h2></a>
+<a href="D.Dot.stamping.unstampedness_binding.html"><h2>D.Dot.stamping.unstampedness_binding</h2></a>
+<a href="D.Dot.typing.stamped_typing.html"><h2>D.Dot.typing.stamped_typing</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.typing.stamped_typing.html#lab97">Judgments defining gDOT stamped typing.</a>
+<ul class="doclist">
+<li><a href="D.Dot.typing.stamped_typing.html#lab98">Stamped version of <span class="inlinecode"><span class="id" title="var">D</span>-<span class="id" title="var">Typ</span>-<span class="id" title="var">Abs</span></span>.</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="D.Dot.typing.storeless_typing.html"><h2>D.Dot.typing.storeless_typing</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.typing.storeless_typing.html#lab99">Judgments defining gDOT storeless typing.</a>
+<ul class="doclist">
+<li><a href="D.Dot.typing.storeless_typing.html#lab100">A few derived rules, and some automation to use them in examples.</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="D.Dot.typing.typing_aux_defs.html"><h2>D.Dot.typing.typing_aux_defs</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.typing.typing_aux_defs.html#lab101">Auxiliary typing judgments and lemmas, shared between different variants of the typing judgment.</a>
+<ul class="doclist">
+<li><a href="D.Dot.typing.typing_aux_defs.html#lab102">When is a context weaker than another? While we don't give complete</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="D.Dot.typing.typing_stamping.html"><h2>D.Dot.typing.typing_stamping</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.typing.typing_stamping.html#lab103">Stamping theorem.</a>
+
+</li>
+<li><a href="D.Dot.typing.typing_stamping.html#lab104">Stamping theorem 5.3.</a>
+
+</li>
+</ul>
+<a href="D.Dot.typing.typing_stamping_regularity.html"><h2>D.Dot.typing.typing_stamping_regularity</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.typing.typing_stamping_regularity.html#lab105">Show stamped typing only relates stamped syntax.</a>
+
+</li>
+</ul>
+<a href="D.Dot.typing.unstamped_typing.html"><h2>D.Dot.typing.unstamped_typing</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.typing.unstamped_typing.html#lab106">Judgments defining gDOT unstamped typing.</a>
+<ul class="doclist">
+<li><a href="D.Dot.typing.unstamped_typing.html#lab107">Judgments for typing, subtyping, path and definition typing.</a>
+
+</li>
+<li><a href="D.Dot.typing.unstamped_typing.html#lab108">A few derived rules, and some automation to use them in examples.</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="D.Dot.typing.unstamped_typing_derived_rules.html"><h2>D.Dot.typing.unstamped_typing_derived_rules</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.typing.unstamped_typing_derived_rules.html#lab109">Manipulating laters, basics.</a>
+
+</li>
+<li><a href="D.Dot.typing.unstamped_typing_derived_rules.html#lab110">Derived constructions.</a>
+
+</li>
+<li><a href="D.Dot.typing.unstamped_typing_derived_rules.html#lab111">Manipulating laters, more.</a>
+
+</li>
+</ul>
+<a href="D.Dot.fundamental.html"><h2>D.Dot.fundamental</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.fundamental.html#lab112">Fundamental theorem and type safety for gDOT.</a>
+
+</li>
+<li><a href="D.Dot.fundamental.html#lab113">Fundamental theorem 5.4.</a>
+
+</li>
+</ul>
+<a href="D.Dot.examples.ex_iris_utils.html"><h2>D.Dot.examples.ex_iris_utils</h2></a>
+<a href="D.Dot.examples.ex_utils.html"><h2>D.Dot.examples.ex_utils</h2></a>
+<a href="D.Dot.examples.from_pdot_mutual_rec.html"><h2>D.Dot.examples.from_pdot_mutual_rec</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.examples.from_pdot_mutual_rec.html#lab114">Motivating example, syntactic version.</a>
+
+</li>
+</ul>
+<a href="D.Dot.examples.from_pdot_mutual_rec_sem.html"><h2>D.Dot.examples.from_pdot_mutual_rec_sem</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.examples.from_pdot_mutual_rec_sem.html#lab115">Motivating example, semantic version.</a>
+
+</li>
+</ul>
+<a href="D.Dot.examples.small_sem_ex.html"><h2>D.Dot.examples.small_sem_ex</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.examples.small_sem_ex.html#lab116">Exercise: Semantic typing for positive numbers (smallest example).</a>
+<ul class="doclist">
+<li><a href="D.Dot.examples.small_sem_ex.html#lab117">Example code.</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="D.Dot.examples.hoas.html"><h2>D.Dot.examples.hoas</h2></a>
+<a href="D.Dot.examples.list.html"><h2>D.Dot.examples.list</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.examples.list.html#lab118">Encoding covariant lists.</a>
+<ul class="doclist">
+<li><a href="D.Dot.examples.list.html#lab119">Interface of the list module.</a>
+
+</li>
+<li><a href="D.Dot.examples.list.html#lab121">Implementation of the list module.</a>
+
+</li>
+<li><a href="D.Dot.examples.list.html#lab122">Auxiliary types, needed in derivations of typing judgments.</a>
+
+</li>
+<li><a href="D.Dot.examples.list.html#lab123">Lemmas for proof that <span class="inlinecode"><span class="id" title="var">hlistModV</span></span> has type <span class="inlinecode"><span class="id" title="var">hlistModT</span></span>.</a>
+
+</li>
+<li><a href="D.Dot.examples.list.html#lab124">Proof that <span class="inlinecode"><span class="id" title="var">hlistModV</span></span> has type <span class="inlinecode"><span class="id" title="var">hlistModT</span></span>.</a>
+
+</li>
+<li><a href="D.Dot.examples.list.html#lab125">Link lists with booleans.</a>
+
+</li>
+<li><a href="D.Dot.examples.list.html#lab126">Link lists with booleans and with a client using the list API.</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="D.Dot.examples.no_russell_paradox.html"><h2>D.Dot.examples.no_russell_paradox</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.examples.no_russell_paradox.html#lab127">Russell's paradox does not affect guarded impredicative type members.</a>
+
+</li>
+</ul>
+<a href="D.Dot.examples.positive_div.html"><h2>D.Dot.examples.positive_div</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.examples.positive_div.html#lab128">Semantic typing for positive numbers and division.</a>
+<ul class="doclist">
+<li><a href="D.Dot.examples.positive_div.html#lab129">Example code.</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<a href="D.Dot.examples.prim_boolean_option.html"><h2>D.Dot.examples.prim_boolean_option</h2></a>
+<a href="D.Dot.examples.scala_lib.html"><h2>D.Dot.examples.scala_lib</h2></a>
+<ul class="doclist">
+<li><a href="D.Dot.examples.scala_lib.html#lab130">Infinite loops</a>
+
+</li>
+<li><a href="D.Dot.examples.scala_lib.html#lab131">Booleans, Church-encoded.</a>
+
+</li>
+</ul>
+<a href="D.Dot.examples.storeless_typing_ex.html"><h2>D.Dot.examples.storeless_typing_ex</h2></a>
+<a href="D.Dot.examples.storeless_typing_ex_utils.html"><h2>D.Dot.examples.storeless_typing_ex_utils</h2></a>
+<a href="D.Dot.examples.unstamped_typing_ex.html"><h2>D.Dot.examples.unstamped_typing_ex</h2></a>
+</div>
+</div>
+<div id="footer">
+  Generated by <a href="http://coq.inria.fr/">coqdoc</a> and improved with <a href="https://github.com/tebbi/coqdocjs">CoqdocJS</a>
+</div>
+</div>
+</body>
+
+</html>
