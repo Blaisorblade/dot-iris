@@ -17,6 +17,9 @@ We provide a tarball with:
 
 Proceed browsing with [`README.md`](README.md).
 
+The compilation time is around 5 minutes on my laptop (with `make -j4`), but
+installing dependencies takes more than that (10-30 minutes).
+
 ## Virtual machine
 
 SSH into the virtual machine per standard instructions, as user `artifact`; the
@@ -24,3 +27,8 @@ sources are in `~/dot-iris`, as a checkout of the branch `aec-artifact-cleanup`.
 
 We have already compiled them with `make html`, and saved the generated HTML as
 `golden-html`.
+
+Compilation inside the VM of `dot-iris` itself (on one CPU) took ~15minutes.
+
+To compile `dot-iris` again from scratch, run `make clean` before running
+`make`.
