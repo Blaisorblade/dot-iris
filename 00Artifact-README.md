@@ -9,7 +9,7 @@ This README is specific to our artifact submission.
 
 We provide a tarball with:
 - this source code;
-- generated HTML in `golden-html` - start browsing from
+- generated Coqdoc in `golden-html` - start browsing from
   [`golden-html/coqdoc/index.html`](golden-html/coqdoc/index.html);
 - a slightly updated version of the paper, in
   [`gdot-icfp20-artifact-eval-icfp20.pdf`](gdot-icfp20-artifact-eval-icfp20.pdf),
@@ -25,8 +25,8 @@ installing dependencies takes more than that (10-30 minutes).
 SSH into the virtual machine per standard instructions, as user `artifact`; the
 sources are in `~/dot-iris`, as a checkout of the branch `aec-artifact-cleanup`. 
 
-We have already compiled them with `make html`, and saved the generated HTML as
-`golden-html`.
+We have already compiled the sources with `make html`, and saved the generated
+Coqdoc as `golden-html`.
 
 Compilation inside the VM of `dot-iris` itself (on one CPU) took ~15minutes.
 
