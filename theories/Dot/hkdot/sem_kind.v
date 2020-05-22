@@ -28,13 +28,45 @@ subtyping on types of arity [n], indexed by environments. *)
 Notation sr_kind Σ n := (env → hoLtyO Σ n → hoLtyO Σ n → iPropO Σ).
 Notation sr_kindO Σ n := (env -d> hoLtyO Σ n -d> hoLtyO Σ n -d> iPropO Σ).
 
+Definition hoLty_equiv {Σ n} (T1 T2 : hoLtyO Σ n) : iProp Σ :=
+  ∀ args v, T1 args v ↔ T2 args v.
+
+Lemma iff_sym `{PROP : bi} (A B : PROP) :
+   (A ↔ B) -∗ (B ↔ A).
+Proof. by rewrite /bi_iff -and_comm. Qed.
+
+(* XXX Unused *)
+Lemma iff_trans `{!BiAffine PROP} (A B C : PROP)
+  `{!Persistent A, !Persistent B, !Persistent C} :
+   (A ↔ B) -∗ (B ↔ C) -∗ A ↔ C.
+Proof.
+  iIntros "H1 H2"; iSplit; iIntros "H".
+  iApply ("H2" with "(H1 H)").
+  iApply ("H1" with "(H2 H)").
+Qed.
+
+Lemma hoLty_equiv_refl {Σ n} (T : hoLtyO Σ n) :
+  ⊢ hoLty_equiv T T.
+Proof. iIntros "%args %v". by rewrite -equiv_iff. Qed.
+
+Lemma hoLty_equiv_sym {Σ n} (T1 T2 : hoLtyO Σ n) :
+  hoLty_equiv T1 T2 -∗ hoLty_equiv T2 T1.
+Proof. iIntros "H %args %v"; iApply (iff_sym with "H"). Qed.
+
+Lemma hoLty_equiv_split {Σ n} args (T1 T2 : hoLtyO Σ n) :
+  hoLty_equiv T1 T2 -∗ (T1 args ⊆ T2 args ⊆ T1 args).
+Proof. iIntros "Heq"; iSplit; iIntros "%v H"; iApply ("Heq" with "H"). Qed.
+
+
 (** * Semantic Full Kind. *)
 Record sf_kind {Σ n} := _SfKind {
   sf_kind_sub :> sr_kind Σ n;
   sf_kind_persistent ρ T1 T2 : Persistent (sf_kind_sub ρ T1 T2);
   sf_kind_sub_ne_2 ρ : NonExpansive2 (sf_kind_sub ρ);
-  sf_kind_sub_internal_proper (T1 T2 : hoLtyO Σ n) ρ:
-    (□ ∀ args v, T1 args v ↔ T2 args v) ⊢@{iPropI Σ} sf_kind_sub ρ T1 T1 ↔ sf_kind_sub ρ T2 T2;
+  sf_kind_sub_internal_proper (T1 T2 U1 U2 : hoLtyO Σ n) ρ:
+    □ hoLty_equiv T1 T2 -∗
+    □ hoLty_equiv U1 U2 -∗
+    sf_kind_sub ρ T1 U1 -∗ sf_kind_sub ρ T2 U2;
   sf_kind_sub_trans ρ T1 T2 T3 :
     sf_kind_sub ρ T1 T2 -∗
     sf_kind_sub ρ T2 T3 -∗
@@ -137,9 +169,9 @@ Lemma sf_kind_proper' {Σ n} (K : sf_kind Σ n) ρ T1 T2 :
   T1 ≡ T2 → K ρ T1 T1 ≡ K ρ T2 T2.
 Proof. intros Heq. exact: sf_kind_proper. Qed.
 
-Lemma sfkind_respects {Σ n} (K : sf_kind Σ n) ρ (T1 T2 : hoLtyO Σ n) :
-  (□ ∀ args v, T1 args v ↔ T2 args v) ⊢@{iPropI Σ} K ρ T1 T1 → K ρ T2 T2.
-Proof. rewrite (sf_kind_sub_internal_proper K T1 T2 ρ); iIntros "[$_]". Qed.
+Lemma sfkind_respects {Σ n} (K : sf_kind Σ n) ρ T1 T2 :
+  □ hoLty_equiv T1 T2 -∗ K ρ T1 T1 -∗ K ρ T2 T2.
+Proof. iIntros "#H"; iApply (sf_kind_sub_internal_proper with "H H"). Qed.
 
 Section sf_kind_subst.
   Context {Σ}.
@@ -230,24 +262,37 @@ Section utils.
   Qed.
 End utils.
 
+Lemma sr_kintv_respects_hoLty_equiv_1 {Σ T1 T2} (L U : olty Σ 0) U1 ρ :
+  □ hoLty_equiv T1 T2 -∗ sr_kintv L U ρ T1 U1 -∗ sr_kintv L U ρ T2 U1.
+Proof.
+  rewrite !(hoLty_equiv_split vnil).
+  iIntros "#(HT1 & HT2) #(HL&HM&$) !>/="; iSplit.
+  by iApply (subtype_trans with "HL HT1").
+  by iApply (subtype_trans with "HT2 HM").
+Qed.
+
+Lemma sr_kintv_respects_hoLty_equiv_2 {Σ} {U1 U2} (L U : olty Σ 0) T1 ρ :
+  □ hoLty_equiv U1 U2 -∗ sr_kintv L U ρ T1 U1 -∗ sr_kintv L U ρ T1 U2.
+Proof.
+  rewrite !(hoLty_equiv_split vnil).
+  iIntros "#(HU1 & HU2) #($&HM&HU) !>/="; iSplit.
+  by iApply (subtype_trans with "HM HU1").
+  by iApply (subtype_trans with "HU2 HU").
+Qed.
+
+(* Lemma hoLty_equiv_split0 {Σ} (T1 T2 : hoLtyO Σ 0) :
+  hoLty_equiv T1 T2 -∗ oClose T1 ⊆ oClose T2 ∗ oClose T2 ⊆ oClose T1.
+Proof. apply foo. Qed. *)
 Program Definition sf_kintv {Σ} (L U : oltyO Σ 0) : sf_kind Σ 0 :=
   SfKind (sr_kintv L U).
 Next Obligation. cbn; solve_proper_ho. Qed.
 Next Obligation.
-  intros; rewrite !sr_kintv_refl.
-  iIntros "#Heq".
-  iAssert (□ (oClose T1 ⊆ oClose T2))%I as "#HT1". by iIntros "!> % H"; iApply ("Heq" with "H").
-  iAssert (□ (oClose T2 ⊆ oClose T1))%I as "#HT2". by iIntros "!> % H"; iApply ("Heq" with "H").
-  (* by iSplit; iIntros "#(HL&HU) !> /="; iSplit; iApply subtype_trans. *)
-  iSplit; iIntros "#(HL&HU) !>/="; iSplit.
-  by iApply (subtype_trans with "HL HT1").
-  by iApply (subtype_trans with "HT2 HU").
-  by iApply (subtype_trans with "HL HT2").
-  by iApply (subtype_trans with "HT1 HU").
+  iIntros "* HT HU H"; iApply (sr_kintv_respects_hoLty_equiv_2 with "HU").
+  iApply (sr_kintv_respects_hoLty_equiv_1 with "HT H").
 Qed.
 Next Obligation.
   iIntros "* #($&HLT1&_) #(_ & HT2T3 & $)".
-  iApply (subtype_trans (oClose T2) with "HLT1 HT2T3").
+  iApply (subtype_trans with "HLT1 HT2T3").
 Qed.
 Next Obligation.
   intros; rewrite sr_kintv_refl; iIntros "/= #($ & B & C) !>".
@@ -257,6 +302,10 @@ Next Obligation.
   intros; rewrite sr_kintv_refl; iIntros "/= #(A & B & $) !>".
   iApply (subtype_trans with "A B").
 Qed.
+
+Lemma vcurry_respects_hoLty_equiv {Σ n} {T1 T2 : hoLty Σ n.+1} arg :
+  hoLty_equiv T1 T2 -∗ hoLty_equiv (vcurry T1 arg) (vcurry T2 arg).
+Proof. by iIntros "H %%". Qed.
 
 Program Definition sf_kpi {Σ n} (S : oltyO Σ 0) (K : sf_kind Σ n) :
   sf_kind Σ n.+1 := SfKind
@@ -269,10 +318,9 @@ Next Obligation.
   by apply sf_kind_sub_ne_2; apply vcurry_ne.
 Qed.
 Next Obligation.
-  iIntros "* #Heq /="; iSplit; iIntros "#HT !> %arg #HS";
-    iSpecialize ("HT" $! arg with "HS");
-    iApply (sf_kind_sub_internal_proper with "[] HT");
-    iIntros "!> *"; first iApply and_comm; iApply "Heq".
+  iIntros "* #Heq1 #Heq2 /= #HT !> %arg HS".
+  rewrite !(vcurry_respects_hoLty_equiv arg).
+  iApply (sf_kind_sub_internal_proper with "Heq1 Heq2 (HT HS)").
 Qed.
 Next Obligation.
   iIntros "* #H1 #H2 !> %arg #Harg".
@@ -521,12 +569,11 @@ Next Obligation.
   move=> Σ n K v ρ m T1 T2 HT U1 U2 HU /=. f_equiv=>?. exact: sf_kind_sub_ne_2.
 Qed.
 Next Obligation.
-  iIntros "/= * #Heq"; iSplit; iIntros "H"; iApply (path_wp_wand with "H");
-  iIntros "* HK"; iApply (sf_kind_sub_internal_proper with "Heq HK").
+  iIntros "* #Heq1 #Heq2 H". iApply (path_wp_wand with "H");
+  iIntros "* HK"; iApply (sf_kind_sub_internal_proper with "Heq1 Heq2 HK").
 Qed.
-
 Next Obligation.
-  iIntros "/= * HK1 HK2"; iDestruct (path_wp_and' with "HK1 HK2") as "HK".
+  iIntros "* HK1 HK2". iDestruct (path_wp_and' with "HK1 HK2") as "HK".
   iApply (path_wp_wand with "HK"); iIntros "* [HK1 HK2]".
   iApply (sf_kind_sub_trans with "HK1 HK2").
 Qed.

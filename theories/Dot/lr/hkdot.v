@@ -560,21 +560,24 @@ Section dot_types.
     iNext. by iRewrite "Hag".
   Qed.
 
-  Lemma sSngl_pq_KSub {Γ i p q n T1 T2} {K : sf_kind Σ n}
-    (Hrepl : T1 ~sTpP[ p := q ]* T2) :
+  Lemma sSngl_pq_KSub {Γ i p q n T1 T2} {K : sf_kind Σ n} :
+    T1 ~sTpI[ p := q ]* T2 -∗
     Γ s⊨p p : oSing q, i -∗
     Γ s⊨ T1 ∷[i] K -∗
     Γ s⊨ T1 <:[i] T2 ∷ K.
   Proof.
-    iIntros "#Hal #HK !> * #Hg".
+    iIntros "#Hrepl #Hal #HK !> * #Hg".
     iSpecialize ("Hal" with "Hg"); iSpecialize ("HK" with "Hg"); iNext i.
     iDestruct "Hal" as %Hal%alias_paths_simpl.
-    iApply (sf_kind_proper with "HK"); first done.
-    move => args v. apply symmetry, Hrepl, Hal.
+    iApply (sf_kind_sub_internal_proper with "[] [] HK").
+    iApply hoLty_equiv_refl.
+    iIntros "!> %args %v"; rewrite -internal_eq_iff.
+    iApply ("Hrepl" $! args ρ v Hal).
   Qed.
 
   (* This is the easy part :-) *)
   Lemma sSngl_pq_KSub' {Γ i p q n T1 T2} {K1 K2 : sf_kind Σ n}
+    (* XXX we should use an internal version of this premise, as done for [sSngl_pq_KSub]. *)
     (Hrepl : K1 ~sKd[ p := q ]* K2) :
     Γ s⊨p p : oSing q, i -∗
     Γ s⊨ T1 <:[i] T2 ∷ K1 -∗
@@ -885,13 +888,11 @@ Section dot_experimental_kinds.
     move=> K1 K2 ρ n T1 T2 HT U1 U2 HU /=. f_equiv; exact: sf_kind_sub_ne_2.
   Qed.
   Next Obligation.
-    iIntros "/= * #Heq"; iSplit; iIntros "H";
-    iSplitWith "H" as "H";
-    iApply (sf_kind_sub_internal_proper with "Heq H").
+    iIntros "/= * #Heq1 #Heq2 H"; iSplitWith "H" as "H";
+    iApply (sf_kind_sub_internal_proper with "Heq1 Heq2 H").
   Qed.
   Next Obligation.
-    iIntros "/= * [HK1a HK2a] [HK1b HK2b]".
-    iSplit.
+    iIntros "/= * [HK1a HK2a] [HK1b HK2b]"; iSplit.
     iApply (sf_kind_sub_trans with "HK1a HK1b").
     iApply (sf_kind_sub_trans with "HK2a HK2b").
   Qed.
@@ -903,14 +904,24 @@ Section dot_experimental_kinds.
   Qed.
 
   Definition isSing (T : lty Σ) := (□∀ v1 v2, T v1 → T v2 → ⌜ v1 = v2 ⌝)%I.
+
+  Lemma isSing_respects_hoLty_equiv {n} {T1 T2 : hoLtyO Σ n} args:
+    □ hoLty_equiv T1 T2 -∗ isSing (T1 args) -∗ isSing (T2 args).
+  Proof.
+    rewrite /isSing /=.
+    iIntros "#Heq #HS /= !> %v1 %v2 #H1 #H2".
+    iApply ("HS" with "(Heq H1) (Heq H2)").
+  Qed.
+
   (* Uh. Not actually checking subtyping, but passes requirements. [kSing] also checks requirements. *)
   Program Definition kSing' : sf_kind Σ 0 :=
     SfKind (λI ρ T1 T2, isSing (oClose T1) ∧ isSing (oClose T2)).
   Next Obligation. rewrite /isSing/=. solve_proper_ho. Qed.
+
   Next Obligation.
-    iIntros "* /= #Heq"; iSplit; iIntros "#Hsing";
-    by iSplitWith "Hsing" as "#Hsing'";
-    iIntros "!> * #Hv1 #Hv2"; iApply "Hsing"; iApply "Heq".
+    iIntros "* /= #Heq1 #Heq2 #Hsing"; iSplitWith "Hsing" as "Hsing'";
+      iApply (isSing_respects_hoLty_equiv with "[] Hsing'");
+      iIntros "!> {Hsing}"; [iApply "Heq1"|iApply "Heq2"].
   Qed.
   Next Obligation. iIntros "/= _ " (T0 T1 T2) "[$_] [_$]". Qed.
   Next Obligation. iIntros "/= _" (T1 T2) "[$ _]". Qed.
