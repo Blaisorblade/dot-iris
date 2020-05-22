@@ -1,7 +1,7 @@
 # Code size statistics
 
 Computed by running `./codesize.sh > codesize.md` on commit
-31aaaefd4704e2c628377a2d86ee99e782cd3a00.
+3117b7cbb80fdb9c79f9f98f5e021789628aaa19.
 
 ```
 theories: 1022
