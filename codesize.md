@@ -1,42 +1,33 @@
 # Code size statistics
 
 Computed by running `./codesize.sh > codesize.md` on commit
-2f420144d7f36daa84e97bf2f0c021b3a752c956.
+64bf2070edbd58c0ea8981e5728fa4a49eb123bf.
 
 ```
-theories: 1022
-theories/iris_extra: 1327
-theories/Dot: 170
-theories/Dot/stamping: 2562
-theories/Dot/misc_unused: 1434
-theories/Dot/typing: 2820
-theories/Dot/syn: 2095
-theories/Dot/examples: 4193
-theories/Dot/lr: 2647
-theories/misc_unused: 616
-theories/DSub/stamping: 1016
-theories/DSub/misc_unused: 75
-theories/DSub/typing: 137
-theories/DSub/syn: 654
-theories/DSub/lr: 219
-theories/DSubSyn: 152
-theories/DSubSyn/typing: 221
-theories/DSubSyn/lr: 521
-theories/pure_program_logic: 730
+theories: 1018
+theories/iris_extra: 1764
+theories/Dot: 176
+theories/Dot/semtyp_lemmas: 1238
+theories/Dot/stamping: 2428
+theories/Dot/typing: 2724
+theories/Dot/syn: 2141
+theories/Dot/examples: 4051
+theories/Dot/lr: 1460
+theories/pure_program_logic: 316
 
-Unused (misc_unused Dot/misc_unused DSub/misc_unused): 2125
+Unused (misc_unused Dot/misc_unused DSub/misc_unused): 0
 
-Preliminaries + DOT (. iris_extra pure_program_logic Dot Dot/stamping Dot/typing Dot/syn Dot/examples Dot/lr): 17566
+Preliminaries + DOT (. iris_extra pure_program_logic Dot Dot/semtyp_lemmas Dot/stamping Dot/typing Dot/syn Dot/examples Dot/lr): 17316
 
-Preliminaries (. iris_extra pure_program_logic): 3079
+Preliminaries (. iris_extra pure_program_logic): 3098
 
-DOT (Dot Dot/stamping Dot/typing Dot/syn Dot/examples Dot/lr): 14487
+DOT (Dot Dot/semtyp_lemmas Dot/stamping Dot/typing Dot/syn Dot/examples Dot/lr): 14218
 
-syntax (syn): 2095
-logrel (lr): 2647
-model (syntax + logrel) (syn lr): 4742
+syntax (syn): 2141
+logrel (lr semtyp_lemmas): 2698
+model (syntax + logrel) (syn lr semtyp_lemmas): 4839
 
-syntactic typing (w/ stamping & fundamental) (. typing stamping): 5552
+syntactic typing (w/ stamping & fundamental) (. typing stamping): 5328
 
-examples (examples): 4193
+examples (examples): 4051
 ```

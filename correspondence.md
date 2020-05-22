@@ -126,7 +126,9 @@ Sec. 6:
   - Unsafe motivating example (Fig. 12, Sec. 6.3): [`Dot/examples/from_pdot_mutual_rec_sem.v`](theories/Dot/examples/from_pdot_mutual_rec_sem.v).
 
 Sec. 7:
-- For the (updated) code sizes, see [`codesize.md`](codesize.md).
+- For the (updated) code sizes, see [`codesize.md`](codesize.md); the original
+  counts from paper submission time are in
+  [`codesize-icfp20-submission.md`](codesize-icfp20-submission.md).
 - Testcase [`tests/test_used_axioms.v`](tests/test_used_axioms.v) confirms that the only axiom we use is functional extensionality.
 
 ### Proofs
