@@ -102,8 +102,6 @@ Notation "▶:" := TLater : ty_scope.
 Notation "▶: T" := (TLater T) (at level 49, right associativity) : ty_scope.
 
 Notation "'∀:' T , U" := (TAll T U) (at level 48, T at level 98, U at level 98).
-(* Do not use, too many conflicts. *)
-Notation "'∀' T ',' U" := (TAll T U) (at level 49, only printing) : ty_scope.
 
 Notation "'μ' Ts " := (TMu Ts) (at level 50, Ts at next level).
 Notation "'type' l >: L <: U" := (TTMem l L U) (at level 60, l at level 50, L, U at level 70) : ty_scope.
@@ -129,13 +127,6 @@ Notation x2 := (var_vl 2).
 Notation x3 := (var_vl 3).
 Notation x4 := (var_vl 4).
 Notation x5 := (var_vl 5).
-
-Notation p0 := (pv x0).
-Notation p1 := (pv x1).
-Notation p2 := (pv x2).
-Notation p3 := (pv x3).
-Notation p4 := (pv x4).
-Notation p5 := (pv x5).
 
 Notation TUnit := (⊤%ty : ty).
 Notation tUnit := (tv (vint 0) : tm).
@@ -170,8 +161,7 @@ Hint Extern 0 (dms_hasnt _ _) => done : core.
 
 Hint Resolve Nat.lt_0_succ : core.
 
-Definition vabs' x := tv (vabs x).
-Definition lett t u := tapp (vabs' u) t.
+Definition lett t u := tapp (vabs u) t.
 
 (* Simplify substitution operations on concrete terms. *)
 Ltac simplSubst := rewrite /= /up/= /ids/ids_vl/=.

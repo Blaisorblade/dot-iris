@@ -51,19 +51,19 @@ Arguments tb _%expr_scope
      : vl_
 hanyToNothing = hclose (⊤ →: ⊥)
      : ty
-hloopDefT = (val "loop" : ⊤ →: ⊥ )%HT
+hloopDefT = (val "loop" : ⊤ →: ⊥ )%HS
      : hty
 The command has indeed failed with message:
 Found type "vl" where "hvl" was expected.
 0 : htm
      : htm
-(2 > 1)%HE
+(2 > 1)%HS
      : htm
-(1 > 2)%HE
+(1 > 2)%HS
      : htm
-(1 ≥ 2)%HE
+(1 ≥ 2)%HS
      : htm
-(1 > 0)%HE
+(1 > 0)%HS
      : htm
      = TAll TInt (TMu (TAnd (TSing DBNotation.x1) (TSing DBNotation.x0)))
      : ty

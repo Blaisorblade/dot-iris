@@ -38,21 +38,14 @@ Global Arguments hclose /.
 Definition pureS {s1} : s1 → hterm s1 := λ x _, x.
 Global Arguments pureS /.
 
-Notation htm'   := (hterm tm).
-Notation hvl'   := (hterm vl).
-Notation hdm'   := (hterm dm).
-Notation hpath' := (hterm path).
-Notation hty'   := (hterm ty).
-Notation hdms'  := (list (label * hdm')).
-
 (** We can't set up coercions across [hterm A] and [hterm B], hence add
 definitions and identity coercions via [SubClass]. *)
-SubClass htm   := htm'.
-SubClass hvl   := hvl'.
-SubClass hdm   := hdm'.
-SubClass hpath := hpath'.
-SubClass hty   := hty'.
-SubClass hdms  := hdms'.
+SubClass htm   := hterm tm.
+SubClass hvl   := hterm vl.
+SubClass hdm   := hterm dm.
+SubClass hpath := hterm path.
+SubClass hty   := hterm ty.
+SubClass hdms  := list (label * hterm dm).
 
 Coercion hclose_tm   := hclose : htm   → tm.
 Coercion hclose_vl   := hclose : hvl   → vl.
@@ -109,19 +102,21 @@ End hterm_lifting.
 
 (* Binders in our language: λ, ν, ∀, μ. *)
 
-(** We bind also to [hty'] to support well combinators like [hclose]. *)
-Declare Scope hty_scope.
-Bind Scope hty_scope with hty hty'.
-Delimit Scope hty_scope with HT.
+(** We define a scope for term and type syntax.
+
+We bind it to [hty], [htm], and also to [hterm], to get the right scopes for
+combinators like [hclose].
+
+We can only bind one scope to [hterm], and that is why we use a unique scope
+for all this syntax.
+*)
+Declare Scope hsyn_scope.
+Bind Scope hsyn_scope with hty htm hterm.
+Delimit Scope hsyn_scope with HS.
 
 Declare Scope hdms_scope.
-Bind Scope hdms_scope with hdms hdms'.
+Bind Scope hdms_scope with hdms.
 Delimit Scope hdms_scope with HD.
-
-(* [htm'] here interferes: we can only bind one scope to [hterm]. Merge them!*)
-Declare Scope hexpr_scope.
-Bind Scope hexpr_scope with htm.
-Delimit Scope hexpr_scope with HE.
 
 Instance ids_hvl : Ids hvl := λ x, (* [x]: input to the substitution. *)
   (* Resulting [vl]. *)
@@ -176,8 +171,8 @@ Definition hTInt : hty := liftA0 TInt.
 Definition hTBool : hty := liftA0 TBool.
 
 Arguments hvobj _%HD.
-Arguments hTAll _%HT _%HT.
-Arguments hTMu _%HT.
+Arguments hTAll _%HS _%HS.
+Arguments hTMu _%HS.
 
 Arguments htv /.
 Arguments htapp /.
@@ -217,20 +212,20 @@ Module Import hoasNotation.
 Export syn.
 
 (* Primitive operations. *)
-Notation "e1 + e2" := (htbin bplus e1%HE e2%HE) : hexpr_scope.
-Notation "e1 - e2" := (htbin bminus e1%HE e2%HE) : hexpr_scope.
-Notation "e1 * e2" := (htbin btimes e1%HE e2%HE) : hexpr_scope.
-Notation "e1 `div` e2" := (htbin bdiv e1%HE e2%HE) : hexpr_scope.
+Notation "e1 + e2" := (htbin bplus e1%HS e2%HS) : hsyn_scope.
+Notation "e1 - e2" := (htbin bminus e1%HS e2%HS) : hsyn_scope.
+Notation "e1 * e2" := (htbin btimes e1%HS e2%HS) : hsyn_scope.
+Notation "e1 `div` e2" := (htbin bdiv e1%HS e2%HS) : hsyn_scope.
 
-Notation "e1 ≤ e2" := (htbin ble e1%HE e2%HE) : hexpr_scope.
-Notation "e1 < e2" := (htbin blt e1%HE e2%HE) : hexpr_scope.
-Notation "e1 = e2" := (htbin beq e1%HE e2%HE) : hexpr_scope.
-Notation "e1 ≠ e2" := (htun unot (htbin beq e1%HE e2%HE)) : hexpr_scope.
+Notation "e1 ≤ e2" := (htbin ble e1%HS e2%HS) : hsyn_scope.
+Notation "e1 < e2" := (htbin blt e1%HS e2%HS) : hsyn_scope.
+Notation "e1 = e2" := (htbin beq e1%HS e2%HS) : hsyn_scope.
+Notation "e1 ≠ e2" := (htun unot (htbin beq e1%HS e2%HS)) : hsyn_scope.
 
-Notation "~ e" := (htun unot e%HE) (at level 75, right associativity) : hexpr_scope.
+Notation "~ e" := (htun unot e%HS) (at level 75, right associativity) : hsyn_scope.
 
-Notation "e1 > e2" := (e2%HE < e1%HE)%HE : hexpr_scope.
-Notation "e1 ≥ e2" := (e2%HE ≤ e1%HE)%HE : hexpr_scope.
+Notation "e1 > e2" := (e2%HS < e1%HS)%HS : hsyn_scope.
+Notation "e1 ≥ e2" := (e2%HS ≤ e1%HS)%HS : hsyn_scope.
 
 (* Notations. *)
 Open Scope hdms_scope.
@@ -243,10 +238,10 @@ Notation " {@ x ; y ; .. ; z } " :=
 
 Close Scope hdms_scope.
 
-(* Useful for writing functions whose body is in scope [%HT]. *)
-Notation "'λT' x .. y , t" := (fun x => .. (fun y => t%HT) ..)
+(* Useful for writing functions whose body is in scope [%HS]. *)
+Notation "'λT' x .. y , t" := (fun x => .. (fun y => t%HS) ..)
   (at level 200, x binder, y binder, right associativity,
-  only parsing) : hty_scope.
+  only parsing) : hsyn_scope.
 
 (* Useful for writing functions whose body is in scope [%HD]. *)
 Notation "'λD' x .. y , t" := (fun x => .. (fun y => t%HD) ..)
@@ -254,14 +249,9 @@ Notation "'λD' x .. y , t" := (fun x => .. (fun y => t%HD) ..)
   only parsing) : hdms_scope.
 
 (** Value lambda. Relies on inserting [htv] coercions in the output. *)
-Notation "'λ:' x .. y , t" := (hvabs (fun x => .. (hvabs (fun y => t%HE)) ..))
+Notation "'λ:' x .. y , t" := (hvabs (fun x => .. (hvabs (fun y => t%HS)) ..))
   (at level 200, x binder, y binder, right associativity,
   format "'[  ' '[  ' 'λ:'  x  ..  y ']' ,  '/' t ']'").
-
-(** Term lambda. Does not rely on coercions, and is more annoying. *)
-Notation "'λ::' x .. y , t" := (htv (hvabs (fun x => .. (htv (hvabs (fun y => t%HE))) ..)))
-  (at level 200, x binder, y binder, right associativity,
-  format "'[  ' '[  ' 'λ::'  x  ..  y ']' ,  '/' t ']'").
 
 Notation "'ν' ds " := (hvobj ds) (at level 60, ds at next level).
 Notation "'ν:' x , ds " := (hvobj (λD x, ds)) (at level 60, ds at next level).
@@ -277,26 +267,26 @@ Notation "'type' l '=[' T ']'" := (l, hdtysem' T) (at level 60, l at level 50, T
 (** Notation for object types. *)
 Global Instance: Top hty := hTTop.
 Global Instance: Bottom hty := hTBot.
-Open Scope hty_scope.
-Notation " {@ T1 } " := ( hTAnd T1 ⊤ ) (format "{@  T1  }"): hty_scope.
+Open Scope hsyn_scope.
+Notation " {@ T1 } " := ( hTAnd T1 ⊤ ) (format "{@  T1  }"): hsyn_scope.
 Notation " {@ T1 ; T2 ; .. ; Tn } " :=
   (hTAnd T1 (hTAnd T2 .. (hTAnd Tn ⊤)..))
-  (format "'[v' {@  '[' T1 ']'  ;  '/' T2  ;  '/' ..  ;  '/' Tn } ']'") : hty_scope.
-Close Scope hty_scope.
+  (format "'[v' {@  '[' T1 ']'  ;  '/' T2  ;  '/' ..  ;  '/' Tn } ']'") : hsyn_scope.
+Close Scope hsyn_scope.
 
-Notation "'𝐙'" := hTInt : hty_scope.
+Notation "'𝐙'" := hTInt : hsyn_scope.
 
-Notation "▶:" := hTLater : hty_scope.
-Notation "▶: T" := (hTLater T) (at level 49, right associativity) : hty_scope.
+Notation "▶:" := hTLater : hsyn_scope.
+Notation "▶: T" := (hTLater T) (at level 49, right associativity) : hsyn_scope.
 
 Notation "'∀:' x : T , U" := (hTAll T (λT x, U)) (at level 48, x, T at level 98, U at level 98).
 Notation "'μ' Ts" := (hTMu Ts) (at level 50, Ts at next level).
 Notation "'μ:' x , Ts" := (hTMu (λT x, Ts)) (at level 50, Ts at next level).
-Notation "'type' l >: L <: U" := (hTTMem l L U) (at level 60, l at level 50, L, U at level 70) : hty_scope.
+Notation "'type' l >: L <: U" := (hTTMem l L U) (at level 60, l at level 50, L, U at level 70) : hsyn_scope.
 Notation "'val' l : T" := (hTVMem l T)
-  (at level 60, l, T at level 50, format "'[' 'val'  l  :  T  ']' '/'") : hty_scope.
+  (at level 60, l, T at level 50, format "'[' 'val'  l  :  T  ']' '/'") : hsyn_scope.
 
-Notation "S →: T" := (hTAll S (λT _ , T)) (at level 49, T at level 98, right associativity) : hty_scope.
+Notation "S →: T" := (hTAll S (λT _ , T)) (at level 49, T at level 98, right associativity) : hsyn_scope.
 
 Notation "p @; l" := (hTSel p l) (at level 48).
 Notation "v @ l1 @ .. @ l2" := (hpself .. (hpself v l1) .. l2)
@@ -305,8 +295,8 @@ Notation "a @: b" := (htproj a b) (at level 59, b at next level).
 
 Infix "$:" := htapp (at level 68, left associativity).
 
-Notation tparam A := (type A >: ⊥ <: ⊤)%HT.
-Definition typeEq l T := (type l >: T <: T) %HT.
+Notation tparam A := (type A >: ⊥ <: ⊤)%HS.
+Definition typeEq l T := (type l >: T <: T) %HS.
 
 Notation hx := hvar_vl.
 
@@ -322,30 +312,18 @@ Notation hx6 := (hx 6).
 recommended. *)
 Definition hxm i : hvl := λ j, var_vl (j - i).
 
-Notation hpx n := (hpv (hx n)).
-Notation hp0 := (hpx 0).
-Notation hp1 := (hpx 1).
-Notation hp2 := (hpx 2).
-Notation hp3 := (hpx 3).
-Notation hp4 := (hpx 4).
-Notation hp5 := (hpx 5).
-Notation hp6 := (hpx 6).
-
 (** Additional syntactic sugar, in HOAS version *)
-Definition hvabs' x := htv (hvabs x).
-Arguments hvabs' /.
-
-Definition hlett t u := htapp (hvabs' u) t.
+Definition hlett t u := htapp (hvabs u) t.
 Arguments hlett /.
-Notation "hlett: x := t in: u" := (htapp (λ:: x, u) t) (at level 80).
+Notation "hlett: x := t in: u" := (htapp (λ: x, u) t) (at level 80).
 
 Definition hpackTV l T := ν: self, {@ type l = T }.
 Definition htyApp t l T :=
   hlett: x := t in:
-  hlett: a := htv (hpackTV l T) in:
-    htv x $: htv a.
+  hlett: a := hpackTV l T in:
+    x $: a.
 
-Definition hAnfBind t := hlett: x := t in: htv x.
+Definition hAnfBind t := hlett: x := t in: x.
 
 (* Notation "∀: x .. y , P" := (hTAll x, .. (hTAll y, P) ..)
   (at level 200, x binder, y binder, right associativity,

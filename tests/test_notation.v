@@ -9,7 +9,7 @@ Open Scope Z_scope.
 
 Check {@ TInt ; TInt ; TInt }%ty.
 
-(* Check (TSel (pself (pself p0 1) 2) 3). *)
+(* Check (TSel (pself (pself x0 1) 2) 3). *)
 (* Check (x0 @ 1 @ 2 ; 3). *)
 
 Check ν {@ val "a" = pv (vint 0) }.
@@ -23,11 +23,11 @@ Check ν {@ }.
 Check ν {@ val "a" = pv (vint 0) }.
 Check ν {@ val "a" = pv (vint 0) ; val "b" = pv (vint 1) }.
 
-Check (p0 @; "A").
-Check (pself (pself p0 "A") "B" @; "C").
-Check (p0 @ "A").
-Check (p0 @ "A" @ "B" @; "C").
-Check (val "symb" : p0 @ "symbols" @; "Symbol")%ty.
+Check (x0 @; "A").
+Check (pself (pself x0 "A") "B" @; "C").
+Check (x0 @ "A").
+Check (x0 @ "A" @ "B" @; "C").
+Check (val "symb" : x0 @ "symbols" @; "Symbol")%ty.
 
 Definition ta v := (0 < v)%E.
 Print ta.
@@ -62,13 +62,11 @@ Fail Definition curriedLambda' := λ: self v, htv self @: "loop" $: htv v.
 Definition curriedLambda' := λ: self w, htv self @: "loop" $: htv w.
 
 
-(* Bind Scope hexpr_scope with htm htm'. *)
-
 Check (0 : htm).
-Check (1 < 2)%HE.
-Check (1 > 2)%HE.
-Check (1 ≥ 2)%HE.
-Check (1 > 0)%HE.
+Check (1 < 2)%HS.
+Check (1 > 2)%HS.
+Check (1 ≥ 2)%HS.
+Check (1 > 0)%HS.
 
 Goal hvar_vl = λ n i, var_vl (n + i). done. Abort.
 Goal ∀ n, hvint n = liftA0 (vint n). done. Abort.
@@ -84,7 +82,7 @@ Eval cbv -[plus minus] in hTAll.
 Goal hTAll = λ T U i, (TAll (T i) (U (λ x, var_vl (x - S i)) (S i))). done. Abort.
 (* Goal hTAll = λ T U i, (∀ (T i), U (λ x, var_vl (x - S i)) (S i)). done. Abort. *)
 
-Eval cbv in hclose {@ hTInt ; hTInt ; hTInt } %HT.
+Eval cbv in hclose {@ hTInt ; hTInt ; hTInt } %HS.
 
 Definition ex := hclose $ ∀: x : hTInt, hTMu (λ y, hTAnd (hTSing (hpv x)) (hTSing (hpv y))).
 Goal ex = ex0. done. Abort.
@@ -92,7 +90,7 @@ Goal ex = ex0. done. Abort.
 Definition ex2 := hclose (λ: f, htv f).
 Eval cbv in ex2.
 Goal ex2 = vabs (tv DBNotation.x0). done. Qed.
-Definition ex3 := hclose (λ:: f x, htapp (htv f) (htv x)).
+Definition ex3 : tm := λ: f x, htapp f x.
 Eval cbv in ex3.
 Goal ex3 = tv (vabs (tv (vabs (tapp (tv DBNotation.x1) (tv DBNotation.x0))))). done. Abort.
 End hoasTests.
