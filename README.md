@@ -5,6 +5,8 @@
 Mechanization accompanying the paper "Scala Step-by-Step: Soundness for
 DOT with Step-Indexed Logical Relations in Iris".
 
+**AEC reviewers should start from [`00Artifact-README.md`](00Artifact-README.md).**
+
 The mapping between the paper and this mechanization, together with the
 layout of the codebase, is described in [`correspondence.md`](correspondence.md).
 See below for how to process sources with Coqdoc.
