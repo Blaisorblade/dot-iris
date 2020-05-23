@@ -148,9 +148,11 @@ Section path_repl.
 End path_repl.
 
 (** ** gDOT semantic types. *)
+Definition vl_sel `{!dlangG Σ} {n} vp l args v : iProp Σ :=
+  ∃ d ψ, ⌜vp @ l ↘ d⌝ ∧ d ↗n[ n ] ψ ∧ packHoLtyO ψ args v.
+
 Definition oSelN `{!dlangG Σ} n p l : oltyO Σ n :=
-  Olty (λI args ρ v, path_wp p.|[ρ]
-    (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗n[ n ] ψ ∧ ▷ □ ψ args v)).
+  Olty (λI args ρ v, path_wp p.|[ρ] (λ vp, vl_sel vp l args v)).
 Notation oSel := (oSelN 0).
 
 Section sem_types.
@@ -208,7 +210,7 @@ Section sem_types.
 
   Lemma oSel_pv {n} w l args ρ v :
     oSelN n (pv w) l args ρ v ⊣⊢
-      ∃ ψ d, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n[ n ] ψ ∧ ▷ □ ψ args v.
+      ∃ d ψ, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n[ n ] ψ ∧ ▷ □ ψ args v.
   Proof. by rewrite /= path_wp_pv_eq. Qed.
 
   (** [ V⟦ p.type ⟧]. *)
@@ -347,6 +349,28 @@ End judgment_definitions.
 Section misc_lemmas.
   Context `{HdotG: !dlangG Σ}.
   Implicit Types (τ L T U : olty Σ 0).
+
+  (** Core lemmas about type selections and bounds. *)
+  Lemma vl_sel_ub w l L U ρ v :
+    vl_sel w l vnil v -∗
+    clty_olty (cTMem l L U) vnil ρ w -∗
+    oLater U vnil ρ v.
+  Proof.
+    iIntros "Hφ"; iDestruct 1 as (d1 Hl1 φ1) "(Hdφ1 & _ & HφU)".
+    iApply "HφU".
+    iDestruct "Hφ" as (d2 φ2 Hl2) "[Hdφ2 Hφ2v]".
+    objLookupDet; iDestruct (dm_to_type_agree vnil v with "Hdφ2 Hdφ1") as "Hag".
+    iNext. by iRewrite "Hag" in "Hφ2v".
+  Qed.
+
+  Lemma vl_sel_lb w l L U ρ v :
+    oLater L vnil ρ v -∗
+    clty_olty (cTMem l L U) vnil ρ w -∗
+    vl_sel w l vnil v.
+  Proof.
+    iIntros "HL"; iDestruct 1 as (d Hl φ) "[Hdφ [HLφ _]]".
+    iExists d, φ; iFrame (Hl) "Hdφ". iApply ("HLφ" with "HL").
+  Qed.
 
   Lemma sdtp_eq (Γ : sCtx Σ) (T : clty Σ) l d:
     Γ s⊨ { l := d } : T ⊣⊢

@@ -215,8 +215,7 @@ Section div_example.
       iIntros "!>" (ρ ) "#[[_ Hw] Harg] !> /=".
       iDestruct "Hw" as %[m ->].
       setoid_rewrite path_wp_pv_eq.
-      setoid_rewrite later_intuitionistically.
-      iDestruct "Harg" as (Φ d [ds Hlook]) "[Hs1 #Harg]";
+      iDestruct "Harg" as (d Φ [ds Hlook]) "[Hs1 #Harg]";
         have {d ds Hlook}->: d = dtysem [] s by naive_solver.
       iPoseProof (sToIpos with "Hs") as "Hs2/=".
       iPoseProof (dm_to_type_agree vnil (ρ 0) with "Hs1 Hs2") as "{Hs Hs1 Hs2} Heq".

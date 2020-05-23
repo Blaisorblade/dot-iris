@@ -48,7 +48,7 @@ Section Russell.
     iIntros "Hs #HuauV".
     iPoseProof "HuauV" as "HuauV'".
     iEval (rewrite /Hs /v /uAu /= path_wp_pv_eq) in "HuauV'".
-    iDestruct "HuauV'" as (ψ d Hl) "[Hs1 Hvav]".
+    iDestruct "HuauV'" as (d ψ Hl) "[Hs1 Hvav]".
     have Hdeq: d = dtysem [] s. by move: Hl => /= [ds [[<- /=] ?]]; simplify_eq.
     iAssert (d ↗n[ 0 ] vopen (russell_p ids)) as "#Hs2". by iApply (dm_to_type_intro with "Hs").
     iPoseProof (dm_to_type_agree vnil v with "Hs1 Hs2") as "#Hag".
@@ -63,7 +63,7 @@ Section Russell.
     iIntros "#Hs"; iSplit.
     - iIntros "#HnotVAV /=".
       rewrite /uAu/=!path_wp_pv_eq.
-      iExists (vopen (russell_p ids)), (dtysem [] s).
+      iExists (dtysem [] s), (vopen (russell_p ids)).
       repeat iSplit; first by eauto.
       + by iApply (dm_to_type_intro with "Hs").
       + iIntros "!>!>!>". rewrite /uAu/= path_wp_pv_eq. iApply "HnotVAV".

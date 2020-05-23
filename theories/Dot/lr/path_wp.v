@@ -311,9 +311,14 @@ Section path_wp.
   Qed.
 
   Lemma path_wp_and' p Φ1 Φ2 `{PersistentP Φ1} `{PersistentP Φ2}:
-    path_wp p Φ1 ⊢ path_wp p Φ2 -∗
+    path_wp p Φ1 -∗ path_wp p Φ2 -∗
     path_wp p (λ v, Φ1 v ∧ Φ2 v).
   Proof. rewrite -path_wp_and; iIntros "$ $". Qed.
+
+  Lemma path_wp_agree p Φ1 Φ2 `{PersistentP Φ1} `{PersistentP Φ2}:
+    path_wp p Φ1 -∗ path_wp p Φ2 -∗
+    ∃ v, ⌜ path_wp_pure p (eq v) ⌝ ∧ Φ1 v ∧ Φ2 v.
+  Proof. rewrite -path_wp_eq. exact: path_wp_and'. Qed.
 
   Lemma path_wp_or p Φ1 Φ2 `{PersistentP Φ1} `{PersistentP Φ2}:
     path_wp p Φ1 ∨ path_wp p Φ2 ⊣⊢
