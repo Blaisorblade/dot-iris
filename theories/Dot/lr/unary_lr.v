@@ -64,7 +64,7 @@ Section judgments.
   (** Path typing *)
   Definition sptp `{!dlangG Σ} p i Γ (T : oltyO Σ 0): iProp Σ :=
     □∀ ρ, sG⟦Γ⟧* ρ →
-      ▷^i path_wp (p.|[ρ]) (oClose T ρ).
+      ▷^i path_wp p.|[ρ] (oClose T ρ).
   Global Arguments sptp /.
 End judgments.
 
@@ -79,7 +79,7 @@ Notation "Γ s⊨ds ds : T" := (sdstp ds Γ T) (at level 74, ds, T at next level
 (** Path typing *)
 Notation "Γ s⊨p p : τ , i" := (sptp p i Γ τ) (at level 74, p, τ, i at next level).
 
-(** When a definition points to type. Inlined in paper. *)
+(** When a definition points to a semantic type. Inlined in paper. *)
 Definition dm_to_type `{HdotG: !dlangG Σ} d i (ψ : hoD Σ i) : iProp Σ :=
   ∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ , i ] ψ.
 Notation "d ↗n[ i  ] ψ" := (dm_to_type d i ψ) (at level 20).
@@ -109,13 +109,13 @@ Section dm_to_type.
   Global Opaque dm_to_type.
 End dm_to_type.
 
+(** ** gDOT semantic types. *)
 Definition oSelN `{!dlangG Σ} n p l : oltyO Σ n :=
   Olty (λI args ρ v, path_wp p.|[ρ]
     (λ vp, ∃ ψ d, ⌜vp @ l ↘ d⌝ ∧ d ↗n[ n ] ψ ∧ ▷ □ ψ args v)).
 Notation oSel := (oSelN 0).
 
-(** ** gDOT-specific semantic types. *)
-Section SemTypes.
+Section sem_types.
   Context `{HdotG: !dlangG Σ}.
 
   Implicit Types (τ : oltyO Σ 0).
@@ -249,7 +249,7 @@ Section SemTypes.
   Global Instance setp_persistent : IntoPersistent' (setp e     Γ T) | 0 := _.
   Global Instance sstpi_persistent : IntoPersistent' (sstpi i j Γ T1 T2) | 0 := _.
   Global Instance sptp_persistent : IntoPersistent' (sptp p i   Γ T) | 0 := _.
-End SemTypes.
+End sem_types.
 
 Global Instance: Params (@oAll) 2 := {}.
 
@@ -277,7 +277,7 @@ Notation oInt := (oPrim tint).
 Notation oBool := (oPrim tbool).
 
 (** ** Show these typing judgments are equivalent to what we present in the paper. *)
-Section JudgDefs.
+Section judgment_definitions.
   Context `{HdotG: !dlangG Σ}.
 
   Implicit Types (T : ty) (Γ : ctx).
@@ -304,9 +304,9 @@ Section JudgDefs.
     □∀ ρ, G⟦Γ⟧ ρ →
       ▷^i path_wp (p.|[ρ]) (λ v, V⟦T⟧ vnil ρ v).
   Proof. reflexivity. Qed.
-End JudgDefs.
+End judgment_definitions.
 
-Section MiscLemmas.
+Section misc_lemmas.
   Context `{HdotG: !dlangG Σ}.
   Implicit Types (τ L T U : olty Σ 0).
 
@@ -348,7 +348,7 @@ Section MiscLemmas.
     iSpecialize ("H" $! ids with "[//]"); rewrite hsubst_id.
     iApply (path_wp_terminates with "H").
   Qed.
-End MiscLemmas.
+End misc_lemmas.
 
 (** Proper instances. *)
 Section Propers.
@@ -405,7 +405,7 @@ Section Propers.
   Global Instance: Params (@sptp) 4 := {}.
 End Propers.
 
-Section defs.
+Section liftings.
   Context `{HdotG: !dlangG Σ}.
 
   Lemma iterate_TLater_oLater i T:
@@ -433,7 +433,7 @@ Section defs.
     Γ ⊨ T, i <: U, j ⊣⊢
     Γ ⊨ iterate TLater i T, 0 <: iterate TLater j U, 0.
   Proof. by rewrite /istpi sSub_iterate_TLater_Eq. Qed.
-End defs.
+End liftings.
 
 (** Backward compatibility. *)
 Notation "⟦ T ⟧" := (oClose V⟦ T ⟧).
