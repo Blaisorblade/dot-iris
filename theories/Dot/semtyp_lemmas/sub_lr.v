@@ -58,6 +58,7 @@ Section StpLemmas.
     ⊢ Γ s⊨ T, S i <: oLater T, i.
   Proof. by iIntros "/= !> ** !>". Qed.
 
+  (** ** Subtyping for type selections. *)
   Lemma sSub_Sel {Γ L U p l i}:
     Γ s⊨p p : cTMem l L U, i -∗
     Γ s⊨ oLater L, i <: oSel p l, i.
@@ -185,6 +186,7 @@ Section StpLemmas.
     apply sAll_Sub_All.
   Qed.
 
+  (** ** Type members: variance of [cTMem], that is [{A :: L .. U}]. *)
   Lemma sTyp_Sub_Typ' {Γ L1 L2 U1 U2 i j l} `{!SwapPropI Σ} :
     Γ s⊨ oLater L2, j + i <: oLater L1, i -∗
     Γ s⊨ oLater U1, i <: oLater U2, i -∗

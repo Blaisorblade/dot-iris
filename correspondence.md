@@ -156,6 +156,10 @@ Sec. 5:
     is defined in [`Dot/lr/lty.v`](theories/Dot/lr/lty.v) and [`Dot/lr/dot_lty.v`](theories/Dot/lr/dot_lty.v).
   - The logical relation `V⟦ T ⟧` and semantic judgments `Γ ⊨ ...` are completed
     in [`Dot/unary_lr.v`](theories/Dot/unary_lr.v), including adequacy (Thm. 5.5).
+- Actual semantic typing lemmas appear in [`Dot/semtyp_lemmas`](theories/Dot/semtyp_lemmas/).
+  The most interesting ones are:
+  - `sT_Obj_I` (for object construction, using Löb induction);
+  - `sD_Typ_Abs`,  `sSub_Sel`, `sSel_Sub`, `sTyp_Sub_Typ` (about type members).
 - The fundamental theorem (Thm. 5.4) is proven in [`Dot/fundamental.v`](theories/Dot/fundamental.v).
 
 ## Typing lemma naming conventions
@@ -232,13 +236,14 @@ Inside the [`Dot`](theories/Dot) folder:
 * [`semtyp_lemmas`](theories/Dot/semtyp_lemmas): semantic typing lemmas:
   - [`binding_lr.v`](theories/Dot/semtyp_lemmas/binding_lr.v): misc typing lemmas,
     requiring additional Coq-level dependencies such as lemmas about binding or operational semantics.
-  - [`defs_lr.v`](theories/Dot/semtyp_lemmas/defs_lr.v): DEFinitionS;
-  - [`no_binding_lr.v`](theories/Dot/semtyp_lemmas/no_binding_lr.v): various
-    typing lemmas, not requiring additional dependencies.
-  - [`path_repl_lr.v`](theories/Dot/semtyp_lemmas/path_repl_lr.v):
-    PATH REPLacement and pDOT-specific lemmas;
-  - [`prims_lr.v`](theories/Dot/semtyp_lemmas/prims_lr.v): PRIMitiveS;
-  - [`tsel_lr.v`](theories/Dot/semtyp_lemmas/tsel_lr.v): Type SELections;
+  - [`defs_lr.v`](theories/Dot/semtyp_lemmas/defs_lr.v): definition typing;
+  - [`sub_lr.v`](theories/Dot/semtyp_lemmas/sub_lr.v): subtyping;
+  - [`path_repl_lr.v`](theories/Dot/semtyp_lemmas/path_repl_lr.v): lemmas about
+    path replacement and path typing;
+  - [`prims_lr.v`](theories/Dot/semtyp_lemmas/prims_lr.v): typing lemmas about
+    primitive operations;
+  - [`examples_lr.v`](theories/Dot/semtyp_lemmas/examples_lr.v): other lemmas,
+    only needed for examples
 * [`stamping`](theories/Dot/stamping): definitions and lemmas about stamping.
 * [`typing`](theories/Dot/typing): syntactic typing and auxiliary lemmas about it
   - [`typing_stamping.v`](theories/Dot/typing_stamping.v): prove stamping of typing derivations.
