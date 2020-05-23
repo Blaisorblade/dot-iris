@@ -20,6 +20,13 @@ Set Default Proof Using "Type*".
 Section Lemmas.
   Context `{HdotG: !dlangG Σ}.
 
+  Lemma sP_Sub' {Γ} p T1 T2 i:
+    Γ s⊨p p : T1, i -∗
+    Γ s⊨ T1, i <: T2, i -∗
+    (*───────────────────────────────*)
+    Γ s⊨p p : T2, i.
+  Proof. have := !!(@sP_Sub _ _ Γ p T1 T2 i 0). by rewrite (plusnO i). Qed.
+
   (** For https://github.com/lampepfl/dotty/blob/85962b19ddf4f1909189bf07b40f9a05849f9bbf/compiler/src/dotty/tools/dotc/core/TypeComparer.scala#L553. *)
   Lemma singleton_Mu_dotty_approx_0 {Γ p i T1 T2} :
     iterate TLater i (TAnd T1 (TSing (shift p))) :: Γ ⊨ T1, i <: T2, i -∗
@@ -186,11 +193,13 @@ Section Lemmas.
     iApply sSub_Trans; [iApply IHj|iApply sLater_Sub].
   Qed.
 
-  Lemma sT_Var0 {Γ T}
-    (Hx : Γ !! 0 = Some T):
-    (*──────────────────────*)
-    ⊢ Γ s⊨ tv (ids 0) : T.
-  Proof. rewrite -(hsubst_id T). apply (sT_Var Hx). Qed.
+  Lemma sP_Later {Γ} p T i :
+    Γ s⊨p p : oLater T, i -∗
+    Γ s⊨p p : T, S i.
+  Proof.
+    rewrite (sP_Sub (j := 1) (T1 := oLater T) (T2 := T)) !(plus_comm i 1).
+    iIntros "Hsub"; iApply "Hsub"; iApply sLater_Sub.
+  Qed.
 
   Lemma sP_LaterN {Γ i j} p T :
     Γ s⊨p p : oLaterN j T, i -∗
@@ -199,4 +208,10 @@ Section Lemmas.
     rewrite comm; elim: j i => [//|j IHj] i; rewrite plus_Snm_nSm.
     by rewrite -(IHj (S i)) -sP_Later.
   Qed.
+
+  Lemma sT_Var0 {Γ T}
+    (Hx : Γ !! 0 = Some T):
+    (*──────────────────────*)
+    ⊢ Γ s⊨ tv (ids 0) : T.
+  Proof. rewrite -(hsubst_id T). apply (sT_Var Hx). Qed.
 End Lemmas.
