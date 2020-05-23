@@ -110,7 +110,7 @@ Section wp_extra.
     iApply wp_value'; by iSplit.
   Qed.
 
-  (* Doesn't generalize to standard WP, but needed for pDOT. *)
+  (* Doesn't generalize to standard WP, but needed for DOT. *)
   Lemma wp_and `{!LangDet Λ} (P1 P2: val Λ → iProp Σ) e:
     WP e {{ P1 }} -∗ WP e {{ P2 }} -∗ WP e {{ v, P1 v ∧ P2 v }}.
   Proof.
