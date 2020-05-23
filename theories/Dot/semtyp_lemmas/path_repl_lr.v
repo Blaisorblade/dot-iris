@@ -22,7 +22,7 @@ Section semantic_lemmas.
     Γ s⊨p p : oSing p, i.
   Proof.
     iIntros "#Hep !> %ρ Hg". iSpecialize ("Hep" with "Hg"). iNext.
-    iApply (strong_path_wp_wand with "[] Hep"); iIntros (v Hpv) "!> _ !%".
+    iApply (strong_path_wp_wand with "[] Hep"); iIntros (v Hpv) "_ !%".
     apply alias_paths_pv_eq_1, Hpv.
   Qed.
 
@@ -98,7 +98,7 @@ Section semantic_lemmas.
     Γ s⊨p p : oMu T, i -∗ Γ s⊨p p : T .sTp[ p /], i.
   Proof.
     iIntros "#Hp !> %ρ Hg /=".
-    iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "!> **".
+    iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "**".
     by rewrite oMu_eq sem_psubst_one_repl ?alias_paths_pv_eq_1.
   Qed.
 
@@ -107,11 +107,11 @@ Section semantic_lemmas.
   Proof.
     (* Proof from scratch *)
     (* iIntros "#Hp !> %ρ Hg /=".
-    iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "!> **".
+    iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "**".
     by rewrite oMu_eq -(psubst_one_repl Hrepl ) ?alias_paths_pv_eq_1. *)
     (* Even if we reuse sP_Mu_E, we must prove that [p] terminates. *)
     rewrite /iptp sP_Mu_E; iIntros "#Hp !> %ρ Hg /=".
-    iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "!> **".
+    iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "**".
     by rewrite (sem_psubst_one_eq Hrepl) ?alias_paths_pv_eq_1.
   Qed.
 
@@ -119,7 +119,7 @@ Section semantic_lemmas.
     Γ s⊨p p : T .sTp[ p /], i -∗ Γ s⊨p p : oMu T, i.
   Proof.
     iIntros "#Hp !> %ρ Hg /=".
-    iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "!> **".
+    iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "**".
     by rewrite oMu_eq sem_psubst_one_repl ?alias_paths_pv_eq_1.
   Qed.
 
@@ -127,7 +127,7 @@ Section semantic_lemmas.
     Γ ⊨p p : T', i -∗ Γ ⊨p p : TMu T, i.
   Proof.
     rewrite /iptp -sP_Mu_I; iIntros "#Hp !> %ρ Hg /=".
-    iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "!> **".
+    iApply (strong_path_wp_wand with "[] (Hp Hg)"); iIntros "**".
     by rewrite (sem_psubst_one_eq Hrepl) ?alias_paths_pv_eq_1.
   Qed.
 
@@ -183,7 +183,7 @@ Section semantic_lemmas.
   Proof.
     iIntros "#HE /= !> %ρ Hg"; iSpecialize ("HE" with "Hg"); iNext i.
     rewrite path_wp_pself_eq; iDestruct "HE" as (v q Hlook) "[Hpv #Htw]".
-    iApply (path_wp_wand with "Hpv"). iIntros "/= !> % <-"; eauto.
+    iApply (path_wp_wand with "Hpv"). iIntros "/= % <-"; eauto.
   Qed.
 
   Lemma P_Fld_I Γ p T l i: Γ ⊨p pself p l : T, i -∗ Γ ⊨p p : TVMem l T, i.

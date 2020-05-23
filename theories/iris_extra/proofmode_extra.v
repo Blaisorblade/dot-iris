@@ -4,6 +4,19 @@ Import bi.
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
+Tactic Notation "iSplitWith" constr(H) "as" constr(H') :=
+  iApply (bi.and_parallel with H); iSplit; iIntros H'.
+
+Lemma and_pure_equiv {PROP : bi} P Q1 Q2 :
+  ⌜ P ⌝ ∧ Q1 ⊣⊢@{PROP} ⌜ P ⌝ ∧ Q2 ↔ (P → Q1 ≡ Q2).
+Proof.
+  split => Heq; first move=> Hp.
+  - iDestruct Heq as "Heq";
+    iSplitWith "Heq" as "Hwand"; iIntros "H";
+    iDestruct ("Hwand" with "[$H //]") as "[_ $]".
+  - by iSplit; iDestruct 1 as (HP) "H"; iFrame (HP); rewrite (Heq HP).
+Qed.
+
 Lemma forall_swap_impl `{BiAffine PROP} {A} (P : PROP) `{!Persistent P} (Ψ : A → PROP) :
   (P → ∀ a, Ψ a) ⊣⊢ ∀ a, P → Ψ a.
 Proof.

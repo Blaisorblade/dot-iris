@@ -64,7 +64,7 @@ Section StpLemmas.
     Γ s⊨ oLater L, i <: oSel p l, i.
   Proof.
     iIntros "/= #Hp !> %ρ %v Hg #HL"; iSpecialize ("Hp" with "Hg"); iNext i.
-    iApply (path_wp_wand with "Hp"); iIntros "!>" (w).
+    iApply (path_wp_wand with "Hp"); iIntros (w).
     iApply (vl_sel_lb with "HL").
   Qed.
 

@@ -58,7 +58,7 @@ Section Sec.
   Proof.
     rewrite !sdtp_eq; iIntros "#Hsub #Hv !>" (ρ Hpid) "#Hg".
     iSpecialize ("Hv" $! ρ Hpid with "Hg"); rewrite !cVMem_dpt_eq.
-    iApply (path_wp_wand with "Hv"); iIntros "!> **".
+    iApply (path_wp_wand with "Hv"); iIntros "**".
     by iApply ("Hsub" with "Hg").
   Qed.
 
