@@ -2,7 +2,7 @@
 From D Require Export iris_prelude proper lty lr_syn_aux.
 From D Require Import iris_extra.det_reduction.
 From D Require Import swap_later_impl.
-From D.Dot Require Import syn.
+From D.Dot Require Import syn path_repl.
 From D.Dot Require Export dlang_inst path_wp.
 From D.pure_program_logic Require Import weakestpre.
 
@@ -108,6 +108,44 @@ Section dm_to_type.
 
   Global Opaque dm_to_type.
 End dm_to_type.
+
+(** ** Semantic path substitution and replacement. *)
+
+(** Semantic substitution of path in type. *)
+Definition opSubst {Σ n} p (T : oltyO Σ n) : oltyO Σ n :=
+  Olty (λI args ρ v, path_wp p.|[ρ] (λ w, T args (w .: ρ) v)).
+Notation "T .sTp[ p /]" := (opSubst p T) (at level 65).
+
+(** Semantic definition of path replacement. *)
+Definition sem_ty_path_replI {Σ n} p q (T1 T2 : olty Σ n) : iProp Σ :=
+  □∀ args ρ v (H : alias_paths p.|[ρ] q.|[ρ]), T1 args ρ v ≡ T2 args ρ v.
+Notation "T1 ~sTpI[ p := q  ]* T2" :=
+  (sem_ty_path_replI p q T1 T2) (at level 70).
+
+(** Semantic definition of path replacement: alternative, weaker version.
+Unlike [sem_ty_path_replI], this version in [Prop] is less expressive, but
+sufficient for our goals and faster to use in certain proofs. *)
+Definition sem_ty_path_repl {Σ n} p q (T1 T2 : olty Σ n) : Prop :=
+  ∀ args ρ v, alias_paths p.|[ρ] q.|[ρ] → T1 args ρ v ≡ T2 args ρ v.
+Notation "T1 ~sTpP[ p := q  ]* T2" :=
+  (sem_ty_path_repl p q T1 T2) (at level 70).
+
+Section path_repl.
+  Context `{!dlangG Σ}.
+
+  Lemma opSubst_pv_eq {n} v (T : oltyO Σ n) : T .sTp[ pv v /] ≡ T.|[v/].
+  Proof. move=> args ρ w /=. by rewrite path_wp_pv_eq subst_swap_base. Qed.
+
+  Lemma sem_psubst_one_repl {n} {T : olty Σ n} {args p v w ρ}:
+    alias_paths p.|[ρ] (pv v) →
+    T .sTp[ p /] args ρ w ≡ T args (v .: ρ) w.
+  Proof. move=> /alias_paths_elim_eq /= ->. by rewrite path_wp_pv_eq. Qed.
+
+  Lemma sem_ty_path_repl_eq {n} {p q} {T1 T2 : olty Σ n} :
+    T1 ~sTpP[ p := q ]* T2 → ⊢ T1 ~sTpI[ p := q ]* T2.
+  Proof. iIntros "%Heq !%". apply: Heq. Qed.
+  (* The reverse does not hold. *)
+End path_repl.
 
 (** ** gDOT semantic types. *)
 Definition oSelN `{!dlangG Σ} n p l : oltyO Σ n :=
@@ -349,6 +387,58 @@ Section misc_lemmas.
     iApply (path_wp_terminates with "H").
   Qed.
 End misc_lemmas.
+
+Section path_repl_lemmas.
+  Context `{!dlangG Σ}.
+
+  Lemma fundamental_ty_path_repl {p q T1 T2}
+    (Hrew : T1 ~Tp[ p := q ] T2) :
+    V⟦ T1 ⟧ ~sTpP[ p := q ]* V⟦ T2 ⟧.
+  Proof.
+    rewrite /sem_ty_path_repl; induction Hrew => args ρ v He /=;
+      rewrite /subtype_lty/=; properness;
+      try by [ exact: path_replacement_equiv | exact: rewrite_path_path_repl
+         | apply IHHrew; rewrite ?hsubst_comp | | f_equiv => ?; exact: IHHrew].
+  Qed.
+
+  Lemma fundamental_ty_path_repl_rtc {p q T1 T2}
+    (Hrew : T1 ~Tp[ p := q ]* T2) :
+    V⟦ T1 ⟧ ~sTpP[ p := q ]* V⟦ T2 ⟧.
+  Proof.
+    move=> args ρ v Hal. elim: Hrew => [//|T {}T1 {}T2 Hr _ <-].
+    apply (fundamental_ty_path_repl Hr), Hal.
+  Qed.
+
+  Lemma rewrite_ty_path_repl_rtc {p q T1 T2 args ρ}
+    (Hrepl : T1 ~Tp[ p := q ]* T2)
+    (Hal : alias_paths p.|[ρ] q.|[ρ]): (* p : q.type *)
+    V⟦ T1 ⟧ args ρ ≡ V⟦ T2 ⟧ args ρ.
+  Proof. intros v. apply: (fundamental_ty_path_repl_rtc Hrepl) Hal. Qed.
+
+  Lemma sem_psubst_one_eq {T T' args p v ρ}
+    (Hrepl : T .Tp[ p /]~ T')
+    (Hal : alias_paths p.|[ρ] (pv v)) :
+    V⟦ T' ⟧ args ρ ≡ (V⟦ T ⟧) .sTp[ p /] args ρ.
+  Proof.
+    rewrite -(interp_weaken_one T' (v .: ρ)) => w.
+    rewrite -(rewrite_ty_path_repl_rtc Hrepl) /=.
+    by rewrite (alias_paths_elim_eq _ Hal) path_wp_pv_eq.
+    by rewrite hsubst_comp ren_scons /= alias_paths_symm.
+  Qed.
+
+  Lemma psubst_one_repl {T T' args p v w ρ}
+    (Hr : T .Tp[ p /]~ T') (Hal : alias_paths p.|[ρ] (pv v)) :
+    V⟦ T ⟧ args (v .: ρ) w ≡ V⟦ T' ⟧ args ρ w.
+  Proof. by rewrite (sem_psubst_one_eq Hr Hal) (sem_psubst_one_repl Hal). Qed.
+
+  Lemma singleton_aliasing Γ p q ρ i :
+    Γ s⊨p p : oSing q, i -∗
+    sG⟦ Γ ⟧* ρ -∗ ▷^i alias_pathsI p.|[ρ] q.|[ρ].
+  Proof.
+    iIntros "#Hep Hg". iSpecialize ("Hep" with "Hg"); iNext i.
+    iRevert "Hep"; iIntros "!% %Hep". exact /alias_paths_simpl.
+  Qed.
+End path_repl_lemmas.
 
 (** Proper instances. *)
 Section Propers.
