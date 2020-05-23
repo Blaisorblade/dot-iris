@@ -2,7 +2,7 @@
 From D Require Import swap_later_impl.
 (* For fundamental theorem. *)
 From D.Dot Require Export unary_lr later_sub_sem
-  binding_lr tdefs_lr defs_lr prims_lr path_repl_lr sub_lr.
+  binding_lr defs_lr prims_lr path_repl_lr sub_lr.
 From D.Dot Require Import storeless_typing.
 (* For unstamped safety. *)
 From D.Dot Require Import unstamped_typing type_extraction_syn ast_stamping typing_stamping skeleton.

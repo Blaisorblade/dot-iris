@@ -238,7 +238,6 @@ Inside the [`Dot`](theories/Dot) folder:
   - [`path_repl_lr.v`](theories/Dot/semtyp_lemmas/path_repl_lr.v):
     PATH REPLacement and pDOT-specific lemmas;
   - [`prims_lr.v`](theories/Dot/semtyp_lemmas/prims_lr.v): PRIMitiveS;
-  - [`tdefs_lr.v`](theories/Dot/semtyp_lemmas/defs_lr.v): Type DEFinitionS;
   - [`tsel_lr.v`](theories/Dot/semtyp_lemmas/tsel_lr.v): Type SELections;
 * [`stamping`](theories/Dot/stamping): definitions and lemmas about stamping.
 * [`typing`](theories/Dot/typing): syntactic typing and auxiliary lemmas about it
