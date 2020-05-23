@@ -31,7 +31,7 @@ Section examplesBodies.
 End examplesBodies.
 
 Section small_ex.
-  Context `{HdlangG: !dlangG Σ} `{SwapPropI Σ}.
+  Context `{HdlangG: !dlangG Σ}.
   Context (s: stamp).
 
   Notation Hs := (s_is_pos s).
@@ -42,14 +42,14 @@ Section small_ex.
   Lemma vHasA0typ: Hs -∗ [] ⊨ miniV : type "A" >: ⊥ <: 𝐙.
   Proof.
     iIntros "#Hs".
-    iApply (T_Sub (i := 0) (T1 := μ {@ type "A" >: ⊥ <: 𝐙})).
-    iApply T_Obj_I.
-    iApply D_Cons; [done| by iApply sHasA'|].
-    iSplit; [iIntros "!%"|iIntros "!> ** //"]; first naive_solver.
-    iApply Sub_Trans.
-    iApply (Mu_Sub {@ type "A" >: ⊥ <: 𝐙}).
-    iApply sAnd1_Sub.
+    iApply (T_Sub (i := 0) (T1 := μ {@ type "A" >: ⊥ <: 𝐙})); first last. {
+      iApply Sub_Trans; first iApply (Mu_Sub {@ type "A" >: ⊥ <: 𝐙}).
+      iApply sAnd1_Sub.
+    }
+    iApply T_Obj_I; iApply D_Cons; [done|iApply (sD_posDm_abs with "Hs")|].
+    by iSplit; [iIntros "!%"|iIntros "!> ** //"]; first naive_solver.
   Qed.
+
   (* This works. Crucially, we use T_Mu_I to introduce the object type.
      This way, we can inline the object in the type selection.
      This cannot be done using T_Obj_I directly.
@@ -112,26 +112,23 @@ Section small_ex.
     iApply (sT_Sub (i := 0) (T1 := sminiVT2Concr)); first last.
     - iApply sMu_Sub_Mu; rewrite /sminiVT2ConcrBody oLaterN_0.
       iApply sSub_And; last iApply sSub_And; last iApply sSub_Top.
-    + iApply sSub_Trans; first iApply sAnd1_Sub.
-      iApply sTyp_Sub_Typ; [iApply sBot_Sub | iApply Sub_later_ipos_nat].
-    + iApply sSub_Trans; first iApply sAnd2_Sub.
-      iApply sAnd1_Sub.
+      + iApply sSub_Trans; [iApply sAnd1_Sub|iApply posTMem_widen].
+      + iApply sSub_Trans; first iApply sAnd2_Sub.
+        iApply sAnd1_Sub.
     - rewrite /miniV /hminiV /sminiVT2Concr /sminiVT2ConcrBody.
       iApply sT_Obj_I.
-      iApply sD_Cons; first done.
-      iApply (sD_Typ_Abs ipos); [iApply sSub_Refl..|by iExists _; iFrame "Hs"].
-      iApply sD_Cons; [done| |iApply sD_Nil].
+      iApply sD_Cons; [done| by iApply (sD_posDm_ipos with "Hs") | ].
+      iApply sD_Cons; [done| | by iApply sD_Nil].
       iApply sD_Val.
       iApply (sT_Sub (i := 0) (T1 := ipos)).
-      rewrite setp_value /ipos /pos; iIntros "!> %ρ _ /= !%". naive_solver.
+      by rewrite setp_value /ipos /pos; iIntros "!> %ρ _ /= !%"; naive_solver.
       iApply sSub_Trans; first iApply sSub_Add_Later.
       iApply sSub_Trans; first iApply sSub_Add_Later.
       iApply sSub_Later_Sub.
       iApply sSub_Sel.
       iApply sP_Later.
       iApply sP_Val.
-      iApply (sT_Sub (i := 0)).
-      by iApply sT_Var0.
+      iApply (sT_Sub (i := 0)); first by iApply sT_Var0.
       iApply sSub_Later_Sub.
       iApply sAnd1_Sub.
   Qed.

@@ -136,41 +136,59 @@ Section div_example.
 
   (** We assume [Hs] throughout the rest of the section. *)
 
-  Lemma sToIpos : Hs -∗ dtysem [] s ↗n[ 0 ] hoEnvD_inst [] ipos.
+  Definition posDm := dtysem [] s.
+  Definition testVl l : vl := ν {@ (l, posDm) }.
+
+  Lemma sToIpos : Hs -∗ posDm ↗n[ 0 ] hoEnvD_inst [] ipos.
   Proof. by iApply dm_to_type_intro. Qed.
 
+
   Lemma Sub_ipos_nat Γ : ⊢ Γ s⊨ ipos, 0 <: V⟦ 𝐙 ⟧, 0.
-  Proof.
-    rewrite /ipos /pos /= /pure_interp_prim /prim_evals_to /=.
-    iIntros "!>" (ρ w) "_ % !%"; naive_solver.
-  Qed.
+  Proof. iIntros "!> * _ !%"; rewrite /pos /pure_interp_prim; naive_solver. Qed.
 
   Lemma Sub_later_ipos_nat Γ : ⊢ Γ s⊨ oLater ipos, 0 <: oLater V⟦ 𝐙 ⟧, 0.
   Proof. rewrite -sSub_Later_Sub -sSub_Index_Incr. apply Sub_ipos_nat. Qed.
 
-  Lemma sHasA' l Γ : Hs -∗ Γ s⊨ { l := dtysem [] s } : C⟦ type l >: ⊥ <: 𝐙 ⟧.
-  Proof.
-    iIntros "Hs".
-    iApply (sD_Typ_Abs ipos); [iApply sBot_Sub| |by iExists _; iFrame "Hs"].
-    iApply Sub_later_ipos_nat.
+  Lemma posTMem_widen Γ l : ⊢ Γ s⊨ cTMem l ipos ipos, 0 <: cTMem l ⊥ oInt, 0.
+  Proof using Type*.
+    iApply sTyp_Sub_Typ; [iApply sBot_Sub | iApply Sub_later_ipos_nat].
   Qed.
 
-  Definition testDm := dtysem [] s.
-  Definition testVl l : vl := ν {@ (l, testDm) }.
 
-  Lemma sInTestVl l ρ :
-    path_includes (pv x0) (testVl l .: ρ) [(l, testDm)].
+  Lemma sD_posDm_ipos l Γ : Hs -∗ Γ s⊨ { l := posDm } : cTMem l ipos ipos.
+  Proof.
+    iIntros "Hs".
+    iApply (sD_Typ_Abs ipos); [iApply sSub_Refl..|by iExists _; iFrame "Hs"].
+  Qed.
+
+  Lemma sD_posDm_abs l Γ : Hs -∗ Γ s⊨ { l := posDm } : cTMem l ⊥ oInt.
+  Proof.
+    iIntros "Hs"; iApply sD_Typ_Sub;
+      [iApply sBot_Sub|iApply Sub_later_ipos_nat|iApply (sD_posDm_ipos with "Hs")].
+  Qed.
+
+  Lemma sInTestVl l ρ : path_includes (pv x0) (testVl l .: ρ) [(l, posDm)].
   Proof. constructor; naive_solver. Qed.
 
-  Lemma sHasA l : Hs -∗ Ds⟦ type l >: ⊥ <: 𝐙 ⟧ ids [(l, testDm)].
+  Lemma s_posDm l : Hs -∗ cTMem l ipos ipos ids [(l, posDm)].
   Proof.
-    rewrite (sHasA' l []) sdtp_eq; iIntros "H".
+    rewrite (sD_posDm_ipos l []) sdtp_eq; iIntros "H".
     iApply ("H" $! (testVl l .: ids) with "[] [//]"); auto using sInTestVl.
   Qed.
 
-  Lemma posModVHasATy: Hs -∗ [] ⊨ posModV : type "Pos" >: ⊥ <: TInt.
+  Lemma posModVHasA ρ :
+    Hs -∗ clty_olty (cTMem "Pos" ipos ipos) vnil ρ posModV.[ρ].
+  Proof. by rewrite (s_posDm "Pos") -clty_commute. Qed.
+
+  Lemma posModVHasATy: Hs -∗ [] s⊨ posModV : cTMem "Pos" ipos ipos.
   Proof.
-    rewrite -ietp_value; iIntros "**". by rewrite (sHasA "Pos") -clty_commute.
+    rewrite -setp_value_eq; iIntros "#Hs %ρ"; iApply (posModVHasA ρ with "Hs").
+  Qed.
+
+  Lemma posModVHasATyAbs: Hs -∗ [] ⊨ posModV : type "Pos" >: ⊥ <: TInt.
+  Proof using Type*.
+    iIntros "Hs"; iApply (sT_Sub (i := 0) with "[Hs]");
+      [iApply (posModVHasATy with "Hs") | iApply posTMem_widen].
   Qed.
 
   Lemma ty_mkPos :
@@ -194,34 +212,29 @@ Section div_example.
   Proof using Type*.
     rewrite /posModT -(T_Mu_I _ posModV).
     iIntros "#Hs".
-    iApply sT_And_I; first by iApply posModVHasATy.
+    iApply sT_And_I; first by iApply posModVHasATyAbs.
     iApply sT_And_I; last iApply sT_And_I; last by
       iIntros "!> ** /="; rewrite -wp_value'.
     - iApply V_TVMem_I; [solve_fv_congruence|naive_solver|].
       iApply sT_All_I.
       rewrite /= /shead.
-      iIntros "!>" (ρ [_ [n Hw]]) "!> /=".
-      simplify_eq/=; rewrite Hw.
-      iApply wp_wand; [iApply wp_if_ge |iIntros "/=" (v [-> ?])].
+      iIntros "!>" (ρ [_ [n Hw]]) "!> /="; simpl in *; rewrite {}Hw.
+      iApply wp_wand; [iApply wp_if_ge |iIntros "/=" (v [-> Hnpos])].
       rewrite path_wp_pv_eq.
-      repeat (iExists _; try iSplit => //=).
-      iSplit => //. by iApply dm_to_type_intro.
-      iIntros "!%"; rewrite /pos.
-      naive_solver.
+      iApply vl_sel_lb; last iApply (posModVHasA ids with "Hs").
+      iIntros "!%"; hnf. naive_solver.
     - iApply V_TVMem_I; [solve_fv_congruence|naive_solver|].
       iApply sT_All_I.
       iApply sT_All_I.
       rewrite /= /shead /stail/=.
-      iIntros "!>" (ρ ) "#[[_ Hw] Harg] !> /=".
+      iIntros "!> %ρ #[[_ Hw] Harg] !> /=".
       iDestruct "Hw" as %[m ->].
       setoid_rewrite path_wp_pv_eq.
-      iDestruct "Harg" as (d Φ [ds Hlook]) "[Hs1 #Harg]";
-        have {d ds Hlook}->: d = dtysem [] s by naive_solver.
-      iPoseProof (sToIpos with "Hs") as "Hs2/=".
-      iPoseProof (dm_to_type_agree vnil (ρ 0) with "Hs1 Hs2") as "{Hs Hs1 Hs2} Heq".
-      wp_bind (BinRCtx _ _); rewrite -wp_pure_step_later // -wp_value/=/lang.of_val.
-      iNext. iRewrite "Heq" in "Harg"; iClear "Heq".
-      by iApply wp_div_spec.
+      iPoseProof (vl_sel_ub with "Harg []") as "{Harg Hs} Harg".
+      by iApply (posModVHasA ids with "Hs").
+      wp_bind (BinRCtx _ _); iEval rewrite /=/lang.of_val.
+      rewrite -wp_pure_step_later // -wp_value'; iNext.
+      iApply (wp_div_spec with "Harg").
   Qed.
 End div_example.
 
