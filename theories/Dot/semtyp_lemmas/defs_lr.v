@@ -80,8 +80,8 @@ Section Sec.
     iDestruct "Hd" as (ψ) "(Hφ & HLψ & HψU)".
     iExists ψ. iFrame "Hφ".
     iModIntro; repeat iSplit; iIntros (v) "#H".
-    - iApply "HLψ". by iApply "HL".
-    - iApply ("HU" with "Hg"). by iApply "HψU".
+    - iApply ("HLψ" with "(HL Hg H)").
+    - iApply ("HU" with "Hg (HψU H)").
   Qed.
 
   Lemma sD_Typ {Γ s σ} {T : oltyO Σ 0} l:

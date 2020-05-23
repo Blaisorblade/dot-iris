@@ -180,32 +180,25 @@ Section StpLemmas.
   Qed.
 
   (** ** Type members: variance of [cTMem], that is [{A :: L .. U}]. *)
-  Lemma sTyp_Sub_Typ' {Γ L1 L2 U1 U2 i j l} `{!SwapPropI Σ} :
-    Γ s⊨ oLater L2, j + i <: oLater L1, i -∗
+  Lemma sTyp_Sub_Typ {Γ L1 L2 U1 U2 i l} `{!SwapPropI Σ} :
+    Γ s⊨ oLater L2, i <: oLater L1, i -∗
     Γ s⊨ oLater U1, i <: oLater U2, i -∗
     Γ s⊨ cTMem l L1 U1, i <: cTMem l L2 U2, i.
   Proof.
-    iIntros "#IHT #IHT1 /= !> %ρ %v #Hg #HT1".
-    iDestruct "HT1" as (d) "[Hl2 H]".
+    iIntros "#HL #HU !> %ρ %v #Hg #HT1".
+    iDestruct "HT1" as (d) "[Hl H]".
     iDestruct "H" as (φ) "#[Hφl [HLφ #HφU]]".
-    rewrite (comm plus).
-    setoid_rewrite laterN_plus; setoid_rewrite mlaterN_impl.
+    simpl. setoid_rewrite mlaterN_impl.
     iExists d; repeat iSplit; first by iNext.
     iExists φ; repeat iSplitL; first by [iNext];
       rewrite -!mlaterN_pers;
       iIntros "!>" (w);
-      iSpecialize ("IHT" $! ρ w with "Hg");
-      iSpecialize ("IHT1" $! ρ w with "Hg");
-      iNext i; iIntros.
-    - iApply "HLφ" => //. by iApply "IHT".
-    - iApply "IHT1". by iApply "HφU".
+      iSpecialize ("HL" $! ρ w with "Hg");
+      iSpecialize ("HU" $! ρ w with "Hg");
+      iNext i; iIntros "#H".
+    - by iApply ("HLφ" with "(HL H)").
+    - by iApply ("HU" with "(HφU H)").
   Qed.
-
-  Lemma sTyp_Sub_Typ {Γ L1 L2 U1 U2 i l} `{!SwapPropI Σ}:
-    Γ s⊨ oLater L2, i <: oLater L1, i -∗
-    Γ s⊨ oLater U1, i <: oLater U2, i -∗
-    Γ s⊨ cTMem l L1 U1, i <: cTMem l L2 U2, i.
-  Proof. apply (sTyp_Sub_Typ' (j := 0)). Qed.
 
   Lemma Typ_Sub_Typ {Γ L1 L2 U1 U2 i l} `{!SwapPropI Σ} :
     Γ ⊨ TLater L2, i <: TLater L1, i -∗
