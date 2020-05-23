@@ -69,38 +69,50 @@ Section Sec.
   Proof. apply sD_Path_Sub. Qed.
 
   (** ** Type member introduction. *)
-  Lemma sD_Typ_Abs {Γ} T L U s σ l:
-    Γ s⊨ oLater T, 0 <: oLater U, 0 -∗
-    Γ s⊨ oLater L, 0 <: oLater T, 0 -∗
-    s ↝[ σ ] T -∗
-    Γ s⊨ { l := dtysem σ s } : cTMem l L U.
+  Lemma sD_Typ_Sub {Γ} L1 L2 U1 U2 s σ l:
+    Γ s⊨ oLater L2, 0 <: oLater L1, 0 -∗
+    Γ s⊨ oLater U1, 0 <: oLater U2, 0 -∗
+    Γ s⊨ { l := dtysem σ s } : cTMem l L1 U1 -∗
+    Γ s⊨ { l := dtysem σ s } : cTMem l L2 U2.
   Proof.
-    rewrite !sdtp_eq; iIntros "#HTU #HLT #Hs !>" (ρ Hpid) "#Hg".
+    rewrite !sdtp_eq; iIntros "#HL #HU #Hd !>" (ρ Hpid) "#Hg".
+    iSpecialize ("Hd" $! ρ Hpid with "Hg"); rewrite !cTMem_eq.
+    iDestruct "Hd" as (ψ) "(Hφ & HLψ & HψU)".
+    iExists ψ. iFrame "Hφ".
+    iModIntro; repeat iSplit; iIntros (v) "#H".
+    - iApply "HLψ". by iApply "HL".
+    - iApply ("HU" with "Hg"). by iApply "HψU".
+  Qed.
+
+  Lemma sD_Typ {Γ s σ} {T : oltyO Σ 0} l:
+    s ↝[ σ ] T -∗
+    Γ s⊨ { l := dtysem σ s } : cTMem l T T.
+  Proof.
+    rewrite !sdtp_eq; iIntros "#Hs !>" (ρ Hpid) "#Hg".
     rewrite cTMem_eq; iDestruct "Hs" as (φ Hγφ) "Hγ".
     iExists (hoEnvD_inst (σ.|[ρ]) φ); iSplit.
     by iApply (dm_to_type_intro with "Hγ").
-    iModIntro; repeat iSplit; iIntros (v) "#HL";
-      rewrite /= later_intuitionistically.
-    - iIntros "!>". iApply Hγφ. by iApply "HLT".
-    - iApply ("HTU" with "Hg"). by iApply Hγφ.
+    by iModIntro; repeat iSplit; iIntros (v) "#H"; iNext; rewrite /= (Hγφ _ _).
   Qed.
-
-  Lemma D_Typ_Abs {Γ} T L U s σ l:
-    Γ ⊨ TLater T, 0 <: TLater U, 0 -∗
-    Γ ⊨ TLater L, 0 <: TLater T, 0 -∗
-    s ↝[ σ ] V⟦ T ⟧ -∗
-    Γ ⊨ { l := dtysem σ s } : TTMem l L U.
-  Proof. apply sD_Typ_Abs. Qed.
-
-  Lemma sD_Typ {Γ} (T : oltyO Σ 0) s σ l:
-    s ↝[ σ ] T -∗
-    Γ s⊨ { l := dtysem σ s } : cTMem l T T.
-  Proof. by iIntros "#Hs"; iApply sD_Typ_Abs; [> iApply sSub_Refl ..|]. Qed.
 
   Lemma D_Typ {Γ} T s σ l:
     s ↝[ σ ] V⟦ T ⟧ -∗
     Γ ⊨ { l := dtysem σ s } : TTMem l T T.
   Proof. apply sD_Typ. Qed.
+
+  Lemma sD_Typ_Abs {Γ} T L U s σ l:
+    Γ s⊨ oLater L, 0 <: oLater T, 0 -∗
+    Γ s⊨ oLater T, 0 <: oLater U, 0 -∗
+    s ↝[ σ ] T -∗
+    Γ s⊨ { l := dtysem σ s } : cTMem l L U.
+  Proof. rewrite (sD_Typ l). apply sD_Typ_Sub. Qed.
+
+  Lemma D_Typ_Abs {Γ} T L U s σ l:
+    Γ ⊨ TLater L, 0 <: TLater T, 0 -∗
+    Γ ⊨ TLater T, 0 <: TLater U, 0 -∗
+    s ↝[ σ ] V⟦ T ⟧ -∗
+    Γ ⊨ { l := dtysem σ s } : TTMem l L U.
+  Proof. apply sD_Typ_Abs. Qed.
 
   (** ** Prove object introduction rule, using Löb induction:
    *

@@ -151,7 +151,7 @@ Section div_example.
   Lemma sHasA' l Γ : Hs -∗ Γ s⊨ { l := dtysem [] s } : C⟦ type l >: ⊥ <: 𝐙 ⟧.
   Proof.
     iIntros "Hs".
-    iApply (sD_Typ_Abs ipos); [|iApply sBot_Sub|by iExists _; iFrame "Hs"].
+    iApply (sD_Typ_Abs ipos); [iApply sBot_Sub| |by iExists _; iFrame "Hs"].
     iApply Sub_later_ipos_nat.
   Qed.
 

@@ -66,7 +66,7 @@ Section fundamental.
       + by iApply D_Nil.
       + by iApply D_Cons; [|iApply H|iApply H0].
 
-      + by iApply D_Typ_Abs; [> iApply H0 | iApply H|
+      + by iApply D_Typ_Abs; [> iApply H | iApply H0|
           iApply extraction_to_leadsto_envD_equiv].
       + iApply D_Val. by iApply H.
       + iApply D_Path. by iApply H.
