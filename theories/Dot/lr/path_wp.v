@@ -232,11 +232,11 @@ Section path_wp.
   Qed.
   Global Instance path_wp_pureableF p φ Pv b :
     (∀ v, FromPure b (φ v) (Pv v)) →
-    FromPure false (path_wp p φ) (path_wp_pure p Pv).
+    FromPure b (path_wp p φ) (path_wp_pure p Pv).
   Proof.
     rewrite /FromPure/= -path_wp_pureable. iIntros (Hw) "Hp".
-    iApply (path_wp_wand with "Hp"); iIntros (v Hpv); iApply Hw.
-    by case: b {Hw} => /=; iFrame (Hpv).
+    case: b Hw => Hw /=; iApply (path_wp_wand with "Hp");
+      iIntros (v Hpv); iApply (Hw); iFrame (Hpv).
   Qed.
 
   Lemma path_wp_det p v1 v2:
