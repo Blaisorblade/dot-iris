@@ -63,10 +63,9 @@ Section semantic_lemmas.
     Γ s⊨p p : oSing q, i -∗
     Γ s⊨p q : oTop, i.
   Proof.
-    iIntros "#Hpq !> %ρ Hg /=".
-    iDestruct (singleton_aliasing with "Hpq Hg") as "Hal {Hpq}"; iNext i.
-    iDestruct "Hal" as %(v & _ & Hqv)%alias_paths_sameres; iIntros "!%".
-    exact: (path_wp_pure_wand Hqv).
+    iIntros "#Hpq !> %ρ Hg /="; iSpecialize ("Hpq" with "Hg"); iNext i.
+    iDestruct "Hpq" as %(v & _ & Hqv)%alias_paths_simpl%alias_paths_sameres.
+    iIntros "!%". exact: (path_wp_pure_wand Hqv).
   Qed.
 
   Lemma P_Sngl_Inv Γ p q i : Γ ⊨p p : TSing q, i -∗ Γ ⊨p q : TTop, i.
@@ -221,8 +220,8 @@ Section semantic_lemmas.
     Γ s⊨p p : T, i.
   Proof.
     iIntros "#Hep #Heq !> %ρ #Hg"; iSpecialize ("Heq" with "Hg").
-    iDestruct (singleton_aliasing with "Hep Hg") as "Hal1 {Hep Hg}"; iNext i.
-    by iDestruct "Hal1" as %->%(alias_paths_elim_eq (T _ _)).
+    iSpecialize ("Hep" with "Hg"); iNext i.
+    by iDestruct "Hep" as %->%alias_paths_simpl%(alias_paths_elim_eq (T _ _)).
   Qed.
 
   Lemma P_Sngl_Trans Γ p q T i:
@@ -234,13 +233,12 @@ Section semantic_lemmas.
     Γ s⊨p pself q l : τ, i -∗
     Γ s⊨p pself p l : oSing (pself q l), i.
   Proof.
-    iIntros "#Hep #HqlT !> %ρ #Hg".
-    iSpecialize ("HqlT" with "Hg").
-    iDestruct (singleton_aliasing with "Hep Hg") as "Hal {Hep Hg}".
-    rewrite !path_wp_eq /=.
-    iNext i. iDestruct "Hal" as %Hal. iDestruct "HqlT" as (vql Hql) "_".
+    iIntros "#Hpq #HqlT !> %ρ #Hg"; iSpecialize ("HqlT" with "Hg");
+    iSpecialize ("Hpq" with "Hg"); iNext i; iClear "Hg".
+    iDestruct "Hpq" as %Hal%alias_paths_simpl.
+    rewrite !path_wp_eq; iDestruct "HqlT" as (vql Hql) "_".
     iIntros "!% /="; setoid_rewrite alias_paths_pv_eq_1.
-    by eapply alias_paths_sameres, alias_paths_pself.
+    apply /alias_paths_sameres /alias_paths_pself /Hal /Hql.
   Qed.
 
   Lemma P_Sngl_E Γ T p q l i: Γ ⊨p p : TSing q, i -∗ Γ ⊨p pself q l : T, i -∗

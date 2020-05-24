@@ -454,14 +454,6 @@ Section path_repl_lemmas.
     (Hr : T .Tp[ p /]~ T') (Hal : alias_paths p.|[ρ] (pv v)) :
     V⟦ T ⟧ args (v .: ρ) w ≡ V⟦ T' ⟧ args ρ w.
   Proof. by rewrite (sem_psubst_one_eq Hr Hal) (sem_psubst_one_repl Hal). Qed.
-
-  Lemma singleton_aliasing Γ p q ρ i :
-    Γ s⊨p p : oSing q, i -∗
-    sG⟦ Γ ⟧* ρ -∗ ▷^i alias_pathsI p.|[ρ] q.|[ρ].
-  Proof.
-    iIntros "#Hep Hg". iSpecialize ("Hep" with "Hg"); iNext i.
-    by iDestruct "Hep" as %Hep%alias_paths_simpl.
-  Qed.
 End path_repl_lemmas.
 
 (** Proper instances. *)
