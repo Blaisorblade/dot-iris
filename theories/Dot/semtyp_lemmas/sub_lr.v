@@ -4,7 +4,7 @@ From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language.
 
 From D Require Import iris_prelude succ_notation swap_later_impl proper.
-From D.Dot Require Import rules path_repl unary_lr.
+From D.Dot Require Import rules path_repl unary_lr dsub_lr.
 
 Section StpLemmas.
   Context `{HdotG: !dlangG Σ}.
@@ -131,13 +131,8 @@ Section StpLemmas.
     Γ s⊨ T1, i <: T2, i -∗
     Γ s⊨ cVMem l T1, i <: cVMem l T2, i.
   Proof.
-    iIntros "#Hsub !> %ρ %v #Hg #HT1".
-    iDestruct "HT1" as (d) "#[Hdl #HT1]".
-    iExists d; iFrame "Hdl".
-    iDestruct "HT1" as (pmem) "[Heq HvT1]".
-    iExists pmem; iFrame "Heq"; rewrite !path_wp_eq.
-    iDestruct "HvT1" as (w) "[Hv HvT1]"; iExists w; iFrame "Hv".
-    by iApply "Hsub".
+    iIntros "#Hsub !> %ρ %v Hg HT1"; iApply (cVMem_respects_subN with "[Hg] HT1").
+    iApply (sstpi_app with "Hsub Hg").
   Qed.
 
   Lemma Fld_Sub_Fld {Γ T1 T2 i l}:
@@ -148,21 +143,7 @@ Section StpLemmas.
     Γ s⊨ oLater T2, i <: oLater T1, i -∗
     oLaterN (S i) (shift T2) :: Γ s⊨ oLater U1, i <: oLater U2, i -∗
     Γ s⊨ oAll T1 U1, i <: oAll T2 U2, i.
-  Proof.
-    iIntros "#HsubT #HsubU /= !> %ρ %v #Hg #HT1".
-    iDestruct "HT1" as (t) "#[Heq #HT1]". iExists t; iFrame "Heq".
-    iIntros (w).
-    rewrite -!mlaterN_pers -mlaterN_impl.
-    iIntros "!> #HwT2".
-    iSpecialize ("HsubT" $! ρ w with "Hg HwT2").
-    iSpecialize ("HsubU" $! (w .: ρ)); iEval (rewrite -forall_swap_impl) in "HsubU".
-    iSpecialize ("HsubU" with "[# $Hg]").
-    by rewrite -swap_later /=; iApply hoEnvD_weaken_one.
-    setoid_rewrite mlaterN_impl; setoid_rewrite mlater_impl.
-    iNext i; iNext 1. iModIntro. iApply wp_wand.
-    - iApply ("HT1" with "[]"). iApply "HsubT".
-    - iIntros (u) "#HuU1". by iApply "HsubU".
-  Qed.
+  Proof. rewrite -!sstpd_to_sstpi. apply: sAll_Stp_All. Qed.
 
   Lemma All_Sub_All {Γ} T1 T2 U1 U2 i `{!SwapPropI Σ} :
     Γ ⊨ TLater T2, i <: TLater T1, i -∗
@@ -179,21 +160,7 @@ Section StpLemmas.
     Γ s⊨ oLater L2, i <: oLater L1, i -∗
     Γ s⊨ oLater U1, i <: oLater U2, i -∗
     Γ s⊨ cTMem l L1 U1, i <: cTMem l L2 U2, i.
-  Proof.
-    iIntros "#HL #HU !> %ρ %v #Hg #HT1".
-    iDestruct "HT1" as (d) "[Hl H]".
-    iDestruct "H" as (φ) "#[Hφl [HLφ #HφU]]".
-    simpl. setoid_rewrite mlaterN_impl.
-    iExists d; repeat iSplit; first by iNext.
-    iExists φ; repeat iSplitL; first by [iNext];
-      rewrite -!mlaterN_pers;
-      iIntros "!>" (w);
-      iSpecialize ("HL" $! ρ w with "Hg");
-      iSpecialize ("HU" $! ρ w with "Hg");
-      iNext i; iIntros "#H".
-    - by iApply ("HLφ" with "(HL H)").
-    - by iApply ("HU" with "(HφU H)").
-  Qed.
+  Proof. rewrite -!sstpd_to_sstpi. apply sTyp_Stp_Typ. Qed.
 
   Lemma Typ_Sub_Typ {Γ L1 L2 U1 U2 i l} `{!SwapPropI Σ} :
     Γ ⊨ TLater L2, i <: TLater L1, i -∗

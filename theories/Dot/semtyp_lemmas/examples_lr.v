@@ -72,19 +72,16 @@ Section Lemmas.
   Lemma sAnd_Fld_Sub_Distr_2 Γ l T1 T2 i:
     ⊢ Γ s⊨ cVMem l (oAnd T1 T2), i <: oAnd (cVMem l T1) (cVMem l T2), i.
   Proof.
-    iIntros "/= !> %ρ %v #Hg #H". iNext.
-    iDestruct "H" as (d? pmem Hlook) "H".
-    rewrite -path_wp_and; iDestruct "H" as "[H1 H2]".
-    iSplit; repeat (iExists _; repeat iSplit => //).
+    iIntros "!> %ρ %v _ H"; iNext.
+    iSplit; iApply (cVMem_respects_sub with "[] H"); by iIntros "%_ [??]".
   Qed.
 
   (* This should also follows internally from covariance, once that's proven. *)
   Lemma sAnd_Fld_Sub_Distr_Or_1 Γ l T1 T2 i:
     ⊢ Γ s⊨ oOr (cVMem l T1) (cVMem l T2), i <: cVMem l (oOr T1 T2), i.
   Proof.
-    iIntros "/= !> %ρ %v #Hg [#H| #H]"; iNext;
-      iDestruct "H" as (d? pmem?) "#H"; repeat (iExists _; repeat iSplit => //);
-      rewrite -path_wp_or; by [iLeft | iRight].
+    iIntros "!> %ρ %v _ [H|H]"; iNext;
+      iApply (cVMem_respects_sub with "[] H"); iIntros "% $".
   Qed.
 
   Lemma sAnd_Fld_Sub_Distr_Or_2 Γ l T1 T2 i:
