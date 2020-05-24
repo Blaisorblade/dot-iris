@@ -935,6 +935,18 @@ Section dot_experimental_kinds.
     by iIntros "* [HK1 HK2]"; iSplit; iApply sf_kind_sub_quasi_refl_2.
   Qed.
 
+  (**
+  This only checks that [T] is a _sub_singleton, not necessarily an actual
+  singleton type.
+
+  I guess that applies to Scala's Singleton, since that is modeled as an
+  upper bound, but that will have to change.
+
+  This matters for type projections!
+
+  So if [T <: { A :: L .. U }] and [isSing T],
+  then we can't conclude [▷ U <: T#A]; but if T is an actual singleton, we can.
+   *)
   Definition isSing (T : lty Σ) := (□∀ v1 v2, T v1 → T v2 → ⌜ v1 = v2 ⌝)%I.
 
   Lemma isSing_respects_hoLty_equiv {n} {T1 T2 : hoLtyO Σ n} args:
