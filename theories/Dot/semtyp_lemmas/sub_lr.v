@@ -127,27 +127,23 @@ Section StpLemmas.
     apply sSub_Mu.
   Qed.
 
-
-  Lemma sFld_Sub_Fld' {Γ T1 T2 i j l}:
-    Γ s⊨ T1, i <: T2, j + i -∗
-    Γ s⊨ cVMem l T1, i <: cVMem l T2, j + i.
+  Lemma sFld_Sub_Fld {Γ T1 T2 i l}:
+    Γ s⊨ T1, i <: T2, i -∗
+    Γ s⊨ cVMem l T1, i <: cVMem l T2, i.
   Proof.
-    iIntros "#Hsub /= !> %ρ %v #Hg #HT1". setoid_rewrite laterN_plus.
+    iIntros "#Hsub !> %ρ %v #Hg #HT1".
     iDestruct "HT1" as (d) "#[Hdl #HT1]".
-    iExists d; repeat iSplit => //.
+    iExists d; iFrame "Hdl".
     iDestruct "HT1" as (pmem) "[Heq HvT1]".
-    iExists pmem; repeat iSplit => //; rewrite !path_wp_eq.
+    iExists pmem; iFrame "Heq"; rewrite !path_wp_eq.
     iDestruct "HvT1" as (w) "[Hv HvT1]"; iExists w; iFrame "Hv".
     by iApply "Hsub".
   Qed.
 
-  Lemma Fld_Sub_Fld' {Γ T1 T2 i j l}:
-    Γ ⊨ T1, i <: T2, j + i -∗ Γ ⊨ TVMem l T1, i <: TVMem l T2, j + i.
-  Proof. apply sFld_Sub_Fld'. Qed.
 
   Lemma Fld_Sub_Fld {Γ T1 T2 i l}:
     Γ ⊨ T1, i <: T2, i -∗ Γ ⊨ TVMem l T1, i <: TVMem l T2, i.
-  Proof. iApply (Fld_Sub_Fld' (j := 0)). Qed.
+  Proof. apply sFld_Sub_Fld. Qed.
 
   Lemma sAll_Sub_All {Γ T1 T2 U1 U2 i} `{!SwapPropI Σ} :
     Γ s⊨ oLater T2, i <: oLater T1, i -∗
