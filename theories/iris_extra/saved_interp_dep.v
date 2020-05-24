@@ -125,7 +125,7 @@ Section saved_ho_sem_type.
 
   Lemma packedHoEnvPred_arity_neI Ψ1 Ψ2 : Ψ1 ≡ Ψ2 ⊢@{iPropI Σ}
     packedHoEnvPred_arity Ψ1 ≡ packedHoEnvPred_arity Ψ2.
-  Proof. exact: f_equiv. Qed.
+  Proof. exact: f_equivI. Qed.
 
   Lemma packedHoEnvPred_arity_neI_pure Ψ1 Ψ2 : Ψ1 ≡ Ψ2 ⊢@{iPropI Σ}
     ⌜ packedHoEnvPred_arity Ψ1 = packedHoEnvPred_arity Ψ2 ⌝.
@@ -149,7 +149,7 @@ Section saved_ho_sem_type.
     iDestruct (saved_anything_agree with "HΦ1 HΦ2") as "Heq".
     rewrite /= sigT_equivI. iDestruct "Heq" as (Heq) "Hgoal".
     rewrite (proof_irrel Heq eq_refl) /=.
-    repeat setoid_rewrite bi.discrete_fun_equivI. by iNext.
+    repeat setoid_rewrite discrete_fun_equivI. by iNext.
   Qed.
 
   Lemma saved_ho_sem_type_agree_dep {γ i j Φ1 Φ2} a b c:
@@ -159,7 +159,7 @@ Section saved_ho_sem_type.
     iIntros "HΦ1 HΦ2".
     iDestruct (saved_ho_sem_type_agree_dep_abs with "HΦ1 HΦ2") as (->) "Hgoal".
     iExists eq_refl; cbn; iNext.
-    by repeat setoid_rewrite bi.discrete_fun_equivI.
+    by repeat setoid_rewrite discrete_fun_equivI.
   Qed.
 
   Lemma saved_ho_sem_type_agree γ n (Φ1 Φ2 : hoEnvPred s Σ n) a b c:

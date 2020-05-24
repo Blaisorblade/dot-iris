@@ -40,7 +40,7 @@ Proof.
 Qed.
 
 Section proofmode_extra.
-  Context {PROP : sbi}.
+  Context {PROP : bi}.
   Implicit Types P Q R : PROP.
 
   Lemma swap_later {n} P: ▷^n ▷ P ⊣⊢ ▷ ▷^n P.
@@ -56,7 +56,7 @@ Section proofmode_extra.
     iIntros (?) "H". iInduction i as [|i] "IH"; cbn; first by auto.
     iDestruct ("IH" with "H") as "[H|H]"; first by auto.
     iDestruct (timeless with "H") as "H".
-    rewrite /sbi_except_0. iDestruct "H" as "[H|H]"; auto.
+    rewrite /bi_except_0. iDestruct "H" as "[H|H]"; auto.
   Qed.
 
   Lemma strip_timeless_laterN_wand i P Q :
