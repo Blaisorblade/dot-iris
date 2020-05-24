@@ -460,7 +460,7 @@ Section path_repl_lemmas.
     sG⟦ Γ ⟧* ρ -∗ ▷^i alias_pathsI p.|[ρ] q.|[ρ].
   Proof.
     iIntros "#Hep Hg". iSpecialize ("Hep" with "Hg"); iNext i.
-    iRevert "Hep"; iIntros "!% %Hep". exact /alias_paths_simpl.
+    by iDestruct "Hep" as %Hep%alias_paths_simpl.
   Qed.
 End path_repl_lemmas.
 

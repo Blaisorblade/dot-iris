@@ -116,7 +116,6 @@ Section StpLemmas.
     apply sMu_Sub.
   Qed.
 
-
   Lemma sSub_Mu {Γ T i} : ⊢ Γ s⊨ T, i <: oMu (shift T), i.
   Proof. iIntros "!> **". by rewrite oMu_shift. Qed.
 
@@ -126,6 +125,7 @@ Section StpLemmas.
     rewrite (interp_subst_commute T (ren (+1))).
     apply sSub_Mu.
   Qed.
+
 
   Lemma sFld_Sub_Fld {Γ T1 T2 i l}:
     Γ s⊨ T1, i <: T2, i -∗
@@ -140,7 +140,6 @@ Section StpLemmas.
     by iApply "Hsub".
   Qed.
 
-
   Lemma Fld_Sub_Fld {Γ T1 T2 i l}:
     Γ ⊨ T1, i <: T2, i -∗ Γ ⊨ TVMem l T1, i <: TVMem l T2, i.
   Proof. apply sFld_Sub_Fld. Qed.
@@ -151,7 +150,7 @@ Section StpLemmas.
     Γ s⊨ oAll T1 U1, i <: oAll T2 U2, i.
   Proof.
     iIntros "#HsubT #HsubU /= !> %ρ %v #Hg #HT1".
-    iDestruct "HT1" as (t) "#[Heq #HT1]". iExists t; iSplit => //.
+    iDestruct "HT1" as (t) "#[Heq #HT1]". iExists t; iFrame "Heq".
     iIntros (w).
     rewrite -!mlaterN_pers -mlaterN_impl.
     iIntros "!> #HwT2".

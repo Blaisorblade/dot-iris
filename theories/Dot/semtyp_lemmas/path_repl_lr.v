@@ -63,9 +63,9 @@ Section semantic_lemmas.
     Γ s⊨p p : oSing q, i -∗
     Γ s⊨p q : oTop, i.
   Proof.
-    iIntros "#Hpq !> %ρ #Hg /=".
-    iDestruct (singleton_aliasing with "Hpq Hg") as "Hal {Hpq Hg}".
-    iNext i. iDestruct "Hal" as %(v & _ & Hqv)%alias_paths_sameres. iIntros "!%".
+    iIntros "#Hpq !> %ρ Hg /=".
+    iDestruct (singleton_aliasing with "Hpq Hg") as "Hal {Hpq}"; iNext i.
+    iDestruct "Hal" as %(v & _ & Hqv)%alias_paths_sameres; iIntros "!%".
     exact: (path_wp_pure_wand Hqv).
   Qed.
 
@@ -137,18 +137,15 @@ Section semantic_lemmas.
     (*────────────────────────────────────────────────────────────*)
     Γ s⊨ tapp e1 (path2tm p2) : T2 .sTp[ p2 /].
   Proof.
-    iIntros "#He1 #Hp2 !> %ρ #Hg /= !>".
-    smart_wp_bind (AppLCtx _) v "#Hr {He1}" ("He1" with "Hg").
-    iDestruct "Hr" as (t ->) "#HvFun".
-    iDestruct (path_wp_eq with "(Hp2 Hg)") as (pw Hpwp) "{Hp2 Hg} Hpw".
-    iDestruct (path_wp_to_wp _ (λ v, ⌜ pw = v ⌝)%I with "[%//]") as "Hpeq".
-    iApply (wp_bind (fill [AppRCtx _])). rewrite path2tm_subst.
-    iApply (wp_wand with "Hpeq"); iIntros (? <-) "/= {Hpeq}".
-    rewrite -wp_pure_step_later; last done.
-    iSpecialize ("HvFun" with "Hpw").
-    iNext.
-    iApply (wp_wand with "HvFun"); iIntros (v) "{HvFun Hpw} Hres".
-    by rewrite sem_psubst_one_repl ?alias_paths_pv_eq_1.
+    iIntros "#He1 #Hp2 !> %ρ #Hg !>"; iSpecialize ("Hp2" with "Hg").
+    smart_wp_bind (AppLCtx _) v "Hr {He1}" ("He1" with "Hg").
+    iDestruct "Hr" as (t ->) "#HvFun {Hg}"; rewrite path_wp_eq path2tm_subst.
+    iDestruct "Hp2" as (pw Hpwpp) "Hpw"; iSpecialize ("HvFun" with "Hpw").
+    iDestruct (path_wp_pure_to_wp Hpwpp) as "{Hpw} Hwpp".
+    smart_wp_bind (AppRCtx _) w "%Heq {Hwpp}" "Hwpp"; subst w.
+    rewrite -wp_pure_step_later; last done; iNext.
+    iApply (wp_wand with "HvFun"). iIntros (v) "Hres".
+    rewrite sem_psubst_one_repl //. apply /alias_paths_pv_eq_1 /Hpwpp.
   Qed.
 
   Lemma T_All_Ex_p Γ e1 p2 T1 T2 T2' (Hrepl : T2 .Tp[ p2 /]~ T2') :
@@ -204,11 +201,10 @@ Section semantic_lemmas.
     (*─────────────────────────*)
     Γ s⊨p pself p l : T, i.
   Proof.
-    iIntros "#HE !> %ρ HG /=".
-    iSpecialize ("HE" with "HG"); iNext i.
-    rewrite path_wp_eq path_wp_pself_eq.
+    iIntros "#HE !> %ρ HG /="; iSpecialize ("HE" with "HG"); iNext i.
+    rewrite path_wp_pself_eq path_wp_eq.
     iDestruct "HE" as (vp Hpv d Hlook pmem ->) "#H".
-    iExists vp, pmem; eauto.
+    iExists vp, pmem. eauto.
   Qed.
   (* In the above proof, in contrast with T_Obj_E, lots of the lemmas
      needed of path_wp hold simply by computation. *)
@@ -224,9 +220,8 @@ Section semantic_lemmas.
     Γ s⊨p q : T, i -∗
     Γ s⊨p p : T, i.
   Proof.
-    iIntros "#Hep #Heq !> %ρ #Hg".
-    iDestruct (singleton_aliasing with "Hep Hg") as "Hal1 {Hep}".
-    iSpecialize ("Heq" with "Hg"). iNext i.
+    iIntros "#Hep #Heq !> %ρ #Hg"; iSpecialize ("Heq" with "Hg").
+    iDestruct (singleton_aliasing with "Hep Hg") as "Hal1 {Hep Hg}"; iNext i.
     by iDestruct "Hal1" as %->%(alias_paths_elim_eq (T _ _)).
   Qed.
 
@@ -261,8 +256,8 @@ Section semantic_lemmas.
     iIntros "/= * #HpT1 #Hsub !> * #Hg".
     iSpecialize ("HpT1" with "Hg").
     rewrite !path_wp_eq.
-    iDestruct "HpT1" as (v) "Hpv"; iExists v; iDestruct "Hpv" as "[$ HpT1] {Hpv}".
-    by iApply "Hsub".
+    iDestruct "HpT1" as (v) "Hpv"; iExists v.
+    iDestruct "Hpv" as "[$ HpT1] {Hpv}". by iApply "Hsub".
   Qed.
 
 End semantic_lemmas.

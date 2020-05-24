@@ -40,12 +40,12 @@ Section Lemmas.
     iApply Mu_Sub_Mu.
     (* We're stuck! *)
     Restart. *)
-    iIntros "#Hsub #Hp !> %ρ %v #Hg #Heq".
+    iIntros "#Hsub #Hp !> %ρ %v #Hg Heq".
     iSpecialize ("Hp" with "Hg").
     iAssert (▷^i ⟦ T1 ⟧ (v .: ρ) v)%I as "#HT1".
     by iNext i; iDestruct "Heq" as %Heq;
       rewrite (alias_paths_elim_eq _ Heq) path_wp_pv_eq.
-    iApply ("Hsub" $! (v .: ρ) v with "[$Hg] HT1").
+    iApply ("Hsub" $! (v .: ρ) v with "[#$Hg] HT1").
     iEval rewrite iterate_TLater_oLater /= hsubst_comp. iFrame "Heq HT1".
   Qed.
 
@@ -56,10 +56,9 @@ Section Lemmas.
     Γ ⊨p p : TMu T1, i -∗
     Γ ⊨ TSing p, i <: TMu T2, i.
   Proof.
-    iIntros "#Hsub #Hp !> %ρ %v #Hg /= #Heq".
-    iSpecialize ("Hp" with "Hg").
-    iSpecialize ("Hsub" $! ρ v with "[#$Hg] [#]");
-      iNext i; iDestruct "Heq" as %Heq;
+    iIntros "#Hsub #Hp !> %ρ %v #Hg /= Heq"; iSpecialize ("Hp" with "Hg").
+    iSpecialize ("Hsub" $! ρ v with "[#$Hg] [#]"); iNext i;
+      iDestruct "Heq" as %Heq;
       rewrite -(psubst_one_repl Hrepl1, psubst_one_repl Hrepl2) //
         (alias_paths_elim_eq _ Heq) path_wp_pv_eq //.
   Qed.
@@ -68,7 +67,7 @@ Section Lemmas.
   derive in the model. *)
   Lemma sDistr_Or_And_Sub_inv {Γ S T U i}:
     ⊢ Γ s⊨ oAnd (oOr S U) (oOr T U), i <: oOr (oAnd S T) U , i.
-  Proof. iIntros "!> %% #Hg [[HS|HT] [HT'|HU]] !> /="; eauto with iFrame. Qed.
+  Proof. iIntros "!> %% Hg [[HS|HT] [HT'|HU]] !> /="; eauto with iFrame. Qed.
 
   Lemma sAnd_Fld_Sub_Distr_2 Γ l T1 T2 i:
     ⊢ Γ s⊨ cVMem l (oAnd T1 T2), i <: oAnd (cVMem l T1) (cVMem l T2), i.
@@ -91,10 +90,9 @@ Section Lemmas.
   Lemma sAnd_Fld_Sub_Distr_Or_2 Γ l T1 T2 i:
     ⊢ Γ s⊨ cVMem l (oOr T1 T2), i <: oOr (cVMem l T1) (cVMem l T2), i.
   Proof.
-    iIntros "/= !> %ρ %v #Hg #H". iNext.
-    iDestruct "H" as (d? pmem?) "#H"; rewrite -path_wp_or.
-    iDestruct "H" as "#[H | H]"; [> iLeft | iRight];
-      repeat (iExists _; repeat iSplit => //).
+    iIntros "!> %ρ %v _ #H"; iNext.
+    iDestruct "H" as (d Hl pmem ->) "#H"; rewrite -path_wp_or -!oDVMem_eq.
+    iDestruct "H" as "#[H|H]"; [iLeft | iRight]; iExists _; iFrame (Hl) "H".
   Qed.
 
   Lemma sSub_Later_Sub Γ T1 T2 i j:

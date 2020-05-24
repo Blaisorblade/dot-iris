@@ -156,17 +156,13 @@ Section Sec.
     (*────────────────────────────────────────────────────────────*)
     Γ s⊨ tapp e1 (tv v2) : T2.|[v2/].
   Proof.
-    iIntros "/= #He1 #Hv2Arg !> * #HG !>".
-    smart_wp_bind (AppLCtx (tv v2.[_])) v "#Hr {He1}" ("He1" with "[#//]").
+    iIntros "/= #He1 #Hv2Arg !> * #Hg !>"; iSpecialize ("Hv2Arg" with "Hg").
+    smart_wp_bind (AppLCtx (tv v2.[_])) v "#Hr {He1 Hg}" ("He1" with "Hg").
     iDestruct "Hr" as (t ->) "#HvFun".
-    rewrite -wp_pure_step_later; last done.
-    iSpecialize ("HvFun" with "[#]"). {
-      rewrite -wp_value_inv'. by iApply ("Hv2Arg" with "[]").
-    }
-    iNext. iApply wp_wand.
-    - iApply "HvFun".
-    - iIntros (v) "{HG HvFun Hv2Arg} H".
-      by rewrite /= hoEnvD_subst_one.
+    rewrite wp_value_inv' -wp_pure_step_later; last done.
+    iSpecialize ("HvFun" with "Hv2Arg"); iNext.
+    iApply (wp_wand with "HvFun"); iIntros (v) "{HvFun Hv2Arg} H".
+    by rewrite /= hoEnvD_subst_one.
   Qed.
 
   Lemma T_All_Ex {Γ e1 v2 T1 T2}:
