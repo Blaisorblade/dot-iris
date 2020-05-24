@@ -350,6 +350,11 @@ Section misc_lemmas.
   Context `{HdotG: !dlangG Σ}.
   Implicit Types (τ L T U : olty Σ 0).
 
+  Lemma sstpi_app ρ Γ T1 T2 i j :
+    Γ s⊨ T1, i <: T2, j -∗ sG⟦ Γ ⟧* ρ -∗
+    oClose (oLaterN i T1) ρ ⊆ oClose (oLaterN j T2) ρ.
+  Proof. iIntros "Hsub Hg %v"; iApply ("Hsub" with "Hg"). Qed.
+
   (** Core lemmas about type selections and bounds. *)
   Lemma vl_sel_ub w l L U ρ v :
     vl_sel w l vnil v -∗
@@ -371,6 +376,58 @@ Section misc_lemmas.
     iIntros "HL"; iDestruct 1 as (d Hl φ) "[Hdφ [HLφ _]]".
     iExists d, φ; iFrame (Hl) "Hdφ". iApply ("HLφ" with "HL").
   Qed.
+
+  Lemma lift_sub_dty2cltyN i (T1 T2 : dlty Σ) l ρ :
+    (∀ d, ▷^i T1 ρ d -∗ ▷^i T2 ρ d) ⊢
+    oLaterN i (dty2clty l T1) vnil ρ ⊆ oLaterN i (dty2clty l T2) vnil ρ.
+  Proof.
+    iIntros "Hsub %v". iDestruct 1 as (d) "[Hl #H1]"; iExists d; iFrame "Hl".
+    by iApply ("Hsub" with "H1").
+  Qed.
+
+  Lemma lift_sub_dty2clty (T1 T2 : dlty Σ) l ρ :
+    (∀ d, T1 ρ d -∗ T2 ρ d) ⊢
+    clty_olty (dty2clty l T1) vnil ρ ⊆ clty_olty (dty2clty l T2) vnil ρ.
+  Proof. apply (lift_sub_dty2cltyN 0). Qed.
+
+  Lemma oDTMem_respects_sub L1 L2 U1 U2 ρ d :
+    □(oLater L2 vnil ρ ⊆ oLater L1 vnil ρ) -∗
+    □(oLater U1 vnil ρ ⊆ oLater U2 vnil ρ) -∗
+    oDTMem L1 U1 ρ d -∗ oDTMem L2 U2 ρ d.
+  Proof.
+    iIntros "#HsubL #HsubU"; iDestruct 1 as (φ) "#(Hφl & #HLφ & #HφU)".
+    iExists φ; iSplit; first done; iModIntro; iSplit; iIntros "%w #Hw".
+    - iApply ("HLφ" with "(HsubL Hw)").
+    - iApply ("HsubU" with "(HφU Hw)").
+  Qed.
+
+  Lemma cTMem_respects_sub L1 L2 U1 U2 ρ l :
+    □(oLater L2 vnil ρ ⊆ oLater L1 vnil ρ) -∗
+    □(oLater U1 vnil ρ ⊆ oLater U2 vnil ρ) -∗
+    clty_olty (cTMem l L1 U1) vnil ρ ⊆ clty_olty (cTMem l L2 U2) vnil ρ.
+  Proof.
+    rewrite -lift_sub_dty2clty; iIntros "#HsubL #HsubU %d".
+    iApply (oDTMem_respects_sub with "HsubL HsubU").
+  Qed.
+
+  Lemma oDVMem_respects_subN i T1 T2 ρ d :
+    oClose (oLaterN i T1) ρ ⊆ oClose (oLaterN i T2) ρ ⊢
+    ▷^i oDVMem T1 ρ d -∗ ▷^i oDVMem T2 ρ d.
+  Proof.
+    iIntros "Hsub"; iDestruct 1 as (pmem) "[Heq HT1]"; iExists pmem; iFrame "Heq".
+    iApply (path_wp_wand_laterN with "HT1"); iIntros "%v HT1".
+    by iApply ("Hsub" with "HT1").
+  Qed.
+  Definition oDVMem_respects_sub := oDVMem_respects_subN 0.
+
+  Lemma cVMem_respects_subN i T1 T2 l ρ :
+    oClose (oLaterN i T1) ρ ⊆ oClose (oLaterN i T2) ρ ⊢
+    oLaterN i (cVMem l T1) vnil ρ ⊆ oLaterN i (cVMem l T2) vnil ρ.
+  Proof.
+    rewrite -lift_sub_dty2cltyN. iIntros "Hsub %d".
+    iApply (oDVMem_respects_subN with "Hsub").
+  Qed.
+  Definition cVMem_respects_sub := cVMem_respects_subN 0.
 
   Lemma sdtp_eq (Γ : sCtx Σ) (T : clty Σ) l d:
     Γ s⊨ { l := d } : T ⊣⊢

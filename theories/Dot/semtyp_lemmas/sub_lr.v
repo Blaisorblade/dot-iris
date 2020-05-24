@@ -131,13 +131,8 @@ Section StpLemmas.
     Γ s⊨ T1, i <: T2, i -∗
     Γ s⊨ cVMem l T1, i <: cVMem l T2, i.
   Proof.
-    iIntros "#Hsub !> %ρ %v #Hg #HT1".
-    iDestruct "HT1" as (d) "#[Hdl #HT1]".
-    iExists d; iFrame "Hdl".
-    iDestruct "HT1" as (pmem) "[Heq HvT1]".
-    iExists pmem; iFrame "Heq"; rewrite !path_wp_eq.
-    iDestruct "HvT1" as (w) "[Hv HvT1]"; iExists w; iFrame "Hv".
-    by iApply "Hsub".
+    iIntros "#Hsub !> %ρ %v Hg HT1"; iApply (cVMem_respects_subN with "[Hg] HT1").
+    iApply (sstpi_app with "Hsub Hg").
   Qed.
 
   Lemma Fld_Sub_Fld {Γ T1 T2 i l}:
