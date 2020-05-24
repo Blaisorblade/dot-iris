@@ -24,7 +24,7 @@ Notation dslty Σ := (env → iPPred dms Σ).
 Definition dsltyO Σ := env -d> iPPredO dms Σ.
 Notation Dslty T := (λ ρ, IPPred (λI ds, T ρ ds)).
 
-(** ** A "complete" logical type, containing all semantics of a type.
+(** ** A "coherent" logical type, containing all semantics of a type.
 That is, semantics for both definition lists and values, and proofs that they
 agree appropriately. *)
 Record clty {Σ} := _Clty {
