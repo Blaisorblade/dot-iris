@@ -99,8 +99,7 @@ Section helpers.
     iIntros "#H"; iApply ietp_value; iIntros (ρ).
     iSpecialize ("H" $! ρ with "[//]").
     rewrite /interp_expr wp_value_inv !closed_subst_vl_id //.
-    iExists _; iSplit; first done.
-    by rewrite oDVMem_eq path_wp_pv_eq.
+    iExists _; iFrame (Hlook); by rewrite oDVMem_eq path_wp_pv_eq.
   Qed.
 End helpers.
 
@@ -129,8 +128,7 @@ Section div_example.
   Proof using Type*.
     wp_bind (IfCtx _ _).
     wp_bin; ev; simplify_eq/=.
-    case_decide; rewrite -wp_pure_step_later //; iNext.
-    by rewrite -wp_value'; auto.
+    case_decide; wp_pure; first by auto.
     iApply wp_wand; [iApply loopSemT | naive_solver].
   Qed.
 

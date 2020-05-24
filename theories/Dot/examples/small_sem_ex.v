@@ -47,7 +47,7 @@ Section small_ex.
       iApply sAnd1_Sub.
     }
     iApply T_Obj_I; iApply D_Cons; [done|iApply (sD_posDm_abs with "Hs")|].
-    by iSplit; [iIntros "!%"|iIntros "!> ** //"]; first naive_solver.
+    iSplit; last iIntros "!> ** "; naive_solver.
   Qed.
 
   (* This works. Crucially, we use T_Mu_I to introduce the object type.
@@ -66,12 +66,11 @@ Section small_ex.
     iApply sT_And_I; first last.
     - iApply (T_Sub (i := 0) (T2 := TTop)); last by iApply sSub_Top.
       by iApply vHasA0typ.
-    - rewrite -setp_value_eq /= /iPPred_car /=.
-      have Hev2: pos (vint 2) by rewrite /pos; eauto with lia.
-      iIntros (_).
-
-      repeat (repeat iExists _; repeat iSplit; rewrite ?path_wp_pv_eq //);
-        try by [|iApply dm_to_type_intro].
+    - rewrite -setp_value_eq; iIntros (ρ).
+      iExists _; iSplit; first naive_solver.
+      rewrite oDVMem_eq path_wp_pv_eq oSel_pv.
+      by iExists _, _; repeat iSplit; [naive_solver|
+        by iApply dm_to_type_intro|rewrite /=/pos; eauto with lia].
   Qed.
 
   (*
@@ -102,10 +101,11 @@ Section small_ex.
       cTop).
   Definition sminiVT2Concr := oMu sminiVT2ConcrBody.
 
-  (* The next lemma [ demonstrates an alternative typing derivation,
-  using gDOT rules
-   But we get a weaker type, because we're using typing rules
-  for recursive objects on a not-really-recursive one. *)
+  (**
+    The next lemma demonstrates an alternative typing derivation, using gDOT
+    rules.
+    But we get a weaker type, because we're using typing rules for recursive
+    objects on a not-really-recursive one. *)
   Lemma vHasA2t `{SwapPropI Σ}: Hs -∗ [] ⊨ miniV : miniVT2.
   Proof.
     iIntros "#Hs".
