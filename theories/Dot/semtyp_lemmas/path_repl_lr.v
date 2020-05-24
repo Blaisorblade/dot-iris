@@ -21,9 +21,8 @@ Section semantic_lemmas.
     Γ s⊨p p : τ, i -∗
     Γ s⊨p p : oSing p, i.
   Proof.
-    iIntros "#Hep !> %ρ Hg". iSpecialize ("Hep" with "Hg").
-    iApply (strong_path_wp_wand with "Hep"); iIntros (v Hpv) "_ !%".
-    apply alias_paths_pv_eq_1, Hpv.
+    iIntros "#Hep !> %ρ Hg"; iApply (strong_path_wp_wand with "(Hep Hg)").
+    iIntros "%v %Hpv _ !%"; apply alias_paths_pv_eq_1, Hpv.
   Qed.
 
   Lemma P_Sngl_Refl Γ T p i : Γ ⊨p p : T, i -∗ Γ ⊨p p : TSing p, i.
@@ -33,8 +32,7 @@ Section semantic_lemmas.
     Γ s⊨p p : T, i -∗
     Γ s⊨ oSing p, i <: T, i.
   Proof.
-    iIntros "#Hp !> %ρ %v Hg /= Heq".
-    iSpecialize ("Hp" with "Hg"); iNext i.
+    iIntros "#Hp !> %ρ %v Hg /= Heq"; iSpecialize ("Hp" with "Hg"); iNext i.
     iDestruct "Heq" as %->%(alias_paths_elim_eq (T _ ρ)).
     by rewrite path_wp_pv_eq.
   Qed.
@@ -47,12 +45,12 @@ Section semantic_lemmas.
     Γ s⊨ oSing p, i <: oSing q, i -∗
     Γ s⊨ oSing q, i <: oSing p, i.
   Proof.
-    iIntros "#Hp #Hps !> %ρ %v #Hg /= Heq".
+    iIntros "#Hp #Hps !> %ρ %v #Hg Heq".
     iDestruct (path_wp_eq with "(Hp Hg)") as (w) "[Hpw _] {Hp}".
     rewrite -alias_paths_pv_eq_1; iSpecialize ("Hps" $! _ w with "Hg Hpw");
-      rewrite !alias_paths_pv_eq_1.
-    iNext i; iRevert "Hps Hpw Heq"; iIntros "!%" (Hqw Hpw Hqv).
-    by rewrite (path_wp_pure_det Hqv Hqw).
+      iNext i; rewrite /= !alias_paths_pv_eq_1.
+    iRevert "Hps Hpw Heq"; iIntros "!%" (Hqw Hpw Hqv).
+    rewrite (path_wp_pure_det Hqv Hqw) {Hqv Hqw}. exact Hpw.
   Qed.
 
   Lemma Sngl_Sub_Sym Γ p q T i: Γ ⊨p p : T, i -∗
@@ -97,7 +95,7 @@ Section semantic_lemmas.
     Γ s⊨p p : oMu T, i -∗ Γ s⊨p p : T .sTp[ p /], i.
   Proof.
     iIntros "#Hp !> %ρ Hg /=".
-    iApply (strong_path_wp_wand with "(Hp Hg) []"); iIntros "**".
+    iApply (strong_path_wp_wand with "(Hp Hg)"); iIntros "**".
     by rewrite oMu_eq sem_psubst_one_repl ?alias_paths_pv_eq_1.
   Qed.
 
