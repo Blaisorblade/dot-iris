@@ -182,7 +182,7 @@ with path_typed Γ g : path → ty → nat → Prop :=
     Γ v⊢ₚ[ g ] pself p l : TSing (pself q l), i
 where "Γ v⊢ₚ[ g ] p : T , i" := (path_typed Γ g p T i)
 (* Γ v⊢ₜ[ g ] T1, i1 <: T2, i2 means that TLater^i1 T1 <: TLater^i2 T2. *)
-with subtype Γ g : ty → nat → ty → nat → Prop :=
+with subtype Γ g : nat → nat → ty → ty → Prop :=
 | iSub_Refl i T :
     is_stamped_ty (length Γ) g T →
     Γ v⊢ₜ[ g ] T, i <: T, i
@@ -313,7 +313,7 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     iterate TLater i (shift T1) :: Γ v⊢ₚ[ g ] pv (ids 0) : shift T2, j →
     (*───────────────────────────────*)
     Γ v⊢ₜ[ g ] T1, i <: T2, j
-where "Γ v⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ g T1 i1 T2 i2).
+where "Γ v⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ g i1 i2 T1 T2).
 
 (* Make [T] first argument: Hide [Γ] and [g] for e.g. typing examples. *)
 Global Arguments iD_Typ_Abs {Γ g} T _ _ _ _ _ _ _ _ _ : assert.
