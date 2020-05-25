@@ -123,8 +123,11 @@ Ltac with_is_stamped tac :=
   end.
 
 Ltac inverse_once H := nosplit (try_once_tac H (inverse H)).
-Ltac inverse_is_unstamped := (repeat with_is_unstamped inverse_once); un_usedLemma.
-Ltac inverse_is_stamped := (repeat with_is_stamped inverse_once); un_usedLemma.
+(* Using cbn exposes further assumption of form is_{un,}stamped, allowing for
+further inversions. *)
+Ltac inverse_once_cbn H := nosplit (try_once_tac H (inverse H)); cbn in *.
+Ltac inverse_is_unstamped := (repeat with_is_unstamped inverse_once_cbn); un_usedLemma.
+Ltac inverse_is_stamped := (repeat with_is_stamped inverse_once_cbn); un_usedLemma.
 
 Lemma is_unstamped_path_root n p :
   is_unstamped_path n OnlyVars p → ∃ x, path_root p = var_vl x.
