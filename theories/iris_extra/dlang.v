@@ -100,7 +100,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
       iIntros "Hsg1 Hsg2".
       iDestruct (leadsto_agree_dep_abs with "Hsg1 Hsg2") as (->) "Hgoal".
       iExists eq_refl; cbn. iNext.
-      by repeat setoid_rewrite bi.discrete_fun_equivI.
+      by repeat setoid_rewrite discrete_fun_equivI.
     Qed.
 
     Lemma leadsto_agree {s n φ1 φ2} args ρ v :

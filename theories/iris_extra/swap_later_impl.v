@@ -9,15 +9,15 @@ From D Require Import gen_iheap.
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
-(** ** Interface to Swap laws for any [sbi]. *)
-Class SwapProp (PROP: sbi) := {
+(** ** Interface to Swap laws for any [bi]. *)
+Class SwapProp (PROP: bi) := {
   impl_later : ∀ (P Q: PROP), (▷ P → ▷ Q) ⊢ ▷ (P → Q);
   wand_later: ∀ (P Q: PROP), (▷ P -∗ ▷ Q) ⊢ ▷ (P -∗ Q)
 }.
 
-Notation SwapPropI Σ := (SwapProp (iPropSI Σ)).
+Notation SwapPropI Σ := (SwapProp (iPropI Σ)).
 
-Class SwapBUpd (PROP: sbi) `(BUpd PROP) := {
+Class SwapBUpd (PROP: bi) `(BUpd PROP) := {
   later_bupd_commute: ∀(P:PROP), (|==> ▷ P) ⊣⊢ ▷ |==> P
 }.
 
@@ -34,7 +34,7 @@ Proof. elim: n => [//|n IHn]. by rewrite later_bupd_commute /= IHn. Qed.
 Import uPred.
 
 Section derived_swap_lemmas.
-  Context `{M : ucmraT} `{!SwapProp (uPredSI M)}.
+  Context `{M : ucmraT} `{!SwapProp (uPredI M)}.
   Set Default Proof Using "Type*".
   Lemma mlater_impl (P Q: uPred M) : (▷ P → ▷ Q) ⊣⊢ ▷ (P → Q).
   Proof. iSplit. iApply impl_later. iApply later_impl. Qed.
@@ -113,10 +113,10 @@ Proof.
     eauto using cmra_validN_le.
 Qed.
 
-Global Instance SwapCmra `{!CmraSwappable M}: SwapProp (uPredSI M).
+Global Instance SwapCmra `{!CmraSwappable M}: SwapProp (uPredI M).
 Proof. split. exact: later_impl. exact: later_wand. Qed.
 
-Global Instance SwapBUpdCmra `{!CmraSwappable M}: SwapBUpd (uPredSI M) _.
+Global Instance SwapBUpdCmra `{!CmraSwappable M}: SwapBUpd (uPredI M) _.
 Proof. split=>P. iSplit; [iApply bupd_later | iApply later_bupd]. Qed.
 
 End SwapCmra.

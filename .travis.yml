@@ -10,7 +10,7 @@ env:
   - CONTRIB_NAME="dot-iris"
   - OPAM_NAME="dot-iris-builddep"
   matrix:
-  - COQ_IMAGE="blaisorblade/docker-dot-iris:coq-8.11.1-iris-2020-04-26.0.7364ea6e"
+  - COQ_IMAGE="blaisorblade/docker-dot-iris:coq-8.11.1-iris-2020-05-24.2.af5e50e7"
   # this config uses: $COMPILER_EDGE (cf. "opam switch" command below)
   # See https://github.com/coq-community/docker-coq/wiki#supported-tags
 

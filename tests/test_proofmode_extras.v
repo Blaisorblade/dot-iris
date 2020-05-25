@@ -3,7 +3,7 @@ Import bi.
 From D.iris_extra Require Import proofmode_extra.
 
 Section Succeed.
-  Context {PROP : sbi}.
+  Context {PROP : bi}.
   Implicit Types P Q R : PROP.
 
   Lemma strip_timeless_later_wand P Q :

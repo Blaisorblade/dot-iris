@@ -177,7 +177,7 @@ Section path_wp.
       iAssert ((φ : vl -d> iPropO Σ) ≡ (λ v : vl, ⌜Pv v⌝))%I as "HE".
       by simplify_eq.
       clear HE; iIntros "H"; iRevert (Pv) "HE"; iRevert "H"; path_wp_ind p φ.
-      + iIntros "Hv" (Pv) "Heq"; rewrite bi.discrete_fun_equivI /=.
+      + iIntros "Hv" (Pv) "Heq"; rewrite discrete_fun_equivI /=.
         iRewrite ("Heq" $! v) in "Hv". iDestruct "Hv" as %Hv. auto.
       + iDestruct 1 as (vp q Hlook) "[[IHp _] [IHq _]]"; iIntros (Pv) "Heq".
         iDestruct ("IHq" with "Heq") as %Hq.
