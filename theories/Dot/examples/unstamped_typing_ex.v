@@ -98,7 +98,7 @@ Proof.
   move: (HsT1) => /is_unstamped_ren1_ty HsT2; rewrite -hrenS in HsT2.
   move: (HsT2) => /is_unstamped_ren1_ty HsT3; rewrite -hrenS in HsT3.
   move: (HsT3) => /is_unstamped_ren1_ty HsT4; rewrite -hrenS in HsT4.
-  tcrush; rewrite ?iterate_S ?iterate_0 /=; tcrush;
+  tcrush;
     first [eapply iSub_Sel', (path_tp_delay (i := 0)) |
       eapply iSel_Sub, (path_tp_delay (i := 0))];
        try (typconstructor; apply: iT_Var');

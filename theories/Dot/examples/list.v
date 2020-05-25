@@ -171,7 +171,7 @@ Ltac norm := cbv; hideCtx.
 Lemma consTSub Γ : (hlistModTConcrBody hx1 hx0 : ty) :: boolImplT :: Γ u⊢ₜ
   hconsTConcr hx1 hx0, 0 <: hconsT hx0, 0.
 Proof.
-  tcrush; rewrite !iterate_S !iterate_0; hideCtx; last mltcrush.
+  tcrush; hideCtx; last mltcrush.
   eapply iSub_Sel', (path_tp_delay (i := 0)); wtcrush; varsub; by ltcrush.
 Qed.
 
@@ -310,7 +310,7 @@ Proof.
   eapply iT_All_E, Hsnil.
   eapply (iT_All_E (T1 := 𝐙)); last tcrush.
   (* Perform avoidance on the type application. *)
-  eapply tyApp_typed with (T := 𝐙%HS); first done; intros; ltcrush; cbv -[Γ'].
+  eapply tyApp_typed with (T := 𝐙%HS); first done; intros; ltcrush.
   by eapply iSub_Sel', (path_tp_delay (i := 0)); try (typconstructor; var); wtcrush.
   by lNext.
   lNext; by eapply iSel_Sub, (path_tp_delay (i := 0)); try (typconstructor; var); wtcrush.

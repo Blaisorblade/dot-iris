@@ -127,7 +127,7 @@ Example boolImplTyp Γ :
   Γ u⊢ₜ boolImplV : boolImplT.
 Proof.
   apply (iT_Sub_nocoerce boolImplTConcr); first by apply boolImplTypConcr.
-  tcrush; rewrite iterate_0; ltcrush; apply SubIFT_LaterP0Bool'.
+  tcrush; ltcrush; apply SubIFT_LaterP0Bool'.
 Qed.
 
 Module Export hBoolSing.
