@@ -146,8 +146,6 @@ Section type_proj.
     Γ ⊨ p :^i T
     ------------------------
     Γ ⊨ p.A <:^i T#A
-
-    We give two proofs.
   *)
   (**
     Derive this rule from the above ones: rewrite the selection as a
@@ -160,16 +158,6 @@ Section type_proj.
   Proof.
     iIntros "#Hp". rewrite -oProj_oSing.
     iApply sProj_Stp_Proj. iApply (sSngl_Stp_Self with "Hp").
-  Qed.
-
-  Lemma sSel_Stp_Proj' A Γ T i p :
-    Γ s⊨p p : T, i -∗
-    Γ s⊨ oSel p A <:[i] oProj A T.
-  Proof.
-    (* Direct proof in the model. *)
-    iIntros "#Hp !> %ρ Hg %v"; iSpecialize ("Hp" with "Hg"); iNext i.
-    iIntros "Hφ"; iDestruct (path_wp_agree with "Hp Hφ") as (w Hw) "[Hp Hφ]".
-    rewrite oProjN_eq. eauto.
   Qed.
 
   (**
