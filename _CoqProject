@@ -64,6 +64,7 @@ theories/Dot/stamping/traversals.v
 theories/Dot/stamping/type_extraction_syn.v
 theories/Dot/stamping/unstampedness_binding.v
 
+theories/Dot/typing/type_eq.v
 theories/Dot/typing/stamped_typing.v
 theories/Dot/typing/storeless_typing.v
 theories/Dot/typing/typing_aux_defs.v
