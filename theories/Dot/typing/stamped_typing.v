@@ -225,6 +225,7 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
 | iSub_Sel p U {l L i}:
     Γ s⊢ₚ[ g ] p : TTMem l L U, i →
     Γ s⊢ₜ[ g ] TLater L, i <: TSel p l, i
+
 | iSngl_pq_Sub p q {i T1 T2}:
     T1 ~Tp[ p := q ]* T2 →
     is_stamped_ty (length Γ) g T1 →

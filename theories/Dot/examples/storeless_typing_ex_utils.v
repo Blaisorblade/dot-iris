@@ -311,7 +311,7 @@ Lemma iT_Var0_Sub Γ T1 T2 :
   Γ v⊢ₜ[ g ] tv (var_vl 0) : T2.
 Proof. intros. by eapply iT_Var_Sub; [| rewrite ?hsubst_id]. Qed.
 
-Lemma iSub_Sel' Γ U {p l L i}:
+Lemma iSub_Sel' U {Γ p l L i}:
   is_stamped_ty (length Γ) g L →
   Γ v⊢ₚ[ g ] p : TTMem l L U, i →
   Γ v⊢ₜ[ g ] L, i <: TSel p l, i.

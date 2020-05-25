@@ -146,7 +146,7 @@ Proof.
   epose proof falseTyp Γ [_; _; _; _; _; _] as Ht; cbn in Ht.
   tcrush; clear Ht.
   (** Typecheck returned head: *)
-  by varsub; eapply (iSub_Sel' _ (hx4 @; "T")); tcrush; varsub; ltcrush.
+  by varsub; eapply (iSub_Sel' (hx4 @; "T")); tcrush; varsub; ltcrush.
   (**
     Typecheck returned tail. Recall [cons] starts with
 

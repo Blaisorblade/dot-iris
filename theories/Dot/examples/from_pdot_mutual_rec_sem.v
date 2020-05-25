@@ -322,7 +322,7 @@ Proof.
     iApply (fundamental_typed with "Hs").
     eapply iT_Sub_nocoerce.
     + apply (iT_Mu_E (T := TTop)); tcrush.
-    + apply (iSub_Sel' _ TTop); tcrush; varsub. lThis; ltcrush.
+    + apply (iSub_Sel' TTop); tcrush; varsub. lThis; ltcrush.
   }
   iApply D_Cons; [done | semTMember 2 | ].
   iApply D_Cons; [done | iApply (fundamental_dm_typed with "Hs")| ]. {
@@ -331,7 +331,7 @@ Proof.
     eapply (iSub_Trans (T2 := ⊤) (i2 := 0)); tcrush.
     eapply (iSub_Trans (i2 := 1)); first exact: iSub_AddI.
     asideLaters.
-    eapply (iSub_Sel' _ ⊤); tcrush. varsub; lThis.
+    eapply (iSub_Sel' ⊤); tcrush. varsub; lThis.
   }
   iApply D_Cons; [done | iApply D_Val | ]. {
     iApply (T_All_I_Strong (Γ' := Γ')); first
