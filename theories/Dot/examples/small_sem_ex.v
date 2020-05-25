@@ -90,13 +90,13 @@ Section small_ex.
   Definition miniVT2 := μ miniVT2Body.
 
   Definition sminiVT2Body : oltyO Σ 0 :=
-    oAnd (cTMem "A" oBot (oPrim tint))
+    oAnd (cTMemL "A" oBot (oPrim tint))
       (oAnd (cVMem "n" (oLater (oSel x0 "A")))
       oTop).
   Goal V⟦miniVT2Body⟧ = sminiVT2Body. done. Abort.
 
   Definition sminiVT2ConcrBody : cltyO Σ :=
-    cAnd (cTMem "A" ipos ipos)
+    cAnd (cTMemL "A" ipos ipos)
       (cAnd (cVMem "n" (oLater (oSel x0 "A")))
       cTop).
   Definition sminiVT2Concr := oMu sminiVT2ConcrBody.

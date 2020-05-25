@@ -61,7 +61,7 @@ Section StpLemmas.
   (** ** Subtyping for type selections. *)
   Lemma sSub_Sel {Γ L U p l i}:
     Γ s⊨p p : cTMem l L U, i -∗
-    Γ s⊨ oLater L, i <: oSel p l, i.
+    Γ s⊨ L, i <: oSel p l, i.
   Proof.
     iIntros "/= #Hp !> %ρ %v Hg #HL"; iSpecialize ("Hp" with "Hg"); iNext i.
     iApply (path_wp_wand with "Hp"); iIntros (w).
@@ -70,7 +70,7 @@ Section StpLemmas.
 
   Lemma sSel_Sub {Γ L U p l i}:
     Γ s⊨p p : cTMem l L U, i -∗
-    Γ s⊨ oSel p l, i <: oLater U, i.
+    Γ s⊨ oSel p l, i <: U, i.
   Proof.
     iIntros "#Hp !> %ρ %v Hg Hφ"; iSpecialize ("Hp" with "Hg"); iNext i.
     iDestruct (path_wp_agree with "Hp Hφ") as (w Hw) "[Hp Hφ]".
@@ -157,14 +157,14 @@ Section StpLemmas.
 
   (** ** Type members: variance of [cTMem], that is [{A :: L .. U}]. *)
   Lemma sTyp_Sub_Typ {Γ L1 L2 U1 U2 i l} `{!SwapPropI Σ} :
-    Γ s⊨ oLater L2, i <: oLater L1, i -∗
-    Γ s⊨ oLater U1, i <: oLater U2, i -∗
+    Γ s⊨ L2, i <: L1, i -∗
+    Γ s⊨ U1, i <: U2, i -∗
     Γ s⊨ cTMem l L1 U1, i <: cTMem l L2 U2, i.
   Proof. rewrite -!sstpd_to_sstpi. apply sTyp_Stp_Typ. Qed.
 
   Lemma Typ_Sub_Typ {Γ L1 L2 U1 U2 i l} `{!SwapPropI Σ} :
-    Γ ⊨ TLater L2, i <: TLater L1, i -∗
-    Γ ⊨ TLater U1, i <: TLater U2, i -∗
+    Γ ⊨ L2, i <: L1, i -∗
+    Γ ⊨ U1, i <: U2, i -∗
     Γ ⊨ TTMem l L1 U1, i <: TTMem l L2 U2, i.
   Proof. apply sTyp_Sub_Typ. Qed.
 End StpLemmas.

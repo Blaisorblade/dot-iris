@@ -159,16 +159,26 @@ Lemma iT_Mu_E' {Γ x T1 T2}:
   Γ u⊢ₜ tv (ids x): T2.
 Proof. intros; subst; tcrush. Qed.
 
+Lemma iSub_SelL {Γ p U l L i}:
+  Γ u⊢ₚ p : TTMemL l L U, i →
+  Γ u⊢ₜ TLater L, i <: TSel p l, i.
+Proof. intros; exact: iSub_Sel. Qed.
+
+Lemma iSel_SubL {Γ p L l U i}:
+  Γ u⊢ₚ p : TTMemL l L U, i →
+  Γ u⊢ₜ TSel p l, i <: TLater U, i.
+Proof. intros; exact: iSel_Sub. Qed.
+
 Lemma iSub_Sel' U {Γ p l L i}:
   is_unstamped_ty' (length Γ) L →
-  Γ u⊢ₚ p : TTMem l L U, i →
+  Γ u⊢ₚ p : TTMemL l L U, i →
   Γ u⊢ₜ L, i <: TSel p l, i.
 Proof. intros; ettrans; last exact: (iSub_Sel (p := p)); tcrush. Qed.
 
 (** Specialization of [iSub_Sel'] for convenience. *)
 Lemma iSub_Sel'' Γ {p l L i}:
   is_unstamped_ty' (length Γ) L →
-  Γ u⊢ₚ p : TTMem l L L, i → Γ u⊢ₜ L, i <: TSel p l, i.
+  Γ u⊢ₚ p : TTMemL l L L, i → Γ u⊢ₜ L, i <: TSel p l, i.
 Proof. apply iSub_Sel'. Qed.
 
 (** * Manipulating laters, basics. *)
@@ -214,7 +224,7 @@ Lemma val_LB L U Γ i x l :
   Γ u⊢ₜ tv (ids x) : type l >: L <: U →
   Γ u⊢ₜ ▶: L, i <: pv (ids x) @; l, i.
 Proof.
-  intros ??? Hv; apply (iSub_Sel (p := pv _) (U := U)).
+  intros ??? Hv; apply (iSub_SelL (p := pv _) (U := U)).
   apply (path_tp_delay (i := 0)); wtcrush.
 Qed.
 
@@ -225,13 +235,13 @@ Lemma val_UB L U Γ i x l :
   Γ u⊢ₜ tv (ids x) : type l >: L <: U →
   Γ u⊢ₜ pv (ids x) @; l, i <: ▶: U, i.
 Proof.
-  intros ??? Hv; apply (iSel_Sub (p := pv _) (L := L)).
+  intros ??? Hv; apply (iSel_SubL (p := pv _) (L := L)).
   apply (path_tp_delay (i := 0)); wtcrush.
 Qed.
 
 Lemma iD_Typ Γ T l:
   is_unstamped_ty' (length Γ) T →
-  Γ u⊢{ l := dtysyn T } : TTMem l T T.
+  Γ u⊢{ l := dtysyn T } : TTMemL l T T.
 Proof. intros. tcrush. Qed.
 
 (* We can derive rules iSub_Bind_1 and iSub_Bind_2 (the latter only conjectured) from

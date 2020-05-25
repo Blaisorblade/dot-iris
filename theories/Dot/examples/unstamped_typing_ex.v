@@ -30,7 +30,7 @@ Proof. apply iT_Obj_I; tcrush. Qed.
 
 (* Try out fixpoints. *)
 Definition F3 T :=
-  TMu (TAnd (TTMem "A" T T) TTop).
+  TMu (TAnd (TTMemL "A" T T) TTop).
 
 Example ex3 Γ T:
   Γ u⊢ₜ ν {@ type "A" = F3 (x0 @; "A") } : F3 (F3 (TSel x0 "A")).

@@ -79,6 +79,8 @@ Notation TInt := (TPrim tint).
 Notation TBool := (TPrim tbool).
 Notation vint n := (vlit $ lint n).
 Notation vbool b := (vlit $ lbool b).
+(* Adapter over TTMem. [L] stands for Later. *)
+Definition TTMemL l L U := TTMem l (TLater L) (TLater U).
 
 (** Definition lists [\overbar{d}]. *)
 Definition dms := list (label * dm).

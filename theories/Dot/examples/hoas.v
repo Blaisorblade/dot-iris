@@ -163,6 +163,7 @@ Definition hTAll : hty → (hvl → hty) → hty := λ T U i,
 Definition hTMu : (hvl → hty) → hty := liftBind TMu.
 Definition hTVMem : label → hty → hty := λ l, liftA1 (TVMem l).
 Definition hTTMem : label → hty → hty → hty := λ l, liftA2 (TTMem l).
+Definition hTTMemL : label → hty → hty → hty := λ l, liftA2 (TTMemL l).
 Definition hTSel : hpath → label → hty := Eval cbv in λ p l, liftA2 TSel p (pureS l).
 Definition hTPrim b : hty := liftA0 (TPrim b).
 Definition hTSing : hpath → hty := liftA1 TSing.
@@ -199,6 +200,7 @@ Arguments hTAll /.
 Arguments hTMu /.
 Arguments hTVMem /.
 Arguments hTTMem /.
+Arguments hTTMemL /.
 Arguments hTSel /.
 Arguments hTPrim /.
 Arguments hTSing /.
@@ -282,7 +284,7 @@ Notation "▶: T" := (hTLater T) (at level 49, right associativity) : hsyn_scope
 Notation "'∀:' x : T , U" := (hTAll T (λT x, U)) (at level 48, x, T at level 98, U at level 98).
 Notation "'μ' Ts" := (hTMu Ts) (at level 50, Ts at next level).
 Notation "'μ:' x , Ts" := (hTMu (λT x, Ts)) (at level 50, Ts at next level).
-Notation "'type' l >: L <: U" := (hTTMem l L U) (at level 60, l at level 50, L, U at level 70) : hsyn_scope.
+Notation "'type' l >: L <: U" := (hTTMemL l L U) (at level 60, l at level 50, L, U at level 70) : hsyn_scope.
 Notation "'val' l : T" := (hTVMem l T)
   (at level 60, l, T at level 50, format "'[' 'val'  l  :  T  ']' '/'") : hsyn_scope.
 

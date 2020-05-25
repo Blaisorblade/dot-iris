@@ -103,8 +103,8 @@ where "Γ u⊢ds ds : T" := (dms_typed Γ ds T)
 with dm_typed Γ : label → dm → ty → Prop :=
 | iD_Typ_Abs T l L U:
     is_unstamped_ty' (length Γ) T →
-    Γ u⊢ₜ TLater L, 0 <: TLater T, 0 →
-    Γ u⊢ₜ TLater T, 0 <: TLater U, 0 →
+    Γ u⊢ₜ L, 0 <: TLater T, 0 →
+    Γ u⊢ₜ TLater T, 0 <: U, 0 →
     Γ u⊢{ l := dtysyn T } : TTMem l L U
 | iD_Val l v T:
     Γ u⊢ₜ tv v : T →
@@ -218,10 +218,10 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 (* Type selections *)
 | iSel_Sub p L {l U i}:
     Γ u⊢ₚ p : TTMem l L U, i →
-    Γ u⊢ₜ TSel p l, i <: TLater U, i
+    Γ u⊢ₜ TSel p l, i <: U, i
 | iSub_Sel p U {l L i}:
     Γ u⊢ₚ p : TTMem l L U, i →
-    Γ u⊢ₜ TLater L, i <: TSel p l, i
+    Γ u⊢ₜ L, i <: TSel p l, i
 
 | iSngl_pq_Sub p q {i T1 T2}:
     T1 ~Tp[ p := q ]* T2 →
@@ -259,8 +259,8 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Γ u⊢ₜ T1, i <: T2, i →
     Γ u⊢ₜ TVMem l T1, i <: TVMem l T2, i
 | iTyp_Sub_Typ L1 L2 U1 U2 i l:
-    Γ u⊢ₜ TLater L2, i <: TLater L1, i →
-    Γ u⊢ₜ TLater U1, i <: TLater U2, i →
+    Γ u⊢ₜ L2, i <: L1, i →
+    Γ u⊢ₜ U1, i <: U2, i →
     Γ u⊢ₜ TTMem l L1 U1, i <: TTMem l L2 U2, i
   (* Is it true that for covariant F, F[A ∧ B] = F[A] ∧ F[B]?
     Dotty assumes that, tho DOT didn't capture it.

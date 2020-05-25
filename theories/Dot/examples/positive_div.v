@@ -147,38 +147,38 @@ Section div_example.
   Lemma Sub_later_ipos_nat Γ : ⊢ Γ s⊨ oLater ipos, 0 <: oLater V⟦ 𝐙 ⟧, 0.
   Proof. rewrite -sSub_Later_Sub -sSub_Index_Incr. apply Sub_ipos_nat. Qed.
 
-  Lemma posTMem_widen Γ l : ⊢ Γ s⊨ cTMem l ipos ipos, 0 <: cTMem l ⊥ oInt, 0.
+  Lemma posTMem_widen Γ l : ⊢ Γ s⊨ cTMemL l ipos ipos, 0 <: cTMemL l ⊥ oInt, 0.
   Proof using Type*.
     iApply sTyp_Sub_Typ; [iApply sBot_Sub | iApply Sub_later_ipos_nat].
   Qed.
 
 
-  Lemma sD_posDm_ipos l Γ : Hs -∗ Γ s⊨ { l := posDm } : cTMem l ipos ipos.
+  Lemma sD_posDm_ipos l Γ : Hs -∗ Γ s⊨ { l := posDm } : cTMemL l ipos ipos.
   Proof.
     iIntros "Hs".
     iApply (sD_Typ_Abs ipos); [iApply sSub_Refl..|by iExists _; iFrame "Hs"].
   Qed.
 
-  Lemma sD_posDm_abs l Γ : Hs -∗ Γ s⊨ { l := posDm } : cTMem l ⊥ oInt.
+  Lemma sD_posDm_abs l Γ : Hs -∗ Γ s⊨ { l := posDm } : cTMemL l ⊥ oInt.
   Proof.
-    iIntros "Hs"; iApply sD_Typ_Sub;
+    iIntros "Hs"; iApply (sD_Typ_Sub (oLater ipos));
       [iApply sBot_Sub|iApply Sub_later_ipos_nat|iApply (sD_posDm_ipos with "Hs")].
   Qed.
 
   Lemma sInTestVl l ρ : path_includes (pv x0) (testVl l .: ρ) [(l, posDm)].
   Proof. constructor; naive_solver. Qed.
 
-  Lemma s_posDm l : Hs -∗ cTMem l ipos ipos ids [(l, posDm)].
+  Lemma s_posDm l : Hs -∗ cTMemL l ipos ipos ids [(l, posDm)].
   Proof.
     rewrite (sD_posDm_ipos l []) sdtp_eq; iIntros "H".
     iApply ("H" $! (testVl l .: ids) with "[] [//]"); auto using sInTestVl.
   Qed.
 
   Lemma posModVHasA ρ :
-    Hs -∗ clty_olty (cTMem "Pos" ipos ipos) vnil ρ posModV.[ρ].
+    Hs -∗ clty_olty (cTMemL "Pos" ipos ipos) vnil ρ posModV.[ρ].
   Proof. by rewrite (s_posDm "Pos") -clty_commute. Qed.
 
-  Lemma posModVHasATy: Hs -∗ [] s⊨ posModV : cTMem "Pos" ipos ipos.
+  Lemma posModVHasATy: Hs -∗ [] s⊨ posModV : cTMemL "Pos" ipos ipos.
   Proof.
     rewrite -setp_value_eq; iIntros "#Hs %ρ"; iApply (posModVHasA ρ with "Hs").
   Qed.

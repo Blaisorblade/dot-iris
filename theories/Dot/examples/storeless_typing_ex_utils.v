@@ -311,16 +311,26 @@ Lemma iT_Var0_Sub Γ T1 T2 :
   Γ v⊢ₜ[ g ] tv (var_vl 0) : T2.
 Proof. intros. by eapply iT_Var_Sub; [| rewrite ?hsubst_id]. Qed.
 
+Lemma iSub_SelL {Γ p U l L i}:
+  Γ v⊢ₚ[ g ] p : TTMemL l L U, i →
+  Γ v⊢ₜ[ g ] TLater L, i <: TSel p l, i.
+Proof. intros; exact: iSub_Sel. Qed.
+
+Lemma iSel_SubL {Γ p L l U i}:
+  Γ v⊢ₚ[ g ] p : TTMemL l L U, i →
+  Γ v⊢ₜ[ g ] TSel p l, i <: TLater U, i.
+Proof. intros; exact: iSel_Sub. Qed.
+
 Lemma iSub_Sel' U {Γ p l L i}:
   is_stamped_ty (length Γ) g L →
-  Γ v⊢ₚ[ g ] p : TTMem l L U, i →
+  Γ v⊢ₚ[ g ] p : TTMemL l L U, i →
   Γ v⊢ₜ[ g ] L, i <: TSel p l, i.
 Proof. intros; ettrans; last exact: (iSub_Sel (p := p)); tcrush. Qed.
 
 (** Specialization of [iSub_Sel'] for convenience. *)
 Lemma iSub_Sel'' Γ {p l L i}:
   is_stamped_ty (length Γ) g L →
-  Γ v⊢ₚ[ g ] p : TTMem l L L, i → Γ v⊢ₜ[ g ] L, i <: TSel p l, i.
+  Γ v⊢ₚ[ g ] p : TTMemL l L L, i → Γ v⊢ₜ[ g ] L, i <: TSel p l, i.
 Proof. apply iSub_Sel'. Qed.
 
 Lemma iSub_AddIJ' {Γ T i j} (Hst: is_stamped_ty (length Γ) g T) (Hle : i <= j):
@@ -495,7 +505,7 @@ Lemma iD_Typ T {Γ l s σ}:
   T ~[ length Γ ] (g, (s, σ)) →
   is_stamped_σ (length Γ) g σ →
   is_stamped_ty (length Γ) g T →
-  Γ v⊢[ g ]{ l := dtysem σ s } : TTMem l T T.
+  Γ v⊢[ g ]{ l := dtysem σ s } : TTMemL l T T.
 Proof. intros. apply (iD_Typ_Abs T); auto 3. Qed.
 
 Lemma packTV_typed' s T n Γ :
@@ -527,7 +537,7 @@ Lemma val_LB L U Γ i v :
   Γ v⊢ₜ[ g ] v : type "A" >: L <: U →
   Γ v⊢ₜ[ g ] ▶: L, i <: v @; "A", i.
 Proof.
-  intros ??? Hv; apply (iSub_Sel (U := U)).
+  intros ??? Hv; apply (iSub_SelL (U := U)).
   apply (path_tp_delay (i := 0)); wtcrush.
 Qed.
 
@@ -554,7 +564,7 @@ Lemma val_UB L U Γ i v :
   Γ v⊢ₜ[ g ] v : type "A" >: L <: U →
   Γ v⊢ₜ[ g ] v @; "A", i <: ▶: U, i.
 Proof.
-  intros ??? Hv; apply (iSel_Sub (L := L)).
+  intros ??? Hv; apply (iSel_SubL (L := L)).
   apply (path_tp_delay (i := 0)); wtcrush.
 Qed.
 

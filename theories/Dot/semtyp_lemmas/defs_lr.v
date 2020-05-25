@@ -70,8 +70,8 @@ Section Sec.
 
   (** ** Type member introduction. *)
   Lemma sD_Typ_Sub {Γ} L1 L2 U1 U2 s σ l:
-    Γ s⊨ oLater L2, 0 <: oLater L1, 0 -∗
-    Γ s⊨ oLater U1, 0 <: oLater U2, 0 -∗
+    Γ s⊨ L2, 0 <: L1, 0 -∗
+    Γ s⊨ U1, 0 <: U2, 0 -∗
     Γ s⊨ { l := dtysem σ s } : cTMem l L1 U1 -∗
     Γ s⊨ { l := dtysem σ s } : cTMem l L2 U2.
   Proof.
@@ -86,7 +86,7 @@ Section Sec.
 
   Lemma sD_Typ {Γ s σ} {T : oltyO Σ 0} l:
     s ↝[ σ ] T -∗
-    Γ s⊨ { l := dtysem σ s } : cTMem l T T.
+    Γ s⊨ { l := dtysem σ s } : cTMem l (oLater T) (oLater T).
   Proof.
     rewrite !sdtp_eq; iDestruct 1 as (φ Hγφ) "#Hγ"; iIntros "!>" (ρ Hpid) "#Hg".
     rewrite cTMem_eq. iExists (hoEnvD_inst (σ.|[ρ]) φ); iSplit.
@@ -96,19 +96,19 @@ Section Sec.
 
   Lemma D_Typ {Γ} T s σ l:
     s ↝[ σ ] V⟦ T ⟧ -∗
-    Γ ⊨ { l := dtysem σ s } : TTMem l T T.
+    Γ ⊨ { l := dtysem σ s } : TTMem l (TLater T) (TLater T).
   Proof. apply sD_Typ. Qed.
 
   Lemma sD_Typ_Abs {Γ} T L U s σ l:
-    Γ s⊨ oLater L, 0 <: oLater T, 0 -∗
-    Γ s⊨ oLater T, 0 <: oLater U, 0 -∗
+    Γ s⊨ L, 0 <: oLater T, 0 -∗
+    Γ s⊨ oLater T, 0 <: U, 0 -∗
     s ↝[ σ ] T -∗
     Γ s⊨ { l := dtysem σ s } : cTMem l L U.
   Proof. rewrite (sD_Typ l). apply sD_Typ_Sub. Qed.
 
   Lemma D_Typ_Abs {Γ} T L U s σ l:
-    Γ ⊨ TLater L, 0 <: TLater T, 0 -∗
-    Γ ⊨ TLater T, 0 <: TLater U, 0 -∗
+    Γ ⊨ L, 0 <: TLater T, 0 -∗
+    Γ ⊨ TLater T, 0 <: U, 0 -∗
     s ↝[ σ ] V⟦ T ⟧ -∗
     Γ ⊨ { l := dtysem σ s } : TTMem l L U.
   Proof. apply sD_Typ_Abs. Qed.

@@ -163,8 +163,8 @@ Section sem_types.
   (** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
   Definition oDTMem τ1 τ2 : dltyO Σ := Dlty (λI ρ d,
     ∃ ψ, d ↗n[ 0 ] ψ ∧
-       □ (oLater τ1 vnil ρ ⊆ packHoLtyO ψ vnil ∧
-          packHoLtyO ψ vnil ⊆ oLater τ2 vnil ρ)).
+       □ (τ1 vnil ρ ⊆ packHoLtyO ψ vnil ∧
+          packHoLtyO ψ vnil ⊆ τ2 vnil ρ)).
   Global Instance Proper_oDTMem : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
   Proof.
     rewrite /oDTMem => ??? ??? ??/=; properness; try reflexivity;
@@ -359,7 +359,7 @@ Section misc_lemmas.
   Lemma vl_sel_ub w l L U ρ v :
     vl_sel w l vnil v -∗
     clty_olty (cTMem l L U) vnil ρ w -∗
-    oLater U vnil ρ v.
+    U vnil ρ v.
   Proof.
     iIntros "Hφ"; iDestruct 1 as (d1 Hl1 φ1) "(Hdφ1 & _ & HφU)".
     iApply "HφU".
@@ -369,7 +369,7 @@ Section misc_lemmas.
   Qed.
 
   Lemma vl_sel_lb w l L U ρ v :
-    oLater L vnil ρ v -∗
+    L vnil ρ v -∗
     clty_olty (cTMem l L U) vnil ρ w -∗
     vl_sel w l vnil v.
   Proof.
@@ -391,8 +391,8 @@ Section misc_lemmas.
   Proof. apply (lift_sub_dty2cltyN 0). Qed.
 
   Lemma oDTMem_respects_sub L1 L2 U1 U2 ρ d :
-    □(oLater L2 vnil ρ ⊆ oLater L1 vnil ρ) -∗
-    □(oLater U1 vnil ρ ⊆ oLater U2 vnil ρ) -∗
+    □(L2 vnil ρ ⊆ L1 vnil ρ) -∗
+    □(U1 vnil ρ ⊆ U2 vnil ρ) -∗
     oDTMem L1 U1 ρ d -∗ oDTMem L2 U2 ρ d.
   Proof.
     iIntros "#HsubL #HsubU"; iDestruct 1 as (φ) "#(Hφl & #HLφ & #HφU)".
@@ -402,8 +402,8 @@ Section misc_lemmas.
   Qed.
 
   Lemma cTMem_respects_sub L1 L2 U1 U2 ρ l :
-    □(oLater L2 vnil ρ ⊆ oLater L1 vnil ρ) -∗
-    □(oLater U1 vnil ρ ⊆ oLater U2 vnil ρ) -∗
+    □(L2 vnil ρ ⊆ L1 vnil ρ) -∗
+    □(U1 vnil ρ ⊆ U2 vnil ρ) -∗
     clty_olty (cTMem l L1 U1) vnil ρ ⊆ clty_olty (cTMem l L2 U2) vnil ρ.
   Proof.
     rewrite -lift_sub_dty2clty; iIntros "#HsubL #HsubU %d".
