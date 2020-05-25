@@ -88,9 +88,8 @@ Section Sec.
     s ↝[ σ ] T -∗
     Γ s⊨ { l := dtysem σ s } : cTMem l T T.
   Proof.
-    rewrite !sdtp_eq; iIntros "#Hs !>" (ρ Hpid) "#Hg".
-    rewrite cTMem_eq; iDestruct "Hs" as (φ Hγφ) "Hγ".
-    iExists (hoEnvD_inst (σ.|[ρ]) φ); iSplit.
+    rewrite !sdtp_eq; iDestruct 1 as (φ Hγφ) "#Hγ"; iIntros "!>" (ρ Hpid) "#Hg".
+    rewrite cTMem_eq. iExists (hoEnvD_inst (σ.|[ρ]) φ); iSplit.
     by iApply (dm_to_type_intro with "Hγ").
     by iModIntro; repeat iSplit; iIntros (v) "#H"; iNext; rewrite /= (Hγφ _ _).
   Qed.
