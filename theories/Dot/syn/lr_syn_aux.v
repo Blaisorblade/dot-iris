@@ -36,10 +36,10 @@ Lemma path_wp_pure_pself_eq Pv p l : path_wp_pure (pself p l) Pv →
   path_wp_pure (pself p l) Pv.
 Proof. inversion_clear 1; naive_solver. Qed.
 
-Global Instance Proper_pwp_pure: Proper ((=) ==> pointwise_relation _ iff ==> iff) path_wp_pure.
+Global Instance pwp_pure_proper : Proper ((=) ==> pointwise_relation _ iff ==> iff) path_wp_pure.
 Proof.
   (* The induction works best in this shape, but this instance is best kept local. *)
-  have Proper_pwp_2: ∀ p, Proper (pointwise_relation _ iff ==> iff) (path_wp_pure p).
+  have pwp_proper_2: ∀ p, Proper (pointwise_relation _ iff ==> iff) (path_wp_pure p).
   by rewrite /pointwise_relation => p P1 P2 HPeq; split;
     induction 1; naive_solver.
   solve_proper.

@@ -158,10 +158,10 @@ Section path_wp.
     - iDestruct "IH" as "[_ [IHpw _]]". iApply ("IHpw" with "HP").
   Qed.
 
-  Global Instance Proper_pwp: Proper ((=) ==> pointwise_relation _ (≡) ==> (≡)) path_wp.
+  Global Instance pwp_proper : Proper ((=) ==> pointwise_relation _ (≡) ==> (≡)) path_wp.
   Proof.
     (* The induction works best in this shape, but this instance is best kept local. *)
-    have Proper_pwp_2: ∀ p, Proper (pointwise_relation _ (≡) ==> (≡)) (path_wp p).
+    have pwp_proper_2: ∀ p, Proper (pointwise_relation _ (≡) ==> (≡)) (path_wp p).
     by apply _.
     solve_proper.
   Qed.
