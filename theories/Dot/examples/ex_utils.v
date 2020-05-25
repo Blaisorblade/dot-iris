@@ -104,7 +104,7 @@ Notation "▶: T" := (TLater T) (at level 49, right associativity) : ty_scope.
 Notation "'∀:' T , U" := (TAll T U) (at level 48, T at level 98, U at level 98).
 
 Notation "'μ' Ts " := (TMu Ts) (at level 50, Ts at next level).
-Notation "'type' l >: L <: U" := (TTMem l L U) (at level 60, l at level 50, L, U at level 70) : ty_scope.
+Notation "'type' l >: L <: U" := (TTMemL l L U) (at level 60, l at level 50, L, U at level 70) : ty_scope.
 Notation "'val' l : T" :=
   (TVMem l T)
   (at level 60, l, T at level 50, format "'[' 'val'  l  :  T  ']' '/'") : ty_scope.

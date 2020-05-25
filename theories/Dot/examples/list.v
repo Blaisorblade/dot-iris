@@ -288,7 +288,7 @@ Proof.
       eapply (iT_Mu_E' (T1 := (val "head" : ⊤ →: hx0 @; "A")%HS));
       [ | done | tcrush ..].
       - varsub; asideLaters; lThis; ltcrush.
-      - by apply (iSel_Sub (L := ⊥)), (path_tp_delay (i := 0)); wtcrush; varsub; ltcrush.
+      - by apply (iSel_SubL (L := ⊥)), (path_tp_delay (i := 0)); wtcrush; varsub; ltcrush.
   }
   eapply (iT_Sub (i := 1) (T1 := hTAnd (hx0 @; "List") U)).
   (******)

@@ -48,7 +48,7 @@ Qed.
 
 (* Try out fixpoints. *)
 Definition F3 T :=
-  TMu (TAnd (TTMem "A" T T) TTop).
+  TMu (TAnd (TTMemL "A" T T) TTop).
 
 Example ex3 Γ T
   (Hg: g !! s1 = Some (F3 (x0 @; "A"))):

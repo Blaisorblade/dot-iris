@@ -211,7 +211,7 @@ Proof.
   - rewrite /hoptionTConcr/=; ettrans; first apply iDistr_And_Or_Sub;
     stcrush; apply iOr_Sub_split; ltcrush.
   - lThis. ettrans; last apply iLater_Sub; stcrush.
-    eapply (iSel_Sub (L := ⊥) (U := hoptionTConcr)); tcrush.
+    eapply (iSel_SubL (L := ⊥) (U := hoptionTConcr)); tcrush.
     varsub.
     ettrans; first apply iSub_Add_Later; stcrush.
     asideLaters; mltcrush.
@@ -394,7 +394,7 @@ Proof.
     varsub. asideLaters. lNext. ltcrush.
   }
   lThis.
-  apply (iSel_Sub (L := ⊥)); tcrush.
+  apply (iSel_SubL (L := ⊥)); tcrush.
   varsub. mltcrush. lThis.
 Qed.
 
