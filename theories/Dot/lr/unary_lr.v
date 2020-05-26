@@ -165,7 +165,7 @@ Section sem_types.
     ∃ ψ, d ↗n[ 0 ] ψ ∧
        □ (τ1 vnil ρ ⊆ packHoLtyO ψ vnil ∧
           packHoLtyO ψ vnil ⊆ τ2 vnil ρ)).
-  Global Instance Proper_oDTMem : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
+  Global Instance oDTMem_proper : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
   Proof.
     rewrite /oDTMem => ??? ??? ??/=; properness; try reflexivity;
       solve_proper_ho.
@@ -174,7 +174,7 @@ Section sem_types.
   (** [ D⟦ { a : τ } ⟧ ]. *)
   Definition oDVMem τ : dltyO Σ := Dlty (λI ρ d,
     ∃ pmem, ⌜d = dpt pmem⌝ ∧ path_wp pmem (oClose τ ρ)).
-  Global Instance Proper_oDVMem : Proper ((≡) ==> (≡)) oDVMem.
+  Global Instance oDVMem_proper : Proper ((≡) ==> (≡)) oDVMem.
   Proof.
     rewrite /oDVMem => ??? ??/=; properness; try reflexivity;
       apply path_wp_proper => ?; hof_eq_app.
@@ -188,7 +188,7 @@ Section sem_types.
 
   (** [ Ds⟦ { l :: τ1 .. τ2 } ⟧] and [ V⟦ { l :: τ1 .. τ2 } ⟧ ]. *)
   Definition cTMem l τ1 τ2 : clty Σ := dty2clty l (oDTMem τ1 τ2).
-  Global Instance Proper_cTMem l : Proper ((≡) ==> (≡) ==> (≡)) (cTMem l).
+  Global Instance cTMem_proper l : Proper ((≡) ==> (≡) ==> (≡)) (cTMem l).
   Proof. solve_proper. Qed.
 
   Lemma cTMem_eq l T1 T2 d ρ :
@@ -197,7 +197,7 @@ Section sem_types.
 
   (** [ Ds⟦ { l : τ } ⟧] and [ V⟦ { l : τ } ⟧ ]. *)
   Definition cVMem l τ : clty Σ := dty2clty l (oDVMem τ).
-  Global Instance Proper_cVMem l : Proper ((≡) ==> (≡)) (cVMem l).
+  Global Instance cVMem_proper l : Proper ((≡) ==> (≡)) (cVMem l).
   Proof. solve_proper. Qed.
 
   Lemma cVMem_eq l T d ρ :
@@ -224,7 +224,7 @@ Section sem_types.
     (∃ t, ⌜ v = vabs t ⌝ ∧
      □ ∀ w, ▷ τ1 vnil ρ w → ▷ sE⟦ τ2 ⟧ (w .: ρ) t.|[w/])).
 
-  Global Instance Proper_oAll : Proper ((≡) ==> (≡) ==> (≡)) oAll.
+  Global Instance oAll_proper : Proper ((≡) ==> (≡) ==> (≡)) oAll.
   Proof. solve_proper_ho. Qed.
 
   (** Semantics of primitive types. *)
@@ -518,7 +518,7 @@ Section Propers.
   (** This instance doesn't allow setoid rewriting in the function argument
   to [iterate]. That's appropriate for this project. *)
   Global Instance: Params (@iterate) 3 := {}.
-  Global Instance Proper_iterate {n} {A : ofeT} (f : A → A) :
+  Global Instance iterate_proper {n} {A : ofeT} (f : A → A) :
     Proper (equiv ==> equiv) f →
     Proper (equiv ==> equiv) (iterate f n).
   Proof.
@@ -529,41 +529,41 @@ Section Propers.
   Context `{HdotG: !dlangG Σ}.
 
   (** Judgments *)
-  Global Instance Proper_sstpi i j : Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sstpi i j).
+  Global Instance sstpi_proper i j : Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sstpi i j).
   Proof.
     solve_proper_ho.
     (* intros ?? HG ?? H1 ?? H2; simplify_eq/=.
     properness; [by rewrite HG|apply H1|apply H2]. *)
   Qed.
-  Global Instance Proper_sstpi_flip i j :
+  Global Instance sstpi_flip_proper i j :
     Proper ((≡) --> (≡) --> (≡) --> flip (≡)) (sstpi i j).
   Proof. apply: flip_proper_4. Qed.
   Global Instance: Params (@sstpi) 4 := {}.
 
 
-  Global Instance Proper_setp e : Proper ((≡) ==> (≡) ==> (≡)) (setp e).
+  Global Instance setp_proper e : Proper ((≡) ==> (≡) ==> (≡)) (setp e).
   Proof.
     solve_proper_ho.
     (* intros ?? HG ?? HT ???; simplify_eq/=. by properness; [rewrite HG|apply HT]. *)
   Qed.
-  Global Instance Proper_setp_flip e :
+  Global Instance setp_flip_proper e :
     Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (setp e).
   Proof. apply: flip_proper_3. Qed.
   Global Instance: Params (@setp) 3 := {}.
 
-  Global Instance Proper_sdstp ds : Proper ((≡) ==> (≡) ==> (≡)) (sdstp ds).
+  Global Instance sdstp_proper ds : Proper ((≡) ==> (≡) ==> (≡)) (sdstp ds).
   Proof. move => ??? [?? _ _ _] [?? _ _ _] [/= ??]; properness; by f_equiv. Qed.
-  Global Instance Proper_sdstp_flip ds :
+  Global Instance sdstp_flip_proper ds :
     Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sdstp ds).
   Proof. apply: flip_proper_3. Qed.
 
-  Global Instance Proper_sdtp l d : Proper ((≡) ==> (≡) ==> (≡)) (sdtp l d) := _.
-  Global Instance Proper_sdtp_flip l d : Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sdtp l d) := _.
+  Global Instance sdtp_proper l d : Proper ((≡) ==> (≡) ==> (≡)) (sdtp l d) := _.
+  Global Instance sdtp_flip_proper l d : Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sdtp l d) := _.
   Global Instance: Params (@sdtp) 4 := {}.
 
-  Global Instance Proper_sptp p i : Proper ((≡) ==> (≡) ==> (≡)) (sptp p i).
+  Global Instance sptp_proper p i : Proper ((≡) ==> (≡) ==> (≡)) (sptp p i).
   Proof. solve_proper_ho. Qed.
-  Global Instance Proper_sptp_flip p i : Proper ((≡) --> (≡) --> flip (≡)) (sptp p i).
+  Global Instance sptp_flip_proper p i : Proper ((≡) --> (≡) --> flip (≡)) (sptp p i).
   Proof. apply: flip_proper_3. Qed.
   Global Instance: Params (@sptp) 4 := {}.
 End Propers.

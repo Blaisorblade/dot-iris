@@ -48,59 +48,59 @@ Section CtxSub.
     by setoid_rewrite HΔ; setoid_rewrite HΓ.
   Qed.
 
-  Global Instance Proper_cons_s_ctx_sub : Proper (s_ty_sub ==> s_ctx_sub ==> s_ctx_sub) cons.
+  Global Instance cons_s_ctx_sub_proper : Proper (s_ty_sub ==> s_ctx_sub ==> s_ctx_sub) cons.
   Proof. move => T1 T2 HlT Γ1 Γ2 Hl ρ. cbn. by rewrite (HlT _) (Hl _). Qed.
   (* This is needed when flip ctx_sub arises from other rules. Doh. *)
-  Global Instance Proper_cons_s_ctx_sub_flip :
+  Global Instance cons_s_ctx_sub_flip_proper :
     Proper (flip s_ty_sub ==> flip s_ctx_sub ==> flip s_ctx_sub) cons.
   Proof. solve_proper. Qed.
 
-  Global Instance Proper_cons_ctx_sub : Proper (ty_sub ==> ctx_sub ==> ctx_sub) cons.
+  Global Instance cons_ctx_sub_proper : Proper (ty_sub ==> ctx_sub ==> ctx_sub) cons.
   Proof. rewrite /ty_sub /ctx_sub. solve_proper. Qed.
-  Global Instance Proper_cons_ctx_sub_flip : Proper (flip ty_sub ==> flip ctx_sub ==> flip ctx_sub) cons.
+  Global Instance cons_ctx_sub_flip_proper : Proper (flip ty_sub ==> flip ctx_sub ==> flip ctx_sub) cons.
   Proof. solve_proper. Qed.
 
   (** Typing is contravariant in [Γ].
   Note these instances are very specialized. *)
-  Global Instance Proper_setp e : Proper (flip s_ctx_sub ==> (=) ==> (⊢)) (setp e).
+  Global Instance setp_proper e : Proper (flip s_ctx_sub ==> (=) ==> (⊢)) (setp e).
   Proof. move => /= Γ1 Γ2 Hweak T1 T2 ->. by setoid_rewrite (Hweak _). Qed.
-  Global Instance Proper_setp_flip e : Proper (s_ctx_sub ==> flip (=) ==> flip (⊢)) (setp e).
+  Global Instance setp_flip_proper e : Proper (s_ctx_sub ==> flip (=) ==> flip (⊢)) (setp e).
   Proof. apply: flip_proper_3. Qed.
 
-  Global Instance Proper_sstpi i j : Proper (flip s_ctx_sub ==> (=) ==> (=) ==> (⊢)) (sstpi i j).
+  Global Instance sstpi_proper i j : Proper (flip s_ctx_sub ==> (=) ==> (=) ==> (⊢)) (sstpi i j).
   Proof. move => /= Γ1 Γ2 Hweak T1 T2 -> U1 U2 ->. by setoid_rewrite (Hweak _). Qed.
-  Global Instance Proper_sstpi_flip i j : Proper (s_ctx_sub ==> flip (=) ==> flip (=) ==> flip (⊢)) (sstpi i j).
+  Global Instance sstpi_flip_proper i j : Proper (s_ctx_sub ==> flip (=) ==> flip (=) ==> flip (⊢)) (sstpi i j).
   Proof. apply: flip_proper_4. Qed.
 
-  Global Instance Proper_ietp : Proper (flip ctx_sub ==> (=) ==> (=) ==> (⊢)) ietp.
+  Global Instance ietp_proper : Proper (flip ctx_sub ==> (=) ==> (=) ==> (⊢)) ietp.
   Proof.
     rewrite /ctx_sub /flip /ietp => Γ1 Γ2 Hweak ??????; subst. by rewrite Hweak.
   Qed.
 
-  Global Instance Proper_ietp_flip :
+  Global Instance ietp_flip_proper :
     Proper (ctx_sub ==> flip (=) ==> flip (=) ==> flip (⊢)) ietp.
   Proof. apply: flip_proper_4. Qed.
 
-  Global Instance Proper_istpi :
+  Global Instance istpi_proper :
     Proper (flip ctx_sub ==> (=) ==> (=) ==> (=) ==> (=) ==> (⊢)) istpi.
   Proof.
     rewrite /ctx_sub /flip /istpi => Γ1 Γ2 Hweak ????????????; subst.
     by rewrite Hweak.
   Qed.
-  Global Instance Proper_istpi_flip :
+  Global Instance istpi_flip_proper :
     Proper (ctx_sub ==> flip (=) ==> flip (=) ==> flip (=) ==> flip (=) ==> flip (⊢)) istpi.
   Proof. apply: flip_proper_6. Qed.
 
 
-  Global Instance Proper_oLater : Proper (s_ty_sub ==> s_ty_sub) oLater.
+  Global Instance oLater_proper : Proper (s_ty_sub ==> s_ty_sub) oLater.
   Proof. intros x y Hl ??. by rewrite /= (Hl _ _). Qed.
-  Global Instance Proper_oLater_flip :
+  Global Instance oLater_flip_proper :
     Proper (flip s_ty_sub ==> flip s_ty_sub) oLater.
   Proof. apply: flip_proper_2. Qed.
 
-  Global Instance Proper_TLater : Proper (ty_sub ==> ty_sub) TLater.
+  Global Instance TLater_proper : Proper (ty_sub ==> ty_sub) TLater.
   Proof. by rewrite /ty_sub => ?? /= ->. Qed.
-  Global Instance Proper_TLater_flip :
+  Global Instance TLater_flip_proper :
     Proper (flip ty_sub ==> flip ty_sub) TLater.
   Proof. apply: flip_proper_2. Qed.
 
@@ -127,30 +127,30 @@ Section CtxSub.
     ⊨G Γ1 <:* Γ2.
   Proof. move => -> -> Hweak. exact: env_lift_sub. Qed.
 
-  (* It's not immediate to generalize Proper_fmap_TLater to [fmap C] for a
+  (* It's not immediate to generalize fmap_TLater_proper to [fmap C] for a
   type constructor [C]. Fpr instance, the following is hopeless. *)
-  (* Lemma Proper_fmap_ctx C
+  (* Lemma fmap_ctx_proper C
     (Hle: ∀ T1 T2, ⊨T T1 <: T2 → ⊨T C T1 <: C T2):
     Proper (ctx_sub ==> ctx_sub) (fmap C).
   Proof.
     intros G1 G2. elim: G2 G1 => [|T2 G2 IHG2] [|T1 G1] HG ρ //; cbn. *)
 
-  Global Instance Proper_fmap_TLater :
+  Global Instance fmap_TLater_proper :
     Proper (ctx_sub ==> ctx_sub) (fmap TLater).
   Proof. intros xs ys Hl ?. by rewrite !env_TLater_commute (Hl _). Qed.
-  Global Instance Proper_fmap_TLater_flip :
+  Global Instance fmap_TLater_flip_proper :
     Proper (flip ctx_sub ==> flip ctx_sub) (fmap TLater).
   Proof. apply: flip_proper_2. Qed.
 
-  Global Instance Proper_TAnd : Proper (ty_sub ==> ty_sub ==> ty_sub) TAnd.
+  Global Instance TAnd_proper : Proper (ty_sub ==> ty_sub ==> ty_sub) TAnd.
   Proof. intros x y Hl x' y' Hl' ??. by rewrite /= (Hl _ _) (Hl' _ _). Qed.
-  Global Instance Proper_TAnd_flip :
+  Global Instance TAnd_flip_proper :
     Proper (flip ty_sub ==> flip ty_sub ==> flip ty_sub) TAnd.
   Proof. apply: flip_proper_3. Qed.
 
-  Global Instance Proper_TOr : Proper (ty_sub ==> ty_sub ==> ty_sub) TOr.
+  Global Instance TOr_proper : Proper (ty_sub ==> ty_sub ==> ty_sub) TOr.
   Proof. intros x y Hl x' y' Hl' ??. by rewrite /= (Hl _ _) (Hl' _ _). Qed.
-  Global Instance Proper_TOr_flip :
+  Global Instance TOr_flip_proper :
     Proper (flip ty_sub ==> flip ty_sub ==> flip ty_sub) TOr.
   Proof. apply: flip_proper_3. Qed.
 
@@ -244,11 +244,11 @@ Section CtxSub.
   Proof. auto with ctx_sub. Qed.
 
   Lemma ietp_weaken_ctx_syn Γ1 Γ2 {T e} (Hsyn : ⊢G Γ1 <:* Γ2) : Γ2 ⊨ e : T -∗ Γ1 ⊨ e : T.
-  Proof. by apply Proper_ietp; first apply (fundamental_ctx_sub Hsyn). Qed.
+  Proof. by apply ietp_proper; first apply (fundamental_ctx_sub Hsyn). Qed.
 
   Lemma istpi_weaken_ctx_syn Γ1 Γ2 {T1 T2 i j} (Hsyn : ⊢G Γ1 <:* Γ2) :
     Γ2 ⊨ T1, i <: T2, j -∗ Γ1 ⊨ T1, i <: T2, j.
-  Proof. by apply Proper_istpi; first apply (fundamental_ctx_sub Hsyn). Qed.
+  Proof. by apply istpi_proper; first apply (fundamental_ctx_sub Hsyn). Qed.
 End CtxSub.
 
 Typeclasses Opaque s_ty_sub.

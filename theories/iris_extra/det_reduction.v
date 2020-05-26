@@ -13,7 +13,7 @@ Module EL := ectx_language.
 Import L EL.
 Implicit Types (Λ : language).
 
-Instance Proper_LanguageCtx Λ:
+Instance LanguageCtx_proper Λ:
   Proper (pointwise_relation _ (=) ==> impl) (@LanguageCtx Λ).
 Proof.
   intros K1 K2 Heq [???]; split; intros *; setoid_rewrite <-Heq => *; auto 2.

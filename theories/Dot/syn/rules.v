@@ -86,7 +86,7 @@ Proof. elim: i e => [|i IHi] e //; by rewrite ?iterate_0 ?iterate_Sr /= -IHi. Qe
 
 Instance ctx_iterate_tskip i: LanguageCtx (iterate tskip i).
 Proof.
-  rewrite -Proper_LanguageCtx; first last.
+  rewrite -LanguageCtx_proper; first last.
   symmetry; exact: tskip_n_to_fill.
   apply _.
 Qed.

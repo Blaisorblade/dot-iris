@@ -162,7 +162,7 @@ Notation HoLty φ := (λ args, Lty (λI v, φ args v)).
 Definition envApply {Σ n} : oltyO Σ n → env → hoLtyO Σ n :=
   λ T, flip T.
 Instance: Params (@envApply) 2 := {}.
-Instance Proper_envApply n :
+Instance envApply_proper n :
   Proper ((≡) ==> (=) ==> (≡)) (envApply (Σ := Σ) (n := n)).
 Proof. solve_proper_ho. Qed.
 
@@ -364,7 +364,7 @@ Section olty_ofe_2.
   Global Instance env_oltyped_persistent (Γ : sCtx Σ) ρ: Persistent (sG⟦ Γ ⟧* ρ).
   Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
 
-  Global Instance Proper_env_oltyped ρ : Proper ((≡) ==> (≡)) (env_oltyped ρ).
+  Global Instance env_oltyped_proper ρ : Proper ((≡) ==> (≡)) (env_oltyped ρ).
   Proof.
     move: ρ => + G1 G2 /equiv_Forall2.
     elim: G1 G2 => [|T1 G1 IHG1] [|T2 G2] ρ /=; [done|inversion 1..|] =>
@@ -398,17 +398,17 @@ Section olty_ofe_2.
 
   (** Semantic type constructor for [T₁ ∧ T₂] *)
   Definition oAnd τ1 τ2 : oltyO Σ i := Olty (λI args ρ v, τ1 args ρ v ∧ τ2 args ρ v).
-  Global Instance Proper_oAnd : Proper ((≡) ==> (≡) ==> (≡)) oAnd.
+  Global Instance oAnd_proper : Proper ((≡) ==> (≡) ==> (≡)) oAnd.
   Proof. solve_proper_ho. Qed.
 
   (** Semantic type constructor for [T₁ ∨ T₂] *)
   Definition oOr τ1 τ2 : oltyO Σ i := Olty (λI args ρ v, τ1 args ρ v ∨ τ2 args ρ v).
-  Global Instance Proper_oOr : Proper ((≡) ==> (≡) ==> (≡)) oOr.
+  Global Instance oOr_proper : Proper ((≡) ==> (≡) ==> (≡)) oOr.
   Proof. solve_proper_ho. Qed.
 
   (** Semantic type constructor for [μ x. T] *)
   Definition oMu (τ : oltyO Σ i) : oltyO Σ i := Olty (λI args ρ v, τ args (v .: ρ) v).
-  Global Instance Proper_oMu : Proper ((≡) ==> (≡)) oMu.
+  Global Instance oMu_proper : Proper ((≡) ==> (≡)) oMu.
   Proof. solve_proper_ho. Qed.
 
   Lemma oMu_eq (τ : oltyO Σ i) args ρ v : oMu τ args ρ v = τ args (v .: ρ) v.

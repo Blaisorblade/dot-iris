@@ -63,13 +63,13 @@ Section Propers.
   Context `{HdotG: !dlangG Σ}.
   Implicit Types (τ L T U : olty Σ 0).
 
-  Global Instance Proper_sstpd i : Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sstpd i).
+  Global Instance sstpd_proper i : Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sstpd i).
   Proof.
     solve_proper_ho.
     (* intros ?? HG ?? H1 ?? H2; rewrite /sstpd /subtype_lty;
     properness; [by rewrite HG|apply H1|apply H2]. *)
   Qed.
-  Global Instance Proper_sstpd_flip i :
+  Global Instance sstpd_flip_proper i :
     Proper ((≡) --> (≡) --> (≡) --> flip (≡)) (sstpd i).
   Proof. apply: flip_proper_4. Qed.
   Global Instance: Params (@sstpd) 3 := {}.
