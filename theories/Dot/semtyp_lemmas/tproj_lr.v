@@ -23,6 +23,51 @@ Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env) (l : label).
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
 
+Definition oExists `{!dlangG Σ} {n} (T : oltyO Σ 0) (U : oltyO Σ n) : oltyO Σ n :=
+  Olty (λI args ρ v,
+  ∃ w,
+  (* w ∈ T *)
+  oClose T ρ w ∧
+  (* v ∈ w.A *)
+  U args (w .: ρ) v).
+
+(**
+Semantic proofs of typing lemmas for existentials.
+
+I adapted the rules from https://dl.acm.org/doi/pdf/10.1145/3290322 (see
+[≤∃L] and [≤∃R] in Fig. 4).
+
+Lionel Parreaux pointed me to that paper and suggested they are the
+"standard" rules for "implicit" existentials.
+*)
+Section existentials.
+  Context `{!dlangG Σ}.
+
+  (** Rule [∃-<:] (called [≤∃L] in the link). *)
+  Lemma sEx_Stp `{!SwapPropI Σ} Γ S T (U : oltyO Σ 0) i :
+    oLaterN i (oShift S) :: Γ s⊨ T <:[i] oShift U -∗
+    Γ s⊨ oExists S T <:[i] U.
+  Proof.
+    rewrite !sstpd_to_sstpi; iIntros "/= #Hstp !> %ρ %v Hg".
+    iDestruct 1 as (w) "[HS HT]".
+    iApply ("Hstp" $! (w .: ρ) v with "[$Hg $HS] HT").
+  Qed.
+
+  (** Rule [<:-∃] (called [≤∃L] in the link). *)
+  Lemma sStp_Ex `{!SwapPropI Σ} Γ S T (U : oltyO Σ 0) i p :
+    Γ s⊨p p : S, i -∗
+    Γ s⊨ T <:[i] opSubst p U -∗
+    Γ s⊨ T <:[i] oExists S U.
+  Proof.
+    iIntros "/= #HpS #Hstp !> %ρ #Hg".
+    iSpecialize ("HpS" with "Hg"); iSpecialize ("Hstp" with "Hg"); iNext i.
+    iApply (subtype_trans with "Hstp"); iIntros "%v HvUp".
+    iDestruct (path_wp_agree with "HpS HvUp") as (w _) "?".
+    by iExists w.
+  Qed.
+
+End existentials.
+
 (**
   This semantic type models upper-bound-only type projections using
   (model-level) existentials and normal DOT type members:
@@ -34,7 +79,7 @@ Definition oProjN `{!dlangG Σ} n A (T : oltyO Σ 0) : oltyO Σ n :=
   (* w ∈ T *)
   oClose T ρ w ∧
   (* v ∈ w.A *)
-  oSelN n (pv w) A args ids v).
+  oSelN n (pv (ids 0)) A args (w .: ρ) v).
 Notation oProj A T := (oProjN 0 A T).
 
 (** Technical infrastructure for setoid rewriting. *)
@@ -43,13 +88,16 @@ Instance: Params (@oProjN) 4 := {}.
 Section type_proj_setoid_equality.
   Context `{!dlangG Σ}.
 
+  Definition oProjN_oExists `{!dlangG Σ} n A T:
+    oProjN n A T ≡ oExists T (oSelN n (pv (ids 0)) A) := reflexivity _.
+
   Global Instance oProjN_ne n A : NonExpansive (oProjN n A).
   Proof. solve_proper_ho. Qed.
   Global Instance oProjN_proper n A : Proper ((≡) ==> (≡)) (oProjN n A) := ne_proper _.
 
   Lemma oProjN_eq n A T args ρ v :
     oProjN n A T args ρ v ⊣⊢ ∃ w, oClose T ρ w ∧ vl_sel w A args v.
-  Proof. by simpl; f_equiv => w; rewrite path_wp_pv_eq subst_id. Qed.
+  Proof. by simpl; f_equiv => w; rewrite path_wp_pv_eq. Qed.
 
   Lemma oProjN_eq_2 n A T args ρ v :
     oProjN n A T args ρ v ⊣⊢
