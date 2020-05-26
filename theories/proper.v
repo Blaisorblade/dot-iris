@@ -71,6 +71,12 @@ Ltac f_equiv ::=
   end;
   try simple apply reflexivity.
 
+Ltac no_eq_f_equiv := try f_equiv;
+  match goal with
+  | |- eq _ _ => fail 1
+  | |- _ => idtac
+  end.
+
 (* These helpers allow "flipping" [Proper] instances, as needed when [f] is
 an asymmetric relation. *)
 (* We don't make these helpers into instances, as they can cause loops in
