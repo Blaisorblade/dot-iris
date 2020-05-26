@@ -198,6 +198,31 @@ Section type_proj.
     iApply (sP_DSub with "Hp Hsub").
   Qed.
 
+  (** In fact, if [p] has more specific bounds, we can use those too. *)
+  Lemma sProj_Stp_L_Gen A Γ T1 T2 L U i p :
+    Γ s⊨ T2 <:[i] cTMem A L U -∗
+    Γ s⊨ T2 <:[i] T1 -∗
+    Γ s⊨p p : T2, i -∗
+    Γ s⊨ L <:[i] oProj A T1.
+  Proof.
+    iIntros "#HsubBounds #Hsub #HpT2".
+    iDestruct (sP_DSub with "HpT2 Hsub") as "HpT1".
+    iApply sStp_Trans; last iApply (sSel_Stp_Proj with "HpT1").
+    iApply sStp_Sel.
+    iApply (sP_DSub with "HpT2 HsubBounds").
+  Qed.
+
+  (** And [sProj_Stp_L] is indeed a special case of [sProj_Stp_L_Gen]. *)
+  Lemma sProj_Stp_L' A Γ T L U i p :
+    Γ s⊨ T <:[i] cTMem A L U -∗
+    Γ s⊨p p : T, i -∗
+    Γ s⊨ L <:[i] oProj A T.
+  Proof.
+    iIntros "#Hsub #Hp".
+    iApply (sProj_Stp_L_Gen with "Hsub [] Hp").
+    iApply sStp_Refl.
+  Qed.
+
   (**
     TODO: Scala probably has more typing rules.
     Check them, or provide counterexamples.
