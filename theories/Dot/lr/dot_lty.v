@@ -44,7 +44,9 @@ Arguments clty : clear implicits.
 Arguments _Clty {_}.
 Notation Clty TD T := (_Clty TD T _ _ _).
 Arguments clty_dslty {_} !_ /.
+Instance: Params (@clty_dslty) 1 := {}.
 Arguments clty_olty {_} !_ /.
+Instance: Params (@clty_olty) 1 := {}.
 
 Section clty_ofe.
   Context {Σ}.
@@ -59,15 +61,18 @@ Canonical Structure cltyO Σ := OfeT (clty Σ) clty_ofe_mixin.
 
 Section clty_ofe_proper.
   Context {Σ}.
+
   Global Instance clty_olty_ne : NonExpansive (clty_olty (Σ := Σ)).
   Proof. by move=> ???[/= _ H]. Qed.
   Global Instance clty_olty_proper :
     Proper ((≡) ==> (≡)) (clty_olty (Σ := Σ)) := ne_proper _.
 
-  Global Instance clty_dslty_ne n : Proper (dist n ==> dist (A := dsltyO Σ) n) (clty_dslty (Σ := Σ)).
-  Proof. by move=> ??[/= H _]. Qed.
+  Global Instance clty_dslty_ne n :
+    Proper (dist n ==> (=) ==> dist n) (clty_dslty (Σ := Σ)).
+  Proof. by move=> ??[/= H _] ??->. Qed.
   Global Instance clty_dslty_proper :
-    Proper ((≡) ==> (≡@{dsltyO Σ})) (clty_dslty (Σ := Σ)) := ne_proper _.
+    Proper ((≡) ==> (=) ==> (≡)) (clty_dslty (Σ := Σ)).
+  Proof. by move=> ??[/= H _] ??->. Qed.
 End clty_ofe_proper.
 
 (** *** Helpers for constructing [clty]. *)
@@ -122,6 +127,7 @@ End lift_dty_lemmas.
 Program Definition olty2clty `{!dlangG Σ} (U : oltyO Σ 0) : cltyO Σ :=
   Clty ⊥ U.
 Solve All Obligations with by iIntros.
+Global Instance: Params (@olty2clty) 2 := {}.
 
 Program Definition dty2clty `{!dlangG Σ} l (T : dltyO Σ) : cltyO Σ :=
   Clty (lift_dty_dms l T) (lift_dty_vl l T).
@@ -140,6 +146,11 @@ Global Instance: Params (@dty2clty) 3 := {}.
 
 Section DefsTypes.
   Context `{HdotG: !dlangG Σ}.
+
+  Global Instance olty2clty_ne : NonExpansive olty2clty.
+  Proof. split; rewrite /=; by repeat f_equiv. Qed.
+  Global Instance olty2clty_proper :
+    Proper ((≡) ==> (≡)) olty2clty := ne_proper _.
 
   Global Instance dty2clty_ne l : NonExpansive (dty2clty l).
   Proof. split; rewrite /dty2clty/=; by repeat f_equiv. Qed.
@@ -160,7 +171,15 @@ Section DefsTypes.
   Next Obligation. intros. by rewrite /= -!clty_def2defs_head. Qed.
   Next Obligation. intros. by rewrite /= -!clty_mono. Qed.
   Next Obligation. intros. by rewrite /= -!clty_commute. Qed.
+
+  Global Instance cAnd_ne : NonExpansive2 cAnd.
+  Proof. split; rewrite /=; repeat f_equiv; solve_proper_ho. Qed.
+  Global Instance cAnd_proper:
+    Proper ((≡) ==> (≡) ==> (≡)) cAnd := ne_proper_2 _.
+
 End DefsTypes.
+
+Global Instance: Params (@cAnd) 1 := {}.
 
 Implicit Types (T: ty).
 

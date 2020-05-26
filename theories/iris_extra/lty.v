@@ -338,6 +338,7 @@ Section oLaterN.
 End oLaterN.
 (** Semantic type constructor for [▷ T] *)
 Notation oLater := (oLaterN 1).
+Global Instance: Params (@oLaterN) 3 := {}.
 
 Section olty_ofe_2.
   Context `{dlangG Σ} {i : nat}.
@@ -398,18 +399,23 @@ Section olty_ofe_2.
 
   (** Semantic type constructor for [T₁ ∧ T₂] *)
   Definition oAnd τ1 τ2 : oltyO Σ i := Olty (λI args ρ v, τ1 args ρ v ∧ τ2 args ρ v).
-  Global Instance oAnd_proper : Proper ((≡) ==> (≡) ==> (≡)) oAnd.
+  Global Instance oAnd_ne : NonExpansive2 oAnd.
   Proof. solve_proper_ho. Qed.
+  Global Instance oAnd_proper : Proper ((≡) ==> (≡) ==> (≡)) oAnd :=
+    ne_proper_2 _.
 
   (** Semantic type constructor for [T₁ ∨ T₂] *)
   Definition oOr τ1 τ2 : oltyO Σ i := Olty (λI args ρ v, τ1 args ρ v ∨ τ2 args ρ v).
-  Global Instance oOr_proper : Proper ((≡) ==> (≡) ==> (≡)) oOr.
+  Global Instance oOr_ne : NonExpansive2 oOr.
   Proof. solve_proper_ho. Qed.
+  Global Instance oOr_proper : Proper ((≡) ==> (≡) ==> (≡)) oOr :=
+    ne_proper_2 _.
 
   (** Semantic type constructor for [μ x. T] *)
   Definition oMu (τ : oltyO Σ i) : oltyO Σ i := Olty (λI args ρ v, τ args (v .: ρ) v).
-  Global Instance oMu_proper : Proper ((≡) ==> (≡)) oMu.
+  Global Instance oMu_ne : NonExpansive oMu.
   Proof. solve_proper_ho. Qed.
+  Global Instance oMu_proper : Proper ((≡) ==> (≡)) oMu := ne_proper _.
 
   Lemma oMu_eq (τ : oltyO Σ i) args ρ v : oMu τ args ρ v = τ args (v .: ρ) v.
   Proof. done. Qed.
@@ -433,6 +439,10 @@ Section olty_ofe_2.
     oLaterN n (oOr τ1 τ2) ≡ oOr (oLaterN n τ1) (oLaterN n τ2).
   Proof. move => args ρ v /=. by rewrite laterN_or. Qed.
 End olty_ofe_2.
+
+Global Instance: Params (@oAnd) 2 := {}.
+Global Instance: Params (@oOr) 2 := {}.
+Global Instance: Params (@oMu) 2 := {}.
 
 Notation "sE⟦ τ ⟧" := (interp_expr τ).
 End Lty.
