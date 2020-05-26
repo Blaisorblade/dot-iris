@@ -177,6 +177,10 @@ Section DefsTypes.
   Global Instance cAnd_proper:
     Proper ((≡) ==> (≡) ==> (≡)) cAnd := ne_proper_2 _.
 
+  Lemma cAnd_olty2clty T1 T2 :
+    cAnd (olty2clty T1) (olty2clty T2) ≡ olty2clty (oAnd T1 T2).
+  Proof. split=>??//=. apply: left_absorb. Qed.
+
 End DefsTypes.
 
 Global Instance: Params (@cAnd) 1 := {}.
