@@ -23,16 +23,16 @@ Section defs.
       sG⟦Γ⟧*ρ → ▷^i (oClose τ1 ρ ⊆ oClose τ2 ρ).
   Global Arguments sstpd : simpl never.
   Context `{!dlangG Σ}.
-  Definition istpd Γ T1 T2 i := sstpd i V⟦Γ⟧* V⟦T1⟧ V⟦T2⟧.
+  Definition istpd i Γ T1 T2 := sstpd i V⟦Γ⟧* V⟦T1⟧ V⟦T2⟧.
   (* Avoid auto-dropping box (and unfolding) when introducing judgments persistently. *)
   Local Notation IntoPersistent' P := (IntoPersistent false P P).
   Global Instance sstpd_persistent : IntoPersistent' (sstpd i Γ T1 T2) | 0 := _.
 End defs.
 
 Notation "Γ s⊨ T1 <:[ i  ] T2 " := (sstpd i Γ T1 T2) (at level 74, T1, T2 at next level).
-Notation "Γ ⊨ T1 <:[ i  ] T2 " := (istpd Γ T1 T2 i) (at level 74, T1, T2 at next level).
+Notation "Γ ⊨ T1 <:[ i  ] T2 " := (istpd i Γ T1 T2) (at level 74, T1, T2 at next level).
 Import stamp_transfer.
-Notation "Γ ⊨[ gφ  ] T1 <:[ i  ] T2 " := (wellMappedφ gφ → istpd Γ T1 T2 i)%I (at level 74, T1, T2, i at next level).
+Notation "Γ ⊨[ gφ  ] T1 <:[ i  ] T2 " := (wellMappedφ gφ → istpd i Γ T1 T2)%I (at level 74, T1, T2, i at next level).
 
 (** Show these typing judgments are equivalent to what we present in the paper. *)
 Section JudgDefs.
