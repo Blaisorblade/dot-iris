@@ -70,7 +70,6 @@ Ltac f_equiv ::=
   | H : pointwise_relation _ (pointwise_relation _ ?R) ?f ?g |- ?R (?f ?x ?y) (?g ?x ?y) => simple apply H
   end;
   try simple apply reflexivity.
-Tactic Notation "f_equiv" "/=" := csimpl in *; f_equiv.
 
 (* These helpers allow "flipping" [Proper] instances, as needed when [f] is
 an asymmetric relation. *)
