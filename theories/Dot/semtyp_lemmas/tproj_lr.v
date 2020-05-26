@@ -114,15 +114,29 @@ Section type_proj.
   Context `{!dlangG Σ}.
 
   (**
+    Existentials on a singleton coincide with path substitution:
+    [∃ x: p.type. T = T[x:=p]].
+   *)
+  Lemma oExists_oSing p (T : oltyO Σ 0) :
+    oExists (oSing p) T ≡ opSubst p T.
+  Proof.
+    move=> args ρ v. rewrite /= path_wp_eq.
+    by properness; rewrite ?alias_paths_pv_eq_1.
+  Qed.
+
+  (**
     Projections from a singleton coincide with selections:
     [p.type#A = p.A].
    *)
   Lemma oProj_oSing A p :
     oProj A (oSing p) ≡ oSel p A.
   Proof.
-    move=> args ρ v. rewrite oProjN_eq /= path_wp_eq.
-    by properness; rewrite ?alias_paths_pv_eq_1.
+    rewrite oProjN_oExists oExists_oSing.
+    (* Reduce path substitution. *)
+    by move=> args ρ v /=; f_equiv=>w; rewrite path_wp_pv_eq.
   Qed.
+
+  (** TODO: other rules should be derivable from the rules for existentials. *)
 
   (**
     Type projections are subtypes of their upper bound.
