@@ -559,7 +559,12 @@ Definition oDTMemK `{!dlangG Σ} {n} (K : sf_kind Σ n) : dltyO Σ := Dlty (λI 
   ∃ (ψ : hoD Σ n), d ↗n[ n ] ψ ∧ K ρ (packHoLtyO ψ) (packHoLtyO ψ)).
 
 Definition oDTMemSpec `{!dlangG Σ} (L U : oltyO Σ 0) : dltyO Σ :=
-  oDTMemK (sf_kintv (oLater L) (oLater U)).
+  oDTMemK (sf_kintv L U).
+
+Lemma oDTMemSpec_oDTMem_eq `{!dlangG Σ} L U : oDTMemSpec L U ≡ oDTMem L U.
+Proof.
+  move=> ρ d /=; f_equiv=> ψ; f_equiv. apply sr_kintv_refl.
+Qed.
 
 Definition cTMemK `{!dlangG Σ} {n} l (K : sf_kind Σ n) : clty Σ := dty2clty l (oDTMemK K).
 
