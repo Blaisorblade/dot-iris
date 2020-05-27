@@ -598,9 +598,9 @@ Definition oTApp {Σ n} (T : oltyO Σ n.+1) (p : path) : oltyO Σ n :=
 Section proper_eq.
   Context `{!dlangG Σ}.
 
-  Global Instance oDMemK_ne n : NonExpansive (oDTMemK (Σ := Σ) (n := n)).
+  Global Instance oDTMemK_ne n : NonExpansive (oDTMemK (Σ := Σ) (n := n)).
   Proof. solve_proper_ho. Qed.
-  Global Instance oDMemK_proper n :
+  Global Instance oDTMemK_proper n :
     Proper ((≡) ==> (≡)) (oDTMemK (Σ := Σ) (n := n)) := ne_proper _.
   Global Instance cTMemK_ne n l : NonExpansive (cTMemK (Σ := Σ) (n := n) l).
   Proof. solve_proper_ho. Qed.
