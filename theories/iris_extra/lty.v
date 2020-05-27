@@ -166,10 +166,14 @@ Instance envApply_proper n :
   Proper ((≡) ==> (=) ==> (≡)) (envApply (Σ := Σ) (n := n)).
 Proof. solve_proper_ho. Qed.
 
-Definition packHoLtyO {Σ n} (φ : hoD Σ n) : hoLtyO Σ n := HoLty (λI args v, ▷ □ φ args v).
+Definition packHoLtyO {Σ n} (φ : hoD Σ n) : hoLtyO Σ n :=
+  HoLty (λI args v, ▷ □ φ args v).
 Instance: Params (@packHoLtyO) 2 := {}.
-Instance packHoLtyO_proper {Σ n} : Proper ((≡) ==> (≡)) (packHoLtyO (Σ := Σ) (n := n)).
-Proof. solve_proper_ho. Qed.
+Instance packHoLtyO_contractive {Σ n} :
+  Contractive (packHoLtyO (Σ := Σ) (n := n)).
+Proof. solve_contractive_ho. Qed.
+Instance packHoLtyO_proper {Σ n} :
+  Proper ((≡) ==> (≡)) (packHoLtyO (Σ := Σ) (n := n)) := contractive_proper _.
 
 (** ** Substitution over [olty]. *)
 Section olty_subst.
