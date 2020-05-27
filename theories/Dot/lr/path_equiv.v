@@ -15,6 +15,9 @@ Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
          (ρ : var → vl) (l : label).
 
+(* XXX why isn't this an iPPred? But also, is *this* abstraction useful for
+anything? We need equivalence to be type-directed. On values, it's defined by
+the values, and on paths, it's defined by [path_wp]. *)
 Class IApprox Σ `{!dlangG Σ} (A : Type) :=
   iapprox : A → A → iProp Σ.
 Arguments IApprox _ {_} _.
@@ -29,12 +32,13 @@ Notation IApproxPersistent A := (∀ x y : A, Persistent (x ≈ y)).
 Section iapprox_instances.
   Context `{!dlangG Σ}.
 
-  Global Instance list_iapprox `{!IApprox Σ A} : IApprox Σ (list A) := fix big_sepL2 xs1 xs2 :=
-    match xs1, xs2 with
-    | [], [] => emp
-    | x1 :: l1, x2 :: l2 => x1 ≈ x2 ∗ big_sepL2 l1 l2
-    | _, _ => False
-    end%I.
+  Global Instance list_iapprox `{!IApprox Σ A} : IApprox Σ (list A) :=
+    fix big_sepL2 xs1 xs2 :=
+      match xs1, xs2 with
+      | [], [] => emp
+      | x1 :: l1, x2 :: l2 => x1 ≈ x2 ∗ big_sepL2 l1 l2
+      | _, _ => False
+      end%I.
   Global Instance list_iapprox_persistent `{!IApprox Σ A} `{!IApproxPersistent A}:
     IApproxPersistent (list A).
   Proof. elim => [|???] [|??]; cbn; apply _. Defined.
