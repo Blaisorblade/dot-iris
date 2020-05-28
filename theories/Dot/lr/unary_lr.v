@@ -603,7 +603,7 @@ Notation "⟦ T ⟧" := (oClose V⟦ T ⟧).
 
 Import dlang_adequacy.
 
-Theorem s_adequacy_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} {e Ψ}
+Theorem s_adequacy_dot_sem Σ `{HdlangG: !dlangPreG Σ} `{!SwapPropI Σ} {e Ψ}
   (τ : ∀ `{!dlangG Σ}, olty Σ 0)
   (Himpl : ∀ `(Hdlang: !dlangG Σ) v, oClose τ ids v -∗ ⌜Ψ v⌝)
   (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), allGs ∅ ==∗ [] s⊨ e : τ):
@@ -614,20 +614,20 @@ Proof.
   iEval rewrite -(hsubst_id e). iApply ("Htyp" $! ids with "[//]").
 Qed.
 
-Theorem adequacy_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} {e Ψ T}
+Theorem adequacy_dot_sem Σ `{HdlangG: !dlangPreG Σ} `{!SwapPropI Σ} {e Ψ T}
   (Himpl : ∀ `(Hdlang: !dlangG Σ) v, V⟦ T ⟧ vnil ids v -∗ ⌜Ψ v⌝)
   (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T):
   adequate e (λ v, Ψ v).
 Proof. exact: (s_adequacy_dot_sem Σ (λ _, V⟦T⟧)). Qed.
 
-Corollary s_safety_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} {e}
+Corollary s_safety_dot_sem Σ `{HdlangG: !dlangPreG Σ} `{!SwapPropI Σ} {e}
   (τ : ∀ `{!dlangG Σ}, olty Σ 0)
-  (Hwp : ∀ `{!dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] s⊨ e : τ):
+  (Hwp : ∀ `(!dlangG Σ) `(!SwapPropI Σ), allGs ∅ ==∗ [] s⊨ e : τ):
   safe e.
 Proof. apply adequate_safe, (s_adequacy_dot_sem Σ τ), Hwp; naive_solver. Qed.
 
-Corollary safety_dot_sem Σ `{HdlangG: dlangPreG Σ} `{SwapPropI Σ} {e T}
-  (Hwp : ∀ `{!dlangG Σ} `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T):
+Corollary safety_dot_sem Σ `{HdlangG: !dlangPreG Σ} `{!SwapPropI Σ} {e T}
+  (Hwp : ∀ `(!dlangG Σ) `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T):
   safe e.
 Proof. exact: (s_safety_dot_sem Σ (λ _, V⟦T⟧)). Qed.
 
@@ -654,7 +654,7 @@ Proof.
 Qed.
 
 (** Adequacy of normalization for gDOT paths. *)
-Lemma ipwp_gs_adequacy Σ `{dlangPreG Σ} `{SwapPropI Σ} {g p T i}
+Lemma ipwp_gs_adequacy Σ `{!dlangPreG Σ} `{!SwapPropI Σ} {g p T i}
   (Hwp : ∀ `(Hdlang : !dlangG Σ) `(!SwapPropI Σ), ⊢ [] ⊨p[ Vs⟦ g ⟧ ] p : T , i):
   terminates (path2tm p).
 Proof.
