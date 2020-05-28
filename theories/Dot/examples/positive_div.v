@@ -22,8 +22,8 @@ Section examplesBodies.
   Definition hmkPosBodyV (n : hvl) := htif (n > 0) n hloopTm.
   Definition hmkPosV := λ: n, hmkPosBodyV n.
 
-  Definition hposModV s : hvl := ν: _ , {@
-    type "Pos" = ([]; s);
+  Definition hposModV hd : hvl := ν: _ , {@
+    ("Pos", hd);
     val "mkPos" = hmkPosV;
     val "div" = hdivV
   }.
@@ -36,12 +36,14 @@ Section examplesBodies.
   }.
 End examplesBodies.
 
+(* Our program, in source syntax. *)
+Definition srcPosModV : vl := Eval cbv in hposModV (hdtysyn hTInt).
+
 Local Hint Constructors bin_op_syntype cond_bin_op_syntype : core.
 Local Hint Extern 1000 => lia : core.
 
 Ltac wp_bin_base := iApply wp_bin; first eapply cond_bin_op_syntype_sound; by [cbn; eauto|].
 Ltac wp_bin := iApply wp_wand; [wp_bin_base | iIntros].
-Import stamp_transfer.
 
 Local Open Scope Z_scope.
 
@@ -50,11 +52,6 @@ Local Open Scope Z_scope.
 Section helpers.
   Context `{HdlangG: !dlangG Σ}.
 
-  Lemma alloc {s sγ} φ : sγ !! s = None → allGs sγ ==∗ s ↝n[ 0 ] φ.
-  Proof.
-    iIntros (Hs) "Hsγ".
-    by iMod (leadsto_alloc φ Hs with "Hsγ") as (?) "[_ [_ $]]".
-  Qed.
   Lemma wp_ge m n (Hge : m > n) : ⊢ WP m > n {{ w, w ≡ true }}.
   Proof. wp_bin. ev; simplify_eq/=. case_decide; by [|lia]. Qed.
   Lemma wp_nge m n (Hnge : ¬ m > n) : ⊢ WP m > n {{ w, w ≡ false }}.
@@ -111,14 +108,16 @@ Definition s_is_pos `{!dlangG Σ} s : iProp Σ := s ↝n[ 0 ] ipos.
 
 Section div_example.
   Context `{HdlangG: !dlangG Σ} `{SwapPropI Σ}.
-  Context (s: stamp).
 
-  Definition posModV : vl := hposModV s.
+  (* Abstract over the stamp allocated by Iris. *)
+  Context (s : stamp).
 
-  Notation Hs := (s_is_pos s).
-  Lemma allocHs sγ:
-    sγ !! s = None → allGs sγ ==∗ Hs.
-  Proof. exact (alloc ipos). Qed.
+  (** Type definition we use in the stamped program. *)
+  (** XXX There is no need to do verification on the stamped program; this is legacy code. *)
+  Definition hposDm : hdm := hdtysem [] s.
+  Definition posDm : dm := hposDm.
+  (* Our stmaped program. *)
+  Definition posModV : vl := hposModV hposDm.
 
   Lemma wp_if_ge (n : Z) :
     ⊢ WP hmkPosBodyV n {{ w, ⌜ w = n ∧ n > 0 ⌝}}.
@@ -131,12 +130,8 @@ Section div_example.
 
   (** We assume [Hs] throughout the rest of the section. *)
 
-  Definition posDm := dtysem [] s.
   Definition testVl l : vl := ν {@ (l, posDm) }.
-
-  Lemma sToIpos : Hs -∗ posDm ↗n[ 0 ] hoEnvD_inst [] ipos.
-  Proof. by iApply dm_to_type_intro. Qed.
-
+  Notation Hs := (s_is_pos s).
 
   Lemma Sub_ipos_nat Γ : ⊢ Γ s⊨ ipos, 0 <: V⟦ 𝐙 ⟧, 0.
   Proof. iIntros "!> * _ !%"; rewrite /pos /pure_interp_prim; naive_solver. Qed.
@@ -233,8 +228,23 @@ Section div_example.
   Qed.
 End div_example.
 
-Lemma posModVSafe (s : stamp): safe (posModV s).
+Import sem_unstamped_typing skeleton.
+
+(**
+Show that our program is semantically well-typed,
+using the semantic unstamped typing judgment.
+*)
+Lemma srcPosModTy `{HdlangG: !dlangG Σ} `{SwapPropI Σ} :
+  ⊢ [] u⊨ srcPosModV : posModT.
 Proof.
-  eapply (safety_dot_sem dlangΣ (T := posModT))=>*.
-  by rewrite (allocHs s) // -posModTy.
+  iModIntro; iMod (leadsto_alloc ipos) as (dynS) "Hs".
+  iExists (posModV dynS); iModIntro; iSplit; first done.
+  iApply (posModTy dynS with "Hs").
+Qed.
+
+(** An example of how to apply adequacy to get safety. *)
+Lemma posModVSafe : safe srcPosModV.
+Proof.
+  eapply (unstamped_safety_dot_sem dlangΣ (T := posModT))=>*.
+  apply srcPosModTy.
 Qed.

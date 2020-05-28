@@ -80,14 +80,12 @@ Proof.
   eapply same_skel_safe_n_impl, Hsteps.
   apply (soundness (M := iResUR Σ) _ n).
   apply (bupd_plain_soundness _).
-  (* XXX [hG] is needed, till I fix everything and drop the second map. *)
-  iMod (gen_iheap_init (L := stamp) ∅) as (hG) "_".
   set (DLangΣ := DLangG Σ).
   iDestruct (Hwp DLangΣ SwapPropI0) as "#>Hwp".
   iDestruct "Hwp" as (e_s Hsim) "#Hwp /=".
   iSpecialize ("Hwp" $! ids with "[//]").
   rewrite hsubst_id (wptp_safe_n n).
-  iIntros "!>!>"; iDestruct ("Hwp") as %Hsafe; naive_solver.
+  iIntros "!>!>"; iDestruct "Hwp" as %Hsafe; naive_solver.
 Qed.
 
 Corollary unstamped_safety_dot_sem Σ `{HdlangG: !dlangPreG Σ} `{!SwapPropI Σ}
@@ -101,7 +99,111 @@ Proof.
   rewrite /dms_hasnt; elim: ds ds' => [| [s d] ds IH] [|[s' d'] ds'] //= ? [<-{s'} ?].
   case_match; naive_solver.
 Qed.
-Hint Resolve same_skel_dms_hasnt : core.
+
+Local Hint Resolve same_skel_dms_hasnt : core.
+
+Definition coveringσ `{!dlangG Σ} {i} σ (T : olty Σ i) : Prop :=
+  ∀ args ρ, T args ρ ≡ T args (∞ σ.|[ρ]).
+
+Section tmem_unstamped_lemmas.
+  Context `{!dlangG Σ}.
+
+  Lemma leadsto_envD_equiv_alloc {σ i} {T : olty Σ i}
+    (Hcl : coveringσ σ T): ⊢ |==> ∃ s, s ↝[ σ ] T.
+  Proof.
+    iMod (leadsto_alloc T) as (s) "#Hs"; iIntros "!>".
+    iExists s, T; iFrame "Hs"; iIntros "!%". apply Hcl.
+  Qed.
+
+  (* XXX inline in [suD_Typ] unless needed! *)
+  Lemma suD_Typ_Gen {l Γ fakeT s σ} {T : olty Σ 0} :
+    s ↝[ σ ] T -∗ Γ su⊨ { l := dtysyn fakeT } : cTMem l (oLater T) (oLater T).
+  Proof.
+    iIntros "#Hs !>"; iExists (dtysem σ s).
+    iModIntro; iSplit; first done; iApply (sD_Typ with "Hs").
+  Qed.
+
+  Lemma suD_Typ {l σ Γ fakeT} {T : olty Σ 0} (HclT : coveringσ σ T):
+    ⊢ Γ su⊨ { l := dtysyn fakeT } : cTMem l (oLater T) (oLater T).
+  Proof.
+    iIntros "!>"; iMod (leadsto_envD_equiv_alloc HclT) as (s) "#Hs".
+    by iDestruct (suD_Typ_Gen with "Hs") as "#$".
+  Qed.
+
+
+  (** Unstamped typing only asserts that the subject _bisimulates_ a
+  semantically typed stamped value, so type definitions in the subject are
+  ignored. *)
+  Lemma sudtp_respects_skel_sym {Γ l d1 d2 T}
+    (Hsk : same_skel_dm d1 d2) :
+    Γ su⊨ { l := d1 } : T -∗
+    Γ su⊨ { l := d2 } : T.
+  Proof.
+    iIntros "#H1 !>"; iMod "H1" as (d1s Hsk1) "H1"; iModIntro.
+    iExists d1s; iSplit; last done; iIntros "!%".
+    apply /same_skel_trans_dm /Hsk1 /same_skel_symm_dm /Hsk.
+  Qed.
+
+  Lemma sD_Typ_Absurd {Γ} L1 L2 U1 U2 d l
+    (Hneq : ∀ s σ, d ≠ dtysem s σ) :
+    Γ s⊨ { l := d } : cTMem l L1 U1 -∗
+    Γ s⊨ { l := d } : cTMem l L2 U2.
+  Proof.
+    rewrite !sdtp_eq'; iIntros "#Hd !> %ρ %Hpid Hg"; iExFalso.
+    iDestruct ("Hd" $! ρ Hpid with "Hg") as (ψ) "{Hd} [Hl _]"; clear -Hneq.
+    rewrite /= dm_to_type_eq; iDestruct "Hl" as (s σ Heq) "_".
+    destruct d; naive_solver.
+  Qed.
+
+  Lemma suD_Typ_Stp {Γ} L1 L2 U1 U2 d l:
+    Γ s⊨ L2 <:[0] L1 -∗
+    Γ s⊨ U1 <:[0] U2 -∗
+    Γ su⊨ { l := d } : cTMem l L1 U1 -∗
+    Γ su⊨ { l := d } : cTMem l L2 U2.
+  Proof.
+    iIntros "#Hsub1 #Hsub2 #H1 !>"; iMod "H1" as (d1s Hsk1) "#H1"; iModIntro.
+    iExists d1s; iSplit; first done.
+    destruct d1s; [|iApply (sD_Typ_Stp with "Hsub1 Hsub2 H1")|];
+      iApply (sD_Typ_Absurd with "H1"); naive_solver.
+  Qed.
+
+  Lemma suD_Typ_Abs {l σ Γ L T U} fakeT (HclT : coveringσ σ T):
+    Γ s⊨ L <:[0] oLater T -∗
+    Γ s⊨ oLater T <:[0] U -∗
+    Γ su⊨ { l := dtysyn fakeT } : cTMem l L U.
+  Proof.
+    by iIntros "H1 H2"; iApply (suD_Typ_Stp with "H1 H2"); iApply suD_Typ.
+  Qed.
+End tmem_unstamped_lemmas.
+
+Section coveringσ_lemmas.
+  Context `{!dlangG Σ}.
+
+  Lemma nclosed_syn_coveringσ {n} {T : ty} (Hcl : nclosed T n) :
+    coveringσ (idsσ n) V⟦T⟧.
+  Proof.
+    move=> args ρ v /=.
+    by rewrite -interp_finsubst_commute_cl ?length_idsσ // closed_subst_idsρ.
+  Qed.
+
+  Lemma uD_Typ_Abs {l n Γ L T U} fakeT (HclT : nclosed T n):
+    Γ ⊨ L <:[0] TLater T -∗
+    Γ ⊨ TLater T <:[0] U -∗
+    Γ u⊨ { l := dtysyn fakeT } : TTMem l L U.
+  Proof. have := nclosed_syn_coveringσ HclT; apply suD_Typ_Abs. Qed.
+
+  Lemma uD_Typ {l n Γ T} fakeT (HclT : nclosed T n):
+    ⊢ Γ u⊨ { l := dtysyn fakeT } : TTMem l (TLater T) (TLater T).
+  Proof. have := !!(nclosed_syn_coveringσ HclT). apply suD_Typ. Qed.
+
+  (* Maybe hard to use in general; [nclosed] requires equality on the nose? *)
+  Lemma nclosed_sem_coveringσ {n} {T : olty Σ 0} (Hcl : nclosed T n) :
+    coveringσ (idsσ n) T.
+  Proof.
+    move=> args ρ v.
+    by rewrite -olty_finsubst_commute_cl ?length_idsσ // closed_subst_idsρ.
+  Qed.
+End coveringσ_lemmas.
 
 Section unstamped_lemmas.
   Context `{!dlangG Σ}.
@@ -407,4 +509,37 @@ Section storeless_unstamped_lemmas.
     by iApply sP_Val.
   Qed. *)
 
+  Lemma suD_Typ_Sub {Γ} L1 L2 U1 U2 d l:
+    Γ s⊨ L2, 0 <: L1, 0 -∗
+    Γ s⊨ U1, 0 <: U2, 0 -∗
+    Γ su⊨ { l := d } : cTMem l L1 U1 -∗
+    Γ su⊨ { l := d } : cTMem l L2 U2.
+  Proof. rewrite -!sstpd0_to_sstpi0; iApply suD_Typ_Stp. Qed.
+
+  Lemma suD_Path_Sub {Γ T1 T2 p1 l}:
+    Γ s⊨ T1, 0 <: T2, 0 -∗
+    Γ su⊨ { l := dpt p1 } : cVMem l T1 -∗
+    Γ su⊨ { l := dpt p1 } : cVMem l T2.
+  Proof. rewrite -!sstpd0_to_sstpi0; iApply suD_Path_Stp. Qed.
+
+  Lemma suD_Typ_dtysem {Γ l σ s fakeσ} {T : olty Σ 0} (HclT : coveringσ σ T):
+    ⊢ Γ su⊨ { l := dtysem fakeσ s } : cTMem l (oLater T) (oLater T).
+  Proof.
+    by iApply sudtp_respects_skel_sym; last iApply (suD_Typ (fakeT := TTop)).
+  Qed.
+
+  Lemma suD_Typ_Abs_dtysem {Γ T L U l s σ fakeσ} (HclT : coveringσ σ T):
+    Γ s⊨        L, 0 <: oLater T, 0 -∗
+    Γ s⊨ oLater T, 0 <: U       , 0 -∗
+    Γ su⊨ { l := dtysem fakeσ s } : cTMem l L U.
+  Proof.
+    by iIntros "H1 H2"; iApply (suD_Typ_Sub with "H1 H2");
+      iApply suD_Typ_dtysem.
+  Qed.
+
+  Lemma uD_Typ_Abs_I_dtysem {l n Γ L T U s fakeσ} (HclT : nclosed T n):
+    Γ ⊨        L, 0 <: TLater T, 0 -∗
+    Γ ⊨ TLater T, 0 <:        U, 0 -∗
+    Γ u⊨ { l := dtysem fakeσ s } : TTMem l L U.
+  Proof. have := !!(nclosed_syn_coveringσ HclT); apply suD_Typ_Abs_dtysem. Qed.
 End storeless_unstamped_lemmas.

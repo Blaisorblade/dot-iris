@@ -2,12 +2,11 @@
 From D.pure_program_logic Require Import lifting adequacy.
 From iris.program_logic Require Import ectxi_language.
 
-From D Require Import swap_later_impl.
-From D.Dot Require Import skeleton.
-
 (* Exports: *)
+From D Require Export swap_later_impl.
+From D.Dot Require Export skeleton.
 From D.Dot Require Export ex_utils hoas_ex_utils storeless_typing_ex_utils.
-From D.Dot Require Export old_fundamental examples_lr.
+From D.Dot Require Export old_fundamental examples_lr sem_unstamped_typing.
 Export loopTms.
 
 Set Suggest Proof Using.
@@ -30,19 +29,29 @@ Proof.
   have ? := loopFunTyp Γ; apply (iT_All_E (T1 := ⊤)), (iT_Sub_nocoerce 𝐙); tcrush.
 Qed.
 
+Ltac constrain_bisimulating :=
+  hnf in *; fold same_skel_dms in *; case_match; ev; subst; try contradiction; f_equal.
+
+Ltac unstamp_goal_tm :=
+  iModIntro; iExists _; iSplit; [by iIntros "!%"; exact: same_skel_refl_tm|].
+Ltac unstamp_goal_dm :=
+  iModIntro; iExists _; iSplit; [by iIntros "!%"; exact: same_skel_refl_dm|].
+Ltac unstamp_goal_dms :=
+  iModIntro; iExists _; iSplit; [by iIntros "!%"; exact: same_skel_refl_dms|].
+
 Section loop_sem.
   Context `{HdlangG: !dlangG Σ}.
   Context `{SwapPropI Σ}.
-  Import stamp_transfer.
 
   Definition cTMemL l L U := cTMem l (oLater L) (oLater U).
 
   Lemma loopSemT: ⊢ WP hloopTm {{ _, False }}.
   Proof using Type*.
-    iDestruct (fundamental_typed (loopTyp []) with "[]") as "H".
-    iApply wellMappedφ_empty.
-    iSpecialize ("H" $! ids with "[//]").
-    by rewrite hsubst_id /=.
+    iDestruct (fundamental_typed (loopTyp [])) as "#>H".
+    iDestruct "H" as (e_s Hsk1) "H".
+    iSpecialize ("H" $! ids with "[//]"); rewrite hsubst_id.
+    move E: hloopTm =>e; suff <-: e_s = e by []; subst; clear -Hsk1.
+    cbv; repeat constrain_bisimulating.
   Qed.
 
 End loop_sem.
