@@ -496,6 +496,29 @@ End same_skel_trans.
 Ltac prim_step_inversion H :=
   destruct (prim_step_inversion H); ev; simplify_eq/=.
 
+Theorem simulation_skeleton_pure_step {t1 t1' t2} :
+  same_skel_tm t1 t1' →
+  pure_step t1 t2 →
+  ∃ t2', pure_step t1' t2' ∧ same_skel_tm t2 t2'.
+Proof.
+  setoid_rewrite <-(prim_step_pure_eq dummyState)=> Hskel Hstep.
+  edestruct simulation_skeleton as (t2' & ? & ?) => //.
+  exists t2'. naive_solver.
+Qed.
+
+Theorem simulation_skeleton_nsteps_pure_step {t1 t1' t2 n} :
+  same_skel_tm t1 t1' →
+  nsteps pure_step n t1 t2 →
+  ∃ t2', nsteps pure_step n t1' t2' ∧ same_skel_tm t2 t2'.
+Proof.
+  move=>+ Hsteps. move: t1'.
+  induction Hsteps as [|n t1 t2 tn Hstep Hsteps]; intros t1' Hsk1; first
+  by exists t1'; split_and!; try constructor; eauto.
+  destruct (simulation_skeleton_pure_step Hsk1 Hstep) as (t2' &Hstep' & Hsk2).
+  edestruct (IHHsteps _ Hsk2) as (tn' & Hsteps' & Hskn).
+  exists tn'; split_and; last done. exact: nsteps_l.
+Qed.
+
 Lemma prim_step_step t1 σ κ t2 σ' efs :
   prim_step t1 σ κ t2 σ' efs → step ([t1], σ) [] ([t2], σ').
 Proof. exact: prim_step_step. Qed.
@@ -561,6 +584,18 @@ Lemma same_skel_reducible {e e_s σ}:
 Proof.
   move => Hskel /reducible_reducible_no_obs Hred.
   by eapply reducible_no_obs_reducible, same_skel_reducible_no_obs.
+Qed.
+
+Lemma same_skel_safe_n_impl n e_u:
+  (∃ e_s, safe_n n e_s ∧ same_skel_tm e_u e_s) → safe_n n e_u.
+Proof.
+  intros (e_s & Hsafe & Hskel) e_u' Hred.
+  destruct (simulation_skeleton_nsteps_pure_step Hskel Hred)
+    as (e_s' & Hst_s & Hskel').
+  edestruct (Hsafe _ Hst_s) as [Hs|Hs]; [left|right].
+  - destruct e_s'; try by case (is_Some_None Hs).
+    destruct e_u' => //; naive_solver.
+  - eapply same_skel_reducible, Hs; exact: same_skel_symm_tm.
 Qed.
 
 Lemma same_skel_safe_impl {e e_s}:
