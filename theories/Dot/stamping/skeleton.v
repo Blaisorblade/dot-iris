@@ -406,6 +406,26 @@ Proof.
   split; [econstructor; eauto | exact: same_skel_fill_item].
 Qed.
 
+Definition same_skel_tm_refl_def : Prop := ∀ e, same_skel_tm e e.
+Definition same_skel_vl_refl_def : Prop := ∀ v, same_skel_vl v v.
+Definition same_skel_dm_refl_def : Prop := ∀ d, same_skel_dm d d.
+Definition same_skel_path_refl_def : Prop := ∀ p, same_skel_path p p.
+Definition same_skel_ty_refl_def : Prop := ∀ T, same_skel_ty T T.
+
+Lemma same_skel_refl :
+  same_skel_tm_refl_def ∧ same_skel_vl_refl_def ∧
+  same_skel_dm_refl_def ∧ same_skel_path_refl_def ∧
+  same_skel_ty_refl_def.
+Proof.
+  apply syntax_mut_ind; try by cbn; intuition.
+  elim => [//|[l d] ds IHds]; rewrite Forall_cons; naive_solver.
+Qed.
+
+Lemma same_skel_refl_tm e : same_skel_tm e e.
+Proof. apply same_skel_refl. Qed.
+Lemma same_skel_refl_dm d : same_skel_dm d d.
+Proof. apply same_skel_refl. Qed.
+
 Definition same_skel_tm_symm_def e1 : Prop := ∀ e2,
   same_skel_tm e1 e2 → same_skel_tm e2 e1.
 Definition same_skel_vl_symm_def v1 : Prop := ∀ v2,
