@@ -23,6 +23,51 @@ Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env) (l : label).
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
 
+Definition oExists `{!dlangG Σ} {n} (T : oltyO Σ 0) (U : oltyO Σ n) : oltyO Σ n :=
+  Olty (λI args ρ v,
+  ∃ w,
+  (* w ∈ T *)
+  oClose T ρ w ∧
+  (* v ∈ w.A *)
+  U args (w .: ρ) v).
+
+(**
+Semantic proofs of typing lemmas for existentials.
+
+I adapted the rules from https://dl.acm.org/doi/pdf/10.1145/3290322 (see
+[≤∃L] and [≤∃R] in Fig. 4).
+
+Lionel Parreaux pointed me to that paper and suggested they are the
+"standard" rules for "implicit" existentials.
+*)
+Section existentials.
+  Context `{!dlangG Σ}.
+
+  (** Rule [∃-<:] (called [≤∃L] in the link). *)
+  Lemma sEx_Stp `{!SwapPropI Σ} Γ S T (U : oltyO Σ 0) i :
+    oLaterN i (oShift S) :: Γ s⊨ T <:[i] oShift U -∗
+    Γ s⊨ oExists S T <:[i] U.
+  Proof.
+    rewrite !sstpd_to_sstpi; iIntros "/= #Hstp !> %ρ %v Hg".
+    iDestruct 1 as (w) "[HS HT]".
+    iApply ("Hstp" $! (w .: ρ) v with "[$Hg $HS] HT").
+  Qed.
+
+  (** Rule [<:-∃] (called [≤∃L] in the link). *)
+  Lemma sStp_Ex `{!SwapPropI Σ} Γ S T (U : oltyO Σ 0) i p :
+    Γ s⊨p p : S, i -∗
+    Γ s⊨ T <:[i] opSubst p U -∗
+    Γ s⊨ T <:[i] oExists S U.
+  Proof.
+    iIntros "/= #HpS #Hstp !> %ρ #Hg".
+    iSpecialize ("HpS" with "Hg"); iSpecialize ("Hstp" with "Hg"); iNext i.
+    iApply (subtype_trans with "Hstp"); iIntros "%v HvUp".
+    iDestruct (path_wp_agree with "HpS HvUp") as (w _) "?".
+    by iExists w.
+  Qed.
+
+End existentials.
+
 (**
   This semantic type models upper-bound-only type projections using
   (model-level) existentials and normal DOT type members:
@@ -34,7 +79,7 @@ Definition oProjN `{!dlangG Σ} n A (T : oltyO Σ 0) : oltyO Σ n :=
   (* w ∈ T *)
   oClose T ρ w ∧
   (* v ∈ w.A *)
-  oSelN n (pv w) A args ids v).
+  oSelN n (pv (ids 0)) A args (w .: ρ) v).
 Notation oProj A T := (oProjN 0 A T).
 
 (** Technical infrastructure for setoid rewriting. *)
@@ -43,13 +88,16 @@ Instance: Params (@oProjN) 4 := {}.
 Section type_proj_setoid_equality.
   Context `{!dlangG Σ}.
 
+  Definition oProjN_oExists `{!dlangG Σ} n A T:
+    oProjN n A T ≡ oExists T (oSelN n (pv (ids 0)) A) := reflexivity _.
+
   Global Instance oProjN_ne n A : NonExpansive (oProjN n A).
   Proof. solve_proper_ho. Qed.
   Global Instance oProjN_proper n A : Proper ((≡) ==> (≡)) (oProjN n A) := ne_proper _.
 
   Lemma oProjN_eq n A T args ρ v :
     oProjN n A T args ρ v ⊣⊢ ∃ w, oClose T ρ w ∧ vl_sel w A args v.
-  Proof. by simpl; f_equiv => w; rewrite path_wp_pv_eq subst_id. Qed.
+  Proof. by simpl; f_equiv => w; rewrite path_wp_pv_eq. Qed.
 
   Lemma oProjN_eq_2 n A T args ρ v :
     oProjN n A T args ρ v ⊣⊢
@@ -66,52 +114,43 @@ Section type_proj.
   Context `{!dlangG Σ}.
 
   (**
+    Existentials on a singleton coincide with path substitution:
+    [∃ x: p.type. T = T[x:=p]].
+   *)
+  Lemma oExists_oSing p (T : oltyO Σ 0) :
+    oExists (oSing p) T ≡ opSubst p T.
+  Proof.
+    move=> args ρ v. rewrite /= path_wp_eq.
+    by properness; rewrite ?alias_paths_pv_eq_1.
+  Qed.
+
+  (**
     Projections from a singleton coincide with selections:
     [p.type#A = p.A].
    *)
   Lemma oProj_oSing A p :
     oProj A (oSing p) ≡ oSel p A.
   Proof.
-    move=> args ρ v. rewrite oProjN_eq /= path_wp_eq.
-    by properness; rewrite ?alias_paths_pv_eq_1.
+    rewrite oProjN_oExists oExists_oSing.
+    (* Reduce path substitution. *)
+    by move=> args ρ v /=; f_equiv=>w; rewrite path_wp_pv_eq.
   Qed.
 
+  (** TODO: other rules should be derivable from the rules for existentials. *)
   (**
-    Type projections are subtypes of their upper bound.
-
     Here and below, we use indexed subtyping [Γ ⊨ T <:^i U] to satisfy the
     restrictions discussed above. These restrictions are not specific to type
     projections but are also needed for type selections [p.A].
 
-    On a first read, you should read [Γ ⊨ T <:^i U] as [Γ ⊨ T <: U]; see the
+    On a first read, you should read [Γ ⊨ T <:^i U] as [Γ ⊢ T <: U]; see the
     paper for more discussion.
 
-    Γ ⊨ T <:^i { A :: L .. U }
-    ------------------------
-    Γ ⊨ T#A <:^i U
-  *)
-  Lemma sProj_Stp_U A Γ T L U i :
-    Γ s⊨ T <:[i] cTMem A L U -∗
-    Γ s⊨ oProj A T <:[i] U.
-  Proof.
-    (*
-      In short, to show a subtyping relation [T1 <: T2], we must show that
-      any value [v] in [T1] is also in [T2].
+    In short, to show a subtyping relation [T1 <: T2], we must show that
+    any value [v] in [T1] is also in [T2].
 
-      Because types can contain free variables, we have environments [ρ],
-      typed by typing contexts [Γ], but you can ignore them at first.
-    *)
-    iIntros "#Hsub !> %ρ Hg %v"; iSpecialize ("Hsub" with "Hg"); iNext i.
-    rewrite oProjN_eq; iDestruct 1 as (w) "(HTw & HselV)".
-    (*
-      After unfolding definitions, we must show that [v] is in [U],
-      assuming that [v] is in [w.A] where [w] is in [T] and
-      [T <: { A :: L .. U }]. But then [w] is in [{ A :: L .. U }], and
-      from existing results for type selections, it follows that
-      [v] is in [U].
-    *)
-    iApply (vl_sel_ub with "HselV (Hsub HTw)").
-  Qed.
+    Because types can contain free variables, we have environments [ρ],
+    typed by typing contexts [Γ], but you can ignore them at first.
+  *)
 
   (**
     Type projections are covariant: if T <: U then T#A <: U#A, or formally:
@@ -138,6 +177,42 @@ Section type_proj.
 
     rewrite !oProjN_eq. iDestruct 1 as (w) "(HTw & Hφ)"; iExists w; iFrame "Hφ".
     iApply ("Hsub" with "HTw").
+  Qed.
+
+  (**
+    Type projections are subtypes of their upper bound.
+
+    ------------------------
+    Γ ⊨ { A :: L .. U }T#A <:^i U
+  *)
+  Lemma sProj_Stp_U A Γ L U i :
+    ⊢ Γ s⊨ oProj A (cTMem A L U) <:[i] U.
+  Proof.
+    iIntros "!> %ρ Hg %v"; iNext i.
+    rewrite oProjN_eq; iDestruct 1 as (w) "(HTw & HselV)".
+    (*
+      After unfolding definitions, we must show that [v] is in [U],
+      assuming that [v] is in [w.A] where [w] is in [{ A :: L .. U }].
+      From existing results for type selections, it follows that
+      [v] is in [U].
+    *)
+    iApply (vl_sel_ub with "HselV HTw").
+  Qed.
+
+  (**
+    Type projections are subtypes of their upper bound: a more general statement.
+
+    Γ ⊨ T <:^i { A :: L .. U }
+    ------------------------
+    Γ ⊨ T#A <:^i U
+  *)
+  Lemma sProj_Stp_U' A Γ T L U i :
+    Γ s⊨ T <:[i] cTMem A L U -∗
+    Γ s⊨ oProj A T <:[i] U.
+  Proof.
+    iIntros "#Hp".
+    iApply sStp_Trans; first iApply (sProj_Stp_Proj with "Hp").
+    iApply sProj_Stp_U.
   Qed.
 
   (**
