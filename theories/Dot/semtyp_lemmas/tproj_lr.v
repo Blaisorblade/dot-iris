@@ -137,43 +137,20 @@ Section type_proj.
   Qed.
 
   (** TODO: other rules should be derivable from the rules for existentials. *)
-
   (**
-    Type projections are subtypes of their upper bound.
-
     Here and below, we use indexed subtyping [Γ ⊨ T <:^i U] to satisfy the
     restrictions discussed above. These restrictions are not specific to type
     projections but are also needed for type selections [p.A].
 
-    On a first read, you should read [Γ ⊨ T <:^i U] as [Γ ⊨ T <: U]; see the
+    On a first read, you should read [Γ ⊨ T <:^i U] as [Γ ⊢ T <: U]; see the
     paper for more discussion.
 
-    Γ ⊨ T <:^i { A :: L .. U }
-    ------------------------
-    Γ ⊨ T#A <:^i U
-  *)
-  Lemma sProj_Stp_U A Γ T L U i :
-    Γ s⊨ T <:[i] cTMem A L U -∗
-    Γ s⊨ oProj A T <:[i] U.
-  Proof.
-    (*
-      In short, to show a subtyping relation [T1 <: T2], we must show that
-      any value [v] in [T1] is also in [T2].
+    In short, to show a subtyping relation [T1 <: T2], we must show that
+    any value [v] in [T1] is also in [T2].
 
-      Because types can contain free variables, we have environments [ρ],
-      typed by typing contexts [Γ], but you can ignore them at first.
-    *)
-    iIntros "#Hsub !> %ρ Hg %v"; iSpecialize ("Hsub" with "Hg"); iNext i.
-    rewrite oProjN_eq; iDestruct 1 as (w) "(HTw & HselV)".
-    (*
-      After unfolding definitions, we must show that [v] is in [U],
-      assuming that [v] is in [w.A] where [w] is in [T] and
-      [T <: { A :: L .. U }]. But then [w] is in [{ A :: L .. U }], and
-      from existing results for type selections, it follows that
-      [v] is in [U].
-    *)
-    iApply (vl_sel_ub with "HselV (Hsub HTw)").
-  Qed.
+    Because types can contain free variables, we have environments [ρ],
+    typed by typing contexts [Γ], but you can ignore them at first.
+  *)
 
   (**
     Type projections are covariant: if T <: U then T#A <: U#A, or formally:
@@ -200,6 +177,42 @@ Section type_proj.
 
     rewrite !oProjN_eq. iDestruct 1 as (w) "(HTw & Hφ)"; iExists w; iFrame "Hφ".
     iApply ("Hsub" with "HTw").
+  Qed.
+
+  (**
+    Type projections are subtypes of their upper bound.
+
+    ------------------------
+    Γ ⊨ { A :: L .. U }T#A <:^i U
+  *)
+  Lemma sProj_Stp_U A Γ L U i :
+    ⊢ Γ s⊨ oProj A (cTMem A L U) <:[i] U.
+  Proof.
+    iIntros "!> %ρ Hg %v"; iNext i.
+    rewrite oProjN_eq; iDestruct 1 as (w) "(HTw & HselV)".
+    (*
+      After unfolding definitions, we must show that [v] is in [U],
+      assuming that [v] is in [w.A] where [w] is in [{ A :: L .. U }].
+      From existing results for type selections, it follows that
+      [v] is in [U].
+    *)
+    iApply (vl_sel_ub with "HselV HTw").
+  Qed.
+
+  (**
+    Type projections are subtypes of their upper bound: a more general statement.
+
+    Γ ⊨ T <:^i { A :: L .. U }
+    ------------------------
+    Γ ⊨ T#A <:^i U
+  *)
+  Lemma sProj_Stp_U' A Γ T L U i :
+    Γ s⊨ T <:[i] cTMem A L U -∗
+    Γ s⊨ oProj A T <:[i] U.
+  Proof.
+    iIntros "#Hp".
+    iApply sStp_Trans; first iApply (sProj_Stp_Proj with "Hp").
+    iApply sProj_Stp_U.
   Qed.
 
   (**
