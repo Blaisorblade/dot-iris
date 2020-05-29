@@ -109,13 +109,12 @@ Section fundamental.
     + by iApply suT_If; [iApply H|iApply H0|iApply H1].
     + by iApply suD_Nil.
     + by iApply suD_Cons; [|iApply H|iApply H0].
-    + admit.
-      (* by iApply uD_Typ_Abs; [> |iApply fundamental_subtype ..]. *)
+    + by iApply uD_Typ_Abs; [> |iApply fundamental_subtype ..].
     + iApply suD_Val. by iApply H.
     + iApply suD_Path. by iApply fundamental_path_typed.
     + iApply suD_Val_New. by iApply H.
     + iApply suD_Path_Stp; by [> iApply fundamental_subtype|iApply H].
-  Admitted.
+  Qed.
 
   (** * Fundamental theorem 5.4. *)
   Lemma fundamental_typed Γ e T :
