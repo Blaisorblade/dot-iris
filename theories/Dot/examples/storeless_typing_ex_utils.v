@@ -199,12 +199,12 @@ Ltac ltcrush := tcrush; repeat lookup.
 Section examples_lemmas.
 Context {g}.
 
-Lemma iT_All_Ex' T2 {Γ e1 v2 T1 T3} :
-  Γ v⊢ₜ[ g ] e1: TAll T1 T2 →                        Γ v⊢ₜ[ g ] tv v2 : T1 →
-  T3 = T2.|[v2/] →
+Lemma iT_All_Ex' T2 {Γ e1 x2 T1 T3} :
+  Γ v⊢ₜ[ g ] e1: TAll T1 T2 →                        Γ v⊢ₜ[ g ] tv (var_vl x2) : T1 →
+  T3 = T2.|[var_vl x2/] →
   (*────────────────────────────────────────────────────────────*)
-  Γ v⊢ₜ[ g ] tapp e1 (tv v2) : T3.
-Proof. intros; subst; by econstructor. Qed.
+  Γ v⊢ₜ[ g ] tapp e1 (tv (var_vl x2)) : T3.
+Proof. intros; subst. exact: iT_All_Ex. Qed.
 
 Lemma iT_Var' Γ x T1 T2 :
   Γ !! x = Some T1 →

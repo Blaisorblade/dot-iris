@@ -32,11 +32,11 @@ Judgments for typing, subtyping, path and definition typing.
 *)
 Inductive typed Γ g : tm → ty → Prop :=
 (** First, elimination forms *)
-(** Dependent application; only allowed if the argument is a value . *)
-| iT_All_Ex e1 v2 T1 T2:
-    Γ v⊢ₜ[ g ] e1: TAll T1 T2 →                        Γ v⊢ₜ[ g ] tv v2 : T1 →
+(** Dependent application; only allowed if the argument is a variable. *)
+| iT_All_Ex e1 x2 T1 T2:
+    Γ v⊢ₜ[ g ] e1: TAll T1 T2 →                        Γ v⊢ₜ[g] tv (var_vl x2) : T1 →
     (*────────────────────────────────────────────────────────────*)
-    Γ v⊢ₜ[ g ] tapp e1 (tv v2) : T2.|[v2/]
+    Γ v⊢ₜ[g] tapp e1 (tv (var_vl x2)) : T2.|[(var_vl x2)/]
 
 | iT_All_Ex_p p2 e1 T1 T2 T2':
     T2 .Tp[ p2 /]~ T2' →
