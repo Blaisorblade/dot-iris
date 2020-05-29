@@ -1,6 +1,9 @@
-(** * Judgments defining gDOT storeless typing.
-Storeless typing resembles stamped typing, but also allows arbitrary values in
-paths.
+(** * Judgments defining gDOT "storeless" typing.
+This is not our official type system and is not documented in the paper; it
+is only used as part of safety proofs of "syntactically ill-typed" examples.
+The name is historic.
+Storeless typing resembles stamped typing, but used to allow arbitrary values
+in paths.
 *)
 From D.Dot Require Export syn path_repl lr_syn_aux.
 From D.Dot.typing Require Export typing_aux_defs.
@@ -29,11 +32,11 @@ Judgments for typing, subtyping, path and definition typing.
 *)
 Inductive typed Γ g : tm → ty → Prop :=
 (** First, elimination forms *)
-(** Dependent application; only allowed if the argument is a value . *)
-| iT_All_Ex e1 v2 T1 T2:
-    Γ v⊢ₜ[ g ] e1: TAll T1 T2 →                        Γ v⊢ₜ[ g ] tv v2 : T1 →
+(** Dependent application; only allowed if the argument is a variable. *)
+| iT_All_Ex e1 x2 T1 T2:
+    Γ v⊢ₜ[ g ] e1: TAll T1 T2 →                        Γ v⊢ₜ[g] tv (var_vl x2) : T1 →
     (*────────────────────────────────────────────────────────────*)
-    Γ v⊢ₜ[ g ] tapp e1 (tv v2) : T2.|[v2/]
+    Γ v⊢ₜ[g] tapp e1 (tv (var_vl x2)) : T2.|[(var_vl x2)/]
 
 | iT_All_Ex_p p2 e1 T1 T2 T2':
     T2 .Tp[ p2 /]~ T2' →
@@ -51,10 +54,10 @@ Inductive typed Γ g : tm → ty → Prop :=
     Γ v⊢ₜ[ g ] e : TVMem l T →
     (*─────────────────────────*)
     Γ v⊢ₜ[ g ] tproj e l : T
-| iT_Mu_E v T:
-    Γ v⊢ₜ[ g ] tv v: TMu T →
+| iT_Mu_E x T:
+    Γ v⊢ₜ[ g ] tv (var_vl x): TMu T →
     (*──────────────────────*)
-    Γ v⊢ₜ[ g ] tv v: T.|[v/]
+    Γ v⊢ₜ[ g ] tv (var_vl x): T.|[var_vl x/]
 (** Introduction forms *)
 | iT_All_I_Strong e T1 T2 Γ':
     ⊢G Γ >>▷* Γ' →
@@ -68,10 +71,10 @@ Inductive typed Γ g : tm → ty → Prop :=
     is_stamped_ty (S (length Γ)) g T →
     (*──────────────────────*)
     Γ v⊢ₜ[ g ] tv (vobj ds): TMu T
-| iT_Mu_I v T:
-    Γ v⊢ₜ[ g ] tv v: T.|[v/] →
+| iT_Mu_I x T:
+    Γ v⊢ₜ[ g ] tv (var_vl x): T.|[var_vl x/] →
     (*──────────────────────*)
-    Γ v⊢ₜ[ g ] tv v: TMu T
+    Γ v⊢ₜ[ g ] tv (var_vl x): TMu T
 
 (** "General" rules *)
 | iT_Var x T :
@@ -139,9 +142,12 @@ with dm_typed Γ g : label → dm → ty → Prop :=
     Γ v⊢[ g ]{ l := dpt p } : TVMem l T2
 where "Γ v⊢[ g ]{ l := d  } : T" := (dm_typed Γ g l d T)
 with path_typed Γ g : path → ty → nat → Prop :=
-| iP_Val v T:
-    Γ v⊢ₜ[ g ] tv v : T →
-    Γ v⊢ₚ[ g ] pv v : T, 0
+| iP_Var x T:
+    Γ v⊢ₜ[ g ] tv (var_vl x) : T →
+    Γ v⊢ₚ[ g ] pv (var_vl x) : T, 0
+| iP_Lit l T:
+    Γ v⊢ₜ[ g ] tv (vlit l) : T →
+    Γ v⊢ₚ[ g ] pv (vlit l) : T, 0
 (* Mnemonic: Path from SELecting a Field *)
 | iP_Fld_E p T i l:
     Γ v⊢ₚ[ g ] p : TVMem l T, i →

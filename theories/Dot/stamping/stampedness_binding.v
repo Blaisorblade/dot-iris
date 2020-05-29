@@ -40,13 +40,15 @@ Proof.
   - apply fv_dtysem. decompose_Forall. by eauto.
 Qed.
 
-Lemma is_stamped_nclosed_vl v g i:
-  is_stamped_vl i g v →
-  nclosed_vl v i.
+Lemma is_stamped_nclosed_tm e g i: is_stamped_tm i g e → nclosed e i.
+Proof. apply is_stamped_nclosed_mut. Qed.
+Lemma is_stamped_nclosed_vl v g i: is_stamped_vl i g v → nclosed_vl v i.
 Proof. apply (is_stamped_nclosed_mut g). Qed.
-Lemma is_stamped_nclosed_ty T g i:
-  is_stamped_ty i g T →
-  nclosed T i.
+Lemma is_stamped_nclosed_dm d i g: is_stamped_dm i g d → nclosed d i.
+Proof. apply is_stamped_nclosed_mut. Qed.
+Lemma is_stamped_nclosed_path p i g: is_stamped_path i g p → nclosed p i.
+Proof. apply is_stamped_nclosed_mut. Qed.
+Lemma is_stamped_nclosed_ty T g i: is_stamped_ty i g T → nclosed T i.
 Proof. apply (is_stamped_nclosed_mut g). Qed.
 
 Lemma is_stamped_nclosed_σ σ g i:

@@ -320,8 +320,8 @@ Proof.
   iApply D_Cons; [done | iApply D_Val | ]. {
     iApply (T_All_I_Strong (Γ' := Γ')). apply Hctx.
     iApply (fundamental_typed with "Hs").
-    eapply iT_Sub_nocoerce.
-    + apply (iT_Mu_E (T := TTop)); tcrush.
+    eapply (iT_Sub_nocoerce (TMu TTop)).
+    + wtcrush.
     + apply (iSub_Sel' TTop); tcrush; varsub. lThis; ltcrush.
   }
   iApply D_Cons; [done | semTMember 2 | ].

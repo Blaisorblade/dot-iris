@@ -444,6 +444,10 @@ Section misc_lemmas.
     iApply ("Hp" with "Hg").
   Qed.
 
+  Lemma sP_Var {Γ} x T :
+    Γ s⊨ tv (var_vl x) : T -∗ Γ s⊨p pv (var_vl x) : T, 0.
+  Proof. apply sP_Val. Qed.
+
   Lemma sSub_Refl {Γ} T i : ⊢ Γ s⊨ T, i <: T, i.
   Proof. by iIntros "!> **". Qed.
 
@@ -580,9 +584,6 @@ Section liftings.
     V⟦ Γ ⟧* s⊨ V⟦ iterate TLater i T ⟧, 0 <: V⟦ iterate TLater j U ⟧, 0.
   Proof. by rewrite sSub_Eq !iterate_TLater_oLater. Qed.
 
-
-  Lemma P_Val {Γ} v T: Γ ⊨ tv v : T -∗ Γ ⊨p pv v : T, 0.
-  Proof. apply sP_Val. Qed.
 
   Lemma Sub_Refl {Γ} T i : ⊢ Γ ⊨ T, i <: T, i.
   Proof. apply sSub_Refl. Qed.

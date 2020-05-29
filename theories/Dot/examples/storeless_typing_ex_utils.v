@@ -199,12 +199,12 @@ Ltac ltcrush := tcrush; repeat lookup.
 Section examples_lemmas.
 Context {g}.
 
-Lemma iT_All_Ex' T2 {Γ e1 v2 T1 T3} :
-  Γ v⊢ₜ[ g ] e1: TAll T1 T2 →                        Γ v⊢ₜ[ g ] tv v2 : T1 →
-  T3 = T2.|[v2/] →
+Lemma iT_All_Ex' T2 {Γ e1 x2 T1 T3} :
+  Γ v⊢ₜ[ g ] e1: TAll T1 T2 →                        Γ v⊢ₜ[ g ] tv (var_vl x2) : T1 →
+  T3 = T2.|[var_vl x2/] →
   (*────────────────────────────────────────────────────────────*)
-  Γ v⊢ₜ[ g ] tapp e1 (tv v2) : T3.
-Proof. intros; subst; by econstructor. Qed.
+  Γ v⊢ₜ[ g ] tapp e1 (tv (var_vl x2)) : T3.
+Proof. intros; subst. exact: iT_All_Ex. Qed.
 
 Lemma iT_Var' Γ x T1 T2 :
   Γ !! x = Some T1 →
@@ -219,11 +219,11 @@ Lemma iT_Var0 Γ T :
   Γ v⊢ₜ[ g ] tv (var_vl 0) : T.
 Proof. intros; eapply iT_Var'; by rewrite ?hsubst_id. Qed.
 
-Lemma iT_Mu_E' Γ v T1 T2:
-  Γ v⊢ₜ[ g ] tv v: TMu T1 →
-  T2 = T1.|[v/] →
+Lemma iT_Mu_E' Γ x T1 T2:
+  Γ v⊢ₜ[ g ] tv (var_vl x): TMu T1 →
+  T2 = T1.|[var_vl x/] →
   (*──────────────────────*)
-  Γ v⊢ₜ[ g ] tv v: T2.
+  Γ v⊢ₜ[ g ] tv (var_vl x): T2.
 Proof. intros; subst; auto. Qed.
 
 Lemma iSub_Bind_1 Γ T1 T2 i:
@@ -530,17 +530,6 @@ Lemma packTV_typed s T Γ :
   Γ v⊢ₜ[ g ] packTV (length Γ) s : typeEq "A" T.
 Proof. intros; exact: packTV_typed'. Qed.
 
-Lemma val_LB L U Γ i v :
-  is_stamped_ty (length Γ) g L →
-  is_stamped_ty (length Γ) g U →
-  is_stamped_vl (length Γ) g v →
-  Γ v⊢ₜ[ g ] v : type "A" >: L <: U →
-  Γ v⊢ₜ[ g ] ▶: L, i <: v @; "A", i.
-Proof.
-  intros ??? Hv; apply (iSub_SelL (U := U)).
-  apply (path_tp_delay (i := 0)); wtcrush.
-Qed.
-
 Lemma is_stamped_sub_dm d s m n:
   is_stamped_sub n m g s →
   is_stamped_dm n g d →
@@ -555,17 +544,6 @@ Lemma is_stamped_dtysem m n s T:
 Proof.
   intros.
   by apply Trav1.trav_dtysem with (T' := T) (ts' := (m, g)), is_stamped_idsσ.
-Qed.
-
-Lemma val_UB L U Γ i v :
-  is_stamped_ty (length Γ) g L →
-  is_stamped_ty (length Γ) g U →
-  is_stamped_vl (length Γ) g v →
-  Γ v⊢ₜ[ g ] v : type "A" >: L <: U →
-  Γ v⊢ₜ[ g ] v @; "A", i <: ▶: U, i.
-Proof.
-  intros ??? Hv; apply (iSel_SubL (L := L)).
-  apply (path_tp_delay (i := 0)); wtcrush.
 Qed.
 
 Definition tApp Γ t s :=
