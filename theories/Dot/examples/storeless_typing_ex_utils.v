@@ -196,8 +196,25 @@ Ltac ltcrush := tcrush; repeat lookup.
 (** DERIVED RULES **)
 (*******************)
 
+(* From D.Dot Require Export typing_stamping_regularity stampedness_binding path_repl_lemmas. *)
 Section examples_lemmas.
 Context {g}.
+
+(*
+Lemma storeless_subject_closed {Γ e T}
+  (Ht : Γ v⊢ₜ[g] e : T) :
+  nclosed e (length Γ).
+Proof.
+  have ? := stamped_exp_subject Ht. exact: is_stamped_nclosed_tm.
+Qed.
+Lemma var_typed_closed {Γ x T} : Γ v⊢ₜ[g] tv (ids x) : T → x < length Γ.
+Proof. by move => /storeless_subject_closed/fv_of_val_inv/nclosed_var_lt. Qed.
+Lemma is_unstamped_pvar i n b : i < n → is_unstamped_path n b (pv (var_vl i)).
+Proof. eauto 6. Qed.
+Hint Resolve is_unstamped_pvar : core.
+Lemma is_unstamped_pvars i n l b : i < n → is_unstamped_ty n b (pv (var_vl i) @; l).
+Proof. eauto. Qed.
+Hint Resolve is_unstamped_pvars : core. *)
 
 Lemma iT_All_Ex' T2 {Γ e1 x2 T1 T3} :
   Γ v⊢ₜ[ g ] e1: TAll T1 T2 →                        Γ v⊢ₜ[ g ] tv (var_vl x2) : T1 →
