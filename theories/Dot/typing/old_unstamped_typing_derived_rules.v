@@ -31,7 +31,7 @@ Lemma iT_All_Ex Γ e1 x2 T1 T2:
 Proof.
   intros He1 Hx2 Hu. have Hlx2 := var_typed_closed Hx2.
   rewrite -(psubst_subst_agree_ty (n := S (length Γ))); tcrush.
-  eapply iT_All_Ex_p with (p2 := (pv (var_vl x2))); tcrush.
+  eapply iT_All_Ex_p with (p2 := pv (var_vl x2)); tcrush.
 Qed.
 
 Lemma iT_Mu_E {Γ x T}:
