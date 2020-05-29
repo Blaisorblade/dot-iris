@@ -530,17 +530,6 @@ Lemma packTV_typed s T Γ :
   Γ v⊢ₜ[ g ] packTV (length Γ) s : typeEq "A" T.
 Proof. intros; exact: packTV_typed'. Qed.
 
-Lemma val_LB L U Γ i v :
-  is_stamped_ty (length Γ) g L →
-  is_stamped_ty (length Γ) g U →
-  is_stamped_vl (length Γ) g v →
-  Γ v⊢ₜ[ g ] v : type "A" >: L <: U →
-  Γ v⊢ₜ[ g ] ▶: L, i <: v @; "A", i.
-Proof.
-  intros ??? Hv; apply (iSub_SelL (U := U)).
-  apply (path_tp_delay (i := 0)); wtcrush.
-Qed.
-
 Lemma is_stamped_sub_dm d s m n:
   is_stamped_sub n m g s →
   is_stamped_dm n g d →
@@ -555,17 +544,6 @@ Lemma is_stamped_dtysem m n s T:
 Proof.
   intros.
   by apply Trav1.trav_dtysem with (T' := T) (ts' := (m, g)), is_stamped_idsσ.
-Qed.
-
-Lemma val_UB L U Γ i v :
-  is_stamped_ty (length Γ) g L →
-  is_stamped_ty (length Γ) g U →
-  is_stamped_vl (length Γ) g v →
-  Γ v⊢ₜ[ g ] v : type "A" >: L <: U →
-  Γ v⊢ₜ[ g ] v @; "A", i <: ▶: U, i.
-Proof.
-  intros ??? Hv; apply (iSel_SubL (L := L)).
-  apply (path_tp_delay (i := 0)); wtcrush.
 Qed.
 
 Definition tApp Γ t s :=

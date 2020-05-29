@@ -332,54 +332,6 @@ Proof.
 Qed.
 Hint Resolve is_stamped_dm_s1 : core.
 
-Lemma packBooleanLB Γ (Hst : s1_is_ift) i :
-  Γ v⊢ₜ[ g ] ▶: IFT, i <: packBoolean @; "A", i.
-Proof. apply /val_LB /packBooleanTyp0; wtcrush. Qed.
-
-Lemma packBooleanUB Γ (Hst : s1_is_ift) i :
-  Γ v⊢ₜ[ g ] packBoolean @; "A", i <: ▶: IFT, i.
-Proof. apply /val_UB /packBooleanTyp0; wtcrush. Qed.
-
-Definition iftAnd false : vl := vabs (vabs (
-  x1 $: packBoolean $: x0 $: false)).
-
-Example iftAndTyp Γ (Hst : s1_is_ift):
-  Γ v⊢ₜ[ g ] iftAnd iftFalse : TAll IFT (TAll IFT (▶:IFT)).
-Proof.
-  unfold s1_is_ift in *; rewrite /iftAnd.
-  tcrush.
-  eapply iT_All_E; last exact: iftFalseTyp.
-  eapply iT_All_E; last exact: iT_Var'.
-  rewrite lift0 hsubst_id /= -/IFT.
-  eapply iT_Sub_nocoerce. {
-    eapply iT_All_Ex'. 2: by apply: packBooleanTyp; eauto.
-    exact: iT_Var'.
-    by change IFTBody.|[_] with IFTBody.
-  }
-
-  apply iAll_Sub_All; stcrush.
-  { ettrans. exact: packBooleanLB. wtcrush. }
-  apply Sub_later_shift; [wtcrush..|].
-  apply iAll_Sub_All; stcrush.
-  - ettrans. exact: packBooleanLB. wtcrush.
-  - eapply Sub_later_shift; [wtcrush..|].
-    ettrans. exact: packBooleanUB. tcrush.
-Qed.
-
-(* Eta-expand to drop the later. *)
-
-Example iftAndTyp'1 Γ (Hst : s1_is_ift):
-  Γ v⊢ₜ[ g ] vabs (vabs
-    (tskip (iftAnd iftFalse $: x1 $: x0))) :
-    TAll IFT (TAll IFT IFT).
-Proof.
-  tcrush; rewrite -(iterate_S tskip 0).
-  eapply (iT_Sub (T1 := ▶:IFT)); first tcrush.
-  eapply iT_All_E; last exact: iT_Var';
-    eapply iT_All_E; last exact: iT_Var'; rewrite /= -/IFT.
-  apply iftAndTyp; eauto.
-Qed.
-
 Definition iftCoerce t :=
   lett t (vabs (vabs (tskip (x2 $: x1 $: x0)))).
 
@@ -402,10 +354,6 @@ Proof.
   rewrite /= !(hren_upn 1) (hren_upn_gen 1) (hren_upn_gen 2)
     !hsubst_comp !ren_ren_comp /=. done.
 Qed.
-
-Example iftAndTyp'2 Γ (Hst : s1_is_ift):
-  Γ v⊢ₜ[ g ] iftCoerce (iftAnd iftFalse) : TAll IFT (TAll IFT IFT).
-Proof. intros. apply /coerce_tAppIFT /iftAndTyp; tcrush. Qed.
 
 Lemma subIFT i Γ T:
   is_stamped_ty (length Γ) g (shiftN i T) →
@@ -492,4 +440,78 @@ Proof.
   exact: tAppIFT_coerced_typed_IFT.
 Qed.
 
+Lemma val_LB L U Γ i v :
+  is_stamped_ty (length Γ) g L →
+  is_stamped_ty (length Γ) g U →
+  is_stamped_vl (length Γ) g v →
+  Γ v⊢ₜ[ g ] v : type "A" >: L <: U →
+  Γ v⊢ₜ[ g ] ▶: L, i <: v @; "A", i.
+Proof.
+  intros ??? Hv; apply (iSub_SelL (U := U)).
+  apply (path_tp_delay (i := 0)); wtcrush.
+Qed.
+
+Lemma val_UB L U Γ i v :
+  is_stamped_ty (length Γ) g L →
+  is_stamped_ty (length Γ) g U →
+  is_stamped_vl (length Γ) g v →
+  Γ v⊢ₜ[ g ] v : type "A" >: L <: U →
+  Γ v⊢ₜ[ g ] v @; "A", i <: ▶: U, i.
+Proof.
+  intros ??? Hv; apply (iSel_SubL (L := L)).
+  apply (path_tp_delay (i := 0)); wtcrush.
+Qed.
+
+
+Lemma packBooleanLB Γ (Hst : s1_is_ift) i :
+  Γ v⊢ₜ[ g ] ▶: IFT, i <: packBoolean @; "A", i.
+Proof. apply /val_LB /packBooleanTyp0; wtcrush. Qed.
+
+Lemma packBooleanUB Γ (Hst : s1_is_ift) i :
+  Γ v⊢ₜ[ g ] packBoolean @; "A", i <: ▶: IFT, i.
+Proof. apply /val_UB /packBooleanTyp0; wtcrush. Qed.
+
+Definition iftAnd false : vl := vabs (vabs (
+  x1 $: packBoolean $: x0 $: false)).
+
+Example iftAndTyp Γ (Hst : s1_is_ift):
+  Γ v⊢ₜ[ g ] iftAnd iftFalse : TAll IFT (TAll IFT (▶:IFT)).
+Proof.
+  unfold s1_is_ift in *; rewrite /iftAnd.
+  tcrush.
+  eapply iT_All_E; last exact: iftFalseTyp.
+  eapply iT_All_E; last exact: iT_Var'.
+  rewrite lift0 hsubst_id /= -/IFT.
+  eapply iT_Sub_nocoerce. {
+    eapply iT_All_Ex'. 2: by apply: packBooleanTyp; eauto.
+    exact: iT_Var'.
+    by change IFTBody.|[_] with IFTBody.
+  }
+
+  apply iAll_Sub_All; stcrush.
+  { ettrans. exact: packBooleanLB. wtcrush. }
+  apply Sub_later_shift; [wtcrush..|].
+  apply iAll_Sub_All; stcrush.
+  - ettrans. exact: packBooleanLB. wtcrush.
+  - eapply Sub_later_shift; [wtcrush..|].
+    ettrans. exact: packBooleanUB. tcrush.
+Qed.
+
+Example iftAndTyp'2 Γ (Hst : s1_is_ift):
+  Γ v⊢ₜ[ g ] iftCoerce (iftAnd iftFalse) : TAll IFT (TAll IFT IFT).
+Proof. intros. apply /coerce_tAppIFT /iftAndTyp; tcrush. Qed.
+
+(* Eta-expand to drop the later. *)
+
+Example iftAndTyp'1 Γ (Hst : s1_is_ift):
+  Γ v⊢ₜ[ g ] vabs (vabs
+    (tskip (iftAnd iftFalse $: x1 $: x0))) :
+    TAll IFT (TAll IFT IFT).
+Proof.
+  tcrush; rewrite -(iterate_S tskip 0).
+  eapply (iT_Sub (T1 := ▶:IFT)); first tcrush.
+  eapply iT_All_E; last exact: iT_Var';
+    eapply iT_All_E; last exact: iT_Var'; rewrite /= -/IFT.
+  apply iftAndTyp; eauto.
+Qed.
 End examples.
