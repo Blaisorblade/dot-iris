@@ -560,6 +560,7 @@ Section Propers.
   Global Instance sdstp_flip_proper ds :
     Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sdstp ds).
   Proof. apply: flip_proper_3. Qed.
+  Global Instance: Params (@sdstp) 3 := {}.
 
   Global Instance sdtp_proper l d : Proper ((≡) ==> (≡) ==> (≡)) (sdtp l d) := _.
   Global Instance sdtp_flip_proper l d : Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sdtp l d) := _.
