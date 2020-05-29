@@ -16,7 +16,8 @@ discussed in the paper.
 *)
 From iris.proofmode Require Import tactics.
 From D Require Import swap_later_impl.
-From D.Dot Require Import unary_lr dsub_lr path_repl_lr.
+From D.Dot Require Import unary_lr dsub_lr defs_lr path_repl_lr.
+From D.Dot Require Import sem_unstamped_typing.
 
 Implicit Types (Σ : gFunctors).
 Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env) (l : label).
@@ -303,4 +304,35 @@ Section type_proj.
     TODO: Scala probably has more typing rules.
     Check them, or provide counterexamples.
   *)
+
+  (* What about projecting members with matching bounds? Upper bounds are fine... *)
+  Lemma sProj_TMem_Stp Γ A T i :
+    ⊢ Γ s⊨ oProj A (oTMem A T T) <:[i] T.
+  Proof. apply sProj_Stp_U. Qed.
+
+  (* But lower bounds need an extra view shift for allocations! *)
+  Lemma oProj_oTMem A T ρ v σ :
+    coveringσ σ T →
+    oLater T vnil ρ v -∗ |==> oProj A (oTMem A (oLater T) (oLater T)) vnil ρ v.
+  Proof.
+    (** To prove this theorem, we create an object whose type member [A]
+    points to [shift T] *)
+    move=> /coveringσ_shift; set σ' := vvar 0 :: shift σ => HclT.
+    iIntros "HT"; rewrite oProjN_eq.
+    iMod (leadsto_envD_equiv_alloc HclT) as (s) "Hs"; iModIntro.
+    set d := dtysem σ' s; set w := (vobj [(A, d)]).[ρ]. iExists w.
+
+    iAssert (oTMem A (oLater T) (oLater T) vnil ρ w)%I
+      with "[-HT]" as "#Hw"; first last. {
+      iFrame "Hw". iApply (vl_sel_lb with "HT Hw").
+    }
+    iDestruct (sD_Typ (Γ := []) A with "Hs") as (Hwf) "Hd".
+    iSpecialize ("Hd" $! (w .: ρ) with "[%] [//]").
+    by apply path_includes_self, Hwf.
+    rewrite cTMem_eq.
+    iExists d.|[w .: ρ]; iSplit; first iIntros "!%".
+    eexists; split; first done.
+    rewrite norm_selfSubst. apply dms_lookup_head.
+    iApply "Hd".
+  Qed.
 End type_proj.
