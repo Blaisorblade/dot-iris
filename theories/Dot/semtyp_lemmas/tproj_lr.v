@@ -16,7 +16,8 @@ discussed in the paper.
 *)
 From iris.proofmode Require Import tactics.
 From D Require Import swap_later_impl.
-From D.Dot Require Import unary_lr dsub_lr path_repl_lr.
+From D.Dot Require Import unary_lr dsub_lr defs_lr path_repl_lr.
+From D.Dot Require Import sem_unstamped_typing.
 
 Implicit Types (Σ : gFunctors).
 Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env) (l : label).
@@ -303,4 +304,71 @@ Section type_proj.
     TODO: Scala probably has more typing rules.
     Check them, or provide counterexamples.
   *)
+
+  (** ** Rules for projecting members with matching bounds. *)
+
+  (** Upper bounds are easy... *)
+  Lemma sProj_TMem_Stp Γ A T i :
+    ⊢ Γ s⊨ oProj A (oTMem A T T) <:[i] T.
+  Proof. apply sProj_Stp_U. Qed.
+
+  (**
+    For lower bounds, we'd expect a rule similar to:
+      [Γ ⊨ T <:^i { A :: T .. T }]
+    However, we must first of all "guard" it with ▷, like other gDOT rules
+    involving (g)DOT's impredicative type members; that would give:
+
+      [Γ ⊨ ▷ T <:^i { A :: ▷ T .. ▷ T }]
+
+      or in our notation:
+
+      [Γ s⊨ oLater T <:[i] oProj A (oTMem A (oLater T) (oLater T))].
+
+    That rule indeed holds, but was challenging to prove; for technical
+    reasons, to enable this we had to add an update modality to all judgments.
+    Luckily, that was very easy.
+
+    The reason is that this rule must allocate a new type definition
+    that doesn't appear in the source program, and we haven't set things up
+    to allow this; indeed, the conclusion of rule [sProj_Stp_TMem_alloc] is
+    not [Γ s⊨ ...], but is preceded by the update modality [|==> _], which
+    makes the conclusion weaker.
+  *)
+
+  (** *** Auxiliary lemma. *)
+  Lemma oProj_oTMem A (T : olty Σ 0) σ s :
+    s ↝[ σ ] shift T -∗
+    |==> ∀ ρ, oLater T vnil ρ ⊆ oProj A (oTMem A (oLater T) (oLater T)) vnil ρ.
+  Proof.
+    (** To prove this theorem, we create an auxiliary definition body [auxD]
+    and an auxiliary object [auxV], whose type member [A] points to [shift T]. *)
+    set lT := oLater T; iIntros "#Hs".
+    set auxD := dtysem σ s; set auxV := (vobj [(A, auxD)]).
+
+    iAssert ([] s⊨p pv (vobj [(A, auxD)]) :
+      oMu (oTMem A (shift lT) (shift lT)), 0) as ">#HwT".
+    by iApply sP_Obj_I; iApply sD_Sing'; iApply (sD_Typ with "Hs").
+
+    iIntros "!> %ρ %v #HT"; rewrite oProjN_eq.
+    iAssert (oTMem A lT lT vnil ρ auxV.[ρ])%I as "{HwT} #Hw". {
+      rewrite -(path_wp_pv_eq auxV.[ρ]). by iApply "HwT".
+    }
+
+    iExists auxV.[ρ]; iFrame "Hw".
+    iApply (vl_sel_lb with "HT Hw").
+  Qed.
+
+  Lemma sProj_Stp_TMem {Γ i A σ} {T : olty Σ 0} :
+    coveringσ σ T →
+    ⊢ Γ s⊨ oLater T <:[i] oProj A (oTMem A (oLater T) (oLater T)).
+  Proof.
+    intros HclT.
+    iMod (leadsto_envD_equiv_alloc_shift HclT) as (s) "Hs".
+    iMod (oProj_oTMem A with "Hs") as "#Hs".
+    iIntros "!> %ρ _ !>". iApply "Hs".
+  Qed.
+
+  Lemma Proj_Stp_TMem {Γ i A n} {T : ty} (HclT : nclosed T n) :
+    ⊢ Γ s⊨ oLater V⟦T⟧ <:[i] oProj A (oTMem A (oLater V⟦T⟧) (oLater V⟦T⟧)).
+  Proof. have := !!nclosed_syn_coveringσ HclT; apply sProj_Stp_TMem. Qed.
 End type_proj.
