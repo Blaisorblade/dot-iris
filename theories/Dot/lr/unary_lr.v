@@ -581,9 +581,6 @@ Section liftings.
   Proof. by rewrite sSub_Eq !iterate_TLater_oLater. Qed.
 
 
-  Lemma P_Val {Γ} v T: Γ ⊨ tv v : T -∗ Γ ⊨p pv v : T, 0.
-  Proof. apply sP_Val. Qed.
-
   Lemma Sub_Refl {Γ} T i : ⊢ Γ ⊨ T, i <: T, i.
   Proof. apply sSub_Refl. Qed.
 
