@@ -176,7 +176,6 @@ Translation table of symbols in names:
 | `{}`    | `Obj`  |
 
 - Exceptions:
-  - The paper's P-Var is here called `P_Val`.
   - The paper's D-And is here replaced by `D_Nil` and `D_Cons` because definition
     lists are represented as lists (see above section on differences with the
     paper).
