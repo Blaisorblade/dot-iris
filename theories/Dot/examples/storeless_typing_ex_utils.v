@@ -251,7 +251,7 @@ Lemma iSub_Bind_1' Γ T1 T2:
   Γ v⊢ₜ[g] μ T1, 0 <: T2, 0.
 Proof. intros; exact: iSub_Bind_1. Qed.
 
-(* Adapted from [unstamped_typing_derived_rules.v]. *)
+(* Adapted from [old_unstamped_typing_derived_rules.v]. *)
 Lemma iP_Sub' {Γ p T1 T2 i} :
   Γ v⊢ₜ[g] T1, i <: T2, i →
   Γ v⊢ₚ[g] p : T1, i →

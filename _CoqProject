@@ -70,8 +70,8 @@ theories/Dot/typing/storeless_typing.v
 theories/Dot/typing/typing_aux_defs.v
 theories/Dot/typing/typing_stamping.v
 theories/Dot/typing/typing_stamping_regularity.v
-theories/Dot/typing/unstamped_typing.v
-theories/Dot/typing/unstamped_typing_derived_rules.v
+theories/Dot/typing/old_unstamped_typing.v
+theories/Dot/typing/old_unstamped_typing_derived_rules.v
 
 theories/Dot/fundamental.v
 
@@ -88,7 +88,7 @@ theories/Dot/examples/prim_boolean_option.v
 theories/Dot/examples/scala_lib.v
 theories/Dot/examples/storeless_typing_ex.v
 theories/Dot/examples/storeless_typing_ex_utils.v
-theories/Dot/examples/unstamped_typing_ex.v
+theories/Dot/examples/old_unstamped_typing_ex.v
 
 theories/Dot/hkdot/sem_kind.v
 

@@ -97,10 +97,10 @@ Sec. 4:
     [`Dot/typing/typing_aux_defs.v`](theories/Dot/typing/typing_aux_defs.v)
   - Path substitution and replacement:
     [`Dot/syn/path_repl.v`](theories/Dot/syn/path_repl.v)
-  - Primitive typing rules: [`Dot/typing/unstamped_typing.v`](theories/Dot/typing/unstamped_typing.v)
+  - Primitive typing rules: [`Dot/typing/old_unstamped_typing.v`](theories/Dot/typing/old_unstamped_typing.v)
   - Derived rules:
-    [`Dot/typing/unstamped_typing.v`](theories/Dot/typing/unstamped_typing.v),
-    [`Dot/typing/unstamped_typing_derived_rules.v`](theories/Dot/typing/unstamped_typing_derived_rules.v)
+    [`Dot/typing/old_unstamped_typing.v`](theories/Dot/typing/old_unstamped_typing.v),
+    [`Dot/typing/old_unstamped_typing_derived_rules.v`](theories/Dot/typing/old_unstamped_typing_derived_rules.v)
 
 Sec. 5:
 - Safety (Def. 5.1) is defined as `safe` in

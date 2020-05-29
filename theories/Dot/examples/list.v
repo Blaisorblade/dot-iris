@@ -9,7 +9,7 @@ implementation we provide, and how to _use_ lists.
 
 From D Require Import tactics.
 From D.Dot Require Import syn unstampedness_binding.
-From D.Dot.typing Require Import unstamped_typing unstamped_typing_derived_rules.
+From D.Dot.typing Require Import old_unstamped_typing old_unstamped_typing_derived_rules.
 From D.Dot.examples Require Import ex_utils scala_lib hoas.
 
 Import DBNotation hoasNotation.

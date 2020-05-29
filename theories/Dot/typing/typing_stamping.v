@@ -2,7 +2,7 @@
 From D Require Import iris_extra.det_reduction.
 From D.Dot Require Import stamped_typing core_stamping_defs ast_stamping skeleton
   path_repl_lemmas.
-From D.Dot Require unstamped_typing.
+From D.Dot Require old_unstamped_typing.
 From D.Dot Require Import unstampedness_binding.
 
 Set Implicit Arguments.
@@ -65,7 +65,7 @@ Lemma is_unstamped_path2tm' n b p :
 Proof. intros. by eapply is_unstamped_tm2AlsoNonVars, is_unstamped_path2tm. Qed.
 
 Section syntyping_stamping_lemmas.
-  Import unstamped_typing storeless_typing.
+  Import old_unstamped_typing storeless_typing.
 
   Hint Extern 5 (is_unstamped_ty _ AlsoNonVars _) =>
     try_once is_unstamped_ty2AlsoNonVars : core.
@@ -78,7 +78,7 @@ Section syntyping_stamping_lemmas.
     (∀ l d T, Γ u⊢{ l := d } : T → is_unstamped_dm (length Γ) AlsoNonVars d) ∧
     (∀ p T i, Γ u⊢ₚ p : T, i → is_unstamped_path' (length Γ) p).
   Proof.
-    eapply exp_unstamped_typing_mut_ind with
+    eapply exp_old_unstamped_typing_mut_ind with
         (P := λ Γ e T _, is_unstamped_tm (length Γ) AlsoNonVars e)
         (P0 := λ Γ ds T _, is_unstamped_dms (length Γ) AlsoNonVars ds)
         (P1 := λ Γ l d T _, is_unstamped_dm (length Γ) AlsoNonVars d)
@@ -213,7 +213,7 @@ Section syntyping_stamping_lemmas.
     (∀ T1 i1 T2 i2, Γ u⊢ₜ T1, i1 <: T2, i2 → ∀ (Hctx: unstamped_ctx Γ),
       is_unstamped_ty' (length Γ) T1 ∧ is_unstamped_ty' (length Γ) T2).
   Proof.
-    eapply unstamped_typing_mut_ind with
+    eapply old_unstamped_typing_mut_ind with
         (P := λ Γ e T _, ∀ (Hctx: unstamped_ctx Γ), is_unstamped_ty' (length Γ) T)
         (P0 := λ Γ ds T _, ∀ (Hctx: unstamped_ctx Γ), is_unstamped_ty' (length Γ) T)
         (P1 := λ Γ l d T _, ∀ (Hctx: unstamped_ctx Γ), is_unstamped_ty' (length Γ) T)
@@ -322,7 +322,7 @@ Section syntyping_stamping_lemmas.
     (∀ T1 i1 T2 i2, Γ u⊢ₜ T1, i1 <: T2, i2 →
       ∀ g, ∃ g', Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2 ∧ g ⊆ g').
   Proof.
-    eapply unstamped_typing_mut_ind with
+    eapply old_unstamped_typing_mut_ind with
       (P := λ Γ e T _, ∀ g, ∃ e' g',
         Γ s⊢ₜ[ g' ] e' : T ∧ g ⊆ g' ∧ stamps_tm' (length Γ) e g' e')
       (P0 := λ Γ ds T _, ∀ g, ∃ ds' g',

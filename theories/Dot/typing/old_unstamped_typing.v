@@ -298,7 +298,7 @@ with   unstamped_dm_typed_mut_ind := Induction for dm_typed Sort Prop
 with   unstamped_path_typed_mut_ind := Induction for path_typed Sort Prop
 with   unstamped_subtype_mut_ind := Induction for subtype Sort Prop.
 
-Combined Scheme unstamped_typing_mut_ind from unstamped_typed_mut_ind, unstamped_dms_typed_mut_ind, unstamped_dm_typed_mut_ind,
+Combined Scheme old_unstamped_typing_mut_ind from unstamped_typed_mut_ind, unstamped_dms_typed_mut_ind, unstamped_dm_typed_mut_ind,
   unstamped_path_typed_mut_ind, unstamped_subtype_mut_ind.
 
 Scheme exp_unstamped_typed_mut_ind := Induction for typed Sort Prop
@@ -306,7 +306,7 @@ with   exp_unstamped_dms_typed_mut_ind := Induction for dms_typed Sort Prop
 with   exp_unstamped_dm_typed_mut_ind := Induction for dm_typed Sort Prop
 with   exp_unstamped_path_typed_mut_ind := Induction for path_typed Sort Prop.
 
-Combined Scheme exp_unstamped_typing_mut_ind from exp_unstamped_typed_mut_ind, exp_unstamped_dms_typed_mut_ind,
+Combined Scheme exp_old_unstamped_typing_mut_ind from exp_unstamped_typed_mut_ind, exp_unstamped_dms_typed_mut_ind,
   exp_unstamped_dm_typed_mut_ind, exp_unstamped_path_typed_mut_ind.
 
 Lemma unstamped_path_root_is_var Γ p T i:

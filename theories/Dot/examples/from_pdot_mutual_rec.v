@@ -11,7 +11,7 @@ Moreover, [pCoreTyp] shows that
 
 From D Require Import tactics.
 From D.Dot Require Import syn path_repl.
-From D.Dot.typing Require Import unstamped_typing unstamped_typing_derived_rules.
+From D.Dot.typing Require Import old_unstamped_typing old_unstamped_typing_derived_rules.
 From D.Dot Require Import hoas ex_utils scala_lib.
 Import DBNotation.
 

@@ -4,7 +4,7 @@ WIP examples constructing _unstamped_ syntactic typing derivations.
 
 From D Require Import tactics.
 From D.Dot Require Import syn unstampedness_binding.
-From D.Dot.typing Require Import unstamped_typing unstamped_typing_derived_rules.
+From D.Dot.typing Require Import old_unstamped_typing old_unstamped_typing_derived_rules.
 From D.Dot Require Import ex_utils hoas scala_lib.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
