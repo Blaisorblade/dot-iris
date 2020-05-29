@@ -219,11 +219,11 @@ Lemma iT_Var0 Γ T :
   Γ v⊢ₜ[ g ] tv (var_vl 0) : T.
 Proof. intros; eapply iT_Var'; by rewrite ?hsubst_id. Qed.
 
-Lemma iT_Mu_E' Γ v T1 T2:
-  Γ v⊢ₜ[ g ] tv v: TMu T1 →
-  T2 = T1.|[v/] →
+Lemma iT_Mu_E' Γ x T1 T2:
+  Γ v⊢ₜ[ g ] tv (var_vl x): TMu T1 →
+  T2 = T1.|[var_vl x/] →
   (*──────────────────────*)
-  Γ v⊢ₜ[ g ] tv v: T2.
+  Γ v⊢ₜ[ g ] tv (var_vl x): T2.
 Proof. intros; subst; auto. Qed.
 
 Lemma iSub_Bind_1 Γ T1 T2 i:

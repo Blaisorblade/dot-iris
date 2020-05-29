@@ -54,10 +54,10 @@ Inductive typed Γ g : tm → ty → Prop :=
     Γ v⊢ₜ[ g ] e : TVMem l T →
     (*─────────────────────────*)
     Γ v⊢ₜ[ g ] tproj e l : T
-| iT_Mu_E v T:
-    Γ v⊢ₜ[ g ] tv v: TMu T →
+| iT_Mu_E x T:
+    Γ v⊢ₜ[ g ] tv (var_vl x): TMu T →
     (*──────────────────────*)
-    Γ v⊢ₜ[ g ] tv v: T.|[v/]
+    Γ v⊢ₜ[ g ] tv (var_vl x): T.|[var_vl x/]
 (** Introduction forms *)
 | iT_All_I_Strong e T1 T2 Γ':
     ⊢G Γ >>▷* Γ' →
@@ -71,10 +71,10 @@ Inductive typed Γ g : tm → ty → Prop :=
     is_stamped_ty (S (length Γ)) g T →
     (*──────────────────────*)
     Γ v⊢ₜ[ g ] tv (vobj ds): TMu T
-| iT_Mu_I v T:
-    Γ v⊢ₜ[ g ] tv v: T.|[v/] →
+| iT_Mu_I x T:
+    Γ v⊢ₜ[ g ] tv (var_vl x): T.|[var_vl x/] →
     (*──────────────────────*)
-    Γ v⊢ₜ[ g ] tv v: TMu T
+    Γ v⊢ₜ[ g ] tv (var_vl x): TMu T
 
 (** "General" rules *)
 | iT_Var x T :
