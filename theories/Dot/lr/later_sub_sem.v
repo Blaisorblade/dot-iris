@@ -4,9 +4,46 @@
 From D Require Import proper.
 From D.Dot Require Import unary_lr.
 From D.Dot Require Import typing_aux_defs.
+From D.Dot Require Import type_eq.
+From D.Dot Require Import dsub_lr.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
+
+Section TypeEquiv.
+  Context `{HdlangG: !dlangG Σ}.
+
+  Lemma fundamental_type_equiv_clty T1 T2 :
+    |- T1 == T2 → C⟦ T1 ⟧ ≡ C⟦ T2 ⟧.
+  Proof.
+    induction 1; simpl; [
+      by rewrite cAnd_olty2clty sTEq_oAnd_oLaterN|no_eq_f_equiv; exact: sTEq_oOr_oLaterN|
+      try reflexivity..|by symmetry|by etrans]; rewrite /pty_interp; f_equiv;
+      repeat first [assumption|no_eq_f_equiv].
+  Qed.
+
+  Lemma fundamental_type_equiv_olty T1 T2 :
+    |- T1 == T2 → V⟦ T1 ⟧ ≡ V⟦ T2 ⟧.
+  Proof. apply fundamental_type_equiv_clty. Qed.
+
+  Lemma idstp_respects_type_equiv Γ ds T1 T2 (Heq : |- T1 == T2) :
+    Γ ⊨ds ds : T1 -∗ Γ ⊨ds ds : T2.
+  Proof. by apply equiv_entails, sdstp_proper, fundamental_type_equiv_clty. Qed.
+
+  Lemma ietp_respects_type_equiv Γ e T1 T2 (Heq : |- T1 == T2) :
+    Γ ⊨ e : T1 -∗ Γ ⊨ e : T2.
+  Proof. by apply equiv_entails, setp_proper, fundamental_type_equiv_olty. Qed.
+
+  Lemma ietp_proper_teq Γ : Proper (type_equiv ==> (=) ==> (⊢)) (ietp Γ).
+  Proof. repeat intro; subst. exact: ietp_respects_type_equiv. Qed.
+
+  Lemma istpd_proper_teq Γ i : Proper (type_equiv ==> type_equiv ==> (⊢)) (istpd Γ i).
+  Proof.
+    by repeat intro; apply equiv_entails, sstpd_proper; [|
+      exact: fundamental_type_equiv_olty..].
+  Qed.
+
+End TypeEquiv.
 
 (* This is specialized to [vnil] because contexts only contain proper types anyway. *)
 Definition s_ty_sub `{HdlangG: !dlangG Σ} (T1 T2 : oltyO Σ 0) := ∀ ρ v, T1 vnil ρ v -∗ T2 vnil ρ v.
