@@ -1,6 +1,9 @@
-(** * Judgments defining gDOT storeless typing.
-Storeless typing resembles stamped typing, but also allows arbitrary values in
-paths.
+(** * Judgments defining gDOT "storeless" typing.
+This is not our official type system and is not documented in the paper; it
+is only used as part of safety proofs of "syntactically ill-typed" examples.
+The name is historic.
+Storeless typing resembles stamped typing, but used to allow arbitrary values
+in paths.
 *)
 From D.Dot Require Export syn path_repl lr_syn_aux.
 From D.Dot.typing Require Export typing_aux_defs.
