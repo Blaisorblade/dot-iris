@@ -73,6 +73,7 @@ Section fundamental.
       + iApply D_Val_New. by iApply H.
       + iApply D_Path_Sub; by [> iApply H|iApply H0].
 
+      + iApply sP_Var. by iApply H.
       + iApply sP_Val. by iApply H.
       + iApply P_Fld_E. by iApply H.
       + by iApply sP_Sub; [iApply H0|iApply H].
