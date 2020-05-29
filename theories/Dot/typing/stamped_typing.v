@@ -123,7 +123,7 @@ with dm_typed Γ g : label → dm → ty → Prop :=
     Γ s⊢[ g ]{ l := dpt p } : TVMem l T2
 where "Γ s⊢[ g ]{ l := d  } : T" := (dm_typed Γ g l d T)
 with path_typed Γ g : path → ty → nat → Prop :=
-| iP_Val x T:
+| iP_Var x T:
     Γ s⊢ₜ[ g ] tv (var_vl x) : T →
     Γ s⊢ₚ[ g ] pv (var_vl x) : T, 0
 (* Mnemonic: Path from SELecting a Field *)
