@@ -98,6 +98,17 @@ Section Sec.
     by rewrite s_interp_env_lookup // id_subst.
   Qed.
 
+  Lemma sT_Path {Γ τ p} :
+    Γ s⊨p p : τ, 0 -∗ Γ s⊨ path2tm p : τ.
+  Proof.
+    iIntros "#Hep !> %ρ #Hg /="; rewrite path2tm_subst.
+    by iApply (path_wp_to_wp with "(Hep Hg)").
+  Qed.
+
+  Lemma T_Path {Γ T p} :
+    Γ ⊨p p : T, 0 -∗ Γ ⊨ path2tm p : T.
+  Proof. apply sT_Path. Qed.
+
   Lemma T_Var {Γ x τ}
     (Hx : Γ !! x = Some τ):
     (*──────────────────────*)
