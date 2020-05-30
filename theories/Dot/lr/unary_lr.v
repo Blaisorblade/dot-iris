@@ -193,7 +193,7 @@ Section sem_types.
 
   Lemma cTMem_eq l T1 T2 d ρ :
     cTMem l T1 T2 ρ [(l, d)] ⊣⊢ oDTMem T1 T2 ρ d.
-  Proof. by rewrite dty2clty_singleton. Qed.
+  Proof. by rewrite dlty2clty_singleton. Qed.
 
   (** [ Ds⟦ { l : τ } ⟧] and [ V⟦ { l : τ } ⟧ ]. *)
   Definition cVMem l τ : clty Σ := dty2clty l (oDVMem τ).
@@ -202,7 +202,7 @@ Section sem_types.
 
   Lemma cVMem_eq l T d ρ :
     cVMem l T ρ [(l, d)] ⊣⊢ oDVMem T ρ d.
-  Proof. by rewrite dty2clty_singleton. Qed.
+  Proof. by rewrite dlty2clty_singleton. Qed.
 
   Lemma cVMem_dpt_eq l T p ρ :
     cVMem l T ρ [(l, dpt p)] ⊣⊢ path_wp p (oClose T ρ).

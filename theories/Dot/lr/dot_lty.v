@@ -157,7 +157,7 @@ Section DefsTypes.
   Global Instance dty2clty_proper l :
     Proper ((≡) ==> (≡)) (dty2clty l) := ne_proper _.
 
-  Lemma dty2clty_singleton l (TD : dlty Σ) ρ d :
+  Lemma dlty2clty_singleton l (TD : dlty Σ) ρ d :
     dty2clty l TD ρ [(l, d)] ≡ TD ρ d.
   Proof. by rewrite lift_dty_dms_singleton_eq. Qed.
 
