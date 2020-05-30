@@ -177,6 +177,25 @@ Module Type SortsSig (Import V : ValuesSig).
   Definition stail ρ := (+1) >>> ρ.
   Definition shead ρ := ρ 0.
 
+  Definition eq_n_s ρ1 ρ2 n := ∀ x, x < n → ρ1 x = ρ2 x.
+  Global Arguments eq_n_s /.
+
+  Lemma to_subst_compose σ ρ:
+    eq_n_s (∞ σ.|[ρ]) (∞ σ >> ρ) (length σ).
+  Proof.
+    elim: σ => /= [|v σ IHσ] i Hin; first lia; asimpl.
+    case: i Hin => [//|i] /lt_S_n Hin /=. exact: IHσ.
+  Qed.
+
+  (** [n]-closedness defines when some AST has at most [n] free variables (from [0] to [n - 1]). *)
+  (** Here and elsewhere, we give one definition for values, using [subst], and
+      another for other ASTs, using [hsubst]. *)
+  Definition nclosed_vl (v : vl) n :=
+    ∀ ρ1 ρ2, eq_n_s ρ1 ρ2 n → v.[ρ1] = v.[ρ2].
+
+  Definition nclosed `{HSubst vl X} (x : X) n :=
+    ∀ ρ1 ρ2, eq_n_s ρ1 ρ2 n → x.|[ρ1] = x.|[ρ2].
+
   Lemma shead_eq v ρ: shead (v .: ρ) = v. Proof. done. Qed.
   Lemma stail_eq v ρ: stail (v .: ρ) = ρ. Proof. done. Qed.
 
@@ -221,6 +240,11 @@ Module Type SortsSig (Import V : ValuesSig).
       by rewrite hsubst_comp -{2}(hsubst_id x) /ren /scomp; fsimpl;
         rewrite id_scompX.
     Qed.
+
+    Lemma subst_compose {x σ ξ n} :
+      nclosed x n → length σ = n →
+      x.|[∞ σ.|[ξ]] = x.|[∞ σ].|[ξ].
+    Proof. intros Hclx <-; asimpl. apply Hclx, to_subst_compose. Qed.
   End sort_lemmas.
 End SortsSig.
 
