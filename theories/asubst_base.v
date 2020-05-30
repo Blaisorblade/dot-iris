@@ -65,7 +65,6 @@ Definition nclosed `{HSubst vl X} (x : X) n :=
   ∀ ρ1 ρ2, eq_n_s ρ1 ρ2 n → x.|[ρ1] = x.|[ρ2].
 
 Notation nclosed_σ σ n := (Forall (λ v, nclosed_vl v n) σ).
-Notation cl_ρ σ := (nclosed_σ σ 0).
 
 (** Infrastructure to prove "direct" lemmas on [nclosed{,_vl}]: deduce that an expression is closed
     by knowing that its subexpression are closed. *)
@@ -326,8 +325,6 @@ Qed.
 
 Lemma lookup_ids_fv {X} {Γ : list X} {i} {T: X}: Γ !! i = Some T → nclosed_vl (ids i) (length Γ).
 Proof. move => ????; rewrite /= !id_subst. eauto using lookup_lt_Some. Qed.
-
-Definition cl_ρ_fv: ∀ σ, cl_ρ σ → nclosed σ 0 := @Forall_to_closed_vls 0.
 
 Lemma to_subst_compose σ ρ:
   eq_n_s (∞ σ.|[ρ]) (∞ σ >> ρ) (length σ).
