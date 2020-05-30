@@ -450,6 +450,49 @@ Qed.
 Lemma same_skel_symm_tm e1 e2: same_skel_tm e1 e2 → same_skel_tm e2 e1.
 Proof. apply same_skel_symm. Qed.
 
+Lemma same_skel_symm_dm d1 d2: same_skel_dm d1 d2 → same_skel_dm d2 d1.
+Proof. apply same_skel_symm. Qed.
+
+Definition same_skel_tm_trans_def e1 : Prop := ∀ e2 e3,
+  same_skel_tm e1 e2 → same_skel_tm e2 e3 → same_skel_tm e1 e3.
+Definition same_skel_vl_trans_def v1 : Prop := ∀ v2 v3,
+  same_skel_vl v1 v2 → same_skel_vl v2 v3 → same_skel_vl v1 v3.
+Definition same_skel_dm_trans_def d1 : Prop := ∀ d2 d3,
+  same_skel_dm d1 d2 → same_skel_dm d2 d3 → same_skel_dm d1 d3.
+Definition same_skel_path_trans_def p1 : Prop := ∀ p2 p3,
+  same_skel_path p1 p2 → same_skel_path p2 p3 → same_skel_path p1 p3.
+Definition same_skel_ty_trans_def T1 : Prop := ∀ T2 T3,
+  same_skel_ty T1 T2 → same_skel_ty T2 T3 → same_skel_ty T1 T3.
+
+Local Lemma same_skel_trans_dms ds1 ds2 ds3 :
+  Forall same_skel_dm_trans_def (map snd ds1) →
+  same_skel_dms ds1 ds2 →
+  same_skel_dms ds2 ds3 →
+  same_skel_dms ds1 ds3.
+Proof.
+  elim: ds1 ds2 ds3 => [|[l1 d1] ds1 IHds1] [|[l2 d2] ds2] [|[l3 d3] ds3] //.
+  rewrite Forall_cons; naive_solver.
+Qed.
+
+Section same_skel_trans.
+  Local Hint Immediate same_skel_trans_dms : core.
+  Local Ltac prepare :=
+    try first [assumption | contradiction | hnf in *]; intuition idtac; subst.
+
+  Lemma same_skel_trans :
+    (∀ t, same_skel_tm_trans_def t) ∧ (∀ v, same_skel_vl_trans_def v) ∧
+    (∀ d, same_skel_dm_trans_def d) ∧ (∀ p, same_skel_path_trans_def p) ∧
+    (∀ T, same_skel_ty_trans_def T).
+  Proof.
+    apply syntax_mut_ind; intros ** E2 E3 **; hnf in *; fold same_skel_dms in *.
+    all: destruct E2, E3; prepare; eauto 2.
+  Qed.
+
+  Lemma same_skel_trans_dm d1 d2 d3 :
+    same_skel_dm d1 d2 → same_skel_dm d2 d3 → same_skel_dm d1 d3.
+  Proof. apply same_skel_trans. Qed.
+End same_skel_trans.
+
 Ltac prim_step_inversion H :=
   destruct (prim_step_inversion H); ev; simplify_eq/=.
 
