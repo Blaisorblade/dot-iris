@@ -196,6 +196,10 @@ Section Lemmas.
     by rewrite -(IHj (S i)) -sP_Later.
   Qed.
 
+  Lemma sT_Var {Γ x τ} (Hx : Γ !! x = Some τ):
+    ⊢ Γ s⊨ of_val (ids x) : shiftN x τ.
+  Proof. by iApply (sT_Path (p := pv _)); iApply sP_Var. Qed.
+
   Lemma sT_Var0 {Γ T}
     (Hx : Γ !! 0 = Some T):
     (*──────────────────────*)

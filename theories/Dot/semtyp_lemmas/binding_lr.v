@@ -80,15 +80,6 @@ Section Sec.
     exact: sSub_Skolem_P.
   Qed.
 
-  Lemma sT_Var {Γ x τ}
-    (Hx : Γ !! x = Some τ):
-    (*──────────────────────*)
-    ⊢ Γ s⊨ of_val (ids x) : shiftN x τ.
-  Proof.
-    iIntros "/= !> %ρ #Hg"; rewrite -wp_value'.
-    by rewrite s_interp_env_lookup // id_subst.
-  Qed.
-
   Lemma sP_Var {Γ x τ}
     (Hx : Γ !! x = Some τ):
     (*──────────────────────*)
@@ -96,6 +87,15 @@ Section Sec.
   Proof.
     iIntros "/= !> %ρ #Hg"; rewrite path_wp_pv_eq.
     by rewrite s_interp_env_lookup // id_subst.
+  Qed.
+
+  Lemma P_Var {Γ x τ}
+    (Hx : Γ !! x = Some τ):
+    (*──────────────────────*)
+    ⊢ Γ ⊨p pv (ids x) : shiftN x τ, 0.
+  Proof.
+    rewrite /iptp (interp_subst_commute τ (ren (+x))). apply sP_Var.
+    by rewrite list_lookup_fmap Hx.
   Qed.
 
   Lemma sT_Path {Γ τ p} :
@@ -113,10 +113,7 @@ Section Sec.
     (Hx : Γ !! x = Some τ):
     (*──────────────────────*)
     ⊢ Γ ⊨ of_val (ids x) : shiftN x τ.
-  Proof.
-    rewrite /ietp (interp_subst_commute τ (ren (+x))). apply sT_Var.
-    by rewrite list_lookup_fmap Hx.
-  Qed.
+  Proof. by iApply (T_Path (p := pv _)); iApply P_Var. Qed.
 
   Lemma sT_And_I Γ v T1 T2:
     Γ s⊨ tv v : T1 -∗

@@ -447,10 +447,6 @@ Section misc_lemmas.
     iApply ("Hp" with "Hg").
   Qed.
 
-  Lemma sP_Var {Γ} x T :
-    Γ s⊨ tv (var_vl x) : T -∗ Γ s⊨p pv (var_vl x) : T, 0.
-  Proof. apply sP_Val. Qed.
-
   Lemma sSub_Refl {Γ} T i : ⊢ Γ s⊨ T, i <: T, i.
   Proof. by iIntros "!> **". Qed.
 
