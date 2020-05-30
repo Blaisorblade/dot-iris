@@ -89,20 +89,17 @@ Definition pSymbol : stampTy := MkTy 50 [x0; x1; x2] {@
 
 Definition pTypeRef : stampTy := MkTy 60 [x0; x1] (TAnd (x0 @; "Type") typeRefTBody) 2.
 
-(* Definition fromPDotG : stys := psAddStys primOptionG [pTop; pSymbol; pTypeRef]. *)
 (** The syntactic stamp map we use in our syntactic judgments. *)
-Definition fromPDotG : stys := psAddStys primOptionG [pTop; pSymbol].
-Definition fromPDotG' : stys := pAddStys pTypeRef fromPDotG.
-Definition fromPDotGφ := Vs⟦ fromPDotG' ⟧.
+Definition fromPDotG : stys := psAddStys primOptionG [pTypeRef; pTop; pSymbol].
+Definition fromPDotGφ := Vs⟦ fromPDotG ⟧.
 Arguments fromPDotG : simpl never.
-Arguments fromPDotG' : simpl never.
 
 Lemma pTopStamp : TyMemStamp fromPDotG pTop. Proof. split; stcrush. Qed.
 Lemma pTypeRefStamp : TyMemStamp fromPDotG pTypeRef. Proof. split; stcrush. Qed.
 Lemma pSymbolStamp : TyMemStamp fromPDotG pSymbol. Proof. split; stcrush. Qed.
 Lemma Htop : styConforms fromPDotG pTop. Proof. done. Qed.
 Lemma Hsymbol : styConforms fromPDotG pSymbol. Proof. done. Qed.
-Lemma HtypeRef : styConforms fromPDotG' pTypeRef. Proof. done. Qed.
+Lemma HtypeRef : styConforms fromPDotG pTypeRef. Proof. done. Qed.
 
 Definition assert cond :=
   tif cond 0 hloopTm.
@@ -341,7 +338,7 @@ Proof.
   iApply D_Cons; [done | iApply D_Val | iApply D_Nil].
   iApply (T_All_I_Strong (Γ' := Γ')). apply Hctx.
   iApply (fundamental_typed with "Hs").
-  have Hx: x1 @; "TypeRef" :: Γ' v⊢ₜ[ fromPDotG' ] x0 : ▶: shift typeRefTBody. {
+  have Hx: x1 @; "TypeRef" :: Γ' v⊢ₜ[ fromPDotG ] x0 : ▶: shift typeRefTBody. {
     varsub.
     eapply (iSub_Trans (T2 := ▶: TAnd (x1 @; "Type") (shift typeRefTBody))).
     + apply (iSel_Sub (L := ⊥)); tcrush. varsub. lThis; ltcrush.
@@ -441,21 +438,8 @@ Proof.
     + iApply (semFromPDotPaperTypesTyp with "Hs").
 
   - iApply D_Cons; [done| iApply D_Val | iApply D_Nil].
-  (* Fix mismatch between maps; one is an extension. *)
-    (* - Way 1, easier: weaken syntactic typing *)
     iApply (fundamental_typed with "Hs").
-    eapply storeless_typing_mono_mut.
-    + exact: fromPDotPaperSymbolsAbsTyp.
-    + by eapply map_union_subseteq_r, map_disjoint_singleton_l.
-  (* - Way 2, harder: weaken wellMapped. *)
-  (* iApply fundamental_typed.
-  exact: fromPDotPaperSymbolsAbsTyp.
-  iApply (wellMappedφ_extend with "Hs") => s.
-  destruct (fromPDotG !! s) as [T|] eqn:Heqs; rewrite !lookup_fmap Heqs/=;
-    last by case_match.
-  have Heq: fromPDotG' !! s = Some T. eapply lookup_union_Some_r, Heqs.
-  by apply map_disjoint_singleton_l.
-  by simpl_map by exact: Heq. *)
+    exact: fromPDotPaperSymbolsAbsTyp.
 Qed.
 
 Example pCoreSemTyped Γ : ⊢ Γ ⊨[fromPDotGφ]
@@ -466,7 +450,7 @@ Proof.
   iApply T_All_E; first last.
   iApply (fundamental_typed with "Hs").
   eapply storeless_typing_mono_mut; first exact: optionModInvTyp.
-  rewrite /fromPDotG' /fromPDotG/=.
+  rewrite /fromPDotG/=.
   by repeat (etrans; last apply map_union_subseteq_r; last solve_map_disjoint).
   iApply (T_All_I_Strong (Γ' := Γ)). ietp_weaken_ctx.
   iApply (T_Sub (i := 0)).
