@@ -41,7 +41,7 @@ Section Sec.
     rewrite sdtp_eq'; iDestruct 1 as (Hwf) "#Hds";
       iIntros "!>" (ρ Hpid%path_includes_field_aliases) "#Hg".
     rewrite oDVMem_eq path_wp_pv_eq /=. iLöb as "IH".
-    iApply clty_commute. rewrite norm_selfSubst.
+    iEval rewrite -clty_commute norm_selfSubst.
     iApply ("Hds" $! (vobj _ .: ρ) with "[%] [$IH $Hg //]").
     exact: path_includes_self.
   Qed.
@@ -58,8 +58,8 @@ Section Sec.
   Proof.
     rewrite !sdtp_eq'; iIntros "#Hsub #Hv !>" (ρ Hpid) "#Hg".
     iSpecialize ("Hv" $! ρ Hpid with "Hg"); rewrite !oDVMem_eq.
-    iApply (path_wp_wand with "Hv"); iIntros "**".
-    by iApply ("Hsub" with "Hg").
+    iApply (path_wp_wand with "Hv"); iIntros "{Hv} %v #Hv".
+    iApply ("Hsub" with "Hg Hv").
   Qed.
 
   Lemma D_Path_Sub {Γ T1 T2 p l}:
@@ -78,7 +78,7 @@ Section Sec.
     rewrite !sdtp_eq'; iIntros "#HL #HU #Hd !>" (ρ Hpid) "#Hg".
     iSpecialize ("Hd" $! ρ Hpid with "Hg").
     iDestruct "Hd" as (ψ) "(Hφ & HLψ & HψU)".
-    iExists ψ. iFrame "Hφ".
+    iExists ψ. iFrame "Hφ"; iClear "Hφ".
     iModIntro; repeat iSplit; iIntros (v) "#H".
     - iApply ("HLψ" with "(HL Hg H)").
     - iApply ("HU" with "Hg (HψU H)").
