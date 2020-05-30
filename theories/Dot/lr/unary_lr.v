@@ -204,10 +204,6 @@ Section sem_types.
     cVMem l T ρ [(l, d)] ⊣⊢ oDVMem T ρ d.
   Proof. by rewrite dlty2clty_singleton. Qed.
 
-  Lemma cVMem_dpt_eq l T p ρ :
-    cVMem l T ρ [(l, dpt p)] ⊣⊢ path_wp p (oClose T ρ).
-  Proof. by rewrite cVMem_eq oDVMem_eq. Qed.
-
   Lemma oSel_pv {n} w l args ρ v :
     oSelN n (pv w) l args ρ v ⊣⊢
       ∃ d ψ, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n[ n ] ψ ∧ ▷ □ ψ args v.
@@ -437,6 +433,11 @@ Section misc_lemmas.
   Proof.
     rewrite /= pure_True ?(left_id True%I bi_and); by [> | exact: NoDup_singleton].
   Qed.
+
+  Lemma sdtp_eq' (Γ : sCtx Σ) (T : dlty Σ) l d:
+    Γ s⊨ { l := d } : dty2clty l T ⊣⊢
+      (□∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ d.|[ρ]).
+  Proof. by rewrite sdtp_eq; properness; last apply dlty2clty_singleton. Qed.
 
   Lemma sP_Val {Γ} v T:
     Γ s⊨ tv v : T -∗

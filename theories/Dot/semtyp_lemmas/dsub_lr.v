@@ -366,8 +366,8 @@ Section DStpLemmas.
     Γ s⊨ { l := dpt p } : cVMem l T1 -∗
     Γ s⊨ { l := dpt p } : cVMem l T2.
   Proof.
-    rewrite !sdtp_eq; iIntros "#Hsub #Hd !>" (ρ Hpid) "#Hg".
-    iSpecialize ("Hd" $! ρ Hpid with "Hg"); rewrite !cVMem_eq.
+    rewrite !sdtp_eq'; iIntros "#Hsub #Hd !>" (ρ Hpid) "#Hg".
+    iSpecialize ("Hd" $! ρ Hpid with "Hg").
     iApply (oDVMem_respects_sub with "(Hsub Hg) Hd").
   Qed.
 
@@ -377,8 +377,8 @@ Section DStpLemmas.
     Γ s⊨ { l := dtysem σ s } : cTMem l L1 U1 -∗
     Γ s⊨ { l := dtysem σ s } : cTMem l L2 U2.
   Proof.
-    rewrite !sdtp_eq; iIntros "#HL #HU #Hd !>" (ρ Hpid) "#Hg".
-    iSpecialize ("Hd" $! ρ Hpid with "Hg"); rewrite !cTMem_eq.
+    rewrite !sdtp_eq'; iIntros "#HL #HU #Hd !>" (ρ Hpid) "#Hg".
+    iSpecialize ("Hd" $! ρ Hpid with "Hg").
     iApply (oDTMem_respects_sub with "(HL Hg) (HU Hg) Hd").
   Qed.
 
