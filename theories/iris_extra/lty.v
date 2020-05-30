@@ -234,6 +234,20 @@ Section olty_subst.
     φ.|[v/] args ρ ≡ φ args (v.[ρ] .: ρ).
   Proof. apply hoEnvD_subst_compose. autosubst. Qed.
 
+  (* XXX these alternative statements infer (@ids vl ρ] [*)
+  (* Lemma hoEnvD_subst_ids φ ρ {args} : φ args ρ ≡ φ.|[ρ] args ids. *)
+  (* Program Lemma hoEnvD_subst_ids φ ρ {args} : φ args ρ ≡ φ.|[ρ] args ids. *)
+  Lemma hoEnvD_subst_ids φ ρ {args} : φ args ρ ≡ φ.|[ρ] args (@ids vl ids_vl).
+  Proof. symmetry. apply hoEnvD_subst_compose. autosubst. Qed.
+
+  Lemma hoEnvD_finsubst_commute_cl φ σ ρ v (HclT : nclosed φ (length σ)) args :
+    φ.|[∞ σ] args ρ v ≡ φ args (∞ σ.|[ρ]) v.
+  Proof.
+    rewrite hoEnvD_subst_compose_ind !(hoEnvD_subst_ids φ) -hsubst_comp.
+    (* *The* step requiring [HclT]. *)
+    by rewrite (subst_compose HclT).
+  Qed.
+
   Definition Olty (olty_car : vec vl i → (var → vl) → vl → iProp Σ)
    `{∀ args ρ v, Persistent (olty_car args ρ v)}: oltyO Σ i :=
     λ args ρ, Lty (olty_car args ρ).
@@ -259,8 +273,6 @@ Section olty_subst.
   Global Instance hsubst_olty_proper ρ :
     Proper ((≡) ==> (≡)) (hsubst (outer := oltyO Σ i) ρ) := ne_proper _.
 
-  (* Currently unused; currently, we simplify and use the [hoEnvD_] lemmas.*)
-(*
   Lemma olty_subst_compose_ind τ args ρ1 ρ2 v: τ.|[ρ1] args ρ2 v ⊣⊢ τ args (ρ1 >> ρ2) v.
   Proof. apply hoEnvD_subst_compose_ind. Qed.
 
@@ -274,7 +286,18 @@ Section olty_subst.
 
   Lemma olty_subst_one τ v w args ρ:
     τ.|[v/] args ρ w ≡ τ args (v.[ρ] .: ρ) w.
-  Proof. apply hoEnvD_subst_one. Qed. *)
+  Proof. apply hoEnvD_subst_one. Qed.
+
+  Lemma olty_subst_ids τ ρ {args} : τ args ρ ≡ τ.|[ρ] args ids.
+  Proof. symmetry. apply olty_subst_compose. autosubst. Qed.
+
+  Lemma olty_finsubst_commute_cl τ σ ρ v (HclT : nclosed τ (length σ)) args :
+    τ.|[∞ σ] args ρ v ≡ τ args (∞ σ.|[ρ]) v.
+  Proof.
+    rewrite olty_subst_compose_ind !(olty_subst_ids τ) -hsubst_comp.
+    (* *The* step requiring [HclT]. *)
+    by rewrite (subst_compose HclT).
+  Qed.
 
   (** Shift a type; [oShift T] and [shift T] have different reduction
   behavior. *)
