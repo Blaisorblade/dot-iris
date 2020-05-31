@@ -3,6 +3,6 @@ Import prelude.
 
 Goal length [1] = 1. idtac "Dot.fundamental". Show. Abort.
 
-From D.DSubSyn Require Import fundamental.
+From D.DSub Require Import fundamental.
 
-Goal length [1] = 1. idtac "DSubSyn.fundamental". Show. Abort.
+Goal length [1] = 1. idtac "DSub.fundamental". Show. Abort.

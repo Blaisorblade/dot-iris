@@ -68,7 +68,7 @@ subtype Γ : ty → nat → ty → nat → Prop :=
 | iBot_Sub i T :
     Γ ⊢ₜ TBot, i <: T, i
 
-(* Type selections. These rules don't use later, but here (for DSubSyn) the
+(* Type selections. These rules don't use later, but here (for DSub) the
 semantics of TTMem is defined so that most often L can and U must include
 later themselves. *)
 | iSel_Sub L U v:

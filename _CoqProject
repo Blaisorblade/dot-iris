@@ -97,11 +97,11 @@ theories/DSub/syn/rules.v
 theories/DSub/syn/syn.v
 theories/DSub/syn/syn_lemmas.v
 
-theories/DSubSyn/lr/ty_interp_subst_lemmas.v
-theories/DSubSyn/lr/unary_lr.v
-theories/DSubSyn/lr/semtyp_lemmas.v
+theories/DSub/lr/ty_interp_subst_lemmas.v
+theories/DSub/lr/unary_lr.v
+theories/DSub/lr/semtyp_lemmas.v
 
-theories/DSubSyn/typing/obj_ident_typing.v
-theories/DSubSyn/typing/storeless_typing.v
+theories/DSub/typing/obj_ident_typing.v
+theories/DSub/typing/storeless_typing.v
 
-theories/DSubSyn/fundamental.v
+theories/DSub/fundamental.v

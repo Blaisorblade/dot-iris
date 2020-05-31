@@ -6,7 +6,7 @@
 *)
 From D Require Import tactics.
 From D.DSub Require Export syn.
-From D.DSubSyn Require Export storeless_typing.
+From D.DSub Require Export storeless_typing.
 
 Reserved Notation "Γ u⊢ₜ e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ u⊢ₜ T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).

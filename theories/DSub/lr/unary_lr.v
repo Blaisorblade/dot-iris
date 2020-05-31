@@ -1,6 +1,6 @@
 From D Require Export iris_prelude saved_interp_dep.
 From D.DSub Require Import syn.
-From D.DSubSyn Require Import ty_interp_subst_lemmas.
+From D.DSub Require Import ty_interp_subst_lemmas.
 Export syn.
 
 Include SavedInterpDep VlSorts. (* Defines [envD] and needed by TyInterpLemmas. *)
