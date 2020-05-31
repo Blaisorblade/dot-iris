@@ -458,6 +458,9 @@ Proof.
   iApply sSub_Top.
 Qed.
 
+(** ** Additional examples of client code, not mentioned in the paper.
+As they are open terms, technically not covered by the safety theorem below,
+but of course they could be, after being made closed. *)
 Definition getAnyTypeT pOpt : ty :=
   TAll (μ fromPDotPaperAbsTBody (shift pOpt)) (x0 @ "types" @; "Type").
 Definition getAnyType : vl := vabs (tskip (x0 @: "types" @: "AnyType")).
