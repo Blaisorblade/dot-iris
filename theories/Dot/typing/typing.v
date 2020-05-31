@@ -126,7 +126,6 @@ with path_typed Γ : path → ty → nat → Prop :=
     Γ !! x = Some T →
     (* After looking up in Γ, we must weaken T for the variables on top of x. *)
     Γ t⊢ₚ pv (var_vl x) : shiftN x T, 0
-(* Mnemonic: Path from SELecting a Field *)
 | iP_Fld_E p T i l:
     Γ t⊢ₚ p : TVMem l T, i →
     Γ t⊢ₚ pself p l : T, i

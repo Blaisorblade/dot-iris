@@ -125,7 +125,6 @@ with path_typed Γ : path → ty → nat → Prop :=
 | iP_Var x T:
     Γ u⊢ₜ tv (var_vl x) : T →
     Γ u⊢ₚ pv (var_vl x) : T, 0
-(* Mnemonic: Path from SELecting a Field *)
 | iP_Fld_E p T i l:
     Γ u⊢ₚ p : TVMem l T, i →
     Γ u⊢ₚ pself p l : T, i

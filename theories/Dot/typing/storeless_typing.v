@@ -146,7 +146,6 @@ with path_typed Γ g : path → ty → nat → Prop :=
     Γ v⊢ₚ[ g ] pv (vint n): TInt, 0
 | iP_Bool_I b:
     Γ v⊢ₚ[ g ] pv (vbool b): TBool, 0
-(* Mnemonic: Path from SELecting a Field *)
 | iP_Fld_E p T i l:
     Γ v⊢ₚ[ g ] p : TVMem l T, i →
     Γ v⊢ₚ[ g ] pself p l : T, i
