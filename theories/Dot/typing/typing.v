@@ -8,7 +8,7 @@ This judgment allowing only variables in paths, and not arbitrary values.
 *)
 From D Require Import tactics.
 From D.Dot Require Export syn path_repl lr_syn_aux.
-From D.Dot.typing Require Export typing_aux_defs type_eq.
+From D.Dot.typing Require Export typing_aux_defs type_eq subtyping.
 From D.Dot.stamping Require Export core_stamping_defs.
 
 Set Implicit Arguments.
@@ -17,111 +17,10 @@ Unset Strict Implicit.
 Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
 
 Reserved Notation "Γ t⊢ₜ e : T" (at level 74, e, T at next level).
-Reserved Notation "Γ t⊢ₚ p : T , i" (at level 74, p, T, i at next level).
 Reserved Notation "Γ t⊢{ l := d  } : T" (at level 74, l, d, T at next level).
 Reserved Notation "Γ t⊢ds ds : T" (at level 74, ds, T at next level).
-Reserved Notation "Γ t⊢ₜ T1 <:[ i  ] T2" (at level 74, T1, T2 at next level).
 
-(** ** Judgments for typing, subtyping, path and definition typing. *)
-Inductive typed Γ : tm → ty → Prop :=
-(** First, elimination forms *)
-(** Dependent application; only allowed if the argument is a path. *)
-| iT_All_Ex_p p2 e1 T1 T2:
-    is_unstamped_ty' (S (length Γ)) T2 →
-    Γ t⊢ₜ e1: TAll T1 T2 →
-    Γ t⊢ₚ p2 : T1, 0 →
-    (*────────────────────────────────────────────────────────────*)
-    Γ t⊢ₜ tapp e1 (path2tm p2) : T2 .Tp[ p2 /]
-(** Non-dependent application; allowed for any argument. *)
-| iT_All_E e1 e2 T1 T2:
-    Γ t⊢ₜ e1: TAll T1 (shift T2) →      Γ t⊢ₜ e2 : T1 →
-    (*────────────────────────────────────────────────────────────*)
-    Γ t⊢ₜ tapp e1 e2 : T2
-| iT_Obj_E e T l:
-    Γ t⊢ₜ e : TVMem l T →
-    (*─────────────────────────*)
-    Γ t⊢ₜ tproj e l : T
-(** Introduction forms *)
-| iT_All_I_Strong e T1 T2 Γ':
-    ⊢G Γ >>▷* Γ' →
-    is_unstamped_ty' (length Γ) T1 →
-    (* T1 :: Γ' t⊢ₜ e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
-    shift T1 :: Γ' t⊢ₜ e : T2 →
-    (*─────────────────────────*)
-    Γ t⊢ₜ tv (vabs e) : TAll T1 T2
-| iT_Obj_I ds T:
-    Γ |L T t⊢ds ds: T →
-    is_unstamped_ty' (S (length Γ)) T →
-    (*──────────────────────*)
-    Γ t⊢ₜ tv (vobj ds): TMu T
-
-(** "General" rules *)
-| iT_Sub e T1 T2 :
-    Γ t⊢ₜ T1 <:[ 0 ] T2 → Γ t⊢ₜ e : T1 →
-    (*───────────────────────────────*)
-    Γ t⊢ₜ e : T2
-| iT_Skip e T :
-    Γ t⊢ₜ e : TLater T →
-    (*───────────────────────────────*)
-    Γ t⊢ₜ tskip e : T
-| iT_Path p T :
-    Γ t⊢ₚ p : T, 0 →
-    (*───────────────────────────────*)
-    Γ t⊢ₜ path2tm p : T
-
-(** Primitives. *)
-| iT_Nat_I n:
-    Γ t⊢ₜ tv (vint n): TInt
-| iT_Bool_I b:
-    Γ t⊢ₜ tv (vbool b): TBool
-| iT_Un u e1 B1 Br (Hu : un_op_syntype u B1 Br) :
-    Γ t⊢ₜ e1 : TPrim B1 →
-    Γ t⊢ₜ tun u e1 : TPrim Br
-| iT_Bin b e1 e2 B1 B2 Br (Hu : bin_op_syntype b B1 B2 Br) :
-    Γ t⊢ₜ e1 : TPrim B1 →
-    Γ t⊢ₜ e2 : TPrim B2 →
-    Γ t⊢ₜ tbin b e1 e2 : TPrim Br
-| iT_If e e1 e2 T :
-    Γ t⊢ₜ e: TBool →
-    Γ t⊢ₜ e1 : T →
-    Γ t⊢ₜ e2 : T →
-    Γ t⊢ₜ tif e e1 e2 : T
-where "Γ t⊢ₜ e : T " := (typed Γ e T)
-with dms_typed Γ : dms → ty → Prop :=
-| iD_Nil : Γ t⊢ds [] : TTop
-(* This demands definitions and members to be defined in aligned lists. *)
-| iD_Cons l d ds T1 T2:
-    Γ t⊢{ l := d } : T1 →
-    Γ t⊢ds ds : T2 →
-    dms_hasnt ds l →
-    (*──────────────────────*)
-    Γ t⊢ds (l, d) :: ds : TAnd T1 T2
-where "Γ t⊢ds ds : T" := (dms_typed Γ ds T)
-with dm_typed Γ : label → dm → ty → Prop :=
-| iD_Typ_Abs T l L U:
-    (* To drop *)
-    is_unstamped_ty' (length Γ) T →
-    (* To keep *)
-    nclosed T (length Γ) →
-    Γ t⊢ₜ L <:[0] TLater T →
-    Γ t⊢ₜ TLater T <:[0] U →
-    Γ t⊢{ l := dtysyn T } : TTMem l L U
-| iD_Val l v T:
-    Γ t⊢ₜ tv v : T →
-    Γ t⊢{ l := dpt (pv v) } : TVMem l T
-| iD_Path l p T:
-    Γ t⊢ₚ p : T, 0 →
-    Γ t⊢{ l := dpt p } : TVMem l T
-| iD_Val_New l T ds:
-    TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ t⊢ds ds : T →
-    is_unstamped_ty' (S (length Γ)) T →
-    Γ t⊢{ l := dpt (pv (vobj ds)) } : TVMem l (TMu T)
-| iD_Path_Sub T1 T2 p l:
-    Γ t⊢ₜ T1 <:[0] T2 →
-    Γ t⊢{ l := dpt p } : TVMem l T1 →
-    Γ t⊢{ l := dpt p } : TVMem l T2
-where "Γ t⊢{ l := d  } : T" := (dm_typed Γ l d T)
-with path_typed Γ : path → ty → nat → Prop :=
+Inductive path_typed Γ : path → ty → nat → Prop :=
 | iP_Var x T:
     Γ !! x = Some T →
     (* After looking up in Γ, we must weaken T for the variables on top of x. *)
@@ -295,29 +194,113 @@ with subtype Γ : nat → ty → ty → Prop :=
 
 where "Γ t⊢ₜ T1 <:[ i  ] T2"  := (subtype Γ i T1 T2).
 
+(** ** Judgments for typing, subtyping, path and definition typing. *)
+Inductive typed Γ : tm → ty → Prop :=
+(** First, elimination forms *)
+(** Dependent application; only allowed if the argument is a path. *)
+| iT_All_Ex_p p2 e1 T1 T2:
+    is_unstamped_ty' (S (length Γ)) T2 →
+    Γ t⊢ₜ e1: TAll T1 T2 →
+    Γ t⊢ₚ p2 : T1, 0 →
+    (*────────────────────────────────────────────────────────────*)
+    Γ t⊢ₜ tapp e1 (path2tm p2) : T2 .Tp[ p2 /]
+(** Non-dependent application; allowed for any argument. *)
+| iT_All_E e1 e2 T1 T2:
+    Γ t⊢ₜ e1: TAll T1 (shift T2) →      Γ t⊢ₜ e2 : T1 →
+    (*────────────────────────────────────────────────────────────*)
+    Γ t⊢ₜ tapp e1 e2 : T2
+| iT_Obj_E e T l:
+    Γ t⊢ₜ e : TVMem l T →
+    (*─────────────────────────*)
+    Γ t⊢ₜ tproj e l : T
+(** Introduction forms *)
+| iT_All_I_Strong e T1 T2 Γ':
+    ⊢G Γ >>▷* Γ' →
+    is_unstamped_ty' (length Γ) T1 →
+    (* T1 :: Γ' t⊢ₜ e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
+    shift T1 :: Γ' t⊢ₜ e : T2 →
+    (*─────────────────────────*)
+    Γ t⊢ₜ tv (vabs e) : TAll T1 T2
+| iT_Obj_I ds T:
+    Γ |L T t⊢ds ds: T →
+    is_unstamped_ty' (S (length Γ)) T →
+    (*──────────────────────*)
+    Γ t⊢ₜ tv (vobj ds): TMu T
+
+(** "General" rules *)
+| iT_Sub e T1 T2 :
+    Γ t⊢ₜ T1 <:[ 0 ] T2 → Γ t⊢ₜ e : T1 →
+    (*───────────────────────────────*)
+    Γ t⊢ₜ e : T2
+| iT_Skip e T :
+    Γ t⊢ₜ e : TLater T →
+    (*───────────────────────────────*)
+    Γ t⊢ₜ tskip e : T
+| iT_Path p T :
+    Γ t⊢ₚ p : T, 0 →
+    (*───────────────────────────────*)
+    Γ t⊢ₜ path2tm p : T
+
+(** Primitives. *)
+| iT_Nat_I n:
+    Γ t⊢ₜ tv (vint n): TInt
+| iT_Bool_I b:
+    Γ t⊢ₜ tv (vbool b): TBool
+| iT_Un u e1 B1 Br (Hu : un_op_syntype u B1 Br) :
+    Γ t⊢ₜ e1 : TPrim B1 →
+    Γ t⊢ₜ tun u e1 : TPrim Br
+| iT_Bin b e1 e2 B1 B2 Br (Hu : bin_op_syntype b B1 B2 Br) :
+    Γ t⊢ₜ e1 : TPrim B1 →
+    Γ t⊢ₜ e2 : TPrim B2 →
+    Γ t⊢ₜ tbin b e1 e2 : TPrim Br
+| iT_If e e1 e2 T :
+    Γ t⊢ₜ e: TBool →
+    Γ t⊢ₜ e1 : T →
+    Γ t⊢ₜ e2 : T →
+    Γ t⊢ₜ tif e e1 e2 : T
+where "Γ t⊢ₜ e : T " := (typed Γ e T)
+with dms_typed Γ : dms → ty → Prop :=
+| iD_Nil : Γ t⊢ds [] : TTop
+(* This demands definitions and members to be defined in aligned lists. *)
+| iD_Cons l d ds T1 T2:
+    Γ t⊢{ l := d } : T1 →
+    Γ t⊢ds ds : T2 →
+    dms_hasnt ds l →
+    (*──────────────────────*)
+    Γ t⊢ds (l, d) :: ds : TAnd T1 T2
+where "Γ t⊢ds ds : T" := (dms_typed Γ ds T)
+with dm_typed Γ : label → dm → ty → Prop :=
+| iD_Typ_Abs T l L U:
+    (* To drop *)
+    is_unstamped_ty' (length Γ) T →
+    (* To keep *)
+    nclosed T (length Γ) →
+    Γ t⊢ₜ L <:[0] TLater T →
+    Γ t⊢ₜ TLater T <:[0] U →
+    Γ t⊢{ l := dtysyn T } : TTMem l L U
+| iD_Val l v T:
+    Γ t⊢ₜ tv v : T →
+    Γ t⊢{ l := dpt (pv v) } : TVMem l T
+| iD_Path l p T:
+    Γ t⊢ₚ p : T, 0 →
+    Γ t⊢{ l := dpt p } : TVMem l T
+| iD_Val_New l T ds:
+    TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ t⊢ds ds : T →
+    is_unstamped_ty' (S (length Γ)) T →
+    Γ t⊢{ l := dpt (pv (vobj ds)) } : TVMem l (TMu T)
+| iD_Path_Sub T1 T2 p l:
+    Γ t⊢ₜ T1 <:[0] T2 →
+    Γ t⊢{ l := dpt p } : TVMem l T1 →
+    Γ t⊢{ l := dpt p } : TVMem l T2
+where "Γ t⊢{ l := d  } : T" := (dm_typed Γ l d T).
+
 (* Make [T] first argument: Hide Γ for e.g. typing examples. *)
 Global Arguments iD_Typ_Abs {Γ} T _ _ _ _ _ _ _ : assert.
 
 Scheme typed_mut_ind := Induction for typed Sort Prop
 with   dms_typed_mut_ind := Induction for dms_typed Sort Prop
-with   dm_typed_mut_ind := Induction for dm_typed Sort Prop
-with   path_typed_mut_ind := Induction for path_typed Sort Prop
-with   subtype_mut_ind := Induction for subtype Sort Prop.
-
-Combined Scheme typing_mut_ind from typed_mut_ind, dms_typed_mut_ind, dm_typed_mut_ind,
-  path_typed_mut_ind, subtype_mut_ind.
-
-Scheme exp_typed_mut_ind := Induction for typed Sort Prop
-with   exp_dms_typed_mut_ind := Induction for dms_typed Sort Prop
-with   exp_dm_typed_mut_ind := Induction for dm_typed Sort Prop
-with   exp_path_typed_mut_ind := Induction for path_typed Sort Prop.
-
-Combined Scheme exp_typing_mut_ind from exp_typed_mut_ind, exp_dms_typed_mut_ind,
-  exp_dm_typed_mut_ind, exp_path_typed_mut_ind.
-
-Lemma unstamped_path_root_is_var Γ p T i:
-  Γ t⊢ₚ p : T, i → ∃ x, path_root p = var_vl x.
-Proof. by elim; intros; cbn; eauto 2 using is_unstamped_path_root. Qed.
+with   dm_typed_mut_ind := Induction for dm_typed Sort Prop.
+Combined Scheme typing_mut_ind from typed_mut_ind, dms_typed_mut_ind, dm_typed_mut_ind.
 
 Lemma dtysem_not_utyped Γ l d T :
   Γ t⊢{ l := d } : T → ∀ σ s, d ≠ dtysem σ s.
@@ -325,7 +308,7 @@ Proof. by case. Qed.
 
 (** ** A few derived rules, and some automation to use them in examples. *)
 
-Hint Constructors typed dms_typed dm_typed path_typed subtype : core.
+Hint Constructors typed dms_typed dm_typed : core.
 
 (** Ensure [eauto]'s proof search does not diverge due to transitivity. *)
 Remove Hints iStp_Trans : core.
@@ -362,8 +345,6 @@ Lemma iD_All Γ V T1 T2 e l:
   shift T1 :: V :: Γ t⊢ₜ e : T2 →
   Γ |L V t⊢{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
 Proof. by intros; apply iD_Val, iT_All_I_strip1. Qed.
-
-Ltac ettrans := eapply iStp_Trans.
 
 (* Old names: *)
 Definition Sub_later_shift := iLater_Idx_Stp.
