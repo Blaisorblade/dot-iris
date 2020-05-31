@@ -86,8 +86,4 @@ sumDirs "examples" "examples"
 # sumDirs "DSub syntax" "syn"
 # cd ..
 
-# cd DSubSyn
-# sumDirs "DSub syntax" "syn"
-# cd ..
-
 echo '```'

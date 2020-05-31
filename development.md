@@ -74,12 +74,10 @@ modify `opam`, *commit*, and reinstall with `opam install .`
 
 ## Additional developments, not used in the paper
 
-* [`theories/DSub`](theories/DSub): guarded D<:, incomplete, used for prototyping.
-* [`theories/DSubSyn`](theories/DSubSyn): guarded D<:, complete.
+* [`theories/DSub`](theories/DSub): guarded D<:, complete.
   This code demonstrates a simpler modeling technique: type members are
   represented by storing syntactic types in values, and interpreting them
-  recursively. Used for prototyping but mostly complete. Shares code from
-  `theories/DSub`.
+  recursively. Used for prototyping but mostly complete.
 
 Inside the `Dot` folder:
 * [`misc_unused`](theories/Dot/misc_unused): misc stuff, not used elsewhere or
