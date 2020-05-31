@@ -1,12 +1,14 @@
+(** * Infrastructure for examples of DOT programs that use Iris. *)
 From D.pure_program_logic Require Import lifting adequacy.
 From iris.program_logic Require Import ectxi_language.
 
 From D Require Import swap_later_impl.
-From D.Dot Require Import scala_lib hoas ex_utils storeless_typing_ex_utils.
-
-From D.Dot Require Export fundamental examples_lr.
 From D.Dot Require Import skeleton.
-Import dlang_adequacy.
+
+(* Exports: *)
+From D.Dot Require Export ex_utils hoas_ex_utils storeless_typing_ex_utils.
+From D.Dot Require Export fundamental examples_lr.
+Export loopTms.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
@@ -28,12 +30,10 @@ Proof.
   have ? := loopFunTyp Γ; apply (iT_All_E (T1 := ⊤)), (iT_Sub_nocoerce 𝐙); tcrush.
 Qed.
 
-Import hoas.syn.
-Import stamp_transfer.
-
 Section loop_sem.
   Context `{HdlangG: !dlangG Σ}.
   Context `{SwapPropI Σ}.
+  Import stamp_transfer.
 
   Definition cTMemL l L U := cTMem l (oLater L) (oLater U).
 

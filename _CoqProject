@@ -81,6 +81,7 @@ theories/Dot/examples/from_pdot_mutual_rec.v
 theories/Dot/examples/from_pdot_mutual_rec_sem.v
 theories/Dot/examples/small_sem_ex.v
 theories/Dot/examples/hoas.v
+theories/Dot/examples/hoas_ex_utils.v
 theories/Dot/examples/list.v
 theories/Dot/examples/no_russell_paradox.v
 theories/Dot/examples/positive_div.v

@@ -4,7 +4,7 @@ From D.pure_program_logic Require Import lifting adequacy.
 From iris.program_logic Require Import ectxi_language.
 
 From D Require Import swap_later_impl.
-From D.Dot Require Import scala_lib hoas ex_utils storeless_typing_ex_utils ex_iris_utils.
+From D.Dot Require Import ex_iris_utils.
 
 From D.Dot.examples Require Import positive_div.
 Import dlang_adequacy.

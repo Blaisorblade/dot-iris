@@ -1,6 +1,6 @@
 
 From D Require Import tactics.
-From D.Dot Require Import syn ex_utils hoas.
+From D.Dot Require Import syn ex_utils hoas_ex_utils.
 From D.Dot.typing Require Import old_unstamped_typing old_unstamped_typing_derived_rules.
 Import DBNotation.
 
@@ -8,16 +8,11 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
 Notation HashableString := (μ {@ val "hashCode" : TUnit →: TInt }).
 
+(** ** Infinite loops; typed using old unstamped typing. *)
 Module Export loop.
+Export loopTms.
 Import hoasNotation.
-(** * Infinite loops *)
 
-Definition hloopDefV : hvl := ν: self, {@
-  val "loop" = λ: w, self @: "loop" $: w
-  (* λ w, self.loop w. *)
-}.
-Definition hloopDefT : hty := val "loop" : ⊤ →: ⊥.
-Definition hloopDefTConcr : hty := μ: _, {@ hloopDefT }.
 Example loopDefTyp Γ : Γ u⊢ₜ hloopDefV : hloopDefT.
 Proof.
   apply (iT_Sub_nocoerce hloopDefTConcr); mltcrush; cbv.
@@ -25,11 +20,9 @@ Proof.
   tcrush; varsub; lookup.
 Qed.
 
-Definition hloopFunTm : htm := hloopDefV @: "loop".
 Example loopFunTyp Γ : Γ u⊢ₜ hloopFunTm : ⊤ →: ⊥.
 Proof. have ? := loopDefTyp Γ; tcrush. Qed.
 
-Definition hloopTm : htm := hloopFunTm $: hvint 0.
 Example loopTyp Γ : Γ u⊢ₜ hloopTm : ⊥.
 Proof.
   have ? := loopFunTyp Γ; apply (iT_All_E (T1 := ⊤)), (iT_Sub_nocoerce 𝐙);
