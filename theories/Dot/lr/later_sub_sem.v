@@ -34,15 +34,28 @@ Section TypeEquiv.
     Γ ⊨ e : T1 -∗ Γ ⊨ e : T2.
   Proof. by apply equiv_entails, setp_proper, fundamental_type_equiv_olty. Qed.
 
-  Lemma ietp_proper_teq Γ : Proper (type_equiv ==> (=) ==> (⊢)) (ietp Γ).
+  Lemma ietp_teq_proper Γ : Proper (type_equiv ==> (=) ==> (⊢)) (ietp Γ).
   Proof. repeat intro; subst. exact: ietp_respects_type_equiv. Qed.
 
-  Lemma istpd_proper_teq Γ i : Proper (type_equiv ==> type_equiv ==> (⊢)) (istpd Γ i).
+  (* XXX All these instances are local, because setoid rewriting doesn't work
+  for some reason, but I don't feel like debugging it. *)
+  Instance istpd_teq_proper Γ i :
+    Proper (type_equiv ==> type_equiv ==> (⊣⊢)) (istpd i Γ).
   Proof.
-    by repeat intro; apply equiv_entails, sstpd_proper; [|
+    by repeat intro; apply sstpd_proper; [|
       exact: fundamental_type_equiv_olty..].
   Qed.
 
+  Instance: Params (@istpd) 4 := {}.
+  Instance: Equivalence type_equiv := {}.
+  Instance: RewriteRelation type_equiv := {}.
+
+  Lemma Stp_Eq i T1 T2 Γ :
+    |- T1 == T2 → ⊢ Γ ⊨ T1 <:[i] T2.
+  Proof.
+    intros Heq.
+    iApply istpd_teq_proper; [eassumption|reflexivity|iApply sStp_Refl].
+  Qed.
 End TypeEquiv.
 
 (* This is specialized to [vnil] because contexts only contain proper types anyway. *)

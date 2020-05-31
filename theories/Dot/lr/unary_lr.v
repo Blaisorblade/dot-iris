@@ -193,7 +193,7 @@ Section sem_types.
 
   Lemma cTMem_eq l T1 T2 d ρ :
     cTMem l T1 T2 ρ [(l, d)] ⊣⊢ oDTMem T1 T2 ρ d.
-  Proof. by rewrite dty2clty_singleton. Qed.
+  Proof. by rewrite dlty2clty_singleton. Qed.
 
   (** [ Ds⟦ { l : τ } ⟧] and [ V⟦ { l : τ } ⟧ ]. *)
   Definition cVMem l τ : clty Σ := dty2clty l (oDVMem τ).
@@ -202,11 +202,7 @@ Section sem_types.
 
   Lemma cVMem_eq l T d ρ :
     cVMem l T ρ [(l, d)] ⊣⊢ oDVMem T ρ d.
-  Proof. by rewrite dty2clty_singleton. Qed.
-
-  Lemma cVMem_dpt_eq l T p ρ :
-    cVMem l T ρ [(l, dpt p)] ⊣⊢ path_wp p (oClose T ρ).
-  Proof. by rewrite cVMem_eq oDVMem_eq. Qed.
+  Proof. by rewrite dlty2clty_singleton. Qed.
 
   Lemma oSel_pv {n} w l args ρ v :
     oSelN n (pv w) l args ρ v ⊣⊢
@@ -276,16 +272,18 @@ Section sem_types.
   (* Avoid auto-dropping box (and unfolding) when introducing judgments persistently. *)
   Local Notation IntoPersistent' P := (IntoPersistent false P P).
 
-  Global Instance idtp_persistent Γ T l d: IntoPersistent' (idtp Γ T l d) | 0 := _.
+  (* Instances for [[is]dtp must come after, to take priority over [[is]dstp]
+  since they overlap. *)
   Global Instance idstp_persistent Γ T ds: IntoPersistent' (idstp Γ T ds) | 0 := _.
+  Global Instance idtp_persistent Γ T l d: IntoPersistent' (idtp Γ T l d) | 0 := _.
   Global Instance ietp_persistent Γ T e : IntoPersistent' (ietp Γ T e) | 0 := _.
   Global Instance istpi_persistent Γ T1 T2 i j : IntoPersistent' (istpi Γ T1 T2 i j) | 0 := _.
   Global Instance iptp_persistent Γ T p i : IntoPersistent' (iptp Γ T p i) | 0 := _.
 
   Implicit Types (T : olty Σ 0) (Td : clty Σ) (Tds : dslty Σ).
 
-  Global Instance sdtp_persistent : IntoPersistent' (sdtp l d   Γ Td) | 0 := _.
   Global Instance sdstp_persistent : IntoPersistent' (sdstp ds  Γ Tds) | 0 := _.
+  Global Instance sdtp_persistent : IntoPersistent' (sdtp l d   Γ Td) | 0 := _.
   Global Instance setp_persistent : IntoPersistent' (setp e     Γ T) | 0 := _.
   Global Instance sstpi_persistent : IntoPersistent' (sstpi i j Γ T1 T2) | 0 := _.
   Global Instance sptp_persistent : IntoPersistent' (sptp p i   Γ T) | 0 := _.
@@ -436,6 +434,11 @@ Section misc_lemmas.
     rewrite /= pure_True ?(left_id True%I bi_and); by [> | exact: NoDup_singleton].
   Qed.
 
+  Lemma sdtp_eq' (Γ : sCtx Σ) (T : dlty Σ) l d:
+    Γ s⊨ { l := d } : dty2clty l T ⊣⊢
+      (□∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ d.|[ρ]).
+  Proof. by rewrite sdtp_eq; properness; last apply dlty2clty_singleton. Qed.
+
   Lemma sP_Val {Γ} v T:
     Γ s⊨ tv v : T -∗
     Γ s⊨p pv v : T, 0.
@@ -443,10 +446,6 @@ Section misc_lemmas.
     iIntros "/= #Hp !> %ρ Hg". rewrite path_wp_pv_eq -wp_value_inv'.
     iApply ("Hp" with "Hg").
   Qed.
-
-  Lemma sP_Var {Γ} x T :
-    Γ s⊨ tv (var_vl x) : T -∗ Γ s⊨p pv (var_vl x) : T, 0.
-  Proof. apply sP_Val. Qed.
 
   Lemma sSub_Refl {Γ} T i : ⊢ Γ s⊨ T, i <: T, i.
   Proof. by iIntros "!> **". Qed.

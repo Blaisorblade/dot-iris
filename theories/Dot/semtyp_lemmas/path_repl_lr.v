@@ -158,17 +158,6 @@ Section semantic_lemmas.
     iApply (sem_psubst_one_eq Hrepl Hal with "Hv").
   Qed.
 
-  Lemma sT_Path Γ τ p :
-    Γ s⊨p p : τ, 0 -∗ Γ s⊨ path2tm p : τ.
-  Proof.
-    iIntros "#Hep !> %ρ #Hg /="; rewrite path2tm_subst.
-    by iApply (path_wp_to_wp with "(Hep Hg)").
-  Qed.
-
-  Lemma T_Path Γ T p :
-    Γ ⊨p p : T, 0 -∗ Γ ⊨ path2tm p : T.
-  Proof. apply sT_Path. Qed.
-
   (* From pDOT *)
   Lemma sP_Fld_I Γ p T l i:
     Γ s⊨p pself p l : T, i -∗

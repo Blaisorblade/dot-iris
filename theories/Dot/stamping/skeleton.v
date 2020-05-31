@@ -406,6 +406,26 @@ Proof.
   split; [econstructor; eauto | exact: same_skel_fill_item].
 Qed.
 
+Definition same_skel_tm_refl_def : Prop := ∀ e, same_skel_tm e e.
+Definition same_skel_vl_refl_def : Prop := ∀ v, same_skel_vl v v.
+Definition same_skel_dm_refl_def : Prop := ∀ d, same_skel_dm d d.
+Definition same_skel_path_refl_def : Prop := ∀ p, same_skel_path p p.
+Definition same_skel_ty_refl_def : Prop := ∀ T, same_skel_ty T T.
+
+Lemma same_skel_refl :
+  same_skel_tm_refl_def ∧ same_skel_vl_refl_def ∧
+  same_skel_dm_refl_def ∧ same_skel_path_refl_def ∧
+  same_skel_ty_refl_def.
+Proof.
+  apply syntax_mut_ind; try by cbn; intuition.
+  elim => [//|[l d] ds IHds]; rewrite Forall_cons; naive_solver.
+Qed.
+
+Lemma same_skel_refl_tm e : same_skel_tm e e.
+Proof. apply same_skel_refl. Qed.
+Lemma same_skel_refl_dm d : same_skel_dm d d.
+Proof. apply same_skel_refl. Qed.
+
 Definition same_skel_tm_symm_def e1 : Prop := ∀ e2,
   same_skel_tm e1 e2 → same_skel_tm e2 e1.
 Definition same_skel_vl_symm_def v1 : Prop := ∀ v2,
@@ -430,8 +450,74 @@ Qed.
 Lemma same_skel_symm_tm e1 e2: same_skel_tm e1 e2 → same_skel_tm e2 e1.
 Proof. apply same_skel_symm. Qed.
 
+Lemma same_skel_symm_dm d1 d2: same_skel_dm d1 d2 → same_skel_dm d2 d1.
+Proof. apply same_skel_symm. Qed.
+
+Definition same_skel_tm_trans_def e1 : Prop := ∀ e2 e3,
+  same_skel_tm e1 e2 → same_skel_tm e2 e3 → same_skel_tm e1 e3.
+Definition same_skel_vl_trans_def v1 : Prop := ∀ v2 v3,
+  same_skel_vl v1 v2 → same_skel_vl v2 v3 → same_skel_vl v1 v3.
+Definition same_skel_dm_trans_def d1 : Prop := ∀ d2 d3,
+  same_skel_dm d1 d2 → same_skel_dm d2 d3 → same_skel_dm d1 d3.
+Definition same_skel_path_trans_def p1 : Prop := ∀ p2 p3,
+  same_skel_path p1 p2 → same_skel_path p2 p3 → same_skel_path p1 p3.
+Definition same_skel_ty_trans_def T1 : Prop := ∀ T2 T3,
+  same_skel_ty T1 T2 → same_skel_ty T2 T3 → same_skel_ty T1 T3.
+
+Local Lemma same_skel_trans_dms ds1 ds2 ds3 :
+  Forall same_skel_dm_trans_def (map snd ds1) →
+  same_skel_dms ds1 ds2 →
+  same_skel_dms ds2 ds3 →
+  same_skel_dms ds1 ds3.
+Proof.
+  elim: ds1 ds2 ds3 => [|[l1 d1] ds1 IHds1] [|[l2 d2] ds2] [|[l3 d3] ds3] //.
+  rewrite Forall_cons; naive_solver.
+Qed.
+
+Section same_skel_trans.
+  Local Hint Immediate same_skel_trans_dms : core.
+  Local Ltac prepare :=
+    try first [assumption | contradiction | hnf in *]; intuition idtac; subst.
+
+  Lemma same_skel_trans :
+    (∀ t, same_skel_tm_trans_def t) ∧ (∀ v, same_skel_vl_trans_def v) ∧
+    (∀ d, same_skel_dm_trans_def d) ∧ (∀ p, same_skel_path_trans_def p) ∧
+    (∀ T, same_skel_ty_trans_def T).
+  Proof.
+    apply syntax_mut_ind; intros ** E2 E3 **; hnf in *; fold same_skel_dms in *.
+    all: destruct E2, E3; prepare; eauto 2.
+  Qed.
+
+  Lemma same_skel_trans_dm d1 d2 d3 :
+    same_skel_dm d1 d2 → same_skel_dm d2 d3 → same_skel_dm d1 d3.
+  Proof. apply same_skel_trans. Qed.
+End same_skel_trans.
+
 Ltac prim_step_inversion H :=
   destruct (prim_step_inversion H); ev; simplify_eq/=.
+
+Theorem simulation_skeleton_pure_step {t1 t1' t2} :
+  same_skel_tm t1 t1' →
+  pure_step t1 t2 →
+  ∃ t2', pure_step t1' t2' ∧ same_skel_tm t2 t2'.
+Proof.
+  setoid_rewrite <-(prim_step_pure_eq dummyState)=> Hskel Hstep.
+  edestruct simulation_skeleton as (t2' & ? & ?) => //.
+  exists t2'. naive_solver.
+Qed.
+
+Theorem simulation_skeleton_nsteps_pure_step {t1 t1' t2 n} :
+  same_skel_tm t1 t1' →
+  nsteps pure_step n t1 t2 →
+  ∃ t2', nsteps pure_step n t1' t2' ∧ same_skel_tm t2 t2'.
+Proof.
+  move=>+ Hsteps. move: t1'.
+  induction Hsteps as [|n t1 t2 tn Hstep Hsteps]; intros t1' Hsk1; first
+  by exists t1'; split_and!; try constructor; eauto.
+  destruct (simulation_skeleton_pure_step Hsk1 Hstep) as (t2' &Hstep' & Hsk2).
+  edestruct (IHHsteps _ Hsk2) as (tn' & Hsteps' & Hskn).
+  exists tn'; split_and; last done. exact: nsteps_l.
+Qed.
 
 Lemma prim_step_step t1 σ κ t2 σ' efs :
   prim_step t1 σ κ t2 σ' efs → step ([t1], σ) [] ([t2], σ').
@@ -498,6 +584,18 @@ Lemma same_skel_reducible {e e_s σ}:
 Proof.
   move => Hskel /reducible_reducible_no_obs Hred.
   by eapply reducible_no_obs_reducible, same_skel_reducible_no_obs.
+Qed.
+
+Lemma same_skel_safe_n_impl n e_u:
+  (∃ e_s, safe_n n e_s ∧ same_skel_tm e_u e_s) → safe_n n e_u.
+Proof.
+  intros (e_s & Hsafe & Hskel) e_u' Hred.
+  destruct (simulation_skeleton_nsteps_pure_step Hskel Hred)
+    as (e_s' & Hst_s & Hskel').
+  edestruct (Hsafe _ Hst_s) as [Hs|Hs]; [left|right].
+  - destruct e_s'; try by case (is_Some_None Hs).
+    destruct e_u' => //; naive_solver.
+  - eapply same_skel_reducible, Hs; exact: same_skel_symm_tm.
 Qed.
 
 Lemma same_skel_safe_impl {e e_s}:

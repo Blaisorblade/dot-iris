@@ -73,6 +73,9 @@ Definition safe_gen {Λ} (e : L.expr Λ) :=
 Definition safe `{LangDet Λ} (e : L.expr Λ) :=
   ∀ e', rtc pure_step e e' → not_stuck e'.
 
+Definition safe_n `{InhabitedState Λ} n e1 :=
+  ∀ e2, nsteps pure_step n e1 e2 → not_stuck e2.
+
 Hint Constructors rtc : core.
 
 Section LangDet.

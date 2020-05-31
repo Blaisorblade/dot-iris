@@ -36,9 +36,6 @@ Implicit Types (v w : vl) (vs σ : vls) (i j k n : nat)
 
 Definition subst_sigma σ vs := σ.|[∞ vs].
 
-Definition eq_n_s ρ1 ρ2 n := ∀ x, x < n → ρ1 x = ρ2 x.
-Global Arguments eq_n_s /.
-
 Lemma eq_n_s_symm ρ1 ρ2 n : eq_n_s ρ1 ρ2 n → eq_n_s ρ2 ρ1 n.
 Proof. move => Heqs x ?. symmetry. exact: Heqs. Qed.
 
@@ -55,17 +52,7 @@ Fixpoint idsσ n : vls :=
   | S n => push_var (idsσ n)
   end.
 
-(** [n]-closedness defines when some AST has at most [n] free variables (from [0] to [n - 1]). *)
-(** Here and elsewhere, we give one definition for values, using [subst], and
-    another for other ASTs, using [hsubst]. *)
-Definition nclosed_vl (v : vl) n :=
-  ∀ ρ1 ρ2, eq_n_s ρ1 ρ2 n → v.[ρ1] = v.[ρ2].
-
-Definition nclosed `{HSubst vl X} (x : X) n :=
-  ∀ ρ1 ρ2, eq_n_s ρ1 ρ2 n → x.|[ρ1] = x.|[ρ2].
-
 Notation nclosed_σ σ n := (Forall (λ v, nclosed_vl v n) σ).
-Notation cl_ρ σ := (nclosed_σ σ 0).
 
 (** Infrastructure to prove "direct" lemmas on [nclosed{,_vl}]: deduce that an expression is closed
     by knowing that its subexpression are closed. *)
@@ -327,15 +314,6 @@ Qed.
 Lemma lookup_ids_fv {X} {Γ : list X} {i} {T: X}: Γ !! i = Some T → nclosed_vl (ids i) (length Γ).
 Proof. move => ????; rewrite /= !id_subst. eauto using lookup_lt_Some. Qed.
 
-Definition cl_ρ_fv: ∀ σ, cl_ρ σ → nclosed σ 0 := @Forall_to_closed_vls 0.
-
-Lemma to_subst_compose σ ρ:
-  eq_n_s (∞ σ.|[ρ]) (∞ σ >> ρ) (length σ).
-Proof.
-  elim: σ => /= [|v σ IHσ] i Hin; first lia; asimpl.
-  case: i Hin => [//|i] /lt_S_n Hin /=. exact: IHσ.
-Qed.
-
 Lemma fv_cons_inv_v v vs n : nclosed (v :: vs) n → nclosed_vl v n /\ nclosed vs n.
 Proof. intros Hcl; split; solve_inv_fv_congruence_h Hcl. Qed.
 
@@ -455,11 +433,6 @@ Proof. elim: xs => /= [//|x xs IHxs] /fv_cons_inv [Hclx Hclxs]. auto. Qed.
 
 Lemma nclosed_xs_eq_nclosed n xs: nclosed_xs xs n ↔ nclosed xs n.
 Proof. split; eauto using Forall_to_closed_xs, closed_xs_to_Forall. Qed.
-
-Lemma subst_compose x σ ξ n :
-  nclosed x n → length σ = n →
-  x.|[∞ σ.|[ξ]] = x.|[∞ σ].|[ξ].
-Proof. intros Hclx <-; asimpl. apply Hclx, to_subst_compose. Qed.
 
 Lemma nclosed_mono x n m:
   nclosed x n → n <= m → nclosed x m.

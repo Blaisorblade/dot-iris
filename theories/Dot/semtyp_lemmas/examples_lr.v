@@ -6,7 +6,7 @@ From iris.program_logic Require Import language.
 
 From D Require Import iris_prelude succ_notation swap_later_impl proper.
 From D.Dot Require Import rules path_repl.
-From D.Dot Require Import unary_lr later_sub_sem sub_lr fundamental.
+From D.Dot Require Export fundamental dsub_lr.
 
 Implicit Types (Σ : gFunctors).
 Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env) (l : label).
@@ -188,14 +188,6 @@ Section Lemmas.
     iApply sSub_Trans; [iApply IHj|iApply sLater_Sub].
   Qed.
 
-  Lemma sP_Later {Γ} p T i :
-    Γ s⊨p p : oLater T, i -∗
-    Γ s⊨p p : T, S i.
-  Proof.
-    rewrite (sP_Sub (j := 1) (T1 := oLater T) (T2 := T)) !(plus_comm i 1).
-    iIntros "Hsub"; iApply "Hsub"; iApply sLater_Sub.
-  Qed.
-
   Lemma sP_LaterN {Γ i j} p T :
     Γ s⊨p p : oLaterN j T, i -∗
     Γ s⊨p p : T, i + j.
@@ -203,6 +195,10 @@ Section Lemmas.
     rewrite comm; elim: j i => [//|j IHj] i; rewrite plus_Snm_nSm.
     by rewrite -(IHj (S i)) -sP_Later.
   Qed.
+
+  Lemma sT_Var {Γ x τ} (Hx : Γ !! x = Some τ):
+    ⊢ Γ s⊨ of_val (ids x) : shiftN x τ.
+  Proof. by iApply (sT_Path (p := pv _)); iApply sP_Var. Qed.
 
   Lemma sT_Var0 {Γ T}
     (Hx : Γ !! 0 = Some T):

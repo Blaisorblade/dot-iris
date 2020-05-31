@@ -53,7 +53,7 @@ Section logrel_binding_lemmas.
   Proof.
     rewrite interp_subst_compose_ind !(interp_subst_ids T) -hsubst_comp.
     (* *The* step requiring [HclT]. *)
-    by rewrite (subst_compose _ _ HclT).
+    by rewrite (subst_compose HclT).
   Qed.
 End logrel_binding_lemmas.
 End ty_interp_lemmas.

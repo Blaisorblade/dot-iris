@@ -68,6 +68,10 @@ Proof.
   iNext.
   iApply (wp_safe with "H").
 Qed.
+
+Lemma wptp_safe_n n e1 Φ :
+  WP e1 {{ Φ }} -∗ ▷^n ⌜safe_n n e1⌝.
+Proof. iIntros "Hwp" (e2 Hsteps); by iApply wptp_safe. Qed.
 End adequacy.
 
 Theorem wp_adequacy {Σ Λ} e φ `{LangDet Λ} :

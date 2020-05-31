@@ -46,88 +46,6 @@ Module Type ValuesSig.
   Parameter hsubst_of_val : ∀ (v : vl) s, (of_val v).|[s] = of_val (v.[s]).
 End ValuesSig.
 
-(** ** This module type contains minimal infrastructure for D*-languages.
-It is a "mixin module": that is, it is [Include]d (indirectly) in each language
-implementing [ValuesSig], yet functors can abstract over implementing modules.
-Mixin module [Sorts] in [asubst_base] defines additional infrastructure.
-*)
-Module Type SortsSig (Import V : ValuesSig).
-  Definition vls := list vl.
-  Definition env := var → vl.
-
-  Implicit Types (v : vl) (vs σ : vls) (ρ : env).
-
-  Fixpoint to_subst σ : var → vl :=
-    match σ with
-    | [] => ids
-    | v :: σ => v .: to_subst σ
-    end.
-  (* Tighter precedence than [>>], which has level 56. *)
-  Notation "∞ σ" := (to_subst σ) (at level 50).
-
-  Definition to_subst_nil : ∞ [] = ids := reflexivity _.
-
-  Definition to_subst_cons v σ : ∞ (v :: σ) = v .: ∞ σ :=
-    reflexivity _.
-
-  Definition stail ρ := (+1) >>> ρ.
-  Definition shead ρ := ρ 0.
-
-  Lemma shead_eq v ρ: shead (v .: ρ) = v. Proof. done. Qed.
-  Lemma stail_eq v ρ: stail (v .: ρ) = ρ. Proof. done. Qed.
-
-  (* This class describes a syntactic sort that supports substituting values. *)
-  Class Sort (s : Type)
-    {inh_s : Inhabited s}
-    {ids_s : Ids s} {ren_s : Rename s} {hsubst_vl_s : HSubst vl s}
-    {hsubst_lemmas_vl_s : HSubstLemmas vl s} := {}.
-
-  (** Some hand-written rewriting lemmas, designed to replace
-      certain common and slow uses of [autosubst]. *)
-  Lemma scons_up_swap a sb1 sb2 : a .: sb1 >> sb2 = up sb1 >> a .: sb2.
-  Proof.
-    (* Reverse-engineered from autosubst output. *)
-    rewrite upX /ren /scomp scons_comp;
-      fsimpl; rewrite subst_compX; by fsimpl; rewrite id_scompX id_subst.
-  Qed.
-  (* Rewrite lemmas to be faster than asimpl: *)
-  Lemma renS_comp n : ren (+S n) = ren (+n) >> ren (+1).
-  Proof. rewrite /ren/scomp. fsimpl. by rewrite (id_scompX ((+1) >>> ids)). Qed.
-
-  Lemma subst_swap_base v ρ : v.[ρ] .: ρ = (v .: ids) >> ρ.
-  Proof.
-    rewrite /scomp scons_comp. (* Actual swap *)
-    by rewrite id_scompX. (* Cleanup result of manipulation *)
-  Qed.
-
-  Lemma shift_sub_vl v w: (shiftV v).[w/] = v.
-  Proof.
-    rewrite subst_comp -{2}(subst_id v) /ren /scomp; fsimpl; by rewrite id_scompX.
-  Qed.
-
-  Section sort_lemmas.
-    Context `{_HsX: Sort X}.
-    Implicit Types (x : X).
-
-    Lemma hrenS `{Sort X} (x : X) n : shiftN (S n) x = shift (shiftN n x).
-    Proof. rewrite hsubst_comp renS_comp. by []. Qed.
-
-    Lemma shift_sub `{Sort X} {x : X} v: (shift x).|[v/] = x.
-    Proof.
-      by rewrite hsubst_comp -{2}(hsubst_id x) /ren /scomp; fsimpl;
-        rewrite id_scompX.
-    Qed.
-  End sort_lemmas.
-End SortsSig.
-
-(** [VlSortsSig] mixes in [ValuesSig] and [SortsSig], and most infrastructure
-is defined in functors abstracting over [VlSortsSig].
-Module [VlSortsFullSig] in [asubst_base] defines additional infrastructure, but
-to minimize compile-time dependencies, most such functors should abstract over
-[VlSortsSig] and not [VlSortsFullSig].
-*)
-Module Type VlSortsSig := ValuesSig <+ SortsSig.
-
 (** Autosubst extensions, and utilities useful when defining languages and implementing
 [ValuesSig]. *)
 Module ASubstLangDefUtils.
@@ -231,3 +149,109 @@ Hint Mode HSubst - + : typeclass_instances.
 (* Fail Goal ∀ s x, x.|[s] = x. *)
 (* Goal ∀ s (x : ty), x.|[s] = x. Abort. *)
 End ASubstLangDefUtils.
+
+(** ** This module type contains minimal infrastructure for D*-languages.
+It is a "mixin module": that is, it is [Include]d (indirectly) in each language
+implementing [ValuesSig], yet functors can abstract over implementing modules.
+Mixin module [Sorts] in [asubst_base] defines additional infrastructure.
+*)
+Module Type SortsSig (Import V : ValuesSig).
+  Definition vls := list vl.
+  Definition env := var → vl.
+
+  Implicit Types (v : vl) (vs σ : vls) (ρ : env).
+
+  Fixpoint to_subst σ : var → vl :=
+    match σ with
+    | [] => ids
+    | v :: σ => v .: to_subst σ
+    end.
+  (* Tighter precedence than [>>], which has level 56. *)
+  Notation "∞ σ" := (to_subst σ) (at level 50).
+
+  Definition to_subst_nil : ∞ [] = ids := reflexivity _.
+
+  Definition to_subst_cons v σ : ∞ (v :: σ) = v .: ∞ σ :=
+    reflexivity _.
+
+  Definition stail ρ := (+1) >>> ρ.
+  Definition shead ρ := ρ 0.
+
+  Definition eq_n_s ρ1 ρ2 n := ∀ x, x < n → ρ1 x = ρ2 x.
+  Global Arguments eq_n_s /.
+
+  Lemma to_subst_compose σ ρ:
+    eq_n_s (∞ σ.|[ρ]) (∞ σ >> ρ) (length σ).
+  Proof.
+    elim: σ => /= [|v σ IHσ] i Hin; first lia; asimpl.
+    case: i Hin => [//|i] /lt_S_n Hin /=. exact: IHσ.
+  Qed.
+
+  (** [n]-closedness defines when some AST has at most [n] free variables (from [0] to [n - 1]). *)
+  (** Here and elsewhere, we give one definition for values, using [subst], and
+      another for other ASTs, using [hsubst]. *)
+  Definition nclosed_vl (v : vl) n :=
+    ∀ ρ1 ρ2, eq_n_s ρ1 ρ2 n → v.[ρ1] = v.[ρ2].
+
+  Definition nclosed `{HSubst vl X} (x : X) n :=
+    ∀ ρ1 ρ2, eq_n_s ρ1 ρ2 n → x.|[ρ1] = x.|[ρ2].
+
+  Lemma shead_eq v ρ: shead (v .: ρ) = v. Proof. done. Qed.
+  Lemma stail_eq v ρ: stail (v .: ρ) = ρ. Proof. done. Qed.
+
+  (* This class describes a syntactic sort that supports substituting values. *)
+  Class Sort (s : Type)
+    {inh_s : Inhabited s}
+    {ids_s : Ids s} {ren_s : Rename s} {hsubst_vl_s : HSubst vl s}
+    {hsubst_lemmas_vl_s : HSubstLemmas vl s} := {}.
+
+  (** Some hand-written rewriting lemmas, designed to replace
+      certain common and slow uses of [autosubst]. *)
+  Lemma scons_up_swap a sb1 sb2 : a .: sb1 >> sb2 = up sb1 >> a .: sb2.
+  Proof.
+    (* Reverse-engineered from autosubst output. *)
+    rewrite upX /ren /scomp scons_comp;
+      fsimpl; rewrite subst_compX; by fsimpl; rewrite id_scompX id_subst.
+  Qed.
+  (* Rewrite lemmas to be faster than asimpl: *)
+  Lemma renS_comp n : ren (+S n) = ren (+n) >> ren (+1).
+  Proof. rewrite /ren/scomp. fsimpl. by rewrite (id_scompX ((+1) >>> ids)). Qed.
+
+  Lemma subst_swap_base v ρ : v.[ρ] .: ρ = (v .: ids) >> ρ.
+  Proof.
+    rewrite /scomp scons_comp. (* Actual swap *)
+    by rewrite id_scompX. (* Cleanup result of manipulation *)
+  Qed.
+
+  Lemma shift_sub_vl v w: (shiftV v).[w/] = v.
+  Proof.
+    rewrite subst_comp -{2}(subst_id v) /ren /scomp; fsimpl; by rewrite id_scompX.
+  Qed.
+
+  Section sort_lemmas.
+    Context `{_HsX: Sort X}.
+    Implicit Types (x : X).
+
+    Lemma hrenS `{Sort X} (x : X) n : shiftN (S n) x = shift (shiftN n x).
+    Proof. rewrite hsubst_comp renS_comp. by []. Qed.
+
+    Lemma shift_sub `{Sort X} {x : X} v: (shift x).|[v/] = x.
+    Proof.
+      by rewrite hsubst_comp -{2}(hsubst_id x) /ren /scomp; fsimpl;
+        rewrite id_scompX.
+    Qed.
+
+    Lemma subst_compose {x σ ξ n} :
+      nclosed x n → length σ = n →
+      x.|[∞ σ.|[ξ]] = x.|[∞ σ].|[ξ].
+    Proof. intros Hclx <-; asimpl. apply Hclx, to_subst_compose. Qed.
+  End sort_lemmas.
+End SortsSig.
+
+(** [VlSortsSig] mixes in [ValuesSig] and [SortsSig], and most infrastructure
+is defined in functors abstracting over [VlSortsSig].
+Module [VlSortsFullSig] in [asubst_base] defines additional infrastructure, but
+to minimize compile-time dependencies, most such functors should abstract over
+[VlSortsSig] and not [VlSortsFullSig].
+*)
+Module Type VlSortsSig := ValuesSig <+ SortsSig.

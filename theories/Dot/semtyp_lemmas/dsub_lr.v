@@ -195,13 +195,35 @@ Section DStpLemmas.
     iApply ("Hstp" $! (v .: ρ) v with "[$Hg $HT1] [$HT1]").
   Qed.
 
+  Lemma Mu_Stp_Mu {Γ} T1 T2 i `{!SwapPropI Σ}:
+    iterate TLater i T1 :: Γ ⊨ T1 <:[i] T2 -∗
+    Γ ⊨ TMu T1 <:[i] TMu T2.
+  Proof.
+    rewrite /istpd -sMu_Stp_Mu.
+    by rewrite fmap_cons (iterate_TLater_oLater i T1).
+  Qed.
+
   (** Novel subtyping rules. [Sub_Bind_1] and [Sub_Bind_2] become
   derivable. *)
   Lemma sMu_Stp {Γ T i} : ⊢ Γ s⊨ oMu (shift T) <:[i] T.
   Proof. rewrite oMu_shift. apply sStp_Refl. Qed.
 
+  Lemma Mu_Stp {Γ} T i: ⊢ Γ ⊨ TMu (shift T) <:[i] T.
+  Proof.
+    rewrite /istpd; cbn -[sstpd].
+    rewrite (interp_subst_commute T (ren (+1))).
+    apply sMu_Stp.
+  Qed.
+
   Lemma sStp_Mu {Γ T i} : ⊢ Γ s⊨ T <:[i] oMu (shift T).
   Proof. rewrite oMu_shift. apply sStp_Refl. Qed.
+
+  Lemma Stp_Mu {Γ} T i: ⊢ Γ ⊨ T <:[i] TMu (shift T).
+  Proof.
+    rewrite /istpd; cbn -[sstpd].
+    rewrite (interp_subst_commute T (ren (+1))).
+    apply sStp_Mu.
+  Qed.
 
   Lemma sFld_Stp_Fld {Γ T1 T2 i l}:
     Γ s⊨ T1 <:[i] T2 -∗
@@ -238,6 +260,72 @@ Section DStpLemmas.
     iNext (i.+1); iModIntro. iApply (wp_wand with "(HT1 (HsubT HwT2))").
     iIntros (u) "#HuU1". iApply ("HsubU" with "HuU1").
   Qed.
+
+  (* An inverse of subsumption: subtyping is *equivalent* to convertibility
+  for values. *)
+  Lemma sStp_Skolem_P {Γ T1 T2 i} `{!SwapPropI Σ} :
+    oLaterN i (shift T1) :: Γ s⊨p pv (ids 0) : shift T2, i -∗
+    (*───────────────────────────────*)
+    Γ s⊨ T1 <:[i] T2.
+  Proof.
+    rewrite -sstpd_delay_oLaterN; iIntros "#Htyp !> %ρ Hg %v HvT1".
+    iEval rewrite /= -path_wp_pv_eq.
+    iApply ("Htyp" $! (v .: ρ) with "[$Hg $HvT1]").
+  Qed.
+
+  Lemma Stp_Skolem_P {Γ T1 T2 i} `{!SwapPropI Σ} :
+    iterate TLater i (shift T1) :: Γ ⊨p pv (ids 0) : shift T2, i -∗
+    (*───────────────────────────────*)
+    Γ ⊨ T1 <:[i] T2.
+  Proof.
+    rewrite /iptp fmap_cons iterate_TLater_oLater !interp_subst_commute.
+    exact: sStp_Skolem_P.
+  Qed.
+
+  (* Is it true that for covariant F, F[A ∧ B] = F[A] ∧ F[B]?
+    Dotty assumes that, tho DOT didn't capture it.
+    F[A ∧ B] <: F[A] ∧ F[B] is provable by covariance.
+    Let's prove F[A] ∧ F[B] <: F[A ∧ B] in the model.
+    *)
+  Lemma sAnd_All_Stp_Distr Γ T U1 U2 i:
+    ⊢ Γ s⊨ oAnd (oAll T U1) (oAll T U2) <:[i] oAll T (oAnd U1 U2).
+  Proof.
+    iIntros "/= !> %ρ #Hg !> %v [#H1 #H2]".
+    iDestruct "H1" as (t ?) "#H1"; iDestruct "H2" as (t' ->) "#H2"; simplify_eq.
+    iExists _; iSplit => //.
+    iIntros "!>" (w) "#HT".
+    iSpecialize ("H1" with "HT").
+    iSpecialize ("H2" with "HT").
+    iNext. iModIntro.
+    (* Oh. Dreaded conjunction rule. Tho could we use a version
+    for separating conjunction? *)
+    iApply wp_and. by iApply "H1". by iApply "H2".
+  Qed.
+
+  Lemma sAnd_Fld_Stp_Distr Γ l T1 T2 i:
+    ⊢ Γ s⊨ oAnd (cVMem l T1) (cVMem l T2) <:[i] cVMem l (oAnd T1 T2).
+  Proof.
+    iIntros "/= !> %ρ #Hg !> %v [#H1 H2]".
+    iDestruct "H1" as (d? pmem?) "#H1"; iDestruct "H2" as (d'? pmem'?) "#H2". objLookupDet.
+    repeat (iExists _; repeat iSplit => //).
+    by iApply (path_wp_and' with "H1 H2").
+  Qed.
+
+  Lemma sAnd_Typ_Stp_Distr Γ l L U1 U2 i:
+    ⊢ Γ s⊨ oAnd (cTMem l L U1) (cTMem l L U2) <:[i] cTMem l L (oAnd U1 U2).
+  Proof.
+    iIntros "/= !> %ρ #Hg !> %v [#H1 H2]".
+    iDestruct "H1" as (d? φ) "#[Hsφ1 [#HLφ1 #HφU1]]"; iDestruct "H2" as (d'? φ') "#[Hsφ2 [_ #HφU2]]".
+    objLookupDet.
+    iExists d; repeat iSplit => //.
+    iExists φ; repeat iSplit => //.
+    iModIntro; iSplit; iIntros (w) "Hw".
+    - by iApply "HLφ1".
+    - iDestruct (dm_to_type_agree vnil w with "Hsφ1 Hsφ2") as "#Hag {Hsφ1 Hsφ2 HLφ1}".
+      iSplit; [iApply "HφU1" | iApply "HφU2"] => //.
+      iNext. by iRewrite -"Hag".
+  Qed.
+
 
   Lemma sSngl_Stp_Self Γ p T i :
     Γ s⊨p p : T, i -∗
@@ -278,8 +366,8 @@ Section DStpLemmas.
     Γ s⊨ { l := dpt p } : cVMem l T1 -∗
     Γ s⊨ { l := dpt p } : cVMem l T2.
   Proof.
-    rewrite !sdtp_eq; iIntros "#Hsub #Hd !>" (ρ Hpid) "#Hg".
-    iSpecialize ("Hd" $! ρ Hpid with "Hg"); rewrite !cVMem_eq.
+    rewrite !sdtp_eq'; iIntros "#Hsub #Hd !>" (ρ Hpid) "#Hg".
+    iSpecialize ("Hd" $! ρ Hpid with "Hg").
     iApply (oDVMem_respects_sub with "(Hsub Hg) Hd").
   Qed.
 
@@ -289,8 +377,8 @@ Section DStpLemmas.
     Γ s⊨ { l := dtysem σ s } : cTMem l L1 U1 -∗
     Γ s⊨ { l := dtysem σ s } : cTMem l L2 U2.
   Proof.
-    rewrite !sdtp_eq; iIntros "#HL #HU #Hd !>" (ρ Hpid) "#Hg".
-    iSpecialize ("Hd" $! ρ Hpid with "Hg"); rewrite !cTMem_eq.
+    rewrite !sdtp_eq'; iIntros "#HL #HU #Hd !>" (ρ Hpid) "#Hg".
+    iSpecialize ("Hd" $! ρ Hpid with "Hg").
     iApply (oDTMem_respects_sub with "(HL Hg) (HU Hg) Hd").
   Qed.
 

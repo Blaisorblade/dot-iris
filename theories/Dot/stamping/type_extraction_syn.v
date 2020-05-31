@@ -138,7 +138,7 @@ Proof.
   exists T, T.|[ξ]; split_and!; eauto.
   move: (is_stamped_nclosed_ty HstT) => HclT.
   move: (is_stamped_nclosed_sub Hstξ) => Hclξ.
-  simplify_eq; rewrite (subst_compose _ _ HclT) //.
+  simplify_eq; rewrite (subst_compose HclT) //.
   rewrite !closed_subst_idsρ //. exact: nclosed_sub_app.
 Qed.
 
