@@ -382,6 +382,15 @@ Proof.
     move: Hp; rewrite (plusnS i 0) (plusnO i); intros; by [|constructor].
 Qed.
 
+Lemma iP_Sub' {Γ p T1 T2 i g} :
+  Γ v⊢ₜ[ g ] T1, i <: T2, i →
+  Γ v⊢ₚ[ g ] p : T1, i →
+  Γ v⊢ₚ[ g ] p : T2, i.
+Proof.
+  intros Hsub Hp; rewrite -(plusnO i).
+  by eapply iP_Sub, Hp; rewrite plusnO.
+Qed.
+
 Ltac ettrans := eapply iSub_Trans.
 
 Lemma Sub_later_shift {Γ T1 T2 i j g}

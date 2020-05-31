@@ -291,16 +291,6 @@ Proof.
   eapply iT_Sub_nocoerce with (T1 := μ {@ type "A" >: T <: T }); ltcrush.
 Qed.
 
-Lemma iP_Sub' {Γ p T1 T2 i} :
-  Γ u⊢ₜ T1, i <: T2, i →
-  Γ u⊢ₚ p : T1, i →
-  (*───────────────────────────────*)
-  Γ u⊢ₚ p : T2, i.
-Proof.
-  intros; rewrite -(plusnO i).
-  by eapply iP_Sub; rewrite ?plusnO.
-Qed.
-
 Lemma iP_Sngl_Sym Γ p q i:
   is_unstamped_path' (length Γ) q →
   Γ u⊢ₚ p : TSing q, i →

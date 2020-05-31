@@ -378,6 +378,16 @@ Proof.
   by eapply iSub_Trans, iLater_Sub.
 Qed.
 
+Lemma iP_Sub' {Γ p T1 T2 i} :
+  Γ u⊢ₜ T1, i <: T2, i →
+  Γ u⊢ₚ p : T1, i →
+  (*───────────────────────────────*)
+  Γ u⊢ₚ p : T2, i.
+Proof.
+  intros Hsub Hp; rewrite -(plusnO i).
+  by eapply iP_Sub, Hp; rewrite plusnO.
+Qed.
+
 Ltac typconstructor :=
   match goal with
   | |- typed _ _ _ => first [apply iT_All_I_strip1 | apply iT_All_I | constructor]
