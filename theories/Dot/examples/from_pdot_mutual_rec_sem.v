@@ -50,8 +50,6 @@ Section hoas.
   Definition hoptionTyConcr1 (pCore : hpath) := hTOr hnoneConcrT (hsomeType pCore).
 End hoas.
 
-Section semExample.
-Context `{HdlangG: !dlangG Σ} `{HswapProp : !SwapPropI Σ}.
 (** FromPDotPaper *)
 
 Definition typeRefTBody : ty := {@
@@ -78,28 +76,34 @@ Definition fromPDotPaperAbsTypesTBody : ty := {@
   val "getTypeFromTypeRef" : x0 @; "TypeRef" →: x0 @; "Type"
 }.
 
-Definition pTop : stampTy := MkTy 40 [] ⊤ 0.
-
 Definition optionTy pOpt pCore := TAnd (pOpt @; "Option") (type "T" >: ⊥ <: (pCore @ "types" @; "Type")).
 
-Definition pSymbol : stampTy := MkTy 50 [x0; x1; x2] {@
+Section semExample.
+Context `{HdlangG: !dlangG Σ} `{HswapProp : !SwapPropI Σ}.
+Context (pTop_stamp pSymbol_stamp pTypeRef_stamp : stamp).
+
+Definition pTop : stampTy := MkTy pTop_stamp [] ⊤ 0.
+
+Definition pSymbol : stampTy := MkTy pSymbol_stamp [x0; x1; x2] {@
   val "tpe" : optionTy x2 x1;
   val "id" : TInt
 } 3.
 
-Definition pTypeRef : stampTy := MkTy 60 [x0; x1] (TAnd (x0 @; "Type") typeRefTBody) 2.
+Definition pTypeRef : stampTy := MkTy pTypeRef_stamp [x0; x1] (TAnd (x0 @; "Type") typeRefTBody) 2.
 
 (** The syntactic stamp map we use in our syntactic judgments. *)
 Definition fromPDotG : stys := psAddStys primOptionG [pTypeRef; pTop; pSymbol].
+
+Context (Htop : styConforms fromPDotG pTop).
+Context (Hsymbol : styConforms fromPDotG pSymbol).
+Context (HtypeRef : styConforms fromPDotG pTypeRef).
+
 Definition fromPDotGφ := Vs⟦ fromPDotG ⟧.
 Arguments fromPDotG : simpl never.
 
 Lemma pTopStamp : TyMemStamp fromPDotG pTop. Proof. split; stcrush. Qed.
 Lemma pTypeRefStamp : TyMemStamp fromPDotG pTypeRef. Proof. split; stcrush. Qed.
 Lemma pSymbolStamp : TyMemStamp fromPDotG pSymbol. Proof. split; stcrush. Qed.
-Lemma Htop : styConforms fromPDotG pTop. Proof. done. Qed.
-Lemma Hsymbol : styConforms fromPDotG pSymbol. Proof. done. Qed.
-Lemma HtypeRef : styConforms fromPDotG pTypeRef. Proof. done. Qed.
 
 Definition assert cond :=
   tif cond 0 hloopTm.
@@ -160,8 +164,6 @@ Definition fromPDotPaper : vl := ν {@
   val "types" = ν fromPDotPaperTypesVBody;
   val "symbols" = fromPDotPaperSymbolsV
 }.
-
-Ltac semTMember i := iApply D_Typ; iApply (extraction_to_leadsto_envD_equiv (n := i) with "Hs"); by_extcrush.
 
 Tactic Notation "smart_wp_bind'" uconstr(ctxs) ident(v) constr(Hv) uconstr(Hp) :=
   iApply (wp_bind (ectx_language.fill ctxs));
@@ -297,6 +299,8 @@ Proof.
   iExists optV; iSplit; first done; lrSimpl in "Hw"; lrSimpl.
   by iDestruct "Hw" as "[$ _]".
 Qed.
+
+Ltac semTMember i := iApply D_Typ; iApply (extraction_to_leadsto_envD_equiv (n := i) with "Hs"); by_extcrush.
 
 Example semFromPDotPaperTypesTyp Γ :
   ⊢ TAnd (▶: fromPDotPaperTypesTBody) (TSing (x1 @ "types")) ::
@@ -442,6 +446,7 @@ Proof.
     exact: fromPDotPaperSymbolsAbsTyp.
 Qed.
 
+Context (HextMap : primOptionG ⊆ fromPDotG).
 Example pCoreSemTyped Γ : ⊢ Γ ⊨[fromPDotGφ]
   lett hoptionModV fromPDotPaper : ⊤.
 Proof.
@@ -449,25 +454,16 @@ Proof.
   iIntros "#Hs".
   iApply T_All_E; first last.
   iApply (fundamental_typed with "Hs").
-  eapply storeless_typing_mono_mut; first exact: optionModInvTyp.
-  rewrite /fromPDotG/=.
-  by repeat (etrans; last apply map_union_subseteq_r; last solve_map_disjoint).
+  eapply storeless_typing_mono_mut; [exact: optionModInvTyp|exact: HextMap].
   iApply (T_All_I_Strong (Γ' := Γ)). ietp_weaken_ctx.
   iApply (T_Sub (i := 0)).
   iApply (fromPDotPaperTyp with "Hs").
   iApply sSub_Top.
 Qed.
 
-End semExample.
-
-Lemma pcoreSafe: safe (lett hoptionModV fromPDotPaper).
-Proof.
-  eapply (safety_dot_sem dlangΣ (T := _))=>*.
-  rewrite (transfer_empty fromPDotGφ).
-  iIntros "> H !>".
-  iApply (pCoreSemTyped with "H").
-Qed.
-
+(** ** Additional examples of client code, not mentioned in the paper.
+As they are open terms, technically not covered by the safety theorem below,
+but of course they could be, after being made closed. *)
 Definition getAnyTypeT pOpt : ty :=
   TAll (μ fromPDotPaperAbsTBody (shift pOpt)) (x0 @ "types" @; "Type").
 Definition getAnyType : vl := vabs (tskip (x0 @: "types" @: "AnyType")).
@@ -509,3 +505,16 @@ Example getAnyTypeTyp0 Γ :
   μ (fromPDotPaperAbsTBody x2) :: optionModTInv :: Γ v⊢ₜ[fromPDotG]
     tapp getAnyType x0 : x0 @ "types" @; "Type".
 Proof. eapply iT_All_Ex'; [exact: getAnyTypeFunTyp|var|tcrush..]. Qed.
+
+End semExample.
+
+(** Allocate global stamps. *)
+Lemma pcoreSafe: safe (lett hoptionModV (fromPDotPaper 40 50 60)).
+Proof.
+  eapply (safety_dot_sem dlangΣ (T := _))=>*.
+  rewrite (transfer_empty (fromPDotGφ _ _ _)).
+  iIntros "> H !>".
+  iApply (pCoreSemTyped with "H"); [done..|].
+  rewrite /fromPDotG/=.
+  by repeat (etrans; last apply map_union_subseteq_r; last solve_map_disjoint).
+Qed.
