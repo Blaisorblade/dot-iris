@@ -26,7 +26,7 @@ From D.Dot Require Import path_repl.
 From D.Dot Require Import ex_iris_utils.
 From D.Dot Require Import prim_boolean_option.
 
-Import dlang_adequacy stamp_transfer prim_boolean_option_mod.
+Import dlang_adequacy prim_boolean_option_mod.
 
 Import DBNotation.
 
@@ -248,15 +248,21 @@ Tactic Notation "lrSimpl" "in" constr(iSelP) :=
 Tactic Notation "wp_bind" uconstr(p) := iApply (wp_bind (fill [p])).
 Ltac wp_pure := rewrite -wp_pure_step_later -1?wp_value; last done; iNext.
 
-Lemma newTypeRef_semTyped Γ g :
-  ⊢ newTypeRefΓ Γ ⊨[ Vs⟦ g ⟧ ] newTypeRefBody : x1 @; "TypeRef".
+Lemma newTypeRef_semTyped Γ :
+  ⊢ |==> newTypeRefΓ Γ ⊨ newTypeRefBody : x1 @; "TypeRef".
 Proof.
+Import skeleton.
+  set g := !!(∅ : stys); cbn in g.
   have := Hx0 Γ g; set Γ2 := newTypeRefΓ Γ; unfold newTypeRefΓ in Γ2 => Hx0.
 
-  iIntros "#Hs !> %ρ #Hg !>".
-  iPoseProof (fundamental_typed Hx0 with "Hs Hg") as "#Hx0".
+  iDestruct (fundamental_typed Hx0) as "#>#Hx0".
+  iIntros "!> !> %ρ #Hg !>".
+  iDestruct "Hx0" as (x0_s Hsk) "Hx0".
+  iDestruct ("Hx0" with "Hg") as "{Hx0} #Hx0".
   wp_bind (AppRCtx _); wp_bind (IfCtx _ _); wp_bind (UnCtx _);
     wp_bind (ProjCtx _); wp_bind (ProjCtx _); iSimpl.
+  have ->: x0_s = x0.
+  by repeat constrain_bisimulating.
 
   rewrite /interp_expr wp_value_inv /vclose sem_later /newTypeRefBody /of_val.
   wp_pure.
@@ -277,7 +283,7 @@ Proof.
   by iApply wp_wand; [iApply loopSemT | iIntros "% []"].
   wp_pure.
   (* To conclude, prove the right subtyping for hsomeType and TypeRef. *)
-  iPoseProof (fundamental_subtype (Hsublast Γ) with "Hg") as "{Hs} Hsub"; lrSimpl in "Hsub".
+  iPoseProof (fundamental_subtype (Hsublast Γ) with "Hg") as "Hsub"; lrSimpl in "Hsub".
   iApply "Hsub"; iClear "Hsub".
 
   (* Just to restate the current goal (for some extra readability). *)
@@ -293,7 +299,7 @@ Proof.
   iDestruct "Hg" as "[_ H]"; lrSimpl in "H"; lrSimpl.
   iSplit; [by iApply "H"| iClear "H"].
 
-  iAssert (V⟦ val "tpe" : hsomeConcrT ⊥ ⊤ ⟧ vnil ρ (ρ 0)) as "{Hw} #Hw";
+  iAssert (V⟦ val "tpe" : hsomeConcrT ⊥ ⊤ ⟧ vnil ρ (ρ 0)) as "{Hw} Hw";
     lrSimpl; last iApply "Hw".
   iExists (dpt p); iFrame (Hl); iExists p; iSplit; first done; rewrite path_wp_eq.
   iExists optV; iSplit; first done; lrSimpl in "Hw"; lrSimpl.
@@ -305,7 +311,7 @@ Ltac semTMember i := iApply D_Typ; iApply (extraction_to_leadsto_envD_equiv (n :
 Example semFromPDotPaperTypesTyp Γ :
   ⊢ TAnd (▶: fromPDotPaperTypesTBody) (TSing (x1 @ "types")) ::
   (▶: fromPDotPaperAbsTBody x1)%ty :: optionModTInv :: Γ
-  ⊨ds[ fromPDotGφ ] fromPDotPaperTypesVBody : fromPDotPaperTypesTBody.
+  ⊨ds fromPDotPaperTypesVBody : fromPDotPaperTypesTBody.
 Proof.
   set Γ' := TAnd fromPDotPaperTypesTBody (TSing (x1 @ "types")) ::
     fromPDotPaperAbsTBody x1 :: optionModTInv :: Γ.
@@ -313,9 +319,12 @@ Proof.
     ⊨G TAnd (▶: fromPDotPaperTypesTBody) (TSing (x1 @ "types")) ::
     (▶: fromPDotPaperAbsTBody x1)%ty :: optionModTInv :: Γ <:* (TLater <$> Γ').
     by rewrite /Γ'/= -ty_sub_TAnd_TLater_TAnd_distr_inv; ietp_weaken_ctx.
+(* Ltac semTMember i := iApply D_Typ; iApply (extraction_to_leadsto_envD_equiv (n := i) with "Hs"); by_extcrush. *)
 
-  iIntros "#Hs".
-  iApply D_Cons; [done | semTMember 0 | ].
+  (* iIntros "#Hs". *)
+  iApply D_Cons; [done | (* semTMember 0 *) | ].
+  iApply D_Typ.
+
   iApply D_Cons; [done | semTMember 0 | ].
   iApply D_Cons; [done | iApply D_Val | ]. {
     iApply (T_All_I_Strong (Γ' := Γ')). apply Hctx.
