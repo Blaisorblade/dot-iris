@@ -14,8 +14,6 @@ Set Default Proof Using "Type".
 
 Implicit Types (v w : vl) (d : dm) (ds : dms).
 
-Import hoas.syn. (* For implicit conversions. *)
-
 (** ** Example code. *)
 Section examplesBodies.
   Import hoasNotation.

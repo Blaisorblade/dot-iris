@@ -124,7 +124,7 @@ Instance ids_hvl : Ids hvl := λ x, (* [x]: input to the substitution. *)
 
 Global Arguments ids_hvl /.
 
-Module Import syn.
+Module Export syn.
 
 Coercion htv := liftA1 tv : hvl → htm.
 Definition htapp : htm → htm → htm := liftA2 tapp.
@@ -211,7 +211,6 @@ Arguments hTBool /.
 End syn.
 
 Module Import hoasNotation.
-Export syn.
 
 (* Primitive operations. *)
 Notation "e1 + e2" := (htbin bplus e1%HS e2%HS) : hsyn_scope.
