@@ -16,7 +16,6 @@ Unset Strict Implicit.
 
 Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
 
-(* The typing judgement comes from [s/⊢/u⊢/] over [Dot/stamped_typing.v], and dropping stamping. *)
 Reserved Notation "Γ u⊢ₜ e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ u⊢ₚ p : T , i" (at level 74, p, T, i at next level).
 Reserved Notation "Γ u⊢{ l := d  } : T" (at level 74, l, d, T at next level).

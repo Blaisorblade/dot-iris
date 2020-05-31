@@ -134,7 +134,7 @@ Sec. 7:
 The proof strategy we describe in the paper is implemented in the following files.
 
 Sec. 5:
-- Stamped typing is defined in [`Dot/typing/stamped_typing.v`](theories/Dot/typing/stamped_typing.v).
+- Stamped typing is defined in [`Dot/typing/storeless_typing.v`](theories/Dot/typing/storeless_typing.v).
   - Translation of typing derivations (Thm. 5.3) is defined in [`Dot/stamping/ast_stamping.v`](theories/Dot/stamping/ast_stamping.v) and proved in
     [`Dot/typing/typing_stamping.v`](theories/Dot/typing/typing_stamping.v).
 - Iris connectives (Sec. 5.2) are predefined by Iris, except for `s ↝ φ`,

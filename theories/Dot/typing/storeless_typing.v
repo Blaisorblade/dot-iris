@@ -434,3 +434,16 @@ Ltac typconstructor :=
   | |- subtype    ?Γ _ _ _ _ _ =>
     first [apply Sub_later_shift | constructor ]; typconstructor_blacklist Γ
   end.
+
+(* Compatibility *)
+Reserved Notation "Γ s⊢ₜ[ g  ] e : T" (at level 74, e, T at next level).
+Reserved Notation "Γ s⊢ₚ[ g  ] p : T , i" (at level 74, p, T, i at next level).
+Reserved Notation "Γ s⊢[ g  ]{ l := d  } : T " (at level 74, l, d, T at next level).
+Reserved Notation "Γ s⊢ds[ g  ] ds : T" (at level 74, ds, T at next level).
+Reserved Notation "Γ s⊢ₜ[ g  ] T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
+
+Notation "Γ s⊢ₜ[ g ] e : T " := (typed Γ g e T).
+Notation "Γ s⊢ds[ g ] ds : T" := (dms_typed Γ g ds T).
+Notation "Γ s⊢[ g ]{ l := d  } : T" := (dm_typed Γ g l d T).
+Notation "Γ s⊢ₚ[ g ] p : T , i" := (path_typed Γ g p T i).
+Notation "Γ s⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ g T1 i1 T2 i2).
