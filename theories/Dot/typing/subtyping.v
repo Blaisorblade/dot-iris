@@ -199,7 +199,9 @@ Remove Hints iStp_Trans : core.
 Hint Extern 10 => try_once iStp_Trans : core.
 
 Lemma unstamped_path_root_is_var Γ p T i:
-  Γ t⊢ₚ p : T, i → ∃ x, path_root p = var_vl x.
-Proof. by elim; intros; cbn; eauto 2 using is_unstamped_path_root. Qed.
+  Γ t⊢ₚ p : T, i →
+  (∃ x, path_root p = var_vl x) ∨
+  (∃ l, path_root p = vlit l).
+Proof. by elim; intros; cbn; eauto 3 using is_unstamped_path_root. Qed.
 
 Ltac ettrans := eapply iStp_Trans.

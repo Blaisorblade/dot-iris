@@ -38,7 +38,8 @@ Definition is_unstamped_trav: Traversal (nat * AllowNonVars) :=
     varP := λ '(n, b) i, i < n;
     dtysynP := λ _ T, True;
     dtysemP := λ _ vs s T' ts', False;
-    pathRootP := λ '(n, b) v, b = AlsoNonVars ∨ ∃ x, v = var_vl x;
+    pathRootP := λ '(n, b) v, b = AlsoNonVars ∨
+      (∃ x, v = var_vl x) ∨ (∃ l, v = vlit l);
   |}.
 
 Definition is_stamped_trav: Traversal (nat * stys) :=
@@ -130,7 +131,9 @@ Ltac inverse_is_unstamped := (repeat with_is_unstamped inverse_once_cbn); un_use
 Ltac inverse_is_stamped := (repeat with_is_stamped inverse_once_cbn); un_usedLemma.
 
 Lemma is_unstamped_path_root n p :
-  is_unstamped_path n OnlyVars p → ∃ x, path_root p = var_vl x.
+  is_unstamped_path n OnlyVars p →
+  (∃ x, path_root p = var_vl x) ∨
+  (∃ l, path_root p = vlit l).
 Proof. elim p => /= *; with_is_unstamped inverse; naive_solver. Qed.
 
 (** * Stamping is monotone wrt stamp table extension. *)

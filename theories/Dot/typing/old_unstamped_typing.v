@@ -309,8 +309,10 @@ Combined Scheme exp_old_unstamped_typing_mut_ind from exp_unstamped_typed_mut_in
   exp_unstamped_dm_typed_mut_ind, exp_unstamped_path_typed_mut_ind.
 
 Lemma unstamped_path_root_is_var Γ p T i:
-  Γ u⊢ₚ p : T, i → ∃ x, path_root p = var_vl x.
-Proof. by elim; intros; cbn; eauto 2 using is_unstamped_path_root. Qed.
+  Γ u⊢ₚ p : T, i →
+  (∃ x, path_root p = var_vl x) ∨
+  (∃ l, path_root p = vlit l).
+Proof. by elim; intros; cbn; eauto 3 using is_unstamped_path_root. Qed.
 
 Lemma dtysem_not_utyped Γ l d T :
   Γ u⊢{ l := d } : T → ∀ σ s, d ≠ dtysem σ s.

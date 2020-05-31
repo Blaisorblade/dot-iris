@@ -195,6 +195,7 @@ Proof.
     cbn in *; try by [|naive_solver eauto using is_unstamped_ren_var, is_unstamped_ren_OnlyVars].
   - constructor; rewrite list_pair_swap_snd_rename Forall_fmap;
       by decompose_Forall; eauto.
+  - constructor; naive_solver.
 Qed.
 
 Lemma is_unstamped_ren_vl v r i j b:
@@ -301,8 +302,13 @@ Proof. exact: is_unstamped_sub_ren_path. Qed.
 
 
 Lemma is_unstamped_sub_rev_var v s:
-  (∃ x : var, v.[s] = var_vl x) →
-  ∃ x : var, v = var_vl x.
+  (∃ x, v.[s] = var_vl x) →
+  ∃ x, v = var_vl x.
+Proof. intros [x ?]; destruct v; simplify_eq; eauto. Qed.
+Lemma is_unstamped_sub_rev_vlit v s:
+  (∃ l, v.[s] = vlit l) →
+  (∃ x, v = var_vl x) ∨
+  (∃ l, v = vlit l).
 Proof. intros [x ?]; destruct v; simplify_eq; eauto. Qed.
 
 Lemma is_unstamped_sub_rev_mut:
@@ -341,7 +347,8 @@ Proof.
     constructor => /=.
     rewrite ->?@Forall_fmap in *.
     decompose_Forall. destruct x; cbn in *. eauto.
-  - constructor; naive_solver eauto using is_unstamped_sub_rev_var.
+  - constructor; cbn in *;
+    naive_solver eauto using is_unstamped_sub_rev_var, is_unstamped_sub_rev_vlit.
 Qed.
 
 Lemma is_unstamped_sub_rev_vl v s i j b:
