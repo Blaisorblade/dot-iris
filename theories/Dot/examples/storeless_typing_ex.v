@@ -4,7 +4,8 @@ I am also experimenting with notations, but beware the current definitions are p
  *)
 
 From D Require Import tactics.
-From D.Dot Require Import syn storeless_typing_ex_utils stampedness_binding.
+From D.Dot Require Import syn storeless_typing_ex_utils
+  unstampedness_binding stampedness_binding ast_stamping.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
@@ -22,7 +23,7 @@ Context {g : stys}.
 
 Example ex0 e Γ T:
   Γ v⊢ₜ[ g ] e : T →
-  is_stamped_ty (length Γ) g T →
+  is_unstamped_ty' (length Γ) T →
   Γ v⊢ₜ[ g ] e : ⊤.
 Proof. intros. apply (iT_Sub_nocoerce T TTop); tcrush. Qed.
 
@@ -157,7 +158,7 @@ Definition systemValT := μ {@
   val "subSys2" : μ {@ type "B" >: ⊥ <: ⊤}}.
 
 Example motivEx Γ (Hs1: s1_is_tint) (Hs2: s2_is_String)
-  (HsString: is_stamped_ty 0 g String):
+  (HuString: is_unstamped_ty' 0 String):
   Γ v⊢ₜ[ g ] systemVal : systemValT.
 Proof.
   apply iT_Obj_I; tcrush.
@@ -170,7 +171,7 @@ Definition systemValT' := μ {@
   val "subSys1" : type "A" >: ⊥ <: TInt;
   val "subSys2" : type "B" >: ⊥ <: ⊤}.
 Example motivEx1 Γ (Hs1: s1_is_tint) (Hs2: s2_is_String)
-  (HsString: is_stamped_ty 0 g String):
+  (HuString: is_unstamped_ty' 0 String):
   Γ v⊢ₜ[ g ] systemVal : systemValT'.
 Proof.
   apply iT_Obj_I; tcrush.
@@ -201,9 +202,11 @@ IFT ≡ IFTFun
 Definition IFTBody := (TAll (x0 @; "A") (TAll (x1 @; "A") (x2 @; "A"))).
 Definition IFT : ty :=
   TAll (type "A" >: ⊥ <: ⊤) IFTBody.
+Lemma IFTUnstamped: is_unstamped_ty' 0 IFT.
+Proof. tcrush. Qed.
 Lemma IFTStamped: is_stamped_ty 0 g IFT.
 Proof. tcrush. Qed.
-Hint Resolve IFTStamped : core.
+Hint Resolve IFTUnstamped IFTStamped : core.
 
 (* Definition IFT : ty := {@ val "if" : IFTFun }. *)
 
@@ -335,18 +338,20 @@ Hint Resolve is_stamped_dm_s1 : core.
 Definition iftCoerce t :=
   lett t (vabs (vabs (tskip (x2 $: x1 $: x0)))).
 
+Hint Immediate unstamped_stamped_type : core.
 Lemma coerce_tAppIFT Γ t T :
-  is_stamped_ty (length Γ) g T →
+  is_unstamped_ty' (length Γ) T →
   Γ v⊢ₜ[ g ] t : TAll T (TAll (shift T) (▶: shiftN 2 T)) →
   Γ v⊢ₜ[ g ] iftCoerce t : TAll T (TAll (shift T) (shiftN 2 T)).
 Proof.
-  move => HsT1 Ht.
-  move: (HsT1) => /is_stamped_ren1_ty HsT2.
-  move: (HsT2) => /is_stamped_ren1_ty; rewrite -hrenS => HsT3.
-  move: (HsT3) => /is_stamped_ren1_ty; rewrite -hrenS => HsT4.
+  move => HuT1 Ht.
+  move: (HuT1) => /is_unstamped_ren1_ty HuT2.
+  move: (HuT2) => /is_unstamped_ren1_ty; rewrite -hrenS => HuT3.
+  move: (HuT3) => /is_unstamped_ren1_ty; rewrite -hrenS => HuT4.
   eapply iT_Let; [exact: Ht| |tcrush].
   rewrite /= !(hren_upn_gen 1) (hren_upn_gen 2) /=.
-  tcrush; rewrite -!hrenS -(iterate_S tskip 0).
+  tcrush; [exact: unstamped_stamped_type..|];
+    rewrite -!hrenS -!(iterate_S tskip 0).
   eapply (iT_Sub (T1 := ▶:T.|[_])); first tcrush.
   eapply iT_All_E; last exact: iT_Var';
     eapply iT_All_E; last exact: iT_Var'.
@@ -356,35 +361,35 @@ Proof.
 Qed.
 
 Lemma subIFT i Γ T:
-  is_stamped_ty (length Γ) g (shiftN i T) →
+  is_unstamped_ty' (length Γ) (shiftN i T) →
   (typeEq "A" T.|[ren (+1+i)]) :: Γ v⊢ₜ[ g ] IFTBody, 0 <:
     TAll T.|[ren (+1+i)] (TAll T.|[ren (+2+i)] (▶: T.|[ren (+3+i)])), 0.
 Proof.
-  rewrite /= -/IFTBody => HsT1.
-  move: (HsT1) => /is_stamped_ren1_ty HsT2; rewrite -hrenS in HsT2.
-  move: (HsT2) => /is_stamped_ren1_ty HsT3; rewrite -hrenS in HsT3.
-  move: (HsT3) => /is_stamped_ren1_ty HsT4; rewrite -hrenS in HsT4.
+  rewrite /= -/IFTBody => HuT1.
+  move: (HuT1) => /is_unstamped_ren1_ty HuT2; rewrite -hrenS in HuT2.
+  move: (HuT2) => /is_unstamped_ren1_ty HuT3; rewrite -hrenS in HuT3.
+  move: (HuT3) => /is_unstamped_ren1_ty HuT4; rewrite -hrenS in HuT4.
   tcrush; rewrite ?iterate_S ?iterate_0 /=; tcrush;
     first [eapply iSub_Sel', (path_tp_delay (i := 0)) |
       eapply iSel_Sub, (path_tp_delay (i := 0))];
-       try (typconstructor; apply: iT_Var');
-    rewrite ?hsubst_id //; try autosubst; wtcrush.
+      try apply: iP_Var';
+    rewrite ?hsubst_id -?hrenS //; try autosubst; wtcrush.
 Qed.
 
 Lemma tAppIFT_typed Γ T t s :
-  is_stamped_ty (length Γ) g T →
+  is_unstamped_ty' (length Γ) T →
   g !! s = Some (shift T) →
   Γ v⊢ₜ[ g ] t : IFT →
   Γ v⊢ₜ[ g ] tApp Γ t s :
     TAll T (TAll (shift T) (▶: shiftN 2 T)).
 Proof.
-  move => HsT1 Hl Ht; move: (HsT1) => /is_stamped_ren1_ty HsT2.
+  move => HsT1 Hl Ht; move: (HsT1) => /is_unstamped_ren1_ty HsT2.
   intros; eapply typeApp_typed => //; tcrush.
   intros; asimpl. exact: (subIFT 1).
 Qed.
 
 Lemma tAppIFT_coerced_typed Γ T t s :
-  is_stamped_ty (length Γ) g T →
+  is_unstamped_ty' (length Γ) T →
   g !! s = Some (shift T) →
   Γ v⊢ₜ[ g ] t : IFT →
   Γ v⊢ₜ[ g ] iftCoerce (tApp Γ t s) :
@@ -405,7 +410,7 @@ Lemma tAppIFT_coerced_typed_p0Boolean Γ T t s :
   T :: Γ v⊢ₜ[ g ] t : IFT →
   T :: Γ v⊢ₜ[ g ] iftCoerce (tApp (T :: Γ) t s) :
     TAll p0Bool (TAll (shift p0Bool) (shiftN 2 p0Bool)).
-Proof. intros. apply tAppIFT_coerced_typed; eauto 3. Qed.
+Proof. intros. apply tAppIFT_coerced_typed; tcrush. Qed.
 
 Definition iftNot Γ t s :=
   tapp (tapp

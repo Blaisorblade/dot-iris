@@ -261,16 +261,12 @@ Section syntyping_stamping_lemmas.
   Lemma stamped_obj_ident_typing_mono_mut Γ g :
     (∀ e T, Γ s⊢ₜ[ g ] e : T → ∀ g' (Hle : g ⊆ g'), Γ s⊢ₜ[ g' ] e : T) ∧
     (∀ ds T, Γ s⊢ds[ g ] ds : T → ∀ g' (Hle : g ⊆ g'), Γ s⊢ds[ g' ] ds : T) ∧
-    (∀ l d T, Γ s⊢[ g ]{ l := d } : T → ∀ g' (Hle : g ⊆ g'), Γ s⊢[ g' ]{ l := d } : T) ∧
-    (∀ p T i, Γ s⊢ₚ[ g ] p : T, i → ∀ g' (Hle : g ⊆ g'), Γ s⊢ₚ[ g' ] p : T, i) ∧
-    (∀ T1 i1 T2 i2, Γ s⊢ₜ[ g ] T1, i1 <: T2, i2 → ∀ g' (Hle : g ⊆ g'), Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2).
+    (∀ l d T, Γ s⊢[ g ]{ l := d } : T → ∀ g' (Hle : g ⊆ g'), Γ s⊢[ g' ]{ l := d } : T).
   Proof.
     eapply storeless_typing_mut_ind with
         (P := λ Γ g e T _, ∀ g' (Hle : g ⊆ g'), Γ s⊢ₜ[ g' ] e : T)
         (P0 := λ Γ g ds T _, ∀ g' (Hle : g ⊆ g'), Γ s⊢ds[ g' ] ds : T)
-        (P1 := λ Γ g l d T _, ∀ g' (Hle : g ⊆ g'), Γ s⊢[ g' ]{ l := d } : T)
-        (P2 := λ Γ g p T i _, ∀ g' (Hle : g ⊆ g'), Γ s⊢ₚ[ g' ] p : T, i)
-        (P3 := λ Γ g T1 i1 T2 i2 _, ∀ g' (Hle : g ⊆ g'), Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2);
+        (P1 := λ Γ g l d T _, ∀ g' (Hle : g ⊆ g'), Γ s⊢[ g' ]{ l := d } : T);
     clear Γ g; intros;
       repeat match goal with
       | H : forall g : stys, _ |- _ => specialize (H g' Hle)
@@ -279,25 +275,16 @@ Section syntyping_stamping_lemmas.
   Lemma stamped_obj_ident_typed_mono Γ (g g' : stys) (Hle: g ⊆ g') e T:
     Γ s⊢ₜ[ g ] e : T → Γ s⊢ₜ[ g' ] e : T.
   Proof. unmut_lemma (stamped_obj_ident_typing_mono_mut Γ g). Qed.
-  Lemma stamped_obj_ident_subtype_mono Γ (g g' : stys) (Hle: g ⊆ g') T1 i1 T2 i2:
-    Γ s⊢ₜ[ g ] T1, i1 <: T2, i2 → Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2.
-  Proof. unmut_lemma (stamped_obj_ident_typing_mono_mut Γ g). Qed.
-
   Lemma stamped_obj_ident_dms_typed_mono Γ (g g' : stys) (Hle: g ⊆ g'):
     ∀ ds T, Γ s⊢ds[ g ] ds : T → Γ s⊢ds[ g' ] ds : T.
   Proof. unmut_lemma (stamped_obj_ident_typing_mono_mut Γ g). Qed.
   Lemma stamped_obj_ident_dm_typed_mono Γ (g g' : stys) (Hle: g ⊆ g'):
     ∀ l d T, Γ s⊢[ g ]{ l := d } : T → Γ s⊢[ g' ]{ l := d } : T.
   Proof. unmut_lemma (stamped_obj_ident_typing_mono_mut Γ g). Qed.
-  Lemma stamped_obj_ident_path_typed_mono Γ (g g' : stys) (Hle: g ⊆ g'):
-    ∀ p T i, Γ s⊢ₚ[ g ] p : T, i → Γ s⊢ₚ[ g' ] p : T, i.
-  Proof. unmut_lemma (stamped_obj_ident_typing_mono_mut Γ g). Qed.
 
   Hint Extern 5 => try_once stamped_obj_ident_typed_mono : core.
   Hint Extern 5 => try_once stamped_obj_ident_dms_typed_mono : core.
   Hint Extern 5 => try_once stamped_obj_ident_dm_typed_mono : core.
-  Hint Extern 5 => try_once stamped_obj_ident_path_typed_mono : core.
-  Hint Extern 5 => try_once stamped_obj_ident_subtype_mono : core.
 
   Hint Extern 5 => try_once is_stamped_mono_tm : core.
   Hint Extern 5 => try_once stamps_unstamp_mono_tm : core.
@@ -315,16 +302,17 @@ Section syntyping_stamping_lemmas.
   Hint Resolve psubst_one_implies is_unstamped_ty_subst : core.
   (** These hints slow down proof search. *)
   (** Not directed. *)
-  Remove Hints storeless_typing.iP_Sngl_Trans : core.
+  Remove Hints old_subtyping.iP_Sngl_Trans : core.
   (** These cause cycles. *)
-  Remove Hints storeless_typing.iP_Mu_E : core.
-  Remove Hints storeless_typing.iP_Mu_I : core.
+  Remove Hints old_subtyping.iP_Mu_E : core.
+  Remove Hints old_subtyping.iP_Mu_I : core.
 
   (* To guard against loops. *)
   Tactic Notation "naive_solver" := timeout 1 naive_solver.
 
   (* This allows stamped paths to change; that's not used for paths appearing
   in types, and it helps stamp D-Val/D-Val-New. *)
+  (* XXX drop *)
   Lemma stamp_obj_ident_subtyping_mut Γ :
     (∀ p T i, Γ u⊢ₚ p : T, i →
       ∀ g, ∃ g',
@@ -332,70 +320,17 @@ Section syntyping_stamping_lemmas.
         ∧ g ⊆ g') ∧
     (∀ T1 i1 T2 i2, Γ u⊢ₜ T1, i1 <: T2, i2 →
       ∀ g, ∃ g', Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2 ∧ g ⊆ g').
-  Proof.
-    eapply old_pure_typing_mut_ind with
-      (P := λ Γ p T i _, ∀ g, ∃ g',
-        Γ s⊢ₚ[ g' ] p : T, i ∧ g ⊆ g')
-      (P0 := λ Γ T1 i1 T2 i2 _, ∀ g, ∃ g',
-        Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2 ∧ g ⊆ g');
-       clear Γ.
-    all: try solve [intros * Hu1 IHs1 Hu2 IHs2 g;
-    (* Strategy for cases of subtyping with multiple premises:
-        - apply the induction hypothesis on the first premise with map [g], and obtain map [g1];
-        - apply the induction hypothesis on the second premise with map [g1], and obtain map [g2];
-        - exhibit map [g2]. *)
-    (* Specialize IHs1 (with [/(.$ g]) and split the result. Ditto IHs2. *)
-      move: IHs1 => /(.$ g) [g1 [IHs1 Hle1]];
-      move: IHs2 => /(.$ g1) [g2 [IHs2 Hle2]]; ev; lte g g1 g2;
-      exists g2; split_and!; try fast_done; eauto 3].
-    all: try solve [intros * Hu1 IHs1 **;
-      move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]]; exists g1; split_and!;
-      try fast_done; (constructor; eauto 2) || eauto 3].
-    all: try solve [intros; exists g; split_and!; try fast_done; constructor; eauto 2].
-  - intros * Hus1 Hu1 IHs1 g.
-    move: IHs1 => /(.$ g) /= [g1 ?]; ev.
-    exists g1; split_and! => //; econstructor; naive_solver.
-  - intros * Hus1 Hu1 IHs1 g.
-    move: IHs1 => /(.$ g) /= [g1 ?]; ev.
-    have ?: is_unstamped_path' (length Γ) p. exact: unstamped_path_subject.
-    exists g1; split_and! => //. econstructor; naive_solver.
-  - intros * Hu1 IHs1 Hu2 IHs2 g.
-    move: IHs1 => /(.$ g) [g1 [Hs1 ?]].
-    move: IHs2 => /(.$ g1) [g2 [Hs2 ?]]; ev; lte g g1 g2.
-    exists g2; split_and! => //; eapply storeless_typing.iP_Sngl_Trans => //.
-    naive_solver.
-  - intros * Hu1 IHs1 g.
-    move: IHs1 => /(.$ g) [g1 ?]; ev.
-    exists g1; split_and! => //.
-    exact: storeless_typing.iSel_Sub.
-  - intros * Hu1 IHs1 g.
-    move: IHs1 => /(.$ g) [g1 ?]; ev.
-    exists g1; split_and! => //.
-    exact: storeless_typing.iSub_Sel.
-  - intros * Hpr Hus1 Hus2 Hu1 IHs1 g.
-    move: IHs1 => /(.$ g) [g1 ?]; ev.
-    exists g1; split_and! => //.
-    eapply storeless_typing.iSngl_pq_Sub; eauto 2.
-  - intros * Hu1 IHs1 Hu2 IHs2 Hus1 g.
-    move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]];
-    move: IHs2 => /(.$ g1) [g2 [Hts2 Hle2]]; lte g g1 g2.
-    exists g2; split_and! => //.
-    apply storeless_typing.iAll_Sub_All; eauto 2.
-  - intros * Hus1 Hu1 IHs1 g.
-    move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]].
-    exists g1; split_and! => //.
-    eauto.
-  Qed.
+  Proof. split; eauto. Qed.
 
   Lemma stamp_obj_ident_path_typing Γ :
     (∀ p T i, Γ u⊢ₚ p : T, i →
       ∀ g, ∃ g', Γ s⊢ₚ[ g' ] p : T, i ∧ g ⊆ g').
-  Proof. apply stamp_obj_ident_subtyping_mut. Qed.
+  Proof. eauto. Qed.
   Lemma stamp_obj_ident_subtyping Γ :
     (∀ T1 i1 T2 i2, Γ u⊢ₜ T1, i1 <: T2, i2 →
       ∀ g, ∃ g', Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2 ∧ g ⊆ g').
-  Proof. apply stamp_obj_ident_subtyping_mut. Qed.
-  Local Hint Resolve stamp_obj_ident_subtyping stamp_obj_ident_path_typing : core.
+  Proof. eauto. Qed.
+  (* Local Hint Resolve stamp_obj_ident_subtyping stamp_obj_ident_path_typing : core. *)
 
   Lemma stamp_obj_ident_typing_mut Γ :
     (∀ e T, Γ u⊢ₜ e : T →
@@ -502,9 +437,7 @@ Section syntyping_stamping_lemmas.
     destruct (stamp_dtysyn_spec g2 Husv); destruct_and!.
     have ?: g2 ⊆ g3 by simplify_eq. lte g g1 g2; lte g g2 g3; lte g1 g2 g3.
     exists (dtysem σ s), g3; simplify_eq; split_and!;
-      first eapply (storeless_typing.iD_Typ_Abs T); auto 2; [
-        exact: (stamped_obj_ident_subtype_mono _ Hts1)|
-        exact: (stamped_obj_ident_subtype_mono _ Hts2)].
+      first eapply (storeless_typing.iD_Typ_Abs T); auto 2.
   - intros * Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [e1' [g1 ?]]; destruct_and!.
     have [v' ?]: ∃ v', e1' = tv v' by destruct e1'; naive_solver.

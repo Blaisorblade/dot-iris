@@ -655,15 +655,14 @@ Proof.
 Qed.
 
 (** Adequacy of normalization for gDOT paths. *)
-Lemma ipwp_gs_adequacy Σ `{!dlangPreG Σ} `{!SwapPropI Σ} {g p T i}
-  (Hwp : ∀ `(Hdlang : !dlangG Σ) `(!SwapPropI Σ), ⊢ [] ⊨p[ Vs⟦ g ⟧ ] p : T , i):
+Lemma ipwp_gs_adequacy Σ `{!dlangPreG Σ} `{!SwapPropI Σ} {p T i}
+  (Hwp : ∀ `(Hdlang : !dlangG Σ) `(!SwapPropI Σ), ⊢ [] ⊨p p : T , i):
   terminates (path2tm p).
 Proof.
   eapply (@soundness (iResUR Σ) _ i).
   apply (bupd_plain_soundness _).
   iMod (gen_iheap_init (L := stamp) ∅) as (hG) "Hgs".
   set (DLangΣ := DLangG Σ).
-  iMod (transfer_empty (Hdlang := DLangΣ) Vs⟦ g ⟧ with "Hgs") as "Hgs".
   iApply ipwp_terminates.
-  iApply (Hwp DLangΣ with "Hgs").
+  iApply (Hwp DLangΣ).
 Qed.

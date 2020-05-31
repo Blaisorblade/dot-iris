@@ -183,8 +183,8 @@ Let newTypeRefΓ Γ :=
   x2 @ "symbols" @; "Symbol" ::
   TAnd fromPDotPaperTypesTBody (TSing (x1 @ "types")) ::
   fromPDotPaperAbsTBody x1 :: optionModTInv :: Γ.
-Lemma Hsub0X0 Γ g :
-  newTypeRefΓ Γ v⊢ₜ[g] x2 @ "symbols" @; "Symbol", 0 <:
+Lemma Hsub0X0 Γ :
+  newTypeRefΓ Γ u⊢ₜ x2 @ "symbols" @; "Symbol", 0 <:
     val "tpe" : optionTy x3 x2 , 1.
 Proof.
   ettrans; last apply iLater_Sub; stcrush.
@@ -195,8 +195,8 @@ Proof.
   ltcrush; mltcrush.
 Qed.
 
-Lemma HoptSubT Γ g:
-  newTypeRefΓ Γ v⊢ₜ[g]
+Lemma HoptSubT Γ :
+  newTypeRefΓ Γ u⊢ₜ
     val "tpe" : optionTy x3 x2, 1 <:
     val "tpe" : TLater (hoptionTyConcr1 hoasNotation.hx2), 1.
 Proof.
@@ -215,8 +215,8 @@ Proof.
     asideLaters; mltcrush.
 Qed.
 
-Lemma Hsublast Γ g:
-  newTypeRefΓ Γ v⊢ₜ[g] shift typeRefTBody, 0 <: x1 @; "TypeRef", 0.
+Lemma Hsublast Γ:
+  newTypeRefΓ Γ u⊢ₜ shift typeRefTBody, 0 <: x1 @; "TypeRef", 0.
 Proof.
   eapply iSub_Sel'; tcrush.
   varsub; lThis.
@@ -235,9 +235,9 @@ Proof.
   varsub. eapply iSub_Trans, iSub_Trans, iSub_Later;
     [apply Hsub0X0 | apply HoptSubT | tcrush].
 Qed.
-Lemma HvT Γ g : newTypeRefΓ Γ v⊢ₜ[g] hnoneConcrT, 0 <: val "isEmpty" : TSing true, 0.
+Lemma HvT Γ : newTypeRefΓ Γ u⊢ₜ hnoneConcrT, 0 <: val "isEmpty" : TSing true, 0.
 Proof. mltcrush. Qed.
-Lemma HvF Γ g : newTypeRefΓ Γ v⊢ₜ[g]
+Lemma HvF Γ : newTypeRefΓ Γ u⊢ₜ
   hsomeType hoasNotation.hx2, 0 <: val "isEmpty" : TSing false, 0.
 Proof. lThis; mltcrush. Qed.
 
@@ -267,7 +267,7 @@ Proof.
   have [n HpOptV] := path_wp_exec_pure _ _ Hal; wp_pure => {HpOptV n}.
   rewrite /hoptionTyConcr1; lrSimpl in "HoptV".
   iDestruct "HoptV" as "[Hw|Hw]"; [have Hv := HvT | have Hv := HvF].
-  all: iPoseProof (fundamental_subtype (Hv Γ g) with "Hs") as "Hv";
+  all: iPoseProof (fundamental_subtype (Hv Γ)) as "Hv";
     iSpecialize ("Hv" $! _ optV with "Hg Hw"); lrSimpl in "Hv";
     iDestruct "Hv" as (? Hl' pb ->) "Hpb"; lrSimpl in "Hpb";
     rewrite path_wp_pure_exec; iDestruct "Hpb" as %(bv & [n1 ?] & Heq).
@@ -277,7 +277,7 @@ Proof.
   by iApply wp_wand; [iApply loopSemT | iIntros "% []"].
   wp_pure.
   (* To conclude, prove the right subtyping for hsomeType and TypeRef. *)
-  iPoseProof (fundamental_subtype (Hsublast Γ g) with "Hs Hg") as "{Hs} Hsub"; lrSimpl in "Hsub".
+  iPoseProof (fundamental_subtype (Hsublast Γ) with "Hg") as "{Hs} Hsub"; lrSimpl in "Hsub".
   iApply "Hsub"; iClear "Hsub".
 
   (* Just to restate the current goal (for some extra readability). *)
@@ -398,7 +398,7 @@ Proof.
 Qed.
 
 Lemma fromPDotPaperTypesSub Γ:
-  ⊢ (▶: fromPDotPaperAbsTBody x1)%ty :: optionModTInv :: Γ ⊨[ fromPDotGφ ]
+  ⊢ (▶: fromPDotPaperAbsTBody x1)%ty :: optionModTInv :: Γ ⊨
   μ fromPDotPaperTypesTBody, 0 <: μ fromPDotPaperAbsTypesTBody, 0.
 Proof.
   iApply fundamental_subtype.
@@ -437,7 +437,7 @@ Proof.
   iApply T_Obj_I.
   iApply D_Cons; [done| |].
   - iApply D_Path_Sub; last iApply D_Val_New.
-    + iApply (fromPDotPaperTypesSub with "Hs").
+    + iApply fromPDotPaperTypesSub.
     + iApply (semFromPDotPaperTypesTyp with "Hs").
 
   - iApply D_Cons; [done| iApply D_Val | iApply D_Nil].

@@ -194,7 +194,7 @@ Proof.
   ltcrush; rewrite iterate_0.
   eapply iSub_Sel'; tcrush; varsub; ltcrush.
   all: try eapply iSub_Sel', (path_tp_delay (i := 0));
-    try (typconstructor; varsub; ltcrush); wtcrush.
+    try (varsub; ltcrush); wtcrush.
   all: try (ettrans; last eapply iSub_Or2); mltcrush.
 Qed.
 
