@@ -458,16 +458,6 @@ Proof.
   iApply sSub_Top.
 Qed.
 
-End semExample.
-
-Lemma pcoreSafe: safe (lett hoptionModV fromPDotPaper).
-Proof.
-  eapply (safety_dot_sem dlangΣ (T := _))=>*.
-  rewrite (transfer_empty fromPDotGφ).
-  iIntros "> H !>".
-  iApply (pCoreSemTyped with "H").
-Qed.
-
 Definition getAnyTypeT pOpt : ty :=
   TAll (μ fromPDotPaperAbsTBody (shift pOpt)) (x0 @ "types" @; "Type").
 Definition getAnyType : vl := vabs (tskip (x0 @: "types" @: "AnyType")).
@@ -509,3 +499,13 @@ Example getAnyTypeTyp0 Γ :
   μ (fromPDotPaperAbsTBody x2) :: optionModTInv :: Γ v⊢ₜ[fromPDotG]
     tapp getAnyType x0 : x0 @ "types" @; "Type".
 Proof. eapply iT_All_Ex'; [exact: getAnyTypeFunTyp|var|tcrush..]. Qed.
+
+End semExample.
+
+Lemma pcoreSafe: safe (lett hoptionModV fromPDotPaper).
+Proof.
+  eapply (safety_dot_sem dlangΣ (T := _))=>*.
+  rewrite (transfer_empty fromPDotGφ).
+  iIntros "> H !>".
+  iApply (pCoreSemTyped with "H").
+Qed.
