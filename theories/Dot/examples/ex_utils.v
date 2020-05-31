@@ -1,15 +1,13 @@
-(**
-Infrastructure for examples of DOT programs.
-*)
+(** * Infrastructure for examples of DOT programs. *)
 From stdpp Require Import strings.
 From D Require Import tactics.
 From D.Dot Require Import syn path_repl lr_syn_aux.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
 
-(****************)
-(** NOTATIONS  **)
-(****************)
+(*******************)
+(** * NOTATIONS  **)
+(*******************)
 
 Coercion tv : vl_ >-> tm.
 Coercion pv : vl_ >-> path.
@@ -64,9 +62,7 @@ Notation "~ e" := (tun unot e%E) (at level 75, right associativity) : expr_scope
 Notation "e1 > e2" := (e2%E < e1%E)%E : expr_scope.
 Notation "e1 ≥ e2" := (e2%E ≤ e1%E)%E : expr_scope.
 
-(** Let's define some nicer notation. *)
-
-(** Notation for object values. *)
+(** ** Notation for object values. *)
 
 Open Scope dms_scope.
 Notation " {@ } " := (@nil (string * dm)) (format "{@ }") : dms_scope.
@@ -133,9 +129,9 @@ Notation tUnit := (tv (vint 0) : tm).
 
 End DBNotation.
 
-(****************)
-(** AUTOMATION **)
-(****************)
+(******************)
+(** * AUTOMATION **)
+(******************)
 
 (* Deterministic crush. *)
 Ltac dcrush := repeat constructor.
@@ -163,5 +159,5 @@ Hint Resolve Nat.lt_0_succ : core.
 
 Definition lett t u := tapp (vabs u) t.
 
-(* Simplify substitution operations on concrete terms. *)
+(** Simplify substitution operations on concrete terms. *)
 Ltac simplSubst := rewrite /= /up/= /ids/ids_vl/=.
