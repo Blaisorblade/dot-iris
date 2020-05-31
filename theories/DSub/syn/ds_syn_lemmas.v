@@ -3,7 +3,7 @@ Binding lemmas about D<:.
 To reduce compile times, unary_lr should not depend on this file.
 This file should load as little Iris code as possible, to reduce compile times.
  *)
-From D.DSub Require Import syn.
+From D.DSub Require Import ds_syn.
 
 Implicit Types
          (L T U: ty) (v: vl) (e: tm)

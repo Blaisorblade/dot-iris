@@ -1,7 +1,7 @@
 From D Require Export iris_prelude saved_interp_dep.
-From D.DSub Require Import syn.
-From D.DSub Require Import ty_interp_subst_lemmas.
-Export syn.
+From D.DSub Require Import ds_syn.
+From D.DSub Require Import ds_ty_interp_subst_lemmas.
+Export ds_syn.
 
 Include SavedInterpDep VlSorts. (* Defines [envD] and needed by TyInterpLemmas. *)
 Include TyInterpLemmas VlSorts.
@@ -32,7 +32,7 @@ Implicit Types
 (* The only point of these instances is to select Σ uniquely. *)
 Class dsubSynG (Σ: gFunctors) := DsubSynG {}.
 
-From D.DSub Require Export rules.
+From D.DSub Require Export ds_rules.
 Instance dsubsynG_irisG `{!dsubSynG Σ}: irisG dlang_lang Σ := {
   irisG_langdet := _;
 }.

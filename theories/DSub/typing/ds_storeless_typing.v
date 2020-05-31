@@ -1,7 +1,7 @@
 (**
   An (unstamped) typing judgment for DSub, allowing arbitrary values in paths.
 *)
-From D.DSub Require Export syn.
+From D.DSub Require Export ds_syn.
 
 Reserved Notation "Γ ⊢ₜ e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ ⊢ₜ T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).

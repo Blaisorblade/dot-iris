@@ -4,8 +4,8 @@
    swap_later_impl.v (extra swap lemmas).
  *)
 From D.pure_program_logic Require Import lifting.
-From D.DSub Require Import rules syn_lemmas.
-From D.DSub Require Import unary_lr.
+From D.DSub Require Import ds_rules ds_syn_lemmas.
+From D.DSub Require Import ds_unary_lr.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
