@@ -92,10 +92,6 @@ Inductive typed Γ g : tm → ty → Prop :=
     Γ v⊢ₜ[ g ] path2tm p : T
 
 (** Primitives. *)
-| iT_Nat_I n:
-    Γ v⊢ₜ[ g ] tv (vint n): TInt
-| iT_Bool_I b:
-    Γ v⊢ₜ[ g ] tv (vbool b): TBool
 | iT_Un u e1 B1 Br (Hu : un_op_syntype u B1 Br) :
     Γ v⊢ₜ[ g ] e1 : TPrim B1 →
     Γ v⊢ₜ[ g ] tun u e1 : TPrim Br
@@ -145,9 +141,11 @@ with path_typed Γ g : path → ty → nat → Prop :=
 | iP_Var x T:
     Γ v⊢ₜ[ g ] tv (var_vl x) : T →
     Γ v⊢ₚ[ g ] pv (var_vl x) : T, 0
-| iP_Lit l T:
-    Γ v⊢ₜ[ g ] tv (vlit l) : T →
-    Γ v⊢ₚ[ g ] pv (vlit l) : T, 0
+(** Primitives literals. *)
+| iP_Nat_I n:
+    Γ v⊢ₚ[ g ] pv (vint n): TInt, 0
+| iP_Bool_I b:
+    Γ v⊢ₚ[ g ] pv (vbool b): TBool, 0
 (* Mnemonic: Path from SELecting a Field *)
 | iP_Fld_E p T i l:
     Γ v⊢ₚ[ g ] p : TVMem l T, i →
@@ -347,6 +345,12 @@ Hint Constructors typed subtype dms_typed dm_typed path_typed : core.
 Remove Hints iSub_Trans : core.
 Hint Extern 10 => try_once iSub_Trans : core.
 
+Lemma iT_Nat_I Γ g n : Γ v⊢ₜ[ g ] tv (vint n): TInt.
+Proof. apply (iT_Path (p := pv _)); constructor. Qed.
+
+Lemma iT_Bool_I Γ g b : Γ v⊢ₜ[ g ] tv (vbool b): TBool.
+Proof. apply (iT_Path (p := pv _)); constructor. Qed.
+
 Lemma iT_All_I Γ e T1 T2 g:
   is_stamped_ty (length Γ) g T1 →
   shift T1 :: Γ v⊢ₜ[ g ] e : T2 →
@@ -410,7 +414,8 @@ Ltac typconstructor_blacklist Γ :=
 
 Ltac typconstructor :=
   match goal with
-  | |- typed      ?Γ _ _ _ => first [apply iT_All_I_strip1 | apply iT_All_I | constructor]
+  | |- typed      ?Γ _ _ _ =>
+    first [apply iT_All_I_strip1 | apply iT_All_I | apply iT_Nat_I | apply iT_Bool_I | constructor]
   | |- dms_typed  ?Γ _ _ _ => constructor
   | |- dm_typed   ?Γ _ _ _ _ => first [apply iD_All | constructor]
   | |- path_typed ?Γ _ _ _ _ => first [apply iP_Later | constructor]

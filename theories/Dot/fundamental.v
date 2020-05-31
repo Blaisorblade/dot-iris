@@ -57,8 +57,6 @@ Section fundamental.
       + by iApply T_Var.
       + by iApply T_Sub; [iApply H0|iApply H].
       + iApply T_Path. by iApply H.
-      + by iApply sT_Nat_I.
-      + by iApply sT_Bool_I.
       + by iApply T_Un; [|iApply H].
       + by iApply T_Bin; [| iApply H| iApply H0].
       + by iApply sT_If; [iApply H|iApply H0|iApply H1].
@@ -75,7 +73,9 @@ Section fundamental.
 
       + (* XXX unclean, but temporary. *)
         iApply sP_Val. by iApply H.
-      + iApply sP_Val. by iApply H.
+
+      + by iApply sP_Nat_I.
+      + by iApply sP_Bool_I.
       + iApply P_Fld_E. by iApply H.
       + by iApply sP_Sub; [iApply H0|iApply H].
       + by iApply P_Mu_I; [|iApply H].

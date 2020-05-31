@@ -332,6 +332,6 @@ Section syntyping_lemmas.
         (P1 := λ Γ g l d T _, Γ v⊢[ g ]{ l := d } : T)
         (P2 := λ Γ g p T i _, Γ v⊢ₚ[ g ] p : T, i)
         (P3 := λ Γ g T1 i1 T2 i2 _, Γ v⊢ₜ[ g ] T1, i1 <: T2, i2); clear Γ g;
-      try solve [eauto].
+      try solve [eauto]; intros; typconstructor.
   Qed.
 End syntyping_lemmas.
