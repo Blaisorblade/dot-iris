@@ -6,6 +6,7 @@ Set Default Proof Using "Type*".
 
 Module Type TyInterpLemmas (Import VS : VlSortsFullSig)
   (Import LWP : SavedInterpDep VS).
+(* XXX SavedInterpDep is used because it defines identifiers like [envD]. *)
 
 Class TyInterp ty Σ :=
   ty_interp : ty → envD Σ.
