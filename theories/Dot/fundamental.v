@@ -5,7 +5,8 @@ From D.Dot Require Export unary_lr later_sub_sem
   binding_lr defs_lr prims_lr path_repl_lr sub_lr.
 From D.Dot Require Import storeless_typing.
 (* For unstamped safety. *)
-From D.Dot Require Import old_unstamped_typing type_extraction_syn ast_stamping typing_stamping skeleton.
+From D.Dot Require Import old_unstamped_typing type_extraction_syn ast_stamping
+     typing_stamping skeleton path_repl_lemmas.
 Import stamp_transfer.
 
 Set Suggest Proof Using.
@@ -78,8 +79,8 @@ Section fundamental.
       + by iApply sP_Bool_I.
       + iApply P_Fld_E. by iApply H.
       + by iApply sP_Sub; [iApply H0|iApply H].
-      + by iApply P_Mu_I; [|iApply H].
-      + by iApply P_Mu_E; [|iApply H].
+      + by iApply P_Mu_I; [|iApply H]; first exact: psubst_one_implies.
+      + by iApply P_Mu_E; [|iApply H]; first exact: psubst_one_implies.
       + iApply P_Fld_I. by iApply H.
       + iApply P_Sngl_Refl. by iApply H.
       + iApply P_Sngl_Inv. by iApply H.

@@ -390,7 +390,6 @@ Proof.
     (type "T" >: ⊥ <: x3 @ "types" @; "Type"))); first last.
   apply iP_And; last by tcrush; varsub; tcrush. {
     apply (iP_Mu_E (p := x0) (T := val "get" : ▶: x0 @; "T")); tcrush.
-    exact: psubst_ty_rtc_sufficient.
     varsub. asideLaters. lNext. ltcrush.
   }
   lThis.
@@ -496,7 +495,7 @@ Proof.
       [ by eapply iT_Mu_E; first var; stcrush | tcrush].
   have HpxSubst: Γ' v⊢ₚ[fromPDotG] x0 @ "types" : fromPDotPaperAbsTypesTBodySubst, 0.
   by eapply (iP_Mu_E (T := fromPDotPaperAbsTypesTBody)
-    (p := x0 @ "types")), Hpx; tcrush; exact: fromPDotPSubst.
+    (p := x0 @ "types")), Hpx; tcrush.
   eapply iT_Path', iP_Fld_I, (iP_Sub (i := 0)), HpxSubst.
   repeat lNext.
 Qed.

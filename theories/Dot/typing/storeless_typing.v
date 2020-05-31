@@ -154,16 +154,15 @@ with path_typed Γ g : path → ty → nat → Prop :=
     Γ v⊢ₚ[ g ] p : T1, i →
     (*───────────────────────────────*)
     Γ v⊢ₚ[ g ] p : T2, i + j
-| iP_Mu_I p T {T' i} :
-    T .Tp[ p /]~ T' →
-    is_stamped_ty (S (length Γ)) g T →
-    Γ v⊢ₚ[ g ] p : T', i →
+| iP_Mu_I p T {i} :
+    is_unstamped_ty' (S (length Γ)) T →
+    Γ v⊢ₚ[ g ] p : T .Tp[ p /], i →
     Γ v⊢ₚ[ g ] p : TMu T, i
-| iP_Mu_E p T {T' i} :
-    T .Tp[ p /]~ T' →
-    is_stamped_ty (length Γ) g T' →
+| iP_Mu_E p T {i} :
+    is_unstamped_ty' (S (length Γ)) T →
+    is_unstamped_path' (length Γ) p →
     Γ v⊢ₚ[ g ] p : TMu T, i →
-    Γ v⊢ₚ[ g ] p : T', i
+    Γ v⊢ₚ[ g ] p : T .Tp[ p /], i
 | iP_Fld_I p T i l:
     Γ v⊢ₚ[ g ] pself p l : T, i →
     (*─────────────────────────*)
@@ -309,7 +308,6 @@ with subtype Γ g : ty → nat → ty → nat → Prop :=
     is_stamped_ty (length Γ) g U →
     Γ v⊢ₜ[ g ] TAnd (TOr S T) U , i <: TOr (TAnd S U) (TAnd T U), i
 
-(* "Structural" rule about indexes. Only try last. *)
 
 | iSub_Skolem_P {T1 T2 i j}:
     is_stamped_ty (length Γ) g T1 →
