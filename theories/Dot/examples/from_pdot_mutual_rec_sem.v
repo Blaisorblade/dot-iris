@@ -161,8 +161,6 @@ Definition fromPDotPaper : vl := ν {@
   val "symbols" = fromPDotPaperSymbolsV
 }.
 
-Ltac semTMember i := iApply D_Typ; iApply (extraction_to_leadsto_envD_equiv (n := i) with "Hs"); by_extcrush.
-
 Tactic Notation "smart_wp_bind'" uconstr(ctxs) ident(v) constr(Hv) uconstr(Hp) :=
   iApply (wp_bind (ectx_language.fill ctxs));
   iApply (wp_wand with "[-]"); [iApply Hp; trivial|];
@@ -297,6 +295,8 @@ Proof.
   iExists optV; iSplit; first done; lrSimpl in "Hw"; lrSimpl.
   by iDestruct "Hw" as "[$ _]".
 Qed.
+
+Ltac semTMember i := iApply D_Typ; iApply (extraction_to_leadsto_envD_equiv (n := i) with "Hs"); by_extcrush.
 
 Example semFromPDotPaperTypesTyp Γ :
   ⊢ TAnd (▶: fromPDotPaperTypesTBody) (TSing (x1 @ "types")) ::
