@@ -478,6 +478,10 @@ Section syntyping_stamping_lemmas.
     move: IHs2 => /(.$ g1) [g2 [Hts2 Hle2]]; lte g g1 g2.
     exists g2; split_and! => //.
     apply storeless_typing.iAll_Sub_All; eauto 2.
+  - intros * Hus1 Hu1 IHs1 g.
+    move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]].
+    exists g1; split_and! => //.
+    eauto.
   Qed.
 
   Lemma stamp_obj_ident_typed g Γ e T: Γ u⊢ₜ e : T →
