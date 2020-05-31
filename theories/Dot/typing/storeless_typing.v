@@ -344,11 +344,15 @@ Hint Constructors typed subtype dms_typed dm_typed path_typed : core.
 Remove Hints iSub_Trans : core.
 Hint Extern 10 => try_once iSub_Trans : core.
 
+Lemma iT_Path' Γ v T g
+  (Ht : Γ v⊢ₚ[ g ] pv v : T, 0) : Γ v⊢ₜ[ g ] tv v : T.
+Proof. exact: (iT_Path (p := pv _)). Qed.
+
 Lemma iT_Nat_I Γ g n : Γ v⊢ₜ[ g ] tv (vint n): TInt.
-Proof. apply (iT_Path (p := pv _)); constructor. Qed.
+Proof. apply iT_Path'; constructor. Qed.
 
 Lemma iT_Bool_I Γ g b : Γ v⊢ₜ[ g ] tv (vbool b): TBool.
-Proof. apply (iT_Path (p := pv _)); constructor. Qed.
+Proof. apply iT_Path'; constructor. Qed.
 
 Lemma iT_All_I Γ e T1 T2 g:
   is_stamped_ty (length Γ) g T1 →

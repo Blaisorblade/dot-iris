@@ -331,10 +331,14 @@ Hint Constructors typed dms_typed dm_typed path_typed subtype : core.
 Remove Hints iStp_Trans : core.
 Hint Extern 10 => try_once iStp_Trans : core.
 
+Lemma iT_Path' Γ v T
+  (Ht : Γ t⊢ₚ pv v : T, 0) : Γ t⊢ₜ tv v : T.
+Proof. exact: (iT_Path (p := pv _)). Qed.
+
 Lemma iT_Var Γ x T
   (Hl : Γ !! x = Some T) :
   Γ t⊢ₜ tv (var_vl x) : shiftN x T.
-Proof. intros. apply (iT_Path (p := pv _)), iP_Var, Hl. Qed.
+Proof. intros. apply iT_Path', iP_Var, Hl. Qed.
 
 Lemma iT_All_I Γ e T1 T2:
   is_unstamped_ty' (length Γ) T1 →

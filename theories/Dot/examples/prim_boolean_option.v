@@ -137,7 +137,7 @@ Definition hnoneV := ν: _, {@
 
 Lemma boolSing g Γ (b : bool) : Γ v⊢ₜ[g] b : TSing b.
 Proof.
-  eapply (iT_Path (p := b)), (iP_Sngl_Refl (T := TBool)).
+  eapply iT_Path', (iP_Sngl_Refl (T := TBool)).
   tcrush.
 Qed.
 

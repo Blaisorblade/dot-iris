@@ -388,6 +388,10 @@ Proof.
   by eapply iP_Sub, Hp; rewrite plusnO.
 Qed.
 
+Lemma iT_Path' Γ v T
+  (Ht : Γ u⊢ₚ pv v : T, 0) : Γ u⊢ₜ tv v : T.
+Proof. exact: (iT_Path (p := pv _)). Qed.
+
 Ltac typconstructor :=
   match goal with
   | |- typed _ _ _ => first [apply iT_All_I_strip1 | apply iT_All_I | constructor]
