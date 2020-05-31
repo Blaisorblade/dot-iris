@@ -123,8 +123,9 @@ with dm_typed Γ : label → dm → ty → Prop :=
 where "Γ u⊢{ l := d  } : T" := (dm_typed Γ l d T)
 with path_typed Γ : path → ty → nat → Prop :=
 | iP_Var x T:
-    Γ u⊢ₜ tv (var_vl x) : T →
-    Γ u⊢ₚ pv (var_vl x) : T, 0
+    Γ !! x = Some T →
+    (* After looking up in Γ, we must weaken T for the variables on top of x. *)
+    Γ u⊢ₚ pv (var_vl x) : shiftN x T, 0
 | iP_Fld_E p T i l:
     Γ u⊢ₚ p : TVMem l T, i →
     Γ u⊢ₚ pself p l : T, i
@@ -392,12 +393,22 @@ Lemma iT_Path' Γ v T
   (Ht : Γ u⊢ₚ pv v : T, 0) : Γ u⊢ₜ tv v : T.
 Proof. exact: (iT_Path (p := pv _)). Qed.
 
+Lemma iP_Var' {Γ x T} :
+  Γ u⊢ₜ tv (var_vl x) : T →
+  Γ u⊢ₚ pv (var_vl x) : T, 0.
+Proof.
+  move E: (tv (var_vl x)) => t; induction 1; simplify_eq/=;
+    [by auto 2| |by destruct p; simplify_eq/=].
+  destruct i; last by [simplify_eq]; rewrite iterate_0 in E; simplify_eq/=.
+  eapply iP_Sub'; eauto.
+Qed.
+
 Ltac typconstructor :=
   match goal with
   | |- typed _ _ _ => first [apply iT_All_I_strip1 | apply iT_All_I | constructor]
   | |- dms_typed _ _ _ => constructor
   | |- dm_typed _ _ _ _ => first [apply iD_All | constructor]
-  | |- path_typed _ _ _ _ => first [apply iP_Later | constructor]
+  | |- path_typed _ _ _ _ => first [apply iP_Later | apply iP_Var' | constructor]
   | |- subtype _ _ _ _ _ =>
     first [apply Sub_later_shift | constructor ]
   end.

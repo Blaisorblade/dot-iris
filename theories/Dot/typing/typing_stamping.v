@@ -72,6 +72,10 @@ Section syntyping_stamping_lemmas.
   Hint Resolve is_unstamped_path2tm' : core.
   Hint Immediate is_unstamped_var2OnlyVars is_unstamped_path2AlsoNonVars : core.
 
+  Lemma is_unstamped_vl_lookup (Γ : ctx) x T b :
+    Γ !! x = Some T → is_unstamped_vl (length Γ) b (var_vl x).
+  Proof. constructor; exact: lookup_lt_Some. Qed.
+
   Lemma unstamped_mut_subject Γ :
     (∀ e T,   Γ u⊢ₜ e : T → is_unstamped_tm (length Γ) AlsoNonVars e) ∧
     (∀ ds T,  Γ u⊢ds ds : T → is_unstamped_dms (length Γ) AlsoNonVars ds) ∧
@@ -84,9 +88,9 @@ Section syntyping_stamping_lemmas.
         (P1 := λ Γ l d T _, is_unstamped_dm (length Γ) AlsoNonVars d)
         (P2 := λ Γ p T i _, is_unstamped_path' (length Γ) p); clear Γ;
         cbn; intros; try (rewrite <-(@ctx_strip_len Γ Γ') in *; last done);
-        try by (with_is_unstamped inverse + idtac); eauto 6 using is_unstamped_path2tm.
-    - repeat constructor => //=. by eapply lookup_lt_Some.
-    - intros; elim: i {s} => [|i IHi]; rewrite /= ?iterate_0 ?iterate_S //; eauto.
+        try by (with_is_unstamped inverse + idtac);
+        eauto 6 using is_unstamped_path2tm, is_unstamped_vl_lookup.
+    elim: i {s} => [|i IHi]; rewrite /= ?iterate_0 ?iterate_S //; eauto.
   Qed.
 
   Lemma unstamped_path_subject Γ p T i:
@@ -452,12 +456,6 @@ Section syntyping_stamping_lemmas.
         try case_match; simplify_eq; eauto 2.
     }
     exists d', g2; subst d'; split_and!; ev; eauto 3.
-  - intros * Hu1 IHs1 g.
-    move: IHs1 => /(.$ g) /= [e1' [g1 ?]]; ev.
-    destruct e1' as [v'| | | | | |] => //.
-    with_is_stamped inverse; with_is_unstamped inverse.
-    exists g1.
-    have ?: v' = var_vl x; naive_solver.
   - intros * Hus1 Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [g1 ?]; ev.
     exists g1; split_and! => //; econstructor; naive_solver.

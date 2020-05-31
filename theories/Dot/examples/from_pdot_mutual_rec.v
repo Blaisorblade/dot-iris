@@ -106,7 +106,7 @@ Proof.
     + repeat first [var | typconstructor | tcrush].
     + ettrans; first last.
       eapply iSub_Sel'; first last.
-      * constructor; varsub.
+      * typconstructor; varsub.
         ltcrush.
       * tcrush.
       * tcrush; last apply iSub_Bind_1; tcrush.
@@ -133,7 +133,7 @@ Proof.
     + repeat first [var | typconstructor | tcrush].
     + ettrans; first last.
       eapply iSub_Sel'; first last.
-      * constructor; varsub; tcrush.
+      * typconstructor; varsub; tcrush.
       * tcrush.
       * mltcrush.
 Qed.

@@ -124,8 +124,8 @@ with dm_typed Γ g : label → dm → ty → Prop :=
 where "Γ s⊢[ g ]{ l := d  } : T" := (dm_typed Γ g l d T)
 with path_typed Γ g : path → ty → nat → Prop :=
 | iP_Var x T:
-    Γ s⊢ₜ[ g ] tv (var_vl x) : T →
-    Γ s⊢ₚ[ g ] pv (var_vl x) : T, 0
+    Γ !! x = Some T →
+    Γ s⊢ₚ[ g ] pv (var_vl x) : shiftN x T, 0
 | iP_Fld_E p T i l:
     Γ s⊢ₚ[ g ] p : TVMem l T, i →
     Γ s⊢ₚ[ g ] pself p l : T, i
