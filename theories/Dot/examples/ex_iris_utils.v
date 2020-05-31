@@ -30,19 +30,22 @@ Proof.
   have ? := loopFunTyp Γ; apply (iT_All_E (T1 := ⊤)), (iT_Sub_nocoerce 𝐙); tcrush.
 Qed.
 
+Ltac constrain_bisimulating :=
+  hnf in *; fold same_skel_dms in *; case_match; ev; subst; try contradiction; f_equal.
+
 Section loop_sem.
   Context `{HdlangG: !dlangG Σ}.
   Context `{SwapPropI Σ}.
-  Import stamp_transfer.
 
   Definition cTMemL l L U := cTMem l (oLater L) (oLater U).
 
   Lemma loopSemT: ⊢ WP hloopTm {{ _, False }}.
   Proof using Type*.
-    iDestruct (fundamental_typed (loopTyp []) with "[]") as "H".
-    iApply wellMappedφ_empty.
-    iSpecialize ("H" $! ids with "[//]").
-    by rewrite hsubst_id /=.
+    iDestruct (fundamental_typed (loopTyp [])) as "#>H".
+    iDestruct "H" as (e_s Hsk1) "H".
+    iSpecialize ("H" $! ids with "[//]"); rewrite hsubst_id.
+    move E: hloopTm =>e; suff <-: e_s = e by []; subst; clear -Hsk1.
+    cbv; repeat constrain_bisimulating.
   Qed.
 
 End loop_sem.

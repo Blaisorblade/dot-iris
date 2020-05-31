@@ -132,8 +132,13 @@ Section small_ex.
   Qed.
 End small_ex.
 
+Import sem_unstamped_typing skeleton.
 Lemma miniVSafe (s : stamp): safe (miniV s).
 Proof.
-  eapply (safety_dot_sem dlangΣ (T := hminiVT1))=>*.
-  by rewrite (allocHs s) // -vHasA1t.
+  eapply (unstamped_safety_dot_sem dlangΣ (T := hminiVT1))=>*.
+  iModIntro; iMod (leadsto_alloc ipos) as (dynS) "Hs".
+  iExists (miniV dynS); iModIntro.
+  (* iSplit; first by iIntros "!%"; repeat split. *)
+  iSplit; first done.
+  iApply (vHasA1t with "Hs").
 Qed.
