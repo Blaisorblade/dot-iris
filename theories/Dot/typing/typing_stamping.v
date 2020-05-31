@@ -1,6 +1,6 @@
 (** * Stamping theorem. *)
 From D Require Import iris_extra.det_reduction.
-From D.Dot Require Import stamped_typing core_stamping_defs ast_stamping skeleton
+From D.Dot Require Import storeless_typing core_stamping_defs ast_stamping skeleton
   path_repl_lemmas.
 From D.Dot Require old_unstamped_typing.
 From D.Dot Require Import unstampedness_binding.
@@ -72,6 +72,10 @@ Section syntyping_stamping_lemmas.
   Hint Resolve is_unstamped_path2tm' : core.
   Hint Immediate is_unstamped_var2OnlyVars is_unstamped_path2AlsoNonVars : core.
 
+  Lemma is_unstamped_vl_lookup (Γ : ctx) x T b :
+    Γ !! x = Some T → is_unstamped_vl (length Γ) b (var_vl x).
+  Proof. constructor; exact: lookup_lt_Some. Qed.
+
   Lemma unstamped_mut_subject Γ :
     (∀ e T,   Γ u⊢ₜ e : T → is_unstamped_tm (length Γ) AlsoNonVars e) ∧
     (∀ ds T,  Γ u⊢ds ds : T → is_unstamped_dms (length Γ) AlsoNonVars ds) ∧
@@ -84,9 +88,9 @@ Section syntyping_stamping_lemmas.
         (P1 := λ Γ l d T _, is_unstamped_dm (length Γ) AlsoNonVars d)
         (P2 := λ Γ p T i _, is_unstamped_path' (length Γ) p); clear Γ;
         cbn; intros; try (rewrite <-(@ctx_strip_len Γ Γ') in *; last done);
-        try by (with_is_unstamped inverse + idtac); eauto 6 using is_unstamped_path2tm.
-    - repeat constructor => //=. by eapply lookup_lt_Some.
-    - intros; elim: i {s} => [|i IHi]; rewrite /= ?iterate_0 ?iterate_S //; eauto.
+        try by (with_is_unstamped inverse + idtac);
+        eauto 6 using is_unstamped_path2tm, is_unstamped_vl_lookup.
+    elim: i {s} => [|i IHi]; rewrite /= ?iterate_0 ?iterate_S //; eauto.
   Qed.
 
   Lemma unstamped_path_subject Γ p T i:
@@ -231,10 +235,6 @@ Section syntyping_stamping_lemmas.
 
   End unstamped_syntyping_lemmas.
 
-  Hint Constructors stamped_typing.typed stamped_typing.subtype stamped_typing.dms_typed stamped_typing.dm_typed stamped_typing.path_typed : core.
-  Remove Hints stamped_typing.iSub_Trans : core.
-  Hint Extern 10 => try_once stamped_typing.iSub_Trans : core.
-
   Implicit Types (L T U V : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty) (g : stys).
 
   Lemma stamped_obj_ident_typing_mono_mut Γ g :
@@ -244,7 +244,7 @@ Section syntyping_stamping_lemmas.
     (∀ p T i, Γ s⊢ₚ[ g ] p : T, i → ∀ g' (Hle : g ⊆ g'), Γ s⊢ₚ[ g' ] p : T, i) ∧
     (∀ T1 i1 T2 i2, Γ s⊢ₜ[ g ] T1, i1 <: T2, i2 → ∀ g' (Hle : g ⊆ g'), Γ s⊢ₜ[ g' ] T1, i1 <: T2, i2).
   Proof.
-    eapply stamped_obj_ident_typing_mut_ind with
+    eapply storeless_typing_mut_ind with
         (P := λ Γ g e T _, ∀ g' (Hle : g ⊆ g'), Γ s⊢ₜ[ g' ] e : T)
         (P0 := λ Γ g ds T _, ∀ g' (Hle : g ⊆ g'), Γ s⊢ds[ g' ] ds : T)
         (P1 := λ Γ g l d T _, ∀ g' (Hle : g ⊆ g'), Γ s⊢[ g' ]{ l := d } : T)
@@ -294,10 +294,10 @@ Section syntyping_stamping_lemmas.
   Hint Resolve psubst_one_implies is_unstamped_ty_subst : core.
   (** These hints slow down proof search. *)
   (** Not directed. *)
-  Remove Hints stamped_typing.iP_Sngl_Trans : core.
+  Remove Hints storeless_typing.iP_Sngl_Trans : core.
   (** These cause cycles. *)
-  Remove Hints stamped_typing.iP_Mu_E : core.
-  Remove Hints stamped_typing.iP_Mu_I : core.
+  Remove Hints storeless_typing.iP_Mu_E : core.
+  Remove Hints storeless_typing.iP_Mu_I : core.
 
   (* To guard against loops. *)
   Tactic Notation "naive_solver" := timeout 1 naive_solver.
@@ -358,7 +358,7 @@ Section syntyping_stamping_lemmas.
     move: IHs2 => /(.$ g1) [g2 [IHs2 Hle2]]; lte g g1 g2.
     have Hse1': unstamp_tm g2 e1' = e1. by eapply stamps_unstamp_mono_tm, Hse1.
     exists (tapp e1' (path2tm p2)), g2.
-    split_and!; first eapply stamped_typing.iT_All_Ex_p => //; naive_solver eauto 6.
+    split_and!; first eapply storeless_typing.iT_All_Ex_p => //; naive_solver eauto 6.
   - intros * Hu1 IHs1 Hu2 IHs2 g.
     move: IHs1 => /(.$ g) [e1' [g1 ?]];
     move: IHs2 => /(.$ g1) [e2' [g2 ?]]; ev; lte g g1 g2.
@@ -374,9 +374,6 @@ Section syntyping_stamping_lemmas.
   - intros * Huds1 IHs1 Hus1 g.
     move: IHs1 => /(.$ g) [ds' [g1 ?]].
     exists (tv (vobj ds')), g1; naive_solver.
-  - intros.
-    have ? : x < length Γ by exact: lookup_lt_Some.
-    exists (tv (var_vl x)), g; naive_solver.
   - intros * ? IHs1 ? IHs2 g.
     move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]].
     move: IHs2 => /(.$ g1) [e' [g2 [Hts2 [Hle2 Hs]]]]; lte g g1 g2.
@@ -386,8 +383,8 @@ Section syntyping_stamping_lemmas.
     move: IHs1 => /(.$ g) /= [g1 ?]; ev.
     have ? := unstamped_path_subject Hu1.
     exists (path2tm p), g1; naive_solver.
-  - intros. exists (tv (vint n)), g; naive_solver.
-  - intros. exists (tv (vbool b)), g; naive_solver.
+  - intros. exists (tv (vint n)), g; split_and?; try typconstructor; naive_solver.
+  - intros. exists (tv (vbool b)), g; split_and?; try typconstructor; naive_solver.
   - intros * Hprim Hu1 IHs1 g.
     move: IHs1 => /(.$ g) [e1' [g1 ?]].
     exists (tun u e1'), g1; naive_solver.
@@ -424,7 +421,7 @@ Section syntyping_stamping_lemmas.
     destruct (stamp_dtysyn_spec g2 Husv); destruct_and!.
     have ?: g2 ⊆ g3 by simplify_eq. lte g g1 g2; lte g g2 g3; lte g1 g2 g3.
     exists (dtysem σ s), g3; simplify_eq; split_and!;
-      first eapply (stamped_typing.iD_Typ_Abs (T := T)); auto 2; [
+      first eapply (storeless_typing.iD_Typ_Abs T); auto 2; [
         exact: (stamped_obj_ident_subtype_mono _ Hts1)|
         exact: (stamped_obj_ident_subtype_mono _ Hts2)].
   - intros * Hu1 IHs1 g.
@@ -439,7 +436,7 @@ Section syntyping_stamping_lemmas.
   - intros * Hu1 IHs1 Hus1 g.
     move: IHs1 => /(.$ g) /= [ds' [g1 ?]]; destruct_and!.
     exists (dpt (pv (vobj ds'))), g1; split_and!; cbn;
-      try eapply stamped_typing.iD_Val_New; eauto 2;
+      try eapply storeless_typing.iD_Val_New; eauto 2;
       repeat constructor; eauto with f_equal.
   - intros * Hu1 IHs1 Hu2 IHs2 g.
     (* Here and for standard subsumption, by stamping the subtyping
@@ -452,12 +449,6 @@ Section syntyping_stamping_lemmas.
         try case_match; simplify_eq; eauto 2.
     }
     exists d', g2; subst d'; split_and!; ev; eauto 3.
-  - intros * Hu1 IHs1 g.
-    move: IHs1 => /(.$ g) /= [e1' [g1 ?]]; ev.
-    destruct e1' as [v'| | | | | |] => //.
-    with_is_stamped inverse; with_is_unstamped inverse.
-    exists g1.
-    have ?: v' = var_vl x; naive_solver.
   - intros * Hus1 Hu1 IHs1 g.
     move: IHs1 => /(.$ g) /= [g1 ?]; ev.
     exists g1; split_and! => //; econstructor; naive_solver.
@@ -468,17 +459,25 @@ Section syntyping_stamping_lemmas.
   - intros * Hu1 IHs1 Hu2 IHs2 g.
     move: IHs1 => /(.$ g) [g1 [Hs1 ?]].
     move: IHs2 => /(.$ g1) [g2 [Hs2 ?]]; ev; lte g g1 g2.
-    exists g2; split_and! => //; eapply stamped_typing.iP_Sngl_Trans => //.
+    exists g2; split_and! => //; eapply storeless_typing.iP_Sngl_Trans => //.
     naive_solver.
+  - intros * Hu1 IHs1 g.
+    move: IHs1 => /(.$ g) [g1 ?]; ev.
+    exists g1; split_and! => //.
+    exact: storeless_typing.iSel_Sub.
+  - intros * Hu1 IHs1 g.
+    move: IHs1 => /(.$ g) [g1 ?]; ev.
+    exists g1; split_and! => //.
+    exact: storeless_typing.iSub_Sel.
   - intros * Hpr Hus1 Hus2 Hu1 IHs1 g.
     move: IHs1 => /(.$ g) [g1 ?]; ev.
     exists g1; split_and! => //.
-    eapply stamped_typing.iSngl_pq_Sub; eauto 2.
+    eapply storeless_typing.iSngl_pq_Sub; eauto 2.
   - intros * Hu1 IHs1 Hu2 IHs2 Hus1 g.
     move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]];
     move: IHs2 => /(.$ g1) [g2 [Hts2 Hle2]]; lte g g1 g2.
     exists g2; split_and! => //.
-    apply stamped_typing.iAll_Sub_All; eauto 2.
+    apply storeless_typing.iAll_Sub_All; eauto 2.
   Qed.
 
   Lemma stamp_obj_ident_typed g Γ e T: Γ u⊢ₜ e : T →
@@ -502,7 +501,7 @@ Section syntyping_stamping_lemmas.
     ∃ e' g',
     Γ v⊢ₜ[ g' ] e' : T ∧ g ⊆ g' ∧ same_skel_tm e e'.
   Proof.
-    intros (e' & g' & HobjI'%stamped_to_storeless_typing_mut & ? & ?)%
+    intros (e' & g' & HobjI' & ? & ?)%
       (stamp_obj_ident_typed g).
     exists e', g'; split_and! => //. exact: stamp_bisim_same_skel_tm.
   Qed.
@@ -511,7 +510,7 @@ Section syntyping_stamping_lemmas.
     ∃ g',
     Γ v⊢ₚ[ g' ] p : T, i ∧ g ⊆ g'.
   Proof.
-    intros (g' & HobjI'%stamped_to_storeless_typing_mut & ?)%
+    intros (g' & HobjI' & ?)%
       (stamp_obj_ident_path_typed g).
     exists g'; split_and! => //.
   Qed.

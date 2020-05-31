@@ -47,12 +47,18 @@ Qed.
 Section Sec.
   Context `{HdlangG: !dlangG Σ}.
 
-  Lemma sT_Nat_I Γ n: ⊢ Γ s⊨ tv (vint n): oInt.
-  Proof. iIntros "!> * _ /="; rewrite -wp_value /= /pure_interp_prim /prim_evals_to; eauto. Qed.
+  Import path_wp.
+  Lemma sP_Nat_I Γ n: ⊢ Γ s⊨p pv (vint n): oInt, 0.
+  Proof.
+    iIntros "!> * _ /=";
+      rewrite path_wp_pv_eq /= /pure_interp_prim /prim_evals_to; naive_solver.
+  Qed.
 
-  Lemma sT_Bool_I Γ b: ⊢ Γ s⊨ tv (vbool b): oBool.
-  Proof. iIntros "!> * _ /="; rewrite -wp_value /= /pure_interp_prim /prim_evals_to; eauto. Qed.
-
+  Lemma sP_Bool_I Γ b: ⊢ Γ s⊨p pv (vbool b): oBool, 0.
+  Proof.
+    iIntros "!> * _ /=";
+      rewrite path_wp_pv_eq /= /pure_interp_prim /prim_evals_to; naive_solver.
+  Qed.
 
   (** ** Unary operations *)
   Lemma wp_un B1 Br u v

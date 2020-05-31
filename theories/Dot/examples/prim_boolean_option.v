@@ -137,7 +137,7 @@ Definition hnoneV := ν: _, {@
 
 Lemma boolSing g Γ (b : bool) : Γ v⊢ₜ[g] b : TSing b.
 Proof.
-  eapply (iT_Path (p := b)), (iP_Sngl_Refl (T := TBool)).
+  eapply iT_Path', (iP_Sngl_Refl (T := TBool)).
   tcrush.
 Qed.
 
@@ -200,7 +200,7 @@ Qed.
 
 Example optionModTypSub Γ :
   Γ v⊢ₜ[ primOptionG ] μ: self, hoptionModTInvBody self, 0 <: hoptionModT, 0.
-Proof. ltcrush; eapply (iT_Sub (i := 0)), iT_Bool_I; tcrush. Qed.
+Proof. ltcrush; eapply (iP_Sub (i := 0)), iP_Bool_I; tcrush. Qed.
 
 Example optionModTyp Γ :
   Γ v⊢ₜ[ primOptionG ] hoptionModV : hoptionModT.

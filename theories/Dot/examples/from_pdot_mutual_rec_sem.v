@@ -497,7 +497,7 @@ Proof.
   have HpxSubst: Γ' v⊢ₚ[fromPDotG] x0 @ "types" : fromPDotPaperAbsTypesTBodySubst, 0.
   by eapply (iP_Mu_E (T := fromPDotPaperAbsTypesTBody)
     (p := x0 @ "types")), Hpx; tcrush; exact: fromPDotPSubst.
-  eapply (iT_Path (p := x0)), iP_Fld_I, (iP_Sub (i := 0)), HpxSubst.
+  eapply iT_Path', iP_Fld_I, (iP_Sub (i := 0)), HpxSubst.
   repeat lNext.
 Qed.
 

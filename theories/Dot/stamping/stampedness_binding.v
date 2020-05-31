@@ -284,7 +284,7 @@ Proof. move => Hv [|i] Hin /=; eauto with lia. Qed.
 Lemma is_stamped_sub_one n T v g:
   is_stamped_ty (S n) g T →
   is_stamped_vl n g v →
-  is_stamped_ty n g (T.|[v/]).
+  is_stamped_ty n g T.|[v/].
 Proof.
   intros; eapply is_stamped_sub_ty => //. exact: is_stamped_sub_single.
 Qed.

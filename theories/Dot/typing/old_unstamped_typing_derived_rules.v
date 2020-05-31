@@ -41,7 +41,7 @@ Lemma iT_Mu_E {Γ x T}:
   Γ u⊢ₜ tv (var_vl x): T.|[(var_vl x)/].
 Proof.
   move => + Hu. rewrite -(psubst_subst_agree_ty (n := S (length Γ))) // => Hx.
-  by apply (iT_Path (p := pv (ids x))), iP_Mu_E, iP_Var, Hx.
+  by apply iT_Path', iP_Mu_E, iP_Var', Hx.
 Qed.
 
 Lemma iT_Mu_I {Γ x T}:
@@ -51,7 +51,7 @@ Lemma iT_Mu_I {Γ x T}:
   Γ u⊢ₜ tv (var_vl x): TMu T.
 Proof.
   move => + Hu. rewrite -(psubst_subst_agree_ty (n := S (length Γ))) // => Hx.
-  by apply (iT_Path (p := pv (ids x))), iP_Mu_I, iP_Var, Hx.
+  by apply iT_Path', iP_Mu_I, iP_Var', Hx.
 Qed.
 
 Ltac tcrush ::=
@@ -289,16 +289,6 @@ Lemma BindSpec Γ (L T U : ty):
 Proof.
   intros.
   eapply iT_Sub_nocoerce with (T1 := μ {@ type "A" >: T <: T }); ltcrush.
-Qed.
-
-Lemma iP_Sub' {Γ p T1 T2 i} :
-  Γ u⊢ₜ T1, i <: T2, i →
-  Γ u⊢ₚ p : T1, i →
-  (*───────────────────────────────*)
-  Γ u⊢ₚ p : T2, i.
-Proof.
-  intros; rewrite -(plusnO i).
-  by eapply iP_Sub; rewrite ?plusnO.
 Qed.
 
 Lemma iP_Sngl_Sym Γ p q i:

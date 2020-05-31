@@ -16,7 +16,6 @@ Unset Strict Implicit.
 
 Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
 
-(* The typing judgement comes from [s/⊢/u⊢/] over [Dot/stamped_typing.v], and dropping stamping. *)
 Reserved Notation "Γ u⊢ₜ e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ u⊢ₚ p : T , i" (at level 74, p, T, i at next level).
 Reserved Notation "Γ u⊢{ l := d  } : T" (at level 74, l, d, T at next level).
@@ -58,11 +57,6 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ u⊢ₜ tv (vobj ds): TMu T
 
 (** "General" rules *)
-| iT_Var x T :
-    (* After looking up in Γ, we must weaken T for the variables on top of x. *)
-    Γ !! x = Some T →
-    (*──────────────────────*)
-    Γ u⊢ₜ tv (var_vl x) : shiftN x T
 | iT_Sub e T1 T2 i :
     Γ u⊢ₜ T1, 0 <: T2, i → Γ u⊢ₜ e : T1 →
     (*───────────────────────────────*)
@@ -123,9 +117,9 @@ with dm_typed Γ : label → dm → ty → Prop :=
 where "Γ u⊢{ l := d  } : T" := (dm_typed Γ l d T)
 with path_typed Γ : path → ty → nat → Prop :=
 | iP_Var x T:
-    Γ u⊢ₜ tv (var_vl x) : T →
-    Γ u⊢ₚ pv (var_vl x) : T, 0
-(* Mnemonic: Path from SELecting a Field *)
+    Γ !! x = Some T →
+    (* After looking up in Γ, we must weaken T for the variables on top of x. *)
+    Γ u⊢ₚ pv (var_vl x) : shiftN x T, 0
 | iP_Fld_E p T i l:
     Γ u⊢ₚ p : TVMem l T, i →
     Γ u⊢ₚ pself p l : T, i
@@ -379,12 +373,42 @@ Proof.
   by eapply iSub_Trans, iLater_Sub.
 Qed.
 
+Lemma iP_Sub' {Γ p T1 T2 i} :
+  Γ u⊢ₜ T1, i <: T2, i →
+  Γ u⊢ₚ p : T1, i →
+  (*───────────────────────────────*)
+  Γ u⊢ₚ p : T2, i.
+Proof.
+  intros Hsub Hp; rewrite -(plusnO i).
+  by eapply iP_Sub, Hp; rewrite plusnO.
+Qed.
+
+Lemma iT_Path' Γ v T
+  (Ht : Γ u⊢ₚ pv v : T, 0) : Γ u⊢ₜ tv v : T.
+Proof. exact: (iT_Path (p := pv _)). Qed.
+
+Lemma iT_Var {Γ x T}
+  (Hx : Γ !! x = Some T) :
+  Γ u⊢ₜ tv (var_vl x) : shiftN x T.
+Proof. apply iT_Path'. eauto. Qed.
+
+Lemma iP_Var' {Γ x T} :
+  Γ u⊢ₜ tv (var_vl x) : T →
+  Γ u⊢ₚ pv (var_vl x) : T, 0.
+Proof.
+  move E: (tv (var_vl x)) => t; induction 1; simplify_eq/=;
+    last by destruct p; simplify_eq/=.
+  destruct i; last by [simplify_eq]; rewrite iterate_0 in E; simplify_eq/=.
+  eapply iP_Sub'; eauto.
+Qed.
+
 Ltac typconstructor :=
   match goal with
-  | |- typed _ _ _ => first [apply iT_All_I_strip1 | apply iT_All_I | constructor]
+  | |- typed _ _ _ =>
+    first [apply iT_All_I_strip1 | apply iT_All_I | apply iT_Var | constructor]
   | |- dms_typed _ _ _ => constructor
   | |- dm_typed _ _ _ _ => first [apply iD_All | constructor]
-  | |- path_typed _ _ _ _ => first [apply iP_Later | constructor]
+  | |- path_typed _ _ _ _ => first [apply iP_Later | apply iP_Var' | constructor]
   | |- subtype _ _ _ _ _ =>
     first [apply Sub_later_shift | constructor ]
   end.

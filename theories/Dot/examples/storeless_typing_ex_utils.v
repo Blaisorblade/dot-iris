@@ -251,16 +251,6 @@ Lemma iSub_Bind_1' Γ T1 T2:
   Γ v⊢ₜ[g] μ T1, 0 <: T2, 0.
 Proof. intros; exact: iSub_Bind_1. Qed.
 
-(* Adapted from [old_unstamped_typing_derived_rules.v]. *)
-Lemma iP_Sub' {Γ p T1 T2 i} :
-  Γ v⊢ₜ[g] T1, i <: T2, i →
-  Γ v⊢ₚ[g] p : T1, i →
-  Γ v⊢ₚ[g] p : T2, i.
-Proof.
-  intros Hsub Hp; rewrite -(plusnO i).
-  by eapply (iP_Sub (j := 0)), Hp; rewrite plusnO.
-Qed.
-
 Lemma iP_Sngl_Sym Γ p q i:
   is_stamped_path (length Γ) g q →
   Γ v⊢ₚ[g] p : TSing q, i →

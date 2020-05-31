@@ -134,14 +134,14 @@ Definition hIFTTrueT : hty := hIFTGenT (λ t f, hTSing t).
 Example iftTrueSingTyp Γ : Γ u⊢ₜ hiftTrue : hIFTTrueT.
 Proof.
   tcrush; cbv.
-  eapply (iT_Path (p := pv _)), iP_Sngl_Refl.
+  eapply iT_Path', iP_Sngl_Refl.
   typconstructor; var.
 Qed.
 
 Example iftFalseSingTyp Γ : Γ u⊢ₜ hiftFalse : hIFTFalseT.
 Proof.
   tcrush; cbv.
-  eapply (iT_Path (p := pv _)), iP_Sngl_Refl.
+  eapply iT_Path', iP_Sngl_Refl.
   typconstructor; var.
 Qed.
 

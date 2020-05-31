@@ -92,10 +92,6 @@ Inductive typed Γ g : tm → ty → Prop :=
     Γ v⊢ₜ[ g ] path2tm p : T
 
 (** Primitives. *)
-| iT_Nat_I n:
-    Γ v⊢ₜ[ g ] tv (vint n): TInt
-| iT_Bool_I b:
-    Γ v⊢ₜ[ g ] tv (vbool b): TBool
 | iT_Un u e1 B1 Br (Hu : un_op_syntype u B1 Br) :
     Γ v⊢ₜ[ g ] e1 : TPrim B1 →
     Γ v⊢ₜ[ g ] tun u e1 : TPrim Br
@@ -145,10 +141,11 @@ with path_typed Γ g : path → ty → nat → Prop :=
 | iP_Var x T:
     Γ v⊢ₜ[ g ] tv (var_vl x) : T →
     Γ v⊢ₚ[ g ] pv (var_vl x) : T, 0
-| iP_Lit l T:
-    Γ v⊢ₜ[ g ] tv (vlit l) : T →
-    Γ v⊢ₚ[ g ] pv (vlit l) : T, 0
-(* Mnemonic: Path from SELecting a Field *)
+(** Primitives literals. *)
+| iP_Nat_I n:
+    Γ v⊢ₚ[ g ] pv (vint n): TInt, 0
+| iP_Bool_I b:
+    Γ v⊢ₚ[ g ] pv (vbool b): TBool, 0
 | iP_Fld_E p T i l:
     Γ v⊢ₚ[ g ] p : TVMem l T, i →
     Γ v⊢ₚ[ g ] pself p l : T, i
@@ -347,6 +344,16 @@ Hint Constructors typed subtype dms_typed dm_typed path_typed : core.
 Remove Hints iSub_Trans : core.
 Hint Extern 10 => try_once iSub_Trans : core.
 
+Lemma iT_Path' Γ v T g
+  (Ht : Γ v⊢ₚ[ g ] pv v : T, 0) : Γ v⊢ₜ[ g ] tv v : T.
+Proof. exact: (iT_Path (p := pv _)). Qed.
+
+Lemma iT_Nat_I Γ g n : Γ v⊢ₜ[ g ] tv (vint n): TInt.
+Proof. apply iT_Path'; constructor. Qed.
+
+Lemma iT_Bool_I Γ g b : Γ v⊢ₜ[ g ] tv (vbool b): TBool.
+Proof. apply iT_Path'; constructor. Qed.
+
 Lemma iT_All_I Γ e T1 T2 g:
   is_stamped_ty (length Γ) g T1 →
   shift T1 :: Γ v⊢ₜ[ g ] e : T2 →
@@ -377,6 +384,15 @@ Lemma iP_Later {Γ p T i g} :
 Proof.
   intros Hu Hp; apply iP_Sub with (j := 1) (T1 := TLater T) (T2 := T) in Hp;
     move: Hp; rewrite (plusnS i 0) (plusnO i); intros; by [|constructor].
+Qed.
+
+Lemma iP_Sub' {Γ p T1 T2 i g} :
+  Γ v⊢ₜ[ g ] T1, i <: T2, i →
+  Γ v⊢ₚ[ g ] p : T1, i →
+  Γ v⊢ₚ[ g ] p : T2, i.
+Proof.
+  intros Hsub Hp; rewrite -(plusnO i).
+  by eapply iP_Sub, Hp; rewrite plusnO.
 Qed.
 
 Ltac ettrans := eapply iSub_Trans.
@@ -410,10 +426,24 @@ Ltac typconstructor_blacklist Γ :=
 
 Ltac typconstructor :=
   match goal with
-  | |- typed      ?Γ _ _ _ => first [apply iT_All_I_strip1 | apply iT_All_I | constructor]
+  | |- typed      ?Γ _ _ _ =>
+    first [apply iT_All_I_strip1 | apply iT_All_I | apply iT_Nat_I | apply iT_Bool_I | constructor]
   | |- dms_typed  ?Γ _ _ _ => constructor
   | |- dm_typed   ?Γ _ _ _ _ => first [apply iD_All | constructor]
   | |- path_typed ?Γ _ _ _ _ => first [apply iP_Later | constructor]
   | |- subtype    ?Γ _ _ _ _ _ =>
     first [apply Sub_later_shift | constructor ]; typconstructor_blacklist Γ
   end.
+
+(* Compatibility *)
+Reserved Notation "Γ s⊢ₜ[ g  ] e : T" (at level 74, e, T at next level).
+Reserved Notation "Γ s⊢ₚ[ g  ] p : T , i" (at level 74, p, T, i at next level).
+Reserved Notation "Γ s⊢[ g  ]{ l := d  } : T " (at level 74, l, d, T at next level).
+Reserved Notation "Γ s⊢ds[ g  ] ds : T" (at level 74, ds, T at next level).
+Reserved Notation "Γ s⊢ₜ[ g  ] T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
+
+Notation "Γ s⊢ₜ[ g ] e : T " := (typed Γ g e T).
+Notation "Γ s⊢ds[ g ] ds : T" := (dms_typed Γ g ds T).
+Notation "Γ s⊢[ g ]{ l := d  } : T" := (dm_typed Γ g l d T).
+Notation "Γ s⊢ₚ[ g ] p : T , i" := (path_typed Γ g p T i).
+Notation "Γ s⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ g T1 i1 T2 i2).
