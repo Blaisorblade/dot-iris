@@ -97,7 +97,7 @@ theories/DSub/syn/rules.v
 theories/DSub/syn/syn.v
 theories/DSub/syn/syn_lemmas.v
 
-theories/DSub/lr/ty_interp_subst_lemmas.v
+theories/DSubSyn/lr/ty_interp_subst_lemmas.v
 theories/DSub/lr/adequacy.v
 theories/DSub/lr/dlang_inst.v
 theories/DSub/lr/unary_lr.v
