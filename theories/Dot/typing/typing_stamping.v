@@ -378,9 +378,6 @@ Section syntyping_stamping_lemmas.
   - intros * Huds1 IHs1 Hus1 g.
     move: IHs1 => /(.$ g) [ds' [g1 ?]].
     exists (tv (vobj ds')), g1; naive_solver.
-  - intros.
-    have ? : x < length Γ by exact: lookup_lt_Some.
-    exists (tv (var_vl x)), g; naive_solver.
   - intros * ? IHs1 ? IHs2 g.
     move: IHs1 => /(.$ g) [g1 [Hts1 Hle1]].
     move: IHs2 => /(.$ g1) [e' [g2 [Hts2 [Hle2 Hs]]]]; lte g g1 g2.

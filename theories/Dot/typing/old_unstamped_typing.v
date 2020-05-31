@@ -58,11 +58,6 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ u⊢ₜ tv (vobj ds): TMu T
 
 (** "General" rules *)
-| iT_Var x T :
-    (* After looking up in Γ, we must weaken T for the variables on top of x. *)
-    Γ !! x = Some T →
-    (*──────────────────────*)
-    Γ u⊢ₜ tv (var_vl x) : shiftN x T
 | iT_Sub e T1 T2 i :
     Γ u⊢ₜ T1, 0 <: T2, i → Γ u⊢ₜ e : T1 →
     (*───────────────────────────────*)
@@ -393,19 +388,25 @@ Lemma iT_Path' Γ v T
   (Ht : Γ u⊢ₚ pv v : T, 0) : Γ u⊢ₜ tv v : T.
 Proof. exact: (iT_Path (p := pv _)). Qed.
 
+Lemma iT_Var {Γ x T}
+  (Hx : Γ !! x = Some T) :
+  Γ u⊢ₜ tv (var_vl x) : shiftN x T.
+Proof. apply iT_Path'. eauto. Qed.
+
 Lemma iP_Var' {Γ x T} :
   Γ u⊢ₜ tv (var_vl x) : T →
   Γ u⊢ₚ pv (var_vl x) : T, 0.
 Proof.
   move E: (tv (var_vl x)) => t; induction 1; simplify_eq/=;
-    [by auto 2| |by destruct p; simplify_eq/=].
+    last by destruct p; simplify_eq/=.
   destruct i; last by [simplify_eq]; rewrite iterate_0 in E; simplify_eq/=.
   eapply iP_Sub'; eauto.
 Qed.
 
 Ltac typconstructor :=
   match goal with
-  | |- typed _ _ _ => first [apply iT_All_I_strip1 | apply iT_All_I | constructor]
+  | |- typed _ _ _ =>
+    first [apply iT_All_I_strip1 | apply iT_All_I | apply iT_Var | constructor]
   | |- dms_typed _ _ _ => constructor
   | |- dm_typed _ _ _ _ => first [apply iD_All | constructor]
   | |- path_typed _ _ _ _ => first [apply iP_Later | apply iP_Var' | constructor]

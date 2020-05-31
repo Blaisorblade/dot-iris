@@ -57,11 +57,6 @@ Inductive typed Γ g : tm → ty → Prop :=
     Γ s⊢ₜ[ g ] tv (vobj ds): TMu T
 
 (** "General" rules *)
-| iT_Var x T :
-    (* After looking up in Γ, we must weaken T for the variables on top of x. *)
-    Γ !! x = Some T →
-    (*──────────────────────*)
-    Γ s⊢ₜ[ g ] tv (var_vl x) : shiftN x T
 | iT_Sub e T1 T2 i :
     Γ s⊢ₜ[ g ] T1, 0 <: T2, i → Γ s⊢ₜ[ g ] e : T1 →
     (*───────────────────────────────*)
