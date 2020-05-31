@@ -93,28 +93,15 @@ theories/Dot/examples/old_unstamped_typing_ex.v
 
 theories/Dot/hkdot/sem_kind.v
 
-theories/DSub/syn/rules.v
-theories/DSub/syn/syn.v
-theories/DSub/syn/syn_lemmas.v
+theories/DSub/syn/ds_rules.v
+theories/DSub/syn/ds_syn.v
+theories/DSub/syn/ds_syn_lemmas.v
 
-theories/DSub/lr/ty_interp_subst_lemmas.v
-theories/DSub/lr/adequacy.v
-theories/DSub/lr/dlang_inst.v
-theories/DSub/lr/unary_lr.v
+theories/DSub/lr/ds_ty_interp_subst_lemmas.v
+theories/DSub/lr/ds_unary_lr.v
+theories/DSub/lr/ds_semtyp_lemmas.v
 
-theories/DSubSyn/lr/semtyp_lemmas.v
-theories/DSubSyn/lr/unary_lr.v
+theories/DSub/typing/ds_obj_ident_typing.v
+theories/DSub/typing/ds_storeless_typing.v
 
-theories/DSubSyn/typing/obj_ident_typing.v
-theories/DSubSyn/typing/storeless_typing.v
-
-theories/DSubSyn/fundamental.v
-
-theories/DSub/typing/storeless_typing.v
-
-theories/DSub/stamping/ast_stamping.v
-theories/DSub/stamping/closed_subst.v
-theories/DSub/stamping/core_stamping_defs.v
-theories/DSub/stamping/stampedness_binding.v
-theories/DSub/stamping/traversals.v
-theories/DSub/stamping/type_extraction_syn.v
+theories/DSub/ds_fundamental.v
