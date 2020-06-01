@@ -228,6 +228,74 @@ Lemma iT_Mu_I {Γ x T g}:
   Γ v⊢ₜ[ g ] tv (var_vl x): TMu T.
 Proof. move => Hx Hu. by eapply iT_Path', iP_Mu_I', iP_VarT, Hx. Qed.
 
+(*
+
+(* | iT_Mu_E x T:
+    Γ v⊢ₜ[ g ] tv (var_vl x): TMu T →
+    (*──────────────────────*)
+    Γ v⊢ₜ[ g ] tv (var_vl x): T.|[var_vl x/] *)
+(* | iT_Mu_I x T:
+    Γ v⊢ₜ[ g ] tv (var_vl x): T.|[var_vl x/] →
+    (*──────────────────────*)
+    Γ v⊢ₜ[ g ] tv (var_vl x): TMu T *)
+
+
+
+(*
+Lemma vl_inv {Γ x T g} :
+  (* is_unstamped_ty' (length Γ) T → *)
+  Γ v⊢ₜ[ g ] tv (var_vl x) : T →
+  Γ v⊢ₚ[ g ] pv (var_vl x) : T, 0.
+Proof.
+  (* inversion 1; simplify_eq/=; try econstructor; eauto. *)
+  move E: (tv (var_vl x)) => e; induction 2; simplify_eq/=; eauto.
+  -
+    have ?: is_unstamped_ty' (S (length Γ)) T. admit.
+    eapply iP_Mu_E; eauto.
+    eapply psubst_one_implies, psubst_subst_agree_ty; eauto. admit.
+  - inverse_is_unstamped.
+  have ?: is_unstamped_ty' (length Γ) T.|[var_vl x0/]. admit.
+    eapply iP_Mu_I.
+    eapply psubst_one_implies, psubst_subst_agree_ty; eauto.
+    admit.
+    eauto.
+  - destruct i; last by [simplify_eq/=]; rewrite iterate_0 in E; simplify_eq/=.
+    eapply iP_Sub'; eauto.
+  - by destruct p; simplify_eq/=.
+  eauto.
+  eauto.
+  move
+
+Proof.
+  move E: (tv (var_vl x)) => t.
+  induction 1; simplify_eq/=.
+info_auto 3.
+destruct i; last by simplify_eq. rewrite iterate_0 in E; simplify_eq/=.
+eapply iP_Sub'; info_eauto.
+destruct p; simplify_eq/=.
+info_auto 3.
+Qed.
+Print Assumptions vl_inv. *)
+
+  From D.Dot Require Import ast_stamping unstampedness_binding.
+Lemma is_unstamped_ren_sub1 {x n} b :
+  x < n →
+  is_unstamped_ren (S n) n b (x .: id).
+Proof.
+  intros Hx i Hi. constructor; cbn; case: i Hi => /= [|i IHi]; lia.
+Qed.
+
+Lemma is_unstamped_sub_one {n T b x}:
+  is_unstamped_ty (S n) b T →
+  x < n →
+  is_unstamped_ty n b T.|[var_vl x/].
+Proof.
+  intros Hu Hl.
+  have Hur := is_unstamped_ren_sub1 b Hl.
+  have := is_unstamped_sub_ren_ty (r := x .: id) Hur Hu.
+  autosubst.
+Qed. *)
+
 Ltac typconstructor :=
   match goal with
   | |- typed      ?Γ _ _ _ => first [
