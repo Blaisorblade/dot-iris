@@ -191,7 +191,7 @@ Proof.
   eapply (iSel_Sub (L := ⊥)).
   (* Necessary: Pick this over [iP_Later]. *)
   apply iP_Fld_E.
-  tcrush; varsub.
+  varsub.
   ltcrush; mltcrush.
 Qed.
 
@@ -366,7 +366,7 @@ Proof.
         (▶: val "tpe" : hsomeConcrT ⊥ ⊤))). {
     apply iSub_And_split, iSub_Refl; stcrush.
     apply (iSel_Sub (L := ⊥)), iP_Fld_E.
-    tcrush; varsub.
+    varsub.
     mltcrush.
     by mltcrush.
   }
@@ -494,7 +494,7 @@ Proof.
   by eapply iP_Fld_E, iP_Sub', iP_Mu_E; last var; [tcrush|stcrush].
   have HpxSubst: Γ' v⊢ₚ[fromPDotG] x0 @ "types" : fromPDotPaperAbsTypesTBodySubst, 0.
   by eapply (iP_Mu_E (T := fromPDotPaperAbsTypesTBody)
-    (p := x0 @ "types")), Hpx; tcrush.
+    (p := x0 @ "types")), Hpx; stcrush.
   eapply iT_Path', iP_Fld_I, (iP_Sub (i := 0)), HpxSubst.
   repeat lNext.
 Qed.
@@ -502,7 +502,7 @@ Qed.
 Example getAnyTypeTyp0 Γ :
   μ (fromPDotPaperAbsTBody x2) :: optionModTInv :: Γ v⊢ₜ[fromPDotG]
     tapp getAnyType x0 : x0 @ "types" @; "Type".
-Proof. eapply iT_All_Ex'; [exact: getAnyTypeFunTyp|var|tcrush..]. Qed.
+Proof. by eapply iT_All_Ex'; [exact: getAnyTypeFunTyp|var|]. Qed.
 
 End semExample.
 
