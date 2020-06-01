@@ -78,21 +78,6 @@ Ltac hideCtx :=
   | |- ?Γ u⊢ds _ : _ => hideCtx' Γ
   end.
 
-Lemma iP_Var' Γ x T1 T2 :
-  Γ !! x = Some T1 →
-  T2 = shiftN x T1 →
-  (*──────────────────────*)
-  Γ u⊢ₚ pv (var_vl x) : T2, 0.
-Proof. intros; subst; tcrush. Qed.
-
-Lemma iP_Var0 Γ T :
-  Γ !! 0 = Some T →
-  (*──────────────────────*)
-  Γ u⊢ₚ pv (var_vl 0) : T, 0.
-Proof. intros; eapply iP_Var'; by rewrite ?hsubst_id. Qed.
-
-Ltac pvar := exact: iP_Var0 || exact: iP_Var'.
-
 Lemma iT_Var' Γ x T1 T2 :
   Γ !! x = Some T1 →
   T2 = shiftN x T1 →
@@ -107,22 +92,6 @@ Lemma iT_Var0 Γ T :
 Proof. intros; apply iT_Path'; pvar. Qed.
 
 Ltac var := exact: iT_Var0 || exact: iT_Var' || pvar.
-
-Lemma iP_Var_Sub Γ x T1 T2 :
-  Γ !! x = Some T1 →
-  Γ u⊢ₜ shiftN x T1, 0 <: T2, 0 →
-  (*──────────────────────*)
-  Γ u⊢ₚ pv (var_vl x) : T2, 0.
-Proof. by intros; eapply iP_Sub'; [|pvar]. Qed.
-
-Lemma iP_Var0_Sub Γ T1 T2 :
-  Γ !! 0 = Some T1 →
-  Γ u⊢ₜ T1, 0 <: T2, 0 →
-  (*──────────────────────*)
-  Γ u⊢ₚ pv (var_vl 0) : T2, 0.
-Proof. intros. by eapply iP_Var_Sub; [| rewrite ?hsubst_id]. Qed.
-
-Ltac pvarsub := (eapply iP_Var0_Sub || eapply iP_Var_Sub); first done.
 
 Lemma iT_Var_Sub Γ x T1 T2 :
   Γ !! x = Some T1 →
