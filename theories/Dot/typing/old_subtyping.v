@@ -9,11 +9,7 @@ Unset Strict Implicit.
 
 Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
 
-(* The typing judgement comes from [s/⊢/u⊢/] over [Dot/stamped_typing.v], and dropping stamping. *)
-Reserved Notation "Γ u⊢ₜ e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ u⊢ₚ p : T , i" (at level 74, p, T, i at next level).
-Reserved Notation "Γ u⊢{ l := d  } : T" (at level 74, l, d, T at next level).
-Reserved Notation "Γ u⊢ds ds : T" (at level 74, ds, T at next level).
 Reserved Notation "Γ u⊢ₜ T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
 Inductive path_typed Γ : path → ty → nat → Prop :=
 | iP_Var x T:
@@ -191,6 +187,18 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Γ u⊢ₜ T1, i <: T2, j
 
 where "Γ u⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
+
+(* Compatibility *)
+Notation "Γ v⊢ₚ[ g  ] p : T , i" := (path_typed Γ p T i)
+  (at level 74, p, T, i at next level, only parsing).
+Notation "Γ v⊢ₜ[ g  ] T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2)
+  (at level 74, T1, T2, i1, i2 at next level, only parsing).
+
+Notation "Γ s⊢ₚ[ g  ] p : T , i" := (path_typed Γ p T i)
+  (at level 74, p, T, i at next level, only parsing).
+Notation "Γ s⊢ₜ[ g  ] T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2)
+  (at level 74, T1, T2, i1, i2 at next level, only parsing).
+
 
 Scheme unstamped_path_typed_mut_ind := Induction for path_typed Sort Prop
 with   unstamped_subtype_mut_ind := Induction for subtype Sort Prop.

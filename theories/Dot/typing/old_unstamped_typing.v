@@ -17,10 +17,8 @@ Unset Strict Implicit.
 Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
 
 Reserved Notation "Γ u⊢ₜ e : T" (at level 74, e, T at next level).
-Reserved Notation "Γ u⊢ₚ p : T , i" (at level 74, p, T, i at next level).
 Reserved Notation "Γ u⊢{ l := d  } : T" (at level 74, l, d, T at next level).
 Reserved Notation "Γ u⊢ds ds : T" (at level 74, ds, T at next level).
-Reserved Notation "Γ u⊢ₜ T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
 
 (** ** Judgments for typing, subtyping, path and definition typing. *)
 Inductive typed Γ : tm → ty → Prop :=

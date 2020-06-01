@@ -15,29 +15,15 @@ Unset Strict Implicit.
 Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
 Implicit Types (g : stys).
 
-(* Compatibility *)
-Reserved Notation "Γ s⊢ₜ[ g  ] e : T" (at level 74, e, T at next level).
-Reserved Notation "Γ s⊢ₚ[ g  ] p : T , i" (at level 74, p, T, i at next level).
-Reserved Notation "Γ s⊢[ g  ]{ l := d  } : T " (at level 74, l, d, T at next level).
-Reserved Notation "Γ s⊢ds[ g  ] ds : T" (at level 74, ds, T at next level).
-Reserved Notation "Γ s⊢ₜ[ g  ] T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
-
 Reserved Notation "Γ v⊢ₜ[ g ] e : T"
   (at level 74, e, T at next level,
   format "'[' '[' Γ ']'  '/' v⊢ₜ[  g  ]  '[' e ']'  :  '[' T ']' ']'").
-Reserved Notation "Γ v⊢ₚ[ g  ] p : T , i" (at level 74, p, T, i at next level).
 Reserved Notation "Γ v⊢[ g ]{ l := d } : T "
   (at level 74, l, d, T at next level,
    format "'[' '[' Γ  ']' '/' '[' v⊢[  g  ]{  l  :=  d  } ']' :  '[' T ']' ']'").
 Reserved Notation "Γ v⊢ds[ g ] ds : T"
   (at level 74, ds, T at next level,
   format "'[' '[' Γ  ']' '/' v⊢ds[  g  ]  '[' ds ']'  :  T ']'" ).
-Reserved Notation "Γ v⊢ₜ[ g  ] T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at next level).
-
-Notation "Γ v⊢ₚ[ g ] p : T , i" := (path_typed Γ p T i).
-Notation "Γ v⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
-Notation "Γ s⊢ₚ[ g ] p : T , i" := (path_typed Γ p T i).
-Notation "Γ s⊢ₜ[ g ] T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
 
 (**
 Judgments for typing, subtyping, path and definition typing.
@@ -137,9 +123,12 @@ with dm_typed Γ g : label → dm → ty → Prop :=
 where "Γ v⊢[ g ]{ l := d  } : T" := (dm_typed Γ g l d T).
 
 (* Compatibility *)
-Notation "Γ s⊢ₜ[ g ] e : T " := (typed Γ g e T).
-Notation "Γ s⊢ds[ g ] ds : T" := (dms_typed Γ g ds T).
-Notation "Γ s⊢[ g ]{ l := d  } : T" := (dm_typed Γ g l d T).
+Notation "Γ s⊢ₜ[ g  ] e : T" := (typed Γ g e T)
+  (at level 74, e, T at next level, only parsing).
+Notation "Γ s⊢[ g  ]{ l := d  } : T " := (dm_typed Γ g l d T)
+  (at level 74, l, d, T at next level, only parsing).
+Notation "Γ s⊢ds[ g  ] ds : T" := (dms_typed Γ g ds T)
+  (at level 74, ds, T at next level, only parsing).
 
 (* Make [T] first argument: Hide [Γ] and [g] for e.g. typing examples. *)
 Global Arguments iD_Typ_Abs {Γ g} T _ _ _ _ _ _ _ _ _ : assert.
