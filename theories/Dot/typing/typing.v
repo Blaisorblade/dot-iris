@@ -68,10 +68,6 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ t⊢ₜ path2tm p : T
 
 (** Primitives. *)
-| iT_Nat_I n:
-    Γ t⊢ₜ tv (vint n): TInt
-| iT_Bool_I b:
-    Γ t⊢ₜ tv (vbool b): TBool
 | iT_Un u e1 B1 Br (Hu : un_op_syntype u B1 Br) :
     Γ t⊢ₜ e1 : TPrim B1 →
     Γ t⊢ₜ tun u e1 : TPrim Br
