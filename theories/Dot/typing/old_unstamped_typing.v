@@ -209,7 +209,7 @@ Lemma iT_Var {Γ x T}
   Γ u⊢ₜ tv (var_vl x) : shiftN x T.
 Proof. apply iT_Path'. eauto. Qed.
 
-Lemma iP_Var' {Γ x T} :
+Lemma iP_VarT {Γ x T} :
   Γ u⊢ₜ tv (var_vl x) : T →
   Γ u⊢ₚ pv (var_vl x) : T, 0.
 Proof.
@@ -234,7 +234,7 @@ Ltac typconstructor :=
       constructor]
   | |- dms_typed ?Γ _ _ => constructor
   | |- dm_typed ?Γ _ _ _ => first [apply iD_All | constructor]
-  | |- path_typed ?Γ _ _ _ => first [apply iP_Later | apply iP_Var' | constructor]
+  | |- path_typed ?Γ _ _ _ => first [apply iP_Later | apply iP_VarT | constructor]
   | |- subtype ?Γ _ _ _ _ =>
     first [apply Sub_later_shift | constructor ]; typconstructor_blacklist Γ
   end.
