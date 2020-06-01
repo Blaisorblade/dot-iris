@@ -144,11 +144,6 @@ Section syntyping_stamping_lemmas.
       apply (@is_unstamped_ren_ty_1 (length Γ) (shiftN x T)), IHx; eauto.
   Qed.
 
-  Lemma is_unstamped_TLater_n {i n T}:
-    is_unstamped_ty' n T →
-    is_unstamped_ty' n (iterate TLater i T).
-  Proof. elim: i => [|//i IHi]; rewrite ?iterate_0 ?iterate_S //; auto. Qed.
-
   Lemma is_unstamped_tv_inv {n v b}:
     is_unstamped_tm n b (tv v) →
     is_unstamped_vl n b v.

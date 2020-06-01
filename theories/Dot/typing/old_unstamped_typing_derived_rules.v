@@ -59,11 +59,6 @@ Ltac tcrush ::=
   apply iT_Mu_I | apply iT_Mu_E |
   typconstructor | stcrush ].
 
-Lemma is_unstamped_TLater_n i {n T}:
-  is_unstamped_ty' n T →
-  is_unstamped_ty' n (iterate TLater i T).
-Proof. elim: i => [|//i IHi]; rewrite ?iterate_0 ?iterate_S //; auto. Qed.
-
 Ltac wtcrush := repeat first [ fast_done | typconstructor | stcrush ] ; try solve [
   first [
     by eauto 3 using is_unstamped_TLater_n, is_unstamped_ren1_ty, is_unstamped_ren1_path |
