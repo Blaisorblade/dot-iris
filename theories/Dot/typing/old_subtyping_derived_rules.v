@@ -238,7 +238,7 @@ Lemma singleton_Mu_2 {Γ p T i} :
 Proof. intros Hp Hu; apply iSngl_Sub_Self, (iP_Mu_I Hu Hp). Qed.
 
 (* Avoid automation, to ensure we don't use [iP_Mu_E] to show them. *)
-Lemma iP_Mu_E' {Γ T p i} :
+Lemma iP_Mu_E_alt {Γ T p i} :
   Γ u⊢ₚ p : TMu T, i →
   is_unstamped_ty' (S (length Γ)) T →
   Γ u⊢ₚ p : T .Tp[ p /], i.
@@ -247,7 +247,7 @@ Proof.
   apply (singleton_Mu_1 Hp Hu).
 Qed.
 
-Lemma iP_Mu_I' {Γ T p i} :
+Lemma iP_Mu_I_alt {Γ T p i} :
   Γ u⊢ₚ p : T .Tp[ p /], i →
   is_unstamped_ty' (S (length Γ)) T →
   Γ u⊢ₚ p : TMu T, i.
