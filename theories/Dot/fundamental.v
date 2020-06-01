@@ -107,7 +107,6 @@ Section fundamental.
       + iApply T_All_I_Strong; [|by iApply H].
         by apply fundamental_ctx_sub, ctx_strip_to_sub.
       + iApply T_Obj_I. by iApply H.
-      + by iApply T_Var.
       + by iApply T_Sub; [iApply H |iApply fundamental_subtype].
       + iApply T_Path. by iApply fundamental_path_typed.
       + by iApply T_Un; [|iApply H].
