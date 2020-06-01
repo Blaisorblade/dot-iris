@@ -176,12 +176,25 @@ Proof.
   eapply iP_Sub'; eauto.
 Qed.
 
+Lemma iT_Mu_E {Γ x T}:
+  Γ u⊢ₜ tv (var_vl x): TMu T →
+  is_unstamped_ty' (S (length Γ)) T →
+  Γ u⊢ₜ tv (var_vl x): T.|[var_vl x/].
+Proof. move => Hx Hu. by eapply iT_Path', iP_Mu_E', iP_VarT, Hx. Qed.
+
+Lemma iT_Mu_I {Γ x T}:
+  Γ u⊢ₜ tv (var_vl x): T.|[var_vl x/] →
+  is_unstamped_ty' (S (length Γ)) T →
+  Γ u⊢ₜ tv (var_vl x): TMu T.
+Proof. move => Hx Hu. by eapply iT_Path', iP_Mu_I', iP_VarT, Hx. Qed.
+
 Ltac typconstructor :=
   match goal with
   | |- typed ?Γ _ _ => first [
     apply iT_All_I_strip1 | apply iT_All_I |
     apply iT_Var |
     apply iT_Nat_I | apply iT_Bool_I |
+    apply iT_Mu_E | apply iT_Mu_I |
     constructor]
   | |- dms_typed ?Γ _ _ => constructor
   | |- dm_typed ?Γ _ _ _ => first [apply iD_All | constructor]
