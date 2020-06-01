@@ -163,47 +163,6 @@ Lemma iD_All Γ V T1 T2 e l:
   Γ |L V u⊢{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
 Proof. by intros; apply iD_Val, iT_All_I_strip1. Qed.
 
-Lemma iP_Later {Γ p T i} :
-  is_unstamped_ty' (length Γ) T →
-  Γ u⊢ₚ p : TLater T, i →
-  Γ u⊢ₚ p : T, S i.
-Proof.
-  intros Hu Hp; apply iP_Sub with (j := 1) (T1 := TLater T) (T2 := T) in Hp;
-    move: Hp; rewrite (plusnS i 0) (plusnO i); intros; by [|constructor].
-Qed.
-
-Ltac ettrans := eapply iSub_Trans.
-
-Lemma Sub_later_shift {Γ T1 T2 i j}
-  (Hs1: is_unstamped_ty' (length Γ) T1)
-  (Hs2: is_unstamped_ty' (length Γ) T2)
-  (Hsub: Γ u⊢ₜ T1, S i <: T2, S j):
-  Γ u⊢ₜ TLater T1, i <: TLater T2, j.
-Proof.
-  ettrans; first exact: iLater_Sub.
-  by eapply iSub_Trans, iSub_Later.
-Qed.
-
-Lemma Sub_later_shift_inv {Γ T1 T2 i j}
-  (Hs1: is_unstamped_ty' (length Γ) T1)
-  (Hs2: is_unstamped_ty' (length Γ) T2)
-  (Hsub: Γ u⊢ₜ TLater T1, i <: TLater T2, j):
-  Γ u⊢ₜ T1, S i <: T2, S j.
-Proof.
-  ettrans; first exact: iSub_Later.
-  by eapply iSub_Trans, iLater_Sub.
-Qed.
-
-Lemma iP_Sub' {Γ p T1 T2 i} :
-  Γ u⊢ₜ T1, i <: T2, i →
-  Γ u⊢ₚ p : T1, i →
-  (*───────────────────────────────*)
-  Γ u⊢ₚ p : T2, i.
-Proof.
-  intros Hsub Hp; rewrite -(plusnO i).
-  by eapply iP_Sub, Hp; rewrite plusnO.
-Qed.
-
 Lemma iT_Var {Γ x T}
   (Hx : Γ !! x = Some T) :
   Γ u⊢ₜ tv (var_vl x) : shiftN x T.
@@ -219,13 +178,6 @@ Proof.
   eapply iP_Sub'; eauto.
 Qed.
 
-Ltac typconstructor_blacklist Γ :=
-  lazymatch goal with
-  | |- path_typed ?Γ' _ _ _ =>
-  tryif (unify Γ Γ') then idtac else fail 1 "Only applicable rule is iSub_Skolem_P"
-  | _ => idtac
-  end.
-
 Ltac typconstructor :=
   match goal with
   | |- typed ?Γ _ _ =>
@@ -234,7 +186,6 @@ Ltac typconstructor :=
       constructor]
   | |- dms_typed ?Γ _ _ => constructor
   | |- dm_typed ?Γ _ _ _ => first [apply iD_All | constructor]
-  | |- path_typed ?Γ _ _ _ => first [apply iP_Later | apply iP_VarT | constructor]
-  | |- subtype ?Γ _ _ _ _ =>
-    first [apply Sub_later_shift | constructor ]; typconstructor_blacklist Γ
+  | |- path_typed ?Γ _ _ _ => first [apply iP_VarT | subtypconstructor]
+  | |- subtype ?Γ _ _ _ _ => subtypconstructor
   end.

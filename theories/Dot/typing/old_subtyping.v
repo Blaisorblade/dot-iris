@@ -206,3 +206,59 @@ Lemma unstamped_path_root_is_var Γ p T i:
   (∃ x, path_root p = var_vl x) ∨
   (∃ l, path_root p = vlit l).
 Proof. by elim; intros; cbn; eauto 3 using is_unstamped_path_root. Qed.
+
+
+Ltac ettrans := eapply iSub_Trans.
+
+Lemma iP_Later {Γ p T i} :
+  is_unstamped_ty' (length Γ) T →
+  Γ u⊢ₚ p : TLater T, i →
+  Γ u⊢ₚ p : T, S i.
+Proof.
+  intros Hu Hp; apply iP_Sub with (j := 1) (T1 := TLater T) (T2 := T) in Hp;
+    move: Hp; rewrite (plusnS i 0) (plusnO i); intros; by [|constructor].
+Qed.
+
+Lemma Sub_later_shift {Γ T1 T2 i j}
+  (Hs1: is_unstamped_ty' (length Γ) T1)
+  (Hs2: is_unstamped_ty' (length Γ) T2)
+  (Hsub: Γ u⊢ₜ T1, S i <: T2, S j):
+  Γ u⊢ₜ TLater T1, i <: TLater T2, j.
+Proof.
+  ettrans; first exact: iLater_Sub.
+  by eapply iSub_Trans, iSub_Later.
+Qed.
+
+Lemma Sub_later_shift_inv {Γ T1 T2 i j}
+  (Hs1: is_unstamped_ty' (length Γ) T1)
+  (Hs2: is_unstamped_ty' (length Γ) T2)
+  (Hsub: Γ u⊢ₜ TLater T1, i <: TLater T2, j):
+  Γ u⊢ₜ T1, S i <: T2, S j.
+Proof.
+  ettrans; first exact: iSub_Later.
+  by eapply iSub_Trans, iLater_Sub.
+Qed.
+
+Lemma iP_Sub' {Γ p T1 T2 i} :
+  Γ u⊢ₜ T1, i <: T2, i →
+  Γ u⊢ₚ p : T1, i →
+  (*───────────────────────────────*)
+  Γ u⊢ₚ p : T2, i.
+Proof.
+  intros Hsub Hp; rewrite -(plusnO i).
+  by eapply iP_Sub, Hp; rewrite plusnO.
+Qed.
+
+Ltac typconstructor_blacklist Γ :=
+  lazymatch goal with
+  | |- path_typed ?Γ' _ _ _ =>
+  tryif (unify Γ Γ') then idtac else fail 1 "Only applicable rule is iSub_Skolem_P"
+  | _ => idtac
+  end.
+
+Ltac subtypconstructor :=
+  match goal with
+  | |- path_typed ?Γ _ _ _ => first [apply iP_Later | constructor]
+  | |- subtype ?Γ _ _ _ _ =>
+    first [apply Sub_later_shift | constructor ]; typconstructor_blacklist Γ
+  end.

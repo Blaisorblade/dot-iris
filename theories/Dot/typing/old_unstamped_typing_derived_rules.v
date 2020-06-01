@@ -1,8 +1,10 @@
 From D Require Import tactics.
 From D.Dot Require Import syn syn_lemmas ex_utils old_unstamped_typing.
 From D.Dot Require Import unstampedness_binding.
-From D.Dot Require Import path_repl_lemmas typing_stamping.
+From D.Dot Require Import path_repl_lemmas typing_stamping
+  old_subtyping_derived_rules.
 Import DBNotation.
+Export old_subtyping_derived_rules.
 
 Lemma is_unstamped_pvar i n b : i < n → is_unstamped_path n b (pv (var_vl i)).
 Proof. eauto 7. Qed.
@@ -66,15 +68,15 @@ Ltac wtcrush := repeat first [ fast_done | typconstructor | stcrush ] ; try solv
     try_once is_unstamped_weaken_ty |
     try_once is_unstamped_weaken_path ]; eauto].
 
-Ltac asideLaters :=
+Ltac asideLaters' :=
   repeat first
     [ettrans; last (apply iSub_Later; tcrush)|
     ettrans; first (apply iLater_Sub; tcrush)].
 
-Ltac lNext := ettrans; first apply iAnd2_Sub; tcrush.
-Ltac lThis := ettrans; first apply iAnd1_Sub; tcrush.
+Ltac lNext' := ettrans; first apply iAnd2_Sub; tcrush.
+Ltac lThis' := ettrans; first apply iAnd1_Sub; tcrush.
 
-Ltac lookup :=
+Ltac lookup' :=
   lazymatch goal with
   | |- _ u⊢ₜ ?T1, _ <: ?T2, _ =>
     let T1' := eval hnf in T1 in
@@ -83,12 +85,13 @@ Ltac lookup :=
       (* first [unify (label_of_ty T11) (label_of_ty T2); lThis | lNext] *)
       let ls := eval cbv in (label_of_ty T11, label_of_ty T2) in
       match ls with
-      | (Some ?l1, Some ?l1) => lThis
-      | (Some ?l1, Some ?l2) => lNext
+      | (Some ?l1, Some ?l1) => lThis'
+      | (Some ?l1, Some ?l2) => lNext'
       end
     end
   end.
 Ltac ltcrush := tcrush; repeat lookup.
+Ltac ltcrush' := tcrush; repeat lookup'.
 
 Ltac hideCtx :=
   let hideCtx' Γ := (let x := fresh "Γ" in set x := Γ) in
@@ -100,20 +103,68 @@ Ltac hideCtx :=
   | |- ?Γ u⊢ds _ : _ => hideCtx' Γ
   end.
 
+Lemma iP_Var' Γ x T1 T2 :
+  Γ !! x = Some T1 →
+  T2 = shiftN x T1 →
+  (*──────────────────────*)
+  Γ u⊢ₚ pv (var_vl x) : T2, 0.
+Proof. intros; subst; tcrush. Qed.
+
+Lemma iP_Var0 Γ T :
+  Γ !! 0 = Some T →
+  (*──────────────────────*)
+  Γ u⊢ₚ pv (var_vl 0) : T, 0.
+Proof. intros; eapply iP_Var'; by rewrite ?hsubst_id. Qed.
+
+Ltac pvar := exact: iP_Var0 || exact: iP_Var'.
+
 Lemma iT_Var' Γ x T1 T2 :
   Γ !! x = Some T1 →
   T2 = shiftN x T1 →
   (*──────────────────────*)
   Γ u⊢ₜ tv (var_vl x) : T2.
-Proof. intros; subst; tcrush. Qed.
+Proof. intros; apply iT_Path'; pvar. Qed.
 
 Lemma iT_Var0 Γ T :
   Γ !! 0 = Some T →
   (*──────────────────────*)
   Γ u⊢ₜ tv (var_vl 0) : T.
-Proof. intros; eapply iT_Var'; by rewrite ?hsubst_id. Qed.
+Proof. intros; apply iT_Path'; pvar. Qed.
 
-Ltac var := exact: iT_Var0 || exact: iT_Var'.
+Ltac var := exact: iT_Var0 || exact: iT_Var' || pvar.
+
+Lemma iP_Var_Sub Γ x T1 T2 :
+  Γ !! x = Some T1 →
+  Γ u⊢ₜ shiftN x T1, 0 <: T2, 0 →
+  (*──────────────────────*)
+  Γ u⊢ₚ pv (var_vl x) : T2, 0.
+Proof. by intros; eapply iP_Sub'; [|pvar]. Qed.
+
+Lemma iP_Var0_Sub Γ T1 T2 :
+  Γ !! 0 = Some T1 →
+  Γ u⊢ₜ T1, 0 <: T2, 0 →
+  (*──────────────────────*)
+  Γ u⊢ₚ pv (var_vl 0) : T2, 0.
+Proof. intros. by eapply iP_Var_Sub; [| rewrite ?hsubst_id]. Qed.
+
+Ltac pvarsub := (eapply iP_Var0_Sub || eapply iP_Var_Sub); first done.
+
+Lemma iT_Var_Sub Γ x T1 T2 :
+  Γ !! x = Some T1 →
+  Γ u⊢ₜ shiftN x T1, 0 <: T2, 0 →
+  (*──────────────────────*)
+  Γ u⊢ₜ tv (var_vl x) : T2.
+Proof. by intros; apply iT_Path'; pvarsub. Qed.
+
+Lemma iT_Var0_Sub Γ T1 T2 :
+  Γ !! 0 = Some T1 →
+  Γ u⊢ₜ T1, 0 <: T2, 0 →
+  (*──────────────────────*)
+  Γ u⊢ₜ tv (var_vl 0) : T2.
+Proof. by intros; apply iT_Path'; pvarsub. Qed.
+
+Ltac varsub := (eapply iP_Var_Sub || eapply iP_Var0_Sub ||
+  eapply iT_Var0_Sub || eapply iT_Var_Sub); first done.
 
 Lemma iT_Sub_nocoerce T1 T2 {Γ e} :
   Γ u⊢ₜ e : T1 →
@@ -121,22 +172,6 @@ Lemma iT_Sub_nocoerce T1 T2 {Γ e} :
   Γ u⊢ₜ e : T2.
 Proof. intros. exact: (iT_Sub (i:=0)). Qed.
 Hint Resolve iT_Sub_nocoerce : core.
-
-Lemma iT_Var_Sub Γ x T1 T2 :
-  Γ !! x = Some T1 →
-  Γ u⊢ₜ shiftN x T1, 0 <: T2, 0 →
-  (*──────────────────────*)
-  Γ u⊢ₜ tv (var_vl x) : T2.
-Proof. by intros; eapply iT_Sub_nocoerce; [var|]. Qed.
-
-Lemma iT_Var0_Sub Γ T1 T2 :
-  Γ !! 0 = Some T1 →
-  Γ u⊢ₜ T1, 0 <: T2, 0 →
-  (*──────────────────────*)
-  Γ u⊢ₜ tv (var_vl 0) : T2.
-Proof. intros. by eapply iT_Var_Sub; [| rewrite ?hsubst_id]. Qed.
-
-Ltac varsub := (eapply iT_Var0_Sub || eapply iT_Var_Sub); first done.
 
 Lemma iT_All_Ex' T2 {Γ e1 x2 T1 T3} :
   Γ u⊢ₜ e1: TAll T1 T2 →                        Γ u⊢ₜ tv (ids x2) : T1 →
@@ -154,64 +189,7 @@ Lemma iT_Mu_E' {Γ x T1 T2}:
   Γ u⊢ₜ tv (ids x): T2.
 Proof. intros; subst; tcrush. Qed.
 
-Lemma iSub_SelL {Γ p U l L i}:
-  Γ u⊢ₚ p : TTMemL l L U, i →
-  Γ u⊢ₜ TLater L, i <: TSel p l, i.
-Proof. intros; exact: iSub_Sel. Qed.
-
-Lemma iSel_SubL {Γ p L l U i}:
-  Γ u⊢ₚ p : TTMemL l L U, i →
-  Γ u⊢ₜ TSel p l, i <: TLater U, i.
-Proof. intros; exact: iSel_Sub. Qed.
-
-Lemma iSub_Sel' U {Γ p l L i}:
-  is_unstamped_ty' (length Γ) L →
-  Γ u⊢ₚ p : TTMemL l L U, i →
-  Γ u⊢ₜ L, i <: TSel p l, i.
-Proof. intros; ettrans; last exact: (iSub_Sel (p := p)); tcrush. Qed.
-
-(** Specialization of [iSub_Sel'] for convenience. *)
-Lemma iSub_Sel'' Γ {p l L i}:
-  is_unstamped_ty' (length Γ) L →
-  Γ u⊢ₚ p : TTMemL l L L, i → Γ u⊢ₜ L, i <: TSel p l, i.
-Proof. apply iSub_Sel'. Qed.
-
-(** * Manipulating laters, basics. *)
-
-Lemma iSub_AddIJ {Γ T} i j (Hst: is_unstamped_ty' (length Γ) T) :
-  Γ u⊢ₜ T, j <: T, i + j.
-Proof.
-  elim: i => [|n IHn]; first tcrush.
-  ettrans; first apply IHn.
-  ettrans; [exact: iSub_Add_Later | tcrush].
-Qed.
-
-Lemma iSub_AddIJ' {Γ T} i j (Hst: is_unstamped_ty' (length Γ) T) (Hle : i <= j) :
-  Γ u⊢ₜ T, i <: T, j.
-Proof. rewrite (le_plus_minus i j Hle) Nat.add_comm. exact: iSub_AddIJ. Qed.
-
-Lemma iSub_AddI Γ T i (Hst: is_unstamped_ty' (length Γ) T) :
-  Γ u⊢ₜ T, 0 <: T, i.
-Proof. apply (iSub_AddIJ' 0 i); by [|lia]. Qed.
-
-Lemma path_tp_delay {Γ p T i j} (Hst: is_unstamped_ty' (length Γ) T) : i <= j →
-  Γ u⊢ₚ p : T, i → Γ u⊢ₚ p : T, j.
-Proof.
-  intros Hle Hp.
-  rewrite (le_plus_minus i j Hle); move: {j Hle} (j - i) => k.
-  eapply iP_Sub, Hp.
-  apply: iSub_AddIJ'; by [|lia].
-Qed.
-
 (** * Derived constructions. *)
-
-Lemma iT_Let Γ t u T U :
-  Γ u⊢ₜ t : T →
-  shift T :: Γ u⊢ₜ u : shift U →
-  is_unstamped_ty' (length Γ) T →
-  Γ u⊢ₜ lett t u : U.
-Proof. move => Ht Hu HsT. apply /iT_All_E /Ht /iT_All_I /Hu /HsT. Qed.
-
 Lemma val_LB L U Γ i x l :
   is_unstamped_ty' (length Γ) L →
   is_unstamped_ty' (length Γ) U →
@@ -234,43 +212,22 @@ Proof.
   apply (path_tp_delay (i := 0)); wtcrush.
 Qed.
 
+Lemma iT_Let Γ t u T U :
+  Γ u⊢ₜ t : T →
+  shift T :: Γ u⊢ₜ u : shift U →
+  is_unstamped_ty' (length Γ) T →
+  Γ u⊢ₜ lett t u : U.
+Proof. move => Ht Hu HsT. apply /iT_All_E /Ht /iT_All_I /Hu /HsT. Qed.
+
 Lemma iD_Typ Γ T l:
   is_unstamped_ty' (length Γ) T →
   Γ u⊢{ l := dtysyn T } : TTMemL l T T.
 Proof. intros. tcrush. Qed.
 
-(* We can derive rules iSub_Bind_1 and iSub_Bind_2 (the latter only conjectured) from
-  "Type Soundness for Dependent Object Types (DOT)", Rompf and Amin, OOPSLA '16. *)
-Lemma iSub_Bind_1 Γ T1 T2 i:
-  is_unstamped_ty' (S (length Γ)) T1 → is_unstamped_ty' (length Γ) T2 →
-  iterate TLater i T1 :: Γ u⊢ₜ T1, i <: shift T2, i →
-  Γ u⊢ₜ μ T1, i <: T2, i.
-Proof.
-  intros Hus1 Hus2 Hsub.
-  ettrans; first exact: (iMu_Sub_Mu Hsub).
-  exact: iMu_Sub.
-Qed.
-
-Lemma iSub_Bind_2 Γ T1 T2 i:
-  is_unstamped_ty' (length Γ) T1 → is_unstamped_ty' (S (length Γ)) T2 →
-  iterate TLater i (shift T1) :: Γ u⊢ₜ shift T1, i <: T2, i →
-  Γ u⊢ₜ T1, i <: μ T2, i.
-Proof.
-  intros Hus1 Hus2 Hsub.
-  ettrans; last apply (iMu_Sub_Mu Hsub); [exact: iSub_Mu | wtcrush].
-Qed.
-
-Lemma iSub_Bind_1' Γ T1 T2:
-  is_unstamped_ty' (S (length Γ)) T1 → is_unstamped_ty' (length Γ) T2 →
-  T1 :: Γ u⊢ₜ T1, 0 <: shift T2, 0 →
-  Γ u⊢ₜ μ T1, 0 <: T2, 0.
-Proof. intros; exact: iSub_Bind_1. Qed.
-
-Lemma iSub_Bind_2' Γ T1 T2:
-  is_unstamped_ty' (length Γ) T1 → is_unstamped_ty' (S (length Γ)) T2 →
-  shift T1 :: Γ u⊢ₜ shift T1, 0 <: T2, 0 →
-  Γ u⊢ₜ T1, 0 <: μ T2, 0.
-Proof. intros; exact: iSub_Bind_2. Qed.
+Lemma iD_Path_Sngl {Γ} p l T :
+  Γ u⊢ₚ p : T, 0 →
+  Γ u⊢{ l := dpt p } : TVMem l (TSing p).
+Proof. intros Hp. eapply iD_Path, iP_Sngl_Refl, Hp. Qed.
 
 Ltac mltcrush := tcrush; try ((apply iSub_Bind_1' || apply iSub_Bind_1); tcrush); repeat lookup.
 
@@ -286,41 +243,6 @@ Proof.
   eapply iT_Sub_nocoerce with (T1 := μ {@ type "A" >: T <: T }); ltcrush.
 Qed.
 
-Lemma iP_Sngl_Sym Γ p q i:
-  is_unstamped_path' (length Γ) q →
-  Γ u⊢ₚ p : TSing q, i →
-  Γ u⊢ₚ q : TSing p, i.
-Proof.
-  intros Hus Hpq. eapply iP_Sub'.
-  eapply (iSngl_Sub_Sym Hpq). by apply iSngl_Sub_Self, Hpq.
-  eapply iP_Sngl_Refl.
-  by apply (iP_Sngl_Inv Hpq).
-Qed.
-
-Lemma iSngl_pq_Sub_inv {Γ i p q T1 T2}:
-  T1 ~Tp[ p := q ]* T2 →
-  is_unstamped_ty' (length Γ) T1 →
-  is_unstamped_ty' (length Γ) T2 →
-  is_unstamped_path' (length Γ) p →
-  Γ u⊢ₚ q : TSing p, i →
-  Γ u⊢ₜ T1, i <: T2, i.
-Proof. intros. by eapply iSngl_pq_Sub, iP_Sngl_Sym. Qed.
-
-Lemma iP_And {Γ p T1 T2 i}:
-  Γ u⊢ₚ p : T1, i →
-  Γ u⊢ₚ p : T2, i →
-  Γ u⊢ₚ p : TAnd T1 T2, i.
-Proof.
-  intros Hp1 Hp2. eapply iP_Sub', iP_Sngl_Refl, Hp1.
-  apply iSub_And; exact: iSngl_Sub_Self.
-Qed.
-
-Lemma iMu_Sub' {Γ T T' i}:
-  T' = shift T →
-  is_unstamped_ty' (length Γ) T →
-  Γ u⊢ₜ μ T', i <: T, i.
-Proof. intros; subst. auto. Qed.
-
 Lemma iD_Lam_Sub {Γ} V T1 T2 e l L:
   shift T1 :: V :: Γ u⊢ₜ e : T2 →
   TLater V :: Γ u⊢ₜ TAll T1 T2, 0 <: L, 0 →
@@ -331,11 +253,6 @@ Proof.
   eapply (iT_Sub (i := 0)); first apply Hsub.
   by apply iT_All_I_strip1.
 Qed.
-
-Lemma iD_Path_Sngl {Γ} p l T :
-  Γ u⊢ₚ p : T, 0 →
-  Γ u⊢{ l := dpt p } : TVMem l (TSing p).
-Proof. intros Hp. eapply iD_Path, iP_Sngl_Refl, Hp. Qed.
 
 (* Note how we must weaken the type (or its environment) to account for the
    self-variable of the created object. *)
@@ -386,29 +303,7 @@ Proof.
   by move => [|i] Hi //=; [constructor => /=| eauto].
 Qed.
 
-(** * Manipulating laters, more.
-
- *)
-Lemma iSub_LaterN Γ T i j:
-  is_unstamped_ty' (length Γ) T →
-  Γ u⊢ₜ T, j + i <: iterate TLater j T, i.
-Proof.
-  elim: j T => /= [|j IHj] T HuT; rewrite ?iterate_0 ?iterate_Sr /=; tcrush.
-  ettrans.
-  - exact: iSub_Later.
-  - apply (IHj (TLater T)); stcrush.
-Qed.
-
-Lemma iLaterN_Sub {Γ T} i j :
-  is_unstamped_ty' (length Γ) T →
-  Γ u⊢ₜ iterate TLater j T, i <: T, j + i.
-Proof.
-  elim: j T => /= [|j IHj] T HuT; rewrite ?iterate_0 ?iterate_Sr /=; tcrush.
-  ettrans.
-  - apply (IHj (TLater T)); stcrush.
-  - exact: iLater_Sub.
-Qed.
-
+(** * Manipulating laters, more. *)
 (* This can be useful when [T] is a singleton type. *)
 Lemma dropLaters Γ e T U i:
   Γ u⊢ₜ e : T →
@@ -481,112 +376,6 @@ Proof.
   rewrite -{3}(plusnO i). apply iLaterN_Sub; wtcrush.
 Qed.
 
-Lemma selfIntersect Γ T U i j:
-  is_unstamped_ty' (length Γ) T →
-  Γ u⊢ₜ T, i <: U, j + i →
-  Γ u⊢ₜ T, i <: TAnd U T, j + i .
-Proof. intros; tcrush. exact: iSub_AddIJ. Qed.
-
-Lemma iAnd_Later_Sub_Distr Γ T1 T2 i :
-  is_unstamped_ty' (length Γ) T1 →
-  is_unstamped_ty' (length Γ) T2 →
-  Γ u⊢ₜ TAnd (TLater T1) (TLater T2), i <: TLater (TAnd T1 T2), i.
-Proof. intros; asideLaters; tcrush; [lThis|lNext]. Qed.
-
-(** Inverse of [iAnd_Later_Sub_Distr]. *)
-Lemma iAnd_Later_Sub_Distr_inv Γ T1 T2 i :
-  is_unstamped_ty' (length Γ) T1 →
-  is_unstamped_ty' (length Γ) T2 →
-  Γ u⊢ₜ TLater (TAnd T1 T2), i <: TAnd (TLater T1) (TLater T2), i.
-Proof. intros; tcrush. Qed.
-
-Lemma iOr_Later_Sub_Distr Γ T1 T2 i :
-  is_unstamped_ty' (length Γ) T1 →
-  is_unstamped_ty' (length Γ) T2 →
-  Γ u⊢ₜ TOr (TLater T1) (TLater T2), i <: TLater (TOr T1 T2), i.
-Proof. intros; tcrush. Qed.
-
-(** Inverse of [iOr_Later_Sub_Distr]. *)
-Lemma iOr_Later_Sub_Distr_inv Γ T1 T2 i :
-  is_unstamped_ty' (length Γ) T1 →
-  is_unstamped_ty' (length Γ) T2 →
-  Γ u⊢ₜ TLater (TOr T1 T2), i <: TOr (TLater T1) (TLater T2), i.
-Proof.
-  intros; asideLaters; typconstructor; ettrans;
-    [| apply iSub_Or1 | | apply iSub_Or2]; tcrush.
-Qed.
-
-(** TLater swaps with TMu, part 1. *)
-Lemma iMu_Later_Sub_Distr Γ T i :
-  is_unstamped_ty' (S (length Γ)) T →
-  Γ u⊢ₜ TMu (TLater T), i <: TLater (TMu T), i.
-Proof. intros; asideLaters; tcrush. Qed.
-
-(** TLater swaps with TMu, part 2. *)
-Lemma iMu_Later_Sub_Distr_inv Γ T i :
-  is_unstamped_ty' (S (length Γ)) T →
-  Γ u⊢ₜ TLater (TMu T), i <: TMu (TLater T), i.
-Proof. intros; asideLaters; tcrush. Qed.
-
-(** Show that [singleton_Mu_[12]] and [iP_Mu_[IE]] are interderivable. *)
-Lemma singleton_Mu_1 {Γ p T i} :
-  Γ u⊢ₚ p : TMu T, i →
-  is_unstamped_ty' (S (length Γ)) T →
-  Γ u⊢ₜ TSing p, i <: T .Tp[ p /], i.
-Proof. intros Hp Hu; apply iSngl_Sub_Self, (iP_Mu_E Hu Hp). Qed.
-
-Lemma singleton_Mu_2 {Γ p T i} :
-  Γ u⊢ₚ p : T .Tp[ p /], i →
-  is_unstamped_ty' (S (length Γ)) T →
-  Γ u⊢ₜ TSing p, i <: TMu T, i.
-Proof. intros Hp Hu; apply iSngl_Sub_Self, (iP_Mu_I Hu Hp). Qed.
-
-(* Avoid automation, to ensure we don't use [iP_Mu_E] to show them. *)
-Lemma iP_Mu_E' {Γ T p i} :
-  Γ u⊢ₚ p : TMu T, i →
-  is_unstamped_ty' (S (length Γ)) T →
-  Γ u⊢ₚ p : T .Tp[ p /], i.
-Proof.
-  intros Hp Hu. eapply iP_Sub', (iP_Sngl_Refl Hp).
-  apply (singleton_Mu_1 Hp Hu).
-Qed.
-
-Lemma iP_Mu_I' {Γ T p i} :
-  Γ u⊢ₚ p : T .Tp[ p /], i →
-  is_unstamped_ty' (S (length Γ)) T →
-  Γ u⊢ₚ p : TMu T, i.
-Proof.
-  intros Hp Hu. eapply iP_Sub', (iP_Sngl_Refl Hp).
-  apply (singleton_Mu_2 Hp Hu).
-Qed.
-
-(**
-Show soundness of subtyping for recursive types in the Dotty compiler — just cases in subtype checking.
-
-The first case is in
-https://github.com/lampepfl/dotty/blob/0.20.0-RC1/compiler/src/dotty/tools/dotc/core/TypeComparer.scala#L550-L552
-And that matches iMu_Sub_Mu.
-
-https://github.com/lampepfl/dotty/blob/0.20.0-RC1/compiler/src/dotty/tools/dotc/core/TypeComparer.scala#L554-L557
-We formalize that as the derived rule below.
-
-The action of [fixRecs] depends on the type [T1] of [p].
-Hence, here we we assume the action of [fixRecs] has already been carried out:
-to do that, one must unfold top-level recursive types in the type of [p],
-as allowed through [P_Mu_E], rules for intersection types and intersection introduction.
-On the other hand, this derived rule handles the substitution in [T2] directly.
-*)
-Lemma singleton_Mu_dotty1 {Γ p i T1' T2} :
-  Γ u⊢ₜ T1', i <: T2 .Tp[ p /], i →
-  Γ u⊢ₚ p : T1', i →
-  is_unstamped_ty' (S (length Γ)) T2 →
-  Γ u⊢ₜ TSing p, i <: TMu T2, i.
-Proof.
-  intros Hsub Hp Hu.
-  apply singleton_Mu_2, Hu.
-  apply (iP_Sub' Hsub Hp).
-Qed.
-
 Definition anfBind t := lett t (tv x0).
 
 Lemma AnfBind_typed Γ t (T U: ty) :
@@ -600,37 +389,6 @@ Lemma pDOT_Def_Path_derived Γ l p T
   (Hx : Γ u⊢ₚ p : T, 0):
   Γ u⊢{ l := dpt p } : TVMem l (TSing p).
 Proof. eapply iD_Path, (iP_Sngl_Refl (T := T)), Hx. Qed.
-
-Lemma iP_LaterN {Γ p T i j} :
-  is_unstamped_ty' (length Γ) T →
-  Γ u⊢ₚ p : iterate TLater j T, i →
-  Γ u⊢ₚ p : T, i + j.
-Proof.
-  elim: j i => [|j IHj] i Hu Hp; rewrite (plusnO, plusnS); first done.
-  apply (IHj (S i)), iP_Later, Hp; tcrush; exact: is_unstamped_TLater_n.
-Qed.
-
-Lemma iMu_LaterN_Sub_Distr_inv {Γ T i n} :
-  is_unstamped_ty' (S (length Γ)) T →
-  Γ u⊢ₜ iterate TLater n (TMu T), i <: TMu (iterate TLater n T), i.
-Proof.
-  intros Hu.
-  elim: n i => [|n IHn] i; first tcrush; rewrite !iterate_S.
-  ettrans; last apply iMu_Later_Sub_Distr_inv.
-  by asideLaters; wtcrush.
-  by apply is_unstamped_TLater_n; stcrush.
-Qed.
-
-Lemma iMu_LaterN_Sub_Distr {Γ T i n} :
-  is_unstamped_ty' (S (length Γ)) T →
-  Γ u⊢ₜ TMu (iterate TLater n T), i <: iterate TLater n (TMu T), i.
-Proof.
-  intros Hu.
-  elim: n i => [|n IHn] i; first tcrush; rewrite !iterate_S.
-  ettrans; first apply iMu_Later_Sub_Distr.
-  by apply is_unstamped_TLater_n; stcrush.
-  by asideLaters; wtcrush.
-Qed.
 
 (* If I add [iSub_Skolem_P] to the syntactic type system, what other rules
 can I derive? Apparently, subtyping for recursive types, almost. See below! *)
