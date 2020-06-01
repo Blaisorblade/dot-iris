@@ -68,30 +68,7 @@ Ltac wtcrush := repeat first [ fast_done | typconstructor | stcrush ] ; try solv
     try_once is_unstamped_weaken_ty |
     try_once is_unstamped_weaken_path ]; eauto].
 
-Ltac asideLaters' :=
-  repeat first
-    [ettrans; last (apply iSub_Later; tcrush)|
-    ettrans; first (apply iLater_Sub; tcrush)].
-
-Ltac lNext' := ettrans; first apply iAnd2_Sub; tcrush.
-Ltac lThis' := ettrans; first apply iAnd1_Sub; tcrush.
-
-Ltac lookup' :=
-  lazymatch goal with
-  | |- _ u⊢ₜ ?T1, _ <: ?T2, _ =>
-    let T1' := eval hnf in T1 in
-    match T1' with
-    | (TAnd ?T11 ?T12) =>
-      (* first [unify (label_of_ty T11) (label_of_ty T2); lThis | lNext] *)
-      let ls := eval cbv in (label_of_ty T11, label_of_ty T2) in
-      match ls with
-      | (Some ?l1, Some ?l1) => lThis'
-      | (Some ?l1, Some ?l2) => lNext'
-      end
-    end
-  end.
 Ltac ltcrush := tcrush; repeat lookup.
-Ltac ltcrush' := tcrush; repeat lookup'.
 
 Ltac hideCtx :=
   let hideCtx' Γ := (let x := fresh "Γ" in set x := Γ) in
