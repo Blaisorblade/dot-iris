@@ -104,11 +104,9 @@ Section fundamental.
       + by iApply T_All_Ex_p; [|iApply H|iApply fundamental_path_typed].
       + by iApply T_All_E; [iApply H|iApply H0].
       + by iApply T_Obj_E; iApply H.
-      + by iApply T_Mu_E; iApply H.
       + iApply T_All_I_Strong; [|by iApply H].
         by apply fundamental_ctx_sub, ctx_strip_to_sub.
       + iApply T_Obj_I. by iApply H.
-      + iApply T_Mu_I. by iApply H.
       + by iApply T_Var.
       + by iApply T_Sub; [iApply H |iApply fundamental_subtype].
       + iApply T_Path. by iApply fundamental_path_typed.

@@ -66,10 +66,6 @@ Inductive typed Γ g : tm → ty → Prop :=
     Γ v⊢ₜ[ g ] e : TVMem l T →
     (*─────────────────────────*)
     Γ v⊢ₜ[ g ] tproj e l : T
-| iT_Mu_E x T:
-    Γ v⊢ₜ[ g ] tv (var_vl x): TMu T →
-    (*──────────────────────*)
-    Γ v⊢ₜ[ g ] tv (var_vl x): T.|[var_vl x/]
 (** Introduction forms *)
 | iT_All_I_Strong e T1 T2 Γ':
     ⊢G Γ >>▷* Γ' →
@@ -83,11 +79,6 @@ Inductive typed Γ g : tm → ty → Prop :=
     is_stamped_ty (S (length Γ)) g T →
     (*──────────────────────*)
     Γ v⊢ₜ[ g ] tv (vobj ds): TMu T
-| iT_Mu_I x T:
-    Γ v⊢ₜ[ g ] tv (var_vl x): T.|[var_vl x/] →
-    (*──────────────────────*)
-    Γ v⊢ₜ[ g ] tv (var_vl x): TMu T
-
 (** "General" rules *)
 | iT_Var x T :
     (* After looking up in Γ, we must weaken T for the variables on top of x. *)
@@ -215,11 +206,34 @@ Lemma iD_All Γ V T1 T2 e l g:
   Γ |L V v⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
 Proof. by intros; apply iD_Val, iT_All_I_strip1. Qed.
 
+Lemma iP_VarT {Γ x T g}  :
+  Γ v⊢ₜ[ g ] tv (var_vl x) : T →
+  Γ u⊢ₚ pv (var_vl x) : T, 0.
+Proof.
+  move E: (tv (var_vl x)) => t; induction 1; simplify_eq/=;
+    [by auto 2| |by destruct p; simplify_eq/=].
+  destruct i; last by [simplify_eq]; rewrite iterate_0 in E; simplify_eq/=.
+  eapply iP_Sub'; eauto.
+Qed.
+
+Lemma iT_Mu_E {Γ x T g}:
+  Γ v⊢ₜ[ g ] tv (var_vl x): TMu T →
+  is_unstamped_ty' (S (length Γ)) T →
+  Γ v⊢ₜ[ g ] tv (var_vl x): T.|[var_vl x/].
+Proof. move => Hx Hu. by eapply iT_Path', iP_Mu_E', iP_VarT, Hx. Qed.
+
+Lemma iT_Mu_I {Γ x T g}:
+  Γ v⊢ₜ[ g ] tv (var_vl x): T.|[var_vl x/] →
+  is_unstamped_ty' (S (length Γ)) T →
+  Γ v⊢ₜ[ g ] tv (var_vl x): TMu T.
+Proof. move => Hx Hu. by eapply iT_Path', iP_Mu_I', iP_VarT, Hx. Qed.
+
 Ltac typconstructor :=
   match goal with
   | |- typed      ?Γ _ _ _ => first [
     apply iT_All_I_strip1 | apply iT_All_I |
     apply iT_Nat_I | apply iT_Bool_I |
+    apply iT_Mu_E | apply iT_Mu_I |
     constructor]
   | |- dms_typed  ?Γ _ _ _ => constructor
   | |- dm_typed   ?Γ _ _ _ _ => first [apply iD_All | constructor]

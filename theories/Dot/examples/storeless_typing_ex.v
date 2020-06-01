@@ -127,7 +127,7 @@ Proof.
 
   have Htp: ∀ Γ', T0 :: Γ' v⊢ₜ[ g ] x0 : val "hashCode" : TAll ⊤ TInt. {
     intros. eapply iT_Sub_nocoerce.
-    eapply iT_Mu_E'; by [exact: iT_Var'|].
+    by eapply iT_Mu_E'; [exact: iT_Var'| |stcrush].
     by apply iAnd1_Sub; tcrush.
   }
   apply (iT_Sub_nocoerce (val "hashCode" : TAll ⊤ 𝐙)). exact: Htp.

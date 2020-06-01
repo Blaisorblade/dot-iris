@@ -237,9 +237,10 @@ Proof. by intros; apply iT_Path'; pvarsub. Qed.
 Lemma iT_Mu_E' Γ x T1 T2:
   Γ v⊢ₜ[ g ] tv (var_vl x): TMu T1 →
   T2 = T1.|[var_vl x/] →
+  is_unstamped_ty' (S (length Γ)) T1 →
   (*──────────────────────*)
   Γ v⊢ₜ[ g ] tv (var_vl x): T2.
-Proof. intros; subst; auto. Qed.
+Proof. intros; subst; tcrush. Qed.
 
 Lemma iT_Sub_nocoerce T1 T2 {Γ e} :
   Γ v⊢ₜ[ g ] e : T1 →
