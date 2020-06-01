@@ -249,6 +249,37 @@ Proof.
   by eapply iP_Sub, Hp; rewrite plusnO.
 Qed.
 
+Lemma iP_Var' Γ x T1 T2 :
+  Γ !! x = Some T1 →
+  T2 = shiftN x T1 →
+  (*──────────────────────*)
+  Γ u⊢ₚ pv (var_vl x) : T2, 0.
+Proof. by intros; subst; constructor. Qed.
+
+Lemma iP_Var0 Γ T :
+  Γ !! 0 = Some T →
+  (*──────────────────────*)
+  Γ u⊢ₚ pv (var_vl 0) : T, 0.
+Proof. intros; eapply iP_Var'; by rewrite ?hsubst_id. Qed.
+
+Ltac pvar := exact: iP_Var0 || exact: iP_Var'.
+
+Lemma iP_Var_Sub Γ x T1 T2 :
+  Γ !! x = Some T1 →
+  Γ u⊢ₜ shiftN x T1, 0 <: T2, 0 →
+  (*──────────────────────*)
+  Γ u⊢ₚ pv (var_vl x) : T2, 0.
+Proof. by intros; eapply iP_Sub'; [|pvar]. Qed.
+
+Lemma iP_Var0_Sub Γ T1 T2 :
+  Γ !! 0 = Some T1 →
+  Γ u⊢ₜ T1, 0 <: T2, 0 →
+  (*──────────────────────*)
+  Γ u⊢ₚ pv (var_vl 0) : T2, 0.
+Proof. intros. by eapply iP_Var_Sub; [| rewrite ?hsubst_id]. Qed.
+
+Ltac pvarsub := (eapply iP_Var0_Sub || eapply iP_Var_Sub); first done.
+
 Ltac typconstructor_blacklist Γ :=
   lazymatch goal with
   | |- path_typed ?Γ' _ _ _ =>
@@ -257,8 +288,13 @@ Ltac typconstructor_blacklist Γ :=
   end.
 
 Ltac subtypconstructor :=
-  match goal with
-  | |- path_typed ?Γ _ _ _ => first [apply iP_Later | constructor]
+  lazymatch goal with
+  | |- path_typed ?Γ (pv ?v) (TVMem _ ?T) ?i =>
+    (* Constructor would apply [iP_Fld_I], triggering loops.
+    If the path is [pself _ _], then constructor will pick [iP_Fld_E]. *)
+    first [apply iP_Later | fail]
+  | |- path_typed ?Γ ?p ?T ?i =>
+    first [apply iP_Later | constructor]
   | |- subtype ?Γ _ _ _ _ =>
     first [apply Sub_later_shift | constructor ]; typconstructor_blacklist Γ
   end.
