@@ -67,10 +67,6 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ u⊢ₜ path2tm p : T
 
 (** Primitives. *)
-| iT_Nat_I n:
-    Γ u⊢ₜ tv (vint n): TInt
-| iT_Bool_I b:
-    Γ u⊢ₜ tv (vbool b): TBool
 | iT_Un u e1 B1 Br (Hu : un_op_syntype u B1 Br) :
     Γ u⊢ₜ e1 : TPrim B1 →
     Γ u⊢ₜ tun u e1 : TPrim Br
@@ -133,6 +129,16 @@ Proof. by case. Qed.
 (** ** A few derived rules, and some automation to use them in examples. *)
 
 Hint Constructors typed dms_typed dm_typed : core.
+
+Lemma iT_Path' Γ v T
+  (Ht : Γ u⊢ₚ pv v : T, 0) : Γ u⊢ₜ tv v : T.
+Proof. exact: (iT_Path (p := pv _)). Qed.
+
+Lemma iT_Nat_I Γ n : Γ u⊢ₜ tv (vint n): TInt.
+Proof. apply iT_Path'; constructor. Qed.
+
+Lemma iT_Bool_I Γ b : Γ u⊢ₜ tv (vbool b): TBool.
+Proof. apply iT_Path'; constructor. Qed.
 
 Lemma iT_All_I Γ e T1 T2:
   is_unstamped_ty' (length Γ) T1 →
@@ -198,10 +204,6 @@ Proof.
   by eapply iP_Sub, Hp; rewrite plusnO.
 Qed.
 
-Lemma iT_Path' Γ v T
-  (Ht : Γ u⊢ₚ pv v : T, 0) : Γ u⊢ₜ tv v : T.
-Proof. exact: (iT_Path (p := pv _)). Qed.
-
 Lemma iT_Var {Γ x T}
   (Hx : Γ !! x = Some T) :
   Γ u⊢ₜ tv (var_vl x) : shiftN x T.
@@ -227,7 +229,9 @@ Ltac typconstructor_blacklist Γ :=
 Ltac typconstructor :=
   match goal with
   | |- typed ?Γ _ _ =>
-    first [apply iT_All_I_strip1 | apply iT_All_I | apply iT_Var | constructor]
+    first [apply iT_All_I_strip1 | apply iT_All_I | apply iT_Var |
+      apply iT_Nat_I | apply iT_Bool_I |
+      constructor]
   | |- dms_typed ?Γ _ _ => constructor
   | |- dm_typed ?Γ _ _ _ => first [apply iD_All | constructor]
   | |- path_typed ?Γ _ _ _ => first [apply iP_Later | apply iP_Var' | constructor]
