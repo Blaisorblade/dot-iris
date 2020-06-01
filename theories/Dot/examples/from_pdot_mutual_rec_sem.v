@@ -417,7 +417,7 @@ Proof.
   - repeat first [var | typconstructor | tcrush].
   - ettrans; first last.
     eapply iSub_Sel'; first last.
-    + constructor; varsub; tcrush.
+    + varsub; tcrush.
     + tcrush.
     + mltcrush.
 Qed.
@@ -490,9 +490,8 @@ Proof.
   eapply (iT_Sub (T1 := TLater (x0 @ "types" @; "Type")) (i := 1)); tcrush.
   set Γ' := shift (μ (fromPDotPaperAbsTBody x2)) ::
     μ (fromPDotPaperAbsTBody x2) :: optionModTInv :: Γ.
-  have Hpx: Γ' v⊢ₚ[fromPDotG] x0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0
-    by tcrush; eapply iT_Sub_nocoerce;
-      [ by eapply iT_Mu_E; first var; stcrush | tcrush].
+  have Hpx: Γ' v⊢ₚ[fromPDotG] x0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0.
+  by eapply iP_Fld_E, iP_Sub', iP_Mu_E; last var; [tcrush|stcrush].
   have HpxSubst: Γ' v⊢ₚ[fromPDotG] x0 @ "types" : fromPDotPaperAbsTypesTBodySubst, 0.
   by eapply (iP_Mu_E (T := fromPDotPaperAbsTypesTBody)
     (p := x0 @ "types")), Hpx; tcrush.
