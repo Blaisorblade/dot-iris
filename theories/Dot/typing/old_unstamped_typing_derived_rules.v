@@ -22,20 +22,6 @@ Qed.
 Lemma var_typed_closed {Γ x T} : Γ u⊢ₜ tv (ids x) : T → x < length Γ.
 Proof. by move => /unstamped_subject_closed/fv_of_val_inv/nclosed_var_lt. Qed.
 
-Ltac tcrush := repeat first [ eassumption | reflexivity | typconstructor | stcrush ].
-
-Lemma iT_All_Ex Γ e1 x2 T1 T2:
-  Γ u⊢ₜ e1: TAll T1 T2 →
-  Γ u⊢ₜ tv (var_vl x2) : T1 →
-  is_unstamped_ty' (S (length Γ)) T2 →
-  (*────────────────────────────────────────────────────────────*)
-  Γ u⊢ₜ tapp e1 (tv (var_vl x2)) : T2.|[(var_vl x2)/].
-Proof.
-  intros He1 Hx2 Hu. have Hlx2 := var_typed_closed Hx2.
-  rewrite -(psubst_subst_agree_ty (n := S (length Γ))); tcrush.
-  eapply iT_All_Ex_p with (p2 := pv (var_vl x2)); tcrush.
-Qed.
-
 Lemma iT_Mu_E {Γ x T}:
   Γ u⊢ₜ tv (var_vl x): TMu T →
   (*──────────────────────*)
@@ -56,10 +42,22 @@ Proof.
   by apply iT_Path', iP_Mu_I, iP_VarT, Hx.
 Qed.
 
-Ltac tcrush ::=
+Ltac tcrush :=
   repeat first [ eassumption | reflexivity |
   apply iT_Mu_I | apply iT_Mu_E |
   typconstructor | stcrush ].
+
+Lemma iT_All_Ex Γ e1 x2 T1 T2:
+  Γ u⊢ₜ e1: TAll T1 T2 →
+  Γ u⊢ₜ tv (var_vl x2) : T1 →
+  is_unstamped_ty' (S (length Γ)) T2 →
+  (*────────────────────────────────────────────────────────────*)
+  Γ u⊢ₜ tapp e1 (tv (var_vl x2)) : T2.|[(var_vl x2)/].
+Proof.
+  intros He1 Hx2 Hu. have Hlx2 := var_typed_closed Hx2.
+  rewrite -(psubst_subst_agree_ty (n := S (length Γ))); tcrush.
+  eapply iT_All_Ex_p with (p2 := pv (var_vl x2)); tcrush.
+Qed.
 
 Ltac wtcrush := repeat first [ fast_done | typconstructor | stcrush ] ; try solve [
   first [
