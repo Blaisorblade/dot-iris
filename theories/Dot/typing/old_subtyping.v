@@ -1,6 +1,6 @@
 (** * Judgments defining the previous version of gDOT subtyping. *)
 From D Require Import tactics.
-From D.Dot Require Export syn path_repl lr_syn_aux.
+From D.Dot Require Export syn path_repl path_repl_lemmas lr_syn_aux.
 From D.Dot.typing Require Export typing_aux_defs.
 From D.Dot.stamping Require Export core_stamping_defs.
 
@@ -279,6 +279,19 @@ Lemma iP_Var0_Sub Γ T1 T2 :
 Proof. intros. by eapply iP_Var_Sub; [| rewrite ?hsubst_id]. Qed.
 
 Ltac pvarsub := (eapply iP_Var0_Sub || eapply iP_Var_Sub); first done.
+
+Lemma iP_Mu_I' x T {Γ i} :
+  is_unstamped_ty' (S (length Γ)) T →
+  Γ u⊢ₚ pv (var_vl x) : T.|[ var_vl x /], i →
+  Γ u⊢ₚ pv (var_vl x) : TMu T, i.
+Proof.
+  intros Hu Hp. by eapply iP_Mu_I; last rewrite (psubst_subst_agree_ty _ Hu).
+Qed.
+Lemma iP_Mu_E' x T {Γ i} :
+  is_unstamped_ty' (S (length Γ)) T →
+  Γ u⊢ₚ pv (var_vl x) : TMu T, i →
+  Γ u⊢ₚ pv (var_vl x) : T.|[ var_vl x /], i.
+Proof. intros Hu Hp; rewrite -(psubst_subst_agree_ty _ Hu); exact: iP_Mu_E. Qed.
 
 Ltac typconstructor_blacklist Γ :=
   lazymatch goal with
