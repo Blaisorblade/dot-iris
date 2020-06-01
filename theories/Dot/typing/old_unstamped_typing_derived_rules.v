@@ -24,23 +24,16 @@ Proof. by move => /unstamped_subject_closed/fv_of_val_inv/nclosed_var_lt. Qed.
 
 Lemma iT_Mu_E {Γ x T}:
   Γ u⊢ₜ tv (var_vl x): TMu T →
-  (*──────────────────────*)
   is_unstamped_ty' (S (length Γ)) T →
   Γ u⊢ₜ tv (var_vl x): T.|[(var_vl x)/].
-Proof.
-  move => + Hu. rewrite -(psubst_subst_agree_ty (n := S (length Γ))) // => Hx.
-  by apply iT_Path', iP_Mu_E, iP_VarT, Hx.
-Qed.
+Proof. move => Hx Hu. by eapply iT_Path', iP_Mu_E', iP_VarT, Hx. Qed.
 
 Lemma iT_Mu_I {Γ x T}:
   Γ u⊢ₜ tv (var_vl x): T.|[(var_vl x)/] →
   (*──────────────────────*)
   is_unstamped_ty' (S (length Γ)) T →
   Γ u⊢ₜ tv (var_vl x): TMu T.
-Proof.
-  move => + Hu. rewrite -(psubst_subst_agree_ty (n := S (length Γ))) // => Hx.
-  by apply iT_Path', iP_Mu_I, iP_VarT, Hx.
-Qed.
+Proof. move => Hx Hu. by eapply iT_Path', iP_Mu_I', iP_VarT, Hx. Qed.
 
 Ltac tcrush :=
   repeat first [ eassumption | reflexivity |
