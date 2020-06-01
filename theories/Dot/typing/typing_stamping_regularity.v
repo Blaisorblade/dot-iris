@@ -15,7 +15,7 @@ Section storeless_syntyping_lemmas.
     (∀ ds T, Γ v⊢ds[ g ] ds : T → Forall (is_stamped_dm (length Γ) g) (map snd ds)) ∧
     (∀ l d T, Γ v⊢[ g ]{ l := d } : T → is_stamped_dm (length Γ) g d).
   Proof.
-    eapply exp_storeless_typing_mut_ind with
+    eapply storeless_typing_mut_ind with
         (P := λ Γ g e T _, is_stamped_tm (length Γ) g e)
         (P0 := λ Γ g ds T _, Forall (is_stamped_dm (length Γ) g) (map snd ds))
         (P1 := λ Γ g l d T _, is_stamped_dm (length Γ) g d);

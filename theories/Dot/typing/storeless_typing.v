@@ -133,23 +133,12 @@ Notation "Γ s⊢ds[ g  ] ds : T" := (dms_typed Γ g ds T)
 (* Make [T] first argument: Hide [Γ] and [g] for e.g. typing examples. *)
 Global Arguments iD_Typ_Abs {Γ g} T _ _ _ _ _ _ _ _ _ : assert.
 
-Scheme exp_stamped_typed_mut_ind := Induction for typed Sort Prop
-with   exp_stamped_dms_typed_mut_ind := Induction for dms_typed Sort Prop
-with   exp_stamped_dm_typed_mut_ind := Induction for dm_typed Sort Prop.
-
-Combined Scheme exp_storeless_typing_mut_ind from exp_stamped_typed_mut_ind, exp_stamped_dms_typed_mut_ind,
-  exp_stamped_dm_typed_mut_ind.
-
 Scheme stamped_typed_mut_ind := Induction for typed Sort Prop
 with   stamped_dms_typed_mut_ind := Induction for dms_typed Sort Prop
 with   stamped_dm_typed_mut_ind := Induction for dm_typed Sort Prop.
-Scheme stamped_path_typed_mut_ind := Induction for path_typed Sort Prop
-with   stamped_subtype_mut_ind := Induction for subtype Sort Prop.
 
 Combined Scheme storeless_typing_mut_ind from stamped_typed_mut_ind, stamped_dms_typed_mut_ind,
   stamped_dm_typed_mut_ind.
-Combined Scheme pure_storeless_typing_mut_ind from stamped_path_typed_mut_ind,
-  stamped_subtype_mut_ind.
 
 (** ** A few derived rules, and some automation to use them in examples. *)
 
