@@ -353,7 +353,7 @@ Proof.
   (A) on the one hand, show what x.T is.
   (B) on the other hand, thanks to hsomeConcr, we have a get method.
   *)
-  eapply (iT_Sub (i := 2)); first apply (iLaterN_Sub (j := 2)); tcrush.
+  eapply (iT_Sub (i := 2)); first apply (iLaterN_Sub _ 2); tcrush.
 
   apply (iT_Sub (i := 1) (T1 := TAnd (x2 @ "symbols" @; "Symbol")
     (▶: val "tpe" : hsomeConcrT ⊥ ⊤))); first last. {
@@ -379,7 +379,7 @@ Proof.
     (iSngl_pq_Sub_inv (q := x1) (p := x2 @ "types"));
     stcrush; [|exact: psubst_ty_rtc_sufficient|]; first last. {
     tcrush; varsub; asideLaters. lNext.
-    by ettrans; first apply (iSub_AddIJ' (j := 1)); wtcrush.
+    by ettrans; first apply (iSub_AddIJ' _ 1); wtcrush.
   }
   ettrans; first apply assoc_and; tcrush.
   lNext.
