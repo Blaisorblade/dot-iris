@@ -183,20 +183,20 @@ Let newTypeRefΓ Γ :=
   x2 @ "symbols" @; "Symbol" ::
   TAnd fromPDotPaperTypesTBody (TSing (x1 @ "types")) ::
   fromPDotPaperAbsTBody x1 :: optionModTInv :: Γ.
-Lemma Hsub0X0 Γ g :
-  newTypeRefΓ Γ v⊢ₜ[g] x2 @ "symbols" @; "Symbol", 0 <:
+Lemma Hsub0X0 Γ :
+  newTypeRefΓ Γ u⊢ₜ x2 @ "symbols" @; "Symbol", 0 <:
     val "tpe" : optionTy x3 x2 , 1.
 Proof.
   ettrans; last apply iLater_Sub; stcrush.
   eapply (iSel_Sub (L := ⊥)).
   (* Necessary: Pick this over [iP_Later]. *)
   apply iP_Fld_E.
-  tcrush; varsub.
+  varsub.
   ltcrush; mltcrush.
 Qed.
 
-Lemma HoptSubT Γ g:
-  newTypeRefΓ Γ v⊢ₜ[g]
+Lemma HoptSubT Γ :
+  newTypeRefΓ Γ u⊢ₜ
     val "tpe" : optionTy x3 x2, 1 <:
     val "tpe" : TLater (hoptionTyConcr1 hoasNotation.hx2), 1.
 Proof.
@@ -215,8 +215,8 @@ Proof.
     asideLaters; mltcrush.
 Qed.
 
-Lemma Hsublast Γ g:
-  newTypeRefΓ Γ v⊢ₜ[g] shift typeRefTBody, 0 <: x1 @; "TypeRef", 0.
+Lemma Hsublast Γ:
+  newTypeRefΓ Γ u⊢ₜ shift typeRefTBody, 0 <: x1 @; "TypeRef", 0.
 Proof.
   eapply iSub_Sel'; tcrush.
   varsub; lThis.
@@ -235,9 +235,9 @@ Proof.
   varsub. eapply iSub_Trans, iSub_Trans, iSub_Later;
     [apply Hsub0X0 | apply HoptSubT | tcrush].
 Qed.
-Lemma HvT Γ g : newTypeRefΓ Γ v⊢ₜ[g] hnoneConcrT, 0 <: val "isEmpty" : TSing true, 0.
+Lemma HvT Γ : newTypeRefΓ Γ u⊢ₜ hnoneConcrT, 0 <: val "isEmpty" : TSing true, 0.
 Proof. mltcrush. Qed.
-Lemma HvF Γ g : newTypeRefΓ Γ v⊢ₜ[g]
+Lemma HvF Γ : newTypeRefΓ Γ u⊢ₜ
   hsomeType hoasNotation.hx2, 0 <: val "isEmpty" : TSing false, 0.
 Proof. lThis; mltcrush. Qed.
 
@@ -267,7 +267,7 @@ Proof.
   have [n HpOptV] := path_wp_exec_pure _ _ Hal; wp_pure => {HpOptV n}.
   rewrite /hoptionTyConcr1; lrSimpl in "HoptV".
   iDestruct "HoptV" as "[Hw|Hw]"; [have Hv := HvT | have Hv := HvF].
-  all: iPoseProof (fundamental_subtype (Hv Γ g) with "Hs") as "Hv";
+  all: iPoseProof (fundamental_subtype (Hv Γ)) as "Hv";
     iSpecialize ("Hv" $! _ optV with "Hg Hw"); lrSimpl in "Hv";
     iDestruct "Hv" as (? Hl' pb ->) "Hpb"; lrSimpl in "Hpb";
     rewrite path_wp_pure_exec; iDestruct "Hpb" as %(bv & [n1 ?] & Heq).
@@ -277,7 +277,7 @@ Proof.
   by iApply wp_wand; [iApply loopSemT | iIntros "% []"].
   wp_pure.
   (* To conclude, prove the right subtyping for hsomeType and TypeRef. *)
-  iPoseProof (fundamental_subtype (Hsublast Γ g) with "Hs Hg") as "{Hs} Hsub"; lrSimpl in "Hsub".
+  iPoseProof (fundamental_subtype (Hsublast Γ) with "Hg") as "{Hs} Hsub"; lrSimpl in "Hsub".
   iApply "Hsub"; iClear "Hsub".
 
   (* Just to restate the current goal (for some extra readability). *)
@@ -353,7 +353,7 @@ Proof.
   (A) on the one hand, show what x.T is.
   (B) on the other hand, thanks to hsomeConcr, we have a get method.
   *)
-  eapply (iT_Sub (i := 2)); first apply (iLaterN_Sub (j := 2)); tcrush.
+  eapply (iT_Sub (i := 2)); first apply (iLaterN_Sub _ 2); tcrush.
 
   apply (iT_Sub (i := 1) (T1 := TAnd (x2 @ "symbols" @; "Symbol")
     (▶: val "tpe" : hsomeConcrT ⊥ ⊤))); first last. {
@@ -366,7 +366,7 @@ Proof.
         (▶: val "tpe" : hsomeConcrT ⊥ ⊤))). {
     apply iSub_And_split, iSub_Refl; stcrush.
     apply (iSel_Sub (L := ⊥)), iP_Fld_E.
-    tcrush; varsub.
+    varsub.
     mltcrush.
     by mltcrush.
   }
@@ -379,7 +379,7 @@ Proof.
     (iSngl_pq_Sub_inv (q := x1) (p := x2 @ "types"));
     stcrush; [|exact: psubst_ty_rtc_sufficient|]; first last. {
     tcrush; varsub; asideLaters. lNext.
-    by ettrans; first apply (iSub_AddIJ' (j := 1)); wtcrush.
+    by ettrans; first apply (iSub_AddIJ' _ 1); wtcrush.
   }
   ettrans; first apply assoc_and; tcrush.
   lNext.
@@ -398,7 +398,7 @@ Proof.
 Qed.
 
 Lemma fromPDotPaperTypesSub Γ:
-  ⊢ (▶: fromPDotPaperAbsTBody x1)%ty :: optionModTInv :: Γ ⊨[ fromPDotGφ ]
+  ⊢ (▶: fromPDotPaperAbsTBody x1)%ty :: optionModTInv :: Γ ⊨
   μ fromPDotPaperTypesTBody, 0 <: μ fromPDotPaperAbsTypesTBody, 0.
 Proof.
   iApply fundamental_subtype.
@@ -417,7 +417,7 @@ Proof.
   - repeat first [var | typconstructor | tcrush].
   - ettrans; first last.
     eapply iSub_Sel'; first last.
-    + constructor; varsub; tcrush.
+    + varsub; tcrush.
     + tcrush.
     + mltcrush.
 Qed.
@@ -437,7 +437,7 @@ Proof.
   iApply T_Obj_I.
   iApply D_Cons; [done| |].
   - iApply D_Path_Sub; last iApply D_Val_New.
-    + iApply (fromPDotPaperTypesSub with "Hs").
+    + iApply fromPDotPaperTypesSub.
     + iApply (semFromPDotPaperTypesTyp with "Hs").
 
   - iApply D_Cons; [done| iApply D_Val | iApply D_Nil].
@@ -490,12 +490,11 @@ Proof.
   eapply (iT_Sub (T1 := TLater (x0 @ "types" @; "Type")) (i := 1)); tcrush.
   set Γ' := shift (μ (fromPDotPaperAbsTBody x2)) ::
     μ (fromPDotPaperAbsTBody x2) :: optionModTInv :: Γ.
-  have Hpx: Γ' v⊢ₚ[fromPDotG] x0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0
-    by tcrush; eapply iT_Sub_nocoerce;
-      [ by eapply iT_Mu_E; first var; stcrush | tcrush].
+  have Hpx: Γ' v⊢ₚ[fromPDotG] x0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0.
+  by eapply iP_Fld_E, iP_Sub', iP_Mu_E; last var; [tcrush|stcrush].
   have HpxSubst: Γ' v⊢ₚ[fromPDotG] x0 @ "types" : fromPDotPaperAbsTypesTBodySubst, 0.
   by eapply (iP_Mu_E (T := fromPDotPaperAbsTypesTBody)
-    (p := x0 @ "types")), Hpx; tcrush.
+    (p := x0 @ "types")), Hpx; stcrush.
   eapply iT_Path', iP_Fld_I, (iP_Sub (i := 0)), HpxSubst.
   repeat lNext.
 Qed.
@@ -503,7 +502,7 @@ Qed.
 Example getAnyTypeTyp0 Γ :
   μ (fromPDotPaperAbsTBody x2) :: optionModTInv :: Γ v⊢ₜ[fromPDotG]
     tapp getAnyType x0 : x0 @ "types" @; "Type".
-Proof. eapply iT_All_Ex'; [exact: getAnyTypeFunTyp|var|tcrush..]. Qed.
+Proof. by eapply iT_All_Ex'; [exact: getAnyTypeFunTyp|var|]. Qed.
 
 End semExample.
 

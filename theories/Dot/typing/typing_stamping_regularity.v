@@ -1,8 +1,8 @@
 (** * Show stamped typing only relates stamped syntax.
 Proofs are done on storeless typing. *)
-From D Require Import prelude.
+(* From D Require Import prelude.
 From D.Dot Require Import type_extraction_syn traversals stampedness_binding closed_subst.
-From D.Dot Require Import storeless_typing.
+From D.Dot Require Import storeless_typing typing_stamping.
 From D.Dot Require Import ast_stamping path_repl_lemmas.
 Set Implicit Arguments.
 
@@ -13,16 +13,16 @@ Section storeless_syntyping_lemmas.
   Lemma stamped_mut_subject Γ g :
     (∀ e T, Γ v⊢ₜ[ g ] e : T → is_stamped_tm (length Γ) g e) ∧
     (∀ ds T, Γ v⊢ds[ g ] ds : T → Forall (is_stamped_dm (length Γ) g) (map snd ds)) ∧
-    (∀ l d T, Γ v⊢[ g ]{ l := d } : T → is_stamped_dm (length Γ) g d) ∧
-    (∀ p T i, Γ v⊢ₚ[ g ] p : T, i → is_stamped_path (length Γ) g p).
+    (∀ l d T, Γ v⊢[ g ]{ l := d } : T → is_stamped_dm (length Γ) g d).
   Proof.
-    eapply exp_storeless_typing_mut_ind with
+    eapply storeless_typing_mut_ind with
         (P := λ Γ g e T _, is_stamped_tm (length Γ) g e)
         (P0 := λ Γ g ds T _, Forall (is_stamped_dm (length Γ) g) (map snd ds))
-        (P1 := λ Γ g l d T _, is_stamped_dm (length Γ) g d)
-        (P2 := λ Γ g p T i _, is_stamped_path (length Γ) g p); clear Γ g;
+        (P1 := λ Γ g l d T _, is_stamped_dm (length Γ) g d);
+        clear Γ g;
         cbn; intros; try (rewrite <-(@ctx_strip_len Γ Γ') in *; last done);
-        try by (with_is_stamped inverse + idtac); eauto using is_stamped_path2tm.
+        try by (with_is_stamped inverse + idtac);
+        eauto using is_unstamped_path2tm, is_stamped_path2tm, is_unstamped_vl_lookup.
     - repeat constructor => //=. by eapply lookup_lt_Some.
     - intros; elim: i {s} => [|i IHi]; rewrite /= ?iterate_0 ?iterate_S //; eauto.
     - move: e => [T' ?]; ev. by apply @Trav1.trav_dtysem with
@@ -172,4 +172,4 @@ Section storeless_syntyping_lemmas.
       by eapply unstamped_stamped_type.
       by eapply unstamped_stamped_type, is_unstamped_ty_subst.
   Qed.
-End storeless_syntyping_lemmas.
+End storeless_syntyping_lemmas. *)

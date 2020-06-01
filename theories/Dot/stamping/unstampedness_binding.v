@@ -377,3 +377,9 @@ Proof.
   eapply is_unstamped_sub_rev_ty, Hu.
   eapply nclosed_ren_inv_ty_one, is_unstamped_nclosed_ty, Hu.
 Qed.
+
+(* XXX *)
+Lemma is_unstamped_TLater_n {i n T}:
+  is_unstamped_ty' n T →
+  is_unstamped_ty' n (iterate TLater i T).
+Proof. elim: i => [|//i IHi]; rewrite ?iterate_0 ?iterate_S //; auto. Qed.

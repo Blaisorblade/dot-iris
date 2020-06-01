@@ -17,7 +17,7 @@ Inductive typed Γ : tm → ty → Prop :=
 | iT_All_Ex e1 x2 T1 T2:
     Γ u⊢ₜ e1: TAll T1 T2 →                        Γ u⊢ₜ tv (var_vl x2) : T1 →
     (*────────────────────────────────────────────────────────────*)
-    Γ u⊢ₜ tapp e1 (tv (var_vl x2)) : T2.|[(var_vl x2)/]
+    Γ u⊢ₜ tapp e1 (tv (var_vl x2)) : T2.|[var_vl x2/]
 (** Non-dependent application; allowed for any argument. *)
 | iT_All_E e1 e2 T1 T2:
     Γ u⊢ₜ e1: TAll T1 (shift T2) →      Γ u⊢ₜ e2 : T1 →
