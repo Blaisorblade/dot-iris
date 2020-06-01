@@ -180,10 +180,11 @@ Qed.
 
 Ltac typconstructor :=
   match goal with
-  | |- typed ?Γ _ _ =>
-    first [apply iT_All_I_strip1 | apply iT_All_I | apply iT_Var |
-      apply iT_Nat_I | apply iT_Bool_I |
-      constructor]
+  | |- typed ?Γ _ _ => first [
+    apply iT_All_I_strip1 | apply iT_All_I |
+    apply iT_Var |
+    apply iT_Nat_I | apply iT_Bool_I |
+    constructor]
   | |- dms_typed ?Γ _ _ => constructor
   | |- dm_typed ?Γ _ _ _ => first [apply iD_All | constructor]
   | |- path_typed ?Γ _ _ _ => first [apply iP_VarT | subtypconstructor]
