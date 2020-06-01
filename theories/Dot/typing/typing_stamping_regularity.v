@@ -3,6 +3,7 @@ Proofs are done on storeless typing. *)
 From D Require Import prelude.
 From D.Dot Require Import type_extraction_syn traversals stampedness_binding closed_subst.
 From D.Dot Require Import storeless_typing.
+From D.Dot Require Import ast_stamping path_repl_lemmas.
 Set Implicit Arguments.
 
 Set Suggest Proof Using.
@@ -168,5 +169,7 @@ Section storeless_syntyping_lemmas.
       try (efeed pose proof H0; [by eauto | ev; clear H0]);
       repeat constructor; rewrite /= ?fmap_length; eauto 2;
       inverse_is_stamped; eauto 4 using stamped_lookup, is_stamped_sub_rev_ty.
+      by eapply unstamped_stamped_type.
+      by eapply unstamped_stamped_type, is_unstamped_ty_subst.
   Qed.
 End storeless_syntyping_lemmas.

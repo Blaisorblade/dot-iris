@@ -5,7 +5,7 @@ From D.Dot Require Import path_repl_lemmas typing_stamping.
 Import DBNotation.
 
 Lemma is_unstamped_pvar i n b : i < n → is_unstamped_path n b (pv (var_vl i)).
-Proof. eauto 6. Qed.
+Proof. eauto 7. Qed.
 Hint Resolve is_unstamped_pvar : core.
 Lemma is_unstamped_pvars i n l b : i < n → is_unstamped_ty n b (pv (var_vl i) @; l).
 Proof. eauto. Qed.

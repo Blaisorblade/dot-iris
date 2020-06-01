@@ -89,7 +89,7 @@ Section syntyping_stamping_lemmas.
         (P2 := λ Γ p T i _, is_unstamped_path' (length Γ) p); clear Γ;
         cbn; intros; try (rewrite <-(@ctx_strip_len Γ Γ') in *; last done);
         try by (with_is_unstamped inverse + idtac);
-        eauto 6 using is_unstamped_path2tm, is_unstamped_vl_lookup.
+        eauto 7 using is_unstamped_path2tm, is_unstamped_vl_lookup.
     elim: i {s} => [|i IHi]; rewrite /= ?iterate_0 ?iterate_S //; eauto.
   Qed.
 
