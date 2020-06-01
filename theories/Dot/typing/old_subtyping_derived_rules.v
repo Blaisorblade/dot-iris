@@ -313,3 +313,116 @@ Proof.
   by apply is_unstamped_TLater_n; stcrush.
   by asideLaters; subwtcrush.
 Qed.
+
+(* Lattice theory *)
+Lemma iOr_Sub_split Γ T1 T2 U1 U2 i:
+  is_unstamped_ty' (length Γ) U1 →
+  is_unstamped_ty' (length Γ) U2 →
+  Γ u⊢ₜ T1, i <: U1, i →
+  Γ u⊢ₜ T2, i <: U2, i →
+  Γ u⊢ₜ TOr T1 T2, i <: TOr U1 U2, i.
+Proof.
+  intros.
+  apply iOr_Sub; [
+    eapply iSub_Trans, iSub_Or1 | eapply iSub_Trans, iSub_Or2]; subtcrush.
+Qed.
+
+Lemma iSub_And_split Γ T1 T2 U1 U2 i:
+  is_unstamped_ty' (length Γ) T1 →
+  is_unstamped_ty' (length Γ) T2 →
+  Γ u⊢ₜ T1, i <: U1, i →
+  Γ u⊢ₜ T2, i <: U2, i →
+  Γ u⊢ₜ TAnd T1 T2, i <: TAnd U1 U2, i.
+Proof.
+  intros; apply iSub_And; [
+    eapply iSub_Trans; first apply iAnd1_Sub |
+    eapply iSub_Trans; first apply iAnd2_Sub]; subtcrush.
+Qed.
+
+Lemma iDistr_And_Or_Sub_inv {Γ S T U i}:
+  is_unstamped_ty' (length Γ) S →
+  is_unstamped_ty' (length Γ) T →
+  is_unstamped_ty' (length Γ) U →
+  Γ u⊢ₜ TOr (TAnd S U) (TAnd T U), i <: TAnd (TOr S T) U , i.
+Proof.
+  intros; apply iOr_Sub; apply iSub_And; subtcrush;
+    (ettrans; first apply iAnd1_Sub); subtcrush.
+Qed.
+
+Lemma iDistr_Or_And_Sub {Γ S T U i}:
+  is_unstamped_ty' (length Γ) S →
+  is_unstamped_ty' (length Γ) T →
+  is_unstamped_ty' (length Γ) U →
+  Γ u⊢ₜ TOr (TAnd S T) U , i <: TAnd (TOr S U) (TOr T U), i.
+Proof.
+  intros; apply iOr_Sub; apply iSub_And; subtcrush;
+    (ettrans; last apply iSub_Or1); subtcrush.
+Qed.
+
+Lemma comm_and {Γ T U i} :
+  is_unstamped_ty' (length Γ) T →
+  is_unstamped_ty' (length Γ) U →
+  Γ u⊢ₜ TAnd T U, i <: TAnd U T, i.
+Proof. intros; subtcrush. Qed.
+
+Lemma comm_or {Γ T U i} :
+  is_unstamped_ty' (length Γ) T →
+  is_unstamped_ty' (length Γ) U →
+  Γ u⊢ₜ TOr T U, i <: TOr U T, i.
+Proof. intros; subtcrush. Qed.
+
+Lemma absorb_and_or {Γ T U i} :
+  is_unstamped_ty' (length Γ) T →
+  is_unstamped_ty' (length Γ) U →
+  Γ u⊢ₜ TAnd U (TOr T U), i <: U, i.
+Proof. intros; subtcrush. Qed.
+
+Lemma absorb_or_and {Γ T U i} :
+  is_unstamped_ty' (length Γ) T →
+  is_unstamped_ty' (length Γ) U →
+  Γ u⊢ₜ TOr U (TAnd T U), i <: U, i.
+Proof. intros; subtcrush. Qed.
+
+Lemma absorb_or_and2 {Γ T U i} :
+  is_unstamped_ty' (length Γ) T →
+  is_unstamped_ty' (length Γ) U →
+  Γ u⊢ₜ TOr (TAnd T U) T, i <: T, i.
+Proof. intros; ettrans; first apply comm_or; subtcrush. Qed.
+
+Lemma assoc_or {Γ S T U i} :
+  is_unstamped_ty' (length Γ) S →
+  is_unstamped_ty' (length Γ) T →
+  is_unstamped_ty' (length Γ) U →
+  Γ u⊢ₜ TOr (TOr S T) U, i <: TOr S (TOr T U), i.
+Proof. intros; subtcrush; (ettrans; last apply iSub_Or2); subtcrush. Qed.
+
+Lemma assoc_and {Γ S T U i} :
+  is_unstamped_ty' (length Γ) S →
+  is_unstamped_ty' (length Γ) T →
+  is_unstamped_ty' (length Γ) U →
+  Γ u⊢ₜ TAnd (TAnd S T) U, i <: TAnd S (TAnd T U), i.
+Proof. intros. subtcrush; lThis. Qed.
+
+(* Based on Lemma 4.3 in
+https://books.google.co.uk/books?id=vVVTxeuiyvQC&lpg=PA104&pg=PA85#v=onepage&q&f=false.
+Would be much easier to formalize with setoid rewriting.
+*)
+Lemma iDistr_Or_And_Sub_inv {Γ S T U i}:
+  is_unstamped_ty' (length Γ) S →
+  is_unstamped_ty' (length Γ) T →
+  is_unstamped_ty' (length Γ) U →
+  Γ u⊢ₜ TAnd (TOr S U) (TOr T U), i <: TOr (TAnd S T) U , i.
+Proof.
+  intros.
+  ettrans; first apply iDistr_And_Or_Sub; stcrush => //.
+  ettrans; first apply iOr_Sub_split, absorb_and_or; try apply iSub_Refl;
+    stcrush => //.
+  ettrans; first apply iOr_Sub_split; try apply (iSub_Refl _ (T := U));
+    try (ettrans; first apply (comm_and (T := S))); try apply iDistr_And_Or_Sub; stcrush => //.
+  ettrans; first apply assoc_or; stcrush => //.
+  ettrans; first apply iOr_Sub_split.
+  3: apply iSub_Refl; subtcrush.
+  3: ettrans; first apply absorb_or_and2; subtcrush.
+  all: subtcrush.
+  ettrans; first eapply comm_and; subtcrush.
+Qed.
