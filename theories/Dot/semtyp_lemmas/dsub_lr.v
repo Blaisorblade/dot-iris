@@ -31,8 +31,6 @@ End defs.
 
 Notation "Γ s⊨ T1 <:[ i  ] T2 " := (sstpd i Γ T1 T2) (at level 74, T1, T2 at next level).
 Notation "Γ ⊨ T1 <:[ i  ] T2 " := (istpd i Γ T1 T2) (at level 74, T1, T2 at next level).
-Import stamp_transfer.
-Notation "Γ ⊨[ gφ  ] T1 <:[ i  ] T2 " := (wellMappedφ gφ → istpd i Γ T1 T2)%I (at level 74, T1, T2, i at next level).
 
 (** Show these typing judgments are equivalent to what we present in the paper. *)
 Section JudgDefs.

@@ -41,7 +41,6 @@ Local Hint Extern 1000 => lia : core.
 
 Ltac wp_bin_base := iApply wp_bin; first eapply cond_bin_op_syntype_sound; by [cbn; eauto|].
 Ltac wp_bin := iApply wp_wand; [wp_bin_base | iIntros].
-Import stamp_transfer.
 
 Local Open Scope Z_scope.
 
@@ -50,11 +49,6 @@ Local Open Scope Z_scope.
 Section helpers.
   Context `{HdlangG: !dlangG Σ}.
 
-  Lemma alloc {s sγ} φ : sγ !! s = None → allGs sγ ==∗ s ↝n[ 0 ] φ.
-  Proof.
-    iIntros (Hs) "Hsγ".
-    by iMod (leadsto_alloc φ Hs with "Hsγ") as (?) "[_ [_ $]]".
-  Qed.
   Lemma wp_ge m n (Hge : m > n) : ⊢ WP m > n {{ w, w ≡ true }}.
   Proof. wp_bin. ev; simplify_eq/=. case_decide; by [|lia]. Qed.
   Lemma wp_nge m n (Hnge : ¬ m > n) : ⊢ WP m > n {{ w, w ≡ false }}.
@@ -115,11 +109,6 @@ Section div_example.
 
   Definition posModV : vl := hposModV s.
 
-  Notation Hs := (s_is_pos s).
-  Lemma allocHs sγ:
-    sγ !! s = None → allGs sγ ==∗ Hs.
-  Proof. exact (alloc ipos). Qed.
-
   Lemma wp_if_ge (n : Z) :
     ⊢ WP hmkPosBodyV n {{ w, ⌜ w = n ∧ n > 0 ⌝}}.
   Proof using Type*.
@@ -134,6 +123,7 @@ Section div_example.
   Definition posDm := dtysem [] s.
   Definition testVl l : vl := ν {@ (l, posDm) }.
 
+  Notation Hs := (s_is_pos s).
   Lemma sToIpos : Hs -∗ posDm ↗n[ 0 ] hoEnvD_inst [] ipos.
   Proof. by iApply dm_to_type_intro. Qed.
 
@@ -233,8 +223,13 @@ Section div_example.
   Qed.
 End div_example.
 
-Lemma posModVSafe (s : stamp): safe (posModV s).
+Import sem_unstamped_typing skeleton.
+Lemma posModVSafe s : safe (posModV s).
 Proof.
-  eapply (safety_dot_sem dlangΣ (T := posModT))=>*.
-  by rewrite (allocHs s) // -posModTy.
+  eapply (unstamped_safety_dot_sem dlangΣ (T := posModT))=>*.
+  iModIntro; iMod (leadsto_alloc ipos) as (dynS) "Hs".
+  iExists (posModV dynS); iModIntro.
+  (* iSplit; first by iIntros "!%"; repeat split. *)
+  iSplit; first done.
+  iApply (posModTy with "Hs").
 Qed.
