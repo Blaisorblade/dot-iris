@@ -106,7 +106,7 @@ Sec. 5:
 - Safety (Def. 5.1) is defined as `safe` in
   [`iris_extra/det_reduction.v`](theories/iris_extra/det_reduction.v).
 - Type soundness for gDOT (Thm. 5.2) is proven in
-  [`Dot/fundamental.v`](theories/Dot/fundamental.v) as `Corollary
+  [`Dot/old_fundamental.v`](theories/Dot/old_fundamental.v) as `Corollary
   type_soundness`.
 
 Sec. 6:
@@ -136,7 +136,7 @@ The proof strategy we describe in the paper is implemented in the following file
 Sec. 5:
 - Stamped typing is defined in [`Dot/typing/storeless_typing.v`](theories/Dot/typing/storeless_typing.v).
   - Translation of typing derivations (Thm. 5.3) is defined in [`Dot/stamping/ast_stamping.v`](theories/Dot/stamping/ast_stamping.v) and proved in
-    [`Dot/typing/typing_stamping.v`](theories/Dot/typing/typing_stamping.v).
+    [`Dot/typing/old_typing_stamping.v`](theories/Dot/typing/old_typing_stamping.v).
 - Iris connectives (Sec. 5.2) are predefined by Iris, except for `s ↝ φ`,
   defined in [`iris_extra/dlang.v`](theories/iris_extra/dlang.v) as
   `s ↝n[ n ] φ` (where `n` is the arity of semantic predicate `φ`).
@@ -160,7 +160,7 @@ Sec. 5:
   The most interesting ones are:
   - `sT_Obj_I` (for object construction, using Löb induction);
   - `sD_Typ_Abs`,  `sSub_Sel`, `sSel_Sub`, `sTyp_Sub_Typ` (about type members).
-- The fundamental theorem (Thm. 5.4) is proven in [`Dot/fundamental.v`](theories/Dot/fundamental.v).
+- The old_fundamental theorem (Thm. 5.4) is proven in [`Dot/old_fundamental.v`](theories/Dot/old_fundamental.v).
 
 ## Typing lemma naming conventions
 
@@ -245,7 +245,7 @@ Inside the [`Dot`](theories/Dot) folder:
     only needed for examples
 * [`stamping`](theories/Dot/stamping): definitions and lemmas about stamping.
 * [`typing`](theories/Dot/typing): syntactic typing and auxiliary lemmas about it
-  - [`typing_stamping.v`](theories/Dot/typing_stamping.v): prove stamping of typing derivations.
+  - [`old_typing_stamping.v`](theories/Dot/old_typing_stamping.v): prove stamping of typing derivations.
 * [`examples`](theories/Dot/examples): various gDOT snippets.
-* [`fundamental.v`](theories/Dot/fundamental.v): prove fundamental theorem, adequacy and type safety.
+* [`old_fundamental.v`](theories/Dot/old_fundamental.v): prove old_fundamental theorem, adequacy and type safety.
 

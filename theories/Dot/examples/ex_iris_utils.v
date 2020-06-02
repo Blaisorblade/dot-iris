@@ -7,7 +7,7 @@ From D.Dot Require Import skeleton.
 
 (* Exports: *)
 From D.Dot Require Export ex_utils hoas_ex_utils storeless_typing_ex_utils.
-From D.Dot Require Export fundamental examples_lr.
+From D.Dot Require Export old_fundamental examples_lr.
 Export loopTms.
 
 Set Suggest Proof Using.

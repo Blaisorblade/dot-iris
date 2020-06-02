@@ -21,7 +21,7 @@ From iris.proofmode Require Import tactics.
 From D.pure_program_logic Require Import weakestpre lifting.
 
 From D Require Import tactics swap_later_impl.
-From D.Dot.typing Require Import storeless_typing.
+From D.Dot Require Import storeless_typing.
 From D.Dot Require Import path_repl.
 From D.Dot Require Import ex_iris_utils.
 From D.Dot Require Import prim_boolean_option.
