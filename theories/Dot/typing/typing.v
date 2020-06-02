@@ -42,14 +42,12 @@ Inductive typed Γ : tm → ty → Prop :=
 (** Introduction forms *)
 | iT_All_I_Strong e T1 T2 Γ':
     ⊢G Γ >>▷* Γ' →
-    is_unstamped_ty' (length Γ) T1 →
     (* T1 :: Γ' t⊢ₜ e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
     shift T1 :: Γ' t⊢ₜ e : T2 →
     (*─────────────────────────*)
     Γ t⊢ₜ tv (vabs e) : TAll T1 T2
 | iT_Obj_I ds T:
     Γ |L T t⊢ds ds: T →
-    is_unstamped_ty' (S (length Γ)) T →
     (*──────────────────────*)
     Γ t⊢ₜ tv (vobj ds): TMu T
 
@@ -93,9 +91,6 @@ with dms_typed Γ : dms → ty → Prop :=
 where "Γ t⊢ds ds : T" := (dms_typed Γ ds T)
 with dm_typed Γ : label → dm → ty → Prop :=
 | iD_Typ_Abs T l L U:
-    (* To drop *)
-    is_unstamped_ty' (length Γ) T →
-    (* To keep *)
     nclosed T (length Γ) →
     Γ t⊢ₜ L <:[0] TLater T →
     Γ t⊢ₜ TLater T <:[0] U →
@@ -108,7 +103,6 @@ with dm_typed Γ : label → dm → ty → Prop :=
     Γ t⊢{ l := dpt p } : TVMem l T
 | iD_Val_New l T ds:
     TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ t⊢ds ds : T →
-    is_unstamped_ty' (S (length Γ)) T →
     Γ t⊢{ l := dpt (pv (vobj ds)) } : TVMem l (TMu T)
 | iD_Path_Sub T1 T2 p l:
     Γ t⊢ₜ T1 <:[0] T2 →
@@ -117,7 +111,7 @@ with dm_typed Γ : label → dm → ty → Prop :=
 where "Γ t⊢{ l := d  } : T" := (dm_typed Γ l d T).
 
 (* Make [T] first argument: Hide Γ for e.g. typing examples. *)
-Global Arguments iD_Typ_Abs {Γ} T _ _ _ _ _ _ _ : assert.
+Global Arguments iD_Typ_Abs {Γ} T _ _ _ _ _ _ : assert.
 
 Scheme typed_mut_ind := Induction for typed Sort Prop
 with   dms_typed_mut_ind := Induction for dms_typed Sort Prop
@@ -146,14 +140,12 @@ Lemma iT_Var Γ x T
 Proof. intros. apply iT_Path', iP_Var, Hl. Qed.
 
 Lemma iT_All_I Γ e T1 T2:
-  is_unstamped_ty' (length Γ) T1 →
   shift T1 :: Γ t⊢ₜ e : T2 →
   (*─────────────────────────*)
   Γ t⊢ₜ tv (vabs e) : TAll T1 T2.
 Proof. apply iT_All_I_Strong. ietp_weaken_ctx. Qed.
 
 Lemma iT_All_I_strip1 Γ e V T1 T2:
-  is_unstamped_ty' (S (length Γ)) T1 →
   shift T1 :: V :: Γ t⊢ₜ e : T2 →
   (*─────────────────────────*)
   Γ |L V t⊢ₜ tv (vabs e) : TAll T1 T2.
@@ -163,7 +155,6 @@ Proof.
 Qed.
 
 Lemma iD_All Γ V T1 T2 e l:
-  is_unstamped_ty' (S (length Γ)) T1 →
   shift T1 :: V :: Γ t⊢ₜ e : T2 →
   Γ |L V t⊢{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
 Proof. by intros; apply iD_Val, iT_All_I_strip1. Qed.
