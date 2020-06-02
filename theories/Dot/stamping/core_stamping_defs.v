@@ -1,7 +1,8 @@
 (** Define "stamping" in a purely syntactic
     way, without involving Iris. *)
 From stdpp Require Import gmap.
-From D.Dot Require Import syn traversals.
+From D.Dot Require Import syn traversals typing_aux_defs.
+Export typing_aux_defs.
 
 Set Implicit Arguments.
 
@@ -13,12 +14,6 @@ Set Implicit Arguments.
 Implicit Types
          (T: ty) (v: vl) (e: tm) (p: path) (d: dm) (ds: dms) (vs: vls)
          (Γ : ctx) (g: stys) (n: nat).
-
-Fixpoint path_root (p : path): vl :=
-  match p with
-  | pv v => v
-  | pself p _ => path_root p
-  end.
 
 Notation valid_stamp g g' n' vs s T' :=
   (g !! s = Some T' ∧ g' = g ∧ n' = length vs).

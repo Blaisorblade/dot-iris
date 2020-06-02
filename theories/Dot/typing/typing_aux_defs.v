@@ -3,7 +3,13 @@ From D.Dot Require Import syn.
 
 Set Implicit Arguments.
 
-Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
+Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path) (Γ : ctx).
+
+Fixpoint path_root p : vl :=
+  match p with
+  | pv v => v
+  | pself p _ => path_root p
+  end.
 
 Inductive un_op_syntype : un_op → base_ty → base_ty → Set :=
 | ty_unot : un_op_syntype unot tbool tbool.
