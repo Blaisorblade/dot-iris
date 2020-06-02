@@ -8,6 +8,8 @@ From D.Dot.stamping Require Export core_stamping_defs.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
 
 Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
 
@@ -19,6 +21,10 @@ Inductive path_typed Γ : path → ty → nat → Prop :=
     Γ !! x = Some T →
     (* After looking up in Γ, we must weaken T for the variables on top of x. *)
     Γ t⊢ₚ pv (var_vl x) : shiftN x T, 0
+| iP_Nat_I n:
+    Γ t⊢ₚ pv (vint n): TInt, 0
+| iP_Bool_I b:
+    Γ t⊢ₚ pv (vbool b): TBool, 0
 | iP_Fld_E p T i l:
     Γ t⊢ₚ p : TVMem l T, i →
     Γ t⊢ₚ pself p l : T, i
@@ -156,6 +162,10 @@ with subtype Γ : nat → ty → ty → Prop :=
 | iStp_Eq i T1 T2 :
     |- T1 == T2 →
     Γ t⊢ₜ T1 <:[i] T2
+| iStp_Skolem_P {T1 T2 i j}:
+    iterate TLater i (shift T1) :: Γ t⊢ₚ pv (ids 0) : shift T2, i + j →
+    (*───────────────────────────────*)
+    Γ t⊢ₜ T1 <:[i] iterate TLater j T2
 
 where "Γ t⊢ₜ T1 <:[ i  ] T2"  := (subtype Γ i T1 T2).
 
