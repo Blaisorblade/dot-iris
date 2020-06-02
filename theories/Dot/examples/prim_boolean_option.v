@@ -1,7 +1,7 @@
 
 From D Require Import tactics.
 From D.Dot Require Import syn ex_utils hoas storeless_typing_ex_utils.
-From D.Dot.typing Require Import storeless_typing.
+From D.Dot Require Import storeless_typing.
 
 Import DBNotation.
 

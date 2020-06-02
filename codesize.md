@@ -32,7 +32,7 @@ syntax (syn): 2143
 logrel (lr semtyp_lemmas): 4674
 model (syntax + logrel) (syn lr semtyp_lemmas): 6817
 
-syntactic typing (w/ stamping & fundamental) (. typing stamping): 5886
+syntactic typing (w/ stamping & old_fundamental) (. typing stamping): 5886
 
 examples (examples): 3990
 ```

@@ -1,5 +1,5 @@
 From D Require Import prelude.
-From D.Dot Require Import fundamental.
+From D.Dot Require Import old_fundamental.
 From D.Dot.examples Require positive_div small_sem_ex from_pdot_mutual_rec_sem.
 
 Print Assumptions type_soundness.

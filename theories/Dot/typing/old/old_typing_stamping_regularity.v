@@ -2,7 +2,7 @@
 Proofs are done on storeless typing. *)
 (* From D Require Import prelude.
 From D.Dot Require Import type_extraction_syn traversals stampedness_binding closed_subst.
-From D.Dot Require Import storeless_typing typing_stamping.
+From D.Dot Require Import storeless_typing old_typing_stamping.
 From D.Dot Require Import ast_stamping path_repl_lemmas.
 Set Implicit Arguments.
 
