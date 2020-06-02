@@ -52,34 +52,6 @@ End LambdaIntros.
 Section Sec.
   Context `{HdlangG: !dlangG Σ}.
 
-  (* An inverse of subsumption: subtyping is *equivalent* to convertibility
-  for values. *)
-  Lemma sSub_Skolem_P {Γ T1 T2 i j}:
-    oLaterN i (shift T1) :: Γ s⊨p pv (ids 0) : shift T2, j -∗
-    (*───────────────────────────────*)
-    Γ s⊨ T1, i <: T2, j.
-  Proof.
-    iIntros "#Htyp !> %ρ %v #Hg #HvT1".
-    iEval rewrite -path_wp_pv_eq.
-    iApply ("Htyp" $! (v .: ρ) with "[$Hg ]").
-    by iApply "HvT1".
-  Qed.
-
-  Lemma sSub_Skolem_P' Γ T1 T2:
-    shift T1 :: Γ s⊨p pv (ids 0) : shift T2, 0 -∗
-    (*───────────────────────────────*)
-    Γ s⊨ T1, 0 <: T2, 0.
-  Proof. apply (sSub_Skolem_P (i := 0)). Qed.
-
-  Lemma Sub_Skolem_P {Γ T1 T2 i j}:
-    iterate TLater i (shift T1) :: Γ ⊨p pv (ids 0) : shift T2, j -∗
-    (*───────────────────────────────*)
-    Γ ⊨ T1, i <: T2, j.
-  Proof.
-    rewrite /iptp fmap_cons iterate_TLater_oLater !interp_subst_commute.
-    exact: sSub_Skolem_P.
-  Qed.
-
   Lemma sP_Var {Γ x τ}
     (Hx : Γ !! x = Some τ):
     (*──────────────────────*)
