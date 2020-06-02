@@ -127,8 +127,7 @@ Ltac inverse_is_stamped := (repeat with_is_stamped inverse_once_cbn); un_usedLem
 
 Lemma is_unstamped_path_root n p :
   is_unstamped_path n OnlyVars p →
-  (∃ x, path_root p = var_vl x) ∨
-  (∃ l, path_root p = vlit l).
+  atomic_path_root p.
 Proof. elim p => /= *; with_is_unstamped inverse; naive_solver. Qed.
 
 (** * Stamping is monotone wrt stamp table extension. *)

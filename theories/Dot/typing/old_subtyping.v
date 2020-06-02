@@ -211,8 +211,7 @@ Hint Extern 10 => try_once iSub_Trans : core.
 
 Lemma unstamped_path_root_is_var Γ p T i:
   Γ u⊢ₚ p : T, i →
-  (∃ x, path_root p = var_vl x) ∨
-  (∃ l, path_root p = vlit l).
+  atomic_path_root p.
 Proof. by elim; intros; cbn; eauto 3 using is_unstamped_path_root. Qed.
 
 
