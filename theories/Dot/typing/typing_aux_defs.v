@@ -16,8 +16,6 @@ Inductive bin_op_syntype : bin_op → base_ty → base_ty → base_ty → Set :=
 | ty_bplus    : bin_op_syntype bplus  tint  tint  tint
 | ty_btimes   : bin_op_syntype btimes tint  tint  tint.
 
-(* XXX Insert/load [type_equiv.v] by this point. *)
-
 (** ** When is a context weaker than another? While we don't give complete
 rules, we develop some infrastructure to allow "stripping" laters from the
 context. *)
