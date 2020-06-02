@@ -76,7 +76,7 @@ sumDirs "logrel" "lr semtyp_lemmas"
 sumDirs "model (syntax + logrel)" "syn lr semtyp_lemmas"
 
 echo
-sumDirs "syntactic typing (w/ stamping & fundamental)" ". typing stamping"
+sumDirs "syntactic typing (w/ stamping & old_fundamental)" ". typing stamping"
 
 echo
 sumDirs "examples" "examples"

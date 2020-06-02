@@ -6,7 +6,7 @@ From iris.program_logic Require Import language.
 
 From D Require Import iris_prelude succ_notation swap_later_impl proper.
 From D.Dot Require Import rules path_repl.
-From D.Dot Require Export fundamental dsub_lr.
+From D.Dot Require Export old_fundamental dsub_lr.
 
 Implicit Types (Σ : gFunctors).
 Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env) (l : label).

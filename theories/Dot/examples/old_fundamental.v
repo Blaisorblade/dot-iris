@@ -6,7 +6,7 @@ From D.Dot Require Export unary_lr later_sub_sem
 From D.Dot Require Import storeless_typing.
 (* For unstamped safety. *)
 From D.Dot Require Import old_unstamped_typing type_extraction_syn ast_stamping
-     typing_stamping skeleton path_repl_lemmas.
+     old_typing_stamping skeleton path_repl_lemmas.
 Import stamp_transfer.
 
 Set Suggest Proof Using.
@@ -16,7 +16,7 @@ Unset Strict Implicit.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx) (g : stys).
 
-Section fundamental.
+Section old_fundamental.
   Context `{!dlangG Σ} `{!SwapPropI Σ}.
 
   Lemma extraction_to_leadsto_envD_equiv T g s σ n : T ~[ n ] (g, (s, σ)) →
@@ -135,7 +135,7 @@ Section fundamental.
   Lemma fundamental_dm_typed Γ g l d T :
     Γ v⊢[ g ]{ l := d } : T → ⊢ Γ ⊨[ Vs⟦ g ⟧ ] { l := d } : T.
   Proof. apply (fundamental_mut Γ g). Qed.
-End fundamental.
+End old_fundamental.
 
 (** Adequacy of our logical relation: semantically well-typed terms are safe. *)
 
