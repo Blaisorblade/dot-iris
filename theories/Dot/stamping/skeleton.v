@@ -425,6 +425,22 @@ Lemma same_skel_refl_tm e : same_skel_tm e e.
 Proof. apply same_skel_refl. Qed.
 Lemma same_skel_refl_dm d : same_skel_dm d d.
 Proof. apply same_skel_refl. Qed.
+Lemma same_skel_refl_vl v : same_skel_vl v v.
+Proof. apply same_skel_refl. Qed.
+Hint Resolve same_skel_refl_tm same_skel_refl_dm same_skel_refl_vl : core.
+
+Lemma same_skel_ectx_refl K : same_skel_ectx K K.
+Proof. destruct K; naive_solver. Qed.
+Hint Resolve same_skel_ectx_refl : core.
+
+Lemma same_skel_list_ectx_refl Ks : same_skel_list_ectx Ks Ks.
+Proof. rewrite /same_skel_list_ectx; elim: Ks; naive_solver. Qed.
+Hint Resolve same_skel_list_ectx_refl : core.
+
+Lemma same_skel_tm_tskips e1 e2 i :
+  same_skel_tm e1 e2 → same_skel_tm (iterate tskip i e1) (iterate tskip i e2).
+Proof. rewrite !tskip_n_to_fill. exact: same_skel_fill_item. Qed.
+
 
 Definition same_skel_tm_symm_def e1 : Prop := ∀ e2,
   same_skel_tm e1 e2 → same_skel_tm e2 e1.
@@ -492,6 +508,37 @@ Section same_skel_trans.
     same_skel_dm d1 d2 → same_skel_dm d2 d3 → same_skel_dm d1 d3.
   Proof. apply same_skel_trans. Qed.
 End same_skel_trans.
+
+Section same_skel_inversion.
+  Lemma same_skel_tv_tv {v_u e_s} (Hsk : same_skel_tm (tv v_u) e_s) :
+    ∃ v_s, e_s = tv v_s.
+  Proof. destruct e_s; naive_solver. Qed.
+
+  Lemma same_skel_dpt_dpt {p_u d_s} (Hsk : same_skel_dm (dpt p_u) d_s) :
+    ∃ p_s, d_s = dpt p_s.
+  Proof. destruct d_s; naive_solver. Qed.
+
+  Lemma same_skel_var_var {x v_s} (Hsk : same_skel_vl (var_vl x) v_s) :
+    v_s = var_vl x.
+  Proof. destruct v_s; naive_solver. Qed.
+
+  Lemma same_skel_vlit_vlit {x v_s} (Hsk : same_skel_vl (vlit x) v_s) :
+    v_s = vlit x.
+  Proof. destruct v_s; naive_solver. Qed.
+
+  Lemma same_skel_tv_var_tv_var {x e_s} (Hs : same_skel_tm (tv (var_vl x)) e_s) :
+    e_s = tv (var_vl x).
+  Proof.
+    by case (same_skel_tv_tv Hs) as [? ->]; rewrite (same_skel_var_var Hs).
+  Qed.
+
+  Lemma same_skel_tv_vlit_tv_vlit {x e_s}
+    (Hs : same_skel_tm (tv (vlit x)) e_s) : e_s = tv (vlit x).
+  Proof.
+    by case (same_skel_tv_tv Hs) as [? ->]; rewrite (same_skel_vlit_vlit Hs).
+  Qed.
+
+End same_skel_inversion.
 
 Ltac prim_step_inversion H :=
   destruct (prim_step_inversion H); ev; simplify_eq/=.

@@ -143,13 +143,13 @@ Section Lemmas.
     iApply Sub_Mu. by iApply Mu_Sub_Mu.
   Qed.
 
-  Lemma sSub_Skolem_T {Γ T1 T2 i}:
+  Lemma sSub_Skolem_T {Γ T1 T2 i} `{!SwapPropI Σ} :
     oLaterN i (shift T1) :: Γ s⊨ tv (ids 0) : shift T2 -∗
     (*───────────────────────────────*)
     Γ s⊨ T1, i <: T2, 0.
   Proof. by rewrite sP_Val sSub_Skolem_P. Qed.
 
-  Lemma Sub_Skolem_T {Γ T1 T2 i}:
+  Lemma Sub_Skolem_T {Γ T1 T2 i} `{!SwapPropI Σ} :
     iterate TLater i (shift T1) :: Γ ⊨ tv (ids 0) : shift T2 -∗
     (*───────────────────────────────*)
     Γ ⊨ T1, i <: T2, 0.

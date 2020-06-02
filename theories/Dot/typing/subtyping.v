@@ -1,13 +1,15 @@
 (** * Judgments defining gDOT path- and sub- typing.
 This judgment allowing only variables in paths, and not arbitrary values.
 *)
-From D Require Import tactics.
+From D Require Import tactics succ_notation.
 From D.Dot Require Export syn path_repl lr_syn_aux.
 From D.Dot.typing Require Export typing_aux_defs type_eq.
 From D.Dot.stamping Require Export core_stamping_defs.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
+Set Suggest Proof Using.
+Set Default Proof Using "Type".
 
 Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
 
@@ -19,6 +21,10 @@ Inductive path_typed Γ : path → ty → nat → Prop :=
     Γ !! x = Some T →
     (* After looking up in Γ, we must weaken T for the variables on top of x. *)
     Γ t⊢ₚ pv (var_vl x) : shiftN x T, 0
+| iP_Nat_I n:
+    Γ t⊢ₚ pv (vint n): TInt, 0
+| iP_Bool_I b:
+    Γ t⊢ₚ pv (vbool b): TBool, 0
 | iP_Fld_E p T i l:
     Γ t⊢ₚ p : TVMem l T, i →
     Γ t⊢ₚ pself p l : T, i
@@ -48,7 +54,7 @@ Inductive path_typed Γ : path → ty → nat → Prop :=
     Γ t⊢ₚ p : TSing p, i
 | iP_Sngl_Inv p q i:
     Γ t⊢ₚ p : TSing q, i →
-    is_unstamped_path' (length Γ) q →
+    atomic_path_root q →
     Γ t⊢ₚ q : TTop, i
 | iP_Sngl_Trans p q T i:
     Γ t⊢ₚ p : TSing q, i →
@@ -61,7 +67,6 @@ Inductive path_typed Γ : path → ty → nat → Prop :=
 where "Γ t⊢ₚ p : T , i" := (path_typed Γ p T i)
 with subtype Γ : nat → ty → ty → Prop :=
 | iStp_Refl i T :
-    is_unstamped_ty' (length Γ) T →
     Γ t⊢ₜ T <:[i] T
 | iStp_Trans T2 {i T1 T3}:
     Γ t⊢ₜ T1 <:[i] T2 →
@@ -76,35 +81,24 @@ with subtype Γ : nat → ty → ty → Prop :=
 
 (* "Structural" rule about indexes *)
 | iStp_Add_Later T i:
-    is_unstamped_ty' (length Γ) T →
     Γ t⊢ₜ T <:[i] TLater T
 
 (* "Logical" connectives *)
 | iStp_Top i T :
-    is_unstamped_ty' (length Γ) T →
     Γ t⊢ₜ T <:[i] TTop
 | iBot_Stp i T :
-    is_unstamped_ty' (length Γ) T →
     Γ t⊢ₜ TBot <:[i] T
 | iAnd1_Stp T1 T2 i:
-    is_unstamped_ty' (length Γ) T1 →
-    is_unstamped_ty' (length Γ) T2 →
     Γ t⊢ₜ TAnd T1 T2 <:[i] T1
 | iAnd2_Stp T1 T2 i:
-    is_unstamped_ty' (length Γ) T1 →
-    is_unstamped_ty' (length Γ) T2 →
     Γ t⊢ₜ TAnd T1 T2 <:[i] T2
 | iStp_And T U1 U2 i:
     Γ t⊢ₜ T <:[i] U1 →
     Γ t⊢ₜ T <:[i] U2 →
     Γ t⊢ₜ T <:[i] TAnd U1 U2
 | iStp_Or1 T1 T2 i:
-    is_unstamped_ty' (length Γ) T1 →
-    is_unstamped_ty' (length Γ) T2 →
     Γ t⊢ₜ T1 <:[i] TOr T1 T2
 | iStp_Or2 T1 T2 i:
-    is_unstamped_ty' (length Γ) T1 →
-    is_unstamped_ty' (length Γ) T2 →
     Γ t⊢ₜ T2 <:[i] TOr T1 T2
 | iOr_Stp T1 T2 U i:
     Γ t⊢ₜ T1 <:[i] U →
@@ -121,8 +115,6 @@ with subtype Γ : nat → ty → ty → Prop :=
 
 | iSngl_pq_Stp p q {i T1 T2}:
     T1 ~Tp[ p := q ]* T2 →
-    is_unstamped_ty' (length Γ) T1 →
-    is_unstamped_ty' (length Γ) T2 →
     Γ t⊢ₚ p : TSing q, i →
     Γ t⊢ₜ T1 <:[i] T2
 | iSngl_Stp_Sym T {p q i}:
@@ -136,20 +128,16 @@ with subtype Γ : nat → ty → ty → Prop :=
 (* Subtyping for recursive types. Congruence, and opening in both directions. *)
 | iMu_Stp_Mu T1 T2 i:
     (iterate TLater i T1 :: Γ) t⊢ₜ T1 <:[i] T2 →
-    is_unstamped_ty' (S (length Γ)) T1 →
     Γ t⊢ₜ TMu T1 <:[i] TMu T2
 | iMu_Stp T i:
-    is_unstamped_ty' (length Γ) T →
     Γ t⊢ₜ TMu (shift T) <:[i] T
 | iStp_Mu T i:
-    is_unstamped_ty' (length Γ) T →
     Γ t⊢ₜ T <:[i] TMu (shift T)
 
 (* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types. *)
 | iAll_Stp_All T1 T2 U1 U2 i:
     Γ t⊢ₜ TLater T2 <:[i] TLater T1 →
     iterate TLater (S i) (shift T2) :: Γ t⊢ₜ TLater U1 <:[i] TLater U2 →
-    is_unstamped_ty' (length Γ) T2 →
     Γ t⊢ₜ TAll T1 U1 <:[i] TAll T2 U2
 | iFld_Stp_Fld T1 T2 i l:
     Γ t⊢ₜ T1 <:[i] T2 →
@@ -164,27 +152,20 @@ with subtype Γ : nat → ty → ty → Prop :=
     Let's prove F[A] ∧ F[B] <:[i] F[A ∧ B] in the model.
     *)
 | iAnd_All_Stp_Distr T U1 U2 i:
-    is_unstamped_ty' (length Γ) T →
-    is_unstamped_ty' (S (length Γ)) U1 →
-    is_unstamped_ty' (S (length Γ)) U2 →
     Γ t⊢ₜ TAnd (TAll T U1) (TAll T U2) <:[i] TAll T (TAnd U1 U2)
 | iAnd_Fld_Stp_Distr l T1 T2 i:
-    is_unstamped_ty' (length Γ) T1 →
-    is_unstamped_ty' (length Γ) T2 →
     Γ t⊢ₜ TAnd (TVMem l T1) (TVMem l T2) <:[i] TVMem l (TAnd T1 T2)
 | iAnd_Typ_Stp_Distr l L U1 U2 i:
-    is_unstamped_ty' (length Γ) L →
-    is_unstamped_ty' (length Γ) U1 →
-    is_unstamped_ty' (length Γ) U2 →
     Γ t⊢ₜ TAnd (TTMem l L U1) (TTMem l L U2) <:[i] TTMem l L (TAnd U1 U2)
 | iDistr_And_Or_Stp {S T U i}:
-    is_unstamped_ty' (length Γ) S →
-    is_unstamped_ty' (length Γ) T →
-    is_unstamped_ty' (length Γ) U →
     Γ t⊢ₜ TAnd (TOr S T) U  <:[i] TOr (TAnd S U) (TAnd T U)
 | iStp_Eq i T1 T2 :
     |- T1 == T2 →
     Γ t⊢ₜ T1 <:[i] T2
+| iStp_Skolem_P {T1 T2 i j}:
+    iterate TLater i (shift T1) :: Γ t⊢ₚ pv (ids 0) : shift T2, i + j →
+    (*───────────────────────────────*)
+    Γ t⊢ₜ T1 <:[i] iterate TLater j T2
 
 where "Γ t⊢ₜ T1 <:[ i  ] T2"  := (subtype Γ i T1 T2).
 
@@ -198,10 +179,49 @@ Hint Constructors path_typed subtype : core.
 Remove Hints iStp_Trans : core.
 Hint Extern 10 => try_once iStp_Trans : core.
 
+(** Remove hints that can slow down search. *)
+Remove Hints iStp_Eq iStp_Skolem_P : core.
+(* Not directed. *)
+Remove Hints iP_Sngl_Trans : core.
+(* These cause cycles. *)
+Remove Hints iP_Mu_E : core.
+Remove Hints iP_Mu_I : core.
+
 Lemma unstamped_path_root_is_var Γ p T i:
   Γ t⊢ₚ p : T, i →
-  (∃ x, path_root p = var_vl x) ∨
-  (∃ l, path_root p = vlit l).
-Proof. by elim; intros; cbn; eauto 3 using is_unstamped_path_root. Qed.
+  atomic_path_root p.
+Proof. by elim; eauto 3. Qed.
 
 Ltac ettrans := eapply iStp_Trans.
+
+Lemma iP_LaterN {Γ p T i j} :
+  Γ t⊢ₚ p : iterate TLater j T, i →
+  Γ t⊢ₚ p : T, i + j.
+Proof.
+  elim: j i => [|j IHj] i Hp; rewrite (plusnO, plusnS); first done.
+  apply (IHj (S i)), iP_Later, Hp.
+Qed.
+
+Lemma iLater_Stp_Eq Γ i T1 T2:
+  Γ t⊢ₜ T1 <:[i.+1] T2 ↔
+  Γ t⊢ₜ TLater T1 <:[i] TLater T2.
+Proof. split; eauto. Qed.
+
+Lemma iLaterN_Stp_Eq Γ i j T1 T2:
+  Γ t⊢ₜ T1 <:[j + i] T2 ↔
+  Γ t⊢ₜ iterate TLater j T1 <:[i] iterate TLater j T2.
+Proof.
+  elim: j T1 T2 => [//|j IHj] T1 T2; rewrite !iterate_Sr /=.
+  by rewrite -IHj iLater_Stp_Eq.
+Qed.
+
+Lemma iLaterN0_Stp_Eq Γ i T1 T2:
+  Γ t⊢ₜ T1 <:[i] T2 ↔
+  Γ t⊢ₜ iterate TLater i T1 <:[0] iterate TLater i T2.
+Proof. have := @iLaterN_Stp_Eq Γ 0 i T1 T2. by rewrite !plusnO. Qed.
+
+Lemma iP_Sub_Alt Γ i j T1 T2 p :
+  Γ t⊢ₜ T1 <:[ i ] iterate TLater j T2 →
+  Γ t⊢ₚ p : T1, i →
+  Γ t⊢ₚ p : T2, i + j.
+Proof. move => IHs IHp. apply /iP_LaterN /iP_Sub /IHp /IHs. Qed.

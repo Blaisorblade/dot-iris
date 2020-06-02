@@ -263,22 +263,23 @@ Section DStpLemmas.
 
   (* An inverse of subsumption: subtyping is *equivalent* to convertibility
   for values. *)
-  Lemma sStp_Skolem_P {Γ T1 T2 i} `{!SwapPropI Σ} :
-    oLaterN i (shift T1) :: Γ s⊨p pv (ids 0) : shift T2, i -∗
+
+  Lemma sStp_Skolem_P {Γ T1 T2 i j} `{!SwapPropI Σ} :
+    oLaterN i (shift T1) :: Γ s⊨p pv (ids 0) : shift T2, i + j -∗
     (*───────────────────────────────*)
-    Γ s⊨ T1 <:[i] T2.
+    Γ s⊨ T1 <:[i] oLaterN j T2.
   Proof.
     rewrite -sstpd_delay_oLaterN; iIntros "#Htyp !> %ρ Hg %v HvT1".
-    iEval rewrite /= -path_wp_pv_eq.
+    iEval rewrite /= -(path_wp_pv_eq _ (T2 _ _)) -laterN_plus.
     iApply ("Htyp" $! (v .: ρ) with "[$Hg $HvT1]").
   Qed.
 
-  Lemma Stp_Skolem_P {Γ T1 T2 i} `{!SwapPropI Σ} :
-    iterate TLater i (shift T1) :: Γ ⊨p pv (ids 0) : shift T2, i -∗
+  Lemma Stp_Skolem_P {Γ T1 T2 i j} `{!SwapPropI Σ} :
+    iterate TLater i (shift T1) :: Γ ⊨p pv (ids 0) : shift T2, i + j -∗
     (*───────────────────────────────*)
-    Γ ⊨ T1 <:[i] T2.
+    Γ ⊨ T1 <:[i] iterate TLater j T2.
   Proof.
-    rewrite /iptp fmap_cons iterate_TLater_oLater !interp_subst_commute.
+    rewrite /iptp /istpd fmap_cons !iterate_TLater_oLater !interp_subst_commute.
     exact: sStp_Skolem_P.
   Qed.
 
@@ -481,6 +482,8 @@ Section iSub_Derived_Lemmas.
   Proof. rewrite !sstpi_to_sstpd0 sTEq_oOr_oLaterN. apply sOr_Stp. Qed.
 End iSub_Derived_Lemmas.
 
+(* In this section, some lemmas about double-delay subtyping are derived from
+the above ones. *)
 Section iSub_Derived_Lemmas.
   Context `{HdotG: !dlangG Σ} `{!SwapPropI Σ}.
 
@@ -489,12 +492,18 @@ Section iSub_Derived_Lemmas.
     Γ s⊨ T1, i <: T2, i.
   Proof. by rewrite /sstpi -sstpd_delay_oLaterN sstpd_eq'. Qed.
 
-  Lemma sMu_Sub_Mu {Γ T1 T2 i j} :
-    oLaterN i T1 :: Γ s⊨ T1, i <: T2, j -∗
-    Γ s⊨ oMu T1, i <: oMu T2, j.
+  Lemma sSub_Skolem_P {Γ T1 T2 i j}:
+    oLaterN i (shift T1) :: Γ s⊨p pv (ids 0) : shift T2, j -∗
+    (*───────────────────────────────*)
+    Γ s⊨ T1, i <: T2, j.
+  Proof. by rewrite !sstpi_to_sstpd0 -sStp_Skolem_P oLaterN_0. Qed.
+
+  Lemma Sub_Skolem_P {Γ T1 T2 i j}:
+    iterate TLater i (shift T1) :: Γ ⊨p pv (ids 0) : shift T2, j -∗
+    (*───────────────────────────────*)
+    Γ ⊨ T1, i <: T2, j.
   Proof.
-    rewrite !sstpi_to_sstpd0 !sTEq_oMu_oLaterN.
-    rewrite -sMu_Stp_Mu.
-    by rewrite -oLaterN_plus.
+    rewrite /iptp fmap_cons iterate_TLater_oLater !interp_subst_commute.
+    exact: sSub_Skolem_P.
   Qed.
 End iSub_Derived_Lemmas.

@@ -53,3 +53,21 @@ Lemma is_stamped_equiv n g T1 T2 :
 Proof.
   move: n => + H; induction H; split; intros; inverse_is_stamped; naive_solver.
 Qed.
+
+Local Hint Constructors type_equiv : core.
+
+Lemma type_equiv_laterN_and j U1 U2 :
+  |- iterate TLater j (TAnd U1 U2)
+  == TAnd (iterate TLater j U1) (iterate TLater j U2).
+Proof. elim: j U1 U2 => [//|j IHj] U1 U2; rewrite !iterate_S; eauto. Qed.
+  (* etrans; last apply type_equiv_later_and. by constructor. *)
+
+Lemma type_equiv_laterN_or j U1 U2 :
+  |- iterate TLater j (TOr U1 U2)
+  == TOr (iterate TLater j U1) (iterate TLater j U2).
+Proof. elim: j U1 U2 => [//|j IHj] U1 U2; rewrite !iterate_S; eauto. Qed.
+
+Lemma type_equiv_laterN_mu j U1 :
+  |- iterate TLater j (TMu U1)
+  == TMu (iterate TLater j U1).
+Proof. elim: j U1 => [//|j IHj] U1; rewrite !iterate_S; eauto. Qed.

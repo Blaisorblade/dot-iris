@@ -1,7 +1,7 @@
 (**
   An (unstamped) typing judgment for DSub with object identities --- that is,
   allowing only variables in types.
-  We show that it implies the unstamped typing judgment from [D.SubSyn.storeless_typing], which
+  We show that it implies the unstamped typing judgment from [D.DSub.ds_storeless_typing], which
   allows arbitrary values in types.
 *)
 From D Require Import tactics.
