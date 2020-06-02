@@ -1,7 +1,7 @@
 (** * Judgments defining gDOT path- and sub- typing.
 This judgment allowing only variables in paths, and not arbitrary values.
 *)
-From D Require Import tactics.
+From D Require Import tactics succ_notation.
 From D.Dot Require Export syn path_repl lr_syn_aux.
 From D.Dot.typing Require Export typing_aux_defs type_eq.
 From D.Dot.stamping Require Export core_stamping_defs.
@@ -179,9 +179,49 @@ Hint Constructors path_typed subtype : core.
 Remove Hints iStp_Trans : core.
 Hint Extern 10 => try_once iStp_Trans : core.
 
+(** Remove hints that can slow down search. *)
+Remove Hints iStp_Eq iStp_Skolem_P : core.
+(* Not directed. *)
+Remove Hints iP_Sngl_Trans : core.
+(* These cause cycles. *)
+Remove Hints iP_Mu_E : core.
+Remove Hints iP_Mu_I : core.
+
 Lemma unstamped_path_root_is_var Γ p T i:
   Γ t⊢ₚ p : T, i →
   atomic_path_root p.
 Proof. by elim; eauto 3. Qed.
 
 Ltac ettrans := eapply iStp_Trans.
+
+Lemma iP_LaterN {Γ p T i j} :
+  Γ t⊢ₚ p : iterate TLater j T, i →
+  Γ t⊢ₚ p : T, i + j.
+Proof.
+  elim: j i => [|j IHj] i Hp; rewrite (plusnO, plusnS); first done.
+  apply (IHj (S i)), iP_Later, Hp.
+Qed.
+
+Lemma iLater_Stp_Eq Γ i T1 T2:
+  Γ t⊢ₜ T1 <:[i.+1] T2 ↔
+  Γ t⊢ₜ TLater T1 <:[i] TLater T2.
+Proof. split; eauto. Qed.
+
+Lemma iLaterN_Stp_Eq Γ i j T1 T2:
+  Γ t⊢ₜ T1 <:[j + i] T2 ↔
+  Γ t⊢ₜ iterate TLater j T1 <:[i] iterate TLater j T2.
+Proof.
+  elim: j T1 T2 => [//|j IHj] T1 T2; rewrite !iterate_Sr /=.
+  by rewrite -IHj iLater_Stp_Eq.
+Qed.
+
+Lemma iLaterN0_Stp_Eq Γ i T1 T2:
+  Γ t⊢ₜ T1 <:[i] T2 ↔
+  Γ t⊢ₜ iterate TLater i T1 <:[0] iterate TLater i T2.
+Proof. have := @iLaterN_Stp_Eq Γ 0 i T1 T2. by rewrite !plusnO. Qed.
+
+Lemma iP_Sub_Alt Γ i j T1 T2 p :
+  Γ t⊢ₜ T1 <:[ i ] iterate TLater j T2 →
+  Γ t⊢ₚ p : T1, i →
+  Γ t⊢ₚ p : T2, i + j.
+Proof. move => IHs IHp. apply /iP_LaterN /iP_Sub /IHp /IHs. Qed.

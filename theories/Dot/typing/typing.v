@@ -159,6 +159,16 @@ Lemma iD_All Γ V T1 T2 e l:
   Γ |L V t⊢{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
 Proof. by intros; apply iD_Val, iT_All_I_strip1. Qed.
 
+Lemma iT_Sub' Γ i T1 T2 e :
+  Γ t⊢ₜ T1 <:[ 0 ] iterate TLater i T2 →
+  Γ t⊢ₜ e : T1 →
+  Γ t⊢ₜ iterate tskip i e : T2.
+Proof.
+  elim: i T1 T2 => [|i +] T1 T2; first eauto.
+  rewrite (iterate_S _ _ e) iterate_Sr => IHi IHsub IH1.
+  apply /iT_Skip /IHi /IH1 /IHsub.
+Qed.
+
 (* Old names: *)
 Definition Sub_later_shift := iLater_Idx_Stp.
 Definition Sub_later_shift_inv := iIdx_Later_Stp.
