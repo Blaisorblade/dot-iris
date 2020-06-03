@@ -225,3 +225,10 @@ Lemma iP_Sub_Alt Γ i j T1 T2 p :
   Γ t⊢ₚ p : T1, i →
   Γ t⊢ₚ p : T2, i + j.
 Proof. move => IHs IHp. apply /iP_LaterN /iP_Sub /IHp /IHs. Qed.
+
+Lemma iStp_Add_LaterN {Γ T i j} :
+  Γ t⊢ₜ T <:[i] iterate TLater j T.
+Proof.
+  elim: j => [//|j IHj]; rewrite iterate_S.
+  apply /iStp_Trans /iStp_Add_Later /IHj.
+Qed.

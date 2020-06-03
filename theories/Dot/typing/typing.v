@@ -169,6 +169,18 @@ Proof.
   apply /iT_Skip /IHi /IH1 /IHsub.
 Qed.
 
+(** Never used, but displayed in the paper. *)
+Lemma iT_Sel_Unfold Γ i e p l L U :
+  Γ t⊢ₚ p : TTMem l L U, i →
+  Γ t⊢ₜ e : TSel p l →
+  Γ t⊢ₜ iterate tskip i e : U.
+Proof.
+  intros Hp He.
+  apply: iT_Sub' He.
+  ettrans; first apply (iStp_Add_LaterN (j := i)).
+  rewrite -iLaterN0_Stp_Eq.
+  apply: iSel_Stp Hp.
+Qed.
 
 Ltac typconstructor :=
   match goal with
