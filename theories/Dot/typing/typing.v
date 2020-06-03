@@ -169,9 +169,6 @@ Proof.
   apply /iT_Skip /IHi /IH1 /IHsub.
 Qed.
 
-(* Old names: *)
-Definition Sub_later_shift := iLater_Idx_Stp.
-Definition Sub_later_shift_inv := iIdx_Later_Stp.
 
 Ltac typconstructor :=
   match goal with
@@ -181,5 +178,5 @@ Ltac typconstructor :=
   | |- dm_typed _ _ _ _ => first [apply iD_All | constructor]
   | |- path_typed _ _ _ _ => first [apply iP_Later | constructor]
   | |- subtype _ _ _ _ _ =>
-    first [apply Sub_later_shift | constructor ]
+    first [apply iLater_Idx_Stp | constructor ]
   end.
