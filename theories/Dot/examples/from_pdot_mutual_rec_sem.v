@@ -267,13 +267,12 @@ Proof.
   have [n HpOptV] := path_wp_exec_pure _ _ Hal; wp_pure => {HpOptV n}.
   rewrite /hoptionTyConcr1; lrSimpl in "HoptV".
   iDestruct "HoptV" as "[Hw|Hw]"; [have Hv := HvT | have Hv := HvF].
-  all: iPoseProof (fundamental_subtype (Hv Γ)) as "Hv";
-    iSpecialize ("Hv" $! _ optV with "Hg Hw"); lrSimpl in "Hv";
-    iDestruct "Hv" as (? Hl' pb ->) "Hpb"; lrSimpl in "Hpb";
-    rewrite path_wp_pure_exec; iDestruct "Hpb" as %(bv & [n1 ?] & Heq).
+  all: iPoseProof (fundamental_subtype (Hv Γ) $! _ optV with "Hg Hw") as "Hv" => {Hv};
+    lrSimpl in "Hv"; iDestruct "Hv" as (? Hl' pb ->) "Hpb"; lrSimpl in "Hpb";
+    rewrite path_wp_pure_exec; iDestruct "Hpb" as %(bv & [n1 Hexec] & Heq).
   all: move: Heq; rewrite alias_paths_pv_eq_2 path_wp_pure_pv_eq => Heq; cbn in Heq;
-    wp_pure; wp_pure.
-  all: simpl in Heq; rewrite -{}Heq; wp_pure; wp_pure.
+    wp_pure; wp_pure => {Hl' n1 pb Hexec}.
+  all: simpl in Heq; rewrite -{bv}Heq; wp_pure; wp_pure.
   by iApply wp_wand; [iApply loopSemT | iIntros "% []"].
   wp_pure.
   (* To conclude, prove the right subtyping for hsomeType and TypeRef. *)
@@ -284,20 +283,21 @@ Proof.
   iAssert (V⟦ shift typeRefTBody ⟧ vnil ρ
     (shiftV (ν [val "symb" = x1])).[up ρ].[vint 0/])
     as "{Hw} #Hw"; last iApply "Hw".
-  rewrite (_ : (shiftV _).[_].[_] = ν [val "symb" = shiftV (ρ 0)]); last
-    by rewrite up_sub_compose_vl; autosubst.
-  lrSimpl; iSplit; last by []. iExists _; iSplit; first by eauto.
-  iExists _; iSplit; first by []. rewrite path_wp_pv_eq.
-  rewrite (_ : ∀ v w, (shiftV v).[w/] = v); last by
-    intros; autosubst.
+  lrSimpl; iSplit; last by [].
+  rewrite up_sub_compose_vl (_ : (shiftV _).[_] = ν [val "symb" = shiftV (ρ 0)]); last
+    by autosubst.
+  iExists _; iSplit; first by eauto.
+  rewrite oDVMem_eq path_wp_pv_eq.
+  rewrite subst_comp ren_scons subst_id.
   iDestruct "Hg" as "[_ H]"; lrSimpl in "H"; lrSimpl.
   iSplit; [by iApply "H"| iClear "H"].
 
+  (* Just to restate the current goal (for some extra readability). *)
   iAssert (V⟦ val "tpe" : hsomeConcrT ⊥ ⊤ ⟧ vnil ρ (ρ 0)) as "{Hw} #Hw";
     lrSimpl; last iApply "Hw".
-  iExists (dpt p); iFrame (Hl); iExists p; iSplit; first done; rewrite path_wp_eq.
-  iExists optV; iSplit; first done; lrSimpl in "Hw"; lrSimpl.
-  by iDestruct "Hw" as "[$ _]".
+  iExists (dpt p); iFrame (Hl); rewrite oDVMem_eq path_wp_eq.
+  iExists optV; iFrame (Hal); lrSimpl in "Hw"; lrSimpl.
+  by iDestruct "Hw" as "#[$ _]".
 Qed.
 
 Ltac semTMember i := iApply D_Typ; iApply (extraction_to_leadsto_envD_equiv (n := i) with "Hs"); by_extcrush.
