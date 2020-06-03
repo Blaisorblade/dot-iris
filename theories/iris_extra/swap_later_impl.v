@@ -61,7 +61,7 @@ Arguments uPred_holds {_} !_ _ _ /.
 Context {M : ucmraT}.
 Implicit Types P Q : uPred M.
 
-Lemma later_impl `{!CmraSwappable M} P Q : (▷ P → ▷ Q) ⊢ ▷ (P → Q).
+Lemma CmraSwappable_impl_later `{!CmraSwappable M} P Q : (▷ P → ▷ Q) ⊢ ▷ (P → Q).
 Proof.
   unseal; split => /= -[//|n] x ? HPQ n' ? [x' ->] ?? HP.
   specialize (HPQ (S n')); cbn in HPQ.
@@ -73,7 +73,7 @@ Proof.
     by rewrite -Hnx'x''.
 Qed.
 
-Lemma later_wand `{!CmraSwappable M} P Q : (▷ P -∗ ▷ Q) ⊢ ▷ (P -∗ Q).
+Lemma CmraSwappable_impl_wand `{!CmraSwappable M} P Q : (▷ P -∗ ▷ Q) ⊢ ▷ (P -∗ Q).
 Proof.
   unseal; split => /= -[//|n] x ? HPQ n' x' ?? HP.
   specialize (HPQ (S n')); cbn in HPQ.
@@ -85,7 +85,7 @@ Proof.
     by rewrite -Hnx'x''.
 Qed.
 
-Lemma later_bupd `{!CmraSwappable M} P : (▷ |==> P) ⊢ |==> ▷ P.
+Lemma CmraSwappable_later_bupd `{!CmraSwappable M} P : (▷ |==> P) ⊢ |==> ▷ P.
 Proof.
   unseal; split => /= -[|n] x ? HP k yf Hkl.
   - have ->: k = 0 by lia. by eauto.
@@ -101,7 +101,7 @@ Proof.
       by rewrite -Hnx'x''.
 Qed.
 
-Lemma bupd_later `{!CmraSwappable M} P : (|==> ▷ P) ⊢ ▷ |==> P.
+Lemma CmraSwappable_bupd_later `{!CmraSwappable M} P : (|==> ▷ P) ⊢ ▷ |==> P.
 Proof.
   unseal; split => /= -[//|n] x ? HP k yf Hkl Hv.
   case: (cmra_extend_included k (Some x) yf) => [||yf' []];
@@ -114,10 +114,15 @@ Proof.
 Qed.
 
 Global Instance SwapCmra `{!CmraSwappable M}: SwapProp (uPredI M).
-Proof. split. exact: later_impl. exact: later_wand. Qed.
+Proof.
+  split. exact: CmraSwappable_impl_later. exact: CmraSwappable_impl_wand.
+Qed.
 
 Global Instance SwapBUpdCmra `{!CmraSwappable M}: SwapBUpd (uPredI M) _.
-Proof. split=>P. iSplit; [iApply bupd_later | iApply later_bupd]. Qed.
+Proof.
+  split=>P; iSplit;
+    [iApply CmraSwappable_bupd_later | iApply CmraSwappable_later_bupd].
+Qed.
 
 End SwapCmra.
 
