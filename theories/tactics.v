@@ -27,12 +27,13 @@ Hint Constructors list : core.
 (** Devious marker predicate to use for encoding state within proof goals *)
 Definition usedLemma {T : Type} (x : T) := True.
 
-(** After a round of application with the above, we will have a lot of junk [usedLemma] markers to clean up; hence this tactic. *)
-Ltac un_usedLemma :=
-  repeat match goal with
-           | [ H : usedLemma _ |- _ ] => clear H
-         end.
 Ltac markUsed H := assert (usedLemma H) by constructor.
+
+(** After a round of application with the above, we will have a lot of junk [usedLemma] markers to clean up; hence this tactic. *)
+Ltac un_usedLemma := repeat
+  match goal with
+    | [ H : usedLemma _ |- _ ] => clear H
+  end.
 
 Ltac try_once lm :=
     match goal with
@@ -46,10 +47,10 @@ Tactic Notation "try_once_tac" constr(T) tactic(tac) :=
   | _ => markUsed T; tac
   end.
 
+(** Example of [try_once_tac]: *)
+(* Definition injectHyps_marker := 0. *)
+(* Hint Extern 5 => try_once_tac injectHyps_marker injectHyps : core. *)
+
 (** Perform [tac], then fail if more than
     one goal is created. *)
 Tactic Notation "nosplit" tactic3(tac) := tac; let n := numgoals in guard n = 1.
-
-(* Example. *)
-(* Definition injectHyps_marker := 0. *)
-(* Hint Extern 5 => try_once_tac injectHyps_marker injectHyps : core. *)
