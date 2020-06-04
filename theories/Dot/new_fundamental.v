@@ -32,11 +32,14 @@ Section fundamental.
 
   Hint Resolve psubst_one_implies : core.
 
+  (* Reduce away the above definitions. *)
+  Local Ltac simpl_context := red; markUsed Σ; red_hyps_once.
+
   Theorem subtype_fundamental_mut Γ :
     (∀ p T i HT, @fundamental_path_typed_def Γ p T i HT) ∧
     (∀ i T1 T2 HT, @fundamental_subtype_def Γ i T1 T2 HT).
   Proof.
-    apply pure_typing_mut_ind; clear Γ; intros; red.
+    apply pure_typing_mut_ind; clear Γ; intros; simpl_context.
     + by iApply P_Var.
     + by iApply sP_Nat_I.
     + by iApply sP_Bool_I.
@@ -94,7 +97,7 @@ Section fundamental.
     (∀ ds T HT, @fundamental_dms_typed_def Γ ds T HT) ∧
     (∀ l d T HT, @fundamental_dm_typed_def Γ l d T HT).
   Proof.
-    apply typing_mut_ind; clear Γ; intros; red.
+    apply typing_mut_ind; clear Γ; intros; simpl_context.
     + iApply uT_All_Ex_p; [|iApply H|iApply fundamental_path_typed]; eauto.
     + by iApply uT_All_E; [iApply H|iApply H0].
     + by iApply suT_Obj_E; iApply H.

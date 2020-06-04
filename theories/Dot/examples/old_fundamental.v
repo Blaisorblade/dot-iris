@@ -27,11 +27,14 @@ Section old_fundamental.
   Local Definition fundamental_subtype_def Γ T1 i1 T2 i2
     (HT: Γ u⊢ₜ T1, i1 <: T2, i2) := ⊢ Γ ⊨ T1, i1 <: T2, i2.
 
+  (* Reduce away the above definitions; copied from [new_fundamental.v] *)
+  Local Ltac simpl_context := red; markUsed Σ; red_hyps_once.
+
   Theorem subtype_fundamental_mut Γ :
     (∀ p T i HT, @fundamental_path_typed_def Γ p T i HT) ∧
     (∀ T1 i1 T2 i2 HT, @fundamental_subtype_def Γ T1 i1 T2 i2 HT).
   Proof.
-    apply old_pure_typing_mut_ind; clear Γ; intros; red.
+    apply old_pure_typing_mut_ind; clear Γ; intros; simpl_context.
       + by iApply P_Var.
       + by iApply sP_Nat_I.
       + by iApply sP_Bool_I.
@@ -95,7 +98,7 @@ Section old_fundamental.
     (∀ ds T HT, @fundamental_dms_typed_def Γ g ds T HT) ∧
     (∀ l d T HT, @fundamental_dm_typed_def Γ g l d T HT).
   Proof.
-    apply storeless_typing_mut_ind; clear Γ g; intros.
+    apply storeless_typing_mut_ind; clear Γ g; intros; simpl_context.
     + by iApply uT_All_Ex; [iApply H|iApply H0].
     + by iApply uT_All_Ex_p; [|iApply H|iApply fundamental_path_typed].
     + by iApply uT_All_E; [iApply H|iApply H0].
