@@ -10,30 +10,6 @@ Unset Strict Implicit.
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
-(* Lemma iLaterN_Idx_Stp Γ i j T1 T2:
-  Γ t⊢ₜ T1 <:[j + i] T2 →
-  Γ t⊢ₜ iterate TLater j T1 <:[i] iterate TLater j T2.
-Proof. apply iLaterN_Stp_Eq. Qed.
-
-Lemma iLaterN_0_Idx_Stp Γ i T1 T2:
-  Γ t⊢ₜ T1 <:[i] T2 →
-  Γ t⊢ₜ iterate TLater i T1 <:[0] iterate TLater i T2.
-Proof. have := (@iLaterN_Idx_Stp Γ 0 i T1 T2). by rewrite plusnO. Qed.
-
-Lemma iIdx_LaterN_Stp Γ i j T1 T2:
-  Γ t⊢ₜ iterate TLater j T1 <:[i] iterate TLater j T2 →
-  Γ t⊢ₜ T1 <:[j + i] T2.
-Proof.
-  elim: j T1 T2 => [//|j IHj] T1 T2; rewrite !iterate_Sr => Ht.
-  apply iIdx_Later_Stp, IHj, Ht.
-Qed.
-
-Lemma iIdx_LaterN_Stp Γ i j T1 T2:
-  Γ t⊢ₜ iterate TLater j T1 <:[i] iterate TLater j T2 →
-  Γ t⊢ₜ T1 <:[j + i] T2.
-Proof. have := (@iLaterN_Idx_Stp Γ 0 i T1 T2). by rewrite plusnO. Qed. *)
-
-
 Local Lemma iP_Sub_Der Γ i j T1 T2 p :
   Γ t⊢ₜ iterate TLater i T1 <:[ 0 ] iterate TLater (i + j) T2 →
   Γ t⊢ₚ p : T1, i →
