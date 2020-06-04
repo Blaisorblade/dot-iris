@@ -232,7 +232,7 @@ Section semantic_lemmas.
     Γ ⊨p pself p l : TSing (pself q l), i.
   Proof. apply sP_Sngl_E. Qed.
 
-  Lemma sP_Sub {Γ p T1 T2 i j}:
+  Lemma sP_ISub {Γ p T1 T2 i j}:
     Γ s⊨p p : T1, i -∗
     Γ s⊨ T1, i <: T2, i + j -∗
     (*───────────────────────────────*)

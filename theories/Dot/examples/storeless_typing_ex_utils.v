@@ -254,7 +254,7 @@ Lemma path_tp_delay {Γ p T i j} (Hst: is_unstamped_ty' (length Γ) T) : i <= j 
 Proof.
   intros Hle Hp.
   rewrite (le_plus_minus i j Hle); move: {j Hle} (j - i) => k.
-  eapply iP_Sub, Hp.
+  eapply iP_ISub, Hp.
   apply: iSub_AddIJ'; by [|lia].
 Qed.
 

@@ -23,7 +23,7 @@ Inductive path_typed Γ : path → ty → nat → Prop :=
 | iP_Fld_E p T i l:
     Γ u⊢ₚ p : TVMem l T, i →
     Γ u⊢ₚ pself p l : T, i
-| iP_Sub p T1 T2 i j :
+| iP_ISub p T1 T2 i j :
     Γ u⊢ₜ T1, i <: T2, i + j →
     Γ u⊢ₚ p : T1, i →
     (*───────────────────────────────*)
@@ -224,7 +224,7 @@ Lemma iP_Later {Γ p T i} :
   Γ u⊢ₚ p : TLater T, i →
   Γ u⊢ₚ p : T, S i.
 Proof.
-  intros Hu Hp; apply iP_Sub with (j := 1) (T1 := TLater T) (T2 := T) in Hp;
+  intros Hu Hp; apply iP_ISub with (j := 1) (T1 := TLater T) (T2 := T) in Hp;
     move: Hp; rewrite (plusnS i 0) (plusnO i); intros; by [|constructor].
 Qed.
 
@@ -248,14 +248,14 @@ Proof.
   by eapply iSub_Trans, iLater_Sub.
 Qed.
 
-Lemma iP_Sub' {Γ p T1 T2 i} :
+Lemma iP_ISub' {Γ p T1 T2 i} :
   Γ u⊢ₜ T1, i <: T2, i →
   Γ u⊢ₚ p : T1, i →
   (*───────────────────────────────*)
   Γ u⊢ₚ p : T2, i.
 Proof.
   intros Hsub Hp; rewrite -(plusnO i).
-  by eapply iP_Sub, Hp; rewrite plusnO.
+  by eapply iP_ISub, Hp; rewrite plusnO.
 Qed.
 
 Lemma iP_Var' Γ x T1 T2 :
@@ -278,7 +278,7 @@ Lemma iP_Var_Sub Γ x T1 T2 :
   Γ u⊢ₜ shiftN x T1, 0 <: T2, 0 →
   (*──────────────────────*)
   Γ u⊢ₚ pv (var_vl x) : T2, 0.
-Proof. by intros; eapply iP_Sub'; [|pvar]. Qed.
+Proof. by intros; eapply iP_ISub'; [|pvar]. Qed.
 
 Lemma iP_Var0_Sub Γ T1 T2 :
   Γ !! 0 = Some T1 →

@@ -39,7 +39,7 @@ Section old_fundamental.
       + by iApply sP_Nat_I.
       + by iApply sP_Bool_I.
       + iApply P_Fld_E. by iApply H.
-      + by iApply sP_Sub; [iApply H0|iApply H].
+      + by iApply sP_ISub; [iApply H0|iApply H].
       + by iApply P_Mu_I; [|iApply H]; first exact: psubst_one_implies.
       + by iApply P_Mu_E; [|iApply H]; first exact: psubst_one_implies.
       + iApply P_Fld_I. by iApply H.

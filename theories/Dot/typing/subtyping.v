@@ -28,7 +28,7 @@ Inductive path_typed Γ : path → ty → nat → Prop :=
 | iP_Fld_E p T i l:
     Γ t⊢ₚ p : TVMem l T, i →
     Γ t⊢ₚ pself p l : T, i
-| iP_Sub p T1 T2 i :
+| iP_ISub p T1 T2 i :
     Γ t⊢ₜ T1 <:[i] T2 →
     Γ t⊢ₚ p : T1, i →
     (*───────────────────────────────*)
@@ -220,11 +220,11 @@ Lemma iLaterN0_Stp_Eq Γ i T1 T2:
   Γ t⊢ₜ iterate TLater i T1 <:[0] iterate TLater i T2.
 Proof. have := @iLaterN_Stp_Eq Γ 0 i T1 T2. by rewrite !plusnO. Qed.
 
-Lemma iP_Sub_Alt Γ i j T1 T2 p :
+Lemma iP_ISub_Alt Γ i j T1 T2 p :
   Γ t⊢ₜ T1 <:[ i ] iterate TLater j T2 →
   Γ t⊢ₚ p : T1, i →
   Γ t⊢ₚ p : T2, i + j.
-Proof. move => IHs IHp. apply /iP_LaterN /iP_Sub /IHp /IHs. Qed.
+Proof. move => IHs IHp. apply /iP_LaterN /iP_ISub /IHp /IHs. Qed.
 
 Lemma iStp_Add_LaterN {Γ T i j} :
   Γ t⊢ₜ T <:[i] iterate TLater j T.

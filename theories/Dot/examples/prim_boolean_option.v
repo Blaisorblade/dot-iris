@@ -200,7 +200,7 @@ Qed.
 
 Example optionModTypSub Γ :
   Γ v⊢ₜ[ primOptionG ] μ: self, hoptionModTInvBody self, 0 <: hoptionModT, 0.
-Proof. ltcrush; eapply (iP_Sub (i := 0)), iP_Bool_I; tcrush. Qed.
+Proof. ltcrush; eapply (iP_ISub (i := 0)), iP_Bool_I; tcrush. Qed.
 
 Example optionModTyp Γ :
   Γ v⊢ₜ[ primOptionG ] hoptionModV : hoptionModT.

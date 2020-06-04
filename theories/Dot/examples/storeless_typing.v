@@ -191,7 +191,7 @@ Proof.
   move E: (tv (var_vl x)) => t; induction 1; simplify_eq/=;
     last by destruct p; simplify_eq/=.
   destruct i; last by [simplify_eq]; rewrite iterate_0 in E; simplify_eq/=.
-  eapply iP_Sub'; eauto.
+  eapply iP_ISub'; eauto.
 Qed.
 
 Lemma iT_Mu_E {Γ x T g}:

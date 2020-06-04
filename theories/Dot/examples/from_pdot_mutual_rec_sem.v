@@ -382,7 +382,7 @@ Proof.
   rewrite /hsomeConcrT/=.
   apply iSub_Skolem_P; stcrush.
   rewrite !iterate_S !iterate_0; hideCtx. simplSubst.
-  apply (iP_Sub' (T1 := TAnd (val "get" : ▶: x0 @; "T")
+  apply (iP_ISub' (T1 := TAnd (val "get" : ▶: x0 @; "T")
     (type "T" >: ⊥ <: x3 @ "types" @; "Type"))); first last.
   apply iP_And; last by tcrush; varsub; tcrush. {
     apply (iP_Mu_E (p := x0) (T := val "get" : ▶: x0 @; "T")); tcrush.
@@ -483,11 +483,11 @@ Proof.
   set Γ' := shift (μ (fromPDotPaperAbsTBody x2)) ::
     μ (fromPDotPaperAbsTBody x2) :: optionModTInv :: Γ.
   have Hpx: Γ' v⊢ₚ[fromPDotG] x0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0.
-  by eapply iP_Fld_E, iP_Sub', iP_Mu_E; last var; [tcrush|stcrush].
+  by eapply iP_Fld_E, iP_ISub', iP_Mu_E; last var; [tcrush|stcrush].
   have HpxSubst: Γ' v⊢ₚ[fromPDotG] x0 @ "types" : fromPDotPaperAbsTypesTBodySubst, 0.
   by eapply (iP_Mu_E (T := fromPDotPaperAbsTypesTBody)
     (p := x0 @ "types")), Hpx; stcrush.
-  eapply iT_Path', iP_Fld_I, (iP_Sub (i := 0)), HpxSubst.
+  eapply iT_Path', iP_Fld_I, (iP_ISub (i := 0)), HpxSubst.
   repeat lNext.
 Qed.
 
