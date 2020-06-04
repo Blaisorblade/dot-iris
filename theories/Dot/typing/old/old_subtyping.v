@@ -208,6 +208,8 @@ Hint Constructors path_typed subtype : core.
 (** Ensure [eauto]'s proof search does not diverge due to transitivity. *)
 Remove Hints iSub_Trans : core.
 Hint Extern 10 => try_once iSub_Trans : core.
+(** Remove unwanted hints: we don't want to use this rule silently. *)
+Remove Hints iSub_Skolem_P : core.
 
 Lemma unstamped_path_root_is_var Γ p T i:
   Γ u⊢ₚ p : T, i →
