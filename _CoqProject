@@ -46,7 +46,6 @@ theories/Dot/lr/path_wp.v
 theories/Dot/lr/unary_lr.v
 theories/Dot/lr/sem_unstamped_typing.v
 
-theories/Dot/semtyp_lemmas/examples_lr.v
 theories/Dot/semtyp_lemmas/binding_lr.v
 theories/Dot/semtyp_lemmas/defs_lr.v
 theories/Dot/semtyp_lemmas/sub_lr.v
@@ -73,23 +72,24 @@ theories/Dot/typing/old/old_unstamped_typing_to_typing.v
 theories/Dot/typing/old/old_unstamped_typing.v
 theories/Dot/typing/old/old_unstamped_typing_derived_rules.v
 
-theories/Dot/examples/old_fundamental.v
-theories/Dot/examples/ex_iris_utils.v
 theories/Dot/examples/ex_utils.v
-theories/Dot/examples/from_pdot_mutual_rec.v
-theories/Dot/examples/from_pdot_mutual_rec_sem.v
-theories/Dot/examples/small_sem_ex.v
 theories/Dot/examples/hoas.v
 theories/Dot/examples/hoas_ex_utils.v
-theories/Dot/examples/list.v
-theories/Dot/examples/no_russell_paradox.v
-theories/Dot/examples/positive_div.v
-theories/Dot/examples/prim_boolean_option.v
-theories/Dot/examples/scala_lib.v
-theories/Dot/examples/storeless_typing.v
-theories/Dot/examples/storeless_typing_ex.v
-theories/Dot/examples/storeless_typing_ex_utils.v
-theories/Dot/examples/old_unstamped_typing_ex.v
+theories/Dot/examples/old_fundamental.v
+theories/Dot/examples/sem/ex_iris_utils.v
+theories/Dot/examples/sem/examples_lr.v
+theories/Dot/examples/sem/from_pdot_mutual_rec_sem.v
+theories/Dot/examples/sem/no_russell_paradox.v
+theories/Dot/examples/sem/prim_boolean_option.v
+theories/Dot/examples/sem/small_sem_ex.v
+theories/Dot/examples/sem/storeless_typing.v
+theories/Dot/examples/sem/storeless_typing_ex.v
+theories/Dot/examples/sem/storeless_typing_ex_utils.v
+theories/Dot/examples/syn/from_pdot_mutual_rec.v
+theories/Dot/examples/syn/list.v
+theories/Dot/examples/syn/old_unstamped_typing_ex.v
+theories/Dot/examples/syn/positive_div.v
+theories/Dot/examples/syn/scala_lib.v
 
 theories/Dot/hkdot/sem_kind.v
 theories/Dot/hkdot/hkdot.v
