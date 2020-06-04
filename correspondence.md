@@ -41,17 +41,17 @@ of gDOT and the formalization in Coq. We briefly discuss them here.
 
 - For legacy reasons, syntactically well-typed examples are written in "old"
   unstamped typing, defined in
-  [`Dot/typing/old/old_subtyping.v`](theories/Dot/typing/old/old_subtyping.v) and
-  [`Dot/typing/old/old_unstamped_typing.v`](theories/Dot/typing/old/old_unstamped_typing.v).
+  [`Dot/examples/old_typing/old_subtyping.v`](theories/Dot/examples/old_typing/old_subtyping.v) and
+  [`Dot/examples/old_typing/old_unstamped_typing.v`](theories/Dot/examples/old_typing/old_unstamped_typing.v).
   This typing judgment can be translated to our new judgment;
-  [`Dot/typing/old/old_unstamped_typing_to_typing.v`](theories/Dot/typing/old/old_unstamped_typing_to_typing.v).
+  [`Dot/examples/old_typing/old_unstamped_typing_to_typing.v`](theories/Dot/examples/old_typing/old_unstamped_typing_to_typing.v).
   The main difference is in the handling of delays and later: subtyping has two
   indexes instead of one.
 
 - As an aid to proof automation for syntactically ill-typed examples, we also
   define and prove type safe a more liberal variant of the "old" typing
   judgment in
-  [`Dot/examples/storeless_typing.v`](theories/Dot/examples/storeless_typing.v).
+  [`Dot/examples/sem/storeless_typing.v`](theories/Dot/examples/sem/storeless_typing.v).
   This is not at all necessary to our proof technique, it just enables some
   simple automation.
 
@@ -106,16 +106,15 @@ Sec. 4:
     [`Dot/typing/typing_aux_defs.v`](theories/Dot/typing/typing_aux_defs.v)
   - Path substitution and replacement:
     [`Dot/syn/path_repl.v`](theories/Dot/syn/path_repl.v)
-  - Primitive typing rules: [`Dot/typing/typing.v`](theories/Dot/typing/typing.v)
-  - Derived rules:
-    [`Dot/typing/typing.v`](theories/Dot/typing/typing.v).
+  - Primitive and derived typing rules:
+    [`Dot/typing/typing.v`](theories/Dot/typing/typing.v)
 
 Sec. 5:
 - Safety (Def. 5.1) is defined as `safe` in
   [`iris_extra/det_reduction.v`](theories/iris_extra/det_reduction.v).
 - Type soundness for gDOT is proven in
-  [`Dot/fundamental.v`](theories/Dot/fundamental.v) as `Theorem
-  type_soundness`.
+  [`Dot/fundamental.v`](theories/Dot/fundamental.v) as
+  `Theorem type_soundness`.
 
 Sec. 6:
 - Examples are written using higher-level notations than the one defined in `syn.v`:
@@ -126,12 +125,18 @@ Sec. 6:
     [`Dot/examples/hoas.v`](theories/Dot/examples/hoas.v); it defines an HOAS
     frontend for writing concrete terms.
 
-- Examples are in [`Dot/examples/`](theories/Dot/examples/). In particular:
+- Syntactically well-typed examples are in [`Dot/examples/syn/`](theories/Dot/examples/syn/).
+  In particular:
   - Motivating example (Fig. 2, discussed in Sec. 1.1 and 4.0):
-    [`Dot/examples/from_pdot_mutual_rec.v`](theories/Dot/examples/from_pdot_mutual_rec.v).
-  - Covariant lists example (Fig. 10, Sec. 6.1): [`Dot/examples/list.v`](theories/Dot/examples/list.v).
-  - Positive integers example (Fig. 11, Sec. 6.2): [`Dot/examples/positive_div.v`](theories/Dot/examples/positive_div.v).
-  - Unsafe motivating example (Fig. 12, Sec. 6.3): [`Dot/examples/from_pdot_mutual_rec_sem.v`](theories/Dot/examples/from_pdot_mutual_rec_sem.v).
+    [`Dot/examples/syn/from_pdot_mutual_rec.v`](theories/Dot/examples/syn/from_pdot_mutual_rec.v).
+  - Covariant lists example (Fig. 10, Sec. 6.1): [`Dot/examples/syn/list.v`](theories/Dot/examples/syn/list.v).
+- Those examples are written using old unstamped typing, the translation to
+  typing is proved by `Theorem renew_typed` in
+  [`Dot/examples/old_typing/old_unstamped_typing_to_typing.v`](theories/Dot/examples/old_typing/old_unstamped_typing_to_typing.v).
+
+- Semantically safe examples are in [`Dot/examples/sem/`](theories/Dot/examples/sem/).
+  - Positive integers example (Fig. 11, Sec. 6.2): [`Dot/examples/positive_div.v`](theories/Dot/examples/sem/positive_div.v).
+  - Unsafe motivating example (Fig. 12, Sec. 6.3): [`Dot/examples/from_pdot_mutual_rec_sem.v`](theories/Dot/examples/sem/from_pdot_mutual_rec_sem.v).
 
 Sec. 7:
 - For the (updated) code sizes, see [`codesize.md`](codesize.md).
@@ -258,8 +263,8 @@ Inside the [`Dot`](theories/Dot) folder:
   - [`examples_lr.v`](theories/Dot/semtyp_lemmas/examples_lr.v): other lemmas,
     only needed for examples
 * [`typing`](theories/Dot/typing): syntactic typing and auxiliary lemmas about it
-* [`examples`](theories/Dot/examples): various gDOT snippets.
 * [`fundamental.v`](theories/Dot/fundamental.v): prove fundamental theorem, adequacy and type safety.
-* [`stamping`](theories/Dot/stamping): legacy code about stamping, still
-  used in some examples.
+* [`examples`](theories/Dot/examples): various gDOT examples, including ones in
+  the paper, together with legacy code they use (from earlier versions of our
+  approach).
 

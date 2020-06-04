@@ -1,3 +1,4 @@
+(** * Prove syntactic translation from old unstamped typing to typing. *)
 From D Require Import tactics succ_notation.
 (* Beware the order of imports! We want [subtyping] and [typing] to be preferred. *)
 From D.Dot Require Import old_subtyping old_unstamped_typing unstampedness_binding.
@@ -69,7 +70,7 @@ Proof.
     apply /iD_Path_Sub /IHt /Hsub.
 Qed.
 
-Lemma renew_typed Γ e T (HT: Γ u⊢ₜ e : T) : Γ t⊢ₜ e : T.
+Theorem renew_typed Γ e T (HT: Γ u⊢ₜ e : T) : Γ t⊢ₜ e : T.
 Proof. by apply renew_typing_mut. Qed.
 Lemma renew_dms_typed Γ ds T (HT: Γ u⊢ds ds : T) : Γ t⊢ds ds : T.
 Proof. by apply renew_typing_mut. Qed.
