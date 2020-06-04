@@ -70,7 +70,6 @@ theories/Dot/typing/subtyping.v
 theories/Dot/typing/typing.v
 theories/Dot/typing/typing_aux_defs.v
 theories/Dot/typing/old/old_typing_stamping.v
-theories/Dot/typing/old/old_typing_stamping_regularity.v
 theories/Dot/typing/old/old_subtyping.v
 theories/Dot/typing/old/old_subtyping_derived_rules.v
 theories/Dot/typing/old/old_unstamped_typing_to_typing.v
