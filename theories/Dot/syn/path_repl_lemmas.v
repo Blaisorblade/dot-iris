@@ -6,7 +6,7 @@ substitution.
 From Coq.ssr Require Import ssrbool.
 From D Require Import succ_notation.
 From D.Dot Require Import syn path_repl.
-From D.Dot Require Import core_stamping_defs unstampedness_binding closed_subst.
+From D.Dot Require Import core_stamping_defs unstampedness_binding.
 
 Implicit Types
          (T : ty) (v w : vl) (t : tm) (d : dm) (ds : dms) (p q : path)
@@ -99,40 +99,6 @@ Proof.
   rewrite /psubst_one_ty /psubst_one_ty_base => Hw <-.
   apply psubst_ty_rtc_sufficient.
   by rewrite Hw shift_unshift.
-Qed.
-
-Lemma is_unstamped_path_subst_gen i n p q :
-  is_unstamped_path' (i.+1 + n) q →
-  is_unstamped_path' n p →
-  is_unstamped_path' (i.+1 + n) (psubst_one_path_gen i q p).
-Proof.
-  rewrite /psubst_one_path_gen.
-  move: p i; induction q => p i Hu Hup //=; last by (constructor;
-    inverse Hu; simplify_eq/=; eauto).
-  case_decide; simplify_eq => //.
-  eapply is_unstamped_sub_ren_path, Hup; eauto with lia.
-Qed.
-
-Lemma is_unstamped_ty_subst_gen i n T p :
-  is_unstamped_ty' (i.+1 + n) T →
-  is_unstamped_path' n p →
-  is_unstamped_ty' (i.+1 + n) (psubst_one_ty_gen i T p).
-Proof.
-  rewrite /psubst_one_ty_gen /unshiftsN.
-  move: p i n; induction T => p0 i n Hu; f_equal/=; with_is_unstamped inverse;
-    constructor; rewrite -?hrenS -?iterate_S /=;
-    change ((i + n).+1) with (i.+1 + n); eauto; exact: is_unstamped_path_subst_gen.
-Qed.
-
-Lemma is_unstamped_ty_subst n T p :
-  is_unstamped_ty' n.+1 T →
-  is_unstamped_path' n p →
-  is_unstamped_ty' n (T .Tp[ p /]).
-Proof.
-  intros HuT Hup; have /= := (is_unstamped_ty_subst_gen (i := 0) HuT Hup).
-  rewrite /psubst_one_ty /psubst_one_ty_gen -/(psubst_one_ty_base T p).
-  have [T' ->] := (psubst_one_base_unshifts p HuT).
-  rewrite shift_unshift. apply is_unstamped_ren_ty.
 Qed.
 
 Lemma upn_app i v s :

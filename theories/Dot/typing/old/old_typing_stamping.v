@@ -94,11 +94,6 @@ Section syntyping_stamping_lemmas.
     - constructor; eapply is_unstamped_path2AlsoNonVars; eauto.
   Qed.
 
-  Lemma is_unstamped_ren_ty_1 i T b:
-    is_unstamped_ty i b T →
-    is_unstamped_ty (S i) b (shift T).
-  Proof. intros Ht. eapply is_unstamped_sub_ren_ty, Ht. auto. Qed.
-
   (* XXX TODO remove these hints elsewhere as well? *)
   (** These hints slow down proof search. *)
   (** Not directed. *)

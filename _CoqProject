@@ -17,7 +17,6 @@ theories/pure_program_logic/adequacy.v
 
 theories/iris_extra/det_reduction.v
 theories/iris_extra/dlang.v
-theories/iris_extra/gen_iheap.v
 theories/iris_extra/iris_prelude.v
 theories/iris_extra/lty.v
 theories/iris_extra/proofmode_extra.v
@@ -57,7 +56,6 @@ theories/Dot/semtyp_lemmas/dsub_lr.v
 theories/Dot/semtyp_lemmas/tproj_lr.v
 
 theories/Dot/stamping/ast_stamping.v
-theories/Dot/stamping/closed_subst.v
 theories/Dot/stamping/core_stamping_defs.v
 theories/Dot/stamping/stampedness_binding.v
 theories/Dot/stamping/traversals.v
