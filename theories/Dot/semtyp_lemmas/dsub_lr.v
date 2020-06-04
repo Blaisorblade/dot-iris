@@ -418,7 +418,7 @@ Section DStpLemmas.
     by rewrite -wp_pure_step_later // -wp_value.
   Qed.
 
-  Lemma sT_DSub {Γ e T1 T2}:
+  Lemma sT_Sub {Γ e T1 T2}:
     Γ s⊨ e : T1 -∗
     Γ s⊨ T1 <:[0] T2 -∗
     (*───────────────────────────────*)

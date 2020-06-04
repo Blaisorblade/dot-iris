@@ -151,7 +151,7 @@ Section div_example.
     have HctxSub:
       s⊨G oLater cPreciseBody :: V⟦ [] ⟧* <:* oLater <$> [oPreciseBody].
     by iIntros "% $".
-    iApply (suT_DSub (T1 := oMu oPreciseBody)); first last. {
+    iApply (suT_Sub (T1 := oMu oPreciseBody)); first last. {
       iApply sMu_Stp_Mu. rewrite oLaterN_0.
       iApply sStp_And; [| iApply sAnd2_Stp ].
       iApply sStp_Trans; first iApply sAnd1_Stp.

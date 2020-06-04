@@ -302,13 +302,13 @@ Section unstamped_lemmas.
     by iExists (tskip e1s); iSplit; last iApply (sT_Skip with "H1").
   Qed.
 
-  Lemma suT_DSub {Γ e T1 T2}:
+  Lemma suT_Sub {Γ e T1 T2}:
     Γ su⊨ e : T1 -∗
     Γ s⊨ T1 <:[0] T2 -∗
     Γ su⊨ e : T2.
   Proof.
     iIntros "#H1 #H2 !>"; iMod "H1" as (e1s Hsk1) "H1"; iModIntro.
-    by iExists e1s; iSplit; last iApply (sT_DSub with "H1 H2").
+    by iExists e1s; iSplit; last iApply (sT_Sub with "H1 H2").
   Qed.
 
 
