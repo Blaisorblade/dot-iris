@@ -128,8 +128,7 @@ Section div_example.
 
   Lemma suD_posDm_ipos l Γ : ⊢ Γ su⊨ { l := dtysyn TInt } : cTMemL l ipos ipos.
   Proof.
-    iApply (suD_Typ_Abs (T := ipos) TInt); [|iApply sStp_Refl..].
-    exact: (nclosed_sem_coveringσ (n := 0)).
+    by iApply (suD_Typ_Abs (σ := []) (T := ipos) TInt); [|iApply sStp_Refl..].
   Qed.
 
   Lemma sD_posDm_abs l Γ : ⊢ Γ su⊨ { l := dtysyn TInt } : cTMemL l ⊥ oInt.
