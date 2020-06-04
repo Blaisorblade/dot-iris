@@ -24,8 +24,15 @@ Hint Constructors list : core.
 (** Support writing external hints for lemmas that must not be applied twice for a goal. *)
 (* The usedLemma and un_usedLemma marker is taken from Crush.v (where they were called done and un_done). *)
 
-(** Devious marker predicate to use for encoding state within proof goals *)
-Definition usedLemma {T : Type} (x : T) := True.
+(**
+Devious opaque marker predicate to use for encoding state within proof goals.
+
+We use a one-constructor [Inductive] to ensure this can be proved (in
+[markUsed] but not reduced, which is necessary at least for [red_hyps_once].
+
+stdpp's sealing would work but is more verbose, and loading stdpp here would be expensive.
+*)
+Inductive usedLemma {T : Type} (x : T) : Prop := UsedLemma.
 
 Ltac markUsed H := assert (usedLemma H) by constructor.
 
