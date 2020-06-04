@@ -52,3 +52,8 @@ Lemma ForallT_Forall {X} (P : X → Prop) xs :
 Proof.
   split; (elim: xs => [|x xs IH] H; constructor; [|apply IH]; by inversion H).
 Qed.
+
+(** Call [red] on each hypothesis at most once.
+Not defined in [tactics.v] because it uses stdpp. *)
+Ltac red_hyps_once :=
+  repeat_on_hyps (fun H => try_once_tac H (red in H)); un_usedLemma.
