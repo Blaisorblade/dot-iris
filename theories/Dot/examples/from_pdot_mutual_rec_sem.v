@@ -8,11 +8,13 @@ Here, the main lemmas are
 - [fromPDotPaperTyp], saying that
   [fromPDotPaper] has semantic type [μ (fromPDotPaperAbsTBody x1)]
   in a suitable context, and
-- [pcoreSafe], asserting safety of
-  [lett hoptionModV fromPDotPaper], which links [fromPDotPaper] against
-  [hoptionModV], an implementation of Option.
+- [pCoreClosedClientSafe], asserting safety of
+  [pCoreClosedClientTm], which links [fromPDotPaper] against
+  [hoptionModV], an implementation of Option, and against
+  [getAnyType], a client that invokes a method on [fromPDotPaper].
 
-The implementation also uses, for convenience, storeless typing.
+The implementation also uses storeless typing for convenience, since we have
+some automation using it.
 *)
 
 From stdpp Require Import strings.
@@ -494,11 +496,33 @@ Example getAnyTypeTyp0 Γ :
     tapp getAnyType x0 : x0 @ "types" @; "Type".
 Proof. by eapply iT_All_Ex'; [exact: getAnyTypeFunTyp|var|]. Qed.
 
+Definition pCoreClosedClientTm :=
+  lett hoptionModV
+    (lett fromPDotPaper
+      (tapp getAnyType x0)).
+
+Lemma pCoreClosedClientTy Γ :
+   ⊢ Γ u⊨ pCoreClosedClientTm : ⊤.
+Proof.
+  rewrite /lett.
+  iApply uT_All_E; first last.
+  iApply fundamental_typed.
+  exact: optionModInvTyp.
+  iApply (uT_All_I_Strong (Γ' := Γ)). ietp_weaken_ctx.
+  iApply uT_All_E; first last.
+  iApply fromPDotPaperTyp.
+  iApply uT_All_I_Strong. ietp_weaken_ctx.
+  iApply (uT_Sub (i := 0)); last iApply sSub_Top.
+  iApply fundamental_typed.
+  apply getAnyTypeTyp0.
+Qed.
 End semExample.
 
-(* XXX *)
-Lemma pcoreSafe: safe (lett hoptionModV fromPDotPaper).
+(**
+Demonstrate applying adequacy to get safety.
+*)
+Lemma pCoreClosedClientSafe: safe pCoreClosedClientTm.
 Proof.
   eapply (unstamped_safety_dot_sem dlangΣ (T := ⊤))=>*.
-  iApply pCoreSemTyped.
+  iApply pCoreClosedClientTy.
 Qed.
