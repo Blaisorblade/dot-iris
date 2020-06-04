@@ -1,4 +1,4 @@
-(** * Fundamental theorem and type safety for gDOT. *)
+(** * Old fundamental theorem and type safety for gDOT. *)
 From D Require Import swap_later_impl.
 (* For fundamental theorem. *)
 From D.Dot Require Export unary_lr later_sub_sem
@@ -6,8 +6,8 @@ From D.Dot Require Export unary_lr later_sub_sem
 From D.Dot Require Import storeless_typing.
 (* For unstamped safety. *)
 From D.Dot Require Import old_unstamped_typing type_extraction_syn ast_stamping
-     old_typing_stamping skeleton path_repl_lemmas.
-Import stamp_transfer.
+  old_typing_stamping skeleton path_repl_lemmas.
+From D.Dot Require Import sem_unstamped_typing dsub_lr.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
@@ -19,32 +19,23 @@ Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx) (g : sty
 Section old_fundamental.
   Context `{!dlangG Σ} `{!SwapPropI Σ}.
 
-  Lemma extraction_to_leadsto_envD_equiv T g s σ n : T ~[ n ] (g, (s, σ)) →
-    wellMappedφ Vs⟦ g ⟧ -∗ s ↝[ σ ] V⟦ T ⟧.
-  Proof.
-    move => [T'] [Hl] [<- [_ /is_stamped_nclosed_ty HclT]].
-    iIntros "Hm". iExists V⟦ T' ⟧. iSplitR.
-    - iIntros "!%" (args ρ v). exact: interp_finsubst_commute_cl.
-    - iApply (wellMappedφ_apply with "Hm"). by rewrite lookup_fmap Hl.
-  Qed.
+  (* Make proofs below more robust by opaquifying judgments. *)
+  Opaque setp sdstp sdtp sptp sstpi suetp sudtp sudstp.
 
-  (* Make proofs below more robust. *)
-  Opaque setp sdstp sdtp sptp sstpi.
+  Local Definition fundamental_path_typed_def Γ p T i
+    (HT : Γ u⊢ₚ p : T, i) := ⊢ Γ ⊨p p : T, i.
+  Local Definition fundamental_subtype_def Γ T1 i1 T2 i2
+    (HT: Γ u⊢ₜ T1, i1 <: T2, i2) := ⊢ Γ ⊨ T1, i1 <: T2, i2.
 
-  Definition fundamental_typed_def Γ g e T (HT: Γ v⊢ₜ[ g ] e : T) := ⊢ Γ ⊨[ Vs⟦ g ⟧ ] e : T.
-  Definition fundamental_dms_typed_def Γ g ds T (HT: Γ v⊢ds[ g ] ds : T) := ⊢ Γ ⊨ds[ Vs⟦ g ⟧ ] ds : T.
-  Definition fundamental_dm_typed_def Γ g l d T (HT : Γ v⊢[ g ]{ l := d } : T) := ⊢ Γ ⊨[ Vs⟦ g ⟧ ] { l := d } : T.
-  Definition fundamental_path_typed_def Γ p T i (HT : Γ u⊢ₚ p : T, i) := ⊢ Γ ⊨p p : T, i.
-  Definition fundamental_subtype_def Γ T1 i1 T2 i2 (HT: Γ u⊢ₜ T1, i1 <: T2, i2) :=
-    ⊢ Γ ⊨ T1, i1 <: T2, i2.
+  (* Reduce away the above definitions; copied from [new_fundamental.v] *)
+  Local Ltac simpl_context := red; markUsed Σ; red_hyps_once.
 
   Theorem subtype_fundamental_mut Γ :
     (∀ p T i HT, @fundamental_path_typed_def Γ p T i HT) ∧
     (∀ T1 i1 T2 i2 HT, @fundamental_subtype_def Γ T1 i1 T2 i2 HT).
   Proof.
-    apply old_pure_typing_mut_ind; clear Γ; intros; red.
+    apply old_pure_typing_mut_ind; clear Γ; intros; simpl_context.
       + by iApply P_Var.
-
       + by iApply sP_Nat_I.
       + by iApply sP_Bool_I.
       + iApply P_Fld_E. by iApply H.
@@ -87,6 +78,14 @@ Section old_fundamental.
       + iApply sDistr_And_Or_Sub.
       + iApply Sub_Skolem_P. by iApply H.
   Qed.
+
+  Local Definition fundamental_typed_def Γ g e T
+    (HT: Γ v⊢ₜ[ g ] e : T) := ⊢ Γ u⊨ e : T.
+  Local Definition fundamental_dms_typed_def Γ g ds T
+    (HT: Γ v⊢ds[ g ] ds : T) := ⊢ Γ u⊨ds ds : T.
+  Local Definition fundamental_dm_typed_def Γ g l d T
+    (HT : Γ v⊢[ g ]{ l := d } : T) := ⊢ Γ u⊨ { l := d } : T.
+
   Lemma fundamental_path_typed Γ p T i :
     Γ u⊢ₚ p : T, i → ⊢ Γ ⊨p p : T, i.
   Proof. apply (subtype_fundamental_mut Γ). Qed.
@@ -99,42 +98,42 @@ Section old_fundamental.
     (∀ ds T HT, @fundamental_dms_typed_def Γ g ds T HT) ∧
     (∀ l d T HT, @fundamental_dm_typed_def Γ g l d T HT).
   Proof.
-    apply storeless_typing_mut_ind; clear Γ g; intros; iIntros "#Hm".
-      + by iApply T_All_Ex; [iApply H|iApply H0].
-      + by iApply T_All_Ex_p; [|iApply H|iApply fundamental_path_typed].
-      + by iApply T_All_E; [iApply H|iApply H0].
-      + by iApply T_Obj_E; iApply H.
-      + iApply T_All_I_Strong; [|by iApply H].
-        by apply fundamental_ctx_sub, ctx_strip_to_sub.
-      + iApply T_Obj_I. by iApply H.
-      + by iApply T_Sub; [iApply H |iApply fundamental_subtype].
-      + iApply T_Path. by iApply fundamental_path_typed.
-      + by iApply T_Un; [|iApply H].
-      + by iApply T_Bin; [| iApply H| iApply H0].
-      + by iApply sT_If; [iApply H|iApply H0|iApply H1].
+    apply storeless_typing_mut_ind; clear Γ g; intros; simpl_context.
+    + by iApply uT_All_Ex; [iApply H|iApply H0].
+    + by iApply uT_All_Ex_p; [|iApply H|iApply fundamental_path_typed].
+    + by iApply uT_All_E; [iApply H|iApply H0].
+    + by iApply suT_Obj_E; iApply H.
+    + iApply uT_All_I_Strong; [|by iApply H].
+      by apply fundamental_ctx_sub, ctx_strip_to_sub.
+    + iApply suT_Obj_I. by iApply H.
+    + by iApply uT_Sub; [iApply H |iApply fundamental_subtype].
+    + iApply suT_Path. by iApply fundamental_path_typed.
+    + by iApply uT_Un; [|iApply H].
+    + by iApply uT_Bin; [| iApply H| iApply H0].
+    + by iApply suT_If; [iApply H|iApply H0|iApply H1].
 
-      + by iApply D_Nil.
-      + by iApply D_Cons; [|iApply H|iApply H0].
+    + by iApply suD_Nil.
+    + by iApply suD_Cons; [|iApply H|iApply H0].
 
-      + by iApply D_Typ_Abs; [> iApply fundamental_subtype.. |
-          iApply extraction_to_leadsto_envD_equiv].
-      + iApply D_Val. by iApply H.
-      + iApply D_Path. by iApply fundamental_path_typed.
-      + iApply D_Val_New. by iApply H.
-      + by iApply D_Path_Sub; [> iApply fundamental_subtype|iApply H].
+    + have HclT := extraction_closed e.
+      by iApply (uD_Typ_Abs_I_dtysem HclT); iApply fundamental_subtype.
+    + iApply suD_Val. by iApply H.
+    + iApply suD_Path. by iApply fundamental_path_typed.
+    + iApply suD_Val_New. by iApply H.
+    + iApply suD_Path_Sub; [> |iApply H].
+      by iApply fundamental_subtype.
     Qed.
-
 
   (** * Fundamental theorem 5.4. *)
   Lemma fundamental_typed Γ g e T :
-    Γ v⊢ₜ[ g ] e : T → ⊢ Γ ⊨[ Vs⟦ g ⟧ ] e : T.
-  Proof. apply (fundamental_mut Γ g). Qed.
+    Γ v⊢ₜ[ g ] e : T → ⊢ Γ u⊨ e : T.
+  Proof. apply fundamental_mut. Qed.
   Lemma fundamental_dms_typed Γ g ds T :
-    Γ v⊢ds[ g ] ds : T → ⊢ Γ ⊨ds[ Vs⟦ g ⟧ ] ds : T.
-  Proof. apply (fundamental_mut Γ g). Qed.
+    Γ v⊢ds[ g ] ds : T → ⊢ Γ u⊨ds ds : T.
+  Proof. apply fundamental_mut. Qed.
   Lemma fundamental_dm_typed Γ g l d T :
-    Γ v⊢[ g ]{ l := d } : T → ⊢ Γ ⊨[ Vs⟦ g ⟧ ] { l := d } : T.
-  Proof. apply (fundamental_mut Γ g). Qed.
+    Γ v⊢[ g ]{ l := d } : T → ⊢ Γ u⊨ { l := d } : T.
+  Proof. apply fundamental_mut. Qed.
 End old_fundamental.
 
 (** Adequacy of our logical relation: semantically well-typed terms are safe. *)
@@ -148,8 +147,8 @@ Corollary type_soundness_storeless {e T g}
   (HsT: [] v⊢ₜ[ g ] e : T): safe e.
 Proof.
   (* Apply 5.5: Adequacy of semantic typing. *)
-  apply: (safety_mapped_semtyping dlangΣ); intros.
-  apply fundamental_typed, HsT.
+  apply: (unstamped_safety_dot_sem dlangΣ); intros.
+  eapply fundamental_typed, HsT.
 Qed.
 
 (** Theorem 5.2: Type soundness for gDOT. *)
@@ -168,7 +167,7 @@ Lemma path_normalization_storeless {p T i}
   terminates (path2tm p).
 Proof.
   eapply (ipwp_gs_adequacy dlangΣ); intros.
-  apply fundamental_path_typed, Ht.
+  eapply fundamental_path_typed, Ht.
 Qed.
 
 Corollary path_normalization p T i :

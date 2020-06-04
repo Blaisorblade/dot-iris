@@ -303,14 +303,6 @@ Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 Notation "Γ ⊨p p : T , i" := (iptp Γ T p i) (at level 74, p, T, i at next level).
 Notation "Γ ⊨ T1 , i <: T2 , j" := (istpi Γ T1 T2 i j) (at level 74, T1, T2, i, j at next level).
 
-Import stamp_transfer.
-(** Judgment variants indexed by [gφ]. *)
-Notation "Γ ⊨[ gφ  ] { l := d  } : T" := (wellMappedφ gφ → idtp Γ T l d)%I (at level 74, d, l, T at next level).
-Notation "Γ ⊨ds[ gφ  ] ds : T" := (wellMappedφ gφ → idstp Γ T ds)%I (at level 74, ds, T at next level).
-Notation "Γ ⊨[ gφ  ] e : T" := (wellMappedφ gφ → ietp Γ T e)%I (at level 74, e, T at next level).
-Notation "Γ ⊨p[ gφ  ] p : T , i" := (wellMappedφ gφ → iptp Γ T p i)%I (at level 74, p, T, i at next level).
-Notation "Γ ⊨[ gφ  ] T1 , i <: T2 , j" := (wellMappedφ gφ → istpi Γ T1 T2 i j)%I (at level 74, T1, T2, i, j at next level).
-
 Notation oInt := (oPrim tint).
 Notation oBool := (oPrim tbool).
 
@@ -607,52 +599,35 @@ Import dlang_adequacy.
 Theorem s_adequacy_dot_sem Σ `{HdlangG: !dlangPreG Σ} `{!SwapPropI Σ} {e Ψ}
   (τ : ∀ `{!dlangG Σ}, olty Σ 0)
   (Himpl : ∀ `(Hdlang: !dlangG Σ) v, oClose τ ids v -∗ ⌜Ψ v⌝)
-  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), allGs ∅ ==∗ [] s⊨ e : τ):
+  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), ⊢ [] s⊨ e : τ):
   adequate e (λ v, Ψ v).
 Proof.
-  eapply (adequacy_dlang _); [apply Himpl | iIntros (??) "Hgs"].
-  iMod (Hlog with "Hgs") as "#Htyp".
+  eapply (adequacy_dlang _); [apply Himpl | iIntros (??)].
+  iDestruct (Hlog) as "#Htyp".
   iEval rewrite -(hsubst_id e). iApply ("Htyp" $! ids with "[//]").
 Qed.
 
+(** Adequacy of semantic typing: not only are semantically well-typed expressions safe,
+but any result value they produce also satisfies any properties that follow from their
+semantic type. *)
 Theorem adequacy_dot_sem Σ `{HdlangG: !dlangPreG Σ} `{!SwapPropI Σ} {e Ψ T}
   (Himpl : ∀ `(Hdlang: !dlangG Σ) v, V⟦ T ⟧ vnil ids v -∗ ⌜Ψ v⌝)
-  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T):
+  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), ⊢ [] ⊨ e : T):
   adequate e (λ v, Ψ v).
 Proof. exact: (s_adequacy_dot_sem Σ (λ _, V⟦T⟧)). Qed.
 
 Corollary s_safety_dot_sem Σ `{HdlangG: !dlangPreG Σ} `{!SwapPropI Σ} {e}
   (τ : ∀ `{!dlangG Σ}, olty Σ 0)
-  (Hwp : ∀ `(!dlangG Σ) `(!SwapPropI Σ), allGs ∅ ==∗ [] s⊨ e : τ):
+  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), ⊢ [] s⊨ e : τ):
   safe e.
-Proof. apply adequate_safe, (s_adequacy_dot_sem Σ τ), Hwp; naive_solver. Qed.
+Proof. apply adequate_safe, (s_adequacy_dot_sem Σ τ), Hlog; naive_solver. Qed.
 
+(** * Theorem 5.5: adequacy/safety of (stamped) semantic typing.
+Corollary of [adequacy_mapped_semtyping]. *)
 Corollary safety_dot_sem Σ `{HdlangG: !dlangPreG Σ} `{!SwapPropI Σ} {e T}
-  (Hwp : ∀ `(!dlangG Σ) `(!SwapPropI Σ), allGs ∅ ==∗ [] ⊨ e : T):
+  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), ⊢ [] ⊨ e : T):
   safe e.
 Proof. exact: (s_safety_dot_sem Σ (λ _, V⟦T⟧)). Qed.
-
-(** Adequacy of semantic typing: not only are semantically well-typed expressions safe,
-but any result value they produce also satisfies any properties that follow from their
-semantic type. *)
-Theorem adequacy_mapped_semtyping Σ `{!dlangPreG Σ} `{!SwapPropI Σ} {e g Ψ T}
-  (Himpl : ∀ `(!dlangG Σ) v, ⟦ T ⟧ ids v -∗ ⌜Ψ v⌝)
-  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), ⊢ [] ⊨[ Vs⟦ g ⟧ ] e : T):
-  adequate e (λ v, Ψ v).
-Proof.
-  eapply (adequacy_dot_sem Σ Himpl).
-  iIntros (??) "Hs"; iApply Hlog. iApply (transfer_empty with "Hs").
-Qed.
-
-(** * Theorem 5.5: adequacy/safety of semantic typing.
-Corollary of [adequacy_mapped_semtyping]. *)
-Corollary safety_mapped_semtyping Σ `{!dlangPreG Σ} `{!SwapPropI Σ} {e g T}
-  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), ⊢ [] ⊨[ Vs⟦ g ⟧ ] e : T):
-  safe e.
-Proof.
-  eapply adequate_safe, adequacy_mapped_semtyping, Hlog;
-    naive_solver.
-Qed.
 
 (** Adequacy of normalization for gDOT paths. *)
 Lemma ipwp_gs_adequacy Σ `{!dlangPreG Σ} `{!SwapPropI Σ} {p T i}
@@ -661,8 +636,7 @@ Lemma ipwp_gs_adequacy Σ `{!dlangPreG Σ} `{!SwapPropI Σ} {p T i}
 Proof.
   eapply (@soundness (iResUR Σ) _ i).
   apply (bupd_plain_soundness _).
-  iMod (gen_iheap_init (L := stamp) ∅) as (hG) "Hgs".
-  set (DLangΣ := DLangG Σ).
   iApply ipwp_terminates.
+  set (DLangΣ := DLangG Σ).
   iApply (Hwp DLangΣ).
 Qed.

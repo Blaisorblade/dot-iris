@@ -4,7 +4,6 @@ From iris.proofmode Require Import tactics.
 From iris.base_logic Require Import lib.iprop (* For gname *)
      lib.saved_prop.
 From iris.algebra Require Import agree excl gmap auth.
-From D Require Import gen_iheap.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
@@ -240,8 +239,3 @@ Instance Swappable_iResUREmpty: CmraSwappable (iResUR #[]).
 Proof.
   apply Swappable_iResUR. by apply fin_0_inv.
 Qed.
-
-Instance CmraSwappable_gen_iheap Σ `{Countable A} B:
-  CmraSwappable (
-    rFunctor_apply (gFunctors_lookup (gen_iheapΣ A B) Fin.F1) (iPrePropO Σ)) :=
-  Swappable_discrete _.

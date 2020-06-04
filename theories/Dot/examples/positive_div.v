@@ -1,11 +1,12 @@
-(** * Semantic typing for positive numbers and division. *)
+(** * Semantic typing for positive numbers and division.
+The main result is [posModTy]. *)
 From iris.proofmode Require Import tactics.
 From D.pure_program_logic Require Import lifting adequacy.
 From iris.program_logic Require Import ectxi_language.
 
 From D Require Import swap_later_impl.
 From D.Dot Require Import syn_lemmas.
-From D.Dot Require Import ex_iris_utils.
+From D.Dot Require Import ex_iris_utils sem_unstamped_typing.
 
 Import dlang_adequacy.
 
@@ -22,18 +23,29 @@ Section examplesBodies.
   Definition hmkPosBodyV (n : hvl) := htif (n > 0) n hloopTm.
   Definition hmkPosV := λ: n, hmkPosBodyV n.
 
-  Definition hposModV s : hvl := ν: _ , {@
-    type "Pos" = ([]; s);
+  Definition hposModV : hvl := ν: _ , {@
+    type "Pos" = 𝐙;
     val "mkPos" = hmkPosV;
     val "div" = hdivV
   }.
 
-  (** Actual type *)
-  Definition posModT := μ: self, {@
+  Definition hposModTTail self : hty := {@
+    val "mkPos" : 𝐙 →: self @; "Pos";
+    val "div" : 𝐙 →: self @; "Pos" →: 𝐙
+  }.
+
+  Definition hposModTBody self : hty := {@
     type "Pos" >: ⊥ <: 𝐙;
     val "mkPos" : 𝐙 →: self @; "Pos";
     val "div" : 𝐙 →: self @; "Pos" →: 𝐙
   }.
+
+  Example testEq x :
+    hposModTBody x = hTAnd (type "Pos" >: ⊥ <: 𝐙) (hposModTTail x) :=
+    reflexivity _.
+
+  (** Actual type *)
+  Definition hposModT := μ: self, hposModTBody self.
 End examplesBodies.
 
 Local Hint Constructors bin_op_syntype cond_bin_op_syntype : core.
@@ -41,20 +53,16 @@ Local Hint Extern 1000 => lia : core.
 
 Ltac wp_bin_base := iApply wp_bin; first eapply cond_bin_op_syntype_sound; by [cbn; eauto|].
 Ltac wp_bin := iApply wp_wand; [wp_bin_base | iIntros].
-Import stamp_transfer.
 
 Local Open Scope Z_scope.
+
+  Import hoasNotation.
 
 (* Generic useful lemmas — not needed for fundamental theorem,
     but very useful for examples. *)
 Section helpers.
   Context `{HdlangG: !dlangG Σ}.
 
-  Lemma alloc {s sγ} φ : sγ !! s = None → allGs sγ ==∗ s ↝n[ 0 ] φ.
-  Proof.
-    iIntros (Hs) "Hsγ".
-    by iMod (leadsto_alloc φ Hs with "Hsγ") as (?) "[_ [_ $]]".
-  Qed.
   Lemma wp_ge m n (Hge : m > n) : ⊢ WP m > n {{ w, w ≡ true }}.
   Proof. wp_bin. ev; simplify_eq/=. case_decide; by [|lia]. Qed.
   Lemma wp_nge m n (Hnge : ¬ m > n) : ⊢ WP m > n {{ w, w ≡ false }}.
@@ -75,34 +83,7 @@ Section helpers.
       iSpecialize ("H" $! ρ with "[//]").
       by rewrite /= wp_value_inv'.
   Qed.
-
-  Lemma ietp_value_eq T v: (∀ ρ, ⟦ T ⟧ ρ v.[ρ]) ⊣⊢ [] ⊨ v : T.
-  Proof. apply setp_value_eq. Qed.
-
-  Lemma ietp_value T v: (∀ ρ, ⟦ T ⟧ ρ v.[ρ]) -∗ [] ⊨ v : T.
-  Proof. by rewrite ietp_value_eq. Qed.
-
-  Lemma ietp_value_inv T v : [] ⊨ v : T -∗ ∀ ρ, ⟦ T ⟧ ρ v.[ρ].
-  Proof. by rewrite ietp_value_eq. Qed.
-
-  Lemma V_TVMem_I T v w l
-    (Hclv : nclosed_vl v 0)
-    (Hlook : v @ l ↘ (dpt (pv w))) :
-    [] ⊨ w : T -∗
-    [] ⊨ v : TVMem l T.
-  Proof.
-    have Hclw: nclosed_vl w 0.
-    by have := nclosed_lookup' Hlook Hclv; eauto with fv.
-    iIntros "#H"; iApply ietp_value; iIntros (ρ).
-    iSpecialize ("H" $! ρ with "[//]").
-    rewrite /interp_expr wp_value_inv !closed_subst_vl_id //.
-    iExists _; iFrame (Hlook); by rewrite oDVMem_eq path_wp_pv_eq.
-  Qed.
 End helpers.
-
-Ltac valMember ρ :=
-  iApply V_TVMem_I; [solve_fv_congruence|naive_solver|
-    rewrite -ietp_value; iIntros (ρ)].
 
 Definition pos v := ∃ n, v = vint n ∧ n > 0.
 Definition ipos {Σ}: oltyO Σ 0 := olty0 (λI ρ v, ⌜ pos v ⌝).
@@ -111,14 +92,6 @@ Definition s_is_pos `{!dlangG Σ} s : iProp Σ := s ↝n[ 0 ] ipos.
 
 Section div_example.
   Context `{HdlangG: !dlangG Σ} `{SwapPropI Σ}.
-  Context (s: stamp).
-
-  Definition posModV : vl := hposModV s.
-
-  Notation Hs := (s_is_pos s).
-  Lemma allocHs sγ:
-    sγ !! s = None → allGs sγ ==∗ Hs.
-  Proof. exact (alloc ipos). Qed.
 
   Lemma wp_if_ge (n : Z) :
     ⊢ WP hmkPosBodyV n {{ w, ⌜ w = n ∧ n > 0 ⌝}}.
@@ -127,63 +100,6 @@ Section div_example.
     wp_bin; ev; simplify_eq/=.
     case_decide; wp_pure; first by auto.
     iApply wp_wand; [iApply loopSemT | naive_solver].
-  Qed.
-
-  (** We assume [Hs] throughout the rest of the section. *)
-
-  Definition posDm := dtysem [] s.
-  Definition testVl l : vl := ν {@ (l, posDm) }.
-
-  Lemma sToIpos : Hs -∗ posDm ↗n[ 0 ] hoEnvD_inst [] ipos.
-  Proof. by iApply dm_to_type_intro. Qed.
-
-
-  Lemma Sub_ipos_nat Γ : ⊢ Γ s⊨ ipos, 0 <: V⟦ 𝐙 ⟧, 0.
-  Proof. iIntros "!> * _ !%"; rewrite /pos /pure_interp_prim; naive_solver. Qed.
-
-  Lemma Sub_later_ipos_nat Γ : ⊢ Γ s⊨ oLater ipos, 0 <: oLater V⟦ 𝐙 ⟧, 0.
-  Proof. rewrite -sSub_Later_Sub -sSub_Index_Incr. apply Sub_ipos_nat. Qed.
-
-  Lemma posTMem_widen Γ l : ⊢ Γ s⊨ cTMemL l ipos ipos, 0 <: cTMemL l ⊥ oInt, 0.
-  Proof using Type*.
-    iApply sTyp_Sub_Typ; [iApply sBot_Sub | iApply Sub_later_ipos_nat].
-  Qed.
-
-
-  Lemma sD_posDm_ipos l Γ : Hs -∗ Γ s⊨ { l := posDm } : cTMemL l ipos ipos.
-  Proof.
-    iIntros "Hs".
-    iApply (sD_Typ_Abs ipos); [iApply sSub_Refl..|by iExists _; iFrame "Hs"].
-  Qed.
-
-  Lemma sD_posDm_abs l Γ : Hs -∗ Γ s⊨ { l := posDm } : cTMemL l ⊥ oInt.
-  Proof.
-    iIntros "Hs"; iApply (sD_Typ_Sub (oLater ipos));
-      [iApply sBot_Sub|iApply Sub_later_ipos_nat|iApply (sD_posDm_ipos with "Hs")].
-  Qed.
-
-  Lemma sInTestVl l ρ : path_includes (pv x0) (testVl l .: ρ) [(l, posDm)].
-  Proof. constructor; naive_solver. Qed.
-
-  Lemma s_posDm l : Hs -∗ cTMemL l ipos ipos ids [(l, posDm)].
-  Proof.
-    rewrite (sD_posDm_ipos l []) sdtp_eq; iIntros "H".
-    iApply ("H" $! (testVl l .: ids) with "[] [//]"); auto using sInTestVl.
-  Qed.
-
-  Lemma posModVHasA ρ :
-    Hs -∗ clty_olty (cTMemL "Pos" ipos ipos) vnil ρ posModV.[ρ].
-  Proof. by rewrite (s_posDm "Pos") -clty_commute. Qed.
-
-  Lemma posModVHasATy: Hs -∗ [] s⊨ posModV : cTMemL "Pos" ipos ipos.
-  Proof.
-    rewrite -setp_value_eq; iIntros "#Hs %ρ"; iApply (posModVHasA ρ with "Hs").
-  Qed.
-
-  Lemma posModVHasATyAbs: Hs -∗ [] ⊨ posModV : type "Pos" >: ⊥ <: TInt.
-  Proof using Type*.
-    iIntros "Hs"; iApply (sT_Sub (i := 0) with "[Hs]");
-      [iApply (posModVHasATy with "Hs") | iApply posTMem_widen].
   Qed.
 
   Lemma ty_mkPos :
@@ -200,41 +116,82 @@ Section div_example.
 
   Lemma wp_div_spec (m : Z) w : ipos vnil ids w -∗ WP m `div` w {{ ⟦ 𝐙 ⟧ ids }}.
   Proof. iDestruct 1 as %(n&?&?); simplify_eq. wp_bin. by iIntros "!%"; naive_solver. Qed.
-
   Close Scope Z_scope.
 
-  Lemma posModTy: Hs -∗ [] ⊨ posModV : posModT.
+  Lemma sStp_ipos_nat Γ i : ⊢ Γ s⊨ ipos <:[ i ] V⟦ 𝐙 ⟧.
+  Proof. iIntros "!> * _ !%"; rewrite /pos /pure_interp_prim; naive_solver. Qed.
+
+  Lemma posTMem_widen Γ l i : ⊢ Γ s⊨ cTMemL l ipos ipos <:[ i ] cTMemL l ⊥ oInt.
   Proof using Type*.
-    rewrite /posModT -(T_Mu_I _ posModV).
-    iIntros "#Hs".
-    iApply sT_And_I; first by iApply posModVHasATyAbs.
-    iApply sT_And_I; last iApply sT_And_I; last by
-      iIntros "!> ** /="; rewrite -wp_value'.
-    - iApply V_TVMem_I; [solve_fv_congruence|naive_solver|].
-      iApply sT_All_I.
-      rewrite /= /shead.
-      iIntros "!>" (ρ [_ [n Hw]]) "!> /="; simpl in *; rewrite {}Hw.
-      iApply wp_wand; [iApply wp_if_ge |iIntros "/=" (v [-> Hnpos])].
-      rewrite path_wp_pv_eq.
-      iApply vl_sel_lb; last iApply (posModVHasA ids with "Hs").
+    iApply sTyp_Stp_Typ; iApply sLater_Stp_Eq; [iApply sBot_Stp | iApply sStp_ipos_nat].
+  Qed.
+
+  Lemma suD_posDm_ipos l Γ : ⊢ Γ su⊨ { l := dtysyn TInt } : cTMemL l ipos ipos.
+  Proof.
+    by iApply (suD_Typ_Abs (σ := []) (T := ipos) TInt); [|iApply sStp_Refl..].
+  Qed.
+
+  Lemma sD_posDm_abs l Γ : ⊢ Γ su⊨ { l := dtysyn TInt } : cTMemL l ⊥ oInt.
+  Proof using Type*.
+    iApply (suD_Typ_Stp (oLater ipos)); last iApply suD_posDm_ipos; iApply sLater_Stp_Eq;
+      [iApply sBot_Stp | iApply sStp_ipos_nat].
+  Qed.
+
+  Local Definition cPreciseBody :=
+    cAnd (cTMemL "Pos" ipos ipos) C⟦ hposModTTail hx0 ⟧.
+  Local Definition oPreciseBody : olty Σ 0 := clty_olty cPreciseBody.
+
+  (**
+  Show that our program is semantically well-typed,
+  using the semantic unstamped typing judgment.
+  *)
+  Theorem posModTy : ⊢ [] u⊨ hposModV : hposModT.
+  Proof using Type*.
+    rewrite /hposModT.
+    have HctxSub:
+      s⊨G oLater cPreciseBody :: V⟦ [] ⟧* <:* oLater <$> [oPreciseBody].
+    by iIntros "% $".
+    iApply (suT_DSub (T1 := oMu oPreciseBody)); first last. {
+      iApply sMu_Stp_Mu. rewrite oLaterN_0.
+      iApply sStp_And; [| iApply sAnd2_Stp ].
+      iApply sStp_Trans; first iApply sAnd1_Stp.
+      iApply posTMem_widen.
+    }
+    iApply suT_Obj_I.
+    iApply suD_Cons; [done|iApply suD_posDm_ipos|].
+    iApply suD_Cons; [done| iApply suD_Val|]; last
+      (iApply suD_Cons; [done| iApply suD_Val |iApply suD_Nil]);
+      iApply (suT_All_I_Strong _ _ _ HctxSub).
+    - iIntros "!>"; unstamp_goal_tm.
+      iIntros "!> %ρ [[_ [#Hpos _]] %Hnpos] !>"; lazy in Hnpos.
+      case: Hnpos => [n Hw].
+      iApply wp_wand; [rewrite /= {}Hw; iApply wp_if_ge |
+        iIntros (v [-> Hnpos])].
+      iEval rewrite /= path_wp_pv_eq.
+      iApply (vl_sel_lb with "[] Hpos").
       iIntros "!%"; hnf. naive_solver.
-    - iApply V_TVMem_I; [solve_fv_congruence|naive_solver|].
-      iApply sT_All_I.
-      iApply sT_All_I.
-      rewrite /= /shead /stail/=.
-      iIntros "!> %ρ #[[_ Hw] Harg] !> /=".
+    - iApply suT_All_I.
+      iIntros "!>"; unstamp_goal_tm.
+      iIntros "!> %ρ #[[[_ [Hpos _]] Hw] Harg] !>".
+      rewrite /shead /stail. iSimpl.
       iDestruct "Hw" as %[m ->].
       setoid_rewrite path_wp_pv_eq.
-      iPoseProof (vl_sel_ub with "Harg []") as "{Harg Hs} Harg".
-      by iApply (posModVHasA ids with "Hs").
+      iPoseProof (vl_sel_ub with "Harg Hpos") as "{Harg} Harg".
       wp_bind (BinRCtx _ _); iEval rewrite /=/lang.of_val.
       rewrite -wp_pure_step_later // -wp_value'; iNext.
       iApply (wp_div_spec with "Harg").
   Qed.
 End div_example.
 
-Lemma posModVSafe (s : stamp): safe (posModV s).
+(**
+An example of how to apply adequacy to get safety.
+This theorem is actually not interesting, because safety of a value is trivial,
+but thanks to semantic typing lemmas, we can instead show semantic typing of
+closed clients of [hposModV] that aren't values, and then apply adequacy to
+obtain their safety.
+*)
+Lemma posModVSafe : safe hposModV.
 Proof.
-  eapply (safety_dot_sem dlangΣ (T := posModT))=>*.
-  by rewrite (allocHs s) // -posModTy.
+  apply (unstamped_safety_dot_sem dlangΣ (T := hposModT))=>*.
+  apply posModTy.
 Qed.
