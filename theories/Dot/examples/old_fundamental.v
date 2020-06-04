@@ -27,7 +27,7 @@ Section old_fundamental.
   Local Definition fundamental_subtype_def Γ T1 i1 T2 i2
     (HT: Γ u⊢ₜ T1, i1 <: T2, i2) := ⊢ Γ ⊨ T1, i1 <: T2, i2.
 
-  (* Reduce away the above definitions; copied from [new_fundamental.v] *)
+  (* Reduce away the above definitions; copied from [fundamental.v] *)
   Local Ltac simpl_context := red; markUsed Σ; red_hyps_once.
 
   Theorem subtype_fundamental_mut Γ :
