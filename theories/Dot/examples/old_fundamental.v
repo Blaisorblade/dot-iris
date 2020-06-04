@@ -5,8 +5,8 @@ From D.Dot Require Export unary_lr later_sub_sem
   binding_lr defs_lr prims_lr path_repl_lr sub_lr dsub_lr.
 From D.Dot Require Import storeless_typing.
 (* For unstamped safety. *)
-From D.Dot Require Import old_unstamped_typing type_extraction_syn ast_stamping
-  old_typing_stamping skeleton path_repl_lemmas.
+From D.Dot Require Import old_unstamped_typing type_extraction_syn
+  path_repl_lemmas.
 From D.Dot Require Import sem_unstamped_typing dsub_lr.
 
 Set Suggest Proof Using.
@@ -151,16 +151,6 @@ Proof.
   eapply fundamental_typed, HsT.
 Qed.
 
-(** Theorem 5.2: Type soundness for gDOT. *)
-Corollary type_soundness e T :
-  [] u⊢ₜ e : T → safe e.
-Proof.
-  (* Apply 5.3: Translation of typing derivations. *)
-  intros (e_s & g & HsT & ? & Hs)%(stamp_typed ∅) ?.
-  apply (same_skel_safe_equiv Hs).
-  apply (type_soundness_storeless HsT).
-Qed.
-
 (** Normalization for gDOT paths. *)
 Lemma path_normalization_storeless {p T i}
   (Ht : [] v⊢ₚ[ g ] p : T, i) :
@@ -168,12 +158,4 @@ Lemma path_normalization_storeless {p T i}
 Proof.
   eapply (ipwp_gs_adequacy dlangΣ); intros.
   eapply fundamental_path_typed, Ht.
-Qed.
-
-Corollary path_normalization p T i :
-  [] u⊢ₚ p : T, i → terminates (path2tm p).
-Proof.
-  (* Apply 5.3: Translation of typing derivations. *)
-  intros (g & HsT & _)%(stamp_path_typed ∅).
-  apply (path_normalization_storeless HsT).
 Qed.

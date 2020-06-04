@@ -149,15 +149,20 @@ Proof.
 Qed.
 
 (** Normalization for gDOT paths. *)
-Theorem path_normalization_storeless {p T i}
+Theorem path_normalization {p T i}
   (Ht : [] t⊢ₚ p : T, i) :
   terminates (path2tm p).
 Proof.
+  (* Apply adequacy of semantic path typing. *)
   apply: (ipwp_gs_adequacy dlangΣ); intros.
   apply fundamental_path_typed, Ht.
 Qed.
 
 (** We also prove that the old_unstamped_typing is safe. *)
-Theorem type_soundness_old {e T}
+Corollary type_soundness_old {e T}
   (Ht : [] u⊢ₜ e : T) : safe e.
 Proof. eapply type_soundness, renew_typed, Ht. Qed.
+
+Corollary path_normalization_old p T i
+  (Hp : [] u⊢ₚ p : T, i) : terminates (path2tm p).
+Proof. eapply path_normalization, renew_path_typed, Hp. Qed.
