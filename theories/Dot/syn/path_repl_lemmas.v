@@ -6,7 +6,7 @@ substitution.
 From Coq.ssr Require Import ssrbool.
 From D Require Import succ_notation.
 From D.Dot Require Import syn path_repl.
-From D.Dot Require Import core_stamping_defs unstampedness_binding.
+From D.Dot Require Import core_stamping_defs.
 
 Implicit Types
          (T : ty) (v w : vl) (t : tm) (d : dm) (ds : dms) (p q : path)

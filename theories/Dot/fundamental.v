@@ -2,10 +2,9 @@
 From D Require Import swap_later_impl.
 From D.Dot Require Export unary_lr later_sub_sem
   binding_lr defs_lr prims_lr path_repl_lr dsub_lr.
-From D.Dot Require Import sem_unstamped_typing.
+From D.Dot Require Export sem_unstamped_typing.
 
 From D.Dot Require Import typing path_repl_lemmas.
-From D.Dot Require Import old_unstamped_typing old_unstamped_typing_to_typing.
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
 Set Implicit Arguments.
@@ -157,12 +156,3 @@ Proof.
   apply: (ipwp_gs_adequacy dlangΣ); intros.
   apply fundamental_path_typed, Ht.
 Qed.
-
-(** We also prove that the old_unstamped_typing is safe. *)
-Corollary type_soundness_old {e T}
-  (Ht : [] u⊢ₜ e : T) : safe e.
-Proof. eapply type_soundness, renew_typed, Ht. Qed.
-
-Corollary path_normalization_old p T i
-  (Hp : [] u⊢ₚ p : T, i) : terminates (path2tm p).
-Proof. eapply path_normalization, renew_path_typed, Hp. Qed.

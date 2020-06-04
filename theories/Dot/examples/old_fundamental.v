@@ -1,13 +1,11 @@
-(** * Old fundamental theorem and type safety for gDOT. *)
+(** * Old fundamental theorem and type safety for storeless gDOT and old unstamped gDOT. *)
 From D Require Import swap_later_impl.
-(* For fundamental theorem. *)
-From D.Dot Require Export unary_lr later_sub_sem
-  binding_lr defs_lr prims_lr path_repl_lr sub_lr dsub_lr.
-From D.Dot Require Import storeless_typing.
-(* For unstamped safety. *)
-From D.Dot Require Import old_unstamped_typing type_extraction_syn
-  path_repl_lemmas.
-From D.Dot Require Import sem_unstamped_typing dsub_lr.
+
+From D.Dot Require Export fundamental.
+From D.Dot Require Export sub_lr.
+
+From D.Dot Require Import storeless_typing type_extraction_syn path_repl_lemmas.
+From D.Dot Require Import old_unstamped_typing old_unstamped_typing_to_typing.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
@@ -159,3 +157,12 @@ Proof.
   eapply (ipwp_gs_adequacy dlangΣ); intros.
   eapply fundamental_path_typed, Ht.
 Qed.
+
+(** We also prove that the old_unstamped_typing is safe. *)
+Corollary type_soundness_old {e T}
+  (Ht : [] u⊢ₜ e : T) : safe e.
+Proof. eapply type_soundness, renew_typed, Ht. Qed.
+
+Corollary path_normalization_old p T i
+  (Hp : [] u⊢ₚ p : T, i) : terminates (path2tm p).
+Proof. eapply path_normalization, renew_path_typed, Hp. Qed.
