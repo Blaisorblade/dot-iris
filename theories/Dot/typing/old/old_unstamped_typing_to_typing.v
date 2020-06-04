@@ -22,7 +22,7 @@ Local Definition renew_subtype_def Γ T1 i1 T2 i2 (HT: Γ u⊢ₜ T1, i1 <: T2, 
 Arguments renew_subtype_def /.
 Arguments renew_path_typed_def /.
 
-Theorem renew_typing_mut Γ :
+Theorem renew_subtyping_mut Γ :
   (∀ p T i (HT : Γ u⊢ₚ p : T, i), renew_path_typed_def HT) ∧
   (∀ T1 i1 T2 i2 (HT: Γ u⊢ₜ T1, i1 <: T2, i2), renew_subtype_def HT).
 Proof.
@@ -42,10 +42,10 @@ Proof.
 Qed.
 
 Lemma renew_path_typed Γ p T i (HT : Γ u⊢ₚ p : T, i) : Γ t⊢ₚ p : T, i.
-Proof. by apply renew_typing_mut. Qed.
+Proof. by apply renew_subtyping_mut. Qed.
 Lemma renew_subtype Γ T1 i1 T2 i2 (HT: Γ u⊢ₜ T1, i1 <: T2, i2) :
   Γ t⊢ₜ iterate TLater i1 T1 <:[ 0 ] iterate TLater i2 T2.
-Proof. by apply renew_typing_mut. Qed.
+Proof. by apply renew_subtyping_mut. Qed.
 
 Local Definition renew_typed_def Γ e T (HT: Γ u⊢ₜ e : T) := Γ t⊢ₜ e : T.
 Local Definition renew_dms_typed_def Γ ds T (HT: Γ u⊢ds ds : T) := Γ t⊢ds ds : T.
@@ -54,7 +54,7 @@ Arguments renew_typed_def /.
 Arguments renew_dms_typed_def /.
 Arguments renew_dm_typed_def /.
 
-Theorem renew_mut Γ :
+Theorem renew_typing_mut Γ :
   (∀ e T (HT: Γ u⊢ₜ e : T), renew_typed_def HT) ∧
   (∀ ds T (HT: Γ u⊢ds ds : T), renew_dms_typed_def HT) ∧
   (∀ l d T (HT : Γ u⊢{ l := d } : T), renew_dm_typed_def HT).
@@ -68,3 +68,10 @@ Proof.
   - move=> /renew_subtype; rewrite !(iterate_0, iterate_S) => Hsub _ IHt.
     apply /iD_Path_Sub /IHt /Hsub.
 Qed.
+
+Lemma renew_typed Γ e T (HT: Γ u⊢ₜ e : T) : Γ t⊢ₜ e : T.
+Proof. by apply renew_typing_mut. Qed.
+Lemma renew_dms_typed Γ ds T (HT: Γ u⊢ds ds : T) : Γ t⊢ds ds : T.
+Proof. by apply renew_typing_mut. Qed.
+Lemma renew_dm_typed Γ l d T (HT : Γ u⊢{ l := d } : T) : Γ t⊢{ l := d } : T.
+Proof. by apply renew_typing_mut. Qed.
