@@ -315,7 +315,7 @@ Proof.
   iApply suD_Cons; [done | iApply suD_Val | ]. {
     iApply (uT_All_I_Strong (Γ' := Γ')). apply Hctx.
     iApply (fundamental_typed (g := ∅)).
-    eapply (iT_Sub_nocoerce (TMu TTop)).
+    eapply (iT_ISub_nocoerce (TMu TTop)).
     + wtcrush.
     + apply (iSub_Sel' TTop); tcrush; varsub. lThis; ltcrush.
   }
@@ -323,7 +323,7 @@ Proof.
   iApply suD_Cons; [done | | ]. {
     iApply (fundamental_dm_typed (g := ∅)).
     tcrush.
-    eapply (iT_Sub_nocoerce (TMu ⊤)); first tcrush.
+    eapply (iT_ISub_nocoerce (TMu ⊤)); first tcrush.
     eapply (iSub_Trans (T2 := ⊤) (i2 := 0)); tcrush.
     eapply (iSub_Trans (i2 := 1)); first exact: iSub_AddI.
     asideLaters.
@@ -349,11 +349,11 @@ Proof.
   (A) on the one hand, show what x.T is.
   (B) on the other hand, thanks to hsomeConcr, we have a get method.
   *)
-  eapply (iT_Sub (i := 2)); first apply (iLaterN_Sub _ 2); tcrush.
+  eapply (iT_ISub (i := 2)); first apply (iLaterN_Sub _ 2); tcrush.
 
-  apply (iT_Sub (i := 1) (T1 := TAnd (x2 @ "symbols" @; "Symbol")
+  apply (iT_ISub (i := 1) (T1 := TAnd (x2 @ "symbols" @; "Symbol")
     (▶: val "tpe" : hsomeConcrT ⊥ ⊤))); first last. {
-    typconstructor. eapply (iT_Sub (i := 1)), Hx. asideLaters. ltcrush.
+    typconstructor. eapply (iT_ISub (i := 1)), Hx. asideLaters. ltcrush.
     ettrans; first apply iSub_Add_Later; tcrush; lNext.
   }
   asideLaters.
@@ -399,7 +399,7 @@ Lemma fromPDotPaperTypesSub Γ:
 Proof.
   iApply fundamental_subtype.
   ltcrush.
-  (* eapply iT_Sub_nocoerce; first exact: fromPDotPaperTypesTyp; ltcrush. *)
+  (* eapply iT_ISub_nocoerce; first exact: fromPDotPaperTypesTyp; ltcrush. *)
   eapply iSub_Sel', (path_tp_delay (i := 0)); wtcrush.
   varsub; tcrush.
 Qed.
@@ -412,7 +412,7 @@ Proof.
   iApply suD_Cons; [done | semTMember 3 | ].
   iApply (fundamental_dms_typed (g := ∅)).
   tcrush.
-  eapply (iT_Sub_nocoerce) => /=; hideCtx.
+  eapply (iT_ISub_nocoerce) => /=; hideCtx.
   - repeat first [var | typconstructor | tcrush].
   - ettrans; first last.
     eapply iSub_Sel'; first last.
@@ -425,7 +425,7 @@ Example fromPDotPaperSymbolsAbsTyp Γ :
   ⊢ TLater (fromPDotPaperAbsTBody x1) :: optionModTInv :: Γ u⊨
     fromPDotPaperSymbolsV : μ (fromPDotPaperAbsSymbolsTBody x2).
 Proof.
-  iApply (uT_Sub (i := 0)); first by iApply fromPDotPaperSymbolsTyp.
+  iApply (uT_ISub (i := 0)); first by iApply fromPDotPaperSymbolsTyp.
   iApply fundamental_subtype.
   tcrush; lThis.
 Qed.
@@ -450,7 +450,7 @@ Proof.
   iApply fundamental_typed.
   exact: optionModInvTyp.
   iApply (uT_All_I_Strong (Γ' := Γ)). ietp_weaken_ctx.
-  iApply (uT_Sub (i := 0)).
+  iApply (uT_ISub (i := 0)).
   iApply fromPDotPaperTyp.
   iApply sSub_Top.
 Qed.
@@ -479,7 +479,7 @@ Example getAnyTypeFunTyp Γ :
   v⊢ₜ[ ∅ ] getAnyType : getAnyTypeT x1.
 Proof.
   rewrite /getAnyType; tcrush.
-  eapply (iT_Sub (T1 := TLater (x0 @ "types" @; "Type")) (i := 1)); tcrush.
+  eapply (iT_ISub (T1 := TLater (x0 @ "types" @; "Type")) (i := 1)); tcrush.
   set Γ' := shift (μ (fromPDotPaperAbsTBody x2)) ::
     μ (fromPDotPaperAbsTBody x2) :: optionModTInv :: Γ.
   have Hpx: Γ' v⊢ₚ[fromPDotG] x0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0.
@@ -512,7 +512,7 @@ Proof.
   iApply uT_All_E; first last.
   iApply fromPDotPaperTyp.
   iApply uT_All_I_Strong. ietp_weaken_ctx.
-  iApply (uT_Sub (i := 0)); last iApply sSub_Top.
+  iApply (uT_ISub (i := 0)); last iApply sSub_Top.
   iApply fundamental_typed.
   apply getAnyTypeTyp0.
 Qed.

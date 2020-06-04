@@ -98,11 +98,11 @@ Example fromPDotPaperTypesTyp :
     fromPDotPaperTypesV : μ fromPDotPaperTypesTBody.
 Proof.
   tcrush.
-  - eapply (iT_Sub_nocoerce) => /=; hideCtx.
+  - eapply (iT_ISub_nocoerce) => /=; hideCtx.
     + repeat first [var | typconstructor | tcrush].
     + apply (iSub_Trans (T2 := ⊤) (i2 := 0)); first tcrush.
       eapply iSub_Sel'; last (tcrush; varsub); ltcrush.
-  - eapply (iT_Sub_nocoerce) => /=; hideCtx.
+  - eapply (iT_ISub_nocoerce) => /=; hideCtx.
     + repeat first [var | typconstructor | tcrush].
     + ettrans; first last.
       eapply iSub_Sel'; first last.
@@ -119,7 +119,7 @@ Example fromPDotPaperTypesAbsTyp :
   TLater (fromPDotPaperAbsTBody x1) :: optionModT :: [] u⊢ₜ
     fromPDotPaperTypesV : μ fromPDotPaperAbsTypesTBody.
 Proof.
-  eapply iT_Sub_nocoerce; first exact: fromPDotPaperTypesTyp; ltcrush.
+  eapply iT_ISub_nocoerce; first exact: fromPDotPaperTypesTyp; ltcrush.
   eapply iSub_Sel', (path_tp_delay (i := 0)); wtcrush.
   varsub; tcrush.
 Qed.
@@ -129,7 +129,7 @@ Example fromPDotPaperSymbolsTyp :
     fromPDotPaperSymbolsV x1 : μ (fromPDotPaperSymbolsTBody x2).
 Proof.
   tcrush.
-  - eapply (iT_Sub_nocoerce) => /=; hideCtx.
+  - eapply (iT_ISub_nocoerce) => /=; hideCtx.
     + repeat first [var | typconstructor | tcrush].
     + ettrans; first last.
       eapply iSub_Sel'; first last.
@@ -142,7 +142,7 @@ Example fromPDotPaperSymbolsAbsTyp :
   TLater (fromPDotPaperAbsTBody x1) :: optionModT :: [] u⊢ₜ
     fromPDotPaperSymbolsV x1 : μ (fromPDotPaperAbsSymbolsTBody x2).
 Proof.
-  eapply iT_Sub_nocoerce; first exact: fromPDotPaperSymbolsTyp; tcrush.
+  eapply iT_ISub_nocoerce; first exact: fromPDotPaperSymbolsTyp; tcrush.
   lThis.
 Qed.
 
@@ -156,7 +156,7 @@ Qed.
 Example pCoreTyp : [] u⊢ₜ lett hoptionModV (fromPDotPaper x0) : ⊤.
 Proof.
   eapply iT_All_E, optionModTyp; tcrush.
-  eapply (iT_Sub (i := 0)), fromPDotPaperTyp; tcrush.
+  eapply (iT_ISub (i := 0)), fromPDotPaperTyp; tcrush.
 Qed.
 
 Definition getAnyTypeT pOpt : ty :=
@@ -181,10 +181,10 @@ Proof. exact: psubst_ty_rtc_sufficient. Qed.
 Example getAnyTypeFunTyp Γ T : T :: optionModT :: Γ u⊢ₜ getAnyType : getAnyTypeT x1.
 Proof.
   rewrite /getAnyType -(iterate_S tskip 0); tcrush.
-  eapply (iT_Sub (T1 := TLater (⊤ →: x0 @ "types" @; "TypeTop"))); tcrush.
+  eapply (iT_ISub (T1 := TLater (⊤ →: x0 @ "types" @; "TypeTop"))); tcrush.
   set Γ' := shift (μ fromPDotPaperAbsTBody (shiftV x1)) :: T :: optionModT :: Γ.
   have Hpx: Γ' u⊢ₚ x0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0
-    by tcrush; eapply iT_Sub_nocoerce;
+    by tcrush; eapply iT_ISub_nocoerce;
       [ by eapply iT_Mu_E; first var; stcrush | tcrush].
   have HpxSubst: Γ' u⊢ₚ x0 @ "types" : fromPDotPaperAbsTypesTBodySubst, 0.
   by eapply (iP_Mu_E (T := fromPDotPaperAbsTypesTBody)
@@ -197,6 +197,6 @@ Example getAnyTypeTyp0 :
   [μ (fromPDotPaperAbsTBody x2); optionModT] u⊢ₜ
     getAnyType $: x0 $: () : x0 @ "types" @; "TypeTop".
 Proof.
-  eapply (iT_All_E (T1 := ⊤)), iT_Sub_nocoerce; tcrush.
+  eapply (iT_All_E (T1 := ⊤)), iT_ISub_nocoerce; tcrush.
   eapply iT_All_Ex'; [exact: getAnyTypeFunTyp|var|tcrush..].
 Qed.

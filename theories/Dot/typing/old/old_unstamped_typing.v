@@ -55,7 +55,7 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ u⊢ₜ tv (vobj ds): TMu T
 
 (** "General" rules *)
-| iT_Sub e T1 T2 i :
+| iT_ISub e T1 T2 i :
     Γ u⊢ₜ T1, 0 <: T2, i → Γ u⊢ₜ e : T1 →
     (*───────────────────────────────*)
     Γ u⊢ₜ iterate tskip i e : T2

@@ -120,7 +120,7 @@ Section Fundamental.
       + by iApply T_Mu_I. *)
       + by iApply T_Nat_I.
       + by iApply T_Var.
-      + iApply T_Sub => //.
+      + iApply T_ISub => //.
         by iApply fundamental_subtype.
       + iApply T_Vty_abs_I => //;
         by iApply fundamental_subtype.

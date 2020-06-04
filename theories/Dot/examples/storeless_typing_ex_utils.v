@@ -242,12 +242,12 @@ Lemma iT_Mu_E' Γ x T1 T2:
   Γ v⊢ₜ[ g ] tv (var_vl x): T2.
 Proof. intros; subst; tcrush. Qed.
 
-Lemma iT_Sub_nocoerce T1 T2 {Γ e} :
+Lemma iT_ISub_nocoerce T1 T2 {Γ e} :
   Γ v⊢ₜ[ g ] e : T1 →
   Γ v⊢ₜ[ g ] T1, 0 <: T2, 0 →
   Γ v⊢ₜ[ g ] e : T2.
-Proof. intros. exact: (iT_Sub (i:=0)). Qed.
-Hint Resolve iT_Sub_nocoerce : core.
+Proof. intros. exact: (iT_ISub (i:=0)). Qed.
+Hint Resolve iT_ISub_nocoerce : core.
 
 Lemma path_tp_delay {Γ p T i j} (Hst: is_unstamped_ty' (length Γ) T) : i <= j →
   Γ v⊢ₚ[ g ] p : T, i → Γ v⊢ₚ[ g ] p : T, j.
@@ -293,7 +293,7 @@ Proof.
   (* XXX *)
   have HsT1 := unstamped_stamped_type g HuT1; move: (HsT1) => /is_stamped_ren1_ty HsT2.
 
-  apply (iT_Sub_nocoerce (μ {@ typeEq "A" (shift T) }));
+  apply (iT_ISub_nocoerce (μ {@ typeEq "A" (shift T) }));
     last (ettrans; first apply: (iMu_Sub (T := {@ typeEq "A" T })); tcrush).
   apply iT_Obj_I; tcrush.
   apply (iD_Typ (shift T)); simpl; eauto 2.
@@ -346,7 +346,7 @@ Proof.
   eapply iT_Let; [by apply packTV_typed| |tcrush].
   rewrite /= -!hrenS -/(typeEq _ _).
 
-  apply /iT_Sub_nocoerce /Hsub.
+  apply /iT_ISub_nocoerce /Hsub.
 
   eapply iT_All_Ex'; first exact: iT_Var'.
   apply: iT_Var_Sub; tcrush; rewrite /= hsubst_id //.
@@ -355,7 +355,7 @@ Qed.
 
 End examples_lemmas.
 
-Hint Resolve is_stamped_pvar is_stamped_pvars iT_Sub_nocoerce : core.
+Hint Resolve is_stamped_pvar is_stamped_pvars iT_ISub_nocoerce : core.
 
 Ltac var := exact: iT_Var0 || exact: iT_Var' || pvar.
 Ltac varsub := (eapply iP_Var_Sub || eapply iP_Var0_Sub ||

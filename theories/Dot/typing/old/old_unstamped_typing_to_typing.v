@@ -61,7 +61,7 @@ Theorem renew_typing_mut Γ :
 Proof.
   apply old_unstamped_typing_mut_ind; clear Γ; cbn; intros *; try by [intros;
     hnf in *; eauto 3 using renew_path_typed].
-  - move=> /renew_subtype + _; rewrite iterate_0. apply iT_Sub'.
+  - move=> /renew_subtype + _; rewrite iterate_0. apply iT_ISub'.
   - move=> + /renew_subtype + /renew_subtype.
     rewrite !(iterate_0, iterate_S) => Hu.
     eapply iD_Typ_Abs, is_unstamped_nclosed_ty, Hu.

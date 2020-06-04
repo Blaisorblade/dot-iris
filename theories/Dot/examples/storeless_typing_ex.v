@@ -25,7 +25,7 @@ Example ex0 e Γ T:
   Γ v⊢ₜ[ g ] e : T →
   is_unstamped_ty' (length Γ) T →
   Γ v⊢ₜ[ g ] e : ⊤.
-Proof. intros. apply (iT_Sub_nocoerce T TTop); tcrush. Qed.
+Proof. intros. apply (iT_ISub_nocoerce T TTop); tcrush. Qed.
 
 Example ex1 Γ (n : Z) T:
   Γ v⊢ₜ[ g ] ν {@ val "a" = n } : μ {@ val "a" : TInt }.
@@ -112,7 +112,7 @@ Example hashKeys_typed Γ (Hs1 : s1_is_tint):
 Proof.
   cut (Γ v⊢ₜ[ g ] hashKeys : KeysT').
   { intros H.
-    apply (iT_Sub_nocoerce KeysT'); first done.
+    apply (iT_ISub_nocoerce KeysT'); first done.
     apply iMu_Sub_Mu; last stcrush.
     tcrush.
     ettrans; first apply iAnd1_Sub; tcrush.
@@ -120,17 +120,17 @@ Proof.
   apply iT_Obj_I; tcrush.
   by apply (iD_Typ_Abs TInt); wtcrush.
   cbn; apply (iT_All_E (T1 := TUnit));
-    last eapply (iT_Sub_nocoerce TInt); tcrush.
+    last eapply (iT_ISub_nocoerce TInt); tcrush.
   tcrush; cbn.
 
   pose (T0 := μ {@ val "hashCode" : TAll ⊤ 𝐙 }).
 
   have Htp: ∀ Γ', T0 :: Γ' v⊢ₜ[ g ] x0 : val "hashCode" : TAll ⊤ TInt. {
-    intros. eapply iT_Sub_nocoerce.
+    intros. eapply iT_ISub_nocoerce.
     by eapply iT_Mu_E'; [exact: iT_Var'| |stcrush].
     by apply iAnd1_Sub; tcrush.
   }
-  apply (iT_Sub_nocoerce (val "hashCode" : TAll ⊤ 𝐙)). exact: Htp.
+  apply (iT_ISub_nocoerce (val "hashCode" : TAll ⊤ 𝐙)). exact: Htp.
   tcrush.
   eapply iSub_Sel', (path_tp_delay (i := 0)); wtcrush.
   varsub; tcrush.
@@ -175,11 +175,11 @@ Example motivEx1 Γ (Hs1: s1_is_tint) (Hs2: s2_is_String)
   Γ v⊢ₜ[ g ] systemVal : systemValT'.
 Proof.
   apply iT_Obj_I; tcrush.
-  - apply (iT_Sub_nocoerce (μ {@ type "A" >: ⊥ <: TInt})); tcrush.
+  - apply (iT_ISub_nocoerce (μ {@ type "A" >: ⊥ <: TInt})); tcrush.
     + apply (iD_Typ_Abs TInt); wtcrush.
     + ettrans;
       [apply: (iMu_Sub (T := {@ type "A" >: ⊥ <: TInt })%ty 0)|]; tcrush.
-  - apply (iT_Sub_nocoerce (μ {@ type "B" >: ⊥ <: ⊤})); tcrush.
+  - apply (iT_ISub_nocoerce (μ {@ type "B" >: ⊥ <: ⊤})); tcrush.
     + apply (iD_Typ_Abs String); wtcrush.
     + ettrans;
       [apply: (iMu_Sub (T := {@ type "B" >: ⊥ <: ⊤ })%ty 0)|]; tcrush.
@@ -281,7 +281,7 @@ Qed.
 Example boolImplTyp Γ (Hst : s1_is_ift_ext):
   Γ v⊢ₜ[ g ] boolImplV : boolImplT.
 Proof.
-  apply (iT_Sub_nocoerce boolImplTConcr).
+  apply (iT_ISub_nocoerce boolImplTConcr).
   tcrush; by [apply (iD_Typ_Abs IFT); wtcrush| exact: iT_Var'].
   tcrush; rewrite iterate_0; ltcrush; apply SubIFT_LaterP0Bool'.
 Qed.
@@ -301,18 +301,18 @@ Lemma iD_Lam_Sub {Γ} V T1 T2 e l L:
   Γ |L V v⊢[ g ]{ l := dpt (pv (vabs e)) } : TVMem l L.
 Proof.
   intros He Hsub Hs. apply iD_Val.
-  eapply (iT_Sub (i := 0)); first apply Hsub.
+  eapply (iT_ISub (i := 0)); first apply Hsub.
   by apply iT_All_I_strip1.
 Qed.
 
 Example boolImplTypAlt Γ (Hst : s1_is_ift_ext):
   Γ v⊢ₜ[ g ] boolImplV : boolImplT.
 Proof.
-  apply (iT_Sub_nocoerce boolImplT0);
+  apply (iT_ISub_nocoerce boolImplT0);
     last (tcrush; ettrans; first apply iAnd1_Sub; tcrush).
   tcrush; first by apply (iD_Typ_Abs IFT); wtcrush.
-  - eapply iT_Sub_nocoerce; [apply iftTrueTyp|apply SubIFT_LaterP0Bool].
-  - eapply iT_Sub_nocoerce; [apply iftFalseTyp|apply SubIFT_LaterP0Bool].
+  - eapply iT_ISub_nocoerce; [apply iftTrueTyp|apply SubIFT_LaterP0Bool].
+  - eapply iT_ISub_nocoerce; [apply iftFalseTyp|apply SubIFT_LaterP0Bool].
 Qed.
 
 (* AND = λ a b. a b False. *)
@@ -324,7 +324,7 @@ Proof. apply (packTV_typed' s1 IFT); eauto 1. Qed.
 Lemma packBooleanTyp Γ (Hst : s1_is_ift) :
   Γ v⊢ₜ[ g ] packBoolean : type "A" >: ⊥ <: ⊤.
 Proof.
-  apply (iT_Sub_nocoerce (typeEq "A" IFT)); last tcrush.
+  apply (iT_ISub_nocoerce (typeEq "A" IFT)); last tcrush.
   exact: packBooleanTyp0.
 Qed.
 
@@ -352,7 +352,7 @@ Proof.
   rewrite /= !(hren_upn_gen 1) (hren_upn_gen 2) /=.
   tcrush; [exact: unstamped_stamped_type..|];
     rewrite -!hrenS -!(iterate_S tskip 0).
-  eapply (iT_Sub (T1 := ▶:T.|[_])); first tcrush.
+  eapply (iT_ISub (T1 := ▶:T.|[_])); first tcrush.
   eapply iT_All_E; last exact: iT_Var';
     eapply iT_All_E; last exact: iT_Var'.
   apply: iT_Var' => //.

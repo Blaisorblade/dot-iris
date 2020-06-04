@@ -52,7 +52,7 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ t⊢ₜ tv (vobj ds): TMu T
 
 (** "General" rules *)
-| iT_Sub e T1 T2 :
+| iT_ISub e T1 T2 :
     Γ t⊢ₜ T1 <:[ 0 ] T2 → Γ t⊢ₜ e : T1 →
     (*───────────────────────────────*)
     Γ t⊢ₜ e : T2
@@ -159,7 +159,7 @@ Lemma iD_All Γ V T1 T2 e l:
   Γ |L V t⊢{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
 Proof. by intros; apply iD_Val, iT_All_I_strip1. Qed.
 
-Lemma iT_Sub' Γ i T1 T2 e :
+Lemma iT_ISub' Γ i T1 T2 e :
   Γ t⊢ₜ T1 <:[ 0 ] iterate TLater i T2 →
   Γ t⊢ₜ e : T1 →
   Γ t⊢ₜ iterate tskip i e : T2.
@@ -176,7 +176,7 @@ Lemma iT_Sel_Unfold Γ i e p l L U :
   Γ t⊢ₜ iterate tskip i e : U.
 Proof.
   intros Hp He.
-  apply: iT_Sub' He.
+  apply: iT_ISub' He.
   ettrans; first apply (iStp_Add_LaterN (j := i)).
   rewrite -iLaterN0_Stp_Eq.
   apply: iSel_Stp Hp.

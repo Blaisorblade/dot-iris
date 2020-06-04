@@ -32,7 +32,7 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ !! x = Some T →
     (*──────────────────────*)
     Γ ⊢ₜ tv (var_vl x) : shiftN x T
-| iT_Sub e T1 T2 i :
+| iT_ISub e T1 T2 i :
     Γ ⊢ₜ T1, 0 <: T2, i → Γ ⊢ₜ e : T1 →
     (*───────────────────────────────*)
     Γ ⊢ₜ iterate tskip i e : T2

@@ -448,11 +448,11 @@ Section storeless_unstamped_lemmas.
     repeat iModIntro; by iExists (tv (ids x)); iSplit; last iApply T_Var.
   Qed. *)
 
-  Lemma uT_Sub {Γ e T1 T2 i}:
+  Lemma uT_ISub {Γ e T1 T2 i}:
     Γ u⊨ e : T1 -∗ Γ ⊨ T1, 0 <: T2, i -∗ Γ u⊨ iterate tskip i e : T2.
   Proof.
     iIntros "#H1 #Hsub !>"; iMod "H1" as (e1s Hsk1) "H1"; iModIntro.
-    iExists (iterate tskip i e1s); iSplit; last iApply (T_Sub with "H1 Hsub").
+    iExists (iterate tskip i e1s); iSplit; last iApply (T_ISub with "H1 Hsub").
     eauto using same_skel_tm_tskips.
   Qed.
 

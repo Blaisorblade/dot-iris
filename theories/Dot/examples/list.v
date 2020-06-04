@@ -23,9 +23,9 @@ Lemma trueTyp Γ Γ'' : Γ'' ++ boolImplT :: Γ u⊢ₜ
   htrueTm (hx (length Γ'')) : hx (length Γ'') @; "Boolean".
 Proof.
   have ?: length Γ'' < length (Γ'' ++ boolImplT :: Γ) by rewrite app_length /=; lia.
-  apply (iT_Sub (i := 1) (T1 := ▶: hx (length Γ'') @; "Boolean"));
+  apply (iT_ISub (i := 1) (T1 := ▶: hx (length Γ'') @; "Boolean"));
     rewrite /= plusnO; tcrush.
-    eapply iT_Sub_nocoerce.
+    eapply iT_ISub_nocoerce.
   - eapply iT_Mu_E'; first eapply iT_Var'; try by [rewrite lookup_app_r ?Nat.sub_diag|]; stcrush.
   - ltcrush.
 Qed.
@@ -34,9 +34,9 @@ Lemma falseTyp Γ Γ'' : Γ'' ++ boolImplT :: Γ u⊢ₜ
   hfalseTm (hx (length Γ'')) : hx (length Γ'') @; "Boolean".
 Proof.
   have ?: length Γ'' < length (Γ'' ++ boolImplT :: Γ) by rewrite app_length /=; lia.
-  apply (iT_Sub (i := 1) (T1 := ▶: hx (length Γ'') @; "Boolean"));
+  apply (iT_ISub (i := 1) (T1 := ▶: hx (length Γ'') @; "Boolean"));
     rewrite /= plusnO; tcrush.
-  eapply iT_Sub_nocoerce.
+  eapply iT_ISub_nocoerce.
   - eapply iT_Mu_E'; first eapply iT_Var'; try by [rewrite lookup_app_r ?Nat.sub_diag|]; stcrush.
   - ltcrush.
 Qed.
@@ -125,13 +125,13 @@ Definition hlistModTConcr bool : hty := μ: sci, hlistModTConcrBody bool sci.
 Example nilTyp Γ : (▶: hlistModTConcrBody hx1 hx0)%ty :: boolImplT :: Γ u⊢ₜ
   hnilV hx1 : hnilT hx0.
 Proof.
-  apply (iT_Sub_nocoerce $ hlistTGen hx1 hx0 ⊥ ⊥ ).
+  apply (iT_ISub_nocoerce $ hlistTGen hx1 hx0 ⊥ ⊥ ).
   - evar (T : ty).
     set L := (▶: hlistModTConcrBody hx1 hx0)%ty.
     have := !! trueTyp Γ [⊤; T; L].
     have := !! loopTyp (⊤ :: T :: L :: boolImplT :: Γ).
     rewrite {}/T/= => Ht Hl.
-    tcrush; apply (iT_Sub_nocoerce ⊥); tcrush.
+    tcrush; apply (iT_ISub_nocoerce ⊥); tcrush.
   - tcrush; last mltcrush.
     ettrans; first eapply iSub_Add_Later; stcrush.
     asideLaters.
@@ -188,7 +188,7 @@ Example listTyp Γ : boolImplT :: Γ u⊢ₜ hlistModV hx0 : hlistModT hx0.
 Proof.
   have Hv := listTypConcr Γ.
   have Hsub := consTSub Γ.
-  eapply iT_Sub_nocoerce; first exact Hv; ltcrush.
+  eapply iT_ISub_nocoerce; first exact Hv; ltcrush.
 Qed.
 
 
@@ -263,19 +263,19 @@ Proof.
   have HL : Γ' u⊢ₜ x0: hlistModTBody hx1 hx0 by apply: iT_Mu_E'; first var; stcrush.
 
   (* The result of "head" has one more later than the list. *)
-  eapply (iT_Sub (i := 2) (T1 := ▶: ▶: 𝐙)).
+  eapply (iT_ISub (i := 2) (T1 := ▶: ▶: 𝐙)).
   asideLaters. tcrush.
-  eapply (iT_All_E (T1 := ⊤)); last (eapply iT_Sub_nocoerce); tcrush.
+  eapply (iT_All_E (T1 := ⊤)); last (eapply iT_ISub_nocoerce); tcrush.
   have Hnil: Γ' u⊢ₜ (hxm 2 @: "nil") 2 : hnilT hx0
-    by tcrush; eapply iT_Sub_nocoerce; ltcrush.
+    by tcrush; eapply iT_ISub_nocoerce; ltcrush.
   have Hsnil: Γ' u⊢ₜ htskip (hxm 2 @: "nil") 2
     : hTAnd (hx0 @; "List") (typeEq "A" ⊥). {
-    eapply (iT_Sub (i := 1)), Hnil.
+    eapply (iT_ISub (i := 1)), Hnil.
     by tcrush; [lThis | lNext; apply iSub_AddI; tcrush].
   }
   have Hcons: Γ' u⊢ₜ (hxm 2 @: "cons") 2 : hconsT hx0. {
     tcrush.
-    eapply iT_Sub_nocoerce; by [| ltcrush].
+    eapply iT_ISub_nocoerce; by [| ltcrush].
   }
 
   (* Here we produce a list of later nats, since we produce a list of p.A where p is the
@@ -284,13 +284,13 @@ Proof.
   set V := (hTAnd (hlistT hx1 hx0) U).
   apply AnfBind_typed with (T := V); stcrush; first last.
   {
-    eapply iT_Sub_nocoerce; first
+    eapply iT_ISub_nocoerce; first
       eapply (iT_Mu_E' (T1 := (val "head" : ⊤ →: hx0 @; "A")%HS));
       [ | done | tcrush ..].
       - varsub; asideLaters; lThis; ltcrush.
       - by apply (iSel_SubL (L := ⊥)), (path_tp_delay (i := 0)); wtcrush; varsub; ltcrush.
   }
-  eapply (iT_Sub (i := 1) (T1 := hTAnd (hx0 @; "List") U)).
+  eapply (iT_ISub (i := 1) (T1 := hTAnd (hx0 @; "List") U)).
   (******)
   (* We seem stuck here. The problem is that *we* wrote
   x.List & { A <: Nat }, and that's <: (▶: ListBody) & { A <: Nat }, and we have no
@@ -304,7 +304,7 @@ Proof.
     ettrans; [|apply: iAnd_Later_Sub_Distr; stcrush].
     tcrush; [lThis | lNext].
     eapply iSel_Sub; tcrush.
-    eapply iT_Sub_nocoerce; ltcrush.
+    eapply iT_ISub_nocoerce; ltcrush.
   }
 
   eapply iT_All_E, Hsnil.
