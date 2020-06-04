@@ -82,7 +82,7 @@ Lemma path_tp_delay {Γ p T i j} (Hst: is_unstamped_ty' (length Γ) T) : i <= j 
 Proof.
   intros Hle Hp.
   rewrite (le_plus_minus i j Hle); move: {j Hle} (j - i) => k.
-  eapply iP_Sub, Hp.
+  eapply iP_ISub, Hp.
   apply: iSub_AddIJ'; by [|lia].
 Qed.
 
@@ -132,7 +132,7 @@ Lemma iP_Sngl_Sym Γ p q i:
   Γ u⊢ₚ p : TSing q, i →
   Γ u⊢ₚ q : TSing p, i.
 Proof.
-  intros Hus Hpq. eapply iP_Sub'.
+  intros Hus Hpq. eapply iP_ISub'.
   eapply (iSngl_Sub_Sym Hpq). by apply iSngl_Sub_Self, Hpq.
   eapply iP_Sngl_Refl.
   by apply (iP_Sngl_Inv Hpq).
@@ -152,7 +152,7 @@ Lemma iP_And {Γ p T1 T2 i}:
   Γ u⊢ₚ p : T2, i →
   Γ u⊢ₚ p : TAnd T1 T2, i.
 Proof.
-  intros Hp1 Hp2. eapply iP_Sub', iP_Sngl_Refl, Hp1.
+  intros Hp1 Hp2. eapply iP_ISub', iP_Sngl_Refl, Hp1.
   apply iSub_And; exact: iSngl_Sub_Self.
 Qed.
 
@@ -243,7 +243,7 @@ Lemma iP_Mu_E_alt {Γ T p i} :
   is_unstamped_ty' (S (length Γ)) T →
   Γ u⊢ₚ p : T .Tp[ p /], i.
 Proof.
-  intros Hp Hu. eapply iP_Sub', (iP_Sngl_Refl Hp).
+  intros Hp Hu. eapply iP_ISub', (iP_Sngl_Refl Hp).
   apply (singleton_Mu_1 Hp Hu).
 Qed.
 
@@ -252,7 +252,7 @@ Lemma iP_Mu_I_alt {Γ T p i} :
   is_unstamped_ty' (S (length Γ)) T →
   Γ u⊢ₚ p : TMu T, i.
 Proof.
-  intros Hp Hu. eapply iP_Sub', (iP_Sngl_Refl Hp).
+  intros Hp Hu. eapply iP_ISub', (iP_Sngl_Refl Hp).
   apply (singleton_Mu_2 Hp Hu).
 Qed.
 
@@ -280,7 +280,7 @@ Lemma singleton_Mu_dotty1 {Γ p i T1' T2} :
 Proof.
   intros Hsub Hp Hu.
   apply singleton_Mu_2, Hu.
-  apply (iP_Sub' Hsub Hp).
+  apply (iP_ISub' Hsub Hp).
 Qed.
 
 Lemma iP_LaterN {Γ p T i j} :

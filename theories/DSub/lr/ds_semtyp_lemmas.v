@@ -66,7 +66,7 @@ Section Sec.
     by rewrite (interp_weaken_one T1 _ v).
   Qed.
 
-  Lemma T_Sub e T1 T2 i:
+  Lemma T_ISub e T1 T2 i:
     Γ ⊨ e : T1 -∗
     Γ ⊨ T1, 0 <: T2, i -∗
     (*───────────────────────────────*)
@@ -81,7 +81,7 @@ Section Sec.
     by iApply "Hsub".
   Qed.
 
-  Lemma DT_Sub e T1 T2 i:
+  Lemma DT_ISub e T1 T2 i:
     Γ ⊨ e : T1 -∗
     Γ ⊨[0] T1 <: iterate TLater i T2 -∗
     (*───────────────────────────────*)

@@ -4,7 +4,7 @@ WIP examples constructing _unstamped_ syntactic typing derivations.
 
 From D Require Import tactics.
 From D.Dot Require Import syn unstampedness_binding.
-From D.Dot.typing Require Import old_unstamped_typing old_unstamped_typing_derived_rules.
+From D.Dot Require Import old_unstamped_typing old_unstamped_typing_derived_rules.
 From D.Dot Require Import ex_utils hoas scala_lib.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
@@ -15,7 +15,7 @@ Example ex0 e Γ T:
   Γ u⊢ₜ e : T →
   is_unstamped_ty' (length Γ) T →
   Γ u⊢ₜ e : ⊤.
-Proof. intros. apply (iT_Sub_nocoerce T TTop); tcrush. Qed.
+Proof. intros. apply (iT_ISub_nocoerce T TTop); tcrush. Qed.
 
 Example ex1 Γ (n : Z) T:
   Γ u⊢ₜ ν {@ val "a" = n} : μ {@ val "a" : TInt }.
@@ -54,17 +54,17 @@ Definition KeysTConcr := μ {@
 Example hashKeys_typed Γ:
   Γ u⊢ₜ hashKeys : KeysT.
 Proof.
-  apply (iT_Sub_nocoerce KeysTConcr); first last. {
+  apply (iT_ISub_nocoerce KeysTConcr); first last. {
     apply iMu_Sub_Mu; last stcrush.
     tcrush.
     lThis.
   }
   tcrush.
   apply iT_All_E with (T1 := TUnit);
-    last eapply (iT_Sub_nocoerce TInt); tcrush.
+    last eapply (iT_ISub_nocoerce TInt); tcrush.
 
-  apply (iT_Sub_nocoerce (val "hashCode" : ⊤ →: 𝐙)).
-  by eapply iT_Sub_nocoerce; [eapply iT_Mu_E'; by [var||stcrush] | tcrush].
+  apply (iT_ISub_nocoerce (val "hashCode" : ⊤ →: 𝐙)).
+  by eapply iT_ISub_nocoerce; [eapply iT_Mu_E'; by [var||stcrush] | tcrush].
   tcrush.
   eapply iSub_Sel', (path_tp_delay (i := 0)); wtcrush.
   varsub; tcrush.
@@ -81,11 +81,11 @@ Definition boolImplT0 : ty :=
 Example boolImplTypAlt Γ :
   Γ u⊢ₜ boolImplV : boolImplT.
 Proof.
-  apply (iT_Sub_nocoerce boolImplT0);
+  apply (iT_ISub_nocoerce boolImplT0);
     last (tcrush; lThis).
   tcrush.
-  - eapply iT_Sub_nocoerce; [apply iftTrueTyp|apply SubIFT_LaterP0Bool].
-  - eapply iT_Sub_nocoerce; [apply iftFalseTyp|apply SubIFT_LaterP0Bool].
+  - eapply iT_ISub_nocoerce; [apply iftTrueTyp|apply SubIFT_LaterP0Bool].
+  - eapply iT_ISub_nocoerce; [apply iftFalseTyp|apply SubIFT_LaterP0Bool].
 Qed.
 
 (* Utilities needed for not. *)
@@ -134,7 +134,7 @@ Proof.
   eapply iT_Let; [exact: Ht| |rewrite /= !(hren_upn 1); tcrush].
   rewrite /= !(hren_upn_gen 1) (hren_upn_gen 2) /=.
   tcrush; rewrite -!hrenS -(iterate_S tskip 0).
-  eapply (iT_Sub (T1 := ▶:T.|[_])); first tcrush.
+  eapply (iT_ISub (T1 := ▶:T.|[_])); first tcrush.
   repeat (eapply iT_All_E; last var).
   apply: iT_Var' => //.
   rewrite /= !(hren_upn 1) (hren_upn_gen 1) (hren_upn_gen 2)

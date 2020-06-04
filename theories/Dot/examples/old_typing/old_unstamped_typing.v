@@ -8,8 +8,8 @@ This judgment allowing only variables in paths, and not arbitrary values.
 *)
 From D Require Import tactics.
 From D.Dot Require Export syn path_repl lr_syn_aux.
-From D.Dot.typing Require Export typing_aux_defs old_subtyping.
-From D.Dot.stamping Require Export core_stamping_defs.
+From D.Dot Require Export typing_aux_defs old_subtyping.
+From D.Dot Require Export core_stamping_defs.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -55,7 +55,7 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ u⊢ₜ tv (vobj ds): TMu T
 
 (** "General" rules *)
-| iT_Sub e T1 T2 i :
+| iT_ISub e T1 T2 i :
     Γ u⊢ₜ T1, 0 <: T2, i → Γ u⊢ₜ e : T1 →
     (*───────────────────────────────*)
     Γ u⊢ₜ iterate tskip i e : T2
@@ -173,7 +173,7 @@ Proof.
   move E: (tv (var_vl x)) => t; induction 1; simplify_eq/=;
     last by destruct p; simplify_eq/=.
   destruct i; last by [simplify_eq]; rewrite iterate_0 in E; simplify_eq/=.
-  eapply iP_Sub'; eauto.
+  eapply iP_ISub'; eauto.
 Qed.
 
 Ltac typconstructor :=

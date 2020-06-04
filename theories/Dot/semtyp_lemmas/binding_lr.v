@@ -96,7 +96,7 @@ Section Sec.
     iApply (wp_and_val with "(HT1 Hg) (HT2 Hg)").
   Qed.
 
-  Lemma sT_Sub {Γ e T1 T2 i}:
+  Lemma sT_ISub {Γ e T1 T2 i}:
     Γ s⊨ e : T1 -∗
     Γ s⊨ T1, 0 <: T2, i -∗
     (*───────────────────────────────*)
@@ -111,9 +111,9 @@ Section Sec.
     by iApply "Hsub".
   Qed.
 
-  Lemma T_Sub {Γ e T1 T2 i}:
+  Lemma T_ISub {Γ e T1 T2 i}:
     Γ ⊨ e : T1 -∗ Γ ⊨ T1, 0 <: T2, i -∗ Γ ⊨ iterate tskip i e : T2.
-  Proof. apply sT_Sub. Qed.
+  Proof. apply sT_ISub. Qed.
 
   (*
      Γ ⊨ z: Tᶻ

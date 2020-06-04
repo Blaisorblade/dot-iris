@@ -76,11 +76,14 @@ sumDirs "logrel" "lr semtyp_lemmas"
 sumDirs "model (syntax + logrel)" "syn lr semtyp_lemmas"
 
 echo
-sumDirs "syntactic typing (w/ stamping & old_fundamental)" ". typing stamping"
+sumDirs "syntactic typing (w/ fundamental)" ". typing"
 
 echo
-sumDirs "examples" "examples"
+exampleDirs="$(echo $(find examples -type d))"
+sumDirs "examples" "$exampleDirs"
 
+echo
+sumDirs "hkdot" "hkdot"
 # cd DSub
 # echo "DSub"
 # sumDirs "DSub syntax" "syn"

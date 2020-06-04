@@ -161,7 +161,7 @@ Proof.
   - tMember.
   - apply boolSing.
   - eapply iT_All_E; first var.
-    apply (iT_Sub (i := 1) (T1 := (▶: (hx3 @; "T"))%HS)); tcrush.
+    apply (iT_ISub (i := 1) (T1 := (▶: (hx3 @; "T"))%HS)); tcrush.
     varsub; ltcrush.
   - varsub.
     ettrans; first (apply iSub_Add_Later; tcrush).
@@ -190,7 +190,7 @@ Qed.
 Example optionModInvTyp Γ :
   Γ v⊢ₜ[ primOptionG ] hoptionModV : μ: self, hoptionModTInvBody self.
 Proof.
-  eapply iT_Sub_nocoerce; first apply optionModConcrTyp.
+  eapply iT_ISub_nocoerce; first apply optionModConcrTyp.
   ltcrush; rewrite iterate_0.
   eapply iSub_Sel'; tcrush; varsub; ltcrush.
   all: try eapply iSub_Sel', (path_tp_delay (i := 0));
@@ -200,10 +200,10 @@ Qed.
 
 Example optionModTypSub Γ :
   Γ v⊢ₜ[ primOptionG ] μ: self, hoptionModTInvBody self, 0 <: hoptionModT, 0.
-Proof. ltcrush; eapply (iP_Sub (i := 0)), iP_Bool_I; tcrush. Qed.
+Proof. ltcrush; eapply (iP_ISub (i := 0)), iP_Bool_I; tcrush. Qed.
 
 Example optionModTyp Γ :
   Γ v⊢ₜ[ primOptionG ] hoptionModV : hoptionModT.
-Proof. eapply iT_Sub_nocoerce, optionModTypSub; apply optionModInvTyp. Qed.
+Proof. eapply iT_ISub_nocoerce, optionModTypSub; apply optionModInvTyp. Qed.
 
 End prim_boolean_option_mod.

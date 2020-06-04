@@ -20,12 +20,12 @@ Set Default Proof Using "Type*".
 Section Lemmas.
   Context `{HdotG: !dlangG Σ}.
 
-  Lemma sP_Sub' {Γ} p T1 T2 i:
+  Lemma sP_ISub' {Γ} p T1 T2 i:
     Γ s⊨p p : T1, i -∗
     Γ s⊨ T1, i <: T2, i -∗
     (*───────────────────────────────*)
     Γ s⊨p p : T2, i.
-  Proof. have := !!(@sP_Sub _ _ Γ p T1 T2 i 0). by rewrite (plusnO i). Qed.
+  Proof. have := !!(@sP_ISub _ _ Γ p T1 T2 i 0). by rewrite (plusnO i). Qed.
 
   (** For https://github.com/lampepfl/dotty/blob/85962b19ddf4f1909189bf07b40f9a05849f9bbf/compiler/src/dotty/tools/dotc/core/TypeComparer.scala#L553. *)
   Lemma singleton_Mu_dotty_approx_0 {Γ p i T1 T2} :
@@ -36,7 +36,7 @@ Section Lemmas.
     (* Demonstrate why this rule is not easy to derive.*)
     (* iIntros "Hsub Hp".
     iApply Sngl_Sub_Self.
-    iApply (sP_Sub' with "Hp").
+    iApply (sP_ISub' with "Hp").
     iApply Mu_Sub_Mu.
     (* We're stuck! *)
     Restart. *)

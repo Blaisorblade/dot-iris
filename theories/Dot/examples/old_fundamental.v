@@ -1,13 +1,11 @@
-(** * Old fundamental theorem and type safety for gDOT. *)
+(** * Old fundamental theorem and type safety for storeless gDOT and old unstamped gDOT. *)
 From D Require Import swap_later_impl.
-(* For fundamental theorem. *)
-From D.Dot Require Export unary_lr later_sub_sem
-  binding_lr defs_lr prims_lr path_repl_lr sub_lr dsub_lr.
-From D.Dot Require Import storeless_typing.
-(* For unstamped safety. *)
-From D.Dot Require Import old_unstamped_typing type_extraction_syn ast_stamping
-  old_typing_stamping skeleton path_repl_lemmas.
-From D.Dot Require Import sem_unstamped_typing dsub_lr.
+
+From D.Dot Require Export fundamental.
+From D.Dot Require Export sub_lr.
+
+From D.Dot Require Import storeless_typing type_extraction_syn path_repl_lemmas.
+From D.Dot Require Import old_unstamped_typing old_unstamped_typing_to_typing.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
@@ -27,7 +25,7 @@ Section old_fundamental.
   Local Definition fundamental_subtype_def Γ T1 i1 T2 i2
     (HT: Γ u⊢ₜ T1, i1 <: T2, i2) := ⊢ Γ ⊨ T1, i1 <: T2, i2.
 
-  (* Reduce away the above definitions; copied from [new_fundamental.v] *)
+  (* Reduce away the above definitions; copied from [fundamental.v] *)
   Local Ltac simpl_context := red; markUsed Σ; red_hyps_once.
 
   Theorem subtype_fundamental_mut Γ :
@@ -39,7 +37,7 @@ Section old_fundamental.
       + by iApply sP_Nat_I.
       + by iApply sP_Bool_I.
       + iApply P_Fld_E. by iApply H.
-      + by iApply sP_Sub; [iApply H0|iApply H].
+      + by iApply sP_ISub; [iApply H0|iApply H].
       + by iApply P_Mu_I; [|iApply H]; first exact: psubst_one_implies.
       + by iApply P_Mu_E; [|iApply H]; first exact: psubst_one_implies.
       + iApply P_Fld_I. by iApply H.
@@ -106,7 +104,7 @@ Section old_fundamental.
     + iApply uT_All_I_Strong; [|by iApply H].
       by apply fundamental_ctx_sub, ctx_strip_to_sub.
     + iApply suT_Obj_I. by iApply H.
-    + by iApply uT_Sub; [iApply H |iApply fundamental_subtype].
+    + by iApply uT_ISub; [iApply H |iApply fundamental_subtype].
     + iApply suT_Path. by iApply fundamental_path_typed.
     + by iApply uT_Un; [|iApply H].
     + by iApply uT_Bin; [| iApply H| iApply H0].
@@ -151,16 +149,6 @@ Proof.
   eapply fundamental_typed, HsT.
 Qed.
 
-(** Theorem 5.2: Type soundness for gDOT. *)
-Corollary type_soundness e T :
-  [] u⊢ₜ e : T → safe e.
-Proof.
-  (* Apply 5.3: Translation of typing derivations. *)
-  intros (e_s & g & HsT & ? & Hs)%(stamp_typed ∅) ?.
-  apply (same_skel_safe_equiv Hs).
-  apply (type_soundness_storeless HsT).
-Qed.
-
 (** Normalization for gDOT paths. *)
 Lemma path_normalization_storeless {p T i}
   (Ht : [] v⊢ₚ[ g ] p : T, i) :
@@ -170,10 +158,11 @@ Proof.
   eapply fundamental_path_typed, Ht.
 Qed.
 
-Corollary path_normalization p T i :
-  [] u⊢ₚ p : T, i → terminates (path2tm p).
-Proof.
-  (* Apply 5.3: Translation of typing derivations. *)
-  intros (g & HsT & _)%(stamp_path_typed ∅).
-  apply (path_normalization_storeless HsT).
-Qed.
+(** We also prove that the old_unstamped_typing is safe. *)
+Corollary type_soundness_old {e T}
+  (Ht : [] u⊢ₜ e : T) : safe e.
+Proof. eapply type_soundness, renew_typed, Ht. Qed.
+
+Corollary path_normalization_old p T i
+  (Hp : [] u⊢ₚ p : T, i) : terminates (path2tm p).
+Proof. eapply path_normalization, renew_path_typed, Hp. Qed.

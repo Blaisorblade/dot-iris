@@ -6,8 +6,8 @@ Storeless typing resembles stamped typing, but used to allow arbitrary values
 in paths.
 *)
 From D.Dot Require Export syn path_repl lr_syn_aux.
-From D.Dot.typing Require Export typing_aux_defs old_subtyping.
-From D.Dot.stamping Require Export core_stamping_defs.
+From D.Dot Require Export typing_aux_defs old_subtyping.
+From D.Dot Require Export core_stamping_defs.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -66,7 +66,7 @@ Inductive typed Γ g : tm → ty → Prop :=
     (*──────────────────────*)
     Γ v⊢ₜ[ g ] tv (vobj ds): TMu T
 (** "General" rules *)
-| iT_Sub e T1 T2 i :
+| iT_ISub e T1 T2 i :
     Γ v⊢ₜ[ g ] T1, 0 <: T2, i → Γ v⊢ₜ[ g ] e : T1 →
     (*───────────────────────────────*)
     Γ v⊢ₜ[ g ] iterate tskip i e : T2
@@ -191,7 +191,7 @@ Proof.
   move E: (tv (var_vl x)) => t; induction 1; simplify_eq/=;
     last by destruct p; simplify_eq/=.
   destruct i; last by [simplify_eq]; rewrite iterate_0 in E; simplify_eq/=.
-  eapply iP_Sub'; eauto.
+  eapply iP_ISub'; eauto.
 Qed.
 
 Lemma iT_Mu_E {Γ x T g}:

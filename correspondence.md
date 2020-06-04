@@ -30,21 +30,30 @@ of gDOT and the formalization in Coq. We briefly discuss them here.
   naturals, with some associated operations, even though all of those primitives
   are encodable.
 
-- Compared to the paper, we describe (in
-  [`Dot/typing/storeless_typing.v`](theories/Dot/typing/storeless_typing.v))
-  an additional "storeless" typing judgment, a
-  strict generalization of stamped typing.
-  Storeless typing generalizes some rules of stamped typing to allow arbitrary
-  values in paths, and not just variables. This is not at all necessary to our
-  proof technique, but it simply allows typing more programs while still
-  using a syntactic typing judgment.
-
 - We inherit various superficial differences between the on-paper presentation
   of Iris and the actual implementation.
   For instance, in Coq `iProp` is parameterized by an additional index `Σ`.
   We hope such matters are not distracting, and refer to
   https://gitlab.mpi-sws.org/iris/iris/-/tree/master/#further-resources
   for further information.
+
+### Legacy typing judgments in examples
+
+- For legacy reasons, syntactically well-typed examples are written in "old"
+  unstamped typing, defined in
+  [`Dot/examples/old_typing/old_subtyping.v`](theories/Dot/examples/old_typing/old_subtyping.v) and
+  [`Dot/examples/old_typing/old_unstamped_typing.v`](theories/Dot/examples/old_typing/old_unstamped_typing.v).
+  This typing judgment can be translated to our new judgment;
+  [`Dot/examples/old_typing/old_unstamped_typing_to_typing.v`](theories/Dot/examples/old_typing/old_unstamped_typing_to_typing.v).
+  The main difference is in the handling of delays and later: subtyping has two
+  indexes instead of one.
+
+- As an aid to proof automation for syntactically ill-typed examples, we also
+  define and prove type safe a more liberal variant of the "old" typing
+  judgment in
+  [`Dot/examples/sem/storeless_typing.v`](theories/Dot/examples/sem/storeless_typing.v).
+  This is not at all necessary to our proof technique, it just enables some
+  simple automation.
 
 ### Semantic types
 
@@ -92,22 +101,20 @@ Sec. 2:
     - head-reduction: `head_step`; reduction: `prim_step`.
 
 Sec. 4:
-- gDOT unstamped typing judgments (Sec. 4, Fig. 6, 7):
+- gDOT typing judgments (Sec. 4, Fig. 6, 7):
   - The `Γ1 ≫ ▷ Γ2` judgment, and auxiliary judgments for primitive types:
     [`Dot/typing/typing_aux_defs.v`](theories/Dot/typing/typing_aux_defs.v)
   - Path substitution and replacement:
     [`Dot/syn/path_repl.v`](theories/Dot/syn/path_repl.v)
-  - Primitive typing rules: [`Dot/typing/old_unstamped_typing.v`](theories/Dot/typing/old_unstamped_typing.v)
-  - Derived rules:
-    [`Dot/typing/old_unstamped_typing.v`](theories/Dot/typing/old_unstamped_typing.v),
-    [`Dot/typing/old_unstamped_typing_derived_rules.v`](theories/Dot/typing/old_unstamped_typing_derived_rules.v)
+  - Primitive and derived typing rules:
+    [`Dot/typing/typing.v`](theories/Dot/typing/typing.v)
 
 Sec. 5:
 - Safety (Def. 5.1) is defined as `safe` in
   [`iris_extra/det_reduction.v`](theories/iris_extra/det_reduction.v).
-- Type soundness for gDOT (Thm. 5.2) is proven in
-  [`Dot/old_fundamental.v`](theories/Dot/old_fundamental.v) as `Corollary
-  type_soundness`.
+- Type soundness for gDOT is proven in
+  [`Dot/fundamental.v`](theories/Dot/fundamental.v) as
+  `Theorem type_soundness`.
 
 Sec. 6:
 - Examples are written using higher-level notations than the one defined in `syn.v`:
@@ -118,25 +125,28 @@ Sec. 6:
     [`Dot/examples/hoas.v`](theories/Dot/examples/hoas.v); it defines an HOAS
     frontend for writing concrete terms.
 
-- Examples are in [`Dot/examples/`](theories/Dot/examples/). In particular:
+- Syntactically well-typed examples are in [`Dot/examples/syn/`](theories/Dot/examples/syn/).
+  In particular:
   - Motivating example (Fig. 2, discussed in Sec. 1.1 and 4.0):
-    [`Dot/examples/from_pdot_mutual_rec.v`](theories/Dot/examples/from_pdot_mutual_rec.v).
-  - Covariant lists example (Fig. 10, Sec. 6.1): [`Dot/examples/list.v`](theories/Dot/examples/list.v).
-  - Positive integers example (Fig. 11, Sec. 6.2): [`Dot/examples/positive_div.v`](theories/Dot/examples/positive_div.v).
-  - Unsafe motivating example (Fig. 12, Sec. 6.3): [`Dot/examples/from_pdot_mutual_rec_sem.v`](theories/Dot/examples/from_pdot_mutual_rec_sem.v).
+    [`Dot/examples/syn/from_pdot_mutual_rec.v`](theories/Dot/examples/syn/from_pdot_mutual_rec.v).
+  - Covariant lists example (Fig. 10, Sec. 6.1): [`Dot/examples/syn/list.v`](theories/Dot/examples/syn/list.v).
+- Those examples are written using old unstamped typing, the translation to
+  typing is proved by `Theorem renew_typed` in
+  [`Dot/examples/old_typing/old_unstamped_typing_to_typing.v`](theories/Dot/examples/old_typing/old_unstamped_typing_to_typing.v).
+
+- Semantically safe examples are in [`Dot/examples/sem/`](theories/Dot/examples/sem/).
+  - Positive integers example (Fig. 11, Sec. 6.2): [`Dot/examples/positive_div.v`](theories/Dot/examples/sem/positive_div.v).
+  - Unsafe motivating example (Fig. 12, Sec. 6.3): [`Dot/examples/from_pdot_mutual_rec_sem.v`](theories/Dot/examples/sem/from_pdot_mutual_rec_sem.v).
 
 Sec. 7:
 - For the (updated) code sizes, see [`codesize.md`](codesize.md).
-- Testcase [`tests/test_used_axioms.v`](tests/test_used_axioms.v) confirms that the only axiom we use is functional extensionality.
+- Testcase [`tests/test_used_axioms.v`](tests/test_used_axioms.v) confirms that the only axioms we use are functional extensionality and proof irrelevance.
 
 ### Proofs
 
 The proof strategy we describe in the paper is implemented in the following files.
 
 Sec. 5:
-- Stamped typing is defined in [`Dot/typing/storeless_typing.v`](theories/Dot/typing/storeless_typing.v).
-  - Translation of typing derivations (Thm. 5.3) is defined in [`Dot/stamping/ast_stamping.v`](theories/Dot/stamping/ast_stamping.v) and proved in
-    [`Dot/typing/old_typing_stamping.v`](theories/Dot/typing/old_typing_stamping.v).
 - Iris connectives (Sec. 5.2) are predefined by Iris, except for `s ↝ φ`,
   defined in [`iris_extra/dlang.v`](theories/iris_extra/dlang.v) as
   `s ↝n[ n ] φ` (where `n` is the arity of semantic predicate `φ`).
@@ -159,19 +169,23 @@ Sec. 5:
 - Actual semantic typing lemmas appear in [`Dot/semtyp_lemmas`](theories/Dot/semtyp_lemmas/).
   The most interesting ones are:
   - `sT_Obj_I` (for object construction, using Löb induction);
-  - `sD_Typ_Abs`,  `sSub_Sel`, `sSel_Sub`, `sTyp_Sub_Typ` (about type members).
-- The old_fundamental theorem (Thm. 5.4) is proven in [`Dot/old_fundamental.v`](theories/Dot/old_fundamental.v).
+  - `sD_Typ_Abs`,  `sStp_Sel`, `sSel_Stp`, `sTyp_Stp_Typ` (about type members).
+- The unstamped semantic typing judgment is defined in
+  [`Dot/lr/sem_unstamped_typing.v`](theories/Dot/lr/sem_unstamped_typing.v),
+  which also lifts semantic typing lemmas to use it.
+
+- The fundamental theorem (Thm. 5.4) is proven in [`Dot/fundamental.v`](theories/Dot/fundamental.v).
 
 ## Typing lemma naming conventions
 
 Names of typing rules and lemmas can be derived mechanically from those in
-the paper, with a couple of exceptions.
+the paper, with a couple of exceptions, listed in the following table.
 
 Translation table of symbols in names:
 | Paper   | Coq    |
 | :-----: | :----: |
 | `-`     | `_`    |
-| `<:`    | `Sub`  |
+| `<:`    | `Stp`  |
 | `∀`     | `All`  |
 | `{}`    | `Obj`  |
 
@@ -189,8 +203,8 @@ Translation table of symbols in names:
 | `P`    | Path            |
 | `D`    | Definition      |
 
-- The names of subtyping rules contain `<:` or `Sub`, and the name of the
-  type constructor the rule concerns; the order relates to the shape of the rule. For
+- The names of subtyping rules contain `<:` or `Stp`, and the name of the
+  type constructor that the rule is about. The order relates to the shape of the rule. For
   instance rule `<:-μ` will conclude that type `T <: μ x. T`, while
   rule `μ-<:` will conclude that some type `μ x. T <: T`, assuming certain
   premises.
@@ -205,7 +219,12 @@ corresponding prefixes.
 
 Hence, rule `iT_Path` is a syntactic rule for expression typing (the
 subsumption rule), called `T-Path` in the paper, while
-`sSub_Sel` is a semantic typing lemma corresponding to `<:-Sel`.
+`sStp_Sel` is a semantic typing lemma corresponding to `<:-Sel`.
+
+Legacy typing judgments use the same conventions, except that they use `Sub`
+instead of `Stp` for the old-style subtyping judgment, with two indexes.
+Sometimes, the old-style subtyping judgment is called "indexed" and the new
+one is called "delayed".
 
 # Directory Layout
 
@@ -243,9 +262,9 @@ Inside the [`Dot`](theories/Dot) folder:
     primitive operations;
   - [`examples_lr.v`](theories/Dot/semtyp_lemmas/examples_lr.v): other lemmas,
     only needed for examples
-* [`stamping`](theories/Dot/stamping): definitions and lemmas about stamping.
 * [`typing`](theories/Dot/typing): syntactic typing and auxiliary lemmas about it
-  - [`old_typing_stamping.v`](theories/Dot/old_typing_stamping.v): prove stamping of typing derivations.
-* [`examples`](theories/Dot/examples): various gDOT snippets.
-* [`old_fundamental.v`](theories/Dot/old_fundamental.v): prove old_fundamental theorem, adequacy and type safety.
+* [`fundamental.v`](theories/Dot/fundamental.v): prove fundamental theorem, adequacy and type safety.
+* [`examples`](theories/Dot/examples): various gDOT examples, including ones in
+  the paper, together with legacy code they use (from earlier versions of our
+  approach).
 

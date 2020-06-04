@@ -16,7 +16,7 @@ Implicit Types (v w : vl) (d : dm) (ds : dms).
 
 Example loopDefTyp Γ : Γ v⊢ₜ[ ∅ ] hloopDefV : hloopDefT.
 Proof.
-  apply (iT_Sub_nocoerce hloopDefTConcr); mltcrush.
+  apply (iT_ISub_nocoerce hloopDefTConcr); mltcrush.
   eapply iT_All_E; last var.
   tcrush; varsub; lookup.
 Qed.
@@ -26,7 +26,7 @@ Proof. have ? := loopDefTyp Γ; tcrush. Qed.
 
 Example loopTyp Γ : Γ v⊢ₜ[∅] hloopTm : ⊥.
 Proof.
-  have ? := loopFunTyp Γ; apply (iT_All_E (T1 := ⊤)), (iT_Sub_nocoerce 𝐙); tcrush.
+  have ? := loopFunTyp Γ; apply (iT_All_E (T1 := ⊤)), (iT_ISub_nocoerce 𝐙); tcrush.
 Qed.
 
 Ltac constrain_bisimulating :=

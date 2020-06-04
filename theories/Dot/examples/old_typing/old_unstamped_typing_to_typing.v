@@ -1,3 +1,4 @@
+(** * Prove syntactic translation from old unstamped typing to typing. *)
 From D Require Import tactics succ_notation.
 (* Beware the order of imports! We want [subtyping] and [typing] to be preferred. *)
 From D.Dot Require Import old_subtyping old_unstamped_typing unstampedness_binding.
@@ -10,11 +11,11 @@ Unset Strict Implicit.
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
-Local Lemma iP_Sub_Der Γ i j T1 T2 p :
+Local Lemma iP_ISub_Der Γ i j T1 T2 p :
   Γ t⊢ₜ iterate TLater i T1 <:[ 0 ] iterate TLater (i + j) T2 →
   Γ t⊢ₚ p : T1, i →
   Γ t⊢ₚ p : T2, i + j.
-Proof. rewrite -iterate_comp -iLaterN0_Stp_Eq; eapply iP_Sub_Alt. Qed.
+Proof. rewrite -iterate_comp -iLaterN0_Stp_Eq; eapply iP_ISub_Alt. Qed.
 
 Local Definition renew_path_typed_def Γ p T i (HT : Γ u⊢ₚ p : T, i) := Γ t⊢ₚ p : T, i.
 Local Definition renew_subtype_def Γ T1 i1 T2 i2 (HT: Γ u⊢ₜ T1, i1 <: T2, i2) :=
@@ -27,7 +28,7 @@ Theorem renew_subtyping_mut Γ :
   (∀ T1 i1 T2 i2 (HT: Γ u⊢ₜ T1, i1 <: T2, i2), renew_subtype_def HT).
 Proof.
   apply old_pure_typing_mut_ind; clear Γ; cbn; intros *; try by [intros;
-    eauto 2 using iP_Sub_Der, iP_Sngl_Trans, iP_Mu_E, iP_Mu_I];
+    eauto 2 using iP_ISub_Der, iP_Sngl_Trans, iP_Mu_E, iP_Mu_I];
     rewrite -?iLaterN0_Stp_Eq; eauto 2; try by rewrite iterate_Sr.
   - move=> _ IH1 Hu. by apply /iP_Sngl_Inv /is_unstamped_path_root /Hu /IH1.
   - move=> _ IH1 _ IH2.
@@ -61,7 +62,7 @@ Theorem renew_typing_mut Γ :
 Proof.
   apply old_unstamped_typing_mut_ind; clear Γ; cbn; intros *; try by [intros;
     hnf in *; eauto 3 using renew_path_typed].
-  - move=> /renew_subtype + _; rewrite iterate_0. apply iT_Sub'.
+  - move=> /renew_subtype + _; rewrite iterate_0. apply iT_ISub'.
   - move=> + /renew_subtype + /renew_subtype.
     rewrite !(iterate_0, iterate_S) => Hu.
     eapply iD_Typ_Abs, is_unstamped_nclosed_ty, Hu.
@@ -69,7 +70,7 @@ Proof.
     apply /iD_Path_Sub /IHt /Hsub.
 Qed.
 
-Lemma renew_typed Γ e T (HT: Γ u⊢ₜ e : T) : Γ t⊢ₜ e : T.
+Theorem renew_typed Γ e T (HT: Γ u⊢ₜ e : T) : Γ t⊢ₜ e : T.
 Proof. by apply renew_typing_mut. Qed.
 Lemma renew_dms_typed Γ ds T (HT: Γ u⊢ds ds : T) : Γ t⊢ds ds : T.
 Proof. by apply renew_typing_mut. Qed.
