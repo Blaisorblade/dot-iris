@@ -8,7 +8,7 @@ From D Require Export succ_notation.
 From D Require Import saved_interp_dep asubst_intf asubst_base dlang lty.
 From D Require Import swap_later_impl.
 From D.Dot Require dot_lty unary_lr path_repl_lr.
-From D.Dot Require sub_lr defs_lr binding_lr dsub_lr examples_lr.
+From D.Dot Require defs_lr binding_lr dsub_lr examples_lr.
 From D.Dot Require hoas ex_utils.
 
 From D.Dot Require Import sem_kind.
@@ -198,7 +198,6 @@ Section gen_lemmas.
   Qed.
 
   (** * Prefixes: K for Kinding, KStp for kinded subtyping, Skd for subkinding. *)
-  (* XXX: Prefixes: Rename elsewhere Sub to STyp *)
 
   Definition sf_sngl (T : oltyO Σ 0) : sf_kind Σ 0 := sf_kintv T T.
 
@@ -388,7 +387,7 @@ End gen_lemmas.
 End HoSemJudgments.
 
 Module HkDot.
-Import dot_lty unary_lr sub_lr dsub_lr path_repl_lr hoas ex_utils.
+Import dot_lty unary_lr dsub_lr path_repl_lr hoas ex_utils.
 Export HkDotSemTypes.
 Include HoSemJudgments VlSorts dlang_inst dot_lty HkDotSemTypes.
 Implicit Types
@@ -567,7 +566,7 @@ Section dot_types.
     iNext. by iRewrite "Hag".
   Qed.
 
-  Lemma sSngl_pq_KSub {Γ i p q n T1 T2} {K : sf_kind Σ n} :
+  Lemma sSngl_pq_KStp {Γ i p q n T1 T2} {K : sf_kind Σ n} :
     T1 ~sTpI[ p := q ]* T2 -∗
     Γ s⊨p p : oSing q, i -∗
     Γ s⊨ T1 ∷[i] K -∗
@@ -583,8 +582,8 @@ Section dot_types.
   Qed.
 
   (* This is the easy part :-) *)
-  Lemma sSngl_pq_KSub' {Γ i p q n T1 T2} {K1 K2 : sf_kind Σ n}
-    (* XXX we should use an internal version of this premise, as done for [sSngl_pq_KSub]. *)
+  Lemma sSngl_pq_KStp' {Γ i p q n T1 T2} {K1 K2 : sf_kind Σ n}
+    (* XXX we should use an internal version of this premise, as done for [sSngl_pq_KStp]. *)
     (Hrepl : K1 ~sKd[ p := q ]* K2) :
     Γ s⊨p p : oSing q, i -∗
     Γ s⊨ T1 <:[i] T2 ∷ K1 -∗
@@ -852,7 +851,7 @@ Section dot_experimental_kinds.
   Context `{!dlangG Σ} `{HswapProp: SwapPropI Σ}.
 
   (** As an example, we can derive this variant at an interval kind of [sSngl_Sub_Sym] *)
-  Lemma sSngl_KSub_Sym Γ p q T i L U:
+  Lemma sSngl_KStp_Sym Γ p q T i L U:
     Γ s⊨p p : T, i -∗ (* Just to ensure [p] terminates and [oSing p] isn't empty. *)
     Γ s⊨ oSing p <:[i] oSing q ∷ sf_kintv L U -∗
     Γ s⊨ oSing q <:[i] oSing p ∷ sf_kintv L U.
@@ -894,7 +893,7 @@ Section dot_experimental_kinds.
   T <: S :: * ->
   S = T :: L..U
   *)
-  (* Lemma sSngl_KSub_Sym' Γ p q T i L U:
+  (* Lemma sSngl_KStp_Sym' Γ p q T i L U:
     Γ s⊨p p : T, i -∗ (* Just to ensure [p] terminates and [oSing p] isn't empty. *)
     Γ s⊨ oSing p <:[i] oSing q ∷ sf_kintv L U -∗
     Γ s⊨ oSing q <:[i] oSing p ∷ sf_kintv L U.
