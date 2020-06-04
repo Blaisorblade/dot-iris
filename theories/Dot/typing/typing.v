@@ -8,8 +8,8 @@ This judgment allowing only variables in paths, and not arbitrary values.
 *)
 From D Require Import tactics.
 From D.Dot Require Export syn path_repl lr_syn_aux.
-From D.Dot.typing Require Export typing_aux_defs type_eq subtyping.
-From D.Dot.stamping Require Export core_stamping_defs.
+From D.Dot Require Export typing_aux_defs type_eq subtyping.
+From D.Dot Require Export core_stamping_defs.
 
 Set Implicit Arguments.
 Unset Strict Implicit.

@@ -1,7 +1,7 @@
 
 From D Require Import tactics.
 From D.Dot Require Import syn ex_utils hoas_ex_utils.
-From D.Dot.typing Require Import old_unstamped_typing old_unstamped_typing_derived_rules.
+From D.Dot Require Import old_unstamped_typing old_unstamped_typing_derived_rules.
 Import DBNotation.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).

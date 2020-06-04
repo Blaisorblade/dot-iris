@@ -1,8 +1,8 @@
 (** * Judgments defining the previous version of gDOT subtyping. *)
 From D Require Import tactics.
 From D.Dot Require Export syn path_repl path_repl_lemmas lr_syn_aux.
-From D.Dot.typing Require Export typing_aux_defs.
-From D.Dot.stamping Require Export core_stamping_defs.
+From D.Dot Require Export typing_aux_defs.
+From D.Dot Require Export core_stamping_defs.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
