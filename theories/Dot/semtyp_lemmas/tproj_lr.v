@@ -270,7 +270,7 @@ Section type_proj.
     iIntros "#Hsub #Hp".
     iApply sStp_Trans; last iApply (sSel_Stp_Proj with "Hp").
     iApply sStp_Sel.
-    iApply (sP_DSub with "Hp Hsub").
+    iApply (sP_Sub with "Hp Hsub").
   Qed.
 
   (** In fact, if [p] has more specific bounds, we can use those too. *)
@@ -281,10 +281,10 @@ Section type_proj.
     Γ s⊨ L <:[i] oProj A T1.
   Proof.
     iIntros "#HsubBounds #Hsub #HpT2".
-    iDestruct (sP_DSub with "HpT2 Hsub") as "HpT1".
+    iDestruct (sP_Sub with "HpT2 Hsub") as "HpT1".
     iApply sStp_Trans; last iApply (sSel_Stp_Proj with "HpT1").
     iApply sStp_Sel.
-    iApply (sP_DSub with "HpT2 HsubBounds").
+    iApply (sP_Sub with "HpT2 HsubBounds").
   Qed.
 
   (** And [sProj_Stp_L] is indeed a special case of [sProj_Stp_L_Gen]. *)

@@ -388,7 +388,7 @@ Section DStpLemmas.
     Γ s⊨ { l := dtysem σ s } : cTMem l L U.
   Proof. rewrite (sD_Typ l). apply sD_Typ_Stp. Qed.
 
-  Lemma sP_DSub {Γ p T1 T2 i}:
+  Lemma sP_Sub {Γ p T1 T2 i}:
     Γ s⊨p p : T1, i -∗
     Γ s⊨ T1 <:[i] T2 -∗
     (*───────────────────────────────*)

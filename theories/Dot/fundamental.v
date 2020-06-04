@@ -44,7 +44,7 @@ Section fundamental.
     + by iApply sP_Nat_I.
     + by iApply sP_Bool_I.
     + iApply P_Fld_E. by iApply H.
-    + iApply sP_DSub; [iApply H0|iApply H].
+    + iApply sP_Sub; [iApply H0|iApply H].
     + by iApply sP_Later; [iApply H].
     + iApply P_Mu_I; [|iApply H]; eauto.
     + iApply P_Mu_E; [|iApply H]; eauto.

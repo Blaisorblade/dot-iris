@@ -767,7 +767,7 @@ Section derived.
     Γ s⊨p vobj [ (l, dtysem σ s) ] : oMu (cTMemK l K), 0.
   Proof using HswapProp.
     iIntros "#HT #Hs".
-    iApply (sP_DSub (i := 0) (T1 := oMu (cTMemK l (ho_sing K (oLater T))))).
+    iApply (sP_Sub (i := 0) (T1 := oMu (cTMemK l (ho_sing K (oLater T))))).
     rewrite sK_HoIntv; iApply (sP_New_No_And with "HT Hs").
     iApply sMu_Stp_Mu. rewrite oLaterN_0.
     rewrite -sstpiK_star_eq_sstpd.
