@@ -29,12 +29,6 @@ Proof.
   exists s; split; auto.
 Qed.
 
-Lemma ex_fresh_stamp_strong' g T: { s | s ∉ gdom g ∧ gdom g ⊆ gdom (<[s := T]> g) }.
-Proof.
-  pose proof (ex_fresh_stamp_strong g T) as [s []].
-  exists s; split =>//=. by apply subseteq_dom.
-Qed.
-
 Lemma extraction_closed g n T s σ:
   T ~[ n ] (g, (s, σ)) →
   nclosed T n.
@@ -47,13 +41,6 @@ Proof.
   split_and?; eauto.
 Qed.
 Hint Resolve extract_spec : core.
-
-Lemma extract_spec_rev g g' s σ n T:
-  (g', (s, σ)) = (extract g n T) →
-  T ~[ n ] (g', (s, σ)) → is_stamped_ty n g' T.
-Proof.
-  move => -[-> -> ->] [T']; rewrite length_idsσ lookup_insert => -[[->]]. int.
-Qed.
 
 Lemma extraction_inf_subst g n T s σ m σ':
   T ~[ n ] (g, (s, σ)) →
@@ -118,39 +105,3 @@ Lemma extract_lookup g g' s σ n T:
   (g', (s, σ)) = extract g n T → g' !! s = Some T.
 Proof. move => [-> -> _]. by rewrite lookup_insert. Qed.
 Hint Resolve extract_lookup : core.
-
-Lemma extraction_lookup g s σ n T:
-  T ~[ n ] (g, (s, σ)) → ∃ T', g !! s = Some T' ∧ T'.|[∞ σ] = T.
-Proof. naive_solver. Qed.
-
-Lemma extract_inf_subst_commute g g' g'' T ξ n m s1 σ1 s2 σ2:
-  is_stamped_ty n g T →
-  is_stamped_sub n m g' ξ →
-  (g', (s1, σ1)) = extract g n T →
-  (g'', (s2, σ2)) = extract g' m (T.|[ξ]) →
-  T.|[ξ] ~[ m ] (g'', (s1, σ1.|[ξ])) ∧
-  ∃ T1 T2,
-    g'' !! s1 = Some T1 ∧
-    g'' !! s2 = Some T2 ∧
-    T1.|[∞ σ1.|[ξ]] = T2.|[∞ σ2].
-Proof.
-  rewrite /extract => HstT Hstξ Hext1 Hext2. split; first eauto.
-  exists T, T.|[ξ]; split_and!; eauto.
-  move: (is_stamped_nclosed_ty HstT) => HclT.
-  move: (is_stamped_nclosed_sub Hstξ) => Hclξ.
-  simplify_eq; rewrite (subst_compose HclT) //.
-  rewrite !closed_subst_idsρ //. exact: nclosed_sub_app.
-Qed.
-
-Lemma extract_subst_commute g g' g'' T ξ n m s1 σ1 s2 σ2:
-  is_stamped_ty n g T →
-  is_stamped_σ m g' ξ →
-  length ξ = n →
-  (g', (s1, σ1)) = extract g n T →
-  (g'', (s2, σ2)) = extract g' m (T.|[∞ ξ]) →
-  T.|[∞ ξ] ~[ m ] (g'', (s1, σ1.|[∞ ξ])) ∧
-  ∃ T1 T2,
-    g'' !! s1 = Some T1 ∧
-    g'' !! s2 = Some T2 ∧
-    T1.|[∞ σ1.|[∞ ξ]] = T2.|[∞ σ2].
-Proof. intros; subst; eapply extract_inf_subst_commute; eauto. Qed.
