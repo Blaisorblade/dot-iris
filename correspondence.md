@@ -26,6 +26,16 @@ of gDOT and the formalization in Coq. We briefly discuss them here.
   compatibility with higher-kinds. gDOT only uses predicates of arity `n = 0`, which
   are equivalent to the predicates used on paper.
 
+- In the paper, the typing rule and semantics for type `{ A >: L <: U }` uses
+  `▷` in front of `L` and `U`.
+  Our Coq development is slightly more general and has no such implicit later
+  in the rules and semantics for the corresponding connective, called
+  `TTMem`. Hence, `{ A >: L <: U }` is encoded as `TTMem "A" (TLater L)
+  (TLater U)`. We define an abbreviation `TTMemL`, allowing to write the type
+  in question as `TTMemL "A" L U`. However, the restrictions on type members
+  described in the paper still arise due to rule `iD_Typ_Abs` in
+  [`Dot/typing/typing.v`](theories/Dot/typing/typing.v).
+
 - Our mechanization extends gDOT with some primitives, such as booleans and
   naturals, with some associated operations, even though all of those primitives
   are encodable.
