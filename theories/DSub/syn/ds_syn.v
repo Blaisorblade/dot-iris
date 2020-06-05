@@ -390,7 +390,7 @@ Section syntax_mut_ind.
   Lemma syntax_mut_ind : (∀ t, Ptm t) ∧ (∀ v, Pvl v) ∧ (∀ T, Pty T).
   Proof.
     efeed pose proof syntax_mut_rect as H; try done.
-    - intros vs g HvsT. apply step_vstamp, ForallT_Forall, HvsT.
+    - intros vs s HvsT. apply step_vstamp, ForallT_Forall, HvsT.
     - ev; split_and! ; assumption.
   Qed.
 End syntax_mut_ind.
