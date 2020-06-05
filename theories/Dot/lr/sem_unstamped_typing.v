@@ -522,6 +522,20 @@ Section storeless_unstamped_lemmas.
     Γ su⊨ { l := dpt p1 } : cVMem l T2.
   Proof. rewrite -!sstpd0_to_sstpi0; iApply suD_Path_Stp. Qed.
 
+  Lemma suD_Typ_Abs_I {l σ Γ L T U} (HclT : coveringσ σ V⟦ T ⟧):
+    Γ s⊨ L, 0 <: oLater V⟦ T ⟧, 0 -∗
+    Γ s⊨ oLater V⟦ T ⟧, 0 <: U, 0 -∗
+    Γ su⊨ { l := dtysyn T } : cTMem l L U.
+  Proof.
+    by iIntros "H1 H2"; iApply (suD_Typ_Sub with "H1 H2"); iApply suD_Typ.
+  Qed.
+
+  Lemma uD_Typ_Abs_I {Γ T L U l n} (HclT : nclosed T n):
+    Γ ⊨        L, 0 <: TLater T, 0 -∗
+    Γ ⊨ TLater T, 0 <: U       , 0 -∗
+    Γ u⊨ { l := dtysyn T } : TTMem l L U.
+  Proof. have := !!(nclosed_syn_coveringσ HclT); apply suD_Typ_Abs_I. Qed.
+
   Lemma suD_Typ_dtysem {Γ l σ s fakeσ} {T : olty Σ 0} (HclT : coveringσ σ T):
     ⊢ Γ su⊨ { l := dtysem fakeσ s } : cTMem l (oLater T) (oLater T).
   Proof.
