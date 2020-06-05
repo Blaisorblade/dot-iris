@@ -198,14 +198,13 @@ Notation "C⟦ T ⟧" := (clty_interp T).
 (** Definition interpretation of types (Fig. 9). *)
 Notation "Ds⟦ T ⟧" := (clty_dslty C⟦ T ⟧).
 
-(* We could inline [pty_interp] inside the [V⟦ _ ⟧] notation, but the
-[Vs⟦ _ ⟧] notation needs [pty_interp] to be a first-class function. *)
+(* We could inline [pty_interp] inside the [V⟦ _ ⟧] notation, but I suspect
+the [V⟦ _ ⟧*] notation needs [pty_interp] to be a first-class function. *)
 Definition pty_interp `{CTyInterp Σ} T : oltyO Σ 0 := clty_olty C⟦ T ⟧.
 Global Arguments pty_interp {_ _} !_ /.
 
 (** * Value interpretation of types (Fig. 9). *)
 Notation "V⟦ T ⟧" := (pty_interp T).
-Notation "Vs⟦ g ⟧" := (fmap (M := gmap stamp) (B := hoEnvD _ 0) pty_interp g).
 Notation "V⟦ Γ ⟧*" := (fmap (M := list) pty_interp Γ).
 Notation "E⟦ T ⟧" := (sE⟦ V⟦ T ⟧ ⟧).
 
