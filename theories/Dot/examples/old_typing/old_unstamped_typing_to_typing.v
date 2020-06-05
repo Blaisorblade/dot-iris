@@ -30,16 +30,15 @@ Proof.
   apply old_pure_typing_mut_ind; clear Γ; cbn; intros *; try by [intros;
     eauto 2 using iP_ISub_Der, iP_Sngl_Trans, iP_Mu_E, iP_Mu_I];
     rewrite -?iLaterN0_Stp_Eq; eauto 2; try by rewrite iterate_Sr.
-  - move=> _ IH1 Hu. by apply /iP_Sngl_Inv /is_unstamped_path_root /Hu /IH1.
   - move=> _ IH1 _ IH2.
     ettrans; last eapply iStp_Eq, symmetry, type_equiv_laterN_and; auto 2.
   - move=> _ IH1 _ IH2.
     ettrans; first eapply iStp_Eq, type_equiv_laterN_or; auto 2.
-  - move=> _ IH1 _.
+  - move=> _ IH1.
     ettrans; first eapply iStp_Eq, type_equiv_laterN_mu.
     ettrans; last eapply iStp_Eq, symmetry, type_equiv_laterN_mu.
     auto 2.
-  - move=> _ _ IH1. apply iStp_Skolem_P. by rewrite iterate_0 TLater_subst.
+  - move=> _ IH1. apply iStp_Skolem_P. by rewrite iterate_0 TLater_subst.
 Qed.
 
 Lemma renew_path_typed Γ p T i (HT : Γ u⊢ₚ p : T, i) : Γ t⊢ₚ p : T, i.

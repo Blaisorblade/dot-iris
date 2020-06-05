@@ -66,14 +66,10 @@ theories/Dot/examples/ex_utils.v
 theories/Dot/examples/hoas.v
 theories/Dot/examples/hoas_ex_utils.v
 
-theories/Dot/examples/stamping/ast_stamping.v
-theories/Dot/examples/stamping/stampedness_binding.v
-theories/Dot/examples/stamping/type_extraction_syn.v
 theories/Dot/examples/stamping/unstampedness_binding.v
 
 theories/Dot/examples/old_typing/old_subtyping.v
 theories/Dot/examples/old_typing/old_subtyping_derived_rules.v
-theories/Dot/examples/old_typing/old_typing_stamping.v
 theories/Dot/examples/old_typing/old_unstamped_typing.v
 theories/Dot/examples/old_typing/old_unstamped_typing_derived_rules.v
 theories/Dot/examples/old_typing/old_unstamped_typing_to_typing.v

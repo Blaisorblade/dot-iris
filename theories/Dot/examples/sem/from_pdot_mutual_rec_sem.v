@@ -214,12 +214,12 @@ Proof.
   ltcrush.
 Qed.
 
-Lemma Hx0 Γ g :
-  newTypeRefΓ Γ v⊢ₜ[g] x0 :
+Lemma Hx0 Γ :
+  newTypeRefΓ Γ v⊢ₜ x0 :
     ▶: val "tpe" : ▶: hoptionTyConcr1 hoasNotation.hx2.
 Proof.
   varsub. eapply iSub_Trans, iSub_Trans, iSub_Later;
-    [apply Hsub0X0 | apply HoptSubT | tcrush].
+    [apply Hsub0X0 | apply HoptSubT].
 Qed.
 Lemma HvT Γ : newTypeRefΓ Γ u⊢ₜ hnoneConcrT, 0 <: val "isEmpty" : TSing true, 0.
 Proof. mltcrush. Qed.
@@ -234,14 +234,14 @@ Tactic Notation "lrSimpl" "in" constr(iSelP) :=
 Tactic Notation "wp_bind" uconstr(p) := iApply (wp_bind (fill [p])).
 Ltac wp_pure := rewrite -wp_pure_step_later -1?wp_value; last done; iNext.
 
-Lemma fundamental_typed' Γ g e T (Ht : Γ v⊢ₜ[ g ] e : T) :
+Lemma fundamental_typed' Γ e T (Ht : Γ v⊢ₜ e : T) :
   ⊢ |==> ∃ e_s, ⌜ same_skel_tm e e_s⌝ ∧ Γ ⊨ e_s : T.
 Proof. by iDestruct (fundamental_typed Ht) as "#>$". Qed.
 
 Lemma newTypeRef_semTyped Γ :
   ⊢ newTypeRefΓ Γ u⊨ newTypeRefBody : x1 @; "TypeRef".
 Proof.
-  have := !!(Hx0 Γ ∅); rewrite /newTypeRefΓ => Hx0.
+  have := !!(Hx0 Γ); rewrite /newTypeRefΓ => Hx0.
 
   iModIntro.
   iMod (fundamental_typed' Hx0) as (x0_s Hsk) "#Hx0".
@@ -295,8 +295,7 @@ Proof.
 Qed.
 
 Ltac semTMember n :=
-  iApply (uD_Typ (n := n));
-    by [ | eapply (is_unstamped_nclosed_ty (b := OnlyVars)); stcrush].
+  iApply (uD_Typ (n := n)); tcrush_nclosed.
 
 Example semFromPDotPaperTypesTyp Γ :
   ⊢ TAnd (▶: fromPDotPaperTypesTBody) (TSing (x1 @ "types")) ::
@@ -314,14 +313,14 @@ Proof.
   iApply suD_Cons; [done | semTMember 0 | ].
   iApply suD_Cons; [done | iApply suD_Val | ]. {
     iApply (uT_All_I_Strong (Γ' := Γ')). apply Hctx.
-    iApply (fundamental_typed (g := ∅)).
+    iApply fundamental_typed.
     eapply (iT_ISub_nocoerce (TMu TTop)).
     + wtcrush.
     + apply (iSub_Sel' TTop); tcrush; varsub. lThis; ltcrush.
   }
   iApply suD_Cons; [done | semTMember 2 | ].
   iApply suD_Cons; [done | | ]. {
-    iApply (fundamental_dm_typed (g := ∅)).
+    iApply fundamental_dm_typed.
     tcrush.
     eapply (iT_ISub_nocoerce (TMu ⊤)); first tcrush.
     eapply (iSub_Trans (T2 := ⊤) (i2 := 0)); tcrush.
@@ -337,8 +336,8 @@ Proof.
 
   iApply suD_Cons; [done | iApply suD_Val | iApply suD_Nil].
   iApply (uT_All_I_Strong (Γ' := Γ')). apply Hctx.
-  iApply (fundamental_typed (g := ∅)).
-  have Hx: x1 @; "TypeRef" :: Γ' v⊢ₜ[ ∅ ] x0 : ▶: shift typeRefTBody. {
+  iApply fundamental_typed.
+  have Hx: x1 @; "TypeRef" :: Γ' v⊢ₜ x0 : ▶: shift typeRefTBody. {
     varsub.
     eapply (iSub_Trans (T2 := ▶: TAnd (x1 @; "Type") (shift typeRefTBody))).
     + apply (iSel_Sub (L := ⊥)); tcrush. varsub. lThis; ltcrush.
@@ -410,14 +409,13 @@ Example fromPDotPaperSymbolsTyp Γ :
 Proof.
   iApply uT_Obj_I.
   iApply suD_Cons; [done | semTMember 3 | ].
-  iApply (fundamental_dms_typed (g := ∅)).
+  iApply fundamental_dms_typed.
   tcrush.
   eapply (iT_ISub_nocoerce) => /=; hideCtx.
   - repeat first [var | typconstructor | tcrush].
   - ettrans; first last.
     eapply iSub_Sel'; first last.
     + varsub; tcrush.
-    + tcrush.
     + mltcrush.
 Qed.
 
@@ -476,15 +474,15 @@ Definition fromPDotPaperAbsTypesTBodySubst : ty := {@
 
 Example getAnyTypeFunTyp Γ :
   μ (fromPDotPaperAbsTBody x2) :: optionModTInv :: Γ
-  v⊢ₜ[ ∅ ] getAnyType : getAnyTypeT x1.
+  v⊢ₜ getAnyType : getAnyTypeT x1.
 Proof.
   rewrite /getAnyType; tcrush.
   eapply (iT_ISub (T1 := TLater (x0 @ "types" @; "Type")) (i := 1)); tcrush.
   set Γ' := shift (μ (fromPDotPaperAbsTBody x2)) ::
     μ (fromPDotPaperAbsTBody x2) :: optionModTInv :: Γ.
-  have Hpx: Γ' v⊢ₚ[fromPDotG] x0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0.
+  have Hpx: Γ' u⊢ₚ x0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0.
   by eapply iP_Fld_E, iP_ISub', iP_Mu_E; last var; [tcrush|stcrush].
-  have HpxSubst: Γ' v⊢ₚ[fromPDotG] x0 @ "types" : fromPDotPaperAbsTypesTBodySubst, 0.
+  have HpxSubst: Γ' u⊢ₚ x0 @ "types" : fromPDotPaperAbsTypesTBodySubst, 0.
   by eapply (iP_Mu_E (T := fromPDotPaperAbsTypesTBody)
     (p := x0 @ "types")), Hpx; stcrush.
   eapply iT_Path', iP_Fld_I, (iP_ISub (i := 0)), HpxSubst.
@@ -492,7 +490,7 @@ Proof.
 Qed.
 
 Example getAnyTypeTyp0 Γ :
-  μ (fromPDotPaperAbsTBody x2) :: optionModTInv :: Γ v⊢ₜ[ ∅ ]
+  μ (fromPDotPaperAbsTBody x2) :: optionModTInv :: Γ v⊢ₜ
     tapp getAnyType x0 : x0 @ "types" @; "Type".
 Proof. by eapply iT_All_Ex'; [exact: getAnyTypeFunTyp|var|]. Qed.
 

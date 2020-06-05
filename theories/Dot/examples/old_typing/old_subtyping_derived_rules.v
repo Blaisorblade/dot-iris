@@ -8,10 +8,8 @@ Ltac subtcrush := repeat first [ eassumption | reflexivity | subtypconstructor |
 
 Ltac subwtcrush := repeat first [ fast_done | subtypconstructor | stcrush ] ; try solve [
   first [
-    by eauto 3 using is_unstamped_TLater_n, is_unstamped_ren1_ty, is_unstamped_ren1_path |
-    try_once is_unstamped_weaken_dm |
-    try_once is_unstamped_weaken_ty |
-    try_once is_unstamped_weaken_path ]; eauto].
+    by eauto 3 using is_unstamped_TLater_n, is_unstamped_ren1_ty |
+    try_once is_unstamped_weaken_ty ]; eauto].
 
 Ltac asideLaters :=
   repeat first
@@ -48,20 +46,18 @@ Lemma iSel_SubL {Γ p L l U i}:
 Proof. intros; exact: iSel_Sub. Qed.
 
 Lemma iSub_Sel' U {Γ p l L i}:
-  is_unstamped_ty' (length Γ) L →
   Γ u⊢ₚ p : TTMemL l L U, i →
   Γ u⊢ₜ L, i <: TSel p l, i.
 Proof. intros; ettrans; last exact: (iSub_Sel (p := p)); subtcrush. Qed.
 
 (** Specialization of [iSub_Sel'] for convenience. *)
 Lemma iSub_Sel'' Γ {p l L i}:
-  is_unstamped_ty' (length Γ) L →
   Γ u⊢ₚ p : TTMemL l L L, i → Γ u⊢ₜ L, i <: TSel p l, i.
 Proof. apply iSub_Sel'. Qed.
 
 (** * Manipulating laters, basics. *)
 
-Lemma iSub_AddIJ {Γ T} i j (Hst: is_unstamped_ty' (length Γ) T) :
+Lemma iSub_AddIJ {Γ T} i j :
   Γ u⊢ₜ T, j <: T, i + j.
 Proof.
   elim: i => [|n IHn]; first subtcrush.
@@ -69,15 +65,15 @@ Proof.
   ettrans; [exact: iSub_Add_Later | subtcrush].
 Qed.
 
-Lemma iSub_AddIJ' {Γ T} i j (Hst: is_unstamped_ty' (length Γ) T) (Hle : i <= j) :
+Lemma iSub_AddIJ' {Γ T} i j (Hle : i <= j) :
   Γ u⊢ₜ T, i <: T, j.
 Proof. rewrite (le_plus_minus i j Hle) Nat.add_comm. exact: iSub_AddIJ. Qed.
 
-Lemma iSub_AddI Γ T i (Hst: is_unstamped_ty' (length Γ) T) :
+Lemma iSub_AddI Γ T i :
   Γ u⊢ₜ T, 0 <: T, i.
 Proof. apply (iSub_AddIJ' 0 i); by [|lia]. Qed.
 
-Lemma path_tp_delay {Γ p T i j} (Hst: is_unstamped_ty' (length Γ) T) : i <= j →
+Lemma path_tp_delay {Γ p T i j} : i <= j →
   Γ u⊢ₚ p : T, i → Γ u⊢ₚ p : T, j.
 Proof.
   intros Hle Hp.
@@ -90,42 +86,38 @@ Qed.
 (* We can derive rules iSub_Bind_1 and iSub_Bind_2 (the latter only conjectured) from
   "Type Soundness for Dependent Object Types (DOT)", Rompf and Amin, OOPSLA '16. *)
 Lemma iSub_Bind_1 Γ T1 T2 i:
-  is_unstamped_ty' (S (length Γ)) T1 → is_unstamped_ty' (length Γ) T2 →
   iterate TLater i T1 :: Γ u⊢ₜ T1, i <: shift T2, i →
   Γ u⊢ₜ μ T1, i <: T2, i.
 Proof.
-  intros Hus1 Hus2 Hsub.
+  intros Hsub.
   ettrans; first exact: (iMu_Sub_Mu Hsub).
   exact: iMu_Sub.
 Qed.
 
 Lemma iSub_Bind_2 Γ T1 T2 i:
-  is_unstamped_ty' (length Γ) T1 → is_unstamped_ty' (S (length Γ)) T2 →
   iterate TLater i (shift T1) :: Γ u⊢ₜ shift T1, i <: T2, i →
   Γ u⊢ₜ T1, i <: μ T2, i.
 Proof.
-  intros Hus1 Hus2 Hsub.
-  ettrans; last apply (iMu_Sub_Mu Hsub); [exact: iSub_Mu | subwtcrush].
+  intros Hsub.
+  ettrans; last apply (iMu_Sub_Mu Hsub); exact: iSub_Mu.
 Qed.
 
 Lemma iSub_Bind_1' Γ T1 T2:
-  is_unstamped_ty' (S (length Γ)) T1 → is_unstamped_ty' (length Γ) T2 →
   T1 :: Γ u⊢ₜ T1, 0 <: shift T2, 0 →
   Γ u⊢ₜ μ T1, 0 <: T2, 0.
 Proof. intros; exact: iSub_Bind_1. Qed.
 
 Lemma iSub_Bind_2' Γ T1 T2:
-  is_unstamped_ty' (length Γ) T1 → is_unstamped_ty' (S (length Γ)) T2 →
   shift T1 :: Γ u⊢ₜ shift T1, 0 <: T2, 0 →
   Γ u⊢ₜ T1, 0 <: μ T2, 0.
 Proof. intros; exact: iSub_Bind_2. Qed.
 
 Lemma iMu_Sub' {Γ T T' i}:
   T' = shift T →
-  is_unstamped_ty' (length Γ) T →
   Γ u⊢ₜ μ T', i <: T, i.
 Proof. intros; subst. auto. Qed.
 
+Hint Resolve is_unstamped_path_root : core.
 
 Lemma iP_Sngl_Sym Γ p q i:
   is_unstamped_path' (length Γ) q →
@@ -135,13 +127,11 @@ Proof.
   intros Hus Hpq. eapply iP_ISub'.
   eapply (iSngl_Sub_Sym Hpq). by apply iSngl_Sub_Self, Hpq.
   eapply iP_Sngl_Refl.
-  by apply (iP_Sngl_Inv Hpq).
+  by apply (iP_Sngl_Inv Hpq); eauto.
 Qed.
 
 Lemma iSngl_pq_Sub_inv {Γ i p q T1 T2}:
   T1 ~Tp[ p := q ]* T2 →
-  is_unstamped_ty' (length Γ) T1 →
-  is_unstamped_ty' (length Γ) T2 →
   is_unstamped_path' (length Γ) p →
   Γ u⊢ₚ q : TSing p, i →
   Γ u⊢ₜ T1, i <: T2, i.
@@ -158,54 +148,43 @@ Qed.
 
 (** * Manipulating laters, more. *)
 Lemma iSub_LaterN Γ T i j:
-  is_unstamped_ty' (length Γ) T →
   Γ u⊢ₜ T, j + i <: iterate TLater j T, i.
 Proof.
-  elim: j T => /= [|j IHj] T HuT; rewrite ?iterate_0 ?iterate_Sr /=; subtcrush.
+  elim: j T => /= [|j IHj] T ; rewrite ?iterate_0 ?iterate_Sr /=; subtcrush.
   ettrans.
   - exact: iSub_Later.
   - apply (IHj (TLater T)); stcrush.
 Qed.
 
 Lemma iLaterN_Sub {Γ T} i j :
-  is_unstamped_ty' (length Γ) T →
   Γ u⊢ₜ iterate TLater j T, i <: T, j + i.
 Proof.
-  elim: j T => /= [|j IHj] T HuT; rewrite ?iterate_0 ?iterate_Sr /=; subtcrush.
+  elim: j T => /= [|j IHj] T; rewrite ?iterate_0 ?iterate_Sr /=; subtcrush.
   ettrans.
   - apply (IHj (TLater T)); stcrush.
   - exact: iLater_Sub.
 Qed.
 
 Lemma selfIntersect Γ T U i j:
-  is_unstamped_ty' (length Γ) T →
   Γ u⊢ₜ T, i <: U, j + i →
   Γ u⊢ₜ T, i <: TAnd U T, j + i .
 Proof. intros; subtcrush. exact: iSub_AddIJ. Qed.
 
 Lemma iAnd_Later_Sub_Distr Γ T1 T2 i :
-  is_unstamped_ty' (length Γ) T1 →
-  is_unstamped_ty' (length Γ) T2 →
   Γ u⊢ₜ TAnd (TLater T1) (TLater T2), i <: TLater (TAnd T1 T2), i.
 Proof. intros; asideLaters; subtcrush; [lThis|lNext]. Qed.
 
 (** Inverse of [iAnd_Later_Sub_Distr]. *)
 Lemma iAnd_Later_Sub_Distr_inv Γ T1 T2 i :
-  is_unstamped_ty' (length Γ) T1 →
-  is_unstamped_ty' (length Γ) T2 →
   Γ u⊢ₜ TLater (TAnd T1 T2), i <: TAnd (TLater T1) (TLater T2), i.
 Proof. intros; subtcrush. Qed.
 
 Lemma iOr_Later_Sub_Distr Γ T1 T2 i :
-  is_unstamped_ty' (length Γ) T1 →
-  is_unstamped_ty' (length Γ) T2 →
   Γ u⊢ₜ TOr (TLater T1) (TLater T2), i <: TLater (TOr T1 T2), i.
 Proof. intros; subtcrush. Qed.
 
 (** Inverse of [iOr_Later_Sub_Distr]. *)
 Lemma iOr_Later_Sub_Distr_inv Γ T1 T2 i :
-  is_unstamped_ty' (length Γ) T1 →
-  is_unstamped_ty' (length Γ) T2 →
   Γ u⊢ₜ TLater (TOr T1 T2), i <: TOr (TLater T1) (TLater T2), i.
 Proof.
   intros; asideLaters; subtypconstructor; ettrans;
@@ -214,13 +193,11 @@ Qed.
 
 (** TLater swaps with TMu, part 1. *)
 Lemma iMu_Later_Sub_Distr Γ T i :
-  is_unstamped_ty' (S (length Γ)) T →
   Γ u⊢ₜ TMu (TLater T), i <: TLater (TMu T), i.
 Proof. intros; asideLaters; subtcrush. Qed.
 
 (** TLater swaps with TMu, part 2. *)
 Lemma iMu_Later_Sub_Distr_inv Γ T i :
-  is_unstamped_ty' (S (length Γ)) T →
   Γ u⊢ₜ TLater (TMu T), i <: TMu (TLater T), i.
 Proof. intros; asideLaters; subtcrush. Qed.
 
@@ -284,40 +261,31 @@ Proof.
 Qed.
 
 Lemma iP_LaterN {Γ p T i j} :
-  is_unstamped_ty' (length Γ) T →
   Γ u⊢ₚ p : iterate TLater j T, i →
   Γ u⊢ₚ p : T, i + j.
 Proof.
-  elim: j i => [|j IHj] i Hu Hp; rewrite (plusnO, plusnS); first done.
+  elim: j i => [|j IHj] i Hp; rewrite (plusnO, plusnS); first done.
   apply (IHj (S i)), iP_Later, Hp; subtcrush; exact: is_unstamped_TLater_n.
 Qed.
 
 Lemma iMu_LaterN_Sub_Distr_inv {Γ T i n} :
-  is_unstamped_ty' (S (length Γ)) T →
   Γ u⊢ₜ iterate TLater n (TMu T), i <: TMu (iterate TLater n T), i.
 Proof.
-  intros Hu.
   elim: n i => [|n IHn] i; first subtcrush; rewrite !iterate_S.
   ettrans; last apply iMu_Later_Sub_Distr_inv.
   by asideLaters; subwtcrush.
-  by apply is_unstamped_TLater_n; stcrush.
 Qed.
 
 Lemma iMu_LaterN_Sub_Distr {Γ T i n} :
-  is_unstamped_ty' (S (length Γ)) T →
   Γ u⊢ₜ TMu (iterate TLater n T), i <: iterate TLater n (TMu T), i.
 Proof.
-  intros Hu.
   elim: n i => [|n IHn] i; first subtcrush; rewrite !iterate_S.
   ettrans; first apply iMu_Later_Sub_Distr.
-  by apply is_unstamped_TLater_n; stcrush.
   by asideLaters; subwtcrush.
 Qed.
 
 (* Lattice theory *)
 Lemma iOr_Sub_split Γ T1 T2 U1 U2 i:
-  is_unstamped_ty' (length Γ) U1 →
-  is_unstamped_ty' (length Γ) U2 →
   Γ u⊢ₜ T1, i <: U1, i →
   Γ u⊢ₜ T2, i <: U2, i →
   Γ u⊢ₜ TOr T1 T2, i <: TOr U1 U2, i.
@@ -328,8 +296,6 @@ Proof.
 Qed.
 
 Lemma iSub_And_split Γ T1 T2 U1 U2 i:
-  is_unstamped_ty' (length Γ) T1 →
-  is_unstamped_ty' (length Γ) T2 →
   Γ u⊢ₜ T1, i <: U1, i →
   Γ u⊢ₜ T2, i <: U2, i →
   Γ u⊢ₜ TAnd T1 T2, i <: TAnd U1 U2, i.
@@ -340,9 +306,6 @@ Proof.
 Qed.
 
 Lemma iDistr_And_Or_Sub_inv {Γ S T U i}:
-  is_unstamped_ty' (length Γ) S →
-  is_unstamped_ty' (length Γ) T →
-  is_unstamped_ty' (length Γ) U →
   Γ u⊢ₜ TOr (TAnd S U) (TAnd T U), i <: TAnd (TOr S T) U , i.
 Proof.
   intros; apply iOr_Sub; apply iSub_And; subtcrush;
@@ -350,9 +313,6 @@ Proof.
 Qed.
 
 Lemma iDistr_Or_And_Sub {Γ S T U i}:
-  is_unstamped_ty' (length Γ) S →
-  is_unstamped_ty' (length Γ) T →
-  is_unstamped_ty' (length Γ) U →
   Γ u⊢ₜ TOr (TAnd S T) U , i <: TAnd (TOr S U) (TOr T U), i.
 Proof.
   intros; apply iOr_Sub; apply iSub_And; subtcrush;
@@ -360,46 +320,30 @@ Proof.
 Qed.
 
 Lemma comm_and {Γ T U i} :
-  is_unstamped_ty' (length Γ) T →
-  is_unstamped_ty' (length Γ) U →
   Γ u⊢ₜ TAnd T U, i <: TAnd U T, i.
 Proof. intros; subtcrush. Qed.
 
 Lemma comm_or {Γ T U i} :
-  is_unstamped_ty' (length Γ) T →
-  is_unstamped_ty' (length Γ) U →
   Γ u⊢ₜ TOr T U, i <: TOr U T, i.
 Proof. intros; subtcrush. Qed.
 
 Lemma absorb_and_or {Γ T U i} :
-  is_unstamped_ty' (length Γ) T →
-  is_unstamped_ty' (length Γ) U →
   Γ u⊢ₜ TAnd U (TOr T U), i <: U, i.
 Proof. intros; subtcrush. Qed.
 
 Lemma absorb_or_and {Γ T U i} :
-  is_unstamped_ty' (length Γ) T →
-  is_unstamped_ty' (length Γ) U →
   Γ u⊢ₜ TOr U (TAnd T U), i <: U, i.
 Proof. intros; subtcrush. Qed.
 
 Lemma absorb_or_and2 {Γ T U i} :
-  is_unstamped_ty' (length Γ) T →
-  is_unstamped_ty' (length Γ) U →
   Γ u⊢ₜ TOr (TAnd T U) T, i <: T, i.
 Proof. intros; ettrans; first apply comm_or; subtcrush. Qed.
 
 Lemma assoc_or {Γ S T U i} :
-  is_unstamped_ty' (length Γ) S →
-  is_unstamped_ty' (length Γ) T →
-  is_unstamped_ty' (length Γ) U →
   Γ u⊢ₜ TOr (TOr S T) U, i <: TOr S (TOr T U), i.
 Proof. intros; subtcrush; (ettrans; last apply iSub_Or2); subtcrush. Qed.
 
 Lemma assoc_and {Γ S T U i} :
-  is_unstamped_ty' (length Γ) S →
-  is_unstamped_ty' (length Γ) T →
-  is_unstamped_ty' (length Γ) U →
   Γ u⊢ₜ TAnd (TAnd S T) U, i <: TAnd S (TAnd T U), i.
 Proof. intros. subtcrush; lThis. Qed.
 
@@ -408,21 +352,14 @@ https://books.google.co.uk/books?id=vVVTxeuiyvQC&lpg=PA104&pg=PA85#v=onepage&q&f
 Would be much easier to formalize with setoid rewriting.
 *)
 Lemma iDistr_Or_And_Sub_inv {Γ S T U i}:
-  is_unstamped_ty' (length Γ) S →
-  is_unstamped_ty' (length Γ) T →
-  is_unstamped_ty' (length Γ) U →
   Γ u⊢ₜ TAnd (TOr S U) (TOr T U), i <: TOr (TAnd S T) U , i.
 Proof.
   intros.
   ettrans; first apply iDistr_And_Or_Sub; stcrush => //.
   ettrans; first apply iOr_Sub_split, absorb_and_or; try apply iSub_Refl;
     stcrush => //.
-  ettrans; first apply iOr_Sub_split; try apply (iSub_Refl _ (T := U));
+  ettrans; first apply iOr_Sub_split; try apply (iSub_Refl _ U);
     try (ettrans; first apply (comm_and (T := S))); try apply iDistr_And_Or_Sub; stcrush => //.
   ettrans; first apply assoc_or; stcrush => //.
-  ettrans; first apply iOr_Sub_split.
-  3: apply iSub_Refl; subtcrush.
-  3: ettrans; first apply absorb_or_and2; subtcrush.
-  all: subtcrush.
-  ettrans; first eapply comm_and; subtcrush.
+  ettrans; first apply iOr_Sub_split; last apply iSub_Refl; subtcrush.
 Qed.

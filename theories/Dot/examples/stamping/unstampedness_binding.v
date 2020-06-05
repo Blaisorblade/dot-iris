@@ -7,7 +7,7 @@ Set Implicit Arguments.
 
 Implicit Types
          (T: ty) (v: vl) (e: tm) (p: path) (d: dm) (ds: dms) (vs: vls)
-         (Γ : ctx) (g: stys) (n: nat).
+         (Γ : ctx) (n: nat).
 
 Definition is_unstamped_sub n m b s :=
   ∀ i, i < n → is_unstamped_vl m b (s i).
@@ -39,30 +39,12 @@ Proof.
     decompose_Forall; case_match; subst. eauto.
 Qed.
 
-Lemma is_unstamped_nclosed_tm e n b: is_unstamped_tm n b e → nclosed e n.
-Proof. apply is_unstamped_nclosed_mut. Qed.
-Lemma is_unstamped_nclosed_vl v n b: is_unstamped_vl n b v → nclosed_vl v n.
-Proof. apply is_unstamped_nclosed_mut. Qed.
-Lemma is_unstamped_nclosed_dm d n b: is_unstamped_dm n b d → nclosed d n.
-Proof. apply is_unstamped_nclosed_mut. Qed.
 Lemma is_unstamped_nclosed_path p n b: is_unstamped_path n b p → nclosed p n.
 Proof. apply is_unstamped_nclosed_mut. Qed.
 Lemma is_unstamped_nclosed_ty T n b: is_unstamped_ty n b T → nclosed T n.
 Proof. apply is_unstamped_nclosed_mut. Qed.
 
-Hint Resolve is_unstamped_nclosed_tm is_unstamped_nclosed_vl
-  is_unstamped_nclosed_dm is_unstamped_nclosed_path
-  is_unstamped_nclosed_ty : core.
-
-Lemma is_unstamped_nclosed_σ σ i b:
-  is_unstamped_σ i b σ →
-  nclosed_σ σ i.
-Proof. intros; decompose_Forall. exact: is_unstamped_nclosed_vl. Qed.
-Hint Resolve is_unstamped_nclosed_ty is_unstamped_nclosed_σ : core.
-
-Lemma is_unstamped_nclosed_sub n m b ξ :
-  is_unstamped_sub n m b ξ → nclosed_sub n m ξ.
-Proof. move => Hst i Hle. apply /is_unstamped_nclosed_vl /Hst/Hle. Qed.
+Hint Resolve is_unstamped_nclosed_path is_unstamped_nclosed_ty : core.
 
 Lemma is_unstamped_weaken_mut:
   (∀ e__s m n b,
@@ -91,53 +73,19 @@ Proof.
       decompose_Forall; eauto with lia].
 Qed.
 
-Lemma is_unstamped_weaken_tm e__s m n b:
-  is_unstamped_tm m b e__s →
-  m <= n →
-  is_unstamped_tm n b e__s.
-Proof. apply (is_unstamped_weaken_mut). Qed.
-Lemma is_unstamped_weaken_vl v__s m n b:
-  is_unstamped_vl m b v__s →
-  m <= n →
-  is_unstamped_vl n b v__s.
-Proof. apply (is_unstamped_weaken_mut). Qed.
-Lemma is_unstamped_weaken_dm d__s m n b:
-  is_unstamped_dm m b d__s →
-  m <= n →
-  is_unstamped_dm n b d__s.
-Proof. apply (is_unstamped_weaken_mut). Qed.
-Lemma is_unstamped_weaken_path p__s m n b:
-  is_unstamped_path m b p__s →
-  m <= n →
-  is_unstamped_path n b p__s.
-Proof. apply (is_unstamped_weaken_mut). Qed.
 Lemma is_unstamped_weaken_ty T__s m n b:
   is_unstamped_ty m b T__s →
   m <= n →
   is_unstamped_ty n b T__s.
 Proof. apply (is_unstamped_weaken_mut). Qed.
 
-Lemma is_unstamped_weaken_σ σ m n b:
-  is_unstamped_σ m b σ →
-  m <= n →
-  is_unstamped_σ n b σ.
-Proof. intros; decompose_Forall. exact: is_unstamped_weaken_vl. Qed.
-
-Lemma is_unstamped_idsσ_ren m n j b: j + n <= m → is_unstamped_σ m b (shiftN j (idsσ n)).
-Proof.
-  elim: n m j => [//=|n IHn] m j Ijm.
-  cbn; rewrite (hren_upn_gen 0 1 j) /= plusnO.
-  repeat constructor => //=; first lia.
-  apply IHn; lia.
-Qed.
-
-Lemma is_unstamped_idsσ m n b: n <= m → is_unstamped_σ m b (idsσ n).
-Proof. pose proof (@is_unstamped_idsσ_ren m n 0) as H. asimpl in H. exact: H. Qed.
-Hint Resolve is_unstamped_idsσ : core.
-
 Lemma is_unstamped_ren_shift n m j b:
   m >= j + n → is_unstamped_ren n m b (+j).
 Proof. constructor => //=; lia. Qed.
+
+Lemma is_unstamped_ren1 i b : is_unstamped_ren i (S i) b (+1).
+Proof. apply is_unstamped_ren_shift; lia. Qed.
+Hint Resolve is_unstamped_ren1 : core.
 
 Lemma is_unstamped_ren_up n m r b:
   is_unstamped_ren n m b r →
@@ -149,11 +97,6 @@ Proof.
   constructor; cbn in *; by lia.
 Qed.
 Hint Resolve is_unstamped_ren_up is_unstamped_ren_shift : core.
-
-Lemma is_unstamped_nclosed_ren i j r b: is_unstamped_ren i j b r → nclosed_ren i j r.
-Proof.
-  move => /= Hr x Hx. specialize (Hr x Hx); inverse Hr. exact: nclosed_vl_ids.
-Qed.
 
 Lemma is_unstamped_ren_var v r:
   (∃ x : var, v = var_vl x) →
@@ -196,83 +139,6 @@ Proof.
   - constructor; naive_solver.
 Qed.
 
-Lemma is_unstamped_ren_vl v r i j b:
-  is_unstamped_ren i j b r →
-  is_unstamped_vl i b v →
-  is_unstamped_vl j b (rename r v).
-Proof. apply is_unstamped_ren_mut. Qed.
-
-Lemma is_unstamped_sub_up n m s b:
-  is_unstamped_sub n m b s →
-  is_unstamped_sub (S n) (S m) b (up s).
-Proof.
-  move => Hs [|i] Hi //=. by constructor => /=; lia.
-  eapply is_unstamped_ren_vl; eauto with lia.
-Qed.
-Hint Resolve is_unstamped_sub_up : core.
-
-(* While this file is mostly an analogue of [stampedness_binding.v],
-[is_stamped_sub_mut] does not translate to an analogue
-[is_unstamped_sub_mut], because the following statement
-[is_unstamped_sub_varpath] does not hold: *)
-
-(* Lemma is_unstamped_sub_varpath p s i j:
-  is_unstamped_sub i j s →
-  is_unstamped_path i p →
-  (∃ x : var, path_root p = var_vl x) →
-  ∃ x : var, path_root p.|[s] = var_vl x.
-Abort.
-
-Lemma is_unstamped_sub_mut:
-  (∀ t s i j,
-    is_unstamped_sub i j s →
-    is_unstamped_tm i b t →
-    is_unstamped_tm j b t.|[s]) ∧
-  (∀ v s i j,
-    is_unstamped_sub i j s →
-    is_unstamped_vl i v →
-    is_unstamped_vl j v.[s]) ∧
-  (∀ d s i j,
-    is_unstamped_sub i j s →
-    is_unstamped_dm i d →
-    is_unstamped_dm j d.|[s]) ∧
-  (∀ p s i j,
-    is_unstamped_sub i j s →
-    is_unstamped_path i p →
-    is_unstamped_path j p.|[s]) ∧
-  (∀ T s i j,
-    is_unstamped_sub i j s →
-    is_unstamped_ty i T →
-    is_unstamped_ty j T.|[s]).
-Abort.
-*)
-
-Lemma is_unstamped_vl_ids i j b: i < j → is_unstamped_vl j b (ids i).
-Proof. rewrite /ids /ids_vl; by constructor. Qed.
-Hint Resolve is_unstamped_vl_ids : core.
-
-Lemma is_unstamped_sub_stail i j v sb b:
-  is_unstamped_sub (S i) j b (v .: sb) →
-  is_unstamped_sub i j b sb.
-Proof. move => Hs k Hle. apply (Hs (S k)), lt_n_S, Hle. Qed.
-
-Lemma is_unstamped_sub_equiv {σ i b} :
-  is_unstamped_σ i b σ ↔ is_unstamped_sub (length σ) i b (∞ σ).
-Proof.
-  split; elim: σ => [//| /= v σ IHσ] Hcl/=.
-  - by move => ??; lia.
-  - inverse Hcl. move => [//|j /lt_S_n] /=. exact: IHσ.
-  - constructor. by apply (Hcl 0); lia.
-    eapply IHσ, is_unstamped_sub_stail, Hcl.
-Qed.
-Hint Resolve -> is_unstamped_sub_equiv : core.
-
-
-Lemma is_unstamped_sub_single n v b:
-  is_unstamped_vl n b v →
-  is_unstamped_sub (S n) n b (v .: ids).
-Proof. move => Hv [|i] Hin /=; eauto with lia. Qed.
-
 Lemma is_unstamped_sub_ren_ty T r i j b:
   is_unstamped_ren i j b r →
   is_unstamped_ty i b T → is_unstamped_ty j b T.|[ren r].
@@ -284,10 +150,6 @@ Lemma is_unstamped_sub_ren_path p r i j b:
 Proof. rewrite -path_rename_Lemma. apply is_unstamped_ren_mut. Qed.
 
 
-Lemma is_unstamped_ren1 i b : is_unstamped_ren i (S i) b (+1).
-Proof. apply is_unstamped_ren_shift; lia. Qed.
-Hint Resolve is_unstamped_ren1 : core.
-
 Lemma is_unstamped_ren1_ty i T b:
   is_unstamped_ty i b T →
   is_unstamped_ty (S i) b (shift T).
@@ -298,73 +160,6 @@ Lemma is_unstamped_ren1_path i p b:
   is_unstamped_path (S i) b (shift p).
 Proof. exact: is_unstamped_sub_ren_path. Qed.
 
-
-Lemma is_unstamped_sub_rev_var v s:
-  (∃ x, v.[s] = var_vl x) →
-  ∃ x, v = var_vl x.
-Proof. intros [x ?]; destruct v; simplify_eq; eauto. Qed.
-Lemma is_unstamped_sub_rev_vlit v s:
-  (∃ l, v.[s] = vlit l) →
-  (∃ x, v = var_vl x) ∨
-  (∃ l, v = vlit l).
-Proof. intros [x ?]; destruct v; simplify_eq; eauto. Qed.
-
-Lemma is_unstamped_sub_rev_mut:
-  (∀ e i,
-    nclosed e i →
-    ∀ s j b,
-    is_unstamped_tm j b (e.|[s]) →
-    is_unstamped_tm i b e) ∧
-  (∀ v i,
-    nclosed_vl v i →
-    ∀ s j b,
-    is_unstamped_vl j b (v.[s]) →
-    is_unstamped_vl i b v) ∧
-  (∀ d i,
-    nclosed d i →
-    ∀ s j b,
-    is_unstamped_dm j b (d.|[s]) →
-    is_unstamped_dm i b d) ∧
-  (∀ p i,
-    nclosed p i →
-    ∀ s j b,
-    is_unstamped_path j b (p.|[s]) →
-    is_unstamped_path i b p) ∧
-  (∀ T i,
-    nclosed T i →
-    ∀ s j b,
-    is_unstamped_ty j b (T.|[s]) →
-    is_unstamped_ty i b T).
-Proof.
-  apply nclosed_syntax_mut_ind => /=; intros;
-    with_is_unstamped ltac:(fun H => try nosplit (inverse H)); ev;
-    try by [| constructor;
-      eauto 3 using eq_up, is_unstamped_sub_rev_var with lia].
-  - auto using nclosed_var_lt.
-  - unfold hsubst, list_hsubst in *.
-    constructor => /=.
-    rewrite ->?@Forall_fmap in *.
-    decompose_Forall. destruct x; cbn in *. eauto.
-  - constructor; cbn in *;
-    naive_solver eauto using is_unstamped_sub_rev_var, is_unstamped_sub_rev_vlit.
-Qed.
-
-Lemma is_unstamped_sub_rev_vl v s i j b:
-  nclosed_vl v i →
-  is_unstamped_vl j b (v.[s]) →
-  is_unstamped_vl i b v.
-Proof. unmut_lemma is_unstamped_sub_rev_mut. Qed.
-Lemma is_unstamped_sub_rev_ty T s i j b:
-  nclosed T i →
-  is_unstamped_ty j b (T.|[s]) →
-  is_unstamped_ty i b T.
-Proof. unmut_lemma is_unstamped_sub_rev_mut. Qed.
-
-Lemma is_unstamped_sub_one_rev i b T v:
-  nclosed T (S i) →
-  is_unstamped_ty i b (T.|[v/]) →
-  is_unstamped_ty (S i) b T.
-Proof. intros; by eapply is_unstamped_sub_rev_ty. Qed.
 
 (* XXX *)
 Lemma is_unstamped_TLater_n {i n T}:

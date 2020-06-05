@@ -45,7 +45,7 @@ Inductive path_typed Γ : path → ty → nat → Prop :=
     Γ u⊢ₚ p : TSing p, i
 | iP_Sngl_Inv p q i:
     Γ u⊢ₚ p : TSing q, i →
-    is_unstamped_path' (length Γ) q →
+    atomic_path_root q →
     Γ u⊢ₚ q : TTop, i
 | iP_Sngl_Trans p q T i:
     Γ u⊢ₚ p : TSing q, i →
@@ -59,50 +59,36 @@ where "Γ u⊢ₚ p : T , i" := (path_typed Γ p T i)
 (* Γ u⊢ₜ T1, i1 <: T2, i2 means that TLater^i1 T1 <: TLater^i2 T2. *)
 with subtype Γ : ty → nat → ty → nat → Prop :=
 | iSub_Refl i T :
-    is_unstamped_ty' (length Γ) T →
     Γ u⊢ₜ T, i <: T, i
 | iSub_Trans i2 T2 {i1 i3 T1 T3}:
     Γ u⊢ₜ T1, i1 <: T2, i2 →
     Γ u⊢ₜ T2, i2 <: T3, i3 →
     Γ u⊢ₜ T1, i1 <: T3, i3
 | iLater_Sub i T:
-    is_unstamped_ty' (length Γ) T →
     Γ u⊢ₜ TLater T, i <: T, S i
 | iSub_Later i T:
-    is_unstamped_ty' (length Γ) T →
     Γ u⊢ₜ T, S i <: TLater T, i
 
 (* "Structural" rule about indexes *)
 | iSub_Add_Later T i:
-    is_unstamped_ty' (length Γ) T →
     Γ u⊢ₜ T, i <: TLater T, i
 
 (* "Logical" connectives *)
 | iSub_Top i T :
-    is_unstamped_ty' (length Γ) T →
     Γ u⊢ₜ T, i <: TTop, i
 | iBot_Sub i T :
-    is_unstamped_ty' (length Γ) T →
     Γ u⊢ₜ TBot, i <: T, i
 | iAnd1_Sub T1 T2 i:
-    is_unstamped_ty' (length Γ) T1 →
-    is_unstamped_ty' (length Γ) T2 →
     Γ u⊢ₜ TAnd T1 T2, i <: T1, i
 | iAnd2_Sub T1 T2 i:
-    is_unstamped_ty' (length Γ) T1 →
-    is_unstamped_ty' (length Γ) T2 →
     Γ u⊢ₜ TAnd T1 T2, i <: T2, i
 | iSub_And T U1 U2 i j:
     Γ u⊢ₜ T, i <: U1, j →
     Γ u⊢ₜ T, i <: U2, j →
     Γ u⊢ₜ T, i <: TAnd U1 U2, j
 | iSub_Or1 T1 T2 i:
-    is_unstamped_ty' (length Γ) T1 →
-    is_unstamped_ty' (length Γ) T2 →
     Γ u⊢ₜ T1, i <: TOr T1 T2, i
 | iSub_Or2 T1 T2 i:
-    is_unstamped_ty' (length Γ) T1 →
-    is_unstamped_ty' (length Γ) T2 →
     Γ u⊢ₜ T2, i <: TOr T1 T2, i
 | iOr_Sub T1 T2 U i j:
     Γ u⊢ₜ T1, i <: U, j →
@@ -119,8 +105,6 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 
 | iSngl_pq_Sub p q {i T1 T2}:
     T1 ~Tp[ p := q ]* T2 →
-    is_unstamped_ty' (length Γ) T1 →
-    is_unstamped_ty' (length Γ) T2 →
     Γ u⊢ₚ p : TSing q, i →
     Γ u⊢ₜ T1, i <: T2, i
 | iSngl_Sub_Sym T {p q i}:
@@ -134,20 +118,16 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 (* Subtyping for recursive types. Congruence, and opening in both directions. *)
 | iMu_Sub_Mu T1 T2 i j:
     (iterate TLater i T1 :: Γ) u⊢ₜ T1, i <: T2, j →
-    is_unstamped_ty' (S (length Γ)) T1 →
     Γ u⊢ₜ TMu T1, i <: TMu T2, j
 | iMu_Sub T i:
-    is_unstamped_ty' (length Γ) T →
     Γ u⊢ₜ TMu (shift T), i <: T, i
 | iSub_Mu T i:
-    is_unstamped_ty' (length Γ) T →
     Γ u⊢ₜ T, i <: TMu (shift T), i
 
 (* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types. *)
 | iAll_Sub_All T1 T2 U1 U2 i:
     Γ u⊢ₜ TLater T2, i <: TLater T1, i →
     iterate TLater (S i) (shift T2) :: Γ u⊢ₜ TLater U1, i <: TLater U2, i →
-    is_unstamped_ty' (length Γ) T2 →
     Γ u⊢ₜ TAll T1 U1, i <: TAll T2 U2, i
 | iFld_Sub_Fld T1 T2 i l:
     Γ u⊢ₜ T1, i <: T2, i →
@@ -162,43 +142,19 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Let's prove F[A] ∧ F[B] <: F[A ∧ B] in the model.
     *)
 | iAnd_All_Sub_Distr T U1 U2 i:
-    is_unstamped_ty' (length Γ) T →
-    is_unstamped_ty' (S (length Γ)) U1 →
-    is_unstamped_ty' (S (length Γ)) U2 →
     Γ u⊢ₜ TAnd (TAll T U1) (TAll T U2), i <: TAll T (TAnd U1 U2), i
 | iAnd_Fld_Sub_Distr l T1 T2 i:
-    is_unstamped_ty' (length Γ) T1 →
-    is_unstamped_ty' (length Γ) T2 →
     Γ u⊢ₜ TAnd (TVMem l T1) (TVMem l T2), i <: TVMem l (TAnd T1 T2), i
 | iAnd_Typ_Sub_Distr l L U1 U2 i:
-    is_unstamped_ty' (length Γ) L →
-    is_unstamped_ty' (length Γ) U1 →
-    is_unstamped_ty' (length Γ) U2 →
     Γ u⊢ₜ TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
 | iDistr_And_Or_Sub {S T U i}:
-    is_unstamped_ty' (length Γ) S →
-    is_unstamped_ty' (length Γ) T →
-    is_unstamped_ty' (length Γ) U →
     Γ u⊢ₜ TAnd (TOr S T) U , i <: TOr (TAnd S U) (TAnd T U), i
 | iSub_Skolem_P {T1 T2 i j}:
-    is_unstamped_ty' (length Γ) T1 →
     iterate TLater i (shift T1) :: Γ u⊢ₚ pv (ids 0) : shift T2, j →
     (*───────────────────────────────*)
     Γ u⊢ₜ T1, i <: T2, j
 
 where "Γ u⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
-
-(* Compatibility *)
-Notation "Γ v⊢ₚ[ g  ] p : T , i" := (path_typed Γ p T i)
-  (at level 74, p, T, i at next level, only parsing).
-Notation "Γ v⊢ₜ[ g  ] T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2)
-  (at level 74, T1, T2, i1, i2 at next level, only parsing).
-
-Notation "Γ s⊢ₚ[ g  ] p : T , i" := (path_typed Γ p T i)
-  (at level 74, p, T, i at next level, only parsing).
-Notation "Γ s⊢ₜ[ g  ] T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2)
-  (at level 74, T1, T2, i1, i2 at next level, only parsing).
-
 
 Scheme unstamped_path_typed_mut_ind := Induction for path_typed Sort Prop
 with   unstamped_subtype_mut_ind := Induction for subtype Sort Prop.
@@ -211,26 +167,31 @@ Hint Extern 10 => try_once iSub_Trans : core.
 (** Remove unwanted hints: we don't want to use this rule silently. *)
 Remove Hints iSub_Skolem_P : core.
 
+(* XXX TODO remove these hints here as well? *)
+(** These hints slow down proof search. *)
+(** Not directed. *)
+(* Remove Hints old_subtyping.iP_Sngl_Trans : core.
+(** These cause cycles. *)
+Remove Hints old_subtyping.iP_Mu_E : core.
+Remove Hints old_subtyping.iP_Mu_I : core. *)
+
 Lemma unstamped_path_root_is_var Γ p T i:
   Γ u⊢ₚ p : T, i →
   atomic_path_root p.
-Proof. by elim; intros; cbn; eauto 3 using is_unstamped_path_root. Qed.
+Proof. by elim; intros; cbn; eauto 3. Qed.
 
 
 Ltac ettrans := eapply iSub_Trans.
 
 Lemma iP_Later {Γ p T i} :
-  is_unstamped_ty' (length Γ) T →
   Γ u⊢ₚ p : TLater T, i →
   Γ u⊢ₚ p : T, S i.
 Proof.
-  intros Hu Hp; apply iP_ISub with (j := 1) (T1 := TLater T) (T2 := T) in Hp;
+  intros Hp; apply iP_ISub with (j := 1) (T1 := TLater T) (T2 := T) in Hp;
     move: Hp; rewrite (plusnS i 0) (plusnO i); intros; by [|constructor].
 Qed.
 
 Lemma Sub_later_shift {Γ T1 T2 i j}
-  (Hs1: is_unstamped_ty' (length Γ) T1)
-  (Hs2: is_unstamped_ty' (length Γ) T2)
   (Hsub: Γ u⊢ₜ T1, S i <: T2, S j):
   Γ u⊢ₜ TLater T1, i <: TLater T2, j.
 Proof.
@@ -239,8 +200,6 @@ Proof.
 Qed.
 
 Lemma Sub_later_shift_inv {Γ T1 T2 i j}
-  (Hs1: is_unstamped_ty' (length Γ) T1)
-  (Hs2: is_unstamped_ty' (length Γ) T2)
   (Hsub: Γ u⊢ₜ TLater T1, i <: TLater T2, j):
   Γ u⊢ₜ T1, S i <: T2, S j.
 Proof.

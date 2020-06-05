@@ -14,17 +14,17 @@ Set Default Proof Using "Type".
 
 Implicit Types (v w : vl) (d : dm) (ds : dms).
 
-Example loopDefTyp Γ : Γ v⊢ₜ[ ∅ ] hloopDefV : hloopDefT.
+Example loopDefTyp Γ : Γ v⊢ₜ hloopDefV : hloopDefT.
 Proof.
   apply (iT_ISub_nocoerce hloopDefTConcr); mltcrush.
   eapply iT_All_E; last var.
   tcrush; varsub; lookup.
 Qed.
 
-Example loopFunTyp Γ : Γ v⊢ₜ[∅] hloopFunTm : ⊤ →: ⊥.
+Example loopFunTyp Γ : Γ v⊢ₜ hloopFunTm : ⊤ →: ⊥.
 Proof. have ? := loopDefTyp Γ; tcrush. Qed.
 
-Example loopTyp Γ : Γ v⊢ₜ[∅] hloopTm : ⊥.
+Example loopTyp Γ : Γ v⊢ₜ hloopTm : ⊥.
 Proof.
   have ? := loopFunTyp Γ; apply (iT_All_E (T1 := ⊤)), (iT_ISub_nocoerce 𝐙); tcrush.
 Qed.
