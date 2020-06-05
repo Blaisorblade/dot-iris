@@ -6,7 +6,6 @@ Unset Strict Implicit.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 
-(* Use ⊢ and == ? *)
 Reserved Notation "|- T1 == T2" (at level 70, T1 at level 69, only parsing).
 Inductive type_equiv : Equiv ty :=
 | type_equiv_later_and T1 T2 :
@@ -48,12 +47,6 @@ Lemma is_unstamped_equiv n b T1 T2 :
 Proof.
   move: n => + H; induction H; split; intros; inverse_is_unstamped; naive_solver.
 Qed.
-Lemma is_stamped_equiv n g T1 T2 :
-  |- T1 == T2 → is_stamped_ty n g T1 ↔ is_stamped_ty n g T2.
-Proof.
-  move: n => + H; induction H; split; intros; inverse_is_stamped; naive_solver.
-Qed.
-
 Local Hint Constructors type_equiv : core.
 
 Lemma type_equiv_laterN_and j U1 U2 :
