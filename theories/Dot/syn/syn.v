@@ -744,7 +744,7 @@ Section syntax_mut_ind.
   Proof.
     efeed pose proof syntax_mut_rect as H; try done.
     - intros ds HdsT. apply step_vobj, ForallT_Forall, HdsT.
-    - intros vs g HvsT. apply step_dtysem, ForallT_Forall, HvsT.
+    - intros vs s HvsT. apply step_dtysem, ForallT_Forall, HvsT.
     - ev; split_and! ; assumption.
   Qed.
 End syntax_mut_ind.
