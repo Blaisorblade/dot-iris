@@ -100,14 +100,15 @@ theorem, and the definition of the language with its operational semantics and
 type system. In more detail:
 
 Sec. 2:
-- syntax, substitution and operational semantics for unstamped and stamped
+- Syntax, substitution and operational semantics for unstamped and stamped
   gDOT (Fig. 3, Sec. 5.1):
   [`Dot/syn/syn.v`](theories/Dot/syn/syn.v).
   - values, expressions, paths, definition bodies and lists, types are called
-    respectively `vl`, `tm`, `path`, `dm`, `dms`, `ty`;
-  - member selection: `objLookup`
+    respectively `vl`, `tm`, `path`, `dm`, `dms`, `ty`; see comments for the
+    Coq syntax for each constructor;
+  - member selection: `objLookup`;
   - evaluation contexts: `list ectx_item`.
-  - operational semantics:
+  - Operational semantics:
     - head-reduction: `head_step`; reduction: `prim_step`.
 
 Sec. 4:
