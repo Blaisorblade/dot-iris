@@ -28,7 +28,6 @@ Set Default Proof Using "Type".
 Import uPred.
 
 Canonical Structure pathO := leibnizO path.
-Canonical Structure vlO := leibnizO vl.
 
 Notation PersistentP Φ := (∀ v, Persistent (Φ v)).
 

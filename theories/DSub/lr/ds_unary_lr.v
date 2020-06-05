@@ -23,10 +23,8 @@ Implicit Types
     Semantic judgements must apply instead to open terms/value/paths; therefore,
     they are defined using closing substitution on arguments of [interp].
 
-    Similar comments apply to [def_interp].
-
-    Additionally, both apply to *translated* arguments, hence they only expect
-    [dtysem] and not [dtysyn] for type member definitions.
+    Additionally, both apply to *unstamped* syntax, hence they only expect
+    [vty] and not [vstamp] for type member definitions.
  *)
 
 (* The only point of these instances is to select Σ uniquely. *)
