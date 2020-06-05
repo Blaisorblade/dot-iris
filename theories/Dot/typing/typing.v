@@ -182,6 +182,14 @@ Proof.
   apply: iSel_Stp Hp.
 Qed.
 
+Ltac typconstructor_blacklist Γ :=
+  lazymatch goal with
+  | |- path_typed ?Γ' _ _ _ =>
+  tryif (unify Γ Γ') then idtac else fail 1 "Only applicable rule is iStp_Skolem_P"
+  | _ => idtac
+  end.
+
+(* XXX test *)
 Ltac typconstructor :=
   match goal with
   | |- typed _ _ _ =>
@@ -189,6 +197,6 @@ Ltac typconstructor :=
   | |- dms_typed _ _ _ => constructor
   | |- dm_typed _ _ _ _ => first [apply iD_All | constructor]
   | |- path_typed _ _ _ _ => first [apply iP_Later | constructor]
-  | |- subtype _ _ _ _ _ =>
-    first [apply iLater_Idx_Stp | constructor ]
+  | |- subtype ?Γ _ _ _ _ =>
+    first [apply iLater_Idx_Stp | constructor ]; typconstructor_blacklist Γ
   end.
