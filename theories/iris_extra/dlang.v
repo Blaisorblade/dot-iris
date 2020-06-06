@@ -1,7 +1,6 @@
 (** * Instantiate Iris for D* languages. *)
 From iris.program_logic Require Import ectx_language language.
 From iris.base_logic.lib Require Import own.
-From D.pure_program_logic Require adequacy.
 From D Require Import iris_prelude swap_later_impl asubst_intf.
 From D Require saved_interp_dep.
 From D.iris_extra Require det_reduction.
@@ -141,7 +140,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
       apply fin_S_inv; cbn; first apply _.
       apply fin_0_inv.
     Qed.
-    Export adequacy det_reduction.
+    Export det_reduction.
   End dlang_adequacy.
 
   (* Backward compatibility. *)

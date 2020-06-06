@@ -1,6 +1,6 @@
 (** * Unstamped semantic judgments, adequacy, and typing lemmas. *)
 From D Require Export iris_prelude swap_later_impl.
-From D.pure_program_logic Require Import weakestpre.
+From D.pure_program_logic Require Import weakestpre adequacy.
 From D Require Import iris_extra.det_reduction.
 From D.Dot Require Import skeleton path_repl typing_aux_defs.
 From D.Dot Require Import unary_lr.
