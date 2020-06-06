@@ -170,7 +170,7 @@ Sec. 5:
   - `Impl-▷` is proven in from [`iris_extra/swap_later_impl.v`](theories/iris_extra/swap_later_impl.v).
   - `Saved-Pred-Agree` is proven as
   `saved_ho_sem_type_agree` from [`iris_extra/saved_interp_dep.v`](theories/iris_extra/saved_interp_dep.v).
-- Expression weakest precondition (Sec. 5.2.1): Definition and proof rules appear in
+- Term weakest precondition (Sec. 5.2.1): Definition and proof rules appear in
   [`pure_program_logic`](theories/pure_program_logic).
 - Path weakest precondition (Sec. 5.2.2): defined in [`Dot/lr/path_wp.v`](theories/Dot/lr/path_wp.v).
 - Logical relation (Sec. 5, Fig. 9):
@@ -213,7 +213,7 @@ Translation table of symbols in names:
 
 | Prefix | Typing Judgment |
 | :----: | :-------------- |
-| `T`    | Expression      |
+| `T`    | Term            |
 | `P`    | Path            |
 | `D`    | Definition      |
 
