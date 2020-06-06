@@ -152,7 +152,7 @@ Section Sec.
     iSpecialize ("HT1" $! _  Hpid with "Hg").
     iDestruct ("HT2" $! _  Hpids with "Hg") as "{HT2} HT2".
     iSplit; first by iApply clty_def2defs_head.
-    iApply (clty_mono with "HT2"); by [apply dms_hasnt_subst | eapply nclosed_sub_app].
+    iApply (clty_mono with "HT2"). exact: dms_hasnt_subst.
   Qed.
 
   Lemma D_Cons Γ d ds l T1 T2:
