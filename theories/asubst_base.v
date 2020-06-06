@@ -205,9 +205,11 @@ Section sort_lemmas.
 Context `{_HsX: Sort X}.
 Implicit Types (x : X) (Γ : list X).
 
+(* Dead but still potentially useful. *)
 Lemma subst_swap_vl v ρ w : v.[up ρ].[w.[ρ]/] = v.[w/].[ρ].
 Proof. by rewrite !subst_comp up_sub_compose_base subst_swap_base. Qed.
 
+(* Dead but still potentially useful. *)
 Lemma subst_swap (x: X) ρ v : x.|[up ρ].|[v.[ρ]/] = x.|[v/].|[ρ].
 Proof. by rewrite !hsubst_comp up_sub_compose_base subst_swap_base. Qed.
 
@@ -233,6 +235,7 @@ Lemma closed_subst_idsρ x n :
   nclosed x n → x.|[∞ (idsσ n)] = x.
 Proof. intro Hcl. rewrite (Hcl _ ids (@idsσ_eq_ids n)). by asimpl. Qed.
 
+(* Dead but still potentially useful. *)
 Lemma closed_subst_id x ρ : nclosed x 0 → x.|[ρ] = x.
 Proof. intro Hcl. rewrite (Hcl ρ ids) ?hsubst_id //. exact: eq_n_s_total. Qed.
 
