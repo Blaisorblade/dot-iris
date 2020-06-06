@@ -596,9 +596,6 @@ Notation "⟦ T ⟧" := (oClose V⟦ T ⟧).
 
 Import dlang_adequacy.
 
-(** Adequacy of semantic typing: not only are semantically well-typed expressions safe,
-but any result value they produce also satisfies any properties that follow from their
-semantic type. *)
 (** Adequacy of normalization for gDOT paths. *)
 Lemma ipwp_gs_adequacy Σ `{!dlangPreG Σ} `{!SwapPropI Σ} {p T i}
   (Hwp : ∀ `(Hdlang : !dlangG Σ) `(!SwapPropI Σ), ⊢ [] ⊨p p : T , i):

@@ -120,7 +120,7 @@ Section fundamental.
     + iApply suD_Path_Stp; by [> iApply fundamental_subtype|iApply H].
   Qed.
 
-  (** * Fundamental theorem 5.4. *)
+  (** * Fundamental theorem 5.3. *)
   Lemma fundamental_typed Γ e T :
     Γ t⊢ₜ e : T → ⊢ Γ u⊨ e : T.
   Proof. apply (fundamental_mut Γ). Qed.
@@ -137,13 +137,13 @@ End fundamental.
 Import dlang_adequacy.
 
 (** The overall proof of type soundness, as outlined in Sec. 5 of the paper. *)
-
 (** Theorem 5.2: Type soundness for gDOT. *)
 Theorem type_soundness {e T}
   (Ht: [] t⊢ₜ e : T): safe e.
 Proof.
-  (* Apply 5.5: Adequacy of semantic typing. *)
+  (* Apply adequacy of unstamped semantic typing (Theorem 5.4). *)
   apply: (unstamped_safety_dot_sem dlangΣ); intros.
+  (* Apply fundamental theorem (Theorem 5.3). *)
   apply fundamental_typed, Ht.
 Qed.
 

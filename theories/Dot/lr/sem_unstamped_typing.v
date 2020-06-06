@@ -69,7 +69,6 @@ Notation "Γ u⊨ {  l := d  } : T" := (iudtp Γ T l d) (at level 74, d, l, T at
 Notation "Γ u⊨ds ds : T" := (iudstp Γ T ds) (at level 74, ds, T at next level).
 Notation "Γ u⊨ e : T" := (iuetp Γ T e) (at level 74, e, T at next level).
 
-(* Adequacy *)
 Theorem unstamped_s_safety_dot_sem Σ `{HdlangG: !dlangPreG Σ} `{!SwapPropI Σ}
   {e_u}
   (τ : ∀ `{!dlangG Σ}, olty Σ 0)
@@ -88,6 +87,8 @@ Proof.
   eapply same_skel_safe_n_impl, Hsteps; naive_solver.
 Qed.
 
+(** ** Adequacy of unstamped semantic typing (Theorem 5.4).
+semantically well-typed terms are safe. *)
 Corollary unstamped_safety_dot_sem Σ `{HdlangG: !dlangPreG Σ} `{!SwapPropI Σ}
   {e T}
   (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), ⊢ [] u⊨ e : T):
