@@ -47,6 +47,7 @@ end.
 Definition unTLater_TLater T: unTLater (TLater T) = T := reflexivity _.
 Global Instance: Cancel (=) unTLater TLater. Proof. exact: unTLater_TLater. Qed.
 
+(** ** The [T1 ≫ ▷ T2] judgment, used in the [Γ1 ≫ ▷ Γ2] paper judgment. *)
 Inductive ty_strip_syn : ty → ty → Prop :=
 | ty_strip_id_syn T : ⊢T T >>▷ T
 | ty_strip_TLater_add_syn T :
@@ -61,7 +62,9 @@ Inductive ty_strip_syn : ty → ty → Prop :=
 where "⊢T T1 '>>▷' T2" := (ty_strip_syn T1 T2).
 Hint Constructors ty_strip_syn : ctx_sub.
 
-(** The actual constructor is [ty_sub_TLater_syn]; the other ones are
+(** Auxiliary judgment [⊢T T1 <: T2]; this is _not_ the main subtyping judgment,
+and is just used for context stripping. *)
+(** The actual constructor is [ty_sub_TLater_add_syn]; the other ones are
 just congruence under [TLater], [TAnd], [TOr].
 We also add transitivity: it is not admissible, and the counterexample is
 [⊢T T <: TLater (TLater T)]. *)
@@ -102,6 +105,7 @@ Proof. induction T; cbn; auto with ctx_sub. Qed.
 
 Hint Resolve unTLater_ty_sub_syn : ctx_sub.
 
+(** ** The [Γ1 ≫▷ Γ2] judgment from the paper. *)
 Inductive ctx_strip_syn : ctx → ctx → Prop :=
 | ctx_strip_nil_syn : ⊢G [] >>▷* []
 | ctx_strip_cons_syn T1 T2 Γ1 Γ2 :

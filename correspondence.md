@@ -7,8 +7,8 @@ All file paths in this file are relative to the [`theories/`](theories/) folder.
 There are a number of small differences between the paper presentation
 of gDOT and the formalization in Coq. We briefly discuss them here.
 
-- Notations such as `\overbar{V}⟦ g ⟧` or `\overbar{D}⟦ T ⟧` in the paper are
-  translated to `Vs⟦ g ⟧` and `Ds⟦ T ⟧` in Coq.
+- Notations such as `\overbar{D}⟦ T ⟧` in the paper are translated to
+  notations such as `Ds⟦ T ⟧` in Coq.
 
 - In Coq, definition lists are represented using Coq's `list`
   data type, whereas singleton and merge operations are used in the paper
@@ -113,12 +113,16 @@ Sec. 2:
 
 Sec. 4:
 - gDOT typing judgments (Sec. 4, Fig. 6, 7):
-  - The `Γ1 ≫ ▷ Γ2` judgment, and auxiliary judgments for primitive types:
+  - The `Γ1 ≫ ▷ Γ2` judgment (called `ctx_strip_syn`), and auxiliary
+    judgments for primitive types:
     [`Dot/typing/typing_aux_defs.v`](theories/Dot/typing/typing_aux_defs.v)
   - Path substitution and replacement:
     [`Dot/syn/path_repl.v`](theories/Dot/syn/path_repl.v)
   - Primitive and derived typing rules:
-    [`Dot/typing/typing.v`](theories/Dot/typing/typing.v)
+    - Subtyping and path typing:
+      [`Dot/typing/subtyping.v`](theories/Dot/typing/subtyping.v)
+    - Definition, definition list and term typing:
+      [`Dot/typing/typing.v`](theories/Dot/typing/typing.v)
 
 Sec. 5:
 - Safety (Def. 5.1) is defined as `safe` in

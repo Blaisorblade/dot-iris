@@ -1,6 +1,4 @@
-(** * Judgments defining gDOT path- and sub- typing.
-This judgment allowing only variables in paths, and not arbitrary values.
-*)
+(** * Judgments defining syntactic gDOT path- and sub- typing. *)
 From D Require Import tactics succ_notation.
 From D.Dot Require Export syn path_repl lr_syn_aux.
 From D.Dot Require Export typing_aux_defs type_eq.

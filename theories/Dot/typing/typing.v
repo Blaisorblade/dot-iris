@@ -1,11 +1,4 @@
-(** * Judgments defining gDOT unstamped typing.
-
-We show that unstamped typing derivations from here can
-be converted to stamped derivations of this typing judgment, in lemma
-[stamp_typing_mut].
-
-This judgment allowing only variables in paths, and not arbitrary values.
-*)
+(** * Judgments defining syntactic gDOT definition and term typing. *)
 From D Require Import tactics.
 From D.Dot Require Export syn path_repl lr_syn_aux.
 From D.Dot Require Export typing_aux_defs type_eq subtyping.
