@@ -596,39 +596,9 @@ Notation "⟦ T ⟧" := (oClose V⟦ T ⟧).
 
 Import dlang_adequacy.
 
-Theorem s_adequacy_dot_sem Σ `{HdlangG: !dlangPreG Σ} `{!SwapPropI Σ} {e Ψ}
-  (τ : ∀ `{!dlangG Σ}, olty Σ 0)
-  (Himpl : ∀ `(Hdlang: !dlangG Σ) v, oClose τ ids v -∗ ⌜Ψ v⌝)
-  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), ⊢ [] s⊨ e : τ):
-  adequate e (λ v, Ψ v).
-Proof.
-  eapply (adequacy_dlang _); [apply Himpl | iIntros (??)].
-  iDestruct (Hlog) as "#Htyp".
-  iEval rewrite -(hsubst_id e). iApply ("Htyp" $! ids with "[//]").
-Qed.
-
 (** Adequacy of semantic typing: not only are semantically well-typed expressions safe,
 but any result value they produce also satisfies any properties that follow from their
 semantic type. *)
-Theorem adequacy_dot_sem Σ `{HdlangG: !dlangPreG Σ} `{!SwapPropI Σ} {e Ψ T}
-  (Himpl : ∀ `(Hdlang: !dlangG Σ) v, V⟦ T ⟧ vnil ids v -∗ ⌜Ψ v⌝)
-  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), ⊢ [] ⊨ e : T):
-  adequate e (λ v, Ψ v).
-Proof. exact: (s_adequacy_dot_sem Σ (λ _, V⟦T⟧)). Qed.
-
-Corollary s_safety_dot_sem Σ `{HdlangG: !dlangPreG Σ} `{!SwapPropI Σ} {e}
-  (τ : ∀ `{!dlangG Σ}, olty Σ 0)
-  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), ⊢ [] s⊨ e : τ):
-  safe e.
-Proof. apply adequate_safe, (s_adequacy_dot_sem Σ τ), Hlog; naive_solver. Qed.
-
-(** * Theorem 5.5: adequacy/safety of (stamped) semantic typing.
-Corollary of [adequacy_mapped_semtyping]. *)
-Corollary safety_dot_sem Σ `{HdlangG: !dlangPreG Σ} `{!SwapPropI Σ} {e T}
-  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), ⊢ [] ⊨ e : T):
-  safe e.
-Proof. exact: (s_safety_dot_sem Σ (λ _, V⟦T⟧)). Qed.
-
 (** Adequacy of normalization for gDOT paths. *)
 Lemma ipwp_gs_adequacy Σ `{!dlangPreG Σ} `{!SwapPropI Σ} {p T i}
   (Hwp : ∀ `(Hdlang : !dlangG Σ) `(!SwapPropI Σ), ⊢ [] ⊨p p : T , i):

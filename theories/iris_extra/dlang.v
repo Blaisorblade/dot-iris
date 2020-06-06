@@ -142,36 +142,6 @@ Module Type LiftWp (Import VS : VlSortsSig).
       apply fin_0_inv.
     Qed.
     Export adequacy det_reduction.
-
-    Section LangDet.
-    Context `{LangDet dlang_lang}.
-
-    Lemma adequate_safe (e : expr dlang_lang):
-      adequate e (λ _, True) → safe e.
-    Proof. intros [_ Had] ** ?. exact: Had. Qed.
-
-    (* [Himpl] only takes explicit arguments because Coq doesn't support
-    implicit ones. *)
-    Theorem adequacy_dlang Σ `{dlangPreG Σ} `{SwapPropI Σ} e
-      (Φ : dlangG Σ → val dlang_lang → iProp Σ)
-      (Ψ : val dlang_lang → Prop)
-      (Himpl : ∀ (Hdlang : dlangG Σ) v, Φ Hdlang v -∗ ⌜Ψ v⌝)
-      (Hwp : ∀ (Hdlang : dlangG Σ) `(!SwapPropI Σ), ⊢ WP e {{ v, Φ Hdlang v }}) :
-      adequate e (λ v, Ψ v).
-    Proof.
-      apply (wp_adequacy (Σ := Σ) (Λ := dlang_lang) e Ψ) => /=.
-      set (DLangΣ := DLangG Σ).
-      iIntros "!>".
-      iDestruct (Hwp DLangΣ) as "Hwp".
-      iApply (wp_wand with "Hwp"). by iIntros (v); iApply Himpl.
-    Qed.
-
-    Corollary safety_dlang Σ `{dlangPreG Σ} `{SwapPropI Σ}
-      (Φ : dlangG Σ → val dlang_lang → iProp Σ) e
-      (Hwp : ∀ (Hdlang : dlangG Σ) `(!SwapPropI Σ), ⊢ WP e {{ Φ Hdlang }}):
-      safe e.
-    Proof. apply adequate_safe, (adequacy_dlang Σ e Φ), Hwp; naive_solver. Qed.
-    End LangDet.
   End dlang_adequacy.
 
   (* Backward compatibility. *)
