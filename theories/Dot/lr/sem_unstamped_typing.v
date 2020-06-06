@@ -77,7 +77,6 @@ Theorem unstamped_s_safety_dot_sem Σ `{HdlangG: !dlangPreG Σ} `{!SwapPropI Σ}
   safe e_u.
 Proof.
   intros e_u' [n Hsteps]%rtc_nsteps.
-  eapply same_skel_safe_n_impl, Hsteps.
   apply (soundness (M := iResUR Σ) _ n).
   apply (bupd_plain_soundness _).
   set (DLangΣ := DLangG Σ).
@@ -85,7 +84,8 @@ Proof.
   iDestruct "Hwp" as (e_s Hsim) "#Hwp /=".
   iSpecialize ("Hwp" $! ids with "[//]").
   rewrite hsubst_id (wptp_safe_n n).
-  iIntros "!>!>"; iDestruct "Hwp" as %Hsafe; naive_solver.
+  iIntros "!>!>"; iDestruct "Hwp" as %Hsafe; iIntros "!%".
+  eapply same_skel_safe_n_impl, Hsteps; naive_solver.
 Qed.
 
 Corollary unstamped_safety_dot_sem Σ `{HdlangG: !dlangPreG Σ} `{!SwapPropI Σ}
