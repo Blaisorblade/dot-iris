@@ -59,8 +59,6 @@ Arguments hclose_dm   /.
 Arguments hclose_path /.
 Arguments hclose_ty   /.
 
-Notation hstampTy := (preTyMem hvl).
-
 (** Utilities to lift syntax to [hterm]s. *)
 Module Import hterm_lifting.
 Section lifting.
@@ -259,11 +257,6 @@ Notation "'ν:' x , ds " := (hvobj (λD x, ds)) (at level 60, ds at next level).
 Notation "'val' l = v" := (l, hdpt v) (at level 60, l at level 50).
 Notation "'type' l = T  " := (l, hdtysyn T) (at level 60, l at level 50).
 Notation "'type' l = ( σ ; s )" := (l, hdtysem σ s) (at level 60, l at level 50).
-
-Definition hdtysem' : hstampTy → hdm := λ '(MkTy s hσ _ _), hdtysem hσ s.
-Arguments hdtysem' !_ /.
-
-Notation "'type' l '=[' T ']'" := (l, hdtysem' T) (at level 60, l at level 50, T at level 200).
 
 (** Notation for object types. *)
 Global Instance: Top hty := hTTop.

@@ -4,7 +4,7 @@ From D Require Import swap_later_impl.
 From D.Dot Require Export fundamental.
 From D.Dot Require Export sub_lr.
 
-From D.Dot Require Import storeless_typing type_extraction_syn path_repl_lemmas.
+From D.Dot Require Import storeless_typing path_repl_lemmas.
 From D.Dot Require Import old_unstamped_typing old_unstamped_typing_to_typing.
 
 Set Suggest Proof Using.
@@ -12,7 +12,7 @@ Set Default Proof Using "Type*".
 Set Implicit Arguments.
 Unset Strict Implicit.
 
-Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx) (g : stys).
+Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 
 Section old_fundamental.
   Context `{!dlangG Σ} `{!SwapPropI Σ}.
@@ -77,12 +77,12 @@ Section old_fundamental.
       + iApply Sub_Skolem_P. by iApply H.
   Qed.
 
-  Local Definition fundamental_typed_def Γ g e T
-    (HT: Γ v⊢ₜ[ g ] e : T) := ⊢ Γ u⊨ e : T.
-  Local Definition fundamental_dms_typed_def Γ g ds T
-    (HT: Γ v⊢ds[ g ] ds : T) := ⊢ Γ u⊨ds ds : T.
-  Local Definition fundamental_dm_typed_def Γ g l d T
-    (HT : Γ v⊢[ g ]{ l := d } : T) := ⊢ Γ u⊨ { l := d } : T.
+  Local Definition fundamental_typed_def Γ e T
+    (HT: Γ v⊢ₜ e : T) := ⊢ Γ u⊨ e : T.
+  Local Definition fundamental_dms_typed_def Γ ds T
+    (HT: Γ v⊢ds ds : T) := ⊢ Γ u⊨ds ds : T.
+  Local Definition fundamental_dm_typed_def Γ l d T
+    (HT : Γ v⊢{ l := d } : T) := ⊢ Γ u⊨ { l := d } : T.
 
   Lemma fundamental_path_typed Γ p T i :
     Γ u⊢ₚ p : T, i → ⊢ Γ ⊨p p : T, i.
@@ -91,12 +91,12 @@ Section old_fundamental.
     Γ u⊢ₜ T1, i1 <: T2, i2 → ⊢ Γ ⊨ T1, i1 <: T2, i2.
   Proof. apply (subtype_fundamental_mut Γ). Qed.
 
-  Theorem fundamental_mut Γ g :
-    (∀ e T HT, @fundamental_typed_def Γ g e T HT) ∧
-    (∀ ds T HT, @fundamental_dms_typed_def Γ g ds T HT) ∧
-    (∀ l d T HT, @fundamental_dm_typed_def Γ g l d T HT).
+  Theorem fundamental_mut Γ :
+    (∀ e T (HT: Γ v⊢ₜ e : T), fundamental_typed_def HT) ∧
+    (∀ ds T (HT: Γ v⊢ds ds : T), fundamental_dms_typed_def HT) ∧
+    (∀ l d T (HT : Γ v⊢{ l := d } : T), fundamental_dm_typed_def HT).
   Proof.
-    apply storeless_typing_mut_ind; clear Γ g; intros; simpl_context.
+    apply storeless_typing_mut_ind; clear Γ; intros; simpl_context.
     + by iApply uT_All_Ex; [iApply H|iApply H0].
     + by iApply uT_All_Ex_p; [|iApply H|iApply fundamental_path_typed].
     + by iApply uT_All_E; [iApply H|iApply H0].
@@ -113,8 +113,8 @@ Section old_fundamental.
     + by iApply suD_Nil.
     + by iApply suD_Cons; [|iApply H|iApply H0].
 
-    + have HclT := extraction_closed e.
-      by iApply (uD_Typ_Abs_I_dtysem HclT); iApply fundamental_subtype.
+    + iApply uD_Typ_Abs_I; [done|by iApply fundamental_subtype..].
+    + iApply uD_Typ_Abs_I_dtysem; [done|by iApply fundamental_subtype..].
     + iApply suD_Val. by iApply H.
     + iApply suD_Path. by iApply fundamental_path_typed.
     + iApply suD_Val_New. by iApply H.
@@ -123,14 +123,14 @@ Section old_fundamental.
     Qed.
 
   (** * Fundamental theorem 5.4. *)
-  Lemma fundamental_typed Γ g e T :
-    Γ v⊢ₜ[ g ] e : T → ⊢ Γ u⊨ e : T.
+  Lemma fundamental_typed Γ e T :
+    Γ v⊢ₜ e : T → ⊢ Γ u⊨ e : T.
   Proof. apply fundamental_mut. Qed.
-  Lemma fundamental_dms_typed Γ g ds T :
-    Γ v⊢ds[ g ] ds : T → ⊢ Γ u⊨ds ds : T.
+  Lemma fundamental_dms_typed Γ ds T :
+    Γ v⊢ds ds : T → ⊢ Γ u⊨ds ds : T.
   Proof. apply fundamental_mut. Qed.
-  Lemma fundamental_dm_typed Γ g l d T :
-    Γ v⊢[ g ]{ l := d } : T → ⊢ Γ u⊨ { l := d } : T.
+  Lemma fundamental_dm_typed Γ l d T :
+    Γ v⊢{ l := d } : T → ⊢ Γ u⊨ { l := d } : T.
   Proof. apply fundamental_mut. Qed.
 End old_fundamental.
 
@@ -141,8 +141,8 @@ Import dlang_adequacy.
 (** The overall proof of type soundness, as outlined in Sec. 5 of the paper. *)
 (** Combination of Thm 5.4 and 5.5, to give soundness of stamped typing.
 In fact, we use the even more general storeless typing. *)
-Corollary type_soundness_storeless {e T g}
-  (HsT: [] v⊢ₜ[ g ] e : T): safe e.
+Corollary type_soundness_storeless {e T}
+  (HsT: [] v⊢ₜ e : T): safe e.
 Proof.
   (* Apply 5.5: Adequacy of semantic typing. *)
   apply: (unstamped_safety_dot_sem dlangΣ); intros.
@@ -151,7 +151,7 @@ Qed.
 
 (** Normalization for gDOT paths. *)
 Lemma path_normalization_storeless {p T i}
-  (Ht : [] v⊢ₚ[ g ] p : T, i) :
+  (Ht : [] u⊢ₚ p : T, i) :
   terminates (path2tm p).
 Proof.
   eapply (ipwp_gs_adequacy dlangΣ); intros.

@@ -108,7 +108,6 @@ Proof.
       eapply iSub_Sel'; first last.
       * typconstructor; varsub.
         ltcrush.
-      * tcrush.
       * tcrush; last apply iSub_Bind_1; tcrush.
         eapply (iSub_Trans (T2 := ⊤)); tcrush.
         eapply iSub_Sel'; tcrush.
@@ -134,7 +133,6 @@ Proof.
     + ettrans; first last.
       eapply iSub_Sel'; first last.
       * typconstructor; varsub; tcrush.
-      * tcrush.
       * mltcrush.
 Qed.
 
@@ -162,8 +160,6 @@ Qed.
 Definition getAnyTypeT pOpt : ty :=
   TAll (μ (fromPDotPaperAbsTBody (shift pOpt))) (⊤ →: x0 @ "types" @; "TypeTop").
 Definition getAnyType : vl := vabs (tskip (tproj (tproj x0 "types") "newTypeTop")).
-
-Ltac simplSubst := rewrite /= /up/= /ids/ids_vl/=.
 
 Definition fromPDotPaperAbsTypesTBodySubst : ty := {@
   type "Type" >: ⊥ <: ⊤;

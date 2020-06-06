@@ -1,7 +1,7 @@
 From D Require Import tactics.
 From D.Dot Require Import syn syn_lemmas ex_utils old_unstamped_typing.
 From D.Dot Require Import unstampedness_binding.
-From D.Dot Require Import path_repl_lemmas old_typing_stamping
+From D.Dot Require Import path_repl_lemmas
   old_subtyping_derived_rules.
 Import DBNotation.
 Export old_subtyping_derived_rules.
@@ -12,16 +12,6 @@ Hint Resolve is_unstamped_pvar : core.
 Lemma is_unstamped_pvars i n l b : i < n → is_unstamped_ty n b (pv (var_vl i) @; l).
 Proof. eauto. Qed.
 Hint Resolve is_unstamped_pvars : core.
-Lemma unstamped_subject_closed {Γ e T}
-  (Ht : Γ u⊢ₜ e : T) :
-  nclosed e (length Γ).
-Proof.
-  apply unstamped_mut_subject in Ht.
-  exact: is_unstamped_nclosed_tm.
-Qed.
-
-Lemma var_typed_closed {Γ x T} : Γ u⊢ₜ tv (ids x) : T → x < length Γ.
-Proof. by move => /unstamped_subject_closed/fv_of_val_inv/nclosed_var_lt. Qed.
 
 Lemma iT_Mu_E {Γ x T}:
   Γ u⊢ₜ tv (var_vl x): TMu T →
@@ -48,7 +38,7 @@ Lemma iT_All_Ex Γ e1 x2 T1 T2:
   (*────────────────────────────────────────────────────────────*)
   Γ u⊢ₜ tapp e1 (tv (var_vl x2)) : T2.|[var_vl x2/].
 Proof.
-  intros He1 Hx2 Hu. have Hlx2 := var_typed_closed Hx2.
+  intros He1 Hx2 Hu.
   rewrite -(psubst_subst_agree_ty (n := S (length Γ))); tcrush.
   eapply iT_All_Ex_p with (p2 := pv (var_vl x2)); tcrush.
 Qed.
@@ -56,9 +46,7 @@ Qed.
 Ltac wtcrush := repeat first [ fast_done | typconstructor | stcrush ] ; try solve [
   first [
     by eauto 3 using is_unstamped_TLater_n, is_unstamped_ren1_ty, is_unstamped_ren1_path |
-    try_once is_unstamped_weaken_dm |
-    try_once is_unstamped_weaken_ty |
-    try_once is_unstamped_weaken_path ]; eauto].
+    try_once is_unstamped_weaken_ty ]; eauto].
 
 Ltac ltcrush := tcrush; repeat lookup.
 
@@ -203,7 +191,7 @@ Lemma packTV_typed' T n Γ l :
 Proof.
   move => HsT1 Hle; move: (Hle) (HsT1) => /le_n_S Hles /is_unstamped_ren1_ty HsT2.
   apply (iT_ISub_nocoerce (μ {@ typeEq l (shift T) }));
-    last (ettrans; first apply: (iMu_Sub _ (T := {@ typeEq l T })); wtcrush).
+    last (ettrans; first apply: (iMu_Sub _ {@ typeEq l T }); wtcrush).
   apply iT_Obj_I; wtcrush.
 Qed.
 
@@ -254,7 +242,7 @@ Proof.
   eapply iT_ISub, HeT => {HeT}.
   typconstructor; [exact: iSub_AddI|] => {HuT}.
   ettrans; [apply: Hsub|] => {Hsub}.
-  have := (iLaterN_Sub 0 i HuU); rewrite plusnO; exact.
+  have := (iLaterN_Sub 0 i (T := U)); rewrite plusnO; exact.
 Qed.
 
 (**
@@ -356,10 +344,8 @@ Proof.
   apply (iT_Mu_E' (T1 := iterate ▶:%ty i (shift (shift T)))),
     is_unstamped_TLater_n; cbn; wtcrush; last by rewrite !TLater_subst shift_sub.
   eapply iT_ISub_nocoerce; first var.
-  ettrans; first apply iMu_LaterN_Sub_Distr_inv; first
-    by rewrite (hren_upn 1); eapply is_unstamped_sub_ren_ty, Hu; auto.
-  rewrite (hren_upn 1 T) hrenS /=; tcrush; cbn.
-  by apply is_unstamped_TLater_n; wtcrush.
+  ettrans; first apply iMu_LaterN_Sub_Distr_inv.
+  rewrite (hren_upn 1 T) hrenS /=; tcrush.
 Qed.
 
 Lemma iSub_Mu'' {Γ T i}:
@@ -370,7 +356,7 @@ Proof.
   have HusT: is_unstamped_ty' (S (S (length Γ))) (shift T).|[up (ren (+1))]
     by rewrite (hren_upn 1); eapply is_unstamped_sub_ren_ty, Hu; auto.
   apply (iP_LaterN (i := 0)); wtcrush.
-  eapply iT_ISub_nocoerce, iMu_LaterN_Sub_Distr; last by wtcrush.
+  eapply iT_ISub_nocoerce, iMu_LaterN_Sub_Distr.
   apply iT_Mu_I, is_unstamped_TLater_n; cbn; wtcrush.
   by rewrite !TLater_subst (hren_upn 1) (hrenS T 1) shift_sub; var.
 Qed.
@@ -396,20 +382,20 @@ Proof.
   }
   eapply (iP_LaterN (i := 0)); wtcrush.
   hideCtx.
-  eapply iT_ISub_nocoerce, iMu_LaterN_Sub_Distr, Hu2'.
+  eapply iT_ISub_nocoerce, iMu_LaterN_Sub_Distr.
   eapply iT_Mu_I; last by wtcrush.
   rewrite TLater_subst.
   rewrite (_ : T2.|[up (ren (+1))].|[x0/] = T2); last
     by rewrite up_sub_compose; autosubst.
   have Hx0 : Γ0 u⊢ₜ x0 : iterate ▶:%ty i T1. {
     eapply iT_Mu_E'.
-    by eapply iT_ISub_nocoerce, iMu_LaterN_Sub_Distr_inv; [var|done].
+    by eapply iT_ISub_nocoerce, iMu_LaterN_Sub_Distr_inv; var.
     by rewrite TLater_subst up_sub_compose; autosubst.
     exact: is_unstamped_TLater_n.
   }
   eapply (iT_ISub (i := 0)), Hx0.
   ettrans; first apply iLaterN_Sub; first wtcrush.
-  ettrans; last apply iSub_LaterN, Hu2.
+  ettrans; last apply iSub_LaterN.
   rewrite !plusnO.
   exact: Hsub.
 Qed.
