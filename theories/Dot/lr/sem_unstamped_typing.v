@@ -6,14 +6,14 @@ From D.Dot Require Import skeleton path_repl typing_aux_defs.
 From D.Dot Require Import unary_lr.
 From D.Dot Require Import later_sub_sem binding_lr path_repl_lr defs_lr dsub_lr prims_lr.
 From stdpp Require Import relations.
-(* Fix scope. *)
+(* Fix what is in scope. *)
 Import dlang_adequacy D.prelude stdpp.relations stdpp.tactics.
 
 Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
          (ρ : env) (l : label).
 
-(* XXX *)
+(* XXX fix notation scopes for Iris basic updates. To drop when we update Iris. *)
 Arguments bupd {_}%type_scope {_} _%bi_scope.
 Notation "|==> Q" := (bupd Q) : bi_scope.
 

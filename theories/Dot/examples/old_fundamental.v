@@ -28,6 +28,7 @@ Section old_fundamental.
   (* Reduce away the above definitions; copied from [fundamental.v] *)
   Local Ltac simpl_context := red; markUsed Σ; red_hyps_once.
 
+  (** TODO: replace. *)
   Theorem subtype_fundamental_mut Γ :
     (∀ p T i HT, @fundamental_path_typed_def Γ p T i HT) ∧
     (∀ T1 i1 T2 i2 HT, @fundamental_subtype_def Γ T1 i1 T2 i2 HT).
