@@ -172,7 +172,6 @@ Sec. 5:
   `saved_ho_sem_type_agree` from [`iris_extra/saved_interp_dep.v`](theories/iris_extra/saved_interp_dep.v).
 - Expression weakest precondition (Sec. 5.2.1): Definition and proof rules appear in
   [`pure_program_logic`](theories/pure_program_logic).
-  On-paper rules `Wp-Val` and `Wp-Step` are called `Wp-Value` and `Wp-Pure-Step-Later` in Coq.
 - Path weakest precondition (Sec. 5.2.2): defined in [`Dot/lr/path_wp.v`](theories/Dot/lr/path_wp.v).
 - Logical relation (Sec. 5, Fig. 9):
   - Auxiliary definitions appear in [`iris_extra/dlang.v`](theories/iris_extra/dlang.v).
