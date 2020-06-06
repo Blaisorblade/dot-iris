@@ -122,7 +122,8 @@ Section old_fundamental.
       by iApply fundamental_subtype.
     Qed.
 
-  (** * Fundamental theorem 5.4. *)
+  (** ** Old fundamental theorem for storeless gDOT.
+    Only used for semantically typed examples. *)
   Lemma fundamental_typed Γ e T :
     Γ v⊢ₜ e : T → ⊢ Γ u⊨ e : T.
   Proof. apply fundamental_mut. Qed.
@@ -134,17 +135,12 @@ Section old_fundamental.
   Proof. apply fundamental_mut. Qed.
 End old_fundamental.
 
-(** Adequacy of our logical relation: semantically well-typed terms are safe. *)
-
 Import dlang_adequacy.
 
-(** The overall proof of type soundness, as outlined in Sec. 5 of the paper. *)
-(** Combination of Thm 5.4 and 5.5, to give soundness of stamped typing.
-In fact, we use the even more general storeless typing. *)
+(** This proves that "storeless typing" also enjoys type safety. *)
 Corollary type_soundness_storeless {e T}
   (HsT: [] v⊢ₜ e : T): safe e.
 Proof.
-  (* Apply 5.5: Adequacy of semantic typing. *)
   apply: (unstamped_safety_dot_sem dlangΣ); intros.
   eapply fundamental_typed, HsT.
 Qed.
@@ -158,7 +154,8 @@ Proof.
   eapply fundamental_path_typed, Ht.
 Qed.
 
-(** We also prove that the old_unstamped_typing is safe. *)
+(** We also prove that the old_unstamped_typing is safe, using
+fundamental theorem 5.2. *)
 Corollary type_soundness_old {e T}
   (Ht : [] u⊢ₜ e : T) : safe e.
 Proof. eapply type_soundness, renew_typed, Ht. Qed.
