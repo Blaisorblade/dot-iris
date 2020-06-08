@@ -48,31 +48,25 @@ Section Sec.
     exact: path_includes_self.
   Qed.
 
-  Lemma sD_Path_Sub {Γ T1 T2 p l}:
-    Γ s⊨ T1, 0 <: T2, 0 -∗
+  Lemma sD_Path_Stp {Γ T1 T2 p l}:
+    Γ s⊨ T1 <:[0] T2 -∗
     Γ s⊨ { l := dpt p } : cVMem l T1 -∗
     Γ s⊨ { l := dpt p } : cVMem l T2.
   Proof.
-    rewrite !sdtp_eq'; iIntros "#Hsub #Hv !>" (ρ Hpid) "#Hg".
-    iSpecialize ("Hv" $! ρ Hpid with "Hg"); rewrite !oDVMem_eq.
-    iApply (path_wp_wand with "Hv"); iIntros "{Hv} %v #Hv".
-    iApply ("Hsub" with "Hg Hv").
+    rewrite !sdtp_eq'; iIntros "#Hsub #Hd !>" (ρ Hpid) "#Hg".
+    iSpecialize ("Hd" $! ρ Hpid with "Hg").
+    iApply (oDVMem_respects_sub with "(Hsub Hg) Hd").
   Qed.
 
-  (** ** Type member introduction. *)
-  Lemma sD_Typ_Sub {Γ} L1 L2 U1 U2 s σ l:
-    Γ s⊨ L2, 0 <: L1, 0 -∗
-    Γ s⊨ U1, 0 <: U2, 0 -∗
+  Lemma sD_Typ_Stp {Γ} L1 L2 U1 U2 s σ l:
+    Γ s⊨ L2 <:[0] L1 -∗
+    Γ s⊨ U1 <:[0] U2 -∗
     Γ s⊨ { l := dtysem σ s } : cTMem l L1 U1 -∗
     Γ s⊨ { l := dtysem σ s } : cTMem l L2 U2.
   Proof.
     rewrite !sdtp_eq'; iIntros "#HL #HU #Hd !>" (ρ Hpid) "#Hg".
     iSpecialize ("Hd" $! ρ Hpid with "Hg").
-    iDestruct "Hd" as (ψ) "(Hφ & HLψ & HψU)".
-    iExists ψ. iFrame "Hφ"; iClear "Hφ".
-    iModIntro; repeat iSplit; iIntros (v) "#H".
-    - iApply ("HLψ" with "(HL Hg H)").
-    - iApply ("HU" with "Hg (HψU H)").
+    iApply (oDTMem_respects_sub with "(HL Hg) (HU Hg) Hd").
   Qed.
 
   Lemma sD_Typ {Γ s σ} {T : oltyO Σ 0} l:
@@ -85,12 +79,12 @@ Section Sec.
     by iModIntro; repeat iSplit; iIntros (v) "#H"; iNext; rewrite /= (Hγφ _ _).
   Qed.
 
-  Lemma sD_Typ_Abs {Γ} T L U s σ l:
-    Γ s⊨ L, 0 <: oLater T, 0 -∗
-    Γ s⊨ oLater T, 0 <: U, 0 -∗
+  Lemma sD_Typ_Abs_D {Γ} T L U s σ l:
+    Γ s⊨ L <:[0] oLater T -∗
+    Γ s⊨ oLater T <:[0] U -∗
     s ↝[ σ ] T -∗
     Γ s⊨ { l := dtysem σ s } : cTMem l L U.
-  Proof. rewrite (sD_Typ l). apply sD_Typ_Sub. Qed.
+  Proof. rewrite (sD_Typ l). apply sD_Typ_Stp. Qed.
 
   (** ** Prove object introduction rule, using Löb induction:
    *

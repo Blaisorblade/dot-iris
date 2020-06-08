@@ -46,11 +46,12 @@ Section judgments.
     □∀ ρ, sG⟦Γ⟧* ρ → sE⟦ τ ⟧ ρ (e.|[ρ]).
   Global Arguments setp /.
 
-  (** Indexed subtyping. *)
-  Definition sstpi `{!dlangG Σ} i j Γ τ1 τ2 : iProp Σ :=
-    □∀ ρ v,
-      sG⟦Γ⟧*ρ → ▷^i oClose τ1 ρ v → ▷^j oClose τ2 ρ v.
-  Global Arguments sstpi /.
+  (** Delayed subtyping. *)
+  Definition sstpd `{!dlangG Σ} i Γ τ1 τ2 : iProp Σ :=
+    □∀ ρ,
+      sG⟦Γ⟧*ρ → ▷^i (oClose τ1 ρ ⊆ oClose τ2 ρ).
+  (* TODO: block simplification also for other judgments. *)
+  Global Arguments sstpd : simpl never.
 
   (** Multi-definition typing *)
   Definition sdstp `{!dlangG Σ} ds Γ (T : clty Σ) : iProp Σ :=
@@ -70,14 +71,31 @@ End judgments.
 
 (** Expression typing *)
 Notation "Γ s⊨ e : τ" := (setp e Γ τ) (at level 74, e, τ at next level).
-(** Indexed subtyping *)
-Notation "Γ s⊨ T1 , i <: T2 , j " := (sstpi i j Γ T1 T2) (at level 74, T1, T2, i, j at next level).
+(** Delayed subtyping. *)
+Notation "Γ s⊨ T1 <:[ i  ] T2 " := (sstpd i Γ T1 T2) (at level 74, T1, T2 at next level).
 (** Single-definition typing *)
 Notation "Γ s⊨ {  l := d  } : T" := (sdtp l d Γ T) (at level 64, d, l, T at next level).
 (** Multi-definition typing *)
 Notation "Γ s⊨ds ds : T" := (sdstp ds Γ T) (at level 74, ds, T at next level).
 (** Path typing *)
 Notation "Γ s⊨p p : τ , i" := (sptp p i Γ τ) (at level 74, p, τ, i at next level).
+
+Section JudgEqs.
+  Context `{HdotG: !dlangG Σ}.
+
+  Lemma sstpd_eq_1 Γ T1 i T2 :
+    Γ s⊨ T1 <:[i] T2 ⊣⊢
+    □∀ ρ, sG⟦Γ⟧* ρ → ∀ v, ▷^i (T1 vnil ρ v → T2 vnil ρ v).
+  Proof.
+    rewrite /sstpd /subtype_lty -!forall_intuitionistically; f_equiv => ρ.
+    by rewrite laterN_forall.
+  Qed.
+
+  Lemma sstpd_eq Γ T1 i T2 :
+    Γ s⊨ T1 <:[i] T2 ⊣⊢
+    □∀ ρ v, sG⟦Γ⟧* ρ → ▷^i (T1 vnil ρ v → T2 vnil ρ v).
+  Proof. rewrite sstpd_eq_1; properness. apply: forall_swap_impl. Qed.
+End JudgEqs.
 
 (** When a definition points to a semantic type. Inlined in paper. *)
 Definition dm_to_type `{HdotG: !dlangG Σ} d i (ψ : hoD Σ i) : iProp Σ :=
@@ -266,7 +284,7 @@ Section sem_types.
   Definition idtp  Γ T l d     := sdtp l d  V⟦Γ⟧* C⟦T⟧.
   Definition idstp Γ T ds      := sdstp ds  V⟦Γ⟧* C⟦T⟧.
   Definition ietp  Γ T e       := setp e    V⟦Γ⟧* V⟦T⟧.
-  Definition istpi Γ T1 T2 i j := sstpi i j V⟦Γ⟧* V⟦T1⟧ V⟦T2⟧.
+  Definition istpd i Γ T1 T2   := sstpd i   V⟦Γ⟧* V⟦T1⟧ V⟦T2⟧.
   Definition iptp  Γ T p i     := sptp p i  V⟦Γ⟧* V⟦T⟧.
 
   (* Avoid auto-dropping box (and unfolding) when introducing judgments persistently. *)
@@ -280,13 +298,13 @@ Section sem_types.
   Global Instance sdstp_persistent Γ Tds ds    : IntoPersistent' (sdstp ds  Γ Tds)   | 0 := _.
   Global Instance sdtp_persistent  Γ Td l d    : IntoPersistent' (sdtp l d   Γ Td)   | 0 := _.
   Global Instance setp_persistent  Γ T         : IntoPersistent' (setp e     Γ T)    | 0 := _.
-  Global Instance sstpi_persistent Γ T1 T2 i j : IntoPersistent' (sstpi i j Γ T1 T2) | 0 := _.
+  Global Instance sstpd_persistent Γ T1 T2 i   : IntoPersistent' (sstpd i Γ T1 T2)   | 0 := _.
   Global Instance sptp_persistent  Γ T p i     : IntoPersistent' (sptp p i   Γ T)    | 0 := _.
 
   Global Instance idstp_persistent Γ T ds      : IntoPersistent' (idstp Γ T ds)      | 0 := _.
   Global Instance idtp_persistent  Γ T l d     : IntoPersistent' (idtp Γ T l d)      | 0 := _.
   Global Instance ietp_persistent  Γ T e       : IntoPersistent' (ietp Γ T e)        | 0 := _.
-  Global Instance istpi_persistent Γ T1 T2 i j : IntoPersistent' (istpi Γ T1 T2 i j) | 0 := _.
+  Global Instance istpd_persistent Γ T1 T2 i   : IntoPersistent' (istpd i Γ T1 T2)   | 0 := _.
   Global Instance iptp_persistent  Γ T p i     : IntoPersistent' (iptp Γ T p i)      | 0 := _.
 End sem_types.
 
@@ -302,7 +320,7 @@ Notation "Γ ⊨ds ds : T" := (idstp Γ T ds) (at level 74, ds, T at next level)
 (** Expression typing *)
 Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 Notation "Γ ⊨p p : T , i" := (iptp Γ T p i) (at level 74, p, T, i at next level).
-Notation "Γ ⊨ T1 , i <: T2 , j" := (istpi Γ T1 T2 i j) (at level 74, T1, T2, i, j at next level).
+Notation "Γ ⊨ T1 <:[ i  ] T2 " := (istpd i Γ T1 T2) (at level 74, T1, T2 at next level).
 
 Notation oInt := (oPrim tint).
 Notation oBool := (oPrim tbool).
@@ -325,10 +343,10 @@ Section judgment_definitions.
     Γ ⊨ e : T ⊣⊢ □∀ ρ, G⟦Γ⟧ ρ → E⟦T⟧ ρ (e.|[ρ]).
   Proof. reflexivity. Qed.
 
-  Lemma istpi_eq Γ T1 i T2 j :
-    Γ ⊨ T1, i <: T2, j ⊣⊢
-    □∀ ρ v, G⟦Γ⟧ ρ → ▷^i V⟦T1⟧ vnil ρ v → ▷^j V⟦T2⟧ vnil ρ v.
-  Proof. reflexivity. Qed.
+  Lemma istpd_eq Γ T1 i T2 :
+    Γ ⊨ T1 <:[i] T2 ⊣⊢
+    □∀ ρ v, G⟦Γ⟧ ρ → ▷^i (V⟦T1⟧ vnil ρ v → V⟦T2⟧ vnil ρ v).
+  Proof. apply sstpd_eq. Qed.
 
   Lemma iptp_eq Γ p T i :
     Γ ⊨p p : T , i ⊣⊢
@@ -344,11 +362,6 @@ Section misc_lemmas.
   Lemma iterate_TLater_oLater i (T : ty) :
     V⟦iterate TLater i T⟧ ≡ oLaterN i V⟦T⟧.
   Proof. elim: i => [//|i IHi] ???; by rewrite !iterate_S /= IHi. Qed.
-
-  Lemma sstpi_app ρ Γ T1 T2 i j :
-    Γ s⊨ T1, i <: T2, j -∗ sG⟦ Γ ⟧* ρ -∗
-    oClose (oLaterN i T1) ρ ⊆ oClose (oLaterN j T2) ρ.
-  Proof. iIntros "Hsub Hg %v"; iApply ("Hsub" with "Hg"). Qed.
 
   (** Core lemmas about type selections and bounds. *)
   Lemma vl_sel_ub w l L U ρ v :
@@ -512,16 +525,16 @@ Section Propers.
   Context `{HdotG: !dlangG Σ}.
 
   (** Judgments *)
-  Global Instance sstpi_proper i j : Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sstpi i j).
+  Global Instance sstpd_proper i : Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sstpd i).
   Proof.
     solve_proper_ho.
-    (* intros ?? HG ?? H1 ?? H2; simplify_eq/=.
+    (* intros ?? HG ?? H1 ?? H2; rewrite /sstpd /subtype_lty;
     properness; [by rewrite HG|apply H1|apply H2]. *)
   Qed.
-  Global Instance sstpi_flip_proper i j :
-    Proper ((≡) --> (≡) --> (≡) --> flip (≡)) (sstpi i j).
+  Global Instance sstpd_flip_proper i :
+    Proper ((≡) --> (≡) --> (≡) --> flip (≡)) (sstpd i).
   Proof. apply: flip_proper_4. Qed.
-  Global Instance: Params (@sstpi) 4 := {}.
+  Global Instance: Params (@sstpd) 3 := {}.
 
 
   Global Instance setp_proper e : Proper ((≡) ==> (≡) ==> (≡)) (setp e).

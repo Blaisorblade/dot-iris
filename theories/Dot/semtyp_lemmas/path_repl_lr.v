@@ -25,25 +25,26 @@ Section semantic_lemmas.
     iIntros "%v %Hpv _ !%"; apply alias_paths_pv_eq_1, Hpv.
   Qed.
 
-  Lemma sSngl_Sub_Self Γ p T i :
+  Lemma sSngl_Stp_Self Γ p T i :
     Γ s⊨p p : T, i -∗
-    Γ s⊨ oSing p, i <: T, i.
+    Γ s⊨ oSing p <:[i] T.
   Proof.
-    iIntros "#Hp !> %ρ %v Hg /= Heq"; iSpecialize ("Hp" with "Hg"); iNext i.
-    iDestruct "Heq" as %->%(alias_paths_elim_eq (T _ ρ)).
+    rewrite sstpd_eq; iIntros "#Hp !> %ρ %v Hg".
+    iSpecialize ("Hp" with "Hg"); iNext i.
+    iDestruct 1 as %->%(alias_paths_elim_eq (T _ ρ)).
     by rewrite path_wp_pv_eq.
   Qed.
 
-  Lemma sSngl_Sub_Sym Γ p q T i:
+  Lemma sSngl_Stp_Sym Γ p q T i:
     Γ s⊨p p : T, i -∗ (* Just to ensure [p] terminates and [oSing p] isn't empty. *)
-    Γ s⊨ oSing p, i <: oSing q, i -∗
-    Γ s⊨ oSing q, i <: oSing p, i.
+    Γ s⊨ oSing p <:[i] oSing q -∗
+    Γ s⊨ oSing q <:[i] oSing p.
   Proof.
-    iIntros "#Hp #Hps !> %ρ %v #Hg Heq".
+    rewrite !sstpd_eq; iIntros "#Hp #Hps !> %ρ %v #Hg".
     iDestruct (path_wp_eq with "(Hp Hg)") as (w) "[Hpw _] {Hp}".
     rewrite -alias_paths_pv_eq_1; iSpecialize ("Hps" $! _ w with "Hg Hpw");
       iNext i; rewrite /= !alias_paths_pv_eq_1.
-    iRevert "Hps Hpw Heq"; iIntros "!%" (Hqw Hpw Hqv).
+    iRevert "Hps Hpw"; iIntros "!%" (Hqw Hpw Hqv).
     rewrite (path_wp_pure_det Hqv Hqw) {Hqv Hqw}. exact Hpw.
   Qed.
 
@@ -58,23 +59,22 @@ Section semantic_lemmas.
 
   (** Non-pDOT rules end. *)
 
-  (** Here we show this rule for *semantic* substitution. *)
-  Lemma sSngl_pq_Sub {Γ i p q T1 T2} :
+  Lemma sSngl_pq_Stp {Γ i p q T1 T2} :
     T1 ~sTpI[ p := q ]* T2 -∗
     Γ s⊨p p : oSing q, i -∗
-    Γ s⊨ T1, i <: T2, i.
+    Γ s⊨ T1 <:[i] T2.
   Proof.
-    iIntros "#Hrepl #Hal !> %ρ %v Hg HT1".
+    rewrite sstpd_eq; iIntros "#Hrepl #Hal !> %ρ %v #Hg".
     iSpecialize ("Hal" with "Hg"); iNext i.
     iDestruct "Hal" as %Hal%alias_paths_simpl.
-    iRewrite -("Hrepl" $! vnil ρ v Hal); iExact "HT1".
+    iRewrite ("Hrepl" $! vnil ρ v Hal); iIntros "$".
   Qed.
 
-  Lemma Sngl_pq_Sub {Γ i p q T1 T2} (Hrepl : T1 ~Tp[ p := q ]* T2):
+  Lemma Sngl_pq_Stp {Γ i p q T1 T2} (Hrepl : T1 ~Tp[ p := q ]* T2):
     Γ ⊨p p : TSing q, i -∗
-    Γ ⊨ T1, i <: T2, i.
+    Γ ⊨ T1 <:[i] T2.
   Proof.
-    iApply sSngl_pq_Sub; iApply sem_ty_path_repl_eq.
+    iApply sSngl_pq_Stp; iApply sem_ty_path_repl_eq.
     apply fundamental_ty_path_repl_rtc, Hrepl.
   Qed.
 
@@ -218,17 +218,16 @@ Section semantic_lemmas.
     apply /alias_paths_sameres /alias_paths_pself /Hal /Hql.
   Qed.
 
-  Lemma sP_ISub {Γ p T1 T2 i j}:
+  Lemma sP_Sub {Γ p T1 T2 i}:
     Γ s⊨p p : T1, i -∗
-    Γ s⊨ T1, i <: T2, i + j -∗
+    Γ s⊨ T1 <:[i] T2 -∗
     (*───────────────────────────────*)
-    Γ s⊨p p : T2, i + j.
+    Γ s⊨p p : T2, i.
   Proof.
-    iIntros "/= * #HpT1 #Hsub !> * #Hg".
-    iSpecialize ("HpT1" with "Hg").
-    rewrite !path_wp_eq.
-    iDestruct "HpT1" as (v) "Hpv"; iExists v.
-    iDestruct "Hpv" as "[$ HpT1] {Hpv}". by iApply "Hsub".
+    iIntros "#HpT1 #Hsub !> %ρ #Hg".
+    iSpecialize ("Hsub" with "Hg"); iSpecialize ("HpT1" with "Hg"); iNext i.
+    iApply (path_wp_wand with "HpT1"); iIntros "%w HvT1 {Hg HpT1}".
+    iApply ("Hsub" with "HvT1").
   Qed.
 
 End semantic_lemmas.

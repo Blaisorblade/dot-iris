@@ -4,7 +4,79 @@ From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language.
 
 From D Require Import iris_prelude succ_notation swap_later_impl proper.
-From D.Dot Require Import rules path_repl unary_lr dsub_lr.
+From D.Dot Require Import rules path_repl unary_lr dsub_lr defs_lr.
+
+Implicit Types (Σ : gFunctors)
+         (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
+         (ρ : env) (l : label).
+
+Section defs.
+  Context {Σ}.
+  Implicit Types (τ : oltyO Σ 0).
+
+  (** Legacy: (double)-indexed subtyping. *)
+  Definition sstpi `{!dlangG Σ} i j Γ τ1 τ2 : iProp Σ :=
+    □∀ ρ v,
+      sG⟦Γ⟧*ρ → ▷^i oClose τ1 ρ v → ▷^j oClose τ2 ρ v.
+  Global Arguments sstpi /.
+
+  Context `{!dlangG Σ}.
+  Definition istpi Γ T1 T2 i j := sstpi i j V⟦Γ⟧* V⟦T1⟧ V⟦T2⟧.
+  (* Avoid auto-dropping box (and unfolding) when introducing judgments persistently. *)
+  Local Notation IntoPersistent' P := (IntoPersistent false P P).
+  Global Instance sstpi_persistent i j Γ T1 T2 : IntoPersistent' (sstpi i j Γ T1 T2) | 0 := _.
+  Global Instance istpi_persistent Γ T1 T2 i j : IntoPersistent' (istpi Γ T1 T2 i j) | 0 := _.
+End defs.
+(** Indexed subtyping *)
+Notation "Γ s⊨ T1 , i <: T2 , j " := (sstpi i j Γ T1 T2) (at level 74, T1, T2, i, j at next level).
+Notation "Γ ⊨ T1 , i <: T2 , j" := (istpi Γ T1 T2 i j) (at level 74, T1, T2, i, j at next level).
+
+(** * Proper instances. *)
+Section Propers.
+  Context `{HdotG: !dlangG Σ}.
+  Implicit Types (τ L T U : olty Σ 0).
+
+  Global Instance sstpi_proper i j : Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sstpi i j).
+  Proof.
+    solve_proper_ho.
+    (* intros ?? HG ?? H1 ?? H2; simplify_eq/=.
+    properness; [by rewrite HG|apply H1|apply H2]. *)
+  Qed.
+  Global Instance sstpi_flip_proper i j :
+    Proper ((≡) --> (≡) --> (≡) --> flip (≡)) (sstpi i j).
+  Proof. apply: flip_proper_4. Qed.
+  Global Instance: Params (@sstpi) 4 := {}.
+End Propers.
+
+Section judgment_lemmas.
+  Context `{!dlangG Σ}.
+
+  (** ** Show this typing judgment is equivalent to the more direct definition. *)
+  Lemma istpi_eq Γ T1 i T2 j :
+    Γ ⊨ T1, i <: T2, j ⊣⊢
+    □∀ ρ v, G⟦Γ⟧ ρ → ▷^i V⟦T1⟧ vnil ρ v → ▷^j V⟦T2⟧ vnil ρ v.
+  Proof. reflexivity. Qed.
+
+  Lemma sstpi_app ρ Γ T1 T2 i j :
+    Γ s⊨ T1, i <: T2, j -∗ sG⟦ Γ ⟧* ρ -∗
+    oClose (oLaterN i T1) ρ ⊆ oClose (oLaterN j T2) ρ.
+  Proof. iIntros "Hsub Hg %v"; iApply ("Hsub" with "Hg"). Qed.
+
+  Lemma sstpd0_to_sstpi0 Γ T1 T2 :
+    Γ s⊨ T1 <:[0] T2 ⊣⊢
+    Γ s⊨ T1, 0 <: T2, 0.
+  Proof. by rewrite /sstpi sstpd_eq. Qed.
+
+  Lemma sstpi_to_sstpd0 Γ i j T1 T2 :
+    Γ s⊨ T1, i <: T2, j ⊣⊢
+    Γ s⊨ oLaterN i T1 <:[0] oLaterN j T2.
+  Proof. by rewrite sstpd0_to_sstpi0. Qed.
+
+  Lemma sstpd_to_sstpi Γ i T1 T2  `{!SwapPropI Σ} :
+    Γ s⊨ T1 <:[i] T2 ⊣⊢
+    Γ s⊨ T1, i <: T2, i.
+  Proof. by rewrite /sstpi -sstpd_delay_oLaterN sstpd_eq. Qed.
+End judgment_lemmas.
 
 Section StpLemmas.
   Context `{HdotG: !dlangG Σ}.
@@ -37,10 +109,7 @@ Section StpLemmas.
     Γ s⊨ T, i <: U1, j -∗
     Γ s⊨ T, i <: U2, j -∗
     Γ s⊨ T, i <: oAnd U1 U2, j.
-  Proof.
-    iIntros "/= #H1 #H2 !> * #? ?".
-    by iSplit; [iApply "H1" | iApply "H2"].
-  Qed.
+  Proof. rewrite !sstpi_to_sstpd0 sTEq_oAnd_oLaterN. apply sStp_And. Qed.
 
   Lemma sSub_Or1 Γ T1 T2 i: ⊢ Γ s⊨ T1, i <: oOr T1 T2, i.
   Proof. by iIntros "!> * _ ? !> /="; eauto. Qed.
@@ -51,7 +120,7 @@ Section StpLemmas.
     Γ s⊨ T1, i <: U, j -∗
     Γ s⊨ T2, i <: U, j -∗
     Γ s⊨ oOr T1 T2, i <: U, j.
-  Proof. iIntros "/= #H1 #H2 !> * #Hg #[HT1 | HT2]"; by [iApply "H1" | iApply "H2"]. Qed.
+  Proof. rewrite !sstpi_to_sstpd0 sTEq_oOr_oLaterN. apply sOr_Stp. Qed.
 
   Lemma sDistr_And_Or_Sub {Γ S T U i}:
     ⊢ Γ s⊨ oAnd (oOr S T) U , i <: oOr (oAnd S U) (oAnd T U), i.
@@ -168,6 +237,111 @@ Section StpLemmas.
     Γ s⊨ U1, i <: U2, i -∗
     Γ s⊨ cTMem l L1 U1, i <: cTMem l L2 U2, i.
   Proof. rewrite -!sstpd_to_sstpi. apply sTyp_Stp_Typ. Qed.
+
+  Lemma sD_Path_Sub {Γ T1 T2 p l}:
+    Γ s⊨ T1, 0 <: T2, 0 -∗
+    Γ s⊨ { l := dpt p } : cVMem l T1 -∗
+    Γ s⊨ { l := dpt p } : cVMem l T2.
+  Proof.
+    rewrite !sdtp_eq'; iIntros "#Hsub #Hv !>" (ρ Hpid) "#Hg".
+    iSpecialize ("Hv" $! ρ Hpid with "Hg"); rewrite !oDVMem_eq.
+    iApply (path_wp_wand with "Hv"); iIntros "{Hv} %v #Hv".
+    iApply ("Hsub" with "Hg Hv").
+  Qed.
+
+  (** ** Type member introduction. *)
+  Lemma sD_Typ_Sub {Γ} L1 L2 U1 U2 s σ l:
+    Γ s⊨ L2, 0 <: L1, 0 -∗
+    Γ s⊨ U1, 0 <: U2, 0 -∗
+    Γ s⊨ { l := dtysem σ s } : cTMem l L1 U1 -∗
+    Γ s⊨ { l := dtysem σ s } : cTMem l L2 U2.
+  Proof.
+    rewrite !sdtp_eq'; iIntros "#HL #HU #Hd !>" (ρ Hpid) "#Hg".
+    iSpecialize ("Hd" $! ρ Hpid with "Hg").
+    iDestruct "Hd" as (ψ) "(Hφ & HLψ & HψU)".
+    iExists ψ. iFrame "Hφ"; iClear "Hφ".
+    iModIntro; repeat iSplit; iIntros (v) "#H".
+    - iApply ("HLψ" with "(HL Hg H)").
+    - iApply ("HU" with "Hg (HψU H)").
+  Qed.
+
+  Lemma sD_Typ_Abs {Γ} T L U s σ l:
+    Γ s⊨ L, 0 <: oLater T, 0 -∗
+    Γ s⊨ oLater T, 0 <: U, 0 -∗
+    s ↝[ σ ] T -∗
+    Γ s⊨ { l := dtysem σ s } : cTMem l L U.
+  Proof. rewrite (sD_Typ l). apply sD_Typ_Sub. Qed.
+
+  Lemma sSngl_Sub_Self Γ p T i :
+    Γ s⊨p p : T, i -∗
+    Γ s⊨ oSing p, i <: T, i.
+  Proof.
+    iIntros "#Hp !> %ρ %v Hg /= Heq"; iSpecialize ("Hp" with "Hg"); iNext i.
+    iDestruct "Heq" as %->%(alias_paths_elim_eq (T _ ρ)).
+    by rewrite path_wp_pv_eq.
+  Qed.
+
+  Lemma sSngl_Sub_Sym Γ p q T i:
+    Γ s⊨p p : T, i -∗ (* Just to ensure [p] terminates and [oSing p] isn't empty. *)
+    Γ s⊨ oSing p, i <: oSing q, i -∗
+    Γ s⊨ oSing q, i <: oSing p, i.
+  Proof.
+    iIntros "#Hp #Hps !> %ρ %v #Hg Heq".
+    iDestruct (path_wp_eq with "(Hp Hg)") as (w) "[Hpw _] {Hp}".
+    rewrite -alias_paths_pv_eq_1; iSpecialize ("Hps" $! _ w with "Hg Hpw");
+      iNext i; rewrite /= !alias_paths_pv_eq_1.
+    iRevert "Hps Hpw Heq"; iIntros "!%" (Hqw Hpw Hqv).
+    rewrite (path_wp_pure_det Hqv Hqw) {Hqv Hqw}. exact Hpw.
+  Qed.
+
+  (** Here we show this rule for *semantic* substitution. *)
+  Lemma sSngl_pq_Sub {Γ i p q T1 T2} :
+    T1 ~sTpI[ p := q ]* T2 -∗
+    Γ s⊨p p : oSing q, i -∗
+    Γ s⊨ T1, i <: T2, i.
+  Proof.
+    iIntros "#Hrepl #Hal !> %ρ %v Hg HT1".
+    iSpecialize ("Hal" with "Hg"); iNext i.
+    iDestruct "Hal" as %Hal%alias_paths_simpl.
+    iRewrite -("Hrepl" $! vnil ρ v Hal); iExact "HT1".
+  Qed.
+
+  Lemma Sngl_pq_Sub {Γ i p q T1 T2} (Hrepl : T1 ~Tp[ p := q ]* T2):
+    Γ ⊨p p : TSing q, i -∗
+    Γ ⊨ T1, i <: T2, i.
+  Proof.
+    iApply sSngl_pq_Sub; iApply sem_ty_path_repl_eq.
+    apply fundamental_ty_path_repl_rtc, Hrepl.
+  Qed.
+
+  Lemma sP_ISub {Γ p T1 T2 i j}:
+    Γ s⊨p p : T1, i -∗
+    Γ s⊨ T1, i <: T2, i + j -∗
+    (*───────────────────────────────*)
+    Γ s⊨p p : T2, i + j.
+  Proof.
+    iIntros "/= * #HpT1 #Hsub !> * #Hg".
+    iSpecialize ("HpT1" with "Hg").
+    rewrite !path_wp_eq.
+    iDestruct "HpT1" as (v) "Hpv"; iExists v.
+    iDestruct "Hpv" as "[$ HpT1] {Hpv}". by iApply "Hsub".
+  Qed.
+
+  Lemma sT_ISub {Γ e T1 T2 i}:
+    Γ s⊨ e : T1 -∗
+    Γ s⊨ T1, 0 <: T2, i -∗
+    (*───────────────────────────────*)
+    Γ s⊨ iterate tskip i e : T2.
+  Proof.
+    iIntros "/= #HeT1 #Hsub !> %ρ #Hg !>".
+    rewrite tskip_subst -wp_bind.
+    iApply (wp_wand with "(HeT1 Hg)").
+    iIntros (v) "#HvT1".
+    (* We can swap ▷^i with WP (tv v)! *)
+    rewrite -wp_pure_step_later // -wp_value.
+    by iApply "Hsub".
+  Qed.
+
 End StpLemmas.
 
 Section VarianceStpLemmas.
@@ -218,3 +392,24 @@ Section VarianceStpLemmas.
   Qed.
 
 End VarianceStpLemmas.
+
+(* In this section, some lemmas about double-delay subtyping are derived from
+the above ones. *)
+Section iSub_Derived_Lemmas.
+  Context `{HdotG: !dlangG Σ} `{!SwapPropI Σ}.
+
+  Lemma sSub_Skolem_P {Γ T1 T2 i j}:
+    oLaterN i (shift T1) :: Γ s⊨p pv (ids 0) : shift T2, j -∗
+    (*───────────────────────────────*)
+    Γ s⊨ T1, i <: T2, j.
+  Proof. by rewrite !sstpi_to_sstpd0 -sStp_Skolem_P oLaterN_0. Qed.
+
+  Lemma Sub_Skolem_P {Γ T1 T2 i j}:
+    iterate TLater i (shift T1) :: Γ ⊨p pv (ids 0) : shift T2, j -∗
+    (*───────────────────────────────*)
+    Γ ⊨ T1, i <: T2, j.
+  Proof.
+    rewrite /iptp fmap_cons iterate_TLater_oLater !interp_subst_commute.
+    exact: sSub_Skolem_P.
+  Qed.
+End iSub_Derived_Lemmas.
