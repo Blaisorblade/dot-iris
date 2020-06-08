@@ -491,10 +491,17 @@ Section path_repl_lemmas.
     V⟦ T1 ⟧ args ρ ≡ V⟦ T2 ⟧ args ρ.
   Proof. intros v. apply: (fundamental_ty_path_repl_rtc Hrepl) Hal. Qed.
 
+  (**
+  Prove that semantic and syntactic substitution of paths in types agree.
+  However, this proof only works for paths that normalize; that's because
+  [V⟦ T ⟧ .sTp[ p /] args ρ v] asserts that [p] terminates, while
+  [V⟦ T' ⟧ args ρ v] need not assert that (say, because [T'] is
+  [TOr TTop (TSel p l)].
+  *)
   Lemma sem_psubst_one_eq {T T' args p v ρ}
     (Hrepl : T .Tp[ p /]~ T')
     (Hal : alias_paths p.|[ρ] (pv v)) :
-    V⟦ T' ⟧ args ρ ≡ (V⟦ T ⟧) .sTp[ p /] args ρ.
+    V⟦ T' ⟧ args ρ ≡ V⟦ T ⟧ .sTp[ p /] args ρ.
   Proof.
     rewrite -(interp_weaken_one T' (v .: ρ)) => w.
     rewrite -(rewrite_ty_path_repl_rtc Hrepl) /=.

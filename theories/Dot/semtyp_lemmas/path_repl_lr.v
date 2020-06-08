@@ -99,19 +99,6 @@ Section semantic_lemmas.
     by rewrite oMu_eq sem_psubst_one_repl ?alias_paths_pv_eq_1.
   Qed.
 
-  Lemma P_Mu_E {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
-    Γ ⊨p p : TMu T, i -∗ Γ ⊨p p : T', i.
-  Proof.
-    (* Proof from scratch *)
-    (* iIntros "#Hp !> %ρ Hg /=".
-    iApply (strong_path_wp_wand with "(Hp Hg)"); iIntros "**".
-    by rewrite oMu_eq -(psubst_one_repl Hrepl ) ?alias_paths_pv_eq_1. *)
-    (* Even if we reuse sP_Mu_E, we must prove that [p] terminates. *)
-    rewrite /iptp sP_Mu_E; iIntros "#Hp !> %ρ Hg /=".
-    iApply (strong_path_wp_wand with "(Hp Hg)"); iIntros "**".
-    by rewrite (sem_psubst_one_eq Hrepl) ?alias_paths_pv_eq_1.
-  Qed.
-
   Lemma sP_Mu_I {Γ T p i} :
     Γ s⊨p p : T .sTp[ p /], i -∗ Γ s⊨p p : oMu T, i.
   Proof.
@@ -120,12 +107,41 @@ Section semantic_lemmas.
     by rewrite oMu_eq sem_psubst_one_repl ?alias_paths_pv_eq_1.
   Qed.
 
+  (** Lifting [sP_Mu_E] and [sP_Mu_I] is a bit less easy than other lemmas,
+  because we need proof of [p]'s termination to relate semantic and syntactic
+  substitution on types. *)
+  Lemma P_Mu_E {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
+    Γ ⊨p p : TMu T, i -∗ Γ ⊨p p : T', i.
+  Proof.
+    rewrite /iptp sP_Mu_E; iIntros "#Hp !> %ρ Hg /=".
+    iApply (strong_path_wp_wand with "(Hp Hg)"); iIntros "**".
+    by rewrite (sem_psubst_one_eq Hrepl) ?alias_paths_pv_eq_1.
+  Qed.
+
   Lemma P_Mu_I {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : T', i -∗ Γ ⊨p p : TMu T, i.
   Proof.
     rewrite /iptp -sP_Mu_I; iIntros "#Hp !> %ρ Hg /=".
     iApply (strong_path_wp_wand with "(Hp Hg)"); iIntros "**".
     by rewrite (sem_psubst_one_eq Hrepl) ?alias_paths_pv_eq_1.
+  Qed.
+
+  (** But these minor difficulties don't affect proofs of [P_Mu_E] and
+  [P_Mu_I] from scratch; to wit: *)
+  Lemma P_Mu_E' {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
+    Γ ⊨p p : TMu T, i -∗ Γ ⊨p p : T', i.
+  Proof.
+    iIntros "#Hp !> %ρ Hg /=".
+    iApply (strong_path_wp_wand with "(Hp Hg)"); iIntros "**".
+    by rewrite oMu_eq -(psubst_one_repl Hrepl) ?alias_paths_pv_eq_1.
+  Qed.
+
+  Lemma P_Mu_I' {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
+    Γ ⊨p p : T', i -∗ Γ ⊨p p : TMu T, i.
+  Proof.
+    iIntros "#Hp !> %ρ Hg /=".
+    iApply (strong_path_wp_wand with "(Hp Hg)"); iIntros "**".
+    by rewrite oMu_eq -(psubst_one_repl Hrepl) ?alias_paths_pv_eq_1.
   Qed.
 
   Lemma sT_All_Ex_p Γ e1 p2 T1 T2 :
