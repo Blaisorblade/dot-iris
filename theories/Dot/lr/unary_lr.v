@@ -443,11 +443,6 @@ Section misc_lemmas.
     iApply ("Hsub2" with "Hg (Hsub1 Hg HT)").
   Qed.
 
-  Lemma sSub_Eq {Γ T U i j} :
-    Γ s⊨ T, i <: U, j ⊣⊢
-    Γ s⊨ oLaterN i T, 0 <: oLaterN j U, 0.
-  Proof. done. Qed.
-
   Lemma ipwp_terminates {p T i}:
     [] s⊨p p : T , i ⊢ ▷^i ⌜ terminates (path2tm p) ⌝.
   Proof.
@@ -571,24 +566,6 @@ Section liftings.
     V⟦iterate TLater i T⟧ ≡ oLaterN i V⟦T⟧.
   Proof. elim: i => [//|i IHi] ???; by rewrite !iterate_S /= IHi. Qed.
 
-  Lemma sSub_iterate_TLater_Eq {Γ T U i j} :
-    V⟦ Γ ⟧* s⊨ V⟦ T ⟧, i <: V⟦ U ⟧, j ⊣⊢
-    V⟦ Γ ⟧* s⊨ V⟦ iterate TLater i T ⟧, 0 <: V⟦ iterate TLater j U ⟧, 0.
-  Proof. by rewrite sSub_Eq !iterate_TLater_oLater. Qed.
-
-
-  Lemma Sub_Refl {Γ} T i : ⊢ Γ ⊨ T, i <: T, i.
-  Proof. apply sSub_Refl. Qed.
-
-  Lemma Sub_Trans {Γ T1 T2 T3 i1 i2 i3} :
-    Γ ⊨ T1, i1 <: T2, i2 -∗ Γ ⊨ T2, i2 <: T3, i3 -∗
-    Γ ⊨ T1, i1 <: T3, i3.
-  Proof. apply sSub_Trans. Qed.
-
-  Lemma Sub_Eq {Γ T U i j} :
-    Γ ⊨ T, i <: U, j ⊣⊢
-    Γ ⊨ iterate TLater i T, 0 <: iterate TLater j U, 0.
-  Proof. by rewrite /istpi sSub_iterate_TLater_Eq. Qed.
 End liftings.
 
 (** Backward compatibility. *)
