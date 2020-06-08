@@ -77,16 +77,6 @@ Section Sec.
     by iApply (path_wp_to_wp with "(Hep Hg)").
   Qed.
 
-  Lemma T_Path {Γ T p} :
-    Γ ⊨p p : T, 0 -∗ Γ ⊨ path2tm p : T.
-  Proof. apply sT_Path. Qed.
-
-  Lemma T_Var {Γ x τ}
-    (Hx : Γ !! x = Some τ):
-    (*──────────────────────*)
-    ⊢ Γ ⊨ of_val (ids x) : shiftN x τ.
-  Proof. by iApply (T_Path (p := pv _)); iApply P_Var. Qed.
-
   Lemma sT_And_I Γ v T1 T2:
     Γ s⊨ tv v : T1 -∗
     Γ s⊨ tv v : T2 -∗
@@ -110,10 +100,6 @@ Section Sec.
     rewrite -wp_pure_step_later // -wp_value.
     by iApply "Hsub".
   Qed.
-
-  Lemma T_ISub {Γ e T1 T2 i}:
-    Γ ⊨ e : T1 -∗ Γ ⊨ T1, 0 <: T2, i -∗ Γ ⊨ iterate tskip i e : T2.
-  Proof. apply sT_ISub. Qed.
 
   (*
      Γ ⊨ z: Tᶻ
@@ -174,7 +160,4 @@ Section Sec.
     iDestruct "Hv" as (? Hl pmem ->) "Hv".
     by rewrite -wp_pure_step_later //= path_wp_to_wp.
   Qed.
-
-  Lemma T_Obj_E {Γ e T l}: Γ ⊨ e : TVMem l T -∗ Γ ⊨ tproj e l : T.
-  Proof. apply sT_Obj_E. Qed.
 End Sec.

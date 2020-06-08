@@ -244,6 +244,9 @@ Hence, rule `iT_All_E_p` is a syntactic rule for expression typing (the
 dependent function application rule), called `T-∀-E_p` in the paper, while
 `sStp_Sel` is a semantic typing lemma corresponding to `<:-Sel`.
 
+For some rules (such as `T-Path`), we only state the purely semantic typing
+lemmas (such as `sT_Path` and `suT_Path`).
+
 Legacy typing judgments use the same conventions, except that they use `Sub`
 instead of `Stp` for the old-style subtyping judgment, with two indexes.
 Sometimes, the old-style subtyping judgment is called "indexed" and the new

@@ -135,10 +135,6 @@ Section StpLemmas.
     iApply (sstpi_app with "Hsub Hg").
   Qed.
 
-  Lemma Fld_Sub_Fld {Γ T1 T2 i l}:
-    Γ ⊨ T1, i <: T2, i -∗ Γ ⊨ TVMem l T1, i <: TVMem l T2, i.
-  Proof. apply sFld_Sub_Fld. Qed.
-
   Lemma sAll_Sub_All {Γ T1 T2 U1 U2 i} `{!SwapPropI Σ} :
     Γ s⊨ oLater T2, i <: oLater T1, i -∗
     oLaterN (S i) (shift T2) :: Γ s⊨ oLater U1, i <: oLater U2, i -∗
@@ -161,12 +157,6 @@ Section StpLemmas.
     Γ s⊨ U1, i <: U2, i -∗
     Γ s⊨ cTMem l L1 U1, i <: cTMem l L2 U2, i.
   Proof. rewrite -!sstpd_to_sstpi. apply sTyp_Stp_Typ. Qed.
-
-  Lemma Typ_Sub_Typ {Γ L1 L2 U1 U2 i l} `{!SwapPropI Σ} :
-    Γ ⊨ L2, i <: L1, i -∗
-    Γ ⊨ U1, i <: U2, i -∗
-    Γ ⊨ TTMem l L1 U1, i <: TTMem l L2 U2, i.
-  Proof. apply sTyp_Sub_Typ. Qed.
 End StpLemmas.
 
 Section VarianceStpLemmas.

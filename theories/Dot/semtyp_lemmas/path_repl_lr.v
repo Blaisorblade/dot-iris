@@ -25,9 +25,6 @@ Section semantic_lemmas.
     iIntros "%v %Hpv _ !%"; apply alias_paths_pv_eq_1, Hpv.
   Qed.
 
-  Lemma P_Sngl_Refl Γ T p i : Γ ⊨p p : T, i -∗ Γ ⊨p p : TSing p, i.
-  Proof. apply sP_Sngl_Refl. Qed.
-
   Lemma sSngl_Sub_Self Γ p T i :
     Γ s⊨p p : T, i -∗
     Γ s⊨ oSing p, i <: T, i.
@@ -36,9 +33,6 @@ Section semantic_lemmas.
     iDestruct "Heq" as %->%(alias_paths_elim_eq (T _ ρ)).
     by rewrite path_wp_pv_eq.
   Qed.
-
-  Lemma Sngl_Sub_Self Γ p T i : Γ ⊨p p : T, i -∗ Γ ⊨ TSing p, i <: T, i.
-  Proof. apply sSngl_Sub_Self. Qed.
 
   Lemma sSngl_Sub_Sym Γ p q T i:
     Γ s⊨p p : T, i -∗ (* Just to ensure [p] terminates and [oSing p] isn't empty. *)
@@ -53,10 +47,6 @@ Section semantic_lemmas.
     rewrite (path_wp_pure_det Hqv Hqw) {Hqv Hqw}. exact Hpw.
   Qed.
 
-  Lemma Sngl_Sub_Sym Γ p q T i: Γ ⊨p p : T, i -∗
-    Γ ⊨ TSing p, i <: TSing q, i -∗ Γ ⊨ TSing q, i <: TSing p, i.
-  Proof. apply sSngl_Sub_Sym. Qed.
-
   Lemma sP_Sngl_Inv Γ p q i :
     Γ s⊨p p : oSing q, i -∗
     Γ s⊨p q : oTop, i.
@@ -65,9 +55,6 @@ Section semantic_lemmas.
     iDestruct "Hpq" as %(v & _ & Hqv)%alias_paths_simpl%alias_paths_sameres.
     iIntros "!%". exact: (path_wp_pure_wand Hqv).
   Qed.
-
-  Lemma P_Sngl_Inv Γ p q i : Γ ⊨p p : TSing q, i -∗ Γ ⊨p q : TTop, i.
-  Proof. apply sP_Sngl_Inv. Qed.
 
   (** Non-pDOT rules end. *)
 
@@ -185,9 +172,6 @@ Section semantic_lemmas.
     iApply (path_wp_wand with "Hpv"). iIntros "/= % <-"; eauto.
   Qed.
 
-  Lemma P_Fld_I Γ p T l i: Γ ⊨p pself p l : T, i -∗ Γ ⊨p p : TVMem l T, i.
-  Proof. apply sP_Fld_I. Qed.
-
   (* Suppose path typing required termination *now* rather than later:
 
     Definition sptp `{!dlangG Σ} p i Γ (T : oltyO Σ 0): iProp Σ :=
@@ -211,12 +195,6 @@ Section semantic_lemmas.
   (* In the above proof, in contrast with [sT_Obj_E], lots of the lemmas
      needed of path_wp hold simply by computation. *)
 
-  Lemma P_Fld_E {Γ} p T l i:
-    Γ ⊨p p : TVMem l T, i -∗
-    (*─────────────────────────*)
-    Γ ⊨p pself p l : T, i.
-  Proof. apply sP_Fld_E. Qed.
-
   Lemma sP_Sngl_Trans Γ p q T i:
     Γ s⊨p p : oSing q, i -∗
     Γ s⊨p q : T, i -∗
@@ -226,10 +204,6 @@ Section semantic_lemmas.
     iSpecialize ("Hep" with "Hg"); iNext i.
     by iDestruct "Hep" as %->%alias_paths_simpl%(alias_paths_elim_eq (T _ _)).
   Qed.
-
-  Lemma P_Sngl_Trans Γ p q T i:
-    Γ ⊨p p : TSing q, i -∗ Γ ⊨p q : T, i -∗ Γ ⊨p p : T, i.
-  Proof. apply sP_Sngl_Trans. Qed.
 
   Lemma sP_Sngl_E Γ τ p q l i:
     Γ s⊨p p : oSing q, i -∗
@@ -243,10 +217,6 @@ Section semantic_lemmas.
     iIntros "!% /="; setoid_rewrite alias_paths_pv_eq_1.
     apply /alias_paths_sameres /alias_paths_pself /Hal /Hql.
   Qed.
-
-  Lemma P_Sngl_E Γ T p q l i: Γ ⊨p p : TSing q, i -∗ Γ ⊨p pself q l : T, i -∗
-    Γ ⊨p pself p l : TSing (pself q l), i.
-  Proof. apply sP_Sngl_E. Qed.
 
   Lemma sP_ISub {Γ p T1 T2 i j}:
     Γ s⊨p p : T1, i -∗
