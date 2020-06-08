@@ -432,17 +432,6 @@ Section misc_lemmas.
       (□∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ d.|[ρ]).
   Proof. by rewrite sdtp_eq; properness; last apply dlty2clty_singleton. Qed.
 
-  Lemma sSub_Refl {Γ} T i : ⊢ Γ s⊨ T, i <: T, i.
-  Proof. by iIntros "!> **". Qed.
-
-  Lemma sSub_Trans {Γ T1 T2 T3 i1 i2 i3} : Γ s⊨ T1, i1 <: T2, i2 -∗
-                                      Γ s⊨ T2, i2 <: T3, i3 -∗
-                                      Γ s⊨ T1, i1 <: T3, i3.
-  Proof.
-    iIntros "#Hsub1 #Hsub2 !> * #Hg HT".
-    iApply ("Hsub2" with "Hg (Hsub1 Hg HT)").
-  Qed.
-
   Lemma ipwp_terminates {p T i}:
     [] s⊨p p : T , i ⊢ ▷^i ⌜ terminates (path2tm p) ⌝.
   Proof.

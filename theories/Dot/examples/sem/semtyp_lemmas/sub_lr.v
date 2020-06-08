@@ -9,6 +9,17 @@ From D.Dot Require Import rules path_repl unary_lr dsub_lr.
 Section StpLemmas.
   Context `{HdotG: !dlangG Σ}.
 
+  Lemma sSub_Refl {Γ} T i : ⊢ Γ s⊨ T, i <: T, i.
+  Proof. by iIntros "!> **". Qed.
+
+  Lemma sSub_Trans {Γ T1 T2 T3 i1 i2 i3} : Γ s⊨ T1, i1 <: T2, i2 -∗
+                                      Γ s⊨ T2, i2 <: T3, i3 -∗
+                                      Γ s⊨ T1, i1 <: T3, i3.
+  Proof.
+    iIntros "#Hsub1 #Hsub2 !> * #Hg HT".
+    iApply ("Hsub2" with "Hg (Hsub1 Hg HT)").
+  Qed.
+
   Lemma sSub_Top Γ T i:
     ⊢ Γ s⊨ T, i <: oTop, i.
   Proof. by iIntros "!> ** /=". Qed.
