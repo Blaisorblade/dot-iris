@@ -429,21 +429,6 @@ End unstamped_lemmas.
 Section storeless_unstamped_lemmas.
   Context `{!dlangG Σ}.
 
-  (* Lemma suT_Var {Γ x τ}
-    (Hx : Γ !! x = Some τ):
-    (*──────────────────────*)
-    ⊢ Γ su⊨ of_val (ids x) : shiftN x τ.
-  Proof. repeat iModIntro; by iExists (of_val (ids x)); iSplit; last iApply sT_Var. Qed.
-  *)
-
-  (* Lemma uT_Var {Γ x τ}
-    (Hx : Γ !! x = Some τ):
-    (*──────────────────────*)
-    ⊢ Γ u⊨ of_val (ids x) : shiftN x τ.
-  Proof.
-    repeat iModIntro; by iExists (tv (ids x)); iSplit; last iApply T_Var.
-  Qed. *)
-
   Lemma uT_ISub {Γ e T1 T2 i}:
     Γ u⊨ e : T1 -∗ Γ ⊨ T1, 0 <: T2, i -∗ Γ u⊨ iterate tskip i e : T2.
   Proof.
@@ -481,23 +466,6 @@ Section storeless_unstamped_lemmas.
     iIntros "#Hr #H1 !>"; iMod (suetp_var with "H1") as "{H1} H1"; iModIntro.
     by iExists (tv (ids x)); iSplit; last iApply ("Hr" with "H1").
   Qed.
-
-  (* These ones don't work, see the update modality. Change the typing judgment! *)
-  (* Lemma bad_uP_Var {Γ} x T:
-    Γ u⊨ tv (var_vl x) : T ==∗
-    Γ ⊨p pv (var_vl x) : T, 0.
-  Proof.
-    iIntros "H1"; iMod (suetp_var with "H1") as "H1"; iModIntro.
-    by iApply sP_Val.
-  Qed.
-
-  Lemma bad_uP_Lit {Γ} b T:
-    Γ u⊨ tv (vlit b) : T ==∗
-    Γ ⊨p pv (vlit b) : T, 0.
-  Proof.
-    iIntros "H1"; iMod (suetp_vlit with "H1") as "H1"; iModIntro.
-    by iApply sP_Val.
-  Qed. *)
 
   Lemma suD_Typ_Sub {Γ} L1 L2 U1 U2 d l:
     Γ s⊨ L2, 0 <: L1, 0 -∗
