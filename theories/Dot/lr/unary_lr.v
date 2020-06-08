@@ -277,17 +277,17 @@ Section sem_types.
   since they overlap.
   Also, instances for [i*] judgments should have priority over [s*] judgments.
   *)
-  Global Instance sdstp_persistent : IntoPersistent' (sdstp ds  Γ Tds) | 0 := _.
-  Global Instance sdtp_persistent : IntoPersistent' (sdtp l d   Γ Td) | 0 := _.
-  Global Instance setp_persistent : IntoPersistent' (setp e     Γ T) | 0 := _.
-  Global Instance sstpi_persistent : IntoPersistent' (sstpi i j Γ T1 T2) | 0 := _.
-  Global Instance sptp_persistent : IntoPersistent' (sptp p i   Γ T) | 0 := _.
+  Global Instance sdstp_persistent Γ Tds ds    : IntoPersistent' (sdstp ds  Γ Tds)   | 0 := _.
+  Global Instance sdtp_persistent  Γ Td l d    : IntoPersistent' (sdtp l d   Γ Td)   | 0 := _.
+  Global Instance setp_persistent  Γ T         : IntoPersistent' (setp e     Γ T)    | 0 := _.
+  Global Instance sstpi_persistent Γ T1 T2 i j : IntoPersistent' (sstpi i j Γ T1 T2) | 0 := _.
+  Global Instance sptp_persistent  Γ T p i     : IntoPersistent' (sptp p i   Γ T)    | 0 := _.
 
-  Global Instance idstp_persistent Γ T ds: IntoPersistent' (idstp Γ T ds) | 0 := _.
-  Global Instance idtp_persistent Γ T l d: IntoPersistent' (idtp Γ T l d) | 0 := _.
-  Global Instance ietp_persistent Γ T e : IntoPersistent' (ietp Γ T e) | 0 := _.
+  Global Instance idstp_persistent Γ T ds      : IntoPersistent' (idstp Γ T ds)      | 0 := _.
+  Global Instance idtp_persistent  Γ T l d     : IntoPersistent' (idtp Γ T l d)      | 0 := _.
+  Global Instance ietp_persistent  Γ T e       : IntoPersistent' (ietp Γ T e)        | 0 := _.
   Global Instance istpi_persistent Γ T1 T2 i j : IntoPersistent' (istpi Γ T1 T2 i j) | 0 := _.
-  Global Instance iptp_persistent Γ T p i : IntoPersistent' (iptp Γ T p i) | 0 := _.
+  Global Instance iptp_persistent  Γ T p i     : IntoPersistent' (iptp Γ T p i)      | 0 := _.
 End sem_types.
 
 Global Instance: Params (@oAll) 2 := {}.
