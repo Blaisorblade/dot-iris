@@ -405,7 +405,7 @@ Section olty_ofe_2.
   Proof.
     elim: Γ ρ x => [//|τ' Γ' IHΓ] ρ x Hx /=.
     iDestruct 1 as "[Hg Hv]". move: x Hx => [ [->] | x Hx] /=.
-    - rewrite hsubst_id. by [].
+    - rewrite hsubst_id. iApply "Hv".
     - rewrite hrenS.
       iApply (hoEnvD_weaken_one (shiftN x τ)).
       iApply (IHΓ (stail ρ) x Hx with "Hg").
