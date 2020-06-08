@@ -68,8 +68,7 @@ Section small_ex.
       iApply sLater_Stp_Eq.
       iApply sStp_Sel.
       iApply sP_Later.
-      iApply sP_Val.
-      iApply sT_Sub; first by iApply sT_Var0.
+      iApply sP_Sub; first by iApply sP_Var0.
       iApply sLater_Stp_Eq.
       iApply sAnd1_Stp.
   Qed.

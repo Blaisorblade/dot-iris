@@ -679,7 +679,7 @@ Section derived.
     iApply "HK". *)
 
     (* And then in both cases: *)
-    rewrite -(sP_LaterN (i := 0)) -sP_Val; by iApply sT_Var0.
+    rewrite -(sP_LaterN (i := 0)). by iApply sP_Var0.
   Qed.
 
   Lemma sK_HoIntv {n} Γ (K : s_kind Σ n) T1 T2 i :
