@@ -99,7 +99,7 @@ Section old_fundamental.
   Proof.
     apply storeless_typing_mut_ind; clear Γ; intros; simpl_context.
     + by iApply uT_All_Ex; [iApply H|iApply H0].
-    + by iApply uT_All_Ex_p; [|iApply H|iApply fundamental_path_typed].
+    + by iApply uT_All_E_p; [|iApply H|iApply fundamental_path_typed].
     + by iApply uT_All_E; [iApply H|iApply H0].
     + by iApply suT_Obj_E; iApply H.
     + iApply uT_All_I_Strong; [|by iApply H].

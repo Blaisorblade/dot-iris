@@ -228,24 +228,24 @@ Section unstamped_lemmas.
     by iExists (tapp e1s e2s); iSplit; last iApply (T_All_E with "H1 H2").
   Qed.
 
-  Lemma suT_All_Ex_p {Γ e1 p2 T1 T2} :
+  Lemma suT_All_E_p {Γ e1 p2 T1 T2} :
     Γ su⊨ e1 : oAll T1 T2 -∗
     Γ s⊨p p2 : T1, 0 -∗
     (*────────────────────────────────────────────────────────────*)
     Γ su⊨ tapp e1 (path2tm p2) : T2 .sTp[ p2 /].
   Proof.
     iIntros "#H1 #H2 !>"; iMod "H1" as (e1s Hsk1) "H1"; iModIntro.
-    by iExists (tapp e1s (path2tm p2)); iSplit; last iApply (sT_All_Ex_p with "H1 H2").
+    by iExists (tapp e1s (path2tm p2)); iSplit; last iApply (sT_All_E_p with "H1 H2").
   Qed.
 
-  Lemma uT_All_Ex_p Γ e1 p2 T1 T2 T2' (Hrepl : T2 .Tp[ p2 /]~ T2') :
+  Lemma uT_All_E_p Γ e1 p2 T1 T2 T2' (Hrepl : T2 .Tp[ p2 /]~ T2') :
     Γ u⊨ e1: TAll T1 T2 -∗
     Γ ⊨p p2 : T1, 0 -∗
     (*────────────────────────────────────────────────────────────*)
     Γ u⊨ tapp e1 (path2tm p2) : T2'.
   Proof.
     iIntros "#H1 #H2 !>"; iMod "H1" as (e1s Hsk1) "H1"; iModIntro.
-    by iExists (tapp e1s (path2tm p2)); iSplit; last iApply (T_All_Ex_p with "H1 H2").
+    by iExists (tapp e1s (path2tm p2)); iSplit; last iApply (T_All_E_p with "H1 H2").
   Qed.
 
   Lemma suT_All_Ex {Γ e1 v2 T1 T2} :

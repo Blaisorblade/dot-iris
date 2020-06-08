@@ -17,7 +17,7 @@ Reserved Notation "Γ t⊢ds ds : T" (at level 74, ds, T at next level).
 Inductive typed Γ : tm → ty → Prop :=
 (** First, elimination forms *)
 (** Dependent application; only allowed if the argument is a path. *)
-| iT_All_Ex_p p2 e1 T1 T2:
+| iT_All_E_p p2 e1 T1 T2:
     is_unstamped_ty' (S (length Γ)) T2 →
     Γ t⊢ₜ e1: TAll T1 T2 →
     Γ t⊢ₚ p2 : T1, 0 →

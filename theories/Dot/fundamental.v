@@ -97,7 +97,7 @@ Section fundamental.
     (∀ l d T HT, @fundamental_dm_typed_def Γ l d T HT).
   Proof.
     apply typing_mut_ind; clear Γ; intros; simpl_context.
-    + iApply uT_All_Ex_p; [|iApply H|iApply fundamental_path_typed]; eauto.
+    + iApply uT_All_E_p; [|iApply H|iApply fundamental_path_typed]; eauto.
     + by iApply uT_All_E; [iApply H|iApply H0].
     + by iApply suT_Obj_E; iApply H.
     + iApply uT_All_I_Strong; [|by iApply H].

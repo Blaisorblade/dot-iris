@@ -144,7 +144,7 @@ Section semantic_lemmas.
     by rewrite oMu_eq -(psubst_one_repl Hrepl) ?alias_paths_pv_eq_1.
   Qed.
 
-  Lemma sT_All_Ex_p Γ e1 p2 T1 T2 :
+  Lemma sT_All_E_p Γ e1 p2 T1 T2 :
     Γ s⊨ e1: oAll T1 T2 -∗
     Γ s⊨p p2 : T1, 0 -∗
     (*────────────────────────────────────────────────────────────*)
@@ -161,7 +161,7 @@ Section semantic_lemmas.
     rewrite sem_psubst_one_repl //. apply /alias_paths_pv_eq_1 /Hpwpp.
   Qed.
 
-  Lemma T_All_Ex_p Γ e1 p2 T1 T2 T2' (Hrepl : T2 .Tp[ p2 /]~ T2') :
+  Lemma T_All_E_p Γ e1 p2 T1 T2 T2' (Hrepl : T2 .Tp[ p2 /]~ T2') :
     Γ ⊨ e1: TAll T1 T2 -∗
     Γ ⊨p p2 : T1, 0 -∗
     (*────────────────────────────────────────────────────────────*)
@@ -169,7 +169,7 @@ Section semantic_lemmas.
   Proof.
     iIntros "#He1 #Hp2 !> * #Hg !>".
     iDestruct (path_wp_eq with "(Hp2 Hg)") as (pw Hal%alias_paths_pv_eq_1) "_".
-    iDestruct (sT_All_Ex_p with "He1 Hp2") as "{He1 Hp2} Hep".
+    iDestruct (sT_All_E_p with "He1 Hp2") as "{He1 Hp2} Hep".
     iApply (wp_wand with "(Hep Hg)"); iIntros "{Hep Hg} * #Hv".
     iApply (sem_psubst_one_eq Hrepl Hal with "Hv").
   Qed.

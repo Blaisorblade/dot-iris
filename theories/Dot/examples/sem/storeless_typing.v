@@ -40,7 +40,7 @@ Inductive typed Γ : tm → ty → Prop :=
     (*────────────────────────────────────────────────────────────*)
     Γ v⊢ₜ tapp e1 (tv (var_vl x2)) : T2.|[var_vl x2/]
 
-| iT_All_Ex_p p2 e1 T1 T2 T2':
+| iT_All_E_p p2 e1 T1 T2 T2':
     T2 .Tp[ p2 /]~ T2' →
     is_unstamped_ty' (length Γ) T2' →
     Γ v⊢ₜ e1: TAll T1 T2 →
