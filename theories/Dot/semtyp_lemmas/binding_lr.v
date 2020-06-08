@@ -127,18 +127,6 @@ Section Sec.
     by rewrite -wp_value /= hoEnvD_subst_one.
   Qed.
 
-  Lemma sT_Mu_I {Γ T v} : Γ s⊨ tv v : T.|[v/] -∗ Γ s⊨ tv v : oMu T.
-  Proof. by rewrite sTMu_equiv. Qed.
-
-  Lemma sT_Mu_E {Γ T v} : Γ s⊨ tv v : oMu T -∗ Γ s⊨ tv v : T.|[v/].
-  Proof. by rewrite sTMu_equiv. Qed.
-
-  Lemma T_Mu_I {Γ} T v: Γ ⊨ tv v : T.|[v/] -∗ Γ ⊨ tv v : TMu T.
-  Proof. by rewrite /ietp -sT_Mu_I interp_subst_commute. Qed.
-
-  Lemma T_Mu_E {Γ} T v: Γ ⊨ tv v : TMu T -∗ Γ ⊨ tv v : T.|[v/].
-  Proof. by rewrite /ietp sT_Mu_E interp_subst_commute. Qed.
-
   Lemma sT_All_Ex {Γ e1 v2 T1 T2}:
     Γ s⊨ e1: oAll T1 T2 -∗
     Γ s⊨ tv v2 : T1 -∗

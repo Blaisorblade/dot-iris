@@ -201,4 +201,32 @@ Section Lemmas.
     (*──────────────────────*)
     ⊢ Γ s⊨p pv (ids 0) : T, 0.
   Proof. rewrite -(hsubst_id T). apply (sP_Var Hx). Qed.
+
+  (*
+  Useful in contexts where we make [pty_interp] more opaque, such as some
+  larger examples.
+  *)
+  Lemma uT_Obj_I Γ T ds:
+    TLater T :: Γ u⊨ds ds : T -∗
+    Γ u⊨ tv (vobj ds) : TMu T.
+  Proof. apply suT_Obj_I. Qed.
+
+  (* Currently unused, and irregular, even tho they do hold for unstamped semanntic typing. *)
+  Lemma sT_Mu_I {Γ T v} : Γ s⊨ tv v : T.|[v/] -∗ Γ s⊨ tv v : oMu T.
+  Proof. by rewrite sTMu_equiv. Qed.
+
+  Lemma sT_Mu_E {Γ T v} : Γ s⊨ tv v : oMu T -∗ Γ s⊨ tv v : T.|[v/].
+  Proof. by rewrite sTMu_equiv. Qed.
+
+  Lemma T_Mu_I {Γ} T v: Γ ⊨ tv v : T.|[v/] -∗ Γ ⊨ tv v : TMu T.
+  Proof. by rewrite /ietp -sT_Mu_I interp_subst_commute. Qed.
+
+  Lemma T_Mu_E {Γ} T v: Γ ⊨ tv v : TMu T -∗ Γ ⊨ tv v : T.|[v/].
+  Proof. by rewrite /ietp sT_Mu_E interp_subst_commute. Qed.
+
+  Lemma uT_Mu_I {Γ} T x: Γ u⊨ tv (ids x) : T.|[ids x/] -∗ Γ u⊨ tv (ids x) : TMu T.
+  Proof. iApply suetp_var_lift1; iModIntro; iApply T_Mu_I. Qed.
+
+  Lemma uT_Mu_E {Γ} T x: Γ u⊨ tv (ids x) : TMu T -∗ Γ u⊨ tv (ids x) : T.|[ids x/].
+  Proof. iApply suetp_var_lift1; iModIntro; iApply T_Mu_E. Qed.
 End Lemmas.

@@ -321,11 +321,6 @@ Section unstamped_lemmas.
     by iExists (tv (vobj ds1)); iSplit; last iApply (sT_Obj_I with "H1").
   Qed.
 
-  Lemma uT_Obj_I Γ T ds:
-    TLater T :: Γ u⊨ds ds : T -∗
-    Γ u⊨ tv (vobj ds) : TMu T.
-  Proof. apply suT_Obj_I. Qed.
-
   Lemma suT_Path Γ τ p :
     Γ s⊨p p : τ, 0 -∗ Γ su⊨ path2tm p : τ.
   Proof.
@@ -486,12 +481,6 @@ Section storeless_unstamped_lemmas.
     iIntros "#Hr #H1 !>"; iMod (suetp_var with "H1") as "{H1} H1"; iModIntro.
     by iExists (tv (ids x)); iSplit; last iApply ("Hr" with "H1").
   Qed.
-
-  (* Lemma uT_Mu_I {Γ} T x: Γ u⊨ tv (ids x) : T.|[ids x/] -∗ Γ u⊨ tv (ids x) : TMu T.
-  Proof. iApply suetp_var_lift1; iModIntro; iApply T_Mu_I. Qed.
-
-  Lemma uT_Mu_E {Γ} T x: Γ u⊨ tv (ids x) : TMu T -∗ Γ u⊨ tv (ids x) : T.|[ids x/].
-  Proof. iApply suetp_var_lift1; iModIntro; iApply T_Mu_E. Qed. *)
 
   (* These ones don't work, see the update modality. Change the typing judgment! *)
   (* Lemma bad_uP_Var {Γ} x T:
