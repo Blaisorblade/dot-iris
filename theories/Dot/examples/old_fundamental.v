@@ -30,8 +30,8 @@ Section old_fundamental.
 
   (** TODO: replace. *)
   Theorem subtype_fundamental_mut Γ :
-    (∀ p T i HT, @fundamental_path_typed_def Γ p T i HT) ∧
-    (∀ T1 i1 T2 i2 HT, @fundamental_subtype_def Γ T1 i1 T2 i2 HT).
+    (∀ p T i (HT : Γ u⊢ₚ p : T, i), fundamental_path_typed_def HT) ∧
+    (∀ T1 i1 T2 i2 (HT: Γ u⊢ₜ T1, i1 <: T2, i2), fundamental_subtype_def HT).
   Proof.
     apply old_pure_typing_mut_ind; clear Γ; intros; simpl_context.
       + by iApply P_Var.

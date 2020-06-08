@@ -192,8 +192,8 @@ Section semantic_lemmas.
 
     Definition sptp `{!dlangG Σ} p i Γ (T : oltyO Σ 0): iProp Σ :=
      □∀ ρ, sG⟦Γ⟧* ρ →
--      ▷^i path_wp (p.|[ρ]) (λ v, oClose T ρ v).
-+      path_wp (p.|[ρ]) (λ v, ▷^i oClose T ρ v).
+-      ▷^i path_wp p.|[ρ] (λ v, oClose T ρ v).
++      path_wp p.|[ρ] (λ v, ▷^i oClose T ρ v).
 
   Then this lemma would already fail: the hypothesis implies that [p]
   terminates now, but that [pself p l] terminates *only under later^i*!

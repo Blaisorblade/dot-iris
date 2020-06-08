@@ -852,7 +852,7 @@ End examples.
 Section dot_experimental_kinds.
   Context `{!dlangG Σ} `{HswapProp: SwapPropI Σ}.
 
-  (** As an example, we can derive this variant at an interval kind of [sSngl_Sub_Sym] *)
+  (** As an example, we can derive this variant at an interval kind of [sSngl_Stp_Sym] *)
   Lemma sSngl_KStp_Sym Γ p q T i L U:
     Γ s⊨p p : T, i -∗ (* Just to ensure [p] terminates and [oSing p] isn't empty. *)
     Γ s⊨ oSing p <:[i] oSing q ∷ sf_kintv L U -∗

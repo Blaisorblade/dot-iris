@@ -35,8 +35,8 @@ Section fundamental.
   Local Ltac simpl_context := red; markUsed Σ; red_hyps_once.
 
   Theorem subtype_fundamental_mut Γ :
-    (∀ p T i HT, @fundamental_path_typed_def Γ p T i HT) ∧
-    (∀ i T1 T2 HT, @fundamental_subtype_def Γ i T1 T2 HT).
+    (∀ p T i (HT : Γ t⊢ₚ p : T, i), fundamental_path_typed_def HT) ∧
+    (∀ i T1 T2 (HT: Γ t⊢ₜ T1 <:[i] T2), fundamental_subtype_def HT).
   Proof.
     apply pure_typing_mut_ind; clear Γ; intros; simpl_context.
     + by iApply P_Var.
@@ -92,9 +92,9 @@ Section fundamental.
   Proof. apply (subtype_fundamental_mut Γ). Qed.
 
   Theorem fundamental_mut Γ :
-    (∀ e T HT, @fundamental_typed_def Γ e T HT) ∧
-    (∀ ds T HT, @fundamental_dms_typed_def Γ ds T HT) ∧
-    (∀ l d T HT, @fundamental_dm_typed_def Γ l d T HT).
+    (∀ e T (HT: Γ t⊢ₜ e : T), fundamental_typed_def HT) ∧
+    (∀ ds T (HT: Γ t⊢ds ds : T), fundamental_dms_typed_def HT) ∧
+    (∀ l d T (HT : Γ t⊢{ l := d } : T), fundamental_dm_typed_def HT).
   Proof.
     apply typing_mut_ind; clear Γ; intros; simpl_context.
     + iApply uT_All_E_p; [|iApply H|iApply fundamental_path_typed]; eauto.
