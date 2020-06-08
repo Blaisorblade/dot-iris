@@ -431,14 +431,6 @@ Section misc_lemmas.
       (□∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ d.|[ρ]).
   Proof. by rewrite sdtp_eq; properness; last apply dlty2clty_singleton. Qed.
 
-  Lemma sP_Val {Γ} v T:
-    Γ s⊨ tv v : T -∗
-    Γ s⊨p pv v : T, 0.
-  Proof.
-    iIntros "/= #Hp !> %ρ Hg". rewrite path_wp_pv_eq -wp_value_inv'.
-    iApply ("Hp" with "Hg").
-  Qed.
-
   Lemma sSub_Refl {Γ} T i : ⊢ Γ s⊨ T, i <: T, i.
   Proof. by iIntros "!> **". Qed.
 

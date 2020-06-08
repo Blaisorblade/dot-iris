@@ -24,6 +24,17 @@ Section Sec.
     Γ ⊨p p : T, 0 -∗ Γ ⊨ { l := dpt p } : TVMem l T.
   Proof. apply sD_Path. Qed.
 
+  (**
+  Beware this lemma does not extend to unstamped semantic typing.
+  As such, it should only be used in lemmas like [sD_Val]. *)
+  Lemma sP_Val {Γ} v T:
+    Γ s⊨ tv v : T -∗
+    Γ s⊨p pv v : T, 0.
+  Proof.
+    iIntros "/= #Hp !> %ρ Hg". rewrite path_wp_pv_eq -wp_value_inv'.
+    iApply ("Hp" with "Hg").
+  Qed.
+
   Lemma sD_Val {Γ} T v l:
     Γ s⊨ tv v : T -∗
     Γ s⊨ { l := dpt (pv v) } : cVMem l T.
