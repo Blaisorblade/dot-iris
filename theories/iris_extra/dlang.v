@@ -60,6 +60,10 @@ Module Type LiftWp (Import VS : VlSortsSig).
 
     Import EqNotations.
 
+    (*
+    We lift all of the [saved_ho_sem_type_agree*] lemmas for flexibility,
+    even tho this duplicates code.
+    *)
     Lemma stamp_σ_to_type_agree_dep_abs {σ s n1 n2 ψ1 ψ2} :
       s ↗n[ σ , n1 ] ψ1 -∗ s ↗n[ σ , n2 ] ψ2 -∗ ∃ Heq : n1 = n2,
         ▷ ((rew [hoD Σ] Heq in ψ1) ≡ ψ2).
