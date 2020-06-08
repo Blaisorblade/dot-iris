@@ -42,16 +42,16 @@ Section fundamental.
     + by iApply P_Var.
     + by iApply sP_Nat_I.
     + by iApply sP_Bool_I.
-    + iApply P_Fld_E. by iApply H.
+    + iApply sP_Fld_E. by iApply H.
     + iApply sP_Sub; [iApply H0|iApply H].
     + by iApply sP_Later; [iApply H].
     + iApply P_Mu_I; [|iApply H]; eauto.
     + iApply P_Mu_E; [|iApply H]; eauto.
-    + iApply P_Fld_I. by iApply H.
-    + iApply P_Sngl_Refl. by iApply H.
-    + iApply P_Sngl_Inv. by iApply H.
-    + by iApply P_Sngl_Trans; [iApply H|iApply H0].
-    + by iApply P_Sngl_E; [iApply H|iApply H0].
+    + iApply sP_Fld_I. by iApply H.
+    + iApply sP_Sngl_Refl. by iApply H.
+    + iApply sP_Sngl_Inv. by iApply H.
+    + by iApply sP_Sngl_Trans; [iApply H|iApply H0].
+    + by iApply sP_Sngl_E; [iApply H|iApply H0].
 
     + by iApply sStp_Refl.
     + by iApply sStp_Trans; [iApply H|iApply H0].

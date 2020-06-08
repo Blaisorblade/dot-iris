@@ -35,7 +35,7 @@ Section Lemmas.
   Proof.
     (* Demonstrate why this rule is not easy to derive.*)
     (* iIntros "Hsub Hp".
-    iApply Sngl_Sub_Self.
+    iApply sSngl_Sub_Self.
     iApply (sP_ISub' with "Hp").
     iApply Mu_Sub_Mu.
     (* We're stuck! *)
@@ -126,7 +126,7 @@ Section Lemmas.
     iterate TLater i T1 :: Γ ⊨ T1, i <: shift T2, j -∗
     Γ ⊨ TMu T1, i <: T2, j.
   Proof.
-    iIntros "Hstp"; iApply (Sub_Trans with "[-] []").
+    iIntros "Hstp"; iApply (sSub_Trans with "[-] []").
     by iApply Mu_Sub_Mu. iApply Mu_Sub.
   Qed.
 
@@ -139,7 +139,7 @@ Section Lemmas.
     iterate TLater i (shift T1) :: Γ ⊨ (shift T1), i <: T2, j -∗
     Γ ⊨ T1, i <: TMu T2, j.
   Proof.
-    iIntros "Hstp"; iApply (Sub_Trans with "[] [-]").
+    iIntros "Hstp"; iApply (sSub_Trans with "[] [-]").
     iApply Sub_Mu. by iApply Mu_Sub_Mu.
   Qed.
 

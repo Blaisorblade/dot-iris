@@ -453,7 +453,7 @@ Section storeless_unstamped_lemmas.
     Γ u⊨ e : T1 -∗ Γ ⊨ T1, 0 <: T2, i -∗ Γ u⊨ iterate tskip i e : T2.
   Proof.
     iIntros "#H1 #Hsub !>"; iMod "H1" as (e1s Hsk1) "H1"; iModIntro.
-    iExists (iterate tskip i e1s); iSplit; last iApply (T_ISub with "H1 Hsub").
+    iExists (iterate tskip i e1s); iSplit; last iApply (sT_ISub with "H1 Hsub").
     eauto using same_skel_tm_tskips.
   Qed.
 

@@ -37,15 +37,15 @@ Section old_fundamental.
       + by iApply P_Var.
       + by iApply sP_Nat_I.
       + by iApply sP_Bool_I.
-      + iApply P_Fld_E. by iApply H.
+      + iApply sP_Fld_E. by iApply H.
       + by iApply sP_ISub; [iApply H0|iApply H].
       + by iApply P_Mu_I; [|iApply H]; first exact: psubst_one_implies.
       + by iApply P_Mu_E; [|iApply H]; first exact: psubst_one_implies.
-      + iApply P_Fld_I. by iApply H.
-      + iApply P_Sngl_Refl. by iApply H.
-      + iApply P_Sngl_Inv. by iApply H.
-      + by iApply P_Sngl_Trans; [iApply H|iApply H0].
-      + by iApply P_Sngl_E; [iApply H|iApply H0].
+      + iApply sP_Fld_I. by iApply H.
+      + iApply sP_Sngl_Refl. by iApply H.
+      + iApply sP_Sngl_Inv. by iApply H.
+      + by iApply sP_Sngl_Trans; [iApply H|iApply H0].
+      + by iApply sP_Sngl_E; [iApply H|iApply H0].
 
       + by iApply sSub_Refl.
       + by iApply sSub_Trans; [iApply H|iApply H0].
@@ -63,14 +63,14 @@ Section old_fundamental.
       + iApply sSel_Sub; by iApply H.
       + iApply sSub_Sel; by iApply H.
       + by iApply Sngl_pq_Sub; [|iApply H].
-      + by iApply Sngl_Sub_Sym; [iApply H|iApply H0].
-      + iApply Sngl_Sub_Self. by iApply H.
+      + by iApply sSngl_Sub_Sym; [iApply H|iApply H0].
+      + iApply sSngl_Sub_Self. by iApply H.
       + iApply Mu_Sub_Mu. by iApply H.
       + iApply Mu_Sub.
       + iApply Sub_Mu.
       + by iApply All_Sub_All; [iApply H|iApply H0].
-      + iApply Fld_Sub_Fld. by iApply H.
-      + by iApply Typ_Sub_Typ; [iApply H|iApply H0].
+      + iApply sFld_Sub_Fld. by iApply H.
+      + by iApply sTyp_Sub_Typ; [iApply H|iApply H0].
       + iApply sAnd_All_Sub_Distr.
       + iApply sAnd_Fld_Sub_Distr.
       + iApply sAnd_Typ_Sub_Distr.
