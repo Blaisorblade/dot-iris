@@ -192,7 +192,7 @@ Section semantic_lemmas.
     iDestruct "HE" as (vp Hpv d Hlook pmem ->) "#H".
     iExists vp, pmem. eauto.
   Qed.
-  (* In the above proof, in contrast with T_Obj_E, lots of the lemmas
+  (* In the above proof, in contrast with [sT_Obj_E], lots of the lemmas
      needed of path_wp hold simply by computation. *)
 
   Lemma P_Fld_E {Γ} p T l i:
