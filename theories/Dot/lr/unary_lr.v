@@ -341,6 +341,10 @@ Section misc_lemmas.
   Context `{HdotG: !dlangG Σ}.
   Implicit Types (τ L T U : olty Σ 0).
 
+  Lemma iterate_TLater_oLater i (T : ty) :
+    V⟦iterate TLater i T⟧ ≡ oLaterN i V⟦T⟧.
+  Proof. elim: i => [//|i IHi] ???; by rewrite !iterate_S /= IHi. Qed.
+
   Lemma sstpi_app ρ Γ T1 T2 i j :
     Γ s⊨ T1, i <: T2, j -∗ sG⟦ Γ ⟧* ρ -∗
     oClose (oLaterN i T1) ρ ⊆ oClose (oLaterN j T2) ρ.
@@ -547,15 +551,6 @@ Section Propers.
   Proof. apply: flip_proper_3. Qed.
   Global Instance: Params (@sptp) 4 := {}.
 End Propers.
-
-Section liftings.
-  Context `{HdotG: !dlangG Σ}.
-
-  Lemma iterate_TLater_oLater i T:
-    V⟦iterate TLater i T⟧ ≡ oLaterN i V⟦T⟧.
-  Proof. elim: i => [//|i IHi] ???; by rewrite !iterate_S /= IHi. Qed.
-
-End liftings.
 
 (** Backward compatibility. *)
 Notation "⟦ T ⟧" := (oClose V⟦ T ⟧).
