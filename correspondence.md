@@ -223,16 +223,25 @@ Translation table of symbols in names:
   rule `μ-<:` will conclude that some type `μ x. T <: T`, assuming certain
   premises.
 
-For each typing rule (say, `T_Path`), there are up to three versions, with
-corresponding prefixes.
-- A syntactic typing rule, with prefix `i` (for inductive); for instance, `iT_Path`.
-- A semantic lemma, as described in the paper, with no prefix; for instance, `T_Path`.
-- A purely semantic lemma, with prefix `s`. Such lemmas are not discussed in
-  the paper, but "purely semantic" means that the statement does not mention
-  syntactic types, but only their semantic version.
+For each typing rule (say, `T_All_Ex_p`), there can be multiple versions,
+distinguished by corresponding prefixes; not all rules need exist in all
+versions.
+- Prefix `i` (for inductive) is used for syntactic typing rules, such as
+  `iT_All_Ex_p`. Some rules appear in multiple inductive types, and are only
+  distinguished through the name of the defining module.
+- Prefix `u` is used for semantic typing lemmas about the _unstamped_ typing
+  judgments, such as `uT_All_Ex_p`.
+- No prefix is used for semantic lemmas for the _stamped_ semantic typing
+  judgment, such as `T_All_Ex_p`.
+- Prefix `s` is used for purely _semantic_ lemmas (such as `sT_All_Ex_p`),
+  and can be combined with the already described prefix `u` for purely
+  semantic lemmas about _unstamped_ typing (such as `suT_All_Ex_p`). Such
+  lemmas are not discussed in the paper, but "purely semantic" means that the
+  statement does not mention syntactic types, but only their semantic
+  version; these lemmas are more generally applicable.
 
-Hence, rule `iT_Path` is a syntactic rule for expression typing (the
-subsumption rule), called `T-Path` in the paper, while
+Hence, rule `iT_All_Ex_p` is a syntactic rule for expression typing (the
+dependent function application rule), called `T-∀-E_p` in the paper, while
 `sStp_Sel` is a semantic typing lemma corresponding to `<:-Sel`.
 
 Legacy typing judgments use the same conventions, except that they use `Sub`
