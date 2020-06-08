@@ -112,7 +112,7 @@ Section tmem_unstamped_lemmas.
   Lemma leadsto_envD_equiv_alloc {σ i} {T : olty Σ i}
     (Hcl : coveringσ σ T): ⊢ |==> ∃ s, s ↝[ σ ] T.
   Proof.
-    iMod (leadsto_alloc T) as (s) "#Hs"; iIntros "!>".
+    iMod (saved_ho_sem_type_alloc _ T) as (s) "#Hs"; iIntros "!>".
     iExists s, T; iFrame "Hs"; iIntros "!%". apply Hcl.
   Qed.
 

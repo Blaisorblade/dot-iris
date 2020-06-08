@@ -35,9 +35,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
   }.
 
   (** Notation [s ↝n[ n  ] φ] generalizes [s ↝ φ] on paper; [n] is the arity. *)
-  Definition leadsto_n `{dlangG Σ}
-    s n (φ : hoEnvD Σ n) : iProp Σ := s ⤇n[ n ] φ.
-  Notation "s ↝n[ n  ] φ" := (leadsto_n s n φ) (at level 20) : bi_scope.
+  Notation "s ↝n[ n  ] φ" := (s ⤇n[ n  ] φ) (at level 20) : bi_scope.
 
   Program Definition hoEnvD_inst {i Σ} σ : hoEnvD Σ i -n> hoD Σ i :=
     λne φ, λ args, φ args (∞ σ).
@@ -57,41 +55,17 @@ Module Type LiftWp (Import VS : VlSortsSig).
   Section mapsto.
     Context `{Hdlang : dlangG Σ}.
 
-    Global Instance: Contractive (leadsto_n s n).
-    Proof. solve_contractive. Qed.
-
-    Global Instance: Persistent (s ↝n[ n ] φ) := _.
-
     Global Instance: Contractive (stamp_σ_to_type_n s σ i).
     Proof. rewrite /stamp_σ_to_type_n. solve_contractive_ho. Qed.
 
     Import EqNotations.
-    Lemma leadsto_agree_dep_abs {s n1 n2 φ1 φ2} :
-      s ↝n[ n1 ] φ1 -∗ s ↝n[ n2 ] φ2 -∗ ∃ Heq : n1 = n2,
-        ▷ ((rew [hoEnvD Σ] Heq in φ1) ≡ φ2).
-    Proof. apply saved_ho_sem_type_agree_dep_abs. Qed.
-
-    Lemma leadsto_agree_dep {s n1 n2 φ1 φ2} args ρ v :
-      s ↝n[ n1 ] φ1 -∗ s ↝n[ n2 ] φ2 -∗ ∃ Heq : n1 = n2,
-        ▷ ((rew [hoEnvD Σ] Heq in φ1) args ρ v ≡ φ2 args ρ v).
-    Proof. apply saved_ho_sem_type_agree_dep. Qed.
-
-    Lemma leadsto_agree {s n φ1 φ2} args ρ v :
-      s ↝n[ n ] φ1 -∗ s ↝n[ n ] φ2 -∗ ▷ (φ1 args ρ v ≡ φ2 args ρ v).
-    Proof. apply saved_ho_sem_type_agree. Qed.
-
-    Lemma leadsto_alloc {i} (φ : hoEnvD Σ i) :
-      ⊢ |==> ∃ s, s ↝n[ i ] φ.
-    Proof. apply saved_ho_sem_type_alloc. Qed.
-
-    Global Opaque leadsto_n.
 
     Lemma stamp_σ_to_type_agree_dep_abs {σ s n1 n2 ψ1 ψ2} :
       s ↗n[ σ , n1 ] ψ1 -∗ s ↗n[ σ , n2 ] ψ2 -∗ ∃ Heq : n1 = n2,
         ▷ ((rew [hoD Σ] Heq in ψ1) ≡ ψ2).
     Proof.
       iDestruct 1 as (φ1) "[Hsg1 Heq1]"; iDestruct 1 as (φ2) "[Hsg2 Heq2]".
-      iDestruct (leadsto_agree_dep_abs with "Hsg1 Hsg2") as (->) "Hgoal".
+      iDestruct (saved_ho_sem_type_agree_dep_abs with "Hsg1 Hsg2") as (->) "Hgoal".
       iExists eq_refl. iNext.
       iEval (cbn) in "Hgoal"; iEval (cbn). iRewrite "Heq1"; iRewrite "Heq2".
       repeat setoid_rewrite discrete_fun_equivI.
