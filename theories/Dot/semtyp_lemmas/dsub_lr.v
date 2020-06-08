@@ -36,7 +36,7 @@ Notation "Γ ⊨ T1 <:[ i  ] T2 " := (istpd i Γ T1 T2) (at level 74, T1, T2 at 
 Section JudgDefs.
   Context `{HdotG: !dlangG Σ}.
 
-  Lemma sstpd_eq Γ T1 i T2 :
+  Lemma sstpd_eq_1 Γ T1 i T2 :
     Γ s⊨ T1 <:[i] T2 ⊣⊢
     □∀ ρ, sG⟦Γ⟧* ρ → ∀ v, ▷^i (T1 vnil ρ v → T2 vnil ρ v).
   Proof.
@@ -44,14 +44,14 @@ Section JudgDefs.
     by rewrite laterN_forall.
   Qed.
 
-  Lemma sstpd_eq' Γ T1 i T2 :
+  Lemma sstpd_eq Γ T1 i T2 :
     Γ s⊨ T1 <:[i] T2 ⊣⊢
     □∀ ρ v, sG⟦Γ⟧* ρ → ▷^i (T1 vnil ρ v → T2 vnil ρ v).
-  Proof. rewrite sstpd_eq; properness. apply: forall_swap_impl. Qed.
+  Proof. rewrite sstpd_eq_1; properness. apply: forall_swap_impl. Qed.
 
   Lemma istpd_eq Γ T1 i T2 :
     Γ ⊨ T1 <:[i] T2 ⊣⊢
-    □∀ ρ, G⟦Γ⟧ ρ → ∀ v, ▷^i (V⟦T1⟧ vnil ρ v → V⟦T2⟧ vnil ρ v).
+    □∀ ρ v, G⟦Γ⟧ ρ → ▷^i (V⟦T1⟧ vnil ρ v → V⟦T2⟧ vnil ρ v).
   Proof. apply sstpd_eq. Qed.
 
 End JudgDefs.
@@ -80,7 +80,7 @@ Section DStpLemmas.
     Γ s⊨ oLaterN i T1 <:[0] oLaterN i T2 ⊣⊢
     Γ s⊨ T1 <:[i] T2.
   Proof.
-    rewrite !sstpd_eq /subtype_lty /=; properness; first done.
+    rewrite !sstpd_eq_1 /subtype_lty /=; properness; first done.
     by rewrite mlaterN_impl.
   Qed.
 
@@ -106,48 +106,48 @@ Section DStpLemmas.
 
   Lemma sStp_Top Γ T i:
     ⊢ Γ s⊨ T <:[i] oTop.
-  Proof. rewrite sstpd_eq. by iIntros "!> ** !> ** /=". Qed.
+  Proof. rewrite sstpd_eq_1. by iIntros "!> ** !> ** /=". Qed.
 
   Lemma sBot_Stp Γ T i:
     ⊢ Γ s⊨ oBot <:[i] T.
-  Proof. rewrite sstpd_eq. by iIntros "/= !> ** !> []". Qed.
+  Proof. rewrite sstpd_eq_1. by iIntros "/= !> ** !> []". Qed.
 
   Lemma sAnd1_Stp Γ T1 T2 i :
     ⊢ Γ s⊨ oAnd T1 T2 <:[i] T1.
-  Proof. rewrite sstpd_eq'. by iIntros "/= !> %ρ %v _ !> [$ _]". Qed.
+  Proof. rewrite sstpd_eq. by iIntros "/= !> %ρ %v _ !> [$ _]". Qed.
   Lemma sAnd2_Stp Γ T1 T2 i :
     ⊢ Γ s⊨ oAnd T1 T2 <:[i] T2.
-  Proof. rewrite sstpd_eq'. by iIntros "/= !> %ρ %v _ !> [_ $]". Qed.
+  Proof. rewrite sstpd_eq. by iIntros "/= !> %ρ %v _ !> [_ $]". Qed.
 
   Lemma sStp_And Γ T U1 U2 i:
     Γ s⊨ T <:[i] U1 -∗
     Γ s⊨ T <:[i] U2 -∗
     Γ s⊨ T <:[i] oAnd U1 U2.
   Proof.
-    rewrite !sstpd_eq'; iIntros "#H1 #H2 !> %ρ %v #Hg".
+    rewrite !sstpd_eq; iIntros "#H1 #H2 !> %ρ %v #Hg".
     iSpecialize ("H1" $! ρ v with "Hg"); iSpecialize ("H2" $! ρ v with "Hg").
     iNext i; iIntros "#H".
     iSplit; [iApply "H1" | iApply "H2"]; iApply "H".
   Qed.
 
   Lemma sStp_Or1 Γ T1 T2 i: ⊢ Γ s⊨ T1 <:[i] oOr T1 T2.
-  Proof. rewrite sstpd_eq'. by iIntros "/= !> %ρ %v _ !>"; eauto. Qed.
+  Proof. rewrite sstpd_eq. by iIntros "/= !> %ρ %v _ !>"; eauto. Qed.
   Lemma sStp_Or2 Γ T1 T2 i: ⊢ Γ s⊨ T2 <:[i] oOr T1 T2.
-  Proof. rewrite sstpd_eq'. by iIntros "/= !> %ρ %v _ !>"; eauto. Qed.
+  Proof. rewrite sstpd_eq. by iIntros "/= !> %ρ %v _ !>"; eauto. Qed.
 
   Lemma sOr_Stp Γ T1 T2 U i:
     Γ s⊨ T1 <:[i] U -∗
     Γ s⊨ T2 <:[i] U -∗
     Γ s⊨ oOr T1 T2 <:[i] U.
   Proof.
-    rewrite !sstpd_eq'; iIntros "/= #H1 #H2 !> * #Hg".
+    rewrite !sstpd_eq; iIntros "/= #H1 #H2 !> * #Hg".
     iSpecialize ("H1" $! ρ v with "Hg"); iSpecialize ("H2" $! ρ v with "Hg").
     iNext i; iIntros "#[HT | HT]"; [iApply "H1" | iApply "H2"]; iApply "HT".
   Qed.
 
   Lemma sDistr_And_Or_Stp Γ {S T U i} : ⊢ Γ s⊨ oAnd (oOr S T) U <:[i] oOr (oAnd S U) (oAnd T U).
   Proof.
-    rewrite sstpd_eq'.
+    rewrite sstpd_eq.
     by iIntros "!> %ρ %v #Hg !> [[HS|HT] Hu] /="; [iLeft|iRight]; iFrame.
   Qed.
 
@@ -159,7 +159,7 @@ Section DStpLemmas.
 
   Lemma sStp_Add_LaterN {Γ T i j}:
     ⊢ Γ s⊨ T <:[i] oLaterN j T.
-  Proof. rewrite sstpd_eq'; iIntros "!> ** !> $".  Qed.
+  Proof. rewrite sstpd_eq; iIntros "!> ** !> $".  Qed.
   Lemma sStp_Add_Later {Γ T i}:
     ⊢ Γ s⊨ T <:[i] oLater T.
   Proof. apply sStp_Add_LaterN. Qed.
@@ -168,7 +168,7 @@ Section DStpLemmas.
     Γ s⊨p p : cTMem l L U, i -∗
     Γ s⊨ L <:[i] oSel p l.
   Proof.
-    rewrite sstpd_eq'; iIntros "#Hp !> %ρ %v Hg".
+    rewrite sstpd_eq; iIntros "#Hp !> %ρ %v Hg".
     iSpecialize ("Hp" with "Hg"); iNext i; iIntros "#HL".
     iApply (path_wp_wand with "Hp"); iIntros (w).
     iApply (vl_sel_lb with "HL").
@@ -178,7 +178,7 @@ Section DStpLemmas.
     Γ s⊨p p : cTMem l L U, i -∗
     Γ s⊨ oSel p l <:[i] U.
   Proof.
-    rewrite sstpd_eq'; iIntros "#Hp !> %ρ %v Hg".
+    rewrite sstpd_eq; iIntros "#Hp !> %ρ %v Hg".
     iSpecialize ("Hp" with "Hg"); iNext i; iIntros "Hφ".
     iDestruct (path_wp_agree with "Hp Hφ") as (w Hw) "[Hp Hφ]".
     iApply (vl_sel_ub with "Hφ Hp").
@@ -188,7 +188,7 @@ Section DStpLemmas.
     oLaterN i T1 :: Γ s⊨ T1 <:[i] T2 -∗
     Γ s⊨ oMu T1 <:[i] oMu T2.
   Proof.
-    rewrite !sstpd_eq'; iIntros "/= #Hstp !> %ρ %v Hg".
+    rewrite !sstpd_eq; iIntros "/= #Hstp !> %ρ %v Hg".
     iApply mlaterN_impl; iIntros " #HT1".
     iApply ("Hstp" $! (v .: ρ) v with "[$Hg $HT1] [$HT1]").
   Qed.
@@ -330,7 +330,7 @@ Section DStpLemmas.
     Γ s⊨p p : T, i -∗
     Γ s⊨ oSing p <:[i] T.
   Proof.
-    rewrite sstpd_eq'; iIntros "#Hp !> %ρ %v Hg".
+    rewrite sstpd_eq; iIntros "#Hp !> %ρ %v Hg".
     iSpecialize ("Hp" with "Hg"); iNext i.
     iDestruct 1 as %->%(alias_paths_elim_eq (T _ ρ)).
     by rewrite path_wp_pv_eq.
@@ -341,7 +341,7 @@ Section DStpLemmas.
     Γ s⊨ oSing p <:[i] oSing q -∗
     Γ s⊨ oSing q <:[i] oSing p.
   Proof.
-    rewrite !sstpd_eq'; iIntros "#Hp #Hps !> %ρ %v #Hg".
+    rewrite !sstpd_eq; iIntros "#Hp #Hps !> %ρ %v #Hg".
     iDestruct (path_wp_eq with "(Hp Hg)") as (w) "[Hpw _] {Hp}".
     rewrite -alias_paths_pv_eq_1; iSpecialize ("Hps" $! _ w with "Hg Hpw");
       rewrite /= !alias_paths_pv_eq_1.
@@ -354,7 +354,7 @@ Section DStpLemmas.
     Γ s⊨p p : oSing q, i -∗
     Γ s⊨ T1 <:[i] T2.
   Proof.
-    rewrite sstpd_eq'; iIntros "#Hrepl #Hal !> %ρ %v #Hg".
+    rewrite sstpd_eq; iIntros "#Hrepl #Hal !> %ρ %v #Hg".
     iSpecialize ("Hal" with "Hg"); iNext i.
     iDestruct "Hal" as %Hal%alias_paths_simpl.
     iRewrite ("Hrepl" $! vnil ρ v Hal); iIntros "$".
@@ -459,7 +459,7 @@ Section iSub_Derived_Lemmas.
   Lemma sstpd0_to_sstpi0 Γ T1 T2 :
     Γ s⊨ T1 <:[0] T2 ⊣⊢
     Γ s⊨ T1, 0 <: T2, 0.
-  Proof. by rewrite /sstpi sstpd_eq'. Qed.
+  Proof. by rewrite /sstpi sstpd_eq. Qed.
 
   Lemma sstpi_to_sstpd0 Γ i j T1 T2 :
     Γ s⊨ T1, i <: T2, j ⊣⊢
@@ -488,7 +488,7 @@ Section iSub_Derived_Lemmas.
   Lemma sstpd_to_sstpi Γ i T1 T2 :
     Γ s⊨ T1 <:[i] T2 ⊣⊢
     Γ s⊨ T1, i <: T2, i.
-  Proof. by rewrite /sstpi -sstpd_delay_oLaterN sstpd_eq'. Qed.
+  Proof. by rewrite /sstpi -sstpd_delay_oLaterN sstpd_eq. Qed.
 
   Lemma sSub_Skolem_P {Γ T1 T2 i j}:
     oLaterN i (shift T1) :: Γ s⊨p pv (ids 0) : shift T2, j -∗
