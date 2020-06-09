@@ -8,7 +8,7 @@ From D Require Export succ_notation.
 From D Require Import saved_interp_dep asubst_intf asubst_base dlang lty.
 From D Require Import swap_later_impl.
 From D.Dot Require dot_lty unary_lr path_repl_lr.
-From D.Dot Require defs_lr binding_lr dsub_lr examples_lr.
+From D.Dot Require defs_lr binding_lr dsub_lr sub_lr examples_lr.
 From D.Dot Require hoas ex_utils.
 
 From D.Dot Require Import sem_kind.
@@ -387,7 +387,7 @@ End gen_lemmas.
 End HoSemJudgments.
 
 Module HkDot.
-Import dot_lty unary_lr dsub_lr path_repl_lr hoas ex_utils.
+Import dot_lty unary_lr dsub_lr sub_lr path_repl_lr hoas ex_utils.
 Export HkDotSemTypes.
 Include HoSemJudgments VlSorts dlang_inst dot_lty HkDotSemTypes.
 Implicit Types

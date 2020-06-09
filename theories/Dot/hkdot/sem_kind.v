@@ -280,9 +280,6 @@ Proof.
   by iApply (subtype_trans with "HU2 HU").
 Qed.
 
-(* Lemma hoLty_equiv_split0 {Σ} (T1 T2 : hoLtyO Σ 0) :
-  hoLty_equiv T1 T2 -∗ oClose T1 ⊆ oClose T2 ∗ oClose T2 ⊆ oClose T1.
-Proof. apply foo. Qed. *)
 Program Definition sf_kintv {Σ} (L U : oltyO Σ 0) : sf_kind Σ 0 :=
   SfKind (sr_kintv L U).
 Next Obligation. cbn; solve_proper_ho. Qed.

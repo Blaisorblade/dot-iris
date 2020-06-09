@@ -101,7 +101,6 @@ Section Fundamental.
       + by iApply Sub_Refl.
       + by iApply Sub_Trans.
       + by iIntros "!> **".
-      (* + by iApply Sub_Mono. *)
       + by iApply Sub_Index_Incr.
       + by iApply Later_Sub.
       + by iApply Sub_Later.
@@ -115,9 +114,6 @@ Section Fundamental.
       + by iApply T_All_Ex.
       + by iApply T_All_E.
       + by iApply T_All_I.
-      (* + iApply T_Obj_I.
-        by iApply fundamental_dms_typed.
-      + by iApply T_Mu_I. *)
       + by iApply T_Nat_I.
       + by iApply T_Var.
       + iApply T_ISub => //.

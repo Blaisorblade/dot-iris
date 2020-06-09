@@ -117,9 +117,9 @@ Section CtxSub.
   Global Instance setp_flip_proper e : Proper (s_ctx_sub ==> flip (=) ==> flip (⊢)) (setp e).
   Proof. apply: flip_proper_3. Qed.
 
-  Global Instance sstpi_proper i j : Proper (flip s_ctx_sub ==> (=) ==> (=) ==> (⊢)) (sstpi i j).
-  Proof. move => /= Γ1 Γ2 Hweak T1 T2 -> U1 U2 ->. by setoid_rewrite (Hweak _). Qed.
-  Global Instance sstpi_flip_proper i j : Proper (s_ctx_sub ==> flip (=) ==> flip (=) ==> flip (⊢)) (sstpi i j).
+  Global Instance sstpd_proper i : Proper (flip s_ctx_sub ==> (=) ==> (=) ==> (⊢)) (sstpd i).
+  Proof. rewrite /sstpd => Γ1 Γ2 Hweak T1 T2 -> U1 U2 ->. by setoid_rewrite (Hweak _). Qed.
+  Global Instance sstpi_flip_proper i : Proper (s_ctx_sub ==> flip (=) ==> flip (=) ==> flip (⊢)) (sstpd i).
   Proof. apply: flip_proper_4. Qed.
 
   Global Instance ietp_proper : Proper (flip ctx_sub ==> (=) ==> (=) ==> (⊢)) ietp.
@@ -131,15 +131,15 @@ Section CtxSub.
     Proper (ctx_sub ==> flip (=) ==> flip (=) ==> flip (⊢)) ietp.
   Proof. apply: flip_proper_4. Qed.
 
-  Global Instance istpi_proper :
-    Proper (flip ctx_sub ==> (=) ==> (=) ==> (=) ==> (=) ==> (⊢)) istpi.
+  Global Instance istpd_proper i :
+    Proper (flip ctx_sub ==> (=) ==> (=) ==> (⊢)) (istpd i).
   Proof.
-    rewrite /ctx_sub /flip /istpi => Γ1 Γ2 Hweak ????????????; subst.
+    rewrite /ctx_sub /flip /istpd => Γ1 Γ2 Hweak ??????; subst.
     by rewrite Hweak.
   Qed.
-  Global Instance istpi_flip_proper :
-    Proper (ctx_sub ==> flip (=) ==> flip (=) ==> flip (=) ==> flip (=) ==> flip (⊢)) istpi.
-  Proof. apply: flip_proper_6. Qed.
+  Global Instance istpi_flip_proper i :
+    Proper (ctx_sub ==> flip (=) ==> flip (=) ==> flip (⊢)) (istpd i).
+  Proof. apply: flip_proper_4. Qed.
 
 
   Global Instance oLater_proper : Proper (s_ty_sub ==> s_ty_sub) oLater.
@@ -296,9 +296,9 @@ Section CtxSub.
   Lemma ietp_weaken_ctx_syn Γ1 Γ2 {T e} (Hsyn : ⊢G Γ1 <:* Γ2) : Γ2 ⊨ e : T -∗ Γ1 ⊨ e : T.
   Proof. by apply ietp_proper; first apply (fundamental_ctx_sub Hsyn). Qed.
 
-  Lemma istpi_weaken_ctx_syn Γ1 Γ2 {T1 T2 i j} (Hsyn : ⊢G Γ1 <:* Γ2) :
-    Γ2 ⊨ T1, i <: T2, j -∗ Γ1 ⊨ T1, i <: T2, j.
-  Proof. by apply istpi_proper; first apply (fundamental_ctx_sub Hsyn). Qed.
+  Lemma istpd_weaken_ctx_syn Γ1 Γ2 {T1 T2 i} (Hsyn : ⊢G Γ1 <:* Γ2) :
+    Γ2 ⊨ T1 <:[i] T2 -∗ Γ1 ⊨ T1 <:[i] T2.
+  Proof. by apply istpd_proper; first apply (fundamental_ctx_sub Hsyn). Qed.
 End CtxSub.
 
 Typeclasses Opaque s_ty_sub.

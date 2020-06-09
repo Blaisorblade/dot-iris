@@ -143,21 +143,6 @@ Section Lemmas.
     iApply Sub_Mu. by iApply Mu_Sub_Mu.
   Qed.
 
-  Lemma sSub_Skolem_T {Γ T1 T2 i} `{!SwapPropI Σ} :
-    oLaterN i (shift T1) :: Γ s⊨ tv (ids 0) : shift T2 -∗
-    (*───────────────────────────────*)
-    Γ s⊨ T1, i <: T2, 0.
-  Proof. by rewrite sP_Val sSub_Skolem_P. Qed.
-
-  Lemma Sub_Skolem_T {Γ T1 T2 i} `{!SwapPropI Σ} :
-    iterate TLater i (shift T1) :: Γ ⊨ tv (ids 0) : shift T2 -∗
-    (*───────────────────────────────*)
-    Γ ⊨ T1, i <: T2, 0.
-  Proof.
-    rewrite /istpi/ietp -sSub_Skolem_T fmap_cons iterate_TLater_oLater.
-    by rewrite (interp_subst_commute T1) (interp_subst_commute T2).
-  Qed.
-
   Lemma sDelay_Sub {Γ T U i j}:
     Γ s⊨ T, i <: U, j -∗
     oLater <$> Γ s⊨ oLater T, i <: oLater U, j.

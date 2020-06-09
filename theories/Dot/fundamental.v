@@ -16,7 +16,7 @@ Section fundamental.
   Context `{!dlangG Σ} `{!SwapPropI Σ}.
 
   (* Make proofs below more robust by opaquifying judgments. *)
-  Opaque setp sdstp sdtp sptp sstpi suetp sudstp.
+  Opaque setp sdstp sdtp sptp suetp sudstp.
 
   Definition fundamental_typed_def Γ e T (HT: Γ t⊢ₜ e : T) :=
     ⊢ Γ u⊨ e : T.

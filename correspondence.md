@@ -10,6 +10,8 @@ of gDOT and the formalization in Coq. We briefly discuss them here.
 - Notations such as `\overbar{D}⟦ T ⟧` in the paper are translated to
   notations such as `Ds⟦ T ⟧` in Coq.
 
+- In terms, "coerce" is written "skip".
+
 - In Coq, definition lists are represented using Coq's `list`
   data type, whereas singleton and merge operations are used in the paper
   (Fig. 3). Our approach in Coq is influenced by the Coq development of pDOT by
@@ -243,6 +245,9 @@ versions.
 Hence, rule `iT_All_E_p` is a syntactic rule for expression typing (the
 dependent function application rule), called `T-∀-E_p` in the paper, while
 `sStp_Sel` is a semantic typing lemma corresponding to `<:-Sel`.
+
+For some rules (such as `T-Path`), we only state the purely semantic typing
+lemmas (such as `sT_Path` and `suT_Path`).
 
 Legacy typing judgments use the same conventions, except that they use `Sub`
 instead of `Stp` for the old-style subtyping judgment, with two indexes.

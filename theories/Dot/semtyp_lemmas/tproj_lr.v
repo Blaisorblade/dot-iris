@@ -15,7 +15,7 @@ discussed in the paper.
 *)
 From iris.proofmode Require Import tactics.
 From D Require Import succ_notation swap_later_impl.
-From D.Dot Require Import unary_lr dsub_lr.
+From D.Dot Require Import unary_lr dsub_lr sub_lr path_repl_lr.
 
 Implicit Types (Σ : gFunctors).
 Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env) (l : label).
