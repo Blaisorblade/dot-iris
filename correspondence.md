@@ -10,6 +10,8 @@ of gDOT and the formalization in Coq. We briefly discuss them here.
 - Notations such as `\overbar{D}⟦ T ⟧` in the paper are translated to
   notations such as `Ds⟦ T ⟧` in Coq.
 
+- In terms, "coerce" is written "skip".
+
 - In Coq, definition lists are represented using Coq's `list`
   data type, whereas singleton and merge operations are used in the paper
   (Fig. 3). Our approach in Coq is influenced by the Coq development of pDOT by
