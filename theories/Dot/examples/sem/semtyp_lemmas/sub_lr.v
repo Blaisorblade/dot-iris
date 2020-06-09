@@ -4,7 +4,7 @@ From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language.
 
 From D Require Import iris_prelude succ_notation swap_later_impl proper.
-From D.Dot Require Import rules path_repl unary_lr dsub_lr defs_lr.
+From D.Dot Require Import rules path_repl unary_lr dsub_lr defs_lr binding_lr.
 
 Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
@@ -242,12 +242,7 @@ Section StpLemmas.
     Γ s⊨ T1, 0 <: T2, 0 -∗
     Γ s⊨ { l := dpt p } : cVMem l T1 -∗
     Γ s⊨ { l := dpt p } : cVMem l T2.
-  Proof.
-    rewrite !sdtp_eq'; iIntros "#Hsub #Hv !>" (ρ Hpid) "#Hg".
-    iSpecialize ("Hv" $! ρ Hpid with "Hg"); rewrite !oDVMem_eq.
-    iApply (path_wp_wand with "Hv"); iIntros "{Hv} %v #Hv".
-    iApply ("Hsub" with "Hg Hv").
-  Qed.
+  Proof. rewrite -!sstpd0_to_sstpi0. apply sD_Path_Stp. Qed.
 
   (** ** Type member introduction. *)
   Lemma sD_Typ_Sub {Γ} L1 L2 U1 U2 s σ l:
@@ -255,15 +250,7 @@ Section StpLemmas.
     Γ s⊨ U1, 0 <: U2, 0 -∗
     Γ s⊨ { l := dtysem σ s } : cTMem l L1 U1 -∗
     Γ s⊨ { l := dtysem σ s } : cTMem l L2 U2.
-  Proof.
-    rewrite !sdtp_eq'; iIntros "#HL #HU #Hd !>" (ρ Hpid) "#Hg".
-    iSpecialize ("Hd" $! ρ Hpid with "Hg").
-    iDestruct "Hd" as (ψ) "(Hφ & HLψ & HψU)".
-    iExists ψ. iFrame "Hφ"; iClear "Hφ".
-    iModIntro; repeat iSplit; iIntros (v) "#H".
-    - iApply ("HLψ" with "(HL Hg H)").
-    - iApply ("HU" with "Hg (HψU H)").
-  Qed.
+  Proof. rewrite -!sstpd0_to_sstpi0. apply sD_Typ_Stp. Qed.
 
   Lemma sD_Typ_Abs {Γ} T L U s σ l:
     Γ s⊨ L, 0 <: oLater T, 0 -∗
@@ -333,13 +320,9 @@ Section StpLemmas.
     (*───────────────────────────────*)
     Γ s⊨ iterate tskip i e : T2.
   Proof.
-    iIntros "/= #HeT1 #Hsub !> %ρ #Hg !>".
-    rewrite tskip_subst -wp_bind.
-    iApply (wp_wand with "(HeT1 Hg)").
-    iIntros (v) "#HvT1".
-    (* We can swap ▷^i with WP (tv v)! *)
-    rewrite -wp_pure_step_later // -wp_value.
-    by iApply "Hsub".
+    rewrite sstpi_to_sstpd0 oLaterN_0; iIntros "He Hsub".
+    iApply sT_SkipN.
+    iApply (sT_Sub with "He Hsub").
   Qed.
 
 End StpLemmas.

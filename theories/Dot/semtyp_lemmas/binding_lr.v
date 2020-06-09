@@ -86,14 +86,18 @@ Section Sec.
     iApply (wp_and_val with "(HT1 Hg) (HT2 Hg)").
   Qed.
 
-  Lemma sT_Skip Γ e T :
-    Γ s⊨ e : oLater T -∗
-    Γ s⊨ tskip e : T.
+  Lemma sT_SkipN Γ e T i :
+    Γ s⊨ e : oLaterN i T -∗
+    Γ s⊨ iterate tskip i e : T.
   Proof.
-    iIntros "#HT !> * #Hg !>"; iSpecialize ("HT" with "Hg").
-    smart_wp_bind SkipCtx v "#Hr" "HT".
-    by rewrite -wp_pure_step_later // -wp_value.
+    iIntros "#He !> * #Hg !>"; rewrite tskip_subst; iApply wp_bind.
+    iApply (wp_wand with "(He Hg)"); iIntros "{He} /= %v Hv".
+    by rewrite -wp_pure_step_later -?wp_value.
   Qed.
+
+  Lemma sT_Skip Γ e T :
+    Γ s⊨ e : oLater T -∗ Γ s⊨ tskip e : T.
+  Proof. have := sT_SkipN Γ e T 1. rewrite iterate_S iterate_0. apply. Qed.
 
   Lemma sT_Sub {Γ e T1 T2}:
     Γ s⊨ e : T1 -∗
