@@ -1,0 +1,120 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<link href="coqdocjs.css" rel="stylesheet" type="text/css"/>
+</head>
+
+<body onload="document.getElementById('content').focus()">
+  <div id="header">
+    <span class="left">
+      <span class="modulename"> <script> document.write(document.title) </script> </span>
+    </span>
+
+    <span class="button" id="toggle-proofs"></span>
+
+    <span class="right">
+      <a href="../">Project Page</a>
+      <a href="./indexpage.html"> Index </a>
+      <a href="./toc.html"> Table of Contents </a>
+    </span>
+</div>
+    <div id="content" tabindex="-1" onblur="document.getElementById('content').focus()">
+    <div id="main">
+<h1 class="libtitle">D.Dot.examples.sem.ex_iris_utils</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+<a name="lab128"></a><h1 class="section">Infrastructure for examples of DOT programs that use Iris.</h1>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">From</span> <span class="id" title="var">D.pure_program_logic</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="D.pure_program_logic.lifting.html#"><span class="id" title="library">lifting</span></a> <a class="idref" href="D.pure_program_logic.adequacy.html#"><span class="id" title="library">adequacy</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">iris.program_logic</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris//iris.program_logic.ectxi_language.html#"><span class="id" title="library">ectxi_language</span></a>.<br/>
+
+<br/>
+<span class="comment">(*&nbsp;Exports:&nbsp;*)</span><br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">D</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Export</span> <a class="idref" href="D.iris_extra.swap_later_impl.html#"><span class="id" title="library">swap_later_impl</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">D.Dot</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Export</span> <a class="idref" href="D.Dot.syn.skeleton.html#"><span class="id" title="library">skeleton</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">D.Dot</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Export</span> <a class="idref" href="D.Dot.examples.ex_utils.html#"><span class="id" title="library">ex_utils</span></a> <a class="idref" href="D.Dot.examples.hoas_ex_utils.html#"><span class="id" title="library">hoas_ex_utils</span></a> <a class="idref" href="D.Dot.examples.sem.storeless_typing_ex_utils.html#"><span class="id" title="library">storeless_typing_ex_utils</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">D.Dot</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Export</span> <a class="idref" href="D.Dot.examples.old_fundamental.html#"><span class="id" title="library">old_fundamental</span></a> <a class="idref" href="D.Dot.examples.sem.semtyp_lemmas.examples_lr.html#"><span class="id" title="library">examples_lr</span></a> <a class="idref" href="D.Dot.lr.sem_unstamped_typing.html#"><span class="id" title="library">sem_unstamped_typing</span></a>.<br/>
+<span class="id" title="keyword">Export</span> <span class="id" title="var">loopTms</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Suggest</span> <span class="id" title="keyword">Proof</span> <span class="id" title="var">Using</span>.<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Proof</span> <span class="id" title="var">Using</span> "Type".<br/>
+
+<br/>
+<span class="id" title="keyword">Implicit</span> <span class="id" title="keyword">Types</span> (<span class="id" title="var">v</span> <span class="id" title="var">w</span> : <a class="idref" href="D.Dot.syn.syn.html#VlSorts.vl"><span class="id" title="definition">vl</span></a>) (<span class="id" title="var">d</span> : <a class="idref" href="D.Dot.syn.syn.html#VlSorts.dm"><span class="id" title="inductive">dm</span></a>) (<span class="id" title="var">ds</span> : <a class="idref" href="D.Dot.syn.syn.html#VlSorts.dms"><span class="id" title="definition">dms</span></a>).<br/>
+
+<br/>
+<span class="id" title="keyword">Example</span> <a name="loopDefTyp"><span class="id" title="definition">loopDefTyp</span></a> <span class="id" title="var">Γ</span> : <a class="idref" href="D.Dot.examples.sem.ex_iris_utils.html#1b004e48cd1f64e22d5c000cf0d7f047"><span class="id" title="variable">Γ</span></a> <a class="idref" href="D.Dot.examples.sem.storeless_typing.html#851999643db7ae388071010068a98a85"><span class="id" title="notation">v</span></a><a class="idref" href="D.Dot.examples.sem.storeless_typing.html#851999643db7ae388071010068a98a85"><span class="id" title="notation">⊢ₜ</span></a> <a class="idref" href="D.Dot.examples.hoas_ex_utils.html#loopTms.hloopDefV"><span class="id" title="definition">hloopDefV</span></a> <a class="idref" href="D.Dot.examples.sem.storeless_typing.html#851999643db7ae388071010068a98a85"><span class="id" title="notation">:</span></a> <a class="idref" href="D.Dot.examples.hoas_ex_utils.html#loopTms.hloopDefT"><span class="id" title="definition">hloopDefT</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> (<a class="idref" href="D.Dot.examples.sem.storeless_typing_ex_utils.html#iT_ISub_nocoerce"><span class="id" title="lemma">iT_ISub_nocoerce</span></a> <a class="idref" href="D.Dot.examples.hoas_ex_utils.html#loopTms.hloopDefTConcr"><span class="id" title="definition">hloopDefTConcr</span></a>); <span class="id" title="var">mltcrush</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">eapply</span> <a class="idref" href="D.Dot.examples.sem.storeless_typing.html#iT_All_E"><span class="id" title="constructor">iT_All_E</span></a>; <span class="id" title="var">last</span> <span class="id" title="var">var</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">tcrush</span>; <span class="id" title="var">varsub</span>; <span class="id" title="var">lookup</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Example</span> <a name="loopFunTyp"><span class="id" title="definition">loopFunTyp</span></a> <span class="id" title="var">Γ</span> : <a class="idref" href="D.Dot.examples.sem.ex_iris_utils.html#1b004e48cd1f64e22d5c000cf0d7f047"><span class="id" title="variable">Γ</span></a> <a class="idref" href="D.Dot.examples.sem.storeless_typing.html#851999643db7ae388071010068a98a85"><span class="id" title="notation">v</span></a><a class="idref" href="D.Dot.examples.sem.storeless_typing.html#851999643db7ae388071010068a98a85"><span class="id" title="notation">⊢ₜ</span></a> <a class="idref" href="D.Dot.examples.hoas_ex_utils.html#loopTms.hloopFunTm"><span class="id" title="definition">hloopFunTm</span></a> <a class="idref" href="D.Dot.examples.sem.storeless_typing.html#851999643db7ae388071010068a98a85"><span class="id" title="notation">:</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp//stdpp.base.html#6c0a583aa94fbbce6fcf0f655cf1cbb7"><span class="id" title="notation">⊤</span></a> <a class="idref" href="D.Dot.examples.ex_utils.html#0aaa022b3f362eee348503093ff678c1"><span class="id" title="notation">→:</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp//stdpp.base.html#49af51f22ba6081c5259453e85aa12b3"><span class="id" title="notation">⊥</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>. <span class="id" title="var">have</span> ? := <a class="idref" href="D.Dot.examples.sem.ex_iris_utils.html#loopDefTyp"><span class="id" title="definition">loopDefTyp</span></a> <span class="id" title="var">Γ</span>; <span class="id" title="var">tcrush</span>. <span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Example</span> <a name="loopTyp"><span class="id" title="definition">loopTyp</span></a> <span class="id" title="var">Γ</span> : <a class="idref" href="D.Dot.examples.sem.ex_iris_utils.html#1b004e48cd1f64e22d5c000cf0d7f047"><span class="id" title="variable">Γ</span></a> <a class="idref" href="D.Dot.examples.sem.storeless_typing.html#851999643db7ae388071010068a98a85"><span class="id" title="notation">v</span></a><a class="idref" href="D.Dot.examples.sem.storeless_typing.html#851999643db7ae388071010068a98a85"><span class="id" title="notation">⊢ₜ</span></a> <a class="idref" href="D.Dot.examples.hoas_ex_utils.html#loopTms.hloopTm"><span class="id" title="definition">hloopTm</span></a> <a class="idref" href="D.Dot.examples.sem.storeless_typing.html#851999643db7ae388071010068a98a85"><span class="id" title="notation">:</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp//stdpp.base.html#49af51f22ba6081c5259453e85aa12b3"><span class="id" title="notation">⊥</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">have</span> ? := <a class="idref" href="D.Dot.examples.sem.ex_iris_utils.html#loopFunTyp"><span class="id" title="definition">loopFunTyp</span></a> <span class="id" title="var">Γ</span>; <span class="id" title="tactic">apply</span> (<a class="idref" href="D.Dot.examples.sem.storeless_typing.html#iT_All_E"><span class="id" title="constructor">iT_All_E</span></a> (<span class="id" title="var">T1</span> := <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp//stdpp.base.html#6c0a583aa94fbbce6fcf0f655cf1cbb7"><span class="id" title="notation">⊤</span></a>)), (<a class="idref" href="D.Dot.examples.sem.storeless_typing_ex_utils.html#iT_ISub_nocoerce"><span class="id" title="lemma">iT_ISub_nocoerce</span></a> <a class="idref" href="D.Dot.examples.ex_utils.html#9acbcffb20db69ef700fcb30f172df05"><span class="id" title="notation">𝐙</span></a>); <span class="id" title="var">tcrush</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">constrain_bisimulating</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">hnf</span> <span class="id" title="tactic">in</span> *; <span class="id" title="tactic">fold</span> <a class="idref" href="D.Dot.syn.skeleton.html#same_skel_dms"><span class="id" title="definition">same_skel_dms</span></a> <span class="id" title="tactic">in</span> *; <span class="id" title="var">case_match</span>; <span class="id" title="var">ev</span>; <span class="id" title="tactic">subst</span>; <span class="id" title="tactic">try</span> <span class="id" title="var">contradiction</span>; <span class="id" title="tactic">f_equal</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">unstamp_goal_tm</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="var">iModIntro</span>; <span class="id" title="var">iExists</span> <span class="id" title="var">_</span>; <span class="id" title="var">iSplit</span>; [<span class="id" title="tactic">by</span> <span class="id" title="var">iIntros</span> "!%"; <span class="id" title="tactic">exact</span>: <a class="idref" href="D.Dot.syn.skeleton.html#same_skel_refl_tm"><span class="id" title="lemma">same_skel_refl_tm</span></a>|].<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">unstamp_goal_dm</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="var">iModIntro</span>; <span class="id" title="var">iExists</span> <span class="id" title="var">_</span>; <span class="id" title="var">iSplit</span>; [<span class="id" title="tactic">by</span> <span class="id" title="var">iIntros</span> "!%"; <span class="id" title="tactic">exact</span>: <a class="idref" href="D.Dot.syn.skeleton.html#same_skel_refl_dm"><span class="id" title="lemma">same_skel_refl_dm</span></a>|].<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">unstamp_goal_dms</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="var">iModIntro</span>; <span class="id" title="var">iExists</span> <span class="id" title="var">_</span>; <span class="id" title="var">iSplit</span>; [<span class="id" title="tactic">by</span> <span class="id" title="var">iIntros</span> "!%"; <span class="id" title="tactic">exact</span>: <a class="idref" href="D.Dot.syn.skeleton.html#same_skel_refl_dms"><span class="id" title="lemma">same_skel_refl_dms</span></a>|].<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <a name="loop_sem"><span class="id" title="section">loop_sem</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Context</span> `{<span class="id" title="var">HdlangG</span>: !<a class="idref" href="D.Dot.lr.dlang_inst.html#dlangG"><span class="id" title="class">dlangG</span></a> <span class="id" title="var">Σ</span>}.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Context</span> `{<a class="idref" href="D.iris_extra.swap_later_impl.html#SwapPropI"><span class="id" title="abbreviation">SwapPropI</span></a> <a class="idref" href="D.Dot.examples.sem.ex_iris_utils.html#154aa8eb1a038f386c90bcfa8e949845"><span class="id" title="variable">Σ</span></a>}.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="cTMemL"><span class="id" title="definition">cTMemL</span></a> <span class="id" title="var">l</span> <span class="id" title="var">L</span> <span class="id" title="var">U</span> := <a class="idref" href="D.Dot.lr.unary_lr.html#cTMem"><span class="id" title="definition">cTMem</span></a> <a class="idref" href="D.Dot.examples.sem.ex_iris_utils.html#l"><span class="id" title="variable">l</span></a> (<a class="idref" href="D.Dot.lr.dot_lty.html#oLater"><span class="id" title="abbreviation">oLater</span></a> <a class="idref" href="D.Dot.examples.sem.ex_iris_utils.html#L"><span class="id" title="variable">L</span></a>) (<a class="idref" href="D.Dot.lr.dot_lty.html#oLater"><span class="id" title="abbreviation">oLater</span></a> <a class="idref" href="D.Dot.examples.sem.ex_iris_utils.html#U"><span class="id" title="variable">U</span></a>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="loopSemT"><span class="id" title="lemma">loopSemT</span></a>: <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris//iris.bi.interface.html#b7d65d242d889c3e37aca6013a51bfad"><span class="id" title="notation">⊢</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris//iris.bi.weakestpre.html#e2706ea976d881a45650125d605dd218"><span class="id" title="notation">WP</span></a> <a class="idref" href="D.Dot.examples.hoas_ex_utils.html#loopTms.hloopTm"><span class="id" title="definition">hloopTm</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris//iris.bi.weakestpre.html#e2706ea976d881a45650125d605dd218"><span class="id" title="notation">{{</span></a> <span class="id" title="var">_</span><a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris//iris.bi.weakestpre.html#e2706ea976d881a45650125d605dd218"><span class="id" title="notation">,</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris//iris.bi.interface.html#b2ee2124ec247e9a6763a34086c13c4b"><span class="id" title="notation">False</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris//iris.bi.weakestpre.html#e2706ea976d881a45650125d605dd218"><span class="id" title="notation">}}</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Proof</span> <span class="id" title="keyword">using</span> <span class="id" title="keyword">Type</span>×.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">iDestruct</span> (<a class="idref" href="D.Dot.examples.old_fundamental.html#fundamental_typed"><span class="id" title="lemma">fundamental_typed</span></a> (<a class="idref" href="D.Dot.examples.sem.ex_iris_utils.html#loopTyp"><span class="id" title="definition">loopTyp</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.1/stdlib//Coq.Lists.List.html#ae9a5e1034e143b218b09d8e454472bd"><span class="id" title="notation">[]</span></a>)) <span class="id" title="keyword">as</span> "#&gt;H".<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">iDestruct</span> "H" <span class="id" title="keyword">as</span> (<span class="id" title="var">e_s</span> <span class="id" title="var">Hsk1</span>) "H".<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">iSpecialize</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris//iris.proofmode.ltac_tactics.html#e0200f70855f988886fbc8c4fdcdb53d"><span class="id" title="notation">(</span></a>"H" <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris//iris.proofmode.ltac_tactics.html#e0200f70855f988886fbc8c4fdcdb53d"><span class="id" title="notation">$!</span></a> <a class="idref" href="https://www.ps.uni-saarland.de/autosubst/doc//Autosubst.Autosubst_Classes.html#ids"><span class="id" title="definition">ids</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris//iris.proofmode.ltac_tactics.html#e0200f70855f988886fbc8c4fdcdb53d"><span class="id" title="notation">with</span></a> "[//]"<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris//iris.proofmode.ltac_tactics.html#e0200f70855f988886fbc8c4fdcdb53d"><span class="id" title="notation">)</span></a>; <span class="id" title="tactic">rewrite</span> <a class="idref" href="https://www.ps.uni-saarland.de/autosubst/doc//Autosubst.Autosubst_Classes.html#hsubst_id"><span class="id" title="method">hsubst_id</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">move</span> <span class="id" title="var">E</span>: <a class="idref" href="D.Dot.examples.hoas_ex_utils.html#loopTms.hloopTm"><span class="id" title="definition">hloopTm</span></a> ⇒<span class="id" title="var">e</span>; <span class="id" title="var">suff</span> &lt;-: <span class="id" title="var">e_s</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.1/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <span class="id" title="var">e</span> <span class="id" title="tactic">by</span> []; <span class="id" title="tactic">subst</span>; <span class="id" title="tactic">clear</span> -<span class="id" title="var">Hsk1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">cbv</span>; <span class="id" title="tactic">repeat</span> <span class="id" title="var">constrain_bisimulating</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="D.Dot.examples.sem.ex_iris_utils.html#loop_sem"><span class="id" title="section">loop_sem</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Tactic Notation</span> "wp_bind" <span class="id" title="var">uconstr</span>(<span class="id" title="var">p</span>) := <span class="id" title="var">iApply</span> (<a class="idref" href="D.pure_program_logic.weakestpre.html#wp_bind"><span class="id" title="lemma">wp_bind</span></a> (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris//iris.program_logic.ectxi_language.html#fill"><span class="id" title="definition">fill</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.1/stdlib//Coq.Lists.List.html#ddd65c2f7ee73ecec433744948d846bb"><span class="id" title="notation">[</span></a><span class="id" title="var">p</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.1/stdlib//Coq.Lists.List.html#ddd65c2f7ee73ecec433744948d846bb"><span class="id" title="notation">]</span></a>)).<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">wp_pure</span> := <span class="id" title="tactic">rewrite</span> -<a class="idref" href="D.pure_program_logic.lifting.html#wp_pure_step_later"><span class="id" title="lemma">wp_pure_step_later</span></a> -1?<a class="idref" href="D.pure_program_logic.weakestpre.html#wp_value"><span class="id" title="lemma">wp_value</span></a>; <span class="id" title="var">last</span> <span class="id" title="var">done</span>; <span class="id" title="var">iNext</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">not_elem_of_nil</span> : <span class="id" title="var">core</span>.<br/>
+<span class="id" title="keyword">Hint Constructors</span> <a class="idref" href="D.Dot.examples.sem.ex_iris_utils.html#NoDup"><span class="id" title="inductive">NoDup</span></a> : <span class="id" title="var">core</span>.<br/>
+</div>
+</div>
+<div id="footer">
+  Generated by <a href="http://coq.inria.fr/">coqdoc</a> and improved with <a href="https://github.com/tebbi/coqdocjs">CoqdocJS</a>
+</div>
+</div>
+</body>
+
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<link href="coqdocjs.css" rel="stylesheet" type="text/css"/>
+</head>
+
+<body onload="document.getElementById('content').focus()">
+  <div id="header">
+    <span class="left">
+      <span class="modulename"> <script> document.write(document.title) </script> </span>
+    </span>
+
+    <span class="button" id="toggle-proofs"></span>
+
+    <span class="right">
+      <a href="../">Project Page</a>
+      <a href="./indexpage.html"> Index </a>
+      <a href="./toc.html"> Table of Contents </a>
+    </span>
+</div>
+    <div id="content" tabindex="-1" onblur="document.getElementById('content').focus()">
+    <div id="main">
+<h1 class="libtitle">D.Dot.examples.hoas_ex_utils</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+<a name="lab107"></a><h1 class="section">Infrastructure for examples of DOT programs that uses HOAS.</h1>
+
+</div>
+<div class="code">
+<span class="comment">(*<br/>
+This&nbsp;infrastructure&nbsp;cannot&nbsp;be&nbsp;placed&nbsp;in&nbsp;<span class="inlinecode"><span class="id" title="var">ex_utils.v</span></span>&nbsp;because&nbsp;<span class="inlinecode"><span class="id" title="var">hoas.v</span></span>&nbsp;imports<br/>
+<span class="inlinecode"><span class="id" title="var">hoas.v</span></span>.<br/>
+*)</span><br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">stdpp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp//stdpp.strings.html#"><span class="id" title="library">strings</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">D</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="D.tactics.html#"><span class="id" title="library">tactics</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">D.Dot</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="D.Dot.syn.syn.html#"><span class="id" title="library">syn</span></a> <a class="idref" href="D.Dot.examples.ex_utils.html#"><span class="id" title="library">ex_utils</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">D.Dot</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Export</span> <a class="idref" href="D.Dot.examples.hoas.html#"><span class="id" title="library">hoas</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab108"></a><h1 class="section">Infinite loops</h1>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Module</span> <a name="loopTms"><span class="id" title="module">loopTms</span></a>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">hoasNotation</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="loopTms.hloopDefV"><span class="id" title="definition">hloopDefV</span></a> : <a class="idref" href="D.Dot.examples.hoas.html#hvl"><span class="id" title="definition">hvl</span></a> := <a class="idref" href="D.Dot.examples.hoas.html#b765f911d00e667273c5726a29666d70"><span class="id" title="notation">ν</span></a><a class="idref" href="D.Dot.examples.hoas.html#b765f911d00e667273c5726a29666d70"><span class="id" title="notation">:</span></a> <span class="id" title="var">self</span><a class="idref" href="D.Dot.examples.hoas.html#b765f911d00e667273c5726a29666d70"><span class="id" title="notation">,</span></a> <a class="idref" href="D.Dot.examples.hoas.html#86c47766ea066839c638765619259531"><span class="id" title="notation">{@</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="D.Dot.examples.hoas.html#7a2ccd3039e0d6e79be6ed27d574ba71"><span class="id" title="notation">val</span></a> "loop" <a class="idref" href="D.Dot.examples.hoas.html#7a2ccd3039e0d6e79be6ed27d574ba71"><span class="id" title="notation">=</span></a> <a class="idref" href="D.Dot.examples.hoas.html#77e880f8e16415230d458d3dd9dd7d47"><span class="id" title="notation">λ</span></a><a class="idref" href="D.Dot.examples.hoas.html#77e880f8e16415230d458d3dd9dd7d47"><span class="id" title="notation">:</span></a> <span class="id" title="var">w</span><a class="idref" href="D.Dot.examples.hoas.html#77e880f8e16415230d458d3dd9dd7d47"><span class="id" title="notation">,</span></a> <a class="idref" href="D.Dot.examples.hoas_ex_utils.html#self"><span class="id" title="variable">self</span></a> <a class="idref" href="D.Dot.examples.hoas.html#c85e36e9b233cbdeb3214538b1e4a566"><span class="id" title="notation">@:</span></a> "loop" <a class="idref" href="D.Dot.examples.hoas.html#5dc6e48cac7b4e60846f98b2731a8cef"><span class="id" title="notation">$:</span></a> <a class="idref" href="D.Dot.examples.hoas_ex_utils.html#w"><span class="id" title="variable">w</span></a><br/>
+&nbsp;&nbsp;<span class="comment">(*&nbsp;λ&nbsp;w,&nbsp;self.loop&nbsp;w.&nbsp;*)</span><br/>
+<a class="idref" href="D.Dot.examples.hoas.html#86c47766ea066839c638765619259531"><span class="id" title="notation">}</span></a>.<br/>
+<span class="id" title="keyword">Definition</span> <a name="loopTms.hloopDefT"><span class="id" title="definition">hloopDefT</span></a> : <a class="idref" href="D.Dot.examples.hoas.html#hty"><span class="id" title="definition">hty</span></a> := <a class="idref" href="D.Dot.examples.hoas.html#dac71af5b2f1b5b356d8450427b7ece1"><span class="id" title="notation">val</span></a> "loop" <a class="idref" href="D.Dot.examples.hoas.html#dac71af5b2f1b5b356d8450427b7ece1"><span class="id" title="notation">:</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp//stdpp.base.html#6c0a583aa94fbbce6fcf0f655cf1cbb7"><span class="id" title="notation">⊤</span></a> <a class="idref" href="D.Dot.examples.hoas.html#d71d9a5ce88ae18071782d76f145573c"><span class="id" title="notation">→:</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp//stdpp.base.html#49af51f22ba6081c5259453e85aa12b3"><span class="id" title="notation">⊥</span></a>.<br/>
+<span class="id" title="keyword">Definition</span> <a name="loopTms.hloopDefTConcr"><span class="id" title="definition">hloopDefTConcr</span></a> : <a class="idref" href="D.Dot.examples.hoas.html#hty"><span class="id" title="definition">hty</span></a> := <a class="idref" href="D.Dot.examples.hoas.html#eebc01a27482beba2e49b11948bab893"><span class="id" title="notation">μ</span></a><a class="idref" href="D.Dot.examples.hoas.html#eebc01a27482beba2e49b11948bab893"><span class="id" title="notation">:</span></a> <span class="id" title="var">_</span><a class="idref" href="D.Dot.examples.hoas.html#eebc01a27482beba2e49b11948bab893"><span class="id" title="notation">,</span></a> <a class="idref" href="D.Dot.examples.hoas.html#38f74ce8ac90b11a758c53061ae545f8"><span class="id" title="notation">{@</span></a> <a class="idref" href="D.Dot.examples.hoas_ex_utils.html#loopTms.hloopDefT"><span class="id" title="definition">hloopDefT</span></a> <a class="idref" href="D.Dot.examples.hoas.html#38f74ce8ac90b11a758c53061ae545f8"><span class="id" title="notation">}</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="loopTms.hloopFunTm"><span class="id" title="definition">hloopFunTm</span></a> : <a class="idref" href="D.Dot.examples.hoas.html#htm"><span class="id" title="definition">htm</span></a> := <a class="idref" href="D.Dot.examples.hoas_ex_utils.html#loopTms.hloopDefV"><span class="id" title="definition">hloopDefV</span></a> <a class="idref" href="D.Dot.examples.hoas.html#c85e36e9b233cbdeb3214538b1e4a566"><span class="id" title="notation">@:</span></a> "loop".<br/>
+<span class="id" title="keyword">Definition</span> <a name="loopTms.hloopTm"><span class="id" title="definition">hloopTm</span></a> : <a class="idref" href="D.Dot.examples.hoas.html#htm"><span class="id" title="definition">htm</span></a> := <a class="idref" href="D.Dot.examples.hoas_ex_utils.html#loopTms.hloopFunTm"><span class="id" title="definition">hloopFunTm</span></a> <a class="idref" href="D.Dot.examples.hoas.html#5dc6e48cac7b4e60846f98b2731a8cef"><span class="id" title="notation">$:</span></a> <a class="idref" href="D.Dot.examples.hoas.html#syn.hvint"><span class="id" title="abbreviation">hvint</span></a> 0.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="D.Dot.examples.hoas_ex_utils.html#loopTms"><span class="id" title="module">loopTms</span></a>.<br/>
+</div>
+</div>
+<div id="footer">
+  Generated by <a href="http://coq.inria.fr/">coqdoc</a> and improved with <a href="https://github.com/tebbi/coqdocjs">CoqdocJS</a>
+</div>
+</div>
+</body>
+
+</html>
