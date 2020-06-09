@@ -394,7 +394,7 @@ Section VarianceStpLemmas.
 End VarianceStpLemmas.
 
 (* In this section, some lemmas about double-delay subtyping are derived from
-the above ones. *)
+ones about single-delay subtyping. *)
 Section iSub_Derived_Lemmas.
   Context `{HdotG: !dlangG Σ} `{!SwapPropI Σ}.
 
