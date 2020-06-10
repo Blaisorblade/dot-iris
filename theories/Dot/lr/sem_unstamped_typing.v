@@ -145,17 +145,6 @@ Section tmem_unstamped_lemmas.
     apply /same_skel_trans_dm /Hsk1 /same_skel_symm_dm /Hsk.
   Qed.
 
-  Lemma sD_Typ_Absurd {Γ} L1 L2 U1 U2 d l
-    (Hneq : ∀ s σ, d ≠ dtysem s σ) :
-    Γ s⊨ { l := d } : cTMem l L1 U1 -∗
-    Γ s⊨ { l := d } : cTMem l L2 U2.
-  Proof.
-    rewrite !sdtp_eq'; iIntros "#Hd !> %ρ %Hpid Hg"; iExFalso.
-    iDestruct ("Hd" $! ρ Hpid with "Hg") as (ψ) "{Hd} [Hl _]"; clear -Hneq.
-    rewrite /= dm_to_type_eq; iDestruct "Hl" as (s σ Heq) "_".
-    destruct d; naive_solver.
-  Qed.
-
   Lemma suD_Typ_Stp {Γ} L1 L2 U1 U2 d l:
     Γ s⊨ L2 <:[0] L1 -∗
     Γ s⊨ U1 <:[0] U2 -∗
@@ -163,9 +152,7 @@ Section tmem_unstamped_lemmas.
     Γ su⊨ { l := d } : cTMem l L2 U2.
   Proof.
     iIntros "#Hsub1 #Hsub2 #H1 !>"; iMod "H1" as (d1s Hsk1) "#H1"; iModIntro.
-    iExists d1s; iSplit; first done.
-    destruct d1s; [|iApply (sD_Typ_Stp with "Hsub1 Hsub2 H1")|];
-      iApply (sD_Typ_Absurd with "H1"); naive_solver.
+    by iExists d1s; iSplit; last iApply (sD_Typ_Stp with "Hsub1 Hsub2 H1").
   Qed.
 
   Lemma suD_Typ_Abs {l σ Γ L T U} fakeT (HclT : coveringσ σ T):

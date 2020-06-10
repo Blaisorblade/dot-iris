@@ -245,11 +245,11 @@ Section StpLemmas.
   Proof. rewrite -!sstpd0_to_sstpi0. apply sD_Path_Stp. Qed.
 
   (** ** Type member introduction. *)
-  Lemma sD_Typ_Sub {Γ} L1 L2 U1 U2 s σ l:
+  Lemma sD_Typ_Sub {Γ} L1 L2 U1 U2 d l:
     Γ s⊨ L2, 0 <: L1, 0 -∗
     Γ s⊨ U1, 0 <: U2, 0 -∗
-    Γ s⊨ { l := dtysem σ s } : cTMem l L1 U1 -∗
-    Γ s⊨ { l := dtysem σ s } : cTMem l L2 U2.
+    Γ s⊨ { l := d } : cTMem l L1 U1 -∗
+    Γ s⊨ { l := d } : cTMem l L2 U2.
   Proof. rewrite -!sstpd0_to_sstpi0. apply sD_Typ_Stp. Qed.
 
   Lemma sD_Typ_Abs {Γ} T L U s σ l:

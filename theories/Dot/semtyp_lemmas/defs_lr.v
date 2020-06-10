@@ -58,11 +58,11 @@ Section Sec.
     iApply (oDVMem_respects_sub with "(Hsub Hg) Hd").
   Qed.
 
-  Lemma sD_Typ_Stp {Γ} L1 L2 U1 U2 s σ l:
+  Lemma sD_Typ_Stp {Γ} L1 L2 U1 U2 d l:
     Γ s⊨ L2 <:[0] L1 -∗
     Γ s⊨ U1 <:[0] U2 -∗
-    Γ s⊨ { l := dtysem σ s } : cTMem l L1 U1 -∗
-    Γ s⊨ { l := dtysem σ s } : cTMem l L2 U2.
+    Γ s⊨ { l := d } : cTMem l L1 U1 -∗
+    Γ s⊨ { l := d } : cTMem l L2 U2.
   Proof.
     rewrite !sdtp_eq'; iIntros "#HL #HU #Hd !>" (ρ Hpid) "#Hg".
     iSpecialize ("Hd" $! ρ Hpid with "Hg").
