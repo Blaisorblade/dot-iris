@@ -121,9 +121,6 @@ Section dm_to_type.
     by iApply stamp_σ_to_type_intro.
   Qed.
 
-  Definition dm_to_type_eq d i ψ : dm_to_type d i ψ =
-    (∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ , i ] ψ)%I := eq_refl.
-
   Global Opaque dm_to_type.
 End dm_to_type.
 
