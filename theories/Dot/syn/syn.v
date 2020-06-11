@@ -30,6 +30,8 @@ Inductive un_op : Set := unot.
 Inductive bin_op : Set := bplus | bminus | btimes | bdiv | blt | ble | beq.
 Inductive base_ty : Set := tint | tbool.
 
+Implicit Types (l : label) (B : base_ty).
+
 (** ** DOT syntax, with corresponding on-paper syntax in comments. *)
 (** Expressions/terms [e ::= ]: *)
 Inductive tm : Type :=
@@ -60,16 +62,16 @@ Inductive tm : Type :=
  with ty : Type :=
   | TTop : ty (* top type [⊤]; *)
   | TBot : ty (* bottom type [⊤]; *)
-  | TAnd : ty → ty → ty (* intersection type [S ∧ T]; *)
-  | TOr : ty → ty → ty (* union type [S ∨ T]; *)
-  | TLater : ty → ty (* later type [▷ T]; *)
-  | TAll : ty → ty → ty (* forall type [∀ x: S. T]; *)
-  | TMu : ty → ty (* mu-types [μ x. T]; *)
-  | TVMem : label → ty → ty (* value members [{a: T}];*)
-  | TTMem : label → ty → ty → ty (* type members [{A :: L .. U}]; *)
-  | TSel : path → label → ty (* type selections [p.A]; *)
-  | TPrim : base_ty → ty (* primitive types *)
-  | TSing : path → ty (* singleton types [p.type].*).
+  | TAnd (T1 T2 : ty) : ty (* intersection type [S ∧ T]; *)
+  | TOr (T1 T2 : ty): ty (* union type [S ∨ T]; *)
+  | TLater (T : ty) : ty (* later type [▷ T]; *)
+  | TAll (S T : ty) : ty (* forall type [∀ x: S. T]; *)
+  | TMu (T : ty) : ty (* mu-types [μ x. T]; *)
+  | TVMem l (T : ty) : ty (* value members [{a: T}];*)
+  | TTMem l (T1 T2 : ty) : ty (* type members [{A :: L .. U}]; *)
+  | TSel (p : path) l : ty (* type selections [p.A]; *)
+  | TPrim B : ty (* primitive types *)
+  | TSing (p : path) : ty (* singleton types [p.type].*).
 
 (* Workaround Coq bug with modules. *)
 Definition vl := vl_.
@@ -100,7 +102,7 @@ Delimit Scope dms_scope with dms.
 
 Implicit Types
          (T : ty) (v : vl) (t : tm) (d : dm) (ds : dms) (p : path)
-         (Γ : ctx) (l : label).
+         (Γ : ctx).
 
 Instance inh_ty : Inhabited ty := populate TInt.
 Instance inh_base_lit : Inhabited base_lit := populate (lint 0).
