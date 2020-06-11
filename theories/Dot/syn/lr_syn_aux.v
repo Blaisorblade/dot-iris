@@ -31,10 +31,9 @@ Local Hint Constructors path_wp_pure : core.
 Lemma path_wp_pure_pv_eq Pv v : path_wp_pure (pv v) Pv ↔ Pv v.
 Proof. split; by [inversion_clear 1 | auto]. Qed.
 
-Lemma path_wp_pure_pself_eq Pv p l : path_wp_pure (pself p l) Pv →
-  ∃ vp q, path_wp_pure p (eq vp) ∧ vp @ l ↘ dpt q ∧ path_wp_pure q Pv ∧
-  path_wp_pure (pself p l) Pv.
-Proof. inversion_clear 1; naive_solver. Qed.
+Lemma path_wp_pure_pself_eq Pv p l : path_wp_pure (pself p l) Pv ↔
+  ∃ vp q, path_wp_pure p (eq vp) ∧ vp @ l ↘ dpt q ∧ path_wp_pure q Pv.
+Proof. split; first inversion_clear 1; naive_solver. Qed.
 
 Global Instance pwp_pure_proper : Proper ((=) ==> pointwise_relation _ iff ==> iff) path_wp_pure.
 Proof.
