@@ -31,8 +31,8 @@ Inductive path_path_repl (p q : path) : path → path → Prop :=
   pself p1 l ~pp[ p := q ] pself p2 l
 where "p1 ~pp[ p := q  ] p2" := (path_path_repl p q p1 p2) .
 
-Lemma path_path_repl_id p1 p2 p : p1 ~pp[ p := p ] p2 → p1 = p2.
-Proof. by elim; intros; simplify_eq/=. Qed.
+(* Lemma path_path_repl_id p1 p2 p : p1 ~pp[ p := p ] p2 → p1 = p2.
+Proof. by elim; intros; simplify_eq/=. Qed. *)
 
 Notation path_path_repl_rtc p q := (rtc (path_path_repl p q)).
 Notation "p1 ~pp[ p := q  ]* p2" := (path_path_repl_rtc p q p1 p2) (at level 70).
@@ -89,11 +89,11 @@ where "T1 ~Tp[ p := q  ] T2" := (ty_path_repl p q T1 T2).
 Notation ty_path_repl_rtc p q := (rtc (ty_path_repl p q)).
 Notation "T1 ~Tp[ p := q  ]* T2" := (ty_path_repl_rtc p q T1 T2) (at level 70).
 
-Lemma ty_path_repl_id p T1 T2 : T1 ~Tp[ p := p ] T2 → T1 = T2.
+(* Lemma ty_path_repl_id p T1 T2 : T1 ~Tp[ p := p ] T2 → T1 = T2.
 Proof.
   intros Hr; dependent induction Hr; rewrite ?IHHr //;
     f_equiv; exact: path_path_repl_id.
-Qed.
+Qed. *)
 
 (**
 Define substitution of [pv (ids 0)] by [p] as a relation, in terms of the
@@ -131,12 +131,8 @@ Fixpoint psubst_path p q r : path := match (decide (r = p)) with
   end
 end
 where "r .p[ p := q  ]" := (psubst_path p q r).
-
-Lemma psubst_path_id p q : q .p[ p := p ] = q.
-Proof. elim: q => /= *; case_decide; by f_equal. Qed.
-
-Lemma psubst_path_self p q: p .p[ p := q ] = q.
-Proof. case: p => /= *; by rewrite decide_True. Qed.
+(* Lemma psubst_path_self p q: p .p[ p := q ] = q.
+Proof. case: p => /= *; by rewrite decide_True. Qed. *)
 
 Reserved Notation "T .T[ p := q  ]" (at level 65).
 Fixpoint psubst_ty p q T : ty := match T with
