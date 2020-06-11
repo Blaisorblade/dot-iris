@@ -282,13 +282,11 @@ Section path_wp.
     alias_paths p.|[ρ] q.|[ρ] →
     path_wp p1.|[ρ] φ ≡ path_wp p2.|[ρ] φ.
   Proof.
-    move => Hrepl; elim: Hrepl φ => [| p1' p2' l Hrepl IHrepl] φ /=.
+    move => Hrepl; elim: Hrepl φ => {p1 p2} [| p1' p2' l Hrepl IHrepl] φ /=.
     exact: alias_paths_elim_eq.
     rewrite !path_wp_pself_eq /= => Hal.
     properness => //. exact: IHrepl.
   Qed.
-
-  Definition alias_pathsI p q : iProp Σ := ⌜alias_paths p q⌝.
 
   Lemma rewrite_path_path_repl {p q p1 p2 ρ v}:
     p1 ~pp[ p := q ] p2 →
