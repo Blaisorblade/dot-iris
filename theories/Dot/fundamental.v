@@ -29,8 +29,6 @@ Section fundamental.
   Definition fundamental_subtype_def Γ i T1 T2 (HT: Γ t⊢ₜ T1 <:[i] T2) :=
     ⊢ Γ ⊨ T1 <:[ i ] T2.
 
-  Hint Resolve psubst_one_implies : core.
-
   (* Reduce away the above definitions. *)
   Local Ltac simpl_context := red; markUsed Σ; red_hyps_once.
 
@@ -45,8 +43,8 @@ Section fundamental.
     + iApply sP_Fld_E. by iApply H.
     + iApply sP_Sub; [iApply H0|iApply H].
     + by iApply sP_Later; [iApply H].
-    + iApply P_Mu_I; [|iApply H]; eauto.
-    + iApply P_Mu_E; [|iApply H]; eauto.
+    + by iApply P_Mu_I; [|iApply H]; first exact: psubst_one_implies.
+    + by iApply P_Mu_E; [|iApply H]; first exact: psubst_one_implies.
     + iApply sP_Fld_I. by iApply H.
     + iApply sP_Sngl_Refl. by iApply H.
     + iApply sP_Sngl_Inv. by iApply H.
@@ -97,7 +95,8 @@ Section fundamental.
     (∀ l d T (HT : Γ t⊢{ l := d } : T), fundamental_dm_typed_def HT).
   Proof.
     apply typing_mut_ind; clear Γ; intros; simpl_context.
-    + iApply uT_All_E_p; [|iApply H|iApply fundamental_path_typed]; eauto.
+    + by iApply uT_All_E_p; [|iApply H|iApply fundamental_path_typed];
+        first exact: psubst_one_implies.
     + by iApply uT_All_E; [iApply H|iApply H0].
     + by iApply suT_Obj_E; iApply H.
     + iApply uT_All_I_Strong; [|by iApply H].
