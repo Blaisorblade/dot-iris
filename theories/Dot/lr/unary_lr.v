@@ -457,6 +457,36 @@ End misc_lemmas.
 
 Section path_repl_lemmas.
   Context `{!dlangG Σ}.
+  Implicit Types (φ : vl -d> iPropO Σ).
+
+  (** Beware: we can do path replacement *before* substitution,
+      even tho substitution and path replacement don't commute nicely.
+
+      As a special case, we get the less surprising:
+      [alias_paths_subst p r ids → path_wp q φ ≡ path_wp (q .p[p := r]) φ].
+
+      But we do need the general form. *)
+  Lemma path_replacement_equiv {p q ρ} p1 p2 φ :
+    p1 ~pp[ p := q ] p2 →
+    alias_paths p.|[ρ] q.|[ρ] →
+    path_wp p1.|[ρ] φ ≡ path_wp p2.|[ρ] φ.
+  Proof.
+    move => Hrepl; elim: Hrepl φ => {p1 p2} [| p1' p2' l Hrepl IHrepl] φ /=.
+    exact: alias_paths_elim_eq.
+    rewrite !path_wp_pself_eq /= => Hal.
+    properness => //. exact: IHrepl.
+  Qed.
+
+  Lemma rewrite_path_path_repl {p q p1 p2 ρ v}:
+    p1 ~pp[ p := q ] p2 →
+    alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
+    ⌜alias_paths p1.|[ρ] (pv v)⌝ ⊣⊢@{iPropI Σ} ⌜alias_paths p2.|[ρ] (pv v)⌝.
+    (* alias_paths p1.|[ρ] (pv v) ↔ alias_paths p2.|[ρ] (pv v). *)
+  Proof.
+    intros Hrew Hal.
+    rewrite !alias_paths_pv_eq_1 -!path_wp_pureable.
+    exact: path_replacement_equiv.
+  Qed.
 
   Lemma fundamental_ty_path_repl {p q T1 T2}
     (Hrew : T1 ~Tp[ p := q ] T2) :
