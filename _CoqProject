@@ -34,7 +34,6 @@ theories/Dot/syn/syn.v
 theories/Dot/syn/rules.v
 theories/Dot/syn/path_repl.v
 theories/Dot/syn/path_repl_lemmas.v
-theories/Dot/syn/syn_lemmas.v
 theories/Dot/syn/lr_syn_aux.v
 theories/Dot/syn/drop_skips.v
 theories/Dot/syn/skeleton.v
@@ -93,6 +92,7 @@ theories/Dot/examples/syn/from_pdot_mutual_rec.v
 theories/Dot/examples/syn/list.v
 theories/Dot/examples/syn/old_unstamped_typing_ex.v
 theories/Dot/examples/syn/scala_lib.v
+theories/Dot/examples/syn/syn_lemmas.v
 
 theories/Dot/hkdot/sem_kind.v
 theories/Dot/hkdot/hkdot.v

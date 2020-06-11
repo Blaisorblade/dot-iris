@@ -1,7 +1,7 @@
 From D Require Import tactics.
 From D.Dot Require Import unstampedness_binding.
 From D.Dot Require Import path_repl_lemmas.
-From D.Dot Require Import syn syn_lemmas ex_utils old_subtyping.
+From D.Dot Require Import syn ex_utils old_subtyping.
 Import DBNotation.
 
 Ltac subtcrush := repeat first [ eassumption | reflexivity | subtypconstructor | stcrush ].

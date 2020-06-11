@@ -1,5 +1,5 @@
 (** Lemmas relating is_unstamped with binding and substitution. *)
-From D.Dot Require Import syn syn_lemmas traversals.
+From D.Dot Require Import syn traversals.
 From D.Dot Require Export core_stamping_defs.
 Import Trav1.
 

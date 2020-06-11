@@ -1,5 +1,5 @@
 From D Require Import tactics.
-From D.Dot Require Import syn syn_lemmas ex_utils old_unstamped_typing.
+From D.Dot Require Import syn ex_utils old_unstamped_typing.
 From D.Dot Require Import unstampedness_binding.
 From D.Dot Require Import path_repl_lemmas
   old_subtyping_derived_rules.

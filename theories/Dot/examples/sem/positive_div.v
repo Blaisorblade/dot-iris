@@ -5,7 +5,6 @@ From D.pure_program_logic Require Import lifting adequacy.
 From iris.program_logic Require Import ectxi_language.
 
 From D Require Import swap_later_impl.
-From D.Dot Require Import syn_lemmas.
 From D.Dot Require Import ex_iris_utils sem_unstamped_typing.
 
 Import dlang_adequacy.
