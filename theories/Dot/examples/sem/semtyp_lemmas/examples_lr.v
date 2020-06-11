@@ -4,7 +4,7 @@ From iris.proofmode Require Import tactics.
 From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language.
 
-From D Require Import iris_prelude succ_notation swap_later_impl proper.
+From D Require Import iris_prelude swap_later_impl proper.
 From D.Dot Require Import rules path_repl.
 From D.Dot Require Export old_fundamental dsub_lr.
 
@@ -93,7 +93,7 @@ Section Lemmas.
   Qed.
 
   Lemma sSub_Later_Sub Γ T1 T2 i j:
-    Γ s⊨ T1, S i <: T2, S j -∗
+    Γ s⊨ T1, i.+1 <: T2, j.+1 -∗
     Γ s⊨ oLater T1, i <: oLater T2, j.
   Proof.
     iIntros "/= #Hsub !> %ρ %v #Hg #HT1".
@@ -104,7 +104,7 @@ Section Lemmas.
 
   Lemma sSub_Index_Incr Γ T U i j:
     Γ s⊨ T, i <: U, j -∗
-    Γ s⊨ T, S i <: U, S j.
+    Γ s⊨ T, i.+1 <: U, j.+1.
   Proof. iIntros "/= #Hsub !> ** !>". by iApply "Hsub". Qed.
 
   Lemma sSub_Later_Mono Γ T U i j:
@@ -178,7 +178,7 @@ Section Lemmas.
     Γ s⊨p p : T, i + j.
   Proof.
     rewrite comm; elim: j i => [//|j IHj] i; rewrite plus_Snm_nSm.
-    by rewrite -(IHj (S i)) -sP_Later.
+    by rewrite -(IHj i.+1) -sP_Later.
   Qed.
 
   Lemma sP_Var0 {Γ T}

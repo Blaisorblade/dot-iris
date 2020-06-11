@@ -3,7 +3,7 @@ From iris.proofmode Require Import tactics.
 From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language.
 
-From D Require Import iris_prelude succ_notation swap_later_impl proper.
+From D Require Import iris_prelude swap_later_impl proper.
 From D.Dot Require Import rules path_repl unary_lr dsub_lr defs_lr binding_lr.
 
 Implicit Types (Σ : gFunctors)
@@ -131,11 +131,11 @@ Section StpLemmas.
   Proof. by iIntros "!> ** !> /=". Qed.
 
   Lemma sLater_Sub Γ T i :
-    ⊢ Γ s⊨ oLater T, i <: T, S i.
+    ⊢ Γ s⊨ oLater T, i <: T, i.+1.
   Proof. by iIntros "/= !> %ρ %v #HG #HT !>". Qed.
 
   Lemma sSub_Later Γ T i :
-    ⊢ Γ s⊨ T, S i <: oLater T, i.
+    ⊢ Γ s⊨ T, i.+1 <: oLater T, i.
   Proof. by iIntros "/= !> ** !>". Qed.
 
   (** ** Subtyping for type selections. *)
@@ -217,13 +217,13 @@ Section StpLemmas.
 
   Lemma sAll_Sub_All {Γ T1 T2 U1 U2 i} `{!SwapPropI Σ} :
     Γ s⊨ oLater T2, i <: oLater T1, i -∗
-    oLaterN (S i) (shift T2) :: Γ s⊨ oLater U1, i <: oLater U2, i -∗
+    oLaterN i.+1 (shift T2) :: Γ s⊨ oLater U1, i <: oLater U2, i -∗
     Γ s⊨ oAll T1 U1, i <: oAll T2 U2, i.
   Proof. rewrite -!sstpd_to_sstpi. apply: sAll_Stp_All. Qed.
 
   Lemma All_Sub_All {Γ} T1 T2 U1 U2 i `{!SwapPropI Σ} :
     Γ ⊨ TLater T2, i <: TLater T1, i -∗
-    iterate TLater (S i) (shift T2) :: Γ ⊨ TLater U1, i <: TLater U2, i -∗
+    iterate TLater i.+1 (shift T2) :: Γ ⊨ TLater U1, i <: TLater U2, i -∗
     Γ ⊨ TAll T1 U1, i <: TAll T2 U2, i.
   Proof.
     rewrite /istpi fmap_cons iterate_TLater_oLater.

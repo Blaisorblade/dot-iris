@@ -22,7 +22,7 @@ Inductive AllowNonVars := OnlyVars | AlsoNonVars.
 
 Definition is_unstamped_trav: Traversal (nat * AllowNonVars) :=
   {|
-    upS := λ '(n, b), (S n, b);
+    upS := λ '(n, b), (n.+1, b);
     underPathElimS := λ '(n, _), (n, OnlyVars);
     varP := λ '(n, b) i, i < n;
     dtysynP := λ _ T, True;

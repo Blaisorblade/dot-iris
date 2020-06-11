@@ -15,14 +15,14 @@ Hint Resolve is_unstamped_pvars : core.
 
 Lemma iT_Mu_E {Γ x T}:
   Γ u⊢ₜ tv (var_vl x): TMu T →
-  is_unstamped_ty' (S (length Γ)) T →
+  is_unstamped_ty' (length Γ).+1 T →
   Γ u⊢ₜ tv (var_vl x): T.|[var_vl x/].
 Proof. move => Hx Hu. by eapply iT_Path', iP_Mu_E', iP_VarT, Hx. Qed.
 
 Lemma iT_Mu_I {Γ x T}:
   Γ u⊢ₜ tv (var_vl x): T.|[var_vl x/] →
   (*──────────────────────*)
-  is_unstamped_ty' (S (length Γ)) T →
+  is_unstamped_ty' (length Γ).+1 T →
   Γ u⊢ₜ tv (var_vl x): TMu T.
 Proof. move => Hx Hu. by eapply iT_Path', iP_Mu_I', iP_VarT, Hx. Qed.
 
@@ -34,7 +34,7 @@ Ltac tcrush :=
 Lemma iT_All_Ex Γ e1 x2 T1 T2:
   Γ u⊢ₜ e1: TAll T1 T2 →
   Γ u⊢ₜ tv (var_vl x2) : T1 →
-  is_unstamped_ty' (S (length Γ)) T2 →
+  is_unstamped_ty' (length Γ).+1 T2 →
   (*────────────────────────────────────────────────────────────*)
   Γ u⊢ₜ tapp e1 (tv (var_vl x2)) : T2.|[var_vl x2/].
 Proof.
@@ -102,7 +102,7 @@ Hint Resolve iT_ISub_nocoerce : core.
 Lemma iT_All_Ex' T2 {Γ e1 x2 T1 T3} :
   Γ u⊢ₜ e1: TAll T1 T2 →                        Γ u⊢ₜ tv (ids x2) : T1 →
   T3 = T2.|[ids x2/] →
-  is_unstamped_ty' (S (length Γ)) T2 →
+  is_unstamped_ty' (length Γ).+1 T2 →
   (*────────────────────────────────────────────────────────────*)
   Γ u⊢ₜ tapp e1 (tv (ids x2)) : T3.
 Proof. intros; subst; exact: iT_All_Ex. Qed.
@@ -110,7 +110,7 @@ Proof. intros; subst; exact: iT_All_Ex. Qed.
 Lemma iT_Mu_E' {Γ x T1 T2}:
   Γ u⊢ₜ tv (ids x): μ T1 →
   T2 = T1.|[ids x/] →
-  is_unstamped_ty' (S (length Γ)) T1 →
+  is_unstamped_ty' (length Γ).+1 T1 →
   (*──────────────────────*)
   Γ u⊢ₜ tv (ids x): T2.
 Proof. intros; subst; tcrush. Qed.
@@ -159,8 +159,8 @@ Ltac mltcrush := tcrush; try ((apply iSub_Bind_1' || apply iSub_Bind_1); tcrush)
 
 (* Simplified package introduction, for talk. *)
 Lemma BindSpec Γ (L T U : ty):
-  is_unstamped_ty' (S (length Γ)) T →
-  is_unstamped_ty' (S (length Γ)) L → is_unstamped_ty' (S (length Γ)) U →
+  is_unstamped_ty' (length Γ).+1 T →
+  is_unstamped_ty' (length Γ).+1 L → is_unstamped_ty' (length Γ).+1 U →
   {@ type "A" >: T <: T }%ty :: Γ u⊢ₜ L, 1 <: T, 1 →
   {@ type "A" >: T <: T }%ty :: Γ u⊢ₜ T, 1 <: U, 1 →
   Γ u⊢ₜ tv (ν {@ type "A" = T }) : μ {@ type "A" >: L <: U }.
@@ -172,7 +172,7 @@ Qed.
 Lemma iD_Lam_Sub {Γ} V T1 T2 e l L:
   shift T1 :: V :: Γ u⊢ₜ e : T2 →
   TLater V :: Γ u⊢ₜ TAll T1 T2, 0 <: L, 0 →
-  is_unstamped_ty' (S (length Γ)) T1 →
+  is_unstamped_ty' (length Γ).+1 T1 →
   Γ |L V u⊢{ l := dpt (pv (vabs e)) } : TVMem l L.
 Proof.
   intros He Hsub Hs. apply iD_Val.
@@ -210,7 +210,7 @@ Lemma tyApp_typed Γ T U V t l :
     variables bound by let in the expression. *)
   (∀ L, typeEq l (shiftN 2 T) :: L :: Γ u⊢ₜ U.|[up (ren (+1))], 0 <: shiftN 2 V, 0) →
   is_unstamped_ty' (length Γ) T →
-  is_unstamped_ty' (S (length Γ)) U →
+  is_unstamped_ty' (length Γ).+1 U →
   Γ u⊢ₜ tyApp t l T : V.
 Proof.
   move => Ht Hsub HuT1 HuU1.
@@ -221,7 +221,7 @@ Proof.
   apply /iT_ISub_nocoerce /Hsub.
 
   eapply iT_All_Ex'; first var.
-  have HuT3 : is_unstamped_ty' (S (S (length Γ))) (shiftN 2 T)
+  have HuT3 : is_unstamped_ty' (length Γ).+2 (shiftN 2 T)
     by rewrite hrenS; wtcrush.
   varsub; tcrush; rewrite !hsubst_comp; f_equal. autosubst.
   asimpl.
@@ -353,7 +353,7 @@ Lemma iSub_Mu'' {Γ T i}:
   Γ u⊢ₜ T, i <: TMu (shift T), i.
 Proof.
   intros Hu; apply iSub_Skolem_P => //.
-  have HusT: is_unstamped_ty' (S (S (length Γ))) (shift T).|[up (ren (+1))]
+  have HusT: is_unstamped_ty' (S (length Γ).+1) (shift T).|[up (ren (+1))]
     by rewrite (hren_upn 1); eapply is_unstamped_sub_ren_ty, Hu; auto.
   apply (iP_LaterN (i := 0)); wtcrush.
   eapply iT_ISub_nocoerce, iMu_LaterN_Sub_Distr.
@@ -364,18 +364,18 @@ Qed.
 (* Pretty close to [iMu_Sub_Mu'], except that the context of the hypothesis is different. *)
 Lemma iMu_Sub_Mu' {Γ T1 T2 i j}:
   iterate TLater i (shift (μ T1)) :: Γ u⊢ₜ T1, i <: T2, j →
-  is_unstamped_ty' (S (length Γ)) T1 →
-  is_unstamped_ty' (S (length Γ)) T2 →
+  is_unstamped_ty' (length Γ).+1 T1 →
+  is_unstamped_ty' (length Γ).+1 T2 →
   Γ u⊢ₜ TMu T1, i <: TMu T2, j.
 Proof.
   intros Hsub Hu1 Hu2.
   apply iSub_Skolem_P; stcrush.
-  have Hu1' : is_unstamped_ty' (S (S (length Γ))) T1.|[up (ren (+1))]. {
+  have Hu1' : is_unstamped_ty' (S (length Γ).+1) T1.|[up (ren (+1))]. {
     rewrite up_upren_vl.
     eapply is_unstamped_sub_ren_ty, Hu1.
     by apply is_unstamped_ren_up.
   }
-  have Hu2' : is_unstamped_ty' (S (S (length Γ))) T2.|[up (ren (+1))]. {
+  have Hu2' : is_unstamped_ty' (S (length Γ).+1) T2.|[up (ren (+1))]. {
     rewrite up_upren_vl.
     eapply is_unstamped_sub_ren_ty, Hu2.
     by apply is_unstamped_ren_up.

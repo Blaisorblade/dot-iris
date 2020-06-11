@@ -14,7 +14,7 @@ development is based on this understanding, but with some restrictions
 discussed in the paper.
 *)
 From iris.proofmode Require Import tactics.
-From D Require Import succ_notation swap_later_impl.
+From D Require Import swap_later_impl.
 From D.Dot Require Import unary_lr dsub_lr sub_lr path_repl_lr.
 
 Implicit Types (Σ : gFunctors).

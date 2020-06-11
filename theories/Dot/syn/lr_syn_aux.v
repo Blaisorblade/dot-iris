@@ -85,8 +85,8 @@ Proof.
   by exists 0; constructor.
   have [m /(_ I) Hs1] := IHHp1 _ eq_refl.
   have [n /(_ I) Hs2] := IHHp2 _ eq_refl.
-  exists (S m + n) => _ /=.
-  eapply (nsteps_trans (S m)), Hs2; eapply nsteps_r.
+  exists (m.+1 + n) => _ /=.
+  eapply (nsteps_trans m.+1), Hs2; eapply nsteps_r.
   by apply (pure_step_nsteps_ctx (fill_item (ProjCtx l))), Hs1.
   by apply nsteps_once_inv, pure_tproj.
 Qed.

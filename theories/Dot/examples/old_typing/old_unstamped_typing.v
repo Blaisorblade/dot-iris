@@ -25,7 +25,7 @@ Inductive typed Γ : tm → ty → Prop :=
 (** First, elimination forms *)
 (** Dependent application; only allowed if the argument is a path. *)
 | iT_All_E_p p2 e1 T1 T2:
-    is_unstamped_ty' (S (length Γ)) T2 →
+    is_unstamped_ty' (length Γ).+1 T2 →
     (* T2 .Tp[ p2 /]~ T2' → *)
     Γ u⊢ₜ e1: TAll T1 T2 →
     Γ u⊢ₚ p2 : T1, 0 →
@@ -50,7 +50,7 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ u⊢ₜ tv (vabs e) : TAll T1 T2
 | iT_Obj_I ds T:
     Γ |L T u⊢ds ds: T →
-    is_unstamped_ty' (S (length Γ)) T →
+    is_unstamped_ty' (length Γ).+1 T →
     (*──────────────────────*)
     Γ u⊢ₜ tv (vobj ds): TMu T
 
@@ -102,7 +102,7 @@ with dm_typed Γ : label → dm → ty → Prop :=
     Γ u⊢{ l := dpt p } : TVMem l T
 | iD_Val_New l T ds:
     TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ u⊢ds ds : T →
-    is_unstamped_ty' (S (length Γ)) T →
+    is_unstamped_ty' (length Γ).+1 T →
     Γ u⊢{ l := dpt (pv (vobj ds)) } : TVMem l (TMu T)
 | iD_Path_Sub T1 T2 p l:
     Γ u⊢ₜ T1, 0 <: T2, 0 →
@@ -146,7 +146,7 @@ Lemma iT_All_I Γ e T1 T2:
 Proof. apply iT_All_I_Strong. ietp_weaken_ctx. Qed.
 
 Lemma iT_All_I_strip1 Γ e V T1 T2:
-  is_unstamped_ty' (S (length Γ)) T1 →
+  is_unstamped_ty' (length Γ).+1 T1 →
   shift T1 :: V :: Γ u⊢ₜ e : T2 →
   (*─────────────────────────*)
   Γ |L V u⊢ₜ tv (vabs e) : TAll T1 T2.
@@ -156,7 +156,7 @@ Proof.
 Qed.
 
 Lemma iD_All Γ V T1 T2 e l:
-  is_unstamped_ty' (S (length Γ)) T1 →
+  is_unstamped_ty' (length Γ).+1 T1 →
   shift T1 :: V :: Γ u⊢ₜ e : T2 →
   Γ |L V u⊢{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
 Proof. by intros; apply iD_Val, iT_All_I_strip1. Qed.

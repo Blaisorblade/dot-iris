@@ -1,5 +1,5 @@
 (** * Prove syntactic translation from old unstamped typing to typing. *)
-From D Require Import tactics succ_notation.
+From D Require Import tactics.
 (* Beware the order of imports! We want [subtyping] and [typing] to be preferred. *)
 From D.Dot Require Import old_subtyping old_unstamped_typing unstampedness_binding.
 From D.Dot Require Import subtyping typing.

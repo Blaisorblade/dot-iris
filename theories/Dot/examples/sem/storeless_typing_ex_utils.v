@@ -125,7 +125,7 @@ Proof. by intros; apply iT_Path'; pvarsub. Qed.
 Lemma iT_Mu_E' Γ x T1 T2:
   Γ v⊢ₜ tv (var_vl x): TMu T1 →
   T2 = T1.|[var_vl x/] →
-  is_unstamped_ty' (S (length Γ)) T1 →
+  is_unstamped_ty' (length Γ).+1 T1 →
   (*──────────────────────*)
   Γ v⊢ₜ tv (var_vl x): T2.
 Proof. intros; subst; tcrush. Qed.
@@ -181,7 +181,7 @@ Lemma packTV_typed s T Γ :
 Proof. intros; exact: packTV_typed'. Qed.
 
 Definition tApp Γ t s :=
-  lett t (lett (packTV (S (length Γ)) s) (tapp x1 x0)).
+  lett t (lett (packTV (length Γ).+1 s) (tapp x1 x0)).
 
 Lemma typeApp_typed s Γ T U V t :
   Γ v⊢ₜ t : TAll (type "A" >: ⊥ <: ⊤) U →

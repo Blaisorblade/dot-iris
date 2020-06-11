@@ -72,7 +72,7 @@ Section lang_rules.
     PureExec True i (iterate tskip i (tv v)) (tv v).
   Proof.
     move => _. elim: i => [|i IHi]; rewrite ?iterate_0 ?iterate_S //. by repeat constructor.
-    replace (S i) with (i + 1) by lia.
+    replace (i.+1) with (i + 1) by lia.
     eapply nsteps_trans with (y := tskip (tv v)) => //.
     - change tskip with (fill [SkipCtx]) in *.
       by apply pure_step_nsteps_ctx; try apply _.

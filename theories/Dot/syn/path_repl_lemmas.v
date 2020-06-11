@@ -4,7 +4,6 @@ This is relative to both relational path substitution, and to normal
 substitution.
 *)
 From Coq.ssr Require Import ssrbool.
-From D Require Import succ_notation.
 From D.Dot Require Import syn path_repl.
 From D.Dot Require Import core_stamping_defs.
 

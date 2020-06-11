@@ -79,7 +79,7 @@ Definition liftA3 (con : s1 → s2 → s3 → s4) :
   con (a1 i) (a2 i) (a3 i).
 
 Definition liftBind (con : s1 → s2) (f : hvl → hterm s1) : hterm s2 := Eval cbv -[minus] in λ i,
-  let i' := S i in
+  let i' := i.+1 in
   let v := ren (λ j, j - i') in
   con (f v i').
 

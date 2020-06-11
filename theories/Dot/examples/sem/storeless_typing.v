@@ -192,13 +192,13 @@ Qed.
 
 Lemma iT_Mu_E {Γ x T}:
   Γ v⊢ₜ tv (var_vl x): TMu T →
-  is_unstamped_ty' (S (length Γ)) T →
+  is_unstamped_ty' (length Γ).+1 T →
   Γ v⊢ₜ tv (var_vl x): T.|[var_vl x/].
 Proof. move => Hx Hu. by eapply iT_Path', iP_Mu_E', iP_VarT, Hx. Qed.
 
 Lemma iT_Mu_I {Γ x T}:
   Γ v⊢ₜ tv (var_vl x): T.|[var_vl x/] →
-  is_unstamped_ty' (S (length Γ)) T →
+  is_unstamped_ty' (length Γ).+1 T →
   Γ v⊢ₜ tv (var_vl x): TMu T.
 Proof. move => Hx Hu. by eapply iT_Path', iP_Mu_I', iP_VarT, Hx. Qed.
 

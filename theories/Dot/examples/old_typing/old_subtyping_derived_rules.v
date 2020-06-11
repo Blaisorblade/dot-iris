@@ -204,20 +204,20 @@ Proof. intros; asideLaters; subtcrush. Qed.
 (** Show that [singleton_Mu_[12]] and [iP_Mu_[IE]] are interderivable. *)
 Lemma singleton_Mu_1 {Γ p T i} :
   Γ u⊢ₚ p : TMu T, i →
-  is_unstamped_ty' (S (length Γ)) T →
+  is_unstamped_ty' (length Γ).+1 T →
   Γ u⊢ₜ TSing p, i <: T .Tp[ p /], i.
 Proof. intros Hp Hu; apply iSngl_Sub_Self, (iP_Mu_E Hu Hp). Qed.
 
 Lemma singleton_Mu_2 {Γ p T i} :
   Γ u⊢ₚ p : T .Tp[ p /], i →
-  is_unstamped_ty' (S (length Γ)) T →
+  is_unstamped_ty' (length Γ).+1 T →
   Γ u⊢ₜ TSing p, i <: TMu T, i.
 Proof. intros Hp Hu; apply iSngl_Sub_Self, (iP_Mu_I Hu Hp). Qed.
 
 (* Avoid automation, to ensure we don't use [iP_Mu_E] to show them. *)
 Lemma iP_Mu_E_alt {Γ T p i} :
   Γ u⊢ₚ p : TMu T, i →
-  is_unstamped_ty' (S (length Γ)) T →
+  is_unstamped_ty' (length Γ).+1 T →
   Γ u⊢ₚ p : T .Tp[ p /], i.
 Proof.
   intros Hp Hu. eapply iP_ISub', (iP_Sngl_Refl Hp).
@@ -226,7 +226,7 @@ Qed.
 
 Lemma iP_Mu_I_alt {Γ T p i} :
   Γ u⊢ₚ p : T .Tp[ p /], i →
-  is_unstamped_ty' (S (length Γ)) T →
+  is_unstamped_ty' (length Γ).+1 T →
   Γ u⊢ₚ p : TMu T, i.
 Proof.
   intros Hp Hu. eapply iP_ISub', (iP_Sngl_Refl Hp).
@@ -252,7 +252,7 @@ On the other hand, this derived rule handles the substitution in [T2] directly.
 Lemma singleton_Mu_dotty1 {Γ p i T1' T2} :
   Γ u⊢ₜ T1', i <: T2 .Tp[ p /], i →
   Γ u⊢ₚ p : T1', i →
-  is_unstamped_ty' (S (length Γ)) T2 →
+  is_unstamped_ty' (length Γ).+1 T2 →
   Γ u⊢ₜ TSing p, i <: TMu T2, i.
 Proof.
   intros Hsub Hp Hu.
@@ -265,7 +265,7 @@ Lemma iP_LaterN {Γ p T i j} :
   Γ u⊢ₚ p : T, i + j.
 Proof.
   elim: j i => [|j IHj] i Hp; rewrite (plusnO, plusnS); first done.
-  apply (IHj (S i)), iP_Later, Hp; subtcrush; exact: is_unstamped_TLater_n.
+  apply (IHj i.+1), iP_Later, Hp; subtcrush; exact: is_unstamped_TLater_n.
 Qed.
 
 Lemma iMu_LaterN_Sub_Distr_inv {Γ T i n} :

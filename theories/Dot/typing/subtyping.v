@@ -1,5 +1,5 @@
 (** * Judgments defining syntactic gDOT path- and sub- typing. *)
-From D Require Import tactics succ_notation.
+From D Require Import tactics.
 From D.Dot Require Export syn path_repl lr_syn_aux.
 From D.Dot Require Export typing_aux_defs type_eq.
 From D.Dot Require Export core_stamping_defs.
@@ -34,13 +34,13 @@ Inductive path_typed Γ : path → ty → nat → Prop :=
 | iP_Later p T i :
     Γ t⊢ₚ p : TLater T, i →
     (*───────────────────────────────*)
-    Γ t⊢ₚ p : T, S i
+    Γ t⊢ₚ p : T, i.+1
 | iP_Mu_I p T {i} :
-    is_unstamped_ty' (S (length Γ)) T →
+    is_unstamped_ty' (length Γ).+1 T →
     Γ t⊢ₚ p : T .Tp[ p /], i →
     Γ t⊢ₚ p : TMu T, i
 | iP_Mu_E p T {i} :
-    is_unstamped_ty' (S (length Γ)) T →
+    is_unstamped_ty' (length Γ).+1 T →
     Γ t⊢ₚ p : TMu T, i →
     Γ t⊢ₚ p : T .Tp[ p /], i
 | iP_Fld_I p T i l:
@@ -71,11 +71,11 @@ with subtype Γ : nat → ty → ty → Prop :=
     Γ t⊢ₜ T2 <:[i] T3 →
     Γ t⊢ₜ T1 <:[i] T3
 | iLater_Idx_Stp i T1 T2: (* XXX name *)
-    Γ t⊢ₜ T1 <:[S i] T2 →
+    Γ t⊢ₜ T1 <:[i.+1] T2 →
     Γ t⊢ₜ TLater T1 <:[i] TLater T2
 | iIdx_Later_Stp i T1 T2: (* XXX name*)
     Γ t⊢ₜ TLater T1 <:[i] TLater T2 →
-    Γ t⊢ₜ T1 <:[S i] T2
+    Γ t⊢ₜ T1 <:[i.+1] T2
 
 (* "Structural" rule about indexes *)
 | iStp_Add_Later T i:
@@ -135,7 +135,7 @@ with subtype Γ : nat → ty → ty → Prop :=
 (* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types. *)
 | iAll_Stp_All T1 T2 U1 U2 i:
     Γ t⊢ₜ TLater T2 <:[i] TLater T1 →
-    iterate TLater (S i) (shift T2) :: Γ t⊢ₜ TLater U1 <:[i] TLater U2 →
+    iterate TLater i.+1 (shift T2) :: Γ t⊢ₜ TLater U1 <:[i] TLater U2 →
     Γ t⊢ₜ TAll T1 U1 <:[i] TAll T2 U2
 | iFld_Stp_Fld T1 T2 i l:
     Γ t⊢ₜ T1 <:[i] T2 →
@@ -197,7 +197,7 @@ Lemma iP_LaterN {Γ p T i j} :
   Γ t⊢ₚ p : T, i + j.
 Proof.
   elim: j i => [|j IHj] i Hp; rewrite (plusnO, plusnS); first done.
-  apply (IHj (S i)), iP_Later, Hp.
+  apply (IHj i.+1), iP_Later, Hp.
 Qed.
 
 Lemma iLater_Stp_Eq Γ i T1 T2:

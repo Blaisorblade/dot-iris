@@ -3,7 +3,7 @@ From iris.proofmode Require Import tactics.
 From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language.
 
-From D Require Import iris_prelude succ_notation swap_later_impl.
+From D Require Import iris_prelude swap_later_impl.
 From D.Dot Require Import unary_lr.
 
 Implicit Types (Σ : gFunctors).
@@ -279,7 +279,7 @@ Section DStpLemmas.
 
   Lemma sP_Later {Γ} p T i :
     Γ s⊨p p : oLater T, i -∗
-    Γ s⊨p p : T, S i.
+    Γ s⊨p p : T, i.+1.
   Proof.
     iIntros "#HpT !> %ρ #Hg"; rewrite laterN_later.
     iSpecialize ("HpT" with "Hg"); iNext i.

@@ -29,11 +29,11 @@ Inductive path_typed Γ : path → ty → nat → Prop :=
     (*───────────────────────────────*)
     Γ u⊢ₚ p : T2, i + j
 | iP_Mu_I p T {i} :
-    is_unstamped_ty' (S (length Γ)) T →
+    is_unstamped_ty' (length Γ).+1 T →
     Γ u⊢ₚ p : T .Tp[ p /], i →
     Γ u⊢ₚ p : TMu T, i
 | iP_Mu_E p T {i} :
-    is_unstamped_ty' (S (length Γ)) T →
+    is_unstamped_ty' (length Γ).+1 T →
     Γ u⊢ₚ p : TMu T, i →
     Γ u⊢ₚ p : T .Tp[ p /], i
 | iP_Fld_I p T i l:
@@ -65,9 +65,9 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Γ u⊢ₜ T2, i2 <: T3, i3 →
     Γ u⊢ₜ T1, i1 <: T3, i3
 | iLater_Sub i T:
-    Γ u⊢ₜ TLater T, i <: T, S i
+    Γ u⊢ₜ TLater T, i <: T, i.+1
 | iSub_Later i T:
-    Γ u⊢ₜ T, S i <: TLater T, i
+    Γ u⊢ₜ T, i.+1 <: TLater T, i
 
 (* "Structural" rule about indexes *)
 | iSub_Add_Later T i:
@@ -127,7 +127,7 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
 (* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types. *)
 | iAll_Sub_All T1 T2 U1 U2 i:
     Γ u⊢ₜ TLater T2, i <: TLater T1, i →
-    iterate TLater (S i) (shift T2) :: Γ u⊢ₜ TLater U1, i <: TLater U2, i →
+    iterate TLater i.+1 (shift T2) :: Γ u⊢ₜ TLater U1, i <: TLater U2, i →
     Γ u⊢ₜ TAll T1 U1, i <: TAll T2 U2, i
 | iFld_Sub_Fld T1 T2 i l:
     Γ u⊢ₜ T1, i <: T2, i →
@@ -185,14 +185,14 @@ Ltac ettrans := eapply iSub_Trans.
 
 Lemma iP_Later {Γ p T i} :
   Γ u⊢ₚ p : TLater T, i →
-  Γ u⊢ₚ p : T, S i.
+  Γ u⊢ₚ p : T, i.+1.
 Proof.
   intros Hp; apply iP_ISub with (j := 1) (T1 := TLater T) (T2 := T) in Hp;
     move: Hp; rewrite (plusnS i 0) (plusnO i); intros; by [|constructor].
 Qed.
 
 Lemma Sub_later_shift {Γ T1 T2 i j}
-  (Hsub: Γ u⊢ₜ T1, S i <: T2, S j):
+  (Hsub: Γ u⊢ₜ T1, i.+1 <: T2, j.+1):
   Γ u⊢ₜ TLater T1, i <: TLater T2, j.
 Proof.
   ettrans; first exact: iLater_Sub.
@@ -201,7 +201,7 @@ Qed.
 
 Lemma Sub_later_shift_inv {Γ T1 T2 i j}
   (Hsub: Γ u⊢ₜ TLater T1, i <: TLater T2, j):
-  Γ u⊢ₜ T1, S i <: T2, S j.
+  Γ u⊢ₜ T1, i.+1 <: T2, j.+1.
 Proof.
   ettrans; first exact: iSub_Later.
   by eapply iSub_Trans, iLater_Sub.
@@ -249,14 +249,14 @@ Proof. intros. by eapply iP_Var_Sub; [| rewrite ?hsubst_id]. Qed.
 Ltac pvarsub := (eapply iP_Var0_Sub || eapply iP_Var_Sub); first done.
 
 Lemma iP_Mu_I' x T {Γ i} :
-  is_unstamped_ty' (S (length Γ)) T →
+  is_unstamped_ty' (length Γ).+1 T →
   Γ u⊢ₚ pv (var_vl x) : T.|[ var_vl x /], i →
   Γ u⊢ₚ pv (var_vl x) : TMu T, i.
 Proof.
   intros Hu Hp. by eapply iP_Mu_I; last rewrite (psubst_subst_agree_ty _ Hu).
 Qed.
 Lemma iP_Mu_E' x T {Γ i} :
-  is_unstamped_ty' (S (length Γ)) T →
+  is_unstamped_ty' (length Γ).+1 T →
   Γ u⊢ₚ pv (var_vl x) : TMu T, i →
   Γ u⊢ₚ pv (var_vl x) : T.|[ var_vl x /], i.
 Proof. intros Hu Hp; rewrite -(psubst_subst_agree_ty _ Hu); exact: iP_Mu_E. Qed.

@@ -8,7 +8,7 @@ Implicit Types
 
 (** Here is a manual proof of [fv_vabs_inv], with explanations, as
 documentation for [solve_inv_fv_congruence]. *)
-Lemma fv_vabs_inv_manual e n : nclosed_vl (vabs e) n → nclosed e (S n).
+Lemma fv_vabs_inv_manual e n : nclosed_vl (vabs e) n → nclosed e n.+1.
 Proof.
   rewrite /nclosed_vl /nclosed => /= Hfv s1 s2 HsEq.
 
@@ -25,5 +25,5 @@ Qed.
 (** The following ones are "direct" lemmas: deduce that an expression is closed
     by knowing that its subexpression are closed. *)
 
-Lemma fv_vabs_inv e n: nclosed_vl (vabs e) n → nclosed e (S n).
+Lemma fv_vabs_inv e n: nclosed_vl (vabs e) n → nclosed e n.+1.
 Proof. solve_inv_fv_congruence. Qed.

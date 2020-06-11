@@ -13,7 +13,7 @@ Definition is_unstamped_sub n m b s :=
   ∀ i, i < n → is_unstamped_vl m b (s i).
 Notation is_unstamped_ren n m b r := (is_unstamped_sub n m b (ren r)).
 
-Lemma fv_vobj ds n: nclosed ds (S n) → nclosed_vl (vobj ds) n.
+Lemma fv_vobj ds n: nclosed ds n.+1 → nclosed_vl (vobj ds) n.
 Proof. solve_fv_congruence. Qed.
 
 Lemma is_unstamped_nclosed_mut:
@@ -86,13 +86,13 @@ Lemma is_unstamped_ren_shift n m j b:
   m >= j + n → is_unstamped_ren n m b (+j).
 Proof. constructor => //=; lia. Qed.
 
-Lemma is_unstamped_ren1 i b : is_unstamped_ren i (S i) b (+1).
+Lemma is_unstamped_ren1 i b : is_unstamped_ren i i.+1 b (+1).
 Proof. apply is_unstamped_ren_shift; lia. Qed.
 Hint Resolve is_unstamped_ren1 : core.
 
 Lemma is_unstamped_ren_up n m r b:
   is_unstamped_ren n m b r →
-  is_unstamped_ren (S n) (S m) b (upren r).
+  is_unstamped_ren n.+1 m.+1 b (upren r).
 Proof.
   move => Hr [|i] //= Hi; first by constructor => /=; lia.
   have Hi': i < n by lia.
@@ -155,12 +155,12 @@ Proof. rewrite -path_rename_Lemma. apply is_unstamped_ren_mut. Qed.
 
 Lemma is_unstamped_ren1_ty i T b:
   is_unstamped_ty i b T →
-  is_unstamped_ty (S i) b (shift T).
+  is_unstamped_ty i.+1 b (shift T).
 Proof. exact: is_unstamped_sub_ren_ty. Qed.
 
 Lemma is_unstamped_ren1_path i p b:
   is_unstamped_path i b p →
-  is_unstamped_path (S i) b (shift p).
+  is_unstamped_path i.+1 b (shift p).
 Proof. exact: is_unstamped_sub_ren_path. Qed.
 
 

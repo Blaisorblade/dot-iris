@@ -6,7 +6,7 @@ The operational semantics implements the Iris infrastructure for languages,
 using contextual small-step operational semantics.
 *)
 From stdpp Require Export strings.
-From D Require Export prelude.
+From D Require Export prelude succ_notation.
 From D Require Import asubst_intf asubst_base.
 From iris.program_logic Require ectx_language ectxi_language.
 
