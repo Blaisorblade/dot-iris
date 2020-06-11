@@ -211,10 +211,10 @@ Finally, we can also define path substitution as a function.
 Its proofs of correctness is in [path_repl_lemmas.v], in lemmas
 [psubst_one_implies] and [psubst_subst_agree_ty].
 *)
-Definition psubst_one_path_base q p := q .p[ pv (ids 0) := shift p ].
-Definition psubst_one_path q p := unshift (psubst_one_path_base q p).
+Definition psubst_one_base_path q p := q .p[ pv (ids 0) := shift p ].
+Definition psubst_one_path q p := unshift (psubst_one_base_path q p).
 Notation "q .pp[ p /]" := (psubst_one_path q p) (at level 65).
 
-Definition psubst_one_ty_base T p := T .T[ pv (ids 0) := shift p ].
-Definition psubst_one_ty T p := unshift (psubst_one_ty_base T p).
+Definition psubst_one_base_ty T p := T .T[ pv (ids 0) := shift p ].
+Definition psubst_one_ty T p := unshift (psubst_one_base_ty T p).
 Notation "T .Tp[ p /]" := (psubst_one_ty T p) (at level 65).

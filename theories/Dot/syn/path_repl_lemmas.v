@@ -79,10 +79,10 @@ Qed.
 Notation unshifts x := (∃ x', x = shift x').
 
 Lemma psubst_one_base_unshifts {n T} p:
-  is_unstamped_ty' n T → unshifts (psubst_one_ty_base T p).
+  is_unstamped_ty' n T → unshifts (psubst_one_base_ty T p).
 Proof.
-  intros Hu; exists (unshift (psubst_one_ty_base T p)).
-  rewrite /psubst_one_ty_base.
+  intros Hu; exists (unshift (psubst_one_base_ty T p)).
+  rewrite /psubst_one_base_ty.
   have := psubst_one_base_unshifts_gen 0 p Hu.
   by rewrite /unshiftsN /psubst_one_ty_gen ?iterate_S !iterate_0 => ->.
 Qed.
@@ -95,7 +95,7 @@ Lemma psubst_one_implies n T p T' :
   T .Tp[ p /] = T' → T .Tp[ p /]~ T'.
 Proof.
   move => /(psubst_one_base_unshifts p) [T''].
-  rewrite /psubst_one_ty /psubst_one_ty_base => Hw <-.
+  rewrite /psubst_one_ty /psubst_one_base_ty => Hw <-.
   apply psubst_ty_rtc_sufficient.
   by rewrite Hw shift_unshift.
 Qed.
@@ -147,7 +147,7 @@ Lemma psubst_subst_agree_path p n v
   p .pp[ pv v /] = p .|[ v /].
 Proof.
   have := psubst_subst_agree_path_gen v 0 Hu.
-  rewrite iterate_0 /psubst_one_path /psubst_one_path_base /psubst_one_path_gen => ->.
+  rewrite iterate_0 /psubst_one_path /psubst_one_base_path /psubst_one_path_gen => ->.
   rewrite -(shift_unshift p.|[v/]); f_equal.
   by rewrite hsubst_comp.
 Qed.
@@ -158,7 +158,7 @@ Lemma psubst_subst_agree_ty T n v
   T .Tp[ pv v /] = T .|[ v /].
 Proof.
   have := psubst_subst_agree_ty_gen v 0 Hu.
-  rewrite iterate_0 /psubst_one_ty /psubst_one_ty_base /psubst_one_ty_gen => ->.
+  rewrite iterate_0 /psubst_one_ty /psubst_one_base_ty /psubst_one_ty_gen => ->.
   rewrite -(shift_unshift T.|[v/]); f_equal.
   by rewrite hsubst_comp.
 Qed.
