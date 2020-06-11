@@ -281,7 +281,7 @@ Section DStpLemmas.
     Γ s⊨p p : oLater T, i -∗
     Γ s⊨p p : T, i.+1.
   Proof.
-    iIntros "#HpT !> %ρ #Hg"; rewrite laterN_later.
+    iIntros "#HpT !> %ρ #Hg"; rewrite -later_laterN laterN_later.
     iSpecialize ("HpT" with "Hg"); iNext i.
     iApply (path_wp_later_swap with "HpT").
   Qed.
