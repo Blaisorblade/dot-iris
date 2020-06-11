@@ -13,6 +13,9 @@ Definition is_unstamped_sub n m b s :=
   ∀ i, i < n → is_unstamped_vl m b (s i).
 Notation is_unstamped_ren n m b r := (is_unstamped_sub n m b (ren r)).
 
+Lemma fv_vobj ds n: nclosed ds (S n) → nclosed_vl (vobj ds) n.
+Proof. solve_fv_congruence. Qed.
+
 Lemma is_unstamped_nclosed_mut:
   (∀ t i b,
     is_unstamped_tm i b t →

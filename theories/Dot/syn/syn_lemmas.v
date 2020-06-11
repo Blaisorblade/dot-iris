@@ -6,7 +6,8 @@ Implicit Types
          (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
          (Γ : ctx) (ρ : vls).
 
-(** Here is a manual proof of [fv_vabs_inv], with explanations. *)
+(** Here is a manual proof of [fv_vabs_inv], with explanations, as
+documentation for [solve_inv_fv_congruence]. *)
 Lemma fv_vabs_inv_manual e n : nclosed_vl (vabs e) n → nclosed e (S n).
 Proof.
   rewrite /nclosed_vl /nclosed => /= Hfv s1 s2 HsEq.
@@ -23,9 +24,6 @@ Qed.
 
 (** The following ones are "direct" lemmas: deduce that an expression is closed
     by knowing that its subexpression are closed. *)
-
-Lemma fv_vobj ds n: nclosed ds (S n) → nclosed_vl (vobj ds) n.
-Proof. solve_fv_congruence. Qed.
 
 Lemma fv_vabs_inv e n: nclosed_vl (vabs e) n → nclosed e (S n).
 Proof. solve_inv_fv_congruence. Qed.
