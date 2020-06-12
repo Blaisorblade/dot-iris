@@ -1,5 +1,4 @@
 From D.Dot Require Import syn.
-From D.Dot Require Import core_stamping_defs.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -42,11 +41,6 @@ Proof. intros T; induction T; eauto using type_equiv. Qed.
 Existing Instance type_equiv_sym.
 Existing Instance type_equiv_trans.
 
-Lemma is_unstamped_equiv n b T1 T2 :
-  |- T1 == T2 → is_unstamped_ty n b T1 ↔ is_unstamped_ty n b T2.
-Proof.
-  move: n => + H; induction H; split; intros; inverse_is_unstamped; naive_solver.
-Qed.
 Local Hint Constructors type_equiv : core.
 
 Lemma type_equiv_laterN_and j U1 U2 :
