@@ -241,6 +241,12 @@ Section utils.
   Global Instance _oTAppV_proper n v:
     Proper ((≡) ==> (≡)) (_oTAppV (Σ := Σ) (n := n) v) := ne_proper _.
 
+  Global Instance oLam_ne n : NonExpansive (oLam (Σ := Σ) (n := n)).
+  Proof. solve_proper_ho. Qed.
+
+  Global Instance oLam_proper n :
+    Proper ((≡) ==> (≡)) (oLam (Σ := Σ) (n := n)) := ne_proper _.
+
   Lemma oTAppV_subst {n} (T : olty Σ n.+1) v ρ :
     (oTAppV T v).|[ρ] ≡ oTAppV T.|[ρ] v.[ρ].
   Proof.
