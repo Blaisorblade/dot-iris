@@ -10,7 +10,7 @@ Set Implicit Arguments.
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
-Implicit Types (e t : tm) (efs : list tm) (σ : ()).
+Implicit Types (e t : tm) (efs : list tm) (σ : ()) (T : ty) (p : path).
 
 Fixpoint same_skel_tm (t1 t2: tm) {struct t1} : Prop :=
   match (t1, t2) with
@@ -62,28 +62,6 @@ with same_skel_path (p1 p2: path): Prop :=
   match (p1, p2) with
   | (pv v1, pv v2) => same_skel_vl v1 v2
   | (pself p1 l1, pself p2 l2) => same_skel_path p1 p2 ∧ l1 = l2
-  | _ => False
-  end.
-Fixpoint same_skel_ty (T1 T2: ty): Prop :=
-  match (T1, T2) with
-  | (TTop, TTop) => True
-  | (TBot, TBot) => True
-  | (TAnd T11 T12, TAnd T21 T22) =>
-    same_skel_ty T11 T21 ∧ same_skel_ty T12 T22
-  | (TOr T11 T12, TOr T21 T22) =>
-    same_skel_ty T11 T21 ∧ same_skel_ty T12 T22
-  | (TLater T1, TLater T2) =>
-    same_skel_ty T1 T2
-  | (TAll T11 T12, TAll T21 T22) =>
-    same_skel_ty T11 T21 ∧ same_skel_ty T12 T22
-  | (TMu T1, TMu T2) =>
-    same_skel_ty T1 T2
-  | (TVMem l1 T1, TVMem l2 T2) => l1 = l2 ∧ same_skel_ty T1 T2
-  | (TTMem l1 T11 T12, TTMem l2 T21 T22) =>
-    l1 = l2 ∧ same_skel_ty T11 T21 ∧ same_skel_ty T12 T22
-  | (TSel p1 l1, TSel p2 l2) => same_skel_path p1 p2 ∧ l1 = l2
-  | (TPrim b1, TPrim b2) => b1 = b2
-  | (TSing p1, TSing p2) => same_skel_path p1 p2
   | _ => False
   end.
 
@@ -219,20 +197,18 @@ Local Notation same_skel_path_up_ren_def p :=
   (∀ n m p', same_skel_path p p' →
             same_skel_path p.|[upn n (ren (+m))] p'.|[upn n (ren (+m))]).
 
-Local Notation same_skel_ty_up_ren_def T :=
-  (∀ n m T', same_skel_ty T T' →
-            same_skel_ty T%ty.|[upn n (ren (+m))] T'.|[upn n (ren (+m))]).
-
 Lemma same_skel_up_ren :
   (∀ t, same_skel_tm_up_ren_def t) ∧ (∀ v, same_skel_vl_up_ren_def v) ∧
   (∀ d, same_skel_dm_up_ren_def d) ∧ (∀ p, same_skel_path_up_ren_def p) ∧
-  (∀ T, same_skel_ty_up_ren_def T).
+  (∀ T, True).
 Proof.
   apply syntax_mut_ind;
-    try by (intros; simpl in *; case_match;
-            simpl in *; intuition (asimpl; auto)).
+    try by [intros; exact I | intros; simpl in *; case_match;
+            simpl in *; destruct_and?; split_and?; auto 2].
   - intros x n m v' Hv'; destruct v'; simpl in *; subst; intuition auto.
     rewrite iter_up; destruct lt_dec; simpl; auto.
+  - move=> t1 IHt1 n m v2' Hskv; destruct v2'; simplify_eq => //.
+    rewrite /= -iterate_S. exact: IHt1.
   - cbn; move => ds Hds n m [//|//|//|ds'] Hds'.
     elim: ds ds' Hds Hds' =>
       [|[l d] ds IHds] [|[l' d'] ds'] /= Hds //= [Heq [Hd Hds']].
@@ -260,10 +236,6 @@ Local Notation same_skel_path_subst_def p :=
   (∀ f f' p', same_skel_path p p' → (∀ x, same_skel_vl (f x) (f' x)) →
              same_skel_path (p.|[f]) (p'.|[f'])).
 
-Local Notation same_skel_ty_subst_def T :=
-  (∀ f f' T', same_skel_ty T T' → (∀ x, same_skel_vl (f x) (f' x)) →
-            same_skel_ty (T%ty.|[f]) (T'.|[f'])).
-
 Lemma same_skel_subst_up f f' :
   (∀ x, same_skel_vl (f x) (f' x)) →
   (∀ x, same_skel_vl (up f x) (up f' x)).
@@ -275,11 +247,11 @@ Qed.
 Lemma same_skel_subst :
   (∀ t, same_skel_tm_subst_def t) ∧ (∀ v, same_skel_vl_subst_def v) ∧
   (∀ d, same_skel_dm_subst_def d) ∧ (∀ p, same_skel_path_subst_def p) ∧
-  (∀ T, same_skel_ty_subst_def T).
+  (∀ T, True).
 Proof.
   apply syntax_mut_ind;
-    try by intros; simpl in *; case_match;
-      simpl in *; try subst; intuition auto using same_skel_subst_up.
+    try by [intros; exact I | simpl; intros; case_match;
+      simpl in *; try subst; intuition auto using same_skel_subst_up].
   - cbn; move => ds Hds f f' [//|//|//|ds'] Hds' Hf.
     elim: ds ds' Hds Hds' => [|[l d] ds IHds] [|[l' d'] ds'] Hds
       /ltac:(cbn) // -[He [Hd' Hds']]; inverse Hds.
@@ -394,12 +366,11 @@ Local Notation same_skel_tm_refl_def := (∀ e, same_skel_tm e e).
 Local Notation same_skel_vl_refl_def := (∀ v, same_skel_vl v v).
 Local Notation same_skel_dm_refl_def := (∀ d, same_skel_dm d d).
 Local Notation same_skel_path_refl_def := (∀ p, same_skel_path p p).
-Local Notation same_skel_ty_refl_def := (∀ T, same_skel_ty T T).
 
 Lemma same_skel_refl :
   same_skel_tm_refl_def ∧ same_skel_vl_refl_def ∧
   same_skel_dm_refl_def ∧ same_skel_path_refl_def ∧
-  same_skel_ty_refl_def.
+  (∀ T, True).
 Proof.
   apply syntax_mut_ind; try by cbn; intuition.
   elim => [//|[l d] ds IHds]; rewrite Forall_cons; naive_solver.
@@ -437,15 +408,13 @@ Definition same_skel_dm_symm_def d1 : Prop := ∀ d2,
   same_skel_dm d1 d2 → same_skel_dm d2 d1.
 Definition same_skel_path_symm_def p1 : Prop := ∀ p2,
   same_skel_path p1 p2 → same_skel_path p2 p1.
-Definition same_skel_ty_symm_def T1 : Prop := ∀ T2,
-  same_skel_ty T1 T2 → same_skel_ty T2 T1.
 
 Lemma same_skel_symm :
   (∀ t, same_skel_tm_symm_def t) ∧ (∀ v, same_skel_vl_symm_def v) ∧
   (∀ d, same_skel_dm_symm_def d) ∧ (∀ p, same_skel_path_symm_def p) ∧
-  (∀ T, same_skel_ty_symm_def T).
+  (∀ T, True).
 Proof.
-  apply syntax_mut_ind; intros ** E; destruct E =>//=; hnf in *; intuition.
+  apply syntax_mut_ind; try done; intros ** E; destruct E =>//=; hnf in *; intuition.
   generalize dependent ds; elim: l => [|[l2 d2] ds2 IHds2] [|[l1 d1] ds1] //.
   rewrite Forall_cons; naive_solver.
 Qed.
@@ -464,8 +433,6 @@ Definition same_skel_dm_trans_def d1 : Prop := ∀ d2 d3,
   same_skel_dm d1 d2 → same_skel_dm d2 d3 → same_skel_dm d1 d3.
 Definition same_skel_path_trans_def p1 : Prop := ∀ p2 p3,
   same_skel_path p1 p2 → same_skel_path p2 p3 → same_skel_path p1 p3.
-Definition same_skel_ty_trans_def T1 : Prop := ∀ T2 T3,
-  same_skel_ty T1 T2 → same_skel_ty T2 T3 → same_skel_ty T1 T3.
 
 Local Lemma same_skel_trans_dms ds1 ds2 ds3 :
   Forall same_skel_dm_trans_def (map snd ds1) →
@@ -485,9 +452,9 @@ Section same_skel_trans.
   Lemma same_skel_trans :
     (∀ t, same_skel_tm_trans_def t) ∧ (∀ v, same_skel_vl_trans_def v) ∧
     (∀ d, same_skel_dm_trans_def d) ∧ (∀ p, same_skel_path_trans_def p) ∧
-    (∀ T, same_skel_ty_trans_def T).
+    (∀ T, True).
   Proof.
-    apply syntax_mut_ind; intros ** E2 E3 **; hnf in *; fold same_skel_dms in *.
+    apply syntax_mut_ind; try done; intros ** E2 E3 **; hnf in *; fold same_skel_dms in *.
     all: destruct E2, E3; prepare; eauto 2.
   Qed.
 
