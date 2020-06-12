@@ -628,80 +628,6 @@ Instance sort_ty : Sort ty := {}.
 
 (** *** Induction principles for syntax. *)
 
-Section syntax_mut_rect.
-  Variable Ptm : tm   → Type.
-  Variable Pvl : vl   → Type.
-  Variable Pdm : dm   → Type.
-  Variable Ppt : path → Type.
-  Variable Pty : ty   → Type.
-
-  Variable step_tv : ∀ v1, Pvl v1 → Ptm (tv v1).
-  Variable step_tapp : ∀ t1 t2, Ptm t1 → Ptm t2 → Ptm (tapp t1 t2).
-  Variable step_tproj : ∀ t1 l, Ptm t1 → Ptm (tproj t1 l).
-  Variable step_tskip : ∀ t1, Ptm t1 → Ptm (tskip t1).
-  Variable step_tun : ∀ u t1, Ptm t1 → Ptm (tun u t1).
-  Variable step_tbin : ∀ b t1 t2, Ptm t1 → Ptm t2 → Ptm (tbin b t1 t2).
-  Variable step_tif : ∀ t1 t2 t3, Ptm t1 → Ptm t2 → Ptm t3 → Ptm (tif t1 t2 t3).
-  Variable step_var_vl : ∀ i, Pvl (var_vl i).
-  Variable step_vlit : ∀ l, Pvl (vlit l).
-  Variable step_vabs : ∀ t1, Ptm t1 → Pvl (vabs t1).
-  (* Original: *)
-  (* Variable step_vobj : ∀ l, Pvl (vobj l). *)
-  Variable step_vobj : ∀ ds, ForallT Pdm (map snd ds) → Pvl (vobj ds).
-  Variable step_dtysyn : ∀ T1, Pty T1 → Pdm (dtysyn T1).
-  (* Original: *)
-  (* Variable step_dtysem : ∀ vsl g, Pdm (dtysem vs g). *)
-  Variable step_dtysem : ∀ vs s, ForallT Pvl vs → Pdm (dtysem vs s).
-  Variable step_dpt : ∀ p1, Ppt p1 → Pdm (dpt p1).
-  Variable step_pv : ∀ v1, Pvl v1 → Ppt (pv v1).
-  Variable step_psefl : ∀ p1 l, Ppt p1 → Ppt (pself p1 l).
-  Variable step_TTop : Pty TTop.
-  Variable step_TBot : Pty TBot.
-  Variable step_TAnd : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAnd T1 T2).
-  Variable step_TOr : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TOr T1 T2).
-  Variable step_TLater : ∀ T1, Pty T1 → Pty (TLater T1).
-  Variable step_TAll : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAll T1 T2).
-  Variable step_TMu : ∀ T1, Pty T1 → Pty (TMu T1).
-  Variable step_TVMem : ∀ l T1, Pty T1 → Pty (TVMem l T1).
-  Variable step_TTMem : ∀ l T1 T2, Pty T1 → Pty T2 → Pty (TTMem l T1 T2).
-  Variable step_TSel : ∀ p1 l, Ppt p1 → Pty (TSel p1 l).
-  Variable step_TSing : ∀ p1, Ppt p1 → Pty (TSing p1).
-  Variable step_TPrim : ∀ b, Pty (TPrim b).
-
-  Fixpoint tm_mut_rect t : Ptm t
-  with vl_mut_rect v : Pvl v
-  with dm_mut_rect d : Pdm d
-  with path_mut_rect p : Ppt p
-  with ty_mut_rect T : Pty T.
-  Proof.
-    (* Automation risk producing circular proofs that call right away the lemma we're proving.
-       Instead we want to apply one of the [case_] arguments to perform an
-       inductive step, and only then call ourselves recursively. *)
-    all: [> destruct t | destruct v | destruct d | destruct p | destruct T].
-    all:
-      try match goal with
-      (* Warning: add other arities as needed. *)
-      | Hstep : context [?P (?c _ _ _ _)] |- ?P (?c _ _ _ _) => apply Hstep; trivial
-      | Hstep : context [?P (?c _ _ _)] |- ?P (?c _ _ _) => apply Hstep; trivial
-      | Hstep : context [?P (?c _ _)] |- ?P (?c _ _) => apply Hstep; trivial
-      | Hstep : context [?P (?c _)] |- ?P (?c _) => apply Hstep; trivial
-      | Hstep : context [?P (?c)] |- ?P (?c) => apply Hstep; trivial
-      end.
-    - elim: l => [|[l d] ds IHds] //=; auto.
-    - elim: l => [|v vs IHxs] //=; auto.
-  Qed.
-
-  Lemma syntax_mut_rect : (∀ t, Ptm t) * (∀ v, Pvl v) * (∀ d, Pdm d) * (∀ p, Ppt p) * (∀ T, Pty T).
-  Proof.
-    repeat split; intros.
-    - eapply tm_mut_rect.
-    - eapply vl_mut_rect.
-    - eapply dm_mut_rect.
-    - eapply path_mut_rect.
-    - eapply ty_mut_rect.
-  Qed.
-End syntax_mut_rect.
-
 Section syntax_mut_ind.
   Variable Ptm : tm   → Prop.
   Variable Pvl : vl   → Prop.
@@ -742,11 +668,36 @@ Section syntax_mut_ind.
   Variable step_TSing : ∀ p1, Ppt p1 → Pty (TSing p1).
   Variable step_TPrim : ∀ b, Pty (TPrim b).
 
+  Fixpoint tm_mut_ind t : Ptm t
+  with vl_mut_ind v : Pvl v
+  with dm_mut_ind d : Pdm d
+  with path_mut_ind p : Ppt p
+  with ty_mut_ind T : Pty T.
+  Proof.
+    (* Automation risk producing circular proofs that call right away the lemma we're proving.
+       Instead we want to apply one of the [case_] arguments to perform an
+       inductive step, and only then call ourselves recursively. *)
+    all: [> destruct t | destruct v | destruct d | destruct p | destruct T].
+    all:
+      try match goal with
+      (* Warning: add other arities as needed. *)
+      | Hstep : context [?P (?c _ _ _ _)] |- ?P (?c _ _ _ _) => apply Hstep; trivial
+      | Hstep : context [?P (?c _ _ _)] |- ?P (?c _ _ _) => apply Hstep; trivial
+      | Hstep : context [?P (?c _ _)] |- ?P (?c _ _) => apply Hstep; trivial
+      | Hstep : context [?P (?c _)] |- ?P (?c _) => apply Hstep; trivial
+      | Hstep : context [?P (?c)] |- ?P (?c) => apply Hstep; trivial
+      end.
+    - elim: l => [|[l d] ds IHds] //=; auto.
+    - elim: l => [|v vs IHxs] //=; auto.
+  Qed.
+
   Lemma syntax_mut_ind : (∀ t, Ptm t) ∧ (∀ v, Pvl v) ∧ (∀ d, Pdm d) ∧ (∀ p, Ppt p) ∧ (∀ T, Pty T).
   Proof.
-    efeed pose proof syntax_mut_rect as H; try done.
-    - intros ds HdsT. apply step_vobj, ForallT_Forall, HdsT.
-    - intros vs s HvsT. apply step_dtysem, ForallT_Forall, HvsT.
-    - ev; split_and! ; assumption.
+    repeat split; intros.
+    - eapply tm_mut_ind.
+    - eapply vl_mut_ind.
+    - eapply dm_mut_ind.
+    - eapply path_mut_ind.
+    - eapply ty_mut_ind.
   Qed.
 End syntax_mut_ind.

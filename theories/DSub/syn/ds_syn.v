@@ -316,10 +316,10 @@ Instance sort_ty : Sort ty := {}.
    lots of regexp search-n-replace.
  *)
 
-Section syntax_mut_rect.
-  Variable Ptm : tm → Type.
-  Variable Pvl : vl → Type.
-  Variable Pty : ty → Type.
+Section syntax_mut_ind.
+  Variable Ptm : tm → Prop.
+  Variable Pvl : vl → Prop.
+  Variable Pty : ty → Prop.
 
   Variable step_tv : ∀ v1, Pvl v1 → Ptm (tv v1).
   Variable step_tapp : ∀ t1 t2, Ptm t1 → Ptm t2 → Ptm (tapp t1 t2).
@@ -328,7 +328,7 @@ Section syntax_mut_rect.
   Variable step_vint : ∀ n, Pvl (vint n).
   Variable step_vabs : ∀ t1, Ptm t1 → Pvl (vabs t1).
   Variable step_vty : ∀ T1, Pty T1 → Pvl (vty T1).
-  Variable step_vstamp : ∀ vs s, ForallT Pvl vs → Pvl (vstamp vs s).
+  Variable step_vstamp : ∀ vs s, Forall Pvl vs → Pvl (vstamp vs s).
   Variable step_TTop : Pty TTop.
   Variable step_TBot : Pty TBot.
   Variable step_TLater : ∀ T1, Pty T1 → Pty (TLater T1).
@@ -337,9 +337,9 @@ Section syntax_mut_rect.
   Variable step_TSel : ∀ v1, Pvl v1 → Pty (TSel v1).
   Variable step_TInt : Pty TInt.
 
-  Fixpoint tm_mut_rect t : Ptm t
-  with vl_mut_rect v : Pvl v
-  with ty_mut_rect T : Pty T.
+  Fixpoint tm_mut_ind t : Ptm t
+  with vl_mut_ind v : Pvl v
+  with ty_mut_ind T : Pty T.
   Proof.
     (* Automation risk producing circular proofs that call right away the lemma we're proving.
        Instead we want to apply one of the [case_] arguments to perform an
@@ -356,41 +356,11 @@ Section syntax_mut_rect.
     induction l; auto.
   Qed.
 
-  Lemma syntax_mut_rect : (∀ t, Ptm t) * (∀ v, Pvl v) * (∀ T, Pty T).
-  Proof.
-    repeat split; intros.
-    - eapply tm_mut_rect.
-    - eapply vl_mut_rect.
-    - eapply ty_mut_rect.
-  Qed.
-End syntax_mut_rect.
-
-Section syntax_mut_ind.
-  Variable Ptm : tm → Prop.
-  Variable Pvl : vl → Prop.
-  Variable Pty : ty → Prop.
-
-  Variable step_tv : ∀ v1, Pvl v1 → Ptm (tv v1).
-  Variable step_tapp : ∀ t1 t2, Ptm t1 → Ptm t2 → Ptm (tapp t1 t2).
-  Variable step_tskip : ∀ t1, Ptm t1 → Ptm (tskip t1).
-  Variable step_var_vl : ∀ i, Pvl (var_vl i).
-  Variable step_vint : ∀ n, Pvl (vint n).
-  Variable step_vabs : ∀ t1, Ptm t1 → Pvl (vabs t1).
-  Variable step_vty : ∀ T1, Pty T1 → Pvl (vty T1).
-  (** Beware here in Prop we use Forall, not ForallT! *)
-  Variable step_vstamp : ∀ vs s, Forall Pvl vs → Pvl (vstamp vs s).
-  Variable step_TTop : Pty TTop.
-  Variable step_TBot : Pty TBot.
-  Variable step_TLater : ∀ T1, Pty T1 → Pty (TLater T1).
-  Variable step_TALl : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAll T1 T2).
-  Variable step_TTMem : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TTMem T1 T2).
-  Variable step_TSel : ∀ v1, Pvl v1 → Pty (TSel v1).
-  Variable step_TInt : Pty TInt.
-
   Lemma syntax_mut_ind : (∀ t, Ptm t) ∧ (∀ v, Pvl v) ∧ (∀ T, Pty T).
   Proof.
-    efeed pose proof syntax_mut_rect as H; try done.
-    - intros vs s HvsT. apply step_vstamp, ForallT_Forall, HvsT.
-    - ev; split_and! ; assumption.
+    repeat split; intros.
+    - eapply tm_mut_ind.
+    - eapply vl_mut_ind.
+    - eapply ty_mut_ind.
   Qed.
 End syntax_mut_ind.

@@ -38,21 +38,6 @@ Definition mapsnd {A} `(f : B → C) : A * B → A * C := λ '(a, b), (a, f b).
 
 Definition stamp := positive.
 
-Inductive ForallT {A : Type} (P : A → Type) : list A → Type :=
-| ForallT_nil : ForallT P []
-| ForallT_cons x xs : P x → ForallT P xs → ForallT P (x :: xs).
-Hint Constructors ForallT : core.
-
-(** To be able to reuse lemmas on Forall, show that ForallT is equivalent to Forall for predicates in Prop.
-    The proof is a bit subtler than you'd think because it can't look into Prop
-    to produce proof-relevant part of the result (and that's why I can't inversion until very late.
- *)
-Lemma ForallT_Forall {X} (P : X → Prop) xs :
-  (ForallT P xs → Forall P xs) * (Forall P xs → ForallT P xs).
-Proof.
-  split; (elim: xs => [|x xs IH] H; constructor; [|apply IH]; by inversion H).
-Qed.
-
 (** Call [red] on each hypothesis at most once.
 Not defined in [tactics.v] because it uses stdpp. *)
 Ltac red_hyps_once :=
