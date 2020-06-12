@@ -100,6 +100,24 @@ Fixpoint same_skel_ectx K K' :=
   | _, _ => False
   end.
 
+Local Notation same_skel_dms' :=
+  (fix same_skel_dms (ds1 ds2 : dms) {struct ds1} : Prop :=
+  match ds1 with
+  | [] => match ds2 with
+         | [] => True
+         | _ :: _ => False
+         end
+  | p :: ds3 =>
+    let (l1, d1) := p in
+    match ds2 with
+    | [] => False
+    | p0 :: ds4 =>
+      let (l2, d2) := p0 in
+        l1 = l2 ∧ same_skel_dm d1 d2 ∧ same_skel_dms ds3 ds4
+    end
+  end).
+Definition same_skel_dms : dms → dms → Prop := same_skel_dms'.
+
 Definition same_skel_list_ectx Ks Ks' :=
   List.Forall2 same_skel_ectx Ks Ks'.
 
@@ -292,19 +310,6 @@ Lemma same_skel_tm_subst e e' v v':
   same_skel_tm e e' → same_skel_vl v v' →
   same_skel_tm (e.|[v/]) (e'.|[v'/]).
 Proof. by intros; apply same_skel_tm_subst' => // -[|x]. Qed.
-
-Fixpoint same_skel_dms (ds1 ds2 : dms) {struct ds1} : Prop :=
-  match ds1 with
-  | [] => match ds2 with
-         | [] => True
-         | _ :: _ => False
-         end
-  | (l1, d1) :: ds3 =>
-    match ds2 with
-    | [] => False
-    | (l2, d2) :: ds4 => l1 = l2 ∧ same_skel_dm d1 d2 ∧ same_skel_dms ds3 ds4
-    end
-  end.
 
 Lemma same_skel_dms_subst dms :
   ∀ f f' dms', same_skel_dms dms dms' → (∀ x, same_skel_vl (f x) (f' x)) →
