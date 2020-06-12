@@ -117,33 +117,26 @@ Proof. intros; subst; tcrush. Qed.
 
 (** * Derived constructions. *)
 Lemma val_LB L U Γ i x l :
-  is_unstamped_ty' (length Γ) L →
-  is_unstamped_ty' (length Γ) U →
-  x < length Γ →
   Γ u⊢ₜ tv (ids x) : type l >: L <: U →
   Γ u⊢ₜ ▶: L, i <: pv (ids x) @; l, i.
 Proof.
-  intros ??? Hv; apply (iSub_SelL (p := pv _) (U := U)).
+  intros Hv; apply (iSub_SelL (p := pv _) (U := U)).
   apply (path_tp_delay (i := 0)); wtcrush.
 Qed.
 
 Lemma val_UB L U Γ i x l :
-  is_unstamped_ty' (length Γ) L →
-  is_unstamped_ty' (length Γ) U →
-  x < length Γ →
   Γ u⊢ₜ tv (ids x) : type l >: L <: U →
   Γ u⊢ₜ pv (ids x) @; l, i <: ▶: U, i.
 Proof.
-  intros ??? Hv; apply (iSel_SubL (p := pv _) (L := L)).
+  intros Hv; apply (iSel_SubL (p := pv _) (L := L)).
   apply (path_tp_delay (i := 0)); wtcrush.
 Qed.
 
 Lemma iT_Let Γ t u T U :
   Γ u⊢ₜ t : T →
   shift T :: Γ u⊢ₜ u : shift U →
-  is_unstamped_ty' (length Γ) T →
   Γ u⊢ₜ lett t u : U.
-Proof. move => Ht Hu HsT. apply /iT_All_E /Ht /iT_All_I /Hu /HsT. Qed.
+Proof. move => Ht Hu. apply /iT_All_E /Ht /iT_All_I /Hu. Qed.
 
 Lemma iD_Typ Γ T l:
   is_unstamped_ty' (length Γ) T →
@@ -160,7 +153,6 @@ Ltac mltcrush := tcrush; try ((apply iSub_Bind_1' || apply iSub_Bind_1); tcrush)
 (* Simplified package introduction, for talk. *)
 Lemma BindSpec Γ (L T U : ty):
   is_unstamped_ty' (length Γ).+1 T →
-  is_unstamped_ty' (length Γ).+1 L → is_unstamped_ty' (length Γ).+1 U →
   {@ type "A" >: T <: T }%ty :: Γ u⊢ₜ L, 1 <: T, 1 →
   {@ type "A" >: T <: T }%ty :: Γ u⊢ₜ T, 1 <: U, 1 →
   Γ u⊢ₜ tv (ν {@ type "A" = T }) : μ {@ type "A" >: L <: U }.
@@ -172,10 +164,9 @@ Qed.
 Lemma iD_Lam_Sub {Γ} V T1 T2 e l L:
   shift T1 :: V :: Γ u⊢ₜ e : T2 →
   TLater V :: Γ u⊢ₜ TAll T1 T2, 0 <: L, 0 →
-  is_unstamped_ty' (length Γ).+1 T1 →
   Γ |L V u⊢{ l := dpt (pv (vabs e)) } : TVMem l L.
 Proof.
-  intros He Hsub Hs. apply iD_Val.
+  intros He Hsub. apply iD_Val.
   eapply (iT_ISub (i := 0)); first apply Hsub.
   by apply iT_All_I_strip1.
 Qed.
@@ -214,8 +205,8 @@ Lemma tyApp_typed Γ T U V t l :
   Γ u⊢ₜ tyApp t l T : V.
 Proof.
   move => Ht Hsub HuT1 HuU1.
-  eapply iT_Let; [exact: Ht| |wtcrush].
-  eapply iT_Let; [apply packTV_typed| |]; wtcrush.
+  eapply iT_Let; [exact: Ht|wtcrush].
+  eapply iT_Let; [apply packTV_typed|]; wtcrush.
   rewrite /= -!hrenS -/(typeEq _ _).
 
   apply /iT_ISub_nocoerce /Hsub.
@@ -234,13 +225,11 @@ Qed.
 Lemma dropLaters Γ e T U i:
   Γ u⊢ₜ e : T →
   Γ u⊢ₜ T, 0 <: iterate TLater i U, 0 →
-  is_unstamped_ty' (length Γ) T →
-  is_unstamped_ty' (length Γ) U →
   Γ u⊢ₜ iterate tskip i e : TAnd T U.
 Proof.
-  intros HeT Hsub HuT HuU.
+  intros HeT Hsub.
   eapply iT_ISub, HeT => {HeT}.
-  typconstructor; [exact: iSub_AddI|] => {HuT}.
+  typconstructor; [exact: iSub_AddI|].
   ettrans; [apply: Hsub|] => {Hsub}.
   have := (iLaterN_Sub 0 i (T := U)); rewrite plusnO; exact.
 Qed.
@@ -255,11 +244,9 @@ Lemma deLaterSingV0 {Γ} p i e T U:
   Γ u⊢ₚ p : TSing p, 0 →
   shift (TSing p) :: Γ u⊢ₜ shift (TSing p), 0 <: iterate TLater i T, 0 →
   TAnd (TSing (shiftN 2 p)) (shift T) :: TSing (shift p) :: Γ u⊢ₜ e : shiftN 2 U →
-  is_unstamped_ty' (length Γ) T →
-  is_unstamped_path' (length Γ) p →
   Γ u⊢ₜ deLater (path2tm p) i e : U.
 Proof.
-  intros HpT1 Hsub HeU HuT Hup.
+  intros HpT1 Hsub HeU.
   apply iT_Let with (T := TSing p); tcrush.
   apply iT_Let with (T := TAnd (shift (TSing p)) T); rewrite /= -?hrenS; wtcrush.
   apply dropLaters; [ var | .. ]; rewrite /= -?hrenS; wtcrush.
@@ -271,12 +258,9 @@ Lemma deLaterSingV1 {Γ} p i e T1 T2 U:
   shift (TAnd (TSing p) T1) :: Γ u⊢ₜ shift T1, 0 <: iterate TLater i T2, 0 →
   TAnd (TAnd (TSing (shiftN 2 p)) (shiftN 2 T1)) (shift T2) ::
     TAnd (TSing (shift p)) (shift T1) :: Γ u⊢ₜ e : shiftN 2 U →
-  is_unstamped_ty' (length Γ) T1 →
-  is_unstamped_ty' (length Γ) T2 →
-  is_unstamped_path' (length Γ) p →
   Γ u⊢ₜ deLater (path2tm p) i e : U.
 Proof.
-  intros HpT1 Hsub HeU HuT1 HuT2 Hup.
+  intros HpT1 Hsub HeU.
   apply iT_Let with (T := TAnd (TSing p) T1); tcrush.
   by apply iP_And, HpT1; eapply iP_Sngl_Refl, HpT1.
   apply iT_Let with (T := TAnd (shift (TAnd (TSing p) T1)) T2); rewrite /= -?hrenS; wtcrush.
@@ -288,11 +272,9 @@ Lemma deLaterSing {Γ} p i e T1 U:
   Γ u⊢ₚ p : iterate TLater i T1, 0 →
   TAnd (TSing (shiftN 2 p)) (shiftN 2 T1) ::
     TAnd (TSing (shift p)) (iterate TLater i (shift T1)) :: Γ u⊢ₜ e : shiftN 2 U →
-  is_unstamped_ty' (length Γ) T1 →
-  is_unstamped_path' (length Γ) p →
   Γ u⊢ₜ deLater (path2tm p) i e : U.
 Proof.
-  intros HpT1 HeU HuT1 Hup.
+  intros HpT1 HeU.
   apply iT_Let with (T := TAnd (TSing p) (iterate TLater i T1)); wtcrush.
   by apply iP_And, HpT1; eapply iP_Sngl_Refl, HpT1.
   apply iT_Let with (T := TAnd (TSing (shift p)) (shift T1));
@@ -307,7 +289,6 @@ Definition anfBind t := lett t (tv x0).
 Lemma AnfBind_typed Γ t (T U: ty) :
   Γ u⊢ₜ t : T →
   shift T :: Γ u⊢ₜ tv x0 : shift U →
-  is_unstamped_ty' (length Γ) T →
   Γ u⊢ₜ anfBind t : U.
 Proof. intros; eapply iT_Let; eauto. Qed.
 
@@ -322,14 +303,12 @@ can I derive? Apparently, subtyping for recursive types, almost. See below! *)
 Set Suggest Proof Using.
 Section cond.
   Context (Hskolem : ∀ Γ T1 T2 i j,
-    is_unstamped_ty' (length Γ) T1 →
     iterate TLater i (shift T1) :: Γ u⊢ₚ pv (ids 0) : shift T2, j →
     Γ u⊢ₜ T1, i <: T2, j).
   Set Default Proof Using "Hskolem".
 
 (* Convenient application syntax. *)
 Lemma iSub_Skolem_P {Γ T1 T2 i j}:
-  is_unstamped_ty' (length Γ) T1 →
   iterate TLater i (shift T1) :: Γ u⊢ₚ pv (ids 0) : shift T2, j →
   Γ u⊢ₜ T1, i <: T2, j.
 Proof. apply Hskolem. Qed.

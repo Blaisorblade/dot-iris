@@ -13,7 +13,6 @@ Import DBNotation.
 
 Example ex0 e Γ T:
   Γ u⊢ₜ e : T →
-  is_unstamped_ty' (length Γ) T →
   Γ u⊢ₜ e : ⊤.
 Proof. intros. apply (iT_ISub_nocoerce T TTop); tcrush. Qed.
 
@@ -90,14 +89,10 @@ Qed.
 
 (* Utilities needed for not. *)
 Lemma subIFT i Γ T:
-  is_unstamped_ty' (length Γ) (shiftN i T) →
   (typeEq "A" T.|[ren (+1+i)]) :: Γ u⊢ₜ IFTBody, 0 <:
     TAll T.|[ren (+1+i)] (TAll T.|[ren (+2+i)] (▶: T.|[ren (+3+i)])), 0.
 Proof.
-  rewrite /= -/IFTBody => HsT1.
-  move: (HsT1) => /is_unstamped_ren1_ty HsT2; rewrite -hrenS in HsT2.
-  move: (HsT2) => /is_unstamped_ren1_ty HsT3; rewrite -hrenS in HsT3.
-  move: (HsT3) => /is_unstamped_ren1_ty HsT4; rewrite -hrenS in HsT4.
+  rewrite /= -/IFTBody.
   tcrush; rewrite ?iterate_S ?iterate_0 /=; tcrush;
     first [eapply iSub_Sel', (path_tp_delay (i := 0)) |
       eapply iSel_Sub, (path_tp_delay (i := 0))];
@@ -123,16 +118,12 @@ Definition iftCoerce t :=
   lett t (vabs (vabs (tskip (x2 $: x1 $: x0)))).
 
 Lemma iftCoerce_typed Γ t T :
-  is_unstamped_ty' (length Γ) T →
   Γ u⊢ₜ t: T →: T →: ▶: T →
   Γ u⊢ₜ iftCoerce t : T →: T →: T.
 Proof.
-  move => HsT1 Ht.
-  move: (HsT1) => /is_unstamped_ren1_ty HsT2.
-  move: (HsT2) => /is_unstamped_ren1_ty; rewrite -hrenS => HsT3.
-  move: (HsT3) => /is_unstamped_ren1_ty; rewrite -hrenS => HsT4.
-  eapply iT_Let; [exact: Ht| |rewrite /= !(hren_upn 1); tcrush].
-  rewrite /= !(hren_upn_gen 1) (hren_upn_gen 2) /=.
+  move => Ht.
+  eapply iT_Let; [exact: Ht|rewrite /= !(hren_upn 1); tcrush].
+  rewrite /= (hren_upn_gen 2) /=.
   tcrush; rewrite -!hrenS -(iterate_S tskip 0).
   eapply (iT_ISub (T1 := ▶:T.|[_])); first tcrush.
   repeat (eapply iT_All_E; last var).
