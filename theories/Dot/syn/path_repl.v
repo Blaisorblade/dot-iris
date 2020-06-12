@@ -43,9 +43,9 @@ with dm_path_repl (p q : path) : dm → dm → Prop :=
 | dm_path_repl_dtysyn T1 T2 :
   T1 ~Tp[ p := q ] T2 →
   dtysyn T1 ~dp[ p := q ] dtysyn T2
-| dm_path_repl_dpt p1 p2 :
+(* | dm_path_repl_dpt p1 p2 :
   p1 ~pp[ p := q ] p2 →
-  dpt p1 ~dp[ p := q ] dpt p2
+  dpt p1 ~dp[ p := q ] dpt p2 *)
 where "d1 ~dp[ p := q  ] d2" := (dm_path_repl p q d1 d2)
 with dms_path_repl (p q : path) : dms → dms → Prop :=
 | dms_path_repl_cons1 l d1 d2 ds :
@@ -149,7 +149,7 @@ Fixpoint psubst_vl p q v : vl :=
 where "v .v[ p := q  ]" := (psubst_vl p q v)
 with psubst_dm p q d : dm :=
   match d with
-  | dpt r => dpt (psubst_path p q r)
+  (* | dpt r => dpt (psubst_path p q r) *)
   | dtysyn T => dtysyn (psubst_ty p q T)
   | _ => d
   end
