@@ -35,12 +35,12 @@ same_skel_vl (v1 v2: vl) {struct v1} : Prop :=
   | (var_vl i1, var_vl i2) => i1 = i2
   | (vabs t1, vabs t2) => same_skel_tm t1 t2
   | (vobj ds1, vobj ds2) =>
-    let fix same_skel_dms (ds1 ds2: dms): Prop :=
-        match (ds1, ds2) with
-        | (nil, nil) => True
-        | (cons (l1, d1) ds1, cons (l2, d2) ds2) =>
+    let fix same_skel_dms (ds1 ds2: dms) {struct ds1}: Prop :=
+        match ds1, ds2 with
+        | [], [] => True
+        | (l1, d1) :: ds1, (l2, d2) :: ds2 =>
           l1 = l2 ∧ same_skel_dm d1 d2 ∧ same_skel_dms ds1 ds2
-        | _ => False
+        | _, _ => False
         end
     in same_skel_dms ds1 ds2
   | (vlit l1, vlit l2) => l1 = l2
