@@ -486,17 +486,32 @@ Section path_repl_lemmas.
     path_wp p1.|[ρ] φ ≡ path_wp p2.|[ρ] φ.
   Proof.
     elim: Hrepl φ => {p1 p2 p q} [ p q | p q v1 v2 Hrepl | p q p1' p2' l Hrepl IHrepl] φ /=.
-    exact: alias_paths_elim_eq.
-    - elim: v1 v2 Hrepl => [?|?|?|ds1] [?|?|?|ds2]; inversion_clear 1 as [?? Hreplds].
+    - exact: alias_paths_elim_eq.
+    - inversion_clear Hrepl as [ds1 ds2 Hreplds].
+    inverse Hreplds.
+    inverse H.
+    cbn.
+    (* inverse Hrepl. *)
+    (* elim: v1 v2 Hrepl => [?|?|?|ds1] [?|?|?|ds2]; inversion_clear 1 as [?? Hreplds]. *)
     rewrite !path_wp_pv_eq /= => Hal.
     admit.
-    rewrite !path_wp_pself_eq /= => Hal.
+    admit.
+
+    (* elim: ds1 ds2 Hreplds. *)
+    (* intros.
+    apply: alias_paths_elim_eq.
+    elim: v1 v2 Hrepl => [?|?|?|ds1] [?|?|?|ds2] /=; inversion_clear 1 as [?? Hreplds].
+    rewrite alias_paths_pv_eq_2 path_wp_pure_pv_eq.
+    admit. *)
+    (* admit. *)
+    - rewrite !path_wp_pself_eq /= => Hal.
     properness => //. exact: IHrepl.
-  Qed. *)
+  Admitted.
+
   Lemma vl_replacement_equiv {p q ρ} v1 v2 φ
     (Hrepl : v1 ~vp[ p := q ] v2) :
     alias_paths p.|[ρ] q.|[ρ] →
-    path_wp (pv v1).|[ρ] φ ≡ path_wp (pv v2).|[ρ] φ.
+    path_wp (pv v1).|[ρ] φ ≡ path_wp (pv v2).|[ρ] φ. *)
 
   Lemma rewrite_path_path_repl0 {p q p1 p2 ρ v}
     (Hrw : p1 ~pp[ p := q ] p2)
@@ -553,21 +568,38 @@ iApply as_emp_valid. *)
 
 (* iApply (bi.equiv_wand_iff _ _ (H _ _ _ _)). *)
 
-  Lemma fundamental_ty_path_replP {p q T1 T2}
+  (* Lemma fundamental_ty_path_replP {p q T1 T2}
     (Hrew : T1 ~Tp[ p := q ] T2) :
     V⟦ T1 ⟧ ~sTpP[ p := q ]* V⟦ T2 ⟧.
   Proof.
+    rewrite /sem_ty_path_repl; induction Hrew => args ρ v He /=;
+      rewrite /subtype_lty/=; properness;
+      (* try by [ exact: path_replacement_equiv | exact: rewrite_path_path_repl *)
+      try by [
+        (* exact: path_replacement_equiv | exact: rewrite_path_path_repl *)
+         | apply IHHrew; rewrite ?hsubst_comp | | f_equiv => ?; exact: IHHrew].
+         rewrite /vl_sel.
+         rewrite !path_wp_eq.
+         properness => //.
+    exact: alias_paths_elim_eq_pure.
+         admit.
+ (* iRevert "IH". *)
+exact: rewrite_path_path_repl. *)
+
+(*
     rewrite /sem_ty_path_repl. move: T1 T2 p q Hrew.
     iLöb as "ILH". iIntros (T1 T2 p q Hrew).
     iInduction Hrew as [] "IH" forall "ILH"; iIntros (args ρ v Hal).
     all: try iSpecialize ("IH" with "ILH").
     1-11,13: iClear "ILH".
     1-5: rewrite /= /pty_interp; by iRewrite ("IH" $! args ρ v Hal).
-    iDestruct "IH" as %IH.
-    iRevert "IH".
-    rewrite -as_emp_valid.
-    iIntros "!%".
-    rewrite /pty_interp /=.
+    rewrite /pty_interp /=. *)
+
+  Lemma fundamental_ty_path_repl {p q T1 T2}
+    (Hrew : T1 ~Tp[ p := q ] T2) :
+    ⊢ V⟦ T1 ⟧ ~sTpI[ p := q ]* V⟦ T2 ⟧.
+  Proof.
+
 
   Lemma fundamental_ty_path_repl {p q T1 T2}
     (Hrew : T1 ~Tp[ p := q ] T2) :

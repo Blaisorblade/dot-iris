@@ -101,9 +101,9 @@ with ty_path_repl (p q : path) : ty → ty → Prop :=
 | ty_path_repl_TSel p1 p2 l :
   p1 ~pp[ p := q ] p2 →
   TSel p1 l ~Tp[ p := q ] TSel p2 l
-| ty_path_repl_TSing p1 p2 :
+(* | ty_path_repl_TSing p1 p2 :
   p1 ~pp[ p := q ] p2 →
-  TSing p1 ~Tp[ p := q ] TSing p2
+  TSing p1 ~Tp[ p := q ] TSing p2 *)
 where "T1 ~Tp[ p := q  ] T2" := (ty_path_repl p q T1 T2).
 
 (* Lemma path_path_repl_id p1 p2 p : p1 ~pp[ p := p ] p2 → p1 = p2.
@@ -166,7 +166,8 @@ with psubst_ty p q T : ty := match T with
 | TTMem l L U => TTMem l (L .T[ p := q ]) (U .T[ p := q ])
 | TSel r l => TSel (r .p[ p := q ]) l
 | TPrim _ => T
-| TSing r => TSing (r .p[ p := q ])
+| TSing _ => T
+(* | TSing r => TSing (r .p[ p := q ]) *)
 end
 where "T .T[ p := q  ]" := (psubst_ty p q T)
 with psubst_path p q r : path :=
