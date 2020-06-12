@@ -6,7 +6,6 @@ Export typing_aux_defs.
 Set Implicit Arguments.
 
 Import Trav1.
-Set Implicit Arguments.
 
 Implicit Types
          (T: ty) (v: vl) (e: tm) (p: path) (d: dm) (ds: dms) (vs: vls)
