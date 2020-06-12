@@ -3,7 +3,7 @@ From D Require Import iris_prelude proper proofmode_extra.
 From D Require Export succ_notation.
 From D Require Import saved_interp_dep asubst_intf dlang lty.
 From D Require Import swap_later_impl.
-From D.Dot Require dot_lty unary_lr path_repl_lr.
+From D.Dot Require dot_lty unary_lr.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
@@ -546,7 +546,7 @@ End SKindSyn.
 End HoSemTypes.
 
 Module HkDotSemTypes.
-Import dot_lty unary_lr path_repl_lr.
+Import dot_lty unary_lr.
 Include HoSemTypes VlSorts dlang_inst dot_lty.
 
 Implicit Types
