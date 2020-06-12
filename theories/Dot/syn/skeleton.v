@@ -229,21 +229,16 @@ Lemma same_skel_up_ren :
   (∀ T, same_skel_ty_up_ren_def T).
 Proof.
   apply syntax_mut_ind;
-    try by (repeat intros ?; simpl in *; case_match;
+    try by (intros; simpl in *; case_match;
             simpl in *; intuition (asimpl; auto)).
   - intros x n m v' Hv'; destruct v'; simpl in *; subst; intuition auto.
     rewrite iter_up; destruct lt_dec; simpl; auto.
-  - intros ds Hds n m ds' Hds'; simpl in *.
-    destruct ds' as [| | | ds']; simpl in *; intuition auto.
-    revert Hds m n ds' Hds'.
-    induction ds as [|[lbl dm] ds]; intros Hds m n ds' Hds';
-      simpl in *; first by destruct ds'.
-    destruct ds' as [|[lbl' dm'] ds']; simpl in *; first done.
-    asimpl.
-    inversion Hds; simplify_eq.
-    destruct Hds' as [-> [Hdm Hds']].
-    repeat split; auto.
-    apply IHds; auto.
+  - cbn; move => ds Hds n m [//|//|//|ds'] Hds'.
+    elim: ds ds' Hds Hds' =>
+      [|[l d] ds IHds] [|[l' d'] ds'] /= Hds //= [Heq [Hd Hds']].
+    inverse Hds.
+    rewrite -iterate_S.
+    split_and!; last apply IHds; auto.
 Qed.
 
 Lemma same_skel_vl_up_ren v : same_skel_vl_up_ren_def v.
@@ -273,7 +268,7 @@ Lemma same_skel_subst_up f f' :
   (∀ x, same_skel_vl (f x) (f' x)) →
   (∀ x, same_skel_vl (up f x) (up f' x)).
 Proof.
-  intros Hf x; destruct x as [|x]; asimpl; simpl; auto.
+  move=> Hf [//|x]. asimpl.
   by apply (same_skel_vl_up_ren (f x) 0 1 (f' x)).
 Qed.
 
@@ -283,19 +278,12 @@ Lemma same_skel_subst :
   (∀ T, same_skel_ty_subst_def T).
 Proof.
   apply syntax_mut_ind;
-    try by repeat intros ?; simpl in *; case_match;
+    try by intros; simpl in *; case_match;
       simpl in *; try subst; intuition auto using same_skel_subst_up.
-  - intros ds Hds f f' ds' Hds' Hf; simpl in *.
-    destruct ds' as [| | | ds']; simpl in *; intuition auto.
-    revert Hds f f' ds' Hds' Hf.
-    induction ds as [|[lbl dm] ds]; intros Hds f f' ds' Hds' Hf;
-      simpl in *; first by destruct ds'.
-    destruct ds' as [|[lbl' dm'] ds']; simpl in *; first done.
-    asimpl.
-    inversion Hds as [|? ? Hdm Hds_rest]; simplify_eq.
-    destruct Hds' as [-> [Hdm' Hds']].
-    repeat split; auto using same_skel_subst_up.
-    apply IHds; auto.
+  - cbn; move => ds Hds f f' [//|//|//|ds'] Hds' Hf.
+    elim: ds ds' Hds Hds' => [|[l d] ds IHds] [|[l' d'] ds'] Hds
+      /ltac:(cbn) // -[He [Hd' Hds']]; inverse Hds.
+    split_and!; last apply IHds; auto using same_skel_subst_up.
 Qed.
 
 Lemma same_skel_vl_subst v : same_skel_vl_subst_def v.
@@ -311,13 +299,11 @@ Lemma same_skel_tm_subst e e' v v':
   same_skel_tm (e.|[v/]) (e'.|[v'/]).
 Proof. by intros; apply same_skel_tm_subst' => // -[|x]. Qed.
 
-Lemma same_skel_dms_subst dms :
-  ∀ f f' dms', same_skel_dms dms dms' → (∀ x, same_skel_vl (f x) (f' x)) →
-               same_skel_dms dms.|[f] dms'.|[f'].
+Lemma same_skel_dms_subst ds :
+  ∀ f f' ds', same_skel_dms ds ds' → (∀ x, same_skel_vl (f x) (f' x)) →
+               same_skel_dms ds.|[f] ds'.|[f'].
 Proof.
-  induction dms as [|[l d] dms]; intros f f' dms' Hdms Hf;
-    simpl in *; destruct dms' as [|[l' d'] dms']; simpl in *;
-      intuition (asimpl; auto).
+  elim: ds => [|[l d] ds IHds] f f' [|[l' d'] ds'] Hds Hf; cbn in *; intuition.
   apply same_skel_dm_subst; auto.
 Qed.
 
@@ -326,27 +312,20 @@ Lemma same_skel_dms_selfSubst ds ds' :
 Proof.
   intros Hds.
   apply same_skel_dms_subst; auto.
-  - intros x; destruct x as [|x]; simpl; auto.
+  by move=> [|x].
 Qed.
 
-Lemma same_skel_dms_index_gen {ds ds' v l}:
-  same_skel_dms ds ds' →
-  dms_lookup l ds = Some (dpt v) →
-  exists v', dms_lookup l ds' = Some (dpt v') ∧ same_skel_path v v'.
+Lemma same_skel_dms_index_gen {ds1 ds2 p1 l}:
+  same_skel_dms ds1 ds2 →
+  dms_lookup l ds1 = Some (dpt p1) →
+  ∃ p2, dms_lookup l ds2 = Some (dpt p2) ∧ same_skel_path p1 p2.
 Proof.
-  revert ds' l v.
-  induction ds as [|[lbl d] ds]; intros ds' l v Hds Hlu; simpl in *; first done.
-  destruct decide; subst.
-  - destruct ds' as [|[l' d'] ds']; first done.
-    destruct Hds as [? [Hd hds]]; simplify_eq; auto.
-    destruct d'; simpl in *; try done.
-    eexists; split; eauto.
-    destruct decide; intuition auto.
-  - destruct ds' as [|[l' d'] ds']; first done.
-    destruct Hds as [? [Hd Hds]]; simplify_eq; auto.
-    destruct (IHds ds' l v Hds Hlu) as [v' [? ?]].
-    eexists; split; eauto.
-    simpl; destruct decide; intuition auto.
+  elim: ds1 ds2 => [//|[l1 d1] ds1 IHds] /= [//|[l2 d2] ds2]
+    [? [Hd Hds]] Hlu; destruct decide; simplify_eq.
+  - case: d2 Hd => //= p2 Hp.
+    exists p2; destruct decide; intuition auto.
+  - case: (IHds ds2 Hds Hlu) => [p2 [? ?]] /=.
+    exists p2; destruct decide; intuition auto.
 Qed.
 
 Lemma same_skel_path2tm p p' :
