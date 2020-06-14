@@ -136,6 +136,37 @@ Global Hint Extern 0 (varP _ _ _)      => progress cbn : core.
 Global Hint Extern 0 (dtysynP _ _ _)   => progress cbn : core.
 Global Hint Extern 0 (dtysemP _ _ _)   => progress cbn : core.
 Global Hint Extern 0 (pathRootP _ _ _) => progress cbn : core.
+
+Global Hint Extern 0 (forall_traversal_tm _ _ _)   => progress cbn : core.
+Global Hint Extern 0 (forall_traversal_vl _ _ _)   => progress cbn : core.
+Global Hint Extern 0 (forall_traversal_dm _ _ _)   => progress cbn : core.
+Global Hint Extern 0 (forall_traversal_path _ _ _) => progress cbn : core.
+Global Hint Extern 0 (forall_traversal_ty _ _ _)   => progress cbn : core.
+
+(** Tactics to invert uses of [forall_traversal_*]. *)
+
+(** Use [inverse] on [H], but only if it produces at most one goal, and mark
+[H] as used. *)
+Ltac inverse_once H := nosplit (try_once_tac H (inverse H)).
+
+(** Using cbn exposes further assumption of form is_{un,}stamped, allowing for
+further inversions. *)
+Ltac inverse_once_cbn H := nosplit (try_once_tac H (inverse H)); cbn in *.
+
+(** Apply [tac] to _one_ hypothesis of shape [forall_traversal_* trav _ _]. *)
+Ltac with_forall_traversal trav tac :=
+  match goal with
+    | H: forall_traversal_ty   trav _ _ |- _ => tac H
+    | H: forall_traversal_tm   trav _ _ |- _ => tac H
+    | H: forall_traversal_dm   trav _ _ |- _ => tac H
+    | H: forall_traversal_path trav _ _ |- _ => tac H
+    | H: forall_traversal_vl   trav _ _ |- _ => tac H
+  end.
+(** Invert once each hypothesis of shape [forall_traversal_* trav _ _], as
+long as inversion only produces a single result. *)
+Ltac inverse_forall_traversal trav :=
+  (repeat with_forall_traversal trav inverse_once_cbn); un_usedLemma.
+
 End Trav1.
 
 Definition tmemc: Type := ty + vls * stamp.

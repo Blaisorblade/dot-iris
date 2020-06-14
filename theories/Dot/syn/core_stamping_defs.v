@@ -39,28 +39,10 @@ Notation is_unstamped_ty n b := (forall_traversal_ty is_unstamped_trav (n, b)).
 Notation is_unstamped_path' n := (is_unstamped_path n OnlyVars).
 Notation is_unstamped_ty' n := (is_unstamped_ty n OnlyVars).
 
-Ltac with_is_unstamped tac :=
-  match goal with
-    | H: is_unstamped_ty   _ _ _ |- _ => tac H
-    | H: is_unstamped_tm   _ _ _ |- _ => tac H
-    | H: is_unstamped_dm   _ _ _ |- _ => tac H
-    | H: is_unstamped_path _ _ _ |- _ => tac H
-    | H: is_unstamped_vl   _ _ _ |- _ => tac H
-  end.
-
-Ltac inverse_once H := nosplit (try_once_tac H (inverse H)).
-(* Using cbn exposes further assumption of form is_{un,}stamped, allowing for
-further inversions. *)
-Ltac inverse_once_cbn H := nosplit (try_once_tac H (inverse H)); cbn in *.
-Ltac inverse_is_unstamped := (repeat with_is_unstamped inverse_once_cbn); un_usedLemma.
+Ltac with_is_unstamped tac := with_forall_traversal is_unstamped_trav tac.
+Ltac inverse_is_unstamped := inverse_forall_traversal is_unstamped_trav.
 
 Lemma is_unstamped_path_root n p :
   is_unstamped_path n OnlyVars p →
   atomic_path_root p.
 Proof. elim p => /= *; with_is_unstamped inverse; naive_solver. Qed.
-
-Hint Extern 0 (forall_traversal_tm _ _ _)   => progress cbn : core.
-Hint Extern 0 (forall_traversal_vl _ _ _)   => progress cbn : core.
-Hint Extern 0 (forall_traversal_dm _ _ _)   => progress cbn : core.
-Hint Extern 0 (forall_traversal_path _ _ _) => progress cbn : core.
-Hint Extern 0 (forall_traversal_ty _ _ _)   => progress cbn : core.
