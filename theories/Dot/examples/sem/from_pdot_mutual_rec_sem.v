@@ -383,7 +383,7 @@ Proof.
   rewrite !iterate_S !iterate_0; hideCtx. simplSubst.
   apply (iP_ISub' (T1 := TAnd (val "get" : ▶: x0 @; "T")
     (type "T" >: ⊥ <: x3 @ "types" @; "Type"))); first last.
-  apply iP_And; last by tcrush; varsub; tcrush. {
+  apply iP_And_I; last by tcrush; varsub; tcrush. {
     apply (iP_Mu_E (p := x0) (T := val "get" : ▶: x0 @; "T")); tcrush.
     varsub. asideLaters. lNext. ltcrush.
   }

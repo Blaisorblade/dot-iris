@@ -137,7 +137,7 @@ Lemma iSngl_pq_Sub_inv {Γ i p q T1 T2}:
   Γ u⊢ₜ T1, i <: T2, i.
 Proof. intros. by eapply iSngl_pq_Sub, iP_Sngl_Sym. Qed.
 
-Lemma iP_And {Γ p T1 T2 i}:
+Lemma iP_And_I {Γ p T1 T2 i}:
   Γ u⊢ₚ p : T1, i →
   Γ u⊢ₚ p : T2, i →
   Γ u⊢ₚ p : TAnd T1 T2, i.

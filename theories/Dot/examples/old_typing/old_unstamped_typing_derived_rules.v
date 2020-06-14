@@ -262,7 +262,7 @@ Lemma deLaterSingV1 {Γ} p i e T1 T2 U:
 Proof.
   intros HpT1 Hsub HeU.
   apply iT_Let with (T := TAnd (TSing p) T1); tcrush.
-  by apply iP_And, HpT1; eapply iP_Sngl_Refl, HpT1.
+  by apply iP_And_I, HpT1; eapply iP_Sngl_Refl, HpT1.
   apply iT_Let with (T := TAnd (shift (TAnd (TSing p) T1)) T2); rewrite /= -?hrenS; wtcrush.
   apply dropLaters; [ var | lNext | ..]; rewrite /= -?hrenS; wtcrush.
 Qed.
@@ -276,7 +276,7 @@ Lemma deLaterSing {Γ} p i e T1 U:
 Proof.
   intros HpT1 HeU.
   apply iT_Let with (T := TAnd (TSing p) (iterate TLater i T1)); wtcrush.
-  by apply iP_And, HpT1; eapply iP_Sngl_Refl, HpT1.
+  by apply iP_And_I, HpT1; eapply iP_Sngl_Refl, HpT1.
   apply iT_Let with (T := TAnd (TSing (shift p)) (shift T1));
     rewrite /= -?hrenS ?TLater_subst; wtcrush.
   eapply iT_ISub; last var; tcrush; [lThis|lNext]; wtcrush.
