@@ -251,7 +251,7 @@ Section StpLemmas.
     Γ s⊨ { l := d } : cTMem l L2 U2.
   Proof. rewrite -!sstpd0_to_sstpi0. apply sD_Typ_Stp. Qed.
 
-  Lemma sD_Typ_Abs {Γ} T L U s σ l:
+  Lemma sD_Typ_Abs_I {Γ} T L U s σ l:
     Γ s⊨ L, 0 <: oLater T, 0 -∗
     Γ s⊨ oLater T, 0 <: U, 0 -∗
     s ↝[ σ ] T -∗
