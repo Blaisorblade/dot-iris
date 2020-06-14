@@ -453,6 +453,14 @@ Section misc_lemmas.
     iSpecialize ("H" $! ids with "[//]"); rewrite hsubst_id.
     iApply (path_wp_terminates with "H").
   Qed.
+
+  (** This typing lemma is here to be usable in proof of other lemmas. *)
+  Lemma sT_Path {Γ τ p} :
+    Γ s⊨p p : τ, 0 -∗ Γ s⊨ path2tm p : τ.
+  Proof.
+    iIntros "#Hep !> %ρ #Hg /="; rewrite path2tm_subst.
+    by iApply (path_wp_to_wp with "(Hep Hg)").
+  Qed.
 End misc_lemmas.
 
 Section path_repl_lemmas.

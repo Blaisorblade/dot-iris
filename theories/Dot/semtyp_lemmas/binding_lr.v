@@ -70,13 +70,6 @@ Section Sec.
     by rewrite list_lookup_fmap Hx.
   Qed.
 
-  Lemma sT_Path {Γ τ p} :
-    Γ s⊨p p : τ, 0 -∗ Γ s⊨ path2tm p : τ.
-  Proof.
-    iIntros "#Hep !> %ρ #Hg /="; rewrite path2tm_subst.
-    by iApply (path_wp_to_wp with "(Hep Hg)").
-  Qed.
-
   Lemma sT_SkipN Γ e T i :
     Γ s⊨ e : oLaterN i T -∗
     Γ s⊨ iterate tskip i e : T.
