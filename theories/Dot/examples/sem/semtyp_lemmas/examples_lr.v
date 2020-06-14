@@ -209,6 +209,14 @@ Section Lemmas.
   Lemma T_Mu_E {Γ} T v: Γ ⊨ tv v : TMu T -∗ Γ ⊨ tv v : T.|[v/].
   Proof. by rewrite /ietp sT_Mu_E interp_subst_commute. Qed.
 
+  Lemma suetp_var_lift1 {Γ} x T1 T2:
+    □(Γ s⊨ tv (ids x) : T1 -∗ Γ s⊨ tv (ids x) : T2) ⊢
+    Γ su⊨ tv (ids x) : T1 -∗ Γ su⊨ tv (ids x) : T2.
+  Proof.
+    iIntros "#Hr #H1 !>"; iMod (suetp_var with "H1") as "{H1} H1"; iModIntro.
+    by iExists (tv (ids x)); iSplit; last iApply ("Hr" with "H1").
+  Qed.
+
   Lemma uT_Mu_I {Γ} T x: Γ u⊨ tv (ids x) : T.|[ids x/] -∗ Γ u⊨ tv (ids x) : TMu T.
   Proof. iApply suetp_var_lift1; iModIntro; iApply T_Mu_I. Qed.
 

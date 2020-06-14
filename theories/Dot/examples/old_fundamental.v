@@ -48,14 +48,6 @@ Section storeless_unstamped_lemmas.
     by iExists (tapp e1s (tv (ids x2))); iSplit; last iApply (T_All_Ex with "H1 H2").
   Qed.
 
-  Lemma suetp_var_lift1 {Γ} x T1 T2:
-    □(Γ s⊨ tv (ids x) : T1 -∗ Γ s⊨ tv (ids x) : T2) ⊢
-    Γ su⊨ tv (ids x) : T1 -∗ Γ su⊨ tv (ids x) : T2.
-  Proof.
-    iIntros "#Hr #H1 !>"; iMod (suetp_var with "H1") as "{H1} H1"; iModIntro.
-    by iExists (tv (ids x)); iSplit; last iApply ("Hr" with "H1").
-  Qed.
-
   Lemma suD_Typ_Sub {Γ} L1 L2 U1 U2 d l:
     Γ s⊨ L2, 0 <: L1, 0 -∗
     Γ s⊨ U1, 0 <: U2, 0 -∗
