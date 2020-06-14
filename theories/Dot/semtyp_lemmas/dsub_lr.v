@@ -37,9 +37,8 @@ Section DStpLemmas.
   Lemma sStp_Refl {Γ} T i : ⊢ Γ s⊨ T <:[i] T.
   Proof. iIntros "!> %ρ _ !>"; by rewrite -subtype_refl. Qed.
 
-  Lemma sStp_Trans {Γ T1 T2 T3 i} : Γ s⊨ T1 <:[i] T2 -∗
-                                    Γ s⊨ T2 <:[i] T3 -∗
-                                    Γ s⊨ T1 <:[i] T3.
+  Lemma sStp_Trans {Γ T1 T2 T3 i} :
+    Γ s⊨ T1 <:[i] T2 -∗ Γ s⊨ T2 <:[i] T3 -∗ Γ s⊨ T1 <:[i] T3.
   Proof.
     iIntros "#Hsub1 #Hsub2 !> * #Hg *".
     iApply (subtype_trans with "(Hsub1 Hg) (Hsub2 Hg)").

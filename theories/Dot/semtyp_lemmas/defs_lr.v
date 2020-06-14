@@ -93,8 +93,8 @@ Section Sec.
    * Γ ⊨ nu x. ds : μ x. T
    *)
   Lemma sT_Obj_I (Γ : sCtx Σ) (T : clty Σ) ds:
-     oLater T :: Γ s⊨ds ds : T -∗
-     Γ s⊨ tv (vobj ds) : oMu T.
+    oLater T :: Γ s⊨ds ds : T -∗
+    Γ s⊨ tv (vobj ds) : oMu T.
   Proof.
     iDestruct 1 as (Hwf) "#Hds"; iIntros "!> %ρ #Hg /= !>".
     rewrite -wp_value' /=. iLöb as "IH".

@@ -283,9 +283,8 @@ Section logrel_lemmas.
   Lemma Sub_Refl T i : ⊢ Γ ⊨ T, i <: T, i.
   Proof. by iIntros "/= !> **". Qed.
 
-  Lemma Sub_Trans T1 T2 T3 i1 i2 i3 : Γ ⊨ T1, i1 <: T2, i2 -∗
-                                      Γ ⊨ T2, i2 <: T3, i3 -∗
-                                      Γ ⊨ T1, i1 <: T3, i3.
+  Lemma Sub_Trans T1 T2 T3 i1 i2 i3 :
+    Γ ⊨ T1, i1 <: T2, i2 -∗ Γ ⊨ T2, i2 <: T3, i3 -∗ Γ ⊨ T1, i1 <: T3, i3.
   Proof.
     iIntros "#Hsub1 #Hsub2 /= !> * #Hg #HT".
     iApply ("Hsub2" with "Hg (Hsub1 Hg [//])").
@@ -294,9 +293,8 @@ Section logrel_lemmas.
   Lemma DSub_Refl T i : ⊢ Γ ⊨[i] T <: T.
   Proof. by iIntros "/= !> ** !> **". Qed.
 
-  Lemma DSub_Trans T1 T2 T3 i : Γ ⊨[i] T1 <: T2 -∗
-                                Γ ⊨[i] T2 <: T3 -∗
-                                Γ ⊨[i] T1 <: T3.
+  Lemma DSub_Trans T1 T2 T3 i :
+    Γ ⊨[i] T1 <: T2 -∗ Γ ⊨[i] T2 <: T3 -∗ Γ ⊨[i] T1 <: T3.
   Proof.
     iIntros "#Hsub1 #Hsub2 /= !> * #Hg".
     iSpecialize ("Hsub1" with "Hg"); iSpecialize ("Hsub2" with "Hg").

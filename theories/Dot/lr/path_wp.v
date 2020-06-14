@@ -94,8 +94,9 @@ Section path_wp.
 
   Lemma path_wp_pv_eq v φ : path_wp (pv v) φ ⊣⊢ φ v.
   Proof. by rewrite path_wp_unfold. Qed.
-  Lemma path_wp_pself_eq p l φ : path_wp (pself p l) φ ⊣⊢ ∃ vp q, ⌜ vp @ l ↘ dpt q ⌝ ∧
-        path_wp p (λ v, ⌜ vp = v ⌝) ∧ path_wp q φ.
+  Lemma path_wp_pself_eq p l φ :
+    path_wp (pself p l) φ ⊣⊢
+      ∃ vp q, ⌜ vp @ l ↘ dpt q ⌝ ∧ path_wp p (λ v, ⌜ vp = v ⌝) ∧ path_wp q φ.
   Proof. by rewrite path_wp_unfold. Qed.
 
   (* General induction principle on path_wp. *)

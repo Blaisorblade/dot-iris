@@ -227,7 +227,7 @@ Section olty_subst.
   Proof. by move=> <-. Qed.
 
   Lemma hoEnvD_weaken_one φ args ρ:
-     shift φ args ρ ≡ φ args (stail ρ).
+    shift φ args ρ ≡ φ args (stail ρ).
   Proof. apply hoEnvD_subst_compose. autosubst. Qed.
 
   Lemma hoEnvD_subst_one φ v args ρ:
@@ -281,7 +281,7 @@ Section olty_subst.
   Proof. apply hoEnvD_subst_compose. Qed.
 
   Lemma olty_weaken_one τ args ρ:
-     shift τ args ρ ≡ τ args (stail ρ).
+    shift τ args ρ ≡ τ args (stail ρ).
   Proof. apply hoEnvD_weaken_one. Qed.
 
   Lemma olty_subst_one τ v w args ρ:
