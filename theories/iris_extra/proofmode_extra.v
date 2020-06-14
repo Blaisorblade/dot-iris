@@ -108,20 +108,12 @@ From D.iris_extra Require Import det_reduction.
 
 Section wp_extra.
   Context `{irisG Λ Σ}.
-  Implicit Types s : stuckness.
-  Implicit Types Φ : val Λ → iProp Σ.
-  Implicit Types v : val Λ.
-  Implicit Types e : expr Λ.
+  Implicit Types (P : val Λ → iProp Σ) (v : val Λ) (e : expr Λ).
 
   Lemma wp_and_val P1 P2 v:
     WP of_val v {{ P1 }} -∗ WP of_val v {{ P2 }} -∗
       WP of_val v {{ v, P1 v ∧ P2 v }}.
-  Proof.
-    iIntros "H1 H2".
-    iDestruct (wp_value_inv' with "H1") as "H1'".
-    iDestruct (wp_value_inv' with "H2") as "H2'".
-    iApply wp_value'; by iSplit.
-  Qed.
+  Proof. rewrite 2!wp_value_inv' -wp_value'; iIntros "$$". Qed.
 
   (* Doesn't generalize to standard WP, but needed for DOT. *)
   Lemma wp_and `{!LangDet Λ} (P1 P2: val Λ → iProp Σ) e:
