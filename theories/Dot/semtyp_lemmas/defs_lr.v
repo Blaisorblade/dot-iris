@@ -86,22 +86,27 @@ Section Sec.
     Γ s⊨ { l := dtysem σ s } : cTMem l L U.
   Proof. rewrite (sD_Typ l). apply sD_Typ_Stp. Qed.
 
-  (** ** Prove object introduction rule, using Löb induction:
+  (** ** Prove object introduction for path typing, using Löb induction:
    *
    * Γ, x: ▷ T ⊨ ds : T
    * ---------------------
-   * Γ ⊨ nu x. ds : μ x. T
+   * Γ ⊨p nu x. ds : μ x. T, 0
    *)
-  Lemma sT_Obj_I (Γ : sCtx Σ) (T : clty Σ) ds:
+  Lemma sP_Obj_I (Γ : sCtx Σ) (T : clty Σ) ds:
     oLater T :: Γ s⊨ds ds : T -∗
-    Γ s⊨ tv (vobj ds) : oMu T.
+    Γ s⊨p pv (vobj ds) : oMu T, 0.
   Proof.
-    iDestruct 1 as (Hwf) "#Hds"; iIntros "!> %ρ #Hg /= !>".
-    rewrite -wp_value' /=. iLöb as "IH".
+    iDestruct 1 as (Hwf) "#Hds". iIntros "!> %ρ #Hg /=".
+    rewrite path_wp_pv_eq /=. iLöb as "IH".
     iApply clty_commute. rewrite norm_selfSubst.
     iApply ("Hds" $! (vobj _ .: ρ) with "[%] [$IH $Hg]").
     exact: path_includes_self.
   Qed.
+
+  (** ** Derive object introduction for term typing. *)
+  Lemma sT_Obj_I (Γ : sCtx Σ) (T : clty Σ) ds:
+    oLater T :: Γ s⊨ds ds : T -∗ Γ s⊨ tv (vobj ds) : oMu T.
+  Proof. by rewrite sP_Obj_I sT_Path. Qed.
 
   Lemma sD_Nil Γ : ⊢ Γ s⊨ds [] : cTop.
   Proof. by iSplit; last iIntros "!> **". Qed.
