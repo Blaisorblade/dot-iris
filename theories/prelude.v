@@ -9,6 +9,9 @@ From iris.program_logic Require Import language.
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
+(** Workaround https://github.com/coq/coq/issues/4230. Taken from Software Foundations. *)
+Remove Hints Bool.trans_eq_bool : core.
+
 (** https://github.com/math-comp/analysis/blob/bb4938c2dee89e91668f8d6a251e968d2f5a05ae/theories/posnum.v#L51-L52 *)
 (** Enrico (Tassi?)'s trick for tc resolution in [have]. Doesn't conflict with infix [!!]. *)
 Notation "!! x" := (ltac:(refine x)) (at level 100, only parsing).

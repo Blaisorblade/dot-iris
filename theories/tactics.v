@@ -1,8 +1,10 @@
-(* Remove Hints Bool.trans_eq_bool. *)
+(** * Some common Ltac utilities. *)
 
+(** Inversion, then substitution. *)
 Ltac inverse H := (inversion H; subst).
 Ltac int := intuition trivial.
 
+(** Destruct all conjunctions, products, existentials and sigma types in the context. *)
 Ltac ev := repeat match goal with
                     | H: exists _, _ |- _ => destruct H
                     | H: _ /\  _ |- _ => destruct H
