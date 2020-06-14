@@ -77,15 +77,6 @@ Section Sec.
     by iApply (path_wp_to_wp with "(Hep Hg)").
   Qed.
 
-  Lemma sT_And_I Γ v T1 T2:
-    Γ s⊨ tv v : T1 -∗
-    Γ s⊨ tv v : T2 -∗
-    Γ s⊨ tv v : oAnd T1 T2.
-  Proof.
-    iIntros "#HT1 #HT2 /= !> %ρ #Hg".
-    iApply (wp_and_val with "(HT1 Hg) (HT2 Hg)").
-  Qed.
-
   Lemma sT_SkipN Γ e T i :
     Γ s⊨ e : oLaterN i T -∗
     Γ s⊨ iterate tskip i e : T.
