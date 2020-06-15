@@ -306,6 +306,8 @@ Next Obligation.
   iApply (subtype_trans with "A B").
 Qed.
 
+Notation sf_star := (sf_kintv oBot oTop).
+
 Lemma vcurry_respects_hoLty_equiv {Σ n} {T1 T2 : hoLty Σ n.+1} arg :
   hoLty_equiv T1 T2 -∗ hoLty_equiv (vcurry T1 arg) (vcurry T2 arg).
 Proof. by iIntros "H %%". Qed.
@@ -355,8 +357,6 @@ Section kinds_types.
     move=> ???/=; properness; first done; f_equiv.
     rewrite /stail; autosubst.
   Qed.
-
-  Definition sf_star : sf_kind Σ 0 := sf_kintv oBot oTop.
 
   Lemma sTEq_oLam_oLaterN {n} (τ : oltyO Σ n) m :
     oLaterN m (oLam τ) ≡ oLam (oLaterN m τ).
