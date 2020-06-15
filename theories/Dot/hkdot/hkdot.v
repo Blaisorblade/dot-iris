@@ -370,16 +370,17 @@ Section gen_lemmas.
     Γ s⊨ L <:[i] T ∷ sf_star.
   Proof. apply sKStp_IntvL. Qed.
 
-  (* Must be primitive *)
+  (* Derived. *)
   Lemma sKStp_Intv_Split Γ T1 T2 L U i :
     Γ s⊨ L  <:[i] T1 ∷ sf_star -∗
     Γ s⊨ T1 <:[i] T2 ∷ sf_star -∗
     Γ s⊨ T2 <:[i] U  ∷ sf_star -∗
     Γ s⊨ T1 <:[i] T2 ∷ sf_kintv L U.
   Proof.
-    iIntros "#HL #HT #HU !>" (ρ) "#HG"; rewrite !(ksubtyping_spec ρ).
-    rewrite /= /sr_kintv -mlaterN_pers; iModIntro.
-    by repeat iSplit; [iApply "HL"|iApply "HT"|iApply "HU"].
+    iIntros "HL HT HU".
+    iDestruct (sKStp_Intv _ T1 T2 with "HT") as "HT".
+    iApply (sKStp_Sub with "HT").
+    iApply (sSkd_Intv with "HL HU").
   Qed.
 
 End gen_lemmas.
