@@ -211,6 +211,13 @@ Section gen_lemmas.
     by rewrite -!subtype_refl.
   Qed.
 
+  Lemma sK_Star Γ (T : oltyO Σ 0) i :
+    ⊢ Γ s⊨ T ∷[ i ] sf_star.
+  Proof.
+    rewrite -kinding_intro; iIntros "%ρ _ !>".
+    by iSplit; iIntros "%v /="; [iIntros "[]"|iIntros "_"].
+  Qed.
+
   (** Kind subsumption (for kinded subtyping). *)
   Lemma sKStp_Sub Γ {n} (T1 T2 : oltyO Σ n) (K1 K2 : sf_kind Σ n) i :
     Γ s⊨ T1 <:[ i ] T2 ∷ K1 -∗
@@ -226,6 +233,11 @@ Section gen_lemmas.
     Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ T ∷[ i ] K2.
   Proof. apply sKStp_Sub. Qed.
+
+  Lemma sK_Sing_deriv Γ (T : oltyO Σ 0) i :
+    ⊢ Γ s⊨ T ∷[ i ] sf_sngl T.
+  Proof. rewrite -sKStp_Intv. apply sK_Star. Qed.
+
 
   Lemma sKStp_Lam Γ {n} (K : sf_kind Σ n) S T1 T2 i :
     oLaterN i (oShift S) :: Γ s⊨ T1 <:[i] T2 ∷ K -∗
@@ -525,7 +537,7 @@ Section dot_types.
   Qed.
 
   (** * Kinding *)
-  Lemma sK_Star Γ (T : oltyO Σ 0) i :
+  Lemma sK_Star_deriv Γ (T : oltyO Σ 0) i :
     ⊢ Γ s⊨ T ∷[ i ] sf_star.
   Proof.
     iApply sK_Sub. iApply sK_Sing.
