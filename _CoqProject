@@ -20,6 +20,7 @@ theories/iris_extra/cmra_prop_lift.v
 theories/iris_extra/dlang.v
 theories/iris_extra/iris_prelude.v
 theories/iris_extra/lty.v
+theories/iris_extra/persistence.v
 theories/iris_extra/proofmode_extra.v
 theories/iris_extra/saved_interp_dep.v
 theories/iris_extra/swap_later_impl.v
