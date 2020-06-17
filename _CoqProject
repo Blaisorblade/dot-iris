@@ -16,6 +16,7 @@ theories/pure_program_logic/lifting.v
 theories/pure_program_logic/adequacy.v
 
 theories/iris_extra/det_reduction.v
+theories/iris_extra/cmra_prop_lift.v
 theories/iris_extra/dlang.v
 theories/iris_extra/iris_prelude.v
 theories/iris_extra/lty.v
