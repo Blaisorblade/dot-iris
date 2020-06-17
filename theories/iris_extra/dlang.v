@@ -113,7 +113,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
 
     Instance CmraSwappable_dlang: CmraSwappable (iResUR dlangΣ).
     Proof.
-      apply Swappable_iResUR; rewrite /gid /=.
+      apply CmraSwappable_iResUR; rewrite /gid /=.
       apply fin_S_inv; cbn; first apply _.
       apply fin_0_inv.
     Qed.

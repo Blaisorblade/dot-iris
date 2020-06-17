@@ -127,7 +127,7 @@ End SwapCmra.
 (** ** [CmraSwappable] Instances. *)
 
 (** *** Discrete CMRAs. *)
-Instance Swappable_discrete {A}: CmraDiscrete A → CmraSwappable A.
+Instance CmraSwappable_discrete {A}: CmraDiscrete A → CmraSwappable A.
 Proof.
   split => n mx z _ Hv //; exists z; move: Hv.
   by rewrite -!cmra_discrete_valid_iff.
@@ -147,7 +147,7 @@ Lemma valid_opM_mjoin_option `{A: cmraT} (a: A) mma:
   ✓ (a ⋅? mjoin mma) ↔ ✓ (Some a ⋅? mma).
 Proof. by destruct mma; rewrite //= Some_op_opM. Qed.
 
-Instance Swappable_optionUR `{!CmraSwappable A}: CmraSwappable (optionUR A).
+Instance CmraSwappable_optionUR `{!CmraSwappable A}: CmraSwappable (optionUR A).
 Proof.
   split => n mmx [z|] /= Hx Hxz.
   - case: (cmra_extend_included n (mjoin mmx) z) => [||x [Hv Heq]];
@@ -157,7 +157,8 @@ Proof.
 Qed.
 
 (** *** Dependently-typed functions over a finite discrete domain *)
-Instance Swappable_discrete_funUR {A} (B: A → ucmraT) (H: ∀ i, CmraSwappable (B i)):
+Instance CmraSwappable_discrete_funUR {A} (B: A → ucmraT)
+  (H: ∀ i, CmraSwappable (B i)):
   CmraSwappable (discrete_funUR B).
 Proof.
   split => n mx z Hvmx Hvzmx.
@@ -186,7 +187,7 @@ Proof.
   split=> b /=; setoid_rewrite elem_of_list_singleton; naive_solver.
 Qed.
 
-Global Instance Swappable_agreeR: CmraSwappable (agreeR A).
+Global Instance CmraSwappable_agreeR: CmraSwappable (agreeR A).
 Proof.
   split; move => n [x x' Hvx|x' _]; cbn => Hvx'.
   - exists x; rewrite cmra_core_l; split_and!;
@@ -197,7 +198,7 @@ Qed.
 End agree.
 
 (** *** Exclusive CMRA. *)
-Instance Swappable_exclR {A} : CmraSwappable (exclR A).
+Instance CmraSwappable_exclR {A} : CmraSwappable (exclR A).
 Proof. by split => n [x|] [z|] //; exists (Excl z). Qed.
 
 Lemma gmap_cmra_extend_included n `{Countable A} `{!CmraSwappable T}
@@ -214,7 +215,7 @@ Proof.
   by case: (z !! i) (FUN i) => [?|] [?[?]]; rewrite /= ?left_id.
 Qed.
 
-Instance Swappable_gmapUR `{Countable A} `{!CmraSwappable T}:
+Instance CmraSwappable_gmapUR `{Countable A} `{!CmraSwappable T}:
   CmraSwappable (gmapUR A T).
 Proof.
   split => n [x|] z; rewrite /= ?Some_validN.
@@ -224,15 +225,15 @@ Proof.
       last (exists z'; move: Hv); by rewrite right_id.
 Qed.
 
-Instance Swappable_iResUR (Σ: gFunctors):
+Instance CmraSwappable_iResUR (Σ: gFunctors):
   (∀ i, CmraSwappable (rFunctor_apply (gFunctors_lookup Σ i) (iPrePropO Σ))) →
   CmraSwappable (iResUR Σ) := _.
-Instance Swappable_iResUR_manual (Σ: gFunctors):
+Instance CmraSwappable_iResUR_manual (Σ: gFunctors):
   (∀ i, CmraSwappable (rFunctor_apply (gFunctors_lookup Σ i) (iPrePropO Σ))) →
   CmraSwappable (iResUR Σ).
-Proof. move=>*. apply Swappable_discrete_funUR=>*. exact: Swappable_gmapUR. Qed.
+Proof. move=>*. apply CmraSwappable_discrete_funUR=>*. exact: CmraSwappable_gmapUR. Qed.
 
-Instance Swappable_iResUREmpty: CmraSwappable (iResUR #[]).
+Instance CmraSwappable_iResUREmpty: CmraSwappable (iResUR #[]).
 Proof.
-  apply Swappable_iResUR. by apply fin_0_inv.
+  apply CmraSwappable_iResUR. by apply fin_0_inv.
 Qed.
