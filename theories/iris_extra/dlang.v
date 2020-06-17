@@ -1,7 +1,7 @@
 (** * Instantiate Iris for D* languages. *)
 From iris.program_logic Require Import ectx_language language.
 From iris.base_logic.lib Require Import own.
-From D Require Import iris_prelude swap_later_impl asubst_intf.
+From D Require Import iris_prelude asubst_intf cmra_prop_lift swap_later_impl.
 From D Require saved_interp_dep.
 From D.iris_extra Require det_reduction.
 
@@ -111,12 +111,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
       subG dlangΣ Σ → dlangG Σ.
     Proof. solve_inG. Qed.
 
-    Instance CmraSwappable_dlang: CmraSwappable (iResUR dlangΣ).
-    Proof.
-      apply CmraSwappable_iResUR; rewrite /gid /=.
-      apply fin_S_inv; cbn; first apply _.
-      apply fin_0_inv.
-    Qed.
+    Instance CmraSwappable_dlang: CmraSwappable (iResUR dlangΣ) := CmraSwappable_iResUR _.
     Export det_reduction.
   End dlang_adequacy.
 

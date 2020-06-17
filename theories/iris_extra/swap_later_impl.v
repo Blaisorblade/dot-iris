@@ -4,6 +4,8 @@ From iris.proofmode Require Import tactics.
 From iris.base_logic Require Import lib.iprop.
 From iris.algebra Require Import agree excl gmap auth.
 
+From D Require Import cmra_prop_lift.
+
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
@@ -124,6 +126,21 @@ Qed.
 
 End SwapCmra.
 
+(** *** Lift [cmra_prop_lift] infrastructure to [CmraSwappable]. *)
+Notation SwappableRFunct F := (LiftCPropToRFunctor CmraSwappable F).
+Notation SwappableGFunct Σ := (LiftCPropToGFunctor CmraSwappable Σ).
+
+Instance SwappableGFunct_nil : LiftCPropToGFunctor_nil_type CmraSwappable.
+Proof. apply LiftCPropToGFunctor_nil. Qed.
+
+Instance SwappableGFunct_app : LiftCPropToGFunctor_app_type CmraSwappable.
+Proof. apply LiftCPropToGFunctor_app. Qed.
+
+Instance SwappableGFunct_GFunctor `{!rFunctorContractive F} :
+  LiftCPropToGFunctor_GFunctor_type F CmraSwappable.
+Proof. apply LiftCPropToGFunctor_GFunctor. Qed.
+
+
 (** ** [CmraSwappable] Instances. *)
 
 (** *** Option. *)
@@ -189,6 +206,12 @@ Proof.
   destruct (FUN a) as (?&HP1&HP2); eauto.
 Qed.
 
+Instance CmraSwappable_iResUR `(fp : SwappableGFunct Σ) : CmraSwappable (iResUR Σ).
+Proof.
+  (* apply _. Undo. *)
+  apply: lift_cprop_iResUR.
+Qed.
+
 Section agree.
 (** *** Agreement CMRA. *)
 Context {A : ofeT}.
@@ -214,19 +237,6 @@ Proof.
     by exists (to_agree a).
 Qed.
 End agree.
-
-Instance CmraSwappable_iResUR (Σ: gFunctors):
-  (∀ i, CmraSwappable (rFunctor_apply (gFunctors_lookup Σ i) (iPrePropO Σ))) →
-  CmraSwappable (iResUR Σ) := _.
-Instance CmraSwappable_iResUR_manual (Σ: gFunctors):
-  (∀ i, CmraSwappable (rFunctor_apply (gFunctors_lookup Σ i) (iPrePropO Σ))) →
-  CmraSwappable (iResUR Σ).
-Proof. move=>*. apply CmraSwappable_discrete_funUR=>*. exact: CmraSwappable_gmapUR. Qed.
-
-Instance CmraSwappable_iResUREmpty: CmraSwappable (iResUR #[]).
-Proof.
-  apply CmraSwappable_iResUR. by apply fin_0_inv.
-Qed.
 
 (* Currently unused instances. *)
 (** *** Discrete CMRAs. *)
