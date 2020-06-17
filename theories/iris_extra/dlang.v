@@ -1,7 +1,8 @@
 (** * Instantiate Iris for D* languages. *)
 From iris.program_logic Require Import ectx_language language.
 From iris.base_logic.lib Require Import own.
-From D Require Import iris_prelude asubst_intf cmra_prop_lift swap_later_impl.
+From D Require Import iris_prelude asubst_intf cmra_prop_lift
+     swap_later_impl persistence.
 From D Require saved_interp_dep.
 From D.iris_extra Require det_reduction.
 
@@ -26,8 +27,9 @@ Module Type LiftWp (Import VS : VlSortsSig).
   Class dlangG Σ `{InhabitedState dlang_lang} := DLangG {
     dlangG_savior :> savedHoSemTypeG Σ;
     dlangG_langdet :> LangDet dlang_lang;
+    dlangG_persistent :> CmraPersistent (iResUR Σ);
   }.
-  Arguments DLangG _ {_ _ _}.
+  Arguments DLangG _ {_ _ _ _}.
 
   (** ** Instance of [irisG] enable using the expression weakest precondition; this instance. *)
   Instance dlangG_irisG `{dlangG Σ} : irisG dlang_lang Σ := {
@@ -97,8 +99,6 @@ Module Type LiftWp (Import VS : VlSortsSig).
     Lemma stamp_σ_to_type_intro s σ n (φ : hoEnvD Σ n) :
       s ↝n[ n ] φ -∗ s ↗n[ σ , n ] hoEnvD_inst σ φ.
     Proof. rewrite /stamp_σ_to_type_n. iIntros; iExists φ; auto. Qed.
-
-    Global Instance stamp_σ_to_type_persistent σ s n ψ : Persistent (s ↗n[ σ , n ] ψ) := _.
   End mapsto.
 
   Global Opaque stamp_σ_to_type_n.
@@ -106,10 +106,11 @@ Module Type LiftWp (Import VS : VlSortsSig).
   Module dlang_adequacy.
     Definition dlangΣ := #[savedHoSemTypeΣ].
 
-    Instance subG_dlangΣ {Σ}
-      `{InhabitedState dlang_lang} `{LangDet dlang_lang} :
-      subG dlangΣ Σ → dlangG Σ.
-    Proof. solve_inG. Qed.
+    (* Local, because [dlangG_persistent] is what should be used. *)
+    Local Instance CmraPersistent_dlang: CmraPersistent (iResUR dlangΣ) := CmraPersistent_iResUR _.
+    Instance dlangG_dlangΣ
+      `{InhabitedState dlang_lang} `{LangDet dlang_lang} : dlangG dlangΣ.
+    Proof. split; apply _. Qed.
 
     Instance CmraSwappable_dlang: CmraSwappable (iResUR dlangΣ) := CmraSwappable_iResUR _.
     Export det_reduction.
