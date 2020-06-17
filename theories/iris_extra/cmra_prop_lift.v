@@ -5,18 +5,10 @@ Implicit Types (P : cmraT → Type) (F : rFunctor) (Σ : gFunctors).
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
-(* Class (∀ A `{!Cofe A} B `{!Cofe B}, (P : cmraT → Type) (rFunctor_car (F : rFunctor) A B)) :=
-  lift_cprop_rfunctor : LiftCPropToRFunctor P F. *)
 Notation LiftCPropToRFunctor P F :=
   (∀ A `{!Cofe A} B `{!Cofe B}, P (rFunctor_car F A B)).
-(* Fail Class LiftCPropToRFunctor (P : cmraT → Type) (F : rFunctor) :=
-  lift_cprop_rfunctor : LiftCPropToRFunctor P F.
-Class _LiftCPropToRFunctor (P : cmraT → Type) (F : rFunctor) :=
-  lift_cprop_rfunctor :> LiftCPropToRFunctor P F. *)
 Notation LiftCPropToGFunctor P Σ :=
   (∀ i, LiftCPropToRFunctor P (gFunctors_lookup Σ i)).
-(* Class _LiftCPropToGFunctor P Σ :=
-  lift_cprop_gfunctor : LiftCPropToGFunctor P Σ. *)
 
 Notation LiftCPropToGFunctor_nil_type P := (LiftCPropToGFunctor P #[]).
 
