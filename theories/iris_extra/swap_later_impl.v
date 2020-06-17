@@ -1,8 +1,7 @@
 (** * Show proof rule [Impl-▷].
 Swap later [▷] with Iris implication [→] and wand [-∗]. *)
 From iris.proofmode Require Import tactics.
-From iris.base_logic Require Import lib.iprop (* For gname *)
-     lib.saved_prop.
+From iris.base_logic Require Import lib.iprop.
 From iris.algebra Require Import agree excl gmap auth.
 
 Set Suggest Proof Using.
@@ -174,9 +173,7 @@ Qed.
 Section agree.
 (** *** Agreement CMRA. *)
 Context {A : ofeT}.
-Implicit Types a b : A.
-
-Implicit Types x y : agree A.
+Implicit Types (a b : A) (x y : agree A).
 
 Lemma elem_of_agree_sig x : { a | a ∈ agree_car x }.
 Proof. destruct x as [[|a ?] ?]; last (exists a); set_solver+. Qed.
