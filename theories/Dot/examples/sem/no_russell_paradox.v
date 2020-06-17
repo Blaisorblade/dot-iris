@@ -22,7 +22,6 @@ Section Russell.
     hence [v.A v] is equivalent to ▷¬ (u.A u).
     *)
   Definition uAu u := ⟦TSel (pv u) "A"⟧ ids u.
-  Instance uauP: Persistent (uAu u) := _.
 
   Definition russell_p : envD Σ := λI ρ v, (□ (uAu v -∗ False)).
   (* This would internalize as [russell_p ρ v := v : μ x. not (x.A)]. *)
