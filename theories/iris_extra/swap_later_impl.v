@@ -126,13 +126,6 @@ End SwapCmra.
 
 (** ** [CmraSwappable] Instances. *)
 
-(** *** Discrete CMRAs. *)
-Instance CmraSwappable_discrete {A}: CmraDiscrete A → CmraSwappable A.
-Proof.
-  split => n mx z _ Hv //; exists z; move: Hv.
-  by rewrite -!cmra_discrete_valid_iff.
-Qed.
-
 (** *** Option. *)
 Lemma validN_mjoin_option `{A: cmraT} n (mma: option (option A)):
   ✓{n} mjoin mma ↔ ✓{n} mma.
@@ -154,6 +147,31 @@ Proof.
     last (exists (Some x); move: Hv);
     by rewrite ?validN_mjoin_option ?validN_opM_mjoin_option ?Heq //.
   - exists None; split_and!; destruct mmx; by rewrite /= ?left_id.
+Qed.
+
+(** *** [gmap] *)
+Lemma gmap_cmra_extend_included n `{Countable A} `{!CmraSwappable T}
+  (x: gmapUR A T) z:
+  ✓{S n} x → ✓{n} (z ⋅ x) → { z' | ✓{S n} (z' ⋅ x) ∧ z ≡{n}≡ z' }.
+Proof.
+  move => Hvx Hvzx.
+  unshelve eassert (FUN := (λ (i : A),
+    cmra_extend_included n (Some (x !! i)) (z !! i) _ _)).
+  by apply Hvx.
+  by rewrite /= -lookup_op.
+  exists (map_imap (λ i _, proj1_sig (FUN i)) z).
+  split=>i; rewrite ?lookup_op map_lookup_imap /=;
+  by case: (z !! i) (FUN i) => [?|] [?[?]]; rewrite /= ?left_id.
+Qed.
+
+Instance CmraSwappable_gmapUR `{Countable A} `{!CmraSwappable T}:
+  CmraSwappable (gmapUR A T).
+Proof.
+  split => n [x|] z; rewrite /= ?Some_validN.
+  - by apply gmap_cmra_extend_included.
+  - move => _ Hvz.
+    case (gmap_cmra_extend_included n ∅ z) => [||z' Hv] //;
+      last (exists z'; move: Hv); by rewrite right_id.
 Qed.
 
 (** *** Dependently-typed functions over a finite discrete domain *)
@@ -197,34 +215,6 @@ Proof.
 Qed.
 End agree.
 
-(** *** Exclusive CMRA. *)
-Instance CmraSwappable_exclR {A} : CmraSwappable (exclR A).
-Proof. by split => n [x|] [z|] //; exists (Excl z). Qed.
-
-Lemma gmap_cmra_extend_included n `{Countable A} `{!CmraSwappable T}
-  (x: gmapUR A T) z:
-  ✓{S n} x → ✓{n} (z ⋅ x) → { z' | ✓{S n} (z' ⋅ x) ∧ z ≡{n}≡ z' }.
-Proof.
-  move => Hvx Hvzx.
-  unshelve eassert (FUN := (λ (i : A),
-    cmra_extend_included n (Some (x !! i)) (z !! i) _ _)).
-  by apply Hvx.
-  by rewrite /= -lookup_op.
-  exists (map_imap (λ i _, proj1_sig (FUN i)) z).
-  split=>i; rewrite ?lookup_op map_lookup_imap /=;
-  by case: (z !! i) (FUN i) => [?|] [?[?]]; rewrite /= ?left_id.
-Qed.
-
-Instance CmraSwappable_gmapUR `{Countable A} `{!CmraSwappable T}:
-  CmraSwappable (gmapUR A T).
-Proof.
-  split => n [x|] z; rewrite /= ?Some_validN.
-  - by apply gmap_cmra_extend_included.
-  - move => _ Hvz.
-    case (gmap_cmra_extend_included n ∅ z) => [||z' Hv] //;
-      last (exists z'; move: Hv); by rewrite right_id.
-Qed.
-
 Instance CmraSwappable_iResUR (Σ: gFunctors):
   (∀ i, CmraSwappable (rFunctor_apply (gFunctors_lookup Σ i) (iPrePropO Σ))) →
   CmraSwappable (iResUR Σ) := _.
@@ -237,3 +227,15 @@ Instance CmraSwappable_iResUREmpty: CmraSwappable (iResUR #[]).
 Proof.
   apply CmraSwappable_iResUR. by apply fin_0_inv.
 Qed.
+
+(* Currently unused instances. *)
+(** *** Discrete CMRAs. *)
+Instance CmraSwappable_discrete {A}: CmraDiscrete A → CmraSwappable A.
+Proof.
+  split => n mx z _ Hv //; exists z; move: Hv.
+  by rewrite -!cmra_discrete_valid_iff.
+Qed.
+
+(** *** Exclusive CMRA. *)
+Instance CmraSwappable_exclR {A} : CmraSwappable (exclR A).
+Proof. by split => n [x|] [z|] //; exists (Excl z). Qed.
