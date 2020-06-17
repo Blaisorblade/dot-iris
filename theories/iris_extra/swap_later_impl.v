@@ -158,7 +158,7 @@ Proof.
 Qed.
 
 (** *** Dependently-typed functions over a finite discrete domain *)
-Instance Swappable_ofe_funUR {A} (B: A → ucmraT) (H: ∀ i, CmraSwappable (B i)):
+Instance Swappable_discrete_funUR {A} (B: A → ucmraT) (H: ∀ i, CmraSwappable (B i)):
   CmraSwappable (discrete_funUR B).
 Proof.
   split => n mx z Hvmx Hvzmx.
@@ -233,7 +233,7 @@ Instance Swappable_iResUR (Σ: gFunctors):
 Instance Swappable_iResUR_manual (Σ: gFunctors):
   (∀ i, CmraSwappable (rFunctor_apply (gFunctors_lookup Σ i) (iPrePropO Σ))) →
   CmraSwappable (iResUR Σ).
-Proof. move=>*. apply Swappable_ofe_funUR=>*. exact: Swappable_gmapUR. Qed.
+Proof. move=>*. apply Swappable_discrete_funUR=>*. exact: Swappable_gmapUR. Qed.
 
 Instance Swappable_iResUREmpty: CmraSwappable (iResUR #[]).
 Proof.
