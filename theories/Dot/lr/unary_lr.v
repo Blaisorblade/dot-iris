@@ -606,7 +606,7 @@ Notation "⟦ T ⟧" := (oClose V⟦ T ⟧).
 Import dlang_adequacy.
 
 (** Adequacy of normalization for gDOT paths. *)
-Lemma ipwp_gs_adequacy Σ `{!dlangPreG Σ} `{!SwapPropI Σ} {p T i}
+Lemma ipwp_gs_adequacy Σ `{!dlangG Σ} `{!SwapPropI Σ} {p T i}
   (Hwp : ∀ `(Hdlang : !dlangG Σ) `(!SwapPropI Σ), ⊢ [] ⊨p p : T , i):
   terminates (path2tm p).
 Proof.

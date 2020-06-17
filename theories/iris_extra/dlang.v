@@ -104,12 +104,11 @@ Module Type LiftWp (Import VS : VlSortsSig).
   Global Opaque stamp_σ_to_type_n.
 
   Module dlang_adequacy.
-    Class dlangPreG Σ := DLangPreG {
-      dlangPreG_savior :> savedHoSemTypeG Σ;
-    }.
     Definition dlangΣ := #[savedHoSemTypeΣ].
 
-    Instance subG_dlangΣ {Σ} : subG dlangΣ Σ → dlangPreG Σ.
+    Instance subG_dlangΣ {Σ}
+      `{InhabitedState dlang_lang} `{LangDet dlang_lang} :
+      subG dlangΣ Σ → dlangG Σ.
     Proof. solve_inG. Qed.
 
     Instance CmraSwappable_dlang: CmraSwappable (iResUR dlangΣ).
