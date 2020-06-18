@@ -590,7 +590,7 @@ Lemma ipwp_gs_adequacy Σ `{!dlangG Σ} `{!SwapPropI Σ} {p T i}
 Proof.
   eapply (@soundness (iResUR Σ) _ i).
   apply (bupd_plain_soundness _).
-  iApply ipwp_terminates.
   set (DLangΣ := DLangG Σ).
+  iApply ipwp_terminates.
   iApply (Hwp DLangΣ).
 Qed.

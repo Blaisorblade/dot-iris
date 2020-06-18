@@ -72,15 +72,15 @@ Proof.
     rewrite /uncurry /path_wp_pre; repeat (apply Heq || f_equiv || done).
 Qed.
 
-Definition path_wp_def {Σ} p φ : iProp Σ := bi_least_fixpoint path_wp_pre' (p, φ).
-Definition path_wp_aux {Σ} : seal (@path_wp_def Σ). Proof. by eexists. Qed.
-Definition path_wp {Σ} := (@path_wp_aux Σ).(unseal).
-Definition path_wp_unseal {Σ} : path_wp = @path_wp_def Σ := path_wp_aux.(seal_eq).
+Definition path_wp_def `{!dlangG Σ} p φ : iProp Σ := bi_least_fixpoint path_wp_pre' (p, φ).
+Definition path_wp_aux `{!dlangG Σ} : seal path_wp_def. Proof. by eexists. Qed.
+Definition path_wp `{!dlangG Σ} := path_wp_aux.(unseal).
+Definition path_wp_unseal `{!dlangG Σ} : path_wp = path_wp_def := path_wp_aux.(seal_eq).
 
 Global Instance: Params (@path_wp) 2 := {}.
 
 Section path_wp.
-  Context {Σ : gFunctors}.
+  Context `{!dlangG Σ}.
   Local Notation path_wp := (path_wp (Σ := Σ)).
 
   Implicit Types (φ Φ : vl -d> iPropO Σ).
@@ -120,8 +120,8 @@ Section path_wp.
     iIntros ([|?p l]); iIntros; by [iApply "Hpv"| iApply "Hpself"].
   Qed.
   Ltac path_wp_ind p φ := iRevert (p φ);
-    iApply path_wp_ind; first solve_proper; iIntros;
-      rewrite /path_wp_pre ?path_wp_unfold /=; iModIntro.
+    iApply path_wp_ind; first solve_proper;
+      rewrite /path_wp_pre ?path_wp_unfold /=.
 
   Global Instance path_wp_ne p n :
     Proper (pointwise_relation _ (dist n) ==> dist n) (path_wp p).

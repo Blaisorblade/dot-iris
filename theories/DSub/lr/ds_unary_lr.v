@@ -1,4 +1,5 @@
 From D Require Export iris_prelude saved_interp_dep.
+From D Require Import persistence.
 From D.DSub Require Import ds_syn.
 From D.DSub Require Import ds_ty_interp_subst_lemmas.
 Export ds_syn.
@@ -28,7 +29,9 @@ Implicit Types
  *)
 
 (* The only point of these instances is to select Σ uniquely. *)
-Class dsubSynG (Σ: gFunctors) := DsubSynG {}.
+Class dsubSynG (Σ: gFunctors) := DsubSynG {
+   dsubSynG_persistent :> CmraPersistent (iResUR Σ);
+}.
 
 From D.DSub Require Export ds_rules.
 Instance dsubsynG_irisG `{!dsubSynG Σ}: irisG dlang_lang Σ := {
