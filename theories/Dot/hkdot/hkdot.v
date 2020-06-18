@@ -145,9 +145,9 @@ Section gen_lemmas.
 
   Lemma sf_star_eq ρ T1 T2 :
     sf_star ρ T1 T2 ⊣⊢ □ (oClose T1 ⊆@{Σ} oClose T2).
-  Proof.
+  Proof using Hdlang.
     iSplit; first by iIntros "(_ & $ & _)".
-    iIntros "#$ !>"; iSplit;
+    iIntros "#$"; iSplit;
       iIntros (v); [iIntros "[]" | iIntros "_ //"].
   Qed.
 
@@ -257,7 +257,7 @@ Section gen_lemmas.
     iIntros "#HsubL #HsubU !> * #Hg /=" (T1 T2).
     iPoseProof (ksubtyping_spec with "HsubL Hg") as "{HsubL} HsubL".
     iPoseProof (ksubtyping_spec with "HsubU Hg") as "{HsubU Hg} HsubU".
-    iNext i; iIntros "#(HsubL1 & $ & HsubU1) !>"; iSplit.
+    iNext i; iIntros "#(HsubL1 & $ & HsubU1)"; iSplit.
     iApply (subtype_trans with "HsubL HsubL1").
     iApply (subtype_trans with "HsubU1 HsubU").
   Qed.
