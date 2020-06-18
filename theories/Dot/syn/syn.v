@@ -9,6 +9,8 @@ From stdpp Require Export strings.
 From D Require Export prelude succ_notation.
 From D Require Import asubst_intf asubst_base.
 From iris.program_logic Require ectx_language ectxi_language.
+(* For now, use Equations obligations tactic.*)
+From Equations Require Import Equations.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
@@ -292,31 +294,85 @@ Instance hsubst_pth      : HSubst vl path     := path_hsubst.
 Instance hsubst_kty {n}  : HSubst vl (kty n)  := kty_hsubst n.
 Instance hsubst_kind {n} : HSubst vl (kind n) := kind_hsubst n.
 
-Instance base_lit_eq_dec : EqDecision base_lit.
-Proof. solve_decision. Defined.
+Instance EqDecToEqDecision `{Heq : EqDec A} : EqDecision A := Heq.
 
-Instance un_op_eq_dec : EqDecision un_op.
-Proof. solve_decision. Defined.
+Print Z.
+Set Transparent Obligations.
+Derive NoConfusion EqDec for positive.
+Instance : EqDec positive := _.
+Derive NoConfusion EqDec for Z.
+Instance : EqDec Z := _.
+Print base_lit.
+Derive NoConfusion EqDec for base_lit.
+Instance base_lit_eq_dec : EqDec base_lit := _.
 
-Instance bin_op_eq_dec : EqDecision bin_op.
-Proof. solve_decision. Defined.
+Derive NoConfusion EqDec for un_op bin_op base_ty.
+Instance un_op_eq_dec : EqDec un_op := _.
+Instance bin_op_eq_dec : EqDec bin_op := _.
+Instance base_ty_eq_dec : EqDec base_ty := _.
+Derive NoConfusion EqDec for Ascii.ascii string.
+Instance : EqDec string := _.
+Instance : EqDec label := _.
+Instance : EqDec stamp := _.
+Instance : EqDec var := _.
+Instance : EqDec T → EqDec (list T) := _.
 
-Instance base_ty_eq_dec : EqDecision base_ty.
-Proof. solve_decision. Defined.
+Derive Signature for kty kind.
+Time Derive DependentElimination for vl_ tm dm path kty kind.
 
-Lemma vl_eq_dec v1 v2   : Decision (v1 = v2)
-with  tm_eq_dec t1 t2   : Decision (t1 = t2)
-with  dm_eq_dec d1 d2   : Decision (d1 = d2)
-with  path_eq_dec p1 p2 : Decision (p1 = p2)
-with  ty_eq_dec T1 T2   : Decision (T1 = T2).
+Time Derive NoConfusion for vl_ tm dm path kty kind.
+Time Derive NoConfusionHom for vl_ tm dm path kty kind.
+
+Time Derive EqDec for vl_ tm dm path kty kind.
+
+Instance foo : EqDec tm.
+Proof.
+apply _.
+
+About unit.
+About positive.
+Derive EqDec for positive.
+
+Instance positive_eqdec : EqDec positive.
+apply _.
+Qed.
+Print positive_eqdec .
+Print positive.
+About nat_EqDec.
+Instance positive_eqdec : EqDec positive.
+apply _.
+Proof.
+decide equality. Qed.
+eauto; apply _. Qed.
+Instance vl_eqdec : EqDec vl_.
+Proof. eqdec_proof.
+
+(*
+Fixpoint vl_eq_dec v1 v2                  {struct v1} : Decision (v1 = v2)
+with     tm_eq_dec t1 t2                  {struct t1} : Decision (t1 = t2)
+with     dm_eq_dec d1 d2                  {struct d1} : Decision (d1 = d2)
+with     path_eq_dec p1 p2                {struct p1} : Decision (p1 = p2)
+with     kty_eq_dec {n} (T1 T2 : kty n)   {struct T1} : Decision (T1 = T2)
+with     kind_eq_dec {n} (K1 K2 : kind n) {struct K1} : Decision (K1 = K2).
 Proof.
   all: have vl_eq_dec' : EqDecision vl := vl_eq_dec;
     have dm_eq_dec' : EqDecision dm := dm_eq_dec;
-    rewrite /Decision; decide equality; solve_decision.
-Defined.
+    rewrite /Decision; try (decide equality; solve_decision).
+    decide equality.
+    destruct d1, d2.
+Defined. *)
+About EqDec.
 
-Instance tm_eq_dec'   : EqDecision tm   := tm_eq_dec.
-Instance vl_eq_dec'   : EqDecision vl   := vl_eq_dec.
+Time Derive EqDec for tm.
+Print HintDb typeclass_instances.
+Print HintDb
+Instance tm_eq_dec'   : EqDecision tm.
+Proof. unshelve eapply EqDecToEqDecision. apply _.
+  := EqDecToEqDecision.
+Instance vl_eq_dec'   : EqDecision vl.
+Proof. unshelve eapply EqDecToEqDecision. apply _.
+  := vl_eq_dec.
+Instance tm_eq_dec'   : EqDecision tm   := EqDecToEqDecision.
 Instance dm_eq_dec'   : EqDecision dm   := dm_eq_dec.
 Instance path_eq_dec' : EqDecision path := path_eq_dec.
 Instance ty_eq_dec'   : EqDecision ty   := ty_eq_dec.
