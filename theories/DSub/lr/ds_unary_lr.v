@@ -69,7 +69,7 @@ Section logrel.
   Program Definition interp_forall: envD Σ -n> envD Σ -n> envD Σ :=
     λne interp1 interp2, λI ρ v,
     ∃ t, ⌜ v = vabs t ⌝ ∧
-      □ ▷ ∀ w, interp1 ρ w → interp_expr interp2 (w .: ρ) t.|[w/].
+      ▷ ∀ w, interp1 ρ w → interp_expr interp2 (w .: ρ) t.|[w/].
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_forall /.
 
@@ -95,8 +95,8 @@ Section logrel.
     (ty -d> envD Σ) -n> envD Σ -n> envD Σ -n> envD Σ :=
     λne rinterp interpL interpU, λI ρ v,
     ∃ φ, ▷ [ rinterp ] v ↗ φ ∧
-       □ ((∀ v, interpL ρ v → ▷ □ φ v) ∧
-          (∀ v, ▷ □ φ v → interpU ρ v)).
+       ((∀ v, interpL ρ v → ▷ φ v) ∧
+          (∀ v, ▷ φ v → interpU ρ v)).
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_tmem /.
 
@@ -105,7 +105,7 @@ Section logrel.
 
   Program Definition interp_sel: (ty -d> envD Σ) -n> vl -d> envD Σ :=
     λne rinterp, λI w ρ v,
-    ▷ ∃ ϕ, [rinterp] w.[ρ] ↗ ϕ ∧ □ ϕ v.
+    ▷ ∃ ϕ, [rinterp] w.[ρ] ↗ ϕ ∧ ϕ v.
   Solve All Obligations with solve_proper_ho.
   Global Arguments interp_sel /.
   Global Instance interp_sel_contractive : Contractive interp_sel.
@@ -198,10 +198,6 @@ Section logrel_part2.
     autosubst.
   Qed.
 
-  Global Instance interp_persistent T ρ v :
-    Persistent (⟦ T ⟧ ρ v).
-  Proof. revert v ρ; induction T => w ρ; unfold_interp; try apply _. Qed.
-
   (* XXX here we needn't add a variable to the scope of its own type. But that won't hurt. *)
   Fixpoint interp_env (Γ : ctx) (ρ : var → vl) : iProp Σ :=
     match Γ with
@@ -211,33 +207,25 @@ Section logrel_part2.
 
   Notation "G⟦ Γ ⟧" := (interp_env Γ).
 
-  Global Instance interp_env_persistent Γ ρ :
-    Persistent (G⟦ Γ ⟧ ρ).
-  Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
-
   Definition ietp Γ T e : iProp Σ :=
-    □∀ ρ, G⟦Γ⟧ ρ → ⟦T⟧ₑ ρ (e.|[ρ]).
+    ∀ ρ, G⟦Γ⟧ ρ → ⟦T⟧ₑ ρ (e.|[ρ]).
   Global Arguments ietp /.
   Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 
   Definition ietpi Γ T e i: iProp Σ :=
-    □∀ ρ, G⟦Γ⟧ ρ → ▷^i ⟦T⟧ₑ ρ (e.|[ρ]).
+    ∀ ρ, G⟦Γ⟧ ρ → ▷^i ⟦T⟧ₑ ρ (e.|[ρ]).
   Global Arguments ietpi /.
   Notation "Γ ⊨ e : T , i" := (ietpi Γ T e i) (at level 74, e, T at next level).
 
   (** Indexed Subtyping. Defined on closed values. We must require closedness
       explicitly, since closedness now does not follow from being well-typed later. *)
   Definition istpi Γ T1 T2 i j: iProp Σ :=
-    □∀ ρ v, G⟦Γ⟧ ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v.
+    ∀ ρ v, G⟦Γ⟧ ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v.
   Global Arguments istpi /.
 
   Definition delayed_ivstp Γ T1 T2 i: iProp Σ :=
-    □ ∀ ρ, G⟦Γ⟧ρ → ▷^i ∀v, ⟦T1⟧ ρ v → ⟦T2⟧ ρ v.
+    ∀ ρ, G⟦Γ⟧ρ → ▷^i ∀v, ⟦T1⟧ ρ v → ⟦T2⟧ ρ v.
   Global Arguments delayed_ivstp /.
-
-  Global Instance ietp_persistent Γ T e : Persistent (ietp Γ T e) := _.
-  Global Instance ietpi_persistent Γ T e i : Persistent (ietpi Γ T e i) := _.
-  Global Instance istpi_persistent Γ T1 T2 i j : Persistent (istpi Γ T1 T2 i j) := _.
 End logrel_part2.
 
 Notation "G⟦ Γ ⟧" := (interp_env Γ).
@@ -263,7 +251,7 @@ Section logrel_lemmas.
   Lemma semantic_typing_uniform_step_index Γ T e i:
     Γ ⊨ e : T -∗ Γ ⊨ e : T, i.
   Proof.
-    iIntros "#H !> %ρ #HΓ".
+    iIntros "#H %ρ #HΓ".
     iInduction i as [|i] "IHi". by iApply "H". iExact "IHi".
   Qed.
 
@@ -281,22 +269,22 @@ Section logrel_lemmas.
 
   Context {Γ}.
   Lemma Sub_Refl T i : ⊢ Γ ⊨ T, i <: T, i.
-  Proof. by iIntros "/= !> **". Qed.
+  Proof. by iIntros "/= **". Qed.
 
   Lemma Sub_Trans T1 T2 T3 i1 i2 i3 :
     Γ ⊨ T1, i1 <: T2, i2 -∗ Γ ⊨ T2, i2 <: T3, i3 -∗ Γ ⊨ T1, i1 <: T3, i3.
   Proof.
-    iIntros "#Hsub1 #Hsub2 /= !> * #Hg #HT".
+    iIntros "#Hsub1 #Hsub2 /= * #Hg #HT".
     iApply ("Hsub2" with "Hg (Hsub1 Hg [//])").
   Qed.
 
   Lemma DSub_Refl T i : ⊢ Γ ⊨[i] T <: T.
-  Proof. by iIntros "/= !> ** !> **". Qed.
+  Proof. by iIntros "/= ** !> **". Qed.
 
   Lemma DSub_Trans T1 T2 T3 i :
     Γ ⊨[i] T1 <: T2 -∗ Γ ⊨[i] T2 <: T3 -∗ Γ ⊨[i] T1 <: T3.
   Proof.
-    iIntros "#Hsub1 #Hsub2 /= !> * #Hg".
+    iIntros "#Hsub1 #Hsub2 /= * #Hg".
     iSpecialize ("Hsub1" with "Hg"); iSpecialize ("Hsub2" with "Hg").
     iIntros "!>" (v) "#HT". iApply "Hsub2". by iApply "Hsub1".
   Qed.

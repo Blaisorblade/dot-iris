@@ -167,7 +167,7 @@ Instance envApply_proper n :
 Proof. solve_proper_ho. Qed.
 
 Definition packHoLtyO {Σ n} (φ : hoD Σ n) : hoLtyO Σ n :=
-  HoLty (λI args v, ▷ □ φ args v).
+  HoLty (λI args v, ▷ φ args v).
 Instance: Params (@packHoLtyO) 2 := {}.
 Instance packHoLtyO_contractive {Σ n} :
   Contractive (packHoLtyO (Σ := Σ) (n := n)).
@@ -248,8 +248,7 @@ Section olty_subst.
     by rewrite (subst_compose HclT).
   Qed.
 
-  Definition Olty (olty_car : vec vl i → (var → vl) → vl → iProp Σ)
-   `{∀ args ρ v, Persistent (olty_car args ρ v)}: oltyO Σ i :=
+  Definition Olty (olty_car : vec vl i → (var → vl) → vl → iProp Σ) : oltyO Σ i :=
     λ args ρ, Lty (olty_car args ρ).
 
   Global Instance ids_olty : Ids (olty Σ i) := λ _, inhabitant.
@@ -389,9 +388,6 @@ Section olty_ofe_2.
     oLaterN (m + n) T ≡ oLaterN m (oLaterN n T).
   Proof. move=> ???. by rewrite/= laterN_plus. Qed.
 
-  Global Instance env_oltyped_persistent (Γ : sCtx Σ) ρ: Persistent (sG⟦ Γ ⟧* ρ).
-  Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
-
   Global Instance env_oltyped_proper ρ : Proper ((≡) ==> (≡)) (env_oltyped ρ).
   Proof.
     move: ρ => + G1 G2 /equiv_Forall2.
@@ -411,7 +407,7 @@ Section olty_ofe_2.
       iApply (IHΓ (stail ρ) x Hx with "Hg").
   Qed.
 
-  Definition olty0 (φ : envD Σ) `{∀ ρ v, Persistent (φ ρ v)} : oltyO Σ 0 :=
+  Definition olty0 (φ : envD Σ) : oltyO Σ 0 :=
     Olty (vopen φ).
 
   (** *** We can define once and for all basic "logical" types: top, bottom, and, or, later and μ. *)
@@ -451,7 +447,7 @@ Section olty_ofe_2.
   Proof. move=> args ρ v. by rewrite /= (hoEnvD_weaken_one T args _ v). Qed.
 
   Definition interp_expr (φ : hoEnvD Σ 0) : envPred tm Σ :=
-    λI ρ t, □ WP t {{ vclose φ ρ }}.
+    λI ρ t, WP t {{ vclose φ ρ }}.
   Global Arguments interp_expr /.
 
   Lemma sTEq_oMu_oLaterN (τ : oltyO Σ i) n :

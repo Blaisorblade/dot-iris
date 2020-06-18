@@ -16,7 +16,7 @@ Section defs.
 
   (** Legacy: (double)-indexed subtyping. *)
   Definition sstpi `{!dlangG Σ} i j Γ τ1 τ2 : iProp Σ :=
-    □∀ ρ v,
+    ∀ ρ v,
       sG⟦Γ⟧*ρ → ▷^i oClose τ1 ρ v → ▷^j oClose τ2 ρ v.
   Global Arguments sstpi /.
 
@@ -54,7 +54,7 @@ Section judgment_lemmas.
   (** ** Show this typing judgment is equivalent to the more direct definition. *)
   Lemma istpi_eq Γ T1 i T2 j :
     Γ ⊨ T1, i <: T2, j ⊣⊢
-    □∀ ρ v, G⟦Γ⟧ ρ → ▷^i V⟦T1⟧ vnil ρ v → ▷^j V⟦T2⟧ vnil ρ v.
+    ∀ ρ v, G⟦Γ⟧ ρ → ▷^i V⟦T1⟧ vnil ρ v → ▷^j V⟦T2⟧ vnil ρ v.
   Proof. reflexivity. Qed.
 
   Lemma sstpi_app ρ Γ T1 T2 i j :
@@ -82,27 +82,27 @@ Section StpLemmas.
   Context `{HdotG: !dlangG Σ}.
 
   Lemma sSub_Refl {Γ} T i : ⊢ Γ s⊨ T, i <: T, i.
-  Proof. by iIntros "!> **". Qed.
+  Proof. by iIntros "/= **". Qed.
 
   Lemma sSub_Trans {Γ T1 T2 T3 i1 i2 i3} :
     Γ s⊨ T1, i1 <: T2, i2 -∗ Γ s⊨ T2, i2 <: T3, i3 -∗ Γ s⊨ T1, i1 <: T3, i3.
   Proof.
-    iIntros "#Hsub1 #Hsub2 !> * #Hg HT".
+    iIntros "#Hsub1 #Hsub2 %ρ * #Hg HT".
     iApply ("Hsub2" with "Hg (Hsub1 Hg HT)").
   Qed.
 
   Lemma sSub_Top Γ T i:
     ⊢ Γ s⊨ T, i <: oTop, i.
-  Proof. by iIntros "!> ** /=". Qed.
+  Proof. by iIntros "/= **". Qed.
 
   Lemma sBot_Sub Γ T i:
     ⊢ Γ s⊨ oBot, i <: T, i.
-  Proof. by iIntros "/= !> ** !>". Qed.
+  Proof. by iIntros "/= ** !>". Qed.
 
   Lemma sAnd1_Sub Γ T1 T2 i: ⊢ Γ s⊨ oAnd T1 T2, i <: T1, i.
-  Proof. by iIntros "/= !> * ? [? ?]". Qed.
+  Proof. by iIntros "/= * ? [? ?]". Qed.
   Lemma sAnd2_Sub Γ T1 T2 i: ⊢ Γ s⊨ oAnd T1 T2, i <: T2, i.
-  Proof. by iIntros "/= !> * ? [? ?]". Qed.
+  Proof. by iIntros "/= * ? [? ?]". Qed.
 
   Lemma sSub_And Γ T U1 U2 i j:
     Γ s⊨ T, i <: U1, j -∗
@@ -111,9 +111,9 @@ Section StpLemmas.
   Proof. rewrite !sstpi_to_sstpd0 sTEq_oAnd_oLaterN. apply sStp_And. Qed.
 
   Lemma sSub_Or1 Γ T1 T2 i: ⊢ Γ s⊨ T1, i <: oOr T1 T2, i.
-  Proof. by iIntros "!> * _ ? !> /="; eauto. Qed.
+  Proof. by iIntros "/= * _ ? !> /="; eauto. Qed.
   Lemma sSub_Or2 Γ T1 T2 i: ⊢ Γ s⊨ T2, i <: oOr T1 T2, i.
-  Proof. by iIntros "!> * _ ? !> /="; eauto. Qed.
+  Proof. by iIntros "/= * _ ? !> /="; eauto. Qed.
 
   Lemma sOr_Sub Γ T1 T2 U i j:
     Γ s⊨ T1, i <: U, j -∗
@@ -123,26 +123,26 @@ Section StpLemmas.
 
   Lemma sDistr_And_Or_Sub {Γ S T U i}:
     ⊢ Γ s⊨ oAnd (oOr S T) U , i <: oOr (oAnd S U) (oAnd T U), i.
-  Proof. iIntros "!> %% #Hg [[HS|HT] Hu] !> /="; [iLeft|iRight]; iFrame. Qed.
+  Proof. iIntros "%% #Hg [[HS|HT] Hu] !> /="; [iLeft|iRight]; iFrame. Qed.
 
   Lemma sSub_Add_Later Γ T i :
     ⊢ Γ s⊨ T, i <: oLater T, i.
-  Proof. by iIntros "!> ** !> /=". Qed.
+  Proof. by iIntros "/= ** !>". Qed.
 
   Lemma sLater_Sub Γ T i :
     ⊢ Γ s⊨ oLater T, i <: T, i.+1.
-  Proof. by iIntros "/= !> %ρ %v #HG #HT !>". Qed.
+  Proof. by iIntros "/= %ρ %v #HG #HT !>". Qed.
 
   Lemma sSub_Later Γ T i :
     ⊢ Γ s⊨ T, i.+1 <: oLater T, i.
-  Proof. by iIntros "/= !> ** !>". Qed.
+  Proof. by iIntros "/= ** !>". Qed.
 
   (** ** Subtyping for type selections. *)
   Lemma sSub_Sel {Γ L U p l i}:
     Γ s⊨p p : cTMem l L U, i -∗
     Γ s⊨ L, i <: oSel p l, i.
   Proof.
-    iIntros "/= #Hp !> %ρ %v Hg #HL"; iSpecialize ("Hp" with "Hg"); iNext i.
+    iIntros "/= #Hp %ρ %v Hg #HL"; iSpecialize ("Hp" with "Hg"); iNext i.
     iApply (path_wp_wand with "Hp"); iIntros (w).
     iApply (vl_sel_lb with "HL").
   Qed.
@@ -151,7 +151,7 @@ Section StpLemmas.
     Γ s⊨p p : cTMem l L U, i -∗
     Γ s⊨ oSel p l, i <: U, i.
   Proof.
-    iIntros "#Hp !> %ρ %v Hg Hφ"; iSpecialize ("Hp" with "Hg"); iNext i.
+    iIntros "#Hp %ρ %v Hg Hφ"; iSpecialize ("Hp" with "Hg"); iNext i.
     iDestruct (path_wp_agree with "Hp Hφ") as (w Hw) "[Hp Hφ]".
     iApply (vl_sel_ub with "Hφ Hp").
   Qed.
@@ -165,7 +165,7 @@ Section StpLemmas.
     oLaterN i T1 :: Γ s⊨ T1, i <: T2, j -∗
     Γ s⊨ oMu T1, i <: oMu T2, j.
   Proof.
-    iIntros "/= #Hstp !> %ρ %v #Hg #HT1".
+    iIntros "/= #Hstp %ρ %v #Hg #HT1".
     iApply ("Hstp" $! (v .: ρ) v with "[$Hg $HT1] [$HT1]").
   Qed.
 
@@ -186,7 +186,7 @@ Section StpLemmas.
   (** Novel subtyping rules. [Sub_Bind_1] and [Sub_Bind_2] become
   derivable. *)
   Lemma sMu_Sub {Γ T i} : ⊢ Γ s⊨ oMu (shift T), i <: T, i.
-  Proof. iIntros "!> **". by rewrite oMu_shift. Qed.
+  Proof. iIntros "%ρ **". by rewrite oMu_shift. Qed.
 
   Lemma Mu_Sub {Γ} T i: ⊢ Γ ⊨ TMu (shift T), i <: T, i.
   Proof.
@@ -196,7 +196,7 @@ Section StpLemmas.
   Qed.
 
   Lemma sSub_Mu {Γ T i} : ⊢ Γ s⊨ T, i <: oMu (shift T), i.
-  Proof. iIntros "!> **". by rewrite oMu_shift. Qed.
+  Proof. iIntros "%ρ **". by rewrite oMu_shift. Qed.
 
   Lemma Sub_Mu {Γ} T i: ⊢ Γ ⊨ T, i <: TMu (shift T), i.
   Proof.
@@ -210,7 +210,7 @@ Section StpLemmas.
     Γ s⊨ T1, i <: T2, i -∗
     Γ s⊨ cVMem l T1, i <: cVMem l T2, i.
   Proof.
-    iIntros "#Hsub !> %ρ %v Hg HT1"; iApply (cVMem_respects_subN with "[Hg] HT1").
+    iIntros "#Hsub %ρ %v Hg HT1"; iApply (cVMem_respects_subN with "[Hg] HT1").
     iApply (sstpi_app with "Hsub Hg").
   Qed.
 
@@ -262,7 +262,7 @@ Section StpLemmas.
     Γ s⊨p p : T, i -∗
     Γ s⊨ oSing p, i <: T, i.
   Proof.
-    iIntros "#Hp !> %ρ %v Hg /= Heq"; iSpecialize ("Hp" with "Hg"); iNext i.
+    iIntros "#Hp %ρ %v Hg /= Heq"; iSpecialize ("Hp" with "Hg"); iNext i.
     iDestruct "Heq" as %->%(alias_paths_elim_eq (T _ ρ)).
     by rewrite path_wp_pv_eq.
   Qed.
@@ -272,7 +272,7 @@ Section StpLemmas.
     Γ s⊨ oSing p, i <: oSing q, i -∗
     Γ s⊨ oSing q, i <: oSing p, i.
   Proof.
-    iIntros "#Hp #Hps !> %ρ %v #Hg Heq".
+    iIntros "#Hp #Hps %ρ %v #Hg Heq".
     iDestruct (path_wp_eq with "(Hp Hg)") as (w) "[Hpw _] {Hp}".
     rewrite -alias_paths_pv_eq_1; iSpecialize ("Hps" $! _ w with "Hg Hpw");
       iNext i; rewrite /= !alias_paths_pv_eq_1.
@@ -286,7 +286,7 @@ Section StpLemmas.
     Γ s⊨p p : oSing q, i -∗
     Γ s⊨ T1, i <: T2, i.
   Proof.
-    iIntros "#Hrepl #Hal !> %ρ %v Hg HT1".
+    iIntros "#Hrepl #Hal %ρ %v Hg HT1".
     iSpecialize ("Hal" with "Hg"); iNext i.
     iDestruct "Hal" as %Hal%alias_paths_simpl.
     iRewrite -("Hrepl" $! vnil ρ v Hal); iExact "HT1".
@@ -306,7 +306,7 @@ Section StpLemmas.
     (*───────────────────────────────*)
     Γ s⊨p p : T2, i + j.
   Proof.
-    iIntros "/= * #HpT1 #Hsub !> * #Hg".
+    iIntros "/= * #HpT1 #Hsub * #Hg".
     iSpecialize ("HpT1" with "Hg").
     rewrite !path_wp_eq.
     iDestruct "HpT1" as (v) "Hpv"; iExists v.
@@ -337,13 +337,13 @@ Section VarianceStpLemmas.
   Lemma sAnd_All_Sub_Distr Γ T U1 U2 i:
     ⊢ Γ s⊨ oAnd (oAll T U1) (oAll T U2), i <: oAll T (oAnd U1 U2), i.
   Proof.
-    iIntros "/= !> %ρ %v #Hg [#H1 #H2]". iNext.
+    iIntros "/= %ρ %v #Hg [#H1 #H2]". iNext.
     iDestruct "H1" as (t ?) "#H1"; iDestruct "H2" as (t' ->) "#H2"; simplify_eq.
     iExists _; iSplit => //.
-    iIntros "!>" (w) "#HT".
+    iIntros (w) "#HT".
     iSpecialize ("H1" with "HT").
     iSpecialize ("H2" with "HT").
-    iNext. iModIntro.
+    iNext.
     (* Oh. Dreaded conjunction rule. Tho could we use a version
     for separating conjunction? *)
     iApply wp_and. by iApply "H1". by iApply "H2".
@@ -352,7 +352,7 @@ Section VarianceStpLemmas.
   Lemma sAnd_Fld_Sub_Distr Γ l T1 T2 i:
     ⊢ Γ s⊨ oAnd (cVMem l T1) (cVMem l T2), i <: cVMem l (oAnd T1 T2), i.
   Proof.
-    iIntros "/= !> %ρ %v #Hg [#H1 H2]". iNext.
+    iIntros "/= %ρ %v #Hg [#H1 H2]". iNext.
     iDestruct "H1" as (d? pmem?) "#H1"; iDestruct "H2" as (d'? pmem'?) "#H2". objLookupDet.
     repeat (iExists _; repeat iSplit => //).
     by iApply (path_wp_and' with "H1 H2").
@@ -361,13 +361,12 @@ Section VarianceStpLemmas.
   Lemma sAnd_Typ_Sub_Distr Γ l L U1 U2 i:
     ⊢ Γ s⊨ oAnd (cTMem l L U1) (cTMem l L U2), i <: cTMem l L (oAnd U1 U2), i.
   Proof.
-    iIntros "/= !> %ρ %v Hg [H1 H2]". iNext.
+    iIntros "/= %ρ %v Hg [H1 H2]". iNext.
     iDestruct "H1" as (d? φ) "#[Hsφ1 [#HLφ1 #HφU1]]"; iDestruct "H2" as (d'? φ') "#[Hsφ2 [_ #HφU2]]".
     objLookupDet.
     iExists d; repeat iSplit => //.
     iExists φ; repeat iSplit => //.
-    iModIntro; iSplit; iIntros (w) "Hw".
-    - by iApply "HLφ1".
+    iIntros (w) "Hw".
     - iDestruct (dm_to_type_agree vnil w with "Hsφ1 Hsφ2") as "#Hag {Hsφ1 Hsφ2 HLφ1}".
       iSplit; [iApply "HφU1" | iApply "HφU2"] => //.
       iNext. by iRewrite -"Hag".

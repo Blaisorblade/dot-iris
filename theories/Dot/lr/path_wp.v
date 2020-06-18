@@ -29,8 +29,6 @@ Import uPred.
 
 Canonical Structure pathO := leibnizO path.
 
-Notation PersistentP Φ := (∀ v, Persistent (Φ v)).
-
 Section path_wp_pre.
   Context {Σ : gFunctors}.
   Implicit Types (φ : vl -d> iPropO Σ).
@@ -45,8 +43,6 @@ Section path_wp_pre.
     | pself p l => ∃ vp q, ⌜ vp @ l ↘ dpt q ⌝ ∧
         path_wp p (λ v, ⌜ vp = v ⌝) ∧ path_wp q φ
     end.
-  Instance: PersistentP φ → (∀ p φ, Persistent (path_wp p φ)) → Persistent (path_wp_pre path_wp p φ).
-  Proof. intros; destruct p; apply _. Qed.
 
   Lemma path_wp_pre_mono (wp1 wp2 : path → (vl -d> iPropO Σ) → iProp Σ) :
     ⊢ (∀ p Φ, wp1 p Φ -∗ wp2 p Φ) →
@@ -102,7 +98,7 @@ Section path_wp.
   (* General induction principle on path_wp. *)
   Lemma path_wp_ind' Ψ
     (HΨ : ∀ n p, Proper (pointwise_relation _ (dist n) ==> dist n) (Ψ p)):
-    ⊢ □ (∀ p Φ, path_wp_pre (λ p Φ, Ψ p Φ ∧ path_wp p Φ) p Φ -∗ Ψ p Φ) →
+    ⊢ (∀ p Φ, path_wp_pre (λ p Φ, Ψ p Φ ∧ path_wp p Φ) p Φ -∗ Ψ p Φ) →
     ∀ p Φ, path_wp p Φ -∗ Ψ p Φ.
   Proof.
     iIntros "#IH" (p Φ) "H". rewrite path_wp_unseal.
@@ -116,12 +112,12 @@ Section path_wp.
   (* Specialized induction principle on path_wp. *)
   Lemma path_wp_ind Ψ
     (Hprop : ∀ n p, Proper (pointwise_relation _ (dist n) ==> dist n) (Ψ p)):
-    ⊢ (∀ v Φ, □ (Φ v -∗ Ψ (pv v) Φ)) →
-     (∀ p l Φ, □ (path_wp_pre (λ p Φ, Ψ p Φ ∧ path_wp p Φ) (pself p l) Φ -∗ Ψ (pself p l) Φ)) →
+    ⊢ (∀ v Φ, Φ v -∗ Ψ (pv v) Φ) →
+     (∀ p l Φ, path_wp_pre (λ p Φ, Ψ p Φ ∧ path_wp p Φ) (pself p l) Φ -∗ Ψ (pself p l) Φ) →
      ∀ p Φ, path_wp p Φ -∗ Ψ p Φ.
   Proof.
     iIntros "#Hpv #Hpself" (p Φ) "Hp". iApply (path_wp_ind' with "[] Hp").
-    iIntros "!>" ([|?p l]); iIntros; by [iApply "Hpv"| iApply "Hpself"].
+    iIntros ([|?p l]); iIntros; by [iApply "Hpv"| iApply "Hpself"].
   Qed.
   Ltac path_wp_ind p φ := iRevert (p φ);
     iApply path_wp_ind; first solve_proper; iIntros;
@@ -139,23 +135,6 @@ Section path_wp.
     Proper (pointwise_relation _ (≡) ==> (≡)) (path_wp p).
   Proof.
     by intros Φ Φ' ?; apply equiv_dist=>n; apply path_wp_ne=>v; apply equiv_dist.
-  Qed.
-
-  Global Instance path_wp_persistent φ p:
-    PersistentP φ → Persistent (path_wp p φ).
-  Proof.
-    rewrite /Persistent => Hφ.
-    (* Make Hφ internal, or the required non-expansiveness will be false. *)
-    iAssert (∀ v, φ v -∗ <pers> φ v)%I as "Hv". by iIntros; iApply Hφ.
-    clear Hφ; iIntros "H"; iRevert "H Hv"; path_wp_ind p φ.
-    by iIntros "Hv HP"; iApply "HP".
-    iDestruct 1 as (vp q Hlook) "IH"; iIntros "HP".
-    iApply persistently_exist; iExists vp.
-    iApply persistently_exist; iExists q.
-    iApply persistently_and; iSplit; first by eauto.
-    iApply persistently_and; iSplit.
-    - iDestruct "IH" as "[[IHeq _] _]". iApply "IHeq"; eauto.
-    - iDestruct "IH" as "[_ [IHpw _]]". iApply ("IHpw" with "HP").
   Qed.
 
   Global Instance pwp_proper : Proper ((=) ==> pointwise_relation _ (≡) ==> (≡)) path_wp.
@@ -177,7 +156,7 @@ Section path_wp.
       iAssert ((φ : vl -d> iPropO Σ) ≡ (λ v : vl, ⌜Pv v⌝))%I as "HE".
       by simplify_eq.
       clear HE; iIntros "H"; iRevert (Pv) "HE"; iRevert "H"; path_wp_ind p φ.
-      + iIntros "Hv" (Pv) "Heq"; rewrite discrete_fun_equivI /=.
+      + iIntros "* Hv" (Pv) "Heq"; rewrite discrete_fun_equivI /=.
         iRewrite ("Heq" $! v) in "Hv". iDestruct "Hv" as %Hv. auto.
       + iDestruct 1 as (vp q Hlook) "[[IHp _] [IHq _]]"; iIntros (Pv) "Heq".
         iDestruct ("IHq" with "Heq") as %Hq.
@@ -321,7 +300,6 @@ Section path_wp.
     iDestruct 1 as (v Hcl) "H". eauto.
   Qed.
 
-  Context `{Hdlang : !dlangG Σ}.
   Lemma path_wp_to_wp p φ :
     path_wp p (λ v, φ v) -∗
     WP (path2tm p) {{ v, φ v }}.

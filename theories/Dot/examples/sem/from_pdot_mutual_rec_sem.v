@@ -243,9 +243,8 @@ Lemma newTypeRef_semTyped Γ :
 Proof.
   have := !!(Hx0 Γ); rewrite /newTypeRefΓ => Hx0.
 
-  iModIntro.
   iMod (fundamental_typed' Hx0) as (x0_s Hsk) "#Hx0".
-  unstamp_goal_tm; iIntros "!> %ρ #Hg !>".
+  unstamp_goal_tm; iIntros "%ρ #Hg".
   iSpecialize ("Hx0" with "Hg").
   wp_bind (AppRCtx _); wp_bind (IfCtx _ _); wp_bind (UnCtx _);
     wp_bind (ProjCtx _); wp_bind (ProjCtx _); iSimpl.
