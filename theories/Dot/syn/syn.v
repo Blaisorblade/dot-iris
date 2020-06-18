@@ -303,7 +303,7 @@ Instance hsubst_dm       : HSubst vl dm       := dm_hsubst.
 Instance hsubst_pth      : HSubst vl path     := path_hsubst.
 Instance hsubst_kty {n}  : HSubst vl (kty n)  := kty_hsubst n.
 Instance hsubst_kind {n} : HSubst vl (kind n) := kind_hsubst n.
-
+(*
 Instance base_lit_eq_dec : EqDecision base_lit.
 Proof. solve_decision. Defined.
 
@@ -331,7 +331,7 @@ Instance tm_eq_dec'   : EqDecision tm   := tm_eq_dec.
 Instance vl_eq_dec'   : EqDecision vl   := vl_eq_dec.
 Instance dm_eq_dec'   : EqDecision dm   := dm_eq_dec.
 Instance path_eq_dec' : EqDecision path := path_eq_dec.
-Instance ty_eq_dec'   : EqDecision ty   := ty_eq_dec.
+Instance ty_eq_dec'   : EqDecision ty   := ty_eq_dec. *)
 
 Local Ltac finish_lists l x :=
   elim: l => [|x xs IHds] //=; idtac + elim: x => [l d] //=; f_equal => //; by f_equal.
