@@ -21,7 +21,7 @@ Section storeless_unstamped_lemmas.
   Lemma uT_ISub {Γ e T1 T2 i}:
     Γ u⊨ e : T1 -∗ Γ ⊨ T1, 0 <: T2, i -∗ Γ u⊨ iterate tskip i e : T2.
   Proof.
-    iIntros "#H1 #Hsub !>"; iMod "H1" as (e1s Hsk1) "H1"; iModIntro.
+    iIntros "#H1 #Hsub"; iMod "H1" as (e1s Hsk1) "H1"; iModIntro.
     iExists (iterate tskip i e1s); iSplit; last iApply (sT_ISub with "H1 Hsub").
     eauto using same_skel_tm_tskips.
   Qed.
@@ -43,7 +43,7 @@ Section storeless_unstamped_lemmas.
   Lemma uT_All_Ex {Γ e1 x2 T1 T2}:
     Γ u⊨ e1: TAll T1 T2 -∗ Γ u⊨ tv (ids x2) : T1 -∗ Γ u⊨ tapp e1 (tv (ids x2)) : T2.|[ids x2/].
   Proof.
-    iIntros "#H1 #H2 !>"; iMod "H1" as (e1s Hsk1) "H1".
+    iIntros "#H1 #H2"; iMod "H1" as (e1s Hsk1) "H1".
     iMod (suetp_var with "H2") as "{H2} H2"; iModIntro.
     by iExists (tapp e1s (tv (ids x2))); iSplit; last iApply (T_All_Ex with "H1 H2").
   Qed.

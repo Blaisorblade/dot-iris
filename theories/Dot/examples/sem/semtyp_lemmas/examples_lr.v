@@ -40,7 +40,7 @@ Section Lemmas.
     iApply Mu_Sub_Mu.
     (* We're stuck! *)
     Restart. *)
-    iIntros "#Hsub #Hp !> %ρ %v #Hg Heq".
+    iIntros "#Hsub #Hp %ρ %v #Hg Heq".
     iSpecialize ("Hp" with "Hg").
     iAssert (▷^i ⟦ T1 ⟧ (v .: ρ) v)%I as "#HT1".
     by iNext i; iDestruct "Heq" as %Heq;
@@ -56,7 +56,7 @@ Section Lemmas.
     Γ ⊨p p : TMu T1, i -∗
     Γ ⊨ TSing p, i <: TMu T2, i.
   Proof.
-    iIntros "#Hsub #Hp !> %ρ %v #Hg /= Heq"; iSpecialize ("Hp" with "Hg").
+    iIntros "#Hsub #Hp %ρ %v #Hg /= Heq"; iSpecialize ("Hp" with "Hg").
     iSpecialize ("Hsub" $! ρ v with "[#$Hg] [#]"); iNext i;
       iDestruct "Heq" as %Heq;
       rewrite -(psubst_one_repl Hrepl1, psubst_one_repl Hrepl2) //
@@ -67,12 +67,12 @@ Section Lemmas.
   derive in the model. *)
   Lemma sDistr_Or_And_Sub_inv {Γ S T U i}:
     ⊢ Γ s⊨ oAnd (oOr S U) (oOr T U), i <: oOr (oAnd S T) U , i.
-  Proof. iIntros "!> %% Hg [[HS|HT] [HT'|HU]] !> /="; eauto with iFrame. Qed.
+  Proof. iIntros "%% Hg [[HS|HT] [HT'|HU]] !> /="; eauto with iFrame. Qed.
 
   Lemma sAnd_Fld_Sub_Distr_2 Γ l T1 T2 i:
     ⊢ Γ s⊨ cVMem l (oAnd T1 T2), i <: oAnd (cVMem l T1) (cVMem l T2), i.
   Proof.
-    iIntros "!> %ρ %v _ H"; iNext.
+    iIntros "%ρ %v _ H"; iNext.
     iSplit; iApply (cVMem_respects_sub with "[] H"); by iIntros "%_ [??]".
   Qed.
 
@@ -80,14 +80,14 @@ Section Lemmas.
   Lemma sAnd_Fld_Sub_Distr_Or_1 Γ l T1 T2 i:
     ⊢ Γ s⊨ oOr (cVMem l T1) (cVMem l T2), i <: cVMem l (oOr T1 T2), i.
   Proof.
-    iIntros "!> %ρ %v _ [H|H]"; iNext;
+    iIntros "%ρ %v _ [H|H]"; iNext;
       iApply (cVMem_respects_sub with "[] H"); iIntros "% $".
   Qed.
 
   Lemma sAnd_Fld_Sub_Distr_Or_2 Γ l T1 T2 i:
     ⊢ Γ s⊨ cVMem l (oOr T1 T2), i <: oOr (cVMem l T1) (cVMem l T2), i.
   Proof.
-    iIntros "!> %ρ %v _ #H"; iNext.
+    iIntros "%ρ %v _ #H"; iNext.
     iDestruct "H" as (d Hl pmem ->) "#H"; rewrite -path_wp_or -!oDVMem_eq.
     iDestruct "H" as "#[H|H]"; [iLeft | iRight]; iExists _; iFrame (Hl) "H".
   Qed.
@@ -96,7 +96,7 @@ Section Lemmas.
     Γ s⊨ T1, i.+1 <: T2, j.+1 -∗
     Γ s⊨ oLater T1, i <: oLater T2, j.
   Proof.
-    iIntros "/= #Hsub !> %ρ %v #Hg #HT1".
+    iIntros "/= #Hsub %ρ %v #Hg #HT1".
     iSpecialize ("Hsub" $! _ v with "Hg").
     rewrite !swap_later.
     by iApply "Hsub".
@@ -105,13 +105,13 @@ Section Lemmas.
   Lemma sSub_Index_Incr Γ T U i j:
     Γ s⊨ T, i <: U, j -∗
     Γ s⊨ T, i.+1 <: U, j.+1.
-  Proof. iIntros "/= #Hsub !> ** !>". by iApply "Hsub". Qed.
+  Proof. iIntros "/= #Hsub ** !>". by iApply "Hsub". Qed.
 
   Lemma sSub_Later_Mono Γ T U i j:
     Γ s⊨ T, i <: U, j -∗
     Γ s⊨ oLater T, i <: oLater U, j.
   Proof.
-    iIntros "/= #Hsub !> %% Hg HT". rewrite !swap_later.
+    iIntros "/= #Hsub %% Hg HT". rewrite !swap_later.
     by iApply ("Hsub" with "Hg HT").
   Qed.
 
@@ -147,7 +147,7 @@ Section Lemmas.
     Γ s⊨ T, i <: U, j -∗
     oLater <$> Γ s⊨ oLater T, i <: oLater U, j.
   Proof.
-    iIntros "#Hsub !> %ρ %v #Hg/=".
+    iIntros "#Hsub %ρ %v #Hg/=".
     rewrite !swap_later -later_impl senv_TLater_commute.
     iNext. iApply ("Hsub" with "Hg").
   Qed.
@@ -210,16 +210,16 @@ Section Lemmas.
   Proof. by rewrite /ietp sT_Mu_E interp_subst_commute. Qed.
 
   Lemma suetp_var_lift1 {Γ} x T1 T2:
-    □(Γ s⊨ tv (ids x) : T1 -∗ Γ s⊨ tv (ids x) : T2) ⊢
+    (Γ s⊨ tv (ids x) : T1 -∗ Γ s⊨ tv (ids x) : T2) ⊢
     Γ su⊨ tv (ids x) : T1 -∗ Γ su⊨ tv (ids x) : T2.
   Proof.
-    iIntros "#Hr #H1 !>"; iMod (suetp_var with "H1") as "{H1} H1"; iModIntro.
+    iIntros "#Hr #H1"; iMod (suetp_var with "H1") as "{H1} H1"; iModIntro.
     by iExists (tv (ids x)); iSplit; last iApply ("Hr" with "H1").
   Qed.
 
   Lemma uT_Mu_I {Γ} T x: Γ u⊨ tv (ids x) : T.|[ids x/] -∗ Γ u⊨ tv (ids x) : TMu T.
-  Proof. iApply suetp_var_lift1; iModIntro; iApply T_Mu_I. Qed.
+  Proof. iApply suetp_var_lift1; iApply T_Mu_I. Qed.
 
   Lemma uT_Mu_E {Γ} T x: Γ u⊨ tv (ids x) : TMu T -∗ Γ u⊨ tv (ids x) : T.|[ids x/].
-  Proof. iApply suetp_var_lift1; iModIntro; iApply T_Mu_E. Qed.
+  Proof. iApply suetp_var_lift1; iApply T_Mu_E. Qed.
 End Lemmas.

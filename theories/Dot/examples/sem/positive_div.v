@@ -67,7 +67,7 @@ Section helpers.
   Lemma wp_nge m n (Hnge : ¬ m > n) : ⊢ WP m > n {{ w, w ≡ false }}.
   Proof. wp_bin. ev; simplify_eq/=. case_decide; by [|lia]. Qed.
 
-  Lemma setp_value Γ (T : olty Σ 0) v: Γ s⊨ v : T ⊣⊢ (□∀ ρ, sG⟦ Γ ⟧* ρ → T vnil ρ v.[ρ]).
+  Lemma setp_value Γ (T : olty Σ 0) v: Γ s⊨ v : T ⊣⊢ ∀ ρ, sG⟦ Γ ⟧* ρ → T vnil ρ v.[ρ].
   Proof.
     rewrite /=; properness => //; iSplit;
       [rewrite wp_value_inv|rewrite -wp_value]; iIntros "#$".
@@ -76,7 +76,7 @@ Section helpers.
   Lemma setp_value_eq (T : olty Σ 0) v: (∀ ρ, T vnil ρ v.[ρ]) ⊣⊢ [] s⊨ v : T.
   Proof.
     iSplit.
-    - iIntros "#H !>" (? _).
+    - iIntros "#H" (? _).
       rewrite /= -wp_value'. iApply "H".
     - iIntros "/= H" (ρ).
       iSpecialize ("H" $! ρ with "[//]").
@@ -105,8 +105,8 @@ Section div_example.
     ⊢ [] s⊨ hmkPosV : oAll V⟦ 𝐙 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : Z, v = n ∧ n > 0 ⌝)).
   Proof using Type*.
     rewrite -sT_All_I /= /shead.
-    iIntros (ρ) "!> /=". iDestruct 1 as %(_ & n & Hw); simplify_eq/=; rewrite Hw.
-    iIntros "!>". iApply wp_wand; [iApply wp_if_ge | naive_solver].
+    iIntros (ρ) "/=". iDestruct 1 as %(_ & n & Hw); simplify_eq/=; rewrite Hw.
+    iApply wp_wand; [iApply wp_if_ge | naive_solver].
   Qed.
 
   Lemma wp_mkPos :
@@ -118,7 +118,7 @@ Section div_example.
   Close Scope Z_scope.
 
   Lemma sStp_ipos_nat Γ i : ⊢ Γ s⊨ ipos <:[ i ] V⟦ 𝐙 ⟧.
-  Proof. iIntros "!> * _ !%"; rewrite /pos /pure_interp_prim; naive_solver. Qed.
+  Proof. iIntros "% _ !%"; rewrite /pos /pure_interp_prim; naive_solver. Qed.
 
   Lemma posTMem_widen Γ l i : ⊢ Γ s⊨ cTMemL l ipos ipos <:[ i ] cTMemL l ⊥ oInt.
   Proof using Type*.
@@ -161,8 +161,8 @@ Section div_example.
     iApply suD_Cons; [done| iApply suD_Val|]; last
       (iApply suD_Cons; [done| iApply suD_Val |iApply suD_Nil]);
       iApply (suT_All_I_Strong _ _ _ HctxSub).
-    - iIntros "!>"; unstamp_goal_tm.
-      iIntros "!> %ρ [[_ [#Hpos _]] %Hnpos] !>"; lazy in Hnpos.
+    - unstamp_goal_tm.
+      iIntros "%ρ [[_ [#Hpos _]] %Hnpos]"; lazy in Hnpos.
       case: Hnpos => [n Hw].
       iApply wp_wand; [rewrite /= {}Hw; iApply wp_if_ge |
         iIntros (v [-> Hnpos])].
@@ -170,8 +170,8 @@ Section div_example.
       iApply (vl_sel_lb with "[] Hpos").
       iIntros "!%"; hnf. naive_solver.
     - iApply suT_All_I.
-      iIntros "!>"; unstamp_goal_tm.
-      iIntros "!> %ρ #[[[_ [Hpos _]] Hw] Harg] !>".
+      unstamp_goal_tm.
+      iIntros "%ρ #[[[_ [Hpos _]] Hw] Harg]".
       rewrite /shead /stail. iSimpl.
       iDestruct "Hw" as %[m ->].
       setoid_rewrite path_wp_pv_eq.

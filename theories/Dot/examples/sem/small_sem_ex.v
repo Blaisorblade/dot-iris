@@ -61,8 +61,8 @@ Section small_ex.
       iApply suD_Cons; [done| by iApply suD_posDm_ipos | ].
       iApply suD_Cons; [done| iApply suD_Val | by iApply suD_Nil].
       iApply (suT_Sub (T1 := ipos)).
-      iModIntro; unstamp_goal_tm.
-      by rewrite setp_value /ipos /pos; iIntros "!> %ρ _ /= !%"; naive_solver.
+      unstamp_goal_tm.
+      by rewrite setp_value /ipos /pos; iIntros "%ρ _ /= !%"; naive_solver.
       iApply sStp_Trans; first iApply sStp_Add_Later.
       iApply sStp_Trans; first iApply sStp_Add_Later.
       iApply sLater_Stp_Eq.

@@ -20,9 +20,9 @@ Section LambdaIntros.
     (*─────────────────────────*)
     Γ s⊨ tv (vabs e) : oAll T1 T2.
   Proof.
-    rewrite Hctx; iIntros "#HeT !> %ρ #HG /= !>".
+    rewrite Hctx; iIntros "#HeT %ρ #HG /= ".
     rewrite -wp_value'. iExists _; iSplit; first done.
-    iIntros "!>" (v) "#Hv"; rewrite up_sub_compose.
+    iIntros (v) "#Hv"; rewrite up_sub_compose.
     (* Factor ▷ out of [sG⟦ Γ ⟧* ρ] before [iNext]. *)
     rewrite senv_TLater_commute. iNext.
     iApply ("HeT" $! (v .: ρ) with "[$HG]").
@@ -57,7 +57,7 @@ Section Sec.
     (*──────────────────────*)
     ⊢ Γ s⊨p pv (ids x) : shiftN x τ, 0.
   Proof.
-    iIntros "/= !> %ρ #Hg"; rewrite path_wp_pv_eq.
+    iIntros "/= %ρ #Hg"; rewrite path_wp_pv_eq.
     by rewrite s_interp_env_lookup // id_subst.
   Qed.
 
@@ -74,7 +74,7 @@ Section Sec.
     Γ s⊨ e : oLaterN i T -∗
     Γ s⊨ iterate tskip i e : T.
   Proof.
-    iIntros "#He !> * #Hg !>"; rewrite tskip_subst; iApply wp_bind.
+    iIntros "#He %ρ #Hg"; rewrite tskip_subst; iApply wp_bind.
     iApply (wp_wand with "(He Hg)"); iIntros "{He} /= %v Hv".
     by rewrite -wp_pure_step_later -?wp_value.
   Qed.
@@ -89,7 +89,7 @@ Section Sec.
     (*───────────────────────────────*)
     Γ s⊨ e : T2.
   Proof.
-    iIntros "#HeT1 #Hsub !> %ρ #Hg !>".
+    iIntros "#HeT1 #Hsub %ρ #Hg".
     iApply (wp_wand with "(HeT1 Hg)").
     iIntros (v) "#HvT1 {HeT1} /=".
     iApply ("Hsub" with "Hg HvT1").
@@ -102,7 +102,7 @@ Section Sec.
    *)
   Lemma sTMu_equiv {Γ T v} : (Γ s⊨ tv v : oMu T) ≡ (Γ s⊨ tv v : T.|[v/]).
   Proof.
-    iSplit; iIntros "#Htp !> %ρ #Hg !> /=";
+    iSplit; iIntros "#Htp %ρ #Hg /=";
     iDestruct (wp_value_inv' with "(Htp Hg)") as "{Htp} Hgoal";
     by rewrite -wp_value /= hoEnvD_subst_one.
   Qed.
@@ -113,7 +113,7 @@ Section Sec.
     (*────────────────────────────────────────────────────────────*)
     Γ s⊨ tapp e1 (tv v2) : T2.|[v2/].
   Proof.
-    iIntros "/= #He1 #Hv2Arg !> * #Hg !>"; iSpecialize ("Hv2Arg" with "Hg").
+    iIntros "/= #He1 #Hv2Arg * #Hg"; iSpecialize ("Hv2Arg" with "Hg").
     smart_wp_bind (AppLCtx (tv v2.[_])) v "#Hr {He1 Hg}" ("He1" with "Hg").
     iDestruct "Hr" as (t ->) "#HvFun".
     rewrite wp_value_inv' -wp_pure_step_later; last done.
@@ -132,7 +132,7 @@ Section Sec.
     (*────────────────────────────────────────────────────────────*)
     Γ s⊨ tapp e1 e2 : T2.
   Proof.
-    iIntros "/= #He1 #Hv2 !> %ρ #HG !>".
+    iIntros "/= #He1 #Hv2 %ρ #HG".
     smart_wp_bind (AppLCtx (e2.|[_])) v "#Hr" ("He1" with "[]").
     smart_wp_bind (AppRCtx v) w "#Hw" ("Hv2" with "[]").
     iDestruct "Hr" as (t ->) "#Hv".
@@ -149,7 +149,7 @@ Section Sec.
     (*─────────────────────────*)
     Γ s⊨ tproj e l : T.
   Proof.
-    iIntros "#HE /= !> %ρ #HG !>".
+    iIntros "#HE /= %ρ #HG".
     smart_wp_bind (ProjCtx l) v "#Hv {HE}" ("HE" with "[]").
     iDestruct "Hv" as (? Hl pmem ->) "Hv".
     by rewrite -wp_pure_step_later //= path_wp_to_wp.

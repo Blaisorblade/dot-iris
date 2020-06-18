@@ -21,9 +21,9 @@ Section Russell.
     paradoxical without Iris, because (informally) [v.A] points to [λ u, ¬ (u.A u)],
     hence [v.A v] is equivalent to ▷¬ (u.A u).
     *)
-  Definition uAu u := ⟦TSel (pv u) "A"⟧ ids u.
+  Definition uAu u := oSel (pv u) "A" vnil ids u.
 
-  Definition russell_p : envD Σ := λI ρ v, (□ (uAu v -∗ False)).
+  Definition russell_p : envD Σ := λI ρ v, uAu v -∗ False.
   (* This would internalize as [russell_p ρ v := v : μ x. not (x.A)]. *)
 
   Context (s: stamp).
@@ -33,39 +33,42 @@ Section Russell.
       We assume [Hs] throughout the rest of the section. *)
   Definition v := vobj [("A", dtysem [] s)].
 
+  Lemma uAu_unfold : uAu v ≡ vl_sel v "A" vnil v.
+  Proof. by rewrite /uAu/= !path_wp_pv_eq. Qed.
+
   (** Yes, v has a valid type member. *)
-  Lemma vHasA: Hs ⊢ ⟦ TTMem "A" TBot TTop ⟧ ids v.
+  Lemma vHasA: Hs ⊢ clty_olty (cTMem "A" oBot oTop) vnil ids v.
   Proof.
     iIntros "#Hs".
     iExists _; iSplit. by iExists _; iSplit.
     iExists _; iSplit. by iApply dm_to_type_intro.
-    by iModIntro; repeat iSplit; iIntros "% **".
+    by repeat iSplit; iIntros "% **".
   Qed.
 
   Lemma later_not_UAU: Hs ⊢ uAu v -∗ ▷ False.
   Proof.
     iIntros "Hs #HuauV".
     iPoseProof "HuauV" as "HuauV'".
-    iEval (rewrite /Hs /v /uAu /= path_wp_pv_eq) in "HuauV'".
+    iEval (rewrite uAu_unfold) in "HuauV'".
     iDestruct "HuauV'" as (d ψ Hl) "[Hs1 Hvav]".
     have Hdeq: d = dtysem [] s. by move: Hl => /= [ds [[<- /=] ?]]; simplify_eq.
     iAssert (d ↗n[ 0 ] vopen (russell_p ids)) as "#Hs2". by iApply (dm_to_type_intro with "Hs").
     iPoseProof (dm_to_type_agree vnil v with "Hs1 Hs2") as "#Hag".
     (* without lock, iNext would strip a later in [HuauV]. *)
-    rewrite /v [uAu]lock; iNext; unlock.
+    rewrite [uAu]lock; iNext; unlock.
     iRewrite "Hag" in "Hvav".
     iApply ("Hvav" with "HuauV").
   Qed.
 
-  Lemma uauEquiv: Hs ⊢ ▷ □ (uAu v -∗ False) ∗-∗ uAu v.
+  Lemma uauEquiv: Hs ⊢ ▷ (uAu v -∗ False) ∗-∗ uAu v.
   Proof.
     iIntros "#Hs"; iSplit.
     - iIntros "#HnotVAV /=".
-      rewrite /uAu/=!path_wp_pv_eq.
+      iEval rewrite uAu_unfold.
       iExists (dtysem [] s), (vopen (russell_p ids)).
       repeat iSplit; first by eauto.
       + by iApply (dm_to_type_intro with "Hs").
-      + iIntros "!>!>!>". rewrite /uAu/= path_wp_pv_eq. iApply "HnotVAV".
+      + iApply "HnotVAV".
     - iIntros "#Hvav".
       by iDestruct (later_not_UAU with "Hs Hvav") as "#>[]".
   Qed.
@@ -75,10 +78,10 @@ Section Russell.
   Lemma taut0 (P: Prop): ((P → False) ↔ P) → False. Proof. tauto. Qed.
   (** But with later, there's no paradox — we get instead not (not P). *)
   Lemma irisTaut (P : iProp Σ):
-    (▷ □ (P -∗ False) ∗-∗ P) -∗ □(P -∗ False) -∗ False.
-  Proof. iIntros "Eq #NP". iApply "NP". by iApply "Eq". Qed.
+    (▷ (P -∗ False) ∗-∗ P) -∗ (P -∗ False) -∗ False.
+  Proof using Type*. iIntros "Eq #NP". iApply "NP". by iApply "Eq". Qed.
 
-  Lemma notNotVAV: Hs ⊢ □ (uAu v -∗ False) → False.
+  Lemma notNotVAV: Hs ⊢ (uAu v -∗ False) → False.
   Proof.
     iIntros "#Hs #notVAV". iApply (irisTaut (uAu v)) => //.
     by iApply uauEquiv.

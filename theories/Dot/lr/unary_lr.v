@@ -43,19 +43,19 @@ Section judgments.
 
   (** Expression typing *)
   Definition setp `{!dlangG Σ} e Γ τ : iProp Σ :=
-    □∀ ρ, sG⟦Γ⟧* ρ → sE⟦ τ ⟧ ρ (e.|[ρ]).
+    ∀ ρ, sG⟦Γ⟧* ρ → sE⟦ τ ⟧ ρ (e.|[ρ]).
   Global Arguments setp /.
 
   (** Delayed subtyping. *)
   Definition sstpd `{!dlangG Σ} i Γ τ1 τ2 : iProp Σ :=
-    □∀ ρ,
+    ∀ ρ,
       sG⟦Γ⟧*ρ → ▷^i (oClose τ1 ρ ⊆ oClose τ2 ρ).
   (* TODO: block simplification also for other judgments. *)
   Global Arguments sstpd : simpl never.
 
   (** Multi-definition typing *)
   Definition sdstp `{!dlangG Σ} ds Γ (T : clty Σ) : iProp Σ :=
-    ⌜wf_ds ds⌝ ∧ □∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → sG⟦Γ⟧* ρ → T ρ ds.|[ρ].
+    ⌜wf_ds ds⌝ ∧ ∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → sG⟦Γ⟧* ρ → T ρ ds.|[ρ].
   Global Arguments sdstp /.
 
   (** Definition typing *)
@@ -64,7 +64,7 @@ Section judgments.
 
   (** Path typing *)
   Definition sptp `{!dlangG Σ} p i Γ (T : oltyO Σ 0): iProp Σ :=
-    □∀ ρ, sG⟦Γ⟧* ρ →
+    ∀ ρ, sG⟦Γ⟧* ρ →
       ▷^i path_wp p.|[ρ] (oClose T ρ).
   Global Arguments sptp /.
 End judgments.
@@ -85,15 +85,15 @@ Section JudgEqs.
 
   Lemma sstpd_eq_1 Γ T1 i T2 :
     Γ s⊨ T1 <:[i] T2 ⊣⊢
-    □∀ ρ, sG⟦Γ⟧* ρ → ∀ v, ▷^i (T1 vnil ρ v → T2 vnil ρ v).
+    ∀ ρ, sG⟦Γ⟧* ρ → ∀ v, ▷^i (T1 vnil ρ v → T2 vnil ρ v).
   Proof.
-    rewrite /sstpd /subtype_lty -!forall_intuitionistically; f_equiv => ρ.
+    rewrite /sstpd /subtype_lty; f_equiv => ρ.
     by rewrite laterN_forall.
   Qed.
 
   Lemma sstpd_eq Γ T1 i T2 :
     Γ s⊨ T1 <:[i] T2 ⊣⊢
-    □∀ ρ v, sG⟦Γ⟧* ρ → ▷^i (T1 vnil ρ v → T2 vnil ρ v).
+    ∀ ρ v, sG⟦Γ⟧* ρ → ▷^i (T1 vnil ρ v → T2 vnil ρ v).
   Proof. rewrite sstpd_eq_1; properness. apply: forall_swap_impl. Qed.
 End JudgEqs.
 
@@ -104,8 +104,6 @@ Notation "d ↗n[ i  ] ψ" := (dm_to_type d i ψ) (at level 20).
 
 Section dm_to_type.
   Context `{HdotG: !dlangG Σ}.
-
-  Global Instance dm_to_type_persistent d i ψ: Persistent (d ↗n[ i ] ψ) := _.
 
   Lemma dm_to_type_agree {d i ψ1 ψ2} args v : d ↗n[ i ] ψ1 -∗ d ↗n[ i ] ψ2 -∗ ▷ (ψ1 args v ≡ ψ2 args v).
   Proof.
@@ -127,13 +125,13 @@ End dm_to_type.
 (** ** Semantic path substitution and replacement. *)
 
 (** Semantic substitution of path in type. *)
-Definition opSubst {Σ n} p (T : oltyO Σ n) : oltyO Σ n :=
+Definition opSubst `{!dlangG Σ} {n} p (T : oltyO Σ n) : oltyO Σ n :=
   Olty (λI args ρ v, path_wp p.|[ρ] (λ w, T args (w .: ρ) v)).
 Notation "T .sTp[ p /]" := (opSubst p T) (at level 65).
 
 (** Semantic definition of path replacement. *)
 Definition sem_ty_path_replI {Σ n} p q (T1 T2 : olty Σ n) : iProp Σ :=
-  □∀ args ρ v (H : alias_paths p.|[ρ] q.|[ρ]), T1 args ρ v ≡ T2 args ρ v.
+  ∀ args ρ v (H : alias_paths p.|[ρ] q.|[ρ]), T1 args ρ v ≡ T2 args ρ v.
 Notation "T1 ~sTpI[ p := q  ]* T2" :=
   (sem_ty_path_replI p q T1 T2) (at level 70).
 
@@ -178,8 +176,8 @@ Section sem_types.
   (** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
   Definition oDTMem τ1 τ2 : dltyO Σ := Dlty (λI ρ d,
     ∃ ψ, d ↗n[ 0 ] ψ ∧
-       □ (τ1 vnil ρ ⊆ packHoLtyO ψ vnil ∧
-          packHoLtyO ψ vnil ⊆ τ2 vnil ρ)).
+          τ1 vnil ρ ⊆ packHoLtyO ψ vnil ∧
+          packHoLtyO ψ vnil ⊆ τ2 vnil ρ).
   Global Instance oDTMem_proper : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
   Proof.
     rewrite /oDTMem => ??? ??? ??/=; properness; try reflexivity;
@@ -221,7 +219,7 @@ Section sem_types.
 
   Lemma oSel_pv {n} w l args ρ v :
     oSelN n (pv w) l args ρ v ⊣⊢
-      ∃ d ψ, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n[ n ] ψ ∧ ▷ □ ψ args v.
+      ∃ d ψ, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n[ n ] ψ ∧ ▷ ψ args v.
   Proof. by rewrite /= path_wp_pv_eq. Qed.
 
   (** [ V⟦ p.type ⟧]. *)
@@ -233,7 +231,7 @@ Section sem_types.
   Definition oAll τ1 τ2 := olty0
     (λI ρ v,
     (∃ t, ⌜ v = vabs t ⌝ ∧
-     □ ∀ w, ▷ τ1 vnil ρ w → ▷ sE⟦ τ2 ⟧ (w .: ρ) t.|[w/])).
+     ∀ w, ▷ τ1 vnil ρ w → ▷ sE⟦ τ2 ⟧ (w .: ρ) t.|[w/])).
 
   Global Instance oAll_proper : Proper ((≡) ==> (≡) ==> (≡)) oAll.
   Proof. solve_proper_ho. Qed.
@@ -283,26 +281,6 @@ Section sem_types.
   Definition ietp  Γ T e       := setp e    V⟦Γ⟧* V⟦T⟧.
   Definition istpd i Γ T1 T2   := sstpd i   V⟦Γ⟧* V⟦T1⟧ V⟦T2⟧.
   Definition iptp  Γ T p i     := sptp p i  V⟦Γ⟧* V⟦T⟧.
-
-  (* Avoid auto-dropping box (and unfolding) when introducing judgments persistently. *)
-  Local Notation IntoPersistent' P := (IntoPersistent false P P).
-
-  (*
-  Instances for [[is]dtp must come after, to take priority over [[is]dstp]
-  since they overlap.
-  Also, instances for [i*] judgments should have priority over [s*] judgments.
-  *)
-  Global Instance sdstp_persistent Γ Tds ds    : IntoPersistent' (sdstp ds  Γ Tds)   | 0 := _.
-  Global Instance sdtp_persistent  Γ Td l d    : IntoPersistent' (sdtp l d   Γ Td)   | 0 := _.
-  Global Instance setp_persistent  Γ T         : IntoPersistent' (setp e     Γ T)    | 0 := _.
-  Global Instance sstpd_persistent Γ T1 T2 i   : IntoPersistent' (sstpd i Γ T1 T2)   | 0 := _.
-  Global Instance sptp_persistent  Γ T p i     : IntoPersistent' (sptp p i   Γ T)    | 0 := _.
-
-  Global Instance idstp_persistent Γ T ds      : IntoPersistent' (idstp Γ T ds)      | 0 := _.
-  Global Instance idtp_persistent  Γ T l d     : IntoPersistent' (idtp Γ T l d)      | 0 := _.
-  Global Instance ietp_persistent  Γ T e       : IntoPersistent' (ietp Γ T e)        | 0 := _.
-  Global Instance istpd_persistent Γ T1 T2 i   : IntoPersistent' (istpd i Γ T1 T2)   | 0 := _.
-  Global Instance iptp_persistent  Γ T p i     : IntoPersistent' (iptp Γ T p i)      | 0 := _.
 End sem_types.
 
 Global Instance: Params (@oAll) 2 := {}.
@@ -333,21 +311,21 @@ Section judgment_definitions.
   Proof. by rewrite /path_includes path_wp_pure_pv_eq. Qed.
 
   Lemma idstp_eq Γ T ds : Γ ⊨ds ds : T ⊣⊢
-    ⌜wf_ds ds⌝ ∧ □∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → G⟦Γ⟧ ρ → Ds⟦T⟧ ρ ds.|[ρ].
+    ⌜wf_ds ds⌝ ∧ ∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → G⟦Γ⟧ ρ → Ds⟦T⟧ ρ ds.|[ρ].
   Proof. reflexivity. Qed.
 
   Lemma ietp_eq Γ e T :
-    Γ ⊨ e : T ⊣⊢ □∀ ρ, G⟦Γ⟧ ρ → E⟦T⟧ ρ (e.|[ρ]).
+    Γ ⊨ e : T ⊣⊢ ∀ ρ, G⟦Γ⟧ ρ → E⟦T⟧ ρ (e.|[ρ]).
   Proof. reflexivity. Qed.
 
   Lemma istpd_eq Γ T1 i T2 :
     Γ ⊨ T1 <:[i] T2 ⊣⊢
-    □∀ ρ v, G⟦Γ⟧ ρ → ▷^i (V⟦T1⟧ vnil ρ v → V⟦T2⟧ vnil ρ v).
+    ∀ ρ v, G⟦Γ⟧ ρ → ▷^i (V⟦T1⟧ vnil ρ v → V⟦T2⟧ vnil ρ v).
   Proof. apply sstpd_eq. Qed.
 
   Lemma iptp_eq Γ p T i :
     Γ ⊨p p : T , i ⊣⊢
-    □∀ ρ, G⟦Γ⟧ ρ →
+    ∀ ρ, G⟦Γ⟧ ρ →
       ▷^i path_wp (p.|[ρ]) (λ v, V⟦T⟧ vnil ρ v).
   Proof. reflexivity. Qed.
 End judgment_definitions.
@@ -396,19 +374,19 @@ Section misc_lemmas.
   Proof. apply (lift_sub_dty2cltyN 0). Qed.
 
   Lemma oDTMem_respects_sub L1 L2 U1 U2 ρ d :
-    □(L2 vnil ρ ⊆ L1 vnil ρ) -∗
-    □(U1 vnil ρ ⊆ U2 vnil ρ) -∗
+    L2 vnil ρ ⊆ L1 vnil ρ -∗
+    U1 vnil ρ ⊆ U2 vnil ρ -∗
     oDTMem L1 U1 ρ d -∗ oDTMem L2 U2 ρ d.
   Proof.
     iIntros "#HsubL #HsubU"; iDestruct 1 as (φ) "#(Hφl & #HLφ & #HφU)".
-    iExists φ; iSplit; first done; iModIntro; iSplit; iIntros "%w #Hw".
+    iExists φ; iSplit; first done; iSplit; iIntros "%w #Hw".
     - iApply ("HLφ" with "(HsubL Hw)").
     - iApply ("HsubU" with "(HφU Hw)").
   Qed.
 
   Lemma cTMem_respects_sub L1 L2 U1 U2 ρ l :
-    □(L2 vnil ρ ⊆ L1 vnil ρ) -∗
-    □(U1 vnil ρ ⊆ U2 vnil ρ) -∗
+    L2 vnil ρ ⊆ L1 vnil ρ -∗
+    U1 vnil ρ ⊆ U2 vnil ρ -∗
     clty_olty (cTMem l L1 U1) vnil ρ ⊆ clty_olty (cTMem l L2 U2) vnil ρ.
   Proof.
     rewrite -lift_sub_dty2clty; iIntros "#HsubL #HsubU %d".
@@ -436,14 +414,14 @@ Section misc_lemmas.
 
   Lemma sdtp_eq (Γ : sCtx Σ) (T : clty Σ) l d:
     Γ s⊨ { l := d } : T ⊣⊢
-      (□∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ [(l, d.|[ρ])]).
+      ∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ [(l, d.|[ρ])].
   Proof.
     rewrite /= pure_True ?(left_id True%I bi_and); by [> | exact: NoDup_singleton].
   Qed.
 
   Lemma sdtp_eq' (Γ : sCtx Σ) (T : dlty Σ) l d:
     Γ s⊨ { l := d } : dty2clty l T ⊣⊢
-      (□∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ d.|[ρ]).
+      ∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ d.|[ρ].
   Proof. by rewrite sdtp_eq; properness; last apply dlty2clty_singleton. Qed.
 
   Lemma ipwp_terminates {p T i}:
@@ -458,7 +436,7 @@ Section misc_lemmas.
   Lemma sT_Path {Γ τ p} :
     Γ s⊨p p : τ, 0 -∗ Γ s⊨ path2tm p : τ.
   Proof.
-    iIntros "#Hep !> %ρ #Hg /="; rewrite path2tm_subst.
+    iIntros "#Hep %ρ #Hg /="; rewrite path2tm_subst.
     by iApply (path_wp_to_wp with "(Hep Hg)").
   Qed.
 End misc_lemmas.
@@ -612,7 +590,7 @@ Lemma ipwp_gs_adequacy Σ `{!dlangG Σ} `{!SwapPropI Σ} {p T i}
 Proof.
   eapply (@soundness (iResUR Σ) _ i).
   apply (bupd_plain_soundness _).
-  iApply ipwp_terminates.
   set (DLangΣ := DLangG Σ).
+  iApply ipwp_terminates.
   iApply (Hwp DLangΣ).
 Qed.
