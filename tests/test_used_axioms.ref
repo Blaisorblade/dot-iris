@@ -7,7 +7,6 @@ functional_extensionality_dep : ∀ (A : Type) (B : A → Type)
                                   (f g : ∀ x : A, B x),
                                   (∀ x : A, f x = g x) → f = g
 Axioms:
-proof_irrelevance : ∀ (P : Prop) (p1 p2 : P), p1 = p2
 functional_extensionality_dep : ∀ (A : Type) (B : A → Type) 
                                   (f g : ∀ x : A, B x),
                                   (∀ x : A, f x = g x) → f = g
