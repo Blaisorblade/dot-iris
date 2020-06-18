@@ -138,7 +138,6 @@ Fixpoint tm_rename (sb : var → var) t : tm :=
 with
 vl_rename (sb : var → var) v : vl :=
   let _ := tm_rename : Rename tm in
-  let _ := vl_rename : Rename vl in
   let _ := dm_rename : Rename dm in
   match v with
   | vvar x => vvar (sb x)
@@ -149,17 +148,25 @@ vl_rename (sb : var → var) v : vl :=
 with
 dm_rename (sb : var → var) d : dm :=
   let _ := vl_rename : Rename vl in
-  let _ := ty_rename : Rename ty in
   let _ := path_rename : Rename path in
+  let _ := ty_rename : Rename ty in
   match d with
-  | dtysyn ty => dtysyn (rename sb ty)
-  | dtysem lv γ => dtysem (rename sb lv) γ
+  | dtysyn T => dtysyn (rename sb T)
+  | dtysem σ s => dtysem (rename sb σ) s
   | dpt p => dpt (rename sb p)
   end
 with
-ty_rename (sb : var → var) T : ty :=
-  let _ := ty_rename : Rename ty in
+path_rename (sb : var → var) p : path :=
+  let _ := vl_rename : Rename vl in
   let _ := path_rename : Rename path in
+  match p with
+  | pv v => pv (rename sb v)
+  | pself p l => pself (rename sb p) l
+  end
+with
+ty_rename (sb : var → var) T : ty :=
+  let _ := path_rename : Rename path in
+  let _ := ty_rename : Rename ty in
   match T with
   | TTop => TTop
   | TBot => TBot
@@ -173,21 +180,13 @@ ty_rename (sb : var → var) T : ty :=
   | TSel p l => TSel (rename sb p) l
   | TPrim _ => T
   | TSing p => TSing (rename sb p)
-  end
-with
-path_rename (sb : var → var) p : path :=
-  let _ := vl_rename : Rename vl in
-  let _ := path_rename : Rename path in
-  match p with
-  | pv v => pv (rename sb v)
-  | pself p l => pself (rename sb p) l
   end.
 
 Instance rename_tm : Rename tm := tm_rename.
 Instance rename_vl : Rename vl := vl_rename.
-Instance rename_ty : Rename ty := ty_rename.
 Instance rename_dm : Rename dm := dm_rename.
 Instance rename_pth : Rename path := path_rename.
+Instance rename_ty : Rename ty := ty_rename.
 
 Hint Rewrite @list_rename_fold @list_pair_rename_fold : autosubst.
 
@@ -216,17 +215,25 @@ vl_subst (sb : var → vl) v : vl :=
 with
 dm_hsubst (sb : var → vl) d : dm :=
   let _ := vl_subst : Subst vl in
-  let _ := ty_hsubst : HSubst vl ty in
   let _ := path_hsubst : HSubst vl path in
+  let _ := ty_hsubst : HSubst vl ty in
   match d with
-  | dtysyn ty => dtysyn (hsubst sb ty)
-  | dtysem lv γ => dtysem (hsubst sb lv) γ
+  | dtysyn T => dtysyn (hsubst sb T)
+  | dtysem σ s => dtysem (hsubst sb σ) s
   | dpt p => dpt (hsubst sb p)
   end
 with
-ty_hsubst (sb : var → vl) T : ty :=
-  let _ := ty_hsubst : HSubst vl ty in
+path_hsubst (sb : var → vl) p : path :=
+  let _ := vl_subst : Subst vl in
   let _ := path_hsubst : HSubst vl path in
+  match p with
+  | pv v => pv (subst sb v)
+  | pself p l => pself (hsubst sb p) l
+  end
+with
+ty_hsubst (sb : var → vl) T : ty :=
+  let _ := path_hsubst : HSubst vl path in
+  let _ := ty_hsubst : HSubst vl ty in
   match T with
   | TTop => TTop
   | TBot => TBot
@@ -240,21 +247,13 @@ ty_hsubst (sb : var → vl) T : ty :=
   | TSel p l => TSel (hsubst sb p) l
   | TSing p => TSing (hsubst sb p)
   | TPrim _ => T
-  end
-with
-path_hsubst (sb : var → vl) p : path :=
-  let _ := vl_subst : Subst vl in
-  let _ := path_hsubst : HSubst vl path in
-  match p with
-  | pv v => pv (subst sb v)
-  | pself p l => pself (hsubst sb p) l
   end.
 
-Instance subst_vl : Subst vl := vl_subst.
-Instance hsubst_tm : HSubst vl tm := tm_hsubst.
-Instance hsubst_ty : HSubst vl ty := ty_hsubst.
-Instance hsubst_dm : HSubst vl dm := dm_hsubst.
+Instance hsubst_tm  : HSubst vl tm   := tm_hsubst.
+Instance subst_vl   : Subst vl       := vl_subst.
+Instance hsubst_dm  : HSubst vl dm   := dm_hsubst.
 Instance hsubst_pth : HSubst vl path := path_hsubst.
+Instance hsubst_ty  : HSubst vl ty   := ty_hsubst.
 
 Instance base_lit_eq_dec : EqDecision base_lit.
 Proof. solve_decision. Defined.
@@ -268,26 +267,22 @@ Proof. solve_decision. Defined.
 Instance base_ty_eq_dec : EqDecision base_ty.
 Proof. solve_decision. Defined.
 
-Lemma vl_eq_dec v1 v2 : Decision (v1 = v2)
-with
-tm_eq_dec t1 t2 : Decision (t1 = t2)
-with
-dm_eq_dec d1 d2 : Decision (d1 = d2)
-with
-ty_eq_dec T1 T2 : Decision (T1 = T2)
-with
-path_eq_dec p1 p2 : Decision (p1 = p2).
+Lemma vl_eq_dec v1 v2   : Decision (v1 = v2)
+with  tm_eq_dec t1 t2   : Decision (t1 = t2)
+with  dm_eq_dec d1 d2   : Decision (d1 = d2)
+with  path_eq_dec p1 p2 : Decision (p1 = p2)
+with  ty_eq_dec T1 T2   : Decision (T1 = T2).
 Proof.
   all: have vl_eq_dec' : EqDecision vl := vl_eq_dec;
     have dm_eq_dec' : EqDecision dm := dm_eq_dec;
     rewrite /Decision; decide equality; solve_decision.
 Defined.
 
-Instance vl_eq_dec' : EqDecision vl := vl_eq_dec.
-Instance tm_eq_dec' : EqDecision tm := tm_eq_dec.
-Instance dm_eq_dec' : EqDecision dm := dm_eq_dec.
-Instance ty_eq_dec' : EqDecision ty := ty_eq_dec.
+Instance tm_eq_dec'   : EqDecision tm   := tm_eq_dec.
+Instance vl_eq_dec'   : EqDecision vl   := vl_eq_dec.
+Instance dm_eq_dec'   : EqDecision dm   := dm_eq_dec.
 Instance path_eq_dec' : EqDecision path := path_eq_dec.
+Instance ty_eq_dec'   : EqDecision ty   := ty_eq_dec.
 
 Local Ltac finish_lists l x :=
   elim: l => [|x xs IHds] //=; idtac + elim: x => [l d] //=; f_equal => //; by f_equal.
@@ -295,32 +290,23 @@ Local Ltac finish_lists l x :=
 Lemma up_upren_vl (ξ : var → var): up (ren ξ) =@{var → vl} ren (upren ξ).
 Proof. exact: up_upren_internal. Qed.
 
-Lemma vl_rename_Lemma (ξ : var → var) v : rename ξ v = v.[ren ξ]
-with
-tm_rename_Lemma (ξ : var → var) t : rename ξ t = t.|[ren ξ]
-with
-dm_rename_Lemma (ξ : var → var) d : rename ξ d = d.|[ren ξ]
-with
-ty_rename_Lemma (ξ : var → var) T : rename ξ T = T.|[ren ξ]
-with
-path_rename_Lemma (ξ : var → var) p :
-  rename ξ p = p.|[ren ξ].
+Lemma tm_rename_Lemma   (ξ : var → var) t : rename ξ t = t.|[ren ξ]
+with  vl_rename_Lemma   (ξ : var → var) v : rename ξ v = v.[ren ξ]
+with  dm_rename_Lemma   (ξ : var → var) d : rename ξ d = d.|[ren ξ]
+with  path_rename_Lemma (ξ : var → var) p : rename ξ p = p.|[ren ξ]
+with  ty_rename_Lemma   (ξ : var → var) T : rename ξ T = T.|[ren ξ].
 Proof.
-  all: [> destruct v | destruct t | destruct d | destruct T | destruct p].
+  all: [> destruct t | destruct v | destruct d | destruct p | destruct T].
   all: rewrite /= ?up_upren_vl; f_equal => //; finish_lists l x.
 Qed.
 
-Lemma vl_ids_Lemma v : v.[ids] = v
-with
-tm_ids_Lemma t : t.|[ids] = t
-with
-dm_ids_Lemma d : d.|[ids] = d
-with
-ty_ids_Lemma T : T.|[ids] = T
-with
-path_ids_Lemma p : p.|[ids] = p.
+Lemma tm_ids_Lemma   t : t.|[ids] = t
+with  vl_ids_Lemma   v : v.[ids] = v
+with  dm_ids_Lemma   d : d.|[ids] = d
+with  path_ids_Lemma p : p.|[ids] = p
+with  ty_ids_Lemma   T : T.|[ids] = T.
 Proof.
-  all: [> destruct v | destruct t | destruct d | destruct T | destruct p].
+  all: [> destruct t | destruct v | destruct d | destruct p | destruct T].
   all: rewrite /= ?up_id_internal; f_equal => //; finish_lists l x.
 Qed.
 
