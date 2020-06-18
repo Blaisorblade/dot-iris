@@ -30,7 +30,7 @@ Inductive un_op : Set := unot.
 Inductive bin_op : Set := bplus | bminus | btimes | bdiv | blt | ble | beq.
 Inductive base_ty : Set := tint | tbool.
 
-Implicit Types (l : label) (B : base_ty).
+Implicit Types (l : label) (B : base_ty) (n : nat).
 
 (** ** DOT syntax, with corresponding on-paper syntax in comments. *)
 (** Expressions/terms [e ::= ]: *)
@@ -51,7 +51,7 @@ Inductive tm : Type :=
   | vobj : list (label * dm) → vl_ (* objects [ν x. t]. *)
  (** Definition bodies [d ::= ]: *)
  with dm : Type :=
-  | dtysyn : ty → dm (* unstamped type definition [T]; *)
+  | kdtysyn {n} : kty n → dm (* unstamped type definition [T]; *)
   | dtysem : list vl_ → stamp → dm (* stamped type definition [σ, s]; *)
   | dpt : path → dm (* path definition [p]. *)
  (** Paths [p ::= ] *)
@@ -59,22 +59,30 @@ Inductive tm : Type :=
   | pv : vl_ → path (* values [v]; *)
   | pself : path → label → path (* path selection [p.a]. *)
  (** Types [L, S, T, U, V, W ::= ] *)
- with ty : Type :=
-  | TTop : ty (* top type [⊤]; *)
-  | TBot : ty (* bottom type [⊤]; *)
-  | TAnd (T1 T2 : ty) : ty (* intersection type [S ∧ T]; *)
-  | TOr (T1 T2 : ty): ty (* union type [S ∨ T]; *)
-  | TLater (T : ty) : ty (* later type [▷ T]; *)
-  | TAll (S T : ty) : ty (* forall type [∀ x: S. T]; *)
-  | TMu (T : ty) : ty (* mu-types [μ x. T]; *)
-  | TVMem l (T : ty) : ty (* value members [{a: T}];*)
-  | TTMem l (T1 T2 : ty) : ty (* type members [{A :: L .. U}]; *)
-  | TSel (p : path) l : ty (* type selections [p.A]; *)
-  | TPrim B : ty (* primitive types *)
-  | TSing (p : path) : ty (* singleton types [p.type].*).
+ with kty : nat → Type :=
+  | TTop : kty 0 (* top type [⊤]; *)
+  | TBot : kty 0 (* bottom type [⊤]; *)
+  | TAnd (T1 T2 : kty 0) : kty 0 (* intersection type [S ∧ T]; *)
+  | TOr (T1 T2 : kty 0): kty 0 (* union type [S ∨ T]; *)
+  | kTLater {n} (T : kty n) : kty 0 (* later type [▷ T]; *)
+  | TAll (S T : kty 0) : kty 0 (* forall type [∀ x: S. T]; *)
+  | TMu (T : kty 0) : kty 0 (* mu-types [μ x. T]; *)
+  | TVMem l (T : kty 0) : kty 0 (* value members [{a: T}];*)
+  | kTTMem {n} l (K : kind n) : kty n (* type members [{A :: L .. U}]; *)
+  | kTSel n (p : path) l : kty n (* type selections [p.A]; *)
+  | TPrim B : kty 0 (* primitive types *)
+  | TSing (p : path) : kty 0 (* singleton types [p.type].*)
+  | kTLam {n} (T : kty n) : kty n.+1 (* type-level lambda abstraction [λ x. T]; *)
+  | kTApp {n} (T : kty n.+1) (p : path) : kty n (* type-level type application [T p]; *)
+with kind : nat → Type :=
+  | kintv (L U : kty 0) : kind 0
+  | kpi {n} (S : kty 0) (K : kind n) : kind n.+1.
 
 (* Workaround Coq bug with modules. *)
 Definition vl := vl_.
+
+(* gDOT → HK-gDOT: *)
+Notation ty := (kty 0).
 
 (** Definition lists [\overbar{d}]. *)
 Definition dms := list (label * dm).
@@ -90,13 +98,20 @@ Notation TInt := (TPrim tint).
 Notation TBool := (TPrim tbool).
 Notation vint n := (vlit $ lint n).
 Notation vbool b := (vlit $ lbool b).
+
+(* gDOT → HK-gDOT: *)
+Notation dtysyn := (kdtysyn (n := 0)).
+Notation TLater := (kTLater (n := 0)).
+Notation TTMem l L U := (kTTMem (n := 0) l (kintv L U)).
+Notation TSel := (kTSel 0).
+
 (* Adapter over TTMem. [L] stands for Later. *)
 Definition TTMemL l L U := TTMem l (TLater L) (TLater U).
 
 Declare Scope dms_scope.
 Declare Scope ty_scope.
 Bind Scope dms_scope with dms.
-Bind Scope ty_scope with ty.
+Bind Scope ty_scope with kty.
 Delimit Scope ty_scope with ty.
 Delimit Scope dms_scope with dms.
 
@@ -104,12 +119,12 @@ Delimit Scope dms_scope with dms.
 (** Substitution. *)
 (******************************************************************************)
 
-Instance inh_ty : Inhabited ty := populate TInt.
 Instance inh_base_lit : Inhabited base_lit := populate (lint 0).
 Instance inh_vl : Inhabited vl := populate (vlit inhabitant).
 Instance inh_pth : Inhabited path := populate (pv inhabitant).
 Instance inh_dm : Inhabited dm := populate (dpt inhabitant).
 Instance inh_tm : Inhabited tm := populate (tv inhabitant).
+Instance inh_kty n : Inhabited (kty n) := populate (kTSel n inhabitant inhabitant).
 
 Instance ids_vl : Ids vl := vvar.
 
@@ -119,7 +134,7 @@ Proof. by move=>??[]. Qed.
 Instance ids_tm : Ids tm := inh_ids.
 Instance ids_dm : Ids dm := inh_ids.
 Instance ids_pth : Ids path := inh_ids.
-Instance ids_ty : Ids ty := inh_ids.
+Instance ids_kty n : Ids (kty n) := inh_ids.
 Instance ids_dms : Ids dms := _.
 Instance ids_ctx : Ids ctx := _.
 
@@ -149,9 +164,9 @@ with
 dm_rename (sb : var → var) d : dm :=
   let _ := vl_rename : Rename vl in
   let _ := path_rename : Rename path in
-  let _ := ty_rename : Rename ty in
+  let _ := kty_rename : ∀ n, Rename (kty n) in
   match d with
-  | dtysyn T => dtysyn (rename sb T)
+  | kdtysyn T => kdtysyn (rename sb T)
   | dtysem σ s => dtysem (rename sb σ) s
   | dpt p => dpt (rename sb p)
   end
@@ -164,29 +179,40 @@ path_rename (sb : var → var) p : path :=
   | pself p l => pself (rename sb p) l
   end
 with
-ty_rename (sb : var → var) T : ty :=
+kty_rename n (sb : var → var) (T : kty n) : kty n :=
   let _ := path_rename : Rename path in
-  let _ := ty_rename : Rename ty in
+  let _ := kty_rename : ∀ n, Rename (kty n) in
+  let _ := kind_rename : ∀ n, Rename (kind n) in
   match T with
   | TTop => TTop
   | TBot => TBot
   | TAnd T1 T2 => TAnd (rename sb T1) (rename sb T2)
   | TOr T1 T2 => TOr (rename sb T1) (rename sb T2)
-  | TLater T => TLater (rename sb T)
+  | kTLater T => kTLater (rename sb T)
   | TAll T1 T2 => TAll (rename sb T1) (rename (upren sb) T2)
   | TMu T => TMu (rename (upren sb) T)
   | TVMem l T => TVMem l (rename sb T)
-  | TTMem l T1 T2 => TTMem l (rename sb T1) (rename sb T2)
-  | TSel p l => TSel (rename sb p) l
-  | TPrim _ => T
+  | kTTMem l K => kTTMem l (rename sb K)
+  | kTSel n p l => kTSel n (rename sb p) l
+  | TPrim B => TPrim B
   | TSing p => TSing (rename sb p)
+  | kTLam T => kTLam (rename sb T)
+  | kTApp T p => kTApp (rename sb T) (rename sb p)
+  end
+with kind_rename n (sb : var → var) (K : kind n) : kind n :=
+  let _ := kty_rename : ∀ n, Rename (kty n) in
+  let _ := kind_rename : ∀ n, Rename (kind n) in
+  match K with
+  | kintv L U => kintv (rename sb L) (rename sb U)
+  | kpi S K => kpi (rename sb S) (rename sb K)
   end.
 
-Instance rename_tm : Rename tm := tm_rename.
-Instance rename_vl : Rename vl := vl_rename.
-Instance rename_dm : Rename dm := dm_rename.
-Instance rename_pth : Rename path := path_rename.
-Instance rename_ty : Rename ty := ty_rename.
+Instance rename_tm       : Rename tm       := tm_rename.
+Instance rename_vl       : Rename vl       := vl_rename.
+Instance rename_dm       : Rename dm       := dm_rename.
+Instance rename_pth      : Rename path     := path_rename.
+Instance rename_kty {n}  : Rename (kty n)  := kty_rename n.
+Instance rename_kind {n} : Rename (kind n) := kind_rename n.
 
 Hint Rewrite @list_rename_fold @list_pair_rename_fold : autosubst.
 
@@ -216,9 +242,9 @@ with
 dm_hsubst (sb : var → vl) d : dm :=
   let _ := vl_subst : Subst vl in
   let _ := path_hsubst : HSubst vl path in
-  let _ := ty_hsubst : HSubst vl ty in
+  let _ := kty_hsubst : ∀ n, HSubst vl (kty n) in
   match d with
-  | dtysyn T => dtysyn (hsubst sb T)
+  | kdtysyn T => kdtysyn (hsubst sb T)
   | dtysem σ s => dtysem (hsubst sb σ) s
   | dpt p => dpt (hsubst sb p)
   end
@@ -231,29 +257,40 @@ path_hsubst (sb : var → vl) p : path :=
   | pself p l => pself (hsubst sb p) l
   end
 with
-ty_hsubst (sb : var → vl) T : ty :=
+kty_hsubst n (sb : var → vl) (T : kty n) : kty n :=
   let _ := path_hsubst : HSubst vl path in
-  let _ := ty_hsubst : HSubst vl ty in
+  let _ := kty_hsubst : ∀ n, HSubst vl (kty n) in
+  let _ := kind_hsubst : ∀ n, HSubst vl (kind n) in
   match T with
   | TTop => TTop
   | TBot => TBot
   | TAnd T1 T2 => TAnd (hsubst sb T1) (hsubst sb T2)
   | TOr T1 T2 => TOr (hsubst sb T1) (hsubst sb T2)
-  | TLater T => TLater (hsubst sb T)
+  | kTLater T => kTLater (hsubst sb T)
   | TAll T1 T2 => TAll (hsubst sb T1) (hsubst (up sb) T2)
   | TMu T => TMu (hsubst (up sb) T)
   | TVMem l T => TVMem l (hsubst sb T)
-  | TTMem l T1 T2 => TTMem l (hsubst sb T1) (hsubst sb T2)
-  | TSel p l => TSel (hsubst sb p) l
+  | kTTMem l K => kTTMem l (hsubst sb K)
+  | kTSel n p l => kTSel n (hsubst sb p) l
   | TSing p => TSing (hsubst sb p)
-  | TPrim _ => T
+  | TPrim B => TPrim B
+  | kTLam T => kTLam (hsubst sb T)
+  | kTApp T p => kTApp (hsubst sb T) (hsubst sb p)
+  end
+with kind_hsubst n (sb : var → vl) (K : kind n) : kind n :=
+  let _ := kty_hsubst : ∀ n, HSubst vl (kty n) in
+  let _ := kind_hsubst : ∀ n, HSubst vl (kind n) in
+  match K with
+  | kintv L U => kintv (hsubst sb L) (hsubst sb U)
+  | kpi S K => kpi (hsubst sb S) (hsubst sb K)
   end.
 
-Instance hsubst_tm  : HSubst vl tm   := tm_hsubst.
-Instance subst_vl   : Subst vl       := vl_subst.
-Instance hsubst_dm  : HSubst vl dm   := dm_hsubst.
-Instance hsubst_pth : HSubst vl path := path_hsubst.
-Instance hsubst_ty  : HSubst vl ty   := ty_hsubst.
+Instance hsubst_tm       : HSubst vl tm       := tm_hsubst.
+Instance subst_vl        : Subst vl           := vl_subst.
+Instance hsubst_dm       : HSubst vl dm       := dm_hsubst.
+Instance hsubst_pth      : HSubst vl path     := path_hsubst.
+Instance hsubst_kty {n}  : HSubst vl (kty n)  := kty_hsubst n.
+Instance hsubst_kind {n} : HSubst vl (kind n) := kind_hsubst n.
 
 Instance base_lit_eq_dec : EqDecision base_lit.
 Proof. solve_decision. Defined.
