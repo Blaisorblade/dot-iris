@@ -32,13 +32,6 @@ Qed.
 Lemma bi_emp_valid_True `{BiAffine PROP} {P : PROP} (Hvalid : ⊢ P) : P ⊣⊢ True.
 Proof. by iSplit; [iIntros "_"|rewrite -Hvalid]. Qed.
 
-Lemma forall_intuitionistically {A} `{BiAffine PROP} (Φ : A → PROP) :
-  (∀ x, □ Φ x) ⊣⊢ □ ∀ x, Φ x.
-Proof.
-  iSplit; last iApply intuitionistically_forall.
-  iIntros "#H !> %"; by iApply "H".
-Qed.
-
 Section proofmode_extra.
   Context {PROP : bi}.
   Implicit Types P Q R : PROP.
@@ -92,15 +85,6 @@ Section proofmode_extra.
     exact: strip_pure_laterN_wand.
   Qed.
 End proofmode_extra.
-
-From iris.base_logic Require Import bi.
-Section derived_swap_lemmas.
-  Context `{M : ucmraT}.
-  Lemma mlater_pers (P: uPred M) : □ ▷ P ⊣⊢ ▷ □ P.
-  Proof. iSplit; by iIntros "#? !>!>". Qed.
-  Lemma mlaterN_pers (P: uPred M) i : □ ▷^i P ⊣⊢ ▷^i □ P.
-  Proof. iSplit; by iIntros "#? !>!>". Qed.
-End derived_swap_lemmas.
 
 From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language.
