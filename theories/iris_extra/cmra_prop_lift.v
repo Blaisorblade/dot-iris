@@ -29,7 +29,7 @@ Qed.
 
 Notation LiftCPropToGFunctor_GFunctor_type F P :=
   (∀ (fp : LiftCPropToRFunctor P F),
-  LiftCPropToGFunctor P #[ GFunctor F ]).
+  LiftCPropToGFunctor P (gFunctors.singleton (GFunctor F))).
 
 Lemma LiftCPropToGFunctor_GFunctor `{!rFunctorContractive F} P :
   LiftCPropToGFunctor_GFunctor_type F P.
@@ -40,13 +40,12 @@ Qed.
 
 
 Section lift_cprop_iResUR.
-  Context (P : cmraT → Type).
+  Context {P : cmraT → Type}.
   Context {P_discrete_funUR : ∀ {A} (B : A → ucmraT) `(∀ i, P (B i)), P (discrete_funUR B)}.
   Context {P_gmapUR : ∀ `{Countable A} `(HpT : P T), P (gmapUR A T)}.
 
-  Lemma lift_cprop_iResUR `(fp : LiftCPropToGFunctor P Σ) : P (iResUR Σ).
+  Lemma lift_cprop_iResUR `{fp : LiftCPropToGFunctor P Σ} : P (iResUR Σ).
   Proof using Type*.
-    rewrite /iResUR.
-    apply P_discrete_funUR => i; apply P_gmapUR, fp.
+    rewrite /iResUR. apply P_discrete_funUR => i; apply P_gmapUR, fp.
   Qed.
 End lift_cprop_iResUR.

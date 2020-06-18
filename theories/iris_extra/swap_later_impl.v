@@ -206,11 +206,8 @@ Proof.
   destruct (FUN a) as (?&HP1&HP2); eauto.
 Qed.
 
-Instance CmraSwappable_iResUR `(fp : SwappableGFunct Σ) : CmraSwappable (iResUR Σ).
-Proof.
-  (* apply _. Undo. *)
-  apply: lift_cprop_iResUR.
-Qed.
+Instance CmraSwappable_iResUR `(fp : SwappableGFunct Σ) :
+  CmraSwappable (iResUR Σ) := lift_cprop_iResUR.
 
 Section agree.
 (** *** Agreement CMRA. *)
