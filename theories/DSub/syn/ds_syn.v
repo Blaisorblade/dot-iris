@@ -54,8 +54,8 @@ Instance ids_ty : Ids ty := inh_ids.
 Instance ids_ctx : Ids ctx := _.
 
 Fixpoint tm_rename (sb : var → var) t : tm :=
-  let a := tm_rename : Rename tm in
-  let b := vl_rename : Rename vl in
+  let _ := tm_rename : Rename tm in
+  let _ := vl_rename : Rename vl in
   match t with
   | tv v => tv (rename sb v)
   | tapp t1 t2 => tapp (rename sb t1) (rename sb t2)
@@ -63,9 +63,9 @@ Fixpoint tm_rename (sb : var → var) t : tm :=
   end
 with
 vl_rename (sb : var → var) v : vl :=
-  let a := tm_rename : Rename tm in
-  let b := vl_rename : Rename vl in
-  let c := ty_rename : Rename ty in
+  let _ := tm_rename : Rename tm in
+  let _ := vl_rename : Rename vl in
+  let _ := ty_rename : Rename ty in
   match v with
   | vvar x => vvar (sb x)
   | vint n => vint n
@@ -75,8 +75,8 @@ vl_rename (sb : var → var) v : vl :=
   end
 with
 ty_rename (sb : var → var) T : ty :=
-  let a := ty_rename : Rename ty in
-  let b := vl_rename : Rename vl in
+  let _ := ty_rename : Rename ty in
+  let _ := vl_rename : Rename vl in
   match T with
   | TTop => TTop
   | TBot => TBot
@@ -95,8 +95,8 @@ Instance rename_vl : Rename vl := vl_rename.
 Instance rename_ty : Rename ty := ty_rename.
 
 Fixpoint tm_hsubst (sb : var → vl) t : tm :=
-  let a := tm_hsubst : HSubst vl tm in
-  let b := vl_subst : Subst vl in
+  let _ := tm_hsubst : HSubst vl tm in
+  let _ := vl_subst : Subst vl in
   match t with
   | tv v => tv (subst sb v)
   | tapp t1 t2 => tapp (hsubst sb t1) (hsubst sb t2)
@@ -104,9 +104,9 @@ Fixpoint tm_hsubst (sb : var → vl) t : tm :=
   end
 with
 vl_subst (sb : var → vl) v : vl :=
-  let a := tm_hsubst : HSubst vl tm in
-  let b := vl_subst : Subst vl in
-  let c := ty_hsubst : HSubst vl ty in
+  let _ := tm_hsubst : HSubst vl tm in
+  let _ := vl_subst : Subst vl in
+  let _ := ty_hsubst : HSubst vl ty in
   match v with
   | vvar x => sb x
   | vint n => vint n
@@ -116,8 +116,8 @@ vl_subst (sb : var → vl) v : vl :=
   end
 with
 ty_hsubst (sb : var → vl) T : ty :=
-  let a := ty_hsubst : HSubst vl ty in
-  let b := vl_subst : Subst vl in
+  let _ := ty_hsubst : HSubst vl ty in
+  let _ := vl_subst : Subst vl in
   match T with
   | TTop => TTop
   | TBot => TBot

@@ -124,8 +124,8 @@ Instance ids_dms : Ids dms := _.
 Instance ids_ctx : Ids ctx := _.
 
 Fixpoint tm_rename (sb : var → var) t : tm :=
-  let a := tm_rename : Rename tm in
-  let b := vl_rename : Rename vl in
+  let _ := tm_rename : Rename tm in
+  let _ := vl_rename : Rename vl in
   match t with
   | tv v => tv (rename sb v)
   | tapp t1 t2 => tapp (rename sb t1) (rename sb t2)
@@ -137,9 +137,9 @@ Fixpoint tm_rename (sb : var → var) t : tm :=
   end
 with
 vl_rename (sb : var → var) v : vl :=
-  let a := tm_rename : Rename tm in
-  let b := vl_rename : Rename vl in
-  let c := dm_rename : Rename dm in
+  let _ := tm_rename : Rename tm in
+  let _ := vl_rename : Rename vl in
+  let _ := dm_rename : Rename dm in
   match v with
   | vvar x => vvar (sb x)
   | vlit _ => v
@@ -148,9 +148,9 @@ vl_rename (sb : var → var) v : vl :=
   end
 with
 dm_rename (sb : var → var) d : dm :=
-  let a := vl_rename : Rename vl in
-  let b := ty_rename : Rename ty in
-  let c := path_rename : Rename path in
+  let _ := vl_rename : Rename vl in
+  let _ := ty_rename : Rename ty in
+  let _ := path_rename : Rename path in
   match d with
   | dtysyn ty => dtysyn (rename sb ty)
   | dtysem lv γ => dtysem (rename sb lv) γ
@@ -158,8 +158,8 @@ dm_rename (sb : var → var) d : dm :=
   end
 with
 ty_rename (sb : var → var) T : ty :=
-  let a := ty_rename : Rename ty in
-  let b := path_rename : Rename path in
+  let _ := ty_rename : Rename ty in
+  let _ := path_rename : Rename path in
   match T with
   | TTop => TTop
   | TBot => TBot
@@ -176,8 +176,8 @@ ty_rename (sb : var → var) T : ty :=
   end
 with
 path_rename (sb : var → var) p : path :=
-  let a := vl_rename : Rename vl in
-  let b := path_rename : Rename path in
+  let _ := vl_rename : Rename vl in
+  let _ := path_rename : Rename path in
   match p with
   | pv v => pv (rename sb v)
   | pself p l => pself (rename sb p) l
@@ -192,8 +192,8 @@ Instance rename_pth : Rename path := path_rename.
 Hint Rewrite @list_rename_fold @list_pair_rename_fold : autosubst.
 
 Fixpoint tm_hsubst (sb : var → vl) t : tm :=
-  let a := tm_hsubst : HSubst vl tm in
-  let b := vl_subst : Subst vl in
+  let _ := tm_hsubst : HSubst vl tm in
+  let _ := vl_subst : Subst vl in
   match t with
   | tv v => tv (subst sb v)
   | tapp t1 t2 => tapp (hsubst sb t1) (hsubst sb t2)
@@ -205,8 +205,8 @@ Fixpoint tm_hsubst (sb : var → vl) t : tm :=
   end
 with
 vl_subst (sb : var → vl) v : vl :=
-  let a := tm_hsubst : HSubst vl tm in
-  let b := dm_hsubst : HSubst vl dm in
+  let _ := tm_hsubst : HSubst vl tm in
+  let _ := dm_hsubst : HSubst vl dm in
   match v with
   | vvar x => sb x
   | vlit _ => v
@@ -215,9 +215,9 @@ vl_subst (sb : var → vl) v : vl :=
   end
 with
 dm_hsubst (sb : var → vl) d : dm :=
-  let a := vl_subst : Subst vl in
-  let b := ty_hsubst : HSubst vl ty in
-  let c := path_hsubst : HSubst vl path in
+  let _ := vl_subst : Subst vl in
+  let _ := ty_hsubst : HSubst vl ty in
+  let _ := path_hsubst : HSubst vl path in
   match d with
   | dtysyn ty => dtysyn (hsubst sb ty)
   | dtysem lv γ => dtysem (hsubst sb lv) γ
@@ -225,8 +225,8 @@ dm_hsubst (sb : var → vl) d : dm :=
   end
 with
 ty_hsubst (sb : var → vl) T : ty :=
-  let a := ty_hsubst : HSubst vl ty in
-  let b := path_hsubst : HSubst vl path in
+  let _ := ty_hsubst : HSubst vl ty in
+  let _ := path_hsubst : HSubst vl path in
   match T with
   | TTop => TTop
   | TBot => TBot
@@ -243,8 +243,8 @@ ty_hsubst (sb : var → vl) T : ty :=
   end
 with
 path_hsubst (sb : var → vl) p : path :=
-  let b := vl_subst : Subst vl in
-  let b := path_hsubst : HSubst vl path in
+  let _ := vl_subst : Subst vl in
+  let _ := path_hsubst : HSubst vl path in
   match p with
   | pv v => pv (subst sb v)
   | pself p l => pself (hsubst sb p) l
