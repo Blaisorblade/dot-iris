@@ -68,7 +68,7 @@ Check (1 > 2)%HS.
 Check (1 ≥ 2)%HS.
 Check (1 > 0)%HS.
 
-Goal hvar_vl = λ n i, var_vl (n + i). done. Abort.
+Goal hvar_vl = λ n i, vvar (n + i). done. Abort.
 Goal ∀ n, hvint n = liftA0 (vint n). done. Abort.
 Goal hxm = λ i, ren (λ j, j - i). done. Abort.
 
@@ -79,8 +79,8 @@ Definition ex0 := hclose $ hTAll hTInt (λ x, hTMu (λ y, hTAnd (hTSing (hpv x))
 Eval cbv in ex0.
 
 Eval cbv -[plus minus] in hTAll.
-Goal hTAll = λ T U i, (TAll (T i) (U (λ x, var_vl (x - S i)) (S i))). done. Abort.
-(* Goal hTAll = λ T U i, (∀ (T i), U (λ x, var_vl (x - S i)) (S i)). done. Abort. *)
+Goal hTAll = λ T U i, (TAll (T i) (U (λ x, vvar (x - S i)) (S i))). done. Abort.
+(* Goal hTAll = λ T U i, (∀ (T i), U (λ x, vvar (x - S i)) (S i)). done. Abort. *)
 
 Eval cbv in hclose {@ hTInt ; hTInt ; hTInt } %HS.
 

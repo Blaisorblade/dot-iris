@@ -28,7 +28,7 @@ Section fold.
   Implicit Types (ts: travStateT) (s: stamp).
 
   Inductive forall_traversal_vl: travStateT → vl → Prop :=
-  | trav_var_vl ts i: trav.(varP) ts i → forall_traversal_vl ts (var_vl i)
+  | trav_var_vl ts i: trav.(varP) ts i → forall_traversal_vl ts (vvar i)
   | trav_vabs ts t: forall_traversal_tm (trav.(upS) ts) t →
                     forall_traversal_vl ts (vabs t)
   | trav_vlit ts l: forall_traversal_vl ts (vlit l)

@@ -102,8 +102,8 @@ Qed.
 Hint Resolve is_unstamped_ren_up is_unstamped_ren_shift : core.
 
 Lemma is_unstamped_ren_var v r:
-  (∃ x : var, v = var_vl x) →
-  ∃ x : var, rename r v = var_vl x.
+  (∃ x : var, v = vvar x) →
+  ∃ x : var, rename r v = vvar x.
 Proof. naive_solver. Qed.
 
 Lemma is_unstamped_var_OnlyVars i j b :

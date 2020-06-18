@@ -15,7 +15,7 @@ Inductive tm : Type :=
   | tapp : tm → tm → tm
   | tskip : tm → tm
  with vl_ : Type :=
-  | var_vl : var → vl_
+  | vvar : var → vl_
   | vint : Z → vl_
   | vabs : tm → vl_
   | vty : ty → vl_
@@ -44,7 +44,7 @@ Instance inh_ty : Inhabited ty := populate TInt.
 Instance inh_vl : Inhabited vl := populate (vint 0).
 Instance inh_tm : Inhabited tm := populate (tv inhabitant).
 
-Instance ids_vl : Ids vl := var_vl.
+Instance ids_vl : Ids vl := vvar.
 
 Instance inj_ids : Inj (=) (=@{vl}) ids.
 Proof. by move=>??[]. Qed.
@@ -67,7 +67,7 @@ vl_rename (sb : var → var) v : vl :=
   let b := vl_rename : Rename vl in
   let c := ty_rename : Rename ty in
   match v with
-  | var_vl x => var_vl (sb x)
+  | vvar x => vvar (sb x)
   | vint n => vint n
   | vabs t => vabs (rename (upren sb) t)
   | vty T => vty (rename sb T)
@@ -108,7 +108,7 @@ vl_subst (sb : var → vl) v : vl :=
   let b := vl_subst : Subst vl in
   let c := ty_hsubst : HSubst vl ty in
   match v with
-  | var_vl x => sb x
+  | vvar x => sb x
   | vint n => vint n
   | vabs t => vabs (hsubst (up sb) t)
   | vty T => vty (hsubst sb T)
@@ -324,7 +324,7 @@ Section syntax_mut_ind.
   Variable step_tv : ∀ v1, Pvl v1 → Ptm (tv v1).
   Variable step_tapp : ∀ t1 t2, Ptm t1 → Ptm t2 → Ptm (tapp t1 t2).
   Variable step_tskip : ∀ t1, Ptm t1 → Ptm (tskip t1).
-  Variable step_var_vl : ∀ i, Pvl (var_vl i).
+  Variable step_var_vl : ∀ i, Pvl (vvar i).
   Variable step_vint : ∀ n, Pvl (vint n).
   Variable step_vabs : ∀ t1, Ptm t1 → Pvl (vabs t1).
   Variable step_vty : ∀ T1, Pty T1 → Pvl (vty T1).

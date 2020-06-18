@@ -89,45 +89,45 @@ Ltac ltcrush' := tcrush; repeat lookup'.
 (*******************)
 
 Lemma iT_All_Ex' T2 {Γ e1 x2 T1 T3} :
-  Γ v⊢ₜ e1: TAll T1 T2 →                        Γ v⊢ₜ tv (var_vl x2) : T1 →
-  T3 = T2.|[var_vl x2/] →
+  Γ v⊢ₜ e1: TAll T1 T2 →                        Γ v⊢ₜ tv (vvar x2) : T1 →
+  T3 = T2.|[vvar x2/] →
   (*────────────────────────────────────────────────────────────*)
-  Γ v⊢ₜ tapp e1 (tv (var_vl x2)) : T3.
+  Γ v⊢ₜ tapp e1 (tv (vvar x2)) : T3.
 Proof. intros; subst. exact: iT_All_Ex. Qed.
 
 Lemma iT_Var' Γ x T1 T2 :
   Γ !! x = Some T1 →
   T2 = shiftN x T1 →
   (*──────────────────────*)
-  Γ v⊢ₜ tv (var_vl x) : T2.
+  Γ v⊢ₜ tv (vvar x) : T2.
 Proof. intros; apply iT_Path'; pvar. Qed.
 
 Lemma iT_Var0 Γ T :
   Γ !! 0 = Some T →
   (*──────────────────────*)
-  Γ v⊢ₜ tv (var_vl 0) : T.
+  Γ v⊢ₜ tv (vvar 0) : T.
 Proof. intros; apply iT_Path'; pvar. Qed.
 
 Lemma iT_Var_Sub Γ x T1 T2 :
   Γ !! x = Some T1 →
   Γ v⊢ₜ shiftN x T1, 0 <: T2, 0 →
   (*──────────────────────*)
-  Γ v⊢ₜ tv (var_vl x) : T2.
+  Γ v⊢ₜ tv (vvar x) : T2.
 Proof. by intros; apply iT_Path'; pvarsub. Qed.
 
 Lemma iT_Var0_Sub Γ T1 T2 :
   Γ !! 0 = Some T1 →
   Γ v⊢ₜ T1, 0 <: T2, 0 →
   (*──────────────────────*)
-  Γ v⊢ₜ tv (var_vl 0) : T2.
+  Γ v⊢ₜ tv (vvar 0) : T2.
 Proof. by intros; apply iT_Path'; pvarsub. Qed.
 
 Lemma iT_Mu_E' Γ x T1 T2:
-  Γ v⊢ₜ tv (var_vl x): TMu T1 →
-  T2 = T1.|[var_vl x/] →
+  Γ v⊢ₜ tv (vvar x): TMu T1 →
+  T2 = T1.|[vvar x/] →
   is_unstamped_ty' (length Γ).+1 T1 →
   (*──────────────────────*)
-  Γ v⊢ₜ tv (var_vl x): T2.
+  Γ v⊢ₜ tv (vvar x): T2.
 Proof. intros; subst; tcrush. Qed.
 
 Lemma iT_ISub_nocoerce T1 T2 {Γ e} :

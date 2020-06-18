@@ -157,14 +157,14 @@ Proof. by intros; apply iD_Val, iT_All_I_strip1. Qed.
 
 Lemma iT_Var {Γ x T}
   (Hx : Γ !! x = Some T) :
-  Γ u⊢ₜ tv (var_vl x) : shiftN x T.
+  Γ u⊢ₜ tv (vvar x) : shiftN x T.
 Proof. apply iT_Path'. eauto. Qed.
 
 Lemma iP_VarT {Γ x T} :
-  Γ u⊢ₜ tv (var_vl x) : T →
-  Γ u⊢ₚ pv (var_vl x) : T, 0.
+  Γ u⊢ₜ tv (vvar x) : T →
+  Γ u⊢ₚ pv (vvar x) : T, 0.
 Proof.
-  move E: (tv (var_vl x)) => t; induction 1; simplify_eq/=;
+  move E: (tv (vvar x)) => t; induction 1; simplify_eq/=;
     last by destruct p; simplify_eq/=.
   destruct i; last by [simplify_eq]; rewrite iterate_0 in E; simplify_eq/=.
   eapply iP_ISub'; eauto.

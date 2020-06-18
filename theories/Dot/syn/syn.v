@@ -45,7 +45,7 @@ Inductive tm : Type :=
   | tif : tm → tm → tm → tm (* if conditional. *)
  (** Values [v ::=]: *)
  with vl_ : Type :=
-  | var_vl : var → vl_ (* variables [x]. *)
+  | vvar : var → vl_ (* variables [x]. *)
   | vlit : base_lit → vl_ (* literals (not in paper) *)
   | vabs : tm → vl_ (* lambdas [λ x. t] *)
   | vobj : list (label * dm) → vl_ (* objects [ν x. t]. *)
@@ -111,7 +111,7 @@ Instance inh_pth : Inhabited path := populate (pv inhabitant).
 Instance inh_dm : Inhabited dm := populate (dpt inhabitant).
 Instance inh_tm : Inhabited tm := populate (tv inhabitant).
 
-Instance ids_vl : Ids vl := var_vl.
+Instance ids_vl : Ids vl := vvar.
 
 Instance inj_ids : Inj (=) (=@{vl}) ids.
 Proof. by move=>??[]. Qed.
@@ -141,7 +141,7 @@ vl_rename (sb : var → var) v : vl :=
   let b := vl_rename : Rename vl in
   let c := dm_rename : Rename dm in
   match v with
-  | var_vl x => var_vl (sb x)
+  | vvar x => vvar (sb x)
   | vlit _ => v
   | vabs t => vabs (rename (upren sb) t)
   | vobj d => vobj (rename (upren sb) d)
@@ -208,7 +208,7 @@ vl_subst (sb : var → vl) v : vl :=
   let a := tm_hsubst : HSubst vl tm in
   let b := dm_hsubst : HSubst vl dm in
   match v with
-  | var_vl x => sb x
+  | vvar x => sb x
   | vlit _ => v
   | vabs t => vabs (hsubst (up sb) t)
   | vobj d => vobj (hsubst (up sb) d)
@@ -642,7 +642,7 @@ Section syntax_mut_ind.
   Variable step_tun : ∀ u t1, Ptm t1 → Ptm (tun u t1).
   Variable step_tbin : ∀ b t1 t2, Ptm t1 → Ptm t2 → Ptm (tbin b t1 t2).
   Variable step_tif : ∀ t1 t2 t3, Ptm t1 → Ptm t2 → Ptm t3 → Ptm (tif t1 t2 t3).
-  Variable step_var_vl : ∀ i, Pvl (var_vl i).
+  Variable step_var_vl : ∀ i, Pvl (vvar i).
   Variable step_vlit : ∀ l, Pvl (vlit l).
   Variable step_vabs : ∀ t1, Ptm t1 → Pvl (vabs t1).
   (* Original: *)

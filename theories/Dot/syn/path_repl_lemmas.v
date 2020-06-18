@@ -33,7 +33,7 @@ Proof. by rewrite -rename_subst. Qed.
 
 Notation upn_mp1 i := (upn i (ren (predn >>> (+1)))).
 
-Lemma ren_const x i : x ≠ i → upn_mp1 i x = var_vl x.
+Lemma ren_const x i : x ≠ i → upn_mp1 i x = vvar x.
 Proof.
   move => /Nat.eqb_spec.
   elim: i x => [|i IHi] x Hne //=; rewrite ?iterate_0; first by cbv; case_match.
@@ -63,7 +63,7 @@ Proof.
   move: p i; induction q => p i Hu //; last by inverse Hu;
     rewrite /psubst_one_path_gen /unshiftsN in IHq |- *; f_equal/=; eauto.
   hnf; cbn. case_decide; simplify_eq/=; first exact: unshiftsN_shiftN.
-  have ?: v ≠ var_vl i by naive_solver.
+  have ?: v ≠ vvar i by naive_solver.
   suff Hr: unshiftsN_vl i v by f_equal.
   exact: unstamped_val_unshifts.
 Qed.

@@ -12,7 +12,7 @@ Fixpoint path_root p : vl :=
   end.
 
 Notation atomic_path_root p :=
-  ((∃ x, path_root p = var_vl x) ∨
+  ((∃ x, path_root p = vvar x) ∨
   (∃ l, path_root p = vlit l)).
 
 Inductive un_op_syntype : un_op → base_ty → base_ty → Set :=

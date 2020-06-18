@@ -304,7 +304,7 @@ Notation hx6 := (hx 6).
 
 (** Denote a variable by de Bruijn level. Needed in some scenarios, but not
 recommended. *)
-Definition hxm i : hvl := λ j, var_vl (j - i).
+Definition hxm i : hvl := λ j, vvar (j - i).
 
 (** Additional syntactic sugar, in HOAS version *)
 Definition hlett t u := htapp (hvabs u) t.

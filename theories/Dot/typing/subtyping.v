@@ -18,7 +18,7 @@ Inductive path_typed Γ : path → ty → nat → Prop :=
 | iP_Var x T:
     Γ !! x = Some T →
     (* After looking up in Γ, we must weaken T for the variables on top of x. *)
-    Γ t⊢ₚ pv (var_vl x) : shiftN x T, 0
+    Γ t⊢ₚ pv (vvar x) : shiftN x T, 0
 | iP_Nat_I n:
     Γ t⊢ₚ pv (vint n): TInt, 0
 | iP_Bool_I b:

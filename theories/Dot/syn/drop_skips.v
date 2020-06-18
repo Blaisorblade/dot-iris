@@ -23,7 +23,7 @@ with erase_vl v :=
   match v with
   | vobj ds => vobj (map (mapsnd erase_dm) ds)
   | vabs e => vabs (erase_tm e)
-  | var_vl _ => v
+  | vvar _ => v
   | vlit _ => v
   end
 with erase_dm d :=

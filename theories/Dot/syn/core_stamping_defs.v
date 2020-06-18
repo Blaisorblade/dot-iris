@@ -27,7 +27,7 @@ Definition is_unstamped_trav: Traversal (nat * AllowNonVars) :=
     dtysynP := λ _ T, True;
     dtysemP := λ _ vs s T' ts', False;
     pathRootP := λ '(n, b) v, b = AlsoNonVars ∨
-      (∃ x, v = var_vl x) ∨ (∃ l, v = vlit l);
+      (∃ x, v = vvar x) ∨ (∃ l, v = vlit l);
   |}.
 
 Notation is_unstamped_tm n b := (forall_traversal_tm is_unstamped_trav (n, b)).

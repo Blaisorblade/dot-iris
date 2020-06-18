@@ -129,7 +129,7 @@ Proof. exact: (iT_Path (p := pv _)). Qed.
 
 Lemma iT_Var Γ x T
   (Hl : Γ !! x = Some T) :
-  Γ t⊢ₜ tv (var_vl x) : shiftN x T.
+  Γ t⊢ₜ tv (vvar x) : shiftN x T.
 Proof. intros. apply iT_Path', iP_Var, Hl. Qed.
 
 Lemma iT_All_I Γ e T1 T2:

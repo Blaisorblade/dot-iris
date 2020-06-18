@@ -36,9 +36,9 @@ Inductive typed Γ : tm → ty → Prop :=
 (** First, elimination forms *)
 (** Dependent application; only allowed if the argument is a variable. *)
 | iT_All_Ex e1 x2 T1 T2:
-    Γ v⊢ₜ e1: TAll T1 T2 →                        Γ v⊢ₜ tv (var_vl x2) : T1 →
+    Γ v⊢ₜ e1: TAll T1 T2 →                        Γ v⊢ₜ tv (vvar x2) : T1 →
     (*────────────────────────────────────────────────────────────*)
-    Γ v⊢ₜ tapp e1 (tv (var_vl x2)) : T2.|[var_vl x2/]
+    Γ v⊢ₜ tapp e1 (tv (vvar x2)) : T2.|[vvar x2/]
 
 | iT_All_E_p p2 e1 T1 T2 T2':
     T2 .Tp[ p2 /]~ T2' →
@@ -177,29 +177,29 @@ Proof. by intros; apply iD_Val, iT_All_I_strip1. Qed.
 
 Lemma iT_Var {Γ x T}
   (Hx : Γ !! x = Some T) :
-  Γ v⊢ₜ tv (var_vl x) : shiftN x T.
+  Γ v⊢ₜ tv (vvar x) : shiftN x T.
 Proof. apply iT_Path'. eauto. Qed.
 
 Lemma iP_VarT {Γ x T}  :
-  Γ v⊢ₜ tv (var_vl x) : T →
-  Γ u⊢ₚ pv (var_vl x) : T, 0.
+  Γ v⊢ₜ tv (vvar x) : T →
+  Γ u⊢ₚ pv (vvar x) : T, 0.
 Proof.
-  move E: (tv (var_vl x)) => t; induction 1; simplify_eq/=;
+  move E: (tv (vvar x)) => t; induction 1; simplify_eq/=;
     last by destruct p; simplify_eq/=.
   destruct i; last by [simplify_eq]; rewrite iterate_0 in E; simplify_eq/=.
   eapply iP_ISub'; eauto.
 Qed.
 
 Lemma iT_Mu_E {Γ x T}:
-  Γ v⊢ₜ tv (var_vl x): TMu T →
+  Γ v⊢ₜ tv (vvar x): TMu T →
   is_unstamped_ty' (length Γ).+1 T →
-  Γ v⊢ₜ tv (var_vl x): T.|[var_vl x/].
+  Γ v⊢ₜ tv (vvar x): T.|[vvar x/].
 Proof. move => Hx Hu. by eapply iT_Path', iP_Mu_E', iP_VarT, Hx. Qed.
 
 Lemma iT_Mu_I {Γ x T}:
-  Γ v⊢ₜ tv (var_vl x): T.|[var_vl x/] →
+  Γ v⊢ₜ tv (vvar x): T.|[vvar x/] →
   is_unstamped_ty' (length Γ).+1 T →
-  Γ v⊢ₜ tv (var_vl x): TMu T.
+  Γ v⊢ₜ tv (vvar x): TMu T.
 Proof. move => Hx Hu. by eapply iT_Path', iP_Mu_I', iP_VarT, Hx. Qed.
 
 Ltac typconstructor :=

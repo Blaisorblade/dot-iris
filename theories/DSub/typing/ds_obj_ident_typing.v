@@ -15,9 +15,9 @@ Implicit Types (L T U V : ty) (v : vl) (e : tm) (Γ : ctx).
 
 Inductive typed Γ : tm → ty → Prop :=
 | iT_All_Ex e1 x2 T1 T2:
-    Γ u⊢ₜ e1: TAll T1 T2 →                        Γ u⊢ₜ tv (var_vl x2) : T1 →
+    Γ u⊢ₜ e1: TAll T1 T2 →                        Γ u⊢ₜ tv (vvar x2) : T1 →
     (*────────────────────────────────────────────────────────────*)
-    Γ u⊢ₜ tapp e1 (tv (var_vl x2)) : T2.|[var_vl x2/]
+    Γ u⊢ₜ tapp e1 (tv (vvar x2)) : T2.|[vvar x2/]
 (** Non-dependent application; allowed for any argument. *)
 | iT_All_E e1 e2 T1 T2:
     Γ u⊢ₜ e1: TAll T1 (shift T2) →      Γ u⊢ₜ e2 : T1 →
@@ -36,7 +36,7 @@ Inductive typed Γ : tm → ty → Prop :=
     (* After looking up in Γ, we must weaken T for the variables on top of x. *)
     Γ !! x = Some T →
     (*──────────────────────*)
-    Γ u⊢ₜ tv (var_vl x) : shiftN x T
+    Γ u⊢ₜ tv (vvar x) : shiftN x T
 | iT_ISub e T1 T2 i :
     Γ u⊢ₜ T1, 0 <: T2, i → Γ u⊢ₜ e : T1 →
     (*───────────────────────────────*)

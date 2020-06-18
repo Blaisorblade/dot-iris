@@ -18,7 +18,7 @@ Section Sec.
   Lemma T_Var x T:
     Γ !! x = Some T →
     (*──────────────────────*)
-    ⊢ Γ ⊨ tv (var_vl x) : shiftN x T.
+    ⊢ Γ ⊨ tv (vvar x) : shiftN x T.
   Proof.
     iIntros (Hx) "/= * #Hg".
     by rewrite -wp_value' interp_env_lookup.

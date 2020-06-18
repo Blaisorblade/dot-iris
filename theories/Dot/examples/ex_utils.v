@@ -94,12 +94,12 @@ Infix "$:" := tapp (at level 68, left associativity).
 Notation tparam A := (type A >: ⊥ <: ⊤)%ty.
 Definition typeEq l T : ty := type l >: T <: T.
 
-Notation x0 := (var_vl 0).
-Notation x1 := (var_vl 1).
-Notation x2 := (var_vl 2).
-Notation x3 := (var_vl 3).
-Notation x4 := (var_vl 4).
-Notation x5 := (var_vl 5).
+Notation x0 := (vvar 0).
+Notation x1 := (vvar 1).
+Notation x2 := (vvar 2).
+Notation x3 := (vvar 3).
+Notation x4 := (vvar 4).
+Notation x5 := (vvar 5).
 
 Notation TUnit := (⊤%ty : ty).
 Notation tUnit := (tv (vint 0) : tm).

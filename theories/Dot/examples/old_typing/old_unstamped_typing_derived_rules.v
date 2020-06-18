@@ -6,24 +6,24 @@ From D.Dot Require Import path_repl_lemmas
 Import DBNotation.
 Export old_subtyping_derived_rules.
 
-Lemma is_unstamped_pvar i n b : i < n → is_unstamped_path n b (pv (var_vl i)).
+Lemma is_unstamped_pvar i n b : i < n → is_unstamped_path n b (pv (vvar i)).
 Proof. eauto 7. Qed.
 Hint Resolve is_unstamped_pvar : core.
-Lemma is_unstamped_pvars i n l b : i < n → is_unstamped_ty n b (pv (var_vl i) @; l).
+Lemma is_unstamped_pvars i n l b : i < n → is_unstamped_ty n b (pv (vvar i) @; l).
 Proof. eauto. Qed.
 Hint Resolve is_unstamped_pvars : core.
 
 Lemma iT_Mu_E {Γ x T}:
-  Γ u⊢ₜ tv (var_vl x): TMu T →
+  Γ u⊢ₜ tv (vvar x): TMu T →
   is_unstamped_ty' (length Γ).+1 T →
-  Γ u⊢ₜ tv (var_vl x): T.|[var_vl x/].
+  Γ u⊢ₜ tv (vvar x): T.|[vvar x/].
 Proof. move => Hx Hu. by eapply iT_Path', iP_Mu_E', iP_VarT, Hx. Qed.
 
 Lemma iT_Mu_I {Γ x T}:
-  Γ u⊢ₜ tv (var_vl x): T.|[var_vl x/] →
+  Γ u⊢ₜ tv (vvar x): T.|[vvar x/] →
   (*──────────────────────*)
   is_unstamped_ty' (length Γ).+1 T →
-  Γ u⊢ₜ tv (var_vl x): TMu T.
+  Γ u⊢ₜ tv (vvar x): TMu T.
 Proof. move => Hx Hu. by eapply iT_Path', iP_Mu_I', iP_VarT, Hx. Qed.
 
 Ltac tcrush :=
@@ -33,14 +33,14 @@ Ltac tcrush :=
 
 Lemma iT_All_Ex Γ e1 x2 T1 T2:
   Γ u⊢ₜ e1: TAll T1 T2 →
-  Γ u⊢ₜ tv (var_vl x2) : T1 →
+  Γ u⊢ₜ tv (vvar x2) : T1 →
   is_unstamped_ty' (length Γ).+1 T2 →
   (*────────────────────────────────────────────────────────────*)
-  Γ u⊢ₜ tapp e1 (tv (var_vl x2)) : T2.|[var_vl x2/].
+  Γ u⊢ₜ tapp e1 (tv (vvar x2)) : T2.|[vvar x2/].
 Proof.
   intros He1 Hx2 Hu.
   rewrite -(psubst_subst_agree_ty (n := S (length Γ))); tcrush.
-  eapply iT_All_E_p with (p2 := pv (var_vl x2)); tcrush.
+  eapply iT_All_E_p with (p2 := pv (vvar x2)); tcrush.
 Qed.
 
 Ltac wtcrush := repeat first [ fast_done | typconstructor | stcrush ] ; try solve [
@@ -64,13 +64,13 @@ Lemma iT_Var' Γ x T1 T2 :
   Γ !! x = Some T1 →
   T2 = shiftN x T1 →
   (*──────────────────────*)
-  Γ u⊢ₜ tv (var_vl x) : T2.
+  Γ u⊢ₜ tv (vvar x) : T2.
 Proof. intros; apply iT_Path'; pvar. Qed.
 
 Lemma iT_Var0 Γ T :
   Γ !! 0 = Some T →
   (*──────────────────────*)
-  Γ u⊢ₜ tv (var_vl 0) : T.
+  Γ u⊢ₜ tv (vvar 0) : T.
 Proof. intros; apply iT_Path'; pvar. Qed.
 
 Ltac var := exact: iT_Var0 || exact: iT_Var' || pvar.
@@ -79,14 +79,14 @@ Lemma iT_Var_Sub Γ x T1 T2 :
   Γ !! x = Some T1 →
   Γ u⊢ₜ shiftN x T1, 0 <: T2, 0 →
   (*──────────────────────*)
-  Γ u⊢ₜ tv (var_vl x) : T2.
+  Γ u⊢ₜ tv (vvar x) : T2.
 Proof. by intros; apply iT_Path'; pvarsub. Qed.
 
 Lemma iT_Var0_Sub Γ T1 T2 :
   Γ !! 0 = Some T1 →
   Γ u⊢ₜ T1, 0 <: T2, 0 →
   (*──────────────────────*)
-  Γ u⊢ₜ tv (var_vl 0) : T2.
+  Γ u⊢ₜ tv (vvar 0) : T2.
 Proof. by intros; apply iT_Path'; pvarsub. Qed.
 
 Ltac varsub := (eapply iP_Var_Sub || eapply iP_Var0_Sub ||

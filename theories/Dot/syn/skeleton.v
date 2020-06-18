@@ -32,7 +32,7 @@ Fixpoint same_skel_tm (t1 t2: tm) {struct t1} : Prop :=
 with
 same_skel_vl (v1 v2: vl) {struct v1} : Prop :=
   match (v1, v2) with
-  | (var_vl i1, var_vl i2) => i1 = i2
+  | (vvar i1, vvar i2) => i1 = i2
   | (vabs t1, vabs t2) => same_skel_tm t1 t2
   | (vobj ds1, vobj ds2) =>
     let fix same_skel_dms (ds1 ds2: dms) {struct ds1}: Prop :=
@@ -472,16 +472,16 @@ Section same_skel_inversion.
     ∃ p_s, d_s = dpt p_s.
   Proof. destruct d_s; naive_solver. Qed.
 
-  Lemma same_skel_var_var {x v_s} (Hsk : same_skel_vl (var_vl x) v_s) :
-    v_s = var_vl x.
+  Lemma same_skel_var_var {x v_s} (Hsk : same_skel_vl (vvar x) v_s) :
+    v_s = vvar x.
   Proof. destruct v_s; naive_solver. Qed.
 
   Lemma same_skel_vlit_vlit {x v_s} (Hsk : same_skel_vl (vlit x) v_s) :
     v_s = vlit x.
   Proof. destruct v_s; naive_solver. Qed.
 
-  Lemma same_skel_tv_var_tv_var {x e_s} (Hs : same_skel_tm (tv (var_vl x)) e_s) :
-    e_s = tv (var_vl x).
+  Lemma same_skel_tv_var_tv_var {x e_s} (Hs : same_skel_tm (tv (vvar x)) e_s) :
+    e_s = tv (vvar x).
   Proof.
     by case (same_skel_tv_tv Hs) as [? ->]; rewrite (same_skel_var_var Hs).
   Qed.
