@@ -76,6 +76,15 @@ Inductive tm : Type :=
 (* Workaround Coq bug with modules. *)
 Definition vl := vl_.
 
+(** Definition lists [\overbar{d}]. *)
+Definition dms := list (label * dm).
+(** Typing contexts [Γ]. *)
+Definition ctx := list ty.
+
+Implicit Types
+         (T : ty) (v : vl) (t : tm) (d : dm) (ds : dms) (p : path)
+         (Γ : ctx).
+
 (* Shortcuts. *)
 Notation TInt := (TPrim tint).
 Notation TBool := (TPrim tbool).
@@ -83,11 +92,6 @@ Notation vint n := (vlit $ lint n).
 Notation vbool b := (vlit $ lbool b).
 (* Adapter over TTMem. [L] stands for Later. *)
 Definition TTMemL l L U := TTMem l (TLater L) (TLater U).
-
-(** Definition lists [\overbar{d}]. *)
-Definition dms := list (label * dm).
-(** Typing contexts [Γ]. *)
-Definition ctx := list ty.
 
 Declare Scope dms_scope.
 Declare Scope ty_scope.
@@ -99,10 +103,6 @@ Delimit Scope dms_scope with dms.
 (******************************************************************************)
 (** Substitution. *)
 (******************************************************************************)
-
-Implicit Types
-         (T : ty) (v : vl) (t : tm) (d : dm) (ds : dms) (p : path)
-         (Γ : ctx).
 
 Instance inh_ty : Inhabited ty := populate TInt.
 Instance inh_base_lit : Inhabited base_lit := populate (lint 0).
