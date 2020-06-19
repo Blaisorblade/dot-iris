@@ -82,18 +82,25 @@ Definition hoptionModTConcrBody : hty := {@
 
 Definition hoptionT := hoptionTGen ⊥ ⊤.
 
+(* XXX merge *)
+Definition hnoneSingT self := hTAnd (self @; "Option") {@ typeEq "T" ⊥; val "isEmpty" : hTSing true }.
 Definition hnoneT self := hTAnd (self @; "Option") {@ typeEq "T" ⊥}.
 
 (** Behold here [(optionT & (μ self, val get: ▶: self @; "T")) & { type T = hT } ]. *)
+Definition hsomeSingT self hL hU : hty :=
+  hTAnd (hTAnd (self @; "Option") (μ: self, val "get" : ▶: self @; "T"))
+    {@ type "T" >: hL <: hU; val "isEmpty" : hTSing false }.
+
 Definition hsomeT self hL hU : hty :=
   hTAnd (hTAnd (self @; "Option") (μ: self, val "get" : ▶: self @; "T"))
     (type "T" >: hL <: hU).
+Definition hmkSomeSingT self : hty := hmkSomeTGen (hsomeSingT self).
 Definition hmkSomeT self : hty := hmkSomeTGen (hsomeT self).
 
 Definition hoptionModTInvBody self : hty := {@
   type "Option" >: ⊥ <: hoptionTConcr;
-  val "none" : hnoneT self;
-  val "mkSome" : hmkSomeT self
+  val "none" : hnoneSingT self;
+  val "mkSome" : hmkSomeSingT self
 }.
 
 Definition hoptionModT := μ: self, {@
@@ -173,7 +180,7 @@ Qed.
 
 Example optionModTypSub Γ :
   Γ v⊢ₜ μ: self, hoptionModTInvBody self, 0 <: hoptionModT, 0.
-Proof. ltcrush; eapply (iP_ISub (i := 0)), iP_Bool_I; tcrush. Qed.
+Proof. ltcrush. all: try eapply (iP_ISub (i := 0)), iP_Bool_I; tcrush. lNext. lNext. Qed.
 
 Example optionModTyp Γ :
   Γ v⊢ₜ hoptionModV : hoptionModT.
