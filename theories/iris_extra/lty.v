@@ -11,7 +11,7 @@ precomposition: [ τ.|[s] = λ ρ, τ (ρ >> s) ].
 All this infrastructure works for arbitrary languages implementing
 [ValuesSig].
 *)
-From Coq Require ProofIrrelevance FunctionalExtensionality.
+From Coq Require FunctionalExtensionality.
 From iris.algebra Require Import list.
 From iris.proofmode Require Import tactics.
 From iris.program_logic Require Import language.
