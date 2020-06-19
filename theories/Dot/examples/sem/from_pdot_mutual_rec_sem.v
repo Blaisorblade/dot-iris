@@ -6,8 +6,8 @@ by the pDOT paper. This example is encoded using both [DBNotation] and
 
 Here, the main lemmas are
 - [fromPDotPaperTyp], saying that
-  [fromPDotPaper] has semantic type [μ (fromPDotPaperAbsTBody x1)]
-  in a suitable context, and
+  [fromPDotPaper] has semantic type [μ (fromPDotPaperAbsTBody options)]
+  in a context binding [options] to a module implementing [Option], and
 - [pCoreClosedClientSafe], asserting safety of
   [pCoreClosedClientTm], which links [fromPDotPaper] against
   [hoptionModV], an implementation of Option, and against
@@ -181,6 +181,24 @@ Proof.
   ltcrush; mltcrush.
 Qed.
 
+(**
+Use distributivity of intersections and unions (iDistr_And_Or_Sub, aka
+[Distr-∧-∨-<:]) to show, essentially:
+<<
+  ▷^i (Option ∧ { type T >: ⊥ <: pcore.types.Type }) <:
+  ▷^i (None ∨ (Some ∧ { type T >: ⊥ <: pcore.types.Type }))
+>>
+as noted in the paper (Sec. 6.3).
+*)
+Lemma iRefinedOptionSubNoneOrSome Γ i :
+  newTypeRefΓ Γ u⊢ₜ
+  TAnd hoptionTConcr (type "T" >: ⊥ <: (x2 @ "types") @; "Type"), i <:
+  TOr (hnoneConcrT 0) (hsomeType (hoasNotation.hx 2) 0), i.
+Proof.
+  rewrite /hoptionTConcr/=; ettrans; first apply iDistr_And_Or_Sub;
+    stcrush; apply iOr_Sub_split; ltcrush.
+Qed.
+
 Lemma HoptSubT Γ :
   newTypeRefΓ Γ u⊢ₜ
     val "tpe" : optionTy x3 x2, 1 <:
@@ -192,8 +210,7 @@ Proof.
     (type "T" >: ⊥ <: x2 @ "types" @; "Type")) (i2 := 2));
     first apply iSub_And; first 1 last.
   - ettrans; first apply iSub_Add_Later; stcrush; asideLaters; ltcrush.
-  - rewrite /hoptionTConcr/=; ettrans; first apply iDistr_And_Or_Sub;
-    stcrush; apply iOr_Sub_split; ltcrush.
+  - apply iRefinedOptionSubNoneOrSome.
   - lThis. ettrans; last apply iLater_Sub; stcrush.
     eapply (iSel_SubL (L := ⊥) (U := hoptionTConcr)); tcrush.
     varsub.
