@@ -132,7 +132,7 @@ Definition htif : htm → htm → htm → htm := liftA3 tif.
 Definition htun : un_op → htm → htm := λ u, liftA1 (tun u).
 Definition htbin : bin_op → htm → htm → htm := λ b, liftA2 (tbin b).
 
-Definition hvar_vl : var → hvl := ids_hvl.
+Definition hvvar : var → hvl := ids_hvl.
 
 Coercion hvlit := (λ l, liftA1 vlit (pureS l)) : base_lit → hvl.
 Notation hvint n := (hvlit $ lint n).
@@ -180,7 +180,7 @@ Arguments htskip /.
 Arguments htif /.
 Arguments htun /.
 Arguments htbin /.
-Arguments hvar_vl /.
+Arguments hvvar /.
 Arguments hvlit /.
 Arguments hvabs /.
 Arguments hvobj /.
@@ -292,7 +292,7 @@ Infix "$:" := htapp (at level 68, left associativity).
 Notation tparam A := (type A >: ⊥ <: ⊤)%HS.
 Definition typeEq l T := (type l >: T <: T) %HS.
 
-Notation hx := hvar_vl.
+Notation hx := hvvar.
 
 Notation hx0 := (hx 0).
 Notation hx1 := (hx 1).

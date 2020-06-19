@@ -68,7 +68,7 @@ Check (1 > 2)%HS.
 Check (1 ≥ 2)%HS.
 Check (1 > 0)%HS.
 
-Goal hvar_vl = λ n i, vvar (n + i). done. Abort.
+Goal hvvar = λ n i, vvar (n + i). done. Abort.
 Goal ∀ n, hvint n = liftA0 (vint n). done. Abort.
 Goal hxm = λ i, ren (λ j, j - i). done. Abort.
 

@@ -621,7 +621,7 @@ Section syntax_mut_ind.
   Variable step_tun : ∀ u t1, Ptm t1 → Ptm (tun u t1).
   Variable step_tbin : ∀ b t1 t2, Ptm t1 → Ptm t2 → Ptm (tbin b t1 t2).
   Variable step_tif : ∀ t1 t2 t3, Ptm t1 → Ptm t2 → Ptm t3 → Ptm (tif t1 t2 t3).
-  Variable step_var_vl : ∀ i, Pvl (vvar i).
+  Variable step_vvar : ∀ i, Pvl (vvar i).
   Variable step_vlit : ∀ l, Pvl (vlit l).
   Variable step_vabs : ∀ t1, Ptm t1 → Pvl (vabs t1).
   (* Original: *)

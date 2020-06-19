@@ -324,7 +324,7 @@ Section syntax_mut_ind.
   Variable step_tv : ∀ v1, Pvl v1 → Ptm (tv v1).
   Variable step_tapp : ∀ t1 t2, Ptm t1 → Ptm t2 → Ptm (tapp t1 t2).
   Variable step_tskip : ∀ t1, Ptm t1 → Ptm (tskip t1).
-  Variable step_var_vl : ∀ i, Pvl (vvar i).
+  Variable step_vvar : ∀ i, Pvl (vvar i).
   Variable step_vint : ∀ n, Pvl (vint n).
   Variable step_vabs : ∀ t1, Ptm t1 → Pvl (vabs t1).
   Variable step_vty : ∀ T1, Pty T1 → Pvl (vty T1).
