@@ -116,7 +116,6 @@ Section tmem_unstamped_lemmas.
     iExists s, T; iFrame "Hs"; iIntros "!%". apply Hcl.
   Qed.
 
-  (* XXX inline in [suD_Typ] unless needed! *)
   Lemma suD_Typ_Gen {l Γ fakeT s σ} {T : olty Σ 0} :
     s ↝[ σ ] T -∗ Γ su⊨ { l := dtysyn fakeT } : cTMem l (oLater T) (oLater T).
   Proof.
