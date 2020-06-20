@@ -56,7 +56,7 @@ Proof.
 Qed.
 
 Instance CmraPersistent_iResUR `(fp : PersistentGFunct Σ) :
-  CmraPersistent (iResUR Σ) := lift_cprop_iResUR.
+  CmraPersistent (iResUR Σ) | 100 := lift_cprop_iResUR.
 
 (** * Show that our actual resources satisfy [CmraPersistent]. *)
 Instance CmraPersistent_agreeR F : CmraPersistent (agreeR F).

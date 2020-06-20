@@ -207,7 +207,7 @@ Proof.
 Qed.
 
 Instance CmraSwappable_iResUR `(fp : SwappableGFunct Σ) :
-  CmraSwappable (iResUR Σ) := lift_cprop_iResUR.
+  CmraSwappable (iResUR Σ) | 100 := lift_cprop_iResUR.
 
 Section agree.
 (** *** Agreement CMRA. *)
