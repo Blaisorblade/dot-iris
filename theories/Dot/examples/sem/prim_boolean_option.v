@@ -52,12 +52,11 @@ Definition hoptionTGen (L U : hty) := μ: self, {@
   val "pmatch" : hpmatchT self
 }.
 
-Definition hnoneConcrTBody self : hty := {@
+Definition hnoneConcrT : hty := μ: self, {@
   typeEq "T" ⊥;
   val "isEmpty" : hTSing true;
   val "pmatch" : hpmatchT self
 }.
-Definition hnoneConcrT := μ: self, hnoneConcrTBody self.
 
 Definition hsomeConcrT hL hU : hty := μ: self, {@
   type "T" >: hL <: hU;
