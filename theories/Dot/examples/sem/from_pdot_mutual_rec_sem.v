@@ -255,17 +255,16 @@ Ltac wp_pure := rewrite -wp_pure_step_later -1?wp_value; last done; iNext.
 Lemma newTypeRef_semTyped Γ :
   ⊢ newTypeRefΓ Γ u⊨ newTypeRefBody : x1 @; "TypeRef".
 Proof.
-  have := !!(Hx0 Γ); rewrite /newTypeRefΓ => Hx0.
-
-  iMod (fundamental_typed Hx0) as (x0_s Hsk) "#Hx0".
+  iMod (fundamental_typed (Hx0 Γ)) as (x0_s Hsk) "#Hx0".
   unstamp_goal_tm; iIntros "%ρ #Hg".
   iSpecialize ("Hx0" with "Hg").
+
   wp_bind (AppRCtx _); wp_bind (IfCtx _ _); wp_bind (UnCtx _);
     wp_bind (ProjCtx _); wp_bind (ProjCtx _); iSimpl.
   have {Hsk x0_s} ->: x0_s = x0.
   by repeat constrain_bisimulating.
 
-  rewrite /interp_expr wp_value_inv /vclose sem_later /newTypeRefBody /of_val.
+  rewrite /interp_expr wp_value_inv /vclose sem_later /of_val.
   wp_pure.
 
   lrSimpl in "Hx0"; iDestruct "Hx0" as (d Hl p ->) "Hx0".
