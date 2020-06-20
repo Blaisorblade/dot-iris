@@ -176,8 +176,6 @@ Definition hoptionModT := μ: self, {@
   val "mkSome" : hmkSomeT self
 }.
 
-Definition optionModT : ty := hoptionModT.
-
 Example optionModTypSub Γ :
   Γ v⊢ₜ μ: self, hoptionModTInvBody self, 0 <: hoptionModT, 0.
 Proof. ltcrush; eapply (iP_ISub (i := 0)), iP_Bool_I; tcrush. Qed.
