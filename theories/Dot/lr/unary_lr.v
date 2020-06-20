@@ -171,13 +171,17 @@ Notation oSel := (oSelN 0).
 Section sem_types.
   Context `{HdotG: !dlangG Σ}.
 
+  Definition oDTMemRaw n (rK : env → hoD Σ n → iProp Σ): dltyO Σ := Dlty (λI ρ d,
+    ∃ ψ, d ↗n[ n ] ψ ∧ rK ρ ψ).
+
   Implicit Types (τ : oltyO Σ 0).
 
+  (** Not a "real" kind, just a predicate over types. *)
+  Definition dot_intv_type_pred τ1 τ2 ρ ψ : iProp Σ :=
+    τ1 vnil ρ ⊆ packHoLtyO ψ vnil ∧ packHoLtyO ψ vnil ⊆ τ2 vnil ρ.
+
   (** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
-  Definition oDTMem τ1 τ2 : dltyO Σ := Dlty (λI ρ d,
-    ∃ ψ, d ↗n[ 0 ] ψ ∧
-          τ1 vnil ρ ⊆ packHoLtyO ψ vnil ∧
-          packHoLtyO ψ vnil ⊆ τ2 vnil ρ).
+  Definition oDTMem τ1 τ2 : dltyO Σ := oDTMemRaw _ (dot_intv_type_pred τ1 τ2).
   Global Instance oDTMem_proper : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
   Proof.
     rewrite /oDTMem => ??? ??? ??/=; properness; try reflexivity;
@@ -271,7 +275,7 @@ Section sem_types.
   Global Instance pinterp_lemmas: CTyInterpLemmas Σ.
   Proof.
     split; rewrite /pty_interp;
-      induction T => args sb1 sb2 w; rewrite /= /pty_interp /subtype_lty /=;
+      induction T => args sb1 sb2 w; rewrite /= /pty_interp /dot_intv_type_pred /subtype_lty /=;
       properness; rewrite ?scons_up_swap ?hsubst_comp; trivial.
     by apply path_wp_proper => ?.
   Qed.
@@ -482,7 +486,7 @@ Section path_repl_lemmas.
     V⟦ T1 ⟧ ~sTpP[ p := q ]* V⟦ T2 ⟧.
   Proof.
     rewrite /sem_ty_path_repl; induction Hrew => args ρ v He /=;
-      rewrite /subtype_lty/=; properness;
+      rewrite /dot_intv_type_pred /subtype_lty/=; properness;
       try by [ exact: path_replacement_equiv | exact: rewrite_path_path_repl
          | apply IHHrew; rewrite ?hsubst_comp | | f_equiv => ?; exact: IHHrew].
   Qed.

@@ -563,8 +563,8 @@ Definition sem_kind_path_repl {Σ n} p q (K1 K2 : sf_kind Σ n) : Prop :=
 Notation "K1 ~sKd[ p := q  ]* K2" :=
   (sem_kind_path_repl p q K1 K2) (at level 70).
 
-Definition oDTMemK `{!dlangG Σ} {n} (K : sf_kind Σ n) : dltyO Σ := Dlty (λI ρ d,
-  ∃ (ψ : hoD Σ n), d ↗n[ n ] ψ ∧ K ρ (packHoLtyO ψ) (packHoLtyO ψ)).
+Definition oDTMemK `{!dlangG Σ} {n} (K : sf_kind Σ n) : dltyO Σ :=
+  oDTMemRaw n (λI ρ ψ, K ρ (packHoLtyO ψ) (packHoLtyO ψ)).
 
 Definition oDTMemSpec `{!dlangG Σ} (L U : oltyO Σ 0) : dltyO Σ :=
   oDTMemK (sf_kintv L U).
