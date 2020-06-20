@@ -32,6 +32,13 @@ Qed.
 Lemma bi_emp_valid_True `{BiAffine PROP} {P : PROP} (Hvalid : ⊢ P) : P ⊣⊢ True.
 Proof. by iSplit; [iIntros "_"|rewrite -Hvalid]. Qed.
 
+Lemma bi_exist_swap (PROP : bi) `(P : A → B → PROP) : (∃ a b, P a b) ⊣⊢ ∃ b a, P a b.
+Proof. by iSplit; iDestruct 1 as (x1 x2) "?"; iExists x2, x1. Qed.
+
+Lemma bi_exist_nested_swap {PROP : bi} `{P : A → PROP} `{Q : A → B → PROP} :
+  (∃ a, P a ∧ ∃ b, Q a b) ⊣⊢ ∃ b a, P a ∧ Q a b.
+Proof. setoid_rewrite and_exist_l; apply bi_exist_swap. Qed.
+
 Section proofmode_extra.
   Context {PROP : bi}.
   Implicit Types P Q R : PROP.
