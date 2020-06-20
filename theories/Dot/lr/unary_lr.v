@@ -206,7 +206,7 @@ Section sem_types.
 
   Lemma cTMem_eq l T1 T2 d ρ :
     cTMem l T1 T2 ρ [(l, d)] ⊣⊢ oDTMem T1 T2 ρ d.
-  Proof. by rewrite dlty2clty_singleton. Qed.
+  Proof. by rewrite dty2clty_singleton. Qed.
 
   (** [ Ds⟦ { l : τ } ⟧] and [ V⟦ { l : τ } ⟧ ]. *)
   Definition cVMem l τ : clty Σ := dty2clty l (oDVMem τ).
@@ -215,7 +215,7 @@ Section sem_types.
 
   Lemma cVMem_eq l T d ρ :
     cVMem l T ρ [(l, d)] ⊣⊢ oDVMem T ρ d.
-  Proof. by rewrite dlty2clty_singleton. Qed.
+  Proof. by rewrite dty2clty_singleton. Qed.
 
   Lemma oSel_pv {n} w l args ρ v :
     oSelN n (pv w) l args ρ v ⊣⊢
@@ -425,7 +425,7 @@ Section misc_lemmas.
   Lemma sdtp_eq' (Γ : sCtx Σ) (T : dlty Σ) l d:
     Γ s⊨ { l := d } : dty2clty l T ⊣⊢
       ∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ d.|[ρ].
-  Proof. by rewrite sdtp_eq; properness; last apply dlty2clty_singleton. Qed.
+  Proof. by rewrite sdtp_eq; properness; last apply dty2clty_singleton. Qed.
 
   Lemma ipwp_terminates {p T i}:
     [] s⊨p p : T , i ⊢ ▷^i ⌜ terminates (path2tm p) ⌝.

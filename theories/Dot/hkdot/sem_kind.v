@@ -624,11 +624,11 @@ Section proper_eq.
 
   Lemma cTMemK_eq {n} l (K : sf_kind Σ n) d ρ :
     cTMemK l K ρ [(l, d)] ⊣⊢ oDTMemK K ρ d.
-  Proof. by rewrite dlty2clty_singleton. Qed.
+  Proof. by rewrite dty2clty_singleton. Qed.
 
   Lemma cTMemAnyKind_eq l d ρ :
     cTMemAnyKind l ρ [(l, d)] ⊣⊢ oDTMemAnyKind ρ d.
-  Proof. by rewrite dlty2clty_singleton. Qed.
+  Proof. by rewrite dty2clty_singleton. Qed.
 
   Lemma cTMemK_subst {n} l (K : sf_kind Σ n) ρ :
     (oTMemK l K).|[ρ] = oTMemK l K.|[ρ].
