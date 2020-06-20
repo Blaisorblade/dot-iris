@@ -44,11 +44,6 @@ Encoding Option, using primitive booleans; we export Option as an abstract type.
 
 (* ∀ x : {type U}, x.U → (self.T → x.U) → x.U *)
 Definition hpmatchT self := ∀: x : tparam "U", x @; "U" →: (self @; "T" →: x @; "U") →: x @; "U".
-Definition hoptionTGen (L U : hty) := μ: self, {@
-  type "T" >: L <: U;
-  val "isEmpty" : hTBool;
-  val "pmatch" : hpmatchT self
-}.
 
 Definition hnoneConcrT : hty := μ: self, {@
   typeEq "T" ⊥;
@@ -77,8 +72,6 @@ Definition hoptionModTConcrBody : hty := {@
 
 (** Define interface for [hoptionModV]. To rewrite to have abstraction. *)
 
-Definition hoptionT := hoptionTGen ⊥ ⊤.
-
 Definition hnoneT self := hTAnd (self @; "Option") {@ typeEq "T" ⊥; val "isEmpty" : hTSing true }.
 
 (** Behold here [(optionT & (μ self, val get: ▶: self @; "T")) & { type T = hT; val isEmpty; false.type } ]. *)
@@ -93,14 +86,6 @@ Definition hoptionModTInvBody self : hty := {@
   val "none" : hnoneT self;
   val "mkSome" : hmkSomeT self
 }.
-
-Definition hoptionModT := μ: self, {@
-  type "Option" >: ⊥ <: hoptionT;
-  val "none" : hnoneT self;
-  val "mkSome" : hmkSomeT self
-}.
-
-Definition optionModT : ty := hoptionModT.
 
 (** ** Implement [hoptionModV]. *)
 Definition hnoneV := ν: _, {@
@@ -177,6 +162,21 @@ End prim_boolean_option_mod.
 
 Module prim_boolean_option_mod_weaker_intf.
 Import hoasNotation prim_boolean_option_mod.
+
+Definition hoptionTGen (L U : hty) := μ: self, {@
+  type "T" >: L <: U;
+  val "isEmpty" : hTBool;
+  val "pmatch" : hpmatchT self
+}.
+Definition hoptionT := hoptionTGen ⊥ ⊤.
+
+Definition hoptionModT := μ: self, {@
+  type "Option" >: ⊥ <: hoptionT;
+  val "none" : hnoneT self;
+  val "mkSome" : hmkSomeT self
+}.
+
+Definition optionModT : ty := hoptionModT.
 
 Example optionModTypSub Γ :
   Γ v⊢ₜ μ: self, hoptionModTInvBody self, 0 <: hoptionModT, 0.
