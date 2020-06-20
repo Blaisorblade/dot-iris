@@ -301,7 +301,7 @@ Proof.
 
   (* Just to restate the current goal (for some extra readability). *)
   iAssert (V⟦ val "tpe" : hsomeConcrT ⊥ ⊤ ⟧ vnil ρ (ρ 0)) as "#Hgoal";
-    lrSimpl; last by iApply "Hgoal".
+    last by iApply "Hgoal".
   iExists (dpt p); iFrame (Hl); rewrite oDVMem_eq path_wp_eq.
   iExists optV; iFrame (Hal); lrSimpl in "Hw"; lrSimpl.
   by iDestruct "Hw" as "#[$ _]".
