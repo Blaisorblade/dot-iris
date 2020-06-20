@@ -210,7 +210,7 @@ Section StpLemmas.
     Γ s⊨ T1, i <: T2, i -∗
     Γ s⊨ oVMem l T1, i <: oVMem l T2, i.
   Proof.
-    iIntros "#Hsub %ρ %v Hg HT1"; iApply (cVMem_respects_subN with "[Hg] HT1").
+    iIntros "#Hsub %ρ %v Hg HT1"; iApply (oVMem_respects_subN with "[Hg] HT1").
     iApply (sstpi_app with "Hsub Hg").
   Qed.
 

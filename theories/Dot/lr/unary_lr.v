@@ -387,7 +387,7 @@ Section misc_lemmas.
     - iApply ("HsubU" with "(HφU Hw)").
   Qed.
 
-  Lemma cTMem_respects_sub L1 L2 U1 U2 ρ l :
+  Lemma oTMem_respects_sub L1 L2 U1 U2 ρ l :
     L2 vnil ρ ⊆ L1 vnil ρ -∗
     U1 vnil ρ ⊆ U2 vnil ρ -∗
     oTMem l L1 U1 vnil ρ ⊆ oTMem l L2 U2 vnil ρ.
@@ -406,14 +406,14 @@ Section misc_lemmas.
   Qed.
   Definition oDVMem_respects_sub := oDVMem_respects_subN 0.
 
-  Lemma cVMem_respects_subN i T1 T2 l ρ :
+  Lemma oVMem_respects_subN i T1 T2 l ρ :
     oClose (oLaterN i T1) ρ ⊆ oClose (oLaterN i T2) ρ ⊢
     oLaterN i (oVMem l T1) vnil ρ ⊆ oLaterN i (oVMem l T2) vnil ρ.
   Proof.
     rewrite -lift_sub_dty2cltyN. iIntros "Hsub %d".
     iApply (oDVMem_respects_subN with "Hsub").
   Qed.
-  Definition cVMem_respects_sub := cVMem_respects_subN 0.
+  Definition oVMem_respects_sub := oVMem_respects_subN 0.
 
   Lemma sdtp_eq (Γ : sCtx Σ) (T : clty Σ) l d:
     Γ s⊨ { l := d } : T ⊣⊢

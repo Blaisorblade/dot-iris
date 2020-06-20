@@ -168,7 +168,7 @@ Section DStpLemmas.
     Γ s⊨ oVMem l T1 <:[i] oVMem l T2.
   Proof.
     iIntros "#Hsub %ρ Hg"; iSpecialize ("Hsub" with "Hg"); iNext i.
-    iApply (cVMem_respects_sub with "Hsub").
+    iApply (oVMem_respects_sub with "Hsub").
   Qed.
 
   Lemma sTyp_Stp_Typ Γ L1 L2 U1 U2 i l :
@@ -178,7 +178,7 @@ Section DStpLemmas.
   Proof.
     iIntros "#HsubL #HsubU %ρ #Hg".
     iSpecialize ("HsubL" with "Hg"); iSpecialize ("HsubU" with "Hg"); iNext i.
-    iApply (cTMem_respects_sub with "HsubL HsubU").
+    iApply (oTMem_respects_sub with "HsubL HsubU").
   Qed.
 
   Lemma sAll_Stp_All Γ T1 T2 U1 U2 i `{!SwapPropI Σ}:

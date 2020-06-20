@@ -73,7 +73,7 @@ Section Lemmas.
     ⊢ Γ s⊨ oVMem l (oAnd T1 T2), i <: oAnd (oVMem l T1) (oVMem l T2), i.
   Proof.
     iIntros "%ρ %v _ H"; iNext.
-    iSplit; iApply (cVMem_respects_sub with "[] H"); by iIntros "%_ [??]".
+    iSplit; iApply (oVMem_respects_sub with "[] H"); by iIntros "%_ [??]".
   Qed.
 
   (* This should also follows internally from covariance, once that's proven. *)
@@ -81,7 +81,7 @@ Section Lemmas.
     ⊢ Γ s⊨ oOr (oVMem l T1) (oVMem l T2), i <: oVMem l (oOr T1 T2), i.
   Proof.
     iIntros "%ρ %v _ [H|H]"; iNext;
-      iApply (cVMem_respects_sub with "[] H"); iIntros "% $".
+      iApply (oVMem_respects_sub with "[] H"); iIntros "% $".
   Qed.
 
   Lemma sAnd_Fld_Sub_Distr_Or_2 Γ l T1 T2 i:
