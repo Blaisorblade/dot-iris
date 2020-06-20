@@ -356,12 +356,19 @@ Section misc_lemmas.
     V⟦iterate TLater i T⟧ ≡ oLaterN i V⟦T⟧.
   Proof. elim: i => [//|i IHi] ???; by rewrite !iterate_S /= IHi. Qed.
 
+  Lemma lift_dty_vl_eq {A} lookupP Q l ρ v :
+    lift_dty_vl l (dlty_schema A lookupP Q) vnil ρ v ⊣⊢
+    ∃ a, (∃ d, ⌜v @ l ↘ d⌝ ∧ lookupP d a) ∧ Q ρ a.
+  Proof.
+    etrans; [apply bi_exist_nested_swap|]; apply bi.exist_proper => a.
+    rewrite (and_exist_r (Q _ _)); apply bi.exist_proper => d; exact: assoc.
+  Qed.
+
   Lemma oVMem_eq l T vnil ρ v :
     oVMem l T vnil ρ v ⊣⊢
     ∃ pmem, ⌜v @ l ↘ dpt pmem⌝ ∧ path_wp pmem (oClose T ρ).
   Proof.
-    etrans; [apply bi_exist_nested_swap|]; apply bi.exist_proper => p.
-    setoid_rewrite (assoc bi_and); rewrite -and_exist_r.
+    etrans; [apply lift_dty_vl_eq|]; apply bi.exist_proper => p.
     apply bi.and_proper, reflexivity; iIntros "!% /="; naive_solver.
   Qed.
 
