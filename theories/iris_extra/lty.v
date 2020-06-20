@@ -326,10 +326,14 @@ Reserved Notation "sG⟦ Γ ⟧* ρ" (at level 10).
 Fixpoint env_oltyped `{dlangG Σ} (ρ : var → vl) (Γ : sCtx Σ) : iProp Σ :=
   match Γ with
   | φ :: Γ' => sG⟦ Γ' ⟧* (stail ρ) ∧ oClose φ ρ (shead ρ)
-  | nil => True
+  | [] => True
   end
 where "sG⟦ Γ ⟧* ρ" := (env_oltyped ρ Γ).
 Global Instance: Params (@env_oltyped) 4 := {}.
+
+Definition env_oltyped_nil `{dlangG Σ} ρ : sG⟦ [] ⟧* ρ ⊣⊢ True := reflexivity _.
+Definition env_oltyped_cons `{dlangG Σ} ρ τ (Γ : sCtx Σ) :
+  sG⟦ τ :: Γ ⟧* ρ ⊣⊢ sG⟦ Γ ⟧* (stail ρ) ∧ oClose τ ρ (shead ρ) := reflexivity _.
 
 (** ** Constructors for language-independent semantic types, corresponding to
 [⊤], [⊥], [T₁ ∧ T₂], [T₁ ∨ T₂], [μ x. T], [▷]. *)
