@@ -631,9 +631,9 @@ Section derived.
   Opaque sSkd sstpiK sptp sstpi.
 
   Lemma sT_New_w_And n Γ l σ s (K : sf_kind Σ n) T :
-    oLater (cAnd (cTMemK l K) cTop) :: Γ s⊨ oLater T ∷[ 0 ] K -∗
+    oLater (c2o (cAnd (cTMemK l K) cTop)) :: Γ s⊨ oLater T ∷[ 0 ] K -∗
     s ↝[ σ ] T -∗
-    Γ s⊨ vobj [ (l, dtysem σ s) ] : oMu (cAnd (cTMemK l K) cTop).
+    Γ s⊨ vobj [ (l, dtysem σ s) ] : oMu (c2o (cAnd (cTMemK l K) cTop)).
   Proof.
     iIntros "#HT #Hs".
     iApply sT_Obj_I; iApply sD_Cons; [done| |iApply sD_Nil].

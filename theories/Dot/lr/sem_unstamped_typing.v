@@ -300,8 +300,8 @@ Section unstamped_lemmas.
 
 
   Lemma suT_Obj_I (Γ : sCtx Σ) (T : clty Σ) ds:
-    oLater T :: Γ su⊨ds ds : T -∗
-    Γ su⊨ tv (vobj ds) : oMu T.
+    oLater (c2o T) :: Γ su⊨ds ds : T -∗
+    Γ su⊨ tv (vobj ds) : oMu (c2o T).
   Proof.
     iIntros "#H1"; iMod "H1" as (ds1 Hsk1) "H1"; iModIntro.
     by iExists (tv (vobj ds1)); iSplit; last iApply (sT_Obj_I with "H1").
@@ -393,8 +393,8 @@ Section unstamped_lemmas.
   Qed.
 
   Lemma suD_Val_New {Γ l ds} {T : clty Σ}:
-    oAnd (oLater T) (oSing (pself (pv (ids 1)) l)) :: Γ su⊨ds ds : T -∗
-    Γ su⊨ { l := dpt (pv (vobj ds)) } : cVMem l (oMu (clty_olty T)).
+    oAnd (oLater (c2o T)) (oSing (pself (pv (ids 1)) l)) :: Γ su⊨ds ds : T -∗
+    Γ su⊨ { l := dpt (pv (vobj ds)) } : cVMem l (oMu (c2o T)).
   Proof.
     iIntros "#H1"; iMod "H1" as (ds1s Hsk1) "H1"; iModIntro.
     by iExists (dpt (pv (vobj ds1s))); iSplit; last iApply (sD_Val_New with "H1").

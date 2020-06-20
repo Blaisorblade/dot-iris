@@ -29,7 +29,7 @@ That is, semantics for both definition lists and values, and proofs that they
 agree appropriately. *)
 Record clty {Σ} := _Clty {
   clty_dslty :> dslty Σ;
-  clty_olty :> oltyO Σ 0;
+  clty_olty : oltyO Σ 0;
   clty_def2defs_head {l d ds ρ} :
     clty_dslty ρ [(l, d)] ⊢ clty_dslty ρ ((l, d) :: ds);
   clty_mono {l d ds ρ} :
@@ -171,7 +171,7 @@ Section DefsTypes.
   Global Instance : Bottom (clty Σ) := olty2clty ⊥.
 
   Program Definition cAnd (Tds1 Tds2 : clty Σ): clty Σ :=
-    Clty (Dslty (λI ρ ds, Tds1 ρ ds ∧ Tds2 ρ ds)) (oAnd Tds1 Tds2).
+    Clty (Dslty (λI ρ ds, Tds1 ρ ds ∧ Tds2 ρ ds)) (oAnd (c2o Tds1) (c2o Tds2)).
   Next Obligation. intros. by rewrite /= -!clty_def2defs_head. Qed.
   Next Obligation. intros. by rewrite /= -!clty_mono. Qed.
   Next Obligation. intros. by rewrite /= -!clty_commute. Qed.

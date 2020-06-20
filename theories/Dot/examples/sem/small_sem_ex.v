@@ -50,7 +50,7 @@ Section small_ex.
 
   Lemma vHasA2t: ⊢ [] u⊨ hminiV : miniVT2.
   Proof using Type*.
-    iApply (suT_Sub (T1 := oMu sminiVT2ConcrBody)); first last.
+    iApply (suT_Sub (T1 := oMu (c2o sminiVT2ConcrBody))); first last.
     - iApply sMu_Stp_Mu; rewrite oLaterN_0.
       iApply sStp_And; last iApply sStp_And; last iApply sStp_Top.
       + iApply sStp_Trans; [iApply sAnd1_Stp|iApply posTMem_widen].

@@ -37,8 +37,8 @@ Section Sec.
 
   (** This lemma is equivalent to pDOT's (Def-New). *)
   Lemma sD_Val_New {Γ l ds} {T : clty Σ}:
-    oAnd (oLater T) (oSing (pself (pv (ids 1)) l)) :: Γ s⊨ds ds : T -∗
-    Γ s⊨ { l := dpt (pv (vobj ds)) } : cVMem l (oMu (clty_olty T)).
+    oAnd (oLater (c2o T)) (oSing (pself (pv (ids 1)) l)) :: Γ s⊨ds ds : T -∗
+    Γ s⊨ { l := dpt (pv (vobj ds)) } : cVMem l (oMu (c2o T)).
   Proof.
     rewrite sdtp_eq'; iDestruct 1 as (Hwf) "#Hds";
       iIntros (ρ Hpid%path_includes_field_aliases) "#Hg".
@@ -93,8 +93,8 @@ Section Sec.
    * Γ ⊨p nu x. ds : μ x. T, 0
    *)
   Lemma sP_Obj_I (Γ : sCtx Σ) (T : clty Σ) ds:
-    oLater T :: Γ s⊨ds ds : T -∗
-    Γ s⊨p pv (vobj ds) : oMu T, 0.
+    oLater (c2o T) :: Γ s⊨ds ds : T -∗
+    Γ s⊨p pv (vobj ds) : oMu (c2o T), 0.
   Proof.
     iDestruct 1 as (Hwf) "#Hds". iIntros "%ρ #Hg /=".
     rewrite path_wp_pv_eq /=. iLöb as "IH".
@@ -105,7 +105,7 @@ Section Sec.
 
   (** ** Derive object introduction for term typing. *)
   Lemma sT_Obj_I (Γ : sCtx Σ) (T : clty Σ) ds:
-    oLater T :: Γ s⊨ds ds : T -∗ Γ s⊨ tv (vobj ds) : oMu T.
+    oLater (c2o T) :: Γ s⊨ds ds : T -∗ Γ s⊨ tv (vobj ds) : oMu (c2o T).
   Proof. by rewrite sP_Obj_I sT_Path. Qed.
 
   Lemma sD_Nil Γ : ⊢ Γ s⊨ds [] : cTop.
