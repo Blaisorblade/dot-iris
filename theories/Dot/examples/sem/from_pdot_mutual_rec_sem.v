@@ -251,16 +251,13 @@ Tactic Notation "lrSimpl" "in" constr(iSelP) :=
 Tactic Notation "wp_bind" uconstr(p) := iApply (wp_bind (fill [p])).
 Ltac wp_pure := rewrite -wp_pure_step_later -1?wp_value; last done; iNext.
 
-Lemma fundamental_typed' Γ e T (Ht : Γ v⊢ₜ e : T) :
-  ⊢ |==> ∃ e_s, ⌜ same_skel_tm e e_s⌝ ∧ Γ ⊨ e_s : T.
-Proof. by iDestruct (fundamental_typed Ht) as "#>$". Qed.
 
 Lemma newTypeRef_semTyped Γ :
   ⊢ newTypeRefΓ Γ u⊨ newTypeRefBody : x1 @; "TypeRef".
 Proof.
   have := !!(Hx0 Γ); rewrite /newTypeRefΓ => Hx0.
 
-  iMod (fundamental_typed' Hx0) as (x0_s Hsk) "#Hx0".
+  iMod (fundamental_typed Hx0) as (x0_s Hsk) "#Hx0".
   unstamp_goal_tm; iIntros "%ρ #Hg".
   iSpecialize ("Hx0" with "Hg").
   wp_bind (AppRCtx _); wp_bind (IfCtx _ _); wp_bind (UnCtx _);
