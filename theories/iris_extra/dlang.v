@@ -27,7 +27,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
   Class dlangG Σ `{InhabitedState dlang_lang} := DLangG {
     dlangG_savior :> savedHoSemTypeG Σ;
     dlangG_langdet :> LangDet dlang_lang;
-    dlangG_persistent : CmraPersistent (iResUR Σ);
+    dlangG_persistent (P : iProp Σ) : Persistent P;
   }.
   Arguments DLangG _ {_ _ _ _}.
   Existing Instance dlangG_persistent | 0.
