@@ -66,7 +66,7 @@ Definition hsomeConcrT hL hU : hty := μ: self, {@
 }.
 
 Definition hmkSomeTGen res : hty := ∀: x: tparam "A", (x @; "A" →: res (x @; "A") (x @; "A")).
-Definition hmkSomeTSing : hty := hmkSomeTGen hsomeConcrT.
+Definition hmkSomeConcrT : hty := hmkSomeTGen hsomeConcrT.
 
 
 Definition hoptionTConcr := hTOr hnoneConcrT (hsomeConcrT ⊥ ⊤).
@@ -74,7 +74,7 @@ Definition hoptionTConcr := hTOr hnoneConcrT (hsomeConcrT ⊥ ⊤).
 Definition hoptionModTConcrBody : hty := {@
   typeEq "Option" hoptionTConcr;
   val "none" : hnoneConcrT;
-  val "mkSome" : hmkSomeTSing
+  val "mkSome" : hmkSomeConcrT
 }.
 
 (** Define interface for [hoptionModV]. To rewrite to have abstraction. *)
@@ -128,7 +128,7 @@ Definition hmkSome : hvl := λ: x content, ν: self, {@
 }.
 
 Example mkSomeTypStronger Γ :
-  Γ v⊢ₜ hmkSome : hmkSomeTSing.
+  Γ v⊢ₜ hmkSome : hmkSomeConcrT.
 Proof.
   tcrush.
   - tcrush_nclosed.
