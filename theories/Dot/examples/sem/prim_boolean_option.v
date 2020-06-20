@@ -9,8 +9,6 @@ Set Implicit Arguments.
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
-Definition mapfst {A B C} (f : A → C): A * B → (C * B) := λ '(a, b), (f a, b).
-
 Module prim_boolean_option_mod.
 Import hoasNotation.
 
