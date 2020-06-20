@@ -289,7 +289,7 @@ Proof.
   (* Just to restate the current goal (for some extra readability). *)
   iAssert (V⟦ shift typeRefTBody ⟧ vnil ρ
     (shiftV (ν [val "symb" = x1])).[up ρ].[vint 0/])
-    as "{Hw} #Hw"; last iApply "Hw".
+    as "#Hgoal"; last by iApply "Hgoal".
   lrSimpl; iSplit; last by [].
   rewrite up_sub_compose_vl (_ : (shiftV _).[_] = ν [val "symb" = shiftV (ρ 0)]); last
     by autosubst.
@@ -300,8 +300,8 @@ Proof.
   iSplit; [by iApply "H"| iClear "H"].
 
   (* Just to restate the current goal (for some extra readability). *)
-  iAssert (V⟦ val "tpe" : hsomeConcrT ⊥ ⊤ ⟧ vnil ρ (ρ 0)) as "{Hw} #Hw";
-    lrSimpl; last iApply "Hw".
+  iAssert (V⟦ val "tpe" : hsomeConcrT ⊥ ⊤ ⟧ vnil ρ (ρ 0)) as "#Hgoal";
+    lrSimpl; last by iApply "Hgoal".
   iExists (dpt p); iFrame (Hl); rewrite oDVMem_eq path_wp_eq.
   iExists optV; iFrame (Hal); lrSimpl in "Hw"; lrSimpl.
   by iDestruct "Hw" as "#[$ _]".
