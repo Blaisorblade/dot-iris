@@ -102,10 +102,24 @@ Definition hoptionModT := μ: self, {@
 
 Definition optionModT : ty := hoptionModT.
 
+(** ** Implement [hoptionModV]. *)
 Definition hnoneV := ν: _, {@
   type "T" = ⊥ ;
   val "isEmpty" = true;
   val "pmatch" = λ: x none some, none
+}.
+
+Definition hmkSome : hvl := λ: x content, ν: self, {@
+  type "T" = x @; "A";
+  val "isEmpty" = false;
+  val "pmatch" = λ: x none some, some $: htskip (self @: "get");
+  val "get" = content
+}.
+
+Definition hoptionModV := ν: self, {@
+  type "Option" = hoptionTConcr;
+  val "none" = hnoneV;
+  val "mkSome" = hmkSome
 }.
 
 Lemma boolSing Γ (b : bool) : Γ v⊢ₜ b : TSing b.
@@ -117,13 +131,6 @@ Qed.
 Example noneTypStronger Γ :
   Γ v⊢ₜ hnoneV : hnoneConcrT.
 Proof. tcrush; [tcrush_nclosed | apply boolSing | var]. Qed.
-
-Definition hmkSome : hvl := λ: x content, ν: self, {@
-  type "T" = x @; "A";
-  val "isEmpty" = false;
-  val "pmatch" = λ: x none some, some $: htskip (self @: "get");
-  val "get" = content
-}.
 
 Example mkSomeTypStronger Γ :
   Γ v⊢ₜ hmkSome : hmkSomeConcrT.
@@ -140,12 +147,6 @@ Proof.
     eapply iSub_Sel''; tcrush. varsub; tcrush.
 Qed.
 
-
-Definition hoptionModV := ν: self, {@
-  type "Option" = hoptionTConcr;
-  val "none" = hnoneV;
-  val "mkSome" = hmkSome
-}.
 
 (** Rather precise type for [hoptionModV]. *)
 Example optionModConcrTyp Γ :
