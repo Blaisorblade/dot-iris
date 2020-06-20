@@ -575,10 +575,12 @@ Proof.
 Qed.
 
 Definition cTMemK `{!dlangG Σ} {n} l (K : sf_kind Σ n) : clty Σ := dty2clty l (oDTMemK K).
+Notation oTMemK l K := (clty_olty (cTMemK l K)).
 
 Definition oDTMemAnyKind `{!dlangG Σ} : dltyO Σ := Dlty (λI ρ d,
   ∃ n (ψ : hoD Σ n), d ↗n[ n ] ψ).
 Definition cTMemAnyKind `{!dlangG Σ} l : clty Σ := dty2clty l oDTMemAnyKind.
+Notation oTMemAnyKind l := (clty_olty (cTMemAnyKind l)).
 
 Program Definition kpSubstOne `{!dlangG Σ} {n} p (K : sf_kind Σ n) : sf_kind Σ n :=
   SfKind
@@ -629,7 +631,7 @@ Section proper_eq.
   Proof. by rewrite dlty2clty_singleton. Qed.
 
   Lemma cTMemK_subst {n} l (K : sf_kind Σ n) ρ :
-    (clty_olty (cTMemK l K)).|[ρ] = cTMemK l K.|[ρ].
+    (oTMemK l K).|[ρ] = oTMemK l K.|[ρ].
   Proof. done. Qed.
 
   Lemma kpSubstOne_eq {n} (K : sf_kind Σ n) v :

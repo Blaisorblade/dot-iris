@@ -145,7 +145,7 @@ Section Sec.
   Proof. by rewrite /ietp -sT_All_E -(interp_subst_commute T2 (ren (+1))). Qed.
 
   Lemma sT_Obj_E {Γ e T l}:
-    Γ s⊨ e : cVMem l T -∗
+    Γ s⊨ e : oVMem l T -∗
     (*─────────────────────────*)
     Γ s⊨ tproj e l : T.
   Proof.

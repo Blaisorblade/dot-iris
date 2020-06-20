@@ -39,6 +39,7 @@ Record clty {Σ} := _Clty {
     clty_dslty ρ (selfSubst ds) ⊢ clty_olty vnil ρ (vobj ds);
 }.
 Add Printing Constructor clty.
+Notation c2o := clty_olty.
 
 Arguments clty : clear implicits.
 Arguments _Clty {_}.
@@ -160,6 +161,9 @@ Section DefsTypes.
   Lemma dlty2clty_singleton l (TD : dlty Σ) ρ d :
     dty2clty l TD ρ [(l, d)] ≡ TD ρ d.
   Proof. by rewrite lift_dty_dms_singleton_eq. Qed.
+
+  Definition olty_dlty2clty_eq l (TD : dlty Σ) ρ v :
+    c2o (dty2clty l TD) vnil ρ v ⊣⊢ lift_dty_vl l TD vnil ρ v := reflexivity _.
 
   Program Definition cTop : clty Σ := Clty (Dslty (λI _ _, True)) oTop.
   Solve All Obligations with eauto.

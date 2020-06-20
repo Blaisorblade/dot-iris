@@ -519,7 +519,7 @@ Section dot_types.
 
   Lemma sKStp_TMem {n} Γ l (K1 K2 : sf_kind Σ n) i :
     Γ s⊨ K1 <∷[ i ] K2 -∗
-    Γ s⊨ cTMemK l K1 <:[ i ] cTMemK l K2 ∷ sf_star.
+    Γ s⊨ oTMemK l K1 <:[ i ] oTMemK l K2 ∷ sf_star.
   Proof.
     rewrite -ksubtyping_intro; iIntros "#HK %ρ Hg *".
     iSpecialize ("HK" with "Hg"); iNext i.
@@ -529,7 +529,7 @@ Section dot_types.
   Qed.
 
   Lemma sKStp_TMem_AnyKind {n} Γ l (K : sf_kind Σ n) i :
-    ⊢ Γ s⊨ cTMemK l K <:[ i ] cTMemAnyKind l ∷ sf_star.
+    ⊢ Γ s⊨ oTMemK l K <:[ i ] oTMemAnyKind l ∷ sf_star.
   Proof.
     rewrite -ksubtyping_intro; iIntros "%ρ #Hg * !>".
     iDestruct 1 as (d Hl φ) "[Hl _]".
@@ -560,7 +560,7 @@ Section dot_types.
   Qed.
 
   Lemma sK_Sel {Γ n} l (K : sf_kind Σ n) p i :
-    Γ s⊨p p : cTMemK l K, i -∗
+    Γ s⊨p p : oTMemK l K, i -∗
     Γ s⊨ oSelN n p l ∷[i] K.
   Proof.
     iIntros "#Hp %ρ Hg"; iSpecialize ("Hp" with "Hg"); iNext i.
@@ -644,11 +644,11 @@ Section derived.
   (* Closer to what Sandro wrote on paper, but some adjustments can only be
   done in the model, right now. *)
   Lemma sT_New_No_And {n Γ l σ s T} {K : sf_kind Σ n} :
-    oLater (cTMemK l K) :: Γ s⊨ oLater T ∷[ 0 ] K -∗
+    oLater (oTMemK l K) :: Γ s⊨ oLater T ∷[ 0 ] K -∗
     s ↝[ σ ] T -∗
-    Γ s⊨ vobj [ (l, dtysem σ s) ] : oMu (cTMemK l K).
+    Γ s⊨ vobj [ (l, dtysem σ s) ] : oMu (oTMemK l K).
   Proof.
-    have ->: (clty_olty (cTMemK l K) ≡ cAnd (cTMemK l K) cTop).
+    have ->: (oTMemK l K ≡ c2o (cAnd (cTMemK l K) cTop)).
     by intros ???; iSplit; [iIntros "$" | iIntros "[$ _]"].
     apply sT_New_w_And.
   Qed.
@@ -768,12 +768,12 @@ Section derived.
   Qed.
 
   Lemma sT_New_Singl n Γ l σ s (K : s_kind Σ n) (T : olty Σ n) :
-    oLater (cTMemK l (s_to_sf (ho_sing K (oLater T)))) :: Γ s⊨ oLater T ∷[ 0 ] s_to_sf K -∗
+    oLater (oTMemK l (s_to_sf (ho_sing K (oLater T)))) :: Γ s⊨ oLater T ∷[ 0 ] s_to_sf K -∗
     s ↝[ σ ] T -∗
-    Γ s⊨ vobj [ (l, dtysem σ s) ] : oMu (cTMemK l (s_to_sf K)).
+    Γ s⊨ vobj [ (l, dtysem σ s) ] : oMu (oTMemK l (s_to_sf K)).
   Proof using HswapProp.
     iIntros "#HT #Hs".
-    iApply (sT_Sub (T1 := oMu (cTMemK l (s_to_sf (ho_sing K (oLater T)))))).
+    iApply (sT_Sub (T1 := oMu (oTMemK l (s_to_sf (ho_sing K (oLater T)))))).
     rewrite sK_HoIntv; iApply (sT_New_No_And with "HT Hs").
     iApply sMu_Stp_Mu. rewrite oLaterN_0.
     rewrite -sstpiK_star_eq_sstpd.
@@ -801,10 +801,10 @@ Section derived.
   (* XXX: Substituting [vPack] in types doesn't work robustly, so we should use an
   object-level [let] instead, or just assumptions on the typing context. *)
   Lemma sKEq_New_Sel {n Γ l σ s T} {K : s_kind Σ n} :
-    (* oLater (cTMemK l K) :: Γ s⊨ oLater T ∷[ 0 ] K -∗ *)
+    (* oLater (oTMemK l K) :: Γ s⊨ oLater T ∷[ 0 ] K -∗ *)
     (* oLater (cAnd (cTMemK l K) cTop) :: Γ s⊨ oLater T ∷[ 0 ] K -∗ *)
     let vPack := vobj [ (l, dtysem σ s) ] in
-    oLater (cTMemK l (s_to_sf (ho_sing K (oLater T)))) :: Γ s⊨ oLater T ∷[ 0 ] s_to_sf K -∗
+    oLater (oTMemK l (s_to_sf (ho_sing K (oLater T)))) :: Γ s⊨ oLater T ∷[ 0 ] s_to_sf K -∗
     s ↝[ σ ] T -∗
       Γ s⊨ oSelN n (pv vPack) l =[0] oLater T .sTp[ vPack /] ∷ s_to_sf K.|[ vPack /].
   Proof using HswapProp.
@@ -835,7 +835,7 @@ Section derived.
   (* Wrote this during discussion with Sandro; it apparently does not hold in
   the system in his thesis. *)
   Lemma sK_Sel_Red {n} Γ p l (K : s_kind Σ n) i :
-    Γ s⊨p p : cTMemK l (s_to_sf K), i -∗
+    Γ s⊨p p : oTMemK l (s_to_sf K), i -∗
     Γ s⊨ oSelN n p l ∷[i] s_to_sf (ho_sing K (oSelN n p l)).
   Proof using HswapProp. rewrite sK_Sel. apply sK_HoSing. Qed.
 
@@ -848,12 +848,12 @@ Section examples.
   Definition oId := oLam (oSel x0 "A").
 
   Lemma oId_K Γ :
-    ⊢ Γ s⊨ oId ∷[0] sf_kpi (cTMemK "A" sf_star) sf_star.
+    ⊢ Γ s⊨ oId ∷[0] sf_kpi (oTMemK "A" sf_star) sf_star.
   Proof using HswapProp. by rewrite -sK_Lam -sK_Star. Qed.
     (* Time iApply sK_Lam; iApply sK_Star. *)
 
   Lemma oId_K_Sngl Γ :
-    ⊢ Γ s⊨ oId ∷[0] sf_kpi (cTMemK "A" sf_star) (sf_sngl (oSel x0 "A")).
+    ⊢ Γ s⊨ oId ∷[0] sf_kpi (oTMemK "A" sf_star) (sf_sngl (oSel x0 "A")).
   Proof using HswapProp. by rewrite -sK_Lam -sK_Sing. Qed.
 End examples.
 
@@ -879,7 +879,7 @@ Section dot_experimental_kinds.
   Qed.
 
   Lemma failed_path_equality n Γ T l L U i (K : sf_kind Σ n) v w :
-    Γ s⊨ T ∷[i] sf_kpi (cTMemK l (sf_kintv L U)) K -∗
+    Γ s⊨ T ∷[i] sf_kpi (oTMemK l (sf_kintv L U)) K -∗
     Γ s⊨ oSel v l =[i] oSel w l ∷ sf_kintv L U -∗
     Γ s⊨ oTAppV T v <:[i] oTAppV T w ∷ K.|[v/].
     (* This goal is false if T uses singleton types — say T = λ x. x.type,

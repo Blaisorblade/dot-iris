@@ -38,8 +38,8 @@ Section small_ex.
   Definition miniVT2 := μ miniVT2Body.
 
   Definition sminiVT2Body : oltyO Σ 0 :=
-    oAnd (cTMemL "A" oBot (oPrim tint))
-      (oAnd (cVMem "n" (oLater (oSel x0 "A")))
+    oAnd (oTMemL "A" oBot (oPrim tint))
+      (oAnd (oVMem "n" (oLater (oSel x0 "A")))
       oTop).
   Goal V⟦miniVT2Body⟧ = sminiVT2Body. done. Abort.
 

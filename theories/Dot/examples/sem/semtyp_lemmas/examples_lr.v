@@ -70,7 +70,7 @@ Section Lemmas.
   Proof. iIntros "%% Hg [[HS|HT] [HT'|HU]] !> /="; eauto with iFrame. Qed.
 
   Lemma sAnd_Fld_Sub_Distr_2 Γ l T1 T2 i:
-    ⊢ Γ s⊨ cVMem l (oAnd T1 T2), i <: oAnd (cVMem l T1) (cVMem l T2), i.
+    ⊢ Γ s⊨ oVMem l (oAnd T1 T2), i <: oAnd (oVMem l T1) (oVMem l T2), i.
   Proof.
     iIntros "%ρ %v _ H"; iNext.
     iSplit; iApply (cVMem_respects_sub with "[] H"); by iIntros "%_ [??]".
@@ -78,14 +78,14 @@ Section Lemmas.
 
   (* This should also follows internally from covariance, once that's proven. *)
   Lemma sAnd_Fld_Sub_Distr_Or_1 Γ l T1 T2 i:
-    ⊢ Γ s⊨ oOr (cVMem l T1) (cVMem l T2), i <: cVMem l (oOr T1 T2), i.
+    ⊢ Γ s⊨ oOr (oVMem l T1) (oVMem l T2), i <: oVMem l (oOr T1 T2), i.
   Proof.
     iIntros "%ρ %v _ [H|H]"; iNext;
       iApply (cVMem_respects_sub with "[] H"); iIntros "% $".
   Qed.
 
   Lemma sAnd_Fld_Sub_Distr_Or_2 Γ l T1 T2 i:
-    ⊢ Γ s⊨ cVMem l (oOr T1 T2), i <: oOr (cVMem l T1) (cVMem l T2), i.
+    ⊢ Γ s⊨ oVMem l (oOr T1 T2), i <: oOr (oVMem l T1) (oVMem l T2), i.
   Proof.
     iIntros "%ρ %v _ #H"; iNext.
     iDestruct "H" as (d Hl pmem ->) "#H"; rewrite -path_wp_or -!oDVMem_eq.

@@ -186,7 +186,7 @@ Section type_proj.
     Γ ⊨ { A :: L .. U }T#A <:^i U
   *)
   Lemma sProj_Stp_U A Γ L U i :
-    ⊢ Γ s⊨ oProj A (cTMem A L U) <:[i] U.
+    ⊢ Γ s⊨ oProj A (oTMem A L U) <:[i] U.
   Proof.
     iIntros "%ρ Hg %v"; iNext i.
     rewrite oProjN_eq; iDestruct 1 as (w) "(HTw & HselV)".
@@ -207,7 +207,7 @@ Section type_proj.
     Γ ⊨ T#A <:^i U
   *)
   Lemma sProj_Stp_U' A Γ T L U i :
-    Γ s⊨ T <:[i] cTMem A L U -∗
+    Γ s⊨ T <:[i] oTMem A L U -∗
     Γ s⊨ oProj A T <:[i] U.
   Proof.
     iIntros "#Hp".
@@ -263,7 +263,7 @@ Section type_proj.
     contexts cannot run.
   *)
   Lemma sProj_Stp_L A Γ T L U i p :
-    Γ s⊨ T <:[i] cTMem A L U -∗
+    Γ s⊨ T <:[i] oTMem A L U -∗
     Γ s⊨p p : T, i -∗
     Γ s⊨ L <:[i] oProj A T.
   Proof.
@@ -275,7 +275,7 @@ Section type_proj.
 
   (** In fact, if [p] has more specific bounds, we can use those too. *)
   Lemma sProj_Stp_L_Gen A Γ T1 T2 L U i p :
-    Γ s⊨ T2 <:[i] cTMem A L U -∗
+    Γ s⊨ T2 <:[i] oTMem A L U -∗
     Γ s⊨ T2 <:[i] T1 -∗
     Γ s⊨p p : T2, i -∗
     Γ s⊨ L <:[i] oProj A T1.
@@ -289,7 +289,7 @@ Section type_proj.
 
   (** And [sProj_Stp_L] is indeed a special case of [sProj_Stp_L_Gen]. *)
   Lemma sProj_Stp_L' A Γ T L U i p :
-    Γ s⊨ T <:[i] cTMem A L U -∗
+    Γ s⊨ T <:[i] oTMem A L U -∗
     Γ s⊨p p : T, i -∗
     Γ s⊨ L <:[i] oProj A T.
   Proof.

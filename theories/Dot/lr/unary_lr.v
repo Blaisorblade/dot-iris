@@ -300,6 +300,9 @@ Notation "Γ ⊨ T1 <:[ i  ] T2 " := (istpd i Γ T1 T2) (at level 74, T1, T2 at 
 Notation oInt := (oPrim tint).
 Notation oBool := (oPrim tbool).
 
+Notation oTMem l τ1 τ2 := (clty_olty (cTMem l τ1 τ2)).
+Notation oVMem l τ := (clty_olty (cVMem l τ)).
+
 (** ** Show these typing judgments are equivalent to what we present in the paper. *)
 Section judgment_definitions.
   Context `{HdotG: !dlangG Σ}.
@@ -341,7 +344,7 @@ Section misc_lemmas.
   (** Core lemmas about type selections and bounds. *)
   Lemma vl_sel_ub w l L U ρ v :
     vl_sel w l vnil v -∗
-    clty_olty (cTMem l L U) vnil ρ w -∗
+    oTMem l L U vnil ρ w -∗
     U vnil ρ v.
   Proof.
     iIntros "Hφ"; iDestruct 1 as (d1 Hl1 φ1) "(Hdφ1 & _ & HφU)".
@@ -353,7 +356,7 @@ Section misc_lemmas.
 
   Lemma vl_sel_lb w l L U ρ v :
     L vnil ρ v -∗
-    clty_olty (cTMem l L U) vnil ρ w -∗
+    oTMem l L U vnil ρ w -∗
     vl_sel w l vnil v.
   Proof.
     iIntros "HL"; iDestruct 1 as (d Hl φ) "[Hdφ [HLφ _]]".
@@ -362,7 +365,7 @@ Section misc_lemmas.
 
   Lemma lift_sub_dty2cltyN i (T1 T2 : dlty Σ) l ρ :
     (∀ d, ▷^i T1 ρ d -∗ ▷^i T2 ρ d) ⊢
-    oLaterN i (dty2clty l T1) vnil ρ ⊆ oLaterN i (dty2clty l T2) vnil ρ.
+    oLaterN i (lift_dty_vl l T1) vnil ρ ⊆ oLaterN i ((lift_dty_vl l T2)) vnil ρ.
   Proof.
     iIntros "Hsub %v". iDestruct 1 as (d) "[Hl #H1]"; iExists d; iFrame "Hl".
     by iApply ("Hsub" with "H1").
@@ -370,7 +373,7 @@ Section misc_lemmas.
 
   Lemma lift_sub_dty2clty (T1 T2 : dlty Σ) l ρ :
     (∀ d, T1 ρ d -∗ T2 ρ d) ⊢
-    clty_olty (dty2clty l T1) vnil ρ ⊆ clty_olty (dty2clty l T2) vnil ρ.
+    lift_dty_vl l T1 vnil ρ ⊆ lift_dty_vl l T2 vnil ρ.
   Proof. apply (lift_sub_dty2cltyN 0). Qed.
 
   Lemma oDTMem_respects_sub L1 L2 U1 U2 ρ d :
@@ -387,7 +390,7 @@ Section misc_lemmas.
   Lemma cTMem_respects_sub L1 L2 U1 U2 ρ l :
     L2 vnil ρ ⊆ L1 vnil ρ -∗
     U1 vnil ρ ⊆ U2 vnil ρ -∗
-    clty_olty (cTMem l L1 U1) vnil ρ ⊆ clty_olty (cTMem l L2 U2) vnil ρ.
+    oTMem l L1 U1 vnil ρ ⊆ oTMem l L2 U2 vnil ρ.
   Proof.
     rewrite -lift_sub_dty2clty; iIntros "#HsubL #HsubU %d".
     iApply (oDTMem_respects_sub with "HsubL HsubU").
@@ -405,7 +408,7 @@ Section misc_lemmas.
 
   Lemma cVMem_respects_subN i T1 T2 l ρ :
     oClose (oLaterN i T1) ρ ⊆ oClose (oLaterN i T2) ρ ⊢
-    oLaterN i (cVMem l T1) vnil ρ ⊆ oLaterN i (cVMem l T2) vnil ρ.
+    oLaterN i (oVMem l T1) vnil ρ ⊆ oLaterN i (oVMem l T2) vnil ρ.
   Proof.
     rewrite -lift_sub_dty2cltyN. iIntros "Hsub %d".
     iApply (oDVMem_respects_subN with "Hsub").

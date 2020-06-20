@@ -105,7 +105,7 @@ Section DStpLemmas.
   Proof. apply sStp_Add_LaterN. Qed.
 
   Lemma sStp_Sel {Γ L U p l i}:
-    Γ s⊨p p : cTMem l L U, i -∗
+    Γ s⊨p p : oTMem l L U, i -∗
     Γ s⊨ L <:[i] oSel p l.
   Proof.
     rewrite sstpd_eq; iIntros "#Hp %ρ %v Hg".
@@ -115,7 +115,7 @@ Section DStpLemmas.
   Qed.
 
   Lemma sSel_Stp {Γ L U p l i}:
-    Γ s⊨p p : cTMem l L U, i -∗
+    Γ s⊨p p : oTMem l L U, i -∗
     Γ s⊨ oSel p l <:[i] U.
   Proof.
     rewrite sstpd_eq; iIntros "#Hp %ρ %v Hg".
@@ -165,7 +165,7 @@ Section DStpLemmas.
 
   Lemma sFld_Stp_Fld {Γ T1 T2 i l}:
     Γ s⊨ T1 <:[i] T2 -∗
-    Γ s⊨ cVMem l T1 <:[i] cVMem l T2.
+    Γ s⊨ oVMem l T1 <:[i] oVMem l T2.
   Proof.
     iIntros "#Hsub %ρ Hg"; iSpecialize ("Hsub" with "Hg"); iNext i.
     iApply (cVMem_respects_sub with "Hsub").
@@ -174,7 +174,7 @@ Section DStpLemmas.
   Lemma sTyp_Stp_Typ Γ L1 L2 U1 U2 i l :
     Γ s⊨ L2 <:[i] L1 -∗
     Γ s⊨ U1 <:[i] U2 -∗
-    Γ s⊨ cTMem l L1 U1 <:[i] cTMem l L2 U2.
+    Γ s⊨ oTMem l L1 U1 <:[i] oTMem l L2 U2.
   Proof.
     iIntros "#HsubL #HsubU %ρ #Hg".
     iSpecialize ("HsubL" with "Hg"); iSpecialize ("HsubU" with "Hg"); iNext i.
@@ -252,7 +252,7 @@ Section DStpLemmas.
   Qed.
 
   Lemma sAnd_Fld_Stp_Distr Γ l T1 T2 i:
-    ⊢ Γ s⊨ oAnd (cVMem l T1) (cVMem l T2) <:[i] cVMem l (oAnd T1 T2).
+    ⊢ Γ s⊨ oAnd (oVMem l T1) (oVMem l T2) <:[i] oVMem l (oAnd T1 T2).
   Proof.
     iIntros "/= %ρ #Hg !> %v [#H1 H2]".
     iDestruct "H1" as (d? pmem?) "#H1"; iDestruct "H2" as (d'? pmem'?) "#H2". objLookupDet.
@@ -261,7 +261,7 @@ Section DStpLemmas.
   Qed.
 
   Lemma sAnd_Typ_Stp_Distr Γ l L U1 U2 i:
-    ⊢ Γ s⊨ oAnd (cTMem l L U1) (cTMem l L U2) <:[i] cTMem l L (oAnd U1 U2).
+    ⊢ Γ s⊨ oAnd (oTMem l L U1) (oTMem l L U2) <:[i] oTMem l L (oAnd U1 U2).
   Proof.
     iIntros "/= %ρ #Hg !> %v [#H1 H2]".
     iDestruct "H1" as (d? φ) "#[Hsφ1 [#HLφ1 #HφU1]]"; iDestruct "H2" as (d'? φ') "#[Hsφ2 [_ #HφU2]]".

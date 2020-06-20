@@ -120,7 +120,7 @@ Section div_example.
   Lemma sStp_ipos_nat Γ i : ⊢ Γ s⊨ ipos <:[ i ] V⟦ 𝐙 ⟧.
   Proof. iIntros "% _ !%"; rewrite /pos /pure_interp_prim; naive_solver. Qed.
 
-  Lemma posTMem_widen Γ l i : ⊢ Γ s⊨ cTMemL l ipos ipos <:[ i ] cTMemL l ⊥ oInt.
+  Lemma posTMem_widen Γ l i : ⊢ Γ s⊨ oTMemL l ipos ipos <:[ i ] oTMemL l ⊥ oInt.
   Proof using Type*.
     iApply sTyp_Stp_Typ; iApply sLater_Stp_Eq; [iApply sBot_Stp | iApply sStp_ipos_nat].
   Qed.
@@ -136,9 +136,8 @@ Section div_example.
       [iApply sBot_Stp | iApply sStp_ipos_nat].
   Qed.
 
-  Local Definition cPreciseBody :=
-    cAnd (cTMemL "Pos" ipos ipos) C⟦ hposModTTail hx0 ⟧.
-  Local Definition oPreciseBody : olty Σ 0 := clty_olty cPreciseBody.
+  Local Definition oPreciseBody :=
+    c2o (cAnd (cTMemL "Pos" ipos ipos) C⟦ hposModTTail hx0 ⟧).
 
   (**
   Show that our program is semantically well-typed,
@@ -148,7 +147,7 @@ Section div_example.
   Proof using Type*.
     rewrite /hposModT.
     have HctxSub:
-      s⊨G oLater cPreciseBody :: V⟦ [] ⟧* <:* oLater <$> [oPreciseBody].
+      s⊨G oLater oPreciseBody :: V⟦ [] ⟧* <:* oLater <$> [oPreciseBody].
     by iIntros "% $".
     iApply (suT_Sub (T1 := oMu oPreciseBody)); first last. {
       iApply sMu_Stp_Mu. rewrite oLaterN_0.

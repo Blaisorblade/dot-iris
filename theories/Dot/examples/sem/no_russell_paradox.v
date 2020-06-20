@@ -37,7 +37,7 @@ Section Russell.
   Proof. by rewrite /uAu/= !path_wp_pv_eq. Qed.
 
   (** Yes, v has a valid type member. *)
-  Lemma vHasA: Hs ⊢ clty_olty (cTMem "A" oBot oTop) vnil ids v.
+  Lemma vHasA: Hs ⊢ oTMem "A" oBot oTop vnil ids v.
   Proof.
     iIntros "#Hs".
     iExists _; iSplit. by iExists _; iSplit.

@@ -247,7 +247,7 @@ Section unstamped_lemmas.
   Qed.
 
   Lemma suT_Obj_E {Γ e T l}:
-    Γ su⊨ e : cVMem l T -∗
+    Γ su⊨ e : oVMem l T -∗
     Γ su⊨ tproj e l : T.
   Proof.
     iIntros "#H1"; iMod "H1" as (e1s Hsk1) "H1"; iModIntro.

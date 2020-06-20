@@ -139,7 +139,7 @@ Section StpLemmas.
 
   (** ** Subtyping for type selections. *)
   Lemma sSub_Sel {Γ L U p l i}:
-    Γ s⊨p p : cTMem l L U, i -∗
+    Γ s⊨p p : oTMem l L U, i -∗
     Γ s⊨ L, i <: oSel p l, i.
   Proof.
     iIntros "/= #Hp %ρ %v Hg #HL"; iSpecialize ("Hp" with "Hg"); iNext i.
@@ -148,7 +148,7 @@ Section StpLemmas.
   Qed.
 
   Lemma sSel_Sub {Γ L U p l i}:
-    Γ s⊨p p : cTMem l L U, i -∗
+    Γ s⊨p p : oTMem l L U, i -∗
     Γ s⊨ oSel p l, i <: U, i.
   Proof.
     iIntros "#Hp %ρ %v Hg Hφ"; iSpecialize ("Hp" with "Hg"); iNext i.
@@ -208,7 +208,7 @@ Section StpLemmas.
 
   Lemma sFld_Sub_Fld {Γ T1 T2 i l}:
     Γ s⊨ T1, i <: T2, i -∗
-    Γ s⊨ cVMem l T1, i <: cVMem l T2, i.
+    Γ s⊨ oVMem l T1, i <: oVMem l T2, i.
   Proof.
     iIntros "#Hsub %ρ %v Hg HT1"; iApply (cVMem_respects_subN with "[Hg] HT1").
     iApply (sstpi_app with "Hsub Hg").
@@ -230,11 +230,11 @@ Section StpLemmas.
     apply sAll_Sub_All.
   Qed.
 
-  (** ** Type members: variance of [cTMem], that is [{A :: L .. U}]. *)
+  (** ** Type members: variance of [oTMem], that is [{A :: L .. U}]. *)
   Lemma sTyp_Sub_Typ {Γ L1 L2 U1 U2 i l} `{!SwapPropI Σ} :
     Γ s⊨ L2, i <: L1, i -∗
     Γ s⊨ U1, i <: U2, i -∗
-    Γ s⊨ cTMem l L1 U1, i <: cTMem l L2 U2, i.
+    Γ s⊨ oTMem l L1 U1, i <: oTMem l L2 U2, i.
   Proof. rewrite -!sstpd_to_sstpi. apply sTyp_Stp_Typ. Qed.
 
   Lemma sD_Path_Sub {Γ T1 T2 p l}:
@@ -350,7 +350,7 @@ Section VarianceStpLemmas.
   Qed.
 
   Lemma sAnd_Fld_Sub_Distr Γ l T1 T2 i:
-    ⊢ Γ s⊨ oAnd (cVMem l T1) (cVMem l T2), i <: cVMem l (oAnd T1 T2), i.
+    ⊢ Γ s⊨ oAnd (oVMem l T1) (oVMem l T2), i <: oVMem l (oAnd T1 T2), i.
   Proof.
     iIntros "/= %ρ %v #Hg [#H1 H2]". iNext.
     iDestruct "H1" as (d? pmem?) "#H1"; iDestruct "H2" as (d'? pmem'?) "#H2". objLookupDet.
@@ -359,7 +359,7 @@ Section VarianceStpLemmas.
   Qed.
 
   Lemma sAnd_Typ_Sub_Distr Γ l L U1 U2 i:
-    ⊢ Γ s⊨ oAnd (cTMem l L U1) (cTMem l L U2), i <: cTMem l L (oAnd U1 U2), i.
+    ⊢ Γ s⊨ oAnd (oTMem l L U1) (oTMem l L U2), i <: oTMem l L (oAnd U1 U2), i.
   Proof.
     iIntros "/= %ρ %v Hg [H1 H2]". iNext.
     iDestruct "H1" as (d? φ) "#[Hsφ1 [#HLφ1 #HφU1]]"; iDestruct "H2" as (d'? φ') "#[Hsφ2 [_ #HφU2]]".
