@@ -23,17 +23,17 @@ End CmraPersistentLaws.
 
 (** *** Lift [cmra_prop_lift] infrastructure to [CmraPersistent]. *)
 Notation PersistentRFunct F := (LiftCPropToRFunctor CmraPersistent F).
-Notation PersistentGFunct Σ := (LiftCPropToGFunctor CmraPersistent Σ).
+Notation PersistentGFunct Σ := (LiftCPropToGFunctors CmraPersistent Σ).
 
-Instance PersistentGFunct_nil : LiftCPropToGFunctor_nil_type CmraPersistent.
-Proof. apply LiftCPropToGFunctor_nil. Qed.
+Instance PersistentGFunct_nil : LiftCPropToGFunctors_nil_type CmraPersistent.
+Proof. apply LiftCPropToGFunctors_nil. Qed.
 
-Instance PersistentGFunct_app : LiftCPropToGFunctor_app_type CmraPersistent.
-Proof. apply LiftCPropToGFunctor_app. Qed.
+Instance PersistentGFunct_app : LiftCPropToGFunctors_app_type CmraPersistent.
+Proof. apply LiftCPropToGFunctors_app. Qed.
 
 Instance PersistentGFunct_GFunctor `{!rFunctorContractive F} :
-  LiftCPropToGFunctor_GFunctor_type F CmraPersistent.
-Proof. apply LiftCPropToGFunctor_GFunctor. Qed.
+  LiftCPropToGFunctors_GFunctor_type F CmraPersistent.
+Proof. apply LiftCPropToGFunctors_GFunctor. Qed.
 
 (** *** Show that [iResUR] and [iProp] lift [CmraPersistent], using [cmra_prop_lift]. *)
 Instance CmraPersistent_discrete_funUR {A} (B : A → ucmraT)

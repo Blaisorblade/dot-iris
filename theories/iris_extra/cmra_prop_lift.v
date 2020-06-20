@@ -11,7 +11,7 @@ Set Default Proof Using "Type".
 
 Notation LiftCPropToRFunctor P F :=
   (∀ A `{!Cofe A} B `{!Cofe B}, P (rFunctor_car F A B)).
-Notation LiftCPropToGFunctor P Σ :=
+Notation LiftCPropToGFunctors P Σ :=
   (∀ i, LiftCPropToRFunctor P (gFunctors_lookup Σ i)).
 
 (** All lemmas below are used to generate typeclass instances; the
@@ -20,18 +20,18 @@ helpers for declaring them. See [swap_later_impl.v] for the intended usage. *)
 
 
 (** *** Lift to [#[]]. *)
-Notation LiftCPropToGFunctor_nil_type P := (LiftCPropToGFunctor P #[]).
+Notation LiftCPropToGFunctors_nil_type P := (LiftCPropToGFunctors P #[]).
 
-Lemma LiftCPropToGFunctor_nil P : LiftCPropToGFunctor_nil_type P.
+Lemma LiftCPropToGFunctors_nil P : LiftCPropToGFunctors_nil_type P.
 Proof. move=> i. apply fin_0_inv with (p := i). Qed.
 
 
 (** *** Lift to [gFunctors.app]. *)
-Notation LiftCPropToGFunctor_app_type P :=
-  (∀ Σ Σ' {HΣ : LiftCPropToGFunctor P Σ} {HΣ' : LiftCPropToGFunctor P Σ'},
-    LiftCPropToGFunctor P (gFunctors.app Σ Σ')).
+Notation LiftCPropToGFunctors_app_type P :=
+  (∀ Σ Σ' {HΣ : LiftCPropToGFunctors P Σ} {HΣ' : LiftCPropToGFunctors P Σ'},
+    LiftCPropToGFunctors P (gFunctors.app Σ Σ')).
 
-Lemma LiftCPropToGFunctor_app P : LiftCPropToGFunctor_app_type P.
+Lemma LiftCPropToGFunctors_app P : LiftCPropToGFunctors_app_type P.
 Proof.
   intros; apply fin_plus_inv with (i := i); intros;
     [rewrite /= fin_plus_inv_L|rewrite /= fin_plus_inv_R]; auto.
@@ -39,14 +39,14 @@ Qed.
 
 
 (** *** Lift to [gFunctors.singleton]. *)
-Notation LiftCPropToGFunctor_GFunctor_type F P :=
+Notation LiftCPropToGFunctors_GFunctor_type F P :=
   (∀ (fp : LiftCPropToRFunctor P F),
-  LiftCPropToGFunctor P (gFunctors.singleton (GFunctor F))).
+  LiftCPropToGFunctors P (gFunctors.singleton (GFunctor F))).
 
 (* We abstract over [rFunctorContractive] explicitly, to make it an implicit
 parameter. *)
-Lemma LiftCPropToGFunctor_GFunctor `{!rFunctorContractive F} P :
-  LiftCPropToGFunctor_GFunctor_type F P.
+Lemma LiftCPropToGFunctors_GFunctor `{!rFunctorContractive F} P :
+  LiftCPropToGFunctors_GFunctor_type F P.
 Proof.
   intros; apply fin_S_inv with (i := i); first exact: fp.
   apply fin_0_inv.
@@ -67,7 +67,7 @@ Section lift_cprop_iResUR.
   Context {P_discrete_funUR : ∀ {A} (B : A → ucmraT) `(∀ i, P (B i)), P (discrete_funUR B)}.
   Context {P_gmapUR : ∀ `{Countable A} `(HpT : P T), P (gmapUR A T)}.
 
-  Lemma lift_cprop_iResUR `{fp : LiftCPropToGFunctor P Σ} : P (iResUR Σ).
+  Lemma lift_cprop_iResUR `{fp : LiftCPropToGFunctors P Σ} : P (iResUR Σ).
   Proof using Type*.
     rewrite /iResUR. apply P_discrete_funUR => i; apply P_gmapUR, fp.
   Qed.

@@ -128,17 +128,17 @@ End SwapCmra.
 
 (** *** Lift [cmra_prop_lift] infrastructure to [CmraSwappable]. *)
 Notation SwappableRFunct F := (LiftCPropToRFunctor CmraSwappable F).
-Notation SwappableGFunct Σ := (LiftCPropToGFunctor CmraSwappable Σ).
+Notation SwappableGFunct Σ := (LiftCPropToGFunctors CmraSwappable Σ).
 
-Instance SwappableGFunct_nil : LiftCPropToGFunctor_nil_type CmraSwappable.
-Proof. apply LiftCPropToGFunctor_nil. Qed.
+Instance SwappableGFunct_nil : LiftCPropToGFunctors_nil_type CmraSwappable.
+Proof. apply LiftCPropToGFunctors_nil. Qed.
 
-Instance SwappableGFunct_app : LiftCPropToGFunctor_app_type CmraSwappable.
-Proof. apply LiftCPropToGFunctor_app. Qed.
+Instance SwappableGFunct_app : LiftCPropToGFunctors_app_type CmraSwappable.
+Proof. apply LiftCPropToGFunctors_app. Qed.
 
 Instance SwappableGFunct_GFunctor `{!rFunctorContractive F} :
-  LiftCPropToGFunctor_GFunctor_type F CmraSwappable.
-Proof. apply LiftCPropToGFunctor_GFunctor. Qed.
+  LiftCPropToGFunctors_GFunctor_type F CmraSwappable.
+Proof. apply LiftCPropToGFunctors_GFunctor. Qed.
 
 
 (** ** [CmraSwappable] Instances. *)
