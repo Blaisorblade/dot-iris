@@ -294,9 +294,9 @@ Proof.
     by autosubst.
   iExists _; iSplit; first by eauto.
   rewrite oDVMem_eq path_wp_pv_eq.
-  rewrite subst_comp ren_scons subst_id.
-  iDestruct "Hg" as "[_ H]"; lrSimpl in "H"; lrSimpl.
-  iSplit; [by iApply "H"| iClear "H"].
+  rewrite subst_comp ren_scons subst_id /newTypeRefΓ.
+  lrSimpl; iSplit. { lrSimpl in "Hg"; iDestruct "Hg" as "[_ $]". }
+  iClear "Hg".
 
   (* Just to restate the current goal (for some extra readability). *)
   iAssert (V⟦ val "tpe" : hsomeConcrT ⊥ ⊤ ⟧ vnil ρ (ρ 0)) as "Hgoal";
