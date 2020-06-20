@@ -69,7 +69,8 @@ Notation "Γ u⊨ {  l := d  } : T" := (iudtp Γ T l d) (at level 74, d, l, T at
 Notation "Γ u⊨ds ds : T" := (iudstp Γ T ds) (at level 74, ds, T at next level).
 Notation "Γ u⊨ e : T" := (iuetp Γ T e) (at level 74, e, T at next level).
 
-Theorem unstamped_s_safety_dot_sem Σ `{HdlangG: !dlangG Σ} `{!SwapPropI Σ}
+Theorem unstamped_s_safety_dot_sem
+  Σ `{HdlangG : !dlangG Σ} `{HswapProp : !SwapPropI Σ}
   {e_u}
   (τ : ∀ `{!dlangG Σ}, olty Σ 0)
   (Hwp : ∀ `{!dlangG Σ} `(!SwapPropI Σ), ⊢ [] su⊨ e_u : τ):
@@ -78,8 +79,7 @@ Proof.
   intros e_u' [n Hsteps]%rtc_nsteps.
   apply (soundness (M := iResUR Σ) _ n).
   apply (bupd_plain_soundness _).
-  set (DLangΣ := DLangG Σ).
-  iDestruct (Hwp DLangΣ SwapPropI0) as "#>Hwp".
+  iDestruct (Hwp HdlangG HswapProp) as "#>Hwp".
   iDestruct "Hwp" as (e_s Hsim) "#Hwp /=".
   iSpecialize ("Hwp" $! ids with "[//]").
   rewrite hsubst_id (wptp_safe_n n).

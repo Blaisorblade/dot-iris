@@ -29,7 +29,6 @@ Module Type LiftWp (Import VS : VlSortsSig).
     dlangG_langdet :> LangDet dlang_lang;
     dlangG_persistent (P : iProp Σ) : Persistent P;
   }.
-  Arguments DLangG _ {_ _ _ _}.
   Existing Instance dlangG_persistent | 0.
 
   (** ** Instance of [irisG] enable using the expression weakest precondition; this instance. *)

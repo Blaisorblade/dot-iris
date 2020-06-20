@@ -584,13 +584,12 @@ Notation "⟦ T ⟧" := (oClose V⟦ T ⟧).
 Import dlang_adequacy.
 
 (** Adequacy of normalization for gDOT paths. *)
-Lemma ipwp_gs_adequacy Σ `{!dlangG Σ} `{!SwapPropI Σ} {p T i}
+Lemma ipwp_gs_adequacy Σ `{HdlangG : !dlangG Σ} `{!SwapPropI Σ} {p T i}
   (Hwp : ∀ `(Hdlang : !dlangG Σ) `(!SwapPropI Σ), ⊢ [] ⊨p p : T , i):
   terminates (path2tm p).
 Proof.
   eapply (@soundness (iResUR Σ) _ i).
   apply (bupd_plain_soundness _).
-  set (DLangΣ := DLangG Σ).
   iApply ipwp_terminates.
-  iApply (Hwp DLangΣ).
+  iApply Hwp.
 Qed.
