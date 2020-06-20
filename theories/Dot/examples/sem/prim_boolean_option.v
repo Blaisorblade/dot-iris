@@ -32,8 +32,7 @@ Import hoasNotation.
     val pmatch: [U] => U => (Nothing => U) => U = [U] => (none: U) => (some: T => U) => none
   }
 
-  //type Some = Option & { self => val get: self.T }
-  type Some = Option & { type T; val get: T; val isEmpty: false.type }
+  type Some = Option & { type T; val get: this.T; val isEmpty: false.type }
   def mkSome[S](t: S): Some { type T = S } = new {
     type T = S
     val isEmpty = false
