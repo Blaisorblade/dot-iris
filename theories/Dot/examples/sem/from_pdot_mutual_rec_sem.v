@@ -264,7 +264,7 @@ Proof.
   have {Hsk x0_s} ->: x0_s = x0.
   by repeat constrain_bisimulating.
 
-  rewrite /interp_expr wp_value_inv /vclose sem_later /of_val.
+  rewrite /interp_expr wp_value_inv /vclose sem_later /of_val /lang.of_val.
   wp_pure.
 
   lrSimpl in "Hx0"; iDestruct "Hx0" as (d Hl p ->) "Hx0".
@@ -278,7 +278,7 @@ Proof.
     rewrite path_wp_pure_exec; iDestruct "Hpb" as %(bv & [n1 Hexec] & Heq).
   all: move: Heq; rewrite alias_paths_pv_eq_2 path_wp_pure_pv_eq => Heq; cbn in Heq;
     wp_pure; wp_pure => {Hl' n1 pb Hexec}.
-  all: simpl in Heq; rewrite -{bv}Heq; wp_pure; wp_pure.
+  all: rewrite -{bv}Heq; wp_pure; wp_pure.
   by iApply wp_wand; [iApply loopSemT | iIntros "% []"].
   wp_pure.
   (* To conclude, prove the right subtyping for hsomeType and TypeRef. *)
@@ -293,12 +293,13 @@ Proof.
   rewrite up_sub_compose_vl (_ : (shiftV _).[_] = ν [val "symb" = shiftV (ρ 0)]); last
     by autosubst.
   iExists _; iSplit; first by eauto.
+  cbn [shift]; rewrite (_: shiftV x1 = x2) //.
   rewrite oDVMem_eq path_wp_pv_eq.
   rewrite subst_comp ren_scons subst_id /newTypeRefΓ.
   lrSimpl; iSplit. { lrSimpl in "Hg"; iDestruct "Hg" as "[_ $]". }
   iClear "Hg".
 
-  (* Just to restate the current goal (for some extra readability). *)
+  (* Just to restate/simplify the current goal (for some extra readability). *)
   iAssert (V⟦ val "tpe" : hsomeConcrT ⊥ ⊤ ⟧ vnil ρ (ρ 0)) as "Hgoal";
     last by iApply "Hgoal".
   iExists (dpt p); iFrame (Hl); rewrite oDVMem_eq path_wp_eq.
