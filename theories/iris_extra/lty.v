@@ -372,12 +372,15 @@ Section olty_ofe_2.
     oLaterN (m + n) T ≡ oLaterN m (oLaterN n T).
   Proof. move=> ???. by rewrite/= laterN_plus. Qed.
 
-  Global Instance env_oltyped_proper ρ : Proper ((≡) ==> (≡)) (env_oltyped ρ).
+  Global Instance env_oltyped_ne ρ : NonExpansive (env_oltyped ρ).
   Proof.
-    move: ρ => + G1 G2 /equiv_Forall2.
+    move: ρ => + n G1 G2.
     elim: G1 G2 => [|T1 G1 IHG1] [|T2 G2] ρ /=; [done|inversion 1..|] =>
       /(Forall2_cons_inv _ _ _ _) [HT HG]; f_equiv; [apply IHG1, HG|apply HT].
   Qed.
+
+  Global Instance env_oltyped_proper ρ :
+    Proper ((≡) ==> (≡)) (env_oltyped ρ) := ne_proper _.
 
   Lemma s_interp_env_lookup Γ ρ (τ : olty Σ 0) x:
     Γ !! x = Some τ →
