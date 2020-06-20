@@ -273,7 +273,7 @@ Section sem_types.
     split; rewrite /pty_interp;
       induction T => args sb1 sb2 w; rewrite /= /pty_interp /subtype_lty /=;
       properness; rewrite ?scons_up_swap ?hsubst_comp; trivial.
-    by f_equiv => ?.
+    by apply path_wp_proper => ?.
   Qed.
 
   Definition idtp  Γ T l d     := sdtp l d  V⟦Γ⟧* C⟦T⟧.
