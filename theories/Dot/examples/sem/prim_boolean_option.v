@@ -1,3 +1,7 @@
+(**
+Encoding Option, using primitive booleans; we export Option as an abstract type.
+The core lemma is [optionModInvTyp].
+**)
 
 From D Require Import tactics.
 From D.Dot Require Import syn ex_utils hoas storeless_typing_ex_utils.
@@ -12,12 +16,8 @@ Set Default Proof Using "Type".
 Module prim_boolean_option_mod.
 Import hoasNotation.
 
-(**
-Encoding Option, using primitive booleans; we export Option as an abstract type.
-**)
-
 (*
-  Source in pseudo-Scala.
+  Approximated source, in pseudo-Scala.
 
   type Option = {
     type T
@@ -25,7 +25,7 @@ Encoding Option, using primitive booleans; we export Option as an abstract type.
     val pmatch: [U] => U => (T => U) => U
   }
 
-  type None = Option { type T = Nothing }
+  type None = Option & { type T = Nothing; val isEmpty: true.type }
   val noneV: None = new {
     type T = Nothing
     val isEmpty = true
@@ -33,7 +33,7 @@ Encoding Option, using primitive booleans; we export Option as an abstract type.
   }
 
   //type Some = Option & { self => val get: self.T }
-  type Some = Option & { type T; val get: T }
+  type Some = Option & { type T; val get: T; val isEmpty: false.type }
   def mkSome[S](t: S): Some { type T = S } = new {
     type T = S
     val isEmpty = false
@@ -41,6 +41,8 @@ Encoding Option, using primitive booleans; we export Option as an abstract type.
     val pmatch: [U] => U => (T => U) => U = [U] => (none: U) => (some: T => U) => some(get)
   }
 *)
+
+(** ** Define interface for [hoptionModV]. *)
 
 (* ∀ x : {type U}, x.U → (self.T → x.U) → x.U *)
 Definition hpmatchT self := ∀: x : tparam "U", x @; "U" →: (self @; "T" →: x @; "U") →: x @; "U".
@@ -58,8 +60,10 @@ Definition hsomeConcrT hL hU : hty := μ: self, {@
   val "get" : ▶: self @; "T"
 }.
 
+(** *** The definition and upper bound for the ["Option"] abstract type. *)
 Definition hoptionTConcr := hTOr hnoneConcrT (hsomeConcrT ⊥ ⊤).
 
+(** *** The return types of the ["Option"] constructors. *)
 Definition hnoneT self := hTAnd (self @; "Option") {@ typeEq "T" ⊥; val "isEmpty" : hTSing true }.
 
 (** Behold here [(optionT & (μ self, val get: ▶: self @; "T")) & { type T = hT; val isEmpty; false.type } ]. *)
@@ -79,7 +83,7 @@ Definition hoptionModTInvBody self : hty := {@
 
 (** ** Implement [hoptionModV]. *)
 Definition hnoneV := ν: _, {@
-  type "T" = ⊥ ;
+  type "T" = ⊥;
   val "isEmpty" = true;
   val "pmatch" = λ: x none some, none
 }.
@@ -106,6 +110,7 @@ Local Definition hoptionModTConcrBody : hty := {@
   val "mkSome" : hmkSomeConcrT
 }.
 
+(** *** Prove typing. *)
 Lemma boolSing Γ (b : bool) : Γ v⊢ₜ b : TSing b.
 Proof.
   eapply iT_Path', (iP_Sngl_Refl (T := TBool)).
@@ -132,17 +137,19 @@ Proof.
 Qed.
 
 
-(** Rather precise type for [hoptionModV]. *)
+(** Type [hoptionModV] precisely, using [iT_Obj_I] directly. *)
 Example optionModConcrTyp Γ :
   Γ v⊢ₜ hoptionModV : μ: _, hoptionModTConcrBody.
 Proof.
   set U := (▶: hoptionModTConcrBody)%ty : ty.
   have := noneTypStronger (U :: Γ).
   have := mkSomeTypStronger (U :: Γ) => /(iD_Val "mkSome") Hs Hn.
-  ltcrush.
+  apply iT_Obj_I; tcrush.
   tcrush_nclosed.
 Qed.
 
+(** Use subsumption to upcast [hoptionModV] to the type representing its
+public interface. *)
 Example optionModInvTyp Γ :
   Γ v⊢ₜ hoptionModV : μ: self, hoptionModTInvBody self.
 Proof.
@@ -156,8 +163,8 @@ Qed.
 
 End prim_boolean_option_mod.
 
-(** We also satisfy a weaker interface, similar to the one exported by
-[scala_lib.v]. *)
+(** [hoptionModV] also satisfies a weaker interface, similar to the one
+exported by [scala_lib.v]. *)
 
 Module prim_boolean_option_mod_weaker_intf.
 Import hoasNotation prim_boolean_option_mod.
