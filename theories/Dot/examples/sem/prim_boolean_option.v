@@ -170,6 +170,14 @@ Proof.
   all: try (ettrans; last eapply iSub_Or2); mltcrush.
 Qed.
 
+End prim_boolean_option_mod.
+
+(** We also satisfy a weaker interface, similar to the one exported by
+[scala_lib.v]. *)
+
+Module prim_boolean_option_mod_weaker_intf.
+Import hoasNotation prim_boolean_option_mod.
+
 Example optionModTypSub Γ :
   Γ v⊢ₜ μ: self, hoptionModTInvBody self, 0 <: hoptionModT, 0.
 Proof. ltcrush; eapply (iP_ISub (i := 0)), iP_Bool_I; tcrush. Qed.
@@ -178,4 +186,4 @@ Example optionModTyp Γ :
   Γ v⊢ₜ hoptionModV : hoptionModT.
 Proof. eapply iT_ISub_nocoerce, optionModTypSub; apply optionModInvTyp. Qed.
 
-End prim_boolean_option_mod.
+End prim_boolean_option_mod_weaker_intf.
