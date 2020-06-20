@@ -64,14 +64,6 @@ Definition hmkSomeConcrT : hty := hmkSomeTGen hsomeConcrT.
 
 Definition hoptionTConcr := hTOr hnoneConcrT (hsomeConcrT ⊥ ⊤).
 
-Definition hoptionModTConcrBody : hty := {@
-  typeEq "Option" hoptionTConcr;
-  val "none" : hnoneConcrT;
-  val "mkSome" : hmkSomeConcrT
-}.
-
-(** Define interface for [hoptionModV]. To rewrite to have abstraction. *)
-
 Definition hnoneT self := hTAnd (self @; "Option") {@ typeEq "T" ⊥; val "isEmpty" : hTSing true }.
 
 (** Behold here [(optionT & (μ self, val get: ▶: self @; "T")) & { type T = hT; val isEmpty; false.type } ]. *)
@@ -105,6 +97,12 @@ Definition hoptionModV := ν: self, {@
   type "Option" = hoptionTConcr;
   val "none" = hnoneV;
   val "mkSome" = hmkSome
+}.
+
+Local Definition hoptionModTConcrBody : hty := {@
+  typeEq "Option" hoptionTConcr;
+  val "none" : hnoneConcrT;
+  val "mkSome" : hmkSomeConcrT
 }.
 
 Lemma boolSing Γ (b : bool) : Γ v⊢ₜ b : TSing b.
