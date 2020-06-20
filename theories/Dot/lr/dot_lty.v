@@ -96,9 +96,9 @@ Section lift_dty_lemmas.
     lift_dty_vl l T ≡ lift_dty_vl_paper (lift_dty_dms l T).
   Proof.
     (* The proof is just a quantifier swap. *)
-    intros args ρ v; rewrite /= /objLookup; iSplit.
-    by iDestruct 1 as (d (ds & -> & Hl)) "/= H"; eauto.
-    by iDestruct 1 as (ds -> d Hl) "/= H"; eauto 10.
+    move=> args ρ v /=; rewrite bi_exist_nested_swap; f_equiv => d.
+    setoid_rewrite (assoc bi_and); rewrite -and_exist_r /objLookup; f_equiv.
+    by iIntros "!% /=".
   Qed.
 
   Global Instance lift_dty_dms_ne l : NonExpansive (lift_dty_dms l).
