@@ -251,6 +251,8 @@ Tactic Notation "lrSimpl" "in" constr(iSelP) :=
 Tactic Notation "wp_bind" uconstr(p) := iApply (wp_bind (fill [p])).
 Ltac wp_pure := rewrite -wp_pure_step_later -1?wp_value; last done; iNext.
 
+Local Arguments iPPred_car : simpl never.
+Local Arguments pty_interp : simpl never.
 
 Lemma newTypeRef_semTyped Γ :
   ⊢ newTypeRefΓ Γ u⊨ newTypeRefBody : x1 @; "TypeRef".
@@ -283,7 +285,7 @@ Proof.
   wp_pure.
   (* To conclude, prove the right subtyping for hsomeType and TypeRef. *)
   iPoseProof (fundamental_subtype (Hsublast Γ) with "Hg") as "Hsub"; lrSimpl in "Hsub".
-  iApply "Hsub"; iClear "Hsub".
+  lrSimpl; iApply "Hsub"; iClear "Hsub".
 
   (* Just to restate the current goal (for some extra readability). *)
   iAssert (V⟦ shift typeRefTBody ⟧ vnil ρ
