@@ -171,8 +171,14 @@ Notation oSel := (oSelN 0).
 Section sem_types.
   Context `{HdotG: !dlangG Σ}.
 
-  Definition oDTMemRaw n (rK : env → hoD Σ n → iProp Σ): dltyO Σ := Dlty (λI ρ d,
-    ∃ ψ, d ↗n[ n ] ψ ∧ rK ρ ψ).
+  (** A skeleton capturing our definition type: interpret definition bodies
+  [dm] to something else [A], then test [A]. *)
+  Definition dlty_schema A
+    (lookupP : dm → A → iProp Σ) (predP : env → A → iProp Σ) : dlty Σ :=
+    Dlty (λI ρ d, ∃ x : A, lookupP d x ∧ predP ρ x).
+
+  Definition oDTMemRaw n (rK : env → hoD Σ n → iProp Σ): dltyO Σ :=
+    dlty_schema _ (λI d ψ, d ↗n[ n ] ψ) rK.
 
   Implicit Types (τ : oltyO Σ 0).
 
@@ -189,8 +195,8 @@ Section sem_types.
   Qed.
 
   (** [ D⟦ { a : τ } ⟧ ]. *)
-  Definition oDVMem τ : dltyO Σ := Dlty (λI ρ d,
-    ∃ pmem, ⌜d = dpt pmem⌝ ∧ path_wp pmem (oClose τ ρ)).
+  Definition oDVMem τ : dltyO Σ :=
+    dlty_schema _ (λI d pmem, ⌜d = dpt pmem⌝) (λI ρ pmem, path_wp pmem (oClose τ ρ)).
   Global Instance oDVMem_proper : Proper ((≡) ==> (≡)) oDVMem.
   Proof.
     rewrite /oDVMem => ??? ??/=; properness; try reflexivity;
