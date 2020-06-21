@@ -185,7 +185,7 @@ Qed.
 Use distributivity of intersections and unions (iDistr_And_Or_Sub, aka
 [Distr-∧-∨-<:]) to show, essentially:
 <<
-  ▷^i (Option ∧ { type T >: ⊥ <: pcore.types.Type }) <:
+  ▷^i ((None ∨ Some) ∧ { type T >: ⊥ <: pcore.types.Type }) <:
   ▷^i (None ∨ (Some ∧ { type T >: ⊥ <: pcore.types.Type }))
 >>
 as noted in the paper (Sec. 6.3).
