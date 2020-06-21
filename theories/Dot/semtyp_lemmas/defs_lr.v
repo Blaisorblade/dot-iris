@@ -87,11 +87,11 @@ Section Sec.
   Proof. rewrite (sD_Typ l). apply sD_Typ_Stp. Qed.
 
   (** ** Prove object introduction for path typing, using Löb induction:
-   *
-   * Γ, x: ▷ T ⊨ ds : T
-   * ---------------------
-   * Γ ⊨p nu x. ds : μ x. T, 0
-   *)
+
+    Γ, x: ▷ T ⊨ ds : T
+    ---------------------
+    Γ ⊨p nu x. ds : μ x. T, 0
+  *)
   Lemma sP_Obj_I (Γ : sCtx Σ) (T : clty Σ) ds:
     oLater (c2o T) :: Γ s⊨ds ds : T -∗
     Γ s⊨p pv (vobj ds) : oMu (c2o T), 0.
