@@ -267,7 +267,7 @@ Proof.
   rewrite /interp_expr wp_value_inv /vclose sem_later /of_val /lang.of_val.
   wp_pure.
 
-  lrSimpl in "Hx0"; iDestruct "Hx0" as (d Hl p ->) "Hx0".
+  rewrite oVMem_eq; iDestruct "Hx0" as (p Hl) "Hx0".
   rewrite path_wp_eq; iDestruct "Hx0" as (optV Hal) "HoptV"; rewrite sem_later.
   wp_pure.
   have [n HpOptV] := path_wp_exec_pure _ _ Hal; wp_pure => {HpOptV n}.
@@ -292,9 +292,9 @@ Proof.
   lrSimpl; iSplit; last by [].
   rewrite up_sub_compose_vl (_ : (shiftV _).[_] = ν [val "symb" = shiftV (ρ 0)]); last
     by autosubst.
-  iExists _; iSplit; first by eauto.
+  iApply oVMem_eq; iExists _; iSplit; first by eauto.
   cbn [shift]; rewrite (_: shiftV x1 = x2) //.
-  rewrite oDVMem_eq path_wp_pv_eq.
+  rewrite path_wp_pv_eq.
   rewrite subst_comp ren_scons subst_id /newTypeRefΓ.
   lrSimpl; iSplit. { lrSimpl in "Hg"; iDestruct "Hg" as "[_ $]". }
   iClear "Hg".

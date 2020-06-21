@@ -626,6 +626,11 @@ Section proper_eq.
     cTMemK l K ρ [(l, d)] ⊣⊢ oDTMemK K ρ d.
   Proof. apply dty2clty_singleton. Qed.
 
+  Lemma oTMemK_eq n l K args ρ v :
+    oTMemK l K args ρ v ⊣⊢
+    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗n[ n ] ψ ∧ K ρ (packHoLtyO ψ) (packHoLtyO ψ).
+  Proof. apply bi_exist_nested_swap. Qed.
+
   Lemma cTMemAnyKind_eq l d ρ :
     cTMemAnyKind l ρ [(l, d)] ⊣⊢ oDTMemAnyKind ρ d.
   Proof. apply dty2clty_singleton. Qed.

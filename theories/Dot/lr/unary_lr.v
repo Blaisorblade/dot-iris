@@ -212,6 +212,11 @@ Section sem_types.
     cTMem l T1 T2 ρ [(l, d)] ⊣⊢ oDTMem T1 T2 ρ d.
   Proof. apply dty2clty_singleton. Qed.
 
+  Lemma oTMem_eq l τ1 τ2 args ρ v :
+    c2o (cTMem l τ1 τ2) args ρ v ⊣⊢
+    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗n[ 0 ] ψ ∧ dot_intv_type_pred τ1 τ2 ρ ψ.
+  Proof. apply bi_exist_nested_swap. Qed.
+
   (** [ Ds⟦ { l : τ } ⟧] and [ V⟦ { l : τ } ⟧ ]. *)
   Definition cVMem l τ : clty Σ := dty2clty l (oDVMem τ).
   Global Instance cVMem_proper l : Proper ((≡) ==> (≡)) (cVMem l).
@@ -344,6 +349,15 @@ Section misc_lemmas.
   Lemma iterate_TLater_oLater i (T : ty) :
     V⟦iterate TLater i T⟧ ≡ oLaterN i V⟦T⟧.
   Proof. elim: i => [//|i IHi] ???; by rewrite !iterate_S /= IHi. Qed.
+
+  Lemma oVMem_eq l T vnil ρ v :
+    oVMem l T vnil ρ v ⊣⊢
+    ∃ pmem, ⌜v @ l ↘ dpt pmem⌝ ∧ path_wp pmem (oClose T ρ).
+  Proof.
+    etrans; [apply bi_exist_nested_swap|]; apply bi.exist_proper => p.
+    setoid_rewrite (assoc bi_and); rewrite -and_exist_r.
+    apply bi.and_proper, reflexivity; iIntros "!% /="; naive_solver.
+  Qed.
 
   (** Core lemmas about type selections and bounds. *)
   Lemma vl_sel_ub w l L U ρ v :
