@@ -355,7 +355,7 @@ Section misc_lemmas.
     ∃ pmem, ⌜v @ l ↘ dpt pmem⌝ ∧ path_wp pmem (oClose T ρ).
   Proof.
     etrans; [apply bi_exist_nested_swap|]; apply bi.exist_proper => p.
-    setoid_rewrite (assoc bi_and); rewrite -and_exist_r.
+    rewrite and2_exist_r.
     apply bi.and_proper, reflexivity; iIntros "!% /="; naive_solver.
   Qed.
 

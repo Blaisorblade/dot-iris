@@ -39,6 +39,10 @@ Lemma bi_exist_nested_swap {PROP : bi} `{P : A → PROP} `{Q : A → B → PROP}
   (∃ a, P a ∧ ∃ b, Q a b) ⊣⊢ ∃ b a, P a ∧ Q a b.
 Proof. setoid_rewrite and_exist_l; apply bi_exist_swap. Qed.
 
+Lemma and2_exist_r {PROP: bi} {A} P Q R :
+  (∃ a : A, P a ∧ Q a ∧ R) ⊣⊢@{PROP} (∃ a : A, P a ∧ Q a) ∧ R.
+Proof. rewrite (and_exist_r R); apply bi.exist_proper => d; exact: assoc. Qed.
+
 Section proofmode_extra.
   Context {PROP : bi}.
   Implicit Types P Q R : PROP.
