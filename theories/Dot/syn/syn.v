@@ -68,7 +68,7 @@ Inductive tm : Type :=
   | TAll (S T : kty 0) : kty 0 (* forall type [∀ x: S. T]; *)
   | TMu (T : kty 0) : kty 0 (* mu-types [μ x. T]; *)
   | TVMem l (T : kty 0) : kty 0 (* value members [{a: T}];*)
-  | kTTMem {n} l (K : kind n) : kty n (* type members [{A :: L .. U}]; *)
+  | kTTMem {n} l (K : kind n) : kty 0 (* type members [{A :: L .. U}]; *)
   | kTSel n (p : path) l : kty n (* type selections [p.A]; *)
   | TPrim B : kty 0 (* primitive types *)
   | TSing (p : path) : kty 0 (* singleton types [p.type].*)
