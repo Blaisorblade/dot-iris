@@ -194,9 +194,6 @@ Section arity_checking.
     | TVMem l T => match1 (ty_n T) (ret0 NT) (nTVMem l NT)
     | kTTMem l K =>
      match1 (ki_n K) (ret NK) (nTTMem l NK)
-    (* ''(existT aK NK) ← ki_n K;
-    ret (nTTMem l NK) *)
-
     | kTSel n p l => ret (nTSel n p l)
     | TPrim B => ret (nTPrim B)
     | TSing p => ret (nTSing p)
