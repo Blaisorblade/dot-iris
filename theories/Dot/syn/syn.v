@@ -670,13 +670,10 @@ Section syntax_mut_ind.
     - elim: l => [|v vs IHxs] //=; auto.
   Qed.
 
-  Lemma syntax_mut_ind : (∀ t, Ptm t) ∧ (∀ v, Pvl v) ∧ (∀ d, Pdm d) ∧ (∀ p, Ppt p) ∧ (∀ T, Pty T).
+  Lemma syntax_mut_ind :
+    (∀ t, Ptm t) ∧ (∀ v, Pvl v) ∧ (∀ d, Pdm d) ∧ (∀ p, Ppt p) ∧ (∀ T, Pty T).
   Proof.
-    repeat split; intros.
-    - eapply tm_mut_ind.
-    - eapply vl_mut_ind.
-    - eapply dm_mut_ind.
-    - eapply path_mut_ind.
-    - eapply ty_mut_ind.
+    split_and!; auto using tm_mut_ind, vl_mut_ind, dm_mut_ind, path_mut_ind,
+      ty_mut_ind.
   Qed.
 End syntax_mut_ind.
