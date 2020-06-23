@@ -201,7 +201,7 @@ Qed.
 Lemma same_skel_up_ren :
   (∀ t, same_skel_tm_up_ren_def t) ∧ (∀ v, same_skel_vl_up_ren_def v) ∧
   (∀ d, same_skel_dm_up_ren_def d) ∧ (∀ p, same_skel_path_up_ren_def p) ∧
-  (∀ T, True).
+  (∀ T, True) ∧ (∀ K : kind, True).
 Proof.
   apply syntax_mut_ind;
     try by [intros; exact I | intros; simpl in *; case_match;
@@ -248,7 +248,7 @@ Qed.
 Lemma same_skel_subst :
   (∀ t, same_skel_tm_subst_def t) ∧ (∀ v, same_skel_vl_subst_def v) ∧
   (∀ d, same_skel_dm_subst_def d) ∧ (∀ p, same_skel_path_subst_def p) ∧
-  (∀ T, True).
+  (∀ T, True) ∧ (∀ K : kind, True).
 Proof.
   apply syntax_mut_ind;
     try by [intros; exact I | simpl; intros; case_match;
@@ -371,7 +371,7 @@ Qed.
 Lemma same_skel_refl :
   same_skel_tm_refl_def ∧ same_skel_vl_refl_def ∧
   same_skel_dm_refl_def ∧ same_skel_path_refl_def ∧
-  (∀ T, True).
+  (∀ T, True) ∧ (∀ K : kind, True).
 Proof.
   apply syntax_mut_ind; try by cbn; intuition.
   elim => [//|[l d] ds IHds]; rewrite Forall_cons; naive_solver.
@@ -413,7 +413,7 @@ Definition same_skel_path_symm_def p1 : Prop := ∀ p2,
 Lemma same_skel_symm :
   (∀ t, same_skel_tm_symm_def t) ∧ (∀ v, same_skel_vl_symm_def v) ∧
   (∀ d, same_skel_dm_symm_def d) ∧ (∀ p, same_skel_path_symm_def p) ∧
-  (∀ T, True).
+  (∀ T, True) ∧ (∀ K : kind, True).
 Proof.
   apply syntax_mut_ind; try done; intros ** E; destruct E =>//=; hnf in *; intuition.
   generalize dependent ds; elim: l => [|[l2 d2] ds2 IHds2] [|[l1 d1] ds1] //.
@@ -453,7 +453,7 @@ Section same_skel_trans.
   Lemma same_skel_trans :
     (∀ t, same_skel_tm_trans_def t) ∧ (∀ v, same_skel_vl_trans_def v) ∧
     (∀ d, same_skel_dm_trans_def d) ∧ (∀ p, same_skel_path_trans_def p) ∧
-    (∀ T, True).
+    (∀ T, True) ∧ (∀ K : kind, True).
   Proof.
     apply syntax_mut_ind; try done; intros ** E2 E3 **; hnf in *; fold same_skel_dms in *.
     all: destruct E2, E3; prepare; eauto 2.

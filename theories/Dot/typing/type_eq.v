@@ -6,6 +6,7 @@ Unset Strict Implicit.
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 
 Reserved Notation "|- T1 == T2" (at level 70, T1 at level 69).
+Reserved Notation "|-K K1 == K2" (at level 70, K1 at level 69).
 Inductive type_equiv : Equiv ty :=
 | type_equiv_later_and T1 T2 :
   |- TLater (TAnd T1 T2) == TAnd (TLater T1) (TLater T2)
@@ -24,23 +25,37 @@ Inductive type_equiv : Equiv ty :=
 | type_equiv_mu T1 T2 : |- T1 == T2 → |- TMu T1 == TMu T2
 
 | type_equiv_vmem l T1 T2 : |- T1 == T2 → |- TVMem l T1 == TVMem l T2
-| type_equiv_tmem l L1 L2 U1 U2 : |- L1 == L2 → |- U1 == U2 → |- TTMem l L1 U1 == TTMem l L2 U2
+| type_equiv_ktmem l K1 K2 : |-K K1 == K2 → |- kTTMem l K1 == kTTMem l K2
 
-| type_equiv_sel p l : |- TSel p l == TSel p l
+| type_equiv_ksel n p l : |- kTSel n p l == kTSel n p l
 | type_equiv_prim b : |- TPrim b == TPrim b
 | type_equiv_sing p : |- TSing p == TSing p
+| type_equiv_lam T1 T2 : |- T1 == T2 → |- TLam T1 == TLam T2
+| type_equiv_app T1 T2 p : |- T1 == T2 → |- TApp T1 p == TApp T2 p
 | type_equiv_sym : Symmetric type_equiv
 | type_equiv_trans : Transitive type_equiv
-where "|- T1 == T2" := (type_equiv T1 T2).
+where "|- T1 == T2" := (type_equiv T1 T2)
+with kind_equiv : Equiv kind :=
+| kind_equiv_kintv L1 L2 U1 U2 : |- L1 == L2 → |- U1 == U2 → |-K kintv L1 U1 == kintv L2 U2
+| kind_equiv_kpi S1 S2 K1 K2 : |- S1 == S2 → |-K K1 == K2 → |-K kpi S1 K1 == kpi S2 K2
+| kind_equiv_sym : Symmetric kind_equiv
+| kind_equiv_trans : Transitive kind_equiv
+where "|-K K1 == K2" := (kind_equiv K1 K2).
+(* XXX add extra HK-gDOT rules? *)
 
-Existing Instance type_equiv.
-#[local] Hint Constructors type_equiv : core.
-#[local] Remove Hints type_equiv_sym type_equiv_trans : core.
+Existing Instances type_equiv kind_equiv.
+#[local] Hint Constructors type_equiv kind_equiv : core.
+#[local] Remove Hints type_equiv_sym type_equiv_trans
+  kind_equiv_sym kind_equiv_trans : core.
 
-Instance type_equiv_refl: Reflexive type_equiv.
-Proof. intros T; induction T; auto. Qed.
+Lemma type_equiv_refl' T : |- T == T
+with kind_equiv_refl' K : |-K K == K.
+Proof. all: [> destruct T | destruct K]; constructor; auto. Qed.
 
-Existing Instances type_equiv_sym type_equiv_trans.
+Instance type_equiv_refl : Reflexive type_equiv := type_equiv_refl'.
+Instance kind_equiv_refl : Reflexive kind_equiv := kind_equiv_refl'.
+
+Existing Instances type_equiv_sym type_equiv_trans kind_equiv_sym kind_equiv_trans.
 
 Lemma type_equiv_laterN_and j U1 U2 :
   |- iterate TLater j (TAnd U1 U2)

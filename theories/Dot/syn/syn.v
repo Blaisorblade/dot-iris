@@ -31,7 +31,7 @@ Inductive un_op : Set := unot.
 Inductive bin_op : Set := bplus | bminus | btimes | bdiv | blt | ble | beq.
 Inductive base_ty : Set := tint | tbool.
 
-Implicit Types (l : label) (B : base_ty).
+Implicit Types (l : label) (B : base_ty) (n : nat).
 
 (** ** DOT syntax, with corresponding on-paper syntax in comments. *)
 (** Expressions/terms [e ::= ]: *)
@@ -69,10 +69,15 @@ Inductive tm : Type :=
   | TAll (S T : ty) : ty (* forall type [∀ x: S. T]; *)
   | TMu (T : ty) : ty (* mu-types [μ x. T]; *)
   | TVMem l (T : ty) : ty (* value members [{a: T}];*)
-  | TTMem l (T1 T2 : ty) : ty (* type members [{A :: L .. U}]; *)
-  | TSel (p : path) l : ty (* type selections [p.A]; *)
-  | TPrim B : ty (* primitive types *)
-  | TSing (p : path) : ty (* singleton types [p.type].*).
+  | kTTMem l (K : kind) : ty (* type members [{A :: L .. U}]; *)
+  | kTSel n (p : path) l : ty (* type selections [p.A]; *)
+  | TPrim B : ty (* primitive types; *)
+  | TSing (p : path) : ty (* singleton types [p.type]; *)
+  | TLam (T : ty) : ty (* type-level lambda abstraction [λ x. T]; *)
+  | TApp (T : ty) (p : path) : ty (* type-level type application [T p]. *)
+with kind : Type :=
+  | kintv (L U : ty) : kind
+  | kpi (S : ty) (K : kind) : kind.
 
 (* Workaround Coq bug with modules. *)
 Definition vl := vl_.
@@ -83,7 +88,7 @@ Definition dms := list (label * dm).
 Definition ctx := list ty.
 
 Implicit Types
-         (t : tm) (v : vl) (d : dm) (ds : dms) (p : path) (T : ty)
+         (t : tm) (v : vl) (d : dm) (ds : dms) (p : path) (T : ty) (K : kind)
          (Γ : ctx).
 
 (* Shortcuts. *)
@@ -91,6 +96,11 @@ Notation TInt := (TPrim tint).
 Notation TBool := (TPrim tbool).
 Notation vint n := (vlit $ lint n).
 Notation vbool b := (vlit $ lbool b).
+
+(* gDOT → HK-gDOT: *)
+Notation TTMem l L U := (kTTMem l (kintv L U)).
+Notation TSel := (kTSel 0).
+
 (* Adapter over TTMem. [L] stands for Later. *)
 Definition TTMemL l L U := TTMem l (TLater L) (TLater U).
 
@@ -113,6 +123,7 @@ Instance inh_tm : Inhabited tm := populate (tv inhabitant).
 Instance inh_pth : Inhabited path := populate (pv inhabitant).
 Instance inh_dm : Inhabited dm := populate (dpt inhabitant).
 Instance inh_ty : Inhabited ty := populate TInt.
+Instance inh_kind : Inhabited kind := populate (kintv inhabitant inhabitant).
 
 (** Actual [Ids] instance, for values. *)
 Instance ids_vl : Ids vl := vvar.
@@ -122,6 +133,7 @@ Instance ids_tm : Ids tm := inh_ids.
 Instance ids_dm : Ids dm := inh_ids.
 Instance ids_pth : Ids path := inh_ids.
 Instance ids_ty : Ids ty := inh_ids.
+Instance ids_kind : Ids kind := inh_ids.
 Instance ids_dms : Ids dms := _.
 Instance ids_ctx : Ids ctx := _.
 
@@ -173,6 +185,7 @@ with
 ty_rename (sb : var → var) T : ty :=
   let _ := path_rename : Rename path in
   let _ := ty_rename : Rename ty in
+  let _ := kind_rename : Rename kind in
   match T with
   | TTop => TTop
   | TBot => TBot
@@ -182,17 +195,27 @@ ty_rename (sb : var → var) T : ty :=
   | TAll T1 T2 => TAll (rename sb T1) (rename (upren sb) T2)
   | TMu T => TMu (rename (upren sb) T)
   | TVMem l T => TVMem l (rename sb T)
-  | TTMem l T1 T2 => TTMem l (rename sb T1) (rename sb T2)
-  | TSel p l => TSel (rename sb p) l
-  | TPrim _ => T
+  | kTTMem l K => kTTMem l (rename sb K)
+  | kTSel n p l => kTSel n (rename sb p) l
+  | TPrim B => TPrim B
   | TSing p => TSing (rename sb p)
+  | TLam T => TLam (rename (upren sb) T)
+  | TApp T p => TApp (rename sb T) (rename sb p)
+  end
+with kind_rename (sb : var → var) K : kind :=
+  let _ := ty_rename : Rename ty in
+  let _ := kind_rename : Rename kind in
+  match K with
+  | kintv L U => kintv (rename sb L) (rename sb U)
+  | kpi S K => kpi (rename sb S) (rename sb K)
   end.
 
-Instance rename_tm : Rename tm := tm_rename.
-Instance rename_vl : Rename vl := vl_rename.
-Instance rename_dm : Rename dm := dm_rename.
-Instance rename_pth : Rename path := path_rename.
-Instance rename_ty : Rename ty := ty_rename.
+Instance rename_tm   : Rename tm   := tm_rename.
+Instance rename_vl   : Rename vl   := vl_rename.
+Instance rename_dm   : Rename dm   := dm_rename.
+Instance rename_pth  : Rename path := path_rename.
+Instance rename_ty   : Rename ty   := ty_rename.
+Instance rename_kind : Rename kind := kind_rename.
 
 Hint Rewrite @list_rename_fold @list_pair_rename_fold : autosubst.
 
@@ -241,6 +264,7 @@ with
 ty_hsubst (sb : var → vl) T : ty :=
   let _ := path_hsubst : HSubst vl path in
   let _ := ty_hsubst : HSubst vl ty in
+  let _ := kind_hsubst : HSubst vl kind in
   match T with
   | TTop => TTop
   | TBot => TBot
@@ -250,17 +274,27 @@ ty_hsubst (sb : var → vl) T : ty :=
   | TAll T1 T2 => TAll (hsubst sb T1) (hsubst (up sb) T2)
   | TMu T => TMu (hsubst (up sb) T)
   | TVMem l T => TVMem l (hsubst sb T)
-  | TTMem l T1 T2 => TTMem l (hsubst sb T1) (hsubst sb T2)
-  | TSel p l => TSel (hsubst sb p) l
+  | kTTMem l K => kTTMem l (hsubst sb K)
+  | kTSel n p l => kTSel n (hsubst sb p) l
   | TSing p => TSing (hsubst sb p)
-  | TPrim _ => T
+  | TPrim B => TPrim B
+  | TLam T => TLam (hsubst (up sb) T)
+  | TApp T p => TApp (hsubst sb T) (hsubst sb p)
+  end
+with kind_hsubst (sb : var → vl) K : kind :=
+  let _ := ty_hsubst : HSubst vl ty in
+  let _ := kind_hsubst : HSubst vl kind in
+  match K with
+  | kintv L U => kintv (hsubst sb L) (hsubst sb U)
+  | kpi S K => kpi (hsubst sb S) (hsubst sb K)
   end.
 
-Instance hsubst_tm  : HSubst vl tm   := tm_hsubst.
-Instance subst_vl   : Subst vl       := vl_subst.
-Instance hsubst_dm  : HSubst vl dm   := dm_hsubst.
-Instance hsubst_pth : HSubst vl path := path_hsubst.
-Instance hsubst_ty  : HSubst vl ty   := ty_hsubst.
+Instance hsubst_tm   : HSubst vl tm   := tm_hsubst.
+Instance subst_vl    : Subst vl       := vl_subst.
+Instance hsubst_dm   : HSubst vl dm   := dm_hsubst.
+Instance hsubst_pth  : HSubst vl path := path_hsubst.
+Instance hsubst_ty   : HSubst vl ty   := ty_hsubst.
+Instance hsubst_kind : HSubst vl kind := kind_hsubst.
 
 Instance base_lit_eq_dec : EqDecision base_lit.
 Proof. solve_decision. Defined.
@@ -278,7 +312,8 @@ Lemma vl_eq_dec v1 v2   : Decision (v1 = v2)
 with  tm_eq_dec t1 t2   : Decision (t1 = t2)
 with  dm_eq_dec d1 d2   : Decision (d1 = d2)
 with  path_eq_dec p1 p2 : Decision (p1 = p2)
-with  ty_eq_dec T1 T2   : Decision (T1 = T2).
+with  ty_eq_dec T1 T2   : Decision (T1 = T2)
+with  kind_eq_dec K1 K2 : Decision (K1 = K2).
 Proof.
   all: have vl_eq_dec' : EqDecision vl := vl_eq_dec;
     have dm_eq_dec' : EqDecision dm := dm_eq_dec;
@@ -290,6 +325,7 @@ Instance vl_eq_dec'   : EqDecision vl   := vl_eq_dec.
 Instance dm_eq_dec'   : EqDecision dm   := dm_eq_dec.
 Instance path_eq_dec' : EqDecision path := path_eq_dec.
 Instance ty_eq_dec'   : EqDecision ty   := ty_eq_dec.
+Instance kind_eq_dec' : EqDecision kind := kind_eq_dec.
 
 #[local] Ltac finish_lists l x :=
   elim: l => [|x xs IHds] //=; idtac + elim: x => [l d] //=; f_equal => //; by f_equal.
@@ -301,9 +337,10 @@ Lemma tm_rename_Lemma   (ξ : var → var) t : rename ξ t = t.|[ren ξ]
 with  vl_rename_Lemma   (ξ : var → var) v : rename ξ v = v.[ren ξ]
 with  dm_rename_Lemma   (ξ : var → var) d : rename ξ d = d.|[ren ξ]
 with  path_rename_Lemma (ξ : var → var) p : rename ξ p = p.|[ren ξ]
-with  ty_rename_Lemma   (ξ : var → var) T : rename ξ T = T.|[ren ξ].
+with  ty_rename_Lemma   (ξ : var → var) T : rename ξ T = T.|[ren ξ]
+with  kind_rename_Lemma (ξ : var → var) K : rename ξ K = K.|[ren ξ].
 Proof.
-  all: [> destruct t | destruct v | destruct d | destruct p | destruct T].
+  all: [> destruct t | destruct v | destruct d | destruct p | destruct T | destruct K].
   all: rewrite /= ?up_upren_vl; f_equal => //; finish_lists l x.
 Qed.
 
@@ -311,9 +348,10 @@ Lemma tm_ids_Lemma   t : t.|[ids] = t
 with  vl_ids_Lemma   v : v.[ids] = v
 with  dm_ids_Lemma   d : d.|[ids] = d
 with  path_ids_Lemma p : p.|[ids] = p
-with  ty_ids_Lemma   T : T.|[ids] = T.
+with  ty_ids_Lemma   T : T.|[ids] = T
+with  kind_ids_Lemma K : K.|[ids] = K.
 Proof.
-  all: [> destruct t | destruct v | destruct d | destruct p | destruct T].
+  all: [> destruct t | destruct v | destruct d | destruct p | destruct T | destruct K].
   all: rewrite /= ?up_id_internal; f_equal => //; finish_lists l x.
 Qed.
 
@@ -326,9 +364,11 @@ with dm_comp_rename_Lemma (ξ : var → var) (σ : var → vl) d :
 with path_comp_rename_Lemma (ξ : var → var) (σ : var → vl) p :
   (rename ξ p).|[σ] = p.|[ξ >>> σ]
 with ty_comp_rename_Lemma (ξ : var → var) (σ : var → vl) T :
-  (rename ξ T).|[σ] = T.|[ξ >>> σ].
+  (rename ξ T).|[σ] = T.|[ξ >>> σ]
+with kind_comp_rename_Lemma (ξ : var → var) (σ : var → vl) K :
+  (rename ξ K).|[σ] = K.|[ξ >>> σ].
 Proof.
-  all: [> destruct t | destruct v | destruct d | destruct p | destruct T].
+  all: [> destruct t | destruct v | destruct d | destruct p | destruct T | destruct K].
   all: rewrite /= 1? up_comp_ren_subst; f_equal => //; finish_lists l x.
 Qed.
 
@@ -341,9 +381,11 @@ with dm_rename_comp_Lemma (σ : var → vl) (ξ : var → var) d :
 with path_rename_comp_Lemma (σ : var → vl) (ξ : var → var) p :
   rename ξ p.|[σ] = p.|[σ >>> rename ξ]
 with ty_rename_comp_Lemma (σ : var → vl) (ξ : var → var) T :
-  rename ξ T.|[σ] = T.|[σ >>> rename ξ].
+  rename ξ T.|[σ] = T.|[σ >>> rename ξ]
+with kind_rename_comp_Lemma (σ : var → vl) (ξ : var → var) K :
+  rename ξ K.|[σ] = K.|[σ >>> rename ξ].
 Proof.
-  all: [> destruct t | destruct v | destruct d | destruct p | destruct T].
+  all: [> destruct t | destruct v | destruct d | destruct p | destruct T | destruct K].
   all: rewrite /= ? up_comp_subst_ren_internal; f_equal => //;
     auto using vl_rename_Lemma, vl_comp_rename_Lemma; finish_lists l x.
 Qed.
@@ -352,9 +394,10 @@ Lemma tm_comp_Lemma (σ τ : var → vl) t : t.|[σ].|[τ] = t.|[σ >> τ]
 with vl_comp_Lemma (σ τ : var → vl) v : v.[σ].[τ] = v.[σ >> τ]
 with dm_comp_Lemma (σ τ : var → vl) d : d.|[σ].|[τ] = d.|[σ >> τ]
 with path_comp_Lemma (σ τ : var → vl) p : p.|[σ].|[τ] = p.|[σ >> τ]
-with ty_comp_Lemma (σ τ : var → vl) T : T.|[σ].|[τ] = T.|[σ >> τ] .
+with ty_comp_Lemma (σ τ : var → vl) T : T.|[σ].|[τ] = T.|[σ >> τ]
+with kind_comp_Lemma (σ τ : var → vl) K : K.|[σ].|[τ] = K.|[σ >> τ].
 Proof.
-  all: [> destruct t | destruct v | destruct d | destruct p | destruct T].
+  all: [> destruct t | destruct v | destruct d | destruct p | destruct T | destruct K].
   all: rewrite /= ? up_comp_internal; f_equal;
     auto using vl_rename_comp_Lemma, vl_comp_rename_Lemma; finish_lists l x.
 Qed.
@@ -382,6 +425,11 @@ Qed.
 Instance hsubst_lemmas_ty : HSubstLemmas vl ty.
 Proof.
   split; auto using ty_ids_Lemma, ty_comp_Lemma.
+Qed.
+
+Instance hsubst_lemmas_kind : HSubstLemmas vl kind.
+Proof.
+  split; auto using kind_ids_Lemma, kind_comp_Lemma.
 Qed.
 
 Instance hsubst_lemmas_ctx : HSubstLemmas vl ctx := _.
@@ -597,6 +645,7 @@ Implicit Types (vs : vls).
 Instance sort_dm : Sort dm := {}.
 Instance sort_path : Sort path := {}.
 Instance sort_ty : Sort ty := {}.
+Instance sort_kind : Sort kind := {}.
 
 (** *** Induction principles for syntax. *)
 
@@ -606,6 +655,7 @@ Section syntax_mut_ind.
   Variable Pdm : dm   → Prop.
   Variable Ppt : path → Prop.
   Variable Pty : ty   → Prop.
+  Variable Pkn : kind → Prop.
 
   Variable step_tv : ∀ v1, Pvl v1 → Ptm (tv v1).
   Variable step_tapp : ∀ t1 t2, Ptm t1 → Ptm t2 → Ptm (tapp t1 t2).
@@ -635,21 +685,26 @@ Section syntax_mut_ind.
   Variable step_TAll : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAll T1 T2).
   Variable step_TMu : ∀ T1, Pty T1 → Pty (TMu T1).
   Variable step_TVMem : ∀ l T1, Pty T1 → Pty (TVMem l T1).
-  Variable step_TTMem : ∀ l T1 T2, Pty T1 → Pty T2 → Pty (TTMem l T1 T2).
-  Variable step_TSel : ∀ p1 l, Ppt p1 → Pty (TSel p1 l).
+  Variable step_kTTMem : ∀ l K1, Pkn K1 → Pty (kTTMem l K1).
+  Variable step_kTSel : ∀ n p1 l, Ppt p1 → Pty (kTSel n p1 l).
   Variable step_TSing : ∀ p1, Ppt p1 → Pty (TSing p1).
   Variable step_TPrim : ∀ b, Pty (TPrim b).
+  Variable step_TLam : ∀ T1, Pty T1 → Pty (TLam T1).
+  Variable step_TApp : ∀ T1 p1, Pty T1 → Ppt p1 → Pty (TApp T1 p1).
+  Variable step_kintv : ∀ L1 U1, Pty L1 → Pty U1 → Pkn (kintv L1 U1).
+  Variable step_kpi : ∀ S1 K1, Pty S1 → Pkn K1 → Pkn (kpi S1 K1).
 
   Fixpoint tm_mut_ind t : Ptm t
   with vl_mut_ind v : Pvl v
   with dm_mut_ind d : Pdm d
   with path_mut_ind p : Ppt p
-  with ty_mut_ind T : Pty T.
+  with ty_mut_ind T : Pty T
+  with kind_mut_ind K : Pkn K.
   Proof.
     (* Automation risk producing circular proofs that call right away the lemma we're proving.
        Instead we want to apply one of the [case_] arguments to perform an
        inductive step, and only then call ourselves recursively. *)
-    all: [> destruct t | destruct v | destruct d | destruct p | destruct T].
+    all: [> destruct t | destruct v | destruct d | destruct p | destruct T | destruct K].
     all:
       try match goal with
       (* Warning: add other arities as needed. *)
@@ -663,10 +718,18 @@ Section syntax_mut_ind.
     - elim: l => [|v vs IHxs] //=; auto.
   Qed.
 
-  Lemma syntax_mut_ind :
+  (* XXX *)
+  Lemma syntax_mut_ind' :
     (∀ t, Ptm t) ∧ (∀ v, Pvl v) ∧ (∀ d, Pdm d) ∧ (∀ p, Ppt p) ∧ (∀ T, Pty T).
   Proof.
     split_and!; auto using tm_mut_ind, vl_mut_ind, dm_mut_ind, path_mut_ind,
       ty_mut_ind.
+  Qed.
+
+  Lemma syntax_mut_ind :
+    (∀ t, Ptm t) ∧ (∀ v, Pvl v) ∧ (∀ d, Pdm d) ∧ (∀ p, Ppt p) ∧ (∀ T, Pty T) ∧ (∀ K, Pkn K).
+  Proof.
+    split_and!; auto using tm_mut_ind, vl_mut_ind, dm_mut_ind, path_mut_ind,
+      ty_mut_ind, kind_mut_ind.
   Qed.
 End syntax_mut_ind.
