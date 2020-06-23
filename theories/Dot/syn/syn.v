@@ -212,8 +212,8 @@ Instance ids_vl : Ids vl := vvar.
 Instance ids_tm : Ids tm := inh_ids.
 Instance ids_dm : Ids dm := inh_ids.
 Instance ids_pth : Ids path := inh_ids.
-Instance ids_kty n : Ids (kty n) := inh_ids.
-Instance ids_kind n : Ids (kind n) := inh_ids.
+Instance ids_ty : Ids ty := inh_ids.
+Instance ids_kind : Ids kind := inh_ids.
 Instance ids_dms : Ids dms := _.
 Instance ids_ctx : Ids ctx := _.
 
@@ -262,7 +262,7 @@ path_rename (sb : var → var) p : path :=
   | pself p l => pself (rename sb p) l
   end
 with
-kty_rename n (sb : var → var) (T : kty n) : kty n :=
+ty_rename n (sb : var → var) (T : kty n) : kty :=
   let _ := path_rename : Rename path in
   let _ := kty_rename : ∀ n, Rename (kty n) in
   let _ := kind_rename : ∀ n, Rename (kind n) in
