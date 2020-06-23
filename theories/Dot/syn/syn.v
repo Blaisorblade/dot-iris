@@ -124,6 +124,86 @@ Instance inh_dm : Inhabited dm := populate (dpt inhabitant).
 Instance inh_ty : Inhabited ty := populate TBot.
 Instance inh_kind : Inhabited kind := populate (kintv inhabitant inhabitant).
 
+Inductive nty : nat → Type :=
+| nTTop : nty 0 (* top type [⊤]; *)
+| nTBot : nty 0 (* bottom type [⊤]; *)
+| nTAnd (T1 T2 : nty 0) : nty 0 (* intersection type [S ∧ T]; *)
+| nTOr (T1 T2 : nty 0): nty 0 (* union type [S ∨ T]; *)
+| nTLater {n} (T : nty n) : nty n (* later type [▷ T]; *)
+| nTAll (S T : nty 0) : nty 0 (* forall type [∀ x: S. T]; *)
+| nTMu (T : nty 0) : nty 0 (* mu-types [μ x. T]; *)
+| nTVMem l (T : nty 0) : nty 0 (* value members [{a: T}];*)
+| nTTMem {n} l (K : nkind n) : nty 0 (* type members [{A :: L .. U}]; *)
+| nTSel n (p : path) l : nty n (* type selections [p.A]; *)
+| nTPrim B : nty 0 (* primitive types *)
+| nTSing (p : path) : nty 0 (* singleton types [p.type].*)
+| nTLam {n} (T : nty n) : nty n.+1 (* type-level lambda abstraction [λ x. T]; *)
+| nTApp {n} (T : nty n.+1) (p : path) : nty n (* type-level type application [T p]; *)
+with nkind : nat → Type :=
+| nkintv (L U : nty 0) : nkind 0
+| nkpi {n} (S : nty 0) (K : nkind n) : nkind n.+1.
+
+Instance inh_nty n : Inhabited (nty n) := populate (nTSel n inhabitant inhabitant).
+Instance inh_nkind n : Inhabited (nkind n) :=
+  (fix inh_kind n := populate (match n with
+    | 0 => nkintv inhabitant inhabitant
+    | n.+1 => nkpi inhabitant inhabitant
+    end)) n.
+
+
+Definition dummy_ty : nat → ty := nat_rect (const ty) TBot (λ _, TLam).
+Definition dummy_nty n : nty n := nat_rect nty nTBot (λ n NT, nTLam NT) n.
+Definition dummy_kind : nat → kind := nat_rect (const kind) (kintv TTop TBot) (λ _, kpi TBot).
+Definition dummy_nkind n : nkind n := nat_rect nkind (nkintv nTTop nTBot) (λ _, nkpi nTBot) n.
+
+Section arity_checking.
+  (* Consider a custom return type over this [option (sigT nkind)] contraption. *)
+
+  Local Notation retN n NT := (Some (existT n NT)).
+  Local Notation ret0 NT := (retN 0 NT).
+  Local Notation ret NT := (retN _ NT).
+
+  Local Notation match1 S P B := (
+    match S with
+    | P => ret B
+    | _ => None
+    end).
+  Local Notation match2 S1 S2 P1 P2 B := (
+    match S1, S2 with
+    | P1, P2 => ret B
+    | _, _ => None
+    end).
+
+  Fixpoint ki_n K : option {n & nkind n} :=
+    match K with
+    | kintv L U => match2 (ty_n L) (ty_n U) (ret0 NL) (ret0 NU) (nkintv NL NU)
+    | kpi S K => match2 (ty_n S) (ki_n K) (ret0 NS) (retN aK NK) (nkpi NS NK)
+    end
+  with ty_n T : option {n & nty n} :=
+    match T with
+    | TTop => ret nTTop
+    | TBot => ret nTBot
+    | TAnd T1 T2 =>
+      match2 (ty_n T1) (ty_n T2) (ret0 NT1) (ret0 NT2) (nTAnd NT1 NT2)
+    | TOr T1 T2 =>
+      match2 (ty_n T1) (ty_n T2) (ret0 NT1) (ret0 NT2) (nTOr NT1 NT2)
+    | TLater T => match1 (ty_n T) (ret NT) (nTLater NT)
+    | TAll S T =>
+      match2 (ty_n S) (ty_n T) (ret0 NS) (ret0 NT) (nTAll NS NT)
+    | TMu T => match1 (ty_n T) (ret0 NT) (nTMu NT)
+    | TVMem l T => match1 (ty_n T) (ret0 NT) (nTVMem l NT)
+    | kTTMem l K =>
+     match1 (ki_n K) (ret NK) (nTTMem l NK)
+    (* ''(existT aK NK) ← ki_n K;
+    ret (nTTMem l NK) *)
+
+    | kTSel n p l => ret (nTSel n p l)
+    | TPrim B => ret (nTPrim B)
+    | TSing p => ret (nTSing p)
+    | TLam T => match1 (ty_n T) (ret NT) (nTLam NT)
+    | TApp T p => match1 (ty_n T) (retN aT.+1 NT) (nTApp NT p)
+    end.
+End arity_checking.
 
 (** Actual [Ids] instance, for values. *)
 Instance ids_vl : Ids vl := vvar.
