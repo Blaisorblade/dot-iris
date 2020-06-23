@@ -90,27 +90,6 @@ Implicit Types
          (v : vl) (t : tm) (d : dm) (ds : dms) (p : path) (T : ty) (K : kind)
          (Γ : ctx).
 
-(*
-Inductive ty_ar : nat → ty → Type :=
-  | ATop : ty_ar 0 TTop
-  | ABot : ty_ar 0 TBot
-  | AAnd {T1 T2} (AT1 : ty_ar 0 T1) (AT2 : ty_ar 0 T2) : ty_ar 0 (TAnd T1 T2)
-  | AOr {T1 T2} (AT1 : ty_ar 0 T1) (AT2 : ty_ar 0 T2) : ty_ar 0 (TOr T1 T2)
-  | ATLater {n T} (AT : ty_ar n T) : ty_ar n (TLater T)
-  | AAll {S T} (AS : ty_ar 0 S) (AT : ty_ar 0 T) : ty_ar 0 (TAll S T)
-  | AMu {T} (AT : ty_ar 0 T) : ty_ar 0 (TMu T)
-  | AVMem l {T} (AT : ty_ar 0 T) : ty_ar 0 (TVMem l T)
-  | ATMem {n} l K (AK : ki_ar n K) : ty_ar 0 (kTTMem l K)
-  | ASel n p l : ty_ar n (kTSel n p l)
-  | APrim B : ty_ar 0 (TPrim B)
-  (* Exclude singletons for now! *)
-  (* | ASing (p : path) : ty_ar 0 (TSing p) *)
-  | ATLam {n T} (AT : ty_ar n T) : ty_ar n.+1 (TLam T)
-  | ATApp {n T} (AT : ty_ar n.+1 T) p : ty_ar n (TApp T p)
-with ki_ar : nat → kind → Type :=
-  | akintv {L U} (AL : ty_ar 0 L) (AU : ty_ar 0 U) : ki_ar 0 (kintv L U)
-  | akpi {n S K} (AS : ty_ar 0 S) (AK : ki_ar n K) : ki_ar n.+1 (kpi S K). *)
-
 (* Shortcuts. *)
 Notation TInt := (TPrim tint).
 Notation TBool := (TPrim tbool).
@@ -146,74 +125,6 @@ Instance inh_dm : Inhabited dm := populate (dpt inhabitant).
 Instance inh_ty : Inhabited ty := populate TBot.
 Instance inh_kind : Inhabited kind := populate (kintv inhabitant inhabitant).
 
-(* Notation "'( x ) ← y ; z" := (y ≫= (λ x : _, z))
-  (at level 20, x pattern, y at level 100, z at level 200, only parsing) : stdpp_scope. *)
-(* Notation "' x1 .. xn ← y ; z" := (y ≫= (λ x1, .. (λ xn, z) .. ))
-  (at level 20, x1 pattern, xn pattern, y at level 100, z at level 200,
-   only parsing, right associativity) : stdpp_scope. *)
-
-(* Local Notation "'ret0' NT" := (Some (existT 0 NT))
-  (at level 65, right associativity, only parsing) : stdpp_scope. *)
-
-      (* match ki_n K with
-      | retN aK NK => ret (nTTMem l NK)
-      | _ => None
-      end *)
-
-(*
-Fixpoint ki_n K : option {n & nkind n} :=
-  match K with
-  | kintv L U =>
-    '(existT aL NL) ← ty_n L;
-    '(existT aU NU) ← ty_n U;
-    match aL, aU with
-    | 0, 0 => λ NL NU, ret0 (nkintv NL NU)
-    | _, _ => λ _ _, None
-    end NL NU
-  | kpi S K =>
-    '(existT aS NS) ← ty_n S;
-    '(existT aK NK) ← ki_n K;
-    match aS with
-    | 0 => λ NS, retN aK.+1 (nkpi NS NK)
-    | _ => λ _, None
-    end NS
-  end
-with ty_n T : option {n & nty n} :=
-  match T with
-  | TTop => ret nTTop
-  | kTTMem l K =>
-    '(existT aK NK) ← ki_n K;
-    ret (nTTMem l NK)
-  | _ =>
-    ret0 (dummy_nty _)
-  end. *)
-
-
-(* Fixpoint ki_arity K : nat :=
-  match K with
-  | kintv _ _ => 0
-  | kpi _ K => (ki_arity K).+1
-  end.
-Fixpoint ty_arity T : nat :=
-  match T with
-  | TLam T => (ty_arity T).+1
-  | TApp T _ => pred (ty_arity T)
-  | _ => 0
-  end.
-
-
-Program Fixpoint ki_n K : nkind (ki_arity K) :=
-  match K with
-  | kintv L U => nkintv (ty_n L) (ty_n U)
-  | kpi _ K => _
-  end
-with ty_n T : nty (ty_arity T) := _.
-Next Obligation.
-
-Fixpoint ty_arity T : nat :=
-  match T with
-  | _ => 0
-  end. *)
 
 (** Actual [Ids] instance, for values. *)
 Instance ids_vl : Ids vl := vvar.
