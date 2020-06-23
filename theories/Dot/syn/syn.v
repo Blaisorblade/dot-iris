@@ -82,7 +82,7 @@ Definition dms := list (label * dm).
 Definition ctx := list ty.
 
 Implicit Types
-         (T : ty) (v : vl) (t : tm) (d : dm) (ds : dms) (p : path)
+         (t : tm) (v : vl) (d : dm) (ds : dms) (p : path) (T : ty)
          (Γ : ctx).
 
 (* Shortcuts. *)
