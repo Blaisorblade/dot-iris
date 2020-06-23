@@ -321,9 +321,11 @@ Derive Signature for kty kind.
 Time Derive DependentElimination for vl_ tm dm path kty kind.
 
 Time Derive NoConfusion for vl_ tm dm path kty kind.
+
 Time Derive NoConfusionHom for vl_ tm dm path kty kind.
 
 Time Derive EqDec for vl_ tm dm path kty kind.
+Next Obligation. Admitted.
 
 Instance foo : EqDec tm.
 Proof.
