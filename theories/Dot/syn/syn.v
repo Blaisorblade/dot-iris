@@ -51,7 +51,7 @@ Inductive tm : Type :=
   | vobj : list (label * dm) → vl_ (* objects [ν x. t]. *)
  (** Definition bodies [d ::= ]: *)
  with dm : Type :=
-  | kdtysyn : nat → ty → dm (* unstamped type definition [T]; *)
+  | dtysyn : ty → dm (* unstamped type definition [T]; *)
   | dtysem : list vl_ → stamp → dm (* stamped type definition [σ, s]; *)
   | dpt : path → dm (* path definition [p]. *)
  (** Paths [p ::= ] *)
@@ -97,7 +97,6 @@ Notation vint n := (vlit $ lint n).
 Notation vbool b := (vlit $ lbool b).
 
 (* gDOT → HK-gDOT: *)
-Notation dtysyn := (kdtysyn (n := 0)).
 Notation TTMem l L U := (kTTMem l (kintv L U)).
 Notation TSel := (kTSel 0).
 
