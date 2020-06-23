@@ -150,19 +150,19 @@ Instance inh_nkind n : Inhabited (nkind n) :=
     | n.+1 => nkpi inhabitant inhabitant
     end)) n.
 
-
+(* What can we use if arity-checking fails? Here are some dummy/empty
+types/kinds, of arbitrary arities. *)
 Definition dummy_ty : nat → ty := nat_rect (const ty) TBot (λ _, TLam).
 Definition dummy_nty n : nty n := nat_rect nty nTBot (λ n NT, nTLam NT) n.
 Definition dummy_kind : nat → kind := nat_rect (const kind) (kintv TTop TBot) (λ _, kpi TBot).
 Definition dummy_nkind n : nkind n := nat_rect nkind (nkintv nTTop nTBot) (λ _, nkpi nTBot) n.
 
 Section arity_checking.
-  (* Consider a custom return type over this [option (sigT nkind)] contraption. *)
+  (** XXX Consider a custom return type over this [option (sigT nkind)] contraption. *)
 
   Local Notation retN n NT := (Some (existT n NT)).
   Local Notation ret0 NT := (retN 0 NT).
   Local Notation ret NT := (retN _ NT).
-
   Local Notation match1 S P B := (
     match S with
     | P => ret B
@@ -188,12 +188,10 @@ Section arity_checking.
     | TOr T1 T2 =>
       match2 (ty_n T1) (ty_n T2) (ret0 NT1) (ret0 NT2) (nTOr NT1 NT2)
     | TLater T => match1 (ty_n T) (ret NT) (nTLater NT)
-    | TAll S T =>
-      match2 (ty_n S) (ty_n T) (ret0 NS) (ret0 NT) (nTAll NS NT)
+    | TAll S T => match2 (ty_n S) (ty_n T) (ret0 NS) (ret0 NT) (nTAll NS NT)
     | TMu T => match1 (ty_n T) (ret0 NT) (nTMu NT)
     | TVMem l T => match1 (ty_n T) (ret0 NT) (nTVMem l NT)
-    | kTTMem l K =>
-     match1 (ki_n K) (ret NK) (nTTMem l NK)
+    | kTTMem l K => match1 (ki_n K) (ret NK) (nTTMem l NK)
     | kTSel n p l => ret (nTSel n p l)
     | TPrim B => ret (nTPrim B)
     | TSing p => ret (nTSing p)
