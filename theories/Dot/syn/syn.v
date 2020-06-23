@@ -51,7 +51,7 @@ Inductive tm : Type :=
   | vobj : list (label * dm) → vl_ (* objects [ν x. t]. *)
  (** Definition bodies [d ::= ]: *)
  with dm : Type :=
-  | kdtysyn {n} : kty n → dm (* unstamped type definition [T]; *)
+  | kdtysyn : nat → ty → dm (* unstamped type definition [T]; *)
   | dtysem : list vl_ → stamp → dm (* stamped type definition [σ, s]; *)
   | dpt : path → dm (* path definition [p]. *)
  (** Paths [p ::= ] *)
@@ -59,30 +59,27 @@ Inductive tm : Type :=
   | pv : vl_ → path (* values [v]; *)
   | pself : path → label → path (* path selection [p.a]. *)
  (** Types [L, S, T, U, V, W ::= ] *)
- with kty : nat → Type :=
-  | TTop : kty 0 (* top type [⊤]; *)
-  | TBot : kty 0 (* bottom type [⊤]; *)
-  | TAnd (T1 T2 : kty 0) : kty 0 (* intersection type [S ∧ T]; *)
-  | TOr (T1 T2 : kty 0): kty 0 (* union type [S ∨ T]; *)
-  | kTLater {n} (T : kty n) : kty 0 (* later type [▷ T]; *)
-  | TAll (S T : kty 0) : kty 0 (* forall type [∀ x: S. T]; *)
-  | TMu (T : kty 0) : kty 0 (* mu-types [μ x. T]; *)
-  | TVMem l (T : kty 0) : kty 0 (* value members [{a: T}];*)
-  | kTTMem {n} l (K : kind n) : kty n (* type members [{A :: L .. U}]; *)
-  | kTSel n (p : path) l : kty n (* type selections [p.A]; *)
-  | TPrim B : kty 0 (* primitive types *)
-  | TSing (p : path) : kty 0 (* singleton types [p.type].*)
-  | kTLam {n} (T : kty n) : kty n.+1 (* type-level lambda abstraction [λ x. T]; *)
-  | kTApp {n} (T : kty n.+1) (p : path) : kty n (* type-level type application [T p]; *)
-with kind : nat → Type :=
-  | kintv (L U : kty 0) : kind 0
-  | kpi {n} (S : kty 0) (K : kind n) : kind n.+1.
+ with ty : Type :=
+  | TTop : ty (* top type [⊤]; *)
+  | TBot : ty (* bottom type [⊤]; *)
+  | TAnd (T1 T2 : ty) : ty (* intersection type [S ∧ T]; *)
+  | TOr (T1 T2 : ty): ty (* union type [S ∨ T]; *)
+  | TLater (T : ty) : ty (* later type [▷ T]; *)
+  | TAll (S T : ty) : ty (* forall type [∀ x: S. T]; *)
+  | TMu (T : ty) : ty (* mu-types [μ x. T]; *)
+  | TVMem l (T : ty) : ty (* value members [{a: T}];*)
+  | kTTMem l (K : kind) : ty (* type members [{A :: L .. U}]; *)
+  | kTSel n (p : path) l : ty (* type selections [p.A]; *)
+  | TPrim B : ty (* primitive types *)
+  | TSing (p : path) : ty (* singleton types [p.type].*)
+  | TLam (T : ty) : ty (* type-level lambda abstraction [λ x. T]; *)
+  | TApp (T : ty) (p : path) : ty (* type-level type application [T p]; *)
+with kind : Type :=
+  | kintv (L U : ty) : kind
+  | kpi (S : ty) (K : kind) : kind.
 
 (* Workaround Coq bug with modules. *)
 Definition vl := vl_.
-
-(* gDOT → HK-gDOT: *)
-Notation ty := (kty 0).
 
 (** Definition lists [\overbar{d}]. *)
 Definition dms := list (label * dm).
@@ -90,7 +87,7 @@ Definition dms := list (label * dm).
 Definition ctx := list ty.
 
 Implicit Types
-         (v : vl) (t : tm) (d : dm) (ds : dms) (p : path)
+         (v : vl) (t : tm) (d : dm) (ds : dms) (p : path) (T : ty) (K : kind)
          (Γ : ctx).
 
 (* Shortcuts. *)
@@ -101,8 +98,7 @@ Notation vbool b := (vlit $ lbool b).
 
 (* gDOT → HK-gDOT: *)
 Notation dtysyn := (kdtysyn (n := 0)).
-Notation TLater := (kTLater (n := 0)).
-Notation TTMem l L U := (kTTMem (n := 0) l (kintv L U)).
+Notation TTMem l L U := (kTTMem l (kintv L U)).
 Notation TSel := (kTSel 0).
 
 (* Adapter over TTMem. [L] stands for Later. *)
@@ -111,7 +107,7 @@ Definition TTMemL l L U := TTMem l (TLater L) (TLater U).
 Declare Scope dms_scope.
 Declare Scope ty_scope.
 Bind Scope dms_scope with dms.
-Bind Scope ty_scope with kty.
+Bind Scope ty_scope with ty.
 Delimit Scope ty_scope with ty.
 Delimit Scope dms_scope with dms.
 
@@ -126,12 +122,8 @@ Instance inh_vl : Inhabited vl := populate (vlit inhabitant).
 Instance inh_tm : Inhabited tm := populate (tv inhabitant).
 Instance inh_pth : Inhabited path := populate (pv inhabitant).
 Instance inh_dm : Inhabited dm := populate (dpt inhabitant).
-Instance inh_kty n : Inhabited (kty n) := populate (kTSel n inhabitant inhabitant).
-Instance inh_kind n : Inhabited (kind n) :=
-  (fix inh_kind n := populate (match n with
-    | 0 => kintv inhabitant inhabitant
-    | n.+1 => kpi inhabitant inhabitant
-    end)) n.
+Instance inh_ty : Inhabited ty := populate TBot.
+Instance inh_kind : Inhabited kind := populate (kintv inhabitant inhabitant).
 
 (** Actual [Ids] instance, for values. *)
 Instance ids_vl : Ids vl := vvar.
