@@ -5,7 +5,7 @@ From iris.program_logic Require Import language ectx_language ectxi_language.
 From D Require Import prelude.
 From D.Dot Require Import syn.
 
-Implicit Types (t : tm) (v : vl) (d : dm) (ds : dms) (p : path) (T : ty).
+Implicit Types (t : tm) (v : vl) (d : dm) (ds : dms) (p : path) (T : ty) (K : kind).
 Implicit Types (e : tm) (vs : vls) (l : label).
 
 Program Fixpoint erase_tm e :=
@@ -46,10 +46,17 @@ with erase_ty T :=
   | TAll T1 T2 => TAll (erase_ty T1) (erase_ty T2)
   | TMu T => TMu (erase_ty T)
   | TVMem l T => TVMem l (erase_ty T)
-  | TTMem l T1 T2 => TTMem l (erase_ty T1) (erase_ty T2)
-  | TSel p l => TSel (erase_pt p) l
+  | kTTMem l K => kTTMem l (erase_kd K)
+  | kTSel n p l => kTSel n (erase_pt p) l
   | TPrim b => T
   | TSing p => TSing (erase_pt p)
+  | TLam T => TLam (erase_ty T)
+  | TApp T p => TApp (erase_ty T) (erase_pt p)
+  end
+with erase_kd K :=
+  match K with
+  | kintv L U => kintv (erase_ty L) (erase_ty U)
+  | kpi S K => kpi (erase_ty S) (erase_kd K)
   end.
 
 Notation erase_dms := (map (mapsnd erase_dm)).
@@ -64,11 +71,12 @@ Definition erase_tm_rename_def e := ∀ ξ, erase_tm (e.|[ren ξ]) = (erase_tm e
 Definition erase_dm_rename_def d := ∀ ξ, erase_dm (d.|[ren ξ]) = (erase_dm d).|[ren ξ].
 Definition erase_pt_rename_def p := ∀ ξ, erase_pt (p.|[ren ξ]) = (erase_pt p).|[ren ξ].
 Definition erase_ty_rename_def T := ∀ ξ, erase_ty (T.|[ren ξ]) = (erase_ty T).|[ren ξ].
+Definition erase_kd_rename_def K := ∀ ξ, erase_kd (K.|[ren ξ]) = (erase_kd K).|[ren ξ].
 
 Lemma erase_rename_mut :
   (∀ t, erase_tm_rename_def t) ∧ (∀ v, erase_vl_rename_def v) ∧
   (∀ d, erase_dm_rename_def d) ∧ (∀ p, erase_pt_rename_def p) ∧
-  (∀ T, erase_ty_rename_def T).
+  (∀ T, erase_ty_rename_def T) ∧ (∀ K, erase_kd_rename_def K).
 Proof.
   apply syntax_mut_ind; repeat intro; simpl in *; f_equal;
     rewrite ?up_upren_vl; auto;
@@ -85,6 +93,7 @@ Definition erase_tm_subst_def e := ∀ ρ, erase_tm (e.|[ρ]) = (erase_tm e).|[e
 Definition erase_dm_subst_def d := ∀ ρ, erase_dm (d.|[ρ]) = (erase_dm d).|[erase_ρ ρ].
 Definition erase_pt_subst_def p := ∀ ρ, erase_pt (p.|[ρ]) = (erase_pt p).|[erase_ρ ρ].
 Definition erase_ty_subst_def T := ∀ ρ, erase_ty (T.|[ρ]) = (erase_ty T).|[erase_ρ ρ].
+Definition erase_kd_subst_def K := ∀ ρ, erase_kd (K.|[ρ]) = (erase_kd K).|[erase_ρ ρ].
 
 (* One might think that erasure needn't traverse types, but this lemma
 requires erasure to traverse types as well for the [dtysyn] case, because
@@ -93,7 +102,7 @@ _substitutions_ (and it couldn't be). *)
 Lemma erase_subst_mut :
   (∀ t, erase_tm_subst_def t) ∧ (∀ v, erase_vl_subst_def v) ∧
   (∀ d, erase_dm_subst_def d) ∧ (∀ p, erase_pt_subst_def p) ∧
-  (∀ T, erase_ty_subst_def T).
+  (∀ T, erase_ty_subst_def T) ∧ (∀ K, erase_kd_subst_def K).
 Proof.
   apply syntax_mut_ind; repeat intro; simpl in *; f_equal;
     rewrite -?erase_subst_up; auto;
