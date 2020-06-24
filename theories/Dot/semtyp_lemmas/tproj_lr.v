@@ -62,8 +62,8 @@ Section existentials.
     iIntros "/= #HpS #Hstp %ρ #Hg".
     iSpecialize ("HpS" with "Hg"); iSpecialize ("Hstp" with "Hg"); iNext i.
     iApply (subtype_trans with "Hstp"); iIntros "%v HvUp".
-    iDestruct (path_wp_agree with "HpS HvUp") as (w _) "?".
-    by iExists w.
+    iDestruct (path_wp_agree with "HpS HvUp") as (w ?) "Hgoal".
+    iExists w. iApply "Hgoal".
   Qed.
 
 End existentials.
