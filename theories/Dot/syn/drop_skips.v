@@ -87,6 +87,10 @@ Definition erase_dm_subst_def d := ∀ ρ, erase_dm (d.|[ρ]) = (erase_dm d).|[e
 Definition erase_pt_subst_def p := ∀ ρ, erase_pt (p.|[ρ]) = (erase_pt p).|[erase_ρ ρ].
 Definition erase_ty_subst_def T := ∀ ρ, erase_ty (T.|[ρ]) = (erase_ty T).|[erase_ρ ρ].
 
+(* One might think that erasure needn't traverse types, but this lemma
+requires erasure to traverse types as well for the [dtysyn] case, because
+it's not restricted to unstamped syntax, and especially not to unstamped
+_substitutions_ (and it couldn't be). *)
 Lemma erase_subst_mut :
   (∀ t, erase_tm_subst_def t) ∧ (∀ v, erase_vl_subst_def v) ∧
   (∀ d, erase_dm_subst_def d) ∧ (∀ p, erase_pt_subst_def p) ∧
