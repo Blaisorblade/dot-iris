@@ -17,14 +17,14 @@ Inductive type_equiv : Equiv ty :=
 | type_equiv_top : |- TTop == TTop
 | type_equiv_bot : |- TBot == TBot
 
-| type_equiv_and T1 T2 U1 U2 : |- T1 == U1 → |- T2 == U2 → |- TAnd T1 T2 == TAnd U1 U2
-| type_equiv_or T1 T2 U1 U2 : |- T1 == U1 → |- T2 == U2 → |- TOr T1 T2 == TOr U1 U2
-| type_equiv_later T1 U1 : |- T1 == U1 → |- TLater T1 == TLater U1
-| type_equiv_all T1 T2 U1 U2 : |- T1 == U1 → |- T2 == U2 → |- TAll T1 T2 == TAll U1 U2
-| type_equiv_mu T1 U1 : |- T1 == U1 → |- TMu T1 == TMu U1
+| type_equiv_and T1 U1 T2 U2 : |- T1 == T2 → |- U1 == U2 → |- TAnd T1 U1 == TAnd T2 U2
+| type_equiv_or T1 U1 T2 U2 : |- T1 == T2 → |- U1 == U2 → |- TOr T1 U1 == TOr T2 U2
+| type_equiv_later T1 T2 : |- T1 == T2 → |- TLater T1 == TLater T2
+| type_equiv_all S1 T1 S2 T2 : |- S1 == S2 → |- T1 == T2 → |- TAll S1 T1 == TAll S2 T2
+| type_equiv_mu T1 T2 : |- T1 == T2 → |- TMu T1 == TMu T2
 
-| type_equiv_vmem l T1 U1 : |- T1 == U1 → |- TVMem l T1 == TVMem l U1
-| type_equiv_tmem l T1 T2 U1 U2 : |- T1 == U1 → |- T2 == U2 → |- TTMem l T1 T2 == TTMem l U1 U2
+| type_equiv_vmem l T1 T2 : |- T1 == T2 → |- TVMem l T1 == TVMem l T2
+| type_equiv_tmem l L1 L2 U1 U2 : |- L1 == L2 → |- U1 == U2 → |- TTMem l L1 U1 == TTMem l L2 U2
 
 | type_equiv_sel p l : |- TSel p l == TSel p l
 | type_equiv_prim b : |- TPrim b == TPrim b
