@@ -15,7 +15,7 @@ discussed in the paper.
 *)
 From iris.proofmode Require Import tactics.
 From D Require Import swap_later_impl.
-From D.Dot Require Import unary_lr dsub_lr sub_lr path_repl_lr.
+From D.Dot Require Import unary_lr dsub_lr path_repl_lr.
 
 Implicit Types (Σ : gFunctors).
 Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env) (l : label).
@@ -48,9 +48,9 @@ Section existentials.
     oLaterN i (oShift S) :: Γ s⊨ T <:[i] oShift U -∗
     Γ s⊨ oExists S T <:[i] U.
   Proof.
-    rewrite !sstpd_to_sstpi; iIntros "/= #Hstp %ρ %v Hg".
+    iIntros "/= #Hstp %ρ Hg %v"; iApply impl_laterN.
     iDestruct 1 as (w) "[HS HT]".
-    iApply ("Hstp" $! (w .: ρ) v with "[$Hg $HS] HT").
+    iApply ("Hstp" $! (w .: ρ) with "[$Hg $HS] HT").
   Qed.
 
   (** Rule [<:-∃] (called [≤∃L] in the link). *)
