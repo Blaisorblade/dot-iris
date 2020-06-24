@@ -160,7 +160,7 @@ Definition hTAll : hty → (hvl → hty) → hty := λ T U i,
 
 Definition hTMu : (hvl → hty) → hty := liftBind TMu.
 Definition hTVMem : label → hty → hty := λ l, liftA1 (TVMem l).
-Definition hTTMem : label → hty → hty → hty := λ l, liftA2 (TTMem l).
+Definition hTTMem : label → hty → hty → hty := λ l, liftA2 (λ L U, TTMem l L U).
 Definition hTTMemL : label → hty → hty → hty := λ l, liftA2 (TTMemL l).
 Definition hTSel : hpath → label → hty := Eval cbv in λ p l, liftA2 TSel p (pureS l).
 Definition hTPrim b : hty := liftA0 (TPrim b).
