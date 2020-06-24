@@ -319,20 +319,17 @@ Section type_proj.
     points to [shift T] *)
     move=> /coveringσ_shift; set σ' := vvar 0 :: shift σ => HclT.
     iIntros "HT"; rewrite oProjN_eq.
-    iMod (leadsto_envD_equiv_alloc HclT) as (s) "Hs"; iModIntro.
+    iMod (leadsto_envD_equiv_alloc HclT) as (s) "#Hs"; iModIntro.
     set d := dtysem σ' s; set w := (vobj [(A, d)]).[ρ]. iExists w.
-
-    iAssert (oTMem A (oLater T) (oLater T) vnil ρ w)%I
-      with "[-HT]" as "#Hw"; first last. {
+    set lT := oLater T.
+    iAssert (oTMem A lT lT vnil ρ w)%I with "[-HT]" as "#Hw"; first last. {
       iFrame "Hw". iApply (vl_sel_lb with "HT Hw").
     }
-    iDestruct (sD_Typ (Γ := []) A with "Hs") as (Hwf) "Hd".
-    iSpecialize ("Hd" $! (w .: ρ) with "[%] [//]").
-    by apply path_includes_self, Hwf.
-    rewrite cTMem_eq.
-    iExists d.|[w .: ρ]; iSplit; first iIntros "!%".
-    eexists; split; first done.
-    rewrite norm_selfSubst. apply dms_lookup_head.
-    iApply "Hd".
+    iAssert ([] s⊨p pv (vobj [(A, d)]) :
+      oMu (oTMem A (shift lT) (shift lT)), 0) as "Hw".
+    by iApply sP_Obj_I; iApply sD_Sing'; iApply (sD_Typ with "Hs").
+    iSpecialize ("Hw" $! ρ); rewrite laterN_0 (path_wp_pv_eq w).
+    iEval (rewrite oMu_eq oTMem_shift olty_weaken_one stail_eq) in "Hw".
+    by iApply "Hw".
   Qed.
 End type_proj.
