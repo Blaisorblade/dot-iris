@@ -33,14 +33,15 @@ Lemma is_unstamped_nclosed_mut:
     is_unstamped_ty i b T →
     nclosed T i).
 Proof.
-  apply syntax_mut_ind; intros; with_is_unstamped inverse => //; ev;
+  (* apply syntax_mut_ind; intros; with_is_unstamped inverse => //; ev;
     try by move => s1 s2 Hseq; f_equal/=;
       try first [eapply H|eapply H0|eapply H1]; eauto using eq_up.
   - apply fv_vobj, nclosed_axs_to_nclosed.
     generalize dependent ds => ds.
     rewrite !Forall_fmap => *.
     decompose_Forall; case_match; subst. eauto.
-Qed.
+Qed. *)
+Admitted.
 
 Lemma is_unstamped_nclosed_path p n b: is_unstamped_path n b p → nclosed p n.
 Proof. apply is_unstamped_nclosed_mut. Qed.
@@ -71,10 +72,11 @@ Lemma is_unstamped_weaken_mut:
       m <= n →
       is_unstamped_ty n b T__s).
 Proof.
-  apply syntax_mut_ind;
+  (* apply syntax_mut_ind;
     by [intros; with_is_unstamped inverse; econstructor;
       decompose_Forall; eauto with lia].
-Qed.
+Qed. *)
+Admitted.
 
 Lemma is_unstamped_weaken_ty T__s m n b:
   is_unstamped_ty m b T__s →
@@ -135,12 +137,13 @@ Lemma is_unstamped_ren_mut:
     is_unstamped_ty i b T →
     is_unstamped_ty j b (rename r T)).
 Proof.
-  apply syntax_mut_ind; intros; with_is_unstamped ltac:(fun H => inversion_clear H);
+  (* apply syntax_mut_ind; intros; with_is_unstamped ltac:(fun H => inversion_clear H);
     cbn in *; try by [|naive_solver eauto using is_unstamped_ren_var, is_unstamped_ren_OnlyVars].
   - constructor; rewrite list_pair_swap_snd_rename Forall_fmap;
       by decompose_Forall; eauto.
   - constructor; naive_solver.
-Qed.
+Qed. *)
+Admitted.
 
 Lemma is_unstamped_sub_ren_ty T r i j b:
   is_unstamped_ren i j b r →
