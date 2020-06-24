@@ -10,7 +10,8 @@ Set Implicit Arguments.
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
-Implicit Types (e t : tm) (efs : list tm) (σ : ()) (T : ty) (p : path).
+Implicit Types (efs : list tm) (σ : ()) (e : tm).
+Implicit Types (t : tm) (v : vl) (d : dm) (ds : dms) (p : path) (T : ty).
 
 Fixpoint same_skel_tm (t1 t2: tm) {struct t1} : Prop :=
   match (t1, t2) with
@@ -261,7 +262,7 @@ Qed.
 Lemma same_skel_vl_subst v : same_skel_vl_subst_def v.
 Proof. apply same_skel_subst. Qed.
 
-Lemma same_skel_dm_subst v : same_skel_dm_subst_def v.
+Lemma same_skel_dm_subst d : same_skel_dm_subst_def d.
 Proof. apply same_skel_subst. Qed.
 
 Lemma same_skel_tm_subst' e : same_skel_tm_subst_def e.

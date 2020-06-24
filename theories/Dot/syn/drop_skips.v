@@ -5,9 +5,8 @@ From iris.program_logic Require Import language ectx_language ectxi_language.
 From D Require Import prelude.
 From D.Dot Require Import syn.
 
-Implicit Types
-         (T : ty) (v : vl) (e t : tm) (d : dm) (ds : dms) (p : path)
-         (Γ : ctx) (vs : vls) (l : label).
+Implicit Types (t : tm) (v : vl) (d : dm) (ds : dms) (p : path) (T : ty).
+Implicit Types (e : tm) (vs : vls) (l : label).
 
 Program Fixpoint erase_tm e :=
   match e with

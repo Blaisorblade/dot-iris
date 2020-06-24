@@ -60,12 +60,12 @@ Inductive ty_path_repl (p q : path) : ty → ty → Prop :=
 | ty_path_repl_TLater T1 T2 :
   T1 ~Tp[ p := q ] T2 →
   TLater T1 ~Tp[ p := q ] TLater T2
-| ty_path_repl_TAll1 T1 T2 U :
-  T1 ~Tp[ p := q ] T2 →
-  TAll T1 U ~Tp[ p := q ] TAll T2 U
-| ty_path_repl_TAll2 T1 T2 U :
+| ty_path_repl_TAll1 S1 S2 T :
+  S1 ~Tp[ p := q ] S2 →
+  TAll S1 T ~Tp[ p := q ] TAll S2 T
+| ty_path_repl_TAll2 S T1 T2 :
   T1 ~Tp[ shift p := shift q ] T2 →
-  TAll U T1 ~Tp[ p := q ] TAll U T2
+  TAll S T1 ~Tp[ p := q ] TAll S T2
 | ty_path_repl_TMu T1 T2 :
   T1 ~Tp[ shift p := shift q ] T2 →
   TMu T1 ~Tp[ p := q ] TMu T2
@@ -144,11 +144,11 @@ Fixpoint psubst_ty p q T : ty := match T with
 | TBot => TBot
 | TAnd T1 T2 => TAnd (T1 .T[ p := q ]) (T2 .T[ p := q ])
 | TOr T1 T2 => TOr (T1 .T[ p := q ]) (T2 .T[ p := q ])
-| TLater T1 => TLater (T1 .T[ p := q ])
-| TAll T1 T2 => TAll (T1 .T[ p := q ]) (T2 .T[ shift p := shift q ])
-| TMu T1 => TMu (T1 .T[ shift p := shift q ])
-| TVMem l T1 => TVMem l (T1 .T[ p := q ])
-| TTMem l T1 T2 => TTMem l (T1 .T[ p := q ]) (T2 .T[ p := q ])
+| TLater T => TLater (T .T[ p := q ])
+| TAll S T => TAll (S .T[ p := q ]) (T .T[ shift p := shift q ])
+| TMu T => TMu (T .T[ shift p := shift q ])
+| TVMem l T => TVMem l (T .T[ p := q ])
+| TTMem l L U => TTMem l (L .T[ p := q ]) (U .T[ p := q ])
 | TSel r l => TSel (r .p[ p := q ]) l
 | TPrim _ => T
 | TSing r => TSing (r .p[ p := q ])
