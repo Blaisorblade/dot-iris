@@ -265,6 +265,7 @@ Section sem_types.
     | TMu T => olty2clty $ oMu V⟦ T ⟧
     | TSel p l => olty2clty $ oSel p l
     | TSing p => olty2clty $ oSing p
+    | _ => olty2clty oBot
     end.
 
   (** Unfolding lemma for [TAnd]: defined because [simpl] on the LHS produces
@@ -275,8 +276,9 @@ Section sem_types.
   (** Binding lemmas for [V⟦ T ⟧] and [Ds⟦ T ⟧]. *)
   #[global] Instance pinterp_lemmas: CTyInterpLemmas Σ.
   Proof.
-    split; rewrite /pty_interp;
-      induction T => args sb1 sb2 w; rewrite /= /pty_interp /dot_intv_type_pred /subtype_lty /=;
+    split; rewrite /pty_interp; fix rec 1;
+      destruct T => args sb1 sb2 w; first [destruct K|destruct n|idtac];
+      rewrite /= /pty_interp /dot_intv_type_pred /subtype_lty /=;
       properness; rewrite ?scons_up_swap ?hsubst_comp; trivial.
     by apply path_wp_proper => ?.
   Qed.
@@ -504,14 +506,15 @@ Section path_repl_lemmas.
     exact: path_replacement_equiv.
   Qed.
 
-  Lemma fundamental_ty_path_repl {p q T1 T2}
+  Fixpoint fundamental_ty_path_repl {p q T1 T2}
     (Hrew : T1 ~Tp[ p := q ] T2) :
     V⟦ T1 ⟧ ~sTpP[ p := q ]* V⟦ T2 ⟧.
   Proof.
-    rewrite /sem_ty_path_repl; induction Hrew => args ρ v He /=;
-      rewrite /dot_intv_type_pred /subtype_lty/=; properness;
+    rewrite /sem_ty_path_repl; induction Hrew => args ρ v He; try (destruct K1, K2||destruct n);
+      rewrite /= /dot_intv_type_pred /subtype_lty/=; properness;
       try by [ exact: path_replacement_equiv | exact: rewrite_path_path_repl
          | apply IHHrew; rewrite ?hsubst_comp | | f_equiv => ?; exact: IHHrew].
+    all: inverse H; by [eapply fundamental_ty_path_repl|].
   Qed.
 
   Lemma fundamental_ty_path_repl_rtc {p q T1 T2}
