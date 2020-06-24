@@ -51,10 +51,29 @@ Proof.
   exact: ren_const.
 Qed.
 
+Definition psubst_one_vl_gen i v p :=
+  v .v[ pv (ids i) := shiftN i.+1 p ].
 Definition psubst_one_path_gen i q p :=
   q .p[ pv (ids i) := shiftN i.+1 p ].
 Definition psubst_one_ty_gen i T p :=
   T .T[ pv (ids i) := shiftN i.+1 p ].
+
+Lemma psubst_one_path_gen_unshifts_gen i n v p :
+  is_unstamped_vl n OnlyVars v →
+  unshiftsN_vl i (psubst_one_vl_gen i v p).
+Proof.
+  move: p i; induction v => p i Hu //; try inverse Hu; simplify_eq/= => //.
+  admit.
+    rewrite /psubst_one_path_gen /unshiftsN in IHq |- *; f_equal/=; eauto.
+  hnf; cbn. case_decide; simplify_eq/=; first exact: unshiftsN_shiftN.
+  have ?: v ≠ var_vl i by naive_solver.
+  f_equal.
+  rewrite subst_comp.
+  have Hr: unshiftsN_vl i v.
+  exact: unstamped_val_unshifts.
+  f_equal.
+  asimpl.
+Qed.
 
 Lemma psubst_one_path_gen_unshifts_gen i n q p :
   is_unstamped_path' n q →
@@ -63,9 +82,21 @@ Proof.
   move: p i; induction q => p i Hu //; last by inverse Hu;
     rewrite /psubst_one_path_gen /unshiftsN in IHq |- *; f_equal/=; eauto.
   hnf; cbn. case_decide; simplify_eq/=; first exact: unshiftsN_shiftN.
+<<<<<<< HEAD
   have ?: v ≠ vvar i by naive_solver.
   suff Hr: unshiftsN_vl i v by f_equal.
+||||||| parent of 9adfb38f... More WIP lying around
+  have ?: v ≠ var_vl i by naive_solver.
+  suff Hr: unshiftsN_vl i v by f_equal.
+=======
+  have ?: v ≠ var_vl i by naive_solver.
+  f_equal.
+  rewrite subst_comp.
+  have Hr: unshiftsN_vl i v.
+>>>>>>> 9adfb38f... More WIP lying around
   exact: unstamped_val_unshifts.
+  f_equal.
+  asimpl.
 Qed.
 
 Lemma psubst_one_base_unshifts_gen i n T p :
