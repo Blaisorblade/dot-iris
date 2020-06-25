@@ -32,7 +32,7 @@ Definition oExists `{!dlangG Σ} {n} (T : oltyO Σ 0) (U : oltyO Σ n) : oltyO �
   (* v ∈ w.A *)
   U args (w .: ρ) v).
 
-(**
+(** **
 Semantic proofs of typing lemmas for existentials.
 
 I adapted the rules from https://dl.acm.org/doi/pdf/10.1145/3290322 (see
@@ -69,7 +69,7 @@ Section existentials.
 
 End existentials.
 
-(**
+(** ** Semantics of type projections.
   This semantic type models upper-bound-only type projections using
   (model-level) existentials and normal DOT type members:
     [V[[T#A]](ρ) = { v | ∃ w ∈ V[[T]](ρ). v ∈ V[[w.A]](ρ) }].
@@ -83,7 +83,7 @@ Definition oProjN `{!dlangG Σ} n A (T : oltyO Σ 0) : oltyO Σ n :=
   oSelN n (pv (ids 0)) A args (w .: ρ) v).
 Notation oProj A T := (oProjN 0 A T).
 
-(** Technical infrastructure for setoid rewriting. *)
+(** *** Technical infrastructure for setoid rewriting. *)
 Instance: Params (@oProjN) 4 := {}.
 
 Section type_proj_setoid_equality.
@@ -110,7 +110,7 @@ Section type_proj_setoid_equality.
   Qed.
 End type_proj_setoid_equality.
 
-(** Semantic proofs of typing lemmas for projections. *)
+(** ** Semantic proofs of typing lemmas for projections. *)
 Section type_proj.
   Context `{!dlangG Σ}.
 
