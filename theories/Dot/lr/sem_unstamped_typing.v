@@ -127,7 +127,7 @@ Section tmem_unstamped_lemmas.
     ⊢ Γ su⊨ { l := dtysyn fakeT } : cTMem l (oLater T) (oLater T).
   Proof.
     iMod (leadsto_envD_equiv_alloc HclT) as (s) "#Hs".
-    by iDestruct (suD_Typ_Gen with "Hs") as "#$".
+    iApply (suD_Typ_Gen with "Hs").
   Qed.
 
 
