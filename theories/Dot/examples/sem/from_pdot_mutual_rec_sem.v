@@ -447,11 +447,11 @@ Example fromPDotPaperTyp Γ :
   ⊢ optionModTInv :: Γ u⊨ fromPDotPaper : μ (fromPDotPaperAbsTBody x1).
 Proof.
   iApply uT_Obj_I.
-  iApply suD_Cons; [done| |].
+  iApply suD_Cons; [done| | iApply suD_Sing].
   - iApply suD_Path_Sub; last iApply suD_Val_New.
     + iApply fromPDotPaperTypesSub.
     + iApply semFromPDotPaperTypesTyp.
-  - iApply suD_Sing; iApply suD_Val.
+  - iApply suD_Val.
     iApply fromPDotPaperSymbolsAbsTyp.
 Qed.
 
