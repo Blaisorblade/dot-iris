@@ -74,6 +74,7 @@ Ltac properness :=
   | |- (▷ _)%I ≡ (▷ _)%I => apply bi.later_proper
   | |- (▷^_ _)%I ≡ (▷^_ _)%I => apply bi.laterN_proper
   | |- (□ _)%I ≡ (□ _)%I => apply bi.intuitionistically_proper
+  | |- (|==> _)%I ≡ (|==> _)%I => apply bupd_proper
   | |- (_ ∗ _)%I ≡ (_ ∗ _)%I => apply bi.sep_proper
   end.
 
