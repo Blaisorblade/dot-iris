@@ -2,12 +2,13 @@
 
 This shows how to restrict type projections to be sound and usable in Dotty.
 
-This is developed as an extension of guarded DOT (gDOT), described in
-https://iris-project.org/pdfs/2020-dot-submission.pdf
-(some details are being changed).
+This is developed as an _extension_ of guarded DOT (gDOT), described in the
+ICFP'20's "Scala Step-by-Step" paper.
+(Slightly outdated preprint available at
+https://iris-project.org/pdfs/2020-dot-submission.pdf).
 
-Because of the interest to the wider Scala community,
-this file has extensive informal comments.
+Because of the interest to the wider Scala community, this file has extensive
+informal comments.
 
 The comments use a "naive" understanding of types as sets; this Coq
 development is based on this understanding, but with some restrictions
