@@ -300,34 +300,82 @@ Section type_proj.
     iApply sStp_Refl.
   Qed.
 
+  (** Convenience tactics; to move elsewhere. *)
+  Tactic Notation "iEnough" open_constr(Q) "with" constr(Hs) "as" constr(pat) :=
+    iAssert Q with Hs as pat; first last.
+  Tactic Notation "iEnough" open_constr(Q) "as" constr(pat) :=
+    iAssert Q as pat; first last.
+
   (**
     TODO: Scala probably has more typing rules.
     Check them, or provide counterexamples.
   *)
 
-  (* What about projecting members with matching bounds? Upper bounds are fine... *)
+  (** ** Rules for projecting members with matching bounds. *)
+
+  (** Upper bounds are easy... *)
   Lemma sProj_TMem_Stp Γ A T i :
     ⊢ Γ s⊨ oProj A (oTMem A T T) <:[i] T.
   Proof. apply sProj_Stp_U. Qed.
 
-  (* But lower bounds need an extra view shift for allocations! *)
-  Lemma oProj_oTMem A T ρ v σ :
-    coveringσ σ T →
-    oLater T vnil ρ v -∗ |==> oProj A (oTMem A (oLater T) (oLater T)) vnil ρ v.
+  (**
+    For lower bounds, we'd expect a rule similar to:
+      [Γ ⊨ T <:^i { A :: T .. T }]
+    However, we must first of all "guard" it with ▷, like other gDOT rules
+    involving (g)DOT's impredicative type members; that would give:
+
+      [Γ ⊨ ▷ T <:^i { A :: ▷ T .. ▷ T }]
+
+      or in our notation:
+
+      [Γ s⊨ oLater T <:[i] oProj A (oTMem A (oLater T) (oLater T))].
+
+    However, while _morally_ we can indeed prove it, we cannot yet formalize the
+    proof in this development as-is, for pretty technical issues.
+
+    - Those issues would disappear if we formalized semantic values directly,
+      instead of using ghost state.
+
+    - I believe we could fix these issues even in this development, tho at
+      some cost.
+
+    The technical issue is that this rule must allocate a new type definition
+    that doesn't appear in the source program, and we haven't set things up
+    to allow this; indeed, the conclusion of rule [sProj_Stp_TMem_alloc] is
+    not [Γ s⊨ ...], but is preceded by the update modality [|==> _], which
+    makes the conclusion weaker.
+  *)
+
+  Lemma oProj_oTMem A (T : olty Σ 0) ρ σ s :
+    s ↝[ σ ] shift T -∗
+    oLater T vnil ρ ⊆ oProj A (oTMem A (oLater T) (oLater T)) vnil ρ.
   Proof.
-    (** To prove this theorem, we create an object whose type member [A]
-    points to [shift T] *)
-    move=> /coveringσ_shift; set σ' := vvar 0 :: shift σ => HclT.
-    iIntros "HT"; rewrite oProjN_eq.
-    iMod (leadsto_envD_equiv_alloc HclT) as (s) "#Hs"; iModIntro.
-    set d := dtysem σ' s; set w := (vobj [(A, d)]).[ρ]. iExists w.
-    set lT := oLater T.
-    iAssert (oTMem A lT lT vnil ρ w)%I with "[-HT]" as "#Hw"; first last. {
-      iFrame "Hw". iApply (vl_sel_lb with "HT Hw").
+    (** To prove this theorem, we create an auxiliary definition body [auxD]
+    and an auxiliary object [auxV], whose type member [A] points to [shift T]. *)
+    set auxD := dtysem σ s; set auxV := (vobj [(A, auxD)]).[ρ].
+    iIntros "#Hs %v #HT"; set lT := oLater T; rewrite oProjN_eq.
+    iEnough (oTMem A lT lT vnil ρ auxV)%I with "[-HT]" as "#Hw". {
+      iExists auxV; iFrame "Hw".
+      iApply (vl_sel_lb with "HT Hw").
     }
-    rewrite -(path_wp_pv_eq w).
-    iAssert ([] s⊨p pv (vobj [(A, d)]) :
-      oMu (oTMem A (shift lT) (shift lT)), 0) as "Hw"; last by iApply "Hw".
+    iEnough ([] s⊨p pv (vobj [(A, auxD)]) :
+      oMu (oTMem A (shift lT) (shift lT)), 0) as "Hw". {
+      rewrite -(path_wp_pv_eq auxV). by iApply "Hw". }
     by iApply sP_Obj_I; iApply sD_Sing'; iApply (sD_Typ with "Hs").
+  Qed.
+
+  (** The desired subtyping holds, _if_ we have already allocated [shift T]. *)
+  Lemma sProj_Stp_TMem {Γ i A s σ} {T : olty Σ 0} :
+    s ↝[ σ ] shift T -∗
+    Γ s⊨ oLater T <:[i] oProj A (oTMem A (oLater T) (oLater T)).
+  Proof. iIntros "#Hs %ρ _ !>". iApply (oProj_oTMem with "Hs"). Qed.
+
+  Lemma sProj_Stp_TMem_alloc {Γ i A σ} {T : olty Σ 0} :
+    coveringσ σ T →
+    ⊢ |==> Γ s⊨ oLater T <:[i] oProj A (oTMem A (oLater T) (oLater T)).
+  Proof.
+    intros HclT.
+    iMod (leadsto_envD_equiv_alloc_shift HclT) as (s) "#Hs"; iModIntro.
+    iApply (sProj_Stp_TMem with "Hs").
   Qed.
 End type_proj.
