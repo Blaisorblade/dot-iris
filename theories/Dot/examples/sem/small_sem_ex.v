@@ -59,7 +59,7 @@ Section small_ex.
     - rewrite /hminiV /sminiVT2ConcrBody.
       iApply suT_Obj_I.
       iApply suD_Cons; [done| by iApply suD_posDm_ipos | ].
-      iApply suD_Cons; [done| iApply suD_Val | by iApply suD_Nil].
+      iApply suD_Sing; iApply suD_Val.
       iApply (suT_Sub (T1 := ipos)).
       unstamp_goal_tm.
       by rewrite setp_value /ipos /pos; iIntros "%ρ _ /= !%"; naive_solver.

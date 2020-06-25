@@ -185,6 +185,10 @@ Section DefsTypes.
     cAnd (olty2clty T1) (olty2clty T2) ≡ olty2clty (oAnd T1 T2).
   Proof. split=>??//=. apply: left_absorb. Qed.
 
+  Lemma cAnd_cTop T : cAnd T cTop ≡@{clty Σ} T.
+  Proof.
+    split; [intros ρ ds | intros args ρ v]; apply: (right_id _ bi_and).
+  Qed.
 End DefsTypes.
 
 Global Instance: Params (@cAnd) 1 := {}.

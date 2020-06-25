@@ -375,6 +375,13 @@ Section unstamped_lemmas.
       naive_solver.
   Qed.
 
+  Lemma suD_Sing Γ d l (T : cltyO Σ):
+    Γ su⊨ { l := d } : T -∗ Γ su⊨ds [(l, d)] : cAnd T cTop.
+  Proof.
+    iIntros "#H1"; iMod "H1" as (d1s Hsk1) "H1"; iModIntro.
+    by iExists [(l, d1s)]; iSplit; last iApply (sD_Sing with "H1").
+  Qed.
+
   Lemma suD_Val {Γ} T v1 l:
     Γ su⊨ tv v1 : T -∗
     Γ su⊨ { l := dpt (pv v1) } : cVMem l T.

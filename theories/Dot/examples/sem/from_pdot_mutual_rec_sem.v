@@ -349,7 +349,7 @@ Proof.
     iApply newTypeRef_semTyped.
   }
 
-  iApply suD_Cons; [done | iApply suD_Val | iApply suD_Nil].
+  iApply suD_Sing; iApply suD_Val.
   iApply (uT_All_I_Strong (Γ' := Γ')). apply Hctx.
   iApply fundamental_typed.
   have Hx: x1 @; "TypeRef" :: Γ' v⊢ₜ x0 : ▶: shift typeRefTBody. {
@@ -451,7 +451,7 @@ Proof.
   - iApply suD_Path_Sub; last iApply suD_Val_New.
     + iApply fromPDotPaperTypesSub.
     + iApply semFromPDotPaperTypesTyp.
-  - iApply suD_Cons; [done| iApply suD_Val | iApply suD_Nil].
+  - iApply suD_Sing; iApply suD_Val.
     iApply fromPDotPaperSymbolsAbsTyp.
 Qed.
 

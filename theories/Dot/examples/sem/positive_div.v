@@ -158,7 +158,7 @@ Section div_example.
     iApply suT_Obj_I.
     iApply suD_Cons; [done|iApply suD_posDm_ipos|].
     iApply suD_Cons; [done| iApply suD_Val|]; last
-      (iApply suD_Cons; [done| iApply suD_Val |iApply suD_Nil]);
+      (iApply suD_Sing; iApply suD_Val);
       iApply (suT_All_I_Strong _ _ _ HctxSub).
     - unstamp_goal_tm.
       iIntros "%ρ [[_ [#Hpos _]] %Hnpos]"; lazy in Hnpos.

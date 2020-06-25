@@ -630,27 +630,13 @@ Section derived.
   Context `{Hdlang : !dlangG Σ} `{HswapProp : SwapPropI Σ}.
   Opaque sSkd sstpiK sptp sstpi.
 
-  Lemma sT_New_w_And n Γ l σ s (K : sf_kind Σ n) T :
-    oLater (c2o (cAnd (cTMemK l K) cTop)) :: Γ s⊨ oLater T ∷[ 0 ] K -∗
-    s ↝[ σ ] T -∗
-    Γ s⊨ vobj [ (l, dtysem σ s) ] : oMu (c2o (cAnd (cTMemK l K) cTop)).
-  Proof.
-    iIntros "#HT #Hs".
-    iApply sT_Obj_I; iApply sD_Cons; [done| |iApply sD_Nil].
-    iApply (sD_TypK_Abs with "HT Hs").
-  Qed.
-
-  (* Replace (U ∧ ⊤) by U. *)
-  (* Closer to what Sandro wrote on paper, but some adjustments can only be
-  done in the model, right now. *)
-  Lemma sT_New_No_And {n Γ l σ s T} {K : sf_kind Σ n} :
+  Lemma sT_New n Γ l σ s (K : sf_kind Σ n) T :
     oLater (oTMemK l K) :: Γ s⊨ oLater T ∷[ 0 ] K -∗
     s ↝[ σ ] T -∗
     Γ s⊨ vobj [ (l, dtysem σ s) ] : oMu (oTMemK l K).
   Proof.
-    have ->: (oTMemK l K ≡ c2o (cAnd (cTMemK l K) cTop)).
-    by intros ???; iSplit; [iIntros "$" | iIntros "[$ _]"].
-    apply sT_New_w_And.
+    rewrite -sT_Obj_I -sD_Sing'.
+    apply sD_TypK_Abs.
   Qed.
 
   Lemma sKStp_Intv_Equiv {Γ T1 T2 L U i} :
@@ -774,7 +760,7 @@ Section derived.
   Proof using HswapProp.
     iIntros "#HT #Hs".
     iApply (sT_Sub (T1 := oMu (oTMemK l (s_to_sf (ho_sing K (oLater T)))))).
-    rewrite sK_HoIntv; iApply (sT_New_No_And with "HT Hs").
+    rewrite sK_HoIntv; iApply (sT_New with "HT Hs").
     iApply sMu_Stp_Mu. rewrite oLaterN_0.
     rewrite -sstpiK_star_eq_sstpd.
     iApply sKStp_TMem.
@@ -811,7 +797,7 @@ Section derived.
     iIntros (vPack) "#HK #Hs".
     iPoseProof (sK_HoSing with "HK") as "HK1".
     (* iPoseProof (sP_New_w_And with "HK1 Hs") as "{HK1} Hpn". *)
-    iPoseProof (sT_New_No_And with "HK1 Hs") as "{HK1} Hpn"; fold vPack.
+    iPoseProof (sT_New with "HK1 Hs") as "{HK1} Hpn"; fold vPack.
     rewrite sP_Val.
 
     iApply sKEq_Sub; last iApply sSkd_HoIntv.

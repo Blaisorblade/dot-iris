@@ -124,4 +124,12 @@ Section Sec.
     iSplit; first by iApply clty_def2defs_head.
     iApply (clty_mono with "HT2"). exact: dms_hasnt_subst.
   Qed.
+
+  (* Useful derived rules. *)
+  Lemma sD_Sing Γ d l T : Γ s⊨ { l := d } : T -∗ Γ s⊨ds [(l, d)] : cAnd T cTop.
+  Proof. by iIntros "#H"; iApply (sD_Cons with "H"); last iApply sD_Nil. Qed.
+
+  (** Not part of the official type system, but very convenient for examples. *)
+  Lemma sD_Sing' Γ d l T : Γ s⊨ { l := d } : T -∗ Γ s⊨ds [(l, d)] : T.
+  Proof. by rewrite sD_Sing (cAnd_cTop T). Qed.
 End Sec.
