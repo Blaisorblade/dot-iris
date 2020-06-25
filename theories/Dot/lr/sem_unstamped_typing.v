@@ -13,10 +13,6 @@ Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
          (ρ : env) (l : label).
 
-(* XXX fix notation scopes for Iris basic updates. To drop when we update Iris. *)
-Arguments bupd {_}%type_scope {_} _%bi_scope.
-Notation "|==> Q" := (bupd Q) : bi_scope.
-
 Section unstamped_judgs.
   Context `{!dlangG Σ}.
 
