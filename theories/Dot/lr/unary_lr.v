@@ -359,6 +359,9 @@ Section misc_lemmas.
     ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗n[ 0 ] ψ ∧ dot_intv_type_pred τ1 τ2 ρ ψ.
   Proof. apply bi_exist_nested_swap. Qed.
 
+  Lemma oTMem_shift A L U : oTMem A (shift L) (shift U) = shift (oTMem A L U).
+  Proof. done. Qed.
+
   (** Core lemmas about type selections and bounds. *)
   Lemma vl_sel_ub w l L U ρ v :
     vl_sel w l vnil v -∗
