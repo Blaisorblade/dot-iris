@@ -119,6 +119,14 @@ Section coveringσ_intro_lemmas.
     move=> args ρ v.
     by rewrite -olty_finsubst_commute_cl ?length_idsσ // closed_subst_idsρ.
   Qed.
+
+  Lemma coveringσ_shift {i} σ (T : olty Σ i) :
+    coveringσ σ T → coveringσ (push_var σ) (shift T).
+  Proof.
+    move => + args ρ => /(_ args (stail ρ)) HclT; cbn.
+    rewrite /= !olty_weaken_one hsubst_comp stail_eq.
+    apply HclT.
+  Qed.
 End coveringσ_intro_lemmas.
 
 Section tmem_unstamped_lemmas.
@@ -130,6 +138,11 @@ Section tmem_unstamped_lemmas.
     iMod (saved_ho_sem_type_alloc _ T) as (s) "#Hs"; iIntros "!>".
     iExists s, T; iFrame "Hs"; iIntros "!%". apply Hcl.
   Qed.
+
+  Lemma leadsto_envD_equiv_alloc_shift {σ} {T : olty Σ 0} :
+    coveringσ σ T →
+    ⊢ |==> ∃ s, s ↝[ push_var σ ] shift T.
+  Proof. intros Hcl; apply leadsto_envD_equiv_alloc, coveringσ_shift, Hcl. Qed.
 
   Lemma suD_Typ_Gen {l Γ fakeT s σ} {T : olty Σ 0} :
     s ↝[ σ ] T -∗ Γ su⊨ { l := dtysyn fakeT } : cTMem l (oLater T) (oLater T).
