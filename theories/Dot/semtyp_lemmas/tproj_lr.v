@@ -325,11 +325,9 @@ Section type_proj.
     iAssert (oTMem A lT lT vnil ρ w)%I with "[-HT]" as "#Hw"; first last. {
       iFrame "Hw". iApply (vl_sel_lb with "HT Hw").
     }
+    rewrite -(path_wp_pv_eq w).
     iAssert ([] s⊨p pv (vobj [(A, d)]) :
-      oMu (oTMem A (shift lT) (shift lT)), 0) as "Hw".
+      oMu (oTMem A (shift lT) (shift lT)), 0) as "Hw"; last by iApply "Hw".
     by iApply sP_Obj_I; iApply sD_Sing'; iApply (sD_Typ with "Hs").
-    iSpecialize ("Hw" $! ρ); rewrite laterN_0 (path_wp_pv_eq w).
-    iEval (rewrite oMu_eq oTMem_shift olty_weaken_one stail_eq) in "Hw".
-    by iApply "Hw".
   Qed.
 End type_proj.
