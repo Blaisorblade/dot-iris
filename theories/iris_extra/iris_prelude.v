@@ -27,7 +27,8 @@ Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
 (* Instances for [IntoVal], used e.g. by [wp_value]; copied from F_mu. *)
 Hint Extern 5 (IntoVal _ _) => eapply of_to_val; fast_done : typeclass_instances.
 Hint Extern 10 (IntoVal _ _) =>
-  rewrite /IntoVal; eapply of_to_val; rewrite /= !to_of_val /=; solve [ eauto ] : typeclass_instances.
+  rewrite /IntoVal; eapply of_to_val; rewrite /= !to_of_val /=;
+  solve [ eauto ] : typeclass_instances.
 
 
 (** * Setoid rewriting *)
@@ -92,7 +93,8 @@ Ltac hof_eq_app :=
 (** ** Our best [solve_proper]/[solve_contractive] extension for higher-order
 functions. *)
 Ltac solve_proper_ho := solve_proper_core ltac:(fun _ => hof_eq_app || f_equiv).
-Ltac solve_contractive_ho := solve_proper_core ltac:(fun _ => hof_eq_app || f_contractive || f_equiv).
+Ltac solve_contractive_ho :=
+  solve_proper_core ltac:(fun _ => hof_eq_app || f_contractive || f_equiv).
 
 (** ** Other [solve_proper]/[solve_contractive] extensions for higher-order
 functions, which might or might not be useful sometimes. *)
@@ -111,7 +113,8 @@ Ltac solve_proper_ho_core tac :=
   solve [repeat intro; cbn; repeat tac (); cbn in *;
   repeat match goal with H : _ ≡{_}≡ _|- _ => apply H end].
 Ltac solve_proper_ho_alt := solve_proper_ho_core ltac:(fun _ => f_equiv).
-Ltac solve_contractive_ho_alt := solve_proper_ho_core ltac:(fun _ => f_contractive || f_equiv).
+Ltac solve_contractive_ho_alt :=
+  solve_proper_ho_core ltac:(fun _ => f_contractive || f_equiv).
 
 Ltac deep_ho_f_equiv :=
   match goal with
@@ -120,5 +123,7 @@ Ltac deep_ho_f_equiv :=
   | H : dist_later _ _ _ |- _ => apply: H || rewrite H //
   end.
 
-Ltac deep_solve_proper_ho := solve_proper_core ltac:(fun _ => deep_ho_f_equiv || f_equiv).
-Ltac deep_solve_contractive_ho := solve_proper_core ltac:(fun _ => deep_ho_f_equiv || f_contractive || f_equiv).
+Ltac deep_solve_proper_ho :=
+  solve_proper_core ltac:(fun _ => deep_ho_f_equiv || f_equiv).
+Ltac deep_solve_contractive_ho :=
+  solve_proper_core ltac:(fun _ => deep_ho_f_equiv || f_contractive || f_equiv).
