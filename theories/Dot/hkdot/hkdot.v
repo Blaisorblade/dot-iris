@@ -51,11 +51,6 @@ Notation "Γ s⊨ K1 <∷[ i  ] K2" := (sSkd i Γ K1 K2)
 Section gen_lemmas.
   Context `{Hdlang : dlangG Σ} `{HswapProp: SwapPropI Σ}.
 
-  Local Notation IntoPersistent' P := (IntoPersistent false P P).
-
-  Global Instance sstpiK_into_persistent : IntoPersistent' (sstpiK (n := n) i Γ T1 T2 K) | 0 := _.
-  Global Instance sSkd_into_persistent : IntoPersistent' (sSkd (n := n) i Γ K1 K2) | 0 := _.
-
   Global Instance sstpiK_proper n i :
     Proper ((≡) ==> (≡) ==> (≡) ==> (≡) ==> (≡)) (sstpiK (Σ := Σ) (n := n) i).
   Proof.

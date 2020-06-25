@@ -20,12 +20,7 @@ Section defs.
       sG⟦Γ⟧*ρ → ▷^i oClose τ1 ρ v → ▷^j oClose τ2 ρ v.
   Global Arguments sstpi /.
 
-  Context `{!dlangG Σ}.
-  Definition istpi Γ T1 T2 i j := sstpi i j V⟦Γ⟧* V⟦T1⟧ V⟦T2⟧.
-  (* Avoid auto-dropping box (and unfolding) when introducing judgments persistently. *)
-  Local Notation IntoPersistent' P := (IntoPersistent false P P).
-  Global Instance sstpi_persistent i j Γ T1 T2 : IntoPersistent' (sstpi i j Γ T1 T2) | 0 := _.
-  Global Instance istpi_persistent Γ T1 T2 i j : IntoPersistent' (istpi Γ T1 T2 i j) | 0 := _.
+  Definition istpi `{!dlangG Σ} Γ T1 T2 i j := sstpi i j V⟦Γ⟧* V⟦T1⟧ V⟦T2⟧.
 End defs.
 (** Indexed subtyping *)
 Notation "Γ s⊨ T1 , i <: T2 , j " := (sstpi i j Γ T1 T2) (at level 74, T1, T2, i, j at next level).
