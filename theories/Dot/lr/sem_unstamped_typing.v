@@ -102,6 +102,25 @@ Local Hint Resolve same_skel_dms_hasnt : core.
 Definition coveringσ `{!dlangG Σ} {i} σ (T : olty Σ i) : Prop :=
   ∀ args ρ, T args ρ ≡ T args (∞ σ.|[ρ]).
 
+Section coveringσ_intro_lemmas.
+  Context `{!dlangG Σ}.
+
+  Lemma nclosed_syn_coveringσ {n} {T : ty} (Hcl : nclosed T n) :
+    coveringσ (idsσ n) V⟦T⟧.
+  Proof.
+    move=> args ρ v /=.
+    by rewrite -interp_finsubst_commute_cl ?length_idsσ // closed_subst_idsρ.
+  Qed.
+
+  (* Maybe hard to use in general; [nclosed] requires equality on the nose? *)
+  Lemma nclosed_sem_coveringσ {n} {T : olty Σ 0} (Hcl : nclosed T n) :
+    coveringσ (idsσ n) T.
+  Proof.
+    move=> args ρ v.
+    by rewrite -olty_finsubst_commute_cl ?length_idsσ // closed_subst_idsρ.
+  Qed.
+End coveringσ_intro_lemmas.
+
 Section tmem_unstamped_lemmas.
   Context `{!dlangG Σ}.
 
@@ -157,17 +176,6 @@ Section tmem_unstamped_lemmas.
   Proof.
     by iIntros "H1 H2"; iApply (suD_Typ_Stp with "H1 H2"); iApply suD_Typ.
   Qed.
-End tmem_unstamped_lemmas.
-
-Section coveringσ_lemmas.
-  Context `{!dlangG Σ}.
-
-  Lemma nclosed_syn_coveringσ {n} {T : ty} (Hcl : nclosed T n) :
-    coveringσ (idsσ n) V⟦T⟧.
-  Proof.
-    move=> args ρ v /=.
-    by rewrite -interp_finsubst_commute_cl ?length_idsσ // closed_subst_idsρ.
-  Qed.
 
   Lemma uD_Typ_Abs {l n Γ L T U} fakeT (HclT : nclosed T n):
     Γ ⊨ L <:[0] TLater T -∗
@@ -178,15 +186,7 @@ Section coveringσ_lemmas.
   Lemma uD_Typ {l n Γ T} fakeT (HclT : nclosed T n):
     ⊢ Γ u⊨ { l := dtysyn fakeT } : TTMem l (TLater T) (TLater T).
   Proof. have := !!nclosed_syn_coveringσ HclT; apply suD_Typ. Qed.
-
-  (* Maybe hard to use in general; [nclosed] requires equality on the nose? *)
-  Lemma nclosed_sem_coveringσ {n} {T : olty Σ 0} (Hcl : nclosed T n) :
-    coveringσ (idsσ n) T.
-  Proof.
-    move=> args ρ v.
-    by rewrite -olty_finsubst_commute_cl ?length_idsσ // closed_subst_idsρ.
-  Qed.
-End coveringσ_lemmas.
+End tmem_unstamped_lemmas.
 
 Section unstamped_lemmas.
   Context `{!dlangG Σ}.
