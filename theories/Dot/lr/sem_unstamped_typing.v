@@ -173,11 +173,11 @@ Section coveringσ_lemmas.
     Γ ⊨ L <:[0] TLater T -∗
     Γ ⊨ TLater T <:[0] U -∗
     Γ u⊨ { l := dtysyn fakeT } : TTMem l L U.
-  Proof. have := nclosed_syn_coveringσ HclT; apply suD_Typ_Abs. Qed.
+  Proof. have := !!nclosed_syn_coveringσ HclT; apply suD_Typ_Abs. Qed.
 
   Lemma uD_Typ {l n Γ T} fakeT (HclT : nclosed T n):
     ⊢ Γ u⊨ { l := dtysyn fakeT } : TTMem l (TLater T) (TLater T).
-  Proof. have := !!(nclosed_syn_coveringσ HclT). apply suD_Typ. Qed.
+  Proof. have := !!nclosed_syn_coveringσ HclT; apply suD_Typ. Qed.
 
   (* Maybe hard to use in general; [nclosed] requires equality on the nose? *)
   Lemma nclosed_sem_coveringσ {n} {T : olty Σ 0} (Hcl : nclosed T n) :
