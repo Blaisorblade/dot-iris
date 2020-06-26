@@ -27,6 +27,20 @@ Section Lemmas.
     Γ s⊨p p : T2, i.
   Proof. have := !!(@sP_ISub _ _ Γ p T1 T2 i 0). by rewrite (plusnO i). Qed.
 
+  Lemma sP_LaterN {Γ i j} p T :
+    Γ s⊨p p : oLaterN j T, i -∗
+    Γ s⊨p p : T, i + j.
+  Proof.
+    rewrite comm; elim: j i => [//|j IHj] i; rewrite plus_Snm_nSm.
+    by rewrite -(IHj i.+1) -sP_Later.
+  Qed.
+
+  Lemma sP_Var0 {Γ T}
+    (Hx : Γ !! 0 = Some T):
+    (*──────────────────────*)
+    ⊢ Γ s⊨p pv (ids 0) : T, 0.
+  Proof. rewrite -(hsubst_id T). apply (sP_Var Hx). Qed.
+
   (** For https://github.com/lampepfl/dotty/blob/85962b19ddf4f1909189bf07b40f9a05849f9bbf/compiler/src/dotty/tools/dotc/core/TypeComparer.scala#L553. *)
   Lemma singleton_Mu_dotty_approx_0 {Γ p i T1 T2} :
     iterate TLater i (TAnd T1 (TSing (shift p))) :: Γ ⊨ T1, i <: T2, i -∗
@@ -172,20 +186,6 @@ Section Lemmas.
     apply sSub_Refl.
     iApply sSub_Trans; [iApply IHj|iApply sLater_Sub].
   Qed.
-
-  Lemma sP_LaterN {Γ i j} p T :
-    Γ s⊨p p : oLaterN j T, i -∗
-    Γ s⊨p p : T, i + j.
-  Proof.
-    rewrite comm; elim: j i => [//|j IHj] i; rewrite plus_Snm_nSm.
-    by rewrite -(IHj i.+1) -sP_Later.
-  Qed.
-
-  Lemma sP_Var0 {Γ T}
-    (Hx : Γ !! 0 = Some T):
-    (*──────────────────────*)
-    ⊢ Γ s⊨p pv (ids 0) : T, 0.
-  Proof. rewrite -(hsubst_id T). apply (sP_Var Hx). Qed.
 
   (*
   Useful in contexts where we make [pty_interp] more opaque, such as some
