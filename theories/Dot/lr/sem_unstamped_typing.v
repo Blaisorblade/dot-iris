@@ -26,9 +26,9 @@ Section unstamped_judgs.
   Definition sudtp l d_u Γ T : iProp Σ :=
     |==> ∃ d_s, ⌜ same_skel_dm d_u d_s⌝ ∧ Γ s⊨ { l := d_s } : T.
 
-  Definition iudtp  Γ T l d     := sudtp l d  V⟦Γ⟧* C⟦T⟧.
-  Definition iudstp Γ T ds      := sudstp ds  V⟦Γ⟧* C⟦T⟧.
   Definition iuetp  Γ T e       := suetp e    V⟦Γ⟧* V⟦T⟧.
+  Definition iudstp Γ T ds      := sudstp ds  V⟦Γ⟧* C⟦T⟧.
+  Definition iudtp  Γ T l d     := sudtp l d  V⟦Γ⟧* C⟦T⟧.
 End unstamped_judgs.
 
 Global Instance: Params (@suetp) 3 := {}.
