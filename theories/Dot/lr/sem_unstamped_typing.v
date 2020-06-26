@@ -29,6 +29,13 @@ Section unstamped_judgs.
   Definition iuetp  Γ T e       := suetp e    V⟦Γ⟧* V⟦T⟧.
   Definition iudstp Γ T ds      := sudstp ds  V⟦Γ⟧* C⟦T⟧.
   Definition iudtp  Γ T l d     := sudtp l d  V⟦Γ⟧* C⟦T⟧.
+
+  Arguments suetp  : simpl never.
+  Arguments sudstp : simpl never.
+  Arguments sudtp  : simpl never.
+  Arguments iuetp  : simpl never.
+  Arguments iudstp : simpl never.
+  Arguments iudtp  : simpl never.
 End unstamped_judgs.
 
 Global Instance: Params (@suetp) 3 := {}.
