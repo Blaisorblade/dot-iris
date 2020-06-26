@@ -67,7 +67,7 @@ Section judgment_lemmas.
     Γ s⊨ oLaterN i T1 <:[0] oLaterN j T2.
   Proof. by rewrite sstpd0_to_sstpi0. Qed.
 
-  Lemma sstpd_to_sstpi Γ i T1 T2  `{!SwapPropI Σ} :
+  Lemma sstpd_to_sstpi Γ i T1 T2 `{!SwapPropI Σ} :
     Γ s⊨ T1 <:[i] T2 ⊣⊢
     Γ s⊨ T1, i <: T2, i.
   Proof. by rewrite /sstpi -sstpd_delay_oLaterN sstpd_eq. Qed.
