@@ -463,9 +463,9 @@ Proof.
   iApply fundamental_typed.
   exact: optionModInvTyp.
   iApply (uT_All_I_Strong (Γ' := Γ)). ietp_weaken_ctx.
-  iApply (uT_ISub (i := 0)).
+  iApply suT_Sub.
   iApply fromPDotPaperTyp.
-  iApply sSub_Top.
+  iApply sStp_Top.
 Qed.
 
 (** ** Additional examples of client code, not mentioned in the paper.
@@ -525,7 +525,7 @@ Proof.
   iApply uT_All_E; first last.
   iApply fromPDotPaperTyp.
   iApply uT_All_I_Strong. ietp_weaken_ctx.
-  iApply (uT_ISub (i := 0)); last iApply sSub_Top.
+  iApply suT_Sub; last iApply sStp_Top.
   iApply fundamental_typed.
   apply getAnyTypeTyp0.
 Qed.
