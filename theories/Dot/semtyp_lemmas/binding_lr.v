@@ -20,12 +20,12 @@ Section LambdaIntros.
     (*─────────────────────────*)
     Γ s⊨ tv (vabs e) : oAll T1 T2.
   Proof.
-    rewrite Hctx; iIntros "#HeT %ρ #HG /= ".
+    rewrite Hctx; iIntros "HeT %ρ HG /= ".
     rewrite -wp_value'. iExists _; iSplit; first done.
-    iIntros (v) "#Hv"; rewrite up_sub_compose.
+    iIntros (v) "Hv"; rewrite up_sub_compose.
     (* Factor ▷ out of [sG⟦ Γ ⟧* ρ] before [iNext]. *)
     rewrite senv_TLater_commute. iNext.
-    iApply ("HeT" $! (v .: ρ) with "[$HG]").
+    iApply ("HeT" $! (v .: ρ) with "[Hv $HG]").
     by rewrite hoEnvD_weaken_one.
   Qed.
 
