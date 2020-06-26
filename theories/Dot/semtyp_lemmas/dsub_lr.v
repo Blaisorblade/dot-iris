@@ -124,6 +124,11 @@ Section DStpLemmas.
     iApply (vl_sel_ub with "Hφ Hp").
   Qed.
 
+  (*
+     Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂ᶻ
+     ----------------------------------------------- (μ-<:-μ)
+     Γ ⊨ μ (x: T₁ˣ) <: μ(x: T₂ˣ)
+  *)
   Lemma sMu_Stp_Mu {Γ T1 T2 i} `{!SwapPropI Σ}:
     oLaterN i T1 :: Γ s⊨ T1 <:[i] T2 -∗
     Γ s⊨ oMu T1 <:[i] oMu T2.
@@ -141,8 +146,13 @@ Section DStpLemmas.
     by rewrite fmap_cons (iterate_TLater_oLater i T1).
   Qed.
 
-  (** Novel subtyping rules. [Sub_Bind_1] and [Sub_Bind_2] become
-  derivable. *)
+  (**
+  Novel subtyping rules for recursive types:
+     x ∉ fv T
+     -----------------------------------------------
+     Γ ⊨ mu x: T <: T    Γ ⊨ T <: mu(x: T)
+
+  [Stp_Bind_1] and [Stp_Bind_2] become derivable. *)
   Lemma sMu_Stp {Γ T i} : ⊢ Γ s⊨ oMu (shift T) <:[i] T.
   Proof. rewrite oMu_shift. apply sStp_Refl. Qed.
 
