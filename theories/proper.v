@@ -54,7 +54,6 @@ Ltac f_equiv ::=
       (_ : Proper (R _ _ _ ==> R _ _ _ R _ _ _ ==> R _ _ _ ==> R _ _ _ ==> R _ _ _ ==> _) f)
   (* Next, try to infer the relation. Unfortunately, very often, it will turn
      the goal into a Leibniz equality so we get stuck. *)
-  (* TODO: Can we exclude that instance? *)
   | |- ?R (?f _) _ => simple apply (_ : Proper (_ ==> R) f)
   | |- ?R (?f _ _) _ => simple apply (_ : Proper (_ ==> _ ==> R) f)
   | |- ?R (?f _ _ _) _ => simple apply (_ : Proper (_ ==> _ ==> _ ==> R) f)
@@ -63,9 +62,6 @@ Ltac f_equiv ::=
   | |- ?R (?f _ _ _ _ _ _) _ => simple apply (_ : Proper (_ ==> _ ==> _ ==> _ ==> _ ==> _ ==> R) f)
   (* In case the function symbol differs, but the arguments are the same,
      maybe we have a pointwise_relation in our context. *)
-  (* TODO: If only some of the arguments are the same, we could also
-     query for "pointwise_relation"'s. But that leads to a combinatorial
-     explosion about which arguments are and which are not the same. *)
   | H : pointwise_relation _ ?R ?f ?g |- ?R (?f ?x) (?g ?x) => simple apply H
   | H : pointwise_relation _ (pointwise_relation _ ?R) ?f ?g |- ?R (?f ?x ?y) (?g ?x ?y) => simple apply H
   end;
