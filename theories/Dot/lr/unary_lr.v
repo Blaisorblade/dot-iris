@@ -440,7 +440,8 @@ Section misc_lemmas.
     Γ s⊨ { l := d } : T ⊣⊢
       ∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ [(l, d.|[ρ])].
   Proof.
-    rewrite /= pure_True ?(left_id True%I bi_and); by [> | exact: NoDup_singleton].
+    rewrite /= pure_True ?(left_id _ bi_and);
+      by [> | exact: NoDup_singleton].
   Qed.
 
   Lemma sdtp_eq' (Γ : sCtx Σ) (T : dlty Σ) l d:
