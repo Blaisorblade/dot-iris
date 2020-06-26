@@ -132,13 +132,13 @@ Section Lemmas.
      ----------------------------------------------- (<:-Bind-1)
      Γ ⊨ μ (x: T₁ˣ) <: T₂
   *)
-  (* Derive this rule from Mu_Sub_Mu and Mu_Sub. *)
-  Lemma Sub_Bind_1 {Γ T1 T2 i j} :
-    iterate TLater i T1 :: Γ ⊨ T1, i <: shift T2, j -∗
-    Γ ⊨ TMu T1, i <: T2, j.
+  (* Derive this rule from Mu_Stp_Mu and Mu_Stp. *)
+  Lemma Stp_Bind_1 {Γ T1 T2 i} `{SwapPropI Σ} :
+    iterate TLater i T1 :: Γ ⊨ T1 <:[i] shift T2 -∗
+    Γ ⊨ TMu T1 <:[i] T2.
   Proof.
-    iIntros "Hstp"; iApply (sSub_Trans with "[-] []").
-    by iApply Mu_Sub_Mu. iApply Mu_Sub.
+    iIntros "Hstp"; iApply (sStp_Trans with "[-] []").
+    by iApply Mu_Stp_Mu. iApply Mu_Stp.
   Qed.
 
   (*
@@ -146,12 +146,12 @@ Section Lemmas.
      ----------------------------------------------- (<:-Bind-2)
      Γ ⊨ T₁ <: μ(x: T₂ˣ)
   *)
-  Lemma Sub_Bind_2 {Γ T1 T2 i j} :
-    iterate TLater i (shift T1) :: Γ ⊨ (shift T1), i <: T2, j -∗
-    Γ ⊨ T1, i <: TMu T2, j.
+  Lemma Stp_Bind_2 {Γ T1 T2 i} `{SwapPropI Σ} :
+    iterate TLater i (shift T1) :: Γ ⊨ shift T1 <:[i] T2 -∗
+    Γ ⊨ T1 <:[i] TMu T2.
   Proof.
-    iIntros "Hstp"; iApply (sSub_Trans with "[] [-]").
-    iApply Sub_Mu. by iApply Mu_Sub_Mu.
+    iIntros "Hstp"; iApply (sStp_Trans with "[] [-]").
+    iApply Stp_Mu. by iApply Mu_Stp_Mu.
   Qed.
 
   (*
