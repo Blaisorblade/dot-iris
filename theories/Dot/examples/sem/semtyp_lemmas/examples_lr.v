@@ -98,35 +98,6 @@ Section Lemmas.
         (alias_paths_elim_eq _ Heq) path_wp_pv_eq //.
   Qed.
 
-  (** Unlike [sDistr_And_Or_Sub], this is also derivable syntactically; see [iDistr_Or_And_Sub_inv]. But much easier to
-  derive in the model. *)
-  Lemma sDistr_Or_And_Sub_inv {Γ S T U i}:
-    ⊢ Γ s⊨ oAnd (oOr S U) (oOr T U), i <: oOr (oAnd S T) U , i.
-  Proof. iIntros "%% Hg [[HS|HT] [HT'|HU]] !> /="; eauto with iFrame. Qed.
-
-  Lemma sAnd_Fld_Sub_Distr_2 Γ l T1 T2 i:
-    ⊢ Γ s⊨ oVMem l (oAnd T1 T2), i <: oAnd (oVMem l T1) (oVMem l T2), i.
-  Proof.
-    iIntros "%ρ %v _ H"; iNext.
-    iSplit; iApply (oVMem_respects_sub with "[] H"); by iIntros "%_ [??]".
-  Qed.
-
-  (* This should also follows internally from covariance, once that's proven. *)
-  Lemma sAnd_Fld_Sub_Distr_Or_1 Γ l T1 T2 i:
-    ⊢ Γ s⊨ oOr (oVMem l T1) (oVMem l T2), i <: oVMem l (oOr T1 T2), i.
-  Proof.
-    iIntros "%ρ %v _ [H|H]"; iNext;
-      iApply (oVMem_respects_sub with "[] H"); iIntros "% $".
-  Qed.
-
-  Lemma sAnd_Fld_Sub_Distr_Or_2 Γ l T1 T2 i:
-    ⊢ Γ s⊨ oVMem l (oOr T1 T2), i <: oOr (oVMem l T1) (oVMem l T2), i.
-  Proof.
-    iIntros "%ρ %v _ #H"; iNext.
-    iDestruct "H" as (d Hl pmem ->) "#H"; rewrite -path_wp_or -!oDVMem_eq.
-    iDestruct "H" as "#[H|H]"; [iLeft | iRight]; iExists _; iFrame (Hl) "H".
-  Qed.
-
   (*
      Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂
      ----------------------------------------------- (<:-Bind-1)
