@@ -1,11 +1,14 @@
 (** * Old fundamental theorem and type safety for storeless gDOT and old unstamped gDOT. *)
 From D Require Import swap_later_impl.
 
+(** From gDOT proper. *)
 From D.Dot Require Export fundamental.
-From D.Dot Require Export sub_lr.
+From D.Dot Require Import subtyping path_repl_lemmas skeleton.
 
-From D.Dot Require Import storeless_typing path_repl_lemmas skeleton.
-From D.Dot Require Import old_unstamped_typing old_unstamped_typing_to_typing.
+(** Adapter code. *)
+From D.Dot.examples.old_typing Require Import old_unstamped_typing old_unstamped_typing_to_typing.
+From D.Dot.examples.sem Require Export sub_lr.
+From D.Dot.examples.sem Require Import storeless_typing.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
@@ -103,62 +106,16 @@ Section old_fundamental.
   (* Make proofs below more robust by opaquifying judgments. *)
   Opaque setp sdstp sdtp sptp sstpi suetp sudtp sudstp.
 
-  Local Definition fundamental_path_typed_def Γ p T i
-    (HT : Γ u⊢ₚ p : T, i) := ⊢ Γ ⊨p p : T, i.
-  Local Definition fundamental_subtype_def Γ T1 i1 T2 i2
-    (HT: Γ u⊢ₜ T1, i1 <: T2, i2) := ⊢ Γ ⊨ T1, i1 <: T2, i2.
+  Lemma fundamental_path_typed Γ p T i :
+    Γ u⊢ₚ p : T, i → ⊢ Γ ⊨p p : T, i.
+  Proof. move=> /renew_path_typed. apply fundamental.fundamental_path_typed. Qed.
 
-  (* Reduce away the above definitions; copied from [fundamental.v] *)
-  Local Ltac simpl_context := red; markUsed Σ; red_hyps_once.
-
-  (** TODO: replace. *)
-  Theorem subtype_fundamental_mut Γ :
-    (∀ p T i (HT : Γ u⊢ₚ p : T, i), fundamental_path_typed_def HT) ∧
-    (∀ T1 i1 T2 i2 (HT: Γ u⊢ₜ T1, i1 <: T2, i2), fundamental_subtype_def HT).
+  Lemma fundamental_subtype Γ T1 i1 T2 i2 :
+    Γ u⊢ₜ T1, i1 <: T2, i2 → ⊢ Γ ⊨ T1, i1 <: T2, i2.
   Proof.
-    apply old_pure_typing_mut_ind; clear Γ; intros; simpl_context.
-      + by iApply P_Var.
-      + by iApply sP_Nat_I.
-      + by iApply sP_Bool_I.
-      + iApply sP_Fld_E. by iApply H.
-      + by iApply sP_ISub; [iApply H0|iApply H].
-      + by iApply P_Mu_I; [|iApply H]; first exact: psubst_one_implies.
-      + by iApply P_Mu_E; [|iApply H]; first exact: psubst_one_implies.
-      + iApply sP_Fld_I. by iApply H.
-      + iApply sP_Sngl_Refl. by iApply H.
-      + iApply sP_Sngl_Inv. by iApply H.
-      + by iApply sP_Sngl_Trans; [iApply H|iApply H0].
-      + by iApply sP_Sngl_E; [iApply H|iApply H0].
-
-      + by iApply sSub_Refl.
-      + by iApply sSub_Trans; [iApply H|iApply H0].
-      + by iApply sLater_Sub.
-      + by iApply sSub_Later.
-      + by iApply sSub_Add_Later.
-      + by iApply sSub_Top.
-      + by iApply sBot_Sub.
-      + by iApply sAnd1_Sub.
-      + by iApply sAnd2_Sub.
-      + by iApply sSub_And; [iApply H|iApply H0].
-      + by iApply sSub_Or1.
-      + by iApply sSub_Or2.
-      + by iApply sOr_Sub; [iApply H|iApply H0].
-      + iApply sSel_Sub; by iApply H.
-      + iApply sSub_Sel; by iApply H.
-      + by iApply Sngl_pq_Sub; [|iApply H].
-      + by iApply sSngl_Sub_Sym; [iApply H|iApply H0].
-      + iApply sSngl_Sub_Self. by iApply H.
-      + iApply Mu_Sub_Mu. by iApply H.
-      + iApply Mu_Sub.
-      + iApply Sub_Mu.
-      + by iApply All_Sub_All; [iApply H|iApply H0].
-      + iApply sFld_Sub_Fld. by iApply H.
-      + by iApply sTyp_Sub_Typ; [iApply H|iApply H0].
-      + iApply sAnd_All_Sub_Distr.
-      + iApply sAnd_Fld_Sub_Distr.
-      + iApply sAnd_Typ_Sub_Distr.
-      + iApply sDistr_And_Or_Sub.
-      + iApply Sub_Skolem_P. by iApply H.
+    move=> /renew_subtype /fundamental.fundamental_subtype.
+    rewrite /istpd /istpi sstpi_to_sstpd0 !iterate_TLater_oLater.
+    apply.
   Qed.
 
   Local Definition fundamental_typed_def Γ e T
@@ -168,12 +125,8 @@ Section old_fundamental.
   Local Definition fundamental_dm_typed_def Γ l d T
     (HT : Γ v⊢{ l := d } : T) := ⊢ Γ u⊨ { l := d } : T.
 
-  Lemma fundamental_path_typed Γ p T i :
-    Γ u⊢ₚ p : T, i → ⊢ Γ ⊨p p : T, i.
-  Proof. apply (subtype_fundamental_mut Γ). Qed.
-  Lemma fundamental_subtype Γ T1 i1 T2 i2 :
-    Γ u⊢ₜ T1, i1 <: T2, i2 → ⊢ Γ ⊨ T1, i1 <: T2, i2.
-  Proof. apply (subtype_fundamental_mut Γ). Qed.
+  (* Reduce away the above definitions; copied from [fundamental.v] *)
+  Local Ltac simpl_context := red; markUsed Σ; red_hyps_once.
 
   Theorem fundamental_mut Γ :
     (∀ e T (HT: Γ v⊢ₜ e : T), fundamental_typed_def HT) ∧
