@@ -127,30 +127,6 @@ Section Lemmas.
     iDestruct "H" as "#[H|H]"; [iLeft | iRight]; iExists _; iFrame (Hl) "H".
   Qed.
 
-  Lemma sSub_Later_Sub Γ T1 T2 i j:
-    Γ s⊨ T1, i.+1 <: T2, j.+1 -∗
-    Γ s⊨ oLater T1, i <: oLater T2, j.
-  Proof.
-    iIntros "/= #Hsub %ρ %v #Hg #HT1".
-    iSpecialize ("Hsub" $! _ v with "Hg").
-    rewrite !swap_later.
-    by iApply "Hsub".
-  Qed.
-
-  Lemma sSub_Index_Incr Γ T U i j:
-    Γ s⊨ T, i <: U, j -∗
-    Γ s⊨ T, i.+1 <: U, j.+1.
-  Proof. iIntros "/= #Hsub ** !>". by iApply "Hsub". Qed.
-
-  Lemma sSub_Later_Mono Γ T U i j:
-    Γ s⊨ T, i <: U, j -∗
-    Γ s⊨ oLater T, i <: oLater U, j.
-  Proof.
-    iIntros "/= #Hsub %% Hg HT". rewrite !swap_later.
-    by iApply ("Hsub" with "Hg HT").
-  Qed.
-
-
   (*
      Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂
      ----------------------------------------------- (<:-Bind-1)
@@ -176,36 +152,6 @@ Section Lemmas.
   Proof.
     iIntros "Hstp"; iApply (sSub_Trans with "[] [-]").
     iApply Sub_Mu. by iApply Mu_Sub_Mu.
-  Qed.
-
-  Lemma sDelay_Sub {Γ T U i j}:
-    Γ s⊨ T, i <: U, j -∗
-    oLater <$> Γ s⊨ oLater T, i <: oLater U, j.
-  Proof.
-    iIntros "#Hsub %ρ %v #Hg/=".
-    rewrite !swap_later -later_impl senv_TLater_commute.
-    iNext. iApply ("Hsub" with "Hg").
-  Qed.
-
-  Lemma Delay_Sub {Γ T U i j}:
-    Γ ⊨ T, i <: U, j -∗
-    TLater <$> Γ ⊨ TLater T, i <: TLater U, j.
-  Proof. by rewrite /istpi fmap_TLater_oLater sDelay_Sub. Qed.
-
-  Lemma sSub_LaterN {Γ T} i j:
-    ⊢ Γ s⊨ T, j + i <: oLaterN j T, i.
-  Proof.
-    elim: j T => [|j IHj] T; rewrite 1?oLaterN_0 1?oLaterN_Sr ?plusSn.
-    apply sSub_Refl.
-    iApply sSub_Trans; [iApply sSub_Later|iApply IHj].
-  Qed.
-
-  Lemma sLaterN_Sub {Γ T} i j :
-    ⊢ Γ s⊨ oLaterN j T, i <: T, j + i.
-  Proof.
-    elim: j T => [|j IHj] T; rewrite 1?oLaterN_0 1?oLaterN_Sr ?plusSn.
-    apply sSub_Refl.
-    iApply sSub_Trans; [iApply IHj|iApply sLater_Sub].
   Qed.
 
   (*
