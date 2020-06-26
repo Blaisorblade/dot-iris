@@ -167,13 +167,12 @@ Hint Extern 10 => try_once iSub_Trans : core.
 (** Remove unwanted hints: we don't want to use this rule silently. *)
 Remove Hints iSub_Skolem_P : core.
 
-(* XXX TODO remove these hints here as well? *)
-(** These hints slow down proof search. *)
+(** These hints can slow down proof search. *)
 (** Not directed. *)
-(* Remove Hints old_subtyping.iP_Sngl_Trans : core.
-(** These cause cycles. *)
+Remove Hints old_subtyping.iP_Sngl_Trans : core.
+(** These can cause cycles. *)
 Remove Hints old_subtyping.iP_Mu_E : core.
-Remove Hints old_subtyping.iP_Mu_I : core. *)
+Remove Hints old_subtyping.iP_Mu_I : core.
 
 Lemma unstamped_path_root_is_var Γ p T i:
   Γ u⊢ₚ p : T, i →
