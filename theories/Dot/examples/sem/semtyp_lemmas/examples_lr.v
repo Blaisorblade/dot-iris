@@ -41,18 +41,39 @@ Section Lemmas.
     ⊢ Γ s⊨p pv (ids 0) : T, 0.
   Proof. rewrite -(hsubst_id T). apply (sP_Var Hx). Qed.
 
+  Lemma sStp_Skolem_P' {Γ T1 T2 i} `{!SwapPropI Σ} :
+    oLaterN i (shift T1) :: Γ s⊨p pv (ids 0) : shift T2, i  -∗
+    (*───────────────────────────────*)
+    Γ s⊨ T1 <:[i] T2.
+  Proof.
+    have := !!sStp_Skolem_P (Γ := Γ) (T1 := T1) (T2 := T2) (i := i) (j := 0).
+    rewrite plusnO oLaterN_0. apply.
+  Qed.
+
   (** For https://github.com/lampepfl/dotty/blob/85962b19ddf4f1909189bf07b40f9a05849f9bbf/compiler/src/dotty/tools/dotc/core/TypeComparer.scala#L553. *)
-  Lemma singleton_Mu_dotty_approx_0 {Γ p i T1 T2} :
+  Lemma singleton_Mu_dotty_approx_0 {Γ p i T1 T2} `{SwapPropI Σ} :
     iterate TLater i (TAnd T1 (TSing (shift p))) :: Γ ⊨ T1, i <: T2, i -∗
     Γ ⊨p p : TMu T1, i -∗
     Γ ⊨ TSing p, i <: TMu T2, i.
   Proof.
     (* Demonstrate why this rule is not easy to derive.*)
-    (* iIntros "Hsub Hp".
-    iApply sSngl_Sub_Self.
-    iApply (sP_ISub' with "Hp").
-    iApply Mu_Sub_Mu.
+    (* rewrite /istpi -!sstpd_to_sstpi; iIntros "Hsub Hp".
+    iApply sSngl_Stp_Self.
+    iApply (sP_Sub with "Hp").
+    iApply Mu_Stp_Mu.
     (* We're stuck! *)
+    Restart.
+    rewrite /istpi -!sstpd_to_sstpi; iIntros "#Hsub #Hp".
+    iApply sStp_Trans. {
+      iApply sStp_And.
+      - iApply (sSngl_Stp_Self with "Hp").
+      - iApply sStp_Refl.
+    }
+    iApply sStp_Skolem_P'.
+    iApply sP_Sub. { iApply (sP_LaterN (i := 0)). by iApply sP_Var0. }
+    rewrite fmap_cons iterate_TLater_oLater.
+    (* We're stuck again! *)
+    Fail iApply "Hsub".
     Restart. *)
     iIntros "#Hsub #Hp %ρ %v #Hg Heq".
     iSpecialize ("Hp" with "Hg").
