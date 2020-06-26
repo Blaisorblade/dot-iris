@@ -44,29 +44,28 @@ Section judgments.
   (** Expression typing *)
   Definition setp `{!dlangG Σ} e Γ τ : iProp Σ :=
     ∀ ρ, sG⟦Γ⟧* ρ → sE⟦ τ ⟧ ρ (e.|[ρ]).
-  Global Arguments setp /.
+  Global Arguments setp : simpl never.
 
   (** Delayed subtyping. *)
   Definition sstpd `{!dlangG Σ} i Γ τ1 τ2 : iProp Σ :=
     ∀ ρ,
       sG⟦Γ⟧*ρ → ▷^i (oClose τ1 ρ ⊆ oClose τ2 ρ).
-  (* TODO: block simplification also for other judgments. *)
   Global Arguments sstpd : simpl never.
 
   (** Multi-definition typing *)
   Definition sdstp `{!dlangG Σ} ds Γ (T : clty Σ) : iProp Σ :=
     ⌜wf_ds ds⌝ ∧ ∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → sG⟦Γ⟧* ρ → T ρ ds.|[ρ].
-  Global Arguments sdstp /.
+  Global Arguments sdstp : simpl never.
 
   (** Definition typing *)
   Definition sdtp `{!dlangG Σ} l d Γ (φ : clty Σ): iProp Σ := sdstp [(l, d)] Γ φ.
-  Global Arguments sdtp /.
+  Global Arguments sdtp : simpl never.
 
   (** Path typing *)
   Definition sptp `{!dlangG Σ} p i Γ (T : oltyO Σ 0): iProp Σ :=
     ∀ ρ, sG⟦Γ⟧* ρ →
       ▷^i path_wp p.|[ρ] (oClose T ρ).
-  Global Arguments sptp /.
+  Global Arguments sptp : simpl never.
 End judgments.
 
 (** Expression typing *)
@@ -440,7 +439,7 @@ Section misc_lemmas.
     Γ s⊨ { l := d } : T ⊣⊢
       ∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ [(l, d.|[ρ])].
   Proof.
-    rewrite /= pure_True ?(left_id _ bi_and);
+    rewrite /sdtp /sdstp pure_True ?(left_id _ bi_and);
       by [> | exact: NoDup_singleton].
   Qed.
 
@@ -586,7 +585,9 @@ Section Propers.
   Global Instance: Params (@setp) 3 := {}.
 
   Global Instance sdstp_proper ds : Proper ((≡) ==> (≡) ==> (≡)) (sdstp ds).
-  Proof. move => ??? [?? _ _ _] [?? _ _ _] [/= ??]; properness; by f_equiv. Qed.
+  Proof.
+    rewrite /sdstp => ??? [?? _ _ _] [?? _ _ _] [/= ??]; properness; by f_equiv.
+  Qed.
   Global Instance sdstp_flip_proper ds :
     Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sdstp ds).
   Proof. apply: flip_proper_3. Qed.

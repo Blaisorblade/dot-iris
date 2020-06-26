@@ -83,9 +83,9 @@ Proof.
   apply (soundness (M := iResUR Σ) _ n).
   apply (bupd_plain_soundness _).
   iDestruct (Hwp HdlangG HswapProp) as "#>Hwp".
-  iDestruct "Hwp" as (e_s Hsim) "#Hwp /=".
+  iDestruct "Hwp" as (e_s Hsim) "#Hwp".
   iSpecialize ("Hwp" $! ids with "[//]").
-  rewrite hsubst_id (wptp_safe_n n).
+  rewrite hsubst_id /= (wptp_safe_n n).
   iIntros "!>!>"; iDestruct "Hwp" as %Hsafe; iIntros "!%".
   eapply same_skel_safe_n_impl, Hsteps; naive_solver.
 Qed.

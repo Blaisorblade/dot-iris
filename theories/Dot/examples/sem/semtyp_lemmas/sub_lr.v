@@ -82,7 +82,7 @@ Section StpLemmas.
     (*───────────────────────────────*)
     Γ s⊨p p : T2, i + j.
   Proof.
-    iIntros "/= * #HpT1 #Hsub * #Hg".
+    iIntros "#HpT1 #Hsub %ρ #Hg".
     iSpecialize ("HpT1" with "Hg").
     rewrite !path_wp_eq.
     iDestruct "HpT1" as (v) "Hpv"; iExists v.

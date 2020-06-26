@@ -113,7 +113,7 @@ Section CtxSub.
   (** Typing is contravariant in [Γ].
   Note these instances are very specialized. *)
   Global Instance setp_proper e : Proper (flip s_ctx_sub ==> (=) ==> (⊢)) (setp e).
-  Proof. move => /= Γ1 Γ2 Hweak T1 T2 ->. by setoid_rewrite (Hweak _). Qed.
+  Proof. rewrite /setp => Γ1 Γ2 Hweak T1 T2 ->. by setoid_rewrite (Hweak _). Qed.
   Global Instance setp_flip_proper e : Proper (s_ctx_sub ==> flip (=) ==> flip (⊢)) (setp e).
   Proof. apply: flip_proper_3. Qed.
 

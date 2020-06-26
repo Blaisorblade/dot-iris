@@ -26,7 +26,7 @@ Section LambdaIntros.
     (* Factor ▷ out of [sG⟦ Γ ⟧* ρ] before [iNext]. *)
     rewrite senv_TLater_commute. iNext.
     iApply ("HeT" $! (v .: ρ) with "[Hv $HG]").
-    by rewrite hoEnvD_weaken_one.
+    by rewrite /= hoEnvD_weaken_one.
   Qed.
 
   Lemma sT_All_I {Γ} T1 T2 e:
@@ -113,7 +113,7 @@ Section Sec.
     (*────────────────────────────────────────────────────────────*)
     Γ s⊨ tapp e1 (tv v2) : T2.|[v2/].
   Proof.
-    iIntros "/= #He1 #Hv2Arg * #Hg"; iSpecialize ("Hv2Arg" with "Hg").
+    iIntros "#He1 #Hv2Arg %ρ #Hg"; iSpecialize ("Hv2Arg" with "Hg").
     smart_wp_bind (AppLCtx (tv v2.[_])) v "#Hr {He1 Hg}" ("He1" with "Hg").
     iDestruct "Hr" as (t ->) "#HvFun".
     rewrite wp_value_inv' -wp_pure_step_later; last done.

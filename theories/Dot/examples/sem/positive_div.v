@@ -69,7 +69,7 @@ Section helpers.
 
   Lemma setp_value Γ (T : olty Σ 0) v: Γ s⊨ v : T ⊣⊢ ∀ ρ, sG⟦ Γ ⟧* ρ → T vnil ρ v.[ρ].
   Proof.
-    rewrite /=; properness => //; iSplit;
+    rewrite /setp/=; properness => //; iSplit;
       [rewrite wp_value_inv|rewrite -wp_value]; iIntros "#$".
   Qed.
 
@@ -104,8 +104,8 @@ Section div_example.
   Lemma ty_mkPos :
     ⊢ [] s⊨ hmkPosV : oAll V⟦ 𝐙 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : Z, v = n ∧ n > 0 ⌝)).
   Proof using Type*.
-    rewrite -sT_All_I /= /shead.
-    iIntros (ρ) "/=". iDestruct 1 as %(_ & n & Hw); simplify_eq/=; rewrite Hw.
+    rewrite -sT_All_I /setp /= /shead.
+    iIntros (ρ). iDestruct 1 as %(_ & n & Hw); simplify_eq/=; rewrite Hw.
     iApply wp_wand; [iApply wp_if_ge | naive_solver].
   Qed.
 
