@@ -249,8 +249,12 @@ Local Arguments pty_interp : simpl never.
 Lemma newTypeRef_semTyped Γ :
   ⊢ newTypeRefΓ Γ u⊨ newTypeRefBody : x1 @; "TypeRef".
 Proof.
-  iMod (fundamental_typed (Hx0 Γ)) as (x0_s Hsk) "#Hx0".
-  unstamp_goal_tm; iIntros "%ρ #Hg".
+  iMod (fundamental_typed (Hx0 Γ)) as (x0_s Hsk) ">#Hx0".
+  iMod (fundamental_subtype (HvT Γ)) as "#HvT".
+  iMod (fundamental_subtype (HvF Γ)) as "#HvF".
+  iMod (fundamental_subtype (Hsublast Γ)) as "#Hsub".
+  iMod loopSemT as "#Hl".
+  unstamp_goal_tm; iIntros "!> %ρ #Hg".
   iSpecialize ("Hx0" with "Hg").
 
   wp_abind; rewrite -wp_value; iSimpl.
@@ -265,17 +269,18 @@ Proof.
   wp_pure.
   have [n HpOptV] := path_wp_exec_pure _ _ Hal; wp_pure => {HpOptV n}.
   rewrite /hoptionTyConcr1; lrSimpl in "HoptV".
-  iDestruct "HoptV" as "[Hw|Hw]"; [have Hv := HvT | have Hv := HvF].
-  all: iPoseProof (fundamental_subtype (Hv Γ) $! _ optV with "Hg Hw") as "Hv" => {Hv};
+  iDestruct "HoptV" as "[Hw|Hw]";
+    [iPoseProof "HvT" as "Hv" | iPoseProof "HvF" as "Hv"]; iClear "HvT HvF".
+  all: iSpecialize ("Hv" $! _ optV with "Hg Hw");
     lrSimpl in "Hv"; iDestruct "Hv" as (? Hl' pb ->) "Hpb"; lrSimpl in "Hpb";
     rewrite path_wp_pure_exec; iDestruct "Hpb" as %(bv & [n1 Hexec] & Heq).
   all: move: Heq; rewrite alias_paths_pv_eq_2 path_wp_pure_pv_eq => Heq; cbn in Heq;
     wp_pure; wp_pure => {Hl' n1 pb Hexec}.
   all: rewrite -{bv}Heq; wp_pure; wp_pure.
-  by iApply wp_wand; [iApply loopSemT | iIntros "% []"].
+  by iApply wp_wand; [iApply "Hl" | iIntros "% []"].
   wp_pure.
   (* To conclude, prove the right subtyping for hsomeType and TypeRef. *)
-  iPoseProof (fundamental_subtype (Hsublast Γ) with "Hg") as "Hsub"; lrSimpl in "Hsub".
+  iSpecialize ("Hsub" with "Hg"); lrSimpl in "Hsub".
   lrSimpl; iApply "Hsub"; iClear "Hsub".
 
   (* Just to restate the current goal (for some extra readability). *)

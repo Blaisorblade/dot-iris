@@ -46,10 +46,10 @@ Section loop_sem.
   Definition cTMemL l L U := cTMem l (oLater L) (oLater U).
   Definition oTMemL l L U := c2o (cTMemL l L U).
 
-  Lemma loopSemT: ⊢ WP hloopTm {{ _, False }}.
+  Lemma loopSemT: ⊢ |==> WP hloopTm {{ _, False }}.
   Proof using Type*.
     iDestruct (fundamental_typed (loopTyp [])) as "#>H".
-    iDestruct "H" as (e_s Hsk1) "H".
+    iDestruct "H" as (e_s Hsk1) ">H"; iModIntro.
     iSpecialize ("H" $! ids with "[//]"); rewrite hsubst_id.
     move E: hloopTm =>e; suff <-: e_s = e by []; subst; clear -Hsk1.
     cbv; repeat constrain_bisimulating.

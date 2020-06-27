@@ -75,7 +75,7 @@ Section Lemmas.
     (* We're stuck again! *)
     Fail iApply "Hsub".
     Restart. *)
-    iIntros "#Hsub #Hp %ρ %v #Hg Heq".
+    iIntros ">#Hsub >#Hp !> %ρ %v #Hg Heq".
     iSpecialize ("Hp" with "Hg").
     iAssert (▷^i ⟦ T1 ⟧ (v .: ρ) v)%I as "#HT1".
     by iNext i; iDestruct "Heq" as %Heq;
@@ -91,7 +91,7 @@ Section Lemmas.
     Γ ⊨p p : TMu T1, i -∗
     Γ ⊨ TSing p, i <: TMu T2, i.
   Proof.
-    iIntros "#Hsub #Hp %ρ %v #Hg /= Heq"; iSpecialize ("Hp" with "Hg").
+    iIntros ">#Hsub >#Hp !> %ρ %v #Hg /= Heq"; iSpecialize ("Hp" with "Hg").
     iSpecialize ("Hsub" $! ρ v with "[#$Hg] [#]"); iNext i;
       iDestruct "Heq" as %Heq;
       rewrite -(psubst_one_repl Hrepl1, psubst_one_repl Hrepl2) //

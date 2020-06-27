@@ -50,13 +50,13 @@ Section Sec.
   Import path_wp.
   Lemma sP_Nat_I Γ n: ⊢ Γ s⊨p pv (vint n): oInt, 0.
   Proof.
-    iIntros "%ρ * _ /=";
+    iIntros "!> %ρ * _ /=";
       rewrite path_wp_pv_eq /= /pure_interp_prim /prim_evals_to; naive_solver.
   Qed.
 
   Lemma sP_Bool_I Γ b: ⊢ Γ s⊨p pv (vbool b): oBool, 0.
   Proof.
-    iIntros "%ρ _ /=";
+    iIntros "!> %ρ _ /=";
       rewrite path_wp_pv_eq /= /pure_interp_prim /prim_evals_to; naive_solver.
   Qed.
 
@@ -73,7 +73,7 @@ Section Sec.
     Γ s⊨ e1 : oPrim B1 -∗
     Γ s⊨ tun u e1 : oPrim Br.
   Proof.
-    iIntros "He1 %ρ Hg /=".
+    iIntros ">He1 !> %ρ Hg /=".
     wp_bind (UnCtx _); wp_wapply "(He1 Hg)"; iIntros "%v1 %Ha1 /=".
     by iApply wp_wand; [iApply wp_un|iIntros (? [??])].
   Qed.
@@ -98,7 +98,7 @@ Section Sec.
     Γ s⊨ e2 : oPrim B2 -∗
     Γ s⊨ tbin b e1 e2 : oPrim Br.
   Proof.
-    iIntros "He1 He2 /= %ρ #Hg".
+    iIntros ">He1 >He2 !> /= %ρ #Hg".
     wp_bind (BinLCtx _ _); wp_wapply "(He1 Hg)"; iIntros "%v1 %Ha1 /=".
     wp_bind (BinRCtx _ _); wp_wapply "(He2 Hg)"; iIntros "{Hg} %v2 %Ha2 /=".
     unfold pure_interp_prim in *; ev.
@@ -121,7 +121,7 @@ Section Sec.
     Γ s⊨ e : oBool -∗ Γ s⊨ e1 : T -∗ Γ s⊨ e2 : T -∗
     Γ s⊨ tif e e1 e2 : T.
   Proof.
-    iIntros "He He1 He2 /= %ρ #Hg".
+    iIntros ">He >He1 >He2 !> /= %ρ #Hg".
     wp_bind (IfCtx _ _); wp_wapply "(He Hg)".
     rewrite /=/pure_interp_prim/=; iIntros (v (b & ->)).
     case: b; wp_pure; [iApply ("He1" with "Hg") | iApply ("He2" with "Hg")].

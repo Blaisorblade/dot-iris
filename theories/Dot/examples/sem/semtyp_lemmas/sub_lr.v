@@ -10,14 +10,17 @@ Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
          (ρ : env) (l : label).
 
+Notation sstpi' i j Γ τ1 τ2 :=
+  (∀ ρ v,
+    sG⟦Γ⟧*ρ → ▷^i oClose τ1 ρ v → ▷^j oClose τ2 ρ v)%I.
+
 Section defs.
   Context {Σ}.
   Implicit Types (τ : oltyO Σ 0).
 
   (** Legacy: (double)-indexed subtyping. *)
   Definition sstpi `{!dlangG Σ} i j Γ τ1 τ2 : iProp Σ :=
-    ∀ ρ v,
-      sG⟦Γ⟧*ρ → ▷^i oClose τ1 ρ v → ▷^j oClose τ2 ρ v.
+    |==> sstpi' i j Γ τ1 τ2.
   Global Arguments sstpi /.
 
   Definition istpi `{!dlangG Σ} Γ T1 T2 i j := sstpi i j V⟦Γ⟧* V⟦T1⟧ V⟦T2⟧.
@@ -49,11 +52,11 @@ Section judgment_lemmas.
   (** ** Show this typing judgment is equivalent to the more direct definition. *)
   Lemma istpi_eq Γ T1 i T2 j :
     Γ ⊨ T1, i <: T2, j ⊣⊢
-    ∀ ρ v, G⟦Γ⟧ ρ → ▷^i V⟦T1⟧ vnil ρ v → ▷^j V⟦T2⟧ vnil ρ v.
+    |==> ∀ ρ v, G⟦Γ⟧ ρ → ▷^i V⟦T1⟧ vnil ρ v → ▷^j V⟦T2⟧ vnil ρ v.
   Proof. reflexivity. Qed.
 
-  Lemma sstpi_app ρ Γ T1 T2 i j :
-    Γ s⊨ T1, i <: T2, j -∗ sG⟦ Γ ⟧* ρ -∗
+  Lemma sstpi_app ρ Γ (T1 T2 : olty Σ 0) i j :
+    sstpi' i j Γ T1 T2 -∗ sG⟦ Γ ⟧* ρ -∗
     oClose (oLaterN i T1) ρ ⊆ oClose (oLaterN j T2) ρ.
   Proof. iIntros "Hsub Hg %v"; iApply ("Hsub" with "Hg"). Qed.
 
@@ -82,7 +85,7 @@ Section StpLemmas.
     (*───────────────────────────────*)
     Γ s⊨p p : T2, i + j.
   Proof.
-    iIntros "#HpT1 #Hsub %ρ #Hg".
+    iIntros ">#HpT1 >#Hsub !> %ρ #Hg".
     iSpecialize ("HpT1" with "Hg").
     rewrite !path_wp_eq.
     iDestruct "HpT1" as (v) "Hpv"; iExists v.
