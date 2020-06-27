@@ -572,10 +572,7 @@ Lemma fill_item_no_val_inj Ki1 Ki2 e1 e2 :
   to_val e1 = None → to_val e2 = None →
   fill_item Ki1 e1 = fill_item Ki2 e2 → Ki1 = Ki2.
 Proof.
-  destruct Ki1, Ki2; intros; try discriminate; simplify_eq;
-    repeat match goal with
-           | H : to_val (of_val _) = None |- _ => by rewrite to_of_val in H
-           end; auto.
+  destruct Ki1, Ki2; intros; try discriminate; by simplify_eq.
 Qed.
 
 Lemma dot_lang_mixin : EctxiLanguageMixin of_val to_val fill_item head_step.
