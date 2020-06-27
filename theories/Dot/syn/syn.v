@@ -8,7 +8,8 @@ using contextual small-step operational semantics.
 From stdpp Require Export strings.
 From D Require Export prelude succ_notation.
 From D Require Import asubst_intf asubst_base.
-From iris.program_logic Require ectx_language ectxi_language.
+From iris.program_logic Require ectx_language.
+From iris.program_logic Require Import ectxi_language.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
@@ -486,7 +487,6 @@ Ltac objLookupDet :=
 
 (** Instantiating iris with Dot *)
 Module lang.
-Import ectxi_language.
 
 Definition to_val (t: tm) : option vl :=
   match t with
