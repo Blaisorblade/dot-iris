@@ -494,7 +494,7 @@ Definition to_val (t: tm) : option vl :=
   | _ => None
   end.
 
-Definition of_val: vl → tm := tv.
+Local Notation of_val := tv (only parsing).
 
 (** ** Evaluation context nodes.
 On-paper evaluation contexts [K] correspond to [list ectx_item]. *)

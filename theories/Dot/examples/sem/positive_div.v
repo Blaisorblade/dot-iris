@@ -175,7 +175,7 @@ Section div_example.
       iDestruct "Hw" as %[m ->].
       setoid_rewrite path_wp_pv_eq.
       iPoseProof (vl_sel_ub with "Harg Hpos") as "{Harg} Harg".
-      wp_bind (BinRCtx _ _); iEval rewrite /=/lang.of_val.
+      wp_bind (BinRCtx _ _); iEval rewrite /=.
       rewrite -wp_pure_step_later // -wp_value'; iNext.
       iApply (wp_div_spec with "Harg").
   Qed.
