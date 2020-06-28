@@ -12,6 +12,11 @@ Set Default Proof Using "Type*".
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (Γ : ctx).
 
+Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
+  iApply (wp_bind (ectx_language.fill [ctx]));
+  iApply (wp_wand with "[-]"); [iApply Hp; trivial|]; cbn;
+  iIntros (v) Hv.
+
 Section Sec.
   Context `{!dsubSynG Σ} {Γ}.
 

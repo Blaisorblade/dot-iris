@@ -7,9 +7,6 @@ From iris_string_ident Require Export ltac2_string_ident.
 From iris.base_logic Require Import base_logic.
 Export uPred.
 
-(* For local definitions. *)
-From iris.program_logic Require Import ectx_language.
-
 From D.pure_program_logic Require Export weakestpre.
 From D Require Export prelude proofmode_extra.
 
@@ -23,11 +20,6 @@ Notation "'λI' x .. y , t" := (fun x => .. (fun y => t%I) ..)
   only parsing) : function_scope.
 
 (** * Automation for Iris program logic. *)
-Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
-  iApply (wp_bind (fill[ctx]));
-  iApply (wp_wand with "[-]"); [iApply Hp; trivial|]; cbn;
-  iIntros (v) Hv.
-
 (** Instances for [IntoVal], used e.g. by [wp_value]; copied from F_mu. *)
 Hint Extern 5 (IntoVal _ _) => eapply of_to_val; fast_done : typeclass_instances.
 Hint Extern 10 (IntoVal _ _) =>
