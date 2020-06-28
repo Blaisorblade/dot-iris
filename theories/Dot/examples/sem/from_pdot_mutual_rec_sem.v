@@ -243,9 +243,6 @@ Tactic Notation "lrSimpl" := iEval (cbv [pty_interp]).
 Tactic Notation "lrSimpl" "in" constr(iSelP) :=
   iEval (cbv [pty_interp]) in iSelP.
 
-Tactic Notation "wp_bind" uconstr(p) := iApply (wp_bind (fill [p])).
-Ltac wp_pure := rewrite -wp_pure_step_later -1?wp_value; last done; iNext.
-
 Local Arguments iPPred_car : simpl never.
 Local Arguments pty_interp : simpl never.
 
