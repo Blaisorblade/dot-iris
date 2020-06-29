@@ -312,7 +312,7 @@ Section oShift.
   Qed.
 End oShift.
 
-Notation oClose τ := (τ vnil).
+Notation oClose τ := (τ vnil) (only parsing).
 
 (** Semantic typing contexts [Γ]; the paper only uses syntactic typing
 contexts [Γ]. *)
