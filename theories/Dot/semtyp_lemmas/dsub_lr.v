@@ -205,7 +205,7 @@ Section DStpLemmas.
     iSpecialize ("HsubT" with "Hg").
     iSpecialize ("HsubU" $! (w .: ρ) with "[$HwT2 $Hg]").
     rewrite !mlaterN_impl.
-    iNext (i.+1). iApply (wp_wand with "(HT1 (HsubT HwT2))").
+    iNext (i.+1). wp_wapply "(HT1 (HsubT HwT2))".
     iIntros (u) "#HuU1". iApply ("HsubU" with "HuU1").
   Qed.
 

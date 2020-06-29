@@ -25,8 +25,3 @@ Tactic Notation "wp_bind" uconstr(p) :=
 (** Apply a WP using the [wp_wand] rule; automatic application of [wp_bind],
 as in Iris's [wp_apply], is not implemented. *)
 Ltac wp_wapply spec_pat := iApply (wp_wand with spec_pat).
-
-Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
-  wp_bind ctx;
-  iApply (wp_wand with "[-]"); [iApply Hp; trivial|]; cbn;
-  iIntros (v) Hv.

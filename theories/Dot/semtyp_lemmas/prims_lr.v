@@ -66,15 +66,15 @@ Section Sec.
     ⊢ WP tun u (tv v) {{ w, ⌜un_op_eval u v = Some w ∧ pure_interp_prim Br w⌝ }}.
   Proof.
     destruct (Hu v) => //; ev.
-    by rewrite -wp_pure_step_later // -wp_value'; auto.
+    by wp_pure; auto.
   Qed.
 
   Lemma sT_Un Γ u e1 B1 Br (Hu : un_op_semtype u B1 Br) :
     Γ s⊨ e1 : oPrim B1 -∗
     Γ s⊨ tun u e1 : oPrim Br.
   Proof.
-    iIntros "#He1 %ρ #Hg".
-    smart_wp_bind (UnCtx _) v1 "%Ha1" ("He1" with "Hg"); iClear "He1 Hg".
+    iIntros "He1 %ρ Hg /=".
+    wp_bind (UnCtx _); wp_wapply ("(He1 Hg)"); iIntros "%v1 %Ha1 /=".
     by iApply wp_wand; [iApply wp_un|iIntros (? [??])].
   Qed.
 
@@ -90,7 +90,7 @@ Section Sec.
     ⊢ WP tbin b (tv v1) (tv v2) {{ w, ⌜bin_op_eval b v1 v2 = Some w ∧ pure_interp_prim Br w⌝ }}.
   Proof.
     edestruct (Hu v1 v2) => //; ev.
-    by rewrite -wp_pure_step_later // -wp_value'; auto.
+    by wp_pure; auto.
   Qed.
 
   Lemma sT_Bin Γ b e1 e2 B1 B2 Br (Hu : bin_op_semtype b B1 B2 Br (const (const True))) :
@@ -98,9 +98,10 @@ Section Sec.
     Γ s⊨ e2 : oPrim B2 -∗
     Γ s⊨ tbin b e1 e2 : oPrim Br.
   Proof.
-    iIntros "#He1 #He2 /= %ρ #Hg". rewrite /oPrim/= /pure_interp_prim.
-    smart_wp_bind (BinLCtx _ _) v1 "%Ha1" ("He1" with "Hg"); iClear "He1".
-    smart_wp_bind (BinRCtx _ _) v2 "%Ha2" ("He2" with "Hg"); iClear "He2"; ev.
+    iIntros "He1 He2 /= %ρ #Hg".
+    wp_bind (BinLCtx _ _); wp_wapply ("(He1 Hg)"); iIntros "%v1 %Ha1 /=".
+    wp_bind (BinRCtx _ _); wp_wapply ("(He2 Hg)"); iIntros "{Hg} %v2 %Ha2 /=".
+    unfold pure_interp_prim in *; ev.
     by iApply wp_wand; [iApply wp_bin|iIntros (? [??])].
   Qed.
 
@@ -120,10 +121,9 @@ Section Sec.
     Γ s⊨ e : oBool -∗ Γ s⊨ e1 : T -∗ Γ s⊨ e2 : T -∗
     Γ s⊨ tif e e1 e2 : T.
   Proof.
-    iIntros "#He #He1 #He2 /= %ρ #Hg".
-    smart_wp_bind (IfCtx _ _) v "#Ha" ("He" with "[]").
-    rewrite /pure_interp_prim/=; iDestruct "Ha" as %([] & ->);
-      (rewrite -wp_pure_step_later; last done);
-      [ iApply ("He1" with "Hg") | iApply ("He2" with "Hg")].
+    iIntros "He He1 He2 /= %ρ #Hg".
+    wp_bind (IfCtx _ _); wp_wapply ("(He Hg)").
+    rewrite /=/pure_interp_prim/=; iIntros (v (b & ->)).
+    case: b; wp_pure; [iApply ("He1" with "Hg") | iApply ("He2" with "Hg")].
   Qed.
 End Sec.

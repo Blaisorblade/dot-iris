@@ -305,7 +305,7 @@ Section path_wp.
     WP (path2tm p) {{ v, φ v }}.
   Proof.
     rewrite path_wp_pure_exec; iDestruct 1 as (v [n Hex]) "H".
-    by rewrite -wp_pure_step_later // -wp_value.
+    by wp_pure.
   Qed.
 
   Lemma path_wp_pure_to_wp {p v} (Hpwpp : path_wp_pure p (eq v)) :

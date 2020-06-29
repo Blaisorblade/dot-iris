@@ -174,9 +174,9 @@ Section div_example.
       rewrite /shead /stail. iSimpl.
       iDestruct "Hw" as %[m ->].
       setoid_rewrite path_wp_pv_eq.
-      iPoseProof (vl_sel_ub with "Harg Hpos") as "{Harg} Harg".
-      wp_bind (BinRCtx _ _); iEval rewrite /=.
-      rewrite -wp_pure_step_later // -wp_value'; iNext.
+      iPoseProof (vl_sel_ub with "Harg Hpos") as "{Harg Hpos} Harg".
+      wp_bind (BinRCtx _ _); iSimpl.
+      wp_pure.
       iApply (wp_div_spec with "Harg").
   Qed.
 End div_example.

@@ -75,8 +75,8 @@ Section Sec.
     Γ s⊨ iterate tskip i e : T.
   Proof.
     iIntros "#He %ρ #Hg"; rewrite tskip_subst; iApply wp_bind.
-    iApply (wp_wand with "(He Hg)"); iIntros "{He} /= %v Hv".
-    by rewrite -wp_pure_step_later -?wp_value.
+    wp_wapply "(He Hg)"; iIntros "{He} /= %v Hv".
+    by wp_pure.
   Qed.
 
   Lemma sT_Skip Γ e T :
@@ -90,7 +90,7 @@ Section Sec.
     Γ s⊨ e : T2.
   Proof.
     iIntros "#HeT1 #Hsub %ρ #Hg".
-    iApply (wp_wand with "(HeT1 Hg)").
+    wp_wapply "(HeT1 Hg)".
     iIntros (v) "#HvT1 {HeT1} /=".
     iApply ("Hsub" with "Hg HvT1").
   Qed.
@@ -113,12 +113,11 @@ Section Sec.
     (*────────────────────────────────────────────────────────────*)
     Γ s⊨ tapp e1 (tv v2) : T2.|[v2/].
   Proof.
-    iIntros "He1 #Hv2Arg %ρ #Hg"; iSpecialize ("Hv2Arg" with "Hg").
-    smart_wp_bind (AppLCtx (tv v2.[_])) v "#Hr {Hg}" ("He1" with "Hg").
-    iDestruct "Hr" as (t ->) "#HvFun".
-    rewrite wp_value_inv' -wp_pure_step_later; last done.
-    iSpecialize ("HvFun" with "Hv2Arg"); iNext.
-    iApply (wp_wand with "HvFun"); iIntros (v) "{HvFun Hv2Arg} H".
+    iIntros "He1 Hv2Arg %ρ #Hg".
+    iSpecialize ("Hv2Arg" with "Hg"); rewrite /= wp_value_inv'.
+    wp_bind (AppLCtx _); wp_wapply "(He1 Hg)"; iIntros "{Hg} %v /=".
+    iDestruct 1 as (t ->) "HvFun"; iSpecialize ("HvFun" with "Hv2Arg").
+    wp_pure. wp_wapply "HvFun"; iIntros "%v H".
     by rewrite /= hoEnvD_subst_one.
   Qed.
 
@@ -132,12 +131,11 @@ Section Sec.
     (*────────────────────────────────────────────────────────────*)
     Γ s⊨ tapp e1 e2 : T2.
   Proof.
-    iIntros "/= #He1 #Hv2 %ρ #Hg".
-    smart_wp_bind (AppLCtx (e2.|[_])) v "#Hr" ("He1" with "[]").
-    smart_wp_bind (AppRCtx v) w "#Hw" ("Hv2" with "[]").
-    iDestruct "Hr" as (t ->) "#Hv".
-    rewrite -wp_pure_step_later // -wp_mono /=; first by iSpecialize ("Hv" with "Hw"); iNext.
-    iIntros (v); by rewrite /= (hoEnvD_weaken_one T2 _ _ _).
+    iIntros "/= He1 He2 %ρ #Hg".
+    wp_bind (AppLCtx _); wp_wapply "(He1 Hg)"; iIntros "%v"; iDestruct 1 as (t ->) "Hv /=".
+    wp_bind (AppRCtx _); wp_wapply "(He2 Hg)"; iIntros "{Hg} %w Hw /=".
+    iSpecialize ("Hv" with "Hw"). wp_pure. wp_wapply ("Hv").
+    iIntros (v) "H". by rewrite /= (hoEnvD_weaken_one T2 _ _ _).
   Qed.
 
   Lemma T_All_E {Γ e1 e2 T1 T2} :
@@ -149,9 +147,9 @@ Section Sec.
     (*─────────────────────────*)
     Γ s⊨ tproj e l : T.
   Proof.
-    iIntros "#He /= %ρ #Hg".
-    smart_wp_bind (ProjCtx l) v "#Hv {He}" ("He" with "[]").
-    iDestruct "Hv" as (? Hl pmem ->) "Hv".
-    by rewrite -wp_pure_step_later //= path_wp_to_wp.
+    iIntros "He %ρ Hg".
+    wp_bind (ProjCtx l); wp_wapply "(He Hg)"; iIntros "%v /=".
+    iDestruct 1 as (? Hl pmem ->) "Hv /=".
+    wp_pure. by rewrite -path_wp_to_wp.
   Qed.
 End Sec.
