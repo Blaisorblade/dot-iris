@@ -154,10 +154,10 @@ Section semantic_lemmas.
     (*────────────────────────────────────────────────────────────*)
     Γ ⊨ tapp e1 (path2tm p2) : T2'.
   Proof.
-    iIntros "#He1 #Hp2 %ρ #Hg".
+    iIntros "He1 #Hp2 %ρ #Hg".
     iDestruct (path_wp_eq with "(Hp2 Hg)") as (pw Hal%alias_paths_pv_eq_1) "_".
-    iDestruct (sT_All_E_p with "He1 Hp2") as "{He1 Hp2} Hep".
-    iApply (wp_wand with "(Hep Hg)"); iIntros "{Hep Hg} * #Hv".
+    iDestruct (sT_All_E_p with "He1 Hp2") as "{Hp2} Hep".
+    iApply (wp_wand with "(Hep Hg)"); iIntros "{Hg} %v #Hv".
     iApply (sem_psubst_one_eq Hrepl Hal with "Hv").
   Qed.
 
