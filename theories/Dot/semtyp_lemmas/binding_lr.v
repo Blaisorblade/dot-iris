@@ -115,7 +115,7 @@ Section Sec.
   Proof.
     iIntros "He1 Hv2Arg %ρ #Hg".
     iSpecialize ("Hv2Arg" with "Hg"); rewrite /= wp_value_inv'.
-    wp_bind (AppLCtx _); wp_wapply "(He1 Hg)"; iIntros "{Hg} %v /=".
+    wp_wapply "(He1 Hg)"; iIntros "{Hg} %v /=".
     iDestruct 1 as (t ->) "HvFun"; iSpecialize ("HvFun" with "Hv2Arg").
     wp_pure. wp_wapply "HvFun"; iIntros "%v H".
     by rewrite /= hoEnvD_subst_one.
@@ -132,8 +132,8 @@ Section Sec.
     Γ s⊨ tapp e1 e2 : T2.
   Proof.
     iIntros "/= He1 He2 %ρ #Hg".
-    wp_bind (AppLCtx _); wp_wapply "(He1 Hg)"; iIntros "%v"; iDestruct 1 as (t ->) "Hv /=".
-    wp_bind (AppRCtx _); wp_wapply "(He2 Hg)"; iIntros "{Hg} %w Hw /=".
+    wp_wapply "(He1 Hg)"; iIntros "%v"; iDestruct 1 as (t ->) "Hv /=".
+    wp_wapply "(He2 Hg)"; iIntros "{Hg} %w Hw /=".
     iSpecialize ("Hv" with "Hw"). wp_pure. wp_wapply "Hv".
     iIntros "%v H". by rewrite /= (hoEnvD_weaken_one T2 _ _ _).
   Qed.
@@ -148,7 +148,7 @@ Section Sec.
     Γ s⊨ tproj e l : T.
   Proof.
     iIntros "He %ρ Hg".
-    wp_bind (ProjCtx l); wp_wapply "(He Hg)"; iIntros "%v /=".
+    wp_wapply "(He Hg)"; iIntros "%v /=".
     iDestruct 1 as (? Hl pmem ->) "Hv /=".
     wp_pure. by rewrite -path_wp_to_wp.
   Qed.

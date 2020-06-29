@@ -253,8 +253,7 @@ Proof.
   unstamp_goal_tm; iIntros "%ρ #Hg".
   iSpecialize ("Hx0" with "Hg").
 
-  wp_bind (AppRCtx _); wp_bind (IfCtx _ _); wp_bind (UnCtx _);
-    wp_bind (ProjCtx _); wp_bind (ProjCtx _); iSimpl.
+  wp_abind; rewrite -wp_value; iSimpl.
   have {Hsk x0_s} ->: x0_s = x0.
   by repeat constrain_bisimulating.
 

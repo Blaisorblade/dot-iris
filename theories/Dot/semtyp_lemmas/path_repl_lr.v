@@ -138,11 +138,11 @@ Section semantic_lemmas.
     Γ s⊨ tapp e1 (path2tm p2) : T2 .sTp[ p2 /].
   Proof.
     iIntros "He1 Hp2 %ρ #Hg /="; iSpecialize ("Hp2" with "Hg").
-    wp_bind (AppLCtx _); wp_wapply "(He1 Hg)"; iIntros "{Hg} %v".
+    wp_wapply "(He1 Hg)"; iIntros "{Hg} %v".
     iDestruct 1 as (t ->) "HvFun". rewrite path_wp_eq path2tm_subst /=.
     iDestruct "Hp2" as (pw Hpwpp) "Hpw"; iSpecialize ("HvFun" with "Hpw").
     iDestruct (path_wp_pure_to_wp Hpwpp) as "Hwpp".
-    wp_bind (AppRCtx _). wp_wapply "Hwpp". iIntros (w <-) "{Hwpp} /=".
+    wp_wapply "Hwpp". iIntros (w <-) "{Hwpp} /=".
     wp_pure. wp_wapply "HvFun"; iIntros (v) "Hres".
     rewrite sem_psubst_one_repl //. apply /alias_paths_pv_eq_1 /Hpwpp.
   Qed.
@@ -156,7 +156,7 @@ Section semantic_lemmas.
     iIntros "He1 #Hp2 %ρ #Hg".
     iDestruct (path_wp_eq with "(Hp2 Hg)") as (pw Hal%alias_paths_pv_eq_1) "_".
     iDestruct (sT_All_E_p with "He1 Hp2") as "{Hp2} Hep".
-    wp_wapply "(Hep Hg)"; iIntros "{Hg} %v #Hv".
+    iApply (wp_wand with "(Hep Hg)"). iIntros "{Hg} %v #Hv".
     iApply (sem_psubst_one_eq Hrepl Hal with "Hv").
   Qed.
 
