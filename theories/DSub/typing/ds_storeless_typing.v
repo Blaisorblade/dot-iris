@@ -42,7 +42,7 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ ⊢ₜ tv (vty T) : TTMem L U
 (* A bit surprising this is needed, but appears in the DOT papers, and this is
    only admissible if t has a type U that is a proper subtype of TAnd T1 T2. *)
-where "Γ ⊢ₜ e : T " := (typed Γ e T)
+where "Γ ⊢ₜ e : T" := (typed Γ e T)
 with
 subtype Γ : ty → nat → ty → nat → Prop :=
 | iSub_Refl i T :

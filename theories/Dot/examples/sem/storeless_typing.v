@@ -22,7 +22,7 @@ Notation "Γ v⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2)
 Reserved Notation "Γ v⊢ₜ e : T"
   (at level 74, e, T at next level,
   format "'[' '[' Γ ']'  '/' v⊢ₜ  '[' e ']'  :  '[' T ']' ']'").
-Reserved Notation "Γ v⊢{ l := d } : T "
+Reserved Notation "Γ v⊢{ l := d } : T"
   (at level 74, l, d, T at next level,
    format "'[' '[' Γ  ']' '/' '[' v⊢{  l  :=  d  } ']' :  '[' T ']' ']'").
 Reserved Notation "Γ v⊢ds ds : T"
@@ -90,7 +90,7 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ v⊢ₜ e1 : T →
     Γ v⊢ₜ e2 : T →
     Γ v⊢ₜ tif e e1 e2 : T
-where "Γ v⊢ₜ e : T " := (typed Γ e T)
+where "Γ v⊢ₜ e : T" := (typed Γ e T)
 with dms_typed Γ : dms → ty → Prop :=
 | iD_Nil : Γ v⊢ds [] : TTop
 (* This demands definitions and members to be defined in aligned lists. *)

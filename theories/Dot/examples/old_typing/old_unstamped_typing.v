@@ -75,7 +75,7 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ u⊢ₜ e1 : T →
     Γ u⊢ₜ e2 : T →
     Γ u⊢ₜ tif e e1 e2 : T
-where "Γ u⊢ₜ e : T " := (typed Γ e T)
+where "Γ u⊢ₜ e : T" := (typed Γ e T)
 with dms_typed Γ : dms → ty → Prop :=
 | iD_Nil : Γ u⊢ds [] : TTop
 (* This demands definitions and members to be defined in aligned lists. *)

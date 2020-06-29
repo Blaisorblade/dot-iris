@@ -399,7 +399,7 @@ Implicit Types
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
          (ρ : var → vl) (l : label).
 
-Notation "Γ s⊨X T1 <:[ i  ] T2 " := (sstpd i Γ T1 T2) (at level 74, T1, T2 at next level).
+Notation "Γ s⊨X T1 <:[ i  ] T2" := (sstpd i Γ T1 T2) (at level 74, T1, T2 at next level).
 
 Section dot_types.
   Context `{!dlangG Σ} `{HswapProp: SwapPropI Σ}.

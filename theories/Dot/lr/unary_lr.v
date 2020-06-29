@@ -71,7 +71,7 @@ End judgments.
 (** Expression typing *)
 Notation "Γ s⊨ e : τ" := (setp e Γ τ) (at level 74, e, τ at next level).
 (** Delayed subtyping. *)
-Notation "Γ s⊨ T1 <:[ i  ] T2 " := (sstpd i Γ T1 T2) (at level 74, T1, T2 at next level).
+Notation "Γ s⊨ T1 <:[ i  ] T2" := (sstpd i Γ T1 T2) (at level 74, T1, T2 at next level).
 (** Single-definition typing *)
 Notation "Γ s⊨ {  l := d  } : T" := (sdtp l d Γ T) (at level 64, d, l, T at next level).
 (** Multi-definition typing *)
@@ -298,7 +298,7 @@ Notation "Γ ⊨ds ds : T" := (idstp Γ T ds) (at level 74, ds, T at next level)
 (** Expression typing *)
 Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 Notation "Γ ⊨p p : T , i" := (iptp Γ T p i) (at level 74, p, T, i at next level).
-Notation "Γ ⊨ T1 <:[ i  ] T2 " := (istpd i Γ T1 T2) (at level 74, T1, T2 at next level).
+Notation "Γ ⊨ T1 <:[ i  ] T2" := (istpd i Γ T1 T2) (at level 74, T1, T2 at next level).
 
 Notation oInt := (oPrim tint).
 Notation oBool := (oPrim tbool).

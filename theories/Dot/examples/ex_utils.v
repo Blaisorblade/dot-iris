@@ -43,9 +43,9 @@ Notation "e1 ≥ e2" := (e2%E ≤ e1%E)%E : expr_scope.
 (** ** Notation for object values. *)
 
 Open Scope dms_scope.
-Notation " {@ } " := (@nil (string * dm)) (format "{@ }") : dms_scope.
-Notation " {@ x } " := ( x :: {@} ) (format "{@  x  }"): dms_scope.
-Notation " {@ x ; y ; .. ; z } " :=
+Notation "{@ }" := (@nil (string * dm)) (format "{@ }") : dms_scope.
+Notation "{@ x }" := ( x :: {@} ) (format "{@  x  }"): dms_scope.
+Notation "{@ x ; y ; .. ; z }" :=
   (cons x (cons y .. (cons z nil) ..))
   (format "'[v' {@  '[' x ']' ;  '/' y ;  '/' .. ;  '/' z } ']'")
   : dms_scope.
@@ -53,17 +53,17 @@ Notation " {@ x ; y ; .. ; z } " :=
 Close Scope dms_scope.
 Arguments vobj _%dms_scope.
 
-Notation "'ν' ds " := (vobj ds) (at level 60, ds at next level).
+Notation "'ν' ds" := (vobj ds) (at level 60, ds at next level).
 Notation "'val' l = v" := (l, dpt v) (at level 60, l at level 50).
-Notation "'type' l = T  " := (l, dtysyn T) (at level 60, l at level 50).
+Notation "'type' l = T" := (l, dtysyn T) (at level 60, l at level 50).
 
 (** Notation for object types. *)
 Global Instance: Top ty := TTop.
 Global Instance: Bottom ty := TBot.
 
 Open Scope ty_scope.
-Notation " {@ T1 } " := ( TAnd T1 ⊤ ) (format "{@  T1  }"): ty_scope.
-Notation " {@ T1 ; T2 ; .. ; Tn } " :=
+Notation "{@ T1 }" := ( TAnd T1 ⊤ ) (format "{@  T1  }"): ty_scope.
+Notation "{@ T1 ; T2 ; .. ; Tn }" :=
   (TAnd T1 (TAnd T2 .. (TAnd Tn ⊤)..))
   (format "'[v' {@  '[' T1 ']'  ;  '/' T2  ;  '/' ..  ;  '/' Tn } ']'") : ty_scope.
 Close Scope ty_scope.
@@ -76,7 +76,7 @@ Notation "▶: T" := (TLater T) (at level 49, right associativity) : ty_scope.
 
 Notation "'∀:' T , U" := (TAll T U) (at level 48, T at level 98, U at level 98).
 
-Notation "'μ' Ts " := (TMu Ts) (at level 50, Ts at next level).
+Notation "'μ' Ts" := (TMu Ts) (at level 50, Ts at next level).
 Notation "'type' l >: L <: U" := (TTMemL l L U) (at level 60, l at level 50, L, U at level 70) : ty_scope.
 Notation "'val' l : T" :=
   (TVMem l T)

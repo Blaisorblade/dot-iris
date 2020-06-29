@@ -228,9 +228,9 @@ Notation "e1 ≥ e2" := (e2%HS ≤ e1%HS)%HS : hsyn_scope.
 
 (* Notations. *)
 Open Scope hdms_scope.
-Notation " {@ } " := (@nil (string * hdm)) (format "{@ }") : hdms_scope.
-Notation " {@ x } " := ( x :: {@} ) (format "{@  x  }"): hdms_scope.
-Notation " {@ x ; y ; .. ; z } " :=
+Notation "{@ }" := (@nil (string * hdm)) (format "{@ }") : hdms_scope.
+Notation "{@ x }" := ( x :: {@} ) (format "{@  x  }"): hdms_scope.
+Notation "{@ x ; y ; .. ; z }" :=
   (cons x (cons y .. (cons z nil) ..))
   (format "'[v' {@  '[' x ']' ;  '/' y ;  '/' .. ;  '/' z } ']'")
   : hdms_scope.
@@ -252,18 +252,18 @@ Notation "'λ:' x .. y , t" := (hvabs (fun x => .. (hvabs (fun y => t%HS)) ..))
   (at level 200, x binder, y binder, right associativity,
   format "'[  ' '[  ' 'λ:'  x  ..  y ']' ,  '/' t ']'").
 
-Notation "'ν' ds " := (hvobj ds) (at level 60, ds at next level).
-Notation "'ν:' x , ds " := (hvobj (λD x, ds)) (at level 60, ds at next level).
+Notation "'ν' ds" := (hvobj ds) (at level 60, ds at next level).
+Notation "'ν:' x , ds" := (hvobj (λD x, ds)) (at level 60, ds at next level).
 Notation "'val' l = v" := (l, hdpt v) (at level 60, l at level 50).
-Notation "'type' l = T  " := (l, hdtysyn T) (at level 60, l at level 50).
+Notation "'type' l = T" := (l, hdtysyn T) (at level 60, l at level 50).
 Notation "'type' l = ( σ ; s )" := (l, hdtysem σ s) (at level 60, l at level 50).
 
 (** Notation for object types. *)
 Global Instance: Top hty := hTTop.
 Global Instance: Bottom hty := hTBot.
 Open Scope hsyn_scope.
-Notation " {@ T1 } " := ( hTAnd T1 ⊤ ) (format "{@  T1  }"): hsyn_scope.
-Notation " {@ T1 ; T2 ; .. ; Tn } " :=
+Notation "{@ T1 }" := ( hTAnd T1 ⊤ ) (format "{@  T1  }"): hsyn_scope.
+Notation "{@ T1 ; T2 ; .. ; Tn }" :=
   (hTAnd T1 (hTAnd T2 .. (hTAnd Tn ⊤)..))
   (format "'[v' {@  '[' T1 ']'  ;  '/' T2  ;  '/' ..  ;  '/' Tn } ']'") : hsyn_scope.
 Close Scope hsyn_scope.

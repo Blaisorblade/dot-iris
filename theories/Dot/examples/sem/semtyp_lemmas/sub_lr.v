@@ -23,7 +23,7 @@ Section defs.
   Definition istpi `{!dlangG Σ} Γ T1 T2 i j := sstpi i j V⟦Γ⟧* V⟦T1⟧ V⟦T2⟧.
 End defs.
 (** Indexed subtyping *)
-Notation "Γ s⊨ T1 , i <: T2 , j " := (sstpi i j Γ T1 T2) (at level 74, T1, T2, i, j at next level).
+Notation "Γ s⊨ T1 , i <: T2 , j" := (sstpi i j Γ T1 T2) (at level 74, T1, T2, i, j at next level).
 Notation "Γ ⊨ T1 , i <: T2 , j" := (istpi Γ T1 T2 i j) (at level 74, T1, T2, i, j at next level).
 
 (** * Proper instances. *)
