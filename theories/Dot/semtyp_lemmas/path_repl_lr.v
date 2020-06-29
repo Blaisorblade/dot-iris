@@ -167,8 +167,8 @@ Section semantic_lemmas.
     (*─────────────────────────*)
     Γ s⊨p p : oVMem l T, i.
   Proof.
-    iIntros "#HE /= %ρ Hg"; iSpecialize ("HE" with "Hg"); iNext i.
-    rewrite path_wp_pself_eq; iDestruct "HE" as (v q Hlook) "[Hpv #Htw]".
+    iIntros "#Hp /= %ρ Hg"; iSpecialize ("Hp" with "Hg"); iNext i.
+    rewrite path_wp_pself_eq; iDestruct "Hp" as (v q Hlook) "[Hpv #Htw]".
     iApply (path_wp_wand with "Hpv"). iIntros "/= % <-"; eauto.
   Qed.
 
@@ -187,9 +187,9 @@ Section semantic_lemmas.
     (*─────────────────────────*)
     Γ s⊨p pself p l : T, i.
   Proof.
-    iIntros "#HE %ρ Hg /="; iSpecialize ("HE" with "Hg"); iNext i.
+    iIntros "#Hp %ρ Hg /="; iSpecialize ("Hp" with "Hg"); iNext i.
     rewrite path_wp_pself_eq path_wp_eq.
-    iDestruct "HE" as (vp Hpv d Hlook pmem ->) "#H".
+    iDestruct "Hp" as (vp Hpv d Hlook pmem ->) "#H".
     iExists vp, pmem. eauto.
   Qed.
   (* In the above proof, in contrast with [sT_Obj_E], lots of the lemmas
