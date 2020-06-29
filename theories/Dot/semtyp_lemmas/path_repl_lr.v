@@ -138,7 +138,7 @@ Section semantic_lemmas.
     Γ s⊨ tapp e1 (path2tm p2) : T2 .sTp[ p2 /].
   Proof.
     iIntros "He1 Hp2 %ρ #Hg /="; iSpecialize ("Hp2" with "Hg").
-    wp_bind (AppLCtx _); wp_wapply ("(He1 Hg)"); iIntros "{Hg} %v".
+    wp_bind (AppLCtx _); wp_wapply "(He1 Hg)"; iIntros "{Hg} %v".
     iDestruct 1 as (t ->) "HvFun". rewrite path_wp_eq path2tm_subst /=.
     iDestruct "Hp2" as (pw Hpwpp) "Hpw"; iSpecialize ("HvFun" with "Hpw").
     iDestruct (path_wp_pure_to_wp Hpwpp) as "Hwpp".
@@ -166,7 +166,7 @@ Section semantic_lemmas.
     (*─────────────────────────*)
     Γ s⊨p p : oVMem l T, i.
   Proof.
-    iIntros "#Hp /= %ρ Hg"; iSpecialize ("Hp" with "Hg"); iNext i.
+    iIntros "Hp /= %ρ Hg"; iSpecialize ("Hp" with "Hg"); iNext i.
     rewrite path_wp_pself_eq; iDestruct "Hp" as (v q Hlook) "[Hpv #Htw]".
     iApply (path_wp_wand with "Hpv"). iIntros "/= % <-"; eauto.
   Qed.
@@ -186,9 +186,9 @@ Section semantic_lemmas.
     (*─────────────────────────*)
     Γ s⊨p pself p l : T, i.
   Proof.
-    iIntros "#Hp %ρ Hg /="; iSpecialize ("Hp" with "Hg"); iNext i.
+    iIntros "Hp %ρ Hg /="; iSpecialize ("Hp" with "Hg"); iNext i.
     rewrite path_wp_pself_eq path_wp_eq.
-    iDestruct "Hp" as (vp Hpv d Hlook pmem ->) "#H".
+    iDestruct "Hp" as (vp Hpv d Hlook pmem ->) "H".
     iExists vp, pmem. eauto.
   Qed.
   (* In the above proof, in contrast with [sT_Obj_E], lots of the lemmas
@@ -199,7 +199,7 @@ Section semantic_lemmas.
     Γ s⊨p q : T, i -∗
     Γ s⊨p p : T, i.
   Proof.
-    iIntros "#Hep #Heq %ρ #Hg"; iSpecialize ("Heq" with "Hg").
+    iIntros "Hep Heq %ρ #Hg"; iSpecialize ("Heq" with "Hg").
     iSpecialize ("Hep" with "Hg"); iNext i.
     by iDestruct "Hep" as %->%alias_paths_simpl%(alias_paths_elim_eq (T _ _)).
   Qed.
@@ -209,7 +209,7 @@ Section semantic_lemmas.
     Γ s⊨p pself q l : τ, i -∗
     Γ s⊨p pself p l : oSing (pself q l), i.
   Proof.
-    iIntros "#Hpq #HqlT %ρ #Hg"; iSpecialize ("HqlT" with "Hg");
+    iIntros "Hpq HqlT %ρ #Hg"; iSpecialize ("HqlT" with "Hg");
     iSpecialize ("Hpq" with "Hg"); iNext i; iClear "Hg".
     iDestruct "Hpq" as %Hal%alias_paths_simpl.
     rewrite !path_wp_eq; iDestruct "HqlT" as (vql Hql) "_".
@@ -223,9 +223,9 @@ Section semantic_lemmas.
     (*───────────────────────────────*)
     Γ s⊨p p : T2, i.
   Proof.
-    iIntros "#HpT1 #Hsub %ρ #Hg".
+    iIntros "HpT1 Hsub %ρ #Hg".
     iSpecialize ("Hsub" with "Hg"); iSpecialize ("HpT1" with "Hg"); iNext i.
-    iApply (path_wp_wand with "HpT1"); iIntros "%w HvT1 {Hg HpT1}".
+    iApply (path_wp_wand with "HpT1"); iIntros "%w HvT1 {Hg}".
     iApply ("Hsub" with "HvT1").
   Qed.
 

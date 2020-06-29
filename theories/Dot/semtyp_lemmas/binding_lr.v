@@ -89,9 +89,9 @@ Section Sec.
     (*───────────────────────────────*)
     Γ s⊨ e : T2.
   Proof.
-    iIntros "#HeT1 #Hsub %ρ #Hg".
+    iIntros "HeT1 Hsub %ρ #Hg".
     wp_wapply "(HeT1 Hg)".
-    iIntros (v) "#HvT1 {HeT1} /=".
+    iIntros (v) "HvT1 /=".
     iApply ("Hsub" with "Hg HvT1").
   Qed.
 
@@ -134,8 +134,8 @@ Section Sec.
     iIntros "/= He1 He2 %ρ #Hg".
     wp_bind (AppLCtx _); wp_wapply "(He1 Hg)"; iIntros "%v"; iDestruct 1 as (t ->) "Hv /=".
     wp_bind (AppRCtx _); wp_wapply "(He2 Hg)"; iIntros "{Hg} %w Hw /=".
-    iSpecialize ("Hv" with "Hw"). wp_pure. wp_wapply ("Hv").
-    iIntros (v) "H". by rewrite /= (hoEnvD_weaken_one T2 _ _ _).
+    iSpecialize ("Hv" with "Hw"). wp_pure. wp_wapply "Hv".
+    iIntros "%v H". by rewrite /= (hoEnvD_weaken_one T2 _ _ _).
   Qed.
 
   Lemma T_All_E {Γ e1 e2 T1 T2} :
