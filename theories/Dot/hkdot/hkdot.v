@@ -958,7 +958,7 @@ Section dot_experimental_kinds.
       iApply (isSing_respects_hoLty_equiv with "[] Hsing'");
       iIntros "{Hsing}"; [iApply "Heq1"|iApply "Heq2"].
   Qed.
-  Next Obligation. iIntros "/= _ " (T0 T1 T2) "[$_] [_$]". Qed.
+  Next Obligation. iIntros "/= _" (T0 T1 T2) "[$_] [_$]". Qed.
   Next Obligation. iIntros "/= _" (T1 T2) "[$ _]". Qed.
   Next Obligation. iIntros "/= _" (T1 T2) "[_ $]". Qed.
 

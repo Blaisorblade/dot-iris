@@ -20,7 +20,7 @@ Section LambdaIntros.
     (*─────────────────────────*)
     Γ s⊨ tv (vabs e) : oAll T1 T2.
   Proof.
-    rewrite Hctx; iIntros "HeT %ρ Hg /= ".
+    rewrite Hctx; iIntros "HeT %ρ Hg /=".
     rewrite -wp_value'. iExists _; iSplit; first done.
     iIntros (v) "Hv"; rewrite up_sub_compose.
     (* Factor ▷ out of [sG⟦ Γ ⟧* ρ] before [iNext]. *)

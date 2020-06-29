@@ -134,7 +134,7 @@ Section DStpLemmas.
     Γ s⊨ oMu T1 <:[i] oMu T2.
   Proof.
     rewrite !sstpd_eq; iIntros "/= #Hstp %ρ %v Hg".
-    iApply mlaterN_impl; iIntros " #HT1".
+    iApply mlaterN_impl; iIntros "#HT1".
     iApply ("Hstp" $! (v .: ρ) v with "[$Hg $HT1] [$HT1]").
   Qed.
 

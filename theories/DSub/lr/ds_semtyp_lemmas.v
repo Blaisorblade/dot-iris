@@ -142,7 +142,7 @@ Section Sec.
   Proof.
     iIntros "/= #Hva" (vs) "#Hg".
     iSpecialize ("Hva" with "Hg"). iNext.
-    iIntros (v) " #HvL".
+    iIntros (v) "#HvL".
     rewrite wp_value_inv'; unfold_interp.
     iDestruct "Hva" as (φ) "#[H1 #[HLφ HφU]]".
     iDestruct "H1" as (T) "[>% Hφ]".
