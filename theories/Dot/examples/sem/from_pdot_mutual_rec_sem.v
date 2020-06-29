@@ -151,11 +151,6 @@ Definition fromPDotPaper : vl := ν {@
   val "symbols" = fromPDotPaperSymbolsV
 }.
 
-Tactic Notation "smart_wp_bind'" uconstr(ctxs) ident(v) constr(Hv) uconstr(Hp) :=
-  iApply (wp_bind (ectx_language.fill ctxs));
-  iApply (wp_wand with "[-]"); [iApply Hp; trivial|];
-  iIntros (v) Hv.
-
 Lemma sem_later T a b c: V⟦TLater T⟧ a b c ⊣⊢ ▷ V⟦T⟧ a b c. Proof. done. Qed.
 
 Lemma ty_sub_TAnd_TLater_TAnd_distr_inv T U :
