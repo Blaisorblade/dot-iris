@@ -1,7 +1,28 @@
 All files in this development are distributed under the terms of the BSD
 license, included below.
 
+# Imported code
+- Code from std++ is included in
+  + `theories/proper.v`.
+  Copyright: std++ developers and contributors
+
+- Code from Iris is included in
+  + `theories/pure_program_logic`
+  + `theories/Dot/lr/dlang_inst.v`
+
+Copyright: Iris developers and contributors
+
+- Code from Iris-examples is included in
+  + `theories/Dot/syn/rules.v`
+  + `theories/DSub/syn/ds_rules.v`
+  + `theories/iris_extra/lty.v`
+
+Copyright: Iris developers and contributors
+
+# Remaining code
+
 Copyright (C) 2018-2020 by Paolo G. Giarrusso, Amin Timany, Léo Stefanesco
+
 ------------------------------------------------------------------------------
 
                             BSD LICENCE
