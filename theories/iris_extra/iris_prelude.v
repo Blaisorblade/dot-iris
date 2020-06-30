@@ -10,10 +10,6 @@ Export uPred.
 From D.pure_program_logic Require Export weakestpre.
 From D Require Export prelude proofmode_extra.
 
-(* XXX fix notation scopes for Iris basic updates. To drop when we update Iris. *)
-Arguments bupd {_}%type_scope {_} _%bi_scope.
-Notation "|==> Q" := (bupd Q) : bi_scope.
-
 (** * Notation for functions in the Iris scope. *)
 Notation "'λI' x .. y , t" := (fun x => .. (fun y => t%I) ..)
   (at level 200, x binder, y binder, right associativity,
