@@ -191,7 +191,7 @@ Section olty_subst.
   Global Instance ids_hoEnvD : Ids (hoEnvD Σ i) := λ _, inhabitant.
   Global Instance rename_hoEnvD : Rename (hoEnvD Σ i) :=
     λ r φ args ρ, φ args (r >>> ρ).
-  Global Instance hsubst_hoEnvD : HSubst vl (hoEnvD Σ i) :=
+  Global Program Instance hsubst_hoEnvD : HSubst vl (hoEnvD Σ i) :=
     λ sb φ args ρ, φ args (sb >> ρ).
 
   Ltac renLemmas_hoEnvD :=
