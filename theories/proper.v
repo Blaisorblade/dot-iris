@@ -1,4 +1,7 @@
-(** * Utilities for setoids. *)
+(** * Utilities for setoids.
+The implementation of [f_equiv] is stdpp's implementation, plus a few extra
+cases of higher arity.
+*)
 From stdpp Require Import tactics.
 
 Set Suggest Proof Using.
