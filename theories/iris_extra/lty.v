@@ -201,6 +201,7 @@ Section olty_subst.
   Global Program Definition hsubst_hoEnvD3 : HSubst vl (hoEnvD Σ i).
   Proof.
     rewrite /HSubst /hoEnvD.
+    Fail notypeclasses refine (λ sb φ args ρ, φ args (sb >> ρ)).
     Fail exact (λ sb φ args ρ, φ args (sb >> ρ)).
     Fail refine (λ sb φ args ρ, φ args (sb >> ρ)).
     (* Let's expand [sb >> ρ] to resemble the error message. *)
