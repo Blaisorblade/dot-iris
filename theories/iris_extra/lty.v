@@ -78,7 +78,7 @@ Section iPPred_ofe.
   Global Instance bottom_ippred {s}: Bottom (iPPred s Σ) := IPPred (λ _, ⊥).
   Global Instance top_ippred {s}: Top (iPPred s Σ) := IPPred (λ _, ⊤).
 
-  Global Program Instance iPPred_inhabited : Inhabited vpred := populate ⊥.
+  Global Instance iPPred_inhabited : Inhabited vpred := populate ⊥.
 
   Global Instance iPPred_car_ne n : Proper (dist n ==> (=) ==> dist n) (@iPPred_car vl Σ).
   Proof. by intros A A' HA w ? <-. Qed.
