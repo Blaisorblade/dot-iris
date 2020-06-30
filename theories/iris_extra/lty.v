@@ -191,8 +191,36 @@ Section olty_subst.
   Global Instance ids_hoEnvD : Ids (hoEnvD Σ i) := λ _, inhabitant.
   Global Instance rename_hoEnvD : Rename (hoEnvD Σ i) :=
     λ r φ args ρ, φ args (r >>> ρ).
-  Global Program Instance hsubst_hoEnvD : HSubst vl (hoEnvD Σ i) :=
-    λ sb φ args ρ, φ args (sb >> ρ).
+
+  Fail Global Instance hsubst_hoEnvD : HSubst vl (hoEnvD Σ i) :=
+    λ sb (φ : ofe_car (hoEnvD Σ i)) args ρ, φ args (λ x, @subst _ _ ρ (sb x)).
+  Global Instance hsubst_hoEnvD1 : HSubst vl (hoEnvD Σ i) :=
+    λ sb (φ : ofe_car (hoEnvD Σ i)) args ρ, φ args (λ x, @subst _ subst_vl ρ (sb x)).
+  Global Instance hsubst_hoEnvD2 : HSubst vl (hoEnvD Σ i) :=
+    λ sb (φ : vec vl i → env → vl → iProp Σ) args ρ, φ args (sb >> ρ).
+  Global Program Definition hsubst_hoEnvD3 : HSubst vl (hoEnvD Σ i).
+  Proof.
+    rewrite /HSubst /hoEnvD.
+    Fail exact (λ sb φ args ρ, φ args (sb >> ρ)).
+    Fail refine (λ sb φ args ρ, φ args (sb >> ρ)).
+    (* Let's expand [sb >> ρ] to resemble the error message. *)
+    Fail refine
+      (λ sb (φ : ofe_car (hoEnvD Σ i)) args ρ, φ args (λ x, @subst _ _ ρ (sb x))).
+    Fail refine (ltac:(refine (fun sb φ args ρ => φ args (sb >> ρ)))).
+    (* The last try might look like nonsense, but it works when we add in an abbreviation! *)
+
+    (** Enrico (Tassi?)'s trick for tc resolution in [have]. Doesn't conflict with infix [!!]. *)
+    Notation "!! x" := (ltac:(refine x)) (at level 100, only parsing).
+
+    refine (!!(λ sb φ args ρ, φ args (sb >> ρ))).
+    Restart.
+    rewrite /HSubst /hoEnvD.
+    Fail refine (λ sb φ args ρ, φ args (sb >> ρ)).
+    rewrite /discrete_funO.
+    (* This enables unfolding primitive projection [ofe_car]. *)
+    (* unfold ofe_car. *)
+    refine (λ sb φ args ρ, φ args (sb >> ρ)).
+  Defined.
 
   Ltac renLemmas_hoEnvD :=
     hnf; rewrite /hsubst /hsubst_hoEnvD => /= *;
