@@ -31,7 +31,7 @@ Section Lemmas.
     Γ s⊨p p : oLaterN j T, i -∗
     Γ s⊨p p : T, i + j.
   Proof.
-    rewrite comm; elim: j i => [//|j IHj] i; rewrite plus_Snm_nSm.
+    rewrite Nat.add_comm; elim: j i => [//|j IHj] i; rewrite plus_Snm_nSm.
     by rewrite -(IHj i.+1) -sP_Later.
   Qed.
 

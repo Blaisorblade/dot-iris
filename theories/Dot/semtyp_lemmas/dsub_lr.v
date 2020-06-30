@@ -29,7 +29,7 @@ Section DStpLemmas.
     Γ s⊨ oLaterN i T1 <:[j] oLaterN i T2 ⊣⊢
     Γ s⊨ T1 <:[i+j] T2.
   Proof.
-    by rewrite -sstpd_delay_oLaterN -!oLaterN_plus !(comm plus i j)
+    by rewrite -sstpd_delay_oLaterN -!oLaterN_plus (Nat.add_comm i j)
       sstpd_delay_oLaterN.
   Qed.
 
