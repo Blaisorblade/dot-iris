@@ -29,6 +29,8 @@ Sec. 4:
     [`Dot/typing/typing_aux_defs.v`](theories/Dot/typing/typing_aux_defs.v)
   - Path substitution and replacement:
     [`Dot/syn/path_repl.v`](theories/Dot/syn/path_repl.v)
+  - Type equality:
+    [`Dot/typing/type_eq.v`](theories/Dot/typing/type_eq.v)
   - Primitive and derived typing rules:
     - Subtyping and path typing:
       [`Dot/typing/subtyping.v`](theories/Dot/typing/subtyping.v)
@@ -79,6 +81,8 @@ Sec. 5:
 - Iris proof rules (Sec. 5.2, Fig. 8): Iris proves all rules shown, except the
   following ones, which are proved by unsealing Iris's model:
   - `Impl-▷` is proven in from [`iris_extra/swap_later_impl.v`](theories/iris_extra/swap_later_impl.v).
+  - That all of our predicates are persistent is shown in
+    [`iris_extra/persistence.v`](theories/iris_extra/persistence.v).
   - `Saved-Pred-Agree` is proven as
   `saved_ho_sem_type_agree` from [`iris_extra/saved_interp_dep.v`](theories/iris_extra/saved_interp_dep.v).
 - Term weakest precondition (Sec. 5.2.1): Definition and proof rules appear in
