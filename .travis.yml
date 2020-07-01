@@ -69,7 +69,7 @@ deploy:
   allow_empty_commit: true
   verbose: true
 
-  local_dir: html
+  local_dir: website
   # cleanup: false
 
   on:

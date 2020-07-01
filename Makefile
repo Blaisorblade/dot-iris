@@ -18,14 +18,14 @@ clean: Makefile.coq
 .PHONY: clean
 
 html: all
-	rm -fr html-old
-	[ -d html ] && mv html html-old || true
+	rm -fr coqdoc-old
+	[ -d website/coqdoc ] && mv website/coqdoc coqdoc-old || true
 	@$(MAKE) -f Makefile.coq $@
 	cp $(EXTRA_DIR)/resources/* html
 	cd html; ln -s ./toc.html index.html
 	# Create some layout in the website
-	mv html coqdoc; mkdir html; mv coqdoc html
-	cd html; touch .nojekyll
+	mv html website/coqdoc
+
 .PHONY: html
 
 # Create Coq Makefile.
