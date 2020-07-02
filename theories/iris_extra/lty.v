@@ -39,7 +39,7 @@ Record iPPred vl Σ := IPPred {
 }.
 Add Printing Constructor iPPred.
 Global Arguments IPPred {_ _} _%I.
-Global Arguments iPPred_car {_ _} !_ _ /.
+Global Arguments iPPred_car {_ _} !_ _.
 Declare Scope iPPred_scope.
 Bind Scope iPPred_scope with iPPred.
 Delimit Scope iPPred_scope with T.

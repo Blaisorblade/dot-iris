@@ -81,7 +81,7 @@ Section semantic_lemmas.
   Lemma sP_Mu_E {Γ T p i} :
     Γ s⊨p p : oMu T, i -∗ Γ s⊨p p : T .sTp[ p /], i.
   Proof.
-    iIntros "#Hp %ρ Hg /=".
+    iIntros "#Hp %ρ Hg".
     iApply (strong_path_wp_wand with "(Hp Hg)"); iIntros "**".
     by rewrite oMu_eq sem_psubst_one_repl ?alias_paths_pv_eq_1.
   Qed.
@@ -89,7 +89,7 @@ Section semantic_lemmas.
   Lemma sP_Mu_I {Γ T p i} :
     Γ s⊨p p : T .sTp[ p /], i -∗ Γ s⊨p p : oMu T, i.
   Proof.
-    iIntros "#Hp %ρ Hg /=".
+    iIntros "#Hp %ρ Hg".
     iApply (strong_path_wp_wand with "(Hp Hg)"); iIntros "**".
     by rewrite oMu_eq sem_psubst_one_repl ?alias_paths_pv_eq_1.
   Qed.
@@ -126,7 +126,7 @@ Section semantic_lemmas.
   Lemma P_Mu_I' {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : T', i -∗ Γ ⊨p p : TMu T, i.
   Proof.
-    iIntros "#Hp %ρ Hg /=".
+    iIntros "#Hp %ρ Hg".
     iApply (strong_path_wp_wand with "(Hp Hg)"); iIntros "**".
     by rewrite oMu_eq -(psubst_one_repl Hrepl) ?alias_paths_pv_eq_1.
   Qed.
@@ -137,12 +137,12 @@ Section semantic_lemmas.
     (*────────────────────────────────────────────────────────────*)
     Γ s⊨ tapp e1 (path2tm p2) : T2 .sTp[ p2 /].
   Proof.
-    iIntros "He1 Hp2 %ρ #Hg /="; iSpecialize ("Hp2" with "Hg").
+    iIntros "He1 Hp2 %ρ #Hg"; iSpecialize ("Hp2" with "Hg").
     wp_wapply "(He1 Hg)"; iIntros "{Hg} %v".
-    iDestruct 1 as (t ->) "HvFun". rewrite path_wp_eq path2tm_subst /=.
+    iDestruct 1 as (t ->) "HvFun". rewrite path_wp_eq path2tm_subst.
     iDestruct "Hp2" as (pw Hpwpp) "Hpw"; iSpecialize ("HvFun" with "Hpw").
     iDestruct (path_wp_pure_to_wp Hpwpp) as "Hwpp".
-    wp_wapply "Hwpp". iIntros (w <-) "{Hwpp} /=".
+    wp_wapply "Hwpp". iIntros (w <-) "{Hwpp}".
     wp_pure. wp_wapply "HvFun"; iIntros (v) "Hres".
     rewrite sem_psubst_one_repl //. apply /alias_paths_pv_eq_1 /Hpwpp.
   Qed.
