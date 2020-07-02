@@ -257,7 +257,7 @@ Proof.
   have {Hsk x0_s} ->: x0_s = x0.
   by repeat constrain_bisimulating.
 
-  rewrite /interp_expr wp_value_inv /vclose sem_later /of_val.
+  rewrite /interp_expr wp_value_inv sem_later /of_val.
   wp_pure.
 
   rewrite oVMem_eq; iDestruct "Hx0" as (p Hl) "Hx0".

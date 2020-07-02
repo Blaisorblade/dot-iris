@@ -438,7 +438,7 @@ Section olty_ofe_2.
   Proof. move=> args ρ v. by rewrite /= (hoEnvD_weaken_one T args _ v). Qed.
 
   Definition interp_expr (φ : hoEnvD Σ 0) : envPred tm Σ :=
-    λI ρ t, WP t {{ vclose φ ρ }}.
+    λI ρ t, WP t {{ oClose φ ρ }}.
   Global Arguments interp_expr /.
 
   Lemma sTEq_oMu_oLaterN (τ : oltyO Σ i) n :

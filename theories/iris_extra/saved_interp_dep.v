@@ -31,14 +31,8 @@ Section vec.
   Proof. exact: vec_S_inv. Qed.
 
   (** Manipulation of higher-order semantic types. *)
-  Definition vclose (Φ : vec vl 0 -d> A): A := Φ vnil.
-  Global Arguments vclose /.
-
   Definition vopen (Φ : A) : vec vl 0 -d> A := λ args, Φ.
   Global Arguments vopen /.
-
-  Lemma vopen_vclose_inv (φ : vec vl 0 -d> A) : vopen (vclose φ) = φ.
-  Proof. apply functional_extensionality_dep => x /=. by rewrite (vec_vnil_eta x). Qed.
 
   Definition vcurry (Φ : vec vl (S n) -d> A) : vl -d> vec vl n -d> A :=
     λ v args, Φ (vcons v args).
