@@ -80,7 +80,7 @@ Record sf_kind {Σ n} := _SfKind {
 Add Printing Constructor sf_kind.
 (* Existing Instance sf_kind_sub_ne. Using :> would create an ambiguous coercion to Funclass. *)
 Global Arguments sf_kind : clear implicits.
-Global Arguments sf_kind_sub {_ _} !_ /.
+Global Arguments sf_kind_sub {_ _} !_.
 Global Arguments _SfKind {_ _} _.
 Notation SfKind F := (_SfKind F notc_hole _ _ _ _).
 
