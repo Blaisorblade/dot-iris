@@ -44,9 +44,9 @@ Notation c2o := clty_olty.
 Arguments clty : clear implicits.
 Arguments _Clty {_}.
 Notation Clty TD T := (_Clty TD T _ _ _).
-Arguments clty_dslty {_} !_ /.
+Arguments clty_dslty {_} !_.
 Instance: Params (@clty_dslty) 1 := {}.
-Arguments clty_olty {_} !_ /.
+Arguments clty_olty {_} !_.
 Instance: Params (@clty_olty) 1 := {}.
 
 Section clty_ofe.
