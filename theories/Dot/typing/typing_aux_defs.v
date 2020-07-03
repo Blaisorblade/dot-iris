@@ -50,7 +50,7 @@ Global Instance: Cancel (=) unTLater TLater. Proof. exact: unTLater_TLater. Qed.
 (** ** The [T1 ≫ ▷ T2] judgment, used in the [Γ1 ≫ ▷ Γ2] paper judgment. *)
 Inductive ty_strip_syn : ty → ty → Prop :=
 | ty_strip_id_syn T : ⊢T T >>▷ T
-| ty_strip_TLater_add_syn T :
+| ty_strip_TLater_syn T :
   ⊢T TLater T >>▷ T
 | ty_strip_cong_TAnd_syn T1 T2 U1 U2 :
   ⊢T T1 >>▷ U1 → ⊢T T2 >>▷ U2 → ⊢T TAnd T1 T2 >>▷ TAnd U1 U2

@@ -141,8 +141,8 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     F[A ∧ B] <: F[A] ∧ F[B] is provable by covariance.
     Let's prove F[A] ∧ F[B] <: F[A ∧ B] in the model.
     *)
-| iAnd_All_Sub_Distr T U1 U2 i:
-    Γ u⊢ₜ TAnd (TAll T U1) (TAll T U2), i <: TAll T (TAnd U1 U2), i
+| iAnd_All_Sub_Distr S T1 T2 i:
+    Γ u⊢ₜ TAnd (TAll S T1) (TAll S T2), i <: TAll S (TAnd T1 T2), i
 | iAnd_Fld_Sub_Distr l T1 T2 i:
     Γ u⊢ₜ TAnd (TVMem l T1) (TVMem l T2), i <: TVMem l (TAnd T1 T2), i
 | iAnd_Typ_Sub_Distr l L U1 U2 i:
