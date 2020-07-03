@@ -9,7 +9,7 @@ This is the homepage for the **Scala Step-by-Step** project. We extend the
 the DOT calculus, that is, the formal foundations of the _Scala_ programming language,
 using step-indexed logical relations and the Iris framework.
 
-# Publications
+## Publications
   - _Scala Step-by-Step: Soundness for DOT with Step-Indexed Logical Relations in Iris_.
     Paolo G. Giarrusso, Yann Régis-Gianas and Philipp Schuster. ICFP 2020.
 
@@ -30,23 +30,23 @@ using step-indexed logical relations and the Iris framework.
     - [Preprint, Version 1](2020-dot-submission.pdf)
     - Revised version coming soon.
 
-# News
+## News
 
 - 2020-07-03: Website online
 - 2014-06-24: AEC submission accepted.
 - 2020-06-19: _Scala Step-by-Step: Soundness for DOT with Step-Indexed Logical
   Relations in Iris_ unconditionally accepted at ICFP 2020.
 
-# Source Code
+## Source Code
 
 [Source code](https://github.com/Blaisorblade/dot-iris) --- [coqdoc](coqdoc/).
 
-# Trivia
+## Trivia
 
 - Q: Why "Scala Step-by-Step"?
 - A: Because Scala is named after the Italian word for "staircase". And because
   we use _step-indexing_.
 
-# Contacts
+## Contacts
 For any question or suggestion, feel free to contact me, Paolo G. Giarrusso, at
 p !dot! giarrusso (at) gmail !dot! com.
