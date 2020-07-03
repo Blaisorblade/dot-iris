@@ -1,0 +1,146 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<link href="coqdocjs.css" rel="stylesheet" type="text/css"/>
+</head>
+
+<body onload="document.getElementById('content').focus()">
+  <div id="header">
+    <span class="left">
+      <span class="modulename"> <script> document.write(document.title) </script> </span>
+    </span>
+
+    <span class="button" id="toggle-proofs"></span>
+
+    <span class="right">
+      <a href="../">Project Page</a>
+      <a href="./indexpage.html"> Index </a>
+      <a href="./toc.html"> Table of Contents </a>
+    </span>
+</div>
+    <div id="content" tabindex="-1" onblur="document.getElementById('content').focus()">
+    <div id="main">
+<h1 class="libtitle">D.iris_extra.persistence</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+<a name="lab34"></a><h1 class="section">Show all of Iris propositions are persistent when resources are idempotent (like in our case).</h1>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">From</span> <span class="id" title="var">iris.algebra</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.agree.html#"><span class="id" title="library">agree</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.gmap.html#"><span class="id" title="library">gmap</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">iris.base_logic</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.base_logic.lib.iprop.html#"><span class="id" title="library">lib.iprop</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">D</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#"><span class="id" title="library">cmra_prop_lift</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Suggest</span> <span class="id" title="keyword">Proof</span> <span class="id" title="var">Using</span>.<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Proof</span> <span class="id" title="var">Using</span> "Type".<br/>
+
+<br/>
+<span class="id" title="keyword">Class</span> <a name="CmraPersistent"><span class="id" title="record">CmraPersistent</span></a> (<span class="id" title="var">M</span> : <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.cmra.html#cmraT"><span class="id" title="record">cmraT</span></a>) :=<br/>
+&nbsp;&nbsp;<a name="cmra_persistent"><span class="id" title="projection">cmra_persistent</span></a> (<span class="id" title="var">x</span> : <a class="idref" href="D.iris_extra.persistence.html#M"><span class="id" title="variable">M</span></a>) :&gt; <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.cmra.html#CoreId"><span class="id" title="class">CoreId</span></a> <a class="idref" href="D.iris_extra.persistence.html#x"><span class="id" title="variable">x</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <a name="CmraPersistentLaws"><span class="id" title="section">CmraPersistentLaws</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Local</span> <span class="id" title="var">Arguments</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.base_logic.upred.html#uPred_holds"><span class="id" title="projection">uPred_holds</span></a> {<span class="id" title="var">_</span>} !<span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Global Instance</span> <a name="CmraPersistent_Persistent"><span class="id" title="instance">CmraPersistent_Persistent</span></a> {<span class="id" title="var">M</span> : <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.cmra.html#ucmraT"><span class="id" title="record">ucmraT</span></a>} `(!<a class="idref" href="D.iris_extra.persistence.html#CmraPersistent"><span class="id" title="class">CmraPersistent</span></a> <a class="idref" href="D.iris_extra.persistence.html#M"><span class="id" title="variable">M</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">P</span> : <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.base_logic.upred.html#uPred"><span class="id" title="record">uPred</span></a> <a class="idref" href="D.iris_extra.persistence.html#M"><span class="id" title="variable">M</span></a>) : <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.bi.derived_connectives.html#Persistent"><span class="id" title="class">Persistent</span></a> <a class="idref" href="D.iris_extra.persistence.html#P"><span class="id" title="variable">P</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">split</span> ⇒ <span class="id" title="var">n</span> <span class="id" title="var">x</span> <span class="id" title="var">Hx</span> <span class="id" title="var">Hpx</span>; <span class="id" title="var">uPred.unseal</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.cmra.html#core_id_core"><span class="id" title="lemma">core_id_core</span></a>. <span class="id" title="var">done</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Qed</span>.<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="D.iris_extra.persistence.html#CmraPersistentLaws"><span class="id" title="section">CmraPersistentLaws</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab35"></a><h3 class="section">Lift <span class="inlinecode"><span class="id" title="library">cmra_prop_lift</span></span> infrastructure to <span class="inlinecode"><a class="idref" href="D.iris_extra.persistence.html#CmraPersistent"><span class="id" title="record">CmraPersistent</span></a></span>.</h3>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Notation</span> <a name="PersistentRFunct"><span class="id" title="abbreviation">PersistentRFunct</span></a> <span class="id" title="var">F</span> := (<a class="idref" href="D.iris_extra.cmra_prop_lift.html#LiftCPropToRFunctor"><span class="id" title="abbreviation">LiftCPropToRFunctor</span></a> <a class="idref" href="D.iris_extra.persistence.html#CmraPersistent"><span class="id" title="class">CmraPersistent</span></a> <span class="id" title="var">F</span>).<br/>
+<span class="id" title="keyword">Notation</span> <a name="PersistentGFunct"><span class="id" title="abbreviation">PersistentGFunct</span></a> <span class="id" title="var">Σ</span> := (<a class="idref" href="D.iris_extra.cmra_prop_lift.html#LiftCPropToGFunctors"><span class="id" title="abbreviation">LiftCPropToGFunctors</span></a> <a class="idref" href="D.iris_extra.persistence.html#CmraPersistent"><span class="id" title="class">CmraPersistent</span></a> <span class="id" title="var">Σ</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <a name="PersistentGFunct_nil"><span class="id" title="instance">PersistentGFunct_nil</span></a> : <a class="idref" href="D.iris_extra.cmra_prop_lift.html#LiftCPropToGFunctors_nil_type"><span class="id" title="abbreviation">LiftCPropToGFunctors_nil_type</span></a> <a class="idref" href="D.iris_extra.persistence.html#CmraPersistent"><span class="id" title="class">CmraPersistent</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>. <span class="id" title="tactic">apply</span> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#LiftCPropToGFunctors_nil"><span class="id" title="lemma">LiftCPropToGFunctors_nil</span></a>. <span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <a name="PersistentGFunct_app"><span class="id" title="instance">PersistentGFunct_app</span></a> : <a class="idref" href="D.iris_extra.cmra_prop_lift.html#LiftCPropToGFunctors_app_type"><span class="id" title="abbreviation">LiftCPropToGFunctors_app_type</span></a> <a class="idref" href="D.iris_extra.persistence.html#CmraPersistent"><span class="id" title="class">CmraPersistent</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>. <span class="id" title="tactic">apply</span> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#LiftCPropToGFunctors_app"><span class="id" title="lemma">LiftCPropToGFunctors_app</span></a>. <span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <a name="PersistentGFunct_GFunctor"><span class="id" title="instance">PersistentGFunct_GFunctor</span></a> `{!<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.cmra.html#rFunctorContractive"><span class="id" title="class">rFunctorContractive</span></a> <span class="id" title="var">F</span>} :<br/>
+&nbsp;&nbsp;<a class="idref" href="D.iris_extra.cmra_prop_lift.html#LiftCPropToGFunctors_GFunctor_type"><span class="id" title="abbreviation">LiftCPropToGFunctors_GFunctor_type</span></a> <a class="idref" href="D.iris_extra.persistence.html#F"><span class="id" title="variable">F</span></a> <a class="idref" href="D.iris_extra.persistence.html#CmraPersistent"><span class="id" title="class">CmraPersistent</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>. <span class="id" title="tactic">apply</span> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#LiftCPropToGFunctors_GFunctor"><span class="id" title="lemma">LiftCPropToGFunctors_GFunctor</span></a>. <span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab36"></a><h3 class="section">Show that <span class="inlinecode"><a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.base_logic.lib.iprop.html#iProp_solution.iResUR"><span class="id" title="definition">iResUR</span></a></span> and <span class="inlinecode"><a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.base_logic.lib.iprop.html#iProp_solution.iProp"><span class="id" title="abbreviation">iProp</span></a></span> lift <span class="inlinecode"><a class="idref" href="D.iris_extra.persistence.html#CmraPersistent"><span class="id" title="record">CmraPersistent</span></a></span>, using <span class="inlinecode"><span class="id" title="library">cmra_prop_lift</span></span>.</h3>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Instance</span> <a name="CmraPersistent_discrete_funUR"><span class="id" title="instance">CmraPersistent_discrete_funUR</span></a> {<span class="id" title="var">A</span>} (<span class="id" title="var">B</span> : <a class="idref" href="D.iris_extra.persistence.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#c41c566ddac4c1298b9e7dd2bae1c794"><span class="id" title="notation">→</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.cmra.html#ucmraT"><span class="id" title="record">ucmraT</span></a>)<br/>
+&nbsp;&nbsp;`(<a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#e15f3fa8414cf45e36c73a91b3f5f2c2"><span class="id" title="notation">∀</span></a> <span class="id" title="var">i</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#e15f3fa8414cf45e36c73a91b3f5f2c2"><span class="id" title="notation">,</span></a> <a class="idref" href="D.iris_extra.persistence.html#CmraPersistent"><span class="id" title="class">CmraPersistent</span></a> (<a class="idref" href="D.iris_extra.persistence.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="D.iris_extra.persistence.html#i"><span class="id" title="variable">i</span></a>)) :<br/>
+&nbsp;&nbsp;<a class="idref" href="D.iris_extra.persistence.html#CmraPersistent"><span class="id" title="class">CmraPersistent</span></a> (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.cmra.html#discrete_funUR"><span class="id" title="definition">discrete_funUR</span></a> <a class="idref" href="D.iris_extra.persistence.html#B"><span class="id" title="variable">B</span></a>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">move</span>⇒ <span class="id" title="var">f</span>; <span class="id" title="tactic">unfold</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.cmra.html#CoreId"><span class="id" title="class">CoreId</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.option.html#Some_proper"><span class="id" title="instance">Some_proper</span></a> ⇒ <span class="id" title="var">a</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span>: <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.cmra.html#core_id_core"><span class="id" title="lemma">core_id_core</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <a name="CmraPersistent_gmapUR"><span class="id" title="instance">CmraPersistent_gmapUR</span></a> `{<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.countable.html#Countable"><span class="id" title="class">Countable</span></a> <span class="id" title="var">A</span>} `(!<a class="idref" href="D.iris_extra.persistence.html#CmraPersistent"><span class="id" title="class">CmraPersistent</span></a> <span class="id" title="var">T</span>):<br/>
+&nbsp;&nbsp;<a class="idref" href="D.iris_extra.persistence.html#CmraPersistent"><span class="id" title="class">CmraPersistent</span></a> (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.gmap.html#gmapUR"><span class="id" title="definition">gmapUR</span></a> <a class="idref" href="D.iris_extra.persistence.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="D.iris_extra.persistence.html#T"><span class="id" title="variable">T</span></a>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">j</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.option.html#Some_proper"><span class="id" title="instance">Some_proper</span></a> ⇒ <span class="id" title="var">k</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.gmap.html#lookup_core"><span class="id" title="lemma">lookup_core</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">case</span>: (<span class="id" title="var">j</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#4fa0a1d38759705f0ddcbbfc0f886b59"><span class="id" title="notation">!!</span></a> <span class="id" title="var">k</span>) ⇒ [<span class="id" title="var">y</span>|//].<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span>: <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.cmra.html#core_id"><span class="id" title="definition">core_id</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <a name="CmraPersistent_iResUR"><span class="id" title="instance">CmraPersistent_iResUR</span></a> `(<span class="id" title="var">fp</span> : <a class="idref" href="D.iris_extra.persistence.html#PersistentGFunct"><span class="id" title="abbreviation">PersistentGFunct</span></a> <span class="id" title="var">Σ</span>) :<br/>
+&nbsp;&nbsp;<a class="idref" href="D.iris_extra.persistence.html#CmraPersistent"><span class="id" title="class">CmraPersistent</span></a> (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.base_logic.lib.iprop.html#iProp_solution.iResUR"><span class="id" title="definition">iResUR</span></a> <a class="idref" href="D.iris_extra.persistence.html#e15c0eb40e61adefe95778c26e7840f6"><span class="id" title="variable">Σ</span></a>) | 100 := <a class="idref" href="D.iris_extra.cmra_prop_lift.html#lift_cprop_iResUR"><span class="id" title="lemma">lift_cprop_iResUR</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab37"></a><h1 class="section">Show that our actual resources satisfy <span class="inlinecode"><a class="idref" href="D.iris_extra.persistence.html#CmraPersistent"><span class="id" title="record">CmraPersistent</span></a></span>.</h1>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Instance</span> <a name="CmraPersistent_agreeR"><span class="id" title="instance">CmraPersistent_agreeR</span></a> <span class="id" title="var">F</span> : <a class="idref" href="D.iris_extra.persistence.html#CmraPersistent"><span class="id" title="class">CmraPersistent</span></a> (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.agree.html#agreeR"><span class="id" title="definition">agreeR</span></a> <a class="idref" href="D.iris_extra.persistence.html#F"><span class="id" title="variable">F</span></a>).<br/>
+<span class="id" title="keyword">Proof</span>. <span class="id" title="tactic">intros</span> ?; <span class="id" title="tactic">apply</span> <span class="id" title="var">_</span>. <span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="comment">(*&nbsp;Currently&nbsp;unused&nbsp;instances.&nbsp;*)</span><br/>
+<span class="id" title="keyword">Instance</span> <a name="CmraPersistent_optionUR"><span class="id" title="instance">CmraPersistent_optionUR</span></a> `{!<a class="idref" href="D.iris_extra.persistence.html#CmraPersistent"><span class="id" title="class">CmraPersistent</span></a> <span class="id" title="var">A</span>}: <a class="idref" href="D.iris_extra.persistence.html#CmraPersistent"><span class="id" title="class">CmraPersistent</span></a> (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.cmra.html#optionUR"><span class="id" title="definition">optionUR</span></a> <a class="idref" href="D.iris_extra.persistence.html#A"><span class="id" title="variable">A</span></a>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">x</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.option.html#Some_proper"><span class="id" title="instance">Some_proper</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span>: <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.cmra.html#core_id_core"><span class="id" title="lemma">core_id_core</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+</div>
+</div>
+<div id="footer">
+  Generated by <a href="http://coq.inria.fr/">coqdoc</a> and improved with <a href="https://github.com/tebbi/coqdocjs">CoqdocJS</a>
+</div>
+</div>
+</body>
+
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<link href="coqdocjs.css" rel="stylesheet" type="text/css"/>
+</head>
+
+<body onload="document.getElementById('content').focus()">
+  <div id="header">
+    <span class="left">
+      <span class="modulename"> <script> document.write(document.title) </script> </span>
+    </span>
+
+    <span class="button" id="toggle-proofs"></span>
+
+    <span class="right">
+      <a href="../">Project Page</a>
+      <a href="./indexpage.html"> Index </a>
+      <a href="./toc.html"> Table of Contents </a>
+    </span>
+</div>
+    <div id="content" tabindex="-1" onblur="document.getElementById('content').focus()">
+    <div id="main">
+<h1 class="libtitle">D.Dot.examples.ex_utils</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+<a name="lab114"></a><h1 class="section">Infrastructure for examples of DOT programs.</h1>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">From</span> <span class="id" title="var">stdpp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.strings.html#"><span class="id" title="library">strings</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">D</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="D.tactics.html#"><span class="id" title="library">tactics</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">D.Dot</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="D.Dot.syn.syn.html#"><span class="id" title="library">syn</span></a> <a class="idref" href="D.Dot.syn.path_repl.html#"><span class="id" title="library">path_repl</span></a> <a class="idref" href="D.Dot.syn.lr_syn_aux.html#"><span class="id" title="library">lr_syn_aux</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Implicit</span> <span class="id" title="keyword">Types</span> (<span class="id" title="var">L</span> <span class="id" title="var">T</span> <span class="id" title="var">U</span>: <a class="idref" href="D.Dot.syn.syn.html#VlSorts.ty"><span class="id" title="inductive">ty</span></a>) (<span class="id" title="var">v</span>: <a class="idref" href="D.Dot.syn.syn.html#VlSorts.vl"><span class="id" title="definition">vl</span></a>) (<span class="id" title="var">e</span>: <a class="idref" href="D.Dot.syn.syn.html#VlSorts.tm"><span class="id" title="inductive">tm</span></a>) (<span class="id" title="var">d</span>: <a class="idref" href="D.Dot.syn.syn.html#VlSorts.dm"><span class="id" title="inductive">dm</span></a>) (<span class="id" title="var">ds</span>: <a class="idref" href="D.Dot.syn.syn.html#VlSorts.dms"><span class="id" title="definition">dms</span></a>) (<span class="id" title="var">Γ</span> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#list"><span class="id" title="inductive">list</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.ty"><span class="id" title="inductive">ty</span></a>).<br/>
+
+<br/>
+<span class="comment">(*******************)</span><br/>
+</div>
+
+<div class="doc">
+<a name="lab115"></a><h1 class="section">NOTATIONS</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Coercion</span> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.tv"><span class="id" title="constructor">tv</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.tv"><span class="id" title="constructor">:</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.tv"><span class="id" title="constructor">vl_</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.tv"><span class="id" title="constructor">&gt;-&gt;</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.tv"><span class="id" title="constructor">tm</span></a>.<br/>
+<span class="id" title="keyword">Coercion</span> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.pv"><span class="id" title="constructor">pv</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.pv"><span class="id" title="constructor">:</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.pv"><span class="id" title="constructor">vl_</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.pv"><span class="id" title="constructor">&gt;-&gt;</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.pv"><span class="id" title="constructor">path</span></a>.<br/>
+<span class="id" title="keyword">Coercion</span> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.vlit"><span class="id" title="constructor">vlit</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.vlit"><span class="id" title="constructor">:</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.vlit"><span class="id" title="constructor">base_lit</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.vlit"><span class="id" title="constructor">&gt;-&gt;</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.vlit"><span class="id" title="constructor">vl_</span></a>.<br/>
+<span class="id" title="keyword">Coercion</span> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.lint"><span class="id" title="constructor">lint</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.lint"><span class="id" title="constructor">:</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.lint"><span class="id" title="constructor">Z</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.lint"><span class="id" title="constructor">&gt;-&gt;</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.lint"><span class="id" title="constructor">base_lit</span></a>.<br/>
+<span class="id" title="keyword">Coercion</span> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.lbool"><span class="id" title="constructor">lbool</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.lbool"><span class="id" title="constructor">:</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.lbool"><span class="id" title="constructor">bool</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.lbool"><span class="id" title="constructor">&gt;-&gt;</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.lbool"><span class="id" title="constructor">base_lit</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Identity</span> <span class="id" title="keyword">Coercion</span> <span class="id" title="var">vl2vl_</span> : <span class="id" title="var">vl</span> &gt;-&gt; <span class="id" title="var">vl_</span>.<br/>
+<span class="id" title="keyword">Coercion</span> <a name="vl_2vl"><span class="id" title="definition">vl_2vl</span></a> := <a class="idref" href="https://www.ps.uni-saarland.de/autosubst/doc/Autosubst.Autosubst_Basics.html#id"><span class="id" title="definition">id</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.ssr.ssreflect.html#aed478b27f23b4f753c27c8ac393febc"><span class="id" title="notation">:</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.vl_"><span class="id" title="inductive">vl_</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.vl"><span class="id" title="definition">vl</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="keyword">Import</span> <a name="DBNotation"><span class="id" title="module">DBNotation</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Bind</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">expr_scope</span> <span class="id" title="keyword">with</span> <span class="id" title="var">tm</span>.<br/>
+<span class="id" title="keyword">Delimit</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">expr_scope</span> <span class="id" title="keyword">with</span> <span class="id" title="var">E</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="c416075e0478097afc8d33ccccf0a094"><span class="id" title="notation">&quot;</span></a>()" := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.vobj"><span class="id" title="constructor">vobj</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Lists.List.html#ae9a5e1034e143b218b09d8e454472bd"><span class="id" title="notation">[]</span></a>) : <span class="id" title="var">expr_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="5cd56d5e679b9dcab638bc05fbfd78bd"><span class="id" title="notation">&quot;</span></a>e1 + e2" := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.tbin"><span class="id" title="constructor">tbin</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.bplus"><span class="id" title="constructor">bplus</span></a> <span class="id" title="var">e1</span>%<span class="id" title="var">E</span> <span class="id" title="var">e2</span>%<span class="id" title="var">E</span>) : <span class="id" title="var">expr_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> <a name="d6fa75c3d8418e370b0e35313a35809c"><span class="id" title="notation">&quot;</span></a>e1 - e2" := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.tbin"><span class="id" title="constructor">tbin</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.bminus"><span class="id" title="constructor">bminus</span></a> <span class="id" title="var">e1</span>%<span class="id" title="var">E</span> <span class="id" title="var">e2</span>%<span class="id" title="var">E</span>) : <span class="id" title="var">expr_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> <a name="3c02098bf8cb64465df302ade9d65a31"><span class="id" title="notation">&quot;</span></a>e1 * e2" := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.tbin"><span class="id" title="constructor">tbin</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.btimes"><span class="id" title="constructor">btimes</span></a> <span class="id" title="var">e1</span>%<span class="id" title="var">E</span> <span class="id" title="var">e2</span>%<span class="id" title="var">E</span>) : <span class="id" title="var">expr_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> <a name="753644eb34332dd14d1faf803efbce97"><span class="id" title="notation">&quot;</span></a>e1 `div` e2" := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.tbin"><span class="id" title="constructor">tbin</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.bdiv"><span class="id" title="constructor">bdiv</span></a> <span class="id" title="var">e1</span>%<span class="id" title="var">E</span> <span class="id" title="var">e2</span>%<span class="id" title="var">E</span>) : <span class="id" title="var">expr_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="c7b8e11aff9a3ce028321d69782e3445"><span class="id" title="notation">&quot;</span></a>e1 ≤ e2" := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.tbin"><span class="id" title="constructor">tbin</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.ble"><span class="id" title="constructor">ble</span></a> <span class="id" title="var">e1</span>%<span class="id" title="var">E</span> <span class="id" title="var">e2</span>%<span class="id" title="var">E</span>) : <span class="id" title="var">expr_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> <a name="f3ce83936ba5c687a30d9de17543f8cc"><span class="id" title="notation">&quot;</span></a>e1 &lt; e2" := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.tbin"><span class="id" title="constructor">tbin</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.blt"><span class="id" title="constructor">blt</span></a> <span class="id" title="var">e1</span>%<span class="id" title="var">E</span> <span class="id" title="var">e2</span>%<span class="id" title="var">E</span>) : <span class="id" title="var">expr_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> <a name="15e3966c650c98cb5210d4547b0d9328"><span class="id" title="notation">&quot;</span></a>e1 = e2" := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.tbin"><span class="id" title="constructor">tbin</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.beq"><span class="id" title="constructor">beq</span></a> <span class="id" title="var">e1</span>%<span class="id" title="var">E</span> <span class="id" title="var">e2</span>%<span class="id" title="var">E</span>) : <span class="id" title="var">expr_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> <a name="5f6747684fbfe9f8d5c84ea929b638e6"><span class="id" title="notation">&quot;</span></a>e1 ≠ e2" := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.tun"><span class="id" title="constructor">tun</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.unot"><span class="id" title="constructor">unot</span></a> (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.tbin"><span class="id" title="constructor">tbin</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.beq"><span class="id" title="constructor">beq</span></a> <span class="id" title="var">e1</span>%<span class="id" title="var">E</span> <span class="id" title="var">e2</span>%<span class="id" title="var">E</span>)) : <span class="id" title="var">expr_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="aac47f522023c8d2112ba9e1ad0f0ef0"><span class="id" title="notation">&quot;</span></a>~ e" := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.tun"><span class="id" title="constructor">tun</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.unot"><span class="id" title="constructor">unot</span></a> <span class="id" title="var">e</span>%<span class="id" title="var">E</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 75, <span class="id" title="tactic">right</span> <span class="id" title="keyword">associativity</span>) : <span class="id" title="var">expr_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="aa99a138d124566aadda0eaf188a9382"><span class="id" title="notation">&quot;</span></a>e1 &gt; e2" := (<span class="id" title="var">e2</span>%<span class="id" title="var">E</span> <a class="idref" href="D.Dot.examples.ex_utils.html#f3ce83936ba5c687a30d9de17543f8cc"><span class="id" title="notation">&lt;</span></a> <span class="id" title="var">e1</span>%<span class="id" title="var">E</span>)%<span class="id" title="var">E</span> : <span class="id" title="var">expr_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> <a name="a5becfc2fe95c4897e3f684385ba869f"><span class="id" title="notation">&quot;</span></a>e1 ≥ e2" := (<span class="id" title="var">e2</span>%<span class="id" title="var">E</span> <a class="idref" href="D.Dot.examples.ex_utils.html#c7b8e11aff9a3ce028321d69782e3445"><span class="id" title="notation">≤</span></a> <span class="id" title="var">e1</span>%<span class="id" title="var">E</span>)%<span class="id" title="var">E</span> : <span class="id" title="var">expr_scope</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab116"></a><h2 class="section">Notation for object values.</h2>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">dms_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> <a name="831783861e3d4a629aad67cf3d0e9d27"><span class="id" title="notation">&quot;</span></a>{@ }" := (@<a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#nil"><span class="id" title="constructor">nil</span></a> (<a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Strings.String.html#string"><span class="id" title="inductive">string</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#11c698c8685bb8ab1cf725545c085ac4"><span class="id" title="notation">×</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.dm"><span class="id" title="inductive">dm</span></a>)) (<span class="id" title="var">format</span> "{@ }") : <span class="id" title="var">dms_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> <a name="baeac2f1e6324dcd20fc0a713f13f487"><span class="id" title="notation">&quot;</span></a>{@ x }" := ( <span class="id" title="var">x</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#cbcf67aac0c2a85b8d93d37de9969adf"><span class="id" title="notation">::</span></a> <a class="idref" href="D.Dot.examples.ex_utils.html#831783861e3d4a629aad67cf3d0e9d27"><span class="id" title="notation">{@}</span></a> ) (<span class="id" title="var">format</span> "{@  x  }"): <span class="id" title="var">dms_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> <a name="1cfa4020d8445cb6b5be520807449fbd"><span class="id" title="notation">&quot;</span></a>{@ x ; y ; .. ; z }" :=<br/>
+&nbsp;&nbsp;(<a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#cons"><span class="id" title="constructor">cons</span></a> <span class="id" title="var">x</span> (<a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#cons"><span class="id" title="constructor">cons</span></a> <span class="id" title="var">y</span> .. (<a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#cons"><span class="id" title="constructor">cons</span></a> <span class="id" title="var">z</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#nil"><span class="id" title="constructor">nil</span></a>) ..))<br/>
+&nbsp;&nbsp;(<span class="id" title="var">format</span> "'[v' {@  '[' x ']' ;  '/' y ;  '/' .. ;  '/' z } ']'")<br/>
+&nbsp;&nbsp;: <span class="id" title="var">dms_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Close</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">dms_scope</span>.<br/>
+<span class="id" title="var">Arguments</span> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.vobj"><span class="id" title="constructor">vobj</span></a> <span class="id" title="var">_</span>%<span class="id" title="var">dms_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="7814dbee5cfb2f965301a4c116080147"><span class="id" title="notation">&quot;</span></a>'ν' ds" := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.vobj"><span class="id" title="constructor">vobj</span></a> <span class="id" title="var">ds</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 60, <span class="id" title="var">ds</span> <span class="id" title="tactic">at</span> <span class="id" title="var">next</span> <span class="id" title="keyword">level</span>).<br/>
+<span class="id" title="keyword">Notation</span> <a name="11ed4ae77dfa0a8a04bbf176c5b663ab"><span class="id" title="notation">&quot;</span></a>'val' l = v" := <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">(</span></a><span class="id" title="var">l</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">,</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.dpt"><span class="id" title="constructor">dpt</span></a> <span class="id" title="var">v</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">)</span></a> (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 60, <span class="id" title="var">l</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 50).<br/>
+<span class="id" title="keyword">Notation</span> <a name="18cbea44f75dbca62e37c085a60abaa2"><span class="id" title="notation">&quot;</span></a>'type' l = T" := <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">(</span></a><span class="id" title="var">l</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">,</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.dtysyn"><span class="id" title="constructor">dtysyn</span></a> <span class="id" title="var">T</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">)</span></a> (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 60, <span class="id" title="var">l</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 50).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Notation for object types. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Global Instance</span>: <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#Top"><span class="id" title="class">Top</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.ty"><span class="id" title="inductive">ty</span></a> := <a class="idref" href="D.Dot.syn.syn.html#VlSorts.TTop"><span class="id" title="constructor">TTop</span></a>.<br/>
+<span class="id" title="keyword">Global Instance</span>: <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#Bottom"><span class="id" title="class">Bottom</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.ty"><span class="id" title="inductive">ty</span></a> := <a class="idref" href="D.Dot.syn.syn.html#VlSorts.TBot"><span class="id" title="constructor">TBot</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">ty_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> <a name="fed77cd501027d5c2ba88b8f1774aa7f"><span class="id" title="notation">&quot;</span></a>{@ T1 }" := ( <a class="idref" href="D.Dot.syn.syn.html#VlSorts.TAnd"><span class="id" title="constructor">TAnd</span></a> <span class="id" title="var">T1</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#6c0a583aa94fbbce6fcf0f655cf1cbb7"><span class="id" title="notation">⊤</span></a> ) (<span class="id" title="var">format</span> "{@  T1  }"): <span class="id" title="var">ty_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> <a name="79b8469010b1fdc3441f00818b43b642"><span class="id" title="notation">&quot;</span></a>{@ T1 ; T2 ; .. ; Tn }" :=<br/>
+&nbsp;&nbsp;(<a class="idref" href="D.Dot.syn.syn.html#VlSorts.TAnd"><span class="id" title="constructor">TAnd</span></a> <span class="id" title="var">T1</span> (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.TAnd"><span class="id" title="constructor">TAnd</span></a> <span class="id" title="var">T2</span> .. (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.TAnd"><span class="id" title="constructor">TAnd</span></a> <span class="id" title="var">Tn</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#6c0a583aa94fbbce6fcf0f655cf1cbb7"><span class="id" title="notation">⊤</span></a>)..))<br/>
+&nbsp;&nbsp;(<span class="id" title="var">format</span> "'[v' {@  '[' T1 ']'  ;  '/' T2  ;  '/' ..  ;  '/' Tn } ']'") : <span class="id" title="var">ty_scope</span>.<br/>
+<span class="id" title="keyword">Close</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">ty_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="9acbcffb20db69ef700fcb30f172df05"><span class="id" title="notation">&quot;</span></a>'𝐙'" := <a class="idref" href="D.Dot.syn.syn.html#VlSorts.TInt"><span class="id" title="abbreviation">TInt</span></a> : <span class="id" title="var">ty_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="f670dedb69bdea41cf5e61fb2d107e0c"><span class="id" title="notation">&quot;</span></a>▶:" := <a class="idref" href="D.Dot.syn.syn.html#VlSorts.TLater"><span class="id" title="constructor">TLater</span></a> : <span class="id" title="var">ty_scope</span>.<br/>
+<span class="comment">(*&nbsp;Level&nbsp;taken&nbsp;from&nbsp;Iris.&nbsp;*)</span><br/>
+<span class="id" title="keyword">Notation</span> <a name="3b46f8a39b2df2d3ba2df41c9fe962c8"><span class="id" title="notation">&quot;</span></a>▶: T" := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.TLater"><span class="id" title="constructor">TLater</span></a> <span class="id" title="var">T</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 49, <span class="id" title="tactic">right</span> <span class="id" title="keyword">associativity</span>) : <span class="id" title="var">ty_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="ae659905ceabaafee10a556c013da645"><span class="id" title="notation">&quot;</span></a>'∀:' T , U" := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.TAll"><span class="id" title="constructor">TAll</span></a> <span class="id" title="var">T</span> <span class="id" title="var">U</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 48, <span class="id" title="var">T</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 98, <span class="id" title="var">U</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 98).<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="de54bd15804a49ff154d74c387ead2aa"><span class="id" title="notation">&quot;</span></a>'μ' Ts" := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.TMu"><span class="id" title="constructor">TMu</span></a> <span class="id" title="var">Ts</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 50, <span class="id" title="var">Ts</span> <span class="id" title="tactic">at</span> <span class="id" title="var">next</span> <span class="id" title="keyword">level</span>).<br/>
+<span class="id" title="keyword">Notation</span> <a name="5760edfb3888118a63d60a472ed47577"><span class="id" title="notation">&quot;</span></a>'type' l &gt;: L &lt;: U" := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.TTMemL"><span class="id" title="definition">TTMemL</span></a> <span class="id" title="var">l</span> <span class="id" title="var">L</span> <span class="id" title="var">U</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 60, <span class="id" title="var">l</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 50, <span class="id" title="var">L</span>, <span class="id" title="var">U</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 70) : <span class="id" title="var">ty_scope</span>.<br/>
+<span class="id" title="keyword">Notation</span> <a name="a9efae7fd56da3003227988b56d2aaba"><span class="id" title="notation">&quot;</span></a>'val' l : T" :=<br/>
+&nbsp;&nbsp;(<a class="idref" href="D.Dot.syn.syn.html#VlSorts.TVMem"><span class="id" title="constructor">TVMem</span></a> <span class="id" title="var">l</span> <span class="id" title="var">T</span>)<br/>
+&nbsp;&nbsp;(<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 60, <span class="id" title="var">l</span>, <span class="id" title="var">T</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 50, <span class="id" title="var">format</span> "'[' 'val'  l  :  T  ']' '/'") : <span class="id" title="var">ty_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="0aaa022b3f362eee348503093ff678c1"><span class="id" title="notation">&quot;</span></a>S →: T" := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.TAll"><span class="id" title="constructor">TAll</span></a> <span class="id" title="var">S</span>%<span class="id" title="var">ty</span> (<a class="idref" href="D.prelude.html#shift"><span class="id" title="abbreviation">shift</span></a> <span class="id" title="var">T</span>%<span class="id" title="var">ty</span>)) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 49, <span class="id" title="var">T</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 98, <span class="id" title="tactic">right</span> <span class="id" title="keyword">associativity</span>) : <span class="id" title="var">ty_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="da52a1f50d481ecf7cf1e1628db90795"><span class="id" title="notation">&quot;</span></a>p @; l" := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.TSel"><span class="id" title="constructor">TSel</span></a> <span class="id" title="var">p</span> <span class="id" title="var">l</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 48).<br/>
+<span class="id" title="keyword">Notation</span> <a name="135d56891ed952e50829c63a9f76210c"><span class="id" title="notation">&quot;</span></a>v @ l1 @ .. @ l2" := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.pself"><span class="id" title="constructor">pself</span></a> .. (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.pself"><span class="id" title="constructor">pself</span></a> <span class="id" title="var">v</span> <span class="id" title="var">l1</span>) .. <span class="id" title="var">l2</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">format</span> "v  @  l1  @  ..  @  l2", <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 48, <span class="id" title="var">l1</span>, <span class="id" title="var">l2</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 40).<br/>
+<span class="id" title="keyword">Notation</span> <a name="60776c0273c8d9c3a7b3e99e67e78e40"><span class="id" title="notation">&quot;</span></a>a @: b" := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.tproj"><span class="id" title="constructor">tproj</span></a> <span class="id" title="var">a</span> <span class="id" title="var">b</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 59, <span class="id" title="var">b</span> <span class="id" title="tactic">at</span> <span class="id" title="var">next</span> <span class="id" title="keyword">level</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Infix</span> <a name="b103f0231c64f64786747bb93b728d45"><span class="id" title="notation">&quot;</span></a>$:" := <a class="idref" href="D.Dot.syn.syn.html#VlSorts.tapp"><span class="id" title="constructor">tapp</span></a> (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 68, <span class="id" title="tactic">left</span> <span class="id" title="keyword">associativity</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="DBNotation.tparam"><span class="id" title="abbreviation">tparam</span></a> <span class="id" title="var">A</span> := (<a class="idref" href="D.Dot.examples.ex_utils.html#5760edfb3888118a63d60a472ed47577"><span class="id" title="notation">type</span></a> <span class="id" title="var">A</span> <a class="idref" href="D.Dot.examples.ex_utils.html#5760edfb3888118a63d60a472ed47577"><span class="id" title="notation">&gt;:</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#49af51f22ba6081c5259453e85aa12b3"><span class="id" title="notation">⊥</span></a> <a class="idref" href="D.Dot.examples.ex_utils.html#5760edfb3888118a63d60a472ed47577"><span class="id" title="notation">&lt;:</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#6c0a583aa94fbbce6fcf0f655cf1cbb7"><span class="id" title="notation">⊤</span></a>)%<span class="id" title="var">ty</span>.<br/>
+<span class="id" title="keyword">Definition</span> <a name="DBNotation.typeEq"><span class="id" title="definition">typeEq</span></a> <span class="id" title="var">l</span> <span class="id" title="var">T</span> : <a class="idref" href="D.Dot.syn.syn.html#VlSorts.ty"><span class="id" title="inductive">ty</span></a> := <a class="idref" href="D.Dot.examples.ex_utils.html#5760edfb3888118a63d60a472ed47577"><span class="id" title="notation">type</span></a> <a class="idref" href="D.Dot.examples.ex_utils.html#l"><span class="id" title="variable">l</span></a> <a class="idref" href="D.Dot.examples.ex_utils.html#5760edfb3888118a63d60a472ed47577"><span class="id" title="notation">&gt;:</span></a> <a class="idref" href="D.Dot.examples.ex_utils.html#T"><span class="id" title="variable">T</span></a> <a class="idref" href="D.Dot.examples.ex_utils.html#5760edfb3888118a63d60a472ed47577"><span class="id" title="notation">&lt;:</span></a> <a class="idref" href="D.Dot.examples.ex_utils.html#T"><span class="id" title="variable">T</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="DBNotation.x0"><span class="id" title="abbreviation">x0</span></a> := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.vvar"><span class="id" title="constructor">vvar</span></a> 0).<br/>
+<span class="id" title="keyword">Notation</span> <a name="DBNotation.x1"><span class="id" title="abbreviation">x1</span></a> := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.vvar"><span class="id" title="constructor">vvar</span></a> 1).<br/>
+<span class="id" title="keyword">Notation</span> <a name="DBNotation.x2"><span class="id" title="abbreviation">x2</span></a> := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.vvar"><span class="id" title="constructor">vvar</span></a> 2).<br/>
+<span class="id" title="keyword">Notation</span> <a name="DBNotation.x3"><span class="id" title="abbreviation">x3</span></a> := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.vvar"><span class="id" title="constructor">vvar</span></a> 3).<br/>
+<span class="id" title="keyword">Notation</span> <a name="DBNotation.x4"><span class="id" title="abbreviation">x4</span></a> := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.vvar"><span class="id" title="constructor">vvar</span></a> 4).<br/>
+<span class="id" title="keyword">Notation</span> <a name="DBNotation.x5"><span class="id" title="abbreviation">x5</span></a> := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.vvar"><span class="id" title="constructor">vvar</span></a> 5).<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="DBNotation.TUnit"><span class="id" title="abbreviation">TUnit</span></a> := (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#6c0a583aa94fbbce6fcf0f655cf1cbb7"><span class="id" title="notation">⊤</span></a>%<span class="id" title="var">ty</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.ssr.ssreflect.html#aed478b27f23b4f753c27c8ac393febc"><span class="id" title="notation">:</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.ty"><span class="id" title="inductive">ty</span></a>).<br/>
+<span class="id" title="keyword">Notation</span> <a name="DBNotation.tUnit"><span class="id" title="abbreviation">tUnit</span></a> := (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.tv"><span class="id" title="constructor">tv</span></a> (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.vint"><span class="id" title="abbreviation">vint</span></a> 0) <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.ssr.ssreflect.html#aed478b27f23b4f753c27c8ac393febc"><span class="id" title="notation">:</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.tm"><span class="id" title="inductive">tm</span></a>).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="D.Dot.examples.ex_utils.html#DBNotation"><span class="id" title="module">DBNotation</span></a>.<br/>
+
+<br/>
+<span class="comment">(******************)</span><br/>
+</div>
+
+<div class="doc">
+<a name="lab117"></a><h1 class="section">AUTOMATION</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">D.Dot</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="D.Dot.syn.traversals.html#"><span class="id" title="library">traversals</span></a>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Trav1</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">stconstructor</span> := <span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| |- <a class="idref" href="D.Dot.syn.traversals.html#Trav1.forall_traversal_tm"><span class="id" title="inductive">forall_traversal_tm</span></a>   <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="tactic">constructor</span><br/>
+&nbsp;&nbsp;| |- <a class="idref" href="D.Dot.syn.traversals.html#Trav1.forall_traversal_vl"><span class="id" title="inductive">forall_traversal_vl</span></a>   <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="tactic">constructor</span><br/>
+&nbsp;&nbsp;| |- <a class="idref" href="D.Dot.syn.traversals.html#Trav1.forall_traversal_dm"><span class="id" title="inductive">forall_traversal_dm</span></a>   <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="tactic">constructor</span><br/>
+&nbsp;&nbsp;| |- <a class="idref" href="D.Dot.syn.traversals.html#Trav1.forall_traversal_path"><span class="id" title="inductive">forall_traversal_path</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="tactic">constructor</span><br/>
+&nbsp;&nbsp;| |- <a class="idref" href="D.Dot.syn.traversals.html#Trav1.forall_traversal_ty"><span class="id" title="inductive">forall_traversal_ty</span></a>   <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="tactic">constructor</span><br/>
+&nbsp;&nbsp;| |- <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Lists.List.html#Forall"><span class="id" title="inductive">Forall</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="tactic">constructor</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">stcrush</span> := <span class="id" title="tactic">try</span> ((<span class="id" title="tactic">progress</span> <span class="id" title="tactic">repeat</span> <span class="id" title="var">stconstructor</span>); <span class="id" title="tactic">eauto</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Extern</span> 10 (<span class="id" title="var">_</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.numbers.html#c774e793dbcbf01728714195ba84726e"><span class="id" title="notation">≤</span></a> <span class="id" title="var">_</span>) ⇒ <span class="id" title="var">lia</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Extern</span> 0 (<a class="idref" href="D.Dot.syn.lr_syn_aux.html#dms_hasnt"><span class="id" title="definition">dms_hasnt</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span>) ⇒ <span class="id" title="var">done</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">Nat.lt_0_succ</span> : <span class="id" title="var">core</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="lett"><span class="id" title="definition">lett</span></a> <span class="id" title="var">t</span> <span class="id" title="var">u</span> := <a class="idref" href="D.Dot.syn.syn.html#VlSorts.tapp"><span class="id" title="constructor">tapp</span></a> (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.vabs"><span class="id" title="constructor">vabs</span></a> <a class="idref" href="D.Dot.examples.ex_utils.html#u"><span class="id" title="variable">u</span></a>) <a class="idref" href="D.Dot.examples.ex_utils.html#t"><span class="id" title="variable">t</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Simplify substitution operations on concrete terms. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">simplSubst</span> := <span class="id" title="tactic">rewrite</span> /= /<a class="idref" href="https://www.ps.uni-saarland.de/autosubst/doc/Autosubst.Autosubst_Classes.html#up"><span class="id" title="definition">up</span></a>/= /<a class="idref" href="https://www.ps.uni-saarland.de/autosubst/doc/Autosubst.Autosubst_Classes.html#ids"><span class="id" title="definition">ids</span></a>/<a class="idref" href="D.Dot.syn.syn.html#VlSorts.ids_vl"><span class="id" title="instance">ids_vl</span></a>/=.<br/>
+</div>
+</div>
+<div id="footer">
+  Generated by <a href="http://coq.inria.fr/">coqdoc</a> and improved with <a href="https://github.com/tebbi/coqdocjs">CoqdocJS</a>
+</div>
+</div>
+</body>
+
+</html>
