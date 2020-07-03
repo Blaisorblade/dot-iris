@@ -144,22 +144,38 @@ with subtype Γ : nat → ty → ty → Prop :=
     Γ t⊢ₜ L2 <:[i] L1 →
     Γ t⊢ₜ U1 <:[i] U2 →
     Γ t⊢ₜ TTMem l L1 U1 <:[i] TTMem l L2 U2
-  (* Is it true that for covariant F, F[A ∧ B] = F[A] ∧ F[B]?
-    Dotty assumes that, tho DOT didn't capture it.
-    F[A ∧ B] <:[i] F[A] ∧ F[B] is provable by covariance.
-    Let's prove F[A] ∧ F[B] <:[i] F[A ∧ B] in the model.
-    *)
+(**
+The following three rules are omitted from the paper.
+
+Is it true that for covariant F, F[A ∧ B] = F[A] ∧ F[B], as Dotty assumes?
+As (g)DOT lacks higher kinds, we cannot state this question for (the encoding
+of) a type variable; but we can state it for concrete covariant type
+constructors F (function types and record types), with the usual encoding of
+equality A = B as A <: B and B <: A.
+It turns out that DOT only proves one of these subtypings.
+
+F[A ∧ B] <:[i] F[A] ∧ F[B] is provable in DOT, by the covariance rules given
+above ([iAll_Stp_All, iFld_Stp_Fld, iTyp_Stp_Typ]).
+
+gDOT also proves the converse subtyping, F[A] ∧ F[B] <:[i] F[A ∧ B] for each constructor.
+*)
 | iAnd_All_Stp_Distr S T1 T2 i:
     Γ t⊢ₜ TAnd (TAll S T1) (TAll S T2) <:[i] TAll S (TAnd T1 T2)
 | iAnd_Fld_Stp_Distr l T1 T2 i:
     Γ t⊢ₜ TAnd (TVMem l T1) (TVMem l T2) <:[i] TVMem l (TAnd T1 T2)
 | iAnd_Typ_Stp_Distr l L U1 U2 i:
     Γ t⊢ₜ TAnd (TTMem l L U1) (TTMem l L U2) <:[i] TTMem l L (TAnd U1 U2)
+
+(* The following two rules are again included in the paper. *)
 | iDistr_And_Or_Stp {S T U i}:
     Γ t⊢ₜ TAnd (TOr S T) U  <:[i] TOr (TAnd S U) (TAnd T U)
 | iStp_Eq i T1 T2 :
     |- T1 == T2 →
     Γ t⊢ₜ T1 <:[i] T2
+(* The following rule is omitted from the paper, and not part of the
+"official" subtyping judgment; we only use [iSub_Skolem_P] in a
+semantically-typed example.
+*)
 | iStp_Skolem_P {T1 T2 i j}:
     iterate TLater i (shift T1) :: Γ t⊢ₚ pv (ids 0) : shift T2, i + j →
     (*───────────────────────────────*)
