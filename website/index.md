@@ -11,7 +11,8 @@ using step-indexed logical relations and the Iris framework.
 
 ## Publications
   - _Scala Step-by-Step: Soundness for DOT with Step-Indexed Logical Relations in Iris_.
-    Paolo G. Giarrusso, Yann Régis-Gianas and Philipp Schuster. ICFP 2020.
+    Paolo G. Giarrusso, Léo Stefanesco, Amin Timany, Lars Birkedal and Robbert
+    Krebbers. ICFP 2020.
 
     **Abstract**: The metatheory of Scala's core type system---the *Dependent Object Types
     (DOT)* calculus---is hard to extend, like the metatheory of other type systems
