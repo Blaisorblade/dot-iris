@@ -249,39 +249,35 @@ Section DStpLemmas.
   Lemma sAnd_All_Stp_Distr Γ T U1 U2 i:
     ⊢ Γ s⊨ oAnd (oAll T U1) (oAll T U2) <:[i] oAll T (oAnd U1 U2).
   Proof.
-    iIntros "/= %ρ #Hg !> %v [#H1 #H2]".
+    iIntros "%ρ _ !> %v [#H1 #H2]".
     iDestruct "H1" as (t ?) "#H1"; iDestruct "H2" as (t' ->) "#H2"; simplify_eq.
-    iExists _; iSplit => //.
+    iExists t; iSplit; first done.
     iIntros (w) "#HT".
-    iSpecialize ("H1" with "HT").
-    iSpecialize ("H2" with "HT").
-    iNext.
     (* Oh. Dreaded conjunction rule. Tho could we use a version
     for separating conjunction? *)
-    iApply wp_and. by iApply "H1". by iApply "H2".
+    iApply (wp_and with "(H1 HT) (H2 HT)").
   Qed.
 
   Lemma sAnd_Fld_Stp_Distr Γ l T1 T2 i:
     ⊢ Γ s⊨ oAnd (oVMem l T1) (oVMem l T2) <:[i] oVMem l (oAnd T1 T2).
   Proof.
-    iIntros "/= %ρ #Hg !> %v [#H1 H2]".
-    iDestruct "H1" as (d? pmem?) "#H1"; iDestruct "H2" as (d'? pmem'?) "#H2". objLookupDet.
-    repeat (iExists _; repeat iSplit => //).
+    iIntros "%ρ _ !> %v [#H1 H2]"; rewrite !oVMem_eq.
+    iDestruct "H1" as (pmem Hl) "#H1"; iDestruct "H2" as (pmem' Hl') "#H2".
+    objLookupDet. iExists pmem; iFrame (Hl).
     by iApply (path_wp_and' with "H1 H2").
   Qed.
 
   Lemma sAnd_Typ_Stp_Distr Γ l L U1 U2 i:
     ⊢ Γ s⊨ oAnd (oTMem l L U1) (oTMem l L U2) <:[i] oTMem l L (oAnd U1 U2).
   Proof.
-    iIntros "/= %ρ #Hg !> %v [#H1 H2]".
-    iDestruct "H1" as (d? φ) "#[Hsφ1 [#HLφ1 #HφU1]]"; iDestruct "H2" as (d'? φ') "#[Hsφ2 [_ #HφU2]]".
-    objLookupDet.
-    iExists d; repeat iSplit => //.
-    iExists φ; repeat iSplit => //.
+    iIntros "%ρ _ !> %v [H1 H2]"; rewrite !oTMem_eq /dot_intv_type_pred.
+    iDestruct "H1" as (ψ d Hl) "[Hdψ1 [HLψ1 HψU1]]".
+    iDestruct "H2" as (ψ' d' Hl') "[Hdψ2 [_ HψU2]]". objLookupDet.
+    iExists ψ, d. iFrame (Hl) "HLψ1". iSplit; first done.
     iIntros (w) "Hw".
-    - iDestruct (dm_to_type_agree vnil w with "Hsφ1 Hsφ2") as "#Hag {Hsφ1 Hsφ2 HLφ1}".
-      iSplit; [iApply "HφU1" | iApply "HφU2"] => //.
-      iNext. by iRewrite -"Hag".
+    iDestruct (dm_to_type_agree vnil w with "Hdψ1 Hdψ2") as "Hag".
+    iSplit; [iApply ("HψU1" with "Hw") | iApply "HψU2"].
+    iNext. by iRewrite -"Hag".
   Qed.
 
 
