@@ -49,7 +49,7 @@ Section existentials.
     oLaterN i (oShift S) :: Γ s⊨ T <:[i] oShift U -∗
     Γ s⊨ oExists S T <:[i] U.
   Proof.
-    iIntros "/= #Hstp %ρ Hg %v"; iApply impl_laterN.
+    iIntros "/= >#Hstp !> %ρ Hg %v"; iApply impl_laterN.
     iDestruct 1 as (w) "[HS HT]".
     iApply ("Hstp" $! (w .: ρ) with "[$Hg $HS] HT").
   Qed.
@@ -60,7 +60,7 @@ Section existentials.
     Γ s⊨ T <:[i] opSubst p U -∗
     Γ s⊨ T <:[i] oExists S U.
   Proof.
-    iIntros "/= #HpS #Hstp %ρ #Hg".
+    iIntros "/= >#HpS >#Hstp !> %ρ #Hg".
     iSpecialize ("HpS" with "Hg"); iSpecialize ("Hstp" with "Hg"); iNext i.
     iApply (subtype_trans with "Hstp"); iIntros "%v HvUp".
     iDestruct (path_wp_agree with "HpS HvUp") as (w ?) "Hgoal".
@@ -164,7 +164,7 @@ Section type_proj.
     Γ s⊨ T <:[i] U -∗
     Γ s⊨ oProj A T <:[i] oProj A U.
   Proof.
-    iIntros "#Hsub %ρ Hg %v"; iSpecialize ("Hsub" with "Hg"); iNext i.
+    iIntros ">#Hsub !> %ρ Hg %v"; iSpecialize ("Hsub" with "Hg"); iNext i.
     (**
       From [T <: U] we must show [T#A <: U#A], that is, that any [v] in [T#A]
       is in [U#A]. Recall the definition of [T#A]:
@@ -189,7 +189,7 @@ Section type_proj.
   Lemma sProj_Stp_U A Γ L U i :
     ⊢ Γ s⊨ oProj A (oTMem A L U) <:[i] U.
   Proof.
-    iIntros "%ρ Hg %v"; iNext i.
+    iIntros "!> %ρ Hg %v"; iNext i.
     rewrite oProjN_eq; iDestruct 1 as (w) "(HTw & HselV)".
     (*
       After unfolding definitions, we must show that [v] is in [U],
