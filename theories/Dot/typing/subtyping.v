@@ -168,7 +168,7 @@ converse subtyping only holds for [TVMem].
     Γ t⊢ₜ TAnd (TVMem l T1) (TVMem l T2) <:[i] TVMem l (TAnd T1 T2)
 | iAnd_Typ_Stp_Distr l L U1 U2 i:
     Γ t⊢ₜ TAnd (TTMem l L U1) (TTMem l L U2) <:[i] TTMem l L (TAnd U1 U2)
-(* *)
+(* Lone rule for union *)
 | iOr_Fld_Stp_Distr l T1 T2 i:
     Γ t⊢ₜ TVMem l (TOr T1 T2) <:[i] TOr (TVMem l T1) (TVMem l T2)
 (* The following two rules are again included in the paper. *)
