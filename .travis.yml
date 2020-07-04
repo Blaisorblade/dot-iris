@@ -62,8 +62,8 @@ deploy:
   edge: true # https://docs.travis-ci.com/user/deployment-v2
   provider: pages
   github_token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
-  repo: Blaisorblade/dot-iris-website
-  target_branch: gh-pages
+  repo: dot-iris/dot-iris.github.io
+  target_branch: master
   keep_history: true
   # keep_history: false
   allow_empty_commit: true

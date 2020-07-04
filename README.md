@@ -53,7 +53,7 @@ CPU cores; that should take around 5-10 minutes.
 
 ### Browsing published CoqDoc
 
-Start from [here](https://blaisorblade.github.io/dot-iris-website/coqdoc/).
+Start from [here](https://dot-iris.github.io/coqdoc/).
 
 ### Running CoqDoc
 
