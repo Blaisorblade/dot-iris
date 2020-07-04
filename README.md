@@ -9,7 +9,7 @@ DOT with Step-Indexed Logical Relations in Iris".
 
 The mapping between the paper and this mechanization, together with the
 layout of the codebase, is described in [`correspondence.md`](correspondence.md).
-See below for how to process sources with Coqdoc.
+See below for how to process sources with coqdoc.
 
 ## Compiling the Proof the first time
 
@@ -51,13 +51,13 @@ opam install --deps-only .
 Run `make -jN` to build the full development, where N is the number of your
 CPU cores; that should take around 5-10 minutes.
 
-### Browsing published CoqDoc
+### Browsing published coqdoc
 
 Start from [here](https://dot-iris.github.io/coqdoc/).
 
-### Running CoqDoc
+### Running coqdoc
 
-Run `make html` to run Coqdoc over the code, to obtain an hyperlinked version
+Run `make html` to run coqdoc over the code, to obtain an hyperlinked version
 (for ease of cross-referencing).
 `html/toc.html` offers an index for navigation; keep in mind that
 [`correspondence.md`](correspondence.md) is a better overview.

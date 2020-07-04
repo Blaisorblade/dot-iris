@@ -31,7 +31,7 @@ using step-indexed logical relations and the Iris framework.
     - [Preprint, Version 1](2020-dot-submission.pdf)
     - Revised version coming soon.
     - [Coq Formalization](https://github.com/Blaisorblade/dot-iris)
-    - [Coqdoc](coqdoc/).
+    - [coqdoc](coqdoc/).
 
 
 ## Trivia
