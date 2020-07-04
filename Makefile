@@ -19,6 +19,7 @@ clean: Makefile.coq
 
 html: all
 	rm -fr coqdoc-old
+	mkdir -p website
 	[ -d website/coqdoc ] && mv website/coqdoc coqdoc-old || true
 	@$(MAKE) -f Makefile.coq $@
 	cp $(EXTRA_DIR)/resources/* html
