@@ -290,34 +290,6 @@ Section DStpLemmas.
       rewrite path_wp_eq; iExists (w); iFrame (Hpw).
   Qed.
 
-  Lemma sOr_Fld_Stp_Distr_inv Γ l T1 T2 i:
-    ⊢ Γ s⊨ oOr (oVMem l T1) (oVMem l T2) <:[i] oVMem l (oOr T1 T2).
-  Proof.
-    iApply sOr_Stp; iApply sFld_Stp_Fld.
-    iApply sStp_Or1.
-    iApply sStp_Or2.
-  Qed.
-
-  (*
-  False: this would mean that if T <: U1 | U2, then either T <: U1, or T <: U2.
-  However, T = U1 | U2 (with U1 and U2 disjoint)) is a counterexample.
-  Generally, some values of T might be in U1 but not U2, and some might be in
-  U2 but not U1, ensuring that T is not a subtype of U1 or U2 but only of U1 | U2.
-
-  The same issue affects disjunctions of function types.
-   *)
-  Lemma sOr_Typ_Stp_Distr Γ l L U1 U2 i:
-    ⊢ Γ s⊨ oTMem l L (oOr U1 U2) <:[i] oOr (oTMem l L U1) (oTMem l L U2).
-  Proof.
-    iIntros "%ρ _ !> %v"; rewrite !oTMem_eq /dot_intv_type_pred.
-    iDestruct 1 as (ψ d Hl) "[Hdψ [HLψ HψU]] /=".
-    rewrite -or_exist; iExists d.
-    rewrite -and_or_l; iFrame (Hl).
-    rewrite -or_exist; iExists ψ.
-    rewrite -and_or_l; iFrame "Hdψ".
-    rewrite -and_or_l; iFrame "HLψ".
-    rewrite /subtype_lty /=.
-  Abort.
 
   Lemma sP_Later {Γ} p T i :
     Γ s⊨p p : oLater T, i -∗
