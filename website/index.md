@@ -32,6 +32,7 @@ using step-indexed logical relations and the Iris framework.
     - Extended version coming soon.
     - [Coq Formalization](https://github.com/Blaisorblade/dot-iris)
     - [coqdoc](coqdoc/).
+    - Artifact: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3926703.svg)](https://doi.org/10.5281/zenodo.3926703).
 
 
 ## Trivia
@@ -42,6 +43,7 @@ using step-indexed logical relations and the Iris framework.
 
 ## News
 
+- 2020-07-05: Added link to artifact on Zenodo
 - 2020-07-04: Author version online
 - 2020-07-03: Website online
 - 2014-06-24: AEC submission accepted.
