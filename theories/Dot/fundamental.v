@@ -78,6 +78,7 @@ Section fundamental.
     + iApply sAnd_All_Stp_Distr.
     + iApply sAnd_Fld_Stp_Distr.
     + iApply sAnd_Typ_Stp_Distr.
+    + iApply sOr_Fld_Stp_Distr.
     + iApply sDistr_And_Or_Stp.
     + by iApply Stp_Eq.
     + by iApply Stp_Skolem_P; iApply H.

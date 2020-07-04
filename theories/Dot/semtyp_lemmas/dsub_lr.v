@@ -280,6 +280,16 @@ Section DStpLemmas.
     iNext. by iRewrite -"Hag".
   Qed.
 
+  Lemma sOr_Fld_Stp_Distr Γ l T1 T2 i:
+    ⊢ Γ s⊨ oVMem l (oOr T1 T2) <:[i] oOr (oVMem l T1) (oVMem l T2).
+  Proof.
+    iIntros "%ρ _ !> %v". rewrite !oVMem_eq.
+    iDestruct 1 as (pmem Hl) "Hp". rewrite path_wp_eq.
+    iDestruct "Hp" as (w Hpw) "[H|H]"; [iLeft|iRight].
+    all: by rewrite oVMem_eq; iExists (pmem); iFrame (Hl);
+      rewrite path_wp_eq; iExists (w); iFrame (Hpw).
+  Qed.
+
 
   Lemma sP_Later {Γ} p T i :
     Γ s⊨p p : oLater T, i -∗

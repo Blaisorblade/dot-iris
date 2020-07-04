@@ -145,7 +145,7 @@ with subtype Γ : nat → ty → ty → Prop :=
     Γ t⊢ₜ U1 <:[i] U2 →
     Γ t⊢ₜ TTMem l L1 U1 <:[i] TTMem l L2 U2
 (**
-The following three rules are omitted from the paper.
+The following four rules are omitted from the paper.
 
 Is it true that for covariant F, F[A ∧ B] = F[A] ∧ F[B], as Dotty assumes?
 As (g)DOT lacks higher kinds, we cannot state this question for (the encoding
@@ -158,6 +158,9 @@ F[A ∧ B] <:[i] F[A] ∧ F[B] is provable in DOT, by the covariance rules given
 above ([iAll_Stp_All, iFld_Stp_Fld, iTyp_Stp_Typ]).
 
 gDOT also proves the converse subtyping, F[A] ∧ F[B] <:[i] F[A ∧ B] for each constructor.
+
+For unions, we obtain F[A] ∨ F[B] <: F[A ∨ B] in DOT by covariance, but the
+converse subtyping only holds for [TVMem].
 *)
 | iAnd_All_Stp_Distr S T1 T2 i:
     Γ t⊢ₜ TAnd (TAll S T1) (TAll S T2) <:[i] TAll S (TAnd T1 T2)
@@ -165,7 +168,9 @@ gDOT also proves the converse subtyping, F[A] ∧ F[B] <:[i] F[A ∧ B] for each
     Γ t⊢ₜ TAnd (TVMem l T1) (TVMem l T2) <:[i] TVMem l (TAnd T1 T2)
 | iAnd_Typ_Stp_Distr l L U1 U2 i:
     Γ t⊢ₜ TAnd (TTMem l L U1) (TTMem l L U2) <:[i] TTMem l L (TAnd U1 U2)
-
+(* *)
+| iOr_Fld_Stp_Distr l T1 T2 i:
+    Γ t⊢ₜ TVMem l (TOr T1 T2) <:[i] TOr (TVMem l T1) (TVMem l T2)
 (* The following two rules are again included in the paper. *)
 | iDistr_And_Or_Stp {S T U i}:
     Γ t⊢ₜ TAnd (TOr S T) U  <:[i] TOr (TAnd S U) (TAnd T U)
