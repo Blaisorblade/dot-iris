@@ -119,34 +119,3 @@ To shutdown the guest system cleanly, login to it via ssh and use:
 ```
 $ sudo shutdown now
 ```
-
-
-### Artifact Preparation
-
-Authors should install software dependencies into the VM image as needed,
-preferably via the standard Debian package manager. For example, to install
-GHC and cabal-install, login to the host and type:
-
-```
-$ sudo apt update
-$ sudo apt install ghc
-$ sudo apt install cabal-install
-```
-
-If you really need a GUI then you can install X as follows, but we prefer
-console-only artifacts whenever possible.
-
-```
-$ sudo apt-get install xorg
-$ sudo apt-get install xfce4   # or some other window manager
-$ startx
-```
-
-See Debugging.md for advice on resolving other potential problems,
-particularly when installing the current version of Coq via opam.
-
-If your artifact needs lots of memory you may need to increase the value
-of the ```QEMU_MEM_MB``` variable in the ```start.sh``` script.
-
-When preparing your artifact, please also follow the guidelines at:
- https://icfp20.sigplan.org/track/icfp-2020-artifact-evaluation#Forms-of-Artifacts
