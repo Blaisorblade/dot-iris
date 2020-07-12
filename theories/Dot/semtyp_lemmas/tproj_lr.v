@@ -156,9 +156,9 @@ Section type_proj.
   (**
     Type projections are covariant: if T <: U then T#A <: U#A, or formally:
 
-    Γ ⊨ T <:^i U
+    [Γ ⊨ T <:^i U]
     ------------------------
-    Γ ⊨ T#A <:^i U#A
+    [Γ ⊨ T#A <:^i U#A]
   *)
   Lemma sProj_Stp_Proj A Γ T U i :
     Γ s⊨ T <:[i] U -∗
@@ -184,7 +184,7 @@ Section type_proj.
     Type projections are subtypes of their upper bound.
 
     ------------------------
-    Γ ⊨ { A :: L .. U }T#A <:^i U
+    [Γ ⊨ { A :: L .. U }T#A <:^i U]
   *)
   Lemma sProj_Stp_U A Γ L U i :
     ⊢ Γ s⊨ oProj A (oTMem A L U) <:[i] U.
@@ -203,9 +203,9 @@ Section type_proj.
   (**
     Type projections are subtypes of their upper bound: a more general statement.
 
-    Γ ⊨ T <:^i { A :: L .. U }
+    [Γ ⊨ T <:^i { A :: L .. U }]
     ------------------------
-    Γ ⊨ T#A <:^i U
+    [Γ ⊨ T#A <:^i U]
   *)
   Lemma sProj_Stp_U' A Γ T L U i :
     Γ s⊨ T <:[i] oTMem A L U -∗
@@ -219,9 +219,9 @@ Section type_proj.
   (**
     Projections [T#A] are lower bounded by type selections [p.A]:
 
-    Γ ⊨ p :^i T
+    [Γ ⊨ p :^i T]
     ------------------------
-    Γ ⊨ p.A <:^i T#A
+    [Γ ⊨ p.A <:^i T#A]
   *)
   (**
     Derive this rule from the above ones: rewrite the selection as a
@@ -240,10 +240,10 @@ Section type_proj.
     Combining the two above rules for projections with the existing system,
     we even get lower bounds for projections from inhabited types:
 
-    Γ ⊨ T <:^i { A :: L .. U }
-    Γ ⊨ p :^i T
+    [Γ ⊨ T <:^i { A :: L .. U }]
+    [Γ ⊨ p :^i T]
     ------------------------
-    Γ ⊨ L <:^i T#A
+    [Γ ⊨ L <:^i T#A]
 
     But this is _not_ the Scala 2 lower-bound rule (which doesn't require [p]
     to exist), and it is not directly usable for a typechecker.
