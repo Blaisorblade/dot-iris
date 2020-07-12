@@ -328,15 +328,20 @@ Section type_proj.
 
       [Γ s⊨ oLater T <:[i] oProj A (oTMem A (oLater T) (oLater T))].
 
-    That rule indeed holds, but was challenging to prove; for technical reasons,
-    to enable this we had to add a basic update modality, [|==>], to all
-    judgments. Luckily, that was very easy.
+    That rule indeed holds, but was challenging to prove, because this rule
+    involves a type definition that doesn't appear in the source program, and
+    the setup described in our ICFP'20 paper does not support such type
+    definitions for technical reasons. Luckily, we only needed to tweak our
+    model a bit, preserving all results.
 
-    The reason is that this rule must allocate a new type definition
-    that doesn't appear in the source program, and we haven't set things up
-    to allow this; indeed, the conclusion of rule [sProj_Stp_TMem_alloc] is
-    not [Γ s⊨ ...], but is preceded by the update modality [|==> _], which
-    makes the conclusion weaker.
+    Technically, in Iris jargon, to enable this proof we prepended a basic
+    update modality ([|==>]) to the definitions of all semantic judgments, to
+    allow using [oProj_oTMem] despite its own update modality.
+    Luckily, it was easy enough to update the proofs for these changes in
+    definitions; see:
+    #<a href="https://github.com/Blaisorblade/dot-iris/pull/303">
+    https://github.com/Blaisorblade/dot-iris/pull/303</a>#
+    %\url{https://github.com/Blaisorblade/dot-iris/pull/303}%.
   *)
 
   (** *** Auxiliary lemma. *)
