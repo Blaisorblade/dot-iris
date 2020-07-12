@@ -4,7 +4,10 @@ This shows how to restrict type projections to be sound and usable in Dotty.
 
 This is developed as an _extension_ of guarded DOT (gDOT), described in the
 ICFP'20 paper "Scala Step-by-Step".
-(Preprint available at https://dot-iris.github.io/gdot-icfp20-1.0.pdf).
+(Preprint available at
+#<a href="https://dot-iris.github.io/gdot-icfp20-1.0.pdf">
+https://dot-iris.github.io/gdot-icfp20-1.0.pdf</a>#
+%\url{https://dot-iris.github.io/gdot-icfp20-1.0.pdf}%).
 
 Because of the interest to the wider Scala community, this file has extensive
 informal comments.
@@ -32,11 +35,13 @@ Definition oExists `{!dlangG Σ} {n} (T : oltyO Σ 0) (U : oltyO Σ n) : oltyO �
   (* v ∈ w.A *)
   U args (w .: ρ) v).
 
-(** **
-Semantic proofs of typing lemmas for existentials.
+(** ** Semantic proofs of typing lemmas for existentials.
 
-I adapted the rules from https://dl.acm.org/doi/pdf/10.1145/3290322 (see
-[≤∃L] and [≤∃R] in Fig. 4).
+I adapted the rules from
+#<a href="https://dl.acm.org/doi/pdf/10.1145/3290322">
+https://dl.acm.org/doi/pdf/10.1145/3290322</a>#
+%\url{https://dl.acm.org/doi/pdf/10.1145/3290322}%).
+(see [≤∃L] and [≤∃R] in Fig. 4).
 
 Lionel Parreaux pointed me to that paper and suggested they are the
 "standard" rules for "implicit" existentials.
@@ -323,10 +328,9 @@ Section type_proj.
 
       [Γ s⊨ oLater T <:[i] oProj A (oTMem A (oLater T) (oLater T))].
 
-    That rule indeed holds, but was challenging to prove; for technical
-    reasons, to enable this we had to add a basic update modality, [|==>],
-    to all judgments.
-    Luckily, that was very easy.
+    That rule indeed holds, but was challenging to prove; for technical reasons,
+    to enable this we had to add a basic update modality, [|==>], to all
+    judgments. Luckily, that was very easy.
 
     The reason is that this rule must allocate a new type definition
     that doesn't appear in the source program, and we haven't set things up
