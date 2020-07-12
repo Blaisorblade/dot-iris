@@ -40,7 +40,7 @@ Definition oExists `{!dlangG Σ} {n} (T : oltyO Σ 0) (U : oltyO Σ n) : oltyO �
 I adapted the rules from
 #<a href="https://dl.acm.org/doi/pdf/10.1145/3290322">
 https://dl.acm.org/doi/pdf/10.1145/3290322</a>#
-%\url{https://dl.acm.org/doi/pdf/10.1145/3290322}%).
+%\url{https://dl.acm.org/doi/pdf/10.1145/3290322}%
 (see [≤∃L] and [≤∃R] in Fig. 4).
 
 Lionel Parreaux pointed me to that paper and suggested they are the
