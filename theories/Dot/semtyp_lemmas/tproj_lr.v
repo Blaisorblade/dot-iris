@@ -324,7 +324,8 @@ Section type_proj.
       [Γ s⊨ oLater T <:[i] oProj A (oTMem A (oLater T) (oLater T))].
 
     That rule indeed holds, but was challenging to prove; for technical
-    reasons, to enable this we had to add an update modality to all judgments.
+    reasons, to enable this we had to add a basic update modality, [|==>],
+    to all judgments.
     Luckily, that was very easy.
 
     The reason is that this rule must allocate a new type definition
