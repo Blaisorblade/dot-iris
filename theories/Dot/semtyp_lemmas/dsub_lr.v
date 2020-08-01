@@ -246,16 +246,17 @@ Section DStpLemmas.
     F[A ∧ B] <: F[A] ∧ F[B] is provable by covariance.
     Let's prove F[A] ∧ F[B] <: F[A ∧ B] in the model.
     *)
-  Lemma sAnd_All_Stp_Distr Γ T U1 U2 i:
-    ⊢ Γ s⊨ oAnd (oAll T U1) (oAll T U2) <:[i] oAll T (oAnd U1 U2).
+  Lemma sAnd_All_Stp_Distr Γ S T1 T2 i:
+    ⊢ Γ s⊨ oAnd (oAll S T1) (oAll S T2) <:[i] oAll S (oAnd T1 T2).
   Proof.
     iIntros "!> %ρ _ !> %v [#H1 #H2]".
     iDestruct "H1" as (t ?) "#H1"; iDestruct "H2" as (t' ->) "#H2"; simplify_eq.
     iExists t; iSplit; first done.
-    iIntros (w) "#HT".
+    iIntros (w) "#HS".
     (* Oh. Dreaded conjunction rule. Tho could we use a version
     for separating conjunction? *)
-    iApply (wp_and with "(H1 HT) (H2 HT)").
+    iApply (wp_and with "(H1 HS) (H2 HS)").
+  Qed.
   Qed.
 
   Lemma sAnd_Fld_Stp_Distr Γ l T1 T2 i:
