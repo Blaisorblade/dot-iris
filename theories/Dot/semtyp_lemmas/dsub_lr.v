@@ -246,7 +246,7 @@ Section DStpLemmas.
     F[A ∧ B] <: F[A] ∧ F[B] is provable by covariance.
     Let's prove F[A] ∧ F[B] <: F[A ∧ B] in the model.
     *)
-  Lemma sAnd_All_Stp_Distr Γ S T1 T2 i:
+  Lemma sAnd_All_1_Stp_Distr Γ S T1 T2 i:
     ⊢ Γ s⊨ oAnd (oAll S T1) (oAll S T2) <:[i] oAll S (oAnd T1 T2).
   Proof.
     iIntros "!> %ρ _ !> %v [#H1 #H2]".
@@ -257,7 +257,23 @@ Section DStpLemmas.
     for separating conjunction? *)
     iApply (wp_and with "(H1 HS) (H2 HS)").
   Qed.
+
+  Lemma sAnd_All_2_Stp_Distr Γ S1 S2 T i:
+    ⊢ Γ s⊨ oAnd (oAll S1 T) (oAll S2 T) <:[i] oAll (oOr S1 S2) T.
+  Proof.
+    iIntros "!> %ρ _ !> %v [#H1 #H2]".
+    iDestruct "H1" as (t ?) "#H1"; iDestruct "H2" as (t' ->) "#H2"; simplify_eq.
+    iExists t; iSplit; first done.
+    iIntros (w) "#[HS|HS]"; [iApply ("H1" with "HS")|iApply ("H2" with "HS")].
   Qed.
+
+  (**
+    We cannot combine the two rules to get
+    [⊢ Γ s⊨ oAnd (oAll S1 T1) (oAll S2 T2) <:[i] oAll (oOr S1 S2) (oAnd T1 T2)].
+
+    Counterexample:
+    [id : Int -> Int] and [id : String -> String], but not [id: Int \/ String -> Int /\ String)].
+  *)
 
   Lemma sAnd_Fld_Stp_Distr Γ l T1 T2 i:
     ⊢ Γ s⊨ oAnd (oVMem l T1) (oVMem l T2) <:[i] oVMem l (oAnd T1 T2).

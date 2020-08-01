@@ -162,8 +162,10 @@ gDOT also proves the converse subtyping, F[A] ∧ F[B] <:[i] F[A ∧ B] for each
 For unions, we obtain F[A] ∨ F[B] <: F[A ∨ B] in DOT by covariance, but the
 converse subtyping only holds for [TVMem].
 *)
-| iAnd_All_Stp_Distr S T1 T2 i:
+| iAnd_All_1_Stp_Distr S T1 T2 i:
     Γ t⊢ₜ TAnd (TAll S T1) (TAll S T2) <:[i] TAll S (TAnd T1 T2)
+| iAnd_All_2_Stp_Distr S1 S2 T i:
+    Γ t⊢ₜ TAnd (TAll S1 T) (TAll S2 T) <:[i] TAll (TOr S1 S2) T
 | iAnd_Fld_Stp_Distr l T1 T2 i:
     Γ t⊢ₜ TAnd (TVMem l T1) (TVMem l T2) <:[i] TVMem l (TAnd T1 T2)
 | iAnd_Typ_Stp_Distr l L U1 U2 i:

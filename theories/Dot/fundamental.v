@@ -75,7 +75,8 @@ Section fundamental.
     + by iApply All_Stp_All; [iApply H|iApply H0].
     + iApply sFld_Stp_Fld. by iApply H.
     + by iApply sTyp_Stp_Typ; [iApply H|iApply H0].
-    + iApply sAnd_All_Stp_Distr.
+    + iApply sAnd_All_1_Stp_Distr.
+    + iApply sAnd_All_2_Stp_Distr.
     + iApply sAnd_Fld_Stp_Distr.
     + iApply sAnd_Typ_Stp_Distr.
     + iApply sOr_Fld_Stp_Distr.
