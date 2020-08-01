@@ -147,8 +147,8 @@ with subtype Γ : ty → nat → ty → nat → Prop :=
     Γ u⊢ₜ TAnd (TAll S1 T) (TAll S2 T), i <: TAll (TOr S1 S2) T, i
 | iAnd_Fld_Sub_Distr l T1 T2 i:
     Γ u⊢ₜ TAnd (TVMem l T1) (TVMem l T2), i <: TVMem l (TAnd T1 T2), i
-| iAnd_Typ_Sub_Distr l L U1 U2 i:
-    Γ u⊢ₜ TAnd (TTMem l L U1) (TTMem l L U2), i <: TTMem l L (TAnd U1 U2), i
+| iAnd_Typ_Sub_Distr l L1 L2 U1 U2 i:
+    Γ u⊢ₜ TAnd (TTMem l L1 U1) (TTMem l L2 U2), i <: TTMem l (TOr L1 L2) (TAnd U1 U2), i
 | iDistr_And_Or_Sub {S T U i}:
     Γ u⊢ₜ TAnd (TOr S T) U , i <: TOr (TAnd S U) (TAnd T U), i
 | iSub_Skolem_P {T1 T2 i j}:

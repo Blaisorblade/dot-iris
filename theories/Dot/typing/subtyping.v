@@ -168,8 +168,8 @@ converse subtyping only holds for [TVMem].
     Γ t⊢ₜ TAnd (TAll S1 T) (TAll S2 T) <:[i] TAll (TOr S1 S2) T
 | iAnd_Fld_Stp_Distr l T1 T2 i:
     Γ t⊢ₜ TAnd (TVMem l T1) (TVMem l T2) <:[i] TVMem l (TAnd T1 T2)
-| iAnd_Typ_Stp_Distr l L U1 U2 i:
-    Γ t⊢ₜ TAnd (TTMem l L U1) (TTMem l L U2) <:[i] TTMem l L (TAnd U1 U2)
+| iAnd_Typ_Stp_Distr l L1 L2 U1 U2 i:
+    Γ t⊢ₜ TAnd (TTMem l L1 U1) (TTMem l L2 U2) <:[i] TTMem l (TOr L1 L2) (TAnd U1 U2)
 (* Lone rule for union *)
 | iOr_Fld_Stp_Distr l T1 T2 i:
     Γ t⊢ₜ TVMem l (TOr T1 T2) <:[i] TOr (TVMem l T1) (TVMem l T2)

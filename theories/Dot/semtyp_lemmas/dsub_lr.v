@@ -284,17 +284,20 @@ Section DStpLemmas.
     by iApply (path_wp_and' with "H1 H2").
   Qed.
 
-  Lemma sAnd_Typ_Stp_Distr Γ l L U1 U2 i:
-    ⊢ Γ s⊨ oAnd (oTMem l L U1) (oTMem l L U2) <:[i] oTMem l L (oAnd U1 U2).
+  Lemma sAnd_Typ_Stp_Distr Γ l L1 L2 U1 U2 i:
+    ⊢ Γ s⊨ oAnd (oTMem l L1 U1) (oTMem l L2 U2) <:[i] oTMem l (oOr L1 L2) (oAnd U1 U2).
   Proof.
     iIntros "!> %ρ _ !> %v [H1 H2]"; rewrite !oTMem_eq /dot_intv_type_pred.
     iDestruct "H1" as (ψ d Hl) "[Hdψ1 [HLψ1 HψU1]]".
-    iDestruct "H2" as (ψ' d' Hl') "[Hdψ2 [_ HψU2]]". objLookupDet.
-    iExists ψ, d. iFrame (Hl) "HLψ1". iSplit; first done.
-    iIntros (w) "Hw".
-    iDestruct (dm_to_type_agree vnil w with "Hdψ1 Hdψ2") as "Hag".
-    iSplit; [iApply ("HψU1" with "Hw") | iApply "HψU2"].
-    iNext. by iRewrite -"Hag".
+    iDestruct "H2" as (ψ' d' Hl') "[Hdψ2 [HLψ2 HψU2]]". objLookupDet.
+    iExists ψ, d. iFrame (Hl). iSplit; first done.
+    iSplit; iIntros (w) "Hw";
+      iDestruct (dm_to_type_agree vnil w with "Hdψ1 Hdψ2") as "Hag".
+    - iDestruct "Hw" as "[Hw|Hw]"; first iApply ("HLψ1" with "Hw").
+      iSpecialize ("HLψ2" with "Hw").
+      iNext. by iRewrite "Hag".
+    - iSplit; [iApply ("HψU1" with "Hw") | iApply "HψU2"].
+      iNext. by iRewrite -"Hag".
   Qed.
 
   Lemma sOr_Fld_Stp_Distr Γ l T1 T2 i:
