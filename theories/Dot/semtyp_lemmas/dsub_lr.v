@@ -284,15 +284,6 @@ Section DStpLemmas.
     by iApply (path_wp_and' with "H1 H2").
   Qed.
 
-  Lemma bi_forall_and_swap {PROP : bi} A (P1 P2 : A → PROP) `{BiAffine PROP}
-    `{∀ x, Persistent (P1 x)} `{∀ x, Persistent (P2 x)} :
-    (∀ x, P1 x) ∧ (∀ x, P2 x) ⊣⊢ (∀ x, P1 x ∧ P2 x).
-  Proof.
-    iSplit.
-    iIntros "[A B] %x". iSplit; eauto with iFrame.
-    iIntros "H"; iSplit; iIntros (x); iDestruct ("H" $! x) as "[??]"; eauto.
-  Qed.
-
   Lemma sAnd_Typ_Stp_Distr Γ l L1 L2 U1 U2 i:
     ⊢ Γ s⊨ oAnd (oTMem l L1 U1) (oTMem l L2 U2) <:[i] oTMem l (oOr L1 L2) (oAnd U1 U2).
   Proof.
@@ -300,9 +291,8 @@ Section DStpLemmas.
     iDestruct "H1" as (ψ d Hl) "[Hdψ1 [HLψ1 HψU1]]".
     iDestruct "H2" as (ψ' d' Hl') "[Hdψ2 [HLψ2 HψU2]]". objLookupDet.
     iExists ψ, d. iFrame (Hl). iSplit; first done.
-    unshelve iApply bi_forall_and_swap; [apply _ ..|]; iIntros (w);
+    iSplit; iIntros (w) "Hw";
       iDestruct (dm_to_type_agree vnil w with "Hdψ1 Hdψ2") as "Hag".
-    iSplit; iIntros "Hw".
     - iDestruct "Hw" as "[Hw|Hw]"; first iApply ("HLψ1" with "Hw").
       iSpecialize ("HLψ2" with "Hw").
       iNext. by iRewrite "Hag".
