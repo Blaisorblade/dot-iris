@@ -310,6 +310,37 @@ Section DStpLemmas.
       rewrite path_wp_eq; iExists (w); iFrame (Hpw).
   Qed.
 
+  (**
+  Most dual rules for union types do not actually hold.
+  In fact, even [sOr_Fld_Stp_Distr] is subtle, and only works in CBV
+  semantics.
+
+  For more on the trickiness of union types in general, see the introduction
+  of [Subtyping for union types]
+  (https://link.springer.com/chapter/10.1007/978-3-540-30124-0_32) (also [on
+  Citeseer](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.60.6019&rep=rep1&type=pdf)).
+
+  Specific cases follow.
+
+  There is no union rule for type members (except the derivable ones).
+  Symmetry suggests the following rule, which however is incorrect:
+    [⊢ Γ s⊨ oTMem l (oAnd L1 L2) (oOr U1 U2) <:[i] oOr (oTMem l L1 U1) (oTMem l L2 U2)].
+  Here are weaker rules, with counterexamples:
+  - [⊢ Γ s⊨ oTMem l L (oOr U1 U2) <:[i] oOr (oTMem l L U1) (oTMem l L U2)]:
+    Ignoring laters, the witness (actual rhs of the type member) can be [U1 ∨
+    U2], which is a subtype of [U1 ∨ U2], but not of [U1], and not of [U2].
+    In particular, we can have [U1 ∨ U2 = ⊤].
+  - [⊢ Γ s⊨ oTMem l (oAnd L1 L2) U <:[i] oOr (oTMem l L1 U) (oTMem l L2 U)]:
+    Again, ignoring laters, the witness can be [L1 ∧ L2], which isn't a supertype of [L1] or [L2].
+    In particular, we can have [L1 ∧ L2 = ⊥].
+
+  There is also no union rule for function types (except the derivable ones).
+  - [⊢ Γ s⊨ oAll S (oOr T1 T2) <:[i] oOr (oAll S T1) (oAll S T2)]:
+    For instance, we can give an [f] such that
+    [f: Int -> Int ∨ String], but not [f: (Int -> Int) \/ (Int -> String)].
+    It's sufficient that [f] returns an [Int] on some inputs (say, [0]) and a
+    [String] on others (say, [1]).
+  *)
 
   Lemma sP_Later {Γ} p T i :
     Γ s⊨p p : oLater T, i -∗
