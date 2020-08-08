@@ -24,6 +24,7 @@ Inductive bin_op_syntype : bin_op → base_ty → base_ty → base_ty → Set :=
 | ty_blt      : bin_op_syntype blt    tint  tint  tbool
 | ty_ble      : bin_op_syntype ble    tint  tint  tbool
 | ty_bplus    : bin_op_syntype bplus  tint  tint  tint
+| ty_bminus   : bin_op_syntype bminus tint  tint  tint
 | ty_btimes   : bin_op_syntype btimes tint  tint  tint.
 
 (** ** When is a context weaker than another? While we don't give complete
