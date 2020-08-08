@@ -43,18 +43,18 @@ Section judgments.
 
   (** Expression typing *)
   Definition setp `{!dlangG Σ} e Γ τ : iProp Σ :=
-    |==> ∀ ρ, sG⟦Γ⟧* ρ → sE⟦ τ ⟧ ρ (e.|[ρ]).
+    |==> ∀ ρ, sG⟦Γ⟧* ρ → ◇ sE⟦ τ ⟧ ρ (e.|[ρ]).
   Global Arguments setp : simpl never.
 
   (** Delayed subtyping. *)
   Definition sstpd `{!dlangG Σ} i Γ τ1 τ2 : iProp Σ :=
     |==> ∀ ρ,
-      sG⟦Γ⟧*ρ → ▷^i (oClose τ1 ρ ⊆ oClose τ2 ρ).
+      sG⟦Γ⟧*ρ → ◇ ▷^i (oClose τ1 ρ ⊆ oClose τ2 ρ).
   Global Arguments sstpd : simpl never.
 
   (** Multi-definition typing *)
   Definition sdstp `{!dlangG Σ} ds Γ (T : clty Σ) : iProp Σ :=
-    |==> ⌜wf_ds ds⌝ ∧ ∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → sG⟦Γ⟧* ρ → T ρ ds.|[ρ].
+    |==> ⌜wf_ds ds⌝ ∧ ∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → sG⟦Γ⟧* ρ → ◇ T ρ ds.|[ρ].
   Global Arguments sdstp : simpl never.
 
   (** Definition typing *)
@@ -64,7 +64,7 @@ Section judgments.
   (** Path typing *)
   Definition sptp `{!dlangG Σ} p i Γ (T : oltyO Σ 0): iProp Σ :=
     |==> ∀ ρ, sG⟦Γ⟧* ρ →
-      ▷^i path_wp p.|[ρ] (oClose T ρ).
+      ◇ ▷^i path_wp p.|[ρ] (oClose T ρ).
   Global Arguments sptp : simpl never.
 End judgments.
 
@@ -84,15 +84,15 @@ Section JudgEqs.
 
   Lemma sstpd_eq_1 Γ T1 i T2 :
     Γ s⊨ T1 <:[i] T2 ⊣⊢
-    |==> ∀ ρ, sG⟦Γ⟧* ρ → ∀ v, ▷^i (T1 vnil ρ v → T2 vnil ρ v).
+    |==> ∀ ρ, sG⟦Γ⟧* ρ → ∀ v, ◇ ▷^i (T1 vnil ρ v → T2 vnil ρ v).
   Proof.
     rewrite /sstpd /subtype_lty; f_equiv; f_equiv => ρ.
-    by rewrite laterN_forall.
+    by rewrite laterN_forall except_0_forall.
   Qed.
 
   Lemma sstpd_eq Γ T1 i T2 :
     Γ s⊨ T1 <:[i] T2 ⊣⊢
-    |==> ∀ ρ v, sG⟦Γ⟧* ρ → ▷^i (T1 vnil ρ v → T2 vnil ρ v).
+    |==> ∀ ρ v, sG⟦Γ⟧* ρ → ◇ ▷^i (T1 vnil ρ v → T2 vnil ρ v).
   Proof. rewrite sstpd_eq_1; properness. apply: forall_swap_impl. Qed.
 End JudgEqs.
 
@@ -317,22 +317,23 @@ Section judgment_definitions.
   Proof. by rewrite /path_includes path_wp_pure_pv_eq. Qed.
 
   Lemma idstp_eq Γ T ds : Γ ⊨ds ds : T ⊣⊢
-    |==> ⌜wf_ds ds⌝ ∧ ∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → G⟦Γ⟧ ρ → Ds⟦T⟧ ρ ds.|[ρ].
+    |==> ⌜wf_ds ds⌝ ∧ ∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → G⟦Γ⟧ ρ →
+      ◇ Ds⟦T⟧ ρ ds.|[ρ].
   Proof. reflexivity. Qed.
 
   Lemma ietp_eq Γ e T :
-    Γ ⊨ e : T ⊣⊢ |==> ∀ ρ, G⟦Γ⟧ ρ → E⟦T⟧ ρ (e.|[ρ]).
+    Γ ⊨ e : T ⊣⊢ |==> ∀ ρ, G⟦Γ⟧ ρ → ◇ E⟦T⟧ ρ (e.|[ρ]).
   Proof. reflexivity. Qed.
 
   Lemma istpd_eq Γ T1 i T2 :
     Γ ⊨ T1 <:[i] T2 ⊣⊢
-    |==> ∀ ρ v, G⟦Γ⟧ ρ → ▷^i (V⟦T1⟧ vnil ρ v → V⟦T2⟧ vnil ρ v).
+    |==> ∀ ρ v, G⟦Γ⟧ ρ → ◇ ▷^i (V⟦T1⟧ vnil ρ v → V⟦T2⟧ vnil ρ v).
   Proof. apply sstpd_eq. Qed.
 
   Lemma iptp_eq Γ p T i :
     Γ ⊨p p : T , i ⊣⊢
     |==> ∀ ρ, G⟦Γ⟧ ρ →
-      ▷^i path_wp (p.|[ρ]) (λ v, V⟦T⟧ vnil ρ v).
+      ◇ ▷^i path_wp (p.|[ρ]) (λ v, V⟦T⟧ vnil ρ v).
   Proof. reflexivity. Qed.
 End judgment_definitions.
 
@@ -437,7 +438,7 @@ Section misc_lemmas.
 
   Lemma sdtp_eq (Γ : sCtx Σ) (T : clty Σ) l d:
     Γ s⊨ { l := d } : T ⊣⊢
-      |==> ∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ [(l, d.|[ρ])].
+      |==> ∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → ◇ T ρ [(l, d.|[ρ])].
   Proof.
     rewrite /sdtp /sdstp pure_True ?(left_id _ bi_and);
       by [> | exact: NoDup_singleton].
@@ -445,14 +446,14 @@ Section misc_lemmas.
 
   Lemma sdtp_eq' (Γ : sCtx Σ) (T : dlty Σ) l d:
     Γ s⊨ { l := d } : dty2clty l T ⊣⊢
-      |==> ∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ d.|[ρ].
-  Proof. by rewrite sdtp_eq; properness; last apply dty2clty_singleton. Qed.
+      |==> ∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → ◇ T ρ d.|[ρ].
+  Proof. by rewrite sdtp_eq; properness; last (f_equiv; apply dty2clty_singleton). Qed.
 
   Lemma ipwp_terminates {p T i}:
-    [] s⊨p p : T , i ⊢ ▷^i ⌜ terminates (path2tm p) ⌝.
+    [] s⊨p p : T , i ⊢ ◇ ▷^i ⌜ terminates (path2tm p) ⌝.
   Proof.
     iIntros ">#H".
-    iSpecialize ("H" $! ids with "[//]"); rewrite hsubst_id.
+    iMod ("H" $! ids with "[//]") as "{H}H"; rewrite hsubst_id.
     iApply (path_wp_terminates with "H").
   Qed.
 
@@ -460,8 +461,8 @@ Section misc_lemmas.
   Lemma sT_Path {Γ τ p} :
     Γ s⊨p p : τ, 0 -∗ Γ s⊨ path2tm p : τ.
   Proof.
-    iIntros ">#Hep !> %ρ #Hg /="; rewrite path2tm_subst.
-    by iApply (path_wp_to_wp with "(Hep Hg)").
+    iIntros ">#Hep !> %ρ #Hg /="; rewrite path2tm_subst -path_wp_to_wp.
+    iApply ("Hep" with "Hg").
   Qed.
 End misc_lemmas.
 
@@ -586,7 +587,7 @@ Section Propers.
 
   Global Instance sdstp_proper ds : Proper ((≡) ==> (≡) ==> (≡)) (sdstp ds).
   Proof.
-    rewrite /sdstp => ??? [?? _ _ _] [?? _ _ _] [/= ??]; properness; by f_equiv.
+    by rewrite /sdstp => ??? [?? _ _ _] [?? _ _ _] [/= ??]; properness; repeat f_equiv.
   Qed.
   Global Instance sdstp_flip_proper ds :
     Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sdstp ds).
@@ -614,8 +615,10 @@ Lemma ipwp_gs_adequacy Σ `{HdlangG : !dlangG Σ} `{!SwapPropI Σ} {p T i}
   (Hwp : ∀ `(Hdlang : !dlangG Σ) `(!SwapPropI Σ), ⊢ [] ⊨p p : T , i):
   terminates (path2tm p).
 Proof.
-  eapply (@soundness (iResUR Σ) _ i).
+  eapply (@soundness (iResUR Σ) _ (S i)).
+  rewrite /= -except_0_later.
   apply (bupd_plain_soundness _).
+  rewrite -later_intro.
   iApply ipwp_terminates.
   iApply Hwp.
 Qed.

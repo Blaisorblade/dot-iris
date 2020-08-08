@@ -41,12 +41,16 @@ Section DStpLemmas.
     Γ s⊨ T1 <:[i] T2 -∗ Γ s⊨ T2 <:[i] T3 -∗ Γ s⊨ T1 <:[i] T3.
   Proof.
     iIntros ">#Hsub1 >#Hsub2 !> %ρ #Hg *".
-    iApply (subtype_trans with "(Hsub1 Hg) (Hsub2 Hg)").
+    iMod ("Hsub1" with "Hg") as "Hsub1'".
+    iMod ("Hsub2" with "Hg") as "Hsub2'".
+    iModIntro.
+
+    iApply (subtype_trans with "Hsub1' Hsub2'").
   Qed.
 
   Lemma sStp_Top Γ T i:
     ⊢ Γ s⊨ T <:[i] oTop.
-  Proof. rewrite sstpd_eq_1. by iIntros "!> ** !> **". Qed.
+  Proof. rewrite sstpd_eq_1. by iIntros "!> ** !> !>**". Qed.
 
   Lemma sBot_Stp Γ T i:
     ⊢ Γ s⊨ oBot <:[i] T.
@@ -109,7 +113,10 @@ Section DStpLemmas.
     Γ s⊨ L <:[i] oSel p l.
   Proof.
     rewrite sstpd_eq; iIntros ">#Hp !> %ρ %v Hg".
-    iSpecialize ("Hp" with "Hg"); iNext i; iIntros "#HL".
+    iSpecialize ("Hp" with "Hg").
+    iMod "Hp".
+    iModIntro.
+    iNext i. iIntros "#HL".
     iApply (path_wp_wand with "Hp"); iIntros (w).
     iApply (vl_sel_lb with "HL").
   Qed.
