@@ -246,17 +246,34 @@ Section DStpLemmas.
     F[A ∧ B] <: F[A] ∧ F[B] is provable by covariance.
     Let's prove F[A] ∧ F[B] <: F[A ∧ B] in the model.
     *)
-  Lemma sAnd_All_Stp_Distr Γ T U1 U2 i:
-    ⊢ Γ s⊨ oAnd (oAll T U1) (oAll T U2) <:[i] oAll T (oAnd U1 U2).
+  Lemma sAnd_All_1_Stp_Distr Γ S T1 T2 i:
+    ⊢ Γ s⊨ oAnd (oAll S T1) (oAll S T2) <:[i] oAll S (oAnd T1 T2).
   Proof.
     iIntros "!> %ρ _ !> %v [#H1 #H2]".
     iDestruct "H1" as (t ?) "#H1"; iDestruct "H2" as (t' ->) "#H2"; simplify_eq.
     iExists t; iSplit; first done.
-    iIntros (w) "#HT".
+    iIntros (w) "#HS".
     (* Oh. Dreaded conjunction rule. Tho could we use a version
     for separating conjunction? *)
-    iApply (wp_and with "(H1 HT) (H2 HT)").
+    iApply (wp_and with "(H1 HS) (H2 HS)").
   Qed.
+
+  Lemma sAnd_All_2_Stp_Distr Γ S1 S2 T i:
+    ⊢ Γ s⊨ oAnd (oAll S1 T) (oAll S2 T) <:[i] oAll (oOr S1 S2) T.
+  Proof.
+    iIntros "!> %ρ _ !> %v [#H1 #H2]".
+    iDestruct "H1" as (t ?) "#H1"; iDestruct "H2" as (t' ->) "#H2"; simplify_eq.
+    iExists t; iSplit; first done.
+    iIntros (w) "#[HS|HS]"; [iApply ("H1" with "HS")|iApply ("H2" with "HS")].
+  Qed.
+
+  (**
+    We cannot combine the two rules to get
+    [⊢ Γ s⊨ oAnd (oAll S1 T1) (oAll S2 T2) <:[i] oAll (oOr S1 S2) (oAnd T1 T2)].
+
+    Counterexample:
+    [id : Int -> Int] and [id : String -> String], but not [id: Int \/ String -> Int /\ String)].
+  *)
 
   Lemma sAnd_Fld_Stp_Distr Γ l T1 T2 i:
     ⊢ Γ s⊨ oAnd (oVMem l T1) (oVMem l T2) <:[i] oVMem l (oAnd T1 T2).
@@ -267,17 +284,20 @@ Section DStpLemmas.
     by iApply (path_wp_and' with "H1 H2").
   Qed.
 
-  Lemma sAnd_Typ_Stp_Distr Γ l L U1 U2 i:
-    ⊢ Γ s⊨ oAnd (oTMem l L U1) (oTMem l L U2) <:[i] oTMem l L (oAnd U1 U2).
+  Lemma sAnd_Typ_Stp_Distr Γ l L1 L2 U1 U2 i:
+    ⊢ Γ s⊨ oAnd (oTMem l L1 U1) (oTMem l L2 U2) <:[i] oTMem l (oOr L1 L2) (oAnd U1 U2).
   Proof.
     iIntros "!> %ρ _ !> %v [H1 H2]"; rewrite !oTMem_eq /dot_intv_type_pred.
     iDestruct "H1" as (ψ d Hl) "[Hdψ1 [HLψ1 HψU1]]".
-    iDestruct "H2" as (ψ' d' Hl') "[Hdψ2 [_ HψU2]]". objLookupDet.
-    iExists ψ, d. iFrame (Hl) "HLψ1". iSplit; first done.
-    iIntros (w) "Hw".
-    iDestruct (dm_to_type_agree vnil w with "Hdψ1 Hdψ2") as "Hag".
-    iSplit; [iApply ("HψU1" with "Hw") | iApply "HψU2"].
-    iNext. by iRewrite -"Hag".
+    iDestruct "H2" as (ψ' d' Hl') "[Hdψ2 [HLψ2 HψU2]]". objLookupDet.
+    iExists ψ, d. iFrame (Hl). iSplit; first done.
+    iSplit; iIntros (w) "Hw";
+      iDestruct (dm_to_type_agree vnil w with "Hdψ1 Hdψ2") as "Hag".
+    - iDestruct "Hw" as "[Hw|Hw]"; first iApply ("HLψ1" with "Hw").
+      iSpecialize ("HLψ2" with "Hw").
+      iNext. by iRewrite "Hag".
+    - iSplit; [iApply ("HψU1" with "Hw") | iApply "HψU2"].
+      iNext. by iRewrite -"Hag".
   Qed.
 
   Lemma sOr_Fld_Stp_Distr Γ l T1 T2 i:
@@ -290,6 +310,37 @@ Section DStpLemmas.
       rewrite path_wp_eq; iExists (w); iFrame (Hpw).
   Qed.
 
+  (**
+  Most dual rules for union types do not actually hold.
+  In fact, even [sOr_Fld_Stp_Distr] is subtle, and only works in CBV
+  semantics.
+
+  For more on the trickiness of union types in general, see the introduction
+  of [Subtyping for union types]
+  (https://link.springer.com/chapter/10.1007/978-3-540-30124-0_32) (also [on
+  Citeseer](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.60.6019&rep=rep1&type=pdf)).
+
+  Specific cases follow.
+
+  There is no union rule for type members (except the derivable ones).
+  Symmetry suggests the following rule, which however is incorrect:
+    [⊢ Γ s⊨ oTMem l (oAnd L1 L2) (oOr U1 U2) <:[i] oOr (oTMem l L1 U1) (oTMem l L2 U2)].
+  Here are weaker rules, with counterexamples:
+  - [⊢ Γ s⊨ oTMem l L (oOr U1 U2) <:[i] oOr (oTMem l L U1) (oTMem l L U2)]:
+    Ignoring laters, the witness (actual rhs of the type member) can be [U1 ∨
+    U2], which is a subtype of [U1 ∨ U2], but not of [U1], and not of [U2].
+    In particular, we can have [U1 ∨ U2 = ⊤].
+  - [⊢ Γ s⊨ oTMem l (oAnd L1 L2) U <:[i] oOr (oTMem l L1 U) (oTMem l L2 U)]:
+    Again, ignoring laters, the witness can be [L1 ∧ L2], which isn't a supertype of [L1] or [L2].
+    In particular, we can have [L1 ∧ L2 = ⊥].
+
+  There is also no union rule for function types (except the derivable ones).
+  - [⊢ Γ s⊨ oAll S (oOr T1 T2) <:[i] oOr (oAll S T1) (oAll S T2)]:
+    For instance, we can give an [f] such that
+    [f: Int -> Int ∨ String], but not [f: (Int -> Int) \/ (Int -> String)].
+    It's sufficient that [f] returns an [Int] on some inputs (say, [0]) and a
+    [String] on others (say, [1]).
+  *)
 
   Lemma sP_Later {Γ} p T i :
     Γ s⊨p p : oLater T, i -∗
