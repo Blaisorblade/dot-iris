@@ -578,7 +578,7 @@ Definition cTMemK `{!dlangG Σ} {n} l (K : sf_kind Σ n) : clty Σ := dty2clty l
 Notation oTMemK l K := (clty_olty (cTMemK l K)).
 
 Definition oDTMemAnyKind `{!dlangG Σ} : dltyO Σ := Dlty (λI ρ d,
-  ∃ n (ψ : hoD Σ n), d ↗n[ n ] ψ).
+  ∃ n (ψ : hoD Σ n), ◇ d ↗n[ n ] ψ).
 Definition cTMemAnyKind `{!dlangG Σ} l : clty Σ := dty2clty l oDTMemAnyKind.
 Notation oTMemAnyKind l := (clty_olty (cTMemAnyKind l)).
 
@@ -628,7 +628,7 @@ Section proper_eq.
 
   Lemma oTMemK_eq n l K args ρ v :
     oTMemK l K args ρ v ⊣⊢
-    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗n[ n ] ψ ∧ K ρ (packHoLtyO ψ) (packHoLtyO ψ).
+    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ ◇ d ↗n[ n ] ψ ∧ K ρ (packHoLtyO ψ) (packHoLtyO ψ).
   Proof. apply bi_exist_nested_swap. Qed.
 
   Lemma cTMemAnyKind_eq l d ρ :

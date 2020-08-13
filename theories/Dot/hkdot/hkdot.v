@@ -577,7 +577,7 @@ Section dot_types.
     rewrite /= (alias_paths_elim_eq _ Hal) path_wp_pv_eq.
     iSplit; first by iIntros "H"; iExists d1, ψ1; iFrame (Hl1) "Hl1".
     iDestruct 1 as (d2 ψ2 Hl2) "[Hl2 Hw]"; objLookupDet.
-    iDestruct (dm_to_type_agree args w with "Hl1 Hl2") as "Hag {Hl1}".
+    iDestruct (dm_to_type_agree args w with "[>$Hl1] [>$Hl2]") as "Hag {Hl1}".
     iNext. by iRewrite "Hag".
   Qed.
 

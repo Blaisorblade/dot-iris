@@ -161,7 +161,7 @@ End path_repl.
 
 (** ** gDOT semantic types. *)
 Definition vl_sel `{!dlangG Σ} {n} vp l args v : iProp Σ :=
-  ∃ d ψ, ⌜vp @ l ↘ d⌝ ∧ d ↗n[ n ] ψ ∧ packHoLtyO ψ args v.
+  ∃ d ψ, ⌜vp @ l ↘ d⌝ ∧ ◇ d ↗n[ n ] ψ ∧ packHoLtyO ψ args v.
 
 Definition oSelN `{!dlangG Σ} n p l : oltyO Σ n :=
   Olty (λI args ρ v, path_wp p.|[ρ] (λ vp, vl_sel vp l args v)).
@@ -171,7 +171,7 @@ Section sem_types.
   Context `{HdotG: !dlangG Σ}.
 
   Definition oDTMemRaw n (rK : env → hoD Σ n → iProp Σ): dltyO Σ := Dlty (λI ρ d,
-    ∃ ψ, d ↗n[ n ] ψ ∧ rK ρ ψ).
+    ∃ ψ, ◇ d ↗n[ n ] ψ ∧ rK ρ ψ).
 
   Implicit Types (τ : oltyO Σ 0).
 
@@ -226,7 +226,7 @@ Section sem_types.
 
   Lemma oSel_pv {n} w l args ρ v :
     oSelN n (pv w) l args ρ v ⊣⊢
-      ∃ d ψ, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n[ n ] ψ ∧ ▷ ψ args v.
+      ∃ d ψ, ⌜w.[ρ] @ l ↘ d⌝ ∧ ◇ d ↗n[ n ] ψ ∧ ▷ ψ args v.
   Proof. by rewrite /= path_wp_pv_eq. Qed.
 
   (** [ V⟦ p.type ⟧]. *)
@@ -363,7 +363,7 @@ Section misc_lemmas.
 
   Lemma oTMem_eq l τ1 τ2 args ρ v :
     oTMem l τ1 τ2 args ρ v ⊣⊢
-    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗n[ 0 ] ψ ∧ dot_intv_type_pred τ1 τ2 ρ ψ.
+    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ ◇ d ↗n[ 0 ] ψ ∧ dot_intv_type_pred τ1 τ2 ρ ψ.
   Proof. apply bi_exist_nested_swap. Qed.
 
   Lemma oTMem_shift A L U : oTMem A (shift L) (shift U) = shift (oTMem A L U).
@@ -377,8 +377,8 @@ Section misc_lemmas.
   Proof.
     iIntros "Hφ"; iDestruct 1 as (d1 Hl1 φ1) "(Hdφ1 & _ & HφU)".
     iApply "HφU".
-    iDestruct "Hφ" as (d2 φ2 Hl2) "[Hdφ2 Hφ2v]".
-    objLookupDet; iDestruct (dm_to_type_agree vnil v with "Hdφ2 Hdφ1") as "Hag".
+    iDestruct "Hφ" as (d2 φ2 Hl2) "[>Hdφ2 Hφ2v]".
+    objLookupDet; iDestruct (dm_to_type_agree vnil v with "Hdφ2 [> $Hdφ1]") as "Hag".
     iNext. by iRewrite "Hag" in "Hφ2v".
   Qed.
 

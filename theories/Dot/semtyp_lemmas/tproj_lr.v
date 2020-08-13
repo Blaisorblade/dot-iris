@@ -106,7 +106,7 @@ Section type_proj_setoid_equality.
 
   Lemma oProjN_eq_2 n A T args ρ v :
     oProjN n A T args ρ v ⊣⊢
-    ∃ w d ψ, ⌜w @ A ↘ d⌝ ∧ oClose T ρ w ∧ d ↗n[ n ] ψ ∧ ▷ ψ args v.
+    ∃ w d ψ, ⌜w @ A ↘ d⌝ ∧ oClose T ρ w ∧ ◇ d ↗n[ n ] ψ ∧ ▷ ψ args v.
   Proof.
     rewrite oProjN_eq; f_equiv => w.
     rewrite and_exist_l; f_equiv => ψ; rewrite and_exist_l; f_equiv => d.

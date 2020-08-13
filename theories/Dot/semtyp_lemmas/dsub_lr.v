@@ -291,12 +291,13 @@ Section DStpLemmas.
     iDestruct "H1" as (ψ d Hl) "[Hdψ1 [HLψ1 HψU1]]".
     iDestruct "H2" as (ψ' d' Hl') "[Hdψ2 [HLψ2 HψU2]]". objLookupDet.
     iExists ψ, d. iFrame (Hl). iSplit; first done.
-    iSplit; iIntros (w) "Hw";
-      iDestruct (dm_to_type_agree vnil w with "Hdψ1 Hdψ2") as "Hag".
+    iSplit; iIntros (w) "Hw".
     - iDestruct "Hw" as "[Hw|Hw]"; first iApply ("HLψ1" with "Hw").
       iSpecialize ("HLψ2" with "Hw").
+      iDestruct (dm_to_type_agree vnil w with "[> $Hdψ1] [> $Hdψ2]") as "Hag".
       iNext. by iRewrite "Hag".
     - iSplit; [iApply ("HψU1" with "Hw") | iApply "HψU2"].
+      iDestruct (dm_to_type_agree vnil w with "[> $Hdψ1] [> $Hdψ2]") as "Hag".
       iNext. by iRewrite -"Hag".
   Qed.
 
