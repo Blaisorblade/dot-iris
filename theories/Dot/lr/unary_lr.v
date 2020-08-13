@@ -200,9 +200,13 @@ Section sem_types.
     oDVMem T ρ (dpt p) ≡ path_wp p (oClose T ρ).
   Proof. simpl; iSplit; last by eauto. by iDestruct 1 as (pmem [= ->]) "$". Qed.
 
-  (** Lift [oDTMem] and [oDVMem] to full [clty]s, [cTMem] and [cVMem]. *)
+  (** Define [cTMem] and [cVMem] by lifting [oDTMem] and [oDVMem] to [clty]s. *)
 
-  (** [ Ds⟦ { l :: τ1 .. τ2 } ⟧] and [ V⟦ { l :: τ1 .. τ2 } ⟧ ]. *)
+  (**
+  [ Ds⟦ { l :: τ1 .. τ2 } ⟧] and [ V⟦ { l :: τ1 .. τ2 } ⟧ ].
+  Beware: the ICFP'20 defines instead
+  [ Ds⟦ { l >: τ1 <: τ2 } ⟧] and [ V⟦ { l >: τ1 <: τ2 } ⟧ ],
+  which are here a derived notation; see [cTMemL]. *)
   Definition cTMem l τ1 τ2 : clty Σ := dty2clty l (oDTMem τ1 τ2).
   Global Instance cTMem_proper l : Proper ((≡) ==> (≡) ==> (≡)) (cTMem l).
   Proof. solve_proper. Qed.
@@ -303,7 +307,11 @@ Notation "Γ ⊨ T1 <:[ i  ] T2" := (istpd i Γ T1 T2) (at level 74, T1, T2 at n
 Notation oInt := (oPrim tint).
 Notation oBool := (oPrim tbool).
 
+(** Semantics of type members in the ICFP'20 paper:
+[ Ds⟦ { l >: τ1 <: τ2 } ⟧] and [ V⟦ { l >: τ1 <: τ2 } ⟧ ]. *)
+Notation cTMemL l L U := (cTMem l (oLater L) (oLater U)).
 Notation oTMem l τ1 τ2 := (clty_olty (cTMem l τ1 τ2)).
+Notation oTMemL l L U := (clty_olty (cTMemL l L U)).
 Notation oVMem l τ := (clty_olty (cVMem l τ)).
 
 (** ** Show these typing judgments are equivalent to what we present in the paper. *)

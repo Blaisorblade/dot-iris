@@ -43,9 +43,6 @@ Section loop_sem.
   Context `{HdlangG: !dlangG Σ}.
   Context `{SwapPropI Σ}.
 
-  Definition cTMemL l L U := cTMem l (oLater L) (oLater U).
-  Definition oTMemL l L U := c2o (cTMemL l L U).
-
   Lemma loopSemT: ⊢ |==> WP hloopTm {{ _, False }}.
   Proof using Type*.
     iDestruct (fundamental_typed (loopTyp [])) as "#>H".
