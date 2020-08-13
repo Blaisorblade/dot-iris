@@ -323,7 +323,9 @@ Section type_proj.
 
       [Γ ⊨ ▷ T <:^i { A >: T <: T }]
 
-      or in our notation:
+      where [{ A >: T <: T }] means [{ A :: ▷ T .. ▷ T }].
+
+      In our notation, that's written:
 
       [Γ s⊨ oLater T <:[i] oProj A (oTMemL A T T)].
 
