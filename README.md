@@ -1,16 +1,19 @@
 # Type Soundness for DOT via logical relations
 
 [![Build Status](https://travis-ci.org/Blaisorblade/dot-iris.svg?branch=master)](https://travis-ci.org/Blaisorblade/dot-iris)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3926703.svg)](https://doi.org/10.5281/zenodo.3926703)
+[![Artifact DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3926703.svg)](https://doi.org/10.5281/zenodo.3926703)
 
-Mechanization accompanying the paper "Scala Step-by-Step: Soundness for
-DOT with Step-Indexed Logical Relations in Iris".
-
-**AEC reviewers should start from [`00Artifact-README.md`](00Artifact-README.md).**
+Mechanization accompanying the paper [Scala Step-by-Step: Soundness for
+DOT with Step-Indexed Logical Relations in Iris](https://dot-iris.github.io/),
+published at [ICFP 2020](https://dl.acm.org/doi/10.1145/3408996).
 
 The mapping between the paper and this mechanization, together with the
 layout of the codebase, is described in [`correspondence.md`](correspondence.md).
 See below for how to process sources with coqdoc.
+
+We have also provided [an artifact](https://doi.org/10.5281/zenodo.3926703),
+matching our [v1.0](https://github.com/Blaisorblade/dot-iris/tree/v1.0) release.
+Its instructions are in [`00Artifact-README.md`](00Artifact-README.md).
 
 ## Compiling the Proof the first time
 
@@ -29,7 +32,7 @@ to fetch all git submodules.
 
 ### Installing dependencies
 
-The following commands will install the correct Coq version (8.11.1) and the
+The following commands will install the correct Coq version and the
 correct versions of the std++ and Iris libraries.
 
 - If `opam` is not configured, run its setup wizard with `opam init`.
@@ -40,7 +43,7 @@ opam repo add coq-released https://coq.inria.fr/opam/released --set-default --al
 opam repo add iris-dev https://gitlab.mpi-sws.org/iris/opam.git --set-default --all
 opam update
 ```
-- If you use `opam` for other Coq projects, you might want to set up a dedicated
+- If you use `opam` for other Coq projects, we recommend setting up a dedicated
   `opam` switch. Instructions appear in [`development.md`](./development.md).
 - Actually install dependencies with:
 ```shell

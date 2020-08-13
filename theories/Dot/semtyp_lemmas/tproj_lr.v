@@ -3,11 +3,10 @@
 This shows how to restrict type projections to be sound and usable in Dotty.
 
 This is developed as an _extension_ of guarded DOT (gDOT), described in the
-ICFP'20 paper "Scala Step-by-Step".
-(Preprint available at
-#<a href="https://dot-iris.github.io/gdot-icfp20-1.0.pdf">
-https://dot-iris.github.io/gdot-icfp20-1.0.pdf</a>#
-%\url{https://dot-iris.github.io/gdot-icfp20-1.0.pdf}%).
+ICFP'20 paper "Scala Step-by-Step". (Homepage:
+#<a href="https://dot-iris.github.io">
+https://dot-iris.github.io</a>#
+%\url{https://dot-iris.github.io}%).
 
 Because of the interest to the wider Scala community, this file has extensive
 informal comments.
