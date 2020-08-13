@@ -5,9 +5,12 @@
 layout: home
 ---
 
-This is the homepage for the **Scala Step-by-Step** project. We extend the
+This is the homepage for the **guarded DOT** project. We extend the
 the DOT calculus, that is, the formal foundations of the _Scala_ programming language,
-using step-indexed logical relations and the Iris framework.
+using step-indexed logical relations and the Iris framework; the result is
+the *guarded DOT(gDOT)* calculus.
+
+Our first paper, **Scala Step-by-Step**, corresponds to gDOT 1.0.
 
 ## Publications
   - _Scala Step-by-Step: Soundness for DOT with Step-Indexed Logical Relations in Iris_.
