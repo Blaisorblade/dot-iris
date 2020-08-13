@@ -321,11 +321,11 @@ Section type_proj.
     However, we must first of all "guard" it with ▷, like other gDOT rules
     involving (g)DOT's impredicative type members; that would give:
 
-      [Γ ⊨ ▷ T <:^i { A :: ▷ T .. ▷ T }]
+      [Γ ⊨ ▷ T <:^i { A >: T <: T }]
 
       or in our notation:
 
-      [Γ s⊨ oLater T <:[i] oProj A (oTMem A (oLater T) (oLater T))].
+      [Γ s⊨ oLater T <:[i] oProj A (oTMemL A T T)].
 
     That rule indeed holds, but was challenging to prove, because this rule
     involves a type definition that doesn't appear in the source program, and
@@ -346,19 +346,19 @@ Section type_proj.
   (** *** Auxiliary lemma. *)
   Lemma oProj_oTMem A (T : olty Σ 0) σ s :
     s ↝[ σ ] shift T -∗
-    |==> ∀ ρ, oLater T vnil ρ ⊆ oProj A (oTMem A (oLater T) (oLater T)) vnil ρ.
+    |==> ∀ ρ, oLater T vnil ρ ⊆ oProj A (oTMemL A T T) vnil ρ.
   Proof.
     (** To prove this theorem, we create an auxiliary definition body [auxD]
     and an auxiliary object [auxV], whose type member [A] points to [shift T]. *)
-    set lT := oLater T; iIntros "#Hs".
+    iIntros "#Hs".
     set auxD := dtysem σ s; set auxV := (vobj [(A, auxD)]).
 
     iAssert ([] s⊨p pv (vobj [(A, auxD)]) :
-      oMu (oTMem A (shift lT) (shift lT)), 0) as ">#HwT".
+      oMu (oTMemL A (shift T) (shift T)), 0) as ">#HwT".
     by iApply sP_Obj_I; iApply sD_Sing'; iApply (sD_Typ with "Hs").
 
     iIntros "!> %ρ %v #HT"; rewrite oProjN_eq.
-    iAssert (oTMem A lT lT vnil ρ auxV.[ρ])%I as "{HwT} #Hw". {
+    iAssert (oTMemL A T T vnil ρ auxV.[ρ])%I as "{HwT} #Hw". {
       rewrite -(path_wp_pv_eq auxV.[ρ]). by iApply "HwT".
     }
 
@@ -368,7 +368,7 @@ Section type_proj.
 
   Lemma sProj_Stp_TMem {Γ i A σ} {T : olty Σ 0} :
     coveringσ σ T →
-    ⊢ Γ s⊨ oLater T <:[i] oProj A (oTMem A (oLater T) (oLater T)).
+    ⊢ Γ s⊨ oLater T <:[i] oProj A (oTMemL A T T).
   Proof.
     intros HclT.
     iMod (leadsto_envD_equiv_alloc_shift HclT) as (s) "Hs".
@@ -377,6 +377,6 @@ Section type_proj.
   Qed.
 
   Lemma Proj_Stp_TMem {Γ i A n} {T : ty} (HclT : nclosed T n) :
-    ⊢ Γ s⊨ oLater V⟦T⟧ <:[i] oProj A (oTMem A (oLater V⟦T⟧) (oLater V⟦T⟧)).
+    ⊢ Γ s⊨ oLater V⟦T⟧ <:[i] oProj A (oTMemL A V⟦T⟧ V⟦T⟧).
   Proof. have := !!nclosed_syn_coveringσ HclT; apply sProj_Stp_TMem. Qed.
 End type_proj.
