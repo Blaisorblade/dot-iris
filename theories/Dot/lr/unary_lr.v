@@ -161,7 +161,7 @@ End path_repl.
 
 (** ** gDOT semantic types. *)
 Definition vl_sel `{!dlangG Σ} {n} vp l args v : iProp Σ :=
-  ∃ d ψ, ⌜vp @ l ↘ d⌝ ∧ ◇ d ↗n[ n ] ψ ∧ packHoLtyO ψ args v.
+  ∃ d ψ, ◇ ⌜vp @ l ↘ d⌝ ∧ ◇ d ↗n[ n ] ψ ∧ packHoLtyO ψ args v.
 
 Definition oSelN `{!dlangG Σ} n p l : oltyO Σ n :=
   Olty (λI args ρ v, path_wp p.|[ρ] (λ vp, vl_sel vp l args v)).
@@ -212,7 +212,7 @@ Section sem_types.
   Proof. solve_proper. Qed.
 
   Lemma cTMem_eq l T1 T2 d ρ :
-    cTMem l T1 T2 ρ [(l, d)] ⊣⊢ oDTMem T1 T2 ρ d.
+    cTMem l T1 T2 ρ [(l, d)] ⊣⊢ ◇ oDTMem T1 T2 ρ d.
   Proof. apply dty2clty_singleton. Qed.
 
   (** [ Ds⟦ { l : τ } ⟧] and [ V⟦ { l : τ } ⟧ ]. *)
@@ -221,7 +221,7 @@ Section sem_types.
   Proof. solve_proper. Qed.
 
   Lemma cVMem_eq l T d ρ :
-    cVMem l T ρ [(l, d)] ⊣⊢ oDVMem T ρ d.
+    cVMem l T ρ [(l, d)] ⊣⊢ ◇ oDVMem T ρ d.
   Proof. apply dty2clty_singleton. Qed.
 
   Lemma oSel_pv {n} w l args ρ v :
@@ -279,7 +279,7 @@ Section sem_types.
   Proof.
     split; rewrite /pty_interp;
       induction T => args sb1 sb2 w; rewrite /= /pty_interp /dot_intv_type_pred /subtype_lty /=;
-      properness; rewrite ?scons_up_swap ?hsubst_comp; trivial.
+      repeat (properness; try apply except_0_proper); rewrite ?scons_up_swap ?hsubst_comp; trivial.
     by apply path_wp_proper => ?.
   Qed.
 
@@ -354,8 +354,9 @@ Section misc_lemmas.
 
   Lemma oVMem_eq l T vnil ρ v :
     oVMem l T vnil ρ v ⊣⊢
-    ∃ pmem, ⌜v @ l ↘ dpt pmem⌝ ∧ path_wp pmem (oClose T ρ).
+    ◇ ∃ pmem, ⌜v @ l ↘ dpt pmem⌝ ∧ path_wp pmem (oClose T ρ).
   Proof.
+    simpl. f_equiv.
     etrans; [apply bi_exist_nested_swap|]; apply bi.exist_proper => p.
     rewrite and2_exist_r.
     apply bi.and_proper, reflexivity; iIntros "!% /="; naive_solver.
@@ -363,8 +364,8 @@ Section misc_lemmas.
 
   Lemma oTMem_eq l τ1 τ2 args ρ v :
     oTMem l τ1 τ2 args ρ v ⊣⊢
-    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ ◇ d ↗n[ 0 ] ψ ∧ dot_intv_type_pred τ1 τ2 ρ ψ.
-  Proof. apply bi_exist_nested_swap. Qed.
+    ◇ ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ ◇ d ↗n[ 0 ] ψ ∧ dot_intv_type_pred τ1 τ2 ρ ψ.
+  Proof. simpl; f_equiv. apply bi_exist_nested_swap. Qed.
 
   Lemma oTMem_shift A L U : oTMem A (shift L) (shift U) = shift (oTMem A L U).
   Proof. done. Qed.
@@ -373,11 +374,12 @@ Section misc_lemmas.
   Lemma vl_sel_ub w l L U ρ v :
     vl_sel w l vnil v -∗
     oTMem l L U vnil ρ w -∗
-    U vnil ρ v.
+    ◇ U vnil ρ v.
   Proof.
-    iIntros "Hφ"; iDestruct 1 as (d1 Hl1 φ1) "(Hdφ1 & _ & HφU)".
+    rewrite oTMem_eq.
+    iIntros "Hφ". iMod 1 as (φ1 d1 Hl1) "(>Hdφ1 & _ & HφU)". iModIntro.
     iApply "HφU".
-    iDestruct "Hφ" as (d2 φ2 Hl2) "[>Hdφ2 Hφ2v]".
+    iDestruct "Hφ" as (d2 φ2 ) "(>%Hl2 & [>Hdφ2 Hφ2v])".
     objLookupDet; iDestruct (dm_to_type_agree vnil v with "Hdφ2 [> $Hdφ1]") as "Hag".
     iNext. by iRewrite "Hag" in "Hφ2v".
   Qed.
@@ -387,20 +389,25 @@ Section misc_lemmas.
     oTMem l L U vnil ρ w -∗
     vl_sel w l vnil v.
   Proof.
-    iIntros "HL"; iDestruct 1 as (d Hl φ) "[Hdφ [HLφ _]]".
-    iExists d, φ; iFrame (Hl) "Hdφ". iApply ("HLφ" with "HL").
+    rewrite oTMem_eq /vl_sel.
+    iIntros "HL". iDestruct 1 as (φ d ) "(Hl & [Hdφ [HLφ _]])".
+    rewrite except_0_idemp.
+    iExists d, φ; iFrame "Hl Hdφ". iMod "HLφ".
+    iApply ("HLφ" with "HL").
   Qed.
 
   Lemma lift_sub_dty2cltyN i (T1 T2 : dlty Σ) l ρ :
-    (∀ d, ▷^i T1 ρ d -∗ ▷^i T2 ρ d) ⊢
+    (∀ d, ▷^i ◇ T1 ρ d -∗ ▷^i ◇ T2 ρ d) ⊢
     oLaterN i (lift_dty_vl l T1) vnil ρ ⊆ oLaterN i ((lift_dty_vl l T2)) vnil ρ.
   Proof.
-    iIntros "Hsub %v". iDestruct 1 as (d) "[Hl #H1]"; iExists d; iFrame "Hl".
+    iIntros "Hsub %v".
+    iDestruct 1 as (d) "[Hl #H1]"; iExists d.
+    rewrite except_0_and; iFrame "Hl".
     by iApply ("Hsub" with "H1").
   Qed.
 
   Lemma lift_sub_dty2clty (T1 T2 : dlty Σ) l ρ :
-    (∀ d, T1 ρ d -∗ T2 ρ d) ⊢
+    (∀ d, ◇ T1 ρ d -∗ ◇ T2 ρ d) ⊢
     lift_dty_vl l T1 vnil ρ ⊆ lift_dty_vl l T2 vnil ρ.
   Proof. apply (lift_sub_dty2cltyN 0). Qed.
 
@@ -420,16 +427,18 @@ Section misc_lemmas.
     U1 vnil ρ ⊆ U2 vnil ρ -∗
     oTMem l L1 U1 vnil ρ ⊆ oTMem l L2 U2 vnil ρ.
   Proof.
-    rewrite -lift_sub_dty2clty; iIntros "#HsubL #HsubU %d".
-    iApply (oDTMem_respects_sub with "HsubL HsubU").
+    rewrite -lift_sub_dty2clty; iIntros "#HsubL #HsubU %d >H1 !>".
+    iApply (oDTMem_respects_sub with "HsubL HsubU H1").
   Qed.
 
   Lemma oDVMem_respects_subN i T1 T2 ρ d :
     oClose (oLaterN i T1) ρ ⊆ oClose (oLaterN i T2) ρ ⊢
-    ▷^i oDVMem T1 ρ d -∗ ▷^i oDVMem T2 ρ d.
+    ▷^i ◇ oDVMem T1 ρ d -∗ ▷^i ◇ oDVMem T2 ρ d.
   Proof.
-    iIntros "Hsub"; iDestruct 1 as (pmem) "[Heq HT1]"; iExists pmem; iFrame "Heq".
-    iApply (path_wp_wand_laterN with "HT1"); iIntros "%v HT1".
+    iIntros "Hsub". iDestruct 1 as (pmem) "[Heq HT1]". iExists pmem.
+    rewrite except_0_and.
+    iFrame "Heq".
+    iApply (path_wp_wand_laterN with "HT1"). iIntros "%v HT1".
     by iApply ("Hsub" with "HT1").
   Qed.
   Definition oDVMem_respects_sub := oDVMem_respects_subN 0.

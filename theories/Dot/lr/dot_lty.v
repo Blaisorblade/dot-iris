@@ -78,17 +78,17 @@ End clty_ofe_proper.
 
 (** *** Helpers for constructing [clty]. *)
 Definition lift_dty_dms `{!dlangG Σ} l (TD : dltyO Σ) : dsltyO Σ := Dslty (λI ρ ds,
-  ∃ d, ⌜ dms_lookup l ds = Some d ⌝ ∧ TD ρ d).
+  ◇ ∃ d, ⌜ dms_lookup l ds = Some d ⌝ ∧ TD ρ d).
 Instance: Params (@lift_dty_dms) 3 := {}.
 
 Definition lift_dty_vl `{!dlangG Σ} l (TD : dltyO Σ) : oltyO Σ 0 :=
-  olty0 (λI ρ v, ∃ d, ⌜v @ l ↘ d ⌝ ∧ TD ρ d).
+  olty0 (λI ρ v, ◇ ∃ d, ⌜v @ l ↘ d ⌝ ∧ TD ρ d).
 Instance: Params (@lift_dty_vl) 3 := {}.
 
 (** This definition is only useful to show in [lift_dty_vl_equiv_paper] that
 certain definitions we give are equivalent to the ones in the paper. *)
 Definition lift_dty_vl_paper `{!dlangG Σ} (TD : dsltyO Σ) : oltyO Σ 0 := olty0 (λI ρ v,
-  ∃ ds, ⌜v = vobj ds⌝ ∧ TD ρ (selfSubst ds)).
+  ◇ ∃ ds, ⌜v = vobj ds⌝ ∧ TD ρ (selfSubst ds)).
 
 Section lift_dty_lemmas.
   Context `{HdotG: !dlangG Σ}.
@@ -97,8 +97,35 @@ Section lift_dty_lemmas.
     lift_dty_vl l T ≡ lift_dty_vl_paper (lift_dty_dms l T).
   Proof.
     (* The proof is just a quantifier swap. *)
-    move=> args ρ v /=; rewrite bi_exist_nested_swap; f_equiv => d.
-    setoid_rewrite (assoc bi_and); rewrite -and_exist_r /objLookup; f_equiv.
+    move=> args ρ v /=.
+    (* Works, but slow. *)
+    (* Time rewrite_strat (topdown (choice except_0_exist (choice except_0_and except_0_idemp))). *)
+    (* Doesn't rewrite enough. *)
+    (* Time rewrite_strat (repeat (outermost (terms except_0_exist except_0_and except_0_idemp))). *)
+    Time repeat rewrite_strat (outermost (terms except_0_exist except_0_and except_0_idemp)).
+    (* Time repeat foo.
+    Ltac foo := rewrite_strat (outermost (terms except_0_exist except_0_and except_0_idemp)).
+    Time repeat foo.
+    rewrite_strat (outermost (terms except_0_exist)).
+    (* rewrite !except_0_exist. *)
+    (* rewrite_strat (topdown (terms except_0_and except_0_idemp)). *)
+    (* Time rewrite_strat (topdown (terms except_0_exist)).
+    Time rewrite_strat (bottomup (terms except_0_exist)). *)
+    (* rewrite !except_0_exist. *)
+    (* rewrite_strat (topdown (terms except_0_exist except_0_and except_0_idemp except_0_exist)).
+    rewrite_strat (topdown (terms except_0_exist except_0_and except_0_idemp except_0_exist)). *)
+    Time (rewrite_strat (repeat (topdown (repeat (terms except_0_exist except_0_and except_0_idemp))))).
+    rewrite_strat (repeat (topdown (terms except_0_exist except_0_and except_0_idemp except_0_exist))). *)
+    rewrite bi_exist_nested_swap. f_equiv => d.
+    repeat rewrite_strat (bottomup (choice (terms (assoc bi_and)) <-and_exist_r); eval unfold objLookup).
+    f_equiv.
+    (* repeat rewrite_strat (outermost (choice (term (assoc bi_and))))).
+    setoid_rewrite (assoc bi_and). rewrite -and_exist_r /objLookup; f_equiv. *)
+    Time rewrite_strat (topdown (choice <-except_0_and <-except_0_exist)).
+    (* Time repeat rewrite_strat (outermost (choice <-except_0_and <-except_0_exist)). *)
+
+    (* Time setoid_rewrite <-except_0_and; rewrite -except_0_exist. *)
+    f_equiv.
     by iIntros "!% /=".
   Qed.
 
@@ -113,13 +140,14 @@ Section lift_dty_lemmas.
     Proper ((≡) ==> (≡)) (lift_dty_vl l) := ne_proper _.
 
   Lemma lift_dty_dms_singleton_eq' (TD : dlty Σ) l1 l2 ρ d :
-    lift_dty_dms l1 TD ρ [(l2, d)] ⊣⊢ ⌜ l1 = l2 ⌝ ∧ TD ρ d.
+    lift_dty_dms l1 TD ρ [(l2, d)] ⊣⊢ ◇ (⌜ l1 = l2 ⌝ ∧ TD ρ d).
   Proof.
-    iSplit; simpl; first by case_decide; iDestruct 1 as (d' [= ->]) "$".
+    simpl; f_equiv.
+    iSplit; first by case_decide; iDestruct 1 as (d' [= ->]) "$".
     iDestruct 1 as (->) "H"; rewrite decide_True //; naive_solver.
   Qed.
   Lemma lift_dty_dms_singleton_eq (TD : dlty Σ) l ρ d :
-    lift_dty_dms l TD ρ [(l, d)] ⊣⊢ TD ρ d.
+    lift_dty_dms l TD ρ [(l, d)] ⊣⊢ ◇ TD ρ d.
   Proof.
     by rewrite lift_dty_dms_singleton_eq' pure_True // (left_id True%I bi_and).
   Qed.
@@ -133,15 +161,16 @@ Global Instance: Params (@olty2clty) 2 := {}.
 Program Definition dty2clty `{!dlangG Σ} l (T : dltyO Σ) : cltyO Σ :=
   Clty (lift_dty_dms l T) (lift_dty_vl l T).
 Next Obligation.
-  intros. rewrite lift_dty_dms_singleton_eq' /=.
-  iIntros "[-> ?]"; rewrite decide_True //. naive_solver.
+  intros.
+  rewrite lift_dty_dms_singleton_eq' /=.
+  iIntros ">[-> ?] !>"; rewrite decide_True //. naive_solver.
 Qed.
 Next Obligation.
   rewrite /dms_hasnt /=; intros; case_decide; last done.
-  by iDestruct 1 as (d' ?) "_"; simplify_eq.
+  by iMod 1 as (d' ?) "_"; simplify_eq.
 Qed.
 Next Obligation.
-  intros; iDestruct 1 as (d Hl) "H". iExists d; iSplit; naive_solver.
+  intros; iMod 1 as (d Hl) "H". iExists d; iSplit; naive_solver.
 Qed.
 Global Instance: Params (@dty2clty) 3 := {}.
 
@@ -159,7 +188,7 @@ Section DefsTypes.
     Proper ((≡) ==> (≡)) (dty2clty l) := ne_proper _.
 
   Lemma dty2clty_singleton l (TD : dlty Σ) ρ d :
-    dty2clty l TD ρ [(l, d)] ≡ TD ρ d.
+    dty2clty l TD ρ [(l, d)] ⊣⊢ ◇ TD ρ d.
   Proof. by rewrite lift_dty_dms_singleton_eq. Qed.
 
   Definition olty_dlty2clty_eq l (TD : dlty Σ) ρ v :
