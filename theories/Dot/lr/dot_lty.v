@@ -98,33 +98,11 @@ Section lift_dty_lemmas.
   Proof.
     (* The proof is just a quantifier swap. *)
     move=> args ρ v /=.
-    (* Works, but slow. *)
-    (* Time rewrite_strat (topdown (choice except_0_exist (choice except_0_and except_0_idemp))). *)
-    (* Doesn't rewrite enough. *)
-    (* Time rewrite_strat (repeat (outermost (terms except_0_exist except_0_and except_0_idemp))). *)
-    Time repeat rewrite_strat (outermost (terms except_0_exist except_0_and except_0_idemp)).
-    (* Time repeat foo.
-    Ltac foo := rewrite_strat (outermost (terms except_0_exist except_0_and except_0_idemp)).
-    Time repeat foo.
-    rewrite_strat (outermost (terms except_0_exist)).
-    (* rewrite !except_0_exist. *)
-    (* rewrite_strat (topdown (terms except_0_and except_0_idemp)). *)
-    (* Time rewrite_strat (topdown (terms except_0_exist)).
-    Time rewrite_strat (bottomup (terms except_0_exist)). *)
-    (* rewrite !except_0_exist. *)
-    (* rewrite_strat (topdown (terms except_0_exist except_0_and except_0_idemp except_0_exist)).
-    rewrite_strat (topdown (terms except_0_exist except_0_and except_0_idemp except_0_exist)). *)
-    Time (rewrite_strat (repeat (topdown (repeat (terms except_0_exist except_0_and except_0_idemp))))).
-    rewrite_strat (repeat (topdown (terms except_0_exist except_0_and except_0_idemp except_0_exist))). *)
-    rewrite bi_exist_nested_swap. f_equiv => d.
-    repeat rewrite_strat (bottomup (choice (terms (assoc bi_and)) <-and_exist_r); eval unfold objLookup).
+    rewrite_strat (topdown (terms except_0_exist except_0_and except_0_idemp bi_exist_nested_swap; eval cbv beta)).
+    f_equiv => d.
+    rewrite_strat (bottomup (choice (terms (assoc bi_and)) <-and_exist_r); eval unfold objLookup).
     f_equiv.
-    (* repeat rewrite_strat (outermost (choice (term (assoc bi_and))))).
-    setoid_rewrite (assoc bi_and). rewrite -and_exist_r /objLookup; f_equiv. *)
-    Time rewrite_strat (topdown (choice <-except_0_and <-except_0_exist)).
-    (* Time repeat rewrite_strat (outermost (choice <-except_0_and <-except_0_exist)). *)
-
-    (* Time setoid_rewrite <-except_0_and; rewrite -except_0_exist. *)
+    rewrite_strat (topdown (choice <-except_0_and <-except_0_exist)).
     f_equiv.
     by iIntros "!% /=".
   Qed.
