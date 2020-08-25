@@ -31,6 +31,7 @@ Our first paper, **Scala Step-by-Step**, corresponds to gDOT 1.0.
     abstraction. The gDOT type system, its semantic model, its soundness proofs,
     and all examples in the paper have been mechanized in Coq.
 
+    - [Official ACM Version](https://dl.acm.org/doi/10.1145/3408996)
     - [Author Version](gdot-icfp20-1.02.pdf).
     - [Extended Version](gdot-icfp20-w-appendix-1.03.pdf).
       The appendix lists omitted typing rules.
