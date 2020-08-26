@@ -38,6 +38,7 @@ Our first paper, **Scala Step-by-Step**, corresponds to gDOT 1.0.
     - [Coq Formalization](https://github.com/Blaisorblade/dot-iris)
     - [coqdoc](coqdoc/).
     - Artifact: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3926703.svg)](https://doi.org/10.5281/zenodo.3926703).
+    - ICFP 2020 talk: [slides](beamer-gdot-icfp20.pdf), and [slides with transcript](beamer-gdot-icfp20-w-transcript.pdf).
 
 
 ## Trivia
@@ -48,6 +49,7 @@ Our first paper, **Scala Step-by-Step**, corresponds to gDOT 1.0.
 
 ## News
 
+- 2020-08-26: Added slides for ICFP'20 talk.
 - 2020-08-01: Added extended version.
 - 2020-08-01: Updated author version (with minor changes from camera-ready).
 - 2020-07-05: Added link to artifact on Zenodo
