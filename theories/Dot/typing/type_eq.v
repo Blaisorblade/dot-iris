@@ -5,7 +5,7 @@ Unset Strict Implicit.
 
 Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
 
-Reserved Notation "|- T1 == T2" (at level 70, T1 at level 69, only parsing).
+Reserved Notation "|- T1 == T2" (at level 70, T1 at level 69).
 Inductive type_equiv : Equiv ty :=
 | type_equiv_later_and T1 T2 :
   |- TLater (TAnd T1 T2) == TAnd (TLater T1) (TLater T2)

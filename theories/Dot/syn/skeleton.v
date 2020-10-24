@@ -66,7 +66,7 @@ with same_skel_path (p1 p2: path): Prop :=
   | _ => False
   end.
 
-Fixpoint same_skel_ectx K K' :=
+Definition same_skel_ectx K K' :=
   match K, K' with
   | AppLCtx e2, AppLCtx e2' => same_skel_tm e2 e2'
   | AppRCtx v1, AppRCtx v1' => same_skel_vl v1 v1'
