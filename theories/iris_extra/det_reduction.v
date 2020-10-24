@@ -29,10 +29,9 @@ Notation InhabitedState Λ := (Inhabited (L.state Λ)).
 Class LangDet (Λ : L.language) `{InhabitedState Λ} := {
   prim_step_PureExec (e1 e2 : L.expr Λ) σ1 κ σ2 efs :
     L.prim_step e1 σ1 κ e2 σ2 efs → PureExec True 1 e1 e2;
-  lang_inh_state : ProofIrrel (L.state Λ)
+  lang_inh_state :> ProofIrrel (L.state Λ)
 }.
 Arguments LangDet Λ {_}.
-Existing Instance lang_inh_state.
 
 Class EctxLangDet (Λ : EL.ectxLanguage) `{InhabitedState Λ} := {
   head_step_PureExec (e1 e2 : L.expr Λ) σ1 κ σ2 efs :
@@ -40,7 +39,6 @@ Class EctxLangDet (Λ : EL.ectxLanguage) `{InhabitedState Λ} := {
   ectx_inh_state :> ProofIrrel (L.state Λ)
 }.
 Arguments EctxLangDet Λ {_}.
-Existing Instance ectx_inh_state.
 
 Notation dummyState := (inhabitant (A := L.state _)).
 

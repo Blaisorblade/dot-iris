@@ -27,9 +27,8 @@ Module Type LiftWp (Import VS : VlSortsSig).
   Class dlangG Σ `{InhabitedState dlang_lang} := DLangG {
     dlangG_savior :> savedHoSemTypeG Σ;
     dlangG_langdet :> LangDet dlang_lang;
-    dlangG_persistent (P : iProp Σ) : Persistent P;
+    dlangG_persistent (P : iProp Σ) :> Persistent P | 0;
   }.
-  Existing Instance dlangG_persistent | 0.
 
   (** ** Instance of [irisG] enable using the expression weakest precondition; this instance. *)
   Instance dlangG_irisG `{dlangG Σ} : irisG dlang_lang Σ := {

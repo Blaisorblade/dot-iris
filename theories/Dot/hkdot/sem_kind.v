@@ -33,7 +33,7 @@ Definition hoLty_equiv {Σ n} (T1 T2 : hoLtyO Σ n) : iProp Σ :=
 
 Lemma iff_sym `{PROP : bi} (A B : PROP) :
    (A ↔ B) -∗ (B ↔ A).
-Proof. by rewrite /bi_iff -and_comm. Qed.
+Proof. by rewrite /bi_iff -bi.and_comm. Qed.
 
 (* XXX Unused *)
 Lemma iff_trans `{!BiAffine PROP} (A B C : PROP)
