@@ -7,7 +7,7 @@ From D.Dot Require Import unary_lr.
 From D.Dot Require Import later_sub_sem binding_lr path_repl_lr defs_lr dsub_lr prims_lr.
 From stdpp Require Import relations.
 (* Fix what is in scope. *)
-Import dlang_adequacy D.prelude stdpp.relations stdpp.tactics.
+Import stdpp.relations stdpp.tactics D.prelude dlang_adequacy.
 
 Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
