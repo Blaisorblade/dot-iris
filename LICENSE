@@ -9,6 +9,8 @@ license (https://spdx.org/licenses/BSD-3-Clause.html), included below.
 - Code from Iris is included in
   + `theories/pure_program_logic`
   + `theories/Dot/lr/dlang_inst.v`
+  + `Makefile.coq.local`
+  + `test-normalizer.sed`
 
 Copyright: Iris developers and contributors
 
