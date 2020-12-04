@@ -78,9 +78,6 @@ Section saved_ho_sem_type.
   Context `{!savedHoEnvPredG s Σ}.
   Implicit Types (Ψ : packedHoEnvPred s Σ).
 
-  Definition packedHoEnvPred_eq : packedHoEnvPred s Σ =
-    sigTO (λ n, vec vl n -d> env -d> s -d> laterO (iPropO Σ)) := reflexivity _.
-
   Definition packedHoEnvPred_arity : packedHoEnvPred s Σ -n> natO := λne x, projT1 x.
 
   Definition ho_cpack n : hoEnvPred s Σ n → packedHoEnvPred s Σ :=
@@ -114,20 +111,15 @@ Section saved_ho_sem_type.
   Lemma saved_ho_sem_type_alloc i φ : ⊢ |==> ∃ γ, γ ⤇n[ i ] φ.
   Proof. apply saved_anything_alloc. Qed.
 
-  Lemma packedHoEnvPred_arity_neI Ψ1 Ψ2 : Ψ1 ≡ Ψ2 ⊢@{iPropI Σ}
-    packedHoEnvPred_arity Ψ1 ≡ packedHoEnvPred_arity Ψ2.
-  Proof. exact: f_equivI. Qed.
-
-  Lemma packedHoEnvPred_arity_neI_pure Ψ1 Ψ2 : Ψ1 ≡ Ψ2 ⊢@{iPropI Σ}
-    ⌜ packedHoEnvPred_arity Ψ1 = packedHoEnvPred_arity Ψ2 ⌝.
-  Proof. rewrite packedHoEnvPred_arity_neI; auto. Qed.
+  Lemma leibniz_equivI (PROP : bi) `{LeibnizEquiv A} x y : ⌜ x ≡@{A} y ⌝ ⊢@{PROP} ⌜ x = y ⌝.
+  Proof. iIntros "!%". apply leibniz_equiv. Qed.
 
   Lemma saved_ho_sem_type_agree_arity γ {i j Φ1 Φ2}:
     γ ⤇n[ i ] Φ1 -∗ γ ⤇n[ j ] Φ2 -∗ ⌜ i = j ⌝.
   Proof.
-    iIntros "HΦ1 HΦ2".
+    rewrite -leibniz_equivI -discrete_eq; iIntros "HΦ1 HΦ2".
     iDestruct (saved_anything_agree with "HΦ1 HΦ2") as "Heq".
-    by rewrite packedHoEnvPred_arity_neI_pure /=.
+    iApply (f_equivI packedHoEnvPred_arity with "Heq").
   Qed.
 
   Lemma saved_ho_sem_type_agree_dep_abs γ {i j Φ1 Φ2}:
