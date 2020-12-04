@@ -10,7 +10,7 @@ Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
 Notation LiftCPropToRFunctor P F :=
-  (∀ A `{!Cofe A} B `{!Cofe B}, P (rFunctor_car F A B)).
+  (∀ A `(!Cofe A) B `(!Cofe B), P (rFunctor_car F A B)).
 Notation LiftCPropToGFunctors P Σ :=
   (∀ i, LiftCPropToRFunctor P (gFunctors_lookup Σ i)).
 
@@ -28,7 +28,7 @@ Proof. move=> i. apply fin_0_inv with (p := i). Qed.
 
 (** *** Lift to [gFunctors.app]. *)
 Notation LiftCPropToGFunctors_app_type P :=
-  (∀ Σ Σ' {HΣ : LiftCPropToGFunctors P Σ} {HΣ' : LiftCPropToGFunctors P Σ'},
+  (∀ Σ Σ' (HΣ : LiftCPropToGFunctors P Σ) (HΣ' : LiftCPropToGFunctors P Σ'),
     LiftCPropToGFunctors P (gFunctors.app Σ Σ')).
 
 Lemma LiftCPropToGFunctors_app P : LiftCPropToGFunctors_app_type P.
