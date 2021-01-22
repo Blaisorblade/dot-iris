@@ -117,11 +117,11 @@ Proof. by case. Qed.
 
 (** ** A few derived rules, and some automation to use them in examples. *)
 
-Hint Constructors typed dms_typed dm_typed : core.
+#[global] Hint Constructors typed dms_typed dm_typed : core.
 
 (** Ensure [eauto]'s proof search does not diverge due to transitivity. *)
 #[global] Remove Hints iStp_Trans : core.
-Hint Extern 10 => try_once iStp_Trans : core.
+#[global] Hint Extern 10 => try_once iStp_Trans : core.
 
 Lemma iT_Path' Γ v T
   (Ht : Γ t⊢ₚ pv v : T, 0) : Γ t⊢ₜ tv v : T.

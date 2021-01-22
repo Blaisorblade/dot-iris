@@ -47,7 +47,7 @@ Proof. apply is_unstamped_nclosed_mut. Qed.
 Lemma is_unstamped_nclosed_ty T n b: is_unstamped_ty n b T → nclosed T n.
 Proof. apply is_unstamped_nclosed_mut. Qed.
 
-Hint Resolve is_unstamped_nclosed_path is_unstamped_nclosed_ty : core.
+#[global] Hint Resolve is_unstamped_nclosed_path is_unstamped_nclosed_ty : core.
 
 Lemma is_unstamped_weaken_mut:
   (∀ e__s m n b,
@@ -88,7 +88,7 @@ Proof. constructor => //=; lia. Qed.
 
 Lemma is_unstamped_ren1 i b : is_unstamped_ren i i.+1 b (+1).
 Proof. apply is_unstamped_ren_shift; lia. Qed.
-Hint Resolve is_unstamped_ren1 : core.
+#[global] Hint Resolve is_unstamped_ren1 : core.
 
 Lemma is_unstamped_ren_up n m r b:
   is_unstamped_ren n m b r →
@@ -99,7 +99,7 @@ Proof.
   specialize (Hr i Hi'); inverse Hr.
   constructor; cbn in *; by lia.
 Qed.
-Hint Resolve is_unstamped_ren_up is_unstamped_ren_shift : core.
+#[global] Hint Resolve is_unstamped_ren_up is_unstamped_ren_shift : core.
 
 Lemma is_unstamped_ren_var v r:
   (∃ x : var, v = vvar x) →

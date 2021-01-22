@@ -97,7 +97,7 @@ Lemma alias_paths_pv_eq_1 p vr :
   alias_paths p (pv vr) ↔ path_wp_pure p (eq vr).
 Proof. rewrite /alias_paths. by setoid_rewrite path_wp_pure_pv_eq. Qed.
 
-Hint Extern 1 (path_wp_pure _ _) => by apply path_wp_pure_swap : core.
+#[global] Hint Extern 1 (path_wp_pure _ _) => by apply path_wp_pure_swap : core.
 
 Lemma alias_paths_pv_eq_2 p vr :
   alias_paths (pv vr) p ↔ path_wp_pure p (eq vr).
@@ -256,7 +256,7 @@ Proof.
 Qed.
 
 Lemma wf_ds_nil : wf_ds ([] : dms). Proof. constructor. Qed.
-Hint Resolve wf_ds_nil : core.
+#[global] Hint Resolve wf_ds_nil : core.
 
 Lemma wf_ds_sub ds ρ : wf_ds ds → wf_ds ds.|[ρ].
 Proof.

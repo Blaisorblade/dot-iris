@@ -333,7 +333,7 @@ Proof.
     destruct b; simplify_eq/=; try case_decide; try case_match; try naive_solver.
 Qed.
 
-Hint Constructors head_step : core.
+#[global] Hint Constructors head_step : core.
 Lemma simulation_skeleton_head t1' t1 t2 σ σ' ts:
   same_skel_tm t1 t1' →
   head_step t1 σ [] t2 σ' ts →
@@ -383,18 +383,18 @@ Lemma same_skel_refl_dm d : same_skel_dm d d.
 Proof. apply same_skel_refl. Qed.
 Lemma same_skel_refl_vl v : same_skel_vl v v.
 Proof. apply same_skel_refl. Qed.
-Hint Resolve same_skel_refl_tm same_skel_refl_dm same_skel_refl_vl : core.
+#[global] Hint Resolve same_skel_refl_tm same_skel_refl_dm same_skel_refl_vl : core.
 Lemma same_skel_refl_dms ds  : same_skel_dms ds ds.
 Proof. elim: ds => [//|[l d] ds IHds]; naive_solver. Qed.
-Hint Resolve same_skel_refl_dms : core.
+#[global] Hint Resolve same_skel_refl_dms : core.
 
 Lemma same_skel_ectx_refl K : same_skel_ectx K K.
 Proof. destruct K; naive_solver. Qed.
-Hint Resolve same_skel_ectx_refl : core.
+#[global] Hint Resolve same_skel_ectx_refl : core.
 
 Lemma same_skel_list_ectx_refl Ks : same_skel_list_ectx Ks Ks.
 Proof. rewrite /same_skel_list_ectx; elim: Ks; naive_solver. Qed.
-Hint Resolve same_skel_list_ectx_refl : core.
+#[global] Hint Resolve same_skel_list_ectx_refl : core.
 
 Lemma same_skel_tm_tskips e1 e2 i :
   same_skel_tm e1 e2 → same_skel_tm (iterate tskip i e1) (iterate tskip i e2).
@@ -524,7 +524,7 @@ Qed.
 Lemma prim_step_step t1 σ κ t2 σ' efs :
   prim_step t1 σ κ t2 σ' efs → step ([t1], σ) [] ([t2], σ').
 Proof. exact: prim_step_step. Qed.
-Hint Immediate prim_step_step : core.
+#[global] Hint Immediate prim_step_step : core.
 
 Lemma erased_step_prim (t1 t2: tm) σ σ' :
   erased_step ([t1], σ) ([t2], σ') ↔

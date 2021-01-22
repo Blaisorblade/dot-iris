@@ -117,7 +117,7 @@ Lemma iMu_Sub' {Γ T T' i}:
   Γ u⊢ₜ μ T', i <: T, i.
 Proof. intros; subst. auto. Qed.
 
-Hint Resolve is_unstamped_path_root : core.
+#[global] Hint Resolve is_unstamped_path_root : core.
 
 Lemma iP_Sngl_Sym Γ p q i:
   is_unstamped_path' (length Γ) q →

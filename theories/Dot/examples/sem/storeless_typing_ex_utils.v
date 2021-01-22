@@ -36,8 +36,8 @@ Ltac tcrush_nclosed :=
   by [ | eapply (is_unstamped_nclosed_ty (b := OnlyVars)); stcrush].
 
 (* For performance, keep these hints local to examples *)
-Hint Extern 5 (is_unstamped_ty _ _ _) => try_once is_unstamped_weaken_ty : core.
-Hint Extern 5 (is_unstamped_ren _ _ _ _) => progress cbn : core.
+#[global] Hint Extern 5 (is_unstamped_ty _ _ _) => try_once is_unstamped_weaken_ty : core.
+#[global] Hint Extern 5 (is_unstamped_ren _ _ _ _) => progress cbn : core.
 
 (** [tcrush] is the safest automation around. *)
 Ltac tcrush := repeat first [ eassumption | reflexivity | typconstructor | stcrush ].
@@ -46,7 +46,7 @@ Ltac wtcrush := repeat first [fast_done | typconstructor | stcrush]; try solve [
     by eauto 3 using is_unstamped_ren1_ty |
     try_once is_unstamped_weaken_ty ]; eauto ].
 
-Hint Extern 5 (nclosed _ _) => by solve_fv_congruence : fvc.
+#[global] Hint Extern 5 (nclosed _ _) => by solve_fv_congruence : fvc.
 
 Ltac hideCtx :=
   let hideCtx' Γ := (let x := fresh "Γ" in set x := Γ) in
@@ -135,7 +135,7 @@ Lemma iT_ISub_nocoerce T1 T2 {Γ e} :
   Γ v⊢ₜ T1, 0 <: T2, 0 →
   Γ v⊢ₜ e : T2.
 Proof. intros. exact: (iT_ISub (i:=0)). Qed.
-Hint Resolve iT_ISub_nocoerce : core.
+#[global] Hint Resolve iT_ISub_nocoerce : core.
 
 Lemma path_tp_delay {Γ p T i j} (Hst: is_unstamped_ty' (length Γ) T) : i <= j →
   Γ u⊢ₚ p : T, i → Γ u⊢ₚ p : T, j.
@@ -206,7 +206,7 @@ Proof.
   rewrite !hsubst_comp; f_equal. autosubst.
 Qed.
 
-Hint Resolve iT_ISub_nocoerce : core.
+#[global] Hint Resolve iT_ISub_nocoerce : core.
 
 Ltac var := exact: iT_Var0 || exact: iT_Var' || pvar.
 Ltac varsub := (eapply iP_Var_Sub || eapply iP_Var0_Sub ||

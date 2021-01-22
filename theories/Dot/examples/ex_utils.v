@@ -123,11 +123,11 @@ Ltac stconstructor := match goal with
   end.
 Ltac stcrush := try ((progress repeat stconstructor); eauto).
 
-Hint Extern 10 (_ ≤ _) => lia : core.
+#[global] Hint Extern 10 (_ ≤ _) => lia : core.
 
-Hint Extern 0 (dms_hasnt _ _) => done : core.
+#[global] Hint Extern 0 (dms_hasnt _ _) => done : core.
 
-Hint Resolve Nat.lt_0_succ : core.
+#[global] Hint Resolve Nat.lt_0_succ : core.
 
 Definition lett t u := tapp (vabs u) t.
 

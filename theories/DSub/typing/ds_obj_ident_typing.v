@@ -104,9 +104,9 @@ with   subtype_mut_ind := Induction for subtype Sort Prop.
 
 Combined Scheme typing_mut_ind from typed_mut_ind, subtype_mut_ind.
 
-Hint Constructors typed subtype : core.
+#[global] Hint Constructors typed subtype : core.
 #[global] Remove Hints iSub_Trans : core.
-Hint Extern 10 => try_once iSub_Trans : core.
+#[global] Hint Extern 10 => try_once iSub_Trans : core.
 
 Lemma stamped_to_storeless_typing_mut Γ:
   (∀ e T, Γ u⊢ₜ e : T → Γ ⊢ₜ e : T) ∧
