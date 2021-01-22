@@ -71,7 +71,7 @@ Definition hsomeT self hL hU : hty :=
     {@ type "T" >: hL <: hU; val "isEmpty" : hTSing false }.
 
 (** The full type of the ["mkSome"] constructor. *)
-Local Definition hmkSomeTGen res : hty := ∀: x: tparam "A", (x @; "A" →: res (x @; "A") (x @; "A")).
+#[local] Definition hmkSomeTGen res : hty := ∀: x: tparam "A", (x @; "A" →: res (x @; "A") (x @; "A")).
 Definition hmkSomeT self : hty := hmkSomeTGen (hsomeT self).
 
 Definition hoptionModTInvBody self : hty := {@
@@ -101,9 +101,9 @@ Definition hoptionModV := ν: self, {@
 }.
 
 (** *** Define concrete types for [hoptionModV], used only internally for derivation. *)
-Local Definition hmkSomeConcrT : hty := hmkSomeTGen hsomeConcrT.
+#[local] Definition hmkSomeConcrT : hty := hmkSomeTGen hsomeConcrT.
 
-Local Definition hoptionModTConcrBody : hty := {@
+#[local] Definition hoptionModTConcrBody : hty := {@
   typeEq "Option" hoptionTConcr;
   val "none" : hnoneConcrT;
   val "mkSome" : hmkSomeConcrT

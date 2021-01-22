@@ -105,8 +105,8 @@ Module Type LiftWp (Import VS : VlSortsSig).
   Module dlang_adequacy.
     Definition dlangΣ := #[savedHoSemTypeΣ].
 
-    (* Local, because [dlangG_persistent] is what should be used. *)
-    Local Instance CmraPersistent_dlang: CmraPersistent (iResUR dlangΣ) := CmraPersistent_iResUR _.
+    (* #[local], because [dlangG_persistent] is what should be used. *)
+    #[local] Instance CmraPersistent_dlang: CmraPersistent (iResUR dlangΣ) := CmraPersistent_iResUR _.
     Instance dlangG_dlangΣ
       `{InhabitedState dlang_lang} `{LangDet dlang_lang} : dlangG dlangΣ.
     Proof. split; apply _. Qed.

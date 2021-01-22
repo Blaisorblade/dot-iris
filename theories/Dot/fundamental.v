@@ -30,7 +30,7 @@ Section fundamental.
     ⊢ Γ ⊨ T1 <:[ i ] T2.
 
   (* Reduce away the above definitions. *)
-  Local Ltac simpl_context := red; markUsed Σ; red_hyps_once.
+  #[local] Ltac simpl_context := red; markUsed Σ; red_hyps_once.
 
   Theorem subtype_fundamental_mut Γ :
     (∀ p T i (HT : Γ t⊢ₚ p : T, i), fundamental_path_typed_def HT) ∧

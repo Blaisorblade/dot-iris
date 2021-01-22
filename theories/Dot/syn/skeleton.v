@@ -79,7 +79,7 @@ Definition same_skel_ectx K K' :=
   | _, _ => False
   end.
 
-Local Notation same_skel_dms' :=
+#[local] Notation same_skel_dms' :=
   (fix same_skel_dms (ds1 ds2 : dms) {struct ds1} : Prop :=
   match ds1 with
   | [] => match ds2 with
@@ -182,19 +182,19 @@ Proof.
       destruct z; try done; rewrite fill_app /=; intuition auto.
 Qed.
 
-Local Notation same_skel_tm_up_ren_def t :=
+#[local] Notation same_skel_tm_up_ren_def t :=
   (∀ n m t', same_skel_tm t t' →
             same_skel_tm t.|[upn n (ren (+m))] t'.|[upn n (ren (+m))]).
 
-Local Notation same_skel_vl_up_ren_def v :=
+#[local] Notation same_skel_vl_up_ren_def v :=
   (∀ n m v', same_skel_vl v v' →
             same_skel_vl v.[upn n (ren (+m))] v'.[upn n (ren (+m))]).
 
-Local Notation same_skel_dm_up_ren_def d :=
+#[local] Notation same_skel_dm_up_ren_def d :=
   (∀ n m d', same_skel_dm d d' →
             same_skel_dm d.|[upn n (ren (+m))] d'.|[upn n (ren (+m))]).
 
-Local Notation same_skel_path_up_ren_def p :=
+#[local] Notation same_skel_path_up_ren_def p :=
   (∀ n m p', same_skel_path p p' →
             same_skel_path p.|[upn n (ren (+m))] p'.|[upn n (ren (+m))]).
 
@@ -221,19 +221,19 @@ Qed.
 Lemma same_skel_vl_up_ren v : same_skel_vl_up_ren_def v.
 Proof. apply same_skel_up_ren. Qed.
 
-Local Notation same_skel_tm_subst_def t :=
+#[local] Notation same_skel_tm_subst_def t :=
   (∀ f f' t', same_skel_tm t t' → (∀ x, same_skel_vl (f x) (f' x)) →
             same_skel_tm (t.|[f]) (t'.|[f'])).
 
-Local Notation same_skel_vl_subst_def v :=
+#[local] Notation same_skel_vl_subst_def v :=
   (∀ f f' v', same_skel_vl v v' → (∀ x, same_skel_vl (f x) (f' x)) →
             same_skel_vl (v.[f]) (v'.[f'])).
 
-Local Notation same_skel_dm_subst_def d :=
+#[local] Notation same_skel_dm_subst_def d :=
   (∀ f f' d', same_skel_dm d d' → (∀ x, same_skel_vl (f x) (f' x)) →
              same_skel_dm (d.|[f]) (d'.|[f'])).
 
-Local Notation same_skel_path_subst_def p :=
+#[local] Notation same_skel_path_subst_def p :=
   (∀ f f' p', same_skel_path p p' → (∀ x, same_skel_vl (f x) (f' x)) →
              same_skel_path (p.|[f]) (p'.|[f'])).
 
@@ -363,10 +363,10 @@ Proof.
   split; [econstructor; eauto | exact: same_skel_fill_item].
 Qed.
 
-Local Notation same_skel_tm_refl_def := (∀ e, same_skel_tm e e).
-Local Notation same_skel_vl_refl_def := (∀ v, same_skel_vl v v).
-Local Notation same_skel_dm_refl_def := (∀ d, same_skel_dm d d).
-Local Notation same_skel_path_refl_def := (∀ p, same_skel_path p p).
+#[local] Notation same_skel_tm_refl_def := (∀ e, same_skel_tm e e).
+#[local] Notation same_skel_vl_refl_def := (∀ v, same_skel_vl v v).
+#[local] Notation same_skel_dm_refl_def := (∀ d, same_skel_dm d d).
+#[local] Notation same_skel_path_refl_def := (∀ p, same_skel_path p p).
 
 Lemma same_skel_refl :
   same_skel_tm_refl_def ∧ same_skel_vl_refl_def ∧
@@ -435,7 +435,7 @@ Definition same_skel_dm_trans_def d1 : Prop := ∀ d2 d3,
 Definition same_skel_path_trans_def p1 : Prop := ∀ p2 p3,
   same_skel_path p1 p2 → same_skel_path p2 p3 → same_skel_path p1 p3.
 
-Local Lemma same_skel_trans_dms ds1 ds2 ds3 :
+#[local] Lemma same_skel_trans_dms ds1 ds2 ds3 :
   Forall same_skel_dm_trans_def (map snd ds1) →
   same_skel_dms ds1 ds2 →
   same_skel_dms ds2 ds3 →
@@ -446,8 +446,8 @@ Proof.
 Qed.
 
 Section same_skel_trans.
-  Local Hint Immediate same_skel_trans_dms : core.
-  Local Ltac prepare :=
+  #[local] Hint Immediate same_skel_trans_dms : core.
+  #[local] Ltac prepare :=
     try first [assumption | contradiction | hnf in *]; intuition idtac; subst.
 
   Lemma same_skel_trans :
