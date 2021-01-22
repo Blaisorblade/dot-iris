@@ -17,8 +17,8 @@ Notation "'λI' x .. y , t" := (fun x => .. (fun y => t%I) ..)
 
 (** * Automation for Iris program logic. *)
 (** Instances for [IntoVal], used e.g. by [wp_value]; copied from F_mu. *)
-Hint Extern 5 (IntoVal _ _) => eapply of_to_val; fast_done : typeclass_instances.
-Hint Extern 10 (IntoVal _ _) =>
+#[global] Hint Extern 5 (IntoVal _ _) => eapply of_to_val; fast_done : typeclass_instances.
+#[global] Hint Extern 10 (IntoVal _ _) =>
   rewrite /IntoVal; eapply of_to_val; rewrite /= !to_of_val /=;
   solve [ eauto ] : typeclass_instances.
 

@@ -123,7 +123,7 @@ Proof. by case. Qed.
 
 (** ** A few derived rules, and some automation to use them in examples. *)
 
-Hint Constructors typed dms_typed dm_typed : core.
+#[global] Hint Constructors typed dms_typed dm_typed : core.
 
 Lemma iT_Path' Γ v T
   (Ht : Γ u⊢ₚ pv v : T, 0) : Γ u⊢ₜ tv v : T.

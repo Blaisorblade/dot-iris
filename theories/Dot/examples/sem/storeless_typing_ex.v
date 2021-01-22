@@ -184,7 +184,7 @@ Definition IFT : ty :=
   TAll (type "A" >: ⊥ <: ⊤) IFTBody.
 Lemma IFTUnstamped: is_unstamped_ty' 0 IFT.
 Proof. tcrush. Qed.
-Hint Resolve IFTUnstamped : core.
+#[global] Hint Resolve IFTUnstamped : core.
 
 (* Definition IFT : ty := {@ val "if" : IFTFun }. *)
 

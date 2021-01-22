@@ -236,7 +236,7 @@ Section CtxSub.
     ⊨T TOr (TLater T1) (TLater T2) <: TLater (TOr T1 T2).
   Proof. iIntros (??) "[$|$]". Qed.
 
-  Hint Resolve ty_sub_id ty_sub_TLater ty_sub_TLater_add ty_sub_TLater_unTLater
+  #[local] Hint Resolve ty_sub_id ty_sub_TLater ty_sub_TLater_add ty_sub_TLater_unTLater
     ty_distr_TAnd_TLater ty_distr_TOr_TLater unTLater_ty_sub : ctx_sub.
 
   (* Unused *)
@@ -246,7 +246,7 @@ Section CtxSub.
 
   Lemma fundamental_ty_sub {T1 T2} : ⊢T T1 <: T2 → ⊨T T1 <: T2.
   Proof. induction 1; auto with f_equiv ctx_sub. exact: ty_sub_trans. Qed.
-  Hint Resolve fundamental_ty_sub : ctx_sub.
+  #[local] Hint Resolve fundamental_ty_sub : ctx_sub.
 
   (** Lift the above ordering to environments. *)
 
@@ -264,7 +264,7 @@ Section CtxSub.
     eapply env_lift_sub', ty_sub_TLater_unTLater; by rewrite ?list_fmap_id.
   Qed.
 
-  Hint Resolve ctx_sub_nil ctx_sub_TLater ctx_sub_TLater_unTLater unTLater_ctx_sub : ctx_sub.
+  #[local] Hint Resolve ctx_sub_nil ctx_sub_TLater ctx_sub_TLater_unTLater unTLater_ctx_sub : ctx_sub.
 
   Lemma fundamental_ctx_sub {Γ1 Γ2} : ⊢G Γ1 <:* Γ2 → ⊨G Γ1 <:* Γ2.
   Proof. induction 1; auto with f_equiv ctx_sub. Qed.
@@ -306,4 +306,4 @@ Typeclasses Opaque ty_sub.
 Typeclasses Opaque s_ctx_sub.
 Typeclasses Opaque ctx_sub.
 
-Hint Resolve ietp_weaken_ctx_syn fundamental_ctx_sub : ctx_sub.
+#[global] Hint Resolve ietp_weaken_ctx_syn fundamental_ctx_sub : ctx_sub.

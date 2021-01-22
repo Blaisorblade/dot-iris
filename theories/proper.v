@@ -10,7 +10,7 @@ Set Default Proof Using "Type".
 (** Create an [f_equiv] database, inspired by stdpp's [f_equal] database. We
 don't restrict it to [(_ ≡ _)], because [f_equiv] can apply [Proper]
 instances to any relation. Use with lots of care. *)
-Hint Extern 998 => f_equiv : f_equiv.
+#[global] Hint Extern 998 => f_equiv : f_equiv.
 
 (* Override stdpp's [f_equiv], raising maximum arity from 5 up to 7. *)
 Ltac f_equiv ::=

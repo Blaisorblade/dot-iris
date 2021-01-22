@@ -162,10 +162,10 @@ Scheme unstamped_path_typed_mut_ind := Induction for path_typed Sort Prop
 with   unstamped_subtype_mut_ind := Induction for subtype Sort Prop.
 Combined Scheme old_pure_typing_mut_ind from unstamped_path_typed_mut_ind, unstamped_subtype_mut_ind.
 
-Hint Constructors path_typed subtype : core.
+#[global] Hint Constructors path_typed subtype : core.
 (** Ensure [eauto]'s proof search does not diverge due to transitivity. *)
 #[global] Remove Hints iSub_Trans : core.
-Hint Extern 10 => try_once iSub_Trans : core.
+#[global] Hint Extern 10 => try_once iSub_Trans : core.
 (** Remove unwanted hints: we don't want to use this rule silently. *)
 #[global] Remove Hints iSub_Skolem_P : core.
 

@@ -144,7 +144,7 @@ Hint Rewrite @list_pair_rename_fold @list_pair_hsubst_fold : autosubst.
 (* Now type inference solves HSubst vl ? by infering HSubst vl ty infers unspecified asts to be [path]s. *)
 (* Goal ∀ s x, x.|[s] = x. *)
 (* Abort. *)
-Hint Mode HSubst - + : typeclass_instances.
+#[global] Hint Mode HSubst - + : typeclass_instances.
 (* That Hint stops that. *)
 (* Fail Goal ∀ s x, x.|[s] = x. *)
 (* Goal ∀ s (x : ty), x.|[s] = x. Abort. *)

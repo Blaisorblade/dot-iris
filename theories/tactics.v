@@ -20,8 +20,8 @@ Ltac ev := repeat match goal with
 useful even when [apply] fails. *)
 Ltac unmut_lemma H := destruct H; ev; eauto.
 
-Hint Constructors option : core.
-Hint Constructors list : core.
+#[global] Hint Constructors option : core.
+#[global] Hint Constructors list : core.
 
 (** Support writing external hints for lemmas that must not be applied twice for a goal. *)
 (* The usedLemma and un_usedLemma marker is taken from Crush.v (where they were called done and un_done). *)

@@ -8,10 +8,10 @@ Export old_subtyping_derived_rules.
 
 Lemma is_unstamped_pvar i n b : i < n → is_unstamped_path n b (pv (vvar i)).
 Proof. eauto 7. Qed.
-Hint Resolve is_unstamped_pvar : core.
+#[global] Hint Resolve is_unstamped_pvar : core.
 Lemma is_unstamped_pvars i n l b : i < n → is_unstamped_ty n b (pv (vvar i) @; l).
 Proof. eauto. Qed.
-Hint Resolve is_unstamped_pvars : core.
+#[global] Hint Resolve is_unstamped_pvars : core.
 
 Lemma iT_Mu_E {Γ x T}:
   Γ u⊢ₜ tv (vvar x): TMu T →
@@ -97,7 +97,7 @@ Lemma iT_ISub_nocoerce T1 T2 {Γ e} :
   Γ u⊢ₜ T1, 0 <: T2, 0 →
   Γ u⊢ₜ e : T2.
 Proof. intros. exact: (iT_ISub (i:=0)). Qed.
-Hint Resolve iT_ISub_nocoerce : core.
+#[global] Hint Resolve iT_ISub_nocoerce : core.
 
 Lemma iT_All_Ex' T2 {Γ e1 x2 T1 T3} :
   Γ u⊢ₜ e1: TAll T1 T2 →                        Γ u⊢ₜ tv (ids x2) : T1 →

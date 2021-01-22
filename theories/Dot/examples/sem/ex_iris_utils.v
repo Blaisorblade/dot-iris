@@ -54,5 +54,5 @@ Section loop_sem.
 
 End loop_sem.
 
-Hint Resolve not_elem_of_nil : core.
-Hint Constructors NoDup : core.
+#[global] Hint Resolve not_elem_of_nil : core.
+#[global] Hint Constructors NoDup : core.
