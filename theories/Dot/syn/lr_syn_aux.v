@@ -35,7 +35,7 @@ Lemma path_wp_pure_pself_eq Pv p l : path_wp_pure (pself p l) Pv ↔
   ∃ vp q, path_wp_pure p (eq vp) ∧ vp @ l ↘ dpt q ∧ path_wp_pure q Pv.
 Proof. split; first inversion_clear 1; naive_solver. Qed.
 
-Global Instance pwp_pure_proper : Proper ((=) ==> pointwise_relation _ iff ==> iff) path_wp_pure.
+#[global] Instance pwp_pure_proper : Proper ((=) ==> pointwise_relation _ iff ==> iff) path_wp_pure.
 Proof.
   (* The induction works best in this shape, but this instance is best kept local. *)
   have pwp_proper_2: ∀ p, Proper (pointwise_relation _ iff ==> iff) (path_wp_pure p).

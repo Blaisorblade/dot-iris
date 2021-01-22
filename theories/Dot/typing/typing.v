@@ -104,7 +104,7 @@ with dm_typed Γ : label → dm → ty → Prop :=
 where "Γ t⊢{ l := d  } : T" := (dm_typed Γ l d T).
 
 (* Make [T] first argument: Hide Γ for e.g. typing examples. *)
-Global Arguments iD_Typ_Abs {Γ} T _ _ _ _ _ _ : assert.
+#[global] Arguments iD_Typ_Abs {Γ} T _ _ _ _ _ _ : assert.
 
 Scheme typed_mut_ind := Induction for typed Sort Prop
 with   dms_typed_mut_ind := Induction for dms_typed Sort Prop

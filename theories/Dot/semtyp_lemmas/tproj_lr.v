@@ -96,9 +96,9 @@ Section type_proj_setoid_equality.
   Definition oProjN_oExists `{!dlangG Σ} n A T:
     oProjN n A T ≡ oExists T (oSelN n (pv (ids 0)) A) := reflexivity _.
 
-  Global Instance oProjN_ne n A : NonExpansive (oProjN n A).
+  #[global] Instance oProjN_ne n A : NonExpansive (oProjN n A).
   Proof. solve_proper_ho. Qed.
-  Global Instance oProjN_proper n A : Proper ((≡) ==> (≡)) (oProjN n A) := ne_proper _.
+  #[global] Instance oProjN_proper n A : Proper ((≡) ==> (≡)) (oProjN n A) := ne_proper _.
 
   Lemma oProjN_eq n A T args ρ v :
     oProjN n A T args ρ v ⊣⊢ ∃ w, oClose T ρ w ∧ vl_sel w A args v.

@@ -21,7 +21,7 @@ Section defs.
   (** Legacy: (double)-indexed subtyping. *)
   Definition sstpi `{!dlangG Σ} i j Γ τ1 τ2 : iProp Σ :=
     |==> sstpi' i j Γ τ1 τ2.
-  Global Arguments sstpi /.
+  #[global] Arguments sstpi /.
 
   Definition istpi `{!dlangG Σ} Γ T1 T2 i j := sstpi i j V⟦Γ⟧* V⟦T1⟧ V⟦T2⟧.
 End defs.
@@ -34,16 +34,16 @@ Section Propers.
   Context `{HdotG: !dlangG Σ}.
   Implicit Types (τ L T U : olty Σ 0).
 
-  Global Instance sstpi_proper i j : Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sstpi i j).
+  #[global] Instance sstpi_proper i j : Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sstpi i j).
   Proof.
     solve_proper_ho.
     (* intros ?? HG ?? H1 ?? H2; simplify_eq/=.
     properness; [by rewrite HG|apply H1|apply H2]. *)
   Qed.
-  Global Instance sstpi_flip_proper i j :
+  #[global] Instance sstpi_flip_proper i j :
     Proper ((≡) --> (≡) --> (≡) --> flip (≡)) (sstpi i j).
   Proof. apply: flip_proper_4. Qed.
-  Global Instance: Params (@sstpi) 4 := {}.
+  #[global] Instance: Params (@sstpi) 4 := {}.
 End Propers.
 
 Section judgment_lemmas.

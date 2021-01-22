@@ -55,7 +55,7 @@ Instance list_ids {X} : Ids (list X) := inh_ids.
 
 Section rename_instances.
   Context `{Ids X} `{Rename X}.
-  Global Instance list_rename : Rename (list X) :=
+  #[global] Instance list_rename : Rename (list X) :=
     λ sb, map (rename sb).
   Definition list_rename_fold (sb : var → var) (xs : list X) :
     map (rename sb) xs = rename sb xs := eq_refl.
@@ -66,15 +66,15 @@ Section vls_subst_instances.
   Context `{Ids vl} `{Subst vl} `{SubstLemmas vl}.
   Set Default Proof Using "Type*".
 
-  Global Instance vls_hsubst : HSubst vl (list vl) :=
+  #[global] Instance vls_hsubst : HSubst vl (list vl) :=
     λ sb, map (subst sb).
-  Global Arguments vls_hsubst /.
+  #[global] Arguments vls_hsubst /.
 
   Definition vls_subst_fold (sb : var → vl) (vs : list vl) :
     map (subst sb) vs = hsubst sb vs := eq_refl.
   Hint Rewrite @vls_subst_fold : autosubst.
 
-  Global Instance hsubst_lemmas_vls : HSubstLemmas vl (list vl).
+  #[global] Instance hsubst_lemmas_vls : HSubstLemmas vl (list vl).
   Proof.
     split => // [|theta eta] vs; rewrite /hsubst;
       elim: vs => [//|v vs /= ->]; f_equal; autosubst.
@@ -86,15 +86,15 @@ Section list_hsubst_instances.
   Context `{Ids X} `{Rename X} `{HSubst vl X} {hsl : HSubstLemmas vl X}.
   Set Default Proof Using "Type*".
 
-  Global Instance list_hsubst : HSubst vl (list X) :=
+  #[global] Instance list_hsubst : HSubst vl (list X) :=
     λ sb, map (hsubst sb).
-  Global Arguments list_hsubst /.
+  #[global] Arguments list_hsubst /.
 
   Definition list_hsubst_fold sb (xs : list X) :
     map (hsubst sb) xs = hsubst sb xs := eq_refl.
   Hint Rewrite @list_hsubst_fold : autosubst.
 
-  Global Instance hsubst_lemmas_list : HSubstLemmas vl (list X).
+  #[global] Instance hsubst_lemmas_list : HSubstLemmas vl (list X).
   Proof.
     split => // [|theta eta] vs; rewrite /hsubst;
       elim: vs => [//|v vs /= ->]; f_equal; autosubst.
@@ -104,19 +104,19 @@ Section list_hsubst_instances.
     Implicit Types (x : X) (a : A).
 
     (** [Sort X → Sort (A, X)] *)
-    Global Instance pair_ids : Ids (A * X) := λ n, (inhabitant, ids n).
-    Global Instance pair_rename : Rename (A * X) :=
+    #[global] Instance pair_ids : Ids (A * X) := λ n, (inhabitant, ids n).
+    #[global] Instance pair_rename : Rename (A * X) :=
       λ sb, mapsnd (rename sb).
-    Global Instance pair_hsubst : HSubst vl (A * X) :=
+    #[global] Instance pair_hsubst : HSubst vl (A * X) :=
       λ sb, mapsnd (hsubst sb).
-    Global Arguments pair_hsubst /.
+    #[global] Arguments pair_hsubst /.
 
     Definition pair_rename_fold sb (ax : A * X) :
       mapsnd (rename sb) ax = rename sb ax := eq_refl.
     Definition pair_hsubst_fold sb (ax : A * X) :
       mapsnd (hsubst sb) ax = hsubst sb ax := eq_refl.
 
-    Global Instance hsubst_lemmas_pair : HSubstLemmas vl (A * X).
+    #[global] Instance hsubst_lemmas_pair : HSubstLemmas vl (A * X).
     Proof.
       split; intros; rewrite /hsubst /pair_hsubst /mapsnd /=;
         repeat case_match; simplify_eq; autosubst.
@@ -178,7 +178,7 @@ Module Type SortsSig (Import V : ValuesSig).
   Definition shead ρ := ρ 0.
 
   Definition eq_n_s ρ1 ρ2 n := ∀ x, x < n → ρ1 x = ρ2 x.
-  Global Arguments eq_n_s /.
+  #[global] Arguments eq_n_s /.
 
   Lemma to_subst_compose σ ρ:
     eq_n_s (∞ σ.|[ρ]) (∞ σ >> ρ) (length σ).

@@ -44,28 +44,28 @@ Section judgments.
   (** Expression typing *)
   Definition setp `{!dlangG Σ} e Γ τ : iProp Σ :=
     |==> ∀ ρ, sG⟦Γ⟧* ρ → sE⟦ τ ⟧ ρ (e.|[ρ]).
-  Global Arguments setp : simpl never.
+  #[global] Arguments setp : simpl never.
 
   (** Delayed subtyping. *)
   Definition sstpd `{!dlangG Σ} i Γ τ1 τ2 : iProp Σ :=
     |==> ∀ ρ,
       sG⟦Γ⟧*ρ → ▷^i (oClose τ1 ρ ⊆ oClose τ2 ρ).
-  Global Arguments sstpd : simpl never.
+  #[global] Arguments sstpd : simpl never.
 
   (** Multi-definition typing *)
   Definition sdstp `{!dlangG Σ} ds Γ (T : clty Σ) : iProp Σ :=
     |==> ⌜wf_ds ds⌝ ∧ ∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → sG⟦Γ⟧* ρ → T ρ ds.|[ρ].
-  Global Arguments sdstp : simpl never.
+  #[global] Arguments sdstp : simpl never.
 
   (** Definition typing *)
   Definition sdtp `{!dlangG Σ} l d Γ (φ : clty Σ): iProp Σ := sdstp [(l, d)] Γ φ.
-  Global Arguments sdtp : simpl never.
+  #[global] Arguments sdtp : simpl never.
 
   (** Path typing *)
   Definition sptp `{!dlangG Σ} p i Γ (T : oltyO Σ 0): iProp Σ :=
     |==> ∀ ρ, sG⟦Γ⟧* ρ →
       ▷^i path_wp p.|[ρ] (oClose T ρ).
-  Global Arguments sptp : simpl never.
+  #[global] Arguments sptp : simpl never.
 End judgments.
 
 (** Expression typing *)
@@ -118,7 +118,7 @@ Section dm_to_type.
     by iApply stamp_σ_to_type_intro.
   Qed.
 
-  Global Opaque dm_to_type.
+  #[global] Opaque dm_to_type.
 End dm_to_type.
 
 (** ** Semantic path substitution and replacement. *)
@@ -181,7 +181,7 @@ Section sem_types.
 
   (** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
   Definition oDTMem τ1 τ2 : dltyO Σ := oDTMemRaw _ (dot_intv_type_pred τ1 τ2).
-  Global Instance oDTMem_proper : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
+  #[global] Instance oDTMem_proper : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
   Proof.
     rewrite /oDTMem => ??? ??? ??/=; properness; try reflexivity;
       solve_proper_ho.
@@ -190,7 +190,7 @@ Section sem_types.
   (** [ D⟦ { a : τ } ⟧ ]. *)
   Definition oDVMem τ : dltyO Σ := Dlty (λI ρ d,
     ∃ pmem, ⌜d = dpt pmem⌝ ∧ path_wp pmem (oClose τ ρ)).
-  Global Instance oDVMem_proper : Proper ((≡) ==> (≡)) oDVMem.
+  #[global] Instance oDVMem_proper : Proper ((≡) ==> (≡)) oDVMem.
   Proof.
     rewrite /oDVMem => ??? ??/=; properness; try reflexivity;
       apply path_wp_proper => ?; hof_eq_app.
@@ -208,7 +208,7 @@ Section sem_types.
   [ Ds⟦ { l >: τ1 <: τ2 } ⟧] and [ V⟦ { l >: τ1 <: τ2 } ⟧ ],
   which are here a derived notation; see [cTMemL]. *)
   Definition cTMem l τ1 τ2 : clty Σ := dty2clty l (oDTMem τ1 τ2).
-  Global Instance cTMem_proper l : Proper ((≡) ==> (≡) ==> (≡)) (cTMem l).
+  #[global] Instance cTMem_proper l : Proper ((≡) ==> (≡) ==> (≡)) (cTMem l).
   Proof. solve_proper. Qed.
 
   Lemma cTMem_eq l T1 T2 d ρ :
@@ -217,7 +217,7 @@ Section sem_types.
 
   (** [ Ds⟦ { l : τ } ⟧] and [ V⟦ { l : τ } ⟧ ]. *)
   Definition cVMem l τ : clty Σ := dty2clty l (oDVMem τ).
-  Global Instance cVMem_proper l : Proper ((≡) ==> (≡)) (cVMem l).
+  #[global] Instance cVMem_proper l : Proper ((≡) ==> (≡)) (cVMem l).
   Proof. solve_proper. Qed.
 
   Lemma cVMem_eq l T d ρ :
@@ -240,7 +240,7 @@ Section sem_types.
     (∃ t, ⌜ v = vabs t ⌝ ∧
      ∀ w, ▷ τ1 vnil ρ w → ▷ sE⟦ τ2 ⟧ (w .: ρ) t.|[w/])).
 
-  Global Instance oAll_proper : Proper ((≡) ==> (≡) ==> (≡)) oAll.
+  #[global] Instance oAll_proper : Proper ((≡) ==> (≡) ==> (≡)) oAll.
   Proof. solve_proper_ho. Qed.
 
   (** Semantics of primitive types. *)
@@ -250,7 +250,7 @@ Section sem_types.
   (* Observe the naming pattern for semantic type constructors:
   replace T by o (for most constructors) or by c (for constructors producing
   cltys). *)
-  Global Instance dot_interp : CTyInterp Σ := fix dot_interp T :=
+  #[global] Instance dot_interp : CTyInterp Σ := fix dot_interp T :=
     let _ := dot_interp : CTyInterp Σ in
     match T with
     | TTMem l L U => cTMem l V⟦ L ⟧ V⟦ U ⟧
@@ -275,7 +275,7 @@ Section sem_types.
   Proof. done. Qed.
 
   (** Binding lemmas for [V⟦ T ⟧] and [Ds⟦ T ⟧]. *)
-  Global Instance pinterp_lemmas: CTyInterpLemmas Σ.
+  #[global] Instance pinterp_lemmas: CTyInterpLemmas Σ.
   Proof.
     split; rewrite /pty_interp;
       induction T => args sb1 sb2 w; rewrite /= /pty_interp /dot_intv_type_pred /subtype_lty /=;
@@ -290,7 +290,7 @@ Section sem_types.
   Definition iptp  Γ T p i     := sptp p i  V⟦Γ⟧* V⟦T⟧.
 End sem_types.
 
-Global Instance: Params (@oAll) 2 := {}.
+#[global] Instance: Params (@oAll) 2 := {}.
 
 Notation "d ↗ ψ" := (dm_to_type 0 d ψ) (at level 20).
 Notation "G⟦ Γ ⟧ ρ" := (sG⟦ V⟦ Γ ⟧* ⟧* ρ) (at level 10).
@@ -558,8 +558,8 @@ End path_repl_lemmas.
 Section Propers.
   (** This instance doesn't allow setoid rewriting in the function argument
   to [iterate]. That's appropriate for this project. *)
-  Global Instance: Params (@iterate) 3 := {}.
-  Global Instance iterate_proper {n} {A : ofeT} (f : A → A) :
+  #[global] Instance: Params (@iterate) 3 := {}.
+  #[global] Instance iterate_proper {n} {A : ofeT} (f : A → A) :
     Proper (equiv ==> equiv) f →
     Proper (equiv ==> equiv) (iterate f n).
   Proof.
@@ -570,46 +570,46 @@ Section Propers.
   Context `{HdotG: !dlangG Σ}.
 
   (** Judgments *)
-  Global Instance sstpd_proper i : Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sstpd i).
+  #[global] Instance sstpd_proper i : Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sstpd i).
   Proof.
     solve_proper_ho.
     (* intros ?? HG ?? H1 ?? H2; rewrite /sstpd /subtype_lty;
     properness; [by rewrite HG|apply H1|apply H2]. *)
   Qed.
-  Global Instance sstpd_flip_proper i :
+  #[global] Instance sstpd_flip_proper i :
     Proper ((≡) --> (≡) --> (≡) --> flip (≡)) (sstpd i).
   Proof. apply: flip_proper_4. Qed.
-  Global Instance: Params (@sstpd) 3 := {}.
+  #[global] Instance: Params (@sstpd) 3 := {}.
 
 
-  Global Instance setp_proper e : Proper ((≡) ==> (≡) ==> (≡)) (setp e).
+  #[global] Instance setp_proper e : Proper ((≡) ==> (≡) ==> (≡)) (setp e).
   Proof.
     solve_proper_ho.
     (* intros ?? HG ?? HT ???; simplify_eq/=. by properness; [rewrite HG|apply HT]. *)
   Qed.
-  Global Instance setp_flip_proper e :
+  #[global] Instance setp_flip_proper e :
     Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (setp e).
   Proof. apply: flip_proper_3. Qed.
-  Global Instance: Params (@setp) 3 := {}.
+  #[global] Instance: Params (@setp) 3 := {}.
 
-  Global Instance sdstp_proper ds : Proper ((≡) ==> (≡) ==> (≡)) (sdstp ds).
+  #[global] Instance sdstp_proper ds : Proper ((≡) ==> (≡) ==> (≡)) (sdstp ds).
   Proof.
     rewrite /sdstp => ??? [?? _ _ _] [?? _ _ _] [/= ??]; properness; by f_equiv.
   Qed.
-  Global Instance sdstp_flip_proper ds :
+  #[global] Instance sdstp_flip_proper ds :
     Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sdstp ds).
   Proof. apply: flip_proper_3. Qed.
-  Global Instance: Params (@sdstp) 3 := {}.
+  #[global] Instance: Params (@sdstp) 3 := {}.
 
-  Global Instance sdtp_proper l d : Proper ((≡) ==> (≡) ==> (≡)) (sdtp l d) := _.
-  Global Instance sdtp_flip_proper l d : Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sdtp l d) := _.
-  Global Instance: Params (@sdtp) 4 := {}.
+  #[global] Instance sdtp_proper l d : Proper ((≡) ==> (≡) ==> (≡)) (sdtp l d) := _.
+  #[global] Instance sdtp_flip_proper l d : Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sdtp l d) := _.
+  #[global] Instance: Params (@sdtp) 4 := {}.
 
-  Global Instance sptp_proper p i : Proper ((≡) ==> (≡) ==> (≡)) (sptp p i).
+  #[global] Instance sptp_proper p i : Proper ((≡) ==> (≡) ==> (≡)) (sptp p i).
   Proof. solve_proper_ho. Qed.
-  Global Instance sptp_flip_proper p i : Proper ((≡) --> (≡) --> flip (≡)) (sptp p i).
+  #[global] Instance sptp_flip_proper p i : Proper ((≡) --> (≡) --> flip (≡)) (sptp p i).
   Proof. apply: flip_proper_3. Qed.
-  Global Instance: Params (@sptp) 4 := {}.
+  #[global] Instance: Params (@sptp) 4 := {}.
 End Propers.
 
 (** Backward compatibility. *)

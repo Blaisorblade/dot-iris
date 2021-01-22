@@ -52,7 +52,7 @@ Lemma wp_unfold s E e Φ :
   WP e @ s; E {{ Φ }} ⊣⊢ wp_pre (wp (PROP:=iProp Σ) s E) e Φ.
 Proof. rewrite wp_eq. apply (fixpoint_unfold wp_pre). Qed.
 
-Global Instance wp_ne s E e n :
+#[global] Instance wp_ne s E e n :
   Proper (pointwise_relation _ (dist n) ==> dist n) (wp (PROP:=iProp Σ) s E e).
 Proof.
   elim: (lt_wf n) e => {}n _ IH e Φ Ψ HΦ.
@@ -60,19 +60,19 @@ Proof.
   repeat first [apply IH; first lia | f_contractive | f_equiv].
   eapply dist_le; eauto with lia.
 Qed.
-Global Instance wp_proper s E e :
+#[global] Instance wp_proper s E e :
   Proper (pointwise_relation _ (≡) ==> (≡)) (wp (PROP:=iProp Σ) s E e).
 Proof.
   by intros Φ Φ' ?; apply equiv_dist=>n; apply wp_ne=>v; apply equiv_dist.
 Qed.
-Global Instance wp_contractive s E e n :
+#[global] Instance wp_contractive s E e n :
   TCEq (to_val e) None →
   Proper (pointwise_relation _ (dist_later n) ==> dist n) (wp (PROP:=iProp Σ) s E e).
 Proof.
   intros He Φ Ψ HΦ. rewrite !wp_unfold /wp_pre He.
   by repeat (f_contractive || f_equiv).
 Qed.
-Global Instance wp_plain s E e Φ (HΦ: ∀ v, Plain (Φ v)):
+#[global] Instance wp_plain s E e Φ (HΦ: ∀ v, Plain (Φ v)):
   Plain (wp (PROP:=iProp Σ) s E e Φ).
 Proof.
   rewrite /Plain; iLöb as "IH" forall (e).
@@ -137,7 +137,7 @@ Proof.
   iIntros (HΦ) "H"; iApply (wp_strong_mono with "H"); auto.
   iIntros (v) "?". by iApply HΦ.
 Qed.
-Global Instance wp_mono' e :
+#[global] Instance wp_mono' e :
   Proper (pointwise_relation _ (⊢) ==> (⊢)) (wp (PROP:=iProp Σ) NotStuck ⊤ e).
 Proof. intros Φ Φ' ?. by apply wp_mono. Qed.
 
@@ -191,7 +191,7 @@ Section proofmode_classes.
   Implicit Types P Q : iProp Σ.
   Implicit Types Φ : val Λ → iProp Σ.
 
-  Global Instance frame_wp p e R Φ Ψ :
+  #[global] Instance frame_wp p e R Φ Ψ :
     (∀ v, Frame p R (Φ v) (Ψ v)) →
     Frame p R (WP e {{ Φ }}) (WP e {{ Ψ }}).
   Proof. rewrite /Frame=> HR. rewrite wp_frame_l. apply wp_mono, HR. Qed.

@@ -77,7 +77,7 @@ Definition path_wp_aux `{!dlangG Σ} : seal path_wp_def. Proof. by eexists. Qed.
 Definition path_wp `{!dlangG Σ} := path_wp_aux.(unseal).
 Definition path_wp_unseal `{!dlangG Σ} : path_wp = path_wp_def := path_wp_aux.(seal_eq).
 
-Global Instance: Params (@path_wp) 2 := {}.
+#[global] Instance: Params (@path_wp) 2 := {}.
 
 Section path_wp.
   Context `{!dlangG Σ}.
@@ -123,21 +123,21 @@ Section path_wp.
     iApply path_wp_ind; first solve_proper;
       rewrite /path_wp_pre ?path_wp_unfold /=.
 
-  Global Instance path_wp_ne p n :
+  #[global] Instance path_wp_ne p n :
     Proper (pointwise_relation _ (dist n) ==> dist n) (path_wp p).
   Proof.
     intros Φ1 Φ2 HΦ. rewrite !path_wp_unseal. by apply least_fixpoint_ne, pair_ne, HΦ.
   Qed.
-  Global Instance path_wp_ne' p : NonExpansive (path_wp p).
+  #[global] Instance path_wp_ne' p : NonExpansive (path_wp p).
   Proof. solve_proper. Qed.
 
-  Global Instance path_wp_proper p :
+  #[global] Instance path_wp_proper p :
     Proper (pointwise_relation _ (≡) ==> (≡)) (path_wp p).
   Proof.
     by intros Φ Φ' ?; apply equiv_dist=>n; apply path_wp_ne=>v; apply equiv_dist.
   Qed.
 
-  Global Instance pwp_proper : Proper ((=) ==> pointwise_relation _ (≡) ==> (≡)) path_wp.
+  #[global] Instance pwp_proper : Proper ((=) ==> pointwise_relation _ (≡) ==> (≡)) path_wp.
   Proof.
     (* The induction works best in this shape, but this instance is best kept local. *)
     have pwp_proper_2: ∀ p, Proper (pointwise_relation _ (≡) ==> (≡)) (path_wp p).
@@ -202,14 +202,14 @@ Section path_wp.
     path_wp p φ1 -∗ (∀ v, φ1 v -∗ φ2 v) -∗ path_wp p φ2.
   Proof. apply (path_wp_wand_laterN 0). Qed.
 
-  Global Instance path_wp_pureableI p φ Pv :
+  #[global] Instance path_wp_pureableI p φ Pv :
     (∀ v, IntoPure (φ v) (Pv v)) →
     IntoPure (path_wp p φ) (path_wp_pure p Pv).
   Proof.
     rewrite /IntoPure -path_wp_pureable; iIntros (Hw) "Hp".
     iApply (path_wp_wand with "Hp"). iIntros (v). iApply Hw.
   Qed.
-  Global Instance path_wp_pureableF p φ Pv b :
+  #[global] Instance path_wp_pureableF p φ Pv b :
     (∀ v, FromPure b (φ v) (Pv v)) →
     FromPure false (path_wp p φ) (path_wp_pure p Pv).
   Proof.
@@ -312,7 +312,7 @@ Section path_wp.
     ⊢ WP (path2tm p) {{ w, ⌜ v = w ⌝ }}.
   Proof. rewrite -path_wp_to_wp. by iIntros "!%". Qed.
 
-  Global Instance path_wp_timeless p Pv: Timeless (path_wp p (λI v, ⌜Pv v⌝)).
+  #[global] Instance path_wp_timeless p Pv: Timeless (path_wp p (λI v, ⌜Pv v⌝)).
   Proof. rewrite path_wp_pureable. apply _. Qed.
 
   Lemma path_wp_terminates p φ :

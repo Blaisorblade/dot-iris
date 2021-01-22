@@ -113,12 +113,12 @@ Proof.
     eauto using cmra_validN_le.
 Qed.
 
-Global Instance SwapCmra `{!CmraSwappable M}: SwapProp (uPredI M).
+#[global] Instance SwapCmra `{!CmraSwappable M}: SwapProp (uPredI M).
 Proof.
   split. exact: CmraSwappable_impl_later. exact: CmraSwappable_impl_wand.
 Qed.
 
-Global Instance SwapBUpdCmra `{!CmraSwappable M}: SwapBUpd (uPredI M) _.
+#[global] Instance SwapBUpdCmra `{!CmraSwappable M}: SwapBUpd (uPredI M) _.
 Proof.
   split=>P; iSplit;
     [iApply CmraSwappable_bupd_later | iApply CmraSwappable_later_bupd].
@@ -225,7 +225,7 @@ Proof.
   split=> b /=; setoid_rewrite elem_of_list_singleton; naive_solver.
 Qed.
 
-Global Instance CmraSwappable_agreeR: CmraSwappable (agreeR A).
+#[global] Instance CmraSwappable_agreeR: CmraSwappable (agreeR A).
 Proof.
   split; move => n [x x' Hvx|x' _]; cbn => Hvx'.
   - exists x; rewrite cmra_core_l; split_and!;

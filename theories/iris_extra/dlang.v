@@ -56,7 +56,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
   Section mapsto.
     Context `{Hdlang : dlangG Σ}.
 
-    Global Instance: Contractive (stamp_σ_to_type_n s σ i).
+    #[global] Instance: Contractive (stamp_σ_to_type_n s σ i).
     Proof. rewrite /stamp_σ_to_type_n. solve_contractive_ho. Qed.
 
     Import EqNotations.
@@ -100,7 +100,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
     Proof. rewrite /stamp_σ_to_type_n. iIntros; iExists φ; auto. Qed.
   End mapsto.
 
-  Global Opaque stamp_σ_to_type_n.
+  #[global] Opaque stamp_σ_to_type_n.
 
   Module dlang_adequacy.
     Definition dlangΣ := #[savedHoSemTypeΣ].

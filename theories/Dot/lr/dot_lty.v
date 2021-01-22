@@ -63,15 +63,15 @@ Canonical Structure cltyO Σ := OfeT (clty Σ) clty_ofe_mixin.
 Section clty_ofe_proper.
   Context {Σ}.
 
-  Global Instance clty_olty_ne : NonExpansive (clty_olty (Σ := Σ)).
+  #[global] Instance clty_olty_ne : NonExpansive (clty_olty (Σ := Σ)).
   Proof. by move=> ???[/= _ H]. Qed.
-  Global Instance clty_olty_proper :
+  #[global] Instance clty_olty_proper :
     Proper ((≡) ==> (≡)) (clty_olty (Σ := Σ)) := ne_proper _.
 
-  Global Instance clty_dslty_ne n :
+  #[global] Instance clty_dslty_ne n :
     Proper (dist n ==> (=) ==> dist n) (clty_dslty (Σ := Σ)).
   Proof. by move=> ??[/= H _] ??->. Qed.
-  Global Instance clty_dslty_proper :
+  #[global] Instance clty_dslty_proper :
     Proper ((≡) ==> (=) ==> (≡)) (clty_dslty (Σ := Σ)).
   Proof. by move=> ??[/= H _] ??->. Qed.
 End clty_ofe_proper.
@@ -102,14 +102,14 @@ Section lift_dty_lemmas.
     by iIntros "!% /=".
   Qed.
 
-  Global Instance lift_dty_dms_ne l : NonExpansive (lift_dty_dms l).
+  #[global] Instance lift_dty_dms_ne l : NonExpansive (lift_dty_dms l).
   Proof. rewrite /lift_dty_dms/= => ??? ??/=; properness; solve_proper_ho. Qed.
-  Global Instance lift_dty_dms_proper l :
+  #[global] Instance lift_dty_dms_proper l :
     Proper ((≡) ==> (≡)) (lift_dty_dms l) := ne_proper _.
 
-  Global Instance lift_dty_vl_ne : NonExpansive (lift_dty_vl l).
+  #[global] Instance lift_dty_vl_ne : NonExpansive (lift_dty_vl l).
   Proof. rewrite /lift_dty_vl => ???; simplify_eq; solve_proper_ho. Qed.
-  Global Instance lift_dty_vl_proper l :
+  #[global] Instance lift_dty_vl_proper l :
     Proper ((≡) ==> (≡)) (lift_dty_vl l) := ne_proper _.
 
   Lemma lift_dty_dms_singleton_eq' (TD : dlty Σ) l1 l2 ρ d :
@@ -128,7 +128,7 @@ End lift_dty_lemmas.
 Program Definition olty2clty `{!dlangG Σ} (U : oltyO Σ 0) : cltyO Σ :=
   Clty ⊥ U.
 Solve All Obligations with by iIntros.
-Global Instance: Params (@olty2clty) 2 := {}.
+#[global] Instance: Params (@olty2clty) 2 := {}.
 
 Program Definition dty2clty `{!dlangG Σ} l (T : dltyO Σ) : cltyO Σ :=
   Clty (lift_dty_dms l T) (lift_dty_vl l T).
@@ -143,19 +143,19 @@ Qed.
 Next Obligation.
   intros; iDestruct 1 as (d Hl) "H". iExists d; iSplit; naive_solver.
 Qed.
-Global Instance: Params (@dty2clty) 3 := {}.
+#[global] Instance: Params (@dty2clty) 3 := {}.
 
 Section DefsTypes.
   Context `{HdotG: !dlangG Σ}.
 
-  Global Instance olty2clty_ne : NonExpansive olty2clty.
+  #[global] Instance olty2clty_ne : NonExpansive olty2clty.
   Proof. split; rewrite /=; by repeat f_equiv. Qed.
-  Global Instance olty2clty_proper :
+  #[global] Instance olty2clty_proper :
     Proper ((≡) ==> (≡)) olty2clty := ne_proper _.
 
-  Global Instance dty2clty_ne l : NonExpansive (dty2clty l).
+  #[global] Instance dty2clty_ne l : NonExpansive (dty2clty l).
   Proof. split; rewrite /dty2clty/=; by repeat f_equiv. Qed.
-  Global Instance dty2clty_proper l :
+  #[global] Instance dty2clty_proper l :
     Proper ((≡) ==> (≡)) (dty2clty l) := ne_proper _.
 
   Lemma dty2clty_singleton l (TD : dlty Σ) ρ d :
@@ -168,7 +168,7 @@ Section DefsTypes.
   Program Definition cTop : clty Σ := Clty (Dslty (λI _ _, True)) oTop.
   Solve All Obligations with eauto.
 
-  Global Instance : Bottom (clty Σ) := olty2clty ⊥.
+  #[global] Instance : Bottom (clty Σ) := olty2clty ⊥.
 
   Program Definition cAnd (Tds1 Tds2 : clty Σ): clty Σ :=
     Clty (Dslty (λI ρ ds, Tds1 ρ ds ∧ Tds2 ρ ds)) (oAnd (c2o Tds1) (c2o Tds2)).
@@ -176,9 +176,9 @@ Section DefsTypes.
   Next Obligation. intros. by rewrite /= -!clty_mono. Qed.
   Next Obligation. intros. by rewrite /= -!clty_commute. Qed.
 
-  Global Instance cAnd_ne : NonExpansive2 cAnd.
+  #[global] Instance cAnd_ne : NonExpansive2 cAnd.
   Proof. split; rewrite /=; repeat f_equiv; solve_proper_ho. Qed.
-  Global Instance cAnd_proper:
+  #[global] Instance cAnd_proper:
     Proper ((≡) ==> (≡) ==> (≡)) cAnd := ne_proper_2 _.
 
   Lemma cAnd_olty2clty T1 T2 :
@@ -191,7 +191,7 @@ Section DefsTypes.
   Qed.
 End DefsTypes.
 
-Global Instance: Params (@cAnd) 1 := {}.
+#[global] Instance: Params (@cAnd) 1 := {}.
 
 Implicit Types (T: ty).
 
@@ -199,7 +199,7 @@ Implicit Types (T: ty).
 logical relation. *)
 Class CTyInterp Σ :=
   clty_interp : ty → clty Σ.
-Global Arguments clty_interp {_ _} !_ /.
+#[global] Arguments clty_interp {_ _} !_ /.
 Notation "C⟦ T ⟧" := (clty_interp T).
 
 (** *** Define various notations on top of [clty_interp]. *)
@@ -209,7 +209,7 @@ Notation "Ds⟦ T ⟧" := (clty_dslty C⟦ T ⟧).
 (* We could inline [pty_interp] inside the [V⟦ _ ⟧] notation, but I suspect
 the [V⟦ _ ⟧*] notation needs [pty_interp] to be a first-class function. *)
 Definition pty_interp `{CTyInterp Σ} T : oltyO Σ 0 := clty_olty C⟦ T ⟧.
-Global Arguments pty_interp {_ _} !_ /.
+#[global] Arguments pty_interp {_ _} !_ /.
 
 (** * Value interpretation of types (Fig. 9). *)
 Notation "V⟦ T ⟧" := (pty_interp T).

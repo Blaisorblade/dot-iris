@@ -56,7 +56,7 @@ Notation "Γ s⊨ K1 <∷[ i  ] K2" := (sSkd i Γ K1 K2)
 Section gen_lemmas.
   Context `{Hdlang : dlangG Σ} `{HswapProp: SwapPropI Σ}.
 
-  Global Instance sstpiK_proper n i :
+  #[global] Instance sstpiK_proper n i :
     Proper ((≡) ==> (≡) ==> (≡) ==> (≡) ==> (≡)) (sstpiK (Σ := Σ) (n := n) i).
   Proof.
     rewrite /sstpiK=> Γ1 Γ2 HΓ T1 T2 HT U1 U2 HU K1 K2 HK.
@@ -66,7 +66,7 @@ Section gen_lemmas.
     by apply sf_kind_proper; f_equiv.
   Qed.
 
-  Global Instance sSkd_proper n i :
+  #[global] Instance sSkd_proper n i :
     Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sSkd (Σ := Σ) (n := n) i).
   Proof.
     rewrite /sSkd => Γ1 Γ2 HΓ K1 K2 HK1 K3 K4 HK2.
@@ -629,7 +629,7 @@ Section s_kind_ofe.
   Lemma s_kind_equiv_intro (K1 K2 : sf_kind Σ n) : K1 ≡@{sf_kind _ _} K2 → K1 ≡ K2.
   Proof. apply. Qed.
 End s_kind_ofe.
-Global Arguments s_kindO : clear implicits. *)
+#[global] Arguments s_kindO : clear implicits. *)
 
 Import defs_lr binding_lr examples_lr.
 
@@ -777,7 +777,7 @@ Section derived.
     iApply sStp_Add_Later.
   Qed.
 
-  (* Global Instance : Params (@bi_wand b) 1 := {}. *)
+  (* #[global] Instance : Params (@bi_wand b) 1 := {}. *)
 
   (** Kind subsumption (for kinded subtyping). *)
   Lemma sKEq_Sub Γ {n} (T1 T2 : oltyO Σ n) (K1 K2 : sf_kind Σ n) i :

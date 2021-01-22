@@ -46,7 +46,7 @@ Fixpoint unTLater T : ty := match T with
 end.
 
 Definition unTLater_TLater T: unTLater (TLater T) = T := reflexivity _.
-Global Instance: Cancel (=) unTLater TLater. Proof. exact: unTLater_TLater. Qed.
+#[global] Instance: Cancel (=) unTLater TLater. Proof. exact: unTLater_TLater. Qed.
 
 (** ** The [T1 ≫ ▷ T2] judgment, used in the [Γ1 ≫ ▷ Γ2] paper judgment. *)
 Inductive ty_strip_syn : ty → ty → Prop :=
