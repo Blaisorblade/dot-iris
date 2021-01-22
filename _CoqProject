@@ -23,6 +23,7 @@ theories/iris_extra/lty.v
 theories/iris_extra/persistence.v
 theories/iris_extra/proofmode_extra.v
 theories/iris_extra/saved_interp_dep.v
+theories/iris_extra/saved_interp_n.v
 theories/iris_extra/swap_later_impl.v
 
 theories/prelude.v
