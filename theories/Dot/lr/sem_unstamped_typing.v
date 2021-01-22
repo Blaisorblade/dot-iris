@@ -38,28 +38,28 @@ Section unstamped_judgs.
   Arguments iudtp  : simpl never.
 End unstamped_judgs.
 
-Global Instance: Params (@suetp) 3 := {}.
-Global Instance: Params (@sudstp) 3 := {}.
-Global Instance: Params (@sudtp) 4 := {}.
+#[global] Instance: Params (@suetp) 3 := {}.
+#[global] Instance: Params (@sudstp) 3 := {}.
+#[global] Instance: Params (@sudtp) 4 := {}.
 
 Section unstamped_judgs_proper.
   Context `{!dlangG Σ}.
 
-  Global Instance suetp_proper e : Proper ((≡) ==> (≡) ==> (≡)) (suetp e).
+  #[global] Instance suetp_proper e : Proper ((≡) ==> (≡) ==> (≡)) (suetp e).
   Proof. rewrite /suetp => ??????. by repeat f_equiv. Qed.
-  Global Instance suetp_flip_proper e :
+  #[global] Instance suetp_flip_proper e :
     Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (suetp e).
   Proof. apply: flip_proper_3. Qed.
 
-  Global Instance sudstp_proper ds : Proper ((≡) ==> (≡) ==> (≡)) (sudstp ds).
+  #[global] Instance sudstp_proper ds : Proper ((≡) ==> (≡) ==> (≡)) (sudstp ds).
   Proof. rewrite /sudstp => ??????; by repeat f_equiv. Qed.
-  Global Instance sudstp_flip_proper ds :
+  #[global] Instance sudstp_flip_proper ds :
     Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sudstp ds).
   Proof. apply: flip_proper_3. Qed.
 
-  Global Instance sudtp_proper l d : Proper ((≡) ==> (≡) ==> (≡)) (sudtp l d).
+  #[global] Instance sudtp_proper l d : Proper ((≡) ==> (≡) ==> (≡)) (sudtp l d).
   Proof. rewrite /sudtp => ??????. by repeat f_equiv. Qed.
-  Global Instance sudtp_flip_proper l d :
+  #[global] Instance sudtp_flip_proper l d :
     Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sudtp l d).
   Proof. apply: flip_proper_3. Qed.
 End unstamped_judgs_proper.

@@ -76,81 +76,81 @@ Section CtxSub.
   Implicit Type (T : ty) (Γ : ctx).
 
   (** * Basic lemmas about [s_ctx_sub]. *)
-  Global Instance: RewriteRelation s_ty_sub := {}.
-  Global Instance pre_s_ty_sub: PreOrder s_ty_sub.
+  #[global] Instance: RewriteRelation s_ty_sub := {}.
+  #[global] Instance pre_s_ty_sub: PreOrder s_ty_sub.
   Proof. split; first done. by move => x y z H1 H2 ρ v; rewrite (H1 _ _). Qed.
 
-  Global Instance: RewriteRelation ty_sub := {}.
-  Global Instance: PreOrder ty_sub.
+  #[global] Instance: RewriteRelation ty_sub := {}.
+  #[global] Instance: PreOrder ty_sub.
   Proof. rewrite /ty_sub; split; first done. by move => x y z H1 H2; etrans. Qed.
 
-  Global Instance: RewriteRelation s_ctx_sub := {}.
-  Global Instance: PreOrder s_ctx_sub.
+  #[global] Instance: RewriteRelation s_ctx_sub := {}.
+  #[global] Instance: PreOrder s_ctx_sub.
   Proof. split; first done. by move => x y z H1 H2 ρ; rewrite (H1 _). Qed.
 
-  Global Instance: RewriteRelation ctx_sub := {}.
-  Global Instance: PreOrder ctx_sub.
+  #[global] Instance: RewriteRelation ctx_sub := {}.
+  #[global] Instance: PreOrder ctx_sub.
   Proof. rewrite /ctx_sub; split; first done. by move => x y z H1 H2; etrans. Qed.
 
-  Global Instance: Proper (equiv ==> equiv ==> iff) s_ctx_sub.
+  #[global] Instance: Proper (equiv ==> equiv ==> iff) s_ctx_sub.
   Proof.
     rewrite /s_ctx_sub => Γ1 Γ2 HΓ Δ1 Δ2 HΔ.
     by setoid_rewrite HΔ; setoid_rewrite HΓ.
   Qed.
 
-  Global Instance cons_s_ctx_sub_proper : Proper (s_ty_sub ==> s_ctx_sub ==> s_ctx_sub) cons.
+  #[global] Instance cons_s_ctx_sub_proper : Proper (s_ty_sub ==> s_ctx_sub ==> s_ctx_sub) cons.
   Proof. move => T1 T2 HlT Γ1 Γ2 Hl ρ. cbn. by rewrite (HlT _) (Hl _). Qed.
   (* This is needed when flip ctx_sub arises from other rules. Doh. *)
-  Global Instance cons_s_ctx_sub_flip_proper :
+  #[global] Instance cons_s_ctx_sub_flip_proper :
     Proper (flip s_ty_sub ==> flip s_ctx_sub ==> flip s_ctx_sub) cons.
   Proof. solve_proper. Qed.
 
-  Global Instance cons_ctx_sub_proper : Proper (ty_sub ==> ctx_sub ==> ctx_sub) cons.
+  #[global] Instance cons_ctx_sub_proper : Proper (ty_sub ==> ctx_sub ==> ctx_sub) cons.
   Proof. rewrite /ty_sub /ctx_sub. solve_proper. Qed.
-  Global Instance cons_ctx_sub_flip_proper : Proper (flip ty_sub ==> flip ctx_sub ==> flip ctx_sub) cons.
+  #[global] Instance cons_ctx_sub_flip_proper : Proper (flip ty_sub ==> flip ctx_sub ==> flip ctx_sub) cons.
   Proof. solve_proper. Qed.
 
   (** Typing is contravariant in [Γ].
   Note these instances are very specialized. *)
-  Global Instance setp_proper e : Proper (flip s_ctx_sub ==> (=) ==> (⊢)) (setp e).
+  #[global] Instance setp_proper e : Proper (flip s_ctx_sub ==> (=) ==> (⊢)) (setp e).
   Proof. rewrite /setp => Γ1 Γ2 Hweak T1 T2 ->. by setoid_rewrite (Hweak _). Qed.
-  Global Instance setp_flip_proper e : Proper (s_ctx_sub ==> flip (=) ==> flip (⊢)) (setp e).
+  #[global] Instance setp_flip_proper e : Proper (s_ctx_sub ==> flip (=) ==> flip (⊢)) (setp e).
   Proof. apply: flip_proper_3. Qed.
 
-  Global Instance sstpd_proper i : Proper (flip s_ctx_sub ==> (=) ==> (=) ==> (⊢)) (sstpd i).
+  #[global] Instance sstpd_proper i : Proper (flip s_ctx_sub ==> (=) ==> (=) ==> (⊢)) (sstpd i).
   Proof. rewrite /sstpd => Γ1 Γ2 Hweak T1 T2 -> U1 U2 ->. by setoid_rewrite (Hweak _). Qed.
-  Global Instance sstpi_flip_proper i : Proper (s_ctx_sub ==> flip (=) ==> flip (=) ==> flip (⊢)) (sstpd i).
+  #[global] Instance sstpi_flip_proper i : Proper (s_ctx_sub ==> flip (=) ==> flip (=) ==> flip (⊢)) (sstpd i).
   Proof. apply: flip_proper_4. Qed.
 
-  Global Instance ietp_proper : Proper (flip ctx_sub ==> (=) ==> (=) ==> (⊢)) ietp.
+  #[global] Instance ietp_proper : Proper (flip ctx_sub ==> (=) ==> (=) ==> (⊢)) ietp.
   Proof.
     rewrite /ctx_sub /flip /ietp => Γ1 Γ2 Hweak ??????; subst. by rewrite Hweak.
   Qed.
 
-  Global Instance ietp_flip_proper :
+  #[global] Instance ietp_flip_proper :
     Proper (ctx_sub ==> flip (=) ==> flip (=) ==> flip (⊢)) ietp.
   Proof. apply: flip_proper_4. Qed.
 
-  Global Instance istpd_proper i :
+  #[global] Instance istpd_proper i :
     Proper (flip ctx_sub ==> (=) ==> (=) ==> (⊢)) (istpd i).
   Proof.
     rewrite /ctx_sub /flip /istpd => Γ1 Γ2 Hweak ??????; subst.
     by rewrite Hweak.
   Qed.
-  Global Instance istpi_flip_proper i :
+  #[global] Instance istpi_flip_proper i :
     Proper (ctx_sub ==> flip (=) ==> flip (=) ==> flip (⊢)) (istpd i).
   Proof. apply: flip_proper_4. Qed.
 
 
-  Global Instance oLater_proper : Proper (s_ty_sub ==> s_ty_sub) oLater.
+  #[global] Instance oLater_proper : Proper (s_ty_sub ==> s_ty_sub) oLater.
   Proof. intros x y Hl ??. by rewrite /= (Hl _ _). Qed.
-  Global Instance oLater_flip_proper :
+  #[global] Instance oLater_flip_proper :
     Proper (flip s_ty_sub ==> flip s_ty_sub) oLater.
   Proof. apply: flip_proper_2. Qed.
 
-  Global Instance TLater_proper : Proper (ty_sub ==> ty_sub) TLater.
+  #[global] Instance TLater_proper : Proper (ty_sub ==> ty_sub) TLater.
   Proof. by rewrite /ty_sub => ?? /= ->. Qed.
-  Global Instance TLater_flip_proper :
+  #[global] Instance TLater_flip_proper :
     Proper (flip ty_sub ==> flip ty_sub) TLater.
   Proof. apply: flip_proper_2. Qed.
 
@@ -185,22 +185,22 @@ Section CtxSub.
   Proof.
     intros G1 G2. elim: G2 G1 => [|T2 G2 IHG2] [|T1 G1] HG ρ //; cbn. *)
 
-  Global Instance fmap_TLater_proper :
+  #[global] Instance fmap_TLater_proper :
     Proper (ctx_sub ==> ctx_sub) (fmap TLater).
   Proof. intros xs ys Hl ?. by rewrite !env_TLater_commute (Hl _). Qed.
-  Global Instance fmap_TLater_flip_proper :
+  #[global] Instance fmap_TLater_flip_proper :
     Proper (flip ctx_sub ==> flip ctx_sub) (fmap TLater).
   Proof. apply: flip_proper_2. Qed.
 
-  Global Instance TAnd_proper : Proper (ty_sub ==> ty_sub ==> ty_sub) TAnd.
+  #[global] Instance TAnd_proper : Proper (ty_sub ==> ty_sub ==> ty_sub) TAnd.
   Proof. intros x y Hl x' y' Hl' ??. by rewrite /= (Hl _ _) (Hl' _ _). Qed.
-  Global Instance TAnd_flip_proper :
+  #[global] Instance TAnd_flip_proper :
     Proper (flip ty_sub ==> flip ty_sub ==> flip ty_sub) TAnd.
   Proof. apply: flip_proper_3. Qed.
 
-  Global Instance TOr_proper : Proper (ty_sub ==> ty_sub ==> ty_sub) TOr.
+  #[global] Instance TOr_proper : Proper (ty_sub ==> ty_sub ==> ty_sub) TOr.
   Proof. intros x y Hl x' y' Hl' ??. by rewrite /= (Hl _ _) (Hl' _ _). Qed.
-  Global Instance TOr_flip_proper :
+  #[global] Instance TOr_flip_proper :
     Proper (flip ty_sub ==> flip ty_sub ==> flip ty_sub) TOr.
   Proof. apply: flip_proper_3. Qed.
 

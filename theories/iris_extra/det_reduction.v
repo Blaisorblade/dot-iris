@@ -238,7 +238,7 @@ End LangDet.
 Section EctxLangDet.
 Context {Λ : ectxLanguage} `{EctxLangDet Λ}.
 
-Global Instance EctxLangDet_LangDet : LangDet Λ.
+#[global] Instance EctxLangDet_LangDet : LangDet Λ.
 Proof.
   split; [|by apply _] => e1 e2 σ1 κ σ2 efs.
   inversion 1; simplify_eq/=. by eapply pure_exec_fill, head_step_PureExec.

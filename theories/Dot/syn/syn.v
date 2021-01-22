@@ -584,7 +584,7 @@ Export lang.
 Canonical Structure dlang_ectxi_lang := ectxi_language.EctxiLanguage lang.dot_lang_mixin.
 Canonical Structure dlang_ectx_lang := ectxi_language.EctxLanguageOfEctxi dlang_ectxi_lang.
 Canonical Structure dlang_lang := ectx_language.LanguageOfEctx dlang_ectx_lang.
-Global Arguments dlang_lang : simpl never.
+#[global] Arguments dlang_lang : simpl never.
 
 Lemma hsubst_of_val (v : vl) s : (of_val v).|[s] = of_val (v.[s]).
 Proof. done. Qed.
