@@ -79,7 +79,7 @@ Definition path_wp_unseal `{!dlangG Σ} : path_wp = path_wp_def := path_wp_aux.(
 
 #[global] Instance: Params (@path_wp) 2 := {}.
 
-Section path_wp.
+Section path_wp_lemmas.
   Context `{!dlangG Σ}.
   #[local] Notation path_wp := (path_wp (Σ := Σ)).
 
@@ -321,4 +321,4 @@ Section path_wp.
     rewrite path_wp_pure_exec; iDestruct 1 as (v [n Hp]) "_"; iIntros "!%".
     exact: PureExec_to_terminates.
   Qed.
-End path_wp.
+End path_wp_lemmas.
