@@ -90,7 +90,7 @@ where "⊢T T1 <: T2" := (ty_sub_syn T1 T2).
 Hint Constructors ty_sub_syn : ctx_sub.
 
 (** Control transitivity to ensure [eauto] does not diverge. *)
-Remove Hints ty_trans_sub_syn : ctx_sub.
+#[global] Remove Hints ty_trans_sub_syn : ctx_sub.
 Hint Extern 5 (⊢T _ <: _) => try_once ty_trans_sub_syn : ctx_sub.
 
 Lemma ty_sub_TLater_syn T : ⊢T T <: TLater T. Proof. auto with ctx_sub. Qed.

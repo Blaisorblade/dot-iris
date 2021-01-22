@@ -120,7 +120,7 @@ Proof. by case. Qed.
 Hint Constructors typed dms_typed dm_typed : core.
 
 (** Ensure [eauto]'s proof search does not diverge due to transitivity. *)
-Remove Hints iStp_Trans : core.
+#[global] Remove Hints iStp_Trans : core.
 Hint Extern 10 => try_once iStp_Trans : core.
 
 Lemma iT_Path' Γ v T

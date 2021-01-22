@@ -35,7 +35,7 @@ where "|- T1 == T2" := (type_equiv T1 T2).
 
 Existing Instance type_equiv.
 #[local] Hint Constructors type_equiv : core.
-Remove Hints type_equiv_sym type_equiv_trans : core.
+#[local] Remove Hints type_equiv_sym type_equiv_trans : core.
 
 Instance type_equiv_refl: Reflexive type_equiv.
 Proof. intros T; induction T; auto. Qed.
