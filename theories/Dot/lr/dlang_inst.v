@@ -63,7 +63,7 @@ End gdot_proofmode.
 (** Apply the [wp_bind] rule. *)
 Tactic Notation "wp_bind" open_constr(efoc) := wp_bind_core [efoc].
 
-Local Ltac wp_binds_core Ks :=
+#[local] Ltac wp_binds_core Ks :=
   lazymatch eval hnf in Ks with
   | [] => idtac
   | ?K :: ?Ks => wp_bind K; wp_binds_core Ks

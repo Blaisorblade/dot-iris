@@ -26,7 +26,7 @@ Inductive path_wp_pure : path → (vl → Prop) → Prop :=
 | pwp_pv vp Pv : Pv vp → path_wp_pure (pv vp) Pv
 | pwp_pself p vp q l Pv : path_wp_pure p (eq vp) → vp @ l ↘ dpt q → path_wp_pure q Pv →
   path_wp_pure (pself p l) Pv .
-Local Hint Constructors path_wp_pure : core.
+#[local] Hint Constructors path_wp_pure : core.
 
 Lemma path_wp_pure_pv_eq Pv v : path_wp_pure (pv v) Pv ↔ Pv v.
 Proof. split; by [inversion_clear 1 | auto]. Qed.

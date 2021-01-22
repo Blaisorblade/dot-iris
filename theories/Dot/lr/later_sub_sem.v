@@ -269,7 +269,7 @@ Section CtxSub.
   Lemma fundamental_ctx_sub {Γ1 Γ2} : ⊢G Γ1 <:* Γ2 → ⊨G Γ1 <:* Γ2.
   Proof. induction 1; auto with f_equiv ctx_sub. Qed.
 
-  Local Hint Resolve fundamental_ctx_sub : ctx_sub.
+  #[local] Hint Resolve fundamental_ctx_sub : ctx_sub.
 
   Lemma ctx_sub_cons_id_syn T Γ1 Γ2 :
     ⊢G Γ1 <:* Γ2 → ⊢G T :: Γ1 <:* T :: Γ2.

@@ -17,7 +17,7 @@ Class irisG (Λ : language) (Σ : gFunctors) `{InhabitedState Λ} := IrisG {
   irisG_langdet :> LangDet Λ
 }.
 Arguments IrisG _ _ {_ _}.
-Local Notation σ := dummyState.
+#[local] Notation σ := dummyState.
 
 Definition wp_pre `{irisG Λ Σ}
     (wp : expr Λ -d> (val Λ -d> iPropO Σ) -d> iPropO Σ) :
@@ -27,7 +27,7 @@ Definition wp_pre `{irisG Λ Σ}
   | None => ∃ e2, ⌜prim_step e1 σ [] e2 σ []⌝ ∧ ▷ wp e2 Φ
   end%I.
 
-Local Instance wp_pre_contractive `{irisG Λ Σ} : Contractive wp_pre.
+#[local] Instance wp_pre_contractive `{irisG Λ Σ} : Contractive wp_pre.
 Proof.
   rewrite /wp_pre => n wp wp' Hwp e1 Φ.
   repeat (f_contractive || f_equiv); apply Hwp.

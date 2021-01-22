@@ -104,7 +104,7 @@ Proof.
   case_match; naive_solver.
 Qed.
 
-Local Hint Resolve same_skel_dms_hasnt : core.
+#[local] Hint Resolve same_skel_dms_hasnt : core.
 
 Definition coveringσ `{!dlangG Σ} {i} σ (T : olty Σ i) : Prop :=
   ∀ args ρ, T args ρ ≡ T args (∞ σ.|[ρ]).

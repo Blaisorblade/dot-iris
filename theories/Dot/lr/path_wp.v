@@ -63,7 +63,7 @@ Section path_wp_pre.
     (prodO pathO (vl -d> iPropO Σ) → iPropO Σ) := curry ∘ path_wp_pre ∘ uncurry.
 End path_wp_pre.
 
-Local Instance path_wp_pre_mono' {Σ}: BiMonoPred (@path_wp_pre' Σ).
+#[local] Instance path_wp_pre_mono' {Σ}: BiMonoPred (@path_wp_pre' Σ).
 Proof.
   constructor.
   - iIntros (wp1 wp2) "#H". iIntros ([p Φ]); iRevert (p Φ).
@@ -81,7 +81,7 @@ Definition path_wp_unseal `{!dlangG Σ} : path_wp = path_wp_def := path_wp_aux.(
 
 Section path_wp.
   Context `{!dlangG Σ}.
-  Local Notation path_wp := (path_wp (Σ := Σ)).
+  #[local] Notation path_wp := (path_wp (Σ := Σ)).
 
   Implicit Types (φ Φ : vl -d> iPropO Σ).
 
@@ -145,7 +145,7 @@ Section path_wp.
     solve_proper.
   Qed.
 
-  Local Hint Constructors path_wp_pure : core.
+  #[local] Hint Constructors path_wp_pure : core.
 
   Lemma path_wp_pureable p Pv:
     path_wp p (λ v, ⌜Pv v⌝) ⊣⊢ ⌜path_wp_pure p Pv⌝.
