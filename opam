@@ -6,8 +6,8 @@ homepage: "https://github.com/Blaisorblade/dot-iris"
 bug-reports: "https://github.com/Blaisorblade/dot-iris/issues"
 synopsis: "(Dependencies for) Mechanization of gDOT in Iris"
 depends: [
-  "coq" { (>= "8.11.2" & < "8.12~") }
+  "coq" { (>= "8.12.1" & < "8.13~") }
   "coq-iris" { = "3.3.0" }
-  "coq-autosubst" { = "dev.coq86" }
+  "coq-autosubst" { = "1.7" }
   "coq-iris-string-ident" { = "dev" }
 ]
