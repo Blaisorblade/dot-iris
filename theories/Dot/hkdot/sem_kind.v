@@ -185,7 +185,7 @@ Section sf_kind_subst.
       f_ext => ρ; autosubst.
   Qed.
   #[global] Instance rename_sf_kind n : Rename (sf_kind Σ n) := λ r K, K.|[ren r].
-  #[global] Instance: Sort (sf_kind Σ n) := {}.
+  #[global] Instance sort_sf_kind n : Sort (sf_kind Σ n) := {}.
   #[global] Instance hsubst_sf_kind_ne ρ n:
     NonExpansive (hsubst (outer := sf_kind Σ n) ρ).
   Proof. solve_proper_ho. Qed.
@@ -344,7 +344,7 @@ Section kinds_types.
   #[global] Instance sf_kintv_proper :
     Proper ((≡) ==> (≡) ==> (≡)) (sf_kintv (Σ := Σ)) := ne_proper_2 _.
 
-  #[global] Instance: NonExpansive2 (sf_kpi (Σ := Σ) (n := n)).
+  #[global] Instance sf_kpi_ne n : NonExpansive2 (sf_kpi (Σ := Σ) (n := n)).
   Proof. solve_proper_ho. Qed.
   #[global] Instance sf_kpi_proper {n} :
     Proper ((≡) ==> (≡) ==> (≡)) (sf_kpi (Σ := Σ) (n := n)) := ne_proper_2 _.
@@ -389,7 +389,7 @@ Section s_kind_rel_prop.
   #[global] Instance s_kind_rel_refl n `(!Reflexive R) : Reflexive (s_kind_rel R n).
   Proof. elim; constructor; eauto. Qed.
 
-  #[global] Instance s_kind_rel_sym `(!Symmetric R) : Symmetric (s_kind_rel R n).
+  #[global] Instance s_kind_rel_sym `(!Symmetric R) n : Symmetric (s_kind_rel R n).
   Proof. induction 1; constructor; eauto. Qed.
   #[global] Instance s_kind_rel_trans n `(!Transitive R) : Transitive (s_kind_rel R n).
   Proof. induction 1; inversion 1; simplify_eq; constructor; eauto. Qed.
@@ -426,7 +426,7 @@ Section s_kind_rel_proper.
 
   #[global] Instance s_kintv_proper_s_kind_rel : Proper (R ==> R ==> s_kind_rel R 0) s_kintv.
   Proof. constructor; auto. Qed.
-  #[global] Instance s_kpi_proper_s_kind_rel : Proper (R ==> s_kind_rel R n ==> s_kind_rel R n.+1) (s_kpi (n := n)).
+  #[global] Instance s_kpi_proper_s_kind_rel n : Proper (R ==> s_kind_rel R n ==> s_kind_rel R n.+1) (s_kpi (n := n)).
   Proof. constructor; auto. Qed.
 End s_kind_rel_proper.
 
@@ -435,12 +435,12 @@ Section s_kind_rel_proper.
 
   #[global] Instance s_kintv_ne : NonExpansive2 (s_kintv (Σ := Σ)).
   Proof. apply _. Qed.
-  #[global] Instance s_kpi_ne : NonExpansive2 (s_kpi (Σ := Σ) (n := n)).
+  #[global] Instance s_kpi_ne n : NonExpansive2 (s_kpi (Σ := Σ) (n := n)).
   Proof. apply _. Qed.
 
   #[global] Instance s_kintv_proper : Proper ((≡) ==> (≡) ==> (≡)) (s_kintv (Σ := Σ)).
   Proof. apply _. Qed.
-  #[global] Instance s_kpi_proper : Proper ((≡) ==> (≡) ==> (≡)) (s_kpi (Σ := Σ) (n := n)).
+  #[global] Instance s_kpi_proper n : Proper ((≡) ==> (≡) ==> (≡)) (s_kpi (Σ := Σ) (n := n)).
   Proof. apply _. Qed.
 End s_kind_rel_proper.
 

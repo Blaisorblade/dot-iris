@@ -83,9 +83,9 @@ Section saved_ho_sem_type.
   Definition ho_cpack n : hoEnvPred s Σ n → packedHoEnvPred s Σ :=
     λ Φ, existT n (λ args ρ v, Next (Φ args ρ v)).
 
-  #[global] Instance cpack_contractive: Contractive (ho_cpack n).
+  #[global] Instance cpack_contractive n : Contractive (ho_cpack n).
   Proof.
-    rewrite /ho_cpack /hoEnvPred => ?????.
+    rewrite /ho_cpack /hoEnvPred => ????.
     apply (existT_ne _ eq_refl).
     solve_contractive_ho.
   Qed.

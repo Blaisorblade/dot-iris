@@ -107,8 +107,8 @@ Section lift_dty_lemmas.
   #[global] Instance lift_dty_dms_proper l :
     Proper ((≡) ==> (≡)) (lift_dty_dms l) := ne_proper _.
 
-  #[global] Instance lift_dty_vl_ne : NonExpansive (lift_dty_vl l).
-  Proof. rewrite /lift_dty_vl => ???; simplify_eq; solve_proper_ho. Qed.
+  #[global] Instance lift_dty_vl_ne l : NonExpansive (lift_dty_vl l).
+  Proof. rewrite /lift_dty_vl => ??; simplify_eq; solve_proper_ho. Qed.
   #[global] Instance lift_dty_vl_proper l :
     Proper ((≡) ==> (≡)) (lift_dty_vl l) := ne_proper _.
 

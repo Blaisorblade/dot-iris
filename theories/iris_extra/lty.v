@@ -146,7 +146,7 @@ Notation HoLty φ := (λ args, Lty (λI v, φ args v)).
 Definition envApply {Σ n} : oltyO Σ n → env → hoLtyO Σ n :=
   λ T, flip T.
 Instance: Params (@envApply) 2 := {}.
-Instance envApply_proper n :
+Instance envApply_proper Σ n :
   Proper ((≡) ==> (=) ==> (≡)) (envApply (Σ := Σ) (n := n)).
 Proof. solve_proper_ho. Qed.
 
