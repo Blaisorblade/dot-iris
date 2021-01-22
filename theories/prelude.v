@@ -2,7 +2,7 @@
 (* Base Coq settings (ssreflect and setup): *)
 From Coq.Program Require Export Equality.
 From Coq Require ProofIrrelevance.
-From iris.algebra Require Export base.
+From iris.prelude Require Export prelude.
 From Autosubst Require Export Autosubst.
 From D Require Export tactics.
 From iris.program_logic Require Import language.
