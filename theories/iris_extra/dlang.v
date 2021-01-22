@@ -56,7 +56,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
   Section mapsto.
     Context `{Hdlang : dlangG Σ}.
 
-    #[global] Instance: Contractive (stamp_σ_to_type_n s σ i).
+    #[global] Instance stamp_σ_to_type_n_contractive s σ i : Contractive (stamp_σ_to_type_n s σ i).
     Proof. rewrite /stamp_σ_to_type_n. solve_contractive_ho. Qed.
 
     Import EqNotations.

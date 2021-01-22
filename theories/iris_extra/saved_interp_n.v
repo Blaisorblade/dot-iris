@@ -22,7 +22,7 @@ Section saved_pred3.
     apply saved_pred_own_contractive. case: n Hfg => [//|n Hfg [[]] //].
   Qed.
 
-  #[global] Instance persistent_saved_pred3_own: Persistent (saved_pred3_own γ Φ) := _.
+  #[global] Instance persistent_saved_pred3_own γ Φ : Persistent (saved_pred3_own γ Φ) := _.
 
   Lemma saved_pred3_alloc Φ : ⊢ |==> ∃ γ, saved_pred3_own γ Φ.
   Proof. apply saved_pred_alloc. Qed.
