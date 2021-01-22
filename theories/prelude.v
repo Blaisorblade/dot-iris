@@ -1,6 +1,7 @@
 (** * "Prelude" with utilities available everywhere. *)
 (* Base Coq settings (ssreflect and setup): *)
-From Coq.Program Require Export Program.
+From Coq.Program Require Export Equality.
+From Coq Require ProofIrrelevance.
 From iris.algebra Require Export base.
 From Autosubst Require Export Autosubst.
 From D Require Export tactics.
