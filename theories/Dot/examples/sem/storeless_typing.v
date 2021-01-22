@@ -142,7 +142,7 @@ Combined Scheme storeless_typing_mut_ind from storeless_typed_mut_ind,
 (** ** A few derived rules, and some automation to use them in examples. *)
 
 Hint Constructors typed subtype dms_typed dm_typed path_typed : core.
-Remove Hints iSub_Trans : core.
+#[global] Remove Hints iSub_Trans : core.
 Hint Extern 10 => try_once iSub_Trans : core.
 
 Lemma iT_Path' Γ v T
