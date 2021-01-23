@@ -322,7 +322,8 @@ Next Obligation.
 Qed.
 Next Obligation.
   intros; iIntros "#Heq1 #Heq2 /= #HT %arg HS".
-  rewrite !(vcurry_respects_hoLty_equiv arg).
+  rewrite (vcurry_respects_hoLty_equiv (T1 := T1) arg).
+  rewrite (vcurry_respects_hoLty_equiv (T1 := U1) arg).
   iApply (sf_kind_sub_internal_proper with "Heq1 Heq2 (HT HS)").
 Qed.
 Next Obligation.
