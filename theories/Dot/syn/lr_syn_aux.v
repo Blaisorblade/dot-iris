@@ -26,7 +26,7 @@ Inductive path_wp_pure : path → (vl → Prop) → Prop :=
 | pwp_pv vp Pv : Pv vp → path_wp_pure (pv vp) Pv
 | pwp_pself p vp q l Pv : path_wp_pure p (eq vp) → vp @ l ↘ dpt q → path_wp_pure q Pv →
   path_wp_pure (pself p l) Pv .
-Local Hint Constructors path_wp_pure : core.
+#[local] Hint Constructors path_wp_pure : core.
 
 Lemma path_wp_pure_pv_eq Pv v : path_wp_pure (pv v) Pv ↔ Pv v.
 Proof. split; by [inversion_clear 1 | auto]. Qed.
@@ -35,7 +35,7 @@ Lemma path_wp_pure_pself_eq Pv p l : path_wp_pure (pself p l) Pv ↔
   ∃ vp q, path_wp_pure p (eq vp) ∧ vp @ l ↘ dpt q ∧ path_wp_pure q Pv.
 Proof. split; first inversion_clear 1; naive_solver. Qed.
 
-Global Instance pwp_pure_proper : Proper ((=) ==> pointwise_relation _ iff ==> iff) path_wp_pure.
+#[global] Instance pwp_pure_proper : Proper ((=) ==> pointwise_relation _ iff ==> iff) path_wp_pure.
 Proof.
   (* The induction works best in this shape, but this instance is best kept local. *)
   have pwp_proper_2: ∀ p, Proper (pointwise_relation _ iff ==> iff) (path_wp_pure p).
@@ -97,7 +97,7 @@ Lemma alias_paths_pv_eq_1 p vr :
   alias_paths p (pv vr) ↔ path_wp_pure p (eq vr).
 Proof. rewrite /alias_paths. by setoid_rewrite path_wp_pure_pv_eq. Qed.
 
-Hint Extern 1 (path_wp_pure _ _) => by apply path_wp_pure_swap : core.
+#[global] Hint Extern 1 (path_wp_pure _ _) => by apply path_wp_pure_swap : core.
 
 Lemma alias_paths_pv_eq_2 p vr :
   alias_paths (pv vr) p ↔ path_wp_pure p (eq vr).
@@ -256,7 +256,7 @@ Proof.
 Qed.
 
 Lemma wf_ds_nil : wf_ds ([] : dms). Proof. constructor. Qed.
-Hint Resolve wf_ds_nil : core.
+#[global] Hint Resolve wf_ds_nil : core.
 
 Lemma wf_ds_sub ds ρ : wf_ds ds → wf_ds ds.|[ρ].
 Proof.

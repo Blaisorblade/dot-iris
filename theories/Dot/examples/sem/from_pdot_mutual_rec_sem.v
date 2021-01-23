@@ -243,8 +243,8 @@ Tactic Notation "lrSimpl" := iEval (cbv [pty_interp]).
 Tactic Notation "lrSimpl" "in" constr(iSelP) :=
   iEval (cbv [pty_interp]) in iSelP.
 
-Local Arguments iPPred_car : simpl never.
-Local Arguments pty_interp : simpl never.
+#[local] Arguments iPPred_car : simpl never.
+#[local] Arguments pty_interp : simpl never.
 
 Lemma newTypeRef_semTyped Γ :
   ⊢ newTypeRefΓ Γ u⊨ newTypeRefBody : x1 @; "TypeRef".

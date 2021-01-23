@@ -146,7 +146,7 @@ Instance vl_eq_dec' : EqDecision vl := vl_eq_dec.
 Instance tm_eq_dec' : EqDecision tm := tm_eq_dec.
 Instance ty_eq_dec' : EqDecision ty := ty_eq_dec.
 
-Local Ltac finish_lists l x :=
+#[local] Ltac finish_lists l x :=
   elim: l => [|x xs IHds] //=; by f_equal.
 
 Lemma up_upren_vl (ξ : var → var): up (ren ξ) =@{var → vl} ren (upren ξ).
@@ -266,7 +266,7 @@ Lemma fill_item_val Ki e :
   is_Some (to_val (fill_item Ki e)) → is_Some (to_val e).
 Proof. intros [v ?]. destruct Ki; simplify_option_eq; eauto. Qed.
 
-Local Instance fill_item_inj Ki : Inj (=) (=) (fill_item Ki).
+#[local] Instance fill_item_inj Ki : Inj (=) (=) (fill_item Ki).
 Proof. destruct Ki; intros ???; simplify_eq; auto with f_equal. Qed.
 
 Lemma val_stuck e1 σ1 k e2 σ2 ef :

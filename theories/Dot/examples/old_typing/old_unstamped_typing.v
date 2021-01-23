@@ -108,7 +108,7 @@ with dm_typed Γ : label → dm → ty → Prop :=
 where "Γ u⊢{ l := d  } : T" := (dm_typed Γ l d T).
 
 (* Make [T] first argument: Hide Γ for e.g. typing examples. *)
-Global Arguments iD_Typ_Abs {Γ} T _ _ _ _ _ _ : assert.
+#[global] Arguments iD_Typ_Abs {Γ} T _ _ _ _ _ _ : assert.
 
 Scheme unstamped_typed_mut_ind := Induction for typed Sort Prop
 with   unstamped_dms_typed_mut_ind := Induction for dms_typed Sort Prop
@@ -123,7 +123,7 @@ Proof. by case. Qed.
 
 (** ** A few derived rules, and some automation to use them in examples. *)
 
-Hint Constructors typed dms_typed dm_typed : core.
+#[global] Hint Constructors typed dms_typed dm_typed : core.
 
 Lemma iT_Path' Γ v T
   (Ht : Γ u⊢ₚ pv v : T, 0) : Γ u⊢ₜ tv v : T.

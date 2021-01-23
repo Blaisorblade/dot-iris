@@ -58,8 +58,8 @@ Notation "'val' l = v" := (l, dpt v) (at level 60, l at level 50).
 Notation "'type' l = T" := (l, dtysyn T) (at level 60, l at level 50).
 
 (** Notation for object types. *)
-Global Instance: Top ty := TTop.
-Global Instance: Bottom ty := TBot.
+#[global] Instance: Top ty := TTop.
+#[global] Instance: Bottom ty := TBot.
 
 Open Scope ty_scope.
 Notation "{@ T1 }" := ( TAnd T1 ⊤ ) (format "{@  T1  }"): ty_scope.
@@ -123,11 +123,11 @@ Ltac stconstructor := match goal with
   end.
 Ltac stcrush := try ((progress repeat stconstructor); eauto).
 
-Hint Extern 10 (_ ≤ _) => lia : core.
+#[global] Hint Extern 10 (_ ≤ _) => lia : core.
 
-Hint Extern 0 (dms_hasnt _ _) => done : core.
+#[global] Hint Extern 0 (dms_hasnt _ _) => done : core.
 
-Hint Resolve Nat.lt_0_succ : core.
+#[global] Hint Resolve Nat.lt_0_succ : core.
 
 Definition lett t u := tapp (vabs u) t.
 

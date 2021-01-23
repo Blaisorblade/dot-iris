@@ -13,7 +13,7 @@ Class TyInterp ty Σ :=
 Notation "⟦ T ⟧" := (ty_interp T).
 
 (* Also appears in Autosubst. *)
-Global Arguments ty_interp {_ _ _} !_ /.
+#[global] Arguments ty_interp {_ _ _} !_ /.
 
 Module ty_interp_lemmas.
 Class TyInterpLemmas ty Σ `{sort_ty : Sort ty} `{!TyInterp ty Σ} := {

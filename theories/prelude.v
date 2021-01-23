@@ -1,6 +1,7 @@
 (** * "Prelude" with utilities available everywhere. *)
 (* Base Coq settings (ssreflect and setup): *)
-From Coq.Program Require Export Program.
+From Coq.Program Require Export Equality.
+From Coq Require ProofIrrelevance.
 From iris.algebra Require Export base.
 From Autosubst Require Export Autosubst.
 From D Require Export tactics.
@@ -10,7 +11,7 @@ Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
 (** Workaround https://github.com/coq/coq/issues/4230. Taken from Software Foundations. *)
-Remove Hints Bool.trans_eq_bool : core.
+#[global] Remove Hints Bool.trans_eq_bool : core.
 
 (** https://github.com/math-comp/analysis/blob/bb4938c2dee89e91668f8d6a251e968d2f5a05ae/theories/posnum.v#L51-L52 *)
 (** Enrico (Tassi?)'s trick for tc resolution in [have]. Doesn't conflict with infix [!!]. *)

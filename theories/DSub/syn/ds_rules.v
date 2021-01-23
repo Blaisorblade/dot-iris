@@ -17,28 +17,28 @@ Section lang_rules.
        inversion H; subst; clear H
     end; try (repeat split; congruence).
 
-  Local Hint Extern 0 (head_reducible _ _) => eexists _, _, _, _; simpl : core.
+  #[local] Hint Extern 0 (head_reducible _ _) => eexists _, _, _, _; simpl : core.
 
-  Local Hint Constructors head_step : core.
-  Local Hint Resolve to_of_val : core.
+  #[local] Hint Constructors head_step : core.
+  #[local] Hint Resolve to_of_val : core.
 
-  Local Ltac solve_exec_safe := intros; subst; do 3 eexists; econstructor; eauto.
-  Local Ltac solve_exec_puredet := simpl; intros; by inv_head_step.
-  Local Ltac solve_pure_exec :=
+  #[local] Ltac solve_exec_safe := intros; subst; do 3 eexists; econstructor; eauto.
+  #[local] Ltac solve_exec_puredet := simpl; intros; by inv_head_step.
+  #[local] Ltac solve_pure_exec :=
     unfold IntoVal in *;
     repeat match goal with H : AsVal _ |- _ => destruct H as [??] end; subst;
     intros ?; apply nsteps_once, pure_head_step_pure_step;
       constructor; [solve_exec_safe | solve_exec_puredet].
 
-  Global Instance pure_lam e1 v2 :
+  #[global] Instance pure_lam e1 v2 :
     PureExec True 1 (tapp (tv (vabs e1)) (tv v2)) e1.|[v2 /].
   Proof. solve_pure_exec. Qed.
 
-  Global Instance pure_tskip v:
+  #[global] Instance pure_tskip v:
     PureExec True 1 (tskip (tv v)) (tv v).
   Proof. solve_pure_exec. Qed.
 
-  Global Instance pure_tskip_iter v i:
+  #[global] Instance pure_tskip_iter v i:
     PureExec True i (iterate tskip i (tv v)) (tv v).
   Proof.
     move => _. elim: i => [|i IHi]; rewrite ?iterate_0 ?iterate_S //. by repeat constructor.

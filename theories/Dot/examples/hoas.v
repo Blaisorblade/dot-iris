@@ -34,9 +34,9 @@ Definition hclose {s1} : hterm s1 → s1 := Eval cbv in (.$ 0).
 (* Here in [hclose] and below, the point of [Eval cbv] is to improve the
 results of simplification, by hiding all the abstractions used to define our
 combinators on HOAS terms. *)
-Global Arguments hclose /.
+#[global] Arguments hclose /.
 Definition pureS {s1} : s1 → hterm s1 := λ x _, x.
-Global Arguments pureS /.
+#[global] Arguments pureS /.
 
 (** We can't set up coercions across [hterm A] and [hterm B], hence add
 definitions and identity coercions via [SubClass]. *)
@@ -85,15 +85,15 @@ Definition liftBind (con : s1 → s2) (f : hvl → hterm s1) : hterm s2 := Eval 
 
 Definition liftList : list (label * hdm) → hterm (list (label * dm)) := λ ds i, map (mapsnd (.$ i)) ds.
 
-Global Arguments apS /.
-Global Arguments bindS /.
+#[global] Arguments apS /.
+#[global] Arguments bindS /.
 
-Global Arguments liftA0 /.
-Global Arguments liftA1 /.
-Global Arguments liftA2 /.
-Global Arguments liftA3 /.
-Global Arguments liftBind /.
-Global Arguments liftList /.
+#[global] Arguments liftA0 /.
+#[global] Arguments liftA1 /.
+#[global] Arguments liftA2 /.
+#[global] Arguments liftA3 /.
+#[global] Arguments liftBind /.
+#[global] Arguments liftList /.
 
 End lifting.
 End hterm_lifting.
@@ -120,7 +120,7 @@ Instance ids_hvl : Ids hvl := λ x, (* [x]: input to the substitution. *)
   (* Resulting [vl]. *)
   λ i, ids (x + i).
 
-Global Arguments ids_hvl /.
+#[global] Arguments ids_hvl /.
 
 Module Export syn.
 
@@ -259,8 +259,8 @@ Notation "'type' l = T" := (l, hdtysyn T) (at level 60, l at level 50).
 Notation "'type' l = ( σ ; s )" := (l, hdtysem σ s) (at level 60, l at level 50).
 
 (** Notation for object types. *)
-Global Instance: Top hty := hTTop.
-Global Instance: Bottom hty := hTBot.
+#[global] Instance: Top hty := hTTop.
+#[global] Instance: Bottom hty := hTBot.
 Open Scope hsyn_scope.
 Notation "{@ T1 }" := ( hTAnd T1 ⊤ ) (format "{@  T1  }"): hsyn_scope.
 Notation "{@ T1 ; T2 ; .. ; Tn }" :=

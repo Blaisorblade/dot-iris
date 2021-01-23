@@ -11,9 +11,9 @@ Class CmraPersistent (M : cmraT) :=
   cmra_persistent (x : M) :> CoreId x.
 
 Section CmraPersistentLaws.
-  Local Arguments uPred_holds {_} !_ _ _.
+  #[local] Arguments uPred_holds {_} !_ _ _.
 
-  Global Instance CmraPersistent_Persistent {M : ucmraT} `(!CmraPersistent M)
+  #[global] Instance CmraPersistent_Persistent {M : ucmraT} `(!CmraPersistent M)
     (P : uPred M) : Persistent P.
   Proof.
     split => n x Hx Hpx; uPred.unseal.

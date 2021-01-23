@@ -162,19 +162,19 @@ Scheme unstamped_path_typed_mut_ind := Induction for path_typed Sort Prop
 with   unstamped_subtype_mut_ind := Induction for subtype Sort Prop.
 Combined Scheme old_pure_typing_mut_ind from unstamped_path_typed_mut_ind, unstamped_subtype_mut_ind.
 
-Hint Constructors path_typed subtype : core.
+#[global] Hint Constructors path_typed subtype : core.
 (** Ensure [eauto]'s proof search does not diverge due to transitivity. *)
-Remove Hints iSub_Trans : core.
-Hint Extern 10 => try_once iSub_Trans : core.
+#[global] Remove Hints iSub_Trans : core.
+#[global] Hint Extern 10 => try_once iSub_Trans : core.
 (** Remove unwanted hints: we don't want to use this rule silently. *)
-Remove Hints iSub_Skolem_P : core.
+#[global] Remove Hints iSub_Skolem_P : core.
 
 (** These hints can slow down proof search. *)
 (** Not directed. *)
-Remove Hints old_subtyping.iP_Sngl_Trans : core.
+#[global] Remove Hints old_subtyping.iP_Sngl_Trans : core.
 (** These can cause cycles. *)
-Remove Hints old_subtyping.iP_Mu_E : core.
-Remove Hints old_subtyping.iP_Mu_I : core.
+#[global] Remove Hints old_subtyping.iP_Mu_E : core.
+#[global] Remove Hints old_subtyping.iP_Mu_I : core.
 
 Lemma unstamped_path_root_is_var Γ p T i:
   Γ u⊢ₚ p : T, i →

@@ -79,9 +79,9 @@ Record sf_kind {Σ n} := _SfKind {
 }.
 Add Printing Constructor sf_kind.
 (* Existing Instance sf_kind_sub_ne. Using :> would create an ambiguous coercion to Funclass. *)
-Global Arguments sf_kind : clear implicits.
-Global Arguments sf_kind_sub {_ _} !_.
-Global Arguments _SfKind {_ _} _.
+#[global] Arguments sf_kind : clear implicits.
+#[global] Arguments sf_kind_sub {_ _} !_.
+#[global] Arguments _SfKind {_ _} _.
 Notation SfKind F := (_SfKind F notc_hole _ _ _ _).
 
 Declare Scope sf_kind_scope.
@@ -103,7 +103,7 @@ Section sf_kind_ofe.
   Lemma sf_kind_equiv_intro (K1 K2 : sf_kind Σ n) : kApp K1 ≡ kApp K2 → K1 ≡ K2.
   Proof. apply. Qed.
 End sf_kind_ofe.
-Global Arguments sf_kindO : clear implicits.
+#[global] Arguments sf_kindO : clear implicits.
 
 
 Program Definition kSub {Σ n} (f : env → env) (K : sf_kind Σ n) : sf_kind Σ n :=
@@ -116,7 +116,7 @@ Next Obligation. intros; simpl; exact: sf_kind_sub_trans. Qed.
 Next Obligation. intros; simpl; exact: sf_kind_sub_quasi_refl_1. Qed.
 Next Obligation. intros; simpl; exact: sf_kind_sub_quasi_refl_2. Qed.
 
-Global Program Instance inhabited_sf_kind {Σ n}: Inhabited (sf_kind Σ n) :=
+#[global] Program Instance inhabited_sf_kind {Σ n}: Inhabited (sf_kind Σ n) :=
   populate $ SfKind (λI _ _ _, False).
 Next Obligation. done. Qed.
 Next Obligation. cbn; eauto. Qed.
@@ -124,20 +124,20 @@ Next Obligation. cbn; eauto. Qed.
 Next Obligation. cbn; eauto. Qed.
 Next Obligation. cbn; eauto. Qed.
 
-Global Instance ids_sf_kind {Σ n}: Ids (sf_kind Σ n) := λ _, inhabitant.
+#[global] Instance ids_sf_kind {Σ n}: Ids (sf_kind Σ n) := λ _, inhabitant.
 
-Global Instance hsubst_sf_kind {Σ n}: HSubst vl (sf_kind Σ n) :=
+#[global] Instance hsubst_sf_kind {Σ n}: HSubst vl (sf_kind Σ n) :=
   λ σ K, kSub (λ ρ, (σ >> ρ)) K.
 
 
-Global Instance sf_kind_sub_ne {Σ n m} :
+#[global] Instance sf_kind_sub_ne {Σ n m} :
   Proper (dist m ==> (=) ==> dist m ==> dist m ==> dist m) (@sf_kind_sub Σ n).
 Proof.
   intros K1 K2 HK ρ ? <- T1 T2 HT U1 U2 HU.
   etrans; last exact: HK. by apply sf_kind_sub_ne_2.
   (* have ? := sf_kind_sub_ne_2 K1; rewrite HT HU. apply HK. *)
 Qed.
-Global Instance sf_kind_sub_proper {Σ n} :
+#[global] Instance sf_kind_sub_proper {Σ n} :
   Proper ((≡) ==> (=) ==> (≡) ==> (≡) ==> (≡)) (@sf_kind_sub Σ n).
 Proof.
   intros K1 K2 HK ρ ? <- T1 T2 HT U1 U2 HU. etrans; last exact: HK.
@@ -146,7 +146,7 @@ Proof.
   (* have Hp := !! (ne_proper_2 (K1 ρ)). *)
   (* rewrite HT HU; exact: HK. *)
 Qed.
-Global Instance: Params (@sf_kind_sub) 2 := {}.
+#[global] Instance: Params (@sf_kind_sub) 2 := {}.
 
 Lemma sf_kind_equivI {Σ n} (K1 K2 : sf_kindO Σ n):
   (∀ ρ T1 T2, K1 ρ T1 T2 ≡ K2 ρ T1 T2) ⊣⊢@{iPropI Σ} (K1 ≡ K2).
@@ -179,18 +179,18 @@ Section sf_kind_subst.
   and only finally lift that over sf_kind. *)
   (* XXX Name. *)
 
-  Global Instance hsubst_sf_kind_lemmas {n} : HSubstLemmas vl (sf_kind Σ n).
+  #[global] Instance hsubst_sf_kind_lemmas {n} : HSubstLemmas vl (sf_kind Σ n).
   Proof.
     split; intros; apply sf_kind_eq; rewrite /hsubst_sf_kind/kSub/=; [|done|];
       f_ext => ρ; autosubst.
   Qed.
-  Global Instance rename_sf_kind n : Rename (sf_kind Σ n) := λ r K, K.|[ren r].
-  Global Instance: Sort (sf_kind Σ n) := {}.
-  Global Instance hsubst_sf_kind_ne ρ n:
+  #[global] Instance rename_sf_kind n : Rename (sf_kind Σ n) := λ r K, K.|[ren r].
+  #[global] Instance sort_sf_kind n : Sort (sf_kind Σ n) := {}.
+  #[global] Instance hsubst_sf_kind_ne ρ n:
     NonExpansive (hsubst (outer := sf_kind Σ n) ρ).
   Proof. solve_proper_ho. Qed.
 
-  Global Instance hsubst_sf_kind_proper ρ n:
+  #[global] Instance hsubst_sf_kind_proper ρ n:
     Proper ((≡) ==> (≡)) (hsubst (outer := sf_kind Σ n) ρ) := ne_proper _.
 
   Definition kSubstOne {Σ n} v (K : sf_kind Σ n) : sf_kind Σ n :=
@@ -229,20 +229,20 @@ Section sf_kind_subst.
 End sf_kind_subst.
 
 Notation oTAppV T w := (_oTAppV w T).
-Global Instance: Params (@_oTAppV) 3 := {}.
+#[global] Instance: Params (@_oTAppV) 3 := {}.
 
 Section utils.
   Context `{dlangG Σ}.
 
-  Global Instance _oTAppV_ne n v: NonExpansive (_oTAppV (Σ := Σ) (n := n) v).
+  #[global] Instance _oTAppV_ne n v: NonExpansive (_oTAppV (Σ := Σ) (n := n) v).
   Proof. solve_proper_ho. Qed.
-  Global Instance _oTAppV_proper n v:
+  #[global] Instance _oTAppV_proper n v:
     Proper ((≡) ==> (≡)) (_oTAppV (Σ := Σ) (n := n) v) := ne_proper _.
 
-  Global Instance oLam_ne n : NonExpansive (oLam (Σ := Σ) (n := n)).
+  #[global] Instance oLam_ne n : NonExpansive (oLam (Σ := Σ) (n := n)).
   Proof. solve_proper_ho. Qed.
 
-  Global Instance oLam_proper n :
+  #[global] Instance oLam_proper n :
     Proper ((≡) ==> (≡)) (oLam (Σ := Σ) (n := n)) := ne_proper _.
 
   Lemma oTAppV_subst {n} (T : olty Σ n.+1) v ρ :
@@ -339,14 +339,14 @@ Qed.
 Section kinds_types.
   Context `{dlangG Σ}.
 
-  Global Instance: NonExpansive2 (sf_kintv (Σ := Σ)).
+  #[global] Instance: NonExpansive2 (sf_kintv (Σ := Σ)).
   Proof. rewrite /sf_kintv /sr_kintv. solve_proper_ho. Qed.
-  Global Instance sf_kintv_proper :
+  #[global] Instance sf_kintv_proper :
     Proper ((≡) ==> (≡) ==> (≡)) (sf_kintv (Σ := Σ)) := ne_proper_2 _.
 
-  Global Instance: NonExpansive2 (sf_kpi (Σ := Σ) (n := n)).
+  #[global] Instance sf_kpi_ne n : NonExpansive2 (sf_kpi (Σ := Σ) (n := n)).
   Proof. solve_proper_ho. Qed.
-  Global Instance sf_kpi_proper {n} :
+  #[global] Instance sf_kpi_proper {n} :
     Proper ((≡) ==> (≡) ==> (≡)) (sf_kpi (Σ := Σ) (n := n)) := ne_proper_2 _.
 
   Lemma kShift_sf_kpi_eq {n} S (K : sf_kind Σ n) :
@@ -372,7 +372,7 @@ Module SKindSyn.
 Inductive s_kind {Σ} : nat → Type :=
   | s_kintv : oltyO Σ 0 → oltyO Σ 0 → s_kind 0
   | s_kpi n : oltyO Σ 0 → s_kind n → s_kind n.+1.
-Global Arguments s_kind: clear implicits.
+#[global] Arguments s_kind: clear implicits.
 
 Inductive s_kind_rel {Σ} {R : relation (oltyO Σ 0)} : ∀ {n : nat}, relation (s_kind Σ n) :=
   | s_kintv_rel L1 L2 U1 U2 :
@@ -382,23 +382,23 @@ Inductive s_kind_rel {Σ} {R : relation (oltyO Σ 0)} : ∀ {n : nat}, relation 
     R S1 S2 →
     s_kind_rel K1 K2 →
     s_kind_rel (s_kpi S1 K1) (s_kpi S2 K2).
-Global Arguments s_kind_rel {_} R _ _ _.
+#[global] Arguments s_kind_rel {_} R _ _ _.
 
 Section s_kind_rel_prop.
   Context `{R : relation (oltyO Σ 0)}.
-  Global Instance s_kind_rel_refl n `(!Reflexive R) : Reflexive (s_kind_rel R n).
+  #[global] Instance s_kind_rel_refl n `(!Reflexive R) : Reflexive (s_kind_rel R n).
   Proof. elim; constructor; eauto. Qed.
 
-  Global Instance s_kind_rel_sym `(!Symmetric R) : Symmetric (s_kind_rel R n).
+  #[global] Instance s_kind_rel_sym `(!Symmetric R) n : Symmetric (s_kind_rel R n).
   Proof. induction 1; constructor; eauto. Qed.
-  Global Instance s_kind_rel_trans n `(!Transitive R) : Transitive (s_kind_rel R n).
+  #[global] Instance s_kind_rel_trans n `(!Transitive R) : Transitive (s_kind_rel R n).
   Proof. induction 1; inversion 1; simplify_eq; constructor; eauto. Qed.
-  Global Instance s_kind_rel_equiv n `(!Equivalence R) : Equivalence (s_kind_rel R n).
+  #[global] Instance s_kind_rel_equiv n `(!Equivalence R) : Equivalence (s_kind_rel R n).
   Proof. split; apply _. Qed.
 
-  Global Instance s_kintv_inj : Inj2 R R (s_kind_rel R 0) s_kintv.
+  #[global] Instance s_kintv_inj : Inj2 R R (s_kind_rel R 0) s_kintv.
   Proof. inversion 1; simplify_eq; auto. Qed.
-  Global Instance s_kpi_inj n: Inj2 R (s_kind_rel R n) (s_kind_rel R n.+1) (s_kpi (n := n)).
+  #[global] Instance s_kpi_inj n: Inj2 R (s_kind_rel R n) (s_kind_rel R n.+1) (s_kpi (n := n)).
   Proof. inversion 1; simplify_eq; auto. Qed.
 End s_kind_rel_prop.
 
@@ -424,23 +424,23 @@ Canonical Structure s_kindO Σ n := OfeT (s_kind Σ n) s_kind_ofe_mixin.
 Section s_kind_rel_proper.
   Context `{R : relation (oltyO Σ 0)}.
 
-  Global Instance s_kintv_proper_s_kind_rel : Proper (R ==> R ==> s_kind_rel R 0) s_kintv.
+  #[global] Instance s_kintv_proper_s_kind_rel : Proper (R ==> R ==> s_kind_rel R 0) s_kintv.
   Proof. constructor; auto. Qed.
-  Global Instance s_kpi_proper_s_kind_rel : Proper (R ==> s_kind_rel R n ==> s_kind_rel R n.+1) (s_kpi (n := n)).
+  #[global] Instance s_kpi_proper_s_kind_rel n : Proper (R ==> s_kind_rel R n ==> s_kind_rel R n.+1) (s_kpi (n := n)).
   Proof. constructor; auto. Qed.
 End s_kind_rel_proper.
 
 Section s_kind_rel_proper.
   Context {Σ}.
 
-  Global Instance s_kintv_ne : NonExpansive2 (s_kintv (Σ := Σ)).
+  #[global] Instance s_kintv_ne : NonExpansive2 (s_kintv (Σ := Σ)).
   Proof. apply _. Qed.
-  Global Instance s_kpi_ne : NonExpansive2 (s_kpi (Σ := Σ) (n := n)).
+  #[global] Instance s_kpi_ne n : NonExpansive2 (s_kpi (Σ := Σ) (n := n)).
   Proof. apply _. Qed.
 
-  Global Instance s_kintv_proper : Proper ((≡) ==> (≡) ==> (≡)) (s_kintv (Σ := Σ)).
+  #[global] Instance s_kintv_proper : Proper ((≡) ==> (≡) ==> (≡)) (s_kintv (Σ := Σ)).
   Proof. apply _. Qed.
-  Global Instance s_kpi_proper : Proper ((≡) ==> (≡) ==> (≡)) (s_kpi (Σ := Σ) (n := n)).
+  #[global] Instance s_kpi_proper n : Proper ((≡) ==> (≡) ==> (≡)) (s_kpi (Σ := Σ) (n := n)).
   Proof. apply _. Qed.
 End s_kind_rel_proper.
 
@@ -459,7 +459,7 @@ Fixpoint s_kind_hsubst {Σ n} (ρ : env) (K : s_kindO Σ n) : s_kindO Σ n :=
 Instance hsubst_s_kind {Σ n} : HSubst vl (s_kind Σ n) := s_kind_hsubst.
 Instance: Params (@hsubst_s_kind) 2 := {}.
 
-Global Instance s_kind_hsubst_lemmas {Σ n} : HSubstLemmas vl (s_kind Σ n).
+#[global] Instance s_kind_hsubst_lemmas {Σ n} : HSubstLemmas vl (s_kind Σ n).
 Proof.
   split => //.
   - elim=> [S1 S2|{}n S K IHK] /=; by rewrite /= ?up_id ?IHK !hsubst_id.
@@ -473,7 +473,7 @@ Fixpoint s_kind_to_sf_kind `{dlangG Σ} {n} (K : s_kind Σ n) : sf_kind Σ n :=
   | s_kintv L U => sf_kintv L U
   | s_kpi S K => sf_kpi S (s_kind_to_sf_kind K)
   end.
-Global Instance: Params (@s_kind_to_sf_kind) 4 := {}.
+#[global] Instance: Params (@s_kind_to_sf_kind) 4 := {}.
 
 Notation s_to_sf := s_kind_to_sf_kind.
 (* Coercion s_kind_to_sf_kind : s_kind >-> sf_kind. *)
@@ -481,10 +481,10 @@ Notation s_to_sf := s_kind_to_sf_kind.
 Section s_kind_to_sf_kind.
   Context `{dlangG Σ}.
 
-  Global Instance s_kind_to_sf_kind_ne {n} :
+  #[global] Instance s_kind_to_sf_kind_ne {n} :
     NonExpansive (s_kind_to_sf_kind (n := n)).
   Proof. by induction 1; cbn; f_equiv. Qed.
-  Global Instance s_kind_to_sf_kind_proper {n} :
+  #[global] Instance s_kind_to_sf_kind_proper {n} :
     Proper ((≡) ==> (≡)) (s_kind_to_sf_kind (n := n)) := ne_proper _.
 
   Lemma s_kind_equiv_intro {n} (K1 K2 : s_kind Σ n) : K1 ≡ K2 → s_to_sf K1 ≡@{sf_kind _ _} s_to_sf K2.
@@ -508,13 +508,13 @@ Fixpoint ho_intv {Σ n} (K : s_kindO Σ n) : oltyO Σ n → oltyO Σ n → s_kin
       (oTAppV (oShift T1) (ids 0)) (oTAppV (oShift T2) (ids 0)))
   end.
 Notation ho_sing K T := (ho_intv K T T).
-Global Instance: Params (@ho_intv) 2 := {}.
+#[global] Instance: Params (@ho_intv) 2 := {}.
 
 Section ho_intv.
   Context {Σ}.
   (* Context `{dlangG Σ}. *)
 
-  Global Instance ho_intv_ne {n m}:
+  #[global] Instance ho_intv_ne {n m}:
     Proper (dist m ==> dist m ==> dist m ==> dist m) (ho_intv (n := n) (Σ := Σ)).
   Proof.
     move=> K1 K2 HK L1 L2 HL U1 U2 HU.
@@ -522,7 +522,7 @@ Section ho_intv.
     by apply: IHHK; repeat f_equiv.
   Qed.
 
-  Global Instance ho_intv_proper {n}:
+  #[global] Instance ho_intv_proper {n}:
     Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (ho_intv (n := n) (Σ := Σ)).
   Proof.
     move=> K1 K2 /equiv_dist HK L1 L2 /equiv_dist HL U1 U2 /equiv_dist HU.
@@ -613,13 +613,13 @@ Definition oTApp `{!dlangG Σ} {n} (T : oltyO Σ n.+1) (p : path) : oltyO Σ n :
 Section proper_eq.
   Context `{!dlangG Σ}.
 
-  Global Instance oDTMemK_ne n : NonExpansive (oDTMemK (Σ := Σ) (n := n)).
+  #[global] Instance oDTMemK_ne n : NonExpansive (oDTMemK (Σ := Σ) (n := n)).
   Proof. solve_proper_ho. Qed.
-  Global Instance oDTMemK_proper n :
+  #[global] Instance oDTMemK_proper n :
     Proper ((≡) ==> (≡)) (oDTMemK (Σ := Σ) (n := n)) := ne_proper _.
-  Global Instance cTMemK_ne n l : NonExpansive (cTMemK (Σ := Σ) (n := n) l).
+  #[global] Instance cTMemK_ne n l : NonExpansive (cTMemK (Σ := Σ) (n := n) l).
   Proof. solve_proper_ho. Qed.
-  Global Instance cTMemK_proper n l :
+  #[global] Instance cTMemK_proper n l :
     Proper ((≡) ==> (≡)) (cTMemK (Σ := Σ) (n := n) l) := ne_proper _.
 
   Lemma cTMemK_eq {n} l (K : sf_kind Σ n) d ρ :

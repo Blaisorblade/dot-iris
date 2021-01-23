@@ -25,11 +25,11 @@ Qed.
 Lemma upn_comp n m f : upn n (upn m f) = upn (n + m) f.
 Proof. apply iterate_comp. Qed.
 
-Global Instance sort_tm : Sort tm := {}.
-Global Instance sort_vls : Sort vls := {}.
-Global Instance sort_list `{Sort X} : Sort (list X) := {}.
-Global Instance sort_pair_snd `{Sort X} `{Inhabited A} : Sort (A * X) := {}.
-Global Instance sort_list_pair_snd `{Sort X} `{Inhabited A} : Sort (list (A * X)) := {}.
+#[global] Instance sort_tm : Sort tm := {}.
+#[global] Instance sort_vls : Sort vls := {}.
+#[global] Instance sort_list `{Sort X} : Sort (list X) := {}.
+#[global] Instance sort_pair_snd `{Sort X} `{Inhabited A} : Sort (A * X) := {}.
+#[global] Instance sort_list_pair_snd `{Sort X} `{Inhabited A} : Sort (list (A * X)) := {}.
 
 Implicit Types (v w : vl) (vs σ : vls) (i j k n : nat)
   (r : nat → nat) (ρ : var → vl).
@@ -61,7 +61,7 @@ Proof.
   rewrite /up. move => Heq [|x] Hl //=. f_equiv. apply Heq. lia.
 Qed.
 
-Global Ltac solve_fv_congruence :=
+#[global] Ltac solve_fv_congruence :=
   rewrite /nclosed /nclosed_vl => * /=; repeat (f_equiv; try solve [(idtac + asimpl); auto using eq_up]).
 
 (** Generic direct lemmas. *)
@@ -244,7 +244,7 @@ Proof. intros Hcl; split; solve_inv_fv_congruence_h Hcl. Qed.
 
 
 Definition nclosed_xs xs n := (Forall (λ x, nclosed x n) xs).
-Global Arguments nclosed_xs /.
+#[global] Arguments nclosed_xs /.
 
 Lemma Forall_to_closed_xs n xs: nclosed_xs xs n → nclosed xs n.
 Proof.
@@ -268,7 +268,7 @@ Lemma fv_pair_inv a x n : nclosed (a, x) n → nclosed x n.
 Proof. solve_inv_fv_congruence. Qed.
 
 Definition nclosed_axs axs n := (Forall (λ '(a, x), nclosed x n) axs).
-Global Arguments nclosed_axs /.
+#[global] Arguments nclosed_axs /.
 
 Lemma nclosed_axs_to_nclosed_xs n axs: nclosed_axs axs n ↔ nclosed_xs axs n.
 Proof. split => ?; decompose_Forall; case_match; [exact: fv_pair | exact: fv_pair_inv]. Qed.

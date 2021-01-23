@@ -23,10 +23,10 @@ Implicit Types (Σ : gFunctors).
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
-Global Instance bottom_fun {A} `{Bottom B}: Bottom (A → B) := (λ _, ⊥).
-Global Instance top_fun {A} `{Top B}: Top (A → B) := (λ _, ⊤).
-Global Instance bottom_ofe_fun {A} {B : ofeT} `{Bottom B}: Bottom (A -d> B) := (λ _, ⊥).
-Global Instance top_ofe_fun {A} {B : ofeT} `{Top B}: Top (A -d> B) := (λ _, ⊤).
+#[global] Instance bottom_fun {A} `{Bottom B}: Bottom (A → B) := (λ _, ⊥).
+#[global] Instance top_fun {A} `{Top B}: Top (A → B) := (λ _, ⊤).
+#[global] Instance bottom_ofe_fun {A} {B : ofeT} `{Bottom B}: Bottom (A -d> B) := (λ _, ⊥).
+#[global] Instance top_ofe_fun {A} {B : ofeT} `{Top B}: Top (A -d> B) := (λ _, ⊤).
 
 (** ** "Iris Persistent Predicates" [iPPred].
 
@@ -38,8 +38,8 @@ Record iPPred vl Σ := IPPred {
   iPPred_car :> vl → iProp Σ;
 }.
 Add Printing Constructor iPPred.
-Global Arguments IPPred {_ _} _%I.
-Global Arguments iPPred_car {_ _} !_ _ /.
+#[global] Arguments IPPred {_ _} _%I.
+#[global] Arguments iPPred_car {_ _} !_ _ /.
 Declare Scope iPPred_scope.
 Bind Scope iPPred_scope with iPPred.
 Delimit Scope iPPred_scope with T.
@@ -67,22 +67,22 @@ Section iPPred_ofe.
   Only needed to define Lty using Iris fixpoints (e.g. for normal recursive
   types), so _currently_ unused. *)
 
-  Global Instance iPPred_cofe : Cofe iPPredO.
+  #[global] Instance iPPred_cofe : Cofe iPPredO.
   Proof.
     apply (iso_cofe (A := vl -d> iPropO Σ) IPPred lApp) => //.
   Qed.
 
-  Global Instance bottom_iprop : Bottom (iProp Σ) := False%I.
-  Global Instance top_iprop : Top (iProp Σ) := True%I.
+  #[global] Instance bottom_iprop : Bottom (iProp Σ) := False%I.
+  #[global] Instance top_iprop : Top (iProp Σ) := True%I.
 
-  Global Instance bottom_ippred {s}: Bottom (iPPred s Σ) := IPPred (λ _, ⊥).
-  Global Instance top_ippred {s}: Top (iPPred s Σ) := IPPred (λ _, ⊤).
+  #[global] Instance bottom_ippred {s}: Bottom (iPPred s Σ) := IPPred (λ _, ⊥).
+  #[global] Instance top_ippred {s}: Top (iPPred s Σ) := IPPred (λ _, ⊤).
 
-  Global Instance iPPred_inhabited : Inhabited vpred := populate ⊥.
+  #[global] Instance iPPred_inhabited : Inhabited vpred := populate ⊥.
 
-  Global Instance iPPred_car_ne n : Proper (dist n ==> (=) ==> dist n) (@iPPred_car vl Σ).
+  #[global] Instance iPPred_car_ne n : Proper (dist n ==> (=) ==> dist n) (@iPPred_car vl Σ).
   Proof. by intros A A' HA w ? <-. Qed.
-  Global Instance iPPred_car_proper : Proper ((≡) ==> (=) ==> (≡)) (@iPPred_car vl Σ).
+  #[global] Instance iPPred_car_proper : Proper ((≡) ==> (=) ==> (≡)) (@iPPred_car vl Σ).
   Proof. by intros A A' HA w ? <-. Qed.
 
   Lemma lty_eq τ1 τ2: iPPred_car τ1 = iPPred_car τ2 → τ1 = τ2.
@@ -91,7 +91,7 @@ Section iPPred_ofe.
   Qed.
 End iPPred_ofe.
 
-Global Arguments iPPredO : clear implicits.
+#[global] Arguments iPPredO : clear implicits.
 
 Module Type Lty (Import VS: VlSortsSig) (Import LVS : LiftWp VS).
 
@@ -115,9 +115,9 @@ Notation "X ⊆ Y ⊆ Z ⊆ W" := (X ⊆ Y ∧ Y ⊆ Z ∧ Z ⊆ W)%I (at level 
 Section subtype_lty.
   Context `{dlangG Σ}.
 
-  Global Instance subtype_lty_ne : NonExpansive2 (subtype_lty (Σ := Σ)).
+  #[global] Instance subtype_lty_ne : NonExpansive2 (subtype_lty (Σ := Σ)).
   Proof. solve_proper_ho. Qed.
-  Global Instance subtype_lty_proper :
+  #[global] Instance subtype_lty_proper :
     Proper ((≡) ==> (≡) ==> (≡)) (subtype_lty (Σ := Σ)) := ne_proper_2 _.
 
   Lemma subtype_refl {T}: ⊢ T ⊆@{Σ} T.
@@ -146,7 +146,7 @@ Notation HoLty φ := (λ args, Lty (λI v, φ args v)).
 Definition envApply {Σ n} : oltyO Σ n → env → hoLtyO Σ n :=
   λ T, flip T.
 Instance: Params (@envApply) 2 := {}.
-Instance envApply_proper n :
+Instance envApply_proper Σ n :
   Proper ((≡) ==> (=) ==> (≡)) (envApply (Σ := Σ) (n := n)).
 Proof. solve_proper_ho. Qed.
 
@@ -188,20 +188,20 @@ Section olty_subst.
     by rewrite -iPPred_equivI discrete_fun_equivI.
   Qed.
 
-  Global Instance ids_hoEnvD : Ids (hoEnvD Σ i) := λ _, inhabitant.
-  Global Instance rename_hoEnvD : Rename (hoEnvD Σ i) :=
+  #[global] Instance ids_hoEnvD : Ids (hoEnvD Σ i) := λ _, inhabitant.
+  #[global] Instance rename_hoEnvD : Rename (hoEnvD Σ i) :=
     λ r φ args ρ, φ args (r >>> ρ).
-  Global Program Instance hsubst_hoEnvD : HSubst vl (hoEnvD Σ i) :=
+  #[global] Program Instance hsubst_hoEnvD : HSubst vl (hoEnvD Σ i) :=
     λ sb φ args ρ, φ args (sb >> ρ).
 
   Ltac renLemmas_hoEnvD :=
     hnf; rewrite /hsubst /hsubst_hoEnvD => /= *;
     do 2 (apply FunctionalExtensionality.functional_extensionality_dep => ?); autosubst.
 
-  Global Instance HSubstLemmas_hoEnvD : HSubstLemmas vl (hoEnvD Σ i).
+  #[global] Instance HSubstLemmas_hoEnvD : HSubstLemmas vl (hoEnvD Σ i).
   Proof. split => //; renLemmas_hoEnvD. Qed.
 
-  Global Instance: Sort (hoEnvD Σ i) := {}.
+  #[global] Instance: Sort (hoEnvD Σ i) := {}.
 
   Lemma hoEnvD_subst_compose_ind φ args ρ1 ρ2 v: φ.|[ρ1] args ρ2 v ⊣⊢ φ args (ρ1 >> ρ2) v.
   Proof. done. Qed.
@@ -235,25 +235,25 @@ Section olty_subst.
   Definition Olty (olty_car : vec vl i → (var → vl) → vl → iProp Σ) : oltyO Σ i :=
     λ args ρ, Lty (olty_car args ρ).
 
-  Global Instance ids_olty : Ids (olty Σ i) := λ _, inhabitant.
-  Global Program Instance rename_olty : Rename (olty Σ i) :=
+  #[global] Instance ids_olty : Ids (olty Σ i) := λ _, inhabitant.
+  #[global] Program Instance rename_olty : Rename (olty Σ i) :=
     λ r τ, Olty (rename r (olty_car τ)).
-  Global Program Instance hsubst_olty : HSubst vl (olty Σ i) :=
+  #[global] Program Instance hsubst_olty : HSubst vl (olty Σ i) :=
     λ sb τ, Olty ((olty_car τ).|[sb]).
 
-  Global Instance hsubstLemmas_olty : HSubstLemmas vl (olty Σ i).
+  #[global] Instance hsubstLemmas_olty : HSubstLemmas vl (olty Σ i).
   Proof.
     split => [T|//|s1 s2 T]; apply olty_eq => args ρ; f_ext => v.
     all: by rewrite /hsubst/= ?hsubst_id -?hsubst_comp.
   Qed.
 
-  Global Instance: Sort (olty Σ i) := {}.
+  #[global] Instance: Sort (olty Σ i) := {}.
 
-  Global Instance hsubst_olty_ne ρ :
+  #[global] Instance hsubst_olty_ne ρ :
     NonExpansive (hsubst (outer := oltyO Σ i) ρ).
   Proof. solve_proper_ho. Qed.
 
-  Global Instance hsubst_olty_proper ρ :
+  #[global] Instance hsubst_olty_proper ρ :
     Proper ((≡) ==> (≡)) (hsubst (outer := oltyO Σ i) ρ) := ne_proper _.
 
   Lemma olty_subst_compose_ind τ args ρ1 ρ2 v: τ.|[ρ1] args ρ2 v ⊣⊢ τ args (ρ1 >> ρ2) v.
@@ -289,12 +289,12 @@ Section olty_subst.
 
   (* Holds definitionally when id_subst does, so for any reasonable concrete language. *)
 
-  Global Instance oShift_ne: NonExpansive oShift.
+  #[global] Instance oShift_ne: NonExpansive oShift.
   Proof. solve_proper_ho. Qed.
-  Global Instance oShift_proper : Proper ((≡) ==> (≡)) oShift := ne_proper _.
+  #[global] Instance oShift_proper : Proper ((≡) ==> (≡)) oShift := ne_proper _.
 End olty_subst.
 
-Global Instance: Params (@oShift) 2 := {}.
+#[global] Instance: Params (@oShift) 2 := {}.
 
 Section oShift.
   Context `{Σ : gFunctors} {i : nat}.
@@ -329,7 +329,7 @@ Fixpoint env_oltyped `{dlangG Σ} (ρ : var → vl) (Γ : sCtx Σ) : iProp Σ :=
   | [] => True
   end
 where "sG⟦ Γ ⟧* ρ" := (env_oltyped ρ Γ).
-Global Instance: Params (@env_oltyped) 4 := {}.
+#[global] Instance: Params (@env_oltyped) 4 := {}.
 
 Definition env_oltyped_nil `{dlangG Σ} ρ : sG⟦ [] ⟧* ρ ⊣⊢ True := reflexivity _.
 Definition env_oltyped_cons `{dlangG Σ} ρ τ (Γ : sCtx Σ) :
@@ -343,16 +343,16 @@ Section oLaterN.
   (** Semantic type constructor for [▷^n T] *)
   Definition oLaterN n (τ : oltyO Σ i) := Olty (λI args ρ v, ▷^n τ args ρ v).
 
-  Global Instance oLaterN_ne m : NonExpansive (oLaterN m).
+  #[global] Instance oLaterN_ne m : NonExpansive (oLaterN m).
   Proof. solve_proper_ho. Qed.
-  Global Instance oLaterN_proper m : Proper ((≡) ==> (≡)) (oLaterN m) := ne_proper _.
+  #[global] Instance oLaterN_proper m : Proper ((≡) ==> (≡)) (oLaterN m) := ne_proper _.
 
   Lemma oLaterN_eq n τ args ρ v : oLaterN n τ args ρ v = (▷^n τ args ρ v)%I.
   Proof. done. Qed.
 End oLaterN.
 (** Semantic type constructor for [▷ T] *)
 Notation oLater := (oLaterN 1).
-Global Instance: Params (@oLaterN) 3 := {}.
+#[global] Instance: Params (@oLaterN) 3 := {}.
 
 Section olty_ofe_2.
   Context `{dlangG Σ} {i : nat}.
@@ -376,14 +376,14 @@ Section olty_ofe_2.
     oLaterN (m + n) T ≡ oLaterN m (oLaterN n T).
   Proof. move=> ???. by rewrite/= laterN_plus. Qed.
 
-  Global Instance env_oltyped_ne ρ : NonExpansive (env_oltyped ρ).
+  #[global] Instance env_oltyped_ne ρ : NonExpansive (env_oltyped ρ).
   Proof.
     move: ρ => + n G1 G2.
     elim: G1 G2 => [|T1 G1 IHG1] [|T2 G2] ρ /=; [done|inversion 1..|] =>
       /(Forall2_cons_inv _ _ _ _) [HT HG]; f_equiv; [apply IHG1, HG|apply HT].
   Qed.
 
-  Global Instance env_oltyped_proper ρ :
+  #[global] Instance env_oltyped_proper ρ :
     Proper ((≡) ==> (≡)) (env_oltyped ρ) := ne_proper _.
 
   Lemma s_interp_env_lookup Γ ρ (τ : olty Σ 0) x:
@@ -405,31 +405,31 @@ Section olty_ofe_2.
 
   (** Semantic type constructor for [⊤] *)
   Definition oTop : oltyO Σ i := ⊤.
-  Global Instance top_olty : Top (oltyO Σ i) := Olty ⊤.
+  #[global] Instance top_olty : Top (oltyO Σ i) := Olty ⊤.
 
   (** Semantic type constructor for [⊥] *)
   Definition oBot : oltyO Σ i := ⊥.
-  Global Instance bot_olty : Bottom (oltyO Σ i) := Olty ⊥.
+  #[global] Instance bot_olty : Bottom (oltyO Σ i) := Olty ⊥.
 
   (** Semantic type constructor for [T₁ ∧ T₂] *)
   Definition oAnd τ1 τ2 : oltyO Σ i := Olty (λI args ρ v, τ1 args ρ v ∧ τ2 args ρ v).
-  Global Instance oAnd_ne : NonExpansive2 oAnd.
+  #[global] Instance oAnd_ne : NonExpansive2 oAnd.
   Proof. solve_proper_ho. Qed.
-  Global Instance oAnd_proper : Proper ((≡) ==> (≡) ==> (≡)) oAnd :=
+  #[global] Instance oAnd_proper : Proper ((≡) ==> (≡) ==> (≡)) oAnd :=
     ne_proper_2 _.
 
   (** Semantic type constructor for [T₁ ∨ T₂] *)
   Definition oOr τ1 τ2 : oltyO Σ i := Olty (λI args ρ v, τ1 args ρ v ∨ τ2 args ρ v).
-  Global Instance oOr_ne : NonExpansive2 oOr.
+  #[global] Instance oOr_ne : NonExpansive2 oOr.
   Proof. solve_proper_ho. Qed.
-  Global Instance oOr_proper : Proper ((≡) ==> (≡) ==> (≡)) oOr :=
+  #[global] Instance oOr_proper : Proper ((≡) ==> (≡) ==> (≡)) oOr :=
     ne_proper_2 _.
 
   (** Semantic type constructor for [μ x. T] *)
   Definition oMu (τ : oltyO Σ i) : oltyO Σ i := Olty (λI args ρ v, τ args (v .: ρ) v).
-  Global Instance oMu_ne : NonExpansive oMu.
+  #[global] Instance oMu_ne : NonExpansive oMu.
   Proof. solve_proper_ho. Qed.
-  Global Instance oMu_proper : Proper ((≡) ==> (≡)) oMu := ne_proper _.
+  #[global] Instance oMu_proper : Proper ((≡) ==> (≡)) oMu := ne_proper _.
 
   Lemma oMu_eq (τ : oltyO Σ i) args ρ v : oMu τ args ρ v = τ args (v .: ρ) v.
   Proof. done. Qed.
@@ -439,7 +439,7 @@ Section olty_ofe_2.
 
   Definition interp_expr (φ : hoEnvD Σ 0) : envPred tm Σ :=
     λI ρ t, WP t {{ oClose φ ρ }}.
-  Global Arguments interp_expr /.
+  #[global] Arguments interp_expr /.
 
   Lemma sTEq_oMu_oLaterN (τ : oltyO Σ i) n :
     oLaterN n (oMu τ) ≡ oMu (oLaterN n τ).
@@ -454,9 +454,9 @@ Section olty_ofe_2.
   Proof. move => args ρ v /=. by rewrite laterN_or. Qed.
 End olty_ofe_2.
 
-Global Instance: Params (@oAnd) 2 := {}.
-Global Instance: Params (@oOr) 2 := {}.
-Global Instance: Params (@oMu) 2 := {}.
+#[global] Instance: Params (@oAnd) 2 := {}.
+#[global] Instance: Params (@oOr) 2 := {}.
+#[global] Instance: Params (@oMu) 2 := {}.
 
 Notation "sE⟦ τ ⟧" := (interp_expr τ).
 End Lty.

@@ -158,7 +158,7 @@ where "T .T[ p := q  ]" := (psubst_ty p q T).
 Section closure.
   Context `{RA : relation A} `{RB : relation B} `{RC : relation C}.
 
-  Local Hint Constructors rtc : core.
+  #[local] Hint Constructors rtc : core.
 
   (** Congruence lemma for transitive closure. Binary variant of [rtc_congruence]. *)
 
@@ -171,7 +171,7 @@ Section closure.
 End closure.
 
 Section decide_psubst.
-  Local Hint Constructors path_path_repl ty_path_repl : core.
+  #[local] Hint Constructors path_path_repl ty_path_repl : core.
 
   (** Instances of [rtc_congruence] where inference needs help. *)
   Lemma path_path_repl_self_rtc p q p1 p2 l :

@@ -32,7 +32,7 @@ Section vec.
 
   (** Manipulation of higher-order semantic types. *)
   Definition vopen (Φ : A) : vec vl 0 -d> A := λ args, Φ.
-  Global Arguments vopen /.
+  #[global] Arguments vopen /.
 
   Definition vcurry (Φ : vec vl (S n) -d> A) : vl -d> vec vl n -d> A :=
     λ v args, Φ (vcons v args).
@@ -83,9 +83,9 @@ Section saved_ho_sem_type.
   Definition ho_cpack n : hoEnvPred s Σ n → packedHoEnvPred s Σ :=
     λ Φ, existT n (λ args ρ v, Next (Φ args ρ v)).
 
-  Global Instance cpack_contractive: Contractive (ho_cpack n).
+  #[global] Instance cpack_contractive n : Contractive (ho_cpack n).
   Proof.
-    rewrite /ho_cpack /hoEnvPred => ?????.
+    rewrite /ho_cpack /hoEnvPred => ????.
     apply (existT_ne _ eq_refl).
     solve_contractive_ho.
   Qed.
@@ -100,7 +100,7 @@ Section saved_ho_sem_type.
     saved_anything_own (F := hoEnvPredOF s) γ (ho_pack (existT n Φ)).
   Notation "γ ⤇n[ n  ] φ" := (saved_ho_sem_type_own γ n φ) (at level 20).
 
-  Global Instance saved_ho_sem_type_own_contractive γ i :
+  #[global] Instance saved_ho_sem_type_own_contractive γ i :
     Contractive (saved_ho_sem_type_own γ i).
   Proof.
     rewrite /saved_ho_sem_type_own /hoEnvPred => n f g /= Heq. f_equiv.
@@ -163,6 +163,6 @@ Section saved_ho_sem_type.
 End saved_ho_sem_type.
 
 Notation "γ ⤇n[ n  ] φ" := (saved_ho_sem_type_own γ n φ) (at level 20).
-Global Opaque saved_ho_sem_type_own.
+#[global] Opaque saved_ho_sem_type_own.
 
 End SavedInterpDep.

@@ -130,7 +130,7 @@ with dm_typed Γ : label → dm → ty → Prop :=
 where "Γ v⊢{ l := d  } : T" := (dm_typed Γ l d T).
 
 (* Make [T] first argument: Hide [Γ] and [g] for e.g. typing examples. *)
-Global Arguments iD_Typ_Abs_old {Γ} T _ _ _ _ _ _ _ _ : assert.
+#[global] Arguments iD_Typ_Abs_old {Γ} T _ _ _ _ _ _ _ _ : assert.
 
 Scheme storeless_typed_mut_ind := Induction for typed Sort Prop
 with   storeless_dms_typed_mut_ind := Induction for dms_typed Sort Prop
@@ -141,9 +141,9 @@ Combined Scheme storeless_typing_mut_ind from storeless_typed_mut_ind,
 
 (** ** A few derived rules, and some automation to use them in examples. *)
 
-Hint Constructors typed subtype dms_typed dm_typed path_typed : core.
-Remove Hints iSub_Trans : core.
-Hint Extern 10 => try_once iSub_Trans : core.
+#[global] Hint Constructors typed subtype dms_typed dm_typed path_typed : core.
+#[global] Remove Hints iSub_Trans : core.
+#[global] Hint Extern 10 => try_once iSub_Trans : core.
 
 Lemma iT_Path' Γ v T
   (Ht : Γ u⊢ₚ pv v : T, 0) : Γ v⊢ₜ tv v : T.

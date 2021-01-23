@@ -21,7 +21,7 @@ Record Traversal {travStateT: Type} :=
     pathRootP: travStateT → vl → Prop;
   }.
 
-Global Arguments Traversal _: clear implicits.
+#[global] Arguments Traversal _: clear implicits.
 
 Section fold.
   Context `(trav: Traversal travStateT).
@@ -121,27 +121,27 @@ Section fold.
     .
 End fold.
 
-Global Arguments upS /.
-Global Arguments varP /.
-Global Arguments dtysynP /.
-Global Arguments dtysemP /.
-Global Arguments pathRootP /.
+#[global] Arguments upS /.
+#[global] Arguments varP /.
+#[global] Arguments dtysynP /.
+#[global] Arguments dtysemP /.
+#[global] Arguments pathRootP /.
 
 Notation forall_traversal_dms trav ts ds := (Forall (forall_traversal_dm trav ts) (map snd ds)).
-Global Hint Constructors forall_traversal_vl forall_traversal_tm forall_traversal_dm
+#[global] Hint Constructors forall_traversal_vl forall_traversal_tm forall_traversal_dm
      forall_traversal_path forall_traversal_ty : core.
 
 (* No such Hint Extern for [upS] since it can't be the head of a goal. *)
-Global Hint Extern 0 (varP _ _ _)      => progress cbn : core.
-Global Hint Extern 0 (dtysynP _ _ _)   => progress cbn : core.
-Global Hint Extern 0 (dtysemP _ _ _)   => progress cbn : core.
-Global Hint Extern 0 (pathRootP _ _ _) => progress cbn : core.
+#[global] Hint Extern 0 (varP _ _ _)      => progress cbn : core.
+#[global] Hint Extern 0 (dtysynP _ _ _)   => progress cbn : core.
+#[global] Hint Extern 0 (dtysemP _ _ _)   => progress cbn : core.
+#[global] Hint Extern 0 (pathRootP _ _ _) => progress cbn : core.
 
-Global Hint Extern 0 (forall_traversal_tm _ _ _)   => progress cbn : core.
-Global Hint Extern 0 (forall_traversal_vl _ _ _)   => progress cbn : core.
-Global Hint Extern 0 (forall_traversal_dm _ _ _)   => progress cbn : core.
-Global Hint Extern 0 (forall_traversal_path _ _ _) => progress cbn : core.
-Global Hint Extern 0 (forall_traversal_ty _ _ _)   => progress cbn : core.
+#[global] Hint Extern 0 (forall_traversal_tm _ _ _)   => progress cbn : core.
+#[global] Hint Extern 0 (forall_traversal_vl _ _ _)   => progress cbn : core.
+#[global] Hint Extern 0 (forall_traversal_dm _ _ _)   => progress cbn : core.
+#[global] Hint Extern 0 (forall_traversal_path _ _ _) => progress cbn : core.
+#[global] Hint Extern 0 (forall_traversal_ty _ _ _)   => progress cbn : core.
 
 (** Tactics to invert uses of [forall_traversal_*]. *)
 

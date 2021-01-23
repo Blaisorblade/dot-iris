@@ -22,7 +22,7 @@ Section saved_pred3.
     apply saved_pred_own_contractive. case: n Hfg => [//|n Hfg [[]] //].
   Qed.
 
-  Global Instance persistent_saved_pred3_own: Persistent (saved_pred3_own γ Φ) := _.
+  #[global] Instance persistent_saved_pred3_own γ Φ : Persistent (saved_pred3_own γ Φ) := _.
 
   Lemma saved_pred3_alloc Φ : ⊢ |==> ∃ γ, saved_pred3_own γ Φ.
   Proof. apply saved_pred_alloc. Qed.
@@ -33,7 +33,7 @@ Section saved_pred3.
   Proof. apply (saved_pred_agree γ (curryC Φ) (curryC Ψ) (a, b, c)). Qed.
 End saved_pred3.
 
-Global Opaque saved_pred3_own.
+#[global] Opaque saved_pred3_own.
 
 (* XXX solve notation overlap. *)
 Notation "γ ⤇ φ" := (saved_pred3_own γ φ) (at level 20).

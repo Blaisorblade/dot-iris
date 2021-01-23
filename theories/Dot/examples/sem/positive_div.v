@@ -47,13 +47,13 @@ Section examplesBodies.
   Definition hposModT := μ: self, hposModTBody self.
 End examplesBodies.
 
-Local Hint Constructors bin_op_syntype cond_bin_op_syntype : core.
-Local Hint Extern 1000 => lia : core.
+#[local] Hint Constructors bin_op_syntype cond_bin_op_syntype : core.
+#[local] Hint Extern 1000 => lia : core.
 
 Ltac wp_bin_base := iApply wp_bin; first eapply cond_bin_op_syntype_sound; by [cbn; eauto|].
 Ltac wp_bin := iApply wp_wand; [wp_bin_base | iIntros].
 
-Local Open Scope Z_scope.
+#[local] Open Scope Z_scope.
 
   Import hoasNotation.
 
@@ -137,7 +137,7 @@ Section div_example.
       [iApply sBot_Stp | iApply sStp_ipos_nat].
   Qed.
 
-  Local Definition oPreciseBody :=
+  #[local] Definition oPreciseBody :=
     c2o (cAnd (cTMemL "Pos" ipos ipos) C⟦ hposModTTail hx0 ⟧).
 
   (**

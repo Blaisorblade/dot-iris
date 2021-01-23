@@ -118,15 +118,15 @@ Section old_fundamental.
     apply.
   Qed.
 
-  Local Definition fundamental_typed_def Γ e T
+  #[local] Definition fundamental_typed_def Γ e T
     (HT: Γ v⊢ₜ e : T) := ⊢ Γ u⊨ e : T.
-  Local Definition fundamental_dms_typed_def Γ ds T
+  #[local] Definition fundamental_dms_typed_def Γ ds T
     (HT: Γ v⊢ds ds : T) := ⊢ Γ u⊨ds ds : T.
-  Local Definition fundamental_dm_typed_def Γ l d T
+  #[local] Definition fundamental_dm_typed_def Γ l d T
     (HT : Γ v⊢{ l := d } : T) := ⊢ Γ u⊨ { l := d } : T.
 
   (* Reduce away the above definitions; copied from [fundamental.v] *)
-  Local Ltac simpl_context := red; markUsed Σ; red_hyps_once.
+  #[local] Ltac simpl_context := red; markUsed Σ; red_hyps_once.
 
   Theorem fundamental_mut Γ :
     (∀ e T (HT: Γ v⊢ₜ e : T), fundamental_typed_def HT) ∧

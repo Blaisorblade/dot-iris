@@ -74,7 +74,7 @@ Definition safe `{LangDet Λ} (e : L.expr Λ) :=
 Definition safe_n `{InhabitedState Λ} n e1 :=
   ∀ e2, nsteps pure_step n e1 e2 → not_stuck e2.
 
-Hint Constructors rtc : core.
+#[global] Hint Constructors rtc : core.
 
 Section LangDet.
 
@@ -142,7 +142,7 @@ Lemma prim_step_step e1 σ κ e2 σ' efs :
 Proof.
   move => /prim_step_view. by eapply step_atomic with (t1 := []) (t2 := []).
 Qed.
-Hint Immediate prim_step_step : core.
+#[local] Hint Immediate prim_step_step : core.
 
 Lemma step_inversion e1 thp σ σ' κ :
   step ([e1], σ) κ (thp, σ') →
@@ -188,8 +188,8 @@ Proof.
 Qed.
 End LangDet.
 
-Hint Resolve ->pure_step_erased : core.
-Hint Resolve <-pure_step_erased : core.
+#[global] Hint Resolve ->pure_step_erased : core.
+#[global] Hint Resolve <-pure_step_erased : core.
 
 Lemma rtc_erased_step_inversion' `{LangDet Λ} {t1 : L.expr Λ} {res σ}
   (Hs : rtc erased_step ([t1], σ) res) :
@@ -238,7 +238,7 @@ End LangDet.
 Section EctxLangDet.
 Context {Λ : ectxLanguage} `{EctxLangDet Λ}.
 
-Global Instance EctxLangDet_LangDet : LangDet Λ.
+#[global] Instance EctxLangDet_LangDet : LangDet Λ.
 Proof.
   split; [|by apply _] => e1 e2 σ1 κ σ2 efs.
   inversion 1; simplify_eq/=. by eapply pure_exec_fill, head_step_PureExec.

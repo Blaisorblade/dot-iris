@@ -11,14 +11,14 @@ Unset Strict Implicit.
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
-Local Lemma iP_ISub_Der Γ i j T1 T2 p :
+#[local] Lemma iP_ISub_Der Γ i j T1 T2 p :
   Γ t⊢ₜ iterate TLater i T1 <:[ 0 ] iterate TLater (i + j) T2 →
   Γ t⊢ₚ p : T1, i →
   Γ t⊢ₚ p : T2, i + j.
 Proof. rewrite -iterate_comp -iLaterN0_Stp_Eq; eapply iP_ISub_Alt. Qed.
 
-Local Definition renew_path_typed_def Γ p T i (HT : Γ u⊢ₚ p : T, i) := Γ t⊢ₚ p : T, i.
-Local Definition renew_subtype_def Γ T1 i1 T2 i2 (HT: Γ u⊢ₜ T1, i1 <: T2, i2) :=
+#[local] Definition renew_path_typed_def Γ p T i (HT : Γ u⊢ₚ p : T, i) := Γ t⊢ₚ p : T, i.
+#[local] Definition renew_subtype_def Γ T1 i1 T2 i2 (HT: Γ u⊢ₜ T1, i1 <: T2, i2) :=
   Γ t⊢ₜ iterate TLater i1 T1 <:[ 0 ] iterate TLater i2 T2.
 Arguments renew_subtype_def /.
 Arguments renew_path_typed_def /.
@@ -47,9 +47,9 @@ Lemma renew_subtype Γ T1 i1 T2 i2 (HT: Γ u⊢ₜ T1, i1 <: T2, i2) :
   Γ t⊢ₜ iterate TLater i1 T1 <:[ 0 ] iterate TLater i2 T2.
 Proof. by apply renew_subtyping_mut. Qed.
 
-Local Definition renew_typed_def Γ e T (HT: Γ u⊢ₜ e : T) := Γ t⊢ₜ e : T.
-Local Definition renew_dms_typed_def Γ ds T (HT: Γ u⊢ds ds : T) := Γ t⊢ds ds : T.
-Local Definition renew_dm_typed_def Γ l d T (HT : Γ u⊢{ l := d } : T) := Γ t⊢{ l := d } : T.
+#[local] Definition renew_typed_def Γ e T (HT: Γ u⊢ₜ e : T) := Γ t⊢ₜ e : T.
+#[local] Definition renew_dms_typed_def Γ ds T (HT: Γ u⊢ds ds : T) := Γ t⊢ds ds : T.
+#[local] Definition renew_dm_typed_def Γ l d T (HT : Γ u⊢{ l := d } : T) := Γ t⊢{ l := d } : T.
 Arguments renew_typed_def /.
 Arguments renew_dms_typed_def /.
 Arguments renew_dm_typed_def /.

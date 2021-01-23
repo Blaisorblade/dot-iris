@@ -46,7 +46,7 @@ Fixpoint unTLater T : ty := match T with
 end.
 
 Definition unTLater_TLater T: unTLater (TLater T) = T := reflexivity _.
-Global Instance: Cancel (=) unTLater TLater. Proof. exact: unTLater_TLater. Qed.
+#[global] Instance: Cancel (=) unTLater TLater. Proof. exact: unTLater_TLater. Qed.
 
 (** ** The [T1 ≫ ▷ T2] judgment, used in the [Γ1 ≫ ▷ Γ2] paper judgment. *)
 Inductive ty_strip_syn : ty → ty → Prop :=
@@ -61,7 +61,7 @@ Inductive ty_strip_syn : ty → ty → Prop :=
   ⊢T T1 >>▷ T2 →
   ⊢T TLater T1 >>▷ TLater T2
 where "⊢T T1 '>>▷' T2" := (ty_strip_syn T1 T2).
-Hint Constructors ty_strip_syn : ctx_sub.
+#[global] Hint Constructors ty_strip_syn : ctx_sub.
 
 (** Auxiliary judgment [⊢T T1 <: T2]; this is _not_ the main subtyping judgment,
 and is just used for context stripping. *)
@@ -87,14 +87,14 @@ Inductive ty_sub_syn : ty → ty → Prop :=
 | ty_distr_TOr_TLater_syn T1 T2 :
   ⊢T TOr (TLater T1) (TLater T2) <: TLater (TOr T1 T2)
 where "⊢T T1 <: T2" := (ty_sub_syn T1 T2).
-Hint Constructors ty_sub_syn : ctx_sub.
+#[global] Hint Constructors ty_sub_syn : ctx_sub.
 
 (** Control transitivity to ensure [eauto] does not diverge. *)
-Remove Hints ty_trans_sub_syn : ctx_sub.
-Hint Extern 5 (⊢T _ <: _) => try_once ty_trans_sub_syn : ctx_sub.
+#[global] Remove Hints ty_trans_sub_syn : ctx_sub.
+#[global] Hint Extern 5 (⊢T _ <: _) => try_once ty_trans_sub_syn : ctx_sub.
 
 Lemma ty_sub_TLater_syn T : ⊢T T <: TLater T. Proof. auto with ctx_sub. Qed.
-Hint Resolve ty_sub_TLater_syn : ctx_sub.
+#[global] Hint Resolve ty_sub_TLater_syn : ctx_sub.
 
 Lemma ty_strip_to_sub T1 T2 :
   ⊢T T1 >>▷ T2 →
@@ -104,7 +104,7 @@ Proof. induction 1; eauto with ctx_sub. Qed.
 Lemma unTLater_ty_sub_syn T : ⊢T unTLater T <: T.
 Proof. induction T; cbn; auto with ctx_sub. Qed.
 
-Hint Resolve unTLater_ty_sub_syn : ctx_sub.
+#[global] Hint Resolve unTLater_ty_sub_syn : ctx_sub.
 
 (** ** The [Γ1 ≫▷ Γ2] judgment from the paper. *)
 Inductive ctx_strip_syn : ctx → ctx → Prop :=
@@ -114,12 +114,12 @@ Inductive ctx_strip_syn : ctx → ctx → Prop :=
   ⊢G Γ1 >>▷* Γ2 →
   ⊢G T1 :: Γ1 >>▷* T2 :: Γ2
 where "⊢G Γ1 >>▷* Γ2" := (ctx_strip_syn Γ1 Γ2).
-Hint Constructors ctx_strip_syn : ctx_sub.
+#[global] Hint Constructors ctx_strip_syn : ctx_sub.
 
 Lemma ctx_strip_id_syn Γ : ⊢G Γ >>▷* Γ.
 Proof. elim: Γ => //=; auto with ctx_sub. Qed.
 
-Hint Resolve ctx_strip_id_syn : ctx_sub.
+#[global] Hint Resolve ctx_strip_id_syn : ctx_sub.
 
 Inductive ctx_sub_syn : ctx → ctx → Prop :=
 | ctx_sub_nil_syn : ⊢G [] <:* []
@@ -128,7 +128,7 @@ Inductive ctx_sub_syn : ctx → ctx → Prop :=
   ⊢G Γ1 <:* Γ2 →
   ⊢G T1 :: Γ1 <:* T2 :: Γ2
 where "⊢G Γ1 <:* Γ2" := (ctx_sub_syn Γ1 Γ2).
-Hint Constructors ctx_sub_syn : ctx_sub.
+#[global] Hint Constructors ctx_sub_syn : ctx_sub.
 
 Lemma ctx_sub_id_syn Γ : ⊢G Γ <:* Γ.
 Proof. induction Γ; auto with ctx_sub. Qed.
@@ -169,7 +169,7 @@ Lemma TLater_cong_ctx_sub_syn Γ1 Γ2 :
   ⊢G TLater <$> Γ1 <:* TLater <$> Γ2.
 Proof. induction 1; cbn; auto with ctx_sub. Qed.
 
-Hint Resolve ctx_sub_id_syn ctx_sub_trans_sub_syn unTLater_ctx_sub_syn
+#[global] Hint Resolve ctx_sub_id_syn ctx_sub_trans_sub_syn unTLater_ctx_sub_syn
   ctx_sub_TLater_syn TLater_cong_ctx_sub_syn : ctx_sub.
 
 Ltac ietp_weaken_ctx := auto with ctx_sub.

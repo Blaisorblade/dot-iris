@@ -12,7 +12,7 @@ Implicit Types e : expr Λ.
 Implicit Types P Q : iProp Σ.
 Implicit Types Φ : val Λ → iProp Σ.
 
-Local Notation σ := dummyState.
+#[local] Notation σ := dummyState.
 
 Lemma wp_lift_step s E Φ e1 :
   to_val e1 = None →
