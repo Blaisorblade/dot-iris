@@ -173,7 +173,7 @@ Section semantic_lemmas.
 
   (* Suppose path typing required termination *now* rather than later:
 
-    Definition sptp `{!dlangG Σ} p i Γ (T : oltyO Σ 0): iProp Σ :=
+    Definition sptp `{!dlangG Σ} p i Γ (T : oltyO Σ): iProp Σ :=
      ∀ ρ, sG⟦Γ⟧* ρ →
 -      ▷^i path_wp p.|[ρ] (λ v, oClose T ρ v).
 +      path_wp p.|[ρ] (λ v, ▷^i oClose T ρ v).

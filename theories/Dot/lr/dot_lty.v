@@ -29,7 +29,7 @@ That is, semantics for both definition lists and values, and proofs that they
 agree appropriately. *)
 Record clty {Σ} := _Clty {
   clty_dslty :> dslty Σ;
-  clty_olty : oltyO Σ 0;
+  clty_olty : oltyO Σ;
   clty_def2defs_head {l d ds ρ} :
     clty_dslty ρ [(l, d)] ⊢ clty_dslty ρ ((l, d) :: ds);
   clty_mono {l d ds ρ} :
@@ -81,13 +81,13 @@ Definition lift_dty_dms `{!dlangG Σ} l (TD : dltyO Σ) : dsltyO Σ := Dslty (λ
   ∃ d, ⌜ dms_lookup l ds = Some d ⌝ ∧ TD ρ d).
 Instance: Params (@lift_dty_dms) 3 := {}.
 
-Definition lift_dty_vl `{!dlangG Σ} l (TD : dltyO Σ) : oltyO Σ 0 :=
+Definition lift_dty_vl `{!dlangG Σ} l (TD : dltyO Σ) : oltyO Σ :=
   olty0 (λI ρ v, ∃ d, ⌜v @ l ↘ d ⌝ ∧ TD ρ d).
 Instance: Params (@lift_dty_vl) 3 := {}.
 
 (** This definition is only useful to show in [lift_dty_vl_equiv_paper] that
 certain definitions we give are equivalent to the ones in the paper. *)
-Definition lift_dty_vl_paper `{!dlangG Σ} (TD : dsltyO Σ) : oltyO Σ 0 := olty0 (λI ρ v,
+Definition lift_dty_vl_paper `{!dlangG Σ} (TD : dsltyO Σ) : oltyO Σ := olty0 (λI ρ v,
   ∃ ds, ⌜v = vobj ds⌝ ∧ TD ρ (selfSubst ds)).
 
 Section lift_dty_lemmas.
@@ -97,7 +97,7 @@ Section lift_dty_lemmas.
     lift_dty_vl l T ≡ lift_dty_vl_paper (lift_dty_dms l T).
   Proof.
     (* The proof is just a quantifier swap. *)
-    move=> args ρ v /=; rewrite bi_exist_nested_swap; f_equiv => d.
+    move=> args ρ v /=. rewrite bi_exist_nested_swap; f_equiv => d.
     setoid_rewrite (assoc bi_and); rewrite -and_exist_r /objLookup; f_equiv.
     by iIntros "!% /=".
   Qed.
@@ -125,7 +125,7 @@ Section lift_dty_lemmas.
   Qed.
 End lift_dty_lemmas.
 
-Program Definition olty2clty `{!dlangG Σ} (U : oltyO Σ 0) : cltyO Σ :=
+Program Definition olty2clty `{!dlangG Σ} (U : oltyO Σ) : cltyO Σ :=
   Clty ⊥ U.
 Solve All Obligations with by iIntros.
 #[global] Instance: Params (@olty2clty) 2 := {}.
@@ -208,7 +208,7 @@ Notation "Ds⟦ T ⟧" := (clty_dslty C⟦ T ⟧).
 
 (* We could inline [pty_interp] inside the [V⟦ _ ⟧] notation, but I suspect
 the [V⟦ _ ⟧*] notation needs [pty_interp] to be a first-class function. *)
-Definition pty_interp `{CTyInterp Σ} T : oltyO Σ 0 := clty_olty C⟦ T ⟧.
+Definition pty_interp `{CTyInterp Σ} T : oltyO Σ := clty_olty C⟦ T ⟧.
 #[global] Arguments pty_interp {_ _} !_ /.
 
 (** * Value interpretation of types (Fig. 9). *)

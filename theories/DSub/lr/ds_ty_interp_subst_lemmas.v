@@ -1,11 +1,11 @@
 (** * Binding lemmas about DSub* logical relations. *)
-From D Require Import prelude iris_prelude asubst_base saved_interp_dep.
+From D Require Import prelude iris_prelude asubst_base saved_interp_n.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
 
 Module Type TyInterpLemmas (Import VS : VlSortsFullSig)
-  (Import LWP : SavedInterpDep VS).
+  (Import LWP : SavedInterpN VS).
 (* XXX SavedInterpDep is used because it defines identifiers like [envD]. *)
 
 Class TyInterp ty Σ :=

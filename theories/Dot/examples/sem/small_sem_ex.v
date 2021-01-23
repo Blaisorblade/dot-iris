@@ -37,7 +37,7 @@ Section small_ex.
   }.
   Definition miniVT2 := μ miniVT2Body.
 
-  Definition sminiVT2Body : oltyO Σ 0 :=
+  Definition sminiVT2Body : oltyO Σ :=
     oAnd (oTMemL "A" oBot (oPrim tint))
       (oAnd (oVMem "n" (oLater (oSel x0 "A")))
       oTop).

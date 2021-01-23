@@ -39,7 +39,7 @@ Implicit Types (Σ : gFunctors)
 
 Section judgments.
   Context {Σ}.
-  Implicit Types (τ : oltyO Σ 0).
+  Implicit Types (τ : oltyO Σ).
 
   (** Expression typing *)
   Definition setp `{!dlangG Σ} e Γ τ : iProp Σ :=
@@ -62,9 +62,9 @@ Section judgments.
   #[global] Arguments sdtp : simpl never.
 
   (** Path typing *)
-  Definition sptp `{!dlangG Σ} p i Γ (T : oltyO Σ 0): iProp Σ :=
+  Definition sptp `{!dlangG Σ} p i Γ τ : iProp Σ :=
     |==> ∀ ρ, sG⟦Γ⟧* ρ →
-      ▷^i path_wp p.|[ρ] (oClose T ρ).
+      ▷^i path_wp p.|[ρ] (oClose τ ρ).
   #[global] Arguments sptp : simpl never.
 End judgments.
 
@@ -97,22 +97,22 @@ Section JudgEqs.
 End JudgEqs.
 
 (** When a definition points to a semantic type. Inlined in paper. *)
-Definition dm_to_type `{HdotG: !dlangG Σ} d i (ψ : hoD Σ i) : iProp Σ :=
-  ∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ , i ] ψ.
-Notation "d ↗n[ i  ] ψ" := (dm_to_type d i ψ) (at level 20).
+Definition dm_to_type `{HdotG: !dlangG Σ} d (ψ : hoD Σ) : iProp Σ :=
+  ∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ ] ψ.
+Notation "d ↗n ψ" := (dm_to_type d ψ) (at level 20).
 
 Section dm_to_type.
   Context `{HdotG: !dlangG Σ}.
 
-  Lemma dm_to_type_agree {d i ψ1 ψ2} args v : d ↗n[ i ] ψ1 -∗ d ↗n[ i ] ψ2 -∗ ▷ (ψ1 args v ≡ ψ2 args v).
+  Lemma dm_to_type_agree {d ψ1 ψ2} args v : d ↗n ψ1 -∗ d ↗n ψ2 -∗ ▷ (ψ1 args v ≡ ψ2 args v).
   Proof.
     iDestruct 1 as (s σ ?) "#Hs1".
     iDestruct 1 as (s' σ' ?) "#Hs2".
     simplify_eq. by iApply (stamp_σ_to_type_agree args with "Hs1 Hs2").
   Qed.
 
-  Lemma dm_to_type_intro d i s σ φ :
-    d = dtysem σ s → s ↝n[ i ] φ -∗ d ↗n[ i ] hoEnvD_inst σ φ.
+  Lemma dm_to_type_intro d s σ φ :
+    d = dtysem σ s → s ↝n φ -∗ d ↗n hoEnvD_inst σ φ.
   Proof.
     iIntros. iExists s, σ. iFrame "%".
     by iApply stamp_σ_to_type_intro.
@@ -124,12 +124,12 @@ End dm_to_type.
 (** ** Semantic path substitution and replacement. *)
 
 (** Semantic substitution of path in type. *)
-Definition opSubst `{!dlangG Σ} {n} p (T : oltyO Σ n) : oltyO Σ n :=
+Definition opSubst `{!dlangG Σ} p (T : oltyO Σ) : oltyO Σ :=
   Olty (λI args ρ v, path_wp p.|[ρ] (λ w, T args (w .: ρ) v)).
 Notation "T .sTp[ p /]" := (opSubst p T) (at level 65).
 
 (** Semantic definition of path replacement. *)
-Definition sem_ty_path_replI {Σ n} p q (T1 T2 : olty Σ n) : iProp Σ :=
+Definition sem_ty_path_replI {Σ} p q (T1 T2 : olty Σ) : iProp Σ :=
   |==> ∀ args ρ v (H : alias_paths p.|[ρ] q.|[ρ]), T1 args ρ v ≡ T2 args ρ v.
 Notation "T1 ~sTpI[ p := q  ]* T2" :=
   (sem_ty_path_replI p q T1 T2) (at level 70).
@@ -137,7 +137,7 @@ Notation "T1 ~sTpI[ p := q  ]* T2" :=
 (** Semantic definition of path replacement: alternative, weaker version.
 Unlike [sem_ty_path_replI], this version in [Prop] is less expressive, but
 sufficient for our goals and faster to use in certain proofs. *)
-Definition sem_ty_path_repl {Σ n} p q (T1 T2 : olty Σ n) : Prop :=
+Definition sem_ty_path_repl {Σ} p q (T1 T2 : olty Σ) : Prop :=
   ∀ args ρ v, alias_paths p.|[ρ] q.|[ρ] → T1 args ρ v ≡ T2 args ρ v.
 Notation "T1 ~sTpP[ p := q  ]* T2" :=
   (sem_ty_path_repl p q T1 T2) (at level 70).
@@ -145,42 +145,40 @@ Notation "T1 ~sTpP[ p := q  ]* T2" :=
 Section path_repl.
   Context `{!dlangG Σ}.
 
-  Lemma opSubst_pv_eq {n} v (T : oltyO Σ n) : T .sTp[ pv v /] ≡ T.|[v/].
+  Lemma opSubst_pv_eq v (T : oltyO Σ) : T .sTp[ pv v /] ≡ T.|[v/].
   Proof. move=> args ρ w /=. by rewrite path_wp_pv_eq subst_swap_base. Qed.
 
-  Lemma sem_psubst_one_repl {n} {T : olty Σ n} {args p v w ρ}:
+  Lemma sem_psubst_one_repl {T : olty Σ} {args p v w ρ}:
     alias_paths p.|[ρ] (pv v) →
     T .sTp[ p /] args ρ w ≡ T args (v .: ρ) w.
   Proof. move=> /alias_paths_elim_eq /= ->. by rewrite path_wp_pv_eq. Qed.
 
-  Lemma sem_ty_path_repl_eq {n} {p q} {T1 T2 : olty Σ n} :
+  Lemma sem_ty_path_repl_eq {p q} {T1 T2 : olty Σ} :
     T1 ~sTpP[ p := q ]* T2 → ⊢ T1 ~sTpI[ p := q ]* T2.
   Proof. iIntros "%Heq !% /=". apply: Heq. Qed.
   (* The reverse does not hold. *)
 End path_repl.
 
 (** ** gDOT semantic types. *)
-Definition vl_sel `{!dlangG Σ} {n} vp l args v : iProp Σ :=
-  ∃ d ψ, ⌜vp @ l ↘ d⌝ ∧ d ↗n[ n ] ψ ∧ packHoLtyO ψ args v.
+Definition vl_sel `{!dlangG Σ} vp l args v : iProp Σ :=
+  ∃ d ψ, ⌜vp @ l ↘ d⌝ ∧ d ↗n ψ ∧ packHoLtyO ψ args v.
 
-Definition oSelN `{!dlangG Σ} n p l : oltyO Σ n :=
+Definition oSel `{!dlangG Σ} p l : oltyO Σ :=
   Olty (λI args ρ v, path_wp p.|[ρ] (λ vp, vl_sel vp l args v)).
-Notation oSel := (oSelN 0).
 
 Section sem_types.
   Context `{HdotG: !dlangG Σ}.
+  Implicit Types (τ : oltyO Σ).
 
-  Definition oDTMemRaw n (rK : env → hoD Σ n → iProp Σ): dltyO Σ := Dlty (λI ρ d,
-    ∃ ψ, d ↗n[ n ] ψ ∧ rK ρ ψ).
-
-  Implicit Types (τ : oltyO Σ 0).
+  Definition oDTMemRaw (rK : env → hoD Σ → iProp Σ): dltyO Σ := Dlty (λI ρ d,
+    ∃ ψ, d ↗n ψ ∧ rK ρ ψ).
 
   (** Not a "real" kind, just a predicate over types. *)
   Definition dot_intv_type_pred τ1 τ2 ρ ψ : iProp Σ :=
     τ1 vnil ρ ⊆ packHoLtyO ψ vnil ∧ packHoLtyO ψ vnil ⊆ τ2 vnil ρ.
 
   (** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
-  Definition oDTMem τ1 τ2 : dltyO Σ := oDTMemRaw _ (dot_intv_type_pred τ1 τ2).
+  Definition oDTMem τ1 τ2 : dltyO Σ := oDTMemRaw (dot_intv_type_pred τ1 τ2).
   #[global] Instance oDTMem_proper : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
   Proof.
     rewrite /oDTMem => ??? ??? ??/=; properness; try reflexivity;
@@ -224,13 +222,13 @@ Section sem_types.
     cVMem l T ρ [(l, d)] ⊣⊢ oDVMem T ρ d.
   Proof. apply dty2clty_singleton. Qed.
 
-  Lemma oSel_pv {n} w l args ρ v :
-    oSelN n (pv w) l args ρ v ⊣⊢
-      ∃ d ψ, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n[ n ] ψ ∧ ▷ ψ args v.
+  Lemma oSel_pv w l args ρ v :
+    oSel (pv w) l args ρ v ⊣⊢
+      ∃ d ψ, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n ψ ∧ ▷ ψ args v.
   Proof. by rewrite /= path_wp_pv_eq. Qed.
 
   (** [ V⟦ p.type ⟧]. *)
-  Definition oSing `{!dlangG Σ} p : olty Σ 0 := olty0 (λI ρ v, ⌜alias_paths p.|[ρ] (pv v)⌝).
+  Definition oSing `{!dlangG Σ} p : olty Σ := olty0 (λI ρ v, ⌜alias_paths p.|[ρ] (pv v)⌝).
 
   (** [ V⟦ ∀ x: τ1. τ2 ⟧]. *)
   (* Function types; this definition is contractive (similarly to what's
@@ -244,7 +242,7 @@ Section sem_types.
   Proof. solve_proper_ho. Qed.
 
   (** Semantics of primitive types. *)
-  Definition oPrim b : olty Σ 0 := olty0 (λI ρ v, ⌜pure_interp_prim b v⌝).
+  Definition oPrim b : olty Σ := olty0 (λI ρ v, ⌜pure_interp_prim b v⌝).
 
   (** Dispatch function defining [V⟦ T ⟧] and [Ds⟦ T ⟧]. *)
   (* Observe the naming pattern for semantic type constructors:
@@ -292,7 +290,7 @@ End sem_types.
 
 #[global] Instance: Params (@oAll) 2 := {}.
 
-Notation "d ↗ ψ" := (dm_to_type 0 d ψ) (at level 20).
+Notation "d ↗ ψ" := (dm_to_type d ψ) (at level 20).
 Notation "G⟦ Γ ⟧ ρ" := (sG⟦ V⟦ Γ ⟧* ⟧* ρ) (at level 10).
 
 (** Single-definition typing *)
@@ -346,7 +344,7 @@ End judgment_definitions.
 
 Section misc_lemmas.
   Context `{HdotG: !dlangG Σ}.
-  Implicit Types (τ L T U : olty Σ 0).
+  Implicit Types (τ L T U : olty Σ).
 
   Lemma iterate_TLater_oLater i (T : ty) :
     V⟦iterate TLater i T⟧ ≡ oLaterN i V⟦T⟧.
@@ -363,7 +361,7 @@ Section misc_lemmas.
 
   Lemma oTMem_eq l τ1 τ2 args ρ v :
     oTMem l τ1 τ2 args ρ v ⊣⊢
-    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗n[ 0 ] ψ ∧ dot_intv_type_pred τ1 τ2 ρ ψ.
+    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗n ψ ∧ dot_intv_type_pred τ1 τ2 ρ ψ.
   Proof. apply bi_exist_nested_swap. Qed.
 
   Lemma oTMem_shift A L U : oTMem A (shift L) (shift U) = shift (oTMem A L U).

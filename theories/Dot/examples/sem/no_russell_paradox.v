@@ -52,7 +52,7 @@ Section Russell.
     iEval (rewrite uAu_unfold) in "HuauV'".
     iDestruct "HuauV'" as (d ψ Hl) "[Hs1 Hvav]".
     have Hdeq: d = dtysem [] s. by move: Hl => /= [ds [[<- /=] ?]]; simplify_eq.
-    iAssert (d ↗n[ 0 ] vopen (russell_p ids)) as "#Hs2". by iApply (dm_to_type_intro with "Hs").
+    iAssert (d ↗n vopen (russell_p ids)) as "#Hs2". by iApply (dm_to_type_intro with "Hs").
     iPoseProof (dm_to_type_agree vnil v with "Hs1 Hs2") as "#Hag".
     (* without lock, iNext would strip a later in [HuauV]. *)
     rewrite [uAu]lock; iNext; unlock.
