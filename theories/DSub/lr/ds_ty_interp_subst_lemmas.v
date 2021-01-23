@@ -25,14 +25,14 @@ Section logrel_binding_lemmas.
   Context `{Htil : TyInterpLemmas ty Σ}.
 
   Implicit Types
-          (L T U: ty) (v: vl) (e: tm) (ρ : env).
+          (L T U : ty) (v : vl) (e : tm) (ρ : env).
 
   Lemma interp_subst_compose T ρ1 ρ2 ρ3:
     ρ1 >> ρ2 = ρ3 → ⟦ T.|[ρ1] ⟧ ρ2 ≡ ⟦ T ⟧ ρ3.
   Proof. move=> <- v. exact: interp_subst_compose_ind. Qed.
 
-  Lemma interp_weaken_one τ ρ:
-    ⟦ shift τ ⟧ ρ ≡ ⟦ τ ⟧ (stail ρ).
+  Lemma interp_weaken_one T ρ:
+    ⟦ shift T ⟧ ρ ≡ ⟦ T ⟧ (stail ρ).
   Proof. apply interp_subst_compose. autosubst. Qed.
 
   Lemma interp_subst_one T v w ρ:

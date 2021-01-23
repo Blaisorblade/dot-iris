@@ -260,7 +260,7 @@ Section logrel_lemmas.
 
   Lemma interp_env_lookup Γ ρ T x:
     Γ !! x = Some T →
-    G⟦ Γ ⟧ ρ -∗ ⟦ (shiftN x T) ⟧ ρ (ρ x).
+    G⟦ Γ ⟧ ρ -∗ ⟦ shiftN x T ⟧ ρ (ρ x).
   Proof.
     elim: Γ ρ x => [//|τ' Γ' IHΓ] ρ x Hx /=.
     iDestruct 1 as "[Hg Hv]". move: x Hx => [ [->] | x Hx] /=.
