@@ -1,5 +1,5 @@
-{@ 𝐙;
-𝐙;
+{@ 𝐙 ;
+𝐙 ;
 𝐙}%ty
      : ty
 ν {@ val "a" = 0 }
@@ -8,9 +8,9 @@
      : ty
 μ {@ val "a" : 𝐙  }
      : ty
-μ {@ type "A" >: 𝐙 <: ⊤;
+μ {@ type "A" >: 𝐙 <: ⊤ ;
   val "a" : 𝐙 
-  ;
+   ;
   val "b" : 𝐙 
   }
      : ty
@@ -74,5 +74,5 @@ Found type "vl" where "hvl" was expected.
      : ty
      = vabs DBNotation.x0
      : vl
-     = tv (vabs (vabs (tapp DBNotation.x1 DBNotation.x0)))
+     = vabs (vabs (tapp DBNotation.x1 DBNotation.x0))
      : tm
