@@ -69,7 +69,7 @@ Proof.
   - iIntros (wp1 wp2) "#H". iIntros ([p Φ]); iRevert (p Φ).
     iApply path_wp_pre_mono. iIntros (p Φ). iApply ("H" $! (p,Φ)).
   - intros wp Hwp n [p1 Φ1] [p2 Φ2] [?%leibniz_equiv Heq]; simplify_eq/=.
-    rewrite /uncurry /path_wp_pre; repeat (apply Heq || f_equiv || done).
+    rewrite /uncurry /path_wp_pre; solve_proper_ho.
 Qed.
 
 Definition path_wp_def `{!dlangG Σ} p φ : iProp Σ := bi_least_fixpoint path_wp_pre' (p, φ).
