@@ -2,7 +2,7 @@
 𝐙 ;
 𝐙}%ty
      : ty
-ν {@ val "a" = 0 }
+ν {@ val "a" = vint 0 }
      : vl_
 μ {@ type "A" >: 𝐙 <: ⊤ }
      : ty
@@ -14,14 +14,14 @@
   val "b" : 𝐙 
   }
      : ty
-ν {@}
+()%E
      : vl_
-ν {@}
+()%E
      : vl_
-ν {@ val "a" = 0 }
+ν {@ val "a" = vint 0 }
      : vl_
-ν {@ val "a" = 0;
-  val "b" = 1}
+ν {@ val "a" = vint 0;
+  val "b" = vint 1}
      : vl_
 x0 @; "A"
      : ty
@@ -33,20 +33,20 @@ x0 @ "A"
      : ty
 (val "symb" : (x0 @ "symbols") @; "Symbol" )%ty
      : ty
-ta = λ v : tm, (v > 0)%E
+ta = λ v : tm, (v > vint 0)%E
      : tm → tm
 
 Arguments ta _%expr_scope
-tb = λ v : tm, (v > 0)%E
+tb = λ v : tm, (v > vint 0)%E
      : tm → tm
 
 Arguments tb _%expr_scope
 ν {@ type "A" = (σ2; 1) }
      : vl_
-ν {@ val "a" = 0%Z;
+ν {@ val "a" = vint 0;
   type "A" = (σ2; 1)}
      : vl_
-ν {@ val "a" = 0%Z;
+ν {@ val "a" = vint 0;
   type "A" = (σ2; 1)}
      : vl_
 hanyToNothing = hclose (⊤ →: ⊥)
@@ -55,15 +55,15 @@ hloopDefT = (val "loop" : ⊤ →: ⊥ )%HS
      : hty
 The command has indeed failed with message:
 Found type "vl" where "hvl" was expected.
-0 : htm
+hvint 0%nat : htm
      : htm
-(2 > 1)%HS
+(hvint 2%nat > hvint 1%nat)%HS
      : htm
-(1 > 2)%HS
+(hvint 1%nat > hvint 2%nat)%HS
      : htm
-(1 ≥ 2)%HS
+(hvint 1%nat ≥ hvint 2%nat)%HS
      : htm
-(1 > 0)%HS
+(hvint 1%nat > hvint 0%nat)%HS
      : htm
      = TAll TInt (TMu (TAnd (TSing DBNotation.x1) (TSing DBNotation.x0)))
      : ty
