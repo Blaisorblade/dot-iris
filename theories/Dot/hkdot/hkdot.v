@@ -5,7 +5,7 @@ From iris.proofmode Require Import tactics.
 From iris.base_logic Require Import lib.saved_prop.
 From D Require Import iris_prelude.
 From D Require Export succ_notation.
-From D Require Import saved_interp_dep asubst_intf asubst_base dlang lty.
+From D Require Import saved_interp_n asubst_intf asubst_base dlang lty.
 From D Require Import swap_later_impl.
 From D.Dot Require dot_lty unary_lr.
 From D.Dot Require defs_lr binding_lr dsub_lr sub_lr examples_lr.
@@ -31,10 +31,10 @@ Module Type HoSemJudgments
 Notation sstpiK' i Γ T1 T2 K :=
   (∀ ρ, sG⟦Γ⟧*ρ → ▷^i K ρ (envApply T1 ρ) (envApply T2 ρ))%I.
 
-Definition sstpiK `{dlangG Σ} {n} i Γ T1 T2 (K : sf_kind Σ n) : iProp Σ :=
+Definition sstpiK `{dlangG Σ} i Γ T1 T2 (K : sf_kind Σ) : iProp Σ :=
   |==> sstpiK' i Γ T1 T2 K.
 Arguments sstpiK : simpl never.
-Instance: Params (@sstpiK) 5 := {}.
+Instance: Params (@sstpiK) 4 := {}.
 Notation "Γ s⊨ T1 <:[ i  ] T2 ∷ K" := (sstpiK i Γ T1 T2 K)
   (at level 74, i, T1, T2, K at next level).
 
@@ -46,18 +46,18 @@ Notation "Γ s⊨ T ∷[ i  ] K" := (Γ s⊨ T <:[ i ] T ∷ K)
   (at level 74, T, K at next level).
 
 (* Semantic SubKinding *)
-Definition sSkd `{dlangG Σ} {n} i Γ (K1 K2 : sf_kind Σ n) : iProp Σ :=
-  |==> ∀ ρ, sG⟦Γ⟧*ρ → ∀ (T1 T2 : hoLtyO Σ n), ▷^i (K1 ρ T1 T2 → K2 ρ T1 T2).
+Definition sSkd `{dlangG Σ} i Γ (K1 K2 : sf_kind Σ) : iProp Σ :=
+  |==> ∀ ρ, sG⟦Γ⟧*ρ → ∀ (T1 T2 : hoLtyO Σ), ▷^i (K1 ρ T1 T2 → K2 ρ T1 T2).
 Arguments sSkd : simpl never.
-Instance: Params (@sSkd) 5 := {}.
+Instance: Params (@sSkd) 4 := {}.
 Notation "Γ s⊨ K1 <∷[ i  ] K2" := (sSkd i Γ K1 K2)
   (at level 74, K1, K2 at next level).
 
 Section gen_lemmas.
   Context `{Hdlang : dlangG Σ} `{HswapProp: SwapPropI Σ}.
 
-  #[global] Instance sstpiK_proper n i :
-    Proper ((≡) ==> (≡) ==> (≡) ==> (≡) ==> (≡)) (sstpiK (Σ := Σ) (n := n) i).
+  #[global] Instance sstpiK_proper i :
+    Proper ((≡) ==> (≡) ==> (≡) ==> (≡) ==> (≡)) (sstpiK (Σ := Σ) i).
   Proof.
     rewrite /sstpiK=> Γ1 Γ2 HΓ T1 T2 HT U1 U2 HU K1 K2 HK.
     properness; rewrite (HΓ, HK); first done.
@@ -66,14 +66,14 @@ Section gen_lemmas.
     by apply sf_kind_proper; f_equiv.
   Qed.
 
-  #[global] Instance sSkd_proper n i :
-    Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sSkd (Σ := Σ) (n := n) i).
+  #[global] Instance sSkd_proper i :
+    Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sSkd (Σ := Σ) i).
   Proof.
     rewrite /sSkd => Γ1 Γ2 HΓ K1 K2 HK1 K3 K4 HK2.
     by properness; rewrite (HΓ, HK1, HK2).
   Qed.
 
-  Lemma shift_sstpiK S Γ {n i} (T1 T2 : olty Σ n) K :
+  Lemma shift_sstpiK S Γ {i} (T1 T2 : olty Σ) K :
     Γ s⊨ T1 <:[ i ] T2 ∷ K -∗
     S :: Γ s⊨ oShift T1 <:[ i ] oShift T2 ∷ kShift K.
   Proof.
@@ -81,17 +81,17 @@ Section gen_lemmas.
     by iApply (sf_kind_proper with "(HK Hg)").
   Qed.
 
-  Lemma shift_sKEq S Γ {n i} (T1 T2 : olty Σ n) K :
+  Lemma shift_sKEq S Γ {i} (T1 T2 : olty Σ) K :
     Γ s⊨ T1 =[ i ] T2 ∷ K -∗
     S :: Γ s⊨ oShift T1 =[ i ] oShift T2 ∷ kShift K.
   Proof. by rewrite -!shift_sstpiK. Qed.
 
-  Lemma shift_stpkD S Γ {n i} (T : olty Σ n) K :
+  Lemma shift_stpkD S Γ {i} (T : olty Σ) K :
     Γ s⊨ T ∷[ i ] K -∗
     S :: Γ s⊨ oShift T ∷[ i ] kShift K.
   Proof. apply shift_sstpiK. Qed.
 
-  Lemma shift_sSkd S Γ {n i} (K1 K2 : sf_kind Σ n) :
+  Lemma shift_sSkd S Γ {i} (K1 K2 : sf_kind Σ) :
     Γ s⊨ K1 <∷[ i ] K2 -∗
     S :: Γ s⊨ kShift K1 <∷[ i ] kShift K2.
   Proof.
@@ -99,7 +99,7 @@ Section gen_lemmas.
     iApply ("HK" with "Hg").
   Qed.
 
-  Lemma narrow_sstpiK {n} Γ S1 S2 T U (K : sf_kind Σ n) i :
+  Lemma narrow_sstpiK Γ S1 S2 T U (K : sf_kind Σ) i :
     S2 :: Γ s⊨ S2 <:[ 0 ] S1 ∷ sf_star -∗
     S1 :: Γ s⊨ T <:[ i ] U ∷ K -∗
     S2 :: Γ s⊨ T <:[ i ] U ∷ K.
@@ -109,13 +109,13 @@ Section gen_lemmas.
     iApply ("HsubS" $! ρ with "[$Hg $HS] HS").
   Qed.
 
-  Lemma narrow_stpkD {n} Γ S1 S2 T (K : sf_kind Σ n) i :
+  Lemma narrow_stpkD Γ S1 S2 T (K : sf_kind Σ) i :
     S2 :: Γ s⊨ S2 <:[ 0 ] S1 ∷ sf_star -∗
     S1 :: Γ s⊨ T ∷[ i ] K -∗
     S2 :: Γ s⊨ T ∷[ i ] K.
   Proof. apply narrow_sstpiK. Qed.
 
-  Lemma narrow_sKEq {n} Γ S1 S2 T U (K : sf_kind Σ n) i :
+  Lemma narrow_sKEq Γ S1 S2 T U (K : sf_kind Σ) i :
     S2 :: Γ s⊨ S2 <:[ 0 ] S1 ∷ sf_star -∗
     S1 :: Γ s⊨ T =[ i ] U ∷ K -∗
     S2 :: Γ s⊨ T =[ i ] U ∷ K.
@@ -123,7 +123,7 @@ Section gen_lemmas.
     by iIntros "#HsubS #[HJ1 HJ2]"; iSplit; iApply (narrow_sstpiK with "HsubS").
   Qed.
 
-  Lemma narrow_sSkd Γ S1 S2 {n i} (K1 K2 : sf_kind Σ n) :
+  Lemma narrow_sSkd Γ S1 S2 {i} (K1 K2 : sf_kind Σ) :
     S2 :: Γ s⊨ S2 <:[ 0 ] S1 ∷ sf_star -∗
     S1 :: Γ s⊨ K1 <∷[ i ] K2 -∗
     S2 :: Γ s⊨ K1 <∷[ i ] K2.
@@ -133,7 +133,7 @@ Section gen_lemmas.
     iApply ("HsubS" $! ρ with "[$Hg $HS] HS").
   Qed.
 
-  Lemma sKEq_Symm Γ {n} (K : sf_kind Σ n) T1 T2 i :
+  Lemma sKEq_Symm Γ (K : sf_kind Σ) T1 T2 i :
     Γ s⊨ T1 =[ i ] T2 ∷ K -∗
     Γ s⊨ T2 =[ i ] T1 ∷ K.
   Proof. iIntros "[$ $]". Qed.
@@ -171,7 +171,7 @@ Section gen_lemmas.
     rewrite ksubtyping_equiv'. iIntros "Hsub Hg"; iApply ("Hsub" with "Hg").
   Qed.
 
-  Lemma ksubtyping_intro i Γ (T1 T2 : oltyO Σ 0) :
+  Lemma ksubtyping_intro i Γ (T1 T2 : oltyO Σ) :
     (|==> ∀ ρ, sG⟦ Γ ⟧* ρ →
     ∀ v, ▷^i (oClose T1 ρ v → oClose T2 ρ v)) -∗
     Γ s⊨ T1 <:[ i ] T2 ∷ sf_star.
@@ -180,7 +180,7 @@ Section gen_lemmas.
     by rewrite -laterN_forall.
   Qed.
 
-  Lemma ksubtyping_intro_swap i Γ (T1 T2 : oltyO Σ 0) :
+  Lemma ksubtyping_intro_swap i Γ (T1 T2 : oltyO Σ) :
     (|==> ∀ ρ, sG⟦ Γ ⟧* ρ →
     ∀ v, ▷^i oClose T1 ρ v → ▷^i oClose T2 ρ v) -∗
     Γ s⊨ T1 <:[ i ] T2 ∷ sf_star.
@@ -189,7 +189,7 @@ Section gen_lemmas.
     iApply (impl_laterN with "(Hsub Hg)").
   Qed.
 
-  Lemma kinding_intro Γ i (L T U : oltyO Σ 0) :
+  Lemma kinding_intro Γ i (L T U : oltyO Σ) :
     (|==> ∀ ρ, sG⟦ Γ ⟧* ρ →
     ▷^i (oClose L ρ ⊆ oClose T ρ ⊆ oClose U ρ)) -∗
     Γ s⊨ T ∷[ i ] sf_kintv L U.
@@ -199,15 +199,15 @@ Section gen_lemmas.
 
   (** * Prefixes: K for Kinding, KStp for kinded subtyping, Skd for subkinding. *)
 
-  Definition sf_sngl (T : oltyO Σ 0) : sf_kind Σ 0 := sf_kintv T T.
+  Definition sf_sngl (T : oltyO Σ) : sf_kind Σ := sf_kintv T T.
 
-  Lemma sK_Sing Γ (T : oltyO Σ 0) i :
+  Lemma sK_Sing Γ (T : oltyO Σ) i :
     ⊢ Γ s⊨ T ∷[ i ] sf_sngl T.
   Proof.
     rewrite -kinding_intro; iIntros "!> %ρ _". by rewrite -subtype_refl.
   Qed.
 
-  Lemma sKStp_Intv Γ (T1 T2 L U : oltyO Σ 0) i :
+  Lemma sKStp_Intv Γ (T1 T2 L U : oltyO Σ) i :
     Γ s⊨ T1 <:[i] T2 ∷ sf_kintv L U -∗
     Γ s⊨ T1 <:[i] T2 ∷ sf_kintv T1 T2.
   Proof.
@@ -216,7 +216,7 @@ Section gen_lemmas.
     by rewrite -!subtype_refl.
   Qed.
 
-  Lemma sK_Star Γ (T : oltyO Σ 0) i :
+  Lemma sK_Star Γ (T : oltyO Σ) i :
     ⊢ Γ s⊨ T ∷[ i ] sf_star.
   Proof.
     rewrite -kinding_intro; iIntros "!> %ρ _ !>".
@@ -224,7 +224,7 @@ Section gen_lemmas.
   Qed.
 
   (** Kind subsumption (for kinded subtyping). *)
-  Lemma sKStp_Sub Γ {n} (T1 T2 : oltyO Σ n) (K1 K2 : sf_kind Σ n) i :
+  Lemma sKStp_Sub Γ (T1 T2 : oltyO Σ) (K1 K2 : sf_kind Σ) i :
     Γ s⊨ T1 <:[ i ] T2 ∷ K1 -∗
     Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ T1 <:[ i ] T2 ∷ K2.
@@ -233,18 +233,18 @@ Section gen_lemmas.
   Qed.
 
   (** Kind subsumption (for kinding). *)
-  Lemma sK_Sub Γ {n} (T : oltyO Σ n) (K1 K2 : sf_kind Σ n) i :
+  Lemma sK_Sub Γ (T : oltyO Σ) (K1 K2 : sf_kind Σ) i :
     Γ s⊨ T ∷[ i ] K1 -∗
     Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ T ∷[ i ] K2.
   Proof. apply sKStp_Sub. Qed.
 
-  Lemma sK_Sing_deriv Γ (T : oltyO Σ 0) i :
+  Lemma sK_Sing_deriv Γ (T : oltyO Σ) i :
     ⊢ Γ s⊨ T ∷[ i ] sf_sngl T.
   Proof. rewrite -sKStp_Intv. apply sK_Star. Qed.
 
 
-  Lemma sKStp_Lam Γ {n} (K : sf_kind Σ n) S T1 T2 i :
+  Lemma sKStp_Lam Γ (K : sf_kind Σ) S T1 T2 i :
     oLaterN i (oShift S) :: Γ s⊨ T1 <:[i] T2 ∷ K -∗
     Γ s⊨ oLam T1 <:[i] oLam T2 ∷ sf_kpi S K.
   Proof using HswapProp.
@@ -255,13 +255,13 @@ Section gen_lemmas.
     by iApply (sf_kind_proper with "HTK").
   Qed.
 
-  Lemma sK_Lam Γ {n} (K : sf_kind Σ n) S T i :
+  Lemma sK_Lam Γ (K : sf_kind Σ) S T i :
     oLaterN i (oShift S) :: Γ s⊨ T ∷[i] K -∗
     Γ s⊨ oLam T ∷[i] sf_kpi S K.
   Proof using HswapProp. apply sKStp_Lam. Qed.
 
   (** * Subkinding *)
-  Lemma sSkd_Intv (L1 L2 U1 U2 : oltyO Σ 0) Γ i :
+  Lemma sSkd_Intv (L1 L2 U1 U2 : oltyO Σ) Γ i :
     Γ s⊨ L2 <:[ i ] L1 ∷ sf_star -∗
     Γ s⊨ U1 <:[ i ] U2 ∷ sf_star -∗
     Γ s⊨ sf_kintv L1 U1 <∷[ i ] sf_kintv L2 U2.
@@ -274,7 +274,7 @@ Section gen_lemmas.
     iApply (subtype_trans with "HsubU1 HsubU").
   Qed.
 
-  Lemma sSkd_Pi {n} (S1 S2 : oltyO Σ 0) (K1 K2 : sf_kind Σ n) Γ i :
+  Lemma sSkd_Pi (S1 S2 : oltyO Σ) (K1 K2 : sf_kind Σ) Γ i :
     Γ s⊨ S2 <:[ i ] S1 ∷ sf_star -∗
     oLaterN i (oShift S2) :: Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ sf_kpi S1 K1 <∷[ i ] sf_kpi S2 K2.
@@ -282,7 +282,7 @@ Section gen_lemmas.
     iIntros ">#HsubS >#HsubK !> %ρ #Hg /=".
     iPoseProof (ksubtyping_spec with "HsubS Hg") as "{HsubS} HsubS".
     iAssert (∀ arg : vl, let ρ' := arg .: ρ in
-            ▷^i (oClose S2 ρ arg → ∀ T1 T2 : hoLtyO Σ n,
+            ▷^i (oClose S2 ρ arg → ∀ T1 T2 : hoLtyO Σ,
             K1 ρ' T1 T2 → K2 ρ' T1 T2))%I as
             "{HsubK} #HsubK". {
       iIntros "%arg"; rewrite -mlaterN_impl.
@@ -296,11 +296,11 @@ Section gen_lemmas.
 
   (** Reflexivity and transitivity of subkinding seem admissible, but let's
   prove them anyway, to show they hold regardless of extensions. *)
-  Lemma sSkd_Refl {n} Γ i (K : sf_kind Σ n) :
+  Lemma sSkd_Refl Γ i (K : sf_kind Σ) :
     ⊢ Γ s⊨ K <∷[ i ] K.
   Proof. iIntros "!> %ρ Hg * !> $". Qed.
 
-  Lemma sSkd_Trans {n} Γ i (K1 K2 K3 : sf_kind Σ n) :
+  Lemma sSkd_Trans Γ i (K1 K2 K3 : sf_kind Σ) :
     Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ K2 <∷[ i ] K3 -∗
     Γ s⊨ K1 <∷[ i ] K3.
@@ -312,12 +312,12 @@ Section gen_lemmas.
 
   (** * Kinded subtyping. *)
 
-  Lemma sKStp_Refl Γ {n} T (K : sf_kind Σ n) i :
+  Lemma sKStp_Refl Γ T (K : sf_kind Σ) i :
     Γ s⊨ T ∷[ i ] K -∗
     Γ s⊨ T <:[ i ] T ∷ K.
   Proof. done. Qed.
 
-  Lemma sKEq_Refl {n} Γ T1 T2 (K : sf_kind Σ n) i :
+  Lemma sKEq_Refl Γ T1 T2 (K : sf_kind Σ) i :
     T1 ≡ T2 →
     Γ s⊨ T1 ∷[i] K -∗
     Γ s⊨ T1 =[i] T2 ∷ K.
@@ -372,7 +372,7 @@ Section gen_lemmas.
     iIntros "HT"; iSplit; iRevert "HT"; [iApply sKStp_Eta_1|iApply sKStp_Eta_2].
   Qed.
 
-  Lemma sKStp_Trans Γ {n} T1 T2 T3 (K : sf_kind Σ n) i :
+  Lemma sKStp_Trans Γ T1 T2 T3 (K : sf_kind Σ) i :
     Γ s⊨ T1 <:[ i ] T2 ∷ K -∗
     Γ s⊨ T2 <:[ i ] T3 ∷ K -∗
     Γ s⊨ T1 <:[ i ] T3 ∷ K.
@@ -384,10 +384,10 @@ Section gen_lemmas.
   (* Notation "" := sf_star. *)
   (* Notation "L  U" := (sf_kintv L U) (at level 70). *)
 
-  Lemma sKStp_Top Γ (T : oltyO Σ 0) i :
+  Lemma sKStp_Top Γ (T : oltyO Σ) i :
     ⊢ Γ s⊨ T <:[ i ] ⊤ ∷ sf_star.
   Proof. rewrite -ksubtyping_intro. iIntros "!> %ρ * _ * !> _ //". Qed.
-  Lemma sKStp_Bot Γ (T : oltyO Σ 0) i :
+  Lemma sKStp_Bot Γ (T : oltyO Σ) i :
     ⊢ Γ s⊨ ⊥ <:[ i ] T ∷ sf_star.
   Proof. rewrite -ksubtyping_intro; iIntros "!> %ρ * _ * !> []". Qed.
 
@@ -469,7 +469,7 @@ Section dot_types.
 
   (* Add a lemma like [sptp_subst_oMu], used below. *)
   (* We need a semantic substitution lemma?!? More importantly... one with mu types!?!? Oh dear. *)
-  Lemma sstpiK_subst_oMu {n} (K : sf_kind Σ n){Γ V T1 T2 v i}  :
+  Lemma sstpiK_subst_oMu (K : sf_kind Σ) {Γ V T1 T2 v i}  :
     Γ s⊨p pv v : oMu V, i -∗
     oLaterN i V :: Γ s⊨ T1 <:[ i ] T2 ∷ K -∗
     Γ s⊨ T1.|[v/] <:[ i ] T2.|[v/] ∷ K.|[v/].
@@ -481,7 +481,7 @@ Section dot_types.
       by rewrite hoEnvD_subst_one.
   Qed.
 
-  Lemma sKStp_App Γ {n} (K : sf_kind Σ n) S T1 T2 i p :
+  Lemma sKStp_App Γ (K : sf_kind Σ) S T1 T2 i p :
     Γ s⊨ T1 <:[i] T2 ∷ sf_kpi S K -∗
     Γ s⊨p p : S, i -∗
     Γ s⊨ oTApp T1 p <:[i] oTApp T2 p ∷ kpSubstOne p K.
@@ -493,14 +493,14 @@ Section dot_types.
       by rewrite (alias_paths_elim_eq _ Hal) path_wp_pv_eq.
   Qed.
 
-  Lemma sK_App Γ {n} (K : sf_kind Σ n) S T i p :
+  Lemma sK_App Γ (K : sf_kind Σ) S T i p :
     Γ s⊨ T ∷[i] sf_kpi S K -∗
     Γ s⊨p p : S, i -∗
     Γ s⊨ oTApp T p ∷[i] kpSubstOne p K.
   Proof. apply sKStp_App. Qed.
 
   (* Maybe not interesting *)
-  Lemma sKStp_AppV Γ {n} (K : sf_kind Σ n) {S T1 T2 i v} :
+  Lemma sKStp_AppV Γ (K : sf_kind Σ) {S T1 T2 i v} :
     Γ s⊨ T1 <:[i] T2 ∷ sf_kpi S K -∗
     Γ s⊨p pv v : S, i -∗
     Γ s⊨ oTAppV T1 v <:[i] oTAppV T2 v ∷ K.|[v/].
@@ -511,7 +511,7 @@ Section dot_types.
     iApply ("Happ" with "Hg").
   Qed.
 
-  Lemma sK_AppV Γ {n} (K : sf_kind Σ n) {S T i v} :
+  Lemma sK_AppV Γ (K : sf_kind Σ) {S T i v} :
     Γ s⊨ T ∷[i] sf_kpi S K -∗
     Γ s⊨p pv v : S, i -∗
     Γ s⊨ oTAppV T v ∷[i] K.|[v/].
@@ -521,7 +521,7 @@ Section dot_types.
   (* XXX Those two semantic types are definitionally equal; show that opSubst
   agrees with syntactic path substitution for gDOT.
   The closest thing we can state is [sem_psubst_one_eq]. *)
-  Lemma sKEq_Beta {n} Γ S T (K : sf_kind Σ n) i p :
+  Lemma sKEq_Beta Γ S T (K : sf_kind Σ) i p :
     Γ s⊨p p : S, i -∗
     oLaterN i (oShift S) :: Γ s⊨ T ∷[i] K -∗
     Γ s⊨ oTApp (oLam T) p =[i] T .sTp[ p /] ∷ kpSubstOne p K.
@@ -530,7 +530,7 @@ Section dot_types.
     rewrite sK_Lam. iApply (sK_App with "HK Hp").
   Qed.
 
-  Lemma sKEq_BetaV {n} Γ S T (K : sf_kind Σ n) i v :
+  Lemma sKEq_BetaV Γ S T (K : sf_kind Σ) i v :
     Γ s⊨p pv v : S, i -∗
     oLaterN i (oShift S) :: Γ s⊨ T ∷[i] K -∗
     Γ s⊨ oTAppV (oLam T) v =[i] T.|[v/] ∷ K.|[v/].
@@ -564,7 +564,7 @@ Section dot_types.
   Proof. apply ksubtyping_equiv. Qed.
 
 
-  Lemma sKStp_TMem {n} Γ l (K1 K2 : sf_kind Σ n) i :
+  Lemma sKStp_TMem Γ l (K1 K2 : sf_kind Σ) i :
     Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ oTMemK l K1 <:[ i ] oTMemK l K2 ∷ sf_star.
   Proof.
@@ -575,16 +575,16 @@ Section dot_types.
     iApply ("HK" with "HK1").
   Qed.
 
-  Lemma sKStp_TMem_AnyKind {n} Γ l (K : sf_kind Σ n) i :
+  Lemma sKStp_TMem_AnyKind Γ l (K : sf_kind Σ) i :
     ⊢ Γ s⊨ oTMemK l K <:[ i ] oTMemAnyKind l ∷ sf_star.
   Proof.
     rewrite -ksubtyping_intro; iIntros "!> %ρ #Hg * !>".
     iDestruct 1 as (d Hl φ) "[Hl _]".
-    iExists d; iFrame (Hl); iExists n, φ; iFrame "Hl".
+    iExists d; iFrame (Hl); iExists φ; iFrame "Hl".
   Qed.
 
   (** * Kinding *)
-  Lemma sK_Star_deriv Γ (T : oltyO Σ 0) i :
+  Lemma sK_Star_deriv Γ (T : oltyO Σ) i :
     ⊢ Γ s⊨ T ∷[ i ] sf_star.
   Proof.
     iApply sK_Sub. iApply sK_Sing.
@@ -594,7 +594,7 @@ Section dot_types.
   Qed.
 
   (** Generalization of [sD_Typ_Abs]. *)
-  Lemma sD_TypK_Abs {Γ n} T (K : sf_kind Σ n) s σ l:
+  Lemma sD_TypK_Abs {Γ} T (K : sf_kind Σ) s σ l:
     Γ s⊨ oLater T ∷[ 0 ] K -∗
     s ↝[ σ ] T -∗
     Γ s⊨ { l := dtysem σ s } : cTMemK l K.
@@ -606,9 +606,9 @@ Section dot_types.
     by rewrite -(Hγφ args ρ v).
   Qed.
 
-  Lemma sK_Sel {Γ n} l (K : sf_kind Σ n) p i :
+  Lemma sK_Sel {Γ} l (K : sf_kind Σ) p i :
     Γ s⊨p p : oTMemK l K, i -∗
-    Γ s⊨ oSelN n p l ∷[i] K.
+    Γ s⊨ oSel p l ∷[i] K.
   Proof.
     iIntros ">#Hp !> %ρ Hg"; iSpecialize ("Hp" with "Hg"); iNext i.
     rewrite path_wp_eq.
@@ -621,7 +621,7 @@ Section dot_types.
     iNext. by iRewrite "Hag".
   Qed.
 
-  Lemma sSngl_pq_KStp {Γ i p q n T1 T2} {K : sf_kind Σ n} :
+  Lemma sSngl_pq_KStp {Γ i p q T1 T2} {K : sf_kind Σ} :
     T1 ~sTpI[ p := q ]* T2 -∗
     Γ s⊨p p : oSing q, i -∗
     Γ s⊨ T1 ∷[i] K -∗
@@ -637,7 +637,7 @@ Section dot_types.
   Qed.
 
   (* This is the easy part :-) *)
-  Lemma sSngl_pq_KStp' {Γ i p q n T1 T2} {K1 K2 : sf_kind Σ n}
+  Lemma sSngl_pq_KStp' {Γ i p q T1 T2} {K1 K2 : sf_kind Σ}
     (* XXX we should use an internal version of this premise, as done for [sSngl_pq_KStp]. *)
     (Hrepl : K1 ~sKd[ p := q ]* K2) :
     Γ s⊨p p : oSing q, i -∗
@@ -666,7 +666,7 @@ Section s_kind_ofe.
   Proof. by apply (iso_ofe_mixin s_kind_to_sf_kind). Qed.
   Canonical Structure s_kindO := OfeT tpred s_kind_ofe_mixin.
 
-  Lemma s_kind_equiv_intro (K1 K2 : sf_kind Σ n) : K1 ≡@{sf_kind _ _} K2 → K1 ≡ K2.
+  Lemma s_kind_equiv_intro (K1 K2 : sf_kind Σ) : K1 ≡@{sf_kind _ _} K2 → K1 ≡ K2.
   Proof. apply. Qed.
 End s_kind_ofe.
 #[global] Arguments s_kindO : clear implicits. *)
@@ -677,7 +677,7 @@ Section derived.
   Context `{Hdlang : !dlangG Σ} `{HswapProp : SwapPropI Σ}.
   Opaque sSkd sstpiK sptp sstpi.
 
-  Lemma sT_New n Γ l σ s (K : sf_kind Σ n) T :
+  Lemma sT_New Γ l σ s (K : sf_kind Σ) T :
     oLater (oTMemK l K) :: Γ s⊨ oLater T ∷[ 0 ] K -∗
     s ↝[ σ ] T -∗
     Γ s⊨ vobj [ (l, dtysem σ s) ] : oMu (oTMemK l K).
@@ -732,7 +732,7 @@ Section derived.
   Qed.
 
   Lemma ho_sing_idemp {n} (K : s_kind Σ n) T :
-    s_to_sf (ho_sing (ho_sing K T) T) ≡@{sf_kind _ _}
+    s_to_sf (ho_sing (ho_sing K T) T) ≡@{sf_kind _}
     s_to_sf (ho_sing K T).
   Proof. elim: K T => [//|{}n S K +] T /=. by move->. Qed.
 
@@ -797,7 +797,7 @@ Section derived.
     iApply IHK; iApply (sK_Eta_Apply with "HK").
   Qed.
 
-  Lemma sT_New_Singl n Γ l σ s (K : s_kind Σ n) (T : olty Σ n) :
+  Lemma sT_New_Singl n Γ l σ s (K : s_kind Σ n) (T : olty Σ) :
     oLater (oTMemK l (s_to_sf (ho_sing K (oLater T)))) :: Γ s⊨ oLater T ∷[ 0 ] s_to_sf K -∗
     s ↝[ σ ] T -∗
     Γ s⊨ vobj [ (l, dtysem σ s) ] : oMu (oTMemK l (s_to_sf K)).
@@ -817,7 +817,7 @@ Section derived.
   (* #[global] Instance : Params (@bi_wand b) 1 := {}. *)
 
   (** Kind subsumption (for kinded subtyping). *)
-  Lemma sKEq_Sub Γ {n} (T1 T2 : oltyO Σ n) (K1 K2 : sf_kind Σ n) i :
+  Lemma sKEq_Sub Γ (T1 T2 : oltyO Σ) (K1 K2 : sf_kind Σ) i :
     Γ s⊨ T1 =[ i ] T2 ∷ K1 -∗
     Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ T1 =[ i ] T2 ∷ K2.
@@ -825,8 +825,8 @@ Section derived.
     iIntros "#(Hs1 & Hs2) #HKs"; iSplit; by iApply (sKStp_Sub with "[] HKs").
   Qed.
 (* Inductive s_kind {Σ} : nat → Type :=
-  | s_kintv : olty Σ 0 → olty Σ 0 → s_kind 0
-  | s_kpi n : olty Σ 0 → s_kind n → s_kind n.+1. *)
+  | s_kintv : olty Σ → olty Σ → s_kind 0
+  | s_kpi n : olty Σ → s_kind n → s_kind n.+1. *)
 
   (* XXX: Substituting [vPack] in types doesn't work robustly, so we should use an
   object-level [let] instead, or just assumptions on the typing context. *)
@@ -836,7 +836,7 @@ Section derived.
     let vPack := vobj [ (l, dtysem σ s) ] in
     oLater (oTMemK l (s_to_sf (ho_sing K (oLater T)))) :: Γ s⊨ oLater T ∷[ 0 ] s_to_sf K -∗
     s ↝[ σ ] T -∗
-      Γ s⊨ oSelN n (pv vPack) l =[0] oLater T .sTp[ vPack /] ∷ s_to_sf K.|[ vPack /].
+      Γ s⊨ oSel (pv vPack) l =[0] oLater T .sTp[ vPack /] ∷ s_to_sf K.|[ vPack /].
   Proof using HswapProp.
     iIntros (vPack) "#HK #Hs".
     iPoseProof (sK_HoSing with "HK") as "HK1".
@@ -866,7 +866,7 @@ Section derived.
   the system in his thesis. *)
   Lemma sK_Sel_Red {n} Γ p l (K : s_kind Σ n) i :
     Γ s⊨p p : oTMemK l (s_to_sf K), i -∗
-    Γ s⊨ oSelN n p l ∷[i] s_to_sf (ho_sing K (oSelN n p l)).
+    Γ s⊨ oSel p l ∷[i] s_to_sf (ho_sing K (oSel p l)).
   Proof using HswapProp. rewrite sK_Sel. apply sK_HoSing. Qed.
 
 End derived.
@@ -908,7 +908,7 @@ Section dot_experimental_kinds.
     by iApply (sKStp_Trans with "Hs1 HU").
   Qed.
 
-  Lemma failed_path_equality n Γ T l L U i (K : sf_kind Σ n) v w :
+  Lemma failed_path_equality Γ T l L U i (K : sf_kind Σ) v w :
     Γ s⊨ T ∷[i] sf_kpi (oTMemK l (sf_kintv L U)) K -∗
     Γ s⊨ oSel v l =[i] oSel w l ∷ sf_kintv L U -∗
     Γ s⊨ oTAppV T v <:[i] oTAppV T w ∷ K.|[v/].
@@ -952,7 +952,7 @@ Section dot_experimental_kinds.
     by rewrite !alias_paths_pv_eq_1 (alias_paths_elim_eq_pure _ Hal).
   Qed. *)
 
-  Program Definition kAnd (K1 K2 : sf_kind Σ 0) : sf_kind Σ 0 :=
+  Program Definition kAnd (K1 K2 : sf_kind Σ) : sf_kind Σ :=
     SfKind (λI ρ T1 T2, K1 ρ T1 T2 ∧ K2 ρ T1 T2).
   Next Obligation.
     move=> K1 K2 ρ n T1 T2 HT U1 U2 HU /=. f_equiv; exact: sf_kind_sub_ne_2.
@@ -987,7 +987,7 @@ Section dot_experimental_kinds.
    *)
   Definition isSing (T : lty Σ) := (∀ v1 v2, T v1 → T v2 → ⌜ v1 = v2 ⌝)%I.
 
-  Lemma isSing_respects_hoLty_equiv {n} {T1 T2 : hoLtyO Σ n} args:
+  Lemma isSing_respects_hoLty_equiv {T1 T2 : hoLtyO Σ} args:
     hoLty_equiv T1 T2 -∗ isSing (T1 args) -∗ isSing (T2 args).
   Proof using Type*.
     rewrite /isSing /=.
@@ -996,7 +996,7 @@ Section dot_experimental_kinds.
   Qed.
 
   (* Uh. Not actually checking subtyping, but passes requirements. [kSing] also checks requirements. *)
-  Program Definition kSing' : sf_kind Σ 0 :=
+  Program Definition kSing' : sf_kind Σ :=
     SfKind (λI ρ T1 T2, isSing (oClose T1) ∧ isSing (oClose T2)).
   Next Obligation. rewrite /isSing/=. solve_proper_ho. Qed.
 
@@ -1009,7 +1009,7 @@ Section dot_experimental_kinds.
   Next Obligation. iIntros "/= _" (T1 T2) "[$ _]". Qed.
   Next Obligation. iIntros "/= _" (T1 T2) "[_ $]". Qed.
 
-  Definition kSing (K : sf_kind Σ 0) : sf_kind Σ 0 := kAnd sf_star kSing'.
+  Definition kSing (K : sf_kind Σ) : sf_kind Σ := kAnd sf_star kSing'.
     (* SfKind (SrKind (λI ρ T1 T2, oClose T1 ⊆ oClose T2 ∧ ∀ v1 v2, oClose T2 v1 → oClose T2 v2 → ⌜ v1 = v2 ⌝)) _ _ _ _ _. *)
 End dot_experimental_kinds.
 End HkDot.
