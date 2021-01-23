@@ -17,12 +17,6 @@ Module Type HoSemTypes
   (Import LWP : LiftWp VS)
   (Import L : Lty VS LWP).
 
-Definition oCurry {n} {A : ofeT} (Φ : vec vl n.+1 → A) :
-  vl -d> vec vl n -d> A := vcurry Φ.
-
-Definition oUncurry {n} {A : ofeT} (Φ : vl → vec vl n → A) :
-  vec vl n.+1 -d> A := vuncurry Φ.
-
 (** A semantic kind of arity [n] induces an partial order representing
 subtyping on types of arity [n], indexed by environments. *)
 Notation sr_kind Σ n := (env → hoLtyO Σ n → hoLtyO Σ n → iPropO Σ).
@@ -219,8 +213,12 @@ Section sf_kind_subst.
     K.|[up (ren (+1))].|[ids 0/] ≡ K.
   Proof. move=> ρ /=; f_equiv; autosubst. Qed.
 
-  Definition oLam {n} (τ : oltyO Σ n) : oltyO Σ n.+1 :=
-    Olty (λI args ρ, τ (vtail args) (vhead args .: ρ)).
+  Definition oLam (τ : oltyO Σ) : oltyO Σ :=
+    Olty (λI args ρ,
+      match args with
+      | v :: vs => τ vs (v .: ρ)
+      | [] => λ _, False
+      end).
     (* vuncurry (λ v, Olty (λ args ρ, τ args (v .: ρ))). *)
 
   Definition _oTAppV {n} w (T : oltyO Σ n.+1) : oltyO Σ n :=
@@ -357,9 +355,14 @@ Section kinds_types.
     rewrite /stail; autosubst.
   Qed.
 
-  Lemma sTEq_oLam_oLaterN {n} (τ : oltyO Σ n) m :
+  (* Becomes kinded! *)
+  Lemma sTEq_oLam_oLaterN (τ : oltyO Σ) m :
     oLaterN m (oLam τ) ≡ oLam (oLaterN m τ).
-  Proof. done. Qed.
+  Proof.
+    move=> [|? ?] //= ? ? /=.
+    rewrite /=.
+    (* done. Qed. *)
+  Abort.
 
   Lemma sTEq_oTAppV_oLaterN {n} (τ : oltyO Σ n.+1) m v:
     oLaterN m (oTAppV τ v) ≡ oTAppV (oLaterN m τ) v.
@@ -518,8 +521,9 @@ Section ho_intv.
   #[global] Instance ho_intv_ne {n m}:
     Proper (dist m ==> dist m ==> dist m ==> dist m) (ho_intv (n := n) (Σ := Σ)).
   Proof.
-    move=> K1 K2 HK L1 L2 HL U1 U2 HU.
-    induction HK; cbn; f_equiv => //.
+    move=> K1 K2 HK.
+    induction HK; cbn. by move=> ??? ???; by f_equiv.
+    move=> L1 L2 HL U1 U2 HU. f_equiv => //=.
     by apply: IHHK; repeat f_equiv.
   Qed.
 
