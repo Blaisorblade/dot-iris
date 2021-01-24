@@ -67,13 +67,13 @@ Section helpers.
   Lemma wp_nge m n (Hnge : ¬ m > n) : ⊢ WP m > n {{ w, w ≡ false }}.
   Proof. wp_bin. ev; simplify_eq/=. case_decide; by [|lia]. Qed.
 
-  Lemma setp_value Γ (T : olty Σ) v: Γ s⊨ v : T ⊣⊢ |==> ∀ ρ, sG⟦ Γ ⟧* ρ → T vnil ρ v.[ρ].
+  Lemma setp_value Γ (T : olty Σ) v: Γ s⊨ v : T ⊣⊢ |==> ∀ ρ, sG⟦ Γ ⟧* ρ → T anil ρ v.[ρ].
   Proof.
     rewrite /setp/=; properness => //; iSplit;
       [rewrite wp_value_inv|rewrite -wp_value]; iIntros "#$".
   Qed.
 
-  Lemma setp_value_eq (T : olty Σ) v: (|==> ∀ ρ, T vnil ρ v.[ρ]) ⊣⊢ [] s⊨ v : T.
+  Lemma setp_value_eq (T : olty Σ) v: (|==> ∀ ρ, T anil ρ v.[ρ]) ⊣⊢ [] s⊨ v : T.
   Proof.
     iSplit.
     - iIntros ">#H !>" (? _).
@@ -111,10 +111,10 @@ Section div_example.
   Qed.
 
   Lemma wp_mkPos :
-    ⊢ |==> oAll V⟦ 𝐙 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : Z, v = n ∧ n > 0 ⌝)) vnil ids hmkPosV.
+    ⊢ |==> oAll V⟦ 𝐙 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : Z, v = n ∧ n > 0 ⌝)) anil ids hmkPosV.
   Proof using Type*. iApply wp_value_inv'. iApply (ty_mkPos with "[//]"). Qed.
 
-  Lemma wp_div_spec (m : Z) w : ipos vnil ids w -∗ WP m `div` w {{ ⟦ 𝐙 ⟧ ids }}.
+  Lemma wp_div_spec (m : Z) w : ipos anil ids w -∗ WP m `div` w {{ ⟦ 𝐙 ⟧ ids }}.
   Proof. iDestruct 1 as %(n&?&?); simplify_eq. wp_bin. by iIntros "!%"; naive_solver. Qed.
   Close Scope Z_scope.
 
