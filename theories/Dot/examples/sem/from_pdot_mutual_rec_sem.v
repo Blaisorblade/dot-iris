@@ -284,7 +284,7 @@ Proof.
   lrSimpl; iApply "Hsub"; iClear "Hsub".
 
   (* Just to restate the current goal (for some extra readability). *)
-  iAssert (V⟦ shift typeRefTBody ⟧ vnil ρ
+  iAssert (V⟦ shift typeRefTBody ⟧ anil ρ
     (shiftV (ν [val "symb" = x1])).[up ρ].[vint 0/])
     as "Hgoal"; last by iApply "Hgoal".
   lrSimpl; iSplit; last by [].
@@ -298,7 +298,7 @@ Proof.
   iClear "Hg".
 
   (* Just to restate/simplify the current goal (for some extra readability). *)
-  iAssert (V⟦ val "tpe" : hsomeConcrT ⊥ ⊤ ⟧ vnil ρ (ρ 0)) as "Hgoal";
+  iAssert (V⟦ val "tpe" : hsomeConcrT ⊥ ⊤ ⟧ anil ρ (ρ 0)) as "Hgoal";
     last by iApply "Hgoal".
   iExists (dpt p); iFrame (Hl); rewrite oDVMem_eq path_wp_eq.
   iExists optV; iFrame (Hal); lrSimpl in "Hw"; lrSimpl.

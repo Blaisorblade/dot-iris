@@ -36,7 +36,7 @@ Record clty {Σ} := _Clty {
     dms_hasnt ds l →
     clty_dslty ρ ds ⊢ clty_dslty ρ ((l, d) :: ds);
   clty_commute {ds ρ} :
-    clty_dslty ρ (selfSubst ds) ⊢ clty_olty vnil ρ (vobj ds);
+    clty_dslty ρ (selfSubst ds) ⊢ clty_olty anil ρ (vobj ds);
 }.
 Add Printing Constructor clty.
 Notation c2o := clty_olty.
@@ -163,7 +163,7 @@ Section DefsTypes.
   Proof. by rewrite lift_dty_dms_singleton_eq. Qed.
 
   Definition olty_dlty2clty_eq l (TD : dlty Σ) ρ v :
-    c2o (dty2clty l TD) vnil ρ v ⊣⊢ lift_dty_vl l TD vnil ρ v := reflexivity _.
+    c2o (dty2clty l TD) anil ρ v ⊣⊢ lift_dty_vl l TD anil ρ v := reflexivity _.
 
   Program Definition cTop : clty Σ := Clty (Dslty (λI _ _, True)) oTop.
   Solve All Obligations with eauto.

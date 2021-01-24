@@ -52,7 +52,7 @@ Section judgment_lemmas.
   (** ** Show this typing judgment is equivalent to the more direct definition. *)
   Lemma istpi_eq Γ T1 i T2 j :
     Γ ⊨ T1, i <: T2, j ⊣⊢
-    |==> ∀ ρ v, G⟦Γ⟧ ρ → ▷^i V⟦T1⟧ vnil ρ v → ▷^j V⟦T2⟧ vnil ρ v.
+    |==> ∀ ρ v, G⟦Γ⟧ ρ → ▷^i V⟦T1⟧ anil ρ v → ▷^j V⟦T2⟧ anil ρ v.
   Proof. reflexivity. Qed.
 
   Lemma sstpi_app ρ Γ (T1 T2 : olty Σ) i j :
