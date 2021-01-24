@@ -130,15 +130,15 @@ End subtype_lty.
 
 
 (** * "Open Logical TYpes": persistent Iris predicates over environments and values. *)
-Definition olty Σ := list vl → env → lty Σ.
-Notation oltyO Σ := (list vl -d> env -d> ltyO Σ).
+Definition olty Σ := astream → env → lty Σ.
+Notation oltyO Σ := (astream -d> env -d> ltyO Σ).
 
 Notation olty_car τ := (λ args ρ v, lty_car (τ args ρ) v).
 Definition oApp {Σ} : olty Σ → hoEnvD Σ := λ φ, olty_car φ.
 
 
-Definition hoLty Σ := list vl → lty Σ.
-Definition hoLtyO Σ := list vl -d> ltyO Σ.
+Definition hoLty Σ := astream → lty Σ.
+Definition hoLtyO Σ := astream -d> ltyO Σ.
 Notation hoLty_car τ := (λ args v, lty_car (τ args) v).
 Notation HoLty φ := (λ args, Lty (λI v, φ args v)).
 
@@ -232,7 +232,7 @@ Section olty_subst.
     by rewrite (subst_compose HclT).
   Qed.
 
-  Definition Olty (olty_car : list vl → (var → vl) → vl → iProp Σ) : oltyO Σ :=
+  Definition Olty (olty_car : astream → (var → vl) → vl → iProp Σ) : oltyO Σ :=
     λ args ρ, Lty (olty_car args ρ).
 
   #[global] Instance ids_olty : Ids (olty Σ) := λ _, inhabitant.
@@ -312,7 +312,7 @@ Section oShift.
   Qed.
 End oShift.
 
-Notation oClose τ := (τ nil) (only parsing).
+Notation oClose τ := (τ anil) (only parsing).
 
 (** Semantic typing contexts [Γ]; the paper only uses syntactic typing
 contexts [Γ]. *)
@@ -399,7 +399,7 @@ Section olty_ofe_2.
   Qed.
 
   Definition olty0 (φ : envD Σ) : oltyO Σ :=
-    Olty (vopen φ).
+    Olty (aopen φ).
 
   (** *** We can define once and for all basic "logical" types: top, bottom, and, or, later and μ. *)
 

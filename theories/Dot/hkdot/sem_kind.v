@@ -214,12 +214,7 @@ Section sf_kind_subst.
   Proof. move=> ρ /=; f_equiv; autosubst. Qed.
 
   Definition oLam (τ : oltyO Σ) : oltyO Σ :=
-    Olty (λI args ρ,
-      match args with
-      | v :: vs => τ vs (v .: ρ)
-      | [] => λ _, False
-      end).
-    (* vuncurry (λ v, Olty (λ args ρ, τ args (v .: ρ))). *)
+    Olty (λI args ρ, τ (atail args) (ahead args .: ρ)).
 
   Definition _oTAppV w (T : oltyO Σ) : oltyO Σ :=
     Olty (λI args ρ, T (cons w.[ρ] args) ρ).
