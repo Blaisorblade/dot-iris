@@ -217,7 +217,7 @@ Section sf_kind_subst.
     Olty (λI args ρ, τ (atail args) (ahead args .: ρ)).
 
   Definition _oTAppV w (T : oltyO Σ) : oltyO Σ :=
-    Olty (λI args ρ, T (cons w.[ρ] args) ρ).
+    Olty (λI args ρ, T (acons w.[ρ] args) ρ).
 
 End sf_kind_subst.
 
@@ -233,7 +233,7 @@ Section utils.
     Proper ((≡) ==> (≡)) (_oTAppV (Σ := Σ) v) := ne_proper _.
 
   #[global] Instance oLam_ne : NonExpansive (oLam (Σ := Σ)).
-  Proof. move=> ? ??? [//|v vs]; solve_proper_ho. Qed.
+  Proof. solve_proper_ho. Qed.
 
   #[global] Instance oLam_proper :
     Proper ((≡) ==> (≡)) (oLam (Σ := Σ)) := ne_proper _.
@@ -246,7 +246,7 @@ Section utils.
   Qed.
 
   Lemma envApply_oTAppV_eq (T : olty Σ) v ρ :
-    envApply (oTAppV T v) ρ ≡ vcurry (envApply T ρ) v.[ρ].
+    envApply (oTAppV T v) ρ ≡ acurry (envApply T ρ) v.[ρ].
   Proof. done. Qed.
 
   Definition sr_kintv (L U : oltyO Σ) : sr_kind Σ := λI ρ φ1 φ2,
@@ -299,24 +299,24 @@ Qed.
 
 Notation sf_star := (sf_kintv oBot oTop).
 
-Lemma vcurry_respects_hoLty_equiv {Σ} {T1 T2 : hoLty Σ} arg :
-  hoLty_equiv T1 T2 -∗ hoLty_equiv (vcurry T1 arg) (vcurry T2 arg).
+Lemma acurry_respects_hoLty_equiv {Σ} {T1 T2 : hoLty Σ} arg :
+  hoLty_equiv T1 T2 -∗ hoLty_equiv (acurry T1 arg) (acurry T2 arg).
 Proof. by iIntros "H %%". Qed.
 
 Program Definition sf_kpi `{dlangG Σ} (S : oltyO Σ) (K : sf_kind Σ) :
   sf_kind Σ := SfKind
     (λI ρ φ1 φ2,
       ∀ arg, S anil ρ arg →
-      K (arg .: ρ) (vcurry φ1 arg) (vcurry φ2 arg)).
+      K (arg .: ρ) (acurry φ1 arg) (acurry φ2 arg)).
 Next Obligation.
   move=> Σ ? ? S K ρ n T1 T2 HT U1 U2 HU /=.
   f_equiv => ?; f_equiv.
-  by apply sf_kind_sub_ne_2; apply vcurry_ne.
+  by apply sf_kind_sub_ne_2; apply acurry_ne.
 Qed.
 Next Obligation.
   intros; iIntros "#Heq1 #Heq2 /= #HT %arg HS".
-  rewrite (vcurry_respects_hoLty_equiv (T1 := T1) arg).
-  rewrite (vcurry_respects_hoLty_equiv (T1 := U1) arg).
+  rewrite (acurry_respects_hoLty_equiv (T1 := T1) arg).
+  rewrite (acurry_respects_hoLty_equiv (T1 := U1) arg).
   iApply (sf_kind_sub_internal_proper with "Heq1 Heq2 (HT HS)").
 Qed.
 Next Obligation.
@@ -608,7 +608,7 @@ Qed.
 Notation "K .sKp[ p /]" := (kpSubstOne p K) (at level 65).
 
 Definition oTApp `{!dlangG Σ} (T : oltyO Σ) (p : path) : oltyO Σ :=
-  Olty (λ args ρ v, path_wp p.|[ρ] (λ w, T (cons w args) ρ v)).
+  Olty (λ args ρ v, path_wp p.|[ρ] (λ w, T (acons w args) ρ v)).
 
 Section proper_eq.
   Context `{!dlangG Σ}.
