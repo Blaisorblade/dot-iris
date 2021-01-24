@@ -325,26 +325,39 @@ Section gen_lemmas.
 
   Lemma sTEq_Eta (T : oltyO Σ) :
     T ≡ oLam (oTAppV (oShift T) (ids 0)).
-  Proof. move => [|x xs] ρ v //=.
-  Abort.
-  Lemma sTEq_Eta' (T : oltyO Σ) arg args :
-    oLam (oTAppV (oShift T) (ids 0)) (arg :: args) ≡ T (arg :: args).
-  Proof. move=>?? /=. autosubst. Qed.
+  Proof. intros args ρ v. rewrite /=/acons/ahead/atail/shead /stail. autosubst. Qed.
+  Lemma sTEq_Eta' (T : oltyO Σ) args :
+    oLam (oTAppV (oShift T) (ids 0)) args ≡ T args.
+  Proof. apply symmetry, sTEq_Eta. Qed.
 
-  Lemma sKStp_EtaRed Γ (K : sf_kind Σ) S T1 T2 i :
+  (* Different proofs of [sKStp_EtaRed]. More robust one, also working with lists. *)
+  Lemma sKStp_EtaRed1 Γ (K : sf_kind Σ) S T1 T2 i :
     Γ s⊨ oLam (oTAppV (oShift T1) (ids 0)) <:[ i ] oLam (oTAppV (oShift T2) (ids 0)) ∷ sf_kpi S K -∗
     Γ s⊨ T1 <:[ i ] T2 ∷ sf_kpi S K.
   Proof.
-    (* XXX Here we used to rewrite using untyped equality, but now we don't! *)
     iIntros ">HK !> %ρ #Hg /= %arg".
     iSpecialize ("HK" with "Hg"); iNext i.
     iIntros "#HS"; iSpecialize ("HK" with "HS").
     iApply (sf_kind_proper with "HK") => args;
-      apply symmetry, sTEq_Eta'.
+      rewrite /envApply /flip /=; apply: sTEq_Eta.
   Qed.
 
-  (* apply: vec_S_inv => w args. autosubst. Qed. *)
-  Lemma sKStp_Eta_1 Γ S T (K : sf_kind Σ) i :
+  (* Basically the same, with streams. *)
+  Lemma sKStp_EtaRed2 Γ (K : sf_kind Σ) S T1 T2 i :
+    Γ s⊨ oLam (oTAppV (oShift T1) (ids 0)) <:[ i ] oLam (oTAppV (oShift T2) (ids 0)) ∷ sf_kpi S K -∗
+    Γ s⊨ T1 <:[ i ] T2 ∷ sf_kpi S K.
+  Proof.
+    rewrite /sstpiK; do 5 f_equiv; apply equiv_entails, sf_kind_proper; symmetry => ?;
+      rewrite /envApply /flip /=; apply: sTEq_Eta.
+  Qed.
+
+  (* Simpler proof, using untyped equality, which doesn't work with lists. *)
+  Lemma sKStp_EtaRed Γ (K : sf_kind Σ) S T1 T2 i :
+    Γ s⊨ oLam (oTAppV (oShift T1) (ids 0)) <:[ i ] oLam (oTAppV (oShift T2) (ids 0)) ∷ sf_kpi S K -∗
+    Γ s⊨ T1 <:[ i ] T2 ∷ sf_kpi S K.
+  Proof. by rewrite -!sTEq_Eta. Qed.
+
+  (* Lemma sKStp_Eta_1 Γ S T (K : sf_kind Σ) i :
     Γ s⊨ T ∷[i] sf_kpi S K -∗
     Γ s⊨ T <:[i] oLam (oTAppV (oShift T) (ids 0)) ∷ sf_kpi S K.
   Proof.
@@ -352,7 +365,7 @@ Section gen_lemmas.
     iSpecialize ("HT" with "Hg"); iNext i.
     iIntros (arg) "Hs"; iSpecialize ("HT" with "Hs").
     iApply (sf_kind_proper with "HT") => // args.
-    exact: (sTEq_Eta' _ arg args).
+    exact: sTEq_Eta'.
   Qed.
   Lemma sKStp_Eta_2 Γ S T (K : sf_kind Σ) i :
     Γ s⊨ T ∷[i] sf_kpi S K -∗
@@ -362,14 +375,15 @@ Section gen_lemmas.
     iSpecialize ("HT" with "Hg"); iNext i.
     iIntros (arg) "Hs"; iSpecialize ("HT" with "Hs").
     iApply (sf_kind_proper with "HT") => // args.
-    exact: (sTEq_Eta' _ arg args).
-  Qed.
+    exact: sTEq_Eta'.
+  Qed. *)
 
   Lemma sKEq_Eta Γ S T (K : sf_kind Σ) i :
     Γ s⊨ T ∷[i] sf_kpi S K -∗
     Γ s⊨ T =[i] oLam (oTAppV (oShift T) (ids 0)) ∷ sf_kpi S K.
   Proof.
-    iIntros "HT"; iSplit; iRevert "HT"; [iApply sKStp_Eta_1|iApply sKStp_Eta_2].
+    (* iIntros "HT"; iSplit; iRevert "HT"; [iApply sKStp_Eta_1|iApply sKStp_Eta_2]. *)
+    iApply sKEq_Refl. apply sTEq_Eta.
   Qed.
 
   Lemma sKStp_Trans Γ T1 T2 T3 (K : sf_kind Σ) i :

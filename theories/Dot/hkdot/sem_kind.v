@@ -350,14 +350,10 @@ Section kinds_types.
     rewrite /stail; autosubst.
   Qed.
 
-  (* Becomes kinded! *)
+  (* This lemma doesn't work with partial lists. *)
   Lemma sTEq_oLam_oLaterN (τ : oltyO Σ) m :
     oLaterN m (oLam τ) ≡ oLam (oLaterN m τ).
-  Proof.
-    move=> [|? ?] //= ? ? /=.
-    rewrite /=.
-    (* done. Qed. *)
-  Abort.
+  Proof. done. Qed.
 
   Lemma sTEq_oTAppV_oLaterN (τ : oltyO Σ) m v:
     oLaterN m (oTAppV τ v) ≡ oTAppV (oLaterN m τ) v.
