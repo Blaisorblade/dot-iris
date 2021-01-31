@@ -56,15 +56,17 @@ Definition vec_fold {A} {P : nat → Type}
 Module Type SavedInterpDep (Import V : VlSortsSig).
 
 Notation envPred s Σ := (env -d> s -d> iPropO Σ).
+Notation envD Σ := (envPred vl Σ).
 Definition hoEnvPred s Σ n := vec vl n -d> envPred s Σ.
+Notation hoEnvD := (hoEnvPred vl).
+
 Definition hoEnvPredO s Σ : ofeT := sigTO (hoEnvPred s Σ).
 Definition hoEnvPredOF s : oFunctor := { n & vec vl n -d> env -d> s -d> ▶ ∙ }.
+
 Definition packedHoEnvPred s Σ : ofeT := oFunctor_apply (hoEnvPredOF s) (iPropO Σ).
+Definition packedHoEnvD Σ := packedHoEnvPred vl Σ.
 
 Definition hoD Σ n := vec vl n -d> vl -d> iPropO Σ.
-Notation hoEnvD := (hoEnvPred vl).
-Notation envD Σ := (envPred vl Σ).
-Definition packedHoEnvD Σ := packedHoEnvPred vl Σ.
 
 Notation savedHoEnvPredG s Σ := (savedAnythingG Σ (hoEnvPredOF s)).
 Notation savedHoEnvPredΣ s := (savedAnythingΣ (hoEnvPredOF s)).
@@ -141,7 +143,7 @@ Section saved_ho_sem_type.
     by repeat setoid_rewrite discrete_fun_equivI.
   Qed.
 
-  Lemma saved_ho_sem_type_agree γ n (Φ1 Φ2 : hoEnvPred s Σ n) a b c:
+  Lemma saved_ho_sem_type_agree {γ n} {Φ1 Φ2 : hoEnvPred s Σ n} a b c:
     γ ⤇n[ n ] Φ1 -∗ γ ⤇n[ n ] Φ2 -∗ ▷ (Φ1 a b c ≡ Φ2 a b c).
   Proof.
     iIntros "HΦ1 HΦ2".
