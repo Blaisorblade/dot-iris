@@ -4,7 +4,7 @@ From D.DSub Require Import ds_syn.
 From D.DSub Require Import ds_ty_interp_subst_lemmas.
 Export ds_syn.
 
-Include SavedInterpDep VlSorts. (* Defines [envD] and needed by TyInterpLemmas. *)
+Include SavedHoInterp VlSorts. (* Defines [envD] and needed by TyInterpLemmas. *)
 Include TyInterpLemmas VlSorts.
 Export ty_interp_lemmas.
 

@@ -2,7 +2,7 @@ From iris.base_logic Require Import lib.saved_prop.
 From D Require Import prelude iris_prelude asubst_intf.
 
 (** saved interpretations *)
-Module Type SavedInterpN (Import V : VlSortsSig).
+Module Type SavedHoInterp (Import V : VlSortsSig).
 
 (** Argument stream. *)
 Definition astream := list vl.
@@ -73,4 +73,4 @@ Typeclasses Opaque saved_pred3_own.
 
 Notation "γ ⤇ φ" := (saved_pred3_own γ φ) (at level 20).
 
-End SavedInterpN.
+End SavedHoInterp.

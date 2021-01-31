@@ -53,7 +53,7 @@ Definition vec_fold {A} {P : nat → Type}
     | S n => λ argTs, step (ahead argTs) (rec n (atail argTs))
     end.
 
-Module Type SavedInterpDep (Import V : VlSortsSig).
+Module Type SavedHoInterp (Import V : VlSortsSig).
 
 Notation envPred s Σ := (env -d> s -d> iPropO Σ).
 Notation envD Σ := (envPred vl Σ).
@@ -163,4 +163,4 @@ End saved_ho_sem_type.
 Notation "γ ⤇n[ n  ] φ" := (saved_ho_sem_type_own γ n φ) (at level 20).
 #[global] Opaque saved_ho_sem_type_own.
 
-End SavedInterpDep.
+End SavedHoInterp.
