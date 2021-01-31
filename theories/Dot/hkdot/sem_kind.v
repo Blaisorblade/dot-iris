@@ -17,12 +17,6 @@ Module Type HoSemTypes
   (Import LWP : LiftWp VS)
   (Import L : Lty VS LWP).
 
-Definition oCurry {n} {A : ofeT} (Φ : vec vl n.+1 → A) :
-  vl -d> vec vl n -d> A := acurry Φ.
-
-Definition oUncurry {n} {A : ofeT} (Φ : vl → vec vl n → A) :
-  vec vl n.+1 -d> A := auncurry Φ.
-
 (** A semantic kind of arity [n] induces an partial order representing
 subtyping on types of arity [n], indexed by environments. *)
 Notation sr_kind Σ n := (env → hoLtyO Σ n → hoLtyO Σ n → iPropO Σ).
