@@ -9,10 +9,6 @@ Set Default Proof Using "Type".
 Import EqNotations.
 Unset Program Cases.
 
-(* Repeat temporarily-disabled Iris notations. *)
-Notation "{ x  &  P }" := (sigTOF (λ x, P%OF)) : oFunctor_scope.
-Notation "{ x : A &  P }" := (@sigTOF A%type (λ x, P%OF)) : oFunctor_scope.
-
 Notation vnil := vector.vnil.
 Section vec.
   Context {vl : Type} {n : nat} {A : ofeT}.
