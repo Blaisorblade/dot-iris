@@ -169,11 +169,10 @@ Notation oSel := (oSelN 0).
 
 Section sem_types.
   Context `{HdotG: !dlangG Σ}.
+  Implicit Types (τ : oltyO Σ 0).
 
   Definition oDTMemRaw n (rK : env → hoD Σ n → iProp Σ): dltyO Σ := Dlty (λI ρ d,
     ∃ ψ, d ↗n[ n ] ψ ∧ rK ρ ψ).
-
-  Implicit Types (τ : oltyO Σ 0).
 
   (** Not a "real" kind, just a predicate over types. *)
   Definition dot_intv_type_pred τ1 τ2 ρ ψ : iProp Σ :=

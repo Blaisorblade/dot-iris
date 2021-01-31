@@ -351,6 +351,7 @@ Section kinds_types.
     rewrite /stail; autosubst.
   Qed.
 
+  (** Subtle: this requires [ahead] to be total! *)
   Lemma sTEq_oLam_oLaterN {n} (τ : oltyO Σ n) m :
     oLaterN m (oLam τ) ≡ oLam (oLaterN m τ).
   Proof. done. Qed.
