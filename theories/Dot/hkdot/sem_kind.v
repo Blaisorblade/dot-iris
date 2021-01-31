@@ -220,7 +220,7 @@ Section sf_kind_subst.
   Proof. move=> ρ /=; f_equiv; autosubst. Qed.
 
   Definition oLam {n} (τ : oltyO Σ n) : oltyO Σ n.+1 :=
-    Olty (λI args ρ, τ (vtail args) (ahead args .: ρ)).
+    Olty (λI args ρ, τ (atail args) (ahead args .: ρ)).
     (* vuncurry (λ v, Olty (λ args ρ, τ args (v .: ρ))). *)
 
   Definition _oTAppV {n} w (T : oltyO Σ n.+1) : oltyO Σ n :=

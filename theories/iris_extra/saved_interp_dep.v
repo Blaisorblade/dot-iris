@@ -16,14 +16,14 @@ Section vec.
   Definition vcons (v : vl) (args: vec vl n) : vec vl (S n) := vector.vcons v args.
 
   Definition ahead (args: vec vl (S n)) : vl := args !!! 0%fin.
-  Definition vtail (args: vec vl (S n)) : vec vl n :=
+  Definition atail (args: vec vl (S n)) : vec vl n :=
     Vector.caseS (λ n _, vec vl n) (λ h n t, t) args.
 
   Lemma vec_vnil_eta (v : vec vl 0) : v = vnil.
   Proof. by apply vec_0_inv with (P := λ v, v = vnil). Qed.
 
   Lemma vec_vcons_eta : ∀ args : vec vl (S n),
-    vcons (ahead args) (vtail args) = args.
+    vcons (ahead args) (atail args) = args.
   Proof. exact: vec_S_inv. Qed.
 
   (** Manipulation of higher-order semantic types. *)
@@ -34,7 +34,7 @@ Section vec.
     λ v args, Φ (vcons v args).
 
   Definition vuncurry (Φ : vl -d> vec vl n -d> A) : vec vl (S n) -d> A :=
-    λ args, Φ (ahead args) (vtail args).
+    λ args, Φ (ahead args) (atail args).
 End vec.
 
 Instance vcurry_ne vl n A m :
@@ -50,7 +50,7 @@ Definition vec_fold {A} {P : nat → Type}
   fix rec n :=
     match n with
     | 0 =>   λ argTs, base
-    | S n => λ argTs, step (ahead argTs) (rec n (vtail argTs))
+    | S n => λ argTs, step (ahead argTs) (rec n (atail argTs))
     end.
 
 Module Type SavedInterpDep (Import V : VlSortsSig).
