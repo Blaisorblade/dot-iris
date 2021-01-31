@@ -116,6 +116,6 @@ Module Type LiftWp (Import VS : VlSortsSig).
   End dlang_adequacy.
 
   (* Backward compatibility. *)
-  Notation "s ↝ φ" := (s ↝n[ 0 ] vopen φ)%I  (at level 20) : bi_scope.
-  Notation "s ↗[ σ  ] ψ" := (s ↗n[ σ , 0 ] vopen ψ)%I (at level 20) : bi_scope.
+  Notation "s ↝ φ" := (s ↝n[ 0 ] aopen φ)%I  (at level 20) : bi_scope.
+  Notation "s ↗[ σ  ] ψ" := (s ↗n[ σ , 0 ] aopen ψ)%I (at level 20) : bi_scope.
 End LiftWp.

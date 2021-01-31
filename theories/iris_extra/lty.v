@@ -399,7 +399,7 @@ Section olty_ofe_2.
   Qed.
 
   Definition olty0 (φ : envD Σ) : oltyO Σ 0 :=
-    Olty (vopen φ).
+    Olty (aopen φ).
 
   (** *** We can define once and for all basic "logical" types: top, bottom, and, or, later and μ. *)
 

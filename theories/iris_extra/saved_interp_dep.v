@@ -27,8 +27,8 @@ Section vec.
   Proof. exact: vec_S_inv. Qed.
 
   (** Manipulation of higher-order semantic types. *)
-  Definition vopen (Φ : A) : vec vl 0 -d> A := λ args, Φ.
-  #[global] Arguments vopen /.
+  Definition aopen (Φ : A) : vec vl 0 -d> A := λ args, Φ.
+  #[global] Arguments aopen /.
 
   Definition vcurry (Φ : vec vl (S n) -d> A) : vl -d> vec vl n -d> A :=
     λ v args, Φ (vcons v args).
