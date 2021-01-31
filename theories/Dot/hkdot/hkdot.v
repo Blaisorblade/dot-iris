@@ -323,9 +323,16 @@ Section gen_lemmas.
     Γ s⊨ T1 =[i] T2 ∷ K.
   Proof. iIntros (Heq) "#H"; by iSplit; iApply (sstpiK_proper with "H"). Qed.
 
+  (** This lemma is controversial. *)
   Lemma sTEq_Eta {n} (T : oltyO Σ n.+1) :
     T ≡ oLam (oTAppV (oShift T) (ids 0)).
   Proof. move => + ρ v. apply: vec_S_inv => w args. autosubst. Qed.
+
+  (** Key applications of [sTEq_Eta] are [sKStp_EtaRed] and [sKEq_Eta], and those are less controversial. *)
+  Lemma sKStp_EtaRed {n} Γ (K : sf_kind Σ n) S T1 T2 i :
+    Γ s⊨ oLam (oTAppV (oShift T1) (ids 0)) <:[ i ] oLam (oTAppV (oShift T2) (ids 0)) ∷ sf_kpi S K -∗
+    Γ s⊨ T1 <:[ i ] T2 ∷ sf_kpi S K.
+  Proof. by rewrite -!sTEq_Eta. Qed.
 
   Lemma sKEq_Eta {n} Γ S T (K : sf_kind Σ n) i :
     Γ s⊨ T ∷[i] sf_kpi S K -∗
@@ -688,8 +695,7 @@ Section derived.
   Proof using HswapProp.
     elim: K Γ T1 T2 => [S1 S2|{}n S K IHK] Γ T1 T2 /=; iIntros "HK".
     - by iApply sKStp_Intv.
-    (* XXX Here we rewrite using untyped equality *)
-    - by rewrite sK_Eta_Apply IHK sKStp_Lam -!sTEq_Eta.
+    - by rewrite sK_Eta_Apply IHK sKStp_Lam sKStp_EtaRed.
   Qed.
 
   Lemma ho_sing_idemp {n} (K : s_kind Σ n) T :
@@ -707,8 +713,7 @@ Section derived.
       rewrite -sK_Star (right_id emp%I bi_sep).
       iIntros "(#HL & #HT & $)".
       iApply (sKStp_Trans with "HL HT").
-      (* XXX Here we rewrite using untyped equality *)
-    - by rewrite sK_Eta_Apply IHK sKStp_Lam -!sTEq_Eta.
+    - by rewrite sK_Eta_Apply IHK sKStp_Lam sKStp_EtaRed.
   Qed.
 
   Lemma sKStp_HoIntvL {n} (K : s_kind Σ n) {Γ T1 T2 L U i} :
@@ -722,8 +727,7 @@ Section derived.
       rewrite -sK_Star (left_id emp%I bi_sep).
       iIntros "($ & #HT & HU)".
       iApply (sKStp_Trans with "HT HU").
-      (* XXX Here we rewrite using untyped equality *)
-    - by rewrite sK_Eta_Apply IHK sKStp_Lam -!sTEq_Eta.
+    - by rewrite sK_Eta_Apply IHK sKStp_Lam sKStp_EtaRed.
   Qed.
 
   Lemma sKEq_HoSing {n} (K : s_kind Σ n) Γ T U i :
