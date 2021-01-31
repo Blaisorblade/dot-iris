@@ -13,28 +13,28 @@ Notation anil := vector.vnil.
 Section vec.
   Context {vl : Type} {n : nat} {A : ofeT}.
   (* vector operations, on a functional representation of vectors. *)
-  Definition vcons (v : vl) (args: vec vl n) : vec vl (S n) := vector.vcons v args.
+  Definition acons (v : vl) (args: vec vl n) : vec vl (S n) := vector.vcons v args.
 
-  Definition vhead (args: vec vl (S n)) : vl := args !!! 0%fin.
-  Definition vtail (args: vec vl (S n)) : vec vl n :=
+  Definition ahead (args: vec vl (S n)) : vl := args !!! 0%fin.
+  Definition atail (args: vec vl (S n)) : vec vl n :=
     Vector.caseS (λ n _, vec vl n) (λ h n t, t) args.
 
   Lemma vec_anil_eta (v : vec vl 0) : v = anil.
   Proof. by apply vec_0_inv with (P := λ v, v = anil). Qed.
 
-  Lemma vec_vcons_eta : ∀ args : vec vl (S n),
-    vcons (vhead args) (vtail args) = args.
+  Lemma vec_acons_eta : ∀ args : vec vl (S n),
+    acons (ahead args) (atail args) = args.
   Proof. exact: vec_S_inv. Qed.
 
   (** Manipulation of higher-order semantic types. *)
-  Definition vopen (Φ : A) : vec vl 0 -d> A := λ args, Φ.
-  #[global] Arguments vopen /.
+  Definition aopen (Φ : A) : vec vl 0 -d> A := λ args, Φ.
+  #[global] Arguments aopen /.
 
   Definition acurry (Φ : vec vl (S n) -d> A) : vl -d> vec vl n -d> A :=
-    λ v args, Φ (vcons v args).
+    λ v args, Φ (acons v args).
 
-  Definition vuncurry (Φ : vl -d> vec vl n -d> A) : vec vl (S n) -d> A :=
-    λ args, Φ (vhead args) (vtail args).
+  Definition auncurry (Φ : vl -d> vec vl n -d> A) : vec vl (S n) -d> A :=
+    λ args, Φ (ahead args) (atail args).
 End vec.
 
 Instance acurry_ne vl n A m :
@@ -50,7 +50,7 @@ Definition vec_fold {A} {P : nat → Type}
   fix rec n :=
     match n with
     | 0 =>   λ argTs, base
-    | S n => λ argTs, step (vhead argTs) (rec n (vtail argTs))
+    | S n => λ argTs, step (ahead argTs) (rec n (atail argTs))
     end.
 
 Module Type SavedInterpDep (Import V : VlSortsSig).
