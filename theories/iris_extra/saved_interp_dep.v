@@ -9,62 +9,64 @@ Set Default Proof Using "Type".
 Import EqNotations.
 Unset Program Cases.
 
-Notation vnil := vector.vnil.
+Notation anil := vector.vnil.
 Section vec.
   Context {vl : Type} {n : nat} {A : ofeT}.
   (* vector operations, on a functional representation of vectors. *)
-  Definition vcons (v : vl) (args: vec vl n) : vec vl (S n) := vector.vcons v args.
+  Definition acons (v : vl) (args: vec vl n) : vec vl (S n) := vector.vcons v args.
 
-  Definition vhead (args: vec vl (S n)) : vl := args !!! 0%fin.
-  Definition vtail (args: vec vl (S n)) : vec vl n :=
+  Definition ahead (args: vec vl (S n)) : vl := args !!! 0%fin.
+  Definition atail (args: vec vl (S n)) : vec vl n :=
     Vector.caseS (λ n _, vec vl n) (λ h n t, t) args.
 
-  Lemma vec_vnil_eta (v : vec vl 0) : v = vnil.
-  Proof. by apply vec_0_inv with (P := λ v, v = vnil). Qed.
+  Lemma vec_anil_eta (v : vec vl 0) : v = anil.
+  Proof. by apply vec_0_inv with (P := λ v, v = anil). Qed.
 
-  Lemma vec_vcons_eta : ∀ args : vec vl (S n),
-    vcons (vhead args) (vtail args) = args.
+  Lemma vec_acons_eta : ∀ args : vec vl (S n),
+    acons (ahead args) (atail args) = args.
   Proof. exact: vec_S_inv. Qed.
 
   (** Manipulation of higher-order semantic types. *)
-  Definition vopen (Φ : A) : vec vl 0 -d> A := λ args, Φ.
-  #[global] Arguments vopen /.
+  Definition aopen (Φ : A) : vec vl 0 -d> A := λ args, Φ.
+  #[global] Arguments aopen /.
 
-  Definition vcurry (Φ : vec vl (S n) -d> A) : vl -d> vec vl n -d> A :=
-    λ v args, Φ (vcons v args).
+  Definition acurry (Φ : vec vl (S n) -d> A) : vl -d> vec vl n -d> A :=
+    λ v args, Φ (acons v args).
 
-  Definition vuncurry (Φ : vl -d> vec vl n -d> A) : vec vl (S n) -d> A :=
-    λ args, Φ (vhead args) (vtail args).
+  Definition auncurry (Φ : vl -d> vec vl n -d> A) : vec vl (S n) -d> A :=
+    λ args, Φ (ahead args) (atail args).
 End vec.
 
-Instance vcurry_ne vl n A m :
-  Proper (dist m ==> (=) ==> dist m) (@vcurry vl n A).
+Instance acurry_ne vl n A m :
+  Proper (dist m ==> (=) ==> dist m) (@acurry vl n A).
 Proof. solve_proper_ho. Qed.
 
-Instance vcurry_proper vl n A : Proper ((≡) ==> (=) ==> (≡)) (@vcurry vl n A).
+Instance acurry_proper vl n A : Proper ((≡) ==> (=) ==> (≡)) (@acurry vl n A).
 Proof. solve_proper_ho. Qed.
-Instance: Params (@vcurry) 3 := {}.
+Instance: Params (@acurry) 3 := {}.
 
 Definition vec_fold {A} {P : nat → Type}
   (base : P 0) (step : ∀ {n}, A → P n → P (S n)) : ∀ n, vec A n → P n :=
   fix rec n :=
     match n with
     | 0 =>   λ argTs, base
-    | S n => λ argTs, step (vhead argTs) (rec n (vtail argTs))
+    | S n => λ argTs, step (ahead argTs) (rec n (atail argTs))
     end.
 
 Module Type SavedInterpDep (Import V : VlSortsSig).
 
 Notation envPred s Σ := (env -d> s -d> iPropO Σ).
+Notation envD Σ := (envPred vl Σ).
 Definition hoEnvPred s Σ n := vec vl n -d> envPred s Σ.
+Notation hoEnvD := (hoEnvPred vl).
+
 Definition hoEnvPredO s Σ : ofeT := sigTO (hoEnvPred s Σ).
 Definition hoEnvPredOF s : oFunctor := { n & vec vl n -d> env -d> s -d> ▶ ∙ }.
+
 Definition packedHoEnvPred s Σ : ofeT := oFunctor_apply (hoEnvPredOF s) (iPropO Σ).
+Definition packedHoEnvD Σ := packedHoEnvPred vl Σ.
 
 Definition hoD Σ n := vec vl n -d> vl -d> iPropO Σ.
-Notation hoEnvD := (hoEnvPred vl).
-Notation envD Σ := (envPred vl Σ).
-Definition packedHoEnvD Σ := packedHoEnvPred vl Σ.
 
 Notation savedHoEnvPredG s Σ := (savedAnythingG Σ (hoEnvPredOF s)).
 Notation savedHoEnvPredΣ s := (savedAnythingΣ (hoEnvPredOF s)).
@@ -141,7 +143,7 @@ Section saved_ho_sem_type.
     by repeat setoid_rewrite discrete_fun_equivI.
   Qed.
 
-  Lemma saved_ho_sem_type_agree γ n (Φ1 Φ2 : hoEnvPred s Σ n) a b c:
+  Lemma saved_ho_sem_type_agree {γ n} {Φ1 Φ2 : hoEnvPred s Σ n} a b c:
     γ ⤇n[ n ] Φ1 -∗ γ ⤇n[ n ] Φ2 -∗ ▷ (Φ1 a b c ≡ Φ2 a b c).
   Proof.
     iIntros "HΦ1 HΦ2".

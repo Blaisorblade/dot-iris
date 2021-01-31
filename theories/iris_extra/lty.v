@@ -312,7 +312,7 @@ Section oShift.
   Qed.
 End oShift.
 
-Notation oClose τ := (τ vnil) (only parsing).
+Notation oClose τ := (τ anil) (only parsing).
 
 (** Semantic typing contexts [Γ]; the paper only uses syntactic typing
 contexts [Γ]. *)
@@ -399,7 +399,7 @@ Section olty_ofe_2.
   Qed.
 
   Definition olty0 (φ : envD Σ) : oltyO Σ 0 :=
-    Olty (vopen φ).
+    Olty (aopen φ).
 
   (** *** We can define once and for all basic "logical" types: top, bottom, and, or, later and μ. *)
 

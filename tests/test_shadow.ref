@@ -1,4 +1,4 @@
-Notation vnil := @vector.vnil
-Expands to: Notation D.iris_extra.saved_interp_dep.vnil
+Notation anil := @vnil
+Expands to: Notation D.iris_extra.saved_interp_dep.anil
 Notation shift chi := (shift chi)
 Expands to: Notation D.prelude.shift

@@ -59,40 +59,16 @@ Module Type LiftWp (Import VS : VlSortsSig).
     #[global] Instance stamp_σ_to_type_n_contractive s σ i : Contractive (stamp_σ_to_type_n s σ i).
     Proof. rewrite /stamp_σ_to_type_n. solve_contractive_ho. Qed.
 
-    Import EqNotations.
-
-    (*
-    We lift all of the [saved_ho_sem_type_agree*] lemmas for flexibility,
-    even tho this duplicates code.
-    *)
-    Lemma stamp_σ_to_type_agree_dep_abs {σ s n1 n2 ψ1 ψ2} :
-      s ↗n[ σ , n1 ] ψ1 -∗ s ↗n[ σ , n2 ] ψ2 -∗ ∃ Heq : n1 = n2,
-        ▷ ((rew [hoD Σ] Heq in ψ1) ≡ ψ2).
-    Proof.
-      iDestruct 1 as (φ1) "[Hsg1 Heq1]"; iDestruct 1 as (φ2) "[Hsg2 Heq2]".
-      iDestruct (saved_ho_sem_type_agree_dep_abs with "Hsg1 Hsg2") as (->) "Hgoal".
-      iExists eq_refl. iNext.
-      iEval (cbn) in "Hgoal"; iEval (cbn). iRewrite "Heq1"; iRewrite "Heq2".
-      repeat setoid_rewrite discrete_fun_equivI.
-      iIntros (??) "/=". iExact "Hgoal".
-    Qed.
-
-    Lemma stamp_σ_to_type_agree_dep {σ s n1 n2 ψ1 ψ2} args v :
-      s ↗n[ σ , n1 ] ψ1 -∗ s ↗n[ σ , n2 ] ψ2 -∗ ∃ Heq : n1 = n2,
-        ▷ ((rew [hoD Σ] Heq in ψ1) args v ≡ ψ2 args v).
-    Proof.
-      iIntros "H1 H2".
-      iDestruct (stamp_σ_to_type_agree_dep_abs with "H1 H2") as (->) "Hgoal".
-      iExists eq_refl; cbn; iNext.
-      by repeat setoid_rewrite discrete_fun_equivI.
-    Qed.
+    (* Needed for [stamp_σ_to_type_agree] if it uses [simpl]. *)
+    #[local] Hint Extern 10 (IntoInternalEq (_ ≡ _) _ _) =>
+      apply class_instances_internal_eq.into_internal_eq_internal_eq : typeclass_instances.
 
     Lemma stamp_σ_to_type_agree {σ s n ψ1 ψ2} args v :
       s ↗n[ σ , n ] ψ1 -∗ s ↗n[ σ , n ] ψ2 -∗ ▷ (ψ1 args v ≡ ψ2 args v).
     Proof.
-      iIntros "Hs1 Hs2".
-      iDestruct (stamp_σ_to_type_agree_dep args v with "Hs1 Hs2") as (Heq) "H".
-      by rewrite (proof_irrel Heq eq_refl) /=.
+      iDestruct 1 as (φ1) "[Hsg1 Heq1]"; iDestruct 1 as (φ2) "[Hsg2 Heq2] /=".
+      iDestruct (saved_ho_sem_type_agree args (∞ σ) v with "Hsg1 Hsg2") as "Heq"; iNext.
+      iRewrite "Heq1"; iRewrite "Heq2". iApply "Heq".
     Qed.
 
     Lemma stamp_σ_to_type_intro s σ n (φ : hoEnvD Σ n) :
@@ -100,6 +76,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
     Proof. rewrite /stamp_σ_to_type_n. iIntros; iExists φ; auto. Qed.
   End mapsto.
 
+  Typeclasses Opaque stamp_σ_to_type_n.
   #[global] Opaque stamp_σ_to_type_n.
 
   Module dlang_adequacy.
@@ -116,6 +93,6 @@ Module Type LiftWp (Import VS : VlSortsSig).
   End dlang_adequacy.
 
   (* Backward compatibility. *)
-  Notation "s ↝ φ" := (s ↝n[ 0 ] vopen φ)%I  (at level 20) : bi_scope.
-  Notation "s ↗[ σ  ] ψ" := (s ↗n[ σ , 0 ] vopen ψ)%I (at level 20) : bi_scope.
+  Notation "s ↝ φ" := (s ↝n[ 0 ] aopen φ)%I  (at level 20) : bi_scope.
+  Notation "s ↗[ σ  ] ψ" := (s ↗n[ σ , 0 ] aopen ψ)%I (at level 20) : bi_scope.
 End LiftWp.

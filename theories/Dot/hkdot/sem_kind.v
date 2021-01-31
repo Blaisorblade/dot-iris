@@ -17,12 +17,6 @@ Module Type HoSemTypes
   (Import LWP : LiftWp VS)
   (Import L : Lty VS LWP).
 
-Definition oCurry {n} {A : ofeT} (Φ : vec vl n.+1 → A) :
-  vl -d> vec vl n -d> A := vcurry Φ.
-
-Definition oUncurry {n} {A : ofeT} (Φ : vl → vec vl n → A) :
-  vec vl n.+1 -d> A := vuncurry Φ.
-
 (** A semantic kind of arity [n] induces an partial order representing
 subtyping on types of arity [n], indexed by environments. *)
 Notation sr_kind Σ n := (env → hoLtyO Σ n → hoLtyO Σ n → iPropO Σ).
@@ -220,11 +214,11 @@ Section sf_kind_subst.
   Proof. move=> ρ /=; f_equiv; autosubst. Qed.
 
   Definition oLam {n} (τ : oltyO Σ n) : oltyO Σ n.+1 :=
-    Olty (λI args ρ, τ (vtail args) (vhead args .: ρ)).
-    (* vuncurry (λ v, Olty (λ args ρ, τ args (v .: ρ))). *)
+    Olty (λI args ρ, τ (atail args) (ahead args .: ρ)).
+    (* auncurry (λ v, Olty (λ args ρ, τ args (v .: ρ))). *)
 
   Definition _oTAppV {n} w (T : oltyO Σ n.+1) : oltyO Σ n :=
-    Olty (λI args ρ, T (vcons w.[ρ] args) ρ).
+    Olty (λI args ρ, T (acons w.[ρ] args) ρ).
 
 End sf_kind_subst.
 
@@ -253,7 +247,7 @@ Section utils.
   Qed.
 
   Lemma envApply_oTAppV_eq n (T : olty Σ n.+1) v ρ :
-    envApply (oTAppV T v) ρ ≡ vcurry (envApply T ρ) v.[ρ].
+    envApply (oTAppV T v) ρ ≡ acurry (envApply T ρ) v.[ρ].
   Proof. done. Qed.
 
   Definition sr_kintv (L U : oltyO Σ 0) : sr_kind Σ 0 := λI ρ φ1 φ2,
@@ -268,7 +262,7 @@ Section utils.
   Lemma sr_kintv_respects_hoLty_equiv_1 {T1 T2} (L U : olty Σ 0) U1 ρ :
     hoLty_equiv T1 T2 -∗ sr_kintv L U ρ T1 U1 -∗ sr_kintv L U ρ T2 U1.
   Proof.
-    rewrite !(hoLty_equiv_split vnil).
+    rewrite !(hoLty_equiv_split anil).
     iIntros "#(HT1 & HT2) #(HL&HM&$) /="; iSplit.
     by iApply (subtype_trans with "HL HT1").
     by iApply (subtype_trans with "HT2 HM").
@@ -277,7 +271,7 @@ Section utils.
   Lemma sr_kintv_respects_hoLty_equiv_2 {U1 U2} (L U : olty Σ 0) T1 ρ :
     hoLty_equiv U1 U2 -∗ sr_kintv L U ρ T1 U1 -∗ sr_kintv L U ρ T1 U2.
   Proof.
-    rewrite !(hoLty_equiv_split vnil).
+    rewrite !(hoLty_equiv_split anil).
     iIntros "#(HU1 & HU2) #($&HM&HU) /="; iSplit.
     by iApply (subtype_trans with "HM HU1").
     by iApply (subtype_trans with "HU2 HU").
@@ -306,24 +300,24 @@ Qed.
 
 Notation sf_star := (sf_kintv oBot oTop).
 
-Lemma vcurry_respects_hoLty_equiv {Σ n} {T1 T2 : hoLty Σ n.+1} arg :
-  hoLty_equiv T1 T2 -∗ hoLty_equiv (vcurry T1 arg) (vcurry T2 arg).
+Lemma acurry_respects_hoLty_equiv {Σ n} {T1 T2 : hoLty Σ n.+1} arg :
+  hoLty_equiv T1 T2 -∗ hoLty_equiv (acurry T1 arg) (acurry T2 arg).
 Proof. by iIntros "H %%". Qed.
 
 Program Definition sf_kpi `{dlangG Σ} {n} (S : oltyO Σ 0) (K : sf_kind Σ n) :
   sf_kind Σ n.+1 := SfKind
     (λI ρ φ1 φ2,
-      ∀ arg, S vnil ρ arg →
-      K (arg .: ρ) (vcurry φ1 arg) (vcurry φ2 arg)).
+      ∀ arg, S anil ρ arg →
+      K (arg .: ρ) (acurry φ1 arg) (acurry φ2 arg)).
 Next Obligation.
   move=> Σ ? ? n S K ρ m T1 T2 HT U1 U2 HU /=.
   f_equiv => ?; f_equiv.
-  by apply sf_kind_sub_ne_2; apply vcurry_ne.
+  by apply sf_kind_sub_ne_2; apply acurry_ne.
 Qed.
 Next Obligation.
   intros; iIntros "#Heq1 #Heq2 /= #HT %arg HS".
-  rewrite (vcurry_respects_hoLty_equiv (T1 := T1) arg).
-  rewrite (vcurry_respects_hoLty_equiv (T1 := U1) arg).
+  rewrite (acurry_respects_hoLty_equiv (T1 := T1) arg).
+  rewrite (acurry_respects_hoLty_equiv (T1 := U1) arg).
   iApply (sf_kind_sub_internal_proper with "Heq1 Heq2 (HT HS)").
 Qed.
 Next Obligation.
@@ -609,7 +603,7 @@ Qed.
 Notation "K .sKp[ p /]" := (kpSubstOne p K) (at level 65).
 
 Definition oTApp `{!dlangG Σ} {n} (T : oltyO Σ n.+1) (p : path) : oltyO Σ n :=
-  Olty (λ args ρ v, path_wp p.|[ρ] (λ w, T (vcons w args) ρ v)).
+  Olty (λ args ρ v, path_wp p.|[ρ] (λ w, T (acons w args) ρ v)).
 
 Section proper_eq.
   Context `{!dlangG Σ}.
