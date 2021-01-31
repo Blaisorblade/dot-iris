@@ -30,20 +30,20 @@ Section vec.
   Definition aopen (Φ : A) : vec vl 0 -d> A := λ args, Φ.
   #[global] Arguments aopen /.
 
-  Definition vcurry (Φ : vec vl (S n) -d> A) : vl -d> vec vl n -d> A :=
+  Definition acurry (Φ : vec vl (S n) -d> A) : vl -d> vec vl n -d> A :=
     λ v args, Φ (vcons v args).
 
   Definition vuncurry (Φ : vl -d> vec vl n -d> A) : vec vl (S n) -d> A :=
     λ args, Φ (ahead args) (atail args).
 End vec.
 
-Instance vcurry_ne vl n A m :
-  Proper (dist m ==> (=) ==> dist m) (@vcurry vl n A).
+Instance acurry_ne vl n A m :
+  Proper (dist m ==> (=) ==> dist m) (@acurry vl n A).
 Proof. solve_proper_ho. Qed.
 
-Instance vcurry_proper vl n A : Proper ((≡) ==> (=) ==> (≡)) (@vcurry vl n A).
+Instance acurry_proper vl n A : Proper ((≡) ==> (=) ==> (≡)) (@acurry vl n A).
 Proof. solve_proper_ho. Qed.
-Instance: Params (@vcurry) 3 := {}.
+Instance: Params (@acurry) 3 := {}.
 
 Definition vec_fold {A} {P : nat → Type}
   (base : P 0) (step : ∀ {n}, A → P n → P (S n)) : ∀ n, vec A n → P n :=

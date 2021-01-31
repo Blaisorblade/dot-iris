@@ -18,7 +18,7 @@ Module Type HoSemTypes
   (Import L : Lty VS LWP).
 
 Definition oCurry {n} {A : ofeT} (Φ : vec vl n.+1 → A) :
-  vl -d> vec vl n -d> A := vcurry Φ.
+  vl -d> vec vl n -d> A := acurry Φ.
 
 Definition oUncurry {n} {A : ofeT} (Φ : vl → vec vl n → A) :
   vec vl n.+1 -d> A := vuncurry Φ.
@@ -253,7 +253,7 @@ Section utils.
   Qed.
 
   Lemma envApply_oTAppV_eq n (T : olty Σ n.+1) v ρ :
-    envApply (oTAppV T v) ρ ≡ vcurry (envApply T ρ) v.[ρ].
+    envApply (oTAppV T v) ρ ≡ acurry (envApply T ρ) v.[ρ].
   Proof. done. Qed.
 
   Definition sr_kintv (L U : oltyO Σ 0) : sr_kind Σ 0 := λI ρ φ1 φ2,
@@ -306,24 +306,24 @@ Qed.
 
 Notation sf_star := (sf_kintv oBot oTop).
 
-Lemma vcurry_respects_hoLty_equiv {Σ n} {T1 T2 : hoLty Σ n.+1} arg :
-  hoLty_equiv T1 T2 -∗ hoLty_equiv (vcurry T1 arg) (vcurry T2 arg).
+Lemma acurry_respects_hoLty_equiv {Σ n} {T1 T2 : hoLty Σ n.+1} arg :
+  hoLty_equiv T1 T2 -∗ hoLty_equiv (acurry T1 arg) (acurry T2 arg).
 Proof. by iIntros "H %%". Qed.
 
 Program Definition sf_kpi `{dlangG Σ} {n} (S : oltyO Σ 0) (K : sf_kind Σ n) :
   sf_kind Σ n.+1 := SfKind
     (λI ρ φ1 φ2,
       ∀ arg, S vnil ρ arg →
-      K (arg .: ρ) (vcurry φ1 arg) (vcurry φ2 arg)).
+      K (arg .: ρ) (acurry φ1 arg) (acurry φ2 arg)).
 Next Obligation.
   move=> Σ ? ? n S K ρ m T1 T2 HT U1 U2 HU /=.
   f_equiv => ?; f_equiv.
-  by apply sf_kind_sub_ne_2; apply vcurry_ne.
+  by apply sf_kind_sub_ne_2; apply acurry_ne.
 Qed.
 Next Obligation.
   intros; iIntros "#Heq1 #Heq2 /= #HT %arg HS".
-  rewrite (vcurry_respects_hoLty_equiv (T1 := T1) arg).
-  rewrite (vcurry_respects_hoLty_equiv (T1 := U1) arg).
+  rewrite (acurry_respects_hoLty_equiv (T1 := T1) arg).
+  rewrite (acurry_respects_hoLty_equiv (T1 := U1) arg).
   iApply (sf_kind_sub_internal_proper with "Heq1 Heq2 (HT HS)").
 Qed.
 Next Obligation.
