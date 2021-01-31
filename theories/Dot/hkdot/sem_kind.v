@@ -512,9 +512,9 @@ Section ho_intv.
   #[global] Instance ho_intv_ne {n m}:
     Proper (dist m ==> dist m ==> dist m ==> dist m) (ho_intv (n := n) (Σ := Σ)).
   Proof.
-    move=> K1 K2 HK L1 L2 HL U1 U2 HU.
-    induction HK; cbn; f_equiv => //.
-    by apply: IHHK; repeat f_equiv.
+    move=> K1 K2 HK; induction HK => /= [??? ???| L1 L2 HL U1 U2 HU];
+      f_equiv => //.
+    apply IHHK; by repeat f_equiv.
   Qed.
 
   #[global] Instance ho_intv_proper {n}:
