@@ -4,16 +4,39 @@ From D Require Import prelude iris_prelude asubst_intf.
 (** saved interpretations *)
 Module Type SavedInterpN (Import V : VlSortsSig).
 
+(** Argument stream. *)
+Definition astream := list vl.
+Implicit Types (args : astream) (a arg v : vl).
+
+Definition anil : astream := [].
+Definition acons a args := a :: args.
+Definition ahead (args : astream) : vl := default inhabitant (head args).
+Definition atail : astream -> astream := tail.
+
+Definition auncurry {A} (Φ : vl -d> astream -d> A) : astream -d> A :=
+  λ args, Φ (ahead args) (atail args).
+Definition acurry {A} (Φ : astream -d> A) : vl -d> astream -d> A :=
+  λ v args, Φ (acons v args).
+Instance acurry_ne A n :
+  Proper (dist n ==> (=) ==> dist n) (@acurry A).
+Proof. solve_proper_ho. Qed.
+
+Definition aopen {A : ofeT} (Φ : A) : astream -d> A := λ args, Φ.
+#[global] Arguments aopen /.
+Notation aclose Φ := (Φ anil).
+
+Module TEST.
+  Definition __aclose {A : ofeT} (Φ : astream -d> A) : A. refine (aclose Φ). Abort.
+End TEST.
+
 Notation envPred s Σ := (env -d> s -d> iPropO Σ).
 Notation envD Σ := (envPred vl Σ).
 
-Definition hoEnvPred s Σ := list vl -d> envPred s Σ.
+Definition hoEnvPred s Σ := astream -d> envPred s Σ.
 Notation hoEnvD := (hoEnvPred vl).
 
-Definition hoD Σ := (* HO args *) list vl -d> vl -d> iPropO Σ.
-(* Definition packedHoEnvD Σ := packedHoEnvPred vl Σ. *)
-(* TODO name*)
-Local Notation argType s := (list vl * env * s)%type.
+Definition hoD Σ := astream -d> vl -d> iPropO Σ.
+#[local] Notation argType s := (astream * env * s)%type.
 
 Notation savedHoEnvPredG s Σ := (savedPredG Σ (argType s)).
 Notation savedHoEnvPredΣ s := (savedPredΣ (argType s)).
@@ -21,9 +44,9 @@ Notation savedHoEnvPredΣ s := (savedPredΣ (argType s)).
 Section saved_pred3.
   Context {s : Type}.
   Context `{!savedHoEnvPredG s Σ}.
-  Implicit Type (Φ : list vl -d> env -d> s -d> iPropO Σ).
+  Implicit Type (Φ : astream -d> env -d> s -d> iPropO Σ).
 
-  Definition curryC Φ : argType s -d> iPropO Σ := (λ '(a, b, c), Φ a b c).
+  Definition curryC Φ : argType s -d> iPropO Σ := (λ '(args, ρ, c), Φ args ρ c).
 
   Definition saved_pred3_own (γ : gname) Φ :=
     saved_pred_own γ (curryC Φ).
@@ -39,24 +62,15 @@ Section saved_pred3.
   Lemma saved_pred3_alloc Φ : ⊢ |==> ∃ γ, saved_pred3_own γ Φ.
   Proof. apply saved_pred_alloc. Qed.
 
-  Lemma saved_pred3_agree γ Φ Ψ a b c :
+  Lemma saved_pred3_agree {γ Φ Ψ} args ρ c :
     saved_pred3_own γ Φ -∗ saved_pred3_own γ Ψ -∗
-    ▷ (Φ a b c ≡ Ψ a b c).
-  Proof. apply (saved_pred_agree γ (curryC Φ) (curryC Ψ) (a, b, c)). Qed.
+    ▷ (Φ args ρ c ≡ Ψ args ρ c).
+  Proof. apply (saved_pred_agree γ (curryC Φ) (curryC Ψ) (_, _, _)). Qed.
 End saved_pred3.
 
 Typeclasses Opaque saved_pred3_own.
 #[global] Opaque saved_pred3_own.
 
 Notation "γ ⤇ φ" := (saved_pred3_own γ φ) (at level 20).
-
-Definition vcurry {A} (Φ : list vl -d> A) : vl -d> list vl -d> A :=
-  λ v args, Φ (cons v args).
-Instance vcurry_ne A n :
-  Proper (dist n ==> (=) ==> dist n) (@vcurry A).
-Proof. solve_proper_ho. Qed.
-
-Definition vopen {A : ofeT} (Φ : A) : list vl -d> A := λ args, Φ.
-#[global] Arguments vopen /.
 
 End SavedInterpN.
