@@ -33,6 +33,7 @@ before_install: |
 
 install: |
   set -e
+  echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   # Download the COQ container
   docker pull ${COQ_IMAGE}
   # Start the COQ container
