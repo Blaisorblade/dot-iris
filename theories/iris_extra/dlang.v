@@ -59,18 +59,15 @@ Module Type LiftWp (Import VS : VlSortsSig).
     #[global] Instance stamp_σ_to_type_n_contractive s σ i : Contractive (stamp_σ_to_type_n s σ i).
     Proof. rewrite /stamp_σ_to_type_n. solve_contractive_ho. Qed.
 
-    Import EqNotations.
+    (* Needed for [stamp_σ_to_type_agree] if it uses [simpl]. *)
+    #[local] Hint Extern 10 (IntoInternalEq (_ ≡ _) _ _) =>
+      apply class_instances_internal_eq.into_internal_eq_internal_eq : typeclass_instances.
 
     Lemma stamp_σ_to_type_agree {σ s n ψ1 ψ2} args v :
       s ↗n[ σ , n ] ψ1 -∗ s ↗n[ σ , n ] ψ2 -∗ ▷ (ψ1 args v ≡ ψ2 args v).
     Proof.
-      iDestruct 1 as (φ1) "[Hsg1 Heq1]"; iDestruct 1 as (φ2) "[Hsg2 Heq2]".
+      iDestruct 1 as (φ1) "[Hsg1 Heq1]"; iDestruct 1 as (φ2) "[Hsg2 Heq2] /=".
       iDestruct (saved_ho_sem_type_agree args (∞ σ) v with "Hsg1 Hsg2") as "Heq"; iNext.
-      iRewrite "Heq1". Undo.
-      simpl.
-      Fail iRewrite "Heq1".
-    #[local] Hint Extern 10 (IntoInternalEq (_ ≡ _) _ _) =>
-      apply class_instances_internal_eq.into_internal_eq_internal_eq : typeclass_instances.
       iRewrite "Heq1"; iRewrite "Heq2". iApply "Heq".
     Qed.
 
