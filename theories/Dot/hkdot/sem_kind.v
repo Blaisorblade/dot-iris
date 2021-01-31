@@ -224,7 +224,7 @@ Section sf_kind_subst.
     (* auncurry (λ v, Olty (λ args ρ, τ args (v .: ρ))). *)
 
   Definition _oTAppV {n} w (T : oltyO Σ n.+1) : oltyO Σ n :=
-    Olty (λI args ρ, T (vcons w.[ρ] args) ρ).
+    Olty (λI args ρ, T (acons w.[ρ] args) ρ).
 
 End sf_kind_subst.
 
@@ -609,7 +609,7 @@ Qed.
 Notation "K .sKp[ p /]" := (kpSubstOne p K) (at level 65).
 
 Definition oTApp `{!dlangG Σ} {n} (T : oltyO Σ n.+1) (p : path) : oltyO Σ n :=
-  Olty (λ args ρ v, path_wp p.|[ρ] (λ w, T (vcons w args) ρ v)).
+  Olty (λ args ρ v, path_wp p.|[ρ] (λ w, T (acons w args) ρ v)).
 
 Section proper_eq.
   Context `{!dlangG Σ}.

@@ -13,7 +13,7 @@ Notation anil := vector.vnil.
 Section vec.
   Context {vl : Type} {n : nat} {A : ofeT}.
   (* vector operations, on a functional representation of vectors. *)
-  Definition vcons (v : vl) (args: vec vl n) : vec vl (S n) := vector.vcons v args.
+  Definition acons (v : vl) (args: vec vl n) : vec vl (S n) := vector.vcons v args.
 
   Definition ahead (args: vec vl (S n)) : vl := args !!! 0%fin.
   Definition atail (args: vec vl (S n)) : vec vl n :=
@@ -22,8 +22,8 @@ Section vec.
   Lemma vec_anil_eta (v : vec vl 0) : v = anil.
   Proof. by apply vec_0_inv with (P := λ v, v = anil). Qed.
 
-  Lemma vec_vcons_eta : ∀ args : vec vl (S n),
-    vcons (ahead args) (atail args) = args.
+  Lemma vec_acons_eta : ∀ args : vec vl (S n),
+    acons (ahead args) (atail args) = args.
   Proof. exact: vec_S_inv. Qed.
 
   (** Manipulation of higher-order semantic types. *)
@@ -31,7 +31,7 @@ Section vec.
   #[global] Arguments aopen /.
 
   Definition acurry (Φ : vec vl (S n) -d> A) : vl -d> vec vl n -d> A :=
-    λ v args, Φ (vcons v args).
+    λ v args, Φ (acons v args).
 
   Definition auncurry (Φ : vl -d> vec vl n -d> A) : vec vl (S n) -d> A :=
     λ args, Φ (ahead args) (atail args).
