@@ -28,8 +28,9 @@ Module Type HoSemJudgments
   (Import HST : HoSemTypes VS LWP L).
 
 (** Kinded, Indexed SubTyPing *)
-Notation sstpiK' i Γ T1 T2 K :=
-  (∀ ρ, sG⟦Γ⟧*ρ → ▷^i K ρ (envApply T1 ρ) (envApply T2 ρ))%I.
+Notation sstpiK_env i T1 T2 K ρ := (▷^i K ρ (envApply T1 ρ) (envApply T2 ρ))%I.
+
+Notation sstpiK' i Γ T1 T2 K := (∀ ρ, sG⟦Γ⟧*ρ → sstpiK_env i T1 T2 K ρ)%I.
 
 Definition sstpiK `{dlangG Σ} {n} i Γ T1 T2 (K : sf_kind Σ n) : iProp Σ :=
   |==> sstpiK' i Γ T1 T2 K.
@@ -65,6 +66,11 @@ Section gen_lemmas.
     (* Time by apply sf_kind_sub_proper => //; f_equiv. *)
     by apply sf_kind_proper; f_equiv.
   Qed.
+
+  Lemma sstpiK_mono_ctx i n Γ {T1 U1 T2 U2: olty Σ n} (K1 K2 : sf_kind Σ n)
+    (Hsub : ⊢ ∀ ρ, sG⟦Γ⟧*ρ → sstpiK_env i T1 U1 K1 ρ -∗ sstpiK_env i T2 U2 K2 ρ) :
+    Γ s⊨ T1 <:[ i ] U1 ∷ K1 ⊢ Γ s⊨ T2 <:[ i ] U2 ∷ K2.
+  Proof. iIntros ">#HT !>" (ρ) "#Hg /=". iApply (Hsub with "Hg (HT Hg)"). Qed.
 
   #[global] Instance sSkd_proper n i :
     Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sSkd (Σ := Σ) (n := n) i).
@@ -323,18 +329,52 @@ Section gen_lemmas.
     Γ s⊨ T1 =[i] T2 ∷ K.
   Proof. iIntros (Heq) "#H"; by iSplit; iApply (sstpiK_proper with "H"). Qed.
 
-  (** This lemma is controversial. *)
+  Lemma sTEq_Eta_acons {n} (T : oltyO Σ n.+1) arg args :
+    oLam (oTAppV (oShift T) (ids 0)) (acons arg args) ≡ T (acons arg args).
+  Proof. move=>?? /=. autosubst. Qed.
+
+  Lemma sstpiK_mono_kpi i n Γ {T1 U1 T2 U2: olty Σ n.+1} S (K : sf_kind Σ n)
+    (HT : ∀ arg args ρ, envApply T2 ρ (acons arg args) ≡ envApply T1 ρ (acons arg args))
+    (HU : ∀ arg args ρ, envApply U2 ρ (acons arg args) ≡ envApply U1 ρ (acons arg args)) :
+    Γ s⊨ T1 <:[ i ] U1 ∷ sf_kpi S K ⊢ Γ s⊨ T2 <:[ i ] U2 ∷ sf_kpi S K.
+  Proof.
+    apply sstpiK_mono_ctx; iIntros "%ρ Hg HK"; iNext i; iIntros "%arg #HS".
+    by iApply (sf_kind_proper with "(HK HS)") => args; rewrite /acurry.
+  Qed.
+
+  Lemma sKStp_EtaRed {n} Γ (K : sf_kind Σ n) S T1 T2 i :
+    Γ s⊨ oLam (oTAppV (oShift T1) (ids 0)) <:[ i ] oLam (oTAppV (oShift T2) (ids 0)) ∷ sf_kpi S K -∗
+    Γ s⊨ T1 <:[ i ] T2 ∷ sf_kpi S K.
+  Proof. apply sstpiK_mono_kpi; intros; apply symmetry, sTEq_Eta_acons. Qed.
+
+  Lemma sKStp_Eta_1 {n} Γ S T (K : sf_kind Σ n) i :
+    Γ s⊨ T ∷[i] sf_kpi S K -∗
+    Γ s⊨ T <:[i] oLam (oTAppV (oShift T) (ids 0)) ∷ sf_kpi S K.
+  Proof. apply sstpiK_mono_kpi; intros => //. exact: (sTEq_Eta_acons _ arg args). Qed.
+
+  Lemma sKStp_Eta_2 {n} Γ S T (K : sf_kind Σ n) i :
+    Γ s⊨ T ∷[i] sf_kpi S K -∗
+    Γ s⊨ oLam (oTAppV (oShift T) (ids 0)) <:[i] T ∷ sf_kpi S K.
+  Proof. apply sstpiK_mono_kpi; intros => //. exact: (sTEq_Eta_acons _ arg args). Qed.
+
+  Lemma sKEq_Eta {n} Γ S T (K : sf_kind Σ n) i :
+    Γ s⊨ T ∷[i] sf_kpi S K -∗
+    Γ s⊨ T =[i] oLam (oTAppV (oShift T) (ids 0)) ∷ sf_kpi S K.
+  Proof. by iIntros "HT"; iSplit; [iApply sKStp_Eta_1|iApply sKStp_Eta_2]. Qed.
+
+  (** This lemma is a stronger version of [sTEq_Eta_acons]; it is
+  controversial, and fails when [astream := list vl], but it enables simpler
+  proofs of [sKStp_EtaRed] and [sKEq_Eta], without needing [sstpiK_mono_kpi]. *)
   Lemma sTEq_Eta {n} (T : oltyO Σ n.+1) :
     T ≡ oLam (oTAppV (oShift T) (ids 0)).
   Proof. move => + ρ v. apply: vec_S_inv => w args. autosubst. Qed.
 
-  (** Key applications of [sTEq_Eta] are [sKStp_EtaRed] and [sKEq_Eta], and those are less controversial. *)
-  Lemma sKStp_EtaRed {n} Γ (K : sf_kind Σ n) S T1 T2 i :
+  Lemma sKStp_EtaRed_simpler {n} Γ (K : sf_kind Σ n) S T1 T2 i :
     Γ s⊨ oLam (oTAppV (oShift T1) (ids 0)) <:[ i ] oLam (oTAppV (oShift T2) (ids 0)) ∷ sf_kpi S K -∗
     Γ s⊨ T1 <:[ i ] T2 ∷ sf_kpi S K.
   Proof. by rewrite -!sTEq_Eta. Qed.
 
-  Lemma sKEq_Eta {n} Γ S T (K : sf_kind Σ n) i :
+  Lemma sKEq_Eta_simpler {n} Γ S T (K : sf_kind Σ n) i :
     Γ s⊨ T ∷[i] sf_kpi S K -∗
     Γ s⊨ T =[i] oLam (oTAppV (oShift T) (ids 0)) ∷ sf_kpi S K.
   Proof. iApply sKEq_Refl. apply sTEq_Eta. Qed.
