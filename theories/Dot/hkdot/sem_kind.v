@@ -21,7 +21,7 @@ Definition oCurry {n} {A : ofeT} (Φ : vec vl n.+1 → A) :
   vl -d> vec vl n -d> A := acurry Φ.
 
 Definition oUncurry {n} {A : ofeT} (Φ : vl → vec vl n → A) :
-  vec vl n.+1 -d> A := vuncurry Φ.
+  vec vl n.+1 -d> A := auncurry Φ.
 
 (** A semantic kind of arity [n] induces an partial order representing
 subtyping on types of arity [n], indexed by environments. *)
@@ -221,7 +221,7 @@ Section sf_kind_subst.
 
   Definition oLam {n} (τ : oltyO Σ n) : oltyO Σ n.+1 :=
     Olty (λI args ρ, τ (atail args) (ahead args .: ρ)).
-    (* vuncurry (λ v, Olty (λ args ρ, τ args (v .: ρ))). *)
+    (* auncurry (λ v, Olty (λ args ρ, τ args (v .: ρ))). *)
 
   Definition _oTAppV {n} w (T : oltyO Σ n.+1) : oltyO Σ n :=
     Olty (λI args ρ, T (vcons w.[ρ] args) ρ).

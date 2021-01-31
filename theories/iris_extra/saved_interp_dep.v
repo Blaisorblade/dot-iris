@@ -33,7 +33,7 @@ Section vec.
   Definition acurry (Φ : vec vl (S n) -d> A) : vl -d> vec vl n -d> A :=
     λ v args, Φ (vcons v args).
 
-  Definition vuncurry (Φ : vl -d> vec vl n -d> A) : vec vl (S n) -d> A :=
+  Definition auncurry (Φ : vl -d> vec vl n -d> A) : vec vl (S n) -d> A :=
     λ args, Φ (ahead args) (atail args).
 End vec.
 
