@@ -348,7 +348,7 @@ Section type_proj.
   (** *** Auxiliary lemma. *)
   Lemma oProj_oTMem A (T : olty Σ 0) σ s :
     s ↝[ σ ] shift T -∗
-    |==> ∀ ρ, oLater T vnil ρ ⊆ oProj A (oTMemL A T T) vnil ρ.
+    |==> ∀ ρ, oLater T anil ρ ⊆ oProj A (oTMemL A T T) anil ρ.
   Proof.
     (** To prove this theorem, we create an auxiliary definition body [auxD]
     and an auxiliary object [auxV], whose type member [A] points to [shift T]. *)
@@ -360,7 +360,7 @@ Section type_proj.
     by iApply sP_Obj_I; iApply sD_Sing'; iApply (sD_Typ with "Hs").
 
     iIntros "!> %ρ %v #HT"; rewrite oProjN_eq.
-    iAssert (oTMemL A T T vnil ρ auxV.[ρ])%I as "{HwT} #Hw". {
+    iAssert (oTMemL A T T anil ρ auxV.[ρ])%I as "{HwT} #Hw". {
       rewrite -(path_wp_pv_eq auxV.[ρ]). by iApply "HwT".
     }
 

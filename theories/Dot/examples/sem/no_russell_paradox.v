@@ -21,7 +21,7 @@ Section Russell.
     paradoxical without Iris, because (informally) [v.A] points to [λ u, ¬ (u.A u)],
     hence [v.A v] is equivalent to ▷¬ (u.A u).
     *)
-  Definition uAu u := oSel (pv u) "A" vnil ids u.
+  Definition uAu u := oSel (pv u) "A" anil ids u.
 
   Definition russell_p : envD Σ := λI ρ v, uAu v -∗ False.
   (* This would internalize as [russell_p ρ v := v : μ x. not (x.A)]. *)
@@ -33,11 +33,11 @@ Section Russell.
       We assume [Hs] throughout the rest of the section. *)
   Definition v := vobj [("A", dtysem [] s)].
 
-  Lemma uAu_unfold : uAu v ≡ vl_sel v "A" vnil v.
+  Lemma uAu_unfold : uAu v ≡ vl_sel v "A" anil v.
   Proof. by rewrite /uAu/= !path_wp_pv_eq. Qed.
 
   (** Yes, v has a valid type member. *)
-  Lemma vHasA: Hs ⊢ oTMem "A" oBot oTop vnil ids v.
+  Lemma vHasA: Hs ⊢ oTMem "A" oBot oTop anil ids v.
   Proof.
     iIntros "#Hs".
     iExists _; iSplit. by iExists _; iSplit.
@@ -53,7 +53,7 @@ Section Russell.
     iDestruct "HuauV'" as (d ψ Hl) "[Hs1 Hvav]".
     have Hdeq: d = dtysem [] s. by move: Hl => /= [ds [[<- /=] ?]]; simplify_eq.
     iAssert (d ↗n[ 0 ] aopen (russell_p ids)) as "#Hs2". by iApply (dm_to_type_intro with "Hs").
-    iPoseProof (dm_to_type_agree vnil v with "Hs1 Hs2") as "#Hag".
+    iPoseProof (dm_to_type_agree anil v with "Hs1 Hs2") as "#Hag".
     (* without lock, iNext would strip a later in [HuauV]. *)
     rewrite [uAu]lock; iNext; unlock.
     iRewrite "Hag" in "Hvav".

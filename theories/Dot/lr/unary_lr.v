@@ -84,7 +84,7 @@ Section JudgEqs.
 
   Lemma sstpd_eq_1 Γ T1 i T2 :
     Γ s⊨ T1 <:[i] T2 ⊣⊢
-    |==> ∀ ρ, sG⟦Γ⟧* ρ → ∀ v, ▷^i (T1 vnil ρ v → T2 vnil ρ v).
+    |==> ∀ ρ, sG⟦Γ⟧* ρ → ∀ v, ▷^i (T1 anil ρ v → T2 anil ρ v).
   Proof.
     rewrite /sstpd /subtype_lty; f_equiv; f_equiv => ρ.
     by rewrite laterN_forall.
@@ -92,7 +92,7 @@ Section JudgEqs.
 
   Lemma sstpd_eq Γ T1 i T2 :
     Γ s⊨ T1 <:[i] T2 ⊣⊢
-    |==> ∀ ρ v, sG⟦Γ⟧* ρ → ▷^i (T1 vnil ρ v → T2 vnil ρ v).
+    |==> ∀ ρ v, sG⟦Γ⟧* ρ → ▷^i (T1 anil ρ v → T2 anil ρ v).
   Proof. rewrite sstpd_eq_1; properness. apply: forall_swap_impl. Qed.
 End JudgEqs.
 
@@ -177,7 +177,7 @@ Section sem_types.
 
   (** Not a "real" kind, just a predicate over types. *)
   Definition dot_intv_type_pred τ1 τ2 ρ ψ : iProp Σ :=
-    τ1 vnil ρ ⊆ packHoLtyO ψ vnil ∧ packHoLtyO ψ vnil ⊆ τ2 vnil ρ.
+    τ1 anil ρ ⊆ packHoLtyO ψ anil ∧ packHoLtyO ψ anil ⊆ τ2 anil ρ.
 
   (** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
   Definition oDTMem τ1 τ2 : dltyO Σ := oDTMemRaw _ (dot_intv_type_pred τ1 τ2).
@@ -238,7 +238,7 @@ Section sem_types.
   Definition oAll τ1 τ2 := olty0
     (λI ρ v,
     (∃ t, ⌜ v = vabs t ⌝ ∧
-     ∀ w, ▷ τ1 vnil ρ w → ▷ sE⟦ τ2 ⟧ (w .: ρ) t.|[w/])).
+     ∀ w, ▷ τ1 anil ρ w → ▷ sE⟦ τ2 ⟧ (w .: ρ) t.|[w/])).
 
   #[global] Instance oAll_proper : Proper ((≡) ==> (≡) ==> (≡)) oAll.
   Proof. solve_proper_ho. Qed.
@@ -334,13 +334,13 @@ Section judgment_definitions.
 
   Lemma istpd_eq Γ T1 i T2 :
     Γ ⊨ T1 <:[i] T2 ⊣⊢
-    |==> ∀ ρ v, G⟦Γ⟧ ρ → ▷^i (V⟦T1⟧ vnil ρ v → V⟦T2⟧ vnil ρ v).
+    |==> ∀ ρ v, G⟦Γ⟧ ρ → ▷^i (V⟦T1⟧ anil ρ v → V⟦T2⟧ anil ρ v).
   Proof. apply sstpd_eq. Qed.
 
   Lemma iptp_eq Γ p T i :
     Γ ⊨p p : T , i ⊣⊢
     |==> ∀ ρ, G⟦Γ⟧ ρ →
-      ▷^i path_wp (p.|[ρ]) (λ v, V⟦T⟧ vnil ρ v).
+      ▷^i path_wp (p.|[ρ]) (λ v, V⟦T⟧ anil ρ v).
   Proof. reflexivity. Qed.
 End judgment_definitions.
 
@@ -352,8 +352,8 @@ Section misc_lemmas.
     V⟦iterate TLater i T⟧ ≡ oLaterN i V⟦T⟧.
   Proof. elim: i => [//|i IHi] ???; by rewrite !iterate_S /= IHi. Qed.
 
-  Lemma oVMem_eq l T vnil ρ v :
-    oVMem l T vnil ρ v ⊣⊢
+  Lemma oVMem_eq l T anil ρ v :
+    oVMem l T anil ρ v ⊣⊢
     ∃ pmem, ⌜v @ l ↘ dpt pmem⌝ ∧ path_wp pmem (oClose T ρ).
   Proof.
     etrans; [apply bi_exist_nested_swap|]; apply bi.exist_proper => p.
@@ -371,21 +371,21 @@ Section misc_lemmas.
 
   (** Core lemmas about type selections and bounds. *)
   Lemma vl_sel_ub w l L U ρ v :
-    vl_sel w l vnil v -∗
-    oTMem l L U vnil ρ w -∗
-    U vnil ρ v.
+    vl_sel w l anil v -∗
+    oTMem l L U anil ρ w -∗
+    U anil ρ v.
   Proof.
     iIntros "Hφ"; iDestruct 1 as (d1 Hl1 φ1) "(Hdφ1 & _ & HφU)".
     iApply "HφU".
     iDestruct "Hφ" as (d2 φ2 Hl2) "[Hdφ2 Hφ2v]".
-    objLookupDet; iDestruct (dm_to_type_agree vnil v with "Hdφ2 Hdφ1") as "Hag".
+    objLookupDet; iDestruct (dm_to_type_agree anil v with "Hdφ2 Hdφ1") as "Hag".
     iNext. by iRewrite "Hag" in "Hφ2v".
   Qed.
 
   Lemma vl_sel_lb w l L U ρ v :
-    L vnil ρ v -∗
-    oTMem l L U vnil ρ w -∗
-    vl_sel w l vnil v.
+    L anil ρ v -∗
+    oTMem l L U anil ρ w -∗
+    vl_sel w l anil v.
   Proof.
     iIntros "HL"; iDestruct 1 as (d Hl φ) "[Hdφ [HLφ _]]".
     iExists d, φ; iFrame (Hl) "Hdφ". iApply ("HLφ" with "HL").
@@ -393,7 +393,7 @@ Section misc_lemmas.
 
   Lemma lift_sub_dty2cltyN i (T1 T2 : dlty Σ) l ρ :
     (∀ d, ▷^i T1 ρ d -∗ ▷^i T2 ρ d) ⊢
-    oLaterN i (lift_dty_vl l T1) vnil ρ ⊆ oLaterN i ((lift_dty_vl l T2)) vnil ρ.
+    oLaterN i (lift_dty_vl l T1) anil ρ ⊆ oLaterN i ((lift_dty_vl l T2)) anil ρ.
   Proof.
     iIntros "Hsub %v". iDestruct 1 as (d) "[Hl #H1]"; iExists d; iFrame "Hl".
     by iApply ("Hsub" with "H1").
@@ -401,12 +401,12 @@ Section misc_lemmas.
 
   Lemma lift_sub_dty2clty (T1 T2 : dlty Σ) l ρ :
     (∀ d, T1 ρ d -∗ T2 ρ d) ⊢
-    lift_dty_vl l T1 vnil ρ ⊆ lift_dty_vl l T2 vnil ρ.
+    lift_dty_vl l T1 anil ρ ⊆ lift_dty_vl l T2 anil ρ.
   Proof. apply (lift_sub_dty2cltyN 0). Qed.
 
   Lemma oDTMem_respects_sub L1 L2 U1 U2 ρ d :
-    L2 vnil ρ ⊆ L1 vnil ρ -∗
-    U1 vnil ρ ⊆ U2 vnil ρ -∗
+    L2 anil ρ ⊆ L1 anil ρ -∗
+    U1 anil ρ ⊆ U2 anil ρ -∗
     oDTMem L1 U1 ρ d -∗ oDTMem L2 U2 ρ d.
   Proof.
     iIntros "#HsubL #HsubU"; iDestruct 1 as (φ) "#(Hφl & #HLφ & #HφU)".
@@ -416,9 +416,9 @@ Section misc_lemmas.
   Qed.
 
   Lemma oTMem_respects_sub L1 L2 U1 U2 ρ l :
-    L2 vnil ρ ⊆ L1 vnil ρ -∗
-    U1 vnil ρ ⊆ U2 vnil ρ -∗
-    oTMem l L1 U1 vnil ρ ⊆ oTMem l L2 U2 vnil ρ.
+    L2 anil ρ ⊆ L1 anil ρ -∗
+    U1 anil ρ ⊆ U2 anil ρ -∗
+    oTMem l L1 U1 anil ρ ⊆ oTMem l L2 U2 anil ρ.
   Proof.
     rewrite -lift_sub_dty2clty; iIntros "#HsubL #HsubU %d".
     iApply (oDTMem_respects_sub with "HsubL HsubU").
@@ -436,7 +436,7 @@ Section misc_lemmas.
 
   Lemma oVMem_respects_subN i T1 T2 l ρ :
     oClose (oLaterN i T1) ρ ⊆ oClose (oLaterN i T2) ρ ⊢
-    oLaterN i (oVMem l T1) vnil ρ ⊆ oLaterN i (oVMem l T2) vnil ρ.
+    oLaterN i (oVMem l T1) anil ρ ⊆ oLaterN i (oVMem l T2) anil ρ.
   Proof.
     rewrite -lift_sub_dty2cltyN. iIntros "Hsub %d".
     iApply (oDVMem_respects_subN with "Hsub").

@@ -67,7 +67,7 @@ Section semantic_lemmas.
     rewrite sstpd_eq; iIntros ">#Hrepl >#Hal !> %ρ %v #Hg".
     iSpecialize ("Hal" with "Hg"); iNext i.
     iDestruct "Hal" as %Hal%alias_paths_simpl.
-    iRewrite ("Hrepl" $! vnil ρ v Hal); iIntros "$".
+    iRewrite ("Hrepl" $! anil ρ v Hal); iIntros "$".
   Qed.
 
   Lemma Sngl_pq_Stp {Γ i p q T1 T2} (Hrepl : T1 ~Tp[ p := q ]* T2):

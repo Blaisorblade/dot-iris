@@ -268,7 +268,7 @@ Section utils.
   Lemma sr_kintv_respects_hoLty_equiv_1 {T1 T2} (L U : olty Σ 0) U1 ρ :
     hoLty_equiv T1 T2 -∗ sr_kintv L U ρ T1 U1 -∗ sr_kintv L U ρ T2 U1.
   Proof.
-    rewrite !(hoLty_equiv_split vnil).
+    rewrite !(hoLty_equiv_split anil).
     iIntros "#(HT1 & HT2) #(HL&HM&$) /="; iSplit.
     by iApply (subtype_trans with "HL HT1").
     by iApply (subtype_trans with "HT2 HM").
@@ -277,7 +277,7 @@ Section utils.
   Lemma sr_kintv_respects_hoLty_equiv_2 {U1 U2} (L U : olty Σ 0) T1 ρ :
     hoLty_equiv U1 U2 -∗ sr_kintv L U ρ T1 U1 -∗ sr_kintv L U ρ T1 U2.
   Proof.
-    rewrite !(hoLty_equiv_split vnil).
+    rewrite !(hoLty_equiv_split anil).
     iIntros "#(HU1 & HU2) #($&HM&HU) /="; iSplit.
     by iApply (subtype_trans with "HM HU1").
     by iApply (subtype_trans with "HU2 HU").
@@ -313,7 +313,7 @@ Proof. by iIntros "H %%". Qed.
 Program Definition sf_kpi `{dlangG Σ} {n} (S : oltyO Σ 0) (K : sf_kind Σ n) :
   sf_kind Σ n.+1 := SfKind
     (λI ρ φ1 φ2,
-      ∀ arg, S vnil ρ arg →
+      ∀ arg, S anil ρ arg →
       K (arg .: ρ) (acurry φ1 arg) (acurry φ2 arg)).
 Next Obligation.
   move=> Σ ? ? n S K ρ m T1 T2 HT U1 U2 HU /=.

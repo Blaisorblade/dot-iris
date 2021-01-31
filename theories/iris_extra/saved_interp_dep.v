@@ -9,7 +9,7 @@ Set Default Proof Using "Type".
 Import EqNotations.
 Unset Program Cases.
 
-Notation vnil := vector.vnil.
+Notation anil := vector.vnil.
 Section vec.
   Context {vl : Type} {n : nat} {A : ofeT}.
   (* vector operations, on a functional representation of vectors. *)
@@ -19,8 +19,8 @@ Section vec.
   Definition atail (args: vec vl (S n)) : vec vl n :=
     Vector.caseS (λ n _, vec vl n) (λ h n t, t) args.
 
-  Lemma vec_vnil_eta (v : vec vl 0) : v = vnil.
-  Proof. by apply vec_0_inv with (P := λ v, v = vnil). Qed.
+  Lemma vec_anil_eta (v : vec vl 0) : v = anil.
+  Proof. by apply vec_0_inv with (P := λ v, v = anil). Qed.
 
   Lemma vec_vcons_eta : ∀ args : vec vl (S n),
     vcons (ahead args) (atail args) = args.
