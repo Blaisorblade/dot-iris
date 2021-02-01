@@ -69,7 +69,7 @@ Section Sec.
     iApply (oDTMem_respects_sub with "(HL Hg) (HU Hg) Hd").
   Qed.
 
-  Lemma sD_Typ {Γ s σ} {T : oltyO Σ 0} l:
+  Lemma sD_Typ {Γ s σ} {T : oltyO Σ} l:
     s ↝[ σ ] T -∗
     Γ s⊨ { l := dtysem σ s } : cTMem l (oLater T) (oLater T).
   Proof.

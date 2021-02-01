@@ -1,4 +1,7 @@
-Notation anil := @vnil
-Expands to: Notation D.iris_extra.saved_interp_dep.anil
+anil : astream
+
+anil is not universe polymorphic
+anil is transparent
+Expands to: Constant D.Dot.lr.dlang_inst.anil
 Notation shift chi := (shift chi)
 Expands to: Notation D.prelude.shift

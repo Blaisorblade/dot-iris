@@ -3,14 +3,14 @@ From iris.program_logic Require Import ectx_language language.
 From iris.base_logic.lib Require Import own.
 From D Require Import iris_prelude asubst_intf cmra_prop_lift
      swap_later_impl persistence.
-From D Require saved_interp_dep.
+From D Require saved_interp_n.
 From D.iris_extra Require det_reduction.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
 Module Type LiftWp (Import VS : VlSortsSig).
-  Export prelude saved_interp_dep.
+  Export prelude saved_interp_n.
   Implicit Types (v : vl) (σ vs : vls) (Σ : gFunctors).
   Include SavedHoInterp VS.
 
@@ -35,49 +35,49 @@ Module Type LiftWp (Import VS : VlSortsSig).
     irisG_langdet := _;
   }.
 
-  (** Notation [s ↝n[ n  ] φ] generalizes [s ↝ φ] on paper; [n] is the arity. *)
-  Notation "s ↝n[ n  ] φ" := (s ⤇n[ n  ] φ) (at level 20) : bi_scope.
+  (** Notation [s ↝n φ] generalizes [s ↝ φ] on paper. *)
+  Notation "s ↝n φ" := (s ⤇ φ) (at level 20) : bi_scope.
 
-  Program Definition hoEnvD_inst {i Σ} σ : hoEnvD Σ i -n> hoD Σ i :=
+  Program Definition hoEnvD_inst {Σ} σ : hoEnvD Σ -n> hoD Σ :=
     λne φ, λ args, φ args (∞ σ).
-  Next Obligation. move => i Σ σ n x y Heq args. exact: Heq. Qed.
+  Next Obligation. move => Σ σ n x y Heq args. exact: Heq. Qed.
 
-  Definition stamp_σ_to_type_n `{dlangG Σ} s σ n (ψ : hoD Σ n) : iProp Σ :=
-    ∃ φ : hoEnvD Σ n, s ↝n[ n ] φ ∧ ▷ (ψ ≡ hoEnvD_inst σ φ).
-  Notation "s ↗n[ σ , n  ] ψ" := (stamp_σ_to_type_n s σ n ψ) (at level 20): bi_scope.
+  Definition stamp_σ_to_type `{dlangG Σ} (s : gname) σ (ψ : hoD Σ) : iProp Σ :=
+    ∃ φ : hoEnvD Σ, s ↝n φ ∧ ▷ (ψ ≡ hoEnvD_inst σ φ).
+  Notation "s ↗n[ σ  ] ψ" := (stamp_σ_to_type s σ ψ) (at level 20): bi_scope.
 
   (* Beware: to prove [sD_Typ_Abs], here we must use [∞ σ.|[ρ]], not [∞ σ >> ρ]. *)
-  Definition leadsto_envD_equiv `{dlangG Σ} {i} s σ (φ : hoEnvD Σ i) : iProp Σ :=
-    ∃ (φ' : hoEnvD Σ i),
-      ⌜φ ≡ (λ args ρ, φ' args (∞ σ.|[ρ]))⌝ ∧ s ↝n[ i ] φ'.
+  Definition leadsto_envD_equiv `{dlangG Σ} s σ (φ : hoEnvD Σ) : iProp Σ :=
+    ∃ (φ' : hoEnvD Σ),
+      ⌜φ ≡ (λ args ρ, φ' args (∞ σ.|[ρ]))⌝ ∧ s ↝n φ'.
   Arguments leadsto_envD_equiv /.
   Notation "s ↝[ σ  ] φ" := (leadsto_envD_equiv s σ φ) (at level 20).
 
   Section mapsto.
     Context `{Hdlang : dlangG Σ}.
 
-    #[global] Instance stamp_σ_to_type_n_contractive s σ i : Contractive (stamp_σ_to_type_n s σ i).
-    Proof. rewrite /stamp_σ_to_type_n. solve_contractive_ho. Qed.
+    #[global] Instance stamp_σ_to_type_contractive s σ : Contractive (stamp_σ_to_type s σ).
+    Proof. rewrite /stamp_σ_to_type. solve_contractive_ho. Qed.
 
     (* Needed for [stamp_σ_to_type_agree] if it uses [simpl]. *)
     #[local] Hint Extern 10 (IntoInternalEq (_ ≡ _) _ _) =>
       apply class_instances_internal_eq.into_internal_eq_internal_eq : typeclass_instances.
 
-    Lemma stamp_σ_to_type_agree {σ s n ψ1 ψ2} args v :
-      s ↗n[ σ , n ] ψ1 -∗ s ↗n[ σ , n ] ψ2 -∗ ▷ (ψ1 args v ≡ ψ2 args v).
+    Lemma stamp_σ_to_type_agree {σ s ψ1 ψ2} args v :
+      s ↗n[ σ ] ψ1 -∗ s ↗n[ σ ] ψ2 -∗ ▷ (ψ1 args v ≡ ψ2 args v).
     Proof.
       iDestruct 1 as (φ1) "[Hsg1 Heq1]"; iDestruct 1 as (φ2) "[Hsg2 Heq2] /=".
       iDestruct (saved_ho_sem_type_agree args (∞ σ) v with "Hsg1 Hsg2") as "Heq"; iNext.
       iRewrite "Heq1"; iRewrite "Heq2". iApply "Heq".
     Qed.
 
-    Lemma stamp_σ_to_type_intro s σ n (φ : hoEnvD Σ n) :
-      s ↝n[ n ] φ -∗ s ↗n[ σ , n ] hoEnvD_inst σ φ.
-    Proof. rewrite /stamp_σ_to_type_n. iIntros; iExists φ; auto. Qed.
+    Lemma stamp_σ_to_type_intro s σ (φ : hoEnvD Σ) :
+      s ↝n φ -∗ s ↗n[ σ ] hoEnvD_inst σ φ.
+    Proof. rewrite /stamp_σ_to_type. iIntros; iExists φ; auto. Qed.
   End mapsto.
 
-  Typeclasses Opaque stamp_σ_to_type_n.
-  #[global] Opaque stamp_σ_to_type_n.
+  Typeclasses Opaque stamp_σ_to_type.
+  #[global] Opaque stamp_σ_to_type.
 
   Module dlang_adequacy.
     Definition dlangΣ := #[savedHoSemTypeΣ].
@@ -93,6 +93,6 @@ Module Type LiftWp (Import VS : VlSortsSig).
   End dlang_adequacy.
 
   (* Backward compatibility. *)
-  Notation "s ↝ φ" := (s ↝n[ 0 ] aopen φ)%I  (at level 20) : bi_scope.
-  Notation "s ↗[ σ  ] ψ" := (s ↗n[ σ , 0 ] aopen ψ)%I (at level 20) : bi_scope.
+  Notation "s ↝ φ" := (s ↝n aopen φ)%I  (at level 20) : bi_scope.
+  Notation "s ↗[ σ  ] ψ" := (s ↗n[ σ ] aopen ψ)%I (at level 20) : bi_scope.
 End LiftWp.

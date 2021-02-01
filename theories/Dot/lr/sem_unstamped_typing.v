@@ -75,7 +75,7 @@ Notation "Γ u⊨ e : T" := (iuetp Γ T e) (at level 74, e, T at next level).
 Theorem unstamped_s_safety_dot_sem
   Σ `{HdlangG : !dlangG Σ} `{HswapProp : !SwapPropI Σ}
   {e_u}
-  (τ : ∀ `{!dlangG Σ}, olty Σ 0)
+  (τ : ∀ `{!dlangG Σ}, olty Σ)
   (Hwp : ∀ `{!dlangG Σ} `(!SwapPropI Σ), ⊢ [] su⊨ e_u : τ):
   safe e_u.
 Proof.
@@ -106,7 +106,7 @@ Qed.
 
 #[local] Hint Resolve same_skel_dms_hasnt : core.
 
-Definition coveringσ `{!dlangG Σ} {i} σ (T : olty Σ i) : Prop :=
+Definition coveringσ `{!dlangG Σ} σ (T : olty Σ) : Prop :=
   ∀ args ρ, T args ρ ≡ T args (∞ σ.|[ρ]).
 
 Section coveringσ_intro_lemmas.
@@ -120,14 +120,14 @@ Section coveringσ_intro_lemmas.
   Qed.
 
   (* Maybe hard to use in general; [nclosed] requires equality on the nose? *)
-  Lemma nclosed_sem_coveringσ {n} {T : olty Σ 0} (Hcl : nclosed T n) :
+  Lemma nclosed_sem_coveringσ {n} {T : olty Σ} (Hcl : nclosed T n) :
     coveringσ (idsσ n) T.
   Proof.
     move=> args ρ v.
     by rewrite -olty_finsubst_commute_cl ?length_idsσ // closed_subst_idsρ.
   Qed.
 
-  Lemma coveringσ_shift {i} σ (T : olty Σ i) :
+  Lemma coveringσ_shift σ (T : olty Σ) :
     coveringσ σ T → coveringσ (push_var σ) (shift T).
   Proof.
     move => + args ρ => /(_ args (stail ρ)) HclT; cbn.
@@ -139,26 +139,26 @@ End coveringσ_intro_lemmas.
 Section tmem_unstamped_lemmas.
   Context `{!dlangG Σ}.
 
-  Lemma leadsto_envD_equiv_alloc {σ i} {T : olty Σ i}
+  Lemma leadsto_envD_equiv_alloc {σ} {T : olty Σ}
     (Hcl : coveringσ σ T): ⊢ |==> ∃ s, s ↝[ σ ] T.
   Proof.
-    iMod (saved_ho_sem_type_alloc _ T) as (s) "#Hs"; iIntros "!>".
+    iMod (saved_ho_sem_type_alloc T) as (s) "#Hs"; iIntros "!>".
     iExists s, T; iFrame "Hs"; iIntros "!%". apply Hcl.
   Qed.
 
-  Lemma leadsto_envD_equiv_alloc_shift {σ} {T : olty Σ 0} :
+  Lemma leadsto_envD_equiv_alloc_shift {σ} {T : olty Σ} :
     coveringσ σ T →
     ⊢ |==> ∃ s, s ↝[ push_var σ ] shift T.
   Proof. intros Hcl; apply leadsto_envD_equiv_alloc, coveringσ_shift, Hcl. Qed.
 
-  Lemma suD_Typ_Gen {l Γ fakeT s σ} {T : olty Σ 0} :
+  Lemma suD_Typ_Gen {l Γ fakeT s σ} {T : olty Σ} :
     s ↝[ σ ] T -∗ Γ su⊨ { l := dtysyn fakeT } : cTMem l (oLater T) (oLater T).
   Proof.
     iIntros "#Hs"; iModIntro. iExists (dtysem σ s).
     iSplit; first done; iApply (sD_Typ with "Hs").
   Qed.
 
-  Lemma suD_Typ {l σ Γ fakeT} {T : olty Σ 0} (HclT : coveringσ σ T):
+  Lemma suD_Typ {l σ Γ fakeT} {T : olty Σ} (HclT : coveringσ σ T):
     ⊢ Γ su⊨ { l := dtysyn fakeT } : cTMem l (oLater T) (oLater T).
   Proof.
     iMod (leadsto_envD_equiv_alloc HclT) as (s) "#Hs".
