@@ -1,81 +1,81 @@
-dist: bionic
-language: minimal
+# dist: bionic
+# language: minimal
 
-services:
-  - docker
+# services:
+#   - docker
 
-env:
-  global:
-  - NJOBS="2"
-  - CONTRIB_NAME="dot-iris"
-  - OPAM_NAME="dot-iris-builddep"
-  matrix:
-  - COQ_IMAGE="blaisorblade/docker-dot-iris:coq-8.13.0-iris-2021-01-12.0.bbaf3eaf"
-  # this config uses: $COMPILER_EDGE (cf. "opam switch" command below)
-  # See https://github.com/coq-community/docker-coq/wiki#supported-tags
+# env:
+#   global:
+#   - NJOBS="2"
+#   - CONTRIB_NAME="dot-iris"
+#   - OPAM_NAME="dot-iris-builddep"
+#   matrix:
+#   - COQ_IMAGE="blaisorblade/docker-dot-iris:coq-8.13.0-iris-2021-01-12.0.bbaf3eaf"
+#   # this config uses: $COMPILER_EDGE (cf. "opam switch" command below)
+#   # See https://github.com/coq-community/docker-coq/wiki#supported-tags
 
-before_install: |
-  export -f travis_fold
-  export -f travis_time_start
-  export -f travis_time_finish
-  do_travis() {
-    travis_fold start "$1"
-    travis_time_start
-    docker exec COQ /bin/bash --login -c "
-      export PS4='+ \e[33;1m(\$0 @ line \$LINENO) \$\e[0m '; set -ex
-      $2" "$1"
-    ret=$?
-    travis_time_finish
-    travis_fold end "$1"
-    return $ret
-  }
-  export -f do_travis
+# before_install: |
+#   export -f travis_fold
+#   export -f travis_time_start
+#   export -f travis_time_finish
+#   do_travis() {
+#     travis_fold start "$1"
+#     travis_time_start
+#     docker exec COQ /bin/bash --login -c "
+#       export PS4='+ \e[33;1m(\$0 @ line \$LINENO) \$\e[0m '; set -ex
+#       $2" "$1"
+#     ret=$?
+#     travis_time_finish
+#     travis_fold end "$1"
+#     return $ret
+#   }
+#   export -f do_travis
 
-install: |
-  set -e
-  echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-  # Download the COQ container
-  docker pull ${COQ_IMAGE}
-  # Start the COQ container
-  docker run -d -i --init --name=COQ -v ${TRAVIS_BUILD_DIR}:/home/coq/${CONTRIB_NAME} -w /home/coq/${CONTRIB_NAME} ${COQ_IMAGE}
-  # Prepare the COQ container
-  do_travis "update" "
-    if [ -n \"\${COMPILER_EDGE}\" ]; then opam switch \${COMPILER_EDGE}; eval \$(opam env); fi
-    opam update -y
-    opam pin add -y -n -k path $OPAM_NAME ."
-  #
-  # Likely redundant, except during upgrades
-  do_travis "deps" "opam install -y -v -j ${NJOBS} --deps-only $OPAM_NAME"
-  do_travis "settings" "opam config list; opam repo list; opam list"
+# install: |
+#   set -e
+#   echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+#   # Download the COQ container
+#   docker pull ${COQ_IMAGE}
+#   # Start the COQ container
+#   docker run -d -i --init --name=COQ -v ${TRAVIS_BUILD_DIR}:/home/coq/${CONTRIB_NAME} -w /home/coq/${CONTRIB_NAME} ${COQ_IMAGE}
+#   # Prepare the COQ container
+#   do_travis "update" "
+#     if [ -n \"\${COMPILER_EDGE}\" ]; then opam switch \${COMPILER_EDGE}; eval \$(opam env); fi
+#     opam update -y
+#     opam pin add -y -n -k path $OPAM_NAME ."
+#   #
+#   # Likely redundant, except during upgrades
+#   do_travis "deps" "opam install -y -v -j ${NJOBS} --deps-only $OPAM_NAME"
+#   do_travis "settings" "opam config list; opam repo list; opam list"
 
-script:
-- echo -e "${ANSI_YELLOW}Building ${CONTRIB_NAME}...${ANSI_RESET}"
-- |
-  do_travis "script" "
-    sudo chown -R coq:coq /home/coq/${CONTRIB_NAME}
-    make -k -j ${NJOBS} TIMED=1
-    make html"
+# script:
+# - echo -e "${ANSI_YELLOW}Building ${CONTRIB_NAME}...${ANSI_RESET}"
+# - |
+#   do_travis "script" "
+#     sudo chown -R coq:coq /home/coq/${CONTRIB_NAME}
+#     make -k -j ${NJOBS} TIMED=1
+#     make html"
 
-after_script:
-- docker stop COQ  # optional but recommended
-- docker logout
-- rm -f /home/travis/.docker/config.json
+# after_script:
+# - docker stop COQ  # optional but recommended
+# - docker logout
+# - rm -f /home/travis/.docker/config.json
 
-deploy:
-  edge: true # https://docs.travis-ci.com/user/deployment-v2
-  provider: pages
-  github_token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
-  repo: dot-iris/dot-iris.github.io
-  target_branch: master
-  keep_history: true
-  # keep_history: false
-  allow_empty_commit: true
-  verbose: true
+# deploy:
+#   edge: true # https://docs.travis-ci.com/user/deployment-v2
+#   provider: pages
+#   github_token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+#   repo: dot-iris/dot-iris.github.io
+#   target_branch: master
+#   keep_history: true
+#   # keep_history: false
+#   allow_empty_commit: true
+#   verbose: true
 
-  local_dir: website
-  # cleanup: false
+#   local_dir: website
+#   # cleanup: false
 
-  on:
-    branch: master
+#   on:
+#     branch: master
 
-  commit_message:	Deploy %{project_name}@%{git_sha} to %{url}:%{target_branch}
+#   commit_message:	Deploy %{project_name}@%{git_sha} to %{url}:%{target_branch}
