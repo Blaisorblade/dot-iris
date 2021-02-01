@@ -331,50 +331,12 @@ Fixpoint env_oltyped `{dlangG Σ} (ρ : var → vl) (Γ : sCtx Σ) : iProp Σ :=
 where "sG⟦ Γ ⟧* ρ" := (env_oltyped ρ Γ).
 #[global] Instance: Params (@env_oltyped) 4 := {}.
 
-Definition env_oltyped_nil `{dlangG Σ} ρ : sG⟦ [] ⟧* ρ ⊣⊢ True := reflexivity _.
-Definition env_oltyped_cons `{dlangG Σ} ρ τ (Γ : sCtx Σ) :
-  sG⟦ τ :: Γ ⟧* ρ ⊣⊢ sG⟦ Γ ⟧* (stail ρ) ∧ oClose τ ρ (shead ρ) := reflexivity _.
-
-(** ** Constructors for language-independent semantic types, corresponding to
-[⊤], [⊥], [T₁ ∧ T₂], [T₁ ∨ T₂], [μ x. T], [▷]. *)
-(** oLaterN *)
-Section oLaterN.
-  Context {Σ}.
-  (** Semantic type constructor for [▷^n T] *)
-  Definition oLaterN n (τ : oltyO Σ) := Olty (λI args ρ v, ▷^n τ args ρ v).
-
-  #[global] Instance oLaterN_ne m : NonExpansive (oLaterN m).
-  Proof. solve_proper_ho. Qed.
-  #[global] Instance oLaterN_proper m : Proper ((≡) ==> (≡)) (oLaterN m) := ne_proper _.
-
-  Lemma oLaterN_eq n τ args ρ v : oLaterN n τ args ρ v = (▷^n τ args ρ v)%I.
-  Proof. done. Qed.
-End oLaterN.
-(** Semantic type constructor for [▷ T] *)
-Notation oLater := (oLaterN 1).
-#[global] Instance: Params (@oLaterN) 2 := {}.
-
-Section olty_ofe_2.
+Section env_oltyped.
   Context `{dlangG Σ}.
-  Implicit Types (φ : hoEnvD Σ) (τ : oltyO Σ).
 
-  (** oLaterN, part 2 *)
-
-  Lemma oLaterN_0 (T : olty Σ) :
-    oLaterN 0 T ≡ T.
-  Proof. done. Qed.
-
-  Lemma oLaterN_S (T : olty Σ) n :
-    oLaterN (S n) T ≡ oLater (oLaterN n T).
-  Proof. done. Qed.
-
-  Lemma oLaterN_Sr (T : olty Σ) n :
-    oLaterN (S n) T ≡ oLaterN n (oLater T).
-  Proof. move => ???/=. by rewrite swap_later. Qed.
-
-  Lemma oLaterN_plus {m n} {T : olty Σ} :
-    oLaterN (m + n) T ≡ oLaterN m (oLaterN n T).
-  Proof. move=> ???. by rewrite/= laterN_plus. Qed.
+  Definition env_oltyped_nil ρ : sG⟦ [] ⟧* ρ ⊣⊢ True := reflexivity _.
+  Definition env_oltyped_cons ρ τ (Γ : sCtx Σ) :
+    sG⟦ τ :: Γ ⟧* ρ ⊣⊢ sG⟦ Γ ⟧* (stail ρ) ∧ oClose τ ρ (shead ρ) := reflexivity _.
 
   #[global] Instance env_oltyped_ne ρ : NonExpansive (env_oltyped ρ).
   Proof.
@@ -397,6 +359,50 @@ Section olty_ofe_2.
       iApply (hoEnvD_weaken_one (shiftN x τ)).
       iApply (IHΓ (stail ρ) x Hx with "Hg").
   Qed.
+
+  Definition interp_expr (φ : hoEnvD Σ) : envPred tm Σ :=
+    λI ρ t, WP t {{ oClose φ ρ }}.
+  #[global] Arguments interp_expr /.
+End env_oltyped.
+
+Notation "sE⟦ τ ⟧" := (interp_expr τ).
+
+(** ** Constructors for language-independent semantic types, corresponding to
+[⊤], [⊥], [T₁ ∧ T₂], [T₁ ∨ T₂], [μ x. T], [▷]. *)
+
+(** Semantic type constructor for [▷^n T] *)
+Definition oLaterN {Σ} n (τ : oltyO Σ) := Olty (λI args ρ v, ▷^n τ args ρ v).
+(** Semantic type constructor for [▷ T] *)
+Notation oLater := (oLaterN 1).
+#[global] Instance: Params (@oLaterN) 2 := {}.
+
+Section olty_ofe_2.
+  Context {Σ}.
+  Implicit Types (φ : hoEnvD Σ) (τ : oltyO Σ).
+
+  (** oLaterN *)
+  #[global] Instance oLaterN_ne m : NonExpansive (oLaterN (Σ := Σ) m).
+  Proof. solve_proper_ho. Qed.
+  #[global] Instance oLaterN_proper m : Proper ((≡) ==> (≡)) (oLaterN m) := ne_proper _.
+
+  Lemma oLaterN_eq n τ args ρ v : oLaterN n τ args ρ v = (▷^n τ args ρ v)%I.
+  Proof. done. Qed.
+
+  Lemma oLaterN_0 (T : olty Σ) :
+    oLaterN 0 T ≡ T.
+  Proof. done. Qed.
+
+  Lemma oLaterN_S (T : olty Σ) n :
+    oLaterN (S n) T ≡ oLater (oLaterN n T).
+  Proof. done. Qed.
+
+  Lemma oLaterN_Sr (T : olty Σ) n :
+    oLaterN (S n) T ≡ oLaterN n (oLater T).
+  Proof. move => ???/=. by rewrite swap_later. Qed.
+
+  Lemma oLaterN_plus {m n} {T : olty Σ} :
+    oLaterN (m + n) T ≡ oLaterN m (oLaterN n T).
+  Proof. move=> ???. by rewrite/= laterN_plus. Qed.
 
   Definition olty0 (φ : envD Σ) : oltyO Σ :=
     Olty (aopen φ).
@@ -437,9 +443,6 @@ Section olty_ofe_2.
   Lemma oMu_shift (T : oltyO Σ) : oMu (shift T) ≡ T.
   Proof. move=> args ρ v. by rewrite /= (hoEnvD_weaken_one T args _ v). Qed.
 
-  Definition interp_expr (φ : hoEnvD Σ) : envPred tm Σ :=
-    λI ρ t, WP t {{ oClose φ ρ }}.
-  #[global] Arguments interp_expr /.
 
   Lemma sTEq_oMu_oLaterN (τ : oltyO Σ) n :
     oLaterN n (oMu τ) ≡ oMu (oLaterN n τ).
@@ -457,6 +460,4 @@ End olty_ofe_2.
 #[global] Instance: Params (@oAnd) 2 := {}.
 #[global] Instance: Params (@oOr) 2 := {}.
 #[global] Instance: Params (@oMu) 2 := {}.
-
-Notation "sE⟦ τ ⟧" := (interp_expr τ).
 End Lty.
