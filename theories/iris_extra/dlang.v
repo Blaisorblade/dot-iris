@@ -11,7 +11,7 @@ Set Default Proof Using "Type".
 
 Module Type LiftWp (Import VS : VlSortsSig).
   Export prelude saved_interp_dep.
-  Implicit Types (v : vl) (vs : vls) (Σ : gFunctors).
+  Implicit Types (v : vl) (σ vs : vls) (Σ : gFunctors).
   Include SavedHoInterp VS.
 
   Notation savedHoSemTypeG Σ := (savedHoEnvPredG vl Σ).
