@@ -16,7 +16,7 @@ Notation sstpi' i j Γ τ1 τ2 :=
 
 Section defs.
   Context {Σ}.
-  Implicit Types (τ : oltyO Σ 0).
+  Implicit Types (τ : oltyO Σ).
 
   (** Legacy: (double)-indexed subtyping. *)
   Definition sstpi `{!dlangG Σ} i j Γ τ1 τ2 : iProp Σ :=
@@ -32,7 +32,7 @@ Notation "Γ ⊨ T1 , i <: T2 , j" := (istpi Γ T1 T2 i j) (at level 74, T1, T2,
 (** * Proper instances. *)
 Section Propers.
   Context `{HdotG: !dlangG Σ}.
-  Implicit Types (τ L T U : olty Σ 0).
+  Implicit Types (τ L T U : olty Σ).
 
   #[global] Instance sstpi_proper i j : Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sstpi i j).
   Proof.
@@ -55,7 +55,7 @@ Section judgment_lemmas.
     |==> ∀ ρ v, G⟦Γ⟧ ρ → ▷^i V⟦T1⟧ anil ρ v → ▷^j V⟦T2⟧ anil ρ v.
   Proof. reflexivity. Qed.
 
-  Lemma sstpi_app ρ Γ (T1 T2 : olty Σ 0) i j :
+  Lemma sstpi_app ρ Γ (T1 T2 : olty Σ) i j :
     sstpi' i j Γ T1 T2 -∗ sG⟦ Γ ⟧* ρ -∗
     oClose (oLaterN i T1) ρ ⊆ oClose (oLaterN j T2) ρ.
   Proof. iIntros "Hsub Hg %v"; iApply ("Hsub" with "Hg"). Qed.

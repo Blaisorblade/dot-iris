@@ -26,7 +26,7 @@ Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env) (l : label).
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
 
-Definition oExists `{!dlangG Σ} {n} (T : oltyO Σ 0) (U : oltyO Σ n) : oltyO Σ n :=
+Definition oExists `{!dlangG Σ} (T : oltyO Σ) (U : oltyO Σ) : oltyO Σ :=
   Olty (λI args ρ v,
   ∃ w,
   (* w ∈ T *)
@@ -49,7 +49,7 @@ Section existentials.
   Context `{!dlangG Σ}.
 
   (** Rule [∃-<:] (called [≤∃L] in the link). *)
-  Lemma sEx_Stp `{!SwapPropI Σ} Γ S T (U : oltyO Σ 0) i :
+  Lemma sEx_Stp `{!SwapPropI Σ} Γ S T (U : oltyO Σ) i :
     oLaterN i (oShift S) :: Γ s⊨ T <:[i] oShift U -∗
     Γ s⊨ oExists S T <:[i] U.
   Proof.
@@ -59,7 +59,7 @@ Section existentials.
   Qed.
 
   (** Rule [<:-∃] (called [≤∃L] in the link). *)
-  Lemma sStp_Ex `{!SwapPropI Σ} Γ S T (U : oltyO Σ 0) i p :
+  Lemma sStp_Ex `{!SwapPropI Σ} Γ S T (U : oltyO Σ) i p :
     Γ s⊨p p : S, i -∗
     Γ s⊨ T <:[i] opSubst p U -∗
     Γ s⊨ T <:[i] oExists S U.
@@ -78,35 +78,34 @@ End existentials.
   (model-level) existentials and normal DOT type members:
     [V[[T#A]](ρ) = { v | ∃ w ∈ V[[T]](ρ). v ∈ V[[w.A]](ρ) }].
 *)
-Definition oProjN `{!dlangG Σ} n A (T : oltyO Σ 0) : oltyO Σ n :=
+Definition oProj `{!dlangG Σ} A (T : oltyO Σ) : oltyO Σ :=
   Olty (λI args ρ v,
   ∃ w,
   (* w ∈ T *)
   oClose T ρ w ∧
   (* v ∈ w.A *)
-  oSelN n (pv (ids 0)) A args (w .: ρ) v).
-Notation oProj A T := (oProjN 0 A T).
+  oSel (pv (ids 0)) A args (w .: ρ) v).
 
 (** *** Technical infrastructure for setoid rewriting. *)
-Instance: Params (@oProjN) 4 := {}.
+Instance: Params (@oProj) 3 := {}.
 
 Section type_proj_setoid_equality.
   Context `{!dlangG Σ}.
 
-  Definition oProjN_oExists `{!dlangG Σ} n A T:
-    oProjN n A T ≡ oExists T (oSelN n (pv (ids 0)) A) := reflexivity _.
+  Definition oProjN_oExists `{!dlangG Σ} A T:
+    oProj A T ≡ oExists T (oSel (pv (ids 0)) A) := reflexivity _.
 
-  #[global] Instance oProjN_ne n A : NonExpansive (oProjN n A).
+  #[global] Instance oProjN_ne A : NonExpansive (oProj A).
   Proof. solve_proper_ho. Qed.
-  #[global] Instance oProjN_proper n A : Proper ((≡) ==> (≡)) (oProjN n A) := ne_proper _.
+  #[global] Instance oProjN_proper A : Proper ((≡) ==> (≡)) (oProj A) := ne_proper _.
 
-  Lemma oProjN_eq n A T args ρ v :
-    oProjN n A T args ρ v ⊣⊢ ∃ w, oClose T ρ w ∧ vl_sel w A args v.
+  Lemma oProjN_eq A T args ρ v :
+    oProj A T args ρ v ⊣⊢ ∃ w, oClose T ρ w ∧ vl_sel w A args v.
   Proof. by simpl; f_equiv => w; rewrite path_wp_pv_eq. Qed.
 
-  Lemma oProjN_eq_2 n A T args ρ v :
-    oProjN n A T args ρ v ⊣⊢
-    ∃ w d ψ, ⌜w @ A ↘ d⌝ ∧ oClose T ρ w ∧ d ↗n[ n ] ψ ∧ ▷ ψ args v.
+  Lemma oProjN_eq_2 A T args ρ v :
+    oProj A T args ρ v ⊣⊢
+    ∃ w d ψ, ⌜w @ A ↘ d⌝ ∧ oClose T ρ w ∧ d ↗n ψ ∧ ▷ ψ args v.
   Proof.
     rewrite oProjN_eq; f_equiv => w.
     rewrite and_exist_l; f_equiv => ψ; rewrite and_exist_l; f_equiv => d.
@@ -122,7 +121,7 @@ Section type_proj.
     Existentials on a singleton coincide with path substitution:
     [∃ x: p.type. T = T[x:=p]].
    *)
-  Lemma oExists_oSing p (T : oltyO Σ 0) :
+  Lemma oExists_oSing p (T : oltyO Σ) :
     oExists (oSing p) T ≡ opSubst p T.
   Proof.
     move=> args ρ v. rewrite /= path_wp_eq.
@@ -346,7 +345,7 @@ Section type_proj.
   *)
 
   (** *** Auxiliary lemma. *)
-  Lemma oProj_oTMem A (T : olty Σ 0) σ s :
+  Lemma oProj_oTMem A (T : olty Σ) σ s :
     s ↝[ σ ] shift T -∗
     |==> ∀ ρ, oLater T anil ρ ⊆ oProj A (oTMemL A T T) anil ρ.
   Proof.
@@ -368,7 +367,7 @@ Section type_proj.
     iApply (vl_sel_lb with "HT Hw").
   Qed.
 
-  Lemma sProj_Stp_TMem {Γ i A σ} {T : olty Σ 0} :
+  Lemma sProj_Stp_TMem {Γ i A σ} {T : olty Σ} :
     coveringσ σ T →
     ⊢ Γ s⊨ oLater T <:[i] oProj A (oTMemL A T T).
   Proof.
