@@ -443,6 +443,9 @@ Section olty_ofe_2.
   Lemma oMu_shift (T : oltyO Σ) : oMu (shift T) ≡ T.
   Proof. move=> args ρ v. by rewrite /= (hoEnvD_weaken_one T args _ v). Qed.
 
+  Lemma sTEq_oTop_oLaterN n :
+    oLaterN n oTop ≡ oTop.
+  Proof. iIntros; eauto. Qed.
 
   Lemma sTEq_oMu_oLaterN (τ : oltyO Σ) n :
     oLaterN n (oMu τ) ≡ oMu (oLaterN n τ).
