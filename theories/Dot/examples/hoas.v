@@ -315,6 +315,10 @@ Notation "a @: b" := (htproj a b) (at level 59, b at next level).
 
 Infix "$:" := htapp (at level 68, left associativity).
 
+Infix ".::." := kintv (at level 68, no associativity) : hsyn_scope.
+Notation "'∀::' x : T , U" := (hkpi T (λT x, U)) (at level 48, x, T at level 98, U at level 98).
+Infix "$::" := hTApp (at level 68, left associativity).
+
 Notation tparam A := (type A >: ⊥ <: ⊤)%HS.
 Definition typeEq l T := (type l >: T <: T) %HS.
 
