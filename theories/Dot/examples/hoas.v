@@ -83,6 +83,10 @@ Definition liftBind1 (con : s2 → s3) (f : hvl → hterm s2) : hterm s3 := Eval
   let v := ren (λ j, j - i') in
   con (f v i').
 
+Definition liftBind2 (con : s1 → s2 → s3) (a1 : hterm s1) (a2 : hvl → hterm s2) : hterm s3 :=
+  Eval cbv -[minus] in
+  λ i, liftBind1 (con (a1 i)) a2 i.
+
 Definition liftList : list (label * hdm) → hterm (list (label * dm)) := λ ds i, map (mapsnd (.$ i)) ds.
 
 #[global] Arguments apS /.
@@ -93,6 +97,7 @@ Definition liftList : list (label * hdm) → hterm (list (label * dm)) := λ ds 
 #[global] Arguments liftA2 /.
 #[global] Arguments liftA3 /.
 #[global] Arguments liftBind1 /.
+#[global] Arguments liftBind2 /.
 #[global] Arguments liftList /.
 
 End lifting.
@@ -155,9 +160,7 @@ Definition hTAnd : hty → hty → hty := liftA2 TAnd.
 Definition hTOr : hty → hty → hty := liftA2 TOr.
 Definition hTLater : hty → hty := liftA1 TLater.
 
-Definition hTAll : hty → (hvl → hty) → hty := λ T U i,
-  liftBind1 (TAll (T i)) U i.
-
+Definition hTAll : hty → (hvl → hty) → hty := liftBind2 TAll.
 Definition hTMu : (hvl → hty) → hty := liftBind1 TMu.
 Definition hTVMem : label → hty → hty := λ l, liftA1 (TVMem l).
 Definition hTTMem : label → hty → hty → hty := λ l, liftA2 (TTMem l).
