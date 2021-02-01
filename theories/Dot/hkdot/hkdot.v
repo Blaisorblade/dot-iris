@@ -367,7 +367,7 @@ Section gen_lemmas.
   proofs of [sKStp_EtaRed] and [sKEq_Eta], without needing [sstpiK_mono_kpi]. *)
   Lemma sTEq_Eta (T : oltyO Σ) :
     T ≡ oLam (oTAppV (oShift T) (ids 0)).
-  Proof. Abort.
+  Proof. move => [|x xs] ρ v; asimpl => //=. Abort.
 
   Section with_sTEq_Eta.
   Context (sTEq_Eta : ∀ (T : oltyO Σ), T ≡ oLam (oTAppV (oShift T) (ids 0))).
