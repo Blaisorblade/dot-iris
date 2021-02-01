@@ -17,7 +17,7 @@ Section TypeEquiv.
     |- T1 == T2 → C⟦ T1 ⟧ ≡ C⟦ T2 ⟧.
   Proof.
     induction 1; simpl; [
-      by rewrite cAnd_olty2clty sTEq_oAnd_oLaterN|no_eq_f_equiv; exact: sTEq_oOr_oLaterN|
+      by rewrite cAnd_olty2clty sTEq_oLaterN_oAnd|no_eq_f_equiv; exact: sTEq_oLaterN_oOr|
       try reflexivity..|by symmetry|by etrans]; rewrite /pty_interp; f_equiv;
       repeat first [assumption|no_eq_f_equiv].
   Qed.

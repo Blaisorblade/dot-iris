@@ -352,11 +352,11 @@ Section kinds_types.
   Qed.
 
   (** Subtle: this requires [ahead] to be total! *)
-  Lemma sTEq_oLam_oLaterN (τ : oltyO Σ) m :
+  Lemma sTEq_oLaterN_oLam (τ : oltyO Σ) m :
     oLaterN m (oLam τ) ≡ oLam (oLaterN m τ).
   Proof. done. Qed.
 
-  Lemma sTEq_oTAppV_oLaterN (τ : oltyO Σ) m v:
+  Lemma sTEq_oLaterN_oTAppV (τ : oltyO Σ) m v:
     oLaterN m (oTAppV τ v) ≡ oTAppV (oLaterN m τ) v.
   Proof. done. Qed.
 End kinds_types.
@@ -643,11 +643,11 @@ Section proper_eq.
     oTApp T (pv w) ≡ oTAppV T w.
   Proof. intros ???. by rewrite /= path_wp_pv_eq. Qed.
 
-  Lemma sTEq_oTApp_pv_oLaterN (τ : oltyO Σ) m v:
+  Lemma sTEq_oLaterN_oTApp_pv (τ : oltyO Σ) m v:
     oLaterN m (oTApp τ (pv v)) ≡ oTApp (oLaterN m τ) (pv v).
   Proof. by rewrite !oTApp_pv. Qed.
 
-  Lemma sTEq_oTApp_oLaterN (τ : oltyO Σ) m p args ρ v:
+  Lemma sTSub_oTApp_oLaterN (τ : oltyO Σ) m p args ρ v:
     oTApp (oLaterN m τ) p args ρ v ⊢ oLaterN m (oTApp τ p) args ρ v.
   Proof. by rewrite /= path_wp_laterN_swap. Qed.
 
