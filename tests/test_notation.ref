@@ -67,8 +67,8 @@ hvint 0%nat : htm
      : htm
      = TAll TInt (TMu (TAnd (TSing DBNotation.x1) (TSing DBNotation.x0)))
      : ty
-     = λ (a1 : nat → ty) (a2 : (nat → vl_) → nat → ty) (i : nat),
-         TAll (a1 i) (a2 (λ x : nat, vvar (x - i.+1)) i.+1)
+     = λ (S : nat → ty) (T : (nat → vl_) → nat → ty) (i : nat),
+         TAll (S i) (T (λ x : nat, vvar (x - i.+1)) i.+1)
      : hty → (hvl → hty) → hty
      = TAnd TInt (TAnd TInt (TAnd TInt TTop))
      : ty

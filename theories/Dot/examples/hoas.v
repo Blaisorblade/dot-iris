@@ -78,13 +78,14 @@ Definition liftA3 (con : s1 → s2 → s3 → s4) :
   hterm s1 → hterm s2 → hterm s3 → hterm s4 := λ a1 a2 a3 i,
   con (a1 i) (a2 i) (a3 i).
 
-Definition liftBind1 (con : s2 → s3) (f : hvl → hterm s2) : hterm s3 := Eval cbv -[minus] in λ i,
+Definition liftBind1 (con : s2 → s3) (f : hvl → hterm s2) : hterm s3 :=
+  Eval cbv -[minus] in λ i,
   let i' := i.+1 in
   let v := ren (λ j, j - i') in
   con (f v i').
 
 Definition liftBind2 (con : s1 → s2 → s3) (a1 : hterm s1) (a2 : hvl → hterm s2) : hterm s3 :=
-  Eval cbv -[minus] in
+  Eval unfold liftBind1 in
   λ i, liftBind1 (con (a1 i)) a2 i.
 
 Definition liftList : list (label * hdm) → hterm (list (label * dm)) := λ ds i, map (mapsnd (.$ i)) ds.
@@ -152,7 +153,8 @@ Definition hdtysem (σ : list hvl) s : hdm := λ x, dtysem (map (.$ x) σ) s.
 Definition hdpt : hpath → hdm := liftA1 dpt.
 
 Coercion hpv := liftA1 pv : hvl → hpath.
-Definition hpself : hpath → label → hpath := Eval cbv in λ p l, liftA2 pself p (pureS l).
+Definition hpself : hpath → label → hpath :=
+  Eval unfold liftA2, pureS in λ p l, liftA2 pself p (pureS l).
 
 Definition hTTop : hty := liftA0 TTop.
 Definition hTBot : hty := liftA0 TBot.
@@ -160,7 +162,10 @@ Definition hTAnd : hty → hty → hty := liftA2 TAnd.
 Definition hTOr : hty → hty → hty := liftA2 TOr.
 Definition hTLater : hty → hty := liftA1 TLater.
 
-Definition hTAll : hty → (hvl → hty) → hty := liftBind2 TAll.
+(* Eta-expanded to get nicer argument names. *)
+Definition hTAll : hty → (hvl → hty) → hty :=
+  Eval unfold liftBind2 in λ S T, liftBind2 TAll S T.
+
 Definition hTMu : (hvl → hty) → hty := liftBind1 TMu.
 Definition hTVMem : label → hty → hty := λ l, liftA1 (TVMem l).
 Definition hTTMem : label → hty → hty → hty := λ l, liftA2 (TTMem l).
