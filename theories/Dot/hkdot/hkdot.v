@@ -367,7 +367,11 @@ Section gen_lemmas.
   proofs of [sKStp_EtaRed] and [sKEq_Eta], without needing [sstpiK_mono_kpi]. *)
   Lemma sTEq_Eta {n} (T : oltyO Σ n.+1) :
     T ≡ oLam (oTAppV (oShift T) (ids 0)).
-  Proof. move => + ρ v. apply: vec_S_inv => w args. autosubst. Qed.
+  Proof. Abort.
+
+  Section with_sTEq_Eta.
+  Context (sTEq_Eta : ∀ n (T : oltyO Σ n.+1), T ≡ oLam (oTAppV (oShift T) (ids 0))).
+  Local Set Default Proof Using "sTEq_Eta".
 
   Lemma sKStp_EtaRed_simpler {n} Γ (K : sf_kind Σ n) S T1 T2 i :
     Γ s⊨ oLam (oTAppV (oShift T1) (ids 0)) <:[ i ] oLam (oTAppV (oShift T2) (ids 0)) ∷ sf_kpi S K -∗
@@ -378,6 +382,7 @@ Section gen_lemmas.
     Γ s⊨ T ∷[i] sf_kpi S K -∗
     Γ s⊨ T =[i] oLam (oTAppV (oShift T) (ids 0)) ∷ sf_kpi S K.
   Proof. iApply sKEq_Refl. apply sTEq_Eta. Qed.
+  End with_sTEq_Eta.
 
   Lemma sKStp_Trans Γ {n} T1 T2 T3 (K : sf_kind Σ n) i :
     Γ s⊨ T1 <:[ i ] T2 ∷ K -∗
