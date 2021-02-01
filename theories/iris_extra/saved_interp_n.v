@@ -5,13 +5,13 @@ From D Require Import prelude iris_prelude asubst_intf.
 Module Type SavedHoInterp (Import V : VlSortsSig).
 
 (** Argument stream. *)
-Definition astream := list vl.
+Definition astream := nat -> vl.
 Implicit Types (args : astream) (a arg v : vl).
 
-Definition anil : astream := [].
-Definition acons a args := a :: args.
-Definition ahead (args : astream) : vl := default inhabitant (head args).
-Definition atail : astream -> astream := tail.
+Definition anil : astream := ids.
+Definition acons a args := a .: args.
+Definition ahead : astream -> vl := shead.
+Definition atail : astream -> astream := stail.
 
 Definition auncurry {A} (Φ : vl -d> astream -d> A) : astream -d> A :=
   λ args, Φ (ahead args) (atail args).
