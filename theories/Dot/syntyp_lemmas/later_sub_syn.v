@@ -67,6 +67,7 @@ Section CtxSub.
   Context `{HdlangG: !dlangG Σ}.
   Implicit Type (T : ty) (Γ : ctx).
 
+  (** * Basic lemmas about [ctx_sub]. *)
   #[global] Instance: RewriteRelation ty_sub := {}.
   #[global] Instance: PreOrder ty_sub.
   Proof. rewrite /ty_sub; split; first done. by move => x y z H1 H2; etrans. Qed.
