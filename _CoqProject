@@ -50,6 +50,7 @@ theories/Dot/lr/dot_semtypes.v
 theories/Dot/lr/unary_lr.v
 theories/Dot/lr/sem_unstamped_typing.v
 
+theories/Dot/semtyp_lemmas/later_sub_sem.v
 theories/Dot/semtyp_lemmas/binding_lr.v
 theories/Dot/semtyp_lemmas/defs_lr.v
 theories/Dot/semtyp_lemmas/dsub_lr.v

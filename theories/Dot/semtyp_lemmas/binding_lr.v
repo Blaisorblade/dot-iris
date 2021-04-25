@@ -1,7 +1,7 @@
 (** * Binding-related semantic typing lemmas. *)
 From iris.proofmode Require Import tactics.
 
-From D.Dot Require Import rules unary_lr later_sub_syn.
+From D.Dot Require Import rules unary_lr later_sub_sem later_sub_syn.
 
 Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env).
 
