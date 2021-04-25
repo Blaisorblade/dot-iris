@@ -2,7 +2,7 @@
 From iris.proofmode Require Import tactics.
 
 From D Require Import iris_prelude swap_later_impl.
-From D.Dot Require Import rules path_repl unary_lr dsub_lr defs_lr binding_lr.
+From D.Dot Require Import rules path_repl dot_semtypes dsub_lr defs_lr binding_lr.
 
 Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
@@ -20,12 +20,9 @@ Section defs.
   Definition sstpi `{!dlangG Σ} i j Γ τ1 τ2 : iProp Σ :=
     |==> sstpi' i j Γ τ1 τ2.
   #[global] Arguments sstpi /.
-
-  Definition istpi `{!dlangG Σ} Γ T1 T2 i j := sstpi i j V⟦Γ⟧* V⟦T1⟧ V⟦T2⟧.
 End defs.
 (** Indexed subtyping *)
 Notation "Γ s⊨ T1 , i <: T2 , j" := (sstpi i j Γ T1 T2) (at level 74, T1, T2, i, j at next level).
-Notation "Γ ⊨ T1 , i <: T2 , j" := (istpi Γ T1 T2 i j) (at level 74, T1, T2, i, j at next level).
 
 (** * Proper instances. *)
 Section Propers.
@@ -43,12 +40,6 @@ End Propers.
 
 Section judgment_lemmas.
   Context `{!dlangG Σ}.
-
-  (** ** Show this typing judgment is equivalent to the more direct definition. *)
-  Lemma istpi_eq Γ T1 i T2 j :
-    Γ ⊨ T1, i <: T2, j ⊣⊢
-    |==> ∀ ρ v, G⟦Γ⟧ ρ → ▷^i V⟦T1⟧ anil ρ v → ▷^j V⟦T2⟧ anil ρ v.
-  Proof. reflexivity. Qed.
 
   Lemma sstpi_app ρ Γ (T1 T2 : olty Σ) i j :
     sstpi' i j Γ T1 T2 -∗ sG⟦ Γ ⟧* ρ -∗

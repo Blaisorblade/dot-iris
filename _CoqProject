@@ -88,6 +88,7 @@ theories/Dot/examples/old_fundamental.v
 theories/Dot/examples/sem/semtyp_lemmas/sub_lr.v
 theories/Dot/examples/sem/semtyp_lemmas/examples_lr.v
 
+theories/Dot/examples/sem/syntyp_lemmas/sub_lr_syn.v
 theories/Dot/examples/sem/syntyp_lemmas/examples_lr_syn.v
 
 theories/Dot/examples/sem/ex_iris_utils.v
