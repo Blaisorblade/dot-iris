@@ -75,33 +75,33 @@ Section CtxSub.
   #[global] Instance: PreOrder ctx_sub.
   Proof. rewrite /ctx_sub; split; first done. by move => x y z H1 H2; etrans. Qed.
 
-  #[global] Instance cons_ctx_sub_proper : Proper (ty_sub ==> ctx_sub ==> ctx_sub) cons.
+  #[global] Instance cons_ctx_sub_mono : Proper (ty_sub ==> ctx_sub ==> ctx_sub) cons.
   Proof. rewrite /ty_sub /ctx_sub. solve_proper. Qed.
-  #[global] Instance cons_ctx_sub_flip_proper : Proper (flip ty_sub ==> flip ctx_sub ==> flip ctx_sub) cons.
+  #[global] Instance cons_ctx_sub_flip_mono : Proper (flip ty_sub ==> flip ctx_sub ==> flip ctx_sub) cons.
   Proof. solve_proper. Qed.
 
-  #[global] Instance ietp_proper : Proper (flip ctx_sub ==> (=) ==> (=) ==> (⊢)) ietp.
+  #[global] Instance ietp_mono : Proper (flip ctx_sub ==> (=) ==> (=) ==> (⊢)) ietp.
   Proof.
     rewrite /ctx_sub /flip /ietp => Γ1 Γ2 Hweak ??????; subst. by rewrite Hweak.
   Qed.
 
-  #[global] Instance ietp_flip_proper :
+  #[global] Instance ietp_flip_mono :
     Proper (ctx_sub ==> flip (=) ==> flip (=) ==> flip (⊢)) ietp.
   Proof. apply: flip_proper_4. Qed.
 
-  #[global] Instance istpd_proper i :
+  #[global] Instance istpd_mono i :
     Proper (flip ctx_sub ==> (=) ==> (=) ==> (⊢)) (istpd i).
   Proof.
     rewrite /ctx_sub /flip /istpd => Γ1 Γ2 Hweak ??????; subst.
     by rewrite Hweak.
   Qed.
-  #[global] Instance istpi_flip_proper i :
+  #[global] Instance istpi_flip_mono i :
     Proper (ctx_sub ==> flip (=) ==> flip (=) ==> flip (⊢)) (istpd i).
   Proof. apply: flip_proper_4. Qed.
 
-  #[global] Instance TLater_proper : Proper (ty_sub ==> ty_sub) TLater.
+  #[global] Instance TLater_mono : Proper (ty_sub ==> ty_sub) TLater.
   Proof. by rewrite /ty_sub => ?? /= ->. Qed.
-  #[global] Instance TLater_flip_proper :
+  #[global] Instance TLater_flip_mono :
     Proper (flip ty_sub ==> flip ty_sub) TLater.
   Proof. apply: flip_proper_2. Qed.
 
@@ -130,22 +130,22 @@ Section CtxSub.
   Proof.
     intros G1 G2. elim: G2 G1 => [|T2 G2 IHG2] [|T1 G1] HG ρ //; cbn. *)
 
-  #[global] Instance fmap_TLater_proper :
+  #[global] Instance fmap_TLater_mono :
     Proper (ctx_sub ==> ctx_sub) (fmap TLater).
   Proof. intros xs ys Hl ?. by rewrite !env_TLater_commute (Hl _). Qed.
-  #[global] Instance fmap_TLater_flip_proper :
+  #[global] Instance fmap_TLater_flip_mono :
     Proper (flip ctx_sub ==> flip ctx_sub) (fmap TLater).
   Proof. apply: flip_proper_2. Qed.
 
-  #[global] Instance TAnd_proper : Proper (ty_sub ==> ty_sub ==> ty_sub) TAnd.
+  #[global] Instance TAnd_mono : Proper (ty_sub ==> ty_sub ==> ty_sub) TAnd.
   Proof. intros x y Hl x' y' Hl' ??. by rewrite /= (Hl _ _) (Hl' _ _). Qed.
-  #[global] Instance TAnd_flip_proper :
+  #[global] Instance TAnd_flip_mono :
     Proper (flip ty_sub ==> flip ty_sub ==> flip ty_sub) TAnd.
   Proof. apply: flip_proper_3. Qed.
 
-  #[global] Instance TOr_proper : Proper (ty_sub ==> ty_sub ==> ty_sub) TOr.
+  #[global] Instance TOr_mono : Proper (ty_sub ==> ty_sub ==> ty_sub) TOr.
   Proof. intros x y Hl x' y' Hl' ??. by rewrite /= (Hl _ _) (Hl' _ _). Qed.
-  #[global] Instance TOr_flip_proper :
+  #[global] Instance TOr_flip_mono :
     Proper (flip ty_sub ==> flip ty_sub ==> flip ty_sub) TOr.
   Proof. apply: flip_proper_3. Qed.
 
@@ -227,11 +227,11 @@ Section CtxSub.
   Proof. auto with ctx_sub. Qed.
 
   Lemma ietp_weaken_ctx_syn Γ1 Γ2 {T e} (Hsyn : ⊢G Γ1 <:* Γ2) : Γ2 ⊨ e : T -∗ Γ1 ⊨ e : T.
-  Proof. by apply ietp_proper; first apply (fundamental_ctx_sub Hsyn). Qed.
+  Proof. by apply ietp_mono; first apply (fundamental_ctx_sub Hsyn). Qed.
 
   Lemma istpd_weaken_ctx_syn Γ1 Γ2 {T1 T2 i} (Hsyn : ⊢G Γ1 <:* Γ2) :
     Γ2 ⊨ T1 <:[i] T2 -∗ Γ1 ⊨ T1 <:[i] T2.
-  Proof. by apply istpd_proper; first apply (fundamental_ctx_sub Hsyn). Qed.
+  Proof. by apply istpd_mono; first apply (fundamental_ctx_sub Hsyn). Qed.
 
 End CtxSub.
 

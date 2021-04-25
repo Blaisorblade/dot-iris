@@ -33,28 +33,28 @@ Section CtxSub.
     by setoid_rewrite HΔ; setoid_rewrite HΓ.
   Qed.
 
-  #[global] Instance cons_s_ctx_sub_proper : Proper (s_ty_sub ==> s_ctx_sub ==> s_ctx_sub) cons.
+  #[global] Instance cons_s_ctx_sub_mono : Proper (s_ty_sub ==> s_ctx_sub ==> s_ctx_sub) cons.
   Proof. move => T1 T2 HlT Γ1 Γ2 Hl ρ. cbn. by rewrite (HlT _) (Hl _). Qed.
   (* This is needed when flip ctx_sub arises from other rules. Doh. *)
-  #[global] Instance cons_s_ctx_sub_flip_proper :
+  #[global] Instance cons_s_ctx_sub_flip_mono :
     Proper (flip s_ty_sub ==> flip s_ctx_sub ==> flip s_ctx_sub) cons.
   Proof. solve_proper. Qed.
 
   (** Typing is contravariant in [Γ].
   Note these instances are very specialized. *)
-  #[global] Instance setp_proper e : Proper (flip s_ctx_sub ==> (=) ==> (⊢)) (setp e).
+  #[global] Instance setp_mono e : Proper (flip s_ctx_sub ==> (=) ==> (⊢)) (setp e).
   Proof. rewrite /setp => Γ1 Γ2 Hweak T1 T2 ->. by setoid_rewrite (Hweak _). Qed.
-  #[global] Instance setp_flip_proper e : Proper (s_ctx_sub ==> flip (=) ==> flip (⊢)) (setp e).
+  #[global] Instance setp_flip_mono e : Proper (s_ctx_sub ==> flip (=) ==> flip (⊢)) (setp e).
   Proof. apply: flip_proper_3. Qed.
 
-  #[global] Instance sstpd_proper i : Proper (flip s_ctx_sub ==> (=) ==> (=) ==> (⊢)) (sstpd i).
+  #[global] Instance sstpd_mono i : Proper (flip s_ctx_sub ==> (=) ==> (=) ==> (⊢)) (sstpd i).
   Proof. rewrite /sstpd => Γ1 Γ2 Hweak T1 T2 -> U1 U2 ->. by setoid_rewrite (Hweak _). Qed.
-  #[global] Instance sstpi_flip_proper i : Proper (s_ctx_sub ==> flip (=) ==> flip (=) ==> flip (⊢)) (sstpd i).
+  #[global] Instance sstpi_flip_mono i : Proper (s_ctx_sub ==> flip (=) ==> flip (=) ==> flip (⊢)) (sstpd i).
   Proof. apply: flip_proper_4. Qed.
 
-  #[global] Instance oLater_proper : Proper (s_ty_sub ==> s_ty_sub) oLater.
+  #[global] Instance oLater_mono : Proper (s_ty_sub ==> s_ty_sub) oLater.
   Proof. intros x y Hl ??. by rewrite /= (Hl _ _). Qed.
-  #[global] Instance oLater_flip_proper :
+  #[global] Instance oLater_flip_mono :
     Proper (flip s_ty_sub ==> flip s_ty_sub) oLater.
   Proof. apply: flip_proper_2. Qed.
 
