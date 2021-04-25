@@ -47,8 +47,6 @@ Section TypeEquiv.
   Qed.
 
   Instance: Params (@istpd) 4 := {}.
-  Instance: Equivalence type_equiv := {}.
-  Instance: RewriteRelation type_equiv := {}.
 
   Lemma Stp_Eq i T1 T2 Γ :
     |- T1 == T2 → ⊢ Γ ⊨ T1 <:[i] T2.
@@ -271,21 +269,9 @@ Section CtxSub.
 
   #[local] Hint Resolve fundamental_ctx_sub : ctx_sub.
 
-  Lemma ctx_sub_cons_id_syn T Γ1 Γ2 :
-    ⊢G Γ1 <:* Γ2 → ⊢G T :: Γ1 <:* T :: Γ2.
-  Proof. auto with ctx_sub. Qed.
-
-  Lemma ctx_sub_cons_later_syn T Γ1 Γ2 :
-    ⊢G Γ1 <:* Γ2 → ⊢G T :: Γ1 <:* TLater T :: Γ2.
-  Proof. auto with ctx_sub. Qed.
-
   Lemma ctx_sub_cons_later T Γ1 Γ2 (Hle : ⊨G Γ1 <:* Γ2) :
     ⊨G T :: Γ1 <:* TLater T :: Γ2.
   Proof. auto with f_equiv ctx_sub. Qed.
-
-  Lemma TLater_unTLater_TLater_ctx_sub_syn Γ :
-    ⊢G TLater <$> (unTLater <$> Γ) <:* TLater <$> Γ.
-  Proof. auto with ctx_sub. Qed.
 
   (* Unused *)
   Lemma TLater_unTLater_TLater_ctx_sub Γ :

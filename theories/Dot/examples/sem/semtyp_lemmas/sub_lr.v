@@ -1,9 +1,7 @@
 (** * Semantic lemmas for double-delay subtyping. *)
 From iris.proofmode Require Import tactics.
-From D.pure_program_logic Require Import lifting.
-From iris.program_logic Require Import language.
 
-From D Require Import iris_prelude swap_later_impl proper.
+From D Require Import iris_prelude swap_later_impl.
 From D.Dot Require Import rules path_repl unary_lr dsub_lr defs_lr binding_lr.
 
 Implicit Types (Σ : gFunctors)

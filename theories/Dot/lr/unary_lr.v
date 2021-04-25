@@ -318,10 +318,6 @@ Section judgment_definitions.
 
   Implicit Types (T : ty) (Γ : ctx).
 
-  Lemma path_includes_equiv p ρ ds : path_includes (pv (ids 0)) ρ ds ↔
-    ∃ ds', ρ 0 = vobj ds' ∧ ds.|[ρ] `sublist_of` selfSubst ds' ∧ wf_ds ds'.
-  Proof. by rewrite /path_includes path_wp_pure_pv_eq. Qed.
-
   Lemma idstp_eq Γ T ds : Γ ⊨ds ds : T ⊣⊢
     |==> ⌜wf_ds ds⌝ ∧ ∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → G⟦Γ⟧ ρ → Ds⟦T⟧ ρ ds.|[ρ].
   Proof. reflexivity. Qed.

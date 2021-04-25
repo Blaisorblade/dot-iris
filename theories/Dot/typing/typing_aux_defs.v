@@ -182,3 +182,15 @@ Proof. intros ->%ctx_sub_len. apply fmap_length. Qed.
 
 Lemma ctx_strip_len Γ Γ' : ⊢G Γ >>▷* Γ' → length Γ = length Γ'.
 Proof. by elim => [|> ?? /= ->]. Qed.
+
+Lemma ctx_sub_cons_id_syn T Γ1 Γ2 :
+  ⊢G Γ1 <:* Γ2 → ⊢G T :: Γ1 <:* T :: Γ2.
+Proof. auto with ctx_sub. Qed.
+
+Lemma ctx_sub_cons_later_syn T Γ1 Γ2 :
+  ⊢G Γ1 <:* Γ2 → ⊢G T :: Γ1 <:* TLater T :: Γ2.
+Proof. auto with ctx_sub. Qed.
+
+Lemma TLater_unTLater_TLater_ctx_sub_syn Γ :
+  ⊢G TLater <$> (unTLater <$> Γ) <:* TLater <$> Γ.
+Proof. auto with ctx_sub. Qed.
