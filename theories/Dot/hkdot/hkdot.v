@@ -8,7 +8,7 @@ From D Require Export succ_notation.
 From D Require Import saved_interp_n asubst_intf asubst_base dlang lty.
 From D Require Import swap_later_impl.
 From D.Dot Require dot_lty unary_lr.
-From D.Dot Require defs_lr binding_lr dsub_lr sub_lr examples_lr.
+From D.Dot Require defs_lr binding_lr dsub_lr path_repl_lr sub_lr examples_lr.
 From D.Dot Require hoas ex_utils.
 
 From D.Dot Require Import sem_kind sem_kind_dot.

@@ -88,6 +88,8 @@ theories/Dot/examples/old_fundamental.v
 theories/Dot/examples/sem/semtyp_lemmas/sub_lr.v
 theories/Dot/examples/sem/semtyp_lemmas/examples_lr.v
 
+theories/Dot/examples/sem/syntyp_lemmas/examples_lr_syn.v
+
 theories/Dot/examples/sem/ex_iris_utils.v
 theories/Dot/examples/sem/no_russell_paradox.v
 theories/Dot/examples/sem/prim_boolean_option.v

@@ -24,6 +24,7 @@ From D.pure_program_logic Require Import weakestpre lifting.
 
 From D Require Import tactics swap_later_impl.
 From D.Dot Require Import storeless_typing skeleton path_repl unstampedness_binding.
+From D.Dot Require Import examples_lr_syn.
 From D.Dot Require Import sem_unstamped_typing ex_iris_utils.
 From D.Dot Require Import prim_boolean_option.
 
