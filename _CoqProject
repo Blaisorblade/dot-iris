@@ -59,6 +59,7 @@ theories/Dot/semtyp_lemmas/prims_lr.v
 theories/Dot/semtyp_lemmas/tproj_lr.v
 
 theories/Dot/syntyp_lemmas/path_repl_lr_syn.v
+theories/Dot/syntyp_lemmas/prims_lr_syn.v
 theories/Dot/syntyp_lemmas/later_sub_syn.v
 
 theories/Dot/typing/subtyping.v

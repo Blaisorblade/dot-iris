@@ -5,7 +5,7 @@ From D Require Import iris_extra.det_reduction.
 From D.Dot Require Import skeleton path_repl typing_aux_defs.
 From D.Dot Require Import unary_lr.
 From D.Dot Require Import later_sub_sem binding_lr path_repl_lr defs_lr dsub_lr prims_lr.
-From D.Dot Require Import path_repl_lr_syn later_sub_syn.
+From D.Dot Require Import path_repl_lr_syn prims_lr_syn later_sub_syn.
 From stdpp Require Import relations.
 (* Fix what is in scope. *)
 Import stdpp.relations stdpp.tactics D.prelude dlang_adequacy.
