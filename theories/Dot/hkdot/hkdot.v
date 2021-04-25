@@ -11,7 +11,7 @@ From D.Dot Require dot_lty unary_lr.
 From D.Dot Require defs_lr binding_lr dsub_lr sub_lr examples_lr.
 From D.Dot Require hoas ex_utils.
 
-From D.Dot Require Import sem_kind.
+From D.Dot Require Import sem_kind sem_kind_dot.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".

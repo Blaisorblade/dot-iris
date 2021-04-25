@@ -100,6 +100,7 @@ theories/Dot/examples/syn/scala_lib.v
 theories/Dot/examples/syn/syn_lemmas.v
 
 theories/Dot/hkdot/sem_kind.v
+theories/Dot/hkdot/sem_kind_dot.v
 theories/Dot/hkdot/hkdot.v
 
 theories/DSub/syn/ds_rules.v
