@@ -1,7 +1,7 @@
 (** * Binding-related semantic typing lemmas. *)
 From iris.proofmode Require Import tactics.
 
-From D.Dot Require Import rules unary_lr later_sub_sem later_sub_syn.
+From D.Dot Require Import rules dot_semtypes later_sub_sem.
 
 Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env).
 
@@ -33,17 +33,6 @@ Section LambdaIntros.
   Proof.
     apply sT_All_I_Strong => ρ. rewrite senv_TLater_commute. by iIntros "$".
   Qed.
-
-  Lemma T_All_I_Strong {Γ Γ'} T1 T2 e
-    (Hctx : ⊨G Γ <:* TLater <$> Γ') :
-    shift T1 :: Γ' ⊨ e : T2 -∗
-    (*─────────────────────────*)
-    Γ ⊨ tv (vabs e) : TAll T1 T2.
-  Proof.
-    rewrite /ietp fmap_cons (interp_subst_commute T1 (ren (+1))).
-    rewrite -(sT_All_I_Strong (Γ' := V⟦Γ'⟧*)) // => ρ.
-    by rewrite -fmap_TLater_oLater.
-  Qed.
 End LambdaIntros.
 
 Section Sec.
@@ -56,15 +45,6 @@ Section Sec.
   Proof.
     iIntros "/= !> %ρ #Hg"; rewrite path_wp_pv_eq.
     by rewrite s_interp_env_lookup // id_subst.
-  Qed.
-
-  Lemma P_Var {Γ x τ}
-    (Hx : Γ !! x = Some τ):
-    (*──────────────────────*)
-    ⊢ Γ ⊨p pv (ids x) : shiftN x τ, 0.
-  Proof.
-    rewrite /iptp (interp_subst_commute τ (ren (+x))). apply sP_Var.
-    by rewrite list_lookup_fmap Hx.
   Qed.
 
   Lemma sT_SkipN Γ e T i :
@@ -118,10 +98,6 @@ Section Sec.
     by rewrite /= hoEnvD_subst_one.
   Qed.
 
-  Lemma T_All_Ex {Γ e1 v2 T1 T2}:
-    Γ ⊨ e1: TAll T1 T2 -∗ Γ ⊨ tv v2 : T1 -∗ Γ ⊨ tapp e1 (tv v2) : T2.|[v2/].
-  Proof. by rewrite /ietp (interp_subst_commute T2 (v2 .: ids)) -sT_All_Ex. Qed.
-
   Lemma sT_All_E {Γ e1 e2 T1 T2}:
     Γ s⊨ e1 : oAll T1 (shift T2) -∗
     Γ s⊨ e2 : T1 -∗
@@ -134,10 +110,6 @@ Section Sec.
     iSpecialize ("Hv" with "Hw"). wp_pure. wp_wapply "Hv".
     iIntros "%v H". by rewrite /= (hoEnvD_weaken_one T2 _ _ _).
   Qed.
-
-  Lemma T_All_E {Γ e1 e2 T1 T2} :
-    Γ ⊨ e1 : TAll T1 (shift T2) -∗ Γ ⊨ e2 : T1 -∗ Γ ⊨ tapp e1 e2 : T2.
-  Proof. by rewrite /ietp -sT_All_E -(interp_subst_commute T2 (ren (+1))). Qed.
 
   Lemma sT_Obj_E {Γ e T l}:
     Γ s⊨ e : oVMem l T -∗
