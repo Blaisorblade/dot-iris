@@ -7,7 +7,7 @@ From D Require Import iris_prelude.
 From D Require Export succ_notation.
 From D Require Import saved_interp_n asubst_intf asubst_base dlang lty.
 From D Require Import swap_later_impl.
-From D.Dot Require dot_lty unary_lr.
+From D.Dot Require dot_lty dot_semtypes.
 From D.Dot Require defs_lr binding_lr dsub_lr path_repl_lr sub_lr examples_lr.
 From D.Dot Require hoas ex_utils.
 
@@ -447,7 +447,7 @@ End gen_lemmas.
 End HoSemJudgments.
 
 Module HkDot.
-Import dot_lty unary_lr dsub_lr sub_lr path_repl_lr hoas ex_utils.
+Import dot_lty dot_semtypes dsub_lr sub_lr path_repl_lr hoas ex_utils.
 Export HkDotSemTypes.
 Include HoSemJudgments VlSorts dlang_inst dot_lty HkDotSemTypes.
 Implicit Types
@@ -682,7 +682,7 @@ Import defs_lr binding_lr examples_lr.
 
 Section derived.
   Context `{Hdlang : !dlangG Σ} `{HswapProp : SwapPropI Σ}.
-  Opaque sSkd sstpiK sptp sstpi.
+  Opaque sSkd sstpiK sptp sstpd sstpi.
 
   Lemma sT_New Γ l σ s (K : sf_kind Σ) T :
     oLater (oTMemK l K) :: Γ s⊨ oLater T ∷[ 0 ] K -∗
