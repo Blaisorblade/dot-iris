@@ -46,6 +46,7 @@ theories/Dot/syn/traversals.v
 theories/Dot/lr/dlang_inst.v
 theories/Dot/lr/dot_lty.v
 theories/Dot/lr/path_wp.v
+theories/Dot/lr/dot_semtypes.v
 theories/Dot/lr/unary_lr.v
 theories/Dot/lr/sem_unstamped_typing.v
 
