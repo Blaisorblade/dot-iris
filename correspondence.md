@@ -281,7 +281,7 @@ Inside the [`Dot`](theories/Dot) folder:
   - [`path_wp.v`](theories/Dot/lr/path_wp.v): define path weakest precondition;
   - [`dot_lty.v`](theories/Dot/lr/dot_lty.v): define DOT-specific infrastructure on semantic types (lty), such as semantic types for definitions.
   - [`unary_lr.v`](theories/Dot/lr/unary_lr.v): definition of unary logical relation.
-  - [`later_sub_sem.v`](theories/Dot/lr/later_sub_sem.v): define semantics of
+  - [`later_sub_syn.v`](theories/Dot/syntyp_lemmas/later_sub_syn.v): define semantics of
     the `Γ1 ≫ ▷ Γ2` judgment.
 * [`semtyp_lemmas`](theories/Dot/semtyp_lemmas): semantic typing lemmas:
   - [`binding_lr.v`](theories/Dot/semtyp_lemmas/binding_lr.v): misc typing lemmas,

@@ -45,7 +45,6 @@ theories/Dot/syn/traversals.v
 
 theories/Dot/lr/dlang_inst.v
 theories/Dot/lr/dot_lty.v
-theories/Dot/lr/later_sub_sem.v
 theories/Dot/lr/path_wp.v
 theories/Dot/lr/unary_lr.v
 theories/Dot/lr/sem_unstamped_typing.v
@@ -56,6 +55,8 @@ theories/Dot/semtyp_lemmas/dsub_lr.v
 theories/Dot/semtyp_lemmas/path_repl_lr.v
 theories/Dot/semtyp_lemmas/prims_lr.v
 theories/Dot/semtyp_lemmas/tproj_lr.v
+
+theories/Dot/syntyp_lemmas/later_sub_syn.v
 
 theories/Dot/typing/subtyping.v
 theories/Dot/typing/type_eq.v
