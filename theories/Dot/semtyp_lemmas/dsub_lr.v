@@ -2,7 +2,7 @@
 From iris.proofmode Require Import tactics.
 
 From D Require Import iris_prelude swap_later_impl.
-From D.Dot Require Import unary_lr.
+From D.Dot Require Import dot_semtypes.
 
 Implicit Types (Σ : gFunctors).
 Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env) (l : label).
@@ -136,14 +136,6 @@ Section DStpLemmas.
     iApply ("Hstp" $! (v .: ρ) v with "[$Hg $HT1] [$HT1]").
   Qed.
 
-  Lemma Mu_Stp_Mu {Γ} T1 T2 i `{!SwapPropI Σ}:
-    iterate TLater i T1 :: Γ ⊨ T1 <:[i] T2 -∗
-    Γ ⊨ TMu T1 <:[i] TMu T2.
-  Proof.
-    rewrite /istpd -sMu_Stp_Mu.
-    by rewrite fmap_cons (iterate_TLater_oLater i T1).
-  Qed.
-
   (**
   Novel subtyping rules for recursive types:
      x ∉ fv T
@@ -154,22 +146,8 @@ Section DStpLemmas.
   Lemma sMu_Stp {Γ T i} : ⊢ Γ s⊨ oMu (shift T) <:[i] T.
   Proof. rewrite oMu_shift. apply sStp_Refl. Qed.
 
-  Lemma Mu_Stp {Γ} T i: ⊢ Γ ⊨ TMu (shift T) <:[i] T.
-  Proof.
-    rewrite /istpd; cbn -[sstpd].
-    rewrite (interp_subst_commute T (ren (+1))).
-    apply sMu_Stp.
-  Qed.
-
   Lemma sStp_Mu {Γ T i} : ⊢ Γ s⊨ T <:[i] oMu (shift T).
   Proof. rewrite oMu_shift. apply sStp_Refl. Qed.
-
-  Lemma Stp_Mu {Γ} T i: ⊢ Γ ⊨ T <:[i] TMu (shift T).
-  Proof.
-    rewrite /istpd; cbn -[sstpd].
-    rewrite (interp_subst_commute T (ren (+1))).
-    apply sStp_Mu.
-  Qed.
 
   Lemma sFld_Stp_Fld {Γ T1 T2 i l}:
     Γ s⊨ T1 <:[i] T2 -∗
@@ -207,16 +185,6 @@ Section DStpLemmas.
     iIntros (u) "#HuU1". iApply ("HsubU" with "HuU1").
   Qed.
 
-  Lemma All_Stp_All {Γ} T1 T2 U1 U2 i `{!SwapPropI Σ}:
-    Γ ⊨ TLater T2 <:[i] TLater T1 -∗
-    iterate TLater i.+1 (shift T2) :: Γ ⊨ TLater U1 <:[i] TLater U2 -∗
-    Γ ⊨ TAll T1 U1 <:[i] TAll T2 U2.
-  Proof.
-    rewrite /istpd fmap_cons iterate_TLater_oLater.
-    rewrite (interp_subst_commute T2 (ren (+1))).
-    apply: sAll_Stp_All.
-  Qed.
-
   (* An inverse of subsumption: subtyping is *equivalent* to convertibility
   for values. *)
 
@@ -228,15 +196,6 @@ Section DStpLemmas.
     rewrite -sstpd_delay_oLaterN; iIntros ">#Htyp !> %ρ Hg %v HvT1".
     iEval rewrite /= -(path_wp_pv_eq _ (T2 _ _)) -laterN_plus.
     iApply ("Htyp" $! (v .: ρ) with "[$Hg $HvT1]").
-  Qed.
-
-  Lemma Stp_Skolem_P {Γ T1 T2 i j} `{!SwapPropI Σ} :
-    iterate TLater i (shift T1) :: Γ ⊨p pv (ids 0) : shift T2, i + j -∗
-    (*───────────────────────────────*)
-    Γ ⊨ T1 <:[i] iterate TLater j T2.
-  Proof.
-    rewrite /iptp /istpd fmap_cons !iterate_TLater_oLater !interp_subst_commute.
-    exact: sStp_Skolem_P.
   Qed.
 
   (* Is it true that for covariant F, F[A ∧ B] = F[A] ∧ F[B]?
