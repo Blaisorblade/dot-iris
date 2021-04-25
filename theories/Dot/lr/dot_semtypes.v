@@ -422,9 +422,6 @@ Section Propers.
     (* intros ?? HG ?? H1 ?? H2; rewrite /sstpd /subtype_lty;
     properness; [by rewrite HG|apply H1|apply H2]. *)
   Qed.
-  #[global] Instance sstpd_flip_proper i :
-    Proper ((≡) --> (≡) --> (≡) --> flip (≡)) (sstpd i).
-  Proof. apply: flip_proper_4. Qed.
   #[global] Instance: Params (@sstpd) 3 := {}.
 
   #[global] Instance setp_proper e : Proper ((≡) ==> (≡) ==> (≡)) (setp e).
@@ -432,27 +429,18 @@ Section Propers.
     solve_proper_ho.
     (* intros ?? HG ?? HT ???; simplify_eq/=. by properness; [rewrite HG|apply HT]. *)
   Qed.
-  #[global] Instance setp_flip_proper e :
-    Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (setp e).
-  Proof. apply: flip_proper_3. Qed.
   #[global] Instance: Params (@setp) 3 := {}.
 
   #[global] Instance sdstp_proper ds : Proper ((≡) ==> (≡) ==> (≡)) (sdstp ds).
   Proof.
     rewrite /sdstp => ??? [?? _ _ _] [?? _ _ _] [/= ??]; properness; by f_equiv.
   Qed.
-  #[global] Instance sdstp_flip_proper ds :
-    Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sdstp ds).
-  Proof. apply: flip_proper_3. Qed.
   #[global] Instance: Params (@sdstp) 3 := {}.
 
   #[global] Instance sdtp_proper l d : Proper ((≡) ==> (≡) ==> (≡)) (sdtp l d) := _.
-  #[global] Instance sdtp_flip_proper l d : Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sdtp l d) := _.
   #[global] Instance: Params (@sdtp) 4 := {}.
 
   #[global] Instance sptp_proper p i : Proper ((≡) ==> (≡) ==> (≡)) (sptp p i).
   Proof. solve_proper_ho. Qed.
-  #[global] Instance sptp_flip_proper p i : Proper ((≡) --> (≡) --> flip (≡)) (sptp p i).
-  Proof. apply: flip_proper_3. Qed.
   #[global] Instance: Params (@sptp) 4 := {}.
 End Propers.

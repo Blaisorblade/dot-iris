@@ -38,9 +38,6 @@ Section Propers.
     (* intros ?? HG ?? H1 ?? H2; simplify_eq/=.
     properness; [by rewrite HG|apply H1|apply H2]. *)
   Qed.
-  #[global] Instance sstpi_flip_proper i j :
-    Proper ((≡) --> (≡) --> (≡) --> flip (≡)) (sstpi i j).
-  Proof. apply: flip_proper_4. Qed.
   #[global] Instance: Params (@sstpi) 4 := {}.
 End Propers.
 
