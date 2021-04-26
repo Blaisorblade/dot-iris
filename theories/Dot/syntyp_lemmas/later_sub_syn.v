@@ -17,12 +17,12 @@ Section TypeEquiv.
   Fixpoint fundamental_type_equiv_clty T1 T2 (H : |- T1 == T2) {struct H} :
     C⟦ T1 ⟧ ≡ C⟦ T2 ⟧.
   Proof.
-    induction H; simpl; repeat case_match; [
+    induction H; rewrite /=; repeat case_match; first [
       by rewrite cAnd_olty2clty sTEq_oLaterN_oAnd|no_eq_f_equiv; exact: sTEq_oLaterN_oOr|
-      try reflexivity..|by symmetry|by etrans]; rewrite /pty_interp; try f_equiv;
+      try reflexivity|by symmetry|by etrans]; rewrite /pty_interp; try f_equiv;
       repeat first [assumption|no_eq_f_equiv].
       (* Argh, no, it must be by induction. *)
-      simplify_eq; inverse H.
+      (* simplify_eq; inverse H. *)
       (* exact: fundamental_type_equiv_clty .
       Guarded.
       eauto. *)

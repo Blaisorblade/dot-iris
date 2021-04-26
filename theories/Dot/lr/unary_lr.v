@@ -5,8 +5,8 @@ From D Require Import swap_later_impl.
 From D.Dot Require Import syn path_repl.
 From D.Dot Require Export dlang_inst path_wp.
 From D.pure_program_logic Require Import weakestpre.
-
-From D.Dot Require Export dot_lty dot_semtypes.
+From D.Dot Require Export dot_lty dot_semtypes sem_kind_dot.
+Import HkDotSemTypes.
 
 Unset Program Cases.
 Set Suggest Proof Using.
@@ -42,10 +42,17 @@ Section log_rel.
   (* Observe the naming pattern for semantic type constructors:
   replace T by o (for most constructors) or by c (for constructors producing
   cltys). *)
-  #[global] Instance dot_interp : CTyInterp Σ := fix dot_interp T :=
-    let _ := dot_interp : CTyInterp Σ in
+  Fixpoint kind_interp (K : kind) : sf_kind Σ :=
+    let rec := ty_interp : CTyInterp Σ in
+    match K with
+    | kintv L U => sf_kintv V⟦ L ⟧ V⟦ U ⟧
+    | kpi S K => sf_kpi V⟦ S ⟧ (kind_interp K)
+    end
+   with ty_interp (T : ty) : clty Σ :=
+    let rec := ty_interp : CTyInterp Σ in
     match T with
-    | TTMem l L U => cTMem l V⟦ L ⟧ V⟦ U ⟧
+    (* | kTTMem l (kintv L U) => cTMem l V⟦ L ⟧ V⟦ U ⟧ *)
+    | kTTMem l K => cTMemK l (kind_interp K)
     | TVMem l T' => cVMem l V⟦ T' ⟧
     | TAnd T1 T2 => cAnd C⟦ T1 ⟧ C⟦ T2 ⟧
     | TTop => cTop
@@ -57,10 +64,14 @@ Section log_rel.
     | TPrim b => olty2clty $ oPrim b
     | TAll T1 T2 => olty2clty $ oAll V⟦ T1 ⟧ V⟦ T2 ⟧
     | TMu T => olty2clty $ oMu V⟦ T ⟧
-    | TSel p l => olty2clty $ oSel p l
+    | kTSel n p l => olty2clty $ oSel p l
     | TSing p => olty2clty $ oSing p
-    | _ => olty2clty oBot
+    | TLam T => olty2clty $ oLam V⟦ T ⟧
+    | TApp T p => olty2clty $ oTApp V⟦ T ⟧ p
     end.
+
+  #[global] Instance dot_interp : CTyInterp Σ :=
+    ltac:(let res := eval red in ty_interp in exact res).
 
   (** Unfolding lemma for [TAnd]: defined because [simpl] on the LHS produces
       [oAnd C⟦ T1 ⟧ C⟦ T2 ⟧]. *)
@@ -71,10 +82,18 @@ Section log_rel.
   #[global] Instance pinterp_lemmas: CTyInterpLemmas Σ.
   Proof.
     split; rewrite /pty_interp; fix rec 1;
-      destruct T => args sb1 sb2 w; first [destruct K|destruct n|idtac];
+      destruct T => args sb1 sb2 w;
       rewrite /= /pty_interp /dot_intv_type_pred /subtype_lty /=;
       properness; rewrite ?scons_up_swap ?hsubst_comp; trivial.
-    by apply path_wp_proper => ?.
+    all: try by apply path_wp_proper => ?.
+    (* XXX inline proof of lemma for kind_interp. *)
+    move: (packHoLtyO _) => T.
+    elim: K sb1 sb2 T => [L U|S K IHK] sb1 sb2 T /=.
+    - rewrite /pty_interp /sr_kintv /subtype_lty.
+      by setoid_rewrite (rec _ anil sb1).
+    - f_equiv=> arg. rewrite IHK scons_up_swap.
+      rewrite /pty_interp /sr_kintv /subtype_lty.
+      by setoid_rewrite (rec _ anil sb1).
   Qed.
 
   Definition idtp  Γ T l d     := sdtp l d  V⟦Γ⟧* C⟦T⟧.
@@ -143,8 +162,11 @@ Section path_repl_lemmas.
       rewrite /= /dot_intv_type_pred /subtype_lty/=; properness;
       try by [ exact: path_replacement_equiv | exact: rewrite_path_path_repl
          | apply IHHrew; rewrite ?hsubst_comp | | f_equiv => ?; exact: IHHrew].
-    all: inverse H; by [eapply fundamental_ty_path_repl|].
-  Qed.
+    all: try (inverse H; by [eapply fundamental_ty_path_repl|]).
+    admit.
+    admit.
+    apply IHHrew.
+  Admitted.
 
   Lemma fundamental_ty_path_repl_rtc {p q T1 T2}
     (Hrew : T1 ~Tp[ p := q ]* T2) :
