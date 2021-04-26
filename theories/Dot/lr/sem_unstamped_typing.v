@@ -143,6 +143,8 @@ Section tmem_unstamped_lemmas.
     ⊢ |==> ∃ s, s ↝[ push_var σ ] shift T.
   Proof. intros Hcl; apply leadsto_envD_equiv_alloc, coveringσ_shift, Hcl. Qed.
 
+  (* XXX *)
+  Import sem_kind_dot.HkDotSemTypes.
   Lemma suD_Typ_Gen {l Γ fakeT s σ} {T : olty Σ} :
     s ↝[ σ ] T -∗ Γ su⊨ { l := dtysyn fakeT } : cTMem l (oLater T) (oLater T).
   Proof.
@@ -184,7 +186,7 @@ Section tmem_unstamped_lemmas.
   Lemma suD_Typ_Abs {l σ Γ L T U} fakeT (HclT : coveringσ σ T):
     Γ s⊨ L <:[0] oLater T -∗
     Γ s⊨ oLater T <:[0] U -∗
-    Γ su⊨ { l := dtysyn fakeT } : cTMem l L U.
+    Γ su⊨ { l := dtysyn fakeT } : cTMemK l (sf_kintv L U).
   Proof.
     by iIntros "H1 H2"; iApply (suD_Typ_Stp with "H1 H2"); iApply suD_Typ.
   Qed.
@@ -193,7 +195,7 @@ Section tmem_unstamped_lemmas.
     Γ ⊨ L <:[0] TLater T -∗
     Γ ⊨ TLater T <:[0] U -∗
     Γ u⊨ { l := dtysyn fakeT } : TTMem l L U.
-  Proof. have := !!nclosed_syn_coveringσ HclT; apply suD_Typ_Abs. Qed.
+  Proof. have := !!nclosed_syn_coveringσ HclT. apply suD_Typ_Abs. Qed.
 
   Lemma uD_Typ {l n Γ T} fakeT (HclT : nclosed T n):
     ⊢ Γ u⊨ { l := dtysyn fakeT } : TTMem l (TLater T) (TLater T).
