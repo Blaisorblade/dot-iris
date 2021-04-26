@@ -5,7 +5,7 @@ From D.Dot Require Import typing_aux_defs.
 From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language.
 
-From D.Dot Require Import rules unary_lr.
+From D.Dot Require Import rules dot_semtypes.
 
 Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (n : Z).
 
@@ -77,11 +77,6 @@ Section Sec.
     by iApply wp_wand; [iApply wp_un|iIntros (? [??])].
   Qed.
 
-  Lemma T_Un Γ u e1 B1 Br (Hu : un_op_syntype u B1 Br) :
-    Γ ⊨ e1 : TPrim B1 -∗
-    Γ ⊨ tun u e1 : TPrim Br.
-  Proof. apply sT_Un, un_op_syntype_sound, Hu. Qed.
-
   (** ** Binary operations *)
   Lemma wp_bin {b v1 v2 B1 B2 Br P} (Hu : bin_op_semtype b B1 B2 Br P) l1 l2
     (Hev1 : prim_evals_to B1 v1 l1) (Hev2 : prim_evals_to B2 v2 l2)
@@ -109,12 +104,6 @@ Section Sec.
     Γ s⊨ e2 : oPrim B2 -∗
     Γ s⊨ tbin b e1 e2 : oPrim Br.
   Proof. apply sT_Bin, cond_bin_op_syntype_sound, Hu. Qed.
-
-  Lemma T_Bin Γ b e1 e2 B1 B2 Br (Hu : bin_op_syntype b B1 B2 Br) :
-    Γ ⊨ e1 : TPrim B1 -∗
-    Γ ⊨ e2 : TPrim B2 -∗
-    Γ ⊨ tbin b e1 e2 : TPrim Br.
-  Proof. apply sT_Bin_cond, ty_syn, Hu. Qed.
 
   Lemma sT_If Γ e e1 e2 T :
     Γ s⊨ e : oBool -∗ Γ s⊨ e1 : T -∗ Γ s⊨ e2 : T -∗

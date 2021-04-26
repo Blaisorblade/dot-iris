@@ -42,6 +42,9 @@ Proof. intros T; induction T; auto. Qed.
 
 Existing Instances type_equiv_sym type_equiv_trans.
 
+Instance: Equivalence type_equiv := {}.
+Instance: RewriteRelation type_equiv := {}.
+
 Lemma type_equiv_laterN_and j U1 U2 :
   |- iterate TLater j (TAnd U1 U2)
   == TAnd (iterate TLater j U1) (iterate TLater j U2).

@@ -248,6 +248,10 @@ Notation wf_ds ds := (NoDup (map fst ds)).
 Definition path_includes p ρ ds :=
   path_wp_pure p.|[ρ] (λ w, ∃ ds', w = vobj ds' ∧ ds.|[ρ] `sublist_of` selfSubst ds' ∧ wf_ds ds').
 
+Lemma path_includes_equiv p ρ ds : path_includes (pv (ids 0)) ρ ds ↔
+  ∃ ds', ρ 0 = vobj ds' ∧ ds.|[ρ] `sublist_of` selfSubst ds' ∧ wf_ds ds'.
+Proof. by rewrite /path_includes path_wp_pure_pv_eq. Qed.
+
 Lemma ds_notin_subst l ds ρ :
   l ∉ map fst ds →
   l ∉ map fst ds.|[ρ].

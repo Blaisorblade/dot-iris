@@ -1,6 +1,6 @@
 (** * Semantic lemmas for definition typing. *)
 From iris.proofmode Require Import tactics.
-From D.Dot Require Import unary_lr.
+From D.Dot Require Import dot_semtypes.
 
 Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms).
 

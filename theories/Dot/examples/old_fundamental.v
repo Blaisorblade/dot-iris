@@ -7,7 +7,7 @@ From D.Dot Require Import subtyping path_repl_lemmas skeleton.
 
 (** Adapter code. *)
 From D.Dot.examples.old_typing Require Import old_unstamped_typing old_unstamped_typing_to_typing.
-From D.Dot.examples.sem Require Export sub_lr.
+From D.Dot.examples.sem Require Export sub_lr sub_lr_syn.
 From D.Dot.examples.sem Require Import storeless_typing.
 
 Set Suggest Proof Using.

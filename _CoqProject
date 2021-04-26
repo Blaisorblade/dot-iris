@@ -45,17 +45,24 @@ theories/Dot/syn/traversals.v
 
 theories/Dot/lr/dlang_inst.v
 theories/Dot/lr/dot_lty.v
-theories/Dot/lr/later_sub_sem.v
 theories/Dot/lr/path_wp.v
+theories/Dot/lr/dot_semtypes.v
 theories/Dot/lr/unary_lr.v
 theories/Dot/lr/sem_unstamped_typing.v
 
+theories/Dot/semtyp_lemmas/later_sub_sem.v
 theories/Dot/semtyp_lemmas/binding_lr.v
 theories/Dot/semtyp_lemmas/defs_lr.v
 theories/Dot/semtyp_lemmas/dsub_lr.v
 theories/Dot/semtyp_lemmas/path_repl_lr.v
 theories/Dot/semtyp_lemmas/prims_lr.v
 theories/Dot/semtyp_lemmas/tproj_lr.v
+
+theories/Dot/syntyp_lemmas/binding_lr_syn.v
+theories/Dot/syntyp_lemmas/dsub_lr_syn.v
+theories/Dot/syntyp_lemmas/path_repl_lr_syn.v
+theories/Dot/syntyp_lemmas/prims_lr_syn.v
+theories/Dot/syntyp_lemmas/later_sub_syn.v
 
 theories/Dot/typing/subtyping.v
 theories/Dot/typing/type_eq.v
@@ -81,6 +88,9 @@ theories/Dot/examples/old_fundamental.v
 theories/Dot/examples/sem/semtyp_lemmas/sub_lr.v
 theories/Dot/examples/sem/semtyp_lemmas/examples_lr.v
 
+theories/Dot/examples/sem/syntyp_lemmas/sub_lr_syn.v
+theories/Dot/examples/sem/syntyp_lemmas/examples_lr_syn.v
+
 theories/Dot/examples/sem/ex_iris_utils.v
 theories/Dot/examples/sem/no_russell_paradox.v
 theories/Dot/examples/sem/prim_boolean_option.v
@@ -98,6 +108,7 @@ theories/Dot/examples/syn/scala_lib.v
 theories/Dot/examples/syn/syn_lemmas.v
 
 theories/Dot/hkdot/sem_kind.v
+theories/Dot/hkdot/sem_kind_dot.v
 theories/Dot/hkdot/hkdot.v
 
 theories/DSub/syn/ds_rules.v

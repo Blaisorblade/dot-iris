@@ -5,6 +5,7 @@ From D Require Import iris_extra.det_reduction.
 From D.Dot Require Import skeleton path_repl typing_aux_defs.
 From D.Dot Require Import unary_lr.
 From D.Dot Require Import later_sub_sem binding_lr path_repl_lr defs_lr dsub_lr prims_lr.
+From D.Dot Require Import binding_lr_syn path_repl_lr_syn prims_lr_syn later_sub_syn.
 From stdpp Require Import relations.
 (* Fix what is in scope. *)
 Import stdpp.relations stdpp.tactics D.prelude dlang_adequacy.
@@ -47,21 +48,12 @@ Section unstamped_judgs_proper.
 
   #[global] Instance suetp_proper e : Proper ((≡) ==> (≡) ==> (≡)) (suetp e).
   Proof. rewrite /suetp => ??????. by repeat f_equiv. Qed.
-  #[global] Instance suetp_flip_proper e :
-    Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (suetp e).
-  Proof. apply: flip_proper_3. Qed.
 
   #[global] Instance sudstp_proper ds : Proper ((≡) ==> (≡) ==> (≡)) (sudstp ds).
   Proof. rewrite /sudstp => ??????; by repeat f_equiv. Qed.
-  #[global] Instance sudstp_flip_proper ds :
-    Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sudstp ds).
-  Proof. apply: flip_proper_3. Qed.
 
   #[global] Instance sudtp_proper l d : Proper ((≡) ==> (≡) ==> (≡)) (sudtp l d).
   Proof. rewrite /sudtp => ??????. by repeat f_equiv. Qed.
-  #[global] Instance sudtp_flip_proper l d :
-    Proper (flip (≡) ==> flip (≡) ==> flip (≡)) (sudtp l d).
-  Proof. apply: flip_proper_3. Qed.
 End unstamped_judgs_proper.
 
 Notation "Γ su⊨ e : T" := (suetp e Γ T) (at level 74, e, T at next level).
