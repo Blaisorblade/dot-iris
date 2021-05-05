@@ -3,7 +3,7 @@ From D Require Import iris_prelude proper proofmode_extra.
 From D Require Export succ_notation.
 From D Require Import saved_interp_n asubst_intf dlang lty.
 From D Require Import swap_later_impl.
-From D.Dot Require Import dot_lty dot_semtypes hkdot.sem_kind.
+From D.Dot Require Import dot_lty hkdot.sem_kind path_wp.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
@@ -52,16 +52,31 @@ Definition sem_kind_path_repl {Σ} p q (K1 K2 : sf_kind Σ) : Prop :=
 Notation "K1 ~sKd[ p := q  ]* K2" :=
   (sem_kind_path_repl p q K1 K2) (at level 70).
 
+(* TODO inline. *)
+Definition oDTMemRaw `{!dlangG Σ} (rK : env → hoD Σ → iProp Σ): dltyO Σ := Dlty (λI ρ d,
+  ∃ ψ, d ↗n ψ ∧ rK ρ ψ).
+
+(** [ D⟦ { A :: K } ⟧ ]. *)
 Definition oDTMemK `{!dlangG Σ} (K : sf_kind Σ) : dltyO Σ :=
   oDTMemRaw (λI ρ ψ, K ρ (packHoLtyO ψ) (packHoLtyO ψ)).
 
-Definition oDTMemSpec `{!dlangG Σ} (L U : oltyO Σ) : dltyO Σ :=
+(** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
+Definition oDTMem `{!dlangG Σ} (L U : oltyO Σ) : dltyO Σ :=
   oDTMemK (sf_kintv L U).
 
-Lemma oDTMemSpec_oDTMem_eq `{!dlangG Σ} L U : oDTMemSpec L U ≡ oDTMem L U.
-Proof.
-  move=> ρ d /=; f_equiv=> ψ; f_equiv. apply sr_kintv_refl.
-Qed.
+Section oDTMem.
+  Context `{!dlangG Σ}.
+
+  (** Not a "real" kind, just a predicate over types. *)
+  Definition dot_intv_type_pred τ1 τ2 ρ ψ : iProp Σ :=
+    τ1 anil ρ ⊆ packHoLtyO ψ anil ∧ packHoLtyO ψ anil ⊆ τ2 anil ρ.
+
+  (* Definition oDTMem_unfold L U : dltyO Σ := oDTMemRaw (dot_intv_type_pred L U). *)
+
+  (* oDTMem_unfold L U. *)
+  Lemma oDTMem_unfold L U : oDTMem L U ≡ oDTMemRaw (dot_intv_type_pred L U).
+  Proof. move=> ρ d /=; f_equiv=> ψ; f_equiv. apply sr_kintv_refl. Qed.
+End oDTMem.
 
 Definition cTMemK `{!dlangG Σ} l (K : sf_kind Σ) : clty Σ := dty2clty l (oDTMemK K).
 Notation oTMemK l K := (clty_olty (cTMemK l K)).
@@ -102,14 +117,32 @@ Definition oTApp `{!dlangG Σ} (T : oltyO Σ) (p : path) : oltyO Σ :=
 Section proper_eq.
   Context `{!dlangG Σ}.
 
+  #[global] Instance oDTMemRaw_ne n :
+    Proper (pointwise_relation _ ((dist n) ==> (dist n)) ==> (dist n)) oDTMemRaw.
+  Proof.
+    rewrite /oDTMemRaw => rK1 rK2 HrK ρ d /=; repeat f_equiv.
+    exact: HrK.
+  Qed.
+
+  #[global] Instance oDTMemRaw_proper :
+    Proper (pointwise_relation _ ((≡) ==> (≡)) ==> (≡)) oDTMemRaw.
+  Proof.
+    rewrite /oDTMemRaw => rK1 rK2 HrK ρ d /=.
+    properness; [done|]. exact: HrK.
+  Qed.
+
   #[global] Instance oDTMemK_ne : NonExpansive (oDTMemK (Σ := Σ)).
   Proof. solve_proper_ho. Qed.
   #[global] Instance oDTMemK_proper :
     Proper ((≡) ==> (≡)) (oDTMemK (Σ := Σ)) := ne_proper _.
+
   #[global] Instance cTMemK_ne l : NonExpansive (cTMemK (Σ := Σ) l).
   Proof. solve_proper_ho. Qed.
   #[global] Instance cTMemK_proper l :
     Proper ((≡) ==> (≡)) (cTMemK (Σ := Σ) l) := ne_proper _.
+
+  #[global] Instance oDTMem_proper : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
+  Proof. rewrite /oDTMem=>??? ???. by repeat f_equiv. Qed.
 
   Lemma cTMemK_eq l (K : sf_kind Σ) d ρ :
     cTMemK l K ρ [(l, d)] ⊣⊢ oDTMemK K ρ d.
@@ -144,6 +177,7 @@ Section proper_eq.
     oTApp (oLaterN m τ) p args ρ v ⊢ oLaterN m (oTApp τ p) args ρ v.
   Proof. by rewrite /= path_wp_laterN_swap. Qed.
 
+  (* XXX why here? *)
   Lemma sTEq_Beta (T : oltyO Σ) p :
     oTApp (oLam T) p ≡ T .sTp[ p /].
   Proof. done. Qed.
@@ -153,4 +187,8 @@ Section proper_eq.
   Proof. move => args ρ w /=. by rewrite subst_swap_base. Qed.
 
 End proper_eq.
+
+Typeclasses Opaque oDTMem.
+#[global] Opaque oDTMem.
+
 End HkDotSemTypes.

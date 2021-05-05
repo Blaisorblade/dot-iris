@@ -118,21 +118,6 @@ Section sem_types.
   Context `{HdotG: !dlangG Σ}.
   Implicit Types (τ : oltyO Σ).
 
-  Definition oDTMemRaw (rK : env → hoD Σ → iProp Σ): dltyO Σ := Dlty (λI ρ d,
-    ∃ ψ, d ↗n ψ ∧ rK ρ ψ).
-
-  (** Not a "real" kind, just a predicate over types. *)
-  Definition dot_intv_type_pred τ1 τ2 ρ ψ : iProp Σ :=
-    τ1 anil ρ ⊆ packHoLtyO ψ anil ∧ packHoLtyO ψ anil ⊆ τ2 anil ρ.
-
-  (** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
-  Definition oDTMem τ1 τ2 : dltyO Σ := oDTMemRaw (dot_intv_type_pred τ1 τ2).
-  #[global] Instance oDTMem_proper : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
-  Proof.
-    rewrite /oDTMem => ??? ??? ??/=; properness; try reflexivity;
-      solve_proper_ho.
-  Qed.
-
   (** [ D⟦ { a : τ } ⟧ ]. *)
   Definition oDVMem τ : dltyO Σ := Dlty (λI ρ d,
     ∃ pmem, ⌜d = dpt pmem⌝ ∧ path_wp pmem (oClose τ ρ)).
@@ -222,7 +207,11 @@ Section misc_lemmas.
   Lemma oTMem_eq l τ1 τ2 args ρ v :
     oTMem l τ1 τ2 args ρ v ⊣⊢
     ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗n ψ ∧ dot_intv_type_pred τ1 τ2 ρ ψ.
-  Proof. apply bi_exist_nested_swap. Qed.
+  Proof.
+    etrans.
+    { apply clty_olty_proper, dty2clty_proper, oDTMem_unfold. }
+    apply bi_exist_nested_swap.
+  Qed.
 
   Lemma oTMem_shift A L U : oTMem A (shift L) (shift U) = shift (oTMem A L U).
   Proof. done. Qed.
@@ -267,6 +256,7 @@ Section misc_lemmas.
     U1 anil ρ ⊆ U2 anil ρ -∗
     oDTMem L1 U1 ρ d -∗ oDTMem L2 U2 ρ d.
   Proof.
+    rewrite !oDTMem_unfold.
     iIntros "#HsubL #HsubU"; iDestruct 1 as (φ) "#(Hφl & #HLφ & #HφU)".
     iExists φ; iSplit; first done; iSplit; iIntros "%w #Hw".
     - iApply ("HLφ" with "(HsubL Hw)").
