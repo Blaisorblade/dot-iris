@@ -105,11 +105,6 @@ End dm_to_type.
 
 (** ** Semantic path substitution and replacement. *)
 
-(** Semantic substitution of path in type. *)
-Definition opSubst `{!dlangG Σ} p (T : oltyO Σ) : oltyO Σ :=
-  Olty (λI args ρ v, path_wp p.|[ρ] (λ w, T args (w .: ρ) v)).
-Notation "T .sTp[ p /]" := (opSubst p T) (at level 65).
-
 (** Semantic definition of path replacement. *)
 Definition sem_ty_path_replI {Σ} p q (T1 T2 : olty Σ) : iProp Σ :=
   |==> ∀ args ρ v (H : alias_paths p.|[ρ] q.|[ρ]), T1 args ρ v ≡ T2 args ρ v.
@@ -126,9 +121,6 @@ Notation "T1 ~sTpP[ p := q  ]* T2" :=
 
 Section path_repl.
   Context `{!dlangG Σ}.
-
-  Lemma opSubst_pv_eq v (T : oltyO Σ) : T .sTp[ pv v /] ≡ T.|[v/].
-  Proof. move=> args ρ w /=. by rewrite path_wp_pv_eq subst_swap_base. Qed.
 
   Lemma sem_psubst_one_repl {T : olty Σ} {args p v w ρ}:
     alias_paths p.|[ρ] (pv v) →

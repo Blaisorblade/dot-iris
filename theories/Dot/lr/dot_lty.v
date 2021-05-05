@@ -2,7 +2,7 @@
 From iris.proofmode Require Import tactics.
 From D Require Export iris_prelude proper lty lr_syn_aux.
 From D.Dot Require Import syn.
-From D.Dot Require Export dlang_inst.
+From D.Dot Require Export dlang_inst path_wp.
 
 Unset Program Cases.
 Set Suggest Proof Using.
@@ -261,3 +261,16 @@ Section logrel_binding_lemmas.
   Lemma interp_subst_commute (T : ty) σ : V⟦ T.|[σ] ⟧ ≡ V⟦ T ⟧.|[σ].
   Proof. intros ???; apply interp_subst_compose_ind. Qed.
 End logrel_binding_lemmas.
+
+(** * Constructions on gDOT semantic types. *)
+(** Semantic substitution of path in type. *)
+Definition opSubst `{!dlangG Σ} p (T : oltyO Σ) : oltyO Σ :=
+  Olty (λI args ρ v, path_wp p.|[ρ] (λ w, T args (w .: ρ) v)).
+Notation "T .sTp[ p /]" := (opSubst p T) (at level 65).
+
+Section opSubst_lemmas.
+  Context `{!dlangG Σ}.
+  (* XXX why here? *)
+  Lemma opSubst_pv_eq v (T : oltyO Σ) : T .sTp[ pv v /] ≡ T.|[v/].
+  Proof. move=> args ρ w /=. by rewrite path_wp_pv_eq subst_swap_base. Qed.
+End opSubst_lemmas.
