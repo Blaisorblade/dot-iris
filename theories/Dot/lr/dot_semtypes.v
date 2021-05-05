@@ -6,7 +6,7 @@ From D.Dot Require Import syn path_repl.
 From D.Dot Require Export dlang_inst path_wp.
 From D.pure_program_logic Require Import weakestpre.
 
-From D.Dot Require Export dot_lty.
+From D.Dot Require Export dot_lty sem_kind_dot.
 
 Unset Program Cases.
 Set Suggest Proof Using.
@@ -76,32 +76,6 @@ Section JudgEqs.
     |==> ∀ ρ v, sG⟦Γ⟧* ρ → ▷^i (T1 anil ρ v → T2 anil ρ v).
   Proof. rewrite sstpd_eq_1; properness. apply: forall_swap_impl. Qed.
 End JudgEqs.
-
-(** When a definition points to a semantic type. Inlined in paper. *)
-Definition dm_to_type `{HdotG: !dlangG Σ} d (ψ : hoD Σ) : iProp Σ :=
-  ∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ ] ψ.
-Notation "d ↗n ψ" := (dm_to_type d ψ) (at level 20).
-Notation "d ↗ ψ" := (dm_to_type d ψ) (at level 20).
-
-Section dm_to_type.
-  Context `{HdotG: !dlangG Σ}.
-
-  Lemma dm_to_type_agree {d ψ1 ψ2} args v : d ↗n ψ1 -∗ d ↗n ψ2 -∗ ▷ (ψ1 args v ≡ ψ2 args v).
-  Proof.
-    iDestruct 1 as (s σ ?) "#Hs1".
-    iDestruct 1 as (s' σ' ?) "#Hs2".
-    simplify_eq. by iApply (stamp_σ_to_type_agree args with "Hs1 Hs2").
-  Qed.
-
-  Lemma dm_to_type_intro d s σ φ :
-    d = dtysem σ s → s ↝n φ -∗ d ↗n hoEnvD_inst σ φ.
-  Proof.
-    iIntros. iExists s, σ. iFrame "%".
-    by iApply stamp_σ_to_type_intro.
-  Qed.
-
-  #[global] Opaque dm_to_type.
-End dm_to_type.
 
 (** ** Semantic path substitution and replacement. *)
 

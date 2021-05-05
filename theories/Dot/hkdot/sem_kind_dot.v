@@ -19,6 +19,34 @@ Implicit Types
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
          (ρ : var → vl) (l : label).
 
+(** * Type members. *)
+
+(** When a definition points to a semantic type. Inlined in paper. *)
+Definition dm_to_type `{HdotG: !dlangG Σ} d (ψ : hoD Σ) : iProp Σ :=
+  ∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ ] ψ.
+Notation "d ↗n ψ" := (dm_to_type d ψ) (at level 20).
+Notation "d ↗ ψ" := (dm_to_type d ψ) (at level 20).
+
+Section dm_to_type.
+  Context `{HdotG: !dlangG Σ}.
+
+  Lemma dm_to_type_agree {d ψ1 ψ2} args v : d ↗n ψ1 -∗ d ↗n ψ2 -∗ ▷ (ψ1 args v ≡ ψ2 args v).
+  Proof.
+    iDestruct 1 as (s σ ?) "#Hs1".
+    iDestruct 1 as (s' σ' ?) "#Hs2".
+    simplify_eq. by iApply (stamp_σ_to_type_agree args with "Hs1 Hs2").
+  Qed.
+
+  Lemma dm_to_type_intro d s σ φ :
+    d = dtysem σ s → s ↝n φ -∗ d ↗n hoEnvD_inst σ φ.
+  Proof.
+    iIntros. iExists s, σ. iFrame "%".
+    by iApply stamp_σ_to_type_intro.
+  Qed.
+
+  #[global] Opaque dm_to_type.
+End dm_to_type.
+
 Definition sem_kind_path_repl {Σ} p q (K1 K2 : sf_kind Σ) : Prop :=
   ∀ ρ T1 T2, alias_paths p.|[ρ] q.|[ρ] → K1 ρ T1 T2 ≡ K2 ρ T1 T2.
 Notation "K1 ~sKd[ p := q  ]* K2" :=
