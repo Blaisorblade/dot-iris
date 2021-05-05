@@ -448,7 +448,6 @@ End HoSemJudgments.
 
 Module HkDot.
 Import dot_lty dot_semtypes dsub_lr sub_lr path_repl_lr hoas ex_utils.
-Export HkDotSemTypes.
 Include HoSemJudgments VlSorts dlang_inst dot_lty HkDotSemTypes.
 Implicit Types
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)

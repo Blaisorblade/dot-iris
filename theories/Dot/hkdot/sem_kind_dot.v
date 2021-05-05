@@ -12,7 +12,7 @@ Unset Strict Implicit.
 
 Implicit Types (Σ : gFunctors).
 
-Module HkDotSemTypes.
+Module Export HkDotSemTypes.
 Include HoSemTypes VlSorts dlang_inst dot_lty.
 
 Implicit Types
