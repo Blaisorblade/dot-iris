@@ -377,6 +377,7 @@ Section type_proj.
     iIntros "!> %ρ _ !>". iApply "Hs".
   Qed.
 
+  (* TODO *)
   Lemma Proj_Stp_TMem {Γ i A n} {T : ty} (HclT : nclosed T n) :
     ⊢ Γ s⊨ oLater V⟦T⟧ <:[i] oProj A (oTMemL A V⟦T⟧ V⟦T⟧).
   Proof. have := !!nclosed_syn_coveringσ HclT; apply sProj_Stp_TMem. Qed.
