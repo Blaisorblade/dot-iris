@@ -70,14 +70,10 @@ Definition dot_intv_type_pred `{!dlangG Σ} (L U : oltyO Σ) ρ ψ : iProp Σ :=
   L anil ρ ⊆ packHoLtyO ψ anil ∧ packHoLtyO ψ anil ⊆ U anil ρ.
 
 (** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
-Definition oDTMem_def `{!dlangG Σ} L U : dltyO Σ := oDTMemK (sf_kintv L U).
-Definition oDTMem_aux : seal (@oDTMem_def). Proof. by eexists. Qed.
-Definition oDTMem := oDTMem_aux.(unseal).
-Definition oDTMem_eq : oDTMem = _ := oDTMem_aux.(seal_eq).
+Definition oDTMem `{!dlangG Σ} L U : dltyO Σ := oDTMemK (sf_kintv L U).
+Definition oDTMem_eq `{!dlangG Σ} : oDTMem = λ L U, oDTMemK (sf_kintv L U) := reflexivity _.
 
 #[global] Arguments oDTMem {_ _} _ _  _ : assert.
-Typeclasses Opaque oDTMem.
-#[global] Opaque oDTMem.
 
 Section sem_TMem.
   Context `{HdotG: !dlangG Σ}.
@@ -90,7 +86,7 @@ Section sem_TMem.
 
   #[global] Instance oDTMem_proper : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
   Proof.
-    move=> ??? ??? ??/=. rewrite !oDTMem_unfold/=.
+    move=> ??? ??? ??. rewrite !oDTMem_unfold/=.
     properness; try reflexivity; solve_proper_ho.
   Qed.
 
