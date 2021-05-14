@@ -20,8 +20,7 @@ Implicit Types
          (ρ : var → vl) (l : label).
 
 (** * Type members *)
-Definition oDTMemRaw `{!dlangG Σ} (rK : env → hoD Σ → iProp Σ): dltyO Σ := Dlty (λI ρ d,
-  ∃ ψ, d ↗n ψ ∧ rK ρ ψ).
+Notation oDTMemRaw rK := (Dlty (λI ρ d, ∃ ψ, d ↗n ψ ∧ rK ρ ψ)).
 
 (** [ D⟦ { A :: K } ⟧ ]. *)
 Definition oDTMemK `{!dlangG Σ} (K : sf_kind Σ) : dltyO Σ :=
