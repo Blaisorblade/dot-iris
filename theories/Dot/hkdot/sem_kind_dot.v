@@ -3,7 +3,7 @@ From D Require Import iris_prelude proper proofmode_extra.
 From D Require Export succ_notation.
 From D Require Import saved_interp_n asubst_intf dlang lty.
 From D Require Import swap_later_impl.
-From D.Dot Require Import dot_lty dot_semtypes hkdot.sem_kind.
+From D.Dot Require Import dot_lty hkdot.sem_kind.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
@@ -24,11 +24,59 @@ Definition sem_kind_path_repl {Σ} p q (K1 K2 : sf_kind Σ) : Prop :=
 Notation "K1 ~sKd[ p := q  ]* K2" :=
   (sem_kind_path_repl p q K1 K2) (at level 70).
 
+Definition oDTMemRaw `{!dlangG Σ} (rK : env → hoD Σ → iProp Σ): dltyO Σ := Dlty (λI ρ d,
+  ∃ ψ, d ↗n ψ ∧ rK ρ ψ).
+
 Definition oDTMemK `{!dlangG Σ} (K : sf_kind Σ) : dltyO Σ :=
   oDTMemRaw (λI ρ ψ, K ρ (packHoLtyO ψ) (packHoLtyO ψ)).
 
 Definition oDTMemSpec `{!dlangG Σ} (L U : oltyO Σ) : dltyO Σ :=
   oDTMemK (sf_kintv L U).
+
+(** Not a "real" kind, just a predicate over types. *)
+Definition dot_intv_type_pred `{!dlangG Σ} (τ1 τ2 : oltyO Σ) ρ ψ : iProp Σ :=
+  τ1 anil ρ ⊆ packHoLtyO ψ anil ∧ packHoLtyO ψ anil ⊆ τ2 anil ρ.
+
+Section sem_TMem.
+  Context `{HdotG: !dlangG Σ}.
+  Implicit Types (τ : oltyO Σ).
+
+  (** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
+  Definition oDTMem τ1 τ2 : dltyO Σ := oDTMemRaw (dot_intv_type_pred τ1 τ2).
+  #[global] Instance oDTMem_proper : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
+  Proof.
+    rewrite /oDTMem => ??? ??? ??/=; properness; try reflexivity;
+      solve_proper_ho.
+  Qed.
+
+  (** Define [cTMem] by lifting [oDTMem] to [clty]s. *)
+  (**
+  [ Ds⟦ { l :: τ1 .. τ2 } ⟧] and [ V⟦ { l :: τ1 .. τ2 } ⟧ ].
+  Beware: the ICFP'20 defines instead
+  [ Ds⟦ { l >: τ1 <: τ2 } ⟧] and [ V⟦ { l >: τ1 <: τ2 } ⟧ ],
+  which are here a derived notation; see [cTMemL]. *)
+  Definition cTMem l τ1 τ2 : clty Σ := dty2clty l (oDTMem τ1 τ2).
+  #[global] Instance cTMem_proper l : Proper ((≡) ==> (≡) ==> (≡)) (cTMem l).
+  Proof. solve_proper. Qed.
+
+  Lemma cTMem_eq l τ1 τ2 d ρ :
+    cTMem l τ1 τ2 ρ [(l, d)] ⊣⊢ oDTMem τ1 τ2 ρ d.
+  Proof. apply dty2clty_singleton. Qed.
+End sem_TMem.
+
+Notation oTMem l τ1 τ2 := (clty_olty (cTMem l τ1 τ2)).
+
+Section oTMem_lemmas.
+  Context `{HdotG: !dlangG Σ}.
+
+  Lemma oTMem_eq l τ1 τ2 args ρ v :
+    oTMem l τ1 τ2 args ρ v ⊣⊢
+    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗n ψ ∧ dot_intv_type_pred τ1 τ2 ρ ψ.
+  Proof. apply bi_exist_nested_swap. Qed.
+
+  Lemma oTMem_shift A L U : oTMem A (shift L) (shift U) = shift (oTMem A L U).
+  Proof. done. Qed.
+End oTMem_lemmas.
 
 Lemma oDTMemSpec_oDTMem_eq `{!dlangG Σ} L U : oDTMemSpec L U ≡ oDTMem L U.
 Proof.

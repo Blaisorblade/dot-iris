@@ -6,7 +6,7 @@ From D.Dot Require Import syn path_repl.
 From D.Dot Require Export dlang_inst path_wp.
 From D.pure_program_logic Require Import weakestpre.
 
-From D.Dot Require Export dot_lty.
+From D.Dot Require Export dot_lty sem_kind_dot.
 
 Unset Program Cases.
 Set Suggest Proof Using.
@@ -88,21 +88,6 @@ Section sem_types.
   Context `{HdotG: !dlangG Σ}.
   Implicit Types (τ : oltyO Σ).
 
-  Definition oDTMemRaw (rK : env → hoD Σ → iProp Σ): dltyO Σ := Dlty (λI ρ d,
-    ∃ ψ, d ↗n ψ ∧ rK ρ ψ).
-
-  (** Not a "real" kind, just a predicate over types. *)
-  Definition dot_intv_type_pred τ1 τ2 ρ ψ : iProp Σ :=
-    τ1 anil ρ ⊆ packHoLtyO ψ anil ∧ packHoLtyO ψ anil ⊆ τ2 anil ρ.
-
-  (** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
-  Definition oDTMem τ1 τ2 : dltyO Σ := oDTMemRaw (dot_intv_type_pred τ1 τ2).
-  #[global] Instance oDTMem_proper : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
-  Proof.
-    rewrite /oDTMem => ??? ??? ??/=; properness; try reflexivity;
-      solve_proper_ho.
-  Qed.
-
   (** [ D⟦ { a : τ } ⟧ ]. *)
   Definition oDVMem τ : dltyO Σ := Dlty (λI ρ d,
     ∃ pmem, ⌜d = dpt pmem⌝ ∧ path_wp pmem (oClose τ ρ)).
@@ -116,20 +101,7 @@ Section sem_types.
     oDVMem T ρ (dpt p) ≡ path_wp p (oClose T ρ).
   Proof. simpl; iSplit; last by eauto. by iDestruct 1 as (pmem [= ->]) "$". Qed.
 
-  (** Define [cTMem] and [cVMem] by lifting [oDTMem] and [oDVMem] to [clty]s. *)
-
-  (**
-  [ Ds⟦ { l :: τ1 .. τ2 } ⟧] and [ V⟦ { l :: τ1 .. τ2 } ⟧ ].
-  Beware: the ICFP'20 defines instead
-  [ Ds⟦ { l >: τ1 <: τ2 } ⟧] and [ V⟦ { l >: τ1 <: τ2 } ⟧ ],
-  which are here a derived notation; see [cTMemL]. *)
-  Definition cTMem l τ1 τ2 : clty Σ := dty2clty l (oDTMem τ1 τ2).
-  #[global] Instance cTMem_proper l : Proper ((≡) ==> (≡) ==> (≡)) (cTMem l).
-  Proof. solve_proper. Qed.
-
-  Lemma cTMem_eq l T1 T2 d ρ :
-    cTMem l T1 T2 ρ [(l, d)] ⊣⊢ oDTMem T1 T2 ρ d.
-  Proof. apply dty2clty_singleton. Qed.
+  (** Define [cVMem] by lifting [oDVMem] to [clty]s. *)
 
   (** [ Ds⟦ { l : τ } ⟧] and [ V⟦ { l : τ } ⟧ ]. *)
   Definition cVMem l τ : clty Σ := dty2clty l (oDVMem τ).
@@ -172,7 +144,6 @@ Notation oBool := (oPrim tbool).
 (** Semantics of type members in the ICFP'20 paper:
 [ Ds⟦ { l >: τ1 <: τ2 } ⟧] and [ V⟦ { l >: τ1 <: τ2 } ⟧ ]. *)
 Notation cTMemL l L U := (cTMem l (oLater L) (oLater U)).
-Notation oTMem l τ1 τ2 := (clty_olty (cTMem l τ1 τ2)).
 Notation oTMemL l L U := (clty_olty (cTMemL l L U)).
 Notation oVMem l τ := (clty_olty (cVMem l τ)).
 
@@ -188,14 +159,6 @@ Section misc_lemmas.
     rewrite and2_exist_r.
     apply bi.and_proper, reflexivity; iIntros "!% /="; naive_solver.
   Qed.
-
-  Lemma oTMem_eq l τ1 τ2 args ρ v :
-    oTMem l τ1 τ2 args ρ v ⊣⊢
-    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗n ψ ∧ dot_intv_type_pred τ1 τ2 ρ ψ.
-  Proof. apply bi_exist_nested_swap. Qed.
-
-  Lemma oTMem_shift A L U : oTMem A (shift L) (shift U) = shift (oTMem A L U).
-  Proof. done. Qed.
 
   (** Core lemmas about type selections and bounds. *)
   Lemma vl_sel_ub w l L U ρ v :
