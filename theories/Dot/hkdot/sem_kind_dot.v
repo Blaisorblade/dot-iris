@@ -26,9 +26,6 @@ Notation oDTMemRaw rK := (Dlty (λI ρ d, ∃ ψ, d ↗n ψ ∧ rK ρ ψ)).
 Definition oDTMemK `{!dlangG Σ} (K : sf_kind Σ) : dltyO Σ :=
   oDTMemRaw (λI ρ ψ, K ρ (packHoLtyO ψ) (packHoLtyO ψ)).
 
-Definition oDTMemSpec `{!dlangG Σ} (L U : oltyO Σ) : dltyO Σ :=
-  oDTMemK (sf_kintv L U).
-
 Definition cTMemK `{!dlangG Σ} l (K : sf_kind Σ) : clty Σ := dty2clty l (oDTMemK K).
 Notation oTMemK l K := (clty_olty (cTMemK l K)).
 
@@ -73,7 +70,7 @@ Definition dot_intv_type_pred `{!dlangG Σ} (L U : oltyO Σ) ρ ψ : iProp Σ :=
   L anil ρ ⊆ packHoLtyO ψ anil ∧ packHoLtyO ψ anil ⊆ U anil ρ.
 
 (** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
-Definition oDTMem_def `{!dlangG Σ} L U : dltyO Σ := oDTMemRaw (dot_intv_type_pred L U).
+Definition oDTMem_def `{!dlangG Σ} L U : dltyO Σ := oDTMemK (sf_kintv L U).
 Definition oDTMem_aux : seal (@oDTMem_def). Proof. by eexists. Qed.
 Definition oDTMem := oDTMem_aux.(unseal).
 Definition oDTMem_eq : oDTMem = _ := oDTMem_aux.(seal_eq).
@@ -87,7 +84,9 @@ Section sem_TMem.
   Implicit Types (τ : oltyO Σ).
 
   Lemma oDTMem_unfold L U : oDTMem L U ≡ oDTMemRaw (dot_intv_type_pred L U).
-  Proof. by rewrite oDTMem_eq. Qed.
+  Proof.
+    rewrite oDTMem_eq => ρ d /=. f_equiv=> ψ; f_equiv. apply sr_kintv_refl.
+  Qed.
 
   #[global] Instance oDTMem_proper : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
   Proof.
@@ -131,11 +130,6 @@ Section oTMem_lemmas.
   Lemma oTMem_shift A L U : oTMem A (shift L) (shift U) = shift (oTMem A L U).
   Proof. rewrite /cTMem !oDTMem_eq. done. Qed.
 End oTMem_lemmas.
-
-Lemma oDTMemSpec_oDTMem_eq `{!dlangG Σ} L U : oDTMemSpec L U ≡ oDTMem L U.
-Proof.
-  rewrite oDTMem_unfold => ρ d /=; f_equiv=> ψ; f_equiv. apply sr_kintv_refl.
-Qed.
 
 (** * Path application and substitution *)
 
