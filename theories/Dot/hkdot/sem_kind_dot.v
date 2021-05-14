@@ -70,11 +70,11 @@ End TMem_Proper.
 
 (** ** Type members: derive special case for gDOT. *)
 (** Not a "real" kind, just a predicate over types. *)
-Definition dot_intv_type_pred `{!dlangG Σ} (τ1 τ2 : oltyO Σ) ρ ψ : iProp Σ :=
-  τ1 anil ρ ⊆ packHoLtyO ψ anil ∧ packHoLtyO ψ anil ⊆ τ2 anil ρ.
+Definition dot_intv_type_pred `{!dlangG Σ} (L U : oltyO Σ) ρ ψ : iProp Σ :=
+  L anil ρ ⊆ packHoLtyO ψ anil ∧ packHoLtyO ψ anil ⊆ U anil ρ.
 
 (** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
-Definition oDTMem_def `{!dlangG Σ} τ1 τ2 : dltyO Σ := oDTMemRaw (dot_intv_type_pred τ1 τ2).
+Definition oDTMem_def `{!dlangG Σ} L U : dltyO Σ := oDTMemRaw (dot_intv_type_pred L U).
 Definition oDTMem_aux : seal (@oDTMem_def). Proof. by eexists. Qed.
 Definition oDTMem := oDTMem_aux.(unseal).
 Definition oDTMem_eq : oDTMem = _ := oDTMem_aux.(seal_eq).
@@ -102,32 +102,32 @@ Section sem_TMem.
   Beware: the ICFP'20 defines instead
   [ Ds⟦ { l >: τ1 <: τ2 } ⟧] and [ V⟦ { l >: τ1 <: τ2 } ⟧ ],
   which are here a derived notation; see [cTMemL]. *)
-  Definition cTMem l τ1 τ2 : clty Σ := dty2clty l (oDTMem τ1 τ2).
+  Definition cTMem l L U : clty Σ := dty2clty l (oDTMem L U).
   #[global] Instance cTMem_proper l : Proper ((≡) ==> (≡) ==> (≡)) (cTMem l).
   Proof. solve_proper. Qed.
 
   Lemma cTMem_unfold :
-    cTMem = λ l τ1 τ2, dty2clty l (oDTMemRaw (dot_intv_type_pred τ1 τ2)).
+    cTMem = λ l L U, dty2clty l (oDTMemRaw (dot_intv_type_pred L U)).
   Proof. by rewrite /cTMem oDTMem_eq. Qed.
 
-  Lemma cTMem_eq l τ1 τ2 d ρ :
-    cTMem l τ1 τ2 ρ [(l, d)] ⊣⊢ oDTMem τ1 τ2 ρ d.
+  Lemma cTMem_eq l L U d ρ :
+    cTMem l L U ρ [(l, d)] ⊣⊢ oDTMem L U ρ d.
   Proof. apply dty2clty_singleton. Qed.
 End sem_TMem.
 
-Notation oTMem l τ1 τ2 := (clty_olty (cTMem l τ1 τ2)).
+Notation oTMem l L U := (clty_olty (cTMem l L U)).
 
 Section oTMem_lemmas.
   Context `{HdotG: !dlangG Σ}.
 
-  Lemma oTMem_unfold l τ1 τ2 :
-    oTMem l τ1 τ2 = clty_olty (dty2clty l (oDTMemRaw (dot_intv_type_pred τ1 τ2))).
+  Lemma oTMem_unfold l L U :
+    oTMem l L U = clty_olty (dty2clty l (oDTMemRaw (dot_intv_type_pred L U))).
   Proof. by rewrite cTMem_unfold. Qed.
 
-  Lemma oTMem_eq l τ1 τ2 args ρ v :
-    oTMem l τ1 τ2 args ρ v ⊣⊢
-    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗n ψ ∧ dot_intv_type_pred τ1 τ2 ρ ψ.
-  Proof. rewrite /cTMem oDTMem_eq. apply bi_exist_nested_swap. Qed.
+  Lemma oTMem_eq l L U args ρ v :
+    oTMem l L U args ρ v ⊣⊢
+    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗n ψ ∧ dot_intv_type_pred L U ρ ψ.
+  Proof. rewrite oTMem_unfold. apply bi_exist_nested_swap. Qed.
 
   Lemma oTMem_shift A L U : oTMem A (shift L) (shift U) = shift (oTMem A L U).
   Proof. rewrite /cTMem !oDTMem_eq. done. Qed.
