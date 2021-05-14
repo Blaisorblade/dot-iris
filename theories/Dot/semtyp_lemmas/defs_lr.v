@@ -73,8 +73,9 @@ Section Sec.
     s ↝[ σ ] T -∗
     Γ s⊨ { l := dtysem σ s } : cTMem l (oLater T) (oLater T).
   Proof.
-    rewrite !sdtp_eq' oDTMem_unfold; iDestruct 1 as (φ Hγφ) "#Hγ".
-    iIntros "!>" (ρ Hpid) "#Hg"; iExists (hoEnvD_inst (σ.|[ρ]) φ); iSplit.
+    rewrite !sdtp_eq'; iDestruct 1 as (φ Hγφ) "#Hγ".
+    iIntros "!>" (ρ Hpid) "#Hg"; rewrite oDTMem_unfold.
+    iExists (hoEnvD_inst (σ.|[ρ]) φ); iSplit.
     by iApply (dm_to_type_intro with "Hγ").
     by iSplit; iIntros (v) "#H"; iNext; rewrite /= (Hγφ _ _).
   Qed.
