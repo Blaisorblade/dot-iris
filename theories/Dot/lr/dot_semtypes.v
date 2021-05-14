@@ -166,6 +166,7 @@ Section misc_lemmas.
     oTMem l L U anil ρ w -∗
     U anil ρ v.
   Proof.
+    rewrite oTMem_unfold.
     iIntros "Hφ"; iDestruct 1 as (d1 Hl1 φ1) "(Hdφ1 & _ & HφU)".
     iApply "HφU".
     iDestruct "Hφ" as (d2 φ2 Hl2) "[Hdφ2 Hφ2v]".
@@ -178,6 +179,7 @@ Section misc_lemmas.
     oTMem l L U anil ρ w -∗
     vl_sel w l anil v.
   Proof.
+    rewrite oTMem_unfold.
     iIntros "HL"; iDestruct 1 as (d Hl φ) "[Hdφ [HLφ _]]".
     iExists d, φ; iFrame (Hl) "Hdφ". iApply ("HLφ" with "HL").
   Qed.
@@ -200,6 +202,7 @@ Section misc_lemmas.
     U1 anil ρ ⊆ U2 anil ρ -∗
     oDTMem L1 U1 ρ d -∗ oDTMem L2 U2 ρ d.
   Proof.
+    rewrite !oDTMem_unfold.
     iIntros "#HsubL #HsubU"; iDestruct 1 as (φ) "#(Hφl & #HLφ & #HφU)".
     iExists φ; iSplit; first done; iSplit; iIntros "%w #Hw".
     - iApply ("HLφ" with "(HsubL Hw)").

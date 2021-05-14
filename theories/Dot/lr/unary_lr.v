@@ -70,7 +70,7 @@ Section log_rel.
   #[global] Instance pinterp_lemmas: CTyInterpLemmas Σ.
   Proof.
     split; rewrite /pty_interp;
-      induction T => args sb1 sb2 w; rewrite /= /pty_interp /dot_intv_type_pred /subtype_lty /=;
+      induction T => args sb1 sb2 w; rewrite /= /pty_interp ?oDTMem_unfold /dot_intv_type_pred /subtype_lty /=;
       properness; rewrite ?scons_up_swap ?hsubst_comp; trivial.
     by apply path_wp_proper => ?.
   Qed.
@@ -138,7 +138,7 @@ Section path_repl_lemmas.
     V⟦ T1 ⟧ ~sTpP[ p := q ]* V⟦ T2 ⟧.
   Proof.
     rewrite /sem_ty_path_repl; induction Hrew => args ρ v He /=;
-      rewrite /dot_intv_type_pred /subtype_lty/=; properness;
+      rewrite ?oDTMem_unfold /dot_intv_type_pred /subtype_lty/=; properness;
       try by [ exact: path_replacement_equiv | exact: rewrite_path_path_repl
          | apply IHHrew; rewrite ?hsubst_comp | | f_equiv => ?; exact: IHHrew].
   Qed.

@@ -360,7 +360,7 @@ Section type_proj.
 
     iIntros "!> %ρ %v #HT"; rewrite oProjN_eq.
     iAssert (oTMemL A T T anil ρ auxV.[ρ])%I as "{HwT} #Hw". {
-      rewrite -(path_wp_pv_eq auxV.[ρ]). by iApply "HwT".
+      rewrite -(path_wp_pv_eq auxV.[ρ]) !oTMem_unfold. by iApply "HwT".
     }
 
     iExists auxV.[ρ]; iFrame "Hw".
