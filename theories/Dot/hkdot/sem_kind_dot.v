@@ -83,17 +83,31 @@ Definition oDTMem_eq : oDTMem = _ := oDTMem_aux.(seal_eq).
 Typeclasses Opaque oDTMem.
 #[global] Opaque oDTMem.
 
+
+#[global] Instance equiv_ext_dfun4_ppf {A B C D} : subrelation (≡@{A -d> B -d> C -d> D})
+              (pointwise_relation A (pointwise_relation B (forall_relation (const (≡))))).
+Proof. done. Qed.
+
+#[global] Instance equiv_ext_dfun4_ppp {A B C D} : subrelation (≡@{A -d> B -d> C -d> D})
+              (pointwise_relation A (pointwise_relation B (pointwise_relation C (≡)))).
+Proof. done. Qed.
+
+#[global] Instance equiv_ext_dfun3_pp {A B C} : subrelation (≡@{A -d> B -d> C})
+              (pointwise_relation A (pointwise_relation B (≡))).
+Proof. done. Qed.
+
+
 Section sem_TMem.
   Context `{HdotG: !dlangG Σ}.
   Implicit Types (τ : oltyO Σ).
 
-  Lemma oDTMem_unfold : oDTMem = λ L U, oDTMemRaw (dot_intv_type_pred L U).
+  Lemma oDTMem_unfold : oDTMem ≡@{_ -d> _ -d> dltyO Σ} λ L U, oDTMemRaw (dot_intv_type_pred L U).
   Proof. by rewrite oDTMem_eq. Qed.
 
   #[global] Instance oDTMem_proper : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
   Proof.
-    rewrite oDTMem_unfold => ??? ??? ??/=; properness; try reflexivity;
-      solve_proper_ho.
+    move=> ??? ??? ??/=. rewrite oDTMem_unfold /=.
+    properness; try reflexivity; solve_proper_ho.
   Qed.
 
   (** Define [cTMem] by lifting [oDTMem] to [clty]s. *)
@@ -107,7 +121,7 @@ Section sem_TMem.
   Proof. solve_proper. Qed.
 
   Lemma cTMem_unfold :
-    cTMem = λ l L U, dty2clty l (oDTMemRaw (dot_intv_type_pred L U)).
+    cTMem ≡@{_ -d> _ -d> _ -d> cltyO Σ} λ l L U, dty2clty l (oDTMemRaw (dot_intv_type_pred L U)).
   Proof. by rewrite /cTMem oDTMem_eq. Qed.
 
   Lemma cTMem_eq l L U d ρ :
@@ -121,7 +135,7 @@ Section oTMem_lemmas.
   Context `{HdotG: !dlangG Σ}.
 
   Lemma oTMem_unfold l L U :
-    oTMem l L U = clty_olty (dty2clty l (oDTMemRaw (dot_intv_type_pred L U))).
+    oTMem l L U ≡ clty_olty (dty2clty l (oDTMemRaw (dot_intv_type_pred L U))).
   Proof. by rewrite cTMem_unfold. Qed.
 
   Lemma oTMem_eq l L U args ρ v :
