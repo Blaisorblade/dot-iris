@@ -107,7 +107,7 @@ Section sem_TMem.
 
   Lemma cTMem_unfold l L U :
     cTMem l L U ≡ dty2clty l (oDTMemRaw (dot_intv_type_pred L U)).
-  Proof. by rewrite /cTMem oDTMem_eq. Qed.
+  Proof. by rewrite /cTMem oDTMem_unfold. Qed.
 
   Lemma cTMem_eq l L U d ρ :
     cTMem l L U ρ [(l, d)] ⊣⊢ oDTMem L U ρ d.
