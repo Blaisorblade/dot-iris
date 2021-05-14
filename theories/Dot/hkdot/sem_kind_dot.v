@@ -19,20 +19,56 @@ Implicit Types
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
          (ρ : var → vl) (l : label).
 
-Definition sem_kind_path_repl {Σ} p q (K1 K2 : sf_kind Σ) : Prop :=
-  ∀ ρ T1 T2, alias_paths p.|[ρ] q.|[ρ] → K1 ρ T1 T2 ≡ K2 ρ T1 T2.
-Notation "K1 ~sKd[ p := q  ]* K2" :=
-  (sem_kind_path_repl p q K1 K2) (at level 70).
-
+(** * Type members *)
 Definition oDTMemRaw `{!dlangG Σ} (rK : env → hoD Σ → iProp Σ): dltyO Σ := Dlty (λI ρ d,
   ∃ ψ, d ↗n ψ ∧ rK ρ ψ).
 
+(** [ D⟦ { A :: K } ⟧ ]. *)
 Definition oDTMemK `{!dlangG Σ} (K : sf_kind Σ) : dltyO Σ :=
   oDTMemRaw (λI ρ ψ, K ρ (packHoLtyO ψ) (packHoLtyO ψ)).
 
 Definition oDTMemSpec `{!dlangG Σ} (L U : oltyO Σ) : dltyO Σ :=
   oDTMemK (sf_kintv L U).
 
+Definition cTMemK `{!dlangG Σ} l (K : sf_kind Σ) : clty Σ := dty2clty l (oDTMemK K).
+Notation oTMemK l K := (clty_olty (cTMemK l K)).
+
+Definition oDTMemAnyKind `{!dlangG Σ} : dltyO Σ := Dlty (λI ρ d,
+  ∃ (ψ : hoD Σ), d ↗n ψ).
+Definition cTMemAnyKind `{!dlangG Σ} l : clty Σ := dty2clty l oDTMemAnyKind.
+Notation oTMemAnyKind l := (clty_olty (cTMemAnyKind l)).
+
+Section TMem_Proper.
+  Context `{!dlangG Σ}.
+
+  #[global] Instance oDTMemK_ne : NonExpansive (oDTMemK (Σ := Σ)).
+  Proof. solve_proper_ho. Qed.
+  #[global] Instance oDTMemK_proper :
+    Proper ((≡) ==> (≡)) (oDTMemK (Σ := Σ)) := ne_proper _.
+  #[global] Instance cTMemK_ne l : NonExpansive (cTMemK (Σ := Σ) l).
+  Proof. solve_proper_ho. Qed.
+  #[global] Instance cTMemK_proper l :
+    Proper ((≡) ==> (≡)) (cTMemK (Σ := Σ) l) := ne_proper _.
+
+  Lemma cTMemK_eq l (K : sf_kind Σ) d ρ :
+    cTMemK l K ρ [(l, d)] ⊣⊢ oDTMemK K ρ d.
+  Proof. apply dty2clty_singleton. Qed.
+
+  Lemma oTMemK_eq l K args ρ v :
+    oTMemK l K args ρ v ⊣⊢
+    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗n ψ ∧ K ρ (packHoLtyO ψ) (packHoLtyO ψ).
+  Proof. apply bi_exist_nested_swap. Qed.
+
+  Lemma cTMemAnyKind_eq l d ρ :
+    cTMemAnyKind l ρ [(l, d)] ⊣⊢ oDTMemAnyKind ρ d.
+  Proof. apply dty2clty_singleton. Qed.
+
+  Lemma cTMemK_subst l (K : sf_kind Σ) ρ :
+    (oTMemK l K).|[ρ] = oTMemK l K.|[ρ].
+  Proof. done. Qed.
+End TMem_Proper.
+
+(** ** Type members: derive special case for gDOT. *)
 (** Not a "real" kind, just a predicate over types. *)
 Definition dot_intv_type_pred `{!dlangG Σ} (τ1 τ2 : oltyO Σ) ρ ψ : iProp Σ :=
   τ1 anil ρ ⊆ packHoLtyO ψ anil ∧ packHoLtyO ψ anil ⊆ τ2 anil ρ.
@@ -102,13 +138,15 @@ Proof.
   rewrite oDTMem_unfold => ρ d /=; f_equiv=> ψ; f_equiv. apply sr_kintv_refl.
 Qed.
 
-Definition cTMemK `{!dlangG Σ} l (K : sf_kind Σ) : clty Σ := dty2clty l (oDTMemK K).
-Notation oTMemK l K := (clty_olty (cTMemK l K)).
+(** * Path application and substitution *)
 
-Definition oDTMemAnyKind `{!dlangG Σ} : dltyO Σ := Dlty (λI ρ d,
-  ∃ (ψ : hoD Σ), d ↗n ψ).
-Definition cTMemAnyKind `{!dlangG Σ} l : clty Σ := dty2clty l oDTMemAnyKind.
-Notation oTMemAnyKind l := (clty_olty (cTMemAnyKind l)).
+Definition sem_kind_path_repl {Σ} p q (K1 K2 : sf_kind Σ) : Prop :=
+  ∀ ρ T1 T2, alias_paths p.|[ρ] q.|[ρ] → K1 ρ T1 T2 ≡ K2 ρ T1 T2.
+Notation "K1 ~sKd[ p := q  ]* K2" :=
+  (sem_kind_path_repl p q K1 K2) (at level 70).
+
+Definition oTApp `{!dlangG Σ} (T : oltyO Σ) (p : path) : oltyO Σ :=
+  Olty (λ args ρ v, path_wp p.|[ρ] (λ w, T (acons w args) ρ v)).
 
 Program Definition kpSubstOne `{!dlangG Σ} p (K : sf_kind Σ) : sf_kind Σ :=
   SfKind
@@ -135,37 +173,8 @@ Next Obligation.
 Qed.
 Notation "K .sKp[ p /]" := (kpSubstOne p K) (at level 65).
 
-Definition oTApp `{!dlangG Σ} (T : oltyO Σ) (p : path) : oltyO Σ :=
-  Olty (λ args ρ v, path_wp p.|[ρ] (λ w, T (acons w args) ρ v)).
-
 Section proper_eq.
   Context `{!dlangG Σ}.
-
-  #[global] Instance oDTMemK_ne : NonExpansive (oDTMemK (Σ := Σ)).
-  Proof. solve_proper_ho. Qed.
-  #[global] Instance oDTMemK_proper :
-    Proper ((≡) ==> (≡)) (oDTMemK (Σ := Σ)) := ne_proper _.
-  #[global] Instance cTMemK_ne l : NonExpansive (cTMemK (Σ := Σ) l).
-  Proof. solve_proper_ho. Qed.
-  #[global] Instance cTMemK_proper l :
-    Proper ((≡) ==> (≡)) (cTMemK (Σ := Σ) l) := ne_proper _.
-
-  Lemma cTMemK_eq l (K : sf_kind Σ) d ρ :
-    cTMemK l K ρ [(l, d)] ⊣⊢ oDTMemK K ρ d.
-  Proof. apply dty2clty_singleton. Qed.
-
-  Lemma oTMemK_eq l K args ρ v :
-    oTMemK l K args ρ v ⊣⊢
-    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗n ψ ∧ K ρ (packHoLtyO ψ) (packHoLtyO ψ).
-  Proof. apply bi_exist_nested_swap. Qed.
-
-  Lemma cTMemAnyKind_eq l d ρ :
-    cTMemAnyKind l ρ [(l, d)] ⊣⊢ oDTMemAnyKind ρ d.
-  Proof. apply dty2clty_singleton. Qed.
-
-  Lemma cTMemK_subst l (K : sf_kind Σ) ρ :
-    (oTMemK l K).|[ρ] = oTMemK l K.|[ρ].
-  Proof. done. Qed.
 
   Lemma kpSubstOne_eq (K : sf_kind Σ) v :
     K.|[v/] ≡ K .sKp[ pv v /].
