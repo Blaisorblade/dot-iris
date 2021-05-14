@@ -86,7 +86,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
     #[local] Instance CmraPersistent_dlang: CmraPersistent (iResUR dlangΣ) := CmraPersistent_iResUR _.
 
     #[local] Instance dlangG_dlangΣ
-      `{InhabitedState dlang_lang} `{LangDet dlang_lang} : dlangG dlangΣ.
+      `{InhabitedState dlang_lang} `{!LangDet dlang_lang} : dlangG dlangΣ.
     Proof. split; apply _. Qed.
 
     #[local] Instance CmraSwappable_dlang: CmraSwappable (iResUR dlangΣ) := CmraSwappable_iResUR _.
