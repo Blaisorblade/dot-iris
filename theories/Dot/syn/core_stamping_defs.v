@@ -30,11 +30,11 @@ Definition is_unstamped_trav: Traversal (nat * AllowNonVars) :=
       (∃ x, v = vvar x) ∨ (∃ l, v = vlit l);
   |}.
 
-Notation is_unstamped_tm n b := (forall_traversal_tm is_unstamped_trav (n, b)).
-Notation is_unstamped_vl n b := (forall_traversal_vl is_unstamped_trav (n, b)).
-Notation is_unstamped_dm n b := (forall_traversal_dm is_unstamped_trav (n, b)).
+Notation is_unstamped_tm   n b := (forall_traversal_tm is_unstamped_trav (n, b)).
+Notation is_unstamped_vl   n b := (forall_traversal_vl is_unstamped_trav (n, b)).
+Notation is_unstamped_dm   n b := (forall_traversal_dm is_unstamped_trav (n, b)).
 Notation is_unstamped_path n b := (forall_traversal_path is_unstamped_trav (n, b)).
-Notation is_unstamped_ty n b := (forall_traversal_ty is_unstamped_trav (n, b)).
+Notation is_unstamped_ty   n b := (forall_traversal_ty is_unstamped_trav (n, b)).
 
 Notation is_unstamped_path' n := (is_unstamped_path n OnlyVars).
 Notation is_unstamped_ty' n := (is_unstamped_ty n OnlyVars).

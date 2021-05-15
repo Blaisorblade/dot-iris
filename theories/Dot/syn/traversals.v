@@ -114,10 +114,10 @@ Section fold.
   | trav_TSel ts p l:
       forall_traversal_path (trav.(underPathElimS) ts) p →
       forall_traversal_ty ts (TSel p l)
+  | trav_TPrim ts b: forall_traversal_ty ts (TPrim b)
   | trav_TSing ts p:
       forall_traversal_path (trav.(underPathElimS) ts) p →
       forall_traversal_ty ts (TSing p)
-  | trav_TPrim ts b: forall_traversal_ty ts (TPrim b)
     .
 End fold.
 
@@ -156,11 +156,11 @@ Ltac inverse_once_cbn H := nosplit (try_once_tac H (inverse H)); cbn in *.
 (** Apply [tac] to _one_ hypothesis of shape [forall_traversal_* trav _ _]. *)
 Ltac with_forall_traversal trav tac :=
   match goal with
-    | H: forall_traversal_ty   trav _ _ |- _ => tac H
     | H: forall_traversal_tm   trav _ _ |- _ => tac H
+    | H: forall_traversal_vl   trav _ _ |- _ => tac H
     | H: forall_traversal_dm   trav _ _ |- _ => tac H
     | H: forall_traversal_path trav _ _ |- _ => tac H
-    | H: forall_traversal_vl   trav _ _ |- _ => tac H
+    | H: forall_traversal_ty   trav _ _ |- _ => tac H
   end.
 (** Invert once each hypothesis of shape [forall_traversal_* trav _ _], as
 long as inversion only produces a single result. *)

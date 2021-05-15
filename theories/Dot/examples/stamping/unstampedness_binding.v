@@ -80,7 +80,7 @@ Lemma is_unstamped_weaken_ty T__s m n b:
   is_unstamped_ty m b T__s →
   m <= n →
   is_unstamped_ty n b T__s.
-Proof. apply (is_unstamped_weaken_mut). Qed.
+Proof. apply is_unstamped_weaken_mut. Qed.
 
 Lemma is_unstamped_ren_shift n m j b:
   m >= j + n → is_unstamped_ren n m b (+j).
