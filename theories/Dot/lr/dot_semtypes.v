@@ -197,22 +197,6 @@ Section misc_lemmas.
     lift_dty_vl l T1 anil ρ ⊆ lift_dty_vl l T2 anil ρ.
   Proof. apply (lift_sub_dty2cltyN 0). Qed.
 
-  Lemma oDTMemK_respects_sub i (K1 K2 : sf_kind Σ) ρ d :
-    (∀ (T1 T2 : hoLtyO Σ), ▷^i (K1 ρ T1 T2 → K2 ρ T1 T2)) ⊢
-    ▷^i (oDTMemK K1 ρ d -∗ oDTMemK K2 ρ d).
-  Proof.
-    iIntros "#Hsub !>"; iDestruct 1 as (φ) "#(Hφl & HK1)".
-    iExists φ. iFrame "Hφl". by iApply "Hsub".
-  Qed.
-
-  Lemma oTMemK_respects_sub (K1 K2 : sf_kind Σ) ρ l :
-    (∀ (T1 T2 : hoLtyO Σ), K1 ρ T1 T2 → K2 ρ T1 T2) ⊢
-    oTMemK l K1 anil ρ ⊆ oTMemK l K2 anil ρ.
-  Proof.
-    rewrite -lift_sub_dty2clty; iIntros "#Hsub %d".
-    iApply (oDTMemK_respects_sub 0 with "Hsub").
-  Qed.
-
   Lemma oDTMem_respects_sub L1 L2 U1 U2 ρ d :
     L2 anil ρ ⊆ L1 anil ρ -∗
     U1 anil ρ ⊆ U2 anil ρ -∗
