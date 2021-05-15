@@ -1,6 +1,6 @@
 From Coq Require FunctionalExtensionality.
-From D Require Import iris_prelude proper proofmode_extra.
-From D Require Export succ_notation.
+From D Require Import iris_prelude proofmode_extra.
+From D Require Export succ_notation proper. (* We export proper to use [sr_kintv_proper]. *)
 From D Require Import saved_interp_n asubst_intf dlang lty.
 From D Require Import swap_later_impl.
 
@@ -275,11 +275,17 @@ Section utils.
     by iApply (subtype_trans with "HM HU1").
     by iApply (subtype_trans with "HU2 HU").
   Qed.
+
+  #[global] Instance sr_kintv_ne n : Proper ((dist n) ==> (dist n) ==> eq ==> (dist n) ==> (dist n) ==> (dist n)) sr_kintv.
+  Proof. solve_proper_ho. Qed.
+
+  #[global] Instance sr_kintv_proper : Proper ((≡) ==> (≡) ==> eq ==> (≡) ==> (≡) ==> (≡)) sr_kintv.
+  Proof. solve_proper_ho. Qed.
 End utils.
 
 Program Definition sf_kintv `{dlangG Σ} (L U : oltyO Σ) : sf_kind Σ :=
   SfKind (sr_kintv L U).
-Next Obligation. cbn; solve_proper_ho. Qed.
+Next Obligation. cbn; intros. move=>??????. exact: sr_kintv_ne. Qed.
 Next Obligation.
   iIntros "* HT HU H"; iApply (sr_kintv_respects_hoLty_equiv_2 with "HU").
   iApply (sr_kintv_respects_hoLty_equiv_1 with "HT H").

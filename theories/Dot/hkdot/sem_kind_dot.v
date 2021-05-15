@@ -85,10 +85,7 @@ Section sem_TMem.
   Qed.
 
   #[global] Instance oDTMem_proper : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
-  Proof.
-    move=> ??? ??? ??. rewrite !oDTMem_unfold/=.
-    properness; try reflexivity; solve_proper_ho.
-  Qed.
+  Proof. move=> ??? ??? ??/=. properness; [done|]. exact: sr_kintv_proper. Qed.
 
   (** Define [cTMem] by lifting [oDTMem] to [clty]s. *)
   (**
@@ -164,6 +161,12 @@ Notation "K .sKp[ p /]" := (kpSubstOne p K) (at level 65).
 
 Section proper_eq.
   Context `{!dlangG Σ}.
+
+  #[global] Instance oTApp_ne n : Proper ((dist n) ==> eq ==> (dist n)) oTApp.
+  Proof. move=> T1 T2 HT. solve_proper_prepare. apply: path_wp_ne=>v. exact: HT. Qed.
+
+  #[global] Instance oTApp_proper : Proper ((≡) ==> eq ==> (≡)) oTApp.
+  Proof. move=> T1 T2 HT. solve_proper_prepare. apply: path_wp_proper=>v. exact: HT. Qed.
 
   Lemma kpSubstOne_eq (K : sf_kind Σ) v :
     K.|[v/] ≡ K .sKp[ pv v /].
