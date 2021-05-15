@@ -44,8 +44,8 @@ Section fundamental.
     + iApply sP_Fld_E. by iApply H.
     + iApply sP_Sub; [iApply H0|iApply H].
     + by iApply sP_Later; [iApply H].
-    + by iApply P_Mu_I; [|iApply H]; first exact: psubst_one_implies.
-    + by iApply P_Mu_E; [|iApply H]; first exact: psubst_one_implies.
+    + by iApply P_Mu_I; [|iApply H]; first exact: psubst_one_ty_implies.
+    + by iApply P_Mu_E; [|iApply H]; first exact: psubst_one_ty_implies.
     + iApply sP_Fld_I. by iApply H.
     + iApply sP_Sngl_Refl. by iApply H.
     + iApply sP_Sngl_Inv. by iApply H.
@@ -99,7 +99,7 @@ Section fundamental.
   Proof.
     apply typing_mut_ind; clear Γ; intros; simpl_context.
     + by iApply uT_All_E_p; [|iApply H|iApply fundamental_path_typed];
-        first exact: psubst_one_implies.
+        first exact: psubst_one_ty_implies.
     + by iApply uT_All_E; [iApply H|iApply H0].
     + by iApply suT_Obj_E; iApply H.
     + iApply uT_All_I_Strong; [|by iApply H].

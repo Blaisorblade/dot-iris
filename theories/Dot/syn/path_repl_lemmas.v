@@ -68,7 +68,7 @@ Proof.
   exact: unstamped_val_unshifts.
 Qed.
 
-Lemma psubst_one_base_unshifts_gen i n T p :
+Lemma psubst_one_base_ty_unshifts_gen i n T p :
   is_unstamped_ty' n T → unshiftsN i (psubst_one_ty_gen i T p).
 Proof.
   rewrite /psubst_one_ty_gen /unshiftsN.
@@ -78,23 +78,23 @@ Qed.
 
 Notation unshifts x := (∃ x', x = shift x').
 
-Lemma psubst_one_base_unshifts {n T} p:
+Lemma psubst_one_base_ty_unshifts {n T} p:
   is_unstamped_ty' n T → unshifts (psubst_one_base_ty T p).
 Proof.
   intros Hu; exists (unshift (psubst_one_base_ty T p)).
   rewrite /psubst_one_base_ty.
-  have := psubst_one_base_unshifts_gen 0 p Hu.
+  have := psubst_one_base_ty_unshifts_gen 0 p Hu.
   by rewrite /unshiftsN /psubst_one_ty_gen ?iterate_S !iterate_0 => ->.
 Qed.
 
 (**
 Prove functional path substitution correct, relative to relational path
-substitution, for unstamped terms. *)
-Lemma psubst_one_implies n T p T' :
+substitution, for unstamped types. *)
+Lemma psubst_one_ty_implies n T p T' :
   is_unstamped_ty' n T →
   T .Tp[ p /] = T' → T .Tp[ p /]~ T'.
 Proof.
-  move => /(psubst_one_base_unshifts p) [T''].
+  move => /(psubst_one_base_ty_unshifts p) [T''].
   rewrite /psubst_one_ty /psubst_one_base_ty => Hw <-.
   apply psubst_ty_rtc_sufficient.
   by rewrite Hw shift_unshift.

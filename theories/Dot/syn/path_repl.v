@@ -100,9 +100,9 @@ Define substitution of [pv (ids 0)] by [p] as a relation, in terms of the
 transitive closure of path replacement.
 Since the result of path substitution is [shift T'], it's clear that all
 occurrences of [pv (ids 0)] have been replaced. *)
-Definition path_repl_one T p T' :=
+Definition path_repl_ty_one T p T' :=
   T ~Tp[ pv (ids 0) := shift p ]* shift T'.
-Notation "T .Tp[ p /]~ T'" := (path_repl_one T p T') (at level 65).
+Notation "T .Tp[ p /]~ T'" := (path_repl_ty_one T p T') (at level 65).
 
 (**
 We also define path replacement as a function, and prove it correct in
@@ -120,7 +120,7 @@ Fixpoint psubst_path p q r : path := match (decide (r = p)) with
   functional path replacement agrees with relational path replacement.
 
   This operation is also used to build functional path substitution, for use
-  on unstamped types. And for unstamped types, lemma [psubst_one_implies]
+  on unstamped types. And for unstamped types, lemma [psubst_one_ty_implies]
   shows this function is correct, relative to relational path substitution.
 
   This design was chosen when values could not contain paths; now that values
@@ -209,7 +209,7 @@ End decide_psubst.
 (**
 Finally, we can also define path substitution as a function.
 Its proofs of correctness is in [path_repl_lemmas.v], in lemmas
-[psubst_one_implies] and [psubst_subst_agree_ty].
+[psubst_one_ty_implies] and [psubst_subst_agree_ty].
 *)
 Definition psubst_one_base_path q p := q .p[ pv (ids 0) := shift p ].
 Definition psubst_one_path q p := unshift (psubst_one_base_path q p).
