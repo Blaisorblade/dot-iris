@@ -6,7 +6,7 @@ From D.Dot Require Import syn path_repl.
 From D.Dot Require Export dlang_inst path_wp.
 From D.pure_program_logic Require Import weakestpre.
 
-From D.Dot Require Export dot_lty.
+From D.Dot Require Export dot_lty sem_kind_dot.
 
 Unset Program Cases.
 Set Suggest Proof Using.
@@ -77,70 +77,6 @@ Section JudgEqs.
   Proof. rewrite sstpd_eq_1; properness. apply: forall_swap_impl. Qed.
 End JudgEqs.
 
-(** When a definition points to a semantic type. Inlined in paper. *)
-Definition dm_to_type `{HdotG: !dlangG Σ} d (ψ : hoD Σ) : iProp Σ :=
-  ∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ ] ψ.
-Notation "d ↗n ψ" := (dm_to_type d ψ) (at level 20).
-Notation "d ↗ ψ" := (dm_to_type d ψ) (at level 20).
-
-Section dm_to_type.
-  Context `{HdotG: !dlangG Σ}.
-
-  Lemma dm_to_type_agree {d ψ1 ψ2} args v : d ↗n ψ1 -∗ d ↗n ψ2 -∗ ▷ (ψ1 args v ≡ ψ2 args v).
-  Proof.
-    iDestruct 1 as (s σ ?) "#Hs1".
-    iDestruct 1 as (s' σ' ?) "#Hs2".
-    simplify_eq. by iApply (stamp_σ_to_type_agree args with "Hs1 Hs2").
-  Qed.
-
-  Lemma dm_to_type_intro d s σ φ :
-    d = dtysem σ s → s ↝n φ -∗ d ↗n hoEnvD_inst σ φ.
-  Proof.
-    iIntros. iExists s, σ. iFrame "%".
-    by iApply stamp_σ_to_type_intro.
-  Qed.
-
-  #[global] Opaque dm_to_type.
-End dm_to_type.
-
-(** ** Semantic path substitution and replacement. *)
-
-(** Semantic substitution of path in type. *)
-Definition opSubst `{!dlangG Σ} p (T : oltyO Σ) : oltyO Σ :=
-  Olty (λI args ρ v, path_wp p.|[ρ] (λ w, T args (w .: ρ) v)).
-Notation "T .sTp[ p /]" := (opSubst p T) (at level 65).
-
-(** Semantic definition of path replacement. *)
-Definition sem_ty_path_replI {Σ} p q (T1 T2 : olty Σ) : iProp Σ :=
-  |==> ∀ args ρ v (H : alias_paths p.|[ρ] q.|[ρ]), T1 args ρ v ≡ T2 args ρ v.
-Notation "T1 ~sTpI[ p := q  ]* T2" :=
-  (sem_ty_path_replI p q T1 T2) (at level 70).
-
-(** Semantic definition of path replacement: alternative, weaker version.
-Unlike [sem_ty_path_replI], this version in [Prop] is less expressive, but
-sufficient for our goals and faster to use in certain proofs. *)
-Definition sem_ty_path_repl {Σ} p q (T1 T2 : olty Σ) : Prop :=
-  ∀ args ρ v, alias_paths p.|[ρ] q.|[ρ] → T1 args ρ v ≡ T2 args ρ v.
-Notation "T1 ~sTpP[ p := q  ]* T2" :=
-  (sem_ty_path_repl p q T1 T2) (at level 70).
-
-Section path_repl.
-  Context `{!dlangG Σ}.
-
-  Lemma opSubst_pv_eq v (T : oltyO Σ) : T .sTp[ pv v /] ≡ T.|[v/].
-  Proof. move=> args ρ w /=. by rewrite path_wp_pv_eq subst_swap_base. Qed.
-
-  Lemma sem_psubst_one_repl {T : olty Σ} {args p v w ρ}:
-    alias_paths p.|[ρ] (pv v) →
-    T .sTp[ p /] args ρ w ≡ T args (v .: ρ) w.
-  Proof. move=> /alias_paths_elim_eq /= ->. by rewrite path_wp_pv_eq. Qed.
-
-  Lemma sem_ty_path_repl_eq {p q} {T1 T2 : olty Σ} :
-    T1 ~sTpP[ p := q ]* T2 → ⊢ T1 ~sTpI[ p := q ]* T2.
-  Proof. iIntros "%Heq !% /=". apply: Heq. Qed.
-  (* The reverse does not hold. *)
-End path_repl.
-
 (** ** gDOT semantic types. *)
 Definition vl_sel `{!dlangG Σ} vp l args v : iProp Σ :=
   ∃ d ψ, ⌜vp @ l ↘ d⌝ ∧ d ↗n ψ ∧ packHoLtyO ψ args v.
@@ -151,21 +87,6 @@ Definition oSel `{!dlangG Σ} p l : oltyO Σ :=
 Section sem_types.
   Context `{HdotG: !dlangG Σ}.
   Implicit Types (τ : oltyO Σ).
-
-  Definition oDTMemRaw (rK : env → hoD Σ → iProp Σ): dltyO Σ := Dlty (λI ρ d,
-    ∃ ψ, d ↗n ψ ∧ rK ρ ψ).
-
-  (** Not a "real" kind, just a predicate over types. *)
-  Definition dot_intv_type_pred τ1 τ2 ρ ψ : iProp Σ :=
-    τ1 anil ρ ⊆ packHoLtyO ψ anil ∧ packHoLtyO ψ anil ⊆ τ2 anil ρ.
-
-  (** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
-  Definition oDTMem τ1 τ2 : dltyO Σ := oDTMemRaw (dot_intv_type_pred τ1 τ2).
-  #[global] Instance oDTMem_proper : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
-  Proof.
-    rewrite /oDTMem => ??? ??? ??/=; properness; try reflexivity;
-      solve_proper_ho.
-  Qed.
 
   (** [ D⟦ { a : τ } ⟧ ]. *)
   Definition oDVMem τ : dltyO Σ := Dlty (λI ρ d,
@@ -180,20 +101,7 @@ Section sem_types.
     oDVMem T ρ (dpt p) ≡ path_wp p (oClose T ρ).
   Proof. simpl; iSplit; last by eauto. by iDestruct 1 as (pmem [= ->]) "$". Qed.
 
-  (** Define [cTMem] and [cVMem] by lifting [oDTMem] and [oDVMem] to [clty]s. *)
-
-  (**
-  [ Ds⟦ { l :: τ1 .. τ2 } ⟧] and [ V⟦ { l :: τ1 .. τ2 } ⟧ ].
-  Beware: the ICFP'20 defines instead
-  [ Ds⟦ { l >: τ1 <: τ2 } ⟧] and [ V⟦ { l >: τ1 <: τ2 } ⟧ ],
-  which are here a derived notation; see [cTMemL]. *)
-  Definition cTMem l τ1 τ2 : clty Σ := dty2clty l (oDTMem τ1 τ2).
-  #[global] Instance cTMem_proper l : Proper ((≡) ==> (≡) ==> (≡)) (cTMem l).
-  Proof. solve_proper. Qed.
-
-  Lemma cTMem_eq l T1 T2 d ρ :
-    cTMem l T1 T2 ρ [(l, d)] ⊣⊢ oDTMem T1 T2 ρ d.
-  Proof. apply dty2clty_singleton. Qed.
+  (** Define [cVMem] by lifting [oDVMem] to [clty]s. *)
 
   (** [ Ds⟦ { l : τ } ⟧] and [ V⟦ { l : τ } ⟧ ]. *)
   Definition cVMem l τ : clty Σ := dty2clty l (oDVMem τ).
@@ -236,7 +144,6 @@ Notation oBool := (oPrim tbool).
 (** Semantics of type members in the ICFP'20 paper:
 [ Ds⟦ { l >: τ1 <: τ2 } ⟧] and [ V⟦ { l >: τ1 <: τ2 } ⟧ ]. *)
 Notation cTMemL l L U := (cTMem l (oLater L) (oLater U)).
-Notation oTMem l τ1 τ2 := (clty_olty (cTMem l τ1 τ2)).
 Notation oTMemL l L U := (clty_olty (cTMemL l L U)).
 Notation oVMem l τ := (clty_olty (cVMem l τ)).
 
@@ -252,14 +159,6 @@ Section misc_lemmas.
     rewrite and2_exist_r.
     apply bi.and_proper, reflexivity; iIntros "!% /="; naive_solver.
   Qed.
-
-  Lemma oTMem_eq l τ1 τ2 args ρ v :
-    oTMem l τ1 τ2 args ρ v ⊣⊢
-    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗n ψ ∧ dot_intv_type_pred τ1 τ2 ρ ψ.
-  Proof. apply bi_exist_nested_swap. Qed.
-
-  Lemma oTMem_shift A L U : oTMem A (shift L) (shift U) = shift (oTMem A L U).
-  Proof. done. Qed.
 
   (** Core lemmas about type selections and bounds. *)
   Lemma vl_sel_ub w l L U ρ v :
