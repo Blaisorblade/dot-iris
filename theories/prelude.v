@@ -17,6 +17,9 @@ Set Default Proof Using "Type".
 (** Enrico (Tassi?)'s trick for tc resolution in [have]. Doesn't conflict with infix [!!]. *)
 Notation "!! x" := (ltac:(refine x)) (at level 100, only parsing).
 
+Notation Reduce tm := ltac:(let res := eval red in tm in exact res) (only parsing).
+Notation Unfold def tm := ltac:(let res := eval unfold def in tm in exact res) (only parsing).
+
 Definition disable_tc_search {T : Type} (x : id T) : T := x.
 Notation notc_hole := (disable_tc_search _).
 
