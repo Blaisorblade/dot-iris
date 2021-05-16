@@ -19,69 +19,12 @@ Implicit Types
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
          (ρ : var → vl) (l : label).
 
-Definition sem_kind_path_repl {Σ} p q (K1 K2 : sf_kind Σ) : Prop :=
-  ∀ ρ T1 T2, alias_paths p.|[ρ] q.|[ρ] → K1 ρ T1 T2 ≡ K2 ρ T1 T2.
-Notation "K1 ~sKd[ p := q  ]* K2" :=
-  (sem_kind_path_repl p q K1 K2) (at level 70).
+(** * Type members *)
+Notation oDTMemRaw rK := (Dlty (λI ρ d, ∃ ψ, d ↗n ψ ∧ rK ρ ψ)).
 
-Definition oDTMemRaw `{!dlangG Σ} (rK : env → hoD Σ → iProp Σ): dltyO Σ := Dlty (λI ρ d,
-  ∃ ψ, d ↗n ψ ∧ rK ρ ψ).
-
+(** [ D⟦ { A :: K } ⟧ ]. *)
 Definition oDTMemK `{!dlangG Σ} (K : sf_kind Σ) : dltyO Σ :=
   oDTMemRaw (λI ρ ψ, K ρ (packHoLtyO ψ) (packHoLtyO ψ)).
-
-Definition oDTMemSpec `{!dlangG Σ} (L U : oltyO Σ) : dltyO Σ :=
-  oDTMemK (sf_kintv L U).
-
-(** Not a "real" kind, just a predicate over types. *)
-Definition dot_intv_type_pred `{!dlangG Σ} (τ1 τ2 : oltyO Σ) ρ ψ : iProp Σ :=
-  τ1 anil ρ ⊆ packHoLtyO ψ anil ∧ packHoLtyO ψ anil ⊆ τ2 anil ρ.
-
-Section sem_TMem.
-  Context `{HdotG: !dlangG Σ}.
-  Implicit Types (τ : oltyO Σ).
-
-  (** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
-  Definition oDTMem τ1 τ2 : dltyO Σ := oDTMemRaw (dot_intv_type_pred τ1 τ2).
-  #[global] Instance oDTMem_proper : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
-  Proof.
-    rewrite /oDTMem => ??? ??? ??/=; properness; try reflexivity;
-      solve_proper_ho.
-  Qed.
-
-  (** Define [cTMem] by lifting [oDTMem] to [clty]s. *)
-  (**
-  [ Ds⟦ { l :: τ1 .. τ2 } ⟧] and [ V⟦ { l :: τ1 .. τ2 } ⟧ ].
-  Beware: the ICFP'20 defines instead
-  [ Ds⟦ { l >: τ1 <: τ2 } ⟧] and [ V⟦ { l >: τ1 <: τ2 } ⟧ ],
-  which are here a derived notation; see [cTMemL]. *)
-  Definition cTMem l τ1 τ2 : clty Σ := dty2clty l (oDTMem τ1 τ2).
-  #[global] Instance cTMem_proper l : Proper ((≡) ==> (≡) ==> (≡)) (cTMem l).
-  Proof. solve_proper. Qed.
-
-  Lemma cTMem_eq l τ1 τ2 d ρ :
-    cTMem l τ1 τ2 ρ [(l, d)] ⊣⊢ oDTMem τ1 τ2 ρ d.
-  Proof. apply dty2clty_singleton. Qed.
-End sem_TMem.
-
-Notation oTMem l τ1 τ2 := (clty_olty (cTMem l τ1 τ2)).
-
-Section oTMem_lemmas.
-  Context `{HdotG: !dlangG Σ}.
-
-  Lemma oTMem_eq l τ1 τ2 args ρ v :
-    oTMem l τ1 τ2 args ρ v ⊣⊢
-    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗n ψ ∧ dot_intv_type_pred τ1 τ2 ρ ψ.
-  Proof. apply bi_exist_nested_swap. Qed.
-
-  Lemma oTMem_shift A L U : oTMem A (shift L) (shift U) = shift (oTMem A L U).
-  Proof. done. Qed.
-End oTMem_lemmas.
-
-Lemma oDTMemSpec_oDTMem_eq `{!dlangG Σ} L U : oDTMemSpec L U ≡ oDTMem L U.
-Proof.
-  move=> ρ d /=; f_equiv=> ψ; f_equiv. apply sr_kintv_refl.
-Qed.
 
 Definition cTMemK `{!dlangG Σ} l (K : sf_kind Σ) : clty Σ := dty2clty l (oDTMemK K).
 Notation oTMemK l K := (clty_olty (cTMemK l K)).
@@ -91,35 +34,7 @@ Definition oDTMemAnyKind `{!dlangG Σ} : dltyO Σ := Dlty (λI ρ d,
 Definition cTMemAnyKind `{!dlangG Σ} l : clty Σ := dty2clty l oDTMemAnyKind.
 Notation oTMemAnyKind l := (clty_olty (cTMemAnyKind l)).
 
-Program Definition kpSubstOne `{!dlangG Σ} p (K : sf_kind Σ) : sf_kind Σ :=
-  SfKind
-    (λI ρ T1 T2, path_wp p.|[ρ] (λ v, K (v .: ρ) T1 T2)).
-Next Obligation.
-  move=> Σ ? p K v m T1 T2 HT U1 U2 HU /=. f_equiv=>?. exact: sf_kind_sub_ne_2.
-Qed.
-Next Obligation.
-  iIntros "* #Heq1 #Heq2 H". iApply (path_wp_wand with "H");
-    iIntros "* HK"; iApply (sf_kind_sub_internal_proper with "Heq1 Heq2 HK").
-Qed.
-Next Obligation.
-  iIntros "* HK1 HK2". iDestruct (path_wp_and' with "HK1 HK2") as "HK".
-  iApply (path_wp_wand with "HK"); iIntros "* [HK1 HK2]".
-  iApply (sf_kind_sub_trans with "HK1 HK2").
-Qed.
-Next Obligation.
-  iIntros "* H"; iApply (path_wp_wand with "H"); iIntros "*".
-  iApply sf_kind_sub_quasi_refl_1.
-Qed.
-Next Obligation.
-  iIntros "* H"; iApply (path_wp_wand with "H"); iIntros "*".
-  iApply sf_kind_sub_quasi_refl_2.
-Qed.
-Notation "K .sKp[ p /]" := (kpSubstOne p K) (at level 65).
-
-Definition oTApp `{!dlangG Σ} (T : oltyO Σ) (p : path) : oltyO Σ :=
-  Olty (λ args ρ v, path_wp p.|[ρ] (λ w, T (acons w args) ρ v)).
-
-Section proper_eq.
+Section TMem_Proper.
   Context `{!dlangG Σ}.
 
   #[global] Instance oDTMemK_ne : NonExpansive (oDTMemK (Σ := Σ)).
@@ -147,6 +62,111 @@ Section proper_eq.
   Lemma cTMemK_subst l (K : sf_kind Σ) ρ :
     (oTMemK l K).|[ρ] = oTMemK l K.|[ρ].
   Proof. done. Qed.
+End TMem_Proper.
+
+(** ** Type members: derive special case for gDOT. *)
+(** Not a "real" kind, just a predicate over types. *)
+Definition dot_intv_type_pred `{!dlangG Σ} (L U : oltyO Σ) ρ ψ : iProp Σ :=
+  L anil ρ ⊆ packHoLtyO ψ anil ∧ packHoLtyO ψ anil ⊆ U anil ρ.
+
+(** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
+Definition oDTMem `{!dlangG Σ} L U : dltyO Σ := oDTMemK (sf_kintv L U).
+Definition oDTMem_eq `{!dlangG Σ} : oDTMem = λ L U, oDTMemK (sf_kintv L U) := reflexivity _.
+
+#[global] Arguments oDTMem {_ _} _ _  _ : assert.
+
+Section sem_TMem.
+  Context `{HdotG: !dlangG Σ}.
+  Implicit Types (τ : oltyO Σ).
+
+  Lemma oDTMem_unfold L U : oDTMem L U ≡ oDTMemRaw (dot_intv_type_pred L U).
+  Proof.
+    rewrite oDTMem_eq => ρ d /=. f_equiv=> ψ; f_equiv. apply sr_kintv_refl.
+  Qed.
+
+  #[global] Instance oDTMem_proper : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
+  Proof. move=> ??? ??? ??/=. properness; [done|]. exact: sr_kintv_proper. Qed.
+
+  (** Define [cTMem] by lifting [oDTMem] to [clty]s. *)
+  (**
+  [ Ds⟦ { l :: τ1 .. τ2 } ⟧] and [ V⟦ { l :: τ1 .. τ2 } ⟧ ].
+  Beware: the ICFP'20 defines instead
+  [ Ds⟦ { l >: τ1 <: τ2 } ⟧] and [ V⟦ { l >: τ1 <: τ2 } ⟧ ],
+  which are here a derived notation; see [cTMemL]. *)
+  Definition cTMem l L U : clty Σ := dty2clty l (oDTMem L U).
+  #[global] Instance cTMem_proper l : Proper ((≡) ==> (≡) ==> (≡)) (cTMem l).
+  Proof. solve_proper. Qed.
+
+  Lemma cTMem_unfold l L U :
+    cTMem l L U ≡ dty2clty l (oDTMemRaw (dot_intv_type_pred L U)).
+  Proof. by rewrite /cTMem oDTMem_unfold. Qed.
+
+  Lemma cTMem_eq l L U d ρ :
+    cTMem l L U ρ [(l, d)] ⊣⊢ oDTMem L U ρ d.
+  Proof. apply dty2clty_singleton. Qed.
+End sem_TMem.
+
+Notation oTMem l L U := (clty_olty (cTMem l L U)).
+
+Section oTMem_lemmas.
+  Context `{HdotG: !dlangG Σ}.
+
+  Lemma oTMem_unfold l L U :
+    oTMem l L U ≡ clty_olty (dty2clty l (oDTMemRaw (dot_intv_type_pred L U))).
+  Proof. by rewrite cTMem_unfold. Qed.
+
+  Lemma oTMem_eq l L U args ρ v :
+    oTMem l L U args ρ v ⊣⊢
+    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗n ψ ∧ dot_intv_type_pred L U ρ ψ.
+  Proof. rewrite oTMem_unfold. apply bi_exist_nested_swap. Qed.
+
+  Lemma oTMem_shift A L U : oTMem A (shift L) (shift U) = shift (oTMem A L U).
+  Proof. rewrite /cTMem !oDTMem_eq. done. Qed.
+End oTMem_lemmas.
+
+(** * Path application and substitution *)
+
+Definition sem_kind_path_repl {Σ} p q (K1 K2 : sf_kind Σ) : Prop :=
+  ∀ ρ T1 T2, alias_paths p.|[ρ] q.|[ρ] → K1 ρ T1 T2 ≡ K2 ρ T1 T2.
+Notation "K1 ~sKd[ p := q  ]* K2" :=
+  (sem_kind_path_repl p q K1 K2) (at level 70).
+
+Definition oTApp `{!dlangG Σ} (T : oltyO Σ) (p : path) : oltyO Σ :=
+  Olty (λ args ρ v, path_wp p.|[ρ] (λ w, T (acons w args) ρ v)).
+
+Program Definition kpSubstOne `{!dlangG Σ} p (K : sf_kind Σ) : sf_kind Σ :=
+  SfKind
+    (λI ρ T1 T2, path_wp p.|[ρ] (λ v, K (v .: ρ) T1 T2)).
+Next Obligation.
+  move=> Σ ? p K v m T1 T2 HT U1 U2 HU /=. f_equiv=>?. exact: sf_kind_sub_ne_2.
+Qed.
+Next Obligation.
+  iIntros "* #Heq1 #Heq2 H". iApply (path_wp_wand with "H");
+    iIntros "* HK"; iApply (sf_kind_sub_internal_proper with "Heq1 Heq2 HK").
+Qed.
+Next Obligation.
+  iIntros "* HK1 HK2". iDestruct (path_wp_and' with "HK1 HK2") as "HK".
+  iApply (path_wp_wand with "HK"); iIntros "* [HK1 HK2]".
+  iApply (sf_kind_sub_trans with "HK1 HK2").
+Qed.
+Next Obligation.
+  iIntros "* H"; iApply (path_wp_wand with "H"); iIntros "*".
+  iApply sf_kind_sub_quasi_refl_1.
+Qed.
+Next Obligation.
+  iIntros "* H"; iApply (path_wp_wand with "H"); iIntros "*".
+  iApply sf_kind_sub_quasi_refl_2.
+Qed.
+Notation "K .sKp[ p /]" := (kpSubstOne p K) (at level 65).
+
+Section proper_eq.
+  Context `{!dlangG Σ}.
+
+  #[global] Instance oTApp_ne n : Proper ((dist n) ==> eq ==> (dist n)) oTApp.
+  Proof. move=> T1 T2 HT. solve_proper_prepare. apply: path_wp_ne=>v. exact: HT. Qed.
+
+  #[global] Instance oTApp_proper : Proper ((≡) ==> eq ==> (≡)) oTApp.
+  Proof. move=> T1 T2 HT. solve_proper_prepare. apply: path_wp_proper=>v. exact: HT. Qed.
 
   Lemma kpSubstOne_eq (K : sf_kind Σ) v :
     K.|[v/] ≡ K .sKp[ pv v /].

@@ -39,7 +39,7 @@ Section Russell.
   (** Yes, v has a valid type member. *)
   Lemma vHasA: Hs ⊢ oTMem "A" oBot oTop anil ids v.
   Proof.
-    iIntros "#Hs".
+    rewrite oTMem_unfold. iIntros "#Hs".
     iExists _; iSplit. by iExists _; iSplit.
     iExists _; iSplit. by iApply dm_to_type_intro.
     by repeat iSplit; iIntros "% **".
