@@ -83,8 +83,17 @@ Section logrel_binding_lemmas.
   Qed.
 
   (** Substitution on semantic types commutes with the semantics. *)
-  Lemma interp_commute_subst (T : ty) σ : V⟦ T.|[σ] ⟧ ≡ V⟦ T ⟧.|[σ].
+  Lemma interp_commute_subst T σ : V⟦ T.|[σ] ⟧ ≡ V⟦ T ⟧.|[σ].
   Proof. intros ???; apply interp_subst_compose_ind. Qed.
+
+  Lemma interp_commute_weaken T n : V⟦ shiftN n T ⟧ ≡ shiftN n V⟦ T ⟧.
+  Proof. apply (interp_commute_subst _ (ren (+n))). Qed.
+
+  Lemma interp_commute_weaken_one T : V⟦ shift T ⟧ ≡ shift V⟦ T ⟧.
+  Proof. apply interp_commute_weaken. Qed.
+
+  Lemma interp_commute_subst_one T v : V⟦ T.|[ v /] ⟧ ≡ V⟦ T ⟧.|[ v /].
+  Proof. apply (interp_commute_subst _ (v .: ids)). Qed.
 End logrel_binding_lemmas.
 
 

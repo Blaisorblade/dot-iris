@@ -26,14 +26,14 @@ Section DStpLemmas.
   Lemma Mu_Stp {Γ} T i: ⊢ Γ ⊨ TMu (shift T) <:[i] T.
   Proof.
     rewrite /istpd; cbn -[sstpd].
-    rewrite (interp_commute_subst T (ren (+1))).
+    rewrite (interp_commute_weaken_one T).
     apply sMu_Stp.
   Qed.
 
   Lemma Stp_Mu {Γ} T i: ⊢ Γ ⊨ T <:[i] TMu (shift T).
   Proof.
     rewrite /istpd; cbn -[sstpd].
-    rewrite (interp_commute_subst T (ren (+1))).
+    rewrite (interp_commute_weaken_one T).
     apply sStp_Mu.
   Qed.
 
@@ -43,7 +43,7 @@ Section DStpLemmas.
     Γ ⊨ TAll T1 U1 <:[i] TAll T2 U2.
   Proof.
     rewrite /istpd fmap_cons iterate_TLater_oLater.
-    rewrite (interp_commute_subst T2 (ren (+1))).
+    rewrite (interp_commute_weaken_one T2).
     apply: sAll_Stp_All.
   Qed.
 
@@ -52,7 +52,7 @@ Section DStpLemmas.
     (*───────────────────────────────*)
     Γ ⊨ T1 <:[i] iterate TLater j T2.
   Proof.
-    rewrite /iptp /istpd fmap_cons !iterate_TLater_oLater !interp_commute_subst.
+    rewrite /iptp /istpd fmap_cons !iterate_TLater_oLater !interp_commute_weaken_one.
     exact: sStp_Skolem_P.
   Qed.
 End DStpLemmas.
