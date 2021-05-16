@@ -179,6 +179,10 @@ Section proper_eq.
     K.|[v/] ≡ K .sKp[ pv v /].
   Proof. move=> ???. by rewrite /= path_wp_pv_eq subst_swap_base. Qed.
 
+  Lemma sem_kind_path_repl_eq {p q} {K1 K2 : sf_kind Σ} :
+    K1 ~sKpP[ p := q ]* K2 → ⊢ K1 ~sKpI[ p := q ]* K2.
+  Proof. iIntros "%Heq !% /=". apply: Heq. Qed.
+
   Lemma oTApp_pv (T : oltyO Σ) w :
     oTApp T (pv w) ≡ oTAppV T w.
   Proof. intros ???. by rewrite /= path_wp_pv_eq. Qed.
