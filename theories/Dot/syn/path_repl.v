@@ -14,7 +14,7 @@ From stdpp Require Import relations.
 From D.Dot.syn Require Import syn.
 
 Implicit Types
-         (T : ty) (v w : vl) (t : tm) (d : dm) (ds : dms) (p q : path)
+         (T : ty) (K : kind) (v w : vl) (t : tm) (d : dm) (ds : dms) (p q : path)
          (l : label).
 
 Set Suggest Proof Using.
@@ -116,14 +116,29 @@ Notation "T1 ~Tp[ p := q  ]* T2" := (ty_path_repl_rtc p q T1 T2) (at level 70).
 Notation kind_path_repl_rtc p q := (rtc (kind_path_repl p q)).
 Notation "K1 ~Kp[ p := q  ]* K2" := (kind_path_repl_rtc p q K1 K2) (at level 70).
 
-Lemma ty_path_repl_id p T1 T2 : T1 ~Tp[ p := p ] T2 → T1 = T2
-with
-kind_path_repl_id p K1 K2 : K1 ~Kp[ p := p ] K2 → K1 = K2.
+Lemma ty_kind_mut_path_repl_id p :
+  (∀ T1 T2, T1 ~Tp[ p := p ] T2 → T1 = T2) ∧
+  (∀ K1 K2, K1 ~Kp[ p := p ] K2 → K1 = K2).
 Proof.
-  all: intros Hr; dependent induction Hr; rewrite ?IHHr //; f_equal; by
-    [ exact: path_path_repl_id | exact: ty_path_repl_id
-    | exact: kind_path_repl_id].
+  (* Emulate dependent induction, and shuffle goal. *)
+  move E: {2 4} p => q.
+  pose PT := λ p q T1 T2, p = q -> T1 = T2.
+  pose PK := λ p q K1 K2, p = q -> K1 = K2.
+  suff [HT HK]: (∀ T1 T2, T1 ~Tp[ p := q ] T2 → PT p q T1 T2) ∧
+    (∀ K1 K2, K1 ~Kp[ p := q ] K2 → PK p q K1 K2)
+    by unfold PT, PK in *; naive_solver eauto.
+
+  (* Induction step *)
+  apply ty_kind_path_repl_mut_ind; unfold PT, PK in *;
+    clear; intros.
+  (* Dispatch goals *)
+  all: subst; f_equal; eauto 2 using path_path_repl_id.
 Qed.
+
+Lemma ty_path_repl_id p T1 T2 : T1 ~Tp[ p := p ] T2 → T1 = T2.
+Proof. apply ty_kind_mut_path_repl_id. Qed.
+Lemma kind_path_repl_id p K1 K2 : K1 ~Kp[ p := p ] K2 → K1 = K2.
+Proof. apply ty_kind_mut_path_repl_id. Qed.
 
 (**
 Define substitution of [pv (ids 0)] by [p] as a relation, in terms of the
