@@ -107,6 +107,10 @@ with kind_path_repl (p q : path) : kind → kind → Prop :=
   kpi S K1 ~Kp[ p := q ] kpi S K2
 where "K1 ~Kp[ p := q  ] K2" := (kind_path_repl p q K1 K2).
 
+Scheme ty_path_repl_mut_ind   := Minimality for ty_path_repl Sort Prop
+with   kind_path_repl_mut_ind := Minimality for kind_path_repl Sort Prop.
+Combined Scheme ty_kind_path_repl_mut_ind from ty_path_repl_mut_ind, kind_path_repl_mut_ind.
+
 Notation ty_path_repl_rtc p q := (rtc (ty_path_repl p q)).
 Notation "T1 ~Tp[ p := q  ]* T2" := (ty_path_repl_rtc p q T1 T2) (at level 70).
 Notation kind_path_repl_rtc p q := (rtc (kind_path_repl p q)).

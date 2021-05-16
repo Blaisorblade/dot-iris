@@ -157,25 +157,35 @@ Section path_repl_lemmas.
   Context `{!dlangG Σ}.
   Implicit Types (φ : vl -d> iPropO Σ).
 
-  Fixpoint fundamental_ty_path_repl {p q T1 T2}
+  Let fundamental_ty_path_repl_def p q T1 T2 := V⟦ T1 ⟧ ~sTpP[ p := q ]* V⟦ T2 ⟧.
+  Let fundamental_kn_path_repl_def p q K1 K2 := K⟦ K1 ⟧ ~sKpP[ p := q ]* K⟦ K2 ⟧.
+
+  Local Lemma fundamental_ty_kn_mut_path_repl p q :
+    (∀ T1 T2 (Hrew : T1 ~Tp[ p := q ] T2), fundamental_ty_path_repl_def p q T1 T2) ∧
+    (∀ K1 K2 (Hrew : K1 ~Kp[ p := q ] K2), fundamental_kn_path_repl_def p q K1 K2).
+  Proof.
+    apply ty_kind_path_repl_mut_ind;
+    rewrite /fundamental_ty_path_repl_def /fundamental_kn_path_repl_def
+      /sem_ty_path_repl /sem_kind_path_repl; cbn;
+      rewrite /pty_interp /sr_kintv /subtype_lty/=; intros;
+      try match goal with
+      | H : context [equiv _ _] |- _ => rename H into IHHrew
+      end;
+      properness.
+    all: eauto 2.
+    all: by [ apply: path_replacement_equiv
+            | apply: rewrite_path_path_repl
+            | apply IHHrew; rewrite ?hsubst_comp
+            | apply: path_wp_proper => ?; exact: IHHrew ].
+  Qed.
+  Lemma fundamental_ty_path_repl {p q T1 T2}
     (Hrew : T1 ~Tp[ p := q ] T2) :
-    V⟦ T1 ⟧ ~sTpP[ p := q ]* V⟦ T2 ⟧
-  with fundamental_kn_path_repl {p q K1 K2}
+    V⟦ T1 ⟧ ~sTpP[ p := q ]* V⟦ T2 ⟧.
+  Proof. by apply fundamental_ty_kn_mut_path_repl. Qed.
+  Lemma fundamental_kn_path_repl {p q K1 K2}
     (Hrew : K1 ~Kp[ p := q ] K2) :
     K⟦ K1 ⟧ ~sKpP[ p := q ]* K⟦ K2 ⟧.
-  Proof.
-    all: [> induction Hrew => args ρ v He /=|induction Hrew => ρ T1 T2 He /=];
-      rewrite /sr_kintv /subtype_lty/=; properness.
-    all: first
-      [ reflexivity
-      | apply: path_replacement_equiv
-      | apply: rewrite_path_path_repl
-      | apply: IHHrew; rewrite ?hsubst_comp
-      | apply: path_wp_proper => ?; apply: IHHrew
-      | apply: fundamental_kn_path_repl
-      | apply: fundamental_ty_path_repl
-      ]; fast_done.
-  Qed.
+  Proof. by apply fundamental_ty_kn_mut_path_repl. Qed.
 
   Lemma fundamental_ty_path_repl_rtc {p q T1 T2}
     (Hrew : T1 ~Tp[ p := q ]* T2) :
