@@ -82,21 +82,25 @@ Section log_rel.
   Lemma interp_TAnd_eq T1 T2 : V⟦ TAnd T1 T2 ⟧ ≡ oAnd V⟦ T1 ⟧ V⟦ T2 ⟧.
   Proof. done. Qed.
 
-  (** Binding lemmas for [V⟦ T ⟧] and [Ds⟦ T ⟧]. *)
-  Fixpoint pty_interp_subst_compose_ind T {struct T} : ∀ args ρ1 ρ2 v,
-    V⟦ T.|[ρ1] ⟧ args ρ2 v ⊣⊢ V⟦ T ⟧ args (ρ1 >> ρ2) v
-  with kind_interp_subst_compose_ind K {struct K} :
-    ∀ ρ1 ρ2 τ1 τ2,
-    K⟦ K.|[ρ1] ⟧ ρ2 τ1 τ2 ⊣⊢ K⟦ K ⟧ (ρ1 >> ρ2) τ1 τ2.
+  (** Binding lemmas for [V⟦ T ⟧] and [K⟦ T ⟧]. *)
+  Lemma mut_interp_subst_compose_ind :
+    (∀ T args ρ1 ρ2 v,
+      V⟦ T.|[ρ1] ⟧ args ρ2 v ⊣⊢ V⟦ T ⟧ args (ρ1 >> ρ2) v) ∧
+    (∀ K ρ1 ρ2 τ1 τ2,
+      K⟦ K.|[ρ1] ⟧ ρ2 τ1 τ2 ⊣⊢ K⟦ K ⟧ (ρ1 >> ρ2) τ1 τ2).
   Proof.
-    all: unfold pty_interp in *;
-      [> destruct T => args sb1 sb2 w| case: K => [L U|S K] sb1 sb2 T1 T2]; simpl.
-    all: rewrite /= /sr_kintv /pty_interp /subtype_lty /=; properness;
+    rewrite /pty_interp; apply tp_kn_mut_ind; intros;
+      rewrite /= /pty_interp /sr_kintv /subtype_lty; properness;
       rewrite ?scons_up_swap ?hsubst_comp; trivial.
     all: by apply path_wp_proper => ?.
   Qed.
+
   #[global] Instance pinterp_lemmas: CTyInterpLemmas Σ.
-  Proof. split. exact: pty_interp_subst_compose_ind. Qed.
+  Proof. split. apply mut_interp_subst_compose_ind. Qed.
+
+  Lemma kind_interp_subst_compose_ind K ρ1 ρ2 τ1 τ2 :
+      K⟦ K.|[ρ1] ⟧ ρ2 τ1 τ2 ⊣⊢ K⟦ K ⟧ (ρ1 >> ρ2) τ1 τ2.
+  Proof. apply mut_interp_subst_compose_ind. Qed.
 
   Definition idtp  Γ T l d     := sdtp l d  V⟦Γ⟧* C⟦T⟧.
   Definition idstp Γ T ds      := sdstp ds  V⟦Γ⟧* C⟦T⟧.

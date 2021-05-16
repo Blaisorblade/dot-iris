@@ -70,18 +70,24 @@ Proof.
   exact: unstamped_val_unshifts.
 Qed.
 
-Fixpoint psubst_one_base_ty_unshifts_gen i n T p {struct T} :
-  is_unstamped_ty' n T → unshiftsN i (psubst_one_ty_gen i T p)
-with psubst_one_base_kind_unshifts_gen i n K p {struct K} :
-  is_unstamped_kind' n K → unshiftsN i (psubst_one_kind_gen i K p).
+Lemma psubst_one_base_mut_unshifts_gen :
+  (∀ T i n p,
+    is_unstamped_ty' n T → unshiftsN i (psubst_one_ty_gen i T p)) ∧
+  (∀ K i n p,
+    is_unstamped_kind' n K → unshiftsN i (psubst_one_kind_gen i K p)).
 Proof.
-  all: rewrite /psubst_one_kind_gen /psubst_one_ty_gen /unshiftsN; move: p i n;
-    [> induction T => p0 i m Hu|induction K => p0 i m Hu]; f_equal/=; with_is_unstamped inverse;
-    rewrite -?hrenS -?iterate_S; eauto; by
-      [exact: psubst_one_path_gen_unshifts_gen
-      |exact: psubst_one_base_ty_unshifts_gen
-      |exact: psubst_one_base_kind_unshifts_gen].
+  rewrite /psubst_one_kind_gen /psubst_one_ty_gen /unshiftsN;
+    apply tp_kn_mut_ind; intros; with_is_unstamped inverse; simpl in *;
+    f_equal; rewrite -?hrenS -?iterate_S;
+    eauto 2; exact: psubst_one_path_gen_unshifts_gen.
 Qed.
+
+Lemma psubst_one_base_ty_unshifts_gen T i n p :
+  is_unstamped_ty' n T → unshiftsN i (psubst_one_ty_gen i T p).
+Proof. apply psubst_one_base_mut_unshifts_gen. Qed.
+Lemma psubst_one_base_kind_unshifts_gen K i n p :
+  is_unstamped_kind' n K → unshiftsN i (psubst_one_kind_gen i K p).
+Proof. apply psubst_one_base_mut_unshifts_gen. Qed.
 
 Notation unshifts x := (∃ x', x = shift x').
 
@@ -157,18 +163,29 @@ Proof.
   rewrite upn_app_ids_ne; naive_solver.
 Qed.
 
-Fixpoint psubst_subst_agree_ty_gen T v i n {struct T} :
+Lemma psubst_subst_agree_mut_gen :
+  (∀ T v i n,
+    is_unstamped_ty' n T →
+    psubst_one_ty_gen i T (pv v) = T.|[ upn i ((v .: ids) >> ren (+1)) ]) ∧
+  (∀ K v i n,
+    is_unstamped_kind' n K →
+    psubst_one_kind_gen i K (pv v) = K.|[ upn i ((v .: ids) >> ren (+1)) ]).
+Proof.
+  rewrite /psubst_one_ty_gen /psubst_one_kind_gen;
+    apply tp_kn_mut_ind; intros; with_is_unstamped inverse; simpl in *;
+    f_equal; rewrite -?(renS, iterate_S); eauto 2;
+    exact: psubst_subst_agree_path_gen.
+Qed.
+
+Lemma psubst_subst_agree_ty_gen T v i n :
   is_unstamped_ty' n T →
-  psubst_one_ty_gen i T (pv v) = T.|[ upn i ((v .: ids) >> ren (+1)) ]
-with psubst_subst_agree_kind_gen K v i n {struct K} :
+  psubst_one_ty_gen i T (pv v) = T.|[ upn i ((v .: ids) >> ren (+1)) ].
+Proof. apply psubst_subst_agree_mut_gen. Qed.
+Lemma psubst_subst_agree_kind_gen K v i n :
   is_unstamped_kind' n K →
   psubst_one_kind_gen i K (pv v) = K.|[ upn i ((v .: ids) >> ren (+1)) ].
-Proof.
-  all: rewrite /psubst_one_ty_gen /psubst_one_kind_gen; move: i n;
-  [> induction T => i n0 Hu //= | induction K => i n0 Hu //=];
-  with_is_unstamped inverse; f_equal/=; rewrite -?(renS, iterate_S); eauto;
-  exact: psubst_subst_agree_path_gen.
-Qed.
+Proof. apply psubst_subst_agree_mut_gen. Qed.
+
 
 Lemma psubst_subst_agree_path p n v
   (Hu : is_unstamped_path' n p) :

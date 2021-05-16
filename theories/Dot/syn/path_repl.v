@@ -235,14 +235,15 @@ Section decide_psubst.
     rewrite Hdec; apply rtc_once; constructor.
   Qed.
 
-  Fixpoint psubst_ty_rtc_sufficient T1 T2 p q {struct T1} :
-    T1 .T[ p := q ] = T2 →
-    T1 ~Tp[ p := q ]* T2
-  with psubst_kind_rtc_sufficient K1 K2 p q {struct K1}:
-    K1 .K[ p := q ] = K2 →
-    K1 ~Kp[ p := q ]* K2.
+  Lemma psubst_mut_rtc_sufficient :
+    (∀ T1 T2 p q,
+      T1 .T[ p := q ] = T2 →
+      T1 ~Tp[ p := q ]* T2) ∧
+    (∀ K1 K2 p q,
+      K1 .K[ p := q ] = K2 →
+      K1 ~Kp[ p := q ]* K2).
   Proof.
-    all: intros <-; move: p q; [> destruct T1 | destruct K1]; intros; simpl;
+    apply tp_kn_mut_ind; intros; subst; simpl;
       solve
         [ exact: rtc_refl
         | (eapply ty_path_repl_kTSel_rtc ||
@@ -252,6 +253,15 @@ Section decide_psubst.
           (eapply rtc_congruence2 + eapply rtc_congruence));
           eauto using psubst_path_rtc_sufficient].
   Qed.
+
+  Lemma psubst_ty_rtc_sufficient T1 T2 p q :
+    T1 .T[ p := q ] = T2 →
+    T1 ~Tp[ p := q ]* T2.
+  Proof. apply psubst_mut_rtc_sufficient. Qed.
+  Lemma psubst_kind_rtc_sufficient K1 K2 p q :
+    K1 .K[ p := q ] = K2 →
+    K1 ~Kp[ p := q ]* K2.
+  Proof. apply psubst_mut_rtc_sufficient. Qed.
 End decide_psubst.
 
 (**

@@ -725,3 +725,33 @@ Section syntax_mut_ind.
       ty_mut_ind, kind_mut_ind.
   Qed.
 End syntax_mut_ind.
+
+Section type_kind_mut_ind.
+  Variable Pty : ty   → Prop.
+  Variable Pkn : kind → Prop.
+
+  Variable step_TTop : Pty TTop.
+  Variable step_TBot : Pty TBot.
+  Variable step_TAnd : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAnd T1 T2).
+  Variable step_TOr : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TOr T1 T2).
+  Variable step_TLater : ∀ T1, Pty T1 → Pty (TLater T1).
+  Variable step_TAll : ∀ T1 T2, Pty T1 → Pty T2 → Pty (TAll T1 T2).
+  Variable step_TMu : ∀ T1, Pty T1 → Pty (TMu T1).
+  Variable step_TVMem : ∀ l T1, Pty T1 → Pty (TVMem l T1).
+  Variable step_kTTMem : ∀ l K1, Pkn K1 → Pty (kTTMem l K1).
+  Variable step_kTSel : ∀ n p1 l, Pty (kTSel n p1 l).
+  Variable step_TSing : ∀ p1, Pty (TSing p1).
+  Variable step_TPrim : ∀ b, Pty (TPrim b).
+  Variable step_TLam : ∀ T1, Pty T1 → Pty (TLam T1).
+  Variable step_TApp : ∀ T1 p1, Pty T1 → Pty (TApp T1 p1).
+  Variable step_kintv : ∀ L1 U1, Pty L1 → Pty U1 → Pkn (kintv L1 U1).
+  Variable step_kpi : ∀ S1 K1, Pty S1 → Pkn K1 → Pkn (kpi S1 K1).
+
+  Lemma tp_kn_mut_ind :
+    (∀ T, Pty T) ∧ (∀ K, Pkn K).
+  Proof.
+    apply
+      (syntax_mut_ind (λ _, True) (λ _, True) (λ _, True) (λ _, True) Pty Pkn);
+      auto 2.
+  Qed.
+End type_kind_mut_ind.
