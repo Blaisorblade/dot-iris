@@ -21,7 +21,7 @@ Section LambdaIntros.
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.
-    rewrite /ietp fmap_cons (interp_subst_commute T1 (ren (+1))).
+    rewrite /ietp fmap_cons (interp_commute_subst T1 (ren (+1))).
     rewrite -(sT_All_I_Strong (Γ' := V⟦Γ'⟧*)) // => ρ.
     by rewrite -fmap_TLater_oLater.
   Qed.
@@ -35,15 +35,15 @@ Section Sec.
     (*──────────────────────*)
     ⊢ Γ ⊨p pv (ids x) : shiftN x τ, 0.
   Proof.
-    rewrite /iptp (interp_subst_commute τ (ren (+x))). apply sP_Var.
+    rewrite /iptp (interp_commute_subst τ (ren (+x))). apply sP_Var.
     by rewrite list_lookup_fmap Hx.
   Qed.
 
   Lemma T_All_Ex {Γ e1 v2 T1 T2}:
     Γ ⊨ e1: TAll T1 T2 -∗ Γ ⊨ tv v2 : T1 -∗ Γ ⊨ tapp e1 (tv v2) : T2.|[v2/].
-  Proof. by rewrite /ietp (interp_subst_commute T2 (v2 .: ids)) -sT_All_Ex. Qed.
+  Proof. by rewrite /ietp (interp_commute_subst T2 (v2 .: ids)) -sT_All_Ex. Qed.
 
   Lemma T_All_E {Γ e1 e2 T1 T2} :
     Γ ⊨ e1 : TAll T1 (shift T2) -∗ Γ ⊨ e2 : T1 -∗ Γ ⊨ tapp e1 e2 : T2.
-  Proof. by rewrite /ietp -sT_All_E -(interp_subst_commute T2 (ren (+1))). Qed.
+  Proof. by rewrite /ietp -sT_All_E -(interp_commute_subst T2 (ren (+1))). Qed.
 End Sec.

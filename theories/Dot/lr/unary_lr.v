@@ -74,7 +74,7 @@ Section logrel_binding_lemmas.
     But [∞ σ >> ρ] and [∞ σ.|[ρ]] are only equal for
     [length σ] entries.
   *)
-  Lemma interp_finsubst_commute_cl T σ ρ v (HclT : nclosed T (length σ)) args :
+  Lemma interp_commute_finsubst_cl T σ ρ v (HclT : nclosed T (length σ)) args :
     V⟦ T.|[∞ σ] ⟧ args ρ v ≡ V⟦ T ⟧ args (∞ σ.|[ρ]) v.
   Proof.
     rewrite interp_subst_compose_ind !(interp_subst_ids T) -hsubst_comp.
@@ -83,7 +83,7 @@ Section logrel_binding_lemmas.
   Qed.
 
   (** Substitution on semantic types commutes with the semantics. *)
-  Lemma interp_subst_commute (T : ty) σ : V⟦ T.|[σ] ⟧ ≡ V⟦ T ⟧.|[σ].
+  Lemma interp_commute_subst (T : ty) σ : V⟦ T.|[σ] ⟧ ≡ V⟦ T ⟧.|[σ].
   Proof. intros ???; apply interp_subst_compose_ind. Qed.
 End logrel_binding_lemmas.
 
