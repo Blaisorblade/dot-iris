@@ -45,6 +45,7 @@ SubClass hvl   := hterm vl.
 SubClass hdm   := hterm dm.
 SubClass hpath := hterm path.
 SubClass hty   := hterm ty.
+SubClass hkind := hterm kind.
 SubClass hdms  := list (label * hterm dm).
 
 Coercion hclose_tm   := hclose : htm   → tm.
@@ -52,12 +53,14 @@ Coercion hclose_vl   := hclose : hvl   → vl.
 Coercion hclose_dm   := hclose : hdm   → dm.
 Coercion hclose_path := hclose : hpath → path.
 Coercion hclose_ty   := hclose : hty   → ty.
+Coercion hclose_kind := hclose : hkind → kind.
 
 Arguments hclose_tm   /.
 Arguments hclose_vl   /.
 Arguments hclose_dm   /.
 Arguments hclose_path /.
 Arguments hclose_ty   /.
+Arguments hclose_kind /.
 
 (** Utilities to lift syntax to [hterm]s. *)
 Module Import hterm_lifting.
@@ -115,7 +118,7 @@ We can only bind one scope to [hterm], and that is why we use a unique scope
 for all this syntax.
 *)
 Declare Scope hsyn_scope.
-Bind Scope hsyn_scope with hty htm hterm.
+Bind Scope hsyn_scope with hty htm hterm hkind.
 Delimit Scope hsyn_scope with HS.
 
 Declare Scope hdms_scope.
@@ -168,11 +171,20 @@ Definition hTAll : hty → (hvl → hty) → hty :=
 
 Definition hTMu : (hvl → hty) → hty := liftBind1 TMu.
 Definition hTVMem : label → hty → hty := λ l, liftA1 (TVMem l).
-Definition hTTMem : label → hty → hty → hty := λ l, liftA2 (TTMem l).
-Definition hTTMemL : label → hty → hty → hty := λ l, liftA2 (TTMemL l).
-Definition hTSel : hpath → label → hty := Eval cbv in λ p l, liftA2 TSel p (pureS l).
+Definition hkTTMem : label → hkind → hty := λ l, liftA1 (kTTMem l).
+Definition hkTSel : nat → hpath → label → hty := Eval cbv in λ n p l, liftA2 (kTSel n) p (pureS l).
 Definition hTPrim b : hty := liftA0 (TPrim b).
 Definition hTSing : hpath → hty := liftA1 TSing.
+Definition hTLam : (hvl → hty) → hty := liftBind1 TLam.
+Definition hTApp : hty → hpath → hty := liftA2 TApp.
+
+Definition hkintv : hty → hty → hkind := liftA2 kintv.
+Definition hkpi : hty → (hvl → hkind) → hkind := liftBind2 kpi.
+
+(* Wrappers *)
+Definition hTSel : hpath → label → hty := Eval cbv in λ p l, liftA2 TSel p (pureS l).
+Definition hTTMem : label → hty → hty → hty := λ l, liftA2 (λ L U, TTMem l L U).
+Definition hTTMemL : label → hty → hty → hty := λ l, liftA2 (TTMemL l).
 
 Definition hTInt : hty := liftA0 TInt.
 Definition hTBool : hty := liftA0 TBool.
@@ -180,6 +192,7 @@ Definition hTBool : hty := liftA0 TBool.
 Arguments hvobj _%HD.
 Arguments hTAll _%HS _%HS.
 Arguments hTMu _%HS.
+Arguments hkpi _%HS _%HS.
 
 Arguments htv /.
 Arguments htapp /.
@@ -205,15 +218,19 @@ Arguments hTLater /.
 Arguments hTAll /.
 Arguments hTMu /.
 Arguments hTVMem /.
-Arguments hTTMem /.
-Arguments hTTMemL /.
-Arguments hTSel /.
+Arguments hkTSel /.
 Arguments hTPrim /.
 Arguments hTSing /.
 
+Arguments hkintv /.
+Arguments hkpi /.
+
+Arguments hTTMem /.
+Arguments hTTMemL /.
+Arguments hTSel /.
+
 Arguments hTInt /.
 Arguments hTBool /.
-
 End syn.
 
 Module Import hoasNotation.
@@ -284,6 +301,7 @@ Notation "▶: T" := (hTLater T) (at level 49, right associativity) : hsyn_scope
 Notation "'∀:' x : T , U" := (hTAll T (λT x, U)) (at level 48, x, T at level 98, U at level 98).
 Notation "'μ' Ts" := (hTMu Ts) (at level 50, Ts at next level).
 Notation "'μ:' x , Ts" := (hTMu (λT x, Ts)) (at level 50, Ts at next level).
+Notation "'type' l :: K" := (hkTTMem l K) (at level 60, l at level 50, K at level 70) : hsyn_scope.
 Notation "'type' l >: L <: U" := (hTTMemL l L U) (at level 60, l at level 50, L, U at level 70) : hsyn_scope.
 Notation "'val' l : T" := (hTVMem l T)
   (at level 60, l, T at level 50, format "'[' 'val'  l  :  T  ']' '/'") : hsyn_scope.
@@ -296,6 +314,10 @@ Notation "v @ l1 @ .. @ l2" := (hpself .. (hpself v l1) .. l2)
 Notation "a @: b" := (htproj a b) (at level 59, b at next level).
 
 Infix "$:" := htapp (at level 68, left associativity).
+
+Infix ".::." := kintv (at level 68, no associativity) : hsyn_scope.
+Notation "'∀::' x : T , U" := (hkpi T (λT x, U)) (at level 48, x, T at level 98, U at level 98).
+Infix "$::" := hTApp (at level 68, left associativity).
 
 Notation tparam A := (type A >: ⊥ <: ⊤)%HS.
 Definition typeEq l T := (type l >: T <: T) %HS.

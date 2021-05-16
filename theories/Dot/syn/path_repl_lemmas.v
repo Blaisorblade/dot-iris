@@ -55,6 +55,8 @@ Definition psubst_one_path_gen i q p :=
   q .p[ pv (ids i) := shiftN i.+1 p ].
 Definition psubst_one_ty_gen i T p :=
   T .T[ pv (ids i) := shiftN i.+1 p ].
+Definition psubst_one_kind_gen i K p :=
+  K .K[ pv (ids i) := shiftN i.+1 p ].
 
 Lemma psubst_one_path_gen_unshifts_gen i n q p :
   is_unstamped_path' n q →
@@ -68,13 +70,24 @@ Proof.
   exact: unstamped_val_unshifts.
 Qed.
 
-Lemma psubst_one_base_ty_unshifts_gen i n T p :
-  is_unstamped_ty' n T → unshiftsN i (psubst_one_ty_gen i T p).
+Lemma psubst_one_base_mut_unshifts_gen :
+  (∀ T i n p,
+    is_unstamped_ty' n T → unshiftsN i (psubst_one_ty_gen i T p)) ∧
+  (∀ K i n p,
+    is_unstamped_kind' n K → unshiftsN i (psubst_one_kind_gen i K p)).
 Proof.
-  rewrite /psubst_one_ty_gen /unshiftsN.
-  move: p i n; induction T => p0 i n Hu; f_equal/=; with_is_unstamped inverse;
-    rewrite -?hrenS -?iterate_S; eauto; exact: psubst_one_path_gen_unshifts_gen.
+  rewrite /psubst_one_kind_gen /psubst_one_ty_gen /unshiftsN;
+    apply tp_kn_mut_ind; intros; with_is_unstamped inverse; simpl in *;
+    f_equal; rewrite -?hrenS -?iterate_S;
+    eauto 2; exact: psubst_one_path_gen_unshifts_gen.
 Qed.
+
+Lemma psubst_one_base_ty_unshifts_gen T i n p :
+  is_unstamped_ty' n T → unshiftsN i (psubst_one_ty_gen i T p).
+Proof. apply psubst_one_base_mut_unshifts_gen. Qed.
+Lemma psubst_one_base_kind_unshifts_gen K i n p :
+  is_unstamped_kind' n K → unshiftsN i (psubst_one_kind_gen i K p).
+Proof. apply psubst_one_base_mut_unshifts_gen. Qed.
 
 Notation unshifts x := (∃ x', x = shift x').
 
@@ -82,10 +95,16 @@ Lemma psubst_one_base_ty_unshifts {n T} p:
   is_unstamped_ty' n T → unshifts (psubst_one_base_ty T p).
 Proof.
   intros Hu; exists (unshift (psubst_one_base_ty T p)).
-  rewrite /psubst_one_base_ty.
-  have := psubst_one_base_ty_unshifts_gen 0 p Hu.
-  by rewrite /unshiftsN /psubst_one_ty_gen ?iterate_S !iterate_0 => ->.
+  eapply symmetry, (psubst_one_base_ty_unshifts_gen 0), Hu.
 Qed.
+
+Lemma psubst_one_base_kind_unshifts {n K} p:
+  is_unstamped_kind' n K → unshifts (psubst_one_base_kind K p).
+Proof.
+  intros Hu; exists (unshift (psubst_one_base_kind K p)).
+  eapply symmetry, (psubst_one_base_kind_unshifts_gen 0), Hu.
+Qed.
+
 
 (**
 Prove functional path substitution correct, relative to relational path
@@ -99,6 +118,17 @@ Proof.
   apply psubst_ty_rtc_sufficient.
   by rewrite Hw shift_unshift.
 Qed.
+
+Lemma psubst_one_kind_implies n K p K' :
+  is_unstamped_kind' n K →
+  K .Kp[ p /] = K' → K .Kp[ p /]~ K'.
+Proof.
+  move => /(psubst_one_base_kind_unshifts p) [K''].
+  rewrite /psubst_one_kind /psubst_one_base_kind => Hw <-.
+  apply psubst_kind_rtc_sufficient.
+  by rewrite Hw shift_unshift.
+Qed.
+
 
 Lemma upn_app i v s :
   upn i (v .: s) i = shiftVN i v.
@@ -133,14 +163,29 @@ Proof.
   rewrite upn_app_ids_ne; naive_solver.
 Qed.
 
+Lemma psubst_subst_agree_mut_gen :
+  (∀ T v i n,
+    is_unstamped_ty' n T →
+    psubst_one_ty_gen i T (pv v) = T.|[ upn i ((v .: ids) >> ren (+1)) ]) ∧
+  (∀ K v i n,
+    is_unstamped_kind' n K →
+    psubst_one_kind_gen i K (pv v) = K.|[ upn i ((v .: ids) >> ren (+1)) ]).
+Proof.
+  rewrite /psubst_one_ty_gen /psubst_one_kind_gen;
+    apply tp_kn_mut_ind; intros; with_is_unstamped inverse; simpl in *;
+    f_equal; rewrite -?(renS, iterate_S); eauto 2;
+    exact: psubst_subst_agree_path_gen.
+Qed.
+
 Lemma psubst_subst_agree_ty_gen T v i n :
   is_unstamped_ty' n T →
   psubst_one_ty_gen i T (pv v) = T.|[ upn i ((v .: ids) >> ren (+1)) ].
-Proof.
-  rewrite /psubst_one_ty_gen; move: i n.
-  induction T => i n Hu //=; with_is_unstamped inverse; f_equal/=;
-  rewrite -?(renS, iterate_S); eauto; exact: psubst_subst_agree_path_gen.
-Qed.
+Proof. apply psubst_subst_agree_mut_gen. Qed.
+Lemma psubst_subst_agree_kind_gen K v i n :
+  is_unstamped_kind' n K →
+  psubst_one_kind_gen i K (pv v) = K.|[ upn i ((v .: ids) >> ren (+1)) ].
+Proof. apply psubst_subst_agree_mut_gen. Qed.
+
 
 Lemma psubst_subst_agree_path p n v
   (Hu : is_unstamped_path' n p) :
@@ -160,5 +205,15 @@ Proof.
   have := psubst_subst_agree_ty_gen v 0 Hu.
   rewrite iterate_0 /psubst_one_ty /psubst_one_base_ty /psubst_one_ty_gen => ->.
   rewrite -(shift_unshift T.|[v/]); f_equal.
+  by rewrite hsubst_comp.
+Qed.
+
+Lemma psubst_subst_agree_kind K n v
+  (Hu : is_unstamped_kind' n K) :
+  K .Kp[ pv v /] = K .|[ v /].
+Proof.
+  have := psubst_subst_agree_kind_gen v 0 Hu.
+  rewrite iterate_0 /psubst_one_kind /psubst_one_base_kind /psubst_one_kind_gen => ->.
+  rewrite -(shift_unshift K.|[v/]); f_equal.
   by rewrite hsubst_comp.
 Qed.

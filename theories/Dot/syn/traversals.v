@@ -107,17 +107,25 @@ Section fold.
   | trav_TVMem ts l T1:
       forall_traversal_ty ts T1 →
       forall_traversal_ty ts (TVMem l T1)
-  | trav_TTMem ts l T1 T2:
-      forall_traversal_ty ts T1 →
-      forall_traversal_ty ts T2 →
-      forall_traversal_ty ts (TTMem l T1 T2)
-  | trav_TSel ts p l:
+  | trav_kTTMem ts l K :
+      forall_traversal_kind ts K →
+      forall_traversal_ty ts (kTTMem l K)
+  | trav_kTSel ts n p l:
       forall_traversal_path (trav.(underPathElimS) ts) p →
-      forall_traversal_ty ts (TSel p l)
+      forall_traversal_ty ts (kTSel n p l)
   | trav_TPrim ts b: forall_traversal_ty ts (TPrim b)
   | trav_TSing ts p:
       forall_traversal_path (trav.(underPathElimS) ts) p →
       forall_traversal_ty ts (TSing p)
+  with forall_traversal_kind: travStateT → kind → Prop :=
+  | trav_kintv ts L U :
+      forall_traversal_ty ts L →
+      forall_traversal_ty ts U →
+      forall_traversal_kind ts (kintv L U)
+  | trav_kpi ts S K :
+      forall_traversal_ty ts S →
+      forall_traversal_kind (trav.(upS) ts) K →
+      forall_traversal_kind ts (kpi S K)
     .
 End fold.
 
@@ -129,7 +137,7 @@ End fold.
 
 Notation forall_traversal_dms trav ts ds := (Forall (forall_traversal_dm trav ts) (map snd ds)).
 #[global] Hint Constructors forall_traversal_vl forall_traversal_tm forall_traversal_dm
-     forall_traversal_path forall_traversal_ty : core.
+     forall_traversal_path forall_traversal_ty forall_traversal_kind : core.
 
 (* No such Hint Extern for [upS] since it can't be the head of a goal. *)
 #[global] Hint Extern 0 (varP _ _ _)      => progress cbn : core.
@@ -142,6 +150,7 @@ Notation forall_traversal_dms trav ts ds := (Forall (forall_traversal_dm trav ts
 #[global] Hint Extern 0 (forall_traversal_dm _ _ _)   => progress cbn : core.
 #[global] Hint Extern 0 (forall_traversal_path _ _ _) => progress cbn : core.
 #[global] Hint Extern 0 (forall_traversal_ty _ _ _)   => progress cbn : core.
+#[global] Hint Extern 0 (forall_traversal_kind _ _ _)   => progress cbn : core.
 
 (** Tactics to invert uses of [forall_traversal_*]. *)
 
@@ -161,6 +170,7 @@ Ltac with_forall_traversal trav tac :=
     | H: forall_traversal_dm   trav _ _ |- _ => tac H
     | H: forall_traversal_path trav _ _ |- _ => tac H
     | H: forall_traversal_ty   trav _ _ |- _ => tac H
+    | H: forall_traversal_kind trav _ _ |- _ => tac H
   end.
 (** Invert once each hypothesis of shape [forall_traversal_* trav _ _], as
 long as inversion only produces a single result. *)

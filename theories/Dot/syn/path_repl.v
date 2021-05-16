@@ -14,7 +14,7 @@ From stdpp Require Import relations.
 From D.Dot.syn Require Import syn.
 
 Implicit Types
-         (T : ty) (v w : vl) (t : tm) (d : dm) (ds : dms) (p q : path)
+         (T : ty) (K : kind) (v w : vl) (t : tm) (d : dm) (ds : dms) (p q : path)
          (l : label).
 
 Set Suggest Proof Using.
@@ -38,6 +38,7 @@ Notation path_path_repl_rtc p q := (rtc (path_path_repl p q)).
 Notation "p1 ~pp[ p := q  ]* p2" := (path_path_repl_rtc p q p1 p2) (at level 70).
 
 Reserved Notation "T1 ~Tp[ p := q  ] T2" (at level 70).
+Reserved Notation "K1 ~Kp[ p := q  ] K2" (at level 70).
 
 (** ** The path replacement judgment, as defined in the pDOT paper.
 [T1 ~Tp[ p := q ] T2] means that [T2] is obtained from [T1] by replacing
@@ -72,28 +73,72 @@ Inductive ty_path_repl (p q : path) : ty → ty → Prop :=
 | ty_path_repl_TVMem T1 T2 l :
   T1 ~Tp[ p := q ] T2 →
   TVMem l T1 ~Tp[ p := q ] TVMem l T2
-| ty_path_repl_TTMem1 T1 T2 U l :
-  T1 ~Tp[ p := q ] T2 →
-  TTMem l T1 U ~Tp[ p := q ] TTMem l T2 U
-| ty_path_repl_TTMem2 T1 T2 U l :
-  T1 ~Tp[ p := q ] T2 →
-  TTMem l U T1 ~Tp[ p := q ] TTMem l U T2
-| ty_path_repl_TSel p1 p2 l :
+| ty_path_repl_kTTMem K1 K2 l :
+  K1 ~Kp[ p := q ] K2 →
+  kTTMem l K1 ~Tp[ p := q ] kTTMem l K2
+| ty_path_repl_kTSel n p1 p2 l :
   p1 ~pp[ p := q ] p2 →
-  TSel p1 l ~Tp[ p := q ] TSel p2 l
+  kTSel n p1 l ~Tp[ p := q ] kTSel n p2 l
 | ty_path_repl_TSing p1 p2 :
   p1 ~pp[ p := q ] p2 →
   TSing p1 ~Tp[ p := q ] TSing p2
-where "T1 ~Tp[ p := q  ] T2" := (ty_path_repl p q T1 T2).
+| ty_path_repl_TLam T1 T2:
+  T1 ~Tp[ shift p := shift q ] T2 →
+  TLam T1 ~Tp[ p := q ] TLam T2
+| ty_path_repl_TApp1 T1 T2 r :
+  T1 ~Tp[ p := q ] T2 →
+  TApp T1 r ~Tp[ p := q ] TApp T2 r
+| ty_path_repl_TApp2 T p1 p2 :
+  p1 ~pp[ p := q ] p2 →
+  TApp T p1 ~Tp[ p := q ] TApp T p2
+where "T1 ~Tp[ p := q  ] T2" := (ty_path_repl p q T1 T2)
+with kind_path_repl (p q : path) : kind → kind → Prop :=
+| kind_path_repl_kintv1 L1 L2 U :
+  L1 ~Tp[ p := q ] L2 →
+  kintv L1 U ~Kp[ p := q ] kintv L2 U
+| kind_path_repl_kintv2 L U1 U2 :
+  U1 ~Tp[ p := q ] U2 →
+  kintv L U1 ~Kp[ p := q ] kintv L U2
+| kind_path_repl_kpi1 S1 S2 K :
+  S1 ~Tp[ p := q ] S2 →
+  kpi S1 K ~Kp[ p := q ] kpi S2 K
+| kind_path_repl_kpi2 S K1 K2 :
+  K1 ~Kp[ shift p := shift q ] K2 →
+  kpi S K1 ~Kp[ p := q ] kpi S K2
+where "K1 ~Kp[ p := q  ] K2" := (kind_path_repl p q K1 K2).
+
+Scheme ty_path_repl_mut_ind   := Minimality for ty_path_repl Sort Prop
+with   kind_path_repl_mut_ind := Minimality for kind_path_repl Sort Prop.
+Combined Scheme ty_kind_path_repl_mut_ind from ty_path_repl_mut_ind, kind_path_repl_mut_ind.
 
 Notation ty_path_repl_rtc p q := (rtc (ty_path_repl p q)).
 Notation "T1 ~Tp[ p := q  ]* T2" := (ty_path_repl_rtc p q T1 T2) (at level 70).
+Notation kind_path_repl_rtc p q := (rtc (kind_path_repl p q)).
+Notation "K1 ~Kp[ p := q  ]* K2" := (kind_path_repl_rtc p q K1 K2) (at level 70).
+
+Lemma ty_kind_mut_path_repl_id p :
+  (∀ T1 T2, T1 ~Tp[ p := p ] T2 → T1 = T2) ∧
+  (∀ K1 K2, K1 ~Kp[ p := p ] K2 → K1 = K2).
+Proof.
+  (* Emulate dependent induction, and shuffle goal. *)
+  move E: {2 4} p => q.
+  pose PT := λ p q T1 T2, p = q -> T1 = T2.
+  pose PK := λ p q K1 K2, p = q -> K1 = K2.
+  suff [HT HK]: (∀ T1 T2, T1 ~Tp[ p := q ] T2 → PT p q T1 T2) ∧
+    (∀ K1 K2, K1 ~Kp[ p := q ] K2 → PK p q K1 K2)
+    by unfold PT, PK in *; naive_solver eauto.
+
+  (* Induction step *)
+  apply ty_kind_path_repl_mut_ind; unfold PT, PK in *;
+    clear; intros.
+  (* Dispatch goals *)
+  all: subst; f_equal; eauto 2 using path_path_repl_id.
+Qed.
 
 Lemma ty_path_repl_id p T1 T2 : T1 ~Tp[ p := p ] T2 → T1 = T2.
-Proof.
-  intros Hr; dependent induction Hr; rewrite ?IHHr //;
-    f_equiv; exact: path_path_repl_id.
-Qed.
+Proof. apply ty_kind_mut_path_repl_id. Qed.
+Lemma kind_path_repl_id p K1 K2 : K1 ~Kp[ p := p ] K2 → K1 = K2.
+Proof. apply ty_kind_mut_path_repl_id. Qed.
 
 (**
 Define substitution of [pv (ids 0)] by [p] as a relation, in terms of the
@@ -103,6 +148,10 @@ occurrences of [pv (ids 0)] have been replaced. *)
 Definition path_repl_ty_one T p T' :=
   T ~Tp[ pv (ids 0) := shift p ]* shift T'.
 Notation "T .Tp[ p /]~ T'" := (path_repl_ty_one T p T') (at level 65).
+
+Definition path_repl_kind_one K p K' :=
+  K ~Kp[ pv (ids 0) := shift p ]* shift K'.
+Notation "K .Kp[ p /]~ K'" := (path_repl_kind_one K p K') (at level 65).
 
 (**
 We also define path replacement as a function, and prove it correct in
@@ -139,6 +188,7 @@ Lemma psubst_path_self p q: p .p[ p := q ] = q.
 Proof. case: p => /= *; by rewrite decide_True. Qed.
 
 Reserved Notation "T .T[ p := q  ]" (at level 65).
+Reserved Notation "K .K[ p := q  ]" (at level 65).
 Fixpoint psubst_ty p q T : ty := match T with
 | TTop => TTop
 | TBot => TBot
@@ -148,12 +198,20 @@ Fixpoint psubst_ty p q T : ty := match T with
 | TAll S T => TAll (S .T[ p := q ]) (T .T[ shift p := shift q ])
 | TMu T => TMu (T .T[ shift p := shift q ])
 | TVMem l T => TVMem l (T .T[ p := q ])
-| TTMem l L U => TTMem l (L .T[ p := q ]) (U .T[ p := q ])
-| TSel r l => TSel (r .p[ p := q ]) l
+| kTTMem l K => kTTMem l (K .K[ p := q ])
+| kTSel n r l => kTSel n (r .p[ p := q ]) l
 | TPrim _ => T
 | TSing r => TSing (r .p[ p := q ])
+| TLam T => TLam (T .T[ shift p := shift q ])
+| TApp T r => TApp (T .T[ p := q ]) (r .p[ p := q ])
 end
-where "T .T[ p := q  ]" := (psubst_ty p q T).
+where "T .T[ p := q  ]" := (psubst_ty p q T)
+with psubst_kind p q K : kind :=
+match K with
+| kintv L U => kintv (L .T[ p := q ]) (U .T[ p := q ])
+| kpi S K => kpi (S .T[ p := q ]) (K .K[ shift p := shift q ])
+end
+where "K .K[ p := q  ]" := (psubst_kind p q K).
 
 Section closure.
   Context `{RA : relation A} `{RB : relation B} `{RC : relation C}.
@@ -171,7 +229,7 @@ Section closure.
 End closure.
 
 Section decide_psubst.
-  #[local] Hint Constructors path_path_repl ty_path_repl : core.
+  #[local] Hint Constructors path_path_repl ty_path_repl kind_path_repl : core.
 
   (** Instances of [rtc_congruence] where inference needs help. *)
   Lemma path_path_repl_self_rtc p q p1 p2 l :
@@ -179,10 +237,10 @@ Section decide_psubst.
     pself p1 l ~pp[ p := q ]* pself p2 l.
   Proof. apply rtc_congruence with (f := (λ p, pself p l)); auto. Qed.
 
-  Lemma ty_path_repl_TSel_rtc p1 q1 p q l :
+  Lemma ty_path_repl_kTSel_rtc p1 q1 p q n l :
     p1 ~pp[ p := q ]* q1 →
-    TSel p1 l ~Tp[ p := q ]* TSel q1 l.
-  Proof. apply rtc_congruence with (f := (λ p, TSel p l)); auto. Qed.
+    kTSel n p1 l ~Tp[ p := q ]* kTSel n q1 l.
+  Proof. apply rtc_congruence with (f := (λ p, kTSel n p l)); auto. Qed.
 
   (** The reflexive, transitive closure of path replacement agrees with path
   substitution. In fact, there can be only 0 or 1 steps anyway. *)
@@ -196,14 +254,33 @@ Section decide_psubst.
     rewrite Hdec; apply rtc_once; constructor.
   Qed.
 
+  Lemma psubst_mut_rtc_sufficient :
+    (∀ T1 T2 p q,
+      T1 .T[ p := q ] = T2 →
+      T1 ~Tp[ p := q ]* T2) ∧
+    (∀ K1 K2 p q,
+      K1 .K[ p := q ] = K2 →
+      K1 ~Kp[ p := q ]* K2).
+  Proof.
+    apply tp_kn_mut_ind; intros; subst; simpl;
+      solve
+        [ exact: rtc_refl
+        | (eapply ty_path_repl_kTSel_rtc ||
+          (* We use backtracking because sometimes [rtc_congruence2] applies
+          but [rtc_congruence] is needed (and viceversa: [rtc_congruence] always
+          applies). *)
+          (eapply rtc_congruence2 + eapply rtc_congruence));
+          eauto using psubst_path_rtc_sufficient].
+  Qed.
+
   Lemma psubst_ty_rtc_sufficient T1 T2 p q :
     T1 .T[ p := q ] = T2 →
     T1 ~Tp[ p := q ]* T2.
-  Proof.
-    intros <-; move: p q.
-    induction T1; intros; simpl; eauto using rtc_congruence, rtc_congruence2,
-      ty_path_repl_TSel_rtc, psubst_path_rtc_sufficient, rtc_refl.
-  Qed.
+  Proof. apply psubst_mut_rtc_sufficient. Qed.
+  Lemma psubst_kind_rtc_sufficient K1 K2 p q :
+    K1 .K[ p := q ] = K2 →
+    K1 ~Kp[ p := q ]* K2.
+  Proof. apply psubst_mut_rtc_sufficient. Qed.
 End decide_psubst.
 
 (**
@@ -218,3 +295,7 @@ Notation "q .pp[ p /]" := (psubst_one_path q p) (at level 65).
 Definition psubst_one_base_ty T p := T .T[ pv (ids 0) := shift p ].
 Definition psubst_one_ty T p := unshift (psubst_one_base_ty T p).
 Notation "T .Tp[ p /]" := (psubst_one_ty T p) (at level 65).
+
+Definition psubst_one_base_kind K p := K .K[ pv (ids 0) := shift p ].
+Definition psubst_one_kind K p := unshift (psubst_one_base_kind K p).
+Notation "K .Kp[ p /]" := (psubst_one_kind K p) (at level 65).

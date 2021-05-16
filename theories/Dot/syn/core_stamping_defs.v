@@ -35,9 +35,11 @@ Notation is_unstamped_vl   n b := (forall_traversal_vl is_unstamped_trav (n, b))
 Notation is_unstamped_dm   n b := (forall_traversal_dm is_unstamped_trav (n, b)).
 Notation is_unstamped_path n b := (forall_traversal_path is_unstamped_trav (n, b)).
 Notation is_unstamped_ty   n b := (forall_traversal_ty is_unstamped_trav (n, b)).
+Notation is_unstamped_kind n b := (forall_traversal_kind is_unstamped_trav (n, b)).
 
 Notation is_unstamped_path' n := (is_unstamped_path n OnlyVars).
 Notation is_unstamped_ty' n := (is_unstamped_ty n OnlyVars).
+Notation is_unstamped_kind' n := (is_unstamped_kind n OnlyVars).
 
 Ltac with_is_unstamped tac := with_forall_traversal is_unstamped_trav tac.
 Ltac inverse_is_unstamped := inverse_forall_traversal is_unstamped_trav.

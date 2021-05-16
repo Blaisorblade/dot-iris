@@ -31,7 +31,10 @@ Lemma is_unstamped_nclosed_mut:
     nclosed p i) ∧
   (∀ T i b,
     is_unstamped_ty i b T →
-    nclosed T i).
+    nclosed T i) ∧
+  (∀ K i b,
+    is_unstamped_kind i b K →
+    nclosed K i).
 Proof.
   apply syntax_mut_ind; intros; with_is_unstamped inverse => //; ev;
     try by move => s1 s2 Hseq; f_equal/=;
@@ -46,8 +49,10 @@ Lemma is_unstamped_nclosed_path p n b: is_unstamped_path n b p → nclosed p n.
 Proof. apply is_unstamped_nclosed_mut. Qed.
 Lemma is_unstamped_nclosed_ty T n b: is_unstamped_ty n b T → nclosed T n.
 Proof. apply is_unstamped_nclosed_mut. Qed.
+Lemma is_unstamped_nclosed_kind K n b: is_unstamped_kind n b K → nclosed K n.
+Proof. apply is_unstamped_nclosed_mut. Qed.
 
-#[global] Hint Resolve is_unstamped_nclosed_path is_unstamped_nclosed_ty : core.
+#[global] Hint Resolve is_unstamped_nclosed_path is_unstamped_nclosed_ty is_unstamped_nclosed_kind : core.
 
 Lemma is_unstamped_weaken_mut:
   (∀ e__s m n b,
@@ -69,7 +74,11 @@ Lemma is_unstamped_weaken_mut:
   (∀ T__s m n b,
       is_unstamped_ty m b T__s →
       m <= n →
-      is_unstamped_ty n b T__s).
+      is_unstamped_ty n b T__s) ∧
+  (∀ K__s m n b,
+      is_unstamped_kind m b K__s →
+      m <= n →
+      is_unstamped_kind n b K__s).
 Proof.
   apply syntax_mut_ind;
     by [intros; with_is_unstamped inverse; econstructor;
@@ -81,6 +90,13 @@ Lemma is_unstamped_weaken_ty T__s m n b:
   m <= n →
   is_unstamped_ty n b T__s.
 Proof. apply is_unstamped_weaken_mut. Qed.
+
+Lemma is_unstamped_weaken_kind K__s m n b:
+  is_unstamped_kind m b K__s →
+  m <= n →
+  is_unstamped_kind n b K__s.
+Proof. apply is_unstamped_weaken_mut. Qed.
+
 
 Lemma is_unstamped_ren_shift n m j b:
   m >= j + n → is_unstamped_ren n m b (+j).
@@ -133,7 +149,11 @@ Lemma is_unstamped_ren_mut:
   (∀ T r i j b,
     is_unstamped_ren i j b r →
     is_unstamped_ty i b T →
-    is_unstamped_ty j b (rename r T)).
+    is_unstamped_ty j b (rename r T)) ∧
+  (∀ K r i j b,
+    is_unstamped_ren i j b r →
+    is_unstamped_kind i b K →
+    is_unstamped_kind j b (rename r K)).
 Proof.
   apply syntax_mut_ind; intros; with_is_unstamped ltac:(fun H => inversion_clear H);
     cbn in *; try by [|naive_solver eauto using is_unstamped_ren_var, is_unstamped_ren_OnlyVars].

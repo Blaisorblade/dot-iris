@@ -5,8 +5,7 @@ From D Require Import swap_later_impl.
 From D.Dot Require Import syn path_repl.
 From D.Dot Require Export dlang_inst path_wp.
 From D.pure_program_logic Require Import weakestpre.
-
-From D.Dot Require Export dot_lty dot_semtypes.
+From D.Dot Require Export dot_lty dot_semtypes sem_kind_dot.
 
 Unset Program Cases.
 Set Suggest Proof Using.
@@ -14,16 +13,20 @@ Set Default Proof Using "Type*".
 
 Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
-         (ρ : env) (l : label).
+         (ρ : env) (l : label) (T : ty) (K : kind) (Γ : ctx).
+
+Class SfKindInterp Σ :=
+  sf_kind_interp : kind → sf_kind Σ.
+#[global] Arguments sf_kind_interp {_ _} !_ /.
+Notation "K⟦ K ⟧" := (sf_kind_interp K).
 
 Section log_rel.
   Context `{HdotG: !dlangG Σ}.
-  Implicit Types (τ : oltyO Σ).
 (** The logical relation on values is [V⟦T⟧]. We also define the logical
     relation on definitions [Ds⟦T⟧].
 
     Both definitions follow the one on paper; concretely, they are defined
-    through [C⟦T⟧] in instance [dot_interp].
+    through [C⟦T⟧] in instance [dot_ty_interp].
 
     Binding and closing substitutions:
 
@@ -42,10 +45,18 @@ Section log_rel.
   (* Observe the naming pattern for semantic type constructors:
   replace T by o (for most constructors) or by c (for constructors producing
   cltys). *)
-  #[global] Instance dot_interp : CTyInterp Σ := fix dot_interp T :=
-    let rec_ty := dot_interp : CTyInterp Σ in
+  Fixpoint kind_interp (K : kind) : sf_kind Σ :=
+    let rec_ty := ty_interp : CTyInterp Σ in
+    let rec_kind := kind_interp : SfKindInterp Σ in
+    match K with
+    | kintv L U => sf_kintv V⟦ L ⟧ V⟦ U ⟧
+    | kpi S K => sf_kpi V⟦ S ⟧ K⟦ K ⟧
+    end
+   with ty_interp (T : ty) : clty Σ :=
+    let rec_ty := ty_interp : CTyInterp Σ in
+    let rec_kind := kind_interp : SfKindInterp Σ in
     match T with
-    | TTMem l L U => cTMem l V⟦ L ⟧ V⟦ U ⟧
+    | kTTMem l K => cTMemK l K⟦ K ⟧
     | TVMem l T' => cVMem l V⟦ T' ⟧
     | TAnd T1 T2 => cAnd C⟦ T1 ⟧ C⟦ T2 ⟧
     | TTop => cTop
@@ -57,24 +68,39 @@ Section log_rel.
     | TPrim b => olty2clty $ oPrim b
     | TAll T1 T2 => olty2clty $ oAll V⟦ T1 ⟧ V⟦ T2 ⟧
     | TMu T => olty2clty $ oMu V⟦ T ⟧
-    | TSel p l => olty2clty $ oSel p l
+    | kTSel n p l => olty2clty $ oSel p l
     | TSing p => olty2clty $ oSing p
+    | TLam T => olty2clty $ oLam V⟦ T ⟧
+    | TApp T p => olty2clty $ oTApp V⟦ T ⟧ p
     end.
+
+  #[global] Instance dot_ty_interp : CTyInterp Σ := Reduce ty_interp.
+  #[global] Instance dot_kind_interp : SfKindInterp Σ := Reduce kind_interp.
 
   (** Unfolding lemma for [TAnd]: defined because [simpl] on the LHS produces
       [oAnd C⟦ T1 ⟧ C⟦ T2 ⟧]. *)
   Lemma interp_TAnd_eq T1 T2 : V⟦ TAnd T1 T2 ⟧ ≡ oAnd V⟦ T1 ⟧ V⟦ T2 ⟧.
   Proof. done. Qed.
 
-  (** Binding lemmas for [V⟦ T ⟧] and [Ds⟦ T ⟧]. *)
-  #[global] Instance pinterp_lemmas: CTyInterpLemmas Σ.
+  (** Binding lemmas for [V⟦ T ⟧] and [K⟦ T ⟧]. *)
+  Lemma mut_interp_subst_compose_ind :
+    (∀ T args ρ1 ρ2 v,
+      V⟦ T.|[ρ1] ⟧ args ρ2 v ⊣⊢ V⟦ T ⟧ args (ρ1 >> ρ2) v) ∧
+    (∀ K ρ1 ρ2 τ1 τ2,
+      K⟦ K.|[ρ1] ⟧ ρ2 τ1 τ2 ⊣⊢ K⟦ K ⟧ (ρ1 >> ρ2) τ1 τ2).
   Proof.
-    split; rewrite /pty_interp;
-      induction T => args sb1 sb2 w;
-      rewrite /= /pty_interp /sr_kintv /subtype_lty /=; properness;
+    rewrite /pty_interp; apply tp_kn_mut_ind; intros;
+      rewrite /= /pty_interp /sr_kintv /subtype_lty; properness;
       rewrite ?scons_up_swap ?hsubst_comp; trivial.
-    by apply path_wp_proper => ?.
+    all: by apply path_wp_proper => ?.
   Qed.
+
+  #[global] Instance pinterp_lemmas: CTyInterpLemmas Σ.
+  Proof. split. apply mut_interp_subst_compose_ind. Qed.
+
+  Lemma kind_interp_subst_compose_ind K ρ1 ρ2 τ1 τ2 :
+      K⟦ K.|[ρ1] ⟧ ρ2 τ1 τ2 ⊣⊢ K⟦ K ⟧ (ρ1 >> ρ2) τ1 τ2.
+  Proof. apply mut_interp_subst_compose_ind. Qed.
 
   Definition idtp  Γ T l d     := sdtp l d  V⟦Γ⟧* C⟦T⟧.
   Definition idstp Γ T ds      := sdstp ds  V⟦Γ⟧* C⟦T⟧.
@@ -98,8 +124,6 @@ Notation "Γ ⊨ T1 <:[ i  ] T2" := (istpd i Γ T1 T2) (at level 74, T1, T2 at n
 Section judgment_definitions.
   Context `{HdotG: !dlangG Σ}.
 
-  Implicit Types (T : ty) (Γ : ctx).
-
   Lemma idstp_eq Γ T ds : Γ ⊨ds ds : T ⊣⊢
     |==> ⌜wf_ds ds⌝ ∧ ∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → G⟦Γ⟧ ρ → Ds⟦T⟧ ρ ds.|[ρ].
   Proof. reflexivity. Qed.
@@ -122,7 +146,6 @@ End judgment_definitions.
 
 Section misc_lemmas.
   Context `{HdotG: !dlangG Σ}.
-  Implicit Types (τ L T U : olty Σ).
 
   Lemma iterate_TLater_oLater i (T : ty) :
     V⟦iterate TLater i T⟧ ≡ oLaterN i V⟦T⟧.
@@ -134,15 +157,35 @@ Section path_repl_lemmas.
   Context `{!dlangG Σ}.
   Implicit Types (φ : vl -d> iPropO Σ).
 
+  Let fundamental_ty_path_repl_def p q T1 T2 := V⟦ T1 ⟧ ~sTpP[ p := q ]* V⟦ T2 ⟧.
+  Let fundamental_kn_path_repl_def p q K1 K2 := K⟦ K1 ⟧ ~sKpP[ p := q ]* K⟦ K2 ⟧.
+
+  Local Lemma fundamental_ty_kn_mut_path_repl p q :
+    (∀ T1 T2 (Hrew : T1 ~Tp[ p := q ] T2), fundamental_ty_path_repl_def p q T1 T2) ∧
+    (∀ K1 K2 (Hrew : K1 ~Kp[ p := q ] K2), fundamental_kn_path_repl_def p q K1 K2).
+  Proof.
+    apply ty_kind_path_repl_mut_ind;
+    rewrite /fundamental_ty_path_repl_def /fundamental_kn_path_repl_def
+      /sem_ty_path_repl /sem_kind_path_repl; cbn;
+      rewrite /pty_interp /sr_kintv /subtype_lty/=; intros;
+      try match goal with
+      | H : context [equiv _ _] |- _ => rename H into IHHrew
+      end;
+      properness.
+    all: eauto 2.
+    all: by [ apply: path_replacement_equiv
+            | apply: rewrite_path_path_repl
+            | apply IHHrew; rewrite ?hsubst_comp
+            | apply: path_wp_proper => ?; exact: IHHrew ].
+  Qed.
   Lemma fundamental_ty_path_repl {p q T1 T2}
     (Hrew : T1 ~Tp[ p := q ] T2) :
     V⟦ T1 ⟧ ~sTpP[ p := q ]* V⟦ T2 ⟧.
-  Proof.
-    rewrite /sem_ty_path_repl; induction Hrew => args ρ v He /=;
-      rewrite /= /pty_interp /sr_kintv /subtype_lty /=; properness.
-      all: try by [ exact: path_replacement_equiv | exact: rewrite_path_path_repl
-         | apply IHHrew; rewrite ?hsubst_comp | | f_equiv => ?; exact: IHHrew].
-  Qed.
+  Proof. by apply fundamental_ty_kn_mut_path_repl. Qed.
+  Lemma fundamental_kn_path_repl {p q K1 K2}
+    (Hrew : K1 ~Kp[ p := q ] K2) :
+    K⟦ K1 ⟧ ~sKpP[ p := q ]* K⟦ K2 ⟧.
+  Proof. by apply fundamental_ty_kn_mut_path_repl. Qed.
 
   Lemma fundamental_ty_path_repl_rtc {p q T1 T2}
     (Hrew : T1 ~Tp[ p := q ]* T2) :

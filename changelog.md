@@ -20,6 +20,13 @@ https://github.com/Blaisorblade/dot-iris/pull/304
   in short, semantic kinds are modeled as predicates on semantic types, and type
   constructors as functions from values to types.
 
+- Support for higher-kinded types in the syntax
+  (https://github.com/Blaisorblade/dot-iris/pull/302):
+  this extends the syntax compared to ICFP'20, but the old syntax can be
+  embedded.
+  Typing rules are essentially unchanged; however, type equality is extended with
+  some more congruence rules, to ensure it remains reflexive.
+
 # v1.0
 
 Release accompanying the ICFP'20 paper.
