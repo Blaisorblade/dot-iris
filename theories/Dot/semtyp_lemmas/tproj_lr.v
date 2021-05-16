@@ -316,11 +316,11 @@ Section type_proj.
 
   (**
     For lower bounds, we'd expect a rule similar to:
-      [Γ ⊨ T <:^i { A :: T .. T }]
+      [Γ ⊨ T <:^i { A :: T .. T }#A]
     However, we must first of all "guard" it with ▷, like other gDOT rules
     involving (g)DOT's impredicative type members; that would give:
 
-      [Γ ⊨ ▷ T <:^i { A >: T <: T }]
+      [Γ ⊨ ▷ T <:^i { A >: T <: T }#A]
 
       where [{ A >: T <: T }] means [{ A :: ▷ T .. ▷ T }].
 
