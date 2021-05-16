@@ -43,6 +43,10 @@ with kind_equiv : Equiv kind :=
 where "|-K K1 == K2" := (kind_equiv K1 K2).
 (* XXX add extra HK-gDOT rules? *)
 
+Scheme type_equiv_mut_ind := Induction for type_equiv Sort Prop
+with   kind_equiv_mut_ind := Induction for kind_equiv Sort Prop.
+Combined Scheme type_kind_eq_mut_ind from type_equiv_mut_ind, kind_equiv_mut_ind.
+
 Existing Instances type_equiv kind_equiv.
 #[local] Hint Constructors type_equiv kind_equiv : core.
 #[local] Remove Hints type_equiv_sym type_equiv_trans

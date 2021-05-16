@@ -14,27 +14,27 @@ Set Default Proof Using "Type".
 Section TypeEquiv.
   Context `{HdlangG: !dlangG Σ}.
 
-  Fixpoint fundamental_type_equiv_clty T1 T2 (H : |- T1 == T2) {struct H} :
-    C⟦ T1 ⟧ ≡ C⟦ T2 ⟧
-  with fundamental_kind_equiv_clty K1 K2 (H : |-K K1 == K2) {struct H} :
-    K⟦ K1 ⟧ ≡ K⟦ K2 ⟧.
+  Lemma fundamental_mut_equiv_clty :
+    (∀ T1 T2 (H : |- T1 == T2), C⟦ T1 ⟧ ≡ C⟦ T2 ⟧) ∧
+    (∀ K1 K2 (H : |-K K1 == K2), K⟦ K1 ⟧ ≡ K⟦ K2 ⟧).
   Proof.
-    - destruct H; cbn; rewrite /pty_interp; [..|
-        by symmetry; exact: fundamental_type_equiv_clty|
-        by etrans; exact: fundamental_type_equiv_clty].
-      all: repeat no_eq_f_equiv; try first
-        [exact: fundamental_type_equiv_clty
-        |exact: fundamental_kind_equiv_clty].
-      by rewrite cAnd_olty2clty sTEq_oLaterN_oAnd.
-      by exact: sTEq_oLaterN_oOr.
-      done.
-    - destruct H; cbn; [..|
-        by symmetry; exact: fundamental_kind_equiv_clty|
-        by etrans; exact: fundamental_kind_equiv_clty];
-      rewrite /pty_interp/=; repeat no_eq_f_equiv; try first [
-        exact: fundamental_type_equiv_clty|
-        exact: fundamental_kind_equiv_clty].
+    apply: type_kind_eq_mut_ind;
+      cbn; rewrite /pty_interp; intros.
+    by rewrite cAnd_olty2clty sTEq_oLaterN_oAnd.
+    by rewrite sTEq_oLaterN_oOr.
+    all: try reflexivity.
+    all: repeat no_eq_f_equiv.
+    all: try solve [assumption|symmetry; assumption].
+    by etrans.
+    by etrans.
   Qed.
+
+  Lemma fundamental_type_equiv_clty T1 T2 (H : |- T1 == T2) :
+    C⟦ T1 ⟧ ≡ C⟦ T2 ⟧.
+  Proof. by apply fundamental_mut_equiv_clty. Qed.
+  Lemma fundamental_kind_equiv_clty K1 K2 (H : |-K K1 == K2) :
+    K⟦ K1 ⟧ ≡ K⟦ K2 ⟧.
+  Proof. by apply fundamental_mut_equiv_clty. Qed.
 
   Lemma fundamental_type_equiv_olty T1 T2 :
     |- T1 == T2 → V⟦ T1 ⟧ ≡ V⟦ T2 ⟧.
