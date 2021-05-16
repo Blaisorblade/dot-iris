@@ -37,6 +37,7 @@ Ltac tcrush_nclosed :=
 
 (* For performance, keep these hints local to examples *)
 #[global] Hint Extern 5 (is_unstamped_ty _ _ _) => try_once is_unstamped_weaken_ty : core.
+#[global] Hint Extern 5 (is_unstamped_kind _ _ _) => try_once is_unstamped_weaken_kind : core.
 #[global] Hint Extern 5 (is_unstamped_ren _ _ _ _) => progress cbn : core.
 
 (** [tcrush] is the safest automation around. *)
@@ -44,7 +45,7 @@ Ltac tcrush := repeat first [ eassumption | reflexivity | typconstructor | stcru
 Ltac wtcrush := repeat first [fast_done | typconstructor | stcrush]; try solve [ done |
   first [
     by eauto 3 using is_unstamped_ren1_ty |
-    try_once is_unstamped_weaken_ty ]; eauto ].
+    try_once is_unstamped_weaken_ty | try_once is_unstamped_weaken_kind ]; eauto ].
 
 #[global] Hint Extern 5 (nclosed _ _) => by solve_fv_congruence : fvc.
 

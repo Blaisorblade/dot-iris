@@ -119,6 +119,7 @@ Ltac stconstructor := match goal with
   | |- forall_traversal_dm   _ _ _ => constructor
   | |- forall_traversal_path _ _ _ => constructor
   | |- forall_traversal_ty   _ _ _ => constructor
+  | |- forall_traversal_kind _ _ _ => constructor
   | |- Forall _ _ => constructor
   end.
 Ltac stcrush := try ((progress repeat stconstructor); eauto).

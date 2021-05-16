@@ -5,8 +5,7 @@ From D Require Import swap_later_impl.
 From D.Dot Require Import syn path_repl.
 From D.Dot Require Export dlang_inst path_wp.
 From D.pure_program_logic Require Import weakestpre.
-
-From D.Dot Require Export dot_lty dot_semtypes.
+From D.Dot Require Export dot_lty dot_semtypes sem_kind_dot.
 
 Unset Program Cases.
 Set Suggest Proof Using.
@@ -23,7 +22,7 @@ Section log_rel.
     relation on definitions [Ds⟦T⟧].
 
     Both definitions follow the one on paper; concretely, they are defined
-    through [C⟦T⟧] in instance [dot_interp].
+    through [C⟦T⟧] in instance [dot_ty_interp].
 
     Binding and closing substitutions:
 
@@ -42,10 +41,16 @@ Section log_rel.
   (* Observe the naming pattern for semantic type constructors:
   replace T by o (for most constructors) or by c (for constructors producing
   cltys). *)
-  #[global] Instance dot_interp : CTyInterp Σ := fix dot_interp T :=
-    let rec_ty := dot_interp : CTyInterp Σ in
+  Fixpoint kind_interp (K : kind) : sf_kind Σ :=
+    let rec_ty := ty_interp : CTyInterp Σ in
+    match K with
+    | kintv L U => sf_kintv V⟦ L ⟧ V⟦ U ⟧
+    | kpi S K => sf_kpi V⟦ S ⟧ (kind_interp K)
+    end
+   with ty_interp (T : ty) : clty Σ :=
+    let rec_ty := ty_interp : CTyInterp Σ in
     match T with
-    | TTMem l L U => cTMem l V⟦ L ⟧ V⟦ U ⟧
+    | kTTMem l K => cTMemK l (kind_interp K)
     | TVMem l T' => cVMem l V⟦ T' ⟧
     | TAnd T1 T2 => cAnd C⟦ T1 ⟧ C⟦ T2 ⟧
     | TTop => cTop
@@ -57,9 +62,13 @@ Section log_rel.
     | TPrim b => olty2clty $ oPrim b
     | TAll T1 T2 => olty2clty $ oAll V⟦ T1 ⟧ V⟦ T2 ⟧
     | TMu T => olty2clty $ oMu V⟦ T ⟧
-    | TSel p l => olty2clty $ oSel p l
+    | kTSel n p l => olty2clty $ oSel p l
     | TSing p => olty2clty $ oSing p
+    | TLam T => olty2clty $ oLam V⟦ T ⟧
+    | TApp T p => olty2clty $ oTApp V⟦ T ⟧ p
     end.
+
+  #[global] Instance dot_ty_interp : CTyInterp Σ := Reduce ty_interp.
 
   (** Unfolding lemma for [TAnd]: defined because [simpl] on the LHS produces
       [oAnd C⟦ T1 ⟧ C⟦ T2 ⟧]. *)
@@ -67,14 +76,20 @@ Section log_rel.
   Proof. done. Qed.
 
   (** Binding lemmas for [V⟦ T ⟧] and [Ds⟦ T ⟧]. *)
-  #[global] Instance pinterp_lemmas: CTyInterpLemmas Σ.
+  Fixpoint pty_interp_subst_compose_ind T {struct T} : ∀ args ρ1 ρ2 v,
+    V⟦ T.|[ρ1] ⟧ args ρ2 v ⊣⊢ V⟦ T ⟧ args (ρ1 >> ρ2) v
+  with kind_interp_subst_compose_ind K {struct K} :
+    ∀ ρ1 ρ2 T1 T2,
+    kind_interp K.|[ρ1] ρ2 T1 T2 ⊣⊢ kind_interp K (ρ1 >> ρ2) T1 T2.
   Proof.
-    split; rewrite /pty_interp;
-      induction T => args sb1 sb2 w;
-      rewrite /= /pty_interp /sr_kintv /subtype_lty /=; properness;
+    all: unfold pty_interp in *;
+      [> destruct T => args sb1 sb2 w| case: K => [L U|S K] sb1 sb2 T1 T2].
+    all: rewrite /= /sr_kintv /pty_interp /subtype_lty /=; properness;
       rewrite ?scons_up_swap ?hsubst_comp; trivial.
-    by apply path_wp_proper => ?.
+    all: by apply path_wp_proper => ?.
   Qed.
+  #[global] Instance pinterp_lemmas: CTyInterpLemmas Σ.
+  Proof. split. exact: pty_interp_subst_compose_ind. Qed.
 
   Definition idtp  Γ T l d     := sdtp l d  V⟦Γ⟧* C⟦T⟧.
   Definition idstp Γ T ds      := sdstp ds  V⟦Γ⟧* C⟦T⟧.
@@ -134,14 +149,20 @@ Section path_repl_lemmas.
   Context `{!dlangG Σ}.
   Implicit Types (φ : vl -d> iPropO Σ).
 
-  Lemma fundamental_ty_path_repl {p q T1 T2}
+  Fixpoint fundamental_ty_path_repl {p q T1 T2}
     (Hrew : T1 ~Tp[ p := q ] T2) :
-    V⟦ T1 ⟧ ~sTpP[ p := q ]* V⟦ T2 ⟧.
+    V⟦ T1 ⟧ ~sTpP[ p := q ]* V⟦ T2 ⟧
+  with fundamental_kn_path_repl {p q K1 K2}
+    (Hrew : K1 ~Kp[ p := q ] K2) :
+    kind_interp K1 ~sKpP[ p := q ]* kind_interp K2.
   Proof.
-    rewrite /sem_ty_path_repl; induction Hrew => args ρ v He /=;
-      rewrite /= /pty_interp /sr_kintv /subtype_lty /=; properness.
-      all: try by [ exact: path_replacement_equiv | exact: rewrite_path_path_repl
-         | apply IHHrew; rewrite ?hsubst_comp | | f_equiv => ?; exact: IHHrew].
+    all: [> induction Hrew => args ρ v He /=|induction Hrew => ρ T1 T2 He /=];
+      fold kind_interp;
+      rewrite /sr_kintv /subtype_lty/=; properness.
+    all: try by [ exact: path_replacement_equiv | exact: rewrite_path_path_repl
+        | apply IHHrew; rewrite ?hsubst_comp | | f_equiv => ?; exact: IHHrew].
+    exact: fundamental_kn_path_repl.
+    all: exact: fundamental_ty_path_repl.
   Qed.
 
   Lemma fundamental_ty_path_repl_rtc {p q T1 T2}
