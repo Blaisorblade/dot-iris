@@ -43,7 +43,7 @@ Section log_rel.
   replace T by o (for most constructors) or by c (for constructors producing
   cltys). *)
   #[global] Instance dot_interp : CTyInterp Σ := fix dot_interp T :=
-    let _ := dot_interp : CTyInterp Σ in
+    let rec_ty := dot_interp : CTyInterp Σ in
     match T with
     | TTMem l L U => cTMem l V⟦ L ⟧ V⟦ U ⟧
     | TVMem l T' => cVMem l V⟦ T' ⟧
