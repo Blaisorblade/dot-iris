@@ -13,7 +13,8 @@ Set Default Proof Using "Type*".
 
 Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
-         (ρ : env) (l : label).
+         (ρ : env) (l : label) (T : ty) (K : kind) (Γ : ctx).
+
 Class SfKindInterp Σ :=
   sf_kind_interp : kind → sf_kind Σ.
 #[global] Arguments sf_kind_interp {_ _} !_ /.
@@ -21,7 +22,6 @@ Notation "K⟦ K ⟧" := (sf_kind_interp K).
 
 Section log_rel.
   Context `{HdotG: !dlangG Σ}.
-  Implicit Types (τ : oltyO Σ).
 (** The logical relation on values is [V⟦T⟧]. We also define the logical
     relation on definitions [Ds⟦T⟧].
 
@@ -86,8 +86,8 @@ Section log_rel.
   Fixpoint pty_interp_subst_compose_ind T {struct T} : ∀ args ρ1 ρ2 v,
     V⟦ T.|[ρ1] ⟧ args ρ2 v ⊣⊢ V⟦ T ⟧ args (ρ1 >> ρ2) v
   with kind_interp_subst_compose_ind K {struct K} :
-    ∀ ρ1 ρ2 T1 T2,
-    K⟦ K.|[ρ1] ⟧ ρ2 T1 T2 ⊣⊢ K⟦ K ⟧ (ρ1 >> ρ2) T1 T2.
+    ∀ ρ1 ρ2 τ1 τ2,
+    K⟦ K.|[ρ1] ⟧ ρ2 τ1 τ2 ⊣⊢ K⟦ K ⟧ (ρ1 >> ρ2) τ1 τ2.
   Proof.
     all: unfold pty_interp in *;
       [> destruct T => args sb1 sb2 w| case: K => [L U|S K] sb1 sb2 T1 T2]; simpl.
@@ -120,8 +120,6 @@ Notation "Γ ⊨ T1 <:[ i  ] T2" := (istpd i Γ T1 T2) (at level 74, T1, T2 at n
 Section judgment_definitions.
   Context `{HdotG: !dlangG Σ}.
 
-  Implicit Types (T : ty) (Γ : ctx).
-
   Lemma idstp_eq Γ T ds : Γ ⊨ds ds : T ⊣⊢
     |==> ⌜wf_ds ds⌝ ∧ ∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → G⟦Γ⟧ ρ → Ds⟦T⟧ ρ ds.|[ρ].
   Proof. reflexivity. Qed.
@@ -144,7 +142,6 @@ End judgment_definitions.
 
 Section misc_lemmas.
   Context `{HdotG: !dlangG Σ}.
-  Implicit Types (τ L T U : olty Σ).
 
   Lemma iterate_TLater_oLater i (T : ty) :
     V⟦iterate TLater i T⟧ ≡ oLaterN i V⟦T⟧.
