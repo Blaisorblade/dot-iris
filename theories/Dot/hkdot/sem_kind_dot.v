@@ -126,9 +126,16 @@ End oTMem_lemmas.
 
 (** * Path application and substitution *)
 
+Definition sem_kind_path_replI {Σ} p q (K1 K2 : sf_kind Σ) : iProp Σ :=
+  |==> ∀ ρ T1 T2 (Hal : alias_paths p.|[ρ] q.|[ρ]), K1 ρ T1 T2 ≡ K2 ρ T1 T2.
+(* sKdI = semantic Kind Path Iris; matches [sem_ty_path_replI]. *)
+Notation "K1 ~sKpI[ p := q  ]* K2" :=
+  (sem_kind_path_replI p q K1 K2) (at level 70).
+
 Definition sem_kind_path_repl {Σ} p q (K1 K2 : sf_kind Σ) : Prop :=
   ∀ ρ T1 T2, alias_paths p.|[ρ] q.|[ρ] → K1 ρ T1 T2 ≡ K2 ρ T1 T2.
-Notation "K1 ~sKd[ p := q  ]* K2" :=
+(* sKpP = semantic Kind Path Prop; matches [sem_ty_path_repl]. *)
+Notation "K1 ~sKpP[ p := q  ]* K2" :=
   (sem_kind_path_repl p q K1 K2) (at level 70).
 
 Definition oTApp `{!dlangG Σ} (T : oltyO Σ) (p : path) : oltyO Σ :=

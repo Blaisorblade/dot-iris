@@ -272,7 +272,8 @@ Notation "T .sTp[ p /]" := (opSubst p T) (at level 65).
 
 (** Semantic definition of path replacement. *)
 Definition sem_ty_path_replI {Σ} p q (T1 T2 : olty Σ) : iProp Σ :=
-  |==> ∀ args ρ v (H : alias_paths p.|[ρ] q.|[ρ]), T1 args ρ v ≡ T2 args ρ v.
+  |==> ∀ args ρ v (Hal : alias_paths p.|[ρ] q.|[ρ]), T1 args ρ v ≡ T2 args ρ v.
+(* sTpI = semantic Type Path Iris; matches [sem_kind_path_replI] *)
 Notation "T1 ~sTpI[ p := q  ]* T2" :=
   (sem_ty_path_replI p q T1 T2) (at level 70).
 
@@ -281,6 +282,7 @@ Unlike [sem_ty_path_replI], this version in [Prop] is less expressive, but
 sufficient for our goals and faster to use in certain proofs. *)
 Definition sem_ty_path_repl {Σ} p q (T1 T2 : olty Σ) : Prop :=
   ∀ args ρ v, alias_paths p.|[ρ] q.|[ρ] → T1 args ρ v ≡ T2 args ρ v.
+(* sTpI = semantic Type Path Prop; matches [sem_kind_path_repl] *)
 Notation "T1 ~sTpP[ p := q  ]* T2" :=
   (sem_ty_path_repl p q T1 T2) (at level 70).
 

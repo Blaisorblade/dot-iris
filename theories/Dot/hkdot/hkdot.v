@@ -645,7 +645,7 @@ Section dot_types.
   (* This is the easy part :-) *)
   Lemma sSngl_pq_KStp' {Γ i p q T1 T2} {K1 K2 : sf_kind Σ}
     (* XXX we should use an internal version of this premise, as done for [sSngl_pq_KStp]. *)
-    (Hrepl : K1 ~sKd[ p := q ]* K2) :
+    (Hrepl : K1 ~sKpP[ p := q ]* K2) :
     Γ s⊨p p : oSing q, i -∗
     Γ s⊨ T1 <:[i] T2 ∷ K1 -∗
     Γ s⊨ T1 <:[i] T2 ∷ K2.
