@@ -89,18 +89,14 @@ Lemma psubst_one_base_ty_unshifts {n T} p:
   is_unstamped_ty' n T → unshifts (psubst_one_base_ty T p).
 Proof.
   intros Hu; exists (unshift (psubst_one_base_ty T p)).
-  rewrite /psubst_one_base_ty.
-  have := psubst_one_base_ty_unshifts_gen 0 p Hu.
-  by rewrite /unshiftsN /psubst_one_ty_gen ?iterate_S !iterate_0 => ->.
+  eapply symmetry, (psubst_one_base_ty_unshifts_gen 0), Hu.
 Qed.
 
 Lemma psubst_one_base_kind_unshifts {n K} p:
   is_unstamped_kind' n K → unshifts (psubst_one_base_kind K p).
 Proof.
   intros Hu; exists (unshift (psubst_one_base_kind K p)).
-  rewrite /psubst_one_base_kind.
-  have := psubst_one_base_kind_unshifts_gen 0 p Hu.
-  by rewrite /unshiftsN /psubst_one_kind_gen ?iterate_S !iterate_0 => ->.
+  eapply symmetry, (psubst_one_base_kind_unshifts_gen 0), Hu.
 Qed.
 
 
