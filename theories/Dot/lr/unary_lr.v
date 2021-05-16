@@ -14,6 +14,10 @@ Set Default Proof Using "Type*".
 Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
          (ρ : env) (l : label).
+Class SfKindInterp Σ :=
+  sf_kind_interp : kind → sf_kind Σ.
+#[global] Arguments sf_kind_interp {_ _} !_ /.
+Notation "K⟦ K ⟧" := (sf_kind_interp K).
 
 Section log_rel.
   Context `{HdotG: !dlangG Σ}.
@@ -43,14 +47,16 @@ Section log_rel.
   cltys). *)
   Fixpoint kind_interp (K : kind) : sf_kind Σ :=
     let rec_ty := ty_interp : CTyInterp Σ in
+    let rec_kind := kind_interp : SfKindInterp Σ in
     match K with
     | kintv L U => sf_kintv V⟦ L ⟧ V⟦ U ⟧
-    | kpi S K => sf_kpi V⟦ S ⟧ (kind_interp K)
+    | kpi S K => sf_kpi V⟦ S ⟧ K⟦ K ⟧
     end
    with ty_interp (T : ty) : clty Σ :=
     let rec_ty := ty_interp : CTyInterp Σ in
+    let rec_kind := kind_interp : SfKindInterp Σ in
     match T with
-    | kTTMem l K => cTMemK l (kind_interp K)
+    | kTTMem l K => cTMemK l K⟦ K ⟧
     | TVMem l T' => cVMem l V⟦ T' ⟧
     | TAnd T1 T2 => cAnd C⟦ T1 ⟧ C⟦ T2 ⟧
     | TTop => cTop
@@ -69,6 +75,7 @@ Section log_rel.
     end.
 
   #[global] Instance dot_ty_interp : CTyInterp Σ := Reduce ty_interp.
+  #[global] Instance dot_kind_interp : SfKindInterp Σ := Reduce kind_interp.
 
   (** Unfolding lemma for [TAnd]: defined because [simpl] on the LHS produces
       [oAnd C⟦ T1 ⟧ C⟦ T2 ⟧]. *)
@@ -80,10 +87,10 @@ Section log_rel.
     V⟦ T.|[ρ1] ⟧ args ρ2 v ⊣⊢ V⟦ T ⟧ args (ρ1 >> ρ2) v
   with kind_interp_subst_compose_ind K {struct K} :
     ∀ ρ1 ρ2 T1 T2,
-    kind_interp K.|[ρ1] ρ2 T1 T2 ⊣⊢ kind_interp K (ρ1 >> ρ2) T1 T2.
+    K⟦ K.|[ρ1] ⟧ ρ2 T1 T2 ⊣⊢ K⟦ K ⟧ (ρ1 >> ρ2) T1 T2.
   Proof.
     all: unfold pty_interp in *;
-      [> destruct T => args sb1 sb2 w| case: K => [L U|S K] sb1 sb2 T1 T2].
+      [> destruct T => args sb1 sb2 w| case: K => [L U|S K] sb1 sb2 T1 T2]; simpl.
     all: rewrite /= /sr_kintv /pty_interp /subtype_lty /=; properness;
       rewrite ?scons_up_swap ?hsubst_comp; trivial.
     all: by apply path_wp_proper => ?.
@@ -154,15 +161,19 @@ Section path_repl_lemmas.
     V⟦ T1 ⟧ ~sTpP[ p := q ]* V⟦ T2 ⟧
   with fundamental_kn_path_repl {p q K1 K2}
     (Hrew : K1 ~Kp[ p := q ] K2) :
-    kind_interp K1 ~sKpP[ p := q ]* kind_interp K2.
+    K⟦ K1 ⟧ ~sKpP[ p := q ]* K⟦ K2 ⟧.
   Proof.
     all: [> induction Hrew => args ρ v He /=|induction Hrew => ρ T1 T2 He /=];
-      fold kind_interp;
       rewrite /sr_kintv /subtype_lty/=; properness.
-    all: try by [ exact: path_replacement_equiv | exact: rewrite_path_path_repl
-        | apply IHHrew; rewrite ?hsubst_comp | | f_equiv => ?; exact: IHHrew].
-    exact: fundamental_kn_path_repl.
-    all: exact: fundamental_ty_path_repl.
+    all: first
+      [ reflexivity
+      | apply: path_replacement_equiv
+      | apply: rewrite_path_path_repl
+      | apply: IHHrew; rewrite ?hsubst_comp
+      | apply: path_wp_proper => ?; apply: IHHrew
+      | apply: fundamental_kn_path_repl
+      | apply: fundamental_ty_path_repl
+      ]; fast_done.
   Qed.
 
   Lemma fundamental_ty_path_repl_rtc {p q T1 T2}

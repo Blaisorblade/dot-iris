@@ -17,10 +17,9 @@ Section TypeEquiv.
   Fixpoint fundamental_type_equiv_clty T1 T2 (H : |- T1 == T2) {struct H} :
     C⟦ T1 ⟧ ≡ C⟦ T2 ⟧
   with fundamental_kind_equiv_clty K1 K2 (H : |-K K1 == K2) {struct H} :
-    kind_interp K1 ≡ kind_interp K2.
+    K⟦ K1 ⟧ ≡ K⟦ K2 ⟧.
   Proof.
-    Arguments kind_interp : simpl nomatch.
-    - destruct H; cbn; fold kind_interp; rewrite /pty_interp; [..|
+    - destruct H; cbn; rewrite /pty_interp; [..|
         by symmetry; exact: fundamental_type_equiv_clty|
         by etrans; exact: fundamental_type_equiv_clty].
       all: repeat no_eq_f_equiv; try first
