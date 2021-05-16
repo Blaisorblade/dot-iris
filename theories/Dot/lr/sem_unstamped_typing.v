@@ -108,7 +108,7 @@ Section coveringσ_intro_lemmas.
     coveringσ (idsσ n) V⟦T⟧.
   Proof.
     move=> args ρ v /=.
-    by rewrite -interp_finsubst_commute_cl ?length_idsσ // closed_subst_idsρ.
+    by rewrite -interp_commute_finsubst_cl ?length_idsσ // closed_subst_idsρ.
   Qed.
 
   (* Maybe hard to use in general; [nclosed] requires equality on the nose? *)

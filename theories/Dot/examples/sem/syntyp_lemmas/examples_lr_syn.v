@@ -102,10 +102,10 @@ Section Lemmas.
   Proof. apply suT_Obj_I. Qed.
 
   Lemma T_Mu_I {Γ} T v: Γ ⊨ tv v : T.|[v/] -∗ Γ ⊨ tv v : TMu T.
-  Proof. by rewrite /ietp -sT_Mu_I interp_subst_commute. Qed.
+  Proof. by rewrite /ietp -sT_Mu_I interp_commute_subst. Qed.
 
   Lemma T_Mu_E {Γ} T v: Γ ⊨ tv v : TMu T -∗ Γ ⊨ tv v : T.|[v/].
-  Proof. by rewrite /ietp sT_Mu_E interp_subst_commute. Qed.
+  Proof. by rewrite /ietp sT_Mu_E interp_commute_subst. Qed.
 
   Lemma suetp_var_lift1 {Γ} x T1 T2:
     (Γ s⊨ tv (ids x) : T1 -∗ Γ s⊨ tv (ids x) : T2) ⊢
