@@ -7,8 +7,8 @@ From Autosubst Require Export Autosubst.
 From D Require Export tactics.
 From iris.program_logic Require Import language.
 
-Set Suggest Proof Using.
-Set Default Proof Using "Type".
+#[global] Set Suggest Proof Using.
+#[global] Set Default Proof Using "Type".
 
 (** Workaround https://github.com/coq/coq/issues/4230. Taken from Software Foundations. *)
 #[global] Remove Hints Bool.trans_eq_bool : core.
@@ -28,7 +28,7 @@ Notation notc_hole := (disable_tc_search _).
   side effects from [iris.algebra.base] and [stdpp.base], including
   setting the obligation tactic, won't be re-run. So let's do it
   ourselves: *)
-Obligation Tactic := idtac.
+#[global] Obligation Tactic := idtac.
 
 (** Autosubst extensions: notations *)
 Notation shiftN n chi := chi.|[ren (+n)].
