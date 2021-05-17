@@ -80,7 +80,7 @@ sumDirs "logrel" "lr semtyp_lemmas"
 sumDirs "model (syntax + logrel)" "syn lr semtyp_lemmas"
 
 echo
-sumDirs "syntactic typing (w/ fundamental)" ". typing"
+sumDirs "syntactic typing (w/ fundamental)" ". typing syntyp_lemmas"
 
 echo
 sumDirs "hkdot" "hkdot"
