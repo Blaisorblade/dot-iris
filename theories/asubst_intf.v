@@ -231,11 +231,12 @@ Module Type SortsSig (Import V : ValuesSig).
   Section sort_lemmas.
     Context `{_HsX: Sort X}.
     Implicit Types (x : X).
+    Set Default Proof Using "Type*".
 
-    Lemma hrenS `{Sort X} (x : X) n : shiftN (S n) x = shift (shiftN n x).
+    Lemma hrenS x n : shiftN (S n) x = shift (shiftN n x).
     Proof. rewrite hsubst_comp renS_comp. by []. Qed.
 
-    Lemma shift_sub `{Sort X} {x : X} v: (shift x).|[v/] = x.
+    Lemma shift_sub {x} v: (shift x).|[v/] = x.
     Proof.
       by rewrite hsubst_comp -{2}(hsubst_id x) /ren /scomp; fsimpl;
         rewrite id_scompX.
