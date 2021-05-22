@@ -1,4 +1,4 @@
-From D Require Export iris_prelude saved_interp_n.
+From D Require Export iris_prelude saved_interp_n proper.
 From D Require Import persistence.
 From D.DSub Require Import ds_syn.
 From D.DSub Require Import ds_ty_interp_subst_lemmas.
@@ -137,10 +137,11 @@ Section logrel.
       repeat (match goal with
                 H : _ ≡{_}≡ _|- _ => apply dist_S, H || apply H
               end || (f_contractive; cbn -[interp_forall interp_tmem interp_sel interp_nat] in * ) || f_equiv)). *)
-    all: cbn -[interp_later interp_forall interp_tmem interp_sel interp_nat];
-      try by [apply interp_sel_contractive|];
-      rewrite ?IHT ?IHT2; f_equiv; rewrite IHT1 //.
+    all: cbn -[interp_later interp_forall interp_tmem interp_sel interp_nat interp_top interp_bot].
+    all: first [progress no_eq_f_equiv | done | idtac].
+    all: rewrite ?IHT ?IHT1 ?IHT2 //.
     exact: interp_tmem_contractive.
+    exact: interp_sel_contractive.
   Qed.
 
   Program Lemma fixpoint_interp_rec_eq:
