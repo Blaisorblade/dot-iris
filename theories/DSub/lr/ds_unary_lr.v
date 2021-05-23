@@ -144,33 +144,33 @@ Section logrel.
     exact: interp_sel_contractive.
   Qed.
 
-  Program Lemma fixpoint_interp_rec_eq:
-    fixpoint interp_rec ≡ interp_rec (fixpoint interp_rec).
+  #[global] Instance dsub_interp : TyInterp ty Σ := fixpoint interp_rec.
+
+  Lemma fixpoint_interp_rec_eq:
+    ty_interp ≡@{ty -d> envD Σ} interp_rec ty_interp.
   Proof. exact: (fixpoint_unfold interp_rec). Qed.
 
-  #[global] Instance interp : TyInterp ty Σ := fixpoint interp_rec.
-
-  Lemma fixpoint_interp_eq1 T: interp T ≡ interp_rec interp T.
+  Lemma fixpoint_interp_eq1 T: ⟦ T ⟧ ≡ interp_rec ty_interp T.
   Proof. apply fixpoint_interp_rec_eq. Qed.
-  Lemma fixpoint_interp_eq2 T ρ: interp T ρ ≡ interp_rec interp T ρ.
+  Lemma fixpoint_interp_eq2 T ρ: ⟦ T ⟧ ρ ≡ interp_rec ty_interp T ρ.
   Proof. apply fixpoint_interp_rec_eq. Qed.
-  Lemma fixpoint_interp_eq3 T ρ v: interp T ρ v ≡ interp_rec interp T ρ v.
+  Lemma fixpoint_interp_eq3 T ρ v: ⟦ T ⟧ ρ v ≡ interp_rec ty_interp T ρ v.
   Proof. apply fixpoint_interp_rec_eq. Qed.
 
-  Ltac rewrite_interp := rewrite /ty_interp; repeat first [rewrite fixpoint_interp_eq3 | progress (repeat f_equiv; rewrite ?fixpoint_interp_eq1 //=) | move => ? /= ].
-  Lemma interp_TAll T1 T2 ρ v: interp (TAll T1 T2) ρ v ≡ interp_forall ⟦ T1 ⟧ ⟦ T2 ⟧ ρ v.
+  Ltac rewrite_interp := repeat first [rewrite fixpoint_interp_eq3 | progress (repeat f_equiv; rewrite ?fixpoint_interp_eq1 //=) | move => ? /= ].
+  Lemma interp_TAll T1 T2 ρ v: ⟦ TAll T1 T2 ⟧ ρ v ≡ interp_forall ⟦ T1 ⟧ ⟦ T2 ⟧ ρ v.
   Proof. rewrite_interp. Qed.
-  Lemma interp_TInt ρ v: interp TInt ρ v ≡ interp_nat ρ v.
+  Lemma interp_TInt ρ v: ⟦ TInt ⟧ ρ v ≡ interp_nat ρ v.
   Proof. rewrite_interp. Qed.
-  Lemma interp_TLater T1 ρ v: interp (TLater T1) ρ v ≡ interp_later ⟦ T1 ⟧ ρ v.
+  Lemma interp_TLater T1 ρ v: ⟦ TLater T1 ⟧ ρ v ≡ interp_later ⟦ T1 ⟧ ρ v.
   Proof. rewrite_interp. Qed.
-  Lemma interp_TTMem T1 T2 ρ v: interp (TTMem T1 T2) ρ v ≡ interp_tmem ty_interp ⟦ T1 ⟧ ⟦ T2 ⟧ ρ v.
+  Lemma interp_TTMem T1 T2 ρ v: ⟦ TTMem T1 T2 ⟧ ρ v ≡ interp_tmem ty_interp ⟦ T1 ⟧ ⟦ T2 ⟧ ρ v.
   Proof. rewrite_interp. Qed.
-  Lemma interp_TSel ρ v w: interp (TSel w) ρ v ≡ interp_sel ty_interp w ρ v.
+  Lemma interp_TSel ρ v w: ⟦ TSel w ⟧ ρ v ≡ interp_sel ty_interp w ρ v.
   Proof. rewrite_interp. Qed.
-  Lemma interp_TTop ρ v: interp TTop ρ v ≡ interp_top ρ v.
+  Lemma interp_TTop ρ v: ⟦ TTop ⟧ ρ v ≡ interp_top ρ v.
   Proof. rewrite_interp. Qed.
-  Lemma interp_TBot ρ v: interp TBot ρ v ≡ interp_bot ρ v.
+  Lemma interp_TBot ρ v: ⟦ TBot ⟧ ρ v ≡ interp_bot ρ v.
   Proof. rewrite_interp. Qed.
 End logrel.
 
@@ -191,6 +191,7 @@ Ltac setoid_unfold_interp :=
   try setoid_rewrite interp_TTop;
   try setoid_rewrite interp_TBot;
   cbn.
+#[global] Arguments ty_interp {_ _ _} _ : simpl never.
 
 Section logrel_part2.
   Context `{!dsubSynG Σ}.
