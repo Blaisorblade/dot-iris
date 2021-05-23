@@ -103,7 +103,7 @@ Section logrel.
   Solve All Obligations with solve_proper_ho.
   #[global] Arguments interp_tmem /.
 
-  #[global] Instance interp_tmem_contractive : Contractive interp_tmem.
+  #[local] Lemma interp_tmem_contractive : Contractive interp_tmem.
   Proof. solve_contractive_ho. Qed.
 
   Program Definition interp_sel: (ty -d> envD Σ) -n> vl -d> envD Σ :=
@@ -111,7 +111,7 @@ Section logrel.
     ∃ ϕ, [rinterp] w.[ρ] ↗ ϕ ∧ ▷ ϕ v.
   Solve All Obligations with solve_proper_ho.
   #[global] Arguments interp_sel /.
-  #[global] Instance interp_sel_contractive : Contractive interp_sel.
+  #[local] Lemma interp_sel_contractive : Contractive interp_sel.
   Proof. solve_contractive_ho. Qed.
 
   (* This is a structurally recursive Coq function.
