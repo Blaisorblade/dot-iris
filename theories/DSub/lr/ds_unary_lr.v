@@ -199,7 +199,7 @@ Section logrel_part2.
   Proof.
     split; induction T => sb1 sb2 w; unfold_interp;
       properness; rewrite /= ?scons_up_swap; trivial.
-    autosubst.
+    by rewrite subst_comp.
   Qed.
 
   (* XXX here we needn't add a variable to the scope of its own type. But that won't hurt. *)
