@@ -78,12 +78,14 @@ Section logrel.
     Proper (dist_later n ==> dist_later n ==> dist n) interp_forall.
   Proof. solve_contractive_ho. Qed.
 
-  Program Definition vl_has_semtype : (ty -d> envD Σ) -n> vl -d> D -n> iPropO Σ :=
-    λne rinterp, λI v, λne φ,
+  Program Definition vl_has_semtype : vl -d> D -n> (ty -d> envD Σ) -n> iPropO Σ :=
+    λI v, λne φ rinterp,
     ∃ T, ⌜ v = vty T ⌝ ∧ ∀ w, ▷ (φ w ≡ rinterp T ids w).
   Solve All Obligations with solve_proper_ho.
   #[global] Arguments vl_has_semtype /.
-  Notation "[ rinterp ] v ↗ φ" := (vl_has_semtype rinterp v φ) (at level 20).
+  Notation "[ rinterp ] v ↗ φ" := (vl_has_semtype v φ rinterp) (at level 20).
+  #[local] Instance vl_has_semtype_contractive v φ : Contractive (vl_has_semtype v φ).
+  Proof. solve_contractive_ho. Qed.
 
   Lemma vl_has_semtype_agree rinterp v (φ1 φ2 : D):
     [ rinterp ] v ↗ φ1 -∗
@@ -95,6 +97,8 @@ Section logrel.
     iNext.
     by iRewrite ("Heq1" $! w); iRewrite ("Heq2" $! w).
   Qed.
+  #[local] Hint Opaque vl_has_semtype : typeclass_instances.
+  #[local] Opaque vl_has_semtype.
 
   Definition interp_tmem :
     (ty -d> envD Σ) -> envD Σ -> envD Σ -> envD Σ :=
