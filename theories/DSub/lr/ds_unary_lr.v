@@ -182,6 +182,10 @@ Ltac unfold_interp :=
     ?(interp_TLater, interp_TAll, interp_TInt, interp_TTMem,
     interp_TSel, interp_TTop, interp_TBot) /=.
 
+Hint Rewrite @interp_TLater @interp_TAll @interp_TInt @interp_TTMem
+    @interp_TSel @interp_TTop @interp_TBot : ds_interp.
+Ltac unfold_interp_autorw := simpl; autorewrite with ds_interp; simpl.
+
 Ltac setoid_unfold_interp :=
   try setoid_rewrite interp_TAll;
   try setoid_rewrite interp_TLater;
