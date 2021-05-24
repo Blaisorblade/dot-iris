@@ -179,8 +179,8 @@ Notation "⟦ T ⟧ₑ" := (interp_expr ⟦ T ⟧).
 (** Unfold uses of interp, but only if the argument allows progress. *)
 Ltac unfold_interp :=
   rewrite /=
-    ?interp_TLater ?interp_TAll ?interp_TInt ?interp_TTMem
-    ?interp_TSel ?interp_TTop ?interp_TBot /=.
+    ?(interp_TLater, interp_TAll, interp_TInt, interp_TTMem,
+    interp_TSel, interp_TTop, interp_TBot) /=.
 
 Ltac setoid_unfold_interp :=
   try setoid_rewrite interp_TAll;
