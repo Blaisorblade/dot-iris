@@ -14,7 +14,7 @@ Set Default Proof Using "Type*".
 (** Deduce types from variable names, like on paper, for readability and to help
     type inference for some overloaded operations (e.g. substitution). *)
 Implicit Types
-         (L T U : ty) (v : vl) (e : tm)
+         (L T U : ty) (v w : vl) (e : tm)
          (Γ : ctx) (vs : vls) (ρ : var → vl).
 
 (** The logical relation core is the [interp], interprets *open* types into
@@ -199,8 +199,7 @@ Section logrel_part2.
   #[global] Instance interp_lemmas: TyInterpLemmas ty Σ.
   Proof.
     split; induction T => sb1 sb2 w; unfold_interp;
-      properness; rewrite /= ?scons_up_swap; trivial.
-    by rewrite subst_comp.
+      properness; rewrite /= ?scons_up_swap ?subst_comp; trivial.
   Qed.
 
   (* XXX here we needn't add a variable to the scope of its own type. But that won't hurt. *)
