@@ -48,9 +48,8 @@ Section logrel.
   Notation D := (vl -d> iPropO Σ).
   Implicit Types (interp : envD Σ) (φ : D).
 
-  Program Definition interp_expr : envD Σ -n> (var → vl) -d> tm -d> iPropO Σ :=
-    λne interp, λI ρ t, WP t {{ interp ρ }}.
-  Solve All Obligations with solve_proper_ho.
+  Definition interp_expr : envD Σ -> (var → vl) -d> tm -d> iPropO Σ :=
+    λ interp, λI ρ t, WP t {{ interp ρ }}.
   #[global] Arguments interp_expr /.
 
   Definition interp_nat : envD Σ := λI ρ v, ∃ n, ⌜v = vint n⌝.
@@ -62,19 +61,22 @@ Section logrel.
   Definition interp_bot : envD Σ := λI ρ v, False.
   #[global] Arguments interp_bot /.
 
-  Program Definition interp_later: envD Σ -n> envD Σ :=
-    λne interp, λI ρ v, ▷ interp ρ v.
-  Solve All Obligations with solve_proper_ho.
+  Definition interp_later: envD Σ -> envD Σ :=
+    λI interp ρ v, ▷ interp ρ v.
   #[global] Arguments interp_later /.
+  #[local] Instance interp_later_contractive : Contractive interp_later.
+  Proof. solve_contractive_ho. Qed.
 
   (* Function types; this definition is contractive (similarly to what's
      useful for equi-recursive types). *)
-  Program Definition interp_forall: envD Σ -n> envD Σ -n> envD Σ :=
-    λne interp1 interp2, λI ρ v,
+  Definition interp_forall: envD Σ -> envD Σ -> envD Σ :=
+    λI interp1 interp2 ρ v,
     ∃ t, ⌜ v = vabs t ⌝ ∧
       ▷ ∀ w, interp1 ρ w → interp_expr interp2 (w .: ρ) t.|[w/].
-  Solve All Obligations with solve_proper_ho.
   #[global] Arguments interp_forall /.
+  #[local] Instance interp_forall_contractive n :
+    Proper (dist_later n ==> dist_later n ==> dist n) interp_forall.
+  Proof. solve_contractive_ho. Qed.
 
   Program Definition vl_has_semtype : (ty -d> envD Σ) -n> vl -d> D -n> iPropO Σ :=
     λne rinterp, λI v, λne φ,
@@ -94,28 +96,27 @@ Section logrel.
     by iRewrite ("Heq1" $! w); iRewrite ("Heq2" $! w).
   Qed.
 
-  Program Definition interp_tmem :
-    (ty -d> envD Σ) -n> envD Σ -n> envD Σ -n> envD Σ :=
-    λne rinterp interpL interpU, λI ρ v,
+  Definition interp_tmem :
+    (ty -d> envD Σ) -> envD Σ -> envD Σ -> envD Σ :=
+    λI rinterp interpL interpU ρ v,
     ∃ φ, [ rinterp ] v ↗ φ ∧
        ((∀ v, interpL ρ v → ▷ φ v) ∧
           (∀ v, ▷ φ v → interpU ρ v)).
-  Solve All Obligations with solve_proper_ho.
   #[global] Arguments interp_tmem /.
-
-  #[local] Lemma interp_tmem_contractive : Contractive interp_tmem.
+  #[local] Instance interp_tmem_contractive n :
+    Proper (dist_later n ==> dist n ==> dist n ==> dist n) interp_tmem.
   Proof. solve_contractive_ho. Qed.
 
-  Program Definition interp_sel: (ty -d> envD Σ) -n> vl -d> envD Σ :=
-    λne rinterp, λI w ρ v,
+  Definition interp_sel : (ty -d> envD Σ) -d> vl -d> envD Σ :=
+    λI rinterp w ρ v,
     ∃ ϕ, [rinterp] w.[ρ] ↗ ϕ ∧ ▷ ϕ v.
-  Solve All Obligations with solve_proper_ho.
   #[global] Arguments interp_sel /.
-  #[local] Lemma interp_sel_contractive : Contractive interp_sel.
+  #[local] Instance interp_sel_contractive n :
+    Proper (dist_later n ==> eq ==> dist n) interp_sel.
   Proof. solve_contractive_ho. Qed.
 
-  (* This is a structurally recursive Coq function.
-     Non-structurally recursive calls must happen under [▷] and use [rinterp]. *)
+  (* This is a structurally recursive Coq function: we use [rec rinterp] for
+     structurally recursive calls, and [rinterp] for guarded recursive calls, only legal under [▷]. *)
   Definition interp_rec: (ty -d> envD Σ) → ty -d> envD Σ :=
     fix rec rinterp T :=
     match T with
@@ -132,16 +133,9 @@ Section logrel.
   #[global] Instance interp_rec_contractive : Contractive interp_rec.
   Proof.
     move => n i1 i2 Heq T /=; induction T.
-    (* Generic but slow *)
-    (* all: time (cbn -[interp_forall interp_tmem interp_sel interp_nat] in *; trivial;
-      repeat (match goal with
-                H : _ ≡{_}≡ _|- _ => apply dist_S, H || apply H
-              end || (f_contractive; cbn -[interp_forall interp_tmem interp_sel interp_nat] in * ) || f_equiv)). *)
     all: cbn -[interp_later interp_forall interp_tmem interp_sel interp_nat interp_top interp_bot].
-    all: first [progress no_eq_f_equiv | done | idtac].
-    all: rewrite ?IHT ?IHT1 ?IHT2 //.
-    exact: interp_tmem_contractive.
-    exact: interp_sel_contractive.
+    all: try by [f_contractive | f_equiv| ].
+    f_contractive; exact: dist_S.
   Qed.
 
   #[global] Instance dsub_interp : TyInterp ty Σ := fixpoint interp_rec.
@@ -172,6 +166,7 @@ Section logrel.
   Proof. rewrite_interp. Qed.
   Lemma interp_TLater T1 ρ v: ⟦ TLater T1 ⟧ ρ v ≡ interp_later ⟦ T1 ⟧ ρ v.
   Proof. rewrite_interp. Qed.
+
   Lemma interp_TTMem T1 T2 ρ v: ⟦ TTMem T1 T2 ⟧ ρ v ≡ interp_tmem ty_interp ⟦ T1 ⟧ ⟦ T2 ⟧ ρ v.
   Proof. rewrite_interp. Qed.
 End logrel.
