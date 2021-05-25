@@ -1,4 +1,4 @@
-From D Require Export iris_prelude saved_interp_n.
+From D Require Export iris_prelude saved_interp_n proper.
 From D Require Import persistence.
 From D.DSub Require Import ds_syn.
 From D.DSub Require Import ds_ty_interp_subst_lemmas.
@@ -14,7 +14,7 @@ Set Default Proof Using "Type*".
 (** Deduce types from variable names, like on paper, for readability and to help
     type inference for some overloaded operations (e.g. substitution). *)
 Implicit Types
-         (L T U : ty) (v : vl) (e : tm)
+         (L T U : ty) (v w : vl) (e : tm)
          (Γ : ctx) (vs : vls) (ρ : var → vl).
 
 (** The logical relation core is the [interp], interprets *open* types into
@@ -48,9 +48,8 @@ Section logrel.
   Notation D := (vl -d> iPropO Σ).
   Implicit Types (interp : envD Σ) (φ : D).
 
-  Program Definition interp_expr : envD Σ -n> (var → vl) -d> tm -d> iPropO Σ :=
-    λne interp, λI ρ t, WP t {{ interp ρ }}.
-  Solve All Obligations with solve_proper_ho.
+  Definition interp_expr : envD Σ -> (var → vl) -d> tm -d> iPropO Σ :=
+    λ interp, λI ρ t, WP t {{ interp ρ }}.
   #[global] Arguments interp_expr /.
 
   Definition interp_nat : envD Σ := λI ρ v, ∃ n, ⌜v = vint n⌝.
@@ -62,67 +61,77 @@ Section logrel.
   Definition interp_bot : envD Σ := λI ρ v, False.
   #[global] Arguments interp_bot /.
 
-  Program Definition interp_later: envD Σ -n> envD Σ :=
-    λne interp, λI ρ v, ▷ interp ρ v.
-  Solve All Obligations with solve_proper_ho.
+  Definition interp_later: envD Σ -> envD Σ :=
+    λI interp ρ v, ▷ interp ρ v.
   #[global] Arguments interp_later /.
+  #[local] Instance interp_later_contractive : Contractive interp_later.
+  Proof. solve_contractive_ho. Qed.
 
   (* Function types; this definition is contractive (similarly to what's
      useful for equi-recursive types). *)
-  Program Definition interp_forall: envD Σ -n> envD Σ -n> envD Σ :=
-    λne interp1 interp2, λI ρ v,
+  Definition interp_forall: envD Σ -> envD Σ -> envD Σ :=
+    λI interp1 interp2 ρ v,
     ∃ t, ⌜ v = vabs t ⌝ ∧
       ▷ ∀ w, interp1 ρ w → interp_expr interp2 (w .: ρ) t.|[w/].
-  Solve All Obligations with solve_proper_ho.
   #[global] Arguments interp_forall /.
+  #[local] Instance interp_forall_contractive n :
+    Proper (dist_later n ==> dist_later n ==> dist n) interp_forall.
+  Proof. solve_contractive_ho. Qed.
 
-  Program Definition vl_has_semtype : (ty -d> envD Σ) -n> vl -d> D -n> iPropO Σ :=
-    λne rinterp, λI v, λne φ,
-    ∃ T, ⌜ v = vty T ⌝ ∧ ∀ w, (φ w ≡ rinterp T ids w).
-  Solve All Obligations with solve_proper_ho.
+  Definition vl_has_semtype : vl -d> D -d> (ty -d> envD Σ) -d> iPropO Σ :=
+    λI v φ rinterp,
+    ∃ T, ⌜ v = vty T ⌝ ∧ ∀ w, ▷ (φ w ≡ rinterp T ids w).
   #[global] Arguments vl_has_semtype /.
-  Notation "[ rinterp ] v ↗ φ" := (vl_has_semtype rinterp v φ) (at level 20).
+  Notation "[ rinterp ] v ↗ φ" := (vl_has_semtype v φ rinterp) (at level 20).
+  #[local] Instance vl_has_semtype_contractive n v :
+    Proper (dist_later n ==> dist_later n ==> dist n) (vl_has_semtype v).
+  Proof. solve_contractive_ho. Qed.
 
   Lemma vl_has_semtype_agree rinterp v (φ1 φ2 : D):
-    ▷ [ rinterp ] v ↗ φ1 -∗
-    ▷ [ rinterp ] v ↗ φ2 -∗
+    [ rinterp ] v ↗ φ1 -∗
+    [ rinterp ] v ↗ φ2 -∗
     ∀ w, ▷ (φ1 w ≡ φ2 w).
   Proof.
     iIntros "/= #H1 #H2" (w).
-    iDestruct "H1" as (T1) "[>% #Heq1]". iDestruct "H2" as (T) "[>% #Heq2]"; simplify_eq.
+    iDestruct "H1" as (T1 ?) "#Heq1"; iDestruct "H2" as (T ?) "#Heq2"; simplify_eq.
     iNext.
     by iRewrite ("Heq1" $! w); iRewrite ("Heq2" $! w).
   Qed.
+  #[local] Hint Opaque vl_has_semtype : typeclass_instances.
+  #[local] Opaque vl_has_semtype.
 
-  Program Definition interp_tmem :
-    (ty -d> envD Σ) -n> envD Σ -n> envD Σ -n> envD Σ :=
-    λne rinterp interpL interpU, λI ρ v,
-    ∃ φ, ▷ [ rinterp ] v ↗ φ ∧
+  Definition interp_tmem :
+    (ty -d> envD Σ) -> envD Σ -> envD Σ -> envD Σ :=
+    λI rinterp interpL interpU ρ v,
+    ∃ φ, [ rinterp ] v ↗ φ ∧
        ((∀ v, interpL ρ v → ▷ φ v) ∧
           (∀ v, ▷ φ v → interpU ρ v)).
-  Solve All Obligations with solve_proper_ho.
   #[global] Arguments interp_tmem /.
-
-  #[global] Instance interp_tmem_contractive : Contractive interp_tmem.
+  #[local] Instance interp_tmem_contractive n :
+    Proper (dist_later n ==> dist n ==> dist n ==> dist n) interp_tmem.
   Proof. solve_contractive_ho. Qed.
 
-  Program Definition interp_sel: (ty -d> envD Σ) -n> vl -d> envD Σ :=
-    λne rinterp, λI w ρ v,
-    ▷ ∃ ϕ, [rinterp] w.[ρ] ↗ ϕ ∧ ϕ v.
-  Solve All Obligations with solve_proper_ho.
+  Definition interp_sel : (ty -d> envD Σ) -d> vl -d> envD Σ :=
+    λI rinterp w ρ v,
+    ∃ ϕ, [rinterp] w.[ρ] ↗ ϕ ∧ ▷ ϕ v.
   #[global] Arguments interp_sel /.
-  #[global] Instance interp_sel_contractive : Contractive interp_sel.
+  #[local] Instance interp_sel_contractive n :
+    Proper (dist_later n ==> eq ==> dist n) interp_sel.
   Proof. solve_contractive_ho. Qed.
 
-  (* This is a structurally recursive Coq function.
-     Non-structurally recursive calls must happen under [▷] and use [rinterp]. *)
+  (* This is a structurally recursive Coq function: we use [rec rinterp] for
+     structurally recursive calls, and [rinterp] for guarded recursive calls, only legal under [▷].
+
+     For calls that are structurally recursive and are under [▷], we prefer
+     [rinterp] to [rec rinterp], to simplify proofs of the unfolding lemmas.
+   *)
   Definition interp_rec: (ty -d> envD Σ) → ty -d> envD Σ :=
     fix rec rinterp T :=
     match T with
-    | TLater T => interp_later (rec rinterp T)
+    | TLater T => interp_later (rinterp T)
     | TTMem L U => interp_tmem rinterp (rec rinterp L) (rec rinterp U)
     | TInt => interp_nat
-    | TAll T1 T2 => interp_forall (rec rinterp T1) (rec rinterp T2)
+    | TAll T1 T2 => interp_forall (rinterp T1) (rinterp T2)
     | TSel w => interp_sel rinterp w
     | TTop => interp_top
     | TBot => interp_bot
@@ -132,44 +141,41 @@ Section logrel.
   #[global] Instance interp_rec_contractive : Contractive interp_rec.
   Proof.
     move => n i1 i2 Heq T /=; induction T.
-    (* Generic but slow *)
-    (* all: time (cbn -[interp_forall interp_tmem interp_sel interp_nat] in *; trivial;
-      repeat (match goal with
-                H : _ ≡{_}≡ _|- _ => apply dist_S, H || apply H
-              end || (f_contractive; cbn -[interp_forall interp_tmem interp_sel interp_nat] in * ) || f_equiv)). *)
-    all: cbn -[interp_later interp_forall interp_tmem interp_sel interp_nat];
-      try by [apply interp_sel_contractive|];
-      rewrite ?IHT ?IHT2; f_equiv; rewrite IHT1 //.
-    exact: interp_tmem_contractive.
+    all: cbn -[interp_later interp_forall interp_tmem interp_sel interp_nat interp_top interp_bot].
+    all: try by [f_contractive | f_equiv| ].
   Qed.
 
-  Program Lemma fixpoint_interp_rec_eq:
-    fixpoint interp_rec ≡ interp_rec (fixpoint interp_rec).
+  #[global] Instance dsub_interp : TyInterp ty Σ := fixpoint interp_rec.
+
+  Lemma fixpoint_interp_eq1 T: ⟦ T ⟧ ≡ interp_rec ty_interp T.
+  Proof. apply: fixpoint_unfold. Qed.
+
+  Lemma fixpoint_interp_rec_eq:
+    ty_interp ≡@{ty -d> envD Σ} interp_rec ty_interp.
   Proof. exact: (fixpoint_unfold interp_rec). Qed.
 
-  #[global] Instance interp : TyInterp ty Σ := fixpoint interp_rec.
+  (* Unused. *)
+  Lemma fixpoint_interp_eq2 T ρ: ⟦ T ⟧ ρ ≡ interp_rec ty_interp T ρ.
+  Proof. apply: fixpoint_unfold. Qed.
+  Lemma fixpoint_interp_eq3 T ρ v: ⟦ T ⟧ ρ v ≡ interp_rec ty_interp T ρ v.
+  Proof. apply: fixpoint_unfold. Qed.
 
-  Lemma fixpoint_interp_eq1 T: interp T ≡ interp_rec interp T.
-  Proof. apply fixpoint_interp_rec_eq. Qed.
-  Lemma fixpoint_interp_eq2 T ρ: interp T ρ ≡ interp_rec interp T ρ.
-  Proof. apply fixpoint_interp_rec_eq. Qed.
-  Lemma fixpoint_interp_eq3 T ρ v: interp T ρ v ≡ interp_rec interp T ρ v.
-  Proof. apply fixpoint_interp_rec_eq. Qed.
+  Lemma interp_TInt ρ v: ⟦ TInt ⟧ ρ v ≡ interp_nat ρ v.
+  Proof. apply: fixpoint_unfold. Qed.
+  Lemma interp_TSel ρ v w: ⟦ TSel w ⟧ ρ v ≡ interp_sel ty_interp w ρ v.
+  Proof. apply: fixpoint_unfold. Qed.
+  Lemma interp_TTop ρ v: ⟦ TTop ⟧ ρ v ≡ interp_top ρ v.
+  Proof. apply: fixpoint_unfold. Qed.
+  Lemma interp_TBot ρ v: ⟦ TBot ⟧ ρ v ≡ interp_bot ρ v.
+  Proof. apply: fixpoint_unfold. Qed.
+  Lemma interp_TAll T1 T2 ρ v: ⟦ TAll T1 T2 ⟧ ρ v ≡ interp_forall ⟦ T1 ⟧ ⟦ T2 ⟧ ρ v.
+  Proof. apply: fixpoint_unfold. Qed.
+  Lemma interp_TLater T1 ρ v: ⟦ TLater T1 ⟧ ρ v ≡ interp_later ⟦ T1 ⟧ ρ v.
+  Proof. apply: fixpoint_unfold. Qed.
 
-  Ltac rewrite_interp := rewrite /ty_interp; repeat first [rewrite fixpoint_interp_eq3 | progress (repeat f_equiv; rewrite ?fixpoint_interp_eq1 //=) | move => ? /= ].
-  Lemma interp_TAll T1 T2 ρ v: interp (TAll T1 T2) ρ v ≡ interp_forall ⟦ T1 ⟧ ⟦ T2 ⟧ ρ v.
-  Proof. rewrite_interp. Qed.
-  Lemma interp_TInt ρ v: interp TInt ρ v ≡ interp_nat ρ v.
-  Proof. rewrite_interp. Qed.
-  Lemma interp_TLater T1 ρ v: interp (TLater T1) ρ v ≡ interp_later ⟦ T1 ⟧ ρ v.
-  Proof. rewrite_interp. Qed.
-  Lemma interp_TTMem T1 T2 ρ v: interp (TTMem T1 T2) ρ v ≡ interp_tmem ty_interp ⟦ T1 ⟧ ⟦ T2 ⟧ ρ v.
-  Proof. rewrite_interp. Qed.
-  Lemma interp_TSel ρ v w: interp (TSel w) ρ v ≡ interp_sel ty_interp w ρ v.
-  Proof. rewrite_interp. Qed.
-  Lemma interp_TTop ρ v: interp TTop ρ v ≡ interp_top ρ v.
-  Proof. rewrite_interp. Qed.
-  Lemma interp_TBot ρ v: interp TBot ρ v ≡ interp_bot ρ v.
+  Ltac rewrite_interp := repeat (rewrite fixpoint_interp_eq1 //=; repeat f_equiv).
+
+  Lemma interp_TTMem T1 T2 ρ v: ⟦ TTMem T1 T2 ⟧ ρ v ≡ interp_tmem ty_interp ⟦ T1 ⟧ ⟦ T2 ⟧ ρ v.
   Proof. rewrite_interp. Qed.
 End logrel.
 
@@ -178,8 +184,12 @@ Notation "⟦ T ⟧ₑ" := (interp_expr ⟦ T ⟧).
 (** Unfold uses of interp, but only if the argument allows progress. *)
 Ltac unfold_interp :=
   rewrite /=
-    ?interp_TLater ?interp_TAll ?interp_TInt ?interp_TTMem
-    ?interp_TSel ?interp_TTop ?interp_TBot /=.
+    ?(interp_TLater, interp_TAll, interp_TInt, interp_TTMem,
+    interp_TSel, interp_TTop, interp_TBot) /=.
+
+Hint Rewrite @interp_TLater @interp_TAll @interp_TInt @interp_TTMem
+    @interp_TSel @interp_TTop @interp_TBot : ds_interp.
+Ltac unfold_interp_autorw := simpl; autorewrite with ds_interp; simpl.
 
 Ltac setoid_unfold_interp :=
   try setoid_rewrite interp_TAll;
@@ -190,6 +200,7 @@ Ltac setoid_unfold_interp :=
   try setoid_rewrite interp_TTop;
   try setoid_rewrite interp_TBot;
   cbn.
+#[global] Arguments ty_interp {_ _ _} _ : simpl never.
 
 Section logrel_part2.
   Context `{!dsubSynG Σ}.
@@ -197,8 +208,7 @@ Section logrel_part2.
   #[global] Instance interp_lemmas: TyInterpLemmas ty Σ.
   Proof.
     split; induction T => sb1 sb2 w; unfold_interp;
-      properness; rewrite /= ?scons_up_swap; trivial.
-    autosubst.
+      properness; rewrite /= ?scons_up_swap ?subst_comp; trivial.
   Qed.
 
   (* XXX here we needn't add a variable to the scope of its own type. But that won't hurt. *)
