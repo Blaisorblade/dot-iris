@@ -78,13 +78,13 @@ Section logrel.
     Proper (dist_later n ==> dist_later n ==> dist n) interp_forall.
   Proof. solve_contractive_ho. Qed.
 
-  Program Definition vl_has_semtype : vl -d> D -n> (ty -d> envD Σ) -n> iPropO Σ :=
-    λI v, λne φ rinterp,
+  Definition vl_has_semtype : vl -d> D -d> (ty -d> envD Σ) -d> iPropO Σ :=
+    λI v φ rinterp,
     ∃ T, ⌜ v = vty T ⌝ ∧ ∀ w, ▷ (φ w ≡ rinterp T ids w).
-  Solve All Obligations with solve_proper_ho.
   #[global] Arguments vl_has_semtype /.
   Notation "[ rinterp ] v ↗ φ" := (vl_has_semtype v φ rinterp) (at level 20).
-  #[local] Instance vl_has_semtype_contractive v φ : Contractive (vl_has_semtype v φ).
+  #[local] Instance vl_has_semtype_contractive n v :
+    Proper (dist_later n ==> dist_later n ==> dist n) (vl_has_semtype v).
   Proof. solve_contractive_ho. Qed.
 
   Lemma vl_has_semtype_agree rinterp v (φ1 φ2 : D):
