@@ -116,14 +116,18 @@ Section logrel.
   Proof. solve_contractive_ho. Qed.
 
   (* This is a structurally recursive Coq function: we use [rec rinterp] for
-     structurally recursive calls, and [rinterp] for guarded recursive calls, only legal under [▷]. *)
+     structurally recursive calls, and [rinterp] for guarded recursive calls, only legal under [▷].
+
+     For calls that are structurally recursive and are under [▷], we prefer
+     [rinterp] to [rec rinterp], to simplify proofs of the unfolding lemmas.
+   *)
   Definition interp_rec: (ty -d> envD Σ) → ty -d> envD Σ :=
     fix rec rinterp T :=
     match T with
-    | TLater T => interp_later (rec rinterp T)
+    | TLater T => interp_later (rinterp T)
     | TTMem L U => interp_tmem rinterp (rec rinterp L) (rec rinterp U)
     | TInt => interp_nat
-    | TAll T1 T2 => interp_forall (rec rinterp T1) (rec rinterp T2)
+    | TAll T1 T2 => interp_forall (rinterp T1) (rinterp T2)
     | TSel w => interp_sel rinterp w
     | TTop => interp_top
     | TBot => interp_bot
@@ -135,7 +139,6 @@ Section logrel.
     move => n i1 i2 Heq T /=; induction T.
     all: cbn -[interp_later interp_forall interp_tmem interp_sel interp_nat interp_top interp_bot].
     all: try by [f_contractive | f_equiv| ].
-    f_contractive; exact: dist_S.
   Qed.
 
   #[global] Instance dsub_interp : TyInterp ty Σ := fixpoint interp_rec.
@@ -163,9 +166,9 @@ Section logrel.
   Ltac rewrite_interp := repeat (rewrite fixpoint_interp_eq1 //=; repeat f_equiv).
 
   Lemma interp_TAll T1 T2 ρ v: ⟦ TAll T1 T2 ⟧ ρ v ≡ interp_forall ⟦ T1 ⟧ ⟦ T2 ⟧ ρ v.
-  Proof. rewrite_interp. Qed.
+  Proof. apply: fixpoint_interp_eq1. Qed.
   Lemma interp_TLater T1 ρ v: ⟦ TLater T1 ⟧ ρ v ≡ interp_later ⟦ T1 ⟧ ρ v.
-  Proof. rewrite_interp. Qed.
+  Proof. apply: fixpoint_interp_eq1. Qed.
 
   Lemma interp_TTMem T1 T2 ρ v: ⟦ TTMem T1 T2 ⟧ ρ v ≡ interp_tmem ty_interp ⟦ T1 ⟧ ⟦ T2 ⟧ ρ v.
   Proof. rewrite_interp. Qed.
