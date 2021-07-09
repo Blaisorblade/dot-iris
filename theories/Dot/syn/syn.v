@@ -69,15 +69,15 @@ Inductive tm : Type :=
   | TAll (S T : ty) : ty (* forall type [∀ x: S. T]; *)
   | TMu (T : ty) : ty (* mu-types [μ x. T]; *)
   | TVMem l (T : ty) : ty (* value members [{a: T}];*)
-  | kTTMem l (K : kind) : ty (* type members [{A :: L .. U}]; *)
+  | kTTMem l (K : kind) : ty (* type members [{A :: K}]; *)
   | kTSel n (p : path) l : ty (* type selections [p.A]; *)
   | TPrim B : ty (* primitive types; *)
   | TSing (p : path) : ty (* singleton types [p.type]; *)
   | TLam (T : ty) : ty (* type-level lambda abstraction [λ x. T]; *)
   | TApp (T : ty) (p : path) : ty (* type-level type application [T p]. *)
 with kind : Type :=
-  | kintv (L U : ty) : kind
-  | kpi (S : ty) (K : kind) : kind.
+  | kintv (L U : ty) : kind (* interval kind [L .. U]; *)
+  | kpi (S : ty) (K : kind) : kind (* pi kind [∀ (x : S). K]. *).
 
 (* Workaround Coq bug with modules. *)
 Definition vl := vl_.
