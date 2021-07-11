@@ -92,7 +92,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
     #[local] Instance CmraSwappable_dlang: CmraSwappable (iResUR dlangΣ) := CmraSwappable_iResUR _.
 
     (* Enable these instances only for those who [Import] this module explicitly. *)
-    #[export] Hint Resolve CmraPersistent_dlang dlangG_dlangΣ CmraSwappable_dlang : typeclass_instances.
+    #[export] Hint Resolve dlangG_dlangΣ CmraSwappable_dlang : typeclass_instances.
     Export det_reduction.
   End dlang_adequacy.
 
