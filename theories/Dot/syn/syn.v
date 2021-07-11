@@ -58,7 +58,7 @@ Inductive tm : Type :=
  (** Paths [p ::= ] *)
  with path : Type :=
   | pv : vl_ → path (* values [v]; *)
-  | pself : path → label → path (* path selection [p.a]. *)
+  | pself : path → label → path (* path selection [p.a]. *) (* Maybe drop [f] *)
  (** Types [L, S, T, U, V, W ::= ] *)
  with ty : Type :=
   | TTop : ty (* top type [⊤]; *)
