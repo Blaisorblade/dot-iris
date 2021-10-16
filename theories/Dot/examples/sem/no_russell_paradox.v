@@ -28,7 +28,7 @@ Section Russell.
 
   Context (s: stamp).
 
-  Definition Hs : iProp Σ := (s ↝ russell_p).
+  Definition Hs : iProp Σ := (s ↝n aopen russell_p).
   (** Under Iris assumption [Hs], [v.A] points to [russell_p].
       We assume [Hs] throughout the rest of the section. *)
   Definition v := vobj [("A", dtysem [] s)].

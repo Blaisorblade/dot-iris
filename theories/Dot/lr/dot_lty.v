@@ -240,7 +240,6 @@ End path_repl.
 Definition dm_to_type `{HdotG: !dlangG Σ} d (ψ : hoD Σ) : iProp Σ :=
   ∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ ] ψ.
 Notation "d ↗n ψ" := (dm_to_type d ψ) (at level 20).
-Notation "d ↗ ψ" := (dm_to_type d ψ) (at level 20).
 
 Section dm_to_type.
   Context `{HdotG: !dlangG Σ}.
