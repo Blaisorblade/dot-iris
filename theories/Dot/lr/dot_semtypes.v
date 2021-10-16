@@ -91,11 +91,10 @@ Section sem_types.
   (** [ D⟦ { a : τ } ⟧ ]. *)
   Definition oDVMem τ : dltyO Σ := Dlty (λI ρ d,
     ∃ pmem, ⌜d = dpt pmem⌝ ∧ path_wp pmem (oClose τ ρ)).
-  #[global] Instance oDVMem_proper : Proper ((≡) ==> (≡)) oDVMem.
-  Proof.
-    rewrite /oDVMem => ??? ??/=; properness; try reflexivity;
-      apply path_wp_proper => ?; hof_eq_app.
-  Qed.
+  #[global] Instance oDVMem_ne : NonExpansive oDVMem.
+  Proof. solve_proper_ho. Qed.
+  #[global] Instance oDVMem_proper : Proper ((≡) ==> (≡)) oDVMem :=
+    ne_proper _.
 
   Lemma oDVMem_eq T ρ p :
     oDVMem T ρ (dpt p) ≡ path_wp p (oClose T ρ).
@@ -105,8 +104,10 @@ Section sem_types.
 
   (** [ Ds⟦ { l : τ } ⟧] and [ V⟦ { l : τ } ⟧ ]. *)
   Definition cVMem l τ : clty Σ := dty2clty l (oDVMem τ).
-  #[global] Instance cVMem_proper l : Proper ((≡) ==> (≡)) (cVMem l).
+  #[global] Instance cVMem_ne l : NonExpansive (cVMem l).
   Proof. solve_proper. Qed.
+  #[global] Instance cVMem_proper l : Proper ((≡) ==> (≡)) (cVMem l) :=
+    ne_proper _.
 
   Lemma cVMem_eq l T d ρ :
     cVMem l T ρ [(l, d)] ⊣⊢ oDVMem T ρ d.
@@ -128,8 +129,11 @@ Section sem_types.
     (∃ t, ⌜ v = vabs t ⌝ ∧
      ∀ w, ▷ τ1 anil ρ w → ▷ sE⟦ τ2 ⟧ (w .: ρ) t.|[w/])).
 
-  #[global] Instance oAll_proper : Proper ((≡) ==> (≡) ==> (≡)) oAll.
+  #[global] Instance oAll_ne : NonExpansive2 oAll.
   Proof. solve_proper_ho. Qed.
+
+  #[global] Instance oAll_proper : Proper2 oAll :=
+    ne_proper_2 _.
 
   (** Semantics of primitive types. *)
   Definition oPrim b : olty Σ := olty0 (λI ρ v, ⌜pure_interp_prim b v⌝).

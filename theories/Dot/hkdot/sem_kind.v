@@ -339,7 +339,7 @@ Qed.
 Section kinds_types.
   Context `{dlangG Σ}.
 
-  #[global] Instance: NonExpansive2 (sf_kintv (Σ := Σ)).
+  #[global] Instance sf_kintv_ne : NonExpansive2 (sf_kintv (Σ := Σ)).
   Proof. rewrite /sf_kintv /sr_kintv. solve_proper_ho. Qed.
   #[global] Instance sf_kintv_proper :
     Proper ((≡) ==> (≡) ==> (≡)) (sf_kintv (Σ := Σ)) := ne_proper_2 _.
