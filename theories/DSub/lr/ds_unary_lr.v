@@ -42,6 +42,23 @@ Instance dsubsynG_irisG `{!dsubSynG Σ}: irisG dlang_lang Σ := {
    its handling of coercions. *)
 Unset Program Cases.
 
+Section vl_has_semtype.
+  Context `{!dsubSynG Σ}.
+
+  Notation D := (vl -d> iPropO Σ).
+
+  Definition vl_has_semtype : vl -d> D -d> (ty -d> envD Σ) -d> iPropO Σ :=
+    λI v φ rinterp,
+    ∃ T, ⌜ v = vty T ⌝ ∧ ∀ w, ▷ (φ w ≡ rinterp T ids w).
+  #[global] Arguments vl_has_semtype /.
+
+  #[global] Instance vl_has_semtype_contractive n v :
+    Proper (dist_later n ==> dist_later n ==> dist n) (vl_has_semtype v).
+  Proof. solve_contractive_ho. Qed.
+End vl_has_semtype.
+
+Notation "v ↗[ rinterp ] φ" := (vl_has_semtype v φ rinterp) (at level 20).
+
 Section logrel.
   Context `{!dsubSynG Σ}.
 
@@ -76,15 +93,6 @@ Section logrel.
   #[global] Arguments interp_forall /.
   #[local] Instance interp_forall_contractive n :
     Proper (dist_later n ==> dist_later n ==> dist n) interp_forall.
-  Proof. solve_contractive_ho. Qed.
-
-  Definition vl_has_semtype : vl -d> D -d> (ty -d> envD Σ) -d> iPropO Σ :=
-    λI v φ rinterp,
-    ∃ T, ⌜ v = vty T ⌝ ∧ ∀ w, ▷ (φ w ≡ rinterp T ids w).
-  #[global] Arguments vl_has_semtype /.
-  Notation "v ↗[ rinterp ] φ" := (vl_has_semtype v φ rinterp) (at level 20).
-  #[local] Instance vl_has_semtype_contractive n v :
-    Proper (dist_later n ==> dist_later n ==> dist n) (vl_has_semtype v).
   Proof. solve_contractive_ho. Qed.
 
   Lemma vl_has_semtype_agree rinterp v (φ1 φ2 : D):
