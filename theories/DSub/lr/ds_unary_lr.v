@@ -82,14 +82,14 @@ Section logrel.
     λI v φ rinterp,
     ∃ T, ⌜ v = vty T ⌝ ∧ ∀ w, ▷ (φ w ≡ rinterp T ids w).
   #[global] Arguments vl_has_semtype /.
-  Notation "[ rinterp ] v ↗ φ" := (vl_has_semtype v φ rinterp) (at level 20).
+  Notation "v ↗[ rinterp ] φ" := (vl_has_semtype v φ rinterp) (at level 20).
   #[local] Instance vl_has_semtype_contractive n v :
     Proper (dist_later n ==> dist_later n ==> dist n) (vl_has_semtype v).
   Proof. solve_contractive_ho. Qed.
 
   Lemma vl_has_semtype_agree rinterp v (φ1 φ2 : D):
-    [ rinterp ] v ↗ φ1 -∗
-    [ rinterp ] v ↗ φ2 -∗
+    v ↗[ rinterp ] φ1 -∗
+    v ↗[ rinterp ] φ2 -∗
     ∀ w, ▷ (φ1 w ≡ φ2 w).
   Proof.
     iIntros "/= #H1 #H2" (w).
@@ -103,7 +103,7 @@ Section logrel.
   Definition interp_tmem :
     (ty -d> envD Σ) -> envD Σ -> envD Σ -> envD Σ :=
     λI rinterp interpL interpU ρ v,
-    ∃ φ, [ rinterp ] v ↗ φ ∧
+    ∃ φ, v ↗[ rinterp ] φ ∧
        ((∀ v, interpL ρ v → ▷ φ v) ∧
           (∀ v, ▷ φ v → interpU ρ v)).
   #[global] Arguments interp_tmem /.
@@ -113,7 +113,7 @@ Section logrel.
 
   Definition interp_sel : (ty -d> envD Σ) -d> vl -d> envD Σ :=
     λI rinterp w ρ v,
-    ∃ ϕ, [rinterp] w.[ρ] ↗ ϕ ∧ ▷ ϕ v.
+    ∃ ϕ, w.[ρ] ↗[rinterp] ϕ ∧ ▷ ϕ v.
   #[global] Arguments interp_sel /.
   #[local] Instance interp_sel_contractive n :
     Proper (dist_later n ==> eq ==> dist n) interp_sel.
