@@ -3,6 +3,7 @@ The implementation of [f_equiv] is stdpp's implementation, plus a few extra
 cases of higher arity.
 *)
 From stdpp Require Import tactics.
+From iris.algebra Require Import ofe.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
@@ -11,6 +12,30 @@ Set Default Proof Using "Type".
 don't restrict it to [(_ ≡ _)], because [f_equiv] can apply [Proper]
 instances to any relation. Use with lots of care. *)
 #[global] Hint Extern 998 => f_equiv : f_equiv.
+
+Notation Proper1 f := (Proper ((≡) ==> (≡)) f).
+
+Notation Proper2 f := (Proper ((≡) ==> (≡) ==> (≡)) f).
+
+Notation NonExpansive3 f := (∀ n, Proper (dist n ==> dist n ==> dist n ==> dist n) f).
+Notation Proper3 f := (Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) f).
+
+Notation NonExpansive4 f := (∀ n, Proper (dist n ==> dist n ==> dist n ==> dist n ==> dist n) f).
+Notation Proper4 f := (Proper ((≡) ==> (≡) ==> (≡) ==> (≡) ==> (≡)) f).
+
+Lemma ne_proper_3 {A B C D : ofeT} (f : A → B → C → D) `{Hf : !NonExpansive3 f} :
+  Proper3 f.
+Proof. unfold Proper, respectful; setoid_rewrite equiv_dist. intros. exact: Hf. Qed.
+
+Lemma ne_proper_4 {A B C D E : ofeT} (f : A → B → C → D → E) `{Hf : !NonExpansive4 f} :
+  Proper4 f.
+Proof. unfold Proper, respectful; setoid_rewrite equiv_dist. intros. exact: Hf. Qed.
+
+(* Generalize [contractive_ne] to arbitrary arities. *)
+Lemma contractive_ne_R {A : ofeT} {B R}
+    (f : A -> B) {Hf : ∀ n, Proper (dist_later n ==> R n) f} :
+  ∀ n, Proper (dist n ==> R n) f.
+Proof. intros n a1 a2 Ha. eapply Hf, dist_dist_later, Ha. Qed.
 
 (* Override stdpp's [f_equiv], raising maximum arity from 5 up to 7. *)
 Ltac f_equiv ::=
