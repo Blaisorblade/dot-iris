@@ -41,7 +41,8 @@ Section small_ex.
     oAnd (oTMemL "A" oBot (oPrim tint))
       (oAnd (oVMem "n" (oLater (oSel x0 "A")))
       oTop).
-  Goal V⟦miniVT2Body⟧ = sminiVT2Body. done. Abort.
+  #[local] Lemma sminiVT2Body_test : V⟦miniVT2Body⟧ ≡ sminiVT2Body.
+  Proof. done. Qed.
 
   Definition sminiVT2ConcrBody : cltyO Σ :=
     cAnd (cTMemL "A" ipos ipos)
