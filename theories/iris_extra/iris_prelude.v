@@ -15,6 +15,10 @@ Notation "'λI' x .. y , t" := (fun x => .. (fun y => t%I) ..)
   (at level 200, x binder, y binder, right associativity,
   only parsing) : function_scope.
 
+Notation "'λneI' x .. y , t" := (λne x, .. (λne y, t%I) ..)
+  (at level 200, x binder, y binder, right associativity,
+  only parsing) : function_scope.
+
 (** * Automation for Iris program logic. *)
 (** Instances for [IntoVal], used e.g. by [wp_value]; copied from F_mu. *)
 #[global] Hint Extern 5 (IntoVal _ _) => eapply of_to_val; fast_done : typeclass_instances.
