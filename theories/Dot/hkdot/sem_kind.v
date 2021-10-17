@@ -457,6 +457,7 @@ Fixpoint s_kind_hsubst {Σ n} (ρ : env) (K : s_kindO Σ n) : s_kindO Σ n :=
     s_kpi S.|[ρ] K.|[up ρ]
   end.
 #[global] Instance hsubst_s_kind {Σ n} : HSubst vl (s_kind Σ n) := s_kind_hsubst.
+(* TODO #381: does this work reasonably? *)
 #[global] Instance: Params (@hsubst_s_kind) 2 := {}.
 
 #[global] Instance s_kind_hsubst_lemmas {Σ n} : HSubstLemmas vl (s_kind Σ n).
