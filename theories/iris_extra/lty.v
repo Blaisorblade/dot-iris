@@ -118,7 +118,7 @@ Section subtype_lty.
   #[global] Instance subtype_lty_ne : NonExpansive2 (subtype_lty (Σ := Σ)).
   Proof. solve_proper_ho. Qed.
   #[global] Instance subtype_lty_proper :
-    Proper ((≡) ==> (≡) ==> (≡)) (subtype_lty (Σ := Σ)) := ne_proper_2 _.
+    Proper2 (subtype_lty (Σ := Σ)) := ne_proper_2 _.
 
   Lemma subtype_refl {T}: ⊢ T ⊆@{Σ} T.
   Proof. by iIntros "%v $". Qed.
@@ -157,7 +157,7 @@ Instance packHoLtyO_contractive {Σ} :
   Contractive (packHoLtyO (Σ := Σ)).
 Proof. solve_contractive_ho. Qed.
 Instance packHoLtyO_proper {Σ} :
-  Proper ((≡) ==> (≡)) (packHoLtyO (Σ := Σ)) := contractive_proper _.
+  Proper1 (packHoLtyO (Σ := Σ)) := contractive_proper _.
 
 (** ** Substitution over [olty]. *)
 Section olty_subst.
@@ -254,7 +254,7 @@ Section olty_subst.
   Proof. solve_proper_ho. Qed.
 
   #[global] Instance hsubst_olty_proper ρ :
-    Proper ((≡) ==> (≡)) (hsubst (outer := oltyO Σ) ρ) := ne_proper _.
+    Proper1 (hsubst (outer := oltyO Σ) ρ) := ne_proper _.
 
   Lemma olty_subst_compose_ind τ args ρ1 ρ2 v: τ.|[ρ1] args ρ2 v ⊣⊢ τ args (ρ1 >> ρ2) v.
   Proof. apply hoEnvD_subst_compose_ind. Qed.
@@ -291,7 +291,7 @@ Section olty_subst.
 
   #[global] Instance oShift_ne: NonExpansive oShift.
   Proof. solve_proper_ho. Qed.
-  #[global] Instance oShift_proper : Proper ((≡) ==> (≡)) oShift := ne_proper _.
+  #[global] Instance oShift_proper : Proper1 oShift := ne_proper _.
 End olty_subst.
 
 #[global] Instance: Params (@oShift) 1 := {}.
@@ -352,7 +352,7 @@ Section env_oltyped.
   Qed.
 
   #[global] Instance env_oltyped_proper ρ :
-    Proper ((≡) ==> (≡)) (env_oltyped ρ) := ne_proper _.
+    Proper1 (env_oltyped ρ) := ne_proper _.
 
   Lemma s_interp_env_lookup Γ ρ (τ : olty Σ) x:
     Γ !! x = Some τ →
@@ -403,7 +403,7 @@ Section olty_proper.
 
   #[global] Instance oLaterN_ne m : NonExpansive (oLaterN (Σ := Σ) m).
   Proof. solve_proper_ho. Qed.
-  #[global] Instance oLaterN_proper m : Proper ((≡) ==> (≡)) (oLaterN m) := ne_proper _.
+  #[global] Instance oLaterN_proper m : Proper1 (oLaterN m) := ne_proper _.
 
   #[global] Instance oAnd_ne : NonExpansive2 (oAnd (Σ := Σ)).
   Proof. solve_proper_ho. Qed.

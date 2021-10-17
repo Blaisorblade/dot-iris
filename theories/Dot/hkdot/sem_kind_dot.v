@@ -40,11 +40,11 @@ Section TMem_Proper.
   #[global] Instance oDTMemK_ne : NonExpansive (oDTMemK (Σ := Σ)).
   Proof. solve_proper_ho. Qed.
   #[global] Instance oDTMemK_proper :
-    Proper ((≡) ==> (≡)) (oDTMemK (Σ := Σ)) := ne_proper _.
+    Proper1 (oDTMemK (Σ := Σ)) := ne_proper _.
   #[global] Instance cTMemK_ne l : NonExpansive (cTMemK (Σ := Σ) l).
   Proof. solve_proper_ho. Qed.
   #[global] Instance cTMemK_proper l :
-    Proper ((≡) ==> (≡)) (cTMemK (Σ := Σ) l) := ne_proper _.
+    Proper1 (cTMemK (Σ := Σ) l) := ne_proper _.
 
   Lemma cTMemK_eq l (K : sf_kind Σ) d ρ :
     cTMemK l K ρ [(l, d)] ⊣⊢ oDTMemK K ρ d.
@@ -84,7 +84,7 @@ Section sem_TMem.
     rewrite oDTMem_eq => ρ d /=. f_equiv=> ψ; f_equiv. apply sr_kintv_refl.
   Qed.
 
-  #[global] Instance oDTMem_proper : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
+  #[global] Instance oDTMem_proper : Proper2 oDTMem.
   Proof. move=> ??? ??? ??/=. properness; [done|]. exact: sr_kintv_proper. Qed.
 
   (** Define [cTMem] by lifting [oDTMem] to [clty]s. *)
@@ -94,7 +94,7 @@ Section sem_TMem.
   [ Ds⟦ { l >: τ1 <: τ2 } ⟧] and [ V⟦ { l >: τ1 <: τ2 } ⟧ ],
   which are here a derived notation; see [cTMemL]. *)
   Definition cTMem l L U : clty Σ := dty2clty l (oDTMem L U).
-  #[global] Instance cTMem_proper l : Proper ((≡) ==> (≡) ==> (≡)) (cTMem l).
+  #[global] Instance cTMem_proper l : Proper2 (cTMem l).
   Proof. solve_proper. Qed.
 
   Lemma cTMem_unfold l L U :
