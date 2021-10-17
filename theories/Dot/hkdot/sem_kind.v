@@ -212,18 +212,25 @@ Section sf_kind_subst.
     K.|[up (ren (+1))].|[ids 0/] ≡ K.
   Proof. move=> ρ /=; f_equiv; autosubst. Qed.
 
-  Definition oLam (τ : oltyO Σ) : oltyO Σ :=
-    Olty (λI args ρ, τ (atail args) (ahead args .: ρ)).
-    (* auncurry (λ v, Olty (λ args ρ, τ args (v .: ρ))). *)
-
-  Definition _oTAppV w (T : oltyO Σ) : oltyO Σ :=
-    Olty (λI args ρ, T (acons w.[ρ] args) ρ).
-
 End sf_kind_subst.
 
-Notation oTAppV T w := (_oTAppV w T).
+Definition oLam {Σ} (τ : oltyO Σ) : oltyO Σ :=
+  Olty (λI args ρ, τ (atail args) (ahead args .: ρ)).
+  (* auncurry (λ v, Olty (λ args ρ, τ args (v .: ρ))). *)
+
 #[global] Instance: Params (@oLam) 1 := {}.
+
+(* Arguments are ordered to optimize setoid rewriting and maximize [Params]. *)
+Definition _oTAppV {Σ} w (T : oltyO Σ) : oltyO Σ :=
+  Olty (λI args ρ, T (acons w.[ρ] args) ρ).
+
+(* Show a more natural ordering to the user. *)
+Notation oTAppV T w := (_oTAppV w T).
 #[global] Instance: Params (@_oTAppV) 2 := {}.
+
+Definition sr_kintv `{dlangG Σ} (L U : oltyO Σ) : sr_kind Σ := λI ρ φ1 φ2,
+  oClose L ρ ⊆ oClose φ1 ⊆ oClose φ2 ⊆ oClose U ρ.
+#[global] Instance: Params (@sr_kintv) 3 := {}.
 
 Section utils.
   Context `{dlangG Σ}.
@@ -249,9 +256,6 @@ Section utils.
   Lemma envApply_oTAppV_eq (T : olty Σ) v ρ :
     envApply (oTAppV T v) ρ ≡ acurry (envApply T ρ) v.[ρ].
   Proof. done. Qed.
-
-  Definition sr_kintv (L U : oltyO Σ) : sr_kind Σ := λI ρ φ1 φ2,
-    oClose L ρ ⊆ oClose φ1 ⊆ oClose φ2 ⊆ oClose U ρ.
 
   Lemma sr_kintv_refl L U ρ φ :
     sr_kintv L U ρ φ φ ⊣⊢ oClose L ρ ⊆ oClose φ ⊆ oClose U ρ.
