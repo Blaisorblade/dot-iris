@@ -169,7 +169,7 @@ Notation "K .sKp[ p /]" := (kpSubstOne p K) (at level 65).
 Section proper_eq.
   Context `{!dlangG Σ}.
 
-  #[global] Instance oTApp_ne n : Proper ((dist n) ==> eq ==> (dist n)) oTApp.
+  #[global] Instance oTApp_ne n : Proper (dist n ==> eq ==> dist n) oTApp.
   Proof. move=> T1 T2 HT. solve_proper_prepare. apply: path_wp_ne=>v. exact: HT. Qed.
 
   #[global] Instance oTApp_proper : Proper ((≡) ==> eq ==> (≡)) oTApp.

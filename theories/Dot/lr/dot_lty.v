@@ -210,13 +210,13 @@ Section DefsTypes.
 
   #[global] Instance olty2clty_ne : NonExpansive olty2clty.
   Proof. split; rewrite /=; by repeat f_equiv. Qed.
-  #[global] Instance olty2clty_proper :
-    Proper ((≡) ==> (≡)) olty2clty := ne_proper _.
+  #[global] Instance olty2clty_proper : Proper ((≡) ==> (≡)) olty2clty :=
+    ne_proper _.
 
   #[global] Instance dty2clty_ne l : NonExpansive (dty2clty l).
   Proof. split; rewrite /dty2clty/=; by repeat f_equiv. Qed.
-  #[global] Instance dty2clty_proper l :
-    Proper ((≡) ==> (≡)) (dty2clty l) := ne_proper _.
+  #[global] Instance dty2clty_proper l : Proper ((≡) ==> (≡)) (dty2clty l) :=
+    ne_proper _.
 
   Lemma dty2clty_singleton l (TD : dlty Σ) ρ d :
     dty2clty l TD ρ [(l, d)] ≡ TD ρ d.
