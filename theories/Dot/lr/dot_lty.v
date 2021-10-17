@@ -80,8 +80,10 @@ Section clty_ofe.
   Instance clty_dist : Dist (clty Σ) := λ n A B, iso A ≡{n}≡ iso B.
   Lemma clty_ofe_mixin : OfeMixin (clty Σ).
   Proof. exact: (iso_ofe_mixin iso). Qed.
+
+  Canonical Structure cltyO := OfeT (clty Σ) clty_ofe_mixin.
 End clty_ofe.
-Canonical Structure cltyO Σ := OfeT (clty Σ) clty_ofe_mixin.
+Arguments cltyO : clear implicits.
 
 Section clty_ofe_proper.
   Context {Σ}.
@@ -191,7 +193,8 @@ Section DefsTypes.
   Program Definition cTop : clty Σ := Clty (Dslty (λI _ _, True)) oTop.
   Solve All Obligations with eauto.
 
-  #[global] Instance : Bottom (clty Σ) := olty2clty ⊥.
+  #[global] Instance clty_bottom : Bottom (clty Σ) := olty2clty ⊥.
+  #[global] Instance clty_inh : Inhabited (clty Σ) := populate ⊥.
 
   Program Definition cAnd (Tds1 Tds2 : clty Σ): clty Σ :=
     Clty (Dslty (λI ρ ds, Tds1 ρ ds ∧ Tds2 ρ ds)) (oAnd (c2o Tds1) (c2o Tds2)).
