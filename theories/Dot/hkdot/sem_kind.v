@@ -154,7 +154,7 @@ Qed.
 (* This is really properness of sf_kind_sub; but it's also proper over the
 first argument K. Maybe that's worth a wrapper with swapped arguments. *)
 Lemma sf_kind_proper {Σ} (K : sf_kind Σ) ρ :
-  Proper ((≡) ==> (≡) ==> (≡)) (K ρ).
+  Proper2 (K ρ).
 Proof. move=> T1 T2 HT U1 U2 HU. exact: sf_kind_sub_proper. Qed.
 Lemma sf_kind_proper' {Σ} (K : sf_kind Σ) ρ T1 T2 :
   T1 ≡ T2 → K ρ T1 T1 ≡ K ρ T2 T2.
@@ -184,7 +184,7 @@ Section sf_kind_subst.
   Proof. solve_proper_ho. Qed.
 
   #[global] Instance hsubst_sf_kind_proper ρ :
-    Proper ((≡) ==> (≡)) (hsubst (outer := sf_kind Σ) ρ) := ne_proper _.
+    Proper1 (hsubst (outer := sf_kind Σ) ρ) := ne_proper _.
 
   Definition kSubstOne {Σ} v (K : sf_kind Σ) : sf_kind Σ :=
     kSub (λ ρ, v.[ρ] .: ρ) K.
@@ -230,13 +230,13 @@ Section utils.
   #[global] Instance _oTAppV_ne v: NonExpansive (_oTAppV (Σ := Σ) v).
   Proof. solve_proper_ho. Qed.
   #[global] Instance _oTAppV_proper v:
-    Proper ((≡) ==> (≡)) (_oTAppV (Σ := Σ) v) := ne_proper _.
+    Proper1 (_oTAppV (Σ := Σ) v) := ne_proper _.
 
   #[global] Instance oLam_ne : NonExpansive (oLam (Σ := Σ)).
   Proof. solve_proper_ho. Qed.
 
   #[global] Instance oLam_proper :
-    Proper ((≡) ==> (≡)) (oLam (Σ := Σ)) := ne_proper _.
+    Proper1 (oLam (Σ := Σ)) := ne_proper _.
 
   Lemma oTAppV_subst (T : olty Σ) v ρ :
     (oTAppV T v).|[ρ] ≡ oTAppV T.|[ρ] v.[ρ].
@@ -342,12 +342,12 @@ Section kinds_types.
   #[global] Instance sf_kintv_ne : NonExpansive2 (sf_kintv (Σ := Σ)).
   Proof. rewrite /sf_kintv /sr_kintv. solve_proper_ho. Qed.
   #[global] Instance sf_kintv_proper :
-    Proper ((≡) ==> (≡) ==> (≡)) (sf_kintv (Σ := Σ)) := ne_proper_2 _.
+    Proper2 (sf_kintv (Σ := Σ)) := ne_proper_2 _.
 
   #[global] Instance sf_kpi_ne : NonExpansive2 (sf_kpi (Σ := Σ)).
   Proof. solve_proper_ho. Qed.
   #[global] Instance sf_kpi_proper :
-    Proper ((≡) ==> (≡) ==> (≡)) (sf_kpi (Σ := Σ)) := ne_proper_2 _.
+    Proper2 (sf_kpi (Σ := Σ)) := ne_proper_2 _.
 
   Lemma kShift_sf_kpi_eq S (K : sf_kind Σ) :
     kShift (sf_kpi S K) ≡ sf_kpi (oShift S) K.|[up (ren (+1))].
@@ -439,9 +439,9 @@ Section s_kind_rel_proper.
   #[global] Instance s_kpi_ne n : NonExpansive2 (s_kpi (Σ := Σ) (n := n)).
   Proof. apply _. Qed.
 
-  #[global] Instance s_kintv_proper : Proper ((≡) ==> (≡) ==> (≡)) (s_kintv (Σ := Σ)).
+  #[global] Instance s_kintv_proper : Proper2 (s_kintv (Σ := Σ)).
   Proof. apply _. Qed.
-  #[global] Instance s_kpi_proper n : Proper ((≡) ==> (≡) ==> (≡)) (s_kpi (Σ := Σ) (n := n)).
+  #[global] Instance s_kpi_proper n : Proper2 (s_kpi (Σ := Σ) (n := n)).
   Proof. apply _. Qed.
 End s_kind_rel_proper.
 
@@ -486,7 +486,7 @@ Section s_kind_to_sf_kind.
     NonExpansive (s_kind_to_sf_kind (n := n)).
   Proof. by induction 1; cbn; f_equiv. Qed.
   #[global] Instance s_kind_to_sf_kind_proper {n} :
-    Proper ((≡) ==> (≡)) (s_kind_to_sf_kind (n := n)) := ne_proper _.
+    Proper1 (s_kind_to_sf_kind (n := n)) := ne_proper _.
 
   Lemma s_kind_equiv_intro {n} (K1 K2 : s_kind Σ n) : K1 ≡ K2 → s_to_sf K1 ≡@{sf_kind _} s_to_sf K2.
   Proof. apply s_kind_to_sf_kind_proper. Qed.
