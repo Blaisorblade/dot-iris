@@ -322,7 +322,7 @@ Section Propers.
   Context `{HdotG: !dlangG Σ}.
 
   (** Judgments *)
-  #[global] Instance sstpd_proper i : Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sstpd i).
+  #[global] Instance sstpd_proper i : Proper3 (sstpd i).
   Proof.
     solve_proper_ho.
     (* intros ?? HG ?? H1 ?? H2; rewrite /sstpd /subtype_lty;

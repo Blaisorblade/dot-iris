@@ -520,7 +520,7 @@ Section ho_intv.
   Qed.
 
   #[global] Instance ho_intv_proper {n}:
-    Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (ho_intv (n := n) (Σ := Σ)).
+    Proper3 (ho_intv (n := n) (Σ := Σ)).
   Proof.
     move=> K1 K2 /equiv_dist HK L1 L2 /equiv_dist HL U1 U2 /equiv_dist HU.
     apply /equiv_dist => m.

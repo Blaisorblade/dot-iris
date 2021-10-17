@@ -29,7 +29,7 @@ Section Propers.
   Context `{HdotG: !dlangG Σ}.
   Implicit Types (τ L T U : olty Σ).
 
-  #[global] Instance sstpi_proper i j : Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sstpi i j).
+  #[global] Instance sstpi_proper i j : Proper3 (sstpi i j).
   Proof.
     solve_proper_ho.
     (* intros ?? HG ?? H1 ?? H2; simplify_eq/=.
