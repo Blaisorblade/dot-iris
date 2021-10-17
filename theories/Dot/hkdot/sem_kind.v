@@ -229,14 +229,14 @@ Section utils.
 
   #[global] Instance _oTAppV_ne v: NonExpansive (_oTAppV (Σ := Σ) v).
   Proof. solve_proper_ho. Qed.
-  #[global] Instance _oTAppV_proper v:
-    Proper1 (_oTAppV (Σ := Σ) v) := ne_proper _.
+  #[global] Instance _oTAppV_proper v: Proper1 (_oTAppV (Σ := Σ) v) :=
+    ne_proper _.
 
   #[global] Instance oLam_ne : NonExpansive (oLam (Σ := Σ)).
   Proof. solve_proper_ho. Qed.
 
-  #[global] Instance oLam_proper :
-    Proper1 (oLam (Σ := Σ)) := ne_proper _.
+  #[global] Instance oLam_proper : Proper1 (oLam (Σ := Σ)) :=
+    ne_proper _.
 
   Lemma oTAppV_subst (T : olty Σ) v ρ :
     (oTAppV T v).|[ρ] ≡ oTAppV T.|[ρ] v.[ρ].
@@ -341,13 +341,13 @@ Section kinds_types.
 
   #[global] Instance sf_kintv_ne : NonExpansive2 (sf_kintv (Σ := Σ)).
   Proof. rewrite /sf_kintv /sr_kintv. solve_proper_ho. Qed.
-  #[global] Instance sf_kintv_proper :
-    Proper2 (sf_kintv (Σ := Σ)) := ne_proper_2 _.
+  #[global] Instance sf_kintv_proper : Proper2 (sf_kintv (Σ := Σ)) :=
+    ne_proper_2 _.
 
   #[global] Instance sf_kpi_ne : NonExpansive2 (sf_kpi (Σ := Σ)).
   Proof. solve_proper_ho. Qed.
-  #[global] Instance sf_kpi_proper :
-    Proper2 (sf_kpi (Σ := Σ)) := ne_proper_2 _.
+  #[global] Instance sf_kpi_proper : Proper2 (sf_kpi (Σ := Σ)) :=
+    ne_proper_2 _.
 
   Lemma kShift_sf_kpi_eq S (K : sf_kind Σ) :
     kShift (sf_kpi S K) ≡ sf_kpi (oShift S) K.|[up (ren (+1))].
@@ -434,15 +434,11 @@ End s_kind_rel_proper.
 Section s_kind_rel_proper.
   Context {Σ}.
 
-  #[global] Instance s_kintv_ne : NonExpansive2 (s_kintv (Σ := Σ)).
-  Proof. apply _. Qed.
-  #[global] Instance s_kpi_ne n : NonExpansive2 (s_kpi (Σ := Σ) (n := n)).
-  Proof. apply _. Qed.
+  #[global] Instance s_kintv_ne : NonExpansive2 (s_kintv (Σ := Σ)) := _.
+  #[global] Instance s_kintv_proper : Proper2 (s_kintv (Σ := Σ)) := _.
 
-  #[global] Instance s_kintv_proper : Proper2 (s_kintv (Σ := Σ)).
-  Proof. apply _. Qed.
-  #[global] Instance s_kpi_proper n : Proper2 (s_kpi (Σ := Σ) (n := n)).
-  Proof. apply _. Qed.
+  #[global] Instance s_kpi_ne n : NonExpansive2 (s_kpi (Σ := Σ) (n := n)) := _.
+  #[global] Instance s_kpi_proper n : Proper2 (s_kpi (Σ := Σ) (n := n)) := _.
 End s_kind_rel_proper.
 
 Instance s_kind_ids {Σ} : ∀ n, Ids (s_kind Σ n) := fix s_kind_ids n := λ _,
