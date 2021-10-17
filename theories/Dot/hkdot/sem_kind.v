@@ -154,7 +154,7 @@ Qed.
 (* This is really properness of sf_kind_sub; but it's also proper over the
 first argument K. Maybe that's worth a wrapper with swapped arguments. *)
 Lemma sf_kind_proper {Σ} (K : sf_kind Σ) ρ :
-  Proper2 (K ρ).
+  Proper2 (sf_kind_sub K ρ).
 Proof. move=> T1 T2 HT U1 U2 HU. exact: sf_kind_sub_proper. Qed.
 Lemma sf_kind_proper' {Σ} (K : sf_kind Σ) ρ T1 T2 :
   T1 ≡ T2 → K ρ T1 T1 ≡ K ρ T2 T2.
@@ -449,14 +449,14 @@ End s_kind_rel_proper.
   | 0 => s_kintv oTop oBot
   | n.+1 => s_kpi inhabitant (s_kind_ids _ 0)
   end.
-Fixpoint s_kind_hsubst {Σ n} (ρ : env) (K : s_kindO Σ n) : s_kindO Σ n :=
+#[global] Instance hsubst_s_kind {Σ} : ∀ {n}, HSubst vl (s_kind Σ n) :=
+  fix s_kind_hsubst {n} (ρ : env) (K : s_kindO Σ n) {struct K} : s_kindO Σ n :=
   match K with
   | s_kintv S1 S2 => s_kintv S1.|[ρ] S2.|[ρ]
-  | @s_kpi _ n S K =>
-    let _ : HSubst vl (s_kind Σ n) := s_kind_hsubst in
+  | @s_kpi _ n' S K =>
+    let _ : HSubst vl (s_kind Σ n') := s_kind_hsubst in
     s_kpi S.|[ρ] K.|[up ρ]
   end.
-#[global] Instance hsubst_s_kind {Σ n} : HSubst vl (s_kind Σ n) := s_kind_hsubst.
 (* TODO #381: does this work reasonably? *)
 #[global] Instance: Params (@hsubst_s_kind) 2 := {}.
 
