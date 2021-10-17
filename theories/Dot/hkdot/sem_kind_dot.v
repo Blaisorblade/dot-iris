@@ -39,12 +39,12 @@ Section TMem_Proper.
 
   #[global] Instance oDTMemK_ne : NonExpansive (oDTMemK (Σ := Σ)).
   Proof. solve_proper_ho. Qed.
-  #[global] Instance oDTMemK_proper :
-    Proper1 (oDTMemK (Σ := Σ)) := ne_proper _.
+  #[global] Instance oDTMemK_proper : Proper1 (oDTMemK (Σ := Σ)) :=
+    ne_proper _.
   #[global] Instance cTMemK_ne l : NonExpansive (cTMemK (Σ := Σ) l).
   Proof. solve_proper_ho. Qed.
-  #[global] Instance cTMemK_proper l :
-    Proper1 (cTMemK (Σ := Σ) l) := ne_proper _.
+  #[global] Instance cTMemK_proper l : Proper1 (cTMemK (Σ := Σ) l) :=
+    ne_proper _.
 
   Lemma cTMemK_eq l (K : sf_kind Σ) d ρ :
     cTMemK l K ρ [(l, d)] ⊣⊢ oDTMemK K ρ d.

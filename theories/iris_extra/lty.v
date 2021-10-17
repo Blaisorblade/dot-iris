@@ -117,8 +117,8 @@ Section subtype_lty.
 
   #[global] Instance subtype_lty_ne : NonExpansive2 (subtype_lty (Σ := Σ)).
   Proof. solve_proper_ho. Qed.
-  #[global] Instance subtype_lty_proper :
-    Proper2 (subtype_lty (Σ := Σ)) := ne_proper_2 _.
+  #[global] Instance subtype_lty_proper : Proper2 (subtype_lty (Σ := Σ)) :=
+    ne_proper_2 _.
 
   Lemma subtype_refl {T}: ⊢ T ⊆@{Σ} T.
   Proof. by iIntros "%v $". Qed.
@@ -156,8 +156,8 @@ Definition packHoLtyO {Σ} (φ : hoD Σ) : hoLtyO Σ :=
 #[global] Instance packHoLtyO_contractive {Σ} :
   Contractive (packHoLtyO (Σ := Σ)).
 Proof. solve_contractive_ho. Qed.
-#[global] Instance packHoLtyO_proper {Σ} :
-  Proper1 (packHoLtyO (Σ := Σ)) := contractive_proper _.
+#[global] Instance packHoLtyO_proper {Σ} : Proper1 (packHoLtyO (Σ := Σ)) :=
+  contractive_proper _.
 
 (** ** Substitution over [olty]. *)
 Section olty_subst.
@@ -291,7 +291,8 @@ Section olty_subst.
 
   #[global] Instance oShift_ne: NonExpansive oShift.
   Proof. solve_proper_ho. Qed.
-  #[global] Instance oShift_proper : Proper1 oShift := ne_proper _.
+  #[global] Instance oShift_proper : Proper1 oShift :=
+    ne_proper _.
 End olty_subst.
 
 #[global] Instance: Params (@oShift) 1 := {}.
@@ -403,7 +404,8 @@ Section olty_proper.
 
   #[global] Instance oLaterN_ne m : NonExpansive (oLaterN (Σ := Σ) m).
   Proof. solve_proper_ho. Qed.
-  #[global] Instance oLaterN_proper m : Proper1 (oLaterN m) := ne_proper _.
+  #[global] Instance oLaterN_proper m : Proper1 (oLaterN m) :=
+    ne_proper _.
 
   #[global] Instance oAnd_ne : NonExpansive2 (oAnd (Σ := Σ)).
   Proof. solve_proper_ho. Qed.

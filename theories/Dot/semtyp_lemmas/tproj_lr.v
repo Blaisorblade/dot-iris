@@ -97,7 +97,8 @@ Section type_proj_setoid_equality.
 
   #[global] Instance oProjN_ne A : NonExpansive (oProj A).
   Proof. solve_proper_ho. Qed.
-  #[global] Instance oProjN_proper A : Proper1 (oProj A) := ne_proper _.
+  #[global] Instance oProjN_proper A : Proper1 (oProj A) :=
+    ne_proper _.
 
   Lemma oProjN_eq A T args ρ v :
     oProj A T args ρ v ⊣⊢ ∃ w, oClose T ρ w ∧ vl_sel w A args v.

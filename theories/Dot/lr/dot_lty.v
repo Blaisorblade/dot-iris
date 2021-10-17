@@ -125,8 +125,8 @@ Section clty_ofe_proper.
 
   #[global] Instance clty_olty_ne : NonExpansive (clty_olty (Σ := Σ)).
   Proof. by move=> ???[/= _ H]. Qed.
-  #[global] Instance clty_olty_proper :
-    Proper1 (clty_olty (Σ := Σ)) := ne_proper _.
+  #[global] Instance clty_olty_proper : Proper1 (clty_olty (Σ := Σ)) :=
+    ne_proper _.
 
   #[global] Instance clty_dslty_ne n :
     Proper (dist n ==> (=) ==> dist n) (clty_dslty (Σ := Σ)).
@@ -164,13 +164,13 @@ Section lift_dty_lemmas.
 
   #[global] Instance lift_dty_dms_ne l : NonExpansive (lift_dty_dms l).
   Proof. rewrite /lift_dty_dms/= => ??? ??/=; properness; solve_proper_ho. Qed.
-  #[global] Instance lift_dty_dms_proper l :
-    Proper1 (lift_dty_dms l) := ne_proper _.
+  #[global] Instance lift_dty_dms_proper l : Proper1 (lift_dty_dms l) :=
+    ne_proper _.
 
   #[global] Instance lift_dty_vl_ne l : NonExpansive (lift_dty_vl l).
   Proof. rewrite /lift_dty_vl => ??; simplify_eq; solve_proper_ho. Qed.
-  #[global] Instance lift_dty_vl_proper l :
-    Proper1 (lift_dty_vl l) := ne_proper _.
+  #[global] Instance lift_dty_vl_proper l : Proper1 (lift_dty_vl l) :=
+    ne_proper _.
 
   Lemma lift_dty_dms_singleton_eq' (TD : dlty Σ) l1 l2 ρ d :
     lift_dty_dms l1 TD ρ [(l2, d)] ⊣⊢ ⌜ l1 = l2 ⌝ ∧ TD ρ d.
@@ -239,8 +239,8 @@ Section DefsTypes.
 
   #[global] Instance cAnd_ne : NonExpansive2 cAnd.
   Proof. split; rewrite /=; repeat f_equiv; solve_proper_ho. Qed.
-  #[global] Instance cAnd_proper:
-    Proper2 cAnd := ne_proper_2 _.
+  #[global] Instance cAnd_proper : Proper2 cAnd :=
+    ne_proper_2 _.
 
   Lemma cAnd_olty2clty T1 T2 :
     cAnd (olty2clty T1) (olty2clty T2) ≡ olty2clty (oAnd T1 T2).
