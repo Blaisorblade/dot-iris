@@ -460,7 +460,7 @@ Section olty_ofe_2.
   Proof. move => args ρ v /=. by rewrite laterN_or. Qed.
 End olty_ofe_2.
 
-#[global] Instance: Params (@oAnd) 2 := {}.
-#[global] Instance: Params (@oOr) 2 := {}.
-#[global] Instance: Params (@oMu) 2 := {}.
+#[global] Instance: Params (@oAnd) 1 := {}.
+#[global] Instance: Params (@oOr) 1 := {}.
+#[global] Instance: Params (@oMu) 1 := {}.
 End Lty.

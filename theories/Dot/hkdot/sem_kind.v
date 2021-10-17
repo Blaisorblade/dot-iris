@@ -222,7 +222,7 @@ Section sf_kind_subst.
 End sf_kind_subst.
 
 Notation oTAppV T w := (_oTAppV w T).
-#[global] Instance: Params (@_oTAppV) 3 := {}.
+#[global] Instance: Params (@_oTAppV) 2 := {}.
 
 Section utils.
   Context `{dlangG Σ}.
