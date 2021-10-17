@@ -339,7 +339,7 @@ Section Propers.
 
   #[global] Instance sdstp_proper ds : Proper ((≡) ==> (≡) ==> (≡)) (sdstp ds).
   Proof.
-    rewrite /sdstp => ??? [?? _ _ _] [?? _ _ _] [/= ??]; properness; by f_equiv.
+    rewrite /sdstp => ??? [?? _] [?? _] [/= ??]; properness; by f_equiv.
   Qed.
   #[global] Instance: Params (@sdstp) 3 := {}.
 

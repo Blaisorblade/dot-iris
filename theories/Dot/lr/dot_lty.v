@@ -27,27 +27,50 @@ Notation Dslty T := (λ ρ, IPPred (λI ds, T ρ ds)).
 (** ** A "coherent" logical type, containing all semantics of a type.
 That is, semantics for both definition lists and values, and proofs that they
 agree appropriately. *)
+Module clty_mixin.
+  #[local] Set Primitive Projections.
+  Record pred {Σ} (clty_dslty : dslty Σ) (clty_olty : oltyO Σ) : Prop := Mk {
+    clty_def2defs_head {l d ds ρ} :
+      clty_dslty ρ [(l, d)] ⊢ clty_dslty ρ ((l, d) :: ds);
+    clty_mono {l d ds ρ} :
+      dms_hasnt ds l →
+      clty_dslty ρ ds ⊢ clty_dslty ρ ((l, d) :: ds);
+    clty_commute {ds ρ} :
+      clty_dslty ρ (selfSubst ds) ⊢ clty_olty anil ρ (vobj ds);
+  }.
+End clty_mixin.
+Arguments clty_mixin.Mk {Σ _ _}.
+
 Record clty {Σ} := _Clty {
   clty_dslty :> dslty Σ;
   clty_olty : oltyO Σ;
-  clty_def2defs_head {l d ds ρ} :
-    clty_dslty ρ [(l, d)] ⊢ clty_dslty ρ ((l, d) :: ds);
-  clty_mono {l d ds ρ} :
-    dms_hasnt ds l →
-    clty_dslty ρ ds ⊢ clty_dslty ρ ((l, d) :: ds);
-  clty_commute {ds ρ} :
-    clty_dslty ρ (selfSubst ds) ⊢ clty_olty anil ρ (vobj ds);
+  clty_mixin : clty_mixin.pred clty_dslty clty_olty;
 }.
 Add Printing Constructor clty.
 Notation c2o := clty_olty.
 
 Arguments clty : clear implicits.
-Arguments _Clty {_}.
-Notation Clty TD T := (_Clty TD T _ _ _).
+Arguments _Clty {Σ}.
+Notation Clty TD T := (_Clty TD T (clty_mixin.Mk _ _ _)).
 Arguments clty_dslty {_} !_.
 #[global] Instance: Params (@clty_dslty) 1 := {}.
 Arguments clty_olty {_} !_.
 #[global] Instance: Params (@clty_olty) 1 := {}.
+
+Section clty_mixin'.
+  Context {Σ} (c : clty Σ).
+
+  Lemma clty_def2defs_head {l d ds ρ} :
+    clty_dslty c ρ [(l, d)] ⊢ clty_dslty c ρ ((l, d) :: ds).
+  Proof. apply /clty_mixin.clty_def2defs_head /clty_mixin. Qed.
+  Lemma clty_mono {l d ds ρ} :
+    dms_hasnt ds l →
+    clty_dslty c ρ ds ⊢ clty_dslty c ρ ((l, d) :: ds).
+  Proof. apply /clty_mixin.clty_mono /clty_mixin. Qed.
+  Lemma clty_commute {ds ρ} :
+    clty_dslty c ρ (selfSubst ds) ⊢ clty_olty c anil ρ (vobj ds).
+  Proof. apply /clty_mixin.clty_commute /clty_mixin. Qed.
+End clty_mixin'.
 
 Section clty_ofe.
   Context {Σ}.
