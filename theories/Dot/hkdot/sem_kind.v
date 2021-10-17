@@ -444,11 +444,15 @@ Section s_kind_rel_proper.
   #[global] Instance s_kpi_proper n : Proper2 (s_kpi (Σ := Σ) (n := n)) := _.
 End s_kind_rel_proper.
 
-#[global] Instance s_kind_ids {Σ} : ∀ n, Ids (s_kind Σ n) := fix s_kind_ids n := λ _,
-  match n with
-  | 0 => s_kintv oTop oBot
-  | n.+1 => s_kpi inhabitant (s_kind_ids _ 0)
-  end.
+#[global] Instance s_kind_inhabited {Σ} : ∀ {n}, Inhabited (s_kind Σ n) :=
+  fix s_kind_inh n := populate $
+    match n with
+    | 0 => s_kintv oTop oBot
+    | n.+1 => s_kpi inhabitant (@inhabitant _ (s_kind_inh n))
+    end.
+#[global] Instance s_kind_ids {Σ} {n} : Ids (s_kind Σ n) :=
+  ASubstLangDefUtils.inh_ids.
+
 #[global] Instance hsubst_s_kind {Σ} : ∀ {n}, HSubst vl (s_kind Σ n) :=
   fix s_kind_hsubst {n} (ρ : env) (K : s_kindO Σ n) {struct K} : s_kindO Σ n :=
   match K with
@@ -464,7 +468,9 @@ End s_kind_rel_proper.
 Proof.
   split => //.
   - elim=> [S1 S2|{}n S K IHK] /=; by rewrite /= ?up_id ?IHK !hsubst_id.
-  - elim: n => [//|n + θ x] /=. by move ->.
+  - elim: n => [//|n + θ x] /=.
+    (* Defining [s_kind_ids] using [inh_ids] gives slightly odd reduction rules. *)
+    by rewrite (_ : inhabitant = ids (term := s_kind Σ n) 0) // => ->.
   - move=> + + K; elim: K => [S1 S2|{}n S K IHK] θ η /=;
       by rewrite !hsubst_comp ?IHK ?up_comp.
 Qed.
