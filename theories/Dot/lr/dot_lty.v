@@ -75,13 +75,48 @@ End clty_mixin'.
 Section clty_ofe.
   Context {Σ}.
 
-  Let iso := (λ T : clty Σ, (clty_dslty T : _ -d> _, clty_olty T)).
-  Instance clty_equiv : Equiv (clty Σ) := λ A B, iso A ≡ iso B.
-  Instance clty_dist : Dist (clty Σ) := λ n A B, iso A ≡{n}≡ iso B.
+  Let clty_car : Type := (env -d> iPPredO dms Σ) * oltyO Σ.
+
+  Let iso : clty Σ -> clty_car :=
+    λ T : clty Σ, (clty_dslty T : _ -d> _, clty_olty T).
+  #[local] Instance clty_equiv : Equiv (clty Σ) := λ A B, iso A ≡ iso B.
+  #[local] Instance clty_dist : Dist (clty Σ) := λ n A B, iso A ≡{n}≡ iso B.
   Lemma clty_ofe_mixin : OfeMixin (clty Σ).
   Proof. exact: (iso_ofe_mixin iso). Qed.
 
   Canonical Structure cltyO := OfeT (clty Σ) clty_ofe_mixin.
+
+  Let clty_pred : clty_car -> Prop := curry clty_mixin.pred.
+
+  Let clty_pred_alt (c : clty_car) : Prop :=
+    let dslty := fst c in
+    let olty := snd c in
+    (∀ l d ds ρ, dslty ρ [(l, d)] ⊢ dslty ρ ((l, d) :: ds)) ∧
+    (∀ l d ds ρ, dms_hasnt ds l → dslty ρ ds ⊢ dslty ρ ((l, d) :: ds)) ∧
+    (∀ ds ρ, dslty ρ (selfSubst ds) ⊢ olty anil ρ (vobj ds)).
+
+  #[local] Instance : LimitPreserving clty_pred.
+  Proof.
+    apply (limit_preserving_ext clty_pred_alt). {
+      move=> [dslty olty]; rewrite /clty_pred_alt /clty_pred; split => H.
+      by destruct_and?.
+      by destruct H.
+    }
+    repeat apply limit_preserving_and;
+      repeat (apply limit_preserving_forall; intro);
+      repeat apply limit_preserving_entails;
+      move=> n [dslty1 olty1] [dslty2 olty2] [/= Hds Ho];
+      first [apply Hds|apply Ho].
+  Qed.
+
+  #[global] Instance cofe_clty : Cofe cltyO.
+  Proof.
+    apply (iso_cofe_subtype' clty_pred (λ '(ds, o), _Clty ds o) iso).
+    by case.
+    by [].
+    by case.
+    apply _.
+  Qed.
 End clty_ofe.
 Arguments cltyO : clear implicits.
 
