@@ -27,26 +27,26 @@ Notation "'λI' x .. y , t" := (fun x => .. (fun y => t%I) ..)
 
 (** ** Enable rewriting from [f x] to [g x] with [f ≡ g]. *)
 
-Instance equiv_ext_dfun2_pointwise {A B} :
+#[global] Instance equiv_ext_dfun2_pointwise {A B} :
   subrelation (≡@{A -d> B}) (pointwise_relation A (≡)).
 Proof. done. Qed.
 
-Instance dist_ext_dfun2_pointwise {A B n} :
+#[global] Instance dist_ext_dfun2_pointwise {A B n} :
   subrelation (dist n (A := A -d> B)) (pointwise_relation A (dist n)).
 Proof. done. Qed.
 
-Instance equiv_ext_dfun2_forall {A B} :
+#[global] Instance equiv_ext_dfun2_forall {A B} :
   subrelation (≡@{A -d> B}) (forall_relation (const (≡))).
 Proof. done. Qed.
-Instance dist_ext_dfun2_forall {A B n} :
+#[global] Instance dist_ext_dfun2_forall {A B n} :
   subrelation (dist n (A := A -d> B)) (forall_relation (const (dist n))).
 Proof. done. Qed.
 
-Instance equiv_ext_dfun3_forall {A B C} :
+#[global] Instance equiv_ext_dfun3_forall {A B C} :
   subrelation (≡@{A -d> B -d> C})
     (forall_relation (const (forall_relation (const (≡))))).
 Proof. done. Qed.
-Instance dist_ext_dfun3_forall {A B C n} :
+#[global] Instance dist_ext_dfun3_forall {A B C n} :
   subrelation (dist n (A := A -d> B -d> C))
     (forall_relation (const (forall_relation (const (dist n))))).
 Proof. done. Qed.

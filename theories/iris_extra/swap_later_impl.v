@@ -130,13 +130,13 @@ End SwapCmra.
 Notation SwappableRFunct F := (LiftCPropToRFunctor CmraSwappable F).
 Notation SwappableGFunct Σ := (LiftCPropToGFunctors CmraSwappable Σ).
 
-Instance SwappableGFunct_nil : LiftCPropToGFunctors_nil_type CmraSwappable.
+#[global] Instance SwappableGFunct_nil : LiftCPropToGFunctors_nil_type CmraSwappable.
 Proof. apply LiftCPropToGFunctors_nil. Qed.
 
-Instance SwappableGFunct_app : LiftCPropToGFunctors_app_type CmraSwappable.
+#[global] Instance SwappableGFunct_app : LiftCPropToGFunctors_app_type CmraSwappable.
 Proof. apply LiftCPropToGFunctors_app. Qed.
 
-Instance SwappableGFunct_GFunctor `{!rFunctorContractive F} :
+#[global] Instance SwappableGFunct_GFunctor `{!rFunctorContractive F} :
   LiftCPropToGFunctors_GFunctor_type F CmraSwappable.
 Proof. apply LiftCPropToGFunctors_GFunctor. Qed.
 
@@ -157,7 +157,7 @@ Lemma valid_opM_mjoin_option `{A: cmraT} (a: A) mma:
   ✓ (a ⋅? mjoin mma) ↔ ✓ (Some a ⋅? mma).
 Proof. by destruct mma; rewrite //= Some_op_opM. Qed.
 
-Instance CmraSwappable_optionUR `{!CmraSwappable A}: CmraSwappable (optionUR A).
+#[global] Instance CmraSwappable_optionUR `{!CmraSwappable A}: CmraSwappable (optionUR A).
 Proof.
   split => n mmx [z|] /= Hx Hxz.
   - case: (cmra_extend_included n (mjoin mmx) z) => [||x [Hv Heq]];
@@ -181,7 +181,7 @@ Proof.
   by case: (z !! i) (FUN i) => [?|] [?[?]]; rewrite /= ?left_id.
 Qed.
 
-Instance CmraSwappable_gmapUR `{Countable A} `{!CmraSwappable T}:
+#[global] Instance CmraSwappable_gmapUR `{Countable A} `{!CmraSwappable T}:
   CmraSwappable (gmapUR A T).
 Proof.
   split => n [x|] z; rewrite /= ?Some_validN.
@@ -192,7 +192,7 @@ Proof.
 Qed.
 
 (** *** Dependently-typed functions over a finite discrete domain *)
-Instance CmraSwappable_discrete_funUR {A} (B: A → ucmraT)
+#[global] Instance CmraSwappable_discrete_funUR {A} (B: A → ucmraT)
   (H: ∀ i, CmraSwappable (B i)):
   CmraSwappable (discrete_funUR B).
 Proof.
@@ -206,7 +206,7 @@ Proof.
   destruct (FUN a) as (?&HP1&HP2); eauto.
 Qed.
 
-Instance CmraSwappable_iResUR `(fp : SwappableGFunct Σ) :
+#[global] Instance CmraSwappable_iResUR `(fp : SwappableGFunct Σ) :
   CmraSwappable (iResUR Σ) | 100 := lift_cprop_iResUR.
 
 Section agree.
@@ -237,12 +237,12 @@ End agree.
 
 (* Currently unused instances. *)
 (** *** Discrete CMRAs. *)
-Instance CmraSwappable_discrete {A}: CmraDiscrete A → CmraSwappable A.
+#[global] Instance CmraSwappable_discrete {A}: CmraDiscrete A → CmraSwappable A.
 Proof.
   split => n mx z _ Hv //; exists z; move: Hv.
   by rewrite -!cmra_discrete_valid_iff.
 Qed.
 
 (** *** Exclusive CMRA. *)
-Instance CmraSwappable_exclR {A} : CmraSwappable (exclR A).
+#[global] Instance CmraSwappable_exclR {A} : CmraSwappable (exclR A).
 Proof. by split => n [x|] [z|] //; exists (Excl z). Qed.

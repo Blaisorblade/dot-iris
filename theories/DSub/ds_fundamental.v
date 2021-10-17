@@ -137,7 +137,7 @@ Proof.
   iApply (wp_wand with "Htyp"); by iIntros.
 Qed.
 
-Instance dsubSynG_empty: dsubSynG #[] := {}.
+#[global] Instance dsubSynG_empty: dsubSynG #[] := {}.
 
 Corollary type_soundness e T:
   [] ⊢ₜ e : T →

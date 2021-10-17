@@ -53,9 +53,9 @@ Arguments clty : clear implicits.
 Arguments _Clty {Σ}.
 Notation Clty TD T := (_Clty TD T (clty_mixin.Mk _ _ _)).
 Arguments clty_dslty {_} !_.
-Instance: Params (@clty_dslty) 1 := {}.
+#[global] Instance: Params (@clty_dslty) 1 := {}.
 Arguments clty_olty {_} !_.
-Instance: Params (@clty_olty) 1 := {}.
+#[global] Instance: Params (@clty_olty) 1 := {}.
 
 Section clty_mixin'.
   Context {Σ} (c : clty Σ).
@@ -139,11 +139,11 @@ End clty_ofe_proper.
 (** *** Helpers for constructing [clty]. *)
 Definition lift_dty_dms `{!dlangG Σ} l (TD : dltyO Σ) : dsltyO Σ := Dslty (λI ρ ds,
   ∃ d, ⌜ dms_lookup l ds = Some d ⌝ ∧ TD ρ d).
-Instance: Params (@lift_dty_dms) 3 := {}.
+#[global] Instance: Params (@lift_dty_dms) 3 := {}.
 
 Definition lift_dty_vl `{!dlangG Σ} l (TD : dltyO Σ) : oltyO Σ :=
   olty0 (λI ρ v, ∃ d, ⌜v @ l ↘ d ⌝ ∧ TD ρ d).
-Instance: Params (@lift_dty_vl) 3 := {}.
+#[global] Instance: Params (@lift_dty_vl) 3 := {}.
 
 (** This definition is only useful to show in [lift_dty_vl_equiv_paper] that
 certain definitions we give are equivalent to the ones in the paper. *)

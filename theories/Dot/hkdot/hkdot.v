@@ -35,7 +35,7 @@ Notation sstpiK' i Γ T1 T2 K := (∀ ρ, sG⟦Γ⟧*ρ → sstpiK_env i T1 T2 K
 Definition sstpiK `{dlangG Σ} i Γ T1 T2 (K : sf_kind Σ) : iProp Σ :=
   |==> sstpiK' i Γ T1 T2 K.
 Arguments sstpiK : simpl never.
-Instance: Params (@sstpiK) 4 := {}.
+#[global] Instance: Params (@sstpiK) 4 := {}.
 Notation "Γ s⊨ T1 <:[ i  ] T2 ∷ K" := (sstpiK i Γ T1 T2 K)
   (at level 74, i, T1, T2, K at next level).
 
@@ -50,7 +50,7 @@ Notation "Γ s⊨ T ∷[ i  ] K" := (Γ s⊨ T <:[ i ] T ∷ K)
 Definition sSkd `{dlangG Σ} i Γ (K1 K2 : sf_kind Σ) : iProp Σ :=
   |==> ∀ ρ, sG⟦Γ⟧*ρ → ∀ (T1 T2 : hoLtyO Σ), ▷^i (K1 ρ T1 T2 → K2 ρ T1 T2).
 Arguments sSkd : simpl never.
-Instance: Params (@sSkd) 4 := {}.
+#[global] Instance: Params (@sSkd) 4 := {}.
 Notation "Γ s⊨ K1 <∷[ i  ] K2" := (sSkd i Γ K1 K2)
   (at level 74, K1, K2 at next level).
 

@@ -25,18 +25,18 @@ End CmraPersistentLaws.
 Notation PersistentRFunct F := (LiftCPropToRFunctor CmraPersistent F).
 Notation PersistentGFunct Σ := (LiftCPropToGFunctors CmraPersistent Σ).
 
-Instance PersistentGFunct_nil : LiftCPropToGFunctors_nil_type CmraPersistent.
+#[global] Instance PersistentGFunct_nil : LiftCPropToGFunctors_nil_type CmraPersistent.
 Proof. apply LiftCPropToGFunctors_nil. Qed.
 
-Instance PersistentGFunct_app : LiftCPropToGFunctors_app_type CmraPersistent.
+#[global] Instance PersistentGFunct_app : LiftCPropToGFunctors_app_type CmraPersistent.
 Proof. apply LiftCPropToGFunctors_app. Qed.
 
-Instance PersistentGFunct_GFunctor `{!rFunctorContractive F} :
+#[global] Instance PersistentGFunct_GFunctor `{!rFunctorContractive F} :
   LiftCPropToGFunctors_GFunctor_type F CmraPersistent.
 Proof. apply LiftCPropToGFunctors_GFunctor. Qed.
 
 (** *** Show that [iResUR] and [iProp] lift [CmraPersistent], using [cmra_prop_lift]. *)
-Instance CmraPersistent_discrete_funUR {A} (B : A → ucmraT)
+#[global] Instance CmraPersistent_discrete_funUR {A} (B : A → ucmraT)
   `(∀ i, CmraPersistent (B i)) :
   CmraPersistent (discrete_funUR B).
 Proof.
@@ -45,7 +45,7 @@ Proof.
   apply: core_id_core.
 Qed.
 
-Instance CmraPersistent_gmapUR `{Countable A} `(!CmraPersistent T):
+#[global] Instance CmraPersistent_gmapUR `{Countable A} `(!CmraPersistent T):
   CmraPersistent (gmapUR A T).
 Proof.
   intros j.
@@ -55,15 +55,15 @@ Proof.
   apply: core_id.
 Qed.
 
-Instance CmraPersistent_iResUR `(fp : PersistentGFunct Σ) :
+#[global] Instance CmraPersistent_iResUR `(fp : PersistentGFunct Σ) :
   CmraPersistent (iResUR Σ) | 100 := lift_cprop_iResUR.
 
 (** * Show that our actual resources satisfy [CmraPersistent]. *)
-Instance CmraPersistent_agreeR F : CmraPersistent (agreeR F).
+#[global] Instance CmraPersistent_agreeR F : CmraPersistent (agreeR F).
 Proof. intros ?; apply _. Qed.
 
 (* Currently unused instances. *)
-Instance CmraPersistent_optionUR `{!CmraPersistent A}: CmraPersistent (optionUR A).
+#[global] Instance CmraPersistent_optionUR `{!CmraPersistent A}: CmraPersistent (optionUR A).
 Proof.
   intros x.
   apply Some_proper.

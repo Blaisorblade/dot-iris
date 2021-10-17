@@ -125,7 +125,7 @@ Declare Scope hdms_scope.
 Bind Scope hdms_scope with hdms.
 Delimit Scope hdms_scope with HD.
 
-Instance ids_hvl : Ids hvl := λ x, (* [x]: input to the substitution. *)
+#[global] Instance ids_hvl : Ids hvl := λ x, (* [x]: input to the substitution. *)
   (* Resulting [vl]. *)
   λ i, ids (x + i).
 

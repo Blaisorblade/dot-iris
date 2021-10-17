@@ -56,13 +56,13 @@ Lemma type_equiv_refl' T : |- T == T
 with kind_equiv_refl' K : |-K K == K.
 Proof. all: [> destruct T | destruct K]; constructor; auto. Qed.
 
-Instance type_equiv_refl : Reflexive type_equiv := type_equiv_refl'.
-Instance kind_equiv_refl : Reflexive kind_equiv := kind_equiv_refl'.
+#[global] Instance type_equiv_refl : Reflexive type_equiv := type_equiv_refl'.
+#[global] Instance kind_equiv_refl : Reflexive kind_equiv := kind_equiv_refl'.
 
 Existing Instances type_equiv_sym type_equiv_trans kind_equiv_sym kind_equiv_trans.
 
-Instance: Equivalence type_equiv := {}.
-Instance: RewriteRelation type_equiv := {}.
+#[global] Instance: Equivalence type_equiv := {}.
+#[global] Instance: RewriteRelation type_equiv := {}.
 
 Lemma type_equiv_laterN_and j U1 U2 :
   |- iterate TLater j (TAnd U1 U2)

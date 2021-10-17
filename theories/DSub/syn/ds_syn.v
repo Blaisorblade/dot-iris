@@ -40,18 +40,18 @@ Implicit Types
          (L T U : ty) (v : vl) (t : tm)
          (Γ : ctx).
 
-Instance inh_ty : Inhabited ty := populate TInt.
-Instance inh_vl : Inhabited vl := populate (vint 0).
-Instance inh_tm : Inhabited tm := populate (tv inhabitant).
+#[global] Instance inh_ty : Inhabited ty := populate TInt.
+#[global] Instance inh_vl : Inhabited vl := populate (vint 0).
+#[global] Instance inh_tm : Inhabited tm := populate (tv inhabitant).
 
-Instance ids_vl : Ids vl := vvar.
+#[global] Instance ids_vl : Ids vl := vvar.
 
-Instance inj_ids : Inj (=) (=@{vl}) ids.
+#[global] Instance inj_ids : Inj (=) (=@{vl}) ids.
 Proof. by move=>??[]. Qed.
 
-Instance ids_tm : Ids tm := inh_ids.
-Instance ids_ty : Ids ty := inh_ids.
-Instance ids_ctx : Ids ctx := _.
+#[global] Instance ids_tm : Ids tm := inh_ids.
+#[global] Instance ids_ty : Ids ty := inh_ids.
+#[global] Instance ids_ctx : Ids ctx := _.
 
 Fixpoint tm_rename (sb : var → var) t : tm :=
   let _ := tm_rename : Rename tm in
@@ -90,9 +90,9 @@ ty_rename (sb : var → var) T : ty :=
   | TInt => TInt
   end.
 
-Instance rename_tm : Rename tm := tm_rename.
-Instance rename_vl : Rename vl := vl_rename.
-Instance rename_ty : Rename ty := ty_rename.
+#[global] Instance rename_tm : Rename tm := tm_rename.
+#[global] Instance rename_vl : Rename vl := vl_rename.
+#[global] Instance rename_ty : Rename ty := ty_rename.
 
 Fixpoint tm_hsubst (sb : var → vl) t : tm :=
   let _ := tm_hsubst : HSubst vl tm in
@@ -131,9 +131,9 @@ ty_hsubst (sb : var → vl) T : ty :=
   | TInt => TInt
   end.
 
-Instance subst_vl : Subst vl := vl_subst.
-Instance hsubst_tm : HSubst vl tm := tm_hsubst.
-Instance hsubst_ty : HSubst vl ty := ty_hsubst.
+#[global] Instance subst_vl : Subst vl := vl_subst.
+#[global] Instance hsubst_tm : HSubst vl tm := tm_hsubst.
+#[global] Instance hsubst_ty : HSubst vl ty := ty_hsubst.
 
 Lemma vl_eq_dec v1 v2 : Decision (v1 = v2)
 with
@@ -142,9 +142,9 @@ with
 ty_eq_dec T1 T2 : Decision (T1 = T2).
 Proof. all: rewrite /Decision; decide equality; solve_decision. Defined.
 
-Instance vl_eq_dec' : EqDecision vl := vl_eq_dec.
-Instance tm_eq_dec' : EqDecision tm := tm_eq_dec.
-Instance ty_eq_dec' : EqDecision ty := ty_eq_dec.
+#[global] Instance vl_eq_dec' : EqDecision vl := vl_eq_dec.
+#[global] Instance tm_eq_dec' : EqDecision tm := tm_eq_dec.
+#[global] Instance ty_eq_dec' : EqDecision ty := ty_eq_dec.
 
 #[local] Ltac finish_lists l x :=
   elim: l => [|x xs IHds] //=; by f_equal.
@@ -210,22 +210,22 @@ Proof.
     auto using vl_rename_comp_Lemma, vl_comp_rename_Lemma; finish_lists l x.
 Qed.
 
-Instance subst_lemmas_vl : SubstLemmas vl.
+#[global] Instance subst_lemmas_vl : SubstLemmas vl.
 Proof.
   split; auto using vl_rename_Lemma, vl_ids_Lemma, vl_comp_Lemma.
 Qed.
 
-Instance hsubst_lemmas_tm : HSubstLemmas vl tm.
+#[global] Instance hsubst_lemmas_tm : HSubstLemmas vl tm.
 Proof.
   split; auto using tm_ids_Lemma, tm_comp_Lemma.
 Qed.
 
-Instance hsubst_lemmas_ty : HSubstLemmas vl ty.
+#[global] Instance hsubst_lemmas_ty : HSubstLemmas vl ty.
 Proof.
   split; auto using ty_ids_Lemma, ty_comp_Lemma.
 Qed.
 
-Instance hsubst_lemmas_ctx : HSubstLemmas vl ctx := _.
+#[global] Instance hsubst_lemmas_ctx : HSubstLemmas vl ctx := _.
 
 (** Instantiating iris with DSub *)
 Module lang.
@@ -307,7 +307,7 @@ Proof. done. Qed.
 Include Sorts.
 End VlSorts.
 
-Instance sort_ty : Sort ty := {}.
+#[global] Instance sort_ty : Sort ty := {}.
 
 (** Induction principles for syntax. *)
 

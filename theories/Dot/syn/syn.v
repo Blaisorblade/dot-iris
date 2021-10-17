@@ -116,28 +116,28 @@ Delimit Scope dms_scope with dms.
 (******************************************************************************)
 
 (** [Inhabited] instances; out of order, because of dependencies among them. *)
-Instance inh_label : Inhabited label := _.
-Instance inh_base_lit : Inhabited base_lit := populate (lint 0).
-Instance inh_vl : Inhabited vl := populate (vlit inhabitant).
-Instance inh_tm : Inhabited tm := populate (tv inhabitant).
-Instance inh_pth : Inhabited path := populate (pv inhabitant).
-Instance inh_dm : Inhabited dm := populate (dpt inhabitant).
-Instance inh_ty : Inhabited ty := populate TInt.
-Instance inh_kind : Inhabited kind := populate (kintv inhabitant inhabitant).
+#[global] Instance inh_label : Inhabited label := _.
+#[global] Instance inh_base_lit : Inhabited base_lit := populate (lint 0).
+#[global] Instance inh_vl : Inhabited vl := populate (vlit inhabitant).
+#[global] Instance inh_tm : Inhabited tm := populate (tv inhabitant).
+#[global] Instance inh_pth : Inhabited path := populate (pv inhabitant).
+#[global] Instance inh_dm : Inhabited dm := populate (dpt inhabitant).
+#[global] Instance inh_ty : Inhabited ty := populate TInt.
+#[global] Instance inh_kind : Inhabited kind := populate (kintv inhabitant inhabitant).
 
 (** Actual [Ids] instance, for values. *)
-Instance ids_vl : Ids vl := vvar.
+#[global] Instance ids_vl : Ids vl := vvar.
 
 (** Dummy [Ids] instances. *)
-Instance ids_tm : Ids tm := inh_ids.
-Instance ids_dm : Ids dm := inh_ids.
-Instance ids_pth : Ids path := inh_ids.
-Instance ids_ty : Ids ty := inh_ids.
-Instance ids_kind : Ids kind := inh_ids.
-Instance ids_dms : Ids dms := _.
-Instance ids_ctx : Ids ctx := _.
+#[global] Instance ids_tm : Ids tm := inh_ids.
+#[global] Instance ids_dm : Ids dm := inh_ids.
+#[global] Instance ids_pth : Ids path := inh_ids.
+#[global] Instance ids_ty : Ids ty := inh_ids.
+#[global] Instance ids_kind : Ids kind := inh_ids.
+#[global] Instance ids_dms : Ids dms := _.
+#[global] Instance ids_ctx : Ids ctx := _.
 
-Instance inj_ids : Inj (=) (=@{vl}) ids.
+#[global] Instance inj_ids : Inj (=) (=@{vl}) ids.
 Proof. by move=>??[]. Qed.
 
 (** *** Renaming *)
@@ -210,12 +210,12 @@ with kind_rename (sb : var → var) K : kind :=
   | kpi S K => kpi (rename sb S) (rename (upren sb) K)
   end.
 
-Instance rename_tm   : Rename tm   := tm_rename.
-Instance rename_vl   : Rename vl   := vl_rename.
-Instance rename_dm   : Rename dm   := dm_rename.
-Instance rename_pth  : Rename path := path_rename.
-Instance rename_ty   : Rename ty   := ty_rename.
-Instance rename_kind : Rename kind := kind_rename.
+#[global] Instance rename_tm   : Rename tm   := tm_rename.
+#[global] Instance rename_vl   : Rename vl   := vl_rename.
+#[global] Instance rename_dm   : Rename dm   := dm_rename.
+#[global] Instance rename_pth  : Rename path := path_rename.
+#[global] Instance rename_ty   : Rename ty   := ty_rename.
+#[global] Instance rename_kind : Rename kind := kind_rename.
 
 Hint Rewrite @list_rename_fold @list_pair_rename_fold : autosubst.
 
@@ -289,23 +289,23 @@ with kind_hsubst (sb : var → vl) K : kind :=
   | kpi S K => kpi (hsubst sb S) (hsubst (up sb) K)
   end.
 
-Instance hsubst_tm   : HSubst vl tm   := tm_hsubst.
-Instance subst_vl    : Subst vl       := vl_subst.
-Instance hsubst_dm   : HSubst vl dm   := dm_hsubst.
-Instance hsubst_pth  : HSubst vl path := path_hsubst.
-Instance hsubst_ty   : HSubst vl ty   := ty_hsubst.
-Instance hsubst_kind : HSubst vl kind := kind_hsubst.
+#[global] Instance hsubst_tm   : HSubst vl tm   := tm_hsubst.
+#[global] Instance subst_vl    : Subst vl       := vl_subst.
+#[global] Instance hsubst_dm   : HSubst vl dm   := dm_hsubst.
+#[global] Instance hsubst_pth  : HSubst vl path := path_hsubst.
+#[global] Instance hsubst_ty   : HSubst vl ty   := ty_hsubst.
+#[global] Instance hsubst_kind : HSubst vl kind := kind_hsubst.
 
-Instance base_lit_eq_dec : EqDecision base_lit.
+#[global] Instance base_lit_eq_dec : EqDecision base_lit.
 Proof. solve_decision. Defined.
 
-Instance un_op_eq_dec : EqDecision un_op.
+#[global] Instance un_op_eq_dec : EqDecision un_op.
 Proof. solve_decision. Defined.
 
-Instance bin_op_eq_dec : EqDecision bin_op.
+#[global] Instance bin_op_eq_dec : EqDecision bin_op.
 Proof. solve_decision. Defined.
 
-Instance base_ty_eq_dec : EqDecision base_ty.
+#[global] Instance base_ty_eq_dec : EqDecision base_ty.
 Proof. solve_decision. Defined.
 
 Lemma vl_eq_dec v1 v2   : Decision (v1 = v2)
@@ -320,12 +320,12 @@ Proof.
     rewrite /Decision; decide equality; solve_decision.
 Defined.
 
-Instance tm_eq_dec'   : EqDecision tm   := tm_eq_dec.
-Instance vl_eq_dec'   : EqDecision vl   := vl_eq_dec.
-Instance dm_eq_dec'   : EqDecision dm   := dm_eq_dec.
-Instance path_eq_dec' : EqDecision path := path_eq_dec.
-Instance ty_eq_dec'   : EqDecision ty   := ty_eq_dec.
-Instance kind_eq_dec' : EqDecision kind := kind_eq_dec.
+#[global] Instance tm_eq_dec'   : EqDecision tm   := tm_eq_dec.
+#[global] Instance vl_eq_dec'   : EqDecision vl   := vl_eq_dec.
+#[global] Instance dm_eq_dec'   : EqDecision dm   := dm_eq_dec.
+#[global] Instance path_eq_dec' : EqDecision path := path_eq_dec.
+#[global] Instance ty_eq_dec'   : EqDecision ty   := ty_eq_dec.
+#[global] Instance kind_eq_dec' : EqDecision kind := kind_eq_dec.
 
 #[local] Ltac finish_lists l x :=
   elim: l => [|x xs IHds] //=; idtac + elim: x => [l d] //=; f_equal => //; by f_equal.
@@ -402,39 +402,39 @@ Proof.
     auto using vl_rename_comp_Lemma, vl_comp_rename_Lemma; finish_lists l x.
 Qed.
 
-Instance hsubst_lemmas_tm : HSubstLemmas vl tm.
+#[global] Instance hsubst_lemmas_tm : HSubstLemmas vl tm.
 Proof.
   split; auto using tm_ids_Lemma, tm_comp_Lemma.
 Qed.
 
-Instance subst_lemmas_vl : SubstLemmas vl.
+#[global] Instance subst_lemmas_vl : SubstLemmas vl.
 Proof.
   split; auto using vl_rename_Lemma, vl_ids_Lemma, vl_comp_Lemma.
 Qed.
 
-Instance hsubst_lemmas_dm : HSubstLemmas vl dm.
+#[global] Instance hsubst_lemmas_dm : HSubstLemmas vl dm.
 Proof.
   split; auto using dm_ids_Lemma, dm_comp_Lemma.
 Qed.
 
-Instance hsubst_lemmas_pth : HSubstLemmas vl path.
+#[global] Instance hsubst_lemmas_pth : HSubstLemmas vl path.
 Proof.
   split; auto using path_ids_Lemma, path_comp_Lemma.
 Qed.
 
-Instance hsubst_lemmas_ty : HSubstLemmas vl ty.
+#[global] Instance hsubst_lemmas_ty : HSubstLemmas vl ty.
 Proof.
   split; auto using ty_ids_Lemma, ty_comp_Lemma.
 Qed.
 
-Instance hsubst_lemmas_kind : HSubstLemmas vl kind.
+#[global] Instance hsubst_lemmas_kind : HSubstLemmas vl kind.
 Proof.
   split; auto using kind_ids_Lemma, kind_comp_Lemma.
 Qed.
 
-Instance hsubst_lemmas_ctx : HSubstLemmas vl ctx := _.
+#[global] Instance hsubst_lemmas_ctx : HSubstLemmas vl ctx := _.
 
-Instance hsubst_lemmas_dms : HSubstLemmas vl dms := _.
+#[global] Instance hsubst_lemmas_dms : HSubstLemmas vl dms := _.
 
 (******************************************************************************)
 (** * Auxiliary definitions for operational semantics. *)
@@ -642,10 +642,10 @@ End VlSorts.
 
 Implicit Types (vs : vls).
 
-Instance sort_dm : Sort dm := {}.
-Instance sort_path : Sort path := {}.
-Instance sort_ty : Sort ty := {}.
-Instance sort_kind : Sort kind := {}.
+#[global] Instance sort_dm : Sort dm := {}.
+#[global] Instance sort_path : Sort path := {}.
+#[global] Instance sort_ty : Sort ty := {}.
+#[global] Instance sort_kind : Sort kind := {}.
 
 (** *** Induction principles for syntax. *)
 
