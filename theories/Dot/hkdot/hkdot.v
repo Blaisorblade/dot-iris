@@ -58,7 +58,7 @@ Section gen_lemmas.
   Context `{Hdlang : dlangG Σ} `{HswapProp: SwapPropI Σ}.
 
   #[global] Instance sstpiK_proper i :
-    Proper ((≡) ==> (≡) ==> (≡) ==> (≡) ==> (≡)) (sstpiK (Σ := Σ) i).
+    Proper4 (sstpiK (Σ := Σ) i).
   Proof.
     rewrite /sstpiK=> Γ1 Γ2 HΓ T1 T2 HT U1 U2 HU K1 K2 HK.
     properness; rewrite (HΓ, HK); first done.
@@ -73,7 +73,7 @@ Section gen_lemmas.
   Proof. iIntros ">#HT !>" (ρ) "#Hg /=". iApply (Hsub with "Hg (HT Hg)"). Qed.
 
   #[global] Instance sSkd_proper i :
-    Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sSkd (Σ := Σ) i).
+    Proper3 (sSkd (Σ := Σ) i).
   Proof.
     rewrite /sSkd => Γ1 Γ2 HΓ K1 K2 HK1 K3 K4 HK2.
     by properness; rewrite (HΓ, HK1, HK2).
