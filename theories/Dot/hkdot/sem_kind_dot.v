@@ -151,9 +151,13 @@ Definition sem_kind_path_repl {Σ} p q (K1 K2 : sf_kind Σ) : Prop :=
 Notation "K1 ~sKpP[ p := q  ]* K2" :=
   (sem_kind_path_repl p q K1 K2) (at level 70).
 
-Definition oTApp `{!dlangG Σ} (T : oltyO Σ) (p : path) : oltyO Σ :=
+(* Arguments are ordered to optimize setoid rewriting and maximize [Params]. *)
+Definition _oTApp `{!dlangG Σ} (p : path) (T : oltyO Σ) : oltyO Σ :=
   Olty (λ args ρ v, path_wp p.|[ρ] (λ w, T (acons w args) ρ v)).
-#[global] Instance : Params (@oTApp) 2 := {}.
+#[global] Instance : Params (@_oTApp) 3 := {}.
+
+(* Show a more natural ordering to the user. *)
+Notation oTApp T p := (_oTApp p T).
 
 Program Definition kpSubstOne `{!dlangG Σ} p (K : sf_kind Σ) : sf_kind Σ :=
   SfKind
@@ -183,11 +187,11 @@ Notation "K .sKp[ p /]" := (kpSubstOne p K) (at level 65).
 Section proper_eq.
   Context `{!dlangG Σ}.
 
-  #[global] Instance oTApp_ne n : Proper (dist n ==> eq ==> dist n) oTApp.
-  Proof. move=> T1 T2 HT. solve_proper_prepare. apply: path_wp_ne=>v. exact: HT. Qed.
+  #[global] Instance _oTApp_ne p : NonExpansive (_oTApp p).
+  Proof. move=> n T1 T2 HT args ρ v /=. apply: path_wp_ne=> w. exact: HT. Qed.
 
-  #[global] Instance oTApp_proper : Proper ((≡) ==> eq ==> (≡)) oTApp.
-  Proof. move=> T1 T2 HT. solve_proper_prepare. apply: path_wp_proper=>v. exact: HT. Qed.
+  #[global] Instance _oTApp_proper p : Proper1 (_oTApp p) :=
+    ne_proper _.
 
   Lemma kpSubstOne_eq (K : sf_kind Σ) v :
     K.|[v/] ≡ K .sKp[ pv v /].
