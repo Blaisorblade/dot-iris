@@ -222,6 +222,7 @@ Section sf_kind_subst.
 End sf_kind_subst.
 
 Notation oTAppV T w := (_oTAppV w T).
+#[global] Instance: Params (@oLam) 1 := {}.
 #[global] Instance: Params (@_oTAppV) 2 := {}.
 
 Section utils.
@@ -302,6 +303,7 @@ Next Obligation.
   intros; rewrite sr_kintv_refl; iIntros "/= #(A & B & $)".
   iApply (subtype_trans with "A B").
 Qed.
+#[global] Instance : Params (@sf_kintv) 3 := {}.
 
 Notation sf_star := (sf_kintv oBot oTop).
 
@@ -335,6 +337,7 @@ Qed.
 Next Obligation.
   intros; iIntros "/= #H * #Harg"; iApply (sf_kind_sub_quasi_refl_2 with "(H Harg)").
 Qed.
+#[global] Instance : Params (@sf_kpi) 3 := {}.
 
 Section kinds_types.
   Context `{dlangG Σ}.

@@ -25,8 +25,10 @@ Notation oDTMemRaw rK := (Dlty (λI ρ d, ∃ ψ, d ↗n ψ ∧ rK ρ ψ)).
 (** [ D⟦ { A :: K } ⟧ ]. *)
 Definition oDTMemK `{!dlangG Σ} (K : sf_kind Σ) : dltyO Σ :=
   oDTMemRaw (λI ρ ψ, K ρ (packHoLtyO ψ) (packHoLtyO ψ)).
+#[global] Instance : Params (@oDTMemK) 2 := {}.
 
 Definition cTMemK `{!dlangG Σ} l (K : sf_kind Σ) : clty Σ := dty2clty l (oDTMemK K).
+#[global] Instance : Params (@cTMemK) 3 := {}.
 Notation oTMemK l K := (clty_olty (cTMemK l K)).
 
 Definition oDTMemAnyKind `{!dlangG Σ} : dltyO Σ := Dlty (λI ρ d,
@@ -68,10 +70,12 @@ End TMem_Proper.
 (** Not a "real" kind, just a predicate over types. *)
 Definition dot_intv_type_pred `{!dlangG Σ} (L U : oltyO Σ) ρ ψ : iProp Σ :=
   L anil ρ ⊆ packHoLtyO ψ anil ∧ packHoLtyO ψ anil ⊆ U anil ρ.
+#[global] Instance : Params (@dot_intv_type_pred) 2 := {}.
 
 (** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
 Definition oDTMem `{!dlangG Σ} L U : dltyO Σ := oDTMemK (sf_kintv L U).
 Definition oDTMem_eq `{!dlangG Σ} : oDTMem = λ L U, oDTMemK (sf_kintv L U) := reflexivity _.
+#[global] Instance : Params (@oDTMem) 2 := {}.
 
 #[global] Arguments oDTMem {_ _} _ _  _ : assert.
 
@@ -84,8 +88,11 @@ Section sem_TMem.
     rewrite oDTMem_eq => ρ d /=. f_equiv=> ψ; f_equiv. apply sr_kintv_refl.
   Qed.
 
-  #[global] Instance oDTMem_proper : Proper2 oDTMem.
-  Proof. move=> ??? ??? ??/=. properness; [done|]. exact: sr_kintv_proper. Qed.
+  #[global] Instance oDTMem_ne : NonExpansive2 oDTMem.
+  Proof. move=> ? ??? ??? ??/=. solve_proper. Qed.
+
+  #[global] Instance oDTMem_proper : Proper2 oDTMem :=
+    ne_proper_2 _.
 
   (** Define [cTMem] by lifting [oDTMem] to [clty]s. *)
   (**
@@ -140,6 +147,7 @@ Notation "K1 ~sKpP[ p := q  ]* K2" :=
 
 Definition oTApp `{!dlangG Σ} (T : oltyO Σ) (p : path) : oltyO Σ :=
   Olty (λ args ρ v, path_wp p.|[ρ] (λ w, T (acons w args) ρ v)).
+#[global] Instance : Params (@oTApp) 2 := {}.
 
 Program Definition kpSubstOne `{!dlangG Σ} p (K : sf_kind Σ) : sf_kind Σ :=
   SfKind
