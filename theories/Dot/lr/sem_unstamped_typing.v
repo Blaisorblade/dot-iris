@@ -399,7 +399,7 @@ Section unstamped_lemmas.
     by iExists (dpt (pv v1s)); iSplit; last iApply (sD_Val with "H1").
   Qed.
 
-  Lemma suD_Path {Γ} T p l:
+  Lemma suD_Path {Γ} T p l :
     Γ s⊨p p : T, 0 -∗
     Γ su⊨ { l := dpt p } : cVMem l T.
   Proof.
@@ -407,7 +407,7 @@ Section unstamped_lemmas.
     by iExists (dpt p); iSplit; last iApply (sD_Path with "H1").
   Qed.
 
-  Lemma suD_Val_New {Γ l ds} {T : clty Σ}:
+  Lemma suD_Val_New {Γ l ds} {T : clty Σ} :
     oAnd (oLater (c2o T)) (oSing (pself (pv (ids 1)) l)) :: Γ su⊨ds ds : T -∗
     Γ su⊨ { l := dpt (pv (vobj ds)) } : cVMem l (oMu (c2o T)).
   Proof.

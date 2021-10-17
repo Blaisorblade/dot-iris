@@ -133,7 +133,7 @@ Section logrel.
      For calls that are structurally recursive and are under [▷], we prefer
      [rinterp] to [rec rinterp], to simplify proofs of the unfolding lemmas.
    *)
-  Definition interp_rec: (ty -d> envD Σ) → ty -d> envD Σ :=
+  Definition interp_rec : (ty -d> envD Σ) → ty -d> envD Σ :=
     fix rec rinterp T :=
     match T with
     | TLater T => interp_later (rinterp T)

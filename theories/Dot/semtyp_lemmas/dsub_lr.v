@@ -42,11 +42,11 @@ Section DStpLemmas.
     iApply (subtype_trans with "(Hsub1 Hg) (Hsub2 Hg)").
   Qed.
 
-  Lemma sStp_Top Γ T i:
+  Lemma sStp_Top Γ T i :
     ⊢ Γ s⊨ T <:[i] oTop.
   Proof. rewrite sstpd_eq_1. by iIntros "!> ** !> **". Qed.
 
-  Lemma sBot_Stp Γ T i:
+  Lemma sBot_Stp Γ T i :
     ⊢ Γ s⊨ oBot <:[i] T.
   Proof. rewrite sstpd_eq_1. by iIntros "!> /= ** !> []". Qed.
 
