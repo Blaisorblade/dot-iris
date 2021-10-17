@@ -77,7 +77,10 @@ Definition oDTMem `{!dlangG Σ} L U : dltyO Σ := oDTMemK (sf_kintv L U).
 Definition oDTMem_eq `{!dlangG Σ} : oDTMem = λ L U, oDTMemK (sf_kintv L U) := reflexivity _.
 #[global] Instance : Params (@oDTMem) 2 := {}.
 
-#[global] Arguments oDTMem {_ _} _ _  _ : assert.
+#[global] Arguments oDTMem {Σ _} L U ρ : rename.
+
+Definition cTMem `{!dlangG Σ} l L U : clty Σ := dty2clty l (oDTMem L U).
+#[global] Instance : Params (@cTMem) 3 := {}.
 
 Section sem_TMem.
   Context `{HdotG: !dlangG Σ}.
@@ -100,9 +103,12 @@ Section sem_TMem.
   Beware: the ICFP'20 defines instead
   [ Ds⟦ { l >: τ1 <: τ2 } ⟧] and [ V⟦ { l >: τ1 <: τ2 } ⟧ ],
   which are here a derived notation; see [cTMemL]. *)
-  Definition cTMem l L U : clty Σ := dty2clty l (oDTMem L U).
-  #[global] Instance cTMem_proper l : Proper2 (cTMem l).
+
+  #[global] Instance cTMem_ne l : NonExpansive2 (cTMem l).
   Proof. solve_proper. Qed.
+
+  #[global] Instance cTMem_proper l : Proper2 (cTMem l) :=
+    ne_proper_2 _.
 
   Lemma cTMem_unfold l L U :
     cTMem l L U ≡ dty2clty l (oDTMemRaw (dot_intv_type_pred L U)).
