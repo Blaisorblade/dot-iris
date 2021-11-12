@@ -8,7 +8,7 @@
  ;(package dot-iris)            ; Adding this line will make your
  ; library installable in the package
 
- (flags (
+ (flags (:standard
    ; We sometimes want to locally override notation (e.g. in proofmode/base.v, bi/embedding.v), and there
    ; is no good way to do that with scopes.
    -w -notation-overridden
