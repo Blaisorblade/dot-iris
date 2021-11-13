@@ -42,7 +42,7 @@ Section small_ex.
       (oAnd (oVMem "n" (oLater (oSel x0 "A")))
       oTop).
   #[local] Lemma sminiVT2Body_test : V⟦miniVT2Body⟧ ≡ sminiVT2Body.
-  Proof. done. Qed.
+  Proof. rewrite /miniVT2Body. rw. done. Qed.
 
   Definition sminiVT2ConcrBody : cltyO Σ :=
     cAnd (cTMemL "A" ipos ipos)
@@ -51,6 +51,7 @@ Section small_ex.
 
   Lemma vHasA2t : ⊢ [] u⊨ hminiV : miniVT2.
   Proof using Type*.
+    rewrite /miniVT2. rw.
     iApply (suT_Sub (T1 := oMu (c2o sminiVT2ConcrBody))); first last.
     - iApply sMu_Stp_Mu; rewrite oLaterN_0.
       iApply sStp_And; last iApply sStp_And; last iApply sStp_Top.

@@ -48,8 +48,9 @@ Section loop_sem.
     iDestruct (fundamental_typed (loopTyp [])) as "#>H".
     iDestruct "H" as (e_s Hsk1) ">H"; iModIntro.
     iSpecialize ("H" $! ids with "[//]"); rewrite hsubst_id.
-    move E: hloopTm =>e; suff <-: e_s = e by []; subst; clear -Hsk1.
-    cbv; repeat constrain_bisimulating.
+    move E: hloopTm => e.
+    suff ->: e_s = e. { iApply (wp_wand with "H"). iIntros (v). by rw. }
+    subst; clear -Hsk1. cbv; repeat constrain_bisimulating.
   Qed.
 
 End loop_sem.
