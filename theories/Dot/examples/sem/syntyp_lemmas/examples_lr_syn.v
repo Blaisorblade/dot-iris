@@ -92,10 +92,6 @@ Section Lemmas.
     iApply Stp_Mu. by iApply Mu_Stp_Mu.
   Qed.
 
-  (*
-  Useful in contexts where we make [pty_interp] more opaque, such as some
-  larger examples.
-  *)
   Lemma T_Mu_I {Γ} T v: Γ ⊨ tv v : T.|[v/] -∗ Γ ⊨ tv v : TMu T.
   Proof. by rewrite /ietp -sT_Mu_I interp_commute_subst. Qed.
 
