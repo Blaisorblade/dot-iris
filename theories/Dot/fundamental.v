@@ -2,7 +2,7 @@
 From D Require Import swap_later_impl.
 From D.Dot Require Export unary_lr later_sub_sem later_sub_syn
   binding_lr defs_lr dsub_lr prims_lr path_repl_lr.
-From D.Dot Require Export binding_lr_syn dsub_lr_syn path_repl_lr_syn.
+From D.Dot Require Export binding_lr_syn dsub_lr_syn path_repl_lr_syn prims_lr_syn.
 From D.Dot Require Export sem_unstamped_typing.
 
 From D.Dot Require Import typing path_repl_lemmas.
