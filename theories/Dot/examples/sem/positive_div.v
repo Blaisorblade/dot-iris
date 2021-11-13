@@ -147,8 +147,8 @@ Section div_example.
   Theorem posModTy : ⊢ [] u⊨ hposModV : hposModT.
   Proof using Type*.
     rewrite /hposModT.
-    have HctxSub:
-      s⊨G oLater oPreciseBody :: V⟦ [] ⟧* <:* oLater <$> [oPreciseBody].
+    have HctxSub :
+      s⊨G oLater oPreciseBody :: [] <:* oLater <$> [oPreciseBody].
     by iIntros "% $".
     iApply (suT_Sub (T1 := oMu oPreciseBody)); first last. {
       iApply sMu_Stp_Mu. rewrite oLaterN_0.
@@ -158,8 +158,7 @@ Section div_example.
     }
     iApply suT_Obj_I.
     iApply suD_Cons; [done|iApply suD_posDm_ipos|].
-    iApply suD_Cons; [done| iApply suD_Val|]; last
-      (iApply suD_Sing; iApply suD_Val);
+    iApply suD_Cons; [done| iApply suD_Val|iApply suD_Sing; iApply suD_Val];
       iApply (suT_All_I_Strong _ _ _ HctxSub).
     - unstamp_goal_tm; iMod wp_if_ge as "#Hge".
       iIntros "!> %ρ [[_ [#Hpos _]] %Hnpos]"; lazy in Hnpos.
@@ -171,9 +170,9 @@ Section div_example.
       iIntros "!%"; hnf. naive_solver.
     - iApply suT_All_I.
       unstamp_goal_tm.
-      iIntros "!> %ρ #[[[_ [Hpos _]] Hw] Harg]".
+      iIntros "!> %ρ #[[[_ [Hpos _]] %Hw] Harg]".
       rewrite /shead /stail. iSimpl.
-      iDestruct "Hw" as %[m ->].
+      destruct Hw as [m ->].
       setoid_rewrite path_wp_pv_eq.
       iPoseProof (vl_sel_ub with "Harg Hpos") as "{Harg Hpos} Harg".
       wp_bind (BinRCtx _ _); iSimpl.
