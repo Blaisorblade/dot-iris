@@ -18,6 +18,27 @@ Set Default Proof Using "Type".
 Section path_repl.
   Context `{!dlangG Σ}.
 
+  Lemma P_Sngl_Refl Γ τ p i :
+    Γ ⊨p p : τ, i -∗
+    Γ ⊨p p : TSing p, i.
+  Proof. rw. apply sP_Sngl_Refl. Qed.
+
+  Lemma Sngl_Stp_Self Γ p T i :
+    Γ ⊨p p : T, i -∗
+    Γ ⊨ TSing p <:[i] T.
+  Proof. rw. apply sSngl_Stp_Self. Qed.
+
+  Lemma Sngl_Stp_Sym Γ p q T i:
+    Γ ⊨p p : T, i -∗
+    Γ ⊨ TSing p <:[i] TSing q -∗
+    Γ ⊨ TSing q <:[i] TSing p.
+  Proof. rw. apply sSngl_Stp_Sym. Qed.
+
+  Lemma P_Sngl_Inv Γ p q i :
+    Γ ⊨p p : TSing q, i -∗
+    Γ ⊨p q : TTop, i.
+  Proof. rw. apply sP_Sngl_Inv. Qed.
+
   Lemma Sngl_pq_Stp {Γ i p q T1 T2} (Hrepl : T1 ~Tp[ p := q ]* T2):
     Γ ⊨p p : TSing q, i -∗
     Γ ⊨ T1 <:[i] T2.
@@ -75,4 +96,32 @@ Section path_repl.
     iApply (wp_wand with "(Hep Hg)"); iIntros "{Hg} %v #Hv".
     iApply (sem_psubst_one_eq Hrepl Hal with "Hv").
   Qed.
+
+  Lemma P_Fld_I Γ p T l i:
+    Γ ⊨p pself p l : T, i -∗
+    Γ ⊨p p : TVMem l T, i.
+  Proof. rw. apply sP_Fld_I. Qed.
+
+  Lemma P_Fld_E {Γ} p T l i:
+    Γ ⊨p p : TVMem l T, i -∗
+    Γ ⊨p pself p l : T, i.
+  Proof. rw. apply sP_Fld_E. Qed.
+
+  Lemma P_Sngl_Trans Γ p q T i:
+    Γ ⊨p p : TSing q, i -∗
+    Γ ⊨p q : T, i -∗
+    Γ ⊨p p : T, i.
+  Proof. rw. apply sP_Sngl_Trans. Qed.
+
+  Lemma P_Sngl_E Γ τ p q l i:
+    Γ ⊨p p : TSing q, i -∗
+    Γ ⊨p pself q l : τ, i -∗
+    Γ ⊨p pself p l : TSing (pself q l), i.
+  Proof. rw. apply sP_Sngl_E. Qed.
+
+  Lemma P_Sub {Γ p T1 T2 i}:
+    Γ ⊨p p : T1, i -∗
+    Γ ⊨ T1 <:[i] T2 -∗
+    Γ ⊨p p : T2, i.
+  Proof. apply sP_Sub. Qed.
 End path_repl.

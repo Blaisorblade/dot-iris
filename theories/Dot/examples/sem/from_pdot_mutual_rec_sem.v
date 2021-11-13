@@ -321,17 +321,17 @@ Proof.
     (▶: fromPDotPaperAbsTBody x1)%ty :: optionModTInv :: Γ <:* (TLater <$> Γ').
     by rewrite /Γ'/= -ty_sub_TAnd_TLater_TAnd_distr_inv; ietp_weaken_ctx.
 
-  iApply suD_Cons; [done | semTMember 0 | ].
-  iApply suD_Cons; [done | semTMember 0 | ].
-  iApply suD_Cons; [done | iApply suD_Val | ]. {
+  iApply uD_Cons; [done | semTMember 0 | ].
+  iApply uD_Cons; [done | semTMember 0 | ].
+  iApply uD_Cons; [done | iApply uD_Val | ]. {
     iApply (uT_All_I_Strong (Γ' := Γ')). apply Hctx.
     iApply fundamental_typed.
     eapply (iT_ISub_nocoerce (TMu TTop)).
     + wtcrush.
     + apply (iSub_Sel' TTop); tcrush; varsub. lThis; ltcrush.
   }
-  iApply suD_Cons; [done | semTMember 2 | ].
-  iApply suD_Cons; [done | | ]. {
+  iApply uD_Cons; [done | semTMember 2 | ].
+  iApply uD_Cons; [done | | ]. {
     iApply fundamental_dm_typed.
     tcrush.
     eapply (iT_ISub_nocoerce (TMu ⊤)); first tcrush.
@@ -340,13 +340,13 @@ Proof.
     asideLaters.
     eapply (iSub_Sel' ⊤); tcrush. varsub; lThis.
   }
-  iApply suD_Cons; [done | iApply suD_Val | ]. {
+  iApply uD_Cons; [done | iApply uD_Val | ]. {
     iApply (uT_All_I_Strong (Γ' := Γ')); first
       by rewrite /defCtxCons/=; ietp_weaken_ctx.
     iApply newTypeRef_semTyped.
   }
 
-  iApply suD_Sing; iApply suD_Val.
+  iApply uD_Sing; iApply uD_Val.
   iApply (uT_All_I_Strong (Γ' := Γ')). apply Hctx.
   iApply fundamental_typed.
   have Hx: x1 @; "TypeRef" :: Γ' v⊢ₜ x0 : ▶: shift typeRefTBody. {
@@ -420,7 +420,7 @@ Example fromPDotPaperSymbolsTyp Γ :
     fromPDotPaperSymbolsV : μ (fromPDotPaperSymbolsTBody x2).
 Proof.
   iApply uT_Obj_I.
-  iApply suD_Cons; [done | semTMember 3 | ].
+  iApply uD_Cons; [done | semTMember 3 | ].
   iApply fundamental_dms_typed.
   tcrush.
   eapply (iT_ISub_nocoerce) => /=; hideCtx.
@@ -444,11 +444,11 @@ Example fromPDotPaperTyp Γ :
   ⊢ optionModTInv :: Γ u⊨ fromPDotPaper : μ (fromPDotPaperAbsTBody x1).
 Proof.
   iApply uT_Obj_I.
-  iApply suD_Cons; [done| | iApply suD_Sing].
-  - iApply suD_Path_Sub; last iApply suD_Val_New.
+  iApply uD_Cons; [done| | iApply uD_Sing].
+  - iApply uD_Path_Sub; last iApply uD_Val_New.
     + iApply fromPDotPaperTypesSub.
     + iApply semFromPDotPaperTypesTyp.
-  - iApply suD_Val.
+  - iApply uD_Val.
     iApply fromPDotPaperSymbolsAbsTyp.
 Qed.
 
@@ -460,9 +460,9 @@ Proof.
   iApply fundamental_typed.
   exact: optionModInvTyp.
   iApply (uT_All_I_Strong (Γ' := Γ)). ietp_weaken_ctx.
-  iApply suT_Sub.
+  iApply uT_Sub.
   iApply fromPDotPaperTyp.
-  iApply sStp_Top.
+  iApply Stp_Top.
 Qed.
 
 (** ** Additional examples of client code, not mentioned in the paper.
@@ -522,7 +522,7 @@ Proof.
   iApply uT_All_E; first last.
   iApply fromPDotPaperTyp.
   iApply uT_All_I_Strong. ietp_weaken_ctx.
-  iApply suT_Sub; last iApply sStp_Top.
+  iApply uT_Sub; last iApply Stp_Top.
   iApply fundamental_typed.
   apply getAnyTypeTyp0.
 Qed.

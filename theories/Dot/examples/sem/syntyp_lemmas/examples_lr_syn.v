@@ -75,7 +75,7 @@ Section Lemmas.
     iterate TLater i T1 :: Γ ⊨ T1 <:[i] shift T2 -∗
     Γ ⊨ TMu T1 <:[i] T2.
   Proof.
-    iIntros "Hstp"; iApply (sStp_Trans with "[-] []").
+    iIntros "Hstp"; iApply (Stp_Trans with "[-] []").
     by iApply Mu_Stp_Mu. iApply Mu_Stp.
   Qed.
 
@@ -88,7 +88,7 @@ Section Lemmas.
     iterate TLater i (shift T1) :: Γ ⊨ shift T1 <:[i] T2 -∗
     Γ ⊨ T1 <:[i] TMu T2.
   Proof.
-    iIntros "Hstp"; iApply (sStp_Trans with "[] [-]").
+    iIntros "Hstp"; iApply (Stp_Trans with "[] [-]").
     iApply Stp_Mu. by iApply Mu_Stp_Mu.
   Qed.
 

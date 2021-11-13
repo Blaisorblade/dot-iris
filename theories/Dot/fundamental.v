@@ -39,49 +39,48 @@ Section fundamental.
   Proof.
     apply pure_typing_mut_ind; clear Γ; intros; simpl_context.
     + by iApply P_Var.
-    + by iApply sP_Nat_I.
-    + by iApply sP_Bool_I.
-    + iApply sP_Fld_E. by iApply H.
-    + iApply sP_Sub; [iApply H0|iApply H].
-    + by iApply sP_Later; [iApply H].
+    + by iApply P_Nat_I.
+    + by iApply P_Bool_I.
+    + iApply P_Fld_E. by iApply H.
+    + iApply P_Sub; [iApply H0|iApply H].
+    + by iApply P_Later.
     + by iApply P_Mu_I; [|iApply H]; first exact: psubst_one_ty_implies.
     + by iApply P_Mu_E; [|iApply H]; first exact: psubst_one_ty_implies.
-    + iApply sP_Fld_I. by iApply H.
-    + iApply sP_Sngl_Refl. by iApply H.
-    + iApply sP_Sngl_Inv. by iApply H.
-    + by iApply sP_Sngl_Trans; [iApply H|iApply H0].
-    + by iApply sP_Sngl_E; [iApply H|iApply H0].
-
-    + by iApply sStp_Refl.
-    + by iApply sStp_Trans; [iApply H|iApply H0].
-    + by iApply sLater_Stp_Eq; [iApply H].
-    + by iApply sLater_Stp_Eq; [iApply H].
-    + by iApply sStp_Add_Later.
-    + by iApply sStp_Top.
-    + by iApply sBot_Stp.
-    + by iApply sAnd1_Stp.
-    + by iApply sAnd2_Stp.
-    + by iApply sStp_And; [iApply H|iApply H0].
-    + by iApply sStp_Or1.
-    + by iApply sStp_Or2.
-    + by iApply sOr_Stp; [iApply H|iApply H0].
-    + iApply sSel_Stp; by iApply H.
-    + iApply sStp_Sel; by iApply H.
+    + iApply P_Fld_I. by iApply H.
+    + iApply P_Sngl_Refl. by iApply H.
+    + iApply P_Sngl_Inv. by iApply H.
+    + by iApply P_Sngl_Trans; [iApply H|iApply H0].
+    + by iApply P_Sngl_E; [iApply H|iApply H0].
+    + by iApply Stp_Refl.
+    + by iApply Stp_Trans; [iApply H|iApply H0].
+    + iApply Later_Stp_Eq. iApply H.
+    + iApply Later_Stp_Eq. iApply H.
+    + by iApply Stp_Add_Later.
+    + by iApply Stp_Top.
+    + by iApply Bot_Stp.
+    + by iApply And1_Stp.
+    + by iApply And2_Stp.
+    + by iApply Stp_And; [iApply H|iApply H0].
+    + by iApply Stp_Or1.
+    + by iApply Stp_Or2.
+    + by iApply Or_Stp; [iApply H|iApply H0].
+    + iApply Sel_Stp. by iApply H.
+    + iApply Stp_Sel; by iApply H.
     + by iApply Sngl_pq_Stp; [|iApply H].
-    + by iApply sSngl_Stp_Sym; [iApply H|iApply H0].
-    + iApply sSngl_Stp_Self. by iApply H.
+    + by iApply Sngl_Stp_Sym; [iApply H|iApply H0].
+    + iApply Sngl_Stp_Self. by iApply H.
     + iApply Mu_Stp_Mu. by iApply H.
     + iApply Mu_Stp.
     + iApply Stp_Mu.
     + by iApply All_Stp_All; [iApply H|iApply H0].
-    + iApply sFld_Stp_Fld. by iApply H.
-    + by iApply sTyp_Stp_Typ; [iApply H|iApply H0].
-    + iApply sAnd_All_1_Stp_Distr.
-    + iApply sAnd_All_2_Stp_Distr.
-    + iApply sAnd_Fld_Stp_Distr.
-    + iApply sAnd_Typ_Stp_Distr.
-    + iApply sOr_Fld_Stp_Distr.
-    + iApply sDistr_And_Or_Stp.
+    + iApply Fld_Stp_Fld. by iApply H.
+    + by iApply Typ_Stp_Typ; [iApply H|iApply H0].
+    + iApply And_All_1_Stp_Distr.
+    + iApply And_All_2_Stp_Distr.
+    + iApply And_Fld_Stp_Distr.
+    + iApply And_Typ_Stp_Distr.
+    + iApply Or_Fld_Stp_Distr.
+    + iApply Distr_And_Or_Stp.
     + by iApply Stp_Eq.
     + by iApply Stp_Skolem_P; iApply H.
   Qed.
@@ -101,25 +100,25 @@ Section fundamental.
     + by iApply uT_All_E_p; [|iApply H|iApply fundamental_path_typed];
         first exact: psubst_one_ty_implies.
     + by iApply uT_All_E; [iApply H|iApply H0].
-    + by iApply suT_Obj_E; iApply H.
+    + by iApply uT_Obj_E; iApply H.
     + iApply uT_All_I_Strong; [|by iApply H].
       by apply fundamental_ctx_sub, ctx_strip_to_sub.
-    + iApply suT_Obj_I. by iApply H.
-    + by iApply suT_Sub; [iApply H|iApply fundamental_subtype].
-    + by iApply suT_Skip; iApply H.
+    + iApply uT_Obj_I. by iApply H.
+    + by iApply uT_Sub; [iApply H|iApply fundamental_subtype].
+    + by iApply uT_Skip; iApply H.
     + iApply suT_Path. by iApply fundamental_path_typed.
     + by iApply uT_Un; [|iApply H].
     + by iApply uT_Bin; [| iApply H| iApply H0].
-    + by iApply suT_If; [iApply H|iApply H0|iApply H1].
+    + by iApply uT_If; [iApply H|iApply H0|iApply H1].
 
-    + by iApply suD_Nil.
-    + by iApply suD_Cons; [|iApply H|iApply H0].
+    + by iApply uD_Nil.
+    + by iApply uD_Cons; [|iApply H|iApply H0].
 
     + by iApply uD_Typ_Abs; [> |iApply fundamental_subtype ..].
-    + iApply suD_Val. by iApply H.
-    + iApply suD_Path. by iApply fundamental_path_typed.
-    + iApply suD_Val_New. by iApply H.
-    + iApply suD_Path_Stp; by [> iApply fundamental_subtype|iApply H].
+    + iApply uD_Val. by iApply H.
+    + iApply uD_Path. by iApply fundamental_path_typed.
+    + iApply uD_Val_New. by iApply H.
+    + iApply uD_Path_Stp; by [> iApply fundamental_subtype|iApply H].
   Qed.
 
   (** * Fundamental theorem 5.3. *)
