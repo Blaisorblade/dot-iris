@@ -39,7 +39,7 @@ Section examplesBodies.
     val "div" : 𝐙 →: self @; "Pos" →: 𝐙
   }.
 
-  Example testEq x :
+  Example hposModTBody_alt x :
     hposModTBody x = hTAnd (type "Pos" >: ⊥ <: 𝐙) (hposModTTail x) :=
     reflexivity _.
 
@@ -118,7 +118,7 @@ Section div_example.
   Proof. iDestruct 1 as %(n&?&?); simplify_eq. wp_bin. by iIntros "!%"; naive_solver. Qed.
   Close Scope Z_scope.
 
-  Lemma sStp_ipos_nat Γ i : ⊢ Γ s⊨ ipos <:[ i ] V⟦ 𝐙 ⟧.
+  Lemma sStp_ipos_nat Γ i : ⊢ Γ s⊨ ipos <:[ i ] oInt.
   Proof. iIntros "!> % _ !%"; rewrite /pos /pure_interp_prim; naive_solver. Qed.
 
   Lemma posTMem_widen Γ l i : ⊢ Γ s⊨ oTMemL l ipos ipos <:[ i ] oTMemL l ⊥ oInt.
