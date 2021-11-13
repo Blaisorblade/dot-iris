@@ -152,11 +152,12 @@ Definition fromPDotPaper : vl := ν {@
   val "symbols" = fromPDotPaperSymbolsV
 }.
 
-Lemma sem_later T a b c: V⟦TLater T⟧ a b c ⊣⊢ ▷ V⟦T⟧ a b c. Proof. done. Qed.
+Lemma sem_later T a b c: V⟦TLater T⟧ a b c ⊣⊢ ▷ V⟦T⟧ a b c.
+Proof. by rw. Qed.
 
 Lemma ty_sub_TAnd_TLater_TAnd_distr_inv T U :
   ⊨T TAnd (TLater T) (TLater U) <: TLater (TAnd T U).
-Proof. iIntros (??) "[$$]". Qed.
+Proof. rewrite /ty_sub. rw. iIntros (??) "[$$]". Qed.
 
 (* This is an essential optimization to speed up [iNext]. *)
 Typeclasses Opaque pty_interp.
