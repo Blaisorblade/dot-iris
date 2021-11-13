@@ -298,26 +298,30 @@ Section path_repl.
 End path_repl.
 
 (** When a definition points to a semantic type. Inlined in paper. *)
-Definition dm_to_type `{HdotG: !dlangG Σ} d (ψ : hoD Σ) : iProp Σ :=
-  ∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ ] ψ.
-Notation "d ↗n ψ" := (dm_to_type d ψ) (at level 20).
+Definition dm_to_type `{HdotG: !dlangG Σ} d (ψ : hoD Σ) (rinterp : ty -d> hoEnvD Σ) : iProp Σ :=
+  match d with
+  | dtysem σ s => s ↗n[ σ ] ψ
+  | dtysyn T => ▷ (ψ ≡ rinterp T ids)
+  | dpt _ => False
+  end.
+
+Notation "d ↗[ rinterp ] ψ" := (dm_to_type d ψ rinterp) (at level 20).
 
 Section dm_to_type.
   Context `{HdotG: !dlangG Σ}.
 
-  Lemma dm_to_type_agree {d ψ1 ψ2} args v : d ↗n ψ1 -∗ d ↗n ψ2 -∗ ▷ (ψ1 args v ≡ ψ2 args v).
+  Lemma dm_to_type_agree {d ψ1 ψ2 rinterp} args v : d ↗[rinterp] ψ1 -∗ d ↗[rinterp] ψ2 -∗ ▷ (ψ1 args v ≡ ψ2 args v).
   Proof.
-    iDestruct 1 as (s σ ?) "#Hs1".
-    iDestruct 1 as (s' σ' ?) "#Hs2".
-    simplify_eq. by iApply (stamp_σ_to_type_agree args with "Hs1 Hs2").
+    destruct d; simpl; [ | apply stamp_σ_to_type_agree | by iIntros "[]" ].
+    iIntros "H1 H2 !>"; iRewrite "H1"; iRewrite "H2". by [].
   Qed.
 
-  Lemma dm_to_type_intro d s σ φ :
-    d = dtysem σ s → s ↝n φ -∗ d ↗n hoEnvD_inst σ φ.
-  Proof.
-    iIntros. iExists s, σ. iFrame "%".
-    by iApply stamp_σ_to_type_intro.
-  Qed.
+  Lemma dm_to_type_intro rinterp d s σ φ :
+    d = dtysem σ s → s ↝n φ -∗ d ↗[rinterp] hoEnvD_inst σ φ.
+  Proof. move=>->/=. apply stamp_σ_to_type_intro. Qed.
 
+  #[global] Instance dm_to_type_ne d n :
+    Proper (dist_later n ==> dist_later n ==> dist n) (dm_to_type d).
+  Proof. solve_contractive_ho. Qed.
   #[global] Opaque dm_to_type.
 End dm_to_type.

@@ -20,49 +20,60 @@ Implicit Types
          (ρ : var → vl) (l : label).
 
 (** * Type members *)
-Notation oDTMemRaw rK := (Dlty (λI ρ d, ∃ ψ, d ↗n ψ ∧ rK ρ ψ)).
+Notation oDTMemRaw rinterp rK := (Dlty (λI ρ d, ∃ ψ, d ↗[rinterp] ψ ∧ rK ρ ψ)).
 
 (** [ D⟦ { A :: K } ⟧ ]. *)
-Definition oDTMemK `{!dlangG Σ} (K : sf_kind Σ) : dltyO Σ :=
-  oDTMemRaw (λI ρ ψ, K ρ (packHoLtyO ψ) (packHoLtyO ψ)).
+Definition oDTMemK `{!dlangG Σ} rinterp (K : sf_kind Σ) : dltyO Σ :=
+  oDTMemRaw rinterp (λI ρ ψ, K ρ (packHoLtyO ψ) (packHoLtyO ψ)).
 #[global] Instance : Params (@oDTMemK) 2 := {}.
 
-Definition cTMemK `{!dlangG Σ} l (K : sf_kind Σ) : clty Σ := dty2clty l (oDTMemK K).
+Definition cTMemK `{!dlangG Σ} l rinterp (K : sf_kind Σ) : clty Σ := dty2clty l (oDTMemK rinterp K).
 #[global] Instance : Params (@cTMemK) 3 := {}.
-Notation oTMemK l K := (clty_olty (cTMemK l K)).
+Notation oTMemK l rinterp K := (clty_olty (cTMemK l rinterp K)).
 
-Definition oDTMemAnyKind `{!dlangG Σ} : dltyO Σ := Dlty (λI ρ d,
-  ∃ (ψ : hoD Σ), d ↗n ψ).
-Definition cTMemAnyKind `{!dlangG Σ} l : clty Σ := dty2clty l oDTMemAnyKind.
-Notation oTMemAnyKind l := (clty_olty (cTMemAnyKind l)).
+Definition oDTMemAnyKind `{!dlangG Σ} rinterp : dltyO Σ := Dlty (λI ρ d,
+  ∃ (ψ : hoD Σ), d ↗[rinterp] ψ).
+Definition cTMemAnyKind `{!dlangG Σ} l rinterp : clty Σ := dty2clty l (oDTMemAnyKind rinterp).
+Notation oTMemAnyKind l rinterp := (clty_olty (cTMemAnyKind l rinterp)).
 
 Section TMem_Proper.
   Context `{!dlangG Σ}.
 
-  #[global] Instance oDTMemK_ne : NonExpansive (oDTMemK (Σ := Σ)).
-  Proof. solve_proper_ho. Qed.
-  #[global] Instance oDTMemK_proper : Proper1 (oDTMemK (Σ := Σ)) :=
-    ne_proper _.
-  #[global] Instance cTMemK_ne l : NonExpansive (cTMemK (Σ := Σ) l).
-  Proof. solve_proper_ho. Qed.
-  #[global] Instance cTMemK_proper l : Proper1 (cTMemK (Σ := Σ) l) :=
-    ne_proper _.
+  #[global] Instance oDTMemK_contractive n :
+    Proper (dist_later n ==> dist n ==> dist n) (oDTMemK (Σ := Σ)).
+  Proof. solve_contractive_ho. Qed.
+  (* Both contractive and nonexpansive, since [contractive_ne_2] is not an
+  instance. *)
+  #[global] Instance oDTMemK_ne : NonExpansive2 (oDTMemK (Σ := Σ)) :=
+    contractive_ne_R _.
+  #[global] Instance oDTMemK_proper : Proper2 (oDTMemK (Σ := Σ)) :=
+    ne_proper_2 _.
 
-  Lemma cTMemK_eq l (K : sf_kind Σ) d ρ :
-    cTMemK l K ρ [(l, d)] ⊣⊢ oDTMemK K ρ d.
+  #[global] Instance cTMemK_contractive n l :
+    Proper (dist_later n ==> dist n ==> dist n) (cTMemK (Σ := Σ) l).
+  Proof. solve_contractive_ho. Qed.
+  (* Both contractive and nonexpansive, since [contractive_ne_2] is not an
+  instance. *)
+  #[global] Instance cTMemK_ne l : NonExpansive2 (cTMemK (Σ := Σ) l) :=
+    contractive_ne_R _.
+  #[global] Instance cTMemK_proper l : Proper2 (cTMemK (Σ := Σ) l) :=
+    ne_proper_2 _.
+
+  Lemma cTMemK_eq l (K : sf_kind Σ) rinterp d ρ :
+    cTMemK l rinterp K ρ [(l, d)] ⊣⊢ oDTMemK rinterp K ρ d.
   Proof. apply dty2clty_singleton. Qed.
 
-  Lemma oTMemK_eq l K args ρ v :
-    oTMemK l K args ρ v ⊣⊢
-    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗n ψ ∧ K ρ (packHoLtyO ψ) (packHoLtyO ψ).
+  Lemma oTMemK_eq l rinterp K args ρ v :
+    oTMemK l rinterp K args ρ v ⊣⊢
+    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗[rinterp] ψ ∧ K ρ (packHoLtyO ψ) (packHoLtyO ψ).
   Proof. apply bi_exist_nested_swap. Qed.
 
-  Lemma cTMemAnyKind_eq l d ρ :
-    cTMemAnyKind l ρ [(l, d)] ⊣⊢ oDTMemAnyKind ρ d.
+  Lemma cTMemAnyKind_eq l rinterp d ρ :
+    cTMemAnyKind l rinterp ρ [(l, d)] ⊣⊢ oDTMemAnyKind rinterp ρ d.
   Proof. apply dty2clty_singleton. Qed.
 
-  Lemma cTMemK_subst l (K : sf_kind Σ) ρ :
-    (oTMemK l K).|[ρ] = oTMemK l K.|[ρ].
+  Lemma cTMemK_subst l rinterp (K : sf_kind Σ) ρ :
+    (oTMemK l rinterp K).|[ρ] = oTMemK l rinterp K.|[ρ].
   Proof. done. Qed.
 End TMem_Proper.
 
@@ -73,29 +84,34 @@ Definition dot_intv_type_pred `{!dlangG Σ} (L U : oltyO Σ) ρ ψ : iProp Σ :=
 #[global] Instance : Params (@dot_intv_type_pred) 2 := {}.
 
 (** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
-Definition oDTMem `{!dlangG Σ} L U : dltyO Σ := oDTMemK (sf_kintv L U).
-Definition oDTMem_eq `{!dlangG Σ} : oDTMem = λ L U, oDTMemK (sf_kintv L U) := reflexivity _.
+Definition oDTMem `{!dlangG Σ} rinterp L U : dltyO Σ := oDTMemK rinterp (sf_kintv L U).
+Definition oDTMem_eq `{!dlangG Σ} rinterp : oDTMem rinterp = λ L U, oDTMemK rinterp (sf_kintv L U) := reflexivity _.
 #[global] Instance : Params (@oDTMem) 2 := {}.
 
-#[global] Arguments oDTMem {Σ _} L U ρ : rename.
+#[global] Arguments oDTMem {Σ _} rinterp L U ρ : rename.
 
-Definition cTMem `{!dlangG Σ} l L U : clty Σ := dty2clty l (oDTMem L U).
+Definition cTMem `{!dlangG Σ} l rinterp L U : clty Σ := dty2clty l (oDTMem rinterp L U).
 #[global] Instance : Params (@cTMem) 3 := {}.
 
 Section sem_TMem.
   Context `{HdotG: !dlangG Σ}.
   Implicit Types (τ : oltyO Σ).
 
-  Lemma oDTMem_unfold L U : oDTMem L U ≡ oDTMemRaw (dot_intv_type_pred L U).
+  Lemma oDTMem_unfold rinterp L U : oDTMem rinterp L U ≡ oDTMemRaw rinterp (dot_intv_type_pred L U).
   Proof.
     rewrite oDTMem_eq => ρ d /=. f_equiv=> ψ; f_equiv. apply sr_kintv_refl.
   Qed.
 
-  #[global] Instance oDTMem_ne : NonExpansive2 oDTMem.
-  Proof. move=> ? ??? ??? ??/=. solve_proper. Qed.
+  #[global] Instance oDTMem_contractive n :
+    Proper (dist_later n ==> dist n ==> dist n ==> dist n) oDTMem.
+  Proof. solve_contractive_ho. Qed.
 
-  #[global] Instance oDTMem_proper : Proper2 oDTMem :=
-    ne_proper_2 _.
+  (* Not an instance: it'd break [solve_contractive] in [cTMem_contractive]. *)
+  Definition oDTMem_ne : NonExpansive3 oDTMem :=
+    contractive_ne_R _.
+
+  #[global] Instance oDTMem_proper : Proper3 oDTMem.
+  Proof. apply ne_proper_3, oDTMem_ne. Qed.
 
   (** Define [cTMem] by lifting [oDTMem] to [clty]s. *)
   (**
@@ -104,36 +120,37 @@ Section sem_TMem.
   [ Ds⟦ { l >: τ1 <: τ2 } ⟧] and [ V⟦ { l >: τ1 <: τ2 } ⟧ ],
   which are here a derived notation; see [cTMemL]. *)
 
-  #[global] Instance cTMem_ne l : NonExpansive2 (cTMem l).
-  Proof. solve_proper. Qed.
+  #[global] Instance cTMem_contractive n l : Proper (dist_later n ==> dist n ==> dist n ==> dist n) (cTMem l).
+  Proof. solve_contractive. Qed.
+  Definition cTMem_ne l : NonExpansive3 (cTMem l) :=
+    contractive_ne_R _.
+  #[global] Instance cTMem_proper l : Proper3 (cTMem l).
+  Proof. apply ne_proper_3, cTMem_ne. Qed.
 
-  #[global] Instance cTMem_proper l : Proper2 (cTMem l) :=
-    ne_proper_2 _.
-
-  Lemma cTMem_unfold l L U :
-    cTMem l L U ≡ dty2clty l (oDTMemRaw (dot_intv_type_pred L U)).
+  Lemma cTMem_unfold l rinterp L U :
+    cTMem l rinterp L U ≡ dty2clty l (oDTMemRaw rinterp (dot_intv_type_pred L U)).
   Proof. by rewrite /cTMem oDTMem_unfold. Qed.
 
-  Lemma cTMem_eq l L U d ρ :
-    cTMem l L U ρ [(l, d)] ⊣⊢ oDTMem L U ρ d.
+  Lemma cTMem_eq l rinterp L U d ρ :
+    cTMem l rinterp L U ρ [(l, d)] ⊣⊢ oDTMem rinterp L U ρ d.
   Proof. apply dty2clty_singleton. Qed.
 End sem_TMem.
 
-Notation oTMem l L U := (clty_olty (cTMem l L U)).
+Notation oTMem l rinterp L U := (clty_olty (cTMem l rinterp L U)).
 
 Section oTMem_lemmas.
   Context `{HdotG: !dlangG Σ}.
 
-  Lemma oTMem_unfold l L U :
-    oTMem l L U ≡ clty_olty (dty2clty l (oDTMemRaw (dot_intv_type_pred L U))).
+  Lemma oTMem_unfold l rinterp L U :
+    oTMem l rinterp L U ≡ clty_olty (dty2clty l (oDTMemRaw rinterp (dot_intv_type_pred L U))).
   Proof. by rewrite cTMem_unfold. Qed.
 
-  Lemma oTMem_eq l L U args ρ v :
-    oTMem l L U args ρ v ⊣⊢
-    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗n ψ ∧ dot_intv_type_pred L U ρ ψ.
+  Lemma oTMem_eq l rinterp L U args ρ v :
+    oTMem l rinterp L U args ρ v ⊣⊢
+    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗[rinterp] ψ ∧ dot_intv_type_pred L U ρ ψ.
   Proof. rewrite oTMem_unfold. apply bi_exist_nested_swap. Qed.
 
-  Lemma oTMem_shift A L U : oTMem A (shift L) (shift U) = shift (oTMem A L U).
+  Lemma oTMem_shift A rinterp L U : oTMem A rinterp (shift L) (shift U) = shift (oTMem A rinterp L U).
   Proof. rewrite /cTMem !oDTMem_eq. done. Qed.
 End oTMem_lemmas.
 

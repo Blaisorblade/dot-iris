@@ -38,15 +38,15 @@ Section small_ex.
   Definition miniVT2 := μ miniVT2Body.
 
   Definition sminiVT2Body : oltyO Σ :=
-    oAnd (oTMemL "A" oBot (oPrim tint))
-      (oAnd (oVMem "n" (oLater (oSel x0 "A")))
+    oAnd (oTMemL "A" pty_interp oBot (oPrim tint))
+      (oAnd (oVMem "n" (oLater (oSel x0 "A" pty_interp)))
       oTop).
   #[local] Lemma sminiVT2Body_test : V⟦miniVT2Body⟧ ≡ sminiVT2Body.
   Proof. rewrite /miniVT2Body. rw. done. Qed.
 
   Definition sminiVT2ConcrBody : cltyO Σ :=
-    cAnd (cTMemL "A" ipos ipos)
-      (cAnd (cVMem "n" (oLater (oSel x0 "A")))
+    cAnd (cTMemL "A" pty_interp ipos ipos)
+      (cAnd (cVMem "n" (oLater (oSel x0 "A" pty_interp)))
       cTop).
 
   Lemma vHasA2t: ⊢ [] u⊨ hminiV : miniVT2.

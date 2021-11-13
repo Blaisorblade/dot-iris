@@ -78,35 +78,39 @@ End existentials.
   (model-level) existentials and normal DOT type members:
     [V[[T#A]](ρ) = { v | ∃ w ∈ V[[T]](ρ). v ∈ V[[w.A]](ρ) }].
 *)
-Definition oProj `{!dlangG Σ} A (T : oltyO Σ) : oltyO Σ :=
+Definition oProj `{!dlangG Σ} A rinterp (T : oltyO Σ) : oltyO Σ :=
   Olty (λI args ρ v,
   ∃ w,
   (* w ∈ T *)
   oClose T ρ w ∧
   (* v ∈ w.A *)
-  oSel (pv (ids 0)) A args (w .: ρ) v).
+  oSel (pv (ids 0)) A rinterp args (w .: ρ) v).
 
 (** *** Technical infrastructure for setoid rewriting. *)
 #[global] Instance: Params (@oProj) 3 := {}.
 
 Section type_proj_setoid_equality.
   Context `{!dlangG Σ}.
+  Implicit Type (rinterp : ty -d> hoEnvD Σ).
+  Context rinterp.
 
-  Definition oProjN_oExists `{!dlangG Σ} A T:
-    oProj A T ≡ oExists T (oSel (pv (ids 0)) A) := reflexivity _.
+  Definition oProjN_oExists `{!dlangG Σ} A T :
+    oProj A rinterp T ≡ oExists T (oSel (pv (ids 0)) A rinterp) := reflexivity _.
 
-  #[global] Instance oProjN_ne A : NonExpansive (oProj A).
+  (* Note: we can skip contractiveness over [rinterp], simply because [oProjN]
+  is not used when constructing the fixpoint. *)
+  #[global] Instance oProjN_ne A : NonExpansive (oProj A rinterp).
   Proof. solve_proper_ho. Qed.
-  #[global] Instance oProjN_proper A : Proper1 (oProj A) :=
+  #[global] Instance oProjN_proper A : Proper1 (oProj A rinterp) :=
     ne_proper _.
 
   Lemma oProjN_eq A T args ρ v :
-    oProj A T args ρ v ⊣⊢ ∃ w, oClose T ρ w ∧ vl_sel w A args v.
+    oProj A rinterp T args ρ v ⊣⊢ ∃ w, oClose T ρ w ∧ vl_sel w A args v rinterp.
   Proof. by simpl; f_equiv => w; rewrite path_wp_pv_eq. Qed.
 
   Lemma oProjN_eq_2 A T args ρ v :
-    oProj A T args ρ v ⊣⊢
-    ∃ w d ψ, ⌜w @ A ↘ d⌝ ∧ oClose T ρ w ∧ d ↗n ψ ∧ ▷ ψ args v.
+    oProj A rinterp T args ρ v ⊣⊢
+    ∃ w d ψ, ⌜w @ A ↘ d⌝ ∧ oClose T ρ w ∧ d ↗[rinterp] ψ ∧ ▷ ψ args v.
   Proof.
     rewrite oProjN_eq; f_equiv => w.
     rewrite and_exist_l; f_equiv => ψ; rewrite and_exist_l; f_equiv => d.
@@ -117,6 +121,8 @@ End type_proj_setoid_equality.
 (** ** Semantic proofs of typing lemmas for projections. *)
 Section type_proj.
   Context `{!dlangG Σ}.
+  Implicit Type (rinterp : ty -d> hoEnvD Σ).
+  Context rinterp.
 
   (**
     Existentials on a singleton coincide with path substitution:
@@ -134,7 +140,7 @@ Section type_proj.
     [p.type#A = p.A].
    *)
   Lemma oProj_oSing A p :
-    oProj A (oSing p) ≡ oSel p A.
+    oProj A rinterp (oSing p) ≡ oSel p A rinterp.
   Proof.
     rewrite oProjN_oExists oExists_oSing.
     (* Reduce path substitution. *)
@@ -166,7 +172,7 @@ Section type_proj.
   *)
   Lemma sProj_Stp_Proj A Γ T U i :
     Γ s⊨ T <:[i] U -∗
-    Γ s⊨ oProj A T <:[i] oProj A U.
+    Γ s⊨ oProj A rinterp T <:[i] oProj A rinterp U.
   Proof.
     iIntros ">#Hsub !> %ρ Hg %v"; iSpecialize ("Hsub" with "Hg"); iNext i.
     (**
@@ -191,7 +197,7 @@ Section type_proj.
     [Γ ⊨ { A :: L .. U }T#A <:^i U]
   *)
   Lemma sProj_Stp_U A Γ L U i :
-    ⊢ Γ s⊨ oProj A (oTMem A L U) <:[i] U.
+    ⊢ Γ s⊨ oProj A rinterp (oTMem A rinterp L U) <:[i] U.
   Proof.
     iIntros "!> %ρ Hg %v"; iNext i.
     rewrite oProjN_eq; iDestruct 1 as (w) "(HTw & HselV)".
@@ -212,8 +218,8 @@ Section type_proj.
     [Γ ⊨ T#A <:^i U]
   *)
   Lemma sProj_Stp_U' A Γ T L U i :
-    Γ s⊨ T <:[i] oTMem A L U -∗
-    Γ s⊨ oProj A T <:[i] U.
+    Γ s⊨ T <:[i] oTMem A rinterp L U -∗
+    Γ s⊨ oProj A rinterp T <:[i] U.
   Proof.
     iIntros "#Hp".
     iApply sStp_Trans; first iApply (sProj_Stp_Proj with "Hp").
@@ -234,7 +240,7 @@ Section type_proj.
   *)
   Lemma sSel_Stp_Proj A Γ T i p :
     Γ s⊨p p : T, i -∗
-    Γ s⊨ oSel p A <:[i] oProj A T.
+    Γ s⊨ oSel p A rinterp <:[i] oProj A rinterp T.
   Proof.
     iIntros "#Hp". rewrite -oProj_oSing.
     iApply sProj_Stp_Proj. iApply (sSngl_Stp_Self with "Hp").
@@ -268,9 +274,9 @@ Section type_proj.
     contexts cannot run.
   *)
   Lemma sProj_Stp_L A Γ T L U i p :
-    Γ s⊨ T <:[i] oTMem A L U -∗
+    Γ s⊨ T <:[i] oTMem A rinterp L U -∗
     Γ s⊨p p : T, i -∗
-    Γ s⊨ L <:[i] oProj A T.
+    Γ s⊨ L <:[i] oProj A rinterp T.
   Proof.
     iIntros "#Hsub #Hp".
     iApply sStp_Trans; last iApply (sSel_Stp_Proj with "Hp").
@@ -280,10 +286,10 @@ Section type_proj.
 
   (** In fact, if [p] has more specific bounds, we can use those too. *)
   Lemma sProj_Stp_L_Gen A Γ T1 T2 L U i p :
-    Γ s⊨ T2 <:[i] oTMem A L U -∗
+    Γ s⊨ T2 <:[i] oTMem A rinterp L U -∗
     Γ s⊨ T2 <:[i] T1 -∗
     Γ s⊨p p : T2, i -∗
-    Γ s⊨ L <:[i] oProj A T1.
+    Γ s⊨ L <:[i] oProj A rinterp T1.
   Proof.
     iIntros "#HsubBounds #Hsub #HpT2".
     iDestruct (sP_Sub with "HpT2 Hsub") as "HpT1".
@@ -294,9 +300,9 @@ Section type_proj.
 
   (** And [sProj_Stp_L] is indeed a special case of [sProj_Stp_L_Gen]. *)
   Lemma sProj_Stp_L' A Γ T L U i p :
-    Γ s⊨ T <:[i] oTMem A L U -∗
+    Γ s⊨ T <:[i] oTMem A rinterp L U -∗
     Γ s⊨p p : T, i -∗
-    Γ s⊨ L <:[i] oProj A T.
+    Γ s⊨ L <:[i] oProj A rinterp T.
   Proof.
     iIntros "#Hsub #Hp".
     iApply (sProj_Stp_L_Gen with "Hsub [] Hp").
@@ -312,7 +318,7 @@ Section type_proj.
 
   (** Upper bounds are easy... *)
   Lemma sProj_TMem_Stp Γ A T i :
-    ⊢ Γ s⊨ oProj A (oTMem A T T) <:[i] T.
+    ⊢ Γ s⊨ oProj A rinterp (oTMem A rinterp T T) <:[i] T.
   Proof. apply sProj_Stp_U. Qed.
 
   (**
@@ -348,7 +354,7 @@ Section type_proj.
   (** *** Auxiliary lemma. *)
   Lemma oProj_oTMem A (T : olty Σ) σ s :
     s ↝[ σ ] shift T -∗
-    |==> ∀ ρ, oLater T anil ρ ⊆ oProj A (oTMemL A T T) anil ρ.
+    |==> ∀ ρ, oLater T anil ρ ⊆ oProj A rinterp (oTMemL A rinterp T T) anil ρ.
   Proof.
     (** To prove this theorem, we create an auxiliary definition body [auxD]
     and an auxiliary object [auxV], whose type member [A] points to [shift T]. *)
@@ -356,11 +362,11 @@ Section type_proj.
     set auxD := dtysem σ s; set auxV := (vobj [(A, auxD)]).
 
     iAssert ([] s⊨p pv (vobj [(A, auxD)]) :
-      oMu (oTMemL A (shift T) (shift T)), 0) as ">#HwT".
+      oMu (oTMemL A rinterp (shift T) (shift T)), 0) as ">#HwT".
     by iApply sP_Obj_I; iApply sD_Sing'; iApply (sD_Typ with "Hs").
 
     iIntros "!> %ρ %v #HT"; rewrite oProjN_eq.
-    iAssert (oTMemL A T T anil ρ auxV.[ρ])%I as "{HwT} #Hw". {
+    iAssert (oTMemL A rinterp T T anil ρ auxV.[ρ])%I as "{HwT} #Hw". {
       rewrite -(path_wp_pv_eq auxV.[ρ]). by iApply "HwT".
     }
 
@@ -370,7 +376,7 @@ Section type_proj.
 
   Lemma sProj_Stp_TMem {Γ i A σ} {T : olty Σ} :
     coveringσ σ T →
-    ⊢ Γ s⊨ oLater T <:[i] oProj A (oTMemL A T T).
+    ⊢ Γ s⊨ oLater T <:[i] oProj A rinterp (oTMemL A rinterp T T).
   Proof.
     intros HclT.
     iMod (leadsto_envD_equiv_alloc_shift HclT) as (s) "Hs".
@@ -379,6 +385,6 @@ Section type_proj.
   Qed.
 
   Lemma Proj_Stp_TMem {Γ i A n} {T : ty} (HclT : nclosed T n) :
-    ⊢ Γ s⊨ oLater V⟦T⟧ <:[i] oProj A (oTMemL A V⟦T⟧ V⟦T⟧).
+    ⊢ Γ s⊨ oLater V⟦T⟧ <:[i] oProj A rinterp (oTMemL A rinterp V⟦T⟧ V⟦T⟧).
   Proof. have := !!nclosed_syn_coveringσ HclT; apply sProj_Stp_TMem. Qed.
 End type_proj.

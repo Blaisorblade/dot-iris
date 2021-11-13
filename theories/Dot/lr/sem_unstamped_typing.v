@@ -145,15 +145,15 @@ Section tmem_unstamped_lemmas.
     ⊢ |==> ∃ s, s ↝[ push_var σ ] shift T.
   Proof. intros Hcl; apply leadsto_envD_equiv_alloc, coveringσ_shift, Hcl. Qed.
 
-  Lemma suD_Typ_Gen {l Γ fakeT s σ} {T : olty Σ} :
-    s ↝[ σ ] T -∗ Γ su⊨ { l := dtysyn fakeT } : cTMem l (oLater T) (oLater T).
+  Lemma suD_Typ_Gen {l Γ fakeT s σ rinterp} {T : olty Σ} :
+    s ↝[ σ ] T -∗ Γ su⊨ { l := dtysyn fakeT } : cTMem l rinterp (oLater T) (oLater T).
   Proof.
     iIntros "#Hs"; iModIntro. iExists (dtysem σ s).
     iSplit; first done; iApply (sD_Typ with "Hs").
   Qed.
 
-  Lemma suD_Typ {l σ Γ fakeT} {T : olty Σ} (HclT : coveringσ σ T):
-    ⊢ Γ su⊨ { l := dtysyn fakeT } : cTMem l (oLater T) (oLater T).
+  Lemma suD_Typ {l σ Γ fakeT rinterp} {T : olty Σ} (HclT : coveringσ σ T) :
+    ⊢ Γ su⊨ { l := dtysyn fakeT } : cTMem l rinterp (oLater T) (oLater T).
   Proof.
     iMod (leadsto_envD_equiv_alloc HclT) as (s) "#Hs".
     iApply (suD_Typ_Gen with "Hs").
@@ -173,20 +173,20 @@ Section tmem_unstamped_lemmas.
     apply /same_skel_trans_dm /Hsk1 /same_skel_symm_dm /Hsk.
   Qed.
 
-  Lemma suD_Typ_Stp {Γ} L1 L2 U1 U2 d l:
+  Lemma suD_Typ_Stp {Γ rinterp} L1 L2 U1 U2 d l:
     Γ s⊨ L2 <:[0] L1 -∗
     Γ s⊨ U1 <:[0] U2 -∗
-    Γ su⊨ { l := d } : cTMem l L1 U1 -∗
-    Γ su⊨ { l := d } : cTMem l L2 U2.
+    Γ su⊨ { l := d } : cTMem l rinterp L1 U1 -∗
+    Γ su⊨ { l := d } : cTMem l rinterp L2 U2.
   Proof.
     iIntros "#Hsub1 #Hsub2 #H1"; iMod "H1" as (d1s Hsk1) "#H1"; iModIntro.
     by iExists d1s; iSplit; last iApply (sD_Typ_Stp with "Hsub1 Hsub2 H1").
   Qed.
 
-  Lemma suD_Typ_Abs {l σ Γ L T U} fakeT (HclT : coveringσ σ T):
+  Lemma suD_Typ_Abs {l σ Γ L T U rinterp} fakeT (HclT : coveringσ σ T):
     Γ s⊨ L <:[0] oLater T -∗
     Γ s⊨ oLater T <:[0] U -∗
-    Γ su⊨ { l := dtysyn fakeT } : cTMem l L U.
+    Γ su⊨ { l := dtysyn fakeT } : cTMem l rinterp L U.
   Proof.
     by iIntros "H1 H2"; iApply (suD_Typ_Stp with "H1 H2"); iApply suD_Typ.
   Qed.

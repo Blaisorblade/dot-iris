@@ -78,11 +78,11 @@ Section JudgEqs.
 End JudgEqs.
 
 (** ** gDOT semantic types. *)
-Definition vl_sel `{!dlangG Σ} vp l args v : iProp Σ :=
-  ∃ d ψ, ⌜vp @ l ↘ d⌝ ∧ d ↗n ψ ∧ packHoLtyO ψ args v.
+Definition vl_sel `{!dlangG Σ} vp l args v rinterp : iProp Σ :=
+  ∃ d ψ, ⌜vp @ l ↘ d⌝ ∧ d ↗[rinterp] ψ ∧ packHoLtyO ψ args v.
 
-Definition oSel `{!dlangG Σ} p l : oltyO Σ :=
-  Olty (λI args ρ v, path_wp p.|[ρ] (λ vp, vl_sel vp l args v)).
+Definition oSel `{!dlangG Σ} p l rinterp : oltyO Σ :=
+  Olty (λI args ρ v, path_wp p.|[ρ] (λ vp, vl_sel vp l args v rinterp)).
 
 Section sem_types.
   Context `{HdotG: !dlangG Σ}.
@@ -113,9 +113,28 @@ Section sem_types.
     cVMem l T ρ [(l, d)] ⊣⊢ oDVMem T ρ d.
   Proof. apply dty2clty_singleton. Qed.
 
-  Lemma oSel_pv w l args ρ v :
-    oSel (pv w) l args ρ v ⊣⊢
-      ∃ d ψ, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n ψ ∧ ▷ ψ args v.
+  #[global] Instance vl_sel_contractive vp l args v : Contractive (vl_sel vp l args v).
+  Proof. solve_contractive_ho. Qed.
+  (* Deducible. *)
+  Definition vl_sel_ne vp l args v : NonExpansive (vl_sel vp l args v) :=
+    contractive_ne _.
+  #[global] Instance vl_sel_proper vp l args v : Proper1 (vl_sel vp l args v) :=
+    ne_proper _.
+
+  #[global] Instance oSel_contractive p l : Contractive (oSel p l).
+  Proof.
+    move=> n ri1 ri2 Hri args ρ v /=.
+    f_equiv => w.
+    solve_contractive_ho.
+  Qed.
+  Definition oSel_ne p l : NonExpansive (oSel p l) :=
+    contractive_ne _.
+  #[global] Instance oSel_proper p l : Proper1 (oSel p l) :=
+    ne_proper _.
+
+  Lemma oSel_pv w l rinterp args ρ v :
+    oSel (pv w) l rinterp args ρ v ⊣⊢
+      ∃ d ψ, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗[rinterp] ψ ∧ ▷ ψ args v.
   Proof. by rewrite /= path_wp_pv_eq. Qed.
 
   (** [ V⟦ p.type ⟧]. *)
@@ -147,8 +166,8 @@ Notation oBool := (oPrim tbool).
 
 (** Semantics of type members in the ICFP'20 paper:
 [ Ds⟦ { l >: τ1 <: τ2 } ⟧] and [ V⟦ { l >: τ1 <: τ2 } ⟧ ]. *)
-Notation cTMemL l L U := (cTMem l (oLater L) (oLater U)).
-Notation oTMemL l L U := (clty_olty (cTMemL l L U)).
+Notation cTMemL l rinterp L U := (cTMem l rinterp (oLater L) (oLater U)).
+Notation oTMemL l rinterp L U := (clty_olty (cTMemL l rinterp L U)).
 Notation oVMem l τ := (clty_olty (cVMem l τ)).
 
 Section misc_lemmas.
@@ -165,9 +184,9 @@ Section misc_lemmas.
   Qed.
 
   (** Core lemmas about type selections and bounds. *)
-  Lemma vl_sel_ub w l L U ρ v :
-    vl_sel w l anil v -∗
-    oTMem l L U anil ρ w -∗
+  Lemma vl_sel_ub rinterp w l L U ρ v :
+    vl_sel w l anil v rinterp -∗
+    oTMem l rinterp L U anil ρ w -∗
     U anil ρ v.
   Proof.
     rewrite oTMem_unfold.
@@ -178,10 +197,10 @@ Section misc_lemmas.
     iNext. by iRewrite "Hag" in "Hφ2v".
   Qed.
 
-  Lemma vl_sel_lb w l L U ρ v :
+  Lemma vl_sel_lb rinterp w l L U ρ v :
     L anil ρ v -∗
-    oTMem l L U anil ρ w -∗
-    vl_sel w l anil v.
+    oTMem l rinterp L U anil ρ w -∗
+    vl_sel w l anil v rinterp.
   Proof.
     rewrite oTMem_unfold.
     iIntros "HL"; iDestruct 1 as (d Hl φ) "[Hdφ [HLφ _]]".
@@ -201,10 +220,10 @@ Section misc_lemmas.
     lift_dty_vl l T1 anil ρ ⊆ lift_dty_vl l T2 anil ρ.
   Proof. apply (lift_sub_dty2cltyN 0). Qed.
 
-  Lemma oDTMem_respects_sub L1 L2 U1 U2 ρ d :
+  Lemma oDTMem_respects_sub rinterp L1 L2 U1 U2 ρ d :
     L2 anil ρ ⊆ L1 anil ρ -∗
     U1 anil ρ ⊆ U2 anil ρ -∗
-    oDTMem L1 U1 ρ d -∗ oDTMem L2 U2 ρ d.
+    oDTMem rinterp L1 U1 ρ d -∗ oDTMem rinterp L2 U2 ρ d.
   Proof.
     rewrite !oDTMem_unfold.
     iIntros "#HsubL #HsubU"; iDestruct 1 as (φ) "#(Hφl & #HLφ & #HφU)".
@@ -213,10 +232,10 @@ Section misc_lemmas.
     - iApply ("HsubU" with "(HφU Hw)").
   Qed.
 
-  Lemma oTMem_respects_sub L1 L2 U1 U2 ρ l :
+  Lemma oTMem_respects_sub rinterp L1 L2 U1 U2 ρ l :
     L2 anil ρ ⊆ L1 anil ρ -∗
     U1 anil ρ ⊆ U2 anil ρ -∗
-    oTMem l L1 U1 anil ρ ⊆ oTMem l L2 U2 anil ρ.
+    oTMem l rinterp L1 U1 anil ρ ⊆ oTMem l rinterp L2 U2 anil ρ.
   Proof.
     rewrite -lift_sub_dty2clty; iIntros "#HsubL #HsubU %d".
     iApply (oDTMem_respects_sub with "HsubL HsubU").

@@ -58,20 +58,20 @@ Section Sec.
     iApply (oDVMem_respects_sub with "(Hsub Hg) Hd").
   Qed.
 
-  Lemma sD_Typ_Stp {Γ} L1 L2 U1 U2 d l:
+  Lemma sD_Typ_Stp {Γ} L1 L2 U1 U2 d l rinterp :
     Γ s⊨ L2 <:[0] L1 -∗
     Γ s⊨ U1 <:[0] U2 -∗
-    Γ s⊨ { l := d } : cTMem l L1 U1 -∗
-    Γ s⊨ { l := d } : cTMem l L2 U2.
+    Γ s⊨ { l := d } : cTMem l rinterp L1 U1 -∗
+    Γ s⊨ { l := d } : cTMem l rinterp L2 U2.
   Proof.
     rewrite !sdtp_eq'; iIntros ">#HL >#HU >#Hd !>" (ρ Hpid) "#Hg".
     iSpecialize ("Hd" $! ρ Hpid with "Hg").
     iApply (oDTMem_respects_sub with "(HL Hg) (HU Hg) Hd").
   Qed.
 
-  Lemma sD_Typ {Γ s σ} {T : oltyO Σ} l:
+  Lemma sD_Typ {Γ s σ} {T : oltyO Σ} l rinterp :
     s ↝[ σ ] T -∗
-    Γ s⊨ { l := dtysem σ s } : cTMem l (oLater T) (oLater T).
+    Γ s⊨ { l := dtysem σ s } : cTMem l rinterp (oLater T) (oLater T).
   Proof.
     rewrite !sdtp_eq'; iDestruct 1 as (φ Hγφ) "#Hγ".
     iIntros "!>" (ρ Hpid) "#Hg"; rewrite oDTMem_unfold.
@@ -80,11 +80,11 @@ Section Sec.
     by iSplit; iIntros (v) "#H"; iNext; rewrite /= (Hγφ _ _).
   Qed.
 
-  Lemma sD_Typ_Abs {Γ} T L U s σ l:
+  Lemma sD_Typ_Abs {Γ} T L U s σ l rinterp :
     Γ s⊨ L <:[0] oLater T -∗
     Γ s⊨ oLater T <:[0] U -∗
     s ↝[ σ ] T -∗
-    Γ s⊨ { l := dtysem σ s } : cTMem l L U.
+    Γ s⊨ { l := dtysem σ s } : cTMem l rinterp L U.
   Proof. rewrite (sD_Typ l). apply sD_Typ_Stp. Qed.
 
   (** ** Prove object introduction for path typing, using Löb induction:

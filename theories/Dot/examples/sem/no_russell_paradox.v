@@ -13,6 +13,7 @@ Set Default Proof Using "Type".
 
 Section Russell.
   Context `{HdlangG: !dlangG Σ}.
+  Definition rinterp := (λ T, clty_olty $ ty_interp T).
 
   (**
     A version of Russell's paradox, that however does not go through because of
@@ -21,7 +22,7 @@ Section Russell.
     paradoxical without Iris, because (informally) [v.A] points to [λ u, ¬ (u.A u)],
     hence [v.A v] is equivalent to ▷¬ (u.A u).
     *)
-  Definition uAu u := oSel (pv u) "A" anil ids u.
+  Definition uAu u := oSel (pv u) "A" rinterp anil ids u.
 
   Definition russell_p : envD Σ := λI ρ v, uAu v -∗ False.
   (* This would internalize as [russell_p ρ v := v : μ x. not (x.A)]. *)
@@ -33,11 +34,11 @@ Section Russell.
       We assume [Hs] throughout the rest of the section. *)
   Definition v := vobj [("A", dtysem [] s)].
 
-  Lemma uAu_unfold : uAu v ≡ vl_sel v "A" anil v.
+  Lemma uAu_unfold : uAu v ≡ vl_sel v "A" anil v rinterp.
   Proof. by rewrite /uAu/= !path_wp_pv_eq. Qed.
 
   (** Yes, v has a valid type member. *)
-  Lemma vHasA: Hs ⊢ oTMem "A" oBot oTop anil ids v.
+  Lemma vHasA: Hs ⊢ oTMem "A" rinterp oBot oTop anil ids v.
   Proof.
     rewrite oTMem_unfold. iIntros "#Hs".
     iExists _; iSplit. by iExists _; iSplit.
@@ -52,7 +53,7 @@ Section Russell.
     iEval (rewrite uAu_unfold) in "HuauV'".
     iDestruct "HuauV'" as (d ψ Hl) "[Hs1 Hvav]".
     have Hdeq: d = dtysem [] s. by move: Hl => /= [ds [[<- /=] ?]]; simplify_eq.
-    iAssert (d ↗n aopen (russell_p ids)) as "#Hs2". by iApply (dm_to_type_intro with "Hs").
+    iAssert (d ↗[rinterp] aopen (russell_p ids)) as "#Hs2". by iApply (dm_to_type_intro with "Hs").
     iPoseProof (dm_to_type_agree anil v with "Hs1 Hs2") as "#Hag".
     (* without lock, iNext would strip a later in [HuauV]. *)
     rewrite [uAu]lock; iNext; unlock.

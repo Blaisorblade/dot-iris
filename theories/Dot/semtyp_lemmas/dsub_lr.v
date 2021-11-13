@@ -102,9 +102,9 @@ Section DStpLemmas.
     ⊢ Γ s⊨ T <:[i] oLater T.
   Proof. apply sStp_Add_LaterN. Qed.
 
-  Lemma sStp_Sel {Γ L U p l i}:
-    Γ s⊨p p : oTMem l L U, i -∗
-    Γ s⊨ L <:[i] oSel p l.
+  Lemma sStp_Sel {Γ L U p l i rinterp} :
+    Γ s⊨p p : oTMem l rinterp L U, i -∗
+    Γ s⊨ L <:[i] oSel p l rinterp.
   Proof.
     rewrite sstpd_eq; iIntros ">#Hp !> %ρ %v Hg".
     iSpecialize ("Hp" with "Hg"); iNext i; iIntros "#HL".
@@ -112,9 +112,9 @@ Section DStpLemmas.
     iApply (vl_sel_lb with "HL").
   Qed.
 
-  Lemma sSel_Stp {Γ L U p l i}:
-    Γ s⊨p p : oTMem l L U, i -∗
-    Γ s⊨ oSel p l <:[i] U.
+  Lemma sSel_Stp {Γ L U p l i rinterp}:
+    Γ s⊨p p : oTMem l rinterp L U, i -∗
+    Γ s⊨ oSel p l rinterp <:[i] U.
   Proof.
     rewrite sstpd_eq; iIntros ">#Hp !> %ρ %v Hg".
     iSpecialize ("Hp" with "Hg"); iNext i; iIntros "Hφ".
@@ -157,10 +157,10 @@ Section DStpLemmas.
     iApply (oVMem_respects_sub with "Hsub").
   Qed.
 
-  Lemma sTyp_Stp_Typ Γ L1 L2 U1 U2 i l :
+  Lemma sTyp_Stp_Typ Γ L1 L2 U1 U2 i l rinterp :
     Γ s⊨ L2 <:[i] L1 -∗
     Γ s⊨ U1 <:[i] U2 -∗
-    Γ s⊨ oTMem l L1 U1 <:[i] oTMem l L2 U2.
+    Γ s⊨ oTMem l rinterp L1 U1 <:[i] oTMem l rinterp L2 U2.
   Proof.
     iIntros ">#HsubL >#HsubU !> %ρ #Hg".
     iSpecialize ("HsubL" with "Hg"); iSpecialize ("HsubU" with "Hg"); iNext i.
@@ -241,8 +241,8 @@ Section DStpLemmas.
     by iApply (path_wp_and' with "H1 H2").
   Qed.
 
-  Lemma sAnd_Typ_Stp_Distr Γ l L1 L2 U1 U2 i:
-    ⊢ Γ s⊨ oAnd (oTMem l L1 U1) (oTMem l L2 U2) <:[i] oTMem l (oOr L1 L2) (oAnd U1 U2).
+  Lemma sAnd_Typ_Stp_Distr Γ l L1 L2 U1 U2 i rinterp :
+    ⊢ Γ s⊨ oAnd (oTMem l rinterp L1 U1) (oTMem l rinterp L2 U2) <:[i] oTMem l rinterp (oOr L1 L2) (oAnd U1 U2).
   Proof.
     iIntros "!> %ρ _ !> %v [H1 H2]"; rewrite !oTMem_eq /dot_intv_type_pred.
     iDestruct "H1" as (ψ d Hl) "[Hdψ1 [HLψ1 HψU1]]".

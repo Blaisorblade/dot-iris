@@ -53,11 +53,11 @@ Section storeless_unstamped_lemmas.
     by iExists (tapp e1s (tv (ids x2))); iSplit; last iApply (T_All_Ex with "H1 H2").
   Qed.
 
-  Lemma suD_Typ_Sub {Γ} L1 L2 U1 U2 d l:
+  Lemma suD_Typ_Sub {Γ} L1 L2 U1 U2 d l rinterp :
     Γ s⊨ L2, 0 <: L1, 0 -∗
     Γ s⊨ U1, 0 <: U2, 0 -∗
-    Γ su⊨ { l := d } : cTMem l L1 U1 -∗
-    Γ su⊨ { l := d } : cTMem l L2 U2.
+    Γ su⊨ { l := d } : cTMem l rinterp L1 U1 -∗
+    Γ su⊨ { l := d } : cTMem l rinterp L2 U2.
   Proof. rewrite -!sstpd0_to_sstpi0; iApply suD_Typ_Stp. Qed.
 
   Lemma suD_Path_Sub {Γ T1 T2 p1 l}:
@@ -72,10 +72,10 @@ Section storeless_unstamped_lemmas.
     Γ u⊨ { l := dpt p1 } : TVMem l T2.
   Proof. rw. apply suD_Path_Sub. Qed.
 
-  Lemma suD_Typ_Abs_I {l σ Γ L T U} (HclT : coveringσ σ V⟦ T ⟧):
+  Lemma suD_Typ_Abs_I {l σ Γ L T U} rinterp (HclT : coveringσ σ V⟦ T ⟧) :
     Γ s⊨ L, 0 <: oLater V⟦ T ⟧, 0 -∗
     Γ s⊨ oLater V⟦ T ⟧, 0 <: U, 0 -∗
-    Γ su⊨ { l := dtysyn T } : cTMem l L U.
+    Γ su⊨ { l := dtysyn T } : cTMem l rinterp L U.
   Proof.
     by iIntros "H1 H2"; iApply (suD_Typ_Sub with "H1 H2"); iApply suD_Typ.
   Qed.
@@ -86,16 +86,16 @@ Section storeless_unstamped_lemmas.
     Γ u⊨ { l := dtysyn T } : TTMem l L U.
   Proof. have := !!(nclosed_syn_coveringσ HclT). rw. apply suD_Typ_Abs_I. Qed.
 
-  Lemma suD_Typ_dtysem {Γ l σ s fakeσ} {T : olty Σ} (HclT : coveringσ σ T):
-    ⊢ Γ su⊨ { l := dtysem fakeσ s } : cTMem l (oLater T) (oLater T).
+  Lemma suD_Typ_dtysem {Γ l σ s fakeσ} {T : olty Σ} (HclT : coveringσ σ T) rinterp :
+    ⊢ Γ su⊨ { l := dtysem fakeσ s } : cTMem l rinterp (oLater T) (oLater T).
   Proof.
     by iApply sudtp_respects_skel_sym; last iApply (suD_Typ (fakeT := TTop)).
   Qed.
 
-  Lemma suD_Typ_Abs_I_dtysem {Γ T L U l s σ fakeσ} (HclT : coveringσ σ T):
+  Lemma suD_Typ_Abs_I_dtysem {Γ T L U l s σ fakeσ} rinterp (HclT : coveringσ σ T) :
     Γ s⊨        L, 0 <: oLater T, 0 -∗
     Γ s⊨ oLater T, 0 <: U       , 0 -∗
-    Γ su⊨ { l := dtysem fakeσ s } : cTMem l L U.
+    Γ su⊨ { l := dtysem fakeσ s } : cTMem l rinterp L U.
   Proof.
     by iIntros "H1 H2"; iApply (suD_Typ_Sub with "H1 H2");
       iApply suD_Typ_dtysem.
