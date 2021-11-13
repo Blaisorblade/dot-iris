@@ -305,6 +305,9 @@ End path_repl_lemmas.
 (** Backward compatibility. *)
 Notation "⟦ T ⟧" := (oClose V⟦ T ⟧).
 
+Definition lr := (@fmap_cons, @iterate_TLater_oLater).
+Ltac rw := rewrite /ietp /idstp /idtp /iptp /istpd ?lr.
+
 Import dlang_adequacy.
 
 (** Adequacy of normalization for gDOT paths. *)
