@@ -21,7 +21,7 @@ Section LambdaIntros.
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
   Proof.
-    rewrite /ietp fmap_cons (interp_commute_weaken_one T1).
+    rw. rewrite (interp_commute_weaken_one T1).
     rewrite -(sT_All_I_Strong (Γ' := V⟦Γ'⟧*)) // => ρ.
     by rewrite -fmap_TLater_oLater.
   Qed.
@@ -41,9 +41,9 @@ Section Sec.
 
   Lemma T_All_Ex {Γ e1 v2 T1 T2}:
     Γ ⊨ e1: TAll T1 T2 -∗ Γ ⊨ tv v2 : T1 -∗ Γ ⊨ tapp e1 (tv v2) : T2.|[v2/].
-  Proof. by rewrite /ietp (interp_commute_subst_one T2) -sT_All_Ex. Qed.
+  Proof. rw. rewrite (interp_commute_subst_one T2). apply sT_All_Ex. Qed.
 
   Lemma T_All_E {Γ e1 e2 T1 T2} :
     Γ ⊨ e1 : TAll T1 (shift T2) -∗ Γ ⊨ e2 : T1 -∗ Γ ⊨ tapp e1 e2 : T2.
-  Proof. by rewrite /ietp -sT_All_E -(interp_commute_weaken_one T2). Qed.
+  Proof. rw. rewrite (interp_commute_weaken_one T2). apply sT_All_E. Qed.
 End Sec.
