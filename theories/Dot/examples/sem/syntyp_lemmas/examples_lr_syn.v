@@ -96,11 +96,6 @@ Section Lemmas.
   Useful in contexts where we make [pty_interp] more opaque, such as some
   larger examples.
   *)
-  Lemma uT_Obj_I Γ T ds:
-    TLater T :: Γ u⊨ds ds : T -∗
-    Γ u⊨ tv (vobj ds) : TMu T.
-  Proof. apply suT_Obj_I. Qed.
-
   Lemma T_Mu_I {Γ} T v: Γ ⊨ tv v : T.|[v/] -∗ Γ ⊨ tv v : TMu T.
   Proof. by rewrite /ietp -sT_Mu_I interp_commute_subst. Qed.
 
