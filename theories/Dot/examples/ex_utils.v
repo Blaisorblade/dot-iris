@@ -3,7 +3,7 @@ From stdpp Require Import strings.
 From D Require Import tactics.
 From D.Dot Require Import syn path_repl lr_syn_aux.
 
-Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
+Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (ds : dms) (Γ : list ty).
 
 (*******************)
 (** * NOTATIONS  **)
@@ -44,7 +44,7 @@ Notation "e1 ≥ e2" := (e2%E ≤ e1%E)%E : expr_scope.
 
 Open Scope dms_scope.
 Notation "{@ }" := (@nil (string * dm)) (format "{@ }") : dms_scope.
-Notation "{@ x }" := ( x :: {@} ) (format "{@  x  }"): dms_scope.
+Notation "{@ x }" := ( x :: {@} ) (format "{@  x  }") : dms_scope.
 Notation "{@ x ; y ; .. ; z }" :=
   (cons x (cons y .. (cons z nil) ..))
   (format "'[v' {@  '[' x ']' ;  '/' y ;  '/' .. ;  '/' z } ']'")
@@ -58,11 +58,11 @@ Notation "'val' l = v" := (l, dpt v) (at level 60, l at level 50).
 Notation "'type' l = T" := (l, dtysyn T) (at level 60, l at level 50).
 
 (** Notation for object types. *)
-#[global] Instance: Top ty := TTop.
-#[global] Instance: Bottom ty := TBot.
+#[global] Instance : Top ty := TTop.
+#[global] Instance : Bottom ty := TBot.
 
 Open Scope ty_scope.
-Notation "{@ T1 }" := ( TAnd T1 ⊤ ) (format "{@  T1  }"): ty_scope.
+Notation "{@ T1 }" := ( TAnd T1 ⊤ ) (format "{@  T1  }") : ty_scope.
 Notation "{@ T1 ; T2 ; .. ; Tn }" :=
   (TAnd T1 (TAnd T2 .. (TAnd Tn ⊤)..))
   (format "'[v' {@  '[' T1 ']'  ;  '/' T2  ;  '/' ..  ;  '/' Tn } ']'") : ty_scope.

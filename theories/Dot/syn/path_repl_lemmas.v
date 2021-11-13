@@ -16,7 +16,7 @@ Set Implicit Arguments.
 Definition unshiftsN `{Sort X} i (x : X) := x.|[upn i (ren predn)].|[upn i (ren (+1))] = x.
 Definition unshiftsN_vl i v := v.[upn i (ren predn)].[upn i (ren (+1))] = v.
 
-Lemma shift_unshift `{Sort X} (x : X): unshift (shift x) = x.
+Lemma shift_unshift `{Sort X} (x : X) : unshift (shift x) = x.
 Proof. by rewrite hsubst_comp hsubst_id. Qed.
 
 Lemma unshiftsN_shiftN i p : unshiftsN i (shiftN i.+1 p).
@@ -45,7 +45,7 @@ Lemma unstamped_val_unshifts v i n :
 Proof.
   inversion 1 as [? w _ Hs|]; simplify_eq/= => Hne.
   case: Hs => [//|[[j ?]|[l -> //]]]; simplify_eq/=.
-  have {}Hne: j ≠ i by naive_solver.
+  have {}Hne : j ≠ i by naive_solver.
   rewrite /unshiftsN_vl subst_comp up_comp_n.
   exact: ren_const.
 Qed.
@@ -64,8 +64,8 @@ Proof.
   move: p i; induction q => p i Hu //; last by inverse Hu;
     rewrite /psubst_one_path_gen /unshiftsN in IHq |- *; f_equal/=; eauto.
   hnf; cbn. case_decide; simplify_eq/=; first exact: unshiftsN_shiftN.
-  have ?: v ≠ vvar i by naive_solver.
-  suff Hr: unshiftsN_vl i v by f_equal.
+  have ? : v ≠ vvar i by naive_solver.
+  suff Hr : unshiftsN_vl i v by f_equal.
   exact: unstamped_val_unshifts.
 Qed.
 
@@ -90,14 +90,14 @@ Proof. apply psubst_one_base_mut_unshifts_gen. Qed.
 
 Notation unshifts x := (∃ x', x = shift x').
 
-Lemma psubst_one_base_ty_unshifts {n T} p:
+Lemma psubst_one_base_ty_unshifts {n T} p :
   is_unstamped_ty' n T → unshifts (psubst_one_base_ty T p).
 Proof.
   intros Hu; exists (unshift (psubst_one_base_ty T p)).
   eapply symmetry, (psubst_one_base_ty_unshifts_gen 0), Hu.
 Qed.
 
-Lemma psubst_one_base_kind_unshifts {n K} p:
+Lemma psubst_one_base_kind_unshifts {n K} p :
   is_unstamped_kind' n K → unshifts (psubst_one_base_kind K p).
 Proof.
   intros Hu; exists (unshift (psubst_one_base_kind K p)).

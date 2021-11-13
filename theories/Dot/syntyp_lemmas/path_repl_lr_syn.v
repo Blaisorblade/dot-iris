@@ -18,7 +18,7 @@ Set Default Proof Using "Type".
 Section path_repl.
   Context `{!dlangG Σ}.
 
-  Lemma Sngl_pq_Stp {Γ i p q T1 T2} (Hrepl : T1 ~Tp[ p := q ]* T2):
+  Lemma Sngl_pq_Stp {Γ i p q T1 T2} (Hrepl : T1 ~Tp[ p := q ]* T2) :
     Γ ⊨p p : TSing q, i -∗
     Γ ⊨ T1 <:[i] T2.
   Proof.
@@ -64,7 +64,7 @@ Section path_repl.
   Qed.
 
   Lemma T_All_E_p Γ e1 p2 T1 T2 T2' (Hrepl : T2 .Tp[ p2 /]~ T2') :
-    Γ ⊨ e1: TAll T1 T2 -∗
+    Γ ⊨ e1 : TAll T1 T2 -∗
     Γ ⊨p p2 : T1, 0 -∗
     (*────────────────────────────────────────────────────────────*)
     Γ ⊨ tapp e1 (path2tm p2) : T2'.

@@ -65,7 +65,7 @@ Arguments hclose_kind /.
 (** Utilities to lift syntax to [hterm]s. *)
 Module Import hterm_lifting.
 Section lifting.
-Context {s1 s2 s3 s4: Type}.
+Context {s1 s2 s3 s4 : Type}.
 
 Definition apS : hterm (s1 → s2) → hterm s1 → hterm s2 := λ f a i, f i (a i).
 Definition bindS : hterm s1 → (s1 → hterm s2) → hterm s2 := λ m f i, f (m i) i.
@@ -254,7 +254,7 @@ Notation "e1 ≥ e2" := (e2%HS ≤ e1%HS)%HS : hsyn_scope.
 (* Notations. *)
 Open Scope hdms_scope.
 Notation "{@ }" := (@nil (string * hdm)) (format "{@ }") : hdms_scope.
-Notation "{@ x }" := ( x :: {@} ) (format "{@  x  }"): hdms_scope.
+Notation "{@ x }" := ( x :: {@} ) (format "{@  x  }") : hdms_scope.
 Notation "{@ x ; y ; .. ; z }" :=
   (cons x (cons y .. (cons z nil) ..))
   (format "'[v' {@  '[' x ']' ;  '/' y ;  '/' .. ;  '/' z } ']'")
@@ -284,10 +284,10 @@ Notation "'type' l = T" := (l, hdtysyn T) (at level 60, l at level 50).
 Notation "'type' l = ( σ ; s )" := (l, hdtysem σ s) (at level 60, l at level 50).
 
 (** Notation for object types. *)
-#[global] Instance: Top hty := hTTop.
-#[global] Instance: Bottom hty := hTBot.
+#[global] Instance : Top hty := hTTop.
+#[global] Instance : Bottom hty := hTBot.
 Open Scope hsyn_scope.
-Notation "{@ T1 }" := ( hTAnd T1 ⊤ ) (format "{@  T1  }"): hsyn_scope.
+Notation "{@ T1 }" := ( hTAnd T1 ⊤ ) (format "{@  T1  }") : hsyn_scope.
 Notation "{@ T1 ; T2 ; .. ; Tn }" :=
   (hTAnd T1 (hTAnd T2 .. (hTAnd Tn ⊤)..))
   (format "'[v' {@  '[' T1 ']'  ;  '/' T2  ;  '/' ..  ;  '/' Tn } ']'") : hsyn_scope.

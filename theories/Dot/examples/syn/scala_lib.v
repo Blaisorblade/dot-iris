@@ -4,7 +4,7 @@ From D.Dot Require Import syn ex_utils hoas_ex_utils.
 From D.Dot Require Import old_unstamped_typing old_unstamped_typing_derived_rules.
 Import DBNotation.
 
-Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
+Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (ds : dms) (Γ : list ty).
 
 Notation HashableString := (μ {@ val "hashCode" : TUnit →: TInt }).
 
@@ -174,7 +174,7 @@ Lemma hassertBodyTyp Γ e T :
   T :: Γ u⊢ₜ assertBody e : ⊤ →: ⊤.
 Proof.
   rewrite /assertBody => /= He Hx0 Hx1.
-  have Hty: T :: Γ u⊢ₜ tyApp e "A" (⊤ →: ⊤) :
+  have Hty : T :: Γ u⊢ₜ tyApp e "A" (⊤ →: ⊤) :
     (⊤ →: ⊤) →: (⊤ →: ⊤) →: ▶: (⊤ →: ⊤).
   by eapply tyApp_typed; first apply He; intros; simpl; tcrush;
     [eapply iSub_Sel', (path_tp_delay (i := 0))..|
@@ -195,7 +195,7 @@ Proof.
 Qed.
 
 Lemma hassertTyp Γ e
-  (Ht : ((⊤ →: ⊤) :: (⊤ →: ⊤) :: Γ)%ty u⊢ₜ e : hIFT):
+  (Ht : ((⊤ →: ⊤) :: (⊤ →: ⊤) :: Γ)%ty u⊢ₜ e : hIFT) :
   Γ u⊢ₜ hassert e : ⊤.
 Proof.
   eapply iT_All_E, iT_ISub_nocoerce; first exact: hassertFunTyp; tcrush.
@@ -223,7 +223,7 @@ Lemma hassertBodyFalseTyp Γ e T :
   T :: Γ u⊢ₜ assertBody e : TSing x0.
 Proof.
   move => /= He Hx0 Hx1.
-  have Hty: T :: Γ u⊢ₜ tyApp e "A" ⊤ :
+  have Hty : T :: Γ u⊢ₜ tyApp e "A" ⊤ :
     ∀: t : ⊤, ∀: f: ⊤, hTSing f.
   by eapply tyApp_typed; first apply He; intros; tcrush;
     eapply iSub_Sel', (path_tp_delay (i := 0));
@@ -240,7 +240,7 @@ Lemma hassertBodyTrueTyp Γ e T U :
   T :: U :: Γ u⊢ₜ assertBody e : TSing x1.
 Proof.
   move => /= He Hx1 Hx0.
-  have Hty: T :: U :: Γ u⊢ₜ tyApp e "A" ⊤ :
+  have Hty : T :: U :: Γ u⊢ₜ tyApp e "A" ⊤ :
     ∀: t : ⊤, ∀: f: ⊤, hTSing t.
   by eapply tyApp_typed; first apply He; intros; tcrush;
     eapply iSub_Sel', (path_tp_delay (i := 0));

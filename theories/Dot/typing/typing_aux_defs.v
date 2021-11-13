@@ -3,7 +3,7 @@ From D.Dot Require Import syn.
 
 Set Implicit Arguments.
 
-Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path) (Γ : ctx).
+Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (ds : dms) (p : path) (Γ : ctx).
 
 Fixpoint path_root p : vl :=
   match p with
@@ -45,8 +45,8 @@ Fixpoint unTLater T : ty := match T with
 | _ => T
 end.
 
-Definition unTLater_TLater T: unTLater (TLater T) = T := reflexivity _.
-#[global] Instance: Cancel (=) unTLater TLater. Proof. exact: unTLater_TLater. Qed.
+Definition unTLater_TLater T : unTLater (TLater T) = T := reflexivity _.
+#[global] Instance : Cancel (=) unTLater TLater. Proof. exact: unTLater_TLater. Qed.
 
 (** ** The [T1 ≫ ▷ T2] judgment, used in the [Γ1 ≫ ▷ Γ2] paper judgment. *)
 Inductive ty_strip_syn : ty → ty → Prop :=
@@ -145,7 +145,7 @@ Lemma ctx_strip_to_sub G1 G2 :
   ⊢G G1 <:* TLater <$> G2.
 Proof. elim=> /=; eauto using ty_strip_to_sub with ctx_sub. Qed.
 
-Lemma fmap_ctx_sub_syn {Γ} (f g : ty → ty):
+Lemma fmap_ctx_sub_syn {Γ} (f g : ty → ty) :
   (∀ T, ⊢T f T <: g T) →
   ⊢G f <$> Γ <:* g <$> Γ.
 Proof. induction Γ; cbn; auto with ctx_sub. Qed.

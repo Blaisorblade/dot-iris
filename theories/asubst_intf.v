@@ -180,7 +180,7 @@ Module Type SortsSig (Import V : ValuesSig).
   Definition eq_n_s ρ1 ρ2 n := ∀ x, x < n → ρ1 x = ρ2 x.
   #[global] Arguments eq_n_s /.
 
-  Lemma to_subst_compose σ ρ:
+  Lemma to_subst_compose σ ρ :
     eq_n_s (∞ σ.|[ρ]) (∞ σ >> ρ) (length σ).
   Proof.
     elim: σ => /= [|v σ IHσ] i Hin; first lia; asimpl.
@@ -196,8 +196,8 @@ Module Type SortsSig (Import V : ValuesSig).
   Definition nclosed `{HSubst vl X} (x : X) n :=
     ∀ ρ1 ρ2, eq_n_s ρ1 ρ2 n → x.|[ρ1] = x.|[ρ2].
 
-  Lemma shead_eq v ρ: shead (v .: ρ) = v. Proof. done. Qed.
-  Lemma stail_eq v ρ: stail (v .: ρ) = ρ. Proof. done. Qed.
+  Lemma shead_eq v ρ : shead (v .: ρ) = v. Proof. done. Qed.
+  Lemma stail_eq v ρ : stail (v .: ρ) = ρ. Proof. done. Qed.
 
   (* This class describes a syntactic sort that supports substituting values. *)
   Class Sort (s : Type)
@@ -223,20 +223,20 @@ Module Type SortsSig (Import V : ValuesSig).
     by rewrite id_scompX. (* Cleanup result of manipulation *)
   Qed.
 
-  Lemma shift_sub_vl v w: (shiftV v).[w/] = v.
+  Lemma shift_sub_vl v w : (shiftV v).[w/] = v.
   Proof.
     rewrite subst_comp -{2}(subst_id v) /ren /scomp; fsimpl; by rewrite id_scompX.
   Qed.
 
   Section sort_lemmas.
-    Context `{_HsX: Sort X}.
+    Context `{_HsX : Sort X}.
     Implicit Types (x : X).
     Set Default Proof Using "Type*".
 
     Lemma hrenS x n : shiftN (S n) x = shift (shiftN n x).
     Proof. rewrite hsubst_comp renS_comp. by []. Qed.
 
-    Lemma shift_sub {x} v: (shift x).|[v/] = x.
+    Lemma shift_sub {x} v : (shift x).|[v/] = x.
     Proof.
       by rewrite hsubst_comp -{2}(hsubst_id x) /ren /scomp; fsimpl;
         rewrite id_scompX.

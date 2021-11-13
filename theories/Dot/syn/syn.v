@@ -64,7 +64,7 @@ Inductive tm : Type :=
   | TTop : ty (* top type [⊤]; *)
   | TBot : ty (* bottom type [⊤]; *)
   | TAnd (T1 T2 : ty) : ty (* intersection type [S ∧ T]; *)
-  | TOr (T1 T2 : ty): ty (* union type [S ∨ T]; *)
+  | TOr (T1 T2 : ty) : ty (* union type [S ∨ T]; *)
   | TLater (T : ty) : ty (* later type [▷ T]; *)
   | TAll (S T : ty) : ty (* forall type [∀ x: S. T]; *)
   | TMu (T : ty) : ty (* mu-types [μ x. T]; *)
@@ -330,7 +330,7 @@ Instance kind_eq_dec' : EqDecision kind := kind_eq_dec.
 #[local] Ltac finish_lists l x :=
   elim: l => [|x xs IHds] //=; idtac + elim: x => [l d] //=; f_equal => //; by f_equal.
 
-Lemma up_upren_vl (ξ : var → var): up (ren ξ) =@{var → vl} ren (upren ξ).
+Lemma up_upren_vl (ξ : var → var) : up (ren ξ) =@{var → vl} ren (upren ξ).
 Proof. exact: up_upren_internal. Qed.
 
 Lemma tm_rename_Lemma   (ξ : var → var) t : rename ξ t = t.|[ren ξ]
@@ -440,7 +440,7 @@ Instance hsubst_lemmas_dms : HSubstLemmas vl dms := _.
 (** * Auxiliary definitions for operational semantics. *)
 (******************************************************************************)
 
-Fixpoint path2tm p: tm :=
+Fixpoint path2tm p : tm :=
   match p with
   | pv v => tv v
   | pself p l => tproj (path2tm p) l
@@ -499,10 +499,10 @@ Fixpoint dms_lookup l ds : option dm :=
 
 (** Substitute object inside itself (to give semantics to the "self"
     variable). To use when descending under the [vobj] binder. *)
-Definition selfSubst ds: dms := ds.|[vobj ds/].
+Definition selfSubst ds : dms := ds.|[vobj ds/].
 
 (** Member selection, on paper [v.l ↘ d]. *)
-Definition objLookup v (l: label) d: Prop :=
+Definition objLookup v (l : label) d : Prop :=
   ∃ ds, v = vobj ds ∧ (dms_lookup l (selfSubst ds)) = Some d.
 #[global] Hint Unfold objLookup : core.
 
@@ -516,23 +516,23 @@ Notation "v @ l ↘ d" := (objLookup v l d) (at level 48, l at level 40).
 (** Rewrite v @ l ↘ ds to vobj ds' @ l ↘ ds. *)
 Ltac simplOpen ds :=
   lazymatch goal with
-  | H: ?v @ ?l ↘ ?d |-_=>
+  | H : ?v @ ?l ↘ ?d |-_=>
     inversion H as (ds & -> & _)
   end.
 
 (** Determinacy of [objLookup]. *)
-Lemma objLookupDet v l d1 d2: v @ l ↘ d1 → v @ l ↘ d2 → d1 = d2.
+Lemma objLookupDet v l d1 d2 : v @ l ↘ d1 → v @ l ↘ d2 → d1 = d2.
 Proof. rewrite /objLookup => *; ev. by simplify_eq. Qed.
 Ltac objLookupDet :=
   lazymatch goal with
-  | H1: ?v @ ?l ↘ ?d1, H2: ?v @ ?l ↘ ?d2 |- _=>
-    have ?: d2 = d1 by [exact: objLookupDet]; simplify_eq
+  | H1 : ?v @ ?l ↘ ?d1, H2 : ?v @ ?l ↘ ?d2 |- _=>
+    have ? : d2 = d1 by [exact: objLookupDet]; simplify_eq
   end.
 
 (** Instantiating iris with Dot *)
 Module lang.
 
-Definition to_val (t: tm) : option vl :=
+Definition to_val (t : tm) : option vl :=
   match t with
   | tv v => Some v
   | _ => None
@@ -569,27 +569,27 @@ Definition fill_item (Ki : ectx_item) (e : tm) : tm :=
 Its context closure [e →ₜ e'] is called [prim_step] and defined by Iris. *)
 Inductive head_step : tm → unit → list unit → tm → unit → list tm → Prop :=
 (* [(λ x. e) v →ₕ e[x ≔ v]] *)
-| st_beta t1 v2 σ:
+| st_beta t1 v2 σ :
   head_step (tapp (tv (vabs t1)) (tv v2)) σ [] (t1.|[v2/]) σ []
-| st_proj v l σ p:
+| st_proj v l σ p :
   (* [v.a ↘ p] *)
   (* ---------- *)
   (* [v.a →ₕ p] *)
   v @ l ↘ dpt p →
   head_step (tproj (tv v) l) σ [] (path2tm p) σ []
 (* [coerce v →ₕ v] *)
-| st_skip v σ:
+| st_skip v σ :
   head_step (tskip (tv v)) σ [] (tv v) σ []
 (** Rules for primitive operations: *)
-| st_un u v1 v σ:
+| st_un u v1 v σ :
   un_op_eval u v1 = Some v →
   head_step (tun u (tv v1)) σ [] (tv v) σ []
-| st_bin b v1 v2 v σ:
+| st_bin b v1 v2 v σ :
   bin_op_eval b v1 v2 = Some v →
   head_step (tbin b (tv v1) (tv v2)) σ [] (tv v) σ []
-| st_iftrue e1 e2 σ:
+| st_iftrue e1 e2 σ :
   head_step (tif (tv $ vlit $ lbool true) e1 e2) σ [] e1 σ []
-| st_iffalse e1 e2 σ:
+| st_iffalse e1 e2 σ :
   head_step (tif (tv $ vlit $ lbool false) e1 e2) σ [] e2 σ [].
 
 Lemma of_to_val e v : to_val e = Some v → of_val v = e.

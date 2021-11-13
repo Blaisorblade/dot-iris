@@ -39,7 +39,7 @@ Definition subst_sigma σ vs := σ.|[∞ vs].
 Lemma eq_n_s_symm ρ1 ρ2 n : eq_n_s ρ1 ρ2 n → eq_n_s ρ2 ρ1 n.
 Proof. move => Heqs x ?. symmetry. exact: Heqs. Qed.
 
-Lemma eq_n_s_mon n m {s1 s2}: eq_n_s s1 s2 m → n <= m → eq_n_s s1 s2 n.
+Lemma eq_n_s_mon n m {s1 s2} : eq_n_s s1 s2 m → n <= m → eq_n_s s1 s2 n.
 Proof. rewrite /eq_n_s => HsEq Hnm i Hl. apply HsEq; lia. Qed.
 
 Definition push_var (σ : vls) : vls := ids 0 :: shift σ.
@@ -134,44 +134,44 @@ Ltac solve_inv_fv_congruence_h Hcl :=
 
 Set Implicit Arguments.
 
-Lemma nclosed_vl_ids i j: i < j → nclosed_vl (ids i) j.
+Lemma nclosed_vl_ids i j : i < j → nclosed_vl (ids i) j.
 Proof. move => ????; rewrite !id_subst. eauto. Qed.
 
-Lemma nclosed_var_lt i n: nclosed_vl (ids i) n → i < n.
+Lemma nclosed_var_lt i n : nclosed_vl (ids i) n → i < n.
 Proof.
   move => Heq.
-  set s0 := fun c m => if (decide (m < n)) then ids 0 else ids c: vl.
+  set s0 := fun c m => if (decide (m < n)) then ids 0 else ids c : vl.
   set ρ1 := s0 1; set ρ2 := s0 2.
-  have Heqs: eq_n_s ρ1 ρ2 n. by subst s0 ρ1 ρ2; move=> ??; case_decide.
+  have Heqs : eq_n_s ρ1 ρ2 n. by subst s0 ρ1 ρ2; move=> ??; case_decide.
   move: {Heq Heqs} (Heq ρ1 ρ2 Heqs); subst s0 ρ1 ρ2 => /=.
   rewrite !id_subst. by case_decide => // /inj_ids.
 Qed.
 
-Lemma eq_n_s_total ρ1 ρ2: eq_n_s ρ1 ρ2 0.
+Lemma eq_n_s_total ρ1 ρ2 : eq_n_s ρ1 ρ2 0.
 Proof. move => ? /Nat.nlt_0_r []. Qed.
 
 (* Auxiliary lemma for [length_idsσ]. *)
-Lemma length_idsσr n r: length (idsσ n).|[ren r] = n.
+Lemma length_idsσr n r : length (idsσ n).|[ren r] = n.
 Proof.
   elim: n r => [r | n IHn r] => //.
   asimpl. by rewrite IHn.
 Qed.
 
-Lemma length_idsσ n: length (idsσ n) = n.
+Lemma length_idsσ n : length (idsσ n) = n.
 Proof. move: (length_idsσr n (+0)) => Hgoal. by asimpl in Hgoal. Qed.
 
 (** Let's prove that [nclosed x n → x.|[∞ (idsσ n)] = x], and ditto for values. *)
 Section to_subst_idsσ_is_id.
-  Lemma to_subst_map_commute_aux f n i r: i < n →
+  Lemma to_subst_map_commute_aux f n i r : i < n →
     (∞ (map f (idsσ n).|[ren r])) i = f ((∞ (idsσ n).|[ren r]) i).
   Proof.
     elim: n r i => [|n IHn] r [//|i] Hle; try lia. asimpl. apply: IHn. lia.
   Qed.
 
-  Lemma to_subst_map_commute f n i: i < n → (∞ (map f (idsσ n))) i = f ((∞ (idsσ n)) i).
+  Lemma to_subst_map_commute f n i : i < n → (∞ (map f (idsσ n))) i = f ((∞ (idsσ n)) i).
   Proof. move: (@to_subst_map_commute_aux f n i (+0)) => Hgoal. by asimpl in Hgoal. Qed.
 
-  Lemma idsσ_eq_ids n: eq_n_s (∞ (idsσ n)) ids n.
+  Lemma idsσ_eq_ids n : eq_n_s (∞ (idsσ n)) ids n.
   Proof.
     elim: n => [|n IHn] [|i] // /lt_S_n Hle.
     rewrite /= to_subst_map_commute // IHn // id_subst //.
@@ -202,7 +202,7 @@ Proof.
 Qed.
 
 Section sort_lemmas.
-Context `{_HsX: Sort X}.
+Context `{_HsX : Sort X}.
 Implicit Types (x : X) (Γ : list X).
 
 (* Dead but still potentially useful. *)
@@ -210,7 +210,7 @@ Lemma subst_swap_vl v ρ w : v.[up ρ].[w.[ρ]/] = v.[w/].[ρ].
 Proof. by rewrite !subst_comp up_sub_compose_base subst_swap_base. Qed.
 
 (* Dead but still potentially useful. *)
-Lemma subst_swap (x: X) ρ v : x.|[up ρ].|[v.[ρ]/] = x.|[v/].|[ρ].
+Lemma subst_swap (x : X) ρ v : x.|[up ρ].|[v.[ρ]/] = x.|[v/].|[ρ].
 Proof. by rewrite !hsubst_comp up_sub_compose_base subst_swap_base. Qed.
 
 Lemma ren_upn i v : v.[ren (+i)].[upn i (ren (+1))] = v.[ren (+S i)].
@@ -227,7 +227,7 @@ Lemma hren_upn_gen i j k x : x.|[ren (+i + j)].|[upn i (ren (+k))] = x.|[ren (+i
 Proof. by rewrite !hsubst_comp ren_upn_gen. Qed.
 
 Lemma cons_subst i x s (c : X → X)
-  (Hsub: ∀ y, (c y).|[s] = c y.|[s]):
+  (Hsub : ∀ y, (c y).|[s] = c y.|[s]) :
   (iterate c i x).|[s] = iterate c i x.|[s].
 Proof. elim: i => [|i IHi]; by rewrite ?iterate_0 ?iterate_S //= Hsub IHi. Qed.
 
@@ -246,22 +246,22 @@ Proof. intros Hcl; split; solve_inv_fv_congruence_h Hcl. Qed.
 Definition nclosed_xs xs n := (Forall (λ x, nclosed x n) xs).
 #[global] Arguments nclosed_xs /.
 
-Lemma Forall_to_closed_xs n xs: nclosed_xs xs n → nclosed xs n.
+Lemma Forall_to_closed_xs n xs : nclosed_xs xs n → nclosed xs n.
 Proof.
   elim: xs => [|x xs IHds] Hcl //=.
   inverse Hcl; eapply (@fv_cons X); by [ apply IHds | ].
 Qed.
 
-Lemma closed_xs_to_Forall n xs: nclosed xs n → nclosed_xs xs n.
+Lemma closed_xs_to_Forall n xs : nclosed xs n → nclosed_xs xs n.
 Proof. elim: xs => /= [//|x xs IHxs] /fv_cons_inv [Hclx Hclxs]. auto. Qed.
 
-Lemma nclosed_xs_eq_nclosed n xs: nclosed_xs xs n ↔ nclosed xs n.
+Lemma nclosed_xs_eq_nclosed n xs : nclosed_xs xs n ↔ nclosed xs n.
 Proof. split; eauto using Forall_to_closed_xs, closed_xs_to_Forall. Qed.
 
 End sort_lemmas.
 
 Section sort_lemmas_2.
-Context `{_HiA: Inhabited A} `{_HsX: Sort X}.
+Context `{_HiA : Inhabited A} `{_HsX : Sort X}.
 Implicit Types (a : A) (x : X) (Γ : list X) (axs : list (A * X)).
 
 Lemma fv_pair_inv a x n : nclosed (a, x) n → nclosed x n.
@@ -270,10 +270,10 @@ Proof. solve_inv_fv_congruence. Qed.
 Definition nclosed_axs axs n := (Forall (λ '(a, x), nclosed x n) axs).
 #[global] Arguments nclosed_axs /.
 
-Lemma nclosed_axs_to_nclosed_xs n axs: nclosed_axs axs n ↔ nclosed_xs axs n.
+Lemma nclosed_axs_to_nclosed_xs n axs : nclosed_axs axs n ↔ nclosed_xs axs n.
 Proof. split => ?; decompose_Forall; case_match; [exact: fv_pair | exact: fv_pair_inv]. Qed.
 
-Lemma nclosed_axs_to_nclosed n axs: nclosed_axs axs n ↔ nclosed axs n.
+Lemma nclosed_axs_to_nclosed n axs : nclosed_axs axs n ↔ nclosed axs n.
 Proof. by rewrite nclosed_axs_to_nclosed_xs nclosed_xs_eq_nclosed. Qed.
 
 Lemma ren_scons v ρ : ren (+1) >> v .: ρ = ρ.

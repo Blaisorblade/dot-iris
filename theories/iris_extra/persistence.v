@@ -45,7 +45,7 @@ Proof.
   apply: core_id_core.
 Qed.
 
-Instance CmraPersistent_gmapUR `{Countable A} `(!CmraPersistent T):
+Instance CmraPersistent_gmapUR `{Countable A} `(!CmraPersistent T) :
   CmraPersistent (gmapUR A T).
 Proof.
   intros j.
@@ -63,7 +63,7 @@ Instance CmraPersistent_agreeR F : CmraPersistent (agreeR F).
 Proof. intros ?; apply _. Qed.
 
 (* Currently unused instances. *)
-Instance CmraPersistent_optionUR `{!CmraPersistent A}: CmraPersistent (optionUR A).
+Instance CmraPersistent_optionUR `{!CmraPersistent A} : CmraPersistent (optionUR A).
 Proof.
   intros x.
   apply Some_proper.

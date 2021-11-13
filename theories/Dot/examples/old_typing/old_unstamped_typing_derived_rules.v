@@ -13,17 +13,17 @@ Lemma is_unstamped_pvars i n l b : i < n → is_unstamped_ty n b (pv (vvar i) @;
 Proof. eauto. Qed.
 #[global] Hint Resolve is_unstamped_pvars : core.
 
-Lemma iT_Mu_E {Γ x T}:
-  Γ u⊢ₜ tv (vvar x): TMu T →
+Lemma iT_Mu_E {Γ x T} :
+  Γ u⊢ₜ tv (vvar x) : TMu T →
   is_unstamped_ty' (length Γ).+1 T →
-  Γ u⊢ₜ tv (vvar x): T.|[vvar x/].
+  Γ u⊢ₜ tv (vvar x) : T.|[vvar x/].
 Proof. move => Hx Hu. by eapply iT_Path', iP_Mu_E', iP_VarT, Hx. Qed.
 
-Lemma iT_Mu_I {Γ x T}:
-  Γ u⊢ₜ tv (vvar x): T.|[vvar x/] →
+Lemma iT_Mu_I {Γ x T} :
+  Γ u⊢ₜ tv (vvar x) : T.|[vvar x/] →
   (*──────────────────────*)
   is_unstamped_ty' (length Γ).+1 T →
-  Γ u⊢ₜ tv (vvar x): TMu T.
+  Γ u⊢ₜ tv (vvar x) : TMu T.
 Proof. move => Hx Hu. by eapply iT_Path', iP_Mu_I', iP_VarT, Hx. Qed.
 
 Ltac tcrush :=
@@ -31,8 +31,8 @@ Ltac tcrush :=
   apply iT_Mu_I | apply iT_Mu_E |
   typconstructor | stcrush ].
 
-Lemma iT_All_Ex Γ e1 x2 T1 T2:
-  Γ u⊢ₜ e1: TAll T1 T2 →
+Lemma iT_All_Ex Γ e1 x2 T1 T2 :
+  Γ u⊢ₜ e1 : TAll T1 T2 →
   Γ u⊢ₜ tv (vvar x2) : T1 →
   is_unstamped_ty' (length Γ).+1 T2 →
   (*────────────────────────────────────────────────────────────*)
@@ -100,19 +100,19 @@ Proof. intros. exact: (iT_ISub (i:=0)). Qed.
 #[global] Hint Resolve iT_ISub_nocoerce : core.
 
 Lemma iT_All_Ex' T2 {Γ e1 x2 T1 T3} :
-  Γ u⊢ₜ e1: TAll T1 T2 →                        Γ u⊢ₜ tv (ids x2) : T1 →
+  Γ u⊢ₜ e1 : TAll T1 T2 →                        Γ u⊢ₜ tv (ids x2) : T1 →
   T3 = T2.|[ids x2/] →
   is_unstamped_ty' (length Γ).+1 T2 →
   (*────────────────────────────────────────────────────────────*)
   Γ u⊢ₜ tapp e1 (tv (ids x2)) : T3.
 Proof. intros; subst; exact: iT_All_Ex. Qed.
 
-Lemma iT_Mu_E' {Γ x T1 T2}:
-  Γ u⊢ₜ tv (ids x): μ T1 →
+Lemma iT_Mu_E' {Γ x T1 T2} :
+  Γ u⊢ₜ tv (ids x) : μ T1 →
   T2 = T1.|[ids x/] →
   is_unstamped_ty' (length Γ).+1 T1 →
   (*──────────────────────*)
-  Γ u⊢ₜ tv (ids x): T2.
+  Γ u⊢ₜ tv (ids x) : T2.
 Proof. intros; subst; tcrush. Qed.
 
 (** * Derived constructions. *)
@@ -138,7 +138,7 @@ Lemma iT_Let Γ t u T U :
   Γ u⊢ₜ lett t u : U.
 Proof. move => Ht Hu. apply /iT_All_E /Ht /iT_All_I /Hu. Qed.
 
-Lemma iD_Typ Γ T l:
+Lemma iD_Typ Γ T l :
   is_unstamped_ty' (length Γ) T →
   Γ u⊢{ l := dtysyn T } : TTMemL l T T.
 Proof. intros. tcrush. Qed.
@@ -151,7 +151,7 @@ Proof. intros Hp. eapply iD_Path, iP_Sngl_Refl, Hp. Qed.
 Ltac mltcrush := tcrush; try ((apply iSub_Bind_1' || apply iSub_Bind_1); tcrush); repeat lookup.
 
 (* Simplified package introduction, for talk. *)
-Lemma BindSpec Γ (L T U : ty):
+Lemma BindSpec Γ (L T U : ty) :
   is_unstamped_ty' (length Γ).+1 T →
   {@ type "A" >: T <: T }%ty :: Γ u⊢ₜ L, 1 <: T, 1 →
   {@ type "A" >: T <: T }%ty :: Γ u⊢ₜ T, 1 <: U, 1 →
@@ -161,7 +161,7 @@ Proof.
   eapply iT_ISub_nocoerce with (T1 := μ {@ type "A" >: T <: T }); ltcrush.
 Qed.
 
-Lemma iD_Lam_Sub {Γ} V T1 T2 e l L:
+Lemma iD_Lam_Sub {Γ} V T1 T2 e l L :
   shift T1 :: V :: Γ u⊢ₜ e : T2 →
   TLater V :: Γ u⊢ₜ TAll T1 T2, 0 <: L, 0 →
   Γ |L V u⊢{ l := dpt (pv (vabs e)) } : TVMem l L.
@@ -222,7 +222,7 @@ Qed.
 
 (** * Manipulating laters, more. *)
 (* This can be useful when [T] is a singleton type. *)
-Lemma dropLaters Γ e T U i:
+Lemma dropLaters Γ e T U i :
   Γ u⊢ₜ e : T →
   Γ u⊢ₜ T, 0 <: iterate TLater i U, 0 →
   Γ u⊢ₜ iterate tskip i e : TAnd T U.
@@ -240,7 +240,7 @@ Qed.
 *)
 Definition deLater e1 i e2 := lett e1 (lett (iterate tskip i (tv x0)) e2).
 
-Lemma deLaterSingV0 {Γ} p i e T U:
+Lemma deLaterSingV0 {Γ} p i e T U :
   Γ u⊢ₚ p : TSing p, 0 →
   shift (TSing p) :: Γ u⊢ₜ shift (TSing p), 0 <: iterate TLater i T, 0 →
   TAnd (TSing (shiftN 2 p)) (shift T) :: TSing (shift p) :: Γ u⊢ₜ e : shiftN 2 U →
@@ -253,7 +253,7 @@ Proof.
 Qed.
 
 (** More general version of [deLaterSingV0]. Not sure if too general or useful. *)
-Lemma deLaterSingV1 {Γ} p i e T1 T2 U:
+Lemma deLaterSingV1 {Γ} p i e T1 T2 U :
   Γ u⊢ₚ p : T1, 0 →
   shift (TAnd (TSing p) T1) :: Γ u⊢ₜ shift T1, 0 <: iterate TLater i T2, 0 →
   TAnd (TAnd (TSing (shiftN 2 p)) (shiftN 2 T1)) (shift T2) ::
@@ -268,7 +268,7 @@ Proof.
 Qed.
 
 (** Best version of [deLaterSing]. *)
-Lemma deLaterSing {Γ} p i e T1 U:
+Lemma deLaterSing {Γ} p i e T1 U :
   Γ u⊢ₚ p : iterate TLater i T1, 0 →
   TAnd (TSing (shiftN 2 p)) (shiftN 2 T1) ::
     TAnd (TSing (shift p)) (iterate TLater i (shift T1)) :: Γ u⊢ₜ e : shiftN 2 U →
@@ -286,14 +286,14 @@ Qed.
 
 Definition anfBind t := lett t (tv x0).
 
-Lemma AnfBind_typed Γ t (T U: ty) :
+Lemma AnfBind_typed Γ t (T U : ty) :
   Γ u⊢ₜ t : T →
   shift T :: Γ u⊢ₜ tv x0 : shift U →
   Γ u⊢ₜ anfBind t : U.
 Proof. intros; eapply iT_Let; eauto. Qed.
 
 Lemma pDOT_Def_Path_derived Γ l p T
-  (Hx : Γ u⊢ₚ p : T, 0):
+  (Hx : Γ u⊢ₚ p : T, 0) :
   Γ u⊢{ l := dpt p } : TVMem l (TSing p).
 Proof. eapply iD_Path, (iP_Sngl_Refl (T := T)), Hx. Qed.
 
@@ -308,13 +308,13 @@ Section cond.
   Set Default Proof Using "Hskolem".
 
 (* Convenient application syntax. *)
-Lemma iSub_Skolem_P {Γ T1 T2 i j}:
+Lemma iSub_Skolem_P {Γ T1 T2 i j} :
   iterate TLater i (shift T1) :: Γ u⊢ₚ pv (ids 0) : shift T2, j →
   Γ u⊢ₜ T1, i <: T2, j.
 Proof. apply Hskolem. Qed.
 
 
-Lemma iMu_Sub'' {Γ T i}:
+Lemma iMu_Sub'' {Γ T i} :
   is_unstamped_ty' (length Γ) T →
   Γ u⊢ₜ TMu (shift T), i <: T, i.
 Proof.
@@ -327,12 +327,12 @@ Proof.
   rewrite (hren_upn 1 T) hrenS /=; tcrush.
 Qed.
 
-Lemma iSub_Mu'' {Γ T i}:
+Lemma iSub_Mu'' {Γ T i} :
   is_unstamped_ty' (length Γ) T →
   Γ u⊢ₜ T, i <: TMu (shift T), i.
 Proof.
   intros Hu; apply iSub_Skolem_P => //.
-  have HusT: is_unstamped_ty' (S (length Γ).+1) (shift T).|[up (ren (+1))]
+  have HusT : is_unstamped_ty' (S (length Γ).+1) (shift T).|[up (ren (+1))]
     by rewrite (hren_upn 1); eapply is_unstamped_sub_ren_ty, Hu; auto.
   apply (iP_LaterN (i := 0)); wtcrush.
   eapply iT_ISub_nocoerce, iMu_LaterN_Sub_Distr.
@@ -341,7 +341,7 @@ Proof.
 Qed.
 
 (* Pretty close to [iMu_Sub_Mu'], except that the context of the hypothesis is different. *)
-Lemma iMu_Sub_Mu' {Γ T1 T2 i j}:
+Lemma iMu_Sub_Mu' {Γ T1 T2 i j} :
   iterate TLater i (shift (μ T1)) :: Γ u⊢ₜ T1, i <: T2, j →
   is_unstamped_ty' (length Γ).+1 T1 →
   is_unstamped_ty' (length Γ).+1 T2 →

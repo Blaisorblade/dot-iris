@@ -29,7 +29,7 @@ Section examplesBodies.
 End examplesBodies.
 
 Section small_ex.
-  Context `{HdlangG: !dlangG Σ} `{SwapPropI Σ}.
+  Context `{HdlangG : !dlangG Σ} `{SwapPropI Σ}.
 
   Definition miniVT2Body : ty := {@
     type "A" >: ⊥ <: 𝐙;
@@ -48,7 +48,7 @@ Section small_ex.
       (cAnd (cVMem "n" (oLater (oSel x0 "A")))
       cTop).
 
-  Lemma vHasA2t: ⊢ [] u⊨ hminiV : miniVT2.
+  Lemma vHasA2t : ⊢ [] u⊨ hminiV : miniVT2.
   Proof using Type*.
     iApply (suT_Sub (T1 := oMu (c2o sminiVT2ConcrBody))); first last.
     - iApply sMu_Stp_Mu; rewrite oLaterN_0.

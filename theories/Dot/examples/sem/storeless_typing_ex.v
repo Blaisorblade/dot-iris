@@ -7,7 +7,7 @@ From D Require Import tactics.
 From D.Dot Require Import syn storeless_typing_ex_utils
   unstampedness_binding.
 
-Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
+Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (ds : dms) (Γ : list ty).
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
@@ -19,13 +19,13 @@ Notation HashableString := (μ {@ val "hashCode" : TAll TUnit TInt }).
 (** MICRO-EXAMPLES **)
 (********************)
 
-Example ex0 e Γ T:
+Example ex0 e Γ T :
   Γ v⊢ₜ e : T →
   is_unstamped_ty' (length Γ) T →
   Γ v⊢ₜ e : ⊤.
 Proof. intros. apply (iT_ISub_nocoerce T TTop); tcrush. Qed.
 
-Example ex1 Γ (n : Z) T:
+Example ex1 Γ (n : Z) T :
   Γ v⊢ₜ ν {@ val "a" = n } : μ {@ val "a" : TInt }.
 Proof.
   (* Help proof search: Avoid trying iT_Mu_I, that's slow. *)
@@ -109,7 +109,7 @@ Proof.
 
   pose (T0 := μ {@ val "hashCode" : TAll ⊤ 𝐙 }).
 
-  have Htp: ∀ Γ', T0 :: Γ' v⊢ₜ x0 : val "hashCode" : TAll ⊤ TInt. {
+  have Htp : ∀ Γ', T0 :: Γ' v⊢ₜ x0 : val "hashCode" : TAll ⊤ TInt. {
     intros. eapply iT_ISub_nocoerce.
     by eapply iT_Mu_E'; [exact: iT_Var'| |stcrush].
     by apply iAnd1_Sub; tcrush.
@@ -138,7 +138,7 @@ Definition systemValT := μ {@
   val "subSys2" : μ {@ type "B" >: ⊥ <: ⊤}}.
 
 Example motivEx Γ
-  (HuString: is_unstamped_ty' 0 String):
+  (HuString : is_unstamped_ty' 0 String) :
   Γ v⊢ₜ systemVal : systemValT.
 Proof.
   apply iT_Obj_I; tcrush.
@@ -151,7 +151,7 @@ Definition systemValT' := μ {@
   val "subSys1" : type "A" >: ⊥ <: TInt;
   val "subSys2" : type "B" >: ⊥ <: ⊤}.
 Example motivEx1 Γ
-  (HuString: is_unstamped_ty' 0 String):
+  (HuString : is_unstamped_ty' 0 String) :
   Γ v⊢ₜ systemVal : systemValT'.
 Proof.
   apply iT_Obj_I; tcrush.
@@ -182,7 +182,7 @@ IFT ≡ IFTFun
 Definition IFTBody := (TAll (x0 @; "A") (TAll (x1 @; "A") (x2 @; "A"))).
 Definition IFT : ty :=
   TAll (type "A" >: ⊥ <: ⊤) IFTBody.
-Lemma IFTUnstamped: is_unstamped_ty' 0 IFT.
+Lemma IFTUnstamped : is_unstamped_ty' 0 IFT.
 Proof. tcrush. Qed.
 #[global] Hint Resolve IFTUnstamped : core.
 
@@ -261,7 +261,7 @@ Definition boolImplT0 : ty :=
     val "false" : TLater p0Bool
   }.
 
-Lemma iD_Lam_Sub {Γ} V T1 T2 e l L:
+Lemma iD_Lam_Sub {Γ} V T1 T2 e l L :
   shift T1 :: V :: Γ v⊢ₜ e : T2 →
   TLater V :: Γ v⊢ₜ TAll T1 T2, 0 <: L, 0 →
   Γ |L V v⊢{ l := dpt (pv (vabs e)) } : TVMem l L.
@@ -318,7 +318,7 @@ Proof.
     !hsubst_comp !ren_ren_comp /=. done.
 Qed.
 
-Lemma subIFT i Γ T:
+Lemma subIFT i Γ T :
   is_unstamped_ty' (length Γ) (shiftN i T) →
   (typeEq "A" T.|[ren (+1+i)]) :: Γ v⊢ₜ IFTBody, 0 <:
     TAll T.|[ren (+1+i)] (TAll T.|[ren (+2+i)] (▶: T.|[ren (+3+i)])), 0.

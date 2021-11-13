@@ -5,7 +5,7 @@ From D Require Import iris_prelude swap_later_impl.
 From D.Dot Require Import dot_semtypes.
 
 Implicit Types (Σ : gFunctors).
-Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env) (l : label).
+Implicit Types (v : vl) (e : tm) (d : dm) (ds : dms) (ρ : env) (l : label).
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
@@ -13,7 +13,7 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 
 Section DStpLemmas.
-  Context `{HdotG: !dlangG Σ}.
+  Context `{HdotG : !dlangG Σ}.
 
   Lemma sstpd_delay_oLaterN `{!SwapPropI Σ} Γ i T1 T2 :
     Γ s⊨ oLaterN i T1 <:[0] oLaterN i T2 ⊣⊢
@@ -57,7 +57,7 @@ Section DStpLemmas.
     ⊢ Γ s⊨ oAnd T1 T2 <:[i] T2.
   Proof. rewrite sstpd_eq. by iIntros "!> /= %ρ %v _ !> [_ $]". Qed.
 
-  Lemma sStp_And Γ T U1 U2 i:
+  Lemma sStp_And Γ T U1 U2 i :
     Γ s⊨ T <:[i] U1 -∗
     Γ s⊨ T <:[i] U2 -∗
     Γ s⊨ T <:[i] oAnd U1 U2.
@@ -68,12 +68,12 @@ Section DStpLemmas.
     iSplit; [iApply "H1" | iApply "H2"]; iApply "H".
   Qed.
 
-  Lemma sStp_Or1 Γ T1 T2 i: ⊢ Γ s⊨ T1 <:[i] oOr T1 T2.
+  Lemma sStp_Or1 Γ T1 T2 i : ⊢ Γ s⊨ T1 <:[i] oOr T1 T2.
   Proof. rewrite sstpd_eq. by iIntros "!> /= %ρ %v _ !>"; eauto. Qed.
-  Lemma sStp_Or2 Γ T1 T2 i: ⊢ Γ s⊨ T2 <:[i] oOr T1 T2.
+  Lemma sStp_Or2 Γ T1 T2 i : ⊢ Γ s⊨ T2 <:[i] oOr T1 T2.
   Proof. rewrite sstpd_eq. by iIntros "!> /= %ρ %v _ !>"; eauto. Qed.
 
-  Lemma sOr_Stp Γ T1 T2 U i:
+  Lemma sOr_Stp Γ T1 T2 U i :
     Γ s⊨ T1 <:[i] U -∗
     Γ s⊨ T2 <:[i] U -∗
     Γ s⊨ oOr T1 T2 <:[i] U.
@@ -90,19 +90,19 @@ Section DStpLemmas.
   Qed.
 
   (* XXX must we state the two separate halves? *)
-  Lemma sLater_Stp_Eq {Γ T U i} `{SwapPropI Σ}:
+  Lemma sLater_Stp_Eq {Γ T U i} `{SwapPropI Σ} :
     Γ s⊨ T <:[i.+1] U ⊣⊢
     Γ s⊨ oLater T <:[i] oLater U.
   Proof. by rewrite sstpd_delay_oLaterN_plus. Qed.
 
-  Lemma sStp_Add_LaterN {Γ T i j}:
+  Lemma sStp_Add_LaterN {Γ T i j} :
     ⊢ Γ s⊨ T <:[i] oLaterN j T.
   Proof. rewrite sstpd_eq; iIntros "!> ** !> $".  Qed.
-  Lemma sStp_Add_Later {Γ T i}:
+  Lemma sStp_Add_Later {Γ T i} :
     ⊢ Γ s⊨ T <:[i] oLater T.
   Proof. apply sStp_Add_LaterN. Qed.
 
-  Lemma sStp_Sel {Γ L U p l i}:
+  Lemma sStp_Sel {Γ L U p l i} :
     Γ s⊨p p : oTMem l L U, i -∗
     Γ s⊨ L <:[i] oSel p l.
   Proof.
@@ -112,7 +112,7 @@ Section DStpLemmas.
     iApply (vl_sel_lb with "HL").
   Qed.
 
-  Lemma sSel_Stp {Γ L U p l i}:
+  Lemma sSel_Stp {Γ L U p l i} :
     Γ s⊨p p : oTMem l L U, i -∗
     Γ s⊨ oSel p l <:[i] U.
   Proof.
@@ -123,11 +123,11 @@ Section DStpLemmas.
   Qed.
 
   (*
-     Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂ᶻ
+     Γ, z : T₁ᶻ ⊨ T₁ᶻ <: T₂ᶻ
      ----------------------------------------------- (μ-<:-μ)
-     Γ ⊨ μ (x: T₁ˣ) <: μ(x: T₂ˣ)
+     Γ ⊨ μ (x : T₁ˣ) <: μ(x : T₂ˣ)
   *)
-  Lemma sMu_Stp_Mu {Γ T1 T2 i} `{!SwapPropI Σ}:
+  Lemma sMu_Stp_Mu {Γ T1 T2 i} `{!SwapPropI Σ} :
     oLaterN i T1 :: Γ s⊨ T1 <:[i] T2 -∗
     Γ s⊨ oMu T1 <:[i] oMu T2.
   Proof.
@@ -140,7 +140,7 @@ Section DStpLemmas.
   Novel subtyping rules for recursive types:
      x ∉ fv T
      -----------------------------------------------
-     Γ ⊨ mu x: T <: T    Γ ⊨ T <: mu(x: T)
+     Γ ⊨ mu x : T <: T    Γ ⊨ T <: mu(x : T)
 
   [Stp_Bind_1] and [Stp_Bind_2] become derivable. *)
   Lemma sMu_Stp {Γ T i} : ⊢ Γ s⊨ oMu (shift T) <:[i] T.
@@ -149,7 +149,7 @@ Section DStpLemmas.
   Lemma sStp_Mu {Γ T i} : ⊢ Γ s⊨ T <:[i] oMu (shift T).
   Proof. rewrite oMu_shift. apply sStp_Refl. Qed.
 
-  Lemma sFld_Stp_Fld {Γ T1 T2 i l}:
+  Lemma sFld_Stp_Fld {Γ T1 T2 i l} :
     Γ s⊨ T1 <:[i] T2 -∗
     Γ s⊨ oVMem l T1 <:[i] oVMem l T2.
   Proof.
@@ -167,7 +167,7 @@ Section DStpLemmas.
     iApply (oTMem_respects_sub with "HsubL HsubU").
   Qed.
 
-  Lemma sAll_Stp_All Γ T1 T2 U1 U2 i `{!SwapPropI Σ}:
+  Lemma sAll_Stp_All Γ T1 T2 U1 U2 i `{!SwapPropI Σ} :
     Γ s⊨ oLater T2 <:[i] oLater T1 -∗
     oLaterN (i.+1) (oShift T2) :: Γ s⊨ oLater U1 <:[i] oLater U2 -∗
     Γ s⊨ oAll T1 U1 <:[i] oAll T2 U2.
@@ -203,7 +203,7 @@ Section DStpLemmas.
     F[A ∧ B] <: F[A] ∧ F[B] is provable by covariance.
     Let's prove F[A] ∧ F[B] <: F[A ∧ B] in the model.
     *)
-  Lemma sAnd_All_1_Stp_Distr Γ S T1 T2 i:
+  Lemma sAnd_All_1_Stp_Distr Γ S T1 T2 i :
     ⊢ Γ s⊨ oAnd (oAll S T1) (oAll S T2) <:[i] oAll S (oAnd T1 T2).
   Proof.
     iIntros "!> %ρ _ !> %v [#H1 #H2]".
@@ -215,7 +215,7 @@ Section DStpLemmas.
     iApply (wp_and with "(H1 HS) (H2 HS)").
   Qed.
 
-  Lemma sAnd_All_2_Stp_Distr Γ S1 S2 T i:
+  Lemma sAnd_All_2_Stp_Distr Γ S1 S2 T i :
     ⊢ Γ s⊨ oAnd (oAll S1 T) (oAll S2 T) <:[i] oAll (oOr S1 S2) T.
   Proof.
     iIntros "!> %ρ _ !> %v [#H1 #H2]".
@@ -229,10 +229,10 @@ Section DStpLemmas.
     [⊢ Γ s⊨ oAnd (oAll S1 T1) (oAll S2 T2) <:[i] oAll (oOr S1 S2) (oAnd T1 T2)].
 
     Counterexample:
-    [id : Int -> Int] and [id : String -> String], but not [id: Int \/ String -> Int /\ String)].
+    [id : Int -> Int] and [id : String -> String], but not [id : Int \/ String -> Int /\ String)].
   *)
 
-  Lemma sAnd_Fld_Stp_Distr Γ l T1 T2 i:
+  Lemma sAnd_Fld_Stp_Distr Γ l T1 T2 i :
     ⊢ Γ s⊨ oAnd (oVMem l T1) (oVMem l T2) <:[i] oVMem l (oAnd T1 T2).
   Proof.
     iIntros "!> %ρ _ !> %v [#H1 H2]"; rewrite !oVMem_eq.
@@ -241,7 +241,7 @@ Section DStpLemmas.
     by iApply (path_wp_and' with "H1 H2").
   Qed.
 
-  Lemma sAnd_Typ_Stp_Distr Γ l L1 L2 U1 U2 i:
+  Lemma sAnd_Typ_Stp_Distr Γ l L1 L2 U1 U2 i :
     ⊢ Γ s⊨ oAnd (oTMem l L1 U1) (oTMem l L2 U2) <:[i] oTMem l (oOr L1 L2) (oAnd U1 U2).
   Proof.
     iIntros "!> %ρ _ !> %v [H1 H2]"; rewrite !oTMem_eq /dot_intv_type_pred.
@@ -257,7 +257,7 @@ Section DStpLemmas.
       iNext. by iRewrite -"Hag".
   Qed.
 
-  Lemma sOr_Fld_Stp_Distr Γ l T1 T2 i:
+  Lemma sOr_Fld_Stp_Distr Γ l T1 T2 i :
     ⊢ Γ s⊨ oVMem l (oOr T1 T2) <:[i] oOr (oVMem l T1) (oVMem l T2).
   Proof.
     iIntros "!> %ρ _ !> %v". rewrite !oVMem_eq.

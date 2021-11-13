@@ -12,7 +12,7 @@ From D.Dot Require Export core_stamping_defs.
 Set Implicit Arguments.
 Unset Strict Implicit.
 
-Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
+Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p : path) (ds : dms) (Γ : list ty).
 
 (* Hack *)
 Notation "Γ v⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2)
@@ -35,38 +35,38 @@ Judgments for typing, subtyping, path and definition typing.
 Inductive typed Γ : tm → ty → Prop :=
 (** First, elimination forms *)
 (** Dependent application; only allowed if the argument is a variable. *)
-| iT_All_Ex e1 x2 T1 T2:
-    Γ v⊢ₜ e1: TAll T1 T2 →                        Γ v⊢ₜ tv (vvar x2) : T1 →
+| iT_All_Ex e1 x2 T1 T2 :
+    Γ v⊢ₜ e1 : TAll T1 T2 →                        Γ v⊢ₜ tv (vvar x2) : T1 →
     (*────────────────────────────────────────────────────────────*)
     Γ v⊢ₜ tapp e1 (tv (vvar x2)) : T2.|[vvar x2/]
 
-| iT_All_E_p p2 e1 T1 T2 T2':
+| iT_All_E_p p2 e1 T1 T2 T2' :
     T2 .Tp[ p2 /]~ T2' →
     is_unstamped_ty' (length Γ) T2' →
-    Γ v⊢ₜ e1: TAll T1 T2 →
+    Γ v⊢ₜ e1 : TAll T1 T2 →
     Γ u⊢ₚ p2 : T1, 0 →
     (*────────────────────────────────────────────────────────────*)
     Γ v⊢ₜ tapp e1 (path2tm p2) : T2'
 (** Non-dependent application; allowed for any argument. *)
-| iT_All_E e1 e2 T1 T2:
-    Γ v⊢ₜ e1: TAll T1 (shift T2) →      Γ v⊢ₜ e2 : T1 →
+| iT_All_E e1 e2 T1 T2 :
+    Γ v⊢ₜ e1 : TAll T1 (shift T2) →      Γ v⊢ₜ e2 : T1 →
     (*────────────────────────────────────────────────────────────*)
     Γ v⊢ₜ tapp e1 e2 : T2
-| iT_Obj_E e T l:
+| iT_Obj_E e T l :
     Γ v⊢ₜ e : TVMem l T →
     (*─────────────────────────*)
     Γ v⊢ₜ tproj e l : T
 (** Introduction forms *)
-| iT_All_I_Strong e T1 T2 Γ':
+| iT_All_I_Strong e T1 T2 Γ' :
     ⊢G Γ >>▷* Γ' →
     (* T1 :: Γ' v⊢ₜ e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
     shift T1 :: Γ' v⊢ₜ e : T2 →
     (*─────────────────────────*)
     Γ v⊢ₜ tv (vabs e) : TAll T1 T2
-| iT_Obj_I ds T:
-    Γ |L T v⊢ds ds: T →
+| iT_Obj_I ds T :
+    Γ |L T v⊢ds ds : T →
     (*──────────────────────*)
-    Γ v⊢ₜ tv (vobj ds): TMu T
+    Γ v⊢ₜ tv (vobj ds) : TMu T
 (** "General" rules *)
 | iT_ISub e T1 T2 i :
     Γ v⊢ₜ T1, 0 <: T2, i → Γ v⊢ₜ e : T1 →
@@ -86,7 +86,7 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ v⊢ₜ e2 : TPrim B2 →
     Γ v⊢ₜ tbin b e1 e2 : TPrim Br
 | iT_If e e1 e2 T :
-    Γ v⊢ₜ e: TBool →
+    Γ v⊢ₜ e : TBool →
     Γ v⊢ₜ e1 : T →
     Γ v⊢ₜ e2 : T →
     Γ v⊢ₜ tif e e1 e2 : T
@@ -94,7 +94,7 @@ where "Γ v⊢ₜ e : T" := (typed Γ e T)
 with dms_typed Γ : dms → ty → Prop :=
 | iD_Nil : Γ v⊢ds [] : TTop
 (* This demands definitions and members to be defined in aligned lists. *)
-| iD_Cons l d ds T1 T2:
+| iD_Cons l d ds T1 T2 :
     Γ v⊢{ l := d } : T1 →
     Γ v⊢ds ds : T2 →
     dms_hasnt ds l →
@@ -108,22 +108,22 @@ with dm_typed Γ : label → dm → ty → Prop :=
     Γ v⊢ₜ TLater T, 0 <: U, 0 →
     Γ v⊢{ l := dtysyn T } : TTMem l L U
 
-| iD_Typ_Abs_old T l L U s σ:
+| iD_Typ_Abs_old T l L U s σ :
     nclosed T (length Γ) →
     Γ v⊢ₜ L, 0 <: TLater T, 0 →
     Γ v⊢ₜ TLater T, 0 <: U, 0 →
     (* Yeah, the actual σ and s don't matter here. *)
     Γ v⊢{ l := dtysem σ s } : TTMem l L U
-| iD_Val l v T:
+| iD_Val l v T :
     Γ v⊢ₜ tv v : T →
     Γ v⊢{ l := dpt (pv v) } : TVMem l T
-| iD_Path l p T:
+| iD_Path l p T :
     Γ u⊢ₚ p : T, 0 →
     Γ v⊢{ l := dpt p } : TVMem l T
-| iD_Val_New l T ds:
+| iD_Val_New l T ds :
     TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ v⊢ds ds : T →
     Γ v⊢{ l := dpt (pv (vobj ds)) } : TVMem l (TMu T)
-| iD_Path_Sub T1 T2 p l:
+| iD_Path_Sub T1 T2 p l :
     Γ v⊢ₜ T1, 0 <: T2, 0 →
     Γ v⊢{ l := dpt p } : TVMem l T1 →
     Γ v⊢{ l := dpt p } : TVMem l T2
@@ -149,10 +149,10 @@ Lemma iT_Path' Γ v T
   (Ht : Γ u⊢ₚ pv v : T, 0) : Γ v⊢ₜ tv v : T.
 Proof. exact: (iT_Path _ (p := pv _)). Qed.
 
-Lemma iT_Nat_I Γ n : Γ v⊢ₜ tv (vint n): TInt.
+Lemma iT_Nat_I Γ n : Γ v⊢ₜ tv (vint n) : TInt.
 Proof. apply iT_Path'; constructor. Qed.
 
-Lemma iT_Bool_I Γ b : Γ v⊢ₜ tv (vbool b): TBool.
+Lemma iT_Bool_I Γ b : Γ v⊢ₜ tv (vbool b) : TBool.
 Proof. apply iT_Path'; constructor. Qed.
 
 Lemma iT_All_I Γ e T1 T2 :
@@ -161,7 +161,7 @@ Lemma iT_All_I Γ e T1 T2 :
   Γ v⊢ₜ tv (vabs e) : TAll T1 T2.
 Proof. apply iT_All_I_Strong. ietp_weaken_ctx. Qed.
 
-Lemma iT_All_I_strip1 Γ e V T1 T2:
+Lemma iT_All_I_strip1 Γ e V T1 T2 :
   shift T1 :: V :: Γ v⊢ₜ e : T2 →
   (*─────────────────────────*)
   Γ |L V v⊢ₜ tv (vabs e) : TAll T1 T2.
@@ -170,7 +170,7 @@ Proof.
   rewrite /defCtxCons/=; ietp_weaken_ctx.
 Qed.
 
-Lemma iD_All Γ V T1 T2 e l:
+Lemma iD_All Γ V T1 T2 e l :
   shift T1 :: V :: Γ v⊢ₜ e : T2 →
   Γ |L V v⊢{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
 Proof. by intros; apply iD_Val, iT_All_I_strip1. Qed.
@@ -190,16 +190,16 @@ Proof.
   eapply iP_ISub'; eauto.
 Qed.
 
-Lemma iT_Mu_E {Γ x T}:
-  Γ v⊢ₜ tv (vvar x): TMu T →
+Lemma iT_Mu_E {Γ x T} :
+  Γ v⊢ₜ tv (vvar x) : TMu T →
   is_unstamped_ty' (length Γ).+1 T →
-  Γ v⊢ₜ tv (vvar x): T.|[vvar x/].
+  Γ v⊢ₜ tv (vvar x) : T.|[vvar x/].
 Proof. move => Hx Hu. by eapply iT_Path', iP_Mu_E', iP_VarT, Hx. Qed.
 
-Lemma iT_Mu_I {Γ x T}:
-  Γ v⊢ₜ tv (vvar x): T.|[vvar x/] →
+Lemma iT_Mu_I {Γ x T} :
+  Γ v⊢ₜ tv (vvar x) : T.|[vvar x/] →
   is_unstamped_ty' (length Γ).+1 T →
-  Γ v⊢ₜ tv (vvar x): TMu T.
+  Γ v⊢ₜ tv (vvar x) : TMu T.
 Proof. move => Hx Hu. by eapply iT_Path', iP_Mu_I', iP_VarT, Hx. Qed.
 
 Ltac typconstructor :=

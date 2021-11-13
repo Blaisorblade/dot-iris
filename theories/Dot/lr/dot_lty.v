@@ -45,9 +45,9 @@ Arguments clty : clear implicits.
 Arguments _Clty {_}.
 Notation Clty TD T := (_Clty TD T _ _ _).
 Arguments clty_dslty {_} !_.
-Instance: Params (@clty_dslty) 1 := {}.
+Instance : Params (@clty_dslty) 1 := {}.
 Arguments clty_olty {_} !_.
-Instance: Params (@clty_olty) 1 := {}.
+Instance : Params (@clty_olty) 1 := {}.
 
 Section clty_ofe.
   Context {Σ}.
@@ -79,11 +79,11 @@ End clty_ofe_proper.
 (** *** Helpers for constructing [clty]. *)
 Definition lift_dty_dms `{!dlangG Σ} l (TD : dltyO Σ) : dsltyO Σ := Dslty (λI ρ ds,
   ∃ d, ⌜ dms_lookup l ds = Some d ⌝ ∧ TD ρ d).
-Instance: Params (@lift_dty_dms) 3 := {}.
+Instance : Params (@lift_dty_dms) 3 := {}.
 
 Definition lift_dty_vl `{!dlangG Σ} l (TD : dltyO Σ) : oltyO Σ :=
   olty0 (λI ρ v, ∃ d, ⌜v @ l ↘ d ⌝ ∧ TD ρ d).
-Instance: Params (@lift_dty_vl) 3 := {}.
+Instance : Params (@lift_dty_vl) 3 := {}.
 
 (** This definition is only useful to show in [lift_dty_vl_equiv_paper] that
 certain definitions we give are equivalent to the ones in the paper. *)
@@ -91,7 +91,7 @@ Definition lift_dty_vl_paper `{!dlangG Σ} (TD : dsltyO Σ) : oltyO Σ := olty0 
   ∃ ds, ⌜v = vobj ds⌝ ∧ TD ρ (selfSubst ds)).
 
 Section lift_dty_lemmas.
-  Context `{HdotG: !dlangG Σ}.
+  Context `{HdotG : !dlangG Σ}.
 
   Lemma lift_dty_vl_equiv_paper l T :
     lift_dty_vl l T ≡ lift_dty_vl_paper (lift_dty_dms l T).
@@ -128,7 +128,7 @@ End lift_dty_lemmas.
 Program Definition olty2clty `{!dlangG Σ} (U : oltyO Σ) : cltyO Σ :=
   Clty ⊥ U.
 Solve All Obligations with by iIntros.
-#[global] Instance: Params (@olty2clty) 2 := {}.
+#[global] Instance : Params (@olty2clty) 2 := {}.
 
 Program Definition dty2clty `{!dlangG Σ} l (T : dltyO Σ) : cltyO Σ :=
   Clty (lift_dty_dms l T) (lift_dty_vl l T).
@@ -143,10 +143,10 @@ Qed.
 Next Obligation.
   intros; iDestruct 1 as (d Hl) "H". iExists d; iSplit; naive_solver.
 Qed.
-#[global] Instance: Params (@dty2clty) 3 := {}.
+#[global] Instance : Params (@dty2clty) 3 := {}.
 
 Section DefsTypes.
-  Context `{HdotG: !dlangG Σ}.
+  Context `{HdotG : !dlangG Σ}.
 
   #[global] Instance olty2clty_ne : NonExpansive olty2clty.
   Proof. split; rewrite /=; by repeat f_equiv. Qed.
@@ -170,7 +170,7 @@ Section DefsTypes.
 
   #[global] Instance : Bottom (clty Σ) := olty2clty ⊥.
 
-  Program Definition cAnd (Tds1 Tds2 : clty Σ): clty Σ :=
+  Program Definition cAnd (Tds1 Tds2 : clty Σ) : clty Σ :=
     Clty (Dslty (λI ρ ds, Tds1 ρ ds ∧ Tds2 ρ ds)) (oAnd (c2o Tds1) (c2o Tds2)).
   Next Obligation. intros. by rewrite /= -!clty_def2defs_head. Qed.
   Next Obligation. intros. by rewrite /= -!clty_mono. Qed.
@@ -178,7 +178,7 @@ Section DefsTypes.
 
   #[global] Instance cAnd_ne : NonExpansive2 cAnd.
   Proof. split; rewrite /=; repeat f_equiv; solve_proper_ho. Qed.
-  #[global] Instance cAnd_proper:
+  #[global] Instance cAnd_proper :
     Proper ((≡) ==> (≡) ==> (≡)) cAnd := ne_proper_2 _.
 
   Lemma cAnd_olty2clty T1 T2 :
@@ -191,9 +191,9 @@ Section DefsTypes.
   Qed.
 End DefsTypes.
 
-#[global] Instance: Params (@cAnd) 1 := {}.
+#[global] Instance : Params (@cAnd) 1 := {}.
 
-Implicit Types (T: ty).
+Implicit Types (T : ty).
 
 (** * Constructions on gDOT semantic types. *)
 (** ** Semantic path substitution and replacement. *)
@@ -225,7 +225,7 @@ Section path_repl.
   Lemma opSubst_pv_eq v (T : oltyO Σ) : T .sTp[ pv v /] ≡ T.|[v/].
   Proof. move=> args ρ w /=. by rewrite path_wp_pv_eq subst_swap_base. Qed.
 
-  Lemma sem_psubst_one_repl {T : olty Σ} {args p v w ρ}:
+  Lemma sem_psubst_one_repl {T : olty Σ} {args p v w ρ} :
     alias_paths p.|[ρ] (pv v) →
     T .sTp[ p /] args ρ w ≡ T args (v .: ρ) w.
   Proof. move=> /alias_paths_elim_eq /= ->. by rewrite path_wp_pv_eq. Qed.
@@ -237,12 +237,12 @@ Section path_repl.
 End path_repl.
 
 (** When a definition points to a semantic type. Inlined in paper. *)
-Definition dm_to_type `{HdotG: !dlangG Σ} d (ψ : hoD Σ) : iProp Σ :=
+Definition dm_to_type `{HdotG : !dlangG Σ} d (ψ : hoD Σ) : iProp Σ :=
   ∃ s σ, ⌜ d = dtysem σ s ⌝ ∧ s ↗n[ σ ] ψ.
 Notation "d ↗n ψ" := (dm_to_type d ψ) (at level 20).
 
 Section dm_to_type.
-  Context `{HdotG: !dlangG Σ}.
+  Context `{HdotG : !dlangG Σ}.
 
   Lemma dm_to_type_agree {d ψ1 ψ2} args v : d ↗n ψ1 -∗ d ↗n ψ2 -∗ ▷ (ψ1 args v ≡ ψ2 args v).
   Proof.

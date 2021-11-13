@@ -11,7 +11,7 @@ Export DBNotation old_subtyping_derived_rules.
 Set Default Proof Using "Type".
 Set Suggest Proof Using.
 
-Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
+Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (ds : dms) (Γ : list ty).
 
 (**********************)
 (** STAMPED NOTATION **)
@@ -90,7 +90,7 @@ Ltac ltcrush' := tcrush; repeat lookup'.
 (*******************)
 
 Lemma iT_All_Ex' T2 {Γ e1 x2 T1 T3} :
-  Γ v⊢ₜ e1: TAll T1 T2 →                        Γ v⊢ₜ tv (vvar x2) : T1 →
+  Γ v⊢ₜ e1 : TAll T1 T2 →                        Γ v⊢ₜ tv (vvar x2) : T1 →
   T3 = T2.|[vvar x2/] →
   (*────────────────────────────────────────────────────────────*)
   Γ v⊢ₜ tapp e1 (tv (vvar x2)) : T3.
@@ -123,12 +123,12 @@ Lemma iT_Var0_Sub Γ T1 T2 :
   Γ v⊢ₜ tv (vvar 0) : T2.
 Proof. by intros; apply iT_Path'; pvarsub. Qed.
 
-Lemma iT_Mu_E' Γ x T1 T2:
-  Γ v⊢ₜ tv (vvar x): TMu T1 →
+Lemma iT_Mu_E' Γ x T1 T2 :
+  Γ v⊢ₜ tv (vvar x) : TMu T1 →
   T2 = T1.|[vvar x/] →
   is_unstamped_ty' (length Γ).+1 T1 →
   (*──────────────────────*)
-  Γ v⊢ₜ tv (vvar x): T2.
+  Γ v⊢ₜ tv (vvar x) : T2.
 Proof. intros; subst; tcrush. Qed.
 
 Lemma iT_ISub_nocoerce T1 T2 {Γ e} :
@@ -138,7 +138,7 @@ Lemma iT_ISub_nocoerce T1 T2 {Γ e} :
 Proof. intros. exact: (iT_ISub (i:=0)). Qed.
 #[global] Hint Resolve iT_ISub_nocoerce : core.
 
-Lemma path_tp_delay {Γ p T i j} (Hst: is_unstamped_ty' (length Γ) T) : i <= j →
+Lemma path_tp_delay {Γ p T i j} (Hst : is_unstamped_ty' (length Γ) T) : i <= j →
   Γ u⊢ₚ p : T, i → Γ u⊢ₚ p : T, j.
 Proof.
   intros Hle Hp.
@@ -157,7 +157,7 @@ Proof. move=> Ht Hu. apply /iT_All_E /Ht /iT_All_I /Hu. Qed.
    self-variable of the created object. *)
 Definition packTV n s := (ν {@ type "A" = (shift (idsσ n); s)}).
 
-Lemma iD_Typ T {Γ l s σ}:
+Lemma iD_Typ T {Γ l s σ} :
   is_unstamped_ty' (length Γ) T →
   Γ v⊢{ l := dtysem σ s } : TTMemL l T T.
 Proof. intros. apply (iD_Typ_Abs_old T); subtcrush. exact: is_unstamped_nclosed_ty. Qed.

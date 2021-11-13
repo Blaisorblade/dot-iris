@@ -9,7 +9,7 @@ From D.Dot Require Import dlang_inst rules lr_syn_aux path_repl.
 From D.pure_program_logic Require Import lifting.
 
 Implicit Types
-         (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
+         (L T U : ty) (v : vl) (e : tm) (d : dm) (ds : dms) (p : path)
          (Γ : ctx) (ρ : env) (Pv : vl → Prop).
 
 Set Suggest Proof Using.
@@ -64,7 +64,7 @@ Section path_wp_pre.
     Datatypes.uncurry ∘ path_wp_pre ∘ Datatypes.curry.
 End path_wp_pre.
 
-#[local] Instance path_wp_pre_mono' {Σ}: BiMonoPred (@path_wp_pre' Σ).
+#[local] Instance path_wp_pre_mono' {Σ} : BiMonoPred (@path_wp_pre' Σ).
 Proof.
   constructor.
   - iIntros (wp1 wp2) "#H". iIntros ([p Φ]); iRevert (p Φ).
@@ -78,7 +78,7 @@ Definition path_wp_aux `{!dlangG Σ} : seal path_wp_def. Proof. by eexists. Qed.
 Definition path_wp `{!dlangG Σ} := path_wp_aux.(unseal).
 Definition path_wp_unseal `{!dlangG Σ} : path_wp = path_wp_def := path_wp_aux.(seal_eq).
 
-#[global] Instance: Params (@path_wp) 2 := {}.
+#[global] Instance : Params (@path_wp) 2 := {}.
 
 Section path_wp_lemmas.
   Context `{!dlangG Σ}.
@@ -98,13 +98,13 @@ Section path_wp_lemmas.
 
   (* General induction principle on path_wp. *)
   Lemma path_wp_ind' Ψ
-    (HΨ : ∀ n p, Proper (pointwise_relation _ (dist n) ==> dist n) (Ψ p)):
+    (HΨ : ∀ n p, Proper (pointwise_relation _ (dist n) ==> dist n) (Ψ p)) :
     ⊢ (∀ p Φ, path_wp_pre (λ p Φ, Ψ p Φ ∧ path_wp p Φ) p Φ -∗ Ψ p Φ) →
     ∀ p Φ, path_wp p Φ -∗ Ψ p Φ.
   Proof.
     iIntros "#IH" (p Φ) "H". rewrite path_wp_unseal.
     set (Ψ' := curry Ψ : prodO pathO (vl -d> iPropO Σ) → iPropO Σ).
-    have ?: NonExpansive Ψ'.
+    have ? : NonExpansive Ψ'.
     { intros n [p1 Φ1] [p2 Φ2] [?%leibniz_equiv ?]; simplify_eq/=. by apply HΨ. }
     iApply (least_fixpoint_strong_ind _ Ψ' with "[] H").
     iIntros "!>" ([? ?]) "H". by iApply "IH".
@@ -112,7 +112,7 @@ Section path_wp_lemmas.
 
   (* Specialized induction principle on path_wp. *)
   Lemma path_wp_ind Ψ
-    (Hprop : ∀ n p, Proper (pointwise_relation _ (dist n) ==> dist n) (Ψ p)):
+    (Hprop : ∀ n p, Proper (pointwise_relation _ (dist n) ==> dist n) (Ψ p)) :
     ⊢ (∀ v Φ, Φ v -∗ Ψ (pv v) Φ) →
      (∀ p l Φ, path_wp_pre (λ p Φ, Ψ p Φ ∧ path_wp p Φ) (pself p l) Φ -∗ Ψ (pself p l) Φ) →
      ∀ p Φ, path_wp p Φ -∗ Ψ p Φ.
@@ -141,14 +141,14 @@ Section path_wp_lemmas.
   #[global] Instance pwp_proper : Proper ((=) ==> pointwise_relation _ (≡) ==> (≡)) path_wp.
   Proof.
     (* The induction works best in this shape, but this instance is best kept local. *)
-    have pwp_proper_2: ∀ p, Proper (pointwise_relation _ (≡) ==> (≡)) (path_wp p).
+    have pwp_proper_2 : ∀ p, Proper (pointwise_relation _ (≡) ==> (≡)) (path_wp p).
     by apply _.
     solve_proper.
   Qed.
 
   #[local] Hint Constructors path_wp_pure : core.
 
-  Lemma path_wp_pureable p Pv:
+  Lemma path_wp_pureable p Pv :
     path_wp p (λ v, ⌜Pv v⌝) ⊣⊢ ⌜path_wp_pure p Pv⌝.
   Proof.
     iSplit.
@@ -181,7 +181,7 @@ Section path_wp_lemmas.
       iExists _, _. by repeat iSplit; [|iApply path_wp_pureable|iApply "IH1"].
   Qed.
 
-  Lemma strong_path_wp_wand i φ1 φ2 p:
+  Lemma strong_path_wp_wand i φ1 φ2 p :
     ▷^i path_wp p φ1 -∗
     (∀ v, ⌜ path_wp_pure p (eq v) ⌝ -∗ ▷^i φ1 v -∗ ▷^i φ2 v) -∗
     ▷^i path_wp p φ2.
@@ -192,14 +192,14 @@ Section path_wp_lemmas.
     iApply ("Hwand" $! v Hal with "H1").
   Qed.
 
-  Lemma path_wp_wand_laterN i φ1 φ2 p:
+  Lemma path_wp_wand_laterN i φ1 φ2 p :
     ▷^i path_wp p φ1 -∗ (∀ v, ▷^i φ1 v -∗ ▷^i φ2 v) -∗ ▷^i path_wp p φ2.
   Proof.
     iIntros "H1 Hwand". iApply (strong_path_wp_wand with "H1").
     iIntros "* _"; iApply "Hwand".
   Qed.
 
-  Lemma path_wp_wand φ1 φ2 p:
+  Lemma path_wp_wand φ1 φ2 p :
     path_wp p φ1 -∗ (∀ v, φ1 v -∗ φ2 v) -∗ path_wp p φ2.
   Proof. apply (path_wp_wand_laterN 0). Qed.
 
@@ -219,10 +219,10 @@ Section path_wp_lemmas.
     by case: b {Hw} => /=; iFrame (Hpv).
   Qed.
 
-  Lemma path_wp_det p v1 v2:
+  Lemma path_wp_det p v1 v2 :
     path_wp p (λ w, ⌜ v1 = w ⌝) -∗
     path_wp p (λ w, ⌜ v2 = w ⌝) -∗
-    ⌜ v1 = v2 ⌝: iProp Σ.
+    ⌜ v1 = v2 ⌝ : iProp Σ.
   Proof. iIntros "!%". exact: path_wp_pure_det. Qed.
 
   Lemma path_wp_swap p u :
@@ -230,7 +230,7 @@ Section path_wp_lemmas.
   Proof. iIntros "!%". by rewrite /= path_wp_pure_swap. Qed.
 
   (* Not provable through pure props for impure [φ]. *)
-  Lemma alias_paths_samepwp p q:
+  Lemma alias_paths_samepwp p q :
     alias_paths p q ↔
       (∃ u, path_wp_pure p (eq u)) ∧
       ∀ φ, path_wp p φ ≡ path_wp q φ.
@@ -246,12 +246,12 @@ Section path_wp_lemmas.
       iRevert (Hp). by rewrite -!path_wp_pureable Heq.
   Qed.
 
-  Lemma alias_paths_elim_eq φ {p q}:
+  Lemma alias_paths_elim_eq φ {p q} :
     alias_paths p q →
     path_wp p φ ≡ path_wp q φ.
   Proof. intros ?%alias_paths_samepwp. intuition. Qed.
 
-  Lemma path_wp_and p Φ1 Φ2:
+  Lemma path_wp_and p Φ1 Φ2 :
     path_wp p Φ1 ∧ path_wp p Φ2 ⊣⊢
     path_wp p (λ v, Φ1 v ∧ Φ2 v).
   Proof.
@@ -285,7 +285,7 @@ Section path_wp_lemmas.
     path_wp p (λ v, ▷ φ v) ⊢ ▷ path_wp p (λ v, φ v).
   Proof. rewrite !path_wp_eq. by iDestruct 1 as (v Hp) "H"; eauto. Qed.
 
-  Lemma path_wp_laterN_swap p φ i:
+  Lemma path_wp_laterN_swap p φ i :
     path_wp p (λ v, ▷^i φ v) ⊢ ▷^i path_wp p (λ v, φ v).
   Proof. elim: i => [//|i /= <-]. apply path_wp_later_swap. Qed.
 
@@ -313,7 +313,7 @@ Section path_wp_lemmas.
     ⊢ WP (path2tm p) {{ w, ⌜ v = w ⌝ }}.
   Proof. rewrite -path_wp_to_wp. by iIntros "!%". Qed.
 
-  #[global] Instance path_wp_timeless p Pv: Timeless (path_wp p (λI v, ⌜Pv v⌝)).
+  #[global] Instance path_wp_timeless p Pv : Timeless (path_wp p (λI v, ⌜Pv v⌝)).
   Proof. rewrite path_wp_pureable. apply _. Qed.
 
   Lemma path_wp_terminates p φ :

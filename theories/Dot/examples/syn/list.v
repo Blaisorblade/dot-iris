@@ -14,7 +14,7 @@ From D.Dot.examples Require Import ex_utils scala_lib hoas.
 
 Import DBNotation hoasNotation.
 
-Implicit Types (L T U: hty) (Γ : list ty).
+Implicit Types (L T U : hty) (Γ : list ty).
 
 Definition htrueTm (bool : hvl) := htskip (bool @: "true").
 Definition hfalseTm (bool : hvl) := htskip (bool @: "false").
@@ -22,7 +22,7 @@ Definition hfalseTm (bool : hvl) := htskip (bool @: "false").
 Lemma trueTyp Γ Γ'' : Γ'' ++ boolImplT :: Γ u⊢ₜ
   htrueTm (hx (length Γ'')) : hx (length Γ'') @; "Boolean".
 Proof.
-  have ?: length Γ'' < length (Γ'' ++ boolImplT :: Γ) by rewrite app_length /=; lia.
+  have ? : length Γ'' < length (Γ'' ++ boolImplT :: Γ) by rewrite app_length /=; lia.
   apply (iT_ISub (i := 1) (T1 := ▶: hx (length Γ'') @; "Boolean"));
     rewrite /= plusnO; tcrush.
     eapply iT_ISub_nocoerce.
@@ -33,7 +33,7 @@ Qed.
 Lemma falseTyp Γ Γ'' : Γ'' ++ boolImplT :: Γ u⊢ₜ
   hfalseTm (hx (length Γ'')) : hx (length Γ'') @; "Boolean".
 Proof.
-  have ?: length Γ'' < length (Γ'' ++ boolImplT :: Γ) by rewrite app_length /=; lia.
+  have ? : length Γ'' < length (Γ'' ++ boolImplT :: Γ) by rewrite app_length /=; lia.
   apply (iT_ISub (i := 1) (T1 := ▶: hx (length Γ'') @; "Boolean"));
     rewrite /= plusnO; tcrush.
   eapply iT_ISub_nocoerce.
@@ -260,20 +260,20 @@ Program Example hheadConsTyp Γ :
   hlistModT hx1 :: boolImplT :: Γ u⊢ₜ hheadCons (hxm 2) 2 : 𝐙.
 Proof.
   hideCtx; set Γ' := Γ0.
-  have HL : Γ' u⊢ₜ x0: hlistModTBody hx1 hx0 by apply: iT_Mu_E'; first var; stcrush.
+  have HL : Γ' u⊢ₜ x0 : hlistModTBody hx1 hx0 by apply: iT_Mu_E'; first var; stcrush.
 
   (* The result of "head" has one more later than the list. *)
   eapply (iT_ISub (i := 2) (T1 := ▶: ▶: 𝐙)).
   asideLaters. tcrush.
   eapply (iT_All_E (T1 := ⊤)); last (eapply iT_ISub_nocoerce); tcrush.
-  have Hnil: Γ' u⊢ₜ (hxm 2 @: "nil") 2 : hnilT hx0
+  have Hnil : Γ' u⊢ₜ (hxm 2 @: "nil") 2 : hnilT hx0
     by tcrush; eapply iT_ISub_nocoerce; ltcrush.
-  have Hsnil: Γ' u⊢ₜ htskip (hxm 2 @: "nil") 2
+  have Hsnil : Γ' u⊢ₜ htskip (hxm 2 @: "nil") 2
     : hTAnd (hx0 @; "List") (typeEq "A" ⊥). {
     eapply (iT_ISub (i := 1)), Hnil.
     by tcrush; [lThis | lNext; apply iSub_AddI; tcrush].
   }
-  have Hcons: Γ' u⊢ₜ (hxm 2 @: "cons") 2 : hconsT hx0. {
+  have Hcons : Γ' u⊢ₜ (hxm 2 @: "cons") 2 : hconsT hx0. {
     tcrush.
     eapply iT_ISub_nocoerce; by [| ltcrush].
   }

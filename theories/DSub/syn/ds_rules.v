@@ -34,11 +34,11 @@ Section lang_rules.
     PureExec True 1 (tapp (tv (vabs e1)) (tv v2)) e1.|[v2 /].
   Proof. solve_pure_exec. Qed.
 
-  #[global] Instance pure_tskip v:
+  #[global] Instance pure_tskip v :
     PureExec True 1 (tskip (tv v)) (tv v).
   Proof. solve_pure_exec. Qed.
 
-  #[global] Instance pure_tskip_iter v i:
+  #[global] Instance pure_tskip_iter v i :
     PureExec True i (iterate tskip i (tv v)) (tv v).
   Proof.
     move => _. elim: i => [|i IHi]; rewrite ?iterate_0 ?iterate_S //. by repeat constructor.
@@ -51,10 +51,10 @@ Section lang_rules.
 
 End lang_rules.
 
-Lemma tskip_n_to_fill i e: iterate tskip i e = fill (repeat SkipCtx i) e.
+Lemma tskip_n_to_fill i e : iterate tskip i e = fill (repeat SkipCtx i) e.
 Proof. elim: i e => [|i IHi] e //; by rewrite ?iterate_0 ?iterate_Sr /= -IHi. Qed.
 
-Instance ctx_iterate_tskip i: LanguageCtx (iterate tskip i).
+Instance ctx_iterate_tskip i : LanguageCtx (iterate tskip i).
 Proof.
   rewrite -LanguageCtx_proper; first last.
   symmetry; exact: tskip_n_to_fill.
@@ -65,5 +65,5 @@ Lemma head_step_pure e1 e2 σ1 κ σ2 efs :
   head_step e1 σ1 κ e2 σ2 efs → PureExec True 1 e1 e2.
 Proof. inversion 1; intros ?; exact: pure_exec. Qed.
 
-Instance: EctxLangDet dlang_ectx_lang.
+Instance : EctxLangDet dlang_ectx_lang.
 Proof. repeat split; [intros; exact: head_step_pure|apply _]. Qed.

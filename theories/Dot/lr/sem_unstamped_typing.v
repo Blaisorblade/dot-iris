@@ -39,9 +39,9 @@ Section unstamped_judgs.
   Arguments iudtp  : simpl never.
 End unstamped_judgs.
 
-#[global] Instance: Params (@suetp) 3 := {}.
-#[global] Instance: Params (@sudstp) 3 := {}.
-#[global] Instance: Params (@sudtp) 4 := {}.
+#[global] Instance : Params (@suetp) 3 := {}.
+#[global] Instance : Params (@sudstp) 3 := {}.
+#[global] Instance : Params (@sudtp) 4 := {}.
 
 Section unstamped_judgs_proper.
   Context `{!dlangG Σ}.
@@ -68,7 +68,7 @@ Theorem unstamped_s_safety_dot_sem
   Σ `{HdlangG : !dlangG Σ} `{HswapProp : !SwapPropI Σ}
   {e_u}
   (τ : ∀ `{!dlangG Σ}, olty Σ)
-  (Hwp : ∀ `{!dlangG Σ} `(!SwapPropI Σ), ⊢ [] su⊨ e_u : τ):
+  (Hwp : ∀ `{!dlangG Σ} `(!SwapPropI Σ), ⊢ [] su⊨ e_u : τ) :
   safe e_u.
 Proof.
   intros e_u' [n Hsteps]%rtc_nsteps.
@@ -84,9 +84,9 @@ Qed.
 
 (** ** Adequacy of unstamped semantic typing (Theorem 5.4).
 semantically well-typed terms are safe. *)
-Corollary unstamped_safety_dot_sem Σ `{HdlangG: !dlangG Σ} `{!SwapPropI Σ}
+Corollary unstamped_safety_dot_sem Σ `{HdlangG : !dlangG Σ} `{!SwapPropI Σ}
   {e T}
-  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), ⊢ [] u⊨ e : T):
+  (Hlog : ∀ `(!dlangG Σ) `(!SwapPropI Σ), ⊢ [] u⊨ e : T) :
   safe e.
 Proof. exact: (unstamped_s_safety_dot_sem Σ (λ _, V⟦T⟧)). Qed.
 
@@ -132,7 +132,7 @@ Section tmem_unstamped_lemmas.
   Context `{!dlangG Σ}.
 
   Lemma leadsto_envD_equiv_alloc {σ} {T : olty Σ}
-    (Hcl : coveringσ σ T): ⊢ |==> ∃ s, s ↝[ σ ] T.
+    (Hcl : coveringσ σ T) : ⊢ |==> ∃ s, s ↝[ σ ] T.
   Proof.
     iMod (saved_ho_sem_type_alloc T) as (s) "#Hs"; iIntros "!>".
     iExists s, T; iFrame "Hs"; iIntros "!%". apply Hcl.
@@ -150,7 +150,7 @@ Section tmem_unstamped_lemmas.
     iSplit; first done; iApply (sD_Typ with "Hs").
   Qed.
 
-  Lemma suD_Typ {l σ Γ fakeT} {T : olty Σ} (HclT : coveringσ σ T):
+  Lemma suD_Typ {l σ Γ fakeT} {T : olty Σ} (HclT : coveringσ σ T) :
     ⊢ Γ su⊨ { l := dtysyn fakeT } : cTMem l (oLater T) (oLater T).
   Proof.
     iMod (leadsto_envD_equiv_alloc HclT) as (s) "#Hs".
@@ -171,7 +171,7 @@ Section tmem_unstamped_lemmas.
     apply /same_skel_trans_dm /Hsk1 /same_skel_symm_dm /Hsk.
   Qed.
 
-  Lemma suD_Typ_Stp {Γ} L1 L2 U1 U2 d l:
+  Lemma suD_Typ_Stp {Γ} L1 L2 U1 U2 d l :
     Γ s⊨ L2 <:[0] L1 -∗
     Γ s⊨ U1 <:[0] U2 -∗
     Γ su⊨ { l := d } : cTMem l L1 U1 -∗
@@ -181,7 +181,7 @@ Section tmem_unstamped_lemmas.
     by iExists d1s; iSplit; last iApply (sD_Typ_Stp with "Hsub1 Hsub2 H1").
   Qed.
 
-  Lemma suD_Typ_Abs {l σ Γ L T U} fakeT (HclT : coveringσ σ T):
+  Lemma suD_Typ_Abs {l σ Γ L T U} fakeT (HclT : coveringσ σ T) :
     Γ s⊨ L <:[0] oLater T -∗
     Γ s⊨ oLater T <:[0] U -∗
     Γ su⊨ { l := dtysyn fakeT } : cTMem l L U.
@@ -189,13 +189,13 @@ Section tmem_unstamped_lemmas.
     by iIntros "H1 H2"; iApply (suD_Typ_Stp with "H1 H2"); iApply suD_Typ.
   Qed.
 
-  Lemma uD_Typ_Abs {l n Γ L T U} fakeT (HclT : nclosed T n):
+  Lemma uD_Typ_Abs {l n Γ L T U} fakeT (HclT : nclosed T n) :
     Γ ⊨ L <:[0] TLater T -∗
     Γ ⊨ TLater T <:[0] U -∗
     Γ u⊨ { l := dtysyn fakeT } : TTMem l L U.
   Proof. have := !!nclosed_syn_coveringσ HclT; apply suD_Typ_Abs. Qed.
 
-  Lemma uD_Typ {l n Γ T} fakeT (HclT : nclosed T n):
+  Lemma uD_Typ {l n Γ T} fakeT (HclT : nclosed T n) :
     ⊢ Γ u⊨ { l := dtysyn fakeT } : TTMem l (TLater T) (TLater T).
   Proof. have := !!nclosed_syn_coveringσ HclT; apply suD_Typ. Qed.
 End tmem_unstamped_lemmas.
@@ -203,7 +203,7 @@ End tmem_unstamped_lemmas.
 Section unstamped_lemmas.
   Context `{!dlangG Σ}.
 
-  Lemma suT_All_E {Γ e1 e2 T1 T2}:
+  Lemma suT_All_E {Γ e1 e2 T1 T2} :
     Γ su⊨ e1 : oAll T1 (shift T2) -∗
     Γ su⊨ e2 : T1 -∗
     (*────────────────────────────────────────────────────────────*)
@@ -233,7 +233,7 @@ Section unstamped_lemmas.
   Qed.
 
   Lemma uT_All_E_p Γ e1 p2 T1 T2 T2' (Hrepl : T2 .Tp[ p2 /]~ T2') :
-    Γ u⊨ e1: TAll T1 T2 -∗
+    Γ u⊨ e1 : TAll T1 T2 -∗
     Γ ⊨p p2 : T1, 0 -∗
     (*────────────────────────────────────────────────────────────*)
     Γ u⊨ tapp e1 (path2tm p2) : T2'.
@@ -254,7 +254,7 @@ Section unstamped_lemmas.
     by iApply (sT_Path (p := pv v2)).
   Qed.
 
-  Lemma suT_Obj_E {Γ e T l}:
+  Lemma suT_Obj_E {Γ e T l} :
     Γ su⊨ e : oVMem l T -∗
     Γ su⊨ tproj e l : T.
   Proof.
@@ -281,7 +281,7 @@ Section unstamped_lemmas.
     by iExists (tv (vabs e1s)); iSplit; last iApply (T_All_I_Strong with "H1").
   Qed.
 
-  Lemma suT_All_I {Γ} T1 T2 e:
+  Lemma suT_All_I {Γ} T1 T2 e :
     shift T1 :: Γ su⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ su⊨ tv (vabs e) : oAll T1 T2.
@@ -297,7 +297,7 @@ Section unstamped_lemmas.
     by iExists (tskip e1s); iSplit; last iApply (sT_Skip with "H1").
   Qed.
 
-  Lemma suT_Sub {Γ e T1 T2}:
+  Lemma suT_Sub {Γ e T1 T2} :
     Γ su⊨ e : T1 -∗
     Γ s⊨ T1 <:[0] T2 -∗
     Γ su⊨ e : T2.
@@ -307,7 +307,7 @@ Section unstamped_lemmas.
   Qed.
 
 
-  Lemma suT_Obj_I (Γ : sCtx Σ) (T : clty Σ) ds:
+  Lemma suT_Obj_I (Γ : sCtx Σ) (T : clty Σ) ds :
     oLater (c2o T) :: Γ su⊨ds ds : T -∗
     Γ su⊨ tv (vobj ds) : oMu (c2o T).
   Proof.
@@ -383,14 +383,14 @@ Section unstamped_lemmas.
       naive_solver.
   Qed.
 
-  Lemma suD_Sing Γ d l (T : cltyO Σ):
+  Lemma suD_Sing Γ d l (T : cltyO Σ) :
     Γ su⊨ { l := d } : T -∗ Γ su⊨ds [(l, d)] : cAnd T cTop.
   Proof.
     iIntros "#H1"; iMod "H1" as (d1s Hsk1) "H1"; iModIntro.
     by iExists [(l, d1s)]; iSplit; last iApply (sD_Sing with "H1").
   Qed.
 
-  Lemma suD_Val {Γ} T v1 l:
+  Lemma suD_Val {Γ} T v1 l :
     Γ su⊨ tv v1 : T -∗
     Γ su⊨ { l := dpt (pv v1) } : cVMem l T.
   Proof.
@@ -415,7 +415,7 @@ Section unstamped_lemmas.
     by iExists (dpt (pv (vobj ds1s))); iSplit; last iApply (sD_Val_New with "H1").
   Qed.
 
-  Lemma suD_Path_Stp {Γ T1 T2 p1 l}:
+  Lemma suD_Path_Stp {Γ T1 T2 p1 l} :
     Γ s⊨ T1 <:[0] T2 -∗
     Γ su⊨ { l := dpt p1 } : cVMem l T1 -∗
     Γ su⊨ { l := dpt p1 } : cVMem l T2.

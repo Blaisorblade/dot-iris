@@ -35,23 +35,23 @@ Ltac lookup :=
   end.
 Ltac subltcrush := subtcrush; repeat lookup.
 
-Lemma iSub_SelL {Γ p U l L i}:
+Lemma iSub_SelL {Γ p U l L i} :
   Γ u⊢ₚ p : TTMemL l L U, i →
   Γ u⊢ₜ TLater L, i <: TSel p l, i.
 Proof. intros; exact: iSub_Sel. Qed.
 
-Lemma iSel_SubL {Γ p L l U i}:
+Lemma iSel_SubL {Γ p L l U i} :
   Γ u⊢ₚ p : TTMemL l L U, i →
   Γ u⊢ₜ TSel p l, i <: TLater U, i.
 Proof. intros; exact: iSel_Sub. Qed.
 
-Lemma iSub_Sel' U {Γ p l L i}:
+Lemma iSub_Sel' U {Γ p l L i} :
   Γ u⊢ₚ p : TTMemL l L U, i →
   Γ u⊢ₜ L, i <: TSel p l, i.
 Proof. intros; ettrans; last exact: (iSub_Sel (p := p)); subtcrush. Qed.
 
 (** Specialization of [iSub_Sel'] for convenience. *)
-Lemma iSub_Sel'' Γ {p l L i}:
+Lemma iSub_Sel'' Γ {p l L i} :
   Γ u⊢ₚ p : TTMemL l L L, i → Γ u⊢ₜ L, i <: TSel p l, i.
 Proof. apply iSub_Sel'. Qed.
 
@@ -85,7 +85,7 @@ Qed.
 (** * Derived constructions. *)
 (* We can derive rules iSub_Bind_1 and iSub_Bind_2 (the latter only conjectured) from
   "Type Soundness for Dependent Object Types (DOT)", Rompf and Amin, OOPSLA '16. *)
-Lemma iSub_Bind_1 Γ T1 T2 i:
+Lemma iSub_Bind_1 Γ T1 T2 i :
   iterate TLater i T1 :: Γ u⊢ₜ T1, i <: shift T2, i →
   Γ u⊢ₜ μ T1, i <: T2, i.
 Proof.
@@ -94,7 +94,7 @@ Proof.
   exact: iMu_Sub.
 Qed.
 
-Lemma iSub_Bind_2 Γ T1 T2 i:
+Lemma iSub_Bind_2 Γ T1 T2 i :
   iterate TLater i (shift T1) :: Γ u⊢ₜ shift T1, i <: T2, i →
   Γ u⊢ₜ T1, i <: μ T2, i.
 Proof.
@@ -102,24 +102,24 @@ Proof.
   ettrans; last apply (iMu_Sub_Mu Hsub); exact: iSub_Mu.
 Qed.
 
-Lemma iSub_Bind_1' Γ T1 T2:
+Lemma iSub_Bind_1' Γ T1 T2 :
   T1 :: Γ u⊢ₜ T1, 0 <: shift T2, 0 →
   Γ u⊢ₜ μ T1, 0 <: T2, 0.
 Proof. intros; exact: iSub_Bind_1. Qed.
 
-Lemma iSub_Bind_2' Γ T1 T2:
+Lemma iSub_Bind_2' Γ T1 T2 :
   shift T1 :: Γ u⊢ₜ shift T1, 0 <: T2, 0 →
   Γ u⊢ₜ T1, 0 <: μ T2, 0.
 Proof. intros; exact: iSub_Bind_2. Qed.
 
-Lemma iMu_Sub' {Γ T T' i}:
+Lemma iMu_Sub' {Γ T T' i} :
   T' = shift T →
   Γ u⊢ₜ μ T', i <: T, i.
 Proof. intros; subst. auto. Qed.
 
 #[global] Hint Resolve is_unstamped_path_root : core.
 
-Lemma iP_Sngl_Sym Γ p q i:
+Lemma iP_Sngl_Sym Γ p q i :
   is_unstamped_path' (length Γ) q →
   Γ u⊢ₚ p : TSing q, i →
   Γ u⊢ₚ q : TSing p, i.
@@ -130,14 +130,14 @@ Proof.
   by apply (iP_Sngl_Inv Hpq); eauto.
 Qed.
 
-Lemma iSngl_pq_Sub_inv {Γ i p q T1 T2}:
+Lemma iSngl_pq_Sub_inv {Γ i p q T1 T2} :
   T1 ~Tp[ p := q ]* T2 →
   is_unstamped_path' (length Γ) p →
   Γ u⊢ₚ q : TSing p, i →
   Γ u⊢ₜ T1, i <: T2, i.
 Proof. intros. by eapply iSngl_pq_Sub, iP_Sngl_Sym. Qed.
 
-Lemma iP_And_I {Γ p T1 T2 i}:
+Lemma iP_And_I {Γ p T1 T2 i} :
   Γ u⊢ₚ p : T1, i →
   Γ u⊢ₚ p : T2, i →
   Γ u⊢ₚ p : TAnd T1 T2, i.
@@ -147,7 +147,7 @@ Proof.
 Qed.
 
 (** * Manipulating laters, more. *)
-Lemma iSub_LaterN Γ T i j:
+Lemma iSub_LaterN Γ T i j :
   Γ u⊢ₜ T, j + i <: iterate TLater j T, i.
 Proof.
   elim: j T => /= [|j IHj] T ; rewrite ?iterate_0 ?iterate_Sr /=; subtcrush.
@@ -165,7 +165,7 @@ Proof.
   - exact: iLater_Sub.
 Qed.
 
-Lemma selfIntersect Γ T U i j:
+Lemma selfIntersect Γ T U i j :
   Γ u⊢ₜ T, i <: U, j + i →
   Γ u⊢ₜ T, i <: TAnd U T, j + i .
 Proof. intros; subtcrush. exact: iSub_AddIJ. Qed.
@@ -285,7 +285,7 @@ Proof.
 Qed.
 
 (* Lattice theory *)
-Lemma iOr_Sub_split Γ T1 T2 U1 U2 i:
+Lemma iOr_Sub_split Γ T1 T2 U1 U2 i :
   Γ u⊢ₜ T1, i <: U1, i →
   Γ u⊢ₜ T2, i <: U2, i →
   Γ u⊢ₜ TOr T1 T2, i <: TOr U1 U2, i.
@@ -295,7 +295,7 @@ Proof.
     eapply iSub_Trans, iSub_Or1 | eapply iSub_Trans, iSub_Or2]; subtcrush.
 Qed.
 
-Lemma iSub_And_split Γ T1 T2 U1 U2 i:
+Lemma iSub_And_split Γ T1 T2 U1 U2 i :
   Γ u⊢ₜ T1, i <: U1, i →
   Γ u⊢ₜ T2, i <: U2, i →
   Γ u⊢ₜ TAnd T1 T2, i <: TAnd U1 U2, i.
@@ -305,14 +305,14 @@ Proof.
     eapply iSub_Trans; first apply iAnd2_Sub]; subtcrush.
 Qed.
 
-Lemma iDistr_And_Or_Sub_inv {Γ S T U i}:
+Lemma iDistr_And_Or_Sub_inv {Γ S T U i} :
   Γ u⊢ₜ TOr (TAnd S U) (TAnd T U), i <: TAnd (TOr S T) U , i.
 Proof.
   intros; apply iOr_Sub; apply iSub_And; subtcrush;
     (ettrans; first apply iAnd1_Sub); subtcrush.
 Qed.
 
-Lemma iDistr_Or_And_Sub {Γ S T U i}:
+Lemma iDistr_Or_And_Sub {Γ S T U i} :
   Γ u⊢ₜ TOr (TAnd S T) U , i <: TAnd (TOr S U) (TOr T U), i.
 Proof.
   intros; apply iOr_Sub; apply iSub_And; subtcrush;
@@ -351,7 +351,7 @@ Proof. intros. subtcrush; lThis. Qed.
 https://books.google.co.uk/books?id=vVVTxeuiyvQC&lpg=PA104&pg=PA85#v=onepage&q&f=false.
 Would be much easier to formalize with setoid rewriting.
 *)
-Lemma iDistr_Or_And_Sub_inv {Γ S T U i}:
+Lemma iDistr_Or_And_Sub_inv {Γ S T U i} :
   Γ u⊢ₜ TAnd (TOr S U) (TOr T U), i <: TOr (TAnd S T) U , i.
 Proof.
   intros.

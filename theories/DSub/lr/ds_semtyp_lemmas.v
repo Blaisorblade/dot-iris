@@ -10,7 +10,7 @@ From D.DSub Require Import ds_unary_lr.
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
 
-Implicit Types (L T U: ty) (v: vl) (e: tm) (Γ : ctx).
+Implicit Types (L T U : ty) (v : vl) (e : tm) (Γ : ctx).
 
 Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
   iApply (wp_bind (ectx_language.fill [ctx]));
@@ -20,7 +20,7 @@ Tactic Notation "smart_wp_bind" uconstr(ctx) ident(v) constr(Hv) uconstr(Hp) :=
 Section Sec.
   Context `{!dsubSynG Σ} {Γ}.
 
-  Lemma T_Var x T:
+  Lemma T_Var x T :
     Γ !! x = Some T →
     (*──────────────────────*)
     ⊢ Γ ⊨ tv (vvar x) : shiftN x T.
@@ -29,8 +29,8 @@ Section Sec.
     by rewrite -wp_value' interp_env_lookup.
   Qed.
 
-  Lemma T_All_E e1 e2 T1 T2:
-    Γ ⊨ e1: TAll T1 (shift T2) -∗
+  Lemma T_All_E e1 e2 T1 T2 :
+    Γ ⊨ e1 : TAll T1 (shift T2) -∗
     Γ ⊨ e2 : T1 -∗
     (*────────────────────────────────────────────────────────────*)
     Γ ⊨ tapp e1 e2 : T2.
@@ -43,8 +43,8 @@ Section Sec.
     iIntros (v). by rewrite (interp_weaken_one T2 _ v).
   Qed.
 
-  Lemma T_All_Ex e1 v2 T1 T2:
-    Γ ⊨ e1: TAll T1 T2 -∗
+  Lemma T_All_Ex e1 v2 T1 T2 :
+    Γ ⊨ e1 : TAll T1 T2 -∗
     Γ ⊨ tv v2 : T1 -∗
     (*────────────────────────────────────────────────────────────*)
     Γ ⊨ tapp e1 (tv v2) : T2.|[v2/].
@@ -59,7 +59,7 @@ Section Sec.
       rewrite (interp_subst_one T2 v2 v); auto.
   Qed.
 
-  Lemma T_All_I T1 T2 e:
+  Lemma T_All_I T1 T2 e :
     shift T1 :: Γ ⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ ⊨ tv (vabs e) : TAll T1 T2.
@@ -71,7 +71,7 @@ Section Sec.
     by rewrite (interp_weaken_one T1 _ v).
   Qed.
 
-  Lemma T_ISub e T1 T2 i:
+  Lemma T_ISub e T1 T2 i :
     Γ ⊨ e : T1 -∗
     Γ ⊨ T1, 0 <: T2, i -∗
     (*───────────────────────────────*)
@@ -86,7 +86,7 @@ Section Sec.
     by iApply "Hsub".
   Qed.
 
-  Lemma DT_ISub e T1 T2 i:
+  Lemma DT_ISub e T1 T2 i :
     Γ ⊨ e : T1 -∗
     Γ ⊨[0] T1 <: iterate TLater i T2 -∗
     (*───────────────────────────────*)
@@ -129,7 +129,7 @@ Section Sec.
     - iApply ("HTU" with "HG"). unfold_interp. iApply "H".
   Qed.
 
-  Lemma Sub_Sel L U va i:
+  Lemma Sub_Sel L U va i :
     Γ ⊨ tv va : TTMem L U, i -∗
     Γ ⊨ L, i <: TSel va, i.
   Proof.
@@ -141,7 +141,7 @@ Section Sec.
     iExists φ; iSplit. naive_solver. by iApply "HLφ".
   Qed.
 
-  Lemma DSub_Sel L U va i:
+  Lemma DSub_Sel L U va i :
     Γ ⊨ tv va : TTMem L U, i -∗
     Γ ⊨[i] L <: TSel va.
   Proof.
@@ -154,7 +154,7 @@ Section Sec.
     iExists φ; iSplit. naive_solver. by iApply "HLφ".
   Qed.
 
-  Lemma Sel_Sub L U va i:
+  Lemma Sel_Sub L U va i :
     Γ ⊨ tv va : TTMem L U, i -∗
     Γ ⊨ TSel va, i <: U, i.
   Proof.
@@ -169,18 +169,18 @@ Section Sec.
     iNext i. iNext. by iRewrite ("Hag" $! v).
   Qed.
 
-  Lemma T_Nat_I n:
-    ⊢ Γ ⊨ tv (vint n): TInt.
+  Lemma T_Nat_I n :
+    ⊢ Γ ⊨ tv (vint n) : TInt.
   Proof.
     iIntros "/= %ρ _". rewrite -wp_value; unfold_interp. by iExists n.
   Qed.
 
-  Lemma Sub_Index_Incr T U i j:
+  Lemma Sub_Index_Incr T U i j :
     Γ ⊨ T, i <: U, j -∗
     Γ ⊨ T, S i <: U, S j.
   Proof. iIntros "/= #Hsub ** !>". by iApply "Hsub". Qed.
 
-  Lemma DTyp_Sub_Typ L1 L2 U1 U2 i:
+  Lemma DTyp_Sub_Typ L1 L2 U1 U2 i :
     Γ ⊨[i] L2 <: L1 -∗
     Γ ⊨[i] U1 <: U2 -∗
     Γ ⊨[i] TTMem L1 U1 <: TTMem L2 U2.
@@ -195,21 +195,21 @@ Section Sec.
     - iApply "HsubU". by iApply "HφU".
   Qed.
 
-  Lemma Sub_Top T i:
+  Lemma Sub_Top T i :
     ⊢ Γ ⊨ T, i <: TTop, i.
   Proof. by iIntros "/= **"; unfold_interp. Qed.
 
-  Lemma DSub_Top T i:
+  Lemma DSub_Top T i :
     ⊢ Γ ⊨[i] T <: TTop.
   Proof.
     iIntros "/= ** !> **". by unfold_interp.
   Qed.
 
-  Lemma Bot_Sub T i:
+  Lemma Bot_Sub T i :
     ⊢ Γ ⊨ TBot, i <: T, i.
   Proof. by iIntros "/= ** !>"; unfold_interp. Qed.
 
-  Lemma DBot_Sub T i:
+  Lemma DBot_Sub T i :
     ⊢ Γ ⊨[i] TBot <: T.
   Proof. by iIntros "/= ** !> **"; unfold_interp. Qed.
 

@@ -39,7 +39,7 @@ Section judgments.
   #[global] Arguments sdstp : simpl never.
 
   (** Definition typing *)
-  Definition sdtp `{!dlangG Σ} l d Γ (φ : clty Σ): iProp Σ := sdstp [(l, d)] Γ φ.
+  Definition sdtp `{!dlangG Σ} l d Γ (φ : clty Σ) : iProp Σ := sdstp [(l, d)] Γ φ.
   #[global] Arguments sdtp : simpl never.
 
   (** Path typing *)
@@ -61,7 +61,7 @@ Notation "Γ s⊨ds ds : T" := (sdstp ds Γ T) (at level 74, ds, T at next level
 Notation "Γ s⊨p p : τ , i" := (sptp p i Γ τ) (at level 74, p, τ, i at next level).
 
 Section JudgEqs.
-  Context `{HdotG: !dlangG Σ}.
+  Context `{HdotG : !dlangG Σ}.
 
   Lemma sstpd_eq_1 Γ T1 i T2 :
     Γ s⊨ T1 <:[i] T2 ⊣⊢
@@ -85,7 +85,7 @@ Definition oSel `{!dlangG Σ} p l : oltyO Σ :=
   Olty (λI args ρ v, path_wp p.|[ρ] (λ vp, vl_sel vp l args v)).
 
 Section sem_types.
-  Context `{HdotG: !dlangG Σ}.
+  Context `{HdotG : !dlangG Σ}.
   Implicit Types (τ : oltyO Σ).
 
   (** [ D⟦ { a : τ } ⟧ ]. *)
@@ -140,7 +140,7 @@ Section sem_types.
 
 End sem_types.
 
-#[global] Instance: Params (@oAll) 2 := {}.
+#[global] Instance : Params (@oAll) 2 := {}.
 
 Notation oInt := (oPrim tint).
 Notation oBool := (oPrim tbool).
@@ -152,7 +152,7 @@ Notation oTMemL l L U := (clty_olty (cTMemL l L U)).
 Notation oVMem l τ := (clty_olty (cVMem l τ)).
 
 Section misc_lemmas.
-  Context `{HdotG: !dlangG Σ}.
+  Context `{HdotG : !dlangG Σ}.
   Implicit Types (τ L T U : olty Σ).
 
   Lemma oVMem_eq l T anil ρ v :
@@ -241,7 +241,7 @@ Section misc_lemmas.
   Qed.
   Definition oVMem_respects_sub := oVMem_respects_subN 0.
 
-  Lemma sdtp_eq (Γ : sCtx Σ) (T : clty Σ) l d:
+  Lemma sdtp_eq (Γ : sCtx Σ) (T : clty Σ) l d :
     Γ s⊨ { l := d } : T ⊣⊢
       |==> ∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ [(l, d.|[ρ])].
   Proof.
@@ -249,12 +249,12 @@ Section misc_lemmas.
       by [> | exact: NoDup_singleton].
   Qed.
 
-  Lemma sdtp_eq' (Γ : sCtx Σ) (T : dlty Σ) l d:
+  Lemma sdtp_eq' (Γ : sCtx Σ) (T : dlty Σ) l d :
     Γ s⊨ { l := d } : dty2clty l T ⊣⊢
       |==> ∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ d.|[ρ].
   Proof. by rewrite sdtp_eq; properness; last apply dty2clty_singleton. Qed.
 
-  Lemma ipwp_terminates {p T i}:
+  Lemma ipwp_terminates {p T i} :
     [] s⊨p p : T , i ⊢ ▷^i ⌜ terminates (path2tm p) ⌝.
   Proof.
     iIntros ">#H".
@@ -293,7 +293,7 @@ Section path_repl_lemmas.
     properness => //. exact: IHrepl.
   Qed.
 
-  Lemma rewrite_path_path_repl {p q p1 p2 ρ v}:
+  Lemma rewrite_path_path_repl {p q p1 p2 ρ v} :
     p1 ~pp[ p := q ] p2 →
     alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
     ⌜alias_paths p1.|[ρ] (pv v)⌝ ⊣⊢@{iPropI Σ} ⌜alias_paths p2.|[ρ] (pv v)⌝.
@@ -309,7 +309,7 @@ End path_repl_lemmas.
 
 (** This instance doesn't allow setoid rewriting in the function argument
 to [iterate]. That's appropriate for this project. *)
-#[global] Instance: Params (@iterate) 3 := {}.
+#[global] Instance : Params (@iterate) 3 := {}.
 #[global] Instance iterate_proper {n} {A : ofeT} (f : A → A) :
   Proper (equiv ==> equiv) f →
   Proper (equiv ==> equiv) (iterate f n).
@@ -319,7 +319,7 @@ Proof.
 Qed.
 
 Section Propers.
-  Context `{HdotG: !dlangG Σ}.
+  Context `{HdotG : !dlangG Σ}.
 
   (** Judgments *)
   #[global] Instance sstpd_proper i : Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sstpd i).
@@ -328,25 +328,25 @@ Section Propers.
     (* intros ?? HG ?? H1 ?? H2; rewrite /sstpd /subtype_lty;
     properness; [by rewrite HG|apply H1|apply H2]. *)
   Qed.
-  #[global] Instance: Params (@sstpd) 3 := {}.
+  #[global] Instance : Params (@sstpd) 3 := {}.
 
   #[global] Instance setp_proper e : Proper ((≡) ==> (≡) ==> (≡)) (setp e).
   Proof.
     solve_proper_ho.
     (* intros ?? HG ?? HT ???; simplify_eq/=. by properness; [rewrite HG|apply HT]. *)
   Qed.
-  #[global] Instance: Params (@setp) 3 := {}.
+  #[global] Instance : Params (@setp) 3 := {}.
 
   #[global] Instance sdstp_proper ds : Proper ((≡) ==> (≡) ==> (≡)) (sdstp ds).
   Proof.
     rewrite /sdstp => ??? [?? _ _ _] [?? _ _ _] [/= ??]; properness; by f_equiv.
   Qed.
-  #[global] Instance: Params (@sdstp) 3 := {}.
+  #[global] Instance : Params (@sdstp) 3 := {}.
 
   #[global] Instance sdtp_proper l d : Proper ((≡) ==> (≡) ==> (≡)) (sdtp l d) := _.
-  #[global] Instance: Params (@sdtp) 4 := {}.
+  #[global] Instance : Params (@sdtp) 4 := {}.
 
   #[global] Instance sptp_proper p i : Proper ((≡) ==> (≡) ==> (≡)) (sptp p i).
   Proof. solve_proper_ho. Qed.
-  #[global] Instance: Params (@sptp) 4 := {}.
+  #[global] Instance : Params (@sptp) 4 := {}.
 End Propers.

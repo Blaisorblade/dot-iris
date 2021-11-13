@@ -23,7 +23,7 @@ Proof.
   iSplit; [iIntros "H" (a) "P"|iIntros "H P" (a)]; iApply ("H" with "P").
 Qed.
 
-Lemma forall_swap_wand {PROP: bi} {A} (P : PROP) `{!Persistent P} (Ψ : A → PROP) :
+Lemma forall_swap_wand {PROP : bi} {A} (P : PROP) `{!Persistent P} (Ψ : A → PROP) :
   (P -∗ ∀ a, Ψ a) ⊣⊢ ∀ a, P -∗ Ψ a.
 Proof.
   iSplit; [iIntros "H" (a) "P"|iIntros "H P" (a)]; iApply ("H" with "P").
@@ -39,7 +39,7 @@ Lemma bi_exist_nested_swap {PROP : bi} `{P : A → PROP} `{Q : A → B → PROP}
   (∃ a, P a ∧ ∃ b, Q a b) ⊣⊢ ∃ b a, P a ∧ Q a b.
 Proof. setoid_rewrite and_exist_l; apply bi_exist_swap. Qed.
 
-Lemma and2_exist_r {PROP: bi} {A} P Q R :
+Lemma and2_exist_r {PROP : bi} {A} P Q R :
   (∃ a : A, P a ∧ Q a ∧ R) ⊣⊢@{PROP} (∃ a : A, P a ∧ Q a) ∧ R.
 Proof. rewrite (and_exist_r R); apply bi.exist_proper => d; exact: assoc. Qed.
 
@@ -47,10 +47,10 @@ Section proofmode_extra.
   Context {PROP : bi}.
   Implicit Types P Q R : PROP.
 
-  Lemma swap_later {n} P: ▷^n ▷ P ⊣⊢ ▷ ▷^n P.
+  Lemma swap_later {n} P : ▷^n ▷ P ⊣⊢ ▷ ▷^n P.
   Proof. by rewrite -bi.later_laterN bi.laterN_later. Qed.
 
-  Lemma swap_laterN i j {P}: ▷^i ▷^j P ⊣⊢ ▷^j ▷^i P.
+  Lemma swap_laterN i j {P} : ▷^i ▷^j P ⊣⊢ ▷^j ▷^i P.
   Proof. by rewrite -bi.laterN_plus Nat.add_comm bi.laterN_plus. Qed.
 
   Lemma timeless_timelessN i P :
@@ -72,7 +72,7 @@ Section proofmode_extra.
     by iApply "Hw".
   Qed.
 
-  Lemma strip_timeless_laterN_impl `{!BiAffine PROP} i P Q:
+  Lemma strip_timeless_laterN_impl `{!BiAffine PROP} i P Q :
     Timeless P → Persistent P →
     (P → ▷^i Q) ⊢ (▷^i P → ▷^i Q).
   Proof.
@@ -89,7 +89,7 @@ Section proofmode_extra.
     (⌜ φ ⌝ → ▷^i Q) ⊢ ▷^i ⌜ φ ⌝ → ▷^i Q.
   Proof. exact: strip_timeless_laterN_impl. Qed.
 
-  Lemma strip_pure_laterN_wand' i j φ Q:
+  Lemma strip_pure_laterN_wand' i j φ Q :
     (⌜ φ ⌝ -∗ ▷^(i + j) Q) -∗ (▷^i ⌜ φ ⌝ -∗ ▷^(i + j) Q).
   Proof.
     rewrite Nat.add_comm (laterN_intro j (▷^i ⌜ φ ⌝))%I -laterN_plus.
@@ -105,13 +105,13 @@ Section wp_extra.
   Context `{irisG Λ Σ}.
   Implicit Types (P : val Λ → iProp Σ) (v : val Λ) (e : expr Λ).
 
-  Lemma wp_and_val P1 P2 v:
+  Lemma wp_and_val P1 P2 v :
     WP of_val v {{ P1 }} -∗ WP of_val v {{ P2 }} -∗
       WP of_val v {{ v, P1 v ∧ P2 v }}.
   Proof. rewrite 2!wp_value_inv' -wp_value'; iIntros "$$". Qed.
 
   (* Doesn't generalize to standard WP, but needed for DOT. *)
-  Lemma wp_and `{!LangDet Λ} (P1 P2: val Λ → iProp Σ) e:
+  Lemma wp_and `{!LangDet Λ} (P1 P2 : val Λ → iProp Σ) e :
     WP e {{ P1 }} -∗ WP e {{ P2 }} -∗ WP e {{ v, P1 v ∧ P2 v }}.
   Proof.
     iLöb as "IH" forall (e); iIntros "H1 H2".

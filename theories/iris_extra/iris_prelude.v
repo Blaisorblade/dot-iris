@@ -56,8 +56,8 @@ Proof. done. Qed.
 (** Specialized version of [f_equiv]. *)
 Ltac properness :=
   repeat match goal with
-  | |- (∃ _: _, _)%I ≡ (∃ _: _, _)%I => apply bi.exist_proper =>?
-  | |- (∀ _: _, _)%I ≡ (∀ _: _, _)%I => apply bi.forall_proper =>?
+  | |- (∃ _ : _, _)%I ≡ (∃ _ : _, _)%I => apply bi.exist_proper =>?
+  | |- (∀ _ : _, _)%I ≡ (∀ _ : _, _)%I => apply bi.forall_proper =>?
   | |- (_ ∧ _)%I ≡ (_ ∧ _)%I => apply bi.and_proper
   | |- (_ ∨ _)%I ≡ (_ ∨ _)%I => apply bi.or_proper
   | |- (_ → _)%I ≡ (_ → _)%I => apply bi.impl_proper

@@ -3,13 +3,13 @@ From iris.proofmode Require Import tactics.
 
 From D.Dot Require Import rules dot_semtypes later_sub_sem.
 
-Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env).
+Implicit Types (v : vl) (e : tm) (d : dm) (ds : dms) (ρ : env).
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
 
 Section LambdaIntros.
-  Context `{HdlangG: !dlangG Σ}.
+  Context `{HdlangG : !dlangG Σ}.
 
   Lemma sT_All_I_Strong {Γ Γ'} T1 T2 e
     (Hctx : s⊨G Γ <:* oLater <$> Γ') :
@@ -26,7 +26,7 @@ Section LambdaIntros.
     by rewrite /= hoEnvD_weaken_one.
   Qed.
 
-  Lemma sT_All_I {Γ} T1 T2 e:
+  Lemma sT_All_I {Γ} T1 T2 e :
     shift T1 :: Γ s⊨ e : T2 -∗
     (*─────────────────────────*)
     Γ s⊨ tv (vabs e) : oAll T1 T2.
@@ -36,10 +36,10 @@ Section LambdaIntros.
 End LambdaIntros.
 
 Section Sec.
-  Context `{HdlangG: !dlangG Σ}.
+  Context `{HdlangG : !dlangG Σ}.
 
   Lemma sP_Var {Γ x τ}
-    (Hx : Γ !! x = Some τ):
+    (Hx : Γ !! x = Some τ) :
     (*──────────────────────*)
     ⊢ Γ s⊨p pv (ids x) : shiftN x τ, 0.
   Proof.
@@ -60,7 +60,7 @@ Section Sec.
     Γ s⊨ e : oLater T -∗ Γ s⊨ tskip e : T.
   Proof. have := sT_SkipN Γ e T 1. rewrite iterate_S iterate_0. apply. Qed.
 
-  Lemma sT_Sub {Γ e T1 T2}:
+  Lemma sT_Sub {Γ e T1 T2} :
     Γ s⊨ e : T1 -∗
     Γ s⊨ T1 <:[0] T2 -∗
     (*───────────────────────────────*)
@@ -73,9 +73,9 @@ Section Sec.
   Qed.
 
   (*
-     Γ ⊨ z: Tᶻ
+     Γ ⊨ z : Tᶻ
      =============================================== (T-Rec-I/T-Rec-E)
-     Γ ⊨ z: mu(x: Tˣ)
+     Γ ⊨ z : mu(x : Tˣ)
    *)
   Lemma sTMu_equiv {Γ T v} : (Γ s⊨ tv v : oMu T) ≡ (Γ s⊨ tv v : T.|[v/]).
   Proof.
@@ -84,8 +84,8 @@ Section Sec.
     by rewrite -wp_value /= hoEnvD_subst_one.
   Qed.
 
-  Lemma sT_All_Ex {Γ e1 v2 T1 T2}:
-    Γ s⊨ e1: oAll T1 T2 -∗
+  Lemma sT_All_Ex {Γ e1 v2 T1 T2} :
+    Γ s⊨ e1 : oAll T1 T2 -∗
     Γ s⊨ tv v2 : T1 -∗
     (*────────────────────────────────────────────────────────────*)
     Γ s⊨ tapp e1 (tv v2) : T2.|[v2/].
@@ -98,7 +98,7 @@ Section Sec.
     by rewrite /= hoEnvD_subst_one.
   Qed.
 
-  Lemma sT_All_E {Γ e1 e2 T1 T2}:
+  Lemma sT_All_E {Γ e1 e2 T1 T2} :
     Γ s⊨ e1 : oAll T1 (shift T2) -∗
     Γ s⊨ e2 : T1 -∗
     (*────────────────────────────────────────────────────────────*)
@@ -111,7 +111,7 @@ Section Sec.
     iIntros "%v H". by rewrite /= (hoEnvD_weaken_one T2 _ _ _).
   Qed.
 
-  Lemma sT_Obj_E {Γ e T l}:
+  Lemma sT_Obj_E {Γ e T l} :
     Γ s⊨ e : oVMem l T -∗
     (*─────────────────────────*)
     Γ s⊨ tproj e l : T.

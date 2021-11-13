@@ -55,7 +55,7 @@ Proof. iIntros "Heq"; iSplit; iIntros "%v H"; iApply ("Heq" with "H"). Qed.
 Record sf_kind {Σ} := _SfKind {
   sf_kind_sub :> sr_kind Σ;
   sf_kind_sub_ne_2 ρ : NonExpansive2 (sf_kind_sub ρ);
-  sf_kind_sub_internal_proper (T1 T2 U1 U2 : hoLtyO Σ) ρ:
+  sf_kind_sub_internal_proper (T1 T2 U1 U2 : hoLtyO Σ) ρ :
     hoLty_equiv T1 T2 -∗
     hoLty_equiv U1 U2 -∗
     sf_kind_sub ρ T1 U1 -∗ sf_kind_sub ρ T2 U2;
@@ -109,7 +109,7 @@ Next Obligation. intros; simpl; exact: sf_kind_sub_trans. Qed.
 Next Obligation. intros; simpl; exact: sf_kind_sub_quasi_refl_1. Qed.
 Next Obligation. intros; simpl; exact: sf_kind_sub_quasi_refl_2. Qed.
 
-#[global] Program Instance inhabited_sf_kind {Σ}: Inhabited (sf_kind Σ) :=
+#[global] Program Instance inhabited_sf_kind {Σ} : Inhabited (sf_kind Σ) :=
   populate $ SfKind (λI _ _ _, False).
 Next Obligation. done. Qed.
 Next Obligation. cbn; eauto. Qed.
@@ -139,9 +139,9 @@ Proof.
   (* have Hp := !! (ne_proper_2 (K1 ρ)). *)
   (* rewrite HT HU; exact: HK. *)
 Qed.
-#[global] Instance: Params (@sf_kind_sub) 1 := {}.
+#[global] Instance : Params (@sf_kind_sub) 1 := {}.
 
-Lemma sf_kind_equivI {Σ} (K1 K2 : sf_kindO Σ):
+Lemma sf_kind_equivI {Σ} (K1 K2 : sf_kindO Σ) :
   (∀ ρ T1 T2, K1 ρ T1 T2 ≡ K2 ρ T1 T2) ⊣⊢@{iPropI Σ} (K1 ≡ K2).
 Proof. by uPred.unseal. Qed.
 
@@ -222,14 +222,14 @@ Section sf_kind_subst.
 End sf_kind_subst.
 
 Notation oTAppV T w := (_oTAppV w T).
-#[global] Instance: Params (@_oTAppV) 3 := {}.
+#[global] Instance : Params (@_oTAppV) 3 := {}.
 
 Section utils.
   Context `{dlangG Σ}.
 
-  #[global] Instance _oTAppV_ne v: NonExpansive (_oTAppV (Σ := Σ) v).
+  #[global] Instance _oTAppV_ne v : NonExpansive (_oTAppV (Σ := Σ) v).
   Proof. solve_proper_ho. Qed.
-  #[global] Instance _oTAppV_proper v:
+  #[global] Instance _oTAppV_proper v :
     Proper ((≡) ==> (≡)) (_oTAppV (Σ := Σ) v) := ne_proper _.
 
   #[global] Instance oLam_ne : NonExpansive (oLam (Σ := Σ)).
@@ -361,7 +361,7 @@ Section kinds_types.
     oLaterN m (oLam τ) ≡ oLam (oLaterN m τ).
   Proof. done. Qed.
 
-  Lemma sTEq_oLaterN_oTAppV (τ : oltyO Σ) m v:
+  Lemma sTEq_oLaterN_oTAppV (τ : oltyO Σ) m v :
     oLaterN m (oTAppV τ v) ≡ oTAppV (oLaterN m τ) v.
   Proof. done. Qed.
 End kinds_types.
@@ -373,7 +373,7 @@ Module SKindSyn.
 Inductive s_kind {Σ} : nat → Type :=
   | s_kintv : oltyO Σ → oltyO Σ → s_kind 0
   | s_kpi n : oltyO Σ → s_kind n → s_kind n.+1.
-#[global] Arguments s_kind: clear implicits.
+#[global] Arguments s_kind : clear implicits.
 
 Inductive s_kind_rel {Σ} {R : relation (oltyO Σ)} : ∀ {n : nat}, relation (s_kind Σ n) :=
   | s_kintv_rel L1 L2 U1 U2 :
@@ -399,7 +399,7 @@ Section s_kind_rel_prop.
 
   #[global] Instance s_kintv_inj : Inj2 R R (s_kind_rel R 0) s_kintv.
   Proof. inversion 1; simplify_eq; auto. Qed.
-  #[global] Instance s_kpi_inj n: Inj2 R (s_kind_rel R n) (s_kind_rel R n.+1) (s_kpi (n := n)).
+  #[global] Instance s_kpi_inj n : Inj2 R (s_kind_rel R n) (s_kind_rel R n.+1) (s_kpi (n := n)).
   Proof. inversion 1; simplify_eq; auto. Qed.
 End s_kind_rel_prop.
 
@@ -407,7 +407,7 @@ Section s_kind_ofe.
   Context {Σ}.
   Instance s_kind_equiv {n} : Equiv (s_kind Σ n) := s_kind_rel (≡) n.
   Instance s_kind_dist {n} : Dist (s_kind Σ n) := λ m, s_kind_rel (dist m) n.
-  Lemma s_kind_ofe_mixin {n}: OfeMixin (s_kind Σ n).
+  Lemma s_kind_ofe_mixin {n} : OfeMixin (s_kind Σ n).
   Proof.
     split.
     - move => x y; split => Hx.
@@ -458,7 +458,7 @@ Fixpoint s_kind_hsubst {Σ n} (ρ : env) (K : s_kindO Σ n) : s_kindO Σ n :=
     s_kpi S.|[ρ] K.|[up ρ]
   end.
 Instance hsubst_s_kind {Σ n} : HSubst vl (s_kind Σ n) := s_kind_hsubst.
-Instance: Params (@hsubst_s_kind) 2 := {}.
+Instance : Params (@hsubst_s_kind) 2 := {}.
 
 #[global] Instance s_kind_hsubst_lemmas {Σ n} : HSubstLemmas vl (s_kind Σ n).
 Proof.
@@ -474,7 +474,7 @@ Fixpoint s_kind_to_sf_kind `{dlangG Σ} {n} (K : s_kind Σ n) : sf_kind Σ :=
   | s_kintv L U => sf_kintv L U
   | s_kpi S K => sf_kpi S (s_kind_to_sf_kind K)
   end.
-#[global] Instance: Params (@s_kind_to_sf_kind) 4 := {}.
+#[global] Instance : Params (@s_kind_to_sf_kind) 4 := {}.
 
 Notation s_to_sf := s_kind_to_sf_kind.
 (* Coercion s_kind_to_sf_kind : s_kind >-> sf_kind. *)
@@ -509,13 +509,13 @@ Fixpoint ho_intv {Σ n} (K : s_kindO Σ n) : oltyO Σ → oltyO Σ → s_kindO �
       (oTAppV (oShift T1) (ids 0)) (oTAppV (oShift T2) (ids 0)))
   end.
 Notation ho_sing K T := (ho_intv K T T).
-#[global] Instance: Params (@ho_intv) 2 := {}.
+#[global] Instance : Params (@ho_intv) 2 := {}.
 
 Section ho_intv.
   Context {Σ}.
   (* Context `{dlangG Σ}. *)
 
-  #[global] Instance ho_intv_ne {n m}:
+  #[global] Instance ho_intv_ne {n m} :
     Proper (dist m ==> dist m ==> dist m ==> dist m) (ho_intv (n := n) (Σ := Σ)).
   Proof.
     move=> K1 K2 HK; induction HK => /= [??? ???| L1 L2 HL U1 U2 HU];
@@ -523,7 +523,7 @@ Section ho_intv.
     apply IHHK; by repeat f_equiv.
   Qed.
 
-  #[global] Instance ho_intv_proper {n}:
+  #[global] Instance ho_intv_proper {n} :
     Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (ho_intv (n := n) (Σ := Σ)).
   Proof.
     move=> K1 K2 /equiv_dist HK L1 L2 /equiv_dist HL U1 U2 /equiv_dist HU.

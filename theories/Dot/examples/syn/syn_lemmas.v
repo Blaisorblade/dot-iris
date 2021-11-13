@@ -3,7 +3,7 @@ To limit compile times, do not load this file in unary_lr. *)
 From D.Dot Require Import syn.
 
 Implicit Types
-         (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
+         (L T U : ty) (v : vl) (e : tm) (d : dm) (ds : dms)
          (Γ : ctx) (ρ : vls).
 
 (** Here is a manual proof of [fv_vabs_inv], with explanations, as
@@ -25,5 +25,5 @@ Qed.
 (** The following ones are "direct" lemmas: deduce that an expression is closed
     by knowing that its subexpression are closed. *)
 
-Lemma fv_vabs_inv e n: nclosed_vl (vabs e) n → nclosed e n.+1.
+Lemma fv_vabs_inv e n : nclosed_vl (vabs e) n → nclosed e n.+1.
 Proof. solve_inv_fv_congruence. Qed.

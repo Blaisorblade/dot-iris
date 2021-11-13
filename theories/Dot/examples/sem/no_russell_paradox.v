@@ -6,13 +6,13 @@ This is not in our paper.
 From D.Dot Require Import unary_lr.
 
 Implicit Types
-         (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms)
+         (L T U : ty) (v : vl) (e : tm) (d : dm) (ds : dms)
          (Γ : ctx).
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
 Section Russell.
-  Context `{HdlangG: !dlangG Σ}.
+  Context `{HdlangG : !dlangG Σ}.
 
   (**
     A version of Russell's paradox, that however does not go through because of
@@ -26,7 +26,7 @@ Section Russell.
   Definition russell_p : envD Σ := λI ρ v, uAu v -∗ False.
   (* This would internalize as [russell_p ρ v := v : μ x. not (x.A)]. *)
 
-  Context (s: stamp).
+  Context (s : stamp).
 
   Definition Hs : iProp Σ := (s ↝n aopen russell_p).
   (** Under Iris assumption [Hs], [v.A] points to [russell_p].
@@ -37,7 +37,7 @@ Section Russell.
   Proof. by rewrite /uAu/= !path_wp_pv_eq. Qed.
 
   (** Yes, v has a valid type member. *)
-  Lemma vHasA: Hs ⊢ oTMem "A" oBot oTop anil ids v.
+  Lemma vHasA : Hs ⊢ oTMem "A" oBot oTop anil ids v.
   Proof.
     rewrite oTMem_unfold. iIntros "#Hs".
     iExists _; iSplit. by iExists _; iSplit.
@@ -45,13 +45,13 @@ Section Russell.
     by repeat iSplit; iIntros "% **".
   Qed.
 
-  Lemma later_not_UAU: Hs ⊢ uAu v -∗ ▷ False.
+  Lemma later_not_UAU : Hs ⊢ uAu v -∗ ▷ False.
   Proof.
     iIntros "Hs #HuauV".
     iPoseProof "HuauV" as "HuauV'".
     iEval (rewrite uAu_unfold) in "HuauV'".
     iDestruct "HuauV'" as (d ψ Hl) "[Hs1 Hvav]".
-    have Hdeq: d = dtysem [] s. by move: Hl => /= [ds [[<- /=] ?]]; simplify_eq.
+    have Hdeq : d = dtysem [] s. by move: Hl => /= [ds [[<- /=] ?]]; simplify_eq.
     iAssert (d ↗n aopen (russell_p ids)) as "#Hs2". by iApply (dm_to_type_intro with "Hs").
     iPoseProof (dm_to_type_agree anil v with "Hs1 Hs2") as "#Hag".
     (* without lock, iNext would strip a later in [HuauV]. *)
@@ -60,7 +60,7 @@ Section Russell.
     iApply ("Hvav" with "HuauV").
   Qed.
 
-  Lemma uauEquiv: Hs ⊢ ▷ (uAu v -∗ False) ∗-∗ uAu v.
+  Lemma uauEquiv : Hs ⊢ ▷ (uAu v -∗ False) ∗-∗ uAu v.
   Proof.
     iIntros "#Hs"; iSplit.
     - iIntros "#HnotVAV /=".
@@ -75,17 +75,17 @@ Section Russell.
 
   (** uauEquiv would be absurd without later: a proposition
       can't be equivalent to its negation. *)
-  Lemma taut0 (P: Prop): ((P → False) ↔ P) → False. Proof. tauto. Qed.
+  Lemma taut0 (P : Prop) : ((P → False) ↔ P) → False. Proof. tauto. Qed.
   (** But with later, there's no paradox — we get instead not (not P). *)
-  Lemma irisTaut (P : iProp Σ):
+  Lemma irisTaut (P : iProp Σ) :
     (▷ (P -∗ False) ∗-∗ P) -∗ (P -∗ False) -∗ False.
   Proof using Type*. iIntros "Eq #NP". iApply "NP". by iApply "Eq". Qed.
 
-  Lemma notNotVAV: Hs ⊢ (uAu v -∗ False) → False.
+  Lemma notNotVAV : Hs ⊢ (uAu v -∗ False) → False.
   Proof.
     iIntros "#Hs #notVAV". iApply (irisTaut (uAu v)) => //.
     by iApply uauEquiv.
   Qed.
 
-  Definition notRussellV: Hs ⊢ russell_p ids v → False := notNotVAV.
+  Definition notRussellV : Hs ⊢ russell_p ids v → False := notNotVAV.
 End Russell.

@@ -7,7 +7,7 @@ From D.Dot Require Export core_stamping_defs.
 Set Implicit Arguments.
 Unset Strict Implicit.
 
-Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p: path) (ds : dms) (Γ : list ty).
+Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p : path) (ds : dms) (Γ : list ty).
 
 Reserved Notation "Γ t⊢ₜ e : T" (at level 74, e, T at next level).
 Reserved Notation "Γ t⊢{ l := d  } : T" (at level 74, l, d, T at next level).
@@ -17,32 +17,32 @@ Reserved Notation "Γ t⊢ds ds : T" (at level 74, ds, T at next level).
 Inductive typed Γ : tm → ty → Prop :=
 (** First, elimination forms *)
 (** Dependent application; only allowed if the argument is a path. *)
-| iT_All_E_p p2 e1 T1 T2:
+| iT_All_E_p p2 e1 T1 T2 :
     is_unstamped_ty' (length Γ).+1 T2 →
-    Γ t⊢ₜ e1: TAll T1 T2 →
+    Γ t⊢ₜ e1 : TAll T1 T2 →
     Γ t⊢ₚ p2 : T1, 0 →
     (*────────────────────────────────────────────────────────────*)
     Γ t⊢ₜ tapp e1 (path2tm p2) : T2 .Tp[ p2 /]
 (** Non-dependent application; allowed for any argument. *)
-| iT_All_E e1 e2 T1 T2:
-    Γ t⊢ₜ e1: TAll T1 (shift T2) →      Γ t⊢ₜ e2 : T1 →
+| iT_All_E e1 e2 T1 T2 :
+    Γ t⊢ₜ e1 : TAll T1 (shift T2) →      Γ t⊢ₜ e2 : T1 →
     (*────────────────────────────────────────────────────────────*)
     Γ t⊢ₜ tapp e1 e2 : T2
-| iT_Obj_E e T l:
+| iT_Obj_E e T l :
     Γ t⊢ₜ e : TVMem l T →
     (*─────────────────────────*)
     Γ t⊢ₜ tproj e l : T
 (** Introduction forms *)
-| iT_All_I_Strong e T1 T2 Γ':
+| iT_All_I_Strong e T1 T2 Γ' :
     ⊢G Γ >>▷* Γ' →
     (* T1 :: Γ' t⊢ₜ e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
     shift T1 :: Γ' t⊢ₜ e : T2 →
     (*─────────────────────────*)
     Γ t⊢ₜ tv (vabs e) : TAll T1 T2
-| iT_Obj_I ds T:
-    Γ |L T t⊢ds ds: T →
+| iT_Obj_I ds T :
+    Γ |L T t⊢ds ds : T →
     (*──────────────────────*)
-    Γ t⊢ₜ tv (vobj ds): TMu T
+    Γ t⊢ₜ tv (vobj ds) : TMu T
 
 (** "General" rules *)
 | iT_ISub e T1 T2 :
@@ -67,7 +67,7 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ t⊢ₜ e2 : TPrim B2 →
     Γ t⊢ₜ tbin b e1 e2 : TPrim Br
 | iT_If e e1 e2 T :
-    Γ t⊢ₜ e: TBool →
+    Γ t⊢ₜ e : TBool →
     Γ t⊢ₜ e1 : T →
     Γ t⊢ₜ e2 : T →
     Γ t⊢ₜ tif e e1 e2 : T
@@ -75,7 +75,7 @@ where "Γ t⊢ₜ e : T" := (typed Γ e T)
 with dms_typed Γ : dms → ty → Prop :=
 | iD_Nil : Γ t⊢ds [] : TTop
 (* This demands definitions and members to be defined in aligned lists. *)
-| iD_Cons l d ds T1 T2:
+| iD_Cons l d ds T1 T2 :
     Γ t⊢{ l := d } : T1 →
     Γ t⊢ds ds : T2 →
     dms_hasnt ds l →
@@ -83,21 +83,21 @@ with dms_typed Γ : dms → ty → Prop :=
     Γ t⊢ds (l, d) :: ds : TAnd T1 T2
 where "Γ t⊢ds ds : T" := (dms_typed Γ ds T)
 with dm_typed Γ : label → dm → ty → Prop :=
-| iD_Typ_Abs T l L U:
+| iD_Typ_Abs T l L U :
     nclosed T (length Γ) →
     Γ t⊢ₜ L <:[0] TLater T →
     Γ t⊢ₜ TLater T <:[0] U →
     Γ t⊢{ l := dtysyn T } : TTMem l L U
-| iD_Val l v T:
+| iD_Val l v T :
     Γ t⊢ₜ tv v : T →
     Γ t⊢{ l := dpt (pv v) } : TVMem l T
-| iD_Path l p T:
+| iD_Path l p T :
     Γ t⊢ₚ p : T, 0 →
     Γ t⊢{ l := dpt p } : TVMem l T
-| iD_Val_New l T ds:
+| iD_Val_New l T ds :
     TAnd (TLater T) (TSing (pself (pv (ids 1)) l)) :: Γ t⊢ds ds : T →
     Γ t⊢{ l := dpt (pv (vobj ds)) } : TVMem l (TMu T)
-| iD_Path_Sub T1 T2 p l:
+| iD_Path_Sub T1 T2 p l :
     Γ t⊢ₜ T1 <:[0] T2 →
     Γ t⊢{ l := dpt p } : TVMem l T1 →
     Γ t⊢{ l := dpt p } : TVMem l T2
@@ -132,13 +132,13 @@ Lemma iT_Var Γ x T
   Γ t⊢ₜ tv (vvar x) : shiftN x T.
 Proof. intros. apply iT_Path', iP_Var, Hl. Qed.
 
-Lemma iT_All_I Γ e T1 T2:
+Lemma iT_All_I Γ e T1 T2 :
   shift T1 :: Γ t⊢ₜ e : T2 →
   (*─────────────────────────*)
   Γ t⊢ₜ tv (vabs e) : TAll T1 T2.
 Proof. apply iT_All_I_Strong. ietp_weaken_ctx. Qed.
 
-Lemma iT_All_I_strip1 Γ e V T1 T2:
+Lemma iT_All_I_strip1 Γ e V T1 T2 :
   shift T1 :: V :: Γ t⊢ₜ e : T2 →
   (*─────────────────────────*)
   Γ |L V t⊢ₜ tv (vabs e) : TAll T1 T2.
@@ -147,7 +147,7 @@ Proof.
   rewrite /defCtxCons/=; ietp_weaken_ctx.
 Qed.
 
-Lemma iD_All Γ V T1 T2 e l:
+Lemma iD_All Γ V T1 T2 e l :
   shift T1 :: V :: Γ t⊢ₜ e : T2 →
   Γ |L V t⊢{ l := dpt (pv (vabs e)) } : TVMem l (TAll T1 T2).
 Proof. by intros; apply iD_Val, iT_All_I_strip1. Qed.

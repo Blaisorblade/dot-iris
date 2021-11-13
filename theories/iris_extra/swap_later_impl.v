@@ -10,24 +10,24 @@ Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
 (** ** Interface to Swap laws for any [bi]. *)
-Class SwapProp (PROP: bi) := {
-  impl_later : ∀ (P Q: PROP), (▷ P → ▷ Q) ⊢ ▷ (P → Q);
-  wand_later: ∀ (P Q: PROP), (▷ P -∗ ▷ Q) ⊢ ▷ (P -∗ Q)
+Class SwapProp (PROP : bi) := {
+  impl_later : ∀ (P Q : PROP), (▷ P → ▷ Q) ⊢ ▷ (P → Q);
+  wand_later : ∀ (P Q : PROP), (▷ P -∗ ▷ Q) ⊢ ▷ (P -∗ Q)
 }.
 
 Notation SwapPropI Σ := (SwapProp (iPropI Σ)).
 
-Class SwapBUpd (PROP: bi) `(BUpd PROP) := {
-  later_bupd_commute: ∀(P:PROP), (|==> ▷ P) ⊣⊢ ▷ |==> P
+Class SwapBUpd (PROP : bi) `(BUpd PROP) := {
+  later_bupd_commute : ∀(P :PROP), (|==> ▷ P) ⊣⊢ ▷ |==> P
 }.
 
-Lemma impl_laterN n `{SwapProp PROP} (P Q: PROP) : (▷^n P → ▷^n Q) ⊢ ▷^n (P → Q).
+Lemma impl_laterN n `{SwapProp PROP} (P Q : PROP) : (▷^n P → ▷^n Q) ⊢ ▷^n (P → Q).
 Proof. elim: n => [//|n IHn]. by rewrite impl_later IHn. Qed.
 
-Lemma wand_laterN n `{SwapProp PROP} (P Q: PROP) : (▷^n P -∗ ▷^n Q) ⊢ ▷^n (P -∗ Q).
+Lemma wand_laterN n `{SwapProp PROP} (P Q : PROP) : (▷^n P -∗ ▷^n Q) ⊢ ▷^n (P -∗ Q).
 Proof. elim: n => [//|n IHn]. by rewrite wand_later IHn. Qed.
 
-Lemma laterN_bupd_commute n `{SwapBUpd PROP} (P: PROP) : (▷^n |==> P) ⊣⊢ |==> ▷^n P.
+Lemma laterN_bupd_commute n `{SwapBUpd PROP} (P : PROP) : (▷^n |==> P) ⊣⊢ |==> ▷^n P.
 Proof. elim: n => [//|n IHn]. by rewrite later_bupd_commute /= IHn. Qed.
 
 (** Derived swap laws, for uniform predicates. *)
@@ -36,21 +36,21 @@ Import uPred.
 Section derived_swap_lemmas.
   Context `{M : ucmraT} `{!SwapProp (uPredI M)}.
   Set Default Proof Using "Type*".
-  Lemma mlater_impl (P Q: uPred M) : (▷ P → ▷ Q) ⊣⊢ ▷ (P → Q).
+  Lemma mlater_impl (P Q : uPred M) : (▷ P → ▷ Q) ⊣⊢ ▷ (P → Q).
   Proof. iSplit. iApply impl_later. iApply later_impl. Qed.
-  Lemma mlaterN_impl (P Q: uPred M) i : (▷^i P → ▷^i Q) ⊣⊢ ▷^i (P → Q).
+  Lemma mlaterN_impl (P Q : uPred M) i : (▷^i P → ▷^i Q) ⊣⊢ ▷^i (P → Q).
   Proof. iSplit. iApply impl_laterN. iApply laterN_impl. Qed.
 
-  Lemma mlater_wand (P Q: uPred M) : (▷ P -∗ ▷ Q) ⊣⊢ ▷ (P -∗ Q).
+  Lemma mlater_wand (P Q : uPred M) : (▷ P -∗ ▷ Q) ⊣⊢ ▷ (P -∗ Q).
   Proof. iSplit. iApply wand_later. iApply later_wand. Qed.
-  Lemma mlaterN_wand (P Q: uPred M) i : (▷^i P -∗ ▷^i Q) ⊣⊢ ▷^i (P -∗ Q).
+  Lemma mlaterN_wand (P Q : uPred M) i : (▷^i P -∗ ▷^i Q) ⊣⊢ ▷^i (P -∗ Q).
   Proof. iSplit. iApply wand_laterN. iApply laterN_wand. Qed.
 End derived_swap_lemmas.
 
 (** ** Implementation of swap laws for uniform predicates. *)
 
 Class CmraSwappable (M : cmraT) := {
-  cmra_extend_included: ∀ n (mx : option M) z,
+  cmra_extend_included : ∀ n (mx : option M) z,
     ✓{S n} mx → ✓{n} (z ⋅? mx) → { z' | ✓{S n} (z' ⋅? mx) ∧ z ≡{n}≡ z' }
 }.
 
@@ -113,12 +113,12 @@ Proof.
     eauto using cmra_validN_le.
 Qed.
 
-#[global] Instance SwapCmra `{!CmraSwappable M}: SwapProp (uPredI M).
+#[global] Instance SwapCmra `{!CmraSwappable M} : SwapProp (uPredI M).
 Proof.
   split. exact: CmraSwappable_impl_later. exact: CmraSwappable_impl_wand.
 Qed.
 
-#[global] Instance SwapBUpdCmra `{!CmraSwappable M}: SwapBUpd (uPredI M) _.
+#[global] Instance SwapBUpdCmra `{!CmraSwappable M} : SwapBUpd (uPredI M) _.
 Proof.
   split=>P; iSplit;
     [iApply CmraSwappable_bupd_later | iApply CmraSwappable_later_bupd].
@@ -144,20 +144,20 @@ Proof. apply LiftCPropToGFunctors_GFunctor. Qed.
 (** ** [CmraSwappable] Instances. *)
 
 (** *** Option. *)
-Lemma validN_mjoin_option `{A: cmraT} n (mma: option (option A)):
+Lemma validN_mjoin_option `{A : cmraT} n (mma : option (option A)) :
   ✓{n} mjoin mma ↔ ✓{n} mma.
 Proof. by destruct mma. Qed.
-Lemma valid_mjoin_option `{A: cmraT} (mma: option (option A)):
+Lemma valid_mjoin_option `{A : cmraT} (mma : option (option A)) :
   ✓ mjoin mma ↔ ✓ mma.
 Proof. by destruct mma. Qed.
-Lemma validN_opM_mjoin_option `{A: cmraT} n (a: A) mma:
+Lemma validN_opM_mjoin_option `{A : cmraT} n (a : A) mma :
   ✓{n} (a ⋅? mjoin mma) ↔ ✓{n} (Some a ⋅? mma).
 Proof. by destruct mma; rewrite //= Some_op_opM. Qed.
-Lemma valid_opM_mjoin_option `{A: cmraT} (a: A) mma:
+Lemma valid_opM_mjoin_option `{A : cmraT} (a : A) mma :
   ✓ (a ⋅? mjoin mma) ↔ ✓ (Some a ⋅? mma).
 Proof. by destruct mma; rewrite //= Some_op_opM. Qed.
 
-Instance CmraSwappable_optionUR `{!CmraSwappable A}: CmraSwappable (optionUR A).
+Instance CmraSwappable_optionUR `{!CmraSwappable A} : CmraSwappable (optionUR A).
 Proof.
   split => n mmx [z|] /= Hx Hxz.
   - case: (cmra_extend_included n (mjoin mmx) z) => [||x [Hv Heq]];
@@ -168,7 +168,7 @@ Qed.
 
 (** *** [gmap] *)
 Lemma gmap_cmra_extend_included n `{Countable A} `{!CmraSwappable T}
-  (x: gmapUR A T) z:
+  (x : gmapUR A T) z :
   ✓{S n} x → ✓{n} (z ⋅ x) → { z' | ✓{S n} (z' ⋅ x) ∧ z ≡{n}≡ z' }.
 Proof.
   move => Hvx Hvzx.
@@ -181,7 +181,7 @@ Proof.
   by case: (z !! i) (FUN i) => [?|] [?[?]]; rewrite /= ?left_id.
 Qed.
 
-Instance CmraSwappable_gmapUR `{Countable A} `{!CmraSwappable T}:
+Instance CmraSwappable_gmapUR `{Countable A} `{!CmraSwappable T} :
   CmraSwappable (gmapUR A T).
 Proof.
   split => n [x|] z; rewrite /= ?Some_validN.
@@ -192,8 +192,8 @@ Proof.
 Qed.
 
 (** *** Dependently-typed functions over a finite discrete domain *)
-Instance CmraSwappable_discrete_funUR {A} (B: A → ucmraT)
-  (H: ∀ i, CmraSwappable (B i)):
+Instance CmraSwappable_discrete_funUR {A} (B : A → ucmraT)
+  (H : ∀ i, CmraSwappable (B i)) :
   CmraSwappable (discrete_funUR B).
 Proof.
   split => n mx z Hvmx Hvzmx.
@@ -225,7 +225,7 @@ Proof.
   split=> b /=; setoid_rewrite elem_of_list_singleton; naive_solver.
 Qed.
 
-#[global] Instance CmraSwappable_agreeR: CmraSwappable (agreeR A).
+#[global] Instance CmraSwappable_agreeR : CmraSwappable (agreeR A).
 Proof.
   split; move => n [x x' Hvx|x' _]; cbn => Hvx'.
   - exists x; rewrite cmra_core_l; split_and!;
@@ -237,7 +237,7 @@ End agree.
 
 (* Currently unused instances. *)
 (** *** Discrete CMRAs. *)
-Instance CmraSwappable_discrete {A}: CmraDiscrete A → CmraSwappable A.
+Instance CmraSwappable_discrete {A} : CmraDiscrete A → CmraSwappable A.
 Proof.
   split => n mx z _ Hv //; exists z; move: Hv.
   by rewrite -!cmra_discrete_valid_iff.

@@ -40,10 +40,10 @@ Ltac unstamp_goal_dms :=
   iModIntro; iExists _; iSplit; [by iIntros "!%"; exact: same_skel_refl_dms|].
 
 Section loop_sem.
-  Context `{HdlangG: !dlangG Σ}.
+  Context `{HdlangG : !dlangG Σ}.
   Context `{SwapPropI Σ}.
 
-  Lemma loopSemT: ⊢ |==> WP hloopTm {{ _, False }}.
+  Lemma loopSemT : ⊢ |==> WP hloopTm {{ _, False }}.
   Proof using Type*.
     iDestruct (fundamental_typed (loopTyp [])) as "#>H".
     iDestruct "H" as (e_s Hsk1) ">H"; iModIntro.

@@ -43,7 +43,7 @@ Notation "E⟦ T ⟧" := (sE⟦ V⟦ T ⟧ ⟧).
 
 (** ** Binding lemmas about gDOT logical relations. *)
 Class CTyInterpLemmas Σ `{!CTyInterp Σ} := {
-  interp_subst_compose_ind T {args} ρ1 ρ2 v:
+  interp_subst_compose_ind T {args} ρ1 ρ2 v :
     V⟦ T.|[ρ1] ⟧ args ρ2 v ⊣⊢ V⟦ T ⟧ args (ρ1 >> ρ2) v;
 }.
 
@@ -52,7 +52,7 @@ Section logrel_binding_lemmas.
   Context `{Htil : CTyInterpLemmas Σ}.
   Set Default Proof Using "Type*".
 
-  Lemma interp_subst_compose T {args} ρ1 ρ2 ρ3:
+  Lemma interp_subst_compose T {args} ρ1 ρ2 ρ3 :
     ρ1 >> ρ2 = ρ3 → V⟦ T.|[ρ1] ⟧ args ρ2 ≡ V⟦ T ⟧ args ρ3.
   Proof. move=> <- v. exact: interp_subst_compose_ind. Qed.
 
@@ -98,7 +98,7 @@ End logrel_binding_lemmas.
 
 
 Section log_rel.
-  Context `{HdotG: !dlangG Σ}.
+  Context `{HdotG : !dlangG Σ}.
 (** The logical relation on values is [V⟦T⟧]. We also define the logical
     relation on definitions [Ds⟦T⟧].
 
@@ -172,7 +172,7 @@ Section log_rel.
     all: by apply path_wp_proper => ?.
   Qed.
 
-  #[global] Instance pinterp_lemmas: CTyInterpLemmas Σ.
+  #[global] Instance pinterp_lemmas : CTyInterpLemmas Σ.
   Proof. split. apply mut_interp_subst_compose_ind. Qed.
 
   Lemma kind_interp_subst_compose_ind K ρ1 ρ2 τ1 τ2 :
@@ -199,7 +199,7 @@ Notation "Γ ⊨ T1 <:[ i  ] T2" := (istpd i Γ T1 T2) (at level 74, T1, T2 at n
 
 (** ** Show these typing judgments are equivalent to what we present in the paper. *)
 Section judgment_definitions.
-  Context `{HdotG: !dlangG Σ}.
+  Context `{HdotG : !dlangG Σ}.
 
   Lemma idstp_eq Γ T ds : Γ ⊨ds ds : T ⊣⊢
     |==> ⌜wf_ds ds⌝ ∧ ∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → G⟦Γ⟧ ρ → Ds⟦T⟧ ρ ds.|[ρ].
@@ -222,7 +222,7 @@ Section judgment_definitions.
 End judgment_definitions.
 
 Section misc_lemmas.
-  Context `{HdotG: !dlangG Σ}.
+  Context `{HdotG : !dlangG Σ}.
 
   Lemma iterate_TLater_oLater i (T : ty) :
     V⟦iterate TLater i T⟧ ≡ oLaterN i V⟦T⟧.
@@ -274,7 +274,7 @@ Section path_repl_lemmas.
 
   Lemma rewrite_ty_path_repl_rtc {p q T1 T2 args ρ}
     (Hrepl : T1 ~Tp[ p := q ]* T2)
-    (Hal : alias_paths p.|[ρ] q.|[ρ]): (* p : q.type *)
+    (Hal : alias_paths p.|[ρ] q.|[ρ]) : (* p : q.type *)
     V⟦ T1 ⟧ args ρ ≡ V⟦ T2 ⟧ args ρ.
   Proof. intros v. apply: (fundamental_ty_path_repl_rtc Hrepl) Hal. Qed.
 
@@ -309,7 +309,7 @@ Import dlang_adequacy.
 
 (** Adequacy of normalization for gDOT paths. *)
 Lemma ipwp_gs_adequacy Σ `{HdlangG : !dlangG Σ} `{!SwapPropI Σ} {p T i}
-  (Hwp : ∀ `(Hdlang : !dlangG Σ) `(!SwapPropI Σ), ⊢ [] ⊨p p : T , i):
+  (Hwp : ∀ `(Hdlang : !dlangG Σ) `(!SwapPropI Σ), ⊢ [] ⊨p p : T , i) :
   terminates (path2tm p).
 Proof.
   eapply (@soundness (iResUR Σ) _ i).

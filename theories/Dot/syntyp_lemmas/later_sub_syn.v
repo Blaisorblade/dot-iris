@@ -12,7 +12,7 @@ Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
 Section TypeEquiv.
-  Context `{HdlangG: !dlangG Σ}.
+  Context `{HdlangG : !dlangG Σ}.
 
   Lemma fundamental_mut_equiv_clty :
     (∀ T1 T2 (H : |- T1 == T2), C⟦ T1 ⟧ ≡ C⟦ T2 ⟧) ∧
@@ -60,7 +60,7 @@ Section TypeEquiv.
       exact: fundamental_type_equiv_olty..].
   Qed.
 
-  Instance: Params (@istpd) 4 := {}.
+  Instance : Params (@istpd) 4 := {}.
 
   Lemma Stp_Eq i T1 T2 Γ :
     |- T1 == T2 → ⊢ Γ ⊨ T1 <:[i] T2.
@@ -70,23 +70,23 @@ Section TypeEquiv.
   Qed.
 End TypeEquiv.
 
-Definition ty_sub `{HdlangG: !dlangG Σ} T1 T2 := s⊨T V⟦ T1 ⟧ <: V⟦ T2 ⟧.
+Definition ty_sub `{HdlangG : !dlangG Σ} T1 T2 := s⊨T V⟦ T1 ⟧ <: V⟦ T2 ⟧.
 Notation "⊨T T1 <: T2" := (ty_sub T1 T2) (at level 74, T1, T2 at next level).
 
-Definition ctx_sub `{HdlangG: !dlangG Σ} Γ1 Γ2 : Prop := s⊨G V⟦ Γ1 ⟧* <:* V⟦ Γ2 ⟧*.
+Definition ctx_sub `{HdlangG : !dlangG Σ} Γ1 Γ2 : Prop := s⊨G V⟦ Γ1 ⟧* <:* V⟦ Γ2 ⟧*.
 Notation "⊨G Γ1 <:* Γ2" := (ctx_sub Γ1 Γ2) (at level 74, Γ1, Γ2 at next level).
 
 Section CtxSub.
-  Context `{HdlangG: !dlangG Σ}.
+  Context `{HdlangG : !dlangG Σ}.
   Implicit Type (T : ty) (Γ : ctx).
 
   (** * Basic lemmas about [ctx_sub]. *)
-  #[global] Instance: RewriteRelation ty_sub := {}.
-  #[global] Instance: PreOrder ty_sub.
+  #[global] Instance : RewriteRelation ty_sub := {}.
+  #[global] Instance : PreOrder ty_sub.
   Proof. rewrite /ty_sub; split; first done. by move => x y z H1 H2; etrans. Qed.
 
-  #[global] Instance: RewriteRelation ctx_sub := {}.
-  #[global] Instance: PreOrder ctx_sub.
+  #[global] Instance : RewriteRelation ctx_sub := {}.
+  #[global] Instance : PreOrder ctx_sub.
   Proof. rewrite /ctx_sub; split; first done. by move => x y z H1 H2; etrans. Qed.
 
   #[global] Instance cons_ctx_sub_mono : Proper (ty_sub ==> ctx_sub ==> ctx_sub) cons.
@@ -126,11 +126,11 @@ Section CtxSub.
   Proof. by rewrite -senv_TLater_commute fmap_TLater_oLater. Qed.
 
   (** The strength ordering of contexts lifts the strength ordering of types. *)
-  Lemma env_lift_sub f g {Γ} (Hle: ∀ T, ⊨T f T <: g T):
+  Lemma env_lift_sub f g {Γ} (Hle : ∀ T, ⊨T f T <: g T) :
     ⊨G f <$> Γ <:* g <$> Γ.
   Proof. elim: Γ => [//| T Γ IH] ρ; cbn. by rewrite (Hle T _ _) -(IH _). Qed.
 
-  Lemma env_lift_sub' f g Γ {Γ1 Γ2}:
+  Lemma env_lift_sub' f g Γ {Γ1 Γ2} :
     Γ1 = f <$> Γ → Γ2 = g <$> Γ →
     (∀ T, ⊨T f T <: g T) →
     ⊨G Γ1 <:* Γ2.
@@ -139,7 +139,7 @@ Section CtxSub.
   (* It's not immediate to generalize fmap_TLater_proper to [fmap C] for a
   type constructor [C]. Fpr instance, the following is hopeless. *)
   (* Lemma fmap_ctx_proper C
-    (Hle: ∀ T1 T2, ⊨T T1 <: T2 → ⊨T C T1 <: C T2):
+    (Hle : ∀ T1 T2, ⊨T T1 <: T2 → ⊨T C T1 <: C T2) :
     Proper (ctx_sub ==> ctx_sub) (fmap C).
   Proof.
     intros G1 G2. elim: G2 G1 => [|T2 G2 IHG2] [|T1 G1] HG ρ //; cbn. *)

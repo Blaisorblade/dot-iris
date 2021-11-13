@@ -11,7 +11,7 @@ Set Default Proof Using "Type*".
 Set Implicit Arguments.
 Unset Strict Implicit.
 
-Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
+Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (ds : dms) (Γ : ctx).
 
 Section fundamental.
   Context `{!dlangG Σ} `{!SwapPropI Σ}.
@@ -19,15 +19,15 @@ Section fundamental.
   (* Make proofs below more robust by opaquifying judgments. *)
   Opaque setp sdstp sdtp sptp suetp sudstp.
 
-  Definition fundamental_typed_def Γ e T (HT: Γ t⊢ₜ e : T) :=
+  Definition fundamental_typed_def Γ e T (HT : Γ t⊢ₜ e : T) :=
     ⊢ Γ u⊨ e : T.
-  Definition fundamental_dms_typed_def Γ ds T (HT: Γ t⊢ds ds : T) :=
+  Definition fundamental_dms_typed_def Γ ds T (HT : Γ t⊢ds ds : T) :=
     ⊢ Γ u⊨ds ds : T.
   Definition fundamental_dm_typed_def Γ l d T (HT : Γ t⊢{ l := d } : T) :=
     ⊢ Γ u⊨ { l := d } : T.
   Definition fundamental_path_typed_def Γ p T i (HT : Γ t⊢ₚ p : T, i) :=
     ⊢ Γ ⊨p p : T, i.
-  Definition fundamental_subtype_def Γ i T1 T2 (HT: Γ t⊢ₜ T1 <:[i] T2) :=
+  Definition fundamental_subtype_def Γ i T1 T2 (HT : Γ t⊢ₜ T1 <:[i] T2) :=
     ⊢ Γ ⊨ T1 <:[ i ] T2.
 
   (* Reduce away the above definitions. *)
@@ -35,7 +35,7 @@ Section fundamental.
 
   Theorem subtype_fundamental_mut Γ :
     (∀ p T i (HT : Γ t⊢ₚ p : T, i), fundamental_path_typed_def HT) ∧
-    (∀ i T1 T2 (HT: Γ t⊢ₜ T1 <:[i] T2), fundamental_subtype_def HT).
+    (∀ i T1 T2 (HT : Γ t⊢ₜ T1 <:[i] T2), fundamental_subtype_def HT).
   Proof.
     apply pure_typing_mut_ind; clear Γ; intros; simpl_context.
     + by iApply P_Var.
@@ -93,8 +93,8 @@ Section fundamental.
   Proof. apply (subtype_fundamental_mut Γ). Qed.
 
   Theorem fundamental_mut Γ :
-    (∀ e T (HT: Γ t⊢ₜ e : T), fundamental_typed_def HT) ∧
-    (∀ ds T (HT: Γ t⊢ds ds : T), fundamental_dms_typed_def HT) ∧
+    (∀ e T (HT : Γ t⊢ₜ e : T), fundamental_typed_def HT) ∧
+    (∀ ds T (HT : Γ t⊢ds ds : T), fundamental_dms_typed_def HT) ∧
     (∀ l d T (HT : Γ t⊢{ l := d } : T), fundamental_dm_typed_def HT).
   Proof.
     apply typing_mut_ind; clear Γ; intros; simpl_context.
@@ -141,7 +141,7 @@ Import dlang_adequacy.
 (** The overall proof of type soundness, as outlined in Sec. 5 of the paper. *)
 (** Theorem 5.2: Type soundness for gDOT. *)
 Theorem type_soundness {e T}
-  (Ht: [] t⊢ₜ e : T): safe e.
+  (Ht : [] t⊢ₜ e : T) : safe e.
 Proof.
   (* Apply adequacy of unstamped semantic typing (Theorem 5.4). *)
   apply: (unstamped_safety_dot_sem dlangΣ); intros.

@@ -35,7 +35,7 @@ Section semantic_lemmas.
     by rewrite path_wp_pv_eq.
   Qed.
 
-  Lemma sSngl_Stp_Sym Γ p q T i:
+  Lemma sSngl_Stp_Sym Γ p q T i :
     Γ s⊨p p : T, i -∗ (* Just to ensure [p] terminates and [oSing p] isn't empty. *)
     Γ s⊨ oSing p <:[i] oSing q -∗
     Γ s⊨ oSing q <:[i] oSing p.
@@ -87,7 +87,7 @@ Section semantic_lemmas.
   Qed.
 
   Lemma sT_All_E_p Γ e1 p2 T1 T2 :
-    Γ s⊨ e1: oAll T1 T2 -∗
+    Γ s⊨ e1 : oAll T1 T2 -∗
     Γ s⊨p p2 : T1, 0 -∗
     (*────────────────────────────────────────────────────────────*)
     Γ s⊨ tapp e1 (path2tm p2) : T2 .sTp[ p2 /].
@@ -103,7 +103,7 @@ Section semantic_lemmas.
   Qed.
 
   (* From pDOT *)
-  Lemma sP_Fld_I Γ p T l i:
+  Lemma sP_Fld_I Γ p T l i :
     Γ s⊨p pself p l : T, i -∗
     (*─────────────────────────*)
     Γ s⊨p p : oVMem l T, i.
@@ -115,7 +115,7 @@ Section semantic_lemmas.
 
   (* Suppose path typing required termination *now* rather than later:
 
-    Definition sptp `{!dlangG Σ} p i Γ (T : oltyO Σ): iProp Σ :=
+    Definition sptp `{!dlangG Σ} p i Γ (T : oltyO Σ) : iProp Σ :=
      ∀ ρ, sG⟦Γ⟧* ρ →
 -      ▷^i path_wp p.|[ρ] (λ v, oClose T ρ v).
 +      path_wp p.|[ρ] (λ v, ▷^i oClose T ρ v).
@@ -123,7 +123,7 @@ Section semantic_lemmas.
   Then this lemma would already fail: the hypothesis implies that [p]
   terminates now, but that [pself p l] terminates *only under later^i*!
   *)
-  Lemma sP_Fld_E {Γ} p T l i:
+  Lemma sP_Fld_E {Γ} p T l i :
     Γ s⊨p p : oVMem l T, i -∗
     (*─────────────────────────*)
     Γ s⊨p pself p l : T, i.
@@ -136,7 +136,7 @@ Section semantic_lemmas.
   (* In the above proof, in contrast with [sT_Obj_E], lots of the lemmas
      needed of path_wp hold simply by computation. *)
 
-  Lemma sP_Sngl_Trans Γ p q T i:
+  Lemma sP_Sngl_Trans Γ p q T i :
     Γ s⊨p p : oSing q, i -∗
     Γ s⊨p q : T, i -∗
     Γ s⊨p p : T, i.
@@ -146,7 +146,7 @@ Section semantic_lemmas.
     by iDestruct "Hep" as %->%alias_paths_simpl%(alias_paths_elim_eq (T _ _)).
   Qed.
 
-  Lemma sP_Sngl_E Γ τ p q l i:
+  Lemma sP_Sngl_E Γ τ p q l i :
     Γ s⊨p p : oSing q, i -∗
     Γ s⊨p pself q l : τ, i -∗
     Γ s⊨p pself p l : oSing (pself q l), i.
@@ -159,7 +159,7 @@ Section semantic_lemmas.
     apply /alias_paths_sameres /alias_paths_pself /Hal /Hql.
   Qed.
 
-  Lemma sP_Sub {Γ p T1 T2 i}:
+  Lemma sP_Sub {Γ p T1 T2 i} :
     Γ s⊨p p : T1, i -∗
     Γ s⊨ T1 <:[i] T2 -∗
     (*───────────────────────────────*)
