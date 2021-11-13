@@ -195,11 +195,11 @@ Section tmem_unstamped_lemmas.
     Γ ⊨ L <:[0] TLater T -∗
     Γ ⊨ TLater T <:[0] U -∗
     Γ u⊨ { l := dtysyn fakeT } : TTMem l L U.
-  Proof. have := !!nclosed_syn_coveringσ HclT; apply suD_Typ_Abs. Qed.
+  Proof. have := !!nclosed_syn_coveringσ HclT. rw. apply suD_Typ_Abs. Qed.
 
   Lemma uD_Typ {l n Γ T} fakeT (HclT : nclosed T n) :
     ⊢ Γ u⊨ { l := dtysyn fakeT } : TTMem l (TLater T) (TLater T).
-  Proof. have := !!nclosed_syn_coveringσ HclT; apply suD_Typ. Qed.
+  Proof. have := !!nclosed_syn_coveringσ HclT. rw. apply suD_Typ. Qed.
 End tmem_unstamped_lemmas.
 
 Section unstamped_lemmas.
@@ -335,7 +335,7 @@ Section unstamped_lemmas.
   Lemma uT_Obj_I Γ T ds :
     TLater T :: Γ u⊨ds ds : T -∗
     Γ u⊨ tv (vobj ds) : TMu T.
-  Proof. apply suT_Obj_I. Qed.
+  Proof. rw. apply suT_Obj_I. Qed.
 
   Lemma suT_Path Γ τ p :
     Γ s⊨p p : τ, 0 -∗ Γ su⊨ path2tm p : τ.

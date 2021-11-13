@@ -84,7 +84,7 @@ Section storeless_unstamped_lemmas.
     Γ ⊨        L, 0 <: TLater T, 0 -∗
     Γ ⊨ TLater T, 0 <: U       , 0 -∗
     Γ u⊨ { l := dtysyn T } : TTMem l L U.
-  Proof. have := !!(nclosed_syn_coveringσ HclT); apply suD_Typ_Abs_I. Qed.
+  Proof. have := !!(nclosed_syn_coveringσ HclT). rw. apply suD_Typ_Abs_I. Qed.
 
   Lemma suD_Typ_dtysem {Γ l σ s fakeσ} {T : olty Σ} (HclT : coveringσ σ T) :
     ⊢ Γ su⊨ { l := dtysem fakeσ s } : cTMem l (oLater T) (oLater T).
@@ -105,7 +105,7 @@ Section storeless_unstamped_lemmas.
     Γ ⊨        L, 0 <: TLater T, 0 -∗
     Γ ⊨ TLater T, 0 <:        U, 0 -∗
     Γ u⊨ { l := dtysem fakeσ s } : TTMem l L U.
-  Proof. have := !!(nclosed_syn_coveringσ HclT); apply suD_Typ_Abs_I_dtysem. Qed.
+  Proof. have := !!(nclosed_syn_coveringσ HclT); rw. apply suD_Typ_Abs_I_dtysem. Qed.
 End storeless_unstamped_lemmas.
 
 Section old_fundamental.

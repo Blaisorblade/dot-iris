@@ -42,13 +42,13 @@ Section Lemmas.
     (* We're stuck again! *)
     Fail iApply "Hsub".
     Restart. *)
-    iIntros ">#Hsub >#Hp !> %ρ %v #Hg Heq".
+    rw. iIntros ">#Hsub >#Hp !> %ρ %v #Hg Heq".
     iSpecialize ("Hp" with "Hg").
     iAssert (▷^i ⟦ T1 ⟧ (v .: ρ) v)%I as "#HT1".
     by iNext i; iDestruct "Heq" as %Heq;
       rewrite (alias_paths_elim_eq _ Heq) path_wp_pv_eq.
     iApply ("Hsub" $! (v .: ρ) v with "[#$Hg] HT1").
-    iEval rewrite iterate_TLater_oLater /= hsubst_comp. iFrame "Heq HT1".
+    iEval rewrite /= hsubst_comp. iFrame "Heq HT1".
   Qed.
 
   (** What Dotty actually checks uses substitution twice. A simple case is the following: *)
@@ -58,7 +58,7 @@ Section Lemmas.
     Γ ⊨p p : TMu T1, i -∗
     Γ ⊨ TSing p, i <: TMu T2, i.
   Proof.
-    iIntros ">#Hsub >#Hp !> %ρ %v #Hg /= Heq"; iSpecialize ("Hp" with "Hg").
+    rw. iIntros ">#Hsub >#Hp !> %ρ %v #Hg /= Heq"; iSpecialize ("Hp" with "Hg").
     iSpecialize ("Hsub" $! ρ v with "[#$Hg] [#]"); iNext i;
       iDestruct "Heq" as %Heq;
       rewrite -(psubst_one_repl Hrepl1, psubst_one_repl Hrepl2) //
@@ -93,10 +93,10 @@ Section Lemmas.
   Qed.
 
   Lemma T_Mu_I {Γ} T v: Γ ⊨ tv v : T.|[v/] -∗ Γ ⊨ tv v : TMu T.
-  Proof. by rewrite /ietp -sT_Mu_I interp_commute_subst. Qed.
+  Proof. rw. rewrite interp_commute_subst. apply sT_Mu_I. Qed.
 
   Lemma T_Mu_E {Γ} T v: Γ ⊨ tv v : TMu T -∗ Γ ⊨ tv v : T.|[v/].
-  Proof. by rewrite /ietp sT_Mu_E interp_commute_subst. Qed.
+  Proof. rw. rewrite interp_commute_subst. apply sT_Mu_E. Qed.
 
   Lemma suetp_var_lift1 {Γ} x T1 T2 :
     (Γ s⊨ tv (ids x) : T1 -∗ Γ s⊨ tv (ids x) : T2) ⊢
