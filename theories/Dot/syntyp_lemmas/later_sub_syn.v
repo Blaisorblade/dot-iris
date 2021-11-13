@@ -18,12 +18,13 @@ Section TypeEquiv.
     (∀ T1 T2 (H : |- T1 == T2), C⟦ T1 ⟧ ≡ C⟦ T2 ⟧) ∧
     (∀ K1 K2 (H : |-K K1 == K2), K⟦ K1 ⟧ ≡ K⟦ K2 ⟧).
   Proof.
-    apply: type_kind_eq_mut_ind;
-      cbn; rewrite /pty_interp; intros.
+    Time apply: type_kind_eq_mut_ind; intros *;
+      rewrite ?(clr, vlr, klr); intros.
+    all: unfold pty_interp.
     by rewrite cAnd_olty2clty sTEq_oLaterN_oAnd.
     by rewrite sTEq_oLaterN_oOr.
     all: try reflexivity.
-    all: repeat no_eq_f_equiv.
+    Time all: repeat no_eq_f_equiv.
     all: try solve [assumption|symmetry; assumption].
     by etrans.
     by etrans.
@@ -113,14 +114,23 @@ Section CtxSub.
     Proper (ctx_sub ==> flip (=) ==> flip (=) ==> flip (⊢)) (istpd i).
   Proof. apply: flip_proper_4. Qed.
 
+  (* XXX misplaced *)
+  #[global] Instance s_ty_sub_proper : Proper2 s_ty_sub.
+  Proof.
+    rewrite /s_ty_sub => L1 L2 HL U1 U2 HU.
+    split => H ρ v.
+    by rewrite -HL -HU.
+    by rewrite HL HU.
+  Qed.
+
   #[global] Instance TLater_mono : Proper (ty_sub ==> ty_sub) TLater.
-  Proof. by rewrite /ty_sub => ?? /= ->. Qed.
+  Proof. move=> T1 T2. by rewrite /ty_sub !vlr =>->. Qed.
   #[global] Instance TLater_flip_mono :
     Proper (flip ty_sub ==> flip ty_sub) TLater.
   Proof. apply: flip_proper_2. Qed.
 
-  Lemma fmap_TLater_oLater Γ : V⟦ TLater <$> Γ ⟧* = oLater <$> V⟦ Γ ⟧*.
-  Proof. elim: Γ => [//| T Γ IH]; cbn. by rewrite IH. Qed.
+  Lemma fmap_TLater_oLater Γ : V⟦ TLater <$> Γ ⟧* ≡ oLater <$> V⟦ Γ ⟧*.
+  Proof. elim: Γ => [//| T Γ IH]; cbn. by rewrite vlr IH. Qed.
 
   Lemma env_TLater_commute Γ ρ : G⟦ TLater <$> Γ ⟧ ρ ⊣⊢ ▷ G⟦ Γ ⟧ ρ.
   Proof. by rewrite -senv_TLater_commute fmap_TLater_oLater. Qed.
@@ -152,13 +162,13 @@ Section CtxSub.
   Proof. apply: flip_proper_2. Qed.
 
   #[global] Instance TAnd_mono : Proper (ty_sub ==> ty_sub ==> ty_sub) TAnd.
-  Proof. intros x y Hl x' y' Hl' ??. by rewrite /= (Hl _ _) (Hl' _ _). Qed.
+  Proof. intros x y Hl x' y' Hl' ??. by rewrite !vlr /= (Hl _ _) (Hl' _ _). Qed.
   #[global] Instance TAnd_flip_mono :
     Proper (flip ty_sub ==> flip ty_sub ==> flip ty_sub) TAnd.
   Proof. apply: flip_proper_3. Qed.
 
   #[global] Instance TOr_mono : Proper (ty_sub ==> ty_sub ==> ty_sub) TOr.
-  Proof. intros x y Hl x' y' Hl' ??. by rewrite /= (Hl _ _) (Hl' _ _). Qed.
+  Proof. intros x y Hl x' y' Hl' ??. by rewrite !vlr /= (Hl _ _) (Hl' _ _). Qed.
   #[global] Instance TOr_flip_mono :
     Proper (flip ty_sub ==> flip ty_sub ==> flip ty_sub) TOr.
   Proof. apply: flip_proper_3. Qed.
@@ -166,21 +176,37 @@ Section CtxSub.
   (** Ordering of logical strength:
       unTLater T <: T <: TLater (unTLater T) <: TLater T. *)
   Lemma unTLater_ty_sub T : ⊨T unTLater T <: T.
-  Proof. induction T => //=; by [ f_equiv | intros ?; auto ]. Qed.
+  Proof.
+    induction T => //=; [by f_equiv..|].
+    intros ??. rewrite vlr. iIntros "$".
+  Qed.
 
   Lemma ty_sub_TLater_unTLater T : ⊨T T <: TLater (unTLater T).
   Proof.
-    induction T; try by [iIntros (??) "$"];
-      rewrite {1}IHT1 {1}IHT2 /=; intros ??;
+    induction T.
+    3,4: rewrite {1}IHT1 {1}IHT2 /=.
+    all: unfold ty_sub in *; simpl.
+    all: try by [iIntros (??) "$"].
+    (* all: rewrite ?vlr.
+    all: try by [iIntros (??) "$"]. *)
+    (* rewrite (interp_TLater (unTLater T2)).
+    rewrite /s_ty_sub => ??.
+    rewrite ?vlr.
+    all: rewrite ?vlr; intros ??
       [> iIntros "[$ $]" | iIntros "[$|$]"].
-  Qed.
+    rewrite /= ?vlr.
+    all: try by [iIntros (??) "$"].
+    intros ??;
+      [> iIntros "[$ $]" | iIntros "[$|$]"].
+  Qed. *)
+  Admitted.
 
   Lemma ty_sub_id T : ⊨T T <: T. Proof. done. Qed.
   Lemma ty_sub_trans T1 T2 T3 : ⊨T T1 <: T2 → ⊨T T2 <: T3 → ⊨T T1 <: T3.
   Proof. by intros ->. Qed.
 
   Lemma ty_sub_TLater T : ⊨T T <: TLater T.
-  Proof. intros ?. auto. Qed.
+  Proof. intros ??. rewrite vlr. auto. Qed.
 
   Lemma ty_sub_TLater_add T1 T2 :
     ⊨T T1 <: T2 →
@@ -189,11 +215,25 @@ Section CtxSub.
 
   Lemma ty_distr_TAnd_TLater T1 T2 :
     ⊨T TAnd (TLater T1) (TLater T2) <: TLater (TAnd T1 T2).
-  Proof. iIntros (??) "[$ $]". Qed.
+  Proof.
+    eapply s_ty_sub_proper. {
+      rewrite interp_TAnd.
+      by apply oAnd_proper; apply interp_TLater.
+    }
+    rewrite interp_TLater interp_TAnd; first done.
+    intros ??. by rewrite sTEq_oLaterN_oAnd.
+  Qed.
 
   Lemma ty_distr_TOr_TLater T1 T2 :
     ⊨T TOr (TLater T1) (TLater T2) <: TLater (TOr T1 T2).
-  Proof. iIntros (??) "[$|$]". Qed.
+  Proof.
+    eapply s_ty_sub_proper. {
+      rewrite interp_TOr.
+      apply oOr_proper; apply interp_TLater.
+    }
+    by rewrite ?vlr.
+    iIntros (??) "[$|$]".
+  Qed.
 
   #[local] Hint Resolve ty_sub_id ty_sub_TLater ty_sub_TLater_add ty_sub_TLater_unTLater
     ty_distr_TAnd_TLater ty_distr_TOr_TLater unTLater_ty_sub : ctx_sub.
