@@ -43,6 +43,8 @@ End unstamped_judgs.
 #[global] Instance: Params (@sudstp) 3 := {}.
 #[global] Instance: Params (@sudtp) 4 := {}.
 
+Ltac rw ::= rewrite /iuetp /ietp /iudstp /idstp /iudtp /idtp /iptp /istpd ?lr.
+
 Section unstamped_judgs_proper.
   Context `{!dlangG Σ}.
 

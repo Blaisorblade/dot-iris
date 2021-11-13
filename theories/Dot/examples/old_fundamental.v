@@ -17,6 +17,8 @@ Unset Strict Implicit.
 
 Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms).
 
+Ltac rw ::= rewrite /iuetp /ietp /iudstp /idstp /iudtp /idtp /iptp /istpd /istpi ?lr.
+
 (* For storeless typing. *)
 Section storeless_unstamped_lemmas.
   Context `{!dlangG Σ}.
