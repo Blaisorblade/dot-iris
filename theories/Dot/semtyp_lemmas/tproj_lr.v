@@ -87,7 +87,7 @@ Definition oProj `{!dlangG Σ} A (T : oltyO Σ) : oltyO Σ :=
   oSel (pv (ids 0)) A args (w .: ρ) v).
 
 (** *** Technical infrastructure for setoid rewriting. *)
-Instance: Params (@oProj) 3 := {}.
+#[global] Instance: Params (@oProj) 3 := {}.
 
 Section type_proj_setoid_equality.
   Context `{!dlangG Σ}.

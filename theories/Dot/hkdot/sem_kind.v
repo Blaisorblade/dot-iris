@@ -445,7 +445,7 @@ Section s_kind_rel_proper.
   Proof. apply _. Qed.
 End s_kind_rel_proper.
 
-Instance s_kind_ids {Σ} : ∀ n, Ids (s_kind Σ n) := fix s_kind_ids n := λ _,
+#[global] Instance s_kind_ids {Σ} : ∀ n, Ids (s_kind Σ n) := fix s_kind_ids n := λ _,
   match n with
   | 0 => s_kintv oTop oBot
   | n.+1 => s_kpi inhabitant (s_kind_ids _ 0)
@@ -457,8 +457,8 @@ Fixpoint s_kind_hsubst {Σ n} (ρ : env) (K : s_kindO Σ n) : s_kindO Σ n :=
     let _ : HSubst vl (s_kind Σ n) := s_kind_hsubst in
     s_kpi S.|[ρ] K.|[up ρ]
   end.
-Instance hsubst_s_kind {Σ n} : HSubst vl (s_kind Σ n) := s_kind_hsubst.
-Instance: Params (@hsubst_s_kind) 2 := {}.
+#[global] Instance hsubst_s_kind {Σ n} : HSubst vl (s_kind Σ n) := s_kind_hsubst.
+#[global] Instance: Params (@hsubst_s_kind) 2 := {}.
 
 #[global] Instance s_kind_hsubst_lemmas {Σ n} : HSubstLemmas vl (s_kind Σ n).
 Proof.

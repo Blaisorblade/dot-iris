@@ -60,7 +60,7 @@ Section TypeEquiv.
       exact: fundamental_type_equiv_olty..].
   Qed.
 
-  Instance: Params (@istpd) 4 := {}.
+  #[global] Instance: Params (@istpd) 4 := {}.
 
   Lemma Stp_Eq i T1 T2 Γ :
     |- T1 == T2 → ⊢ Γ ⊨ T1 <:[i] T2.

@@ -145,18 +145,18 @@ Notation HoLty φ := (λ args, Lty (λI v, φ args v)).
 
 Definition envApply {Σ} : oltyO Σ → env → hoLtyO Σ :=
   λ T, flip T.
-Instance: Params (@envApply) 1 := {}.
-Instance envApply_proper Σ :
+#[global] Instance: Params (@envApply) 1 := {}.
+#[global] Instance envApply_proper Σ :
   Proper ((≡) ==> (=) ==> (≡)) (envApply (Σ := Σ)).
 Proof. solve_proper_ho. Qed.
 
 Definition packHoLtyO {Σ} (φ : hoD Σ) : hoLtyO Σ :=
   HoLty (λI args v, ▷ φ args v).
-Instance: Params (@packHoLtyO) 1 := {}.
-Instance packHoLtyO_contractive {Σ} :
+#[global] Instance: Params (@packHoLtyO) 1 := {}.
+#[global] Instance packHoLtyO_contractive {Σ} :
   Contractive (packHoLtyO (Σ := Σ)).
 Proof. solve_contractive_ho. Qed.
-Instance packHoLtyO_proper {Σ} :
+#[global] Instance packHoLtyO_proper {Σ} :
   Proper ((≡) ==> (≡)) (packHoLtyO (Σ := Σ)) := contractive_proper _.
 
 (** ** Substitution over [olty]. *)

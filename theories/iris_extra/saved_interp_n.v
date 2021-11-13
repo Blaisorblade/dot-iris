@@ -17,7 +17,7 @@ Definition auncurry {A} (Φ : vl -d> astream -d> A) : astream -d> A :=
   λ args, Φ (ahead args) (atail args).
 Definition acurry {A} (Φ : astream -d> A) : vl -d> astream -d> A :=
   λ v args, Φ (acons v args).
-Instance acurry_ne A n :
+#[global] Instance acurry_ne A n :
   Proper (dist n ==> (=) ==> dist n) (@acurry A).
 Proof. solve_proper_ho. Qed.
 

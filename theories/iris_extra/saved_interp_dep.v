@@ -37,13 +37,13 @@ Section vec.
     λ args, Φ (ahead args) (atail args).
 End vec.
 
-Instance acurry_ne vl n A m :
+#[global] Instance acurry_ne vl n A m :
   Proper (dist m ==> (=) ==> dist m) (@acurry vl n A).
 Proof. solve_proper_ho. Qed.
 
-Instance acurry_proper vl n A : Proper ((≡) ==> (=) ==> (≡)) (@acurry vl n A).
+#[global] Instance acurry_proper vl n A : Proper ((≡) ==> (=) ==> (≡)) (@acurry vl n A).
 Proof. solve_proper_ho. Qed.
-Instance: Params (@acurry) 3 := {}.
+#[global] Instance: Params (@acurry) 3 := {}.
 
 Definition vec_fold {A} {P : nat → Type}
   (base : P 0) (step : ∀ {n}, A → P n → P (S n)) : ∀ n, vec A n → P n :=

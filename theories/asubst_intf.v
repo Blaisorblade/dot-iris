@@ -51,7 +51,7 @@ End ValuesSig.
 Module ASubstLangDefUtils.
 (* Not an instance because it should *not* be used automatically. *)
 Definition inh_ids `{Inhabited X} : Ids X := λ _, inhabitant.
-Instance list_ids {X} : Ids (list X) := inh_ids.
+#[global] Instance list_ids {X} : Ids (list X) := inh_ids.
 
 Section rename_instances.
   Context `{Ids X} `{Rename X}.
