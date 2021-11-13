@@ -1,9 +1,9 @@
 From iris.proofmode Require Import tactics.
 
 From D Require Import iris_prelude swap_later_impl.
-From D.Dot Require Import rules path_repl.
-From D.Dot Require Export old_fundamental examples_lr.
+From D.Dot Require Import rules path_repl examples_lr.
 From D.Dot Require Export sem_unstamped_typing.
+From D.Dot Require Export old_fundamental.
 
 Implicit Types (Σ : gFunctors).
 Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env) (l : label).
