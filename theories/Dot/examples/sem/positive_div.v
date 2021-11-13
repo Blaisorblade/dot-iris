@@ -106,7 +106,8 @@ Section div_example.
     ⊢ [] s⊨ hmkPosV : oAll V⟦ 𝐙 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : Z, v = n ∧ n > 0 ⌝)).
   Proof using Type*.
     rewrite -sT_All_I /setp /= /shead; iMod wp_if_ge as "#Hge".
-    iIntros "!>" (ρ). iDestruct 1 as %(_ & n & Hw); simplify_eq/=; rewrite Hw.
+    iIntros "!>" (ρ). rewrite /hsubst/hsubst_hoEnvD. rw.
+    iDestruct 1 as %(_ & n & Hw); simplify_eq/=; rewrite Hw.
     iApply wp_wand; [iApply "Hge" | naive_solver].
   Qed.
 
@@ -114,14 +115,17 @@ Section div_example.
     ⊢ |==> oAll V⟦ 𝐙 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : Z, v = n ∧ n > 0 ⌝)) anil ids hmkPosV.
   Proof using Type*. iApply wp_value_inv'. iApply (ty_mkPos with "[//]"). Qed.
 
-  Lemma wp_div_spec (m : Z) w : ipos anil ids w -∗ WP m `div` w {{ ⟦ 𝐙 ⟧ ids }}.
+  Lemma wp_div_spec (m : Z) w : ipos anil ids w -∗ WP m `div` w {{ oInt anil ids }}.
   Proof. iDestruct 1 as %(n&?&?); simplify_eq. wp_bin. by iIntros "!%"; naive_solver. Qed.
   Close Scope Z_scope.
 
   Lemma sStp_ipos_nat Γ i : ⊢ Γ s⊨ ipos <:[ i ] oInt.
   Proof. iIntros "!> % _ !%"; rewrite /pos /pure_interp_prim; naive_solver. Qed.
 
-  Lemma posTMem_widen Γ l i : ⊢ Γ s⊨ oTMemL l ipos ipos <:[ i ] oTMemL l ⊥ oInt.
+  Implicit Type (rinterp : ty -d> hoEnvD Σ).
+  Section rinterp.
+  Context rinterp.
+  Lemma posTMem_widen Γ l i : ⊢ Γ s⊨ oTMemL l rinterp ipos ipos <:[ i ] oTMemL l rinterp ⊥ oInt.
   Proof using Type*.
     iApply sTyp_Stp_Typ; iApply sLater_Stp_Eq; [iApply sBot_Stp | iApply sStp_ipos_nat].
   Qed.
@@ -136,9 +140,37 @@ Section div_example.
     iApply (suD_Typ_Stp (oLater ipos)); last iApply suD_posDm_ipos; iApply sLater_Stp_Eq;
       [iApply sBot_Stp | iApply sStp_ipos_nat].
   Qed.
+  End rinterp.
 
+  Definition oposModTTail : clty Σ :=
+    cAnd
+      (cVMem "mkPos" (oAll oInt (oSel x1 "Pos" pty_interp)))
+      (cAnd
+        (cVMem "div" (oAll oInt (oAll (oSel x1 "Pos" pty_interp) oInt)))
+        cTop).
+  Lemma hposModTTail_eq : C⟦ hposModTTail hx0 ⟧ ≡ oposModTTail.
+  Proof. rw. done. Qed.
+
+  Definition oposModTBody : clty Σ :=
+    cAnd (cTMemL "Pos" pty_interp oBot oInt)
+    oposModTTail.
+  Lemma hposModTBody_eq : C⟦ hposModTBody hx0 ⟧ ≡ oposModTBody.
+  Proof.
+    rewrite hposModTBody_alt cinterp_TAnd hposModTTail_eq.
+    rw. done.
+  Qed.
+
+  Definition oposModT := oMu (c2o oposModTBody).
+  Lemma hposModT_eq : V⟦ hposModT ⟧ ≡ oposModT.
+  Proof.
+    rewrite /hposModT /oposModT interp_TMu.
+    f_equiv.
+    apply hposModTBody_eq.
+  Qed.
+
+  (** Actual type *)
   #[local] Definition oPreciseBody :=
-    c2o (cAnd (cTMemL "Pos" ipos ipos) C⟦ hposModTTail hx0 ⟧).
+    c2o (cAnd (cTMemL "Pos" pty_interp ipos ipos) oposModTTail).
 
   (**
   Show that our program is semantically well-typed,
@@ -146,7 +178,7 @@ Section div_example.
   *)
   Theorem posModTy : ⊢ [] u⊨ hposModV : hposModT.
   Proof using Type*.
-    rewrite /hposModT.
+    rewrite /iuetp hposModT_eq fmap_nil.
     have HctxSub:
       s⊨G oLater oPreciseBody :: [] <:* oLater <$> [oPreciseBody].
     by iIntros "% $".

@@ -241,9 +241,13 @@ Lemma HvF Γ : newTypeRefΓ Γ u⊢ₜ
   hsomeType hoasNotation.hx2, 0 <: val "isEmpty" : TSing false, 0.
 Proof. lThis; mltcrush. Qed.
 
-Tactic Notation "lrSimpl" := iEval (cbv [pty_interp]).
+(* Tactic Notation "lrSimpl" := iEval (cbv [pty_interp]).
 Tactic Notation "lrSimpl" "in" constr(iSelP) :=
-  iEval (cbv [pty_interp]) in iSelP.
+  iEval (cbv [pty_interp]) in iSelP. *)
+
+Tactic Notation "lrSimpl" "in" constr(iSelP) :=
+  iEval (rewrite vlr) in iSelP.
+Tactic Notation "lrSimpl" := iEval (rewrite vlr).
 
 #[local] Arguments iPPred_car : simpl never.
 #[local] Arguments pty_interp : simpl never.
@@ -266,16 +270,46 @@ Proof.
   rewrite /interp_expr wp_value_inv sem_later /of_val.
   wp_pure.
 
-  rewrite oVMem_eq; iDestruct "Hx0" as (p Hl) "Hx0".
+  rewrite vlr oVMem_eq. iDestruct "Hx0" as (p Hl) "Hx0".
   rewrite path_wp_eq; iDestruct "Hx0" as (optV Hal) "HoptV"; rewrite sem_later.
   wp_pure.
   have [n HpOptV] := path_wp_exec_pure _ _ Hal; wp_pure => {HpOptV n}.
-  rewrite /hoptionTyConcr1; lrSimpl in "HoptV".
+  lrSimpl in "HoptV".
+  (* iEval (rewrite /hoptionTyConcr1 [hTOr _ _]/= /hclose_ty /hclose vlr) in "HoptV". *)
+  (* lrSimpl in "HoptV". *)
+  (* iClear "HvT HvF Hsub Hl Hg".
+  iExFalso.
+
+  (* assert True. { clear.
+  About cinterp_TOr. *)
+  iEval (rewrite cinterp_TOr) in "HoptV".
+  iPPred_car_proper
+  clty_olty _proper
+  c2o
+  rewrite cinterp_TOr.
+  iEval (rewrite (vlr, klr, clr)) in "HoptV". *)
+
   iDestruct "HoptV" as "[Hw|Hw]";
     [iPoseProof "HvT" as "Hv" | iPoseProof "HvF" as "Hv"]; iClear "HvT HvF".
-  all: iSpecialize ("Hv" $! _ optV with "Hg Hw");
-    lrSimpl in "Hv"; iDestruct "Hv" as (? Hl' pb ->) "Hpb"; lrSimpl in "Hpb";
-    rewrite path_wp_pure_exec; iDestruct "Hpb" as %(bv & [n1 Hexec] & Heq).
+  all: iSpecialize ("Hv" $! _ optV with "Hg Hw").
+  (* iEval (rewrite vlr) in "Hv". *)
+(*
+  iClear "Hsub Hl Hg Hw".
+
+  iMatchHyp (fun name T =>
+    match name with
+    | INamed "Hw" =>
+    match T with
+      idtac T
+    | _ =>
+      fail
+    end). *)
+(* Tactic Notation "lrSimpl" := iEval (cbv [pty_interp]). *)
+
+  all: lrSimpl in "Hv"; iDestruct "Hv" as (? Hl' pb ->) "Hpb".
+  all: rewrite path_wp_pure_exec; iDestruct "Hpb" as (bv) "Hpb".
+  all: lrSimpl in "Hpb"; iDestruct "Hpb" as %([n1 Hexec] & Heq).
+    (* iDestruct "Hpb" as %(bv & [n1 Hexec] & Heq). *)
   all: move: Heq; rewrite alias_paths_pv_eq_2 path_wp_pure_pv_eq => Heq; cbn in Heq;
     wp_pure; wp_pure => {Hl' n1 pb Hexec}.
   all: rewrite -{bv}Heq; wp_pure; wp_pure.
@@ -283,28 +317,30 @@ Proof.
   wp_pure.
   (* To conclude, prove the right subtyping for hsomeType and TypeRef. *)
   iSpecialize ("Hsub" with "Hg"); lrSimpl in "Hsub".
+
   lrSimpl; iApply "Hsub"; iClear "Hsub".
 
   (* Just to restate the current goal (for some extra readability). *)
   iAssert (V⟦ shift typeRefTBody ⟧ anil ρ
     (shiftV (ν [val "symb" = x1])).[up ρ].[vint 0/])
     as "Hgoal"; last by iApply "Hgoal".
-  lrSimpl; iSplit; last by [].
+  lrSimpl; iSplit; lrSimpl; last by [].
   rewrite up_sub_compose_vl (_ : (shiftV _).[_] = ν [val "symb" = shiftV (ρ 0)]); last
     by autosubst.
   iApply oVMem_eq; iExists _; iSplit; first by eauto.
   cbn [shift]; rewrite (_: shiftV x1 = x2) //.
   rewrite path_wp_pv_eq.
   rewrite subst_comp ren_scons subst_id /newTypeRefΓ.
-  lrSimpl; iSplit. { lrSimpl in "Hg"; iDestruct "Hg" as "[_ $]". }
+  lrSimpl; iSplit. { rewrite fmap_cons. iDestruct "Hg" as "[_ $]". }
   iClear "Hg".
 
   (* Just to restate/simplify the current goal (for some extra readability). *)
   iAssert (V⟦ val "tpe" : hsomeConcrT ⊥ ⊤ ⟧ anil ρ (ρ 0)) as "Hgoal";
     last by iApply "Hgoal".
+  lrSimpl.
   iExists (dpt p); iFrame (Hl); rewrite oDVMem_eq path_wp_eq.
-  iExists optV; iFrame (Hal); lrSimpl in "Hw"; lrSimpl.
-  by iDestruct "Hw" as "#[$ _]".
+  iExists optV; iFrame (Hal); lrSimpl in "Hw".
+  iDestruct "Hw" as "#[$ _]".
 Qed.
 
 Ltac semTMember n :=
