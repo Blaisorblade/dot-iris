@@ -92,10 +92,6 @@ Section Lemmas.
     iApply Stp_Mu. by iApply Mu_Stp_Mu.
   Qed.
 
-  (*
-  Useful in contexts where we make [pty_interp] more opaque, such as some
-  larger examples.
-  *)
   Lemma uT_Obj_I Γ T ds:
     TLater T :: Γ u⊨ds ds : T -∗
     Γ u⊨ tv (vobj ds) : TMu T.
