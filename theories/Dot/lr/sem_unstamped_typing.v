@@ -309,7 +309,7 @@ Section unstamped_lemmas.
     Γ u⊨ tskip e : T.
   Proof. rw. apply suT_Skip. Qed.
 
-  Lemma suT_Sub {Γ e T1 T2}:
+  Lemma suT_Sub {Γ e T1 T2} :
     Γ su⊨ e : T1 -∗
     Γ s⊨ T1 <:[0] T2 -∗
     Γ su⊨ e : T2.
@@ -419,7 +419,7 @@ Section unstamped_lemmas.
     Γ u⊨ds (l, d1) :: ds2 : TAnd T1 T2.
   Proof. rw. exact: suD_Cons. Qed.
 
-  Lemma suD_Sing Γ d l (T : cltyO Σ):
+  Lemma suD_Sing Γ d l (T : cltyO Σ) :
     Γ su⊨ { l := d } : T -∗ Γ su⊨ds [(l, d)] : cAnd T cTop.
   Proof.
     iIntros "#H1"; iMod "H1" as (d1s Hsk1) "H1"; iModIntro.
@@ -430,7 +430,7 @@ Section unstamped_lemmas.
     Γ u⊨ { l := d } : T -∗ Γ u⊨ds [(l, d)] : TAnd T TTop.
   Proof. rw. apply suD_Sing. Qed.
 
-  Lemma suD_Val {Γ} T v1 l:
+  Lemma suD_Val {Γ} T v1 l :
     Γ su⊨ tv v1 : T -∗
     Γ su⊨ { l := dpt (pv v1) } : cVMem l T.
   Proof.
@@ -470,7 +470,7 @@ Section unstamped_lemmas.
     Γ u⊨ { l := dpt (pv (vobj ds)) } : TVMem l (TMu T).
   Proof. rw. apply suD_Val_New. Qed.
 
-  Lemma suD_Path_Stp {Γ T1 T2 p1 l}:
+  Lemma suD_Path_Stp {Γ T1 T2 p1 l} :
     Γ s⊨ T1 <:[0] T2 -∗
     Γ su⊨ { l := dpt p1 } : cVMem l T1 -∗
     Γ su⊨ { l := dpt p1 } : cVMem l T2.

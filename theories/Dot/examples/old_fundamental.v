@@ -72,7 +72,7 @@ Section storeless_unstamped_lemmas.
     Γ u⊨ { l := dpt p1 } : TVMem l T2.
   Proof. rw. apply suD_Path_Sub. Qed.
 
-  Lemma suD_Typ_Abs_I {l σ Γ L T U} (HclT : coveringσ σ V⟦ T ⟧):
+  Lemma suD_Typ_Abs_I {l σ Γ L T U} (HclT : coveringσ σ V⟦ T ⟧) :
     Γ s⊨ L, 0 <: oLater V⟦ T ⟧, 0 -∗
     Γ s⊨ oLater V⟦ T ⟧, 0 <: U, 0 -∗
     Γ su⊨ { l := dtysyn T } : cTMem l L U.

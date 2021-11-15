@@ -92,10 +92,10 @@ Section Lemmas.
     iApply Stp_Mu. by iApply Mu_Stp_Mu.
   Qed.
 
-  Lemma T_Mu_I {Γ} T v: Γ ⊨ tv v : T.|[v/] -∗ Γ ⊨ tv v : TMu T.
+  Lemma T_Mu_I {Γ} T v : Γ ⊨ tv v : T.|[v/] -∗ Γ ⊨ tv v : TMu T.
   Proof. rw. rewrite interp_commute_subst. apply sT_Mu_I. Qed.
 
-  Lemma T_Mu_E {Γ} T v: Γ ⊨ tv v : TMu T -∗ Γ ⊨ tv v : T.|[v/].
+  Lemma T_Mu_E {Γ} T v : Γ ⊨ tv v : TMu T -∗ Γ ⊨ tv v : T.|[v/].
   Proof. rw. rewrite interp_commute_subst. apply sT_Mu_E. Qed.
 
   Lemma suetp_var_lift1 {Γ} x T1 T2 :

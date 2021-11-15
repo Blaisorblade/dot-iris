@@ -39,7 +39,7 @@ Section path_repl.
     Γ ⊨p q : TTop, i.
   Proof. rw. apply sP_Sngl_Inv. Qed.
 
-  Lemma Sngl_pq_Stp {Γ i p q T1 T2} (Hrepl : T1 ~Tp[ p := q ]* T2):
+  Lemma Sngl_pq_Stp {Γ i p q T1 T2} (Hrepl : T1 ~Tp[ p := q ]* T2) :
     Γ ⊨p p : TSing q, i -∗
     Γ ⊨ T1 <:[i] T2.
   Proof.

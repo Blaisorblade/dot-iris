@@ -39,8 +39,8 @@ Section Sec.
     by rewrite list_lookup_fmap Hx.
   Qed.
 
-  Lemma T_All_Ex {Γ e1 v2 T1 T2}:
-    Γ ⊨ e1: TAll T1 T2 -∗ Γ ⊨ tv v2 : T1 -∗ Γ ⊨ tapp e1 (tv v2) : T2.|[v2/].
+  Lemma T_All_Ex {Γ e1 v2 T1 T2} :
+    Γ ⊨ e1 : TAll T1 T2 -∗ Γ ⊨ tv v2 : T1 -∗ Γ ⊨ tapp e1 (tv v2) : T2.|[v2/].
   Proof. rw. rewrite (interp_commute_subst_one T2). apply sT_All_Ex. Qed.
 
   Lemma T_All_E {Γ e1 e2 T1 T2} :

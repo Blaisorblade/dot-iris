@@ -76,7 +76,7 @@ Section DStpLemmas.
     Γ ⊨ TSel p l <:[i] U.
   Proof. rw. apply sSel_Stp. Qed.
 
-  Lemma Mu_Stp_Mu {Γ} T1 T2 i `{!SwapPropI Σ}:
+  Lemma Mu_Stp_Mu {Γ} T1 T2 i `{!SwapPropI Σ} :
     iterate TLater i T1 :: Γ ⊨ T1 <:[i] T2 -∗
     Γ ⊨ TMu T1 <:[i] TMu T2.
   Proof. rw. apply sMu_Stp_Mu. Qed.
@@ -104,7 +104,7 @@ Section DStpLemmas.
     Γ ⊨ TTMem l L1 U1 <:[i] TTMem l L2 U2.
   Proof. rw. apply sTyp_Stp_Typ. Qed.
 
-  Lemma All_Stp_All {Γ} T1 T2 U1 U2 i `{!SwapPropI Σ}:
+  Lemma All_Stp_All {Γ} T1 T2 U1 U2 i `{!SwapPropI Σ} :
     Γ ⊨ TLater T2 <:[i] TLater T1 -∗
     iterate TLater i.+1 (shift T2) :: Γ ⊨ TLater U1 <:[i] TLater U2 -∗
     Γ ⊨ TAll T1 U1 <:[i] TAll T2 U2.
