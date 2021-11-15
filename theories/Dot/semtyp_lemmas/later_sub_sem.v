@@ -8,26 +8,26 @@ Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
 (* This is specialized to [anil] because contexts only contain proper types anyway. *)
-Definition s_ty_sub `{HdlangG: !dlangG Σ} (T1 T2 : oltyO Σ) := ∀ ρ v, T1 anil ρ v -∗ T2 anil ρ v.
+Definition s_ty_sub `{HdlangG : !dlangG Σ} (T1 T2 : oltyO Σ) := ∀ ρ v, T1 anil ρ v -∗ T2 anil ρ v.
 Notation "s⊨T T1 <: T2" := (s_ty_sub T1 T2) (at level 74, T1, T2 at next level).
 
-Definition s_ctx_sub `{HdlangG: !dlangG Σ} (Γ1 Γ2 : sCtx Σ) : Prop := ∀ ρ, sG⟦ Γ1 ⟧* ρ -∗ sG⟦ Γ2 ⟧* ρ.
+Definition s_ctx_sub `{HdlangG : !dlangG Σ} (Γ1 Γ2 : sCtx Σ) : Prop := ∀ ρ, sG⟦ Γ1 ⟧* ρ -∗ sG⟦ Γ2 ⟧* ρ.
 Notation "s⊨G Γ1 <:* Γ2" := (s_ctx_sub Γ1 Γ2) (at level 74, Γ1, Γ2 at next level).
 
 Section CtxSub.
-  Context `{HdlangG: !dlangG Σ}.
+  Context `{HdlangG : !dlangG Σ}.
   Implicit Type (T : ty) (Γ : ctx).
 
   (** * Basic lemmas about [s_ctx_sub]. *)
-  #[global] Instance: RewriteRelation s_ty_sub := {}.
-  #[global] Instance pre_s_ty_sub: PreOrder s_ty_sub.
+  #[global] Instance : RewriteRelation s_ty_sub := {}.
+  #[global] Instance pre_s_ty_sub : PreOrder s_ty_sub.
   Proof. split; first done. by move => x y z H1 H2 ρ v; rewrite (H1 _ _). Qed.
 
-  #[global] Instance: RewriteRelation s_ctx_sub := {}.
-  #[global] Instance: PreOrder s_ctx_sub.
+  #[global] Instance : RewriteRelation s_ctx_sub := {}.
+  #[global] Instance : PreOrder s_ctx_sub.
   Proof. split; first done. by move => x y z H1 H2 ρ; rewrite (H1 _). Qed.
 
-  #[global] Instance: Proper (equiv ==> equiv ==> iff) s_ctx_sub.
+  #[global] Instance : Proper (equiv ==> equiv ==> iff) s_ctx_sub.
   Proof.
     rewrite /s_ctx_sub => Γ1 Γ2 HΓ Δ1 Δ2 HΔ.
     by setoid_rewrite HΔ; setoid_rewrite HΓ.

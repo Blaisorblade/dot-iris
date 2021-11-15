@@ -44,7 +44,7 @@ Module Type LiftWp (Import VS : VlSortsSig).
 
   Definition stamp_σ_to_type `{dlangG Σ} (s : gname) σ (ψ : hoD Σ) : iProp Σ :=
     ∃ φ : hoEnvD Σ, s ↝n φ ∧ ▷ (ψ ≡ hoEnvD_inst σ φ).
-  Notation "s ↗n[ σ  ] ψ" := (stamp_σ_to_type s σ ψ) (at level 20): bi_scope.
+  Notation "s ↗n[ σ  ] ψ" := (stamp_σ_to_type s σ ψ) (at level 20) : bi_scope.
 
   (* Beware: to prove [sD_Typ_Abs], here we must use [∞ σ.|[ρ]], not [∞ σ >> ρ]. *)
   Definition leadsto_envD_equiv `{dlangG Σ} s σ (φ : hoEnvD Σ) : iProp Σ :=
@@ -83,13 +83,13 @@ Module Type LiftWp (Import VS : VlSortsSig).
     Definition dlangΣ := #[savedHoSemTypeΣ].
 
     (* #[local], because [dlangG_persistent] is what should be used. *)
-    #[local] Instance CmraPersistent_dlang: CmraPersistent (iResUR dlangΣ) := CmraPersistent_iResUR _.
+    #[local] Instance CmraPersistent_dlang : CmraPersistent (iResUR dlangΣ) := CmraPersistent_iResUR _.
 
     #[local] Instance dlangG_dlangΣ
       `{InhabitedState dlang_lang} `{!LangDet dlang_lang} : dlangG dlangΣ.
     Proof. split; apply _. Qed.
 
-    #[local] Instance CmraSwappable_dlang: CmraSwappable (iResUR dlangΣ) := CmraSwappable_iResUR _.
+    #[local] Instance CmraSwappable_dlang : CmraSwappable (iResUR dlangΣ) := CmraSwappable_iResUR _.
 
     (* Enable these instances only for those who [Import] this module explicitly. *)
     #[export] Hint Resolve dlangG_dlangΣ CmraSwappable_dlang : typeclass_instances.

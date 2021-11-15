@@ -8,8 +8,8 @@ Set Implicit Arguments.
 Import Trav1.
 
 Implicit Types
-         (T: ty) (v: vl) (e: tm) (p: path) (d: dm) (ds: dms) (vs: vls)
-         (Γ : ctx) (n: nat).
+         (T : ty) (v : vl) (e : tm) (p : path) (d : dm) (ds : dms) (vs : vls)
+         (Γ : ctx) (n : nat).
 
 (** Proposition [is_unstamped_path n OnlyVars p] implies that [p] is an
 unstamped path in the strict sense defined in the paper; in particular, it's
@@ -19,7 +19,7 @@ generic stable term. *)
 
 Inductive AllowNonVars := OnlyVars | AlsoNonVars.
 
-Definition is_unstamped_trav: Traversal (nat * AllowNonVars) :=
+Definition is_unstamped_trav : Traversal (nat * AllowNonVars) :=
   {|
     upS := λ '(n, b), (n.+1, b);
     underPathElimS := λ '(n, _), (n, OnlyVars);

@@ -17,7 +17,7 @@ Notation "⟦ T ⟧" := (ty_interp T).
 
 Module ty_interp_lemmas.
 Class TyInterpLemmas ty Σ `{sort_ty : Sort ty} `{!TyInterp ty Σ} := {
-  interp_subst_compose_ind T ρ1 ρ2 v:
+  interp_subst_compose_ind T ρ1 ρ2 v :
     ⟦ T.|[ρ1] ⟧ ρ2 v ⊣⊢ ⟦ T ⟧ (ρ1 >> ρ2) v;
 }.
 
@@ -27,15 +27,15 @@ Section logrel_binding_lemmas.
   Implicit Types
           (L T U : ty) (v : vl) (e : tm) (ρ : env).
 
-  Lemma interp_subst_compose T ρ1 ρ2 ρ3:
+  Lemma interp_subst_compose T ρ1 ρ2 ρ3 :
     ρ1 >> ρ2 = ρ3 → ⟦ T.|[ρ1] ⟧ ρ2 ≡ ⟦ T ⟧ ρ3.
   Proof. move=> <- v. exact: interp_subst_compose_ind. Qed.
 
-  Lemma interp_weaken_one T ρ:
+  Lemma interp_weaken_one T ρ :
     ⟦ shift T ⟧ ρ ≡ ⟦ T ⟧ (stail ρ).
   Proof. apply interp_subst_compose. autosubst. Qed.
 
-  Lemma interp_subst_one T v w ρ:
+  Lemma interp_subst_one T v w ρ :
     ⟦ T.|[v/] ⟧ ρ w ≡ ⟦ T ⟧ (v.[ρ] .: ρ) w.
   Proof. apply interp_subst_compose. autosubst. Qed.
 

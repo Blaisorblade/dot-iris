@@ -83,7 +83,7 @@ Definition cTMem `{!dlangG Σ} l L U : clty Σ := dty2clty l (oDTMem L U).
 #[global] Instance : Params (@cTMem) 3 := {}.
 
 Section sem_TMem.
-  Context `{HdotG: !dlangG Σ}.
+  Context `{HdotG : !dlangG Σ}.
   Implicit Types (τ : oltyO Σ).
 
   Lemma oDTMem_unfold L U : oDTMem L U ≡ oDTMemRaw (dot_intv_type_pred L U).
@@ -122,7 +122,7 @@ End sem_TMem.
 Notation oTMem l L U := (clty_olty (cTMem l L U)).
 
 Section oTMem_lemmas.
-  Context `{HdotG: !dlangG Σ}.
+  Context `{HdotG : !dlangG Σ}.
 
   Lemma oTMem_unfold l L U :
     oTMem l L U ≡ clty_olty (dty2clty l (oDTMemRaw (dot_intv_type_pred L U))).
@@ -205,11 +205,11 @@ Section proper_eq.
     oTApp T (pv w) ≡ oTAppV T w.
   Proof. intros ???. by rewrite /= path_wp_pv_eq. Qed.
 
-  Lemma sTEq_oLaterN_oTApp_pv (τ : oltyO Σ) m v:
+  Lemma sTEq_oLaterN_oTApp_pv (τ : oltyO Σ) m v :
     oLaterN m (oTApp τ (pv v)) ≡ oTApp (oLaterN m τ) (pv v).
   Proof. by rewrite !oTApp_pv. Qed.
 
-  Lemma sTSub_oTApp_oLaterN (τ : oltyO Σ) m p args ρ v:
+  Lemma sTSub_oTApp_oLaterN (τ : oltyO Σ) m p args ρ v :
     oTApp (oLaterN m τ) p args ρ v ⊢ oLaterN m (oTApp τ p) args ρ v.
   Proof. by rewrite /= path_wp_laterN_swap. Qed.
 

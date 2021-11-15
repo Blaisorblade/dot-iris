@@ -26,7 +26,7 @@ Notation "Γ s⊨ T1 , i <: T2 , j" := (sstpi i j Γ T1 T2) (at level 74, T1, T2
 
 (** * Proper instances. *)
 Section Propers.
-  Context `{HdotG: !dlangG Σ}.
+  Context `{HdotG : !dlangG Σ}.
   Implicit Types (τ L T U : olty Σ).
 
   #[global] Instance sstpi_proper i j : Proper3 (sstpi i j).
@@ -35,7 +35,7 @@ Section Propers.
     (* intros ?? HG ?? H1 ?? H2; simplify_eq/=.
     properness; [by rewrite HG|apply H1|apply H2]. *)
   Qed.
-  #[global] Instance: Params (@sstpi) 4 := {}.
+  #[global] Instance : Params (@sstpi) 4 := {}.
 End Propers.
 
 Section judgment_lemmas.
@@ -63,9 +63,9 @@ Section judgment_lemmas.
 End judgment_lemmas.
 
 Section StpLemmas.
-  Context `{HdotG: !dlangG Σ}.
+  Context `{HdotG : !dlangG Σ}.
 
-  Lemma sP_ISub {Γ p T1 T2 i j}:
+  Lemma sP_ISub {Γ p T1 T2 i j} :
     Γ s⊨p p : T1, i -∗
     Γ s⊨ T1, i <: T2, i + j -∗
     (*───────────────────────────────*)
@@ -78,7 +78,7 @@ Section StpLemmas.
     iDestruct "Hpv" as "[$ HpT1] {Hpv}". by iApply "Hsub".
   Qed.
 
-  Lemma sT_ISub {Γ e T1 T2 i}:
+  Lemma sT_ISub {Γ e T1 T2 i} :
     Γ s⊨ e : T1 -∗
     Γ s⊨ T1, 0 <: T2, i -∗
     (*───────────────────────────────*)

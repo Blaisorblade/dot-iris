@@ -147,12 +147,12 @@ Proof.
 Qed.
 
 (** For primitive operations. *)
-Lemma erase_un_op_eval u v1 w:
+Lemma erase_un_op_eval u v1 w :
   un_op_eval u v1 = Some w →
   un_op_eval u (erase_vl v1) = Some (erase_vl w).
 Proof. intros; destruct u, v1 => //=; case_match; naive_solver. Qed.
 
-Lemma erase_bin_op_eval b v1 v2 w:
+Lemma erase_bin_op_eval b v1 v2 w :
   bin_op_eval b v1 v2 = Some w →
   bin_op_eval b (erase_vl v1) (erase_vl v2) = Some (erase_vl w).
 Proof.
@@ -232,7 +232,7 @@ Theorem simulation_skiperase_erased_steps {t1 t2 σ σ'} :
 Proof.
   move => Hsteps.
   dependent induction Hsteps; first done.
-  destruct y as [l σ'']; have ?: σ'' = σ by destruct σ, σ''; subst.
+  destruct y as [l σ'']; have ? : σ'' = σ by destruct σ, σ''; subst.
   move: H (H) => [k Hstep] Hestep.
   have [ti ?] := step_inversion Hstep; destruct_and!; simplify_eq.
   etrans; first exact: (simulation_skiperase_erased_step Hestep).

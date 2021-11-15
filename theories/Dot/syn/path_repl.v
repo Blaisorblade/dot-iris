@@ -82,7 +82,7 @@ Inductive ty_path_repl (p q : path) : ty → ty → Prop :=
 | ty_path_repl_TSing p1 p2 :
   p1 ~pp[ p := q ] p2 →
   TSing p1 ~Tp[ p := q ] TSing p2
-| ty_path_repl_TLam T1 T2:
+| ty_path_repl_TLam T1 T2 :
   T1 ~Tp[ shift p := shift q ] T2 →
   TLam T1 ~Tp[ p := q ] TLam T2
 | ty_path_repl_TApp1 T1 T2 r :
@@ -124,7 +124,7 @@ Proof.
   move E: {2 4} p => q.
   pose PT := λ p q T1 T2, p = q -> T1 = T2.
   pose PK := λ p q K1 K2, p = q -> K1 = K2.
-  suff [HT HK]: (∀ T1 T2, T1 ~Tp[ p := q ] T2 → PT p q T1 T2) ∧
+  suff [HT HK] : (∀ T1 T2, T1 ~Tp[ p := q ] T2 → PT p q T1 T2) ∧
     (∀ K1 K2, K1 ~Kp[ p := q ] K2 → PK p q K1 K2)
     by unfold PT, PK in *; naive_solver eauto.
 
@@ -184,7 +184,7 @@ where "r .p[ p := q  ]" := (psubst_path p q r).
 Lemma psubst_path_id p q : q .p[ p := p ] = q.
 Proof. elim: q => /= *; case_decide; by f_equal. Qed.
 
-Lemma psubst_path_self p q: p .p[ p := q ] = q.
+Lemma psubst_path_self p q : p .p[ p := q ] = q.
 Proof. case: p => /= *; by rewrite decide_True. Qed.
 
 Reserved Notation "T .T[ p := q  ]" (at level 65).

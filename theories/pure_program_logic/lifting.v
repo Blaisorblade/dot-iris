@@ -28,7 +28,7 @@ Lemma wp_pure_step_later s E e1 e2 φ n Φ :
 Proof.
   iIntros (Hexec Hφ) "Hwp". specialize (Hexec Hφ).
   iInduction Hexec as [e|n e1 e2 e3 Hpstep] "IH"; simpl; first done.
-  have ?: to_val e1 = None.
+  have ? : to_val e1 = None.
   by apply reducible_not_val with (σ := σ), reducible_no_obs_reducible, Hpstep.
   iApply wp_lift_step; first done.
   iExists (e2); iSplit; first eauto using pure_to_prim.

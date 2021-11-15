@@ -2,16 +2,16 @@
 From iris.proofmode Require Import tactics.
 From D.Dot Require Import dot_semtypes.
 
-Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms).
+Implicit Types (v : vl) (e : tm) (d : dm) (ds : dms).
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
 Section Sec.
-  Context `{HdlangG: !dlangG Σ}.
+  Context `{HdlangG : !dlangG Σ}.
 
   (** Lemmas about definition typing. *)
-  Lemma sD_Path {Γ} T p l:
+  Lemma sD_Path {Γ} T p l :
     Γ s⊨p p : T, 0 -∗
     Γ s⊨ { l := dpt p } : cVMem l T.
   Proof.
@@ -22,7 +22,7 @@ Section Sec.
   (**
   Beware this lemma does not extend to unstamped semantic typing.
   As such, it should only be used in lemmas like [sD_Val]. *)
-  Lemma sP_Val {Γ} v T:
+  Lemma sP_Val {Γ} v T :
     Γ s⊨ tv v : T -∗
     Γ s⊨p pv v : T, 0.
   Proof.
@@ -30,13 +30,13 @@ Section Sec.
     iApply ("Hp" with "Hg").
   Qed.
 
-  Lemma sD_Val {Γ} T v l:
+  Lemma sD_Val {Γ} T v l :
     Γ s⊨ tv v : T -∗
     Γ s⊨ { l := dpt (pv v) } : cVMem l T.
   Proof. by rewrite -sD_Path -sP_Val. Qed.
 
   (** This lemma is equivalent to pDOT's (Def-New). *)
-  Lemma sD_Val_New {Γ l ds} {T : clty Σ}:
+  Lemma sD_Val_New {Γ l ds} {T : clty Σ} :
     oAnd (oLater (c2o T)) (oSing (pself (pv (ids 1)) l)) :: Γ s⊨ds ds : T -∗
     Γ s⊨ { l := dpt (pv (vobj ds)) } : cVMem l (oMu (c2o T)).
   Proof.
@@ -48,7 +48,7 @@ Section Sec.
     exact: path_includes_self.
   Qed.
 
-  Lemma sD_Path_Stp {Γ T1 T2 p l}:
+  Lemma sD_Path_Stp {Γ T1 T2 p l} :
     Γ s⊨ T1 <:[0] T2 -∗
     Γ s⊨ { l := dpt p } : cVMem l T1 -∗
     Γ s⊨ { l := dpt p } : cVMem l T2.
@@ -58,7 +58,7 @@ Section Sec.
     iApply (oDVMem_respects_sub with "(Hsub Hg) Hd").
   Qed.
 
-  Lemma sD_Typ_Stp {Γ} L1 L2 U1 U2 d l:
+  Lemma sD_Typ_Stp {Γ} L1 L2 U1 U2 d l :
     Γ s⊨ L2 <:[0] L1 -∗
     Γ s⊨ U1 <:[0] U2 -∗
     Γ s⊨ { l := d } : cTMem l L1 U1 -∗
@@ -69,7 +69,7 @@ Section Sec.
     iApply (oDTMem_respects_sub with "(HL Hg) (HU Hg) Hd").
   Qed.
 
-  Lemma sD_Typ {Γ s σ} {T : oltyO Σ} l:
+  Lemma sD_Typ {Γ s σ} {T : oltyO Σ} l :
     s ↝[ σ ] T -∗
     Γ s⊨ { l := dtysem σ s } : cTMem l (oLater T) (oLater T).
   Proof.
@@ -80,7 +80,7 @@ Section Sec.
     by iSplit; iIntros (v) "#H"; iNext; rewrite /= (Hγφ _ _).
   Qed.
 
-  Lemma sD_Typ_Abs {Γ} T L U s σ l:
+  Lemma sD_Typ_Abs {Γ} T L U s σ l :
     Γ s⊨ L <:[0] oLater T -∗
     Γ s⊨ oLater T <:[0] U -∗
     s ↝[ σ ] T -∗
@@ -89,11 +89,11 @@ Section Sec.
 
   (** ** Prove object introduction for path typing, using Löb induction:
 
-    Γ, x: ▷ T ⊨ ds : T
+    Γ, x : ▷ T ⊨ ds : T
     ---------------------
     Γ ⊨p nu x. ds : μ x. T, 0
   *)
-  Lemma sP_Obj_I (Γ : sCtx Σ) (T : clty Σ) ds:
+  Lemma sP_Obj_I (Γ : sCtx Σ) (T : clty Σ) ds :
     oLater (c2o T) :: Γ s⊨ds ds : T -∗
     Γ s⊨p pv (vobj ds) : oMu (c2o T), 0.
   Proof.
@@ -105,14 +105,14 @@ Section Sec.
   Qed.
 
   (** ** Derive object introduction for term typing. *)
-  Lemma sT_Obj_I (Γ : sCtx Σ) (T : clty Σ) ds:
+  Lemma sT_Obj_I (Γ : sCtx Σ) (T : clty Σ) ds :
     oLater (c2o T) :: Γ s⊨ds ds : T -∗ Γ s⊨ tv (vobj ds) : oMu (c2o T).
   Proof. by rewrite sP_Obj_I sT_Path. Qed.
 
   Lemma sD_Nil Γ : ⊢ Γ s⊨ds [] : cTop.
   Proof. by iModIntro; iSplit; last iIntros "**". Qed.
 
-  Lemma sD_Cons Γ d ds l (T1 T2 : cltyO Σ):
+  Lemma sD_Cons Γ d ds l (T1 T2 : cltyO Σ) :
     dms_hasnt ds l →
     Γ s⊨ { l := d } : T1 -∗ Γ s⊨ds ds : T2 -∗
     Γ s⊨ds (l, d) :: ds : cAnd T1 T2.

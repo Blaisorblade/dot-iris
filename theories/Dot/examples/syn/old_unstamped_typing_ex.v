@@ -7,16 +7,16 @@ From D.Dot Require Import syn unstampedness_binding.
 From D.Dot Require Import old_unstamped_typing old_unstamped_typing_derived_rules.
 From D.Dot Require Import ex_utils hoas scala_lib.
 
-Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : list ty).
+Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (ds : dms) (Γ : list ty).
 
 Import DBNotation.
 
-Example ex0 e Γ T:
+Example ex0 e Γ T :
   Γ u⊢ₜ e : T →
   Γ u⊢ₜ e : ⊤.
 Proof. intros. apply (iT_ISub_nocoerce T TTop); tcrush. Qed.
 
-Example ex1 Γ (n : Z) T:
+Example ex1 Γ (n : Z) T :
   Γ u⊢ₜ ν {@ val "a" = n} : μ {@ val "a" : TInt }.
 Proof.
   (* Help proof search: Avoid trying iT_Mu_I, that's slow. *)
@@ -31,7 +31,7 @@ Proof. apply iT_Obj_I; tcrush. Qed.
 Definition F3 T :=
   TMu (TAnd (TTMemL "A" T T) TTop).
 
-Example ex3 Γ T:
+Example ex3 Γ T :
   Γ u⊢ₜ ν {@ type "A" = F3 (x0 @; "A") } : F3 (F3 (TSel x0 "A")).
 Proof. apply iT_Obj_I; tcrush. Qed.
 
@@ -50,7 +50,7 @@ Definition KeysTConcr := μ {@
 }.
 
 (* IDEA for our work: use [(type "Key" >: TInt <: ⊤) ⩓ (type "Key" >: ⊥ <: ⊤)]. *)
-Example hashKeys_typed Γ:
+Example hashKeys_typed Γ :
   Γ u⊢ₜ hashKeys : KeysT.
 Proof.
   apply (iT_ISub_nocoerce KeysTConcr); first last. {
@@ -88,7 +88,7 @@ Proof.
 Qed.
 
 (* Utilities needed for not. *)
-Lemma subIFT i Γ T:
+Lemma subIFT i Γ T :
   (typeEq "A" T.|[ren (+1+i)]) :: Γ u⊢ₜ IFTBody, 0 <:
     TAll T.|[ren (+1+i)] (TAll T.|[ren (+2+i)] (▶: T.|[ren (+3+i)])), 0.
 Proof.
@@ -118,7 +118,7 @@ Definition iftCoerce t :=
   lett t (vabs (vabs (tskip (x2 $: x1 $: x0)))).
 
 Lemma iftCoerce_typed Γ t T :
-  Γ u⊢ₜ t: T →: T →: ▶: T →
+  Γ u⊢ₜ t : T →: T →: ▶: T →
   Γ u⊢ₜ iftCoerce t : T →: T →: T.
 Proof.
   move => Ht.

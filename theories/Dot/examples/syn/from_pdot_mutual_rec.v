@@ -171,7 +171,7 @@ Definition fromPDotPaperAbsTypesTBodySubst : ty := {@
   val "newTypeRef" : x0 @ "symbols" @; "Symbol" →: x0 @ "types" @; "TypeRef"
 }.
 
-Lemma fromPDotPSubst: fromPDotPaperAbsTypesTBody .Tp[ (x0 @ "types") /]~ fromPDotPaperAbsTypesTBodySubst.
+Lemma fromPDotPSubst : fromPDotPaperAbsTypesTBody .Tp[ (x0 @ "types") /]~ fromPDotPaperAbsTypesTBodySubst.
 Proof. exact: psubst_ty_rtc_sufficient. Qed.
 
 Example getAnyTypeFunTyp Γ T : T :: optionModT :: Γ u⊢ₜ getAnyType : getAnyTypeT x1.
@@ -179,10 +179,10 @@ Proof.
   rewrite /getAnyType -(iterate_S tskip 0); tcrush.
   eapply (iT_ISub (T1 := TLater (⊤ →: x0 @ "types" @; "TypeTop"))); tcrush.
   set Γ' := shift (μ fromPDotPaperAbsTBody (shiftV x1)) :: T :: optionModT :: Γ.
-  have Hpx: Γ' u⊢ₚ x0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0
+  have Hpx : Γ' u⊢ₚ x0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0
     by tcrush; eapply iT_ISub_nocoerce;
       [ by eapply iT_Mu_E; first var; stcrush | tcrush].
-  have HpxSubst: Γ' u⊢ₚ x0 @ "types" : fromPDotPaperAbsTypesTBodySubst, 0.
+  have HpxSubst : Γ' u⊢ₚ x0 @ "types" : fromPDotPaperAbsTypesTBodySubst, 0.
   by eapply (iP_Mu_E (T := fromPDotPaperAbsTypesTBody)
     (p := x0 @ "types")), Hpx; tcrush.
   eapply iT_Path', iP_Fld_I, (iP_ISub (i := 0)), HpxSubst.

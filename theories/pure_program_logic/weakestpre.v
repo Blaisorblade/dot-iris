@@ -72,7 +72,7 @@ Proof.
   intros He Φ Ψ HΦ. rewrite !wp_unfold /wp_pre He.
   by repeat (f_contractive || f_equiv).
 Qed.
-#[global] Instance wp_plain s E e Φ (HΦ: ∀ v, Plain (Φ v)):
+#[global] Instance wp_plain s E e Φ (HΦ : ∀ v, Plain (Φ v)) :
   Plain (wp (PROP:=iProp Σ) s E e Φ).
 Proof.
   rewrite /Plain; iLöb as "IH" forall (e).

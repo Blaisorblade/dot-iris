@@ -9,22 +9,22 @@ Reserved Notation "Γ ⊢ₜ T1 , i1 <: T2 , i2" (at level 74, T1, T2, i1, i2 at
 Implicit Types (L T U V : ty) (v : vl) (e : tm) (Γ : ctx).
 
 Inductive typed Γ : tm → ty → Prop :=
-| iT_All_Ex e1 v2 T1 T2:
-    Γ ⊢ₜ e1: TAll T1 T2 →                        Γ ⊢ₜ tv v2 : T1 →
+| iT_All_Ex e1 v2 T1 T2 :
+    Γ ⊢ₜ e1 : TAll T1 T2 →                        Γ ⊢ₜ tv v2 : T1 →
     (*────────────────────────────────────────────────────────────*)
     Γ ⊢ₜ tapp e1 (tv v2) : T2.|[v2/]
 (** Non-dependent application; allowed for any argument. *)
-| iT_All_E e1 e2 T1 T2:
-    Γ ⊢ₜ e1: TAll T1 (shift T2) →      Γ ⊢ₜ e2 : T1 →
+| iT_All_E e1 e2 T1 T2 :
+    Γ ⊢ₜ e1 : TAll T1 (shift T2) →      Γ ⊢ₜ e2 : T1 →
     (*────────────────────────────────────────────────────────────*)
     Γ ⊢ₜ tapp e1 e2 : T2
-| iT_All_I e T1 T2:
+| iT_All_I e T1 T2 :
     (* T1 :: Γ ⊢ₜ e : T2 → (* Would work, but allows the argument to occur in its own type. *) *)
     shift T1 :: Γ ⊢ₜ e : T2 →
     (*─────────────────────────*)
     Γ ⊢ₜ tv (vabs e) : TAll T1 T2
-| iT_Nat_I n:
-    Γ ⊢ₜ tv (vint n): TInt
+| iT_Nat_I n :
+    Γ ⊢ₜ tv (vint n) : TInt
 
 (** "General" rules *)
 | iT_Var x T :
@@ -48,18 +48,18 @@ subtype Γ : ty → nat → ty → nat → Prop :=
 | iSub_Refl i T :
     Γ ⊢ₜ T, i <: T, i
 
-| iSub_Trans i1 i2 i3 T1 T2 T3:
+| iSub_Trans i1 i2 i3 T1 T2 T3 :
     Γ ⊢ₜ T1, i1 <: T2, i2 → Γ ⊢ₜ T2, i2 <: T3, i3 → Γ ⊢ₜ T1, i1 <: T3, i3
 
 (* "Structural" rules about indexes *)
-| iSub_Succ T i:
+| iSub_Succ T i :
     Γ ⊢ₜ T, i <: T, S i
-| iSub_Mono T1 T2 i:
+| iSub_Mono T1 T2 i :
     Γ ⊢ₜ T1, i <: T2, i →
     Γ ⊢ₜ T1, S i <: T2, S i
-| iLater_Sub i T:
+| iLater_Sub i T :
     Γ ⊢ₜ TLater T, i <: T, S i
-| iSub_Later i T:
+| iSub_Later i T :
     Γ ⊢ₜ T, S i <: TLater T, i
 
 (* "Logical" connectives *)
@@ -71,25 +71,25 @@ subtype Γ : ty → nat → ty → nat → Prop :=
 (* Type selections. These rules don't use later, but here (for DSub) the
 semantics of TTMem is defined so that most often L can and U must include
 later themselves. *)
-| iSel_Sub L U v:
+| iSel_Sub L U v :
     Γ ⊢ₜ tv v : TTMem L U →
     Γ ⊢ₜ TSel v, 0 <: U, 0
 
-| iSub_Sel L U v:
+| iSub_Sel L U v :
     Γ ⊢ₜ tv v : TTMem L U →
     Γ ⊢ₜ L, 0 <: TSel v, 0
 
 (* "Congruence" or "variance" rules for subtyping. Unneeded for "logical" types. *)
 (* Needed? Maybe drop later instead? *)
-(* | iLater_Sub_Later T1 T2 i:
+(* | iLater_Sub_Later T1 T2 i :
     Γ ⊢ₜ T1, S i <: T2, S i →
     Γ ⊢ₜ TLater T1, i <: TLater T2, i *)
-| iAll_Sub_All T1 T2 U1 U2 i:
+| iAll_Sub_All T1 T2 U1 U2 i :
     (* "Tight" premises. *)
     Γ ⊢ₜ T2, S i <: T1, S i →
     iterate TLater (S i) (shift T2) :: Γ ⊢ₜ U1, S i <: U2, S i →
     Γ ⊢ₜ TAll T1 U1, i <: TAll T2 U2, i
-| iTyp_Sub_Typ L1 L2 U1 U2 i:
+| iTyp_Sub_Typ L1 L2 U1 U2 i :
     Γ ⊢ₜ L2, i <: L1, i →
     Γ ⊢ₜ U1, i <: U2, i →
     Γ ⊢ₜ TTMem L1 U1, i <: TTMem L2 U2, i

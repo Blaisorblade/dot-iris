@@ -4,18 +4,18 @@ From iris.program_logic Require Import language.
 From D.Dot Require Export syn rules.
 
 Implicit Types
-         (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (p : path)
+         (L T U : ty) (v : vl) (e : tm) (d : dm) (ds : dms) (p : path)
          (Γ : ctx) (ρ : env) (Pv : vl → Prop).
 
 Unset Program Cases.
 
-Lemma tskip_subst i e s: (iterate tskip i e).|[s] = iterate tskip i e.|[s].
+Lemma tskip_subst i e s : (iterate tskip i e).|[s] = iterate tskip i e.|[s].
 Proof. exact: cons_subst. Qed.
 
-Lemma TLater_subst i T s: (iterate TLater i T).|[s] = iterate TLater i T.|[s].
+Lemma TLater_subst i T s : (iterate TLater i T).|[s] = iterate TLater i T.|[s].
 Proof. exact: cons_subst. Qed.
 
-Lemma path2tm_subst p ρ: (path2tm p).|[ρ] = path2tm p.|[ρ].
+Lemma path2tm_subst p ρ : (path2tm p).|[ρ] = path2tm p.|[ρ].
 Proof. by elim: p => /= [//|p -> l]. Qed.
 
 (******************************************************************************)
@@ -38,13 +38,13 @@ Proof. split; first inversion_clear 1; naive_solver. Qed.
 #[global] Instance pwp_pure_proper : Proper ((=) ==> pointwise_relation _ iff ==> iff) path_wp_pure.
 Proof.
   (* The induction works best in this shape, but this instance is best kept local. *)
-  have pwp_proper_2: ∀ p, Proper (pointwise_relation _ iff ==> iff) (path_wp_pure p).
+  have pwp_proper_2 : ∀ p, Proper (pointwise_relation _ iff ==> iff) (path_wp_pure p).
   by rewrite /pointwise_relation => p P1 P2 HPeq; split;
     induction 1; naive_solver.
   solve_proper.
 Qed.
 
-Lemma path_wp_pure_wand {Pv1 Pv2 p}:
+Lemma path_wp_pure_wand {Pv1 Pv2 p} :
   path_wp_pure p Pv1 →
   (∀ v, Pv1 v → Pv2 v) →
   path_wp_pure p Pv2.
@@ -58,15 +58,15 @@ Proof.
   - move => [v [Hpeq HPv]]. dependent induction Hpeq; naive_solver.
 Qed.
 
-Lemma path_wp_pure_det {p v1 v2}:
+Lemma path_wp_pure_det {p v1 v2} :
   path_wp_pure p (eq v1) →
   path_wp_pure p (eq v2) →
   v1 = v2.
 Proof.
   move => Hp1 Hp2; move: v2 Hp2; induction Hp1; intros; inverse Hp2; first naive_solver.
   lazymatch goal with H1 : ?vp @ l ↘ dpt ?q, H2 : ?vp0 @ l ↘ dpt ?q0 |- _ =>
-    (suff ?: q = q0 by subst; auto);
-    (suff ?: vp = vp0 by subst; objLookupDet);
+    (suff ? : q = q0 by subst; auto);
+    (suff ? : vp = vp0 by subst; objLookupDet);
     auto
   end.
 Qed.
@@ -116,7 +116,7 @@ Lemma alias_paths_refl_vl v :
   alias_paths (pv v) (pv v).
 Proof. hnf; eauto. Qed.
 
-Lemma alias_paths_sameres p q:
+Lemma alias_paths_sameres p q :
   alias_paths p q ↔
   ∃ v,
     path_wp_pure p (eq v) ∧
@@ -134,10 +134,10 @@ Lemma alias_paths_trans p q r :
   alias_paths p q → alias_paths q r → alias_paths p r.
 Proof.
   rewrite !alias_paths_sameres => -[v [Hpv Hqv]] [w [Hqw Hrw]].
-  have Heq: v = w by exact: path_wp_pure_det. simplify_eq; eauto.
+  have Heq : v = w by exact: path_wp_pure_det. simplify_eq; eauto.
 Qed.
 
-Lemma alias_paths_samepwp_pure p q:
+Lemma alias_paths_samepwp_pure p q :
   alias_paths p q ↔
     (∃ u, path_wp_pure p (eq u)) ∧
     ∀ Pv, path_wp_pure p Pv ↔ path_wp_pure q Pv.
@@ -153,7 +153,7 @@ Proof.
     split; by [|rewrite -Heq].
 Qed.
 
-Lemma alias_paths_elim_eq_pure Pv {p q}:
+Lemma alias_paths_elim_eq_pure Pv {p q} :
   alias_paths p q →
   path_wp_pure p Pv ↔ path_wp_pure q Pv.
 Proof. move => /alias_paths_samepwp_pure [_]. apply. Qed.
@@ -206,14 +206,14 @@ Definition label_of_ty T : option label :=
 Definition defCtxCons Γ V := TLater V :: Γ.
 Notation "Γ |L V" := (defCtxCons Γ V) (at level 60).
 
-Lemma norm_selfSubst ds s: selfSubst ds.|[up s] = ds.|[(vobj ds).[s] .: s].
+Lemma norm_selfSubst ds s : selfSubst ds.|[up s] = ds.|[(vobj ds).[s] .: s].
 Proof. by rewrite /selfSubst up_sub_compose. Qed.
 
 (** Presence and absence of definitions. *)
 Definition dms_has ds l d := dms_lookup l ds = Some d.
 Definition dms_hasnt ds l := dms_lookup l ds = None.
 
-Lemma dms_hasnt_map ds l f:
+Lemma dms_hasnt_map ds l f :
   dms_hasnt ds l →
   dms_hasnt (map (mapsnd f) ds) l.
 Proof.
@@ -224,10 +224,10 @@ Qed.
 Lemma dms_hasnt_subst l ds ρ : dms_hasnt ds l → dms_hasnt ds.|[ρ] l.
 Proof. apply dms_hasnt_map. Qed.
 
-Lemma dms_lookup_head l d ds: dms_lookup l ((l, d) :: ds) = Some d.
+Lemma dms_lookup_head l d ds : dms_lookup l ((l, d) :: ds) = Some d.
 Proof. by cbn; case_decide. Qed.
 
-Lemma dms_lookup_mono l l' d d' ds:
+Lemma dms_lookup_mono l l' d d' ds :
   dms_hasnt ds l →
   dms_lookup l' ds = Some d' →
   dms_lookup l' ((l, d) :: ds) = Some d'.

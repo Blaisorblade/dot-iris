@@ -7,13 +7,13 @@ From iris.program_logic Require Import language.
 
 From D.Dot Require Import unary_lr prims_lr.
 
-Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env).
+Implicit Types (v : vl) (e : tm) (d : dm) (ds : dms) (ρ : env).
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
 
 Section Sec.
-  Context `{HdlangG: !dlangG Σ}.
+  Context `{HdlangG : !dlangG Σ}.
 
   Lemma T_Un Γ u e1 B1 Br (Hu : un_op_syntype u B1 Br) :
     Γ ⊨ e1 : TPrim B1 -∗

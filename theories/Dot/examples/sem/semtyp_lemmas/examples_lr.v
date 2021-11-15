@@ -7,7 +7,7 @@ From D.Dot Require Import rules path_repl.
 From D.Dot Require Export dot_semtypes dsub_lr sub_lr binding_lr.
 
 Implicit Types (Σ : gFunctors).
-Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env) (l : label).
+Implicit Types (v : vl) (e : tm) (d : dm) (ds : dms) (ρ : env) (l : label).
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -16,9 +16,9 @@ Set Suggest Proof Using.
 Set Default Proof Using "Type*".
 
 Section Lemmas.
-  Context `{HdotG: !dlangG Σ}.
+  Context `{HdotG : !dlangG Σ}.
 
-  Lemma sP_ISub' {Γ} p T1 T2 i:
+  Lemma sP_ISub' {Γ} p T1 T2 i :
     Γ s⊨p p : T1, i -∗
     Γ s⊨ T1, i <: T2, i -∗
     (*───────────────────────────────*)
@@ -34,7 +34,7 @@ Section Lemmas.
   Qed.
 
   Lemma sP_Var0 {Γ T}
-    (Hx : Γ !! 0 = Some T):
+    (Hx : Γ !! 0 = Some T) :
     (*──────────────────────*)
     ⊢ Γ s⊨p pv (ids 0) : T, 0.
   Proof. rewrite -(hsubst_id T). apply (sP_Var Hx). Qed.

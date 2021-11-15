@@ -7,7 +7,7 @@ From iris.program_logic Require Import language.
 
 From D.Dot Require Import rules dot_semtypes.
 
-Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (n : Z).
+Implicit Types (v : vl) (e : tm) (d : dm) (ds : dms) (n : Z).
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
@@ -44,16 +44,16 @@ Proof.
 Qed.
 
 Section Sec.
-  Context `{HdlangG: !dlangG Σ}.
+  Context `{HdlangG : !dlangG Σ}.
 
   Import path_wp.
-  Lemma sP_Nat_I Γ n: ⊢ Γ s⊨p pv (vint n): oInt, 0.
+  Lemma sP_Nat_I Γ n : ⊢ Γ s⊨p pv (vint n) : oInt, 0.
   Proof.
     iIntros "!> %ρ * _ /=";
       rewrite path_wp_pv_eq /= /pure_interp_prim /prim_evals_to; naive_solver.
   Qed.
 
-  Lemma sP_Bool_I Γ b: ⊢ Γ s⊨p pv (vbool b): oBool, 0.
+  Lemma sP_Bool_I Γ b : ⊢ Γ s⊨p pv (vbool b) : oBool, 0.
   Proof.
     iIntros "!> %ρ _ /=";
       rewrite path_wp_pv_eq /= /pure_interp_prim /prim_evals_to; naive_solver.

@@ -149,7 +149,7 @@ Proof. all: rewrite /Decision; decide equality; solve_decision. Defined.
 #[local] Ltac finish_lists l x :=
   elim: l => [|x xs IHds] //=; by f_equal.
 
-Lemma up_upren_vl (ξ : var → var): up (ren ξ) =@{var → vl} ren (upren ξ).
+Lemma up_upren_vl (ξ : var → var) : up (ren ξ) =@{var → vl} ren (upren ξ).
 Proof. exact: up_upren_internal. Qed.
 
 Lemma vl_rename_Lemma (ξ : var → var) v : rename ξ v = v.[ren ξ]
@@ -231,17 +231,17 @@ Qed.
 Module lang.
 Import ectxi_language.
 
-Definition to_val (t: tm) : option vl :=
+Definition to_val (t : tm) : option vl :=
   match t with
   | tv v => Some v
   | _ => None
   end.
 
-Definition of_val: vl → tm := tv.
+Definition of_val : vl → tm := tv.
 
 Inductive ectx_item :=
-| AppLCtx (e2: tm)
-| AppRCtx (v1: vl)
+| AppLCtx (e2 : tm)
+| AppRCtx (v1 : vl)
 | SkipCtx.
 
 Definition fill_item (Ki : ectx_item) (e : tm) : tm :=
@@ -252,9 +252,9 @@ Definition fill_item (Ki : ectx_item) (e : tm) : tm :=
   end.
 
 Inductive head_step : tm → unit → list unit → tm → unit → list tm → Prop :=
-| st_beta t1 v2 σ:
+| st_beta t1 v2 σ :
     head_step (tapp (tv (vabs t1)) (tv v2)) σ [] (t1.|[v2/]) σ []
-| st_skip v σ:
+| st_skip v σ :
     head_step (tskip (tv v)) σ [] (tv v) σ [].
 
 Lemma of_to_val e v : to_val e = Some v → of_val v = e.
