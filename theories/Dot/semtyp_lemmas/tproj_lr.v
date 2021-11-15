@@ -21,7 +21,7 @@ From D.Dot Require Import unary_lr dsub_lr defs_lr path_repl_lr.
 From D.Dot Require Import sem_unstamped_typing.
 
 Implicit Types (Σ : gFunctors).
-Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env) (l : label).
+Implicit Types (v : vl) (e : tm) (d : dm) (ds : dms) (ρ : env) (l : label).
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
@@ -87,12 +87,12 @@ Definition oProj `{!dlangG Σ} A (T : oltyO Σ) : oltyO Σ :=
   oSel (pv (ids 0)) A args (w .: ρ) v).
 
 (** *** Technical infrastructure for setoid rewriting. *)
-#[global] Instance: Params (@oProj) 3 := {}.
+#[global] Instance : Params (@oProj) 3 := {}.
 
 Section type_proj_setoid_equality.
   Context `{!dlangG Σ}.
 
-  Definition oProjN_oExists `{!dlangG Σ} A T:
+  Definition oProjN_oExists `{!dlangG Σ} A T :
     oProj A T ≡ oExists T (oSel (pv (ids 0)) A) := reflexivity _.
 
   #[global] Instance oProjN_ne A : NonExpansive (oProj A).

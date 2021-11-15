@@ -13,13 +13,13 @@ Module EL := ectx_language.
 Import L EL.
 Implicit Types (Λ : language).
 
-#[global] Instance LanguageCtx_proper Λ:
+#[global] Instance LanguageCtx_proper Λ :
   Proper (pointwise_relation _ (=) ==> impl) (@LanguageCtx Λ).
 Proof.
   intros K1 K2 Heq [???]; split; intros *; setoid_rewrite <-Heq => *; auto 2.
 Qed.
 
-#[global] Instance unit_pi: ProofIrrel ().
+#[global] Instance unit_pi : ProofIrrel ().
 Proof. by intros [] []. Qed.
 
 (** ** [LangDet] defines when a language is deterministic. *)
@@ -81,7 +81,7 @@ Section LangDet.
 Context {Λ}.
 Implicit Type (e t : L.expr Λ).
 
-Lemma pure_to_prim e1 e2 σ:
+Lemma pure_to_prim e1 e2 σ :
   pure_step e1 e2 →
   L.prim_step e1 σ [] e2 σ [].
 Proof.

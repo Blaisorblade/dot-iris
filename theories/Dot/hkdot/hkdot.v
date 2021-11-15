@@ -35,7 +35,7 @@ Notation sstpiK' i Γ T1 T2 K := (∀ ρ, sG⟦Γ⟧*ρ → sstpiK_env i T1 T2 K
 Definition sstpiK `{dlangG Σ} i Γ T1 T2 (K : sf_kind Σ) : iProp Σ :=
   |==> sstpiK' i Γ T1 T2 K.
 Arguments sstpiK : simpl never.
-#[global] Instance: Params (@sstpiK) 4 := {}.
+#[global] Instance : Params (@sstpiK) 4 := {}.
 Notation "Γ s⊨ T1 <:[ i  ] T2 ∷ K" := (sstpiK i Γ T1 T2 K)
   (at level 74, i, T1, T2, K at next level).
 
@@ -50,12 +50,12 @@ Notation "Γ s⊨ T ∷[ i  ] K" := (Γ s⊨ T <:[ i ] T ∷ K)
 Definition sSkd `{dlangG Σ} i Γ (K1 K2 : sf_kind Σ) : iProp Σ :=
   |==> ∀ ρ, sG⟦Γ⟧*ρ → ∀ (T1 T2 : hoLtyO Σ), ▷^i (K1 ρ T1 T2 → K2 ρ T1 T2).
 Arguments sSkd : simpl never.
-#[global] Instance: Params (@sSkd) 4 := {}.
+#[global] Instance : Params (@sSkd) 4 := {}.
 Notation "Γ s⊨ K1 <∷[ i  ] K2" := (sSkd i Γ K1 K2)
   (at level 74, K1, K2 at next level).
 
 Section gen_lemmas.
-  Context `{Hdlang : dlangG Σ} `{HswapProp: SwapPropI Σ}.
+  Context `{Hdlang : dlangG Σ} `{HswapProp : SwapPropI Σ}.
 
   #[global] Instance sstpiK_proper i :
     Proper4 (sstpiK (Σ := Σ) i).
@@ -67,7 +67,7 @@ Section gen_lemmas.
     by apply sf_kind_proper; f_equiv.
   Qed.
 
-  Lemma sstpiK_mono_ctx i Γ {T1 U1 T2 U2: olty Σ} (K1 K2 : sf_kind Σ)
+  Lemma sstpiK_mono_ctx i Γ {T1 U1 T2 U2 : olty Σ} (K1 K2 : sf_kind Σ)
     (Hsub : ⊢ ∀ ρ, sG⟦Γ⟧*ρ → sstpiK_env i T1 U1 K1 ρ -∗ sstpiK_env i T2 U2 K2 ρ) :
     Γ s⊨ T1 <:[ i ] U1 ∷ K1 ⊢ Γ s⊨ T2 <:[ i ] U2 ∷ K2.
   Proof. iIntros ">#HT !>" (ρ) "#Hg /=". iApply (Hsub with "Hg (HT Hg)"). Qed.
@@ -333,7 +333,7 @@ Section gen_lemmas.
     oLam (oTAppV (oShift T) (ids 0)) (acons arg args) ≡ T (acons arg args).
   Proof. move=>?? /=. autosubst. Qed.
 
-  Lemma sstpiK_mono_kpi i Γ {T1 U1 T2 U2: olty Σ} S (K : sf_kind Σ)
+  Lemma sstpiK_mono_kpi i Γ {T1 U1 T2 U2 : olty Σ} S (K : sf_kind Σ)
     (HT : ∀ arg args ρ, envApply T2 ρ (acons arg args) ≡ envApply T1 ρ (acons arg args))
     (HU : ∀ arg args ρ, envApply U2 ρ (acons arg args) ≡ envApply U1 ρ (acons arg args)) :
     Γ s⊨ T1 <:[ i ] U1 ∷ sf_kpi S K ⊢ Γ s⊨ T2 <:[ i ] U2 ∷ sf_kpi S K.
@@ -456,7 +456,7 @@ Implicit Types
 Notation "Γ s⊨X T1 <:[ i  ] T2" := (sstpd i Γ T1 T2) (at level 74, T1, T2 at next level).
 
 Section dot_types.
-  Context `{!dlangG Σ} `{HswapProp: SwapPropI Σ}.
+  Context `{!dlangG Σ} `{HswapProp : SwapPropI Σ}.
 
   (** Such substitution lemmas hold for all judgments. Note the mu type!
   XXX don't restrict to values. *)
@@ -600,7 +600,7 @@ Section dot_types.
   Qed.
 
   (** Generalization of [sD_Typ_Abs]. *)
-  Lemma sD_TypK_Abs {Γ} T (K : sf_kind Σ) s σ l:
+  Lemma sD_TypK_Abs {Γ} T (K : sf_kind Σ) s σ l :
     Γ s⊨ oLater T ∷[ 0 ] K -∗
     s ↝[ σ ] T -∗
     Γ s⊨ { l := dtysem σ s } : cTMemK l K.
@@ -883,7 +883,7 @@ Section derived.
 End derived.
 
 Section examples.
-  Context `{!dlangG Σ} `{HswapProp: SwapPropI Σ}.
+  Context `{!dlangG Σ} `{HswapProp : SwapPropI Σ}.
   Import DBNotation dot_lty.
 
   Definition oId := oLam (oSel x0 "A").
@@ -899,10 +899,10 @@ Section examples.
 End examples.
 
 Section dot_experimental_kinds.
-  Context `{!dlangG Σ} `{HswapProp: SwapPropI Σ}.
+  Context `{!dlangG Σ} `{HswapProp : SwapPropI Σ}.
 
   (** As an example, we can derive this variant at an interval kind of [sSngl_Stp_Sym] *)
-  Lemma sSngl_KStp_Sym Γ p q T i L U:
+  Lemma sSngl_KStp_Sym Γ p q T i L U :
     Γ s⊨p p : T, i -∗ (* Just to ensure [p] terminates and [oSing p] isn't empty. *)
     Γ s⊨ oSing p <:[i] oSing q ∷ sf_kintv L U -∗
     Γ s⊨ oSing q <:[i] oSing p ∷ sf_kintv L U.
@@ -944,7 +944,7 @@ Section dot_experimental_kinds.
   T <: S :: * ->
   S = T :: L..U
   *)
-  (* Lemma sSngl_KStp_Sym' Γ p q T i L U:
+  (* Lemma sSngl_KStp_Sym' Γ p q T i L U :
     Γ s⊨p p : T, i -∗ (* Just to ensure [p] terminates and [oSing p] isn't empty. *)
     Γ s⊨ oSing p <:[i] oSing q ∷ sf_kintv L U -∗
     Γ s⊨ oSing q <:[i] oSing p ∷ sf_kintv L U.
@@ -956,7 +956,7 @@ Section dot_experimental_kinds.
     (* Weird that this works. *)
     iDestruct ("Hps" with "Hpw") as %Hqw%alias_paths_symm.
     iDestruct "Hpw" as %Hpw.
-    suff Heq: !!(envApply (oSing p) ρ ≡ envApply (oSing q) ρ)
+    suff Heq : !!(envApply (oSing p) ρ ≡ envApply (oSing q) ρ)
       by iApply (sf_kind_proper with "Hps").
     iIntros (args v) "/=".
     have Hal := alias_paths_trans _ _ _ Hpw Hqw.
@@ -998,7 +998,7 @@ Section dot_experimental_kinds.
    *)
   Definition isSing (T : lty Σ) := (∀ v1 v2, T v1 → T v2 → ⌜ v1 = v2 ⌝)%I.
 
-  Lemma isSing_respects_hoLty_equiv {T1 T2 : hoLtyO Σ} args:
+  Lemma isSing_respects_hoLty_equiv {T1 T2 : hoLtyO Σ} args :
     hoLty_equiv T1 T2 -∗ isSing (T1 args) -∗ isSing (T2 args).
   Proof using Type*.
     rewrite /isSing /=.

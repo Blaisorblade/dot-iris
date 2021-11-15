@@ -29,12 +29,12 @@ Implicit Types
  *)
 
 (* The only point of these instances is to select Σ uniquely. *)
-Class dsubSynG (Σ: gFunctors) := DsubSynG {
+Class dsubSynG (Σ : gFunctors) := DsubSynG {
    dsubSynG_persistent :> CmraPersistent (iResUR Σ);
 }.
 
 From D.DSub Require Export ds_rules.
-#[global] Instance dsubsynG_irisG `{!dsubSynG Σ}: irisG dlang_lang Σ := {
+#[global] Instance dsubsynG_irisG `{!dsubSynG Σ} : irisG dlang_lang Σ := {
   irisG_langdet := _;
 }.
 
@@ -78,7 +78,7 @@ Section logrel.
   Definition interp_bot : envD Σ := λI ρ v, False.
   #[global] Arguments interp_bot /.
 
-  Definition interp_later: envD Σ -> envD Σ :=
+  Definition interp_later : envD Σ -> envD Σ :=
     λI interp ρ v, ▷ interp ρ v.
   #[global] Arguments interp_later /.
   #[local] Instance interp_later_contractive : Contractive interp_later.
@@ -86,7 +86,7 @@ Section logrel.
 
   (* Function types; this definition is contractive (similarly to what's
      useful for equi-recursive types). *)
-  Definition interp_forall: envD Σ -> envD Σ -> envD Σ :=
+  Definition interp_forall : envD Σ -> envD Σ -> envD Σ :=
     λI interp1 interp2 ρ v,
     ∃ t, ⌜ v = vabs t ⌝ ∧
       ▷ ∀ w, interp1 ρ w → interp_expr interp2 (w .: ρ) t.|[w/].
@@ -95,7 +95,7 @@ Section logrel.
     Proper (dist_later n ==> dist_later n ==> dist n) interp_forall.
   Proof. solve_contractive_ho. Qed.
 
-  Lemma vl_has_semtype_agree rinterp v (φ1 φ2 : D):
+  Lemma vl_has_semtype_agree rinterp v (φ1 φ2 : D) :
     v ↗[ rinterp ] φ1 -∗
     v ↗[ rinterp ] φ2 -∗
     ∀ w, ▷ (φ1 w ≡ φ2 w).
@@ -155,17 +155,17 @@ Section logrel.
 
   #[global] Instance dsub_interp : TyInterp ty Σ := fixpoint interp_rec.
 
-  Lemma fixpoint_interp_eq1 T: ⟦ T ⟧ ≡ interp_rec ty_interp T.
+  Lemma fixpoint_interp_eq1 T : ⟦ T ⟧ ≡ interp_rec ty_interp T.
   Proof. apply: fixpoint_unfold. Qed.
 
-  Lemma fixpoint_interp_rec_eq:
+  Lemma fixpoint_interp_rec_eq :
     ty_interp ≡@{ty -d> envD Σ} interp_rec ty_interp.
   Proof. exact: (fixpoint_unfold interp_rec). Qed.
 
   (* Unused. *)
-  Lemma fixpoint_interp_eq2 T ρ: ⟦ T ⟧ ρ ≡ interp_rec ty_interp T ρ.
+  Lemma fixpoint_interp_eq2 T ρ : ⟦ T ⟧ ρ ≡ interp_rec ty_interp T ρ.
   Proof. apply: fixpoint_unfold. Qed.
-  Lemma fixpoint_interp_eq3 T ρ v: ⟦ T ⟧ ρ v ≡ interp_rec ty_interp T ρ v.
+  Lemma fixpoint_interp_eq3 T ρ v : ⟦ T ⟧ ρ v ≡ interp_rec ty_interp T ρ v.
   Proof. apply: fixpoint_unfold. Qed.
 
   Lemma interp_TInt ρ v : ⟦ TInt ⟧ ρ v ≡ interp_nat ρ v.
@@ -183,7 +183,7 @@ Section logrel.
 
   Ltac rewrite_interp := repeat (rewrite fixpoint_interp_eq1 //=; repeat f_equiv).
 
-  Lemma interp_TTMem T1 T2 ρ v: ⟦ TTMem T1 T2 ⟧ ρ v ≡ interp_tmem ty_interp ⟦ T1 ⟧ ⟦ T2 ⟧ ρ v.
+  Lemma interp_TTMem T1 T2 ρ v : ⟦ TTMem T1 T2 ⟧ ρ v ≡ interp_tmem ty_interp ⟦ T1 ⟧ ⟦ T2 ⟧ ρ v.
   Proof. rewrite_interp. Qed.
 End logrel.
 
@@ -213,7 +213,7 @@ Ltac setoid_unfold_interp :=
 Section logrel_part2.
   Context `{!dsubSynG Σ}.
 
-  #[global] Instance interp_lemmas: TyInterpLemmas ty Σ.
+  #[global] Instance interp_lemmas : TyInterpLemmas ty Σ.
   Proof.
     split; induction T => sb1 sb2 w; unfold_interp;
       properness; rewrite /= ?scons_up_swap ?subst_comp; trivial.
@@ -233,18 +233,18 @@ Section logrel_part2.
   #[global] Arguments ietp /.
   Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 
-  Definition ietpi Γ T e i: iProp Σ :=
+  Definition ietpi Γ T e i : iProp Σ :=
     ∀ ρ, G⟦Γ⟧ ρ → ▷^i ⟦T⟧ₑ ρ (e.|[ρ]).
   #[global] Arguments ietpi /.
   Notation "Γ ⊨ e : T , i" := (ietpi Γ T e i) (at level 74, e, T at next level).
 
   (** Indexed Subtyping. Defined on closed values. We must require closedness
       explicitly, since closedness now does not follow from being well-typed later. *)
-  Definition istpi Γ T1 T2 i j: iProp Σ :=
+  Definition istpi Γ T1 T2 i j : iProp Σ :=
     ∀ ρ v, G⟦Γ⟧ ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v.
   #[global] Arguments istpi /.
 
-  Definition delayed_ivstp Γ T1 T2 i: iProp Σ :=
+  Definition delayed_ivstp Γ T1 T2 i : iProp Σ :=
     ∀ ρ, G⟦Γ⟧ρ → ▷^i ∀v, ⟦T1⟧ ρ v → ⟦T2⟧ ρ v.
   #[global] Arguments delayed_ivstp /.
 End logrel_part2.
@@ -262,21 +262,21 @@ Notation "Γ ⊨[ i  ] T1 <: T2" := (delayed_ivstp Γ T1 T2 i) (at level 74, T1,
 Section logrel_lemmas.
   Context `{!dsubSynG Σ}.
 
-  Lemma iterate_TLater_later i T ρ v:
+  Lemma iterate_TLater_later i T ρ v :
     ⟦ iterate TLater i T ⟧ ρ v ⊣⊢ ▷^i ⟦ T ⟧ ρ v.
   Proof.
     elim: i => [|i IHi] //.
     rewrite iterate_S /=; unfold_interp; rewrite IHi //.
   Qed.
 
-  Lemma semantic_typing_uniform_step_index Γ T e i:
+  Lemma semantic_typing_uniform_step_index Γ T e i :
     Γ ⊨ e : T -∗ Γ ⊨ e : T, i.
   Proof.
     iIntros "#H %ρ #HΓ".
     iInduction i as [|i] "IHi". by iApply "H". iExact "IHi".
   Qed.
 
-  Lemma interp_env_lookup Γ ρ T x:
+  Lemma interp_env_lookup Γ ρ T x :
     Γ !! x = Some T →
     G⟦ Γ ⟧ ρ -∗ ⟦ shiftN x T ⟧ ρ (ρ x).
   Proof.

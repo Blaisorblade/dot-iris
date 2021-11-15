@@ -13,10 +13,10 @@ Notation anil := vector.vnil.
 Section vec.
   Context {vl : Type} {n : nat} {A : ofeT}.
   (* vector operations, on a functional representation of vectors. *)
-  Definition acons (v : vl) (args: vec vl n) : vec vl (S n) := vector.vcons v args.
+  Definition acons (v : vl) (args : vec vl n) : vec vl (S n) := vector.vcons v args.
 
-  Definition ahead (args: vec vl (S n)) : vl := args !!! 0%fin.
-  Definition atail (args: vec vl (S n)) : vec vl n :=
+  Definition ahead (args : vec vl (S n)) : vl := args !!! 0%fin.
+  Definition atail (args : vec vl (S n)) : vec vl n :=
     Vector.caseS (λ n _, vec vl n) (λ h n t, t) args.
 
   Lemma vec_anil_eta (v : vec vl 0) : v = anil.
@@ -43,7 +43,7 @@ Proof. solve_proper_ho. Qed.
 
 #[global] Instance acurry_proper vl n A : Proper ((≡) ==> (=) ==> (≡)) (@acurry vl n A).
 Proof. solve_proper_ho. Qed.
-#[global] Instance: Params (@acurry) 3 := {}.
+#[global] Instance : Params (@acurry) 3 := {}.
 
 Definition vec_fold {A} {P : nat → Type}
   (base : P 0) (step : ∀ {n}, A → P n → P (S n)) : ∀ n, vec A n → P n :=
@@ -112,7 +112,7 @@ Section saved_ho_sem_type.
   Lemma leibniz_equivI (PROP : bi) `{LeibnizEquiv A} x y : ⌜ x ≡@{A} y ⌝ ⊢@{PROP} ⌜ x = y ⌝.
   Proof. iIntros "!%". apply leibniz_equiv. Qed.
 
-  Lemma saved_ho_sem_type_agree_arity γ {i j Φ1 Φ2}:
+  Lemma saved_ho_sem_type_agree_arity γ {i j Φ1 Φ2} :
     γ ⤇n[ i ] Φ1 -∗ γ ⤇n[ j ] Φ2 -∗ ⌜ i = j ⌝.
   Proof.
     rewrite -leibniz_equivI -discrete_eq; iIntros "HΦ1 HΦ2".
@@ -120,7 +120,7 @@ Section saved_ho_sem_type.
     iApply (f_equivI packedHoEnvPred_arity with "Heq").
   Qed.
 
-  Lemma saved_ho_sem_type_agree_dep_abs γ {i j Φ1 Φ2}:
+  Lemma saved_ho_sem_type_agree_dep_abs γ {i j Φ1 Φ2} :
     γ ⤇n[ i ] Φ1 -∗ γ ⤇n[ j ] Φ2 -∗ ∃ Heq : i = j,
     ▷ ((rew [hoEnvPred s Σ] Heq in Φ1) ≡ Φ2).
   Proof.
@@ -133,7 +133,7 @@ Section saved_ho_sem_type.
     repeat setoid_rewrite discrete_fun_equivI. by iNext.
   Qed.
 
-  Lemma saved_ho_sem_type_agree_dep {γ i j Φ1 Φ2} a b c:
+  Lemma saved_ho_sem_type_agree_dep {γ i j Φ1 Φ2} a b c :
     γ ⤇n[ i ] Φ1 -∗ γ ⤇n[ j ] Φ2 -∗ ∃ Heq : i = j,
     ▷ ((rew [hoEnvPred s Σ] Heq in Φ1) a b c ≡ Φ2 a b c).
   Proof.
@@ -143,7 +143,7 @@ Section saved_ho_sem_type.
     by repeat setoid_rewrite discrete_fun_equivI.
   Qed.
 
-  Lemma saved_ho_sem_type_agree {γ n} {Φ1 Φ2 : hoEnvPred s Σ n} a b c:
+  Lemma saved_ho_sem_type_agree {γ n} {Φ1 Φ2 : hoEnvPred s Σ n} a b c :
     γ ⤇n[ n ] Φ1 -∗ γ ⤇n[ n ] Φ2 -∗ ▷ (Φ1 a b c ≡ Φ2 a b c).
   Proof.
     iIntros "HΦ1 HΦ2".
@@ -151,7 +151,7 @@ Section saved_ho_sem_type.
     by rewrite (proof_irrel Heq eq_refl) /=.
   Qed.
 
-  (* Lemma saved_ho_sem_type_agree_abs γ n (Φ1 Φ2 : hoEnvPred s Σ n):
+  (* Lemma saved_ho_sem_type_agree_abs γ n (Φ1 Φ2 : hoEnvPred s Σ n) :
     γ ⤇n[ n ] Φ1 -∗ γ ⤇n[ n ] Φ2 -∗ ▷ (Φ1 ≡ Φ2).
   Proof.
     iIntros "HΦ1 HΦ2".

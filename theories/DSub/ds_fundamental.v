@@ -9,7 +9,7 @@ From iris.proofmode Require Import tactics.
 From D Require Import proofmode_extra swap_later_impl.
 From D.DSub Require Import ds_unary_lr ds_semtyp_lemmas.
 
-Implicit Types (L T U: ty) (v: vl) (e: tm) (Γ : ctx).
+Implicit Types (L T U : ty) (v : vl) (e : tm) (Γ : ctx).
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
@@ -17,7 +17,7 @@ Set Default Proof Using "Type*".
 Section swap_based_typing_lemmas.
   Context `{!dsubSynG Σ} `{!SwapPropI Σ} {Γ}.
 
-  Lemma All_Sub_All T1 T2 U1 U2 i:
+  Lemma All_Sub_All T1 T2 U1 U2 i :
     Γ ⊨ T2, S i <: T1, S i -∗
     iterate TLater (S i) (shift T2) :: Γ ⊨ U1, S i <: U2, S i -∗
     Γ ⊨ TAll T1 U1, i <: TAll T2 U2, i .
@@ -44,7 +44,7 @@ Section swap_based_typing_lemmas.
     - iIntros (u) "#HuU1". by iApply "HsubU".
   Qed.
 
-  Lemma DSub_TAll_ConCov T1 T2 U1 U2 i:
+  Lemma DSub_TAll_ConCov T1 T2 U1 U2 i :
     Γ ⊨[S i] T2 <: T1 -∗
     iterate TLater (S i) (shift T2) :: Γ ⊨[S i] U1 <: U2 -∗
     Γ ⊨[i] TAll T1 U1 <: TAll T2 U2.
@@ -66,7 +66,7 @@ Section swap_based_typing_lemmas.
     - iIntros (u) "#HuU1". by iApply "HsubU".
   Qed.
 
-  Lemma Typ_Sub_Typ L1 L2 U1 U2 i:
+  Lemma Typ_Sub_Typ L1 L2 U1 U2 i :
     Γ ⊨ L2, i <: L1, i -∗
     Γ ⊨ U1, i <: U2, i -∗
     Γ ⊨ TTMem L1 U1, i <: TTMem L2 U2, i.
@@ -90,10 +90,10 @@ From D.DSub Require Import ds_storeless_typing.
 Section Fundamental.
   Context `{!dsubSynG Σ} `{!SwapPropI Σ}.
 
-  Lemma fundamental_subtype Γ T1 i1 T2 i2 (HT: Γ ⊢ₜ T1, i1 <: T2, i2):
+  Lemma fundamental_subtype Γ T1 i1 T2 i2 (HT : Γ ⊢ₜ T1, i1 <: T2, i2) :
     ⊢ Γ ⊨ T1, i1 <: T2, i2
   with
-  fundamental_typed Γ e T (HT: Γ ⊢ₜ e : T):
+  fundamental_typed Γ e T (HT : Γ ⊢ₜ e : T) :
     ⊢ Γ ⊨ e : T.
   Proof.
     - iInduction HT as [] "IHT".
@@ -125,7 +125,7 @@ End Fundamental.
 From D.pure_program_logic Require Import adequacy.
 From D.iris_extra Require Import det_reduction.
 
-Theorem adequacy Σ `{HdsubG: dsubSynG Σ} `{!SwapPropI Σ} e T:
+Theorem adequacy Σ `{HdsubG : dsubSynG Σ} `{!SwapPropI Σ} e T :
   (∀ `(dsubSynG Σ) `(SwapPropI Σ), ⊢ [] ⊨ e : T) →
   safe e.
 Proof.
@@ -137,9 +137,9 @@ Proof.
   iApply (wp_wand with "Htyp"); by iIntros.
 Qed.
 
-#[global] Instance dsubSynG_empty: dsubSynG #[] := {}.
+#[global] Instance dsubSynG_empty : dsubSynG #[] := {}.
 
-Corollary type_soundness e T:
+Corollary type_soundness e T :
   [] ⊢ₜ e : T →
   safe e.
 Proof.

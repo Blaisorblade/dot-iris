@@ -3,7 +3,7 @@ From D.Dot Require Import syn.
 Set Implicit Arguments.
 Unset Strict Implicit.
 
-Implicit Types (L T U: ty) (v: vl) (e: tm) (d: dm) (ds: dms) (Γ : ctx).
+Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (ds : dms) (Γ : ctx).
 
 Reserved Notation "|- T1 == T2" (at level 70, T1 at level 69).
 Reserved Notation "|-K K1 == K2" (at level 70, K1 at level 69).
@@ -61,8 +61,8 @@ Proof. all: [> destruct T | destruct K]; constructor; auto. Qed.
 
 Existing Instances type_equiv_sym type_equiv_trans kind_equiv_sym kind_equiv_trans.
 
-#[global] Instance: Equivalence type_equiv := {}.
-#[global] Instance: RewriteRelation type_equiv := {}.
+#[global] Instance : Equivalence type_equiv := {}.
+#[global] Instance : RewriteRelation type_equiv := {}.
 
 Lemma type_equiv_laterN_and j U1 U2 :
   |- iterate TLater j (TAnd U1 U2)
