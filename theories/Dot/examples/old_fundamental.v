@@ -17,6 +17,8 @@ Unset Strict Implicit.
 
 Implicit Types (v : vl) (e : tm) (d : dm) (ds : dms).
 
+Ltac rw ::= rewrite /iuetp /ietp /iudstp /idstp /iudtp /idtp /iptp /istpd /istpi ?lr.
+
 (* For storeless typing. *)
 Section storeless_unstamped_lemmas.
   Context `{!dlangG Σ}.
@@ -64,7 +66,13 @@ Section storeless_unstamped_lemmas.
     Γ su⊨ { l := dpt p1 } : cVMem l T2.
   Proof. rewrite -!sstpd0_to_sstpi0; iApply suD_Path_Stp. Qed.
 
-  Lemma suD_Typ_Abs_I {l σ Γ L T U} (HclT : coveringσ σ V⟦ T ⟧):
+  Lemma uD_Path_Sub {Γ T1 T2 p1 l} :
+    Γ ⊨ T1, 0 <: T2, 0 -∗
+    Γ u⊨ { l := dpt p1 } : TVMem l T1 -∗
+    Γ u⊨ { l := dpt p1 } : TVMem l T2.
+  Proof. rw. apply suD_Path_Sub. Qed.
+
+  Lemma suD_Typ_Abs_I {l σ Γ L T U} (HclT : coveringσ σ V⟦ T ⟧) :
     Γ s⊨ L, 0 <: oLater V⟦ T ⟧, 0 -∗
     Γ s⊨ oLater V⟦ T ⟧, 0 <: U, 0 -∗
     Γ su⊨ { l := dtysyn T } : cTMem l L U.
@@ -76,7 +84,7 @@ Section storeless_unstamped_lemmas.
     Γ ⊨        L, 0 <: TLater T, 0 -∗
     Γ ⊨ TLater T, 0 <: U       , 0 -∗
     Γ u⊨ { l := dtysyn T } : TTMem l L U.
-  Proof. have := !!(nclosed_syn_coveringσ HclT); apply suD_Typ_Abs_I. Qed.
+  Proof. have := !!(nclosed_syn_coveringσ HclT). rw. apply suD_Typ_Abs_I. Qed.
 
   Lemma suD_Typ_dtysem {Γ l σ s fakeσ} {T : olty Σ} (HclT : coveringσ σ T) :
     ⊢ Γ su⊨ { l := dtysem fakeσ s } : cTMem l (oLater T) (oLater T).
@@ -97,7 +105,7 @@ Section storeless_unstamped_lemmas.
     Γ ⊨        L, 0 <: TLater T, 0 -∗
     Γ ⊨ TLater T, 0 <:        U, 0 -∗
     Γ u⊨ { l := dtysem fakeσ s } : TTMem l L U.
-  Proof. have := !!(nclosed_syn_coveringσ HclT); apply suD_Typ_Abs_I_dtysem. Qed.
+  Proof. have := !!(nclosed_syn_coveringσ HclT); rw. apply suD_Typ_Abs_I_dtysem. Qed.
 End storeless_unstamped_lemmas.
 
 Section old_fundamental.
@@ -137,25 +145,25 @@ Section old_fundamental.
     + by iApply uT_All_Ex; [iApply H|iApply H0].
     + by iApply uT_All_E_p; [|iApply H|iApply fundamental_path_typed].
     + by iApply uT_All_E; [iApply H|iApply H0].
-    + by iApply suT_Obj_E; iApply H.
+    + by iApply uT_Obj_E; iApply H.
     + iApply uT_All_I_Strong; [|by iApply H].
       by apply fundamental_ctx_sub, ctx_strip_to_sub.
-    + iApply suT_Obj_I. by iApply H.
+    + iApply uT_Obj_I. by iApply H.
     + by iApply uT_ISub; [iApply H |iApply fundamental_subtype].
     + iApply suT_Path. by iApply fundamental_path_typed.
     + by iApply uT_Un; [|iApply H].
     + by iApply uT_Bin; [| iApply H| iApply H0].
-    + by iApply suT_If; [iApply H|iApply H0|iApply H1].
+    + by iApply uT_If; [iApply H|iApply H0|iApply H1].
 
-    + by iApply suD_Nil.
-    + by iApply suD_Cons; [|iApply H|iApply H0].
+    + by iApply uD_Nil.
+    + by iApply uD_Cons; [|iApply H|iApply H0].
 
     + iApply uD_Typ_Abs_I; [done|by iApply fundamental_subtype..].
     + iApply uD_Typ_Abs_I_dtysem; [done|by iApply fundamental_subtype..].
-    + iApply suD_Val. by iApply H.
-    + iApply suD_Path. by iApply fundamental_path_typed.
-    + iApply suD_Val_New. by iApply H.
-    + iApply suD_Path_Sub; [> |iApply H].
+    + iApply uD_Val. by iApply H.
+    + iApply uD_Path. by iApply fundamental_path_typed.
+    + iApply uD_Val_New. by iApply H.
+    + iApply uD_Path_Sub; [> |iApply H].
       by iApply fundamental_subtype.
   Qed.
 
