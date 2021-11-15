@@ -15,13 +15,13 @@ Set Default Proof Using "Type*".
 Set Implicit Arguments.
 Unset Strict Implicit.
 
-Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms).
+Implicit Types (v : vl) (e : tm) (d : dm) (ds : dms).
 
 (* For storeless typing. *)
 Section storeless_unstamped_lemmas.
   Context `{!dlangG Σ}.
 
-  Lemma uT_ISub {Γ e T1 T2 i}:
+  Lemma uT_ISub {Γ e T1 T2 i} :
     Γ u⊨ e : T1 -∗ Γ ⊨ T1, 0 <: T2, i -∗ Γ u⊨ iterate tskip i e : T2.
   Proof.
     iIntros "#H1 #Hsub"; iMod "H1" as (e1s Hsk1) "H1"; iModIntro.
@@ -43,22 +43,22 @@ Section storeless_unstamped_lemmas.
     by rewrite (same_skel_tv_vlit_tv_vlit Hsk1).
   Qed.
 
-  Lemma uT_All_Ex {Γ e1 x2 T1 T2}:
-    Γ u⊨ e1: TAll T1 T2 -∗ Γ u⊨ tv (ids x2) : T1 -∗ Γ u⊨ tapp e1 (tv (ids x2)) : T2.|[ids x2/].
+  Lemma uT_All_Ex {Γ e1 x2 T1 T2} :
+    Γ u⊨ e1 : TAll T1 T2 -∗ Γ u⊨ tv (ids x2) : T1 -∗ Γ u⊨ tapp e1 (tv (ids x2)) : T2.|[ids x2/].
   Proof.
     iIntros "#H1 #H2"; iMod "H1" as (e1s Hsk1) "H1".
     iMod (suetp_var with "H2") as "{H2} H2"; iModIntro.
     by iExists (tapp e1s (tv (ids x2))); iSplit; last iApply (T_All_Ex with "H1 H2").
   Qed.
 
-  Lemma suD_Typ_Sub {Γ} L1 L2 U1 U2 d l:
+  Lemma suD_Typ_Sub {Γ} L1 L2 U1 U2 d l :
     Γ s⊨ L2, 0 <: L1, 0 -∗
     Γ s⊨ U1, 0 <: U2, 0 -∗
     Γ su⊨ { l := d } : cTMem l L1 U1 -∗
     Γ su⊨ { l := d } : cTMem l L2 U2.
   Proof. rewrite -!sstpd0_to_sstpi0; iApply suD_Typ_Stp. Qed.
 
-  Lemma suD_Path_Sub {Γ T1 T2 p1 l}:
+  Lemma suD_Path_Sub {Γ T1 T2 p1 l} :
     Γ s⊨ T1, 0 <: T2, 0 -∗
     Γ su⊨ { l := dpt p1 } : cVMem l T1 -∗
     Γ su⊨ { l := dpt p1 } : cVMem l T2.
@@ -72,19 +72,19 @@ Section storeless_unstamped_lemmas.
     by iIntros "H1 H2"; iApply (suD_Typ_Sub with "H1 H2"); iApply suD_Typ.
   Qed.
 
-  Lemma uD_Typ_Abs_I {Γ T L U l n} (HclT : nclosed T n):
+  Lemma uD_Typ_Abs_I {Γ T L U l n} (HclT : nclosed T n) :
     Γ ⊨        L, 0 <: TLater T, 0 -∗
     Γ ⊨ TLater T, 0 <: U       , 0 -∗
     Γ u⊨ { l := dtysyn T } : TTMem l L U.
   Proof. have := !!(nclosed_syn_coveringσ HclT); apply suD_Typ_Abs_I. Qed.
 
-  Lemma suD_Typ_dtysem {Γ l σ s fakeσ} {T : olty Σ} (HclT : coveringσ σ T):
+  Lemma suD_Typ_dtysem {Γ l σ s fakeσ} {T : olty Σ} (HclT : coveringσ σ T) :
     ⊢ Γ su⊨ { l := dtysem fakeσ s } : cTMem l (oLater T) (oLater T).
   Proof.
     by iApply sudtp_respects_skel_sym; last iApply (suD_Typ (fakeT := TTop)).
   Qed.
 
-  Lemma suD_Typ_Abs_I_dtysem {Γ T L U l s σ fakeσ} (HclT : coveringσ σ T):
+  Lemma suD_Typ_Abs_I_dtysem {Γ T L U l s σ fakeσ} (HclT : coveringσ σ T) :
     Γ s⊨        L, 0 <: oLater T, 0 -∗
     Γ s⊨ oLater T, 0 <: U       , 0 -∗
     Γ su⊨ { l := dtysem fakeσ s } : cTMem l L U.
@@ -93,7 +93,7 @@ Section storeless_unstamped_lemmas.
       iApply suD_Typ_dtysem.
   Qed.
 
-  Lemma uD_Typ_Abs_I_dtysem {l n Γ L T U s fakeσ} (HclT : nclosed T n):
+  Lemma uD_Typ_Abs_I_dtysem {l n Γ L T U s fakeσ} (HclT : nclosed T n) :
     Γ ⊨        L, 0 <: TLater T, 0 -∗
     Γ ⊨ TLater T, 0 <:        U, 0 -∗
     Γ u⊨ { l := dtysem fakeσ s } : TTMem l L U.
@@ -119,9 +119,9 @@ Section old_fundamental.
   Qed.
 
   #[local] Definition fundamental_typed_def Γ e T
-    (HT: Γ v⊢ₜ e : T) := ⊢ Γ u⊨ e : T.
+    (HT : Γ v⊢ₜ e : T) := ⊢ Γ u⊨ e : T.
   #[local] Definition fundamental_dms_typed_def Γ ds T
-    (HT: Γ v⊢ds ds : T) := ⊢ Γ u⊨ds ds : T.
+    (HT : Γ v⊢ds ds : T) := ⊢ Γ u⊨ds ds : T.
   #[local] Definition fundamental_dm_typed_def Γ l d T
     (HT : Γ v⊢{ l := d } : T) := ⊢ Γ u⊨ { l := d } : T.
 
@@ -129,8 +129,8 @@ Section old_fundamental.
   #[local] Ltac simpl_context := red; markUsed Σ; red_hyps_once.
 
   Theorem fundamental_mut Γ :
-    (∀ e T (HT: Γ v⊢ₜ e : T), fundamental_typed_def HT) ∧
-    (∀ ds T (HT: Γ v⊢ds ds : T), fundamental_dms_typed_def HT) ∧
+    (∀ e T (HT : Γ v⊢ₜ e : T), fundamental_typed_def HT) ∧
+    (∀ ds T (HT : Γ v⊢ds ds : T), fundamental_dms_typed_def HT) ∧
     (∀ l d T (HT : Γ v⊢{ l := d } : T), fundamental_dm_typed_def HT).
   Proof.
     apply storeless_typing_mut_ind; clear Γ; intros; simpl_context.
@@ -176,7 +176,7 @@ Import dlang_adequacy.
 
 (** This proves that "storeless typing" also enjoys type safety. *)
 Corollary type_soundness_storeless {e T}
-  (HsT: [] v⊢ₜ e : T): safe e.
+  (HsT : [] v⊢ₜ e : T) : safe e.
 Proof.
   apply: (unstamped_safety_dot_sem dlangΣ); intros.
   eapply fundamental_typed, HsT.

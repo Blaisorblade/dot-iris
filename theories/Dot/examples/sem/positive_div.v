@@ -60,20 +60,20 @@ Ltac wp_bin := iApply wp_wand; [wp_bin_base | iIntros].
 (* Generic useful lemmas — not needed for fundamental theorem,
     but very useful for examples. *)
 Section helpers.
-  Context `{HdlangG: !dlangG Σ}.
+  Context `{HdlangG : !dlangG Σ}.
 
   Lemma wp_ge m n (Hge : m > n) : ⊢ WP m > n {{ w, w ≡ true }}.
   Proof. wp_bin. ev; simplify_eq/=. case_decide; by [|lia]. Qed.
   Lemma wp_nge m n (Hnge : ¬ m > n) : ⊢ WP m > n {{ w, w ≡ false }}.
   Proof. wp_bin. ev; simplify_eq/=. case_decide; by [|lia]. Qed.
 
-  Lemma setp_value Γ (T : olty Σ) v: Γ s⊨ v : T ⊣⊢ |==> ∀ ρ, sG⟦ Γ ⟧* ρ → T anil ρ v.[ρ].
+  Lemma setp_value Γ (T : olty Σ) v : Γ s⊨ v : T ⊣⊢ |==> ∀ ρ, sG⟦ Γ ⟧* ρ → T anil ρ v.[ρ].
   Proof.
     rewrite /setp/=; properness => //; iSplit;
       [rewrite wp_value_inv|rewrite -wp_value]; iIntros "#$".
   Qed.
 
-  Lemma setp_value_eq (T : olty Σ) v: (|==> ∀ ρ, T anil ρ v.[ρ]) ⊣⊢ [] s⊨ v : T.
+  Lemma setp_value_eq (T : olty Σ) v : (|==> ∀ ρ, T anil ρ v.[ρ]) ⊣⊢ [] s⊨ v : T.
   Proof.
     iSplit.
     - iIntros ">#H !>" (? _).
@@ -85,12 +85,12 @@ Section helpers.
 End helpers.
 
 Definition pos v := ∃ n, v = vint n ∧ n > 0.
-Definition ipos {Σ}: oltyO Σ := olty0 (λI ρ v, ⌜ pos v ⌝).
+Definition ipos {Σ} : oltyO Σ := olty0 (λI ρ v, ⌜ pos v ⌝).
 
 Definition s_is_pos `{!dlangG Σ} s : iProp Σ := s ↝n ipos.
 
 Section div_example.
-  Context `{HdlangG: !dlangG Σ} `{SwapPropI Σ}.
+  Context `{HdlangG : !dlangG Σ} `{SwapPropI Σ}.
 
   Lemma wp_if_ge :
     ⊢ |==> ∀ (n : Z), WP hmkPosBodyV n {{ w, ⌜ w = n ∧ n > 0 ⌝}}.

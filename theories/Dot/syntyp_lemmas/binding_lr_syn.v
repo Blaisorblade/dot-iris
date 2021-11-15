@@ -5,7 +5,7 @@ From D Require Import swap_later_impl.
 From D.Dot Require Import unary_lr later_sub_syn.
 From D.Dot Require Import binding_lr.
 
-Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env).
+Implicit Types (v : vl) (e : tm) (d : dm) (ds : dms) (ρ : env).
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type*".
@@ -13,7 +13,7 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 
 Section LambdaIntros.
-  Context `{HdlangG: !dlangG Σ}.
+  Context `{HdlangG : !dlangG Σ}.
 
   Lemma T_All_I_Strong {Γ Γ'} T1 T2 e
     (Hctx : ⊨G Γ <:* TLater <$> Γ') :
@@ -28,10 +28,10 @@ Section LambdaIntros.
 End LambdaIntros.
 
 Section Sec.
-  Context `{HdlangG: !dlangG Σ}.
+  Context `{HdlangG : !dlangG Σ}.
 
   Lemma P_Var {Γ x τ}
-    (Hx : Γ !! x = Some τ):
+    (Hx : Γ !! x = Some τ) :
     (*──────────────────────*)
     ⊢ Γ ⊨p pv (ids x) : shiftN x τ, 0.
   Proof.

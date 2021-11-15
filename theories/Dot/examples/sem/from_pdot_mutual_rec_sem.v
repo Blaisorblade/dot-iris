@@ -81,7 +81,7 @@ Definition fromPDotPaperAbsTypesTBody : ty := {@
 Definition optionTy pOpt pCore := TAnd (pOpt @; "Option") (type "T" >: ⊥ <: (pCore @ "types" @; "Type")).
 
 Section semExample.
-Context `{HdlangG: !dlangG Σ} `{HswapProp : !SwapPropI Σ}.
+Context `{HdlangG : !dlangG Σ} `{HswapProp : !SwapPropI Σ}.
 
 Definition tTop : ty := ⊤.
 
@@ -214,7 +214,7 @@ Proof.
     asideLaters; mltcrush.
 Qed.
 
-Lemma Hsublast Γ:
+Lemma Hsublast Γ :
   newTypeRefΓ Γ u⊢ₜ shift typeRefTBody, 0 <: x1 @; "TypeRef", 0.
 Proof.
   eapply iSub_Sel'; tcrush.
@@ -292,7 +292,7 @@ Proof.
   rewrite up_sub_compose_vl (_ : (shiftV _).[_] = ν [val "symb" = shiftV (ρ 0)]); last
     by autosubst.
   iApply oVMem_eq; iExists _; iSplit; first by eauto.
-  cbn [shift]; rewrite (_: shiftV x1 = x2) //.
+  cbn [shift]; rewrite (_ : shiftV x1 = x2) //.
   rewrite path_wp_pv_eq.
   rewrite subst_comp ren_scons subst_id /newTypeRefΓ.
   lrSimpl; iSplit. { lrSimpl in "Hg"; iDestruct "Hg" as "[_ $]". }
@@ -316,7 +316,7 @@ Example semFromPDotPaperTypesTyp Γ :
 Proof.
   set Γ' := TAnd fromPDotPaperTypesTBody (TSing (x1 @ "types")) ::
     fromPDotPaperAbsTBody x1 :: optionModTInv :: Γ.
-  have Hctx:
+  have Hctx :
     ⊨G TAnd (▶: fromPDotPaperTypesTBody) (TSing (x1 @ "types")) ::
     (▶: fromPDotPaperAbsTBody x1)%ty :: optionModTInv :: Γ <:* (TLater <$> Γ').
     by rewrite /Γ'/= -ty_sub_TAnd_TLater_TAnd_distr_inv; ietp_weaken_ctx.
@@ -349,7 +349,7 @@ Proof.
   iApply suD_Sing; iApply suD_Val.
   iApply (uT_All_I_Strong (Γ' := Γ')). apply Hctx.
   iApply fundamental_typed.
-  have Hx: x1 @; "TypeRef" :: Γ' v⊢ₜ x0 : ▶: shift typeRefTBody. {
+  have Hx : x1 @; "TypeRef" :: Γ' v⊢ₜ x0 : ▶: shift typeRefTBody. {
     varsub.
     eapply (iSub_Trans (T2 := ▶: TAnd (x1 @; "Type") (shift typeRefTBody))).
     + apply (iSel_Sub (L := ⊥)); tcrush. varsub. lThis; ltcrush.
@@ -404,7 +404,7 @@ Proof.
   varsub. mltcrush. lThis.
 Qed.
 
-Lemma fromPDotPaperTypesSub Γ:
+Lemma fromPDotPaperTypesSub Γ :
   ⊢ (▶: fromPDotPaperAbsTBody x1)%ty :: optionModTInv :: Γ ⊨
   μ fromPDotPaperTypesTBody, 0 <: μ fromPDotPaperAbsTypesTBody, 0.
 Proof.
@@ -492,9 +492,9 @@ Proof.
   eapply (iT_ISub (T1 := TLater (x0 @ "types" @; "Type")) (i := 1)); tcrush.
   set Γ' := shift (μ (fromPDotPaperAbsTBody x2)) ::
     μ (fromPDotPaperAbsTBody x2) :: optionModTInv :: Γ.
-  have Hpx: Γ' u⊢ₚ x0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0.
+  have Hpx : Γ' u⊢ₚ x0 @ "types" : μ fromPDotPaperAbsTypesTBody, 0.
   by eapply iP_Fld_E, iP_ISub', iP_Mu_E; last var; [tcrush|stcrush].
-  have HpxSubst: Γ' u⊢ₚ x0 @ "types" : fromPDotPaperAbsTypesTBodySubst, 0.
+  have HpxSubst : Γ' u⊢ₚ x0 @ "types" : fromPDotPaperAbsTypesTBodySubst, 0.
   by eapply (iP_Mu_E (T := fromPDotPaperAbsTypesTBody)
     (p := x0 @ "types")), Hpx; stcrush.
   eapply iT_Path', iP_Fld_I, (iP_ISub (i := 0)), HpxSubst.
@@ -531,7 +531,7 @@ End semExample.
 (**
 Demonstrate applying adequacy to get safety.
 *)
-Lemma pCoreClosedClientSafe: safe pCoreClosedClientTm.
+Lemma pCoreClosedClientSafe : safe pCoreClosedClientTm.
 Proof.
   eapply (unstamped_safety_dot_sem dlangΣ (T := ⊤))=>*.
   iApply pCoreClosedClientTy.

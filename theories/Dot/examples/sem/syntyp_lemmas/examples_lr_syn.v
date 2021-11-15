@@ -6,7 +6,7 @@ From D.Dot Require Export sem_unstamped_typing.
 From D.Dot Require Export old_fundamental.
 
 Implicit Types (Σ : gFunctors).
-Implicit Types (v: vl) (e: tm) (d: dm) (ds: dms) (ρ : env) (l : label).
+Implicit Types (v : vl) (e : tm) (d : dm) (ds : dms) (ρ : env) (l : label).
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -15,7 +15,7 @@ Set Suggest Proof Using.
 Set Default Proof Using "Type*".
 
 Section Lemmas.
-  Context `{HdotG: !dlangG Σ}.
+  Context `{HdotG : !dlangG Σ}.
 
   (** For https://github.com/lampepfl/dotty/blob/85962b19ddf4f1909189bf07b40f9a05849f9bbf/compiler/src/dotty/tools/dotc/core/TypeComparer.scala#L553. *)
   Lemma singleton_Mu_dotty_approx_0 {Γ p i T1 T2} `{SwapPropI Σ} :
@@ -53,7 +53,7 @@ Section Lemmas.
 
   (** What Dotty actually checks uses substitution twice. A simple case is the following: *)
   Lemma singleton_Mu_dotty_approx_1 {Γ p i T1 T2 T1' T2'}
-    (Hrepl1 : T1 .Tp[ p /]~ T1') (Hrepl2 : T2 .Tp[ p /]~ T2'):
+    (Hrepl1 : T1 .Tp[ p /]~ T1') (Hrepl2 : T2 .Tp[ p /]~ T2') :
     Γ ⊨ T1', i <: T2', i -∗
     Γ ⊨p p : TMu T1, i -∗
     Γ ⊨ TSing p, i <: TMu T2, i.
@@ -66,9 +66,9 @@ Section Lemmas.
   Qed.
 
   (*
-     Γ, z: T₁ᶻ ⊨ T₁ᶻ <: T₂
+     Γ, z : T₁ᶻ ⊨ T₁ᶻ <: T₂
      ----------------------------------------------- (<:-Bind-1)
-     Γ ⊨ μ (x: T₁ˣ) <: T₂
+     Γ ⊨ μ (x : T₁ˣ) <: T₂
   *)
   (* Derive this rule from Mu_Stp_Mu and Mu_Stp. *)
   Lemma Stp_Bind_1 {Γ T1 T2 i} `{SwapPropI Σ} :
@@ -80,9 +80,9 @@ Section Lemmas.
   Qed.
 
   (*
-     Γ, z: T₁ᶻ ⊨ T₁ <: T₂ᶻ
+     Γ, z : T₁ᶻ ⊨ T₁ <: T₂ᶻ
      ----------------------------------------------- (<:-Bind-2)
-     Γ ⊨ T₁ <: μ(x: T₂ˣ)
+     Γ ⊨ T₁ <: μ(x : T₂ˣ)
   *)
   Lemma Stp_Bind_2 {Γ T1 T2 i} `{SwapPropI Σ} :
     iterate TLater i (shift T1) :: Γ ⊨ shift T1 <:[i] T2 -∗
@@ -107,7 +107,7 @@ Section Lemmas.
   Lemma T_Mu_E {Γ} T v: Γ ⊨ tv v : TMu T -∗ Γ ⊨ tv v : T.|[v/].
   Proof. by rewrite /ietp sT_Mu_E interp_commute_subst. Qed.
 
-  Lemma suetp_var_lift1 {Γ} x T1 T2:
+  Lemma suetp_var_lift1 {Γ} x T1 T2 :
     (Γ s⊨ tv (ids x) : T1 -∗ Γ s⊨ tv (ids x) : T2) ⊢
     Γ su⊨ tv (ids x) : T1 -∗ Γ su⊨ tv (ids x) : T2.
   Proof.
@@ -115,9 +115,9 @@ Section Lemmas.
     by iExists (tv (ids x)); iSplit; last iApply ("Hr" with "H1").
   Qed.
 
-  Lemma uT_Mu_I {Γ} T x: Γ u⊨ tv (ids x) : T.|[ids x/] -∗ Γ u⊨ tv (ids x) : TMu T.
+  Lemma uT_Mu_I {Γ} T x : Γ u⊨ tv (ids x) : T.|[ids x/] -∗ Γ u⊨ tv (ids x) : TMu T.
   Proof. iApply suetp_var_lift1; iApply T_Mu_I. Qed.
 
-  Lemma uT_Mu_E {Γ} T x: Γ u⊨ tv (ids x) : TMu T -∗ Γ u⊨ tv (ids x) : T.|[ids x/].
+  Lemma uT_Mu_E {Γ} T x : Γ u⊨ tv (ids x) : TMu T -∗ Γ u⊨ tv (ids x) : T.|[ids x/].
   Proof. iApply suetp_var_lift1; iApply T_Mu_E. Qed.
 End Lemmas.
