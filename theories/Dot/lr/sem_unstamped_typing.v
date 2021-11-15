@@ -315,6 +315,11 @@ Section unstamped_lemmas.
     by iExists (tv (vobj ds1)); iSplit; last iApply (sT_Obj_I with "H1").
   Qed.
 
+  Lemma uT_Obj_I Γ T ds :
+    TLater T :: Γ u⊨ds ds : T -∗
+    Γ u⊨ tv (vobj ds) : TMu T.
+  Proof. apply suT_Obj_I. Qed.
+
   Lemma suT_Path Γ τ p :
     Γ s⊨p p : τ, 0 -∗ Γ su⊨ path2tm p : τ.
   Proof.
