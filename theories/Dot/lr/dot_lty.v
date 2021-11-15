@@ -27,46 +27,106 @@ Notation Dslty T := (λ ρ, IPPred (λI ds, T ρ ds)).
 (** ** A "coherent" logical type, containing all semantics of a type.
 That is, semantics for both definition lists and values, and proofs that they
 agree appropriately. *)
+Module clty_mixin.
+  #[local] Set Primitive Projections.
+  Record pred {Σ} (clty_dslty : dslty Σ) (clty_olty : oltyO Σ) : Prop := Mk {
+    clty_def2defs_head {l d ds ρ} :
+      clty_dslty ρ [(l, d)] ⊢ clty_dslty ρ ((l, d) :: ds);
+    clty_mono {l d ds ρ} :
+      dms_hasnt ds l →
+      clty_dslty ρ ds ⊢ clty_dslty ρ ((l, d) :: ds);
+    clty_commute {ds ρ} :
+      clty_dslty ρ (selfSubst ds) ⊢ clty_olty anil ρ (vobj ds);
+  }.
+End clty_mixin.
+Arguments clty_mixin.Mk {Σ _ _}.
+
 Record clty {Σ} := _Clty {
   clty_dslty :> dslty Σ;
   clty_olty : oltyO Σ;
-  clty_def2defs_head {l d ds ρ} :
-    clty_dslty ρ [(l, d)] ⊢ clty_dslty ρ ((l, d) :: ds);
-  clty_mono {l d ds ρ} :
-    dms_hasnt ds l →
-    clty_dslty ρ ds ⊢ clty_dslty ρ ((l, d) :: ds);
-  clty_commute {ds ρ} :
-    clty_dslty ρ (selfSubst ds) ⊢ clty_olty anil ρ (vobj ds);
+  clty_mixin : clty_mixin.pred clty_dslty clty_olty;
 }.
 Add Printing Constructor clty.
 Notation c2o := clty_olty.
 
 Arguments clty : clear implicits.
-Arguments _Clty {_}.
-Notation Clty TD T := (_Clty TD T _ _ _).
+Arguments _Clty {Σ}.
+Notation Clty TD T := (_Clty TD T (clty_mixin.Mk _ _ _)).
 Arguments clty_dslty {_} !_.
 #[global] Instance: Params (@clty_dslty) 1 := {}.
 Arguments clty_olty {_} !_.
 #[global] Instance: Params (@clty_olty) 1 := {}.
 
+Section clty_mixin'.
+  Context {Σ} (c : clty Σ).
+
+  Lemma clty_def2defs_head {l d ds ρ} :
+    clty_dslty c ρ [(l, d)] ⊢ clty_dslty c ρ ((l, d) :: ds).
+  Proof. apply /clty_mixin.clty_def2defs_head /clty_mixin. Qed.
+  Lemma clty_mono {l d ds ρ} :
+    dms_hasnt ds l →
+    clty_dslty c ρ ds ⊢ clty_dslty c ρ ((l, d) :: ds).
+  Proof. apply /clty_mixin.clty_mono /clty_mixin. Qed.
+  Lemma clty_commute {ds ρ} :
+    clty_dslty c ρ (selfSubst ds) ⊢ clty_olty c anil ρ (vobj ds).
+  Proof. apply /clty_mixin.clty_commute /clty_mixin. Qed.
+End clty_mixin'.
+
 Section clty_ofe.
   Context {Σ}.
 
-  Let iso := (λ T : clty Σ, (clty_dslty T : _ -d> _, clty_olty T)).
-  Instance clty_equiv : Equiv (clty Σ) := λ A B, iso A ≡ iso B.
-  Instance clty_dist : Dist (clty Σ) := λ n A B, iso A ≡{n}≡ iso B.
+  Let clty_car : Type := (env -d> iPPredO dms Σ) * oltyO Σ.
+
+  Let iso : clty Σ -> clty_car :=
+    λ T : clty Σ, (clty_dslty T : _ -d> _, clty_olty T).
+  #[local] Instance clty_equiv : Equiv (clty Σ) := λ A B, iso A ≡ iso B.
+  #[local] Instance clty_dist : Dist (clty Σ) := λ n A B, iso A ≡{n}≡ iso B.
   Lemma clty_ofe_mixin : OfeMixin (clty Σ).
   Proof. exact: (iso_ofe_mixin iso). Qed.
+
+  Canonical Structure cltyO := OfeT (clty Σ) clty_ofe_mixin.
+
+  Let clty_pred : clty_car -> Prop := curry clty_mixin.pred.
+
+  Let clty_pred_alt (c : clty_car) : Prop :=
+    let dslty := fst c in
+    let olty := snd c in
+    (∀ l d ds ρ, dslty ρ [(l, d)] ⊢ dslty ρ ((l, d) :: ds)) ∧
+    (∀ l d ds ρ, dms_hasnt ds l → dslty ρ ds ⊢ dslty ρ ((l, d) :: ds)) ∧
+    (∀ ds ρ, dslty ρ (selfSubst ds) ⊢ olty anil ρ (vobj ds)).
+
+  #[local] Instance : LimitPreserving clty_pred.
+  Proof.
+    apply (limit_preserving_ext clty_pred_alt). {
+      move=> [dslty olty]; rewrite /clty_pred_alt /clty_pred; split => H.
+      by destruct_and?.
+      by destruct H.
+    }
+    repeat apply limit_preserving_and;
+      repeat (apply limit_preserving_forall; intro);
+      repeat apply limit_preserving_entails;
+      move=> n [dslty1 olty1] [dslty2 olty2] [/= Hds Ho];
+      first [apply Hds|apply Ho].
+  Qed.
+
+  #[global] Instance cofe_clty : Cofe cltyO.
+  Proof.
+    apply (iso_cofe_subtype' clty_pred (λ '(ds, o), _Clty ds o) iso).
+    by case.
+    by [].
+    by case.
+    apply _.
+  Qed.
 End clty_ofe.
-Canonical Structure cltyO Σ := OfeT (clty Σ) clty_ofe_mixin.
+Arguments cltyO : clear implicits.
 
 Section clty_ofe_proper.
   Context {Σ}.
 
   #[global] Instance clty_olty_ne : NonExpansive (clty_olty (Σ := Σ)).
   Proof. by move=> ???[/= _ H]. Qed.
-  #[global] Instance clty_olty_proper :
-    Proper ((≡) ==> (≡)) (clty_olty (Σ := Σ)) := ne_proper _.
+  #[global] Instance clty_olty_proper : Proper1 (clty_olty (Σ := Σ)) :=
+    ne_proper _.
 
   #[global] Instance clty_dslty_ne n :
     Proper (dist n ==> (=) ==> dist n) (clty_dslty (Σ := Σ)).
@@ -104,13 +164,13 @@ Section lift_dty_lemmas.
 
   #[global] Instance lift_dty_dms_ne l : NonExpansive (lift_dty_dms l).
   Proof. rewrite /lift_dty_dms/= => ??? ??/=; properness; solve_proper_ho. Qed.
-  #[global] Instance lift_dty_dms_proper l :
-    Proper ((≡) ==> (≡)) (lift_dty_dms l) := ne_proper _.
+  #[global] Instance lift_dty_dms_proper l : Proper1 (lift_dty_dms l) :=
+    ne_proper _.
 
   #[global] Instance lift_dty_vl_ne l : NonExpansive (lift_dty_vl l).
   Proof. rewrite /lift_dty_vl => ??; simplify_eq; solve_proper_ho. Qed.
-  #[global] Instance lift_dty_vl_proper l :
-    Proper ((≡) ==> (≡)) (lift_dty_vl l) := ne_proper _.
+  #[global] Instance lift_dty_vl_proper l : Proper1 (lift_dty_vl l) :=
+    ne_proper _.
 
   Lemma lift_dty_dms_singleton_eq' (TD : dlty Σ) l1 l2 ρ d :
     lift_dty_dms l1 TD ρ [(l2, d)] ⊣⊢ ⌜ l1 = l2 ⌝ ∧ TD ρ d.
@@ -150,13 +210,13 @@ Section DefsTypes.
 
   #[global] Instance olty2clty_ne : NonExpansive olty2clty.
   Proof. split; rewrite /=; by repeat f_equiv. Qed.
-  #[global] Instance olty2clty_proper :
-    Proper ((≡) ==> (≡)) olty2clty := ne_proper _.
+  #[global] Instance olty2clty_proper : Proper1 olty2clty :=
+    ne_proper _.
 
   #[global] Instance dty2clty_ne l : NonExpansive (dty2clty l).
   Proof. split; rewrite /dty2clty/=; by repeat f_equiv. Qed.
-  #[global] Instance dty2clty_proper l :
-    Proper ((≡) ==> (≡)) (dty2clty l) := ne_proper _.
+  #[global] Instance dty2clty_proper l : Proper1 (dty2clty l) :=
+    ne_proper _.
 
   Lemma dty2clty_singleton l (TD : dlty Σ) ρ d :
     dty2clty l TD ρ [(l, d)] ≡ TD ρ d.
@@ -168,7 +228,8 @@ Section DefsTypes.
   Program Definition cTop : clty Σ := Clty (Dslty (λI _ _, True)) oTop.
   Solve All Obligations with eauto.
 
-  #[global] Instance : Bottom (clty Σ) := olty2clty ⊥.
+  #[global] Instance clty_bottom : Bottom (clty Σ) := olty2clty ⊥.
+  #[global] Instance clty_inh : Inhabited (clty Σ) := populate ⊥.
 
   Program Definition cAnd (Tds1 Tds2 : clty Σ): clty Σ :=
     Clty (Dslty (λI ρ ds, Tds1 ρ ds ∧ Tds2 ρ ds)) (oAnd (c2o Tds1) (c2o Tds2)).
@@ -178,8 +239,8 @@ Section DefsTypes.
 
   #[global] Instance cAnd_ne : NonExpansive2 cAnd.
   Proof. split; rewrite /=; repeat f_equiv; solve_proper_ho. Qed.
-  #[global] Instance cAnd_proper:
-    Proper ((≡) ==> (≡) ==> (≡)) cAnd := ne_proper_2 _.
+  #[global] Instance cAnd_proper : Proper2 cAnd :=
+    ne_proper_2 _.
 
   Lemma cAnd_olty2clty T1 T2 :
     cAnd (olty2clty T1) (olty2clty T2) ≡ olty2clty (oAnd T1 T2).

@@ -46,13 +46,13 @@ End unstamped_judgs.
 Section unstamped_judgs_proper.
   Context `{!dlangG Σ}.
 
-  #[global] Instance suetp_proper e : Proper ((≡) ==> (≡) ==> (≡)) (suetp e).
+  #[global] Instance suetp_proper e : Proper2 (suetp e).
   Proof. rewrite /suetp => ??????. by repeat f_equiv. Qed.
 
-  #[global] Instance sudstp_proper ds : Proper ((≡) ==> (≡) ==> (≡)) (sudstp ds).
+  #[global] Instance sudstp_proper ds : Proper2 (sudstp ds).
   Proof. rewrite /sudstp => ??????; by repeat f_equiv. Qed.
 
-  #[global] Instance sudtp_proper l d : Proper ((≡) ==> (≡) ==> (≡)) (sudtp l d).
+  #[global] Instance sudtp_proper l d : Proper2 (sudtp l d).
   Proof. rewrite /sudtp => ??????. by repeat f_equiv. Qed.
 End unstamped_judgs_proper.
 

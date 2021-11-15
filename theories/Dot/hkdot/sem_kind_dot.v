@@ -25,8 +25,10 @@ Notation oDTMemRaw rK := (Dlty (λI ρ d, ∃ ψ, d ↗n ψ ∧ rK ρ ψ)).
 (** [ D⟦ { A :: K } ⟧ ]. *)
 Definition oDTMemK `{!dlangG Σ} (K : sf_kind Σ) : dltyO Σ :=
   oDTMemRaw (λI ρ ψ, K ρ (packHoLtyO ψ) (packHoLtyO ψ)).
+#[global] Instance : Params (@oDTMemK) 2 := {}.
 
 Definition cTMemK `{!dlangG Σ} l (K : sf_kind Σ) : clty Σ := dty2clty l (oDTMemK K).
+#[global] Instance : Params (@cTMemK) 3 := {}.
 Notation oTMemK l K := (clty_olty (cTMemK l K)).
 
 Definition oDTMemAnyKind `{!dlangG Σ} : dltyO Σ := Dlty (λI ρ d,
@@ -39,12 +41,12 @@ Section TMem_Proper.
 
   #[global] Instance oDTMemK_ne : NonExpansive (oDTMemK (Σ := Σ)).
   Proof. solve_proper_ho. Qed.
-  #[global] Instance oDTMemK_proper :
-    Proper ((≡) ==> (≡)) (oDTMemK (Σ := Σ)) := ne_proper _.
+  #[global] Instance oDTMemK_proper : Proper1 (oDTMemK (Σ := Σ)) :=
+    ne_proper _.
   #[global] Instance cTMemK_ne l : NonExpansive (cTMemK (Σ := Σ) l).
   Proof. solve_proper_ho. Qed.
-  #[global] Instance cTMemK_proper l :
-    Proper ((≡) ==> (≡)) (cTMemK (Σ := Σ) l) := ne_proper _.
+  #[global] Instance cTMemK_proper l : Proper1 (cTMemK (Σ := Σ) l) :=
+    ne_proper _.
 
   Lemma cTMemK_eq l (K : sf_kind Σ) d ρ :
     cTMemK l K ρ [(l, d)] ⊣⊢ oDTMemK K ρ d.
@@ -68,12 +70,17 @@ End TMem_Proper.
 (** Not a "real" kind, just a predicate over types. *)
 Definition dot_intv_type_pred `{!dlangG Σ} (L U : oltyO Σ) ρ ψ : iProp Σ :=
   L anil ρ ⊆ packHoLtyO ψ anil ∧ packHoLtyO ψ anil ⊆ U anil ρ.
+#[global] Instance : Params (@dot_intv_type_pred) 2 := {}.
 
 (** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
 Definition oDTMem `{!dlangG Σ} L U : dltyO Σ := oDTMemK (sf_kintv L U).
 Definition oDTMem_eq `{!dlangG Σ} : oDTMem = λ L U, oDTMemK (sf_kintv L U) := reflexivity _.
+#[global] Instance : Params (@oDTMem) 2 := {}.
 
-#[global] Arguments oDTMem {_ _} _ _  _ : assert.
+#[global] Arguments oDTMem {Σ _} L U ρ : rename.
+
+Definition cTMem `{!dlangG Σ} l L U : clty Σ := dty2clty l (oDTMem L U).
+#[global] Instance : Params (@cTMem) 3 := {}.
 
 Section sem_TMem.
   Context `{HdotG: !dlangG Σ}.
@@ -84,8 +91,11 @@ Section sem_TMem.
     rewrite oDTMem_eq => ρ d /=. f_equiv=> ψ; f_equiv. apply sr_kintv_refl.
   Qed.
 
-  #[global] Instance oDTMem_proper : Proper ((≡) ==> (≡) ==> (≡)) oDTMem.
-  Proof. move=> ??? ??? ??/=. properness; [done|]. exact: sr_kintv_proper. Qed.
+  #[global] Instance oDTMem_ne : NonExpansive2 oDTMem.
+  Proof. move=> ? ??? ??? ??/=. solve_proper. Qed.
+
+  #[global] Instance oDTMem_proper : Proper2 oDTMem :=
+    ne_proper_2 _.
 
   (** Define [cTMem] by lifting [oDTMem] to [clty]s. *)
   (**
@@ -93,9 +103,12 @@ Section sem_TMem.
   Beware: the ICFP'20 defines instead
   [ Ds⟦ { l >: τ1 <: τ2 } ⟧] and [ V⟦ { l >: τ1 <: τ2 } ⟧ ],
   which are here a derived notation; see [cTMemL]. *)
-  Definition cTMem l L U : clty Σ := dty2clty l (oDTMem L U).
-  #[global] Instance cTMem_proper l : Proper ((≡) ==> (≡) ==> (≡)) (cTMem l).
+
+  #[global] Instance cTMem_ne l : NonExpansive2 (cTMem l).
   Proof. solve_proper. Qed.
+
+  #[global] Instance cTMem_proper l : Proper2 (cTMem l) :=
+    ne_proper_2 _.
 
   Lemma cTMem_unfold l L U :
     cTMem l L U ≡ dty2clty l (oDTMemRaw (dot_intv_type_pred L U)).
@@ -138,8 +151,13 @@ Definition sem_kind_path_repl {Σ} p q (K1 K2 : sf_kind Σ) : Prop :=
 Notation "K1 ~sKpP[ p := q  ]* K2" :=
   (sem_kind_path_repl p q K1 K2) (at level 70).
 
-Definition oTApp `{!dlangG Σ} (T : oltyO Σ) (p : path) : oltyO Σ :=
+(* Arguments are ordered to optimize setoid rewriting and maximize [Params]. *)
+Definition _oTApp `{!dlangG Σ} (p : path) (T : oltyO Σ) : oltyO Σ :=
   Olty (λ args ρ v, path_wp p.|[ρ] (λ w, T (acons w args) ρ v)).
+#[global] Instance : Params (@_oTApp) 3 := {}.
+
+(* Show a more natural ordering to the user. *)
+Notation oTApp T p := (_oTApp p T).
 
 Program Definition kpSubstOne `{!dlangG Σ} p (K : sf_kind Σ) : sf_kind Σ :=
   SfKind
@@ -169,11 +187,11 @@ Notation "K .sKp[ p /]" := (kpSubstOne p K) (at level 65).
 Section proper_eq.
   Context `{!dlangG Σ}.
 
-  #[global] Instance oTApp_ne n : Proper ((dist n) ==> eq ==> (dist n)) oTApp.
-  Proof. move=> T1 T2 HT. solve_proper_prepare. apply: path_wp_ne=>v. exact: HT. Qed.
+  #[global] Instance _oTApp_ne p : NonExpansive (_oTApp p).
+  Proof. move=> n T1 T2 HT args ρ v /=. apply: path_wp_ne=> w. exact: HT. Qed.
 
-  #[global] Instance oTApp_proper : Proper ((≡) ==> eq ==> (≡)) oTApp.
-  Proof. move=> T1 T2 HT. solve_proper_prepare. apply: path_wp_proper=>v. exact: HT. Qed.
+  #[global] Instance _oTApp_proper p : Proper1 (_oTApp p) :=
+    ne_proper _.
 
   Lemma kpSubstOne_eq (K : sf_kind Σ) v :
     K.|[v/] ≡ K .sKp[ pv v /].

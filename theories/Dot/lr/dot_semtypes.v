@@ -93,7 +93,7 @@ Section sem_types.
     ∃ pmem, ⌜d = dpt pmem⌝ ∧ path_wp pmem (oClose τ ρ)).
   #[global] Instance oDVMem_ne : NonExpansive oDVMem.
   Proof. solve_proper_ho. Qed.
-  #[global] Instance oDVMem_proper : Proper ((≡) ==> (≡)) oDVMem :=
+  #[global] Instance oDVMem_proper : Proper1 oDVMem :=
     ne_proper _.
 
   Lemma oDVMem_eq T ρ p :
@@ -106,7 +106,7 @@ Section sem_types.
   Definition cVMem l τ : clty Σ := dty2clty l (oDVMem τ).
   #[global] Instance cVMem_ne l : NonExpansive (cVMem l).
   Proof. solve_proper. Qed.
-  #[global] Instance cVMem_proper l : Proper ((≡) ==> (≡)) (cVMem l) :=
+  #[global] Instance cVMem_proper l : Proper1 (cVMem l) :=
     ne_proper _.
 
   Lemma cVMem_eq l T d ρ :
@@ -322,7 +322,7 @@ Section Propers.
   Context `{HdotG: !dlangG Σ}.
 
   (** Judgments *)
-  #[global] Instance sstpd_proper i : Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (sstpd i).
+  #[global] Instance sstpd_proper i : Proper3 (sstpd i).
   Proof.
     solve_proper_ho.
     (* intros ?? HG ?? H1 ?? H2; rewrite /sstpd /subtype_lty;
@@ -330,23 +330,23 @@ Section Propers.
   Qed.
   #[global] Instance: Params (@sstpd) 3 := {}.
 
-  #[global] Instance setp_proper e : Proper ((≡) ==> (≡) ==> (≡)) (setp e).
+  #[global] Instance setp_proper e : Proper2 (setp e).
   Proof.
     solve_proper_ho.
     (* intros ?? HG ?? HT ???; simplify_eq/=. by properness; [rewrite HG|apply HT]. *)
   Qed.
   #[global] Instance: Params (@setp) 3 := {}.
 
-  #[global] Instance sdstp_proper ds : Proper ((≡) ==> (≡) ==> (≡)) (sdstp ds).
+  #[global] Instance sdstp_proper ds : Proper2 (sdstp ds).
   Proof.
-    rewrite /sdstp => ??? [?? _ _ _] [?? _ _ _] [/= ??]; properness; by f_equiv.
+    rewrite /sdstp => ??? [?? _] [?? _] [/= ??]; properness; by f_equiv.
   Qed.
   #[global] Instance: Params (@sdstp) 3 := {}.
 
-  #[global] Instance sdtp_proper l d : Proper ((≡) ==> (≡) ==> (≡)) (sdtp l d) := _.
+  #[global] Instance sdtp_proper l d : Proper2 (sdtp l d) := _.
   #[global] Instance: Params (@sdtp) 4 := {}.
 
-  #[global] Instance sptp_proper p i : Proper ((≡) ==> (≡) ==> (≡)) (sptp p i).
+  #[global] Instance sptp_proper p i : Proper2 (sptp p i).
   Proof. solve_proper_ho. Qed.
   #[global] Instance: Params (@sptp) 4 := {}.
 End Propers.

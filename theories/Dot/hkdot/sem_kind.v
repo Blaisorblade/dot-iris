@@ -154,7 +154,7 @@ Qed.
 (* This is really properness of sf_kind_sub; but it's also proper over the
 first argument K. Maybe that's worth a wrapper with swapped arguments. *)
 Lemma sf_kind_proper {Σ} (K : sf_kind Σ) ρ :
-  Proper ((≡) ==> (≡) ==> (≡)) (K ρ).
+  Proper2 (sf_kind_sub K ρ).
 Proof. move=> T1 T2 HT U1 U2 HU. exact: sf_kind_sub_proper. Qed.
 Lemma sf_kind_proper' {Σ} (K : sf_kind Σ) ρ T1 T2 :
   T1 ≡ T2 → K ρ T1 T1 ≡ K ρ T2 T2.
@@ -184,7 +184,7 @@ Section sf_kind_subst.
   Proof. solve_proper_ho. Qed.
 
   #[global] Instance hsubst_sf_kind_proper ρ :
-    Proper ((≡) ==> (≡)) (hsubst (outer := sf_kind Σ) ρ) := ne_proper _.
+    Proper1 (hsubst (outer := sf_kind Σ) ρ) := ne_proper _.
 
   Definition kSubstOne {Σ} v (K : sf_kind Σ) : sf_kind Σ :=
     kSub (λ ρ, v.[ρ] .: ρ) K.
@@ -212,31 +212,39 @@ Section sf_kind_subst.
     K.|[up (ren (+1))].|[ids 0/] ≡ K.
   Proof. move=> ρ /=; f_equiv; autosubst. Qed.
 
-  Definition oLam (τ : oltyO Σ) : oltyO Σ :=
-    Olty (λI args ρ, τ (atail args) (ahead args .: ρ)).
-    (* auncurry (λ v, Olty (λ args ρ, τ args (v .: ρ))). *)
-
-  Definition _oTAppV w (T : oltyO Σ) : oltyO Σ :=
-    Olty (λI args ρ, T (acons w.[ρ] args) ρ).
-
 End sf_kind_subst.
 
+Definition oLam {Σ} (τ : oltyO Σ) : oltyO Σ :=
+  Olty (λI args ρ, τ (atail args) (ahead args .: ρ)).
+  (* auncurry (λ v, Olty (λ args ρ, τ args (v .: ρ))). *)
+
+#[global] Instance: Params (@oLam) 1 := {}.
+
+(* Arguments are ordered to optimize setoid rewriting and maximize [Params]. *)
+Definition _oTAppV {Σ} w (T : oltyO Σ) : oltyO Σ :=
+  Olty (λI args ρ, T (acons w.[ρ] args) ρ).
+
+(* Show a more natural ordering to the user. *)
 Notation oTAppV T w := (_oTAppV w T).
-#[global] Instance: Params (@_oTAppV) 3 := {}.
+#[global] Instance: Params (@_oTAppV) 2 := {}.
+
+Definition sr_kintv `{dlangG Σ} (L U : oltyO Σ) : sr_kind Σ := λI ρ φ1 φ2,
+  oClose L ρ ⊆ oClose φ1 ⊆ oClose φ2 ⊆ oClose U ρ.
+#[global] Instance: Params (@sr_kintv) 3 := {}.
 
 Section utils.
   Context `{dlangG Σ}.
 
   #[global] Instance _oTAppV_ne v: NonExpansive (_oTAppV (Σ := Σ) v).
   Proof. solve_proper_ho. Qed.
-  #[global] Instance _oTAppV_proper v:
-    Proper ((≡) ==> (≡)) (_oTAppV (Σ := Σ) v) := ne_proper _.
+  #[global] Instance _oTAppV_proper v: Proper1 (_oTAppV (Σ := Σ) v) :=
+    ne_proper _.
 
   #[global] Instance oLam_ne : NonExpansive (oLam (Σ := Σ)).
   Proof. solve_proper_ho. Qed.
 
-  #[global] Instance oLam_proper :
-    Proper ((≡) ==> (≡)) (oLam (Σ := Σ)) := ne_proper _.
+  #[global] Instance oLam_proper : Proper1 (oLam (Σ := Σ)) :=
+    ne_proper _.
 
   Lemma oTAppV_subst (T : olty Σ) v ρ :
     (oTAppV T v).|[ρ] ≡ oTAppV T.|[ρ] v.[ρ].
@@ -248,9 +256,6 @@ Section utils.
   Lemma envApply_oTAppV_eq (T : olty Σ) v ρ :
     envApply (oTAppV T v) ρ ≡ acurry (envApply T ρ) v.[ρ].
   Proof. done. Qed.
-
-  Definition sr_kintv (L U : oltyO Σ) : sr_kind Σ := λI ρ φ1 φ2,
-    oClose L ρ ⊆ oClose φ1 ⊆ oClose φ2 ⊆ oClose U ρ.
 
   Lemma sr_kintv_refl L U ρ φ :
     sr_kintv L U ρ φ φ ⊣⊢ oClose L ρ ⊆ oClose φ ⊆ oClose U ρ.
@@ -302,6 +307,7 @@ Next Obligation.
   intros; rewrite sr_kintv_refl; iIntros "/= #(A & B & $)".
   iApply (subtype_trans with "A B").
 Qed.
+#[global] Instance : Params (@sf_kintv) 3 := {}.
 
 Notation sf_star := (sf_kintv oBot oTop).
 
@@ -335,19 +341,20 @@ Qed.
 Next Obligation.
   intros; iIntros "/= #H * #Harg"; iApply (sf_kind_sub_quasi_refl_2 with "(H Harg)").
 Qed.
+#[global] Instance : Params (@sf_kpi) 3 := {}.
 
 Section kinds_types.
   Context `{dlangG Σ}.
 
   #[global] Instance sf_kintv_ne : NonExpansive2 (sf_kintv (Σ := Σ)).
   Proof. rewrite /sf_kintv /sr_kintv. solve_proper_ho. Qed.
-  #[global] Instance sf_kintv_proper :
-    Proper ((≡) ==> (≡) ==> (≡)) (sf_kintv (Σ := Σ)) := ne_proper_2 _.
+  #[global] Instance sf_kintv_proper : Proper2 (sf_kintv (Σ := Σ)) :=
+    ne_proper_2 _.
 
   #[global] Instance sf_kpi_ne : NonExpansive2 (sf_kpi (Σ := Σ)).
   Proof. solve_proper_ho. Qed.
-  #[global] Instance sf_kpi_proper :
-    Proper ((≡) ==> (≡) ==> (≡)) (sf_kpi (Σ := Σ)) := ne_proper_2 _.
+  #[global] Instance sf_kpi_proper : Proper2 (sf_kpi (Σ := Σ)) :=
+    ne_proper_2 _.
 
   Lemma kShift_sf_kpi_eq S (K : sf_kind Σ) :
     kShift (sf_kpi S K) ≡ sf_kpi (oShift S) K.|[up (ren (+1))].
@@ -434,37 +441,43 @@ End s_kind_rel_proper.
 Section s_kind_rel_proper.
   Context {Σ}.
 
-  #[global] Instance s_kintv_ne : NonExpansive2 (s_kintv (Σ := Σ)).
-  Proof. apply _. Qed.
-  #[global] Instance s_kpi_ne n : NonExpansive2 (s_kpi (Σ := Σ) (n := n)).
-  Proof. apply _. Qed.
+  #[global] Instance s_kintv_ne : NonExpansive2 (s_kintv (Σ := Σ)) := _.
+  #[global] Instance s_kintv_proper : Proper2 (s_kintv (Σ := Σ)) := _.
 
-  #[global] Instance s_kintv_proper : Proper ((≡) ==> (≡) ==> (≡)) (s_kintv (Σ := Σ)).
-  Proof. apply _. Qed.
-  #[global] Instance s_kpi_proper n : Proper ((≡) ==> (≡) ==> (≡)) (s_kpi (Σ := Σ) (n := n)).
-  Proof. apply _. Qed.
+  #[global] Instance s_kpi_ne n : NonExpansive2 (s_kpi (Σ := Σ) (n := n)) := _.
+  #[global] Instance s_kpi_proper n : Proper2 (s_kpi (Σ := Σ) (n := n)) := _.
 End s_kind_rel_proper.
 
-#[global] Instance s_kind_ids {Σ} : ∀ n, Ids (s_kind Σ n) := fix s_kind_ids n := λ _,
+Fixpoint s_kind_dummy {Σ n} : s_kind Σ n :=
   match n with
   | 0 => s_kintv oTop oBot
-  | n.+1 => s_kpi inhabitant (s_kind_ids _ 0)
+  | n.+1 => s_kpi inhabitant s_kind_dummy
   end.
-Fixpoint s_kind_hsubst {Σ n} (ρ : env) (K : s_kindO Σ n) : s_kindO Σ n :=
+
+#[global] Instance s_kind_inhabited {Σ n} : Inhabited (s_kind Σ n) :=
+  populate s_kind_dummy.
+#[global] Instance s_kind_ids {Σ} {n} : Ids (s_kind Σ n) :=
+  ASubstLangDefUtils.inh_ids.
+
+#[global] Instance hsubst_s_kind {Σ} : ∀ {n}, HSubst vl (s_kind Σ n) :=
+  fix s_kind_hsubst {n} (ρ : env) (K : s_kindO Σ n) {struct K} : s_kindO Σ n :=
   match K with
   | s_kintv S1 S2 => s_kintv S1.|[ρ] S2.|[ρ]
-  | @s_kpi _ n S K =>
-    let _ : HSubst vl (s_kind Σ n) := s_kind_hsubst in
+  | @s_kpi _ n' S K =>
+    let _ : HSubst vl (s_kind Σ n') := s_kind_hsubst in
     s_kpi S.|[ρ] K.|[up ρ]
   end.
-#[global] Instance hsubst_s_kind {Σ n} : HSubst vl (s_kind Σ n) := s_kind_hsubst.
+(* TODO #381: does this work reasonably? *)
 #[global] Instance: Params (@hsubst_s_kind) 2 := {}.
 
 #[global] Instance s_kind_hsubst_lemmas {Σ n} : HSubstLemmas vl (s_kind Σ n).
 Proof.
   split => //.
   - elim=> [S1 S2|{}n S K IHK] /=; by rewrite /= ?up_id ?IHK !hsubst_id.
-  - elim: n => [//|n + θ x] /=. by move ->.
+  - (* Defining [s_kind_ids] using [inh_ids] gives slightly odd reduction rules. *)
+    rewrite /ids/s_kind_ids/ASubstLangDefUtils.inh_ids.
+    elim: n => [//|n + θ x] /=.
+    by move->.
   - move=> + + K; elim: K => [S1 S2|{}n S K IHK] θ η /=;
       by rewrite !hsubst_comp ?IHK ?up_comp.
 Qed.
@@ -486,7 +499,7 @@ Section s_kind_to_sf_kind.
     NonExpansive (s_kind_to_sf_kind (n := n)).
   Proof. by induction 1; cbn; f_equiv. Qed.
   #[global] Instance s_kind_to_sf_kind_proper {n} :
-    Proper ((≡) ==> (≡)) (s_kind_to_sf_kind (n := n)) := ne_proper _.
+    Proper1 (s_kind_to_sf_kind (n := n)) := ne_proper _.
 
   Lemma s_kind_equiv_intro {n} (K1 K2 : s_kind Σ n) : K1 ≡ K2 → s_to_sf K1 ≡@{sf_kind _} s_to_sf K2.
   Proof. apply s_kind_to_sf_kind_proper. Qed.
@@ -524,7 +537,7 @@ Section ho_intv.
   Qed.
 
   #[global] Instance ho_intv_proper {n}:
-    Proper ((≡) ==> (≡) ==> (≡) ==> (≡)) (ho_intv (n := n) (Σ := Σ)).
+    Proper3 (ho_intv (n := n) (Σ := Σ)).
   Proof.
     move=> K1 K2 /equiv_dist HK L1 L2 /equiv_dist HL U1 U2 /equiv_dist HU.
     apply /equiv_dist => m.

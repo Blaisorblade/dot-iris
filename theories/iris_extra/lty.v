@@ -117,8 +117,8 @@ Section subtype_lty.
 
   #[global] Instance subtype_lty_ne : NonExpansive2 (subtype_lty (Σ := Σ)).
   Proof. solve_proper_ho. Qed.
-  #[global] Instance subtype_lty_proper :
-    Proper ((≡) ==> (≡) ==> (≡)) (subtype_lty (Σ := Σ)) := ne_proper_2 _.
+  #[global] Instance subtype_lty_proper : Proper2 (subtype_lty (Σ := Σ)) :=
+    ne_proper_2 _.
 
   Lemma subtype_refl {T}: ⊢ T ⊆@{Σ} T.
   Proof. by iIntros "%v $". Qed.
@@ -156,8 +156,8 @@ Definition packHoLtyO {Σ} (φ : hoD Σ) : hoLtyO Σ :=
 #[global] Instance packHoLtyO_contractive {Σ} :
   Contractive (packHoLtyO (Σ := Σ)).
 Proof. solve_contractive_ho. Qed.
-#[global] Instance packHoLtyO_proper {Σ} :
-  Proper ((≡) ==> (≡)) (packHoLtyO (Σ := Σ)) := contractive_proper _.
+#[global] Instance packHoLtyO_proper {Σ} : Proper1 (packHoLtyO (Σ := Σ)) :=
+  contractive_proper _.
 
 (** ** Substitution over [olty]. *)
 Section olty_subst.
@@ -254,7 +254,7 @@ Section olty_subst.
   Proof. solve_proper_ho. Qed.
 
   #[global] Instance hsubst_olty_proper ρ :
-    Proper ((≡) ==> (≡)) (hsubst (outer := oltyO Σ) ρ) := ne_proper _.
+    Proper1 (hsubst (outer := oltyO Σ) ρ) := ne_proper _.
 
   Lemma olty_subst_compose_ind τ args ρ1 ρ2 v: τ.|[ρ1] args ρ2 v ⊣⊢ τ args (ρ1 >> ρ2) v.
   Proof. apply hoEnvD_subst_compose_ind. Qed.
@@ -291,7 +291,8 @@ Section olty_subst.
 
   #[global] Instance oShift_ne: NonExpansive oShift.
   Proof. solve_proper_ho. Qed.
-  #[global] Instance oShift_proper : Proper ((≡) ==> (≡)) oShift := ne_proper _.
+  #[global] Instance oShift_proper : Proper1 oShift :=
+    ne_proper _.
 End olty_subst.
 
 #[global] Instance: Params (@oShift) 1 := {}.
@@ -313,6 +314,12 @@ Section oShift.
 End oShift.
 
 Notation oClose τ := (τ anil) (only parsing).
+
+Definition interp_expr `{dlangG Σ} (φ : hoEnvD Σ) : envPred tm Σ :=
+  λI ρ t, WP t {{ oClose φ ρ }}.
+#[global] Arguments interp_expr /.
+
+Notation "sE⟦ τ ⟧" := (interp_expr τ).
 
 (** Semantic typing contexts [Γ]; the paper only uses syntactic typing
 contexts [Γ]. *)
@@ -346,7 +353,7 @@ Section env_oltyped.
   Qed.
 
   #[global] Instance env_oltyped_proper ρ :
-    Proper ((≡) ==> (≡)) (env_oltyped ρ) := ne_proper _.
+    Proper1 (env_oltyped ρ) := ne_proper _.
 
   Lemma s_interp_env_lookup Γ ρ (τ : olty Σ) x:
     Γ !! x = Some τ →
@@ -359,16 +366,18 @@ Section env_oltyped.
       iApply (hoEnvD_weaken_one (shiftN x τ)).
       iApply (IHΓ (stail ρ) x Hx with "Hg").
   Qed.
-
-  Definition interp_expr (φ : hoEnvD Σ) : envPred tm Σ :=
-    λI ρ t, WP t {{ oClose φ ρ }}.
-  #[global] Arguments interp_expr /.
 End env_oltyped.
-
-Notation "sE⟦ τ ⟧" := (interp_expr τ).
 
 (** ** Constructors for language-independent semantic types, corresponding to
 [⊤], [⊥], [T₁ ∧ T₂], [T₁ ∨ T₂], [μ x. T], [▷]. *)
+
+(** *** We can define once and for all basic "logical" types: top, bottom, and, or, later and μ. *)
+
+(** Semantic type constructor for [⊤] *)
+Definition oTop {Σ} : oltyO Σ := ⊤.
+
+(** Semantic type constructor for [⊥] *)
+Definition oBot {Σ} : oltyO Σ := ⊥.
 
 (** Semantic type constructor for [▷^n T] *)
 Definition oLaterN {Σ} n (τ : oltyO Σ) := Olty (λI args ρ v, ▷^n τ args ρ v).
@@ -376,14 +385,52 @@ Definition oLaterN {Σ} n (τ : oltyO Σ) := Olty (λI args ρ v, ▷^n τ args 
 Notation oLater := (oLaterN 1).
 #[global] Instance: Params (@oLaterN) 2 := {}.
 
-Section olty_ofe_2.
+(** Semantic type constructor for [T₁ ∧ T₂] *)
+Definition oAnd {Σ} (τ1 τ2 : oltyO Σ) : oltyO Σ := Olty (λI args ρ v, τ1 args ρ v ∧ τ2 args ρ v).
+(** Semantic type constructor for [T₁ ∨ T₂] *)
+Definition oOr {Σ} (τ1 τ2 : oltyO Σ) : oltyO Σ := Olty (λI args ρ v, τ1 args ρ v ∨ τ2 args ρ v).
+(** Semantic type constructor for [μ x. T] *)
+Definition oMu {Σ} (τ : oltyO Σ) : oltyO Σ := Olty (λI args ρ v, τ args (v .: ρ) v).
+
+#[global] Instance: Params (@oAnd) 1 := {}.
+#[global] Instance: Params (@oOr) 1 := {}.
+#[global] Instance: Params (@oMu) 1 := {}.
+
+Section olty_proper.
+  Context {Σ}.
+
+  Definition olty0 (φ : envD Σ) : oltyO Σ :=
+    Olty (aopen φ).
+
+  #[global] Instance oLaterN_ne m : NonExpansive (oLaterN (Σ := Σ) m).
+  Proof. solve_proper_ho. Qed.
+  #[global] Instance oLaterN_proper m : Proper1 (oLaterN m) :=
+    ne_proper _.
+
+  #[global] Instance oAnd_ne : NonExpansive2 (oAnd (Σ := Σ)).
+  Proof. solve_proper_ho. Qed.
+  #[global] Instance oAnd_proper : Proper2 oAnd :=
+    ne_proper_2 _.
+
+  #[global] Instance oOr_ne : NonExpansive2 (oOr (Σ := Σ)).
+  Proof. solve_proper_ho. Qed.
+  #[global] Instance oOr_proper : Proper2 oOr :=
+    ne_proper_2 _.
+
+  #[global] Instance oMu_ne : NonExpansive (oMu (Σ := Σ)).
+  Proof. solve_proper_ho. Qed.
+  #[global] Instance oMu_proper : Proper1 oMu :=
+    ne_proper _.
+End olty_proper.
+
+Section olty_lemmas.
   Context {Σ}.
   Implicit Types (φ : hoEnvD Σ) (τ : oltyO Σ).
 
+  #[global] Instance top_olty : Top (oltyO Σ) := Olty ⊤.
+  #[global] Instance bot_olty : Bottom (oltyO Σ) := Olty ⊥.
+
   (** oLaterN *)
-  #[global] Instance oLaterN_ne m : NonExpansive (oLaterN (Σ := Σ) m).
-  Proof. solve_proper_ho. Qed.
-  #[global] Instance oLaterN_proper m : Proper ((≡) ==> (≡)) (oLaterN m) := ne_proper _.
 
   Lemma oLaterN_eq n τ args ρ v : oLaterN n τ args ρ v = (▷^n τ args ρ v)%I.
   Proof. done. Qed.
@@ -404,39 +451,6 @@ Section olty_ofe_2.
     oLaterN (m + n) T ≡ oLaterN m (oLaterN n T).
   Proof. move=> ???. by rewrite/= laterN_plus. Qed.
 
-  Definition olty0 (φ : envD Σ) : oltyO Σ :=
-    Olty (aopen φ).
-
-  (** *** We can define once and for all basic "logical" types: top, bottom, and, or, later and μ. *)
-
-  (** Semantic type constructor for [⊤] *)
-  Definition oTop : oltyO Σ := ⊤.
-  #[global] Instance top_olty : Top (oltyO Σ) := Olty ⊤.
-
-  (** Semantic type constructor for [⊥] *)
-  Definition oBot : oltyO Σ := ⊥.
-  #[global] Instance bot_olty : Bottom (oltyO Σ) := Olty ⊥.
-
-  (** Semantic type constructor for [T₁ ∧ T₂] *)
-  Definition oAnd τ1 τ2 : oltyO Σ := Olty (λI args ρ v, τ1 args ρ v ∧ τ2 args ρ v).
-  #[global] Instance oAnd_ne : NonExpansive2 oAnd.
-  Proof. solve_proper_ho. Qed.
-  #[global] Instance oAnd_proper : Proper ((≡) ==> (≡) ==> (≡)) oAnd :=
-    ne_proper_2 _.
-
-  (** Semantic type constructor for [T₁ ∨ T₂] *)
-  Definition oOr τ1 τ2 : oltyO Σ := Olty (λI args ρ v, τ1 args ρ v ∨ τ2 args ρ v).
-  #[global] Instance oOr_ne : NonExpansive2 oOr.
-  Proof. solve_proper_ho. Qed.
-  #[global] Instance oOr_proper : Proper ((≡) ==> (≡) ==> (≡)) oOr :=
-    ne_proper_2 _.
-
-  (** Semantic type constructor for [μ x. T] *)
-  Definition oMu (τ : oltyO Σ) : oltyO Σ := Olty (λI args ρ v, τ args (v .: ρ) v).
-  #[global] Instance oMu_ne : NonExpansive oMu.
-  Proof. solve_proper_ho. Qed.
-  #[global] Instance oMu_proper : Proper ((≡) ==> (≡)) oMu := ne_proper _.
-
   Lemma oMu_eq (τ : oltyO Σ) args ρ v : oMu τ args ρ v = τ args (v .: ρ) v.
   Proof. done. Qed.
 
@@ -444,7 +458,7 @@ Section olty_ofe_2.
   Proof. move=> args ρ v. by rewrite /= (hoEnvD_weaken_one T args _ v). Qed.
 
   Lemma sTEq_oLaterN_oTop n :
-    oLaterN n oTop ≡ oTop.
+    oLaterN (Σ := Σ) n oTop ≡ oTop.
   Proof. iIntros; eauto. Qed.
 
   Lemma sTEq_oLaterN_oMu (τ : oltyO Σ) n :
@@ -458,9 +472,5 @@ Section olty_ofe_2.
   Lemma sTEq_oLaterN_oOr (τ1 τ2 : oltyO Σ) n :
     oLaterN n (oOr τ1 τ2) ≡ oOr (oLaterN n τ1) (oLaterN n τ2).
   Proof. move => args ρ v /=. by rewrite laterN_or. Qed.
-End olty_ofe_2.
-
-#[global] Instance: Params (@oAnd) 2 := {}.
-#[global] Instance: Params (@oOr) 2 := {}.
-#[global] Instance: Params (@oMu) 2 := {}.
+End olty_lemmas.
 End Lty.
