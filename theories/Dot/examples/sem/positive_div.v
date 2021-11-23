@@ -55,7 +55,7 @@ Ltac wp_bin := iApply wp_wand; [wp_bin_base | iIntros].
 
 #[local] Open Scope Z_scope.
 
-  Import hoasNotation.
+Import hoasNotation.
 
 (* Generic useful lemmas — not needed for fundamental theorem,
     but very useful for examples. *)

@@ -123,15 +123,15 @@ Section log_rel.
   replace T by o (for most constructors) or by c (for constructors producing
   cltys). *)
   Fixpoint kind_interp (K : kind) : sf_kind Σ :=
-    let rec_ty := ty_interp : CTyInterp Σ in
-    let rec_kind := kind_interp : SfKindInterp Σ in
+    let rec_ty : CTyInterp Σ := ty_interp in
+    let rec_kind : SfKindInterp Σ := kind_interp in
     match K with
     | kintv L U => sf_kintv V⟦ L ⟧ V⟦ U ⟧
     | kpi S K => sf_kpi V⟦ S ⟧ K⟦ K ⟧
     end
    with ty_interp (T : ty) : clty Σ :=
-    let rec_ty := ty_interp : CTyInterp Σ in
-    let rec_kind := kind_interp : SfKindInterp Σ in
+    let rec_ty : CTyInterp Σ := ty_interp in
+    let rec_kind : SfKindInterp Σ := kind_interp in
     match T with
     | kTTMem l K => cTMemK l K⟦ K ⟧
     | TVMem l T' => cVMem l V⟦ T' ⟧
@@ -163,9 +163,10 @@ Section log_rel.
       K⟦ K.|[ρ1] ⟧ ρ2 τ1 τ2 ⊣⊢ K⟦ K ⟧ (ρ1 >> ρ2) τ1 τ2).
   Proof.
     rewrite /pty_interp; apply tp_kn_mut_ind; intros;
-      rewrite /= /pty_interp /sr_kintv /subtype_lty; properness;
-      rewrite ?scons_up_swap ?hsubst_comp; trivial.
-    all: by apply path_wp_proper => ?.
+      rewrite /= /pty_interp /sr_kintv /subtype_lty.
+    all: properness.
+    all: rewrite ?scons_up_swap ?hsubst_comp; trivial.
+    all: try by apply path_wp_proper => ?.
   Qed.
 
   #[global] Instance pinterp_lemmas : CTyInterpLemmas Σ.
