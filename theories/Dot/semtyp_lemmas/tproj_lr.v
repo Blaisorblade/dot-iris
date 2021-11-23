@@ -78,7 +78,7 @@ End existentials.
   (model-level) existentials and normal DOT type members:
     [V[[T#A]](ρ) = { v | ∃ w ∈ V[[T]](ρ). v ∈ V[[w.A]](ρ) }].
 *)
-Definition oProj `{!dlangG Σ} A (T : oltyO Σ) : oltyO Σ :=
+Definition oProj `{!dlangG Σ} `{!RecTyInterp Σ} A (T : oltyO Σ) : oltyO Σ :=
   Olty (λI args ρ v,
   ∃ w,
   (* w ∈ T *)
@@ -90,11 +90,13 @@ Definition oProj `{!dlangG Σ} A (T : oltyO Σ) : oltyO Σ :=
 #[global] Instance : Params (@oProj) 3 := {}.
 
 Section type_proj_setoid_equality.
-  Context `{!dlangG Σ}.
+  Context `{!dlangG Σ} `{!RecTyInterp Σ}.
 
   Definition oProjN_oExists `{!dlangG Σ} A T :
     oProj A T ≡ oExists T (oSel (pv (ids 0)) A) := reflexivity _.
 
+  (* Note: we can skip contractiveness over [RecTyInterp], simply because [oProjN]
+  is not used when constructing the fixpoint. *)
   #[global] Instance oProjN_ne A : NonExpansive (oProj A).
   Proof. solve_proper_ho. Qed.
   #[global] Instance oProjN_proper A : Proper1 (oProj A) :=

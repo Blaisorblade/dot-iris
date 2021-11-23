@@ -142,6 +142,7 @@ Section log_rel.
    with ty_interp (T : ty) : clty Σ :=
     let rec_ty : CTyInterp Σ := ty_interp in
     let rec_kind : SfKindInterp Σ := kind_interp in
+    let hrec : RecTyInterp Σ := pty_interp in
     match T with
     | kTTMem l K => cTMemK l K⟦ K ⟧
     | TVMem l T' => cVMem l V⟦ T' ⟧
@@ -163,6 +164,7 @@ Section log_rel.
 
   #[global] Instance dot_ty_interp : CTyInterp Σ := Reduce ty_interp.
   #[global] Instance dot_kind_interp : SfKindInterp Σ := Reduce kind_interp.
+  #[global] Instance dot_rec_ty_interp : RecTyInterp Σ := pty_interp.
 
   Section kinterp_lemmas.
     Lemma kinterp_kintv L U : K⟦ kintv L U ⟧ ≡ sf_kintv V⟦ L ⟧ V⟦ U ⟧.

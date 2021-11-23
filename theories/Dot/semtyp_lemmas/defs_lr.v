@@ -8,7 +8,7 @@ Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
 Section Sec.
-  Context `{HdlangG : !dlangG Σ}.
+  Context `{HdotG : !dlangG Σ} `{!RecTyInterp Σ}.
 
   (** Lemmas about definition typing. *)
   Lemma sD_Path {Γ} T p l :

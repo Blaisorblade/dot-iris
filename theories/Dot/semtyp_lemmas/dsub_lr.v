@@ -13,7 +13,7 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 
 Section DStpLemmas.
-  Context `{HdotG : !dlangG Σ}.
+  Context `{HdotG : !dlangG Σ} `{!RecTyInterp Σ}.
 
   Lemma sstpd_delay_oLaterN `{!SwapPropI Σ} Γ i T1 T2 :
     Γ s⊨ oLaterN i T1 <:[0] oLaterN i T2 ⊣⊢

@@ -297,16 +297,23 @@ Section path_repl.
   (* The reverse does not hold. *)
 End path_repl.
 
+Definition RecTyInterp Σ : Type := ty -d> hoEnvD Σ.
+Existing Class RecTyInterp.
+Typeclasses Transparent RecTyInterp.
+
 (** When a definition points to a semantic type. Inlined in paper. *)
-Definition dm_to_type `{HdotG : !dlangG Σ} d (ψ : hoD Σ) : iProp Σ :=
+Definition dm_to_type `{HdotG : !dlangG Σ} d (ψ : hoD Σ) {rinterp : RecTyInterp Σ} : iProp Σ :=
   match d with
   | dtysem σ s => s ↗n[ σ ] ψ
   | _ => False
   end.
+#[global] Instance dm_to_type_ne `{HdotG : !dlangG Σ} d n :
+  Proper (dist_later n ==> dist_later n ==> dist n) (dm_to_type d).
+Proof. solve_contractive_ho. Qed.
 Notation "d ↗ ψ" := (dm_to_type d ψ) (at level 20).
 
 Section dm_to_type.
-  Context `{HdotG : !dlangG Σ}.
+  Context `{HdotG : !dlangG Σ} `{rinterp : !RecTyInterp Σ}.
 
   Lemma dm_to_type_agree {d ψ1 ψ2} args v : d ↗ ψ1 -∗ d ↗ ψ2 -∗ ▷ (ψ1 args v ≡ ψ2 args v).
   Proof.
