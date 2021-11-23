@@ -37,7 +37,7 @@ Import prelude.
 Set Implicit Arguments.
 Unset Strict Implicit.
 Set Suggest Proof Using.
-Set Default Proof Using "Type*".
+Set Default Proof Using "Type".
 
 Section hoas.
   Import hoasNotation.
@@ -82,6 +82,7 @@ Definition optionTy pOpt pCore := TAnd (pOpt @; "Option") (type "T" >: ⊥ <: (p
 
 Section semExample.
 Context `{HdlangG : !dlangG Σ} `{HswapProp : !SwapPropI Σ}.
+#[local] Set Default Proof Using "Type*".
 
 Definition tTop : ty := ⊤.
 

@@ -11,7 +11,7 @@ From D.Dot.examples.sem Require Export sub_lr sub_lr_syn.
 From D.Dot.examples.sem Require Import storeless_typing.
 
 Set Suggest Proof Using.
-Set Default Proof Using "Type*".
+Set Default Proof Using "Type".
 Set Implicit Arguments.
 Unset Strict Implicit.
 
@@ -110,6 +110,7 @@ End storeless_unstamped_lemmas.
 
 Section old_fundamental.
   Context `{!dlangG Σ} `{!SwapPropI Σ}.
+  #[local] Set Default Proof Using "Type*".
 
   (* Make proofs below more robust by opaquifying judgments. *)
   Opaque setp sdstp sdtp sptp sstpi suetp sudtp sudstp.

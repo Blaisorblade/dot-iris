@@ -24,7 +24,7 @@ Implicit Types (Σ : gFunctors).
 Implicit Types (v : vl) (e : tm) (d : dm) (ds : dms) (ρ : env) (l : label).
 
 Set Suggest Proof Using.
-Set Default Proof Using "Type*".
+Set Default Proof Using "Type".
 
 Definition oExists `{!dlangG Σ} (T : oltyO Σ) (U : oltyO Σ) : oltyO Σ :=
   Olty (λI args ρ v,

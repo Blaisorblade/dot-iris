@@ -12,7 +12,7 @@ From iris.program_logic Require ectx_language.
 From iris.program_logic Require Import ectxi_language.
 
 Set Suggest Proof Using.
-Set Default Proof Using "Type*".
+Set Default Proof Using "Type".
 
 (**
 This module is included right away, but it asserts explicitly
@@ -650,6 +650,7 @@ Implicit Types (vs : vls).
 (** *** Induction principles for syntax. *)
 
 Section syntax_mut_ind.
+  #[local] Set Default Proof Using "Type*".
   Variable Ptm : tm   → Prop.
   Variable Pvl : vl   → Prop.
   Variable Pdm : dm   → Prop.
@@ -727,6 +728,7 @@ Section syntax_mut_ind.
 End syntax_mut_ind.
 
 Section type_kind_mut_ind.
+  #[local] Set Default Proof Using "Type*".
   Variable Pty : ty   → Prop.
   Variable Pkn : kind → Prop.
 

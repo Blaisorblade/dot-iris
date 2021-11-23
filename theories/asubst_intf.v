@@ -64,7 +64,7 @@ End rename_instances.
 
 Section vls_subst_instances.
   Context `{Ids vl} `{Subst vl} `{SubstLemmas vl}.
-  Set Default Proof Using "Type*".
+  #[local] Set Default Proof Using "Type*".
 
   #[global] Instance vls_hsubst : HSubst vl (list vl) :=
     λ sb, map (subst sb).
@@ -84,7 +84,7 @@ End vls_subst_instances.
 Section list_hsubst_instances.
   Context `{Ids vl} `{Subst vl}.
   Context `{Ids X} `{Rename X} `{HSubst vl X} {hsl : HSubstLemmas vl X}.
-  Set Default Proof Using "Type*".
+  #[local] Set Default Proof Using "Type*".
 
   #[global] Instance list_hsubst : HSubst vl (list X) :=
     λ sb, map (hsubst sb).
@@ -231,7 +231,7 @@ Module Type SortsSig (Import V : ValuesSig).
   Section sort_lemmas.
     Context `{_HsX : Sort X}.
     Implicit Types (x : X).
-    Set Default Proof Using "Type*".
+    #[local] Set Default Proof Using "Type*".
 
     Lemma hrenS x n : shiftN (S n) x = shift (shiftN n x).
     Proof. rewrite hsubst_comp renS_comp. by []. Qed.

@@ -3,7 +3,7 @@ From iris.program_logic Require Import language.
 From D Require Import prelude asubst_intf.
 
 Set Suggest Proof Using.
-Set Default Proof Using "Type*".
+Set Default Proof Using "Type".
 
 (** The module type [Sorts] is a "mixin module" that is included directly in
 each language implementing [ValuesSig],
@@ -203,6 +203,7 @@ Qed.
 
 Section sort_lemmas.
 Context `{_HsX : Sort X}.
+#[local] Set Default Proof Using "Type*".
 Implicit Types (x : X) (Γ : list X).
 
 (* Dead but still potentially useful. *)
@@ -262,6 +263,7 @@ End sort_lemmas.
 
 Section sort_lemmas_2.
 Context `{_HiA : Inhabited A} `{_HsX : Sort X}.
+#[local] Set Default Proof Using "Type*".
 Implicit Types (a : A) (x : X) (Γ : list X) (axs : list (A * X)).
 
 Lemma fv_pair_inv a x n : nclosed (a, x) n → nclosed x n.

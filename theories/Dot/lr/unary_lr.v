@@ -9,7 +9,7 @@ From D.Dot Require Export dot_lty dot_semtypes sem_kind_dot.
 
 Unset Program Cases.
 Set Suggest Proof Using.
-Set Default Proof Using "Type*".
+Set Default Proof Using "Type".
 
 Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
@@ -50,7 +50,7 @@ Class CTyInterpLemmas Σ `{!CTyInterp Σ} := {
 (** Corollaries of [CTyInterpLemmas]. *)
 Section logrel_binding_lemmas.
   Context `{Htil : CTyInterpLemmas Σ}.
-  Set Default Proof Using "Type*".
+  #[local] Set Default Proof Using "Type*".
 
   Lemma interp_subst_compose T {args} ρ1 ρ2 ρ3 :
     ρ1 >> ρ2 = ρ3 → V⟦ T.|[ρ1] ⟧ args ρ2 ≡ V⟦ T ⟧ args ρ3.

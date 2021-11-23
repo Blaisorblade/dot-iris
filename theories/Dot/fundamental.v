@@ -7,7 +7,7 @@ From D.Dot Require Export sem_unstamped_typing.
 
 From D.Dot Require Import typing path_repl_lemmas.
 Set Suggest Proof Using.
-Set Default Proof Using "Type*".
+Set Default Proof Using "Type".
 Set Implicit Arguments.
 Unset Strict Implicit.
 
@@ -15,6 +15,7 @@ Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (ds : dms) (Γ : ctx).
 
 Section fundamental.
   Context `{!dlangG Σ} `{!SwapPropI Σ}.
+  #[local] Set Default Proof Using "Type*".
 
   (* Make proofs below more robust by opaquifying judgments. *)
   Opaque setp sdstp sdtp sptp suetp sudstp.

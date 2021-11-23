@@ -10,7 +10,7 @@ From D.Dot Require Export dot_lty sem_kind_dot.
 
 Unset Program Cases.
 Set Suggest Proof Using.
-Set Default Proof Using "Type*".
+Set Default Proof Using "Type".
 
 Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
@@ -298,7 +298,7 @@ Section path_repl_lemmas.
     alias_paths p.|[ρ] q.|[ρ] → (* p : q.type *)
     ⌜alias_paths p1.|[ρ] (pv v)⌝ ⊣⊢@{iPropI Σ} ⌜alias_paths p2.|[ρ] (pv v)⌝.
     (* alias_paths p1.|[ρ] (pv v) ↔ alias_paths p2.|[ρ] (pv v). *)
-  Proof.
+  Proof using Type*.
     intros Hrew Hal.
     rewrite !alias_paths_pv_eq_1 -!path_wp_pureable.
     exact: path_replacement_equiv.
