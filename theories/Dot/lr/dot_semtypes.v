@@ -79,7 +79,7 @@ End JudgEqs.
 
 (** ** gDOT semantic types. *)
 Definition vl_sel `{!dlangG Σ} vp l args v : iProp Σ :=
-  ∃ d ψ, ⌜vp @ l ↘ d⌝ ∧ d ↗n ψ ∧ packHoLtyO ψ args v.
+  ∃ d ψ, ⌜vp @ l ↘ d⌝ ∧ d ↗ ψ ∧ packHoLtyO ψ args v.
 
 Definition oSel `{!dlangG Σ} p l : oltyO Σ :=
   Olty (λI args ρ v, path_wp p.|[ρ] (λ vp, vl_sel vp l args v)).
@@ -115,7 +115,7 @@ Section sem_types.
 
   Lemma oSel_pv w l args ρ v :
     oSel (pv w) l args ρ v ⊣⊢
-      ∃ d ψ, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗n ψ ∧ ▷ ψ args v.
+      ∃ d ψ, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗ ψ ∧ ▷ ψ args v.
   Proof. by rewrite /= path_wp_pv_eq. Qed.
 
   (** [ V⟦ p.type ⟧]. *)

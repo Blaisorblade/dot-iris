@@ -20,7 +20,7 @@ Implicit Types
          (ρ : var → vl) (l : label).
 
 (** * Type members *)
-Notation oDTMemRaw rK := (Dlty (λI ρ d, ∃ ψ, d ↗n ψ ∧ rK ρ ψ)).
+Notation oDTMemRaw rK := (Dlty (λI ρ d, ∃ ψ, d ↗ ψ ∧ rK ρ ψ)).
 
 (** [ D⟦ { A :: K } ⟧ ]. *)
 Definition oDTMemK `{!dlangG Σ} (K : sf_kind Σ) : dltyO Σ :=
@@ -32,7 +32,7 @@ Definition cTMemK `{!dlangG Σ} l (K : sf_kind Σ) : clty Σ := dty2clty l (oDTM
 Notation oTMemK l K := (clty_olty (cTMemK l K)).
 
 Definition oDTMemAnyKind `{!dlangG Σ} : dltyO Σ := Dlty (λI ρ d,
-  ∃ (ψ : hoD Σ), d ↗n ψ).
+  ∃ (ψ : hoD Σ), d ↗ ψ).
 Definition cTMemAnyKind `{!dlangG Σ} l : clty Σ := dty2clty l oDTMemAnyKind.
 Notation oTMemAnyKind l := (clty_olty (cTMemAnyKind l)).
 
@@ -54,7 +54,7 @@ Section TMem_Proper.
 
   Lemma oTMemK_eq l K args ρ v :
     oTMemK l K args ρ v ⊣⊢
-    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗n ψ ∧ K ρ (packHoLtyO ψ) (packHoLtyO ψ).
+    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗ ψ ∧ K ρ (packHoLtyO ψ) (packHoLtyO ψ).
   Proof. apply bi_exist_nested_swap. Qed.
 
   Lemma cTMemAnyKind_eq l d ρ :
@@ -130,7 +130,7 @@ Section oTMem_lemmas.
 
   Lemma oTMem_eq l L U args ρ v :
     oTMem l L U args ρ v ⊣⊢
-    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗n ψ ∧ dot_intv_type_pred L U ρ ψ.
+    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗ ψ ∧ dot_intv_type_pred L U ρ ψ.
   Proof. rewrite oTMem_unfold. apply bi_exist_nested_swap. Qed.
 
   Lemma oTMem_shift A L U : oTMem A (shift L) (shift U) = shift (oTMem A L U).
