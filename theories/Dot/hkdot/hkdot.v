@@ -54,6 +54,8 @@ Arguments sSkd : simpl never.
 Notation "Γ s⊨ K1 <∷[ i  ] K2" := (sSkd i Γ K1 K2)
   (at level 74, K1, K2 at next level).
 
+Notation sf_sngl T := (sf_kintv T T).
+
 Section gen_lemmas.
   Context `{Hdlang : dlangG Σ} `{HswapProp : SwapPropI Σ}.
 
@@ -204,8 +206,6 @@ Section gen_lemmas.
   Qed.
 
   (** * Prefixes: K for Kinding, KStp for kinded subtyping, Skd for subkinding. *)
-
-  Definition sf_sngl (T : oltyO Σ) : sf_kind Σ := sf_kintv T T.
 
   Lemma sK_Sing Γ (T : oltyO Σ) i :
     ⊢ Γ s⊨ T ∷[ i ] sf_sngl T.
