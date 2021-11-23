@@ -74,7 +74,7 @@ Definition dot_intv_type_pred `{!dlangG Σ} (L U : oltyO Σ) ρ ψ : iProp Σ :=
 
 (** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
 Definition oDTMem `{!dlangG Σ} L U : dltyO Σ := oDTMemK (sf_kintv L U).
-Definition oDTMem_eq `{!dlangG Σ} : oDTMem = λ L U, oDTMemK (sf_kintv L U) := reflexivity _.
+Definition oDTMem_eq `{!dlangG Σ} L U : oDTMem L U = oDTMemK (sf_kintv L U) := reflexivity _.
 #[global] Instance : Params (@oDTMem) 2 := {}.
 
 #[global] Arguments oDTMem {Σ _} L U ρ : rename.
