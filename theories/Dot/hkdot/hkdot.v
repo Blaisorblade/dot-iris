@@ -912,8 +912,7 @@ Section dot_experimental_kinds.
     iEval (rewrite sstpiK_star_eq_sstpd) in "Hs1".
     iDestruct (sSngl_Stp_Sym with "Hp Hs1") as "Hs2".
     iEval (rewrite -sstpiK_star_eq_sstpd) in "Hs1 Hs2".
-    iFrame "#".
-    (* iCombine "Hs Hs'" as "Hs2". *)
+    iFrame "Hs2".
     iSplit.
     by iApply (sKStp_Trans with "HL Hs1").
     by iApply (sKStp_Trans with "Hs1 HU").
