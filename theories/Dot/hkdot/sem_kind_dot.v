@@ -47,6 +47,10 @@ Section TMem_Proper.
   Proof. solve_proper_ho. Qed.
   #[global] Instance cTMemK_proper l : Proper1 (cTMemK (Σ := Σ) l) :=
     ne_proper _.
+End TMem_Proper.
+
+Section TMem_lemmas.
+  Context `{HdotG : !dlangG Σ}.
 
   Lemma cTMemK_eq l (K : sf_kind Σ) d ρ :
     cTMemK l K ρ [(l, d)] ⊣⊢ oDTMemK K ρ d.
@@ -64,7 +68,7 @@ Section TMem_Proper.
   Lemma cTMemK_subst l (K : sf_kind Σ) ρ :
     (oTMemK l K).|[ρ] = oTMemK l K.|[ρ].
   Proof. done. Qed.
-End TMem_Proper.
+End TMem_lemmas.
 
 (** ** Type members: derive special case for gDOT. *)
 (** Not a "real" kind, just a predicate over types. *)
@@ -84,6 +88,22 @@ Definition cTMem `{!dlangG Σ} l L U : clty Σ := dty2clty l (oDTMem L U).
 
 Notation oTMem l L U := (clty_olty (cTMem l L U)).
 
+Section TMem_Proper.
+  Context `{HdotG : !dlangG Σ}.
+
+  #[global] Instance oDTMem_ne : NonExpansive2 oDTMem.
+  Proof. move=> ? ??? ??? ??/=. solve_proper. Qed.
+
+  #[global] Instance oDTMem_proper : Proper2 oDTMem :=
+    ne_proper_2 _.
+
+  #[global] Instance cTMem_ne l : NonExpansive2 (cTMem l).
+  Proof. solve_proper. Qed.
+
+  #[global] Instance cTMem_proper l : Proper2 (cTMem l) :=
+    ne_proper_2 _.
+End TMem_Proper.
+
 Section sem_TMem.
   Context `{HdotG : !dlangG Σ}.
   Implicit Types (τ : oltyO Σ).
@@ -93,24 +113,12 @@ Section sem_TMem.
     rewrite oDTMem_eq => ρ d /=. f_equiv=> ψ; f_equiv. apply sr_kintv_refl.
   Qed.
 
-  #[global] Instance oDTMem_ne : NonExpansive2 oDTMem.
-  Proof. move=> ? ??? ??? ??/=. solve_proper. Qed.
-
-  #[global] Instance oDTMem_proper : Proper2 oDTMem :=
-    ne_proper_2 _.
-
   (** Define [cTMem] by lifting [oDTMem] to [clty]s. *)
   (**
   [ Ds⟦ { l :: τ1 .. τ2 } ⟧] and [ V⟦ { l :: τ1 .. τ2 } ⟧ ].
   Beware: the ICFP'20 defines instead
   [ Ds⟦ { l >: τ1 <: τ2 } ⟧] and [ V⟦ { l >: τ1 <: τ2 } ⟧ ],
   which are here a derived notation; see [cTMemL]. *)
-
-  #[global] Instance cTMem_ne l : NonExpansive2 (cTMem l).
-  Proof. solve_proper. Qed.
-
-  #[global] Instance cTMem_proper l : Proper2 (cTMem l) :=
-    ne_proper_2 _.
 
   Lemma cTMem_unfold l L U :
     cTMem l L U ≡ dty2clty l (oDTMemRaw (dot_intv_type_pred L U)).

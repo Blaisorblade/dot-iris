@@ -113,11 +113,6 @@ Section sem_types.
     cVMem l T ρ [(l, d)] ⊣⊢ oDVMem T ρ d.
   Proof. apply dty2clty_singleton. Qed.
 
-  Lemma oSel_pv w l args ρ v :
-    oSel (pv w) l args ρ v ⊣⊢
-      ∃ d ψ, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗ ψ ∧ ▷ ψ args v.
-  Proof. by rewrite /= path_wp_pv_eq. Qed.
-
   (** [ V⟦ p.type ⟧]. *)
   Definition oSing `{!dlangG Σ} p : olty Σ := olty0 (λI ρ v, ⌜alias_paths p.|[ρ] (pv v)⌝).
 
@@ -154,6 +149,11 @@ Notation oVMem l τ := (clty_olty (cVMem l τ)).
 Section misc_lemmas.
   Context `{HdotG : !dlangG Σ}.
   Implicit Types (τ L T U : olty Σ).
+
+  Lemma oSel_pv w l args ρ v :
+    oSel (pv w) l args ρ v ⊣⊢
+      ∃ d ψ, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗ ψ ∧ ▷ ψ args v.
+  Proof. by rewrite /= path_wp_pv_eq. Qed.
 
   Lemma oVMem_eq l T anil ρ v :
     oVMem l T anil ρ v ⊣⊢
