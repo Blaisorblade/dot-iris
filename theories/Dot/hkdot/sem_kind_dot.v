@@ -82,6 +82,8 @@ Definition oDTMem_eq `{!dlangG Σ} L U : oDTMem L U = oDTMemK (sf_kintv L U) := 
 Definition cTMem `{!dlangG Σ} l L U : clty Σ := dty2clty l (oDTMem L U).
 #[global] Instance : Params (@cTMem) 3 := {}.
 
+Notation oTMem l L U := (clty_olty (cTMem l L U)).
+
 Section sem_TMem.
   Context `{HdotG : !dlangG Σ}.
   Implicit Types (τ : oltyO Σ).
@@ -117,12 +119,6 @@ Section sem_TMem.
   Lemma cTMem_eq l L U d ρ :
     cTMem l L U ρ [(l, d)] ⊣⊢ oDTMem L U ρ d.
   Proof. apply dty2clty_singleton. Qed.
-End sem_TMem.
-
-Notation oTMem l L U := (clty_olty (cTMem l L U)).
-
-Section oTMem_lemmas.
-  Context `{HdotG : !dlangG Σ}.
 
   Lemma oTMem_unfold l L U :
     oTMem l L U ≡ clty_olty (dty2clty l (oDTMemRaw (dot_intv_type_pred L U))).
@@ -135,7 +131,7 @@ Section oTMem_lemmas.
 
   Lemma oTMem_shift A L U : oTMem A (shift L) (shift U) = shift (oTMem A L U).
   Proof. rewrite /cTMem !oDTMem_eq. done. Qed.
-End oTMem_lemmas.
+End sem_TMem.
 
 (** * Path application and substitution *)
 
