@@ -835,9 +835,6 @@ Section derived.
   Proof.
     iIntros "#(Hs1 & Hs2) #HKs"; iSplit; by iApply (sKStp_Sub with "[] HKs").
   Qed.
-(* Inductive s_kind {Σ} : nat → Type :=
-  | s_kintv : olty Σ → olty Σ → s_kind 0
-  | s_kpi n : olty Σ → s_kind n → s_kind n.+1. *)
 
   (* XXX: Substituting [vPack] in types doesn't work robustly, so we should use an
   object-level [let] instead, or just assumptions on the typing context. *)
