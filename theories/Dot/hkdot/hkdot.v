@@ -612,6 +612,19 @@ Section dot_types.
     f_equiv; symmetry; exact: Hγφ.
   Qed.
 
+  Lemma oSel_equiv_intro ρ p v l d1 ψ1
+    (Hal : alias_paths p.|[ρ] (pv v))
+    (Hl1 : v @ l ↘ d1) :
+    d1 ↗ ψ1 ⊢ hoLty_equiv (packHoLtyO ψ1) (envApply (oSel p l) ρ).
+  Proof.
+    iIntros "#Hl1" (args w).
+    rewrite /= alias_paths_elim_eq // path_wp_pv_eq.
+    iSplit; first by iIntros "H"; iExists d1, ψ1; iFrame (Hl1) "Hl1".
+    iDestruct 1 as (d2 ψ2 Hl2) "[Hl2 Hw]"; objLookupDet.
+    iDestruct (dm_to_type_agree args w with "Hl1 Hl2") as "Hag {Hl1}".
+    iNext. by iRewrite "Hag".
+  Qed.
+
   Lemma sK_Sel {Γ} l (K : sf_kind Σ) p i :
     Γ s⊨p p : oTMemK l K, i -∗
     Γ s⊨ oSel p l ∷[i] K.
@@ -619,12 +632,8 @@ Section dot_types.
     iIntros ">#Hp !> %ρ Hg"; iSpecialize ("Hp" with "Hg"); iNext i.
     rewrite path_wp_eq.
     iDestruct "Hp" as (v Hal%alias_paths_pv_eq_1 d1 Hl1 ψ1) "[#Hl1 HK]".
-    iApply (sfkind_respects with "[] HK"); iIntros (args w).
-    rewrite /= (alias_paths_elim_eq _ Hal) path_wp_pv_eq.
-    iSplit; first by iIntros "H"; iExists d1, ψ1; iFrame (Hl1) "Hl1".
-    iDestruct 1 as (d2 ψ2 Hl2) "[Hl2 Hw]"; objLookupDet.
-    iDestruct (dm_to_type_agree args w with "Hl1 Hl2") as "Hag {Hl1}".
-    iNext. by iRewrite "Hag".
+    iApply (sfkind_respects with "[] HK").
+    by iApply oSel_equiv_intro.
   Qed.
 
   Lemma sSngl_pq_KStp {Γ i p q T1 T2} {K : sf_kind Σ} :
@@ -808,6 +817,19 @@ Section derived.
     iApply IHK; iApply (sK_Eta_Apply with "HK").
   Qed.
 
+  Lemma sStp_Singl_Widen n Γ l (K : s_kind Σ n) (T : olty Σ) :
+    oLater (oTMemK l (s_to_sf (ho_sing K (oLater T)))) :: Γ s⊨ oLater T ∷[ 0 ] s_to_sf K -∗
+    Γ s⊨X oMu (oTMemK l (s_to_sf (ho_sing K (oLater T)))) <:[ 0 ] oMu (oTMemK l (s_to_sf K)).
+  Proof using HswapProp.
+    iIntros "#HT". iApply sMu_Stp_Mu. rewrite oLaterN_0.
+    rewrite -sstpiK_star_eq_sstpd.
+    iApply sKStp_TMem.
+    iApply sSkd_HoIntv.
+    iApply (narrow_sstpiK with "[] HT").
+    iApply sstpiK_star_eq_sstpd.
+    iApply sStp_Add_Later.
+  Qed.
+
   Lemma sT_New_Singl n Γ l σ s (K : s_kind Σ n) (T : olty Σ) :
     oLater (oTMemK l (s_to_sf (ho_sing K (oLater T)))) :: Γ s⊨ oLater T ∷[ 0 ] s_to_sf K -∗
     s ↝[ σ ] T -∗
@@ -815,14 +837,8 @@ Section derived.
   Proof using HswapProp.
     iIntros "#HT #Hs".
     iApply (sT_Sub (T1 := oMu _)).
-    rewrite sK_HoIntv; iApply (sT_New with "HT Hs").
-    iApply sMu_Stp_Mu. rewrite oLaterN_0.
-    rewrite -sstpiK_star_eq_sstpd.
-    iApply sKStp_TMem.
-    iApply sSkd_HoIntv.
-    iApply (narrow_sstpiK with "[] HT").
-    iApply sstpiK_star_eq_sstpd.
-    iApply sStp_Add_Later.
+    { rewrite sK_HoIntv; iApply (sT_New with "HT Hs"). }
+    iApply (sStp_Singl_Widen with "HT").
   Qed.
 
   (* #[global] Instance : Params (@bi_wand b) 1 := {}. *)
@@ -836,22 +852,12 @@ Section derived.
     iIntros "#(Hs1 & Hs2) #HKs"; iSplit; by iApply (sKStp_Sub with "[] HKs").
   Qed.
 
-  (* XXX: Substituting [vPack] in types doesn't work robustly, so we should use an
-  object-level [let] instead, or just assumptions on the typing context. *)
-  Lemma sKEq_New_Sel {n Γ l σ s T} {K : s_kind Σ n} :
-    (* oLater (oTMemK l K) :: Γ s⊨ oLater T ∷[ 0 ] K -∗ *)
-    (* oLater (cAnd (cTMemK l K) cTop) :: Γ s⊨ oLater T ∷[ 0 ] K -∗ *)
-    let vPack := vobj [ (l, dtysem σ s) ] in
+  Lemma sKEq_New_Sel_Widen {n Γ l T} {K : s_kind Σ n} (vPack : vl) :
     oLater (oTMemK l (s_to_sf (ho_sing K (oLater T)))) :: Γ s⊨ oLater T ∷[ 0 ] s_to_sf K -∗
-    s ↝[ σ ] T -∗
-      Γ s⊨ oSel (pv vPack) l =[0] oLater T .sTp[ vPack /] ∷ s_to_sf K.|[ vPack /].
+    Γ s⊨p vPack : oMu (oTMemK l (s_to_sf (ho_sing K (oLater T)))), 0 -∗
+    Γ s⊨ oSel (pv vPack) l =[0] oLater T .sTp[ vPack /] ∷ s_to_sf K.|[ vPack /].
   Proof using HswapProp.
-    iIntros (vPack) "#HK #Hs".
-    iPoseProof (sK_HoSing with "HK") as "HK1".
-    (* iPoseProof (sP_New_w_And with "HK1 Hs") as "{HK1} Hpn". *)
-    iPoseProof (sT_New with "HK1 Hs") as "{HK1} Hpn"; fold vPack.
-    rewrite sP_Val.
-
+    iIntros "#HK #Hpn".
     iApply sKEq_Sub; last iApply sSkd_HoIntv.
     - iApply sKEq_HoSing. iApply sK_Sel.
       (* rewrite opSubst_pv_eq.
@@ -868,6 +874,24 @@ Section derived.
       iApply (narrow_sstpiK with "[] HK").
       iApply sstpiK_star_eq_sstpd.
       iApply sStp_Add_Later.
+  Qed.
+
+  (* XXX: Substituting [vPack] in types doesn't work robustly, so we should use an
+  object-level [let] instead, or just assumptions on the typing context. *)
+  Lemma sKEq_New_Sel {n Γ l σ s T} {K : s_kind Σ n} :
+    (* oLater (oTMemK l K) :: Γ s⊨ oLater T ∷[ 0 ] K -∗ *)
+    (* oLater (cAnd (cTMemK l K) cTop) :: Γ s⊨ oLater T ∷[ 0 ] K -∗ *)
+    let vPack := vobj [ (l, dtysem σ s) ] in
+    oLater (oTMemK l (s_to_sf (ho_sing K (oLater T)))) :: Γ s⊨ oLater T ∷[ 0 ] s_to_sf K -∗
+    s ↝[ σ ] T -∗
+      Γ s⊨ oSel (pv vPack) l =[0] oLater T .sTp[ vPack /] ∷ s_to_sf K.|[ vPack /].
+  Proof using HswapProp.
+    iIntros (vPack) "#HK #Hs".
+    iPoseProof (sK_HoSing with "HK") as "HK1".
+    (* iPoseProof (sP_New_w_And with "HK1 Hs") as "{HK1} Hpn". *)
+    iPoseProof (sT_New with "HK1 Hs") as "{HK1} Hpn"; fold vPack.
+    iEval (rewrite sP_Val) in "Hpn".
+    iApply (sKEq_New_Sel_Widen with "HK Hpn").
   Qed.
 
   (* Wrote this during discussion with Sandro; it apparently does not hold in
