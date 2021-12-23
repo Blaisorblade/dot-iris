@@ -80,6 +80,8 @@ Section lemmas.
     iPoseProof (sK_HoSing with "HK") as "HK1".
     iDestruct (sT_New_Syn with "HK1") as "Hpn". fold vPack.
     iEval (rewrite sP_Val) in "Hpn".
+    (* iDestruct (sT_New_Singl_Syn with "HK") as "Hpn'"; iEval (rewrite sP_Val) in "Hpn'". *)
+    (* iDestruct (sKEq_New_Sel_Widen with "HK Hpn'") as "?". *)
     iApply (sKEq_New_Sel_Widen with "HK Hpn").
   Qed.
 End lemmas.
