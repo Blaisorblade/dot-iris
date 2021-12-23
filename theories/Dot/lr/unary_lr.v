@@ -325,6 +325,15 @@ Section misc_lemmas.
 
 End misc_lemmas.
 
+(** Tactic to reduce the syntactic judgments and logical relation.
+To use when proving syntactic typing lemmas, e.g. [Stp_Top] over [sStp_Top], or
+[Mu_Stp] over [sMu_Stp].
+For now this uses mostly definitional equalities, but this will change when
+fixing [issue #365](https://github.com/Blaisorblade/dot-iris/issues/365).
+*)
+Definition lr := (@fmap_cons, @iterate_TLater_oLater).
+Ltac rw := rewrite /ietp /idstp /idtp /iptp /istpd ?lr; cbn.
+
 Section path_repl_lemmas.
   Context `{!dlangG Σ}.
   Implicit Types (φ : vl -d> iPropO Σ).
@@ -399,15 +408,6 @@ End path_repl_lemmas.
 
 (** Backward compatibility. *)
 Notation "⟦ T ⟧" := (oClose V⟦ T ⟧).
-
-(** Tactic to reduce the syntactic judgments and logical relation.
-To use when proving syntactic typing lemmas, e.g. [Stp_Top] over [sStp_Top], or
-[Mu_Stp] over [sMu_Stp].
-For now this uses mostly definitional equalities, but this will change when
-fixing [issue #365](https://github.com/Blaisorblade/dot-iris/issues/365).
-*)
-Definition lr := (@fmap_cons, @iterate_TLater_oLater).
-Ltac rw := rewrite /ietp /idstp /idtp /iptp /istpd ?lr; cbn.
 
 Import dlang_adequacy.
 
