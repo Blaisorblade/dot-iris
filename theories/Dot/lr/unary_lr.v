@@ -96,6 +96,16 @@ Section logrel_binding_lemmas.
   Proof. apply (interp_commute_subst _ (v .: ids)). Qed.
 End logrel_binding_lemmas.
 
+Notation cBot := (olty2clty oBot).
+Notation cOr T1 T2 := (olty2clty $ oOr T1 T2).
+Notation cLater T := (olty2clty $ oLater T).
+Notation cPrim b := (olty2clty $ oPrim b).
+Notation cAll T1 T2 := (olty2clty $ oAll T1 T2).
+Notation cMu T := (olty2clty $ oMu T).
+Notation cSel p l := (olty2clty $ oSel p l).
+Notation cSing p := (olty2clty $ oSing p).
+Notation cLam T := (olty2clty $ oLam T).
+Notation cApp T p := (olty2clty $ oTApp T p).
 
 Section log_rel.
   Context `{HdotG : !dlangG Σ}.
