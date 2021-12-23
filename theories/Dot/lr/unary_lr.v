@@ -154,10 +154,6 @@ Section log_rel.
   #[global] Instance dot_ty_interp : CTyInterp Σ := Reduce ty_interp.
   #[global] Instance dot_kind_interp : SfKindInterp Σ := Reduce kind_interp.
 
-  (** Unfolding lemma for [TAnd]: defined because [simpl] on the LHS produces
-      [oAnd C⟦ T1 ⟧ C⟦ T2 ⟧]. *)
-  Lemma interp_TAnd_eq T1 T2 : V⟦ TAnd T1 T2 ⟧ ≡ oAnd V⟦ T1 ⟧ V⟦ T2 ⟧.
-  Proof. done. Qed.
 
   (** Binding lemmas for [V⟦ T ⟧] and [K⟦ T ⟧]. *)
   Lemma mut_interp_subst_compose_ind :
