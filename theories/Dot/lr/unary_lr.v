@@ -96,6 +96,16 @@ Section logrel_binding_lemmas.
   Proof. apply (interp_commute_subst _ (v .: ids)). Qed.
 End logrel_binding_lemmas.
 
+Notation cBot := (olty2clty oBot).
+Notation cOr T1 T2 := (olty2clty $ oOr T1 T2).
+Notation cLater T := (olty2clty $ oLater T).
+Notation cPrim b := (olty2clty $ oPrim b).
+Notation cAll T1 T2 := (olty2clty $ oAll T1 T2).
+Notation cMu T := (olty2clty $ oMu T).
+Notation cSel p l := (olty2clty $ oSel p l).
+Notation cSing p := (olty2clty $ oSing p).
+Notation cLam T := (olty2clty $ oLam T).
+Notation cApp T p := (olty2clty $ oTApp T p).
 
 Section log_rel.
   Context `{HdotG : !dlangG Σ}.
@@ -154,6 +164,94 @@ Section log_rel.
   #[global] Instance dot_ty_interp : CTyInterp Σ := Reduce ty_interp.
   #[global] Instance dot_kind_interp : SfKindInterp Σ := Reduce kind_interp.
 
+  Section kinterp_lemmas.
+    Lemma kinterp_kintv L U : K⟦ kintv L U ⟧ ≡ sf_kintv V⟦ L ⟧ V⟦ U ⟧.
+    Proof. done. Qed.
+    Lemma kinterp_kpi S K : K⟦ kpi S K ⟧ ≡ sf_kpi V⟦ S ⟧ K⟦ K ⟧.
+    Proof. done. Qed.
+  End kinterp_lemmas.
+
+  Definition klr := (kinterp_kintv, kinterp_kpi).
+
+  Section cinterp_lemmas.
+    Ltac fast_work := done.
+    Ltac fast_go := done.
+    Ltac go := fast_go.
+
+    Lemma cinterp_TTop : C⟦ TTop ⟧ ≡ cTop.
+    Proof. fast_go. Qed.
+    Lemma cinterp_TBot : C⟦ TBot ⟧ ≡ cBot.
+    Proof. fast_go. Qed.
+
+    Lemma cinterp_kTTMem l K1 : C⟦ kTTMem l K1 ⟧ ≡ cTMemK l K⟦ K1 ⟧.
+    Proof. fast_go. Qed.
+    Lemma cinterp_kTSel n p l : C⟦ kTSel n p l ⟧ ≡ cSel p l.
+    Proof. fast_go. Qed.
+
+    Lemma cinterp_TAnd T1 T2 : C⟦ TAnd T1 T2 ⟧ ≡ cAnd C⟦ T1 ⟧ C⟦ T2 ⟧.
+    Proof. fast_go. Qed.
+    Lemma cinterp_TOr T1 T2 : C⟦ TOr T1 T2 ⟧ ≡ cOr V⟦ T1 ⟧ V⟦ T2 ⟧.
+    Proof. go. Qed.
+    Lemma cinterp_TLater T1 : C⟦ TLater T1 ⟧ ≡ cLater V⟦ T1 ⟧.
+    Proof. go. Qed.
+    Lemma cinterp_TAll T1 T2 : C⟦ TAll T1 T2 ⟧ ≡ cAll V⟦ T1 ⟧ V⟦ T2 ⟧.
+    Proof. go. Qed.
+    Lemma cinterp_TMu T1 : C⟦ TMu T1 ⟧ ≡ cMu V⟦ T1 ⟧.
+    Proof. go. Qed.
+    Lemma cinterp_TVMem l T1 : C⟦ TVMem l T1 ⟧ ≡ cVMem l V⟦ T1 ⟧.
+    Proof. go. Qed.
+    Lemma cinterp_TPrim b : C⟦ TPrim b ⟧ ≡ cPrim b.
+    Proof. fast_go. Qed.
+    Lemma cinterp_TSing p : C⟦ TSing p ⟧ ≡ cSing p.
+    Proof. fast_go. Qed.
+    Lemma cinterp_TLam T1 : C⟦ TLam T1 ⟧ ≡ cLam V⟦ T1 ⟧.
+    Proof. go. Qed.
+    Lemma cinterp_TApp T1 p : C⟦ TApp T1 p ⟧ ≡ cApp V⟦ T1 ⟧ p.
+    Proof. go. Qed.
+  End cinterp_lemmas.
+
+  Definition clr :=
+    (cinterp_TTop, cinterp_TBot, cinterp_TAnd,
+    cinterp_TOr, cinterp_TLater, cinterp_TAll, cinterp_TMu, cinterp_TVMem,
+    cinterp_kTTMem, cinterp_kTSel, cinterp_TPrim, cinterp_TSing, cinterp_TLam, cinterp_TApp).
+
+  Section interp_lemmas.
+    Ltac go := done.
+
+    Lemma interp_TTop : V⟦ TTop ⟧ ≡ oTop.
+    Proof. go. Qed.
+    Lemma interp_TBot : V⟦ TBot ⟧ ≡ oBot.
+    Proof. go. Qed.
+    Lemma interp_TAnd T1 T2 : V⟦ TAnd T1 T2 ⟧ ≡ oAnd V⟦ T1 ⟧ V⟦ T2 ⟧.
+    Proof. go. Qed.
+    Lemma interp_TOr T1 T2 : V⟦ TOr T1 T2 ⟧ ≡ oOr V⟦ T1 ⟧ V⟦ T2 ⟧.
+    Proof. go. Qed.
+    Lemma interp_TLater T1 : V⟦ TLater T1 ⟧ ≡ oLater V⟦ T1 ⟧.
+    Proof. go. Qed.
+    Lemma interp_TAll T1 T2 : V⟦ TAll T1 T2 ⟧ ≡ oAll V⟦ T1 ⟧ V⟦ T2 ⟧.
+    Proof. go. Qed.
+    Lemma interp_TMu T1 : V⟦ TMu T1 ⟧ ≡ oMu V⟦ T1 ⟧.
+    Proof. go. Qed.
+    Lemma interp_TVMem l T1 : V⟦ TVMem l T1 ⟧ ≡ oVMem l V⟦ T1 ⟧.
+    Proof. go. Qed.
+    Lemma interp_kTTMem l K1 : V⟦ kTTMem l K1 ⟧ ≡ oTMemK l K⟦ K1 ⟧.
+    Proof. go. Qed.
+    Lemma interp_kTSel n p l : V⟦ kTSel n p l ⟧ ≡ oSel p l.
+    Proof. go. Qed.
+    Lemma interp_TPrim b : V⟦ TPrim b ⟧ ≡ oPrim b.
+    Proof. go. Qed.
+    Lemma interp_TSing p : V⟦ TSing p ⟧ ≡ oSing p.
+    Proof. go. Qed.
+    Lemma interp_TLam T1 : V⟦ TLam T1 ⟧ ≡ oLam V⟦ T1 ⟧.
+    Proof. go. Qed.
+    Lemma interp_TApp T1 p : V⟦ TApp T1 p ⟧ ≡ oTApp V⟦ T1 ⟧ p.
+    Proof. go. Qed.
+  End interp_lemmas.
+
+  Definition vlr :=
+    (interp_TTop, interp_TBot, interp_TAnd,
+    interp_TOr, interp_TLater, interp_TAll, interp_TMu, interp_TVMem,
+    interp_kTTMem, interp_kTSel, interp_TPrim, interp_TSing, interp_TLam, interp_TApp).
 
   (** Binding lemmas for [V⟦ T ⟧] and [K⟦ T ⟧]. *)
   Lemma mut_interp_subst_compose_ind :

@@ -16,6 +16,7 @@ Implicit Types (v w : vl) (d : dm) (ds : dms).
 
 (** ** Example code. *)
 Section examplesBodies.
+  Context `{HdlangG : !dlangG Σ}.
   Import hoasNotation.
 
   Definition hdivV := λ: m n, m `div` (htskip n).
@@ -32,6 +33,14 @@ Section examplesBodies.
     val "mkPos" : 𝐙 →: self @; "Pos";
     val "div" : 𝐙 →: self @; "Pos" →: 𝐙
   }.
+  Definition oposModTTail : clty Σ :=
+    cAnd
+      (cVMem "mkPos" (oAll oInt (oSel x1 "Pos")))
+      (cAnd
+        (cVMem "div" (oAll oInt (oAll (oSel x1 "Pos") oInt)))
+        cTop).
+  Lemma hposModTTail_eq : C⟦ hposModTTail hx0 ⟧ ≡ oposModTTail.
+  Proof. rw. done. Qed.
 
   Definition hposModTBody self : hty := {@
     type "Pos" >: ⊥ <: 𝐙;
@@ -43,8 +52,24 @@ Section examplesBodies.
     hposModTBody x = hTAnd (type "Pos" >: ⊥ <: 𝐙) (hposModTTail x) :=
     reflexivity _.
 
+  Definition oposModTBody : clty Σ :=
+    cAnd (cTMemL "Pos" oBot oInt)
+    oposModTTail.
+  Lemma hposModTBody_eq : C⟦ hposModTBody hx0 ⟧ ≡ oposModTBody.
+  Proof.
+    rewrite hposModTBody_alt cinterp_TAnd hposModTTail_eq.
+    rw. done.
+  Qed.
+
   (** Actual type *)
   Definition hposModT := μ: self, hposModTBody self.
+  Definition oposModT := oMu (c2o oposModTBody).
+
+  Lemma hposModT_eq : V⟦ hposModT ⟧ ≡ oposModT.
+  Proof.
+    rewrite /hposModT /oposModT interp_TMu.
+    apply oMu_proper, hposModTBody_eq.
+  Qed.
 End examplesBodies.
 
 #[local] Hint Constructors bin_op_syntype cond_bin_op_syntype : core.
@@ -106,7 +131,8 @@ Section div_example.
     ⊢ [] s⊨ hmkPosV : oAll V⟦ 𝐙 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : Z, v = n ∧ n > 0 ⌝)).
   Proof using Type*.
     rewrite -sT_All_I /setp /= /shead; iMod wp_if_ge as "#Hge".
-    iIntros "!>" (ρ). iDestruct 1 as %(_ & n & Hw); simplify_eq/=; rewrite Hw.
+    iIntros "!>" (ρ). rewrite /hsubst/hsubst_hoEnvD. rw.
+    iDestruct 1 as %(_ & n & Hw); simplify_eq/=; rewrite Hw.
     iApply wp_wand; [iApply "Hge" | naive_solver].
   Qed.
 
@@ -114,7 +140,7 @@ Section div_example.
     ⊢ |==> oAll V⟦ 𝐙 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : Z, v = n ∧ n > 0 ⌝)) anil ids hmkPosV.
   Proof using Type*. iApply wp_value_inv'. iApply (ty_mkPos with "[//]"). Qed.
 
-  Lemma wp_div_spec (m : Z) w : ipos anil ids w -∗ WP m `div` w {{ ⟦ 𝐙 ⟧ ids }}.
+  Lemma wp_div_spec (m : Z) w : ipos anil ids w -∗ WP m `div` w {{ oInt anil ids }}.
   Proof. iDestruct 1 as %(n&?&?); simplify_eq. wp_bin. by iIntros "!%"; naive_solver. Qed.
   Close Scope Z_scope.
 
@@ -137,8 +163,9 @@ Section div_example.
       [iApply sBot_Stp | iApply sStp_ipos_nat].
   Qed.
 
+  (** Actual type *)
   #[local] Definition oPreciseBody :=
-    c2o (cAnd (cTMemL "Pos" ipos ipos) C⟦ hposModTTail hx0 ⟧).
+    c2o (cAnd (cTMemL "Pos" ipos ipos) oposModTTail).
 
   (**
   Show that our program is semantically well-typed,
@@ -146,7 +173,7 @@ Section div_example.
   *)
   Theorem posModTy : ⊢ [] u⊨ hposModV : hposModT.
   Proof using Type*.
-    rewrite /hposModT.
+    rewrite /iuetp hposModT_eq fmap_nil.
     have HctxSub :
       s⊨G oLater oPreciseBody :: [] <:* oLater <$> [oPreciseBody].
     by iIntros "% $".

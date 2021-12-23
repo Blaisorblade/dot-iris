@@ -20,7 +20,7 @@ Implicit Types
          (ρ : var → vl) (l : label).
 
 (** * Type members *)
-Notation oDTMemRaw rK := (Dlty (λI ρ d, ∃ ψ, d ↗n ψ ∧ rK ρ ψ)).
+Notation oDTMemRaw rK := (Dlty (λI ρ d, ∃ ψ, d ↗ ψ ∧ rK ρ ψ)).
 
 (** [ D⟦ { A :: K } ⟧ ]. *)
 Definition oDTMemK `{!dlangG Σ} (K : sf_kind Σ) : dltyO Σ :=
@@ -32,7 +32,7 @@ Definition cTMemK `{!dlangG Σ} l (K : sf_kind Σ) : clty Σ := dty2clty l (oDTM
 Notation oTMemK l K := (clty_olty (cTMemK l K)).
 
 Definition oDTMemAnyKind `{!dlangG Σ} : dltyO Σ := Dlty (λI ρ d,
-  ∃ (ψ : hoD Σ), d ↗n ψ).
+  ∃ (ψ : hoD Σ), d ↗ ψ).
 Definition cTMemAnyKind `{!dlangG Σ} l : clty Σ := dty2clty l oDTMemAnyKind.
 Notation oTMemAnyKind l := (clty_olty (cTMemAnyKind l)).
 
@@ -47,6 +47,10 @@ Section TMem_Proper.
   Proof. solve_proper_ho. Qed.
   #[global] Instance cTMemK_proper l : Proper1 (cTMemK (Σ := Σ) l) :=
     ne_proper _.
+End TMem_Proper.
+
+Section TMem_lemmas.
+  Context `{HdotG : !dlangG Σ}.
 
   Lemma cTMemK_eq l (K : sf_kind Σ) d ρ :
     cTMemK l K ρ [(l, d)] ⊣⊢ oDTMemK K ρ d.
@@ -54,7 +58,7 @@ Section TMem_Proper.
 
   Lemma oTMemK_eq l K args ρ v :
     oTMemK l K args ρ v ⊣⊢
-    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗n ψ ∧ K ρ (packHoLtyO ψ) (packHoLtyO ψ).
+    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗ ψ ∧ K ρ (packHoLtyO ψ) (packHoLtyO ψ).
   Proof. apply bi_exist_nested_swap. Qed.
 
   Lemma cTMemAnyKind_eq l d ρ :
@@ -64,7 +68,7 @@ Section TMem_Proper.
   Lemma cTMemK_subst l (K : sf_kind Σ) ρ :
     (oTMemK l K).|[ρ] = oTMemK l K.|[ρ].
   Proof. done. Qed.
-End TMem_Proper.
+End TMem_lemmas.
 
 (** ** Type members: derive special case for gDOT. *)
 (** Not a "real" kind, just a predicate over types. *)
@@ -74,13 +78,31 @@ Definition dot_intv_type_pred `{!dlangG Σ} (L U : oltyO Σ) ρ ψ : iProp Σ :=
 
 (** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
 Definition oDTMem `{!dlangG Σ} L U : dltyO Σ := oDTMemK (sf_kintv L U).
-Definition oDTMem_eq `{!dlangG Σ} : oDTMem = λ L U, oDTMemK (sf_kintv L U) := reflexivity _.
+Definition oDTMem_eq `{!dlangG Σ} L U : oDTMem L U = oDTMemK (sf_kintv L U) := reflexivity _.
 #[global] Instance : Params (@oDTMem) 2 := {}.
 
 #[global] Arguments oDTMem {Σ _} L U ρ : rename.
 
 Definition cTMem `{!dlangG Σ} l L U : clty Σ := dty2clty l (oDTMem L U).
 #[global] Instance : Params (@cTMem) 3 := {}.
+
+Notation oTMem l L U := (clty_olty (cTMem l L U)).
+
+Section TMem_Proper.
+  Context `{HdotG : !dlangG Σ}.
+
+  #[global] Instance oDTMem_ne : NonExpansive2 oDTMem.
+  Proof. move=> ? ??? ??? ??/=. solve_proper. Qed.
+
+  #[global] Instance oDTMem_proper : Proper2 oDTMem :=
+    ne_proper_2 _.
+
+  #[global] Instance cTMem_ne l : NonExpansive2 (cTMem l).
+  Proof. solve_proper. Qed.
+
+  #[global] Instance cTMem_proper l : Proper2 (cTMem l) :=
+    ne_proper_2 _.
+End TMem_Proper.
 
 Section sem_TMem.
   Context `{HdotG : !dlangG Σ}.
@@ -91,24 +113,12 @@ Section sem_TMem.
     rewrite oDTMem_eq => ρ d /=. f_equiv=> ψ; f_equiv. apply sr_kintv_refl.
   Qed.
 
-  #[global] Instance oDTMem_ne : NonExpansive2 oDTMem.
-  Proof. move=> ? ??? ??? ??/=. solve_proper. Qed.
-
-  #[global] Instance oDTMem_proper : Proper2 oDTMem :=
-    ne_proper_2 _.
-
   (** Define [cTMem] by lifting [oDTMem] to [clty]s. *)
   (**
   [ Ds⟦ { l :: τ1 .. τ2 } ⟧] and [ V⟦ { l :: τ1 .. τ2 } ⟧ ].
   Beware: the ICFP'20 defines instead
   [ Ds⟦ { l >: τ1 <: τ2 } ⟧] and [ V⟦ { l >: τ1 <: τ2 } ⟧ ],
   which are here a derived notation; see [cTMemL]. *)
-
-  #[global] Instance cTMem_ne l : NonExpansive2 (cTMem l).
-  Proof. solve_proper. Qed.
-
-  #[global] Instance cTMem_proper l : Proper2 (cTMem l) :=
-    ne_proper_2 _.
 
   Lemma cTMem_unfold l L U :
     cTMem l L U ≡ dty2clty l (oDTMemRaw (dot_intv_type_pred L U)).
@@ -117,12 +127,6 @@ Section sem_TMem.
   Lemma cTMem_eq l L U d ρ :
     cTMem l L U ρ [(l, d)] ⊣⊢ oDTMem L U ρ d.
   Proof. apply dty2clty_singleton. Qed.
-End sem_TMem.
-
-Notation oTMem l L U := (clty_olty (cTMem l L U)).
-
-Section oTMem_lemmas.
-  Context `{HdotG : !dlangG Σ}.
 
   Lemma oTMem_unfold l L U :
     oTMem l L U ≡ clty_olty (dty2clty l (oDTMemRaw (dot_intv_type_pred L U))).
@@ -130,12 +134,12 @@ Section oTMem_lemmas.
 
   Lemma oTMem_eq l L U args ρ v :
     oTMem l L U args ρ v ⊣⊢
-    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗n ψ ∧ dot_intv_type_pred L U ρ ψ.
+    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗ ψ ∧ dot_intv_type_pred L U ρ ψ.
   Proof. rewrite oTMem_unfold. apply bi_exist_nested_swap. Qed.
 
   Lemma oTMem_shift A L U : oTMem A (shift L) (shift U) = shift (oTMem A L U).
   Proof. rewrite /cTMem !oDTMem_eq. done. Qed.
-End oTMem_lemmas.
+End sem_TMem.
 
 (** * Path application and substitution *)
 
