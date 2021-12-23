@@ -407,7 +407,7 @@ For now this uses mostly definitional equalities, but this will change when
 fixing [issue #365](https://github.com/Blaisorblade/dot-iris/issues/365).
 *)
 Definition lr := (@fmap_cons, @iterate_TLater_oLater).
-Ltac rw := rewrite /ietp /idstp /idtp /iptp /istpd ?lr /=.
+Ltac rw := rewrite /ietp /idstp /idtp /iptp /istpd ?lr; cbn.
 
 Import dlang_adequacy.
 
