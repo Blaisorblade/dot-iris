@@ -140,7 +140,7 @@ Section div_example.
     ⊢ |==> oAll V⟦ 𝐙 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : Z, v = n ∧ n > 0 ⌝)) anil ids hmkPosV.
   Proof using Type*. iApply wp_value_inv'. iApply (ty_mkPos with "[//]"). Qed.
 
-  Lemma wp_div_spec (m : Z) w : ipos anil ids w -∗ WP m `div` w {{ ⟦ 𝐙 ⟧ ids }}.
+  Lemma wp_div_spec (m : Z) w : ipos anil ids w -∗ WP m `div` w {{ oInt anil ids }}.
   Proof. iDestruct 1 as %(n&?&?); simplify_eq. wp_bin. by iIntros "!%"; naive_solver. Qed.
   Close Scope Z_scope.
 
