@@ -242,9 +242,11 @@ Lemma HvF Γ : newTypeRefΓ Γ u⊢ₜ
   hsomeType hoasNotation.hx2, 0 <: val "isEmpty" : TSing false, 0.
 Proof. lThis; mltcrush. Qed.
 
-Tactic Notation "lrSimpl" := iEval (cbv [pty_interp]).
+(** Note: for performance, this tactic rewrites with [vlr] exactly once; hence
+it requires attention. *)
+Tactic Notation "lrSimpl" := iEval (rewrite vlr).
 Tactic Notation "lrSimpl" "in" constr(iSelP) :=
-  iEval (cbv [pty_interp]) in iSelP.
+  iEval (rewrite vlr) in iSelP.
 
 #[local] Arguments iPPred_car : simpl never.
 #[local] Arguments pty_interp : simpl never.
@@ -300,7 +302,7 @@ Proof.
   cbn [shift]; rewrite (_ : shiftV x1 = x2) //.
   rewrite path_wp_pv_eq.
   rewrite subst_comp ren_scons subst_id /newTypeRefΓ.
-  lrSimpl; iSplit. { lrSimpl in "Hg"; iDestruct "Hg" as "[_ $]". }
+  lrSimpl; iSplit. { iDestruct "Hg" as "[_ $]". }
   iClear "Hg".
 
   (* Just to restate/simplify the current goal (for some extra readability). *)
@@ -308,7 +310,7 @@ Proof.
     last by iApply "Hgoal".
   lrSimpl.
   iExists (dpt p); iFrame (Hl); rewrite oDVMem_eq path_wp_eq.
-  iExists optV; iFrame (Hal); lrSimpl in "Hw"; lrSimpl.
+  iExists optV; iFrame (Hal); lrSimpl in "Hw".
   by iDestruct "Hw" as "#[$ _]".
 Qed.
 
