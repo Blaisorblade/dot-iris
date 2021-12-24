@@ -165,22 +165,15 @@ Section CtxSub.
 
   (** Ordering of logical strength:
       unTLater T <: T <: TLater (unTLater T) <: TLater T. *)
+  Lemma ty_sub_TLater T : ⊨T T <: TLater T.
+  Proof. intros ?. auto. Qed.
+
   Lemma unTLater_ty_sub T : ⊨T unTLater T <: T.
   Proof. induction T => //=; by [ f_equiv | intros ?; auto ]. Qed.
-
-  Lemma ty_sub_TLater_unTLater T : ⊨T T <: TLater (unTLater T).
-  Proof.
-    induction T; try by [iIntros (??) "$"];
-      rewrite {1}IHT1 {1}IHT2 /=; intros ??;
-      [> iIntros "[$ $]" | iIntros "[$|$]"].
-  Qed.
 
   Lemma ty_sub_id T : ⊨T T <: T. Proof. done. Qed.
   Lemma ty_sub_trans T1 T2 T3 : ⊨T T1 <: T2 → ⊨T T2 <: T3 → ⊨T T1 <: T3.
   Proof. by intros ->. Qed.
-
-  Lemma ty_sub_TLater T : ⊨T T <: TLater T.
-  Proof. intros ?. auto. Qed.
 
   Lemma ty_sub_TLater_add T1 T2 :
     ⊨T T1 <: T2 →
@@ -195,8 +188,16 @@ Section CtxSub.
     ⊨T TOr (TLater T1) (TLater T2) <: TLater (TOr T1 T2).
   Proof. iIntros (??) "[$|$]". Qed.
 
-  #[local] Hint Resolve ty_sub_id ty_sub_TLater ty_sub_TLater_add ty_sub_TLater_unTLater
+  #[local] Hint Resolve ty_sub_id ty_sub_TLater ty_sub_TLater_add
     ty_distr_TAnd_TLater ty_distr_TOr_TLater unTLater_ty_sub : ctx_sub.
+
+  Lemma ty_sub_TLater_unTLater T : ⊨T T <: TLater (unTLater T).
+  Proof.
+    induction T; try by [iIntros (??) "$"];
+      rewrite {1}IHT1 {1}IHT2 /=; intros ??;
+      [> iIntros "[$ $]" | iIntros "[$|$]"].
+  Qed.
+  #[local] Hint Resolve ty_sub_TLater_unTLater : ctx_sub.
 
   (* Unused *)
   Lemma TLater_unTLater_ty_sub_TLater T :
