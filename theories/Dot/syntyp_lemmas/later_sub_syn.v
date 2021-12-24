@@ -181,11 +181,27 @@ Section CtxSub.
 
   Lemma ty_distr_TAnd_TLater T1 T2 :
     ⊨T TAnd (TLater T1) (TLater T2) <: TLater (TAnd T1 T2).
-  Proof. iIntros (??) "[$ $]". Qed.
+  Proof.
+    (* by rewrite /ty_sub !vlr rewrite sTEq_oLaterN_oAnd. *)
+    eapply s_ty_sub_proper. {
+      rewrite interp_TAnd.
+      by apply oAnd_proper; apply interp_TLater.
+    }
+    by rewrite interp_TLater interp_TAnd.
+    intros ??. by rewrite sTEq_oLaterN_oAnd.
+  Qed.
 
   Lemma ty_distr_TOr_TLater T1 T2 :
     ⊨T TOr (TLater T1) (TLater T2) <: TLater (TOr T1 T2).
-  Proof. iIntros (??) "[$|$]". Qed.
+  Proof.
+    (* by rewrite /ty_sub !vlr sTEq_oLaterN_oOr. *)
+    eapply s_ty_sub_proper. {
+      rewrite interp_TOr.
+      by apply oOr_proper; apply interp_TLater.
+    }
+    by rewrite interp_TLater interp_TOr.
+    intros ??. by rewrite sTEq_oLaterN_oOr.
+  Qed.
 
   #[local] Hint Resolve ty_sub_id ty_sub_TLater ty_sub_TLater_add
     ty_distr_TAnd_TLater ty_distr_TOr_TLater unTLater_ty_sub : ctx_sub.
