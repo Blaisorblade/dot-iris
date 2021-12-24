@@ -27,11 +27,19 @@ Section CtxSub.
   #[global] Instance : PreOrder s_ctx_sub.
   Proof. split; first done. by move => x y z H1 H2 ρ; rewrite (H1 _). Qed.
 
+  #[global] Instance s_ty_sub_proper : Proper (equiv ==> equiv ==> iff) s_ty_sub.
+  Proof.
+    rewrite /s_ty_sub => L1 L2 HL U1 U2 HU.
+    by setoid_rewrite HL; setoid_rewrite HU.
+  Qed.
+  #[global] Instance : Params (@s_ty_sub) 2 := {}.
+
   #[global] Instance : Proper (equiv ==> equiv ==> iff) s_ctx_sub.
   Proof.
     rewrite /s_ctx_sub => Γ1 Γ2 HΓ Δ1 Δ2 HΔ.
     by setoid_rewrite HΔ; setoid_rewrite HΓ.
   Qed.
+  #[global] Instance : Params (@s_ctx_sub) 2 := {}.
 
   #[global] Instance cons_s_ctx_sub_mono : Proper (s_ty_sub ==> s_ctx_sub ==> s_ctx_sub) cons.
   Proof. move => T1 T2 HlT Γ1 Γ2 Hl ρ. cbn. by rewrite (HlT _) (Hl _). Qed.
