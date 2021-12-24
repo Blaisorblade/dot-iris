@@ -78,11 +78,34 @@ Section JudgEqs.
 End JudgEqs.
 
 (** ** gDOT semantic types. *)
-Definition vl_sel `{!dlangG Σ} vp l args v : iProp Σ :=
+Definition vl_sel `{!dlangG Σ} vp l args v `{!RecTyInterp Σ} : iProp Σ :=
   ∃ d ψ, ⌜vp @ l ↘ d⌝ ∧ d ↗ ψ ∧ packHoLtyO ψ args v.
 
-Definition oSel `{!dlangG Σ} p l : oltyO Σ :=
+Definition oSel `{!dlangG Σ} p l `{!RecTyInterp Σ} : oltyO Σ :=
   Olty (λI args ρ v, path_wp p.|[ρ] (λ vp, vl_sel vp l args v)).
+
+Section sel_types_lemmas.
+  Context `{HdotG : !dlangG Σ}.
+
+  #[global] Instance vl_sel_contractive vp l args v : Contractive (@vl_sel _ _ vp l args v).
+  Proof. solve_contractive_ho. Qed.
+  (* Deducible. *)
+  Definition vl_sel_ne vp l args v : NonExpansive (@vl_sel _ _ vp l args v) :=
+    contractive_ne _.
+  #[global] Instance vl_sel_proper vp l args v : Proper1 (@vl_sel _ _ vp l args v) :=
+    ne_proper _.
+
+  #[global] Instance oSel_contractive p l : Contractive (@oSel _ _ p l).
+  Proof.
+    move=> n ri1 ri2 Hri args ρ v /=.
+    f_equiv => w.
+    solve_contractive_ho.
+  Qed.
+  Definition oSel_ne p l : NonExpansive (@oSel _ _ p l) :=
+    contractive_ne _.
+  #[global] Instance oSel_proper p l : Proper1 (@oSel _ _ p l) :=
+    ne_proper _.
+End sel_types_lemmas.
 
 Section sem_types.
   Context `{HdotG : !dlangG Σ}.
@@ -147,7 +170,7 @@ Notation oTMemL l L U := (clty_olty (cTMemL l L U)).
 Notation oVMem l τ := (clty_olty (cVMem l τ)).
 
 Section misc_lemmas.
-  Context `{HdotG : !dlangG Σ}.
+  Context `{HdotG : !dlangG Σ} `{!RecTyInterp Σ}.
   Implicit Types (τ L T U : olty Σ).
 
   Lemma oSel_pv w l args ρ v :

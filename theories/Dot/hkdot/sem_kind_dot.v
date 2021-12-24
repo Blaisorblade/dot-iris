@@ -23,34 +23,45 @@ Implicit Types
 Notation oDTMemRaw rK := (Dlty (λI ρ d, ∃ ψ, d ↗ ψ ∧ rK ρ ψ)).
 
 (** [ D⟦ { A :: K } ⟧ ]. *)
-Definition oDTMemK `{!dlangG Σ} (K : sf_kind Σ) : dltyO Σ :=
+Definition oDTMemK `{!dlangG Σ} `[!RecTyInterp Σ] (K : sf_kind Σ) : dltyO Σ :=
   oDTMemRaw (λI ρ ψ, K ρ (packHoLtyO ψ) (packHoLtyO ψ)).
 #[global] Instance : Params (@oDTMemK) 2 := {}.
 
-Definition cTMemK `{!dlangG Σ} l (K : sf_kind Σ) : clty Σ := dty2clty l (oDTMemK K).
+Definition cTMemK `{!dlangG Σ} l `[!RecTyInterp Σ] (K : sf_kind Σ) : clty Σ := dty2clty l (oDTMemK K).
 #[global] Instance : Params (@cTMemK) 3 := {}.
 Notation oTMemK l K := (clty_olty (cTMemK l K)).
 
-Definition oDTMemAnyKind `{!dlangG Σ} : dltyO Σ := Dlty (λI ρ d,
+Definition oDTMemAnyKind `{!dlangG Σ} `{!RecTyInterp Σ} : dltyO Σ := Dlty (λI ρ d,
   ∃ (ψ : hoD Σ), d ↗ ψ).
-Definition cTMemAnyKind `{!dlangG Σ} l : clty Σ := dty2clty l oDTMemAnyKind.
+Definition cTMemAnyKind `{!dlangG Σ} l `{!RecTyInterp Σ} : clty Σ := dty2clty l oDTMemAnyKind.
 Notation oTMemAnyKind l := (clty_olty (cTMemAnyKind l)).
 
 Section TMem_Proper.
-  Context `{!dlangG Σ}.
+  Context `{HdotG : !dlangG Σ}.
 
-  #[global] Instance oDTMemK_ne : NonExpansive (oDTMemK (Σ := Σ)).
-  Proof. solve_proper_ho. Qed.
-  #[global] Instance oDTMemK_proper : Proper1 (oDTMemK (Σ := Σ)) :=
-    ne_proper _.
-  #[global] Instance cTMemK_ne l : NonExpansive (cTMemK (Σ := Σ) l).
-  Proof. solve_proper_ho. Qed.
-  #[global] Instance cTMemK_proper l : Proper1 (cTMemK (Σ := Σ) l) :=
-    ne_proper _.
+  #[global] Instance oDTMemK_contractive n :
+    Proper (dist_later n ==> dist n ==> dist n) (oDTMemK (Σ := Σ)).
+  Proof. solve_contractive_ho. Qed.
+  (* Both contractive and nonexpansive, since [contractive_ne_2] is not an
+  instance. *)
+  #[global] Instance oDTMemK_ne : NonExpansive2 (oDTMemK (Σ := Σ)) :=
+    contractive_ne_R _.
+  #[global] Instance oDTMemK_proper : Proper2 (oDTMemK (Σ := Σ)) :=
+    ne_proper_2 _.
+
+  #[global] Instance cTMemK_contractive l n :
+    Proper (dist_later n ==> dist n ==> dist n) (cTMemK (Σ := Σ) l).
+  Proof. solve_contractive_ho. Qed.
+  (* Both contractive and nonexpansive, since [contractive_ne_2] is not an
+  instance. *)
+  #[global] Instance cTMemK_ne l : NonExpansive2 (cTMemK (Σ := Σ) l) :=
+    contractive_ne_R _.
+  #[global] Instance cTMemK_proper l : Proper2 (cTMemK (Σ := Σ) l) :=
+    ne_proper_2 _.
 End TMem_Proper.
 
 Section TMem_lemmas.
-  Context `{HdotG : !dlangG Σ}.
+  Context `{HdotG : !dlangG Σ} `{!RecTyInterp Σ}.
 
   Lemma cTMemK_eq l (K : sf_kind Σ) d ρ :
     cTMemK l K ρ [(l, d)] ⊣⊢ oDTMemK K ρ d.
@@ -77,13 +88,13 @@ Definition dot_intv_type_pred `{!dlangG Σ} (L U : oltyO Σ) ρ ψ : iProp Σ :=
 #[global] Instance : Params (@dot_intv_type_pred) 2 := {}.
 
 (** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
-Definition oDTMem `{!dlangG Σ} L U : dltyO Σ := oDTMemK (sf_kintv L U).
-Definition oDTMem_eq `{!dlangG Σ} L U : oDTMem L U = oDTMemK (sf_kintv L U) := reflexivity _.
+Definition oDTMem `{!dlangG Σ} `[!RecTyInterp Σ] L U : dltyO Σ := oDTMemK (sf_kintv L U).
+Definition oDTMem_eq `{!dlangG Σ} `{!RecTyInterp Σ} L U : oDTMem L U = oDTMemK (sf_kintv L U) := reflexivity _.
 #[global] Instance : Params (@oDTMem) 2 := {}.
 
-#[global] Arguments oDTMem {Σ _} L U ρ : rename.
+#[global] Arguments oDTMem {Σ _ _} L U ρ : rename.
 
-Definition cTMem `{!dlangG Σ} l L U : clty Σ := dty2clty l (oDTMem L U).
+Definition cTMem `{!dlangG Σ} l `[!RecTyInterp Σ] L U : clty Σ := dty2clty l (oDTMem L U).
 #[global] Instance : Params (@cTMem) 3 := {}.
 
 Notation oTMem l L U := (clty_olty (cTMem l L U)).
@@ -91,21 +102,28 @@ Notation oTMem l L U := (clty_olty (cTMem l L U)).
 Section TMem_Proper.
   Context `{HdotG : !dlangG Σ}.
 
-  #[global] Instance oDTMem_ne : NonExpansive2 oDTMem.
-  Proof. move=> ? ??? ??? ??/=. solve_proper. Qed.
+  #[global] Instance oDTMem_contractive n :
+    Proper (dist_later n ==> dist n ==> dist n ==> dist n) (@oDTMem Σ HdotG).
+  Proof. solve_contractive_ho. Qed.
 
-  #[global] Instance oDTMem_proper : Proper2 oDTMem :=
-    ne_proper_2 _.
+  (* Not an instance: it'd break [solve_contractive] in [cTMem_contractive]. *)
+  Definition oDTMem_ne : NonExpansive3 (@oDTMem Σ HdotG) :=
+    contractive_ne_R _.
 
-  #[global] Instance cTMem_ne l : NonExpansive2 (cTMem l).
-  Proof. solve_proper. Qed.
+  #[global] Instance oDTMem_proper : Proper3 (@oDTMem Σ HdotG).
+  Proof. apply ne_proper_3, oDTMem_ne. Qed.
 
-  #[global] Instance cTMem_proper l : Proper2 (cTMem l) :=
-    ne_proper_2 _.
+  #[global] Instance cTMem_contractive n l : Proper (dist_later n ==> dist n ==> dist n ==> dist n) (cTMem l).
+  Proof. solve_contractive. Qed.
+
+  Definition cTMem_ne l : NonExpansive3 (cTMem l) :=
+    contractive_ne_R _.
+  #[global] Instance cTMem_proper l : Proper3 (cTMem l).
+  Proof. apply ne_proper_3, cTMem_ne. Qed.
 End TMem_Proper.
 
 Section sem_TMem.
-  Context `{HdotG : !dlangG Σ}.
+  Context `{HdotG : !dlangG Σ} `{!RecTyInterp Σ}.
   Implicit Types (τ : oltyO Σ).
 
   Lemma oDTMem_unfold L U : oDTMem L U ≡ oDTMemRaw (dot_intv_type_pred L U).

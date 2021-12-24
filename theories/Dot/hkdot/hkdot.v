@@ -456,7 +456,7 @@ Implicit Types
 Notation "Γ s⊨X T1 <:[ i  ] T2" := (sstpd i Γ T1 T2) (at level 74, T1, T2 at next level).
 
 Section dot_types.
-  Context `{!dlangG Σ} `{HswapProp : SwapPropI Σ}.
+  Context `{!dlangG Σ} `{HswapProp : SwapPropI Σ} `{!RecTyInterp Σ}.
 
   (** Such substitution lemmas hold for all judgments. Note the mu type!
   XXX don't restrict to values. *)
@@ -685,7 +685,7 @@ End s_kind_ofe.
 Import defs_lr binding_lr examples_lr.
 
 Section derived.
-  Context `{Hdlang : !dlangG Σ} `{HswapProp : SwapPropI Σ}.
+  Context `{Hdlang : !dlangG Σ} `{HswapProp : SwapPropI Σ} `{!RecTyInterp Σ}.
   Opaque sSkd sstpiK sptp sstpd sstpi.
 
   Lemma sT_New Γ l σ s (K : sf_kind Σ) T :
@@ -880,7 +880,7 @@ Section derived.
 End derived.
 
 Section examples.
-  Context `{!dlangG Σ} `{HswapProp : SwapPropI Σ}.
+  Context `{!dlangG Σ} `{HswapProp : SwapPropI Σ} `{!RecTyInterp Σ}.
   Import DBNotation dot_lty.
 
   Definition oId := oLam (oSel x0 "A").
@@ -896,7 +896,7 @@ Section examples.
 End examples.
 
 Section dot_experimental_kinds.
-  Context `{!dlangG Σ} `{HswapProp : SwapPropI Σ}.
+  Context `{!dlangG Σ} `{HswapProp : SwapPropI Σ} `{!RecTyInterp Σ}.
 
   (** As an example, we can derive this variant at an interval kind of [sSngl_Stp_Sym] *)
   Lemma sSngl_KStp_Sym Γ p q T i L U :
