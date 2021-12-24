@@ -34,7 +34,7 @@ Notation "Ds⟦ T ⟧" := (clty_dslty C⟦ T ⟧).
 (* We could inline [pty_interp] inside the [V⟦ _ ⟧] notation, but I suspect
 the [V⟦ _ ⟧*] notation needs [pty_interp] to be a first-class function. *)
 Definition pty_interp `{CTyInterp Σ} T : oltyO Σ := clty_olty C⟦ T ⟧.
-#[global] Arguments pty_interp {_ _} !_ /.
+#[global] Arguments pty_interp : simpl never.
 
 (** * Value interpretation of types (Fig. 9). *)
 Notation "V⟦ T ⟧" := (pty_interp T).
@@ -132,17 +132,20 @@ Section log_rel.
   (* Observe the naming pattern for semantic type constructors:
   replace T by o (for most constructors) or by c (for constructors producing
   cltys). *)
-  Fixpoint kind_interp (K : kind) : sf_kind Σ :=
-    let rec_ty : CTyInterp Σ := ty_interp in
-    let rec_kind : SfKindInterp Σ := kind_interp in
+  Implicit Type (hrec : ty -d> hoEnvD Σ).
+  Implicit Type (clrec : ty -d> cltyO Σ).
+
+  Fixpoint kind_rec clrec (K : kind) {struct K} : sf_kind Σ :=
+    let rec_ty : CTyInterp Σ := ty_rec clrec in
+    let rec_kind : SfKindInterp Σ := kind_rec clrec in
     match K with
     | kintv L U => sf_kintv V⟦ L ⟧ V⟦ U ⟧
     | kpi S K => sf_kpi V⟦ S ⟧ K⟦ K ⟧
     end
-   with ty_interp (T : ty) : clty Σ :=
-    let rec_ty : CTyInterp Σ := ty_interp in
-    let rec_kind : SfKindInterp Σ := kind_interp in
-    let hrec : RecTyInterp Σ := pty_interp in
+   with ty_rec clrec (T : ty) {struct T} : clty Σ :=
+    let rec_ty : CTyInterp Σ := ty_rec clrec in
+    let rec_kind : SfKindInterp Σ := kind_rec clrec in
+    let hrec : RecTyInterp Σ := λ T, clty_olty $ clrec T in
     match T with
     | kTTMem l K => cTMemK l K⟦ K ⟧
     | TVMem l T' => cVMem l V⟦ T' ⟧
@@ -162,23 +165,61 @@ Section log_rel.
     | TApp T p => olty2clty $ oTApp V⟦ T ⟧ p
     end.
 
-  #[global] Instance dot_ty_interp : CTyInterp Σ := Reduce ty_interp.
-  #[global] Instance dot_kind_interp : SfKindInterp Σ := Reduce kind_interp.
+  Section interp_contractive.
+    Context (ri1 ri2 : ty -d> cltyO Σ).
+
+    Lemma interp_contractive_mut n (Hri : dist_later n ri1 ri2) :
+      (∀ T, ty_rec ri1 T ≡{n}≡ ty_rec ri2 T) ∧
+      (∀ K, kind_rec ri1 K ≡{n}≡ kind_rec ri2 K).
+    Proof.
+      apply tp_kn_mut_ind; simpl; [done|done|..]; intros *.
+      all: rewrite /pty_interp/clty_interp/sf_kind_interp.
+      all: intros; try by repeat (hof_eq_app || f_equiv).
+      all: repeat (hof_eq_app || f_contractive || f_equiv).
+      all: intros ????; apply clty_olty_ne, Hri.
+    Qed.
+  End interp_contractive.
+
+  #[global] Instance kind_rec_contractive :
+    Contractive (kind_rec : _ -d> kind -d> sf_kindO Σ).
+  Proof. by move=> /= n ri1 ri2 Hri x; apply interp_contractive_mut. Qed.
+  #[global] Instance kind_rec_ne :
+    NonExpansive (kind_rec : _ -d> kind -d> sf_kindO Σ) := _.
+  #[global] Instance kind_rec_proper :
+    Proper1 (kind_rec : _ -d> kind -d> sf_kindO Σ) := _.
+
+  #[global] Instance ty_rec_contractive :
+    Contractive (ty_rec : _ -d> ty -d> cltyO Σ).
+  Proof. by move=> /= n ri1 ri2 Hri x; apply interp_contractive_mut. Qed.
+
+  #[global] Instance ty_interp : CTyInterp Σ := fixpoint ty_rec.
+  #[global] Arguments clty_interp {_ _} _ : simpl never.
+  #[global] Instance dot_kind_interp : SfKindInterp Σ := kind_rec ty_interp.
+  #[global] Arguments sf_kind_interp {_ _} _ : simpl never.
   #[global] Instance dot_rec_ty_interp : RecTyInterp Σ := pty_interp.
 
+  Lemma fixpoint_interp_eq1 T : C⟦ T ⟧ ≡ ty_rec ty_interp T.
+  Proof. apply: fixpoint_unfold. Qed.
+  Lemma fixpoint_interp_eq : ty_interp ≡@{ty -d> _} ty_rec ty_interp.
+  Proof. apply: fixpoint_unfold. Qed.
+
   Section kinterp_lemmas.
+    #[local] Lemma trec_fold0 : ty_rec ty_interp ≡@{ty -d> cltyO Σ} ty_interp.
+    Proof. apply symmetry, fixpoint_unfold. Qed.
+
     Lemma kinterp_kintv L U : K⟦ kintv L U ⟧ ≡ sf_kintv V⟦ L ⟧ V⟦ U ⟧.
-    Proof. done. Qed.
+    Proof. apply sf_kintv_proper; apply trec_fold0. Qed.
     Lemma kinterp_kpi S K : K⟦ kpi S K ⟧ ≡ sf_kpi V⟦ S ⟧ K⟦ K ⟧.
-    Proof. done. Qed.
+    Proof. apply sf_kpi_proper. apply trec_fold0. done. Qed.
   End kinterp_lemmas.
 
   Definition klr := (kinterp_kintv, kinterp_kpi).
 
   Section cinterp_lemmas.
-    Ltac fast_work := done.
-    Ltac fast_go := done.
-    Ltac go := fast_go.
+    Ltac fast_work :=
+      rewrite !fixpoint_interp_eq1 /= /pty_interp/clty_interp//=.
+    Ltac fast_go := by fast_work.
+    Ltac go := fast_work; by rewrite -fixpoint_unfold.
 
     Lemma cinterp_TTop : C⟦ TTop ⟧ ≡ cTop.
     Proof. fast_go. Qed.
@@ -218,7 +259,7 @@ Section log_rel.
     cinterp_kTTMem, cinterp_kTSel, cinterp_TPrim, cinterp_TSing, cinterp_TLam, cinterp_TApp).
 
   Section interp_lemmas.
-    Ltac go := done.
+    Ltac go := rewrite /pty_interp clr //.
 
     Lemma interp_TTop : V⟦ TTop ⟧ ≡ oTop.
     Proof. go. Qed.
@@ -262,8 +303,8 @@ Section log_rel.
     (∀ K ρ1 ρ2 τ1 τ2,
       K⟦ K.|[ρ1] ⟧ ρ2 τ1 τ2 ⊣⊢ K⟦ K ⟧ (ρ1 >> ρ2) τ1 τ2).
   Proof.
-    rewrite /pty_interp; apply tp_kn_mut_ind; intros;
-      rewrite /= /pty_interp /sr_kintv /subtype_lty.
+    apply tp_kn_mut_ind; intros;
+      rewrite ?(vlr, klr) /= /sr_kintv /subtype_lty.
     all: properness.
     all: rewrite ?scons_up_swap ?hsubst_comp; trivial.
     all: try by apply path_wp_proper => ?.
@@ -323,18 +364,18 @@ Section misc_lemmas.
 
   Lemma iterate_TLater_oLater i (T : ty) :
     V⟦iterate TLater i T⟧ ≡ oLaterN i V⟦T⟧.
-  Proof. elim: i => [//|i IHi] ???; by rewrite !iterate_S /= IHi. Qed.
+  Proof. elim: i => [//|i IHi] ???. by rewrite !iterate_S vlr /= IHi. Qed.
 
 End misc_lemmas.
 
 (** Tactic to reduce the syntactic judgments and logical relation.
 To use when proving syntactic typing lemmas, e.g. [Stp_Top] over [sStp_Top], or
 [Mu_Stp] over [sMu_Stp].
-For now this uses mostly definitional equalities, but this will change when
-fixing [issue #365](https://github.com/Blaisorblade/dot-iris/issues/365).
+Due to the fix to [issue #365](https://github.com/Blaisorblade/dot-iris/issues/365),
+this must now use non-definitional equalities.
 *)
-Definition lr := (@fmap_cons, @iterate_TLater_oLater).
-Ltac rw := rewrite /ietp /idstp /idtp /iptp /istpd ?lr; cbn.
+Definition lr := (@fmap_cons, @iterate_TLater_oLater, @vlr, @klr, @clr).
+Ltac rw := rewrite /ietp /idstp /idtp /iptp /istpd ?lr.
 
 Section path_repl_lemmas.
   Context `{!dlangG Σ}.
@@ -349,8 +390,9 @@ Section path_repl_lemmas.
   Proof.
     apply ty_kind_path_repl_mut_ind;
     rewrite /fundamental_ty_path_repl_def /fundamental_kn_path_repl_def
-      /sem_ty_path_repl /sem_kind_path_repl; cbn;
-      rewrite /pty_interp /sr_kintv /subtype_lty/=; intros;
+      /sem_ty_path_repl /sem_kind_path_repl; intros.
+      all: rewrite ?vlr ?klr /=.
+      all: rewrite /sr_kintv /subtype_lty/=; intros;
       try match goal with
       | H : context [equiv _ _] |- _ => rename H into IHHrew
       end;
