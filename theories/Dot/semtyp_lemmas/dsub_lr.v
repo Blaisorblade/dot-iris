@@ -133,7 +133,7 @@ Section DStpLemmas.
   Proof.
     rewrite !sstpd_eq; iIntros ">#Hstp !> %ρ %v Hg".
     iApply mlaterN_impl; iIntros "#HT1".
-    iApply ("Hstp" $! (v .: ρ) v with "[$Hg $HT1] [$HT1]").
+    iApply ("Hstp" $! (v .: ρ) v with "[$Hg $HT1] HT1").
   Qed.
 
   (**
