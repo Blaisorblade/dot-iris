@@ -104,7 +104,8 @@ Definition rsstpd `{!dlangG Σ} i Γ (RV1 RV2 : vl_rel Σ) : iProp Σ :=
 (** Delayed subtyping. *)
 Notation "Γ rs⊨ T1 <:[ i  ] T2" := (rsstpd i Γ T1 T2) (at level 74, T1, T2 at next level).
 (** Path typing *)
-Notation "Γ rs⊨p p1 ~ p2 : τ , i" := (rsptp p1 p2 i Γ τ) (at level 74, p1, p1, τ, i at next level).
+Notation "Γ rs⊨p p1 == p2 : τ , i" := (rsptp p1 p2 i Γ τ)
+  (at level 74, p1, p2, τ, i at next level).
 
 Section foo.
   Context `{HdotG : !dlangG Σ}.
