@@ -225,11 +225,31 @@ Print hoD *)
   Lemma rsStp_Refl {Γ RV i} :
     ⊢ Γ rs⊨ RV <:[i] RV.
   Proof. iIntros "!>" (????) "#Hg !> /= #$". Qed.
+
+  (*
+  Goal ∃ r : relation (vl_rel Σ),
+    Proper (respectful (≡@{vl_relO Σ}) (respectful r (flip impl))) equiv.
+    unfold vl_rel.
+    progress unfold vl_relO.
+    Fail progress unfold vl_rel.
+  eexists.
+      Set Typeclasses Debug Verbosity 3.
+  (* simple apply trans_co_eq_inv_impl_morphism. *)
+  typeclasses eauto. *)
+
   Lemma rsMu_Stp {Γ RV i} :
     ⊢ Γ rs⊨ rVMu (shift RV) <:[i] RV.
   Proof.
     (* XXX Very slow! *)
     (* rewrite rVMu_shift. apply rsStp_Refl. *)
+(*
+    eapply bi_emp_valid_proper.
+    apply rsstpd_proper; [done|..|done].
+    simple apply (rVMu_shift RV).
+    simple apply rsStp_Refl. *)
+
+    (* Set Debug Tactic Unification. *)
+
     iIntros "!>" (????) "#Hg !> /= #HT".
     iApply "HT".
   Qed.
