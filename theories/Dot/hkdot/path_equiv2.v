@@ -83,23 +83,25 @@ Section env_rstyped.
   Qed.
 End env_rstyped.
 
-(* Next TODO: use relational environments! *)
 (* Relational Semantic Path Typing. *)
 Definition rsptp `{!dlangG Σ} p1 p2 i Γ (RV : vl_relO Σ) : iProp Σ :=
-  |==> ∀ ρ, sG⟦Γ⟧* ρ →
+  |==> ∀ ρ1 ρ2,
+    rG⟦Γ⟧* ρ1 ρ2 →
     ▷^i
-    path_wp p1.|[ρ] (λI w1,
-    path_wp p2.|[ρ] (λI w2,
-      RV anil anil ρ ρ w1 w2)).
+    path_wp p1.|[ρ1] (λI w1,
+    path_wp p2.|[ρ2] (λI w2,
+      RV anil anil ρ1 ρ2 w1 w2)).
 #[global] Arguments rsptp : simpl never.
 
 (** Relational Semantic Subtyping. *)
 Definition rsstpd `{!dlangG Σ} i Γ (RV1 RV2 : vl_relO Σ) : iProp Σ :=
   |==> ∀ ρ1 ρ2 v1 v2,
-    sG⟦Γ⟧* ρ1 →
-    sG⟦Γ⟧* ρ2 →
+    rG⟦Γ⟧* ρ1 ρ2 →
     ▷^i (RV1 anil anil ρ1 ρ2 v1 v2 → RV2 anil anil ρ1 ρ2 v1 v2).
 #[global] Arguments rsstpd : simpl never.
+#[global] Instance rsstpd_proper `{!dlangG Σ} i : Proper3 (rsstpd i).
+Proof. solve_proper_ho. Qed.
+#[global] Instance: Params (@rsstpd) 3 := {}.
 
 (** Delayed subtyping. *)
 Notation "Γ rs⊨ T1 <:[ i  ] T2" := (rsstpd i Γ T1 T2) (at level 74, T1, T2 at next level).
@@ -208,37 +210,35 @@ Print hoD *)
     - by iApply quasi_refl_r.
   Qed.
 
-  Lemma rsMu_Stp_Mu {Γ RV1 RV2 i} `{!SwapPropI Σ} `{!QuasiRefl RV1 T} :
-    oLaterN i (close RV1) :: Γ rs⊨ RV1 <:[i] RV2 -∗
+  Lemma rsMu_Stp_Mu {Γ RV1 RV2 i} `{!SwapPropI Σ} :
+    rVLaterN i RV1 :: Γ rs⊨ RV1 <:[i] RV2 -∗
     Γ rs⊨ rVMu RV1 <:[i] rVMu RV2.
   Proof.
-    iIntros ">#Hstp !>" (ρ1 ρ2 v1 v2) "Hg1 Hg2".
-    iApply mlaterN_impl. iIntros "#HT".
-    rewrite /rVMu/=. iApply ("Hstp" $! (_ .: ρ1) (_ .: ρ2) _ _ with "[$Hg1] [$Hg2] HT").
-    all: iNext i; asimpl.
-    iApply (quasi_refl_l with "HT").
-    iApply (quasi_refl_r with "HT").
+    iIntros ">#Hstp !>" (ρ1 ρ2 v1 v2) "Hg". iApply mlaterN_impl. iIntros "#HT".
+    rewrite /rVMu/=. iApply ("Hstp" $! (_ .: ρ1) (_ .: ρ2) _ _ with "[$Hg] HT").
+    iApply "HT".
   Qed.
 
-  (* Doesn't typecheck. *)
-  (* Lemma rVMu_shift RV : rVMu (shift RV) ≡ RV.
-  Proof. move=> args1 args2 ρ v. by rewrite /= (hoEnvD_weaken_one T args1 args2 _ v). Qed. *)
+  Lemma rVMu_shift RV : rVMu (shift RV) ≡ RV.
+  Proof. done. Qed.
+
+  Lemma rsStp_Refl {Γ RV i} :
+    ⊢ Γ rs⊨ RV <:[i] RV.
+  Proof. iIntros "!>" (????) "#Hg !> /= #$". Qed.
   Lemma rsMu_Stp {Γ RV i} :
     ⊢ Γ rs⊨ rVMu (shift RV) <:[i] RV.
   Proof.
-    rewrite /rVMu /=.
-    iIntros "!>" (????) "#Hg1 #Hg2 !> /= #HT".
-    (* by rewrite rVMu_shift. *)
-    by rewrite /hsubst /hsubst_vl_rel; asimpl.
+    (* XXX Very slow! *)
+    (* rewrite rVMu_shift. apply rsStp_Refl. *)
+    iIntros "!>" (????) "#Hg !> /= #HT".
+    iApply "HT".
   Qed.
 
   Lemma rsStp_Mu {Γ RV i} :
     ⊢ Γ rs⊨ RV <:[i] rVMu (shift RV).
   Proof.
-    rewrite /rVMu /=.
-    iIntros "!>" (????) "#Hg1 #Hg2 !> /= #HT".
-    (* by rewrite rVMu_shift; iFrame. *)
-    by rewrite /hsubst /hsubst_vl_rel; asimpl.
+    iIntros "!>" (????) "#Hg !> /= #HT".
+    iApply "HT".
   Qed.
 
   Definition rVVMem l RV : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2,
