@@ -41,19 +41,19 @@ where "rG⟦ Γ ⟧*" := (env_rstyped Γ).
 
 Section env_rstyped.
   Context `{!dlangG Σ}.
-  #[global] Instance ids_vl_rel : Ids (vl_rel Σ) := λ _, inhabitant.
-  #[global] Instance rename_vl_rel : Rename (vl_rel Σ) :=
+  #[global] Instance ids_vl_rel : Ids (vl_relO Σ) := λ _, inhabitant.
+  #[global] Instance rename_vl_rel : Rename (vl_relO Σ) :=
     λ r RV args1 args2 ρ1 ρ2, RV args1 args2 (r >>> ρ1) (r >>> ρ2).
 
-  #[global] Program Instance hsubst_vl_rel {Σ} : HSubst vl (vl_rel Σ) :=
+  #[global] Program Instance hsubst_vl_rel {Σ} : HSubst vl (vl_relO Σ) :=
     λ sb RV args1 args2 ρ1 ρ2, RV args1 args2 (sb >> ρ1) (sb >> ρ2).
   Ltac renLemmas_vl_rel :=
     hnf; rewrite /hsubst /hsubst_vl_rel => /= *;
     do 4 (apply FunctionalExtensionality.functional_extensionality_dep => ?); autosubst.
 
-  #[global] Instance HSubstLemmas_vl_rel : HSubstLemmas vl (vl_rel Σ).
+  #[global] Instance HSubstLemmas_vl_rel : HSubstLemmas vl (vl_relO Σ).
   Proof. split => //; renLemmas_vl_rel. Qed.
-  #[global] Instance : Sort (vl_rel Σ) := {}.
+  #[global] Instance : Sort (vl_relO Σ) := {}.
 
   Definition env_rstyped_nil ρ1 ρ2 : rG⟦ [] ⟧* ρ1 ρ2 ⊣⊢ True := reflexivity _.
   Definition env_rstyped_cons ρ1 ρ2 τ (Γ : rsCtxO Σ) :
@@ -72,7 +72,7 @@ Section env_rstyped.
     move=> Γ1 Γ2 /equiv_dist HΓ _ ρ1 -> _ ρ2 ->. apply /equiv_dist => n. exact: env_rstyped_ne.
   Qed.
 
-  Lemma rs_interp_env_lookup (Γ : rsCtxO Σ) ρ1 ρ2 (RV : vl_rel Σ) x :
+  Lemma rs_interp_env_lookup (Γ : rsCtxO Σ) ρ1 ρ2 (RV : vl_relO Σ) x :
     Γ !! x = Some RV →
     rG⟦ Γ ⟧* ρ1 ρ2 -∗ shiftN x RV anil anil ρ1 ρ2 (ρ1 x) (ρ2 x).
   Proof.
@@ -85,7 +85,7 @@ End env_rstyped.
 
 (* Next TODO: use relational environments! *)
 (* Relational Semantic Path Typing. *)
-Definition rsptp `{!dlangG Σ} p1 p2 i Γ (RV : vl_rel Σ) : iProp Σ :=
+Definition rsptp `{!dlangG Σ} p1 p2 i Γ (RV : vl_relO Σ) : iProp Σ :=
   |==> ∀ ρ, sG⟦Γ⟧* ρ →
     ▷^i
     path_wp p1.|[ρ] (λI w1,
@@ -94,7 +94,7 @@ Definition rsptp `{!dlangG Σ} p1 p2 i Γ (RV : vl_rel Σ) : iProp Σ :=
 #[global] Arguments rsptp : simpl never.
 
 (** Relational Semantic Subtyping. *)
-Definition rsstpd `{!dlangG Σ} i Γ (RV1 RV2 : vl_rel Σ) : iProp Σ :=
+Definition rsstpd `{!dlangG Σ} i Γ (RV1 RV2 : vl_relO Σ) : iProp Σ :=
   |==> ∀ ρ1 ρ2 v1 v2,
     sG⟦Γ⟧* ρ1 →
     sG⟦Γ⟧* ρ2 →
@@ -107,16 +107,20 @@ Notation "Γ rs⊨ T1 <:[ i  ] T2" := (rsstpd i Γ T1 T2) (at level 74, T1, T2 a
 Notation "Γ rs⊨p p1 == p2 : τ , i" := (rsptp p1 p2 i Γ τ)
   (at level 74, p1, p2, τ, i at next level).
 
+Definition rVLaterN {Σ} n (RV : vl_relO Σ) : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2, ▷^n RV args1 args2 ρ1 ρ2 v1 v2.
+Notation rVLater := (rVLaterN 1).
+#[global] Instance: Params (@rVLaterN) 2 := {}.
+
 Section foo.
   Context `{HdotG : !dlangG Σ}.
   Set Default Proof Using "HdotG".
-  Implicit Types (RD : dm_rel Σ) (RDS : dms_rel Σ) (RV : vl_rel Σ).
+  Implicit Types (RD : dm_rel Σ) (RDS : dms_rel Σ) (RV : vl_relO Σ).
   Implicit Types (T : olty Σ) (SK : sf_kind Σ).
 
   Definition rlift_dm_dms l RD : dms_rel Σ := λI args1 args2 ρ1 ρ2 ds1 ds2,
     ∃ d1 d2, ⌜ dms_lookup l ds1 = Some d1 ∧ dms_lookup l ds2 = Some d2 ⌝ ∧
     RD args1 args2 ρ1 ρ2 d1 d2.
-  Definition rlift_dm_vl l RD : vl_rel Σ := λI args1 args2 ρ1 ρ2 v1 v2,
+  Definition rlift_dm_vl l RD : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2,
     ∃ d1 d2, ⌜ v1 @ l ↘ d1 ∧ v2 @ l ↘ d2 ⌝ ∧
     RD args1 args2 ρ1 ρ2 d1 d2.
 
@@ -153,12 +157,11 @@ Print hoD *)
   Definition rDAnd RD1 RD2 : dm_rel Σ := λI args1 args2 ρ1 ρ2 d1 d2,
     RD1 args1 args2 ρ1 ρ2 d1 d2 ∧ RD2 args1 args2 ρ1 ρ2 d1 d2.
 
-  #[global] Instance rVTop : Top (vl_rel Σ) := λI args1 args2 ρ1 ρ2 v1 v2, True.
-  #[global] Instance rVBot : Bottom (vl_rel Σ) := λI args1 args2 ρ1 ρ2 v1 v2, False.
-  Definition rVAnd RV1 RV2 : vl_rel Σ := λI args1 args2 ρ1 ρ2 v1 v2, RV1 args1 args2 ρ1 ρ2 v1 v2 ∧ RV2 args1 args2 ρ1 ρ2 v1 v2.
-  Definition rVOr RV1 RV2 : vl_rel Σ := λI args1 args2 ρ1 ρ2 v1 v2, RV1 args1 args2 ρ1 ρ2 v1 v2 ∨ RV2 args1 args2 ρ1 ρ2 v1 v2.
-  Definition rVLater RV : vl_rel Σ := λI args1 args2 ρ1 ρ2 v1 v2, ▷ RV args1 args2 ρ1 ρ2 v1 v2.
-  Definition rVAll RV1 RV2 : vl_rel Σ := ⊥.
+  #[global] Instance rVTop : Top (vl_relO Σ) := λI args1 args2 ρ1 ρ2 v1 v2, True.
+  #[global] Instance rVBot : Bottom (vl_relO Σ) := λI args1 args2 ρ1 ρ2 v1 v2, False.
+  Definition rVAnd RV1 RV2 : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2, RV1 args1 args2 ρ1 ρ2 v1 v2 ∧ RV2 args1 args2 ρ1 ρ2 v1 v2.
+  Definition rVOr RV1 RV2 : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2, RV1 args1 args2 ρ1 ρ2 v1 v2 ∨ RV2 args1 args2 ρ1 ρ2 v1 v2.
+  Definition rVAll RV1 RV2 : vl_relO Σ := ⊥.
 
   Definition close RV : olty Σ := (* XXX better name *)
     Olty (λI args ρ v, RV args args ρ ρ v v).
@@ -170,7 +173,7 @@ Print hoD *)
   }.
 (*
   (* NOTE We use the "smaller" value! *)
-  Definition rVMu1 RV : vl_rel Σ := λI args1 args2 ρ1 ρ2 v1 v2,
+  Definition rVMu1 RV : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2,
     RV args1 args2 (v1 .: ρ) v1 v2.
 
   Instance rVMu1_qper RV : QuasiRefl RV → QuasiRefl (rVMu1 RV).
@@ -193,7 +196,7 @@ Print hoD *)
     iApply (quasi_refl_l with "HT1").
   Qed. *)
 
-  Definition rVMu RV : vl_rel Σ := λI args1 args2 ρ1 ρ2 v1 v2,
+  Definition rVMu RV : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2,
     RV args1 args2 (v1 .: ρ1) (v2 .: ρ2) v1 v2.
 
   #[global] Instance rVMu_qper RV T : QuasiRefl RV T → QuasiRefl (rVMu RV) (oMu T).
@@ -238,9 +241,9 @@ Print hoD *)
     by rewrite /hsubst /hsubst_vl_rel; asimpl.
   Qed.
 
-  Definition rVVMem l RV : vl_rel Σ := λI args1 args2 ρ1 ρ2 v1 v2,
+  Definition rVVMem l RV : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2,
     rlift_dm_vl l (rDVMem RV) args1 args2 ρ1 ρ2 v1 v2.
-  Definition rVTMem l SK : vl_rel Σ := λI args1 args2 ρ1 ρ2 v1 v2,
+  Definition rVTMem l SK : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2,
     rlift_dm_vl l (rDTMem SK) args1 args2 ρ1 ρ2 v1 v2.
 
   Definition vl_sel' vp l ψ : iProp Σ := ∃ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ψ.
@@ -251,14 +254,14 @@ Print hoD *)
   So we need to save a relation with each type :-(
   XXX2 : luckily, we don't really need this for path equivalence.
   *)
-  Definition rVSel p l : vl_rel Σ := λI args1 args2 ρ1 ρ2 v1 v2,
+  Definition rVSel p l : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2,
     ∃ (ψ1 ψ2 : hoD Σ),
       path_wp p.|[ρ1] (λI vp, vl_sel' vp l ψ1) ∧
       ψ1 args1 v1 ∧
       path_wp p.|[ρ1] (λI vp, vl_sel' vp l ψ2) ∧
       ψ2 args2 v2.
 
-  Definition rVPrim b : vl_rel Σ := λI args1 args2 ρ1 ρ2 v1 v2,
+  Definition rVPrim b : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2,
     ⌜ v1 = v2 ⌝ ∧ oPrim b args1 ρ1 v1 ∧ oPrim b args2 ρ2 v2.
   #[global] Instance: `{QuasiRefl (rVPrim b) (oPrim b)}.
   Proof.
@@ -266,17 +269,17 @@ Print hoD *)
     4: by iIntros "#$".
     all: by iIntros "#(? & ? & ?)"; iFrame "#".
   Qed.
-  Definition rVSing p : vl_rel Σ := λI args1 args2 ρ1 ρ2 v1 v2,
+  Definition rVSing p : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2,
     oSing p args1 ρ1 v1 ∧ oSing p args2 ρ2 v2.
-  Definition rVLam RV : vl_rel Σ := λI args1 args2 ρ1 ρ2 v1 v2,
+  Definition rVLam RV : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2,
     RV (atail args1) (atail args2) (ahead args1 .: ρ1) (ahead args2 .: ρ2) v1 v2.
-  Definition rVApp RV p : vl_rel Σ := λI args1 args2 ρ1 ρ2 v1 v2,
+  Definition rVApp RV p : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2,
     path_wp p.|[ρ1] (λI w1,
     path_wp p.|[ρ2] (λI w2,
     RV (acons w1 args1) (acons w2 args2) ρ1 ρ2 v1 v2)).
 
   (* Path-refinement, half of path equality. With 1 environment! *)
-  Fixpoint ty_le (T : ty) : vl_rel Σ :=
+  Fixpoint ty_le (T : ty) : vl_relO Σ :=
     match T with
     | TTop => rVTop
     | TBot => rVBot
