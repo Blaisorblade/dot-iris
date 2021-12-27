@@ -24,8 +24,8 @@ Implicit Types
   (ρ : env) (l : label).
 Implicit Types (K : kind).
 
-Definition dm_rel Σ := ∀ (args1 args2 : astream) (ρ1 ρ2 : env) (d1 d2 : dm), iProp Σ.
-Definition dms_rel Σ := ∀ (args1 args2 : astream) (ρ1 ρ2 : env) (ds1 ds2 : dms), iProp Σ.
+Definition dm_rel Σ := ∀ (ρ1 ρ2 : env) (d1 d2 : dm), iProp Σ.
+Definition dms_rel Σ := ∀ (ρ1 ρ2 : env) (ds1 ds2 : dms), iProp Σ.
 Definition vl_rel Σ := ∀ (args1 args2 : astream) (ρ1 ρ2 : env) (v1 v2 : vl), iProp Σ.
 Definition vl_relO Σ := astream -d> astream -d> env -d> env -d> vl -d> vl -d> iPropO Σ.
 Definition rsCtxO Σ : ofe := listO (vl_relO Σ).
@@ -119,12 +119,12 @@ Section foo.
   Implicit Types (RD : dm_rel Σ) (RDS : dms_rel Σ) (RV : vl_relO Σ).
   Implicit Types (T : olty Σ) (SK : sf_kind Σ).
 
-  Definition rlift_dm_dms l RD : dms_rel Σ := λI args1 args2 ρ1 ρ2 ds1 ds2,
+  Definition rlift_dm_dms l RD : dms_rel Σ := λI ρ1 ρ2 ds1 ds2,
     ∃ d1 d2, ⌜ dms_lookup l ds1 = Some d1 ∧ dms_lookup l ds2 = Some d2 ⌝ ∧
-    RD args1 args2 ρ1 ρ2 d1 d2.
+    RD ρ1 ρ2 d1 d2.
   Definition rlift_dm_vl l RD : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2,
     ∃ d1 d2, ⌜ v1 @ l ↘ d1 ∧ v2 @ l ↘ d2 ⌝ ∧
-    RD args1 args2 ρ1 ρ2 d1 d2.
+    RD ρ1 ρ2 d1 d2.
 
   (* Fixpoint ty_le (T : ty) (args1 args2 : astream) (ρ1 ρ2 : env) (v1 v2 : vl) : iProp Σ :=
     match T with
@@ -147,17 +147,17 @@ Section foo.
 (* Print hoLty
 Print hoD *)
 
-  Definition rDVMem RV : dm_rel Σ := λI args1 args2 ρ1 ρ2 d1 d2,
+  Definition rDVMem RV : dm_rel Σ := λI ρ1 ρ2 d1 d2,
     ∃ pmem1 pmem2, ⌜d1 = dpt pmem1⌝ ∧ ⌜d2 = dpt pmem2⌝ ∧
-    path_wp pmem1 (λI w1, path_wp pmem2 (λI w2, RV args1 args2 ρ1 ρ2 w1 w2)).
+    path_wp pmem1 (λI w1, path_wp pmem2 (λI w2, RV anil anil ρ1 ρ2 w1 w2)).
 
-  Definition rDTMem SK : dm_rel Σ := λI args1 args2 ρ1 ρ2 d1 d2,
+  Definition rDTMem SK : dm_rel Σ := λI ρ1 ρ2 d1 d2,
     ∃ ψ1 ψ2, d1 ↗ ψ1 ∧ d2 ↗ ψ2 ∧
     (* Only one env here! *)
     SK ρ1 (packHoLtyO ψ1) (packHoLtyO ψ2).
 
-  Definition rDAnd RD1 RD2 : dm_rel Σ := λI args1 args2 ρ1 ρ2 d1 d2,
-    RD1 args1 args2 ρ1 ρ2 d1 d2 ∧ RD2 args1 args2 ρ1 ρ2 d1 d2.
+  Definition rDAnd RD1 RD2 : dm_rel Σ := λI ρ1 ρ2 d1 d2,
+    RD1 ρ1 ρ2 d1 d2 ∧ RD2 ρ1 ρ2 d1 d2.
 
   #[global] Instance rVTop : Top (vl_relO Σ) := λI args1 args2 ρ1 ρ2 v1 v2, True.
   #[global] Instance rVBot : Bottom (vl_relO Σ) := λI args1 args2 ρ1 ρ2 v1 v2, False.
