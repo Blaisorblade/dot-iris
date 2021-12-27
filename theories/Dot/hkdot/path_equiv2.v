@@ -181,7 +181,7 @@ Print hoD *)
     ∃ pmem1 pmem2, ⌜d1 = dpt pmem1⌝ ∧ ⌜d2 = dpt pmem2⌝ ∧
     path_wp pmem1 (λI w1, path_wp pmem2 (λI w2, RV anil anil ρ1 ρ2 w1 w2)).
 
-  Definition rDTMem SK : dm_rel Σ := λI ρ1 ρ2 d1 d2,
+  Definition rDTMemK SK : dm_rel Σ := λI ρ1 ρ2 d1 d2,
     ∃ ψ1 ψ2, d1 ↗ ψ1 ∧ d2 ↗ ψ2 ∧
     (* Only one env here! *)
     SK ρ1 (packHoLtyO ψ1) (packHoLtyO ψ2).
@@ -293,8 +293,8 @@ Print hoD *)
 
   Definition rVVMem l RV : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2,
     rlift_dm_vl l (rDVMem RV) args1 args2 ρ1 ρ2 v1 v2.
-  Definition rVTMem l SK : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2,
-    rlift_dm_vl l (rDTMem SK) args1 args2 ρ1 ρ2 v1 v2.
+  Definition rVTMemK l SK : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2,
+    rlift_dm_vl l (rDTMemK SK) args1 args2 ρ1 ρ2 v1 v2.
 
 From D.Dot Require Import hkdot.
 Import HkDot.
@@ -307,17 +307,17 @@ Import HkDot.
   (* Lemma rVTy_intro l Γ i SK s σ T :
     let v := vobj [(l, dtysem σ s)] in
     s ↝[ σ ] T -∗
-    Γ rs⊨p pv v == pv v : rVTMem l SK, i. *)
+    Γ rs⊨p pv v == pv v : rVTMemK l SK, i. *)
   Lemma rVTy_intro l Γ i SK s σ T :
     let v := vobj [(l, dtysem σ s)] in
     s ↝[ σ ] T -∗
-    Γ rs⊨p pv v == pv v : rVMu (rVTMem l (sf_sngl (oLater T))), i.
+    Γ rs⊨p pv v == pv v : rVMu (rVTMemK l (sf_sngl (oLater T))), i.
   Proof.
     intros v.
     rewrite /rsptp.
     iDestruct 1 as (φ Hγφ) "#Hγ".
     iIntros "!>" (??) "#Hg !> /=".
-    rewrite !path_wp_pv_eq /= /rVTMem /rlift_dm_vl /rDTMem /=.
+    rewrite !path_wp_pv_eq /= /rVTMemK /rlift_dm_vl /rDTMemK /=.
     iExists _, _; iSplit; first iIntros "!%".
     {
       split; red; eexists; split_and! => //;
@@ -344,18 +344,18 @@ Import HkDot.
 
   (* Lemma rVTy_intro l Γ i SK (T : ty) :
     let p := pv (vobj [(l, dtysyn T)]) in
-    ⊢ Γ rs⊨p p == p : rVTMem l SK, i.
+    ⊢ Γ rs⊨p p == p : rVTMemK l SK, i.
   Proof.
     rewrite /rsptp.
     iIntros "!>" (??) "#Hg !> /=".
     rewrite !path_wp_pv_eq /=.
-    rewrite /rVTMem /rlift_dm_vl.
+    rewrite /rVTMemK /rlift_dm_vl.
     iExists _, _; iSplit; first iIntros "!%".
     {
       split; red; eexists; split_and! => //;
         apply dms_lookup_head.
     }
-    unfold rDTMem.
+    unfold rDTMemK.
     iExists (hoEnvD_inst (σ.|[ρ]) φ). iSplit.
     by iApply (dm_to_type_intro with "Hγ").
     by iSplit; iIntros (v) "#H"; iNext; rewrite /= (Hγφ _ _). *)
@@ -410,7 +410,7 @@ Import HkDot.
     | TVMem l T =>
       rVVMem l (ty_le T)
     | kTTMem l K =>
-      rVTMem l K⟦ K ⟧
+      rVTMemK l K⟦ K ⟧
     | kTSel _ p l => rVSel p l
     | TPrim b => rVPrim b
     | TSing p => rVSing p
