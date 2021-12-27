@@ -296,6 +296,70 @@ Print hoD *)
   Definition rVTMem l SK : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2,
     rlift_dm_vl l (rDTMem SK) args1 args2 ρ1 ρ2 v1 v2.
 
+From D.Dot Require Import hkdot.
+Import HkDot.
+
+  (* Lemma rD_TypK_Abs {Γ} T (K : sf_kind Σ) s σ l :
+    Γ rs⊨ oLater T ∷[ 0 ] K -∗
+    s ↝[ σ ] T -∗
+    Γ rs⊨ { l := dtysem σ s } : cTMemK l K. *)
+
+  (* Lemma rVTy_intro l Γ i SK s σ T :
+    let v := vobj [(l, dtysem σ s)] in
+    s ↝[ σ ] T -∗
+    Γ rs⊨p pv v == pv v : rVTMem l SK, i. *)
+  Lemma rVTy_intro l Γ i SK s σ T :
+    let v := vobj [(l, dtysem σ s)] in
+    s ↝[ σ ] T -∗
+    Γ rs⊨p pv v == pv v : rVMu (rVTMem l (sf_sngl (oLater T))), i.
+  Proof.
+    intros v.
+    rewrite /rsptp.
+    iDestruct 1 as (φ Hγφ) "#Hγ".
+    iIntros "!>" (??) "#Hg !> /=".
+    rewrite !path_wp_pv_eq /= /rVTMem /rlift_dm_vl /rDTMem /=.
+    iExists _, _; iSplit; first iIntros "!%".
+    {
+      split; red; eexists; split_and! => //;
+        apply dms_lookup_head.
+    }
+    cbn.
+    set σ1 := σ.|[up ρ1].|[v.[ρ1]/].
+    set σ2 := σ.|[up ρ2].|[v.[ρ2]/].
+    iExists (hoEnvD_inst σ1 φ), (hoEnvD_inst σ2 φ).
+    do 2 (iSplit; [by iApply (dm_to_type_intro with "Hγ")|]).
+    (* by iSplit; iIntros (w) "#H"; iNext; rewrite /= (Hγφ _ _). *)
+    repeat iSplit; iIntros (w) "#H /="; iNext.
+    all: rewrite /= {}/σ1 {}/σ2.
+    all: rewrite /= ?(Hγφ _ _) //=.
+    { asimpl. iApply "H". }
+    admit.
+    admit.
+    (* Both goals suffer from an environment mismatch.
+    But they might follow if we know that T has kind K... which would require T
+    to respect the relation between environments!
+    In turn, we must check that all types respect all the relational semantics.
+    *)
+  Admitted.
+
+  (* Lemma rVTy_intro l Γ i SK (T : ty) :
+    let p := pv (vobj [(l, dtysyn T)]) in
+    ⊢ Γ rs⊨p p == p : rVTMem l SK, i.
+  Proof.
+    rewrite /rsptp.
+    iIntros "!>" (??) "#Hg !> /=".
+    rewrite !path_wp_pv_eq /=.
+    rewrite /rVTMem /rlift_dm_vl.
+    iExists _, _; iSplit; first iIntros "!%".
+    {
+      split; red; eexists; split_and! => //;
+        apply dms_lookup_head.
+    }
+    unfold rDTMem.
+    iExists (hoEnvD_inst (σ.|[ρ]) φ). iSplit.
+    by iApply (dm_to_type_intro with "Hγ").
+    by iSplit; iIntros (v) "#H"; iNext; rewrite /= (Hγφ _ _). *)
+
   Definition vl_sel' vp l ψ : iProp Σ := ∃ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ψ.
   (**
   XXX
