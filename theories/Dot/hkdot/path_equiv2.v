@@ -6,6 +6,10 @@ From D.Dot Require Import syn path_repl.
 From D.Dot Require Import dlang_inst path_wp.
 From D.pure_program_logic Require Import weakestpre.
 From D.Dot Require Import dot_lty dot_semtypes sem_kind_dot unary_lr.
+From D.Dot Require Import hkdot.
+Import HkDot.
+
+Ltac cbv_decide := by apply: bool_decide_unpack; cbv.
 
 (*
 TODO:
@@ -87,6 +91,12 @@ Section env_rstyped.
   Qed.
 End env_rstyped.
 
+(* XXX we use [ρ1] asymmetrically, matching the [rDTMemK] *)
+Notation rsstpiK_env i T1 T2 K ρ1 ρ2 := (▷^i K ρ1 (envApply T1 ρ1) (envApply T2 ρ2))%I.
+Notation rsstpiK' i Γ T1 T2 K := (∀ ρ1 ρ2, rG⟦Γ⟧* ρ1 ρ2 → rsstpiK_env i T1 T2 K ρ1 ρ2)%I.
+Definition rsstpiK `{!dlangG Σ} i Γ T1 T2 (K : sf_kind Σ) : iProp Σ :=
+  |==> rsstpiK' i Γ T1 T2 K.
+
 Section judgments.
   Context {Σ}.
   Implicit Types (RV : vl_relO Σ) (RD : dm_relO Σ) (RDS : dms_relO Σ).
@@ -138,6 +148,17 @@ Notation "Γ rs⊨p p1 == p2 : τ , i" := (rsptp p1 p2 i Γ τ)
 Notation "Γ rs⊨ {  l := d1 = d2  } : T" := (rsdtp l d1 d2 Γ T) (at level 64, d1, d2, l, T at next level).
 (** Multi-definition typing *)
 Notation "Γ rs⊨ds ds1 = ds2  : T" := (rsdstp ds1 ds2 Γ T) (at level 64, ds1, ds2, T at next level).
+
+(* TODO <:: could work for base subtyping? It's really meant for subkinding
+but... *)
+Notation "Γ rs⊨ T1 <::[ i  ] T2 ∷ K" := (rsstpiK i Γ T1 T2 K)
+  (at level 74, i, T1, T2, K at next level).
+Notation "Γ rs⊨ T1 =[ i  ] T2 ∷ K" :=
+  (Γ rs⊨ T1 <::[ i  ] T2 ∷ K ∧ Γ rs⊨ T2 <::[ i  ] T1 ∷ K)%I
+  (at level 74, i, T1, T2, K at next level).
+Notation "Γ rs⊨ T ∷[ i  ] K" := (Γ rs⊨ T <::[ i ] T ∷ K)
+  (at level 74, T, K at next level).
+
 
 Definition rVLaterN {Σ} n (RV : vl_relO Σ) : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2, ▷^n RV args1 args2 ρ1 ρ2 v1 v2.
 Notation rVLater := (rVLaterN 1).
@@ -296,13 +317,22 @@ Print hoD *)
   Definition rVTMemK l SK : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2,
     rlift_dm_vl l (rDTMemK SK) args1 args2 ρ1 ρ2 v1 v2.
 
-From D.Dot Require Import hkdot.
-Import HkDot.
-
-  (* Lemma rD_TypK_Abs {Γ} T (K : sf_kind Σ) s σ l :
-    Γ rs⊨ oLater T ∷[ 0 ] K -∗
+  Lemma rD_TypK_Abs {Γ} T (K : sf_kind Σ) s σ l :
     s ↝[ σ ] T -∗
-    Γ rs⊨ { l := dtysem σ s } : cTMemK l K. *)
+    Γ rs⊨ oLater T ∷[ 0 ] K -∗
+    Γ rs⊨ { l := dtysem σ s = dtysem σ s } : rlift_dm_dms l (rDTMemK K).
+  Proof.
+    rewrite /rsdtp /rsdstp.
+    iDestruct 1 as (φ Hγφ) "#Hγ".
+    iIntros ">#HT !>".
+    iSplit; last iSplit; [iIntros "!%"; cbv_decide..|].
+    iIntros (?? Hpid1 Hpid2) "#Hg". rewrite /rlift_dm_dms.
+    iExists _, _; iSplit. { iIntros "!%"; split_and!; apply dms_lookup_head. }
+    iExists (hoEnvD_inst σ.|[ρ1] φ), (hoEnvD_inst σ.|[ρ2] φ).
+    do 2 (iSplit; [by iApply (dm_to_type_intro with "Hγ")|]).
+    iApply (sf_kind_proper with "(HT Hg)") => args v /=.
+    all: by rewrite (Hγφ args _ _).
+  Qed.
 
   (* Lemma rVTy_intro l Γ i SK s σ T :
     let v := vobj [(l, dtysem σ s)] in
