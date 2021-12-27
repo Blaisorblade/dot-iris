@@ -27,7 +27,11 @@ Implicit Types (K : kind).
 Definition dm_rel Σ := ∀ (ρ1 ρ2 : env) (d1 d2 : dm), iProp Σ.
 Definition dms_rel Σ := ∀ (ρ1 ρ2 : env) (ds1 ds2 : dms), iProp Σ.
 Definition vl_rel Σ := ∀ (args1 args2 : astream) (ρ1 ρ2 : env) (v1 v2 : vl), iProp Σ.
+
+Definition dm_relO Σ := env -d> env -d> dm -d> dm -d> iPropO Σ.
+Definition dms_relO Σ := env -d> env -d> dms -d> dms -d> iPropO Σ.
 Definition vl_relO Σ := astream -d> astream -d> env -d> env -d> vl -d> vl -d> iPropO Σ.
+
 Definition rsCtxO Σ : ofe := listO (vl_relO Σ).
 
 Reserved Notation "rG⟦ Γ ⟧*" (at level 10).
@@ -83,24 +87,46 @@ Section env_rstyped.
   Qed.
 End env_rstyped.
 
-(* Relational Semantic Path Typing. *)
-Definition rsptp `{!dlangG Σ} p1 p2 i Γ (RV : vl_relO Σ) : iProp Σ :=
-  |==> ∀ ρ1 ρ2,
-    rG⟦Γ⟧* ρ1 ρ2 →
-    ▷^i
-    path_wp p1.|[ρ1] (λI w1,
-    path_wp p2.|[ρ2] (λI w2,
-      RV anil anil ρ1 ρ2 w1 w2)).
-#[global] Arguments rsptp : simpl never.
+Section judgments.
+  Context {Σ}.
+  Implicit Types (RV : vl_relO Σ) (RD : dm_relO Σ) (RDS : dms_relO Σ).
 
-(** Relational Semantic Subtyping. *)
-Definition rsstpd `{!dlangG Σ} i Γ (RV1 RV2 : vl_relO Σ) : iProp Σ :=
-  |==> ∀ ρ1 ρ2 v1 v2,
-    rG⟦Γ⟧* ρ1 ρ2 →
-    ▷^i (RV1 anil anil ρ1 ρ2 v1 v2 → RV2 anil anil ρ1 ρ2 v1 v2).
-#[global] Arguments rsstpd : simpl never.
-#[global] Instance rsstpd_proper `{!dlangG Σ} i : Proper3 (rsstpd i).
-Proof. solve_proper_ho. Qed.
+  (* Relational Semantic Path Typing. *)
+  Definition rsptp `{!dlangG Σ} p1 p2 i Γ RV : iProp Σ :=
+    |==> ∀ ρ1 ρ2,
+      rG⟦Γ⟧* ρ1 ρ2 →
+      ▷^i
+      path_wp p1.|[ρ1] (λI w1,
+      path_wp p2.|[ρ2] (λI w2,
+        RV anil anil ρ1 ρ2 w1 w2)).
+  #[global] Arguments rsptp : simpl never.
+
+  (** Relational Semantic Subtyping. *)
+  Definition rsstpd `{!dlangG Σ} i Γ (RV1 RV2 : vl_relO Σ) : iProp Σ :=
+    |==> ∀ ρ1 ρ2 v1 v2,
+      rG⟦Γ⟧* ρ1 ρ2 →
+      ▷^i (RV1 anil anil ρ1 ρ2 v1 v2 → RV2 anil anil ρ1 ρ2 v1 v2).
+  #[global] Arguments rsstpd : simpl never.
+
+  (** Multi-definition typing *)
+  Definition rsdstp `{!dlangG Σ} ds1 ds2 Γ RDS : iProp Σ :=
+    |==> ⌜wf_ds ds1⌝ ∧ ⌜wf_ds ds2⌝ ∧
+      ∀ ρ1 ρ2,
+      ⌜path_includes (pv (ids 0)) ρ1 ds1 ⌝ →
+      ⌜path_includes (pv (ids 0)) ρ2 ds2 ⌝ →
+      rG⟦Γ⟧* ρ1 ρ2 →
+      RDS ρ1 ρ2 ds1.|[ρ1] ds2.|[ρ2].
+  #[global] Arguments rsdstp : simpl never.
+
+  (** Definition typing *)
+  Definition rsdtp `{!dlangG Σ} l d1 d2 Γ RDS : iProp Σ :=
+    rsdstp [(l, d1)] [(l, d2)] Γ RDS.
+  #[global] Arguments rsdtp : simpl never.
+
+  #[global] Instance rsstpd_proper `{!dlangG Σ} i : Proper3 (rsstpd i).
+  Proof. solve_proper_ho. Qed.
+End judgments.
+
 #[global] Instance: Params (@rsstpd) 3 := {}.
 
 (** Delayed subtyping. *)
@@ -108,6 +134,10 @@ Notation "Γ rs⊨ T1 <:[ i  ] T2" := (rsstpd i Γ T1 T2) (at level 74, T1, T2 a
 (** Path typing *)
 Notation "Γ rs⊨p p1 == p2 : τ , i" := (rsptp p1 p2 i Γ τ)
   (at level 74, p1, p2, τ, i at next level).
+(** Single-definition typing *)
+Notation "Γ rs⊨ {  l := d1 = d2  } : T" := (rsdtp l d1 d2 Γ T) (at level 64, d1, d2, l, T at next level).
+(** Multi-definition typing *)
+Notation "Γ rs⊨ds ds1 = ds2  : T" := (rsdstp ds1 ds2 Γ T) (at level 64, ds1, ds2, T at next level).
 
 Definition rVLaterN {Σ} n (RV : vl_relO Σ) : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2, ▷^n RV args1 args2 ρ1 ρ2 v1 v2.
 Notation rVLater := (rVLaterN 1).
