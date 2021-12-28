@@ -334,6 +334,39 @@ Print hoD *)
     all: by rewrite (Hγφ args _ _).
   Qed.
 
+  Lemma rD_Nil Γ :
+    ⊢ Γ rs⊨ds [] = [] : ⊤.
+  Proof. by iModIntro; repeat iSplit; last iIntros "**". Qed.
+
+  Definition rDSAnd RDS1 RDS2 : dms_rel Σ := λI ρ1 ρ2 ds1 ds2,
+    RDS1 ρ1 ρ2 ds1 ds2 ∧ RDS2 ρ1 ρ2 ds1 ds2.
+
+  (* TODO: We really need the type records here. *)
+  Lemma rD_Cons Γ d1 d2 ds1 ds2 l (RD1 : dm_relO Σ) RDS2 :
+    dms_hasnt ds1 l →
+    dms_hasnt ds2 l →
+    Γ rs⊨ { l := d1 = d2 } : rlift_dm_dms l RD1 -∗
+    Γ rs⊨ds ds1 = ds2 : RDS2 -∗
+    Γ rs⊨ds (l, d1) :: ds1 = (l, d2) :: ds2 : rDSAnd (rlift_dm_dms l RD1) RDS2.
+  Proof.
+    (* rewrite !sdtp_eq; *)
+    rewrite /rsdstp.
+    iIntros (Hlds1 Hlds2) ">(% & % & #HT1) >(% & % & #HT2) !>"; repeat iSplit.
+    1-2: by iIntros "!%"; cbn; constructor => //; by rewrite -dms_hasnt_notin_eq.
+    iIntros (ρ1 ρ2 [Hpid1 Hpids1]%path_includes_split [Hpid2 Hpids2]%path_includes_split) "#Hg".
+    iSpecialize ("HT1" $! _ _ Hpid1 Hpid2 with "Hg").
+    iDestruct ("HT2" $! _  _ Hpids1 Hpids2 with "Hg") as "{HT2} HT2".
+    iSplit. {
+      rewrite /rlift_dm_dms.
+      iDestruct "HT1" as (d1' d2' [Hd1' Hd2']) "HT1".
+      iExists d1', d2'. iFrame "HT1". iIntros "!%".
+      move: Hd1' Hd2' => /=.
+      by case_decide; intros; simplify_eq.
+    }
+    (* iApply (clty_mono with "HT2"). exact: dms_hasnt_subst. *)
+  Admitted.
+
+
   (* Lemma rVTy_intro l Γ i SK s σ T :
     let v := vobj [(l, dtysem σ s)] in
     s ↝[ σ ] T -∗
