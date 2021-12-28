@@ -210,8 +210,8 @@ Print hoD *)
   Definition rDAnd RD1 RD2 : dm_rel Σ := λI ρ1 ρ2 d1 d2,
     RD1 ρ1 ρ2 d1 d2 ∧ RD2 ρ1 ρ2 d1 d2.
 
-  #[global] Instance rVTop : Top (vl_relO Σ) := λI args1 args2 ρ1 ρ2 v1 v2, True.
-  #[global] Instance rVBot : Bottom (vl_relO Σ) := λI args1 args2 ρ1 ρ2 v1 v2, False.
+  Definition rVTop : vl_relO Σ := ⊤.
+  Definition rVBot : vl_relO Σ := ⊥.
   Definition rVAnd RV1 RV2 : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2, RV1 args1 args2 ρ1 ρ2 v1 v2 ∧ RV2 args1 args2 ρ1 ρ2 v1 v2.
   Definition rVOr RV1 RV2 : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2, RV1 args1 args2 ρ1 ρ2 v1 v2 ∨ RV2 args1 args2 ρ1 ρ2 v1 v2.
   Definition rVAll RV1 RV2 : vl_relO Σ := ⊥.
