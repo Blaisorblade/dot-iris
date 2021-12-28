@@ -74,7 +74,7 @@ Section Sec.
     Γ s⊨ { l := dtysem σ s } : cTMem l (oLater T) (oLater T).
   Proof.
     rewrite !sdtp_eq'; iDestruct 1 as (φ Hγφ) "#Hγ".
-    iIntros "!>" (ρ Hpid) "#Hg"; rewrite oDTMem_unfold.
+    iIntros "!>" (ρ Hpid) "#Hg"; rewrite oDTMem_unfold /=.
     iExists (hoEnvD_inst (σ.|[ρ]) φ); iSplit.
     by iApply (dm_to_type_intro with "Hγ").
     by iSplit; iIntros (v) "#H"; iNext; rewrite /= (Hγφ _ _).
@@ -117,11 +117,11 @@ Section Sec.
     Γ s⊨ { l := d } : T1 -∗ Γ s⊨ds ds : T2 -∗
     Γ s⊨ds (l, d) :: ds : cAnd T1 T2.
   Proof.
-    rewrite !sdtp_eq; iIntros (Hlds) ">#HT1 >[% #HT2] !>"; iSplit.
+    rewrite sdtp_eq; iIntros (Hlds) ">#HT1 >[% #HT2] !>"; iSplit.
     by iIntros "!%"; cbn; constructor => //; by rewrite -dms_hasnt_notin_eq.
     iIntros (ρ [Hpid Hpids]%path_includes_split) "#Hg".
-    iSpecialize ("HT1" $! _  Hpid with "Hg").
-    iDestruct ("HT2" $! _  Hpids with "Hg") as "{HT2} HT2".
+    iSpecialize ("HT1" $! _ Hpid with "Hg").
+    iSpecialize ("HT2" $! _ Hpids with "Hg").
     iSplit; first by iApply clty_def2defs_head.
     iApply (clty_mono with "HT2"). exact: dms_hasnt_subst.
   Qed.

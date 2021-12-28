@@ -606,8 +606,8 @@ Section dot_types.
     Γ s⊨ { l := dtysem σ s } : cTMemK l K.
   Proof.
     rewrite sdtp_eq'; iIntros ">#HTK"; iDestruct 1 as (φ Hγφ) "#Hγ".
-    iIntros "!>" (ρ Hpid) "Hg"; iExists (hoEnvD_inst (σ.|[ρ]) φ); iSplit.
-    by iApply (dm_to_type_intro with "Hγ").
+    iIntros "!>" (ρ Hpid) "Hg"; iExists (hoEnvD_inst (σ.|[ρ]) φ).
+    iDestruct (dm_to_type_intro with "Hγ") as "-#$"; first done.
     iApply (sf_kind_proper' with "(HTK Hg)") => args v /=.
     by rewrite -(Hγφ args ρ v).
   Qed.
