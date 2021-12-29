@@ -504,11 +504,15 @@ Definition selfSubst ds : dms := ds.|[vobj ds/].
 (** Member selection, on paper [v.l ↘ d]. *)
 Definition objLookup v (l : label) d : Prop :=
   ∃ ds, v = vobj ds ∧ (dms_lookup l (selfSubst ds)) = Some d.
-#[global] Hint Unfold objLookup : core.
 
 (* Precedence: tighter than negation and conjunction, must also agree
 with [@] notation for paths in [ex_utils.v] to avoid conflicts. *)
 Notation "v @ l ↘ d" := (objLookup v l d) (at level 48, l at level 40).
+
+Lemma objLookupIntro l d ds :
+  dms_lookup l (selfSubst ds) = Some d -> vobj ds @ l ↘ d.
+Proof. rewrite /objLookup. eauto. Qed.
+#[global] Hint Resolve objLookupIntro : core.
 
 (** Instead of letting obj_opens_to autounfold,
     provide tactics to show it's deterministic and so on. *)
