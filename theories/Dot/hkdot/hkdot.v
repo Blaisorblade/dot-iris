@@ -609,7 +609,7 @@ Section dot_types.
     iIntros "!>" (ρ Hpid) "Hg"; iExists (hoEnvD_inst (σ.|[ρ]) φ).
     iDestruct (dm_to_type_intro with "Hγ") as "-#$"; first done.
     iApply (sf_kind_proper' with "(HTK Hg)") => args v /=.
-    by rewrite -(Hγφ args ρ v).
+    f_equiv; symmetry; exact: Hγφ.
   Qed.
 
   Lemma sK_Sel {Γ} l (K : sf_kind Σ) p i :

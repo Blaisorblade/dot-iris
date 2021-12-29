@@ -77,7 +77,7 @@ Section Sec.
     iIntros "!>" (ρ Hpid) "#Hg"; rewrite oDTMem_unfold /=.
     iExists (hoEnvD_inst (σ.|[ρ]) φ); iSplit.
     by iApply (dm_to_type_intro with "Hγ").
-    by iSplit; iIntros (v) "#H"; iNext; rewrite /= (Hγφ _ _).
+    by iSplit; iIntros (v) "#H"; iNext; iApply Hγφ.
   Qed.
 
   Lemma sD_Typ_Abs {Γ} T L U s σ l :
