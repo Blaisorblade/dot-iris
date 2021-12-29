@@ -578,8 +578,8 @@ Print hoD *)
     iIntros ">#HT !>" (?? Hpid1 Hpid2) "#Hg".
     iExists (hoEnvD_inst σ.|[ρ1] φ), (hoEnvD_inst σ.|[ρ2] φ).
     do 2 (iDestruct (dm_to_type_intro with "Hγ") as "-#$"; first done).
-    iApply (sf_kind_proper with "(HT Hg)") => args v /=.
-    all: by rewrite (Hγφ args _ _).
+    iApply (sf_kind_proper with "(HT Hg)") => args v /=;
+      f_equiv; symmetry; exact: Hγφ.
   Qed.
   #[global, program] Instance rCTop : Top (crel.t Σ) :=
     CRel ⊤ ⊤.
