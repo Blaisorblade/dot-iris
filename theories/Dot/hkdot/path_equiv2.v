@@ -581,6 +581,38 @@ Print hoD *)
     iApply (sf_kind_proper with "(HT Hg)") => args v /=;
       f_equiv; symmetry; exact: Hγφ.
   Qed.
+
+  Lemma rD_TypK_Abs {Γ} T1 T2 SK s1 s2 σ1 σ2 l :
+    s1 ↝[ σ1 ] T1 -∗
+    s2 ↝[ σ2 ] T2 -∗
+    Γ rs⊨ oLater T1 <::[ 0 ] oLater T2 ∷ SK -∗
+    (* WEIRD, the [=] symbol should be for the symmetric closure! *)
+    Γ rs⊨ { l := dtysem σ1 s1 = dtysem σ2 s2 } : rCTMemK l SK.
+  Proof.
+    rewrite rsdtp_eq'.
+    iDestruct 1 as (φ1 Hγφ1) "#Hγ1".
+    iDestruct 1 as (φ2 Hγφ2) "#Hγ2".
+    iIntros ">#HT !>" (?? Hpid1 Hpid2) "#Hg".
+    iExists (hoEnvD_inst σ1.|[ρ1] φ1), (hoEnvD_inst σ2.|[ρ2] φ2).
+    do 2 (iSplit; [by iApply dm_to_type_intro|]).
+    iApply (sf_kind_proper with "(HT Hg)") => args v /=; f_equiv; symmetry.
+    exact: Hγφ1.
+    exact: Hγφ2.
+  Qed.
+
+  Lemma rK_Sel {Γ} l (SK : sf_kind Σ) p1 p2 i :
+    Γ rs⊨p p1 == p2 : rVTMemK l SK, i -∗
+    (* Γ rs⊨ oSel p1 l =[ i ] oSel p2 l ∷ SK. *)
+    Γ rs⊨ oSel p1 l <::[ i ] oSel p2 l ∷ SK.
+  Proof.
+    iIntros ">#Hp !> %ρ1 %ρ2 Hg". iSpecialize ("Hp" with "Hg"); iNext i.
+    rewrite path_wp_eq; iDestruct "Hp" as (v1 Hal1%alias_paths_pv_eq_1) "Hp".
+    rewrite path_wp_eq; iDestruct "Hp" as (v2 Hal2%alias_paths_pv_eq_1) "Hp".
+    iDestruct "Hp" as (d1 d2 [Hl1 Hl2] ψ1 ψ2) "(#Hl1 & #Hl2 & HK)".
+    iApply (sf_kind_sub_internal_proper with "[] [] HK").
+    all: by iApply oSel_equiv_intro.
+  Qed.
+
   #[global, program] Instance rCTop : Top (crel.t Σ) :=
     CRel ⊤ ⊤.
   Solve All Obligations with eauto.
