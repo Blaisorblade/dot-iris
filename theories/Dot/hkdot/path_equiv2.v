@@ -11,8 +11,6 @@ Import HkDot.
 (* Import last to override side effects. *)
 From D Require Import proper.
 
-Ltac cbv_decide := by apply: bool_decide_unpack; cbv.
-
 (*
 TODO:
 focus on types we need for path equivalence, aka the arguments of type functions:
