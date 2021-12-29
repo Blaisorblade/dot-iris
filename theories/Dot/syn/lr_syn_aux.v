@@ -322,6 +322,6 @@ Lemma path_includes_field_aliases p ρ l v :
 Proof.
   rewrite /path_includes/alias_paths/= !path_wp_pure_eq;
     intros (w & Hwp & ds & -> & Hsub & Hwf').
-  enough (dms_lookup l (selfSubst ds) = Some (dpt (pv v.[ρ]))) by eauto 10.
+  enough (dms_lookup l (selfSubst ds) = Some (dpt (pv v.[ρ]))) by eauto 10 using objLookupIntro.
   apply dms_lookup_sublist, Hsub. exact: wf_ds_sub.
 Qed.

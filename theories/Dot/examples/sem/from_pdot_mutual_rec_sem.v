@@ -297,7 +297,7 @@ Proof.
   lrSimpl; iSplit; lrSimpl; last by [].
   rewrite up_sub_compose_vl (_ : (shiftV _).[_] = ν [val "symb" = shiftV (ρ 0)]); last
     by autosubst.
-  iApply oVMem_eq; iExists _; iSplit; first by eauto.
+  iApply oVMem_eq; iExists _; iSplit; first by eauto using objLookupIntro.
   cbn [shift]; rewrite (_ : shiftV x1 = x2) //.
   rewrite path_wp_pv_eq.
   rewrite subst_comp ren_scons subst_id /newTypeRefΓ.

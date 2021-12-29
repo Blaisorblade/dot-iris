@@ -67,9 +67,6 @@ Section Russell.
       iEval rewrite uAu_unfold.
       iExists (dtysem [] s), (aopen (russell_p ids)).
       repeat iSplit. {
-        (* [eauto] should use [objLookupIntro] but it seems to treat [v] as
-        opaque; [unfold v; eauto] works. *)
-        assert_succeeds (by unfold v; eauto).
         eauto using objLookupIntro.
       }
       + by iApply (dm_to_type_intro with "Hs").

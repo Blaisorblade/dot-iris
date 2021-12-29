@@ -512,7 +512,6 @@ Notation "v @ l ↘ d" := (objLookup v l d) (at level 48, l at level 40).
 Lemma objLookupIntro l d ds :
   dms_lookup l (selfSubst ds) = Some d -> vobj ds @ l ↘ d.
 Proof. rewrite /objLookup. eauto. Qed.
-#[global] Hint Resolve objLookupIntro : core.
 
 (** Instead of letting obj_opens_to autounfold,
     provide tactics to show it's deterministic and so on. *)

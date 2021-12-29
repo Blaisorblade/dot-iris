@@ -210,7 +210,7 @@ Section dty2clty.
     iDestruct 1 as (d' ?) "?"; iExists d'.
     erewrite dms_lookup_mono => //. eauto.
   Qed.
-  Next Obligation. iDestruct 1 as (d Hl) "H". iExists d; eauto. Qed.
+  Next Obligation. iDestruct 1 as (d Hl) "H". iExists d; eauto using objLookupIntro. Qed.
 End dty2clty.
 #[global] Instance : Params (@dty2clty) 3 := {}.
 
