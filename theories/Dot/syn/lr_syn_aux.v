@@ -227,13 +227,23 @@ Proof. apply dms_hasnt_map. Qed.
 Lemma dms_lookup_head l d ds : dms_lookup l ((l, d) :: ds) = Some d.
 Proof. by cbn; case_decide. Qed.
 
+Lemma dms_lookup_head_inv l1 l2 d d' :
+  dms_lookup l1 [(l2, d)] = Some d' →
+  l1 = l2 ∧ d = d'.
+Proof. rewrite /dms_lookup /=; case_decide; naive_solver. Qed.
+
+Lemma dms_lookup_mono' l l' d ds :
+  dms_hasnt ds l → l ≠ l' →
+  dms_lookup l' ((l, d) :: ds) = dms_lookup l' ds.
+Proof.
+  rewrite /dms_hasnt /= => Hlds Hne. by case_decide; simplify_eq.
+Qed.
+
 Lemma dms_lookup_mono l l' d d' ds :
   dms_hasnt ds l →
   dms_lookup l' ds = Some d' →
   dms_lookup l' ((l, d) :: ds) = Some d'.
-Proof.
-  rewrite /dms_hasnt /= => Hlds Hl; by case_decide; simplify_eq.
-Qed.
+Proof. rewrite /dms_hasnt => Hlds Hl. rewrite dms_lookup_mono' //. naive_solver. Qed.
 
 Lemma dms_hasnt_notin_eq l ds : dms_hasnt ds l ↔ l ∉ map fst ds.
 Proof.

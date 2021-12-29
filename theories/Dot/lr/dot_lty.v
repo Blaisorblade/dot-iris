@@ -172,11 +172,19 @@ Section lift_dty_lemmas.
   #[global] Instance lift_dty_vl_proper l : Proper1 (lift_dty_vl l) :=
     ne_proper _.
 
+  #[local] Arguments dms_lookup : simpl never.
+  Lemma lift_dty_dms_head_intro (TD : dlty Σ) l1 l2 ρ d ds (Heq : l1 = l2) :
+    TD ρ d -∗
+    lift_dty_dms l1 TD ρ ((l2, d) :: ds).
+  Proof. rewrite Heq /=. rewrite !dms_lookup_head. naive_solver. Qed.
+
   Lemma lift_dty_dms_singleton_eq' (TD : dlty Σ) l1 l2 ρ d :
     lift_dty_dms l1 TD ρ [(l2, d)] ⊣⊢ ⌜ l1 = l2 ⌝ ∧ TD ρ d.
   Proof.
-    iSplit; simpl; first by case_decide; iDestruct 1 as (d' [= ->]) "$".
-    iDestruct 1 as (->) "H"; rewrite decide_True //; naive_solver.
+    rewrite /lift_dty_dms; iSplit. {
+      iDestruct 1 as (d' ?%dms_lookup_head_inv) "?". naive_solver.
+    }
+    iIntros "[-> ?]". by iApply lift_dty_dms_head_intro.
   Qed.
   Lemma lift_dty_dms_singleton_eq (TD : dlty Σ) l ρ d :
     lift_dty_dms l TD ρ [(l, d)] ⊣⊢ TD ρ d.
@@ -190,19 +198,20 @@ Program Definition olty2clty `{!dlangG Σ} (U : oltyO Σ) : cltyO Σ :=
 Solve All Obligations with by iIntros.
 #[global] Instance : Params (@olty2clty) 2 := {}.
 
-Program Definition dty2clty `{!dlangG Σ} l (T : dltyO Σ) : cltyO Σ :=
-  Clty (lift_dty_dms l T) (lift_dty_vl l T).
-Next Obligation.
-  intros. rewrite lift_dty_dms_singleton_eq' /=.
-  iIntros "[-> ?]"; rewrite decide_True //. naive_solver.
-Qed.
-Next Obligation.
-  rewrite /dms_hasnt /=; intros; case_decide; last done.
-  by iDestruct 1 as (d' ?) "_"; simplify_eq.
-Qed.
-Next Obligation.
-  intros; iDestruct 1 as (d Hl) "H". iExists d; iSplit; naive_solver.
-Qed.
+Section dty2clty.
+  #[local] Arguments dms_lookup : simpl never.
+  Program Definition dty2clty `{!dlangG Σ} l (T : dltyO Σ) : cltyO Σ :=
+    Clty (lift_dty_dms l T) (lift_dty_vl l T).
+  Next Obligation.
+    intros. rewrite lift_dty_dms_singleton_eq' /=.
+    iIntros "[<- ?] /=". rewrite dms_lookup_head. naive_solver.
+  Qed.
+  Next Obligation.
+    iDestruct 1 as (d' ?) "?"; iExists d'.
+    erewrite dms_lookup_mono => //. eauto.
+  Qed.
+  Next Obligation. iDestruct 1 as (d Hl) "H". iExists d; eauto. Qed.
+End dty2clty.
 #[global] Instance : Params (@dty2clty) 3 := {}.
 
 Section DefsTypes.
@@ -220,7 +229,7 @@ Section DefsTypes.
 
   Lemma dty2clty_singleton l (TD : dlty Σ) ρ d :
     dty2clty l TD ρ [(l, d)] ≡ TD ρ d.
-  Proof. by rewrite lift_dty_dms_singleton_eq. Qed.
+  Proof. apply lift_dty_dms_singleton_eq. Qed.
 
   Definition olty_dlty2clty_eq l (TD : dlty Σ) ρ v :
     c2o (dty2clty l TD) anil ρ v ⊣⊢ lift_dty_vl l TD anil ρ v := reflexivity _.
