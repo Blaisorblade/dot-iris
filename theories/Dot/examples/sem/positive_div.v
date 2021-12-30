@@ -63,7 +63,7 @@ Section examplesBodies.
 
   (** Actual type *)
   Definition hposModT := μ: self, hposModTBody self.
-  Definition oposModT := oMu (c2o oposModTBody).
+  Definition oposModT := oMu oposModTBody.
 
   Lemma hposModT_eq : V⟦ hposModT ⟧ ≡ oposModT.
   Proof.
@@ -164,8 +164,8 @@ Section div_example.
   Qed.
 
   (** Actual type *)
-  #[local] Definition oPreciseBody :=
-    c2o (cAnd (cTMemL "Pos" ipos ipos) oposModTTail).
+  #[local] Definition oPreciseBody : oltyO Σ :=
+    cAnd (cTMemL "Pos" ipos ipos) oposModTTail.
 
   (**
   Show that our program is semantically well-typed,

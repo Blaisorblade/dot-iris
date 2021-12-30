@@ -43,11 +43,13 @@ Arguments clty_mixin.Mk {Σ _ _}.
 
 Record clty {Σ} := _Clty {
   clty_dslty :> dslty Σ;
-  clty_olty : oltyO Σ;
+  (* Beware this coercion goes to [oltyO] not [olty], and it does not enable
+  applying a [clty] to values; as visible in [olty_dlty2clty_eq], in that case
+  it must still be used explicitly. *)
+  clty_olty :> oltyO Σ;
   clty_mixin : clty_mixin.pred clty_dslty clty_olty;
 }.
 Add Printing Constructor clty.
-Notation c2o := clty_olty.
 
 Arguments clty : clear implicits.
 Arguments _Clty {Σ}.
@@ -235,7 +237,7 @@ Section DefsTypes.
   Proof. apply lift_dty_dms_singleton_eq. Qed.
 
   Definition olty_dlty2clty_eq l (TD : dlty Σ) ρ v :
-    c2o (dty2clty l TD) anil ρ v ⊣⊢ lift_dty_vl l TD anil ρ v := reflexivity _.
+    clty_olty (dty2clty l TD) anil ρ v ⊣⊢ lift_dty_vl l TD anil ρ v := reflexivity _.
 
   Program Definition cTop : clty Σ := Clty (Dslty (λI _ _, True)) oTop.
   Solve All Obligations with eauto.
@@ -244,7 +246,7 @@ Section DefsTypes.
   #[global] Instance clty_inh : Inhabited (clty Σ) := populate ⊥.
 
   Program Definition cAnd (Tds1 Tds2 : clty Σ) : clty Σ :=
-    Clty (Dslty (λI ρ ds, Tds1 ρ ds ∧ Tds2 ρ ds)) (oAnd (c2o Tds1) (c2o Tds2)).
+    Clty (Dslty (λI ρ ds, Tds1 ρ ds ∧ Tds2 ρ ds)) (oAnd Tds1 Tds2).
   Next Obligation. intros. by rewrite /= -!clty_def2defs_head. Qed.
   Next Obligation. intros. by rewrite /= -!clty_mono. Qed.
   Next Obligation. intros. by rewrite /= -!clty_commute. Qed.
