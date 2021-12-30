@@ -214,7 +214,7 @@ Section env_rstyped.
   Qed.
 End env_rstyped.
 
-(* XXX we use [ρ1] asymmetrically, matching the [rDTMemK] *)
+(* XXX we use [ρ1] asymmetrically, matching the [rDTMemK]. But this can't work! *)
 Notation rsstpiK_env i T1 T2 K ρ1 ρ2 := (▷^i K ρ1 (envApply T1 ρ1) (envApply T2 ρ2))%I.
 Notation rsstpiK' i Γ T1 T2 K := (∀ ρ1 ρ2, rG⟦Γ⟧* ρ1 ρ2 → rsstpiK_env i T1 T2 K ρ1 ρ2)%I.
 Definition rsstpiK `{!dlangG Σ} i Γ T1 T2 (K : sf_kind Σ) : iProp Σ :=
@@ -612,6 +612,60 @@ Print hoD *)
     iApply (sf_kind_sub_internal_proper with "[] [] HK").
     all: by iApply oSel_equiv_intro.
   Qed.
+
+  Lemma rK_Sel' {Γ} l (SK : sf_kind Σ) p1 p2 i :
+    Γ rs⊨p p1 = p2 : rVTMemK l SK, i -∗
+    (* Γ rs⊨ oSel p1 l =[ i ] oSel p2 l ∷ SK. *)
+    Γ rs⊨ oSel p1 l =[ i ] oSel p2 l ∷ SK.
+  Proof.
+    iIntros "#HK"; iSplit; iApply rK_Sel; [done|].
+    (* TODO: symmetry (unprovable yet) *)
+  Abort.
+
+(*
+     -∗
+    Γ rs⊨p T = T p2 : rVTMemK l SK, i -∗
+    Γ rs⊨p oApp T p1 = oApp T p2 : rVTMemK l SK, i -∗
+    Γ rs⊨ oSel p1 l <::[ i ] oSel p2 l ∷ SK -∗ *)
+
+  Lemma oTApp_respects_eq {Γ} l (SK : sf_kind Σ) p1 p2 i RC T :
+    Γ rs⊨p p1 = p2 : c2v RC, i -∗
+    Γ rs⊨ T ∷[ i ] sf_kpi (close $ c2v RC) SK -∗
+    Γ rs⊨ oTApp T p1 <::[ i ] oTApp T p2 ∷
+      (* [SK] must respect [p1 = p2]? *)
+      SK .sKp[ p1 /].
+  Proof.
+    iIntros ">#Hp >#HT !> %ρ1 %ρ2 #Hg".
+    iSpecialize ("Hp" with "Hg"); iSpecialize ("HT" with "Hg"); iNext i;
+    iClear "Hg".
+    rewrite path_wp_eq; iDestruct "Hp" as (v1 Hal1%alias_paths_pv_eq_1) "Hp".
+    rewrite path_wp_eq; iDestruct "Hp" as (v2 Hal2%alias_paths_pv_eq_1) "Hp".
+    (* XXX This takes the goal to [SK (v1 .: ρ1) ...], and even with 2 envs we'd use [v1]. *)
+    iEval (rewrite /kpSubstOne /= (alias_paths_elim_eq _ Hal1) path_wp_pv_eq).
+    (* XXX we need _two_ arguments here? But [SK] must use [v1] for both. *)
+    iSimpl in "HT".
+    iSpecialize ("HT" $! v1).
+    Fail iSpecialize ("HT" with "Hp").
+    iApply (sf_kind_sub_internal_proper with "[] [] (HT [])").
+    3: {
+      iClear "HT".
+      (* Unprovable: does not match ["Hp"].
+        Provable if [c2v RC] is contravariant in last argument (so, if v2 = v1
+        symmetrically), but rather change ["HT"]? sf_kpi should take [RC] not
+        [close $ c2v RC]. *)
+      admit.
+    }
+    (* XXX bump Iris *)
+    Bind Scope bi_scope with bi_car.
+    all: iIntros (args w).
+    all: rewrite /_oTApp/= alias_paths_elim_eq // path_wp_pv_eq //.
+    by iApply (iff_refl emp).
+    rewrite /envApply /acurry /=.
+    (* Argument mismatch, because "HT" takes only [v1] *)
+    (* Maybe provable if [v1] and [v2] were "equivalent" and [T] respected that. *)
+    admit.
+    all: fail.
+  Abort.
 
   #[global, program] Instance rCTop : Top (crel.t Σ) :=
     CRel ⊤ ⊤.
