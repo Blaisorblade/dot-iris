@@ -298,8 +298,8 @@ End judgments.
 (** Delayed subtyping. *)
 Notation "Γ rs⊨ T1 <:[ i  ] T2" := (rsstpd i Γ T1 T2) (at level 74, T1, T2 at next level).
 (** Path typing *)
-Notation "Γ rs⊨p p1 == p2 : τ , i" := (rsptp p1 p2 i Γ τ)
-  (at level 74, p1, p2, τ, i at next level).
+Notation "Γ rs⊨p p1 = p2 : τ , i" := (rsptp p1 p2 i Γ τ)
+  (at level 64, p1, p2, τ, i at next level).
 (** Single-definition typing *)
 Notation "Γ rs⊨ {  l := d1 = d2  } : T" := (rsdtp l d1 d2 Γ T) (at level 64, d1, d2, l, T at next level).
 (** Multi-definition typing *)
@@ -601,7 +601,7 @@ Print hoD *)
   Qed.
 
   Lemma rK_Sel {Γ} l (SK : sf_kind Σ) p1 p2 i :
-    Γ rs⊨p p1 == p2 : rVTMemK l SK, i -∗
+    Γ rs⊨p p1 = p2 : rVTMemK l SK, i -∗
     (* Γ rs⊨ oSel p1 l =[ i ] oSel p2 l ∷ SK. *)
     Γ rs⊨ oSel p1 l <::[ i ] oSel p2 l ∷ SK.
   Proof.
@@ -652,7 +652,7 @@ Print hoD *)
 
   Lemma rP_Obj_I Γ RC ds1 ds2 :
     rVLater (c2v RC) :: Γ rs⊨ds ds1 = ds2 : RC -∗
-    Γ rs⊨p pv (vobj ds1) == pv (vobj ds2) : rVMu (c2v RC), 0.
+    Γ rs⊨p pv (vobj ds1) = pv (vobj ds2) : rVMu (c2v RC), 0.
   Proof.
     iIntros ">(%Hwf1 & %Hwf2 & #Hds) !> %ρ1 %ρ2 #Hg /=".
     rewrite !path_wp_pv_eq /=. iLöb as "IH".
@@ -665,12 +665,12 @@ Print hoD *)
   (* Lemma rVTy_intro l Γ i SK s σ T :
     let v := vobj [(l, dtysem σ s)] in
     s ↝[ σ ] T -∗
-    Γ rs⊨p pv v == pv v : rVTMemK l SK, i. *)
+    Γ rs⊨p pv v = pv v : rVTMemK l SK, i. *)
   Lemma rVTy_intro' l Γ SK s σ T :
     let v := vobj [(l, dtysem σ s)] in
     s ↝[ σ ] T -∗
     rVLater (rVTMemK l (sf_sngl (oLater T))) :: Γ rs⊨ oLater T ∷[ 0 ] sf_sngl (oLater T) -∗
-    Γ rs⊨p pv v == pv v : rVMu (rVTMemK l (sf_sngl (oLater T))), 0.
+    Γ rs⊨p pv v = pv v : rVMu (rVTMemK l (sf_sngl (oLater T))), 0.
   Proof.
     iIntros (v) "#Hs #HK".
     iApply rP_Obj_I.
@@ -709,7 +709,7 @@ Print hoD *)
 
   (* Lemma rVTy_intro l Γ i SK (T : ty) :
     let p := pv (vobj [(l, dtysyn T)]) in
-    ⊢ Γ rs⊨p p == p : rVTMemK l SK, i.
+    ⊢ Γ rs⊨p p = p : rVTMemK l SK, i.
   Proof.
     rewrite /rsptp.
     iIntros "!>" (??) "#Hg !> /=".
