@@ -106,7 +106,7 @@ Section path_wp_lemmas.
     set (Ψ' := uncurry Ψ : prodO pathO (vl -d> iPropO Σ) → iPropO Σ).
     have ? : NonExpansive Ψ'.
     { intros n [p1 Φ1] [p2 Φ2] [?%leibniz_equiv ?]; simplify_eq/=. by apply HΨ. }
-    iApply (least_fixpoint_strong_ind _ Ψ' with "[] H").
+    iApply (least_fixpoint_ind _ Ψ' with "[] H").
     iIntros "!>" ([? ?]) "H". by iApply "IH".
   Qed.
 
