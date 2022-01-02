@@ -13,7 +13,7 @@ All this infrastructure works for arbitrary languages implementing
 *)
 From Coq Require FunctionalExtensionality.
 From iris.algebra Require Import list.
-From iris.proofmode Require Import tactics.
+From iris.proofmode Require Import proofmode.
 From iris.program_logic Require Import language.
 From D.pure_program_logic Require Import lifting adequacy.
 From D Require Import prelude iris_prelude asubst_intf dlang proper.

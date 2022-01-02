@@ -1,5 +1,5 @@
 (** * Semantic lemmas for double-delay subtyping. *)
-From iris.proofmode Require Import tactics.
+From iris.proofmode Require Import proofmode.
 
 From D Require Import iris_prelude swap_later_impl.
 From D.Dot Require Import rules path_repl unary_lr dsub_lr defs_lr binding_lr sub_lr.

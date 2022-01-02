@@ -1,6 +1,6 @@
 (** * Show proof rule [Impl-▷].
 Swap later [▷] with Iris implication [→] and wand [-∗]. *)
-From iris.proofmode Require Import tactics.
+From iris.proofmode Require Import proofmode.
 From iris.base_logic Require Import lib.iprop.
 From iris.algebra Require Import agree excl gmap auth.
 

@@ -1,5 +1,5 @@
 (** * Binding-related semantic typing lemmas. *)
-From iris.proofmode Require Import tactics.
+From iris.proofmode Require Import proofmode.
 
 From D.Dot Require Import rules dot_semtypes later_sub_sem.
 

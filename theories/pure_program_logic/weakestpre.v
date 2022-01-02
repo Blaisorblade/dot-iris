@@ -7,7 +7,7 @@ and is specialized to deterministic languages.
 From iris.base_logic Require Export iprop.
 From iris.program_logic Require Export language.
 From iris.bi Require Export weakestpre.
-From iris.proofmode Require Import base tactics classes.
+From iris.proofmode Require Import base proofmode classes.
 
 From D.iris_extra Require Export det_reduction.
 Set Default Proof Using "Type".

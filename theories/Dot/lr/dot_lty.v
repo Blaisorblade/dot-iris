@@ -1,5 +1,5 @@
 (** * Semantic domains for DOT logical relations. *)
-From iris.proofmode Require Import tactics.
+From iris.proofmode Require Import proofmode.
 From D Require Export iris_prelude proper lty lr_syn_aux.
 From D.Dot Require Import syn.
 From D.Dot Require Export dlang_inst path_wp.

@@ -1,6 +1,6 @@
 (** * Adequacy of expression weakest preconditions, part of gDOT adequacy. *)
 From stdpp Require Import relations.
-From iris.proofmode Require Import tactics.
+From iris.proofmode Require Import proofmode.
 From D.pure_program_logic Require Export weakestpre.
 Set Default Proof Using "Type".
 Import uPred.

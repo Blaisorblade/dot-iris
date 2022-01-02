@@ -5,7 +5,7 @@
    kept separate, because we might have to extend Σ with resources without a
    CmraSwappable instance.
  *)
-From iris.proofmode Require Import tactics.
+From iris.proofmode Require Import proofmode.
 From D Require Import proofmode_extra swap_later_impl.
 From D.DSub Require Import ds_unary_lr ds_semtyp_lemmas.
 

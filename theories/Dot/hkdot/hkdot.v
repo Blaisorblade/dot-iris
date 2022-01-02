@@ -1,7 +1,7 @@
 (* (* Must be loaded first, so that other modules can reset some flags. *)
 Require Import Equations.Equations. *)
 From Coq Require FunctionalExtensionality.
-From iris.proofmode Require Import tactics.
+From iris.proofmode Require Import proofmode.
 From iris.base_logic Require Import lib.saved_prop.
 From D Require Import iris_prelude.
 From D Require Export succ_notation.
