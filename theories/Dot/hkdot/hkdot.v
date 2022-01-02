@@ -218,7 +218,7 @@ Section gen_lemmas.
     Γ s⊨ T1 <:[i] T2 ∷ sf_kintv T1 T2.
   Proof.
     iIntros ">#Hs !> %ρ Hg"; iDestruct ("Hs" with "Hg") as "{Hs} (_ & #H & _)".
-    rewrite /= /sr_kintv; iNext i. iDestruct "H" as "#$ {H}".
+    rewrite /= /sr_kintv; iNext i. iDestruct "H" as "#$".
     by rewrite -!subtype_refl.
   Qed.
 

@@ -67,7 +67,7 @@ End path_wp_pre.
 #[local] Instance path_wp_pre_mono' {Σ} : BiMonoPred (@path_wp_pre' Σ).
 Proof.
   constructor.
-  - iIntros (wp1 wp2) "#H". iIntros ([p Φ]); iRevert (p Φ).
+  - iIntros (wp1 wp2 ? ?) "#H". iIntros ([p Φ]); iRevert (p Φ).
     iApply path_wp_pre_mono. iIntros (p Φ). iApply ("H" $! (p,Φ)).
   - intros wp Hwp n [p1 Φ1] [p2 Φ2] [?%leibniz_equiv Heq]; simplify_eq/=.
     rewrite /Datatypes.curry /path_wp_pre; solve_proper_ho.
