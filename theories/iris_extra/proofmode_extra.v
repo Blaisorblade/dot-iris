@@ -102,7 +102,7 @@ From iris.program_logic Require Import language.
 From D.iris_extra Require Import det_reduction.
 
 Section wp_extra.
-  Context `{irisG Λ Σ}.
+  Context `{irisGS Λ Σ}.
   Implicit Types (P : val Λ → iProp Σ) (v : val Λ) (e : expr Λ).
 
   Lemma wp_and_val P1 P2 v :

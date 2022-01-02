@@ -15,7 +15,7 @@ Record adequate `{LangDet Λ} (e1 : expr Λ) (φ : val Λ → Prop) := {
 }.
 
 Section adequacy.
-Context `{Hiris : irisG Λ Σ}.
+Context `{Hiris : irisGS Λ Σ}.
 
 Implicit Types e : expr Λ.
 Implicit Types P Q : iProp Σ.

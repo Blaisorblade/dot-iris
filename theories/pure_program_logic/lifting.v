@@ -4,7 +4,7 @@ From iris.proofmode Require Import proofmode.
 Set Default Proof Using "Type".
 
 Section lifting.
-Context `{irisG Λ Σ}.
+Context `{irisGS Λ Σ}.
 
 Implicit Types s : stuckness.
 Implicit Types v : val Λ.

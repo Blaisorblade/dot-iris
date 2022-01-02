@@ -34,7 +34,7 @@ Class dsubSynG (Σ : gFunctors) := DsubSynG {
 }.
 
 From D.DSub Require Export ds_rules.
-#[global] Instance dsubsynG_irisG `{!dsubSynG Σ} : irisG dlang_lang Σ := {
+#[global] Instance dsubsynG_irisG `{!dsubSynG Σ} : irisGS dlang_lang Σ := {
   irisG_langdet := _;
 }.
 
