@@ -112,7 +112,9 @@ Lemma stamped_to_storeless_typing_mut Γ :
   (∀ e T, Γ u⊢ₜ e : T → Γ ⊢ₜ e : T) ∧
   (∀ T1 i1 T2 i2, Γ u⊢ₜ T1, i1 <: T2, i2 → Γ ⊢ₜ T1, i1 <: T2, i2).
 Proof.
-  eapply typing_mut_ind with
+  #[local] Set Warnings "-deprecated-option".
+  #[local] Set Apply With Renaming.
+  apply typing_mut_ind with
       (P := λ Γ e T _, Γ ⊢ₜ e : T)
       (P0 := λ Γ T1 i1 T2 i2 _, Γ ⊢ₜ T1, i1 <: T2, i2); clear Γ;
     solve [econstructor; eauto].
