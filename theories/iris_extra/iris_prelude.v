@@ -2,7 +2,6 @@
 This file adds or re-exports utilities that should always be available.
 *)
 From iris.proofmode Require Export tactics.
-From iris_string_ident Require Export ltac2_string_ident.
 
 From iris.base_logic Require Import base_logic.
 Export uPred.
