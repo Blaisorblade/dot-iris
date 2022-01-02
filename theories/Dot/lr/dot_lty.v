@@ -86,7 +86,7 @@ Section clty_ofe.
   Lemma clty_ofe_mixin : OfeMixin (clty Σ).
   Proof. exact: (iso_ofe_mixin iso). Qed.
 
-  Canonical Structure cltyO := OfeT (clty Σ) clty_ofe_mixin.
+  Canonical Structure cltyO := Ofe (clty Σ) clty_ofe_mixin.
 
   Let clty_pred : clty_car -> Prop := uncurry clty_mixin.pred.
 

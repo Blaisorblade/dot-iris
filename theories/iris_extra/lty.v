@@ -25,8 +25,8 @@ Set Default Proof Using "Type".
 
 #[global] Instance bottom_fun {A} `{Bottom B} : Bottom (A → B) := (λ _, ⊥).
 #[global] Instance top_fun {A} `{Top B} : Top (A → B) := (λ _, ⊤).
-#[global] Instance bottom_ofe_fun {A} {B : ofeT} `{Bottom B} : Bottom (A -d> B) := (λ _, ⊥).
-#[global] Instance top_ofe_fun {A} {B : ofeT} `{Top B} : Top (A -d> B) := (λ _, ⊤).
+#[global] Instance bottom_ofe_fun {A} {B : ofe} `{Bottom B} : Bottom (A -d> B) := (λ _, ⊥).
+#[global] Instance top_ofe_fun {A} {B : ofe} `{Top B} : Top (A -d> B) := (λ _, ⊤).
 
 (** ** "Iris Persistent Predicates" [iPPred].
 
@@ -57,7 +57,7 @@ Section iPPred_ofe.
   Instance iPPred_dist : Dist vpred := λ n A B, lApp A ≡{n}≡ B.
   Lemma iPPred_ofe_mixin : OfeMixin vpred.
   Proof. by apply (iso_ofe_mixin lApp). Qed.
-  Canonical Structure iPPredO := OfeT vpred iPPred_ofe_mixin.
+  Canonical Structure iPPredO := Ofe vpred iPPred_ofe_mixin.
 
   Lemma iPPred_equivI {τ1 τ2 : iPPred vl Σ} :
     iPPred_car τ1 ≡@{vl -d> _} iPPred_car τ2 ⊣⊢@{iPropI Σ} τ1 ≡ τ2.

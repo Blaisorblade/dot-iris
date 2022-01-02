@@ -41,11 +41,11 @@ Section TypeEquiv.
 
   Lemma idstp_respects_type_equiv Γ ds T1 T2 (Heq : |- T1 == T2) :
     Γ ⊨ds ds : T1 -∗ Γ ⊨ds ds : T2.
-  Proof. by apply equiv_entails, sdstp_proper, fundamental_type_equiv_clty. Qed.
+  Proof. by apply equiv_entails_1_1, sdstp_proper, fundamental_type_equiv_clty. Qed.
 
   Lemma ietp_respects_type_equiv Γ e T1 T2 (Heq : |- T1 == T2) :
     Γ ⊨ e : T1 -∗ Γ ⊨ e : T2.
-  Proof. by apply equiv_entails, setp_proper, fundamental_type_equiv_olty. Qed.
+  Proof. by apply equiv_entails_1_1, setp_proper, fundamental_type_equiv_olty. Qed.
 
   Lemma ietp_teq_proper Γ : Proper (type_equiv ==> (=) ==> (⊢)) (ietp Γ).
   Proof. repeat intro; subst. exact: ietp_respects_type_equiv. Qed.

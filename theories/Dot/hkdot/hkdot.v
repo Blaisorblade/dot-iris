@@ -184,7 +184,7 @@ Section gen_lemmas.
     ∀ v, ▷^i (oClose T1 ρ v → oClose T2 ρ v)) -∗
     Γ s⊨ T1 <:[ i ] T2 ∷ sf_star.
   Proof.
-    apply equiv_entails. rewrite ksubtyping_equiv; properness; first done.
+    apply equiv_entails_1_1. rewrite ksubtyping_equiv; properness; first done.
     by rewrite -laterN_forall.
   Qed.
 
@@ -675,7 +675,7 @@ Section s_kind_ofe.
   Instance s_kind_dist : Dist tpred := λ n A B, A ≡{n}@{sf_kind _ _}≡ B.
   Lemma s_kind_ofe_mixin : OfeMixin tpred.
   Proof. by apply (iso_ofe_mixin s_kind_to_sf_kind). Qed.
-  Canonical Structure s_kindO := OfeT tpred s_kind_ofe_mixin.
+  Canonical Structure s_kindO := Ofe tpred s_kind_ofe_mixin.
 
   Lemma s_kind_equiv_intro (K1 K2 : sf_kind Σ) : K1 ≡@{sf_kind _ _} K2 → K1 ≡ K2.
   Proof. apply. Qed.

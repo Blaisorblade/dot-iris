@@ -21,12 +21,12 @@ Definition acurry {A} (Φ : astream -d> A) : vl -d> astream -d> A :=
   Proper (dist n ==> (=) ==> dist n) (@acurry A).
 Proof. solve_proper_ho. Qed.
 
-Definition aopen {A : ofeT} (Φ : A) : astream -d> A := λ args, Φ.
+Definition aopen {A : ofe} (Φ : A) : astream -d> A := λ args, Φ.
 #[global] Arguments aopen /.
 Notation aclose Φ := (Φ anil).
 
 Module TEST.
-  Definition __aclose {A : ofeT} (Φ : astream -d> A) : A. refine (aclose Φ). Abort.
+  Definition __aclose {A : ofe} (Φ : astream -d> A) : A. refine (aclose Φ). Abort.
 End TEST.
 
 Notation envPred s Σ := (env -d> s -d> iPropO Σ).
