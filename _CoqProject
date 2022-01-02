@@ -10,6 +10,8 @@
 # -arg -w -arg -undeclared-scope
 # We have ambiguous paths and so far it is not even clear what they are (https://gitlab.mpi-sws.org/iris/iris/issues/240).
 -arg -w -arg -ambiguous-paths
+-arg -w -arg -deprecated-hint-rewrite-without-locality
+-arg -w -arg -deprecated-instance-without-locality
 
 theories/pure_program_logic/weakestpre.v
 theories/pure_program_logic/lifting.v
