@@ -99,8 +99,8 @@ subtype Γ : ty → nat → ty → nat → Prop :=
     Γ u⊢ₜ TTMem L1 U1, i <: TTMem L2 U2, i
 where "Γ u⊢ₜ T1 , i1 <: T2 , i2" := (subtype Γ T1 i1 T2 i2).
 
-Scheme typed_mut_ind := Induction for typed Sort Prop
-with   subtype_mut_ind := Induction for subtype Sort Prop.
+Scheme typed_mut_ind := Minimality for typed Sort Prop
+with   subtype_mut_ind := Minimality for subtype Sort Prop.
 
 Combined Scheme typing_mut_ind from typed_mut_ind, subtype_mut_ind.
 
@@ -111,14 +111,7 @@ Combined Scheme typing_mut_ind from typed_mut_ind, subtype_mut_ind.
 Lemma stamped_to_storeless_typing_mut Γ :
   (∀ e T, Γ u⊢ₜ e : T → Γ ⊢ₜ e : T) ∧
   (∀ T1 i1 T2 i2, Γ u⊢ₜ T1, i1 <: T2, i2 → Γ ⊢ₜ T1, i1 <: T2, i2).
-Proof.
-  #[local] Set Warnings "-deprecated-option".
-  #[local] Set Apply With Renaming.
-  apply typing_mut_ind with
-      (P := λ Γ e T _, Γ ⊢ₜ e : T)
-      (P0 := λ Γ T1 i1 T2 i2 _, Γ ⊢ₜ T1, i1 <: T2, i2); clear Γ;
-    solve [econstructor; eauto].
-Qed.
+Proof. apply typing_mut_ind; clear Γ; solve [econstructor; eauto]. Qed.
 
 Lemma Vty_typed Γ T L U :
     nclosed T (length Γ) →
