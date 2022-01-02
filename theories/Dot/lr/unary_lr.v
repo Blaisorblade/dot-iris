@@ -199,7 +199,7 @@ Section log_rel.
   #[global] Instance dot_rec_ty_interp : RecTyInterp Σ := pty_interp.
 
   Lemma fixpoint_interp_eq1 T : C⟦ T ⟧ ≡ ty_rec ty_interp T.
-  Proof. apply: fixpoint_unfold. Qed.
+  Proof. apply: (fixpoint_unfold ty_rec). Qed.
   Lemma fixpoint_interp_eq : ty_interp ≡@{ty -d> _} ty_rec ty_interp.
   Proof. apply: fixpoint_unfold. Qed.
 

@@ -156,30 +156,30 @@ Section logrel.
   #[global] Instance dsub_interp : TyInterp ty Σ := fixpoint interp_rec.
 
   Lemma fixpoint_interp_eq1 T : ⟦ T ⟧ ≡ interp_rec ty_interp T.
-  Proof. apply: fixpoint_unfold. Qed.
+  Proof. apply: (fixpoint_unfold interp_rec). Qed.
 
   Lemma fixpoint_interp_rec_eq :
     ty_interp ≡@{ty -d> envD Σ} interp_rec ty_interp.
-  Proof. exact: (fixpoint_unfold interp_rec). Qed.
+  Proof. apply: (fixpoint_unfold interp_rec). Qed.
 
   (* Unused. *)
   Lemma fixpoint_interp_eq2 T ρ : ⟦ T ⟧ ρ ≡ interp_rec ty_interp T ρ.
-  Proof. apply: fixpoint_unfold. Qed.
+  Proof. apply: (fixpoint_unfold interp_rec). Qed.
   Lemma fixpoint_interp_eq3 T ρ v : ⟦ T ⟧ ρ v ≡ interp_rec ty_interp T ρ v.
-  Proof. apply: fixpoint_unfold. Qed.
+  Proof. apply: (fixpoint_unfold interp_rec). Qed.
 
   Lemma interp_TInt ρ v : ⟦ TInt ⟧ ρ v ≡ interp_nat ρ v.
-  Proof. apply: fixpoint_unfold. Qed.
+  Proof. apply: (fixpoint_unfold interp_rec). Qed.
   Lemma interp_TSel ρ v w : ⟦ TSel w ⟧ ρ v ≡ interp_sel ty_interp w ρ v.
-  Proof. apply: fixpoint_unfold. Qed.
+  Proof. apply: (fixpoint_unfold interp_rec). Qed.
   Lemma interp_TTop ρ v : ⟦ TTop ⟧ ρ v ≡ interp_top ρ v.
-  Proof. apply: fixpoint_unfold. Qed.
+  Proof. apply: (fixpoint_unfold interp_rec). Qed.
   Lemma interp_TBot ρ v : ⟦ TBot ⟧ ρ v ≡ interp_bot ρ v.
-  Proof. apply: fixpoint_unfold. Qed.
+  Proof. apply: (fixpoint_unfold interp_rec). Qed.
   Lemma interp_TAll T1 T2 ρ v : ⟦ TAll T1 T2 ⟧ ρ v ≡ interp_forall ⟦ T1 ⟧ ⟦ T2 ⟧ ρ v.
-  Proof. apply: fixpoint_unfold. Qed.
+  Proof. apply: (fixpoint_unfold interp_rec). Qed.
   Lemma interp_TLater T1 ρ v : ⟦ TLater T1 ⟧ ρ v ≡ interp_later ⟦ T1 ⟧ ρ v.
-  Proof. apply: fixpoint_unfold. Qed.
+  Proof. apply: (fixpoint_unfold interp_rec). Qed.
 
   Ltac rewrite_interp := repeat (rewrite fixpoint_interp_eq1 //=; repeat f_equiv).
 
