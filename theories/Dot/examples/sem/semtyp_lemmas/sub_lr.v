@@ -75,7 +75,7 @@ Section StpLemmas.
     iSpecialize ("HpT1" with "Hg").
     rewrite !path_wp_eq.
     iDestruct "HpT1" as (v) "Hpv"; iExists v.
-    iDestruct "Hpv" as "[$ HpT1]". by iApply "Hsub".
+    iDestruct "Hpv" as "-#[$ #HpT1]". by iApply "Hsub".
   Qed.
 
   Lemma sT_ISub {Γ e T1 T2 i} :
