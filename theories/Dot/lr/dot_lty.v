@@ -88,7 +88,7 @@ Section clty_ofe.
 
   Canonical Structure cltyO := OfeT (clty Σ) clty_ofe_mixin.
 
-  Let clty_pred : clty_car -> Prop := curry clty_mixin.pred.
+  Let clty_pred : clty_car -> Prop := uncurry clty_mixin.pred.
 
   Let clty_pred_alt (c : clty_car) : Prop :=
     let dslty := fst c in

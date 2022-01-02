@@ -78,7 +78,7 @@ Theorem wp_adequacy {Σ Λ} e φ `{LangDet Λ} :
   (⊢@{iPropI Σ} let _ := IrisG Λ Σ in |==> WP e {{ v, ⌜φ v⌝ }}) →
   adequate e (λ v, φ v).
 Proof.
-  intros Hwp; split; intros ? [n Hsteps]%rtc_nsteps; eapply (soundness _ n);
+  intros Hwp; split; intros ? [n Hsteps]%rtc_nsteps_1; eapply (soundness _ n);
     iMod Hwp as "Hwp".
   by iApply (wptp_result e with "Hwp").
   by iApply (wptp_safe with "Hwp").

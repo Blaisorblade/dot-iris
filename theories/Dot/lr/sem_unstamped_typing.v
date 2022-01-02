@@ -73,7 +73,7 @@ Theorem unstamped_s_safety_dot_sem
   (Hwp : ∀ `{!dlangG Σ} `(!SwapPropI Σ), ⊢ [] su⊨ e_u : τ) :
   safe e_u.
 Proof.
-  intros e_u' [n Hsteps]%rtc_nsteps.
+  intros e_u' [n Hsteps]%rtc_nsteps_1.
   apply (soundness (M := iResUR Σ) _ n).
   apply (bupd_plain_soundness _).
   iDestruct (Hwp HdlangG HswapProp) as "#>Hwp".

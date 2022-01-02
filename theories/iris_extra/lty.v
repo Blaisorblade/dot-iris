@@ -349,7 +349,7 @@ Section env_oltyped.
   Proof.
     move: ρ => + n G1 G2.
     elim: G1 G2 => [|T1 G1 IHG1] [|T2 G2] ρ /=; [done|inversion 1..|] =>
-      /(Forall2_cons_inv _ _ _ _) [HT HG]; f_equiv; [apply IHG1, HG|apply HT].
+      /(Forall2_cons_1 _ _ _ _) [HT HG]; f_equiv; [apply IHG1, HG|apply HT].
   Qed.
 
   #[global] Instance env_oltyped_proper ρ :

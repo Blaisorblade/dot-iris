@@ -61,7 +61,7 @@ Section path_wp_pre.
   Definition path_wp_pre' :
       (prodO pathO (vl -d> iPropO Σ) → iPropO Σ) →
       (prodO pathO (vl -d> iPropO Σ) → iPropO Σ) :=
-    Datatypes.uncurry ∘ path_wp_pre ∘ Datatypes.curry.
+    Datatypes.curry ∘ path_wp_pre ∘ Datatypes.uncurry.
 End path_wp_pre.
 
 #[local] Instance path_wp_pre_mono' {Σ} : BiMonoPred (@path_wp_pre' Σ).
@@ -70,7 +70,7 @@ Proof.
   - iIntros (wp1 wp2) "#H". iIntros ([p Φ]); iRevert (p Φ).
     iApply path_wp_pre_mono. iIntros (p Φ). iApply ("H" $! (p,Φ)).
   - intros wp Hwp n [p1 Φ1] [p2 Φ2] [?%leibniz_equiv Heq]; simplify_eq/=.
-    rewrite /Datatypes.curry /path_wp_pre; solve_proper_ho.
+    rewrite /Datatypes.uncurry /path_wp_pre; solve_proper_ho.
 Qed.
 
 Definition path_wp_def `{!dlangG Σ} p φ : iProp Σ := bi_least_fixpoint path_wp_pre' (p, φ).
@@ -103,7 +103,7 @@ Section path_wp_lemmas.
     ∀ p Φ, path_wp p Φ -∗ Ψ p Φ.
   Proof.
     iIntros "#IH" (p Φ) "H". rewrite path_wp_unseal.
-    set (Ψ' := curry Ψ : prodO pathO (vl -d> iPropO Σ) → iPropO Σ).
+    set (Ψ' := uncurry Ψ : prodO pathO (vl -d> iPropO Σ) → iPropO Σ).
     have ? : NonExpansive Ψ'.
     { intros n [p1 Φ1] [p2 Φ2] [?%leibniz_equiv ?]; simplify_eq/=. by apply HΨ. }
     iApply (least_fixpoint_strong_ind _ Ψ' with "[] H").
