@@ -165,6 +165,16 @@ Proof.
   - exact: iLater_Sub.
 Qed.
 
+Lemma iLaterN_Sub_LaterN {Γ i1 i2 j1 j2 T1 T2}
+  (Hsub : Γ u⊢ₜ T1, i1 + i2 <: T2, j1 + j2) :
+  Γ u⊢ₜ iterate ▶:%ty i2 T1, i1 <: iterate ▶:%ty j2 T2, j1.
+Proof.
+  ettrans; first apply iLaterN_Sub.
+  ettrans; last apply iSub_LaterN.
+  rewrite (Nat.add_comm i2 i1) (Nat.add_comm j2 j1).
+  exact: Hsub.
+Qed.
+
 Lemma selfIntersect Γ T U i j :
   Γ u⊢ₜ T, i <: U, j + i →
   Γ u⊢ₜ T, i <: TAnd U T, j + i .
@@ -362,4 +372,29 @@ Proof.
     try (ettrans; first apply (comm_and (T := S))); try apply iDistr_And_Or_Sub; stcrush => //.
   ettrans; first apply assoc_or; stcrush => //.
   ettrans; first apply iOr_Sub_split; last apply iSub_Refl; subtcrush.
+Qed.
+
+(* Show how TMu commutes with TAnd and TOr. *)
+Lemma iMu_And Γ T1 T2 i :
+  Γ u⊢ₜ TMu (TAnd T1 T2), i <: TAnd (TMu T1) (TMu T2), i.
+Proof. subtcrush. Qed.
+
+Lemma iOr_Mu Γ T1 T2 i :
+  Γ u⊢ₜ TOr (TMu T1) (TMu T2), i <: TMu (TOr T1 T2), i.
+Proof. subtcrush. Qed.
+
+(* These rules deal with "trivial" recursive types; for the general case see [TAnd_Mu].
+For now I failed to prove [TOr_Mu] but it seems much less important. *)
+Lemma iAnd_Mu_free Γ T1 T2 i :
+  Γ u⊢ₜ TAnd (μ (shift T1)) (TMu (shift T2)), i <: μ (shift (TAnd T1 T2)), i.
+Proof.
+  ettrans; [|apply iSub_Mu].
+  apply iSub_And_split; subtcrush.
+Qed.
+
+Lemma iMu_Or_free Γ T1 T2 i :
+  Γ u⊢ₜ μ (shift (TOr T1 T2)), i <: TOr (μ (shift T1)) (TMu (shift T2)), i.
+Proof.
+  ettrans; [apply iMu_Sub|].
+  apply iOr_Sub_split; subtcrush.
 Qed.
