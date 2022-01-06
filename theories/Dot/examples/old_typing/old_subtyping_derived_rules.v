@@ -165,6 +165,16 @@ Proof.
   - exact: iLater_Sub.
 Qed.
 
+Lemma iLaterN_Sub_LaterN {Γ i1 i2 j1 j2 T1 T2}
+  (Hsub : Γ u⊢ₜ T1, i1 + i2 <: T2, j1 + j2) :
+  Γ u⊢ₜ iterate ▶:%ty i2 T1, i1 <: iterate ▶:%ty j2 T2, j1.
+Proof.
+  ettrans; first apply iLaterN_Sub.
+  ettrans; last apply iSub_LaterN.
+  rewrite (Nat.add_comm i2 i1) (Nat.add_comm j2 j1).
+  exact: Hsub.
+Qed.
+
 Lemma selfIntersect Γ T U i j :
   Γ u⊢ₜ T, i <: U, j + i →
   Γ u⊢ₜ T, i <: TAnd U T, j + i .

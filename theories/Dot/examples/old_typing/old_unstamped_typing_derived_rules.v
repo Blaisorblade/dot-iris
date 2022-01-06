@@ -327,13 +327,22 @@ Proof.
   rewrite (hren_upn 1 T) hrenS /=; tcrush.
 Qed.
 
+Lemma is_unstamped_ty'_upren {n T}
+  (Hu : is_unstamped_ty' n.+1 T) :
+  is_unstamped_ty' n.+2 T.|[up (ren (+1))].
+Proof.
+  rewrite up_upren_vl.
+  eapply is_unstamped_sub_ren_ty, Hu.
+  exact: is_unstamped_ren_up.
+Qed.
+
 Lemma iSub_Mu'' {Γ T i} :
   is_unstamped_ty' (length Γ) T →
   Γ u⊢ₜ T, i <: TMu (shift T), i.
 Proof.
   intros Hu; apply iSub_Skolem_P => //.
-  have HusT : is_unstamped_ty' (S (length Γ).+1) (shift T).|[up (ren (+1))]
-    by rewrite (hren_upn 1); eapply is_unstamped_sub_ren_ty, Hu; auto.
+  have HusT : is_unstamped_ty' (S (length Γ).+1) (shift T).|[up (ren (+1))].
+    by apply is_unstamped_ty'_upren, is_unstamped_ren1_ty, Hu.
   apply (iP_LaterN (i := 0)); wtcrush.
   eapply iT_ISub_nocoerce, iMu_LaterN_Sub_Distr.
   apply iT_Mu_I, is_unstamped_TLater_n; cbn; wtcrush.
@@ -348,18 +357,10 @@ Lemma iMu_Sub_Mu' {Γ T1 T2 i j} :
   Γ u⊢ₜ TMu T1, i <: TMu T2, j.
 Proof.
   intros Hsub Hu1 Hu2.
-  apply iSub_Skolem_P; stcrush.
-  have Hu1' : is_unstamped_ty' (S (length Γ).+1) T1.|[up (ren (+1))]. {
-    rewrite up_upren_vl.
-    eapply is_unstamped_sub_ren_ty, Hu1.
-    by apply is_unstamped_ren_up.
-  }
-  have Hu2' : is_unstamped_ty' (S (length Γ).+1) T2.|[up (ren (+1))]. {
-    rewrite up_upren_vl.
-    eapply is_unstamped_sub_ren_ty, Hu2.
-    by apply is_unstamped_ren_up.
-  }
-  eapply (iP_LaterN (i := 0)); wtcrush.
+  apply iSub_Skolem_P.
+  have Hu1' := is_unstamped_ty'_upren Hu1.
+  have Hu2' := is_unstamped_ty'_upren Hu2.
+  eapply (iP_LaterN (i := 0)); tcrush.
   hideCtx.
   eapply iT_ISub_nocoerce, iMu_LaterN_Sub_Distr.
   eapply iT_Mu_I; last by wtcrush.
@@ -373,10 +374,7 @@ Proof.
     exact: is_unstamped_TLater_n.
   }
   eapply (iT_ISub (i := 0)), Hx0.
-  ettrans; first apply iLaterN_Sub; first wtcrush.
-  ettrans; last apply iSub_LaterN.
-  rewrite !plusnO.
-  exact: Hsub.
+  apply iLaterN_Sub_LaterN, Hsub.
 Qed.
 
 End cond.
