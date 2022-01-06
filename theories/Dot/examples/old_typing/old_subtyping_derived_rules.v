@@ -373,3 +373,28 @@ Proof.
   ettrans; first apply assoc_or; stcrush => //.
   ettrans; first apply iOr_Sub_split; last apply iSub_Refl; subtcrush.
 Qed.
+
+(* Show how TMu commutes with TAnd and TOr. *)
+Lemma iMu_And Γ T1 T2 i :
+  Γ u⊢ₜ TMu (TAnd T1 T2), i <: TAnd (TMu T1) (TMu T2), i.
+Proof. subtcrush. Qed.
+
+Lemma iOr_Mu Γ T1 T2 i :
+  Γ u⊢ₜ TOr (TMu T1) (TMu T2), i <: TMu (TOr T1 T2), i.
+Proof. subtcrush. Qed.
+
+(* These rules deal with "trivial" recursive types; for the general case see [TAnd_Mu].
+For now I failed to prove [TOr_Mu] but it seems much less important. *)
+Lemma iAnd_Mu_free Γ T1 T2 i :
+  Γ u⊢ₜ TAnd (μ (shift T1)) (TMu (shift T2)), i <: μ (shift (TAnd T1 T2)), i.
+Proof.
+  ettrans; [|apply iSub_Mu].
+  apply iSub_And_split; subtcrush.
+Qed.
+
+Lemma iMu_Or_free Γ T1 T2 i :
+  Γ u⊢ₜ μ (shift (TOr T1 T2)), i <: TOr (μ (shift T1)) (TMu (shift T2)), i.
+Proof.
+  ettrans; [apply iMu_Sub|].
+  apply iOr_Sub_split; subtcrush.
+Qed.

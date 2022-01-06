@@ -377,4 +377,16 @@ Proof.
   apply iLaterN_Sub_LaterN, Hsub.
 Qed.
 
+Lemma iAnd_Mu Γ T1 T2 i
+  (Hu1 : is_unstamped_ty' (length Γ).+1 T1)
+  (Hu2 : is_unstamped_ty' (length Γ).+1 T2) :
+  Γ u⊢ₜ TAnd (μ T1) (μ T2), i <: μ (TAnd T1 T2), i.
+Proof.
+  have Hu1' := is_unstamped_ty'_upren Hu1.
+  have Hu2' := is_unstamped_ty'_upren Hu2.
+  apply iSub_Skolem_P.
+  apply iP_Mu_I'; stcrush.
+  apply iP_And_I; apply iP_Mu_E' => //.
+  all: apply (iP_LaterN (i := 0)); tcrush; varsub; apply iLaterN_Sub_LaterN; tcrush.
+Qed.
 End cond.
