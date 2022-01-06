@@ -382,6 +382,13 @@ Lemma iAnd_Mu Γ T1 T2 i
   (Hu2 : is_unstamped_ty' (length Γ).+1 T2) :
   Γ u⊢ₜ TAnd (μ T1) (μ T2), i <: μ (TAnd T1 T2), i.
 Proof.
+  (* Direct proof using Bind2 and Bind1 from DOT paper. *)
+  (* apply iSub_Bind_2, iSub_And_split; apply iSub_Bind_1. *)
+  (* The first goal reads as:
+  Γ, z1 : (mu z. T1) /\ (mu z. T2), z2 : T1[z := z2] ⊢ T1[z := z2] <: T1[z := z1]
+  which is unprovable.
+  *)
+  (* Restart. *)
   have Hu1' := is_unstamped_ty'_upren Hu1.
   have Hu2' := is_unstamped_ty'_upren Hu2.
   apply iSub_Skolem_P.
