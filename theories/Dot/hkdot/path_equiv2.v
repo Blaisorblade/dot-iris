@@ -56,7 +56,7 @@ Arguments crel_mixin.Mk {Σ _ _}.
 Module crel.
   Record t {Σ} := Mk {
     to_dms :> dms_rel Σ;
-    to_vl : vl_relO Σ;
+    to_vl :> vl_relO Σ;
     mixin : crel_mixin.pred to_dms to_vl;
   }.
   #[global] Arguments t : clear implicits.
@@ -67,7 +67,7 @@ Module crel.
   #[global] Instance : Params (@to_vl) 1 := {}.
 End crel.
 Add Printing Constructor crel.t.
-Notation c2v := crel.to_vl.
+Coercion crel.to_vl : crel.t >-> ofe_car.
 Coercion crel.to_dms : crel.t >-> dms_rel.
 Notation CRel RDS RV := (crel.Mk RDS RV (crel_mixin.Mk _ _ _)).
 
@@ -537,13 +537,13 @@ Print hoD *)
   Definition rCTMemK l SK : crel.t Σ :=
     rlift_dm_c l (rDTMemK SK).
 
-  Notation rVVMem l RV := (c2v (rCVMem l RV)).
-  Notation rVTMemK l SK := (c2v (rCTMemK l SK)).
+  Notation rVVMem l RV := (crel.to_vl (rCVMem l RV)).
+  Notation rVTMemK l SK := (crel.to_vl (rCTMemK l SK)).
 
   #[program] Definition rCAnd RC1 RC2 : crel.t Σ :=
     CRel
       (λI ρ1 ρ2 ds1 ds2, RC1 ρ1 ρ2 ds1 ds2 ∧ RC2 ρ1 ρ2 ds1 ds2)
-      (rVAnd (c2v RC1) (c2v RC2)).
+      (rVAnd RC1 RC2).
   Next Obligation. intros. by rewrite /= -!crel_def2defs_head. Qed.
   Next Obligation. intros. by rewrite /= -!crel_mono. Qed.
   Next Obligation. intros. by rewrite /rVAnd -!crel_commute. Qed.
@@ -629,8 +629,8 @@ Print hoD *)
     Γ rs⊨ oSel p1 l <::[ i ] oSel p2 l ∷ SK -∗ *)
 
   Lemma oTApp_respects_eq {Γ} l (SK : sf_kind Σ) p1 p2 i RC T :
-    Γ rs⊨p p1 = p2 : c2v RC, i -∗
-    Γ rs⊨ T ∷[ i ] sf_kpi (close $ c2v RC) SK -∗
+    Γ rs⊨p p1 = p2 : RC, i -∗
+    Γ rs⊨ T ∷[ i ] sf_kpi (close RC) SK -∗
     Γ rs⊨ oTApp T p1 <::[ i ] oTApp T p2 ∷
       (* [SK] must respect [p1 = p2]? *)
       SK .sKp[ p1 /].
@@ -650,9 +650,9 @@ Print hoD *)
     3: {
       iClear "HT".
       (* Unprovable: does not match ["Hp"].
-        Provable if [c2v RC] is contravariant in last argument (so, if v2 = v1
+        Provable if [to_vl RC] is contravariant in last argument (so, if v2 = v1
         symmetrically), but rather change ["HT"]? sf_kpi should take [RC] not
-        [close $ c2v RC]. *)
+        [close $ to_vl RC]. *)
       admit.
     }
     (* XXX bump Iris *)
@@ -705,8 +705,8 @@ Print hoD *)
   Proof. by rewrite rD_Sing rCAnd_rCTop. Qed.
 
   Lemma rP_Obj_I Γ RC ds1 ds2 :
-    rVLater (c2v RC) :: Γ rs⊨ds ds1 = ds2 : RC -∗
-    Γ rs⊨p pv (vobj ds1) = pv (vobj ds2) : rVMu (c2v RC), 0.
+    rVLater RC :: Γ rs⊨ds ds1 = ds2 : RC -∗
+    Γ rs⊨p pv (vobj ds1) = pv (vobj ds2) : rVMu RC, 0.
   Proof.
     iIntros ">(%Hwf1 & %Hwf2 & #Hds) !> %ρ1 %ρ2 #Hg /=".
     rewrite !path_wp_pv_eq /=. iLöb as "IH".
