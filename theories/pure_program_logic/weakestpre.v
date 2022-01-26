@@ -33,11 +33,14 @@ Proof.
   repeat (f_contractive || f_equiv); apply Hwp.
 Qed.
 
-Definition wp_def `{irisGS Λ Σ} : stuckness → coPset →
-   expr Λ → (val Λ → iProp Σ) → iProp Σ := λ _ _, fixpoint wp_pre.
-Definition wp_aux `{irisGS Λ Σ} : seal (wp_def (Λ := Λ) (Σ := Σ)). Proof. by eexists. Qed.
-#[global] Instance wp' `{irisGS Λ Σ} : Wp Λ (iProp Σ) stuckness := wp_aux.(unseal).
-Definition wp_eq `{irisGS Λ Σ} : wp = wp_def (Λ := Λ) (Σ := Σ) := wp_aux.(seal_eq).
+Definition wp_def `{irisGS Λ Σ} : Wp (iProp Σ) (expr Λ) (val Λ) stuckness :=
+  λ _ _, fixpoint wp_pre.
+Definition wp_aux : seal (@wp_def). Proof. by eexists. Qed.
+Definition wp' := wp_aux.(unseal).
+Global Arguments wp' {Λ Σ _}.
+Global Existing Instance wp'.
+Lemma wp_eq `{irisGS Λ Σ} : wp = @wp_def Λ Σ _ _.
+Proof. by rewrite -wp_aux.(seal_eq). Qed.
 
 Section wp.
 Context `{irisGS Λ Σ}.
