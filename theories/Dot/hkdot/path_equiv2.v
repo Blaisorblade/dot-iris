@@ -215,6 +215,47 @@ Section env_rstyped.
 End env_rstyped.
 
 (* XXX we use [ρ1] asymmetrically, matching the [rDTMemK]. But this can't work! *)
+
+(*
+Alternative...
+[L1 ρ1] ... [U2 ρ2] doesn't work because variables might contain interval kinds...
+
+Pi (x : S) K
+
+Either the kinds in the variables coincide, or you get ...
+
+Γ = A :: *, B :: A .. A
+
+Γ ⊢ B .. B wf
+
+Here,
+ρ1 = A = A1, B = ???
+ρ2 = A = A2, B = ???
+
+Should B's kind be A1...A2, A2...A1, or B = A1 = A2?
+
+Maybe for our path equality we can assume A1 = A2 and be done, because:
+- we're doing equality not subtyping really
+- we're doing equality not parametricity really
+
+BTW all the constructions of parametricity don't necessarily work for orders,
+because they don't necessarily give transitivity.
+
+Symmetry but not transitivity is problematic.
+
+To get:
+⊢ {A = S1, B = S2} = { A = T1, B = T2 } :: { A :: * }
+
+we need S1 = T1, and (ideally) nothing about S2 and T2 (if this is a problem we
+don't need to care).
+
+Sandro proposes a non-type-directed equality!!!??? ^W ^W ^W
+(or rather type-directed on the most specialized)
+
+In a syntactic relation...
+Equality of paths should compare all members, each in a type-directed way...
+Here: S1 = T2 at the appropriate kind and S2 = T2 at the appropriate kind?
+ *)
 Notation rsstpiK_env i T1 T2 K ρ1 ρ2 := (▷^i K ρ1 (envApply T1 ρ1) (envApply T2 ρ2))%I.
 Notation rsstpiK' i Γ T1 T2 K := (∀ ρ1 ρ2, rG⟦Γ⟧* ρ1 ρ2 → rsstpiK_env i T1 T2 K ρ1 ρ2)%I.
 Definition rsstpiK `{!dlangG Σ} i Γ T1 T2 (K : sf_kind Σ) : iProp Σ :=
