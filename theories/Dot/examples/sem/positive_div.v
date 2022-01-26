@@ -82,6 +82,9 @@ Ltac wp_bin := iApply wp_wand; [wp_bin_base | iIntros].
 
 Import hoasNotation.
 
+(* XXX needed in Coq 8.13 and 8.14, but not 8.15 *)
+Canonical Structure vlO := leibnizO vl_.
+
 (* Generic useful lemmas — not needed for fundamental theorem,
     but very useful for examples. *)
 Section helpers.
