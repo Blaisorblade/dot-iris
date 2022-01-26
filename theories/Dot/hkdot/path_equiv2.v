@@ -628,6 +628,13 @@ Print hoD *)
     Γ rs⊨p oApp T p1 = oApp T p2 : rVTMemK l SK, i -∗
     Γ rs⊨ oSel p1 l <::[ i ] oSel p2 l ∷ SK -∗ *)
 
+  (**
+    Γ rs⊨p p1 =^i p2 : S
+    Γ rs⊨ T ∷^i Π (x : S). K
+    ------------ ------------
+    Γ rs⊨ T p1 <::^i T p2 ∷ K (x := p1).
+      (* [SK] must respect [p1 = p2]? *)
+  *)
   Lemma oTApp_respects_eq {Γ} l (SK : sf_kind Σ) p1 p2 i RC T :
     Γ rs⊨p p1 = p2 : RC, i -∗
     Γ rs⊨ T ∷[ i ] sf_kpi (close RC) SK -∗
