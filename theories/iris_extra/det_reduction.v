@@ -39,6 +39,7 @@ Class EctxLangDet (Λ : EL.ectxLanguage) `{InhabitedState Λ} := {
   ectx_inh_state :> ProofIrrel (L.state Λ)
 }.
 Arguments EctxLangDet Λ {_}.
+#[global] Hint Mode LangDet + + : typeclass_instances.
 
 Notation dummyState := (inhabitant (A := L.state _)).
 
@@ -48,7 +49,10 @@ Ltac uniqueState :=
     let Λ := fresh "Λ" in
     evar (Λ : language);
     unify T (L.state ?Λ); clear Λ;
-    assert (s = dummyState) as -> by exact: proof_irrel
+    assert (s = dummyState) as ->
+      (* Our goal here might be [ProofIrrel (L.state Λ)] -> [LangDet Λ],
+      and modes can interfere, so we apply [lang_inh_state] if needed. *)
+      by (simple apply @proof_irrel; try simple apply lang_inh_state)
   end.
 
 (** This defines, in fact, pure and deterministic termination. *)
