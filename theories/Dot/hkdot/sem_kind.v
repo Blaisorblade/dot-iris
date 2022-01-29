@@ -91,7 +91,7 @@ Section sf_kind_ofe.
   Instance sf_kind_dist : Dist tpred := λ n A B, kApp A ≡{n}≡ B.
   Lemma sf_kind_ofe_mixin : OfeMixin tpred.
   Proof. by apply (iso_ofe_mixin kApp). Qed.
-  Canonical Structure sf_kindO := OfeT tpred sf_kind_ofe_mixin.
+  Canonical Structure sf_kindO := Ofe tpred sf_kind_ofe_mixin.
 
   Lemma sf_kind_equiv_intro (K1 K2 : sf_kind Σ) : kApp K1 ≡ kApp K2 → K1 ≡ K2.
   Proof. apply. Qed.
@@ -427,7 +427,7 @@ Section s_kind_ofe.
   Qed.
 End s_kind_ofe.
 
-Canonical Structure s_kindO Σ n := OfeT (s_kind Σ n) s_kind_ofe_mixin.
+Canonical Structure s_kindO Σ n := Ofe (s_kind Σ n) s_kind_ofe_mixin.
 
 Section s_kind_rel_proper.
   Context `{R : relation (oltyO Σ)}.

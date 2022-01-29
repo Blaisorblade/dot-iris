@@ -1,6 +1,6 @@
 (** * Adequacy of expression weakest preconditions, part of gDOT adequacy. *)
 From stdpp Require Import relations.
-From iris.proofmode Require Import tactics.
+From iris.proofmode Require Import proofmode.
 From D.pure_program_logic Require Export weakestpre.
 Set Default Proof Using "Type".
 Import uPred.
@@ -15,7 +15,7 @@ Record adequate `{LangDet Λ} (e1 : expr Λ) (φ : val Λ → Prop) := {
 }.
 
 Section adequacy.
-Context `{Hiris : irisG Λ Σ}.
+Context `{Hiris : irisGS Λ Σ}.
 
 Implicit Types e : expr Λ.
 Implicit Types P Q : iProp Σ.
@@ -78,7 +78,7 @@ Theorem wp_adequacy {Σ Λ} e φ `{LangDet Λ} :
   (⊢@{iPropI Σ} let _ := IrisG Λ Σ in |==> WP e {{ v, ⌜φ v⌝ }}) →
   adequate e (λ v, φ v).
 Proof.
-  intros Hwp; split; intros ? [n Hsteps]%rtc_nsteps; eapply (soundness _ n);
+  intros Hwp; split; intros ? [n Hsteps]%rtc_nsteps_1; eapply (soundness _ n);
     iMod Hwp as "Hwp".
   by iApply (wptp_result e with "Hwp").
   by iApply (wptp_safe with "Hwp").

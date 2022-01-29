@@ -1,5 +1,5 @@
 (** * Binding-related semantic typing lemmas. *)
-From iris.proofmode Require Import tactics.
+From iris.proofmode Require Import proofmode.
 
 From D Require Import swap_later_impl.
 From D.Dot Require Import unary_lr later_sub_syn.

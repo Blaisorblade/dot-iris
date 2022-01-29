@@ -1,5 +1,5 @@
 (** * Exercise: Semantic typing for positive numbers (smallest example). *)
-From iris.proofmode Require Import tactics.
+From iris.proofmode Require Import proofmode.
 From D.pure_program_logic Require Import lifting adequacy.
 From iris.program_logic Require Import ectxi_language.
 

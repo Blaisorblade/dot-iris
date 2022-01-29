@@ -7,19 +7,19 @@ and is specialized to deterministic languages.
 From iris.base_logic Require Export iprop.
 From iris.program_logic Require Export language.
 From iris.bi Require Export weakestpre.
-From iris.proofmode Require Import base tactics classes.
+From iris.proofmode Require Import base proofmode classes.
 
 From D.iris_extra Require Export det_reduction.
 Set Default Proof Using "Type".
 Import uPred.
 
-Class irisG (Λ : language) (Σ : gFunctors) `{InhabitedState Λ} := IrisG {
+Class irisGS (Λ : language) (Σ : gFunctors) `{InhabitedState Λ} := IrisG {
   irisG_langdet :> LangDet Λ
 }.
 Arguments IrisG _ _ {_ _}.
 #[local] Notation σ := dummyState.
 
-Definition wp_pre `{irisG Λ Σ}
+Definition wp_pre `{irisGS Λ Σ}
     (wp : expr Λ -d> (val Λ -d> iPropO Σ) -d> iPropO Σ) :
     expr Λ -d> (val Λ -d> iPropO Σ) -d> iPropO Σ := λ e1 Φ,
   match to_val e1 with
@@ -27,20 +27,23 @@ Definition wp_pre `{irisG Λ Σ}
   | None => ∃ e2, ⌜prim_step e1 σ [] e2 σ []⌝ ∧ ▷ wp e2 Φ
   end%I.
 
-#[local] Instance wp_pre_contractive `{irisG Λ Σ} : Contractive wp_pre.
+#[local] Instance wp_pre_contractive `{irisGS Λ Σ} : Contractive wp_pre.
 Proof.
   rewrite /wp_pre => n wp wp' Hwp e1 Φ.
   repeat (f_contractive || f_equiv); apply Hwp.
 Qed.
 
-Definition wp_def `{irisG Λ Σ} : stuckness → coPset →
-   expr Λ → (val Λ → iProp Σ) → iProp Σ := λ _ _, fixpoint wp_pre.
-Definition wp_aux `{irisG Λ Σ} : seal (wp_def (Λ := Λ) (Σ := Σ)). Proof. by eexists. Qed.
-#[global] Instance wp' `{irisG Λ Σ} : Wp Λ (iProp Σ) stuckness := wp_aux.(unseal).
-Definition wp_eq `{irisG Λ Σ} : wp = wp_def (Λ := Λ) (Σ := Σ) := wp_aux.(seal_eq).
+Definition wp_def `{irisGS Λ Σ} : Wp (iProp Σ) (expr Λ) (val Λ) stuckness :=
+  λ _ _, fixpoint wp_pre.
+Definition wp_aux : seal (@wp_def). Proof. by eexists. Qed.
+Definition wp' := wp_aux.(unseal).
+Global Arguments wp' {Λ Σ _}.
+Global Existing Instance wp'.
+Lemma wp_eq `{irisGS Λ Σ} : wp = @wp_def Λ Σ _ _.
+Proof. by rewrite -wp_aux.(seal_eq). Qed.
 
 Section wp.
-Context `{irisG Λ Σ}.
+Context `{irisGS Λ Σ}.
 Implicit Types s : stuckness.
 Implicit Types P : iProp Σ.
 Implicit Types Φ : val Λ → iProp Σ.
@@ -187,7 +190,7 @@ End wp.
 
 (** Proofmode class instances *)
 Section proofmode_classes.
-  Context `{irisG Λ Σ}.
+  Context `{irisGS Λ Σ}.
   Implicit Types P Q : iProp Σ.
   Implicit Types Φ : val Λ → iProp Σ.
 

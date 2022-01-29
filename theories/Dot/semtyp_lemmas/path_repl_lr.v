@@ -1,5 +1,5 @@
 (** * Semantic lemmas on singleton types, path typing and path replacement. *)
-From iris.proofmode Require Import tactics.
+From iris.proofmode Require Import proofmode.
 From iris.program_logic Require Import ectx_language.
 From D.pure_program_logic Require Import lifting.
 From D Require Import iris_prelude.

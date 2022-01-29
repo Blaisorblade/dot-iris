@@ -61,7 +61,7 @@ Definition terminates {Λ} (e : L.expr Λ) :=
 
 Lemma PureExec_to_terminates {Λ : L.language} n φ e v :
   PureExec φ n e (L.of_val v) → φ → terminates (Λ := Λ) e.
-Proof. intros HP Hφ. exists v. eapply nsteps_rtc, HP, Hφ. Qed.
+Proof. intros HP Hφ. exists v. eapply rtc_nsteps_2, HP, Hφ. Qed.
 
 Notation not_stuck e := (L.not_stuck e dummyState).
 

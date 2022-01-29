@@ -333,7 +333,7 @@ End path_repl_lemmas.
 (** This instance doesn't allow setoid rewriting in the function argument
 to [iterate]. That's appropriate for this project. *)
 #[global] Instance : Params (@iterate) 3 := {}.
-#[global] Instance iterate_proper {n} {A : ofeT} (f : A → A) :
+#[global] Instance iterate_proper {n} {A : ofe} (f : A → A) :
   Proper (equiv ==> equiv) f →
   Proper (equiv ==> equiv) (iterate f n).
 Proof.

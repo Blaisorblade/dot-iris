@@ -1,6 +1,6 @@
 (** * Show proof rule [Impl-▷].
 Swap later [▷] with Iris implication [→] and wand [-∗]. *)
-From iris.proofmode Require Import tactics.
+From iris.proofmode Require Import proofmode.
 From iris.base_logic Require Import lib.iprop.
 From iris.algebra Require Import agree excl gmap auth.
 
@@ -34,7 +34,7 @@ Proof. elim: n => [//|n IHn]. by rewrite later_bupd_commute /= IHn. Qed.
 Import uPred.
 
 Section derived_swap_lemmas.
-  Context `{M : ucmraT} `{!SwapProp (uPredI M)}.
+  Context `{M : ucmra} `{!SwapProp (uPredI M)}.
   Set Default Proof Using "Type*".
   Lemma mlater_impl (P Q : uPred M) : (▷ P → ▷ Q) ⊣⊢ ▷ (P → Q).
   Proof. iSplit. iApply impl_later. iApply later_impl. Qed.
@@ -49,7 +49,7 @@ End derived_swap_lemmas.
 
 (** ** Implementation of swap laws for uniform predicates. *)
 
-Class CmraSwappable (M : cmraT) := {
+Class CmraSwappable (M : cmra) := {
   cmra_extend_included : ∀ n (mx : option M) z,
     ✓{S n} mx → ✓{n} (z ⋅? mx) → { z' | ✓{S n} (z' ⋅? mx) ∧ z ≡{n}≡ z' }
 }.
@@ -58,7 +58,7 @@ Section SwapCmra.
 (* Hints from Iris cmra.v, so that we can copy proofs unchanged. *)
 #[local] Hint Extern 10 (_ ≤ _) => lia : core.
 #[local] Arguments uPred_holds {_} !_ _ _ /.
-Context {M : ucmraT}.
+Context {M : ucmra}.
 Implicit Types P Q : uPred M.
 
 Lemma CmraSwappable_impl_later `{!CmraSwappable M} P Q : (▷ P → ▷ Q) ⊢ ▷ (P → Q).
@@ -144,16 +144,16 @@ Proof. apply LiftCPropToGFunctors_GFunctor. Qed.
 (** ** [CmraSwappable] Instances. *)
 
 (** *** Option. *)
-Lemma validN_mjoin_option `{A : cmraT} n (mma : option (option A)) :
+Lemma validN_mjoin_option `{A : cmra} n (mma : option (option A)) :
   ✓{n} mjoin mma ↔ ✓{n} mma.
 Proof. by destruct mma. Qed.
-Lemma valid_mjoin_option `{A : cmraT} (mma : option (option A)) :
+Lemma valid_mjoin_option `{A : cmra} (mma : option (option A)) :
   ✓ mjoin mma ↔ ✓ mma.
 Proof. by destruct mma. Qed.
-Lemma validN_opM_mjoin_option `{A : cmraT} n (a : A) mma :
+Lemma validN_opM_mjoin_option `{A : cmra} n (a : A) mma :
   ✓{n} (a ⋅? mjoin mma) ↔ ✓{n} (Some a ⋅? mma).
 Proof. by destruct mma; rewrite //= Some_op_opM. Qed.
-Lemma valid_opM_mjoin_option `{A : cmraT} (a : A) mma :
+Lemma valid_opM_mjoin_option `{A : cmra} (a : A) mma :
   ✓ (a ⋅? mjoin mma) ↔ ✓ (Some a ⋅? mma).
 Proof. by destruct mma; rewrite //= Some_op_opM. Qed.
 
@@ -192,7 +192,7 @@ Proof.
 Qed.
 
 (** *** Dependently-typed functions over a finite discrete domain *)
-#[global] Instance CmraSwappable_discrete_funUR {A} (B: A → ucmraT)
+#[global] Instance CmraSwappable_discrete_funUR {A} (B: A → ucmra)
   (H: ∀ i, CmraSwappable (B i)) :
   CmraSwappable (discrete_funUR B).
 Proof.
@@ -211,7 +211,7 @@ Qed.
 
 Section agree.
 (** *** Agreement CMRA. *)
-Context {A : ofeT}.
+Context {A : ofe}.
 Implicit Types (a b : A) (x y : agree A).
 
 Lemma elem_of_agree_sig x : { a | a ∈ agree_car x }.

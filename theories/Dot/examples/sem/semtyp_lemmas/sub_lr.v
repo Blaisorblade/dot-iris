@@ -1,5 +1,5 @@
 (** * Semantic lemmas for double-delay subtyping. *)
-From iris.proofmode Require Import tactics.
+From iris.proofmode Require Import proofmode.
 
 From D Require Import iris_prelude swap_later_impl.
 From D.Dot Require Import rules path_repl dot_semtypes dsub_lr defs_lr binding_lr.
@@ -75,7 +75,7 @@ Section StpLemmas.
     iSpecialize ("HpT1" with "Hg").
     rewrite !path_wp_eq.
     iDestruct "HpT1" as (v) "Hpv"; iExists v.
-    iDestruct "Hpv" as "[$ HpT1] {Hpv}". by iApply "Hsub".
+    iDestruct "Hpv" as "-#[$ #HpT1]". by iApply "Hsub".
   Qed.
 
   Lemma sT_ISub {Γ e T1 T2 i} :

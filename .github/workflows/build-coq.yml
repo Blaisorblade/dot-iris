@@ -1,0 +1,78 @@
+# Adapted from:
+# - https://github.com/erikmd/docker-coq-github-action-demo/blob/a509e8cafb23d35c2bd4fec55c9481eef1ed10da/.github/workflows/build-coq-demo.yml
+# Syntax reference:
+# - https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
+
+# This is a workflow example relying on docker-coq-action.
+name: Docker CI
+
+# Controls when the action will run:
+# https://help.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#filtering-for-specific-branches-tags-and-paths
+# Triggers the workflow on push events for the master branch only,
+# or all pull request events:
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - '**'
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel.
+# This workflow contains two jobs, "build" and "mathcomp", for demo purposes;
+# a typical workflow would only contain one of them:
+# keep a job similar to "build" if pulling an image with coq+bignums is enough
+# or keep a job similar to "mathcomp" if your project relies on mathcomp, so
+# an image with coq+bignums+mathcomp will be pulled.
+jobs:
+  build:
+    # The type of runner that the job will run on;
+    # the OS must be GNU/Linux to be able to use the docker-coq-action.
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Browse URL: https://github.com/coq-community/docker-coq/wiki#supported-tags
+        # to get the list of supported (coq, ocaml) versions in coqorg/coq.
+        coq_version:
+          - '8.13'
+          - '8.14'
+        ocaml_version:
+          - '4.07-flambda'
+          - '4.12-flambda'
+        # Alternatively, pass an image?
+        # Browse URL: https://hub.docker.com/r/mathcomp/mathcomp#supported-tags
+        # to get the list of supported tags in mathcomp/mathcomp
+        # image:
+        #   - mathcomp/mathcomp:1.12.0-coq-8.12
+      # at most 20 concurrent jobs per free account:
+      # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#usage-limits
+      #max-parallel: 4
+      # don't cancel all in-progress jobs if one matrix job fails:
+      fail-fast: false
+
+    # Steps represent a sequence of tasks that will be executed as part of the job.
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it.
+      - uses: actions/checkout@v2
+      - uses: coq-community/docker-coq-action@v1
+        # See https://github.com/coq-community/docker-coq-action#readme
+        # for details on docker-coq-action's syntax and provided features.
+        with:
+          opam_file: 'coq-dot-iris.opam'
+          coq_version: ${{ matrix.coq_version }}
+          ocaml_version: ${{ matrix.ocaml_version }}
+          # Alternatively, pass an image?
+          #custom_image: ${{ matrix.image }}
+          export: 'OPAMWITHTEST'
+        env:
+          OPAMWITHTEST: 'true'
+
+# Remarks:
+#
+# You can rename this file (e.g. to coq.yml, docker-action.yml, or …),
+# as the name of this .yml file plays no role.
+#
+# You may want to add the following badge to your README.md:
+# [![Docker CI](https://github.com/$USER/$REPO/workflows/Docker%20CI/badge.svg?branch=master)](https://github.com/$USER/$REPO/actions?query=workflow:"Docker%20CI")
+# after replacing $USER/$REPO to use your project namespace; note also
+# that "Docker CI" is the workflow name, defined at the beginning of this file.

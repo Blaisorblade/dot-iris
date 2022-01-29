@@ -1,5 +1,5 @@
 (** * Semantic lemmas for typing of primitive expressions. *)
-From iris.proofmode Require Import tactics.
+From iris.proofmode Require Import proofmode.
 From D.Dot Require Import syn.
 From D.Dot Require Import typing_aux_defs.
 From D.pure_program_logic Require Import lifting.

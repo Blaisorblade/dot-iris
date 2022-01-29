@@ -30,8 +30,8 @@ Module Type LiftWp (Import VS : VlSortsSig).
     dlangG_persistent (P : iProp Σ) :> Persistent P | 0;
   }.
 
-  (** ** Instance of [irisG] enable using the expression weakest precondition; this instance. *)
-  Instance dlangG_irisG `{dlangG Σ} : irisG dlang_lang Σ := {
+  (** ** Instance of [irisGS] enable using the expression weakest precondition; this instance. *)
+  Instance dlangG_irisG `{dlangG Σ} : irisGS dlang_lang Σ := {
     irisG_langdet := _;
   }.
 

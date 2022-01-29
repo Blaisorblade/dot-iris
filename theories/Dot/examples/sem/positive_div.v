@@ -1,6 +1,6 @@
 (** * Semantic typing for positive numbers and division.
 The main result is [posModTy]. *)
-From iris.proofmode Require Import tactics.
+From iris.proofmode Require Import proofmode.
 From D.pure_program_logic Require Import lifting adequacy.
 From iris.program_logic Require Import ectxi_language.
 
@@ -82,14 +82,17 @@ Ltac wp_bin := iApply wp_wand; [wp_bin_base | iIntros].
 
 Import hoasNotation.
 
+(* XXX needed in Coq 8.13 and 8.14, but not 8.15 *)
+Canonical Structure vlO := leibnizO vl_.
+
 (* Generic useful lemmas — not needed for fundamental theorem,
     but very useful for examples. *)
 Section helpers.
   Context `{HdlangG : !dlangG Σ}.
 
-  Lemma wp_ge m n (Hge : m > n) : ⊢ WP m > n {{ w, w ≡ true }}.
+  Lemma wp_ge m n (Hge : m > n) : ⊢ WP m > n {{ w, w ≡ vbool true }}.
   Proof. wp_bin. ev; simplify_eq/=. case_decide; by [|lia]. Qed.
-  Lemma wp_nge m n (Hnge : ¬ m > n) : ⊢ WP m > n {{ w, w ≡ false }}.
+  Lemma wp_nge m n (Hnge : ¬ m > n) : ⊢ WP m > n {{ w, w ≡ vbool false }}.
   Proof. wp_bin. ev; simplify_eq/=. case_decide; by [|lia]. Qed.
 
   Lemma setp_value Γ (T : olty Σ) v : Γ s⊨ v : T ⊣⊢ |==> ∀ ρ, sG⟦ Γ ⟧* ρ → T anil ρ v.[ρ].
@@ -118,7 +121,7 @@ Section div_example.
   Context `{HdlangG : !dlangG Σ} `{SwapPropI Σ}.
 
   Lemma wp_if_ge :
-    ⊢ |==> ∀ (n : Z), WP hmkPosBodyV n {{ w, ⌜ w = n ∧ n > 0 ⌝}}.
+    ⊢@{iPropI _} |==> ∀ (n : Z), WP hclose (hmkPosBodyV n) {{ w, ⌜ w =@{vl} n ∧ n > 0 ⌝}}.
   Proof using Type*.
     iMod loopSemT as "#Hl"; iIntros "!> %n".
     wp_bind (IfCtx _ _).

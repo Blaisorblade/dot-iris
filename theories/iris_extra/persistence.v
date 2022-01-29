@@ -7,13 +7,13 @@ From D Require Import cmra_prop_lift.
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
 
-Class CmraPersistent (M : cmraT) :=
+Class CmraPersistent (M : cmra) :=
   cmra_persistent (x : M) :> CoreId x.
 
 Section CmraPersistentLaws.
   #[local] Arguments uPred_holds {_} !_ _ _.
 
-  #[global] Instance CmraPersistent_Persistent {M : ucmraT} `(!CmraPersistent M)
+  #[global] Instance CmraPersistent_Persistent {M : ucmra} `(!CmraPersistent M)
     (P : uPred M) : Persistent P.
   Proof.
     split => n x Hx Hpx; uPred.unseal.
@@ -36,7 +36,7 @@ Proof. apply LiftCPropToGFunctors_app. Qed.
 Proof. apply LiftCPropToGFunctors_GFunctor. Qed.
 
 (** *** Show that [iResUR] and [iProp] lift [CmraPersistent], using [cmra_prop_lift]. *)
-#[global] Instance CmraPersistent_discrete_funUR {A} (B : A → ucmraT)
+#[global] Instance CmraPersistent_discrete_funUR {A} (B : A → ucmra)
   `(∀ i, CmraPersistent (B i)) :
   CmraPersistent (discrete_funUR B).
 Proof.

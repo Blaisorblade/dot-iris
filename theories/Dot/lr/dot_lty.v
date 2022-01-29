@@ -1,5 +1,5 @@
 (** * Semantic domains for DOT logical relations. *)
-From iris.proofmode Require Import tactics.
+From iris.proofmode Require Import proofmode.
 From D Require Export iris_prelude proper lty lr_syn_aux.
 From D.Dot Require Import syn.
 From D.Dot Require Export dlang_inst path_wp.
@@ -86,9 +86,9 @@ Section clty_ofe.
   Lemma clty_ofe_mixin : OfeMixin (clty Σ).
   Proof. exact: (iso_ofe_mixin iso). Qed.
 
-  Canonical Structure cltyO := OfeT (clty Σ) clty_ofe_mixin.
+  Canonical Structure cltyO := Ofe (clty Σ) clty_ofe_mixin.
 
-  Let clty_pred : clty_car -> Prop := curry clty_mixin.pred.
+  Let clty_pred : clty_car -> Prop := uncurry clty_mixin.pred.
 
   Let clty_pred_alt (c : clty_car) : Prop :=
     let dslty := fst c in

@@ -43,7 +43,7 @@ Section loop_sem.
   Context `{HdlangG : !dlangG Σ}.
   Context `{SwapPropI Σ}.
 
-  Lemma loopSemT : ⊢ |==> WP hloopTm {{ _, False }}.
+  Lemma loopSemT : ⊢@{iPropI _} |==> WP hclose hloopTm {{ _, False }}.
   Proof using Type*.
     iDestruct (fundamental_typed (loopTyp [])) as "#>H".
     iDestruct "H" as (e_s Hsk1) ">H"; iModIntro.

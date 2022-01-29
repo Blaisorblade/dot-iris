@@ -19,7 +19,7 @@ some automation using it.
 
 From stdpp Require Import strings.
 From iris.program_logic Require Import ectx_language.
-From iris.proofmode Require Import tactics.
+From iris.proofmode Require Import proofmode.
 From D.pure_program_logic Require Import weakestpre lifting.
 
 From D Require Import tactics swap_later_impl.

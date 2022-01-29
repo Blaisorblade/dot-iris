@@ -13,7 +13,7 @@ All this infrastructure works for arbitrary languages implementing
 *)
 From Coq Require FunctionalExtensionality.
 From iris.algebra Require Import list.
-From iris.proofmode Require Import tactics.
+From iris.proofmode Require Import proofmode.
 From iris.program_logic Require Import language.
 From D.pure_program_logic Require Import lifting adequacy.
 From D Require Import prelude iris_prelude asubst_intf dlang proper.
@@ -25,8 +25,8 @@ Set Default Proof Using "Type".
 
 #[global] Instance bottom_fun {A} `{Bottom B} : Bottom (A → B) := (λ _, ⊥).
 #[global] Instance top_fun {A} `{Top B} : Top (A → B) := (λ _, ⊤).
-#[global] Instance bottom_ofe_fun {A} {B : ofeT} `{Bottom B} : Bottom (A -d> B) := (λ _, ⊥).
-#[global] Instance top_ofe_fun {A} {B : ofeT} `{Top B} : Top (A -d> B) := (λ _, ⊤).
+#[global] Instance bottom_ofe_fun {A} {B : ofe} `{Bottom B} : Bottom (A -d> B) := (λ _, ⊥).
+#[global] Instance top_ofe_fun {A} {B : ofe} `{Top B} : Top (A -d> B) := (λ _, ⊤).
 
 (** ** "Iris Persistent Predicates" [iPPred].
 
@@ -57,7 +57,7 @@ Section iPPred_ofe.
   Instance iPPred_dist : Dist vpred := λ n A B, lApp A ≡{n}≡ B.
   Lemma iPPred_ofe_mixin : OfeMixin vpred.
   Proof. by apply (iso_ofe_mixin lApp). Qed.
-  Canonical Structure iPPredO := OfeT vpred iPPred_ofe_mixin.
+  Canonical Structure iPPredO := Ofe vpred iPPred_ofe_mixin.
 
   Lemma iPPred_equivI {τ1 τ2 : iPPred vl Σ} :
     iPPred_car τ1 ≡@{vl -d> _} iPPred_car τ2 ⊣⊢@{iPropI Σ} τ1 ≡ τ2.
@@ -349,7 +349,7 @@ Section env_oltyped.
   Proof.
     move: ρ => + n G1 G2.
     elim: G1 G2 => [|T1 G1 IHG1] [|T2 G2] ρ /=; [done|inversion 1..|] =>
-      /(Forall2_cons_inv _ _ _ _) [HT HG]; f_equiv; [apply IHG1, HG|apply HT].
+      /(Forall2_cons_1 _ _ _ _) [HT HG]; f_equiv; [apply IHG1, HG|apply HT].
   Qed.
 
   #[global] Instance env_oltyped_proper ρ :

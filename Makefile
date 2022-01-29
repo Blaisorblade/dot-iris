@@ -7,9 +7,16 @@ export COQDOC := ./coqdoc.sh
 %: Makefile.coq phony
 	@$(MAKE) -f Makefile.coq $@
 
+# Beware: multiple targets to the top-level Makefile doesn't work robustly... instead follow this:
+# https://coq.inria.fr/refman/practical-tools/utilities.html#building-a-coq-project-with-coq-makefile
+# and use
+# make only TGTS="foo bar"
+#
 all: Makefile.coq
 	@$(MAKE) -f Makefile.coq all
 .PHONY: all
+
+.PHONY: coq
 
 clean: Makefile.coq
 	@$(MAKE) -f Makefile.coq clean

@@ -1,7 +1,7 @@
 (* (* Must be loaded first, so that other modules can reset some flags. *)
 Require Import Equations.Equations. *)
 From Coq Require FunctionalExtensionality.
-From iris.proofmode Require Import tactics.
+From iris.proofmode Require Import proofmode.
 From iris.base_logic Require Import lib.saved_prop.
 From D Require Import iris_prelude.
 From D Require Export succ_notation.
@@ -184,7 +184,7 @@ Section gen_lemmas.
     ∀ v, ▷^i (oClose T1 ρ v → oClose T2 ρ v)) -∗
     Γ s⊨ T1 <:[ i ] T2 ∷ sf_star.
   Proof.
-    apply equiv_entails. rewrite ksubtyping_equiv; properness; first done.
+    apply equiv_entails_1_1. rewrite ksubtyping_equiv; properness; first done.
     by rewrite -laterN_forall.
   Qed.
 
@@ -218,7 +218,7 @@ Section gen_lemmas.
     Γ s⊨ T1 <:[i] T2 ∷ sf_kintv T1 T2.
   Proof.
     iIntros ">#Hs !> %ρ Hg"; iDestruct ("Hs" with "Hg") as "{Hs} (_ & #H & _)".
-    rewrite /= /sr_kintv; iNext i. iDestruct "H" as "#$ {H}".
+    rewrite /= /sr_kintv; iNext i. iDestruct "H" as "#$".
     by rewrite -!subtype_refl.
   Qed.
 
@@ -675,7 +675,7 @@ Section s_kind_ofe.
   Instance s_kind_dist : Dist tpred := λ n A B, A ≡{n}@{sf_kind _ _}≡ B.
   Lemma s_kind_ofe_mixin : OfeMixin tpred.
   Proof. by apply (iso_ofe_mixin s_kind_to_sf_kind). Qed.
-  Canonical Structure s_kindO := OfeT tpred s_kind_ofe_mixin.
+  Canonical Structure s_kindO := Ofe tpred s_kind_ofe_mixin.
 
   Lemma s_kind_equiv_intro (K1 K2 : sf_kind Σ) : K1 ≡@{sf_kind _ _} K2 → K1 ≡ K2.
   Proof. apply. Qed.

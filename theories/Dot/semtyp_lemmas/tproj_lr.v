@@ -15,7 +15,7 @@ The comments use a "naive" understanding of types as sets; this Coq
 development is based on this understanding, but with some restrictions
 discussed in the paper.
 *)
-From iris.proofmode Require Import tactics.
+From iris.proofmode Require Import proofmode.
 From D Require Import swap_later_impl.
 From D.Dot Require Import unary_lr dsub_lr defs_lr path_repl_lr.
 From D.Dot Require Import sem_unstamped_typing.
