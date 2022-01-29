@@ -10,3 +10,9 @@ depends: [
   "coq-iris" { = "3.5.0" }
   "coq-autosubst" { = "1.7" }
 ]
+
+build: [
+  # Passing multiple targets to the top-level Makefile doesn't work robustly... even with `only` :-(
+  [ make "test" "-j" jobs {with-test} ]
+  [ make "-j" jobs ]
+]
