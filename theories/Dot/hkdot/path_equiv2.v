@@ -1,13 +1,15 @@
 From iris.algebra Require Import list.
-From D Require Import iris_prelude proper lty lr_syn_aux.
+From D.pure_program_logic Require Import weakestpre.
+From D Require Import iris_prelude lr_syn_aux lty.
 From D Require Import iris_extra.det_reduction.
 From D Require Import swap_later_impl.
 From D.Dot Require Import syn path_repl.
 From D.Dot Require Import dlang_inst path_wp.
-From D.pure_program_logic Require Import weakestpre.
 From D.Dot Require Import dot_lty dot_semtypes sem_kind_dot unary_lr.
 From D.Dot Require Import hkdot.
 Import HkDot.
+(* Import last to override side effects. *)
+From D Require Import proper.
 
 Ltac cbv_decide := by apply: bool_decide_unpack; cbv.
 
@@ -29,12 +31,135 @@ Implicit Types
 Implicit Types (K : kind).
 
 Definition dm_rel Σ := ∀ (ρ1 ρ2 : env) (d1 d2 : dm), iProp Σ.
-Definition dms_rel Σ := ∀ (ρ1 ρ2 : env) (ds1 ds2 : dms), iProp Σ.
+SubClass dms_rel Σ := ∀ (ρ1 ρ2 : env) (ds1 ds2 : dms), iProp Σ.
 Definition vl_rel Σ := ∀ (args1 args2 : astream) (ρ1 ρ2 : env) (v1 v2 : vl), iProp Σ.
 
 Definition dm_relO Σ := env -d> env -d> dm -d> dm -d> iPropO Σ.
 Definition dms_relO Σ := env -d> env -d> dms -d> dms -d> iPropO Σ.
 Definition vl_relO Σ := astream -d> astream -d> env -d> env -d> vl -d> vl -d> iPropO Σ.
+
+(** ** A "coherent" relational type, containing all semantics of a type.
+That is, semantics for both definition lists and values, and proofs that they
+agree appropriately. *)
+Module crel_mixin.
+  #[local] Set Primitive Projections.
+  Record pred {Σ} (RDS : dms_rel Σ) (RV : vl_rel Σ) : Prop := Mk {
+    def2defs_head {l d1 d2 ds1 ds2 ρ1 ρ2} :
+      RDS ρ1 ρ2 [(l, d1)] [(l, d2)] ⊢ RDS ρ1 ρ2 ((l, d1) :: ds1) ((l, d2) :: ds2);
+    mono {l d1 d2 ds1 ds2 ρ1 ρ2} :
+      dms_hasnt ds1 l → dms_hasnt ds2 l →
+      RDS ρ1 ρ2 ds1 ds2 ⊢ RDS ρ1 ρ2 ((l, d1) :: ds1) ((l, d2) :: ds2);
+    commute {ds1 ds2 ρ1 ρ2} :
+      RDS ρ1 ρ2 (selfSubst ds1) (selfSubst ds2) ⊢ RV anil anil ρ1 ρ2 (vobj ds1) (vobj ds2);
+  }.
+End crel_mixin.
+Arguments crel_mixin.Mk {Σ _ _}.
+
+Module crel.
+  Record t {Σ} := Mk {
+    to_dms :> dms_rel Σ;
+    to_vl : vl_relO Σ;
+    mixin : crel_mixin.pred to_dms to_vl;
+  }.
+  #[global] Arguments t : clear implicits.
+  #[global] Arguments Mk {Σ}.
+  Arguments to_dms {_} !_.
+  #[global] Instance : Params (@to_dms) 1 := {}.
+  Arguments to_vl {_} !_.
+  #[global] Instance : Params (@to_vl) 1 := {}.
+End crel.
+Add Printing Constructor crel.t.
+Notation c2v := crel.to_vl.
+Coercion crel.to_dms : crel.t >-> dms_rel.
+Notation CRel RDS RV := (crel.Mk RDS RV (crel_mixin.Mk _ _ _)).
+
+Section crel_mixin'.
+  Context {Σ} (c : crel.t Σ).
+  Import crel crel_mixin.
+
+  Lemma crel_def2defs_head {l d1 d2 ds1 ds2 ρ1 ρ2} :
+    to_dms c ρ1 ρ2 [(l, d1)] [(l, d2)] ⊢ to_dms c ρ1 ρ2 ((l, d1) :: ds1) ((l, d2) :: ds2).
+  Proof. apply /def2defs_head /mixin. Qed.
+  Lemma crel_mono {l d1 d2 ds1 ds2 ρ1 ρ2} :
+      dms_hasnt ds1 l → dms_hasnt ds2 l →
+      to_dms c ρ1 ρ2 ds1 ds2 ⊢ to_dms c ρ1 ρ2 ((l, d1) :: ds1) ((l, d2) :: ds2).
+  Proof. apply /mono /mixin. Qed.
+
+  Lemma crel_commute {ds1 ds2 ρ1 ρ2} :
+    to_dms c ρ1 ρ2 (selfSubst ds1) (selfSubst ds2) ⊢ to_vl c anil anil ρ1 ρ2 (vobj ds1) (vobj ds2).
+  Proof. apply /commute /mixin. Qed.
+End crel_mixin'.
+
+Section crel_ofe.
+  Import crel.
+  Context {Σ}.
+
+  Let crel_car : Type := dms_relO Σ * vl_relO Σ.
+
+  Let iso : crel.t Σ -> crel_car :=
+    λ T : crel.t Σ, (to_dms T, to_vl T).
+  #[local] Instance crel_equiv : Equiv (crel.t Σ) := λ A B, iso A ≡ iso B.
+  #[local] Instance crel_dist : Dist (crel.t Σ) := λ n A B, iso A ≡{n}≡ iso B.
+  Lemma crel_ofe_mixin : OfeMixin (crel.t Σ).
+  Proof. exact: (iso_ofe_mixin iso). Qed.
+
+  Canonical Structure crelO := Ofe (crel.t Σ) crel_ofe_mixin.
+
+  Let crel_pred : crel_car -> Prop := uncurry crel_mixin.pred.
+
+  Let crel_pred_alt (c : crel_car) : Prop :=
+    let RDS := fst c in
+    let RV := snd c in
+    (∀ l d1 d2 ds1 ds2 ρ1 ρ2,
+      RDS ρ1 ρ2 [(l, d1)] [(l, d2)] ⊢ RDS ρ1 ρ2 ((l, d1) :: ds1) ((l, d2) :: ds2)) ∧
+    (∀ l d1 d2 ds1 ds2 ρ1 ρ2,
+      dms_hasnt ds1 l → dms_hasnt ds2 l →
+      RDS ρ1 ρ2 ds1 ds2 ⊢ RDS ρ1 ρ2 ((l, d1) :: ds1) ((l, d2) :: ds2)) ∧
+    (∀ ds1 ds2 ρ1 ρ2,
+      RDS ρ1 ρ2 (selfSubst ds1) (selfSubst ds2) ⊢ RV anil anil ρ1 ρ2 (vobj ds1) (vobj ds2)).
+
+  #[local] Instance : LimitPreserving crel_pred.
+  Proof.
+    apply (limit_preserving_ext crel_pred_alt). {
+      move=> [RDS RV]; rewrite /crel_pred_alt /crel_pred; split => H.
+      by destruct_and?.
+      by destruct H.
+    }
+    repeat apply limit_preserving_and;
+      repeat (apply limit_preserving_forall; intro);
+      repeat apply limit_preserving_entails;
+      move=> n [RDS1 RV1] [RDS2 RV2] [/= Hds Hv];
+      first [apply: Hds|apply: Hv].
+  Qed.
+
+  #[global] Instance cofe_crel : Cofe crelO.
+  Proof.
+    apply (iso_cofe_subtype' crel_pred (λ '(ds, o), crel.Mk ds o) iso).
+    by case.
+    by [].
+    by case.
+    apply _.
+  Qed.
+End crel_ofe.
+Arguments crelO : clear implicits.
+
+Section crel_ofe_proper.
+  Import crel.
+  Context {Σ}.
+
+  #[global] Instance crel_to_vl_ne : NonExpansive (crel.to_vl (Σ := Σ)).
+  Proof. by move=> ???[/= _ H]. Qed.
+  #[global] Instance crel_to_vl_proper : Proper1 (crel.to_vl (Σ := Σ)) :=
+    ne_proper _.
+
+  (* TODO: How should this instance be best written? *)
+  #[global] Instance crel_to_dms_ne n :
+    Proper (dist n ==> (=) ==> (=) ==> (=) ==> (=) ==> dist n) (crel.to_dms (Σ := Σ)).
+  Proof. intros ?? [Heq _]. solve_proper_ho. Qed.
+  #[global] Instance crel_to_dms_proper :
+    Proper ((≡) ==> (=) ==> (=) ==> (=) ==> (=) ==> (≡)) (crel.to_dms (Σ := Σ)).
+  Proof. intros ?? [Heq _]. solve_proper_ho. Qed.
+End crel_ofe_proper.
 
 Definition rsCtxO Σ : ofe := listO (vl_relO Σ).
 
@@ -99,7 +224,7 @@ Definition rsstpiK `{!dlangG Σ} i Γ T1 T2 (K : sf_kind Σ) : iProp Σ :=
 
 Section judgments.
   Context {Σ}.
-  Implicit Types (RV : vl_relO Σ) (RD : dm_relO Σ) (RDS : dms_relO Σ).
+  Implicit Types (RV : vl_relO Σ) (RD : dm_relO Σ) (RDS : dms_relO Σ) (RC : crel.t Σ).
 
   (* Relational Semantic Path Typing. *)
   Definition rsptp `{!dlangG Σ} p1 p2 i Γ RV : iProp Σ :=
@@ -119,25 +244,58 @@ Section judgments.
   #[global] Arguments rsstpd : simpl never.
 
   (** Multi-definition typing *)
-  Definition rsdstp `{!dlangG Σ} ds1 ds2 Γ RDS : iProp Σ :=
+  Definition rsdstp `{!dlangG Σ} ds1 ds2 Γ RC : iProp Σ :=
     |==> ⌜wf_ds ds1⌝ ∧ ⌜wf_ds ds2⌝ ∧
       ∀ ρ1 ρ2,
       ⌜path_includes (pv (ids 0)) ρ1 ds1 ⌝ →
       ⌜path_includes (pv (ids 0)) ρ2 ds2 ⌝ →
       rG⟦Γ⟧* ρ1 ρ2 →
-      RDS ρ1 ρ2 ds1.|[ρ1] ds2.|[ρ2].
+      RC ρ1 ρ2 ds1.|[ρ1] ds2.|[ρ2].
   #[global] Arguments rsdstp : simpl never.
 
   (** Definition typing *)
-  Definition rsdtp `{!dlangG Σ} l d1 d2 Γ RDS : iProp Σ :=
-    rsdstp [(l, d1)] [(l, d2)] Γ RDS.
+  Definition rsdtp `{!dlangG Σ} l d1 d2 Γ RC : iProp Σ :=
+    rsdstp [(l, d1)] [(l, d2)] Γ RC.
   #[global] Arguments rsdtp : simpl never.
 
+  #[global] Instance rsptp_proper `{!dlangG Σ} p1 p2 i : Proper2 (rsptp p1 p2 i).
+  Proof. solve_proper_ho. Qed.
   #[global] Instance rsstpd_proper `{!dlangG Σ} i : Proper3 (rsstpd i).
+  Proof. solve_proper_ho. Qed.
+
+  (* Problems if we don't import [proper] last (https://github.com/coq/coq/issues/12206). *)
+  (* #[global] Instance rsdstp_proper (* `{!dlangG Σ} *) ds1 ds2 : Proper2 (rsdstp ds1 ds2).
+  Proof.
+    (* { solve_proper_ho. } *)
+    Import D.prelude.
+    (* XXX repeat side effects *)
+    solve_proper_prepare; repeat no_eq_f_equiv.
+    { solve_proper_ho. }
+(* From D Require Import proper.  *)
+    Fail f_equiv.
+    Import D.proper.
+    by f_equiv.
+    Undo.
+    Import stdpp.tactics.
+    Fail f_equiv.
+    Import D.proper.
+    by f_equiv.
+  Abort. *)
+  #[global] Instance rsdstp_proper `{!dlangG Σ} ds1 ds2 : Proper2 (rsdstp ds1 ds2).
+  Proof. solve_proper_ho. Qed.
+
+  #[global] Instance rsdtp_proper `{!dlangG Σ} l d1 d2 : Proper2 (rsdtp l d1 d2).
+  Proof. solve_proper_ho. Qed.
+
+  #[global] Instance rsstpiK_proper `{!dlangG Σ} i : Proper4 (rsstpiK i).
   Proof. solve_proper_ho. Qed.
 End judgments.
 
+#[global] Instance: Params (@rsptp) 5 := {}.
 #[global] Instance: Params (@rsstpd) 3 := {}.
+#[global] Instance: Params (@rsdstp) 4 := {}.
+#[global] Instance: Params (@rsdtp) 5 := {}.
+#[global] Instance: Params (@rsstpiK) 3 := {}.
 
 (** Delayed subtyping. *)
 Notation "Γ rs⊨ T1 <:[ i  ] T2" := (rsstpd i Γ T1 T2) (at level 74, T1, T2 at next level).
@@ -164,18 +322,82 @@ Definition rVLaterN {Σ} n (RV : vl_relO Σ) : vl_relO Σ := λI args1 args2 ρ1
 Notation rVLater := (rVLaterN 1).
 #[global] Instance: Params (@rVLaterN) 2 := {}.
 
+Definition rlift_dm_dms `{!dlangG Σ} l (RD : dm_relO Σ) : dms_relO Σ := λI ρ1 ρ2 ds1 ds2,
+  ∃ d1 d2, ⌜ dms_lookup l ds1 = Some d1 ∧ dms_lookup l ds2 = Some d2 ⌝ ∧
+  RD ρ1 ρ2 d1 d2.
+Definition rlift_dm_vl `{!dlangG Σ} l (RD : dm_relO Σ) : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2,
+  ∃ d1 d2, ⌜ v1 @ l ↘ d1 ∧ v2 @ l ↘ d2 ⌝ ∧
+  RD ρ1 ρ2 d1 d2.
+Section rlift_dm_lemmas.
+  Context `{HdotG : !dlangG Σ}.
+  #[local] Arguments dms_lookup : simpl never.
+
+  Lemma rlift_dm_dms_head_intro RD l1 l2 ρ1 ρ2 d1 d2 ds1 ds2 (Heq : l1 = l2) :
+    RD ρ1 ρ2 d1 d2 -∗
+    rlift_dm_dms l1 RD ρ1 ρ2 ((l2, d1) :: ds1) ((l2, d2) :: ds2).
+  Proof. rewrite Heq /rlift_dm_dms !dms_lookup_head. eauto 10. Qed.
+
+  Lemma rlift_dm_dms_singleton_eq' RD l1 l2 ρ1 ρ2 d1 d2 :
+    rlift_dm_dms l1 RD ρ1 ρ2 [(l2, d1)] [(l2, d2)] ⊣⊢
+    ⌜ l1 = l2 ⌝ ∧ RD ρ1 ρ2 d1 d2.
+  Proof.
+    rewrite /rlift_dm_dms; iSplit. {
+      iDestruct 1 as (d1' d2' [?%dms_lookup_head_inv ?%dms_lookup_head_inv]) "?".
+      naive_solver.
+    }
+    iIntros "[<- ?]". by iApply rlift_dm_dms_head_intro.
+  Qed.
+
+  Lemma rlift_dm_dms_singleton_eq RD l ρ1 ρ2 d1 d2 :
+    rlift_dm_dms l RD ρ1 ρ2 [(l, d1)] [(l, d2)] ⊣⊢
+    RD ρ1 ρ2 d1 d2.
+  Proof.
+    by rewrite rlift_dm_dms_singleton_eq' pure_True // (left_id True%I bi_and).
+  Qed.
+
+  #[program] Definition rlift_dm_c l (RD : dm_relO Σ) : crel.t Σ :=
+    CRel (rlift_dm_dms l RD) (rlift_dm_vl l RD).
+  Next Obligation.
+    intros. rewrite rlift_dm_dms_singleton_eq'.
+    iIntros "[<- ?]". by iApply rlift_dm_dms_head_intro.
+  Qed.
+  Next Obligation.
+    intros. rewrite /rlift_dm_dms. f_equiv => d1'; f_equiv => d2'.
+    iDestruct 1 as ([Hl1 Hl2]) "H".
+    repeat erewrite dms_lookup_mono => //. eauto.
+  Qed.
+  Next Obligation.
+    intros. rewrite /rlift_dm_dms /rlift_dm_vl. f_equiv => d1; f_equiv => d2.
+    iDestruct 1 as ([Hl1 Hl2]) "$".
+    iIntros "!%"; split; exact: objLookupIntro.
+  Qed.
+  Lemma rlift_dm_c_singleton l RD ρ1 ρ2 d1 d2 :
+    rlift_dm_c l RD ρ1 ρ2 [(l, d1)] [(l, d2)] ≡ RD ρ1 ρ2 d1 d2.
+  Proof. apply rlift_dm_dms_singleton_eq. Qed.
+
+  #[global] Instance rlift_dm_dms_ne l : NonExpansive (rlift_dm_dms l).
+  Proof. solve_proper_ho. Qed.
+  #[global] Instance rlift_dm_dms_proper l : Proper1 (rlift_dm_dms l) :=
+    ne_proper _.
+  #[global] Instance rlift_dm_vl_ne l : NonExpansive (rlift_dm_vl l).
+  Proof. solve_proper_ho. Qed.
+  #[global] Instance rlift_dm_vl_proper l : Proper1 (rlift_dm_vl l) :=
+    ne_proper _.
+
+  #[global] Instance rlift_dm_c_ne l : NonExpansive (rlift_dm_c l).
+  Proof. rewrite /rlift_dm_c; split => /=; solve_proper_ho. Qed.
+
+  #[global] Instance rlift_dm_c_proper l : Proper1 (rlift_dm_c l) :=
+    ne_proper _.
+End rlift_dm_lemmas.
+#[global] Instance : Params (@rlift_dm_c) 3 := {}.
+
 Section foo.
   Context `{HdotG : !dlangG Σ}.
   Set Default Proof Using "HdotG".
   Implicit Types (RD : dm_rel Σ) (RDS : dms_rel Σ) (RV : vl_relO Σ).
   Implicit Types (T : olty Σ) (SK : sf_kind Σ).
-
-  Definition rlift_dm_dms l RD : dms_rel Σ := λI ρ1 ρ2 ds1 ds2,
-    ∃ d1 d2, ⌜ dms_lookup l ds1 = Some d1 ∧ dms_lookup l ds2 = Some d2 ⌝ ∧
-    RD ρ1 ρ2 d1 d2.
-  Definition rlift_dm_vl l RD : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2,
-    ∃ d1 d2, ⌜ v1 @ l ↘ d1 ∧ v2 @ l ↘ d2 ⌝ ∧
-    RD ρ1 ρ2 d1 d2.
+  Implicit Types (RC : crel.t Σ).
 
   (* Fixpoint ty_le (T : ty) (args1 args2 : astream) (ρ1 ρ2 : env) (v1 v2 : vl) : iProp Σ :=
     match T with
@@ -312,71 +534,121 @@ Print hoD *)
     iApply "HT".
   Qed.
 
-  Definition rVVMem l RV : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2,
-    rlift_dm_vl l (rDVMem RV) args1 args2 ρ1 ρ2 v1 v2.
-  Definition rVTMemK l SK : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2,
-    rlift_dm_vl l (rDTMemK SK) args1 args2 ρ1 ρ2 v1 v2.
+  Definition rCVMem l RV : crel.t Σ :=
+    rlift_dm_c l (rDVMem RV).
+  Definition rCTMemK l SK : crel.t Σ :=
+    rlift_dm_c l (rDTMemK SK).
 
-  Lemma rD_TypK_Abs {Γ} T (K : sf_kind Σ) s σ l :
-    s ↝[ σ ] T -∗
-    Γ rs⊨ oLater T ∷[ 0 ] K -∗
-    Γ rs⊨ { l := dtysem σ s = dtysem σ s } : rlift_dm_dms l (rDTMemK K).
+  Notation rVVMem l RV := (c2v (rCVMem l RV)).
+  Notation rVTMemK l SK := (c2v (rCTMemK l SK)).
+
+  #[program] Definition rCAnd RC1 RC2 : crel.t Σ :=
+    CRel
+      (λI ρ1 ρ2 ds1 ds2, RC1 ρ1 ρ2 ds1 ds2 ∧ RC2 ρ1 ρ2 ds1 ds2)
+      (rVAnd (c2v RC1) (c2v RC2)).
+  Next Obligation. intros. by rewrite /= -!crel_def2defs_head. Qed.
+  Next Obligation. intros. by rewrite /= -!crel_mono. Qed.
+  Next Obligation. intros. by rewrite /rVAnd -!crel_commute. Qed.
+
+  Lemma rsdtp_eq Γ RC l d1 d2 :
+    Γ rs⊨ { l := d1 = d2 } : RC ⊣⊢
+    |==> ∀ ρ1 ρ2,
+      ⌜path_includes (pv (ids 0)) ρ1 [(l, d1)] ⌝ →
+      ⌜path_includes (pv (ids 0)) ρ2 [(l, d2)] ⌝ →
+      rG⟦Γ⟧* ρ1 ρ2 →
+      RC ρ1 ρ2 [(l, d1.|[ρ1])] [(l, d2.|[ρ2])].
   Proof.
-    rewrite /rsdtp /rsdstp.
-    iDestruct 1 as (φ Hγφ) "#Hγ".
-    iIntros ">#HT !>".
-    iSplit; last iSplit; [iIntros "!%"; cbv_decide..|].
-    iIntros (?? Hpid1 Hpid2) "#Hg". rewrite /rlift_dm_dms.
-    iExists _, _; iSplit. { iIntros "!%"; split_and!; apply dms_lookup_head. }
+    rewrite /rsdtp /rsdstp /= !pure_True ?(left_id _ bi_and) //.
+    exact: NoDup_singleton.
+  Qed.
+
+  Lemma rsdtp_eq' Γ RD l d1 d2 :
+    Γ rs⊨ { l := d1 = d2 } : rlift_dm_c l RD ⊣⊢
+    |==> ∀ ρ1 ρ2,
+      ⌜path_includes (pv (ids 0)) ρ1 [(l, d1)] ⌝ →
+      ⌜path_includes (pv (ids 0)) ρ2 [(l, d2)] ⌝ →
+      rG⟦Γ⟧* ρ1 ρ2 →
+      RD ρ1 ρ2 d1.|[ρ1] d2.|[ρ2].
+  Proof. rewrite rsdtp_eq; properness => //. apply rlift_dm_c_singleton. Qed.
+
+  Lemma rD_TypK_Abs_0 {Γ} T SK s σ l :
+    s ↝[ σ ] T -∗
+    Γ rs⊨ oLater T ∷[ 0 ] SK -∗
+    Γ rs⊨ { l := dtysem σ s = dtysem σ s } : rCTMemK l SK.
+  Proof.
+    rewrite rsdtp_eq'. iDestruct 1 as (φ Hγφ) "#Hγ".
+    iIntros ">#HT !>" (?? Hpid1 Hpid2) "#Hg".
     iExists (hoEnvD_inst σ.|[ρ1] φ), (hoEnvD_inst σ.|[ρ2] φ).
-    do 2 (iSplit; [by iApply (dm_to_type_intro with "Hγ")|]).
+    do 2 (iDestruct (dm_to_type_intro with "Hγ") as "-#$"; first done).
     iApply (sf_kind_proper with "(HT Hg)") => args v /=.
     all: by rewrite (Hγφ args _ _).
   Qed.
+  #[global, program] Instance rCTop : Top (crel.t Σ) :=
+    CRel ⊤ ⊤.
+  Solve All Obligations with eauto.
 
   Lemma rD_Nil Γ :
     ⊢ Γ rs⊨ds [] = [] : ⊤.
   Proof. by iModIntro; repeat iSplit; last iIntros "**". Qed.
 
-  Definition rDSAnd RDS1 RDS2 : dms_rel Σ := λI ρ1 ρ2 ds1 ds2,
-    RDS1 ρ1 ρ2 ds1 ds2 ∧ RDS2 ρ1 ρ2 ds1 ds2.
-
-  (* TODO: We really need the type records here. *)
-  Lemma rD_Cons Γ d1 d2 ds1 ds2 l (RD1 : dm_relO Σ) RDS2 :
+  Lemma rD_Cons Γ d1 d2 ds1 ds2 l RC1 RC2 :
     dms_hasnt ds1 l →
     dms_hasnt ds2 l →
-    Γ rs⊨ { l := d1 = d2 } : rlift_dm_dms l RD1 -∗
-    Γ rs⊨ds ds1 = ds2 : RDS2 -∗
-    Γ rs⊨ds (l, d1) :: ds1 = (l, d2) :: ds2 : rDSAnd (rlift_dm_dms l RD1) RDS2.
+    Γ rs⊨ { l := d1 = d2 } : RC1 -∗
+    Γ rs⊨ds ds1 = ds2 : RC2 -∗
+    Γ rs⊨ds (l, d1) :: ds1 = (l, d2) :: ds2 : rCAnd RC1 RC2.
   Proof.
-    (* rewrite !sdtp_eq; *)
-    rewrite /rsdstp.
-    iIntros (Hlds1 Hlds2) ">(% & % & #HT1) >(% & % & #HT2) !>"; repeat iSplit.
+    rewrite rsdtp_eq; iIntros (Hlds1 Hlds2) ">#HT1 >(% & % & #HT2) !>"; repeat iSplit.
     1-2: by iIntros "!%"; cbn; constructor => //; by rewrite -dms_hasnt_notin_eq.
     iIntros (ρ1 ρ2 [Hpid1 Hpids1]%path_includes_split [Hpid2 Hpids2]%path_includes_split) "#Hg".
     iSpecialize ("HT1" $! _ _ Hpid1 Hpid2 with "Hg").
-    iDestruct ("HT2" $! _  _ Hpids1 Hpids2 with "Hg") as "{HT2} HT2".
-    iSplit. {
-      rewrite /rlift_dm_dms.
-      iDestruct "HT1" as (d1' d2' [Hd1' Hd2']) "HT1".
-      iExists d1', d2'. iFrame "HT1". iIntros "!%".
-      move: Hd1' Hd2' => /=.
-      by case_decide; intros; simplify_eq.
-    }
-    (* iApply (clty_mono with "HT2"). exact: dms_hasnt_subst. *)
-  Admitted.
+    iSpecialize ("HT2" $! _ _ Hpids1 Hpids2 with "Hg").
+    iSplit; first by iApply crel_def2defs_head.
+    iApply (crel_mono with "HT2"). all: exact: dms_hasnt_subst.
+  Qed.
 
+  (* Useful derived rules. *)
+  Lemma rD_Sing Γ d1 d2 l RC :
+    Γ rs⊨ { l := d1 = d2 } : RC -∗ Γ rs⊨ds [(l, d1)] = [(l, d2)] : rCAnd RC ⊤.
+  Proof. by iIntros "#H"; iApply (rD_Cons with "H"); last iApply rD_Nil. Qed.
+
+  Lemma rCAnd_rCTop RC : rCAnd RC ⊤ ≡ RC.
+  Proof. split => /=; repeat intro; apply: (right_id _ bi_and). Qed.
+
+  (** Not part of the official type system, but very convenient for examples. *)
+  Lemma rD_Sing' Γ d1 d2 l RC :
+    Γ rs⊨ { l := d1 = d2 } : RC -∗ Γ rs⊨ds [(l, d1)] = [(l, d2)] : RC.
+  Proof. by rewrite rD_Sing rCAnd_rCTop. Qed.
+
+  Lemma rP_Obj_I Γ RC ds1 ds2 :
+    rVLater (c2v RC) :: Γ rs⊨ds ds1 = ds2 : RC -∗
+    Γ rs⊨p pv (vobj ds1) == pv (vobj ds2) : rVMu (c2v RC), 0.
+  Proof.
+    iIntros ">(%Hwf1 & %Hwf2 & #Hds) !> %ρ1 %ρ2 #Hg /=".
+    rewrite !path_wp_pv_eq /=. iLöb as "IH".
+    iApply crel_commute. rewrite !norm_selfSubst.
+    iApply ("Hds" $! (vobj _ .: ρ1) (vobj _ .: ρ2) with "[%] [%] [$IH $Hg]").
+    exact: path_includes_self.
+    exact: path_includes_self.
+  Qed.
 
   (* Lemma rVTy_intro l Γ i SK s σ T :
     let v := vobj [(l, dtysem σ s)] in
     s ↝[ σ ] T -∗
     Γ rs⊨p pv v == pv v : rVTMemK l SK, i. *)
-  Lemma rVTy_intro l Γ i SK s σ T :
+  Lemma rVTy_intro' l Γ SK s σ T :
     let v := vobj [(l, dtysem σ s)] in
     s ↝[ σ ] T -∗
-    Γ rs⊨p pv v == pv v : rVMu (rVTMemK l (sf_sngl (oLater T))), i.
+    rVLater (rVTMemK l (sf_sngl (oLater T))) :: Γ rs⊨ oLater T ∷[ 0 ] sf_sngl (oLater T) -∗
+    Γ rs⊨p pv v == pv v : rVMu (rVTMemK l (sf_sngl (oLater T))), 0.
   Proof.
-    intros v.
+    iIntros (v) "#Hs #HK".
+    iApply rP_Obj_I.
+    iApply rD_Sing'.
+    iApply (rD_TypK_Abs_0 with "Hs HK").
+  Qed.
+
+    (* intros v.
     rewrite /rsptp.
     iDestruct 1 as (φ Hγφ) "#Hγ".
     iIntros "!>" (??) "#Hg !> /=".
@@ -403,7 +675,7 @@ Print hoD *)
     to respect the relation between environments!
     In turn, we must check that all types respect all the relational semantics.
     *)
-  Admitted.
+  Admitted. *)
 
   (* Lemma rVTy_intro l Γ i SK (T : ty) :
     let p := pv (vobj [(l, dtysyn T)]) in
@@ -429,7 +701,7 @@ Print hoD *)
   The sensible thing for parametricity needs two environments... but for path/type equivalence?
   What does it mean that "v1 and v2 are related at type p.A"?
   So we need to save a relation with each type :-(
-  XXX2 : luckily, we don't really need this for path equivalence.
+  XXX2 : luckily, we don't really need this for path equivalence. Just equivalence!
   *)
   Definition rVSel p l : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2,
     ∃ (ψ1 ψ2 : hoD Σ),
