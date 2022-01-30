@@ -276,7 +276,7 @@ Lemma same_skel_dms_subst ds :
   ∀ f f' ds', same_skel_dms ds ds' → (∀ x, same_skel_vl (f x) (f' x)) →
                same_skel_dms ds.|[f] ds'.|[f'].
 Proof.
-  elim: ds => [|[l d] ds IHds] f f' [|[l' d'] ds'] Hds Hf; cbn in *; intuition.
+  elim: ds => [|[l d] ds IHds] f f' [|[l' d'] ds'] Hds Hf; cbn in *; intuition; asimpl in *; intuition.
   apply same_skel_dm_subst; auto.
 Qed.
 

@@ -3,5 +3,5 @@ anil : astream
 anil is not universe polymorphic
 anil is transparent
 Expands to: Constant D.Dot.lr.dlang_inst.anil
-Notation shift chi := (shift chi)
+Notation shift chi := (shiftN 1 chi)
 Expands to: Notation D.prelude.shift

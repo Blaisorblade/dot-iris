@@ -124,8 +124,8 @@ Section coveringσ_intro_lemmas.
   Lemma coveringσ_shift σ (T : olty Σ) :
     coveringσ σ T → coveringσ (push_var σ) (shift T).
   Proof.
-    move => + args ρ => /(_ args (stail ρ)) HclT; cbn.
-    rewrite /= !olty_weaken_one hsubst_comp stail_eq.
+    move => + args ρ => /(_ args (stail ρ)) HclT.
+    rewrite /= !olty_weaken_one vls_subst_fold hsubst_comp stail_eq.
     apply HclT.
   Qed.
 End coveringσ_intro_lemmas.

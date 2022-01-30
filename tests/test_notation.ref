@@ -36,11 +36,11 @@ x0 @ "A"
 ta = λ v : tm, (v > vint 0)%E
      : tm → tm
 
-Arguments ta _%expr_scope
+Arguments ta v%expr_scope
 tb = λ v : tm, (v > vint 0)%E
      : tm → tm
 
-Arguments tb _%expr_scope
+Arguments tb v%expr_scope
 ν {@ type "A" = (σ2; 1) }
      : vl_
 ν {@ val "a" = vint 0;
