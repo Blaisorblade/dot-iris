@@ -33,15 +33,16 @@ jobs:
       matrix:
         # Browse URL: https://github.com/coq-community/docker-coq/wiki#supported-tags
         # to get the list of supported (coq, ocaml) versions in coqorg/coq.
-        coq_version:
-          - '8.15'
-        ocaml_version:
-          - '4.07-flambda'
-          - '4.12-flambda'
+        # coq_version:
+        #   - '8.15'
+        # ocaml_version:
+        #   - '4.07-flambda'
+        #   - '4.12-flambda'
         # Alternatively, pass an image?
         # Browse URL: https://hub.docker.com/r/mathcomp/mathcomp#supported-tags
         # to get the list of supported tags in mathcomp/mathcomp
-        # image:
+        image:
+          - blaisorblade/docker-dot-iris:coq-8.15-iris-3.6.0
         #   - mathcomp/mathcomp:1.12.0-coq-8.12
       # at most 20 concurrent jobs per free account:
       # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#usage-limits
@@ -58,10 +59,9 @@ jobs:
         # for details on docker-coq-action's syntax and provided features.
         with:
           opam_file: 'coq-dot-iris.opam'
-          coq_version: ${{ matrix.coq_version }}
-          ocaml_version: ${{ matrix.ocaml_version }}
-          # Alternatively, pass an image?
-          #custom_image: ${{ matrix.image }}
+          # coq_version: ${{ matrix.coq_version }}
+          # ocaml_version: ${{ matrix.ocaml_version }}
+          custom_image: ${{ matrix.image }}
           export: 'OPAMWITHTEST'
         env:
           OPAMWITHTEST: 'true'
