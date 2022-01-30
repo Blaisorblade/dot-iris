@@ -12,6 +12,6 @@ depends: [
 
 build: [
   # Passing multiple targets to the top-level Makefile doesn't work robustly... even with `only` :-(
-  [ make "test" "-j" jobs {with-test} ]
-  [ make "-j" jobs ]
+  [ make "test" "-j" jobs "TIMED=1" {with-test} ]
+  [ make "-j" jobs "TIMED=1" ]
 ]
