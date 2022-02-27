@@ -9,7 +9,7 @@ From stdpp Require Export strings.
 From D Require Export prelude succ_notation.
 From D Require Import asubst_intf asubst_base.
 From iris.program_logic Require ectx_language.
-From iris.program_logic Require Import ectxi_language.
+From iris.program_logic Require ectxi_language.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".
@@ -622,7 +622,7 @@ Proof.
   destruct Ki1, Ki2; intros; try discriminate; by simplify_eq.
 Qed.
 
-Lemma dot_lang_mixin : EctxiLanguageMixin of_val to_val fill_item head_step.
+Lemma dot_lang_mixin : ectxi_language.EctxiLanguageMixin of_val to_val fill_item head_step.
 Proof.
   split; eauto using of_to_val, val_stuck, fill_item_val,
     fill_item_no_val_inj, head_ctx_step_val with typeclass_instances.
@@ -637,7 +637,7 @@ Canonical Structure dlang_ectx_lang := ectxi_language.EctxLanguageOfEctxi dlang_
 Canonical Structure dlang_lang := ectx_language.LanguageOfEctx dlang_ectx_lang.
 #[global] Arguments dlang_lang : simpl never.
 
-Lemma hsubst_of_val (v : vl) s : (of_val v).|[s] = of_val (v.[s]).
+Lemma hsubst_of_val (v : vl) s : (ectxi_language.of_val v).|[s] = ectxi_language.of_val (v.[s]).
 Proof. done. Qed.
 
 Include Sorts.
