@@ -6,6 +6,10 @@ From iris.prelude Require Export prelude.
 From Autosubst Require Export Autosubst.
 From D Require Export tactics.
 From iris.program_logic Require Import language.
+From iris.program_logic Require ectx_language ectxi_language.
+
+Global Arguments ectx_language.LanguageOfEctx : simpl never.
+Global Arguments ectxi_language.EctxLanguageOfEctxi : simpl never.
 
 #[global] Set Suggest Proof Using.
 #[global] Set Default Proof Using "Type".
