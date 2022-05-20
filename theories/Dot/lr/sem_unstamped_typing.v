@@ -269,6 +269,24 @@ Section unstamped_lemmas.
     Γ u⊨ tproj e l : T.
   Proof. rw. apply suT_Obj_E. Qed.
 
+  Lemma suT_And_I {Γ T1 T2 e} :
+    Γ su⊨ e : T1 -∗
+    Γ su⊨ e : T2 -∗
+    Γ su⊨ e : oAnd T1 T2.
+  Proof.
+    iIntros "#H1 #H2".
+    iMod "H1" as (e1s Hsk1) "H1"; iMod "H2" as (e2s Hsk2) "H2"; iModIntro.
+    iExists e1s; iSplit; [done|].
+    iApply (sT_And_I with "H1").
+    Fail iApply "H2".
+  Admitted.
+
+  Lemma uT_And_I {Γ T1 T2 e} :
+    Γ u⊨ e : T1 -∗
+    Γ u⊨ e : T2 -∗
+    Γ u⊨ e : TAnd T1 T2.
+  Proof. rw. apply suT_And_I. Qed.
+
   Lemma suT_All_I_Strong {Γ Γ'} T1 T2 e
     (Hctx : s⊨G Γ <:* oLater <$> Γ') :
     shift T1 :: Γ' su⊨ e : T2 -∗

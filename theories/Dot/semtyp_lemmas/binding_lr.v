@@ -121,4 +121,13 @@ Section Sec.
     iDestruct 1 as (? Hl pmem ->) "Hv /=".
     wp_pure. by rewrite -path_wp_to_wp.
   Qed.
+
+  Lemma sT_And_I {Γ T1 T2 e} :
+    Γ s⊨ e : T1 -∗
+    Γ s⊨ e : T2 -∗
+    Γ s⊨ e : oAnd T1 T2.
+  Proof.
+    iIntros ">#HT1 >#HT2 !> %ρ #HG /=".
+    iApply (wp_and with "(HT1 HG) (HT2 HG)").
+  Qed.
 End Sec.

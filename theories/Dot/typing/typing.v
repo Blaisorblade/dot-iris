@@ -43,6 +43,10 @@ Inductive typed Γ : tm → ty → Prop :=
     Γ |L T t⊢ds ds : T →
     (*──────────────────────*)
     Γ t⊢ₜ tv (vobj ds) : TMu T
+| iT_And_I T1 T2 e :
+    Γ t⊢ₜ e : T1 →
+    Γ t⊢ₜ e : T2 →
+    Γ t⊢ₜ e : TAnd T1 T2
 
 (** "General" rules *)
 | iT_ISub e T1 T2 :
