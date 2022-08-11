@@ -152,77 +152,77 @@ Proof. all: rewrite /Decision; decide equality; solve_decision. Defined.
 Lemma up_upren_vl (ξ : var → var) : up (ren ξ) =@{var → vl} ren (upren ξ).
 Proof. exact: up_upren_internal. Qed.
 
-Lemma vl_rename_Lemma (ξ : var → var) v : rename ξ v = v.[ren ξ]
+Lemma vl_rename_lemma (ξ : var → var) v : rename ξ v = v.[ren ξ]
 with
-tm_rename_Lemma (ξ : var → var) t : rename ξ t = t.|[ren ξ]
+tm_rename_lemma (ξ : var → var) t : rename ξ t = t.|[ren ξ]
 with
-ty_rename_Lemma (ξ : var → var) T : rename ξ T = T.|[ren ξ].
+ty_rename_lemma (ξ : var → var) T : rename ξ T = T.|[ren ξ].
 Proof.
   all: [> destruct v | destruct t | destruct T].
   all: rewrite /= ?up_upren_vl; f_equal => //; finish_lists l x.
 Qed.
 
-Lemma vl_ids_Lemma v : v.[ids] = v
+Lemma vl_ids_lemma v : v.[ids] = v
 with
-tm_ids_Lemma t : t.|[ids] = t
+tm_ids_lemma t : t.|[ids] = t
 with
-ty_ids_Lemma T : T.|[ids] = T.
+ty_ids_lemma T : T.|[ids] = T.
 Proof.
   all: [> destruct v | destruct t | destruct T].
   all: rewrite /= ?up_id_internal; f_equal => //; finish_lists l x.
 Qed.
 
-Lemma vl_comp_rename_Lemma (ξ : var → var) (σ : var → vl) v :
+Lemma vl_comp_rename_lemma (ξ : var → var) (σ : var → vl) v :
   (rename ξ v).[σ] = v.[ξ >>> σ]
 with
-tm_comp_rename_Lemma (ξ : var → var) (σ : var → vl) t :
+tm_comp_rename_lemma (ξ : var → var) (σ : var → vl) t :
   (rename ξ t).|[σ] = t.|[ξ >>> σ]
 with
-ty_comp_rename_Lemma (ξ : var → var) (σ : var → vl) T :
+ty_comp_rename_lemma (ξ : var → var) (σ : var → vl) T :
   (rename ξ T).|[σ] = T.|[ξ >>> σ].
 Proof.
   all: [> destruct v | destruct t | destruct T].
   all: rewrite /= 1? up_comp_ren_subst; f_equal => //; finish_lists l x.
 Qed.
 
-Lemma vl_rename_comp_Lemma (σ : var → vl) (ξ : var → var) v :
+Lemma vl_rename_comp_lemma (σ : var → vl) (ξ : var → var) v :
   rename ξ v.[σ] = v.[σ >>> rename ξ]
 with
-tm_rename_comp_Lemma (σ : var → vl) (ξ : var → var) t :
+tm_rename_comp_lemma (σ : var → vl) (ξ : var → var) t :
   rename ξ t.|[σ] = t.|[σ >>> rename ξ]
 with
-ty_rename_comp_Lemma (σ : var → vl) (ξ : var → var) T :
+ty_rename_comp_lemma (σ : var → vl) (ξ : var → var) T :
   rename ξ T.|[σ] = T.|[σ >>> rename ξ].
 Proof.
   all: [> destruct v | destruct t | destruct T].
   all: rewrite /= ? up_comp_subst_ren_internal; f_equal => //;
-    auto using vl_rename_Lemma, vl_comp_rename_Lemma; finish_lists l x.
+    auto using vl_rename_lemma, vl_comp_rename_lemma; finish_lists l x.
 Qed.
 
-Lemma vl_comp_Lemma (σ τ : var → vl) v : v.[σ].[τ] = v.[σ >> τ]
+Lemma vl_comp_lemma (σ τ : var → vl) v : v.[σ].[τ] = v.[σ >> τ]
 with
-tm_comp_Lemma (σ τ : var → vl) t : t.|[σ].|[τ] = t.|[σ >> τ]
+tm_comp_lemma (σ τ : var → vl) t : t.|[σ].|[τ] = t.|[σ >> τ]
 with
-ty_comp_Lemma (σ τ : var → vl) T : T.|[σ].|[τ] = T.|[σ >> τ].
+ty_comp_lemma (σ τ : var → vl) T : T.|[σ].|[τ] = T.|[σ >> τ].
 Proof.
   all: [> destruct v | destruct t | destruct T].
   all: rewrite /= ? up_comp_internal; f_equal;
-    auto using vl_rename_comp_Lemma, vl_comp_rename_Lemma; finish_lists l x.
+    auto using vl_rename_comp_lemma, vl_comp_rename_lemma; finish_lists l x.
 Qed.
 
 #[global] Instance subst_lemmas_vl : SubstLemmas vl.
 Proof.
-  split; auto using vl_rename_Lemma, vl_ids_Lemma, vl_comp_Lemma.
+  split; auto using vl_rename_lemma, vl_ids_lemma, vl_comp_lemma.
 Qed.
 
 #[global] Instance hsubst_lemmas_tm : HSubstLemmas vl tm.
 Proof.
-  split; auto using tm_ids_Lemma, tm_comp_Lemma.
+  split; auto using tm_ids_lemma, tm_comp_lemma.
 Qed.
 
 #[global] Instance hsubst_lemmas_ty : HSubstLemmas vl ty.
 Proof.
-  split; auto using ty_ids_Lemma, ty_comp_Lemma.
+  split; auto using ty_ids_lemma, ty_comp_lemma.
 Qed.
 
 #[global] Instance hsubst_lemmas_ctx : HSubstLemmas vl ctx := _.
