@@ -165,12 +165,12 @@ Qed.
 Lemma is_unstamped_sub_ren_ty T r i j b :
   is_unstamped_ren i j b r →
   is_unstamped_ty i b T → is_unstamped_ty j b T.|[ren r].
-Proof. rewrite -ty_rename_Lemma. apply is_unstamped_ren_mut. Qed.
+Proof. rewrite -ty_rename_lemma. apply is_unstamped_ren_mut. Qed.
 
 Lemma is_unstamped_sub_ren_path p r i j b :
   is_unstamped_ren i j b r →
   is_unstamped_path i b p → is_unstamped_path j b p.|[ren r].
-Proof. rewrite -path_rename_Lemma. apply is_unstamped_ren_mut. Qed.
+Proof. rewrite -path_rename_lemma. apply is_unstamped_ren_mut. Qed.
 
 
 Lemma is_unstamped_ren1_ty i T b :
