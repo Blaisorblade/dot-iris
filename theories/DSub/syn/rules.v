@@ -1,6 +1,6 @@
 From iris.program_logic Require Import language ectx_language.
 From D Require Import iris_extra.det_reduction.
-From D.DSub Require Import ds_syn.
+From D.DSub Require Import syn.
 
 Set Suggest Proof Using.
 Set Default Proof Using "Type".

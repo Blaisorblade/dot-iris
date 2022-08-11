@@ -1,8 +1,8 @@
 From D Require Export iris_prelude saved_interp_n proper.
 From D Require Import persistence.
-From D.DSub Require Import ds_syn.
-From D.DSub Require Import ds_ty_interp_subst_lemmas.
-Export ds_syn.
+From D.DSub Require Import syn.
+From D.DSub Require Import ty_interp_subst_lemmas.
+Export syn.
 
 Include SavedHoInterp VlSorts. (* Defines [envD] and needed by TyInterpLemmas. *)
 Include TyInterpLemmas VlSorts.
@@ -33,7 +33,7 @@ Class dsubSynG (Σ : gFunctors) := DsubSynG {
    dsubSynG_persistent :> CmraPersistent (iResUR Σ);
 }.
 
-From D.DSub Require Export ds_rules.
+From D.DSub Require Export rules.
 #[global] Instance dsubsynG_irisG `{!dsubSynG Σ} : irisGS dlang_lang Σ := {
   irisG_langdet := _;
 }.
