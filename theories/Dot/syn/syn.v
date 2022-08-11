@@ -147,7 +147,7 @@ Fixpoint tm_rename (sb : var → var) t : tm :=
   match t with
   | tv v => tv (rename sb v)
   | tapp t1 t2 => tapp (rename sb t1) (rename sb t2)
-  | tproj t l => (tproj (rename sb t) l)
+  | tproj t l => tproj (rename sb t) l
   | tskip t => tskip (rename sb t)
   | tun u t => tun u (rename sb t)
   | tbin b t1 t2 => tbin b (rename sb t1) (rename sb t2)
@@ -226,7 +226,7 @@ Fixpoint tm_hsubst (sb : var → vl) t : tm :=
   match t with
   | tv v => tv (subst sb v)
   | tapp t1 t2 => tapp (hsubst sb t1) (hsubst sb t2)
-  | tproj t l => (tproj (hsubst sb t) l)
+  | tproj t l => tproj (hsubst sb t) l
   | tskip t => tskip (hsubst sb t)
   | tun u t => tun u (hsubst sb t)
   | tbin b t1 t2 => tbin b (hsubst sb t1) (hsubst sb t2)
