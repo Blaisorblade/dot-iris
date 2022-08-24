@@ -40,7 +40,7 @@ Section path_wp_pre.
   Definition path_wp_pre (path_wp : pathO → (vl -d> iPropO Σ) → iProp Σ) p φ : iProp Σ :=
     match p with
     | pv vp => φ vp
-    | pself p l => ∃ vp q, ⌜ vp @ l ↘ dpt q ⌝ ∧
+    | pself p l => ∃ vp q, ⌜ vp ,, l ↘ dpt q ⌝ ∧
         path_wp p (λ v, ⌜ vp = v ⌝) ∧ path_wp q φ
     end.
 
@@ -93,7 +93,7 @@ Section path_wp_lemmas.
   Proof. by rewrite path_wp_unfold. Qed.
   Lemma path_wp_pself_eq p l φ :
     path_wp (pself p l) φ ⊣⊢
-      ∃ vp q, ⌜ vp @ l ↘ dpt q ⌝ ∧ path_wp p (λ v, ⌜ vp = v ⌝) ∧ path_wp q φ.
+      ∃ vp q, ⌜ vp ,, l ↘ dpt q ⌝ ∧ path_wp p (λ v, ⌜ vp = v ⌝) ∧ path_wp q φ.
   Proof. by rewrite path_wp_unfold. Qed.
 
   (* General induction principle on path_wp. *)

@@ -44,7 +44,7 @@ Section foo.
     ∃ d1 d2, ⌜ dms_lookup l ds1 = Some d1 ∧ dms_lookup l ds2 = Some d2 ⌝ ∧
     RD args ρ d1 d2.
   Definition rlift_dm_vl l RD : vl_rel Σ := λI args ρ v1 v2,
-    ∃ d1 d2, ⌜ v1 @ l ↘ d1 ∧ v2 @ l ↘ d2 ⌝ ∧
+    ∃ d1 d2, ⌜ v1 ,, l ↘ d1 ∧ v2 ,, l ↘ d2 ⌝ ∧
     RD args ρ d1 d2.
 
   (* Fixpoint ty_le (T : ty) (args : astream) (ρ1 ρ2 : env) (v1 v2 : vl) : iProp Σ :=
@@ -170,7 +170,7 @@ Print hoD *)
   Definition rVTMem l SK : vl_rel Σ := λI args ρ v1 v2,
     rlift_dm_vl l (rDTMem SK) args ρ v1 v2.
 
-  Definition vl_sel' vp l ψ : iProp Σ := ∃ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ψ.
+  Definition vl_sel' vp l ψ : iProp Σ := ∃ d, ⌜vp ,, l ↘ d⌝ ∧ d ↗ ψ.
   (**
   XXX
   The sensible thing for parametricity needs two environments... but for type equivalence?

@@ -307,8 +307,8 @@ Proof. elim: p p' => [v|p IHp l] [v'|p' l'] //=. naive_solver. Qed.
 
 Lemma same_skel_obj_lookup v v' p l :
   same_skel_vl v v' →
-  v @ l ↘ dpt p →
-  ∃ p', v' @ l ↘ dpt p' ∧ same_skel_tm (path2tm p) (path2tm p').
+  v ,, l ↘ dpt p →
+  ∃ p', v' ,, l ↘ dpt p' ∧ same_skel_tm (path2tm p) (path2tm p').
 Proof.
   intros Hv [ds [-> Hl]]. case: v' Hv => // ds' Hv.
   have [p' [Hl' /same_skel_path2tm Hp]] : ∃ p', dms_lookup l (selfSubst ds') = Some (dpt p') ∧ same_skel_path p p'.

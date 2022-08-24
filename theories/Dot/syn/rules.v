@@ -45,7 +45,7 @@ Section lang_rules.
   Proof. solve_pure_exec. Qed.
 
   #[global] Instance pure_tproj l v p :
-    PureExec (v @ l ↘ dpt p) 1 (tproj (tv v) l) (path2tm p).
+    PureExec (v ,, l ↘ dpt p) 1 (tproj (tv v) l) (path2tm p).
   Proof. solve_pure_exec. Qed.
 
   #[global] Instance pure_tskip v :

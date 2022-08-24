@@ -614,7 +614,7 @@ Section dot_types.
 
   Lemma oSel_equiv_intro ρ p v l d1 ψ1
     (Hal : alias_paths p.|[ρ] (pv v))
-    (Hl1 : v @ l ↘ d1) :
+    (Hl1 : v ,, l ↘ d1) :
     d1 ↗ ψ1 ⊢ hoLty_equiv (packHoLtyO ψ1) (envApply (oSel p l) ρ).
   Proof.
     iIntros "#Hl1" (args w).

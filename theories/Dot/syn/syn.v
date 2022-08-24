@@ -507,28 +507,28 @@ Definition objLookup v (l : label) d : Prop :=
 
 (* Precedence: tighter than negation and conjunction, must also agree
 with [@] notation for paths in [ex_utils.v] to avoid conflicts. *)
-Notation "v @ l ↘ d" := (objLookup v l d) (at level 48, l at level 40).
+Notation "v ,, l ↘ d" := (objLookup v l d) (at level 48, l at level 40).
 
 Lemma objLookupIntro l d ds :
-  dms_lookup l (selfSubst ds) = Some d -> vobj ds @ l ↘ d.
+  dms_lookup l (selfSubst ds) = Some d -> vobj ds ,, l ↘ d.
 Proof. rewrite /objLookup. eauto. Qed.
 
 (** Instead of letting obj_opens_to autounfold,
     provide tactics to show it's deterministic and so on. *)
 
-(** Rewrite v @ l ↘ ds to vobj ds' @ l ↘ ds. *)
+(** Rewrite v ,, l ↘ ds to vobj ds' ,, l ↘ ds. *)
 Ltac simplOpen ds :=
   lazymatch goal with
-  | H : ?v @ ?l ↘ ?d |-_=>
+  | H : ?v ,, ?l ↘ ?d |-_=>
     inversion H as (ds & -> & _)
   end.
 
 (** Determinacy of [objLookup]. *)
-Lemma objLookupDet v l d1 d2 : v @ l ↘ d1 → v @ l ↘ d2 → d1 = d2.
+Lemma objLookupDet v l d1 d2 : v ,, l ↘ d1 → v ,, l ↘ d2 → d1 = d2.
 Proof. rewrite /objLookup => *; ev. by simplify_eq. Qed.
 Ltac objLookupDet :=
   lazymatch goal with
-  | H1 : ?v @ ?l ↘ ?d1, H2 : ?v @ ?l ↘ ?d2 |- _=>
+  | H1 : ?v ,, ?l ↘ ?d1, H2 : ?v ,, ?l ↘ ?d2 |- _=>
     have ? : d2 = d1 by [exact: objLookupDet]; simplify_eq
   end.
 
@@ -578,7 +578,7 @@ Inductive head_step : tm → unit → list unit → tm → unit → list tm → 
   (* [v.a ↘ p] *)
   (* ---------- *)
   (* [v.a →ₕ p] *)
-  v @ l ↘ dpt p →
+  v ,, l ↘ dpt p →
   head_step (tproj (tv v) l) σ [] (path2tm p) σ []
 (* [coerce v →ₕ v] *)
 | st_skip v σ :
