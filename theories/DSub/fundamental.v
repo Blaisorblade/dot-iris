@@ -23,18 +23,18 @@ Section swap_based_typing_lemmas.
     Γ ⊨ TAll T1 U1, i <: TAll T2 U2, i .
   Proof.
     rewrite iterate_S /=.
-    iIntros "#HsubT #HsubU /= %ρ %v #Hg".
+    iIntros "#HsubT #HsubU !> /= %ρ %v #Hg".
     unfold_interp.
     iDestruct 1 as (t) "#[Heq #HT1]". iExists t; iSplit => //.
     iIntros (w).
     iSpecialize ("HsubT" $! ρ w with "Hg").
-    rewrite -mlater_impl -mlaterN_impl !swap_later.
-    iIntros "#HwT2".
+    rewrite -!mlaterN_pers -mlater_impl -mlaterN_impl !swap_later.
+    iIntros "!> #HwT2".
     iSpecialize ("HsubT" with "HwT2").
-    iAssert (▷ ▷^i (∀ v0, ⟦ U1 ⟧ (w .: ρ) v0 →
+    iAssert (□▷ ▷^i (∀ v0, ⟦ U1 ⟧ (w .: ρ) v0 →
         ⟦ U2 ⟧ (w .: ρ) v0))%I as "{HsubU} #HsubU". {
       iIntros (v0); rewrite -!mlaterN_impl -mlater_impl.
-      iIntros "#HUv0".
+      iIntros "!> #HUv0".
       iApply ("HsubU" $! (w .: ρ) v0 with "[# $Hg] HUv0").
       unfold_interp; rewrite iterate_TLater_later.
       by iApply (interp_weaken_one T2).
@@ -50,12 +50,12 @@ Section swap_based_typing_lemmas.
     Γ ⊨[i] TAll T1 U1 <: TAll T2 U2.
   Proof.
     rewrite iterate_S /=.
-    iIntros "#HsubT #HsubU /= %ρ #Hg %v".
+    iIntros "#HsubT #HsubU !> /= %ρ #Hg %v".
     rewrite -mlaterN_impl; unfold_interp.
     iDestruct 1 as (t) "#[Heq #HT1]"; iExists t; iFrame "Heq".
     iIntros (w).
-    rewrite -!laterN_later/= -!mlaterN_impl -!mlater_impl.
-    iIntros "#HwT2".
+    rewrite -!mlaterN_pers -!laterN_later/= -!mlaterN_impl -!mlater_impl.
+    iIntros "!> #HwT2".
     iSpecialize ("HsubT" with "Hg").
     iSpecialize ("HsubU" $! (w .: ρ) with "[# $Hg]"). {
       unfold_interp. rewrite iterate_TLater_later.
@@ -71,7 +71,7 @@ Section swap_based_typing_lemmas.
     Γ ⊨ U1, i <: U2, i -∗
     Γ ⊨ TTMem L1 U1, i <: TTMem L2 U2, i.
   Proof.
-    iIntros "#IHT #IHT1 /= %ρ %v #Hg".
+    iIntros "#IHT #IHT1 !> /= %ρ %v #Hg".
     unfold_interp.
     iDestruct 1 as (φ) "#[Hφl [HLφ #HφU]]".
     setoid_rewrite mlaterN_impl.
@@ -79,7 +79,7 @@ Section swap_based_typing_lemmas.
       iIntros "" (w);
       iSpecialize ("IHT" $! ρ w with "Hg");
       iSpecialize ("IHT1" $! ρ w with "Hg");
-      iNext; iIntros.
+      iNext; iIntros "!> **".
     - iApply "HLφ" => //. by iApply "IHT".
     - iApply "IHT1". by iApply "HφU".
   Qed.
@@ -99,7 +99,7 @@ Section Fundamental.
     - iInduction HT as [] "IHT".
       + by iApply Sub_Refl.
       + by iApply Sub_Trans.
-      + by iIntros "/= **".
+      + by iIntros "/= !> **".
       + by iApply Sub_Index_Incr.
       + by iApply Later_Sub.
       + by iApply Sub_Later.
