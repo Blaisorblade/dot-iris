@@ -43,6 +43,13 @@ Lemma and2_exist_r {PROP : bi} {A} P Q R :
   (∃ a : A, P a ∧ Q a ∧ R) ⊣⊢@{PROP} (∃ a : A, P a ∧ Q a) ∧ R.
 Proof. rewrite (and_exist_r R); apply bi.exist_proper => d; exact: assoc. Qed.
 
+Lemma forall_intuitionistically {A} `{BiAffine PROP, BiPersistentlyForall PROP} (Φ : A → PROP) :
+  (∀ x, □ Φ x) ⊣⊢ □ ∀ x, Φ x.
+Proof.
+  iSplit; last iApply intuitionistically_forall.
+  iIntros "#H !> %". by iApply "H".
+Qed.
+
 Section proofmode_extra.
   Context {PROP : bi}.
   Implicit Types P Q R : PROP.
@@ -96,6 +103,15 @@ Section proofmode_extra.
     exact: strip_pure_laterN_wand.
   Qed.
 End proofmode_extra.
+
+From iris.base_logic Require Import bi.
+Section derived_swap_lemmas.
+  Context `{M : ucmra}.
+  Lemma mlater_pers (P: uPred M) : □ ▷ P ⊣⊢ ▷ □ P.
+  Proof. iSplit; by iIntros "#? !>!>". Qed.
+  Lemma mlaterN_pers (P: uPred M) i : □ ▷^i P ⊣⊢ ▷^i □ P.
+  Proof. iSplit; by iIntros "#? !>!>". Qed.
+End derived_swap_lemmas.
 
 From D.pure_program_logic Require Import lifting.
 From iris.program_logic Require Import language.
