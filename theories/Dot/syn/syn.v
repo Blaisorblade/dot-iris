@@ -315,8 +315,8 @@ with  path_eq_dec p1 p2 : Decision (p1 = p2)
 with  ty_eq_dec T1 T2   : Decision (T1 = T2)
 with  kind_eq_dec K1 K2 : Decision (K1 = K2).
 Proof.
-  all: have vl_eq_dec' : EqDecision vl := vl_eq_dec;
-    have dm_eq_dec' : EqDecision dm := dm_eq_dec;
+  all: pose vl_eq_dec' : EqDecision vl := vl_eq_dec;
+    pose dm_eq_dec' : EqDecision dm := dm_eq_dec;
     rewrite /Decision; decide equality; solve_decision.
 Defined.
 
