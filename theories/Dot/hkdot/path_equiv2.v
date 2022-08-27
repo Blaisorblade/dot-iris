@@ -367,7 +367,7 @@ Definition rlift_dm_dms `{!dlangG Σ} l (RD : dm_relO Σ) : dms_relO Σ := λI �
   ∃ d1 d2, ⌜ dms_lookup l ds1 = Some d1 ∧ dms_lookup l ds2 = Some d2 ⌝ ∧
   RD ρ1 ρ2 d1 d2.
 Definition rlift_dm_vl `{!dlangG Σ} l (RD : dm_relO Σ) : vl_relO Σ := λI args1 args2 ρ1 ρ2 v1 v2,
-  ∃ d1 d2, ⌜ v1 @ l ↘ d1 ∧ v2 @ l ↘ d2 ⌝ ∧
+  ∃ d1 d2, ⌜ v1 ,, l ↘ d1 ∧ v2 ,, l ↘ d2 ⌝ ∧
   RD ρ1 ρ2 d1 d2.
 Section rlift_dm_lemmas.
   Context `{HdotG : !dlangG Σ}.
@@ -829,7 +829,7 @@ Print hoD *)
     by iApply (dm_to_type_intro with "Hγ").
     by iSplit; iIntros (v) "#H"; iNext; rewrite /= (Hγφ _ _). *)
 
-  Definition vl_sel' vp l ψ : iProp Σ := ∃ d, ⌜vp @ l ↘ d⌝ ∧ d ↗ ψ.
+  Definition vl_sel' vp l ψ : iProp Σ := ∃ d, ⌜vp ,, l ↘ d⌝ ∧ d ↗ ψ.
   (**
   XXX
   The sensible thing for parametricity needs two environments... but for path/type equivalence?

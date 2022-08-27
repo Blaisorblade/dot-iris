@@ -69,7 +69,7 @@ Section TMem_lemmas.
 
   Lemma oTMemK_eq l K args ρ v :
     oTMemK l K args ρ v ⊣⊢
-    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗ ψ ∧ K ρ (packHoLtyO ψ) (packHoLtyO ψ).
+    ∃ ψ d, ⌜v ,, l ↘ d⌝ ∧ d ↗ ψ ∧ K ρ (packHoLtyO ψ) (packHoLtyO ψ).
   Proof. apply bi_exist_nested_swap. Qed.
 
   Lemma cTMemAnyKind_eq l d ρ :
@@ -152,7 +152,7 @@ Section sem_TMem.
 
   Lemma oTMem_eq l L U args ρ v :
     oTMem l L U args ρ v ⊣⊢
-    ∃ ψ d, ⌜v @ l ↘ d⌝ ∧ d ↗ ψ ∧ dot_intv_type_pred L U ρ ψ.
+    ∃ ψ d, ⌜v ,, l ↘ d⌝ ∧ d ↗ ψ ∧ dot_intv_type_pred L U ρ ψ.
   Proof. rewrite oTMem_unfold. apply bi_exist_nested_swap. Qed.
 
   Lemma oTMem_shift A L U : oTMem A (shift L) (shift U) = shift (oTMem A L U).

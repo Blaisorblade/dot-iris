@@ -144,7 +144,7 @@ Definition lift_dty_dms `{!dlangG Σ} l (TD : dltyO Σ) : dsltyO Σ := Dslty (λ
 #[global] Instance : Params (@lift_dty_dms) 3 := {}.
 
 Definition lift_dty_vl `{!dlangG Σ} l (TD : dltyO Σ) : oltyO Σ :=
-  olty0 (λI ρ v, ∃ d, ⌜v @ l ↘ d ⌝ ∧ TD ρ d).
+  olty0 (λI ρ v, ∃ d, ⌜v ,, l ↘ d ⌝ ∧ TD ρ d).
 #[global] Instance : Params (@lift_dty_vl) 3 := {}.
 
 (** This definition is only useful to show in [lift_dty_vl_equiv_paper] that

@@ -140,7 +140,7 @@ Proof.
 Qed.
 
 Lemma erase_objLookup v l p :
-  v @ l ↘ dpt p → erase_vl v @ l ↘ dpt (erase_pt p).
+  v ,, l ↘ dpt p → erase_vl v ,, l ↘ dpt (erase_pt p).
 Proof.
   move => [ds [-> Hl]]/=. exists (erase_dms ds); split_and! => //.
   rewrite erase_selfSubst. exact: erase_dms_index_gen.

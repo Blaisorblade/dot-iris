@@ -24,7 +24,7 @@ Proof. by elim: p => /= [//|p -> l]. Qed.
 
 Inductive path_wp_pure : path → (vl → Prop) → Prop :=
 | pwp_pv vp Pv : Pv vp → path_wp_pure (pv vp) Pv
-| pwp_pself p vp q l Pv : path_wp_pure p (eq vp) → vp @ l ↘ dpt q → path_wp_pure q Pv →
+| pwp_pself p vp q l Pv : path_wp_pure p (eq vp) → vp ,, l ↘ dpt q → path_wp_pure q Pv →
   path_wp_pure (pself p l) Pv .
 #[local] Hint Constructors path_wp_pure : core.
 
@@ -32,7 +32,7 @@ Lemma path_wp_pure_pv_eq Pv v : path_wp_pure (pv v) Pv ↔ Pv v.
 Proof. split; by [inversion_clear 1 | auto]. Qed.
 
 Lemma path_wp_pure_pself_eq Pv p l : path_wp_pure (pself p l) Pv ↔
-  ∃ vp q, path_wp_pure p (eq vp) ∧ vp @ l ↘ dpt q ∧ path_wp_pure q Pv.
+  ∃ vp q, path_wp_pure p (eq vp) ∧ vp ,, l ↘ dpt q ∧ path_wp_pure q Pv.
 Proof. split; first inversion_clear 1; naive_solver. Qed.
 
 #[global] Instance pwp_pure_proper : Proper ((=) ==> pointwise_relation _ iff ==> iff) path_wp_pure.
@@ -64,7 +64,7 @@ Lemma path_wp_pure_det {p v1 v2} :
   v1 = v2.
 Proof.
   move => Hp1 Hp2; move: v2 Hp2; induction Hp1; intros; inverse Hp2; first naive_solver.
-  lazymatch goal with H1 : ?vp @ l ↘ dpt ?q, H2 : ?vp0 @ l ↘ dpt ?q0 |- _ =>
+  lazymatch goal with H1 : ?vp ,, l ↘ dpt ?q, H2 : ?vp0 ,, l ↘ dpt ?q0 |- _ =>
     (suff ? : q = q0 by subst; auto);
     (suff ? : vp = vp0 by subst; objLookupDet);
     auto

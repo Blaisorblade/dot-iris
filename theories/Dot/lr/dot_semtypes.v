@@ -79,7 +79,7 @@ End JudgEqs.
 
 (** ** gDOT semantic types. *)
 Definition vl_sel `{!dlangG Σ} vp l args v `{!RecTyInterp Σ} : iProp Σ :=
-  ∃ d ψ, ⌜vp @ l ↘ d⌝ ∧ d ↗ ψ ∧ packHoLtyO ψ args v.
+  ∃ d ψ, ⌜vp ,, l ↘ d⌝ ∧ d ↗ ψ ∧ packHoLtyO ψ args v.
 
 Definition oSel `{!dlangG Σ} p l `{!RecTyInterp Σ} : oltyO Σ :=
   Olty (λI args ρ v, path_wp p.|[ρ] (λ vp, vl_sel vp l args v)).
@@ -175,12 +175,12 @@ Section misc_lemmas.
 
   Lemma oSel_pv w l args ρ v :
     oSel (pv w) l args ρ v ⊣⊢
-      ∃ d ψ, ⌜w.[ρ] @ l ↘ d⌝ ∧ d ↗ ψ ∧ ▷ ψ args v.
+      ∃ d ψ, ⌜w.[ρ] ,, l ↘ d⌝ ∧ d ↗ ψ ∧ ▷ ψ args v.
   Proof. by rewrite /= path_wp_pv_eq. Qed.
 
   Lemma oVMem_eq l T anil ρ v :
     oVMem l T anil ρ v ⊣⊢
-    ∃ pmem, ⌜v @ l ↘ dpt pmem⌝ ∧ path_wp pmem (oClose T ρ).
+    ∃ pmem, ⌜v ,, l ↘ dpt pmem⌝ ∧ path_wp pmem (oClose T ρ).
   Proof.
     etrans; [apply bi_exist_nested_swap|]; apply bi.exist_proper => p.
     rewrite and2_exist_r.
