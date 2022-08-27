@@ -17,6 +17,9 @@ Set Default Proof Using "Type".
 Section Lemmas.
   Context `{HdotG : !dlangG Σ}.
 
+  (* Instance foo : subrelation (≡@{oltyO Σ}) (eq ==> eq ==> equiv)%signature.
+  Proof. solve_proper_ho. Qed. *)
+
   (** For https://github.com/lampepfl/dotty/blob/85962b19ddf4f1909189bf07b40f9a05849f9bbf/compiler/src/dotty/tools/dotc/core/TypeComparer.scala#L553. *)
   Lemma singleton_Mu_dotty_approx_0 {Γ p i T1 T2} `{SwapPropI Σ} :
     iterate TLater i (TAnd T1 (TSing (shift p))) :: Γ ⊨ T1, i <: T2, i -∗
