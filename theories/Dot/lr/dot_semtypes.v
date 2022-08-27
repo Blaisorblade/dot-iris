@@ -278,7 +278,7 @@ Section misc_lemmas.
   Proof. by rewrite sdtp_eq; properness; last apply dty2clty_singleton. Qed.
 
   Lemma ipwp_terminates {p T i} :
-    [] s⊨p p : T , i ⊢ ▷^i ⌜ terminates (path2tm p) ⌝.
+    [] s⊨p p : T , i ⊢ |==> ▷^i ⌜ terminates (path2tm p) ⌝.
   Proof.
     iIntros ">#H".
     iSpecialize ("H" $! ids with "[//]"); rewrite hsubst_id.

@@ -460,7 +460,7 @@ Lemma ipwp_gs_adequacy Σ `{HdlangG : !dlangG Σ} `{!SwapPropI Σ} {p T i}
   (Hwp : ∀ `(Hdlang : !dlangG Σ) `(!SwapPropI Σ), ⊢ [] ⊨p p : T , i) :
   terminates (path2tm p).
 Proof.
-  eapply (@soundness (iResUR Σ) _ i).
+  apply (soundness (M := iResUR Σ) _ i).
   apply (bupd_plain_soundness _).
   iApply ipwp_terminates.
   iApply Hwp.
