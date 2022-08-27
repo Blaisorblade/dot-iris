@@ -1,0 +1,4 @@
+The command has indeed failed with message:
+Tactic failure: iApply: cannot apply (P' -∗ Q')%I.
+The command has indeed failed with message:
+Tactic failure: iPoseProof: "W" not found.
