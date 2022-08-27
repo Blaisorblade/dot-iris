@@ -1,3 +1,5 @@
+(** * XXX Experiments on path equivalence. Compare and contrast with path_equiv.v. *)
+
 From iris.algebra Require Import list.
 From D.pure_program_logic Require Import weakestpre.
 From D Require Import iris_prelude lr_syn_aux lty.

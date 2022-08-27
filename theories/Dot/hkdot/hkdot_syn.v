@@ -1,3 +1,15 @@
+(** * Demonstrate semantic typing rules for applicative, syntactic type members.
+That is, these are type definitions that:
+- contain syntactic types (which avoid the need for stamping).
+- are interpreted using our logical relation
+- therefore, can be robustly given "applicative"-like semantics (as in storeless
+DOT in Amin's thesis).
+
+We can _almost_ get the rules of storeless DOT (and applicative semantics) even)
+even without syntactic type members, but not quite; stamping the same type twice
+will produce different stamps, ensuring generative semantics.
+*)
+
 From iris.proofmode Require Import tactics.
 From D Require Import iris_prelude.
 From D.Dot Require Import dot_lty dot_semtypes hkdot unary_lr.
