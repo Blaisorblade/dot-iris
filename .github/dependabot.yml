@@ -3,7 +3,7 @@ updates:
 - package-ecosystem: bundler
   directory: "/website"
   schedule:
-    interval: daily
-    time: "04:00"
-  open-pull-requests-limit: 10
+    interval: monthly
+  # Disable non-security version updates
+  open-pull-requests-limit: 0
   versioning-strategy: increase-if-necessary
