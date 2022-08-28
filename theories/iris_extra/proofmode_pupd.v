@@ -124,3 +124,10 @@ Section instances.
     Proof. apply PF_return. Qed.
   End fupd.
 End instances.
+
+Ltac pupd' :=
+  try (iApply elim_pers_modal; []; iModIntro (□ _)%I).
+Ltac strip :=
+  iApply (strip_pupd with "[-]"); [].
+Ltac pupd :=
+  pupd'; strip.
