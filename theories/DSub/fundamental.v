@@ -132,7 +132,7 @@ Proof.
   rewrite /safe; intros Htyp ?*.
   cut (adequate e (λ _, True)); first by intros [_ ?]; eauto.
   eapply (wp_adequacy (Σ := Σ) e) => /=.
-  iIntros "!>". iPoseProof (Htyp _ _) as "#Htyp".
+  iIntros "!>". iPoseProof (Htyp _ _) as "#>Htyp".
   iSpecialize ("Htyp" $! ids with "[//]"); rewrite hsubst_id /=.
   iApply (wp_wand with "Htyp"); by iIntros.
 Qed.
