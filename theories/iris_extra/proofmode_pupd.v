@@ -33,6 +33,11 @@ Class ElimPersModal {PROP : bi} (P Q P' Q' : PROP) :=
 #[global] Hint Mode ElimPersModal + + + - - : typeclass_instances.
 #[global] Arguments elim_pers_modal {_}.
 
+Class StripPUpd {PROP : bi} (P Q : PROP) :=
+  strip_pupd : P ⊢ Q.
+#[global] Hint Mode StripPUpd + - + : typeclass_instances.
+#[global] Arguments strip_pupd {_}.
+
 Section instances.
   Context {PROP : bi}.
   Implicit Type (P Q R : PROP).
@@ -46,6 +51,20 @@ Section instances.
     iIntros (W) "#W #P Q".
     iApply (W with "(W P) Q").
   Qed.
+
+  #[global] Instance strip_pupd_wand P Q R :
+    StripPUpd P Q →
+    StripPUpd (R -∗ P) (R -∗ Q).
+  Proof.
+    rewrite /StripPUpd.
+    iIntros (PQ) "RP R".
+    iApply (PQ with "(RP R)").
+  Qed.
+
+  #[global] Instance strip_pupd_box_mono P Q :
+    StripPUpd P Q →
+    StripPUpd (□ P) (□ Q) | 10.
+  Proof. apply bi.intuitionistically_mono'. Qed.
 
   Section bupd.
     Context `{!BiBUpd PROP}.
@@ -71,6 +90,9 @@ Section instances.
       }
       iApply (PB_and_curry with "P Q").
     Qed.
+
+    #[global] Instance strip_pbupd P : StripPUpd (□ P) (<PB> P).
+    Proof. apply PB_return. Qed.
   End bupd.
 
   Section fupd.
@@ -97,5 +119,8 @@ Section instances.
       }
       iApply (PF_and_curry with "P Q").
     Qed.
+
+    #[global] Instance strip_pfupd P : StripPUpd (□ P) (<PF{E}> P).
+    Proof. apply PF_return. Qed.
   End fupd.
 End instances.

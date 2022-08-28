@@ -2,6 +2,10 @@ From D.iris_extra Require Import proofmode_pupd.
 
 Implicit Type (Σ : gFunctors) (E : coPset).
 
+Ltac pupd :=
+  iApply elim_pers_modal; iModIntro (□ _)%I;
+  iApply (strip_pupd with "[-]").
+
 Section test.
   Context {PROP : bi}.
   Implicit Type (P Q R : PROP).
@@ -52,9 +56,9 @@ Section test.
       (* ElimPersModal (pbupd P1) (pbupd P2 -∗ pbupd Q) (□ P1) (□ P2 -∗ □ Q) *)
     Proof.
       iIntros "#W".
-      iApply elim_pers_modal; iIntros "!> #P1 !>!>".
+      pupd.
+      iIntros "#P1".
       by iApply "W".
-      all: fail.
     Restart.
     Proof.
       rewrite -elim_pers_modal.
@@ -68,9 +72,13 @@ Section test.
       (* ElimPersModal (pbupd P1) (pbupd P2 -∗ pbupd Q) (□ P1) (□ P2 -∗ □ Q) *)
     Proof.
       iIntros "#W".
-      iApply elim_pers_modal.
-      iIntros "!> #P1 #P2 !>!>".
+      pupd.
+      iIntros "#P1 #P2".
       by iApply "W".
+    Restart.
+      iIntros "#W".
+      pupd.
+      solve [iApply "W"].
     Restart.
     Proof.
       rewrite -elim_pers_modal.
@@ -84,7 +92,8 @@ Section test.
       (* ElimPersModal (pbupd P1) (pbupd P2 -∗ pbupd Q) (□ P1) (□ P2 -∗ □ Q) *)
     Proof.
       iIntros "#W".
-      iApply elim_pers_modal; iIntros "!> #P1 #P2 #P3 !>!>".
+      pupd.
+      iIntros "#P1 #P2 #P3".
       by iApply "W".
     Restart.
     Proof.
@@ -210,9 +219,14 @@ Section test.
       pfupd E P1 -∗ pfupd E Q.
     Proof.
       iIntros "#W".
-      iApply elim_pers_modal; iIntros "!> #P1 !>!>".
+      pupd.
+      iIntros "#P1".
       by iApply "W".
-      all: fail.
+    Restart.
+    Proof.
+      iIntros "#W".
+      pupd.
+      solve [iApply "W"].
     Restart.
     Proof.
       rewrite -elim_pers_modal.
@@ -225,8 +239,8 @@ Section test.
       pfupd E P1 -∗ pfupd E P2 -∗ pfupd E Q.
     Proof.
       iIntros "#W".
-      iApply elim_pers_modal.
-      iIntros "!> #P1 #P2 !>!>".
+      pupd.
+      iIntros "#P1 #P2".
       by iApply "W".
     Restart.
     Proof.
@@ -240,7 +254,8 @@ Section test.
       pfupd E P1 -∗ pfupd E P2 -∗ pfupd E P3 -∗ pfupd E Q.
     Proof.
       iIntros "#W".
-      iApply elim_pers_modal; iIntros "!> #P1 #P2 #P3 !>!>".
+      pupd.
+      iIntros "#P1 #P2 #P3".
       by iApply "W".
     Restart.
     Proof.
