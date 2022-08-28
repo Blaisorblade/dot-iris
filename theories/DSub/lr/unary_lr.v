@@ -29,9 +29,7 @@ Implicit Types
  *)
 
 (* The only point of these instances is to select Σ uniquely. *)
-Class dsubSynG (Σ : gFunctors) := DsubSynG {
-   dsubSynG_persistent :> CmraPersistent (iResUR Σ);
-}.
+Class dsubSynG (Σ : gFunctors) := DsubSynG {}.
 
 From D.DSub Require Export rules.
 #[global] Instance dsubsynG_irisG `{!dsubSynG Σ} : irisGS dlang_lang Σ := {
