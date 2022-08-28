@@ -13,7 +13,7 @@ Class CmraPersistent (M : cmra) :=
 Section CmraPersistentLaws.
   #[local] Arguments uPred_holds {_} !_ _ _.
 
-  #[global] Instance CmraPersistent_Persistent {M : ucmra} `(!CmraPersistent M)
+  #[local] Instance CmraPersistent_Persistent {M : ucmra} `(!CmraPersistent M)
     (P : uPred M) : Persistent P.
   Proof.
     split => n x Hx Hpx; uPred.unseal.
