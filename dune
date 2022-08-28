@@ -1,0 +1,20 @@
+(env
+ (dev
+  (coq
+   (flags
+    (:standard
+    ; We sometimes want to locally override notation (e.g. in proofmode/base.v, bi/embedding.v), and there
+    ; is no good way to do that with scopes.
+    -w -notation-overridden
+    ; non-canonical projections (https://github.com/coq/coq/pull/10076) do not exist yet in 8.9.
+    -w -redundant-canonical-projection
+    ; change_no_check does not exist yet in 8.9.
+    -w -convert_concl_no_check
+    ; "Declare Scope" does not exist yet in 8.9.
+    ; -w -undeclared-scope
+    ; We have ambiguous paths and so far it is not even clear what they are (https://gitlab.mpi-sws.org/iris/iris/issues/240).
+    -w -ambiguous-paths
+    -w -deprecated-hint-rewrite-without-locality
+    -w -deprecated-instance-without-locality
+    -w -deprecated-typeclasses-transparency-without-locality
+    )))))
