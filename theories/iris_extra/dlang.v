@@ -24,7 +24,6 @@ Module Type LiftWp (Import VS : VlSortsSig).
   Class dlangG Σ `{InhabitedState dlang_lang} := DLangG {
     dlangG_savior :> savedHoSemTypeG Σ;
     dlangG_langdet :> LangDet dlang_lang;
-    dlangG_persistent (P : iProp Σ) :> Persistent P | 0;
   }.
 
   (** ** Instance of [irisGS] enable using the expression weakest precondition; this instance. *)
@@ -81,9 +80,6 @@ Module Type LiftWp (Import VS : VlSortsSig).
 
   Module dlang_adequacy.
     Definition dlangΣ := #[savedHoSemTypeΣ].
-
-    (* #[local], because [dlangG_persistent] is what should be used. *)
-    #[local] Instance CmraPersistent_dlang : CmraPersistent (iResUR dlangΣ) := CmraPersistent_iResUR _.
 
     #[local] Instance dlangG_dlangΣ
       `{InhabitedState dlang_lang} `{!LangDet dlang_lang} : dlangG dlangΣ.
