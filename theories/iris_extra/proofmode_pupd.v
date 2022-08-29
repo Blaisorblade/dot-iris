@@ -130,4 +130,4 @@ Ltac pupd' :=
 Ltac strip :=
   iApply (strip_pupd with "[-]"); [].
 Ltac pupd :=
-  pupd'; strip.
+  try (pupd'; strip).
