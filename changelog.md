@@ -27,6 +27,11 @@ https://github.com/Blaisorblade/dot-iris/pulls?q=is%3Apr+is%3Amerged+label%3Amaj
   Typing rules are essentially unchanged; however, type equality is extended with
   some more congruence rules, to ensure it remains reflexive.
 
+- (Ongoing) Restore support for non-persistent resources:
+  - https://github.com/Blaisorblade/dot-iris/pull/426 introduces a "persistent
+    update" modality (`<PB> P` that is `□ |==> □ P`), that can replace `|==>` when
+    non-persistent resources are available, and intuitionistic propositions must
+    be marked explicitly via `□`, and uses it in DSub.
 # v1.0
 
 Release accompanying the ICFP'20 paper.
