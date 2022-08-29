@@ -1,4 +1,4 @@
-From D Require Export iris_prelude saved_interp_n proper.
+From D Require Export iris_prelude saved_interp_n proper proofmode_pupd.
 From D Require Import persistence.
 From D.DSub Require Import syn.
 From D.DSub Require Import ty_interp_subst_lemmas.
@@ -29,9 +29,7 @@ Implicit Types
  *)
 
 (* The only point of these instances is to select Σ uniquely. *)
-Class dsubSynG (Σ : gFunctors) := DsubSynG {
-   dsubSynG_persistent :> CmraPersistent (iResUR Σ);
-}.
+Class dsubSynG (Σ : gFunctors) := DsubSynG {}.
 
 From D.DSub Require Export rules.
 #[global] Instance dsubsynG_irisG `{!dsubSynG Σ} : irisGS dlang_lang Σ := {
@@ -89,7 +87,7 @@ Section logrel.
   Definition interp_forall : envD Σ -> envD Σ -> envD Σ :=
     λI interp1 interp2 ρ v,
     ∃ t, ⌜ v = vabs t ⌝ ∧
-      ▷ ∀ w, interp1 ρ w → interp_expr interp2 (w .: ρ) t.|[w/].
+      □ ▷ ∀ w, interp1 ρ w → interp_expr interp2 (w .: ρ) t.|[w/].
   #[global] Arguments interp_forall /.
   #[local] Instance interp_forall_contractive n :
     Proper (dist_later n ==> dist_later n ==> dist n) interp_forall.
@@ -112,8 +110,8 @@ Section logrel.
     (ty -d> envD Σ) -> envD Σ -> envD Σ -> envD Σ :=
     λI rinterp interpL interpU ρ v,
     ∃ φ, v ↗[ rinterp ] φ ∧
-       ((∀ v, interpL ρ v → ▷ φ v) ∧
-          (∀ v, ▷ φ v → interpU ρ v)).
+       □ ((∀ v, interpL ρ v → □ ▷ φ v) ∧
+          (∀ v, □ ▷ φ v → interpU ρ v)).
   #[global] Arguments interp_tmem /.
   #[local] Instance interp_tmem_contractive n :
     Proper (dist_later n ==> dist n ==> dist n ==> dist n) interp_tmem.
@@ -121,7 +119,7 @@ Section logrel.
 
   Definition interp_sel : (ty -d> envD Σ) -d> vl -d> envD Σ :=
     λI rinterp w ρ v,
-    ∃ ϕ, w.[ρ] ↗[rinterp] ϕ ∧ ▷ ϕ v.
+    ∃ ϕ, w.[ρ] ↗[rinterp] ϕ ∧ □ ▷ ϕ v.
   #[global] Arguments interp_sel /.
   #[local] Instance interp_sel_contractive n :
     Proper (dist_later n ==> eq ==> dist n) interp_sel.
@@ -219,6 +217,10 @@ Section logrel_part2.
       properness; rewrite /= ?scons_up_swap ?subst_comp; trivial.
   Qed.
 
+  #[global] Instance interp_persistent T ρ v :
+    Persistent (⟦ T ⟧ ρ v).
+  Proof. move: v ρ; induction T => w ρ; unfold_interp; try apply _. Qed.
+
   (* XXX here we needn't add a variable to the scope of its own type. But that won't hurt. *)
   Fixpoint interp_env (Γ : ctx) (ρ : var → vl) : iProp Σ :=
     match Γ with
@@ -228,25 +230,33 @@ Section logrel_part2.
 
   Notation "G⟦ Γ ⟧" := (interp_env Γ).
 
+  #[global] Instance interp_env_persistent Γ ρ :
+    Persistent (G⟦ Γ ⟧ ρ).
+  Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
+
   Definition ietp Γ T e : iProp Σ :=
-    ∀ ρ, G⟦Γ⟧ ρ → ⟦T⟧ₑ ρ (e.|[ρ]).
+    <PB> ∀ ρ, G⟦Γ⟧ ρ → ⟦T⟧ₑ ρ (e.|[ρ]).
   #[global] Arguments ietp /.
   Notation "Γ ⊨ e : T" := (ietp Γ T e) (at level 74, e, T at next level).
 
   Definition ietpi Γ T e i : iProp Σ :=
-    ∀ ρ, G⟦Γ⟧ ρ → ▷^i ⟦T⟧ₑ ρ (e.|[ρ]).
+    <PB> ∀ ρ, G⟦Γ⟧ ρ → ▷^i ⟦T⟧ₑ ρ (e.|[ρ]).
   #[global] Arguments ietpi /.
   Notation "Γ ⊨ e : T , i" := (ietpi Γ T e i) (at level 74, e, T at next level).
 
   (** Indexed Subtyping. Defined on closed values. We must require closedness
       explicitly, since closedness now does not follow from being well-typed later. *)
   Definition istpi Γ T1 T2 i j : iProp Σ :=
-    ∀ ρ v, G⟦Γ⟧ ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v.
+    <PB> ∀ ρ v, G⟦Γ⟧ ρ → (▷^i ⟦T1⟧ ρ v) → ▷^j ⟦T2⟧ ρ v.
   #[global] Arguments istpi /.
 
   Definition delayed_ivstp Γ T1 T2 i : iProp Σ :=
-    ∀ ρ, G⟦Γ⟧ρ → ▷^i ∀v, ⟦T1⟧ ρ v → ⟦T2⟧ ρ v.
+    <PB> ∀ ρ, G⟦Γ⟧ρ → ▷^i ∀v, ⟦T1⟧ ρ v → ⟦T2⟧ ρ v.
   #[global] Arguments delayed_ivstp /.
+
+  #[global] Instance ietp_persistent Γ T e : Persistent (ietp Γ T e) := _.
+  #[global] Instance ietpi_persistent Γ T e i : Persistent (ietpi Γ T e i) := _.
+  #[global] Instance istpi_persistent Γ T1 T2 i j : Persistent (istpi Γ T1 T2 i j) := _.
 End logrel_part2.
 
 Notation "G⟦ Γ ⟧" := (interp_env Γ).
@@ -272,7 +282,7 @@ Section logrel_lemmas.
   Lemma semantic_typing_uniform_step_index Γ T e i :
     Γ ⊨ e : T -∗ Γ ⊨ e : T, i.
   Proof.
-    iIntros "#H %ρ #HΓ".
+    pupd. iIntros "#H !> %ρ #HΓ".
     iInduction i as [|i] "IHi". by iApply "H". iExact "IHi".
   Qed.
 
@@ -290,22 +300,22 @@ Section logrel_lemmas.
 
   Context {Γ}.
   Lemma Sub_Refl T i : ⊢ Γ ⊨ T, i <: T, i.
-  Proof. by iIntros "/= **". Qed.
+  Proof. pupd. by iIntros "!> /= **". Qed.
 
   Lemma Sub_Trans T1 T2 T3 i1 i2 i3 :
     Γ ⊨ T1, i1 <: T2, i2 -∗ Γ ⊨ T2, i2 <: T3, i3 -∗ Γ ⊨ T1, i1 <: T3, i3.
   Proof.
-    iIntros "#Hsub1 #Hsub2 /= * #Hg #HT".
+    pupd; iIntros "#Hsub1 #Hsub2 !> /= * #Hg #HT".
     iApply ("Hsub2" with "Hg (Hsub1 Hg [//])").
   Qed.
 
   Lemma DSub_Refl T i : ⊢ Γ ⊨[i] T <: T.
-  Proof. by iIntros "/= ** !> **". Qed.
+  Proof. pupd; by iIntros "/= !> ** !> **". Qed.
 
   Lemma DSub_Trans T1 T2 T3 i :
     Γ ⊨[i] T1 <: T2 -∗ Γ ⊨[i] T2 <: T3 -∗ Γ ⊨[i] T1 <: T3.
   Proof.
-    iIntros "#Hsub1 #Hsub2 /= * #Hg".
+    pupd; iIntros "#Hsub1 #Hsub2 !> /= * #Hg".
     iSpecialize ("Hsub1" with "Hg"); iSpecialize ("Hsub2" with "Hg").
     iIntros "!>" (v) "#HT". iApply "Hsub2". by iApply "Hsub1".
   Qed.

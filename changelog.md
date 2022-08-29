@@ -5,16 +5,16 @@ https://github.com/Blaisorblade/dot-iris/pulls?q=is%3Apr+is%3Amerged+label%3Amaj
 
 # master (Not yet released)
 
-- Prepend basic update modality to all judgments:
-https://github.com/Blaisorblade/dot-iris/pull/303
+- Prepend basic update modality (`|==>`) to all Dot judgments:
+  https://github.com/Blaisorblade/dot-iris/pull/303
 
-This enables updating ghost state to establish typing judgments;
-in our setting, that means only extending ghost state, since we ensure all our
-judgments are persistent.
+  This enables updating ghost state to establish typing judgments;
+  in our setting, that means only extending ghost state, since we ensure all our
+  judgments are persistent.
 
 - Support for sound type projections, in the style of Scala 2:
-https://github.com/Blaisorblade/dot-iris/pull/250
-https://github.com/Blaisorblade/dot-iris/pull/304
+  https://github.com/Blaisorblade/dot-iris/pull/250
+  https://github.com/Blaisorblade/dot-iris/pull/304
 
 - (Preliminary) support for higher-kinded types in the semantics (too many PRs to count):
   in short, semantic kinds are modeled as predicates on semantic types, and type
@@ -27,6 +27,11 @@ https://github.com/Blaisorblade/dot-iris/pull/304
   Typing rules are essentially unchanged; however, type equality is extended with
   some more congruence rules, to ensure it remains reflexive.
 
+- (Ongoing) Restore support for non-persistent resources:
+  - https://github.com/Blaisorblade/dot-iris/pull/426 introduces a "persistent
+    update" modality (`<PB> P` that is `□ |==> □ P`), that can replace `|==>` when
+    non-persistent resources are available, and intuitionistic propositions must
+    be marked explicitly via `□`, and uses it in DSub.
 # v1.0
 
 Release accompanying the ICFP'20 paper.
