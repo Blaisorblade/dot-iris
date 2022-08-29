@@ -69,8 +69,6 @@ Section lemmas.
     apply sD_TypK_Abs_Syn.
   Qed.
 
-  #[local] Notation IntoPersistent' P := (IntoPersistent false P P).
-  #[global] Instance sstpiK_persistent i Γ T1 T2 K : IntoPersistent' (sstpiK i Γ T1 T2 K) := _.
   Lemma sT_New_Singl_Syn n Γ l (K : s_kind Σ n) T :
     oLater (oTMemK l (s_to_sf (ho_sing K (oLater V⟦T⟧)))) :: Γ s⊨ oLater V⟦T⟧ ∷[ 0 ] s_to_sf K -∗
     Γ s⊨ vobj [ (l, dtysyn T) ] : oMu (oTMemK l (s_to_sf K)).

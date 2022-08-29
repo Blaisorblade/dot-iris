@@ -41,6 +41,8 @@ End Propers.
 Section judgment_lemmas.
   Context `{!dlangG Σ}.
 
+  #[global] Instance sstpi_persistent i j Γ τ1 τ2 : Persistent (sstpi i j Γ τ1 τ2) := _.
+
   Lemma sstpi_app ρ Γ (T1 T2 : olty Σ) i j :
     sstpi' i j Γ T1 T2 -∗ sG⟦ Γ ⟧* ρ -∗
     oClose (oLaterN i T1) ρ ⊆ oClose (oLaterN j T2) ρ.

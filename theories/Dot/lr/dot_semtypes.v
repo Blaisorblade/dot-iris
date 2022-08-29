@@ -46,6 +46,24 @@ Section judgments.
     <PB> ∀ ρ, sG⟦Γ⟧* ρ →
       ▷^i path_wp p.|[ρ] (oClose τ ρ).
   #[global] Arguments sptp : simpl never.
+
+  Section persistence.
+    Context `{!dlangG Σ}.
+
+    (*
+    Avoid auto-dropping box (and unfolding) when introducing judgments persistently.
+
+    We use cost 0 to take precedence over Iris.
+
+    The instance for [sdtp] overlaps with [sdstp] and must take priority; since
+    there's no cost lower than 0, the instance for [sdtp] comes after the one for [sdstp].
+    *)
+    #[global] Instance sdstp_into_persistent Γ Tds ds    : IntoPersistent' (sdstp ds  Γ Tds)   | 0 := _.
+    #[global] Instance sdtp_into_persistent  Γ Td l d    : IntoPersistent' (sdtp l d   Γ Td)   | 0 := _.
+    #[global] Instance setp_into_persistent  Γ T e       : IntoPersistent' (setp e     Γ T)    | 0 := _.
+    #[global] Instance sstpd_into_persistent Γ T1 T2 i   : IntoPersistent' (sstpd i Γ T1 T2)   | 0 := _.
+    #[global] Instance sptp_into_persistent  Γ T p i     : IntoPersistent' (sptp p i   Γ T)    | 0 := _.
+  End persistence.
 End judgments.
 
 (** Expression typing *)
@@ -280,7 +298,9 @@ Section misc_lemmas.
   Lemma ipwp_terminates {p T i} :
     [] s⊨p p : T , i ⊢ |==> ▷^i ⌜ terminates (path2tm p) ⌝.
   Proof.
-    iIntros "#>#H".
+    iIntros "#H".
+    rewrite /sptp.
+    iDestruct "H" as "#>#H".
     iSpecialize ("H" $! ids with "[//]"); rewrite hsubst_id.
     iApply (path_wp_terminates with "H").
   Qed.

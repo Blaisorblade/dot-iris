@@ -58,6 +58,18 @@ Notation sf_sngl T := (sf_kintv T T).
 Section gen_lemmas.
   Context `{Hdlang : dlangG Σ} `{HswapProp : SwapPropI Σ}.
 
+  #[global] Instance sstpiK_persistent i Γ T1 T2 K :
+    Persistent (sstpiK i Γ T1 T2 K) := _.
+
+  #[global] Instance sstpiK_into_persistent i Γ T1 T2 K :
+    IntoPersistent' (sstpiK i Γ T1 T2 K) := _.
+
+  #[global] Instance sSkd_persistent i Γ K1 K2 :
+    Persistent (sSkd i Γ K1 K2) := _.
+
+  #[global] Instance sSkd_into_persistent i Γ K1 K2 :
+    IntoPersistent' (sSkd i Γ K1 K2) := _.
+
   #[global] Instance sstpiK_proper i :
     Proper4 (sstpiK (Σ := Σ) i).
   Proof.
@@ -613,9 +625,9 @@ Section dot_types.
     s ↝[ σ ] T -∗
     Γ s⊨ { l := dtysem σ s } : cTMemK l K.
   Proof.
-    rewrite sdtp_eq'. iIntros "#HTK (%φ & %Hγφ & #Hγ) !>".
-    iMod "HTK" as "#HTK".
-    iIntros "!>!>" (ρ Hpid) "Hg"; iExists (hoEnvD_inst (σ.|[ρ]) φ).
+    rewrite sdtp_eq'; iIntros "HTK #(%φ & %Hγφ & #Hγ)".
+    iRevert "HTK"; pupd; iIntros "#HTK !>".
+    iIntros (ρ Hpid) "Hg"; iExists (hoEnvD_inst (σ.|[ρ]) φ).
     iDestruct (dm_to_type_intro with "Hγ") as "-#$"; first done.
     iApply (sf_kind_proper' with "(HTK Hg)") => args v /=.
     do 1!f_equiv; symmetry. exact: Hγφ.
@@ -704,6 +716,7 @@ Import defs_lr binding_lr examples_lr.
 
 Section derived.
   Context `{Hdlang : !dlangG Σ} `{HswapProp : SwapPropI Σ} `{!RecTyInterp Σ}.
+
   Opaque sSkd sstpiK sptp sstpd sstpi.
 
   Lemma sT_New Γ l σ s (K : sf_kind Σ) T :
@@ -850,7 +863,11 @@ Section derived.
     iApply (sStp_Singl_Widen with "HT").
   Qed.
 
-  (* #[global] Instance : Params (@bi_wand b) 1 := {}. *)
+  (* #[global] Instance idstp_into_persistent Γ T ds      : IntoPersistent' (idstp Γ T ds)      | 0 := _.
+  #[global] Instance idtp_into_persistent  Γ T l d     : IntoPersistent' (idtp Γ T l d)      | 0 := _.
+  #[global] Instance ietp_into_persistent  Γ T e       : IntoPersistent' (ietp Γ T e)        | 0 := _.
+  #[global] Instance istpd_into_persistent Γ T1 T2 i   : IntoPersistent' (istpd i Γ T1 T2)   | 0 := _.
+  #[global] Instance iptp_into_persistent  Γ T p i     : IntoPersistent' (iptp Γ T p i)      | 0 := _. *)
 
   (** Kind subsumption (for kinded subtyping). *)
   Lemma sKEq_Sub Γ (T1 T2 : oltyO Σ) (K1 K2 : sf_kind Σ) i :
