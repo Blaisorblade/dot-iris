@@ -1,4 +1,4 @@
-From D Require Export iris_prelude saved_interp_n proper.
+From D Require Export iris_prelude saved_interp_n proper proofmode_pupd.
 From D Require Import persistence.
 From D.DSub Require Import syn.
 From D.DSub Require Import ty_interp_subst_lemmas.
@@ -284,7 +284,7 @@ Section logrel_lemmas.
   Lemma semantic_typing_uniform_step_index Γ T e i :
     Γ ⊨ e : T -∗ Γ ⊨ e : T, i.
   Proof.
-    iIntros "#H !> %ρ #HΓ".
+    pupd. iIntros "#H !> %ρ #HΓ".
     iInduction i as [|i] "IHi". by iApply "H". iExact "IHi".
   Qed.
 
@@ -302,22 +302,22 @@ Section logrel_lemmas.
 
   Context {Γ}.
   Lemma Sub_Refl T i : ⊢ Γ ⊨ T, i <: T, i.
-  Proof. by iIntros "!> /= **". Qed.
+  Proof. pupd. by iIntros "!> /= **". Qed.
 
   Lemma Sub_Trans T1 T2 T3 i1 i2 i3 :
     Γ ⊨ T1, i1 <: T2, i2 -∗ Γ ⊨ T2, i2 <: T3, i3 -∗ Γ ⊨ T1, i1 <: T3, i3.
   Proof.
-    iIntros "#Hsub1 #Hsub2 !> /= * #Hg #HT".
+    pupd; iIntros "#Hsub1 #Hsub2 !> /= * #Hg #HT".
     iApply ("Hsub2" with "Hg (Hsub1 Hg [//])").
   Qed.
 
   Lemma DSub_Refl T i : ⊢ Γ ⊨[i] T <: T.
-  Proof. by iIntros "/= !> ** !> **". Qed.
+  Proof. pupd; by iIntros "/= !> ** !> **". Qed.
 
   Lemma DSub_Trans T1 T2 T3 i :
     Γ ⊨[i] T1 <: T2 -∗ Γ ⊨[i] T2 <: T3 -∗ Γ ⊨[i] T1 <: T3.
   Proof.
-    iIntros "#Hsub1 #Hsub2 !> /= * #Hg".
+    pupd; iIntros "#Hsub1 #Hsub2 !> /= * #Hg".
     iSpecialize ("Hsub1" with "Hg"); iSpecialize ("Hsub2" with "Hg").
     iIntros "!>" (v) "#HT". iApply "Hsub2". by iApply "Hsub1".
   Qed.
