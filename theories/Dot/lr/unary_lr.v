@@ -384,7 +384,7 @@ Section path_repl_lemmas.
   Let fundamental_ty_path_repl_def p q T1 T2 := V⟦ T1 ⟧ ~sTpP[ p := q ]* V⟦ T2 ⟧.
   Let fundamental_kn_path_repl_def p q K1 K2 := K⟦ K1 ⟧ ~sKpP[ p := q ]* K⟦ K2 ⟧.
 
-  Local Lemma fundamental_ty_kn_mut_path_repl p q :
+  #[local] Lemma fundamental_ty_kn_mut_path_repl p q :
     (∀ T1 T2 (Hrew : T1 ~Tp[ p := q ] T2), fundamental_ty_path_repl_def p q T1 T2) ∧
     (∀ K1 K2 (Hrew : K1 ~Kp[ p := q ] K2), fundamental_kn_path_repl_def p q K1 K2).
   Proof.

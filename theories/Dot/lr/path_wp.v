@@ -7,13 +7,11 @@ The defining equations are proven as lemmas [path_wp_pv_eq] and
 From D Require Import iris_prelude iris_extra.det_reduction.
 From D.Dot Require Import dlang_inst rules lr_syn_aux path_repl.
 From D.pure_program_logic Require Import lifting.
+From iris.bi Require Import fixpoint big_op.
 
 Implicit Types
          (L T U : ty) (v : vl) (e : tm) (d : dm) (ds : dms) (p : path)
-         (Γ : ctx) (ρ : env) (Pv : vl → Prop).
-
-Set Suggest Proof Using.
-Set Default Proof Using "Type".
+         (Γ : ctx) (ρ : env) (Pv : vl → Prop) (Σ : gFunctors).
 
 (** A simplified variant of weakest preconditions for path evaluation.
 The difference is that path evaluation is completely pure, and
@@ -22,9 +20,6 @@ vp ("Value from Path") and vq range over results of evaluating paths.
 Below, we define a version internal to Iris, following Iris's total weakest
 precondition. *)
 
-From iris.bi Require Import fixpoint big_op.
-(* From iris.program_logic Require Export weakestpre. *)
-Set Default Proof Using "Type".
 Import uPred.
 
 Canonical Structure pathO := leibnizO path.
@@ -301,18 +296,6 @@ Section path_wp_lemmas.
     iDestruct 1 as (v Hcl) "H". eauto.
   Qed.
 
-  Lemma path_wp_to_wp p φ :
-    path_wp p (λ v, φ v) -∗
-    WP (path2tm p) {{ v, φ v }}.
-  Proof.
-    rewrite path_wp_pure_exec; iDestruct 1 as (v [n Hex]) "H".
-    by wp_pure.
-  Qed.
-
-  Lemma path_wp_pure_to_wp {p v} (Hpwpp : path_wp_pure p (eq v)) :
-    ⊢ WP (path2tm p) {{ w, ⌜ v = w ⌝ }}.
-  Proof. rewrite -path_wp_to_wp. by iIntros "!%". Qed.
-
   #[global] Instance path_wp_timeless p Pv : Timeless (path_wp p (λI v, ⌜Pv v⌝)).
   Proof. rewrite path_wp_pureable. apply _. Qed.
 
@@ -322,4 +305,18 @@ Section path_wp_lemmas.
     rewrite path_wp_pure_exec; iDestruct 1 as (v [n Hp]) "_"; iIntros "!%".
     exact: PureExec_to_terminates.
   Qed.
+
+  Section wp.
+    Lemma path_wp_to_wp p φ :
+      path_wp p (λ v, φ v) -∗
+      WP (path2tm p) {{ v, φ v }}.
+    Proof.
+      rewrite path_wp_pure_exec; iDestruct 1 as (v [n Hex]) "H".
+      by wp_pure.
+    Qed.
+
+    Lemma path_wp_pure_to_wp {p v} (Hpwpp : path_wp_pure p (eq v)) :
+      ⊢ WP (path2tm p) {{ w, ⌜ v = w ⌝ }}.
+    Proof. rewrite -path_wp_to_wp. by iIntros "!%". Qed.
+  End wp.
 End path_wp_lemmas.

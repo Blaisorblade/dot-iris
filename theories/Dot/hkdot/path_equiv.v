@@ -137,7 +137,7 @@ Print hoD *)
     iIntros ">#Hstp !>" (ρ v1 v2) "Hg".
     iApply mlaterN_impl. iIntros "#[HT1 HT2]".
     rewrite /rVMu/=; iSplit; iApply ("Hstp" $! (_ .: ρ) _ _ with "[$Hg]") => //.
-    all: iNext i; asimpl.
+    all: iNext i; cbn.
     iApply (quasi_refl_l with "HT1").
     iApply (quasi_refl_r with "HT2").
   Qed.

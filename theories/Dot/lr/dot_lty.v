@@ -219,6 +219,14 @@ Section dty2clty.
 End dty2clty.
 #[global] Instance : Params (@dty2clty) 3 := {}.
 
+Program Definition cAnd {Σ} (Tds1 Tds2 : clty Σ) : clty Σ :=
+  Clty (Dslty (λI ρ ds, Tds1 ρ ds ∧ Tds2 ρ ds)) (oAnd Tds1 Tds2).
+Next Obligation. intros. by rewrite /= -!clty_def2defs_head. Qed.
+Next Obligation. intros. by rewrite /= -!clty_mono. Qed.
+Next Obligation. intros. by rewrite /= -!clty_commute. Qed.
+
+#[global] Instance : Params (@cAnd) 1 := {}.
+
 Section DefsTypes.
   Context `{HdotG : !dlangG Σ}.
 
@@ -245,13 +253,7 @@ Section DefsTypes.
   #[global] Instance clty_bottom : Bottom (clty Σ) := olty2clty ⊥.
   #[global] Instance clty_inh : Inhabited (clty Σ) := populate ⊥.
 
-  Program Definition cAnd (Tds1 Tds2 : clty Σ) : clty Σ :=
-    Clty (Dslty (λI ρ ds, Tds1 ρ ds ∧ Tds2 ρ ds)) (oAnd Tds1 Tds2).
-  Next Obligation. intros. by rewrite /= -!clty_def2defs_head. Qed.
-  Next Obligation. intros. by rewrite /= -!clty_mono. Qed.
-  Next Obligation. intros. by rewrite /= -!clty_commute. Qed.
-
-  #[global] Instance cAnd_ne : NonExpansive2 cAnd.
+  #[global] Instance cAnd_ne : NonExpansive2 (cAnd (Σ := Σ)).
   Proof. split; rewrite /=; repeat f_equiv; solve_proper_ho. Qed.
   #[global] Instance cAnd_proper : Proper2 cAnd :=
     ne_proper_2 _.
@@ -265,8 +267,6 @@ Section DefsTypes.
     split; [intros ρ ds | intros args ρ v]; apply: (right_id _ bi_and).
   Qed.
 End DefsTypes.
-
-#[global] Instance : Params (@cAnd) 1 := {}.
 
 Implicit Types (T : ty).
 
