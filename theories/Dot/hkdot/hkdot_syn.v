@@ -42,7 +42,8 @@ Section lemmas.
     iExists (λ args, V⟦ T ⟧ args ρ).
     iDestruct (dm_to_type_syn_intro') as "-#$"; first done.
     iApply (sfkind_respects with "[] (HTK Hg)").
-    iIntros "%%".
+    iIntros "!> %%".
+    rewrite /= bi.intuitionistic_intuitionistically.
     by iSplit; iIntros "$".
   Qed.
 
