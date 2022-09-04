@@ -1,6 +1,6 @@
 (** * Substitution lemmas for languages implementing [ValuesSig]. *)
 From iris.program_logic Require Import language.
-From D Require Import prelude asubst_intf.
+From D Require Import prelude numbers asubst_intf.
 
 (** The module type [Sorts] is a "mixin module" that is included directly in
 each language implementing [ValuesSig],
@@ -88,7 +88,7 @@ Lemma eq_n_s_heads {n ρ1 ρ2} : eq_n_s ρ1 ρ2 n → n > 0 → shead ρ1 = shea
 Proof. rewrite /shead => /= HsEq. exact: HsEq. Qed.
 
 Lemma eq_cons v sb1 sb2 n : eq_n_s sb1 sb2 n → eq_n_s (v .: sb1) (v .: sb2) (S n).
-Proof. move => Heqs [//|x] /lt_S_n /Heqs //. Qed.
+Proof. move => Heqs [//|x] /Nat_succ_lt_mono_rev /Heqs //. Qed.
 
 Lemma up_sub_compose_base ρ v : up ρ >> v .: ids = v .: ρ.
 Proof. by rewrite -scons_up_swap /scomp subst_idX. Qed.
@@ -170,7 +170,7 @@ Section to_subst_idsσ_is_id.
 
   Lemma idsσ_eq_ids n : eq_n_s (∞ (idsσ n)) ids n.
   Proof.
-    elim: n => [|n IHn] [|i] // /lt_S_n Hle.
+    elim: n => [|n IHn] [|i] // /Nat_succ_lt_mono_rev Hle.
     rewrite /= to_subst_map_commute // IHn // id_subst //.
   Qed.
 End to_subst_idsσ_is_id.

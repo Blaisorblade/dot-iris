@@ -2,7 +2,7 @@
 Some are used in examples. *)
 From iris.proofmode Require Import proofmode.
 
-From D Require Import iris_prelude swap_later_impl.
+From D Require Import iris_prelude numbers swap_later_impl.
 From D.Dot Require Import rules path_repl.
 From D.Dot Require Export dot_semtypes dsub_lr sub_lr binding_lr.
 
@@ -26,7 +26,7 @@ Section Lemmas.
     Γ s⊨p p : oLaterN j T, i -∗
     Γ s⊨p p : T, i + j.
   Proof.
-    rewrite Nat.add_comm; elim: j i => [//|j IHj] i; rewrite plus_Snm_nSm.
+    rewrite Nat.add_comm; elim: j i => [//|j IHj] i; rewrite Nat_add_succ_r_l.
     by rewrite -(IHj i.+1) -sP_Later.
   Qed.
 

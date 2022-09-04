@@ -6,7 +6,7 @@ well-known, our comments explain our usage.
 *)
 
 From iris.program_logic Require Import language.
-From D Require Import prelude.
+From D Require Import prelude numbers.
 
 (** ** [ValueSig] describes parameters that each D* language must implement.
 For our purposes here, a D* language is
@@ -184,7 +184,7 @@ Module Type SortsSig (Import V : ValuesSig).
     eq_n_s (∞ σ.|[ρ]) (∞ σ >> ρ) (length σ).
   Proof.
     elim: σ => /= [|v σ IHσ] i Hin; first lia; asimpl.
-    case: i Hin => [//|i] /lt_S_n Hin /=. exact: IHσ.
+    case: i Hin => [//|i] /= /Nat_succ_lt_mono_rev. exact: IHσ.
   Qed.
 
   (** [n]-closedness defines when some AST has at most [n] free variables (from [0] to [n - 1]). *)
