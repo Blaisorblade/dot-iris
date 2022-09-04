@@ -251,12 +251,14 @@ Tactic Notation "lrSimpl" "in" constr(iSelP) :=
 Lemma newTypeRef_semTyped Γ :
   ⊢ newTypeRefΓ Γ u⊨ newTypeRefBody : x1 @; "TypeRef".
 Proof.
-  iMod (fundamental_typed (Hx0 Γ)) as (x0_s Hsk) ">#Hx0".
-  iMod (fundamental_subtype (HvT Γ)) as "#HvT".
-  iMod (fundamental_subtype (HvF Γ)) as "#HvF".
-  iMod (fundamental_subtype (Hsublast Γ)) as "#Hsub".
-  iMod loopSemT as "#Hl".
-  unstamp_goal_tm; iIntros "!> %ρ #Hg".
+  iIntros "!>".
+  iDestruct (fundamental_typed (Hx0 Γ)) as "#>#(%x0_s & %Hsk & #>#Hx0)".
+  iDestruct (fundamental_subtype (HvT Γ)) as "#>#HvT".
+  iDestruct (fundamental_subtype (HvF Γ)) as "#>#HvF".
+  iDestruct (fundamental_subtype (Hsublast Γ)) as "#>#Hsub".
+  iDestruct loopSemT as "#>#Hl".
+  iIntros "!>".
+  unstamp_goal_tm. pupd. iIntros "!> %ρ #Hg".
   iSpecialize ("Hx0" with "Hg").
 
   wp_abind; rewrite -wp_value; iSimpl.

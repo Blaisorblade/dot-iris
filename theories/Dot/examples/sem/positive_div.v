@@ -89,18 +89,18 @@ Section helpers.
   Lemma wp_nge m n (Hnge : ¬ m > n) : ⊢ WP m > n {{ w, w ≡ vbool false }}.
   Proof. wp_bin. ev; simplify_eq/=. case_decide; by [|lia]. Qed.
 
-  Lemma setp_value Γ (T : olty Σ) v : Γ s⊨ v : T ⊣⊢ |==> ∀ ρ, sG⟦ Γ ⟧* ρ → T anil ρ v.[ρ].
+  Lemma setp_value Γ (T : olty Σ) v : Γ s⊨ v : T ⊣⊢ <PB> ∀ ρ, sG⟦ Γ ⟧* ρ → T anil ρ v.[ρ].
   Proof.
     rewrite /setp/=; properness => //; iSplit;
       [rewrite wp_value_inv|rewrite -wp_value]; iIntros "#$".
   Qed.
 
-  Lemma setp_value_eq (T : olty Σ) v : (|==> ∀ ρ, T anil ρ v.[ρ]) ⊣⊢ [] s⊨ v : T.
+  Lemma setp_value_eq (T : olty Σ) v : (<PB> ∀ ρ, T anil ρ v.[ρ]) ⊣⊢ [] s⊨ v : T.
   Proof.
-    iSplit.
-    - iIntros ">#H !>" (? _).
+    iSplit; pupd.
+    - iIntros "#H !>" (? _).
       rewrite /= -wp_value'. iApply "H".
-    - iIntros "/= >H !>" (ρ).
+    - iIntros "/= #H !>" (ρ).
       iSpecialize ("H" $! ρ with "[//]").
       by rewrite /= wp_value_inv'.
   Qed.
@@ -117,7 +117,7 @@ Section div_example.
   Lemma wp_if_ge :
     ⊢@{iPropI _} |==> ∀ (n : Z), WP hclose (hmkPosBodyV n) {{ w, ⌜ w =@{vl} n ∧ n > 0 ⌝}}.
   Proof using Type*.
-    iMod loopSemT as "#Hl"; iIntros "!> %n".
+    iDestruct loopSemT as "#>#Hl"; iIntros "!> %n".
     wp_bind (IfCtx _ _).
     wp_bin; ev; simplify_eq/=.
     case_decide; wp_pure; first by auto.
@@ -127,8 +127,8 @@ Section div_example.
   Lemma ty_mkPos :
     ⊢ [] s⊨ hmkPosV : oAll V⟦ 𝐙 ⟧ (olty0 (λI ρ v, ⌜ ∃ n : Z, v = n ∧ n > 0 ⌝)).
   Proof using Type*.
-    rewrite -sT_All_I /setp /= /shead; iMod wp_if_ge as "#Hge".
-    iIntros "!>" (ρ). rewrite /hsubst/hsubst_hoEnvD. rw.
+    rewrite -sT_All_I /setp /= /shead. iMod wp_if_ge as "#Hge".
+    pupd; iIntros "!>" (ρ). rewrite /hsubst/hsubst_hoEnvD. rw.
     iDestruct 1 as %(_ & n & Hw); simplify_eq/=; rewrite Hw.
     iApply wp_wand; [iApply "Hge" | naive_solver].
   Qed.
@@ -142,7 +142,7 @@ Section div_example.
   Close Scope Z_scope.
 
   Lemma sStp_ipos_nat Γ i : ⊢ Γ s⊨ ipos <:[ i ] oInt.
-  Proof. iIntros "!> % _ !%"; rewrite /pos /pure_interp_prim; naive_solver. Qed.
+  Proof. pupd; iIntros "!> % _ !%"; rewrite /pos /pure_interp_prim; naive_solver. Qed.
 
   Lemma posTMem_widen Γ l i : ⊢ Γ s⊨ oTMemL l ipos ipos <:[ i ] oTMemL l ⊥ oInt.
   Proof using Type*.
@@ -184,8 +184,8 @@ Section div_example.
     iApply suD_Cons; [done|iApply suD_posDm_ipos|].
     iApply suD_Cons; [done| iApply suD_Val|iApply suD_Sing; iApply suD_Val];
       iApply (suT_All_I_Strong _ _ _ HctxSub).
-    - unstamp_goal_tm; iMod wp_if_ge as "#Hge".
-      iIntros "!> %ρ [[_ [#Hpos _]] %Hnpos]"; lazy in Hnpos.
+    - pupd; unstamp_goal_tm; iMod wp_if_ge as "#Hge".
+      pupd; iIntros "!> %ρ [[_ [#Hpos _]] %Hnpos]"; lazy in Hnpos.
       case: Hnpos => [n Hw].
       iApply wp_wand; [rewrite /= {}Hw; iApply "Hge" |
         iIntros (v [-> Hnpos])].
@@ -193,8 +193,8 @@ Section div_example.
       iApply (vl_sel_lb with "[] Hpos").
       iIntros "!%"; hnf. naive_solver.
     - iApply suT_All_I.
-      unstamp_goal_tm.
-      iIntros "!> %ρ #[[[_ [Hpos _]] %Hw] Harg]".
+      pupd; unstamp_goal_tm.
+      pupd; iIntros "!> %ρ #[[[_ [Hpos _]] %Hw] Harg]".
       rewrite /shead /stail. iSimpl.
       destruct Hw as [m ->].
       setoid_rewrite path_wp_pv_eq.

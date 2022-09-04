@@ -42,7 +42,7 @@ Section Lemmas.
     (* We're stuck again! *)
     Fail iApply "Hsub".
     Restart. *)
-    rw. iIntros ">#Hsub >#Hp !> %ρ %v #Hg Heq".
+    rw. pupd. iIntros "#Hsub #Hp !> %ρ %v #Hg Heq".
     iSpecialize ("Hp" with "Hg").
     iAssert (▷^i ⟦ T1 ⟧ (v .: ρ) v)%I as "#HT1".
     by iNext i; iDestruct "Heq" as %Heq;
@@ -58,7 +58,7 @@ Section Lemmas.
     Γ ⊨p p : TMu T1, i -∗
     Γ ⊨ TSing p, i <: TMu T2, i.
   Proof.
-    rw. iIntros ">#Hsub >#Hp !> %ρ %v #Hg /= Heq"; iSpecialize ("Hp" with "Hg").
+    rw. pupd. iIntros "#Hsub #Hp !> %ρ %v #Hg /= Heq"; iSpecialize ("Hp" with "Hg").
     iSpecialize ("Hsub" $! ρ v with "[#$Hg] [#]"); iNext i;
       iDestruct "Heq" as %Heq;
       rewrite -(psubst_one_repl Hrepl1, psubst_one_repl Hrepl2) //
@@ -99,10 +99,11 @@ Section Lemmas.
   Proof. rw. rewrite interp_commute_subst. apply sT_Mu_E. Qed.
 
   Lemma suetp_var_lift1 {Γ} x T1 T2 :
-    (Γ s⊨ tv (ids x) : T1 -∗ Γ s⊨ tv (ids x) : T2) ⊢
+    □(Γ s⊨ tv (ids x) : T1 -∗ Γ s⊨ tv (ids x) : T2) ⊢
     Γ su⊨ tv (ids x) : T1 -∗ Γ su⊨ tv (ids x) : T2.
   Proof.
-    iIntros "#Hr #H1"; iMod (suetp_var with "H1") as "{H1} H1"; iModIntro.
+    iIntros "#Hr".
+    rewrite suetp_var. pupd; iIntros "#H1 !>".
     by iExists (tv (ids x)); iSplit; last iApply ("Hr" with "H1").
   Qed.
 

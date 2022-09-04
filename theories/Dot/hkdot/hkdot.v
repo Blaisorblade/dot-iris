@@ -71,7 +71,7 @@ Section gen_lemmas.
   Lemma sstpiK_mono_ctx i Γ {T1 U1 T2 U2 : olty Σ} (K1 K2 : sf_kind Σ)
     (Hsub : ⊢ ∀ ρ, sG⟦Γ⟧*ρ → sstpiK_env i T1 U1 K1 ρ -∗ sstpiK_env i T2 U2 K2 ρ) :
     Γ s⊨ T1 <:[ i ] U1 ∷ K1 ⊢ Γ s⊨ T2 <:[ i ] U2 ∷ K2.
-  Proof. iIntros ">#HT !>" (ρ) "#Hg /=". iApply (Hsub with "Hg (HT Hg)"). Qed.
+  Proof. pupd; iIntros "#HT !>" (ρ) "#Hg /=". iApply (Hsub with "Hg (HT Hg)"). Qed.
 
   #[global] Instance sSkd_proper i :
     Proper3 (sSkd (Σ := Σ) i).
@@ -84,7 +84,7 @@ Section gen_lemmas.
     Γ s⊨ T1 <:[ i ] T2 ∷ K -∗
     S :: Γ s⊨ oShift T1 <:[ i ] oShift T2 ∷ kShift K.
   Proof.
-    iIntros ">#HK !> %ρ /= #[Hg _]".
+    pupd; iIntros "#HK !> %ρ /= #[Hg _]".
     by iApply (sf_kind_proper with "(HK Hg)").
   Qed.
 
@@ -102,7 +102,7 @@ Section gen_lemmas.
     Γ s⊨ K1 <∷[ i ] K2 -∗
     S :: Γ s⊨ kShift K1 <∷[ i ] kShift K2.
   Proof.
-    iIntros ">#HK !> %ρ /= #[Hg _] *".
+    pupd; iIntros "#HK !> %ρ /= #[Hg _] *".
     iApply ("HK" with "Hg").
   Qed.
 
@@ -111,7 +111,7 @@ Section gen_lemmas.
     S1 :: Γ s⊨ T <:[ i ] U ∷ K -∗
     S2 :: Γ s⊨ T <:[ i ] U ∷ K.
   Proof.
-    iIntros ">#HsubS >#HJ !> %ρ /= #[Hg HS]".
+    pupd; iIntros "#HsubS #HJ !> %ρ /= #[Hg HS]".
     iApply ("HJ" $! ρ with "[$Hg]").
     iApply ("HsubS" $! ρ with "[$Hg $HS] HS").
   Qed.
@@ -135,7 +135,7 @@ Section gen_lemmas.
     S1 :: Γ s⊨ K1 <∷[ i ] K2 -∗
     S2 :: Γ s⊨ K1 <∷[ i ] K2.
   Proof.
-    iIntros ">#HsubS >#HJ !> %ρ /= #[Hg HS] *".
+    pupd; iIntros "#HsubS #HJ !> %ρ /= #[Hg HS] *".
     iApply ("HJ" $! ρ with "[$Hg]").
     iApply ("HsubS" $! ρ with "[$Hg $HS] HS").
   Qed.
@@ -158,20 +158,21 @@ Section gen_lemmas.
     ∀ ρ, sG⟦ Γ ⟧* ρ → ▷^i (oClose T1 ρ ⊆ oClose T2 ρ).
   Proof.
     iSplit.
-    - iIntros "#Hsub %ρ Hg".
-      iDestruct (sf_star_eq with "(Hsub Hg)") as "{Hsub} Hsub".
-      by iApply "Hsub".
-    - iIntros "#Hsub %ρ #Hg"; rewrite sf_star_eq /=.
-      iApply ("Hsub" with "Hg").
+    - iIntros "#Hsub %ρ #Hg".
+      iDestruct (sf_star_eq with "(Hsub Hg)") as "{Hsub Hg} #Hsub".
+      iIntros "!>". iApply "Hsub".
+    - iIntros "#Hsub %ρ #Hg". rewrite sf_star_eq /=.
+      iSpecialize ("Hsub" with "Hg").
+      by iNext.
   Qed.
 
   Lemma ksubtyping_equiv i Γ T1 T2 :
     Γ s⊨ T1 <:[ i ] T2 ∷ sf_star ⊣⊢
-    |==> ∀ ρ, sG⟦ Γ ⟧* ρ → ▷^i (oClose T1 ρ ⊆ oClose T2 ρ).
-  Proof. rewrite /sstpiK; f_equiv. apply ksubtyping_equiv'. Qed.
+    <PB> ∀ ρ, sG⟦ Γ ⟧* ρ → ▷^i (oClose T1 ρ ⊆ oClose T2 ρ).
+  Proof. by rewrite /sstpiK ksubtyping_equiv'. Qed.
 
   Lemma ksubtyping_spec ρ i Γ T1 T2 :
-    sstpiK' i Γ T1 T2 sf_star -∗
+    □ sstpiK' i Γ T1 T2 sf_star -∗
     sG⟦ Γ ⟧* ρ -∗
     ▷^i (oClose T1 ρ ⊆ oClose T2 ρ).
   Proof.
@@ -179,29 +180,31 @@ Section gen_lemmas.
   Qed.
 
   Lemma ksubtyping_intro i Γ (T1 T2 : oltyO Σ) :
-    (|==> ∀ ρ, sG⟦ Γ ⟧* ρ →
+    (<PB> ∀ ρ, sG⟦ Γ ⟧* ρ →
     ∀ v, ▷^i (oClose T1 ρ v → oClose T2 ρ v)) -∗
     Γ s⊨ T1 <:[ i ] T2 ∷ sf_star.
   Proof.
-    apply equiv_entails_1_1. rewrite ksubtyping_equiv; properness; first done.
+    apply equiv_entails_1_1.
+    rewrite ksubtyping_equiv; properness; first done.
     by rewrite -laterN_forall.
   Qed.
 
   Lemma ksubtyping_intro_swap i Γ (T1 T2 : oltyO Σ) :
-    (|==> ∀ ρ, sG⟦ Γ ⟧* ρ →
+    (<PB> ∀ ρ, sG⟦ Γ ⟧* ρ →
     ∀ v, ▷^i oClose T1 ρ v → ▷^i oClose T2 ρ v) -∗
     Γ s⊨ T1 <:[ i ] T2 ∷ sf_star.
   Proof using HswapProp.
-    rewrite -ksubtyping_intro; iIntros ">#Hsub !> %ρ #Hg *".
+    rewrite -ksubtyping_intro; pupd; iIntros "#Hsub !> %ρ #Hg *".
     iApply (impl_laterN with "(Hsub Hg)").
   Qed.
 
   Lemma kinding_intro Γ i (L T U : oltyO Σ) :
-    (|==> ∀ ρ, sG⟦ Γ ⟧* ρ →
+    (<PB> ∀ ρ, sG⟦ Γ ⟧* ρ →
     ▷^i (oClose L ρ ⊆ oClose T ρ ⊆ oClose U ρ)) -∗
     Γ s⊨ T ∷[ i ] sf_kintv L U.
   Proof.
-    iIntros ">#Hsub !>" (ρ); rewrite /= sr_kintv_refl /=. iApply "Hsub".
+    pupd; iIntros "#Hsub !> %ρ #Hg". rewrite /= sr_kintv_refl /=.
+    by iSpecialize ("Hsub" with "Hg"); iNext.
   Qed.
 
   (** * Prefixes: K for Kinding, KStp for kinded subtyping, Skd for subkinding. *)
@@ -209,14 +212,14 @@ Section gen_lemmas.
   Lemma sK_Sing Γ (T : oltyO Σ) i :
     ⊢ Γ s⊨ T ∷[ i ] sf_sngl T.
   Proof.
-    rewrite -kinding_intro; iIntros "!> %ρ _". by rewrite -subtype_refl.
+    rewrite -kinding_intro; pupd; iIntros "!> %ρ _". by rewrite -subtype_refl.
   Qed.
 
   Lemma sKStp_Intv Γ (T1 T2 L U : oltyO Σ) i :
     Γ s⊨ T1 <:[i] T2 ∷ sf_kintv L U -∗
     Γ s⊨ T1 <:[i] T2 ∷ sf_kintv T1 T2.
   Proof.
-    iIntros ">#Hs !> %ρ Hg"; iDestruct ("Hs" with "Hg") as "{Hs} (_ & #H & _)".
+    pupd; iIntros "#Hs !> %ρ Hg"; iDestruct ("Hs" with "Hg") as "{Hs} (_ & #H & _)".
     rewrite /= /sr_kintv; iNext i. iDestruct "H" as "#$".
     by rewrite -!subtype_refl.
   Qed.
@@ -224,7 +227,7 @@ Section gen_lemmas.
   Lemma sK_Star Γ (T : oltyO Σ) i :
     ⊢ Γ s⊨ T ∷[ i ] sf_star.
   Proof.
-    rewrite -kinding_intro; iIntros "!> %ρ _ !>".
+    rewrite -kinding_intro; pupd; iIntros "!> %ρ _ !>".
     by iSplit; iIntros "%v /="; [iIntros "[]"|iIntros "_"].
   Qed.
 
@@ -234,7 +237,7 @@ Section gen_lemmas.
     Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ T1 <:[ i ] T2 ∷ K2.
   Proof.
-    iIntros ">#H1 >#Hsub !> %ρ #Hg". iApply ("Hsub" with "Hg (H1 Hg)").
+    pupd; iIntros "#H1 #Hsub !> %ρ #Hg". iApply ("Hsub" with "Hg (H1 Hg)").
   Qed.
 
   (** Kind subsumption (for kinding). *)
@@ -253,7 +256,7 @@ Section gen_lemmas.
     oLaterN i (oShift S) :: Γ s⊨ T1 <:[i] T2 ∷ K -∗
     Γ s⊨ oLam T1 <:[i] oLam T2 ∷ sf_kpi S K.
   Proof using HswapProp.
-    iIntros ">#HTK !> %ρ #Hg * /=" (arg).
+    pupd; iIntros "#HTK !> %ρ #Hg * /=" (arg).
     rewrite -impl_laterN.
     iIntros "Hs".
     iSpecialize ("HTK" $! (arg .: ρ) with "[$Hg $Hs]").
@@ -271,7 +274,7 @@ Section gen_lemmas.
     Γ s⊨ U1 <:[ i ] U2 ∷ sf_star -∗
     Γ s⊨ sf_kintv L1 U1 <∷[ i ] sf_kintv L2 U2.
   Proof.
-    iIntros ">#HsubL >#HsubU !> %ρ #Hg /=" (T1 T2).
+    pupd; iIntros "#HsubL #HsubU !> %ρ #Hg /=" (T1 T2).
     iPoseProof (ksubtyping_spec with "HsubL Hg") as "{HsubL} HsubL".
     iPoseProof (ksubtyping_spec with "HsubU Hg") as "{HsubU Hg} HsubU".
     iNext i; iIntros "#(HsubL1 & $ & HsubU1)"; iSplit.
@@ -284,17 +287,17 @@ Section gen_lemmas.
     oLaterN i (oShift S2) :: Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ sf_kpi S1 K1 <∷[ i ] sf_kpi S2 K2.
   Proof using HswapProp.
-    iIntros ">#HsubS >#HsubK !> %ρ #Hg /=".
+    pupd; iIntros "#HsubS #HsubK !> %ρ #Hg /=".
     iPoseProof (ksubtyping_spec with "HsubS Hg") as "{HsubS} HsubS".
-    iAssert (∀ arg : vl, let ρ' := arg .: ρ in
+    iAssert ( □∀ arg : vl, let ρ' := arg .: ρ in
             ▷^i (oClose S2 ρ arg → ∀ T1 T2 : hoLtyO Σ,
             K1 ρ' T1 T2 → K2 ρ' T1 T2))%I as
             "{HsubK} #HsubK". {
-      iIntros "%arg"; rewrite -mlaterN_impl.
+      iIntros "%arg !>"; rewrite -mlaterN_impl.
       iIntros "#HS2 %T1 %T2"; rewrite -mlaterN_impl; iIntros "HK1".
       iApply ("HsubK" $! (arg .: ρ) with "[$Hg $HS2] HK1").
     }
-    iIntros (T1 T2); iNext i; iIntros "#HTK1 * #HS".
+    iIntros (T1 T2); iNext i. iIntros "#HTK1 * #HS".
     iSpecialize ("HsubK" $! arg with "HS").
     iApply ("HsubK" with "(HTK1 (HsubS HS))").
   Qed.
@@ -303,14 +306,14 @@ Section gen_lemmas.
   prove them anyway, to show they hold regardless of extensions. *)
   Lemma sSkd_Refl Γ i (K : sf_kind Σ) :
     ⊢ Γ s⊨ K <∷[ i ] K.
-  Proof. iIntros "!> %ρ Hg * !> $". Qed.
+  Proof. pupd; iIntros "!> %ρ Hg * !> $". Qed.
 
   Lemma sSkd_Trans Γ i (K1 K2 K3 : sf_kind Σ) :
     Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ K2 <∷[ i ] K3 -∗
     Γ s⊨ K1 <∷[ i ] K3.
   Proof.
-    iIntros ">#Hs1 >#Hs2 !> %ρ #Hg *".
+    pupd; iIntros "#Hs1 #Hs2 !> %ρ #Hg *".
     iSpecialize ("Hs1" with "Hg"); iSpecialize ("Hs2" with "Hg"); iNext i.
     iIntros "{Hg} HK1". iApply ("Hs2" with "(Hs1 HK1)").
   Qed.
@@ -337,7 +340,7 @@ Section gen_lemmas.
     (HU : ∀ arg args ρ, envApply U2 ρ (acons arg args) ≡ envApply U1 ρ (acons arg args)) :
     Γ s⊨ T1 <:[ i ] U1 ∷ sf_kpi S K ⊢ Γ s⊨ T2 <:[ i ] U2 ∷ sf_kpi S K.
   Proof.
-    apply sstpiK_mono_ctx; iIntros "%ρ Hg HK"; iNext i; iIntros "%arg #HS".
+    apply sstpiK_mono_ctx; iIntros "%ρ #Hg #HK"; iNext i; iIntros "%arg #HS".
     by iApply (sf_kind_proper with "(HK HS)") => args; rewrite /acurry.
   Qed.
 
@@ -383,7 +386,7 @@ Section gen_lemmas.
     Γ s⊨ T2 <:[ i ] T3 ∷ K -∗
     Γ s⊨ T1 <:[ i ] T3 ∷ K.
   Proof.
-    iIntros ">#Hs1 >#Hs2 !> %ρ #Hg".
+    pupd; iIntros "#Hs1 #Hs2 !> %ρ #Hg".
     iApply (sf_kind_sub_trans with "(Hs1 Hg) (Hs2 Hg)").
   Qed.
 
@@ -392,17 +395,17 @@ Section gen_lemmas.
 
   Lemma sKStp_Top Γ (T : oltyO Σ) i :
     ⊢ Γ s⊨ T <:[ i ] ⊤ ∷ sf_star.
-  Proof. rewrite -ksubtyping_intro. iIntros "!> %ρ * _ * !> _ //". Qed.
+  Proof. rewrite -ksubtyping_intro. pupd; iIntros "!> %ρ * _ * !> _ //". Qed.
   Lemma sKStp_Bot Γ (T : oltyO Σ) i :
     ⊢ Γ s⊨ ⊥ <:[ i ] T ∷ sf_star.
-  Proof. rewrite -ksubtyping_intro; iIntros "!> %ρ * _ * !> []". Qed.
+  Proof. rewrite -ksubtyping_intro; pupd; iIntros "!> %ρ * _ * !> []". Qed.
 
   (* XXX <:-..-U *)
   Lemma sKStp_IntvU {Γ T1 T2 L U i} :
     Γ s⊨ T1 <:[i] T2 ∷ sf_kintv L U -∗
     Γ s⊨ T2 <:[i] U ∷ sf_star.
   Proof.
-    rewrite -ksubtyping_intro; iIntros ">#HK !> * Hg *".
+    rewrite -ksubtyping_intro; pupd; iIntros "#HK !> * Hg *".
     iDestruct ("HK" with "Hg") as "[_ [_ Hsub]]".
     iNext i; iApply "Hsub".
   Qed.
@@ -418,7 +421,7 @@ Section gen_lemmas.
     Γ s⊨ T1 <:[i] T2 ∷ sf_kintv L U -∗
     Γ s⊨ L <:[i] T1 ∷ sf_star.
   Proof.
-    rewrite -ksubtyping_intro; iIntros ">#HK !> * Hg *".
+    rewrite -ksubtyping_intro; pupd; iIntros "#HK !> * Hg *".
     iDestruct ("HK" with "Hg") as "[Hsub _]".
     iNext i; iApply "Hsub".
   Qed.
@@ -464,7 +467,7 @@ Section dot_types.
     oLaterN i T :: Γ s⊨p p : U, i -∗
     Γ s⊨p p.|[v/] : U.|[v/], i.
   Proof.
-    iIntros ">#Hrepl >#H !>" (ρ) "#Hg /=".
+    pupd; iIntros "#Hrepl #H !>" (ρ) "#Hg /=".
     iSpecialize ("Hrepl" with "Hg"); rewrite path_wp_pv_eq.
     rewrite hsubst_comp -subst_swap_base.
     iSpecialize ("H" $! (v.[ρ] .: ρ) with "[$Hg $Hrepl]").
@@ -479,7 +482,7 @@ Section dot_types.
     oLaterN i V :: Γ s⊨ T1 <:[ i ] T2 ∷ K -∗
     Γ s⊨ T1.|[v/] <:[ i ] T2.|[v/] ∷ K.|[v/].
   Proof.
-    iIntros ">#Hrepl >#H !>" (ρ) "#Hg /=".
+    pupd; iIntros "#Hrepl #H !>" (ρ) "#Hg /=".
     iSpecialize ("Hrepl" with "Hg"); rewrite path_wp_pv_eq -subst_swap_base.
     iSpecialize ("H" $! (v.[ρ] .: ρ) with "[$Hg $Hrepl]").
     iApply (sf_kind_proper with "H") => args w /=;
@@ -491,7 +494,7 @@ Section dot_types.
     Γ s⊨p p : S, i -∗
     Γ s⊨ oTApp T1 p <:[i] oTApp T2 p ∷ kpSubstOne p K.
   Proof.
-    iIntros ">#HTK >#Hp !> %ρ #Hg".
+    pupd; iIntros "#HTK #Hp !> %ρ #Hg".
     iApply (strong_path_wp_wand with "(Hp Hg)").
     iIntros (v Hal%alias_paths_pv_eq_1) "{Hp} #Hv".
     iApply (sf_kind_proper with "(HTK Hg Hv)") => args w /=;
@@ -510,9 +513,10 @@ Section dot_types.
     Γ s⊨p pv v : S, i -∗
     Γ s⊨ oTAppV T1 v <:[i] oTAppV T2 v ∷ K.|[v/].
   Proof.
-    rewrite -!oTApp_pv; iIntros "#HTK #Hv".
-    iPoseProof (sKStp_App with "HTK Hv") as ">Happ".
-    iIntros "!> %ρ #Hg"; rewrite kpSubstOne_eq.
+    rewrite -!oTApp_pv.
+    pupd'; iIntros "#HTK #Hv !>".
+    iPoseProof (sKStp_App with "HTK Hv") as "#>#Happ".
+    iIntros "!>!> %ρ #Hg"; rewrite kpSubstOne_eq.
     iApply ("Happ" with "Hg").
   Qed.
 
@@ -531,8 +535,10 @@ Section dot_types.
     oLaterN i (oShift S) :: Γ s⊨ T ∷[i] K -∗
     Γ s⊨ oTApp (oLam T) p =[i] T .sTp[ p /] ∷ kpSubstOne p K.
   Proof using HswapProp.
-    iIntros "#Hp #HK"; iApply sKEq_Refl. apply sTEq_Beta.
-    rewrite sK_Lam. iApply (sK_App with "HK Hp").
+    iIntros "#Hp #HK". iApply sKEq_Refl. apply sTEq_Beta.
+    (* rewrite sK_Lam. *)
+    iDestruct (sK_Lam with "HK") as "{HK}#HK".
+    iApply (sK_App with "HK Hp").
   Qed.
 
   Lemma sKEq_BetaV Γ S T (K : sf_kind Σ) i v :
@@ -544,14 +550,17 @@ Section dot_types.
     (* rewrite -oTApp_pv -opSubst_pv_eq kpSubstOne_eq.
     apply sKEq_Beta. *)
     iIntros "#Hv #HK"; iApply sKEq_Refl. apply sTEq_BetaV.
-    rewrite sK_Lam; iApply (sK_AppV with "HK Hv").
+    (* rewrite sK_Lam. *)
+    iDestruct (sK_Lam with "HK") as "{HK}#HK".
+
+    iApply (sK_AppV with "HK Hv").
   Qed.
 
 
   Lemma sstpiK_star_to_sstp Γ i T1 T2 :
     Γ s⊨ T1 <:[ i ] T2 ∷ sf_star ⊢ Γ s⊨ T1 , i <: T2 , i.
   Proof.
-    iIntros ">#Hsub !> %ρ %v #Hg".
+    pupd; iIntros "#Hsub !> %ρ %v #Hg".
     iDestruct (ksubtyping_spec with "Hsub Hg") as "{Hsub Hg} Hsub".
     rewrite -laterN_impl. iNext i. iApply ("Hsub" $! v).
   Qed.
@@ -560,7 +569,7 @@ Section dot_types.
     Γ s⊨ T1 <:[ i ] T2 ∷ sf_star ⊣⊢ Γ s⊨ T1 , i <: T2 , i.
   Proof using HswapProp.
     iSplit; first iApply sstpiK_star_to_sstp.
-    rewrite -ksubtyping_intro_swap /=. iIntros ">#Hsub !> %ρ Hg *".
+    rewrite -ksubtyping_intro_swap /=. pupd; iIntros "#Hsub !> %ρ Hg *".
     iApply ("Hsub" with "Hg").
   Qed.
 
@@ -573,7 +582,7 @@ Section dot_types.
     Γ s⊨ K1 <∷[ i ] K2 -∗
     Γ s⊨ oTMemK l K1 <:[ i ] oTMemK l K2 ∷ sf_star.
   Proof.
-    rewrite -ksubtyping_intro; iIntros ">#HK !> %ρ Hg *".
+    rewrite -ksubtyping_intro; pupd; iIntros "#HK !> %ρ Hg *".
     iSpecialize ("HK" with "Hg"); iNext i.
     iDestruct 1 as (d Hld) "Hφ"; iExists d; iFrame (Hld).
     iDestruct "Hφ" as (φ) "[Hlφ #HK1]"; iExists φ; iFrame "Hlφ".
@@ -583,7 +592,7 @@ Section dot_types.
   Lemma sKStp_TMem_AnyKind Γ l (K : sf_kind Σ) i :
     ⊢ Γ s⊨ oTMemK l K <:[ i ] oTMemAnyKind l ∷ sf_star.
   Proof.
-    rewrite -ksubtyping_intro; iIntros "!> %ρ #Hg * !>".
+    rewrite -ksubtyping_intro; pupd; iIntros "!> %ρ #Hg * !>".
     iDestruct 1 as (d Hl φ) "[Hl _]".
     iExists d; iFrame (Hl); iExists φ; iFrame "Hl".
   Qed.
@@ -604,11 +613,12 @@ Section dot_types.
     s ↝[ σ ] T -∗
     Γ s⊨ { l := dtysem σ s } : cTMemK l K.
   Proof.
-    rewrite sdtp_eq'; iIntros ">#HTK"; iDestruct 1 as (φ Hγφ) "#Hγ".
-    iIntros "!>" (ρ Hpid) "Hg"; iExists (hoEnvD_inst (σ.|[ρ]) φ).
+    rewrite sdtp_eq'. iIntros "#HTK (%φ & %Hγφ & #Hγ) !>".
+    iMod "HTK" as "#HTK".
+    iIntros "!>!>" (ρ Hpid) "Hg"; iExists (hoEnvD_inst (σ.|[ρ]) φ).
     iDestruct (dm_to_type_intro with "Hγ") as "-#$"; first done.
     iApply (sf_kind_proper' with "(HTK Hg)") => args v /=.
-    f_equiv; symmetry; exact: Hγφ.
+    do 1!f_equiv; symmetry. exact: Hγφ.
   Qed.
 
   Lemma oSel_equiv_intro ρ p v l d1 ψ1
@@ -616,7 +626,7 @@ Section dot_types.
     (Hl1 : v ,, l ↘ d1) :
     d1 ↗ ψ1 ⊢ hoLty_equiv (packHoLtyO ψ1) (envApply (oSel p l) ρ).
   Proof.
-    iIntros "#Hl1" (args w).
+    iIntros "#Hl1 %args %w".
     rewrite /= alias_paths_elim_eq // path_wp_pv_eq.
     iSplit; first by iIntros "H"; iExists d1, ψ1; iFrame (Hl1) "Hl1".
     iDestruct 1 as (d2 ψ2 Hl2) "[Hl2 Hw]"; objLookupDet.
@@ -628,7 +638,7 @@ Section dot_types.
     Γ s⊨p p : oTMemK l K, i -∗
     Γ s⊨ oSel p l ∷[i] K.
   Proof.
-    iIntros ">#Hp !> %ρ Hg"; iSpecialize ("Hp" with "Hg"); iNext i.
+    pupd; iIntros "#Hp !> %ρ Hg"; iSpecialize ("Hp" with "Hg"); iNext i.
     rewrite path_wp_eq.
     iDestruct "Hp" as (v Hal%alias_paths_pv_eq_1 d1 Hl1 ψ1) "[#Hl1 HK]".
     iApply (sfkind_respects with "[] HK").
@@ -641,7 +651,7 @@ Section dot_types.
     Γ s⊨ T1 ∷[i] K -∗
     Γ s⊨ T1 <:[i] T2 ∷ K.
   Proof.
-    iIntros ">#Hrepl >#Hal >#HK !> %ρ #Hg".
+    pupd; iIntros "#Hrepl #Hal #HK !> %ρ #Hg".
     iSpecialize ("Hal" with "Hg"); iSpecialize ("HK" with "Hg"); iNext i.
     iDestruct "Hal" as %Hal%alias_paths_simpl.
     iApply (sf_kind_sub_internal_proper with "[] [] HK").
@@ -656,7 +666,7 @@ Section dot_types.
     Γ s⊨ T1 <:[i] T2 ∷ K1 -∗
     Γ s⊨ T1 <:[i] T2 ∷ K2.
   Proof.
-    iIntros ">#Hrepl >#Hal >#HK !> %ρ #Hg".
+    pupd; iIntros "#Hrepl #Hal #HK !> %ρ #Hg".
     iSpecialize ("Hal" with "Hg"); iSpecialize ("HK" with "Hg"). iNext i.
     iDestruct "Hal" as %Hal%alias_paths_simpl.
     iSpecialize ("Hrepl" $! _ _ _ Hal).
@@ -945,8 +955,11 @@ Section dot_experimental_kinds.
     (* This goal is false if T uses singleton types — say T = λ x. x.type,
     that is, [oLam (oSing (pv (ids 0)))]. *)
   Proof.
-    rewrite /sstpiK.
-    iIntros "/= >#HT [>#Hsub1 >#Hsub2] !> %ρ #Hg"; iSpecialize ("HT" with "Hg");
+    rewrite /sstpiK/=.
+    (* TODO workaround [pupd] limitation *)
+    iIntros "A [B C]"; iRevert "A B C"; pupd.
+    iIntros "#HT #Hsub1 #Hsub2 !> %ρ #Hg".
+    iSpecialize ("HT" with "Hg");
       iSpecialize ("Hsub1" with "Hg"); iSpecialize ("Hsub2" with "Hg");
       iNext i.
     rewrite /sr_kintv/=.
@@ -1018,13 +1031,14 @@ Section dot_experimental_kinds.
   So if [T <: { A :: L .. U }] and [isSing T],
   then we can't conclude [▷ U <: T#A]; but if T is an actual singleton, we can.
    *)
-  Definition isSing (T : lty Σ) := (∀ v1 v2, T v1 → T v2 → ⌜ v1 = v2 ⌝)%I.
+  Definition isSing (T : lty Σ) : iProp Σ :=
+    □ ∀ v1 v2, T v1 → T v2 → ⌜ v1 = v2 ⌝.
 
   Lemma isSing_respects_hoLty_equiv {T1 T2 : hoLtyO Σ} args :
-    hoLty_equiv T1 T2 -∗ isSing (T1 args) -∗ isSing (T2 args).
+    □ hoLty_equiv T1 T2 -∗ isSing (T1 args) -∗ isSing (T2 args).
   Proof using Type*.
     rewrite /isSing /=.
-    iIntros "#Heq #HS /= %v1 %v2 #H1 #H2".
+    iIntros "#Heq #HS /= !> %v1 %v2 #H1 #H2".
     iApply ("HS" with "(Heq H1) (Heq H2)").
   Qed.
 

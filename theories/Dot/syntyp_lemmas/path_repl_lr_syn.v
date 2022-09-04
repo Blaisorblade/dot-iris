@@ -49,7 +49,7 @@ Section path_repl.
   Lemma P_Mu_E {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : TMu T, i -∗ Γ ⊨p p : T', i.
   Proof.
-    rw. rewrite sP_Mu_E; iIntros ">#Hp !> %ρ Hg /=".
+    rw. rewrite sP_Mu_E. pupd; iIntros "#Hp !> %ρ Hg /=".
     iApply (strong_path_wp_wand with "(Hp Hg)"); iIntros "**".
     by rewrite (sem_psubst_one_eq Hrepl) ?alias_paths_pv_eq_1.
   Qed.
@@ -57,7 +57,7 @@ Section path_repl.
   Lemma P_Mu_I {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : T', i -∗ Γ ⊨p p : TMu T, i.
   Proof.
-    rw. rewrite -sP_Mu_I; iIntros ">#Hp !> %ρ Hg /=".
+    rw. rewrite -sP_Mu_I. pupd; iIntros "#Hp !> %ρ Hg /=".
     iApply (strong_path_wp_wand with "(Hp Hg)"); iIntros "**".
     by rewrite (sem_psubst_one_eq Hrepl) ?alias_paths_pv_eq_1.
   Qed.
@@ -67,7 +67,7 @@ Section path_repl.
   Lemma P_Mu_E' {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : TMu T, i -∗ Γ ⊨p p : T', i.
   Proof.
-    rw. iIntros ">#Hp !> %ρ Hg /=".
+    rw. pupd; iIntros "#Hp !> %ρ Hg /=".
     iApply (strong_path_wp_wand with "(Hp Hg)"); iIntros "**".
     by rewrite oMu_eq -(psubst_one_repl Hrepl) ?alias_paths_pv_eq_1.
   Qed.
@@ -75,7 +75,7 @@ Section path_repl.
   Lemma P_Mu_I' {Γ T T' p i} (Hrepl : T .Tp[ p /]~ T') :
     Γ ⊨p p : T', i -∗ Γ ⊨p p : TMu T, i.
   Proof.
-    rw. iIntros ">#Hp !> %ρ Hg /=".
+    rw. pupd; iIntros "#Hp !> %ρ Hg /=".
     iApply (strong_path_wp_wand with "(Hp Hg)"); iIntros "**".
     by rewrite oMu_eq -(psubst_one_repl Hrepl) ?alias_paths_pv_eq_1.
   Qed.
@@ -86,8 +86,8 @@ Section path_repl.
     (*────────────────────────────────────────────────────────────*)
     Γ ⊨ tapp e1 (path2tm p2) : T2'.
   Proof.
-    rw. iIntros ">He1 >#Hp2".
-    iDestruct (sT_All_E_p with "He1 Hp2") as ">Hep"; iIntros "!> %ρ #Hg".
+    rw. pupd'; iIntros "#He1 #Hp2 !>".
+    iDestruct (sT_All_E_p with "He1 Hp2") as "#>#Hep". iIntros "!> !> %ρ #Hg".
     iDestruct (path_wp_eq with "(Hp2 Hg)") as (pw Hal%alias_paths_pv_eq_1) "_ /=".
     iApply (wp_wand with "(Hep Hg)"); iIntros "{Hg} %v #Hv".
     iApply (sem_psubst_one_eq Hrepl Hal with "Hv").

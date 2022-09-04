@@ -147,13 +147,14 @@ Section tmem_unstamped_lemmas.
   Lemma suD_Typ_Gen {l Γ fakeT s σ} {T : olty Σ} :
     s ↝[ σ ] T -∗ Γ su⊨ { l := dtysyn fakeT } : cTMem l (oLater T) (oLater T).
   Proof.
-    iIntros "#Hs"; iModIntro. iExists (dtysem σ s).
+    pupd; iIntros "#Hs !>". iExists (dtysem σ s).
     iSplit; first done; iApply (sD_Typ with "Hs").
   Qed.
 
   Lemma suD_Typ {l σ Γ fakeT} {T : olty Σ} (HclT : coveringσ σ T) :
     ⊢ Γ su⊨ { l := dtysyn fakeT } : cTMem l (oLater T) (oLater T).
   Proof.
+    iModIntro.
     iMod (leadsto_envD_equiv_alloc HclT) as (s) "#Hs".
     iApply (suD_Typ_Gen with "Hs").
   Qed.
@@ -167,7 +168,7 @@ Section tmem_unstamped_lemmas.
     Γ su⊨ { l := d1 } : T -∗
     Γ su⊨ { l := d2 } : T.
   Proof.
-    iIntros "#H1"; iMod "H1" as (d1s Hsk1) "H1"; iModIntro.
+    pupd; iIntros "#(%d1s & %Hsk1 & H1) !>".
     iExists d1s; iSplit; last done; iIntros "!%".
     apply /same_skel_trans_dm /Hsk1 /same_skel_symm_dm /Hsk.
   Qed.
@@ -178,7 +179,7 @@ Section tmem_unstamped_lemmas.
     Γ su⊨ { l := d } : cTMem l L1 U1 -∗
     Γ su⊨ { l := d } : cTMem l L2 U2.
   Proof.
-    iIntros "#Hsub1 #Hsub2 #H1"; iMod "H1" as (d1s Hsk1) "#H1"; iModIntro.
+    pupd; iIntros "#Hsub1 #Hsub2 #(%d1s & %Hsk1 & H1) !>".
     by iExists d1s; iSplit; last iApply (sD_Typ_Stp with "Hsub1 Hsub2 H1").
   Qed.
 
@@ -210,16 +211,14 @@ Section unstamped_lemmas.
     (*────────────────────────────────────────────────────────────*)
     Γ su⊨ tapp e1 e2 : T2.
   Proof.
-    iIntros "#H1 #H2".
-    iMod "H1" as (e1s Hsk1) "H1"; iMod "H2" as (e2s Hsk2) "H2"; iModIntro.
+    pupd; iIntros "#(%e1s & %Hsk1 & H1) #(%e2s & %Hsk2 & H2) !>".
     by iExists (tapp e1s e2s); iSplit; last iApply (sT_All_E with "H1 H2").
   Qed.
 
   Lemma uT_All_E {Γ e1 e2 T1 T2} :
     Γ u⊨ e1 : TAll T1 (shift T2) -∗ Γ u⊨ e2 : T1 -∗ Γ u⊨ tapp e1 e2 : T2.
   Proof.
-    iIntros "#H1 #H2".
-    iMod "H1" as (e1s Hsk1) "H1"; iMod "H2" as (e2s Hsk2) "H2"; iModIntro.
+    pupd; iIntros "#(%e1s & %Hsk1 & H1) #(%e2s & %Hsk2 & H2) !>".
     by iExists (tapp e1s e2s); iSplit; last iApply (T_All_E with "H1 H2").
   Qed.
 
@@ -229,7 +228,7 @@ Section unstamped_lemmas.
     (*────────────────────────────────────────────────────────────*)
     Γ su⊨ tapp e1 (path2tm p2) : T2 .sTp[ p2 /].
   Proof.
-    iIntros "#H1 #H2"; iMod "H1" as (e1s Hsk1) "H1"; iModIntro.
+    pupd; iIntros "#(%e1s & %Hsk1 & H1) #H2 !>".
     by iExists (tapp e1s (path2tm p2)); iSplit; last iApply (sT_All_E_p with "H1 H2").
   Qed.
 
@@ -239,7 +238,7 @@ Section unstamped_lemmas.
     (*────────────────────────────────────────────────────────────*)
     Γ u⊨ tapp e1 (path2tm p2) : T2'.
   Proof.
-    iIntros "#H1 #H2"; iMod "H1" as (e1s Hsk1) "H1"; iModIntro.
+    pupd; iIntros "#(%e1s & %Hsk1 & H1) #H2 !>".
     by iExists (tapp e1s (path2tm p2)); iSplit; last iApply (T_All_E_p with "H1 H2").
   Qed.
 
@@ -249,7 +248,7 @@ Section unstamped_lemmas.
     (*────────────────────────────────────────────────────────────*)
     Γ su⊨ tapp e1 (tv v2) : T2.|[ v2 /].
   Proof.
-    iIntros "#H1 #H2"; iMod "H1" as (e1s Hsk1) "H1"; iModIntro.
+    pupd; iIntros "#(%e1s & %Hsk1 & H1) #H2 !>".
     iExists (tapp e1s (tv v2)); iSplit; last iApply (sT_All_Ex with "H1").
     done.
     by iApply (sT_Path (p := pv v2)).
@@ -259,7 +258,7 @@ Section unstamped_lemmas.
     Γ su⊨ e : oVMem l T -∗
     Γ su⊨ tproj e l : T.
   Proof.
-    iIntros "#H1"; iMod "H1" as (e1s Hsk1) "H1"; iModIntro.
+    pupd; iIntros "#(%e1s & %Hsk1 & H1) !>".
     by iExists (tproj e1s l); iSplit; last iApply (sT_Obj_E with "H1").
   Qed.
 
@@ -274,7 +273,7 @@ Section unstamped_lemmas.
     (*─────────────────────────*)
     Γ su⊨ tv (vabs e) : oAll T1 T2.
   Proof.
-    iIntros "#H1"; iMod "H1" as (e1s Hsk1) "H1"; iModIntro.
+    pupd; iIntros "#(%e1s & %Hsk1 & H1) !>".
     by iExists (tv (vabs e1s)); iSplit; last iApply (sT_All_I_Strong with "H1").
   Qed.
 
@@ -283,7 +282,7 @@ Section unstamped_lemmas.
     shift T1 :: Γ' u⊨ e : T2 -∗
     Γ u⊨ tv (vabs e) : TAll T1 T2.
   Proof.
-    iIntros "#H1"; iMod "H1" as (e1s Hsk1) "H1"; iModIntro.
+    pupd; iIntros "#(%e1s & %Hsk1 & H1) !>".
     by iExists (tv (vabs e1s)); iSplit; last iApply (T_All_I_Strong with "H1").
   Qed.
 
@@ -299,7 +298,7 @@ Section unstamped_lemmas.
     Γ su⊨ e : oLater T -∗
     Γ su⊨ tskip e : T.
   Proof.
-    iIntros "#H1"; iMod "H1" as (e1s Hsk1) "H1"; iModIntro.
+    pupd; iIntros "#(%e1s & %Hsk1 & H1) !>".
     by iExists (tskip e1s); iSplit; last iApply (sT_Skip with "H1").
   Qed.
 
@@ -313,7 +312,7 @@ Section unstamped_lemmas.
     Γ s⊨ T1 <:[0] T2 -∗
     Γ su⊨ e : T2.
   Proof.
-    iIntros "#H1 #H2"; iMod "H1" as (e1s Hsk1) "H1"; iModIntro.
+    pupd; iIntros "#(%e1s & %Hsk1 & H1) #H2 !>".
     by iExists e1s; iSplit; last iApply (sT_Sub with "H1 H2").
   Qed.
 
@@ -327,8 +326,8 @@ Section unstamped_lemmas.
     oLater T :: Γ su⊨ds ds : T -∗
     Γ su⊨ tv (vobj ds) : oMu T.
   Proof.
-    iIntros "#H1"; iMod "H1" as (ds1 Hsk1) "H1"; iModIntro.
-    by iExists (tv (vobj ds1)); iSplit; last iApply (sT_Obj_I with "H1").
+    pupd; iIntros "#(%ds1s & %Hsk1 & H1) !>".
+    by iExists (tv (vobj ds1s)); iSplit; last iApply (sT_Obj_I with "H1").
   Qed.
 
   Lemma uT_Obj_I Γ T ds :
@@ -339,7 +338,7 @@ Section unstamped_lemmas.
   Lemma suT_Path Γ τ p :
     Γ s⊨p p : τ, 0 -∗ Γ su⊨ path2tm p : τ.
   Proof.
-    iIntros "#H1"; iModIntro.
+    pupd; iIntros "#H1 !>".
     by iExists (path2tm p); iSplit; last iApply (sT_Path with "H1").
   Qed.
   (* Primitives *)
@@ -348,7 +347,7 @@ Section unstamped_lemmas.
     Γ su⊨ e1 : oPrim B1 -∗
     Γ su⊨ tun u e1 : oPrim Br.
   Proof.
-    iIntros "#H1"; iMod "H1" as (e1s Hsk1) "H1"; iModIntro.
+    pupd; iIntros "#(%e1s & %Hsk1 & H1) !>".
     by iExists (tun u e1s); iSplit; last iApply (sT_Un with "H1").
   Qed.
 
@@ -356,7 +355,7 @@ Section unstamped_lemmas.
     Γ u⊨ e1 : TPrim B1 -∗
     Γ u⊨ tun u e1 : TPrim Br.
   Proof.
-    iIntros "#H1"; iMod "H1" as (e1s Hsk1) "H1"; iModIntro.
+    pupd; iIntros "#(%e1s & %Hsk1 & H1) !>".
     by iExists (tun u e1s); iSplit; last iApply (T_Un with "H1").
   Qed.
 
@@ -365,8 +364,7 @@ Section unstamped_lemmas.
     Γ su⊨ e2 : oPrim B2 -∗
     Γ su⊨ tbin b e1 e2 : oPrim Br.
   Proof.
-    iIntros "#H1 #H2".
-    iMod "H1" as (e1s Hsk1) "H1"; iMod "H2" as (e2s Hsk2) "H2"; iModIntro.
+    pupd; iIntros "#(%e1s & %Hsk1 & H1) #(%e2s & %Hsk2 & H2) !>".
     by iExists (tbin b e1s e2s); iSplit; last iApply (sT_Bin with "H1 H2").
   Qed.
 
@@ -375,8 +373,7 @@ Section unstamped_lemmas.
     Γ u⊨ e2 : TPrim B2 -∗
     Γ u⊨ tbin b e1 e2 : TPrim Br.
   Proof.
-    iIntros "#H1 #H2".
-    iMod "H1" as (e1s Hsk1) "H1"; iMod "H2" as (e2s Hsk2) "H2"; iModIntro.
+    pupd; iIntros "#(%e1s & %Hsk1 & H1) #(%e2s & %Hsk2 & H2) !>".
     by iExists (tbin b e1s e2s); iSplit; last iApply (T_Bin with "H1 H2").
   Qed.
 
@@ -384,9 +381,7 @@ Section unstamped_lemmas.
     Γ su⊨ e1 : oBool -∗ Γ su⊨ e2 : T -∗ Γ su⊨ e3 : T -∗
     Γ su⊨ tif e1 e2 e3 : T.
   Proof.
-    iIntros "#H1 #H2 #H3".
-    iMod "H1" as (e1s Hsk1) "H1"; iMod "H2" as (e2s Hsk2) "H2";
-    iMod "H3" as (e3s Hsk3) "H3"; iModIntro.
+    pupd; iIntros "#(%e1s & %Hsk1 & H1) #(%e2s & %Hsk2 & H2) #(%e3s & %Hsk3 & H3) !>".
     by iExists (tif e1s e2s e3s); iSplit; last iApply (sT_If with "H1 H2 H3").
   Qed.
 
@@ -406,8 +401,7 @@ Section unstamped_lemmas.
     Γ su⊨ { l := d1 } : T1 -∗ Γ su⊨ds ds2 : T2 -∗
     Γ su⊨ds (l, d1) :: ds2 : cAnd T1 T2.
   Proof.
-    iIntros "#H1 #H2".
-    iMod "H1" as (d1s Hsk1) "H1"; iMod "H2" as (ds2s Hsk2) "H2"; iModIntro.
+    pupd; iIntros "#(%d1s & %Hsk1 & H1) #(%ds2s & %Hsk2 & H2) !>".
     iExists ((l, d1s) :: ds2s); iSplit; last iApply (sD_Cons with "H1 H2");
       naive_solver.
   Qed.
@@ -421,7 +415,7 @@ Section unstamped_lemmas.
   Lemma suD_Sing Γ d l (T : cltyO Σ) :
     Γ su⊨ { l := d } : T -∗ Γ su⊨ds [(l, d)] : cAnd T cTop.
   Proof.
-    iIntros "#H1"; iMod "H1" as (d1s Hsk1) "H1"; iModIntro.
+    pupd; iIntros "#(%d1s & %Hsk1 & H1) !>".
     by iExists [(l, d1s)]; iSplit; last iApply (sD_Sing with "H1").
   Qed.
 
@@ -433,7 +427,7 @@ Section unstamped_lemmas.
     Γ su⊨ tv v1 : T -∗
     Γ su⊨ { l := dpt (pv v1) } : cVMem l T.
   Proof.
-    iIntros "#H1"; iMod "H1" as (e1s Hsk1) "H1"; iModIntro.
+    pupd; iIntros "#(%e1s & %Hsk1 & H1) !>".
     destruct (same_skel_tv_tv Hsk1) as [v1s ->].
     by iExists (dpt (pv v1s)); iSplit; last iApply (sD_Val with "H1").
   Qed.
@@ -447,7 +441,7 @@ Section unstamped_lemmas.
     Γ s⊨p p : T, 0 -∗
     Γ su⊨ { l := dpt p } : cVMem l T.
   Proof.
-    iIntros "#H1"; iModIntro.
+    pupd; iIntros "#H1 !>".
     by iExists (dpt p); iSplit; last iApply (sD_Path with "H1").
   Qed.
 
@@ -460,7 +454,7 @@ Section unstamped_lemmas.
     oAnd (oLater T) (oSing (pself (pv (ids 1)) l)) :: Γ su⊨ds ds : T -∗
     Γ su⊨ { l := dpt (pv (vobj ds)) } : cVMem l (oMu T).
   Proof.
-    iIntros "#H1"; iMod "H1" as (ds1s Hsk1) "H1"; iModIntro.
+    pupd; iIntros "#(%ds1s & %Hsk1 & H1) !>".
     by iExists (dpt (pv (vobj ds1s))); iSplit; last iApply (sD_Val_New with "H1").
   Qed.
 
@@ -474,7 +468,7 @@ Section unstamped_lemmas.
     Γ su⊨ { l := dpt p1 } : cVMem l T1 -∗
     Γ su⊨ { l := dpt p1 } : cVMem l T2.
   Proof.
-    iIntros "#Hsub #H1"; iMod "H1" as (d1s Hsk1) "H1"; iModIntro.
+    pupd; iIntros "#Hsub #(%d1s & %Hsk1 & H1) !>".
     destruct (same_skel_dpt_dpt Hsk1) as [p1s ->].
     by iExists (dpt p1s); iSplit; last iApply (sD_Path_Stp with "Hsub H1").
   Qed.

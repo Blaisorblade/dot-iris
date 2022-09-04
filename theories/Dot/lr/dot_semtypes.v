@@ -64,15 +64,15 @@ Section JudgEqs.
 
   Lemma sstpd_eq_1 Γ T1 i T2 :
     Γ s⊨ T1 <:[i] T2 ⊣⊢
-    |==> ∀ ρ, sG⟦Γ⟧* ρ → ∀ v, ▷^i (T1 anil ρ v → T2 anil ρ v).
+    <PB> ∀ ρ, sG⟦Γ⟧* ρ → ∀ v, ▷^i (T1 anil ρ v → T2 anil ρ v).
   Proof.
-    rewrite /sstpd /subtype_lty; f_equiv; f_equiv => ρ.
+    rewrite /sstpd /subtype_lty; repeat f_equiv.
     by rewrite laterN_forall.
   Qed.
 
   Lemma sstpd_eq Γ T1 i T2 :
     Γ s⊨ T1 <:[i] T2 ⊣⊢
-    |==> ∀ ρ v, sG⟦Γ⟧* ρ → ▷^i (T1 anil ρ v → T2 anil ρ v).
+    <PB> ∀ ρ v, sG⟦Γ⟧* ρ → ▷^i (T1 anil ρ v → T2 anil ρ v).
   Proof. rewrite sstpd_eq_1; properness. apply: forall_swap_impl. Qed.
 End JudgEqs.
 
@@ -230,6 +230,7 @@ Section misc_lemmas.
   Proof.
     rewrite !oDTMem_unfold.
     iIntros "#HsubL #HsubU"; iDestruct 1 as (φ) "#(Hφl & #HLφ & #HφU)".
+    rewrite /= /dot_intv_type_pred.
     iExists φ; iSplit; first done; iSplit; iIntros "%w #Hw".
     - iApply ("HLφ" with "(HsubL Hw)").
     - iApply ("HsubU" with "(HφU Hw)").
@@ -265,7 +266,7 @@ Section misc_lemmas.
 
   Lemma sdtp_eq (Γ : sCtx Σ) (T : clty Σ) l d :
     Γ s⊨ { l := d } : T ⊣⊢
-      |==> ∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ [(l, d.|[ρ])].
+      <PB> ∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ [(l, d.|[ρ])].
   Proof.
     rewrite /sdtp /sdstp pure_True ?(left_id _ bi_and);
       by [> | exact: NoDup_singleton].
@@ -273,13 +274,13 @@ Section misc_lemmas.
 
   Lemma sdtp_eq' (Γ : sCtx Σ) (T : dlty Σ) l d :
     Γ s⊨ { l := d } : dty2clty l T ⊣⊢
-      |==> ∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ d.|[ρ].
+      <PB> ∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ d.|[ρ].
   Proof. by rewrite sdtp_eq; properness; last apply dty2clty_singleton. Qed.
 
   Lemma ipwp_terminates {p T i} :
     [] s⊨p p : T , i ⊢ |==> ▷^i ⌜ terminates (path2tm p) ⌝.
   Proof.
-    iIntros ">#H".
+    iIntros "#>#H".
     iSpecialize ("H" $! ids with "[//]"); rewrite hsubst_id.
     iApply (path_wp_terminates with "H").
   Qed.
@@ -288,7 +289,7 @@ Section misc_lemmas.
   Lemma sT_Path {Γ τ p} :
     Γ s⊨p p : τ, 0 -∗ Γ s⊨ path2tm p : τ.
   Proof.
-    iIntros ">#Hep !> %ρ #Hg /="; rewrite path2tm_subst.
+    pupd; iIntros "#Hep !> %ρ #Hg /=". rewrite path2tm_subst.
     by iApply (path_wp_to_wp with "(Hep Hg)").
   Qed.
 End misc_lemmas.

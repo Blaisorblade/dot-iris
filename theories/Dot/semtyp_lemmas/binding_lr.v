@@ -14,9 +14,9 @@ Section LambdaIntros.
     (*─────────────────────────*)
     Γ s⊨ tv (vabs e) : oAll T1 T2.
   Proof.
-    rewrite Hctx; iIntros ">HeT !> %ρ Hg /=".
+    rewrite Hctx; pupd; iIntros "#HeT !> %ρ #Hg /=".
     rewrite -wp_value'. iExists _; iSplit; first done.
-    iIntros (v) "Hv"; rewrite up_sub_compose.
+    iIntros "%v Hv"; rewrite up_sub_compose.
     (* Factor ▷ out of [sG⟦ Γ ⟧* ρ] before [iNext]. *)
     rewrite senv_TLater_commute. iNext.
     iApply ("HeT" $! (v .: ρ) with "[Hv $Hg]").
@@ -40,7 +40,7 @@ Section Sec.
     (*──────────────────────*)
     ⊢ Γ s⊨p pv (ids x) : shiftN x τ, 0.
   Proof.
-    iIntros "/= !> %ρ #Hg"; rewrite path_wp_pv_eq.
+    pupd; iIntros "/= !> %ρ #Hg"; rewrite path_wp_pv_eq.
     by rewrite s_interp_env_lookup // id_subst.
   Qed.
 
@@ -48,7 +48,7 @@ Section Sec.
     Γ s⊨ e : oLaterN i T -∗
     Γ s⊨ iterate tskip i e : T.
   Proof.
-    iIntros ">#He !> %ρ #Hg"; rewrite tskip_subst; iApply wp_bind.
+    pupd; iIntros "#He !> %ρ #Hg"; rewrite tskip_subst; iApply wp_bind.
     wp_wapply "(He Hg)"; iIntros "{He} /= %v Hv".
     by wp_pure.
   Qed.
@@ -63,7 +63,7 @@ Section Sec.
     (*───────────────────────────────*)
     Γ s⊨ e : T2.
   Proof.
-    iIntros ">HeT1 >Hsub !> %ρ #Hg".
+    pupd; iIntros "#HeT1 #Hsub !> %ρ #Hg".
     wp_wapply "(HeT1 Hg)".
     iIntros (v) "HvT1 /=".
     iApply ("Hsub" with "Hg HvT1").
@@ -76,7 +76,7 @@ Section Sec.
    *)
   Lemma sTMu_equiv {Γ T v} : (Γ s⊨ tv v : oMu T) ≡ (Γ s⊨ tv v : T.|[v/]).
   Proof.
-    iSplit; iIntros ">#Htp !> %ρ #Hg /=";
+    iSplit; pupd; iIntros "#Htp !> %ρ #Hg /=";
     iDestruct (wp_value_inv' with "(Htp Hg)") as "{Htp} Hgoal";
     by rewrite -wp_value /= hoEnvD_subst_one.
   Qed.
@@ -87,7 +87,7 @@ Section Sec.
     (*────────────────────────────────────────────────────────────*)
     Γ s⊨ tapp e1 (tv v2) : T2.|[v2/].
   Proof.
-    iIntros ">He1 >Hv2Arg !> %ρ #Hg".
+    pupd; iIntros "#He1 #Hv2Arg !> %ρ #Hg".
     iSpecialize ("Hv2Arg" with "Hg"); rewrite /= wp_value_inv'.
     wp_wapply "(He1 Hg)"; iIntros "{Hg} %v /=".
     iDestruct 1 as (t ->) "HvFun"; iSpecialize ("HvFun" with "Hv2Arg").
@@ -101,7 +101,7 @@ Section Sec.
     (*────────────────────────────────────────────────────────────*)
     Γ s⊨ tapp e1 e2 : T2.
   Proof.
-    iIntros "/= >He1 >He2 !> %ρ #Hg".
+    pupd; iIntros "/= #He1 #He2 !> %ρ #Hg".
     wp_wapply "(He1 Hg)"; iIntros "%v"; iDestruct 1 as (t ->) "Hv /=".
     wp_wapply "(He2 Hg)"; iIntros "{Hg} %w Hw /=".
     iSpecialize ("Hv" with "Hw"). wp_pure. wp_wapply "Hv".
@@ -113,7 +113,7 @@ Section Sec.
     (*─────────────────────────*)
     Γ s⊨ tproj e l : T.
   Proof.
-    iIntros ">He !> %ρ Hg".
+    pupd; iIntros "#He !> %ρ Hg".
     wp_wapply "(He Hg)"; iIntros "%v /=".
     iDestruct 1 as (? Hl pmem ->) "Hv /=".
     wp_pure. by rewrite -path_wp_to_wp.

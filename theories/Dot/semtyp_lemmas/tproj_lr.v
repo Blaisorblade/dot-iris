@@ -50,7 +50,7 @@ Section existentials.
     oLaterN i (oShift S) :: Γ s⊨ T <:[i] oShift U -∗
     Γ s⊨ oExists S T <:[i] U.
   Proof.
-    iIntros "/= >#Hstp !> %ρ Hg %v"; iApply impl_laterN.
+    pupd; iIntros "/= #Hstp !> %ρ Hg %v"; iApply impl_laterN.
     iDestruct 1 as (w) "[HS HT]".
     iApply ("Hstp" $! (w .: ρ) with "[$Hg $HS] HT").
   Qed.
@@ -61,7 +61,7 @@ Section existentials.
     Γ s⊨ T <:[i] opSubst p U -∗
     Γ s⊨ T <:[i] oExists S U.
   Proof.
-    iIntros "/= >#HpS >#Hstp !> %ρ #Hg".
+    pupd; iIntros "/= #HpS #Hstp !> %ρ #Hg".
     iSpecialize ("HpS" with "Hg"); iSpecialize ("Hstp" with "Hg"); iNext i.
     iApply (subtype_trans with "Hstp"); iIntros "%v HvUp".
     iDestruct (path_wp_agree with "HpS HvUp") as (w ?) "Hgoal".
@@ -167,7 +167,7 @@ Section type_proj.
     Γ s⊨ T <:[i] U -∗
     Γ s⊨ oProj A T <:[i] oProj A U.
   Proof.
-    iIntros ">#Hsub !> %ρ Hg %v"; iSpecialize ("Hsub" with "Hg"); iNext i.
+    pupd; iIntros "#Hsub !> %ρ Hg %v"; iSpecialize ("Hsub" with "Hg"); iNext i.
     (**
       From [T <: U] we must show [T#A <: U#A], that is, that any [v] in [T#A]
       is in [U#A]. Recall the definition of [T#A]:
@@ -192,7 +192,7 @@ Section type_proj.
   Lemma sProj_Stp_U A Γ L U i :
     ⊢ Γ s⊨ oProj A (oTMem A L U) <:[i] U.
   Proof.
-    iIntros "!> %ρ Hg %v"; iNext i.
+    pupd; iIntros "!> %ρ Hg %v"; iNext i.
     rewrite oProjN_eq; iDestruct 1 as (w) "(HTw & HselV)".
     (*
       After unfolding definitions, we must show that [v] is in [U],
@@ -215,7 +215,7 @@ Section type_proj.
     Γ s⊨ oProj A T <:[i] U.
   Proof.
     iIntros "#Hp".
-    iApply sStp_Trans; first iApply (sProj_Stp_Proj with "Hp").
+    iApply sStp_Trans; first iApply (sProj_Stp_Proj with "[Hp]"). by iIntros "!>".
     iApply sProj_Stp_U.
   Qed.
 
@@ -235,7 +235,7 @@ Section type_proj.
     Γ s⊨p p : T, i -∗
     Γ s⊨ oSel p A <:[i] oProj A T.
   Proof.
-    iIntros "#Hp". rewrite -oProj_oSing.
+    rewrite -oProj_oSing. iIntros "Hp".
     iApply sProj_Stp_Proj. iApply (sSngl_Stp_Self with "Hp").
   Qed.
 
@@ -347,18 +347,18 @@ Section type_proj.
   (** *** Auxiliary lemma. *)
   Lemma oProj_oTMem A (T : olty Σ) σ s :
     s ↝[ σ ] shift T -∗
-    |==> ∀ ρ, oLater T anil ρ ⊆ oProj A (oTMemL A T T) anil ρ.
+    <PB> ∀ ρ, oLater T anil ρ ⊆ oProj A (oTMemL A T T) anil ρ.
   Proof.
     (** To prove this theorem, we create an auxiliary definition body [auxD]
     and an auxiliary object [auxV], whose type member [A] points to [shift T]. *)
-    iIntros "#Hs".
+    iIntros "#Hs !>".
     set auxD := dtysem σ s; set auxV := (vobj [(A, auxD)]).
 
     iAssert ([] s⊨p pv (vobj [(A, auxD)]) :
-      oMu (oTMemL A (shift T) (shift T)), 0) as ">#HwT".
+      oMu (oTMemL A (shift T) (shift T)), 0) as "#>#HwT".
     by iApply sP_Obj_I; iApply sD_Sing'; iApply (sD_Typ with "Hs").
 
-    iIntros "!> %ρ %v #HT"; rewrite oProjN_eq.
+    iIntros "!> !> %ρ %v #HT"; rewrite oProjN_eq.
     iAssert (oTMemL A T T anil ρ auxV.[ρ])%I as "{HwT} #Hw". {
       rewrite -(path_wp_pv_eq auxV.[ρ]). by iApply "HwT".
     }
@@ -371,10 +371,10 @@ Section type_proj.
     coveringσ σ T →
     ⊢ Γ s⊨ oLater T <:[i] oProj A (oTMemL A T T).
   Proof.
-    intros HclT.
+    iIntros "%HclT !>".
     iMod (leadsto_envD_equiv_alloc_shift HclT) as (s) "Hs".
-    iMod (oProj_oTMem A with "Hs") as "#Hs".
-    iIntros "!> %ρ _ !>". iApply "Hs".
+    iDestruct (oProj_oTMem A with "Hs") as "{Hs} #>#Hs".
+    iIntros "!>!> %ρ _ !>". iApply "Hs".
   Qed.
 
   Lemma Proj_Stp_TMem {Γ i A n} {T : ty} (HclT : nclosed T n) :
