@@ -1,4 +1,5 @@
 From iris.proofmode Require Import proofmode.
+From D Require Import prelude.
 Import bi.
 
 Set Suggest Proof Using.
