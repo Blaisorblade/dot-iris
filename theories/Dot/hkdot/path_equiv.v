@@ -8,7 +8,6 @@ From D.Dot Require Import dlang_inst path_wp.
 From D.pure_program_logic Require Import weakestpre.
 From D.Dot Require Import dot_lty dot_semtypes sem_kind_dot unary_lr.
 
-(*
 Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
          (ρ : env) (l : label) (T : ty) (K : kind).
@@ -17,9 +16,12 @@ Definition dm_rel Σ := ∀ (args : astream) (ρ : env) (d1 d2 : dm), iProp Σ.
 Definition dms_rel Σ := ∀ (args : astream) (ρ : env) (ds1 ds2 : dms), iProp Σ.
 Definition vl_rel Σ := ∀ (args : astream) (ρ : env) (v1 v2 : vl), iProp Σ.
 
+(** TODO #431: remove *)
+#[export] Declare Instance persistence_unsound : ∀ {Σ} (P : iProp Σ), Persistent P.
+
 (* Relational Semantic Path Typing. *)
 Definition rsptp `{!dlangG Σ} p1 p2 i Γ (RV : vl_rel Σ) : iProp Σ :=
-  |==> ∀ ρ, sG⟦Γ⟧* ρ →
+  <PB> ∀ ρ, sG⟦Γ⟧* ρ →
     ▷^i
     path_wp p1.|[ρ] (λI w1,
     path_wp p2.|[ρ] (λI w2,
@@ -28,7 +30,7 @@ Definition rsptp `{!dlangG Σ} p1 p2 i Γ (RV : vl_rel Σ) : iProp Σ :=
 
 (** Relational Semantic Subtyping. *)
 Definition rsstpd `{!dlangG Σ} i Γ τ1 τ2 : iProp Σ :=
-  |==> ∀ ρ v1 v2,
+  <PB> ∀ ρ v1 v2,
     sG⟦Γ⟧*ρ → ▷^i (oClose τ1 ρ v1 v2 → oClose τ2 ρ v1 v2).
 #[global] Arguments rsstpd : simpl never.
 
@@ -90,7 +92,7 @@ Print hoD *)
 
   (* NOTE We use the "smaller" value! *)
   Definition rVMu1 RV : vl_rel Σ := λI args ρ v1 v2,
-    RV args (v1 .: ρ) v1 v2.
+    □ RV args (v1 .: ρ) v1 v2.
   Class QuasiRefl RV : Prop :=
   { quasi_refl_l args ρ v1 v2 : RV args ρ v1 v2 ⊢ RV args ρ v1 v1
   ; quasi_refl_r args ρ v1 v2 : RV args ρ v1 v2 ⊢ RV args ρ v2 v2;
@@ -98,35 +100,40 @@ Print hoD *)
   Instance rVMu1_qper RV : QuasiRefl RV → QuasiRefl (rVMu1 RV).
   Proof.
     rewrite /rVMu1/=.
-    constructor; intros.
+    constructor; intros; f_equiv.
     apply: quasi_refl_l.
     Fail apply: quasi_refl_r.
   Abort.
 
   Definition close RV : olty Σ := (* XXX better name *)
-    Olty (λI args ρ v, RV args ρ v v).
+    Olty (λI args ρ v, □ RV args ρ v v).
 
   Lemma rsMu_Stp_Mu1 {Γ RV1 RV2 i} `{!SwapPropI Σ} `{!QuasiRefl RV1} :
     oLaterN i (close RV1) :: Γ rs⊨ RV1 <:[i] RV2 -∗
     Γ rs⊨ rVMu1 RV1 <:[i] rVMu1 RV2.
   Proof.
-    iIntros ">#Hstp !>" (ρ v1 v2) "Hg".
+    pupd. iIntros "#Hstp !>" (ρ v1 v2) "#Hg".
     iApply mlaterN_impl. iIntros "#HT1".
-    iApply ("Hstp" $! (v1 .: ρ) _ _ with "[$Hg] HT1").
+    (* iApply ("Hstp" $! (v1 .: ρ) _ _ with "[$Hg] [HT1]"). *)
+    iSpecialize ("Hstp" $! (v1 .: ρ) _ _ with "[$Hg] HT1").
+    2: { iNext. iApply "Hstp". }
     iNext i.
+    iModIntro.
     rewrite /rVMu1/=.
-    iApply (quasi_refl_l with "HT1").
+    iApply (quasi_refl_l with "[HT1]").
+    iApply "HT1".
   Qed.
 
   (* NOTE We use both values! *)
   Definition rVMu RV : vl_rel Σ := λI args ρ v1 v2,
-    RV args (v1 .: ρ) v1 v2 ∧
-    RV args (v2 .: ρ) v1 v2.
+    □ (
+      RV args (v1 .: ρ) v1 v2 ∧
+      RV args (v2 .: ρ) v1 v2).
 
   #[global] Instance rVMu_qper RV : QuasiRefl RV → QuasiRefl (rVMu RV).
   Proof using HdotG.
     rewrite /rVMu/=.
-    constructor; intros; iIntros "[L R]".
+    constructor; intros; iIntros "#[L R] !>".
     iSplit; by iApply quasi_refl_l.
     iSplit; by iApply quasi_refl_r.
   Qed.
@@ -135,10 +142,11 @@ Print hoD *)
     oLaterN i (close RV1) :: Γ rs⊨ RV1 <:[i] RV2 -∗
     Γ rs⊨ rVMu RV1 <:[i] rVMu RV2.
   Proof.
-    iIntros ">#Hstp !>" (ρ v1 v2) "Hg".
-    iApply mlaterN_impl. iIntros "#[HT1 HT2]".
-    rewrite /rVMu/=; iSplit; iApply ("Hstp" $! (_ .: ρ) _ _ with "[$Hg]") => //.
-    all: iNext i; cbn.
+    pupd; iIntros "#Hstp !>" (ρ v1 v2) "#Hg".
+    rewrite -mlaterN_impl /rVMu/= -!mlaterN_pers.
+    iIntros "#[HT1 HT2] !>".
+    iSplit; iApply ("Hstp" $! (_ .: ρ) _ _ with "[#$Hg]") => //; cbn.
+    all: iNext i.
     iApply (quasi_refl_l with "HT1").
     iApply (quasi_refl_r with "HT2").
   Qed.
@@ -152,18 +160,19 @@ Print hoD *)
     ⊢ Γ rs⊨ rVMu (shift RV) <:[i] RV.
   Proof.
     rewrite /rVMu /=.
-    iIntros "!>" (???) "#Hg !> /= #[HT _]".
+    pupd; iIntros "!>" (???) "#Hg !> /= #[HT _]".
     (* by rewrite rVMu_shift. *)
     by rewrite/hsubst /hsubst_vl_rel; asimpl.
   Qed.
 
+  (* XXX RV must be persistent *)
   Lemma rsStp_Mu {Γ RV i} `{!QuasiRefl RV} :
     ⊢ Γ rs⊨ RV <:[i] rVMu (shift RV).
   Proof.
     rewrite /rVMu /=.
-    iIntros "!>" (???) "#Hg !> /= HT".
+    pupd; iIntros "!>" (???) "#Hg !> /= #HT !>".
     (* by rewrite rVMu_shift; iFrame. *)
-    by rewrite/hsubst /hsubst_vl_rel; asimpl; iFrame.
+    rewrite/hsubst /hsubst_vl_rel; asimpl. iFrame "HT".
   Qed.
 
   Definition rVVMem l RV : vl_rel Σ := λI args ρ v1 v2,
@@ -233,4 +242,3 @@ Print hoD *)
 
 
 End foo.
-*)
