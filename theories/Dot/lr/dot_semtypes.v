@@ -1,6 +1,7 @@
 (** * Logical relation and semantic judgments. *)
 From D Require Export iris_prelude proper lty lr_syn_aux.
 From D Require Import iris_extra.det_reduction.
+From D Require Export iris_extra.proofmode_pupd.
 From D Require Import swap_later_impl.
 From D.Dot Require Import syn path_repl.
 From D.Dot Require Export dlang_inst path_wp.
@@ -22,18 +23,18 @@ Section judgments.
 
   (** Expression typing *)
   Definition setp `{!dlangG Σ} e Γ τ : iProp Σ :=
-    |==> ∀ ρ, sG⟦Γ⟧* ρ → sE⟦ τ ⟧ ρ (e.|[ρ]).
+    <PB> ∀ ρ, sG⟦Γ⟧* ρ → sE⟦ τ ⟧ ρ (e.|[ρ]).
   #[global] Arguments setp : simpl never.
 
   (** Delayed subtyping. *)
   Definition sstpd `{!dlangG Σ} i Γ τ1 τ2 : iProp Σ :=
-    |==> ∀ ρ,
+    <PB> ∀ ρ,
       sG⟦Γ⟧*ρ → ▷^i (oClose τ1 ρ ⊆ oClose τ2 ρ).
   #[global] Arguments sstpd : simpl never.
 
   (** Multi-definition typing *)
   Definition sdstp `{!dlangG Σ} ds Γ (T : clty Σ) : iProp Σ :=
-    |==> ⌜wf_ds ds⌝ ∧ ∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → sG⟦Γ⟧* ρ → T ρ ds.|[ρ].
+    <PB> (⌜wf_ds ds⌝ ∧ ∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → sG⟦Γ⟧* ρ → T ρ ds.|[ρ]).
   #[global] Arguments sdstp : simpl never.
 
   (** Definition typing *)
@@ -42,7 +43,7 @@ Section judgments.
 
   (** Path typing *)
   Definition sptp `{!dlangG Σ} p i Γ τ : iProp Σ :=
-    |==> ∀ ρ, sG⟦Γ⟧* ρ →
+    <PB> ∀ ρ, sG⟦Γ⟧* ρ →
       ▷^i path_wp p.|[ρ] (oClose τ ρ).
   #[global] Arguments sptp : simpl never.
 End judgments.

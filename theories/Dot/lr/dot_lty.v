@@ -1,6 +1,7 @@
 (** * Semantic domains for DOT logical relations. *)
 From iris.proofmode Require Import proofmode.
 From D Require Export iris_prelude proper lty lr_syn_aux.
+From D Require Export iris_extra.proofmode_pupd.
 From D.Dot Require Import syn.
 From D.Dot Require Export dlang_inst path_wp.
 
@@ -278,7 +279,7 @@ Notation "T .sTp[ p /]" := (opSubst p T) (at level 65).
 
 (** Semantic definition of path replacement. *)
 Definition sem_ty_path_replI {Σ} p q (T1 T2 : olty Σ) : iProp Σ :=
-  |==> ∀ args ρ v (Hal : alias_paths p.|[ρ] q.|[ρ]), T1 args ρ v ≡ T2 args ρ v.
+  <PB> ∀ args ρ v (Hal : alias_paths p.|[ρ] q.|[ρ]), T1 args ρ v ≡ T2 args ρ v.
 (* sTpI = semantic Type Path Iris; matches [sem_kind_path_replI] *)
 Notation "T1 ~sTpI[ p := q  ]* T2" :=
   (sem_ty_path_replI p q T1 T2) (at level 70).

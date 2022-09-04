@@ -19,13 +19,13 @@ Section unstamped_judgs.
 
   (* Semantic, Unstamped, Expression TyPing *)
   Definition suetp e_u Γ T : iProp Σ :=
-    |==> ∃ e_s, ⌜ same_skel_tm e_u e_s⌝ ∧ Γ s⊨ e_s : T.
+    <PB> ∃ e_s, ⌜ same_skel_tm e_u e_s⌝ ∧ Γ s⊨ e_s : T.
 
   Definition sudstp ds_u Γ T : iProp Σ :=
-    |==> ∃ ds_s, ⌜ same_skel_dms ds_u ds_s⌝ ∧ Γ s⊨ds ds_s : T.
+    <PB> ∃ ds_s, ⌜ same_skel_dms ds_u ds_s⌝ ∧ Γ s⊨ds ds_s : T.
 
   Definition sudtp l d_u Γ T : iProp Σ :=
-    |==> ∃ d_s, ⌜ same_skel_dm d_u d_s⌝ ∧ Γ s⊨ { l := d_s } : T.
+    <PB> ∃ d_s, ⌜ same_skel_dm d_u d_s⌝ ∧ Γ s⊨ { l := d_s } : T.
 
   Definition iuetp  Γ T e       := suetp e    V⟦Γ⟧* V⟦T⟧.
   Definition iudstp Γ T ds      := sudstp ds  V⟦Γ⟧* C⟦T⟧.
@@ -76,11 +76,10 @@ Proof.
   intros e_u' [n Hsteps]%rtc_nsteps_1.
   apply (soundness (M := iResUR Σ) _ n).
   apply (bupd_plain_soundness _).
-  iDestruct (Hwp HdlangG HswapProp) as "#>Hwp".
-  iDestruct "Hwp" as (e_s Hsim) ">#Hwp".
-  iSpecialize ("Hwp" $! ids with "[//]").
-  rewrite hsubst_id /= (wptp_safe_n n).
-  iIntros "!>!>"; iDestruct "Hwp" as %Hsafe; iIntros "!%".
+  iDestruct (Hwp HdlangG HswapProp) as "#>#(%e_s & %Hsim & -#Hwp)".
+  iSpecialize ("Hwp" $! ids with "[//]"); rewrite hsubst_id /=.
+  iMod (wptp_safe_n n with "Hwp") as "Hwp".
+  iIntros "!>!>"; iRevert "Hwp"; iIntros "!% %Hsafe".
   eapply same_skel_safe_n_impl, Hsteps; naive_solver.
 Qed.
 

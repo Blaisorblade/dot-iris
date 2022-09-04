@@ -12,6 +12,7 @@ From D.Dot Require defs_lr binding_lr dsub_lr path_repl_lr sub_lr examples_lr.
 From D.Dot Require hoas ex_utils.
 
 From D.Dot Require Import sem_kind sem_kind_dot.
+Require Import D.iris_extra.proofmode_pupd.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -31,7 +32,7 @@ Notation sstpiK_env i T1 T2 K ρ := (▷^i K ρ (envApply T1 ρ) (envApply T2 ρ
 Notation sstpiK' i Γ T1 T2 K := (∀ ρ, sG⟦Γ⟧*ρ → sstpiK_env i T1 T2 K ρ)%I.
 
 Definition sstpiK `{dlangG Σ} i Γ T1 T2 (K : sf_kind Σ) : iProp Σ :=
-  |==> sstpiK' i Γ T1 T2 K.
+  <PB> sstpiK' i Γ T1 T2 K.
 Arguments sstpiK : simpl never.
 #[global] Instance : Params (@sstpiK) 4 := {}.
 Notation "Γ s⊨ T1 <:[ i  ] T2 ∷ K" := (sstpiK i Γ T1 T2 K)
@@ -46,7 +47,7 @@ Notation "Γ s⊨ T ∷[ i  ] K" := (Γ s⊨ T <:[ i ] T ∷ K)
 
 (* Semantic SubKinding *)
 Definition sSkd `{dlangG Σ} i Γ (K1 K2 : sf_kind Σ) : iProp Σ :=
-  |==> ∀ ρ, sG⟦Γ⟧*ρ → ∀ (T1 T2 : hoLtyO Σ), ▷^i (K1 ρ T1 T2 → K2 ρ T1 T2).
+  <PB> ∀ ρ, sG⟦Γ⟧*ρ → ∀ (T1 T2 : hoLtyO Σ), ▷^i (K1 ρ T1 T2 → K2 ρ T1 T2).
 Arguments sSkd : simpl never.
 #[global] Instance : Params (@sSkd) 4 := {}.
 Notation "Γ s⊨ K1 <∷[ i  ] K2" := (sSkd i Γ K1 K2)

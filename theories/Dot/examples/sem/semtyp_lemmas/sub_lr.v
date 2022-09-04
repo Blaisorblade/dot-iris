@@ -18,7 +18,7 @@ Section defs.
 
   (** Legacy: (double)-indexed subtyping. *)
   Definition sstpi `{!dlangG Σ} i j Γ τ1 τ2 : iProp Σ :=
-    |==> sstpi' i j Γ τ1 τ2.
+    <PB> sstpi' i j Γ τ1 τ2.
   #[global] Arguments sstpi /.
 End defs.
 (** Indexed subtyping *)
