@@ -166,6 +166,36 @@ Proof.
   - exists None; split_and!; destruct mmx; by rewrite /= ?left_id.
 Qed.
 
+(** *** Products. *)
+#[local] Definition liftM2 `{MRet M, MBind M} `(f : A → B → C) : M A → M B → M C :=
+  λ mx my,
+    x ← mx; y ← my; mret (f x y).
+
+#[local] Definition ozip {A B} : option A -> option B -> option (A * B) :=
+  liftM2 pair.
+Lemma ozip_fst_snd {A B} (o : option (A * B)) : ozip (fst <$> o) (snd <$> o) = o.
+Proof. by case: o => [[??]|]. Qed.
+
+Section prodR.
+  Context {A B : cmra}.
+  Implicit Type (oab : option (A * B)).
+
+  Lemma validN_opt_fst_snd n oab : ✓{n} oab ↔ ✓{n} (fst <$> oab) ∧ ✓{n} (snd <$> oab).
+  Proof. by case: oab. Qed.
+  Lemma validN_opM_fst_snd n za zb oab :
+    ✓{n} ((za, zb) ⋅? oab) ↔ ✓{n} (za ⋅? (fst <$> oab)) ∧ ✓{n} (zb ⋅? (snd <$> oab)).
+  Proof. by case: oab. Qed.
+
+  #[global] Instance CmraSwappable_prodUR `{!CmraSwappable A, CmraSwappable B} :
+    CmraSwappable (prodR A B).
+  Proof.
+    split => n mmx [za zb] /validN_opt_fst_snd [Hxa Hxb] /validN_opM_fst_snd [Hxza Hxzb].
+    case: (cmra_extend_included n (fst <$> mmx) za Hxa Hxza) => za' [Vza' Ha].
+    case: (cmra_extend_included n (snd <$> mmx) zb Hxb Hxzb) => zb' [Vzb' Hb].
+    exists (za', zb'); rewrite Ha Hb validN_opM_fst_snd; naive_solver.
+  Qed.
+End prodR.
+
 (** *** [gmap] *)
 Lemma gmap_cmra_extend_included n `{Countable A} `{!CmraSwappable T}
   (x : gmapUR A T) z :
@@ -210,7 +240,9 @@ Qed.
   CmraSwappable (iResUR Σ) | 100 := lift_cprop_iResUR.
 
 Section agree.
-(** *** Agreement CMRA. *)
+(** *** Agreement CMRA.
+In this proof, we extend validity [✓{n} a] to [✓{S n} a] by "truncating" the list
+ *)
 Context {A : ofe}.
 Implicit Types (a b : A) (x y : agree A).
 
