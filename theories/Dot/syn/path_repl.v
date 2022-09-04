@@ -17,9 +17,6 @@ Implicit Types
          (T : ty) (K : kind) (v w : vl) (t : tm) (d : dm) (ds : dms) (p q : path)
          (l : label).
 
-Set Suggest Proof Using.
-Set Default Proof Using "Type".
-
 Notation unshift T := T.|[ren pred].
 Notation unshiftV v := v.[ren pred].
 

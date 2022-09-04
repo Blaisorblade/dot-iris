@@ -9,9 +9,6 @@ From D.Dot Require Import ex_iris_utils sem_unstamped_typing.
 
 Import dlang_adequacy.
 
-Set Suggest Proof Using.
-Set Default Proof Using "Type".
-
 Implicit Types (v w : vl) (d : dm) (ds : dms).
 
 (** ** Example code. *)

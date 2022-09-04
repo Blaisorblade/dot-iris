@@ -10,8 +10,6 @@ From D.Dot Require Import storeless_typing.
 Import DBNotation.
 
 Set Implicit Arguments.
-Set Suggest Proof Using.
-Set Default Proof Using "Type".
 
 Module prim_boolean_option_mod.
 Import hoasNotation.

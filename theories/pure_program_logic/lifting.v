@@ -1,7 +1,6 @@
 (** * Lift operational semantics to expression weakest preconditions. *)
 From D.pure_program_logic Require Export weakestpre.
 From iris.proofmode Require Import proofmode.
-Set Default Proof Using "Type".
 
 Section lifting.
 Context `{irisGS Λ Σ}.

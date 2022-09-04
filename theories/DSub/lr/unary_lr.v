@@ -8,7 +8,6 @@ Include SavedHoInterp VlSorts. (* Defines [envD] and needed by TyInterpLemmas. *
 Include TyInterpLemmas VlSorts.
 Export ty_interp_lemmas.
 
-Set Suggest Proof Using.
 Set Default Proof Using "Type*".
 
 (** Deduce types from variable names, like on paper, for readability and to help

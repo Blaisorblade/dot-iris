@@ -8,7 +8,6 @@ particular is not suitable for robust typing lemmas.
 From D Require Import tactics.
 From D.Dot Require Import syn ex_utils.
 
-Set Default Proof Using "Type".
 
 (*
 The algorithm we use is very different from McBride's Jigger:

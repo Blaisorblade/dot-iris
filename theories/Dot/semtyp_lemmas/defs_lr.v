@@ -4,9 +4,6 @@ From D.Dot Require Import dot_semtypes.
 
 Implicit Types (v : vl) (e : tm) (d : dm) (ds : dms).
 
-Set Suggest Proof Using.
-Set Default Proof Using "Type".
-
 Section Sec.
   Context `{HdotG : !dlangG Σ} `{!RecTyInterp Σ}.
 

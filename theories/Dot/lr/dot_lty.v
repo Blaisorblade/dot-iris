@@ -5,8 +5,6 @@ From D.Dot Require Import syn.
 From D.Dot Require Export dlang_inst path_wp.
 
 Unset Program Cases.
-Set Suggest Proof Using.
-Set Default Proof Using "Type".
 
 Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)

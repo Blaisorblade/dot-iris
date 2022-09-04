@@ -9,9 +9,6 @@ From D.Dot Require Export ex_utils hoas_ex_utils storeless_typing_ex_utils.
 From D.Dot Require Export old_fundamental examples_lr sem_unstamped_typing.
 Export loopTms.
 
-Set Suggest Proof Using.
-Set Default Proof Using "Type".
-
 Implicit Types (v w : vl) (d : dm) (ds : dms).
 
 Example loopDefTyp Γ : Γ v⊢ₜ hloopDefV : hloopDefT.

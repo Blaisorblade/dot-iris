@@ -23,9 +23,6 @@ From D.Dot Require Import sem_unstamped_typing.
 Implicit Types (Σ : gFunctors).
 Implicit Types (v : vl) (e : tm) (d : dm) (ds : dms) (ρ : env) (l : label).
 
-Set Suggest Proof Using.
-Set Default Proof Using "Type".
-
 Definition oExists `{!dlangG Σ} (T : oltyO Σ) (U : oltyO Σ) : oltyO Σ :=
   Olty (λI args ρ v,
   ∃ w,

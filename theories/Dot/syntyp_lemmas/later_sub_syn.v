@@ -8,9 +8,6 @@ From D.Dot Require Import typing_aux_defs.
 From D.Dot Require Import type_eq.
 From D.Dot Require Import dsub_lr. (* XXX *)
 
-Set Suggest Proof Using.
-Set Default Proof Using "Type".
-
 Section TypeEquiv.
   Context `{HdlangG : !dlangG Σ}.
 

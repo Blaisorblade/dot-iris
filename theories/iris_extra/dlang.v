@@ -6,9 +6,6 @@ From D Require Import iris_prelude asubst_intf cmra_prop_lift
 From D Require saved_interp_n.
 From D.iris_extra Require det_reduction.
 
-Set Suggest Proof Using.
-Set Default Proof Using "Type".
-
 Module Type LiftWp (Import VS : VlSortsSig).
   Export prelude saved_interp_n.
   Implicit Types (v : vl) (σ vs : vls) (Σ : gFunctors).

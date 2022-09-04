@@ -9,9 +9,6 @@ From D.Dot Require Import syn storeless_typing_ex_utils
 
 Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (ds : dms) (Γ : list ty).
 
-Set Suggest Proof Using.
-Set Default Proof Using "Type".
-
 Notation HashableString := (μ {@ val "hashCode" : TAll TUnit TInt }).
 (* From D Require Import typeExtraction *)
 

@@ -1,8 +1,6 @@
 From iris.proofmode Require Import proofmode.
+From D Require Import prelude.
 Import bi.
-
-Set Suggest Proof Using.
-Set Default Proof Using "Type".
 
 Tactic Notation "iSplitWith" constr(H) "as" constr(H') :=
   iApply (bi.and_parallel with H); iSplit; iIntros H'.
