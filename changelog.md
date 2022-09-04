@@ -32,6 +32,7 @@ https://github.com/Blaisorblade/dot-iris/pulls?q=is%3Apr+is%3Amerged+label%3Amaj
     update" modality (`<PB> P` that is `□ |==> □ P`), that can replace `|==>` when
     non-persistent resources are available, and intuitionistic propositions must
     be marked explicitly via `□`, and uses it in DSub.
+  - https://github.com/Blaisorblade/dot-iris/pull/421 ports Dot to these changes.
 # v1.0
 
 Release accompanying the ICFP'20 paper.
