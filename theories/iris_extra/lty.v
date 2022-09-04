@@ -33,13 +33,15 @@ https://gitlab.mpi-sws.org/iris/examples/blob/d4f4153920ea82617c7222aeeb00b6710d
 
 Record iPPred vl Σ := IPPred {
   iPPred_car :> vl → iProp Σ;
+  iPPred_persistent v : Persistent (iPPred_car v);
 }.
 Add Printing Constructor iPPred.
-#[global] Arguments IPPred {_ _} _%I.
+#[global] Arguments IPPred {_ _} _%I {_}.
 #[global] Arguments iPPred_car {_ _} !_ _ /.
 Declare Scope iPPred_scope.
 Bind Scope iPPred_scope with iPPred.
 Delimit Scope iPPred_scope with T.
+#[global] Existing Instance iPPred_persistent.
 
 (** ** OFE on [iPPred]. *)
 Section iPPred_ofe.
@@ -63,10 +65,17 @@ Section iPPred_ofe.
   (** ** Show iPPred forms a COFE.
   Only needed to define Lty using Iris fixpoints (e.g. for normal recursive
   types), so _currently_ unused. *)
+  Definition pred_persistent (A : vl -d> iPropO Σ) := ∀ w, Persistent (A w).
+
+  #[local] Instance: LimitPreserving pred_persistent.
+  Proof.
+    apply limit_preserving_forall=> v.
+    apply bi.limit_preserving_Persistent => n f g Heq. exact: Heq.
+  Qed.
 
   #[global] Instance iPPred_cofe : Cofe iPPredO.
   Proof.
-    apply (iso_cofe (A := vl -d> iPropO Σ) IPPred lApp) => //.
+    by apply: (iso_cofe_subtype' pred_persistent IPPred lApp); first case.
   Qed.
 
   #[global] Instance bottom_iprop : Bottom (iProp Σ) := False%I.
@@ -84,7 +93,8 @@ Section iPPred_ofe.
 
   Lemma lty_eq τ1 τ2 : iPPred_car τ1 = iPPred_car τ2 → τ1 = τ2.
   Proof.
-    move: τ1 τ2 => [φ1 ] [φ2 ] /=. by rewrite /iPPred_car => ->.
+    move: τ1 τ2 => [φ1 Hp1] [φ2 Hp2]. rewrite /iPPred_car.
+    intros ->. f_equal. exact: ProofIrrelevance.proof_irrelevance.
   Qed.
 End iPPred_ofe.
 
@@ -102,7 +112,7 @@ Notation lty_car := (iPPred_car (vl := vl)) (only parsing).
 Notation lApp := (iPPred_car : lty _ → _ -d> _).
 
 Notation iRel P Σ := (P Σ → P Σ → iProp Σ).
-Definition subtype_lty `{dlangG Σ} : iRel ltyO Σ := λI φ1 φ2,
+Definition subtype_lty {Σ} : iRel ltyO Σ := λI φ1 φ2,
   ∀ v, φ1 v → φ2 v.
 Infix "⊆" := subtype_lty : bi_scope.
 Notation "X ⊆@{ Σ } Y" := (subtype_lty (Σ := Σ) X Y) (at level 70, only parsing) : bi_scope.
@@ -110,7 +120,7 @@ Notation "X ⊆ Y ⊆ Z" := (X ⊆ Y ∧ Y ⊆ Z)%I : bi_scope.
 Notation "X ⊆ Y ⊆ Z ⊆ W" := (X ⊆ Y ∧ Y ⊆ Z ∧ Z ⊆ W)%I (at level 70, Y, Z at next level) : bi_scope.
 
 Section subtype_lty.
-  Context `{dlangG Σ}.
+  Context {Σ}.
 
   #[global] Instance subtype_lty_ne : NonExpansive2 (subtype_lty (Σ := Σ)).
   Proof. solve_proper_ho. Qed.
@@ -148,7 +158,7 @@ Definition envApply {Σ} : oltyO Σ → env → hoLtyO Σ :=
 Proof. solve_proper_ho. Qed.
 
 Definition packHoLtyO {Σ} (φ : hoD Σ) : hoLtyO Σ :=
-  HoLty (λI args v, ▷ φ args v).
+  HoLty (λI args v, ▷ □ φ args v).
 #[global] Instance : Params (@packHoLtyO) 1 := {}.
 #[global] Instance packHoLtyO_contractive {Σ} :
   Contractive (packHoLtyO (Σ := Σ)).
@@ -158,7 +168,7 @@ Proof. solve_contractive_ho. Qed.
 
 (** ** Substitution over [olty]. *)
 Section olty_subst.
-  Context `{dlangG Σ}.
+  Context {Σ}.
   Implicit Types (φ : hoEnvD Σ) (τ : olty Σ).
 
   Lemma olty_eq τ1 τ2 :
@@ -229,8 +239,9 @@ Section olty_subst.
     by rewrite (subst_compose HclT).
   Qed.
 
-  Definition Olty (olty_car : astream → (var → vl) → vl → iProp Σ) : oltyO Σ :=
-    λ args ρ, Lty (olty_car args ρ).
+  Definition Olty (olty_car : astream → (var → vl) → vl → iProp Σ)
+    `{∀ args ρ v, Persistent (olty_car args ρ v)} : oltyO Σ :=
+      λ args ρ, Lty (olty_car args ρ).
 
   #[global] Instance ids_olty : Ids (olty Σ) := λ _, inhabitant.
   #[global] Program Instance rename_olty : Rename (olty Σ) :=
@@ -399,7 +410,7 @@ Definition oMu {Σ} (τ : oltyO Σ) : oltyO Σ := Olty (λI args ρ v, τ args (
 Section olty_proper.
   Context {Σ}.
 
-  Definition olty0 (φ : envD Σ) : oltyO Σ :=
+  Definition olty0 (φ : envD Σ) `{∀ ρ v, Persistent (φ ρ v)} : oltyO Σ :=
     Olty (aopen φ).
 
   #[global] Instance oLaterN_ne m : NonExpansive (oLaterN (Σ := Σ) m).

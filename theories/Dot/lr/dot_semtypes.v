@@ -162,7 +162,7 @@ Section sem_types.
   Definition oAll τ1 τ2 := olty0
     (λI ρ v,
     (∃ t, ⌜ v = vabs t ⌝ ∧
-     ∀ w, ▷ τ1 anil ρ w → ▷ sE⟦ τ2 ⟧ (w .: ρ) t.|[w/])).
+     □ ∀ w, ▷ τ1 anil ρ w → ▷ sE⟦ τ2 ⟧ (w .: ρ) t.|[w/])).
 
   #[global] Instance oAll_ne : NonExpansive2 oAll.
   Proof. solve_proper_ho. Qed.
@@ -192,7 +192,7 @@ Section misc_lemmas.
 
   Lemma oSel_pv w l args ρ v :
     oSel (pv w) l args ρ v ⊣⊢
-      ∃ d ψ, ⌜w.[ρ] ,, l ↘ d⌝ ∧ d ↗ ψ ∧ ▷ ψ args v.
+      ∃ d ψ, ⌜w.[ρ] ,, l ↘ d⌝ ∧ d ↗ ψ ∧ ▷ □ ψ args v.
   Proof. by rewrite /= path_wp_pv_eq. Qed.
 
   Lemma oVMem_eq l T anil ρ v :
@@ -242,21 +242,21 @@ Section misc_lemmas.
   Proof. apply (lift_sub_dty2cltyN 0). Qed.
 
   Lemma oDTMem_respects_sub L1 L2 U1 U2 ρ d :
-    L2 anil ρ ⊆ L1 anil ρ -∗
-    U1 anil ρ ⊆ U2 anil ρ -∗
+    □ (L2 anil ρ ⊆ L1 anil ρ) -∗
+    □ (U1 anil ρ ⊆ U2 anil ρ) -∗
     oDTMem L1 U1 ρ d -∗ oDTMem L2 U2 ρ d.
   Proof.
     rewrite !oDTMem_unfold.
     iIntros "#HsubL #HsubU"; iDestruct 1 as (φ) "#(Hφl & #HLφ & #HφU)".
     rewrite /= /dot_intv_type_pred.
-    iExists φ; iSplit; first done; iSplit; iIntros "%w #Hw".
+    iExists φ; iSplit; first done; iModIntro; iSplit; iIntros "%w #Hw".
     - iApply ("HLφ" with "(HsubL Hw)").
     - iApply ("HsubU" with "(HφU Hw)").
   Qed.
 
   Lemma oTMem_respects_sub L1 L2 U1 U2 ρ l :
-    L2 anil ρ ⊆ L1 anil ρ -∗
-    U1 anil ρ ⊆ U2 anil ρ -∗
+    □ (L2 anil ρ ⊆ L1 anil ρ) -∗
+    □ (U1 anil ρ ⊆ U2 anil ρ) -∗
     oTMem l L1 U1 anil ρ ⊆ oTMem l L2 U2 anil ρ.
   Proof.
     rewrite -lift_sub_dty2clty; iIntros "#HsubL #HsubU %d".

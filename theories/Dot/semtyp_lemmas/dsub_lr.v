@@ -174,11 +174,11 @@ Section DStpLemmas.
     rewrite -!mlaterN_impl.
     iDestruct 1 as (t) "#[Heq #HT1]"; iExists t; iFrame "Heq".
     iIntros (w); iSpecialize ("HT1" $! w).
-    rewrite -!mlaterN_impl -!laterN_later.
-    iIntros "#HwT2".
+    rewrite -!mlaterN_pers mlater_impl -!mlaterN_impl.
+    iIntros "!> #HwT2".
     iSpecialize ("HsubT" with "Hg").
     iSpecialize ("HsubU" $! (w .: ρ) with "[$HwT2 $Hg]").
-    rewrite !mlaterN_impl.
+    rewrite -!laterN_later.
     iNext (i.+1). wp_wapply "(HT1 (HsubT HwT2))".
     iIntros (u) "#HuU1". iApply ("HsubU" with "HuU1").
   Qed.
@@ -207,7 +207,7 @@ Section DStpLemmas.
     pupd; iIntros "!> %ρ _ !> %v [#H1 #H2]".
     iDestruct "H1" as (t ?) "#H1"; iDestruct "H2" as (t' ->) "#H2"; simplify_eq.
     iExists t; iSplit; first done.
-    iIntros "%w #HS".
+    iIntros "!> %w #HS".
     (* Oh. Dreaded conjunction rule. Tho could we use a version
     for separating conjunction? *)
     iApply (wp_and with "(H1 HS) (H2 HS)").
@@ -219,7 +219,7 @@ Section DStpLemmas.
     pupd; iIntros "!> %ρ _ !> %v [#H1 #H2]".
     iDestruct "H1" as (t ?) "#H1"; iDestruct "H2" as (t' ->) "#H2"; simplify_eq.
     iExists t; iSplit; first done.
-    iIntros "%w #[HS|HS]"; [iApply ("H1" with "HS")|iApply ("H2" with "HS")].
+    iIntros "!> %w #[HS|HS]"; [iApply ("H1" with "HS")|iApply ("H2" with "HS")].
   Qed.
 
   (**
@@ -246,7 +246,7 @@ Section DStpLemmas.
     iDestruct "H1" as (ψ d Hl) "[Hdψ1 #[HLψ1 HψU1]]".
     iDestruct "H2" as (ψ' d' Hl') "[Hdψ2 #[HLψ2 HψU2]]". objLookupDet.
     iExists ψ, d. iFrame (Hl). iSplit; first done.
-    iSplit; iIntros (w) "Hw";
+    iIntros "!>"; iSplit; iIntros (w) "Hw";
       iDestruct (dm_to_type_agree anil w with "Hdψ1 Hdψ2") as "Hag".
     - iDestruct "Hw" as "[Hw|Hw]"; first iApply ("HLψ1" with "Hw").
       iSpecialize ("HLψ2" with "Hw").

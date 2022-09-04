@@ -44,7 +44,7 @@ Lemma hoLty_equiv_sym {Σ} (T1 T2 : hoLtyO Σ) :
   hoLty_equiv T1 T2 -∗ hoLty_equiv T2 T1.
 Proof. iIntros "H %args %v"; iApply (iff_sym with "H"). Qed.
 
-Lemma hoLty_equiv_split `{dlangG Σ} args (T1 T2 : hoLtyO Σ) :
+Lemma hoLty_equiv_split {Σ} args (T1 T2 : hoLtyO Σ) :
   hoLty_equiv T1 T2 -∗ (T1 args ⊆ T2 args ⊆ T1 args).
 Proof. iIntros "Heq"; iSplit; iIntros "%v H"; iApply ("Heq" with "H"). Qed.
 
@@ -52,10 +52,11 @@ Proof. iIntros "Heq"; iSplit; iIntros "%v H"; iApply ("Heq" with "H"). Qed.
 (** * Semantic Full Kind. *)
 Record sf_kind {Σ} := _SfKind {
   sf_kind_sub :> sr_kind Σ;
+  sf_kind_persistent ρ T1 T2 : Persistent (sf_kind_sub ρ T1 T2);
   sf_kind_sub_ne_2 ρ : NonExpansive2 (sf_kind_sub ρ);
   sf_kind_sub_internal_proper (T1 T2 U1 U2 : hoLtyO Σ) ρ :
-    hoLty_equiv T1 T2 -∗
-    hoLty_equiv U1 U2 -∗
+    □ hoLty_equiv T1 T2 -∗
+    □ hoLty_equiv U1 U2 -∗
     sf_kind_sub ρ T1 U1 -∗ sf_kind_sub ρ T2 U2;
   sf_kind_sub_trans ρ T1 T2 T3 :
     sf_kind_sub ρ T1 T2 -∗
@@ -69,10 +70,11 @@ Record sf_kind {Σ} := _SfKind {
     sf_kind_sub ρ T2 T2;
 }.
 Add Printing Constructor sf_kind.
+#[global] Existing Instance sf_kind_persistent.
 (* Existing Instance sf_kind_sub_ne. Using :> would create an ambiguous coercion to Funclass. *)
 #[global] Arguments sf_kind : clear implicits.
 #[global] Arguments sf_kind_sub {_} !_.
-#[global] Arguments _SfKind {_} _.
+#[global] Arguments _SfKind {_} _ {_}.
 Notation SfKind F := (_SfKind F notc_hole _ _ _ _).
 
 Declare Scope sf_kind_scope.
@@ -158,8 +160,8 @@ Lemma sf_kind_proper' {Σ} (K : sf_kind Σ) ρ T1 T2 :
   T1 ≡ T2 → K ρ T1 T1 ≡ K ρ T2 T2.
 Proof. intros Heq. exact: sf_kind_proper. Qed.
 
-Lemma sfkind_respects `{dlangG Σ} (K : sf_kind Σ) ρ T1 T2 :
-  hoLty_equiv T1 T2 -∗ K ρ T1 T1 -∗ K ρ T2 T2.
+Lemma sfkind_respects {Σ} (K : sf_kind Σ) ρ T1 T2 :
+  □ hoLty_equiv T1 T2 -∗ K ρ T1 T1 -∗ K ρ T2 T2.
 Proof. iIntros "#H". iApply (sf_kind_sub_internal_proper with "H H"). Qed.
 
 Section sf_kind_subst.
@@ -227,7 +229,7 @@ Notation oTAppV T w := (_oTAppV w T).
 #[global] Instance : Params (@_oTAppV) 2 := {}.
 
 Definition sr_kintv `{dlangG Σ} (L U : oltyO Σ) : sr_kind Σ := λI ρ φ1 φ2,
-  oClose L ρ ⊆ oClose φ1 ⊆ oClose φ2 ⊆ oClose U ρ.
+  □(oClose L ρ ⊆ oClose φ1 ⊆ oClose φ2 ⊆ oClose U ρ).
 #[global] Instance : Params (@sr_kintv) 3 := {}.
 
 Section utils.
@@ -256,25 +258,25 @@ Section utils.
   Proof. done. Qed.
 
   Lemma sr_kintv_refl L U ρ φ :
-    sr_kintv L U ρ φ φ ⊣⊢ oClose L ρ ⊆ oClose φ ⊆ oClose U ρ.
+    sr_kintv L U ρ φ φ ⊣⊢ □ (oClose L ρ ⊆ oClose φ ⊆ oClose U ρ).
   Proof.
     by rewrite /sr_kintv (bi_emp_valid_True subtype_refl) (left_id True)%I.
   Qed.
 
   Lemma sr_kintv_respects_hoLty_equiv_1 {T1 T2} (L U : olty Σ) U1 ρ :
-    hoLty_equiv T1 T2 -∗ sr_kintv L U ρ T1 U1 -∗ sr_kintv L U ρ T2 U1.
+    □ hoLty_equiv T1 T2 -∗ sr_kintv L U ρ T1 U1 -∗ sr_kintv L U ρ T2 U1.
   Proof.
     rewrite !(hoLty_equiv_split anil).
-    iIntros "#(HT1 & HT2) #(HL&HM&$) /="; iSplit.
+    iIntros "#(HT1 & HT2) #(HL&HM&$) !> /="; iSplit.
     by iApply (subtype_trans with "HL HT1").
     by iApply (subtype_trans with "HT2 HM").
   Qed.
 
   Lemma sr_kintv_respects_hoLty_equiv_2 {U1 U2} (L U : olty Σ) T1 ρ :
-    hoLty_equiv U1 U2 -∗ sr_kintv L U ρ T1 U1 -∗ sr_kintv L U ρ T1 U2.
+    □ hoLty_equiv U1 U2 -∗ sr_kintv L U ρ T1 U1 -∗ sr_kintv L U ρ T1 U2.
   Proof.
     rewrite !(hoLty_equiv_split anil).
-    iIntros "#(HU1 & HU2) #($&HM&HU) /="; iSplit.
+    iIntros "#(HU1 & HU2) #($&HM&HU) !> /="; iSplit.
     by iApply (subtype_trans with "HM HU1").
     by iApply (subtype_trans with "HU2 HU").
   Qed.
@@ -313,33 +315,33 @@ Lemma acurry_respects_hoLty_equiv {Σ} {T1 T2 : hoLty Σ} arg :
   hoLty_equiv T1 T2 -∗ hoLty_equiv (acurry T1 arg) (acurry T2 arg).
 Proof. by iIntros "H %%". Qed.
 
-Program Definition sf_kpi `{dlangG Σ} (S : oltyO Σ) (K : sf_kind Σ) :
+Program Definition sf_kpi {Σ} (S : oltyO Σ) (K : sf_kind Σ) :
   sf_kind Σ := SfKind
     (λI ρ φ1 φ2,
-      ∀ arg, S anil ρ arg →
+      □ ∀ arg, S anil ρ arg →
       K (arg .: ρ) (acurry φ1 arg) (acurry φ2 arg)).
 Next Obligation.
-  move=> Σ ? ? S K ρ n T1 T2 HT U1 U2 HU /=.
-  f_equiv => ?; f_equiv.
+  move=> Σ S K ρ n T1 T2 HT U1 U2 HU /=.
+  f_equiv; f_equiv => ?; f_equiv.
   by apply sf_kind_sub_ne_2; apply acurry_ne.
 Qed.
 Next Obligation.
-  intros; iIntros "#Heq1 #Heq2 /= #HT %arg HS".
+  intros; iIntros "#Heq1 #Heq2 /= #HT !> %arg HS".
   rewrite (acurry_respects_hoLty_equiv (T1 := T1) arg).
   rewrite (acurry_respects_hoLty_equiv (T1 := U1) arg).
   iApply (sf_kind_sub_internal_proper with "Heq1 Heq2 (HT HS)").
 Qed.
 Next Obligation.
-  intros; iIntros "#H1 #H2 %arg #Harg".
+  intros; iIntros "#H1 #H2 !> %arg #Harg".
   iApply (sf_kind_sub_trans with "(H1 Harg) (H2 Harg)").
 Qed.
 Next Obligation.
-  intros; iIntros "/= #H * #Harg"; iApply (sf_kind_sub_quasi_refl_1 with "(H Harg)").
+  intros; iIntros "/= #H !> * #Harg"; iApply (sf_kind_sub_quasi_refl_1 with "(H Harg)").
 Qed.
 Next Obligation.
-  intros; iIntros "/= #H * #Harg"; iApply (sf_kind_sub_quasi_refl_2 with "(H Harg)").
+  intros; iIntros "/= #H !> * #Harg"; iApply (sf_kind_sub_quasi_refl_2 with "(H Harg)").
 Qed.
-#[global] Instance : Params (@sf_kpi) 3 := {}.
+#[global] Instance : Params (@sf_kpi) 1 := {}.
 
 Section kinds_types.
   Context `{dlangG Σ}.
