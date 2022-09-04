@@ -9,6 +9,7 @@ From D.Dot Require Import syn path_repl.
 From D.Dot Require Import dlang_inst path_wp.
 From D.Dot Require Import dot_lty dot_semtypes sem_kind_dot unary_lr.
 From D.Dot Require Import hkdot.
+(*
 Import HkDot.
 (* Import last to override side effects. *)
 From D Require Import proper.
@@ -894,3 +895,4 @@ End foo.
 (* Exercise for the reader: remember the point is that all _consumers_ respect
 path equality. So for each elimination rule from supported types, we must prove
 functionality! *)
+*)
