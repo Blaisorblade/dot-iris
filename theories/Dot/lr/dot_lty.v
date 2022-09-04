@@ -329,6 +329,9 @@ Notation "d ↗ ψ" := (dm_to_type d ψ) (at level 20).
 Section dm_to_type.
   Context `{HdotG : !dlangG Σ} `{rinterp : !RecTyInterp Σ}.
 
+  #[global] Instance dm_to_type_persistent d ψ: Persistent (d ↗ ψ).
+  Proof. destruct d; apply _. Qed.
+
   Lemma dm_to_type_agree {d ψ1 ψ2} args v : d ↗ ψ1 -∗ d ↗ ψ2 -∗ ▷ (ψ1 args v ≡ ψ2 args v).
   Proof.
     destruct d; simpl; [ | apply stamp_σ_to_type_agree | by iIntros "[]" ].

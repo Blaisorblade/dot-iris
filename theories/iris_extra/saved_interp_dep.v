@@ -95,6 +95,9 @@ Section saved_ho_sem_type.
     saved_anything_own (F := hoEnvPredOF s) γ (ho_pack (existT n Φ)).
   Notation "γ ⤇n[ n  ] φ" := (saved_ho_sem_type_own γ n φ) (at level 20).
 
+  #[global] Instance saved_ho_sem_type_own_persistent γ n φ :
+    Persistent (γ ⤇n[ n ] φ) := _.
+
   #[global] Instance saved_ho_sem_type_own_contractive γ i :
     Contractive (saved_ho_sem_type_own γ i).
   Proof.
