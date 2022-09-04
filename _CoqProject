@@ -36,6 +36,7 @@ theories/asubst_intf.v
 theories/asubst_base.v
 theories/proper.v
 theories/succ_notation.v
+theories/numbers.v
 theories/tactics.v
 
 theories/Dot/syn/syn.v

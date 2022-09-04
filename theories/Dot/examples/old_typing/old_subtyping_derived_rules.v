@@ -67,7 +67,7 @@ Qed.
 
 Lemma iSub_AddIJ' {Γ T} i j (Hle : i <= j) :
   Γ u⊢ₜ T, i <: T, j.
-Proof. rewrite (le_plus_minus i j Hle) Nat.add_comm. exact: iSub_AddIJ. Qed.
+Proof. rewrite -(Nat.sub_add i j Hle). exact: iSub_AddIJ. Qed.
 
 Lemma iSub_AddI Γ T i :
   Γ u⊢ₜ T, 0 <: T, i.
@@ -77,7 +77,7 @@ Lemma path_tp_delay {Γ p T i j} : i <= j →
   Γ u⊢ₚ p : T, i → Γ u⊢ₚ p : T, j.
 Proof.
   intros Hle Hp.
-  rewrite (le_plus_minus i j Hle); move: {j Hle} (j - i) => k.
+  rewrite -(Nat.sub_add i j Hle) (Nat.add_comm _ i). move: {j Hle} (j - i) => k.
   eapply iP_ISub, Hp.
   apply: iSub_AddIJ'; by [|lia].
 Qed.

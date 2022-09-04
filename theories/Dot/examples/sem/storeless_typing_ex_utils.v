@@ -135,15 +135,6 @@ Lemma iT_ISub_nocoerce T1 T2 {Γ e} :
 Proof. intros. exact: (iT_ISub (i:=0)). Qed.
 #[global] Hint Resolve iT_ISub_nocoerce : core.
 
-Lemma path_tp_delay {Γ p T i j} (Hst : is_unstamped_ty' (length Γ) T) : i <= j →
-  Γ u⊢ₚ p : T, i → Γ u⊢ₚ p : T, j.
-Proof.
-  intros Hle Hp.
-  rewrite (le_plus_minus i j Hle); move: {j Hle} (j - i) => k.
-  eapply iP_ISub, Hp.
-  apply: iSub_AddIJ'; by [|lia].
-Qed.
-
 Lemma iT_Let Γ t u T U :
   Γ v⊢ₜ t : T →
   shift T :: Γ v⊢ₜ u : shift U →
