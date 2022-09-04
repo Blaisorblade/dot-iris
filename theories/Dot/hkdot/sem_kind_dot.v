@@ -68,7 +68,7 @@ Section TMem_lemmas.
   Lemma oTMemK_eq l K args ρ v :
     oTMemK l K args ρ v ⊣⊢
     ∃ ψ d, ⌜v ,, l ↘ d⌝ ∧ d ↗ ψ ∧ K ρ (packHoLtyO ψ) (packHoLtyO ψ).
-  Proof. apply bi_exist_nested_swap. Qed.
+  Proof. by rewrite /cTMemK/= bi_exist_nested_swap. Qed.
 
   Lemma cTMemAnyKind_eq l d ρ :
     cTMemAnyKind l ρ [(l, d)] ⊣⊢ oDTMemAnyKind ρ d.
