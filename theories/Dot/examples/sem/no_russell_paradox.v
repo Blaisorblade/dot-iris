@@ -9,7 +9,6 @@ Implicit Types
          (L T U : ty) (v : vl) (e : tm) (d : dm) (ds : dms)
          (Γ : ctx).
 Set Suggest Proof Using.
-Set Default Proof Using "Type".
 
 Section Russell.
   Context `{HdlangG : !dlangG Σ}.

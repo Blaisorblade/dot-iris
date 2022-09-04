@@ -8,7 +8,6 @@ From D.Dot Require Import syn.
 From D.Dot Require Export storeless_typing ex_utils hoas old_subtyping_derived_rules.
 Export DBNotation old_subtyping_derived_rules.
 
-Set Default Proof Using "Type".
 Set Suggest Proof Using.
 
 Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (ds : dms) (Γ : list ty).

@@ -11,7 +11,6 @@ From D.Dot.examples.sem Require Export sub_lr sub_lr_syn.
 From D.Dot.examples.sem Require Import storeless_typing.
 
 Set Suggest Proof Using.
-Set Default Proof Using "Type".
 Set Implicit Arguments.
 Unset Strict Implicit.
 

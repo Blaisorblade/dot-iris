@@ -7,7 +7,6 @@ From D.Dot Require Export sem_unstamped_typing.
 
 From D.Dot Require Import typing path_repl_lemmas.
 Set Suggest Proof Using.
-Set Default Proof Using "Type".
 Set Implicit Arguments.
 Unset Strict Implicit.
 

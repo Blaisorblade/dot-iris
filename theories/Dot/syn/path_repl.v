@@ -18,7 +18,6 @@ Implicit Types
          (l : label).
 
 Set Suggest Proof Using.
-Set Default Proof Using "Type".
 
 Notation unshift T := T.|[ren pred].
 Notation unshiftV v := v.[ren pred].

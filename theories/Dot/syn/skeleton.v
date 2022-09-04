@@ -8,7 +8,6 @@ From D.Dot Require Import syn rules.
 Set Implicit Arguments.
 
 Set Suggest Proof Using.
-Set Default Proof Using "Type".
 
 Implicit Types (efs : list tm) (σ : ()) (e : tm).
 Implicit Types (t : tm) (v : vl) (d : dm) (ds : dms) (p : path) (T : ty).

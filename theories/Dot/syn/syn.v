@@ -12,7 +12,6 @@ From iris.program_logic Require ectx_language.
 From iris.program_logic Require Import ectxi_language.
 
 Set Suggest Proof Using.
-Set Default Proof Using "Type".
 
 (**
 This module is included right away, but it asserts explicitly

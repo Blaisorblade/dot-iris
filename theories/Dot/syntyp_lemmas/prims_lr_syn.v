@@ -10,7 +10,6 @@ From D.Dot Require Import unary_lr prims_lr.
 Implicit Types (v : vl) (e : tm) (d : dm) (ds : dms) (ρ : env).
 
 Set Suggest Proof Using.
-Set Default Proof Using "Type".
 
 Section Sec.
   Context `{HdlangG : !dlangG Σ}.

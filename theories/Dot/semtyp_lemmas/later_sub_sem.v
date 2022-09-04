@@ -5,7 +5,6 @@ From D Require Import proper.
 From D.Dot Require Import dot_semtypes.
 
 Set Suggest Proof Using.
-Set Default Proof Using "Type".
 
 (* This is specialized to [anil] because contexts only contain proper types anyway. *)
 Definition s_ty_sub `{HdlangG : !dlangG Σ} (T1 T2 : oltyO Σ) := ∀ ρ v, T1 anil ρ v -∗ T2 anil ρ v.

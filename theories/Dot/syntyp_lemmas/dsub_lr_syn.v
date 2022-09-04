@@ -8,7 +8,6 @@ Implicit Types (Σ : gFunctors).
 Implicit Types (v : vl) (e : tm) (d : dm) (ds : dms) (ρ : env) (l : label).
 
 Set Suggest Proof Using.
-Set Default Proof Using "Type".
 Set Implicit Arguments.
 Unset Strict Implicit.
 

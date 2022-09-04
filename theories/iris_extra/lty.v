@@ -21,7 +21,6 @@ From D Require Import prelude iris_prelude asubst_intf dlang proper.
 Implicit Types (Σ : gFunctors).
 
 Set Suggest Proof Using.
-Set Default Proof Using "Type".
 
 #[global] Instance bottom_fun {A} `{Bottom B} : Bottom (A → B) := (λ _, ⊥).
 #[global] Instance top_fun {A} `{Top B} : Top (A → B) := (λ _, ⊤).

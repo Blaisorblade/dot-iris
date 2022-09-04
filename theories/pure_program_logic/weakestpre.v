@@ -10,7 +10,6 @@ From iris.bi Require Export weakestpre.
 From iris.proofmode Require Import base proofmode classes.
 
 From D.iris_extra Require Export det_reduction.
-Set Default Proof Using "Type".
 Import uPred.
 
 Class irisGS (Λ : language) (Σ : gFunctors) `{InhabitedState Λ} := IrisG {

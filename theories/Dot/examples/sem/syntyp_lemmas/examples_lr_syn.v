@@ -12,7 +12,6 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 
 Set Suggest Proof Using.
-Set Default Proof Using "Type".
 
 Section Lemmas.
   Context `{HdotG : !dlangG Σ}.

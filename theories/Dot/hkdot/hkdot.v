@@ -14,7 +14,6 @@ From D.Dot Require hoas ex_utils.
 From D.Dot Require Import sem_kind sem_kind_dot.
 
 Set Suggest Proof Using.
-Set Default Proof Using "Type".
 Set Implicit Arguments.
 Unset Strict Implicit.
 

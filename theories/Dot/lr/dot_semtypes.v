@@ -10,7 +10,6 @@ From D.Dot Require Export dot_lty sem_kind_dot.
 
 Unset Program Cases.
 Set Suggest Proof Using.
-Set Default Proof Using "Type".
 
 Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)

@@ -7,7 +7,6 @@ From D.Dot Require Export core_stamping_defs.
 Set Implicit Arguments.
 Unset Strict Implicit.
 Set Suggest Proof Using.
-Set Default Proof Using "Type".
 
 Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p : path) (ds : dms) (Γ : list ty).
 

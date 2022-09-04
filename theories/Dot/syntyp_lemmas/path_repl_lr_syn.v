@@ -12,7 +12,6 @@ Implicit Types
          (ρ : env) (l : label) (Pv : vl → Prop).
 
 Set Suggest Proof Using.
-Set Default Proof Using "Type".
 
 
 Section path_repl.

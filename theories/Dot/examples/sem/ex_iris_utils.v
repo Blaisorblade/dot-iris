@@ -10,7 +10,6 @@ From D.Dot Require Export old_fundamental examples_lr sem_unstamped_typing.
 Export loopTms.
 
 Set Suggest Proof Using.
-Set Default Proof Using "Type".
 
 Implicit Types (v w : vl) (d : dm) (ds : dms).
 
