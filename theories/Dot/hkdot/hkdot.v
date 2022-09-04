@@ -951,8 +951,11 @@ Section dot_experimental_kinds.
     rewrite /sr_kintv/=.
     rewrite !envApply_oTAppV_eq.
     iEval asimpl.
-    (* iApply sf_kind_sub_trans.
-    iApply (sfkind_respects with "[] (HT [])"). *)
+    iApply sf_kind_sub_trans.
+    { iApply (sfkind_respects with "[] (HT [])").
+      { iIntros "% %". iSplit; iIntros "$". }
+      admit.
+    }
   Abort.
 
 
