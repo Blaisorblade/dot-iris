@@ -10,8 +10,6 @@ Implicit Types
          (v w : vl) (t : tm) (d : dm) (ds : dms) (p q : path)
          (ρ : env) (l : label) (Pv : vl → Prop).
 
-Set Suggest Proof Using.
-
 Section semantic_lemmas.
   Context `{!dlangG Σ}.
   (** Non-pDOT rules start: *)

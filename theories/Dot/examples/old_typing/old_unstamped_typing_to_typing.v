@@ -8,7 +8,6 @@ Implicit Types (L T U : ty) (v : vl) (e : tm) (d : dm) (p : path) (ds : dms) (Γ
 
 Set Implicit Arguments.
 Unset Strict Implicit.
-Set Suggest Proof Using.
 
 #[local] Lemma iP_ISub_Der Γ i j T1 T2 p :
   Γ t⊢ₜ iterate TLater i T1 <:[ 0 ] iterate TLater (i + j) T2 →

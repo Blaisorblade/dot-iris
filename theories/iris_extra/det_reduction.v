@@ -2,7 +2,6 @@
 From D Require Import prelude.
 From iris.program_logic Require language ectx_language.
 
-Set Suggest Proof Using.
 Set Default Proof Using "Type*".
 
 Set Implicit Arguments.

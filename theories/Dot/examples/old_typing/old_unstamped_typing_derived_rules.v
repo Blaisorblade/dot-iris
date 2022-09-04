@@ -300,7 +300,6 @@ Proof. eapply iD_Path, (iP_Sngl_Refl (T := T)), Hx. Qed.
 (* If I add [iSub_Skolem_P] to the syntactic type system, what other rules
 can I derive? Apparently, subtyping for recursive types, almost. See below! *)
 
-Set Suggest Proof Using.
 Section cond.
   Context (Hskolem : ∀ Γ T1 T2 i j,
     iterate TLater i (shift T1) :: Γ u⊢ₚ pv (ids 0) : shift T2, j →

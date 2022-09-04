@@ -11,7 +11,6 @@ From D.DSub Require Import unary_lr semtyp_lemmas.
 
 Implicit Types (L T U : ty) (v : vl) (e : tm) (Γ : ctx).
 
-Set Suggest Proof Using.
 Set Default Proof Using "Type*".
 
 Section swap_based_typing_lemmas.

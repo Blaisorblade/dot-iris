@@ -7,7 +7,6 @@ From D.Dot Require Import binding_lr.
 
 Implicit Types (v : vl) (e : tm) (d : dm) (ds : dms) (ρ : env).
 
-Set Suggest Proof Using.
 Set Implicit Arguments.
 Unset Strict Implicit.
 

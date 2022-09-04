@@ -5,7 +5,6 @@ From D Require Import saved_interp_n asubst_intf dlang lty.
 From D Require Import swap_later_impl.
 From D.Dot Require Import dot_lty hkdot.sem_kind.
 
-Set Suggest Proof Using.
 Set Implicit Arguments.
 Unset Strict Implicit.
 

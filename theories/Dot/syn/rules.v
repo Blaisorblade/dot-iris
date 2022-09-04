@@ -7,8 +7,6 @@ From iris.program_logic Require Import language ectx_language.
 From D Require Import iris_extra.det_reduction.
 From D.Dot Require Import syn.
 
-Set Suggest Proof Using.
-
 Implicit Types e : tm.
 
 Section lang_rules.

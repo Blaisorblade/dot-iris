@@ -7,7 +7,6 @@ From D.Dot Require Import dot_semtypes.
 Implicit Types (Σ : gFunctors).
 Implicit Types (v : vl) (e : tm) (d : dm) (ds : dms) (ρ : env) (l : label).
 
-Set Suggest Proof Using.
 Set Implicit Arguments.
 Unset Strict Implicit.
 

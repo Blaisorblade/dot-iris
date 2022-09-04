@@ -1,7 +1,6 @@
 (** * Binding lemmas about DSub* logical relations. *)
 From D Require Import prelude iris_prelude asubst_base saved_interp_n.
 
-Set Suggest Proof Using.
 Set Default Proof Using "Type*".
 
 Module Type TyInterpLemmas (Import VS : VlSortsFullSig)

@@ -36,7 +36,6 @@ Import prelude.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
-Set Suggest Proof Using.
 
 Section hoas.
   Import hoasNotation.

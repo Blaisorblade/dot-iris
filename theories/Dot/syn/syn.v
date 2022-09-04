@@ -11,8 +11,6 @@ From D Require Import asubst_intf asubst_base.
 From iris.program_logic Require ectx_language.
 From iris.program_logic Require Import ectxi_language.
 
-Set Suggest Proof Using.
-
 (**
 This module is included right away, but it asserts explicitly
 that it implements our language interface [VlSortsFullSig].

@@ -11,9 +11,6 @@ Implicit Types
          (v w : vl) (t : tm) (d : dm) (ds : dms) (p q : path)
          (ρ : env) (l : label) (Pv : vl → Prop).
 
-Set Suggest Proof Using.
-
-
 Section path_repl.
   Context `{!dlangG Σ}.
 

@@ -5,8 +5,6 @@ From D.Dot Require Import rules dot_semtypes later_sub_sem.
 
 Implicit Types (v : vl) (e : tm) (d : dm) (ds : dms) (ρ : env).
 
-Set Suggest Proof Using.
-
 Section LambdaIntros.
   Context `{HdlangG : !dlangG Σ}.
 

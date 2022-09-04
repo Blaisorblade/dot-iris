@@ -8,7 +8,6 @@ From D.pure_program_logic Require Import weakestpre.
 From D.Dot Require Export dot_lty dot_semtypes sem_kind_dot.
 
 Unset Program Cases.
-Set Suggest Proof Using.
 
 Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)

@@ -9,8 +9,6 @@ From D.Dot Require Import ex_iris_utils.
 From D.Dot.examples Require Import positive_div.
 Import dlang_adequacy.
 
-Set Suggest Proof Using.
-
 Implicit Types (v w : vl) (d : dm) (ds : dms).
 
 (** ** Example code. *)

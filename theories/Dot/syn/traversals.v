@@ -3,8 +3,6 @@ From D.Dot Require Import syn.
 Set Primitive Projections.
 Set Implicit Arguments.
 
-Set Suggest Proof Using.
-
 Implicit Types
          (S T U : ty) (v : vl) (e t : tm) (p : path) (d : dm) (ds : dms) (vs : vls)
          (Γ : ctx).

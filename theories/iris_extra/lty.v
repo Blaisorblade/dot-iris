@@ -20,8 +20,6 @@ From D Require Import prelude iris_prelude asubst_intf dlang proper.
 
 Implicit Types (Σ : gFunctors).
 
-Set Suggest Proof Using.
-
 #[global] Instance bottom_fun {A} `{Bottom B} : Bottom (A → B) := (λ _, ⊥).
 #[global] Instance top_fun {A} `{Top B} : Top (A → B) := (λ _, ⊤).
 #[global] Instance bottom_ofe_fun {A} {B : ofe} `{Bottom B} : Bottom (A -d> B) := (λ _, ⊥).

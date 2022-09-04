@@ -2,8 +2,6 @@
 From iris.program_logic Require Import language.
 From D Require Import prelude asubst_intf.
 
-Set Suggest Proof Using.
-
 (** The module type [Sorts] is a "mixin module" that is included directly in
 each language implementing [ValuesSig],
 *)

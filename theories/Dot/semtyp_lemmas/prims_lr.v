@@ -9,8 +9,6 @@ From D.Dot Require Import rules dot_semtypes.
 
 Implicit Types (v : vl) (e : tm) (d : dm) (ds : dms) (n : Z).
 
-Set Suggest Proof Using.
-
 Inductive cond_bin_op_syntype : bin_op → ∀ (B1 B2 Br : base_ty),
   (prim_sem B1 → prim_sem B2 → Prop) → Set :=
 | ty_syn b B1 B2 Br : bin_op_syntype b B1 B2 Br →

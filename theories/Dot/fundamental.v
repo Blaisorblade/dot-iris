@@ -6,7 +6,6 @@ From D.Dot Require Export binding_lr_syn dsub_lr_syn path_repl_lr_syn prims_lr_s
 From D.Dot Require Export sem_unstamped_typing.
 
 From D.Dot Require Import typing path_repl_lemmas.
-Set Suggest Proof Using.
 Set Implicit Arguments.
 Unset Strict Implicit.
 
