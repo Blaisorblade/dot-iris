@@ -18,7 +18,7 @@ Section defs.
 
   (** Legacy: (double)-indexed subtyping. *)
   Definition sstpi `{!dlangG Σ} i j Γ τ1 τ2 : iProp Σ :=
-    |==> sstpi' i j Γ τ1 τ2.
+    <PB> sstpi' i j Γ τ1 τ2.
   #[global] Arguments sstpi /.
 End defs.
 (** Indexed subtyping *)
@@ -40,6 +40,8 @@ End Propers.
 
 Section judgment_lemmas.
   Context `{!dlangG Σ}.
+
+  #[global] Instance sstpi_persistent i j Γ τ1 τ2 : Persistent (sstpi i j Γ τ1 τ2) := _.
 
   Lemma sstpi_app ρ Γ (T1 T2 : olty Σ) i j :
     sstpi' i j Γ T1 T2 -∗ sG⟦ Γ ⟧* ρ -∗
@@ -71,7 +73,7 @@ Section StpLemmas.
     (*───────────────────────────────*)
     Γ s⊨p p : T2, i + j.
   Proof.
-    iIntros ">#HpT1 >#Hsub !> %ρ #Hg".
+    pupd; iIntros "#HpT1 #Hsub !> %ρ #Hg".
     iSpecialize ("HpT1" with "Hg").
     rewrite !path_wp_eq.
     iDestruct "HpT1" as (v) "Hpv"; iExists v.

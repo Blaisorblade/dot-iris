@@ -71,6 +71,9 @@ Module Type LiftWp (Import VS : VlSortsSig).
     Lemma stamp_σ_to_type_intro s σ (φ : hoEnvD Σ) :
       s ↝n φ -∗ s ↗n[ σ ] hoEnvD_inst σ φ.
     Proof. rewrite /stamp_σ_to_type. iIntros; iExists φ; auto. Qed.
+
+    #[global] Instance stamp_σ_to_type_persistent σ s ψ :
+      Persistent (s ↗n[ σ ] ψ) := _.
   End mapsto.
 
   Typeclasses Opaque stamp_σ_to_type.

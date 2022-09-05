@@ -342,6 +342,9 @@ Section env_oltyped.
   Definition env_oltyped_cons ρ τ (Γ : sCtx Σ) :
     sG⟦ τ :: Γ ⟧* ρ ⊣⊢ sG⟦ Γ ⟧* (stail ρ) ∧ oClose τ ρ (shead ρ) := reflexivity _.
 
+  #[global] Instance env_oltyped_persistent (Γ : sCtx Σ) ρ: Persistent (sG⟦ Γ ⟧* ρ).
+  Proof. elim: Γ ρ => [|τ Γ IHΓ] ρ /=; apply _. Qed.
+
   #[global] Instance env_oltyped_ne ρ : NonExpansive (env_oltyped ρ).
   Proof.
     move: ρ => + n G1 G2.

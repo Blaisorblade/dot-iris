@@ -68,7 +68,7 @@ Section TMem_lemmas.
   Lemma oTMemK_eq l K args ρ v :
     oTMemK l K args ρ v ⊣⊢
     ∃ ψ d, ⌜v ,, l ↘ d⌝ ∧ d ↗ ψ ∧ K ρ (packHoLtyO ψ) (packHoLtyO ψ).
-  Proof. apply bi_exist_nested_swap. Qed.
+  Proof. by rewrite /cTMemK/= bi_exist_nested_swap. Qed.
 
   Lemma cTMemAnyKind_eq l d ρ :
     cTMemAnyKind l ρ [(l, d)] ⊣⊢ oDTMemAnyKind ρ d.
@@ -160,7 +160,7 @@ End sem_TMem.
 (** * Path application and substitution *)
 
 Definition sem_kind_path_replI {Σ} p q (K1 K2 : sf_kind Σ) : iProp Σ :=
-  |==> ∀ ρ T1 T2 (Hal : alias_paths p.|[ρ] q.|[ρ]), K1 ρ T1 T2 ≡ K2 ρ T1 T2.
+  <PB> ∀ ρ T1 T2 (Hal : alias_paths p.|[ρ] q.|[ρ]), K1 ρ T1 T2 ≡ K2 ρ T1 T2.
 (* sKdI = semantic Kind Path Iris; matches [sem_ty_path_replI]. *)
 Notation "K1 ~sKpI[ p := q  ]* K2" :=
   (sem_kind_path_replI p q K1 K2) (at level 70).

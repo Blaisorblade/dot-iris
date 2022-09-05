@@ -1,6 +1,7 @@
 (** * Logical relation and semantic judgments. *)
 From D Require Export iris_prelude proper lty lr_syn_aux.
 From D Require Import iris_extra.det_reduction.
+From D Require Export iris_extra.proofmode_pupd.
 From D Require Import swap_later_impl.
 From D.Dot Require Import syn path_repl.
 From D.Dot Require Export dlang_inst path_wp.
@@ -22,18 +23,18 @@ Section judgments.
 
   (** Expression typing *)
   Definition setp `{!dlangG Σ} e Γ τ : iProp Σ :=
-    |==> ∀ ρ, sG⟦Γ⟧* ρ → sE⟦ τ ⟧ ρ (e.|[ρ]).
+    <PB> ∀ ρ, sG⟦Γ⟧* ρ → sE⟦ τ ⟧ ρ (e.|[ρ]).
   #[global] Arguments setp : simpl never.
 
   (** Delayed subtyping. *)
   Definition sstpd `{!dlangG Σ} i Γ τ1 τ2 : iProp Σ :=
-    |==> ∀ ρ,
+    <PB> ∀ ρ,
       sG⟦Γ⟧*ρ → ▷^i (oClose τ1 ρ ⊆ oClose τ2 ρ).
   #[global] Arguments sstpd : simpl never.
 
   (** Multi-definition typing *)
   Definition sdstp `{!dlangG Σ} ds Γ (T : clty Σ) : iProp Σ :=
-    |==> ⌜wf_ds ds⌝ ∧ ∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → sG⟦Γ⟧* ρ → T ρ ds.|[ρ].
+    <PB> (⌜wf_ds ds⌝ ∧ ∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → sG⟦Γ⟧* ρ → T ρ ds.|[ρ]).
   #[global] Arguments sdstp : simpl never.
 
   (** Definition typing *)
@@ -42,9 +43,27 @@ Section judgments.
 
   (** Path typing *)
   Definition sptp `{!dlangG Σ} p i Γ τ : iProp Σ :=
-    |==> ∀ ρ, sG⟦Γ⟧* ρ →
+    <PB> ∀ ρ, sG⟦Γ⟧* ρ →
       ▷^i path_wp p.|[ρ] (oClose τ ρ).
   #[global] Arguments sptp : simpl never.
+
+  Section persistence.
+    Context `{!dlangG Σ}.
+
+    (*
+    Avoid auto-dropping box (and unfolding) when introducing judgments persistently.
+
+    We use cost 0 to take precedence over Iris.
+
+    The instance for [sdtp] overlaps with [sdstp] and must take priority; since
+    there's no cost lower than 0, the instance for [sdtp] comes after the one for [sdstp].
+    *)
+    #[global] Instance sdstp_into_persistent Γ Tds ds    : IntoPersistent' (sdstp ds  Γ Tds)   | 0 := _.
+    #[global] Instance sdtp_into_persistent  Γ Td l d    : IntoPersistent' (sdtp l d   Γ Td)   | 0 := _.
+    #[global] Instance setp_into_persistent  Γ T e       : IntoPersistent' (setp e     Γ T)    | 0 := _.
+    #[global] Instance sstpd_into_persistent Γ T1 T2 i   : IntoPersistent' (sstpd i Γ T1 T2)   | 0 := _.
+    #[global] Instance sptp_into_persistent  Γ T p i     : IntoPersistent' (sptp p i   Γ T)    | 0 := _.
+  End persistence.
 End judgments.
 
 (** Expression typing *)
@@ -63,15 +82,15 @@ Section JudgEqs.
 
   Lemma sstpd_eq_1 Γ T1 i T2 :
     Γ s⊨ T1 <:[i] T2 ⊣⊢
-    |==> ∀ ρ, sG⟦Γ⟧* ρ → ∀ v, ▷^i (T1 anil ρ v → T2 anil ρ v).
+    <PB> ∀ ρ, sG⟦Γ⟧* ρ → ∀ v, ▷^i (T1 anil ρ v → T2 anil ρ v).
   Proof.
-    rewrite /sstpd /subtype_lty; f_equiv; f_equiv => ρ.
+    rewrite /sstpd /subtype_lty; repeat f_equiv.
     by rewrite laterN_forall.
   Qed.
 
   Lemma sstpd_eq Γ T1 i T2 :
     Γ s⊨ T1 <:[i] T2 ⊣⊢
-    |==> ∀ ρ v, sG⟦Γ⟧* ρ → ▷^i (T1 anil ρ v → T2 anil ρ v).
+    <PB> ∀ ρ v, sG⟦Γ⟧* ρ → ▷^i (T1 anil ρ v → T2 anil ρ v).
   Proof. rewrite sstpd_eq_1; properness. apply: forall_swap_impl. Qed.
 End JudgEqs.
 
@@ -229,6 +248,7 @@ Section misc_lemmas.
   Proof.
     rewrite !oDTMem_unfold.
     iIntros "#HsubL #HsubU"; iDestruct 1 as (φ) "#(Hφl & #HLφ & #HφU)".
+    rewrite /= /dot_intv_type_pred.
     iExists φ; iSplit; first done; iSplit; iIntros "%w #Hw".
     - iApply ("HLφ" with "(HsubL Hw)").
     - iApply ("HsubU" with "(HφU Hw)").
@@ -264,7 +284,7 @@ Section misc_lemmas.
 
   Lemma sdtp_eq (Γ : sCtx Σ) (T : clty Σ) l d :
     Γ s⊨ { l := d } : T ⊣⊢
-      |==> ∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ [(l, d.|[ρ])].
+      <PB> ∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ [(l, d.|[ρ])].
   Proof.
     rewrite /sdtp /sdstp pure_True ?(left_id _ bi_and);
       by [> | exact: NoDup_singleton].
@@ -272,13 +292,15 @@ Section misc_lemmas.
 
   Lemma sdtp_eq' (Γ : sCtx Σ) (T : dlty Σ) l d :
     Γ s⊨ { l := d } : dty2clty l T ⊣⊢
-      |==> ∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ d.|[ρ].
+      <PB> ∀ ρ, ⌜path_includes (pv (ids 0)) ρ [(l, d)]⌝ → sG⟦Γ⟧* ρ → T ρ d.|[ρ].
   Proof. by rewrite sdtp_eq; properness; last apply dty2clty_singleton. Qed.
 
   Lemma ipwp_terminates {p T i} :
     [] s⊨p p : T , i ⊢ |==> ▷^i ⌜ terminates (path2tm p) ⌝.
   Proof.
-    iIntros ">#H".
+    iIntros "#H".
+    rewrite /sptp.
+    iDestruct "H" as "#>#H".
     iSpecialize ("H" $! ids with "[//]"); rewrite hsubst_id.
     iApply (path_wp_terminates with "H").
   Qed.
@@ -287,7 +309,7 @@ Section misc_lemmas.
   Lemma sT_Path {Γ τ p} :
     Γ s⊨p p : τ, 0 -∗ Γ s⊨ path2tm p : τ.
   Proof.
-    iIntros ">#Hep !> %ρ #Hg /="; rewrite path2tm_subst.
+    pupd; iIntros "#Hep !> %ρ #Hg /=". rewrite path2tm_subst.
     by iApply (path_wp_to_wp with "(Hep Hg)").
   Qed.
 End misc_lemmas.

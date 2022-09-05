@@ -21,7 +21,7 @@ Section Russell.
     *)
   Definition uAu u := oSel (pv u) "A" anil ids u.
 
-  Definition russell_p : envD Σ := λI ρ v, uAu v -∗ False.
+  Definition russell_p : envD Σ := λI ρ v, □ (uAu v -∗ False).
   (* This would internalize as [russell_p ρ v := v : μ x. not (x.A)]. *)
 
   Context (s : stamp).
@@ -58,7 +58,7 @@ Section Russell.
     iApply ("Hvav" with "HuauV").
   Qed.
 
-  Lemma uauEquiv : Hs ⊢ ▷ (uAu v -∗ False) ∗-∗ uAu v.
+  Lemma uauEquiv : Hs ⊢ ▷ □ (uAu v -∗ False) ∗-∗ uAu v.
   Proof.
     iIntros "#Hs"; iSplit.
     - iIntros "#HnotVAV /=".
@@ -68,7 +68,7 @@ Section Russell.
         eauto using objLookupIntro.
       }
       + by iApply (dm_to_type_intro with "Hs").
-      + iApply "HnotVAV".
+      + iIntros "!>!>". rewrite /uAu/= path_wp_pv_eq. iApply "HnotVAV".
     - iIntros "#Hvav".
       by iDestruct (later_not_UAU with "Hs Hvav") as "#>[]".
   Qed.
@@ -78,10 +78,10 @@ Section Russell.
   Lemma taut0 (P : Prop) : ((P → False) ↔ P) → False. Proof. tauto. Qed.
   (** But with later, there's no paradox — we get instead not (not P). *)
   Lemma irisTaut (P : iProp Σ) :
-    (▷ (P -∗ False) ∗-∗ P) -∗ (P -∗ False) -∗ False.
-  Proof using Type*. iIntros "Eq #NP". iApply "NP". by iApply "Eq". Qed.
+    (▷ □ (P -∗ False) ∗-∗ P) -∗ □ (P -∗ False) -∗ False.
+  Proof. iIntros "Eq #NP". iApply "NP". by iApply "Eq". Qed.
 
-  Lemma notNotVAV : Hs ⊢ (uAu v -∗ False) → False.
+  Lemma notNotVAV : Hs ⊢ □ (uAu v -∗ False) → False.
   Proof.
     iIntros "#Hs #notVAV". iApply (irisTaut (uAu v)) => //.
     by iApply uauEquiv.

@@ -8,6 +8,7 @@ From D.Dot Require Import dlang_inst path_wp.
 From D.pure_program_logic Require Import weakestpre.
 From D.Dot Require Import dot_lty dot_semtypes sem_kind_dot unary_lr.
 
+(*
 Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
          (ρ : env) (l : label) (T : ty) (K : kind).
@@ -232,3 +233,4 @@ Print hoD *)
 
 
 End foo.
+*)

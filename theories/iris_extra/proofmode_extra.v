@@ -2,6 +2,9 @@ From iris.proofmode Require Import proofmode.
 From D Require Import prelude.
 Import bi.
 
+(* Avoid auto-dropping box (and unfolding) when introducing judgments persistently. *)
+#[global] Notation IntoPersistent' P := (IntoPersistent false P P).
+
 Tactic Notation "iSplitWith" constr(H) "as" constr(H') :=
   iApply (bi.and_parallel with H); iSplit; iIntros H'.
 

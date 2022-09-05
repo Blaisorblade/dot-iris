@@ -38,10 +38,12 @@ Section lemmas.
     Γ s⊨ oLater V⟦ T ⟧ ∷[ 0 ] K -∗
     Γ s⊨ { l := dtysyn T } : cTMemK l K.
   Proof.
-    rewrite sdtp_eq'. iIntros ">#HTK !>" (ρ Hpid) "Hg /=".
+    rewrite sdtp_eq'. pupd; iIntros "#HTK !>" (ρ Hpid) "Hg /=".
     iExists (λ args, V⟦ T ⟧ args ρ).
     iDestruct (dm_to_type_syn_intro') as "-#$"; first done.
-    iApply ("HTK" with "Hg").
+    iApply (sfkind_respects with "[] (HTK Hg)").
+    iIntros "%%".
+    by iSplit; iIntros "$".
   Qed.
 
   Lemma sD_Typ_Syn {l Γ T} :
@@ -55,7 +57,7 @@ Section lemmas.
   Lemma suD_Typ_Syn {l Γ T} :
     ⊢ Γ su⊨ { l := dtysyn T } : cTMem l (oLater V⟦ T ⟧) (oLater V⟦ T ⟧).
   Proof.
-    iModIntro. iExists (dtysyn T); iSplit; first done. iApply sD_Typ_Syn.
+    pupd; iModIntro. iExists (dtysyn T); iSplit; first done. iApply sD_Typ_Syn.
   Qed.
 (* This is a decent warmup, but TODO: example type application! *)
 

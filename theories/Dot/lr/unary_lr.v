@@ -338,21 +338,21 @@ Section judgment_definitions.
   Context `{HdotG : !dlangG Σ}.
 
   Lemma idstp_eq Γ T ds : Γ ⊨ds ds : T ⊣⊢
-    |==> ⌜wf_ds ds⌝ ∧ ∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → G⟦Γ⟧ ρ → Ds⟦T⟧ ρ ds.|[ρ].
+    <PB> (⌜wf_ds ds⌝ ∧ ∀ ρ, ⌜path_includes (pv (ids 0)) ρ ds ⌝ → G⟦Γ⟧ ρ → Ds⟦T⟧ ρ ds.|[ρ]).
   Proof. reflexivity. Qed.
 
   Lemma ietp_eq Γ e T :
-    Γ ⊨ e : T ⊣⊢ |==> ∀ ρ, G⟦Γ⟧ ρ → E⟦T⟧ ρ (e.|[ρ]).
+    Γ ⊨ e : T ⊣⊢ <PB> ∀ ρ, G⟦Γ⟧ ρ → E⟦T⟧ ρ (e.|[ρ]).
   Proof. reflexivity. Qed.
 
   Lemma istpd_eq Γ T1 i T2 :
     Γ ⊨ T1 <:[i] T2 ⊣⊢
-    |==> ∀ ρ v, G⟦Γ⟧ ρ → ▷^i (V⟦T1⟧ anil ρ v → V⟦T2⟧ anil ρ v).
+    <PB> ∀ ρ v, G⟦Γ⟧ ρ → ▷^i (V⟦T1⟧ anil ρ v → V⟦T2⟧ anil ρ v).
   Proof. apply sstpd_eq. Qed.
 
   Lemma iptp_eq Γ p T i :
     Γ ⊨p p : T , i ⊣⊢
-    |==> ∀ ρ, G⟦Γ⟧ ρ →
+    <PB> ∀ ρ, G⟦Γ⟧ ρ →
       ▷^i path_wp (p.|[ρ]) (λ v, V⟦T⟧ anil ρ v).
   Proof. reflexivity. Qed.
 End judgment_definitions.

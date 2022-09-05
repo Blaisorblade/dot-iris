@@ -40,13 +40,14 @@ Section loop_sem.
   Context `{HdlangG : !dlangG Σ}.
   Context `{SwapPropI Σ}.
 
-  Lemma loopSemT : ⊢@{iPropI _} |==> WP hclose hloopTm {{ _, False }}.
+  Lemma loopSemT : ⊢@{iPropI _} <PB> WP hclose hloopTm {{ _, False }}.
   Proof using Type*.
-    iDestruct (fundamental_typed (loopTyp [])) as "#>H".
-    iDestruct "H" as (e_s Hsk1) ">H"; iModIntro.
+    iIntros "!>".
+    iDestruct (fundamental_typed (loopTyp [])) as "#>#(%e_s & %Hsk1 & #>#H)".
+    iIntros "!> !>".
     iSpecialize ("H" $! ids with "[//]"); rewrite hsubst_id.
     move E: hloopTm => e.
-    suff ->: e_s = e. { iApply (wp_wand with "H"). iIntros (v). by rw. }
+    suff ->: e_s = e. { iApply (wp_wand with "H"). iIntros "%v {H}". by rw. }
     subst; clear -Hsk1. cbv; repeat constrain_bisimulating.
   Qed.
 
