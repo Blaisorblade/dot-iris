@@ -145,3 +145,39 @@ Proof.
   intros; eapply (adequacy #[]) => //; iIntros.
   by iApply fundamental_typed.
 Qed.
+
+(*
+From iris Require Import later_credits.
+From iris.base_logic Require Import fancy_updates.
+Section tests.
+  Context `{!dsubSynG Σ} `{!invGS Σ}.
+
+  Definition istpl i Γ T1 T2 : iProp Σ :=
+    <PB> ∀ ρ v, G⟦Γ⟧ ρ → £ i -∗ ⟦T1⟧ ρ v → ⟦T2⟧ ρ v.
+
+  #[global] Arguments istpl /.
+  #[global] Instance istpl_persistent i Γ T1 T2 : Persistent (istpl i Γ T1 T2) := _.
+  Notation "Γ ⊨ T1 <:[ i  ] T2" := (istpl i Γ T1 T2) (at level 74, T1, T2 at next level).
+
+  Lemma lTyp_Sub_Typ Γ L1 L2 U1 U2 i j :
+    Γ ⊨ L2 <:[ i ] L1 -∗
+    Γ ⊨ U1 <:[ j ] U2 -∗
+    Γ ⊨ TTMem L1 U1 <:[ i + j ] TTMem L2 U2.
+  Proof.
+    pupd. iIntros "#HT1 #HT2 !> %ρ %v #Hg [Ci Cj] /=".
+    unfold_interp.
+    iDestruct 1 as (φ) "#[Hφl [HLφ #HφU]]"; iExists φ.
+    iSplit; first done.
+    iSplitL "Ci"; iIntros "" (w).
+    1: iSpecialize ("HT1" $! ρ w with "Hg Ci").
+    2: iSpecialize ("HT2" $! ρ w with "Hg Cj").
+    (* iSpecialize ("HT1" *)
+
+
+    (* setoid_rewrite mlaterN_impl. *)
+    repeat iSplitL; first done;
+      iIntros "" (w).
+      iNext; iIntros "!> **".
+    - iApply "HLφ" => //. by iApply "IHT".
+    - iApply "IHT1". by iApply "HφU".
+*)
