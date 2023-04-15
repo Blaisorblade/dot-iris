@@ -17,4 +17,5 @@
     -w -deprecated-hint-rewrite-without-locality
     -w -deprecated-instance-without-locality
     -w -deprecated-typeclasses-transparency-without-locality
+    -w -future-coercion-class-field
     )))))
