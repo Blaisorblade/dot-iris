@@ -58,7 +58,7 @@ That is, semantics for both definition lists and values, and proofs that they
 agree appropriately. *)
 Module crel_mixin.
   #[local] Set Primitive Projections.
-  Record pred {Σ} (RDS : rdms_rel Σ) (RV : rvl_rel Σ) : Prop := Mk {
+  Record pred {Σ} (RDS : dms_rel Σ) (RV : vl_rel Σ) : Prop := Mk {
     def2defs_head {l d1 d2 ds1 ds2 ρ1 ρ2} :
       RDS ρ1 ρ2 [(l, d1)] [(l, d2)] ⊢ RDS ρ1 ρ2 ((l, d1) :: ds1) ((l, d2) :: ds2);
     mono {l d1 d2 ds1 ds2 ρ1 ρ2} :
