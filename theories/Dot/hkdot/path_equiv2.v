@@ -30,16 +30,28 @@ Implicit Types
   (ρ : env) (l : label).
 Implicit Types (K : kind).
 
-(** TODO #431: remove *)
-#[export] Declare Instance persistence_unsound : ∀ {Σ} (P : iProp Σ), Persistent P.
+(* Definition dm_rel Σ := ∀ (args : astream) (ρ : env) (d1 : dm), iPPred dm Σ.
+Definition dms_rel Σ := ∀ (args : astream) (ρ : env) (ds1 : dms), iPPred dms Σ.
+Definition vl_rel Σ := ∀ (args : astream) (ρ : env) (v1 : vl), iPPred vl Σ. *)
+Definition rdm_rel Σ := ∀ (ρ1 ρ2 : env) (d1 d2 : dm), iProp Σ.
+SubClass rdms_rel Σ := ∀ (ρ1 ρ2 : env) (ds1 ds2 : dms), iProp Σ.
+Definition rvl_rel Σ := ∀ (args1 args2 : astream) (ρ1 ρ2 : env) (v1 v2 : vl), iProp Σ.
 
-Definition dm_rel Σ := ∀ (ρ1 ρ2 : env) (d1 d2 : dm), iProp Σ.
-SubClass dms_rel Σ := ∀ (ρ1 ρ2 : env) (ds1 ds2 : dms), iProp Σ.
-Definition vl_rel Σ := ∀ (args1 args2 : astream) (ρ1 ρ2 : env) (v1 v2 : vl), iProp Σ.
+Definition dm_rel Σ := ∀ (ρ1 ρ2 : env) (d1 : dm), iPPred dm Σ.
+SubClass dms_rel Σ := ∀ (ρ1 ρ2 : env) (ds1 : dms), iPPred dms Σ.
+Definition vl_rel Σ := ∀ (args1 args2 : astream) (ρ1 ρ2 : env) (v1 : vl), iPPred vl Σ.
 
-Definition dm_relO Σ := env -d> env -d> dm -d> dm -d> iPropO Σ.
-Definition dms_relO Σ := env -d> env -d> dms -d> dms -d> iPropO Σ.
-Definition vl_relO Σ := astream -d> astream -d> env -d> env -d> vl -d> vl -d> iPropO Σ.
+Notation DmRel φ := (λ ρ1 ρ2 d1, IPPred (λI d2, φ ρ1 ρ2 d1 d2)).
+Notation DmsRel φ := (λ ρ1 ρ2 ds1, IPPred (λI ds2, φ ρ1 ρ2 ds1 ds2)).
+Notation VlRel φ := (λ args1 args2 ρ1 ρ2 v1, IPPred (λI v2, φ args1 args2 ρ1 ρ2 v1 v2)).
+
+Definition rdm_relO Σ := env -d> env -d> dm -d> dm -d> iPropO Σ.
+Definition rdms_relO Σ := env -d> env -d> dms -d> dms -d> iPropO Σ.
+Definition rvl_relO Σ := astream -d> astream -d> env -d> env -d> vl -d> vl -d> iPropO Σ.
+
+Definition dm_relO Σ := env -d> env -d> dm -d> iPPredO dm Σ.
+Definition dms_relO Σ := env -d> env -d> dms -d> iPPredO dms Σ.
+Definition vl_relO Σ := astream -d> astream -d> env -d> env -d> vl -d> iPPredO vl Σ.
 
 (** ** A "coherent" relational type, containing all semantics of a type.
 That is, semantics for both definition lists and values, and proofs that they
