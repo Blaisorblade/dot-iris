@@ -12,12 +12,10 @@ Implicit Types (Σ : gFunctors)
          (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
          (ρ : env) (l : label) (T : ty) (K : kind).
 
-Definition dm_rel Σ := ∀ (args : astream) (ρ : env) (d1 d2 : dm), iProp Σ.
-Definition dms_rel Σ := ∀ (args : astream) (ρ : env) (ds1 ds2 : dms), iProp Σ.
-Definition vl_rel Σ := ∀ (args : astream) (ρ : env) (v1 v2 : vl), iProp Σ.
-
-(** TODO #431: remove *)
-#[export] Declare Instance persistence_unsound : ∀ {Σ} (P : iProp Σ), Persistent P.
+Definition dm_rel Σ := ∀ (args : astream) (ρ : env) (d1 : dm), iPPred dm Σ.
+Definition dms_rel Σ := ∀ (args : astream) (ρ : env) (ds1 : dms), iPPred dms Σ.
+Definition vl_rel Σ := ∀ (args : astream) (ρ : env) (v1 : vl), iPPred vl Σ.
+Notation MkRel φ := (λ args ρ x1, IPPred (λI x2, φ args ρ x1 x2)).
 
 (* Relational Semantic Path Typing. *)
 Definition rsptp `{!dlangG Σ} p1 p2 i Γ (RV : vl_rel Σ) : iProp Σ :=
@@ -43,12 +41,12 @@ Section foo.
   Context `{HdotG : !dlangG Σ}.
   Implicit Types (RD : dm_rel Σ) (RDS : dms_rel Σ) (RV : vl_rel Σ) (SK : sf_kind Σ).
 
-  Definition rlift_dm_dms l RD : dms_rel Σ := λI args ρ ds1 ds2,
+  Definition rlift_dm_dms l RD : dms_rel Σ := MkRel (λI args ρ ds1 ds2,
     ∃ d1 d2, ⌜ dms_lookup l ds1 = Some d1 ∧ dms_lookup l ds2 = Some d2 ⌝ ∧
-    RD args ρ d1 d2.
-  Definition rlift_dm_vl l RD : vl_rel Σ := λI args ρ v1 v2,
+    RD args ρ d1 d2).
+  Definition rlift_dm_vl l RD : vl_rel Σ := MkRel (λI args ρ v1 v2,
     ∃ d1 d2, ⌜ v1 ,, l ↘ d1 ∧ v2 ,, l ↘ d2 ⌝ ∧
-    RD args ρ d1 d2.
+    RD args ρ d1 d2).
 
   (* Fixpoint ty_le (T : ty) (args : astream) (ρ1 ρ2 : env) (v1 v2 : vl) : iProp Σ :=
     match T with
@@ -71,28 +69,28 @@ Section foo.
 (* Print hoLty
 Print hoD *)
 
-  Definition rDVMem RV : dm_rel Σ := λI args ρ d1 d2,
+  Definition rDVMem RV : dm_rel Σ := MkRel (λI args ρ d1 d2,
     ∃ pmem1 pmem2, ⌜d1 = dpt pmem1⌝ ∧ ⌜d2 = dpt pmem2⌝ ∧
-    path_wp pmem1 (λI w1, path_wp pmem2 (λI w2, RV args ρ w1 w2)).
+    path_wp pmem1 (λI w1, path_wp pmem2 (λI w2, RV args ρ w1 w2))).
 
-  Definition rDTMem SK : dm_rel Σ := λI args ρ d1 d2,
+  Definition rDTMem SK : dm_rel Σ := MkRel (λI args ρ d1 d2,
     ∃ ψ1 ψ2, d1 ↗ ψ1 ∧ d2 ↗ ψ2 ∧
     (* Only one env here! *)
-    SK ρ (packHoLtyO ψ1) (packHoLtyO ψ2).
+    SK ρ (packHoLtyO ψ1) (packHoLtyO ψ2)).
 
-  Definition rDAnd RD1 RD2 : dm_rel Σ := λI args ρ d1 d2,
-    RD1 args ρ d1 d2 ∧ RD2 args ρ d1 d2.
+  Definition rDAnd RD1 RD2 : dm_rel Σ := MkRel (λI args ρ d1 d2,
+    RD1 args ρ d1 d2 ∧ RD2 args ρ d1 d2).
 
-  #[global] Instance rVTop : Top (vl_rel Σ) := λI args ρ v1 v2, True.
-  #[global] Instance rVBot : Bottom (vl_rel Σ) := λI args ρ v1 v2, False.
-  Definition rVAnd RV1 RV2 : vl_rel Σ := λI args ρ v1 v2, RV1 args ρ v1 v2 ∧ RV2 args ρ v1 v2.
-  Definition rVOr RV1 RV2 : vl_rel Σ := λI args ρ v1 v2, RV1 args ρ v1 v2 ∨ RV2 args ρ v1 v2.
-  Definition rVLater RV : vl_rel Σ := λI args ρ v1 v2, ▷ RV args ρ v1 v2.
+  #[global] Instance rVTop : Top (vl_rel Σ) := MkRel (λI args ρ v1 v2, True).
+  #[global] Instance rVBot : Bottom (vl_rel Σ) := MkRel (λI args ρ v1 v2, False).
+  Definition rVAnd RV1 RV2 : vl_rel Σ := MkRel (λI args ρ v1 v2, RV1 args ρ v1 v2 ∧ RV2 args ρ v1 v2).
+  Definition rVOr RV1 RV2 : vl_rel Σ := MkRel (λI args ρ v1 v2, RV1 args ρ v1 v2 ∨ RV2 args ρ v1 v2).
+  Definition rVLater RV : vl_rel Σ := MkRel (λI args ρ v1 v2, ▷ RV args ρ v1 v2).
   Definition rVAll RV1 RV2 : vl_rel Σ := ⊥.
 
   (* NOTE We use the "smaller" value! *)
-  Definition rVMu1 RV : vl_rel Σ := λI args ρ v1 v2,
-    □ RV args (v1 .: ρ) v1 v2.
+  Definition rVMu1 RV : vl_rel Σ := MkRel (λI args ρ v1 v2,
+    □ RV args (v1 .: ρ) v1 v2).
   Class QuasiRefl RV : Prop :=
   { quasi_refl_l args ρ v1 v2 : RV args ρ v1 v2 ⊢ RV args ρ v1 v1
   ; quasi_refl_r args ρ v1 v2 : RV args ρ v1 v2 ⊢ RV args ρ v2 v2;
@@ -100,9 +98,10 @@ Print hoD *)
   Instance rVMu1_qper RV : QuasiRefl RV → QuasiRefl (rVMu1 RV).
   Proof.
     rewrite /rVMu1/=.
-    constructor; intros; f_equiv.
+    constructor; intros.
+    (* f_equiv.
     apply: quasi_refl_l.
-    Fail apply: quasi_refl_r.
+    Fail apply: quasi_refl_r. *)
   Abort.
 
   Definition close RV : olty Σ := (* XXX better name *)
@@ -125,10 +124,10 @@ Print hoD *)
   Qed.
 
   (* NOTE We use both values! *)
-  Definition rVMu RV : vl_rel Σ := λI args ρ v1 v2,
+  Definition rVMu RV : vl_rel Σ := MkRel (λI args ρ v1 v2,
     □ (
       RV args (v1 .: ρ) v1 v2 ∧
-      RV args (v2 .: ρ) v1 v2).
+      RV args (v2 .: ρ) v1 v2)).
 
   #[global] Instance rVMu_qper RV : QuasiRefl RV → QuasiRefl (rVMu RV).
   Proof using HdotG.
@@ -175,10 +174,14 @@ Print hoD *)
     rewrite/hsubst /hsubst_vl_rel; asimpl. iFrame "HT".
   Qed.
 
-  Definition rVVMem l RV : vl_rel Σ := λI args ρ v1 v2,
-    rlift_dm_vl l (rDVMem RV) args ρ v1 v2.
-  Definition rVTMem l SK : vl_rel Σ := λI args ρ v1 v2,
-    rlift_dm_vl l (rDTMem SK) args ρ v1 v2.
+(** TODO #431: remove *)
+#[export] Declare Instance persistence_unsound : ∀ {Σ} (P : iProp Σ), Persistent P.
+
+
+  Definition rVVMem l RV : vl_rel Σ := MkRel (λI args ρ v1 v2,
+    rlift_dm_vl l (rDVMem RV) args ρ v1 v2).
+  Definition rVTMem l SK : vl_rel Σ := MkRel (λI args ρ v1 v2,
+    rlift_dm_vl l (rDTMem SK) args ρ v1 v2).
 
   Definition vl_sel' vp l ψ : iProp Σ := ∃ d, ⌜vp ,, l ↘ d⌝ ∧ d ↗ ψ.
   (**
@@ -187,19 +190,19 @@ Print hoD *)
   What does it mean that "v1 and v2 are related at type p.A"?
   So we need to save a relation with each type :-(
   *)
-  Definition rVSel p l : vl_rel Σ := λI args ρ v1 v2,
+  Definition rVSel p l : vl_rel Σ := MkRel (λI args ρ v1 v2,
     ∃ ψ,
       path_wp p.|[ρ] (λI vp, vl_sel' vp l ψ) ∧
-      ψ args v1 ∧ ψ args v2.
+      ψ args v1 ∧ ψ args v2).
 
-  Definition rVPrim b : vl_rel Σ := λI args ρ v1 v2,
-    ⌜ v1 = v2 ⌝ ∧ oPrim b args ρ v1.
-  Definition rVSing p : vl_rel Σ := λI args ρ v1 v2,
-    oSing p args ρ v1 ∧ oSing p args ρ v2.
-  Definition rVLam RV : vl_rel Σ := λI args ρ v1 v2,
-    RV (atail args) (ahead args .: ρ) v1 v2.
-  Definition rVApp RV p : vl_rel Σ := λI args ρ v1 v2,
-    path_wp p.|[ρ] (λI w, RV (acons w args) ρ v1 v2).
+  Definition rVPrim b : vl_rel Σ := MkRel (λI args ρ v1 v2,
+    ⌜ v1 = v2 ⌝ ∧ oPrim b args ρ v1).
+  Definition rVSing p : vl_rel Σ := MkRel (λI args ρ v1 v2,
+    oSing p args ρ v1 ∧ oSing p args ρ v2).
+  Definition rVLam RV : vl_rel Σ := MkRel (λI args ρ v1 v2,
+    RV (atail args) (ahead args .: ρ) v1 v2).
+  Definition rVApp RV p : vl_rel Σ := MkRel (λI args ρ v1 v2,
+    path_wp p.|[ρ] (λI w, RV (acons w args) ρ v1 v2)).
 
   (* Path-refinement, half of path equality. With 1 environment! *)
   Fixpoint ty_le (T : ty) : vl_rel Σ :=
