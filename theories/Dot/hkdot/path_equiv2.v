@@ -58,7 +58,7 @@ That is, semantics for both definition lists and values, and proofs that they
 agree appropriately. *)
 Module crel_mixin.
   #[local] Set Primitive Projections.
-  Record pred {Σ} (RDS : dms_rel Σ) (RV : vl_rel Σ) : Prop := Mk {
+  Record pred {Σ} (RDS : rdms_rel Σ) (RV : rvl_rel Σ) : Prop := Mk {
     def2defs_head {l d1 d2 ds1 ds2 ρ1 ρ2} :
       RDS ρ1 ρ2 [(l, d1)] [(l, d2)] ⊢ RDS ρ1 ρ2 ((l, d1) :: ds1) ((l, d2) :: ds2);
     mono {l d1 d2 ds1 ds2 ρ1 ρ2} :
@@ -94,25 +94,29 @@ Section crel_mixin'.
 
   Lemma crel_def2defs_head {l d1 d2 ds1 ds2 ρ1 ρ2} :
     to_dms c ρ1 ρ2 [(l, d1)] [(l, d2)] ⊢ to_dms c ρ1 ρ2 ((l, d1) :: ds1) ((l, d2) :: ds2).
-  Proof. apply /def2defs_head /mixin. Qed.
+  Proof. apply /(def2defs_head (to_dms c)) /mixin. Qed.
   Lemma crel_mono {l d1 d2 ds1 ds2 ρ1 ρ2} :
       dms_hasnt ds1 l → dms_hasnt ds2 l →
       to_dms c ρ1 ρ2 ds1 ds2 ⊢ to_dms c ρ1 ρ2 ((l, d1) :: ds1) ((l, d2) :: ds2).
-  Proof. apply /mono /mixin. Qed.
+  Proof. apply /(mono (to_dms c)) /mixin. Qed.
 
   Lemma crel_commute {ds1 ds2 ρ1 ρ2} :
     to_dms c ρ1 ρ2 (selfSubst ds1) (selfSubst ds2) ⊢ to_vl c anil anil ρ1 ρ2 (vobj ds1) (vobj ds2).
-  Proof. apply /commute /mixin. Qed.
+  Proof. apply /(commute (to_dms c) (to_vl c)) /mixin. Qed.
 End crel_mixin'.
 
 Section crel_ofe.
   Import crel.
   Context {Σ}.
 
-  Let crel_car : Type := dms_relO Σ * vl_relO Σ.
+  Let crel_car : Type := rdms_relO Σ * rvl_relO Σ.
+  Definition to_rdms : crel.t Σ -> rdms_rel Σ :=
+    λ R ρ1 ρ2 ds1 ds2, to_dms R ρ1 ρ2 ds1 ds2.
+  Definition to_rvl : crel.t Σ -> rvl_relO Σ :=
+    λ R args1 args2 ρ1 ρ2 v1 v2, to_vl R args1 args2 ρ1 ρ2 v1 v2.
 
   Let iso : crel.t Σ -> crel_car :=
-    λ T : crel.t Σ, (to_dms T, to_vl T).
+    λ T : crel.t Σ, ((λ a, to_rdms T a), to_rvl T).
   #[local] Instance crel_equiv : Equiv (crel.t Σ) := λ A B, iso A ≡ iso B.
   #[local] Instance crel_dist : Dist (crel.t Σ) := λ n A B, iso A ≡{n}≡ iso B.
   Lemma crel_ofe_mixin : OfeMixin (crel.t Σ).
@@ -338,7 +342,13 @@ Section judgments.
     by f_equiv.
   Abort. *)
   #[global] Instance rsdstp_proper `{!dlangG Σ} ds1 ds2 : Proper2 (rsdstp ds1 ds2).
-  Proof. solve_proper_ho. Qed.
+  Proof. rewrite /rsdstp. intros ??????.
+  do 13? f_equiv. done.
+  destruct x0, y0.
+apply H0.
+hof_eq_app.
+
+  solve_proper_ho. Qed.
 
   #[global] Instance rsdtp_proper `{!dlangG Σ} l d1 d2 : Proper2 (rsdtp l d1 d2).
   Proof. solve_proper_ho. Qed.
