@@ -215,7 +215,7 @@ Section olty_subst.
     φ.|[v/] args ρ ≡ φ args (v.[ρ] .: ρ).
   Proof. apply hoEnvD_subst_compose. autosubst. Qed.
 
-  (* XXX these alternative statements infer (@ids vl ρ] [*)
+  (* XXX these alternative statements infer [@ids vl ρ] instead of the correct [@ids vl ids_vl]. *)
   (* Lemma hoEnvD_subst_ids φ ρ {args} : φ args ρ ≡ φ.|[ρ] args ids. *)
   (* Program Lemma hoEnvD_subst_ids φ ρ {args} : φ args ρ ≡ φ.|[ρ] args ids. *)
   Lemma hoEnvD_subst_ids φ ρ {args} : φ args ρ ≡ φ.|[ρ] args (@ids vl ids_vl).
