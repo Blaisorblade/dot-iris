@@ -122,7 +122,7 @@ Ltac solve_inv_fv_congruence :=
 (* asimpl is expensive, but sometimes needed when simplification does mistakes.
   It must also be done after injection because it might not rewrite under Hfv's
   binders. *)
-  by [ injection (Hfv ρ1 ρ2); trivial; by (idtac + asimpl; rewritePremises; reflexivity) |
+  by [ injection (Hfv ρ1 ρ2 HsEq); trivial; by (idtac + asimpl; rewritePremises; reflexivity) |
       rewrite ?(decomp_s _ ρ1) ?(decomp_s _ ρ2) ?(decomp_s_vl _ ρ1) ?(decomp_s_vl _ ρ2) (eq_n_s_heads HsEq); last lia;
       injection (Hfv _ _ (eq_n_s_tails HsEq)); by rewritePremises ].
 
