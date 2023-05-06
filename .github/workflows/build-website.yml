@@ -1,0 +1,67 @@
+name: Build and Deploy
+on:
+  push:
+     branches:
+       - master
+  pull_request:
+    branches:
+      - '**'
+
+permissions:
+  contents: write
+jobs:
+  build-and-deploy:
+    concurrency: ci-${{ github.ref }} # Recommended if you intend to make multiple deployments in quick succession.
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image:
+          - blaisorblade/docker-dot-iris:coq-8.15-iris-3.6.0
+
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v3
+        with:
+          submodules: true # needed for `coqdocjs/`
+
+      - name: Install and Build 🔧
+        uses: coq-community/docker-coq-action@v1
+        with:
+          opam_file: 'coq-dot-iris.opam'
+          custom_image: ${{ matrix.image }}
+          install: |
+            startGroup "Install dependencies"
+              sudo apt-get update -y -q
+              opam pin add -n -y -k path $PACKAGE $WORKDIR
+              opam update -y
+              # upgrade --fake is needed because opam-clean is overly aggressive
+              opam upgrade --fake -y coq-autosubst
+              opam install --confirm-level=unsafe-yes -j 2 $PACKAGE --deps-only
+            endGroup
+          # The permission issue is described by
+          # https://github.com/coq-community/docker-coq-action
+          before_script: |
+            startGroup "Workaround permission issue"
+              sudo chown -R coq:coq .
+            endGroup
+          script: |
+            make html -j2
+
+      - name: Revert permissions
+        # to avoid a warning at cleanup time
+        if: ${{ always() }}
+        run: sudo chown -R 1001:116 .
+
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: website # The folder the action should deploy.
+          branch: master
+          single-commit: false
+          force: false
+          # Dry-run on pull requests, real deploy on master
+          dry-run: ${{ github.event_name == 'pull_request' }}
+          repository-name: dot-iris/dot-iris.github.io
+          # The public key is configured as a deploy key in repository-name. See
+          # https://docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys
+          ssh-key: ${{ secrets.DEPLOY_KEY }}
