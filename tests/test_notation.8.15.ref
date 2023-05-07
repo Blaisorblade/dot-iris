@@ -54,8 +54,7 @@ hanyToNothing = hclose (⊤ →: ⊥)
 hloopDefT = (val "loop" : ⊤ →: ⊥ )%HS
      : hty
 The command has indeed failed with message:
-Found type "vl" where "hvl" was expected (cannot unify 
-"hvl" and "vl").
+Found type "vl" where "hvl" was expected.
 hvint 0%nat : htm
      : htm
 (hvint 2%nat > hvint 1%nat)%HS
