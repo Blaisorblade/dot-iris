@@ -36,8 +36,9 @@ Our first paper, **Scala Step-by-Step**, corresponds to gDOT 1.0.
     - [Extended Version](gdot-icfp20-w-appendix-1.03.pdf).
       The appendix lists omitted typing rules.
     - [Coq Formalization](https://github.com/Blaisorblade/dot-iris)
-    - [coqdoc](coqdoc/).
+    - Updated [coqdoc](coqdoc/).
     - Artifact: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3926703.svg)](https://doi.org/10.5281/zenodo.3926703).
+    - Original [coqdoc](coqdoc-1.0/).
     - ICFP 2020 talk: [slides](beamer-gdot-icfp20.pdf), and [slides with transcript](beamer-gdot-icfp20-w-transcript.pdf).
 
 
