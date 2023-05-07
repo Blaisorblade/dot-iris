@@ -9,7 +9,6 @@ From D.Dot Require Import syn path_repl.
 From D.Dot Require Import dlang_inst path_wp.
 From D.Dot Require Import dot_lty dot_semtypes sem_kind_dot unary_lr.
 From D.Dot Require Import hkdot.
-(*
 Import HkDot.
 (* Import last to override side effects. *)
 From D Require Import proper.
@@ -30,6 +29,9 @@ Implicit Types
   (v w : vl) (e : tm) (d : dm) (ds : dms) (p : path)
   (ρ : env) (l : label).
 Implicit Types (K : kind).
+
+(** TODO #431: remove *)
+#[export] Declare Instance persistence_unsound : ∀ {Σ} (P : iProp Σ), Persistent P.
 
 Definition dm_rel Σ := ∀ (ρ1 ρ2 : env) (d1 d2 : dm), iProp Σ.
 SubClass dms_rel Σ := ∀ (ρ1 ρ2 : env) (ds1 ds2 : dms), iProp Σ.
@@ -167,7 +169,7 @@ Definition rsCtxO Σ : ofe := listO (vl_relO Σ).
 Reserved Notation "rG⟦ Γ ⟧*" (at level 10).
 Fixpoint env_rstyped `{!dlangG Σ} (Γ : rsCtxO Σ) (ρ1 ρ2 : var → vl) : iProp Σ :=
   match Γ with
-  | φ :: Γ' => rG⟦ Γ' ⟧* (stail ρ1) (stail ρ2) ∧ φ anil anil ρ1 ρ2 (shead ρ1) (shead ρ2)
+  | φ :: Γ' => rG⟦ Γ' ⟧* (stail ρ1) (stail ρ2) ∗ φ anil anil ρ1 ρ2 (shead ρ1) (shead ρ2)
   | [] => True
   end
 where "rG⟦ Γ ⟧*" := (env_rstyped Γ).
@@ -191,7 +193,7 @@ Section env_rstyped.
 
   Definition env_rstyped_nil ρ1 ρ2 : rG⟦ [] ⟧* ρ1 ρ2 ⊣⊢ True := reflexivity _.
   Definition env_rstyped_cons ρ1 ρ2 τ (Γ : rsCtxO Σ) :
-    rG⟦ τ :: Γ ⟧* ρ1 ρ2 ⊣⊢ rG⟦ Γ ⟧* (stail ρ1) (stail ρ2) ∧ τ anil anil ρ1 ρ2 (shead ρ1) (shead ρ2) := reflexivity _.
+    rG⟦ τ :: Γ ⟧* ρ1 ρ2 ⊣⊢ rG⟦ Γ ⟧* (stail ρ1) (stail ρ2) ∗ τ anil anil ρ1 ρ2 (shead ρ1) (shead ρ2) := reflexivity _.
 
   #[global] Instance env_rstyped_ne n : Proper (dist n ==> eq ==> eq ==> dist n) (env_rstyped (Σ := Σ)).
   Proof.
@@ -262,7 +264,7 @@ Here: S1 = T2 at the appropriate kind and S2 = T2 at the appropriate kind?
 Notation rsstpiK_env i T1 T2 K ρ1 ρ2 := (▷^i K ρ1 (envApply T1 ρ1) (envApply T2 ρ2))%I.
 Notation rsstpiK' i Γ T1 T2 K := (∀ ρ1 ρ2, rG⟦Γ⟧* ρ1 ρ2 → rsstpiK_env i T1 T2 K ρ1 ρ2)%I.
 Definition rsstpiK `{!dlangG Σ} i Γ T1 T2 (K : sf_kind Σ) : iProp Σ :=
-  |==> rsstpiK' i Γ T1 T2 K.
+  <PB> rsstpiK' i Γ T1 T2 K.
 
 Section judgments.
   Context {Σ}.
@@ -270,7 +272,7 @@ Section judgments.
 
   (* Relational Semantic Path Typing. *)
   Definition rsptp `{!dlangG Σ} p1 p2 i Γ RV : iProp Σ :=
-    |==> ∀ ρ1 ρ2,
+    <PB> ∀ ρ1 ρ2,
       rG⟦Γ⟧* ρ1 ρ2 →
       ▷^i
       path_wp p1.|[ρ1] (λI w1,
@@ -280,19 +282,19 @@ Section judgments.
 
   (** Relational Semantic Subtyping. *)
   Definition rsstpd `{!dlangG Σ} i Γ (RV1 RV2 : vl_relO Σ) : iProp Σ :=
-    |==> ∀ ρ1 ρ2 v1 v2,
+    <PB> ∀ ρ1 ρ2 v1 v2,
       rG⟦Γ⟧* ρ1 ρ2 →
       ▷^i (RV1 anil anil ρ1 ρ2 v1 v2 → RV2 anil anil ρ1 ρ2 v1 v2).
   #[global] Arguments rsstpd : simpl never.
 
   (** Multi-definition typing *)
   Definition rsdstp `{!dlangG Σ} ds1 ds2 Γ RC : iProp Σ :=
-    |==> ⌜wf_ds ds1⌝ ∧ ⌜wf_ds ds2⌝ ∧
+    <PB> (⌜wf_ds ds1⌝ ∧ ⌜wf_ds ds2⌝ ∧
       ∀ ρ1 ρ2,
       ⌜path_includes (pv (ids 0)) ρ1 ds1 ⌝ →
       ⌜path_includes (pv (ids 0)) ρ2 ds2 ⌝ →
       rG⟦Γ⟧* ρ1 ρ2 →
-      RC ρ1 ρ2 ds1.|[ρ1] ds2.|[ρ2].
+      RC ρ1 ρ2 ds1.|[ρ1] ds2.|[ρ2]).
   #[global] Arguments rsdstp : simpl never.
 
   (** Definition typing *)
@@ -481,7 +483,7 @@ Print hoD *)
   Definition rVAll RV1 RV2 : vl_relO Σ := ⊥.
 
   Definition close RV : olty Σ := (* XXX better name *)
-    Olty (λI args ρ v, RV args args ρ ρ v v).
+    Olty (λI args ρ v, □ RV args args ρ ρ v v).
   (* XXX Better name since we add more props *)
   Class QuasiRefl RV T : Prop :=
   { quasi_refl_l args1 args2 ρ1 ρ2 v1 v2 : RV args1 args2 ρ1 ρ2 v1 v2 ⊢ close RV args1 ρ1 v1
@@ -520,7 +522,7 @@ Print hoD *)
   Proof.
     rewrite /rVMu/=.
     constructor; intros; rewrite /close/=. 3: { apply to_olty. }
-    all: iIntros "#H".
+    all: iIntros "H".
     - by iApply quasi_refl_l.
     - by iApply quasi_refl_r.
   Qed.
@@ -529,7 +531,7 @@ Print hoD *)
     rVLaterN i RV1 :: Γ rs⊨ RV1 <:[i] RV2 -∗
     Γ rs⊨ rVMu RV1 <:[i] rVMu RV2.
   Proof.
-    iIntros ">#Hstp !>" (ρ1 ρ2 v1 v2) "Hg". iApply mlaterN_impl. iIntros "#HT".
+    pupd. iIntros "#Hstp !>" (ρ1 ρ2 v1 v2) "#Hg". iApply mlaterN_impl. iIntros "#HT".
     rewrite /rVMu/=. iApply ("Hstp" $! (_ .: ρ1) (_ .: ρ2) _ _ with "[$Hg] HT").
     iApply "HT".
   Qed.
@@ -539,7 +541,7 @@ Print hoD *)
 
   Lemma rsStp_Refl {Γ RV i} :
     ⊢ Γ rs⊨ RV <:[i] RV.
-  Proof. iIntros "!>" (????) "#Hg !> /= #$". Qed.
+  Proof. pupd. iIntros "!>" (????) "#Hg !> /= #$". Qed.
 
   (*
   Goal ∃ r : relation (vl_rel Σ),
@@ -565,14 +567,14 @@ Print hoD *)
 
     (* Set Debug Tactic Unification. *)
 
-    iIntros "!>" (????) "#Hg !> /= #HT".
+    pupd; iIntros "!>" (????) "#Hg !> /= #HT".
     iApply "HT".
   Qed.
 
   Lemma rsStp_Mu {Γ RV i} :
     ⊢ Γ rs⊨ RV <:[i] rVMu (shift RV).
   Proof.
-    iIntros "!>" (????) "#Hg !> /= #HT".
+    pupd; iIntros "!>" (????) "#Hg !> /= #HT".
     iApply "HT".
   Qed.
 
@@ -594,7 +596,7 @@ Print hoD *)
 
   Lemma rsdtp_eq Γ RC l d1 d2 :
     Γ rs⊨ { l := d1 = d2 } : RC ⊣⊢
-    |==> ∀ ρ1 ρ2,
+    <PB> ∀ ρ1 ρ2,
       ⌜path_includes (pv (ids 0)) ρ1 [(l, d1)] ⌝ →
       ⌜path_includes (pv (ids 0)) ρ2 [(l, d2)] ⌝ →
       rG⟦Γ⟧* ρ1 ρ2 →
@@ -606,7 +608,7 @@ Print hoD *)
 
   Lemma rsdtp_eq' Γ RD l d1 d2 :
     Γ rs⊨ { l := d1 = d2 } : rlift_dm_c l RD ⊣⊢
-    |==> ∀ ρ1 ρ2,
+    <PB> ∀ ρ1 ρ2,
       ⌜path_includes (pv (ids 0)) ρ1 [(l, d1)] ⌝ →
       ⌜path_includes (pv (ids 0)) ρ2 [(l, d2)] ⌝ →
       rG⟦Γ⟧* ρ1 ρ2 →
@@ -619,11 +621,13 @@ Print hoD *)
     Γ rs⊨ { l := dtysem σ s = dtysem σ s } : rCTMemK l SK.
   Proof.
     rewrite rsdtp_eq'. iDestruct 1 as (φ Hγφ) "#Hγ".
-    iIntros ">#HT !>" (?? Hpid1 Hpid2) "#Hg".
+    pupd; iIntros "#HT !>" (?? Hpid1 Hpid2) "#Hg".
     iExists (hoEnvD_inst σ.|[ρ1] φ), (hoEnvD_inst σ.|[ρ2] φ).
     do 2 (iDestruct (dm_to_type_intro with "Hγ") as "-#$"; first done).
+    (* XXX Also in [sD_TypK_Abs] *)
     iApply (sf_kind_proper with "(HT Hg)") => args v /=;
-      f_equiv; symmetry; exact: Hγφ.
+      rewrite -(bi.intuitionistic_intuitionistically (T _ _ _));
+      do 2!f_equiv; symmetry; exact: Hγφ.
   Qed.
 
   Lemma rD_TypK_Abs {Γ} T1 T2 SK s1 s2 σ1 σ2 l :
@@ -636,11 +640,13 @@ Print hoD *)
     rewrite rsdtp_eq'.
     iDestruct 1 as (φ1 Hγφ1) "#Hγ1".
     iDestruct 1 as (φ2 Hγφ2) "#Hγ2".
-    iIntros ">#HT !>" (?? Hpid1 Hpid2) "#Hg".
+    pupd; iIntros "#HT !>" (?? Hpid1 Hpid2) "#Hg".
     iExists (hoEnvD_inst σ1.|[ρ1] φ1), (hoEnvD_inst σ2.|[ρ2] φ2).
     do 2 (iSplit; [by iApply dm_to_type_intro|]).
     iApply (sf_kind_proper with "(HT Hg)") => args v /=; f_equiv; symmetry.
+    rewrite -(bi.intuitionistic_intuitionistically (T1 _ _ _)); f_equiv.
     exact: Hγφ1.
+    rewrite -(bi.intuitionistic_intuitionistically (T2 _ _ _)); f_equiv.
     exact: Hγφ2.
   Qed.
 
@@ -649,7 +655,7 @@ Print hoD *)
     (* Γ rs⊨ oSel p1 l =[ i ] oSel p2 l ∷ SK. *)
     Γ rs⊨ oSel p1 l <::[ i ] oSel p2 l ∷ SK.
   Proof.
-    iIntros ">#Hp !> %ρ1 %ρ2 Hg". iSpecialize ("Hp" with "Hg"); iNext i.
+    pupd; iIntros "#Hp !> %ρ1 %ρ2 Hg". iSpecialize ("Hp" with "Hg"); iNext i.
     rewrite path_wp_eq; iDestruct "Hp" as (v1 Hal1%alias_paths_pv_eq_1) "Hp".
     rewrite path_wp_eq; iDestruct "Hp" as (v2 Hal2%alias_paths_pv_eq_1) "Hp".
     iDestruct "Hp" as (d1 d2 [Hl1 Hl2] ψ1 ψ2) "(#Hl1 & #Hl2 & HK)".
@@ -686,7 +692,7 @@ Print hoD *)
       (* [SK] must respect [p1 = p2]? *)
       SK .sKp[ p1 /].
   Proof.
-    iIntros ">#Hp >#HT !> %ρ1 %ρ2 #Hg".
+    pupd; iIntros "#Hp #HT !> %ρ1 %ρ2 #Hg".
     iSpecialize ("Hp" with "Hg"); iSpecialize ("HT" with "Hg"); iNext i;
     iClear "Hg".
     rewrite path_wp_eq; iDestruct "Hp" as (v1 Hal1%alias_paths_pv_eq_1) "Hp".
@@ -706,9 +712,7 @@ Print hoD *)
         [close $ to_vl RC]. *)
       admit.
     }
-    (* XXX bump Iris *)
-    Bind Scope bi_scope with bi_car.
-    all: iIntros (args w).
+    all: iIntros (args w) "!>".
     all: rewrite /_oTApp/= alias_paths_elim_eq // path_wp_pv_eq //.
     by iApply (iff_refl emp).
     rewrite /envApply /acurry /=.
@@ -724,7 +728,7 @@ Print hoD *)
 
   Lemma rD_Nil Γ :
     ⊢ Γ rs⊨ds [] = [] : ⊤.
-  Proof. by iModIntro; repeat iSplit; last iIntros "**". Qed.
+  Proof. by pupd; iModIntro; repeat iSplit; last iIntros "**". Qed.
 
   Lemma rD_Cons Γ d1 d2 ds1 ds2 l RC1 RC2 :
     dms_hasnt ds1 l →
@@ -733,7 +737,8 @@ Print hoD *)
     Γ rs⊨ds ds1 = ds2 : RC2 -∗
     Γ rs⊨ds (l, d1) :: ds1 = (l, d2) :: ds2 : rCAnd RC1 RC2.
   Proof.
-    rewrite rsdtp_eq; iIntros (Hlds1 Hlds2) ">#HT1 >(% & % & #HT2) !>"; repeat iSplit.
+    rewrite rsdtp_eq.
+    intros Hlds1 Hlds2; pupd; iIntros "#HT1 (% & % & #HT2) !>"; repeat iSplit.
     1-2: by iIntros "!%"; cbn; constructor => //; by rewrite -dms_hasnt_notin_eq.
     iIntros (ρ1 ρ2 [Hpid1 Hpids1]%path_includes_split [Hpid2 Hpids2]%path_includes_split) "#Hg".
     iSpecialize ("HT1" $! _ _ Hpid1 Hpid2 with "Hg").
@@ -759,7 +764,7 @@ Print hoD *)
     rVLater RC :: Γ rs⊨ds ds1 = ds2 : RC -∗
     Γ rs⊨p pv (vobj ds1) = pv (vobj ds2) : rVMu RC, 0.
   Proof.
-    iIntros ">(%Hwf1 & %Hwf2 & #Hds) !> %ρ1 %ρ2 #Hg /=".
+    pupd; iIntros "(%Hwf1 & %Hwf2 & #Hds) !> %ρ1 %ρ2 #Hg /=".
     rewrite !path_wp_pv_eq /=. iLöb as "IH".
     iApply crel_commute. rewrite !norm_selfSubst.
     iApply ("Hds" $! (vobj _ .: ρ1) (vobj _ .: ρ2) with "[%] [%] [$IH $Hg]").
@@ -895,4 +900,3 @@ End foo.
 (* Exercise for the reader: remember the point is that all _consumers_ respect
 path equality. So for each elimination rule from supported types, we must prove
 functionality! *)
-*)

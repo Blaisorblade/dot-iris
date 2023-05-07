@@ -82,7 +82,7 @@ End TMem_lemmas.
 (** ** Type members: derive special case for gDOT. *)
 (** Not a "real" kind, just a predicate over types. *)
 Definition dot_intv_type_pred `{!dlangG Σ} (L U : oltyO Σ) ρ ψ : iProp Σ :=
-  L anil ρ ⊆ packHoLtyO ψ anil ∧ packHoLtyO ψ anil ⊆ U anil ρ.
+  □(L anil ρ ⊆ packHoLtyO ψ anil ∧ packHoLtyO ψ anil ⊆ U anil ρ).
 #[global] Instance : Params (@dot_intv_type_pred) 2 := {}.
 
 (** [ D⟦ { A :: τ1 .. τ2 } ⟧ ]. *)
@@ -179,11 +179,11 @@ Definition _oTApp `{!dlangG Σ} (p : path) (T : oltyO Σ) : oltyO Σ :=
 (* Show a more natural ordering to the user. *)
 Notation oTApp T p := (_oTApp p T).
 
-Program Definition kpSubstOne `{!dlangG Σ} p (K : sf_kind Σ) : sf_kind Σ :=
+Program Definition kpSubstOne {Σ} p (K : sf_kind Σ) : sf_kind Σ :=
   SfKind
     (λI ρ T1 T2, path_wp p.|[ρ] (λ v, K (v .: ρ) T1 T2)).
 Next Obligation.
-  move=> Σ ? p K v m T1 T2 HT U1 U2 HU /=. f_equiv=>?. exact: sf_kind_sub_ne_2.
+  move=> Σ p K v m T1 T2 HT U1 U2 HU /=. f_equiv=>?. exact: sf_kind_sub_ne_2.
 Qed.
 Next Obligation.
   iIntros "* #Heq1 #Heq2 H". iApply (path_wp_wand with "H");

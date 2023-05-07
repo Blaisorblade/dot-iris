@@ -16,7 +16,7 @@ Section LambdaIntros.
   Proof.
     rewrite Hctx; pupd; iIntros "#HeT !> %ρ #Hg /=".
     rewrite -wp_value'. iExists _; iSplit; first done.
-    iIntros "%v Hv"; rewrite up_sub_compose.
+    iIntros "!> %v Hv"; rewrite up_sub_compose.
     (* Factor ▷ out of [sG⟦ Γ ⟧* ρ] before [iNext]. *)
     rewrite senv_TLater_commute. iNext.
     iApply ("HeT" $! (v .: ρ) with "[Hv $Hg]").

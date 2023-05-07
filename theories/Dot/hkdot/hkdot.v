@@ -158,22 +158,22 @@ Section gen_lemmas.
   Proof. iIntros "[$ $]". Qed.
 
   Lemma sf_star_eq ρ T1 T2 :
-    sf_star ρ T1 T2 ⊣⊢ oClose T1 ⊆@{Σ} oClose T2.
+    sf_star ρ T1 T2 ⊣⊢ □ (oClose T1 ⊆@{Σ} oClose T2).
   Proof.
     iSplit; first by iIntros "(_ & $ & _)".
-    iIntros "#$"; iSplit;
+    iIntros "#$ !>"; iSplit;
       iIntros (v); [iIntros "[]" | iIntros "_ //"].
   Qed.
 
   Lemma ksubtyping_equiv' i Γ T1 T2 :
-    sstpiK' i Γ T1 T2 sf_star ⊣⊢
-    ∀ ρ, sG⟦ Γ ⟧* ρ → ▷^i (oClose T1 ρ ⊆ oClose T2 ρ).
+    □ sstpiK' i Γ T1 T2 sf_star ⊣⊢
+    □ ∀ ρ, sG⟦ Γ ⟧* ρ → ▷^i (oClose T1 ρ ⊆ oClose T2 ρ).
   Proof.
     iSplit.
-    - iIntros "#Hsub %ρ #Hg".
+    - iIntros "#Hsub !> %ρ #Hg".
       iDestruct (sf_star_eq with "(Hsub Hg)") as "{Hsub Hg} #Hsub".
       iIntros "!>". iApply "Hsub".
-    - iIntros "#Hsub %ρ #Hg". rewrite sf_star_eq /=.
+    - iIntros "#Hsub !> %ρ #Hg". rewrite sf_star_eq /=.
       iSpecialize ("Hsub" with "Hg").
       by iNext.
   Qed.
@@ -269,8 +269,8 @@ Section gen_lemmas.
     Γ s⊨ oLam T1 <:[i] oLam T2 ∷ sf_kpi S K.
   Proof using HswapProp.
     pupd; iIntros "#HTK !> %ρ #Hg * /=" (arg).
-    rewrite -impl_laterN.
-    iIntros "Hs".
+    rewrite -mlaterN_pers -impl_laterN.
+    iIntros "!> Hs".
     iSpecialize ("HTK" $! (arg .: ρ) with "[$Hg $Hs]").
     by iApply (sf_kind_proper with "HTK").
   Qed.
@@ -289,7 +289,7 @@ Section gen_lemmas.
     pupd; iIntros "#HsubL #HsubU !> %ρ #Hg /=" (T1 T2).
     iPoseProof (ksubtyping_spec with "HsubL Hg") as "{HsubL} HsubL".
     iPoseProof (ksubtyping_spec with "HsubU Hg") as "{HsubU Hg} HsubU".
-    iNext i; iIntros "#(HsubL1 & $ & HsubU1)"; iSplit.
+    iNext i; iIntros "#(HsubL1 & $ & HsubU1) !>"; iSplit.
     iApply (subtype_trans with "HsubL HsubL1").
     iApply (subtype_trans with "HsubU1 HsubU").
   Qed.
@@ -309,7 +309,7 @@ Section gen_lemmas.
       iIntros "#HS2 %T1 %T2"; rewrite -mlaterN_impl; iIntros "HK1".
       iApply ("HsubK" $! (arg .: ρ) with "[$Hg $HS2] HK1").
     }
-    iIntros (T1 T2); iNext i. iIntros "#HTK1 * #HS".
+    iIntros (T1 T2); iNext i. iIntros "#HTK1 !> * #HS".
     iSpecialize ("HsubK" $! arg with "HS").
     iApply ("HsubK" with "(HTK1 (HsubS HS))").
   Qed.
@@ -352,7 +352,7 @@ Section gen_lemmas.
     (HU : ∀ arg args ρ, envApply U2 ρ (acons arg args) ≡ envApply U1 ρ (acons arg args)) :
     Γ s⊨ T1 <:[ i ] U1 ∷ sf_kpi S K ⊢ Γ s⊨ T2 <:[ i ] U2 ∷ sf_kpi S K.
   Proof.
-    apply sstpiK_mono_ctx; iIntros "%ρ #Hg #HK"; iNext i; iIntros "%arg #HS".
+    apply sstpiK_mono_ctx; iIntros "%ρ #Hg #HK"; iNext i; iIntros "!> %arg #HS".
     by iApply (sf_kind_proper with "(HK HS)") => args; rewrite /acurry.
   Qed.
 
@@ -630,15 +630,16 @@ Section dot_types.
     iIntros (ρ Hpid) "Hg"; iExists (hoEnvD_inst (σ.|[ρ]) φ).
     iDestruct (dm_to_type_intro with "Hγ") as "-#$"; first done.
     iApply (sf_kind_proper' with "(HTK Hg)") => args v /=.
-    do 1!f_equiv; symmetry. exact: Hγφ.
+    rewrite -(bi.intuitionistic_intuitionistically (T _ _ _)).
+    do 2!f_equiv; symmetry. exact: Hγφ.
   Qed.
 
   Lemma oSel_equiv_intro ρ p v l d1 ψ1
     (Hal : alias_paths p.|[ρ] (pv v))
     (Hl1 : v ,, l ↘ d1) :
-    d1 ↗ ψ1 ⊢ hoLty_equiv (packHoLtyO ψ1) (envApply (oSel p l) ρ).
+    d1 ↗ ψ1 ⊢ □ hoLty_equiv (packHoLtyO ψ1) (envApply (oSel p l) ρ).
   Proof.
-    iIntros "#Hl1 %args %w".
+    iIntros "#Hl1 %args %w !>".
     rewrite /= alias_paths_elim_eq // path_wp_pv_eq.
     iSplit; first by iIntros "H"; iExists d1, ψ1; iFrame (Hl1) "Hl1".
     iDestruct 1 as (d2 ψ2 Hl2) "[Hl2 Hw]"; objLookupDet.
@@ -668,7 +669,7 @@ Section dot_types.
     iDestruct "Hal" as %Hal%alias_paths_simpl.
     iApply (sf_kind_sub_internal_proper with "[] [] HK").
     iApply hoLty_equiv_refl.
-    iIntros "%args %v"; rewrite -internal_eq_iff.
+    iIntros "%args %v !>"; rewrite -internal_eq_iff.
     iApply ("Hrepl" $! args ρ v Hal).
   Qed.
 
@@ -984,7 +985,7 @@ Section dot_experimental_kinds.
     iEval asimpl.
     iApply sf_kind_sub_trans.
     { iApply (sfkind_respects with "[] (HT [])").
-      { iIntros "% %". iSplit; iIntros "$". }
+      { iIntros "!> % %". iSplit; iIntros "$". }
       admit.
     }
   Abort.

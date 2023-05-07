@@ -40,7 +40,7 @@ Section Russell.
     rewrite oTMem_unfold. iIntros "#Hs".
     iExists _; iSplit. by iExists _; iSplit.
     iExists _; iSplit. by iApply dm_to_type_intro.
-    by repeat iSplit; iIntros "% **".
+    by iIntros "!>"; repeat iSplit; iIntros "% **".
   Qed.
 
   Lemma later_not_UAU : Hs ⊢ uAu v -∗ ▷ False.
@@ -68,7 +68,7 @@ Section Russell.
         eauto using objLookupIntro.
       }
       + by iApply (dm_to_type_intro with "Hs").
-      + iIntros "!>!>". rewrite /uAu/= path_wp_pv_eq. iApply "HnotVAV".
+      + iIntros "!>!>!>". rewrite /uAu/= path_wp_pv_eq. iApply "HnotVAV".
     - iIntros "#Hvav".
       by iDestruct (later_not_UAU with "Hs Hvav") as "#>[]".
   Qed.
