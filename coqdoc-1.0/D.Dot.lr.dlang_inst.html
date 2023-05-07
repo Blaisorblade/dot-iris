@@ -1,0 +1,172 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<link href="coqdocjs.css" rel="stylesheet" type="text/css"/>
+</head>
+
+<body onload="document.getElementById('content').focus()">
+  <div id="header">
+    <span class="left">
+      <span class="modulename"> <script> document.write(document.title) </script> </span>
+    </span>
+
+    <span class="button" id="toggle-proofs"></span>
+
+    <span class="right">
+      <a href="../">Project Page</a>
+      <a href="./indexpage.html"> Index </a>
+      <a href="./toc.html"> Table of Contents </a>
+    </span>
+</div>
+    <div id="content" tabindex="-1" onblur="document.getElementById('content').focus()">
+    <div id="main">
+<h1 class="libtitle">D.Dot.lr.dlang_inst</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+<a name="lab78"></a><h1 class="section">Instantiate Iris and <span class="inlinecode"><span class="id" title="library">dlang</span></span> with our gDOT language.</h1>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">From</span> <span class="id" title="var">iris.program_logic</span> <span class="id" title="keyword">Require</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.program_logic.ectx_language.html#"><span class="id" title="library">ectx_language</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">iris.proofmode</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.proofmode.environments.html#"><span class="id" title="library">environments</span></a>. <span class="comment">(*&nbsp;Internals,&nbsp;used&nbsp;for&nbsp;extensions!&nbsp;*)</span><br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">D.pure_program_logic</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="D.pure_program_logic.weakestpre.html#"><span class="id" title="library">weakestpre</span></a> <a class="idref" href="D.pure_program_logic.lifting.html#"><span class="id" title="library">lifting</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">D</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="D.iris_extra.iris_prelude.html#"><span class="id" title="library">iris_prelude</span></a> <a class="idref" href="D.iris_extra.dlang.html#"><span class="id" title="library">dlang</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">D.Dot</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Export</span> <a class="idref" href="D.Dot.syn.syn.html#"><span class="id" title="library">syn</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Include</span> <a class="idref" href="D.iris_extra.dlang.html#LiftWp"><span class="id" title="module">LiftWp</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts"><span class="id" title="module">VlSorts</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Some tactics/proof automation for gDOT.
+
+<div class="paragraph"> </div>
+
+<i>Names</i> are inspired by the names of Iris's HeapLang tactics, and the
+behaviors are vaguely similar, but the implementations are more naive/less
+efficient.
+
+<div class="paragraph"> </div>
+
+ Reduce pure computation steps. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">wp_pure</span> := <span class="id" title="tactic">rewrite</span> -<a class="idref" href="D.pure_program_logic.lifting.html#wp_pure_step_later"><span class="id" title="lemma">wp_pure_step_later</span></a> -1?<a class="idref" href="D.pure_program_logic.weakestpre.html#wp_value"><span class="id" title="lemma">wp_value</span></a>; <span class="id" title="var">last</span> <span class="id" title="var">done</span>; <span class="id" title="var">iNext</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="keyword">Import</span> <a name="gdot_proofmode"><span class="id" title="module">gdot_proofmode</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="comment">(*&nbsp;Taken&nbsp;from&nbsp;<span class="inlinecode"><span class="id" title="var">iris.heap_lang.tactics</span></span>&nbsp;and&nbsp;<span class="inlinecode"><span class="id" title="var">iris.heap_lang.proofmode</span></span>.&nbsp;*)</span><br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The tactic <span class="inlinecode"><span class="id" title="var">reshape_expr</span></span> <span class="inlinecode"><a class="idref" href="D.pure_program_logic.weakestpre.html#e"><span class="id" title="variable">e</span></a></span> <span class="inlinecode"><span class="id" title="var">tac</span></span> decomposes the expression <span class="inlinecode"><a class="idref" href="D.pure_program_logic.weakestpre.html#e"><span class="id" title="variable">e</span></a></span> into an
+  evaluation context <span class="inlinecode"><a class="idref" href="D.pure_program_logic.weakestpre.html#K"><span class="id" title="variable">K</span></a></span> and a subexpression <span class="inlinecode"><a class="idref" href="D.iris_extra.det_reduction.html#e'"><span class="id" title="variable">e'</span></a></span>, and calls the tactic <span class="inlinecode"><span class="id" title="var">tac</span></span> <span class="inlinecode"><a class="idref" href="D.pure_program_logic.weakestpre.html#K"><span class="id" title="variable">K</span></a></span> <span class="inlinecode"><a class="idref" href="D.iris_extra.det_reduction.html#e'"><span class="id" title="variable">e'</span></a></span>.
+  
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Ltac</span> <span class="id" title="var">reshape_expr</span> <span class="id" title="var">e</span> <span class="id" title="var">tac</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="keyword">rec</span> <span class="id" title="var">go</span> <span class="id" title="var">K</span> <span class="id" title="var">e</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">e</span> := <span class="id" title="tactic">eval</span> <span class="id" title="tactic">hnf</span> <span class="id" title="tactic">in</span> <span class="id" title="var">e</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">lazymatch</span> <span class="id" title="var">e</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="D.Dot.syn.syn.html#VlSorts.tapp"><span class="id" title="constructor">tapp</span></a> (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.tv"><span class="id" title="constructor">tv</span></a> ?<span class="id" title="var">v1</span>) ?<span class="id" title="var">e2</span>      ⇒ <span class="id" title="var">go</span> (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.lang.AppRCtx"><span class="id" title="constructor">AppRCtx</span></a> <span class="id" title="var">v1</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#cbcf67aac0c2a85b8d93d37de9969adf"><span class="id" title="notation">::</span></a> <span class="id" title="var">K</span>) <span class="id" title="var">e2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="D.Dot.syn.syn.html#VlSorts.tapp"><span class="id" title="constructor">tapp</span></a> ?<span class="id" title="var">e1</span> ?<span class="id" title="var">e2</span>           ⇒ <span class="id" title="var">go</span> (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.lang.AppLCtx"><span class="id" title="constructor">AppLCtx</span></a> <span class="id" title="var">e2</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#cbcf67aac0c2a85b8d93d37de9969adf"><span class="id" title="notation">::</span></a> <span class="id" title="var">K</span>) <span class="id" title="var">e1</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="D.Dot.syn.syn.html#VlSorts.tproj"><span class="id" title="constructor">tproj</span></a> ?<span class="id" title="var">e1</span> ?<span class="id" title="var">l</span>           ⇒ <span class="id" title="var">go</span> (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.lang.ProjCtx"><span class="id" title="constructor">ProjCtx</span></a> <span class="id" title="var">l</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#cbcf67aac0c2a85b8d93d37de9969adf"><span class="id" title="notation">::</span></a> <span class="id" title="var">K</span>) <span class="id" title="var">e1</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="D.Dot.syn.syn.html#VlSorts.tskip"><span class="id" title="constructor">tskip</span></a> ?<span class="id" title="var">e1</span>              ⇒ <span class="id" title="var">go</span> (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.lang.SkipCtx"><span class="id" title="constructor">SkipCtx</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#cbcf67aac0c2a85b8d93d37de9969adf"><span class="id" title="notation">::</span></a> <span class="id" title="var">K</span>) <span class="id" title="var">e1</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="D.Dot.syn.syn.html#VlSorts.tun"><span class="id" title="constructor">tun</span></a> ?<span class="id" title="var">op</span> ?<span class="id" title="var">e1</span>            ⇒ <span class="id" title="var">go</span> (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.lang.UnCtx"><span class="id" title="constructor">UnCtx</span></a> <span class="id" title="var">op</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#cbcf67aac0c2a85b8d93d37de9969adf"><span class="id" title="notation">::</span></a> <span class="id" title="var">K</span>) <span class="id" title="var">e1</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="D.Dot.syn.syn.html#VlSorts.tbin"><span class="id" title="constructor">tbin</span></a> ?<span class="id" title="var">op</span> (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.tv"><span class="id" title="constructor">tv</span></a> ?<span class="id" title="var">v1</span>) ?<span class="id" title="var">e2</span>  ⇒ <span class="id" title="var">go</span> (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.lang.BinRCtx"><span class="id" title="constructor">BinRCtx</span></a> <span class="id" title="var">op</span> <span class="id" title="var">v1</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#cbcf67aac0c2a85b8d93d37de9969adf"><span class="id" title="notation">::</span></a> <span class="id" title="var">K</span>) <span class="id" title="var">e2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="D.Dot.syn.syn.html#VlSorts.tbin"><span class="id" title="constructor">tbin</span></a> ?<span class="id" title="var">op</span> ?<span class="id" title="var">e1</span> ?<span class="id" title="var">e2</span>       ⇒ <span class="id" title="var">go</span> (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.lang.BinLCtx"><span class="id" title="constructor">BinLCtx</span></a> <span class="id" title="var">op</span> <span class="id" title="var">e2</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#cbcf67aac0c2a85b8d93d37de9969adf"><span class="id" title="notation">::</span></a> <span class="id" title="var">K</span>) <span class="id" title="var">e1</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="D.Dot.syn.syn.html#VlSorts.tif"><span class="id" title="constructor">tif</span></a> ?<span class="id" title="var">e0</span> ?<span class="id" title="var">e1</span> ?<span class="id" title="var">e2</span>        ⇒ <span class="id" title="var">go</span> (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.lang.IfCtx"><span class="id" title="constructor">IfCtx</span></a> <span class="id" title="var">e1</span> <span class="id" title="var">e2</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#cbcf67aac0c2a85b8d93d37de9969adf"><span class="id" title="notation">::</span></a> <span class="id" title="var">K</span>) <span class="id" title="var">e0</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span>                      ⇒ <span class="id" title="var">tac</span> <span class="id" title="var">K</span> <span class="id" title="var">e</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">in</span> <span class="id" title="var">go</span> (@<a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#nil"><span class="id" title="constructor">nil</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.lang.ectx_item"><span class="id" title="inductive">ectx_item</span></a>) <span class="id" title="var">e</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Section</span> <a name="gdot_proofmode.CoqTactics"><span class="id" title="section">CoqTactics</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Context</span> `{!<a class="idref" href="D.Dot.lr.dlang_inst.html#dlangG"><span class="id" title="class">dlangG</span></a> <span class="id" title="var">Σ</span>}.<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="gdot_proofmode.tac_wp_bind"><span class="id" title="lemma">tac_wp_bind</span></a> <span class="id" title="var">K</span> <span class="id" title="var">Δ</span> <span class="id" title="var">Φ</span> <span class="id" title="var">e</span> <span class="id" title="var">f</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="D.Dot.lr.dlang_inst.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">(</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#bc1ad27deabe143d39d35abe6be2c1a4"><span class="id" title="notation">λ</span></a> <span class="id" title="var">e</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#bc1ad27deabe143d39d35abe6be2c1a4"><span class="id" title="notation">,</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.program_logic.ectx_language.html#fill"><span class="id" title="projection">ectx_language.fill</span></a> <a class="idref" href="D.Dot.lr.dlang_inst.html#K"><span class="id" title="variable">K</span></a> <a class="idref" href="D.Dot.lr.dlang_inst.html#e"><span class="id" title="variable">e</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#c41c566ddac4c1298b9e7dd2bae1c794"><span class="id" title="notation">→</span></a> <span class="comment">(*&nbsp;as&nbsp;an&nbsp;eta&nbsp;expanded&nbsp;hypothesis&nbsp;so&nbsp;that&nbsp;we&nbsp;can&nbsp;`simpl`&nbsp;it&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.proofmode.environments.html#envs_entails"><span class="id" title="definition">envs_entails</span></a> <a class="idref" href="D.Dot.lr.dlang_inst.html#d44f383ce45b5283439ea630afb544d5"><span class="id" title="variable">Δ</span></a> (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.bi.weakestpre.html#e2706ea976d881a45650125d605dd218"><span class="id" title="notation">WP</span></a> <a class="idref" href="D.Dot.lr.dlang_inst.html#e"><span class="id" title="variable">e</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.bi.weakestpre.html#e2706ea976d881a45650125d605dd218"><span class="id" title="notation">{{</span></a> <span class="id" title="var">v</span><a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.bi.weakestpre.html#e2706ea976d881a45650125d605dd218"><span class="id" title="notation">,</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.bi.weakestpre.html#7cc0c88f7179b685cc79734f30ca004b"><span class="id" title="notation">WP</span></a> <a class="idref" href="D.Dot.lr.dlang_inst.html#f"><span class="id" title="variable">f</span></a> (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.tv"><span class="id" title="constructor">tv</span></a> <a class="idref" href="D.Dot.lr.dlang_inst.html#v"><span class="id" title="variable">v</span></a>) <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.bi.weakestpre.html#7cc0c88f7179b685cc79734f30ca004b"><span class="id" title="notation">{{</span></a> <a class="idref" href="D.Dot.lr.dlang_inst.html#0a86c68449f31709b242a8cc62019df8"><span class="id" title="variable">Φ</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.bi.weakestpre.html#7cc0c88f7179b685cc79734f30ca004b"><span class="id" title="notation">}}</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.bi.weakestpre.html#e2706ea976d881a45650125d605dd218"><span class="id" title="notation">}}</span></a>)%<span class="id" title="var">I</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#c41c566ddac4c1298b9e7dd2bae1c794"><span class="id" title="notation">→</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.proofmode.environments.html#envs_entails"><span class="id" title="definition">envs_entails</span></a> <a class="idref" href="D.Dot.lr.dlang_inst.html#d44f383ce45b5283439ea630afb544d5"><span class="id" title="variable">Δ</span></a> (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.bi.weakestpre.html#7cc0c88f7179b685cc79734f30ca004b"><span class="id" title="notation">WP</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.program_logic.ectx_language.html#fill"><span class="id" title="projection">ectx_language.fill</span></a> <a class="idref" href="D.Dot.lr.dlang_inst.html#K"><span class="id" title="variable">K</span></a> <a class="idref" href="D.Dot.lr.dlang_inst.html#e"><span class="id" title="variable">e</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.bi.weakestpre.html#7cc0c88f7179b685cc79734f30ca004b"><span class="id" title="notation">{{</span></a> <a class="idref" href="D.Dot.lr.dlang_inst.html#0a86c68449f31709b242a8cc62019df8"><span class="id" title="variable">Φ</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.bi.weakestpre.html#7cc0c88f7179b685cc79734f30ca004b"><span class="id" title="notation">}}</span></a>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Proof</span>. <span class="id" title="tactic">rewrite</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.proofmode.environments.html#envs_entails_eq"><span class="id" title="definition">envs_entails_eq</span></a>⇒ → →. <span class="id" title="tactic">by</span> <span class="id" title="tactic">apply</span>: <a class="idref" href="D.pure_program_logic.weakestpre.html#wp_bind"><span class="id" title="lemma">wp_bind</span></a>. <span class="id" title="keyword">Qed</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">End</span> <a class="idref" href="D.Dot.lr.dlang_inst.html#gdot_proofmode.CoqTactics"><span class="id" title="section">CoqTactics</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Ltac</span> <span class="id" title="var">wp_bind_core</span> <span class="id" title="var">K</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">iStartProof</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">lazymatch</span> <span class="id" title="tactic">eval</span> <span class="id" title="tactic">hnf</span> <span class="id" title="tactic">in</span> <span class="id" title="var">K</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Lists.List.html#ae9a5e1034e143b218b09d8e454472bd"><span class="id" title="notation">[]</span></a> ⇒ <span class="id" title="tactic">idtac</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ <span class="id" title="tactic">eapply</span> (<a class="idref" href="D.Dot.lr.dlang_inst.html#gdot_proofmode.tac_wp_bind"><span class="id" title="lemma">tac_wp_bind</span></a> <span class="id" title="var">K</span>); [<span class="id" title="tactic">simpl</span>; <span class="id" title="tactic">reflexivity</span>|<span class="id" title="var">reduction.pm_prettify</span>]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="D.Dot.lr.dlang_inst.html#gdot_proofmode"><span class="id" title="module">gdot_proofmode</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Apply the <span class="inlinecode"><a class="idref" href="D.pure_program_logic.weakestpre.html#wp_bind"><span class="id" title="lemma">wp_bind</span></a></span> rule. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Tactic Notation</span> "wp_bind" <span class="id" title="var">open_constr</span>(<span class="id" title="var">efoc</span>) := <span class="id" title="var">wp_bind_core</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Lists.List.html#ddd65c2f7ee73ecec433744948d846bb"><span class="id" title="notation">[</span></a><span class="id" title="var">efoc</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Lists.List.html#ddd65c2f7ee73ecec433744948d846bb"><span class="id" title="notation">]</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Local Ltac</span> <span class="id" title="var">wp_binds_core</span> <span class="id" title="var">Ks</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">lazymatch</span> <span class="id" title="tactic">eval</span> <span class="id" title="tactic">hnf</span> <span class="id" title="tactic">in</span> <span class="id" title="var">Ks</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Lists.List.html#ae9a5e1034e143b218b09d8e454472bd"><span class="id" title="notation">[]</span></a> ⇒ <span class="id" title="tactic">idtac</span><br/>
+&nbsp;&nbsp;| ?<span class="id" title="var">K</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Init.Datatypes.html#cbcf67aac0c2a85b8d93d37de9969adf"><span class="id" title="notation">::</span></a> ?<span class="id" title="var">Ks</span> ⇒ <span class="id" title="var">wp_bind</span> <span class="id" title="var">K</span>; <span class="id" title="var">wp_binds_core</span> <span class="id" title="var">Ks</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+<span class="id" title="keyword">Tactic Notation</span> "wp_binds" <span class="id" title="var">open_constr</span>(<span class="id" title="var">Ks</span>) := <span class="id" title="var">wp_binds_core</span> <span class="id" title="var">Ks</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Apply <span class="inlinecode"><a class="idref" href="D.pure_program_logic.weakestpre.html#wp_bind"><span class="id" title="lemma">wp_bind</span></a></span> automatically. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">wp_abind</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">lazymatch</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| |- <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.proofmode.environments.html#envs_entails"><span class="id" title="definition">envs_entails</span></a> <span class="id" title="var">_</span> ?<span class="id" title="var">P</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">P</span> := <span class="id" title="tactic">eval</span> <span class="id" title="var">cbn</span> <span class="id" title="tactic">in</span> <span class="id" title="var">P</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">lazymatch</span> <span class="id" title="var">P</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.bi.weakestpre.html#wp"><span class="id" title="definition">wp</span></a> ?<span class="id" title="var">s</span> ?<span class="id" title="var">E</span> ?<span class="id" title="var">e</span> ?<span class="id" title="var">Q</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">e</span> := <span class="id" title="tactic">eval</span> <span class="id" title="var">cbn</span> <span class="id" title="tactic">in</span> <span class="id" title="var">e</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">reshape_expr</span> <span class="id" title="var">e</span> <span class="id" title="keyword">ltac</span>:(<span class="id" title="keyword">fun</span> <span class="id" title="var">Ks</span> <span class="id" title="var">e'</span> ⇒ <span class="id" title="var">wp_binds</span> (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.list.html#reverse"><span class="id" title="definition">reverse</span></a> <span class="id" title="var">Ks</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ <span class="id" title="tactic">fail</span> "wp_abind: not a 'wp'"<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Apply a WP using the <span class="inlinecode"><a class="idref" href="D.pure_program_logic.weakestpre.html#wp_wand"><span class="id" title="lemma">wp_wand</span></a></span> rule, applying <span class="inlinecode"><a class="idref" href="D.pure_program_logic.weakestpre.html#wp_bind"><span class="id" title="lemma">wp_bind</span></a></span> automatically. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">wp_wapply</span> <span class="id" title="var">spec_pat</span> := <span class="id" title="var">wp_abind</span>; <span class="id" title="var">iApply</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.proofmode.ltac_tactics.html#c65a9d4b357f2165cc71fe44c81db669"><span class="id" title="notation">(</span></a><a class="idref" href="D.pure_program_logic.weakestpre.html#wp_wand"><span class="id" title="lemma">wp_wand</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.proofmode.ltac_tactics.html#c65a9d4b357f2165cc71fe44c81db669"><span class="id" title="notation">with</span></a> <span class="id" title="var">spec_pat</span><a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.proofmode.ltac_tactics.html#c65a9d4b357f2165cc71fe44c81db669"><span class="id" title="notation">)</span></a>.<br/>
+</div>
+</div>
+<div id="footer">
+  Generated by <a href="http://coq.inria.fr/">coqdoc</a> and improved with <a href="https://github.com/tebbi/coqdocjs">CoqdocJS</a>
+</div>
+</div>
+</body>
+
+</html>

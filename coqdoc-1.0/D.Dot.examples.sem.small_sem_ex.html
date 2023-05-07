@@ -1,0 +1,142 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<link href="coqdocjs.css" rel="stylesheet" type="text/css"/>
+</head>
+
+<body onload="document.getElementById('content').focus()">
+  <div id="header">
+    <span class="left">
+      <span class="modulename"> <script> document.write(document.title) </script> </span>
+    </span>
+
+    <span class="button" id="toggle-proofs"></span>
+
+    <span class="right">
+      <a href="../">Project Page</a>
+      <a href="./indexpage.html"> Index </a>
+      <a href="./toc.html"> Table of Contents </a>
+    </span>
+</div>
+    <div id="content" tabindex="-1" onblur="document.getElementById('content').focus()">
+    <div id="main">
+<h1 class="libtitle">D.Dot.examples.sem.small_sem_ex</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+<a name="lab148"></a><h1 class="section">Exercise: Semantic typing for positive numbers (smallest example).</h1>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">From</span> <span class="id" title="var">iris.proofmode</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.proofmode.tactics.html#"><span class="id" title="library">tactics</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">D.pure_program_logic</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="D.pure_program_logic.lifting.html#"><span class="id" title="library">lifting</span></a> <a class="idref" href="D.pure_program_logic.adequacy.html#"><span class="id" title="library">adequacy</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">iris.program_logic</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.program_logic.ectxi_language.html#"><span class="id" title="library">ectxi_language</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">D</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="D.iris_extra.swap_later_impl.html#"><span class="id" title="library">swap_later_impl</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">D.Dot</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="D.Dot.examples.sem.ex_iris_utils.html#"><span class="id" title="library">ex_iris_utils</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">D.Dot.examples</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="D.Dot.examples.sem.positive_div.html#"><span class="id" title="library">positive_div</span></a>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">dlang_adequacy</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Suggest</span> <span class="id" title="keyword">Proof</span> <span class="id" title="var">Using</span>.<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Proof</span> <span class="id" title="var">Using</span> "Type".<br/>
+
+<br/>
+<span class="id" title="keyword">Implicit</span> <span class="id" title="keyword">Types</span> (<span class="id" title="var">v</span> <span class="id" title="var">w</span> : <a class="idref" href="D.Dot.syn.syn.html#VlSorts.vl"><span class="id" title="definition">vl</span></a>) (<span class="id" title="var">d</span> : <a class="idref" href="D.Dot.syn.syn.html#VlSorts.dm"><span class="id" title="inductive">dm</span></a>) (<span class="id" title="var">ds</span> : <a class="idref" href="D.Dot.syn.syn.html#VlSorts.dms"><span class="id" title="definition">dms</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab149"></a><h2 class="section">Example code.</h2>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Section</span> <a name="examplesBodies"><span class="id" title="section">examplesBodies</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">hoasNotation</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="hminiV"><span class="id" title="definition">hminiV</span></a> := <a class="idref" href="D.Dot.examples.hoas.html#b765f911d00e667273c5726a29666d70"><span class="id" title="notation">ν</span></a><a class="idref" href="D.Dot.examples.hoas.html#b765f911d00e667273c5726a29666d70"><span class="id" title="notation">:</span></a> <span class="id" title="var">_</span><a class="idref" href="D.Dot.examples.hoas.html#b765f911d00e667273c5726a29666d70"><span class="id" title="notation">,</span></a> <a class="idref" href="D.Dot.examples.hoas.html#228bb38a1d1ce7d86c8f11e064584a00"><span class="id" title="notation">{@</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="D.Dot.examples.hoas.html#94acf627d08efa4f0a1f69dc193a1fb3"><span class="id" title="notation">type</span></a> "A" <a class="idref" href="D.Dot.examples.hoas.html#94acf627d08efa4f0a1f69dc193a1fb3"><span class="id" title="notation">=</span></a> <a class="idref" href="D.Dot.examples.hoas.html#49045ffec38a75053344fc4b3dd8a9a9"><span class="id" title="notation">𝐙</span></a><a class="idref" href="D.Dot.examples.hoas.html#228bb38a1d1ce7d86c8f11e064584a00"><span class="id" title="notation">;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="D.Dot.examples.hoas.html#7a2ccd3039e0d6e79be6ed27d574ba71"><span class="id" title="notation">val</span></a> "n" <a class="idref" href="D.Dot.examples.hoas.html#7a2ccd3039e0d6e79be6ed27d574ba71"><span class="id" title="notation">=</span></a> 2<br/>
+&nbsp;&nbsp;<a class="idref" href="D.Dot.examples.hoas.html#228bb38a1d1ce7d86c8f11e064584a00"><span class="id" title="notation">}</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="hminiVT1"><span class="id" title="definition">hminiVT1</span></a> := <a class="idref" href="D.Dot.examples.hoas.html#eebc01a27482beba2e49b11948bab893"><span class="id" title="notation">μ</span></a><a class="idref" href="D.Dot.examples.hoas.html#eebc01a27482beba2e49b11948bab893"><span class="id" title="notation">:</span></a> <span class="id" title="var">x</span><a class="idref" href="D.Dot.examples.hoas.html#eebc01a27482beba2e49b11948bab893"><span class="id" title="notation">,</span></a> <a class="idref" href="D.Dot.examples.hoas.html#e3020cf33d78a94b82155f3b6b087159"><span class="id" title="notation">{@</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="D.Dot.examples.hoas.html#8040d5e010e1bd5a7559ed70f1888ea8"><span class="id" title="notation">type</span></a> "A" <a class="idref" href="D.Dot.examples.hoas.html#8040d5e010e1bd5a7559ed70f1888ea8"><span class="id" title="notation">&gt;:</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#49af51f22ba6081c5259453e85aa12b3"><span class="id" title="notation">⊥</span></a> <a class="idref" href="D.Dot.examples.hoas.html#8040d5e010e1bd5a7559ed70f1888ea8"><span class="id" title="notation">&lt;:</span></a> <a class="idref" href="D.Dot.examples.hoas.html#49045ffec38a75053344fc4b3dd8a9a9"><span class="id" title="notation">𝐙</span></a><a class="idref" href="D.Dot.examples.hoas.html#e3020cf33d78a94b82155f3b6b087159"><span class="id" title="notation">;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="D.Dot.examples.hoas.html#dac71af5b2f1b5b356d8450427b7ece1"><span class="id" title="notation">val</span></a> "n" <a class="idref" href="D.Dot.examples.hoas.html#dac71af5b2f1b5b356d8450427b7ece1"><span class="id" title="notation">:</span></a> <a class="idref" href="D.Dot.examples.sem.small_sem_ex.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="D.Dot.examples.hoas.html#20eaa41cf53828edc65b75a9d71d904c"><span class="id" title="notation">@;</span></a> "A"<br/>
+&nbsp;&nbsp;<a class="idref" href="D.Dot.examples.hoas.html#e3020cf33d78a94b82155f3b6b087159"><span class="id" title="notation">}</span></a>.<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="D.Dot.examples.sem.small_sem_ex.html#examplesBodies"><span class="id" title="section">examplesBodies</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <a name="small_ex"><span class="id" title="section">small_ex</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Context</span> `{<span class="id" title="var">HdlangG</span>: !<a class="idref" href="D.Dot.lr.dlang_inst.html#dlangG"><span class="id" title="class">dlangG</span></a> <span class="id" title="var">Σ</span>} `{<a class="idref" href="D.iris_extra.swap_later_impl.html#SwapPropI"><span class="id" title="abbreviation">SwapPropI</span></a> <a class="idref" href="D.Dot.examples.sem.small_sem_ex.html#e15c0eb40e61adefe95778c26e7840f6"><span class="id" title="variable">Σ</span></a>}.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="miniVT2Body"><span class="id" title="definition">miniVT2Body</span></a> : <a class="idref" href="D.Dot.syn.syn.html#VlSorts.ty"><span class="id" title="inductive">ty</span></a> := <a class="idref" href="D.Dot.examples.ex_utils.html#79b8469010b1fdc3441f00818b43b642"><span class="id" title="notation">{@</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="D.Dot.examples.ex_utils.html#5760edfb3888118a63d60a472ed47577"><span class="id" title="notation">type</span></a> "A" <a class="idref" href="D.Dot.examples.ex_utils.html#5760edfb3888118a63d60a472ed47577"><span class="id" title="notation">&gt;:</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#49af51f22ba6081c5259453e85aa12b3"><span class="id" title="notation">⊥</span></a> <a class="idref" href="D.Dot.examples.ex_utils.html#5760edfb3888118a63d60a472ed47577"><span class="id" title="notation">&lt;:</span></a> <a class="idref" href="D.Dot.examples.ex_utils.html#9acbcffb20db69ef700fcb30f172df05"><span class="id" title="notation">𝐙</span></a><a class="idref" href="D.Dot.examples.ex_utils.html#79b8469010b1fdc3441f00818b43b642"><span class="id" title="notation">;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="D.Dot.examples.ex_utils.html#a9efae7fd56da3003227988b56d2aaba"><span class="id" title="notation">val</span></a> "n" <a class="idref" href="D.Dot.examples.ex_utils.html#a9efae7fd56da3003227988b56d2aaba"><span class="id" title="notation">:</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.TLater"><span class="id" title="constructor">TLater</span></a> (<a class="idref" href="D.Dot.examples.ex_utils.html#DBNotation.x0"><span class="id" title="abbreviation">x0</span></a> <a class="idref" href="D.Dot.examples.ex_utils.html#da52a1f50d481ecf7cf1e1628db90795"><span class="id" title="notation">@;</span></a> "A")<br/>
+&nbsp;&nbsp;<a class="idref" href="D.Dot.examples.ex_utils.html#79b8469010b1fdc3441f00818b43b642"><span class="id" title="notation">}</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="miniVT2"><span class="id" title="definition">miniVT2</span></a> := <a class="idref" href="D.Dot.examples.ex_utils.html#de54bd15804a49ff154d74c387ead2aa"><span class="id" title="notation">μ</span></a> <a class="idref" href="D.Dot.examples.sem.small_sem_ex.html#miniVT2Body"><span class="id" title="definition">miniVT2Body</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="sminiVT2Body"><span class="id" title="definition">sminiVT2Body</span></a> : <a class="idref" href="D.Dot.lr.dot_lty.html#oltyO"><span class="id" title="abbreviation">oltyO</span></a> <a class="idref" href="D.Dot.examples.sem.small_sem_ex.html#b9963a2c065732294e63a747d95d9603"><span class="id" title="variable">Σ</span></a> 0 :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="D.Dot.lr.dot_lty.html#oAnd"><span class="id" title="definition">oAnd</span></a> (<a class="idref" href="D.Dot.examples.sem.ex_iris_utils.html#oTMemL"><span class="id" title="definition">oTMemL</span></a> "A" <a class="idref" href="D.Dot.lr.dot_lty.html#oBot"><span class="id" title="definition">oBot</span></a> (<a class="idref" href="D.Dot.lr.unary_lr.html#oPrim"><span class="id" title="definition">oPrim</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.tint"><span class="id" title="constructor">tint</span></a>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<a class="idref" href="D.Dot.lr.dot_lty.html#oAnd"><span class="id" title="definition">oAnd</span></a> (<a class="idref" href="D.Dot.lr.unary_lr.html#oVMem"><span class="id" title="abbreviation">oVMem</span></a> "n" (<a class="idref" href="D.Dot.lr.dot_lty.html#oLater"><span class="id" title="abbreviation">oLater</span></a> (<a class="idref" href="D.Dot.lr.unary_lr.html#oSel"><span class="id" title="abbreviation">oSel</span></a> <a class="idref" href="D.Dot.examples.ex_utils.html#DBNotation.x0"><span class="id" title="abbreviation">x0</span></a> "A")))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="D.Dot.lr.dot_lty.html#oTop"><span class="id" title="definition">oTop</span></a>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Goal</span> <a name="Unnamed_thm"><span class="id" title="definition">V</span></a><a name="Unnamed_thm"><span class="id" title="definition">⟦</span></a><a name="Unnamed_thm"><span class="id" title="definition">miniVT2Body</span></a><a name="Unnamed_thm"><span class="id" title="definition">⟧</span></a> <a name="Unnamed_thm"><span class="id" title="definition">=</span></a> <a name="Unnamed_thm"><span class="id" title="definition">sminiVT2Body</span></a>. <span class="id" title="var">done</span>. <span class="id" title="keyword">Abort</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="sminiVT2ConcrBody"><span class="id" title="definition">sminiVT2ConcrBody</span></a> : <a class="idref" href="D.Dot.lr.dot_lty.html#cltyO"><span class="id" title="definition">cltyO</span></a> <a class="idref" href="D.Dot.examples.sem.small_sem_ex.html#b9963a2c065732294e63a747d95d9603"><span class="id" title="variable">Σ</span></a> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="D.Dot.lr.dot_lty.html#cAnd"><span class="id" title="definition">cAnd</span></a> (<a class="idref" href="D.Dot.examples.sem.ex_iris_utils.html#cTMemL"><span class="id" title="definition">cTMemL</span></a> "A" <a class="idref" href="D.Dot.examples.sem.positive_div.html#ipos"><span class="id" title="definition">ipos</span></a> <a class="idref" href="D.Dot.examples.sem.positive_div.html#ipos"><span class="id" title="definition">ipos</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<a class="idref" href="D.Dot.lr.dot_lty.html#cAnd"><span class="id" title="definition">cAnd</span></a> (<a class="idref" href="D.Dot.lr.unary_lr.html#cVMem"><span class="id" title="definition">cVMem</span></a> "n" (<a class="idref" href="D.Dot.lr.dot_lty.html#oLater"><span class="id" title="abbreviation">oLater</span></a> (<a class="idref" href="D.Dot.lr.unary_lr.html#oSel"><span class="id" title="abbreviation">oSel</span></a> <a class="idref" href="D.Dot.examples.ex_utils.html#DBNotation.x0"><span class="id" title="abbreviation">x0</span></a> "A")))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="D.Dot.lr.dot_lty.html#cTop"><span class="id" title="definition">cTop</span></a>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="vHasA2t"><span class="id" title="lemma">vHasA2t</span></a>: <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.bi.interface.html#b7d65d242d889c3e37aca6013a51bfad"><span class="id" title="notation">⊢</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Lists.List.html#ae9a5e1034e143b218b09d8e454472bd"><span class="id" title="notation">[]</span></a> <a class="idref" href="D.Dot.lr.sem_unstamped_typing.html#3cff272b9159c3fbd8740bb229923964"><span class="id" title="notation">u</span></a><a class="idref" href="D.Dot.lr.sem_unstamped_typing.html#3cff272b9159c3fbd8740bb229923964"><span class="id" title="notation">⊨</span></a> <a class="idref" href="D.Dot.examples.sem.small_sem_ex.html#hminiV"><span class="id" title="definition">hminiV</span></a> <a class="idref" href="D.Dot.lr.sem_unstamped_typing.html#3cff272b9159c3fbd8740bb229923964"><span class="id" title="notation">:</span></a> <a class="idref" href="D.Dot.examples.sem.small_sem_ex.html#miniVT2"><span class="id" title="definition">miniVT2</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Proof</span> <span class="id" title="keyword">using</span> <span class="id" title="keyword">Type</span>×.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">iApply</span> (<a class="idref" href="D.Dot.lr.sem_unstamped_typing.html#suT_Sub"><span class="id" title="lemma">suT_Sub</span></a> (<span class="id" title="var">T1</span> := <a class="idref" href="D.Dot.lr.dot_lty.html#oMu"><span class="id" title="definition">oMu</span></a> (<a class="idref" href="D.Dot.lr.dot_lty.html#c2o"><span class="id" title="abbreviation">c2o</span></a> <a class="idref" href="D.Dot.examples.sem.small_sem_ex.html#sminiVT2ConcrBody"><span class="id" title="definition">sminiVT2ConcrBody</span></a>))); <span class="id" title="tactic">first</span> <span class="id" title="var">last</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.semtyp_lemmas.dsub_lr.html#sMu_Stp_Mu"><span class="id" title="lemma">sMu_Stp_Mu</span></a>; <span class="id" title="tactic">rewrite</span> <a class="idref" href="D.Dot.lr.dot_lty.html#oLaterN_0"><span class="id" title="lemma">oLaterN_0</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.semtyp_lemmas.dsub_lr.html#sStp_And"><span class="id" title="lemma">sStp_And</span></a>; <span class="id" title="var">last</span> <span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.semtyp_lemmas.dsub_lr.html#sStp_And"><span class="id" title="lemma">sStp_And</span></a>; <span class="id" title="var">last</span> <span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.semtyp_lemmas.dsub_lr.html#sStp_Top"><span class="id" title="lemma">sStp_Top</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.semtyp_lemmas.dsub_lr.html#sStp_Trans"><span class="id" title="lemma">sStp_Trans</span></a>; [<span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.semtyp_lemmas.dsub_lr.html#sAnd1_Stp"><span class="id" title="lemma">sAnd1_Stp</span></a>|<span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.examples.sem.positive_div.html#posTMem_widen"><span class="id" title="lemma">posTMem_widen</span></a>].<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.semtyp_lemmas.dsub_lr.html#sStp_Trans"><span class="id" title="lemma">sStp_Trans</span></a>; <span class="id" title="tactic">first</span> <span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.semtyp_lemmas.dsub_lr.html#sAnd2_Stp"><span class="id" title="lemma">sAnd2_Stp</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.semtyp_lemmas.dsub_lr.html#sAnd1_Stp"><span class="id" title="lemma">sAnd1_Stp</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">rewrite</span> /<a class="idref" href="D.Dot.examples.sem.small_sem_ex.html#hminiV"><span class="id" title="definition">hminiV</span></a> /<a class="idref" href="D.Dot.examples.sem.small_sem_ex.html#sminiVT2ConcrBody"><span class="id" title="definition">sminiVT2ConcrBody</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.lr.sem_unstamped_typing.html#suT_Obj_I"><span class="id" title="lemma">suT_Obj_I</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.lr.sem_unstamped_typing.html#suD_Cons"><span class="id" title="lemma">suD_Cons</span></a>; [<span class="id" title="var">done</span>| <span class="id" title="tactic">by</span> <span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.examples.sem.positive_div.html#suD_posDm_ipos"><span class="id" title="lemma">suD_posDm_ipos</span></a> | ].<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.lr.sem_unstamped_typing.html#suD_Sing"><span class="id" title="lemma">suD_Sing</span></a>; <span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.lr.sem_unstamped_typing.html#suD_Val"><span class="id" title="lemma">suD_Val</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">iApply</span> (<a class="idref" href="D.Dot.lr.sem_unstamped_typing.html#suT_Sub"><span class="id" title="lemma">suT_Sub</span></a> (<span class="id" title="var">T1</span> := <a class="idref" href="D.Dot.examples.sem.positive_div.html#ipos"><span class="id" title="definition">ipos</span></a>)).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">unstamp_goal_tm</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">by</span> <span class="id" title="tactic">rewrite</span> <a class="idref" href="D.Dot.examples.sem.positive_div.html#setp_value"><span class="id" title="lemma">setp_value</span></a> /<a class="idref" href="D.Dot.examples.sem.positive_div.html#ipos"><span class="id" title="definition">ipos</span></a> /<a class="idref" href="D.Dot.examples.sem.positive_div.html#pos"><span class="id" title="definition">pos</span></a>; <span class="id" title="var">iIntros</span> "%ρ _ /= !%"; <span class="id" title="var">naive_solver</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.semtyp_lemmas.dsub_lr.html#sStp_Trans"><span class="id" title="lemma">sStp_Trans</span></a>; <span class="id" title="tactic">first</span> <span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.semtyp_lemmas.dsub_lr.html#sStp_Add_Later"><span class="id" title="lemma">sStp_Add_Later</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.semtyp_lemmas.dsub_lr.html#sStp_Trans"><span class="id" title="lemma">sStp_Trans</span></a>; <span class="id" title="tactic">first</span> <span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.semtyp_lemmas.dsub_lr.html#sStp_Add_Later"><span class="id" title="lemma">sStp_Add_Later</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.semtyp_lemmas.dsub_lr.html#sLater_Stp_Eq"><span class="id" title="lemma">sLater_Stp_Eq</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.semtyp_lemmas.dsub_lr.html#sStp_Sel"><span class="id" title="lemma">sStp_Sel</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.semtyp_lemmas.dsub_lr.html#sP_Later"><span class="id" title="lemma">sP_Later</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.semtyp_lemmas.path_repl_lr.html#sP_Sub"><span class="id" title="lemma">sP_Sub</span></a>; <span class="id" title="tactic">first</span> <span class="id" title="tactic">by</span> <span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.examples.sem.semtyp_lemmas.examples_lr.html#sP_Var0"><span class="id" title="lemma">sP_Var0</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.semtyp_lemmas.dsub_lr.html#sLater_Stp_Eq"><span class="id" title="lemma">sLater_Stp_Eq</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.semtyp_lemmas.dsub_lr.html#sAnd1_Stp"><span class="id" title="lemma">sAnd1_Stp</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Qed</span>.<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="D.Dot.examples.sem.small_sem_ex.html#small_ex"><span class="id" title="section">small_ex</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="miniVSafe"><span class="id" title="lemma">miniVSafe</span></a> : <a class="idref" href="D.iris_extra.det_reduction.html#safe"><span class="id" title="definition">safe</span></a> <a class="idref" href="D.Dot.examples.sem.small_sem_ex.html#hminiV"><span class="id" title="definition">hminiV</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> (<a class="idref" href="D.Dot.lr.sem_unstamped_typing.html#unstamped_safety_dot_sem"><span class="id" title="lemma">unstamped_safety_dot_sem</span></a> <a class="idref" href="D.Dot.lr.dlang_inst.html#c5f9d1fd168be04c4d6a0288f34d3e58"><span class="id" title="definition">dlangΣ</span></a> (<span class="id" title="var">T</span> := <a class="idref" href="D.Dot.examples.sem.small_sem_ex.html#miniVT2"><span class="id" title="definition">miniVT2</span></a>))=&gt;*.<br/>
+&nbsp;&nbsp;<span class="id" title="var">iApply</span> <a class="idref" href="D.Dot.examples.sem.small_sem_ex.html#vHasA2t"><span class="id" title="lemma">vHasA2t</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+</div>
+</div>
+<div id="footer">
+  Generated by <a href="http://coq.inria.fr/">coqdoc</a> and improved with <a href="https://github.com/tebbi/coqdocjs">CoqdocJS</a>
+</div>
+</div>
+</body>
+
+</html>

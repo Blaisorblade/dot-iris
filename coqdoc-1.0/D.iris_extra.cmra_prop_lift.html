@@ -1,0 +1,160 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<link href="coqdocjs.css" rel="stylesheet" type="text/css"/>
+</head>
+
+<body onload="document.getElementById('content').focus()">
+  <div id="header">
+    <span class="left">
+      <span class="modulename"> <script> document.write(document.title) </script> </span>
+    </span>
+
+    <span class="button" id="toggle-proofs"></span>
+
+    <span class="right">
+      <a href="../">Project Page</a>
+      <a href="./indexpage.html"> Index </a>
+      <a href="./toc.html"> Table of Contents </a>
+    </span>
+</div>
+    <div id="content" tabindex="-1" onblur="document.getElementById('content').focus()">
+    <div id="main">
+<h1 class="libtitle">D.iris_extra.cmra_prop_lift</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+<a name="lab10"></a><h1 class="section">Utilities for lifting camera properties to <span class="inlinecode"><a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.base_logic.lib.iprop.html#iProp_solution.iProp"><span class="id" title="abbreviation">iProp</span></a></span>, used in <span class="inlinecode"><span class="id" title="var">swap_later_impl.v</span></span> and <span class="inlinecode"><span class="id" title="var">persistence.v</span></span>.</h1>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">From</span> <span class="id" title="var">iris.algebra</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.gmap.html#"><span class="id" title="library">gmap</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">iris.base_logic</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.base_logic.lib.iprop.html#"><span class="id" title="library">iprop</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+In practice, in this code <span class="inlinecode"><a class="idref" href="D.pure_program_logic.weakestpre.html#P"><span class="id" title="variable">P</span></a></span> meant to abstract over <i>type classes</i>, but
+this is not supported by Coq. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Implicit</span> <span class="id" title="keyword">Types</span> (<span class="id" title="var">P</span> : <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.cmra.html#cmraT"><span class="id" title="record">cmraT</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#c41c566ddac4c1298b9e7dd2bae1c794"><span class="id" title="notation">→</span></a> <span class="id" title="keyword">Type</span>) (<span class="id" title="var">F</span> : <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.cmra.html#rFunctor"><span class="id" title="record">rFunctor</span></a>) (<span class="id" title="var">Σ</span> : <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.base_logic.lib.iprop.html#gFunctors"><span class="id" title="definition">gFunctors</span></a>).<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Suggest</span> <span class="id" title="keyword">Proof</span> <span class="id" title="var">Using</span>.<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Proof</span> <span class="id" title="var">Using</span> "Type".<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="LiftCPropToRFunctor"><span class="id" title="abbreviation">LiftCPropToRFunctor</span></a> <span class="id" title="var">P</span> <span class="id" title="var">F</span> :=<br/>
+&nbsp;&nbsp;(<a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#e15f3fa8414cf45e36c73a91b3f5f2c2"><span class="id" title="notation">∀</span></a> <span class="id" title="var">A</span> `{!<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.ofe.html#Cofe"><span class="id" title="class">Cofe</span></a> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#A"><span class="id" title="variable">A</span></a>} <span class="id" title="var">B</span> `{!<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.ofe.html#Cofe"><span class="id" title="class">Cofe</span></a> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#B"><span class="id" title="variable">B</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#e15f3fa8414cf45e36c73a91b3f5f2c2"><span class="id" title="notation">},</span></a> <span class="id" title="var">P</span> (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.cmra.html#rFunctor_car"><span class="id" title="projection">rFunctor_car</span></a> <span class="id" title="var">F</span> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#B"><span class="id" title="variable">B</span></a>)).<br/>
+<span class="id" title="keyword">Notation</span> <a name="LiftCPropToGFunctors"><span class="id" title="abbreviation">LiftCPropToGFunctors</span></a> <span class="id" title="var">P</span> <span class="id" title="var">Σ</span> :=<br/>
+&nbsp;&nbsp;(<a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#e15f3fa8414cf45e36c73a91b3f5f2c2"><span class="id" title="notation">∀</span></a> <span class="id" title="var">i</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#e15f3fa8414cf45e36c73a91b3f5f2c2"><span class="id" title="notation">,</span></a> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#LiftCPropToRFunctor"><span class="id" title="abbreviation">LiftCPropToRFunctor</span></a> <span class="id" title="var">P</span> (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.base_logic.lib.iprop.html#gFunctors_lookup"><span class="id" title="definition">gFunctors_lookup</span></a> <span class="id" title="var">Σ</span> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#i"><span class="id" title="variable">i</span></a>)).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+All lemmas below are used to generate typeclass instances; the
+<span class="inlinecode"><span class="id" title="var">LiftCProp</span>×</span> lemmas are templates for instances, and <span class="inlinecode"><span class="id" title="var">LiftCProp</span>×<span class="id" title="var">_type</span></span> are
+helpers for declaring them. See <span class="inlinecode"><span class="id" title="var">swap_later_impl.v</span></span> for the intended usage. 
+<div class="paragraph"> </div>
+
+<a name="lab11"></a><h3 class="section">Lift to <span class="inlinecode">#[]</span>.</h3>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Notation</span> <a name="LiftCPropToGFunctors_nil_type"><span class="id" title="abbreviation">LiftCPropToGFunctors_nil_type</span></a> <span class="id" title="var">P</span> := (<a class="idref" href="D.iris_extra.cmra_prop_lift.html#LiftCPropToGFunctors"><span class="id" title="abbreviation">LiftCPropToGFunctors</span></a> <span class="id" title="var">P</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.base_logic.lib.iprop.html#55178d41d7107d58e1a212122a1f7484"><span class="id" title="notation">#[]</span></a>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="LiftCPropToGFunctors_nil"><span class="id" title="lemma">LiftCPropToGFunctors_nil</span></a> <span class="id" title="var">P</span> : <a class="idref" href="D.iris_extra.cmra_prop_lift.html#LiftCPropToGFunctors_nil_type"><span class="id" title="abbreviation">LiftCPropToGFunctors_nil_type</span></a> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#P"><span class="id" title="variable">P</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>. <span class="id" title="tactic">move</span>⇒ <span class="id" title="var">i</span>. <span class="id" title="tactic">apply</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.fin.html#fin_0_inv"><span class="id" title="abbreviation">fin_0_inv</span></a> <span class="id" title="keyword">with</span> (<span class="id" title="var">p</span> := <span class="id" title="var">i</span>). <span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab12"></a><h3 class="section">Lift to <span class="inlinecode"><span class="id" title="var">gFunctors.app</span></span>.</h3>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Notation</span> <a name="LiftCPropToGFunctors_app_type"><span class="id" title="abbreviation">LiftCPropToGFunctors_app_type</span></a> <span class="id" title="var">P</span> :=<br/>
+&nbsp;&nbsp;(<a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#e15f3fa8414cf45e36c73a91b3f5f2c2"><span class="id" title="notation">∀</span></a> <span class="id" title="var">Σ</span> <span class="id" title="var">Σ'</span> {<span class="id" title="var">HΣ</span> : <a class="idref" href="D.iris_extra.cmra_prop_lift.html#LiftCPropToGFunctors"><span class="id" title="abbreviation">LiftCPropToGFunctors</span></a> <span class="id" title="var">P</span> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#e15c0eb40e61adefe95778c26e7840f6"><span class="id" title="variable">Σ</span></a>} {<span class="id" title="var">HΣ'</span> : <a class="idref" href="D.iris_extra.cmra_prop_lift.html#LiftCPropToGFunctors"><span class="id" title="abbreviation">LiftCPropToGFunctors</span></a> <span class="id" title="var">P</span> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#52b145392dfbad12f334141f4035e258"><span class="id" title="variable">Σ'</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#e15f3fa8414cf45e36c73a91b3f5f2c2"><span class="id" title="notation">},</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="D.iris_extra.cmra_prop_lift.html#LiftCPropToGFunctors"><span class="id" title="abbreviation">LiftCPropToGFunctors</span></a> <span class="id" title="var">P</span> (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.base_logic.lib.iprop.html#gFunctors.app"><span class="id" title="definition">gFunctors.app</span></a> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#e15c0eb40e61adefe95778c26e7840f6"><span class="id" title="variable">Σ</span></a> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#52b145392dfbad12f334141f4035e258"><span class="id" title="variable">Σ'</span></a>)).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="LiftCPropToGFunctors_app"><span class="id" title="lemma">LiftCPropToGFunctors_app</span></a> <span class="id" title="var">P</span> : <a class="idref" href="D.iris_extra.cmra_prop_lift.html#LiftCPropToGFunctors_app_type"><span class="id" title="abbreviation">LiftCPropToGFunctors_app_type</span></a> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#P"><span class="id" title="variable">P</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span>; <span class="id" title="tactic">apply</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.fin.html#fin_plus_inv"><span class="id" title="definition">fin_plus_inv</span></a> <span class="id" title="keyword">with</span> (<span class="id" title="var">i</span> := <span class="id" title="var">i</span>); <span class="id" title="tactic">intros</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="tactic">rewrite</span> /= <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.fin.html#fin_plus_inv_L"><span class="id" title="lemma">fin_plus_inv_L</span></a>|<span class="id" title="tactic">rewrite</span> /= <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.fin.html#fin_plus_inv_R"><span class="id" title="lemma">fin_plus_inv_R</span></a>]; <span class="id" title="tactic">auto</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab13"></a><h3 class="section">Lift to <span class="inlinecode"><span class="id" title="var">gFunctors.singleton</span></span>.</h3>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Notation</span> <a name="LiftCPropToGFunctors_GFunctor_type"><span class="id" title="abbreviation">LiftCPropToGFunctors_GFunctor_type</span></a> <span class="id" title="var">F</span> <span class="id" title="var">P</span> :=<br/>
+&nbsp;&nbsp;(<a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#e15f3fa8414cf45e36c73a91b3f5f2c2"><span class="id" title="notation">∀</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#e15f3fa8414cf45e36c73a91b3f5f2c2"><span class="id" title="notation">(</span></a><span class="id" title="var">fp</span> : <a class="idref" href="D.iris_extra.cmra_prop_lift.html#LiftCPropToRFunctor"><span class="id" title="abbreviation">LiftCPropToRFunctor</span></a> <span class="id" title="var">P</span> <span class="id" title="var">F</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#e15f3fa8414cf45e36c73a91b3f5f2c2"><span class="id" title="notation">),</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="D.iris_extra.cmra_prop_lift.html#LiftCPropToGFunctors"><span class="id" title="abbreviation">LiftCPropToGFunctors</span></a> <span class="id" title="var">P</span> (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.base_logic.lib.iprop.html#gFunctors.singleton"><span class="id" title="definition">gFunctors.singleton</span></a> (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.base_logic.lib.iprop.html#GFunctor"><span class="id" title="constructor">GFunctor</span></a> <span class="id" title="var">F</span>))).<br/>
+
+<br/>
+<span class="comment">(*&nbsp;We&nbsp;abstract&nbsp;over&nbsp;<span class="inlinecode"><span class="id" title="var">rFunctorContractive</span></span>&nbsp;explicitly,&nbsp;to&nbsp;make&nbsp;it&nbsp;an&nbsp;implicit<br/>
+parameter.&nbsp;*)</span><br/>
+<span class="id" title="keyword">Lemma</span> <a name="LiftCPropToGFunctors_GFunctor"><span class="id" title="lemma">LiftCPropToGFunctors_GFunctor</span></a> `{!<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.cmra.html#rFunctorContractive"><span class="id" title="class">rFunctorContractive</span></a> <span class="id" title="var">F</span>} <span class="id" title="var">P</span> :<br/>
+&nbsp;&nbsp;<a class="idref" href="D.iris_extra.cmra_prop_lift.html#LiftCPropToGFunctors_GFunctor_type"><span class="id" title="abbreviation">LiftCPropToGFunctors_GFunctor_type</span></a> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#F"><span class="id" title="variable">F</span></a> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#P"><span class="id" title="variable">P</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span>; <span class="id" title="tactic">apply</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.fin.html#fin_S_inv"><span class="id" title="definition">fin_S_inv</span></a> <span class="id" title="keyword">with</span> (<span class="id" title="var">i</span> := <span class="id" title="var">i</span>); <span class="id" title="tactic">first</span> <span class="id" title="tactic">exact</span>: <span class="id" title="var">fp</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.fin.html#fin_0_inv"><span class="id" title="abbreviation">fin_0_inv</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Show what's needed to lift camera properties to <span class="inlinecode"><a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.base_logic.lib.iprop.html#iProp_solution.iResUR"><span class="id" title="definition">iResUR</span></a></span> (the resources
+used by <span class="inlinecode"><a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.base_logic.lib.iprop.html#iProp_solution.iProp"><span class="id" title="abbreviation">iProp</span></a></span>).
+This could be generated by typeclass search, but
+<ul class="doclist">
+<li> I prefer a way to see the actual code.
+
+</li>
+<li> In fact, we don't want typeclass search unfolding <span class="inlinecode"><a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.base_logic.lib.iprop.html#iProp_solution.iResUR"><span class="id" title="definition">iResUR</span></a></span> to prove a
+  proposition is persistent, so we make it <span class="inlinecode"><span class="id" title="keyword">Typeclasses</span></span> <span class="inlinecode"><span class="id" title="keyword">Opaque</span></span>.
+
+</li>
+</ul>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Type</span><span class="id" title="var">classes</span> <span class="id" title="keyword">Opaque</span> <span class="id" title="var">iResUR</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <a name="lift_cprop_iResUR"><span class="id" title="section">lift_cprop_iResUR</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Context</span> {<span class="id" title="var">P</span> : <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.cmra.html#cmraT"><span class="id" title="record">cmraT</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#c41c566ddac4c1298b9e7dd2bae1c794"><span class="id" title="notation">→</span></a> <span class="id" title="keyword">Type</span>}.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Context</span> {<span class="id" title="var">P_discrete_funUR</span> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#e15f3fa8414cf45e36c73a91b3f5f2c2"><span class="id" title="notation">∀</span></a> {<span class="id" title="var">A</span>} (<span class="id" title="var">B</span> : <a class="idref" href="D.iris_extra.cmra_prop_lift.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#c41c566ddac4c1298b9e7dd2bae1c794"><span class="id" title="notation">→</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.cmra.html#ucmraT"><span class="id" title="record">ucmraT</span></a>) `(<a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#e15f3fa8414cf45e36c73a91b3f5f2c2"><span class="id" title="notation">∀</span></a> <span class="id" title="var">i</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#e15f3fa8414cf45e36c73a91b3f5f2c2"><span class="id" title="notation">,</span></a> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#lift_cprop_iResUR.P"><span class="id" title="variable">P</span></a> (<a class="idref" href="D.iris_extra.cmra_prop_lift.html#B"><span class="id" title="variable">B</span></a> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#i"><span class="id" title="variable">i</span></a>)<a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#e15f3fa8414cf45e36c73a91b3f5f2c2"><span class="id" title="notation">),</span></a> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#lift_cprop_iResUR.P"><span class="id" title="variable">P</span></a> (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.cmra.html#discrete_funUR"><span class="id" title="definition">discrete_funUR</span></a> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#B"><span class="id" title="variable">B</span></a>)}.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Context</span> {<span class="id" title="var">P_gmapUR</span> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#e15f3fa8414cf45e36c73a91b3f5f2c2"><span class="id" title="notation">∀</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#e15f3fa8414cf45e36c73a91b3f5f2c2"><span class="id" title="notation">`{</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.countable.html#Countable"><span class="id" title="class">Countable</span></a> <span class="id" title="var">A</span>} `(<span class="id" title="var">HpT</span> : <a class="idref" href="D.iris_extra.cmra_prop_lift.html#lift_cprop_iResUR.P"><span class="id" title="variable">P</span></a> <span class="id" title="var">T</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#e15f3fa8414cf45e36c73a91b3f5f2c2"><span class="id" title="notation">),</span></a> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#lift_cprop_iResUR.P"><span class="id" title="variable">P</span></a> (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.algebra.gmap.html#gmapUR"><span class="id" title="definition">gmapUR</span></a> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#T"><span class="id" title="variable">T</span></a>)}.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="lift_cprop_iResUR"><span class="id" title="lemma">lift_cprop_iResUR</span></a> `{<span class="id" title="var">fp</span> : <a class="idref" href="D.iris_extra.cmra_prop_lift.html#LiftCPropToGFunctors"><span class="id" title="abbreviation">LiftCPropToGFunctors</span></a> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#lift_cprop_iResUR.P"><span class="id" title="variable">P</span></a> <span class="id" title="var">Σ</span>} : <a class="idref" href="D.iris_extra.cmra_prop_lift.html#lift_cprop_iResUR.P"><span class="id" title="variable">P</span></a> (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.base_logic.lib.iprop.html#iProp_solution.iResUR"><span class="id" title="definition">iResUR</span></a> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#e15c0eb40e61adefe95778c26e7840f6"><span class="id" title="variable">Σ</span></a>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Proof</span> <span class="id" title="keyword">using</span> <span class="id" title="keyword">Type</span>×.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> /<a class="idref" href="https://plv.mpi-sws.org/coqdoc/iris/iris.base_logic.lib.iprop.html#iProp_solution.iResUR"><span class="id" title="definition">iResUR</span></a>. <span class="id" title="tactic">apply</span> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#lift_cprop_iResUR.P_discrete_funUR"><span class="id" title="variable">P_discrete_funUR</span></a> ⇒ <span class="id" title="var">i</span>; <span class="id" title="tactic">apply</span> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#lift_cprop_iResUR.P_gmapUR"><span class="id" title="variable">P_gmapUR</span></a>, <span class="id" title="var">fp</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Qed</span>.<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="D.iris_extra.cmra_prop_lift.html#lift_cprop_iResUR"><span class="id" title="section">lift_cprop_iResUR</span></a>.<br/>
+</div>
+</div>
+<div id="footer">
+  Generated by <a href="http://coq.inria.fr/">coqdoc</a> and improved with <a href="https://github.com/tebbi/coqdocjs">CoqdocJS</a>
+</div>
+</div>
+</body>
+
+</html>

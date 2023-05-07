@@ -1,0 +1,87 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<link href="coqdocjs.css" rel="stylesheet" type="text/css"/>
+</head>
+
+<body onload="document.getElementById('content').focus()">
+  <div id="header">
+    <span class="left">
+      <span class="modulename"> <script> document.write(document.title) </script> </span>
+    </span>
+
+    <span class="button" id="toggle-proofs"></span>
+
+    <span class="right">
+      <a href="../">Project Page</a>
+      <a href="./indexpage.html"> Index </a>
+      <a href="./toc.html"> Table of Contents </a>
+    </span>
+</div>
+    <div id="content" tabindex="-1" onblur="document.getElementById('content').focus()">
+    <div id="main">
+<h1 class="libtitle">D.Dot.examples.syn.syn_lemmas</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+<a name="lab164"></a><h1 class="section">Free-variable lemmas for DOT.</h1>
+
+To limit compile times, do not load this file in unary_lr. 
+</div>
+<div class="code">
+<span class="id" title="keyword">From</span> <span class="id" title="var">D.Dot</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="D.Dot.syn.syn.html#"><span class="id" title="library">syn</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Implicit</span> <span class="id" title="keyword">Types</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">L</span> <span class="id" title="var">T</span> <span class="id" title="var">U</span>: <a class="idref" href="D.Dot.syn.syn.html#VlSorts.ty"><span class="id" title="inductive">ty</span></a>) (<span class="id" title="var">v</span>: <a class="idref" href="D.Dot.syn.syn.html#VlSorts.vl"><span class="id" title="definition">vl</span></a>) (<span class="id" title="var">e</span>: <a class="idref" href="D.Dot.syn.syn.html#VlSorts.tm"><span class="id" title="inductive">tm</span></a>) (<span class="id" title="var">d</span>: <a class="idref" href="D.Dot.syn.syn.html#VlSorts.dm"><span class="id" title="inductive">dm</span></a>) (<span class="id" title="var">ds</span>: <a class="idref" href="D.Dot.syn.syn.html#VlSorts.dms"><span class="id" title="definition">dms</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Γ</span> : <a class="idref" href="D.Dot.syn.syn.html#VlSorts.ctx"><span class="id" title="definition">ctx</span></a>) (ρ : <a class="idref" href="D.Dot.syn.syn.html#VlSorts.vls"><span class="id" title="definition">vls</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Here is a manual proof of <span class="inlinecode"><a class="idref" href="D.Dot.examples.syn.syn_lemmas.html#fv_vabs_inv"><span class="id" title="lemma">fv_vabs_inv</span></a></span>, with explanations, as
+documentation for <span class="inlinecode"><span class="id" title="var">solve_inv_fv_congruence</span></span>. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a name="fv_vabs_inv_manual"><span class="id" title="lemma">fv_vabs_inv_manual</span></a> <span class="id" title="var">e</span> <span class="id" title="var">n</span> : <a class="idref" href="D.Dot.syn.syn.html#VlSorts.nclosed_vl"><span class="id" title="definition">nclosed_vl</span></a> (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.vabs"><span class="id" title="constructor">vabs</span></a> <a class="idref" href="D.Dot.examples.syn.syn_lemmas.html#e"><span class="id" title="variable">e</span></a>) <a class="idref" href="D.Dot.examples.syn.syn_lemmas.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#c41c566ddac4c1298b9e7dd2bae1c794"><span class="id" title="notation">→</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.nclosed"><span class="id" title="definition">nclosed</span></a> <a class="idref" href="D.Dot.examples.syn.syn_lemmas.html#e"><span class="id" title="variable">e</span></a> <a class="idref" href="D.Dot.examples.syn.syn_lemmas.html#n"><span class="id" title="variable">n</span></a><a class="idref" href="D.succ_notation.html#bda89d73ec4a8f23ae92b565ffb5aaa6"><span class="id" title="notation">.+1</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> /<a class="idref" href="D.Dot.syn.syn.html#VlSorts.nclosed_vl"><span class="id" title="definition">nclosed_vl</span></a> /<a class="idref" href="D.Dot.syn.syn.html#VlSorts.nclosed"><span class="id" title="definition">nclosed</span></a> ⇒ /= <span class="id" title="var">Hfv</span> <span class="id" title="var">s1</span> <span class="id" title="var">s2</span> <span class="id" title="var">HsEq</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="comment">(*&nbsp;From&nbsp;<span class="inlinecode"><span class="id" title="var">Hfv</span></span>,&nbsp;we&nbsp;only&nbsp;learn&nbsp;that&nbsp;<span class="inlinecode"><span class="id" title="var">e</span>.|[<span class="id" title="var">up</span></span> <span class="inlinecode"><span class="id" title="var">s1</span>]</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">e</span>.|[<span class="id" title="var">up</span></span> <span class="inlinecode"><span class="id" title="var">s2</span>]</span>,&nbsp;for&nbsp;arbitrary<br/>
+&nbsp;&nbsp;<span class="inlinecode"><span class="id" title="var">s1</span></span>&nbsp;and&nbsp;<span class="inlinecode"><span class="id" title="var">s2</span></span>,&nbsp;but&nbsp;substitutions&nbsp;in&nbsp;our&nbsp;thesis&nbsp;<span class="inlinecode"><span class="id" title="var">e</span>.|[<span class="id" title="var">s1</span>]</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">e</span>.|[<span class="id" title="var">s2</span>]</span>&nbsp;are&nbsp;not<br/>
+&nbsp;&nbsp;of&nbsp;form&nbsp;<span class="inlinecode"><span class="id" title="var">up</span></span> <span class="inlinecode">?</span>.&nbsp;Hence,&nbsp;we&nbsp;rewrite&nbsp;it&nbsp;using&nbsp;<span class="inlinecode"><span class="id" title="var">decomp_s</span></span>&nbsp;/&nbsp;<span class="inlinecode"><span class="id" title="var">decomp_s_vl</span></span>&nbsp;to<br/>
+&nbsp;&nbsp;get&nbsp;a&nbsp;substitution&nbsp;of&nbsp;form&nbsp;<span class="inlinecode"><span class="id" title="var">up</span></span> <span class="inlinecode">?</span>,&nbsp;then&nbsp;rewrite&nbsp;with&nbsp;<span class="inlinecode"><span class="id" title="var">e</span>.|[<span class="id" title="var">up</span></span> <span class="inlinecode">(<span class="id" title="var">stail</span></span> <span class="inlinecode"><span class="id" title="var">s1</span>)]</span> <span class="inlinecode">=</span>
+  <span class="inlinecode"><span class="id" title="var">e</span>.|[<span class="id" title="var">up</span></span> <span class="inlinecode">(<span class="id" title="var">stail</span></span> <span class="inlinecode"><span class="id" title="var">s2</span>)]</span>&nbsp;(got&nbsp;from&nbsp;<span class="inlinecode"><span class="id" title="var">Hfv</span></span>),&nbsp;and&nbsp;conclude.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*)</span><br/>
+&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> ?(<a class="idref" href="D.Dot.syn.syn.html#VlSorts.decomp_s"><span class="id" title="lemma">decomp_s</span></a> <span class="id" title="var">_</span> <span class="id" title="var">s1</span>) ?(<a class="idref" href="D.Dot.syn.syn.html#VlSorts.decomp_s"><span class="id" title="lemma">decomp_s</span></a> <span class="id" title="var">_</span> <span class="id" title="var">s2</span>) ?(<a class="idref" href="D.Dot.syn.syn.html#VlSorts.decomp_s_vl"><span class="id" title="lemma">decomp_s_vl</span></a> <span class="id" title="var">_</span> <span class="id" title="var">s1</span>) ?(<a class="idref" href="D.Dot.syn.syn.html#VlSorts.decomp_s_vl"><span class="id" title="lemma">decomp_s_vl</span></a> <span class="id" title="var">_</span> <span class="id" title="var">s2</span>) (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.eq_n_s_heads"><span class="id" title="lemma">eq_n_s_heads</span></a> <span class="id" title="var">HsEq</span>); <span class="id" title="var">last</span> <span class="id" title="var">lia</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">injection</span> (<span class="id" title="var">Hfv</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.eq_n_s_tails"><span class="id" title="lemma">eq_n_s_tails</span></a> <span class="id" title="var">HsEq</span>)); <span class="id" title="var">rewritePremises</span>; <span class="id" title="tactic">reflexivity</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The following ones are "direct" lemmas: deduce that an expression is closed
+    by knowing that its subexpression are closed. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="fv_vabs_inv"><span class="id" title="lemma">fv_vabs_inv</span></a> <span class="id" title="var">e</span> <span class="id" title="var">n</span>: <a class="idref" href="D.Dot.syn.syn.html#VlSorts.nclosed_vl"><span class="id" title="definition">nclosed_vl</span></a> (<a class="idref" href="D.Dot.syn.syn.html#VlSorts.vabs"><span class="id" title="constructor">vabs</span></a> <a class="idref" href="D.Dot.examples.syn.syn_lemmas.html#e"><span class="id" title="variable">e</span></a>) <a class="idref" href="D.Dot.examples.syn.syn_lemmas.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.2/stdlib//Coq.Unicode.Utf8_core.html#c41c566ddac4c1298b9e7dd2bae1c794"><span class="id" title="notation">→</span></a> <a class="idref" href="D.Dot.syn.syn.html#VlSorts.nclosed"><span class="id" title="definition">nclosed</span></a> <a class="idref" href="D.Dot.examples.syn.syn_lemmas.html#e"><span class="id" title="variable">e</span></a> <a class="idref" href="D.Dot.examples.syn.syn_lemmas.html#n"><span class="id" title="variable">n</span></a><a class="idref" href="D.succ_notation.html#bda89d73ec4a8f23ae92b565ffb5aaa6"><span class="id" title="notation">.+1</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>. <span class="id" title="var">solve_inv_fv_congruence</span>. <span class="id" title="keyword">Qed</span>.<br/>
+</div>
+</div>
+<div id="footer">
+  Generated by <a href="http://coq.inria.fr/">coqdoc</a> and improved with <a href="https://github.com/tebbi/coqdocjs">CoqdocJS</a>
+</div>
+</div>
+</body>
+
+</html>
