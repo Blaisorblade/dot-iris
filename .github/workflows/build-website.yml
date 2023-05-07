@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         image:
-          - blaisorblade/docker-dot-iris:coq-8.15-iris-3.6.0
+          - blaisorblade/docker-dot-iris:coq-8.15-iris-4.0.0
 
     steps:
       - name: Checkout 🛎️

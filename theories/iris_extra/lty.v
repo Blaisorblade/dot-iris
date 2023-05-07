@@ -460,7 +460,7 @@ Section olty_lemmas.
 
   Lemma oLaterN_plus {m n} {T : olty Σ} :
     oLaterN (m + n) T ≡ oLaterN m (oLaterN n T).
-  Proof. move=> ???. by rewrite/= laterN_plus. Qed.
+  Proof. move=> ???. by rewrite/= laterN_add. Qed.
 
   Lemma oMu_eq (τ : oltyO Σ) args ρ v : oMu τ args ρ v = τ args (v .: ρ) v.
   Proof. done. Qed.

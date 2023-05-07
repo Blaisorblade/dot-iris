@@ -1,4 +1,5 @@
 (** * Iris saved predicates. *)
+From iris.algebra Require Import dfrac.
 From iris.base_logic Require Import lib.saved_prop.
 From stdpp Require Import vector.
 From D Require Import prelude iris_prelude asubst_intf.
@@ -92,7 +93,7 @@ Section saved_ho_sem_type.
   Qed.
 
   Definition saved_ho_sem_type_own γ n (Φ : hoEnvPred s Σ n) : iProp Σ :=
-    saved_anything_own (F := hoEnvPredOF s) γ (ho_pack (existT n Φ)).
+    saved_anything_own (F := hoEnvPredOF s) γ DfracDiscarded (ho_pack (existT n Φ)).
   Notation "γ ⤇n[ n  ] φ" := (saved_ho_sem_type_own γ n φ) (at level 20).
 
   #[global] Instance saved_ho_sem_type_own_persistent γ n φ :
@@ -107,7 +108,7 @@ Section saved_ho_sem_type.
   Qed.
 
   Lemma saved_ho_sem_type_alloc i φ : ⊢ |==> ∃ γ, γ ⤇n[ i ] φ.
-  Proof. apply saved_anything_alloc. Qed.
+  Proof. exact: saved_anything_alloc. Qed.
 
   Lemma leibniz_equivI (PROP : bi) `{LeibnizEquiv A} x y : ⌜ x ≡@{A} y ⌝ ⊢@{PROP} ⌜ x = y ⌝.
   Proof. iIntros "!%". apply leibniz_equiv. Qed.

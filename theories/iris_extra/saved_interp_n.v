@@ -1,3 +1,4 @@
+From iris.algebra Require Import dfrac.
 From iris.base_logic Require Import lib.saved_prop.
 From D Require Import prelude iris_prelude asubst_intf.
 
@@ -49,7 +50,7 @@ Section saved_ho_sem_type.
   Definition curryC Φ : argType s -d> iPropO Σ := (λ '(args, ρ, c), Φ args ρ c).
 
   Definition saved_ho_sem_type_own (γ : gname) Φ :=
-    saved_pred_own γ (curryC Φ).
+    saved_pred_own γ DfracDiscarded (curryC Φ).
 
   #[global] Instance saved_ho_sem_type_own_contractive γ : Contractive (saved_ho_sem_type_own γ).
   Proof.
@@ -60,12 +61,12 @@ Section saved_ho_sem_type.
   #[global] Instance persistent_saved_ho_sem_type_own γ Φ : Persistent (saved_ho_sem_type_own γ Φ) := _.
 
   Lemma saved_ho_sem_type_alloc Φ : ⊢ |==> ∃ γ, saved_ho_sem_type_own γ Φ.
-  Proof. apply saved_pred_alloc. Qed.
+  Proof. exact: saved_pred_alloc. Qed.
 
   Lemma saved_ho_sem_type_agree {γ Φ Ψ} args ρ c :
     saved_ho_sem_type_own γ Φ -∗ saved_ho_sem_type_own γ Ψ -∗
     ▷ (Φ args ρ c ≡ Ψ args ρ c).
-  Proof. apply (saved_pred_agree γ (curryC Φ) (curryC Ψ) (_, _, _)). Qed.
+  Proof. apply (saved_pred_agree γ _ _ (curryC Φ) (curryC Ψ) (_, _, _)). Qed.
 End saved_ho_sem_type.
 
 Typeclasses Opaque saved_ho_sem_type_own.
