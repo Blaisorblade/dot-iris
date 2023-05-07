@@ -59,7 +59,7 @@ Section proofmode_extra.
   Proof. by rewrite -bi.later_laterN bi.laterN_later. Qed.
 
   Lemma swap_laterN i j {P} : ▷^i ▷^j P ⊣⊢ ▷^j ▷^i P.
-  Proof. by rewrite -bi.laterN_plus Nat.add_comm bi.laterN_plus. Qed.
+  Proof. by rewrite -bi.laterN_add Nat.add_comm bi.laterN_add. Qed.
 
   Lemma timeless_timelessN i P :
     Timeless P →
@@ -100,7 +100,7 @@ Section proofmode_extra.
   Lemma strip_pure_laterN_wand' i j φ Q :
     (⌜ φ ⌝ -∗ ▷^(i + j) Q) -∗ (▷^i ⌜ φ ⌝ -∗ ▷^(i + j) Q).
   Proof.
-    rewrite Nat.add_comm (laterN_intro j (▷^i ⌜ φ ⌝))%I -laterN_plus.
+    rewrite Nat.add_comm (laterN_intro j (▷^i ⌜ φ ⌝))%I -laterN_add.
     exact: strip_pure_laterN_wand.
   Qed.
 End proofmode_extra.

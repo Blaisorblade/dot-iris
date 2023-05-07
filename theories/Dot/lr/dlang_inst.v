@@ -49,7 +49,7 @@ Module Import gdot_proofmode.
       f = (λ e, ectx_language.fill K e) → (* as an eta expanded hypothesis so that we can `simpl` it *)
       envs_entails Δ (WP e {{ v, WP f (tv v) {{ Φ }} }})%I →
       envs_entails Δ (WP ectx_language.fill K e {{ Φ }}).
-    Proof. rewrite envs_entails_eq=> -> ->. by apply: wp_bind. Qed.
+    Proof. rewrite envs_entails_unseal=> -> ->. by apply: wp_bind. Qed.
   End CoqTactics.
 
   Ltac wp_bind_core K :=

@@ -33,8 +33,8 @@ Notation LiftCPropToGFunctors_app_type P :=
 
 Lemma LiftCPropToGFunctors_app P : LiftCPropToGFunctors_app_type P.
 Proof.
-  intros; apply fin_plus_inv with (i := i); intros;
-    [rewrite /= fin_plus_inv_L|rewrite /= fin_plus_inv_R]; auto.
+  intros; apply fin_add_inv with (i := i); intros;
+    [rewrite /= fin_add_inv_l|rewrite /= fin_add_inv_r]; auto.
 Qed.
 
 

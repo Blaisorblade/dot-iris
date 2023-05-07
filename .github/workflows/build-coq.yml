@@ -42,7 +42,7 @@ jobs:
         # Browse URL: https://hub.docker.com/r/mathcomp/mathcomp#supported-tags
         # to get the list of supported tags in mathcomp/mathcomp
         image:
-          - blaisorblade/docker-dot-iris:coq-8.15-iris-3.6.0
+          - blaisorblade/docker-dot-iris:coq-8.15-iris-4.0.0
         #   - mathcomp/mathcomp:1.12.0-coq-8.12
       # at most 20 concurrent jobs per free account:
       # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#usage-limits

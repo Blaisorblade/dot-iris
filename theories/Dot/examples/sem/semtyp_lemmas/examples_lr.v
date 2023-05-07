@@ -52,3 +52,89 @@ Section Lemmas.
   Lemma sT_Mu_E {Γ T v} : Γ s⊨ tv v : oMu T -∗ Γ s⊨ tv v : T.|[v/].
   Proof. by rewrite sTMu_equiv. Qed.
 End Lemmas.
+
+(*
+
+From iris Require Import later_credits.
+From iris.base_logic Require Import fancy_updates.
+Section foo.
+  Context `{HdotG : !dlangG Σ} `{!invGS Σ}.
+  Context `[!RecTyInterp Σ].
+  (* Goal FUpd (iProp Σ).
+  apply _. *)
+
+  Definition sstpl i Γ (T1 T2 : olty Σ) : iProp Σ :=
+    <PB> ∀ ρ v, sG⟦Γ⟧* ρ -∗ £ i -∗ oClose T1 ρ v -∗ oClose T2 ρ v.
+
+  #[global] Arguments sstpl /.
+  #[global] Instance sstpl_persistent i Γ T1 T2 : Persistent (sstpl i Γ T1 T2) := _.
+  Notation "Γ s⊨ T1 <:[ i  ] T2" := (sstpl i Γ T1 T2).
+
+  Lemma sStp_And Γ T U1 U2 i j :
+    Γ s⊨ T <:[i] U1 -∗
+    Γ s⊨ T <:[j] U2 -∗
+    Γ s⊨ T <:[i + j] oAnd U1 U2.
+  Proof.
+    pupd; iIntros "#H1 #H2 !> %ρ %v #Hg [Ci Cj]".
+    iSpecialize ("H1" $! ρ v with "Hg Ci"); iSpecialize ("H2" $! ρ v with "Hg Cj").
+    iIntros "#H".
+    iSplit; [iApply "H1" | iApply "H2"]; iApply "H".
+  Qed.
+
+  Lemma sDistr_And_Or_Stp Γ {S T U i} : ⊢ Γ s⊨ oAnd (oOr S T) U <:[i] oOr (oAnd S U) (oAnd T U).
+  Proof.
+    pupd; iIntros "!> %ρ %v #Hg Ci [[HS|HT] Hu] /="; [iLeft|iRight]; iFrame.
+  Qed.
+
+  Definition ofLaterN n (τ : oltyO Σ) :=
+    Olty (λI args ρ v, □ |={⊤}▷=>^n τ args ρ v).
+  Notation ofLater := (ofLaterN 1).
+
+
+  #[global] Instance lc_pers i : Persistent (£ i).
+  Proof. Admitted.
+  #[global] Instance lc_affine i : Affine (£ i).
+  Proof. Admitted.
+  Instance into_and_lc_add : `(IntoAnd b £ (n + m) £ n £ m).
+  Proof. Admitted.
+
+  Lemma sLater_Stp_Eq {Γ T U i} `{SwapPropI Σ} :
+    Γ s⊨ T <:[i] U ⊣⊢
+    Γ s⊨ ofLater T <:[i] ofLater U.
+  Proof.
+    iSplit; pupd. {
+      iIntros "#W !> %ρ %v #Hg #Ci #V /= !>".
+      iApply ("W" $! ρ v with "Hg Ci V").
+    }
+    iIntros "#W !> %ρ %v #Hg #Ci #V".
+    iSpecialize ("W" $! ρ v with "Hg Ci").
+    iSplitL. iFrame "Ci".
+    admit.
+    iApply (lc_fupd_elim_later with "C").
+    iNext.
+    later_credits
+    by rewrite sstpd_delay_oLaterN_plus. Qed.
+
+
+  Lemma lsTyp_Sub_Typ l i j Γ L1 L2 U1 U2 :
+    Γ s⊨ L2 <:[ i ] L1 -∗
+    Γ s⊨ U1 <:[ j ] U2 -∗
+    Γ s⊨ oTMem l L1 U1 <:[ i + j ] oTMem l L2 U2.
+  Proof.
+    pupd. iIntros "#HT1 #HT2 !> %ρ %v #Hg #[Ci Cj]".
+    rewrite !oTMem_eq.
+    iDestruct 1 as (φ d Hl) "#[Hφl [#HLφ #HφU]]".
+    iExists φ, d; iFrame (Hl) "Hφl".
+    iSplitL "Ci"; iIntros "" (w) "!>".
+    all: iIntros "#H".
+    1: iSpecialize ("HT1" $! ρ w with "Hg Ci").
+    2: iSpecialize ("HT2" $! ρ w with "Hg Cj").
+    {
+      iApply ("HLφ" $! w with "(HT1 H)").
+    }
+    iApply ("HT2" with "(HφU H)").
+  Qed.
+
+
+End foo.
+  *)

@@ -192,7 +192,7 @@ Section DStpLemmas.
     Γ s⊨ T1 <:[i] oLaterN j T2.
   Proof.
     rewrite -sstpd_delay_oLaterN; pupd; iIntros "#Htyp !> %ρ Hg %v HvT1".
-    iEval rewrite /= -(path_wp_pv_eq _ (T2 _ _)) -laterN_plus.
+    iEval rewrite /= -(path_wp_pv_eq _ (T2 _ _)) -laterN_add.
     iApply ("Htyp" $! (v .: ρ) with "[$Hg $HvT1]").
   Qed.
 
