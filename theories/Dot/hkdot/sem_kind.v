@@ -423,7 +423,8 @@ Section s_kind_ofe.
       + by induction (Hx 0); constructor; (apply equiv_dist || apply IHd) => m;
           have := (Hx m); intros [??]%(inj2 _).
     - apply _.
-    - move => m x y; elim; constructor; eauto; by apply dist_S.
+    - rewrite /dist /s_kind_dist.
+      move => m n' x y; elim; constructor; eauto using dist_lt.
   Qed.
 End s_kind_ofe.
 
