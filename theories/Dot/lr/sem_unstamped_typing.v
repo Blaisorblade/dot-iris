@@ -74,8 +74,9 @@ Theorem unstamped_s_safety_dot_sem
   safe e_u.
 Proof.
   intros e_u' [n Hsteps]%rtc_nsteps_1.
-  apply (soundness (M := iResUR Σ) _ n).
-  apply (bupd_plain_soundness _).
+  apply (pure_soundness (M := iResUR Σ)).
+  apply (laterN_soundness _ n).
+  apply (bupd_soundness _).
   iDestruct (Hwp HdlangG HswapProp) as "#>#(%e_s & %Hsim & -#Hwp)".
   iSpecialize ("Hwp" $! ids with "[//]"); rewrite hsubst_id /=.
   iMod (wptp_safe_n n with "Hwp") as "Hwp".

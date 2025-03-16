@@ -55,7 +55,8 @@ Section saved_ho_sem_type.
   #[global] Instance saved_ho_sem_type_own_contractive γ : Contractive (saved_ho_sem_type_own γ).
   Proof.
     rewrite /saved_ho_sem_type_own => n f g Hfg.
-    apply saved_pred_own_contractive. case: n Hfg => [//|n Hfg [[]] //].
+    apply saved_pred_own_contractive.
+    by dist_later_intro => -[[]].
   Qed.
 
   #[global] Instance persistent_saved_ho_sem_type_own γ Φ : Persistent (saved_ho_sem_type_own γ Φ) := _.
